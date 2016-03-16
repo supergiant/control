@@ -12,7 +12,8 @@ type JobStorage struct {
 }
 
 func parseJobID(key string) string {
-	return strings.Split(key, "/")[1]
+	strs := strings.Split(key, "/")
+	return strs[len(strs)-1]
 }
 
 func (store *JobStorage) Create(e *model.Job) (*model.Job, error) {

@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"net/http"
+	"supergiant/core/job"
 	"supergiant/core/model"
 	"supergiant/core/storage"
 
@@ -71,6 +72,30 @@ func (s *ComponentController) Create(w http.ResponseWriter, r *http.Request) {
 	}
 
 	out, err := json.Marshal(component)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+
+	// TODO
+	msg := &job.DeployComponentMessage{
+		AppName:       app.Name,
+		ComponentName: component.Name,
+	}
+	data, err := json.Marshal(msg)
+
+	fmt.Println("DeployComponentMessage: ", data)
+
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+	job := &model.Job{
+		Type:   job.JobTypeDeployComponent,
+		Data:   data,
+		Status: "QUEUED", // TODO
+	}
+	job, err = s.db.JobStorage.Create(job)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return

@@ -13,12 +13,12 @@ const (
 )
 
 const (
-	JobDeployComponent = iota
+	JobTypeDeployComponent = iota
 )
 
 type Performable interface {
 	MaxAttempts() int
-	Perform(data string) error
+	Perform(data []byte) error
 }
 
 type Worker struct {
@@ -32,6 +32,7 @@ func NewWorker(db *storage.Client, kube *guber.Client) *Worker {
 
 func (w *Worker) Work() {
 	for {
+		time.Sleep(interval)
 
 		// find Job where status is QUEUED
 		// perform CAS, changing QUEUED to STARTED
@@ -46,14 +47,20 @@ func (w *Worker) Work() {
 
 		jobs, err := w.db.JobStorage.List()
 		if err != nil {
-			panic(err)
+			// panic(err)
+			// TODO -- key does not exist, just keep going
+			continue
 		}
 
 		var performer Performable
 
 		for _, job := range jobs {
-			if job.Status == "QUEUED" {
 
+			// if job.Status != "QUEUED" {
+			// 	continue
+			// }
+
+			if job.Status == "QUEUED" {
 				prevValue, err := json.Marshal(job)
 				if err != nil {
 					panic(err)
@@ -66,14 +73,24 @@ func (w *Worker) Work() {
 
 				// TODO this should be moved to JobStorage
 				key := fmt.Sprintf("/jobs/%s", job.ID)
-				w.db.CompareAndSwap(key, string(prevValue), string(newValue))
+				_, err = w.db.CompareAndSwap(key, string(prevValue), string(newValue))
+				if err != nil {
+					panic(err)
+				}
 
 				switch job.Type {
-				case JobDeployComponent:
+				case JobTypeDeployComponent:
 					performer = DeployComponent{w.db, w.kube}
 				}
 
+				// TODO
+				jobstr, _ := json.Marshal(job)
+				fmt.Println(fmt.Sprintf("Starting job: %s", jobstr))
+
 				if err = performer.Perform(job.Data); err != nil {
+
+					fmt.Println("ERROR: ", err.Error())
+
 					job.Error = err.Error()
 
 					if job.Attempts < performer.MaxAttempts() {
@@ -92,7 +109,5 @@ func (w *Worker) Work() {
 
 			}
 		}
-
-		time.Sleep(interval)
 	}
 }
