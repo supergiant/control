@@ -5,29 +5,15 @@ import (
 	"fmt"
 	"net/http"
 	"supergiant/core/model"
-	"supergiant/core/storage"
 
 	"github.com/gorilla/mux"
 )
 
 type AppController struct {
-	db *storage.Client
+	client *model.Client
 }
 
-type appListResponse struct {
-	Items []*model.App `json:"items"`
-}
-
-func NewAppController(router *mux.Router, db *storage.Client) *AppController {
-	controller := AppController{db: db}
-	router.HandleFunc("/apps", controller.Create).Methods("POST")
-	router.HandleFunc("/apps", controller.Index).Methods("GET")
-	router.HandleFunc("/apps/{name}", controller.Show).Methods("GET")
-	router.HandleFunc("/apps/{name}", controller.Delete).Methods("DELETE")
-	return &controller
-}
-
-func (e *AppController) Create(w http.ResponseWriter, r *http.Request) {
+func (c *AppController) Create(w http.ResponseWriter, r *http.Request) {
 	app := new(model.App)
 	decoder := json.NewDecoder(r.Body)
 	err := decoder.Decode(app)
@@ -36,12 +22,22 @@ func (e *AppController) Create(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	app, err = e.db.AppStorage.Create(app)
-
+	app, err = c.client.Apps().Create(app)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
 	}
+
+	// namespace := &guber.Namespace{
+	// 	Metadata: &guber.Metadata{
+	// 		Name: app.Name,
+	// 	},
+	// }
+	// namespace, err = e.kube.Namespaces().Create(namespace)
+	// if err != nil {
+	// 	http.Error(w, err.Error(), http.StatusInternalServerError)
+	// 	return
+	// }
 
 	out, err := json.Marshal(app)
 	if err != nil {
@@ -53,14 +49,14 @@ func (e *AppController) Create(w http.ResponseWriter, r *http.Request) {
 	fmt.Fprint(w, string(out))
 }
 
-func (e *AppController) Index(w http.ResponseWriter, r *http.Request) {
-	apps, err := e.db.AppStorage.List()
+func (c *AppController) Index(w http.ResponseWriter, r *http.Request) {
+	apps, err := c.client.Apps().List()
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
 	}
 
-	out, err := json.Marshal(appListResponse{Items: apps})
+	out, err := json.Marshal(apps)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
@@ -69,9 +65,9 @@ func (e *AppController) Index(w http.ResponseWriter, r *http.Request) {
 	fmt.Fprint(w, string(out))
 }
 
-func (e *AppController) Show(w http.ResponseWriter, r *http.Request) {
+func (c *AppController) Show(w http.ResponseWriter, r *http.Request) {
 	appName := mux.Vars(r)["name"]
-	app, err := e.db.AppStorage.Get(appName)
+	app, err := c.client.Apps().Get(appName)
 	if err != nil {
 		http.Error(w, "Not Found", http.StatusNotFound)
 		return
@@ -86,9 +82,14 @@ func (e *AppController) Show(w http.ResponseWriter, r *http.Request) {
 	fmt.Fprint(w, string(out))
 }
 
-func (e *AppController) Delete(w http.ResponseWriter, r *http.Request) {
+func (c *AppController) Delete(w http.ResponseWriter, r *http.Request) {
 	appName := mux.Vars(r)["name"]
-	if err := e.db.AppStorage.Delete(appName); err != nil {
+
+	// // NOTE we don't want to return on error here, because if not found, we are
+	// // okay -- if the error is at the system level, we should be panicking, not returning errors
+	// e.kube.Namespaces().Delete(appName) // TODO though it should probably not run this request if the App does not exist in storage
+
+	if err := c.client.Apps().Delete(appName); err != nil {
 		http.Error(w, err.Error(), http.StatusNotFound)
 		return
 	}

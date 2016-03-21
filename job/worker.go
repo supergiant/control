@@ -13,7 +13,7 @@ const (
 )
 
 const (
-	JobTypeDeployComponent = iota
+	JobTypeCreateComponent = iota
 )
 
 type Performable interface {
@@ -79,8 +79,8 @@ func (w *Worker) Work() {
 				}
 
 				switch job.Type {
-				case JobTypeDeployComponent:
-					performer = DeployComponent{w.db, w.kube}
+				case JobTypeCreateComponent:
+					performer = CreateComponent{w.db, w.kube}
 				}
 
 				// TODO
