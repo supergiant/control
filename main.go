@@ -4,16 +4,16 @@ import (
 	"fmt"
 	"log"
 	"net/http"
-	"supergiant/core/controller"
-	"supergiant/core/model"
+	"supergiant/controller"
+	"supergiant/core"
 )
 
 func main() {
 
-	client := model.NewClient()
+	client := core.NewClient()
 
 	// TODO
-	// go job.NewWorker(db, kube).Work()
+	go core.NewWorker(client).Work()
 
 	router := controller.NewRouter(client)
 

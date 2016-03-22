@@ -1,4 +1,4 @@
-package model
+package core
 
 type Entrypoint struct {
 	Domain  string `json:"domain"`  // e.g. blog.qbox.io

@@ -1,4 +1,4 @@
-package model
+package core
 
 import (
 	"guber"
@@ -16,7 +16,7 @@ type ImageRepo struct {
 }
 
 type ImageRepoList struct {
-	Items []*ImageRepo
+	Items []*ImageRepo `json:"items"`
 }
 
 // Model (Entity)
@@ -48,8 +48,15 @@ func (r *ImageRepoResource) EtcdKey(modelName string) string {
 	return path.Join("/image_repos/dockerhub", modelName)
 }
 
-func (r *ImageRepoResource) List() (list *ImageRepoList, err error) {
-	err = r.c.DB.List(r, list)
+// InitializeModel is a part of Resource interface
+func (r *ImageRepoResource) InitializeModel(m Model) {
+	model := m.(*ImageRepo)
+	model.r = r
+}
+
+func (r *ImageRepoResource) List() (*ImageRepoList, error) {
+	list := new(ImageRepoList)
+	err := r.c.DB.List(r, list)
 	return list, err
 }
 
@@ -58,8 +65,9 @@ func (r *ImageRepoResource) Create(m *ImageRepo) (*ImageRepo, error) {
 	return m, err
 }
 
-func (r *ImageRepoResource) Get(name string) (m *ImageRepo, err error) {
-	err = r.c.DB.Get(r, name, m)
+func (r *ImageRepoResource) Get(name string) (*ImageRepo, error) {
+	m := new(ImageRepo)
+	err := r.c.DB.Get(r, name, m)
 	return m, err
 }
 

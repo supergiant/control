@@ -2,7 +2,7 @@ package controller
 
 // import (
 // 	"net/http"
-// 	"supergiant/core/storage"
+// 	"supergiant/storage"
 //
 // 	"github.com/gorilla/mux"
 // )
@@ -12,7 +12,7 @@ package controller
 // }
 //
 // // type releaseListResponse struct {
-// // 	Items []*model.Deployment `json:"items"`
+// // 	Items []*core.Deployment `json:"items"`
 // // }
 //
 // func NewDeploymentController(router *mux.Router, db *storage.Client) *DeploymentController {

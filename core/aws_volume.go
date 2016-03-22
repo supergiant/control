@@ -1,4 +1,4 @@
-package model
+package core
 
 import (
 	"fmt"
@@ -27,14 +27,12 @@ func (m *AwsVolume) id() string {
 // simple memoization of aws vol record
 func (m *AwsVolume) awsVolume() *ec2.Volume {
 	if m.awsVol == nil {
-		if err := m.loadAwsVolume(); err != nil {
-			panic(err) // TODO
-		}
+		m.loadAwsVolume()
 	}
 	return m.awsVol
 }
 
-func (m *AwsVolume) loadAwsVolume() error {
+func (m *AwsVolume) loadAwsVolume() {
 	input := &ec2.DescribeVolumesInput{
 		Filters: []*ec2.Filter{
 			{
@@ -47,14 +45,13 @@ func (m *AwsVolume) loadAwsVolume() error {
 	}
 	resp, err := m.c.EC2.DescribeVolumes(input)
 	if err != nil {
-		return err // this could presumably be a rate-limit based error...
+		panic(err) // TODO this isn't a 404, so we need to figure out what could happen; probably implement retry
 	}
 
-	if len(resp.Volumes) == 0 {
-		return fmt.Errorf("Volume with name %s not found", m.name())
+	if len(resp.Volumes) > 0 {
+		m.awsVol = resp.Volumes[0]
 	}
-	m.awsVol = resp.Volumes[0]
-	return nil
+	// Volume does not exist otherwise and that's fine
 }
 
 func (m *AwsVolume) createAwsVolume() error {
@@ -87,12 +84,10 @@ func (m *AwsVolume) createAwsVolume() error {
 }
 
 func (m *AwsVolume) Provision() error {
-	if err := m.loadAwsVolume(); err != nil {
-		return err
-	} else if m.awsVolume != nil {
-		return nil
+	if m.awsVolume() == nil {
+		return m.createAwsVolume()
 	}
-	return m.createAwsVolume()
+	return nil
 }
 
 func (m *AwsVolume) WaitForAvailable() error {

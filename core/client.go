@@ -1,4 +1,4 @@
-package model
+package core
 
 import (
 	"guber"
@@ -38,11 +38,7 @@ func init() {
 func NewClient() *Client {
 	c := Client{}
 	c.DB = NewDB(etcdEndpoints)
-	c.K8S = &guber.Client{
-		Host:     k8sHost,
-		Username: k8sUser,
-		Password: k8sPass,
-	}
+	c.K8S = guber.NewClient(k8sHost, k8sUser, k8sPass)
 	// NOTE / TODO AWS is configured through a file in ~
 	c.EC2 = ec2.New(session.New(), &aws.Config{Region: aws.String(awsRegion)})
 	return &c
@@ -56,4 +52,8 @@ func (c *Client) Apps() *AppResource {
 
 func (c *Client) ImageRepos() *ImageRepoResource {
 	return &ImageRepoResource{c}
+}
+
+func (c *Client) Jobs() *JobResource {
+	return &JobResource{c}
 }

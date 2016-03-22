@@ -4,8 +4,8 @@ package controller
 // 	"encoding/json"
 // 	"fmt"
 // 	"net/http"
-// 	"supergiant/core/model"
-// 	"supergiant/core/storage"
+// 	"supergiant/model"
+// 	"supergiant/storage"
 //
 // 	"github.com/gorilla/mux"
 // )
@@ -15,7 +15,7 @@ package controller
 // }
 //
 // type releaseListResponse struct {
-// 	Items []*model.Release `json:"items"`
+// 	Items []*core.Release `json:"items"`
 // }
 //
 // func NewReleaseController(router *mux.Router, db *storage.Client) *ReleaseController {
@@ -26,7 +26,7 @@ package controller
 // 	return &controller
 // }
 //
-// func (s *ReleaseController) loadAppComponent(appName string, name string) (*model.App, *model.Component, error) {
+// func (s *ReleaseController) loadAppComponent(appName string, name string) (*core.App, *core.Component, error) {
 // 	app, err := s.db.AppStorage.Get(appName)
 // 	comp, err := s.db.ComponentStorage.Get(appName, name)
 // 	return app, comp, err
@@ -42,7 +42,7 @@ package controller
 // 		return
 // 	}
 //
-// 	release := new(model.Release)
+// 	release := new(core.Release)
 // 	decoder := json.NewDecoder(r.Body)
 // 	err = decoder.Decode(release)
 // 	if err != nil {

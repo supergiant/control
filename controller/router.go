@@ -1,12 +1,12 @@
 package controller
 
 import (
-	"supergiant/core/model"
+	"supergiant/core"
 
 	"github.com/gorilla/mux"
 )
 
-func NewRouter(client *model.Client) *mux.Router {
+func NewRouter(client *core.Client) *mux.Router {
 	// StrictSlash will redirect /apps to /apps/
 	// otherwise mux will simply not match /apps/
 	r := mux.NewRouter()
@@ -15,9 +15,12 @@ func NewRouter(client *model.Client) *mux.Router {
 	apps := &AppController{client}
 	components := &ComponentController{client}
 	// deployments := &DeploymentController{client}
-	// imageRepos := &ImageRepoController{client}
+	imageRepos := &ImageRepoController{client}
 	// instances := &InstanceController{client}
 	// releases := &ReleaseController{client}
+
+	r.HandleFunc("/registries/dockerhub/repos", imageRepos.Create).Methods("POST")
+	r.HandleFunc("/registries/dockerhub/repos/{name}", imageRepos.Delete).Methods("DELETE")
 
 	r.HandleFunc("/apps", apps.Create).Methods("POST")
 	r.HandleFunc("/apps", apps.Index).Methods("GET")
@@ -53,12 +56,6 @@ func NewRouter(client *model.Client) *mux.Router {
 	// r.HandleFunc("/deployments/{deployment_id}/instances", instances.Index).Methods("GET")
 	// r.HandleFunc("/deployments/{deployment_id}/instances/{id}", instances.Show).Methods("GET")
 	// r.HandleFunc("/deployments/{deployment_id}/instances/{id}", instances.Delete).Methods("DELETE") // restart
-	//
-	//
-	//
-	//
-	// r.HandleFunc("/registries/dockerhub/repos", imageRepos.Create).Methods("POST")
-	// r.HandleFunc("/registries/dockerhub/repos/{name}", imageRepos.Delete).Methods("DELETE")
 
 	return r
 }

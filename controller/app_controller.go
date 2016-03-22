@@ -4,17 +4,18 @@ import (
 	"encoding/json"
 	"fmt"
 	"net/http"
-	"supergiant/core/model"
+	"supergiant/core"
 
 	"github.com/gorilla/mux"
 )
 
 type AppController struct {
-	client *model.Client
+	client *core.Client
 }
 
 func (c *AppController) Create(w http.ResponseWriter, r *http.Request) {
-	app := new(model.App)
+	app := c.client.Apps().New()
+
 	decoder := json.NewDecoder(r.Body)
 	err := decoder.Decode(app)
 	if err != nil {

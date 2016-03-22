@@ -1,4 +1,4 @@
-package model
+package core
 
 import (
 	"fmt"
@@ -66,7 +66,7 @@ func (m *Instance) kubeContainers() (containers []*guber.Container) {
 	return containers
 }
 
-func (m *Instance) loadReplicationController() (*guber.ReplicationController, error) {
+func (m *Instance) replicationController() (*guber.ReplicationController, error) {
 	return m.c.K8S.ReplicationControllers(m.appName()).Get(m.Name())
 }
 
@@ -75,7 +75,7 @@ func (m *Instance) waitForReplicationControllerReady() error {
 	maxWait := 5 * time.Minute
 	for {
 		if elapsed := time.Since(start); elapsed < maxWait {
-			rc, err := m.loadReplicationController()
+			rc, err := m.replicationController()
 			if err != nil {
 				return err
 			} else if rc.Status.Replicas == 1 { // TODO this may not assert pod running
@@ -89,7 +89,7 @@ func (m *Instance) waitForReplicationControllerReady() error {
 }
 
 func (m *Instance) provisionReplicationController() error {
-	if rc, _ := m.loadReplicationController(); rc != nil {
+	if _, err := m.replicationController(); err == nil {
 		return nil
 	}
 
@@ -130,12 +130,69 @@ func (m *Instance) provisionReplicationController() error {
 	return m.waitForReplicationControllerReady()
 }
 
+func (m *Instance) pod() (*guber.Pod, error) {
+	q := &guber.QueryParams{
+		LabelSelector: "instance=%s" + m.Name(),
+	}
+	pods, err := m.c.K8S.Pods(m.appName()).List(q)
+	if err != nil {
+		return nil, err // Not sure what the error might be here
+	}
+
+	if len(pods.Items) > 0 {
+		return pods.Items[0], nil
+	}
+	return nil, nil
+}
+
+func (m *Instance) destroyReplicationControllerAndPod() error {
+	pod, err := m.pod()
+	if err != nil {
+		return err
+	}
+	if pod != nil {
+		// _ is found bool, we don't care if it was found or not, just don't want an error
+		if _, err := m.c.K8S.Pods(m.appName()).Delete(pod.Metadata.Name); err != nil {
+			return err
+		}
+	}
+
+	// TODO we call m.c.K8S.ReplicationControllers(m.appName()) enough to warrant its own method -- confusing nomenclature awaits assuredly
+	if _, err := m.c.K8S.ReplicationControllers(m.appName()).Delete(m.Name()); err != nil {
+		return err
+	}
+	return nil
+}
+
+func (m *Instance) destroyVolumes() error {
+	for _, vol := range m.volumes() {
+		if err := vol.WaitForAvailable(); err != nil {
+			return err
+		}
+		if err := vol.Destroy(); err != nil { // NOTE this should not be a "not found" error -- since volumes() will naturally do an existence check
+			return err
+		}
+	}
+	return nil
+}
+
 // Provision is the method extended down to the user for deploy control
 func (m *Instance) Provision() (err error) {
 	if err = m.provisionVolumes(); err != nil {
 		return err
 	}
 	if err = m.provisionReplicationController(); err != nil {
+		return err
+	}
+	return nil
+}
+
+// Destroy tears down the instance
+func (m *Instance) Destroy() (err error) {
+	if err = m.destroyReplicationControllerAndPod(); err != nil {
+		return err
+	}
+	if err = m.destroyVolumes(); err != nil {
 		return err
 	}
 	return nil

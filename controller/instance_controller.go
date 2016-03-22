@@ -4,8 +4,8 @@ package controller
 // 	"encoding/json"
 // 	"fmt"
 // 	"net/http"
-// 	"supergiant/core/model"
-// 	"supergiant/core/storage"
+// 	"supergiant/model"
+// 	"supergiant/storage"
 //
 // 	"github.com/gorilla/mux"
 // )
@@ -15,7 +15,7 @@ package controller
 // }
 //
 // type instanceListResponse struct {
-// 	Items []*model.Instance `json:"items"`
+// 	Items []*core.Instance `json:"items"`
 // }
 //
 // func NewInstanceController(router *mux.Router, db *storage.Client) *InstanceController {
@@ -26,7 +26,7 @@ package controller
 // 	return &controller
 // }
 //
-// func (s *InstanceController) loadDeployment(id string) (*model.Deployment, error) {
+// func (s *InstanceController) loadDeployment(id string) (*core.Deployment, error) {
 // 	return s.db.DeploymentStorage.Get(id)
 // }
 //

@@ -1,4 +1,4 @@
-package model
+package core
 
 import (
 	"fmt"
@@ -28,7 +28,7 @@ type Component struct {
 }
 
 type ComponentList struct {
-	Items []*Component
+	Items []*Component `json:"items"`
 }
 
 // TODO implement...
@@ -87,13 +87,11 @@ func (m *Component) internalServicePorts() (ports []*guber.ServicePort) {
 	return ports
 }
 
-// HasExternalPorts checks for any public ports in any of the defined Containers
-func (m *Component) HasExternalPorts() bool {
+func (m *Component) hasExternalPorts() bool {
 	return len(m.externalPorts()) > 0
 }
 
-// HasInternalPorts checks for any non-public ports in any of the defined Containers
-func (m *Component) HasInternalPorts() bool {
+func (m *Component) hasInternalPorts() bool {
 	return len(m.internalPorts()) > 0
 }
 
@@ -119,18 +117,34 @@ func (m *Component) provisionService(name string, svcType string, svcPorts []*gu
 	return err
 }
 
-func (m *Component) ProvisionExternalService() error {
-	serviceName := fmt.Sprintf("%s-public", m.Name)
-	return m.provisionService(serviceName, "NodePort", m.externalServicePorts())
+func (m *Component) externalServiceName() string {
+	return fmt.Sprintf("%s-public", m.Name)
 }
 
-func (m *Component) ProvisionInternalService() error {
-	serviceName := m.Name
-	return m.provisionService(serviceName, "NodePort", m.internalServicePorts())
+func (m *Component) internalServiceName() string {
+	return m.Name
+}
+
+func (m *Component) provisionExternalService() error {
+	return m.provisionService(m.externalServiceName(), "NodePort", m.externalServicePorts())
+}
+
+func (m *Component) provisionInternalService() error {
+	return m.provisionService(m.internalServiceName(), "ClusterIP", m.internalServicePorts())
+}
+
+func (m *Component) destroyServices() (err error) {
+	if _, err = m.r.c.K8S.Services(m.App().Name).Delete(m.externalServiceName()); err != nil {
+		return err
+	}
+	if _, err = m.r.c.K8S.Services(m.App().Name).Delete(m.internalServiceName()); err != nil {
+		return err
+	}
+	return nil
 }
 
 // NOTE it seems weird here, but "Provision" == "CreateUnlessExists"
-func (m *Component) ProvisionSecrets() error {
+func (m *Component) provisionSecrets() error {
 	repos, err := m.ImageRepos()
 	if err != nil {
 		return err
@@ -141,6 +155,90 @@ func (m *Component) ProvisionSecrets() error {
 		}
 	}
 	return nil
+}
+
+func (m *Component) Provision() error {
+	if err := m.provisionSecrets(); err != nil {
+		return err
+	}
+
+	// Create Services
+	if m.hasInternalPorts() {
+		if err := m.provisionInternalService(); err != nil {
+			return err
+		}
+	}
+	if m.hasExternalPorts() {
+		if err := m.provisionExternalService(); err != nil {
+			return err
+		}
+	}
+
+	// NOTE the code below is not tucked inside `deployment.ProvisionInstances()`
+	// because I predict eventually wanting to record % progress for each instance
+	// without having to expect Deployment to handle progress logic as well.
+
+	// Concurrently provision instances
+	deployment, err := m.ActiveDeployment()
+	if err != nil {
+		return err
+	}
+	instances, err := deployment.Instances()
+	if err != nil {
+		return err
+	}
+
+	c := make(chan error)
+	for _, instance := range instances {
+		go func() {
+			c <- instance.Provision()
+		}()
+	}
+	for i := 0; i < m.Instances; i++ {
+		if err := <-c; err != nil {
+			return err
+		}
+	}
+	return nil
+}
+
+func (m *Component) Teardown() error { // this is named Teardown() and not Destroy() because we need a method to actually kick off the DestroyComponent job
+	if err := m.destroyServices(); err != nil {
+		return err
+	}
+
+	// TODO this needs to include destrution logic for ALL deployments, if there happens to be more than 1 at the time
+	deployment, err := m.ActiveDeployment()
+	if err != nil {
+		return err
+	}
+	instances, err := deployment.Instances()
+	if err != nil {
+		return err
+	}
+
+	c := make(chan error)
+	for _, instance := range instances {
+		go func() {
+			c <- instance.Destroy()
+		}()
+	}
+	for i := 0; i < m.Instances; i++ {
+		if err := <-c; err != nil {
+			return err
+		}
+	}
+	return nil
+}
+
+// NOTE the delete portion of this is handled by the job
+func (m *Component) TeardownAndDelete() error {
+	msg := &DestroyComponentMessage{
+		AppName:       m.App().Name,
+		ComponentName: m.Name,
+	}
+	_, err := m.r.c.Jobs().Start(JobTypeDestroyComponent, msg)
+	return err
 }
 
 // Relations--------------------------------------------------------------------
@@ -187,18 +285,50 @@ func (r *ComponentResource) EtcdKey(modelName string) string {
 	return path.Join("/components", r.App.Name, modelName)
 }
 
-func (r *ComponentResource) List() (list *ComponentList, err error) {
-	err = r.c.DB.List(r, list)
+// InitializeModel is a part of Resource interface
+func (r *ComponentResource) InitializeModel(m Model) {
+	model := m.(*Component)
+	model.r = r
+}
+
+func (r *ComponentResource) List() (*ComponentList, error) {
+	list := new(ComponentList)
+	err := r.c.DB.List(r, list)
 	return list, err
 }
 
-func (r *ComponentResource) Create(m *Component) (*Component, error) {
-	err := r.c.DB.Create(r, m.Name, m)
-	return m, err
+func (r *ComponentResource) New() *Component {
+	return &Component{r: r}
 }
 
-func (r *ComponentResource) Get(name string) (m *Component, err error) {
-	err = r.c.DB.Get(r, name, m)
+func (r *ComponentResource) Create(m *Component) (*Component, error) {
+	deployment, err := m.deployments().Create(m.deployments().New())
+	if err != nil {
+		return nil, err
+	}
+
+	m.ActiveDeploymentID = deployment.ID
+
+	if err := r.c.DB.Create(r, m.Name, m); err != nil {
+		return nil, err
+	}
+
+	msg := &CreateComponentMessage{
+		AppName:       m.App().Name,
+		ComponentName: m.Name,
+	}
+	if _, err := r.c.Jobs().Start(JobTypeCreateComponent, msg); err != nil {
+
+		// TODO error handling is not great here, considering the model has already been persisted
+		return nil, err
+	}
+
+	return m, nil
+}
+
+func (r *ComponentResource) Get(name string) (*Component, error) {
+	m := r.New()
+	err := r.c.DB.Get(r, name, m)
 	return m, err
 }
 

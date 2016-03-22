@@ -1,0 +1,217 @@
+package core
+
+import (
+	"encoding/json"
+	"fmt"
+	"reflect"
+	"strings"
+
+	etcd "github.com/coreos/etcd/client"
+	"golang.org/x/net/context"
+)
+
+const (
+	baseDir = "/supergiant"
+)
+
+type DB struct {
+	kapi etcd.KeysAPI
+}
+
+func NewDB(endpoints []string) *DB {
+	etcdClient, err := etcd.New(etcd.Config{Endpoints: endpoints})
+	if err != nil {
+		panic(err)
+	}
+	db := DB{etcd.NewKeysAPI(etcdClient)}
+
+	// TODO
+	db.CreateDir(baseDir)
+
+	return &db
+}
+
+func fullKey(key string) string {
+	return fmt.Sprintf("%s%s", baseDir, key)
+}
+
+func (db *DB) compareAndSwap(key string, prevValue string, value string) (*etcd.Response, error) {
+	return db.kapi.Set(context.Background(), fullKey(key), value, &etcd.SetOptions{PrevValue: prevValue})
+}
+
+func (db *DB) create(key string, value string) (*etcd.Response, error) {
+	return db.kapi.Create(context.Background(), fullKey(key), value)
+}
+
+func (db *DB) get(key string) (*etcd.Response, error) {
+	return db.kapi.Get(context.Background(), fullKey(key), nil)
+}
+
+func (db *DB) update(key string, value string) (*etcd.Response, error) {
+	return db.kapi.Update(context.Background(), fullKey(key), value)
+}
+
+func (db *DB) delete(key string) (*etcd.Response, error) {
+	return db.kapi.Delete(context.Background(), fullKey(key), nil)
+}
+
+func (db *DB) createInOrder(key string, value string) (*etcd.Response, error) {
+	return db.kapi.CreateInOrder(context.Background(), fullKey(key), value, nil)
+}
+
+func (db *DB) getInOrder(key string) (*etcd.Response, error) {
+	return db.kapi.Get(context.Background(), fullKey(key), &etcd.GetOptions{Sort: true})
+}
+
+// TODO
+func (db *DB) CreateDir(key string) (*etcd.Response, error) {
+	return db.kapi.Set(context.Background(), key, "", &etcd.SetOptions{Dir: true})
+}
+
+//----------------------------------------------------------------------------//
+//----------------------------------------------------------------------------//
+//----------------- start of resource-specific DB operations -----------------//
+//----------------------------------------------------------------------------//
+//----------------------------------------------------------------------------//
+
+func decodeList(r Resource, resp *etcd.Response, out Model) error {
+	itemsPtr, itemType := GetItemsPtrAndItemType(out)
+	for _, node := range resp.Node.Nodes {
+		// Interface() is called to convert the new item Value into an interface
+		// (that we can unmarshal to. The interface{} is then cast to Model type.
+		obj := reflect.New(itemType).Interface().(Model)
+		unmarshalNodeInto(r, node, obj)
+
+		// Get the Value of the unmarshalled object, and append it to the slice.
+		newItem := reflect.ValueOf(obj).Elem().Addr()
+		newItems := reflect.Append(itemsPtr, newItem)
+		itemsPtr.Set(newItems)
+	}
+	return nil
+}
+
+// TODO feel like there's a DRYer or cleaner way to do this
+func decodeOrderedList(r Resource, resp *etcd.Response, out Model) error { /// ------------------- just changed to Model from OrderedModel
+	itemsPtr, itemType := GetItemsPtrAndItemType(out)
+	for _, node := range resp.Node.Nodes {
+		// Interface() is called to convert the new item Value into an interface
+		// (that we can unmarshal to. The interface{} is then cast to Model type.
+
+		// fmt.Println(fmt.Sprintf("%#v", itemType))
+		// fmt.Println(fmt.Sprintf("%#v", reflect.New(itemType)))
+		// fmt.Println(fmt.Sprintf("%#v", reflect.New(itemType).Interface()))
+
+		obj := reflect.New(itemType).Interface().(OrderedModel)
+
+		unmarshalNodeInto(r, node, obj)
+
+		obj.SetID(lastKeySegment(node.Key))
+
+		// Get the Value of the unmarshalled object, and append it to the slice.
+		newItem := reflect.ValueOf(obj).Elem().Addr()
+		newItems := reflect.Append(itemsPtr, newItem)
+		itemsPtr.Set(newItems)
+	}
+	return nil
+}
+
+func (db *DB) List(r Resource, out Model) error {
+	key := r.EtcdKey("")
+	resp, err := db.get(key)
+	if err != nil {
+		return err
+	}
+	return decodeList(r, resp, out)
+}
+
+func (db *DB) Create(r Resource, id string, m Model) error {
+	key := r.EtcdKey(id)
+	_, err := db.create(key, marshalModel(m))
+	if err != nil {
+		return err
+	}
+	return nil
+}
+
+func (db *DB) Get(r Resource, id string, out Model) error {
+	key := r.EtcdKey(id)
+	resp, err := db.get(key)
+	if err != nil {
+		return err
+	}
+	unmarshalNodeInto(r, resp.Node, out)
+	return nil
+}
+
+func (db *DB) Update(r Resource, id string, m Model) error {
+	key := r.EtcdKey(id)
+	_, err := db.update(key, marshalModel(m))
+	if err != nil {
+		return err
+	}
+	return nil
+}
+
+func (db *DB) Delete(r Resource, id string) error {
+	key := r.EtcdKey(id)
+	_, err := db.delete(key)
+	return err
+}
+
+//------------------------------------------------------------------------------
+func (db *DB) ListInOrder(r Resource, out Model) error {
+	key := r.EtcdKey("")
+	resp, err := db.getInOrder(key)
+	if err != nil {
+		return err
+	}
+	return decodeOrderedList(r, resp, out)
+}
+
+func (db *DB) CreateInOrder(r Resource, m OrderedModel) error {
+	key := r.EtcdKey("") // ID is generated by etcd
+	resp, err := db.createInOrder(key, marshalModel(m))
+	if err != nil {
+		return err
+	}
+
+	// We must set ID value on model, since it is auto-generated by etcd
+	m.SetID(lastKeySegment(resp.Node.Key))
+
+	return nil
+}
+
+//------------------------------------------------------------------------------
+
+func (db *DB) CompareAndSwap(r Resource, id string, old Model, new Model) error {
+	key := r.EtcdKey(id)
+	_, err := db.compareAndSwap(key, marshalModel(old), marshalModel(new))
+	return err
+}
+
+func marshalModel(m Model) string {
+	out, err := json.Marshal(m)
+	if err != nil {
+		panic(err)
+	}
+	return string(out)
+}
+
+func unmarshalNodeInto(r Resource, node *etcd.Node, m Model) {
+	if err := json.Unmarshal([]byte(node.Value), m); err != nil {
+		panic(err)
+	}
+	r.InitializeModel(m)
+}
+
+// CreateInOrder stuff...
+// Was going to use "base" as a word here, like with file names. But it seems
+// entirely weird to me that people inventing filesystems looked at:
+//
+// /home/dir/filename.txt
+//
+// and decided that "filename.txt" was the "base name".
+func lastKeySegment(key string) string {
+	strs := strings.Split(key, "/")
+	return strs[len(strs)-1]
+}
