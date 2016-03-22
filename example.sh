@@ -1,6 +1,6 @@
 curl -XPOST localhost:8080/registries/dockerhub/repos -d '{
   "name": "qbox",
-  "key": "eyJodHRwczovL2luZGV4LmRvY2tlci5pby92MS8iOnsiYXV0aCI6ImMzQmhibXRsYm5OMGFXVnVPbTFsZEdWMU16azUiLCJlbWFpbCI6Im1pa2VAcWJveC5pbyJ9fQ=="
+  "key": "'$QBOX_DOCKERHUB_KEY'"
 }'
 
 curl -XPOST localhost:8080/apps -d '{
@@ -9,14 +9,14 @@ curl -XPOST localhost:8080/apps -d '{
 
 curl -XPOST localhost:8080/apps/test/components -d '{
   "name": "elasticsearch",
-  "instances": 1,
+  "instances": 3,
   "blueprint": {
     "termination_grace_period": 10,
     "volumes": [
       {
         "name": "elasticsearch-data",
         "type": "gp2",
-        "size": 20
+        "size": 10
       }
     ],
     "containers": [
@@ -24,11 +24,11 @@ curl -XPOST localhost:8080/apps/test/components -d '{
         "image": "qbox/qbox-docker:2.1.1",
         "cpu": {
           "min": 0,
-          "max": 1000
+          "max": 500
         },
         "ram": {
-          "min": 3072,
-          "max": 4096
+          "min": 2048,
+          "max": 2048
         },
         "mounts": [
           {
@@ -54,7 +54,7 @@ curl -XPOST localhost:8080/apps/test/components -d '{
           },
           {
             "name": "NODE_NAME",
-            "value": "SG_TEST_instance_id"
+            "value": "SG_TEST_{{ instance_id }}"
           },
           {
             "name": "MASTER_ELIGIBLE",
@@ -70,7 +70,7 @@ curl -XPOST localhost:8080/apps/test/components -d '{
           },
           {
             "name": "MIN_MASTER_NODES",
-            "value": "1"
+            "value": "2"
           },
           {
             "name": "CORES",
@@ -78,7 +78,7 @@ curl -XPOST localhost:8080/apps/test/components -d '{
           },
           {
             "name": "ES_HEAP_SIZE",
-            "value": "2048m"
+            "value": "1024m"
           },
           {
             "name": "INDEX_NUMBER_OF_SHARDS",

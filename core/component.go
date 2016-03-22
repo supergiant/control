@@ -42,10 +42,10 @@ type CustomDeployScript struct {
 
 // Util-------------------------------------------------------------------------
 func (m *Component) imageRepoNames() (repoNames []string) { // TODO convert Image into Value object w/ repo, image, version
-	var uniqRepoNames map[string]bool
+	uniqRepoNames := make(map[string]bool)
 	for _, container := range m.Blueprint.Containers {
 		repoName := container.ImageRepoName()
-		if _, ok := uniqRepoNames[repoName]; ok {
+		if _, ok := uniqRepoNames[repoName]; !ok {
 			uniqRepoNames[repoName] = true
 			repoNames = append(repoNames, repoName)
 		}
@@ -55,6 +55,9 @@ func (m *Component) imageRepoNames() (repoNames []string) { // TODO convert Imag
 
 // TODO make sub-method on container, extract guts of for loop here
 func (m *Component) containerPorts(public bool) (ports []*Port) {
+
+	// TODO these will need to be unique -------------------------------------------------
+
 	for _, container := range m.Blueprint.Containers {
 		for _, port := range container.Ports {
 			if port.Public == public {
@@ -96,8 +99,12 @@ func (m *Component) hasInternalPorts() bool {
 }
 
 // Operations-------------------------------------------------------------------
+func (m *Component) getService(name string) (*guber.Service, error) {
+	return m.r.c.K8S.Services(m.App().Name).Get(name)
+}
+
 func (m *Component) provisionService(name string, svcType string, svcPorts []*guber.ServicePort) error {
-	if service, _ := m.r.c.K8S.Services(m.App().Name).Get(name); service != nil {
+	if service, _ := m.getService(name); service != nil {
 		return nil // already created
 	}
 
@@ -110,7 +117,7 @@ func (m *Component) provisionService(name string, svcType string, svcPorts []*gu
 			Selector: map[string]string{
 				"deployment": m.ActiveDeploymentID,
 			},
-			Ports: m.externalServicePorts(),
+			Ports: svcPorts,
 		},
 	}
 	_, err := m.r.c.K8S.Services(m.App().Name).Create(service)
@@ -123,6 +130,15 @@ func (m *Component) externalServiceName() string {
 
 func (m *Component) internalServiceName() string {
 	return m.Name
+}
+
+// Exposed to fetch IPs
+func (m *Component) ExternalService() (*guber.Service, error) {
+	return m.getService(m.externalServiceName())
+}
+
+func (m *Component) InternalService() (*guber.Service, error) {
+	return m.getService(m.internalServiceName())
 }
 
 func (m *Component) provisionExternalService() error {
@@ -190,9 +206,9 @@ func (m *Component) Provision() error {
 
 	c := make(chan error)
 	for _, instance := range instances {
-		go func() {
+		go func(instance *Instance) { // NOTE we have to pass instance here, else every goroutine hits the same instance
 			c <- instance.Provision()
-		}()
+		}(instance)
 	}
 	for i := 0; i < m.Instances; i++ {
 		if err := <-c; err != nil {
@@ -219,9 +235,9 @@ func (m *Component) Teardown() error { // this is named Teardown() and not Destr
 
 	c := make(chan error)
 	for _, instance := range instances {
-		go func() {
+		go func(instance *Instance) {
 			c <- instance.Destroy()
-		}()
+		}(instance)
 	}
 	for i := 0; i < m.Instances; i++ {
 		if err := <-c; err != nil {

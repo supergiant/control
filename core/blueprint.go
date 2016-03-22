@@ -35,8 +35,8 @@ type ContainerBlueprint struct {
 }
 
 type ResourceAllocation struct {
-	Min int `json:"min"`
-	Max int `json:"max"`
+	Min uint `json:"min"`
+	Max uint `json:"max"`
 }
 
 func (m *ContainerBlueprint) kubeVolumeMounts() (volMounts []*guber.VolumeMount) {
@@ -66,17 +66,17 @@ func (m *ContainerBlueprint) ImageRepoName() string {
 
 func (m *ContainerBlueprint) AsKubeContainer(instance *Instance) *guber.Container { // NOTE how instance must be passed here
 	return &guber.Container{
-		Name:  strconv.Itoa(instance.ID), // TODO this is not good naming
+		Name:  "container", // TODO this will fail with multiple containers ------------------------------------ TODO
 		Image: m.Image,
 		Env:   m.interpolatedEnvVars(instance),
 		Resources: &guber.Resources{
 			Requests: &guber.ResourceValues{
 				Memory: BytesFromMiB(m.RAM.Min).ToKubeMebibytes(),
-				CPU:    (&CoresValue{m.CPU.Min}).ToKubeMillicores(),
+				CPU:    CoresFromMillicores(m.CPU.Min).ToKubeMillicores(),
 			},
 			Limits: &guber.ResourceValues{
 				Memory: BytesFromMiB(m.RAM.Max).ToKubeMebibytes(),
-				CPU:    (&CoresValue{m.CPU.Max}).ToKubeMillicores(),
+				CPU:    CoresFromMillicores(m.CPU.Max).ToKubeMillicores(),
 			},
 		},
 		VolumeMounts: m.kubeVolumeMounts(),
@@ -92,8 +92,9 @@ type EnvVar struct {
 }
 
 func (m *EnvVar) interpolatedValue(instance *Instance) string {
-	r := strings.NewReplacer("{{ instance_id }}", strconv.Itoa(instance.ID),
-		"{{ other_stuff }}", "TODO") // TODO
+	r := strings.NewReplacer(
+		"{{ instance_id }}", strconv.Itoa(instance.ID),
+		"{{ other_stuff }}", "TODO")
 	return r.Replace(m.Value)
 }
 

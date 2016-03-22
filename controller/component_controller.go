@@ -111,10 +111,6 @@ func (c *ComponentController) Delete(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	// NOTE / TODO don't like the inconsistency here -- all other controllers call
-	// Resource.Delete(), but in this case, that method only destroys the record.
-	// We don't want to destroy the record until AFTER the job has run, so I made
-	// a model-level method that is named distinctly.
 	if err := component.TeardownAndDelete(); err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return

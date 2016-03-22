@@ -66,7 +66,7 @@ func (m *Job) RecordError(err error) error {
 	if m.Attempts < m.MaxAttempts {
 		m.Status = statusQueued // Add back to queue for retry
 	} else {
-		m.Status = statusFailed
+		m.Status = statusFailed // TODO failed jobs will build up in the queue
 	}
 	m.Attempts++
 

@@ -1,7 +1,6 @@
 package core
 
 import (
-	"fmt"
 	"guber"
 	"path"
 )
@@ -30,22 +29,18 @@ func (m *App) Components() *ComponentResource {
 
 // Operations-------------------------------------------------------------------
 func (m *App) createNamespace() error {
-
-	fmt.Println("app", *m)
-
 	namespace := &guber.Namespace{
 		Metadata: &guber.Metadata{
 			Name: m.Name,
 		},
 	}
 
-	fmt.Println("namespace", *namespace)
-
 	_, err := m.r.c.K8S.Namespaces().Create(namespace)
 	return err
 }
 
-func (m *App) deleteNamespace() error {
+// NOTE this is exposed because it is used by a Job
+func (m *App) DeleteNamespace() error {
 	_, err := m.r.c.K8S.Namespaces().Delete(m.Name)
 	return err
 }
@@ -55,12 +50,20 @@ func (m *App) ProvisionSecret(repo *ImageRepo) error {
 	// useful when there could be multiple types of errors, alongside the
 	// expectation of an error when something doesn't exist
 	secret, err := m.r.c.K8S.Secrets(m.Name).Get(repo.Name)
-	if secret != nil {
-		return nil
-	} else if err != nil {
+
+	if err != nil {
 		return err
+	} else if secret != nil {
+		return nil
 	}
 	_, err = m.r.c.K8S.Secrets(m.Name).Create(repo.AsKubeSecret())
+	return err
+}
+
+// NOTE following pattern of the same method in Component
+func (m *App) TeardownAndDelete() error {
+	msg := &DestroyAppMessage{AppName: m.Name}
+	_, err := m.r.c.Jobs().Start(JobTypeDestroyApp, msg)
 	return err
 }
 
@@ -111,16 +114,5 @@ func (r *AppResource) Get(name string) (*App, error) {
 // No update for App
 
 func (r *AppResource) Delete(name string) error {
-	// NOTE we do a Get here to verify the record exists before trying to delete
-	// dependencies, and also to be able to call model-level methods.
-	m, err := r.Get(name)
-	if err != nil {
-		return err
-	}
-
-	if err = m.deleteNamespace(); err != nil {
-		panic(err) // TODO see Create method about using jobs/status field for this
-	}
-
 	return r.c.DB.Delete(r, name)
 }

@@ -3,7 +3,7 @@ package core
 import "fmt"
 
 type BytesValue struct {
-	bytes int
+	bytes uint
 }
 
 const (
@@ -11,15 +11,15 @@ const (
 	bytesMiB = bytesKiB * 1024
 )
 
-func BytesFromMiB(mib int) *BytesValue {
-	return &BytesValue{mib / bytesMiB}
+func BytesFromMiB(mib uint) *BytesValue {
+	return &BytesValue{mib * bytesMiB}
 }
 
-// func (v *BytesValue) kibibytes() int {
+// func (v *BytesValue) kibibytes() uint {
 //   return v.bytes / kib
 // }
 
-func (v *BytesValue) mebibytes() int {
+func (v *BytesValue) mebibytes() uint {
 	return v.bytes / bytesMiB
 }
 
@@ -28,10 +28,14 @@ func (v *BytesValue) ToKubeMebibytes() string {
 }
 
 type CoresValue struct {
-	cores int
+	cores uint
 }
 
-func (v *CoresValue) millicores() int {
+func CoresFromMillicores(millicores uint) *CoresValue {
+	return &CoresValue{millicores / 1000}
+}
+
+func (v *CoresValue) millicores() uint {
 	return v.cores * 1000
 }
 

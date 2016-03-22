@@ -85,13 +85,14 @@ func (c *AppController) Show(w http.ResponseWriter, r *http.Request) {
 
 func (c *AppController) Delete(w http.ResponseWriter, r *http.Request) {
 	appName := mux.Vars(r)["name"]
-
-	// // NOTE we don't want to return on error here, because if not found, we are
-	// // okay -- if the error is at the system level, we should be panicking, not returning errors
-	// e.kube.Namespaces().Delete(appName) // TODO though it should probably not run this request if the App does not exist in storage
-
-	if err := c.client.Apps().Delete(appName); err != nil {
+	app, err := c.client.Apps().Get(appName)
+	if err != nil {
 		http.Error(w, err.Error(), http.StatusNotFound)
+		return
+	}
+
+	if err := app.TeardownAndDelete(); err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
 	}
 

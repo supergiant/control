@@ -8,7 +8,7 @@ import (
 
 const (
 	// Deployment IDs are short, since they are used in concatenated asset names
-	idChars = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789"
+	idChars = "abcdefghijklmnopqrstuvwxyz0123456789"
 	idLen   = 4
 )
 
@@ -49,7 +49,8 @@ func (m *Deployment) Component() *Component {
 
 func (m *Deployment) Instances() (instances []*Instance, err error) {
 	for n := 1; n < m.Component().Instances+1; n++ {
-		instances = append(instances, &Instance{c: m.r.c, Deployment: m})
+		instance := &Instance{c: m.r.c, Deployment: m, ID: n}
+		instances = append(instances, instance)
 	}
 	return instances, nil
 }

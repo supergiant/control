@@ -21,7 +21,11 @@ func (m *AwsVolume) name() string {
 }
 
 func (m *AwsVolume) id() string {
-	return *m.awsVolume().VolumeId
+	vol := m.awsVolume()
+	if vol == nil {
+		panic(fmt.Errorf("Trying to access ID of nil volume %v#", vol))
+	}
+	return *vol.VolumeId
 }
 
 // simple memoization of aws vol record
@@ -105,6 +109,12 @@ func (m *AwsVolume) WaitForAvailable() error {
 }
 
 func (m *AwsVolume) Destroy() error {
+	if m.awsVolume() == nil {
+		return nil
+	}
+	if err := m.WaitForAvailable(); err != nil {
+		return err
+	}
 	input := &ec2.DeleteVolumeInput{
 		VolumeId: aws.String(m.id()),
 	}

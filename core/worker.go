@@ -62,6 +62,10 @@ func (w *Worker) Work() {
 			performer = CreateComponent{w.c}
 		case JobTypeDestroyComponent:
 			performer = DestroyComponent{w.c}
+		case JobTypeDestroyApp:
+			performer = DestroyApp{w.c}
+		default:
+			panic("Could not find job type")
 		}
 
 		// TODO

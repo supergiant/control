@@ -89,8 +89,10 @@ func (m *Instance) waitForReplicationControllerReady() error {
 }
 
 func (m *Instance) provisionReplicationController() error {
-	if _, err := m.replicationController(); err == nil {
-		return nil
+	if rc, err := m.replicationController(); err != nil {
+		return err // some systemic error (err, along with rc, is nil when rc does not exist)
+	} else if rc != nil {
+		return nil // rc already exists
 	}
 
 	// We load them here because the repos may not exist, which needs to return error
@@ -110,6 +112,7 @@ func (m *Instance) provisionReplicationController() error {
 			Replicas: 1,
 			Template: &guber.PodTemplate{
 				Metadata: &guber.Metadata{
+					Name: m.Name(), // pod base name is same as RC
 					Labels: map[string]string{
 						"deployment": m.Deployment.ID, // for Service
 						"instance":   m.Name(),        // for RC
@@ -132,20 +135,26 @@ func (m *Instance) provisionReplicationController() error {
 
 func (m *Instance) pod() (*guber.Pod, error) {
 	q := &guber.QueryParams{
-		LabelSelector: "instance=%s" + m.Name(),
+		LabelSelector: "instance=" + m.Name(),
 	}
 	pods, err := m.c.K8S.Pods(m.appName()).List(q)
 	if err != nil {
 		return nil, err // Not sure what the error might be here
 	}
 
-	if len(pods.Items) > 0 {
+	if len(pods.Items) > 1 {
+		panic("More than 1 pod returned in query?")
+	} else if len(pods.Items) == 1 {
 		return pods.Items[0], nil
 	}
 	return nil, nil
 }
 
 func (m *Instance) destroyReplicationControllerAndPod() error {
+	// TODO we call m.c.K8S.ReplicationControllers(m.appName()) enough to warrant its own method -- confusing nomenclature awaits assuredly
+	if _, err := m.c.K8S.ReplicationControllers(m.appName()).Delete(m.Name()); err != nil {
+		return err
+	}
 	pod, err := m.pod()
 	if err != nil {
 		return err
@@ -156,19 +165,11 @@ func (m *Instance) destroyReplicationControllerAndPod() error {
 			return err
 		}
 	}
-
-	// TODO we call m.c.K8S.ReplicationControllers(m.appName()) enough to warrant its own method -- confusing nomenclature awaits assuredly
-	if _, err := m.c.K8S.ReplicationControllers(m.appName()).Delete(m.Name()); err != nil {
-		return err
-	}
 	return nil
 }
 
 func (m *Instance) destroyVolumes() error {
 	for _, vol := range m.volumes() {
-		if err := vol.WaitForAvailable(); err != nil {
-			return err
-		}
 		if err := vol.Destroy(); err != nil { // NOTE this should not be a "not found" error -- since volumes() will naturally do an existence check
 			return err
 		}
