@@ -2,8 +2,9 @@ package core
 
 import (
 	"fmt"
-	"guber"
 	"time"
+
+	"github.com/supergiant/guber"
 )
 
 // Instance is really just a Kubernetes Pod (with a better name)

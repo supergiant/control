@@ -1,9 +1,10 @@
 package core
 
 import (
-	"guber"
 	"strconv"
 	"strings"
+
+	"github.com/supergiant/guber"
 )
 
 // NOTE the word Blueprint is used for Volumes and Containers, since they are
