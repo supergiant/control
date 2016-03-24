@@ -2,8 +2,9 @@ package core
 
 import (
 	"fmt"
-	"guber"
 	"path"
+
+	"github.com/supergiant/guber"
 )
 
 type ComponentResource struct {

@@ -1,8 +1,9 @@
 package core
 
 import (
-	"guber"
 	"path"
+
+	"github.com/supergiant/guber"
 )
 
 type AppResource struct {

@@ -4,7 +4,8 @@ import (
 	"encoding/json"
 	"fmt"
 	"net/http"
-	"supergiant/core"
+
+	"github.com/supergiant/supergiant/core"
 
 	"github.com/gorilla/mux"
 )

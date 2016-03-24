@@ -4,8 +4,9 @@ import (
 	"fmt"
 	"log"
 	"net/http"
-	"supergiant/controller"
-	"supergiant/core"
+
+	"github.com/supergiant/supergiant/controller"
+	"github.com/supergiant/supergiant/core"
 )
 
 func main() {
