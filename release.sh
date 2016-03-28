@@ -6,7 +6,7 @@ RELEASE=$1
 
 
 echo "Building bin..."
- if [ ! $(GOOS=linux GOARCH=amd64 go build -o build/supergiant ./..) ] ; then
+ if [ ! $(GOOS=linux GOARCH=amd64 go build -o ./build/supergiant .) ] ; then
    echo "Build successful..."
  else
    echo "Build failed..."
@@ -23,4 +23,4 @@ github-release upload \
     --repo supergiant \
     --tag $RELEASE \
     --name "supergiant-osx-amd64" \
-    --file build/supergiant
+    --file ./build/supergiant
