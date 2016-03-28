@@ -138,7 +138,7 @@ func (m *Instance) pod() (*guber.Pod, error) {
 	q := &guber.QueryParams{
 		LabelSelector: "instance=" + m.Name(),
 	}
-	pods, err := m.c.K8S.Pods(m.appName()).List(q)
+	pods, err := m.c.K8S.Pods(m.appName()).Query(q)
 	if err != nil {
 		return nil, err // Not sure what the error might be here
 	}
