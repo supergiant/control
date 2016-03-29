@@ -22,8 +22,12 @@ type ImageRepoList struct {
 }
 
 // EtcdKey implements the Collection interface.
-func (c *ImageRepoCollection) EtcdKey(name string) string {
-	return path.Join("/image_repos/dockerhub", name)
+func (c *ImageRepoCollection) EtcdKey(name types.ID) string {
+	key := "/image_repos/dockerhub"
+	if name != nil {
+		key = path.Join(key, *name)
+	}
+	return key
 }
 
 // InitializeResource implements the Collection interface.
@@ -56,7 +60,7 @@ func (c *ImageRepoCollection) Create(r *ImageRepoResource) (*ImageRepoResource, 
 }
 
 // Get takes a name and returns an ImageRepoResource if it exists.
-func (c *ImageRepoCollection) Get(name string) (*ImageRepoResource, error) {
+func (c *ImageRepoCollection) Get(name types.ID) (*ImageRepoResource, error) {
 	r := c.New()
 	if err := c.core.DB.Get(c, name, r); err != nil {
 		return nil, err

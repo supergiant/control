@@ -61,7 +61,7 @@ func AsKubeContainer(m *types.ContainerBlueprint, instance *InstanceResource) *g
 //==============================================================================
 func interpolatedValue(m *types.EnvVar, instance *InstanceResource) string {
 	r := strings.NewReplacer(
-		"{{ instance_id }}", strconv.Itoa(instance.ID),
+		"{{ instance_id }}", *instance.ID,
 		"{{ other_stuff }}", "TODO")
 	return r.Replace(m.Value)
 }
@@ -77,7 +77,7 @@ func asKubeEnvVar(m *types.EnvVar, instance *InstanceResource) *guber.EnvVar {
 //==============================================================================
 func AsKubeVolume(m *AwsVolume) *guber.Volume {
 	return &guber.Volume{
-		Name: m.Blueprint.Name, // NOTE this is not the physical volume name
+		Name: *m.Blueprint.Name, // NOTE this is not the physical volume name
 		AwsElasticBlockStore: &guber.AwsElasticBlockStore{
 			VolumeID: m.id(),
 			FSType:   "ext4",
@@ -89,7 +89,7 @@ func AsKubeVolume(m *AwsVolume) *guber.Volume {
 //==============================================================================
 func asKubeVolumeMount(m *types.Mount) *guber.VolumeMount {
 	return &guber.VolumeMount{
-		Name:      m.Volume,
+		Name:      *m.Volume,
 		MountPath: m.Path,
 	}
 }
@@ -118,14 +118,14 @@ func AsKubeServicePort(m *types.Port) *guber.ServicePort {
 //==============================================================================
 func AsKubeImagePullSecret(m *ImageRepoResource) *guber.ImagePullSecret {
 	return &guber.ImagePullSecret{
-		Name: m.Name,
+		Name: *m.Name,
 	}
 }
 
 func AsKubeSecret(m *ImageRepoResource) *guber.Secret {
 	return &guber.Secret{
 		Metadata: &guber.Metadata{
-			Name: m.Name,
+			Name: *m.Name,
 		},
 		Type: "kubernetes.io/dockercfg",
 		Data: map[string]string{

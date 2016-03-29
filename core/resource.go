@@ -3,12 +3,14 @@ package core
 import (
 	"fmt"
 	"reflect"
+
+	"github.com/supergiant/supergiant/types"
 )
 
 // Collection is an interface for defining behavior of a collection of
 // Resources.
 type Collection interface {
-	EtcdKey(id string) string
+	EtcdKey(id types.ID) string
 
 	// InitializeResource is called when unmarshalling objects from etcd.
 	// Primarily, it sets a pointer to the Collection on the Resource.
@@ -24,7 +26,7 @@ type Resource interface {
 // OrderedResource is similar to Resource, but provides a SetID() method to
 // set an auto-generated ID from etcd on the Resource.
 type OrderedResource interface {
-	SetID(id string)
+	SetID(id types.ID)
 }
 
 // TODO should maybe move this to util or helper file

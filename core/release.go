@@ -1,7 +1,6 @@
 package core
 
 import (
-	"fmt"
 	"path"
 	"time"
 
@@ -17,6 +16,10 @@ type ReleaseCollection struct {
 type ReleaseResource struct {
 	collection *ReleaseCollection
 	*types.Release
+
+	// TODO these are shared between releases, it's kinda funky right now
+	externalService *guber.Service
+	internalService *guber.Service
 }
 
 type ReleaseList struct {
@@ -24,14 +27,34 @@ type ReleaseList struct {
 }
 
 // EtcdKey implements the Collection interface.
-func (c *ReleaseCollection) EtcdKey(id string) string {
-	return path.Join("/releases", c.Component.App().Name, c.Component.Name, id)
+func (c *ReleaseCollection) EtcdKey(timestamp types.ID) string {
+	key := path.Join("/releases", *c.Component.App().Name, *c.Component.Name)
+	if timestamp != nil {
+		key = path.Join(key, *timestamp)
+	}
+	return key
 }
 
 // InitializeResource implements the Collection interface.
 func (c *ReleaseCollection) InitializeResource(r Resource) {
 	resource := r.(*ReleaseResource)
 	resource.collection = c
+
+	// TODO
+	// We do this here because this is called when pulling from the DB. If it's
+	// being pulled from the DB, it can be assumed to have services.
+	// Still really sloppy, since there could be an error.
+	svc, err := resource.getService(resource.externalServiceName())
+	if err != nil {
+		panic(err)
+	}
+	resource.externalService = svc
+
+	svc, err = resource.getService(resource.internalServiceName())
+	if err != nil {
+		panic(err)
+	}
+	resource.internalService = svc
 }
 
 // List returns an ReleaseList.
@@ -45,29 +68,21 @@ func (c *ReleaseCollection) List() (*ReleaseList, error) {
 func (c *ReleaseCollection) New() *ReleaseResource {
 	return &ReleaseResource{
 		collection: c,
-		Release: &types.Release{
-			ID: newReleaseID(),
-		},
 	}
 }
 
 // Create takes an Release and creates it in etcd.
 func (c *ReleaseCollection) Create(r *ReleaseResource) (*ReleaseResource, error) {
-	if err := c.core.DB.Create(c, r.ID, r); err != nil {
+	r.Timestamp = newReleaseTimestamp()
+	if err := c.core.DB.Create(c, r.Timestamp, r); err != nil {
 		return nil, err
 	}
 	return r, nil
 }
 
 // Get takes an id and returns an ReleaseResource if it exists.
-func (c *ReleaseCollection) Get(id string) (*ReleaseResource, error) {
+func (c *ReleaseCollection) Get(id types.ID) (*ReleaseResource, error) {
 	r := c.New()
-
-	// TODO
-	if id == "" {
-		panic("id is nil")
-	}
-
 	if err := c.core.DB.Get(c, id, r); err != nil {
 		return nil, err
 	}
@@ -83,6 +98,9 @@ func (r *ReleaseResource) Delete() error {
 	if err := r.deleteServices(); err != nil {
 		return err
 	}
+	if err := r.addExternalPortsToEntrypoint(); err != nil {
+		return err
+	}
 
 	c := make(chan error)
 	for _, instance := range r.Instances().List().Items {
@@ -96,11 +114,12 @@ func (r *ReleaseResource) Delete() error {
 		}
 	}
 
-	return r.collection.core.DB.Delete(r.collection, r.ID)
+	return r.collection.core.DB.Delete(r.collection, r.Timestamp)
 }
 
-func newReleaseID() string {
-	return time.Now().Format("20060102150405")
+func newReleaseTimestamp() types.ID {
+	stamp := time.Now().Format("20060102150405")
+	return &stamp
 }
 
 func (r *ReleaseResource) App() *AppResource {
@@ -148,11 +167,7 @@ func (r *ReleaseResource) imageRepoNames() (repoNames []string) { // TODO conver
 	return repoNames
 }
 
-// TODO make sub-method on container, extract guts of for loop here
 func (r *ReleaseResource) containerPorts(public bool) (ports []*types.Port) {
-
-	// TODO these will need to be unique -------------------------------------------------
-
 	for _, container := range r.Containers {
 		for _, port := range container.Ports {
 			if port.Public == public {
@@ -165,12 +180,12 @@ func (r *ReleaseResource) containerPorts(public bool) (ports []*types.Port) {
 
 // Operations-------------------------------------------------------------------
 func (r *ReleaseResource) getService(name string) (*guber.Service, error) {
-	return r.collection.core.K8S.Services(r.App().Name).Get(name)
+	return r.collection.core.K8S.Services(*r.App().Name).Get(name)
 }
 
-func (r *ReleaseResource) provisionService(name string, svcType string, svcPorts []*guber.ServicePort) error {
+func (r *ReleaseResource) provisionService(name string, svcType string, svcPorts []*guber.ServicePort) (*guber.Service, error) {
 	if service, _ := r.getService(name); service != nil {
-		return nil // already created
+		return service, nil // already created
 	}
 
 	service := &guber.Service{
@@ -180,30 +195,20 @@ func (r *ReleaseResource) provisionService(name string, svcType string, svcPorts
 		Spec: &guber.ServiceSpec{
 			Type: svcType,
 			Selector: map[string]string{
-				"service": r.Component().Name,
+				"service": *r.Component().Name,
 			},
 			Ports: svcPorts,
 		},
 	}
-	_, err := r.collection.core.K8S.Services(r.App().Name).Create(service)
-	return err
+	return r.collection.core.K8S.Services(*r.App().Name).Create(service)
 }
 
 func (r *ReleaseResource) externalServiceName() string {
-	return fmt.Sprintf("%s-public", r.Component().Name)
+	return *r.Component().Name + "-public"
 }
 
 func (r *ReleaseResource) internalServiceName() string {
-	return r.Component().Name
-}
-
-// Exposed to fetch IPs
-func (r *ReleaseResource) ExternalService() (*guber.Service, error) {
-	return r.getService(r.externalServiceName())
-}
-
-func (r *ReleaseResource) InternalService() (*guber.Service, error) {
-	return r.getService(r.internalServiceName())
+	return *r.Component().Name
 }
 
 func (r *ReleaseResource) provisionExternalService() error {
@@ -211,7 +216,13 @@ func (r *ReleaseResource) provisionExternalService() error {
 	for _, port := range r.containerPorts(true) {
 		ports = append(ports, AsKubeServicePort(port))
 	}
-	return r.provisionService(r.externalServiceName(), "NodePort", ports)
+	svc, err := r.provisionService(r.externalServiceName(), "NodePort", ports)
+	if err != nil {
+		return err
+	}
+	// TODO repeated in initialization
+	r.externalService = svc
+	return nil
 }
 
 func (r *ReleaseResource) provisionInternalService() error {
@@ -219,14 +230,20 @@ func (r *ReleaseResource) provisionInternalService() error {
 	for _, port := range r.containerPorts(false) {
 		ports = append(ports, AsKubeServicePort(port))
 	}
-	return r.provisionService(r.internalServiceName(), "ClusterIP", ports)
+	svc, err := r.provisionService(r.internalServiceName(), "ClusterIP", ports)
+	if err != nil {
+		return err
+	}
+	// TODO repeated in initialization
+	r.internalService = svc
+	return nil
 }
 
 func (r *ReleaseResource) deleteServices() (err error) {
-	if _, err = r.collection.core.K8S.Services(r.App().Name).Delete(r.externalServiceName()); err != nil {
+	if _, err = r.collection.core.K8S.Services(*r.App().Name).Delete(r.externalServiceName()); err != nil {
 		return err
 	}
-	if _, err = r.collection.core.K8S.Services(r.App().Name).Delete(r.internalServiceName()); err != nil {
+	if _, err = r.collection.core.K8S.Services(*r.App().Name).Delete(r.internalServiceName()); err != nil {
 		return err
 	}
 	return nil
@@ -241,6 +258,53 @@ func (r *ReleaseResource) provisionSecrets() error {
 	for _, repo := range repos {
 		if err := r.App().ProvisionSecret(repo); err != nil {
 			return err
+		}
+	}
+	return nil
+}
+
+func (r *ReleaseResource) nodePortFor(number int) (p int) {
+	for _, port := range r.externalService.Spec.Ports {
+		if port.Port == number {
+			p = port.NodePort
+		}
+	}
+	return p
+}
+
+func (r *ReleaseResource) addExternalPortsToEntrypoint() error {
+	// TODO repeated, move to Port class
+	for _, port := range r.containerPorts(true) {
+		if port.EntrypointDomain != nil {
+			nodePort := r.nodePortFor(port.Number)
+			elbPort := nodePort
+			entrypoint, err := r.collection.core.Entrypoints().Get(port.EntrypointDomain)
+			if err != nil {
+				return err
+			}
+
+			if err := entrypoint.AddPort(nodePort, elbPort); err != nil {
+				return err
+			}
+		}
+	}
+	return nil
+}
+
+func (r *ReleaseResource) removeExternalPortsFromEntrypoint() error {
+	// TODO repeated, move to Port class
+	for _, port := range r.containerPorts(true) {
+		if port.EntrypointDomain != nil {
+			nodePort := r.nodePortFor(port.Number)
+			elbPort := nodePort
+			entrypoint, err := r.collection.core.Entrypoints().Get(port.EntrypointDomain)
+			if err != nil {
+				return err
+			}
+
+			if err := entrypoint.RemovePort(elbPort); err != nil {
+				return err
+			}
 		}
 	}
 	return nil
@@ -261,10 +325,13 @@ func (r *ReleaseResource) Provision() error {
 		return err
 	}
 
+	if err := r.addExternalPortsToEntrypoint(); err != nil {
+		return err
+	}
+
 	// Concurrently provision volumes
 	// which is not actually concurrent... just sends all requests, and then
 	// loops waiting, which prevents concurrently polling while waiting.
-
 	for _, vol := range r.volumes() {
 		if err := vol.Provision(); err != nil {
 			return err
@@ -299,7 +366,7 @@ func (r *ReleaseResource) volumes() (vols []*AwsVolume) {
 
 func (r *ReleaseResource) imageRepos() (repos []*ImageRepoResource, err error) { // Not returning ImageRepoResource, since they are defined before hand
 	for _, repoName := range r.imageRepoNames() {
-		repo, err := r.collection.core.ImageRepos().Get(repoName)
+		repo, err := r.collection.core.ImageRepos().Get(&repoName)
 		if err != nil {
 			return nil, err
 		}

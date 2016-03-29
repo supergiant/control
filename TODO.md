@@ -2,6 +2,8 @@
 
 ## v0.2.x
 
+* API versioning
+
 * entrypoints (load balancer)
 
 * show component port addresses
@@ -36,6 +38,8 @@
 
 ## v0.7.x
 
+* HTTP Basic Auth on API
+
 * self-signed SSL cert for API HTTPS
 
 ## v0.8.x
@@ -44,13 +48,17 @@
 
 ## v0.9.x
 
-* simple component security
+* instance container logs / SSH
 
 ## v0.10.x
 
-* SSL / DNS
+* simple component security
 
 ## v0.11.x
+
+* SSL / DNS
+
+## v0.12.x
 
 * bluegreen release
 

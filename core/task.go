@@ -19,7 +19,7 @@ type TaskResource struct {
 	// TODO this is being marshalled and stored in etcd, when it is actually
 	// simply pulled from the key. We eventually need a way to marshal things
 	// differently, or more minimally, for the DB.
-	ID string `json:"-"` // ---------------- TODO this needs to be rendered
+	ID types.ID `json:"-"` // ---------------- TODO this needs to be rendered
 }
 
 // NOTE this does not inherit from types like model does; all we need is a List
@@ -35,8 +35,12 @@ const (
 )
 
 // EtcdKey implements the Collection interface.
-func (c *TaskCollection) EtcdKey(id string) string {
-	return path.Join("/tasks", id) // TODO does this actually do anything for Task?
+func (c *TaskCollection) EtcdKey(id types.ID) string {
+	key := "/tasks"
+	if id != nil {
+		key = path.Join(key, *id)
+	}
+	return key
 }
 
 // InitializeResource implements the Collection interface.
@@ -69,7 +73,7 @@ func (c *TaskCollection) Create(r *TaskResource) (*TaskResource, error) {
 }
 
 // Get takes a name and returns an TaskResource if it exists.
-func (c *TaskCollection) Get(id string) (*TaskResource, error) {
+func (c *TaskCollection) Get(id types.ID) (*TaskResource, error) {
 	r := c.New()
 	if err := c.core.DB.Get(c, id, r); err != nil {
 		return nil, err
@@ -114,7 +118,7 @@ func (r *TaskResource) Save() error {
 }
 
 // Implements OrderedModel interface
-func (r *TaskResource) SetID(id string) {
+func (r *TaskResource) SetID(id types.ID) {
 	r.ID = id
 }
 

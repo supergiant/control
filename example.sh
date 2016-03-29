@@ -1,18 +1,22 @@
-curl -XPOST localhost:8080/registries/dockerhub/repos -d '{
+curl -XPOST localhost:8080/v0/registries/dockerhub/repos -d '{
   "name": "qbox",
   "key": "'$QBOX_DOCKERHUB_KEY'"
 }'
 
-curl -XPOST localhost:8080/apps -d '{
+curl -XPOST localhost:8080/v0/entrypoints -d '{
+  "domain": "example.com"
+}'
+
+curl -XPOST localhost:8080/v0/apps -d '{
   "name": "test"
 }'
 
-curl -XPOST localhost:8080/apps/test/components -d '{
+curl -XPOST localhost:8080/v0/apps/test/components -d '{
   "name": "elasticsearch"
 }'
 
 
-curl -XPOST localhost:8080/apps/test/components/elasticsearch/releases -d '{
+curl -XPOST localhost:8080/v0/apps/test/components/elasticsearch/releases -d '{
   "instance_count": 3,
   "termination_grace_period": 10,
   "volumes": [
@@ -43,7 +47,8 @@ curl -XPOST localhost:8080/apps/test/components/elasticsearch/releases -d '{
         {
           "protocol": "HTTP",
           "number": 9200,
-          "public": true
+          "public": true,
+          "entrypoint_domain": "example.com"
         },
         {
           "protocol": "TCP",

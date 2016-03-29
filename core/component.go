@@ -22,8 +22,12 @@ type ComponentList struct {
 }
 
 // EtcdKey implements the Collection interface.
-func (c *ComponentCollection) EtcdKey(name string) string {
-	return path.Join("/components", c.App.Name, name)
+func (c *ComponentCollection) EtcdKey(name types.ID) string {
+	key := path.Join("/components", *c.App.Name)
+	if name != nil {
+		key = path.Join(key, *name)
+	}
+	return key
 }
 
 // InitializeResource implements the Collection interface.
@@ -55,13 +59,8 @@ func (c *ComponentCollection) Create(r *ComponentResource) (*ComponentResource, 
 }
 
 // Get takes a name and returns an ComponentResource if it exists.
-func (c *ComponentCollection) Get(name string) (*ComponentResource, error) {
+func (c *ComponentCollection) Get(name types.ID) (*ComponentResource, error) {
 	r := c.New()
-
-	if name == "" {
-		panic("name is empty") // TODO
-	}
-
 	if err := c.core.DB.Get(c, name, r); err != nil {
 		return nil, err
 	}
@@ -111,15 +110,15 @@ func (r *ComponentResource) Releases() *ReleaseCollection {
 }
 
 func (r *ComponentResource) CurrentRelease() (*ReleaseResource, error) {
-	if r.CurrentReleaseID == "" { // not yet released
+	if r.CurrentReleaseTimestamp == nil { // not yet released
 		return nil, nil
 	}
-	return r.Releases().Get(r.CurrentReleaseID)
+	return r.Releases().Get(r.CurrentReleaseTimestamp)
 }
 
 func (r *ComponentResource) TargetRelease() (*ReleaseResource, error) {
-	if r.TargetReleaseID == "" { // something probably went wrong...
+	if r.TargetReleaseTimestamp == nil { // something probably went wrong...
 		return nil, nil
 	}
-	return r.Releases().Get(r.TargetReleaseID)
+	return r.Releases().Get(r.TargetReleaseTimestamp)
 }

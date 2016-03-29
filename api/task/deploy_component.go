@@ -6,11 +6,12 @@ import (
 
 	"github.com/supergiant/supergiant/core"
 	"github.com/supergiant/supergiant/deploy"
+	"github.com/supergiant/supergiant/types"
 )
 
 type DeployComponentMessage struct {
-	AppName       string
-	ComponentName string
+	AppName       types.ID
+	ComponentName types.ID
 }
 
 type DeployComponent struct {
@@ -33,7 +34,7 @@ func (j DeployComponent) Perform(data []byte) error {
 	}
 
 	var currentRelease *core.ReleaseResource
-	if component.CurrentReleaseID != "" {
+	if component.CurrentReleaseTimestamp != nil {
 		currentRelease, err = component.CurrentRelease()
 		if err != nil {
 			return err
@@ -49,7 +50,7 @@ func (j DeployComponent) Perform(data []byte) error {
 	targetRelease.Provision() // TODO this does not yet handle updating services when changed, or volume resizing
 
 	// This goes to the deploy/ folder which uses the client package.
-	if err := deploy.Deploy(app.Name, component.Name, component.CurrentReleaseID, targetRelease.ID); err != nil {
+	if err := deploy.Deploy(app.Name, component.Name); err != nil {
 		return err
 	}
 
@@ -59,11 +60,11 @@ func (j DeployComponent) Perform(data []byte) error {
 
 	if currentRelease != nil {
 		if !currentRelease.IsStopped() {
-			return fmt.Errorf("Current Release for Component %s:%s is not completely stopped.", app.Name, component.Name)
+			return fmt.Errorf("Current Release for Component %s:%s is not completely stopped.", *app.Name, *component.Name)
 		}
 	}
 	if !targetRelease.IsStarted() {
-		return fmt.Errorf("Target Release for Component %s:%s is not completely started.", app.Name, component.Name)
+		return fmt.Errorf("Target Release for Component %s:%s is not completely started.", *app.Name, *component.Name)
 	}
 
 	// TODO really sloppy
@@ -80,8 +81,8 @@ func (j DeployComponent) Perform(data []byte) error {
 	// If we're all good, we set target to current, and remove target.
 	// Also, set the deploy task ID to nil.
 	// TODO we should use *string so we can just set to nil
-	component.CurrentReleaseID = component.TargetReleaseID
-	component.TargetReleaseID = ""
-	component.DeployTaskID = ""
+	component.CurrentReleaseTimestamp = component.TargetReleaseTimestamp
+	component.TargetReleaseTimestamp = nil
+	component.DeployTaskID = nil
 	return component.Save()
 }

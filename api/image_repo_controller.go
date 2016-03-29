@@ -35,7 +35,10 @@ func (c *ImageRepoController) Delete(w http.ResponseWriter, r *http.Request) {
 	if err != nil {
 		return
 	}
-	repo.Delete()
+	if err = repo.Delete(); err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
 
 	// TODO what do we return on immediate deletes like this? generic OK message?
 

@@ -3,7 +3,6 @@ package client
 import (
 	"fmt"
 	"path"
-	"strconv"
 	"time"
 
 	"github.com/supergiant/supergiant/types"
@@ -29,12 +28,12 @@ type InstanceList struct {
 }
 
 func (c *InstanceCollection) path() string {
-	return path.Join("apps", c.App.Name, "components", c.Component.Name, "releases", c.Release.ID, "instances")
+	return path.Join("apps", *c.App.Name, "components", *c.Component.Name, "releases", *c.Release.Timestamp, "instances")
 }
 
 func (r *InstanceResource) path() string {
 	// TODO instance ID should probably just be a string
-	return path.Join(r.collection.path(), strconv.Itoa(r.ID))
+	return path.Join(r.collection.path(), *r.ID)
 }
 
 // Collection-level
@@ -73,7 +72,7 @@ func (c *InstanceCollection) List() (*InstanceList, error) {
 // 	return r, nil
 // }
 
-func (c *InstanceCollection) Get(id int) (*InstanceResource, error) {
+func (c *InstanceCollection) Get(id types.ID) (*InstanceResource, error) {
 	m := &Instance{
 		ID: id,
 	}

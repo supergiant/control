@@ -4,18 +4,17 @@ import (
 	"encoding/json"
 	"fmt"
 	"net/http"
-	"strconv"
 
 	"github.com/supergiant/supergiant/core"
 
 	"github.com/gorilla/mux"
 )
 
-// LoadApp loads an App resource from URL params, or renders an HTTP Bad Request
+// LoadApp loads an App resource from URL params, or renders an HTTP Not Found
 // error.
 func LoadApp(core *core.Core, w http.ResponseWriter, r *http.Request) (*core.AppResource, error) {
 	name := mux.Vars(r)["app_name"]
-	app, err := core.Apps().Get(name)
+	app, err := core.Apps().Get(&name)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusNotFound)
 		return nil, err
@@ -25,7 +24,7 @@ func LoadApp(core *core.Core, w http.ResponseWriter, r *http.Request) (*core.App
 }
 
 // LoadComponent loads an Component resource from URL params, or renders an HTTP
-// Bad Request error.
+// Not Found error.
 func LoadComponent(core *core.Core, w http.ResponseWriter, r *http.Request) (*core.ComponentResource, error) {
 	app, err := LoadApp(core, w, r)
 	if err != nil {
@@ -33,7 +32,7 @@ func LoadComponent(core *core.Core, w http.ResponseWriter, r *http.Request) (*co
 	}
 
 	name := mux.Vars(r)["comp_name"]
-	component, err := app.Components().Get(name)
+	component, err := app.Components().Get(&name)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusNotFound)
 		return nil, err
@@ -43,15 +42,15 @@ func LoadComponent(core *core.Core, w http.ResponseWriter, r *http.Request) (*co
 }
 
 // LoadRelease loads an Release resource from URL params, or renders an HTTP
-// Bad Request error.
+// Not Found error.
 func LoadRelease(core *core.Core, w http.ResponseWriter, r *http.Request) (*core.ReleaseResource, error) {
 	component, err := LoadComponent(core, w, r)
 	if err != nil {
 		return nil, err
 	}
 
-	id := mux.Vars(r)["release_id"]
-	release, err := component.Releases().Get(id)
+	timestamp := mux.Vars(r)["release_timestamp"]
+	release, err := component.Releases().Get(&timestamp)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusNotFound)
 		return nil, err
@@ -61,18 +60,18 @@ func LoadRelease(core *core.Core, w http.ResponseWriter, r *http.Request) (*core
 }
 
 // LoadInstance loads an Instance resource from URL params, or renders an HTTP
-// Bad Request error.
+// Not Found error.
 func LoadInstance(core *core.Core, w http.ResponseWriter, r *http.Request) (*core.InstanceResource, error) {
 	release, err := LoadRelease(core, w, r)
 	if err != nil {
 		return nil, err
 	}
 
-	id, err := strconv.Atoi(mux.Vars(r)["instance_id"]) // TODO instance ID should be a string to begin with
+	id := mux.Vars(r)["instance_id"]
 	if err != nil {
 		return nil, err
 	}
-	instance, err := release.Instances().Get(id)
+	instance, err := release.Instances().Get(&id)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusNotFound)
 		return nil, err
@@ -82,10 +81,10 @@ func LoadInstance(core *core.Core, w http.ResponseWriter, r *http.Request) (*cor
 }
 
 // LoadImageRepo loads an ImageRepo resource from URL params, or renders an HTTP
-// Bad Request error.
+// Not Found error.
 func LoadImageRepo(core *core.Core, w http.ResponseWriter, r *http.Request) (*core.ImageRepoResource, error) {
 	name := mux.Vars(r)["name"]
-	repo, err := core.ImageRepos().Get(name)
+	repo, err := core.ImageRepos().Get(&name)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusNotFound)
 		return nil, err
@@ -94,11 +93,24 @@ func LoadImageRepo(core *core.Core, w http.ResponseWriter, r *http.Request) (*co
 	return repo, nil
 }
 
+// LoadEntrypoint loads an Entrypoint resource from URL params, or renders an HTTP
+// Not Found error.
+func LoadEntrypoint(core *core.Core, w http.ResponseWriter, r *http.Request) (*core.EntrypointResource, error) {
+	domain := mux.Vars(r)["domain"]
+	entrypoint, err := core.Entrypoints().Get(&domain)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusNotFound)
+		return nil, err
+	}
+
+	return entrypoint, nil
+}
+
 // LoadTask loads an Task resource from URL params, or renders an HTTP
-// Bad Request error.
+// Not Found error.
 func LoadTask(core *core.Core, w http.ResponseWriter, r *http.Request) (*core.TaskResource, error) {
 	id := mux.Vars(r)["id"]
-	task, err := core.Tasks().Get(id)
+	task, err := core.Tasks().Get(&id)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusNotFound)
 		return nil, err
@@ -108,7 +120,7 @@ func LoadTask(core *core.Core, w http.ResponseWriter, r *http.Request) (*core.Ta
 }
 
 // UnmarshalBodyInto decodes a JSON body into an interface or renders an HTTP
-// Bad Request error.
+// Not Found error.
 func UnmarshalBodyInto(w http.ResponseWriter, r *http.Request, out interface{}) error {
 	decoder := json.NewDecoder(r.Body)
 	err := decoder.Decode(out)

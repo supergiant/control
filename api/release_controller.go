@@ -39,7 +39,7 @@ func (c *ReleaseController) Create(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	component.TargetReleaseID = release.ID
+	component.TargetReleaseTimestamp = release.Timestamp
 	// (this may should be elsewhere)
 	// Set the task ID of the deploy on Component
 	component.DeployTaskID = task.ID

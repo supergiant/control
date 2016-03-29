@@ -7,13 +7,17 @@ import (
 
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/aws/session"
+	"github.com/aws/aws-sdk-go/service/autoscaling"
 	"github.com/aws/aws-sdk-go/service/ec2"
+	"github.com/aws/aws-sdk-go/service/elb"
 )
 
 type Core struct {
-	DB  *DB
-	K8S *guber.Client
-	EC2 *ec2.EC2
+	DB          *DB
+	K8S         *guber.Client
+	EC2         *ec2.EC2
+	ELB         *elb.ELB
+	AutoScaling *autoscaling.AutoScaling
 }
 
 var (
@@ -23,7 +27,9 @@ var (
 	k8sPass       string
 	awsRegion     string
 
-	AwsAZ string
+	AwsAZ       string
+	AwsSgID     string
+	AwsSubnetID string
 )
 
 func init() {
@@ -34,6 +40,8 @@ func init() {
 	awsRegion = os.Getenv("AWS_REGION")
 
 	AwsAZ = os.Getenv("AWS_AZ")
+	AwsSgID = os.Getenv("AWS_SG_ID")
+	AwsSubnetID = os.Getenv("AWS_SUBNET_ID")
 }
 
 func New() *Core {
@@ -41,7 +49,10 @@ func New() *Core {
 	c.DB = NewDB(etcdEndpoints)
 	c.K8S = guber.NewClient(k8sHost, k8sUser, k8sPass)
 	// NOTE / TODO AWS is configured through a file in ~
-	c.EC2 = ec2.New(session.New(), &aws.Config{Region: aws.String(awsRegion)})
+	awsConf := &aws.Config{Region: aws.String(awsRegion)}
+	c.EC2 = ec2.New(session.New(), awsConf)
+	c.ELB = elb.New(session.New(), awsConf)
+	c.AutoScaling = autoscaling.New(session.New(), awsConf)
 	return &c
 }
 
@@ -49,6 +60,10 @@ func New() *Core {
 //==============================================================================
 func (c *Core) Apps() *AppCollection {
 	return &AppCollection{c}
+}
+
+func (c *Core) Entrypoints() *EntrypointCollection {
+	return &EntrypointCollection{c}
 }
 
 func (c *Core) ImageRepos() *ImageRepoCollection {

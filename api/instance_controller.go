@@ -47,10 +47,10 @@ func (c *InstanceController) Start(w http.ResponseWriter, r *http.Request) {
 	}
 
 	msg := &task.StartInstanceMessage{
-		AppName:       instance.App().Name,
-		ComponentName: instance.Component().Name,
-		ReleaseID:     instance.Release().ID,
-		ID:            instance.ID,
+		AppName:          instance.App().Name,
+		ComponentName:    instance.Component().Name,
+		ReleaseTimestamp: instance.Release().Timestamp,
+		ID:               instance.ID,
 	}
 	_, err = c.core.Tasks().Start(types.TaskTypeStartInstance, msg)
 	if err != nil {
@@ -72,10 +72,10 @@ func (c *InstanceController) Stop(w http.ResponseWriter, r *http.Request) {
 	}
 
 	msg := &task.StopInstanceMessage{
-		AppName:       instance.App().Name,
-		ComponentName: instance.Component().Name,
-		ReleaseID:     instance.Release().ID,
-		ID:            instance.ID,
+		AppName:          instance.App().Name,
+		ComponentName:    instance.Component().Name,
+		ReleaseTimestamp: instance.Release().Timestamp,
+		ID:               instance.ID,
 	}
 	_, err = c.core.Tasks().Start(types.TaskTypeStopInstance, msg)
 	if err != nil {

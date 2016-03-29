@@ -3,11 +3,12 @@ package task
 import (
 	"encoding/json"
 
+	"github.com/coreos/etcd/pkg/types"
 	"github.com/supergiant/supergiant/core"
 )
 
 type DeleteAppMessage struct {
-	AppName string
+	AppName types.ID
 }
 
 // DeleteApp implements task.Performable interface

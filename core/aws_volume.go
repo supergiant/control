@@ -18,7 +18,7 @@ type AwsVolume struct {
 }
 
 func (m *AwsVolume) name() string {
-	return fmt.Sprintf("%s-%s", m.Instance.BaseName, m.Blueprint.Name)
+	return fmt.Sprintf("%s-%s", m.Instance.BaseName, *m.Blueprint.Name)
 }
 
 func (m *AwsVolume) id() string {
