@@ -2,7 +2,8 @@ package client
 
 import (
 	"path"
-	"supergiant/types"
+
+	"github.com/supergiant/supergiant/types"
 )
 
 type App types.App
@@ -25,7 +26,7 @@ func (c *AppCollection) path() string {
 }
 
 func (r *AppResource) path() string {
-	return path.Join("apps", r.Name)
+	return path.Join("apps", *r.Name)
 }
 
 // Collection-level
@@ -54,7 +55,7 @@ func (c *AppCollection) Create(m *App) (*AppResource, error) {
 	return r, nil
 }
 
-func (c *AppCollection) Get(name string) (*AppResource, error) {
+func (c *AppCollection) Get(name types.ID) (*AppResource, error) {
 	m := &App{
 		Name: name,
 	}

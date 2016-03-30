@@ -2,7 +2,8 @@ package api
 
 import (
 	"net/http"
-	"supergiant/core"
+
+	"github.com/supergiant/supergiant/core"
 )
 
 type TaskController struct {
@@ -16,22 +17,22 @@ func (c *TaskController) Index(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	body, err := MarshalBody(w, tasks)
+	body, err := marshalBody(w, tasks)
 	if err != nil {
 		return
 	}
-	RenderWithStatusOK(w, body)
+	renderWithStatusOK(w, body)
 }
 
 func (c *TaskController) Show(w http.ResponseWriter, r *http.Request) {
-	task, err := LoadTask(c.core, w, r)
+	task, err := loadTask(c.core, w, r)
 	if err != nil {
 		return
 	}
 
-	body, err := MarshalBody(w, task)
+	body, err := marshalBody(w, task)
 	if err != nil {
 		return
 	}
-	RenderWithStatusOK(w, body)
+	renderWithStatusOK(w, body)
 }

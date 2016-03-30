@@ -1,7 +1,7 @@
 package api
 
 import (
-	"supergiant/core"
+	"github.com/supergiant/supergiant/core"
 
 	"github.com/gorilla/mux"
 )
@@ -12,43 +12,50 @@ func NewRouter(core *core.Core) *mux.Router {
 	r := mux.NewRouter()
 	r.StrictSlash(true)
 
+	s := r.PathPrefix("/v0").Subrouter()
+
 	imageRepos := &ImageRepoController{core}
+	entrypoints := &EntrypointController{core}
 	apps := &AppController{core}
 	components := &ComponentController{core}
 	releases := &ReleaseController{core}
 	instances := &InstanceController{core}
 	tasks := &TaskController{core}
 
-	// deploys := &DeployController{core}
+	s.HandleFunc("/registries/dockerhub/repos", imageRepos.Create).Methods("POST")
+	s.HandleFunc("/registries/dockerhub/repos/{name}", imageRepos.Delete).Methods("DELETE")
 
-	r.HandleFunc("/registries/dockerhub/repos", imageRepos.Create).Methods("POST")
-	r.HandleFunc("/registries/dockerhub/repos/{name}", imageRepos.Delete).Methods("DELETE")
+	s.HandleFunc("/entrypoints", entrypoints.Create).Methods("POST")
+	s.HandleFunc("/entrypoints", entrypoints.Index).Methods("GET")
+	s.HandleFunc("/entrypoints/{domain}", entrypoints.Show).Methods("GET")
+	s.HandleFunc("/entrypoints/{domain}", entrypoints.Delete).Methods("DELETE")
 
-	r.HandleFunc("/apps", apps.Create).Methods("POST")
-	r.HandleFunc("/apps", apps.Index).Methods("GET")
-	r.HandleFunc("/apps/{app_name}", apps.Show).Methods("GET")
-	r.HandleFunc("/apps/{app_name}", apps.Delete).Methods("DELETE")
+	s.HandleFunc("/apps", apps.Create).Methods("POST")
+	s.HandleFunc("/apps", apps.Index).Methods("GET")
+	s.HandleFunc("/apps/{app_name}", apps.Show).Methods("GET")
+	s.HandleFunc("/apps/{app_name}", apps.Delete).Methods("DELETE")
 
-	r.HandleFunc("/apps/{app_name}/components", components.Create).Methods("POST")
-	r.HandleFunc("/apps/{app_name}/components", components.Index).Methods("GET")
-	r.HandleFunc("/apps/{app_name}/components/{comp_name}", components.Show).Methods("GET")
-	r.HandleFunc("/apps/{app_name}/components/{comp_name}", components.Delete).Methods("DELETE")
+	s.HandleFunc("/apps/{app_name}/components", components.Create).Methods("POST")
+	s.HandleFunc("/apps/{app_name}/components", components.Index).Methods("GET")
+	s.HandleFunc("/apps/{app_name}/components/{comp_name}", components.Show).Methods("GET")
+	s.HandleFunc("/apps/{app_name}/components/{comp_name}", components.Delete).Methods("DELETE")
 
-	r.HandleFunc("/apps/{app_name}/components/{comp_name}/releases", releases.Create).Methods("POST")
-	r.HandleFunc("/apps/{app_name}/components/{comp_name}/releases", releases.Index).Methods("GET")
-	r.HandleFunc("/apps/{app_name}/components/{comp_name}/releases/{release_id}", releases.Show).Methods("GET")
+	s.HandleFunc("/apps/{app_name}/components/{comp_name}/releases", releases.Create).Methods("POST")
+	s.HandleFunc("/apps/{app_name}/components/{comp_name}/releases", releases.Index).Methods("GET")
+	s.HandleFunc("/apps/{app_name}/components/{comp_name}/releases/{release_timestamp}", releases.Show).Methods("GET")
 
-	// Below is where all the integration happens
-	//============================================================================
+	// Integration
 
-	r.HandleFunc("/apps/{app_name}/components/{comp_name}/releases/{release_id}/instances", instances.Index).Methods("GET")
-	r.HandleFunc("/apps/{app_name}/components/{comp_name}/releases/{release_id}/instances/{instance_id}", instances.Show).Methods("GET")
+	s.HandleFunc("/apps/{app_name}/components/{comp_name}/releases/{release_timestamp}/instances", instances.Index).Methods("GET")
+	s.HandleFunc("/apps/{app_name}/components/{comp_name}/releases/{release_timestamp}/instances/{instance_id}", instances.Show).Methods("GET")
 
-	r.HandleFunc("/apps/{app_name}/components/{comp_name}/releases/{release_id}/instances/{instance_id}/start", instances.Start).Methods("POST")
-	r.HandleFunc("/apps/{app_name}/components/{comp_name}/releases/{release_id}/instances/{instance_id}/stop", instances.Stop).Methods("POST")
+	s.HandleFunc("/apps/{app_name}/components/{comp_name}/releases/{release_timestamp}/instances/{instance_id}/start", instances.Start).Methods("POST")
+	s.HandleFunc("/apps/{app_name}/components/{comp_name}/releases/{release_timestamp}/instances/{instance_id}/stop", instances.Stop).Methods("POST")
 
-	r.HandleFunc("/tasks", tasks.Index).Methods("GET")
-	r.HandleFunc("/tasks/{id}", tasks.Show).Methods("GET")
+	// Misc
+
+	s.HandleFunc("/tasks", tasks.Index).Methods("GET")
+	s.HandleFunc("/tasks/{id}", tasks.Show).Methods("GET")
 
 	return r
 }

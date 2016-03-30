@@ -4,7 +4,8 @@ import (
 	"encoding/json"
 	"fmt"
 	"path"
-	"supergiant/types"
+
+	"github.com/supergiant/supergiant/types"
 )
 
 type TaskCollection struct {
@@ -15,10 +16,7 @@ type TaskResource struct {
 	collection *TaskCollection
 	*types.Task
 
-	// TODO this is being marshalled and stored in etcd, when it is actually
-	// simply pulled from the key. We eventually need a way to marshal things
-	// differently, or more minimally, for the DB.
-	ID string `json:"-"` // ---------------- TODO this needs to be rendered
+	ID types.ID `json:"id"`
 }
 
 // NOTE this does not inherit from types like model does; all we need is a List
@@ -34,8 +32,12 @@ const (
 )
 
 // EtcdKey implements the Collection interface.
-func (c *TaskCollection) EtcdKey(id string) string {
-	return path.Join("/tasks", id) // TODO does this actually do anything for Task?
+func (c *TaskCollection) EtcdKey(id types.ID) string {
+	key := "/tasks"
+	if id != nil {
+		key = path.Join(key, *id)
+	}
+	return key
 }
 
 // InitializeResource implements the Collection interface.
@@ -53,9 +55,7 @@ func (c *TaskCollection) List() (*TaskList, error) {
 
 // New initializes an Task with a pointer to the Collection.
 func (c *TaskCollection) New() *TaskResource {
-	return &TaskResource{
-		collection: c,
-	}
+	return new(TaskResource)
 }
 
 // Create takes an Task and creates it in etcd. It also creates a Kubernetes
@@ -68,7 +68,7 @@ func (c *TaskCollection) Create(r *TaskResource) (*TaskResource, error) {
 }
 
 // Get takes a name and returns an TaskResource if it exists.
-func (c *TaskCollection) Get(id string) (*TaskResource, error) {
+func (c *TaskCollection) Get(id types.ID) (*TaskResource, error) {
 	r := c.New()
 	if err := c.core.DB.Get(c, id, r); err != nil {
 		return nil, err
@@ -102,6 +102,11 @@ func (c *TaskCollection) Start(t types.TaskType, msg interface{}) (*TaskResource
 // Resource-level
 //==============================================================================
 
+// PersistableObject satisfies the Resource interface
+func (r *TaskResource) PersistableObject() interface{} {
+	return r.Task
+}
+
 // Delete deletes the Task in etcd.
 func (r *TaskResource) Delete() error {
 	return r.collection.core.DB.Delete(r.collection, r.ID)
@@ -113,7 +118,7 @@ func (r *TaskResource) Save() error {
 }
 
 // Implements OrderedModel interface
-func (r *TaskResource) SetID(id string) {
+func (r *TaskResource) SetID(id types.ID) {
 	r.ID = id
 }
 
@@ -124,11 +129,17 @@ func (r *TaskResource) IsQueued() bool {
 // Claim updates the Task status to "RUNNING" and returns nil. CompareAndSwap is
 // used to prevent a race condition and ensure only one worker performs the task.
 func (r *TaskResource) Claim() error {
-	prev := r.Task // NOTE we have to say .Task here explicitly in order to dereference and copy correctly
-	next := *r.Task
-	next.Status = statusRunning
+	prev := r
+	// next := *r
+	// next.Status = statusRunning
 
-	return r.collection.core.DB.CompareAndSwap(r.collection, r.ID, prev, &next)
+	// NOTE we have to do this instead of the above, because nested pointers are
+	// not de-referenced.
+	t := *r.Task
+	t.Status = statusRunning
+	next := &TaskResource{Task: &t}
+
+	return r.collection.core.DB.CompareAndSwap(r.collection, r.ID, prev, next)
 }
 
 func (r *TaskResource) RecordError(err error) error {

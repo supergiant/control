@@ -2,6 +2,10 @@ package types
 
 import "fmt"
 
+type ID *string
+
+// CPU / RAM resource values
+
 type BytesValue struct {
 	bytes uint
 }

@@ -1,9 +1,10 @@
 package core
 
 import (
-	"guber"
 	"path"
-	"supergiant/types"
+
+	"github.com/supergiant/guber"
+	"github.com/supergiant/supergiant/types"
 )
 
 type AppCollection struct {
@@ -22,8 +23,11 @@ type AppList struct {
 }
 
 // EtcdKey implements the Collection interface.
-func (c *AppCollection) EtcdKey(name string) string {
-	return path.Join("/apps", name)
+func (c *AppCollection) EtcdKey(name types.ID) string {
+	if name == nil {
+		return "/apps"
+	}
+	return path.Join("/apps", *name)
 }
 
 // InitializeResource implements the Collection interface.
@@ -41,9 +45,7 @@ func (c *AppCollection) List() (*AppList, error) {
 
 // New initializes an App with a pointer to the Collection.
 func (c *AppCollection) New() *AppResource {
-	return &AppResource{
-		collection: c,
-	}
+	return new(AppResource)
 }
 
 // Create takes an App and creates it in etcd. It also creates a Kubernetes
@@ -62,7 +64,7 @@ func (c *AppCollection) Create(r *AppResource) (*AppResource, error) {
 }
 
 // Get takes a name and returns an AppResource if it exists.
-func (c *AppCollection) Get(name string) (*AppResource, error) {
+func (c *AppCollection) Get(name types.ID) (*AppResource, error) {
 	r := c.New()
 	if err := c.core.DB.Get(c, name, r); err != nil {
 		return nil, err
@@ -72,6 +74,11 @@ func (c *AppCollection) Get(name string) (*AppResource, error) {
 
 // Resource-level
 //==============================================================================
+
+// PersistableObject satisfies the Resource interface
+func (r *AppResource) PersistableObject() interface{} {
+	return r.App
+}
 
 // Delete cascades deletes to all Components, deletes the Kube Namespace, and
 // deletes the App in etcd.
@@ -102,7 +109,7 @@ func (r *AppResource) Components() *ComponentCollection {
 func (r *AppResource) createNamespace() error {
 	namespace := &guber.Namespace{
 		Metadata: &guber.Metadata{
-			Name: r.Name,
+			Name: *r.Name,
 		},
 	}
 	_, err := r.collection.core.K8S.Namespaces().Create(namespace)
@@ -110,7 +117,7 @@ func (r *AppResource) createNamespace() error {
 }
 
 func (r *AppResource) deleteNamespace() error {
-	_, err := r.collection.core.K8S.Namespaces().Delete(r.Name)
+	_, err := r.collection.core.K8S.Namespaces().Delete(*r.Name)
 	return err
 }
 
@@ -118,13 +125,13 @@ func (r *AppResource) ProvisionSecret(repo *ImageRepoResource) error {
 	// TODO not sure i've been consistent with error handling -- this strategy is
 	// useful when there could be multiple types of errors, alongside the
 	// expectation of an error when something doesn't exist
-	secret, err := r.collection.core.K8S.Secrets(r.Name).Get(repo.Name)
+	secret, err := r.collection.core.K8S.Secrets(*r.Name).Get(*repo.Name)
 
 	if err != nil {
 		return err
 	} else if secret != nil {
 		return nil
 	}
-	_, err = r.collection.core.K8S.Secrets(r.Name).Create(AsKubeSecret(repo))
+	_, err = r.collection.core.K8S.Secrets(*r.Name).Create(asKubeSecret(repo))
 	return err
 }

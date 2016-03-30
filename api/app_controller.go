@@ -2,9 +2,10 @@ package api
 
 import (
 	"net/http"
-	"supergiant/api/task"
-	"supergiant/core"
-	"supergiant/types"
+
+	"github.com/supergiant/supergiant/api/task"
+	"github.com/supergiant/supergiant/core"
+	"github.com/supergiant/supergiant/types"
 )
 
 type AppController struct {
@@ -14,7 +15,7 @@ type AppController struct {
 func (c *AppController) Create(w http.ResponseWriter, r *http.Request) {
 	app := c.core.Apps().New()
 
-	if err := UnmarshalBodyInto(w, r, app); err != nil {
+	if err := unmarshalBodyInto(w, r, app); err != nil {
 		return
 	}
 
@@ -24,11 +25,11 @@ func (c *AppController) Create(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	body, err := MarshalBody(w, app)
+	body, err := marshalBody(w, app)
 	if err != nil {
 		return
 	}
-	RenderWithStatusCreated(w, body)
+	renderWithStatusCreated(w, body)
 }
 
 func (c *AppController) Index(w http.ResponseWriter, r *http.Request) {
@@ -38,28 +39,28 @@ func (c *AppController) Index(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	body, err := MarshalBody(w, apps)
+	body, err := marshalBody(w, apps)
 	if err != nil {
 		return
 	}
-	RenderWithStatusOK(w, body)
+	renderWithStatusOK(w, body)
 }
 
 func (c *AppController) Show(w http.ResponseWriter, r *http.Request) {
-	app, err := LoadApp(c.core, w, r)
+	app, err := loadApp(c.core, w, r)
 	if err != nil {
 		return
 	}
 
-	body, err := MarshalBody(w, app)
+	body, err := marshalBody(w, app)
 	if err != nil {
 		return
 	}
-	RenderWithStatusOK(w, body)
+	renderWithStatusOK(w, body)
 }
 
 func (c *AppController) Delete(w http.ResponseWriter, r *http.Request) {
-	app, err := LoadApp(c.core, w, r)
+	app, err := loadApp(c.core, w, r)
 	if err != nil {
 		return
 	}
@@ -71,9 +72,9 @@ func (c *AppController) Delete(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	body, err := MarshalBody(w, app)
+	body, err := marshalBody(w, app)
 	if err != nil {
 		return
 	}
-	RenderWithStatusAccepted(w, body)
+	renderWithStatusAccepted(w, body)
 }

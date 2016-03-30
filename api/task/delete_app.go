@@ -2,11 +2,13 @@ package task
 
 import (
 	"encoding/json"
-	"supergiant/core"
+
+	"github.com/supergiant/supergiant/core"
+	"github.com/supergiant/supergiant/types"
 )
 
 type DeleteAppMessage struct {
-	AppName string
+	AppName types.ID
 }
 
 // DeleteApp implements task.Performable interface

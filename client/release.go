@@ -2,7 +2,8 @@ package client
 
 import (
 	"path"
-	"supergiant/types"
+
+	"github.com/supergiant/supergiant/types"
 )
 
 type Release types.Release
@@ -24,11 +25,11 @@ type ReleaseList struct {
 }
 
 func (c *ReleaseCollection) path() string {
-	return path.Join("apps", c.App.Name, "components", c.Component.Name, "releases")
+	return path.Join("apps", *c.App.Name, "components", *c.Component.Name, "releases")
 }
 
 func (r *ReleaseResource) path() string {
-	return path.Join(r.collection.path(), r.ID)
+	return path.Join(r.collection.path(), *r.Timestamp)
 }
 
 // Collection-level
@@ -57,9 +58,9 @@ func (c *ReleaseCollection) List() (*ReleaseList, error) {
 // 	return r, nil
 // }
 
-func (c *ReleaseCollection) Get(id string) (*ReleaseResource, error) {
+func (c *ReleaseCollection) Get(timestamp types.ID) (*ReleaseResource, error) {
 	m := &Release{
-		ID: id,
+		Timestamp: timestamp,
 	}
 	r := c.New(m)
 	if found, err := c.client.Get(r.path(), r.Release); err != nil {

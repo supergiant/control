@@ -2,14 +2,16 @@ package task
 
 import (
 	"encoding/json"
-	"supergiant/core"
+
+	"github.com/supergiant/supergiant/core"
+	"github.com/supergiant/supergiant/types"
 )
 
 type StopInstanceMessage struct {
-	AppName       string
-	ComponentName string
-	ReleaseID     string
-	ID            int
+	AppName          types.ID
+	ComponentName    types.ID
+	ReleaseTimestamp types.ID
+	ID               types.ID
 }
 
 // StopInstance implements Performable interface
@@ -31,7 +33,7 @@ func (j StopInstance) Perform(data []byte) error {
 	if err != nil {
 		return err
 	}
-	release, err := component.Releases().Get(msg.ReleaseID)
+	release, err := component.Releases().Get(msg.ReleaseTimestamp)
 	if err != nil {
 		return err
 	}

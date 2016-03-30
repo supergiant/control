@@ -3,9 +3,10 @@ package task
 import (
 	"encoding/json"
 	"fmt"
-	"supergiant/core"
-	"supergiant/types"
 	"time"
+
+	"github.com/supergiant/supergiant/core"
+	"github.com/supergiant/supergiant/types"
 )
 
 const (

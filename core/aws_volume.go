@@ -2,7 +2,8 @@ package core
 
 import (
 	"fmt"
-	"supergiant/types"
+
+	"github.com/supergiant/supergiant/types"
 
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/service/ec2"
@@ -17,7 +18,7 @@ type AwsVolume struct {
 }
 
 func (m *AwsVolume) name() string {
-	return fmt.Sprintf("%s-%s", m.Instance.BaseName, m.Blueprint.Name)
+	return fmt.Sprintf("%s-%s", m.Instance.BaseName, *m.Blueprint.Name)
 }
 
 func (m *AwsVolume) id() string {
@@ -108,6 +109,7 @@ func (m *AwsVolume) WaitForAvailable() error {
 	return m.core.EC2.WaitUntilVolumeAvailable(input)
 }
 
+// Delete deletes the EBS volume on AWS.
 func (m *AwsVolume) Delete() error {
 	if m.awsVolume() == nil {
 		return nil

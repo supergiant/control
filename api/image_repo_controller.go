@@ -2,7 +2,8 @@ package api
 
 import (
 	"net/http"
-	"supergiant/core"
+
+	"github.com/supergiant/supergiant/core"
 )
 
 type ImageRepoController struct {
@@ -12,7 +13,7 @@ type ImageRepoController struct {
 func (c *ImageRepoController) Create(w http.ResponseWriter, r *http.Request) {
 	repo := c.core.ImageRepos().New()
 
-	if err := UnmarshalBodyInto(w, r, repo); err != nil {
+	if err := unmarshalBodyInto(w, r, repo); err != nil {
 		return
 	}
 
@@ -22,25 +23,28 @@ func (c *ImageRepoController) Create(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	body, err := MarshalBody(w, repo)
+	body, err := marshalBody(w, repo)
 	if err != nil {
 		return
 	}
-	RenderWithStatusCreated(w, body)
+	renderWithStatusCreated(w, body)
 }
 
 func (c *ImageRepoController) Delete(w http.ResponseWriter, r *http.Request) {
-	repo, err := LoadImageRepo(c.core, w, r)
+	repo, err := loadImageRepo(c.core, w, r)
 	if err != nil {
 		return
 	}
-	repo.Delete()
+	if err = repo.Delete(); err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
 
 	// TODO what do we return on immediate deletes like this? generic OK message?
 
-	// body, err := MarshalBody(w, app)
+	// body, err := marshalBody(w, app)
 	// if err != nil {
 	// 	return
 	// }
-	// RenderWithStatusAccepted(w, body)
+	// renderWithStatusAccepted(w, body)
 }

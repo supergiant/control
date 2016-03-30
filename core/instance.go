@@ -2,10 +2,11 @@ package core
 
 import (
 	"fmt"
-	"guber"
-	"path"
-	"supergiant/types"
+	"strconv"
 	"time"
+
+	"github.com/supergiant/guber"
+	"github.com/supergiant/supergiant/types"
 )
 
 type InstanceCollection struct {
@@ -30,29 +31,19 @@ func (c *InstanceCollection) component() *ComponentResource {
 	return c.Release.Component()
 }
 
-// EtcdKey implements the Collection interface.
-func (c *InstanceCollection) EtcdKey(id string) string {
-	return path.Join("/instances", c.app().Name, c.component().Name, c.Release.ID, id)
-}
-
-// InitializeResource implements the Collection interface.
-func (c *InstanceCollection) InitializeResource(r Resource) {
-	resource := r.(*InstanceResource)
-	resource.collection = c
-}
-
 // List returns an InstanceList.
 func (c *InstanceCollection) List() *InstanceList {
 	list := new(InstanceList)
 	list.Items = make([]*InstanceResource, 0)
 	for i := 0; i < c.Release.InstanceCount; i++ {
-		list.Items = append(list.Items, c.New(i))
+		id := strconv.Itoa(i)
+		list.Items = append(list.Items, c.New(&id))
 	}
 	return list
 }
 
 // New initializes an Instance with a pointer to the Collection.
-func (c *InstanceCollection) New(id int) *InstanceResource {
+func (c *InstanceCollection) New(id types.ID) *InstanceResource {
 	r := &InstanceResource{
 		collection: c,
 		Instance: &types.Instance{
@@ -60,17 +51,21 @@ func (c *InstanceCollection) New(id int) *InstanceResource {
 		},
 	}
 	// TODO not consistent with the setter approach
-	r.BaseName = fmt.Sprintf("%s-%d", r.Component().Name, r.ID)
-	r.Name = fmt.Sprintf("%s-%s", r.BaseName, r.Release().ID)
+	r.BaseName = *r.Component().Name + "-" + *r.ID
+	r.Name = r.BaseName + *r.Release().Timestamp
 	r.setStatus()
 	return r
 }
 
 // Get takes an id and returns an InstanceResource if it exists.
-func (c *InstanceCollection) Get(id int) (*InstanceResource, error) {
-	maxID := c.Release.InstanceCount - 1
-	if id < 0 || id > maxID {
-		return nil, fmt.Errorf("%d for Instance ID is out of range; Highest ID is %d", id, maxID)
+func (c *InstanceCollection) Get(id types.ID) (*InstanceResource, error) {
+	index, err := strconv.Atoi(*id)
+	if err != nil {
+		return nil, err
+	}
+	maxIndex := c.Release.InstanceCount - 1
+	if index < 0 || index > maxIndex {
+		return nil, fmt.Errorf("%d for Instance ID is out of range; Highest ID is %d", index, maxIndex)
 	}
 	return c.New(id), nil
 }
@@ -166,20 +161,20 @@ func (r *InstanceResource) Volumes() (vols []*AwsVolume) {
 
 func (r *InstanceResource) kubeVolumes() (vols []*guber.Volume) {
 	for _, vol := range r.Volumes() {
-		vols = append(vols, AsKubeVolume(vol))
+		vols = append(vols, asKubeVolume(vol))
 	}
 	return vols
 }
 
 func (r *InstanceResource) kubeContainers() (containers []*guber.Container) {
 	for _, blueprint := range r.Release().Containers {
-		containers = append(containers, AsKubeContainer(blueprint, r))
+		containers = append(containers, asKubeContainer(blueprint, r))
 	}
 	return containers
 }
 
 func (r *InstanceResource) replicationController() (*guber.ReplicationController, error) {
-	return r.collection.core.K8S.ReplicationControllers(r.App().Name).Get(r.Name)
+	return r.collection.core.K8S.ReplicationControllers(*r.App().Name).Get(r.Name)
 }
 
 func (r *InstanceResource) waitForReplicationControllerReady() error {
@@ -226,8 +221,8 @@ func (r *InstanceResource) provisionReplicationController() error {
 				Metadata: &guber.Metadata{
 					Name: r.Name, // pod base name is same as RC
 					Labels: map[string]string{
-						"service":  r.Component().Name, // for Service
-						"instance": r.Name,             // for RC (above)
+						"service":  *r.Component().Name, // for Service
+						"instance": r.Name,              // for RC (above)
 					},
 				},
 				Spec: &guber.PodSpec{
@@ -239,7 +234,7 @@ func (r *InstanceResource) provisionReplicationController() error {
 			},
 		},
 	}
-	if _, err = r.collection.core.K8S.ReplicationControllers(r.App().Name).Create(rc); err != nil {
+	if _, err = r.collection.core.K8S.ReplicationControllers(*r.App().Name).Create(rc); err != nil {
 		return err
 	}
 	return r.waitForReplicationControllerReady()
@@ -249,7 +244,7 @@ func (r *InstanceResource) pod() (*guber.Pod, error) {
 	q := &guber.QueryParams{
 		LabelSelector: "instance=" + r.Name,
 	}
-	pods, err := r.collection.core.K8S.Pods(r.App().Name).Query(q)
+	pods, err := r.collection.core.K8S.Pods(*r.App().Name).Query(q)
 	if err != nil {
 		return nil, err // Not sure what the error might be here
 	}
@@ -264,7 +259,7 @@ func (r *InstanceResource) pod() (*guber.Pod, error) {
 
 func (r *InstanceResource) deleteReplicationControllerAndPod() error {
 	// TODO we call r.collection.core.K8S.ReplicationControllers(r.App().Name) enough to warrant its own method -- confusing nomenclature awaits assuredly
-	if _, err := r.collection.core.K8S.ReplicationControllers(r.App().Name).Delete(r.Name); err != nil {
+	if _, err := r.collection.core.K8S.ReplicationControllers(*r.App().Name).Delete(r.Name); err != nil {
 		return err
 	}
 	pod, err := r.pod()
@@ -273,7 +268,7 @@ func (r *InstanceResource) deleteReplicationControllerAndPod() error {
 	}
 	if pod != nil {
 		// _ is found bool, we don't care if it was found or not, just don't want an error
-		if _, err := r.collection.core.K8S.Pods(r.App().Name).Delete(pod.Metadata.Name); err != nil {
+		if _, err := r.collection.core.K8S.Pods(*r.App().Name).Delete(pod.Metadata.Name); err != nil {
 			return err
 		}
 	}
