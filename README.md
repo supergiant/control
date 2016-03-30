@@ -15,3 +15,25 @@ See [example.sh](example.sh) and [api/router.go](api/router.go).
 
 *Note: I'm going to squash commit history soon to get rid of the private
 Dockerhub key in example.sh.*
+
+```NAME:
+   supergiant-api - The Supergiant api server.
+
+USAGE:
+   supergiant [global options] command [command options] [arguments...]
+
+VERSION:
+   0.0.0
+
+COMMANDS:
+   help, h	Shows a list of commands or help for one command
+
+GLOBAL OPTIONS:
+   --etcd-host [--etcd-host option --etcd-host option]	Array of etcd hosts. [$ETCD_ENDPOINT]
+   --k8sHost, --kh "kubernetes"				IP of a Kuberntes api. [$K8S_HOST]
+   --k8sUser, --ku "<Kubernetes api userID>"		Username used to connect to your Kubernetes api. [$K8S_USER]
+   --k8sPass, --kp "<Kubernetes api password>"		Password used to connect to your Kubernetes api. [$K8S_PASS]
+   --awsRegion, --ar "<AWS Region>"			AWS Region in which your kubernetes cluster resides. [$AWS_REGION]
+   --awsAZ, --az "<AWS Availability Zone>"		AWS Availability Zone in which your kubernetes cluster resides. [$AWS_AZ]
+   --help, -h						show help
+   --version, -v					print the version```
