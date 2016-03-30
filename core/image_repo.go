@@ -2,7 +2,8 @@ package core
 
 import (
 	"path"
-	"supergiant/types"
+
+	"github.com/supergiant/supergiant/types"
 )
 
 type ImageRepoCollection struct {

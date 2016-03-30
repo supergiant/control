@@ -2,7 +2,8 @@ package task
 
 import (
 	"encoding/json"
-	"supergiant/core"
+
+	"github.com/supergiant/supergiant/core"
 )
 
 type DeleteAppMessage struct {

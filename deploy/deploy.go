@@ -1,6 +1,6 @@
 package deploy
 
-import "supergiant/client"
+import "github.com/supergiant/supergiant/client"
 
 func Deploy(appName string, componentName string, currentReleaseID string, targetReleaseID string) error {
 

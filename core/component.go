@@ -3,7 +3,8 @@ package core
 import (
 	"fmt"
 	"path"
-	"supergiant/types"
+
+	"github.com/supergiant/supergiant/types"
 )
 
 type ComponentCollection struct {

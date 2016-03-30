@@ -2,7 +2,8 @@ package core
 
 import (
 	"fmt"
-	"supergiant/types"
+
+	"github.com/supergiant/supergiant/types"
 
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/service/ec2"

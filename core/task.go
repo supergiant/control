@@ -4,7 +4,8 @@ import (
 	"encoding/json"
 	"fmt"
 	"path"
-	"supergiant/types"
+
+	"github.com/supergiant/supergiant/types"
 )
 
 type TaskCollection struct {

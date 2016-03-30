@@ -1,7 +1,7 @@
 package api
 
 import (
-	"supergiant/core"
+	"github.com/supergiant/supergiant/core"
 
 	"github.com/gorilla/mux"
 )

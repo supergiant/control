@@ -5,7 +5,8 @@ import (
 	"fmt"
 	"net/http"
 	"strconv"
-	"supergiant/core"
+
+	"github.com/supergiant/supergiant/core"
 
 	"github.com/gorilla/mux"
 )
