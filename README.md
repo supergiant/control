@@ -39,7 +39,8 @@ GLOBAL OPTIONS:
    --awsRegion, --ar "<AWS Region>"			AWS Region in which your kubernetes cluster resides. [$AWS_REGION]
    --awsAZ, --az "<AWS Availability Zone>"		AWS Availability Zone in which your kubernetes cluster resides. [$AWS_AZ]
    --help, -h						show help
-   --version, -v					print the version```
+   --version, -v					print the version
+   ```
 
 
 
