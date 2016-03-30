@@ -14,6 +14,12 @@
 
 * resource metadata, tags
 
+* meta timestamps
+
+* show resource types on all API responses
+
+* standardized errors, removing panics where possible
+
 * volume resizing
 
 ## v0.4.x
