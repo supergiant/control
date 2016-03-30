@@ -59,7 +59,9 @@ func (c *ComponentCollection) Create(m *Component) (*ComponentResource, error) {
 
 func (c *ComponentCollection) Get(name types.ID) (*ComponentResource, error) {
 	m := &Component{
-		Name: name,
+		PersistableComponent: &types.PersistableComponent{ // TODO any way to not make this so weird?
+			Name: name,
+		},
 	}
 	r := c.New(m)
 	if found, err := c.client.Get(r.path(), r.Component); err != nil {

@@ -50,9 +50,7 @@ func (c *EntrypointCollection) List() (*EntrypointList, error) {
 
 // New initializes an Entrypoint with a pointer to the Collection.
 func (c *EntrypointCollection) New() *EntrypointResource {
-	return &EntrypointResource{
-		collection: c,
-	}
+	return new(EntrypointResource)
 }
 
 // Create takes an Entrypoint and creates it in etcd. It also creates a Kubernetes
@@ -92,6 +90,11 @@ func (c *EntrypointCollection) Get(domain types.ID) (*EntrypointResource, error)
 
 // Resource-level
 //==============================================================================
+
+// PersistableObject satisfies the Resource interface
+func (r *EntrypointResource) PersistableObject() interface{} {
+	return r.Entrypoint
+}
 
 // Save saves the Entrypoint in etcd through an update.
 func (r *EntrypointResource) Save() error {

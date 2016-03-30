@@ -1,11 +1,12 @@
 package core
 
-// import "encoding/json"
-//
-// func ResourceToJSONString(r Resource) string {
-// 	bytes, err := json.Marshal(r)
-// 	if err != nil {
-// 		panic(err) // TODO
-// 	}
-// 	return string(bytes)
-// }
+func uniqStrs(in []string) (out []string) {
+	tab := make(map[string]struct{}) // empty struct because it's the smallest possible value
+	for _, str := range in {
+		if _, ok := tab[str]; !ok {
+			tab[str] = struct{}{}
+			out = append(out, str)
+		}
+	}
+	return out
+}

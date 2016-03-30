@@ -1,7 +1,9 @@
 package core
 
 import (
+	"fmt"
 	"path"
+	"strconv"
 	"time"
 
 	"github.com/supergiant/guber"
@@ -20,6 +22,8 @@ type ReleaseResource struct {
 	// TODO these are shared between releases, it's kinda funky right now
 	externalService *guber.Service
 	internalService *guber.Service
+	imageRepos      []*ImageRepoResource
+	entrypoints     map[string]*EntrypointResource // a map for quick lookup
 }
 
 type ReleaseList struct {
@@ -55,6 +59,14 @@ func (c *ReleaseCollection) InitializeResource(r Resource) {
 		panic(err)
 	}
 	resource.internalService = svc
+
+	repos, err := resource.getImageRepos()
+	if err != nil {
+		panic(err)
+	}
+	resource.imageRepos = repos
+
+	resource.entrypoints = resource.getEntrypoints()
 }
 
 // List returns an ReleaseList.
@@ -66,9 +78,7 @@ func (c *ReleaseCollection) List() (*ReleaseList, error) {
 
 // New initializes an Release with a pointer to the Collection.
 func (c *ReleaseCollection) New() *ReleaseResource {
-	return &ReleaseResource{
-		collection: c,
-	}
+	return new(ReleaseResource)
 }
 
 // Create takes an Release and creates it in etcd.
@@ -91,6 +101,11 @@ func (c *ReleaseCollection) Get(id types.ID) (*ReleaseResource, error) {
 
 // Resource-level
 //==============================================================================
+
+// PersistableObject satisfies the Resource interface
+func (r *ReleaseResource) PersistableObject() interface{} {
+	return r.Release
+}
 
 // Delete removes all assets (volumes, pods, etc.) and deletes the Release in
 // etcd.
@@ -156,15 +171,25 @@ func (r *ReleaseResource) IsStopped() bool {
 }
 
 func (r *ReleaseResource) imageRepoNames() (repoNames []string) { // TODO convert Image into Value object w/ repo, image, version
-	uniqRepoNames := make(map[string]bool)
 	for _, container := range r.Containers {
-		repoName := ImageRepoName(container)
-		if _, ok := uniqRepoNames[repoName]; !ok {
-			uniqRepoNames[repoName] = true
-			repoNames = append(repoNames, repoName)
-		}
+		repoNames = append(repoNames, ImageRepoName(container))
 	}
-	return repoNames
+	return uniqStrs(repoNames)
+}
+
+func (r *ReleaseResource) getEntrypoints() map[string]*EntrypointResource { // TODO convert Image into Value object w/ repo, image, version
+	entrypoints := make(map[string]*EntrypointResource)
+	for _, port := range r.containerPorts(true) {
+		if port.EntrypointDomain == nil {
+			continue
+		}
+		entrypoint, err := r.collection.core.Entrypoints().Get(port.EntrypointDomain)
+		if err != nil {
+			panic(err) // TODO
+		}
+		entrypoints[*port.EntrypointDomain] = entrypoint
+	}
+	return entrypoints
 }
 
 func (r *ReleaseResource) containerPorts(public bool) (ports []*types.Port) {
@@ -251,11 +276,7 @@ func (r *ReleaseResource) deleteServices() (err error) {
 
 // NOTE it seems weird here, but "Provision" == "CreateUnlessExists"
 func (r *ReleaseResource) provisionSecrets() error {
-	repos, err := r.imageRepos()
-	if err != nil {
-		return err
-	}
-	for _, repo := range repos {
+	for _, repo := range r.imageRepos {
 		if err := r.App().ProvisionSecret(repo); err != nil {
 			return err
 		}
@@ -278,11 +299,7 @@ func (r *ReleaseResource) addExternalPortsToEntrypoint() error {
 		if port.EntrypointDomain != nil {
 			nodePort := r.nodePortFor(port.Number)
 			elbPort := nodePort
-			entrypoint, err := r.collection.core.Entrypoints().Get(port.EntrypointDomain)
-			if err != nil {
-				return err
-			}
-
+			entrypoint := r.entrypoints[*port.EntrypointDomain]
 			if err := entrypoint.AddPort(nodePort, elbPort); err != nil {
 				return err
 			}
@@ -297,17 +314,40 @@ func (r *ReleaseResource) removeExternalPortsFromEntrypoint() error {
 		if port.EntrypointDomain != nil {
 			nodePort := r.nodePortFor(port.Number)
 			elbPort := nodePort
-			entrypoint, err := r.collection.core.Entrypoints().Get(port.EntrypointDomain)
-			if err != nil {
-				return err
-			}
-
+			entrypoint := r.entrypoints[*port.EntrypointDomain]
 			if err := entrypoint.RemovePort(elbPort); err != nil {
 				return err
 			}
 		}
 	}
 	return nil
+}
+
+func (r *ReleaseResource) ExternalAddresses() (pAddrs []*types.PortAddress) {
+	for _, port := range r.containerPorts(true) {
+		entrypoint := r.entrypoints[*port.EntrypointDomain]
+		pAddr := &types.PortAddress{
+			Port:    strconv.Itoa(port.Number), // TODO repeated all over the place
+			Address: fmt.Sprintf("%s:%d", entrypoint.Address, r.nodePortFor(port.Number)),
+		}
+		pAddrs = append(pAddrs, pAddr)
+	}
+	return pAddrs
+}
+
+func (r *ReleaseResource) InternalAddresses() (pAddrs []*types.PortAddress) {
+	for _, port := range r.containerPorts(false) {
+
+		// TODO this should be a method in Guber
+		svcDNS := fmt.Sprintf("%s.%s.svc.cluster.local", r.internalServiceName(), *r.App().Name)
+
+		pAddr := &types.PortAddress{
+			Port:    strconv.Itoa(port.Number), // TODO repeated all over the place
+			Address: fmt.Sprintf("%s:%d", svcDNS, port.Number),
+		}
+		pAddrs = append(pAddrs, pAddr)
+	}
+	return pAddrs
 }
 
 // Provision creates needed assets for all instances. It does not actually
@@ -364,7 +404,7 @@ func (r *ReleaseResource) volumes() (vols []*AwsVolume) {
 	return vols
 }
 
-func (r *ReleaseResource) imageRepos() (repos []*ImageRepoResource, err error) { // Not returning ImageRepoResource, since they are defined before hand
+func (r *ReleaseResource) getImageRepos() (repos []*ImageRepoResource, err error) { // Not returning ImageRepoResource, since they are defined before hand
 	for _, repoName := range r.imageRepoNames() {
 		repo, err := r.collection.core.ImageRepos().Get(&repoName)
 		if err != nil {
@@ -377,12 +417,8 @@ func (r *ReleaseResource) imageRepos() (repos []*ImageRepoResource, err error) {
 
 // TODO naming inconsistencies for kube definitions of resources
 // ImagePullSecrets returns repo names defined for Kube pods
-func (r *ReleaseResource) ImagePullSecrets() (pullSecrets []*guber.ImagePullSecret, err error) {
-	repos, err := r.imageRepos()
-	if err != nil {
-		return pullSecrets, err
-	}
-	for _, repo := range repos {
+func (r *ReleaseResource) ImagePullSecrets() (pullSecrets []*guber.ImagePullSecret, err error) { // TODO don't need to return error here it seems
+	for _, repo := range r.imageRepos {
 		pullSecrets = append(pullSecrets, AsKubeImagePullSecret(repo))
 	}
 	return pullSecrets, nil

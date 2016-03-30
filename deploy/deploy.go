@@ -7,7 +7,7 @@ import (
 
 func Deploy(appName types.ID, componentName types.ID) error {
 
-	sg := client.New("http://localhost:8080")
+	sg := client.New("http://localhost:8080/v0")
 
 	app, err := sg.Apps().Get(appName)
 	if err != nil {

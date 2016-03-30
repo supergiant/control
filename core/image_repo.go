@@ -45,9 +45,7 @@ func (c *ImageRepoCollection) List() (*ImageRepoList, error) {
 
 // New initializes an ImageRepo with a pointer to the Collection.
 func (c *ImageRepoCollection) New() *ImageRepoResource {
-	return &ImageRepoResource{
-		collection: c,
-	}
+	return new(ImageRepoResource)
 }
 
 // Create takes an ImageRepo and creates it in etcd. It also creates a Kubernetes
@@ -70,6 +68,11 @@ func (c *ImageRepoCollection) Get(name types.ID) (*ImageRepoResource, error) {
 
 // Resource-level
 //==============================================================================
+
+// PersistableObject satisfies the Resource interface
+func (r *ImageRepoResource) PersistableObject() interface{} {
+	return r.ImageRepo
+}
 
 // Delete deletes the ImageRepo in etcd.
 func (r *ImageRepoResource) Delete() error {

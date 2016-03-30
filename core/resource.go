@@ -20,12 +20,16 @@ type Collection interface {
 // Resource is an interface used mainly for generalized marshalling purposes for
 // resource types.
 type Resource interface {
-	// MarshalForAPI() (string, error)
+	// PersistableObject returns the portion (or whole) of the Resource meant to
+	// be marshalled and stored in the DB. This allows for dynamic "virtual"
+	// values to be loaded and displayed in the API without needing to be stored.
+	PersistableObject() interface{}
 }
 
 // OrderedResource is similar to Resource, but provides a SetID() method to
 // set an auto-generated ID from etcd on the Resource.
 type OrderedResource interface {
+	PersistableObject() interface{}
 	SetID(id types.ID)
 }
 
@@ -33,7 +37,7 @@ type OrderedResource interface {
 // GetItemsPtrAndItemType takes a Resource, which must be of the List type, and
 // returns a pointer to the Items slice of the List and the underlying item type
 // of the slice.
-func GetItemsPtrAndItemType(r Resource) (reflect.Value, reflect.Type) {
+func GetItemsPtrAndItemType(r interface{}) (reflect.Value, reflect.Type) {
 	// The concrete value of an interface is a pair of 32-bit words, one pointing
 	// to information about the type implementing the interface, and the other
 	// pointing to the underlying data in the type.

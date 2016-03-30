@@ -34,6 +34,15 @@ func (c *ComponentCollection) EtcdKey(name types.ID) string {
 func (c *ComponentCollection) InitializeResource(r Resource) {
 	resource := r.(*ComponentResource)
 	resource.collection = c
+
+	// TODO it seems wrong this is called here -- execessive to have to load the
+	// current Release, Entrypoints, and Kube Services just to render a
+	// Component.
+	// However, it's rare a Component is loaded out of the context of its
+	// Release. We will change this when we see issues.
+	if err := resource.decorate(); err != nil {
+		panic(err)
+	}
 }
 
 // List returns an ComponentList.
@@ -45,9 +54,7 @@ func (c *ComponentCollection) List() (*ComponentList, error) {
 
 // New initializes an Component with a pointer to the Collection.
 func (c *ComponentCollection) New() *ComponentResource {
-	return &ComponentResource{
-		collection: c,
-	}
+	return new(ComponentResource)
 }
 
 // Create takes an Component and creates it in etcd.
@@ -69,6 +76,26 @@ func (c *ComponentCollection) Get(name types.ID) (*ComponentResource, error) {
 
 // Resource-level
 //==============================================================================
+
+func (r *ComponentResource) decorate() error {
+	release, err := r.CurrentRelease()
+	if err != nil {
+		return err
+	}
+	if release == nil {
+		return nil
+	}
+	r.Addresses = &types.ComponentAddresses{
+		External: release.ExternalAddresses(),
+		Internal: release.InternalAddresses(),
+	}
+	return nil
+}
+
+// PersistableObject satisfies the Resource interface
+func (r *ComponentResource) PersistableObject() interface{} {
+	return r.PersistableComponent
+}
 
 // Save saves the Component in etcd through an update.
 func (r *ComponentResource) Save() error {
@@ -109,6 +136,8 @@ func (r *ComponentResource) Releases() *ReleaseCollection {
 	}
 }
 
+// TODO starting to think this should return err if it doesn't exist. We should
+// expect the user to have checked if the ID is present.
 func (r *ComponentResource) CurrentRelease() (*ReleaseResource, error) {
 	if r.CurrentReleaseTimestamp == nil { // not yet released
 		return nil, nil

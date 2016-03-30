@@ -45,9 +45,7 @@ func (c *AppCollection) List() (*AppList, error) {
 
 // New initializes an App with a pointer to the Collection.
 func (c *AppCollection) New() *AppResource {
-	return &AppResource{
-		collection: c,
-	}
+	return new(AppResource)
 }
 
 // Create takes an App and creates it in etcd. It also creates a Kubernetes
@@ -76,6 +74,11 @@ func (c *AppCollection) Get(name types.ID) (*AppResource, error) {
 
 // Resource-level
 //==============================================================================
+
+// PersistableObject satisfies the Resource interface
+func (r *AppResource) PersistableObject() interface{} {
+	return r.App
+}
 
 // Delete cascades deletes to all Components, deletes the Kube Namespace, and
 // deletes the App in etcd.

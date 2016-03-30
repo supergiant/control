@@ -4,7 +4,8 @@ type App struct {
 	Name ID `json:"name"`
 }
 
-type Component struct {
+// see note in core/resource.go about PersistableObject()
+type PersistableComponent struct {
 	Name ID `json:"name"`
 	// TODO kinda weird,
 	// you choose a container that has the deploy file, and then reference it as a command
@@ -17,6 +18,21 @@ type Component struct {
 	// We should just store the DeployTaskID but actually should render the task
 	// when showing it in HTTP.
 	DeployTaskID ID `json:"deploy_task_id"`
+}
+
+type Component struct {
+	*PersistableComponent
+	Addresses *ComponentAddresses `json:"addresses"`
+}
+
+type PortAddress struct {
+	Port    string `json:"port"` // TODO really this should be the name of the port, which currently is the string of the number
+	Address string `json:"address"`
+}
+
+type ComponentAddresses struct {
+	External []*PortAddress `json:"external"`
+	Internal []*PortAddress `json:"internal"`
 }
 
 // TODO implement...

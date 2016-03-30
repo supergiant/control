@@ -76,7 +76,7 @@ func (db *DB) CreateDir(key string) (*etcd.Response, error) {
 //----------------------------------------------------------------------------//
 //----------------------------------------------------------------------------//
 
-func decodeList(r Collection, resp *etcd.Response, out Resource) error {
+func decodeList(r Collection, resp *etcd.Response, out interface{}) error {
 	itemsPtr, itemType := GetItemsPtrAndItemType(out)
 
 	// NOTE this this is not working, because we're not getting the right
@@ -87,7 +87,7 @@ func decodeList(r Collection, resp *etcd.Response, out Resource) error {
 
 	for _, node := range resp.Node.Nodes {
 		// Interface() is called to convert the new item Value into an interface
-		// (that we can unmarshal to. The interface{} is then cast to Resource type.
+		// (that we can unmarshal to. The interface{} is then cast to ResourceList type.
 		obj := reflect.New(itemType).Interface().(Resource)
 		unmarshalNodeInto(r, node, obj)
 
@@ -100,7 +100,7 @@ func decodeList(r Collection, resp *etcd.Response, out Resource) error {
 }
 
 // TODO feel like there's a DRYer or cleaner way to do this
-func decodeOrderedList(r Collection, resp *etcd.Response, out Resource) error { /// ------------------- just changed to Resource from OrderedResource
+func decodeOrderedList(r Collection, resp *etcd.Response, out interface{}) error { /// ------------------- just changed to Resource from OrderedResource
 	itemsPtr, itemType := GetItemsPtrAndItemType(out)
 	for _, node := range resp.Node.Nodes {
 		// Interface() is called to convert the new item Value into an interface
@@ -120,7 +120,7 @@ func decodeOrderedList(r Collection, resp *etcd.Response, out Resource) error { 
 	return nil
 }
 
-func (db *DB) List(r Collection, out Resource) error {
+func (db *DB) List(r Collection, out interface{}) error {
 	key := r.EtcdKey(nil)
 	resp, err := db.get(key)
 	if err != nil {
@@ -135,6 +135,9 @@ func (db *DB) Create(r Collection, id types.ID, m Resource) error {
 	if err != nil {
 		return err
 	}
+	// NOTE we do this here because we call it when unmarshalling normally, and
+	// we don't need to do that here.
+	r.InitializeResource(m)
 	return nil
 }
 
@@ -154,6 +157,7 @@ func (db *DB) Update(r Collection, id types.ID, m Resource) error {
 	if err != nil {
 		return err
 	}
+	r.InitializeResource(m)
 	return nil
 }
 
@@ -164,7 +168,7 @@ func (db *DB) Delete(r Collection, id types.ID) error {
 }
 
 //------------------------------------------------------------------------------
-func (db *DB) ListInOrder(r Collection, out Resource) error {
+func (db *DB) ListInOrder(r Collection, out interface{}) error {
 	key := r.EtcdKey(nil)
 	resp, err := db.getInOrder(key)
 	if err != nil {
@@ -195,7 +199,7 @@ func (db *DB) CompareAndSwap(r Collection, id types.ID, old Resource, new Resour
 }
 
 func marshalResource(m Resource) string {
-	out, err := json.Marshal(m)
+	out, err := json.Marshal(m.PersistableObject())
 	if err != nil {
 		panic(err)
 	}
