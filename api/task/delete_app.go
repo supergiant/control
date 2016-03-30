@@ -3,8 +3,8 @@ package task
 import (
 	"encoding/json"
 
-	"github.com/coreos/etcd/pkg/types"
 	"github.com/supergiant/supergiant/core"
+	"github.com/supergiant/supergiant/types"
 )
 
 type DeleteAppMessage struct {

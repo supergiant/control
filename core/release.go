@@ -239,7 +239,7 @@ func (r *ReleaseResource) internalServiceName() string {
 func (r *ReleaseResource) provisionExternalService() error {
 	var ports []*guber.ServicePort
 	for _, port := range r.containerPorts(true) {
-		ports = append(ports, AsKubeServicePort(port))
+		ports = append(ports, asKubeServicePort(port))
 	}
 	svc, err := r.provisionService(r.externalServiceName(), "NodePort", ports)
 	if err != nil {
@@ -253,7 +253,7 @@ func (r *ReleaseResource) provisionExternalService() error {
 func (r *ReleaseResource) provisionInternalService() error {
 	var ports []*guber.ServicePort
 	for _, port := range r.containerPorts(false) {
-		ports = append(ports, AsKubeServicePort(port))
+		ports = append(ports, asKubeServicePort(port))
 	}
 	svc, err := r.provisionService(r.internalServiceName(), "ClusterIP", ports)
 	if err != nil {
@@ -428,7 +428,7 @@ func (r *ReleaseResource) getImageRepos() (repos []*ImageRepoResource, err error
 // ImagePullSecrets returns repo names defined for Kube pods
 func (r *ReleaseResource) ImagePullSecrets() (pullSecrets []*guber.ImagePullSecret, err error) { // TODO don't need to return error here it seems
 	for _, repo := range r.imageRepos {
-		pullSecrets = append(pullSecrets, AsKubeImagePullSecret(repo))
+		pullSecrets = append(pullSecrets, asKubeImagePullSecret(repo))
 	}
 	return pullSecrets, nil
 }

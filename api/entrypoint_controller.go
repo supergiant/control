@@ -13,7 +13,7 @@ type EntrypointController struct {
 func (c *EntrypointController) Create(w http.ResponseWriter, r *http.Request) {
 	entrypoint := c.core.Entrypoints().New()
 
-	if err := UnmarshalBodyInto(w, r, entrypoint); err != nil {
+	if err := unmarshalBodyInto(w, r, entrypoint); err != nil {
 		return
 	}
 
@@ -23,11 +23,11 @@ func (c *EntrypointController) Create(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	body, err := MarshalBody(w, entrypoint)
+	body, err := marshalBody(w, entrypoint)
 	if err != nil {
 		return
 	}
-	RenderWithStatusCreated(w, body)
+	renderWithStatusCreated(w, body)
 }
 
 func (c *EntrypointController) Index(w http.ResponseWriter, r *http.Request) {
@@ -37,28 +37,28 @@ func (c *EntrypointController) Index(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	body, err := MarshalBody(w, entrypoints)
+	body, err := marshalBody(w, entrypoints)
 	if err != nil {
 		return
 	}
-	RenderWithStatusOK(w, body)
+	renderWithStatusOK(w, body)
 }
 
 func (c *EntrypointController) Show(w http.ResponseWriter, r *http.Request) {
-	entrypoint, err := LoadEntrypoint(c.core, w, r)
+	entrypoint, err := loadEntrypoint(c.core, w, r)
 	if err != nil {
 		return
 	}
 
-	body, err := MarshalBody(w, entrypoint)
+	body, err := marshalBody(w, entrypoint)
 	if err != nil {
 		return
 	}
-	RenderWithStatusOK(w, body)
+	renderWithStatusOK(w, body)
 }
 
 func (c *EntrypointController) Delete(w http.ResponseWriter, r *http.Request) {
-	entrypoint, err := LoadEntrypoint(c.core, w, r)
+	entrypoint, err := loadEntrypoint(c.core, w, r)
 	if err != nil {
 		return
 	}
@@ -69,9 +69,9 @@ func (c *EntrypointController) Delete(w http.ResponseWriter, r *http.Request) {
 
 	// TODO what do we return on immediate deletes like this? generic OK message?
 
-	// body, err := MarshalBody(w, app)
+	// body, err := marshalBody(w, app)
 	// if err != nil {
 	// 	return
 	// }
-	// RenderWithStatusAccepted(w, body)
+	// renderWithStatusAccepted(w, body)
 }

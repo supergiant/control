@@ -109,6 +109,7 @@ func (m *AwsVolume) WaitForAvailable() error {
 	return m.core.EC2.WaitUntilVolumeAvailable(input)
 }
 
+// Delete deletes the EBS volume on AWS.
 func (m *AwsVolume) Delete() error {
 	if m.awsVolume() == nil {
 		return nil

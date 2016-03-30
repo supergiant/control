@@ -161,14 +161,14 @@ func (r *InstanceResource) Volumes() (vols []*AwsVolume) {
 
 func (r *InstanceResource) kubeVolumes() (vols []*guber.Volume) {
 	for _, vol := range r.Volumes() {
-		vols = append(vols, AsKubeVolume(vol))
+		vols = append(vols, asKubeVolume(vol))
 	}
 	return vols
 }
 
 func (r *InstanceResource) kubeContainers() (containers []*guber.Container) {
 	for _, blueprint := range r.Release().Containers {
-		containers = append(containers, AsKubeContainer(blueprint, r))
+		containers = append(containers, asKubeContainer(blueprint, r))
 	}
 	return containers
 }

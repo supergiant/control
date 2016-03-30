@@ -132,6 +132,6 @@ func (r *AppResource) ProvisionSecret(repo *ImageRepoResource) error {
 	} else if secret != nil {
 		return nil
 	}
-	_, err = r.collection.core.K8S.Secrets(*r.Name).Create(AsKubeSecret(repo))
+	_, err = r.collection.core.K8S.Secrets(*r.Name).Create(asKubeSecret(repo))
 	return err
 }

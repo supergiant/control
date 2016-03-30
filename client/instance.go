@@ -104,7 +104,7 @@ func (r *InstanceResource) Stop() error {
 
 func (r *InstanceResource) WaitForStarted() error {
 	desc := fmt.Sprintf("Instance start: %s", r.Name)
-	return WaitFor(desc, 120*time.Second, 3*time.Second, func() (bool, error) {
+	return waitFor(desc, 120*time.Second, 3*time.Second, func() (bool, error) {
 		if err := r.Reload(); err != nil {
 			return false, err
 		}
@@ -114,7 +114,7 @@ func (r *InstanceResource) WaitForStarted() error {
 
 func (r *InstanceResource) WaitForStopped() error {
 	desc := fmt.Sprintf("Instance stop: %s", r.Name)
-	return WaitFor(desc, 120*time.Second, 3*time.Second, func() (bool, error) {
+	return waitFor(desc, 120*time.Second, 3*time.Second, func() (bool, error) {
 		if err := r.Reload(); err != nil {
 			return false, err
 		}
