@@ -1,10 +1,13 @@
 package deploy
 
-import "github.com/supergiant/supergiant/client"
+import (
+	"github.com/supergiant/supergiant/client"
+	"github.com/supergiant/supergiant/types"
+)
 
-func Deploy(appName string, componentName string, currentReleaseID string, targetReleaseID string) error {
+func Deploy(appName types.ID, componentName types.ID) error {
 
-	sg := client.New("http://localhost:8080")
+	sg := client.New("http://localhost:8080/v0")
 
 	app, err := sg.Apps().Get(appName)
 	if err != nil {

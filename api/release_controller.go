@@ -13,13 +13,13 @@ type ReleaseController struct {
 }
 
 func (c *ReleaseController) Create(w http.ResponseWriter, r *http.Request) {
-	component, err := LoadComponent(c.core, w, r)
+	component, err := loadComponent(c.core, w, r)
 	if err != nil {
 		return
 	}
 
 	release := component.Releases().New()
-	if err := UnmarshalBodyInto(w, r, release); err != nil {
+	if err := unmarshalBodyInto(w, r, release); err != nil {
 		return
 	}
 
@@ -39,7 +39,7 @@ func (c *ReleaseController) Create(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	component.TargetReleaseID = release.ID
+	component.TargetReleaseTimestamp = release.Timestamp
 	// (this may should be elsewhere)
 	// Set the task ID of the deploy on Component
 	component.DeployTaskID = task.ID
@@ -48,15 +48,15 @@ func (c *ReleaseController) Create(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	body, err := MarshalBody(w, release)
+	body, err := marshalBody(w, release)
 	if err != nil {
 		return
 	}
-	RenderWithStatusCreated(w, body)
+	renderWithStatusCreated(w, body)
 }
 
 func (c *ReleaseController) Index(w http.ResponseWriter, r *http.Request) {
-	component, err := LoadComponent(c.core, w, r)
+	component, err := loadComponent(c.core, w, r)
 	if err != nil {
 		return
 	}
@@ -67,22 +67,22 @@ func (c *ReleaseController) Index(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	body, err := MarshalBody(w, releases)
+	body, err := marshalBody(w, releases)
 	if err != nil {
 		return
 	}
-	RenderWithStatusOK(w, body)
+	renderWithStatusOK(w, body)
 }
 
 func (c *ReleaseController) Show(w http.ResponseWriter, r *http.Request) {
-	release, err := LoadRelease(c.core, w, r)
+	release, err := loadRelease(c.core, w, r)
 	if err != nil {
 		return
 	}
 
-	body, err := MarshalBody(w, release)
+	body, err := marshalBody(w, release)
 	if err != nil {
 		return
 	}
-	RenderWithStatusOK(w, body)
+	renderWithStatusOK(w, body)
 }

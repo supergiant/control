@@ -5,7 +5,7 @@ import (
 	"time"
 )
 
-func WaitFor(desc string, d time.Duration, i time.Duration, fn func() (bool, error)) error {
+func waitFor(desc string, d time.Duration, i time.Duration, fn func() (bool, error)) error {
 	started := time.Now()
 	for {
 		elapsed := time.Since(started)

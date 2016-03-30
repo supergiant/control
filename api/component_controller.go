@@ -13,13 +13,13 @@ type ComponentController struct {
 }
 
 func (c *ComponentController) Create(w http.ResponseWriter, r *http.Request) {
-	app, err := LoadApp(c.core, w, r)
+	app, err := loadApp(c.core, w, r)
 	if err != nil {
 		return
 	}
 
 	component := app.Components().New()
-	if err := UnmarshalBodyInto(w, r, component); err != nil {
+	if err := unmarshalBodyInto(w, r, component); err != nil {
 		return
 	}
 
@@ -29,15 +29,15 @@ func (c *ComponentController) Create(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	body, err := MarshalBody(w, component)
+	body, err := marshalBody(w, component)
 	if err != nil {
 		return
 	}
-	RenderWithStatusCreated(w, body)
+	renderWithStatusCreated(w, body)
 }
 
 func (c *ComponentController) Index(w http.ResponseWriter, r *http.Request) {
-	app, err := LoadApp(c.core, w, r)
+	app, err := loadApp(c.core, w, r)
 	if err != nil {
 		return
 	}
@@ -48,28 +48,28 @@ func (c *ComponentController) Index(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	body, err := MarshalBody(w, components)
+	body, err := marshalBody(w, components)
 	if err != nil {
 		return
 	}
-	RenderWithStatusOK(w, body)
+	renderWithStatusOK(w, body)
 }
 
 func (c *ComponentController) Show(w http.ResponseWriter, r *http.Request) {
-	component, err := LoadComponent(c.core, w, r)
+	component, err := loadComponent(c.core, w, r)
 	if err != nil {
 		return
 	}
 
-	body, err := MarshalBody(w, component)
+	body, err := marshalBody(w, component)
 	if err != nil {
 		return
 	}
-	RenderWithStatusOK(w, body)
+	renderWithStatusOK(w, body)
 }
 
 func (c *ComponentController) Delete(w http.ResponseWriter, r *http.Request) {
-	component, err := LoadComponent(c.core, w, r)
+	component, err := loadComponent(c.core, w, r)
 	if err != nil {
 		return
 	}
@@ -84,9 +84,9 @@ func (c *ComponentController) Delete(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	body, err := MarshalBody(w, component)
+	body, err := marshalBody(w, component)
 	if err != nil {
 		return
 	}
-	RenderWithStatusAccepted(w, body)
+	renderWithStatusAccepted(w, body)
 }
