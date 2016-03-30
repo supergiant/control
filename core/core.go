@@ -1,8 +1,6 @@
 package core
 
 import (
-	"os"
-
 	"github.com/supergiant/guber"
 
 	"github.com/aws/aws-sdk-go/aws"
@@ -21,35 +19,23 @@ type Core struct {
 }
 
 var (
-	etcdEndpoints []string
-	k8sHost       string
-	k8sUser       string
-	k8sPass       string
-	awsRegion     string
+	EtcdEndpoints []string
+	K8sHost       string
+	K8sUser       string
+	K8sPass       string
+	AwsRegion     string
 
 	AwsAZ       string
 	AwsSgID     string
 	AwsSubnetID string
 )
 
-func init() {
-	etcdEndpoints = []string{os.Getenv("ETCD_ENDPOINT")}
-	k8sHost = os.Getenv("K8S_HOST")
-	k8sUser = os.Getenv("K8S_USER")
-	k8sPass = os.Getenv("K8S_PASS")
-	awsRegion = os.Getenv("AWS_REGION")
-
-	AwsAZ = os.Getenv("AWS_AZ")
-	AwsSgID = os.Getenv("AWS_SG_ID")
-	AwsSubnetID = os.Getenv("AWS_SUBNET_ID")
-}
-
 func New() *Core {
 	c := Core{}
-	c.DB = NewDB(etcdEndpoints)
-	c.K8S = guber.NewClient(k8sHost, k8sUser, k8sPass)
+	c.DB = NewDB(EtcdEndpoints)
+	c.K8S = guber.NewClient(K8sHost, K8sUser, K8sPass)
 	// NOTE / TODO AWS is configured through a file in ~
-	awsConf := &aws.Config{Region: aws.String(awsRegion)}
+	awsConf := &aws.Config{Region: aws.String(AwsRegion)}
 	c.EC2 = ec2.New(session.New(), awsConf)
 	c.ELB = elb.New(session.New(), awsConf)
 	c.AutoScaling = autoscaling.New(session.New(), awsConf)
