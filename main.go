@@ -102,6 +102,20 @@ func main() {
 			EnvVar:      "AWS_AZ",
 			Destination: &core.AwsAZ,
 		},
+		cli.StringFlag{
+			Name:        "awsSgID, sg",
+			Value:       "<AWS Security Group ID>",
+			Usage:       "AWS Security Group in which your kubernetes cluster resides.",
+			EnvVar:      "AWS_SG_ID",
+			Destination: &core.AwsSgID,
+		},
+		cli.StringFlag{
+			Name:        "awsSubnetID, sid",
+			Value:       "<AWS Subnet ID>",
+			Usage:       "AWS Subnet ID in which your kubernetes cluster resides.",
+			EnvVar:      "AWS_SUBNET_ID",
+			Destination: &core.AwsSubnetID,
+		},
 	}
 
 	app.Run(os.Args)
