@@ -1,0 +1,5 @@
+Qbox, Inc.
+Copyright 2016 Qbox, Inc., a Delaware corporation. All rights reserved.
+
+This product includes software developed by The Apache Software
+Foundation (http://www.apache.org/).
