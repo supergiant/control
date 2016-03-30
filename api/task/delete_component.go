@@ -4,11 +4,12 @@ import (
 	"encoding/json"
 
 	"github.com/supergiant/supergiant/core"
+	"github.com/supergiant/supergiant/types"
 )
 
 type DeleteComponentMessage struct {
-	AppName       string
-	ComponentName string
+	AppName       types.ID
+	ComponentName types.ID
 }
 
 // DeleteComponent implements task.Performable interface

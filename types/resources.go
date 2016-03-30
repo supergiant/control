@@ -1,22 +1,38 @@
 package types
 
 type App struct {
-	Name string `json:"name"`
+	Name ID `json:"name"`
 }
 
-type Component struct {
-	Name string `json:"name"`
+// see note in core/resource.go about PersistableObject()
+type PersistableComponent struct {
+	Name ID `json:"name"`
 	// TODO kinda weird,
 	// you choose a container that has the deploy file, and then reference it as a command
 	CustomDeployScript *CustomDeployScript `json:"custom_deploy_script"`
 
 	// TODO these all seem to be a departure in terms of relations... I feel like
 	// there is a more elegant solution to house the info, and delete it atomically
-	CurrentReleaseID string `json:"current_release_id"`
-	TargetReleaseID  string `json:"target_release_id"`
+	CurrentReleaseTimestamp ID `json:"current_release_id"`
+	TargetReleaseTimestamp  ID `json:"target_release_id"`
 	// We should just store the DeployTaskID but actually should render the task
 	// when showing it in HTTP.
-	DeployTaskID string `json:"deploy_task_id"`
+	DeployTaskID ID `json:"deploy_task_id"`
+}
+
+type Component struct {
+	*PersistableComponent
+	Addresses *ComponentAddresses `json:"addresses"`
+}
+
+type PortAddress struct {
+	Port    string `json:"port"` // TODO really this should be the name of the port, which currently is the string of the number
+	Address string `json:"address"`
+}
+
+type ComponentAddresses struct {
+	External []*PortAddress `json:"external"`
+	Internal []*PortAddress `json:"internal"`
 }
 
 // TODO implement...
@@ -28,7 +44,7 @@ type CustomDeployScript struct {
 // Volume
 //==============================================================================
 type VolumeBlueprint struct {
-	Name string `json:"name"`
+	Name ID     `json:"name"`
 	Type string `json:"type"`
 	Size int    `json:"size"`
 }
@@ -54,7 +70,7 @@ type EnvVar struct {
 // Mount
 //==============================================================================
 type Mount struct {
-	Volume string `json:"volume"`
+	Volume ID     `json:"volume"` // TODO should be VolumeName
 	Path   string `json:"path"`
 }
 
@@ -62,8 +78,20 @@ type Mount struct {
 //==============================================================================
 type Port struct {
 	Protocol string `json:"protocol"`
-	Number   int    `json:"number"`
+	Number   int    `json:"number"` // should be uint
 	Public   bool   `json:"public"`
+
+	// EntrypointDomain specifies which Entrypoint this Port is added to. Does not
+	// apply when Public is false.
+	EntrypointDomain ID `json:"entrypoint_domain,omitempty"`
+
+	// PreserveNumber instructs the Entrypoint to set the actual Port number
+	// specified as the external load balancer port. Does not apply when
+	// EntrypointDomain is nil.
+	//
+	// NOTE we may want to replace this with something like ExternalNumber so that
+	// it is more flexible / obvious.
+	PreserveNumber bool `json:"preserve_number"`
 }
 
 // ResourceAllocation
@@ -78,7 +106,7 @@ type ResourceAllocation struct {
 // NOTE the word Blueprint is used for Volumes and Containers, since they are
 // both "definitions" that create "instances" of the real thing
 type Release struct {
-	ID                     string                `json:"id"`
+	Timestamp              ID                    `json:"timestamp"`
 	InstanceCount          int                   `json:"instance_count"`
 	Volumes                []*VolumeBlueprint    `json:"volumes"`
 	Containers             []*ContainerBlueprint `json:"containers"`
@@ -96,7 +124,7 @@ const (
 
 // NOTE Instances are not stored in etcd, so the json tags here apply to HTTP
 type Instance struct {
-	ID int `json:"id"` // actually just the number (starting w/ 1) of the instance order in the release
+	ID ID `json:"id"` // actually just the number (starting w/ 1) of the instance order in the release
 
 	// BaseName is the name of the instance without the Release ID appended. It is
 	// used for naming volumes, which move between releases.
@@ -109,7 +137,7 @@ type Instance struct {
 // Entrypoint
 //==============================================================================
 type Entrypoint struct {
-	Domain  string `json:"domain"`  // e.g. blog.qbox.io
+	Domain  ID     `json:"domain"`  // e.g. blog.qbox.io
 	Address string `json:"address"` // the ELB address
 
 	// NOTE we actually don't need this -- we can always attach the policy, and enable per port
@@ -141,6 +169,6 @@ type Task struct {
 // ImageRepo
 //==============================================================================
 type ImageRepo struct {
-	Name string `json:"name"`
+	Name ID     `json:"name"`
 	Key  string `json:"key"`
 }

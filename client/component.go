@@ -24,11 +24,11 @@ type ComponentList struct {
 }
 
 func (c *ComponentCollection) path() string {
-	return path.Join("apps", c.App.Name, "components")
+	return path.Join("apps", *c.App.Name, "components")
 }
 
 func (r *ComponentResource) path() string {
-	return path.Join(r.collection.path(), r.Name)
+	return path.Join(r.collection.path(), *r.Name)
 }
 
 // Collection-level
@@ -57,9 +57,11 @@ func (c *ComponentCollection) Create(m *Component) (*ComponentResource, error) {
 	return r, nil
 }
 
-func (c *ComponentCollection) Get(name string) (*ComponentResource, error) {
+func (c *ComponentCollection) Get(name types.ID) (*ComponentResource, error) {
 	m := &Component{
-		Name: name,
+		PersistableComponent: &types.PersistableComponent{ // TODO any way to not make this so weird?
+			Name: name,
+		},
 	}
 	r := c.New(m)
 	if found, err := c.client.Get(r.path(), r.Component); err != nil {
@@ -90,12 +92,15 @@ func (r *ComponentResource) Releases() *ReleaseCollection {
 }
 
 func (r *ComponentResource) CurrentRelease() (*ReleaseResource, error) {
-	if r.CurrentReleaseID == "" { // will be empty on first release
+	if r.CurrentReleaseTimestamp == nil { // will be empty on first release
 		return nil, nil
 	}
-	return r.Releases().Get(r.CurrentReleaseID)
+	return r.Releases().Get(r.CurrentReleaseTimestamp)
 }
 
 func (r *ComponentResource) TargetRelease() (*ReleaseResource, error) {
-	return r.Releases().Get(r.TargetReleaseID)
+	if r.TargetReleaseTimestamp == nil {
+		return nil, nil
+	}
+	return r.Releases().Get(r.TargetReleaseTimestamp)
 }

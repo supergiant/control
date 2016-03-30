@@ -37,7 +37,7 @@ func ImageRepoName(m *types.ContainerBlueprint) string {
 	return strings.Split(m.Image, "/")[0]
 }
 
-func AsKubeContainer(m *types.ContainerBlueprint, instance *InstanceResource) *guber.Container { // NOTE how instance must be passed here
+func asKubeContainer(m *types.ContainerBlueprint, instance *InstanceResource) *guber.Container { // NOTE how instance must be passed here
 	return &guber.Container{
 		Name:  "container", // TODO this will fail with multiple containers ------------------------------------ TODO
 		Image: m.Image,
@@ -61,7 +61,7 @@ func AsKubeContainer(m *types.ContainerBlueprint, instance *InstanceResource) *g
 //==============================================================================
 func interpolatedValue(m *types.EnvVar, instance *InstanceResource) string {
 	r := strings.NewReplacer(
-		"{{ instance_id }}", strconv.Itoa(instance.ID),
+		"{{ instance_id }}", *instance.ID,
 		"{{ other_stuff }}", "TODO")
 	return r.Replace(m.Value)
 }
@@ -75,9 +75,9 @@ func asKubeEnvVar(m *types.EnvVar, instance *InstanceResource) *guber.EnvVar {
 
 // Volume
 //==============================================================================
-func AsKubeVolume(m *AwsVolume) *guber.Volume {
+func asKubeVolume(m *AwsVolume) *guber.Volume {
 	return &guber.Volume{
-		Name: m.Blueprint.Name, // NOTE this is not the physical volume name
+		Name: *m.Blueprint.Name, // NOTE this is not the physical volume name
 		AwsElasticBlockStore: &guber.AwsElasticBlockStore{
 			VolumeID: m.id(),
 			FSType:   "ext4",
@@ -89,7 +89,7 @@ func AsKubeVolume(m *AwsVolume) *guber.Volume {
 //==============================================================================
 func asKubeVolumeMount(m *types.Mount) *guber.VolumeMount {
 	return &guber.VolumeMount{
-		Name:      m.Volume,
+		Name:      *m.Volume,
 		MountPath: m.Path,
 	}
 }
@@ -106,7 +106,7 @@ func asKubeContainerPort(m *types.Port) *guber.ContainerPort {
 	}
 }
 
-func AsKubeServicePort(m *types.Port) *guber.ServicePort {
+func asKubeServicePort(m *types.Port) *guber.ServicePort {
 	return &guber.ServicePort{
 		Name:     portName(m),
 		Port:     m.Number,
@@ -116,16 +116,16 @@ func AsKubeServicePort(m *types.Port) *guber.ServicePort {
 
 // ImageRepo
 //==============================================================================
-func AsKubeImagePullSecret(m *ImageRepoResource) *guber.ImagePullSecret {
+func asKubeImagePullSecret(m *ImageRepoResource) *guber.ImagePullSecret {
 	return &guber.ImagePullSecret{
-		Name: m.Name,
+		Name: *m.Name,
 	}
 }
 
-func AsKubeSecret(m *ImageRepoResource) *guber.Secret {
+func asKubeSecret(m *ImageRepoResource) *guber.Secret {
 	return &guber.Secret{
 		Metadata: &guber.Metadata{
-			Name: m.Name,
+			Name: *m.Name,
 		},
 		Type: "kubernetes.io/dockercfg",
 		Data: map[string]string{
