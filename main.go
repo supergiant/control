@@ -4,9 +4,10 @@ import (
 	"fmt"
 	"log"
 	"net/http"
-	"supergiant/api"
-	"supergiant/api/task"
-	"supergiant/core"
+
+	"github.com/supergiant/supergiant/api"
+	"github.com/supergiant/supergiant/api/task"
+	"github.com/supergiant/supergiant/core"
 )
 
 func main() {

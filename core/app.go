@@ -1,9 +1,10 @@
 package core
 
 import (
-	"guber"
 	"path"
-	"supergiant/types"
+
+	"github.com/supergiant/guber"
+	"github.com/supergiant/supergiant/types"
 )
 
 type AppCollection struct {

@@ -2,10 +2,11 @@ package core
 
 import (
 	"fmt"
-	"guber"
 	"path"
-	"supergiant/types"
 	"time"
+
+	"github.com/supergiant/guber"
+	"github.com/supergiant/supergiant/types"
 )
 
 type ReleaseCollection struct {

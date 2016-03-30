@@ -2,7 +2,8 @@ package client
 
 import (
 	"path"
-	"supergiant/types"
+
+	"github.com/supergiant/supergiant/types"
 )
 
 type App types.App

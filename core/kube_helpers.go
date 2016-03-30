@@ -1,10 +1,11 @@
 package core
 
 import (
-	"guber"
 	"strconv"
 	"strings"
-	"supergiant/types"
+
+	"github.com/supergiant/guber"
+	"github.com/supergiant/supergiant/types"
 )
 
 // kube_helpers.go is a collection of helper methods that convert a Supergiant

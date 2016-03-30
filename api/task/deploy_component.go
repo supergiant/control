@@ -3,8 +3,9 @@ package task
 import (
 	"encoding/json"
 	"fmt"
-	"supergiant/core"
-	"supergiant/deploy"
+
+	"github.com/supergiant/supergiant/core"
+	"github.com/supergiant/supergiant/deploy"
 )
 
 type DeployComponentMessage struct {

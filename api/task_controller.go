@@ -2,7 +2,8 @@ package api
 
 import (
 	"net/http"
-	"supergiant/core"
+
+	"github.com/supergiant/supergiant/core"
 )
 
 type TaskController struct {

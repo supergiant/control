@@ -2,9 +2,10 @@ package api
 
 import (
 	"net/http"
-	"supergiant/api/task"
-	"supergiant/core"
-	"supergiant/types"
+
+	"github.com/supergiant/supergiant/api/task"
+	"github.com/supergiant/supergiant/core"
+	"github.com/supergiant/supergiant/types"
 )
 
 type InstanceController struct {

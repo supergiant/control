@@ -4,8 +4,9 @@ import (
 	"fmt"
 	"path"
 	"strconv"
-	"supergiant/types"
 	"time"
+
+	"github.com/supergiant/supergiant/types"
 )
 
 type Instance types.Instance
