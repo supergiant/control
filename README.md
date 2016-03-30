@@ -19,6 +19,8 @@ See [example.sh](example.sh) and [api/router.go](api/router.go).
 *Note: I'm going to squash commit history soon to get rid of the private
 Dockerhub key in example.sh.*
 
+# Server Options
+
 ```NAME:
    supergiant-api - The Supergiant api server.
 
@@ -44,7 +46,7 @@ GLOBAL OPTIONS:
 
 
 
-   h1. License
+   #License
 
    <pre>
    This software is licensed under the Apache License, version 2 ("ALv2"), quoted below.
