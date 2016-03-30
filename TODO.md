@@ -2,13 +2,13 @@
 
 ## v0.2.x
 
-* API versioning
+* ~~API versioning~~
 
-* entrypoints (load balancer)
+* ~~entrypoints (load balancer)~~
 
-* show component port addresses
+* ~~show component port addresses~~
 
-* standard ports / port preservation
+* ~~standard ports / port preservation~~
 
 ## v0.3.x
 
