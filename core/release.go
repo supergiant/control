@@ -113,7 +113,7 @@ func (r *ReleaseResource) Delete() error {
 	if err := r.deleteServices(); err != nil {
 		return err
 	}
-	if err := r.addExternalPortsToEntrypoint(); err != nil {
+	if err := r.removeExternalPortsFromEntrypoint(); err != nil {
 		return err
 	}
 
@@ -293,14 +293,23 @@ func (r *ReleaseResource) nodePortFor(number int) (p int) {
 	return p
 }
 
+func (r *ReleaseResource) elbPortFor(port *types.Port) (elbPort int) {
+	if port.PreserveNumber {
+		elbPort = port.Number
+	} else {
+		elbPort = r.nodePortFor(port.Number)
+	}
+	return elbPort
+}
+
 func (r *ReleaseResource) addExternalPortsToEntrypoint() error {
 	// TODO repeated, move to Port class
 	for _, port := range r.containerPorts(true) {
 		if port.EntrypointDomain != nil {
 			nodePort := r.nodePortFor(port.Number)
-			elbPort := nodePort
+			elbPort := r.elbPortFor(port)
 			entrypoint := r.entrypoints[*port.EntrypointDomain]
-			if err := entrypoint.AddPort(nodePort, elbPort); err != nil {
+			if err := entrypoint.AddPort(elbPort, nodePort); err != nil {
 				return err
 			}
 		}
@@ -312,8 +321,8 @@ func (r *ReleaseResource) removeExternalPortsFromEntrypoint() error {
 	// TODO repeated, move to Port class
 	for _, port := range r.containerPorts(true) {
 		if port.EntrypointDomain != nil {
-			nodePort := r.nodePortFor(port.Number)
-			elbPort := nodePort
+			// nodePort := r.nodePortFor(port.Number)
+			elbPort := r.elbPortFor(port)
 			entrypoint := r.entrypoints[*port.EntrypointDomain]
 			if err := entrypoint.RemovePort(elbPort); err != nil {
 				return err
@@ -328,7 +337,7 @@ func (r *ReleaseResource) ExternalAddresses() (pAddrs []*types.PortAddress) {
 		entrypoint := r.entrypoints[*port.EntrypointDomain]
 		pAddr := &types.PortAddress{
 			Port:    strconv.Itoa(port.Number), // TODO repeated all over the place
-			Address: fmt.Sprintf("%s:%d", entrypoint.Address, r.nodePortFor(port.Number)),
+			Address: fmt.Sprintf("%s:%d", entrypoint.Address, r.elbPortFor(port)),
 		}
 		pAddrs = append(pAddrs, pAddr)
 	}

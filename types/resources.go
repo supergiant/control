@@ -84,6 +84,14 @@ type Port struct {
 	// EntrypointDomain specifies which Entrypoint this Port is added to. Does not
 	// apply when Public is false.
 	EntrypointDomain ID `json:"entrypoint_domain,omitempty"`
+
+	// PreserveNumber instructs the Entrypoint to set the actual Port number
+	// specified as the external load balancer port. Does not apply when
+	// EntrypointDomain is nil.
+	//
+	// NOTE we may want to replace this with something like ExternalNumber so that
+	// it is more flexible / obvious.
+	PreserveNumber bool `json:"preserve_number"`
 }
 
 // ResourceAllocation

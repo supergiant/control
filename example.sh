@@ -15,7 +15,6 @@ curl -XPOST localhost:8080/v0/apps/test/components -d '{
   "name": "elasticsearch"
 }'
 
-
 curl -XPOST localhost:8080/v0/apps/test/components/elasticsearch/releases -d '{
   "instance_count": 3,
   "termination_grace_period": 10,
@@ -48,7 +47,8 @@ curl -XPOST localhost:8080/v0/apps/test/components/elasticsearch/releases -d '{
           "protocol": "HTTP",
           "number": 9200,
           "public": true,
-          "entrypoint_domain": "example.com"
+          "entrypoint_domain": "example.com",
+          "preserve_number": true
         },
         {
           "protocol": "TCP",
