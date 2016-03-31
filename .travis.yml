@@ -16,6 +16,8 @@ go:
  - 1.6
 
 install:
+ - mkdir -p $HOME/gopath/src/github.com/supergiant
+ - cd $HOME/gopath/src/github.com/supergiant/supergiant
  - go get -t -v ./...
  - go get github.com/mattn/goveralls
  - go get golang.org/x/tools/cmd/cover
@@ -23,7 +25,7 @@ install:
 script:
  - go test -v ./...
  - "$HOME/gopath/bin/goveralls -service=travis-ci"
- - GOOS=linux GOARCH=amd64 go build -o supergiant-api .
+ - GOOS=linux GOARCH=amd64 go build -a -o supergiant-api .
 
 after_success:
  - GOOS=linux GOARCH=amd64 go build -o supergiant-api .
