@@ -23,7 +23,7 @@ install:
 script:
  - go test -v ./...
  - "$HOME/gopath/bin/goveralls -service=travis-ci"
-
+ - GOOS=linux GOARCH=amd64 go build -o supergiant-api .
 
 after_success:
  - GOOS=linux GOARCH=amd64 go build -o supergiant-api .
