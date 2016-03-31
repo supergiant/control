@@ -54,7 +54,14 @@ func (c *ComponentCollection) List() (*ComponentList, error) {
 
 // New initializes an Component with a pointer to the Collection.
 func (c *ComponentCollection) New() *ComponentResource {
-	return new(ComponentResource)
+	// Yes, this looks insane.
+	return &ComponentResource{
+		Component: &types.Component{
+			PersistableComponent: &types.PersistableComponent{
+				Meta: types.NewMeta(),
+			},
+		},
+	}
 }
 
 // Create takes an Component and creates it in etcd.

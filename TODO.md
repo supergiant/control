@@ -10,17 +10,17 @@
 
 * ~~standard ports / port preservation~~
 
+* ~~resource metadata, tags~~
+
+* ~~meta timestamps~~
+
 ## v0.3.x
 
-* resource metadata, tags
-
-* meta timestamps
-
-* show resource types on all API responses
-
-* standardized errors, removing panics where possible
+* special release changes: service updates, load balancer port removal
 
 * volume resizing
+
+* use AWS meta endpoint to get required info
 
 ## v0.4.x
 
@@ -33,6 +33,10 @@
 ## v0.6.x
 
 *will probably use this release to organize some docs / tests*
+
+* show resource types on all API responses
+
+* standardized errors, removing panics where possible
 
 * model validations
 

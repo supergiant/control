@@ -77,7 +77,7 @@ func (db *DB) CreateDir(key string) (*etcd.Response, error) {
 //----------------------------------------------------------------------------//
 
 func decodeList(r Collection, resp *etcd.Response, out interface{}) error {
-	itemsPtr, itemType := GetItemsPtrAndItemType(out)
+	itemsPtr, itemType := getItemsPtrAndItemType(out)
 
 	// NOTE this this is not working, because we're not getting the right
 	// underlying element *type (with pointer).
@@ -101,7 +101,7 @@ func decodeList(r Collection, resp *etcd.Response, out interface{}) error {
 
 // TODO feel like there's a DRYer or cleaner way to do this
 func decodeOrderedList(r Collection, resp *etcd.Response, out interface{}) error { /// ------------------- just changed to Resource from OrderedResource
-	itemsPtr, itemType := GetItemsPtrAndItemType(out)
+	itemsPtr, itemType := getItemsPtrAndItemType(out)
 	for _, node := range resp.Node.Nodes {
 		// Interface() is called to convert the new item Value into an interface
 		// (that we can unmarshal to. The interface{} is then cast to Resource type.
@@ -131,6 +131,9 @@ func (db *DB) List(r Collection, out interface{}) error {
 
 func (db *DB) Create(r Collection, id types.ID, m Resource) error {
 	key := r.EtcdKey(id)
+
+	setCreatedTimestamp(m)
+
 	_, err := db.create(key, marshalResource(m))
 	if err != nil {
 		return err
@@ -153,6 +156,9 @@ func (db *DB) Get(r Collection, id types.ID, out Resource) error {
 
 func (db *DB) Update(r Collection, id types.ID, m Resource) error {
 	key := r.EtcdKey(id)
+
+	setUpdatedTimestamp(m)
+
 	_, err := db.update(key, marshalResource(m))
 	if err != nil {
 		return err

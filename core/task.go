@@ -55,7 +55,11 @@ func (c *TaskCollection) List() (*TaskList, error) {
 
 // New initializes an Task with a pointer to the Collection.
 func (c *TaskCollection) New() *TaskResource {
-	return new(TaskResource)
+	return &TaskResource{
+		Task: &types.Task{
+			Meta: types.NewMeta(),
+		},
+	}
 }
 
 // Create takes an Task and creates it in etcd. It also creates a Kubernetes

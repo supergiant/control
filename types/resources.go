@@ -1,11 +1,30 @@
 package types
 
+// Tags is a meta field for holding unstructued key/val info.
+type Tags map[string]string
+
+// Meta is a set of fields on all Resources for holding metadata.
+type Meta struct {
+	Created *Timestamp `json:"created"`
+	Updated *Timestamp `json:"updated"`
+	Tags    Tags       `json:"tags"`
+}
+
+// TODO weird placement
+func NewMeta() *Meta {
+	return &Meta{
+		Tags: make(Tags),
+	}
+}
+
 type App struct {
+	*Meta
 	Name ID `json:"name"`
 }
 
 // see note in core/resource.go about PersistableObject()
 type PersistableComponent struct {
+	*Meta
 	Name ID `json:"name"`
 	// TODO kinda weird,
 	// you choose a container that has the deploy file, and then reference it as a command
@@ -106,6 +125,8 @@ type ResourceAllocation struct {
 // NOTE the word Blueprint is used for Volumes and Containers, since they are
 // both "definitions" that create "instances" of the real thing
 type Release struct {
+	*Meta
+	// NOTE Timestamp here does not use the Timestamp type.
 	Timestamp              ID                    `json:"timestamp"`
 	InstanceCount          int                   `json:"instance_count"`
 	Volumes                []*VolumeBlueprint    `json:"volumes"`
@@ -137,6 +158,7 @@ type Instance struct {
 // Entrypoint
 //==============================================================================
 type Entrypoint struct {
+	*Meta
 	Domain  ID     `json:"domain"`  // e.g. blog.qbox.io
 	Address string `json:"address"` // the ELB address
 
@@ -158,6 +180,7 @@ const (
 )
 
 type Task struct {
+	*Meta
 	Type        TaskType `json:"type"`
 	Data        []byte   `json:"data"`
 	Status      string   `json:"status"`
@@ -169,6 +192,7 @@ type Task struct {
 // ImageRepo
 //==============================================================================
 type ImageRepo struct {
+	*Meta
 	Name ID     `json:"name"`
 	Key  string `json:"key"`
 }

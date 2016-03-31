@@ -45,7 +45,11 @@ func (c *AppCollection) List() (*AppList, error) {
 
 // New initializes an App with a pointer to the Collection.
 func (c *AppCollection) New() *AppResource {
-	return new(AppResource)
+	return &AppResource{
+		App: &types.App{
+			Meta: types.NewMeta(),
+		},
+	}
 }
 
 // Create takes an App and creates it in etcd. It also creates a Kubernetes

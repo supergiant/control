@@ -78,7 +78,11 @@ func (c *ReleaseCollection) List() (*ReleaseList, error) {
 
 // New initializes an Release with a pointer to the Collection.
 func (c *ReleaseCollection) New() *ReleaseResource {
-	return new(ReleaseResource)
+	return &ReleaseResource{
+		Release: &types.Release{
+			Meta: types.NewMeta(),
+		},
+	}
 }
 
 // Create takes an Release and creates it in etcd.

@@ -45,7 +45,11 @@ func (c *ImageRepoCollection) List() (*ImageRepoList, error) {
 
 // New initializes an ImageRepo with a pointer to the Collection.
 func (c *ImageRepoCollection) New() *ImageRepoResource {
-	return new(ImageRepoResource)
+	return &ImageRepoResource{
+		ImageRepo: &types.ImageRepo{
+			Meta: types.NewMeta(),
+		},
+	}
 }
 
 // Create takes an ImageRepo and creates it in etcd. It also creates a Kubernetes

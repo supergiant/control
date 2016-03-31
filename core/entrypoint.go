@@ -50,7 +50,11 @@ func (c *EntrypointCollection) List() (*EntrypointList, error) {
 
 // New initializes an Entrypoint with a pointer to the Collection.
 func (c *EntrypointCollection) New() *EntrypointResource {
-	return new(EntrypointResource)
+	return &EntrypointResource{
+		Entrypoint: &types.Entrypoint{
+			Meta: types.NewMeta(),
+		},
+	}
 }
 
 // Create takes an Entrypoint and creates it in etcd. It also creates a Kubernetes

@@ -34,10 +34,10 @@ type OrderedResource interface {
 }
 
 // TODO should maybe move this to util or helper file
-// GetItemsPtrAndItemType takes a Resource, which must be of the List type, and
+// getItemsPtrAndItemType takes a Resource, which must be of the List type, and
 // returns a pointer to the Items slice of the List and the underlying item type
 // of the slice.
-func GetItemsPtrAndItemType(r interface{}) (reflect.Value, reflect.Type) {
+func getItemsPtrAndItemType(r interface{}) (reflect.Value, reflect.Type) {
 	// The concrete value of an interface is a pair of 32-bit words, one pointing
 	// to information about the type implementing the interface, and the other
 	// pointing to the underlying data in the type.
@@ -77,4 +77,32 @@ func GetItemsPtrAndItemType(r interface{}) (reflect.Value, reflect.Type) {
 	// fmt.Println(fmt.Sprintf("itemType: %#v", itemType))
 
 	return itemsPtr, itemType
+}
+
+// TODO all the following stuff should be better documented.
+
+// // used to initialize Meta object primarily
+// func initResource(r Resource) {
+// 	meta := reflect.ValueOf(types.NewMeta()).Elem()
+// 	getFieldValue(r.PersistableObject(), "Meta").Set(meta)
+// }
+
+func getFieldValue(r Resource, f string) reflect.Value {
+	field := reflect.ValueOf(r).Elem().FieldByName(f)
+	if !field.IsValid() {
+		panic(fmt.Errorf("No %s field in %#v", f, r))
+	}
+	return field
+}
+
+func newTimestampValue() reflect.Value {
+	return reflect.ValueOf(types.NewTimestamp()) //.Elem()
+}
+
+func setCreatedTimestamp(r Resource) {
+	getFieldValue(r, "Created").Set(newTimestampValue())
+}
+
+func setUpdatedTimestamp(r Resource) {
+	getFieldValue(r, "Updated").Set(newTimestampValue())
 }
