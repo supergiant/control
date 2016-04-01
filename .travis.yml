@@ -15,27 +15,24 @@ env:
     - COMMIT=${TRAVIS_COMMIT::8}
 
 go:
- - 1.6
+  - 1.6
 
 install:
- - go get -t -v ./...
- - go get github.com/mattn/goveralls
- - go get golang.org/x/tools/cmd/cover
+  - go get -t -v ./...
+  - go get github.com/mattn/goveralls
+  - go get golang.org/x/tools/cmd/cover
 
 script:
- - ls -lrt
- - "$HOME/gopath/bin/goveralls -service=travis-ci"
- - CGO_ENABLED=0 GOARCH=amd64 GOOS=linux go build -a -o ./supergiant
- - ls -lrt
- - ENV
- - ./supergiant
- - docker login -e $DOCKER_EMAIL -u $DOCKER_USER -p $DOCKER_PASS
- - export REPO=supergiant/supergiant-api
- - export TAG=`if [ -z "$TRAVIS_TAG" ] && [ "$TRAVIS_BRANCH" == "master" ]; then echo "latest"; elif [ -z "$TRAVIS_TAG" ] && [ "$TRAVIS_BRANCH" != "master" ]; then echo "unstable-${TRAVIS_BRANCH}"; else echo $TRAVIS_TAG ; fi`
- - docker build -t $REPO:$TAG .
- - docker run supergiant/supergiant-api:unstable-Docker_Builds /supergiant
- - docker push $REPO
- - go test -v ./...
+  - "$HOME/gopath/bin/goveralls -service=travis-ci"
+  - go test -v ./...
+
+after_success:
+  - CGO_ENABLED=0 GOARCH=amd64 GOOS=linux go build -a -o ./supergian-api
+  - docker login -e $DOCKER_EMAIL -u $DOCKER_USER -p $DOCKER_PASS
+  - export REPO=supergiant/supergiant-api
+  - export TAG=`if [ -z "$TRAVIS_TAG" ] && [ "$TRAVIS_BRANCH" == "master" ]; then echo "latest"; elif [ -z "$TRAVIS_TAG" ] && [ "$TRAVIS_BRANCH" != "master" ]; then echo "unstable-${TRAVIS_BRANCH}"; else echo $TRAVIS_TAG ; fi`
+  - docker build -t $REPO:$TAG .
+  - docker push $REPO
 
 notifications:
   slack:

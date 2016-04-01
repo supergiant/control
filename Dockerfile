@@ -1,4 +1,4 @@
-FROM alpine:3.2
+FROM scratch
 MAINTAINER Qbox Inc.
-ADD ./supergiant /supergiant
+ADD ./supergiant-api /supergiant-api
 EXPOSE 8080
