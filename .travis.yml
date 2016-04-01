@@ -25,12 +25,15 @@ install:
  - go get golang.org/x/tools/cmd/cover
 
 script:
+ - ls -lrt
  - "$HOME/gopath/bin/goveralls -service=travis-ci"
  - go build -o ./supergiant-api
+ - ls -lrt
  - docker login -e $DOCKER_EMAIL -u $DOCKER_USER -p $DOCKER_PASS
  - export REPO=supergiant/supergiant-api
  - export TAG=`if [ -z "$TRAVIS_TAG" ] && [ "$TRAVIS_BRANCH" == "master" ]; then echo "latest"; elif [ -z "$TRAVIS_TAG" ] && [ "$TRAVIS_BRANCH" != "master" ]; then echo "unstable-${TRAVIS_BRANCH}"; else echo $TRAVIS_TAG ; fi`
  - docker build -t $REPO:$TAG .
+ - docker run supergiant/supergiant-api:unstable-Docker_Builds /supergiant-api
  - docker push $REPO
  - go test -v ./...
 
