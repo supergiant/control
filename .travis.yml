@@ -15,7 +15,7 @@ env:
     - COMMIT=${TRAVIS_COMMIT::8}
 
 go:
- - 1.6
+ - 1.5.3
 
 install:
  - mkdir -p $HOME/gopath/src/github.com/supergiant
