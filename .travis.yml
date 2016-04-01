@@ -5,6 +5,9 @@ services:
 
 language: go
 
+os:
+  - osx
+
 env:
   global:
     - secure: oYBxHnfsmfNmnbFb0qPoiCMjr4vEdA7s/28IIZUwpNpLwsV4NuaA0u6awDmpG7viu+PbwY/+/JWhultZ7mbNwscX40nT5LBUxb6OIqEvxPNhU27knxDrFD6g0+70d4PCv1eF1bc3rsLnAvVinZB2n4mxAikMVll2iDON+UEJBRKwAu1cp1ipa84sAATvK2fZMtE+DSaJmt2l1zyquVKHMlGCNzsk6ANNvCTEk6CeYnvSSM9TlOnDp2SrXqrNqCPpli/Z8FJfRj5tCHrvRIQIhrbUrSVv1ISSiMr6TFucsWVTRslVwbtQUL1lb/Ae/mItZCoWW+yrJvkVUcj+OTHFo6mQKxAE+Rj7/inrpHxId4o5luvMZvCPlNl5AB58iCX0LhnzOkDQzLSXBwV6VEYWUXACSlDuK7pmSAKA+FR7Z4sfL4q5MDAN0BttTcak4RP8OCuAV7oHmY49j0VWP8Zu86OF0MZD+R8uYMzYyoi9J2iUQjb+WfR1MSxb3UL51+K2mFqahD99kp17mumnzxLlw1CzbIS3axUFIuRm2b/bDFtnse8iVSrWyWg1lfkitCflDrejWA3h9Pwe/7fUuiTonA4OtjIHNuyQpMdcAOFDDoxXhyCfqEXuWZqycF2rAfx3H4DU2O/4Sqok82gziHz4x7FZfWUbSxiGJAIh3xNlobs=
@@ -28,7 +31,6 @@ install:
 script:
  - go test -v ./...
  - "$HOME/gopath/bin/goveralls -service=travis-ci"
- - gvm cross $BUILD_GOOS $BUILD_GOARCH
  - GOARCH=$BUILD_GOARCH GOOS=$BUILD_GOOS go build -a -o ./supergiant-api
  - docker login -e $DOCKER_EMAIL -u $DOCKER_USER -p $DOCKER_PASS
  - export REPO=supergiant/supergiant-api
