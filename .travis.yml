@@ -5,18 +5,12 @@ services:
 
 language: go
 
-os:
-  - osx
-
 env:
   global:
     - secure: oYBxHnfsmfNmnbFb0qPoiCMjr4vEdA7s/28IIZUwpNpLwsV4NuaA0u6awDmpG7viu+PbwY/+/JWhultZ7mbNwscX40nT5LBUxb6OIqEvxPNhU27knxDrFD6g0+70d4PCv1eF1bc3rsLnAvVinZB2n4mxAikMVll2iDON+UEJBRKwAu1cp1ipa84sAATvK2fZMtE+DSaJmt2l1zyquVKHMlGCNzsk6ANNvCTEk6CeYnvSSM9TlOnDp2SrXqrNqCPpli/Z8FJfRj5tCHrvRIQIhrbUrSVv1ISSiMr6TFucsWVTRslVwbtQUL1lb/Ae/mItZCoWW+yrJvkVUcj+OTHFo6mQKxAE+Rj7/inrpHxId4o5luvMZvCPlNl5AB58iCX0LhnzOkDQzLSXBwV6VEYWUXACSlDuK7pmSAKA+FR7Z4sfL4q5MDAN0BttTcak4RP8OCuAV7oHmY49j0VWP8Zu86OF0MZD+R8uYMzYyoi9J2iUQjb+WfR1MSxb3UL51+K2mFqahD99kp17mumnzxLlw1CzbIS3axUFIuRm2b/bDFtnse8iVSrWyWg1lfkitCflDrejWA3h9Pwe/7fUuiTonA4OtjIHNuyQpMdcAOFDDoxXhyCfqEXuWZqycF2rAfx3H4DU2O/4Sqok82gziHz4x7FZfWUbSxiGJAIh3xNlobs=
     - secure: SM4VoIu6684mlsXlYDOgo/RpjB4+Gn1/yJKM2C7yTATm6Xz0SG/+Y1qum5HDsqLPIRu/bhbYB3xTXcbJDNzJM8SZg4NiPrlG/B0NEXMVqP9oK2wRxnokmTI79kAia6XKDUshAd8NiUP1Q22o0wM6WousI2GspJLeswX5dhVPb2/2pqsY2asYlthnTwmnDspqDvy4WGlHBKQWQZUsKyorqOs7EzlEuiGHNtojhuFlTYb7CPnf5isBBGVrhItmWs8orguME83UhviWw8HFb0TW3hKg35bpa5Wo1yxyYLRwVwyp4/b1iJoKUNmM6IBg+A6x1pi75GtCx4qZtkQUVL2oq5whJris4wXVeb+va9FtcRiM5xqxCuQfv4+o8jfxMjh88ow5F2y9CUO1JwxQhJj1I0DX4jcrBjQs3PNJD9Gmz5XVrYwC9BYzSvQYQBnHkiRBjImn+1dTL4x3rGyJycazWeqm5Sjlt0/vA8PYK3WbIpiJZ7TFUu3ekJOFuHZsrFhoEtZQ67omabbNlSrE+VMoAZ5j9ER4KRTClZTlciWMzEnXcXRTbTPDiGY94rRrkPXPvBovZiBXSvcqJ9dGBxTAIUMiiW0F2xrNfLsK5dcqwwJ2YJDJbNyIt4o2pI6oZp558+L1Gv4MBnxj30ypfYIv/kVY8U2PAHFCJJJn2snywpA=
     - secure: oWoBhJqpMYdegsUMiovQugOh6BUEdCIF9sbkYT1TzW75QtmNhSrnoq/VN639oSQfTKflsBfiNzl+yXogOKSNNuz62NlFMYbsncw3IuLAKHNYNozgVPTp7n6aJNepincTrzVJCIhCulXajoXDRrkH0/SYi9yGEoPcSMqRlPuHawxCmr0lePHuRhdIjKS+eaQOw7RZ4pq+f51NV3Khj3VNsuacAQT/946wWNVLHdqBiN1jQH5oNLmYgSsFjQW0VXelU/hQtie3kI3vWQMRmjiAzOFEE/YBIlip+WUTXTMWUb7UQ+GlNhueyS0RKkgmub9TW1f2vs8gZ6kyHw1tu3rQXG2fx3FNiYJfc72vQN3LS6Xrpgq+KXoecqkgzXobyjHMfk967De968snEX9WAhj02Wvm8w1+ThvVi/ZuARx+H5T/ZvvUdVs53t8mPcS1H7BnDNX4dy/a0nDxxeAtlvaxcPt7O4jHzt3L/vNdAJv6w0NGDldBFwfdeJSLCKCZ+qWDnMHHKBknGgP5e9bwB2NL5ictAuZ4HSJfmiaWKGOuGvNH6SfwzLK6m49U29nVWtnQlkaVnmJ1lwk3fKRPdIHcdDVfN7MbcRQ8uAkEwinikzkA/S0nHu1Gjl+icleBMgwbAyyMG+/p2UfC2pinRSiMxdlDORUORXgRplG+QrdQC9g=
     - COMMIT=${TRAVIS_COMMIT::8}
-    - BUILD_GOARCH=amd64
-  matrix:
-    - BUILD_GOOS=linux
 
 go:
  - 1.6
@@ -31,7 +25,7 @@ install:
 script:
  - go test -v ./...
  - "$HOME/gopath/bin/goveralls -service=travis-ci"
- - GOARCH=$BUILD_GOARCH GOOS=$BUILD_GOOS go build -a -o ./supergiant-api
+ - go build -o ./supergiant-api
  - docker login -e $DOCKER_EMAIL -u $DOCKER_USER -p $DOCKER_PASS
  - export REPO=supergiant/supergiant-api
  - export TAG=`if [ -z "$TRAVIS_TAG" ] && [ "$TRAVIS_BRANCH" == "master" ]; then echo "latest"; elif [ -z "$TRAVIS_TAG" ] && [ "$TRAVIS_BRANCH" != "master" ]; then echo "unstable-${TRAVIS_BRANCH}"; else echo $TRAVIS_TAG ; fi`
