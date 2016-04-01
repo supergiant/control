@@ -1,5 +1,5 @@
-FROM scratch
+FROM alpine:3.2
 MAINTAINER Qbox Inc.
-COPY supergiant-api supergiant-api
+ADD supergiant-api /supergiant-api
 EXPOSE 8080
 ENTRYPOINT ["/supergiant-api"]
