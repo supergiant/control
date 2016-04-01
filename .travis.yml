@@ -18,8 +18,6 @@ go:
  - 1.5.3
 
 install:
- - mkdir -p $HOME/gopath/src/github.com/supergiant
- - cd $HOME/gopath/src/github.com/supergiant/supergiant
  - go get -t -v ./...
  - go get github.com/mattn/goveralls
  - go get golang.org/x/tools/cmd/cover
