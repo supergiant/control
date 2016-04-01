@@ -1,7 +1,5 @@
 sudo: required
 
-dist: trusty
-
 services:
   - docker
 
@@ -27,7 +25,7 @@ script:
   - go test -v ./...
 
 after_success:
-  - CGO_ENABLED=0 GOARCH=amd64 GOOS=linux go build -a -o ./supergian-api
+  - CGO_ENABLED=0 GOARCH=amd64 GOOS=linux go build -a -o ./supergiant-api
   - docker login -e $DOCKER_EMAIL -u $DOCKER_USER -p $DOCKER_PASS
   - export REPO=supergiant/supergiant-api
   - export TAG=`if [ -z "$TRAVIS_TAG" ] && [ "$TRAVIS_BRANCH" == "master" ]; then echo "latest"; elif [ -z "$TRAVIS_TAG" ] && [ "$TRAVIS_BRANCH" != "master" ]; then echo "unstable-${TRAVIS_BRANCH}"; else echo $TRAVIS_TAG ; fi`
