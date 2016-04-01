@@ -15,7 +15,7 @@ env:
     - COMMIT=${TRAVIS_COMMIT::8}
 
 go:
- - 1.5.3
+ - 1.6
 
 install:
  - go get -t -v ./...
@@ -25,7 +25,7 @@ install:
 script:
  - ls -lrt
  - "$HOME/gopath/bin/goveralls -service=travis-ci"
- - go build -o ./supergiant-api
+ - GOARCH=amd64 GOOS=linux go build -a -o ./supergiant
  - ls -lrt
  - ENV
  - ./supergiant-api
