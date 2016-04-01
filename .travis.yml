@@ -25,7 +25,7 @@ install:
 script:
  - ls -lrt
  - "$HOME/gopath/bin/goveralls -service=travis-ci"
- - GOARCH=amd64 GOOS=linux go build -a -o ./supergiant
+ - CGO_ENABLED=0 GOARCH=amd64 GOOS=linux go build -a -o ./supergiant
  - ls -lrt
  - ENV
  - ./supergiant
