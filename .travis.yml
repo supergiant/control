@@ -25,7 +25,7 @@ install:
 script:
  - go test -v ./...
  - "$HOME/gopath/bin/goveralls -service=travis-ci"
- - GOOS=linux GOARCH=amd64 go build -a -o supergiant-api .
+ - GOOS=linux GOARCH=amd64 go build -a -o ./supergiant-api .
  - docker login -e $DOCKER_EMAIL -u $DOCKER_USER -p $DOCKER_PASS
  - export REPO=supergiant/supergiant-api
  - export TAG=`if [ -z "$TRAVIS_TAG" ] && [ "$TRAVIS_BRANCH" == "master" ]; then echo "latest"; elif [ -z "$TRAVIS_TAG" ] && [ "$TRAVIS_BRANCH" != "master" ]; then echo "unstable-${TRAVIS_BRANCH}"; else echo $TRAVIS_TAG ; fi`
