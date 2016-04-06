@@ -2,6 +2,7 @@ package client
 
 import (
 	"bytes"
+	"crypto/tls"
 	"encoding/json"
 	"fmt"
 	"io"
@@ -12,13 +13,16 @@ import (
 type Client struct {
 	baseURL string
 	// Host string
-	// Username string
-	// Password string
-	http *http.Client
+	Username string
+	Password string
+	http     *http.Client
 }
 
-func New(url string) *Client {
-	return &Client{url, new(http.Client)}
+func New(url string, user string, pass string, verify bool) *Client {
+	tr := &http.Transport{
+		TLSClientConfig: &tls.Config{InsecureSkipVerify: verify},
+	}
+	return &Client{url, user, pass, &http.Client{Transport: tr}}
 }
 
 // Non-Client misc
@@ -60,6 +64,8 @@ func (c *Client) request(method string, path string, in interface{}, out interfa
 	if err != nil {
 		return false, err
 	}
+
+	req.SetBasicAuth(c.Username, c.Password)
 
 	resp, err := c.http.Do(req)
 	if err != nil {
