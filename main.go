@@ -1,6 +1,7 @@
 package main
 
 import (
+	"log"
 	"net/http"
 	"os"
 
@@ -28,16 +29,43 @@ func main() {
 			cli.ShowCommandHelp(ctx, "")
 			os.Exit(5)
 		}
-		if core.AwsRegion == "<AWS Region>" {
-			core.Log.Error("AWS Region required...")
-			cli.ShowCommandHelp(ctx, "")
-			os.Exit(5)
+		if core.AwsRegion == "" {
+			region, err := getAWSRegion()
+			if err != nil {
+				log.Println("ERROR:", err)
+			} else {
+				core.AwsRegion = region
+				log.Println("INFO: AWS Region Detected,", core.AwsRegion)
+			}
 		}
-		if core.AwsAZ == "<AWS Availability Zone>" {
-			core.Log.Error("AWS Availability Zone required...")
-			cli.ShowCommandHelp(ctx, "")
-			os.Exit(5)
+		if core.AwsAZ == "" {
+			az, err := getAWSAZ()
+			if err != nil {
+				log.Println("ERROR:", err)
+			} else {
+				core.AwsAZ = az
+				log.Println("INFO: AWS AZ Detected,", core.AwsAZ)
+			}
 		}
+		if core.AwsSgID == "" {
+			sg, err := getAWSSecurityGroupID()
+			if err != nil {
+				log.Println("ERROR:", err)
+			} else {
+				core.AwsSgID = sg
+				log.Println("INFO: AWS Security Group Detected,", core.AwsSgID)
+			}
+		}
+		if core.AwsSubnetID == "" {
+			sub, err := getAWSSubnetID()
+			if err != nil {
+				log.Println("ERROR:", err)
+			} else {
+				core.AwsSubnetID = sub
+				log.Println("INFO: AWS Security Group Detected,", core.AwsSubnetID)
+			}
+		}
+
 		core.EtcdEndpoints = ctx.StringSlice("etcd-host")
 		if len(core.EtcdEndpoints) < 0 {
 			core.EtcdEndpoints = []string{"http://etcd:2379"}
@@ -92,28 +120,28 @@ func main() {
 		},
 		cli.StringFlag{
 			Name:        "awsRegion, ar",
-			Value:       "<AWS Region>",
+			Value:       "",
 			Usage:       "AWS Region in which your kubernetes cluster resides.",
 			EnvVar:      "AWS_REGION",
 			Destination: &core.AwsRegion,
 		},
 		cli.StringFlag{
 			Name:        "awsAZ, az",
-			Value:       "<AWS Availability Zone>",
+			Value:       "",
 			Usage:       "AWS Availability Zone in which your kubernetes cluster resides.",
 			EnvVar:      "AWS_AZ",
 			Destination: &core.AwsAZ,
 		},
 		cli.StringFlag{
 			Name:        "awsSgID, sg",
-			Value:       "<AWS Security Group ID>",
+			Value:       "",
 			Usage:       "AWS Security Group in which your kubernetes cluster resides.",
 			EnvVar:      "AWS_SG_ID",
 			Destination: &core.AwsSgID,
 		},
 		cli.StringFlag{
 			Name:        "awsSubnetID, sid",
-			Value:       "<AWS Subnet ID>",
+			Value:       "",
 			Usage:       "AWS Subnet ID in which your kubernetes cluster resides.",
 			EnvVar:      "AWS_SUBNET_ID",
 			Destination: &core.AwsSubnetID,
