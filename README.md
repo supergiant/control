@@ -15,7 +15,7 @@ Supergiant is API-based stateful container orchestration disguised as a
 developer-friendly application platform. It is based on
 [Kubernetes](https://github.com/kubernetes/kubernetes).
 
-[supergiant.io](supergiant.io)
+[supergiant.io](https://supergiant.io)
 
 ### Concepts
 
