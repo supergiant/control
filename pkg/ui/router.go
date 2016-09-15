@@ -34,6 +34,18 @@ func init() {
 func NewRouter(c *core.Core, baseRouter *mux.Router) *mux.Router {
 	base := baseRouter.StrictSlash(true)
 
+	cssHandler := http.FileServer(http.Dir("./ui/css/"))
+	jsHandler := http.FileServer(http.Dir("./ui/js/"))
+	fontsHandler := http.FileServer(http.Dir("./ui/fonts/"))
+	imagesHandler := http.FileServer(http.Dir("./ui/images/"))
+
+	http.Handle("/ui/css/", http.StripPrefix("/ui/css/", cssHandler))
+	http.Handle("/ui/js/", http.StripPrefix("/ui/js/", jsHandler))
+	http.Handle("/ui/fonts/", http.StripPrefix("/ui/fonts/", fontsHandler))
+  http.Handle("/ui/images/", http.StripPrefix("/ui/images/", imagesHandler))
+
+
+
 	base.HandleFunc("/", uiRedirect).Methods("GET")
 
 	r := base.PathPrefix("/ui").Subrouter()
