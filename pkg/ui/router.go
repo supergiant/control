@@ -7,7 +7,9 @@ import (
 	"path/filepath"
 	"regexp"
 	"strconv"
+	"strings"
 
+	"github.com/elazarl/go-bindata-assetfs"
 	"github.com/gorilla/mux"
 	"github.com/supergiant/supergiant/pkg/client"
 	"github.com/supergiant/supergiant/pkg/core"
@@ -17,38 +19,62 @@ import (
 var templates = make(map[string]*template.Template)
 
 func init() {
-	partials, err := filepath.Glob("ui/views/partials/*.html")
-	if err != nil {
-		panic(err)
+	// AssetNames() is like a filepath Glob of our generated assets
+	viewFiles := AssetNames()
+	var partials []string
+	var layouts []string
+	for _, viewFile := range viewFiles {
+		if !strings.HasPrefix(viewFile, "ui/views") {
+			continue // don't want to load any non-HTML assets into this
+		}
+		if strings.HasPrefix(viewFile, "ui/views/partials") {
+			partials = append(partials, viewFile)
+		} else {
+			layouts = append(layouts, viewFile)
+		}
 	}
-	layouts, err := filepath.Glob("ui/views/*.html")
-	if err != nil {
-		panic(err)
-	}
+
 	for _, partial := range partials {
+		// https://golang.org/src/html/template/template.go?s=11938:12007#L354
+		var t *template.Template
+		for _, view := range append(layouts, partial) {
+			name := filepath.Base(view)
+			if t == nil {
+				t = template.New(name)
+			}
+			var tmpl *template.Template
+			if name == t.Name() {
+				tmpl = t
+			} else {
+				tmpl = t.New(name)
+			}
+
+			src, err := Asset(view)
+			if err != nil {
+				panic(err)
+			}
+
+			if _, err = tmpl.Parse(string(src)); err != nil {
+				panic(err)
+			}
+		}
+
 		key := regexp.MustCompile(`([^/]+)\.html$`).FindStringSubmatch(partial)[1]
-		templates[key] = template.Must(template.ParseFiles(append(layouts, partial)...))
+		templates[key] = t
 	}
 }
 
 func NewRouter(c *core.Core, baseRouter *mux.Router) *mux.Router {
 	base := baseRouter.StrictSlash(true)
 
-	cssHandler := http.FileServer(http.Dir("./ui/css/"))
-	jsHandler := http.FileServer(http.Dir("./ui/js/"))
-	fontsHandler := http.FileServer(http.Dir("./ui/fonts/"))
-	imagesHandler := http.FileServer(http.Dir("./ui/images/"))
-
-	http.Handle("/ui/css/", http.StripPrefix("/ui/css/", cssHandler))
-	http.Handle("/ui/js/", http.StripPrefix("/ui/js/", jsHandler))
-	http.Handle("/ui/fonts/", http.StripPrefix("/ui/fonts/", fontsHandler))
-  http.Handle("/ui/images/", http.StripPrefix("/ui/images/", imagesHandler))
-
-
-
+	// Redirect / to /ui
 	base.HandleFunc("/", uiRedirect).Methods("GET")
 
 	r := base.PathPrefix("/ui").Subrouter()
+
+	// Assets
+	assetDir := &assetfs.AssetFS{Asset: Asset, AssetDir: AssetDir, AssetInfo: AssetInfo}
+	r.PathPrefix("/assets/").Handler(http.FileServer(assetDir))
 
 	r.HandleFunc("/", restrictedHandler(c, Root)).Methods("GET")
 

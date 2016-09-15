@@ -208,6 +208,16 @@ username and password][Create Admin User Anchor].
 govendor test +local
 ```
 
+#### Compiling UI templates and static assets
+
+Supergiant uses [go-bindata](https://github.com/jteeuwen/go-bindata) to compile
+assets directly into the code. You will need to run this command if you're
+making changes to the UI:
+
+```shell
+go-bindata -pkg ui -o pkg/ui/generated_assets.go ui/...
+```
+
 ---
 
 ## Installing/Generating Dependencies

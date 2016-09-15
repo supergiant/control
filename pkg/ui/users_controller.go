@@ -92,7 +92,7 @@ func EditUser(sg *client.Client, w http.ResponseWriter, r *http.Request) error {
 	if err := sg.Users.Get(id, item); err != nil {
 		return err
 	}
-	return renderTemplate(w, "edit", map[string]interface{}{
+	return renderTemplate(w, "new", map[string]interface{}{
 		"title":      "Users",
 		"formAction": fmt.Sprintf("/ui/users/%d", *id),
 		"formMethod": "PUT",
@@ -113,7 +113,7 @@ func UpdateUser(sg *client.Client, w http.ResponseWriter, r *http.Request) error
 		return err
 	}
 	if err := sg.Users.Update(id, m); err != nil {
-		return renderTemplate(w, "edit", map[string]interface{}{
+		return renderTemplate(w, "new", map[string]interface{}{
 			"title":      "Users",
 			"formAction": fmt.Sprintf("/ui/users/%d", *id),
 			"formMethod": "PUT",
