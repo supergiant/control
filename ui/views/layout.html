@@ -252,7 +252,8 @@
               fieldsJSON = "{{ .fieldsJSON }}",
               table = $('table#item_list'),
               thead = $('<thead>'),
-              tbody = $('<tbody>');
+              tbody = $('<tbody>'),
+              paginator = $('ul.pagination');
 
 
           var fields;
@@ -284,15 +285,29 @@
           table.append(tbody);
 
 
+
+          var currentPage = 1;
+          var pmatch = window.location.search.match(/p=(\d+)/);
+          if (pmatch) {
+            currentPage = parseInt(pmatch[1]);
+          }
+
+
+          var limit = 25,
+              offset = (currentPage - 1) * limit;
+
+
+
           // func
           function renderList() {
             $.ajax({
-              url: apiListPath,
+              url: apiListPath + "?limit=" + limit + "&offset=" + offset,
               beforeSend: function(xhr){
                 xhr.setRequestHeader('Authorization', 'SGAPI session="' + getCookie('supergiant_session') + '"');
               },
               success: function(data) {
-                items = JSON.parse(data);
+                var list = JSON.parse(data);
+                var items = list.items;
 
 
 
@@ -305,7 +320,7 @@
 
                 $.each(items, function(i, item) {
 
-                  previousTr = $('tr#item_' + item.id);
+                  var previousTr = $('tr#item_' + item.id);
 
                   // Gather field vals
                   var fieldVals = [];
@@ -390,7 +405,95 @@
                   }
 
                 });
+                //---------------- end adding items
 
+
+
+
+
+                // Pagination
+
+
+                var totalPages = Math.ceil(list.total / list.limit);
+
+
+
+                if (totalPages > 1) {
+
+                  var newPaginator = paginator.clone();
+
+
+                  var renderPageLink = function(p) {
+                    if (p <= totalPages) {
+                      newPaginator.append($('<li' + (currentPage == p ? ' class="active"' : '') + '><a href="{{ .uiBasePath }}?p=' + p + '">' + p + '</a></li>'));
+                    }
+                  };
+                  var renderSeparator = function() {
+                    newPaginator.append($('<li class="disabled"><a href="#">...</a></li>'));
+                  };
+
+
+                  if (totalPages > 1) {
+                    if (currentPage > 1) {
+                      newPaginator.append($('<li><a href="{{ .uiBasePath }}?p=' + (currentPage - 1) + '" aria-label="Previous"><span aria-hidden="true">&laquo;</span></a></li>'));
+                    } else {
+                      newPaginator.append($('<li class="disabled"><a href="#" aria-label="Previous"><span aria-hidden="true">&laquo;</span></a></li>'));
+                    }
+                  }
+
+
+                  if (totalPages <= 6) {
+
+                    // Render all pages
+                    for (var p = 1; p <= totalPages; p++) {
+                      renderPageLink(p);
+                    }
+
+                  } else if (currentPage <= 3) { // and >= 7 total pages
+
+                    for (var p = 1; p <= (currentPage + 1); p++) {
+                      renderPageLink(p);
+                    }
+                    renderSeparator();
+                    renderPageLink(totalPages);
+
+                  } else if ((totalPages - currentPage) <= 3) { // and >= 7 total pages
+
+                    renderPageLink(1);
+                    renderSeparator();
+                    for (var p = currentPage - 1; p <= totalPages; p++) {
+                      renderPageLink(p);
+                    }
+
+                  } else {
+
+                    renderPageLink(1);
+                    renderSeparator();
+                    renderPageLink(currentPage - 1);
+                    renderPageLink(currentPage);
+                    renderPageLink(currentPage + 1);
+                    renderSeparator();
+                    renderPageLink(totalPages);
+
+                  }
+
+
+                  if (totalPages > 1) {
+                    if (currentPage < totalPages) {
+                      newPaginator.append($('<li><a href="{{ .uiBasePath }}?p=' + (currentPage + 1) + '" aria-label="Next"><span aria-hidden="true">&raquo;</span></a></li>'));
+                    } else {
+                      newPaginator.append($('<li class="disabled"><a href="#" aria-label="Next"><span aria-hidden="true">&raquo;</span></a></li>'));
+                    }
+                  }
+
+
+                  paginator.replaceWith(newPaginator);
+
+                } else {
+
+                  paginator.empty();
+
+                }
 
 
               },

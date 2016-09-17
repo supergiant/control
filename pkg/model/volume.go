@@ -1,5 +1,10 @@
 package model
 
+type VolumeList struct {
+	Pagination
+	Items []*Volume `json:"items"`
+}
+
 type Volume struct {
 	BaseModel
 

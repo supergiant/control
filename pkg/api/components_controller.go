@@ -8,7 +8,7 @@ import (
 )
 
 func ListComponents(core *core.Core, user *model.User, r *http.Request) (*Response, error) {
-	return handleList(core, r, new(model.Component))
+	return handleList(core, r, new(model.Component), new(model.ComponentList))
 }
 
 func CreateComponent(core *core.Core, user *model.User, r *http.Request) (*Response, error) {

@@ -1,5 +1,10 @@
 package model
 
+type AppList struct {
+	Pagination
+	Items []*App `json:"items"`
+}
+
 type App struct {
 	BaseModel
 	Name string `json:"name" validate:"nonzero,max=24,regexp=^[a-z]([-a-z0-9]*[a-z0-9])?$" gorm:"not null;unique_index:name_within_kube"`

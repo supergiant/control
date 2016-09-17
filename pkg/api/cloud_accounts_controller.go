@@ -8,7 +8,7 @@ import (
 )
 
 func ListCloudAccounts(core *core.Core, user *model.User, r *http.Request) (*Response, error) {
-	return handleList(core, r, new(model.CloudAccount))
+	return handleList(core, r, new(model.CloudAccount), new(model.CloudAccountList))
 }
 
 func CreateCloudAccount(core *core.Core, user *model.User, r *http.Request) (*Response, error) {

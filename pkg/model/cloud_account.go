@@ -1,5 +1,10 @@
 package model
 
+type CloudAccountList struct {
+	Pagination
+	Items []*CloudAccount `json:"items"`
+}
+
 type CloudAccount struct {
 	BaseModel
 

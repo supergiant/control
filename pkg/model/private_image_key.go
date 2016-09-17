@@ -5,6 +5,11 @@ import (
 	"fmt"
 )
 
+type PrivateImageKeyList struct {
+	Pagination
+	Items []*PrivateImageKey `json:"items"`
+}
+
 type PrivateImageKey struct {
 	BaseModel
 

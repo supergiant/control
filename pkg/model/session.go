@@ -2,6 +2,11 @@ package model
 
 import "time"
 
+type SessionList struct {
+	Pagination
+	Items []*Session `json:"items"`
+}
+
 type Session struct {
 	ID        string    `json:"id"`
 	UserID    *int64    `json:"user_id"`

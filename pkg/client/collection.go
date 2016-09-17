@@ -13,8 +13,8 @@ type Collection struct {
 	basePath string
 }
 
-func (c *Collection) List(items interface{}) error {
-	return c.client.request("GET", c.basePath, nil, items, nil)
+func (c *Collection) List(list interface{}) error {
+	return c.client.request("GET", c.basePath, nil, list, nil)
 }
 
 func (c *Collection) Get(id interface{}, item model.Model) error {

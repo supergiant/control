@@ -206,10 +206,13 @@ func itemResponse(core *core.Core, item model.Model, status int) (*Response, err
 	return &Response{status, item}, nil
 }
 
-func handleList(core *core.Core, r *http.Request, m model.Model) (*Response, error) {
+const defaultListLimit = 25
+
+func handleList(core *core.Core, r *http.Request, m model.Model, listPtr interface{}) (resp *Response, err error) {
+	listValue := reflect.ValueOf(listPtr).Elem()
+
 	slice := reflect.MakeSlice(reflect.SliceOf(reflect.TypeOf(m)), 0, 0)
-	itemsPtr := reflect.New(slice.Type())
-	items := itemsPtr.Elem()
+	items := listValue.FieldByName("Items")
 	items.Set(slice)
 
 	qstr := r.URL.Query()
@@ -226,12 +229,36 @@ func handleList(core *core.Core, r *http.Request, m model.Model) (*Response, err
 	}
 	andQuery := strings.Join(andQueries, " AND ")
 
-	scope := core.DB
+	baseScope := core.DB
 	if andQuery != "" {
-		scope = scope.Where(andQuery)
+		baseScope = baseScope.Where(andQuery)
 	}
 
-	if err := scope.Find(itemsPtr.Interface()); err != nil {
+	// Pagination
+	pagination := model.Pagination{}
+
+	if err := baseScope.Model(m).Count(&pagination.Total).Error; err != nil {
+		return nil, err
+	}
+	offsetParam := qstr.Get("offset")
+	limitParam := qstr.Get("limit")
+
+	pagination.Limit = defaultListLimit
+	if limitParam != "" {
+		if pagination.Limit, err = strconv.ParseInt(limitParam, 10, 64); err != nil {
+			return nil, err
+		}
+	}
+
+	if offsetParam != "" {
+		if pagination.Offset, err = strconv.ParseInt(offsetParam, 10, 64); err != nil {
+			return nil, err
+		}
+	}
+
+	scope := baseScope.Limit(pagination.Limit).Offset(pagination.Offset)
+
+	if err := scope.Find(items.Addr().Interface()); err != nil {
 		return nil, err
 	}
 
@@ -239,8 +266,11 @@ func handleList(core *core.Core, r *http.Request, m model.Model) (*Response, err
 		core.SetResourceActionStatus(items.Index(i).Interface().(model.Model))
 	}
 
+	// Yeah... kinda nasty
+	listValue.FieldByName("Pagination").Set(reflect.ValueOf(pagination))
+
 	return &Response{
 		http.StatusOK,
-		items.Interface(),
+		listPtr,
 	}, nil
 }

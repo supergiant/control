@@ -8,7 +8,7 @@ import (
 )
 
 func ListEntrypoints(core *core.Core, user *model.User, r *http.Request) (*Response, error) {
-	return handleList(core, r, new(model.Entrypoint))
+	return handleList(core, r, new(model.Entrypoint), new(model.EntrypointList))
 }
 
 func CreateEntrypoint(core *core.Core, user *model.User, r *http.Request) (*Response, error) {

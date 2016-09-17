@@ -1,5 +1,10 @@
 package model
 
+type KubeList struct {
+	Pagination
+	Items []*Kube `json:"items"`
+}
+
 // Kube objects contains global info about kubernetes ckusters.
 type Kube struct {
 	BaseModel

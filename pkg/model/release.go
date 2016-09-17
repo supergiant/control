@@ -2,6 +2,11 @@ package model
 
 import "regexp"
 
+type ReleaseList struct {
+	Pagination
+	Items []*Release `json:"items"`
+}
+
 // NOTE the word Blueprint is used for Volumes and Containers, since they are
 // both "definitions" that create "instances" of the real thing
 type Release struct {

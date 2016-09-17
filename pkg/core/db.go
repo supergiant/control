@@ -80,6 +80,20 @@ func (db *DB) Where(query interface{}, args ...interface{}) *DB {
 	}
 }
 
+func (db *DB) Limit(limit interface{}) *DB {
+	return &DB{
+		db.core,
+		db.DB.Limit(limit),
+	}
+}
+
+func (db *DB) Offset(offset interface{}) *DB {
+	return &DB{
+		db.core,
+		db.DB.Offset(offset),
+	}
+}
+
 ////////////////////////////////////////////////////////////////////////////////
 // Private methods                                                            //
 ////////////////////////////////////////////////////////////////////////////////

@@ -8,7 +8,7 @@ import (
 )
 
 func ListInstances(core *core.Core, user *model.User, r *http.Request) (*Response, error) {
-	return handleList(core, r, new(model.Instance))
+	return handleList(core, r, new(model.Instance), new(model.InstanceList))
 }
 
 func GetInstance(core *core.Core, user *model.User, r *http.Request) (*Response, error) {

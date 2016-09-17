@@ -1,5 +1,10 @@
 package model
 
+type InstanceList struct {
+	Pagination
+	Items []*Instance `json:"items"`
+}
+
 type Instance struct {
 	BaseModel
 

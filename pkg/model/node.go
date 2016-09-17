@@ -2,6 +2,11 @@ package model
 
 import "time"
 
+type NodeList struct {
+	Pagination
+	Items []*Node `json:"items"`
+}
+
 type Node struct {
 	BaseModel
 

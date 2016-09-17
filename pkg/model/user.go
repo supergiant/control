@@ -10,6 +10,11 @@ const (
 	UserRoleUser  = "user"
 )
 
+type UserList struct {
+	Pagination
+	Items []*User `json:"items"`
+}
+
 type User struct {
 	BaseModel
 

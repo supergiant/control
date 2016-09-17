@@ -8,7 +8,7 @@ import (
 )
 
 func ListKubes(core *core.Core, user *model.User, r *http.Request) (*Response, error) {
-	return handleList(core, r, new(model.Kube))
+	return handleList(core, r, new(model.Kube), new(model.KubeList))
 }
 
 func CreateKube(core *core.Core, user *model.User, r *http.Request) (*Response, error) {

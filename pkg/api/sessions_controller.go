@@ -55,9 +55,18 @@ func ListSessions(core *core.Core, user *model.User, r *http.Request) (*Response
 			}
 		}
 	}
+
+	list := &model.SessionList{
+		Items: sessions,
+		Pagination: model.Pagination{
+			Limit: int64(len(sessions)),
+			Total: int64(len(sessions)),
+		},
+	}
+
 	return &Response{
 		http.StatusOK,
-		sessions,
+		list,
 	}, nil
 }
 
