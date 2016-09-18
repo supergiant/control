@@ -3,7 +3,6 @@ package client
 import (
 	"fmt"
 	"reflect"
-	"strings"
 
 	"github.com/supergiant/supergiant/pkg/model"
 )
@@ -13,8 +12,8 @@ type Collection struct {
 	basePath string
 }
 
-func (c *Collection) List(list interface{}) error {
-	return c.client.request("GET", c.basePath, nil, list, nil)
+func (c *Collection) List(list model.List) error {
+	return c.client.request("GET", c.basePath, nil, list, list.QueryValues())
 }
 
 func (c *Collection) Get(id interface{}, item model.Model) error {
@@ -22,7 +21,7 @@ func (c *Collection) Get(id interface{}, item model.Model) error {
 }
 
 func (c *Collection) GetWithIncludes(id *int64, item model.Model, includes []string) error {
-	queryValues := map[string]string{"includes": strings.Join(includes, " ")}
+	queryValues := map[string][]string{"include": includes}
 	return c.client.request("GET", c.memberPath(id), nil, item, queryValues)
 }
 

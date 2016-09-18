@@ -1,7 +1,7 @@
 package model
 
 type KubeList struct {
-	Pagination
+	BaseList
 	Items []*Kube `json:"items"`
 }
 

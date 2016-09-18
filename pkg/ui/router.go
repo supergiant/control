@@ -235,7 +235,7 @@ func uiRedirect(w http.ResponseWriter, r *http.Request) {
 
 func Root(sg *client.Client, w http.ResponseWriter, r *http.Request) error {
 	cloudAccounts := new(model.CloudAccountList)
-	if err := sg.CloudAccounts.List(&cloudAccounts); err != nil {
+	if err := sg.CloudAccounts.List(cloudAccounts); err != nil {
 		return err
 	}
 	if cloudAccounts.Total == 0 {
@@ -244,7 +244,7 @@ func Root(sg *client.Client, w http.ResponseWriter, r *http.Request) error {
 	}
 
 	kubes := new(model.KubeList)
-	if err := sg.Kubes.List(&kubes); err != nil {
+	if err := sg.Kubes.List(kubes); err != nil {
 		return err
 	}
 	if kubes.Total == 0 {

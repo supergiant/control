@@ -18,9 +18,3 @@ type ResourceMetrics struct {
 	RAMUsage int64 `json:"ram_usage" sg:"readonly"`
 	RAMLimit int64 `json:"ram_limit" sg:"readonly"`
 }
-
-type Pagination struct {
-	Offset int64 `json:"offset"`
-	Limit  int64 `json:"limit"`
-	Total  int64 `json:"total"`
-}

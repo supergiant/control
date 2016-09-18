@@ -3,7 +3,7 @@ package model
 import "time"
 
 type NodeList struct {
-	Pagination
+	BaseList
 	Items []*Node `json:"items"`
 }
 

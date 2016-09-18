@@ -1,7 +1,7 @@
 package model
 
 type AppList struct {
-	Pagination
+	BaseList
 	Items []*App `json:"items"`
 }
 

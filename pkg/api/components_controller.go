@@ -43,7 +43,7 @@ func GetComponent(core *core.Core, user *model.User, r *http.Request) (*Response
 	if err != nil {
 		return nil, err
 	}
-	if err := core.Components.GetWithIncludes(id, item, parseIncludes(r)); err != nil {
+	if err := core.Components.GetWithIncludes(id, item, r.URL.Query()["include"]); err != nil {
 		return nil, err
 	}
 	return itemResponse(core, item, http.StatusOK)

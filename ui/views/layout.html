@@ -223,6 +223,44 @@
         }
 
 
+        #filters {
+          position: relative;
+          z-index: 9999;
+          top: -28px;
+          left: 150px;
+          display: inline-block;
+        }
+
+        .search-filter {
+          background: #ddd;
+          font-size: 12px;
+          padding: 3px 7px 4px 7px;;
+          margin: 4px;
+          font-weight: 500;
+          border: 1px solid cornflowerblue;
+          border-radius: 4px;
+        }
+
+        .search-filter .glyphicon {
+          color: #aaa;
+          top: 2px;
+          padding-left: 3px;
+          left: 2px;
+          cursor: pointer;
+        }
+
+        .search-filter .glyphicon:hover {
+          color: #777;
+        }
+
+        #searchicon {
+          float: right;
+          top: -24px;
+          left: -14px;
+          color: #bbb;
+          z-index: 9999;
+        }
+
       </style>
 
       <script type="text/javascript">
@@ -292,16 +330,126 @@
             currentPage = parseInt(pmatch[1]);
           }
 
-
           var limit = 25,
               offset = (currentPage - 1) * limit;
+
+
+
+          var filterBits = window.location.search.match(/filter\.[^=]+=[^&]+/g);
+
+          var url = apiListPath + "?limit=" + limit + "&offset=" + offset;
+          if (filterBits) {
+            url += "&" + filterBits.join('&');
+          }
+
+
+
+          var searchBar = $('input#searchbar'),
+              searchIcon = $('#searchicon'),
+              filterDiv = $('div#filters');
+
+
+          searchBar.focusin(function() {
+            searchIcon.css("color", "black");
+          });
+          searchBar.focusout(function() {
+            searchIcon.css("color", "#bbb");
+          });
+
+
+
+          // Render the doo-dads
+
+          function renderFilterPill(key, val) {
+            var filterPill = $('<span class="search-filter"><strong>' + key + ':</strong> ' + val + '<span class="glyphicon glyphicon-remove"></span></span>');
+            filterDiv.append(filterPill);
+          }
+
+          function padSearchBar() {
+            searchBar.css("padding-left", filterDiv.width() + 10)
+          }
+
+          if (filterBits) {
+
+            searchBar.prop("placeholder", "");
+
+            filterBits.forEach(function(filterBit) {
+              var filterMatch = filterBit.match(/filter\.([^=]+)=([^&]+)/);
+              renderFilterPill(filterMatch[1], filterMatch[2])
+            });
+
+            padSearchBar();
+          }
+
+
+
+          // Adding filters
+          //--------------------------------------------------------------------
+          searchBar.keyup(function(event) {
+
+            // enter key
+            if (event.keyCode != 13) {
+              return false;
+            }
+
+            var input = searchBar.val();
+
+            if (input.length) {
+
+              var keyVal = input.split(':');
+
+              if (keyVal.length == 1) {
+                keyVal = ["name", keyVal[0]];
+              } else if (keyVal.length != 2) {
+                return false;
+              }
+
+              var joiner;
+              if (window.location.search.length) {
+                joiner = "&";
+              } else {
+                joiner = "?";
+              }
+
+              // Just for the satisfaction
+              searchBar.val("");
+              searchBar.prop("placeholder", "");
+              renderFilterPill(keyVal[0], keyVal[1]);
+              padSearchBar();
+
+              window.location.search += joiner + "filter." + keyVal[0] + "=" + keyVal[1];
+
+            }
+
+          });
+
+
+          // Removing filters
+          //--------------------------------------------------------------------
+          $('span.search-filter .glyphicon-remove').click(function() {
+            // Just for the satisfaction, remove the pill
+            var pill = $(this).parent();
+            pill.remove();
+            padSearchBar();
+            // Remove filter param, reload page
+            var keyVal = pill.text().split(': ');
+
+            var newQ = window.location.search.replace(RegExp("[\?&]filter." + keyVal[0] + "=" + keyVal[1]), "");
+
+            // if (newQ.startsWith("&")) {
+            //   newQ = newQ.substring(1);
+            // }
+
+            window.location.search = newQ;
+          });
+
 
 
 
           // func
           function renderList() {
             $.ajax({
-              url: apiListPath + "?limit=" + limit + "&offset=" + offset,
+              url: url,
               beforeSend: function(xhr){
                 xhr.setRequestHeader('Authorization', 'SGAPI session="' + getCookie('supergiant_session') + '"');
               },
@@ -411,7 +559,7 @@
 
 
 
-                // Pagination
+                // BaseList
 
 
                 var totalPages = Math.ceil(list.total / list.limit);

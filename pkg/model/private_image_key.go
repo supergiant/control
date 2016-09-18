@@ -6,7 +6,7 @@ import (
 )
 
 type PrivateImageKeyList struct {
-	Pagination
+	BaseList
 	Items []*PrivateImageKey `json:"items"`
 }
 

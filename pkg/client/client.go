@@ -77,7 +77,7 @@ func New(url string, authType string, authToken string, certFile string) *Client
 	return client
 }
 
-func (c *Client) request(method string, path string, in interface{}, out interface{}, queryValues map[string]string) error {
+func (c *Client) request(method string, path string, in interface{}, out interface{}, queryValues map[string][]string) error {
 	body := new(bytes.Buffer)
 	if in != nil {
 		if err := json.NewEncoder(body).Encode(in); err != nil {
@@ -91,8 +91,10 @@ func (c *Client) request(method string, path string, in interface{}, out interfa
 	}
 
 	q := requestURL.Query()
-	for key, value := range queryValues {
-		q.Set(key, value)
+	for key, values := range queryValues {
+		for _, value := range values {
+			q.Add(key, value)
+		}
 	}
 	requestURL.RawQuery = q.Encode()
 

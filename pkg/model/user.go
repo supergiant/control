@@ -11,7 +11,7 @@ const (
 )
 
 type UserList struct {
-	Pagination
+	BaseList
 	Items []*User `json:"items"`
 }
 

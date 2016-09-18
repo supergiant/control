@@ -1,7 +1,7 @@
 package model
 
 type ComponentList struct {
-	Pagination
+	BaseList
 	Items []*Component `json:"items"`
 }
 

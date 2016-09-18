@@ -3,7 +3,7 @@ package model
 import "regexp"
 
 type ReleaseList struct {
-	Pagination
+	BaseList
 	Items []*Release `json:"items"`
 }
 

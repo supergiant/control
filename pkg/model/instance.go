@@ -1,7 +1,7 @@
 package model
 
 type InstanceList struct {
-	Pagination
+	BaseList
 	Items []*Instance `json:"items"`
 }
 

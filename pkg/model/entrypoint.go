@@ -1,7 +1,7 @@
 package model
 
 type EntrypointList struct {
-	Pagination
+	BaseList
 	Items []*Entrypoint `json:"items"`
 }
 

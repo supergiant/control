@@ -3,7 +3,7 @@ package model
 import "time"
 
 type SessionList struct {
-	Pagination
+	BaseList
 	Items []*Session `json:"items"`
 }
 

@@ -40,7 +40,7 @@ func ListUsers(core *core.Core, user *model.User, r *http.Request) (*Response, e
 
 	list := &model.UserList{
 		Items: []*model.User{user},
-		Pagination: model.Pagination{
+		BaseList: model.BaseList{
 			Limit: 1,
 			Total: 1,
 		},

@@ -53,31 +53,10 @@ func (m *BaseModel) SetActionStatus(status *ActionStatus) {
 
 //------------------------------------------------------------------------------------- helpers below
 
-type IndexedModelField struct {
-	JSONName string
-	Kind     reflect.Kind
-}
-
-func IndexedFields(m Model) (fields []*IndexedModelField) {
+func RootFieldJSONNames(m Model) (fields []string) {
 	mt := reflect.TypeOf(m).Elem()
 	for i := 0; i < mt.NumField(); i++ {
-		field := mt.Field(i)
-
-		dbTag := field.Tag.Get("gorm")
-		if !strings.Contains(dbTag, "index") {
-			continue
-		}
-
-		indexedField := new(IndexedModelField)
-		indexedField.JSONName = strings.Split(field.Tag.Get("json"), ",")[0]
-
-		if indexedField.Kind == reflect.Ptr {
-			indexedField.Kind = field.Type.Elem().Kind()
-		} else {
-			indexedField.Kind = field.Type.Kind()
-		}
-
-		fields = append(fields, indexedField)
+		fields = append(fields, strings.Split(mt.Field(i).Tag.Get("json"), ",")[0])
 	}
 	return
 }

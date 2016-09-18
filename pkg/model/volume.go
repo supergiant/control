@@ -1,7 +1,7 @@
 package model
 
 type VolumeList struct {
-	Pagination
+	BaseList
 	Items []*Volume `json:"items"`
 }
 
