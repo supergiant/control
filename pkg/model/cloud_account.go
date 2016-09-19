@@ -1,10 +1,5 @@
 package model
 
-type CloudAccountList struct {
-	BaseList
-	Items []*CloudAccount `json:"items"`
-}
-
 type CloudAccount struct {
 	BaseModel
 

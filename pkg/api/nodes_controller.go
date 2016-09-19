@@ -8,7 +8,7 @@ import (
 )
 
 func ListNodes(core *core.Core, user *model.User, r *http.Request) (*Response, error) {
-	return handleList(core, r, new(model.Node), new(model.NodeList))
+	return handleList(core, r, new(model.Node))
 }
 
 func CreateNode(core *core.Core, user *model.User, r *http.Request) (*Response, error) {

@@ -8,7 +8,7 @@ import (
 )
 
 func ListReleases(core *core.Core, user *model.User, r *http.Request) (*Response, error) {
-	return handleList(core, r, new(model.Release), new(model.ReleaseList))
+	return handleList(core, r, new(model.Release))
 }
 
 func CreateRelease(core *core.Core, user *model.User, r *http.Request) (*Response, error) {

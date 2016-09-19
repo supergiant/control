@@ -10,7 +10,6 @@ import (
 
 func newTestServer() *server.Server {
 	c := new(core.Core)
-	c.LogLevel = "fatal"
 	c.PublishHost = "localhost"
 	c.HTTPPort = "9999"
 	c.SQLiteFile = "../../../tmp/test.db"

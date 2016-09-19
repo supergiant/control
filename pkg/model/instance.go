@@ -1,10 +1,5 @@
 package model
 
-type InstanceList struct {
-	BaseList
-	Items []*Instance `json:"items"`
-}
-
 type Instance struct {
 	BaseModel
 

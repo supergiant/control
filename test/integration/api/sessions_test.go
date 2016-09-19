@@ -43,23 +43,23 @@ func TestSessionsList(t *testing.T) {
 
 		Convey("When the user Lists Sessions", func() {
 			sg := srv.Core.NewAPIClient("token", user.APIToken)
-			sessions := new(model.SessionList)
-			err := sg.Sessions.List(sessions)
+			var sessions []*model.Session
+			err := sg.Sessions.List(&sessions)
 
 			Convey("They should see only their own Session", func() {
 				So(err, ShouldBeNil)
-				So(*sessions.Items[0].UserID, ShouldEqual, *user.ID)
+				So(*sessions[0].UserID, ShouldEqual, *user.ID)
 			})
 		})
 
 		Convey("When the admin Lists Sessions", func() {
 			sg := srv.Core.NewAPIClient("token", admin.APIToken)
-			sessions := new(model.SessionList)
-			err := sg.Sessions.List(sessions)
+			var sessions []*model.Session
+			err := sg.Sessions.List(&sessions)
 
 			Convey("They should see all Sessions", func() {
 				So(err, ShouldBeNil)
-				So(sessions.Total, ShouldEqual, 2)
+				So(len(sessions), ShouldEqual, 2)
 			})
 		})
 	})
@@ -118,8 +118,8 @@ func TestSessionsCreate(t *testing.T) {
 				So(err, ShouldBeNil)
 
 				userSG := srv.Core.NewAPIClient("session", session.ID)
-				apps := new(model.AppList)
-				authErr := userSG.Apps.List(apps)
+				apps := make([]*model.App, 0)
+				authErr := userSG.Apps.List(&apps)
 				So(authErr, ShouldBeNil)
 			})
 		})
@@ -176,7 +176,7 @@ func TestSessionsGet(t *testing.T) {
 }
 
 func TestSessionsDelete(t *testing.T) {
-	uselessList := new(model.AppList)
+	uselessList := make([]*model.App, 0)
 
 	Convey("Given a user and an admin, both logged-in", t, func() {
 		srv := newTestServer()
@@ -203,7 +203,7 @@ func TestSessionsDelete(t *testing.T) {
 			Convey("The Session should be deleted, and no longer allow login", func() {
 				So(err, ShouldBeNil)
 
-				authErr := srv.Core.NewAPIClient("session", userSession.ID).Apps.List(uselessList)
+				authErr := srv.Core.NewAPIClient("session", userSession.ID).Apps.List(&uselessList)
 				So(authErr.(*model.Error).Status, ShouldEqual, 401)
 			})
 		})
@@ -215,7 +215,7 @@ func TestSessionsDelete(t *testing.T) {
 			Convey("The Session should be deleted, and no longer allow login", func() {
 				So(err, ShouldBeNil)
 
-				authErr := srv.Core.NewAPIClient("session", userSession.ID).Apps.List(uselessList)
+				authErr := srv.Core.NewAPIClient("session", userSession.ID).Apps.List(&uselessList)
 				So(authErr.(*model.Error).Status, ShouldEqual, 401)
 			})
 		})
@@ -227,7 +227,7 @@ func TestSessionsDelete(t *testing.T) {
 			Convey("The Session should be deleted, and no longer allow login", func() {
 				So(err, ShouldBeNil)
 
-				authErr := srv.Core.NewAPIClient("session", adminSession.ID).Apps.List(uselessList)
+				authErr := srv.Core.NewAPIClient("session", adminSession.ID).Apps.List(&uselessList)
 				So(authErr.(*model.Error).Status, ShouldEqual, 401)
 			})
 		})

@@ -5,11 +5,6 @@ import (
 	"fmt"
 )
 
-type PrivateImageKeyList struct {
-	BaseList
-	Items []*PrivateImageKey `json:"items"`
-}
-
 type PrivateImageKey struct {
 	BaseModel
 

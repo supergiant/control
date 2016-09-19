@@ -1,10 +1,5 @@
 package model
 
-type VolumeList struct {
-	BaseList
-	Items []*Volume `json:"items"`
-}
-
 type Volume struct {
 	BaseModel
 

@@ -186,6 +186,13 @@ func parseID(r *http.Request) (*int64, error) {
 	return &id64, nil
 }
 
+func parseIncludes(r *http.Request) (includes []string) {
+	if includesVal := r.URL.Query().Get("includes"); includesVal != "" {
+		includes = strings.Split(includesVal, " ")
+	}
+	return
+}
+
 func decodeBodyInto(r *http.Request, item model.Model) error {
 	if err := json.NewDecoder(r.Body).Decode(item); err != nil {
 		return &bodyDecodingError{err}
@@ -199,70 +206,32 @@ func itemResponse(core *core.Core, item model.Model, status int) (*Response, err
 	return &Response{status, item}, nil
 }
 
-const defaultListLimit = 25
-
-func handleList(core *core.Core, r *http.Request, m model.Model, listPtr interface{}) (resp *Response, err error) {
-	listValue := reflect.ValueOf(listPtr).Elem()
-
+func handleList(core *core.Core, r *http.Request, m model.Model) (*Response, error) {
 	slice := reflect.MakeSlice(reflect.SliceOf(reflect.TypeOf(m)), 0, 0)
-	items := listValue.FieldByName("Items")
+	itemsPtr := reflect.New(slice.Type())
+	items := itemsPtr.Elem()
 	items.Set(slice)
 
 	qstr := r.URL.Query()
 
 	var andQueries []string
-	for _, field := range model.RootFieldJSONNames(m) {
-
-		// ?filter.name=this&filter.name=that
-		filterValues := qstr["filter."+field]
-
-		var orQueries []string
-		for _, val := range filterValues {
-			orQueries = append(orQueries, fmt.Sprintf("%s = '%s'", field, val))
-		}
-
-		if len(orQueries) > 0 {
-			andQueries = append(andQueries, "("+strings.Join(orQueries, " OR ")+")")
+	for _, field := range model.IndexedFields(m) {
+		if val := qstr.Get(field.JSONName); val != "" {
+			if field.Kind == reflect.Int64 {
+				andQueries = append(andQueries, fmt.Sprintf("%s = %s", field.JSONName, val))
+			} else { // string
+				andQueries = append(andQueries, fmt.Sprintf("%s = '%s'", field.JSONName, val))
+			}
 		}
 	}
 	andQuery := strings.Join(andQueries, " AND ")
 
-	baseScope := core.DB
+	scope := core.DB
 	if andQuery != "" {
-		baseScope = baseScope.Where(andQuery)
+		scope = scope.Where(andQuery)
 	}
 
-	// BaseList
-	pagination := model.BaseList{}
-
-	if err := baseScope.Model(m).Count(&pagination.Total).Error; err != nil {
-		return nil, err
-	}
-	offsetParam := qstr.Get("offset")
-	limitParam := qstr.Get("limit")
-
-	pagination.Limit = defaultListLimit
-	if limitParam != "" {
-		if pagination.Limit, err = strconv.ParseInt(limitParam, 10, 64); err != nil {
-			return nil, err
-		}
-	}
-
-	if offsetParam != "" {
-		if pagination.Offset, err = strconv.ParseInt(offsetParam, 10, 64); err != nil {
-			return nil, err
-		}
-	}
-
-	// TODO we may want to actually allow 0 limits here, and instead use pointers
-	// to int64, because limit 0 will still return total count.
-	scope := baseScope
-	if pagination.Limit != 0 {
-		scope = scope.Limit(pagination.Limit)
-	}
-	scope = scope.Offset(pagination.Offset)
-
-	if err := scope.Find(items.Addr().Interface()); err != nil {
+	if err := scope.Find(itemsPtr.Interface()); err != nil {
 		return nil, err
 	}
 
@@ -270,11 +239,8 @@ func handleList(core *core.Core, r *http.Request, m model.Model, listPtr interfa
 		core.SetResourceActionStatus(items.Index(i).Interface().(model.Model))
 	}
 
-	// Yeah... kinda nasty
-	listValue.FieldByName("BaseList").Set(reflect.ValueOf(pagination))
-
 	return &Response{
 		http.StatusOK,
-		listPtr,
+		items.Interface(),
 	}, nil
 }

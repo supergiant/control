@@ -223,44 +223,6 @@
         }
 
 
-        #filters {
-          position: relative;
-          z-index: 9999;
-          top: -28px;
-          left: 150px;
-          display: inline-block;
-        }
-
-        .search-filter {
-          background: #ddd;
-          font-size: 12px;
-          padding: 3px 7px 4px 7px;;
-          margin: 4px;
-          font-weight: 500;
-          border: 1px solid cornflowerblue;
-          border-radius: 4px;
-        }
-
-        .search-filter .glyphicon {
-          color: #aaa;
-          top: 2px;
-          padding-left: 3px;
-          left: 2px;
-          cursor: pointer;
-        }
-
-        .search-filter .glyphicon:hover {
-          color: #777;
-        }
-
-        #searchicon {
-          float: right;
-          top: -24px;
-          left: -14px;
-          color: #bbb;
-          z-index: 9999;
-        }
-
       </style>
 
       <script type="text/javascript">
@@ -290,8 +252,7 @@
               fieldsJSON = "{{ .fieldsJSON }}",
               table = $('table#item_list'),
               thead = $('<thead>'),
-              tbody = $('<tbody>'),
-              paginator = $('ul.pagination');
+              tbody = $('<tbody>');
 
 
           var fields;
@@ -323,139 +284,15 @@
           table.append(tbody);
 
 
-
-          var currentPage = 1;
-          var pmatch = window.location.search.match(/p=(\d+)/);
-          if (pmatch) {
-            currentPage = parseInt(pmatch[1]);
-          }
-
-          var limit = 25,
-              offset = (currentPage - 1) * limit;
-
-
-
-          var filterBits = window.location.search.match(/filter\.[^=]+=[^&]+/g);
-
-          var url = apiListPath + "?limit=" + limit + "&offset=" + offset;
-          if (filterBits) {
-            url += "&" + filterBits.join('&');
-          }
-
-
-
-          var searchBar = $('input#searchbar'),
-              searchIcon = $('#searchicon'),
-              filterDiv = $('div#filters');
-
-
-          searchBar.focusin(function() {
-            searchIcon.css("color", "black");
-          });
-          searchBar.focusout(function() {
-            searchIcon.css("color", "#bbb");
-          });
-
-
-
-          // Render the doo-dads
-
-          function renderFilterPill(key, val) {
-            var filterPill = $('<span class="search-filter"><strong>' + key + ':</strong> ' + val + '<span class="glyphicon glyphicon-remove"></span></span>');
-            filterDiv.append(filterPill);
-          }
-
-          function padSearchBar() {
-            searchBar.css("padding-left", filterDiv.width() + 10)
-          }
-
-          if (filterBits) {
-
-            searchBar.prop("placeholder", "");
-
-            filterBits.forEach(function(filterBit) {
-              var filterMatch = filterBit.match(/filter\.([^=]+)=([^&]+)/);
-              renderFilterPill(filterMatch[1], filterMatch[2])
-            });
-
-            padSearchBar();
-          }
-
-
-
-          // Adding filters
-          //--------------------------------------------------------------------
-          searchBar.keyup(function(event) {
-
-            // enter key
-            if (event.keyCode != 13) {
-              return false;
-            }
-
-            var input = searchBar.val();
-
-            if (input.length) {
-
-              var keyVal = input.split(':');
-
-              if (keyVal.length == 1) {
-                keyVal = ["name", keyVal[0]];
-              } else if (keyVal.length != 2) {
-                return false;
-              }
-
-              var joiner;
-              if (window.location.search.length) {
-                joiner = "&";
-              } else {
-                joiner = "?";
-              }
-
-              // Just for the satisfaction
-              searchBar.val("");
-              searchBar.prop("placeholder", "");
-              renderFilterPill(keyVal[0], keyVal[1]);
-              padSearchBar();
-
-              window.location.search += joiner + "filter." + keyVal[0] + "=" + keyVal[1];
-
-            }
-
-          });
-
-
-          // Removing filters
-          //--------------------------------------------------------------------
-          $('span.search-filter .glyphicon-remove').click(function() {
-            // Just for the satisfaction, remove the pill
-            var pill = $(this).parent();
-            pill.remove();
-            padSearchBar();
-            // Remove filter param, reload page
-            var keyVal = pill.text().split(': ');
-
-            var newQ = window.location.search.replace(RegExp("[\?&]filter." + keyVal[0] + "=" + keyVal[1]), "");
-
-            // if (newQ.startsWith("&")) {
-            //   newQ = newQ.substring(1);
-            // }
-
-            window.location.search = newQ;
-          });
-
-
-
-
           // func
           function renderList() {
             $.ajax({
-              url: url,
+              url: apiListPath,
               beforeSend: function(xhr){
                 xhr.setRequestHeader('Authorization', 'SGAPI session="' + getCookie('supergiant_session') + '"');
               },
               success: function(data) {
-                var list = JSON.parse(data);
-                var items = list.items;
+                items = JSON.parse(data);
 
 
 
@@ -468,7 +305,7 @@
 
                 $.each(items, function(i, item) {
 
-                  var previousTr = $('tr#item_' + item.id);
+                  previousTr = $('tr#item_' + item.id);
 
                   // Gather field vals
                   var fieldVals = [];
@@ -553,95 +390,7 @@
                   }
 
                 });
-                //---------------- end adding items
 
-
-
-
-
-                // BaseList
-
-
-                var totalPages = Math.ceil(list.total / list.limit);
-
-
-
-                if (totalPages > 1) {
-
-                  var newPaginator = paginator.clone();
-
-
-                  var renderPageLink = function(p) {
-                    if (p <= totalPages) {
-                      newPaginator.append($('<li' + (currentPage == p ? ' class="active"' : '') + '><a href="{{ .uiBasePath }}?p=' + p + '">' + p + '</a></li>'));
-                    }
-                  };
-                  var renderSeparator = function() {
-                    newPaginator.append($('<li class="disabled"><a href="#">...</a></li>'));
-                  };
-
-
-                  if (totalPages > 1) {
-                    if (currentPage > 1) {
-                      newPaginator.append($('<li><a href="{{ .uiBasePath }}?p=' + (currentPage - 1) + '" aria-label="Previous"><span aria-hidden="true">&laquo;</span></a></li>'));
-                    } else {
-                      newPaginator.append($('<li class="disabled"><a href="#" aria-label="Previous"><span aria-hidden="true">&laquo;</span></a></li>'));
-                    }
-                  }
-
-
-                  if (totalPages <= 6) {
-
-                    // Render all pages
-                    for (var p = 1; p <= totalPages; p++) {
-                      renderPageLink(p);
-                    }
-
-                  } else if (currentPage <= 3) { // and >= 7 total pages
-
-                    for (var p = 1; p <= (currentPage + 1); p++) {
-                      renderPageLink(p);
-                    }
-                    renderSeparator();
-                    renderPageLink(totalPages);
-
-                  } else if ((totalPages - currentPage) <= 3) { // and >= 7 total pages
-
-                    renderPageLink(1);
-                    renderSeparator();
-                    for (var p = currentPage - 1; p <= totalPages; p++) {
-                      renderPageLink(p);
-                    }
-
-                  } else {
-
-                    renderPageLink(1);
-                    renderSeparator();
-                    renderPageLink(currentPage - 1);
-                    renderPageLink(currentPage);
-                    renderPageLink(currentPage + 1);
-                    renderSeparator();
-                    renderPageLink(totalPages);
-
-                  }
-
-
-                  if (totalPages > 1) {
-                    if (currentPage < totalPages) {
-                      newPaginator.append($('<li><a href="{{ .uiBasePath }}?p=' + (currentPage + 1) + '" aria-label="Next"><span aria-hidden="true">&raquo;</span></a></li>'));
-                    } else {
-                      newPaginator.append($('<li class="disabled"><a href="#" aria-label="Next"><span aria-hidden="true">&raquo;</span></a></li>'));
-                    }
-                  }
-
-
-                  paginator.replaceWith(newPaginator);
-
-                } else {
-
-                  paginator.empty();
-
-                }
 
 
               },

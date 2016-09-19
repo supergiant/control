@@ -234,20 +234,20 @@ func uiRedirect(w http.ResponseWriter, r *http.Request) {
 //------------------------------------------------------------------------------
 
 func Root(sg *client.Client, w http.ResponseWriter, r *http.Request) error {
-	cloudAccounts := new(model.CloudAccountList)
-	if err := sg.CloudAccounts.List(cloudAccounts); err != nil {
+	var cloudAccounts []*model.CloudAccount
+	if err := sg.CloudAccounts.List(&cloudAccounts); err != nil {
 		return err
 	}
-	if cloudAccounts.Total == 0 {
+	if len(cloudAccounts) == 0 {
 		http.Redirect(w, r, "/ui/cloud_accounts/new", http.StatusFound)
 		return nil
 	}
 
-	kubes := new(model.KubeList)
-	if err := sg.Kubes.List(kubes); err != nil {
+	var kubes []*model.Kube
+	if err := sg.Kubes.List(&kubes); err != nil {
 		return err
 	}
-	if kubes.Total == 0 {
+	if len(kubes) == 0 {
 		http.Redirect(w, r, "/ui/kubes/new", http.StatusFound)
 		return nil
 	}

@@ -1,10 +1,5 @@
 package model
 
-type ComponentList struct {
-	BaseList
-	Items []*Component `json:"items"`
-}
-
 type Component struct {
 	BaseModel
 

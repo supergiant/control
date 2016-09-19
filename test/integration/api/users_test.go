@@ -19,23 +19,23 @@ func TestUsersList(t *testing.T) {
 
 		Convey("When the user Lists Users", func() {
 			sg := srv.Core.NewAPIClient("token", user.APIToken)
-			users := new(model.UserList)
-			err := sg.Users.List(users)
+			var users []*model.User
+			err := sg.Users.List(&users)
 
 			Convey("They should see only themself", func() {
 				So(err, ShouldBeNil)
-				So(*users.Items[0].ID, ShouldEqual, *user.ID)
+				So(*users[0].ID, ShouldEqual, *user.ID)
 			})
 		})
 
 		Convey("When the admin Lists Users", func() {
 			sg := srv.Core.NewAPIClient("token", admin.APIToken)
-			users := new(model.UserList)
-			err := sg.Users.List(users)
+			var users []*model.User
+			err := sg.Users.List(&users)
 
 			Convey("They should see everyone", func() {
 				So(err, ShouldBeNil)
-				So(users.Total, ShouldEqual, 2)
+				So(len(users), ShouldEqual, 2)
 			})
 		})
 	})

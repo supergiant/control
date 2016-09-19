@@ -35,21 +35,13 @@ func ensureSameUser(id *int64, user *model.User) error {
 func ListUsers(core *core.Core, user *model.User, r *http.Request) (*Response, error) {
 	// Admin can see everyone
 	if user.Role == model.UserRoleAdmin {
-		return handleList(core, r, new(model.User), new(model.UserList))
-	}
-
-	list := &model.UserList{
-		Items: []*model.User{user},
-		BaseList: model.BaseList{
-			Limit: 1,
-			Total: 1,
-		},
+		return handleList(core, r, new(model.User))
 	}
 
 	// Only show User themself if not admin
 	return &Response{
 		http.StatusOK,
-		list,
+		[]*model.User{user},
 	}, nil
 }
 

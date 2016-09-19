@@ -10,11 +10,6 @@ const (
 	UserRoleUser  = "user"
 )
 
-type UserList struct {
-	BaseList
-	Items []*User `json:"items"`
-}
-
 type User struct {
 	BaseModel
 
