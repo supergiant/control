@@ -42,8 +42,6 @@ func (c *Kubes) Create(m *model.Kube) error {
 		return err
 	}
 
-	// TODO need a validation to make sure CloudAccount matches the provided config
-
 	provision := &Action{
 		Status: &model.ActionStatus{
 			Description: "provisioning",

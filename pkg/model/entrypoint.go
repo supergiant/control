@@ -1,10 +1,5 @@
 package model
 
-type EntrypointList struct {
-	BaseList
-	Items []*Entrypoint `json:"items"`
-}
-
 type Entrypoint struct {
 	BaseModel
 

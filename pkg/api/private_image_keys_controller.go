@@ -8,7 +8,7 @@ import (
 )
 
 func ListPrivateImageKeys(core *core.Core, user *model.User, r *http.Request) (*Response, error) {
-	return handleList(core, r, new(model.PrivateImageKey), new(model.PrivateImageKeyList))
+	return handleList(core, r, new(model.PrivateImageKey))
 }
 
 func CreatePrivateImageKey(core *core.Core, user *model.User, r *http.Request) (*Response, error) {

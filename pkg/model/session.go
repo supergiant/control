@@ -2,11 +2,6 @@ package model
 
 import "time"
 
-type SessionList struct {
-	BaseList
-	Items []*Session `json:"items"`
-}
-
 type Session struct {
 	ID        string    `json:"id"`
 	UserID    *int64    `json:"user_id"`

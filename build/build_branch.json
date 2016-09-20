@@ -2,6 +2,7 @@
   "variables": {
     "aws_access_key": "{{env `AWS_ACCESS_KEY_ID`}}",
     "aws_secret_key": "{{env `AWS_SECRET_ACCESS_KEY`}}",
+    "digitalocean_token": "{{env `DIGITALOCEAN_TOKEN`}}",
     "version": "{{env `TRAVIS_BRANCH`}}"
   },
   "builders": [{
@@ -12,21 +13,30 @@
     "source_ami": "ami-2d39803a",
     "instance_type": "t2.micro",
     "ssh_username": "ubuntu",
-    "ami_groups": "all",
     "force_deregister": true,
-    "ami_regions": [ "us-east-1", "us-west-2", "ap-northeast-1", "ap-southeast-1", "eu-central-1", "eu-west-1", "sa-east-1", "us-west-1", "ap-southeast-2" ],
+    "ami_regions": ["us-east-1"],
     "ami_name": "supergiant {{user `version`}}",
     "security_group_id": "sg-756a960f"
   }],
   "provisioners": [
     {
       "type": "file",
-      "source": "sgboot",
+      "source": "build/sgboot",
       "destination": "~/sgboot"
     },
     {
       "type": "file",
-      "source": "supergiant-server.conf",
+      "source": "generate_admin_user",
+      "destination": "~/generate_admin_user"
+    },
+    {
+      "type": "file",
+      "source": "dist/linux_amd64_supergiant",
+      "destination": "~/supergiant"
+    },
+    {
+      "type": "file",
+      "source": "build/supergiant-server.conf",
       "destination": "~/supergiant-server.conf"
     },
     {
@@ -38,17 +48,12 @@
     "wget -q https://www.postgresql.org/media/keys/ACCC4CF8.asc -O - | sudo apt-key add -",
     "sudo apt-get update",
     "sudo apt-get -y upgrade",
-    "sudo apt-get install -y git binutils bison gcc make postgresql postgresql-contrib",
-    "wget https://raw.githubusercontent.com/moovweb/gvm/master/binscripts/gvm-installer",
-    "chmod 755 gvm-installer",
-    "./gvm-installer ; true",
-    "source /home/ubuntu/.gvm/scripts/gvm",
-    "echo '[[ -s \"$HOME/.gvm/scripts/gvm\" ]] && source \"$HOME/.gvm/scripts/gvm\"' >> ~/.profile",
-    "gvm install go1.4",
-    "gvm use go1.4 export GOROOT_BOOTSTRAP=$GOROOT",
-    "gvm install go1.7.1",
-    "gvm use go1.7.1 --default",
-    "go get github.com/supergiant/supergiant",
+    "sudo apt-get install -y postgresql postgresql-contrib",
+    "sudo chmod 755 ~/supergiant",
+    "sudo mkdir /supergiant",
+    "sudo chmod 755 ~/generate_admin_user",
+    "sudo cp ~/generate_admin_user /supergiant/generate_admin_user",
+    "sudo cp ~/supergiant /supergiant/supergiant",
     "sudo cp ~/supergiant-server.conf /etc/init/supergiant-server.conf",
     "sudo cp ~/sgboot /etc/init.d/sgboot",
     "sudo chmod 755 /etc/init.d/sgboot",

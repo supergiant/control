@@ -22,6 +22,7 @@ func NewKube(sg *client.Client, w http.ResponseWriter, r *http.Request) error {
 			"name":             "",
 			"master_node_size": "1gb",
 			"node_sizes": []string{
+				"512mb",
 				"1gb",
 				"2gb",
 				"4gb",

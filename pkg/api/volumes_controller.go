@@ -8,7 +8,7 @@ import (
 )
 
 func ListVolumes(core *core.Core, user *model.User, r *http.Request) (*Response, error) {
-	return handleList(core, r, new(model.Volume), new(model.VolumeList))
+	return handleList(core, r, new(model.Volume))
 }
 
 func GetVolume(core *core.Core, user *model.User, r *http.Request) (*Response, error) {

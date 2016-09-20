@@ -8,7 +8,7 @@ import (
 )
 
 func ListApps(core *core.Core, user *model.User, r *http.Request) (*Response, error) {
-	return handleList(core, r, new(model.App), new(model.AppList))
+	return handleList(core, r, new(model.App))
 }
 
 func CreateApp(core *core.Core, user *model.User, r *http.Request) (*Response, error) {

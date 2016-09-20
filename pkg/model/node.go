@@ -2,11 +2,6 @@ package model
 
 import "time"
 
-type NodeList struct {
-	BaseList
-	Items []*Node `json:"items"`
-}
-
 type Node struct {
 	BaseModel
 
