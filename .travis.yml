@@ -24,15 +24,20 @@ install:
   - go get github.com/modocache/gover
   - go get golang.org/x/tools/cmd/cover
   - go get github.com/smartystreets/goconvey/convey
-  - travis_wait 30 ./travis_build.sh
+  - go get github.com/tcnksm/ghr
+  - go get github.com/mitchellh/gox
 
 script:
   - govendor test +local
+  - gox -output "dist/{{.OS}}_{{.Arch}}_{{.Dir}}"
+  - go build cmd/generate_admin_user/generate_admin_user.go
+  - travis_wait 30 build/travis_build.sh
 
 after_success:
   - go list -f "{{ if len .TestGoFiles }}\"go test -coverpkg $(go list ./pkg/... | tr '\n' ',') -coverprofile={{ .Dir }}/.coverprofile {{ .ImportPath }}\"{{ end }}" ./... | xargs -L 1 sh -c
   - gover
   - "$HOME/gopath/bin/goveralls -coverprofile=gover.coverprofile -service=travis-ci"
+  - build/ghr.sh
 
 
 notifications:
