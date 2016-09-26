@@ -3,3 +3,4 @@ TODO.md
 tmp/*
 !tmp/.gitkeep
 config/config.json
+.sass-cache
