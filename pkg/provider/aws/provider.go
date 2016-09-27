@@ -181,8 +181,8 @@ func (p *Provider) createKube(m *model.Kube, action *core.Action) error {
 		return createIAMRolePolicy(iamS, "kubernetes-master", policy)
 	})
 
-	procedure.AddStep("preparing IAM Instance Profile kubernetes-minion", func() error {
-		return createIAMInstanceProfile(iamS, "kubernetes-minion")
+	procedure.AddStep("preparing IAM Instance Profile kubernetes-master", func() error {
+		return createIAMInstanceProfile(iamS, "kubernetes-master")
 	})
 
 	procedure.AddStep("preparing IAM Role kubernetes-minion", func() error {
@@ -1379,28 +1379,41 @@ func createIAMInstanceProfile(iamS *iam.IAM, name string) error {
 	getInput := &iam.GetInstanceProfileInput{
 		InstanceProfileName: aws.String(name),
 	}
-	_, err := iamS.GetInstanceProfile(getInput)
-	if err == nil {
-		return nil
-	} else if isErrAndNotAWSNotFound(err) {
-		return err
-	}
 
-	input := &iam.CreateInstanceProfileInput{
-		InstanceProfileName: aws.String(name),
-		Path:                aws.String("/"),
-	}
-	_, err = iamS.CreateInstanceProfile(input)
+	var instanceProfile *iam.InstanceProfile
+
+	resp, err := iamS.GetInstanceProfile(getInput)
 	if err != nil {
-		return err
+		if isErrAndNotAWSNotFound(err) {
+			return err
+		}
+
+		// Create
+		input := &iam.CreateInstanceProfileInput{
+			InstanceProfileName: aws.String(name),
+			Path:                aws.String("/"),
+		}
+		createResp, createErr := iamS.CreateInstanceProfile(input)
+		if createErr != nil {
+			return createErr
+		}
+		instanceProfile = createResp.InstanceProfile
+
+	} else {
+		instanceProfile = resp.InstanceProfile
 	}
 
-	addInput := &iam.AddRoleToInstanceProfileInput{
-		RoleName:            aws.String(name),
-		InstanceProfileName: aws.String(name),
+	if len(instanceProfile.Roles) == 0 {
+		addInput := &iam.AddRoleToInstanceProfileInput{
+			RoleName:            aws.String(name),
+			InstanceProfileName: aws.String(name),
+		}
+		if _, err = iamS.AddRoleToInstanceProfile(addInput); err != nil {
+			return err
+		}
 	}
-	_, err = iamS.AddRoleToInstanceProfile(addInput)
-	return err
+
+	return nil
 }
 
 func tagAWSResource(ec2S *ec2.EC2, idstr string, tags map[string]string) error {
