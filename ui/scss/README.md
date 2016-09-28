@@ -12,5 +12,5 @@ To compile the UI assets you will need:
 You can compile the Sass assets with the following terminal command.
 
 ```shell
-sass main.scss ../ui/assets/css/main.css --style compressed
+sass main.scss ../assets/css/main.css --style compressed
 ```
