@@ -12,11 +12,11 @@ SUPERGIANT: Easy container orchestration using Kubernetes
 [Supergiant Slack URL]: https://supergiant.io/slack
 [Supergiant Community URL]: https://supergiant.io/community
 [Supergiant Contribution Guidelines URL]: http://supergiant.github.io/docs/community/contribution-guidelines.html
-[Supergiant Swagger Docs URL]: http://swagger.supergiant.io/docs/
+<!-- [Supergiant Swagger Docs URL]: http://swagger.supergiant.io/docs/ -->
 [Tutorial AWS URL]: https://supergiant.io/blog/how-to-install-supergiant-container-orchestration-engine-on-aws-ec2?utm_source=github
 [Tutorial MongoDB URL]: https://supergiant.io/blog/deploy-a-mongodb-replica-set-with-docker-and-supergiant?urm_source=github
 [Community and Contributing Anchor]: #community-and-contributing
-[Swagger URL]: http://swagger.io/
+<!-- [Swagger URL]: http://swagger.io/ -->
 [Git URL]: https://git-scm.com/
 [Go URL]: https://golang.org/
 [Go Remote Packages URL]: https://golang.org/doc/code.html#remote
@@ -36,8 +36,8 @@ SUPERGIANT: Easy container orchestration using Kubernetes
 [Travis URL]: https://travis-ci.org/supergiant/supergiant
 [Release Widget]: https://img.shields.io/github/release/supergiant/supergiant.svg
 [Release URL]: https://github.com/supergiant/supergiant/releases/latest
-[Swagger API Widget]: http://online.swagger.io/validator?url=http://swagger.supergiant.io/api-docs
-[Swagger URL]: http://swagger.supergiant.io/docs/
+<!-- [Swagger API Widget]: http://online.swagger.io/validator?url=http://swagger.supergiant.io/api-docs -->
+<!-- [Swagger URL]: http://swagger.supergiant.io/docs/ -->
 
 ### <img src="http://supergiant.io/img/logo_dark.svg" width="400">
 
@@ -93,39 +93,13 @@ Tutorial][Tutorial AWS URL].
 
 ## Top-Level Concepts
 
-Supergiant makes it easy to run Dockerized apps as services in the cloud by
-abstracting Kubernetes resources. It doesn’t obscure Kubernetes in any way --
-in fact you could simply use Supergiant to install Kubernetes.
+See [the docs folder](docs/v0/).
 
-Supergiant abstracts Kubernetes and cloud provider services into a few
-easily-managed resources, namely:
-
-* **Apps** are what groups Components into Kubernetes Namespaces. An App is how
-to organize some collection of (micro)services in an environment, such as
-"my-app-production.”Organization is flexible and up to the user.
-
-* **Entrypoints** allow Components to be reached through a public,
-internet-facing address. They are how Supergiant handles external load
-balancing. Kubernetes handles internal load balancing among containers
-brilliantly, so we use Entrypoints as a more efficient system for external load
-balancing among Nodes.
-
-* **A Component** is child of an App and is synonymous with microservice; in
-that, a Component should ideally have one role or responsibility within an App.
-As a basic example: within an App named "wordpress-production", there might be
-two Components named "mysql" and "wordpress".
-
-* **A Release** is a configuration of a Component, released at a certain time.
-Releases can be verbose, as they represent an entire topology of a Component,
-it’s storage volumes, its min and max allocated resources, etc. By managing
-Docker instances as Releases, HA storage volumes can be attached and reattached
-without losing statefulness.
-
-Supergiant makes use of the [Swagger API framework][Swagger URL] for documenting
+<!-- Supergiant makes use of the [Swagger API framework][Swagger URL] for documenting
 all resources. See the full Supergiant API documentation for the full reference.
 
 * [![Swagger API Widget] Supergiant Swagger API reference][Supergiant Swagger
-Docs URL]
+Docs URL] -->
 
 
 ## Micro-Roadmap
