@@ -1,0 +1,11 @@
+div#log {
+  /* height must match margin-bottom of #main_row */
+  background: #222;
+  color: #999;
+  white-space: pre-wrap;
+  height: 200px;
+  margin: 0 -15px 0 -15px;
+  padding: 0 0 0 15px;
+  overflow-y: scroll;
+  font-family: Consolas, Menlo, Courier, monospace;
+}

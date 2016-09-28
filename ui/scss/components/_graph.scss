@@ -1,0 +1,21 @@
+
+/*This is for the resource graphs*/
+.graph-line {
+  fill: none;
+  stroke-width: 3px;
+}
+
+
+.axis path {
+  display: none;
+}
+
+.axis line {
+  shape-rendering: crispEdges;
+  stroke: #000;
+}
+
+.axis .minor line {
+  stroke: #777;
+  stroke-dasharray: 2,2;
+}

@@ -1,0 +1,37 @@
+#filters {
+  position: relative;
+  z-index: 9999;
+  top: -28px;
+  left: 150px;
+  display: inline-block;
+}
+
+.search-filter {
+  background: #ddd;
+  font-size: 12px;
+  padding: 3px 7px 4px 7px;;
+  margin: 4px;
+  font-weight: 500;
+  border: 1px solid cornflowerblue;
+  border-radius: 4px;
+}
+
+.search-filter .glyphicon {
+  color: #aaa;
+  top: 2px;
+  padding-left: 3px;
+  left: 2px;
+  cursor: pointer;
+}
+
+.search-filter .glyphicon:hover {
+  color: #777;
+}
+
+#searchicon {
+  float: right;
+  top: -24px;
+  left: -14px;
+  color: #bbb;
+  z-index: 9999;
+}

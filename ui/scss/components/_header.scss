@@ -1,0 +1,35 @@
+.navbar-default {
+  margin-bottom: 0;
+}
+
+.navbar-default .navbar-brand {
+  color: #444;
+  font-family: 'Doppio One', sans-serif;
+}
+
+.container-fluid#main {
+  height: 100%;
+  /* We do this cuz navbar causes unnecessary scroll with height 100% on subsequent elements */
+  margin-top: -52px;
+  padding-top: 52px;
+}
+
+.row#main {
+  height: 100%;
+}
+
+#content {
+  padding-top: 20px;
+  height: 100%;
+}
+
+.row#main_row {
+  height: 100%;
+  overflow-y: scroll;
+  overflow-x: hidden;
+}
+
+.row.above_log {
+  margin-bottom: -200px;
+  padding-bottom: 200px;
+}

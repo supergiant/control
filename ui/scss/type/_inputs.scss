@@ -1,0 +1,14 @@
+.disabled {
+  opacity: 0.5;
+  pointer-events: none;
+}
+
+td.item_selector, td.item_selector > input {
+  cursor: pointer;
+}
+
+textarea.form-control {
+  font-family: Menlo,Monaco,Consolas,"Courier New",monospace;
+  font-size: 13px;
+  background: aliceblue;
+}
