@@ -8,7 +8,6 @@ import (
 )
 
 func NewCloudAccount(sg *client.Client, w http.ResponseWriter, r *http.Request) error {
-
 	var m map[string]interface{}
 	switch r.URL.Query().Get("option") {
 	// case "aws":
@@ -34,7 +33,6 @@ func NewCloudAccount(sg *client.Client, w http.ResponseWriter, r *http.Request) 
 	return renderTemplate(w, "new", map[string]interface{}{
 		"title":      "Cloud Accounts",
 		"formAction": "/ui/cloud_accounts",
-		"formMethod": "POST",
 		"model":      m,
 	})
 }
@@ -48,7 +46,6 @@ func CreateCloudAccount(sg *client.Client, w http.ResponseWriter, r *http.Reques
 		return renderTemplate(w, "new", map[string]interface{}{
 			"title":      "Cloud Accounts",
 			"formAction": "/ui/cloud_accounts",
-			"formMethod": "POST",
 			"model":      m,
 			"error":      err.Error(),
 		})

@@ -2,15 +2,30 @@ package core
 
 import "github.com/supergiant/supergiant/pkg/model"
 
+type VolumesInterface interface {
+	Create(*model.Volume) error
+	Get(*int64, model.Model) error
+	GetWithIncludes(*int64, model.Model, []string) error
+	Update(*int64, *model.Volume, *model.Volume) error
+	Delete(*int64, *model.Volume) ActionInterface
+	Resize(*int64, *model.Volume) ActionInterface
+	WaitForAvailable(*int64, *model.Volume) error
+}
+
 type Volumes struct {
 	Collection
 }
 
-func (c *Volumes) Provision(id *int64, m *model.Volume) *Action {
-	return &Action{
+func (c *Volumes) Create(m *model.Volume) error {
+	if err := c.Collection.Create(m); err != nil {
+		return err
+	}
+	if err := c.Core.DB.Preload("CloudAccount").Where("name = ?", m.KubeName).First(m.Kube); err != nil {
+		return err
+	}
+	action := &Action{
 		Status: &model.ActionStatus{
 			Description: "provisioning",
-
 			// TODO
 			// This resource has an issue with retryable provisioning -- which in this
 			// context means creating an remote asset from the local record.
@@ -33,28 +48,41 @@ func (c *Volumes) Provision(id *int64, m *model.Volume) *Action {
 			// error, the user will know about it quickly, instead of after 20 retries.
 			MaxRetries: 1,
 		},
-		core:  c.core,
-		scope: c.core.DB.Preload("Instance").Preload("Kube.CloudAccount"),
-		model: m,
-		id:    id,
-		fn: func(a *Action) error {
-			return c.core.CloudAccounts.provider(m.Kube.CloudAccount).CreateVolume(m, a)
+		Core:       c.Core,
+		ResourceID: m.UUID,
+		Model:      m,
+		Fn: func(a *Action) error {
+			return c.Core.CloudAccounts.provider(m.Kube.CloudAccount).CreateVolume(m, a)
 		},
 	}
+	return action.Now()
 }
 
-func (c *Volumes) Delete(id *int64, m *model.Volume) *Action {
+func (c *Volumes) Update(id *int64, oldM *model.Volume, m *model.Volume) error {
+	if err := c.Collection.Update(id, oldM, m); err != nil {
+		return err
+	}
+	if oldM.Size != m.Size {
+		// Resize expects the model arg to be the new size, and will save the record
+		// to update. (NOTE this may need a little work. Need to make sure all
+		// provider implementations are saving the model on resize.)
+		return c.Resize(id, m).Async()
+	}
+	return nil
+}
+
+func (c *Volumes) Delete(id *int64, m *model.Volume) ActionInterface {
 	return &Action{
 		Status: &model.ActionStatus{
 			Description: "deleting",
 			MaxRetries:  5,
 		},
-		core:  c.core,
-		scope: c.core.DB.Preload("Instance").Preload("Kube.CloudAccount"),
-		model: m,
-		id:    id,
-		fn: func(_ *Action) error {
-			if err := c.core.CloudAccounts.provider(m.Kube.CloudAccount).DeleteVolume(m); err != nil {
+		Core:  c.Core,
+		Scope: c.Core.DB.Preload("Kube.CloudAccount"),
+		Model: m,
+		ID:    id,
+		Fn: func(_ *Action) error {
+			if err := c.Core.CloudAccounts.provider(m.Kube.CloudAccount).DeleteVolume(m); err != nil {
 				return err
 			}
 			return c.Collection.Delete(id, m)
@@ -63,17 +91,17 @@ func (c *Volumes) Delete(id *int64, m *model.Volume) *Action {
 }
 
 // Resize the Volume
-func (c *Volumes) Resize(id *int64, m *model.Volume) *Action {
+func (c *Volumes) Resize(id *int64, m *model.Volume) ActionInterface {
 	return &Action{
 		Status: &model.ActionStatus{
 			Description: "resizing",
 		},
-		core:  c.core,
-		scope: c.core.DB.Preload("Instance").Preload("Kube.CloudAccount"),
-		model: m,
-		id:    id,
-		fn: func(a *Action) error {
-			return c.core.CloudAccounts.provider(m.Kube.CloudAccount).ResizeVolume(m, a)
+		Core:  c.Core,
+		Scope: c.Core.DB.Preload("Kube.CloudAccount"),
+		Model: m,
+		ID:    id,
+		Fn: func(a *Action) error {
+			return c.Core.CloudAccounts.provider(m.Kube.CloudAccount).ResizeVolume(m, a)
 		},
 	}
 }
@@ -83,12 +111,12 @@ func (c *Volumes) WaitForAvailable(id *int64, m *model.Volume) error {
 		Status: &model.ActionStatus{
 			Description: "waiting for available",
 		},
-		core:  c.core,
-		scope: c.core.DB.Preload("Instance").Preload("Kube.CloudAccount"),
-		model: m,
-		id:    id,
-		fn: func(a *Action) error {
-			return c.core.CloudAccounts.provider(m.Kube.CloudAccount).WaitForVolumeAvailable(m, a)
+		Core:  c.Core,
+		Scope: c.Core.DB.Preload("Kube.CloudAccount"),
+		Model: m,
+		ID:    id,
+		Fn: func(a *Action) error {
+			return c.Core.CloudAccounts.provider(m.Kube.CloudAccount).WaitForVolumeAvailable(m, a)
 		},
 	}
 	return action.Now()

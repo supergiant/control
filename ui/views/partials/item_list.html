@@ -1,0 +1,133 @@
+{{ define "item_list" }}
+  <!-- JS -->
+  <script src="/ui/assets/js/index.js"></script>
+
+  <div class="col-xs-12">
+    <div class="row">
+
+      {{ if .showNewLink }}
+        <div class="col-xs-1" style="width: 6%;">
+          {{ if .newOptions }}
+            <a role="button" class="btn btn-primary" href="#" data-toggle="modal" data-target="#new_options">New</a>
+          {{ else }}
+            <a role="button" class="btn btn-primary" href="{{ .uiBasePath }}/new">New</a>
+          {{ end }}
+        </div>
+      {{ end }}
+
+      {{ if or .actionPaths .batchActionPaths }}
+        <div class="col-xs-11" style="width: 94%; padding-left: 3px;">
+          <div class="input-group">
+            <div class="input-group-btn">
+              <button type="button" class="btn btn-default dropdown-toggle" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                Actions <span class="caret"></span>
+              </button>
+              <ul class="dropdown-menu">
+                {{ range $label, $path := .actionPaths }}
+                  <li><a href="#" data-action-path="{{ $path }}" data-toggle="modal" disabled class="disabled">{{ $label }}</a></li>
+                {{ end }}
+
+                {{ if and .actionPaths .batchActionPaths }}
+                  <li role="separator" class="divider"></li>
+                {{ end }}
+
+                {{ range $label, $path := .batchActionPaths }}
+                  <li><a href="#" data-batch-action-path="{{ $path }}" data-toggle="modal" data-target="#confirm_action" disabled class="disabled">{{ $label }}</a></li>
+                {{ end }}
+              </ul>
+            </div>
+
+            <input id="searchbar" type="text" class="form-control" aria-label="..." placeholder="field:value">
+          </div>
+        </div>
+
+      {{ else }}
+
+        <div class="col-xs-12">
+          <input id="searchbar" type="text" class="form-control" aria-label="..." placeholder="field:value">
+        </div>
+
+      {{ end }}
+
+    </div>
+
+    <span id="searchicon" class="glyphicon glyphicon-search"></span>
+    <!-- this is gross -->
+    {{ if and .showNewLink .batchActionPaths }}
+      <div id="filters"></div>
+    {{ else }}
+      <div id="filters" style="left: 5px"></div>
+    {{ end }}
+
+
+
+    <!-- Confirm Action Modal -->
+    <div class="modal fade" id="confirm_action" tabindex="-1" role="dialog" aria-labelledby="confirmAction">
+      <div class="modal-dialog" role="document">
+        <div class="modal-content">
+          <div class="modal-header">
+            <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+            <h4 class="modal-title" id="confirmAction">Are you sure?</h4>
+          </div>
+          <div class="modal-body">
+            <p>
+              You are about to <strong id="modal_action_name" class="text-info"></strong> the following items:
+            </p>
+            <ul id="modal_list"></ul>
+          </div>
+          <div class="modal-footer">
+            <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
+            <button type="button" class="btn btn-primary" id="confirm_action_btn"></button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- New Options Modal -->
+    <div class="modal fade" id="new_options" tabindex="-1" role="dialog" aria-labelledby="newOption">
+      <div class="modal-dialog" role="document">
+        <div class="modal-content">
+          <div class="modal-header">
+            <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+            <h4 class="modal-title" id="newOption">Select an option</h4>
+          </div>
+          <div class="modal-body">
+
+            <select class="form-control input-lg" onchange="window.location.href = '{{ .uiBasePath }}/new?option=' + $(this).val()">
+              <option disabled selected value> -- </option>
+              {{ range $key, $val := .newOptions }}
+                <option value="{{ $key }}">{{ $val }}</option>
+              {{ end }}
+            </select>
+
+          </div>
+          <!-- <div class="modal-footer">
+            <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
+            <button type="button" class="btn btn-primary" id="confirm_action_btn"></button>
+          </div> -->
+        </div>
+      </div>
+    </div>
+
+    <br>
+
+    <div class="row">
+      <div class="col-xs-12">
+        <table id="item_list" class="table table-bordered" data-ui-base-path="{{ .uiBasePath }}" data-api-list-path="{{ .apiListPath }}" data-fields-json="{{ .fieldsJSON }}">
+        </table>
+      </div>
+    </div>
+
+    <div class="row">
+      <div class="col-xs-12">
+
+        <nav aria-label="Page navigation">
+          <ul class="pagination">
+          </ul>
+        </nav>
+
+      </div>
+    </div>
+
+  </div>
+{{ end }}

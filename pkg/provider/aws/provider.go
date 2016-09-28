@@ -16,8 +16,8 @@ import (
 	"github.com/aws/aws-sdk-go/service/ec2"
 	"github.com/aws/aws-sdk-go/service/elb"
 	"github.com/aws/aws-sdk-go/service/iam"
-	"github.com/supergiant/guber"
 	"github.com/supergiant/supergiant/pkg/core"
+	"github.com/supergiant/supergiant/pkg/kubernetes"
 	"github.com/supergiant/supergiant/pkg/model"
 	"github.com/supergiant/supergiant/pkg/util"
 )
@@ -69,10 +69,10 @@ func (p *Provider) CreateVolume(m *model.Volume, action *core.Action) error {
 	return p.createVolume(m, nil)
 }
 
-func (p *Provider) KubernetesVolumeDefinition(m *model.Volume) *guber.Volume {
-	return &guber.Volume{
+func (p *Provider) KubernetesVolumeDefinition(m *model.Volume) *kubernetes.Volume {
+	return &kubernetes.Volume{
 		Name: m.Name,
-		AwsElasticBlockStore: &guber.AwsElasticBlockStore{
+		AwsElasticBlockStore: &kubernetes.AwsElasticBlockStore{
 			VolumeID: m.ProviderID,
 			FSType:   "ext4",
 		},
@@ -95,16 +95,38 @@ func (p *Provider) CreateEntrypoint(m *model.Entrypoint, action *core.Action) er
 	return p.createELB(m)
 }
 
-func (p *Provider) AddPortToEntrypoint(m *model.Entrypoint, lbPort int64, nodePort int64) error {
-	return p.addPortToEntrypoint(m, lbPort, nodePort)
-}
-
-func (p *Provider) RemovePortFromEntrypoint(m *model.Entrypoint, lbPort int64) error {
-	return p.removePortFromEntrypoint(m, lbPort)
-}
-
 func (p *Provider) DeleteEntrypoint(m *model.Entrypoint) error {
 	return p.deleteELB(m)
+}
+
+func (p *Provider) CreateEntrypointListener(m *model.EntrypointListener) error {
+	input := &elb.CreateLoadBalancerListenersInput{
+		LoadBalancerName: aws.String(m.Entrypoint.ProviderID),
+		Listeners: []*elb.Listener{
+			{
+				LoadBalancerPort: aws.Int64(m.EntrypointPort),
+				Protocol:         aws.String(m.EntrypointProtocol),
+				InstancePort:     aws.Int64(m.NodePort),
+				InstanceProtocol: aws.String(m.NodeProtocol),
+			},
+		},
+	}
+	_, err := p.elb(m.Entrypoint.Kube.AWSConfig.Region).CreateLoadBalancerListeners(input)
+	return err
+}
+
+func (p *Provider) DeleteEntrypointListener(m *model.EntrypointListener) error {
+	input := &elb.DeleteLoadBalancerListenersInput{
+		LoadBalancerName: aws.String(m.Entrypoint.ProviderID),
+		LoadBalancerPorts: []*int64{
+			aws.Int64(m.EntrypointPort),
+		},
+	}
+	_, err := p.elb(m.Entrypoint.Kube.AWSConfig.Region).DeleteLoadBalancerListeners(input)
+	if isErrAndNotAWSNotFound(err) {
+		return err
+	}
+	return nil
 }
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -715,26 +737,30 @@ func (p *Provider) createKube(m *model.Kube, action *core.Action) error {
 
 	procedure.AddStep("creating Kubernetes minion", func() error {
 		// TODO repeated in DO provider
-		if err := p.Core.DB.Model(m).Association("Nodes").Find(&m.Nodes).Error; err != nil {
+		if err := p.Core.DB.Find(&m.Nodes, "kube_name = ?", m.Name); err != nil {
 			return err
 		}
 		if len(m.Nodes) > 0 {
 			return nil
 		}
+
 		node := &model.Node{
-			KubeID: m.ID,
-			Size:   m.NodeSizes[0],
+			KubeName: m.Name,
+			Size:     m.NodeSizes[0],
 		}
 		return p.Core.Nodes.Create(node)
 	})
 
 	procedure.AddStep("waiting for Kubernetes", func() error {
-		return action.CancellableWaitFor("Kubernetes API and first minion", 20*time.Minute, 3*time.Second, func() (bool, error) {
-			nodes, err := p.Core.K8S(m).Nodes().List()
+
+		k8s := p.Core.K8S(m)
+
+		return action.CancellableWaitFor("Kubernetes API and first minion", 20*time.Minute, time.Second, func() (bool, error) {
+			nodes, err := k8s.ListNodes("")
 			if err != nil {
 				return false, nil
 			}
-			return len(nodes.Items) > 0, nil
+			return len(nodes) > 0, nil
 		})
 	})
 
@@ -943,54 +969,6 @@ func (p *Provider) createNode(m *model.Node) error {
 		}
 	}
 	return nil
-}
-
-func (p *Provider) servers(m *model.Kube) (instances []*ec2.Instance, err error) {
-	return p.filteredServers(m, map[string][]string{
-		"tag:Name": []string{
-			m.Name + "-minion",
-		},
-	})
-}
-
-func (p *Provider) server(m *model.Kube, id string) (*ec2.Instance, error) {
-	instances, err := p.filteredServers(m, map[string][]string{
-		"instance-id": []string{id},
-	})
-	if err != nil {
-		return nil, err
-	}
-	return instances[0], nil
-}
-
-func (p *Provider) filteredServers(m *model.Kube, filters map[string][]string) (instances []*ec2.Instance, err error) {
-	filters["instance-state-name"] = []string{
-		"pending",
-		"running",
-	}
-	var ec2Filters []*ec2.Filter
-	for key, vals := range filters {
-		ec2Filter := &ec2.Filter{
-			Name: aws.String(key),
-		}
-		for _, val := range vals {
-			ec2Filter.Values = append(ec2Filter.Values, aws.String(val))
-		}
-		ec2Filters = append(ec2Filters, ec2Filter)
-	}
-	input := &ec2.DescribeInstancesInput{
-		Filters: ec2Filters,
-	}
-	resp, err := p.ec2(m.AWSConfig.Region).DescribeInstances(input)
-	if err != nil {
-		return nil, err
-	}
-	for _, reservation := range resp.Reservations {
-		for _, instance := range reservation.Instances {
-			instances = append(instances, instance)
-		}
-	}
-	return instances, nil
 }
 
 func (p *Provider) setAttrsFromServer(m *model.Node, server *ec2.Instance) {
@@ -1248,6 +1226,9 @@ func (p *Provider) resizeVolume(m *model.Volume) error {
 }
 
 func (p *Provider) deleteVolume(volume *model.Volume) error {
+	if volume.ProviderID == "" {
+		return nil
+	}
 	if err := p.waitForAvailable(volume); err != nil {
 		return err
 	}
@@ -1297,7 +1278,7 @@ func (p *Provider) forceDetachVolume(volume *model.Volume) error {
 
 func (p *Provider) createSnapshot(volume *model.Volume) (*ec2.Snapshot, error) {
 	input := &ec2.CreateSnapshotInput{
-		Description: aws.String(fmt.Sprintf("%s-%d", volume.Name, volume.Instance.ReleaseID)),
+		Description: aws.String(fmt.Sprintf("%s-%s", volume.Name, time.Now())),
 		VolumeId:    aws.String(volume.ProviderID),
 	}
 	snapshot, err := p.ec2(volume.Kube.AWSConfig.Region).CreateSnapshot(input)

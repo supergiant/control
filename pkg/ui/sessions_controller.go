@@ -13,7 +13,6 @@ func NewSession(sg *client.Client, w http.ResponseWriter, r *http.Request) error
 	return renderTemplate(w, "login", map[string]interface{}{
 		"title":      "Sessions",
 		"formAction": "/ui/sessions",
-		"formMethod": "POST",
 	})
 }
 
@@ -31,7 +30,6 @@ func CreateSession(sg *client.Client, w http.ResponseWriter, r *http.Request) er
 		return renderTemplate(w, "login", map[string]interface{}{
 			"title":      "Sessions",
 			"formAction": "/ui/sessions",
-			"formMethod": "POST",
 			"error":      err.Error(),
 		})
 	}

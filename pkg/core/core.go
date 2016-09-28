@@ -10,6 +10,7 @@ import (
 	"github.com/Sirupsen/logrus"
 	"github.com/imdario/mergo"
 	"github.com/supergiant/supergiant/pkg/client"
+	"github.com/supergiant/supergiant/pkg/kubernetes"
 	"github.com/supergiant/supergiant/pkg/model"
 
 	"github.com/jinzhu/gorm"
@@ -46,6 +47,9 @@ type Settings struct {
 	//
 	// NodeSizes is a map of provider name (ex. "aws") and node sizes
 	NodeSizes map[string][]*NodeSize `json:"node_sizes"`
+
+	// NOTE this is only exposed for the purpose of testing
+	KubeResourceStartTimeout time.Duration
 }
 
 type Core struct {
@@ -56,22 +60,25 @@ type Core struct {
 	AWSProvider func(map[string]string) Provider
 	DOProvider  func(map[string]string) Provider
 
+	K8S func(*model.Kube) kubernetes.ClientInterface
+
+	DefaultProvisioner Provisioner
+	PodProvisioner     Provisioner
+	ServiceProvisioner Provisioner
+
 	Log *logrus.Logger
 
-	DB *DB
+	DB DBInterface
 
-	Sessions         *Sessions
-	Users            *Users
-	CloudAccounts    *CloudAccounts
-	Kubes            *Kubes
-	Apps             *Apps
-	Components       *Components
-	Releases         *Releases
-	Instances        *Instances
-	Volumes          *Volumes
-	PrivateImageKeys *PrivateImageKeys
-	Entrypoints      *Entrypoints
-	Nodes            *Nodes
+	Sessions            *Sessions
+	Users               *Users
+	CloudAccounts       *CloudAccounts
+	Kubes               *Kubes
+	KubeResources       KubeResourcesInterface
+	Volumes             VolumesInterface
+	Entrypoints         *Entrypoints
+	EntrypointListeners EntrypointListenersInterface
+	Nodes               *Nodes
 
 	// TODO should this be a pseudo-collection like Sessions?
 	Actions *SafeMap
@@ -127,20 +134,19 @@ func (c *Core) InitializeForeground() error {
 		c.Log.Level = levelInt
 	}
 	// db.LogMode(true)
-	// guber.Log.SetLevel("debug")
 
 	// DB
-	var db *gorm.DB
+	var gormDB *gorm.DB
 	var err error
 
 	if c.PsqlHost != "" && c.PsqlDb != "" && c.PsqlUser != "" && c.PsqlPass != "" {
 		// Postgres
 		options := fmt.Sprintf("host=%s dbname=%s user=%s password=%s sslmode=disable", c.PsqlHost, c.PsqlDb, c.PsqlUser, c.PsqlPass)
-		db, err = gorm.Open("postgres", options)
+		gormDB, err = gorm.Open("postgres", options)
 
 	} else if c.SQLiteFile != "" {
 		// SQLite3
-		db, err = gorm.Open("sqlite3", c.SQLiteFile)
+		gormDB, err = gorm.Open("sqlite3", c.SQLiteFile)
 
 	} else {
 		err = errors.New("No DB configured. Must provide --psql-* options or --sqlite-file.")
@@ -149,39 +155,44 @@ func (c *Core) InitializeForeground() error {
 		return err
 	}
 
-	c.DB = &DB{c, db}
-	err = c.DB.AutoMigrate(
+	err = gormDB.AutoMigrate(
 		&model.User{},
 		&model.Kube{},
+		&model.KubeResource{},
 		&model.CloudAccount{},
-		&model.PrivateImageKey{},
-		&model.App{},
-		&model.Component{},
-		&model.ComponentPrivateImageKey{},
-		&model.Release{},
-		&model.Instance{},
 		&model.Volume{},
 		&model.Entrypoint{},
+		&model.EntrypointListener{},
 		&model.Node{},
 	).Error
 	if err != nil {
 		return err
 	}
+
+	c.DB = &DB{c, gormDB}
+
 	c.Users = &Users{Collection{c}}
 	c.Kubes = &Kubes{Collection{c}}
+	c.KubeResources = &KubeResources{Collection{c}}
 	c.CloudAccounts = &CloudAccounts{Collection{c}}
-	c.Apps = &Apps{Collection{c}}
-	c.Components = &Components{Collection{c}}
-	c.Releases = &Releases{Collection{c}}
-	c.Instances = &Instances{Collection{c}}
 	c.Volumes = &Volumes{Collection{c}}
-	c.PrivateImageKeys = &PrivateImageKeys{Collection{c}}
 	c.Entrypoints = &Entrypoints{Collection{c}}
+	c.EntrypointListeners = &EntrypointListeners{Collection{c}}
 	c.Nodes = &Nodes{Collection{c}}
 	c.Sessions = NewSessions(c)
 
 	// Actions for async work
 	c.Actions = NewSafeMap(c)
+
+	c.K8S = func(kube *model.Kube) kubernetes.ClientInterface {
+		return &kubernetes.Client{Kube: kube}
+	}
+
+	c.DefaultProvisioner = &DefaultProvisioner{c}
+	c.PodProvisioner = &PodProvisioner{c}
+	c.ServiceProvisioner = &ServiceProvisioner{c}
+
+	c.KubeResourceStartTimeout = 20 * time.Minute
 
 	return nil
 }
@@ -205,12 +216,12 @@ func (c *Core) InitializeBackground() {
 	}
 	go nodeObserver.Run()
 
-	instanceObserver := &RecurringService{
+	kubeResourceObserver := &RecurringService{
 		core:     c,
-		service:  &InstanceObserver{c},
-		interval: 30 * time.Second,
+		service:  &KubeResourceObserver{c},
+		interval: 15 * time.Second,
 	}
-	go instanceObserver.Run()
+	go kubeResourceObserver.Run()
 
 	sessionExpirer := &RecurringService{
 		core:     c,
@@ -250,5 +261,5 @@ func (c *Core) UIURL() string {
 }
 
 func (c *Core) NewAPIClient(authType string, authToken string) *client.Client {
-	return client.New(c.APIURL(), authType, authToken, c.SSLCertFile)
+	return client.New(c.BaseURL(), authType, authToken, c.SSLCertFile)
 }

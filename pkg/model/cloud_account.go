@@ -16,6 +16,6 @@ type CloudAccount struct {
 	Provider string `json:"provider" validate:"regexp=^(aws|digitalocean)$" gorm:"not null"`
 
 	// NOTE this is loose map to allow for multiple clouds (eventually)
-	Credentials     map[string]string `json:"credentials,omitempty" gorm:"-" sg:"store_as_json_in=CredentialsJSON,private"`
+	Credentials     map[string]string `json:"credentials,omitempty" validate:"nonzero" gorm:"-" sg:"store_as_json_in=CredentialsJSON,private"`
 	CredentialsJSON []byte            `json:"-" gorm:"not null"`
 }

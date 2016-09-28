@@ -1,31 +1,9 @@
 package core
 
 import (
-	"crypto/tls"
-	"net/http"
-	"time"
-
-	"github.com/supergiant/guber"
 	"github.com/supergiant/supergiant/pkg/model"
 	"github.com/supergiant/supergiant/pkg/util"
 )
-
-// TODO
-var globalK8SHTTPClient = &http.Client{
-	Timeout: 30 * time.Second,
-	Transport: &http.Transport{
-		TLSHandshakeTimeout: 10 * time.Second,
-		TLSClientConfig: &tls.Config{
-			InsecureSkipVerify: true,
-		},
-	},
-}
-
-func (c *Core) K8S(m *model.Kube) guber.Client {
-	return guber.NewClient(m.MasterPublicIP, m.Username, m.Password, globalK8SHTTPClient)
-}
-
-//------------------------------------------------------------------------------
 
 type Kubes struct {
 	Collection
@@ -49,74 +27,61 @@ func (c *Kubes) Create(m *model.Kube) error {
 			Description: "provisioning",
 			MaxRetries:  20,
 		},
-		core:       c.core,
-		resourceID: m.UUID,
-		model:      m,
-		fn: func(a *Action) error {
-			if err := c.core.CloudAccounts.provider(m.CloudAccount).CreateKube(m, a); err != nil {
+		Core:       c.Core,
+		ResourceID: m.UUID,
+		Model:      m,
+		Fn: func(a *Action) error {
+			if err := c.Core.CloudAccounts.provider(m.CloudAccount).CreateKube(m, a); err != nil {
 				return err
 			}
-			return c.core.DB.Model(m).Update("ready", true).Error
+			return c.Core.DB.Model(m).Update("ready", true)
 		},
 	}
 	return provision.Async()
 }
 
-func (c *Kubes) Delete(id *int64, m *model.Kube) *Action {
+func (c *Kubes) Delete(id *int64, m *model.Kube) ActionInterface {
 	return &Action{
 		Status: &model.ActionStatus{
 			Description: "deleting",
 			MaxRetries:  5,
 		},
-		core:           c.core,
-		scope:          c.core.DB.Preload("CloudAccount").Preload("Entrypoints").Preload("Volumes.Kube.CloudAccount").Preload("Apps.Components.Instances").Preload("Apps.Components.Releases").Preload("Nodes.Kube.CloudAccount"),
-		model:          m,
-		id:             id,
-		cancelExisting: true,
-		fn: func(_ *Action) error {
+		Core:           c.Core,
+		Scope:          c.Core.DB.Preload("CloudAccount").Preload("KubeResources").Preload("Entrypoints.Listeners").Preload("Volumes.Kube.CloudAccount").Preload("Nodes.Kube.CloudAccount"),
+		Model:          m,
+		ID:             id,
+		CancelExisting: true,
+		Fn: func(_ *Action) error {
+			// Delete Kube Resources directly (don't use provisioner Teardown)
+			for _, kubeResource := range m.KubeResources {
+				if err := c.Core.DB.Delete(kubeResource); err != nil {
+					return err
+				}
+			}
 			for _, entrypoint := range m.Entrypoints {
-				if err := c.core.Entrypoints.Delete(entrypoint.ID, entrypoint).Now(); err != nil {
+				// Delete listeners directly
+				for _, listener := range entrypoint.Listeners {
+					if err := c.Core.DB.Delete(listener); err != nil {
+						return err
+					}
+				}
+				if err := c.Core.Entrypoints.Delete(entrypoint.ID, entrypoint).Now(); err != nil {
 					return err
 				}
 			}
 			// Delete nodes first to get rid of any potential hanging volumes
 			for _, node := range m.Nodes {
-				if err := c.core.Nodes.Delete(node.ID, node).Now(); err != nil {
+				if err := c.Core.Nodes.Delete(node.ID, node).Now(); err != nil {
 					return err
 				}
 			}
-
-			// Delete App records -- no need to delete assets
-			// TODO... might be better to have Kubernetes-related operations first
-			// check to see if Kube is flagged for delete?
-			for _, app := range m.Apps {
-				if err := c.core.DB.Delete(app); err != nil {
-					return err
-				}
-				for _, component := range app.Components {
-					if err := c.core.DB.Delete(component); err != nil {
-						return err
-					}
-					for _, release := range component.Releases {
-						if err := c.core.DB.Delete(release); err != nil {
-							return err
-						}
-					}
-					for _, instance := range component.Instances {
-						if err := c.core.DB.Delete(instance); err != nil {
-							return err
-						}
-					}
-				}
-			}
-
 			// Delete Volumes
 			for _, volume := range m.Volumes {
-				if err := c.core.Volumes.Delete(volume.ID, volume).Now(); err != nil {
+				if err := c.Core.Volumes.Delete(volume.ID, volume).Now(); err != nil {
 					return err
 				}
 			}
-			if err := c.core.CloudAccounts.provider(m.CloudAccount).DeleteKube(m); err != nil {
+			if err := c.Core.CloudAccounts.provider(m.CloudAccount).DeleteKube(m); err != nil {
 				return err
 			}
 			return c.Collection.Delete(id, m)

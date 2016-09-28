@@ -1,0 +1,311 @@
+package api
+
+import (
+	"errors"
+	"testing"
+	"time"
+
+	"github.com/supergiant/supergiant/pkg/client"
+	"github.com/supergiant/supergiant/pkg/core"
+	"github.com/supergiant/supergiant/pkg/core/fake"
+	"github.com/supergiant/supergiant/pkg/kubernetes"
+	"github.com/supergiant/supergiant/pkg/model"
+
+	. "github.com/smartystreets/goconvey/convey"
+)
+
+var kubeResourceID int64 = 24
+
+func createKube(sg *client.Client) *model.Kube {
+	cloudAccount := &model.CloudAccount{
+		Name:        "test",
+		Provider:    "aws",
+		Credentials: map[string]string{"thanks": "for being great"},
+	}
+	sg.CloudAccounts.Create(cloudAccount)
+
+	kube := &model.Kube{
+		CloudAccountName: cloudAccount.Name,
+		Name:             "test",
+		MasterNodeSize:   "m4.large",
+		NodeSizes:        []string{"m4.large"},
+		AWSConfig: &model.AWSKubeConfig{
+			Region:           "us-east-1",
+			AvailabilityZone: "us-east-1a",
+		},
+	}
+	sg.Kubes.Create(kube)
+
+	return kube
+}
+
+//------------------------------------------------------------------------------
+
+func TestKubeResourcesCreate(t *testing.T) {
+	srv := newTestServer()
+	go srv.Start()
+	defer srv.Stop()
+
+	var lastStartCalledOn *int64
+
+	realCreateFn := srv.Core.KubeResources.Create
+
+	srv.Core.KubeResources = &fake.KubeResources{
+		CreateFn: realCreateFn,
+		StartFn: func(id *int64, m *model.KubeResource) core.ActionInterface {
+			return &core.Action{
+				Status: &model.ActionStatus{
+					Description: "starting",
+				},
+				Core:       srv.Core,
+				Model:      m,
+				ResourceID: m.GetUUID(),
+				Fn: func(_ *core.Action) error {
+					lastStartCalledOn = id
+					return nil
+				},
+			}
+		},
+	}
+
+	requestor := createAdmin(srv.Core)
+	sg := srv.Core.NewAPIClient("token", requestor.APIToken)
+
+	srv.Core.AWSProvider = func(_ map[string]string) core.Provider {
+		return new(fake.Provider)
+	}
+	kube := createKube(sg)
+
+	Convey("KubeResources Create works correctly", t, func() {
+
+		table := []struct {
+			// Input
+			kubeResource *model.KubeResource
+			// Output
+			startCalled bool
+			err         *model.Error
+		}{
+			// A successful example
+			{
+				&model.KubeResource{
+					KubeName:  kube.Name,
+					Namespace: "test",
+					Name:      "test",
+					Kind:      "Pod",
+					Template: newRawMessage(`{
+						"spec": {
+							"containers": [
+								{
+									"name": "jenkins",
+									"image": "jenkins"
+								}
+							]
+						}
+					}`),
+				},
+				true,
+				nil,
+			},
+			// No KubeName provided
+			{
+				&model.KubeResource{
+					Namespace: "test",
+					Name:      "test",
+					Kind:      "Pod",
+					Template: newRawMessage(`{
+						"spec": {
+							"containers": [
+								{
+									"name": "jenkins",
+									"image": "jenkins"
+								}
+							]
+						}
+					}`),
+				},
+				false,
+				&model.Error{Status: 422, Message: "Validation failed: KubeName: zero value"},
+			},
+			// Kube does not exist
+			{
+				&model.KubeResource{
+					KubeName:  "crab",
+					Namespace: "test",
+					Name:      "test",
+					Kind:      "Pod",
+					Template: newRawMessage(`{
+						"spec": {
+							"containers": [
+								{
+									"name": "jenkins",
+									"image": "jenkins"
+								}
+							]
+						}
+					}`),
+				},
+				false,
+				&model.Error{Status: 422, Message: "Parent does not exist, foreign key 'kube_name' on KubeResource"},
+			},
+		}
+
+		for _, item := range table {
+			lastStartCalledOn = nil
+
+			err := sg.KubeResources.Create(item.kubeResource)
+			startCalled := lastStartCalledOn != nil && *lastStartCalledOn == *item.kubeResource.ID
+
+			if item.err == nil {
+				So(err, ShouldBeNil)
+			} else {
+				So(err, ShouldResemble, item.err)
+			}
+
+			So(startCalled, ShouldEqual, item.startCalled)
+		}
+	})
+}
+
+//------------------------------------------------------------------------------
+
+func TestKubeResourcesStart(t *testing.T) {
+	srv := newTestServer()
+	go srv.Start()
+	defer srv.Stop()
+
+	requestor := createAdmin(srv.Core)
+	sg := srv.Core.NewAPIClient("token", requestor.APIToken)
+
+	srv.Core.AWSProvider = func(_ map[string]string) core.Provider {
+		return new(fake.Provider)
+	}
+	kube := createKube(sg)
+
+	Convey("KubeResources Start uses correct Provisioner, and ensures existence of correct Namespace", t, func() {
+		table := []struct {
+			// Input
+			kubeResource *model.KubeResource
+			// Mocks
+			mockStartTimeout bool
+			// Expectations
+			namespaceEnsured  string
+			provisionerCalled string
+			errorReturned     error
+		}{
+			// Pod
+			{
+				kubeResource: &model.KubeResource{
+					BaseModel: model.BaseModel{ID: &kubeResourceID},
+					KubeName:  kube.Name,
+					Namespace: "test",
+					Name:      "test",
+					Kind:      "Pod",
+				},
+				mockStartTimeout:  false,
+				namespaceEnsured:  "test",
+				provisionerCalled: "pod",
+				errorReturned:     nil,
+			},
+			// Service
+			{
+				kubeResource: &model.KubeResource{
+					BaseModel: model.BaseModel{ID: &kubeResourceID},
+					KubeName:  kube.Name,
+					Namespace: "beep",
+					Name:      "test",
+					Kind:      "Service",
+				},
+				mockStartTimeout:  false,
+				namespaceEnsured:  "beep",
+				provisionerCalled: "service",
+				errorReturned:     nil,
+			},
+			// Anything else
+			{
+				kubeResource: &model.KubeResource{
+					BaseModel: model.BaseModel{ID: &kubeResourceID},
+					KubeName:  kube.Name,
+					Namespace: "test",
+					Name:      "test",
+					Kind:      "LiterallyAnythingElse",
+				},
+				mockStartTimeout:  false,
+				namespaceEnsured:  "test",
+				provisionerCalled: "default",
+				errorReturned:     nil,
+			},
+			// Reports error on StartTimeout
+			{
+				kubeResource: &model.KubeResource{
+					BaseModel: model.BaseModel{ID: &kubeResourceID},
+					KubeName:  kube.Name,
+					Namespace: "foo",
+					Name:      "test",
+					Kind:      "Service",
+				},
+				mockStartTimeout:  true,
+				namespaceEnsured:  "foo",
+				provisionerCalled: "service",
+				errorReturned:     errors.New("Timed out waiting for Service 'test' in Namespace 'foo' to start"),
+			},
+		}
+
+		for _, item := range table {
+
+			var namespaceEnsured string
+			var provisionerCalled string
+
+			srv.Core.KubeResourceStartTimeout = time.Nanosecond
+
+			srv.Core.K8S = func(_ *model.Kube) kubernetes.ClientInterface {
+				return &fake.KubernetesClient{
+					EnsureNamespaceFn: func(name string) error {
+						namespaceEnsured = name
+						return nil
+					},
+				}
+			}
+
+			isRunningFn := func(_ *model.KubeResource) (bool, error) {
+				return !item.mockStartTimeout, nil
+			}
+
+			srv.Core.DefaultProvisioner = &fake.Provisioner{
+				ProvisionFn: func(_ *model.KubeResource) error {
+					provisionerCalled = "default"
+					return nil
+				},
+				IsRunningFn: isRunningFn,
+			}
+			srv.Core.PodProvisioner = &fake.Provisioner{
+				ProvisionFn: func(_ *model.KubeResource) error {
+					provisionerCalled = "pod"
+					return nil
+				},
+				IsRunningFn: isRunningFn,
+			}
+			srv.Core.ServiceProvisioner = &fake.Provisioner{
+				ProvisionFn: func(_ *model.KubeResource) error {
+					provisionerCalled = "service"
+					return nil
+				},
+				IsRunningFn: isRunningFn,
+			}
+
+			sg.KubeResources.Create(item.kubeResource)
+			sg.KubeResources.Start(item.kubeResource.ID, item.kubeResource)
+
+			if item.errorReturned != nil {
+				// Reload to get new status
+				time.Sleep(1 * time.Second)
+				sg.KubeResources.Get(item.kubeResource.ID, item.kubeResource)
+				So(item.kubeResource.Status.Error, ShouldResemble, item.errorReturned.Error())
+			}
+			So(namespaceEnsured, ShouldEqual, item.namespaceEnsured)
+			So(provisionerCalled, ShouldEqual, item.provisionerCalled)
+
+			// Cleanup
+			srv.Core.DB.Delete(item.kubeResource)
+		}
+	})
+}

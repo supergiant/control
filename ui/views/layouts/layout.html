@@ -1,0 +1,77 @@
+{{ define "layout" }}
+  <!DOCTYPE html>
+  <html lang="en">
+    <head>
+      <title>
+        {{ .title }}
+      </title>
+
+      <!-- Vendor -->
+      <link rel="stylesheet" href="/ui/assets/vendor/css/bootstrap.min.css">
+      <link rel="stylesheet" href="/ui/assets/vendor/css/bootstrap-theme.min.css">
+      <script src="/ui/assets/vendor/js/jquery-3.1.0.min.js"></script>
+      <script src="/ui/assets/vendor/js/bootstrap.min.js"></script>
+
+      <!-- Supergiant main styles -->
+      <link rel="stylesheet" href="/ui/assets/css/main.css">
+
+      <!-- Supergiant main JavaScript -->
+      <script src="/ui/assets/js/main.js"></script>
+
+    </head>
+    <body>
+
+      <nav class="navbar navbar-default">
+        <div class="container-fluid">
+          <!-- Brand and toggle get grouped for better mobile display -->
+          <div class="navbar-header">
+            <a class="navbar-brand" href="/ui">
+              SUPERGIANT
+            </a>
+          </div>
+
+          <!-- Collect the nav links, forms, and other content for toggling -->
+          <div class="collapse navbar-collapse" id="bs-example-navbar-collapse-1">
+          </div>
+
+        </div><!-- /.container-fluid -->
+      </nav>
+
+      <div class="container-fluid" id="main">
+        <div class="row" id="main">
+
+          <div class="col-xs-2" id="sidenav">
+            <div class="list-group">
+              <a class='list-group-item{{ if eq .title "Sessions" }} active{{ end }}' href="/ui/sessions">Sessions</a>
+
+              <a class='list-group-item{{ if eq .title "Users" }} active{{ end }}' href="/ui/users">Users</a>
+
+              <a class='list-group-item{{ if eq .title "Cloud Accounts" }} active{{ end }}' href="/ui/cloud_accounts">Cloud Accounts</a>
+
+              <a class='list-group-item{{ if eq .title "Kubes" }} active{{ end }}' href="/ui/kubes">Kubes</a>
+
+              <a class='list-group-item{{ if eq .title "Nodes" }} active{{ end }}' href="/ui/nodes">Nodes</a>
+
+              <a class='list-group-item{{ if eq .title "Entrypoints" }} active{{ end }}' href="/ui/entrypoints">Entrypoints</a>
+
+              <a class='list-group-item{{ if eq .title "Entrypoint Listeners" }} active{{ end }}' href="/ui/entrypoint_listeners">Listeners</a>
+
+              <a class='list-group-item{{ if eq .title "Volumes" }} active{{ end }}' href="/ui/volumes">Volumes</a>
+
+              <a class='list-group-item{{ if eq .title "Kube Resources" }} active{{ end }}' href="/ui/kube_resources">Kube Resources</a>
+            </div>
+          </div>
+
+          <div class="col-xs-10" id="content">
+            {{ template "body" . }}
+          </div>
+
+        </div>
+      </div>
+
+    </body>
+  </html>
+{{ end }}
+
+// We define empty blocks for optional content so we don't have to define a block in child templates that don't need them
+{{ define "not_required_stuff" }}{{ end }}

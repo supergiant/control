@@ -11,10 +11,9 @@ func NewNode(sg *client.Client, w http.ResponseWriter, r *http.Request) error {
 	return renderTemplate(w, "new", map[string]interface{}{
 		"title":      "Nodes",
 		"formAction": "/ui/nodes",
-		"formMethod": "POST",
 		"model": map[string]interface{}{
-			"kube_id": nil,
-			"size":    "",
+			"kube_name": "",
+			"size":      "",
 		},
 	})
 }
@@ -28,7 +27,6 @@ func CreateNode(sg *client.Client, w http.ResponseWriter, r *http.Request) error
 		return renderTemplate(w, "new", map[string]interface{}{
 			"title":      "Nodes",
 			"formAction": "/ui/nodes",
-			"formMethod": "POST",
 			"model":      m,
 			"error":      err.Error(),
 		})
@@ -43,7 +41,7 @@ func ListNodes(sg *client.Client, w http.ResponseWriter, r *http.Request) error 
 		{
 			"title": "Kube ID",
 			"type":  "field_value",
-			"field": "kube_id",
+			"field": "kube_name",
 		},
 		{
 			"title": "Size",

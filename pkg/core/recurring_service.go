@@ -2,6 +2,7 @@ package core
 
 import (
 	"reflect"
+	"runtime/debug"
 	"time"
 )
 
@@ -35,5 +36,6 @@ func (s *RecurringService) name() string {
 func (s *RecurringService) recover() {
 	if r := recover(); r != nil {
 		s.core.Log.Error("Recovered in RecurringService "+s.name()+": ", r)
+		s.core.Log.Debug(string(debug.Stack()))
 	}
 }

@@ -11,9 +11,8 @@ func NewEntrypoint(sg *client.Client, w http.ResponseWriter, r *http.Request) er
 	return renderTemplate(w, "new", map[string]interface{}{
 		"title":      "Entrypoints",
 		"formAction": "/ui/entrypoints",
-		"formMethod": "POST",
 		"model": map[string]interface{}{
-			"kube_id": nil,
+			"kube_name": "",
 			"name":    "",
 		},
 	})
@@ -28,7 +27,6 @@ func CreateEntrypoint(sg *client.Client, w http.ResponseWriter, r *http.Request)
 		return renderTemplate(w, "new", map[string]interface{}{
 			"title":      "Entrypoints",
 			"formAction": "/ui/entrypoints",
-			"formMethod": "POST",
 			"model":      m,
 			"error":      err.Error(),
 		})
@@ -42,7 +40,7 @@ func ListEntrypoints(sg *client.Client, w http.ResponseWriter, r *http.Request) 
 		{
 			"title": "Kube ID",
 			"type":  "field_value",
-			"field": "kube_id",
+			"field":"kube_name",
 		},
 		{
 			"title": "Name",

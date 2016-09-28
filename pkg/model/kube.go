@@ -10,20 +10,20 @@ type Kube struct {
 	BaseModel
 
 	// belongs_to CloudAccount
-	CloudAccount   *CloudAccount `json:"cloud_account,omitempty"`
-	CloudAccountID *int64        `json:"cloud_account_id" gorm:"not null;index"`
+	CloudAccount     *CloudAccount `json:"cloud_account,omitempty" gorm:"ForeignKey:CloudAccountName;AssociationForeignKey:Name"`
+	CloudAccountName string        `json:"cloud_account_name" validate:"nonzero" gorm:"not null;index"`
 
 	// has_many Nodes
-	Nodes []*Node `json:"nodes,omitempty"`
-
-	// has_many Apps
-	Apps []*App `json:"apps,omitempty"`
+	Nodes []*Node `json:"nodes,omitempty" gorm:"ForeignKey:KubeName;AssociationForeignKey:Name"`
 
 	// has_many Entrypoints
-	Entrypoints []*Entrypoint `json:"entrypoints,omitempty"`
+	Entrypoints []*Entrypoint `json:"entrypoints,omitempty" gorm:"ForeignKey:KubeName;AssociationForeignKey:Name"`
 
 	// has_many Volumes
-	Volumes []*Volume `json:"volumes,omitempty"`
+	Volumes []*Volume `json:"volumes,omitempty" gorm:"ForeignKey:KubeName;AssociationForeignKey:Name"`
+
+	// has_many KubeResources
+	KubeResources []*KubeResource `json:"kube_resources,omitempty" gorm:"ForeignKey:KubeName;AssociationForeignKey:Name"`
 
 	Name string `json:"name" validate:"nonzero,max=12,regexp=^[a-z]([-a-z0-9]*[a-z0-9])?$" gorm:"not null;unique_index"`
 
@@ -34,6 +34,9 @@ type Kube struct {
 
 	Username string `json:"username" validate:"nonzero"`
 	Password string `json:"password" validate:"nonzero"`
+
+	HeapsterVersion          string `json:"heapster_version" validate:"nonzero" sg:"default=v1.1.0"`
+	HeapsterMetricResolution string `json:"heapster_metric_resolution" validate:"regexp=^([0-9]+[smhd])+$" sg:"default=20s"`
 
 	// NOTE due to how we marshal this as JSON, it's difficult to have this stored
 	// as an interface, because unmarshalling causes us to lose the underlying

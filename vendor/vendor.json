@@ -269,6 +269,12 @@
 			"revisionTime": "2016-08-21T07:55:01Z"
 		},
 		{
+			"checksumSHA1": "Lnv1MZJu56aDzs5/EebdCuq3OFI=",
+			"path": "github.com/mitchellh/go-homedir",
+			"revision": "981ab348d865cf048eb7d17e78ac7192632d8415",
+			"revisionTime": "2016-03-01T18:31:30Z"
+		},
+		{
 			"checksumSHA1": "7Ck3I7G0hgz+1WD5ohzUMFJsvGg=",
 			"path": "github.com/satori/go.uuid",
 			"revision": "e673fdd4dea8a7334adbbe7f57b7e4b00bdc5502",
@@ -311,16 +317,16 @@
 			"revisionTime": "2016-04-08T04:14:08Z"
 		},
 		{
-			"checksumSHA1": "f1UGt16VBCx0vpR3d1WfBwiHgdQ=",
-			"path": "github.com/supergiant/guber",
-			"revision": "ae13b43a9af75dc2d58112381c03119e543a47e9",
-			"revisionTime": "2016-09-12T20:20:13Z"
-		},
-		{
 			"checksumSHA1": "GQ9bu6PuydK3Yor1JgtVKUfEJm8=",
 			"path": "github.com/tent/http-link-go",
 			"revision": "ac974c61c2f990f4115b119354b5e0b47550e888",
 			"revisionTime": "2013-07-02T22:55:49Z"
+		},
+		{
+			"checksumSHA1": "VGCGId2YuDDw3LhT+P7TQmqtTgQ=",
+			"path": "github.com/urfave/cli",
+			"revision": "61f519fe5e57c2518c03627b194899a105838eba",
+			"revisionTime": "2016-09-12T03:00:11Z"
 		},
 		{
 			"checksumSHA1": "vE43s37+4CJ2CDU6TlOUOYE0K9c=",

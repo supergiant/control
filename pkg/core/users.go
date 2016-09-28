@@ -9,5 +9,5 @@ type Users struct {
 func (c *Users) RegenerateAPIToken(id *int64, m *model.User) error {
 	m.ID = id
 	m.GenerateAPIToken()
-	return c.core.DB.Model(m).Update("api_token", m.APIToken).Error
+	return c.Core.DB.Model(m).Update("api_token", m.APIToken)
 }

@@ -1,0 +1,36 @@
+{{ define "body" }}
+
+  <!-- D3 -->
+  <script src="/ui/assets/vendor/js/d3.v4.min.js"></script>
+
+  <div class="row above_log" id="main_row">
+
+    <div id="two_graphs" class="row" style="display: none">
+      <div class="col-xs-6" style="padding: 0 0 0 30px;">
+        <svg id="cpu_graph" height="130px" width="100%"></svg>
+      </div>
+      <div class="col-xs-6" style="padding: 0 30px 0 0;">
+        <svg id="ram_graph" height="130px" width="100%"></svg>
+      </div>
+    </div>
+
+    <div class="row" style="display: none">
+      <div class="col-xs-12" id="pod_labels" style="padding: 0 0 20px 30px;"></div>
+    </div>
+
+    <!-- JS -->
+    <script src="/ui/assets/js/resource_graphs.js"></script>
+
+    <div class="row">
+      <div class="col-xs-12">
+        {{ template "item_list" . }}
+      </div>
+    </div>
+  </div>
+
+  <div class="row">
+    <div class="col-xs-12">
+      <div id="log"></div>
+    </div>
+  </div>
+{{ end }}
