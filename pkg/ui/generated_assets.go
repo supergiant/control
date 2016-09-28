@@ -14,7 +14,6 @@
 // ui/assets/js/vendor/bootstrap.min.js
 // ui/assets/js/vendor/d3.v4.min.js
 // ui/assets/js/vendor/jquery-3.1.0.min.js
-// ui/assets/scss/_bootstrap.scss
 // ui/views/index.html
 // ui/views/kube_resources.html
 // ui/views/layouts/layout.html
@@ -104,7 +103,7 @@ func uiAssetsCssMainCss() (*asset, error) {
 		return nil, err
 	}
 
-	info := bindataFileInfo{name: "ui/assets/css/main.css", size: 126787, mode: os.FileMode(420), modTime: time.Unix(1475092803, 0)}
+	info := bindataFileInfo{name: "ui/assets/css/main.css", size: 126787, mode: os.FileMode(420), modTime: time.Unix(1475104945, 0)}
 	a := &asset{bytes: bytes, info: info}
 	return a, nil
 }
@@ -124,7 +123,7 @@ func uiAssetsCssMainCssMap() (*asset, error) {
 		return nil, err
 	}
 
-	info := bindataFileInfo{name: "ui/assets/css/main.css.map", size: 86636, mode: os.FileMode(420), modTime: time.Unix(1475092806, 0)}
+	info := bindataFileInfo{name: "ui/assets/css/main.css.map", size: 86636, mode: os.FileMode(420), modTime: time.Unix(1475104945, 0)}
 	a := &asset{bytes: bytes, info: info}
 	return a, nil
 }
@@ -144,7 +143,7 @@ func uiAssetsFontsDoppioOneTtf() (*asset, error) {
 		return nil, err
 	}
 
-	info := bindataFileInfo{name: "ui/assets/fonts/Doppio-One.ttf", size: 55704, mode: os.FileMode(493), modTime: time.Unix(1475092419, 0)}
+	info := bindataFileInfo{name: "ui/assets/fonts/Doppio-One.ttf", size: 55704, mode: os.FileMode(493), modTime: time.Unix(1475104945, 0)}
 	a := &asset{bytes: bytes, info: info}
 	return a, nil
 }
@@ -164,7 +163,7 @@ func uiAssetsFontsGlyphiconsHalflingsRegularEot() (*asset, error) {
 		return nil, err
 	}
 
-	info := bindataFileInfo{name: "ui/assets/fonts/glyphicons-halflings-regular.eot", size: 20127, mode: os.FileMode(493), modTime: time.Unix(1474473471, 0)}
+	info := bindataFileInfo{name: "ui/assets/fonts/glyphicons-halflings-regular.eot", size: 20127, mode: os.FileMode(493), modTime: time.Unix(1475104945, 0)}
 	a := &asset{bytes: bytes, info: info}
 	return a, nil
 }
@@ -184,7 +183,7 @@ func uiAssetsFontsGlyphiconsHalflingsRegularSvg() (*asset, error) {
 		return nil, err
 	}
 
-	info := bindataFileInfo{name: "ui/assets/fonts/glyphicons-halflings-regular.svg", size: 108738, mode: os.FileMode(493), modTime: time.Unix(1474473471, 0)}
+	info := bindataFileInfo{name: "ui/assets/fonts/glyphicons-halflings-regular.svg", size: 108738, mode: os.FileMode(493), modTime: time.Unix(1475104945, 0)}
 	a := &asset{bytes: bytes, info: info}
 	return a, nil
 }
@@ -204,7 +203,7 @@ func uiAssetsFontsGlyphiconsHalflingsRegularTtf() (*asset, error) {
 		return nil, err
 	}
 
-	info := bindataFileInfo{name: "ui/assets/fonts/glyphicons-halflings-regular.ttf", size: 45404, mode: os.FileMode(493), modTime: time.Unix(1474473471, 0)}
+	info := bindataFileInfo{name: "ui/assets/fonts/glyphicons-halflings-regular.ttf", size: 45404, mode: os.FileMode(493), modTime: time.Unix(1475104945, 0)}
 	a := &asset{bytes: bytes, info: info}
 	return a, nil
 }
@@ -224,7 +223,7 @@ func uiAssetsFontsGlyphiconsHalflingsRegularWoff() (*asset, error) {
 		return nil, err
 	}
 
-	info := bindataFileInfo{name: "ui/assets/fonts/glyphicons-halflings-regular.woff", size: 23424, mode: os.FileMode(493), modTime: time.Unix(1474473471, 0)}
+	info := bindataFileInfo{name: "ui/assets/fonts/glyphicons-halflings-regular.woff", size: 23424, mode: os.FileMode(493), modTime: time.Unix(1475104945, 0)}
 	a := &asset{bytes: bytes, info: info}
 	return a, nil
 }
@@ -244,7 +243,7 @@ func uiAssetsFontsGlyphiconsHalflingsRegularWoff2() (*asset, error) {
 		return nil, err
 	}
 
-	info := bindataFileInfo{name: "ui/assets/fonts/glyphicons-halflings-regular.woff2", size: 18028, mode: os.FileMode(493), modTime: time.Unix(1474473471, 0)}
+	info := bindataFileInfo{name: "ui/assets/fonts/glyphicons-halflings-regular.woff2", size: 18028, mode: os.FileMode(493), modTime: time.Unix(1475104945, 0)}
 	a := &asset{bytes: bytes, info: info}
 	return a, nil
 }
@@ -264,7 +263,7 @@ func uiAssetsJsIndexJs() (*asset, error) {
 		return nil, err
 	}
 
-	info := bindataFileInfo{name: "ui/assets/js/index.js", size: 14617, mode: os.FileMode(420), modTime: time.Unix(1475084381, 0)}
+	info := bindataFileInfo{name: "ui/assets/js/index.js", size: 14617, mode: os.FileMode(420), modTime: time.Unix(1475100938, 0)}
 	a := &asset{bytes: bytes, info: info}
 	return a, nil
 }
@@ -284,7 +283,7 @@ func uiAssetsJsMainJs() (*asset, error) {
 		return nil, err
 	}
 
-	info := bindataFileInfo{name: "ui/assets/js/main.js", size: 318, mode: os.FileMode(420), modTime: time.Unix(1475084381, 0)}
+	info := bindataFileInfo{name: "ui/assets/js/main.js", size: 318, mode: os.FileMode(420), modTime: time.Unix(1475100938, 0)}
 	a := &asset{bytes: bytes, info: info}
 	return a, nil
 }
@@ -304,7 +303,7 @@ func uiAssetsJsResource_graphsJs() (*asset, error) {
 		return nil, err
 	}
 
-	info := bindataFileInfo{name: "ui/assets/js/resource_graphs.js", size: 5167, mode: os.FileMode(420), modTime: time.Unix(1475084381, 0)}
+	info := bindataFileInfo{name: "ui/assets/js/resource_graphs.js", size: 5167, mode: os.FileMode(420), modTime: time.Unix(1475100938, 0)}
 	a := &asset{bytes: bytes, info: info}
 	return a, nil
 }
@@ -324,7 +323,7 @@ func uiAssetsJsVendorBootstrapMinJs() (*asset, error) {
 		return nil, err
 	}
 
-	info := bindataFileInfo{name: "ui/assets/js/vendor/bootstrap.min.js", size: 37045, mode: os.FileMode(420), modTime: time.Unix(1475092419, 0)}
+	info := bindataFileInfo{name: "ui/assets/js/vendor/bootstrap.min.js", size: 37045, mode: os.FileMode(420), modTime: time.Unix(1475104945, 0)}
 	a := &asset{bytes: bytes, info: info}
 	return a, nil
 }
@@ -344,7 +343,7 @@ func uiAssetsJsVendorD3V4MinJs() (*asset, error) {
 		return nil, err
 	}
 
-	info := bindataFileInfo{name: "ui/assets/js/vendor/d3.v4.min.js", size: 212385, mode: os.FileMode(420), modTime: time.Unix(1475092419, 0)}
+	info := bindataFileInfo{name: "ui/assets/js/vendor/d3.v4.min.js", size: 212385, mode: os.FileMode(420), modTime: time.Unix(1475104945, 0)}
 	a := &asset{bytes: bytes, info: info}
 	return a, nil
 }
@@ -364,27 +363,7 @@ func uiAssetsJsVendorJquery310MinJs() (*asset, error) {
 		return nil, err
 	}
 
-	info := bindataFileInfo{name: "ui/assets/js/vendor/jquery-3.1.0.min.js", size: 86351, mode: os.FileMode(420), modTime: time.Unix(1475092419, 0)}
-	a := &asset{bytes: bytes, info: info}
-	return a, nil
-}
-
-var _uiAssetsScss_bootstrapScss = []byte("\x1f\x8b\x08\x00\x00\x09\x6e\x88\x00\xff\x7c\x94\x4f\x6f\x13\x31\x10\xc5\xef\xf9\x14\xa6\x27\xa8\x48\xdc\x3f\x12\x48\xf4\x82\x88\x7a\x28\x2a\x1c\x48\xf9\x00\x63\x7b\xba\x19\x64\x7b\xac\xf1\x6c\x42\xf8\xf4\x28\x49\x5b\x22\xb1\xd3\xf3\x7b\xfe\x3d\xbf\x19\xef\xfa\xf3\x37\x33\x77\xee\xbe\x30\x6b\x57\x81\xe6\x36\xd7\x8b\xeb\xc5\x47\xf7\x76\xad\xda\x3e\x79\x3f\xa0\x86\x67\x6d\x11\xb9\xbc\xdb\xbb\x97\xdc\x76\x42\xc3\x5a\xdd\xd5\xc5\xe5\xe5\xfc\xea\xe2\xf2\x83\x7b\xd8\x92\x2a\xca\x7b\x77\x57\xe3\x62\x6f\xba\xa7\x88\xb5\x63\x72\x63\x4d\x28\xee\xdb\xdd\xc3\x11\xda\xf7\x54\xd2\xf5\x18\xf6\x3c\xaf\xdb\xd0\xfd\x4b\x84\x0f\x99\x83\x2f\xd0\x15\xc5\xdf\xdf\x2d\x6f\xbf\xaf\x6e\xf7\x91\x7e\x36\xf3\xde\x2d\x59\xd0\x6d\x40\x08\x42\xc6\xee\xa0\x26\x57\xe8\x37\xd5\x3e\xfb\x4c\xa5\xb1\xa8\x3b\xfb\x47\x7a\xf1\x9d\xdd\x4c\xc9\xc7\x83\x67\x37\x07\xf0\x0f\xec\xa8\x07\x5e\xc2\x86\x35\x61\x8d\x84\x93\xd4\xca\x52\x20\xd3\x1f\x9c\xa6\x36\xa1\xaa\xd3\xd2\x90\x77\x6d\x4d\x91\x5f\x42\x0f\x6d\x96\xab\xd5\x94\xb9\x47\x78\x7c\xe4\x9c\xa8\x0e\xd3\x34\xdd\x35\xe3\x0a\x91\x93\xa1\x0c\x42\xc9\xa0\xbd\x32\xa8\x47\x96\x62\x48\x61\x54\x3d\xed\x53\x1a\x57\xac\x3a\x39\xb8\xf8\xac\xce\xa1\x52\x01\xa5\xe3\xc1\x09\x67\x12\x6e\x89\xb7\x96\x7c\x0c\x9d\x0f\xc2\x63\x33\x2c\x54\xdb\xa8\xaf\x3a\x2a\x6c\x6c\x25\x80\x18\xd1\x82\x90\xa2\x8c\x25\x18\x87\x1b\x0c\x54\x0f\xdd\x4c\x1d\x0d\x76\x86\x80\xd9\xaa\x0c\x69\xb0\xd6\xf3\x6b\x2c\x81\x55\xac\x44\x5d\x8f\x25\x54\x20\x0b\x0d\x19\x45\xad\x36\xc2\x83\x60\xef\xf3\x00\x62\x7d\x45\x98\x08\x8c\x42\xd4\x9f\x76\x60\xcd\xa2\x9a\x85\x05\x7b\xe3\xda\x69\x83\x73\x2c\x01\x8d\x57\xbb\xc5\x6c\x01\x62\xe6\x8e\xff\xbd\x4b\xb7\xf5\xee\x2b\x6c\x60\x15\x85\x9a\x4e\xf6\xe1\x04\x16\x53\x99\xb3\x92\xd5\x86\x1b\x6f\xd0\x1a\x53\x04\xe1\xb1\x63\x7e\xba\xd1\x4f\xa5\x4c\xba\x73\x31\x43\xef\xd3\xff\x99\xf1\x60\x21\x6b\xeb\x27\x03\x3a\x75\xfe\x0d\x00\x00\xff\xff\x46\x9d\xac\x20\xce\x05\x00\x00")
-
-func uiAssetsScss_bootstrapScssBytes() ([]byte, error) {
-	return bindataRead(
-		_uiAssetsScss_bootstrapScss,
-		"ui/assets/scss/_bootstrap.scss",
-	)
-}
-
-func uiAssetsScss_bootstrapScss() (*asset, error) {
-	bytes, err := uiAssetsScss_bootstrapScssBytes()
-	if err != nil {
-		return nil, err
-	}
-
-	info := bindataFileInfo{name: "ui/assets/scss/_bootstrap.scss", size: 1486, mode: os.FileMode(420), modTime: time.Unix(1475092419, 0)}
+	info := bindataFileInfo{name: "ui/assets/js/vendor/jquery-3.1.0.min.js", size: 86351, mode: os.FileMode(420), modTime: time.Unix(1475104945, 0)}
 	a := &asset{bytes: bytes, info: info}
 	return a, nil
 }
@@ -404,7 +383,7 @@ func uiViewsIndexHtml() (*asset, error) {
 		return nil, err
 	}
 
-	info := bindataFileInfo{name: "ui/views/index.html", size: 212, mode: os.FileMode(420), modTime: time.Unix(1475084381, 0)}
+	info := bindataFileInfo{name: "ui/views/index.html", size: 212, mode: os.FileMode(420), modTime: time.Unix(1475100938, 0)}
 	a := &asset{bytes: bytes, info: info}
 	return a, nil
 }
@@ -424,7 +403,7 @@ func uiViewsKube_resourcesHtml() (*asset, error) {
 		return nil, err
 	}
 
-	info := bindataFileInfo{name: "ui/views/kube_resources.html", size: 927, mode: os.FileMode(420), modTime: time.Unix(1475092419, 0)}
+	info := bindataFileInfo{name: "ui/views/kube_resources.html", size: 927, mode: os.FileMode(420), modTime: time.Unix(1475104945, 0)}
 	a := &asset{bytes: bytes, info: info}
 	return a, nil
 }
@@ -444,7 +423,7 @@ func uiViewsLayoutsLayoutHtml() (*asset, error) {
 		return nil, err
 	}
 
-	info := bindataFileInfo{name: "ui/views/layouts/layout.html", size: 2688, mode: os.FileMode(420), modTime: time.Unix(1475092419, 0)}
+	info := bindataFileInfo{name: "ui/views/layouts/layout.html", size: 2688, mode: os.FileMode(420), modTime: time.Unix(1475104945, 0)}
 	a := &asset{bytes: bytes, info: info}
 	return a, nil
 }
@@ -464,7 +443,7 @@ func uiViewsLoginHtml() (*asset, error) {
 		return nil, err
 	}
 
-	info := bindataFileInfo{name: "ui/views/login.html", size: 816, mode: os.FileMode(420), modTime: time.Unix(1475086036, 0)}
+	info := bindataFileInfo{name: "ui/views/login.html", size: 816, mode: os.FileMode(420), modTime: time.Unix(1475100938, 0)}
 	a := &asset{bytes: bytes, info: info}
 	return a, nil
 }
@@ -484,7 +463,7 @@ func uiViewsNewHtml() (*asset, error) {
 		return nil, err
 	}
 
-	info := bindataFileInfo{name: "ui/views/new.html", size: 2772, mode: os.FileMode(420), modTime: time.Unix(1475086036, 0)}
+	info := bindataFileInfo{name: "ui/views/new.html", size: 2772, mode: os.FileMode(420), modTime: time.Unix(1475100938, 0)}
 	a := &asset{bytes: bytes, info: info}
 	return a, nil
 }
@@ -504,7 +483,7 @@ func uiViewsPartialsItem_listHtml() (*asset, error) {
 		return nil, err
 	}
 
-	info := bindataFileInfo{name: "ui/views/partials/item_list.html", size: 4924, mode: os.FileMode(420), modTime: time.Unix(1475084381, 0)}
+	info := bindataFileInfo{name: "ui/views/partials/item_list.html", size: 4924, mode: os.FileMode(420), modTime: time.Unix(1475100938, 0)}
 	a := &asset{bytes: bytes, info: info}
 	return a, nil
 }
@@ -524,7 +503,7 @@ func uiViewsShowHtml() (*asset, error) {
 		return nil, err
 	}
 
-	info := bindataFileInfo{name: "ui/views/show.html", size: 499, mode: os.FileMode(420), modTime: time.Unix(1475086036, 0)}
+	info := bindataFileInfo{name: "ui/views/show.html", size: 499, mode: os.FileMode(420), modTime: time.Unix(1475100938, 0)}
 	a := &asset{bytes: bytes, info: info}
 	return a, nil
 }
@@ -595,7 +574,6 @@ var _bindata = map[string]func() (*asset, error){
 	"ui/assets/js/vendor/bootstrap.min.js": uiAssetsJsVendorBootstrapMinJs,
 	"ui/assets/js/vendor/d3.v4.min.js": uiAssetsJsVendorD3V4MinJs,
 	"ui/assets/js/vendor/jquery-3.1.0.min.js": uiAssetsJsVendorJquery310MinJs,
-	"ui/assets/scss/_bootstrap.scss": uiAssetsScss_bootstrapScss,
 	"ui/views/index.html": uiViewsIndexHtml,
 	"ui/views/kube_resources.html": uiViewsKube_resourcesHtml,
 	"ui/views/layouts/layout.html": uiViewsLayoutsLayoutHtml,
@@ -668,9 +646,6 @@ var _bintree = &bintree{nil, map[string]*bintree{
 					"d3.v4.min.js": &bintree{uiAssetsJsVendorD3V4MinJs, map[string]*bintree{}},
 					"jquery-3.1.0.min.js": &bintree{uiAssetsJsVendorJquery310MinJs, map[string]*bintree{}},
 				}},
-			}},
-			"scss": &bintree{nil, map[string]*bintree{
-				"_bootstrap.scss": &bintree{uiAssetsScss_bootstrapScss, map[string]*bintree{}},
 			}},
 		}},
 		"views": &bintree{nil, map[string]*bintree{
