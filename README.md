@@ -223,7 +223,7 @@ assets directly into the code. You will need to run this command if you're
 making changes to the UI:
 
 ```shell
-go-bindata -pkg ui -o pkg/ui/generated_assets.go ui/...
+go-bindata -pkg ui -o pkg/ui/generated_assets.go ui/assets ui/views
 ```
 
 And this, if you're working with provider code:
