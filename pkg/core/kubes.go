@@ -47,7 +47,7 @@ func (c *Kubes) Delete(id *int64, m *model.Kube) ActionInterface {
 			MaxRetries:  5,
 		},
 		Core:           c.Core,
-		Scope:          c.Core.DB.Preload("CloudAccount").Preload("KubeResources").Preload("Entrypoints.Listeners").Preload("Volumes.Kube.CloudAccount").Preload("Nodes.Kube.CloudAccount"),
+		Scope:          c.Core.DB.Preload("CloudAccount").Preload("KubeResources").Preload("Entrypoints").Preload("Volumes").Preload("Nodes"),
 		Model:          m,
 		ID:             id,
 		CancelExisting: true,
@@ -59,12 +59,6 @@ func (c *Kubes) Delete(id *int64, m *model.Kube) ActionInterface {
 				}
 			}
 			for _, entrypoint := range m.Entrypoints {
-				// Delete listeners directly
-				for _, listener := range entrypoint.Listeners {
-					if err := c.Core.DB.Delete(listener); err != nil {
-						return err
-					}
-				}
 				if err := c.Core.Entrypoints.Delete(entrypoint.ID, entrypoint).Now(); err != nil {
 					return err
 				}

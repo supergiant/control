@@ -5,12 +5,16 @@ import (
 	"github.com/urfave/cli"
 )
 
-func ListCloudAccounts(c *cli.Context) error {
+func ListCloudAccounts(c *cli.Context) (err error) {
 	list := new(model.CloudAccountList)
-	if err := newClient(c).CloudAccounts.List(list); err != nil {
+	list.Filters, err = listFilters(c)
+	if err != nil {
 		return err
 	}
-	return printObj(list)
+	if err = newClient(c).CloudAccounts.List(list); err != nil {
+		return err
+	}
+	return printList(c, list)
 }
 
 func CreateCloudAccount(c *cli.Context) error {

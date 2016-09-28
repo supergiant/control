@@ -5,12 +5,16 @@ import (
 	"github.com/urfave/cli"
 )
 
-func ListUsers(c *cli.Context) error {
+func ListUsers(c *cli.Context) (err error) {
 	list := new(model.UserList)
-	if err := newClient(c).Users.List(list); err != nil {
+	list.Filters, err = listFilters(c)
+	if err != nil {
 		return err
 	}
-	return printObj(list)
+	if err = newClient(c).Users.List(list); err != nil {
+		return err
+	}
+	return printList(c, list)
 }
 
 func CreateUser(c *cli.Context) error {

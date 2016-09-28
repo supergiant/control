@@ -4,8 +4,11 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"html/template"
 	"io/ioutil"
 	"os"
+	"reflect"
+	"strings"
 
 	"github.com/imdario/mergo"
 	"github.com/supergiant/supergiant/pkg/client"
@@ -15,9 +18,18 @@ import (
 
 func commandList(title string, fn func(*cli.Context) error) cli.Command {
 	return cli.Command{
-		Name:   "list",
-		Usage:  "list " + title + "s",
-		Flags:  baseFlags,
+		Name:  "list",
+		Usage: "list " + title + "s",
+		Flags: append(baseFlags, []cli.Flag{
+			cli.StringSliceFlag{
+				Name:  "filter",
+				Usage: "--filter=name:this,or,that --filter=other_field:value",
+			},
+			cli.StringFlag{
+				Name:  "format",
+				Usage: "--format=\"{{ .ThisField }}\"",
+			},
+		}...),
 		Action: fn,
 	}
 }
@@ -145,4 +157,36 @@ func printObj(obj interface{}) error {
 	}
 	fmt.Println(string(out))
 	return nil
+}
+
+func printList(c *cli.Context, list interface{}) error {
+	// Optional formatting
+	if format := c.String("format"); format != "" {
+		tmpl, err := template.New("format").Parse(format)
+		if err != nil {
+			return err
+		}
+		items := reflect.ValueOf(list).Elem().FieldByName("Items")
+		for i := 0; i < items.Len(); i++ {
+			if err := tmpl.Execute(os.Stdout, items.Index(i).Interface()); err != nil {
+				return err
+			}
+		}
+		return nil
+	}
+	return printObj(list)
+}
+
+func listFilters(c *cli.Context) (map[string][]string, error) {
+	filters := make(map[string][]string)
+	for _, filter := range c.StringSlice("filter") {
+		segments := strings.Split(filter, ":")
+		if len(segments) != 2 {
+			return nil, fmt.Errorf("Invalid filter flag '%s'", filter)
+		}
+		field := segments[0]
+		values := strings.Split(segments[1], ",")
+		filters[field] = values
+	}
+	return filters, nil
 }

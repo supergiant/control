@@ -15,50 +15,29 @@ set -e
 : ${KUBE_NAME?"Need to set KUBE_NAME"}
 : ${ENTRYPOINT_NAME?"Need to set ENTRYPOINT_NAME"}
 
-# Create an internal Service for clustering / transport.
+# Create an external Service and Pod for each member
+for member in {0..2}
+do
+# Service
 cat <<EOF | supergiant kube_resources create -f -
 {
   "kube_name": "$KUBE_NAME",
-  "namespace": "my-es-cluster",
+  "namespace": "my-mongo-db",
   "kind": "Service",
-  "name": "transport",
-  "template": {
-    "spec": {
-      "selector": {
-        "service": "elasticsearch"
-      },
-      "ports": [
-        {
-          "port": 9300
-        }
-      ]
-    }
-  }
-}
-EOF
-
-# Create a NodePort Service for external HTTP access. We use the special
-# Supergiant EntrypointListener definition to link this Service to our
-# Entrypoint on a specified port.
-cat <<EOF | supergiant kube_resources create -f -
-{
-  "kube_name": "$KUBE_NAME",
-  "namespace": "my-es-cluster",
-  "kind": "Service",
-  "name": "http",
+  "name": "member-$member",
   "template": {
     "spec": {
       "type": "NodePort",
       "selector": {
-        "service": "elasticsearch"
+        "member": "$member"
       },
       "ports": [
         {
-          "name": "http",
-          "port": 9200,
+          "name": "mongo-$member",
+          "port": 27017,
           "SUPERGIANT_ENTRYPOINT_LISTENER": {
             "entrypoint_name": "$ENTRYPOINT_NAME",
-            "entrypoint_port": 80
+            "entrypoint_port": $((33333 + $member))
           }
         }
       ]
@@ -67,60 +46,47 @@ cat <<EOF | supergiant kube_resources create -f -
 }
 EOF
 
-# Create a Pod for the first Elasticsearch node. We use the special Supergiant
-# Volume definition to specify an external Volume to be dynamically provisioned
-# and assigned to this Pod.
+# Pod
 cat <<EOF | supergiant kube_resources create -f -
 {
   "kube_name": "$KUBE_NAME",
-  "namespace": "my-es-cluster",
+  "namespace": "my-mongo-db",
   "kind": "Pod",
-  "name": "data-node-0",
+  "name": "member-$member",
   "template": {
     "metadata": {
       "labels": {
-        "service": "elasticsearch"
+        "member": "$member"
       }
     },
     "spec": {
       "containers": [
         {
-          "name": "elasticsearch",
-          "image": "elasticsearch:2.3.3",
+          "name": "mongo",
+          "image": "mongo",
           "command": [
-            "elasticsearch",
-            "-Des.insecure.allow.root=true",
-            "-Des.discovery.zen.ping.unicast.hosts=transport.my-es-cluster.svc.cluster.local:9300",
-            "-Des.path.data=/data-0,/data-1",
-            "-Des.path.logs=/data-0"
+            "mongod", "--replSet", "rs0"
           ],
           "resources": {
             "requests": {
-              "memory": "1.5Gi"
+              "memory": "0.25Gi"
+            },
+            "limits": {
+              "cpu": 0.25,
+              "memory": "1Gi"
             }
           },
           "volumeMounts": [
             {
-              "name": "es-node0-disk0",
-              "mountPath": "/data-0"
-            },
-            {
-              "name": "es-node0-disk1",
-              "mountPath": "/data-1"
+              "name": "mongodata-$member",
+              "mountPath": "/data/db"
             }
           ]
         }
       ],
       "volumes": [
         {
-          "name": "es-node0-disk0",
-          "SUPERGIANT_EXTERNAL_VOLUME": {
-            "type": "gp2",
-            "size": 10
-          }
-        },
-        {
-          "name": "es-node0-disk1",
+          "name": "mongodata-$member",
           "SUPERGIANT_EXTERNAL_VOLUME": {
             "type": "gp2",
             "size": 10
@@ -131,9 +97,28 @@ cat <<EOF | supergiant kube_resources create -f -
   }
 }
 EOF
+done
 
-cluster_address=$(supergiant entrypoints list --filter=name:$ENTRYPOINT_NAME --format='http://{{ .Address }}:80')
-echo "You can reach Elasticsearch at $cluster_address when finished deploying."
+echo "Waiting for Pod to start"
+while [[ $(supergiant kube_resources list --filter=kind:Pod --filter=name:member-0 --format='{{ .Started }}') == 'false' ]]; do
+  printf .
+  sleep 1
+done
+
+# Get external address of first member
+first_member_address=$(supergiant entrypoints list --filter=name:$ENTRYPOINT_NAME --format='{{ .Address }}:33334')
+
+# Configure Replica Set
+mongo $first_member_address --eval 'rs.initiate(); rs.reconfig({
+  _id: "rs0",
+  members: [
+    {_id: 0, host: "member-0.my-mongo-db.svc.cluster.local:27017"},
+    {_id: 1, host: "member-1.my-mongo-db.svc.cluster.local:27017"},
+    {_id: 2, host: "member-2.my-mongo-db.svc.cluster.local:27017"}
+  ]
+})'
+
+echo "You can reach Mongo at $first_member_address"
 
 kube_id=$(supergiant kubes list --filter=name:$KUBE_NAME --format='{{ .ID }}')
 echo "And you can view the container log with:"

@@ -5,12 +5,16 @@ import (
 	"github.com/urfave/cli"
 )
 
-func ListSessions(c *cli.Context) error {
+func ListSessions(c *cli.Context) (err error) {
 	list := new(model.SessionList)
-	if err := newClient(c).Sessions.List(list); err != nil {
+	list.Filters, err = listFilters(c)
+	if err != nil {
 		return err
 	}
-	return printObj(list)
+	if err = newClient(c).Sessions.List(list); err != nil {
+		return err
+	}
+	return printList(c, list)
 }
 
 func CreateSession(c *cli.Context) error {

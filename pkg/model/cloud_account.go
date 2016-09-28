@@ -9,7 +9,7 @@ type CloudAccount struct {
 	BaseModel
 
 	// has_many Kubes
-	Kubes []*Kube `json:"kubes,omitempty"`
+	Kubes []*Kube `json:"kubes,omitempty" gorm:"ForeignKey:CloudAccountName;AssociationForeignKey:Name"`
 
 	Name string `json:"name" validate:"nonzero" gorm:"not null;unique_index"`
 

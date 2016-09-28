@@ -38,10 +38,16 @@ func (c *Entrypoints) Delete(id *int64, m *model.Entrypoint) ActionInterface {
 			MaxRetries:  5,
 		},
 		Core:  c.Core,
-		Scope: c.Core.DB.Preload("Kube.CloudAccount"),
+		Scope: c.Core.DB.Preload("Kube.CloudAccount").Preload("EntrypointListeners"),
 		Model: m,
 		ID:    id,
 		Fn: func(_ *Action) error {
+			// Delete listener records directly
+			for _, listener := range m.EntrypointListeners {
+				if err := c.Core.DB.Delete(listener); err != nil {
+					return err
+				}
+			}
 			if err := c.Core.CloudAccounts.provider(m.Kube.CloudAccount).DeleteEntrypoint(m); err != nil {
 				return err
 			}

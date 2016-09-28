@@ -5,12 +5,16 @@ import (
 	"github.com/urfave/cli"
 )
 
-func ListKubes(c *cli.Context) error {
+func ListKubes(c *cli.Context) (err error) {
 	list := new(model.KubeList)
-	if err := newClient(c).Kubes.List(list); err != nil {
+	list.Filters, err = listFilters(c)
+	if err != nil {
 		return err
 	}
-	return printObj(list)
+	if err = newClient(c).Kubes.List(list); err != nil {
+		return err
+	}
+	return printList(c, list)
 }
 
 func CreateKube(c *cli.Context) error {

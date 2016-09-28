@@ -5,12 +5,16 @@ import (
 	"github.com/urfave/cli"
 )
 
-func ListVolumes(c *cli.Context) error {
+func ListVolumes(c *cli.Context) (err error) {
 	list := new(model.VolumeList)
-	if err := newClient(c).Volumes.List(list); err != nil {
+	list.Filters, err = listFilters(c)
+	if err != nil {
 		return err
 	}
-	return printObj(list)
+	if err = newClient(c).Volumes.List(list); err != nil {
+		return err
+	}
+	return printList(c, list)
 }
 
 func CreateVolume(c *cli.Context) error {

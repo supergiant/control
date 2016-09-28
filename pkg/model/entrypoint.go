@@ -14,8 +14,8 @@ type Entrypoint struct {
 
 	Name string `json:"name" validate:"nonzero,max=21,regexp=^[\\w-]+$" gorm:"not null;unique_index"`
 
-	Listeners     []*EntrypointListener `json:"ports,omitempty" gorm:"-" sg:"store_as_json_in=ListenersJSON"`
-	ListenersJSON []byte                `json:"-"`
+	// has_many EntrypointListeners
+	EntrypointListeners []*EntrypointListener `json:"entrypoint_listeners,omitempty" gorm:"ForeignKey:EntrypointName;AssociationForeignKey:Name"`
 
 	ProviderID string `json:"provider_id" sg:"readonly"`
 	Address    string `json:"address,omitempty" sg:"readonly"`

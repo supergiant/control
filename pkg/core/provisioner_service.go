@@ -136,8 +136,8 @@ func (p *ServiceProvisioner) Provision(kubeResource *model.KubeResource) error {
 	// Delete all the EntrypointListeners we no longer need
 	for _, asset := range assets {
 		if asset.plannedAction == serviceProvisionerAssetDelete {
-			if err := p.Core.EntrypointListeners.Delete(asset.model.ID, asset.model).Now(); err != nil {
-				return err
+			if delErr := p.Core.EntrypointListeners.Delete(asset.model.ID, asset.model).Now(); delErr != nil {
+				return delErr
 			}
 		}
 	}
@@ -153,6 +153,12 @@ func (p *ServiceProvisioner) Provision(kubeResource *model.KubeResource) error {
 	// Create the Service (this is where new ports get nodePort assignments)
 	if err := p.Core.DefaultProvisioner.Provision(kubeResource); err != nil {
 		return err
+	}
+
+	// Return now if not NodePort
+	svcType, _ := spec["type"].(string)
+	if svcType != "NodePort" {
+		return nil
 	}
 
 	var artifactMap map[string]interface{}

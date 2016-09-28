@@ -5,12 +5,16 @@ import (
 	"github.com/urfave/cli"
 )
 
-func ListNodes(c *cli.Context) error {
+func ListNodes(c *cli.Context) (err error) {
 	list := new(model.NodeList)
-	if err := newClient(c).Nodes.List(list); err != nil {
+	list.Filters, err = listFilters(c)
+	if err != nil {
 		return err
 	}
-	return printObj(list)
+	if err = newClient(c).Nodes.List(list); err != nil {
+		return err
+	}
+	return printList(c, list)
 }
 
 func CreateNode(c *cli.Context) error {

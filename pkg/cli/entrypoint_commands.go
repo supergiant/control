@@ -5,12 +5,16 @@ import (
 	"github.com/urfave/cli"
 )
 
-func ListEntrypoints(c *cli.Context) error {
+func ListEntrypoints(c *cli.Context) (err error) {
 	list := new(model.EntrypointList)
-	if err := newClient(c).Entrypoints.List(list); err != nil {
+	list.Filters, err = listFilters(c)
+	if err != nil {
 		return err
 	}
-	return printObj(list)
+	if err = newClient(c).Entrypoints.List(list); err != nil {
+		return err
+	}
+	return printList(c, list)
 }
 
 func CreateEntrypoint(c *cli.Context) error {
