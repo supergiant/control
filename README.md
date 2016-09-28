@@ -192,7 +192,7 @@ go run cmd/generate_admin_user/generate_admin_user.go --config-file config/confi
 #### Run Supergiant
 
 ```shell
-go run main.go --config-file config/config.json
+go run cmd/server/server.go --config-file config/config.json
 ```
 
 The default configuration expects HTTP requests on port `8080` and HTTPS
@@ -206,6 +206,14 @@ username and password][Create Admin User Anchor].
 
 ```shell
 govendor test +local
+```
+
+#### Saving dependencies
+
+If you make a change and import a new package, run this to vendor the imports.
+
+```shell
+govendor add +external
 ```
 
 #### Compiling UI templates and static assets

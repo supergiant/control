@@ -23,21 +23,24 @@ func init() {
 	viewFiles := AssetNames()
 	var partials []string
 	var layouts []string
+	var views []string
 	for _, viewFile := range viewFiles {
 		if !strings.HasPrefix(viewFile, "ui/views") {
 			continue // don't want to load any non-HTML assets into this
 		}
 		if strings.HasPrefix(viewFile, "ui/views/partials") {
 			partials = append(partials, viewFile)
-		} else {
+		} else if strings.HasPrefix(viewFile, "ui/views/layouts") {
 			layouts = append(layouts, viewFile)
+		} else {
+			views = append(views, viewFile)
 		}
 	}
 
-	for _, partial := range partials {
+	for _, view := range views {
 		// https://golang.org/src/html/template/template.go?s=11938:12007#L354
 		var t *template.Template
-		for _, view := range append(layouts, partial) {
+		for _, view := range append(layouts, append(partials, view)...) {
 			name := filepath.Base(view)
 			if t == nil {
 				t = template.New(name)
@@ -59,7 +62,7 @@ func init() {
 			}
 		}
 
-		key := regexp.MustCompile(`([^/]+)\.html$`).FindStringSubmatch(partial)[1]
+		key := regexp.MustCompile(`([^/]+)\.html$`).FindStringSubmatch(view)[1]
 		templates[key] = t
 	}
 }
@@ -92,7 +95,7 @@ func NewRouter(c *core.Core, baseRouter *mux.Router) *mux.Router {
 	r.HandleFunc("/users", restrictedHandler(c, ListUsers)).Methods("GET")
 	r.HandleFunc("/users/{id}", restrictedHandler(c, GetUser)).Methods("GET")
 	r.HandleFunc("/users/{id}/edit", restrictedHandler(c, EditUser)).Methods("GET")
-	r.HandleFunc("/users/{id}", restrictedHandler(c, UpdateUser)).Methods("PUT")
+	r.HandleFunc("/users/{id}", restrictedHandler(c, UpdateUser)).Methods("POST")
 	r.HandleFunc("/users/{id}/delete", restrictedHandler(c, DeleteUser)).Methods("PUT")
 	r.HandleFunc("/users/{id}/regenerate_api_token", restrictedHandler(c, RegenerateUserAPIToken)).Methods("PUT")
 
@@ -108,34 +111,29 @@ func NewRouter(c *core.Core, baseRouter *mux.Router) *mux.Router {
 	r.HandleFunc("/kubes/{id}", restrictedHandler(c, GetKube)).Methods("GET")
 	r.HandleFunc("/kubes/{id}/delete", restrictedHandler(c, DeleteKube)).Methods("PUT")
 
-	r.HandleFunc("/apps/new", restrictedHandler(c, NewApp)).Methods("GET")
-	r.HandleFunc("/apps", restrictedHandler(c, CreateApp)).Methods("POST")
-	r.HandleFunc("/apps", restrictedHandler(c, ListApps)).Methods("GET")
-	r.HandleFunc("/apps/{id}", restrictedHandler(c, GetApp)).Methods("GET")
-	r.HandleFunc("/apps/{id}/delete", restrictedHandler(c, DeleteApp)).Methods("PUT")
+	r.HandleFunc("/nodes/new", restrictedHandler(c, NewNode)).Methods("GET")
+	r.HandleFunc("/nodes", restrictedHandler(c, CreateNode)).Methods("POST")
+	r.HandleFunc("/nodes", restrictedHandler(c, ListNodes)).Methods("GET")
+	r.HandleFunc("/nodes/{id}", restrictedHandler(c, GetNode)).Methods("GET")
+	r.HandleFunc("/nodes/{id}/delete", restrictedHandler(c, DeleteNode)).Methods("PUT")
 
-	r.HandleFunc("/components/new", restrictedHandler(c, NewComponent)).Methods("GET")
-	r.HandleFunc("/components", restrictedHandler(c, CreateComponent)).Methods("POST")
-	r.HandleFunc("/components", restrictedHandler(c, ListComponents)).Methods("GET")
-	r.HandleFunc("/components/{id}", restrictedHandler(c, GetComponent)).Methods("GET")
-	r.HandleFunc("/components/{id}/delete", restrictedHandler(c, DeleteComponent)).Methods("PUT")
-	r.HandleFunc("/components/{id}/deploy", restrictedHandler(c, DeployComponent)).Methods("PUT")
-	r.HandleFunc("/components/{id}/configure", restrictedHandler(c, ConfigureComponent)).Methods("GET")
+	r.HandleFunc("/kube_resources/new", restrictedHandler(c, NewKubeResource)).Methods("GET")
+	r.HandleFunc("/kube_resources", restrictedHandler(c, CreateKubeResource)).Methods("POST")
+	r.HandleFunc("/kube_resources", restrictedHandler(c, ListKubeResources)).Methods("GET")
+	r.HandleFunc("/kube_resources/{id}", restrictedHandler(c, GetKubeResource)).Methods("GET")
+	r.HandleFunc("/kube_resources/{id}/edit", restrictedHandler(c, EditKubeResource)).Methods("GET")
+	r.HandleFunc("/kube_resources/{id}", restrictedHandler(c, UpdateKubeResource)).Methods("POST")
+	r.HandleFunc("/kube_resources/{id}/delete", restrictedHandler(c, DeleteKubeResource)).Methods("PUT")
+	r.HandleFunc("/kube_resources/{id}/start", restrictedHandler(c, StartKubeResource)).Methods("PUT")
+	r.HandleFunc("/kube_resources/{id}/stop", restrictedHandler(c, StopKubeResource)).Methods("PUT")
 
-	r.HandleFunc("/releases", restrictedHandler(c, CreateRelease)).Methods("POST")
-	r.HandleFunc("/releases/{id}", restrictedHandler(c, UpdateRelease)).Methods("PUT")
-
-	r.HandleFunc("/instances", restrictedHandler(c, ListInstances)).Methods("GET")
-	r.HandleFunc("/instances/{id}", restrictedHandler(c, GetInstance)).Methods("GET")
-
+	r.HandleFunc("/volumes/new", restrictedHandler(c, NewVolume)).Methods("GET")
+	r.HandleFunc("/volumes", restrictedHandler(c, CreateVolume)).Methods("POST")
 	r.HandleFunc("/volumes", restrictedHandler(c, ListVolumes)).Methods("GET")
 	r.HandleFunc("/volumes/{id}", restrictedHandler(c, GetVolume)).Methods("GET")
-
-	r.HandleFunc("/private_image_keys/new", restrictedHandler(c, NewPrivateImageKey)).Methods("GET")
-	r.HandleFunc("/private_image_keys", restrictedHandler(c, CreatePrivateImageKey)).Methods("POST")
-	r.HandleFunc("/private_image_keys", restrictedHandler(c, ListPrivateImageKeys)).Methods("GET")
-	r.HandleFunc("/private_image_keys/{id}", restrictedHandler(c, GetPrivateImageKey)).Methods("GET")
-	r.HandleFunc("/private_image_keys/{id}/delete", restrictedHandler(c, DeletePrivateImageKey)).Methods("PUT")
+	r.HandleFunc("/volumes/{id}/edit", restrictedHandler(c, EditVolume)).Methods("GET")
+	r.HandleFunc("/volumes/{id}", restrictedHandler(c, UpdateVolume)).Methods("POST")
+	r.HandleFunc("/volumes/{id}/delete", restrictedHandler(c, DeleteVolume)).Methods("PUT")
 
 	r.HandleFunc("/entrypoints/new", restrictedHandler(c, NewEntrypoint)).Methods("GET")
 	r.HandleFunc("/entrypoints", restrictedHandler(c, CreateEntrypoint)).Methods("POST")
@@ -143,11 +141,11 @@ func NewRouter(c *core.Core, baseRouter *mux.Router) *mux.Router {
 	r.HandleFunc("/entrypoints/{id}", restrictedHandler(c, GetEntrypoint)).Methods("GET")
 	r.HandleFunc("/entrypoints/{id}/delete", restrictedHandler(c, DeleteEntrypoint)).Methods("PUT")
 
-	r.HandleFunc("/nodes/new", restrictedHandler(c, NewNode)).Methods("GET")
-	r.HandleFunc("/nodes", restrictedHandler(c, CreateNode)).Methods("POST")
-	r.HandleFunc("/nodes", restrictedHandler(c, ListNodes)).Methods("GET")
-	r.HandleFunc("/nodes/{id}", restrictedHandler(c, GetNode)).Methods("GET")
-	r.HandleFunc("/nodes/{id}/delete", restrictedHandler(c, DeleteNode)).Methods("PUT")
+	r.HandleFunc("/entrypoint_listeners/new", restrictedHandler(c, NewEntrypointListener)).Methods("GET")
+	r.HandleFunc("/entrypoint_listeners", restrictedHandler(c, CreateEntrypointListener)).Methods("POST")
+	r.HandleFunc("/entrypoint_listeners", restrictedHandler(c, ListEntrypointListeners)).Methods("GET")
+	r.HandleFunc("/entrypoint_listeners/{id}", restrictedHandler(c, GetEntrypointListener)).Methods("GET")
+	r.HandleFunc("/entrypoint_listeners/{id}/delete", restrictedHandler(c, DeleteEntrypointListener)).Methods("PUT")
 
 	return baseRouter
 }
@@ -234,24 +232,6 @@ func uiRedirect(w http.ResponseWriter, r *http.Request) {
 //------------------------------------------------------------------------------
 
 func Root(sg *client.Client, w http.ResponseWriter, r *http.Request) error {
-	cloudAccounts := new(model.CloudAccountList)
-	if err := sg.CloudAccounts.List(cloudAccounts); err != nil {
-		return err
-	}
-	if cloudAccounts.Total == 0 {
-		http.Redirect(w, r, "/ui/cloud_accounts/new", http.StatusFound)
-		return nil
-	}
-
-	kubes := new(model.KubeList)
-	if err := sg.Kubes.List(kubes); err != nil {
-		return err
-	}
-	if kubes.Total == 0 {
-		http.Redirect(w, r, "/ui/kubes/new", http.StatusFound)
-		return nil
-	}
-
-	http.Redirect(w, r, "/ui/apps", http.StatusFound)
+	http.Redirect(w, r, "/ui/cloud_accounts", http.StatusFound)
 	return nil
 }

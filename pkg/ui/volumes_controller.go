@@ -1,23 +1,50 @@
 package ui
 
 import (
+	"fmt"
 	"net/http"
 
 	"github.com/supergiant/supergiant/pkg/client"
 	"github.com/supergiant/supergiant/pkg/model"
 )
 
+func NewVolume(sg *client.Client, w http.ResponseWriter, r *http.Request) error {
+	return renderTemplate(w, "new", map[string]interface{}{
+		"title":      "Volumes",
+		"formAction": "/ui/volumes",
+		"model": map[string]interface{}{
+			"kube_name": "",
+			"name":    "",
+			"type":    "gp2",
+			"size":    10,
+		},
+	})
+}
+
+func CreateVolume(sg *client.Client, w http.ResponseWriter, r *http.Request) error {
+	m := new(model.Volume)
+	if err := unmarshalFormInto(r, m); err != nil {
+		return err
+	}
+	if err := sg.Volumes.Create(m); err != nil {
+		return renderTemplate(w, "new", map[string]interface{}{
+			"title":      "Volumes",
+			"formAction": "/ui/volumes",
+			"model":      m,
+			"error":      err.Error(),
+		})
+	}
+
+	http.Redirect(w, r, "/ui/volumes", http.StatusFound)
+	return nil
+}
+
 func ListVolumes(sg *client.Client, w http.ResponseWriter, r *http.Request) error {
 	fields := []map[string]interface{}{
 		{
 			"title": "Kube ID",
 			"type":  "field_value",
-			"field": "kube_id",
-		},
-		{
-			"title": "Instance ID",
-			"type":  "field_value",
-			"field": "instance_id",
+			"field":"kube_name",
 		},
 		{
 			"title": "Name",
@@ -30,14 +57,9 @@ func ListVolumes(sg *client.Client, w http.ResponseWriter, r *http.Request) erro
 			"field": "type",
 		},
 		{
-			"title": "GB",
+			"title": "Size",
 			"type":  "field_value",
 			"field": "size",
-		},
-		{
-			"title": "Provider ID",
-			"type":  "field_value",
-			"field": "provider_id",
 		},
 	}
 	return renderTemplate(w, "index", map[string]interface{}{
@@ -45,7 +67,13 @@ func ListVolumes(sg *client.Client, w http.ResponseWriter, r *http.Request) erro
 		"uiBasePath":  "/ui/volumes",
 		"apiListPath": "/api/v0/volumes",
 		"fields":      fields,
-		"showNewLink": false,
+		"showNewLink": true,
+		"actionPaths": map[string]string{
+			"Edit": "/edit",
+		},
+		"batchActionPaths": map[string]string{
+			"Delete": "/delete",
+		},
 	})
 }
 
@@ -62,4 +90,57 @@ func GetVolume(sg *client.Client, w http.ResponseWriter, r *http.Request) error 
 		"title": "Volumes",
 		"model": item,
 	})
+}
+
+func EditVolume(sg *client.Client, w http.ResponseWriter, r *http.Request) error {
+	id, err := parseID(r)
+	if err != nil {
+		return err
+	}
+	item := new(model.Volume)
+	if err := sg.Volumes.Get(id, item); err != nil {
+		return err
+	}
+	return renderTemplate(w, "new", map[string]interface{}{
+		"title":      "Volumes",
+		"formAction": fmt.Sprintf("/ui/volumes/%d", *id),
+		"model": map[string]interface{}{
+			"size": item.Size,
+		},
+	})
+}
+
+func UpdateVolume(sg *client.Client, w http.ResponseWriter, r *http.Request) error {
+	id, err := parseID(r)
+	if err != nil {
+		return err
+	}
+	m := new(model.Volume)
+	if err := unmarshalFormInto(r, m); err != nil {
+		return err
+	}
+	if err := sg.Volumes.Update(id, m); err != nil {
+		return renderTemplate(w, "new", map[string]interface{}{
+			"title":      "Volumes",
+			"formAction": fmt.Sprintf("/ui/volumes/%d", *id),
+			"model":      m,
+			"error":      err.Error(),
+		})
+	}
+	http.Redirect(w, r, "/ui/volumes", http.StatusFound)
+	return nil
+}
+
+func DeleteVolume(sg *client.Client, w http.ResponseWriter, r *http.Request) error {
+	id, err := parseID(r)
+	if err != nil {
+		return err
+	}
+	item := new(model.Volume)
+	item.ID = id
+	if err := sg.Volumes.Delete(id, item); err != nil {
+		return err
+	}
+	// http.Redirect(w, r, "/ui/volumes", http.StatusFound)
+	return nil
 }

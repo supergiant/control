@@ -9,19 +9,19 @@ import (
 )
 
 type Collection struct {
-	core *Core
+	Core *Core
 }
 
 func (c *Collection) Create(m model.Model) error {
-	return c.core.DB.Create(m)
+	return c.Core.DB.Create(m)
 }
 
 func (c *Collection) Get(id *int64, m model.Model) error {
-	return c.core.DB.First(m, *id)
+	return c.Core.DB.First(m, *id)
 }
 
 func (c *Collection) GetWithIncludes(id *int64, m model.Model, includes []string) error {
-	scope := c.core.DB
+	scope := c.Core.DB
 	for _, include := range includes {
 		scope = scope.Preload(include)
 	}
@@ -33,7 +33,7 @@ func (c *Collection) Update(id *int64, oldM model.Model, m model.Model) error {
 
 	// oldM := reflect.New(reflect.TypeOf(m)).Elem().Elem().Interface()
 
-	if err := c.core.DB.First(oldM, *id); err != nil {
+	if err := c.Core.DB.First(oldM, *id); err != nil {
 		return err
 	}
 
@@ -42,14 +42,14 @@ func (c *Collection) Update(id *int64, oldM model.Model, m model.Model) error {
 		return err
 	}
 
-	return c.core.DB.Save(m)
+	return c.Core.DB.Save(m)
 }
 
 func (c *Collection) Delete(id *int64, m model.Model) error { // Loaded so we can render out
-	if err := c.core.DB.First(m, *id); err != nil {
+	if err := c.Core.DB.First(m, *id); err != nil {
 		return err
 	}
-	return c.core.DB.Delete(m)
+	return c.Core.DB.Delete(m)
 }
 
 ////////////////////////////////////////////////////////////////////////////////

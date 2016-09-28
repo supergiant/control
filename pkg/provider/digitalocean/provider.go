@@ -3,12 +3,13 @@ package digitalocean
 import (
 	"bytes"
 	"strconv"
+	"strings"
 	"text/template"
 	"time"
 
 	"github.com/digitalocean/godo"
-	"github.com/supergiant/guber"
 	"github.com/supergiant/supergiant/pkg/core"
+	"github.com/supergiant/supergiant/pkg/kubernetes"
 	"github.com/supergiant/supergiant/pkg/model"
 	"golang.org/x/oauth2"
 )
@@ -106,7 +107,7 @@ func (p *Provider) CreateKube(m *model.Kube, action *core.Action) error {
 		// Load Nodes to see if we've already created a minion
 		// TODO -- I think we can get rid of a lot of this do-unless behavior if we
 		// modify Procedure to save progess on Action (which is easy to implement).
-		if err := p.Core.DB.Model(m).Association("Nodes").Find(&m.Nodes).Error; err != nil {
+		if err := p.Core.DB.Find(&m.Nodes, "kube_name = ?", m.Name); err != nil {
 			return err
 		}
 		if len(m.Nodes) > 0 {
@@ -114,9 +115,9 @@ func (p *Provider) CreateKube(m *model.Kube, action *core.Action) error {
 		}
 
 		node := &model.Node{
-			KubeID: m.ID,
-			Size:   m.NodeSizes[0],
-			Kube:   m,
+			KubeName: m.Name,
+			Kube:     m,
+			Size:     m.NodeSizes[0],
 		}
 		return p.Core.Nodes.Create(node)
 	})
@@ -124,11 +125,12 @@ func (p *Provider) CreateKube(m *model.Kube, action *core.Action) error {
 	// TODO repeated in provider_aws.go
 	procedure.AddStep("waiting for Kubernetes", func() error {
 		return action.CancellableWaitFor("Kubernetes API and first minion", 20*time.Minute, 3*time.Second, func() (bool, error) {
-			nodes, err := p.Core.K8S(m).Nodes().List()
+			k8s := p.Core.K8S(m)
+			k8sNodes, err := k8s.ListNodes("")
 			if err != nil {
 				return false, nil
 			}
-			return len(nodes.Items) > 0, nil
+			return len(k8sNodes) > 0, nil
 		})
 	})
 
@@ -150,7 +152,7 @@ func (p *Provider) DeleteKube(m *model.Kube) error {
 		if m.DigitalOceanConfig.MasterID == 0 {
 			return nil
 		}
-		if _, err := client.Droplets.Delete(m.DigitalOceanConfig.MasterID); err != nil {
+		if _, err := client.Droplets.Delete(m.DigitalOceanConfig.MasterID); err != nil && !strings.Contains(err.Error(), "404") {
 			return err
 		}
 		m.DigitalOceanConfig.MasterID = 0
@@ -247,10 +249,10 @@ func (p *Provider) CreateVolume(m *model.Volume, action *core.Action) error {
 	return p.Core.DB.Save(m)
 }
 
-func (p *Provider) KubernetesVolumeDefinition(m *model.Volume) *guber.Volume {
-	return &guber.Volume{
+func (p *Provider) KubernetesVolumeDefinition(m *model.Volume) *kubernetes.Volume {
+	return &kubernetes.Volume{
 		Name: m.Name,
-		FlexVolume: &guber.FlexVolume{
+		FlexVolume: &kubernetes.FlexVolume{
 			Driver: "supergiant.io/digitalocean",
 			FSType: "ext4",
 			Options: map[string]string{
@@ -293,18 +295,16 @@ func (p *Provider) CreateEntrypoint(m *model.Entrypoint, action *core.Action) er
 	return nil
 }
 
-//AddPortToEntrypoint adds an external entrypoint to a Loadbalancer in DO.
-func (p *Provider) AddPortToEntrypoint(m *model.Entrypoint, lbPort int64, nodePort int64) error {
-	return nil
-}
-
-// RemovePortFromEntrypoint removes external entrypoint from Loadbalancer on DO.
-func (p *Provider) RemovePortFromEntrypoint(m *model.Entrypoint, lbPort int64) error {
-	return nil
-}
-
 // DeleteEntrypoint deletes load balancer from DO.
 func (p *Provider) DeleteEntrypoint(m *model.Entrypoint) error {
+	return nil
+}
+
+func (p *Provider) CreateEntrypointListener(m *model.EntrypointListener) error {
+	return nil
+}
+
+func (p *Provider) DeleteEntrypointListener(m *model.EntrypointListener) error {
 	return nil
 }
 

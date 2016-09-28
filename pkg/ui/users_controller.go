@@ -12,7 +12,6 @@ func NewUser(sg *client.Client, w http.ResponseWriter, r *http.Request) error {
 	return renderTemplate(w, "new", map[string]interface{}{
 		"title":      "Users",
 		"formAction": "/ui/users",
-		"formMethod": "POST",
 		"model": map[string]interface{}{
 			"username": "",
 			"password": "",
@@ -30,7 +29,6 @@ func CreateUser(sg *client.Client, w http.ResponseWriter, r *http.Request) error
 		return renderTemplate(w, "new", map[string]interface{}{
 			"title":      "Users",
 			"formAction": "/ui/users",
-			"formMethod": "POST",
 			"model":      m,
 			"error":      err.Error(),
 		})
@@ -95,7 +93,6 @@ func EditUser(sg *client.Client, w http.ResponseWriter, r *http.Request) error {
 	return renderTemplate(w, "new", map[string]interface{}{
 		"title":      "Users",
 		"formAction": fmt.Sprintf("/ui/users/%d", *id),
-		"formMethod": "PUT",
 		"model": map[string]interface{}{
 			"password": "",
 			"role":     item.Role,
@@ -116,7 +113,6 @@ func UpdateUser(sg *client.Client, w http.ResponseWriter, r *http.Request) error
 		return renderTemplate(w, "new", map[string]interface{}{
 			"title":      "Users",
 			"formAction": fmt.Sprintf("/ui/users/%d", *id),
-			"formMethod": "PUT",
 			"model":      m,
 			"error":      err.Error(),
 		})

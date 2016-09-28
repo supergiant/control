@@ -1,0 +1,29 @@
+{{ define "body" }}
+  <div class="row" id="main_row">
+    <div class="col-xs-12">
+
+      {{ if .error }}
+        <div class="alert alert-danger" role="alert">{{ .error }}</div>
+      {{ end }}
+
+      <form class="form-inline" method="POST" action="{{ .formAction }}">
+
+        <div class="form-group">
+          <label for="username" class="sr-only">Username</label>
+          <input name="username" type="text" class="form-control" placeholder="Username">
+        </div>
+
+        <div class="form-group">
+          <label for="password" class="sr-only">Password</label>
+          <input name="password" type="password" class="form-control" placeholder="Password">
+        </div>
+
+        <button type="submit" class="btn btn-primary">
+          Login
+        </button>
+
+      </form>
+
+    </div>
+  </div>
+{{ end }}

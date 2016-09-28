@@ -35,3 +35,6 @@ func (m *Session) SetUUID() {
 
 func (m *Session) SetActionStatus(status *ActionStatus) {
 }
+
+func (m *Session) SetPassiveStatus() {
+}

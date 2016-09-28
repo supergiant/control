@@ -20,24 +20,22 @@ install:
   - unzip packer_0.10.1_linux_amd64.zip
   - chmod 755 ./packer
   - go get github.com/kardianos/govendor
+  - go get github.com/go-playground/overalls
   - go get github.com/mattn/goveralls
-  - go get github.com/modocache/gover
-  - go get golang.org/x/tools/cmd/cover
   - go get github.com/smartystreets/goconvey/convey
   - go get github.com/tcnksm/ghr
   - go get github.com/mitchellh/gox
 
 script:
   - govendor test +local
-  - gox -output "dist/{{.OS}}_{{.Arch}}_{{.Dir}}"
+  - gox -output "dist/{{.OS}}_{{.Arch}}_supergiant" ./cmd/server/
   - go build cmd/generate_admin_user/generate_admin_user.go
   - travis_wait 30 build/travis_build.sh
 
 after_success:
-  - go list -f "{{ if len .TestGoFiles }}\"go test -coverpkg $(go list ./pkg/... | tr '\n' ',') -coverprofile={{ .Dir }}/.coverprofile {{ .ImportPath }}\"{{ end }}" ./... | xargs -L 1 sh -c
-  - gover
-  - "$HOME/gopath/bin/goveralls -coverprofile=gover.coverprofile -service=travis-ci"
-  - build/ghr.sh
+  - overalls -project=github.com/supergiant/supergiant --covermode=count
+  - goveralls -coverprofile=overalls.coverprofile -service=travis-ci
+  # - build/ghr.sh
 
 
 notifications:

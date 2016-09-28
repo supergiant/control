@@ -5,7 +5,7 @@ import (
 	"strings"
 	"time"
 
-	"github.com/supergiant/guber"
+	"github.com/supergiant/supergiant/pkg/kubernetes"
 	"github.com/supergiant/supergiant/pkg/model"
 )
 
@@ -15,7 +15,7 @@ type CapacityService struct {
 
 func (s *CapacityService) Perform() error {
 	var kubes []*model.Kube
-	if err := s.core.DB.Where("ready = ?", true).Preload("CloudAccount").Find(&kubes); err != nil {
+	if err := s.core.DB.Preload("CloudAccount").Find(&kubes, "ready = ?", true); err != nil {
 		return err
 	}
 
@@ -91,7 +91,7 @@ func (s *KubeScaler) Scale() error {
 		projectedNodes = append(projectedNodes, &projectedNode{
 			false,
 			s.largestNodeSize,
-			[]*guber.Pod{pod},
+			[]*kubernetes.Pod{pod},
 		})
 	}
 
@@ -161,7 +161,7 @@ func (s *KubeScaler) Scale() error {
 
 	// Load existing Nodes
 	s.kube.Nodes = make([]*model.Node, 0)
-	if err := s.core.DB.Preload("Kube.CloudAccount").Find(&s.kube.Nodes, "kube_id = ?", s.kube.ID); err != nil {
+	if err := s.core.DB.Preload("Kube.CloudAccount").Find(&s.kube.Nodes, "kube_name = ?", s.kube.Name); err != nil {
 		return err
 	}
 
@@ -187,25 +187,23 @@ func (s *KubeScaler) Scale() error {
 	}
 
 	//----------------------------------------------------------------------------
-	// for _, pnode := range projectedNodes {
-	// 	fmt.Println(pnode.Size.Name)
-	// 	for _, pod := range pnode.Pods {
-	// 		fmt.Println(pod.Metadata.Name)
-	// 		for _, container := range pod.Spec.Containers {
-	// 			if container.Resources != nil && container.Resources.Limits != nil {
-	// 				fmt.Println(container.Resources.Limits.CPU)
-	// 				fmt.Println(container.Resources.Limits.Memory)
-	// 			}
-	// 		}
-	// 	}
-	// 	fmt.Println("")
-	// }
+	for _, pnode := range projectedNodes {
+		fmt.Println(pnode.Size.Name)
+		for _, pod := range pnode.Pods {
+			fmt.Println(pod.Metadata.Name)
+			for _, container := range pod.Spec.Containers {
+				fmt.Println("CPU", container.Resources.Limits.CPU)
+				fmt.Println("RAM", container.Resources.Limits.Memory)
+			}
+		}
+		fmt.Println("")
+	}
 	//----------------------------------------------------------------------------
 
 	for _, pnode := range projectedNodes {
 		node := &model.Node{
-			KubeID: s.kube.ID,
-			Size:   pnode.Size.Name,
+			KubeName: s.kube.Name,
+			Size:     pnode.Size.Name,
 		}
 
 		// If there's an existing node which is spinning up with this type, then
@@ -216,7 +214,7 @@ func (s *KubeScaler) Scale() error {
 		alreadySpinningUp := false
 		for _, existingNode := range s.kube.Nodes {
 
-			if existingNode.Size == node.Size && !existingNode.Ready {
+			if existingNode.Size == node.Size && time.Since(existingNode.ProviderCreationTimestamp) < minAgeToExist {
 				// This may be a node that is already being created, or NOTE it could
 				// be a broken node that we erroneously identify as spinning up.
 				alreadySpinningUp = true
@@ -248,16 +246,15 @@ func (s *KubeScaler) Scale() error {
 ////////////////////////////////////////////////////////////////////////////////
 //\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\
 
-func (s *KubeScaler) hasTrackedEvent(pod *guber.Pod) (bool, error) {
-	q := &guber.QueryParams{
-		FieldSelector: "involvedObject.name=" + pod.Metadata.Name,
-	}
-	events, err := s.core.K8S(s.kube).Events("").Query(q)
+func (s *KubeScaler) hasTrackedEvent(pod *kubernetes.Pod) (bool, error) {
+	k8s := s.core.K8S(s.kube)
+
+	events, err := k8s.ListEvents("fieldSelector=involvedObject.name=" + pod.Metadata.Name)
 	if err != nil {
 		return false, err
 	}
 
-	for _, event := range events.Items {
+	for _, event := range events {
 		for _, message := range trackedEventMessages {
 			if strings.Contains(event.Message, message) {
 				return true, nil
@@ -267,21 +264,20 @@ func (s *KubeScaler) hasTrackedEvent(pod *guber.Pod) (bool, error) {
 	return false, nil
 }
 
-func (s *KubeScaler) incomingPods() (incomingPods []*guber.Pod, err error) {
+func (s *KubeScaler) incomingPods() (incomingPods []*kubernetes.Pod, err error) {
 	waitStart := time.Now()
+
+	k8s := s.core.K8S(s.kube)
 
 	for {
 		incomingPods = incomingPods[:0] // reset
 
-		q := &guber.QueryParams{
-			FieldSelector: "status.phase=Pending",
-		}
-		pendingPods, err := s.core.K8S(s.kube).Pods("").Query(q)
+		pendingPods, err := k8s.ListPods("fieldSelector=status.phase=Pending")
 		if err != nil {
 			return nil, err
 		}
 
-		for _, pod := range pendingPods.Items {
+		for _, pod := range pendingPods {
 			hasTrackedEvent, err := s.hasTrackedEvent(pod)
 			if err != nil {
 				return nil, err
@@ -315,7 +311,7 @@ func (s *KubeScaler) incomingPods() (incomingPods []*guber.Pod, err error) {
 type projectedNode struct {
 	Committed bool
 	Size      *NodeSize
-	Pods      []*guber.Pod
+	Pods      []*kubernetes.Pod
 }
 
 func (pnode *projectedNode) usedRAM() (u float64) {
@@ -327,22 +323,17 @@ func (pnode *projectedNode) usedRAM() (u float64) {
 			// could utilize. This will ensure that the user's limit CAN BE FILLED AT
 			// ALL. This is at the core of our increased-utilization strategy.
 
-			var memStr string
-
-			if container.Resources.Limits != nil {
-				memStr = container.Resources.Limits.Memory
-			} else if container.Resources.Requests != nil {
+			memStr := container.Resources.Limits.Memory
+			if memStr == "" {
 				memStr = container.Resources.Requests.Memory
-			} else {
-				continue
 			}
 
-			b := new(model.BytesValue)
-			if err := b.UnmarshalJSON([]byte(memStr)); err != nil {
+			gib, err := kubernetes.GiBFromMemString(memStr)
+			if err != nil {
 				panic(err)
 			}
 
-			u += b.Gibibytes()
+			u += gib
 		}
 	}
 	return
@@ -354,21 +345,17 @@ func (pnode *projectedNode) usedCPU() (u float64) {
 
 			// NOTE above in usedRAM
 
-			var cpuStr string
-
-			if container.Resources.Limits != nil {
-				cpuStr = container.Resources.Limits.CPU
-			} else if container.Resources.Requests != nil {
+			cpuStr := container.Resources.Limits.CPU
+			if cpuStr == "" {
 				cpuStr = container.Resources.Requests.CPU
-			} else {
-				continue
 			}
 
-			c := new(model.CoresValue)
-			if err := c.UnmarshalJSON([]byte(cpuStr)); err != nil {
+			cores, err := kubernetes.CoresFromCPUString(cpuStr)
+			if err != nil {
 				panic(err)
 			}
-			u += c.Cores()
+
+			u += cores
 		}
 	}
 	return

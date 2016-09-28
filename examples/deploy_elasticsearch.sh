@@ -1,96 +1,139 @@
+################################################################################
+# NOTE This is using cmd/cli/cli.go, built as a `supergiant` binary, which can #
+#      be done using the following command:                                    #
+#                                                                              #
+#      go build -o $GOPATH/bin/supergiant cmd/cli/cli.go                       #
+#                                                                              #
+# You'll then need to globally configure server address and API token:         #
+#                                                                              #
+#      supergiant configure -s <server_address> -t <api_token>                 #
+#                                                                              #
+################################################################################
+
 set -e
 
-entrypoint_id=$(curl -H "Authorization: SGAPI token=\"$API_TOKEN\"" -s -XPOST https://localhost:8081/api/v0/entrypoints -d "{
-  \"kube_id\": $KUBE_ID,
-  \"name\": \"elasticsearch\"
-}" | grep -Eo '"id": \d+' | head -1 | awk '{ print $2 }')
-sleep 5 # wait for entrypoint address
+: ${KUBE_NAME?"Need to set KUBE_NAME"}
+: ${ENTRYPOINT_NAME?"Need to set ENTRYPOINT_NAME"}
 
-app_id=$(curl -H "Authorization: SGAPI token=\"$API_TOKEN\"" -s -XPOST https://localhost:8081/api/v0/apps -d "{
-  \"kube_id\": $KUBE_ID,
-  \"name\": \"elasticsearch\"
-}" | grep -Eo '"id": \d+' | head -1 | awk '{ print $2 }')
-
-component_id=$(curl -H "Authorization: SGAPI token=\"$API_TOKEN\"" -s -XPOST https://localhost:8081/api/v0/components -d "{
-  \"app_id\": $app_id,
-  \"name\": \"elasticsearch\"
-}" | grep -Eo '"id": \d+' | head -1 | awk '{ print $2 }')
-
-curl -H "Authorization: SGAPI token=\"$API_TOKEN\"" -s -XPOST https://localhost:8081/api/v0/releases -d "{
-  \"component_id\": $component_id,
-
-  \"instance_count\": 1,
-
-  \"config\": {
-    \"termination_grace_period\": 10,
-    \"volumes\": [
-      {
-        \"name\": \"es-data-1\",
-        \"type\": \"gp2\",
-        \"size\": 10
+# Create an internal Service for clustering / transport.
+cat <<EOF | supergiant kube_resources create -f -
+{
+  "kube_name": "$KUBE_NAME",
+  "namespace": "my-es-cluster",
+  "kind": "Service",
+  "name": "transport",
+  "template": {
+    "spec": {
+      "selector": {
+        "service": "elasticsearch"
       },
-      {
-        \"name\": \"es-data-2\",
-        \"type\": \"gp2\",
-        \"size\": 10
-      }
-    ],
-    \"containers\": [
-      {
-        \"image\": \"elasticsearch\",
-
-        \"command\": [
-          \"elasticsearch\",
-          \"-Des.insecure.allow.root=true\",
-          \"-Des.discovery.zen.ping.multicast.enabled=false\",
-          \"-Des.bootstrap.mlockall=true\",
-          \"-Des.index.number_of_shards=5\",
-          \"-Des.index.number_of_replicas=1\",
-          \"-Des.discovery.zen.ping.unicast.hosts=elasticsearch.elasticsearch.svc.cluster.local:9300\",
-          \"-Des.path.data=/data-1\",
-          \"-Des.path.logs=/data-1\",
-          \"-Des.processors=1\",
-          \"-Des.discovery.zen.minimum_master_nodes=1\"
-        ],
-
-        \"cpu_request\": 0,
-        \"cpu_limit\": 0.5,
-
-        \"ram_request\": \"1.5Gi\",
-        \"ram_limit\": \"2Gi\",
-
-        \"mounts\": [
-          {
-            \"volume\": \"es-data-1\",
-            \"path\": \"/data-1\"
-          },
-          {
-            \"volume\": \"es-data-2\",
-            \"path\": \"/data-2\"
-          }
-        ],
-        \"ports\": [
-          {
-            \"number\": 9200,
-            \"external_number\": 9200,
-            \"public\": true,
-            \"entrypoint_id\": $entrypoint_id
-          },
-          {
-            \"number\": 9300
-          }
-        ]
-      }
-    ]
+      "ports": [
+        {
+          "port": 9300
+        }
+      ]
+    }
   }
-}"
+}
+EOF
 
-echo "deploying"
-curl -H "Authorization: SGAPI token=\"$API_TOKEN\"" -XPOST https://localhost:8081/api/v0/components/$component_id/deploy
+# Create a NodePort Service for external HTTP access. We use the special
+# Supergiant EntrypointListener definition to link this Service to our
+# Entrypoint on a specified port.
+cat <<EOF | supergiant kube_resources create -f -
+{
+  "kube_name": "$KUBE_NAME",
+  "namespace": "my-es-cluster",
+  "kind": "Service",
+  "name": "http",
+  "template": {
+    "spec": {
+      "type": "NodePort",
+      "selector": {
+        "service": "elasticsearch"
+      },
+      "ports": [
+        {
+          "name": "http",
+          "port": 9200,
+          "SUPERGIANT_ENTRYPOINT_LISTENER": {
+            "entrypoint_name": "$ENTRYPOINT_NAME",
+            "entrypoint_port": 80
+          }
+        }
+      ]
+    }
+  }
+}
+EOF
 
-# curl -H "Authorization: SGAPI token=\"$API_TOKEN\"" -s -XPOST https://localhost:8081/api/v0/releases -d "{
-#   \"component_id\": $component_id,
-#   \"instance_count\": 2
-# }"
-#
-# curl -H "Authorization: SGAPI token=\"$API_TOKEN\"" -XPOST https://localhost:8081/api/v0/components/$component_id/deploy
+# Create a Pod for the first Elasticsearch node. We use the special Supergiant
+# Volume definition to specify an external Volume to be dynamically provisioned
+# and assigned to this Pod.
+cat <<EOF | supergiant kube_resources create -f -
+{
+  "kube_name": "$KUBE_NAME",
+  "namespace": "my-es-cluster",
+  "kind": "Pod",
+  "name": "data-node-0",
+  "template": {
+    "metadata": {
+      "labels": {
+        "service": "elasticsearch"
+      }
+    },
+    "spec": {
+      "containers": [
+        {
+          "name": "elasticsearch",
+          "image": "elasticsearch:2.3.3",
+          "command": [
+            "elasticsearch",
+            "-Des.insecure.allow.root=true",
+            "-Des.discovery.zen.ping.unicast.hosts=transport.my-es-cluster.svc.cluster.local:9300",
+            "-Des.path.data=/data-0,/data-1",
+            "-Des.path.logs=/data-0"
+          ],
+          "resources": {
+            "requests": {
+              "memory": "1.5Gi"
+            }
+          },
+          "volumeMounts": [
+            {
+              "name": "es-node0-disk0",
+              "mountPath": "/data-0"
+            },
+            {
+              "name": "es-node0-disk1",
+              "mountPath": "/data-1"
+            }
+          ]
+        }
+      ],
+      "volumes": [
+        {
+          "name": "es-node0-disk0",
+          "SUPERGIANT_EXTERNAL_VOLUME": {
+            "type": "gp2",
+            "size": 10
+          }
+        },
+        {
+          "name": "es-node0-disk1",
+          "SUPERGIANT_EXTERNAL_VOLUME": {
+            "type": "gp2",
+            "size": 10
+          }
+        }
+      ]
+    }
+  }
+}
+EOF
+
+# This will print out the Entrypoint information, so you can get the ES cluster address:
+# supergiant entrypoints get --id=$ENTRYPOINT_ID
+
+# Use this command to view logs:
+# supergiant kubectl -k 1 logs data-node-0 --namespace=my-es-cluster

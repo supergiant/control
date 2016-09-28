@@ -41,7 +41,7 @@ func TestImproperToken(t *testing.T) {
 		sg := srv.Core.NewAPIClient("tokin'?", "yah mon")
 
 		Convey("When a request is made", func() {
-			err := sg.Apps.Delete(1, new(model.App))
+			err := sg.Nodes.Delete(1, new(model.Node))
 
 			Convey("There should be a 401 error", func() {
 				So(err.(*model.Error).Status, ShouldEqual, 401)
@@ -59,7 +59,7 @@ func TestInvalidToken(t *testing.T) {
 		sg := srv.Core.NewAPIClient("token", "ThisFormattedCorrectlyCuz32Chars")
 
 		Convey("When a request is made", func() {
-			err := sg.Apps.Delete(1, new(model.App))
+			err := sg.Nodes.Delete(1, new(model.Node))
 
 			Convey("There should be a 401 error", func() {
 				So(err.(*model.Error).Status, ShouldEqual, 401)

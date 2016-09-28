@@ -15,6 +15,7 @@ type Model interface {
 	GetUUID() string
 	SetUUID()
 	SetActionStatus(*ActionStatus)
+	SetPassiveStatus()
 }
 
 type BaseModel struct {
@@ -23,6 +24,9 @@ type BaseModel struct {
 	CreatedAt time.Time     `json:"created_at,omitempty" sg:"readonly"` // TODO won't be omitted cuz not *time.Time
 	UpdatedAt time.Time     `json:"updated_at,omitempty" sg:"readonly"`
 	Status    *ActionStatus `gorm:"-" json:"status,omitempty"`
+
+	PassiveStatus     string `gorm:"-" json:"passive_status,omitempty"`
+	PassiveStatusOkay bool   `gorm:"-" json:"passive_status_okay,omitempty"`
 }
 
 type ActionStatus struct {
@@ -49,6 +53,9 @@ func (m *BaseModel) SetUUID() {
 
 func (m *BaseModel) SetActionStatus(status *ActionStatus) {
 	m.Status = status
+}
+
+func (m *BaseModel) SetPassiveStatus() {
 }
 
 //------------------------------------------------------------------------------------- helpers below
@@ -147,8 +154,8 @@ func gatherTaggedModelFieldsInto(obj reflect.Value, taggedFields *[]*TaggedModel
 		// 3. if no SG tag, and it's NOT a struct, we don't care
 
 		// Foreign key
-		isID := field.Type.Kind() == reflect.Ptr && field.Type.Elem().Kind() == reflect.Int64
-		rxp := regexp.MustCompile(`^(\w+)ID$`)
+		isID := field.Type.Kind() == reflect.String && strings.Contains(field.Tag.Get("gorm"), "index")
+		rxp := regexp.MustCompile(`^(\w+)Name$`)
 		if isID && rxp.MatchString(field.Name) {
 			outFieldName := rxp.FindStringSubmatch(field.Name)[1]
 			belongsToField, found := objType.FieldByName(outFieldName)

@@ -18,9 +18,9 @@ func NewKube(sg *client.Client, w http.ResponseWriter, r *http.Request) error {
 	// case "aws":
 	case "digitalocean":
 		m = map[string]interface{}{
-			"cloud_account_id": nil,
-			"name":             "",
-			"master_node_size": "1gb",
+			"cloud_account_name": "",
+			"name":               "",
+			"master_node_size":   "1gb",
 			"node_sizes": []string{
 				"1gb",
 				"2gb",
@@ -38,9 +38,9 @@ func NewKube(sg *client.Client, w http.ResponseWriter, r *http.Request) error {
 		}
 	default: // just default to AWS if option not provided, or mismatched
 		m = map[string]interface{}{
-			"cloud_account_id": nil,
-			"name":             "",
-			"master_node_size": "m4.large",
+			"cloud_account_name": "",
+			"name":               "",
+			"master_node_size":   "m4.large",
 			"node_sizes": []string{
 				"m4.large",
 				"m4.xlarge",
@@ -60,7 +60,6 @@ func NewKube(sg *client.Client, w http.ResponseWriter, r *http.Request) error {
 	return renderTemplate(w, "new", map[string]interface{}{
 		"title":      "Kubes",
 		"formAction": "/ui/kubes",
-		"formMethod": "POST",
 		"model":      m,
 	})
 }
@@ -74,7 +73,6 @@ func CreateKube(sg *client.Client, w http.ResponseWriter, r *http.Request) error
 		return renderTemplate(w, "new", map[string]interface{}{
 			"title":      "Kubes",
 			"formAction": "/ui/kubes",
-			"formMethod": "POST",
 			"model":      m,
 			"error":      err.Error(),
 		})

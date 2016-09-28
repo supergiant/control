@@ -11,8 +11,8 @@ type Node struct {
 	BaseModel
 
 	// belongs_to Kube
-	Kube   *Kube  `json:"kube,omitempty"`
-	KubeID *int64 `json:"kube_id" gorm:"not null;index"`
+	Kube     *Kube  `json:"kube,omitempty" gorm:"ForeignKey:KubeName;AssociationForeignKey:Name"`
+	KubeName string `json:"kube_name" gorm:"not null;index"`
 
 	// This is the only input for Node
 	Size string `json:"size" validate:"nonzero"`
@@ -23,7 +23,6 @@ type Node struct {
 	ProviderCreationTimestamp time.Time `json:"provider_creation_timestamp" sg:"readonly"`
 
 	OutOfDisk bool `json:"out_of_disk" sg:"readonly"`
-	Ready     bool `json:"ready" sg:"readonly"`
 
 	ResourceMetrics
 }

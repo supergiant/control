@@ -3,12 +3,29 @@ package core
 import (
 	"encoding/json"
 	"errors"
+	"fmt"
 	"reflect"
+	"strings"
 
 	"github.com/go-validator/validator"
 	"github.com/jinzhu/gorm"
 	"github.com/supergiant/supergiant/pkg/model"
 )
+
+type DBInterface interface {
+	Create(model.Model) error
+	Save(model.Model) error
+	Find(out interface{}, where ...interface{}) error
+	First(out interface{}, where ...interface{}) error
+	Delete(m model.Model) error
+	Preload(column string, conditions ...interface{}) DBInterface
+	Where(query interface{}, args ...interface{}) DBInterface
+	Limit(limit interface{}) DBInterface
+	Offset(offset interface{}) DBInterface
+	Model(value interface{}) DBInterface
+	Update(attrs ...interface{}) error
+	Count(interface{}) error
+}
 
 type DB struct {
 	core *Core
@@ -66,46 +83,70 @@ func (db *DB) Delete(m model.Model) error {
 
 // The following are just for the purpose of chaining and preserving our overwritten methods
 
-func (db *DB) Preload(column string, conditions ...interface{}) *DB {
+func (db *DB) Preload(column string, conditions ...interface{}) DBInterface {
 	return &DB{
 		db.core,
 		db.DB.Preload(column, conditions...),
 	}
 }
 
-func (db *DB) Where(query interface{}, args ...interface{}) *DB {
+func (db *DB) Where(query interface{}, args ...interface{}) DBInterface {
 	return &DB{
 		db.core,
 		db.DB.Where(query, args...),
 	}
 }
 
-func (db *DB) Limit(limit interface{}) *DB {
+func (db *DB) Limit(limit interface{}) DBInterface {
 	return &DB{
 		db.core,
 		db.DB.Limit(limit),
 	}
 }
 
-func (db *DB) Offset(offset interface{}) *DB {
+func (db *DB) Offset(offset interface{}) DBInterface {
 	return &DB{
 		db.core,
 		db.DB.Offset(offset),
 	}
 }
 
+func (db *DB) Model(value interface{}) DBInterface {
+	return &DB{
+		db.core,
+		db.DB.Model(value),
+	}
+}
+
+func (db *DB) Update(attrs ...interface{}) error {
+	return db.DB.Update(attrs...).Error
+}
+
+func (db *DB) Count(value interface{}) error {
+	return db.DB.Count(value).Error
+}
+
 ////////////////////////////////////////////////////////////////////////////////
 // Private methods                                                            //
 ////////////////////////////////////////////////////////////////////////////////
 
+type ErrorMissingRequiredParent struct {
+	key   string
+	model string
+}
+
+func (err *ErrorMissingRequiredParent) Error() string {
+	return fmt.Sprintf("Parent does not exist, foreign key '%s' on %s", err.key, err.model)
+}
+
 func (db *DB) validateBelongsTos(m model.Model) error {
 	for _, tf := range model.TaggedModelFieldsOf(m) {
-		if belongsTo := tf.ForeignKeyOf; belongsTo != nil && !tf.Field.IsNil() {
-
+		if belongsTo := tf.ForeignKeyOf; belongsTo != nil && tf.Field.String() != "" {
 			newParent := reflect.New(belongsTo.Field.Type.Elem())
-
-			if err := db.First(newParent.Interface(), tf.Field.Elem().Int()); err != nil {
-				return err
+			if err := db.Where("name = ?", tf.Field.String()).First(newParent.Interface()); err != nil {
+				keyName := strings.Split(strings.ToLower(newParent.Elem().Type().String()), ".")[1] + "_name"
+				modelName := strings.Split(reflect.ValueOf(m).Elem().Type().String(), ".")[1]
+				return &ErrorMissingRequiredParent{keyName, modelName}
 			}
 			belongsTo.Value.Set(newParent)
 		}
@@ -131,10 +172,21 @@ func setDefaultFields(m model.Model) {
 	}
 }
 
+type ErrorValidationFailed struct {
+	error
+}
+
+func (err *ErrorValidationFailed) Error() string {
+	return "Validation failed: " + err.error.Error()
+}
+
 // validateFields takes a Model with a pointer and runs a validation on every
 // field with the validate:"..." tag.
 func validateFields(m model.Model) error {
-	return validator.Validate(m)
+	if err := validator.Validate(m); err != nil {
+		return &ErrorValidationFailed{err}
+	}
+	return nil
 }
 
 func marshalSerializedFields(m model.Model) {
@@ -142,7 +194,7 @@ func marshalSerializedFields(m model.Model) {
 		if jsonField := tf.StoreAsJsonIn; jsonField != nil {
 			objField := tf.Field
 
-			if objField.IsNil() {
+			if objField.IsNil() || (reflect.Indirect(objField).Kind() == reflect.Slice && reflect.Indirect(objField).Len() == 0) {
 				continue
 			}
 

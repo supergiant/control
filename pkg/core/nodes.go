@@ -1,10 +1,7 @@
 package core
 
 import (
-	"regexp"
-	"strconv"
-
-	"github.com/supergiant/guber"
+	"github.com/supergiant/supergiant/pkg/kubernetes"
 	"github.com/supergiant/supergiant/pkg/model"
 )
 
@@ -38,32 +35,32 @@ func (c *Nodes) Create(m *model.Node) error {
 			// error, the user will know about it quickly, instead of after 20 retries.
 			MaxRetries: 0,
 		},
-		core:  c.core,
-		scope: c.core.DB.Preload("Kube.CloudAccount").Preload("Kube.Entrypoints.Kube.CloudAccount"),
-		model: m,
-		id:    m.ID,
-		fn: func(a *Action) error {
-			return c.core.CloudAccounts.provider(m.Kube.CloudAccount).CreateNode(m, a)
+		Core:  c.Core,
+		Scope: c.Core.DB.Preload("Kube.CloudAccount").Preload("Kube.Entrypoints.Kube.CloudAccount"),
+		Model: m,
+		ID:    m.ID,
+		Fn: func(a *Action) error {
+			return c.Core.CloudAccounts.provider(m.Kube.CloudAccount).CreateNode(m, a)
 		},
 	}
 	return provision.Async()
 }
 
-func (c *Nodes) Delete(id *int64, m *model.Node) *Action {
+func (c *Nodes) Delete(id *int64, m *model.Node) ActionInterface {
 	return &Action{
 		Status: &model.ActionStatus{
 			Description: "deleting",
 			MaxRetries:  5,
 		},
-		core:  c.core,
-		scope: c.core.DB.Preload("Kube.CloudAccount"),
-		model: m,
-		id:    id,
-		fn: func(_ *Action) error {
+		Core:  c.Core,
+		Scope: c.Core.DB.Preload("Kube.CloudAccount"),
+		Model: m,
+		ID:    id,
+		Fn: func(_ *Action) error {
 			if m.ProviderID == "" {
-				c.core.Log.Warnf("Deleting Node %d which has no provider_id", *m.ID)
+				c.Core.Log.Warnf("Deleting Node %d which has no provider_id", *m.ID)
 			} else {
-				if err := c.core.CloudAccounts.provider(m.Kube.CloudAccount).DeleteNode(m); err != nil {
+				if err := c.Core.CloudAccounts.provider(m.Kube.CloudAccount).DeleteNode(m); err != nil {
 					return err
 				}
 			}
@@ -77,43 +74,30 @@ func (c *Nodes) Delete(id *int64, m *model.Node) *Action {
 ////////////////////////////////////////////////////////////////////////////////
 
 func (c *Nodes) hasPodsWithReservedResources(m *model.Node) (bool, error) {
-	q := &guber.QueryParams{
-		FieldSelector: "spec.nodeName=" + m.Name + ",status.phase=Running",
-	}
-	pods, err := c.core.K8S(m.Kube).Pods("").Query(q)
+	k8s := c.Core.K8S(m.Kube)
+	pods, err := k8s.ListPods("fieldSelector=spec.nodeName=" + m.Name + ",status.phase=Running")
 	if err != nil {
 		return false, err
 	}
 
-	rxp := regexp.MustCompile("[0-9]+")
-
-	for _, pod := range pods.Items {
+	for _, pod := range pods {
 		for _, container := range pod.Spec.Containers {
-			reqs := container.Resources.Requests
 
-			if reqs == nil {
-				continue
+			// TODO
+			//
+			// These should be moved to json Unmarshal method, so these floats can be parsed once
+			//
+			gib, err := kubernetes.GiBFromMemString(container.Resources.Requests.Memory)
+			if err != nil {
+				return false, err
+			}
+			cores, err := kubernetes.CoresFromCPUString(container.Resources.Requests.CPU)
+			if err != nil {
+				return false, err
 			}
 
-			values := [2]string{
-				reqs.CPU,
-				reqs.Memory,
-			}
-
-			for _, val := range values {
-				numstr := rxp.FindString(val)
-				num := 0
-				var err error
-				if numstr != "" {
-					num, err = strconv.Atoi(numstr)
-					if err != nil {
-						return false, err
-					}
-				}
-
-				if num > 0 {
-					return true, nil
-				}
+			if gib > 0 || cores > 0 {
+				return true, nil
 			}
 		}
 	}

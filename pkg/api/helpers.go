@@ -55,6 +55,12 @@ func errorHTTPStatus(err error) int {
 	if err == gorm.ErrRecordNotFound {
 		return 404
 	}
+	if _, ok := err.(*core.ErrorMissingRequiredParent); ok {
+		return 422
+	}
+	if _, ok := err.(*core.ErrorValidationFailed); ok {
+		return 422
+	}
 	return 500
 }
 
@@ -196,6 +202,7 @@ func decodeBodyInto(r *http.Request, item model.Model) error {
 
 func itemResponse(core *core.Core, item model.Model, status int) (*Response, error) {
 	core.SetResourceActionStatus(item)
+	item.SetPassiveStatus()
 	return &Response{status, item}, nil
 }
 
@@ -235,7 +242,7 @@ func handleList(core *core.Core, r *http.Request, m model.Model, listPtr interfa
 	// BaseList
 	pagination := model.BaseList{}
 
-	if err := baseScope.Model(m).Count(&pagination.Total).Error; err != nil {
+	if err := baseScope.Model(m).Count(&pagination.Total); err != nil {
 		return nil, err
 	}
 	offsetParam := qstr.Get("offset")
@@ -267,7 +274,9 @@ func handleList(core *core.Core, r *http.Request, m model.Model, listPtr interfa
 	}
 
 	for i := 0; i < items.Len(); i++ {
-		core.SetResourceActionStatus(items.Index(i).Interface().(model.Model))
+		item := items.Index(i).Interface().(model.Model)
+		core.SetResourceActionStatus(item)
+		item.SetPassiveStatus()
 	}
 
 	// Yeah... kinda nasty
