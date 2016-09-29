@@ -50,6 +50,7 @@ func TestServiceProvisionerProvision(t *testing.T) {
 					Kind:      "Service",
 					Template: newRawMessage(`{
 						"spec": {
+							"type": "NodePort",
 							"ports": [
 								{
 									"name": "website-http",
@@ -77,6 +78,7 @@ func TestServiceProvisionerProvision(t *testing.T) {
 				// Expectations
 				definitionPassedToDefaultProvisioner: map[string]interface{}{
 					"spec": map[string]interface{}{
+						"type": "NodePort",
 						"ports": []interface{}{
 							map[string]interface{}{
 								"name":     "website-http",
@@ -114,6 +116,7 @@ func TestServiceProvisionerProvision(t *testing.T) {
 					Kind:      "Service",
 					Template: newRawMessage(`{
 						"spec": {
+							"type": "NodePort",
 							"ports": [
 								{
 									"name": "website-http",
@@ -149,6 +152,7 @@ func TestServiceProvisionerProvision(t *testing.T) {
 				// Expectations
 				definitionPassedToDefaultProvisioner: map[string]interface{}{
 					"spec": map[string]interface{}{
+						"type": "NodePort",
 						"ports": []interface{}{
 							map[string]interface{}{
 								"name":     "website-http",
@@ -177,6 +181,7 @@ func TestServiceProvisionerProvision(t *testing.T) {
 					Kind:      "Service",
 					Template: newRawMessage(`{
 						"spec": {
+							"type": "NodePort",
 							"ports": [
 								{
 									"name": "website-http",
@@ -216,6 +221,7 @@ func TestServiceProvisionerProvision(t *testing.T) {
 				// Expectations
 				definitionPassedToDefaultProvisioner: map[string]interface{}{
 					"spec": map[string]interface{}{
+						"type": "NodePort",
 						"ports": []interface{}{
 							map[string]interface{}{
 								"name":     "website-http",
@@ -248,6 +254,7 @@ func TestServiceProvisionerProvision(t *testing.T) {
 					Kind:      "Service",
 					Template: newRawMessage(`{
 						"spec": {
+							"type": "NodePort",
 							"ports": [
 								{
 									"name": "cool-new-port",
@@ -282,6 +289,7 @@ func TestServiceProvisionerProvision(t *testing.T) {
 				// Expectations
 				definitionPassedToDefaultProvisioner: map[string]interface{}{
 					"spec": map[string]interface{}{
+						"type": "NodePort",
 						"ports": []interface{}{
 							map[string]interface{}{
 								"name": "cool-new-port",
@@ -316,6 +324,7 @@ func TestServiceProvisionerProvision(t *testing.T) {
 					Kind:      "Service",
 					Template: newRawMessage(`{
 						"spec": {
+							"type": "NodePort",
 							"ports": [
 								{
 									"name": "my-port",
@@ -351,6 +360,7 @@ func TestServiceProvisionerProvision(t *testing.T) {
 				// Expectations
 				definitionPassedToDefaultProvisioner: map[string]interface{}{
 					"spec": map[string]interface{}{
+						"type": "NodePort",
 						"ports": []interface{}{
 							map[string]interface{}{
 								"name":     "my-port",
@@ -389,6 +399,7 @@ func TestServiceProvisionerProvision(t *testing.T) {
 					Kind:      "Service",
 					Template: newRawMessage(`{
 						"spec": {
+							"type": "NodePort",
 							"ports": [
 								{
 									"name": "porty",
@@ -413,6 +424,7 @@ func TestServiceProvisionerProvision(t *testing.T) {
 				// Expectations
 				definitionPassedToDefaultProvisioner: map[string]interface{}{
 					"spec": map[string]interface{}{
+						"type": "NodePort",
 						"ports": []interface{}{
 							map[string]interface{}{
 								"name": "porty",
@@ -439,6 +451,7 @@ func TestServiceProvisionerProvision(t *testing.T) {
 					Kind:      "Service",
 					Template: newRawMessage(`{
 						"spec": {
+							"type": "NodePort",
 							"ports": [
 								{
 									"name": "porty",
@@ -480,6 +493,7 @@ func TestServiceProvisionerProvision(t *testing.T) {
 					Kind:      "Service",
 					Template: newRawMessage(`{
 						"spec": {
+							"type": "NodePort",
 							"ports": [
 								{
 									"name": "porty",
@@ -506,6 +520,7 @@ func TestServiceProvisionerProvision(t *testing.T) {
 				// Expectations
 				definitionPassedToDefaultProvisioner: map[string]interface{}{
 					"spec": map[string]interface{}{
+						"type": "NodePort",
 						"ports": []interface{}{
 							map[string]interface{}{
 								"name": "porty",
@@ -532,6 +547,7 @@ func TestServiceProvisionerProvision(t *testing.T) {
 					Kind:      "Service",
 					Template: newRawMessage(`{
 						"spec": {
+							"type": "NodePort",
 							"ports": []
 						}
 					}`),
@@ -650,7 +666,7 @@ func TestServiceProvisionerProvision(t *testing.T) {
 			definitionPassedToDefaultProvisionerMarshalled, _ := json.Marshal(definitionPassedToDefaultProvisioner)
 			itemDefinitionPassedToDefaultProvisionerMarshalled, _ := json.Marshal(item.definitionPassedToDefaultProvisioner)
 
-			So(definitionPassedToDefaultProvisionerMarshalled, ShouldResemble, itemDefinitionPassedToDefaultProvisionerMarshalled)
+			So(string(definitionPassedToDefaultProvisionerMarshalled), ShouldEqual, string(itemDefinitionPassedToDefaultProvisionerMarshalled))
 
 			So(entrypointListenersCreated, ShouldResemble, item.entrypointListenersCreated)
 			So(entrypointListenerNamesDeleted, ShouldResemble, item.entrypointListenerNamesDeleted)
