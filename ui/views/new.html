@@ -1,99 +1,108 @@
 {{ define "body" }}
-  <div class="row" id="main_row">
+  <div class="row above_log" id="main_row">
+    <form method="POST" action="{{ .formAction }}">
     <div class="col-xs-12">
-      <div class="row">
+      <div class="row" id="header">
+        <button type="submit" class="btn btn-primary">
+          Save
+        </button>
+      </div>
+      <div class="row" id="main_row">
         <div class="col-xs-12">
+          <div class="row" id="json-area">
+            <div class="col-xs-12">
 
-          {{ if .error }}
-            <div class="alert alert-danger" role="alert">{{ .error }}</div>
-          {{ end }}
+              {{ if .error }}
+                <div class="alert alert-danger" role="alert">{{ .error }}</div>
+              {{ end }}
 
-          <form method="POST" action="{{ .formAction }}">
 
-            <div class="form-group">
-              <textarea rows=20 class="form-control" name="json_input"></textarea>
+
+                <div class="form-group">
+                  <textarea rows=20 class="form-control" name="json_input"></textarea>
+                </div>
+
+
+
+
+
             </div>
+          </div>
 
-            <button type="submit" class="btn btn-primary">
-              Save
-            </button>
+          <style>
+            .badTextarea, .badTextarea:focus {
+              box-shadow: 0 0 5px rgba(255, 0, 0, 0.5);
+              border: 1px solid rgba(255, 0, 0, 0.5);
+            }
+          </style>
 
-          </form>
+          <script type="text/javascript">
 
+            function prettyPrint(ugly) {
+              return JSON.stringify(JSON.parse(ugly), undefined, 2);
+            }
+
+            var modelJSON = prettyPrint('{{ .modelJSON }}'),
+                textarea = $('textarea[name="json_input"]');
+
+            $(function() {
+
+              textarea.val(modelJSON);
+              textarea.on("keyup", function(event) {
+
+                // If enter key pressed
+                if (event.keyCode == 13) {
+                  var content = this.value;
+                  var caret = textarea.prop("selectionStart");
+
+                  var contentBeforeLine = content.substring(0, caret - 1);
+                  var contentAfterLine = content.substring(caret, content.length);
+
+                  var prevLineMatch = contentBeforeLine.match(/\n([\t ]*)[^\n]*([^\n])$/);
+                  var lineIndentation;
+                  var prevLineLastChar;
+
+                  if (prevLineMatch) {
+                    lineIndentation = prevLineMatch[1];
+                    prevLineLastChar = prevLineMatch[2];
+
+                    if (prevLineLastChar == "[" || prevLineLastChar == "{") {
+                      lineIndentation += "  ";
+                    }
+
+                  } else {
+                    return false;
+                  }
+
+                  // Update content
+                  this.value = contentBeforeLine + "\n" + lineIndentation + contentAfterLine
+
+                  // Update cursor position
+                  caret += lineIndentation.length;
+                  textarea.prop("selectionStart", caret)
+                  textarea.prop("selectionEnd", caret)
+
+                  // NOTE I don't think this is needed... I don't think default behavior is to submit textarea on enter
+                  event.stopPropagation();
+                }
+
+
+                try {
+                  prettyPrint(this.value);
+                  textarea.removeClass("badTextarea");
+                }
+                catch(err) {
+                  textarea.addClass("badTextarea");
+                }
+
+              });
+
+            });
+
+          </script>
         </div>
       </div>
 
-      <style>
-        .badTextarea, .badTextarea:focus {
-          box-shadow: 0 0 5px rgba(255, 0, 0, 0.5);
-          border: 1px solid rgba(255, 0, 0, 0.5);
-        }
-      </style>
-
-      <script type="text/javascript">
-
-        function prettyPrint(ugly) {
-          return JSON.stringify(JSON.parse(ugly), undefined, 2);
-        }
-
-        var modelJSON = prettyPrint('{{ .modelJSON }}'),
-            textarea = $('textarea[name="json_input"]');
-
-        $(function() {
-
-          textarea.val(modelJSON);
-          textarea.on("keyup", function(event) {
-
-            // If enter key pressed
-            if (event.keyCode == 13) {
-              var content = this.value;
-              var caret = textarea.prop("selectionStart");
-
-              var contentBeforeLine = content.substring(0, caret - 1);
-              var contentAfterLine = content.substring(caret, content.length);
-
-              var prevLineMatch = contentBeforeLine.match(/\n([\t ]*)[^\n]*([^\n])$/);
-              var lineIndentation;
-              var prevLineLastChar;
-
-              if (prevLineMatch) {
-                lineIndentation = prevLineMatch[1];
-                prevLineLastChar = prevLineMatch[2];
-
-                if (prevLineLastChar == "[" || prevLineLastChar == "{") {
-                  lineIndentation += "  ";
-                }
-
-              } else {
-                return false;
-              }
-
-              // Update content
-              this.value = contentBeforeLine + "\n" + lineIndentation + contentAfterLine
-
-              // Update cursor position
-              caret += lineIndentation.length;
-              textarea.prop("selectionStart", caret)
-              textarea.prop("selectionEnd", caret)
-
-              // NOTE I don't think this is needed... I don't think default behavior is to submit textarea on enter
-              event.stopPropagation();
-            }
-
-
-            try {
-              prettyPrint(this.value);
-              textarea.removeClass("badTextarea");
-            }
-            catch(err) {
-              textarea.addClass("badTextarea");
-            }
-
-          });
-
-        });
-
-      </script>
-    </div>
+    </form>
   </div>
 {{ end }}

@@ -9,6 +9,9 @@ td.item_selector, td.item_selector > input {
 
 textarea.form-control {
   font-family: Menlo,Monaco,Consolas,"Courier New",monospace;
+  background: $color-background;
   font-size: 13px;
-  background: aliceblue;
+  border-radius: 0;
+  border: 1px solid $color-foreground;
+  padding: 15px 20px;
 }

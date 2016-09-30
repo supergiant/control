@@ -7,6 +7,7 @@
 // ui/views/new.html
 // ui/views/partials/item_list.html
 // ui/views/show.html
+// ui/assets/.DS_Store
 // ui/assets/css/main.css
 // ui/assets/css/main.css.map
 // ui/assets/fonts/Doppio-One.ttf
@@ -15,13 +16,20 @@
 // ui/assets/fonts/glyphicons-halflings-regular.ttf
 // ui/assets/fonts/glyphicons-halflings-regular.woff
 // ui/assets/fonts/glyphicons-halflings-regular.woff2
+// ui/assets/images/.DS_Store
+// ui/assets/images/buttons/.DS_Store
 // ui/assets/images/icons/sidebar_cloudaccounts.svg
 // ui/assets/images/icons/sidebar_components.svg
 // ui/assets/images/icons/sidebar_dockerkeys.svg
 // ui/assets/images/icons/sidebar_entrypoints.svg
 // ui/assets/images/icons/sidebar_instances.svg
+// ui/assets/images/icons/sidebar_kuberesources.svg
+// ui/assets/images/icons/sidebar_kubes.png
+// ui/assets/images/icons/sidebar_listeners.svg
 // ui/assets/images/icons/sidebar_namespaces.svg
 // ui/assets/images/icons/sidebar_nodes.svg
+// ui/assets/images/icons/sidebar_sessions.svg
+// ui/assets/images/icons/sidebar_users.svg
 // ui/assets/images/icons/sidebar_volumes.svg
 // ui/assets/images/sg_logo.svg
 // ui/assets/js/index.js
@@ -182,6 +190,24 @@ func uiViewsShowHtml() (*asset, error) {
 	return a, err
 }
 
+// uiAssetsDs_store reads file data from disk. It returns an error on failure.
+func uiAssetsDs_store() (*asset, error) {
+	path := "/Users/Scott/golang/src/github.com/supergiant/supergiant/ui/assets/.DS_Store"
+	name := "ui/assets/.DS_Store"
+	bytes, err := bindataRead(path, name)
+	if err != nil {
+		return nil, err
+	}
+
+	fi, err := os.Stat(path)
+	if err != nil {
+		err = fmt.Errorf("Error reading asset info %s at %s: %v", name, path, err)
+	}
+
+	a := &asset{bytes: bytes, info: fi}
+	return a, err
+}
+
 // uiAssetsCssMainCss reads file data from disk. It returns an error on failure.
 func uiAssetsCssMainCss() (*asset, error) {
 	path := "/Users/Scott/golang/src/github.com/supergiant/supergiant/ui/assets/css/main.css"
@@ -326,6 +352,42 @@ func uiAssetsFontsGlyphiconsHalflingsRegularWoff2() (*asset, error) {
 	return a, err
 }
 
+// uiAssetsImagesDs_store reads file data from disk. It returns an error on failure.
+func uiAssetsImagesDs_store() (*asset, error) {
+	path := "/Users/Scott/golang/src/github.com/supergiant/supergiant/ui/assets/images/.DS_Store"
+	name := "ui/assets/images/.DS_Store"
+	bytes, err := bindataRead(path, name)
+	if err != nil {
+		return nil, err
+	}
+
+	fi, err := os.Stat(path)
+	if err != nil {
+		err = fmt.Errorf("Error reading asset info %s at %s: %v", name, path, err)
+	}
+
+	a := &asset{bytes: bytes, info: fi}
+	return a, err
+}
+
+// uiAssetsImagesButtonsDs_store reads file data from disk. It returns an error on failure.
+func uiAssetsImagesButtonsDs_store() (*asset, error) {
+	path := "/Users/Scott/golang/src/github.com/supergiant/supergiant/ui/assets/images/buttons/.DS_Store"
+	name := "ui/assets/images/buttons/.DS_Store"
+	bytes, err := bindataRead(path, name)
+	if err != nil {
+		return nil, err
+	}
+
+	fi, err := os.Stat(path)
+	if err != nil {
+		err = fmt.Errorf("Error reading asset info %s at %s: %v", name, path, err)
+	}
+
+	a := &asset{bytes: bytes, info: fi}
+	return a, err
+}
+
 // uiAssetsImagesIconsSidebar_cloudaccountsSvg reads file data from disk. It returns an error on failure.
 func uiAssetsImagesIconsSidebar_cloudaccountsSvg() (*asset, error) {
 	path := "/Users/Scott/golang/src/github.com/supergiant/supergiant/ui/assets/images/icons/sidebar_cloudaccounts.svg"
@@ -416,6 +478,60 @@ func uiAssetsImagesIconsSidebar_instancesSvg() (*asset, error) {
 	return a, err
 }
 
+// uiAssetsImagesIconsSidebar_kuberesourcesSvg reads file data from disk. It returns an error on failure.
+func uiAssetsImagesIconsSidebar_kuberesourcesSvg() (*asset, error) {
+	path := "/Users/Scott/golang/src/github.com/supergiant/supergiant/ui/assets/images/icons/sidebar_kuberesources.svg"
+	name := "ui/assets/images/icons/sidebar_kuberesources.svg"
+	bytes, err := bindataRead(path, name)
+	if err != nil {
+		return nil, err
+	}
+
+	fi, err := os.Stat(path)
+	if err != nil {
+		err = fmt.Errorf("Error reading asset info %s at %s: %v", name, path, err)
+	}
+
+	a := &asset{bytes: bytes, info: fi}
+	return a, err
+}
+
+// uiAssetsImagesIconsSidebar_kubesPng reads file data from disk. It returns an error on failure.
+func uiAssetsImagesIconsSidebar_kubesPng() (*asset, error) {
+	path := "/Users/Scott/golang/src/github.com/supergiant/supergiant/ui/assets/images/icons/sidebar_kubes.png"
+	name := "ui/assets/images/icons/sidebar_kubes.png"
+	bytes, err := bindataRead(path, name)
+	if err != nil {
+		return nil, err
+	}
+
+	fi, err := os.Stat(path)
+	if err != nil {
+		err = fmt.Errorf("Error reading asset info %s at %s: %v", name, path, err)
+	}
+
+	a := &asset{bytes: bytes, info: fi}
+	return a, err
+}
+
+// uiAssetsImagesIconsSidebar_listenersSvg reads file data from disk. It returns an error on failure.
+func uiAssetsImagesIconsSidebar_listenersSvg() (*asset, error) {
+	path := "/Users/Scott/golang/src/github.com/supergiant/supergiant/ui/assets/images/icons/sidebar_listeners.svg"
+	name := "ui/assets/images/icons/sidebar_listeners.svg"
+	bytes, err := bindataRead(path, name)
+	if err != nil {
+		return nil, err
+	}
+
+	fi, err := os.Stat(path)
+	if err != nil {
+		err = fmt.Errorf("Error reading asset info %s at %s: %v", name, path, err)
+	}
+
+	a := &asset{bytes: bytes, info: fi}
+	return a, err
+}
+
 // uiAssetsImagesIconsSidebar_namespacesSvg reads file data from disk. It returns an error on failure.
 func uiAssetsImagesIconsSidebar_namespacesSvg() (*asset, error) {
 	path := "/Users/Scott/golang/src/github.com/supergiant/supergiant/ui/assets/images/icons/sidebar_namespaces.svg"
@@ -438,6 +554,42 @@ func uiAssetsImagesIconsSidebar_namespacesSvg() (*asset, error) {
 func uiAssetsImagesIconsSidebar_nodesSvg() (*asset, error) {
 	path := "/Users/Scott/golang/src/github.com/supergiant/supergiant/ui/assets/images/icons/sidebar_nodes.svg"
 	name := "ui/assets/images/icons/sidebar_nodes.svg"
+	bytes, err := bindataRead(path, name)
+	if err != nil {
+		return nil, err
+	}
+
+	fi, err := os.Stat(path)
+	if err != nil {
+		err = fmt.Errorf("Error reading asset info %s at %s: %v", name, path, err)
+	}
+
+	a := &asset{bytes: bytes, info: fi}
+	return a, err
+}
+
+// uiAssetsImagesIconsSidebar_sessionsSvg reads file data from disk. It returns an error on failure.
+func uiAssetsImagesIconsSidebar_sessionsSvg() (*asset, error) {
+	path := "/Users/Scott/golang/src/github.com/supergiant/supergiant/ui/assets/images/icons/sidebar_sessions.svg"
+	name := "ui/assets/images/icons/sidebar_sessions.svg"
+	bytes, err := bindataRead(path, name)
+	if err != nil {
+		return nil, err
+	}
+
+	fi, err := os.Stat(path)
+	if err != nil {
+		err = fmt.Errorf("Error reading asset info %s at %s: %v", name, path, err)
+	}
+
+	a := &asset{bytes: bytes, info: fi}
+	return a, err
+}
+
+// uiAssetsImagesIconsSidebar_usersSvg reads file data from disk. It returns an error on failure.
+func uiAssetsImagesIconsSidebar_usersSvg() (*asset, error) {
+	path := "/Users/Scott/golang/src/github.com/supergiant/supergiant/ui/assets/images/icons/sidebar_users.svg"
+	name := "ui/assets/images/icons/sidebar_users.svg"
 	bytes, err := bindataRead(path, name)
 	if err != nil {
 		return nil, err
@@ -655,6 +807,7 @@ var _bindata = map[string]func() (*asset, error){
 	"ui/views/new.html": uiViewsNewHtml,
 	"ui/views/partials/item_list.html": uiViewsPartialsItem_listHtml,
 	"ui/views/show.html": uiViewsShowHtml,
+	"ui/assets/.DS_Store": uiAssetsDs_store,
 	"ui/assets/css/main.css": uiAssetsCssMainCss,
 	"ui/assets/css/main.css.map": uiAssetsCssMainCssMap,
 	"ui/assets/fonts/Doppio-One.ttf": uiAssetsFontsDoppioOneTtf,
@@ -663,13 +816,20 @@ var _bindata = map[string]func() (*asset, error){
 	"ui/assets/fonts/glyphicons-halflings-regular.ttf": uiAssetsFontsGlyphiconsHalflingsRegularTtf,
 	"ui/assets/fonts/glyphicons-halflings-regular.woff": uiAssetsFontsGlyphiconsHalflingsRegularWoff,
 	"ui/assets/fonts/glyphicons-halflings-regular.woff2": uiAssetsFontsGlyphiconsHalflingsRegularWoff2,
+	"ui/assets/images/.DS_Store": uiAssetsImagesDs_store,
+	"ui/assets/images/buttons/.DS_Store": uiAssetsImagesButtonsDs_store,
 	"ui/assets/images/icons/sidebar_cloudaccounts.svg": uiAssetsImagesIconsSidebar_cloudaccountsSvg,
 	"ui/assets/images/icons/sidebar_components.svg": uiAssetsImagesIconsSidebar_componentsSvg,
 	"ui/assets/images/icons/sidebar_dockerkeys.svg": uiAssetsImagesIconsSidebar_dockerkeysSvg,
 	"ui/assets/images/icons/sidebar_entrypoints.svg": uiAssetsImagesIconsSidebar_entrypointsSvg,
 	"ui/assets/images/icons/sidebar_instances.svg": uiAssetsImagesIconsSidebar_instancesSvg,
+	"ui/assets/images/icons/sidebar_kuberesources.svg": uiAssetsImagesIconsSidebar_kuberesourcesSvg,
+	"ui/assets/images/icons/sidebar_kubes.png": uiAssetsImagesIconsSidebar_kubesPng,
+	"ui/assets/images/icons/sidebar_listeners.svg": uiAssetsImagesIconsSidebar_listenersSvg,
 	"ui/assets/images/icons/sidebar_namespaces.svg": uiAssetsImagesIconsSidebar_namespacesSvg,
 	"ui/assets/images/icons/sidebar_nodes.svg": uiAssetsImagesIconsSidebar_nodesSvg,
+	"ui/assets/images/icons/sidebar_sessions.svg": uiAssetsImagesIconsSidebar_sessionsSvg,
+	"ui/assets/images/icons/sidebar_users.svg": uiAssetsImagesIconsSidebar_usersSvg,
 	"ui/assets/images/icons/sidebar_volumes.svg": uiAssetsImagesIconsSidebar_volumesSvg,
 	"ui/assets/images/sg_logo.svg": uiAssetsImagesSg_logoSvg,
 	"ui/assets/js/index.js": uiAssetsJsIndexJs,
@@ -722,6 +882,7 @@ type bintree struct {
 var _bintree = &bintree{nil, map[string]*bintree{
 	"ui": &bintree{nil, map[string]*bintree{
 		"assets": &bintree{nil, map[string]*bintree{
+			".DS_Store": &bintree{uiAssetsDs_store, map[string]*bintree{}},
 			"css": &bintree{nil, map[string]*bintree{
 				"main.css": &bintree{uiAssetsCssMainCss, map[string]*bintree{}},
 				"main.css.map": &bintree{uiAssetsCssMainCssMap, map[string]*bintree{}},
@@ -735,14 +896,23 @@ var _bintree = &bintree{nil, map[string]*bintree{
 				"glyphicons-halflings-regular.woff2": &bintree{uiAssetsFontsGlyphiconsHalflingsRegularWoff2, map[string]*bintree{}},
 			}},
 			"images": &bintree{nil, map[string]*bintree{
+				".DS_Store": &bintree{uiAssetsImagesDs_store, map[string]*bintree{}},
+				"buttons": &bintree{nil, map[string]*bintree{
+					".DS_Store": &bintree{uiAssetsImagesButtonsDs_store, map[string]*bintree{}},
+				}},
 				"icons": &bintree{nil, map[string]*bintree{
 					"sidebar_cloudaccounts.svg": &bintree{uiAssetsImagesIconsSidebar_cloudaccountsSvg, map[string]*bintree{}},
 					"sidebar_components.svg": &bintree{uiAssetsImagesIconsSidebar_componentsSvg, map[string]*bintree{}},
 					"sidebar_dockerkeys.svg": &bintree{uiAssetsImagesIconsSidebar_dockerkeysSvg, map[string]*bintree{}},
 					"sidebar_entrypoints.svg": &bintree{uiAssetsImagesIconsSidebar_entrypointsSvg, map[string]*bintree{}},
 					"sidebar_instances.svg": &bintree{uiAssetsImagesIconsSidebar_instancesSvg, map[string]*bintree{}},
+					"sidebar_kuberesources.svg": &bintree{uiAssetsImagesIconsSidebar_kuberesourcesSvg, map[string]*bintree{}},
+					"sidebar_kubes.png": &bintree{uiAssetsImagesIconsSidebar_kubesPng, map[string]*bintree{}},
+					"sidebar_listeners.svg": &bintree{uiAssetsImagesIconsSidebar_listenersSvg, map[string]*bintree{}},
 					"sidebar_namespaces.svg": &bintree{uiAssetsImagesIconsSidebar_namespacesSvg, map[string]*bintree{}},
 					"sidebar_nodes.svg": &bintree{uiAssetsImagesIconsSidebar_nodesSvg, map[string]*bintree{}},
+					"sidebar_sessions.svg": &bintree{uiAssetsImagesIconsSidebar_sessionsSvg, map[string]*bintree{}},
+					"sidebar_users.svg": &bintree{uiAssetsImagesIconsSidebar_usersSvg, map[string]*bintree{}},
 					"sidebar_volumes.svg": &bintree{uiAssetsImagesIconsSidebar_volumesSvg, map[string]*bintree{}},
 				}},
 				"sg_logo.svg": &bintree{uiAssetsImagesSg_logoSvg, map[string]*bintree{}},

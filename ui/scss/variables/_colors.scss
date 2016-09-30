@@ -17,7 +17,7 @@ $sg-colors: (
 
 $color-primary: sg-color('primary');
 $color-secondary: sg-color('secondary');
-$color-accent: sg-color('tertiary');
+$color-tertiary: sg-color('tertiary');
 $color-foreground: sg-color('foreground');
 $color-background: sg-color('background');
 
@@ -32,6 +32,3 @@ $color-primary-shaded: mix(black, $color-primary, 10%);
 
 $color-secondary-tinted: mix(white, $color-secondary, 10%);
 $color-secondary-shaded: mix(black, $color-secondary, 10%);
-
-$color-accent-tinted: mix(white, $color-accent, 10%);
-$color-accent-shaded: mix(black, $color-accent, 10%);

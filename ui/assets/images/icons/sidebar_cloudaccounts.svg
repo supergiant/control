@@ -1,10 +1,10 @@
-<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<?xml version="1.0" encoding="UTF-8"?>
 <svg width="24px" height="24px" viewBox="0 0 24 24" version="1.1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
-    <!-- Generator: Sketch 39.1 (31720) - http://www.bohemiancoding.com/sketch -->
+    <!-- Generator: Sketch 40.1 (33804) - http://www.bohemiancoding.com/sketch -->
     <title>sidebar_cloudaccounts</title>
     <desc>Created with Sketch.</desc>
     <defs></defs>
-    <g id="Symbols" stroke="none" stroke-width="1" fill="none" fill-rule="evenodd">
+    <g id="Guides" stroke="none" stroke-width="1" fill="none" fill-rule="evenodd">
         <g id="sidebar_cloudaccounts">
             <circle id="Oval-5-Copy" stroke="#9EB2BE" stroke-width="2" cx="12" cy="12" r="11"></circle>
             <path d="M11.8532715,15.9756024 L8.3765625,15.9756024 C7.06640625,15.9756024 6,14.8370482 6,13.4357507 C6,12.4848703 6.496875,11.6190686 7.27734375,11.1836654 C7.27734375,9.25938369 8.72578125,7.71295181 10.5070313,7.71295181 C11.5945312,7.71295181 12.6070312,8.30099629 13.2023438,9.25938369 C13.4976563,9.13927247 13.8070313,9.07671455 14.1304688,9.07671455 C14.728125,9.07671455 15.3117188,9.29942076 15.7734375,9.70479611 C16.1953125,10.075139 16.4976562,10.580607 16.6359375,11.1386237 C17.4679688,11.5565107 18,12.4423309 18,13.4357507 C18,14.8370482 16.9335938,15.9756024 15.6234375,15.9756024 L11.8532715,15.9756024 Z" id="Shape" fill="#485369" transform="translate(12.000000, 11.844277) scale(-1, 1) translate(-12.000000, -11.844277) "></path>

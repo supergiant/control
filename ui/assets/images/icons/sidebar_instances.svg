@@ -1,10 +1,10 @@
-<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<?xml version="1.0" encoding="UTF-8"?>
 <svg width="24px" height="24px" viewBox="0 0 24 24" version="1.1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
-    <!-- Generator: Sketch 39.1 (31720) - http://www.bohemiancoding.com/sketch -->
+    <!-- Generator: Sketch 40.1 (33804) - http://www.bohemiancoding.com/sketch -->
     <title>sidebar_instances</title>
     <desc>Created with Sketch.</desc>
     <defs></defs>
-    <g id="Symbols" stroke="none" stroke-width="1" fill="none" fill-rule="evenodd">
+    <g id="Guides" stroke="none" stroke-width="1" fill="none" fill-rule="evenodd">
         <g id="sidebar_instances">
             <g id="Group-15" transform="translate(1.000000, 1.000000)">
                 <path d="M20.4883747,0.0179650655 L9.04952505,0.0179650655 C8.82866231,0.0179650655 8.61915904,0.0671048035 8.43079303,0.154480349 C7.92383442,0.389659389 7.57106754,0.904017467 7.57106754,1.49969869 L7.57106754,2.24054148 L16.7917996,2.24054148 C18.4306318,2.24054148 19.7639085,3.57672926 19.7639085,5.21913974 L19.7639085,14.4176376 L19.7639085,14.4452576 L20.4884227,14.4452576 C21.2995468,14.4452576 21.9669281,13.7837205 21.9669281,12.9635721 L21.9669281,1.49969869 C21.9668802,0.682672489 21.3036688,0.0179650655 20.4883747,0.0179650655 L20.4883747,0.0179650655 Z" id="Shape" fill="#485369"></path>

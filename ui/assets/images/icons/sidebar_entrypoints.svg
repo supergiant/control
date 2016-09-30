@@ -1,10 +1,10 @@
-<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<?xml version="1.0" encoding="UTF-8"?>
 <svg width="24px" height="24px" viewBox="0 0 24 24" version="1.1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
-    <!-- Generator: Sketch 39.1 (31720) - http://www.bohemiancoding.com/sketch -->
+    <!-- Generator: Sketch 40.1 (33804) - http://www.bohemiancoding.com/sketch -->
     <title>sidebar_entrypoints</title>
     <desc>Created with Sketch.</desc>
     <defs></defs>
-    <g id="Symbols" stroke="none" stroke-width="1" fill="none" fill-rule="evenodd">
+    <g id="Guides" stroke="none" stroke-width="1" fill="none" fill-rule="evenodd">
         <g id="sidebar_entrypoints">
             <g id="Group-14" transform="translate(2.000000, 0.000000)">
                 <path d="M18.8888889,21.2962963 L3.33333333,21.2962963 C2.66666667,21.2962963 2.22222222,20.9259259 2.22222222,20.3703704 L2.22222222,3.7037037 C2.22222222,3.14814815 2.66666667,2.77777778 3.33333333,2.77777778 L18.8888889,2.77777778 C19.5555556,2.77777778 20,3.14814815 20,3.7037037 L20,20.3703704 C20,20.9259259 19.5555556,21.2962963 18.8888889,21.2962963 L18.8888889,21.2962963 Z M4.44444444,19.4444444 L17.7777778,19.4444444 L17.7777778,4.62962963 L4.44444444,4.62962963 L4.44444444,19.4444444 L4.44444444,19.4444444 Z" id="Shape" fill="#9EB2BE"></path>

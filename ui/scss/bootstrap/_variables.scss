@@ -15,11 +15,11 @@ $gray:                   lighten($gray-base, 33.5%) !default; // #555
 $gray-light:             lighten($gray-base, 46.7%) !default; // #777
 $gray-lighter:           lighten($gray-base, 93.5%) !default; // #eee
 
-$brand-primary:         darken(#428bca, 6.5%) !default; // #337ab7
-$brand-success:         #5cb85c !default;
+$brand-primary:         $color-primary;
+$brand-success:         $color-success-primary;
 $brand-info:            #5bc0de !default;
-$brand-warning:         #f0ad4e !default;
-$brand-danger:          #d9534f !default;
+$brand-warning:         $color-warning-primary;
+$brand-danger:          $color-failure-primary;
 
 
 //== Scaffolding
@@ -43,13 +43,13 @@ $link-hover-decoration: underline !default;
 //
 //## Font, line-height, and color for body text, headings, and more.
 
-$font-family-sans-serif:  "Helvetica Neue", Helvetica, Arial, sans-serif !default;
+$font-family-sans-serif:  "Lato", Helvetica, Arial, sans-serif !default;
 $font-family-serif:       Georgia, "Times New Roman", Times, serif !default;
 //** Default monospace fonts for `<code>`, `<kbd>`, and `<pre>`.
 $font-family-monospace:   Menlo, Monaco, Consolas, "Courier New", monospace !default;
 $font-family-base:        $font-family-sans-serif !default;
 
-$font-size-base:          14px !default;
+$font-size-base:          12px !default;
 $font-size-large:         ceil(($font-size-base * 1.25)) !default; // ~18px
 $font-size-small:         ceil(($font-size-base * 0.85)) !default; // ~12px
 
@@ -147,31 +147,61 @@ $table-border-color:            #ddd !default;
 //
 //## For each of Bootstrap's buttons, define text, background and border color.
 
-$btn-font-weight:                normal !default;
+$btn-font-weight:                bold !default;
 
-$btn-default-color:              #333 !default;
-$btn-default-bg:                 #fff !default;
-$btn-default-border:             #ccc !default;
+$btn-default-color:              $color-primary !default;
+$btn-default-bg:                 linear-gradient(-180deg, #FAFCFD 0%, #F3F7F9 100%) !default;
+$btn-default-border:             #485369 !default;
+
+$btn-default-bg-hover:           linear-gradient(-180deg, #FAFCFD 0%, #F3F7F9 100%) !default;
+$btn-default-bg-focus:           linear-gradient(-180deg, #FAFCFD 0%, #F3F7F9 100%) !default;
+$btn-default-bg-active:          linear-gradient(-180deg, #FAFCFD 0%, #F3F7F9 100%) !default;
+
 
 $btn-primary-color:              #fff !default;
-$btn-primary-bg:                 $brand-primary !default;
-$btn-primary-border:             darken($btn-primary-bg, 5%) !default;
+$btn-primary-bg:                 linear-gradient(-180deg, #9EB2BE 0%, #8199A7 18%) !default;
+$btn-primary-border:             #7A87A0 !default;
+
+$btn-primary-bg-hover:           linear-gradient(-180deg, #FAFCFD 0%, #F3F7F9 100%) !default;
+$btn-primary-bg-focus:           linear-gradient(-180deg, #FAFCFD 0%, #F3F7F9 100%) !default;
+$btn-primary-bg-active:          linear-gradient(-180deg, #FAFCFD 0%, #F3F7F9 100%) !default;
+
 
 $btn-success-color:              #fff !default;
 $btn-success-bg:                 $brand-success !default;
 $btn-success-border:             darken($btn-success-bg, 5%) !default;
 
+$btn-success-bg-hover:           linear-gradient(-180deg, #FAFCFD 0%, #F3F7F9 100%) !default;
+$btn-success-bg-focus:           linear-gradient(-180deg, #FAFCFD 0%, #F3F7F9 100%) !default;
+$btn-success-bg-active:          linear-gradient(-180deg, #FAFCFD 0%, #F3F7F9 100%) !default;
+
+
 $btn-info-color:                 #fff !default;
 $btn-info-bg:                    $brand-info !default;
 $btn-info-border:                darken($btn-info-bg, 5%) !default;
+
+$btn-info-bg-hover:              linear-gradient(-180deg, #FAFCFD 0%, #F3F7F9 100%) !default;
+$btn-info-bg-focus:              linear-gradient(-180deg, #FAFCFD 0%, #F3F7F9 100%) !default;
+$btn-info-bg-active:             linear-gradient(-180deg, #FAFCFD 0%, #F3F7F9 100%) !default;
+
 
 $btn-warning-color:              #fff !default;
 $btn-warning-bg:                 $brand-warning !default;
 $btn-warning-border:             darken($btn-warning-bg, 5%) !default;
 
+$btn-warning-bg-hover:           linear-gradient(-180deg, #FAFCFD 0%, #F3F7F9 100%) !default;
+$btn-warning-bg-focus:           linear-gradient(-180deg, #FAFCFD 0%, #F3F7F9 100%) !default;
+$btn-warning-bg-active:          linear-gradient(-180deg, #FAFCFD 0%, #F3F7F9 100%) !default;
+
+
 $btn-danger-color:               #fff !default;
 $btn-danger-bg:                  $brand-danger !default;
 $btn-danger-border:              darken($btn-danger-bg, 5%) !default;
+
+$btn-danger-bg-hover:            linear-gradient(-180deg, #FAFCFD 0%, #F3F7F9 100%) !default;
+$btn-danger-bg-focus:            linear-gradient(-180deg, #FAFCFD 0%, #F3F7F9 100%) !default;
+$btn-danger-bg-active:           linear-gradient(-180deg, #FAFCFD 0%, #F3F7F9 100%) !default;
+
 
 $btn-link-disabled-color:        $gray-light !default;
 
@@ -674,7 +704,7 @@ $progress-bar-info-bg:        $brand-info !default;
 //##
 
 //** Background color on `.list-group-item`
-$list-group-bg:                 #fff !default;
+$list-group-bg:                 none !default;
 //** `.list-group-item` border color
 $list-group-border:             #ddd !default;
 //** List group border radius
