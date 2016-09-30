@@ -1,7 +1,9 @@
 #!/bin/bash
 SSL_KEY_FILE=/etc/ssl/private/supergiant.key
 SSL_CRT_FILE=/etc/ssl/certs/supergiant.pem
-PUBLISH_HOST=$(curl -s http://169.254.169.254/latest/meta-data/public-hostname)
+PUBLIC_HOST=$(curl -s http://169.254.169.254/latest/meta-data/public-hostname)
+PRIVATE_HOST=$(curl -s http://169.254.169.254/latest/meta-data/local-hostname)
+PUBLISH_HOST=${PUBLIC_HOST:-$PRIVATE_HOST}
 openssl genrsa -out $SSL_KEY_FILE 2048
 openssl req -new -x509 -sha256 -key $SSL_KEY_FILE -out $SSL_CRT_FILE -days 3650 -subj /C=US/ST=Arkansas/L=Fayetteville/O=Supergiant/CN=$PUBLISH_HOST
 
