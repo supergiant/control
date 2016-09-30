@@ -12,6 +12,7 @@ import (
 	"github.com/supergiant/supergiant/pkg/client"
 	"github.com/supergiant/supergiant/pkg/kubernetes"
 	"github.com/supergiant/supergiant/pkg/model"
+	"github.com/supergiant/supergiant/pkg/util"
 
 	"github.com/jinzhu/gorm"
 	_ "github.com/jinzhu/gorm/dialects/postgres"
@@ -89,6 +90,9 @@ type Core struct {
 // configure.
 func (c *Core) Initialize() {
 	if err := c.InitializeForeground(); err != nil {
+		panic(err)
+	}
+	if err := c.detectOrCreateAdmin(); err != nil {
 		panic(err)
 	}
 	c.InitializeBackground()
@@ -262,4 +266,32 @@ func (c *Core) UIURL() string {
 
 func (c *Core) NewAPIClient(authType string, authToken string) *client.Client {
 	return client.New(c.BaseURL(), authType, authToken, c.SSLCertFile)
+}
+
+//------------------------------------------------------------------------------
+
+func (c *Core) detectOrCreateAdmin() error {
+	if err := c.DB.First(new(model.User), "role = ?", model.UserRoleAdmin); err == nil {
+		// Already have an admin
+		return nil
+	}
+
+	// TODO this should be logged to file, but isn't due to how we open file in server.go
+	c.Log.Info("No Admin detected, creating new and printing credentials:")
+
+	password := util.RandomString(16)
+
+	admin := &model.User{
+		Username: "admin",
+		Password: password,
+		Role:     model.UserRoleAdmin,
+	}
+	if err := c.Users.Create(admin); err != nil {
+		return err
+	}
+
+	// Print to STDOUT (not c.Log, which would save to file)
+	fmt.Printf("\n  ( ͡° ͜ʖ ͡°)  USERNAME: admin  PASSWORD: %s\n\n", password)
+
+	return nil
 }

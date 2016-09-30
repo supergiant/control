@@ -23,23 +23,28 @@ install:
   - go get github.com/mattn/goveralls
   - go get github.com/smartystreets/goconvey/convey
   - go get github.com/tcnksm/ghr
-  - go get github.com/mitchellh/gox
+  - go get github.com/karalabe/xgo
 
 script:
+  # Test
   - govendor test +local
 
+  # Coverage
   - go list -f "{{ if or (len .TestGoFiles) (len .XTestGoFiles) }}\"go test -covermode=count -coverpkg $(go list ./pkg/... | awk -v ORS=, '{ print $1 }' | sed 's/,$//') -coverprofile={{ .Dir }}/.coverprofile {{ .ImportPath }}\"{{ end }}" ./... | xargs -L 1 sh -c
   - cat $(find . -regex '.*/.coverprofile') > .coverprofile
   - sed -i.bak '/^mode:\ count$/d' .coverprofile
   - echo 'mode':' count' | cat - .coverprofile > /tmp/out && mv /tmp/out .coverprofile
   - goveralls -coverprofile=.coverprofile -service=travis-ci
 
-  - gox -output "dist/{{.OS}}_{{.Arch}}_supergiant" ./cmd/server/
-  - go build cmd/generate_admin_user/generate_admin_user.go
+  # Cross compile
+  - BUILD_TARGETS=windows/386,windows/amd64,darwin/386,darwin/amd64,linux/386,linux/amd64
+  - xgo -go 1.7.1 --targets=$BUILD_TARGETS -out dist/supergiant-server ./cmd/server/
+  - xgo -go 1.7.1 --targets=$BUILD_TARGETS -out dist/supergiant-cli ./cmd/cli
+
   - travis_wait 30 build/travis_build.sh
 
 after_success:
-  # - build/ghr.sh
+  - build/ghr.sh
 
 
 notifications:

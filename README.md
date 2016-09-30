@@ -157,12 +157,6 @@ default configuration for localhost development.
 cp config/config.json.example config/config.json
 ```
 
-#### Create an Admin User
-
-```shell
-go run cmd/generate_admin_user/generate_admin_user.go --config-file config/config.json
-```
-
 #### Run Supergiant
 
 ```shell

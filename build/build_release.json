@@ -27,12 +27,7 @@
     },
     {
       "type": "file",
-      "source": "generate_admin_user",
-      "destination": "~/generate_admin_user"
-    },
-    {
-      "type": "file",
-      "source": "dist/linux_amd64_supergiant",
+      "source": "dist/supergiant-server-linux-amd64",
       "destination": "~/supergiant"
     },
     {
@@ -52,8 +47,6 @@
     "sudo apt-get install -y postgresql postgresql-contrib",
     "sudo chmod 755 ~/supergiant",
     "sudo mkdir /supergiant",
-    "sudo chmod 755 ~/generate_admin_user",
-    "sudo cp ~/generate_admin_user /supergiant/generate_admin_user",
     "sudo cp ~/supergiant /supergiant/supergiant",
     "sudo cp ~/supergiant-server.conf /etc/init/supergiant-server.conf",
     "sudo cp ~/sgboot /etc/init.d/sgboot",
