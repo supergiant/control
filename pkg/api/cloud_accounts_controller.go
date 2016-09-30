@@ -38,6 +38,28 @@ func UpdateCloudAccount(core *core.Core, user *model.User, r *http.Request) (*Re
 }
 
 func GetCloudAccount(core *core.Core, user *model.User, r *http.Request) (*Response, error) {
+	item, err := getCloudAccount(core, r)
+	if err != nil {
+		return nil, err
+	}
+	return itemResponse(core, item, http.StatusOK)
+}
+
+func DeleteCloudAccount(core *core.Core, user *model.User, r *http.Request) (*Response, error) {
+	// Load item first so we can have attributes ready in Delete
+	item, err := getCloudAccount(core, r)
+	if err != nil {
+		return nil, err
+	}
+	if err := core.CloudAccounts.Delete(item.ID, item); err != nil {
+		return nil, err
+	}
+	return itemResponse(core, item, http.StatusAccepted)
+}
+
+// Private
+
+func getCloudAccount(core *core.Core, r *http.Request) (*model.CloudAccount, error) {
 	item := new(model.CloudAccount)
 	id, err := parseID(r)
 	if err != nil {
@@ -46,17 +68,5 @@ func GetCloudAccount(core *core.Core, user *model.User, r *http.Request) (*Respo
 	if err := core.CloudAccounts.Get(id, item); err != nil {
 		return nil, err
 	}
-	return itemResponse(core, item, http.StatusOK)
-}
-
-func DeleteCloudAccount(core *core.Core, user *model.User, r *http.Request) (*Response, error) {
-	item := new(model.CloudAccount)
-	id, err := parseID(r)
-	if err != nil {
-		return nil, err
-	}
-	if err := core.CloudAccounts.Delete(id, item); err != nil {
-		return nil, err
-	}
-	return itemResponse(core, item, http.StatusAccepted)
+	return item, nil
 }

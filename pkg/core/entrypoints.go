@@ -11,8 +11,9 @@ func (c *Entrypoints) Create(m *model.Entrypoint) error {
 		return err
 	}
 
-	// Load Kube and CloudAccount
-	if err := c.Core.DB.Preload("Nodes").Preload("CloudAccount").Where("name = ?", m.KubeName).First(m.Kube); err != nil {
+	// Load Kube and CloudAccount (TODO explain why Nodes are needed)
+	m.Kube = new(model.Kube)
+	if err := c.Core.DB.Preload("Nodes").Preload("CloudAccount").First(m.Kube, "name = ?", m.KubeName); err != nil {
 		return err
 	}
 

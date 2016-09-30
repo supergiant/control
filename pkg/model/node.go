@@ -12,10 +12,10 @@ type Node struct {
 
 	// belongs_to Kube
 	Kube     *Kube  `json:"kube,omitempty" gorm:"ForeignKey:KubeName;AssociationForeignKey:Name"`
-	KubeName string `json:"kube_name" gorm:"not null;index"`
+	KubeName string `json:"kube_name" gorm:"not null;index" validate:"nonzero" sg:"immutable"`
 
 	// This is the only input for Node
-	Size string `json:"size" validate:"nonzero"`
+	Size string `json:"size" validate:"nonzero" sg:"immutable"`
 
 	ProviderID                string    `json:"provider_id" sg:"readonly" gorm:"index"`
 	Name                      string    `json:"name" sg:"readonly" gorm:"index"`

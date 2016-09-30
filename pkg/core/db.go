@@ -2,7 +2,6 @@ package core
 
 import (
 	"encoding/json"
-	"errors"
 	"fmt"
 	"reflect"
 	"strings"
@@ -75,9 +74,9 @@ func (db *DB) First(out interface{}, where ...interface{}) error {
 }
 
 func (db *DB) Delete(m model.Model) error {
-	if m.GetID() == nil {
-		return errors.New("ID required for Delete")
-	}
+	// if m.GetID() == nil {
+	// 	return errors.New("ID required for Delete")
+	// }
 	return db.DB.Delete(m).Error
 }
 
@@ -144,7 +143,7 @@ func (db *DB) validateBelongsTos(m model.Model) error {
 		if belongsTo := tf.ForeignKeyOf; belongsTo != nil && tf.Field.String() != "" {
 			newParent := reflect.New(belongsTo.Field.Type.Elem())
 			if err := db.Where("name = ?", tf.Field.String()).First(newParent.Interface()); err != nil {
-				keyName := strings.Split(strings.ToLower(newParent.Elem().Type().String()), ".")[1] + "_name"
+				keyName := strings.Split(newParent.Elem().Type().String(), ".")[1] + "Name"
 				modelName := strings.Split(reflect.ValueOf(m).Elem().Type().String(), ".")[1]
 				return &ErrorMissingRequiredParent{keyName, modelName}
 			}
@@ -191,7 +190,7 @@ func validateFields(m model.Model) error {
 
 func marshalSerializedFields(m model.Model) {
 	for _, tf := range model.TaggedModelFieldsOf(m) {
-		if jsonField := tf.StoreAsJsonIn; jsonField != nil {
+		if jsonField := tf.StoreAsJSONIn; jsonField != nil {
 			objField := tf.Field
 
 			if objField.IsNil() || (reflect.Indirect(objField).Kind() == reflect.Slice && reflect.Indirect(objField).Len() == 0) {
@@ -210,7 +209,7 @@ func marshalSerializedFields(m model.Model) {
 
 func unmarshalSerializedFields(m model.Model) {
 	for _, tf := range model.TaggedModelFieldsOf(m) {
-		if jsonField := tf.StoreAsJsonIn; jsonField != nil {
+		if jsonField := tf.StoreAsJSONIn; jsonField != nil {
 			objField := tf.Field
 
 			if jsonField.Len() == 0 {

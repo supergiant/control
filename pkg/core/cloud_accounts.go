@@ -17,17 +17,17 @@ func (c *CloudAccounts) Create(m *model.CloudAccount) error {
 	}
 
 	if err := c.provider(m).ValidateAccount(m); err != nil {
-		return err
+		return &ErrorValidationFailed{err}
 	}
 	return c.Collection.Create(m)
 }
 
 func (c *CloudAccounts) Delete(id *int64, m *model.CloudAccount) error {
-	if err := c.Core.DB.Find(&m.Kubes, "cloud_account_name = ?", id); err != nil {
+	if err := c.Core.DB.Where("cloud_account_name = ?", m.Name).Find(&m.Kubes); err != nil {
 		return err
 	}
 	if len(m.Kubes) > 0 {
-		return errors.New("Cannot delete CloudAccount that has active Kubes")
+		return &ErrorValidationFailed{errors.New("Cannot delete CloudAccount that has active Kubes")}
 	}
 	return c.Collection.Delete(id, m)
 }

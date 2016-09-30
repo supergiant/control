@@ -2,7 +2,6 @@ package api
 
 import (
 	"encoding/json"
-	"os"
 
 	"github.com/supergiant/supergiant/pkg/core"
 	"github.com/supergiant/supergiant/pkg/model"
@@ -16,18 +15,40 @@ func newTestServer() *server.Server {
 	c.HTTPPort = "9999"
 	c.SQLiteFile = "../../../tmp/test.db"
 
-	// Wipe database
-	os.Remove(c.SQLiteFile)
-
-	if err := c.InitializeForeground(); err != nil {
-		panic(err)
-	}
+	wipeAndInitialize(c)
 
 	srv, err := server.New(c)
 	if err != nil {
 		panic(err)
 	}
 	return srv
+}
+
+func wipeDatabase(c *core.Core) {
+	// // NOTE some sporadic IO errors thrown here
+	// defer func() {
+	// 	if err := recover(); err != nil {
+	// 		fmt.Println("Recovered in wipeDatabase: ", err, "waiting a second")
+	// 		time.Sleep(time.Second)
+	// 	}
+	// }()
+	// os.Remove(c.SQLiteFile)
+	c.DB.Delete(&model.User{})
+	c.DB.Delete(&model.Kube{})
+	c.DB.Delete(&model.KubeResource{})
+	c.DB.Delete(&model.CloudAccount{})
+	c.DB.Delete(&model.Volume{})
+	c.DB.Delete(&model.Entrypoint{})
+	c.DB.Delete(&model.EntrypointListener{})
+	c.DB.Delete(&model.Node{})
+}
+
+func wipeAndInitialize(c *core.Core) {
+	// wipeDatabase(c)
+	if err := c.InitializeForeground(); err != nil {
+		panic(err)
+	}
+	wipeDatabase(c)
 }
 
 func createUser(c *core.Core) *model.User {

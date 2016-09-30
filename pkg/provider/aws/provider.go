@@ -16,6 +16,7 @@ import (
 	"github.com/aws/aws-sdk-go/service/ec2"
 	"github.com/aws/aws-sdk-go/service/elb"
 	"github.com/aws/aws-sdk-go/service/iam"
+	"github.com/supergiant/supergiant/bindata"
 	"github.com/supergiant/supergiant/pkg/core"
 	"github.com/supergiant/supergiant/pkg/kubernetes"
 	"github.com/supergiant/supergiant/pkg/model"
@@ -624,7 +625,7 @@ func (p *Provider) createKube(m *model.Kube, action *core.Action) error {
 			return nil
 		}
 
-		userdataTemplate, err := Asset("config/providers/aws/master_userdata.txt")
+		userdataTemplate, err := bindata.Asset("config/providers/aws/master_userdata.txt")
 		if err != nil {
 			return err
 		}
@@ -981,7 +982,7 @@ func (p *Provider) setAttrsFromServer(m *model.Node, server *ec2.Instance) {
 func (p *Provider) createServer(m *model.Node) (*ec2.Instance, error) {
 
 	// TODO move to init outside of func
-	userdataTemplate, err := Asset("config/providers/aws/minion_userdata.txt")
+	userdataTemplate, err := bindata.Asset("config/providers/aws/minion_userdata.txt")
 	if err != nil {
 		return nil, err
 	}

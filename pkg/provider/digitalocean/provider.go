@@ -8,6 +8,7 @@ import (
 	"time"
 
 	"github.com/digitalocean/godo"
+	"github.com/supergiant/supergiant/bindata"
 	"github.com/supergiant/supergiant/pkg/core"
 	"github.com/supergiant/supergiant/pkg/kubernetes"
 	"github.com/supergiant/supergiant/pkg/model"
@@ -63,7 +64,7 @@ func (p *Provider) CreateKube(m *model.Kube, action *core.Action) error {
 		}
 
 		// Build template
-		masterUserdataTemplate, err := Asset("config/providers/digitalocean/master.yaml")
+		masterUserdataTemplate, err := bindata.Asset("config/providers/digitalocean/master.yaml")
 		if err != nil {
 			return err
 		}
@@ -165,7 +166,7 @@ func (p *Provider) DeleteKube(m *model.Kube) error {
 // CreateNode creates a new minion on DO kubernetes cluster.
 func (p *Provider) CreateNode(m *model.Node, action *core.Action) error {
 	// Build template
-	minionUserdataTemplate, err := Asset("config/providers/digitalocean/minion.yaml")
+	minionUserdataTemplate, err := bindata.Asset("config/providers/digitalocean/minion.yaml")
 	if err != nil {
 		return err
 	}

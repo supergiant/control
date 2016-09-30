@@ -8,7 +8,7 @@ import (
 	"testing"
 
 	"github.com/supergiant/supergiant/pkg/core"
-	"github.com/supergiant/supergiant/pkg/core/fake"
+	"github.com/supergiant/supergiant/test/fake_core"
 	"github.com/supergiant/supergiant/pkg/kubernetes"
 	"github.com/supergiant/supergiant/pkg/model"
 	"github.com/supergiant/supergiant/pkg/provider/aws"
@@ -436,7 +436,7 @@ func TestPodProvisionerProvision(t *testing.T) {
 			c := &core.Core{
 				// We call K8S client to wait for Pod start
 				K8S: func(_ *model.Kube) kubernetes.ClientInterface {
-					return &fake.KubernetesClient{
+					return &fake_core.KubernetesClient{
 						GetResourceFn: func(kind string, namespace string, name string, out *json.RawMessage) error {
 							status := "True"
 							if item.mockPodStartTimeout {
@@ -448,7 +448,7 @@ func TestPodProvisionerProvision(t *testing.T) {
 					}
 				},
 
-				DB: &fake.DB{
+				DB: &fake_core.DB{
 					// Used to fetch Volumes
 					FindFn: func(out interface{}, _ ...interface{}) error {
 						if err := item.mockVolumeFetchError; err != nil {
@@ -460,7 +460,7 @@ func TestPodProvisionerProvision(t *testing.T) {
 					},
 				},
 
-				Volumes: &fake.Volumes{
+				Volumes: &fake_core.Volumes{
 					CreateFn: func(volume *model.Volume) error {
 						if err := item.mockVolumeCreateError; err != nil {
 							return err
@@ -473,7 +473,7 @@ func TestPodProvisionerProvision(t *testing.T) {
 					},
 				},
 
-				DefaultProvisioner: &fake.Provisioner{
+				DefaultProvisioner: &fake_core.Provisioner{
 					ProvisionFn: func(kubeResource *model.KubeResource) error {
 						if err := item.mockDefaultProvisionError; err != nil {
 							return err
@@ -629,7 +629,7 @@ func TestPodProvisionerTeardown(t *testing.T) {
 			var defaultTeardownCalled bool
 
 			c := &core.Core{
-				DB: &fake.DB{
+				DB: &fake_core.DB{
 					// Used to fetch Volumes
 					FindFn: func(out interface{}, _ ...interface{}) error {
 						if err := item.mockVolumeFetchError; err != nil {
@@ -641,7 +641,7 @@ func TestPodProvisionerTeardown(t *testing.T) {
 					},
 				},
 
-				DefaultProvisioner: &fake.Provisioner{
+				DefaultProvisioner: &fake_core.Provisioner{
 					TeardownFn: func(kubeResource *model.KubeResource) error {
 						if kubeResource.Name == item.kubeResource.Name { // just for sanity
 							defaultTeardownCalled = true
@@ -650,9 +650,9 @@ func TestPodProvisionerTeardown(t *testing.T) {
 					},
 				},
 			}
-			c.Volumes = &fake.Volumes{
+			c.Volumes = &fake_core.Volumes{
 				DeleteFn: func(_ *int64, volume *model.Volume) core.ActionInterface {
-					return &fake.Action{
+					return &fake_core.Action{
 						NowFn: func() error {
 							if err := item.mockVolumeDeleteError; err != nil {
 								return err

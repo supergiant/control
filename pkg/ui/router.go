@@ -11,6 +11,7 @@ import (
 
 	"github.com/elazarl/go-bindata-assetfs"
 	"github.com/gorilla/mux"
+	"github.com/supergiant/supergiant/bindata"
 	"github.com/supergiant/supergiant/pkg/client"
 	"github.com/supergiant/supergiant/pkg/core"
 	"github.com/supergiant/supergiant/pkg/model"
@@ -20,7 +21,7 @@ var templates = make(map[string]*template.Template)
 
 func init() {
 	// AssetNames() is like a filepath Glob of our generated assets
-	viewFiles := AssetNames()
+	viewFiles := bindata.AssetNames()
 	var partials []string
 	var layouts []string
 	var views []string
@@ -52,7 +53,7 @@ func init() {
 				tmpl = t.New(name)
 			}
 
-			src, err := Asset(view)
+			src, err := bindata.Asset(view)
 			if err != nil {
 				panic(err)
 			}
@@ -76,7 +77,7 @@ func NewRouter(c *core.Core, baseRouter *mux.Router) *mux.Router {
 	r := base.PathPrefix("/ui").Subrouter()
 
 	// Assets
-	assetDir := &assetfs.AssetFS{Asset: Asset, AssetDir: AssetDir, AssetInfo: AssetInfo}
+	assetDir := &assetfs.AssetFS{Asset: bindata.Asset, AssetDir: bindata.AssetDir, AssetInfo: bindata.AssetInfo}
 	r.PathPrefix("/assets/").Handler(http.FileServer(assetDir))
 
 	r.HandleFunc("/", restrictedHandler(c, Root)).Methods("GET")

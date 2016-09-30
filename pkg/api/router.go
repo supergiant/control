@@ -66,6 +66,7 @@ func NewRouter(core *core.Core) *mux.Router {
 	s.HandleFunc("/entrypoint_listeners", restrictedHandler(core, CreateEntrypointListener)).Methods("POST")
 	s.HandleFunc("/entrypoint_listeners", restrictedHandler(core, ListEntrypointListeners)).Methods("GET")
 	s.HandleFunc("/entrypoint_listeners/{id}", restrictedHandler(core, GetEntrypointListener)).Methods("GET")
+	s.HandleFunc("/entrypoint_listeners/{id}", restrictedHandler(core, UpdateEntrypointListener)).Methods("PATCH", "PUT")
 	s.HandleFunc("/entrypoint_listeners/{id}", restrictedHandler(core, DeleteEntrypointListener)).Methods("DELETE")
 
 	s.HandleFunc("/log", logHandler(core)).Methods("GET")

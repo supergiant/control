@@ -7,9 +7,9 @@ import (
 
 	"github.com/supergiant/supergiant/pkg/client"
 	"github.com/supergiant/supergiant/pkg/core"
-	"github.com/supergiant/supergiant/pkg/core/fake"
 	"github.com/supergiant/supergiant/pkg/kubernetes"
 	"github.com/supergiant/supergiant/pkg/model"
+	"github.com/supergiant/supergiant/test/fake_core"
 
 	. "github.com/smartystreets/goconvey/convey"
 )
@@ -50,7 +50,7 @@ func TestKubeResourcesCreate(t *testing.T) {
 
 	realCreateFn := srv.Core.KubeResources.Create
 
-	srv.Core.KubeResources = &fake.KubeResources{
+	srv.Core.KubeResources = &fake_core.KubeResources{
 		CreateFn: realCreateFn,
 		StartFn: func(id *int64, m *model.KubeResource) core.ActionInterface {
 			return &core.Action{
@@ -72,7 +72,7 @@ func TestKubeResourcesCreate(t *testing.T) {
 	sg := srv.Core.NewAPIClient("token", requestor.APIToken)
 
 	srv.Core.AWSProvider = func(_ map[string]string) core.Provider {
-		return new(fake.Provider)
+		return new(fake_core.Provider)
 	}
 	kube := createKube(sg)
 
@@ -145,7 +145,7 @@ func TestKubeResourcesCreate(t *testing.T) {
 					}`),
 				},
 				false,
-				&model.Error{Status: 422, Message: "Parent does not exist, foreign key 'kube_name' on KubeResource"},
+				&model.Error{Status: 422, Message: "Parent does not exist, foreign key 'KubeName' on KubeResource"},
 			},
 		}
 
@@ -177,7 +177,7 @@ func TestKubeResourcesStart(t *testing.T) {
 	sg := srv.Core.NewAPIClient("token", requestor.APIToken)
 
 	srv.Core.AWSProvider = func(_ map[string]string) core.Provider {
-		return new(fake.Provider)
+		return new(fake_core.Provider)
 	}
 	kube := createKube(sg)
 
@@ -200,6 +200,7 @@ func TestKubeResourcesStart(t *testing.T) {
 					Namespace: "test",
 					Name:      "test",
 					Kind:      "Pod",
+					Template:  newRawMessage(`{}`),
 				},
 				mockStartTimeout:  false,
 				namespaceEnsured:  "test",
@@ -214,6 +215,7 @@ func TestKubeResourcesStart(t *testing.T) {
 					Namespace: "beep",
 					Name:      "test",
 					Kind:      "Service",
+					Template:  newRawMessage(`{}`),
 				},
 				mockStartTimeout:  false,
 				namespaceEnsured:  "beep",
@@ -228,6 +230,7 @@ func TestKubeResourcesStart(t *testing.T) {
 					Namespace: "test",
 					Name:      "test",
 					Kind:      "LiterallyAnythingElse",
+					Template:  newRawMessage(`{}`),
 				},
 				mockStartTimeout:  false,
 				namespaceEnsured:  "test",
@@ -242,6 +245,7 @@ func TestKubeResourcesStart(t *testing.T) {
 					Namespace: "foo",
 					Name:      "test",
 					Kind:      "Service",
+					Template:  newRawMessage(`{}`),
 				},
 				mockStartTimeout:  true,
 				namespaceEnsured:  "foo",
@@ -258,7 +262,7 @@ func TestKubeResourcesStart(t *testing.T) {
 			srv.Core.KubeResourceStartTimeout = time.Nanosecond
 
 			srv.Core.K8S = func(_ *model.Kube) kubernetes.ClientInterface {
-				return &fake.KubernetesClient{
+				return &fake_core.KubernetesClient{
 					EnsureNamespaceFn: func(name string) error {
 						namespaceEnsured = name
 						return nil
@@ -270,21 +274,21 @@ func TestKubeResourcesStart(t *testing.T) {
 				return !item.mockStartTimeout, nil
 			}
 
-			srv.Core.DefaultProvisioner = &fake.Provisioner{
+			srv.Core.DefaultProvisioner = &fake_core.Provisioner{
 				ProvisionFn: func(_ *model.KubeResource) error {
 					provisionerCalled = "default"
 					return nil
 				},
 				IsRunningFn: isRunningFn,
 			}
-			srv.Core.PodProvisioner = &fake.Provisioner{
+			srv.Core.PodProvisioner = &fake_core.Provisioner{
 				ProvisionFn: func(_ *model.KubeResource) error {
 					provisionerCalled = "pod"
 					return nil
 				},
 				IsRunningFn: isRunningFn,
 			}
-			srv.Core.ServiceProvisioner = &fake.Provisioner{
+			srv.Core.ServiceProvisioner = &fake_core.Provisioner{
 				ProvisionFn: func(_ *model.KubeResource) error {
 					provisionerCalled = "service"
 					return nil

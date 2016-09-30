@@ -11,7 +11,7 @@ type Kube struct {
 
 	// belongs_to CloudAccount
 	CloudAccount     *CloudAccount `json:"cloud_account,omitempty" gorm:"ForeignKey:CloudAccountName;AssociationForeignKey:Name"`
-	CloudAccountName string        `json:"cloud_account_name" validate:"nonzero" gorm:"not null;index"`
+	CloudAccountName string        `json:"cloud_account_name" validate:"nonzero" gorm:"not null;index" sg:"immutable"`
 
 	// has_many Nodes
 	Nodes []*Node `json:"nodes,omitempty" gorm:"ForeignKey:KubeName;AssociationForeignKey:Name"`
@@ -25,26 +25,26 @@ type Kube struct {
 	// has_many KubeResources
 	KubeResources []*KubeResource `json:"kube_resources,omitempty" gorm:"ForeignKey:KubeName;AssociationForeignKey:Name"`
 
-	Name string `json:"name" validate:"nonzero,max=12,regexp=^[a-z]([-a-z0-9]*[a-z0-9])?$" gorm:"not null;unique_index"`
+	Name string `json:"name" validate:"nonzero,max=12,regexp=^[a-z]([-a-z0-9]*[a-z0-9])?$" gorm:"not null;unique_index" sg:"immutable"`
 
-	MasterNodeSize string `json:"master_node_size" validate:"nonzero"`
+	MasterNodeSize string `json:"master_node_size" validate:"nonzero" sg:"immutable"`
 
 	NodeSizes     []string `json:"node_sizes" gorm:"-" validate:"min=1" sg:"store_as_json_in=NodeSizesJSON"`
 	NodeSizesJSON []byte   `json:"-" gorm:"not null"`
 
-	Username string `json:"username" validate:"nonzero"`
-	Password string `json:"password" validate:"nonzero"`
+	Username string `json:"username" validate:"nonzero" sg:"immutable"`
+	Password string `json:"password" validate:"nonzero" sg:"immutable"`
 
-	HeapsterVersion          string `json:"heapster_version" validate:"nonzero" sg:"default=v1.1.0"`
-	HeapsterMetricResolution string `json:"heapster_metric_resolution" validate:"regexp=^([0-9]+[smhd])+$" sg:"default=20s"`
+	HeapsterVersion          string `json:"heapster_version" validate:"nonzero" sg:"default=v1.1.0,immutable"`
+	HeapsterMetricResolution string `json:"heapster_metric_resolution" validate:"regexp=^([0-9]+[smhd])+$" sg:"default=20s,immutable"`
 
 	// NOTE due to how we marshal this as JSON, it's difficult to have this stored
 	// as an interface, because unmarshalling causes us to lose the underlying
 	// type. So, this is kindof like a whacky form of single-table inheritance.
-	AWSConfig     *AWSKubeConfig `json:"aws_config,omitempty" gorm:"-" sg:"store_as_json_in=AWSConfigJSON"`
+	AWSConfig     *AWSKubeConfig `json:"aws_config,omitempty" gorm:"-" sg:"store_as_json_in=AWSConfigJSON,immutable"`
 	AWSConfigJSON []byte         `json:"-"`
 
-	DigitalOceanConfig     *DOKubeConfig `json:"digitalocean_config,omitempty" gorm:"-" sg:"store_as_json_in=DigitalOceanConfigJSON"`
+	DigitalOceanConfig     *DOKubeConfig `json:"digitalocean_config,omitempty" gorm:"-" sg:"store_as_json_in=DigitalOceanConfigJSON,immutable"`
 	DigitalOceanConfigJSON []byte        `json:"-"`
 
 	MasterPublicIP string `json:"master_public_ip" sg:"readonly"`

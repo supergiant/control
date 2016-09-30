@@ -29,19 +29,17 @@ func (c *Collection) GetWithIncludes(id *int64, m model.Model, includes []string
 }
 
 func (c *Collection) Update(id *int64, oldM model.Model, m model.Model) error {
-	// model.ZeroReadonlyFields(m)
-
-	// oldM := reflect.New(reflect.TypeOf(m)).Elem().Elem().Interface()
-
+	if err := model.CheckImmutableFields(m); err != nil {
+		return err
+	}
+	// Load model from DB
 	if err := c.Core.DB.First(oldM, *id); err != nil {
 		return err
 	}
-
 	// Merge old item attributes into the empty fields of the newItem
 	if err := mergo.Merge(m, oldM); err != nil {
 		return err
 	}
-
 	return c.Core.DB.Save(m)
 }
 

@@ -7,7 +7,7 @@ import (
 	"testing"
 
 	"github.com/supergiant/supergiant/pkg/core"
-	"github.com/supergiant/supergiant/pkg/core/fake"
+	"github.com/supergiant/supergiant/test/fake_core"
 	"github.com/supergiant/supergiant/pkg/model"
 
 	. "github.com/smartystreets/goconvey/convey"
@@ -579,7 +579,7 @@ func TestServiceProvisionerProvision(t *testing.T) {
 			var entrypointListenerNamesDeleted []string
 
 			c := &core.Core{
-				DB: &fake.DB{
+				DB: &fake_core.DB{
 					// Used to fetch EntrypointListeners
 					FindFn: func(out interface{}, _ ...interface{}) error {
 						if err := item.mockEntrypointListenerFetchError; err != nil {
@@ -591,7 +591,7 @@ func TestServiceProvisionerProvision(t *testing.T) {
 					},
 				},
 
-				EntrypointListeners: &fake.EntrypointListeners{
+				EntrypointListeners: &fake_core.EntrypointListeners{
 					CreateFn: func(entrypointListener *model.EntrypointListener) error {
 						if err := item.mockEntrypointListenerCreateError; err != nil {
 							return err
@@ -603,7 +603,7 @@ func TestServiceProvisionerProvision(t *testing.T) {
 					// Delete is used during Provision if there are orphaned Listeners due
 					// to Template change
 					DeleteFn: func(_ *int64, entrypointListener *model.EntrypointListener) core.ActionInterface {
-						return &fake.Action{
+						return &fake_core.Action{
 							NowFn: func() error {
 								if err := item.mockEntrypointListenerDeleteError; err != nil {
 									return err
@@ -615,7 +615,7 @@ func TestServiceProvisionerProvision(t *testing.T) {
 					},
 				},
 
-				DefaultProvisioner: &fake.Provisioner{
+				DefaultProvisioner: &fake_core.Provisioner{
 					ProvisionFn: func(kubeResource *model.KubeResource) error {
 
 						json.Unmarshal(*kubeResource.Definition, &definitionPassedToDefaultProvisioner)
@@ -799,7 +799,7 @@ func TestServiceProvisionerTeardown(t *testing.T) {
 			var defaultTeardownCalled bool
 
 			c := &core.Core{
-				DB: &fake.DB{
+				DB: &fake_core.DB{
 					// Used to fetch EntrypointListeners
 					FindFn: func(out interface{}, _ ...interface{}) error {
 						if err := item.mockEntrypointListenerFetchError; err != nil {
@@ -811,7 +811,7 @@ func TestServiceProvisionerTeardown(t *testing.T) {
 					},
 				},
 
-				DefaultProvisioner: &fake.Provisioner{
+				DefaultProvisioner: &fake_core.Provisioner{
 					TeardownFn: func(kubeResource *model.KubeResource) error {
 						if kubeResource.Name == item.kubeResource.Name { // just for sanity
 							defaultTeardownCalled = true
@@ -820,9 +820,9 @@ func TestServiceProvisionerTeardown(t *testing.T) {
 					},
 				},
 			}
-			c.EntrypointListeners = &fake.EntrypointListeners{
+			c.EntrypointListeners = &fake_core.EntrypointListeners{
 				DeleteFn: func(_ *int64, entrypointListener *model.EntrypointListener) core.ActionInterface {
-					return &fake.Action{
+					return &fake_core.Action{
 						NowFn: func() error {
 							if err := item.mockEntrypointListenerDeleteError; err != nil {
 								return err

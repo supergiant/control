@@ -31,7 +31,7 @@ type KubeResource struct {
 	// Supergiant "modifiers". If the User is wanting to use the Pod or Service
 	// Provisioner (to have Supergiant resources created and applied), Template
 	// must be defined in place of Definition.
-	Template     *json.RawMessage `json:"template" gorm:"-" sg:"store_as_json_in=TemplateJSON"`
+	Template     *json.RawMessage `json:"template" gorm:"-" validate:"nonzero" sg:"store_as_json_in=TemplateJSON"`
 	TemplateJSON []byte           `json:"-"`
 
 	// Definition is where the finalized Kubernetes resource is stored, used to

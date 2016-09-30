@@ -6,9 +6,9 @@ import (
 	"testing"
 
 	"github.com/supergiant/supergiant/pkg/core"
-	"github.com/supergiant/supergiant/pkg/core/fake"
 	"github.com/supergiant/supergiant/pkg/kubernetes"
 	"github.com/supergiant/supergiant/pkg/model"
+	"github.com/supergiant/supergiant/test/fake_core"
 
 	. "github.com/smartystreets/goconvey/convey"
 )
@@ -170,7 +170,7 @@ func TestDefaultProvisionerProvision(t *testing.T) {
 
 			c := &core.Core{
 				K8S: func(_ *model.Kube) kubernetes.ClientInterface {
-					return &fake.KubernetesClient{
+					return &fake_core.KubernetesClient{
 						CreateResourceFn: func(kind string, namespace string, objIn map[string]interface{}, out *json.RawMessage) error {
 							kindPassed = kind
 							namespacePassed = namespace
@@ -182,7 +182,7 @@ func TestDefaultProvisionerProvision(t *testing.T) {
 						},
 					}
 				},
-				DB: &fake.DB{
+				DB: &fake_core.DB{
 					SaveFn: func(m model.Model) error {
 						outSaved = *m.(*model.KubeResource).Artifact
 						return nil
@@ -288,7 +288,7 @@ func TestDefaultProvisionerTeardown(t *testing.T) {
 
 			c := &core.Core{
 				K8S: func(_ *model.Kube) kubernetes.ClientInterface {
-					return &fake.KubernetesClient{
+					return &fake_core.KubernetesClient{
 						DeleteResourceFn: func(kind string, namespace string, name string) error {
 							kindPassed = kind
 							namespacePassed = namespace

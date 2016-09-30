@@ -190,21 +190,14 @@ If you make a change and import a new package, run this to vendor the imports.
 govendor add +external
 ```
 
-#### Compiling UI templates and static assets
+#### Compiling Provider files, UI templates, and static assets
 
 Supergiant uses [go-bindata](https://github.com/jteeuwen/go-bindata) to compile
 assets directly into the code. You will need to run this command if you're
-making changes to the UI:
+making changes to the UI _or_ if you're working with Provider code:
 
 ```shell
-go-bindata -pkg ui -o pkg/ui/generated_assets.go ui/assets/... ui/views/...
-```
-
-And this, if you're working with provider code:
-
-```shell
-PROVIDER=aws # whichever you're working with
-go-bindata -pkg $PROVIDER -o pkg/provider/$PROVIDER/generated_assets.go config/providers/$PROVIDER/...
+go-bindata -pkg bindata -o bindata/bindata.go config/providers/... ui/assets/... ui/views/...
 ```
 
 ---

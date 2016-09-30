@@ -10,6 +10,8 @@ import (
 	"github.com/satori/go.uuid"
 )
 
+// Model is an interface that defines the required behaviors of all stored
+// (whether in memory or on disk) Supergiant data structure objects.
 type Model interface {
 	GetID() interface{}
 	GetUUID() string
@@ -18,6 +20,8 @@ type Model interface {
 	SetPassiveStatus()
 }
 
+// BaseModel implements the Model interface, and is composed into all persisted
+// Supergiant resources.
 type BaseModel struct {
 	ID        *int64        `gorm:"primary_key" json:"id,omitempty" sg:"readonly"`
 	UUID      string        `json:"uuid,omitempty" sg:"readonly"`
@@ -29,6 +33,8 @@ type BaseModel struct {
 	PassiveStatusOkay bool   `gorm:"-" json:"passive_status_okay,omitempty"`
 }
 
+// ActionStatus holds all the information pertaining to any running or failed
+// Async Actions, and is rendered on the model on display (not persisted).
 type ActionStatus struct {
 	Description string `json:"description"`
 	MaxRetries  int    `json:"max_retries"`
@@ -37,29 +43,37 @@ type ActionStatus struct {
 	Cancelled   bool   `json:"cancelled,omitempty"`
 }
 
+// GetID returns the model ID.
 func (m *BaseModel) GetID() interface{} {
 	return m.ID
 }
 
+// GetUUID returns the model UUID.
 func (m *BaseModel) GetUUID() string {
 	return m.UUID
 }
 
+// SetUUID sets the model UUID.
 func (m *BaseModel) SetUUID() {
 	if m.UUID == "" {
 		m.UUID = uuid.NewV4().String()
 	}
 }
 
+// SetActionStatus takes an *ActionStatus and sets it on the model.
 func (m *BaseModel) SetActionStatus(status *ActionStatus) {
 	m.Status = status
 }
 
+// SetPassiveStatus implements the Model interface, but does nothing. It can be
+// used by models to set render the PassiveStatus and PassiveStatusOkay fields.
 func (m *BaseModel) SetPassiveStatus() {
 }
 
-//------------------------------------------------------------------------------------- helpers below
+// Helpers
 
+// RootFieldJSONNames takes a model and returns the json name tag for every
+// top-level field.
 func RootFieldJSONNames(m Model) (fields []string) {
 	mt := reflect.TypeOf(m).Elem()
 	for i := 0; i < mt.NumField(); i++ {
@@ -70,17 +84,23 @@ func RootFieldJSONNames(m Model) (fields []string) {
 
 //------------------------------------------------------------------------------
 
+// BelongsToField holds the reflect StructField (type) and Value of a model
+// field representing the parent object in a belongs_to relation.
 type BelongsToField struct {
 	Field reflect.StructField
 	Value reflect.Value
 }
 
+// TaggedModelField holds all the information extracted from "sg" tags defined
+// on a model's field.
 type TaggedModelField struct {
+	FieldName     string
 	Field         reflect.Value
 	Readonly      bool
 	Private       bool
+	Immutable     bool
 	Default       interface{}
-	StoreAsJsonIn *reflect.Value
+	StoreAsJSONIn *reflect.Value
 	ForeignKeyOf  *BelongsToField
 }
 
@@ -89,6 +109,7 @@ func taggedModelFieldOf(obj reflect.Value, field reflect.StructField, fieldValue
 	parts := strings.Split(tag, ",")
 
 	out := new(TaggedModelField)
+	out.FieldName = field.Name
 	out.Field = fieldValue
 
 	for _, part := range parts {
@@ -103,6 +124,9 @@ func taggedModelFieldOf(obj reflect.Value, field reflect.StructField, fieldValue
 
 			case "private":
 				out.Private = true
+
+			case "immutable":
+				out.Immutable = true
 
 			default:
 				panic("Could not parse Model tag " + tag)
@@ -128,7 +152,7 @@ func taggedModelFieldOf(obj reflect.Value, field reflect.StructField, fieldValue
 
 			case "store_as_json_in":
 				jsonField := obj.FieldByName(subparts[1])
-				out.StoreAsJsonIn = &jsonField
+				out.StoreAsJSONIn = &jsonField
 
 			default:
 				panic("Could not parse Model tag " + tag)
@@ -191,6 +215,8 @@ func gatherTaggedModelFieldsInto(obj reflect.Value, taggedFields *[]*TaggedModel
 	}
 }
 
+// TaggedModelFieldsOf takes a Model and returns every *TaggedModelField defined
+// (fields are gathered recursively).
 func TaggedModelFieldsOf(r Model) (taggedFields []*TaggedModelField) {
 	resourceValue := reflect.ValueOf(r).Elem()
 	gatherTaggedModelFieldsInto(resourceValue, &taggedFields)
@@ -215,4 +241,28 @@ func ZeroPrivateFields(r Model) {
 			tf.Field.Set(reflect.Zero(tf.Field.Type()))
 		}
 	}
+}
+
+// ErrorChangedImmutableField is an error for when a model has a value defined
+// in a field with the sg tag "immutable" (used for updates).
+type ErrorChangedImmutableField struct {
+	fieldName string
+}
+
+func (err *ErrorChangedImmutableField) Error() string {
+	return err.fieldName + " cannot be changed"
+}
+
+// CheckImmutableFields returns an error if any fields with the sg tag
+// "immutable" have values (are not zero).
+func CheckImmutableFields(m Model) error {
+	for _, tf := range TaggedModelFieldsOf(m) {
+		if tf.Immutable {
+			isZero := reflect.DeepEqual(tf.Field.Interface(), reflect.Zero(tf.Field.Type()).Interface())
+			if !isZero {
+				return &ErrorChangedImmutableField{tf.FieldName}
+			}
+		}
+	}
+	return nil
 }

@@ -55,10 +55,15 @@ func errorHTTPStatus(err error) int {
 	if err == gorm.ErrRecordNotFound {
 		return 404
 	}
+	// TODO we can probably consolidate all same error codes (would need to be in
+	// model if that's where we keep the immutability check on fields).
 	if _, ok := err.(*core.ErrorMissingRequiredParent); ok {
 		return 422
 	}
 	if _, ok := err.(*core.ErrorValidationFailed); ok {
+		return 422
+	}
+	if _, ok := err.(*model.ErrorChangedImmutableField); ok {
 		return 422
 	}
 	return 500
