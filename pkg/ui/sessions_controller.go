@@ -9,13 +9,18 @@ import (
 	"github.com/supergiant/supergiant/pkg/model"
 )
 
+var singularModel = "Session"
+
+// NewSession sets up the new session route in the UI
 func NewSession(sg *client.Client, w http.ResponseWriter, r *http.Request) error {
 	return renderTemplate(w, "login", map[string]interface{}{
-		"title":      "Sessions",
-		"formAction": "/ui/sessions",
+		"title":         "New Session",
+		"singularModel": singularModel,
+		"formAction":    "/ui/sessions",
 	})
 }
 
+// CreateSession sets up the create session route in the UI
 func CreateSession(sg *client.Client, w http.ResponseWriter, r *http.Request) error {
 	if err := r.ParseForm(); err != nil {
 		return err
@@ -46,6 +51,7 @@ func CreateSession(sg *client.Client, w http.ResponseWriter, r *http.Request) er
 	return nil
 }
 
+// ListSessions sets up the index session route in the UI
 func ListSessions(sg *client.Client, w http.ResponseWriter, r *http.Request) error {
 	fields := []map[string]interface{}{
 		{
@@ -71,6 +77,7 @@ func ListSessions(sg *client.Client, w http.ResponseWriter, r *http.Request) err
 	})
 }
 
+// GetSession sets up the show session route in the UI
 func GetSession(sg *client.Client, w http.ResponseWriter, r *http.Request) error {
 	id := mux.Vars(r)["id"]
 	item := new(model.Session)
@@ -83,6 +90,7 @@ func GetSession(sg *client.Client, w http.ResponseWriter, r *http.Request) error
 	})
 }
 
+// DeleteSession sets up the delete session route in the UI
 func DeleteSession(sg *client.Client, w http.ResponseWriter, r *http.Request) error {
 	id := mux.Vars(r)["id"]
 	item := new(model.Session)
