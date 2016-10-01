@@ -40,7 +40,9 @@
   &:active,
   &.active {
     outline: 0;
-    background-image: none;
+    @include box-shadow(none);
+    margin-top:2px;
+    margin-bottom: -2px;
   }
 
   &.disabled,

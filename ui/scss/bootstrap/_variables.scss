@@ -147,7 +147,7 @@ $table-border-color:            #ddd !default;
 //
 //## For each of Bootstrap's buttons, define text, background and border color.
 
-$btn-font-weight:                bold !default;
+$btn-font-weight:                600 !default;
 
 $btn-default-color:              $color-primary !default;
 $btn-default-bg:                 linear-gradient(-180deg, #FAFCFD 0%, #F3F7F9 100%) !default;
@@ -162,9 +162,9 @@ $btn-primary-color:              #fff !default;
 $btn-primary-bg:                 linear-gradient(-180deg, #9EB2BE 0%, #8199A7 18%) !default;
 $btn-primary-border:             #7A87A0 !default;
 
-$btn-primary-bg-hover:           linear-gradient(-180deg, #FAFCFD 0%, #F3F7F9 100%) !default;
-$btn-primary-bg-focus:           linear-gradient(-180deg, #FAFCFD 0%, #F3F7F9 100%) !default;
-$btn-primary-bg-active:          linear-gradient(-180deg, #FAFCFD 0%, #F3F7F9 100%) !default;
+$btn-primary-bg-hover:           linear-gradient(0deg, #9EB2BE 0%, #8199A7 50%) !default;
+$btn-primary-bg-focus:           linear-gradient(0deg, #9EB2BE 0%, #8199A7 50%) !default;
+$btn-primary-bg-active:          linear-gradient(0deg, #9EB2BE 0%, #8199A7 50%) !default;
 
 
 $btn-success-color:              #fff !default;
