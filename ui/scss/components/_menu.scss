@@ -1,4 +1,4 @@
-#sidenav {
+.sidenav {
   height: 100%;
   padding: 0;
   background-color: $color-background;
@@ -40,8 +40,8 @@
       border-top: 1px solid $color-foreground;
       border-bottom: 1px solid $color-foreground;
       margin-right: -1px;
-
     }
+
     &:hover {
       background-color: white;
     }
