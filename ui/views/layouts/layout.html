@@ -19,12 +19,12 @@
     </head>
     <body>
 
-      <div class="container-fluid" id="main">
-        <div class="row" id="main">
+      <div class="container-fluid main">
+        <div class="row">
 
-          <div class="col-xs-2" id="sidenav">
+          <div class="col-xs-2 sidenav">
             <div class="logo">
-              <a href="/ui"></a>
+              <a href="/"></a>
             </div>
             <div class="list-group">
               <a class='list-group-item{{ if eq .title "Sessions" }} active{{ end }}' id="nav-sessions" href="/ui/sessions">Sessions</a>
@@ -50,7 +50,7 @@
             </div>
           </div>
 
-          <div class="col-xs-10" id="content">
+          <div class="col-xs-10 content">
             {{ template "body" . }}
           </div>
 
