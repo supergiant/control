@@ -43,7 +43,7 @@ SUPERGIANT: Easy container orchestration using Kubernetes
 
 ### <img src="http://supergiant.io/img/logo_dark.svg" width="400">
 
-[![GoReportCard Widget]][GoReportCard URL] [![GoDoc Widget]][GoDoc URL] [![Travis Widget]][Travis URL] [![Release Widget]][Release URL]
+[![GoReportCard Widget]][GoReportCard URL] [![GoDoc Widget]][GoDoc URL] [![Travis Widget]][Travis URL] [![Release Widget]][Release URL] [![Coverage Status Widget]][Coverage Status]
 
 ---
 
