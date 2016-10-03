@@ -42,7 +42,7 @@ func TestSessionsList(t *testing.T) {
 	Convey("Given a user and an admin, both logged-in", t, func() {
 
 		Convey("When the user Lists Sessions", func() {
-			sg := srv.Core.NewAPIClient("token", user.APIToken)
+			sg := srv.Core.APIClient("token", user.APIToken)
 			sessions := new(model.SessionList)
 			err := sg.Sessions.List(sessions)
 
@@ -53,7 +53,7 @@ func TestSessionsList(t *testing.T) {
 		})
 
 		Convey("When the admin Lists Sessions", func() {
-			sg := srv.Core.NewAPIClient("token", admin.APIToken)
+			sg := srv.Core.APIClient("token", admin.APIToken)
 			sessions := new(model.SessionList)
 			err := sg.Sessions.List(sessions)
 
@@ -71,7 +71,7 @@ func TestSessionsCreate(t *testing.T) {
 	defer srv.Stop()
 
 	createUser(srv.Core)
-	sg := srv.Core.NewAPIClient("", "")
+	sg := srv.Core.APIClient("", "")
 
 	Convey("Given a User and an unauthenticated Client", t, func() {
 
@@ -117,7 +117,7 @@ func TestSessionsCreate(t *testing.T) {
 			Convey("There should be no error, and the Session ID should allow for API authentication", func() {
 				So(err, ShouldBeNil)
 
-				userSG := srv.Core.NewAPIClient("session", session.ID)
+				userSG := srv.Core.APIClient("session", session.ID)
 				list := new(model.NodeList)
 				authErr := userSG.Nodes.List(list)
 				So(authErr, ShouldBeNil)
@@ -138,7 +138,7 @@ func TestSessionsGet(t *testing.T) {
 	Convey("Given a user and an admin, both logged-in", t, func() {
 
 		Convey("When the user Gets another User's Session", func() {
-			sg := srv.Core.NewAPIClient("token", user.APIToken)
+			sg := srv.Core.APIClient("token", user.APIToken)
 			err := sg.Sessions.Get(adminSession.ID, new(model.Session))
 
 			Convey("They should receive a 403 Forbidden error", func() {
@@ -147,7 +147,7 @@ func TestSessionsGet(t *testing.T) {
 		})
 
 		Convey("When the user Gets their own Session", func() {
-			sg := srv.Core.NewAPIClient("token", user.APIToken)
+			sg := srv.Core.APIClient("token", user.APIToken)
 			err := sg.Sessions.Get(userSession.ID, new(model.Session))
 
 			Convey("There should be no error", func() {
@@ -156,7 +156,7 @@ func TestSessionsGet(t *testing.T) {
 		})
 
 		Convey("When the admin Gets another User's Session", func() {
-			sg := srv.Core.NewAPIClient("token", admin.APIToken)
+			sg := srv.Core.APIClient("token", admin.APIToken)
 			err := sg.Sessions.Get(userSession.ID, new(model.Session))
 
 			Convey("There should be no error", func() {
@@ -165,7 +165,7 @@ func TestSessionsGet(t *testing.T) {
 		})
 
 		Convey("When the admin Gets their own Session", func() {
-			sg := srv.Core.NewAPIClient("token", admin.APIToken)
+			sg := srv.Core.APIClient("token", admin.APIToken)
 			err := sg.Sessions.Get(userSession.ID, new(model.Session))
 
 			Convey("There should be no error", func() {
@@ -188,7 +188,7 @@ func TestSessionsDelete(t *testing.T) {
 		adminSession := createAdminSession(srv.Core)
 
 		Convey("When the user Deletes another User's Session", func() {
-			sg := srv.Core.NewAPIClient("token", user.APIToken)
+			sg := srv.Core.APIClient("token", user.APIToken)
 			err := sg.Sessions.Delete(adminSession.ID, new(model.Session))
 
 			Convey("They should receive a 403 Forbidden error", func() {
@@ -197,37 +197,37 @@ func TestSessionsDelete(t *testing.T) {
 		})
 
 		Convey("When the user Deletes their own Session", func() {
-			sg := srv.Core.NewAPIClient("session", userSession.ID)
+			sg := srv.Core.APIClient("session", userSession.ID)
 			err := sg.Sessions.Delete(userSession.ID, new(model.Session))
 
 			Convey("The Session should be deleted, and no longer allow login", func() {
 				So(err, ShouldBeNil)
 
-				authErr := srv.Core.NewAPIClient("session", userSession.ID).Nodes.List(uselessList)
+				authErr := srv.Core.APIClient("session", userSession.ID).Nodes.List(uselessList)
 				So(authErr.(*model.Error).Status, ShouldEqual, 401)
 			})
 		})
 
 		Convey("When the admin Deletes another User's Session", func() {
-			sg := srv.Core.NewAPIClient("token", admin.APIToken)
+			sg := srv.Core.APIClient("token", admin.APIToken)
 			err := sg.Sessions.Delete(userSession.ID, new(model.Session))
 
 			Convey("The Session should be deleted, and no longer allow login", func() {
 				So(err, ShouldBeNil)
 
-				authErr := srv.Core.NewAPIClient("session", userSession.ID).Nodes.List(uselessList)
+				authErr := srv.Core.APIClient("session", userSession.ID).Nodes.List(uselessList)
 				So(authErr.(*model.Error).Status, ShouldEqual, 401)
 			})
 		})
 
 		Convey("When the admin Deletes their own Session", func() {
-			sg := srv.Core.NewAPIClient("token", admin.APIToken)
+			sg := srv.Core.APIClient("token", admin.APIToken)
 			err := sg.Sessions.Delete(adminSession.ID, new(model.Session))
 
 			Convey("The Session should be deleted, and no longer allow login", func() {
 				So(err, ShouldBeNil)
 
-				authErr := srv.Core.NewAPIClient("session", adminSession.ID).Nodes.List(uselessList)
+				authErr := srv.Core.APIClient("session", adminSession.ID).Nodes.List(uselessList)
 				So(authErr.(*model.Error).Status, ShouldEqual, 401)
 			})
 		})

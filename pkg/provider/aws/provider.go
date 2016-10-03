@@ -14,8 +14,11 @@ import (
 	"github.com/aws/aws-sdk-go/aws/credentials"
 	"github.com/aws/aws-sdk-go/aws/session"
 	"github.com/aws/aws-sdk-go/service/ec2"
+	"github.com/aws/aws-sdk-go/service/ec2/ec2iface"
 	"github.com/aws/aws-sdk-go/service/elb"
+	"github.com/aws/aws-sdk-go/service/elb/elbiface"
 	"github.com/aws/aws-sdk-go/service/iam"
+	"github.com/aws/aws-sdk-go/service/iam/iamiface"
 	"github.com/supergiant/supergiant/bindata"
 	"github.com/supergiant/supergiant/pkg/core"
 	"github.com/supergiant/supergiant/pkg/kubernetes"
@@ -40,13 +43,21 @@ var AWSMasterAMIs = map[string]string{
 var globalAWSSession = session.New()
 
 type Provider struct {
-	Core        *core.Core
-	Credentials map[string]string
+	Core *core.Core
+	EC2  func(*model.Kube) ec2iface.EC2API
+	IAM  func(*model.Kube) iamiface.IAMAPI
+	ELB  func(*model.Kube) elbiface.ELBAPI
 }
 
 func (p *Provider) ValidateAccount(m *model.CloudAccount) error {
 	// Doesn't really matter what we do here, as long as it works
-	_, err := p.ec2("us-east-1").DescribeKeyPairs(new(ec2.DescribeKeyPairsInput))
+	mockKube := &model.Kube{
+		CloudAccount: m,
+		AWSConfig: &model.AWSKubeConfig{
+			Region: "us-east-1",
+		},
+	}
+	_, err := p.EC2(mockKube).DescribeKeyPairs(new(ec2.DescribeKeyPairsInput))
 	return err
 }
 
@@ -81,7 +92,7 @@ func (p *Provider) KubernetesVolumeDefinition(m *model.Volume) *kubernetes.Volum
 }
 
 func (p *Provider) ResizeVolume(m *model.Volume, action *core.Action) error {
-	return p.resizeVolume(m) // TODO pass action for cancellableWaitFor
+	return p.resizeVolume(m, action)
 }
 
 func (p *Provider) WaitForVolumeAvailable(m *model.Volume, action *core.Action) error {
@@ -112,7 +123,7 @@ func (p *Provider) CreateEntrypointListener(m *model.EntrypointListener) error {
 			},
 		},
 	}
-	_, err := p.elb(m.Entrypoint.Kube.AWSConfig.Region).CreateLoadBalancerListeners(input)
+	_, err := p.ELB(m.Entrypoint.Kube).CreateLoadBalancerListeners(input)
 	return err
 }
 
@@ -123,7 +134,7 @@ func (p *Provider) DeleteEntrypointListener(m *model.EntrypointListener) error {
 			aws.Int64(m.EntrypointPort),
 		},
 	}
-	_, err := p.elb(m.Entrypoint.Kube.AWSConfig.Region).DeleteLoadBalancerListeners(input)
+	_, err := p.ELB(m.Entrypoint.Kube).DeleteLoadBalancerListeners(input)
 	if isErrAndNotAWSNotFound(err) {
 		return err
 	}
@@ -134,29 +145,30 @@ func (p *Provider) DeleteEntrypointListener(m *model.EntrypointListener) error {
 // Private methods                                                            //
 ////////////////////////////////////////////////////////////////////////////////
 
-func (p *Provider) awsConfig(region string) *aws.Config {
-	creds := credentials.NewStaticCredentials(p.Credentials["access_key"], p.Credentials["secret_key"], "")
+func EC2(kube *model.Kube) ec2iface.EC2API {
+	return ec2.New(globalAWSSession, awsConfig(kube))
+}
+
+func ELB(kube *model.Kube) elbiface.ELBAPI {
+	return elb.New(globalAWSSession, awsConfig(kube))
+}
+
+func IAM(kube *model.Kube) iamiface.IAMAPI {
+	return iam.New(globalAWSSession, awsConfig(kube))
+}
+
+func awsConfig(kube *model.Kube) *aws.Config {
+	c := kube.CloudAccount.Credentials
+	creds := credentials.NewStaticCredentials(c["access_key"], c["secret_key"], "")
 	creds.Get()
-	return aws.NewConfig().WithRegion(region).WithCredentials(creds)
-}
-
-func (p *Provider) ec2(region string) *ec2.EC2 {
-	return ec2.New(globalAWSSession, p.awsConfig(region))
-}
-
-func (p *Provider) iam(region string) *iam.IAM {
-	return iam.New(globalAWSSession, p.awsConfig(region))
-}
-
-func (p *Provider) elb(region string) *elb.ELB {
-	return elb.New(globalAWSSession, p.awsConfig(region))
+	return aws.NewConfig().WithRegion(kube.AWSConfig.Region).WithCredentials(creds)
 }
 
 //------------------------------------------------------------------------------
 
 func (p *Provider) createKube(m *model.Kube, action *core.Action) error {
-	iamS := p.iam(m.AWSConfig.Region)
-	ec2S := p.ec2(m.AWSConfig.Region)
+	iamS := p.IAM(m)
+	ec2S := p.EC2(m)
 	procedure := &core.Procedure{
 		Core:  p.Core,
 		Name:  "Create Kube",
@@ -769,7 +781,7 @@ func (p *Provider) createKube(m *model.Kube, action *core.Action) error {
 }
 
 func (p *Provider) deleteKube(m *model.Kube) error {
-	ec2S := p.ec2(m.AWSConfig.Region)
+	ec2S := p.EC2(m)
 	procedure := &core.Procedure{
 		Core:  p.Core,
 		Name:  "Delete Kube",
@@ -1032,7 +1044,7 @@ func (p *Provider) createServer(m *model.Node) (*ec2.Instance, error) {
 		SubnetId: aws.String(m.Kube.AWSConfig.PublicSubnetID),
 	}
 
-	ec2S := p.ec2(m.Kube.AWSConfig.Region)
+	ec2S := p.EC2(m.Kube)
 
 	resp, err := ec2S.RunInstances(input)
 	if err != nil {
@@ -1065,7 +1077,7 @@ func (p *Provider) deleteServer(m *model.Node) error {
 	input := &ec2.TerminateInstancesInput{
 		InstanceIds: []*string{aws.String(m.ProviderID)},
 	}
-	_, err := p.ec2(m.Kube.AWSConfig.Region).TerminateInstances(input)
+	_, err := p.EC2(m.Kube).TerminateInstances(input)
 	if isErrAndNotAWSNotFound(err) {
 		return err
 	}
@@ -1090,7 +1102,7 @@ func (p *Provider) createELB(m *model.Entrypoint) error {
 			aws.String(m.Kube.AWSConfig.PublicSubnetID),
 		},
 	}
-	resp, err := p.elb(m.Kube.AWSConfig.Region).CreateLoadBalancer(params)
+	resp, err := p.ELB(m.Kube).CreateLoadBalancer(params)
 	if err != nil {
 		return err
 	}
@@ -1116,37 +1128,8 @@ func (p *Provider) createELB(m *model.Entrypoint) error {
 			Timeout:            aws.Int64(5),
 		},
 	}
-	_, err = p.elb(m.Kube.AWSConfig.Region).ConfigureHealthCheck(healthParams)
+	_, err = p.ELB(m.Kube).ConfigureHealthCheck(healthParams)
 	return err
-}
-
-func (p *Provider) addPortToEntrypoint(m *model.Entrypoint, lbPort int64, nodePort int64) error {
-	input := &elb.CreateLoadBalancerListenersInput{
-		LoadBalancerName: aws.String(m.ProviderID),
-		Listeners: []*elb.Listener{
-			{
-				LoadBalancerPort: aws.Int64(lbPort),
-				InstancePort:     aws.Int64(nodePort),
-				Protocol:         aws.String("TCP"),
-			},
-		},
-	}
-	_, err := p.elb(m.Kube.AWSConfig.Region).CreateLoadBalancerListeners(input)
-	return err
-}
-
-func (p *Provider) removePortFromEntrypoint(m *model.Entrypoint, lbPort int64) error {
-	params := &elb.DeleteLoadBalancerListenersInput{
-		LoadBalancerName: aws.String(m.ProviderID),
-		LoadBalancerPorts: []*int64{
-			aws.Int64(lbPort),
-		},
-	}
-	_, err := p.elb(m.Kube.AWSConfig.Region).DeleteLoadBalancerListeners(params)
-	if isErrAndNotAWSNotFound(err) {
-		return err
-	}
-	return nil
 }
 
 func (p *Provider) registerNodes(m *model.Entrypoint, nodes ...*model.Node) error {
@@ -1160,7 +1143,7 @@ func (p *Provider) registerNodes(m *model.Entrypoint, nodes ...*model.Node) erro
 		LoadBalancerName: aws.String(m.ProviderID),
 		Instances:        elbInstances,
 	}
-	_, err := p.elb(m.Kube.AWSConfig.Region).RegisterInstancesWithLoadBalancer(input)
+	_, err := p.ELB(m.Kube).RegisterInstancesWithLoadBalancer(input)
 	return err
 }
 
@@ -1169,7 +1152,7 @@ func (p *Provider) deleteELB(m *model.Entrypoint) error {
 	params := &elb.DeleteLoadBalancerInput{
 		LoadBalancerName: aws.String(m.ProviderID),
 	}
-	_, err := p.elb(m.Kube.AWSConfig.Region).DeleteLoadBalancer(params)
+	_, err := p.ELB(m.Kube).DeleteLoadBalancer(params)
 	if isErrAndNotAWSNotFound(err) {
 		return err
 	}
@@ -1183,7 +1166,7 @@ func (p *Provider) createVolume(volume *model.Volume, snapshotID *string) error 
 		Size:             aws.Int64(int64(volume.Size)),
 		SnapshotId:       snapshotID,
 	}
-	awsVol, err := p.ec2(volume.Kube.AWSConfig.Region).CreateVolume(volInput)
+	awsVol, err := p.EC2(volume.Kube).CreateVolume(volInput)
 	if err != nil {
 		return err
 	}
@@ -1205,12 +1188,12 @@ func (p *Provider) createVolume(volume *model.Volume, snapshotID *string) error 
 			},
 		},
 	}
-	_, err = p.ec2(volume.Kube.AWSConfig.Region).CreateTags(tagsInput)
+	_, err = p.EC2(volume.Kube).CreateTags(tagsInput)
 	return err
 }
 
-func (p *Provider) resizeVolume(m *model.Volume) error {
-	snapshot, err := p.createSnapshot(m)
+func (p *Provider) resizeVolume(m *model.Volume, action *core.Action) error {
+	snapshot, err := p.createSnapshot(m, action)
 	if err != nil {
 		return err
 	}
@@ -1236,7 +1219,7 @@ func (p *Provider) deleteVolume(volume *model.Volume) error {
 	input := &ec2.DeleteVolumeInput{
 		VolumeId: aws.String(volume.ProviderID),
 	}
-	if _, err := p.ec2(volume.Kube.AWSConfig.Region).DeleteVolume(input); isErrAndNotAWSNotFound(err) {
+	if _, err := p.EC2(volume.Kube).DeleteVolume(input); isErrAndNotAWSNotFound(err) {
 		return err
 	}
 	return nil
@@ -1254,49 +1237,49 @@ func (p *Provider) waitForAvailable(volume *model.Volume) error {
 		},
 	}
 
-	resp, err := p.ec2(volume.Kube.AWSConfig.Region).DescribeVolumes(input)
-	if err != nil {
-		return err
-	}
-	if len(resp.Volumes) == 0 {
-		return nil
-	}
-
-	p.Core.Log.Debugf("Waiting for EBS volume %s to be available", volume.Name)
-	return p.ec2(volume.Kube.AWSConfig.Region).WaitUntilVolumeAvailable(input)
+	desc := fmt.Sprintf("EBS volume %s to be available or deleted", volume.Name)
+	return util.WaitFor(desc, 5*time.Minute, 10*time.Second, func() (bool, error) {
+		resp, err := p.EC2(volume.Kube).DescribeVolumes(input)
+		if err != nil {
+			return false, err
+		}
+		if len(resp.Volumes) == 0 {
+			return true, nil
+		}
+		state := *resp.Volumes[0].State
+		return state == "available" || state == "deleted", nil
+	})
 }
 
-func (p *Provider) forceDetachVolume(volume *model.Volume) error {
-	input := &ec2.DetachVolumeInput{
-		VolumeId: aws.String(volume.ProviderID),
-		Force:    aws.Bool(true),
-	}
-	if _, err := p.ec2(volume.Kube.AWSConfig.Region).DetachVolume(input); isErrAndNotAWSNotFound(err) {
-		return err
-	}
-	return nil
-}
-
-func (p *Provider) createSnapshot(volume *model.Volume) (*ec2.Snapshot, error) {
+func (p *Provider) createSnapshot(volume *model.Volume, action *core.Action) (*ec2.Snapshot, error) {
 	input := &ec2.CreateSnapshotInput{
 		Description: aws.String(fmt.Sprintf("%s-%s", volume.Name, time.Now())),
 		VolumeId:    aws.String(volume.ProviderID),
 	}
-	snapshot, err := p.ec2(volume.Kube.AWSConfig.Region).CreateSnapshot(input)
+	snapshot, err := p.EC2(volume.Kube).CreateSnapshot(input)
 	if err != nil {
 		return nil, err
 	}
-	waitInput := &ec2.DescribeSnapshotsInput{
+	getInput := &ec2.DescribeSnapshotsInput{
 		SnapshotIds: []*string{snapshot.SnapshotId},
 	}
-	//
-	// TODO
-	//
-	// We should use action.CancellableWaitFor here
-	//
-	if err := p.ec2(volume.Kube.AWSConfig.Region).WaitUntilSnapshotCompleted(waitInput); err != nil {
-		return nil, err // TODO destroy snapshot that failed to complete?
+
+	desc := fmt.Sprintf("Snapshot %s to complete", volume.Name)
+	waitErr := action.CancellableWaitFor(desc, 4*time.Hour, 15*time.Second, func() (bool, error) {
+		resp, err := p.EC2(volume.Kube).DescribeSnapshots(getInput)
+		if err != nil {
+			return false, err
+		}
+		if len(resp.Snapshots) == 0 {
+			return true, nil
+		}
+		state := *resp.Snapshots[0].State
+		return state == "completed", nil
+	})
+	if waitErr != nil {
+		return nil, waitErr
 	}
+
 	return snapshot, nil
 }
 
@@ -1304,7 +1287,7 @@ func (p *Provider) deleteSnapshot(volume *model.Volume, snapshot *ec2.Snapshot) 
 	input := &ec2.DeleteSnapshotInput{
 		SnapshotId: snapshot.SnapshotId,
 	}
-	if _, err := p.ec2(volume.Kube.AWSConfig.Region).DeleteSnapshot(input); isErrAndNotAWSNotFound(err) {
+	if _, err := p.EC2(volume.Kube).DeleteSnapshot(input); isErrAndNotAWSNotFound(err) {
 		return err
 	}
 	return nil
@@ -1317,7 +1300,7 @@ func isErrAndNotAWSNotFound(err error) bool {
 	return err != nil && !regexp.MustCompile(`([Nn]ot *[Ff]ound|404)`).MatchString(err.Error())
 }
 
-func createIAMRole(iamS *iam.IAM, name string, policy string) error {
+func createIAMRole(iamS iamiface.IAMAPI, name string, policy string) error {
 	getInput := &iam.GetRoleInput{
 		RoleName: aws.String(name),
 	}
@@ -1336,7 +1319,7 @@ func createIAMRole(iamS *iam.IAM, name string, policy string) error {
 	return err
 }
 
-func createIAMRolePolicy(iamS *iam.IAM, name string, policy string) error {
+func createIAMRolePolicy(iamS iamiface.IAMAPI, name string, policy string) error {
 	getInput := &iam.GetRolePolicyInput{
 		RoleName:   aws.String(name),
 		PolicyName: aws.String(name),
@@ -1357,7 +1340,7 @@ func createIAMRolePolicy(iamS *iam.IAM, name string, policy string) error {
 	return err
 }
 
-func createIAMInstanceProfile(iamS *iam.IAM, name string) error {
+func createIAMInstanceProfile(iamS iamiface.IAMAPI, name string) error {
 	getInput := &iam.GetInstanceProfileInput{
 		InstanceProfileName: aws.String(name),
 	}
@@ -1398,7 +1381,7 @@ func createIAMInstanceProfile(iamS *iam.IAM, name string) error {
 	return nil
 }
 
-func tagAWSResource(ec2S *ec2.EC2, idstr string, tags map[string]string) error {
+func tagAWSResource(ec2S ec2iface.EC2API, idstr string, tags map[string]string) error {
 	var ec2Tags []*ec2.Tag
 	for key, val := range tags {
 		ec2Tags = append(ec2Tags, &ec2.Tag{

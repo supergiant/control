@@ -2,6 +2,11 @@ package client
 
 import "github.com/supergiant/supergiant/pkg/model"
 
+type UsersInterface interface {
+	CollectionInterface
+	RegenerateAPIToken(interface{}, *model.User) error
+}
+
 type Users struct {
 	Collection
 }

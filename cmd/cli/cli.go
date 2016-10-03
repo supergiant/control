@@ -1,7 +1,11 @@
 package main
 
-import "github.com/supergiant/supergiant/pkg/cli"
+import (
+	"os"
+
+	"github.com/supergiant/supergiant/pkg/cli"
+)
 
 func main() {
-	cli.Run()
+	cli.New(cli.Client, os.Stdin).Run(os.Args)
 }

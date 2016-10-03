@@ -23,10 +23,11 @@ func NewEntrypointListener(sg *client.Client, w http.ResponseWriter, r *http.Req
 
 func CreateEntrypointListener(sg *client.Client, w http.ResponseWriter, r *http.Request) error {
 	m := new(model.EntrypointListener)
-	if err := unmarshalFormInto(r, m); err != nil {
-		return err
+	err := unmarshalFormInto(r, m)
+	if err == nil {
+		err = sg.EntrypointListeners.Create(m)
 	}
-	if err := sg.EntrypointListeners.Create(m); err != nil {
+	if err != nil {
 		return renderTemplate(w, "new", map[string]interface{}{
 			"title":      "Entrypoint Listeners",
 			"formAction": "/ui/entrypoint_listeners",
@@ -69,11 +70,14 @@ func ListEntrypointListeners(sg *client.Client, w http.ResponseWriter, r *http.R
 	return renderTemplate(w, "index", map[string]interface{}{
 		"title":       "Entrypoint Listeners",
 		"uiBasePath":  "/ui/entrypoint_listeners",
-		"apiListPath": "/api/v0/entrypoint_listeners",
+		"apiBasePath": "/api/v0/entrypoint_listeners",
 		"fields":      fields,
 		"showNewLink": true,
-		"batchActionPaths": map[string]string{
-			"Delete": "/delete",
+		"batchActionPaths": map[string]map[string]string{
+			"Delete": map[string]string{
+				"method":       "DELETE",
+				"relativePath": "",
+			},
 		},
 	})
 }
@@ -91,17 +95,4 @@ func GetEntrypointListener(sg *client.Client, w http.ResponseWriter, r *http.Req
 		"title": "Entrypoint Listeners",
 		"model": item,
 	})
-}
-
-func DeleteEntrypointListener(sg *client.Client, w http.ResponseWriter, r *http.Request) error {
-	id, err := parseID(r)
-	if err != nil {
-		return err
-	}
-	item := new(model.EntrypointListener)
-	if err := sg.EntrypointListeners.Delete(id, item); err != nil {
-		return err
-	}
-	// http.Redirect(w, r, "/ui/entrypoint_listeners", http.StatusFound)
-	return nil
 }

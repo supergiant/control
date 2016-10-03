@@ -14,19 +14,20 @@ func NewVolume(sg *client.Client, w http.ResponseWriter, r *http.Request) error 
 		"formAction": "/ui/volumes",
 		"model": map[string]interface{}{
 			"kube_name": "",
-			"name":    "",
-			"type":    "gp2",
-			"size":    10,
+			"name":      "",
+			"type":      "gp2",
+			"size":      10,
 		},
 	})
 }
 
 func CreateVolume(sg *client.Client, w http.ResponseWriter, r *http.Request) error {
 	m := new(model.Volume)
-	if err := unmarshalFormInto(r, m); err != nil {
-		return err
+	err := unmarshalFormInto(r, m)
+	if err == nil {
+		err = sg.Volumes.Create(m)
 	}
-	if err := sg.Volumes.Create(m); err != nil {
+	if err != nil {
 		return renderTemplate(w, "new", map[string]interface{}{
 			"title":      "Volumes",
 			"formAction": "/ui/volumes",
@@ -44,7 +45,7 @@ func ListVolumes(sg *client.Client, w http.ResponseWriter, r *http.Request) erro
 		{
 			"title": "Kube ID",
 			"type":  "field_value",
-			"field":"kube_name",
+			"field": "kube_name",
 		},
 		{
 			"title": "Name",
@@ -65,14 +66,17 @@ func ListVolumes(sg *client.Client, w http.ResponseWriter, r *http.Request) erro
 	return renderTemplate(w, "index", map[string]interface{}{
 		"title":       "Volumes",
 		"uiBasePath":  "/ui/volumes",
-		"apiListPath": "/api/v0/volumes",
+		"apiBasePath": "/api/v0/volumes",
 		"fields":      fields,
 		"showNewLink": true,
 		"actionPaths": map[string]string{
 			"Edit": "/edit",
 		},
-		"batchActionPaths": map[string]string{
-			"Delete": "/delete",
+		"batchActionPaths": map[string]map[string]string{
+			"Delete": map[string]string{
+				"method":       "DELETE",
+				"relativePath": "",
+			},
 		},
 	})
 }
@@ -116,10 +120,11 @@ func UpdateVolume(sg *client.Client, w http.ResponseWriter, r *http.Request) err
 		return err
 	}
 	m := new(model.Volume)
-	if err := unmarshalFormInto(r, m); err != nil {
-		return err
+	err = unmarshalFormInto(r, m)
+	if err == nil {
+		err = sg.Volumes.Update(id, m)
 	}
-	if err := sg.Volumes.Update(id, m); err != nil {
+	if err != nil {
 		return renderTemplate(w, "new", map[string]interface{}{
 			"title":      "Volumes",
 			"formAction": fmt.Sprintf("/ui/volumes/%d", *id),
@@ -128,19 +133,5 @@ func UpdateVolume(sg *client.Client, w http.ResponseWriter, r *http.Request) err
 		})
 	}
 	http.Redirect(w, r, "/ui/volumes", http.StatusFound)
-	return nil
-}
-
-func DeleteVolume(sg *client.Client, w http.ResponseWriter, r *http.Request) error {
-	id, err := parseID(r)
-	if err != nil {
-		return err
-	}
-	item := new(model.Volume)
-	item.ID = id
-	if err := sg.Volumes.Delete(id, item); err != nil {
-		return err
-	}
-	// http.Redirect(w, r, "/ui/volumes", http.StatusFound)
 	return nil
 }

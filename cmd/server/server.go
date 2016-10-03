@@ -26,10 +26,18 @@ func main() {
 
 		// See relevant NOTE in core.go
 		c.AWSProvider = func(creds map[string]string) core.Provider {
-			return &aws.Provider{Core: c, Credentials: creds}
+			return &aws.Provider{
+				Core: c,
+				EC2:  aws.EC2,
+				IAM:  aws.IAM,
+				ELB:  aws.ELB,
+			}
 		}
 		c.DOProvider = func(creds map[string]string) core.Provider {
-			return &digitalocean.Provider{Core: c, Token: creds["token"]}
+			return &digitalocean.Provider{
+				Core:   c,
+				Client: digitalocean.Client,
+			}
 		}
 
 		// We do this here, and not in core, so that we can ensure the file closes on exit.

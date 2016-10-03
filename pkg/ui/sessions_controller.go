@@ -62,11 +62,14 @@ func ListSessions(sg *client.Client, w http.ResponseWriter, r *http.Request) err
 	return renderTemplate(w, "index", map[string]interface{}{
 		"title":       "Sessions",
 		"uiBasePath":  "/ui/sessions",
-		"apiListPath": "/api/v0/sessions",
+		"apiBasePath": "/api/v0/sessions",
 		"fields":      fields,
 		"showNewLink": true,
-		"batchActionPaths": map[string]string{
-			"Delete": "/delete",
+		"batchActionPaths": map[string]map[string]string{
+			"Delete": map[string]string{
+				"method":       "DELETE",
+				"relativePath": "",
+			},
 		},
 	})
 }
@@ -81,14 +84,4 @@ func GetSession(sg *client.Client, w http.ResponseWriter, r *http.Request) error
 		"title": "Sessions",
 		"model": item,
 	})
-}
-
-func DeleteSession(sg *client.Client, w http.ResponseWriter, r *http.Request) error {
-	id := mux.Vars(r)["id"]
-	item := new(model.Session)
-	item.ID = id
-	if err := sg.Sessions.Delete(id, item); err != nil {
-		return err
-	}
-	return nil
 }

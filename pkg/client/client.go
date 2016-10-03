@@ -20,15 +20,15 @@ type Client struct {
 
 	httpClient *http.Client
 
-	Sessions            *Sessions
-	Users               *Users
-	CloudAccounts       *CloudAccounts
-	Kubes               *Kubes
-	KubeResources       *KubeResources
-	Volumes             *Volumes
-	Entrypoints         *Entrypoints
-	EntrypointListeners *EntrypointListeners
-	Nodes               *Nodes
+	Sessions            SessionsInterface
+	Users               UsersInterface
+	CloudAccounts       CloudAccountsInterface
+	Kubes               KubesInterface
+	KubeResources       KubeResourcesInterface
+	Volumes             VolumesInterface
+	Entrypoints         EntrypointsInterface
+	EntrypointListeners EntrypointListenersInterface
+	Nodes               NodesInterface
 }
 
 func New(url string, authType string, authToken string, certFile string) *Client {

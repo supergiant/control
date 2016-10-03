@@ -45,16 +45,6 @@ func (a *Action) Now() error {
 		return err
 	}
 
-	if ei := a.Core.Actions.Get(a.ResourceID); ei != nil {
-		existing := ei.(*Action)
-		if a.CancelExisting {
-			existing.Status.Cancelled = true
-			a.Core.Actions.Delete("Cancel : "+a.description(), a.ResourceID)
-		} else {
-			return &RepeatedActionError{a.ResourceID}
-		}
-	}
-
 	// TODO we may want some means of communicating with the existing action, to
 	// know that it has stopped its goroutines before continuing.
 
@@ -71,41 +61,31 @@ func (a *Action) Async() error {
 		return err
 	}
 
-	if ei := a.Core.Actions.Get(a.ResourceID); ei != nil {
-		existing := ei.(*Action)
-		if a.CancelExisting {
-			existing.Status.Cancelled = true
-			a.Core.Actions.Delete("Cancel : "+a.description(), a.ResourceID)
-		} else if existing.Status.Retries < existing.Status.MaxRetries {
-			return &RepeatedActionError{a.ResourceID}
-		}
-	}
-
 	a.Core.Actions.Put("Begin  : "+a.description(), a.ResourceID, a)
 
 	go func() {
-		retries := 0
 		for {
 			if a.Status.Cancelled {
-				break // Remove from Actions
+				break // Goto Remove from Actions
 			}
 
 			err := a.Fn(a)
 			if err == nil {
-				break // Remove from Actions
+				break // Goto Remove from Actions
 			}
 
-			retries++
-			a.Status.Retries = retries
 			a.Status.Error = err.Error()
 
 			a.Core.Log.Error(err)
 
-			if retries >= a.Status.MaxRetries {
-				return // Don't remove from Actions
+			if a.Status.Retries >= a.Status.MaxRetries {
+				return // Don't goto Remove from Actions
 			}
+
+			a.Status.Retries++
 		}
 
+		// Remove from Actions
 		a.stopUnlessCancelled()
 	}()
 
@@ -133,6 +113,7 @@ func (a *Action) description() string {
 }
 
 func (a *Action) prepare() error {
+	// Load model
 	if a.ResourceID != "" {
 		return nil
 	}
@@ -140,6 +121,18 @@ func (a *Action) prepare() error {
 		return err
 	}
 	a.ResourceID = a.Model.GetUUID()
+
+	// Prevent concurrent actions (unless existing has failed)
+	if ei := a.Core.Actions.Get(a.ResourceID); ei != nil {
+		existing := ei.(*Action)
+		if a.CancelExisting {
+			existing.Status.Cancelled = true
+			a.Core.Actions.Delete("Cancel : "+a.description(), a.ResourceID)
+		} else if existing.Status.Retries < existing.Status.MaxRetries {
+			return &RepeatedActionError{a.ResourceID}
+		}
+	}
+
 	return nil
 }
 

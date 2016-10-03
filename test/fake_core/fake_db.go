@@ -57,35 +57,35 @@ func (db *DB) Delete(m model.Model) error {
 
 func (db *DB) Preload(column string, conditions ...interface{}) core.DBInterface {
 	if db.PreloadFn == nil {
-		return nil
+		return db // return db instead of nil, since these are chainable
 	}
 	return db.PreloadFn(column, conditions...)
 }
 
 func (db *DB) Where(query interface{}, args ...interface{}) core.DBInterface {
 	if db.WhereFn == nil {
-		return nil
+		return db // return db instead of nil, since these are chainable
 	}
 	return db.WhereFn(query, args...)
 }
 
 func (db *DB) Limit(limit interface{}) core.DBInterface {
 	if db.LimitFn == nil {
-		return nil
+		return db // return db instead of nil, since these are chainable
 	}
 	return db.LimitFn(limit)
 }
 
 func (db *DB) Offset(offset interface{}) core.DBInterface {
 	if db.OffsetFn == nil {
-		return nil
+		return db // return db instead of nil, since these are chainable
 	}
 	return db.OffsetFn(offset)
 }
 
 func (db *DB) Model(value interface{}) core.DBInterface {
 	if db.ModelFn == nil {
-		return nil
+		return db // return db instead of nil, since these are chainable
 	}
 	return db.ModelFn(value)
 }

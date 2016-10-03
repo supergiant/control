@@ -82,14 +82,11 @@ func NewRouter(c *core.Core, baseRouter *mux.Router) *mux.Router {
 
 	r.HandleFunc("/", restrictedHandler(c, Root)).Methods("GET")
 
-	// Login-based functions can't be authenticated
-	sharedClient := c.NewAPIClient("", "")
-	r.HandleFunc("/sessions/new", openHandler(sharedClient, NewSession)).Methods("GET")
-	r.HandleFunc("/sessions", openHandler(sharedClient, CreateSession)).Methods("POST")
-	r.HandleFunc("/sessions/{id}", openHandler(sharedClient, GetSession)).Methods("GET")
+	r.HandleFunc("/sessions/new", openHandler(c, NewSession)).Methods("GET")
+	r.HandleFunc("/sessions", openHandler(c, CreateSession)).Methods("POST")
+	r.HandleFunc("/sessions/{id}", openHandler(c, GetSession)).Methods("GET")
 
 	r.HandleFunc("/sessions", restrictedHandler(c, ListSessions)).Methods("GET")
-	r.HandleFunc("/sessions/{id}/delete", restrictedHandler(c, DeleteSession)).Methods("PUT")
 
 	r.HandleFunc("/users/new", restrictedHandler(c, NewUser)).Methods("GET")
 	r.HandleFunc("/users", restrictedHandler(c, CreateUser)).Methods("POST")
@@ -97,26 +94,21 @@ func NewRouter(c *core.Core, baseRouter *mux.Router) *mux.Router {
 	r.HandleFunc("/users/{id}", restrictedHandler(c, GetUser)).Methods("GET")
 	r.HandleFunc("/users/{id}/edit", restrictedHandler(c, EditUser)).Methods("GET")
 	r.HandleFunc("/users/{id}", restrictedHandler(c, UpdateUser)).Methods("POST")
-	r.HandleFunc("/users/{id}/delete", restrictedHandler(c, DeleteUser)).Methods("PUT")
-	r.HandleFunc("/users/{id}/regenerate_api_token", restrictedHandler(c, RegenerateUserAPIToken)).Methods("PUT")
 
 	r.HandleFunc("/cloud_accounts/new", restrictedHandler(c, NewCloudAccount)).Methods("GET")
 	r.HandleFunc("/cloud_accounts", restrictedHandler(c, CreateCloudAccount)).Methods("POST")
 	r.HandleFunc("/cloud_accounts", restrictedHandler(c, ListCloudAccounts)).Methods("GET")
 	r.HandleFunc("/cloud_accounts/{id}", restrictedHandler(c, GetCloudAccount)).Methods("GET")
-	r.HandleFunc("/cloud_accounts/{id}/delete", restrictedHandler(c, DeleteCloudAccount)).Methods("PUT")
 
 	r.HandleFunc("/kubes/new", restrictedHandler(c, NewKube)).Methods("GET")
 	r.HandleFunc("/kubes", restrictedHandler(c, CreateKube)).Methods("POST")
 	r.HandleFunc("/kubes", restrictedHandler(c, ListKubes)).Methods("GET")
 	r.HandleFunc("/kubes/{id}", restrictedHandler(c, GetKube)).Methods("GET")
-	r.HandleFunc("/kubes/{id}/delete", restrictedHandler(c, DeleteKube)).Methods("PUT")
 
 	r.HandleFunc("/nodes/new", restrictedHandler(c, NewNode)).Methods("GET")
 	r.HandleFunc("/nodes", restrictedHandler(c, CreateNode)).Methods("POST")
 	r.HandleFunc("/nodes", restrictedHandler(c, ListNodes)).Methods("GET")
 	r.HandleFunc("/nodes/{id}", restrictedHandler(c, GetNode)).Methods("GET")
-	r.HandleFunc("/nodes/{id}/delete", restrictedHandler(c, DeleteNode)).Methods("PUT")
 
 	r.HandleFunc("/kube_resources/new", restrictedHandler(c, NewKubeResource)).Methods("GET")
 	r.HandleFunc("/kube_resources", restrictedHandler(c, CreateKubeResource)).Methods("POST")
@@ -124,9 +116,6 @@ func NewRouter(c *core.Core, baseRouter *mux.Router) *mux.Router {
 	r.HandleFunc("/kube_resources/{id}", restrictedHandler(c, GetKubeResource)).Methods("GET")
 	r.HandleFunc("/kube_resources/{id}/edit", restrictedHandler(c, EditKubeResource)).Methods("GET")
 	r.HandleFunc("/kube_resources/{id}", restrictedHandler(c, UpdateKubeResource)).Methods("POST")
-	r.HandleFunc("/kube_resources/{id}/delete", restrictedHandler(c, DeleteKubeResource)).Methods("PUT")
-	r.HandleFunc("/kube_resources/{id}/start", restrictedHandler(c, StartKubeResource)).Methods("PUT")
-	r.HandleFunc("/kube_resources/{id}/stop", restrictedHandler(c, StopKubeResource)).Methods("PUT")
 
 	r.HandleFunc("/volumes/new", restrictedHandler(c, NewVolume)).Methods("GET")
 	r.HandleFunc("/volumes", restrictedHandler(c, CreateVolume)).Methods("POST")
@@ -134,19 +123,16 @@ func NewRouter(c *core.Core, baseRouter *mux.Router) *mux.Router {
 	r.HandleFunc("/volumes/{id}", restrictedHandler(c, GetVolume)).Methods("GET")
 	r.HandleFunc("/volumes/{id}/edit", restrictedHandler(c, EditVolume)).Methods("GET")
 	r.HandleFunc("/volumes/{id}", restrictedHandler(c, UpdateVolume)).Methods("POST")
-	r.HandleFunc("/volumes/{id}/delete", restrictedHandler(c, DeleteVolume)).Methods("PUT")
 
 	r.HandleFunc("/entrypoints/new", restrictedHandler(c, NewEntrypoint)).Methods("GET")
 	r.HandleFunc("/entrypoints", restrictedHandler(c, CreateEntrypoint)).Methods("POST")
 	r.HandleFunc("/entrypoints", restrictedHandler(c, ListEntrypoints)).Methods("GET")
 	r.HandleFunc("/entrypoints/{id}", restrictedHandler(c, GetEntrypoint)).Methods("GET")
-	r.HandleFunc("/entrypoints/{id}/delete", restrictedHandler(c, DeleteEntrypoint)).Methods("PUT")
 
 	r.HandleFunc("/entrypoint_listeners/new", restrictedHandler(c, NewEntrypointListener)).Methods("GET")
 	r.HandleFunc("/entrypoint_listeners", restrictedHandler(c, CreateEntrypointListener)).Methods("POST")
 	r.HandleFunc("/entrypoint_listeners", restrictedHandler(c, ListEntrypointListeners)).Methods("GET")
 	r.HandleFunc("/entrypoint_listeners/{id}", restrictedHandler(c, GetEntrypointListener)).Methods("GET")
-	r.HandleFunc("/entrypoint_listeners/{id}/delete", restrictedHandler(c, DeleteEntrypointListener)).Methods("PUT")
 
 	return baseRouter
 }
@@ -157,24 +143,33 @@ func restrictedHandler(c *core.Core, fn func(*client.Client, http.ResponseWriter
 		// does not exist, redirect to login page with 401.
 		var sessionID string
 		var client *client.Client
+
 		if sessionCookie, err := r.Cookie(core.SessionCookieName); err == nil {
 			sessionID = sessionCookie.Value
 			client = c.Sessions.Client(sessionID)
 		}
+
 		if client == nil {
 			http.Redirect(w, r, "/ui/sessions/new", http.StatusFound) // can't do 401 here unless you want browser behavior
 			return
 		}
 		if err := fn(client, w, r); err != nil {
-			w.WriteHeader(http.StatusInternalServerError)
+
+			status := http.StatusInternalServerError
+			if strings.Contains(err.Error(), "404") {
+				status = http.StatusNotFound
+			}
+
+			w.WriteHeader(status)
 			w.Write([]byte(err.Error()))
 		}
 	}
 }
 
-func openHandler(sharedClient *client.Client, fn func(*client.Client, http.ResponseWriter, *http.Request) error) func(http.ResponseWriter, *http.Request) {
+func openHandler(c *core.Core, fn func(*client.Client, http.ResponseWriter, *http.Request) error) func(http.ResponseWriter, *http.Request) {
 	return func(w http.ResponseWriter, r *http.Request) {
-		if err := fn(sharedClient, w, r); err != nil {
+		// Unauthenticated client
+		if err := fn(c.APIClient("", ""), w, r); err != nil {
 			w.WriteHeader(http.StatusInternalServerError)
 			w.Write([]byte(err.Error()))
 		}

@@ -56,8 +56,8 @@ type Settings struct {
 type Core struct {
 	Settings
 
-	// NOTE we do this to prevent having to load all the cloud provider various
-	// lib code everytime we load core
+	// NOTE we set these 2 in cmd/server.go to prevent having to load all the
+	// cloud provider various lib code everytime we load core
 	AWSProvider func(map[string]string) Provider
 	DOProvider  func(map[string]string) Provider
 
@@ -67,11 +67,13 @@ type Core struct {
 	PodProvisioner     Provisioner
 	ServiceProvisioner Provisioner
 
+	APIClient func(authType string, authToken string) *client.Client
+
 	Log *logrus.Logger
 
 	DB DBInterface
 
-	Sessions            *Sessions
+	Sessions            SessionsInterface
 	Users               *Users
 	CloudAccounts       *CloudAccounts
 	Kubes               *Kubes
@@ -79,7 +81,7 @@ type Core struct {
 	Volumes             VolumesInterface
 	Entrypoints         *Entrypoints
 	EntrypointListeners EntrypointListenersInterface
-	Nodes               *Nodes
+	Nodes               NodesInterface
 
 	// TODO should this be a pseudo-collection like Sessions?
 	Actions *SafeMap
@@ -188,15 +190,25 @@ func (c *Core) InitializeForeground() error {
 	// Actions for async work
 	c.Actions = NewSafeMap(c)
 
+	// Kubernetes Client
 	c.K8S = func(kube *model.Kube) kubernetes.ClientInterface {
-		return &kubernetes.Client{Kube: kube}
+		return &kubernetes.Client{
+			Kube:       kube,
+			HTTPClient: kubernetes.DefaultHTTPClient,
+		}
 	}
 
+	// Kubernetes Provisioners
 	c.DefaultProvisioner = &DefaultProvisioner{c}
 	c.PodProvisioner = &PodProvisioner{c}
 	c.ServiceProvisioner = &ServiceProvisioner{c}
 
 	c.KubeResourceStartTimeout = 20 * time.Minute
+
+	// API Client
+	c.APIClient = func(authType string, authToken string) *client.Client {
+		return client.New(c.BaseURL(), authType, authToken, c.SSLCertFile)
+	}
 
 	return nil
 }
@@ -206,8 +218,11 @@ func (c *Core) InitializeBackground() {
 	// Recurring services
 	if c.CapacityServiceEnabled {
 		capacityService := &RecurringService{
-			core:     c,
-			service:  &CapacityService{c},
+			core: c,
+			service: &CapacityService{
+				Core:            c,
+				WaitBeforeScale: 2 * time.Minute,
+			},
 			interval: 30 * time.Second,
 		}
 		go capacityService.Run()
@@ -262,10 +277,6 @@ func (c *Core) APIURL() string {
 
 func (c *Core) UIURL() string {
 	return fmt.Sprintf("%s/ui", c.BaseURL())
-}
-
-func (c *Core) NewAPIClient(authType string, authToken string) *client.Client {
-	return client.New(c.BaseURL(), authType, authToken, c.SSLCertFile)
 }
 
 //------------------------------------------------------------------------------

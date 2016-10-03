@@ -64,7 +64,7 @@ func TestVolumesList(t *testing.T) {
 			}
 
 			requestor := createAdmin(srv.Core)
-			sg := srv.Core.NewAPIClient("token", requestor.APIToken)
+			sg := srv.Core.APIClient("token", requestor.APIToken)
 
 			if item.parentCloudAccount != nil {
 				srv.Core.CloudAccounts.Create(item.parentCloudAccount)
@@ -231,7 +231,7 @@ func TestVolumesCreate(t *testing.T) {
 			}
 
 			requestor := createAdmin(srv.Core)
-			sg := srv.Core.NewAPIClient("token", requestor.APIToken)
+			sg := srv.Core.APIClient("token", requestor.APIToken)
 
 			if item.parentCloudAccount != nil {
 				srv.Core.CloudAccounts.Create(item.parentCloudAccount)
@@ -305,7 +305,7 @@ func TestVolumesGet(t *testing.T) {
 			}
 
 			requestor := createAdmin(srv.Core)
-			sg := srv.Core.NewAPIClient("token", requestor.APIToken)
+			sg := srv.Core.APIClient("token", requestor.APIToken)
 
 			if item.parentCloudAccount != nil {
 				srv.Core.CloudAccounts.Create(item.parentCloudAccount)
@@ -480,7 +480,7 @@ func TestVolumesUpdate(t *testing.T) {
 			}
 
 			requestor := createAdmin(srv.Core)
-			sg := srv.Core.NewAPIClient("token", requestor.APIToken)
+			sg := srv.Core.APIClient("token", requestor.APIToken)
 
 			if item.parentCloudAccount != nil {
 				srv.Core.CloudAccounts.Create(item.parentCloudAccount)
@@ -591,7 +591,7 @@ func TestVolumesDelete(t *testing.T) {
 			}
 
 			requestor := createAdmin(srv.Core)
-			sg := srv.Core.NewAPIClient("token", requestor.APIToken)
+			sg := srv.Core.APIClient("token", requestor.APIToken)
 
 			if item.parentCloudAccount != nil {
 				srv.Core.CloudAccounts.Create(item.parentCloudAccount)

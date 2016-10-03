@@ -69,7 +69,7 @@ func TestKubeResourcesCreate(t *testing.T) {
 	}
 
 	requestor := createAdmin(srv.Core)
-	sg := srv.Core.NewAPIClient("token", requestor.APIToken)
+	sg := srv.Core.APIClient("token", requestor.APIToken)
 
 	srv.Core.AWSProvider = func(_ map[string]string) core.Provider {
 		return new(fake_core.Provider)
@@ -174,7 +174,7 @@ func TestKubeResourcesStart(t *testing.T) {
 	defer srv.Stop()
 
 	requestor := createAdmin(srv.Core)
-	sg := srv.Core.NewAPIClient("token", requestor.APIToken)
+	sg := srv.Core.APIClient("token", requestor.APIToken)
 
 	srv.Core.AWSProvider = func(_ map[string]string) core.Provider {
 		return new(fake_core.Provider)

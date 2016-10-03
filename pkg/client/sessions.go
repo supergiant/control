@@ -1,5 +1,9 @@
 package client
 
+type SessionsInterface interface {
+	CollectionInterface
+}
+
 type Sessions struct {
 	Collection
 }

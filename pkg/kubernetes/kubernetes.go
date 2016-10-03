@@ -34,8 +34,7 @@ type ClientInterface interface {
 
 //------------------------------------------------------------------------------
 
-// TODO
-var globalK8SHTTPClient = &http.Client{
+var DefaultHTTPClient = &http.Client{
 	Timeout: 30 * time.Second,
 	Transport: &http.Transport{
 		TLSHandshakeTimeout: 10 * time.Second,
@@ -46,7 +45,8 @@ var globalK8SHTTPClient = &http.Client{
 }
 
 type Client struct {
-	Kube *model.Kube
+	Kube       *model.Kube
+	HTTPClient *http.Client
 }
 
 // EnsureNamespace implements the ClientInterface.
@@ -54,9 +54,9 @@ func (k *Client) EnsureNamespace(name string) error {
 	// If we get a 404 here, we need to create
 	err := k.requestInto("GET", "namespaces/"+name, nil, nil)
 	if err == nil {
-		return err // unexpected error
-	} else if !strings.Contains(err.Error(), "404") {
 		return nil // already exists
+	} else if !strings.Contains(err.Error(), "404") {
+		return err // unexpected error
 	}
 	namespace := &Namespace{
 		Metadata: Metadata{
@@ -161,7 +161,7 @@ func (k *Client) requestInto(method string, path string, in interface{}, out int
 	}
 	req.SetBasicAuth(k.Kube.Username, k.Kube.Password)
 
-	resp, err := globalK8SHTTPClient.Do(req)
+	resp, err := k.HTTPClient.Do(req)
 	if err != nil {
 		return err
 	}
@@ -199,18 +199,12 @@ func CoresFromCPUString(str string) (float64, error) {
 	}
 
 	if rxpMillicores.MatchString(str) {
-		num, err := getNumMatch(rxpMillicores)
-		if err != nil {
-			return 0, err
-		}
+		num, _ := getNumMatch(rxpMillicores)
 		return num / 1000.0, nil
 	}
 
 	if rxpCores.MatchString(str) {
-		num, err := getNumMatch(rxpCores)
-		if err != nil {
-			return 0, err
-		}
+		num, _ := getNumMatch(rxpCores)
 		return num, nil
 	}
 
@@ -230,10 +224,7 @@ func GiBFromMemString(memStr string) (float64, error) {
 
 	match := rxp.FindStringSubmatch(memStr)
 
-	float, err := strconv.ParseFloat(match[1], 64)
-	if err != nil {
-		return 0, err
-	}
+	float, _ := strconv.ParseFloat(match[1], 64)
 
 	switch match[2] {
 	case "":

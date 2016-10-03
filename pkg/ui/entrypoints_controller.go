@@ -13,17 +13,18 @@ func NewEntrypoint(sg *client.Client, w http.ResponseWriter, r *http.Request) er
 		"formAction": "/ui/entrypoints",
 		"model": map[string]interface{}{
 			"kube_name": "",
-			"name":    "",
+			"name":      "",
 		},
 	})
 }
 
 func CreateEntrypoint(sg *client.Client, w http.ResponseWriter, r *http.Request) error {
 	m := new(model.Entrypoint)
-	if err := unmarshalFormInto(r, m); err != nil {
-		return err
+	err := unmarshalFormInto(r, m)
+	if err == nil {
+		err = sg.Entrypoints.Create(m)
 	}
-	if err := sg.Entrypoints.Create(m); err != nil {
+	if err != nil {
 		return renderTemplate(w, "new", map[string]interface{}{
 			"title":      "Entrypoints",
 			"formAction": "/ui/entrypoints",
@@ -40,7 +41,7 @@ func ListEntrypoints(sg *client.Client, w http.ResponseWriter, r *http.Request) 
 		{
 			"title": "Kube ID",
 			"type":  "field_value",
-			"field":"kube_name",
+			"field": "kube_name",
 		},
 		{
 			"title": "Name",
@@ -56,11 +57,14 @@ func ListEntrypoints(sg *client.Client, w http.ResponseWriter, r *http.Request) 
 	return renderTemplate(w, "index", map[string]interface{}{
 		"title":       "Entrypoints",
 		"uiBasePath":  "/ui/entrypoints",
-		"apiListPath": "/api/v0/entrypoints",
+		"apiBasePath": "/api/v0/entrypoints",
 		"fields":      fields,
 		"showNewLink": true,
-		"batchActionPaths": map[string]string{
-			"Delete": "/delete",
+		"batchActionPaths": map[string]map[string]string{
+			"Delete": map[string]string{
+				"method":       "DELETE",
+				"relativePath": "",
+			},
 		},
 	})
 }
@@ -78,17 +82,4 @@ func GetEntrypoint(sg *client.Client, w http.ResponseWriter, r *http.Request) er
 		"title": "Entrypoints",
 		"model": item,
 	})
-}
-
-func DeleteEntrypoint(sg *client.Client, w http.ResponseWriter, r *http.Request) error {
-	id, err := parseID(r)
-	if err != nil {
-		return err
-	}
-	item := new(model.Entrypoint)
-	if err := sg.Entrypoints.Delete(id, item); err != nil {
-		return err
-	}
-	// http.Redirect(w, r, "/ui/entrypoints", http.StatusFound)
-	return nil
 }

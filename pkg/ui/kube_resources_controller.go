@@ -78,10 +78,11 @@ func NewKubeResource(sg *client.Client, w http.ResponseWriter, r *http.Request) 
 
 func CreateKubeResource(sg *client.Client, w http.ResponseWriter, r *http.Request) error {
 	m := new(model.KubeResource)
-	if err := unmarshalFormInto(r, m); err != nil {
-		return err
+	err := unmarshalFormInto(r, m)
+	if err == nil {
+		err = sg.KubeResources.Create(m)
 	}
-	if err := sg.KubeResources.Create(m); err != nil {
+	if err != nil {
 		return renderTemplate(w, "new", map[string]interface{}{
 			"title":      "Kube Resources",
 			"formAction": "/ui/kube_resources",
@@ -120,7 +121,7 @@ func ListKubeResources(sg *client.Client, w http.ResponseWriter, r *http.Request
 	return renderTemplate(w, "kube_resources", map[string]interface{}{
 		"title":       "Kube Resources",
 		"uiBasePath":  "/ui/kube_resources",
-		"apiListPath": "/api/v0/kube_resources",
+		"apiBasePath": "/api/v0/kube_resources",
 		"fields":      fields,
 		"showNewLink": true,
 		"newOptions": map[string]string{
@@ -131,10 +132,19 @@ func ListKubeResources(sg *client.Client, w http.ResponseWriter, r *http.Request
 		"actionPaths": map[string]string{
 			"Edit": "/edit",
 		},
-		"batchActionPaths": map[string]string{
-			"Start":  "/start",
-			"Stop":   "/stop",
-			"Delete": "/delete",
+		"batchActionPaths": map[string]map[string]string{
+			"Delete": map[string]string{
+				"method":       "DELETE",
+				"relativePath": "",
+			},
+			"Start": map[string]string{
+				"method":       "POST",
+				"relativePath": "/start",
+			},
+			"Stop": map[string]string{
+				"method":       "POST",
+				"relativePath": "/stop",
+			},
 		},
 	})
 }
@@ -178,10 +188,11 @@ func UpdateKubeResource(sg *client.Client, w http.ResponseWriter, r *http.Reques
 		return err
 	}
 	m := new(model.KubeResource)
-	if err := unmarshalFormInto(r, m); err != nil {
-		return err
+	err = unmarshalFormInto(r, m)
+	if err == nil {
+		err = sg.KubeResources.Update(id, m)
 	}
-	if err := sg.KubeResources.Update(id, m); err != nil {
+	if err != nil {
 		return renderTemplate(w, "new", map[string]interface{}{
 			"title":      "Kube Resources",
 			"formAction": fmt.Sprintf("/ui/kube_resources/%d", *id),
@@ -190,44 +201,5 @@ func UpdateKubeResource(sg *client.Client, w http.ResponseWriter, r *http.Reques
 		})
 	}
 	http.Redirect(w, r, "/ui/kube_resources", http.StatusFound)
-	return nil
-}
-
-func DeleteKubeResource(sg *client.Client, w http.ResponseWriter, r *http.Request) error {
-	id, err := parseID(r)
-	if err != nil {
-		return err
-	}
-	item := new(model.KubeResource)
-	item.ID = id
-	if err := sg.KubeResources.Delete(id, item); err != nil {
-		return err
-	}
-	return nil
-}
-
-func StartKubeResource(sg *client.Client, w http.ResponseWriter, r *http.Request) error {
-	id, err := parseID(r)
-	if err != nil {
-		return err
-	}
-	item := new(model.KubeResource)
-	item.ID = id
-	if err := sg.KubeResources.Start(id, item); err != nil {
-		return err
-	}
-	return nil
-}
-
-func StopKubeResource(sg *client.Client, w http.ResponseWriter, r *http.Request) error {
-	id, err := parseID(r)
-	if err != nil {
-		return err
-	}
-	item := new(model.KubeResource)
-	item.ID = id
-	if err := sg.KubeResources.Stop(id, item); err != nil {
-		return err
-	}
 	return nil
 }

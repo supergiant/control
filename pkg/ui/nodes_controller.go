@@ -20,10 +20,11 @@ func NewNode(sg *client.Client, w http.ResponseWriter, r *http.Request) error {
 
 func CreateNode(sg *client.Client, w http.ResponseWriter, r *http.Request) error {
 	m := new(model.Node)
-	if err := unmarshalFormInto(r, m); err != nil {
-		return err
+	err := unmarshalFormInto(r, m)
+	if err == nil {
+		err = sg.Nodes.Create(m)
 	}
-	if err := sg.Nodes.Create(m); err != nil {
+	if err != nil {
 		return renderTemplate(w, "new", map[string]interface{}{
 			"title":      "Nodes",
 			"formAction": "/ui/nodes",
@@ -69,11 +70,14 @@ func ListNodes(sg *client.Client, w http.ResponseWriter, r *http.Request) error 
 	return renderTemplate(w, "index", map[string]interface{}{
 		"title":       "Nodes",
 		"uiBasePath":  "/ui/nodes",
-		"apiListPath": "/api/v0/nodes",
+		"apiBasePath": "/api/v0/nodes",
 		"fields":      fields,
 		"showNewLink": true,
-		"batchActionPaths": map[string]string{
-			"Delete": "/delete",
+		"batchActionPaths": map[string]map[string]string{
+			"Delete": map[string]string{
+				"method":       "DELETE",
+				"relativePath": "",
+			},
 		},
 	})
 }
@@ -91,18 +95,4 @@ func GetNode(sg *client.Client, w http.ResponseWriter, r *http.Request) error {
 		"title": "Nodes",
 		"model": item,
 	})
-}
-
-func DeleteNode(sg *client.Client, w http.ResponseWriter, r *http.Request) error {
-	id, err := parseID(r)
-	if err != nil {
-		return err
-	}
-	item := new(model.Node)
-	item.ID = id
-	if err := sg.Nodes.Delete(id, item); err != nil {
-		return err
-	}
-	// http.Redirect(w, r, "/ui/nodes", http.StatusFound)
-	return nil
 }

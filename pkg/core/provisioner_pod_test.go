@@ -8,11 +8,11 @@ import (
 	"testing"
 
 	"github.com/supergiant/supergiant/pkg/core"
-	"github.com/supergiant/supergiant/test/fake_core"
 	"github.com/supergiant/supergiant/pkg/kubernetes"
 	"github.com/supergiant/supergiant/pkg/model"
 	"github.com/supergiant/supergiant/pkg/provider/aws"
 	"github.com/supergiant/supergiant/pkg/provider/digitalocean"
+	"github.com/supergiant/supergiant/test/fake_core"
 
 	. "github.com/smartystreets/goconvey/convey"
 )
@@ -488,7 +488,7 @@ func TestPodProvisionerProvision(t *testing.T) {
 			c.CloudAccounts = &core.CloudAccounts{core.Collection{Core: c}}
 			// We can use the real provider here, just need it for Volume def
 			c.AWSProvider = func(creds map[string]string) core.Provider {
-				return &aws.Provider{Core: c, Credentials: creds}
+				return &aws.Provider{Core: c}
 			}
 			c.DOProvider = func(_ map[string]string) core.Provider {
 				return &digitalocean.Provider{Core: c}

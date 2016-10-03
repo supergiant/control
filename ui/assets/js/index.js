@@ -4,7 +4,7 @@ $(function() {
 
   var table = $("table#item_list"),
       uiBasePath = table.data("ui-base-path"),
-      apiListPath = table.data('api-list-path'),
+      apiBasePath = table.data('api-base-path'),
       fields = table.data('fields-json'),
       thead = $('<thead>'),
       tbody = $('<tbody>'),
@@ -42,7 +42,7 @@ $(function() {
 
   var filterBits = window.location.search.match(/filter\.[^=]+=[^&]+/g);
 
-  var url = apiListPath + "?limit=" + limit + "&offset=" + offset;
+  var url = apiBasePath + "?limit=" + limit + "&offset=" + offset;
   if (filterBits) {
     url += "&" + filterBits.join('&');
   }
@@ -288,13 +288,20 @@ $(function() {
       // Status column
       var statusTd = '<td';
       if (item.status) {
-        var color = item.status.description == "deleting" ? "danger" : "info";
-        statusTd += ' class="text-' + color + '">';
 
-        statusTd += '<span>' + item.status.description + '</span>';
+        if (item.status.error && item.status.retries == item.status.max_retries) {
 
-        // Loader
-        statusTd += '<div id="circleG"><div id="circleG_1" class="circleG"></div><div id="circleG_2" class="circleG"></div><div id="circleG_3" class="circleG"></div></div>'
+          statusTd += '><a class="text-danger" href="' + uiBasePath + '/' + item.id + '">Failure</a>'
+
+        } else {
+
+          var color = item.status.description == "deleting" ? "danger" : "info";
+          statusTd += ' class="text-' + color + '">';
+          statusTd += '<span>' + item.status.description + '</span>';
+          // Loader
+          statusTd += '<div id="circleG"><div id="circleG_1" class="circleG"></div><div id="circleG_2" class="circleG"></div><div id="circleG_3" class="circleG"></div></div>'
+
+        }
 
         statusTd += '</td>'
 
@@ -451,6 +458,7 @@ $(function() {
     });
 
     modalConfirmBtn.text(actionName);
+    modalConfirmBtn.data("method", link.data("method"));
     modalConfirmBtn.data("batch-action-path", link.data("batch-action-path"));
 
     confirmModal.modal();
@@ -466,14 +474,12 @@ $(function() {
 
     $.each(selectedItemIDs, function(selx, id) {
 
-      console.log(uiBasePath + "/" + id + modalConfirmBtn.data("batch-action-path"));
-
       $.ajax({
-        type: "PUT",
+        type: modalConfirmBtn.data("method"),
         beforeSend: function(xhr){
           xhr.setRequestHeader('Authorization', 'SGAPI session="' + getCookie('supergiant_session') + '"');
         },
-        url: uiBasePath + "/" + id + modalConfirmBtn.data("batch-action-path"),
+        url: apiBasePath + "/" + id + modalConfirmBtn.data("batch-action-path"),
         error: function(data) {
           if (!alerted) {
             alert(data.responseText);

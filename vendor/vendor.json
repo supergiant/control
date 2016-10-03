@@ -141,14 +141,32 @@
 			"revisionTime": "2016-02-12T00:23:28Z"
 		},
 		{
+			"checksumSHA1": "/pAeB+RZh9S5Zs206TV3GkM1Bps=",
+			"path": "github.com/aws/aws-sdk-go/service/ec2/ec2iface",
+			"revision": "8041be5461786460d86b4358305fbdf32d37cfb2",
+			"revisionTime": "2016-02-12T00:23:28Z"
+		},
+		{
 			"checksumSHA1": "34andPgujGDQ8daa/vd5NdOIFS8=",
 			"path": "github.com/aws/aws-sdk-go/service/elb",
 			"revision": "8041be5461786460d86b4358305fbdf32d37cfb2",
 			"revisionTime": "2016-02-12T00:23:28Z"
 		},
 		{
+			"checksumSHA1": "8M51fmrx4wVK8GlOxXtEqj6XC1w=",
+			"path": "github.com/aws/aws-sdk-go/service/elb/elbiface",
+			"revision": "8041be5461786460d86b4358305fbdf32d37cfb2",
+			"revisionTime": "2016-02-12T00:23:28Z"
+		},
+		{
 			"checksumSHA1": "ZREukRJQoZHGN8hnXoQz5hB6TF4=",
 			"path": "github.com/aws/aws-sdk-go/service/iam",
+			"revision": "8041be5461786460d86b4358305fbdf32d37cfb2",
+			"revisionTime": "2016-02-12T00:23:28Z"
+		},
+		{
+			"checksumSHA1": "PxoJ3SKESqB2QKKU7thrqvHyd9o=",
+			"path": "github.com/aws/aws-sdk-go/service/iam/iamiface",
 			"revision": "8041be5461786460d86b4358305fbdf32d37cfb2",
 			"revisionTime": "2016-02-12T00:23:28Z"
 		},

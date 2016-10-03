@@ -69,7 +69,7 @@ func TestEntrypointListenersList(t *testing.T) {
 			}
 
 			requestor := createAdmin(srv.Core)
-			sg := srv.Core.NewAPIClient("token", requestor.APIToken)
+			sg := srv.Core.APIClient("token", requestor.APIToken)
 
 			if item.parentCloudAccount != nil {
 				srv.Core.CloudAccounts.Create(item.parentCloudAccount)
@@ -224,7 +224,7 @@ func TestEntrypointListenersCreate(t *testing.T) {
 			}
 
 			requestor := createAdmin(srv.Core)
-			sg := srv.Core.NewAPIClient("token", requestor.APIToken)
+			sg := srv.Core.APIClient("token", requestor.APIToken)
 
 			if item.parentCloudAccount != nil {
 				srv.Core.CloudAccounts.Create(item.parentCloudAccount)
@@ -306,7 +306,7 @@ func TestEntrypointListenersGet(t *testing.T) {
 			}
 
 			requestor := createAdmin(srv.Core)
-			sg := srv.Core.NewAPIClient("token", requestor.APIToken)
+			sg := srv.Core.APIClient("token", requestor.APIToken)
 
 			if item.parentCloudAccount != nil {
 				srv.Core.CloudAccounts.Create(item.parentCloudAccount)
@@ -558,7 +558,7 @@ func TestEntrypointListenersUpdate(t *testing.T) {
 			}
 
 			requestor := createAdmin(srv.Core)
-			sg := srv.Core.NewAPIClient("token", requestor.APIToken)
+			sg := srv.Core.APIClient("token", requestor.APIToken)
 
 			if item.parentCloudAccount != nil {
 				srv.Core.CloudAccounts.Create(item.parentCloudAccount)
@@ -679,7 +679,7 @@ func TestEntrypointListenersDelete(t *testing.T) {
 			}
 
 			requestor := createAdmin(srv.Core)
-			sg := srv.Core.NewAPIClient("token", requestor.APIToken)
+			sg := srv.Core.APIClient("token", requestor.APIToken)
 
 			if item.parentCloudAccount != nil {
 				srv.Core.CloudAccounts.Create(item.parentCloudAccount)

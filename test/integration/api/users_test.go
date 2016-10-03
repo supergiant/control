@@ -18,7 +18,7 @@ func TestUsersList(t *testing.T) {
 	Convey("Given a user and an admin", t, func() {
 
 		Convey("When the user Lists Users", func() {
-			sg := srv.Core.NewAPIClient("token", user.APIToken)
+			sg := srv.Core.APIClient("token", user.APIToken)
 			users := new(model.UserList)
 			err := sg.Users.List(users)
 
@@ -29,7 +29,7 @@ func TestUsersList(t *testing.T) {
 		})
 
 		Convey("When the admin Lists Users", func() {
-			sg := srv.Core.NewAPIClient("token", admin.APIToken)
+			sg := srv.Core.APIClient("token", admin.APIToken)
 			users := new(model.UserList)
 			err := sg.Users.List(users)
 
@@ -56,7 +56,7 @@ func TestUsersCreate(t *testing.T) {
 	Convey("Given a user and an admin", t, func() {
 
 		Convey("When the user Creates a User", func() {
-			sg := srv.Core.NewAPIClient("token", user.APIToken)
+			sg := srv.Core.APIClient("token", user.APIToken)
 			err := sg.Users.Create(newUser)
 
 			Convey("They should receive a 403 Forbidden error", func() {
@@ -65,7 +65,7 @@ func TestUsersCreate(t *testing.T) {
 		})
 
 		Convey("When the admin Creates a User", func() {
-			sg := srv.Core.NewAPIClient("token", admin.APIToken)
+			sg := srv.Core.APIClient("token", admin.APIToken)
 			err := sg.Users.Create(newUser)
 
 			Convey("They should be no error", func() {
@@ -85,7 +85,7 @@ func TestUsersGet(t *testing.T) {
 	Convey("Given a user and an admin", t, func() {
 
 		Convey("When the user Gets another User", func() {
-			sg := srv.Core.NewAPIClient("token", user.APIToken)
+			sg := srv.Core.APIClient("token", user.APIToken)
 			err := sg.Users.Get(admin.ID, admin)
 
 			Convey("They should receive a 403 Forbidden error", func() {
@@ -94,7 +94,7 @@ func TestUsersGet(t *testing.T) {
 		})
 
 		Convey("When the user Gets themself", func() {
-			sg := srv.Core.NewAPIClient("token", user.APIToken)
+			sg := srv.Core.APIClient("token", user.APIToken)
 			err := sg.Users.Get(user.ID, user)
 
 			Convey("There should be no error", func() {
@@ -103,7 +103,7 @@ func TestUsersGet(t *testing.T) {
 		})
 
 		Convey("When the admin Gets another User", func() {
-			sg := srv.Core.NewAPIClient("token", admin.APIToken)
+			sg := srv.Core.APIClient("token", admin.APIToken)
 			err := sg.Users.Get(user.ID, user)
 
 			Convey("There should be no error", func() {
@@ -112,7 +112,7 @@ func TestUsersGet(t *testing.T) {
 		})
 
 		Convey("When the admin Gets themself", func() {
-			sg := srv.Core.NewAPIClient("token", admin.APIToken)
+			sg := srv.Core.APIClient("token", admin.APIToken)
 			err := sg.Users.Get(admin.ID, admin)
 
 			Convey("There should be no error", func() {
@@ -138,7 +138,7 @@ func TestUsersUpdate(t *testing.T) {
 	Convey("Given a user and an admin", t, func() {
 
 		Convey("When the user Updates another User", func() {
-			sg := srv.Core.NewAPIClient("token", user.APIToken)
+			sg := srv.Core.APIClient("token", user.APIToken)
 			err := sg.Users.Update(admin.ID, &model.User{Password: "new-password"})
 
 			Convey("They should receive a 403 Forbidden error", func() {
@@ -147,7 +147,7 @@ func TestUsersUpdate(t *testing.T) {
 		})
 
 		Convey("When the user Updates themself", func() {
-			sg := srv.Core.NewAPIClient("token", user.APIToken)
+			sg := srv.Core.APIClient("token", user.APIToken)
 			err := sg.Users.Update(user.ID, &model.User{Password: "new-password"})
 
 			reloadedUser := new(model.User)
@@ -162,7 +162,7 @@ func TestUsersUpdate(t *testing.T) {
 		})
 
 		Convey("When the user tries to Update their role", func() {
-			sg := srv.Core.NewAPIClient("token", user.APIToken)
+			sg := srv.Core.APIClient("token", user.APIToken)
 			updatedUser := *user
 			updatedUser.Password = "password" // just required for update, no change
 			updatedUser.Role = "admin"
@@ -175,7 +175,7 @@ func TestUsersUpdate(t *testing.T) {
 		})
 
 		Convey("When the admin Updates another User", func() {
-			sg := srv.Core.NewAPIClient("token", admin.APIToken)
+			sg := srv.Core.APIClient("token", admin.APIToken)
 			err := sg.Users.Update(user.ID, &model.User{Password: "new-password"})
 
 			reloadedUser := new(model.User)
@@ -190,7 +190,7 @@ func TestUsersUpdate(t *testing.T) {
 		})
 
 		Convey("When the admin Updates themself", func() {
-			sg := srv.Core.NewAPIClient("token", admin.APIToken)
+			sg := srv.Core.APIClient("token", admin.APIToken)
 			err := sg.Users.Update(admin.ID, &model.User{Password: "new-password"})
 
 			reloadedAdmin := new(model.User)
@@ -205,7 +205,7 @@ func TestUsersUpdate(t *testing.T) {
 		})
 
 		Convey("When the admin updates a User role", func() {
-			sg := srv.Core.NewAPIClient("token", admin.APIToken)
+			sg := srv.Core.APIClient("token", admin.APIToken)
 			updatedUser := *user
 			updatedUser.Password = "password" // just required for update, no change
 			updatedUser.Role = "admin"
@@ -229,7 +229,7 @@ func TestUsersRegenerateAPIToken(t *testing.T) {
 	Convey("Given a user and an admin", t, func() {
 
 		Convey("When the user calls RegenerateAPIToken on another User", func() {
-			sg := srv.Core.NewAPIClient("token", user.APIToken)
+			sg := srv.Core.APIClient("token", user.APIToken)
 			err := sg.Users.RegenerateAPIToken(admin.ID, new(model.User))
 
 			Convey("They should receive a 403 Forbidden error", func() {
@@ -238,7 +238,7 @@ func TestUsersRegenerateAPIToken(t *testing.T) {
 		})
 
 		Convey("When the user calls RegenerateAPIToken on themself", func() {
-			sg := srv.Core.NewAPIClient("token", user.APIToken)
+			sg := srv.Core.APIClient("token", user.APIToken)
 			reloadedUser := new(model.User)
 			err := sg.Users.RegenerateAPIToken(user.ID, reloadedUser)
 
@@ -249,7 +249,7 @@ func TestUsersRegenerateAPIToken(t *testing.T) {
 		})
 
 		Convey("When the admin calls RegenerateAPIToken on another User", func() {
-			sg := srv.Core.NewAPIClient("token", admin.APIToken)
+			sg := srv.Core.APIClient("token", admin.APIToken)
 			reloadedUser := new(model.User)
 			err := sg.Users.RegenerateAPIToken(user.ID, reloadedUser)
 
@@ -260,7 +260,7 @@ func TestUsersRegenerateAPIToken(t *testing.T) {
 		})
 
 		Convey("When the admin calls RegenerateAPIToken on themself", func() {
-			sg := srv.Core.NewAPIClient("token", admin.APIToken)
+			sg := srv.Core.APIClient("token", admin.APIToken)
 			reloadedAdmin := new(model.User)
 			err := sg.Users.RegenerateAPIToken(admin.ID, reloadedAdmin)
 
@@ -286,12 +286,12 @@ func TestUsersDelete(t *testing.T) {
 			Role:     "admin",
 		}
 		srv.Core.Users.Create(observer)
-		observerClient := srv.Core.NewAPIClient("token", observer.APIToken)
+		observerClient := srv.Core.APIClient("token", observer.APIToken)
 
 		user, admin := createUserAndAdmin(srv.Core)
 
 		Convey("When the user Deletes another User", func() {
-			sg := srv.Core.NewAPIClient("token", user.APIToken)
+			sg := srv.Core.APIClient("token", user.APIToken)
 			err := sg.Users.Delete(admin.ID, admin)
 
 			Convey("They should receive a 403 Forbidden error", func() {
@@ -300,7 +300,7 @@ func TestUsersDelete(t *testing.T) {
 		})
 
 		Convey("When the user Deletes themself", func() {
-			sg := srv.Core.NewAPIClient("token", user.APIToken)
+			sg := srv.Core.APIClient("token", user.APIToken)
 			deleteErr := sg.Users.Delete(user.ID, user)
 			getErr := observerClient.Users.Get(user.ID, new(model.User))
 
@@ -311,7 +311,7 @@ func TestUsersDelete(t *testing.T) {
 		})
 
 		Convey("When the admin Deletes another User", func() {
-			sg := srv.Core.NewAPIClient("token", admin.APIToken)
+			sg := srv.Core.APIClient("token", admin.APIToken)
 			deleteErr := sg.Users.Delete(user.ID, user)
 			getErr := observerClient.Users.Get(user.ID, new(model.User))
 
@@ -322,7 +322,7 @@ func TestUsersDelete(t *testing.T) {
 		})
 
 		Convey("When the admin Deletes themself", func() {
-			sg := srv.Core.NewAPIClient("token", admin.APIToken)
+			sg := srv.Core.APIClient("token", admin.APIToken)
 			deleteErr := sg.Users.Delete(admin.ID, admin)
 			getErr := observerClient.Users.Get(admin.ID, new(model.User))
 

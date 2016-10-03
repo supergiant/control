@@ -21,6 +21,14 @@ var (
 	ErrorBadLogin = errors.New("Invalid credentials")
 )
 
+type SessionsInterface interface {
+	Client(id string) *client.Client
+	List() []*model.Session
+	Create(*model.Session) error
+	Get(id string, m *model.Session) error
+	Delete(id string) error
+}
+
 type Sessions struct {
 	core     *Core
 	sessions *SafeMap // map[session-id]*Session
@@ -94,7 +102,7 @@ func (c *Sessions) Create(m *model.Session) error {
 	c.sessions.Put(m.Description(), m.ID, m)
 
 	// Create Client
-	client := c.core.NewAPIClient("session", m.ID)
+	client := c.core.APIClient("session", m.ID)
 	c.clients.Put("Client of "+m.Description(), m.ID, client)
 
 	return nil

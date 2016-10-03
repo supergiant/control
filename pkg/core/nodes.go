@@ -1,9 +1,14 @@
 package core
 
-import (
-	"github.com/supergiant/supergiant/pkg/kubernetes"
-	"github.com/supergiant/supergiant/pkg/model"
-)
+import "github.com/supergiant/supergiant/pkg/model"
+
+type NodesInterface interface {
+	Create(*model.Node) error
+	Get(*int64, model.Model) error
+	GetWithIncludes(*int64, model.Model, []string) error
+	Update(*int64, model.Model, model.Model) error
+	Delete(*int64, *model.Node) ActionInterface
+}
 
 type Nodes struct {
 	Collection
@@ -67,40 +72,4 @@ func (c *Nodes) Delete(id *int64, m *model.Node) ActionInterface {
 			return c.Collection.Delete(id, m)
 		},
 	}
-}
-
-////////////////////////////////////////////////////////////////////////////////
-// Private methods                                                            //
-////////////////////////////////////////////////////////////////////////////////
-
-func (c *Nodes) hasPodsWithReservedResources(m *model.Node) (bool, error) {
-	k8s := c.Core.K8S(m.Kube)
-	pods, err := k8s.ListPods("fieldSelector=spec.nodeName=" + m.Name + ",status.phase=Running")
-	if err != nil {
-		return false, err
-	}
-
-	for _, pod := range pods {
-		for _, container := range pod.Spec.Containers {
-
-			// TODO
-			//
-			// These should be moved to json Unmarshal method, so these floats can be parsed once
-			//
-			gib, err := kubernetes.GiBFromMemString(container.Resources.Requests.Memory)
-			if err != nil {
-				return false, err
-			}
-			cores, err := kubernetes.CoresFromCPUString(container.Resources.Requests.CPU)
-			if err != nil {
-				return false, err
-			}
-
-			if gib > 0 || cores > 0 {
-				return true, nil
-			}
-		}
-	}
-
-	return false, nil
 }

@@ -15,7 +15,7 @@ func TestListFiltering(t *testing.T) {
 
 	Convey("Filtering on API list operations works correctly", t, func() {
 		requestor := createAdmin(srv.Core)
-		sg := srv.Core.NewAPIClient("token", requestor.APIToken)
+		sg := srv.Core.APIClient("token", requestor.APIToken)
 
 		// Create a bunch of Users (because it's easy)
 		users := []*model.User{
@@ -122,7 +122,7 @@ func TestListPagination(t *testing.T) {
 
 	Convey("Pagination on API list operations works correctly", t, func() {
 		requestor := createAdmin(srv.Core)
-		sg := srv.Core.NewAPIClient("token", requestor.APIToken)
+		sg := srv.Core.APIClient("token", requestor.APIToken)
 
 		// Create 2 more users
 		sg.Users.Create(&model.User{Username: "user1", Password: "password"})

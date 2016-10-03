@@ -11,7 +11,7 @@ func (c *Entrypoints) Create(m *model.Entrypoint) error {
 		return err
 	}
 
-	// Load Kube and CloudAccount (TODO explain why Nodes are needed)
+	// Load Kube and CloudAccount (Nodes are needed to register with ELB on AWS)
 	m.Kube = new(model.Kube)
 	if err := c.Core.DB.Preload("Nodes").Preload("CloudAccount").First(m.Kube, "name = ?", m.KubeName); err != nil {
 		return err

@@ -31,8 +31,8 @@
                   <li role="separator" class="divider"></li>
                 {{ end }}
 
-                {{ range $label, $path := .batchActionPaths }}
-                  <li><a href="#" data-batch-action-path="{{ $path }}" data-toggle="modal" data-target="#confirm_action" disabled class="disabled">{{ $label }}</a></li>
+                {{ range $label, $ap := .batchActionPaths }}
+                  <li><a href="#" data-method="{{ $ap.method }}" data-batch-action-path="{{ .apiBasePath }}{{ $ap.relativePath }}" data-toggle="modal" data-target="#confirm_action" disabled class="disabled">{{ $label }}</a></li>
                 {{ end }}
               </ul>
             </div>
@@ -113,7 +113,7 @@
 
     <div class="row">
       <div class="col-xs-12">
-        <table id="item_list" class="table table-bordered" data-ui-base-path="{{ .uiBasePath }}" data-api-list-path="{{ .apiListPath }}" data-fields-json="{{ .fieldsJSON }}">
+        <table id="item_list" class="table table-bordered" data-ui-base-path="{{ .uiBasePath }}" data-api-base-path="{{ .apiBasePath }}" data-fields-json="{{ .fieldsJSON }}">
         </table>
       </div>
     </div>

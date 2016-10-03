@@ -17,13 +17,14 @@ import (
 
 // Provider Holds DO account info.
 type Provider struct {
-	Core  *core.Core
-	Token string
+	Core   *core.Core
+	Client func(*model.Kube) *godo.Client
 }
 
 // ValidateAccount Valitades DO account info.
 func (p *Provider) ValidateAccount(m *model.CloudAccount) error {
-	client := p.newClient()
+	client := p.Client(&model.Kube{CloudAccount: m})
+
 	_, _, err := client.Droplets.List(new(godo.ListOptions))
 	return err
 }
@@ -36,7 +37,7 @@ func (p *Provider) CreateKube(m *model.Kube, action *core.Action) error {
 		Model: m,
 	}
 
-	client := p.newClient()
+	client := p.Client(m)
 
 	procedure.AddStep("creating global tags for Kube", func() error {
 		// These are created once, and then attached by name to created resource
@@ -94,7 +95,7 @@ func (p *Provider) CreateKube(m *model.Kube, action *core.Action) error {
 		}
 		tags := []string{"Kubernetes-Cluster", m.Name, dropletRequest.Name}
 
-		masterDroplet, publicIP, err := p.createDroplet(action, dropletRequest, tags)
+		masterDroplet, publicIP, err := p.createDroplet(client, action, dropletRequest, tags)
 		if err != nil {
 			return err
 		}
@@ -141,7 +142,7 @@ func (p *Provider) CreateKube(m *model.Kube, action *core.Action) error {
 // DeleteKube deletes a DO kubernetes cluster.
 func (p *Provider) DeleteKube(m *model.Kube) error {
 	// New Client
-	client := p.newClient()
+	client := p.Client(m)
 	// Step procedure
 	procedure := &core.Procedure{
 		Core:  p.Core,
@@ -178,7 +179,10 @@ func (p *Provider) CreateNode(m *model.Node, action *core.Action) error {
 	data := struct {
 		*model.Node
 		Token string
-	}{m, p.Token}
+	}{
+		m,
+		m.Kube.CloudAccount.Credentials["token"],
+	}
 
 	var minionUserdata bytes.Buffer
 	if err = minionTemplate.Execute(&minionUserdata, data); err != nil {
@@ -202,7 +206,7 @@ func (p *Provider) CreateNode(m *model.Node, action *core.Action) error {
 	}
 	tags := []string{"Kubernetes-Cluster", m.Kube.Name, dropletRequest.Name}
 
-	minionDroplet, publicIP, err := p.createDroplet(action, dropletRequest, tags)
+	minionDroplet, publicIP, err := p.createDroplet(p.Client(m.Kube), action, dropletRequest, tags)
 	if err != nil {
 		return err
 	}
@@ -225,7 +229,7 @@ func (p *Provider) CreateNode(m *model.Node, action *core.Action) error {
 
 // DeleteNode deletes a minsion on a DO kubernetes cluster.
 func (p *Provider) DeleteNode(m *model.Node) error {
-	client := p.newClient()
+	client := p.Client(m.Kube)
 
 	intID, err := strconv.Atoi(m.ProviderID)
 	if err != nil {
@@ -242,7 +246,7 @@ func (p *Provider) CreateVolume(m *model.Volume, action *core.Action) error {
 		Name:          m.Name,
 		SizeGigaBytes: int64(m.Size),
 	}
-	volume, _, err := p.newClient().Storage.CreateVolume(req)
+	volume, _, err := p.Client(m.Kube).Storage.CreateVolume(req)
 	if err != nil {
 		return err
 	}
@@ -266,7 +270,7 @@ func (p *Provider) KubernetesVolumeDefinition(m *model.Volume) *kubernetes.Volum
 
 // ResizeVolume re-sizes volume on DO kubernetes cluster.
 func (p *Provider) ResizeVolume(m *model.Volume, action *core.Action) error {
-	_, _, err := p.newClient().StorageActions.Resize(m.ProviderID, m.Size, m.Kube.DigitalOceanConfig.Region)
+	_, _, err := p.Client(m.Kube).StorageActions.Resize(m.ProviderID, m.Size, m.Kube.DigitalOceanConfig.Region)
 	if err != nil {
 		return err
 	}
@@ -287,7 +291,7 @@ func (p *Provider) DeleteVolume(m *model.Volume) error {
 		p.Core.Log.Warnf("Deleting DigitalOcean Volume '%s' with empty ProviderID", m.Name)
 		return nil
 	}
-	_, err := p.newClient().Storage.DeleteVolume(m.ProviderID)
+	_, err := p.Client(m.Kube).Storage.DeleteVolume(m.ProviderID)
 	return err
 }
 
@@ -313,6 +317,14 @@ func (p *Provider) DeleteEntrypointListener(m *model.EntrypointListener) error {
 // Private methods                                                            //
 ////////////////////////////////////////////////////////////////////////////////
 
+func Client(kube *model.Kube) *godo.Client {
+	token := &TokenSource{
+		AccessToken: kube.CloudAccount.Credentials["token"],
+	}
+	oauthClient := oauth2.NewClient(oauth2.NoContext, token)
+	return godo.NewClient(oauthClient)
+}
+
 type TokenSource struct {
 	AccessToken string
 }
@@ -324,19 +336,8 @@ func (t *TokenSource) Token() (*oauth2.Token, error) {
 	return token, nil
 }
 
-// DO Client
-func (p *Provider) newClient() *godo.Client {
-	token := &TokenSource{
-		AccessToken: p.Token,
-	}
-	oauthClient := oauth2.NewClient(oauth2.NoContext, token)
-	return godo.NewClient(oauthClient)
-}
-
 // Create droplet
-func (p *Provider) createDroplet(action *core.Action, req *godo.DropletCreateRequest, tags []string) (droplet *godo.Droplet, publicIP string, err error) {
-	client := p.newClient()
-
+func (p *Provider) createDroplet(client *godo.Client, action *core.Action, req *godo.DropletCreateRequest, tags []string) (droplet *godo.Droplet, publicIP string, err error) {
 	// Create
 	droplet, _, err = client.Droplets.Create(req)
 	if err != nil {

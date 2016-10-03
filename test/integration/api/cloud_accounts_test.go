@@ -47,7 +47,7 @@ func TestCloudAccountsList(t *testing.T) {
 			}
 
 			requestor := createAdmin(srv.Core)
-			sg := srv.Core.NewAPIClient("token", requestor.APIToken)
+			sg := srv.Core.APIClient("token", requestor.APIToken)
 
 			for _, existingModel := range item.existingModels {
 				srv.Core.CloudAccounts.Create(existingModel)
@@ -151,7 +151,7 @@ func TestCloudAccountsCreate(t *testing.T) {
 			}
 
 			requestor := createAdmin(srv.Core)
-			sg := srv.Core.NewAPIClient("token", requestor.APIToken)
+			sg := srv.Core.APIClient("token", requestor.APIToken)
 
 			err := sg.CloudAccounts.Create(item.model)
 
@@ -200,7 +200,7 @@ func TestCloudAccountsGet(t *testing.T) {
 			}
 
 			requestor := createAdmin(srv.Core)
-			sg := srv.Core.NewAPIClient("token", requestor.APIToken)
+			sg := srv.Core.APIClient("token", requestor.APIToken)
 
 			srv.Core.CloudAccounts.Create(item.existingModel)
 
@@ -281,7 +281,7 @@ func TestCloudAccountsUpdate(t *testing.T) {
 			}
 
 			requestor := createAdmin(srv.Core)
-			sg := srv.Core.NewAPIClient("token", requestor.APIToken)
+			sg := srv.Core.APIClient("token", requestor.APIToken)
 
 			srv.Core.CloudAccounts.Create(item.existingModel)
 
@@ -356,7 +356,7 @@ func TestCloudAccountsDelete(t *testing.T) {
 			}
 
 			requestor := createAdmin(srv.Core)
-			sg := srv.Core.NewAPIClient("token", requestor.APIToken)
+			sg := srv.Core.APIClient("token", requestor.APIToken)
 
 			srv.Core.CloudAccounts.Create(item.existingModel)
 

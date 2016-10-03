@@ -2,6 +2,12 @@ package client
 
 import "github.com/supergiant/supergiant/pkg/model"
 
+type KubeResourcesInterface interface {
+	CollectionInterface
+	Start(*int64, *model.KubeResource) error
+	Stop(*int64, *model.KubeResource) error
+}
+
 type KubeResources struct {
 	Collection
 }
