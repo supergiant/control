@@ -1,6 +1,19 @@
+/* Webfont: Lato-Regular */
 @font-face {
-    font-family: 'Doppio One';
+    font-family: 'LatoWeb';
+    src: url('#{$fontPath}/Lato-Regular.woff2') format('woff2'), /* Modern Browsers */
+         url('#{$fontPath}/Lato-Regular.woff') format('woff'); /* Modern Browsers */
     font-style: normal;
-    font-weight: 400;
-    src: local('Doppio One'), local('Doppio One'), url(../fonts/Doppio-One.ttf) format('truetype');
+    font-weight: normal;
+    text-rendering: optimizeLegibility;
+}
+
+/* Webfont: Lato-Semibold */
+@font-face {
+    font-family: 'LatoWebSemibold';
+    src: url('#{$fontPath}/Lato-Semibold.woff2') format('woff2'), /* Modern Browsers */
+         url('#{$fontPath}/Lato-Semibold.woff') format('woff'); /* Modern Browsers */
+    font-style: normal;
+    font-weight: normal;
+    text-rendering: optimizeLegibility;
 }
