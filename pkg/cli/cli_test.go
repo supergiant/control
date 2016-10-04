@@ -33,7 +33,11 @@ func TestCLIRun(t *testing.T) {
 				command:             []string{"supergiant", "cloud_accounts", "list"},
 				clientCommandCalled: "CloudAccounts.List",
 				clientCommandArgs: []interface{}{
-					&model.CloudAccountList{},
+					&model.CloudAccountList{
+						BaseList: model.BaseList{
+							Filters: map[string][]string{},
+						},
+					},
 				},
 			},
 			// CloudAccounts Create

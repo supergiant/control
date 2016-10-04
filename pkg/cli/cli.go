@@ -200,10 +200,14 @@ func (sgcli *CLI) commandList(collectionName string, list model.List) cli.Comman
 			if err != nil {
 				return err
 			}
-			list.SetFilters(filters)
+
+			reflectList := reflect.ValueOf(list)
+
+			// Set filters
+			reflectList.Elem().FieldByName("Filters").Set(reflect.ValueOf(filters))
 
 			fn := reflect.ValueOf(sgcli.Client(c)).Elem().FieldByName(collectionName).MethodByName("List")
-			ret := fn.Call([]reflect.Value{reflect.ValueOf(list)})
+			ret := fn.Call([]reflect.Value{reflectList})
 
 			if err := ret[0].Interface(); err != nil {
 				return err.(error)

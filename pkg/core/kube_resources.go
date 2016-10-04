@@ -42,10 +42,11 @@ func (c *KubeResources) Delete(id *int64, m *model.KubeResource) ActionInterface
 			Description: "deleting",
 			MaxRetries:  5,
 		},
-		Core:  c.Core,
-		Scope: c.Core.DB.Preload("Kube.CloudAccount"),
-		Model: m,
-		ID:    id,
+		Core:           c.Core,
+		Scope:          c.Core.DB.Preload("Kube.CloudAccount"),
+		Model:          m,
+		ID:             id,
+		CancelExisting: true,
 		Fn: func(_ *Action) error {
 			if err := c.provisioner(m).Teardown(m); err != nil {
 				return err

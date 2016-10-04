@@ -4,7 +4,6 @@ import "strconv"
 
 type List interface {
 	QueryValues() map[string][]string
-	SetFilters(map[string][]string)
 }
 
 type BaseList struct {
@@ -37,8 +36,4 @@ func (l BaseList) QueryValues() map[string][]string {
 		qv["filter."+key] = values
 	}
 	return qv
-}
-
-func (l BaseList) SetFilters(filters map[string][]string) {
-	l.Filters = filters
 }
