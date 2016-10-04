@@ -7,7 +7,7 @@ SUPERGIANT: Easy container orchestration using Kubernetes
 
 [Kubernetes Source URL]: https://github.com/kubernetes/kubernetes
 [Supergiant Website URL]: https://supergiant.io/
-[Supergiant Docs URL]: https://supergiant.io/docs
+<!-- [Supergiant Docs URL]: https://supergiant.io/docs -->
 [Supergiant Tutorials URL]: https://supergiant.io/tutorials
 [Supergiant Slack URL]: https://supergiant.io/slack
 [Supergiant Community URL]: https://supergiant.io/community
@@ -22,7 +22,7 @@ SUPERGIANT: Easy container orchestration using Kubernetes
 [Go Remote Packages URL]: https://golang.org/doc/code.html#remote
 [Supergiant Go Package Anchor]: #how-to-install-supergiant-as-a-go-package
 [Generate CSR Anchor]: #how-to-generate-a-certificate-signing-request-file
-[Create Admin User Anchor]: #create-an-admin-user
+<!-- [Create Admin User Anchor]: #create-an-admin-user -->
 [Install Dependencies Anchor]: #installing-generating-dependencies
 
 <!-- Badges -->
@@ -55,29 +55,34 @@ We want to make Supergiant the easiest way to run Kubernetes in the cloud.
 
 Quick start...
 
-* [How to Install Supergiant Container Orchestration Engine on AWS EC2][Tutorial
-AWS URL]
+* [How to Install Supergiant Container Orchestration Engine on AWS EC2][Tutorial AWS URL]
 * [Deploy a MongoDB Replica Set with Docker and Supergiant][Tutorial MongoDB URL]
+  _(Note: this tutorial is out of date, but you can see
+  [the current example here.](examples/deploy_mongo.sh))_
 
 ---
 
 ## Features
 
-* Lets you manage microservices with Docker containers
-* Lets you manage multiple users (OAUTH and LDAP coming soon)
-* Web dashboard served over HTTPS/SSL by default
-* Manages hardware like one, big self-healing resource pool
-* Lets you easily scale stateful services and HA volumes on the fly
-* Lowers costs by auto-scaling hardware when needed
-* Lets you easily adjust RAM and CPU min and max values independently for each
-service
-* Manages hardware topology organically within configurable constraints
+* Fully compatible with native Kubernetes (works with existing setups)
+* UI and CLI, both built on top of an API (with importable
+  [Go client lib](pkg/client))
+* Filterable container metrics views (RAM / CPU timeseries graphs)
+* Deploy / Update / Restart containers with a few clicks
+* Launch and manage multiple Kubes across multiple cloud providers from the UI
+* Works with multiple cloud providers (AWS, DigitalOcean, and _actively_ adding
+  more, in addition to on-premise hardware support)
+* Automatic server management (background server autoscaling, up/down depending
+  on container resource needs)
+* Role-based Users, Session-based login, self-signed SSL, and API tokens for
+  security (OAuth and LDAP support to come)
+
 
 
 ## Resources
 
 * [Supergiant Website][Supergiant Website URL]
-* [Docs](https://supergiant.io/docs)
+* [Docs](docs/v0/)
 * [Tutorials](https://supergiant.io/tutorials)
 * [Slack](https://supergiant.io/slack)
 * [Install][Tutorial AWS URL]
@@ -85,12 +90,18 @@ service
 
 ## Installation
 
-The current release installs on Amazon Web Services EC2, using a
-publicly-available AMI. Other cloud providers and local installation are in
-development.
+Checkout the [releases](https://github.com/supergiant/supergiant/releases) page
+for binaries on Windows, Mac, and Linux.
 
-If you want to install Supergiant, follow the [Supergiant Install
-Tutorial][Tutorial AWS URL].
+Copy (and customize if necessary)
+[the example config file](config/config.json.example), and run with:
+
+```shell
+<supergiant-server-binary> --config-file config.json
+```
+
+If you want to easily install Supergiant on Amazon Web Services EC2, follow the
+[Supergiant Install Tutorial][Tutorial AWS URL].
 
 
 ## Top-Level Concepts
@@ -137,23 +148,18 @@ environment._
 Supergiant dependencies:
 
 * [Git][Git URL]
-* [Go][Go URL] version 1.7 or more recent
-* [Govendor][Govendor URL] for running tests
-* [Supergiant as a Go package][Supergiant Go Package Anchor]
-* [A certificate signing request file][Generate CSR Anchor] for serving over
-HTTPS
+* [Go][Go URL] version 1.7+
+* [Govendor][Govendor URL] for vendoring Go dependencies
 
-If you are missing any of these, see below to [install or generate
-dependencies][Install Dependencies Anchor].
+#### Checkout the repo
 
-From the supergiant Go package folder (usually
-`~/.go/src/github.com/supergiant/supergiant`) perform the following:
+```shell
+go get github.com/supergiant/supergiant
+```
 
-#### Initialize Config File
+#### Create a Config file
 
-In `config/config.json.example`, there's a sample config file to get you
-started. Just duplicate and rename to config.json. Examples below assume the
-default configuration for localhost development.
+You can copy the [example configuration](config/config.json.example):
 
 ```shell
 cp config/config.json.example config/config.json
@@ -163,14 +169,16 @@ cp config/config.json.example config/config.json
 
 ```shell
 go run cmd/server/server.go --config-file config/config.json
+open localhost:8080
 ```
 
-The default configuration expects HTTP requests on port `8080` and HTTPS
-requests on port `8081`. These may be changed in `config/config.json`. Visiting
-http://localhost:8080/ will produce an insecure warning page by design.
+#### Build the CLI
 
-Access the dashboard at https://localhost:8081/ui/ with [the generated Admin
-username and password][Create Admin User Anchor].
+This will allow for calling the CLI with the `supergiant` command:
+
+```shell
+go build -o $GOPATH/bin/supergiant cmd/cli/cli.go
+```
 
 #### Run Tests
 
@@ -196,53 +204,15 @@ making changes to the UI _or_ if you're working with Provider code:
 go-bindata -pkg bindata -o bindata/bindata.go config/providers/... ui/assets/... ui/views/...
 ```
 
----
+#### Enabling SSL
 
-## Installing/Generating Dependencies
+Our AMI distribution automatically sets up self-signed SSL for Supergiant, but
+the default [config/config.json.example](config/config.json.example)
+does not enable SSL.
 
-#### How to Install Supergiant as a Go Package
-
-```shell
-go get github.com/supergiant/supergiant
-```
-
-This will install supergiant in your
-[Go workspace package directory][Go Remote Packages URL] (usually something like
-`~/.go/src/github.com/supergiant/supergiant`). Packages in this directory
-function like Git repositories that are aware of their upstream origin. From
-here, you can create your own branches and even checkout branches under
-development.
-
-#### How to Generate a Certificate Signing Request File
-
-You will need local RSA `.key` and `.pem` files. The default locations are in
-the Supergiant Go package tmp folder (usually
-`~/.go/src/github.com/supergiant/supergiant`) as `tmp/supergiant.key`,
-`tmp/supergiant.pem`. If you wish to customize these locations, you will need
-to edit `config/config.json`. The following steps require no config editing.
-
-Set the following env session variables:
-
-```shell
-SSL_KEY_FILE=tmp/supergiant.key
-SSL_CRT_FILE=tmp/supergiant.pem
-```
-
-Generate the `.key` file
-
-```shell
-openssl genrsa -out $SSL_KEY_FILE 2048
-```
-
-Generate the CSR file. This step will ask you a few questions about the computer
-you are using to generate the file.
-
-When you are asked to enter **Common Name (e.g. server FQDN or YOUR name)**,
-enter `localhost`. This may be customized in `config/config.json`.
-
-```shell
-openssl req -new -x509 -sha256 -key $SSL_KEY_FILE -out $SSL_CRT_FILE -days 3650
-```
+You can see [our AMI boot file](build/sgboot) for an example of how
+that is done if you would like to use SSL locally or on your own production
+setup.
 
 ---
 

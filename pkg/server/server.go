@@ -11,16 +11,16 @@ import (
 	"github.com/supergiant/supergiant/pkg/ui"
 )
 
-type SecureInfoHandler struct {
-	core *core.Core
-}
-
-func (s *SecureInfoHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
-	msg := "<p>Supergiant is running securely at <a href='" + s.core.BaseURL() + "'>" + s.core.BaseURL() + "</a>.</p>"
-	msg += "<p>Unless you have provided your own SSL certificate, this will be a self-signed certificate.</p>"
-	msg += "<p>If using self-signed, your browser will most likely warn of an insecure connection. <strong>You must manually trust the certificate to utilize SSL.</strong></p>"
-	w.Write([]byte(msg))
-}
+// type SecureInfoHandler struct {
+// 	core *core.Core
+// }
+//
+// func (s *SecureInfoHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
+// 	msg := "<p>Supergiant is running securely at <a href='" + s.core.BaseURL() + "'>" + s.core.BaseURL() + "</a>.</p>"
+// 	msg += "<p>Unless you have provided your own SSL certificate, this will be a self-signed certificate.</p>"
+// 	msg += "<p>If using self-signed, your browser will most likely warn of an insecure connection. <strong>You must manually trust the certificate to utilize SSL.</strong></p>"
+// 	w.Write([]byte(msg))
+// }
 
 //------------------------------------------------------------------------------
 
@@ -39,10 +39,10 @@ func New(c *core.Core) (server *Server, err error) {
 
 	if c.SSLEnabled() {
 		server.primaryListener, err = newTLSListener(c.HTTPSPort, c.SSLCertFile, c.SSLKeyFile)
-		if err == nil {
-			server.secondaryHandler = &SecureInfoHandler{c}
-			server.secondaryListener, err = newListener(c.HTTPPort)
-		}
+		// if err == nil {
+		// 	server.secondaryHandler = &SecureInfoHandler{c}
+		// 	server.secondaryListener, err = newListener(c.HTTPPort)
+		// }
 	} else {
 		server.primaryListener, err = newListener(c.HTTPPort)
 	}
@@ -55,27 +55,27 @@ func New(c *core.Core) (server *Server, err error) {
 type Server struct {
 	Core *core.Core
 
-	primaryHandler   http.Handler
-	secondaryHandler http.Handler
+	primaryHandler http.Handler
+	// secondaryHandler http.Handler
 
-	primaryListener   net.Listener
-	secondaryListener net.Listener
+	primaryListener net.Listener
+	// secondaryListener net.Listener
 }
 
 func (s *Server) Start() error {
-	if s.secondaryListener != nil {
-		// NOTE we just kinda lose the error here, probably should do something
-		go http.Serve(s.secondaryListener, s.secondaryHandler)
-	}
+	// if s.secondaryListener != nil {
+	// 	// NOTE we just kinda lose the error here, probably should do something
+	// 	go http.Serve(s.secondaryListener, s.secondaryHandler)
+	// }
 	return http.Serve(s.primaryListener, s.primaryHandler)
 }
 
 func (s *Server) Stop() error {
-	if s.secondaryListener != nil {
-		if err := s.secondaryListener.Close(); err != nil {
-			return err
-		}
-	}
+	// if s.secondaryListener != nil {
+	// 	if err := s.secondaryListener.Close(); err != nil {
+	// 		return err
+	// 	}
+	// }
 	return s.primaryListener.Close()
 }
 

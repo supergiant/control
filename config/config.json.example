@@ -4,9 +4,6 @@
   "capacity_service_enabled": true,
   "publish_host": "localhost",
   "http_port": "8080",
-  "https_port": "8081",
-  "ssl_cert_file": "tmp/supergiant.pem",
-  "ssl_key_file": "tmp/supergiant.key",
   "log_file": "tmp/development.log",
   "log_level": "debug",
   "node_sizes": {
