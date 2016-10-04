@@ -67,8 +67,8 @@ Quick start...
 ## Features
 
 * Fully compatible with native Kubernetes (works with existing setups)
-* UI and CLI, both built on top of an API (with importable
-  [Go client lib](pkg/client))
+* UI and CLI ([CLI examples](examples)), both built on top of an API (with
+  importable [Go client lib](pkg/client))
 * Filterable container metrics views (RAM / CPU timeseries graphs)
 * Deploy / Update / Restart containers with a few clicks
 * Launch and manage multiple Kubes across multiple cloud providers from the UI
