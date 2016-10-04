@@ -62,6 +62,8 @@ Quick start...
 
 ---
 
+![Supergiant UI](http://g.recordit.co/LQm27EPbCH.gif)
+
 ## Features
 
 * Fully compatible with native Kubernetes (works with existing setups)
