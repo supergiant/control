@@ -14,6 +14,8 @@ import (
 )
 
 type Client struct {
+	Version string
+
 	BaseURL   string
 	AuthType  string // token, session
 	AuthToken string
@@ -98,6 +100,8 @@ func (c *Client) request(method string, path string, in interface{}, out interfa
 	}
 
 	req.Header.Set("Authorization", fmt.Sprintf(`SGAPI %s="%s"`, c.AuthType, c.AuthToken))
+
+	req.Close = true
 
 	resp, err := c.httpClient.Do(req)
 	if err != nil {

@@ -8,7 +8,7 @@ import (
 )
 
 func NewNode(sg *client.Client, w http.ResponseWriter, r *http.Request) error {
-	return renderTemplate(w, "new", map[string]interface{}{
+	return renderTemplate(sg, w, "new", map[string]interface{}{
 		"title":      "Nodes",
 		"formAction": "/ui/nodes",
 		"model": map[string]interface{}{
@@ -25,7 +25,7 @@ func CreateNode(sg *client.Client, w http.ResponseWriter, r *http.Request) error
 		err = sg.Nodes.Create(m)
 	}
 	if err != nil {
-		return renderTemplate(w, "new", map[string]interface{}{
+		return renderTemplate(sg, w, "new", map[string]interface{}{
 			"title":      "Nodes",
 			"formAction": "/ui/nodes",
 			"model":      m,
@@ -67,7 +67,7 @@ func ListNodes(sg *client.Client, w http.ResponseWriter, r *http.Request) error 
 			"denominator_field": "ram_limit",
 		},
 	}
-	return renderTemplate(w, "index", map[string]interface{}{
+	return renderTemplate(sg, w, "index", map[string]interface{}{
 		"title":       "Nodes",
 		"uiBasePath":  "/ui/nodes",
 		"apiBasePath": "/api/v0/nodes",
@@ -91,7 +91,7 @@ func GetNode(sg *client.Client, w http.ResponseWriter, r *http.Request) error {
 	if err := sg.Nodes.Get(id, item); err != nil {
 		return err
 	}
-	return renderTemplate(w, "show", map[string]interface{}{
+	return renderTemplate(sg, w, "show", map[string]interface{}{
 		"title": "Nodes",
 		"model": item,
 	})

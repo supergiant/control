@@ -375,7 +375,7 @@ func TestCLIRun(t *testing.T) {
 			file.WriteString(item.stdin)
 			file.Seek(0, os.SEEK_SET)
 
-			cli.New(clientFn, file).Run(item.command)
+			cli.New(clientFn, file, "unversioned").Run(item.command)
 
 			So(clientCommandCalled, ShouldResemble, item.clientCommandCalled)
 			So(clientCommandArgs, ShouldResemble, item.clientCommandArgs)

@@ -9,7 +9,7 @@ import (
 )
 
 func NewVolume(sg *client.Client, w http.ResponseWriter, r *http.Request) error {
-	return renderTemplate(w, "new", map[string]interface{}{
+	return renderTemplate(sg, w, "new", map[string]interface{}{
 		"title":      "Volumes",
 		"formAction": "/ui/volumes",
 		"model": map[string]interface{}{
@@ -28,7 +28,7 @@ func CreateVolume(sg *client.Client, w http.ResponseWriter, r *http.Request) err
 		err = sg.Volumes.Create(m)
 	}
 	if err != nil {
-		return renderTemplate(w, "new", map[string]interface{}{
+		return renderTemplate(sg, w, "new", map[string]interface{}{
 			"title":      "Volumes",
 			"formAction": "/ui/volumes",
 			"model":      m,
@@ -63,7 +63,7 @@ func ListVolumes(sg *client.Client, w http.ResponseWriter, r *http.Request) erro
 			"field": "size",
 		},
 	}
-	return renderTemplate(w, "index", map[string]interface{}{
+	return renderTemplate(sg, w, "index", map[string]interface{}{
 		"title":       "Volumes",
 		"uiBasePath":  "/ui/volumes",
 		"apiBasePath": "/api/v0/volumes",
@@ -90,7 +90,7 @@ func GetVolume(sg *client.Client, w http.ResponseWriter, r *http.Request) error 
 	if err := sg.Volumes.Get(id, item); err != nil {
 		return err
 	}
-	return renderTemplate(w, "show", map[string]interface{}{
+	return renderTemplate(sg, w, "show", map[string]interface{}{
 		"title": "Volumes",
 		"model": item,
 	})
@@ -105,7 +105,7 @@ func EditVolume(sg *client.Client, w http.ResponseWriter, r *http.Request) error
 	if err := sg.Volumes.Get(id, item); err != nil {
 		return err
 	}
-	return renderTemplate(w, "new", map[string]interface{}{
+	return renderTemplate(sg, w, "new", map[string]interface{}{
 		"title":      "Volumes",
 		"formAction": fmt.Sprintf("/ui/volumes/%d", *id),
 		"model": map[string]interface{}{
@@ -125,7 +125,7 @@ func UpdateVolume(sg *client.Client, w http.ResponseWriter, r *http.Request) err
 		err = sg.Volumes.Update(id, m)
 	}
 	if err != nil {
-		return renderTemplate(w, "new", map[string]interface{}{
+		return renderTemplate(sg, w, "new", map[string]interface{}{
 			"title":      "Volumes",
 			"formAction": fmt.Sprintf("/ui/volumes/%d", *id),
 			"model":      m,

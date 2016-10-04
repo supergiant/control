@@ -30,7 +30,7 @@ func NewCloudAccount(sg *client.Client, w http.ResponseWriter, r *http.Request) 
 		}
 	}
 
-	return renderTemplate(w, "new", map[string]interface{}{
+	return renderTemplate(sg, w, "new", map[string]interface{}{
 		"title":      "Cloud Accounts",
 		"formAction": "/ui/cloud_accounts",
 		"model":      m,
@@ -44,7 +44,7 @@ func CreateCloudAccount(sg *client.Client, w http.ResponseWriter, r *http.Reques
 		err = sg.CloudAccounts.Create(m)
 	}
 	if err != nil {
-		return renderTemplate(w, "new", map[string]interface{}{
+		return renderTemplate(sg, w, "new", map[string]interface{}{
 			"title":      "Cloud Accounts",
 			"formAction": "/ui/cloud_accounts",
 			"model":      m,
@@ -68,7 +68,7 @@ func ListCloudAccounts(sg *client.Client, w http.ResponseWriter, r *http.Request
 			"field": "provider",
 		},
 	}
-	return renderTemplate(w, "index", map[string]interface{}{
+	return renderTemplate(sg, w, "index", map[string]interface{}{
 		"title":       "Cloud Accounts",
 		"uiBasePath":  "/ui/cloud_accounts",
 		"apiBasePath": "/api/v0/cloud_accounts",
@@ -96,7 +96,7 @@ func GetCloudAccount(sg *client.Client, w http.ResponseWriter, r *http.Request) 
 	if err := sg.CloudAccounts.Get(id, item); err != nil {
 		return err
 	}
-	return renderTemplate(w, "show", map[string]interface{}{
+	return renderTemplate(sg, w, "show", map[string]interface{}{
 		"title": "Cloud Accounts",
 		"model": item,
 	})

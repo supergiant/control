@@ -3,6 +3,7 @@ package api
 import (
 	"errors"
 	"testing"
+	"time"
 
 	"github.com/supergiant/supergiant/pkg/core"
 	"github.com/supergiant/supergiant/pkg/model"
@@ -726,6 +727,9 @@ func TestKubeDelete(t *testing.T) {
 			}
 
 			err := sg.Kubes.Delete(item.existingModel.ID, item.existingModel)
+
+			// TODO (cuz Async delete is too slow for following DB lookups)
+			time.Sleep(time.Second)
 
 			So(err, ShouldBeNil)
 

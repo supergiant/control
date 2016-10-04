@@ -54,6 +54,8 @@ type Settings struct {
 }
 
 type Core struct {
+	// Version is set by cmd/server/server.go
+	Version string
 	Settings
 
 	// NOTE we set these 2 in cmd/server.go to prevent having to load all the
@@ -207,7 +209,9 @@ func (c *Core) InitializeForeground() error {
 
 	// API Client
 	c.APIClient = func(authType string, authToken string) *client.Client {
-		return client.New(c.BaseURL(), authType, authToken, c.SSLCertFile)
+		client := client.New(c.BaseURL(), authType, authToken, c.SSLCertFile)
+		client.Version = c.Version
+		return client
 	}
 
 	return nil

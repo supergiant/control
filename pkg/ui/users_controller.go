@@ -9,7 +9,7 @@ import (
 )
 
 func NewUser(sg *client.Client, w http.ResponseWriter, r *http.Request) error {
-	return renderTemplate(w, "new", map[string]interface{}{
+	return renderTemplate(sg, w, "new", map[string]interface{}{
 		"title":      "Users",
 		"formAction": "/ui/users",
 		"model": map[string]interface{}{
@@ -27,7 +27,7 @@ func CreateUser(sg *client.Client, w http.ResponseWriter, r *http.Request) error
 		err = sg.Users.Create(m)
 	}
 	if err != nil {
-		return renderTemplate(w, "new", map[string]interface{}{
+		return renderTemplate(sg, w, "new", map[string]interface{}{
 			"title":      "Users",
 			"formAction": "/ui/users",
 			"model":      m,
@@ -51,7 +51,7 @@ func ListUsers(sg *client.Client, w http.ResponseWriter, r *http.Request) error 
 			"field": "role",
 		},
 	}
-	return renderTemplate(w, "index", map[string]interface{}{
+	return renderTemplate(sg, w, "index", map[string]interface{}{
 		"title":       "Users",
 		"uiBasePath":  "/ui/users",
 		"apiBasePath": "/api/v0/users",
@@ -82,7 +82,7 @@ func GetUser(sg *client.Client, w http.ResponseWriter, r *http.Request) error {
 	if err := sg.Users.Get(id, item); err != nil {
 		return err
 	}
-	return renderTemplate(w, "show", map[string]interface{}{
+	return renderTemplate(sg, w, "show", map[string]interface{}{
 		"title": "Users",
 		"model": item,
 	})
@@ -97,7 +97,7 @@ func EditUser(sg *client.Client, w http.ResponseWriter, r *http.Request) error {
 	if err := sg.Users.Get(id, item); err != nil {
 		return err
 	}
-	return renderTemplate(w, "new", map[string]interface{}{
+	return renderTemplate(sg, w, "new", map[string]interface{}{
 		"title":      "Users",
 		"formAction": fmt.Sprintf("/ui/users/%d", *id),
 		"model": map[string]interface{}{
@@ -118,7 +118,7 @@ func UpdateUser(sg *client.Client, w http.ResponseWriter, r *http.Request) error
 		err = sg.Users.Update(id, m)
 	}
 	if err != nil {
-		return renderTemplate(w, "new", map[string]interface{}{
+		return renderTemplate(sg, w, "new", map[string]interface{}{
 			"title":      "Users",
 			"formAction": fmt.Sprintf("/ui/users/%d", *id),
 			"model":      m,

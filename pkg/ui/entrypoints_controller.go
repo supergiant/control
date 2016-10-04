@@ -8,7 +8,7 @@ import (
 )
 
 func NewEntrypoint(sg *client.Client, w http.ResponseWriter, r *http.Request) error {
-	return renderTemplate(w, "new", map[string]interface{}{
+	return renderTemplate(sg, w, "new", map[string]interface{}{
 		"title":      "Entrypoints",
 		"formAction": "/ui/entrypoints",
 		"model": map[string]interface{}{
@@ -25,7 +25,7 @@ func CreateEntrypoint(sg *client.Client, w http.ResponseWriter, r *http.Request)
 		err = sg.Entrypoints.Create(m)
 	}
 	if err != nil {
-		return renderTemplate(w, "new", map[string]interface{}{
+		return renderTemplate(sg, w, "new", map[string]interface{}{
 			"title":      "Entrypoints",
 			"formAction": "/ui/entrypoints",
 			"model":      m,
@@ -54,7 +54,7 @@ func ListEntrypoints(sg *client.Client, w http.ResponseWriter, r *http.Request) 
 			"field": "address",
 		},
 	}
-	return renderTemplate(w, "index", map[string]interface{}{
+	return renderTemplate(sg, w, "index", map[string]interface{}{
 		"title":       "Entrypoints",
 		"uiBasePath":  "/ui/entrypoints",
 		"apiBasePath": "/api/v0/entrypoints",
@@ -78,7 +78,7 @@ func GetEntrypoint(sg *client.Client, w http.ResponseWriter, r *http.Request) er
 	if err := sg.Entrypoints.Get(id, item); err != nil {
 		return err
 	}
-	return renderTemplate(w, "show", map[string]interface{}{
+	return renderTemplate(sg, w, "show", map[string]interface{}{
 		"title": "Entrypoints",
 		"model": item,
 	})

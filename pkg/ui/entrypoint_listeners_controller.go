@@ -8,7 +8,7 @@ import (
 )
 
 func NewEntrypointListener(sg *client.Client, w http.ResponseWriter, r *http.Request) error {
-	return renderTemplate(w, "new", map[string]interface{}{
+	return renderTemplate(sg, w, "new", map[string]interface{}{
 		"title":      "Entrypoint Listeners",
 		"formAction": "/ui/entrypoint_listeners",
 		"model": map[string]interface{}{
@@ -28,7 +28,7 @@ func CreateEntrypointListener(sg *client.Client, w http.ResponseWriter, r *http.
 		err = sg.EntrypointListeners.Create(m)
 	}
 	if err != nil {
-		return renderTemplate(w, "new", map[string]interface{}{
+		return renderTemplate(sg, w, "new", map[string]interface{}{
 			"title":      "Entrypoint Listeners",
 			"formAction": "/ui/entrypoint_listeners",
 			"model":      m,
@@ -67,7 +67,7 @@ func ListEntrypointListeners(sg *client.Client, w http.ResponseWriter, r *http.R
 			"field": "node_protocol",
 		},
 	}
-	return renderTemplate(w, "index", map[string]interface{}{
+	return renderTemplate(sg, w, "index", map[string]interface{}{
 		"title":       "Entrypoint Listeners",
 		"uiBasePath":  "/ui/entrypoint_listeners",
 		"apiBasePath": "/api/v0/entrypoint_listeners",
@@ -91,7 +91,7 @@ func GetEntrypointListener(sg *client.Client, w http.ResponseWriter, r *http.Req
 	if err := sg.EntrypointListeners.Get(id, item); err != nil {
 		return err
 	}
-	return renderTemplate(w, "show", map[string]interface{}{
+	return renderTemplate(sg, w, "show", map[string]interface{}{
 		"title": "Entrypoint Listeners",
 		"model": item,
 	})

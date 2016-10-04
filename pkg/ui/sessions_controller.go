@@ -10,7 +10,7 @@ import (
 )
 
 func NewSession(sg *client.Client, w http.ResponseWriter, r *http.Request) error {
-	return renderTemplate(w, "login", map[string]interface{}{
+	return renderTemplate(sg, w, "login", map[string]interface{}{
 		"title":      "Sessions",
 		"formAction": "/ui/sessions",
 	})
@@ -27,7 +27,7 @@ func CreateSession(sg *client.Client, w http.ResponseWriter, r *http.Request) er
 		},
 	}
 	if err := sg.Sessions.Create(m); err != nil {
-		return renderTemplate(w, "login", map[string]interface{}{
+		return renderTemplate(sg, w, "login", map[string]interface{}{
 			"title":      "Sessions",
 			"formAction": "/ui/sessions",
 			"error":      err.Error(),
@@ -59,7 +59,7 @@ func ListSessions(sg *client.Client, w http.ResponseWriter, r *http.Request) err
 			"field": "created_at",
 		},
 	}
-	return renderTemplate(w, "index", map[string]interface{}{
+	return renderTemplate(sg, w, "index", map[string]interface{}{
 		"title":       "Sessions",
 		"uiBasePath":  "/ui/sessions",
 		"apiBasePath": "/api/v0/sessions",
@@ -80,7 +80,7 @@ func GetSession(sg *client.Client, w http.ResponseWriter, r *http.Request) error
 	if err := sg.Sessions.Get(id, item); err != nil {
 		return err
 	}
-	return renderTemplate(w, "show", map[string]interface{}{
+	return renderTemplate(sg, w, "show", map[string]interface{}{
 		"title": "Sessions",
 		"model": item,
 	})

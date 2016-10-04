@@ -69,7 +69,7 @@ func NewKubeResource(sg *client.Client, w http.ResponseWriter, r *http.Request) 
 		}
 	}
 
-	return renderTemplate(w, "new", map[string]interface{}{
+	return renderTemplate(sg, w, "new", map[string]interface{}{
 		"title":      "Kube Resources",
 		"formAction": "/ui/kube_resources",
 		"model":      m,
@@ -83,7 +83,7 @@ func CreateKubeResource(sg *client.Client, w http.ResponseWriter, r *http.Reques
 		err = sg.KubeResources.Create(m)
 	}
 	if err != nil {
-		return renderTemplate(w, "new", map[string]interface{}{
+		return renderTemplate(sg, w, "new", map[string]interface{}{
 			"title":      "Kube Resources",
 			"formAction": "/ui/kube_resources",
 			"model":      m,
@@ -118,7 +118,7 @@ func ListKubeResources(sg *client.Client, w http.ResponseWriter, r *http.Request
 			"field": "name",
 		},
 	}
-	return renderTemplate(w, "kube_resources", map[string]interface{}{
+	return renderTemplate(sg, w, "kube_resources", map[string]interface{}{
 		"title":       "Kube Resources",
 		"uiBasePath":  "/ui/kube_resources",
 		"apiBasePath": "/api/v0/kube_resources",
@@ -158,7 +158,7 @@ func GetKubeResource(sg *client.Client, w http.ResponseWriter, r *http.Request) 
 	if err := sg.KubeResources.Get(id, item); err != nil {
 		return err
 	}
-	return renderTemplate(w, "show", map[string]interface{}{
+	return renderTemplate(sg, w, "show", map[string]interface{}{
 		"title": "Kube Resources",
 		"model": item,
 	})
@@ -173,7 +173,7 @@ func EditKubeResource(sg *client.Client, w http.ResponseWriter, r *http.Request)
 	if err := sg.KubeResources.Get(id, item); err != nil {
 		return err
 	}
-	return renderTemplate(w, "new", map[string]interface{}{
+	return renderTemplate(sg, w, "new", map[string]interface{}{
 		"title":      "Kube Resources",
 		"formAction": fmt.Sprintf("/ui/kube_resources/%d", *id),
 		"model": map[string]interface{}{
@@ -193,7 +193,7 @@ func UpdateKubeResource(sg *client.Client, w http.ResponseWriter, r *http.Reques
 		err = sg.KubeResources.Update(id, m)
 	}
 	if err != nil {
-		return renderTemplate(w, "new", map[string]interface{}{
+		return renderTemplate(sg, w, "new", map[string]interface{}{
 			"title":      "Kube Resources",
 			"formAction": fmt.Sprintf("/ui/kube_resources/%d", *id),
 			"model":      m,

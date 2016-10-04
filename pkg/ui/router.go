@@ -187,7 +187,7 @@ func parseID(r *http.Request) (*int64, error) {
 	return &id64, nil
 }
 
-func renderTemplate(w http.ResponseWriter, name string, data map[string]interface{}) error {
+func renderTemplate(sg *client.Client, w http.ResponseWriter, name string, data map[string]interface{}) error {
 
 	// TODO
 	if mi := data["model"]; mi != nil {
@@ -204,6 +204,9 @@ func renderTemplate(w http.ResponseWriter, name string, data map[string]interfac
 		fieldsJSON, _ := json.Marshal(fields)
 		data["fieldsJSON"] = string(fieldsJSON)
 	}
+
+	// Version number
+	data["supergiantVersion"] = sg.Version
 
 	if err := templates[name].ExecuteTemplate(w, "layout", data); err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)

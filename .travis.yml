@@ -38,8 +38,9 @@ script:
 
   # Cross compile
   - BUILD_TARGETS=windows/386,windows/amd64,darwin/386,darwin/amd64,linux/386,linux/amd64
-  - xgo -go 1.7.1 --targets=$BUILD_TARGETS -out dist/supergiant-server ./cmd/server/
-  - xgo -go 1.7.1 --targets=$BUILD_TARGETS -out dist/supergiant-cli ./cmd/cli
+  - LDFLAGS="-X main.version=$(git describe --tags)"
+  - xgo -ldflags "$LDFLAGS" -go 1.7.1 --targets=$BUILD_TARGETS -out dist/supergiant-server ./cmd/server
+  - xgo -ldflags "$LDFLAGS" -go 1.7.1 --targets=$BUILD_TARGETS -out dist/supergiant-cli ./cmd/cli
 
   - travis_wait 30 build/travis_build.sh
 

@@ -57,7 +57,7 @@ func NewKube(sg *client.Client, w http.ResponseWriter, r *http.Request) error {
 		}
 	}
 
-	return renderTemplate(w, "new", map[string]interface{}{
+	return renderTemplate(sg, w, "new", map[string]interface{}{
 		"title":      "Kubes",
 		"formAction": "/ui/kubes",
 		"model":      m,
@@ -71,7 +71,7 @@ func CreateKube(sg *client.Client, w http.ResponseWriter, r *http.Request) error
 		err = sg.Kubes.Create(m)
 	}
 	if err != nil {
-		return renderTemplate(w, "new", map[string]interface{}{
+		return renderTemplate(sg, w, "new", map[string]interface{}{
 			"title":      "Kubes",
 			"formAction": "/ui/kubes",
 			"model":      m,
@@ -95,7 +95,7 @@ func ListKubes(sg *client.Client, w http.ResponseWriter, r *http.Request) error 
 			"field": "master_node_size",
 		},
 	}
-	return renderTemplate(w, "index", map[string]interface{}{
+	return renderTemplate(sg, w, "index", map[string]interface{}{
 		"title":       "Kubes",
 		"uiBasePath":  "/ui/kubes",
 		"apiBasePath": "/api/v0/kubes",
@@ -123,7 +123,7 @@ func GetKube(sg *client.Client, w http.ResponseWriter, r *http.Request) error {
 	if err := sg.Kubes.Get(id, item); err != nil {
 		return err
 	}
-	return renderTemplate(w, "show", map[string]interface{}{
+	return renderTemplate(sg, w, "show", map[string]interface{}{
 		"title": "Kubes",
 		"model": item,
 	})

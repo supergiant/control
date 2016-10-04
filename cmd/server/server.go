@@ -12,12 +12,16 @@ import (
 	"github.com/supergiant/supergiant/pkg/server"
 )
 
+var version = "unversioned"
+
 func main() {
-	c := new(core.Core)
+	c := &core.Core{
+		Version: version,
+	}
 
 	app := cli.NewApp()
 	app.Name = "supergiant-server"
-	app.Usage = "Supergiant server"
+	app.Usage = "Supergiant server " + version
 
 	app.Action = func(ctx *cli.Context) {
 
