@@ -172,9 +172,9 @@ func TestKubesCreate(t *testing.T) {
 						AvailabilityZone: "us-east-1a",
 					},
 				},
-				mockProviderCreateKubeError: errors.New("error creating entrypoint"),
+				mockProviderCreateKubeError: errors.New("error creating kube"),
 				err:         nil,
-				statusError: "error creating entrypoint",
+				statusError: "error creating kube",
 			},
 		}
 
@@ -198,6 +198,116 @@ func TestKubesCreate(t *testing.T) {
 			}
 
 			err := sg.Kubes.Create(item.model)
+
+			if item.err == nil {
+				// NOTE The Provider part of Create is Async.
+				// We can only call this if the non-Async err is nil (meaning the Action started).
+				sg.Kubes.Get(item.model.ID, item.model)
+				So(item.model.Status.Error, ShouldEqual, item.statusError)
+
+				So(err, ShouldBeNil)
+			} else {
+				So(err, ShouldResemble, item.err)
+			}
+		}
+	})
+}
+
+//------------------------------------------------------------------------------
+//
+// TODO this repeats some of the Create test above. The Create test should
+// really check validations, and then assert Provision was called.
+//
+//
+//
+func TestKubesProvision(t *testing.T) {
+	srv := newTestServer()
+	go srv.Start()
+	defer srv.Stop()
+
+	Convey("Kubes Provision works correctly", t, func() {
+
+		table := []struct {
+			// Input
+			parentCloudAccount *model.CloudAccount
+			model              *model.Kube
+			// Mocks
+			mockProviderCreateKubeError error
+			// Expectations
+			err         *model.Error
+			statusError string
+		}{
+			// A successful example
+			{
+				parentCloudAccount: &model.CloudAccount{
+					Name:        "test",
+					Provider:    "aws",
+					Credentials: map[string]string{"test": "test"},
+				},
+				model: &model.Kube{
+					CloudAccountName: "test",
+					Name:             "test",
+					MasterNodeSize:   "t2.micro",
+					NodeSizes:        []string{"t2.micro"},
+					Username:         "username",
+					Password:         "password",
+					AWSConfig: &model.AWSKubeConfig{
+						Region:           "us-east-1",
+						AvailabilityZone: "us-east-1a",
+					},
+				},
+				mockProviderCreateKubeError: nil,
+				err: nil,
+			},
+
+			// On Provider CreateKube error
+			{
+				parentCloudAccount: &model.CloudAccount{
+					Name:        "test",
+					Provider:    "aws",
+					Credentials: map[string]string{"test": "test"},
+				},
+				model: &model.Kube{
+					CloudAccountName: "test",
+					Name:             "test",
+					MasterNodeSize:   "t2.micro",
+					NodeSizes:        []string{"t2.micro"},
+					Username:         "username",
+					Password:         "password",
+					AWSConfig: &model.AWSKubeConfig{
+						Region:           "us-east-1",
+						AvailabilityZone: "us-east-1a",
+					},
+				},
+				mockProviderCreateKubeError: errors.New("error creating kube"),
+				err:         nil,
+				statusError: "error creating kube",
+			},
+		}
+
+		for _, item := range table {
+
+			wipeAndInitialize(srv.Core)
+
+			srv.Core.AWSProvider = func(_ map[string]string) core.Provider {
+				return &fake_core.Provider{
+					CreateKubeFn: func(m *model.Kube, _ *core.Action) error {
+						return item.mockProviderCreateKubeError
+					},
+				}
+			}
+
+			requestor := createAdmin(srv.Core)
+			sg := srv.Core.APIClient("token", requestor.APIToken)
+
+			if item.parentCloudAccount != nil {
+				srv.Core.CloudAccounts.Create(item.parentCloudAccount)
+			}
+
+			// Create model directly in DB first
+			srv.Core.DB.Create(item.model)
+
+			err := sg.Kubes.Provision(item.model.ID, item.model)
 
 			if item.err == nil {
 				// NOTE The Provider part of Create is Async.
@@ -695,7 +805,7 @@ func TestKubeDelete(t *testing.T) {
 
 			srv.Core.AWSProvider = func(_ map[string]string) core.Provider {
 				return &fake_core.Provider{
-					DeleteKubeFn: func(_ *model.Kube) error {
+					DeleteKubeFn: func(_ *model.Kube, _ *core.Action) error {
 						return item.mockProviderDeleteKubeError
 					},
 				}

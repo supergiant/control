@@ -217,7 +217,7 @@ func TestEntrypointListenersCreate(t *testing.T) {
 
 			srv.Core.AWSProvider = func(_ map[string]string) core.Provider {
 				return &fake_core.Provider{
-					CreateEntrypointListenerFn: func(m *model.EntrypointListener) error {
+					CreateEntrypointListenerFn: func(m *model.EntrypointListener, _ *core.Action) error {
 						return item.mockCreateEntrypointListenerError
 					},
 				}
@@ -672,7 +672,7 @@ func TestEntrypointListenersDelete(t *testing.T) {
 
 			srv.Core.AWSProvider = func(_ map[string]string) core.Provider {
 				return &fake_core.Provider{
-					DeleteEntrypointListenerFn: func(_ *model.EntrypointListener) error {
+					DeleteEntrypointListenerFn: func(_ *model.EntrypointListener, _ *core.Action) error {
 						return item.mockDeleteEntrypointListenerError
 					},
 				}

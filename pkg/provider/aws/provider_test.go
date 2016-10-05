@@ -720,7 +720,8 @@ func TestAWSProviderDeleteKube(t *testing.T) {
 				},
 			}
 
-			err := provider.DeleteKube(item.kube)
+			action := &core.Action{Status: new(model.ActionStatus)}
+			err := provider.DeleteKube(item.kube, action)
 
 			So(err, ShouldResemble, item.err)
 		}
@@ -856,7 +857,8 @@ func TestAWSProviderDeleteNode(t *testing.T) {
 				},
 			}
 
-			err := provider.DeleteNode(item.node)
+			action := &core.Action{Status: new(model.ActionStatus)}
+			err := provider.DeleteNode(item.node, action)
 
 			So(err, ShouldResemble, item.err)
 		}
@@ -1156,7 +1158,8 @@ func TestAWSProviderDeleteVolume(t *testing.T) {
 				},
 			}
 
-			err := provider.DeleteVolume(item.volume)
+			action := &core.Action{Status: new(model.ActionStatus)}
+			err := provider.DeleteVolume(item.volume, action)
 
 			So(err, ShouldResemble, item.err)
 		}
@@ -1298,7 +1301,8 @@ func TestAWSProviderDeleteEntrypoint(t *testing.T) {
 				},
 			}
 
-			err := provider.DeleteEntrypoint(item.entrypoint)
+			action := &core.Action{Status: new(model.ActionStatus)}
+			err := provider.DeleteEntrypoint(item.entrypoint, action)
 
 			So(err, ShouldResemble, item.err)
 		}
@@ -1349,7 +1353,8 @@ func TestAWSProviderCreateEntrypointListener(t *testing.T) {
 				},
 			}
 
-			err := provider.CreateEntrypointListener(item.entrypointListener)
+			action := &core.Action{Status: new(model.ActionStatus)}
+			err := provider.CreateEntrypointListener(item.entrypointListener, action)
 
 			So(err, ShouldResemble, item.err)
 		}
@@ -1415,7 +1420,8 @@ func TestAWSProviderDeleteEntrypointListener(t *testing.T) {
 				},
 			}
 
-			err := provider.DeleteEntrypointListener(item.entrypointListener)
+			action := &core.Action{Status: new(model.ActionStatus)}
+			err := provider.DeleteEntrypointListener(item.entrypointListener, action)
 
 			So(err, ShouldResemble, item.err)
 		}

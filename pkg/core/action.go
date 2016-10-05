@@ -82,6 +82,9 @@ func (a *Action) Async() error {
 				return // Don't goto Remove from Actions
 			}
 
+			// TODO this should be configurable exponential backoff
+			time.Sleep(time.Second)
+
 			a.Status.Retries++
 		}
 

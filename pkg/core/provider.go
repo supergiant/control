@@ -9,20 +9,20 @@ type Provider interface {
 	ValidateAccount(*model.CloudAccount) error
 
 	CreateKube(*model.Kube, *Action) error
-	DeleteKube(*model.Kube) error
+	DeleteKube(*model.Kube, *Action) error
 
 	CreateNode(*model.Node, *Action) error
-	DeleteNode(*model.Node) error
+	DeleteNode(*model.Node, *Action) error
 
 	CreateVolume(*model.Volume, *Action) error
 	KubernetesVolumeDefinition(*model.Volume) *kubernetes.Volume
 	WaitForVolumeAvailable(*model.Volume, *Action) error
 	ResizeVolume(*model.Volume, *Action) error
-	DeleteVolume(*model.Volume) error
+	DeleteVolume(*model.Volume, *Action) error
 
 	CreateEntrypoint(*model.Entrypoint, *Action) error
-	DeleteEntrypoint(*model.Entrypoint) error
+	DeleteEntrypoint(*model.Entrypoint, *Action) error
 
-	CreateEntrypointListener(*model.EntrypointListener) error
-	DeleteEntrypointListener(*model.EntrypointListener) error
+	CreateEntrypointListener(*model.EntrypointListener, *Action) error
+	DeleteEntrypointListener(*model.EntrypointListener, *Action) error
 }

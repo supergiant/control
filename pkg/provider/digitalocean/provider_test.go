@@ -185,7 +185,8 @@ func TestDigitalOceanProviderDeleteKube(t *testing.T) {
 				},
 			}
 
-			err := provider.DeleteKube(item.kube)
+			action := &core.Action{Status: new(model.ActionStatus)}
+			err := provider.DeleteKube(item.kube, action)
 
 			So(err, ShouldEqual, item.err)
 		}
@@ -307,7 +308,8 @@ func TestDigitalOceanProviderDeleteNode(t *testing.T) {
 				},
 			}
 
-			err := provider.DeleteNode(item.node)
+			action := &core.Action{Status: new(model.ActionStatus)}
+			err := provider.DeleteNode(item.node, action)
 
 			So(err, ShouldEqual, item.err)
 		}
@@ -526,7 +528,8 @@ func TestDigitalOceanProviderDeleteVolume(t *testing.T) {
 				},
 			}
 
-			err := provider.DeleteVolume(item.volume)
+			action := &core.Action{Status: new(model.ActionStatus)}
+			err := provider.DeleteVolume(item.volume, action)
 
 			So(err, ShouldEqual, item.err)
 		}

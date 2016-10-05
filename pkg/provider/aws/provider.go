@@ -65,15 +65,15 @@ func (p *Provider) CreateKube(m *model.Kube, action *core.Action) error {
 	return p.createKube(m, action)
 }
 
-func (p *Provider) DeleteKube(m *model.Kube) error {
-	return p.deleteKube(m)
+func (p *Provider) DeleteKube(m *model.Kube, action *core.Action) error {
+	return p.deleteKube(m, action)
 }
 
 func (p *Provider) CreateNode(m *model.Node, action *core.Action) error {
 	return p.createNode(m)
 }
 
-func (p *Provider) DeleteNode(m *model.Node) error {
+func (p *Provider) DeleteNode(m *model.Node, action *core.Action) error {
 	return p.deleteServer(m)
 }
 
@@ -99,7 +99,7 @@ func (p *Provider) WaitForVolumeAvailable(m *model.Volume, action *core.Action) 
 	return p.waitForAvailable(m)
 }
 
-func (p *Provider) DeleteVolume(m *model.Volume) error {
+func (p *Provider) DeleteVolume(m *model.Volume, action *core.Action) error {
 	return p.deleteVolume(m)
 }
 
@@ -107,11 +107,11 @@ func (p *Provider) CreateEntrypoint(m *model.Entrypoint, action *core.Action) er
 	return p.createELB(m)
 }
 
-func (p *Provider) DeleteEntrypoint(m *model.Entrypoint) error {
+func (p *Provider) DeleteEntrypoint(m *model.Entrypoint, action *core.Action) error {
 	return p.deleteELB(m)
 }
 
-func (p *Provider) CreateEntrypointListener(m *model.EntrypointListener) error {
+func (p *Provider) CreateEntrypointListener(m *model.EntrypointListener, action *core.Action) error {
 	input := &elb.CreateLoadBalancerListenersInput{
 		LoadBalancerName: aws.String(m.Entrypoint.ProviderID),
 		Listeners: []*elb.Listener{
@@ -127,7 +127,7 @@ func (p *Provider) CreateEntrypointListener(m *model.EntrypointListener) error {
 	return err
 }
 
-func (p *Provider) DeleteEntrypointListener(m *model.EntrypointListener) error {
+func (p *Provider) DeleteEntrypointListener(m *model.EntrypointListener, action *core.Action) error {
 	input := &elb.DeleteLoadBalancerListenersInput{
 		LoadBalancerName: aws.String(m.Entrypoint.ProviderID),
 		LoadBalancerPorts: []*int64{
@@ -170,9 +170,10 @@ func (p *Provider) createKube(m *model.Kube, action *core.Action) error {
 	iamS := p.IAM(m)
 	ec2S := p.EC2(m)
 	procedure := &core.Procedure{
-		Core:  p.Core,
-		Name:  "Create Kube",
-		Model: m,
+		Core:   p.Core,
+		Name:   "Create Kube",
+		Model:  m,
+		Action: action,
 	}
 
 	procedure.AddStep("preparing IAM Role kubernetes-master", func() error {
@@ -780,12 +781,13 @@ func (p *Provider) createKube(m *model.Kube, action *core.Action) error {
 	return procedure.Run()
 }
 
-func (p *Provider) deleteKube(m *model.Kube) error {
+func (p *Provider) deleteKube(m *model.Kube, action *core.Action) error {
 	ec2S := p.EC2(m)
 	procedure := &core.Procedure{
-		Core:  p.Core,
-		Name:  "Delete Kube",
-		Model: m,
+		Core:   p.Core,
+		Name:   "Delete Kube",
+		Model:  m,
+		Action: action,
 	}
 
 	procedure.AddStep("deleting master", func() error {

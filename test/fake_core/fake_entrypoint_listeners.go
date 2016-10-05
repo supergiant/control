@@ -7,6 +7,7 @@ import (
 
 type EntrypointListeners struct {
 	CreateFn          func(*model.EntrypointListener) error
+	ProvisionFn       func(*int64, *model.EntrypointListener) core.ActionInterface
 	GetFn             func(*int64, model.Model) error
 	GetWithIncludesFn func(*int64, model.Model, []string) error
 	UpdateFn          func(*int64, model.Model, model.Model) error
@@ -18,6 +19,13 @@ func (c *EntrypointListeners) Create(m *model.EntrypointListener) error {
 		return nil
 	}
 	return c.CreateFn(m)
+}
+
+func (c *EntrypointListeners) Provision(id *int64, m *model.EntrypointListener) core.ActionInterface {
+	if c.ProvisionFn == nil {
+		return nil
+	}
+	return c.ProvisionFn(id, m)
 }
 
 func (c *EntrypointListeners) Get(id *int64, m model.Model) error {

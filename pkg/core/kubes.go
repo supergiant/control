@@ -22,14 +22,19 @@ func (c *Kubes) Create(m *model.Kube) error {
 
 	// TODO need a validation to make sure CloudAccount matches the provided config
 
-	provision := &Action{
+	return c.Core.Kubes.Provision(m.ID, m).Async()
+}
+
+func (c *Kubes) Provision(id *int64, m *model.Kube) ActionInterface {
+	return &Action{
 		Status: &model.ActionStatus{
 			Description: "provisioning",
 			MaxRetries:  20,
 		},
-		Core:       c.Core,
-		ResourceID: m.UUID,
-		Model:      m,
+		Core:  c.Core,
+		Scope: c.Core.DB.Preload("CloudAccount"),
+		Model: m,
+		ID:    id,
 		Fn: func(a *Action) error {
 			if err := c.Core.CloudAccounts.provider(m.CloudAccount).CreateKube(m, a); err != nil {
 				return err
@@ -37,7 +42,6 @@ func (c *Kubes) Create(m *model.Kube) error {
 			return c.Core.DB.Model(m).Update("ready", true)
 		},
 	}
-	return provision.Async()
 }
 
 func (c *Kubes) Delete(id *int64, m *model.Kube) ActionInterface {
@@ -51,7 +55,7 @@ func (c *Kubes) Delete(id *int64, m *model.Kube) ActionInterface {
 		Model:          m,
 		ID:             id,
 		CancelExisting: true,
-		Fn: func(_ *Action) error {
+		Fn: func(a *Action) error {
 			// Delete Kube Resources directly (don't use provisioner Teardown)
 			for _, kubeResource := range m.KubeResources {
 				if err := c.Core.DB.Delete(kubeResource); err != nil {
@@ -75,7 +79,7 @@ func (c *Kubes) Delete(id *int64, m *model.Kube) ActionInterface {
 					return err
 				}
 			}
-			if err := c.Core.CloudAccounts.provider(m.CloudAccount).DeleteKube(m); err != nil {
+			if err := c.Core.CloudAccounts.provider(m.CloudAccount).DeleteKube(m, a); err != nil {
 				return err
 			}
 			return c.Collection.Delete(id, m)

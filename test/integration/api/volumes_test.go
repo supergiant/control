@@ -584,7 +584,7 @@ func TestVolumesDelete(t *testing.T) {
 
 			srv.Core.AWSProvider = func(_ map[string]string) core.Provider {
 				return &fake_core.Provider{
-					DeleteVolumeFn: func(_ *model.Volume) error {
+					DeleteVolumeFn: func(_ *model.Volume, _ *core.Action) error {
 						return item.mockProviderDeleteVolumeError
 					},
 				}

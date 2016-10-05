@@ -4,6 +4,7 @@ import "github.com/supergiant/supergiant/pkg/model"
 
 type VolumesInterface interface {
 	Create(*model.Volume) error
+	Provision(*int64, *model.Volume) ActionInterface
 	Get(*int64, model.Model) error
 	GetWithIncludes(*int64, model.Model, []string) error
 	Update(*int64, *model.Volume, *model.Volume) error
@@ -20,10 +21,11 @@ func (c *Volumes) Create(m *model.Volume) error {
 	if err := c.Collection.Create(m); err != nil {
 		return err
 	}
-	if err := c.Core.DB.Preload("CloudAccount").Where("name = ?", m.KubeName).First(m.Kube); err != nil {
-		return err
-	}
-	action := &Action{
+	return c.Core.Volumes.Provision(m.ID, m).Now()
+}
+
+func (c *Volumes) Provision(id *int64, m *model.Volume) ActionInterface {
+	return &Action{
 		Status: &model.ActionStatus{
 			Description: "provisioning",
 			// TODO
@@ -48,14 +50,14 @@ func (c *Volumes) Create(m *model.Volume) error {
 			// error, the user will know about it quickly, instead of after 20 retries.
 			MaxRetries: 1,
 		},
-		Core:       c.Core,
-		ResourceID: m.UUID,
-		Model:      m,
+		Core:  c.Core,
+		Scope: c.Core.DB.Preload("Kube.CloudAccount"),
+		Model: m,
+		ID:    id,
 		Fn: func(a *Action) error {
 			return c.Core.CloudAccounts.provider(m.Kube.CloudAccount).CreateVolume(m, a)
 		},
 	}
-	return action.Now()
 }
 
 func (c *Volumes) Update(id *int64, oldM *model.Volume, m *model.Volume) error {
@@ -81,8 +83,8 @@ func (c *Volumes) Delete(id *int64, m *model.Volume) ActionInterface {
 		Scope: c.Core.DB.Preload("Kube.CloudAccount"),
 		Model: m,
 		ID:    id,
-		Fn: func(_ *Action) error {
-			if err := c.Core.CloudAccounts.provider(m.Kube.CloudAccount).DeleteVolume(m); err != nil {
+		Fn: func(a *Action) error {
+			if err := c.Core.CloudAccounts.provider(m.Kube.CloudAccount).DeleteVolume(m, a); err != nil {
 				return err
 			}
 			return c.Collection.Delete(id, m)

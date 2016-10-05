@@ -27,7 +27,7 @@ install:
 
 script:
   # Test
-  - govendor test +local
+  # - govendor test +local (NOTE not needed with coverage line below)
 
   # Coverage
   - go list -f "{{ if or (len .TestGoFiles) (len .XTestGoFiles) }}\"go test -covermode=count -coverpkg $(go list ./pkg/... | awk -v ORS=, '{ print $1 }' | sed 's/,$//') -coverprofile={{ .Dir }}/.coverprofile {{ .ImportPath }}\"{{ end }}" ./... | xargs -L 1 sh -c

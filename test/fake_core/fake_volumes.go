@@ -7,6 +7,7 @@ import (
 
 type Volumes struct {
 	CreateFn           func(*model.Volume) error
+	ProvisionFn        func(*int64, *model.Volume) core.ActionInterface
 	GetFn              func(*int64, model.Model) error
 	GetWithIncludesFn  func(*int64, model.Model, []string) error
 	UpdateFn           func(*int64, *model.Volume, *model.Volume) error
@@ -20,6 +21,13 @@ func (c *Volumes) Create(m *model.Volume) error {
 		return nil
 	}
 	return c.CreateFn(m)
+}
+
+func (c *Volumes) Provision(id *int64, m *model.Volume) core.ActionInterface {
+	if c.ProvisionFn == nil {
+		return nil
+	}
+	return c.ProvisionFn(id, m)
 }
 
 func (c *Volumes) Get(id *int64, m model.Model) error {

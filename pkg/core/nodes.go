@@ -4,6 +4,7 @@ import "github.com/supergiant/supergiant/pkg/model"
 
 type NodesInterface interface {
 	Create(*model.Node) error
+	Provision(*int64, *model.Node) ActionInterface
 	Get(*int64, model.Model) error
 	GetWithIncludes(*int64, model.Model, []string) error
 	Update(*int64, model.Model, model.Model) error
@@ -18,8 +19,11 @@ func (c *Nodes) Create(m *model.Node) error {
 	if err := c.Collection.Create(m); err != nil {
 		return err
 	}
+	return c.Core.Nodes.Provision(m.ID, m).Async()
+}
 
-	provision := &Action{
+func (c *Nodes) Provision(id *int64, m *model.Node) ActionInterface {
+	return &Action{
 		Status: &model.ActionStatus{
 			Description: "provisioning",
 
@@ -43,12 +47,11 @@ func (c *Nodes) Create(m *model.Node) error {
 		Core:  c.Core,
 		Scope: c.Core.DB.Preload("Kube.CloudAccount").Preload("Kube.Entrypoints.Kube.CloudAccount"),
 		Model: m,
-		ID:    m.ID,
+		ID:    id,
 		Fn: func(a *Action) error {
 			return c.Core.CloudAccounts.provider(m.Kube.CloudAccount).CreateNode(m, a)
 		},
 	}
-	return provision.Async()
 }
 
 func (c *Nodes) Delete(id *int64, m *model.Node) ActionInterface {
@@ -61,11 +64,11 @@ func (c *Nodes) Delete(id *int64, m *model.Node) ActionInterface {
 		Scope: c.Core.DB.Preload("Kube.CloudAccount"),
 		Model: m,
 		ID:    id,
-		Fn: func(_ *Action) error {
+		Fn: func(a *Action) error {
 			if m.ProviderID == "" {
 				c.Core.Log.Warnf("Deleting Node %d which has no provider_id", *m.ID)
 			} else {
-				if err := c.Core.CloudAccounts.provider(m.Kube.CloudAccount).DeleteNode(m); err != nil {
+				if err := c.Core.CloudAccounts.provider(m.Kube.CloudAccount).DeleteNode(m, a); err != nil {
 					return err
 				}
 			}

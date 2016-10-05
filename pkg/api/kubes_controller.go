@@ -60,3 +60,15 @@ func DeleteKube(core *core.Core, user *model.User, r *http.Request) (*Response, 
 	}
 	return itemResponse(core, item, http.StatusAccepted)
 }
+
+func ProvisionKube(core *core.Core, user *model.User, r *http.Request) (*Response, error) {
+	item := new(model.Kube)
+	id, err := parseID(r)
+	if err != nil {
+		return nil, err
+	}
+	if err := core.Kubes.Provision(id, item).Async(); err != nil {
+		return nil, err
+	}
+	return itemResponse(core, item, http.StatusAccepted)
+}

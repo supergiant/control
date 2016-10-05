@@ -7,6 +7,7 @@ import (
 
 type Nodes struct {
 	CreateFn                       func(*model.Node) error
+	ProvisionFn                    func(*int64, *model.Node) core.ActionInterface
 	GetFn                          func(*int64, model.Model) error
 	GetWithIncludesFn              func(*int64, model.Model, []string) error
 	UpdateFn                       func(*int64, model.Model, model.Model) error
@@ -19,6 +20,13 @@ func (c *Nodes) Create(m *model.Node) error {
 		return nil
 	}
 	return c.CreateFn(m)
+}
+
+func (c *Nodes) Provision(id *int64, m *model.Node) core.ActionInterface {
+	if c.ProvisionFn == nil {
+		return nil
+	}
+	return c.ProvisionFn(id, m)
 }
 
 func (c *Nodes) Get(id *int64, m model.Model) error {

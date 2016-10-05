@@ -36,11 +36,12 @@ type BaseModel struct {
 // ActionStatus holds all the information pertaining to any running or failed
 // Async Actions, and is rendered on the model on display (not persisted).
 type ActionStatus struct {
-	Description string `json:"description"`
-	MaxRetries  int    `json:"max_retries"`
-	Retries     int    `json:"retries"`
-	Error       string `json:"error,omitempty"`
-	Cancelled   bool   `json:"cancelled,omitempty"`
+	Description    string `json:"description"`
+	MaxRetries     int    `json:"max_retries"`
+	Retries        int    `json:"retries"`
+	Error          string `json:"error,omitempty"`
+	Cancelled      bool   `json:"cancelled,omitempty"`
+	StepsCompleted int    `json:"steps_completed,omitempty"`
 }
 
 // GetID returns the model ID.

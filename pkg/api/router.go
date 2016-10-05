@@ -35,6 +35,7 @@ func NewRouter(core *core.Core) *mux.Router {
 	s.HandleFunc("/kubes", restrictedHandler(core, ListKubes)).Methods("GET")
 	s.HandleFunc("/kubes/{id}", restrictedHandler(core, GetKube)).Methods("GET")
 	s.HandleFunc("/kubes/{id}", restrictedHandler(core, UpdateKube)).Methods("PATCH", "PUT")
+	s.HandleFunc("/kubes/{id}/provision", restrictedHandler(core, ProvisionKube)).Methods("POST")
 	s.HandleFunc("/kubes/{id}", restrictedHandler(core, DeleteKube)).Methods("DELETE")
 
 	s.HandleFunc("/kube_resources", restrictedHandler(core, CreateKubeResource)).Methods("POST")

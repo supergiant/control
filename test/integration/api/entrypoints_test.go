@@ -515,7 +515,7 @@ func TestEntrypointsDelete(t *testing.T) {
 
 			srv.Core.AWSProvider = func(_ map[string]string) core.Provider {
 				return &fake_core.Provider{
-					DeleteEntrypointFn: func(_ *model.Entrypoint) error {
+					DeleteEntrypointFn: func(_ *model.Entrypoint, _ *core.Action) error {
 						return item.mockProviderDeleteEntrypointError
 					},
 				}

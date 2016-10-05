@@ -106,6 +106,10 @@ func ListKubes(sg *client.Client, w http.ResponseWriter, r *http.Request) error 
 			"digitalocean": "DigitalOcean",
 		},
 		"batchActionPaths": map[string]map[string]string{
+			"Reprovision": map[string]string{
+				"method":       "POST",
+				"relativePath": "/provision",
+			},
 			"Delete": map[string]string{
 				"method":       "DELETE",
 				"relativePath": "",

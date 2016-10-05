@@ -505,7 +505,7 @@ func TestNodesDelete(t *testing.T) {
 
 			srv.Core.AWSProvider = func(_ map[string]string) core.Provider {
 				return &fake_core.Provider{
-					DeleteNodeFn: func(_ *model.Node) error {
+					DeleteNodeFn: func(_ *model.Node, _ *core.Action) error {
 						return item.mockProviderDeleteNodeError
 					},
 				}

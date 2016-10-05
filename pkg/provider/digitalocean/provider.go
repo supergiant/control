@@ -32,9 +32,10 @@ func (p *Provider) ValidateAccount(m *model.CloudAccount) error {
 // CreateKube creates a new DO kubernetes cluster.
 func (p *Provider) CreateKube(m *model.Kube, action *core.Action) error {
 	procedure := &core.Procedure{
-		Core:  p.Core,
-		Name:  "Create Kube",
-		Model: m,
+		Core:   p.Core,
+		Name:   "Create Kube",
+		Model:  m,
+		Action: action,
 	}
 
 	client := p.Client(m)
@@ -140,14 +141,15 @@ func (p *Provider) CreateKube(m *model.Kube, action *core.Action) error {
 }
 
 // DeleteKube deletes a DO kubernetes cluster.
-func (p *Provider) DeleteKube(m *model.Kube) error {
+func (p *Provider) DeleteKube(m *model.Kube, action *core.Action) error {
 	// New Client
 	client := p.Client(m)
 	// Step procedure
 	procedure := &core.Procedure{
-		Core:  p.Core,
-		Name:  "Delete Kube",
-		Model: m,
+		Core:   p.Core,
+		Name:   "Delete Kube",
+		Model:  m,
+		Action: action,
 	}
 
 	procedure.AddStep("deleting master", func() error {
@@ -228,7 +230,7 @@ func (p *Provider) CreateNode(m *model.Node, action *core.Action) error {
 }
 
 // DeleteNode deletes a minsion on a DO kubernetes cluster.
-func (p *Provider) DeleteNode(m *model.Node) error {
+func (p *Provider) DeleteNode(m *model.Node, action *core.Action) error {
 	client := p.Client(m.Kube)
 
 	intID, err := strconv.Atoi(m.ProviderID)
@@ -286,7 +288,7 @@ func (p *Provider) WaitForVolumeAvailable(m *model.Volume, action *core.Action) 
 }
 
 // DeleteVolume deletes a DO volume.
-func (p *Provider) DeleteVolume(m *model.Volume) error {
+func (p *Provider) DeleteVolume(m *model.Volume, action *core.Action) error {
 	if m.ProviderID == "" {
 		p.Core.Log.Warnf("Deleting DigitalOcean Volume '%s' with empty ProviderID", m.Name)
 		return nil
@@ -301,15 +303,15 @@ func (p *Provider) CreateEntrypoint(m *model.Entrypoint, action *core.Action) er
 }
 
 // DeleteEntrypoint deletes load balancer from DO.
-func (p *Provider) DeleteEntrypoint(m *model.Entrypoint) error {
+func (p *Provider) DeleteEntrypoint(m *model.Entrypoint, action *core.Action) error {
 	return nil
 }
 
-func (p *Provider) CreateEntrypointListener(m *model.EntrypointListener) error {
+func (p *Provider) CreateEntrypointListener(m *model.EntrypointListener, action *core.Action) error {
 	return nil
 }
 
-func (p *Provider) DeleteEntrypointListener(m *model.EntrypointListener) error {
+func (p *Provider) DeleteEntrypointListener(m *model.EntrypointListener, action *core.Action) error {
 	return nil
 }
 

@@ -9,18 +9,18 @@ import (
 type Provider struct {
 	ValidateAccountFn            func(*model.CloudAccount) error
 	CreateKubeFn                 func(*model.Kube, *core.Action) error
-	DeleteKubeFn                 func(*model.Kube) error
+	DeleteKubeFn                 func(*model.Kube, *core.Action) error
 	CreateNodeFn                 func(*model.Node, *core.Action) error
-	DeleteNodeFn                 func(*model.Node) error
+	DeleteNodeFn                 func(*model.Node, *core.Action) error
 	CreateVolumeFn               func(*model.Volume, *core.Action) error
 	KubernetesVolumeDefinitionFn func(*model.Volume) *kubernetes.Volume
 	WaitForVolumeAvailableFn     func(*model.Volume, *core.Action) error
 	ResizeVolumeFn               func(*model.Volume, *core.Action) error
-	DeleteVolumeFn               func(*model.Volume) error
+	DeleteVolumeFn               func(*model.Volume, *core.Action) error
 	CreateEntrypointFn           func(*model.Entrypoint, *core.Action) error
-	DeleteEntrypointFn           func(*model.Entrypoint) error
-	CreateEntrypointListenerFn   func(*model.EntrypointListener) error
-	DeleteEntrypointListenerFn   func(*model.EntrypointListener) error
+	DeleteEntrypointFn           func(*model.Entrypoint, *core.Action) error
+	CreateEntrypointListenerFn   func(*model.EntrypointListener, *core.Action) error
+	DeleteEntrypointListenerFn   func(*model.EntrypointListener, *core.Action) error
 }
 
 func (p *Provider) ValidateAccount(m *model.CloudAccount) error {
@@ -37,11 +37,11 @@ func (p *Provider) CreateKube(m *model.Kube, a *core.Action) error {
 	return p.CreateKubeFn(m, a)
 }
 
-func (p *Provider) DeleteKube(m *model.Kube) error {
+func (p *Provider) DeleteKube(m *model.Kube, a *core.Action) error {
 	if p.DeleteKubeFn == nil {
 		return nil
 	}
-	return p.DeleteKubeFn(m)
+	return p.DeleteKubeFn(m, a)
 }
 
 func (p *Provider) CreateNode(m *model.Node, a *core.Action) error {
@@ -51,11 +51,11 @@ func (p *Provider) CreateNode(m *model.Node, a *core.Action) error {
 	return p.CreateNodeFn(m, a)
 }
 
-func (p *Provider) DeleteNode(m *model.Node) error {
+func (p *Provider) DeleteNode(m *model.Node, a *core.Action) error {
 	if p.DeleteNodeFn == nil {
 		return nil
 	}
-	return p.DeleteNodeFn(m)
+	return p.DeleteNodeFn(m, a)
 }
 
 func (p *Provider) CreateVolume(m *model.Volume, a *core.Action) error {
@@ -86,11 +86,11 @@ func (p *Provider) ResizeVolume(m *model.Volume, a *core.Action) error {
 	return p.ResizeVolumeFn(m, a)
 }
 
-func (p *Provider) DeleteVolume(m *model.Volume) error {
+func (p *Provider) DeleteVolume(m *model.Volume, a *core.Action) error {
 	if p.DeleteVolumeFn == nil {
 		return nil
 	}
-	return p.DeleteVolumeFn(m)
+	return p.DeleteVolumeFn(m, a)
 }
 
 func (p *Provider) CreateEntrypoint(m *model.Entrypoint, a *core.Action) error {
@@ -100,23 +100,23 @@ func (p *Provider) CreateEntrypoint(m *model.Entrypoint, a *core.Action) error {
 	return p.CreateEntrypointFn(m, a)
 }
 
-func (p *Provider) DeleteEntrypoint(m *model.Entrypoint) error {
+func (p *Provider) DeleteEntrypoint(m *model.Entrypoint, a *core.Action) error {
 	if p.DeleteEntrypointFn == nil {
 		return nil
 	}
-	return p.DeleteEntrypointFn(m)
+	return p.DeleteEntrypointFn(m, a)
 }
 
-func (p *Provider) CreateEntrypointListener(m *model.EntrypointListener) error {
+func (p *Provider) CreateEntrypointListener(m *model.EntrypointListener, a *core.Action) error {
 	if p.CreateEntrypointListenerFn == nil {
 		return nil
 	}
-	return p.CreateEntrypointListenerFn(m)
+	return p.CreateEntrypointListenerFn(m, a)
 }
 
-func (p *Provider) DeleteEntrypointListener(m *model.EntrypointListener) error {
+func (p *Provider) DeleteEntrypointListener(m *model.EntrypointListener, a *core.Action) error {
 	if p.DeleteEntrypointListenerFn == nil {
 		return nil
 	}
-	return p.DeleteEntrypointListenerFn(m)
+	return p.DeleteEntrypointListenerFn(m, a)
 }
