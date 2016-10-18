@@ -42,6 +42,8 @@ func (c *CloudAccounts) provider(m *model.CloudAccount) Provider {
 		return c.Core.AWSProvider(m.Credentials)
 	case "digitalocean":
 		return c.Core.DOProvider(m.Credentials)
+	case "openstack":
+		return c.Core.OSProvider(m.Credentials)
 	default:
 		panic("Could not load provider interface for " + m.Provider)
 	}

@@ -1,0 +1,178 @@
+#cloud-config
+
+hostname: "{{ .Name }}"
+ssh_authorized_keys:
+  - "{{ .Kube.OpenStackConfig.SSHPubKey }}"
+write_files:
+  - path: "/opt/bin/download-k8s-binary"
+    permissions: "0755"
+    content: |
+      #!/bin/bash
+      K8S_VERSION=v1.2.0
+      mkdir -p /opt/bin
+      FILE=$1
+      if [ ! -f /opt/bin/$FILE ]; then
+        curl -sSL -o /opt/bin/$FILE https://storage.googleapis.com/kubernetes-release/release/${K8S_VERSION}/bin/linux/amd64/$FILE
+        chmod +x /opt/bin/$FILE
+      else
+        # we check the version of the binary
+        INSTALLED_VERSION=$(/opt/bin/$FILE --version)
+        MATCH=$(echo "${INSTALLED_VERSION}" | grep -c "${K8S_VERSION}")
+        if [ $MATCH -eq 0 ]; then
+          # the version is different
+          curl -sSL -o /opt/bin/$FILE https://storage.googleapis.com/kubernetes-release/release/${K8S_VERSION}/bin/linux/amd64/$FILE
+          chmod +x /opt/bin/$FILE
+        fi
+      fi
+
+      cd /tmp
+      wget https://github.com/digitalocean/doctl/releases/download/v1.4.0/doctl-1.4.0-linux-amd64.tar.gz
+      tar xf /tmp/doctl-1.4.0-linux-amd64.tar.gz
+      sudo mv /tmp/doctl /opt/bin/
+  - path: /etc/kubernetes/ssl/cloud.conf
+    permissions: 0600
+    content: |
+      [Global]
+      auth-url = {{ index .Kube.CloudAccount.Credentials "identity_endpoint" }}
+      username = {{ index .Kube.CloudAccount.Credentials "username" }}
+      password = {{ index .Kube.CloudAccount.Credentials "password" }}
+      tenant-id = {{ index .Kube.CloudAccount.Credentials "tenant_id" }}
+      region = {{ .Kube.OpenStackConfig.Region }}
+      [LoadBalancer]
+      subnet-id = {{ .Kube.OpenStackConfig.SubnetID }}
+  - path: "/etc/kubernetes/manifests/kube-proxy.yaml"
+    permissions: "0644"
+    owner: "root"
+    content: |
+      apiVersion: v1
+      kind: Pod
+      metadata:
+        name: kube-proxy
+        namespace: kube-system
+      spec:
+        hostNetwork: true
+        containers:
+        - name: kube-proxy
+          image: gcr.io/google_containers/hyperkube:v1.2.0
+          command:
+          - /hyperkube
+          - proxy
+          - --master=https://{{ .Kube.OpenStackConfig.MasterPrivateIP }}
+          - --kubeconfig=/etc/kubernetes/worker-kubeconfig.yaml
+          - --proxy-mode=iptables
+          securityContext:
+            privileged: true
+          volumeMounts:
+            - mountPath: /etc/ssl/certs
+              name: "ssl-certs"
+            - mountPath: /etc/kubernetes/worker-kubeconfig.yaml
+              name: "kubeconfig"
+              readOnly: true
+            - mountPath: /etc/kubernetes/ssl
+              name: "etc-kube-ssl"
+              readOnly: true
+        volumes:
+          - name: "ssl-certs"
+            hostPath:
+              path: "/usr/share/ca-certificates"
+          - name: "kubeconfig"
+            hostPath:
+              path: "/etc/kubernetes/worker-kubeconfig.yaml"
+          - name: "etc-kube-ssl"
+            hostPath:
+              path: "/etc/kubernetes/ssl"
+  - path: "/etc/kubernetes/worker-kubeconfig.yaml"
+    permissions: "0644"
+    owner: "root"
+    content: |
+      apiVersion: v1
+      kind: Config
+      users:
+      - name: kubelet
+        user:
+          token: {{ .Kube.Password }}
+      clusters:
+      - name: local
+        cluster:
+           insecure-skip-tls-verify: true
+      contexts:
+      - context:
+          cluster: local
+          user: kubelet
+        name: service-account-context
+      current-context: service-account-context
+coreos:
+  flannel:
+    iface: $COREOS_PRIVATE_IPV4
+    etcd_endpoints: http://{{ .Kube.OpenStackConfig.MasterPrivateIP }}:2379
+
+  units:
+    - name: flanneld.service
+      content: |
+        [Unit]
+        Description=Network fabric for containers
+        Documentation=https://github.com/coreos/flannel
+        Requires=early-docker.service
+        After=etcd.service etcd2.service early-docker.service
+        Before=early-docker.target
+        [Service]
+        Type=notify
+        Restart=always
+        RestartSec=5
+        Environment="TMPDIR=/var/tmp/"
+        Environment="DOCKER_HOST=unix:///var/run/early-docker.sock"
+        Environment="FLANNEL_VER=0.5.5"
+        Environment="ETCD_SSL_DIR=/etc/ssl/etcd"
+        Environment="FLANNEL_ENV_FILE=/run/flannel/options.env"
+        LimitNOFILE=40000
+        LimitNPROC=1048576
+        ExecStartPre=/sbin/modprobe ip_tables
+        ExecStartPre=/usr/bin/mkdir -p /run/flannel
+        ExecStartPre=/usr/bin/mkdir -p ${ETCD_SSL_DIR}
+        ExecStartPre=-/usr/bin/touch ${FLANNEL_ENV_FILE}
+        ExecStart=/usr/libexec/sdnotify-proxy /run/flannel/sd.sock \
+          /usr/bin/docker run --net=host --privileged=true --rm \
+          --volume=/run/flannel:/run/flannel \
+          --env=NOTIFY_SOCKET=/run/flannel/sd.sock \
+          --env-file=${FLANNEL_ENV_FILE} \
+          --volume=/usr/share/ca-certificates:/etc/ssl/certs:ro \
+          --volume=${ETCD_SSL_DIR}:/etc/ssl/etcd:ro \
+          quay.io/coreos/flannel:${FLANNEL_VER} /opt/bin/flanneld --ip-masq=true
+        # Update docker options
+        ExecStartPost=/usr/bin/docker run --net=host --rm -v /run:/run \
+          quay.io/coreos/flannel:${FLANNEL_VER} \
+          /opt/bin/mk-docker-opts.sh -d /run/flannel_docker_opts.env -i
+    - name: docker.service
+      drop-ins:
+        - name: "40-flannel.conf"
+          content: |
+            [Unit]
+            Requires=flanneld.service
+            After=flanneld.service
+            [Service]
+            Restart=always
+            Restart=on-failure
+    - name: kubelet.service
+      command: start
+      content: |
+        # /usr/lib64/systemd/system/kubelet.service
+        [Unit]
+        Description=Kubernetes Kubelet
+        [Service]
+        ExecStartPre=/bin/bash -c "/opt/bin/download-k8s-binary kubelet"
+        ExecStart=/opt/bin/kubelet \
+          --allow-privileged=true \
+          --api_servers=https://{{ .Kube.OpenStackConfig.MasterPrivateIP }} \
+          --cluster-dns=10.3.0.10 \
+          --cluster_domain=cluster.local \
+          --cloud-provider=openstack \
+          --cloud-config=/etc/kubernetes/ssl/cloud.conf \
+          --config=/etc/kubernetes/manifests \
+          --node-ip=$private_ipv4 \
+          --kubeconfig=/etc/kubernetes/worker-kubeconfig.yaml \
+          --volume-plugin-dir=/etc/kubernetes/volumeplugins \
+          --register-node=true \
+        Restart=on-failure
+        RestartSec=5
+        [Install]
+        WantedBy=multi-user.target

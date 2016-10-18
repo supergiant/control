@@ -7,6 +7,7 @@ import (
 	"github.com/supergiant/supergiant/pkg/model"
 )
 
+//NewKube holds default inffo for the UI kubes object.
 func NewKube(sg *client.Client, w http.ResponseWriter, r *http.Request) error {
 
 	// TODO we shouldn't use a map for the model, because attr ordering is screwed
@@ -34,6 +35,21 @@ func NewKube(sg *client.Client, w http.ResponseWriter, r *http.Request) error {
 			"digitalocean_config": map[string]interface{}{
 				"region":              "nyc1",
 				"ssh_key_fingerprint": "",
+			},
+		}
+	case "openstack":
+		m = map[string]interface{}{
+			"cloud_account_name": "",
+			"name":               "",
+			"master_node_size":   "m1.smaller",
+			"node_sizes": []string{
+				"m1.smaller",
+				"m1.small",
+			},
+			"digitalocean_config": map[string]interface{}{
+				"region":              "RegionOne",
+				"ssh_key_fingerprint": "",
+				"ssh_pub_key":         "",
 			},
 		}
 	default: // just default to AWS if option not provided, or mismatched
@@ -104,6 +120,7 @@ func ListKubes(sg *client.Client, w http.ResponseWriter, r *http.Request) error 
 		"newOptions": map[string]string{
 			"aws":          "AWS",
 			"digitalocean": "DigitalOcean",
+			"openstack":    "OpenStack",
 		},
 		"batchActionPaths": map[string]map[string]string{
 			"Reprovision": map[string]string{

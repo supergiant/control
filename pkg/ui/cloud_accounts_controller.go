@@ -7,6 +7,7 @@ import (
 	"github.com/supergiant/supergiant/pkg/model"
 )
 
+// NewCloudAccount holds template info for UI cloud accounts.
 func NewCloudAccount(sg *client.Client, w http.ResponseWriter, r *http.Request) error {
 	var m map[string]interface{}
 	switch r.URL.Query().Get("option") {
@@ -17,6 +18,17 @@ func NewCloudAccount(sg *client.Client, w http.ResponseWriter, r *http.Request) 
 			"provider": "digitalocean",
 			"credentials": map[string]interface{}{
 				"token": "",
+			},
+		}
+	case "openstack":
+		m = map[string]interface{}{
+			"name":     "",
+			"provider": "openstack",
+			"credentials": map[string]interface{}{
+				"identity_endpoint": "",
+				"username":          "",
+				"password":          "",
+				"tenant_id":         "",
 			},
 		}
 	default: // just default to AWS if option not provided, or mismatched
@@ -77,6 +89,7 @@ func ListCloudAccounts(sg *client.Client, w http.ResponseWriter, r *http.Request
 		"newOptions": map[string]string{
 			"aws":          "AWS",
 			"digitalocean": "DigitalOcean",
+			"openstack":    "OpenStack",
 		},
 		"batchActionPaths": map[string]map[string]string{
 			"Delete": map[string]string{
