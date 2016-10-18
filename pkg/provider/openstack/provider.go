@@ -520,13 +520,9 @@ func (p *Provider) CreateVolume(m *model.Volume, action *core.Action) error {
 func (p *Provider) KubernetesVolumeDefinition(m *model.Volume) *kubernetes.Volume {
 	return &kubernetes.Volume{
 		Name: m.Name,
-		FlexVolume: &kubernetes.FlexVolume{
-			Driver: "supergiant.io/digitalocean",
-			FSType: "ext4",
-			Options: map[string]string{
-				"volumeID": m.ProviderID,
-				"name":     m.Name,
-			},
+		Cinder: &kubernetes.Cinder{
+			VolumeID: m.ProviderID,
+			FSType:   m.Type,
 		},
 	}
 }

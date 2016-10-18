@@ -95,10 +95,16 @@ type FlexVolume struct {
 	Options map[string]string `json:"options"`
 }
 
+type Cinder struct {
+	VolumeID string `json:"volumeID"`
+	FSType   string `json:"fsType"`
+}
+
 type Volume struct {
 	Name                 string                `json:"name"`
 	AwsElasticBlockStore *AwsElasticBlockStore `json:"awsElasticBlockStore,omitempty"`
 	FlexVolume           *FlexVolume           `json:"flexVolume,omitempty"`
+	Cinder               *Cinder               `json:"cinder,omitempty"`
 }
 
 type VolumeMount struct {
