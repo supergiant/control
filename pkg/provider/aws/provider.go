@@ -203,6 +203,14 @@ func (p *Provider) deleteServer(m *model.Node) error {
 }
 
 func (p *Provider) createELB(m *model.Entrypoint) error {
+
+	var subnets []*string
+	for _, subnet := range m.Kube.AWSConfig.PublicSubnetIPRange {
+		if subnet["subnet_id"] != "" {
+			subnets = append(subnets, aws.String(subnet["subnet_id"]))
+		}
+	}
+
 	params := &elb.CreateLoadBalancerInput{
 		Listeners: []*elb.Listener{ // NOTE we must provide at least 1 listener, it is currently arbitrary
 			{
@@ -216,9 +224,7 @@ func (p *Provider) createELB(m *model.Entrypoint) error {
 		SecurityGroups: []*string{
 			aws.String(m.Kube.AWSConfig.ELBSecurityGroupID),
 		},
-		Subnets: []*string{
-			aws.String(m.Kube.AWSConfig.PublicSubnetID),
-		},
+		Subnets: subnets,
 	}
 	resp, err := p.ELB(m.Kube).CreateLoadBalancer(params)
 	if err != nil {

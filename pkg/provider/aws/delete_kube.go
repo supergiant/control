@@ -210,7 +210,7 @@ func (p *Provider) DeleteKube(m *model.Kube, action *core.Action) error {
 			Bucket: aws.String("kubernetes-" + m.Name),
 		})
 		if err != nil {
-			if strings.Contains(err.Error(), "The specified bucket does not exist") {
+			if strings.Contains(err.Error(), "The specified bucket does not exist") || strings.Contains(err.Error(), "The authorization header is malformed") {
 				// it does not exist,
 				return nil
 			}
@@ -247,9 +247,12 @@ func (p *Provider) DeleteKube(m *model.Kube, action *core.Action) error {
 			VpcId: aws.String(m.AWSConfig.VPCID),
 		})
 		if isErrAndNotAWSNotFound(err) {
+			if strings.Contains(err.Error(), "The request must contain the parameter") {
+				// it does not exist,
+				return nil
+			}
 			return err
 		}
-		m.AWSConfig.VPCID = ""
 		return nil
 	})
 

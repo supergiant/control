@@ -1,6 +1,5 @@
 #cloud-config
 
-hostname: "{{ .Name }}"
 ssh_authorized_keys:
   - "{{ .Kube.AWSConfig.SSHPubKey }}"
 write_files:
@@ -156,7 +155,6 @@ coreos:
           --cluster_domain=cluster.local \
           --cloud-provider=aws \
           --config=/etc/kubernetes/manifests \
-          --hostname-override={{ .Name }} \
           --node-ip=$private_ipv4 \
           --kubeconfig=/etc/kubernetes/worker-kubeconfig.yaml \
           --volume-plugin-dir=/etc/kubernetes/volumeplugins \

@@ -1,6 +1,5 @@
 #cloud-config
 
-hostname: "{{ .Name }}-master"
 ssh_authorized_keys:
   - "{{ .AWSConfig.SSHPubKey }}"
 write_files:
@@ -133,6 +132,7 @@ write_files:
           - --allow-privileged=true
           - --service-cluster-ip-range=10.3.0.0/24
           - --secure-port=443
+          - --cloud-provider=aws
           - --advertise-address=$private_ipv4
           - --admission-control=NamespaceLifecycle,NamespaceExists,LimitRanger,SecurityContextDeny,ServiceAccount,ResourceQuota
           - --tls-cert-file=/etc/kubernetes/ssl/apiserver.pem
@@ -538,6 +538,7 @@ write_files:
           command:
           - /hyperkube
           - controller-manager
+          - --cloud-provider=aws
           - --master=http://127.0.0.1:8080
           - --service-account-private-key-file=/etc/kubernetes/ssl/apiserver-key.pem
           - --root-ca-file=/etc/kubernetes/ssl/ca.pem

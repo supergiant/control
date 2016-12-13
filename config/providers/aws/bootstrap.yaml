@@ -1,6 +1,5 @@
 #cloud-config
 
-hostname: "{{ .Name }}-master"
 ssh_authorized_keys:
   - "{{ .AWSConfig.SSHPubKey }}"
 write_files:
@@ -21,8 +20,16 @@ write_files:
       SIG_STRING="GET\n\n\n${DATE}\nx-amz-security-token:${TOKEN}\n/${RESOURCE}"
       SIG=$(/bin/echo -en "${SIG_STRING}" | openssl sha1 -hmac ${SECRET_KEY} -binary | base64)
       AUTH="AWS ${ACCESS_KEY}:${SIG}"
+
+      REGION="{{ .AWSConfig.Region }}"
+      if [[ $REGION == "us-east-1" ]]; then
+        PREFIX="s3"
+      else
+        PREFIX="s3-${REGION}"
+      fi
+
       ## Download the file
-      curl -s -H "Date: ${DATE}" -H "X-AMZ-Security-Token: ${TOKEN}" -H "Authorization: ${AUTH}" "https://s3.amazonaws.com/${RESOURCE}" -o "/tmp/master.yaml"
+      curl -s -H "Date: ${DATE}" -H "X-AMZ-Security-Token: ${TOKEN}" -H "Authorization: ${AUTH}" "https://${PREFIX}.amazonaws.com/${RESOURCE}" -o "/tmp/master.yaml"
       ## Run the build
       /usr/bin/coreos-cloudinit --from-file /tmp/master.yaml
 coreos:
