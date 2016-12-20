@@ -57,7 +57,7 @@ function renderGraph(name, graph, podMetrics, yTickFormatter) {
   //
   //
   //
-  var width = ($('#main_row').width() / 2) - (marginLeft + marginRight);
+  var width = ($('#content').parent().width() / 2) - (marginLeft + marginRight);
 
 
 

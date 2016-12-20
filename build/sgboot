@@ -10,6 +10,7 @@ openssl req -new -x509 -sha256 -key $SSL_KEY_FILE -out $SSL_CRT_FILE -days 3650 
 cat > /etc/supergiant.json <<- EOM
 {
   "ui_enabled": true,
+  "capacity_service_enabled": true,
   "psql_host": "localhost",
   "psql_db": "supergiant",
   "psql_user": "postgres",
