@@ -27,6 +27,14 @@ write_files:
           chmod +x /opt/bin/kubectl
         fi
       fi
+
+      ## Install Tiller ##
+      wget http://storage.googleapis.com/kubernetes-helm/helm-v2.1.3-linux-amd64.tar.gz --directory-prefix=/tmp/
+      tar -C /tmp -xvf /tmp/helm-v2.1.3-linux-amd64.tar.gz
+      cp /tmp/linux-amd64/helm /opt/bin/helm
+      chmod +x /opt/bin/helm
+      /opt/bin/helm init
+
       openssl genrsa -out /etc/kubernetes/ssl/ca-key.pem 2048
       openssl req -x509 -new -nodes -key /etc/kubernetes/ssl/ca-key.pem -days 10000 -out /etc/kubernetes/ssl/ca.pem -subj "/CN=kube-ca"
       sed -e "s/\${MASTER_HOST}/`curl ipinfo.io/ip`/" < /etc/kubernetes/ssl/openssl.cnf.template > /etc/kubernetes/ssl/openssl.cnf.public
@@ -53,6 +61,8 @@ write_files:
       /opt/bin/kubectl config use-context default-system
       /opt/bin/kubectl create -f /etc/kubernetes/addons/kube-dns.yaml
       /opt/bin/kubectl create -f /etc/kubernetes/addons/cluster-monitoring
+      /opt/bin/kubectl create -f /etc/kubernetes/addons/cluster-utils
+      /opt/bin/helm init
   - path: "/etc/kubernetes/ssl/openssl.cnf.template"
     permissions: "0755"
     content: |
@@ -141,6 +151,7 @@ write_files:
           - --service-account-key-file=/etc/kubernetes/ssl/apiserver-key.pem
           - --basic-auth-file=/etc/kubernetes/ssl/basic_auth.csv
           - --token-auth-file=/etc/kubernetes/ssl/known_tokens.csv
+          - --kubelet-preferred-address-types=InternalIP,Hostname,ExternalIP
           ports:
           - containerPort: 443
             hostPort: 443
@@ -197,6 +208,24 @@ write_files:
         - hostPath:
             path: /usr/share/ca-certificates
           name: ssl-certs-host
+  - path: "/etc/kubernetes/addons/cluster-utils/tiller-service.yaml"
+    permissions: "0644"
+    owner: "root"
+    content: |
+      kind: Service
+      apiVersion: v1
+      metadata:
+        name: tiller
+        namespace: kube-system
+        labels:
+          kubernetes.io/cluster-service: "true"
+          kubernetes.io/name: "Tiller"
+      spec:
+        ports:
+          - port: 44134
+            targetPort: 44134
+        selector:
+          name: tiller
   - path: "/etc/kubernetes/addons/cluster-monitoring/heapster-controller.yaml"
     permissions: "0644"
     owner: "root"
@@ -658,19 +687,23 @@ coreos:
         [Unit]
         Description=Kubernetes Kubelet
         [Service]
+        Environment=KUBELET_VERSION=v{{ .AWSConfig.KubernetesVersion }}_coreos.0
+        Environment="RKT_OPTS=--uuid-file-save=/var/run/kubelet-pod.uuid"
+        ExecStartPre=-/usr/bin/rkt rm --uuid-file=/var/run/kubelet-pod.uuid
         ExecStartPre=/bin/bash -c "/opt/bin/download-k8s-binary kubelet"
         ExecStartPost=/bin/bash -c "/opt/bin/kube-post-start.sh"
-        ExecStart=/opt/bin/kubelet \
+        ExecStart=/usr/lib/coreos/kubelet-wrapper \
          --api-servers=http://127.0.0.1:8080 \
          --allow-privileged=true \
          --cadvisor-port=0 \
-         --config=/etc/kubernetes/manifests \
+         --pod-manifest-path=/etc/kubernetes/manifests \
          --cluster-dns=10.3.0.10 \
          --cluster_domain=cluster.local \
-         --register-node=false \
-         --cloud-provider=aws \
-         --node-ip=$private_ipv4
+         --register-schedulable=false \
+         --cloud-provider=aws
+        ExecStop=-/usr/bin/rkt stop --uuid-file=/var/run/kubelet-pod.uuid
         Restart=on-failure
+        TimeoutSec=300
         RestartSec=5
         [Install]
         WantedBy=multi-user.target

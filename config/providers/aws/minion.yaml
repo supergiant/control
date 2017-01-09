@@ -147,19 +147,23 @@ coreos:
         [Unit]
         Description=Kubernetes Kubelet
         [Service]
+        Environment=KUBELET_VERSION=v{{ .Kube.AWSConfig.KubernetesVersion }}_coreos.0
+        Environment="RKT_OPTS=--uuid-file-save=/var/run/kubelet-pod.uuid"
+        ExecStartPre=-/usr/bin/rkt rm --uuid-file=/var/run/kubelet-pod.uuid
         ExecStartPre=/bin/bash -c "/opt/bin/download-k8s-binary kubelet"
-        ExecStart=/opt/bin/kubelet \
+        ExecStart=/usr/lib/coreos/kubelet-wrapper \
           --allow-privileged=true \
           --api_servers=https://{{ .Kube.AWSConfig.MasterPrivateIP }} \
           --cluster-dns=10.3.0.10 \
           --cluster_domain=cluster.local \
           --cloud-provider=aws \
-          --config=/etc/kubernetes/manifests \
-          --node-ip=$private_ipv4 \
+          --pod-manifest-path=/etc/kubernetes/manifests \
           --kubeconfig=/etc/kubernetes/worker-kubeconfig.yaml \
           --volume-plugin-dir=/etc/kubernetes/volumeplugins \
-          --register-node=true \
+          --register-node=true
+        ExecStop=-/usr/bin/rkt stop --uuid-file=/var/run/kubelet-pod.uuid
         Restart=on-failure
+        TimeoutSec=300
         RestartSec=5
         [Install]
         WantedBy=multi-user.target

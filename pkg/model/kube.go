@@ -79,7 +79,7 @@ type AWSKubeConfig struct {
 	MasterID                      string   `json:"master_id" sg:"readonly"`
 	MasterNodes                   []string `json:"master_nodes" sg:"readonly"`
 
-	KubernetesVersion string `json:"kubernetes_version" validate:"nonzero" sg:"default=1.4.6"`
+	KubernetesVersion string `json:"kubernetes_version" validate:"nonzero" sg:"default=1.5.1"`
 }
 
 // DOKubeConfig holds do specific information about DO based KUbernetes clusters.
