@@ -48,6 +48,8 @@
     "sudo chmod 755 ~/supergiant",
     "sudo mkdir /supergiant",
     "sudo cp ~/supergiant /supergiant/supergiant",
+    "sudo echo {{user `version`}} > ~/version",
+    "sudo cp ~/version /supergiant/version",
     "sudo cp ~/supergiant-server.conf /etc/init/supergiant-server.conf",
     "sudo cp ~/sgboot /etc/init.d/sgboot",
     "sudo chmod 755 /etc/init.d/sgboot",
