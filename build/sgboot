@@ -6,7 +6,6 @@ PRIVATE_HOST=$(curl -s http://169.254.169.254/latest/meta-data/local-hostname)
 PUBLISH_HOST=${PUBLIC_HOST:-$PRIVATE_HOST}
 openssl genrsa -out $SSL_KEY_FILE 2048
 openssl req -new -x509 -sha256 -key $SSL_KEY_FILE -out $SSL_CRT_FILE -days 3650 -subj /C=US/ST=Arkansas/L=Fayetteville/O=Supergiant/CN=$PUBLISH_HOST
-curl -o /tmp/supergiant https://github.com/supergiant/supergiant/releases/download/$(cat /supergiant/version)/supergiant-server-linux-amd64
 
 cat > /etc/supergiant.json <<- EOM
 {
@@ -82,6 +81,8 @@ cat > /etc/supergiant.json <<- EOM
   }
 }
 EOM
+
+curl -o /tmp/supergiant https://github.com/supergiant/supergiant/releases/download/$(cat /supergiant/version)/supergiant-server-linux-amd64
 
 #remove
 echo -n "" > $0
