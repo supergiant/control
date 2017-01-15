@@ -345,7 +345,6 @@ func (sgcli *CLI) commandKubectl(c *cli.Context) error {
 	}
 
 	args := []string{
-		"--api-version=v1",
 		"--insecure-skip-tls-verify=true",
 		"--server=https://" + kube.MasterPublicIP,
 		"--cluster=" + kube.Name,
