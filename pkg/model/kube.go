@@ -50,6 +50,9 @@ type Kube struct {
 	OpenStackConfig     *OSKubeConfig `json:"openstack_config,omitempty" gorm:"-" sg:"store_as_json_in=OpenStackConfigJSON,immutable"`
 	OpenStackConfigJSON []byte        `json:"-"`
 
+	GCEConfig     *GCEKubeConfig `json:"gce_config,omitempty" gorm:"-" sg:"store_as_json_in=GCEConfigJSON,immutable"`
+	GCEConfigJSON []byte         `json:"-"`
+
 	MasterPublicIP string `json:"master_public_ip" sg:"readonly"`
 
 	Ready bool `json:"ready" sg:"readonly" gorm:"index"`
@@ -103,4 +106,20 @@ type OSKubeConfig struct {
 	SubnetID        string `json:"subnet_id" sg:"readonly"`
 	RouterID        string `json:"router_id" sg:"readonly"`
 	FloatingIpID    string `json:"floating_ip_id" sg:"readonly"`
+}
+
+// GCEKubeConfig holds do specific information about DO based KUbernetes clusters.
+type GCEKubeConfig struct {
+	Zone                string   `json:"zone" validate:"nonzero"`
+	MasterInstanceGroup string   `json:"instance_group" sg:"readonly"`
+	MinionInstanceGroup string   `json:"instance_group" sg:"readonly"`
+	MasterNodes         []string `json:"master_nodes" sg:"readonly"`
+	MasterName          string   `json:"master_name" sg:"readonly"`
+	KubeMasterCount     int      `json:"kube_master_count"`
+
+	// Template vars
+	SSHPubKey         string `json:"ssh_pub_key" validate:"nonzero"`
+	KubernetesVersion string `json:"kubernetes_version" validate:"nonzero" sg:"default=1.5.1"`
+	ETCDDiscoveryURL  string `json:"etcd_discovery_url" sg:"readonly"`
+	MasterPrivateIP   string `json:"master_private_ip" sg:"readonly"`
 }

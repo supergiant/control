@@ -44,6 +44,8 @@ func (c *CloudAccounts) provider(m *model.CloudAccount) Provider {
 		return c.Core.DOProvider(m.Credentials)
 	case "openstack":
 		return c.Core.OSProvider(m.Credentials)
+	case "gce":
+		return c.Core.GCEProvider(m.Credentials)
 	default:
 		panic("Could not load provider interface for " + m.Provider)
 	}

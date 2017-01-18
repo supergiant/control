@@ -63,6 +63,7 @@ type Core struct {
 	AWSProvider func(map[string]string) Provider
 	DOProvider  func(map[string]string) Provider
 	OSProvider  func(map[string]string) Provider
+	GCEProvider func(map[string]string) Provider
 
 	K8S func(*model.Kube) kubernetes.ClientInterface
 

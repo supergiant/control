@@ -9,6 +9,7 @@ import (
 	"github.com/supergiant/supergiant/pkg/core"
 	"github.com/supergiant/supergiant/pkg/provider/aws"
 	"github.com/supergiant/supergiant/pkg/provider/digitalocean"
+	"github.com/supergiant/supergiant/pkg/provider/gce"
 	"github.com/supergiant/supergiant/pkg/provider/openstack"
 	"github.com/supergiant/supergiant/pkg/server"
 )
@@ -49,6 +50,12 @@ func main() {
 			return &openstack.Provider{
 				Core:   c,
 				Client: openstack.Client,
+			}
+		}
+		c.GCEProvider = func(creds map[string]string) core.Provider {
+			return &gce.Provider{
+				Core:   c,
+				Client: gce.Client,
 			}
 		}
 

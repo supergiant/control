@@ -100,11 +100,17 @@ type Cinder struct {
 	FSType   string `json:"fsType"`
 }
 
+type GcePersistentDisk struct {
+	PDName string `json:"pdName"`
+	FSType string `json:"fsType"`
+}
+
 type Volume struct {
 	Name                 string                `json:"name"`
 	AwsElasticBlockStore *AwsElasticBlockStore `json:"awsElasticBlockStore,omitempty"`
 	FlexVolume           *FlexVolume           `json:"flexVolume,omitempty"`
 	Cinder               *Cinder               `json:"cinder,omitempty"`
+	GcePersistentDisk    *GcePersistentDisk    `json:"gcePersistentDisk,omitempty"`
 }
 
 type VolumeMount struct {
