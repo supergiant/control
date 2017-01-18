@@ -503,6 +503,12 @@
 			"revisionTime": "2015-01-29T14:12:46Z"
 		},
 		{
+			"checksumSHA1": "EJMLw8rk55bsqmIpSMtVORJpSGo=",
+			"path": "golang.org/x/net/context/ctxhttp",
+			"revision": "1dd0d85fc0634d2dbe7f7d06d176c2ff548e6332",
+			"revisionTime": "2016-03-28T08:10:31Z"
+		},
+		{
 			"checksumSHA1": "XH7CgbL5Z8COUc+MKrYqS3FFosY=",
 			"path": "golang.org/x/oauth2",
 			"revision": "3c3a985cb79f52a3190fbc056984415ca6763d01",
@@ -515,10 +521,46 @@
 			"revisionTime": "2016-08-26T23:14:08Z"
 		},
 		{
+			"checksumSHA1": "4GaanJZHtrkglrx6a585C3I07+s=",
+			"path": "golang.org/x/oauth2/jws",
+			"revision": "b0e2337fe6ec0c637fa4f123268b972f334504eb",
+			"revisionTime": "2016-04-08T01:06:28Z"
+		},
+		{
+			"checksumSHA1": "xifBSq0Pn6pIoPA/o3tyzq8X4Ds=",
+			"path": "golang.org/x/oauth2/jwt",
+			"revision": "b0e2337fe6ec0c637fa4f123268b972f334504eb",
+			"revisionTime": "2016-04-08T01:06:28Z"
+		},
+		{
 			"checksumSHA1": "c8iMfP5+K3GEg26HJiO0OVVLiM4=",
 			"path": "golang.org/x/sys/unix",
 			"revision": "f64b50fbea64174967a8882830d621a18ee1548e",
 			"revisionTime": "2016-04-14T13:31:22Z"
+		},
+		{
+			"checksumSHA1": "hrUTmck0J+LE+lBtCvHvemNDY8U=",
+			"path": "google.golang.org/api/compute/v1",
+			"revision": "f9a4669e07732c84854dce1f5c451c22427228fb",
+			"revisionTime": "2016-05-04T00:43:48Z"
+		},
+		{
+			"checksumSHA1": "0PgeEtxSD/Vg/53Vctpf0Lk9V/k=",
+			"path": "google.golang.org/api/gensupport",
+			"revision": "f9a4669e07732c84854dce1f5c451c22427228fb",
+			"revisionTime": "2016-05-04T00:43:48Z"
+		},
+		{
+			"checksumSHA1": "yQREK/OWrz9PLljbr127+xFk6J0=",
+			"path": "google.golang.org/api/googleapi",
+			"revision": "f9a4669e07732c84854dce1f5c451c22427228fb",
+			"revisionTime": "2016-05-04T00:43:48Z"
+		},
+		{
+			"checksumSHA1": "ii4ET3JHk3vkMUEcg+9t/1RZSUU=",
+			"path": "google.golang.org/api/googleapi/internal/uritemplates",
+			"revision": "f9a4669e07732c84854dce1f5c451c22427228fb",
+			"revisionTime": "2016-05-04T00:43:48Z"
 		}
 	],
 	"rootPath": "github.com/supergiant/supergiant"
