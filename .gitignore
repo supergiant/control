@@ -4,3 +4,4 @@ tmp/*
 !tmp/.gitkeep
 config/config.json
 .sass-cache
+/bindata/
