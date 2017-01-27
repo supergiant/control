@@ -1,9 +1,6 @@
 package core
 
-import (
-	"github.com/supergiant/supergiant/pkg/kubernetes"
-	"github.com/supergiant/supergiant/pkg/model"
-)
+import "github.com/supergiant/supergiant/pkg/model"
 
 type Provider interface {
 	ValidateAccount(*model.CloudAccount) error
@@ -14,15 +11,7 @@ type Provider interface {
 	CreateNode(*model.Node, *Action) error
 	DeleteNode(*model.Node, *Action) error
 
-	CreateVolume(*model.Volume, *Action) error
-	KubernetesVolumeDefinition(*model.Volume) *kubernetes.Volume
-	WaitForVolumeAvailable(*model.Volume, *Action) error
-	ResizeVolume(*model.Volume, *Action) error
-	DeleteVolume(*model.Volume, *Action) error
-
-	CreateEntrypoint(*model.Entrypoint, *Action) error
-	DeleteEntrypoint(*model.Entrypoint, *Action) error
-
-	CreateEntrypointListener(*model.EntrypointListener, *Action) error
-	DeleteEntrypointListener(*model.EntrypointListener, *Action) error
+	CreateLoadBalancer(*model.LoadBalancer, *Action) error
+	UpdateLoadBalancer(*model.LoadBalancer, *Action) error
+	DeleteLoadBalancer(*model.LoadBalancer, *Action) error
 }

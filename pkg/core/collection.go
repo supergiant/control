@@ -32,15 +32,7 @@ func (c *Collection) Update(id *int64, oldM model.Model, m model.Model) error {
 	if err := model.CheckImmutableFields(m); err != nil {
 		return err
 	}
-	// Load model from DB
-	if err := c.Core.DB.First(oldM, *id); err != nil {
-		return err
-	}
-	// Merge old item attributes into the empty fields of the newItem
-	if err := mergo.Merge(m, oldM); err != nil {
-		return err
-	}
-	return c.Core.DB.Save(m)
+	return c.mergeUpdate(id, oldM, m)
 }
 
 func (c *Collection) Delete(id *int64, m model.Model) error { // Loaded so we can render out
@@ -53,6 +45,18 @@ func (c *Collection) Delete(id *int64, m model.Model) error { // Loaded so we ca
 ////////////////////////////////////////////////////////////////////////////////
 // Private methods                                                            //
 ////////////////////////////////////////////////////////////////////////////////
+
+func (c *Collection) mergeUpdate(id *int64, oldM model.Model, m model.Model) error {
+	// Load model from DB
+	if err := c.Core.DB.First(oldM, *id); err != nil {
+		return err
+	}
+	// Merge old item attributes into the empty fields of the newItem
+	if err := mergo.Merge(m, oldM); err != nil {
+		return err
+	}
+	return c.Core.DB.Save(m)
+}
 
 func (c *Collection) inParallel(model interface{}, fn func(interface{}) error) (err error) {
 	mv := reflect.ValueOf(model)

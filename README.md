@@ -56,9 +56,9 @@ We want to make Supergiant the easiest way to run Kubernetes in the cloud.
 Quick start...
 
 * [How to Install Supergiant Container Orchestration Engine on AWS EC2][Tutorial AWS URL]
-* [Deploy a MongoDB Replica Set with Docker and Supergiant][Tutorial MongoDB URL]
+<!-- * [Deploy a MongoDB Replica Set with Docker and Supergiant][Tutorial MongoDB URL]
   _(Note: this tutorial is out of date, but you can see
-  [the current example here.](examples/deploy_mongo.sh))_
+  [the current example here.](examples/deploy_mongo.sh))_ -->
 
 ---
 
@@ -67,8 +67,8 @@ Quick start...
 ## Features
 
 * Fully compatible with native Kubernetes (works with existing setups)
-* UI and CLI ([CLI examples](examples)), both built on top of an API (with
-  importable [Go client lib](pkg/client))
+* UI and CLI, both built on top of an API (with importable
+  [Go client lib](pkg/client))
 * Filterable container metrics views (RAM / CPU timeseries graphs)
 * Deploy / Update / Restart containers with a few clicks
 * Launch and manage multiple Kubes across multiple cloud providers from the UI

@@ -206,7 +206,7 @@ func TestKubernetesGetResource(t *testing.T) {
 			}
 
 			out := json.RawMessage([]byte(`{}`))
-			err := kubernetes.GetResource(item.kind, item.namespace, item.name, &out)
+			err := kubernetes.GetResource("api/v1", item.kind, item.namespace, item.name, &out)
 
 			So(err, ShouldResemble, item.err)
 		}
@@ -332,7 +332,7 @@ func TestKubernetesCreateResource(t *testing.T) {
 			}
 
 			out := json.RawMessage([]byte(`{}`))
-			err := kubernetes.CreateResource(item.kind, item.namespace, item.in, &out)
+			err := kubernetes.CreateResource("api/v1", item.kind, item.namespace, item.in, &out)
 
 			So(err, ShouldResemble, item.err)
 			So(resourceNameCreated, ShouldEqual, item.resourceNameCreated)
@@ -409,7 +409,7 @@ func TestKubernetesDeleteResource(t *testing.T) {
 				},
 			}
 
-			err := kubernetes.DeleteResource(item.kind, item.namespace, item.name)
+			err := kubernetes.DeleteResource("api/v1", item.kind, item.namespace, item.name)
 
 			So(err, ShouldResemble, item.err)
 		}

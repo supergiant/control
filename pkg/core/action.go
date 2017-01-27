@@ -124,6 +124,9 @@ func (a *Action) prepare() error {
 		return err
 	}
 	a.ResourceID = a.Model.GetUUID()
+	if a.ResourceID == "" {
+		return fmt.Errorf("Missing UUID for %#v", a.Model)
+	}
 
 	// Prevent concurrent actions (unless existing has failed)
 	if ei := a.Core.Actions.Get(a.ResourceID); ei != nil {

@@ -69,7 +69,7 @@ func errorHTTPStatus(err error) int {
 	return 500
 }
 
-const logViewBytesize int64 = 2048
+const logViewBytesize int64 = 4096
 
 func logHandler(core *core.Core) func(http.ResponseWriter, *http.Request) {
 	return func(w http.ResponseWriter, r *http.Request) {

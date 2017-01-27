@@ -58,7 +58,7 @@ func ListUsers(sg *client.Client, w http.ResponseWriter, r *http.Request) error 
 		"fields":      fields,
 		"showNewLink": true,
 		"actionPaths": map[string]string{
-			"Edit": "/edit",
+			"Edit": "/ui/users/{{ ID }}/edit",
 		},
 		"batchActionPaths": map[string]map[string]string{
 			"Delete": map[string]string{

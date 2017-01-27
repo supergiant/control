@@ -85,28 +85,6 @@ func New(clientFn func(*cli.Context) *client.Client, stdin *os.File, version str
 			},
 		},
 		{
-			Name:  "entrypoints",
-			Usage: "actions for Entrypoints",
-			Subcommands: []cli.Command{
-				sgcli.commandList("Entrypoints", new(model.EntrypointList)),
-				sgcli.commandCreate("Entrypoints", new(model.Entrypoint)),
-				sgcli.commandGet("Entrypoints", new(model.Entrypoint)),
-				sgcli.commandUpdate("Entrypoints", new(model.Entrypoint)),
-				sgcli.commandAction("delete", "Delete", "Entrypoints", new(model.Entrypoint)),
-			},
-		},
-		{
-			Name:  "entrypoint_listeners",
-			Usage: "actions for EntrypointListeners",
-			Subcommands: []cli.Command{
-				sgcli.commandList("EntrypointListeners", new(model.EntrypointListenerList)),
-				sgcli.commandCreate("EntrypointListeners", new(model.EntrypointListener)),
-				sgcli.commandGet("EntrypointListeners", new(model.EntrypointListener)),
-				sgcli.commandUpdate("EntrypointListeners", new(model.EntrypointListener)),
-				sgcli.commandAction("delete", "Delete", "EntrypointListeners", new(model.EntrypointListener)),
-			},
-		},
-		{
 			Name:  "kubes",
 			Usage: "actions for Kubes",
 			Subcommands: []cli.Command{
@@ -147,18 +125,6 @@ func New(clientFn func(*cli.Context) *client.Client, stdin *os.File, version str
 				sgcli.commandGet("Users", new(model.User)),
 				sgcli.commandUpdate("Users", new(model.User)),
 				sgcli.commandAction("delete", "Delete", "Users", new(model.User)),
-			},
-		},
-		{
-			Name:  "volumes",
-			Usage: "actions for Volumes",
-			Subcommands: []cli.Command{
-				sgcli.commandList("Volumes", new(model.VolumeList)),
-				sgcli.commandCreate("Volumes", new(model.Volume)),
-				sgcli.commandGet("Volumes", new(model.Volume)),
-				sgcli.commandUpdate("Volumes", new(model.Volume)),
-				sgcli.commandAction("delete", "Delete", "Volumes", new(model.Volume)),
-				sgcli.commandAction("resize", "Resize", "Volumes", new(model.Volume)),
 			},
 		},
 		{

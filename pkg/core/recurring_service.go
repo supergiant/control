@@ -11,12 +11,17 @@ type Service interface {
 }
 
 type RecurringService struct {
-	core     *Core
-	service  Service
+	core *Core
+
+	// can provide function directly (which takes priority), or Service interface
+	fn      func() error
+	service Service
+
 	interval time.Duration
 }
 
 func (s *RecurringService) Run() {
+	s.tick() // we want to run Service once immediately before waiting interval
 	for _ = range time.NewTicker(s.interval).C {
 		s.tick()
 	}
@@ -24,12 +29,23 @@ func (s *RecurringService) Run() {
 
 func (s *RecurringService) tick() {
 	defer s.recover()
-	if err := s.service.Perform(); err != nil {
+	if err := s.perform(); err != nil {
 		s.core.Log.Error("Error in RecurringService "+s.name()+": ", err)
 	}
 }
 
+func (s *RecurringService) perform() error {
+	if s.fn != nil {
+		return s.fn()
+	}
+	return s.service.Perform()
+}
+
 func (s *RecurringService) name() string {
+	// TODO no name if no service provided...
+	if s.service == nil {
+		return ""
+	}
 	return reflect.TypeOf(s.service).Elem().String()
 }
 

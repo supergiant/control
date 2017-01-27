@@ -110,29 +110,45 @@ func NewRouter(c *core.Core, baseRouter *mux.Router) *mux.Router {
 	r.HandleFunc("/nodes", restrictedHandler(c, ListNodes)).Methods("GET")
 	r.HandleFunc("/nodes/{id}", restrictedHandler(c, GetNode)).Methods("GET")
 
-	r.HandleFunc("/kube_resources/new", restrictedHandler(c, NewKubeResource)).Methods("GET")
-	r.HandleFunc("/kube_resources", restrictedHandler(c, CreateKubeResource)).Methods("POST")
-	r.HandleFunc("/kube_resources", restrictedHandler(c, ListKubeResources)).Methods("GET")
-	r.HandleFunc("/kube_resources/{id}", restrictedHandler(c, GetKubeResource)).Methods("GET")
-	r.HandleFunc("/kube_resources/{id}/edit", restrictedHandler(c, EditKubeResource)).Methods("GET")
-	r.HandleFunc("/kube_resources/{id}", restrictedHandler(c, UpdateKubeResource)).Methods("POST")
+	r.HandleFunc("/load_balancers/new", restrictedHandler(c, NewLoadBalancer)).Methods("GET")
+	r.HandleFunc("/load_balancers", restrictedHandler(c, CreateLoadBalancer)).Methods("POST")
+	r.HandleFunc("/load_balancers", restrictedHandler(c, ListLoadBalancers)).Methods("GET")
+	r.HandleFunc("/load_balancers/{id}", restrictedHandler(c, GetLoadBalancer)).Methods("GET")
+	r.HandleFunc("/load_balancers/{id}/edit", restrictedHandler(c, EditLoadBalancer)).Methods("GET")
+	r.HandleFunc("/load_balancers/{id}", restrictedHandler(c, UpdateLoadBalancer)).Methods("POST")
 
-	r.HandleFunc("/volumes/new", restrictedHandler(c, NewVolume)).Methods("GET")
-	r.HandleFunc("/volumes", restrictedHandler(c, CreateVolume)).Methods("POST")
+	r.HandleFunc("/pods", restrictedHandler(c, ListPods)).Methods("GET")
+	r.HandleFunc("/pods/new", restrictedHandler(c, NewPod)).Methods("GET")
+
+	r.HandleFunc("/services", restrictedHandler(c, ListServices)).Methods("GET")
+	r.HandleFunc("/services/new", restrictedHandler(c, NewService)).Methods("GET")
+
 	r.HandleFunc("/volumes", restrictedHandler(c, ListVolumes)).Methods("GET")
-	r.HandleFunc("/volumes/{id}", restrictedHandler(c, GetVolume)).Methods("GET")
-	r.HandleFunc("/volumes/{id}/edit", restrictedHandler(c, EditVolume)).Methods("GET")
-	r.HandleFunc("/volumes/{id}", restrictedHandler(c, UpdateVolume)).Methods("POST")
+	// r.HandleFunc("/volumes/new", restrictedHandler(c, NewVolume)).Methods("GET")
 
-	r.HandleFunc("/entrypoints/new", restrictedHandler(c, NewEntrypoint)).Methods("GET")
-	r.HandleFunc("/entrypoints", restrictedHandler(c, CreateEntrypoint)).Methods("POST")
-	r.HandleFunc("/entrypoints", restrictedHandler(c, ListEntrypoints)).Methods("GET")
-	r.HandleFunc("/entrypoints/{id}", restrictedHandler(c, GetEntrypoint)).Methods("GET")
+	// TODO these are currently legacy, for redirects after Create and such
+	r.HandleFunc("/kube_resources", restrictedHandler(c, ListKubeResources)).Methods("GET")
+	r.HandleFunc("/kube_resources/new", restrictedHandler(c, NewKubeResource)).Methods("GET")
+	// TODO this is so gross
+	r.HandleFunc("/{kind:(kube_resource|pod|service|volume)}s", restrictedHandler(c, CreateKubeResource)).Methods("POST")
+	r.HandleFunc("/{kind:(kube_resource|pod|service|volume)}s/{id}", restrictedHandler(c, GetKubeResource)).Methods("GET")
+	r.HandleFunc("/{kind:(kube_resource|pod|service|volume)}s/{id}/edit", restrictedHandler(c, EditKubeResource)).Methods("GET")
+	r.HandleFunc("/{kind:(kube_resource|pod|service|volume)}s/{id}", restrictedHandler(c, UpdateKubeResource)).Methods("POST")
 
-	r.HandleFunc("/entrypoint_listeners/new", restrictedHandler(c, NewEntrypointListener)).Methods("GET")
-	r.HandleFunc("/entrypoint_listeners", restrictedHandler(c, CreateEntrypointListener)).Methods("POST")
-	r.HandleFunc("/entrypoint_listeners", restrictedHandler(c, ListEntrypointListeners)).Methods("GET")
-	r.HandleFunc("/entrypoint_listeners/{id}", restrictedHandler(c, GetEntrypointListener)).Methods("GET")
+	r.HandleFunc("/helm_repos/new", restrictedHandler(c, NewHelmRepo)).Methods("GET")
+	r.HandleFunc("/helm_repos", restrictedHandler(c, CreateHelmRepo)).Methods("POST")
+	r.HandleFunc("/helm_repos", restrictedHandler(c, ListHelmRepos)).Methods("GET")
+	r.HandleFunc("/helm_repos/{id}", restrictedHandler(c, GetHelmRepo)).Methods("GET")
+
+	r.HandleFunc("/helm_charts/new", restrictedHandler(c, NewHelmChart)).Methods("GET")
+	r.HandleFunc("/helm_charts", restrictedHandler(c, CreateHelmChart)).Methods("POST")
+	r.HandleFunc("/helm_charts", restrictedHandler(c, ListHelmCharts)).Methods("GET")
+	r.HandleFunc("/helm_charts/{id}", restrictedHandler(c, GetHelmChart)).Methods("GET")
+
+	r.HandleFunc("/helm_releases/new", restrictedHandler(c, NewHelmRelease)).Methods("GET")
+	r.HandleFunc("/helm_releases", restrictedHandler(c, CreateHelmRelease)).Methods("POST")
+	r.HandleFunc("/helm_releases", restrictedHandler(c, ListHelmReleases)).Methods("GET")
+	r.HandleFunc("/helm_releases/{id}", restrictedHandler(c, GetHelmRelease)).Methods("GET")
 
 	return baseRouter
 }

@@ -57,7 +57,6 @@ func TestAWSProviderDeleteKube(t *testing.T) {
 					AWSConfig: &model.AWSKubeConfig{
 						VPCID:                         "VPCID",
 						InternetGatewayID:             "InternetGatewayID",
-						PublicSubnetID:                "PublicSubnetID",
 						RouteTableID:                  "RouteTableID",
 						RouteTableSubnetAssociationID: []string{"RouteTableSubnetAssociationID"},
 						ELBSecurityGroupID:            "ELBSecurityGroupID",
@@ -84,7 +83,6 @@ func TestAWSProviderDeleteKube(t *testing.T) {
 					AWSConfig: &model.AWSKubeConfig{
 						VPCID:                         "VPCID",
 						InternetGatewayID:             "InternetGatewayID",
-						PublicSubnetID:                "PublicSubnetID",
 						RouteTableID:                  "RouteTableID",
 						RouteTableSubnetAssociationID: []string{"RouteTableSubnetAssociationID"},
 						ELBSecurityGroupID:            "ELBSecurityGroupID",
@@ -105,7 +103,6 @@ func TestAWSProviderDeleteKube(t *testing.T) {
 					AWSConfig: &model.AWSKubeConfig{
 						VPCID:                         "VPCID",
 						InternetGatewayID:             "InternetGatewayID",
-						PublicSubnetID:                "PublicSubnetID",
 						RouteTableID:                  "RouteTableID",
 						RouteTableSubnetAssociationID: []string{"RouteTableSubnetAssociationID"},
 						ELBSecurityGroupID:            "ELBSecurityGroupID",
@@ -126,7 +123,6 @@ func TestAWSProviderDeleteKube(t *testing.T) {
 					AWSConfig: &model.AWSKubeConfig{
 						VPCID:                         "VPCID",
 						InternetGatewayID:             "InternetGatewayID",
-						PublicSubnetID:                "PublicSubnetID",
 						RouteTableID:                  "RouteTableID",
 						RouteTableSubnetAssociationID: []string{"RouteTableSubnetAssociationID"},
 						ELBSecurityGroupID:            "ELBSecurityGroupID",
@@ -147,7 +143,6 @@ func TestAWSProviderDeleteKube(t *testing.T) {
 					AWSConfig: &model.AWSKubeConfig{
 						VPCID:                         "VPCID",
 						InternetGatewayID:             "InternetGatewayID",
-						PublicSubnetID:                "PublicSubnetID",
 						RouteTableID:                  "RouteTableID",
 						RouteTableSubnetAssociationID: []string{"RouteTableSubnetAssociationID"},
 						ELBSecurityGroupID:            "ELBSecurityGroupID",
@@ -168,7 +163,6 @@ func TestAWSProviderDeleteKube(t *testing.T) {
 					AWSConfig: &model.AWSKubeConfig{
 						VPCID:                         "VPCID",
 						InternetGatewayID:             "InternetGatewayID",
-						PublicSubnetID:                "PublicSubnetID",
 						RouteTableID:                  "RouteTableID",
 						RouteTableSubnetAssociationID: []string{"RouteTableSubnetAssociationID"},
 						ELBSecurityGroupID:            "ELBSecurityGroupID",
@@ -189,7 +183,6 @@ func TestAWSProviderDeleteKube(t *testing.T) {
 					AWSConfig: &model.AWSKubeConfig{
 						VPCID:                         "VPCID",
 						InternetGatewayID:             "InternetGatewayID",
-						PublicSubnetID:                "PublicSubnetID",
 						RouteTableID:                  "RouteTableID",
 						RouteTableSubnetAssociationID: []string{"RouteTableSubnetAssociationID"},
 						ELBSecurityGroupID:            "ELBSecurityGroupID",
@@ -210,7 +203,6 @@ func TestAWSProviderDeleteKube(t *testing.T) {
 					AWSConfig: &model.AWSKubeConfig{
 						VPCID:                         "VPCID",
 						InternetGatewayID:             "InternetGatewayID",
-						PublicSubnetID:                "PublicSubnetID",
 						RouteTableID:                  "RouteTableID",
 						RouteTableSubnetAssociationID: []string{"RouteTableSubnetAssociationID"},
 						ELBSecurityGroupID:            "ELBSecurityGroupID",

@@ -13,6 +13,7 @@ $(function() {
   var table = $("table#item_list"),
       uiBasePath = table.data("ui-base-path"),
       apiBasePath = table.data('api-base-path'),
+      querylessApiBasePath = apiBasePath.replace(/\?.+$/, ""),
       fields = table.data('fields-json'),
       showStatusCol = table.data('show-status'),
       thead = $('<thead>'),
@@ -53,7 +54,16 @@ $(function() {
 
   var filterBits = window.location.search.match(/filter\.[^=]+=[^&]+/g);
 
-  var url = apiBasePath + "?limit=" + limit + "&offset=" + offset;
+
+  var joiner;
+  if (apiBasePath.includes("?")) {
+    joiner = "&";
+  } else {
+    joiner = "?";
+  }
+
+
+  var url = apiBasePath + joiner + "limit=" + limit + "&offset=" + offset;
   if (filterBits) {
     url += "&" + filterBits.join('&');
   }
@@ -421,7 +431,7 @@ $(function() {
     if (selectedItemIDs.length == 1) {
       actionLinks.each(function(lx, actionLink) {
         var link = $(actionLink),
-            path = uiBasePath + "/" + itemID + link.data("action-path");
+            path = link.data("action-path").replace("{{ ID }}", itemID);
         link.attr("href", path);
       });
       actionLinks.removeAttr('disabled');
@@ -492,7 +502,7 @@ $(function() {
         beforeSend: function(xhr){
           xhr.setRequestHeader('Authorization', 'SGAPI session="' + getCookie('supergiant_session') + '"');
         },
-        url: apiBasePath + "/" + id + modalConfirmBtn.data("batch-action-path"),
+        url: querylessApiBasePath + "/" + id + modalConfirmBtn.data("batch-action-path"),
         error: function(data) {
           if (!alerted) {
             alert(data.responseText);

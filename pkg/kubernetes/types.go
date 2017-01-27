@@ -19,6 +19,7 @@ type HeapsterMetrics struct {
 
 type Metadata struct {
 	Name              string            `json:"name,omitempty"`
+	GenerateName      string            `json:"generateName,omitempty"`
 	Namespace         string            `json:"namespace,omitempty"`
 	Labels            map[string]string `json:"labels,omitempty"`
 	CreationTimestamp string            `json:"creationTimestamp,omitempty"`
@@ -147,6 +148,7 @@ type Container struct {
 	Name            string          `json:"name"`
 	Image           string          `json:"image"`
 	Command         []string        `json:"command"`
+	Args            []string        `json:"args"`
 	Resources       Resources       `json:"resources"`
 	Ports           []ContainerPort `json:"ports"`
 	VolumeMounts    []VolumeMount   `json:"volumeMounts"`
@@ -222,4 +224,76 @@ type Event struct {
 
 type Source struct {
 	Host string `json:"host"`
+}
+
+//------------------------------------------------------------------------------
+
+//------------------------------------------------------------------------------
+type ServiceList struct {
+	Items []*Service `json:"items"`
+}
+
+type Service struct {
+	Metadata Metadata      `json:"metadata"`
+	Spec     ServiceSpec   `json:"spec"`
+	Status   ServiceStatus `json:"status"`
+}
+
+type ServiceSpec struct {
+	Type      string            `json:"type,omitempty"`
+	Selector  map[string]string `json:"selector"`
+	Ports     []ServicePort     `json:"ports"`
+	ClusterIP string            `json:"clusterIP,omitempty"`
+}
+
+type ServicePort struct {
+	Name       string `json:"name"`
+	Port       int    `json:"port"`
+	Protocol   string `json:"protocol,omitempty"`
+	NodePort   int    `json:"nodePort,omitempty"`
+	TargetPort int    `json:"targetPort,omitempty"`
+}
+
+type ServiceStatus struct {
+	LoadBalancer LoadBalancerStatus `json:"loadBalancer"`
+}
+
+type LoadBalancerStatus struct {
+	Ingress []LoadBalancerIngress `json:"ingress"`
+}
+
+type LoadBalancerIngress struct {
+	Hostname string `json:"hostname"`
+}
+
+//------------------------------------------------------------------------------
+
+//------------------------------------------------------------------------------
+type PersistentVolumeList struct {
+	Items []*PersistentVolume `json:"items"`
+}
+
+type PersistentVolume struct {
+	Metadata Metadata               `json:"metadata"`
+	Spec     PersistentVolumeSpec   `json:"spec"`
+	Status   PersistentVolumeStatus `json:"status"`
+}
+
+type PersistentVolumeSpec struct {
+	Capacity                      PersistentVolumeCapacity `json:"capacity"`
+	AwsElasticBlockStore          *AwsElasticBlockStore    `json:"awsElasticBlockStore,omitempty"`
+	FlexVolume                    *FlexVolume              `json:"flexVolume,omitempty"`
+	Cinder                        *Cinder                  `json:"cinder,omitempty"`
+	AccessModes                   []string                 `json:"accessModes"`
+	ClaimRef                      Metadata                 `json:"claimRef"`
+	PersistentVolumeReclaimPolicy string                   `json:"persistentVolumeReclaimPolicy"`
+}
+
+type PersistentVolumeCapacity struct {
+	Storage string `json:"storage"`
+}
+
+// TODO can this be generalized?
+type PersistentVolumeStatus struct {
+	Phase string `json:"phase"`
 }

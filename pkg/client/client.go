@@ -22,15 +22,16 @@ type Client struct {
 
 	httpClient *http.Client
 
-	Sessions            SessionsInterface
-	Users               UsersInterface
-	CloudAccounts       CloudAccountsInterface
-	Kubes               KubesInterface
-	KubeResources       KubeResourcesInterface
-	Volumes             VolumesInterface
-	Entrypoints         EntrypointsInterface
-	EntrypointListeners EntrypointListenersInterface
-	Nodes               NodesInterface
+	Sessions      SessionsInterface
+	Users         UsersInterface
+	CloudAccounts CloudAccountsInterface
+	Kubes         KubesInterface
+	KubeResources KubeResourcesInterface
+	Nodes         NodesInterface
+	LoadBalancers LoadBalancersInterface
+	HelmRepos     HelmReposInterface
+	HelmCharts    HelmChartsInterface
+	HelmReleases  HelmReleasesInterface
 }
 
 func New(url string, authType string, authToken string, certFile string) *Client {
@@ -65,10 +66,11 @@ func New(url string, authType string, authToken string, certFile string) *Client
 	client.CloudAccounts = &CloudAccounts{Collection{client, "cloud_accounts"}}
 	client.Kubes = &Kubes{Collection{client, "kubes"}}
 	client.KubeResources = &KubeResources{Collection{client, "kube_resources"}}
-	client.Volumes = &Volumes{Collection{client, "volumes"}}
-	client.Entrypoints = &Entrypoints{Collection{client, "entrypoints"}}
-	client.EntrypointListeners = &EntrypointListeners{Collection{client, "entrypoint_listeners"}}
 	client.Nodes = &Nodes{Collection{client, "nodes"}}
+	client.LoadBalancers = &LoadBalancers{Collection{client, "load_balancers"}}
+	client.HelmRepos = &HelmRepos{Collection{client, "helm_repos"}}
+	client.HelmCharts = &HelmCharts{Collection{client, "helm_charts"}}
+	client.HelmReleases = &HelmReleases{Collection{client, "helm_releases"}}
 
 	return client
 }

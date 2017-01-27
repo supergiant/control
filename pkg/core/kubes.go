@@ -51,7 +51,7 @@ func (c *Kubes) Delete(id *int64, m *model.Kube) ActionInterface {
 			MaxRetries:  5,
 		},
 		Core:           c.Core,
-		Scope:          c.Core.DB.Preload("CloudAccount").Preload("KubeResources").Preload("Entrypoints").Preload("Volumes").Preload("Nodes"),
+		Scope:          c.Core.DB.Preload("CloudAccount").Preload("KubeResources").Preload("HelmReleases").Preload("LoadBalancers").Preload("Nodes"),
 		Model:          m,
 		ID:             id,
 		CancelExisting: true,
@@ -62,8 +62,8 @@ func (c *Kubes) Delete(id *int64, m *model.Kube) ActionInterface {
 					return err
 				}
 			}
-			for _, entrypoint := range m.Entrypoints {
-				if err := c.Core.Entrypoints.Delete(entrypoint.ID, entrypoint).Now(); err != nil {
+			for _, loadBalancer := range m.LoadBalancers {
+				if err := c.Core.LoadBalancers.Delete(loadBalancer.ID, loadBalancer).Now(); err != nil {
 					return err
 				}
 			}
@@ -73,14 +73,22 @@ func (c *Kubes) Delete(id *int64, m *model.Kube) ActionInterface {
 					return err
 				}
 			}
-			// Delete Volumes
-			for _, volume := range m.Volumes {
-				if err := c.Core.Volumes.Delete(volume.ID, volume).Now(); err != nil {
-					return err
-				}
-			}
+			// TODO -------------------------------------- and what about Volumes        (maybe we don't have to delete these?)
+			// // Delete Volumes
+			// for _, volume := range m.Volumes {
+			// 	if err := c.Core.Volumes.Delete(volume.ID, volume).Now(); err != nil {
+			// 		return err
+			// 	}
+			// }
 			if err := c.Core.CloudAccounts.provider(m.CloudAccount).DeleteKube(m, a); err != nil {
 				return err
+			}
+
+			// Delete HelmReleases directly (NOTE we do this after because of the periodic sync of these in bg)
+			for _, release := range m.HelmReleases {
+				if err := c.Core.DB.Delete(release); err != nil {
+					return err
+				}
 			}
 			return c.Collection.Delete(id, m)
 		},

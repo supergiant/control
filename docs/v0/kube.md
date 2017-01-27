@@ -2,8 +2,8 @@
 
 A Kube represents a Kubernetes cluster. It belongs to a
 [CloudAccount](cloud_account.md), and is the parent of
-[Nodes](node.md), [Entrypoints](entrypoint.md),
-[KubeResources](kube_resource.md), and [Volumes](volume.md).
+[Nodes](node.md), [LoadBalancers](load_balancer.md), and
+[KubeResources](kube_resource.md).
 In other words, it is the encompassing object for all hardware-related assets.
 
 ### Examples

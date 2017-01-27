@@ -219,6 +219,7 @@ ul.dropdown-menu {
 
 ul.dropdown-menu.open {
   display: block;
+  z-index: 99;
 }
 
 ul.dropdown-menu li a {
@@ -290,7 +291,13 @@ table#item_list th:first-child {
 }
 
 table#item_list td {
-  padding: 18px 0;
+  padding-top: 16px;
+  padding-bottom: 16px;
+  padding-right: 30px;
+}
+
+table#item_list td:first-child {
+  padding-right: 0;
 }
 
 table#item_list a:hover, table#item_list a:active {

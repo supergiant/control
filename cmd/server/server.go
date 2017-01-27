@@ -10,6 +10,7 @@ import (
 	"github.com/supergiant/supergiant/pkg/provider/aws"
 	"github.com/supergiant/supergiant/pkg/provider/digitalocean"
 	"github.com/supergiant/supergiant/pkg/provider/gce"
+	"github.com/supergiant/supergiant/pkg/provider/kubernetes"
 	"github.com/supergiant/supergiant/pkg/provider/openstack"
 	"github.com/supergiant/supergiant/pkg/server"
 )
@@ -58,6 +59,8 @@ func main() {
 				Client: gce.Client,
 			}
 		}
+
+		c.K8SProvider = &kubernetes.Provider{Core: c}
 
 		// We do this here, and not in core, so that we can ensure the file closes on exit.
 		if c.LogPath != "" {

@@ -680,13 +680,10 @@ func TestKubeDelete(t *testing.T) {
 
 		table := []struct {
 			// Input
-			parentCloudAccount          *model.CloudAccount
-			existingModel               *model.Kube
-			existingEntrypoints         []*model.Entrypoint
-			existingEntrypointListeners []*model.EntrypointListener
-			existingNodes               []*model.Node
-			existingKubeResources       []*model.KubeResource
-			existingVolumes             []*model.Volume
+			parentCloudAccount    *model.CloudAccount
+			existingModel         *model.Kube
+			existingNodes         []*model.Node
+			existingKubeResources []*model.KubeResource
 			// Mocks
 			mockProviderDeleteKubeError error
 			// Expectations
@@ -714,20 +711,6 @@ func TestKubeDelete(t *testing.T) {
 						AvailabilityZone: "us-east-1a",
 					},
 				},
-				existingEntrypoints: []*model.Entrypoint{
-					{
-						KubeName: "test",
-						Name:     "test",
-					},
-				},
-				existingEntrypointListeners: []*model.EntrypointListener{
-					{
-						EntrypointName: "test",
-						Name:           "test",
-						EntrypointPort: 100,
-						NodePort:       101,
-					},
-				},
 				existingNodes: []*model.Node{
 					{
 						KubeName: "test",
@@ -741,15 +724,7 @@ func TestKubeDelete(t *testing.T) {
 						Namespace: "test",
 						Kind:      "Thingy",
 						Name:      "test",
-						Template:  newRawMessage(`{}`),
-					},
-				},
-				existingVolumes: []*model.Volume{
-					{
-						KubeName: "test",
-						Name:     "test",
-						Type:     "gp2",
-						Size:     10,
+						Resource:  newRawMessage(`{}`),
 					},
 				},
 				mockProviderDeleteKubeError:    nil,
@@ -778,11 +753,8 @@ func TestKubeDelete(t *testing.T) {
 						AvailabilityZone: "us-east-1a",
 					},
 				},
-				existingEntrypoints:            nil,
-				existingEntrypointListeners:    nil,
 				existingNodes:                  nil,
 				existingKubeResources:          nil,
-				existingVolumes:                nil,
 				mockProviderDeleteKubeError:    errors.New("error deleting Kube"),
 				entrypointNamesDeleted:         nil,
 				entrypointListenerNamesDeleted: nil,
@@ -795,11 +767,8 @@ func TestKubeDelete(t *testing.T) {
 
 		for _, item := range table {
 
-			var entrypointNamesDeleted []string
-			var entrypointListenerNamesDeleted []string
 			var nodeNamesDeleted []string
 			var kubeResourceNamesDeleted []string
-			var volumeNamesDeleted []string
 
 			wipeAndInitialize(srv.Core)
 
@@ -820,20 +789,11 @@ func TestKubeDelete(t *testing.T) {
 
 			srv.Core.Kubes.Create(item.existingModel)
 
-			for _, existingEntrypoint := range item.existingEntrypoints {
-				srv.Core.Entrypoints.Create(existingEntrypoint)
-			}
-			for _, existingEntrypointListener := range item.existingEntrypointListeners {
-				srv.Core.EntrypointListeners.Create(existingEntrypointListener)
-			}
 			for _, existingNode := range item.existingNodes {
 				srv.Core.Nodes.Create(existingNode)
 			}
 			for _, existingKubeResource := range item.existingKubeResources {
 				srv.Core.KubeResources.Create(existingKubeResource)
-			}
-			for _, existingVolume := range item.existingVolumes {
-				srv.Core.Volumes.Create(existingVolume)
 			}
 
 			err := sg.Kubes.Delete(item.existingModel.ID, item.existingModel)
@@ -848,38 +808,6 @@ func TestKubeDelete(t *testing.T) {
 			sg.Kubes.Get(item.existingModel.ID, item.existingModel)
 
 			So(item.existingModel.Status.Error, ShouldEqual, item.statusError)
-
-			// Find Entrypoints deleted
-			for _, existingEntrypoint := range item.existingEntrypoints {
-				entrypointNamesDeleted = append(entrypointNamesDeleted, existingEntrypoint.Name)
-			}
-			var remainingEntrypoints []*model.Entrypoint
-			srv.Core.DB.Find(&remainingEntrypoints)
-			for _, remainingEntrypoint := range remainingEntrypoints {
-				for i, nameDeleted := range entrypointNamesDeleted {
-					if remainingEntrypoint.Name == nameDeleted {
-						// Delete
-						entrypointNamesDeleted = append(entrypointNamesDeleted[:i], entrypointNamesDeleted[i+1:]...)
-					}
-				}
-			}
-			So(entrypointNamesDeleted, ShouldResemble, item.entrypointNamesDeleted)
-
-			// Find EntrypointListeners deleted
-			for _, existingEntrypointListener := range item.existingEntrypointListeners {
-				entrypointListenerNamesDeleted = append(entrypointListenerNamesDeleted, existingEntrypointListener.Name)
-			}
-			var remainingEntrypointListeners []*model.EntrypointListener
-			srv.Core.DB.Find(&remainingEntrypointListeners)
-			for _, remainingEntrypointListener := range remainingEntrypointListeners {
-				for i, nameDeleted := range entrypointListenerNamesDeleted {
-					if remainingEntrypointListener.Name == nameDeleted {
-						// Delete
-						entrypointListenerNamesDeleted = append(entrypointListenerNamesDeleted[:i], entrypointListenerNamesDeleted[i+1:]...)
-					}
-				}
-			}
-			So(entrypointListenerNamesDeleted, ShouldResemble, item.entrypointListenerNamesDeleted)
 
 			// Find Nodes deleted
 			for _, existingNode := range item.existingNodes {
@@ -912,22 +840,6 @@ func TestKubeDelete(t *testing.T) {
 				}
 			}
 			So(kubeResourceNamesDeleted, ShouldResemble, item.kubeResourceNamesDeleted)
-
-			// Find Volumes deleted
-			for _, existingVolume := range item.existingVolumes {
-				volumeNamesDeleted = append(volumeNamesDeleted, existingVolume.Name)
-			}
-			var remainingVolumes []*model.Volume
-			srv.Core.DB.Find(&remainingVolumes)
-			for _, remainingVolume := range remainingVolumes {
-				for i, nameDeleted := range volumeNamesDeleted {
-					if remainingVolume.Name == nameDeleted {
-						// Delete
-						volumeNamesDeleted = append(volumeNamesDeleted[:i], volumeNamesDeleted[i+1:]...)
-					}
-				}
-			}
-			So(volumeNamesDeleted, ShouldResemble, item.volumeNamesDeleted)
 		}
 	})
 }

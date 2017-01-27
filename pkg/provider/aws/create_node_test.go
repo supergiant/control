@@ -43,12 +43,6 @@ func TestAWSProviderCreateNode(t *testing.T) {
 								},
 							},
 						},
-						// Relations
-						Entrypoints: []*model.Entrypoint{
-							{
-								Name: "my-entrypoint",
-							},
-						},
 					},
 				},
 			},

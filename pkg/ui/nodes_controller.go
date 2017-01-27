@@ -40,7 +40,7 @@ func CreateNode(sg *client.Client, w http.ResponseWriter, r *http.Request) error
 func ListNodes(sg *client.Client, w http.ResponseWriter, r *http.Request) error {
 	fields := []map[string]interface{}{
 		{
-			"title": "Kube ID",
+			"title": "Kube name",
 			"type":  "field_value",
 			"field": "kube_name",
 		},

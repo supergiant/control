@@ -5,7 +5,6 @@ import (
 	"testing"
 	"time"
 
-	"github.com/supergiant/supergiant/pkg/client"
 	"github.com/supergiant/supergiant/pkg/core"
 	"github.com/supergiant/supergiant/pkg/kubernetes"
 	"github.com/supergiant/supergiant/pkg/model"
@@ -15,29 +14,6 @@ import (
 )
 
 var kubeResourceID int64 = 24
-
-func createKube(sg *client.Client) *model.Kube {
-	cloudAccount := &model.CloudAccount{
-		Name:        "test",
-		Provider:    "aws",
-		Credentials: map[string]string{"thanks": "for being great"},
-	}
-	sg.CloudAccounts.Create(cloudAccount)
-
-	kube := &model.Kube{
-		CloudAccountName: cloudAccount.Name,
-		Name:             "test",
-		MasterNodeSize:   "m4.large",
-		NodeSizes:        []string{"m4.large"},
-		AWSConfig: &model.AWSKubeConfig{
-			Region:           "us-east-1",
-			AvailabilityZone: "us-east-1a",
-		},
-	}
-	sg.Kubes.Create(kube)
-
-	return kube
-}
 
 //------------------------------------------------------------------------------
 
@@ -92,7 +68,7 @@ func TestKubeResourcesCreate(t *testing.T) {
 					Namespace: "test",
 					Name:      "test",
 					Kind:      "Pod",
-					Template: newRawMessage(`{
+					Resource: newRawMessage(`{
 						"spec": {
 							"containers": [
 								{
@@ -112,7 +88,7 @@ func TestKubeResourcesCreate(t *testing.T) {
 					Namespace: "test",
 					Name:      "test",
 					Kind:      "Pod",
-					Template: newRawMessage(`{
+					Resource: newRawMessage(`{
 						"spec": {
 							"containers": [
 								{
@@ -133,7 +109,7 @@ func TestKubeResourcesCreate(t *testing.T) {
 					Namespace: "test",
 					Name:      "test",
 					Kind:      "Pod",
-					Template: newRawMessage(`{
+					Resource: newRawMessage(`{
 						"spec": {
 							"containers": [
 								{
@@ -200,12 +176,12 @@ func TestKubeResourcesStart(t *testing.T) {
 					Namespace: "test",
 					Name:      "test",
 					Kind:      "Pod",
-					Template:  newRawMessage(`{}`),
+					Resource:  newRawMessage(`{}`),
 				},
-				mockStartTimeout:  false,
-				namespaceEnsured:  "test",
-				provisionerCalled: "pod",
-				errorReturned:     nil,
+				mockStartTimeout: false,
+				namespaceEnsured: "test",
+				// provisionerCalled: "pod",
+				errorReturned: nil,
 			},
 			// Service
 			{
@@ -215,12 +191,12 @@ func TestKubeResourcesStart(t *testing.T) {
 					Namespace: "beep",
 					Name:      "test",
 					Kind:      "Service",
-					Template:  newRawMessage(`{}`),
+					Resource:  newRawMessage(`{}`),
 				},
-				mockStartTimeout:  false,
-				namespaceEnsured:  "beep",
-				provisionerCalled: "service",
-				errorReturned:     nil,
+				mockStartTimeout: false,
+				namespaceEnsured: "beep",
+				// provisionerCalled: "service",
+				errorReturned: nil,
 			},
 			// Anything else
 			{
@@ -230,12 +206,12 @@ func TestKubeResourcesStart(t *testing.T) {
 					Namespace: "test",
 					Name:      "test",
 					Kind:      "LiterallyAnythingElse",
-					Template:  newRawMessage(`{}`),
+					Resource:  newRawMessage(`{}`),
 				},
-				mockStartTimeout:  false,
-				namespaceEnsured:  "test",
-				provisionerCalled: "default",
-				errorReturned:     nil,
+				mockStartTimeout: false,
+				namespaceEnsured: "test",
+				// provisionerCalled: "default",
+				errorReturned: nil,
 			},
 			// Reports error on StartTimeout
 			{
@@ -245,19 +221,19 @@ func TestKubeResourcesStart(t *testing.T) {
 					Namespace: "foo",
 					Name:      "test",
 					Kind:      "Service",
-					Template:  newRawMessage(`{}`),
+					Resource:  newRawMessage(`{}`),
 				},
-				mockStartTimeout:  true,
-				namespaceEnsured:  "foo",
-				provisionerCalled: "service",
-				errorReturned:     errors.New("Timed out waiting for Service 'test' in Namespace 'foo' to start"),
+				mockStartTimeout: true,
+				namespaceEnsured: "foo",
+				// provisionerCalled: "service",
+				errorReturned: errors.New("Timed out waiting for Service 'test' in Namespace 'foo' to start"),
 			},
 		}
 
 		for _, item := range table {
 
 			var namespaceEnsured string
-			var provisionerCalled string
+			// var provisionerCalled string
 
 			srv.Core.KubeResourceStartTimeout = time.Nanosecond
 
@@ -276,25 +252,25 @@ func TestKubeResourcesStart(t *testing.T) {
 
 			srv.Core.DefaultProvisioner = &fake_core.Provisioner{
 				ProvisionFn: func(_ *model.KubeResource) error {
-					provisionerCalled = "default"
+					// provisionerCalled = "default"
 					return nil
 				},
 				IsRunningFn: isRunningFn,
 			}
-			srv.Core.PodProvisioner = &fake_core.Provisioner{
-				ProvisionFn: func(_ *model.KubeResource) error {
-					provisionerCalled = "pod"
-					return nil
-				},
-				IsRunningFn: isRunningFn,
-			}
-			srv.Core.ServiceProvisioner = &fake_core.Provisioner{
-				ProvisionFn: func(_ *model.KubeResource) error {
-					provisionerCalled = "service"
-					return nil
-				},
-				IsRunningFn: isRunningFn,
-			}
+			// srv.Core.PodProvisioner = &fake_core.Provisioner{
+			// 	ProvisionFn: func(_ *model.KubeResource) error {
+			// 		// provisionerCalled = "pod"
+			// 		return nil
+			// 	},
+			// 	IsRunningFn: isRunningFn,
+			// }
+			// srv.Core.ServiceProvisioner = &fake_core.Provisioner{
+			// 	ProvisionFn: func(_ *model.KubeResource) error {
+			// 		// provisionerCalled = "service"
+			// 		return nil
+			// 	},
+			// 	IsRunningFn: isRunningFn,
+			// }
 
 			sg.KubeResources.Create(item.kubeResource)
 			sg.KubeResources.Start(item.kubeResource.ID, item.kubeResource)
@@ -306,7 +282,7 @@ func TestKubeResourcesStart(t *testing.T) {
 				So(item.kubeResource.Status.Error, ShouldResemble, item.errorReturned.Error())
 			}
 			So(namespaceEnsured, ShouldEqual, item.namespaceEnsured)
-			So(provisionerCalled, ShouldEqual, item.provisionerCalled)
+			// So(provisionerCalled, ShouldEqual, item.provisionerCalled)
 
 			// Cleanup
 			srv.Core.DB.Delete(item.kubeResource)

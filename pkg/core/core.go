@@ -51,6 +51,7 @@ type Settings struct {
 
 	// NOTE this is only exposed for the purpose of testing
 	KubeResourceStartTimeout time.Duration
+	HelmJobStartTimeout      time.Duration
 }
 
 type Core struct {
@@ -65,11 +66,12 @@ type Core struct {
 	OSProvider  func(map[string]string) Provider
 	GCEProvider func(map[string]string) Provider
 
+	// A little different from the above
+	K8SProvider Provider
+
 	K8S func(*model.Kube) kubernetes.ClientInterface
 
 	DefaultProvisioner Provisioner
-	PodProvisioner     Provisioner
-	ServiceProvisioner Provisioner
 
 	APIClient func(authType string, authToken string) *client.Client
 
@@ -77,15 +79,16 @@ type Core struct {
 
 	DB DBInterface
 
-	Sessions            SessionsInterface
-	Users               *Users
-	CloudAccounts       *CloudAccounts
-	Kubes               *Kubes
-	KubeResources       KubeResourcesInterface
-	Volumes             VolumesInterface
-	Entrypoints         *Entrypoints
-	EntrypointListeners EntrypointListenersInterface
-	Nodes               NodesInterface
+	Sessions      SessionsInterface
+	Users         *Users
+	CloudAccounts *CloudAccounts
+	Kubes         *Kubes
+	KubeResources KubeResourcesInterface
+	Nodes         NodesInterface
+	LoadBalancers *LoadBalancers
+	HelmRepos     *HelmRepos
+	HelmCharts    *HelmCharts
+	HelmReleases  *HelmReleases
 
 	// TODO should this be a pseudo-collection like Sessions?
 	Actions *SafeMap
@@ -99,6 +102,9 @@ func (c *Core) Initialize() {
 		panic(err)
 	}
 	if err := c.detectOrCreateAdmin(); err != nil {
+		panic(err)
+	}
+	if err := c.detectOrCreateStableHelmRepo(); err != nil {
 		panic(err)
 	}
 	c.InitializeBackground()
@@ -170,10 +176,11 @@ func (c *Core) InitializeForeground() error {
 		&model.Kube{},
 		&model.KubeResource{},
 		&model.CloudAccount{},
-		&model.Volume{},
-		&model.Entrypoint{},
-		&model.EntrypointListener{},
 		&model.Node{},
+		&model.LoadBalancer{},
+		&model.HelmRepo{},
+		&model.HelmChart{},
+		&model.HelmRelease{},
 	).Error
 	if err != nil {
 		return err
@@ -185,10 +192,11 @@ func (c *Core) InitializeForeground() error {
 	c.Kubes = &Kubes{Collection{c}}
 	c.KubeResources = &KubeResources{Collection{c}}
 	c.CloudAccounts = &CloudAccounts{Collection{c}}
-	c.Volumes = &Volumes{Collection{c}}
-	c.Entrypoints = &Entrypoints{Collection{c}}
-	c.EntrypointListeners = &EntrypointListeners{Collection{c}}
 	c.Nodes = &Nodes{Collection{c}}
+	c.LoadBalancers = &LoadBalancers{Collection{c}}
+	c.HelmRepos = &HelmRepos{Collection{c}}
+	c.HelmCharts = &HelmCharts{Collection{c}}
+	c.HelmReleases = &HelmReleases{Collection{c}}
 	c.Sessions = NewSessions(c)
 
 	// Actions for async work
@@ -204,10 +212,9 @@ func (c *Core) InitializeForeground() error {
 
 	// Kubernetes Provisioners
 	c.DefaultProvisioner = &DefaultProvisioner{c}
-	c.PodProvisioner = &PodProvisioner{c}
-	c.ServiceProvisioner = &ServiceProvisioner{c}
 
 	c.KubeResourceStartTimeout = 20 * time.Minute
+	c.HelmJobStartTimeout = 30 * time.Second
 
 	// API Client
 	c.APIClient = func(authType string, authToken string) *client.Client {
@@ -241,12 +248,27 @@ func (c *Core) InitializeBackground() {
 	}
 	go nodeObserver.Run()
 
-	kubeResourceObserver := &RecurringService{
+	// TODO we probably don't need both this and the observer
+	kubeResourcePopulater := &RecurringService{
 		core:     c,
-		service:  &KubeResourceObserver{c},
-		interval: 15 * time.Second,
+		fn:       c.KubeResources.Populate,
+		interval: 30 * time.Second,
 	}
-	go kubeResourceObserver.Run()
+	go kubeResourcePopulater.Run()
+
+	helmChartPopulater := &RecurringService{
+		core:     c,
+		fn:       c.HelmCharts.Populate,
+		interval: 60 * time.Second,
+	}
+	go helmChartPopulater.Run()
+
+	helmReleasePopulater := &RecurringService{
+		core:     c,
+		fn:       c.HelmReleases.Populate,
+		interval: 30 * time.Second,
+	}
+	go helmReleasePopulater.Run()
 
 	sessionExpirer := &RecurringService{
 		core:     c,
@@ -311,4 +333,20 @@ func (c *Core) detectOrCreateAdmin() error {
 	fmt.Printf("\n  ( ͡° ͜ʖ ͡°)  USERNAME: admin  PASSWORD: %s\n\n", password)
 
 	return nil
+}
+
+//------------------------------------------------------------------------------
+
+func (c *Core) detectOrCreateStableHelmRepo() error {
+	if err := c.DB.First(new(model.HelmRepo), "name = ?", "stable"); err == nil {
+		return nil // Already exists
+	}
+
+	c.Log.Info("Registering stable HelmRepo")
+
+	repo := &model.HelmRepo{
+		Name: "stable",
+		URL:  "https://kubernetes-charts.storage.googleapis.com",
+	}
+	return c.HelmRepos.Create(repo)
 }

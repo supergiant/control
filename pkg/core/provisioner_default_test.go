@@ -3,6 +3,7 @@ package core_test
 import (
 	"encoding/json"
 	"errors"
+	"reflect"
 	"testing"
 
 	"github.com/supergiant/supergiant/pkg/core"
@@ -43,7 +44,7 @@ func TestDefaultProvisionerProvision(t *testing.T) {
 					Namespace: "test",
 					Name:      "test",
 					Kind:      "Service",
-					Template: newRawMessage(`{
+					Resource: newRawMessage(`{
 						"spec": {
 							"ports": [
 								{
@@ -85,7 +86,7 @@ func TestDefaultProvisionerProvision(t *testing.T) {
 					Namespace: "foo",
 					Name:      "bar",
 					Kind:      "Service",
-					Template: newRawMessage(`{
+					Resource: newRawMessage(`{
 						"apiVersion": "user-provided-version",
 						"metadata": {
 							"namespace": "erroneous user input we don't care about",
@@ -137,7 +138,7 @@ func TestDefaultProvisionerProvision(t *testing.T) {
 					Namespace: "beep",
 					Name:      "borp",
 					Kind:      "Secret",
-					Template: newRawMessage(`{
+					Resource: newRawMessage(`{
 						"spec": {}
 					}`),
 				},
@@ -171,12 +172,12 @@ func TestDefaultProvisionerProvision(t *testing.T) {
 			c := &core.Core{
 				K8S: func(_ *model.Kube) kubernetes.ClientInterface {
 					return &fake_core.KubernetesClient{
-						CreateResourceFn: func(kind string, namespace string, objIn map[string]interface{}, out *json.RawMessage) error {
+						CreateResourceFn: func(apiVersion string, kind string, namespace string, objIn interface{}, out interface{}) error {
 							kindPassed = kind
 							namespacePassed = namespace
-							objInPassed = objIn
+							objInPassed = objIn.(map[string]interface{})
 
-							*out = item.mockCreateResourceOut
+							reflect.ValueOf(out).Elem().Set(reflect.ValueOf(item.mockCreateResourceOut))
 
 							return item.mockCreateResourceError
 						},
@@ -184,7 +185,7 @@ func TestDefaultProvisionerProvision(t *testing.T) {
 				},
 				DB: &fake_core.DB{
 					SaveFn: func(m model.Model) error {
-						outSaved = *m.(*model.KubeResource).Artifact
+						outSaved = *m.(*model.KubeResource).Resource
 						return nil
 					},
 				},
@@ -289,7 +290,7 @@ func TestDefaultProvisionerTeardown(t *testing.T) {
 			c := &core.Core{
 				K8S: func(_ *model.Kube) kubernetes.ClientInterface {
 					return &fake_core.KubernetesClient{
-						DeleteResourceFn: func(kind string, namespace string, name string) error {
+						DeleteResourceFn: func(apiVersion string, kind string, namespace string, name string) error {
 							kindPassed = kind
 							namespacePassed = namespace
 							namePassed = name

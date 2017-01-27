@@ -3,6 +3,7 @@ package api
 import (
 	"encoding/json"
 
+	"github.com/supergiant/supergiant/pkg/client"
 	"github.com/supergiant/supergiant/pkg/core"
 	"github.com/supergiant/supergiant/pkg/model"
 	"github.com/supergiant/supergiant/pkg/server"
@@ -37,10 +38,11 @@ func wipeDatabase(c *core.Core) {
 	c.DB.Delete(&model.Kube{})
 	c.DB.Delete(&model.KubeResource{})
 	c.DB.Delete(&model.CloudAccount{})
-	c.DB.Delete(&model.Volume{})
-	c.DB.Delete(&model.Entrypoint{})
-	c.DB.Delete(&model.EntrypointListener{})
 	c.DB.Delete(&model.Node{})
+	c.DB.Delete(&model.LoadBalancer{})
+	c.DB.Delete(&model.HelmRepo{})
+	c.DB.Delete(&model.HelmChart{})
+	c.DB.Delete(&model.HelmRelease{})
 }
 
 func wipeAndInitialize(c *core.Core) {
@@ -77,4 +79,27 @@ func createUserAndAdmin(c *core.Core) (*model.User, *model.User) {
 func newRawMessage(str string) *json.RawMessage {
 	rawmsg := json.RawMessage([]byte(str))
 	return &rawmsg
+}
+
+func createKube(sg *client.Client) *model.Kube {
+	cloudAccount := &model.CloudAccount{
+		Name:        "test",
+		Provider:    "aws",
+		Credentials: map[string]string{"thanks": "for being great"},
+	}
+	sg.CloudAccounts.Create(cloudAccount)
+
+	kube := &model.Kube{
+		CloudAccountName: cloudAccount.Name,
+		Name:             "test",
+		MasterNodeSize:   "m4.large",
+		NodeSizes:        []string{"m4.large"},
+		AWSConfig: &model.AWSKubeConfig{
+			Region:           "us-east-1",
+			AvailabilityZone: "us-east-1a",
+		},
+	}
+	sg.Kubes.Create(kube)
+
+	return kube
 }

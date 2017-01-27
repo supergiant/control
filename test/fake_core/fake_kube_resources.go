@@ -6,6 +6,7 @@ import (
 )
 
 type KubeResources struct {
+	PopulateFn        func() error
 	CreateFn          func(*model.KubeResource) error
 	GetFn             func(*int64, model.Model) error
 	GetWithIncludesFn func(*int64, model.Model, []string) error
@@ -14,6 +15,10 @@ type KubeResources struct {
 	StartFn           func(*int64, *model.KubeResource) core.ActionInterface
 	StopFn            func(*int64, *model.KubeResource) core.ActionInterface
 	RefreshFn         func(*model.KubeResource) error
+}
+
+func (c *KubeResources) Populate() error {
+	return c.PopulateFn()
 }
 
 func (c *KubeResources) Create(m *model.KubeResource) error {

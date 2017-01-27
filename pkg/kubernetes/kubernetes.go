@@ -19,14 +19,20 @@ type ClientInterface interface {
 	// EnsureNamespace creates a Kubernetes Namespace unless it already exists.
 	EnsureNamespace(name string) error
 
-	GetResource(kind string, namespace string, name string, out *json.RawMessage) error
-	CreateResource(kind string, namespace string, objIn map[string]interface{}, out *json.RawMessage) error
-	DeleteResource(kind string, namespace string, name string) error
+	GetResource(apiVersion, kind, namespace, name string, out interface{}) error
+	CreateResource(apiVersion, kind, namespace string, objIn interface{}, out interface{}) error
+	UpdateResource(apiVersion, kind, namespace, name string, objIn interface{}, out interface{}) error
+	DeleteResource(apiVersion, kind, namespace, name string) error
 
 	ListNamespaces(query string) ([]*Namespace, error)
 	ListEvents(query string) ([]*Event, error)
 	ListNodes(query string) ([]*Node, error)
 	ListPods(query string) ([]*Pod, error)
+	ListServices(query string) ([]*Service, error)
+	ListPersistentVolumes(query string) ([]*PersistentVolume, error)
+
+	GetPodLog(namespace, name string) (string, error)
+
 	ListNodeHeapsterStats() ([]*HeapsterStats, error)
 	ListPodHeapsterCPUUsageMetrics(namespace string, name string) ([]*HeapsterMetric, error)
 	ListPodHeapsterRAMUsageMetrics(namespace string, name string) ([]*HeapsterMetric, error)
@@ -52,7 +58,7 @@ type Client struct {
 // EnsureNamespace implements the ClientInterface.
 func (k *Client) EnsureNamespace(name string) error {
 	// If we get a 404 here, we need to create
-	err := k.requestInto("GET", "namespaces/"+name, nil, nil)
+	err := k.requestInto("GET", "api/v1", "namespaces/"+name, nil, nil)
 	if err == nil {
 		return nil // already exists
 	} else if !strings.Contains(err.Error(), "404") {
@@ -63,17 +69,17 @@ func (k *Client) EnsureNamespace(name string) error {
 			Name: name,
 		},
 	}
-	return k.requestInto("POST", "namespaces", namespace, nil)
+	return k.requestInto("POST", "api/v1", "namespaces", namespace, nil)
 }
 
-func (k *Client) GetResource(kind string, namespace string, name string, out *json.RawMessage) error {
+func (k *Client) GetResource(apiVersion, kind, namespace, name string, out interface{}) error {
 	path := fmt.Sprintf("namespaces/%s/%s/%s", namespace, lowerPlural(kind), name)
-	return k.requestInto("GET", path, nil, out)
+	return k.requestInto("GET", apiVersion, path, nil, out)
 }
 
-func (k *Client) CreateResource(kind string, namespace string, in map[string]interface{}, out *json.RawMessage) error {
+func (k *Client) CreateResource(apiVersion, kind, namespace string, in interface{}, out interface{}) error {
 	path := fmt.Sprintf("namespaces/%s/%s", namespace, lowerPlural(kind))
-	err := k.requestInto("POST", path, in, out)
+	err := k.requestInto("POST", apiVersion, path, in, out)
 	// Only return error if it's NOT a 409 already exists error
 	if err != nil && !strings.Contains(err.Error(), "409") {
 		return err
@@ -81,14 +87,19 @@ func (k *Client) CreateResource(kind string, namespace string, in map[string]int
 	return nil
 }
 
-func (k *Client) DeleteResource(kind string, namespace string, name string) error {
+func (k *Client) UpdateResource(apiVersion, kind, namespace, name string, in interface{}, out interface{}) error {
 	path := fmt.Sprintf("namespaces/%s/%s/%s", namespace, lowerPlural(kind), name)
-	return k.requestInto("DELETE", path, nil, nil)
+	return k.patchRequestInto(apiVersion, path, in, out)
+}
+
+func (k *Client) DeleteResource(apiVersion, kind, namespace, name string) error {
+	path := fmt.Sprintf("namespaces/%s/%s/%s", namespace, lowerPlural(kind), name)
+	return k.requestInto("DELETE", apiVersion, path, nil, nil)
 }
 
 func (k *Client) ListNamespaces(query string) ([]*Namespace, error) {
 	list := new(NamespaceList)
-	if err := k.requestInto("GET", "namespaces?"+query, nil, list); err != nil {
+	if err := k.requestInto("GET", "api/v1", "namespaces?"+query, nil, list); err != nil {
 		return nil, err
 	}
 	return list.Items, nil
@@ -96,7 +107,7 @@ func (k *Client) ListNamespaces(query string) ([]*Namespace, error) {
 
 func (k *Client) ListNodes(query string) ([]*Node, error) {
 	list := new(NodeList)
-	if err := k.requestInto("GET", "nodes?"+query, nil, list); err != nil {
+	if err := k.requestInto("GET", "api/v1", "nodes?"+query, nil, list); err != nil {
 		return nil, err
 	}
 	return list.Items, nil
@@ -104,7 +115,23 @@ func (k *Client) ListNodes(query string) ([]*Node, error) {
 
 func (k *Client) ListPods(query string) ([]*Pod, error) {
 	list := new(PodList)
-	if err := k.requestInto("GET", "pods?"+query, nil, list); err != nil {
+	if err := k.requestInto("GET", "api/v1", "pods?"+query, nil, list); err != nil {
+		return nil, err
+	}
+	return list.Items, nil
+}
+
+func (k *Client) ListServices(query string) ([]*Service, error) {
+	list := new(ServiceList)
+	if err := k.requestInto("GET", "api/v1", "services?"+query, nil, list); err != nil {
+		return nil, err
+	}
+	return list.Items, nil
+}
+
+func (k *Client) ListPersistentVolumes(query string) ([]*PersistentVolume, error) {
+	list := new(PersistentVolumeList)
+	if err := k.requestInto("GET", "api/v1", "persistentvolumes?"+query, nil, list); err != nil {
 		return nil, err
 	}
 	return list.Items, nil
@@ -112,67 +139,88 @@ func (k *Client) ListPods(query string) ([]*Pod, error) {
 
 func (k *Client) ListEvents(query string) ([]*Event, error) {
 	list := new(EventList)
-	if err := k.requestInto("GET", "events?"+query, nil, list); err != nil {
+	if err := k.requestInto("GET", "api/v1", "events?"+query, nil, list); err != nil {
 		return nil, err
 	}
 	return list.Items, nil
 }
 
+func (k *Client) GetPodLog(namespace, name string) (string, error) {
+	path := fmt.Sprintf("namespaces/%s/pods/%s/log", namespace, name)
+	resp, err := k.request("application/json", "GET", "api/v1", path, nil)
+	if err != nil {
+		return "", err
+	}
+	defer resp.Body.Close()
+	body, err := ioutil.ReadAll(resp.Body)
+	if err != nil {
+		return "", err
+	}
+	return string(body), nil
+}
+
 func (k *Client) ListNodeHeapsterStats() ([]*HeapsterStats, error) {
 	var metrics []*HeapsterStats
-	err := k.requestInto("GET", "proxy/namespaces/kube-system/services/heapster/api/v1/model/nodes", nil, &metrics)
+	err := k.requestInto("GET", "api/v1", "proxy/namespaces/kube-system/services/heapster/api/v1/model/nodes", nil, &metrics)
 	return metrics, err
 }
 
 func (k *Client) ListPodHeapsterRAMUsageMetrics(namespace string, name string) ([]*HeapsterMetric, error) {
 	metrics := HeapsterMetrics{}
-	err := k.requestInto("GET", "proxy/namespaces/kube-system/services/heapster/api/v1/model/namespaces/"+namespace+"/pods/"+name+"/metrics/memory-usage", nil, &metrics)
+	err := k.requestInto("GET", "api/v1", "proxy/namespaces/kube-system/services/heapster/api/v1/model/namespaces/"+namespace+"/pods/"+name+"/metrics/memory-usage", nil, &metrics)
 	return metrics.Metrics, err
 }
 
 func (k *Client) ListPodHeapsterCPUUsageMetrics(namespace string, name string) ([]*HeapsterMetric, error) {
 	metrics := HeapsterMetrics{}
-	err := k.requestInto("GET", "proxy/namespaces/kube-system/services/heapster/api/v1/model/namespaces/"+namespace+"/pods/"+name+"/metrics/cpu-usage", nil, &metrics)
+	err := k.requestInto("GET", "api/v1", "proxy/namespaces/kube-system/services/heapster/api/v1/model/namespaces/"+namespace+"/pods/"+name+"/metrics/cpu-usage", nil, &metrics)
 	return metrics.Metrics, err
 }
 
 // Private
 
-func (k *Client) requestInto(method string, path string, in interface{}, out interface{}) error {
-	url := fmt.Sprintf("https://%s/api/v1/%s", k.Kube.MasterPublicIP, path)
-
-	// fmt.Println("---------------- REQUESTING: ", method, url)
+func (k *Client) request(contentType, method, apiVersion, path string, in interface{}) (*http.Response, error) {
+	url := fmt.Sprintf("https://%s/%s/%s", k.Kube.MasterPublicIP, apiVersion, path)
 
 	var body []byte
 	if in != nil {
 		jsonIn, err := json.Marshal(in)
 		if err != nil {
-			return err
+			return nil, err
 		}
 		body = jsonIn
-
-		// fmt.Println("---------------- BODY: ", string(body))
-
 	}
 
 	req, err := http.NewRequest(method, url, bytes.NewBuffer(body))
 	if err != nil {
-		return err
+		return nil, err
 	}
 	req.SetBasicAuth(k.Kube.Username, k.Kube.Password)
 
+	req.Header.Set("Content-type", contentType)
+
 	resp, err := k.HTTPClient.Do(req)
 	if err != nil {
-		return err
+		return nil, err
 	}
 
 	if resp.Status[:2] != "20" {
 		defer resp.Body.Close()
 		respBody, err := ioutil.ReadAll(resp.Body)
 		if err != nil {
-			return err
+			return nil, err
 		}
-		return fmt.Errorf("K8S %s error: %s", resp.Status, string(respBody))
+		return nil, fmt.Errorf("K8S %s error: %s", resp.Status, string(respBody))
+	}
+
+	return resp, nil
+}
+
+// TODO we could make this much nicer if we made request a buildable object
+func (k *Client) requestIntoWithContentType(contentType, method, apiVersion, path string, in interface{}, out interface{}) error {
+	resp, err := k.request(contentType, method, apiVersion, path, in)
+	if err != nil {
+		return err
 	}
 
 	if out != nil {
@@ -181,6 +229,14 @@ func (k *Client) requestInto(method string, path string, in interface{}, out int
 		}
 	}
 	return nil
+}
+
+func (k *Client) requestInto(method, apiVersion, path string, in interface{}, out interface{}) error {
+	return k.requestIntoWithContentType("application/json", method, apiVersion, path, in, out)
+}
+
+func (k *Client) patchRequestInto(apiVersion, path string, in interface{}, out interface{}) error {
+	return k.requestIntoWithContentType("application/merge-patch+json", "PATCH", apiVersion, path, in, out)
 }
 
 // Misc ------------------------------------------------------------------------

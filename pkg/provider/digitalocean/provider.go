@@ -10,7 +10,6 @@ import (
 	"github.com/digitalocean/godo"
 	"github.com/supergiant/supergiant/bindata"
 	"github.com/supergiant/supergiant/pkg/core"
-	"github.com/supergiant/supergiant/pkg/kubernetes"
 	"github.com/supergiant/supergiant/pkg/model"
 	"golang.org/x/oauth2"
 )
@@ -241,78 +240,16 @@ func (p *Provider) DeleteNode(m *model.Node, action *core.Action) error {
 	return err
 }
 
-// CreateVolume createss a Volume on DO for Kubernetes
-func (p *Provider) CreateVolume(m *model.Volume, action *core.Action) error {
-	req := &godo.VolumeCreateRequest{
-		Region:        m.Kube.DigitalOceanConfig.Region,
-		Name:          m.Name,
-		SizeGigaBytes: int64(m.Size),
-	}
-	volume, _, err := p.Client(m.Kube).Storage.CreateVolume(req)
-	if err != nil {
-		return err
-	}
-	m.ProviderID = volume.ID
-	return p.Core.DB.Save(m)
+func (p *Provider) CreateLoadBalancer(m *model.LoadBalancer, action *core.Action) error {
+	return p.Core.K8SProvider.CreateLoadBalancer(m, action)
 }
 
-func (p *Provider) KubernetesVolumeDefinition(m *model.Volume) *kubernetes.Volume {
-	return &kubernetes.Volume{
-		Name: m.Name,
-		FlexVolume: &kubernetes.FlexVolume{
-			Driver: "supergiant.io/digitalocean",
-			FSType: "ext4",
-			Options: map[string]string{
-				"volumeID": m.ProviderID,
-				"name":     m.Name,
-			},
-		},
-	}
+func (p *Provider) UpdateLoadBalancer(m *model.LoadBalancer, action *core.Action) error {
+	return p.Core.K8SProvider.UpdateLoadBalancer(m, action)
 }
 
-// ResizeVolume re-sizes volume on DO kubernetes cluster.
-func (p *Provider) ResizeVolume(m *model.Volume, action *core.Action) error {
-	_, _, err := p.Client(m.Kube).StorageActions.Resize(m.ProviderID, m.Size, m.Kube.DigitalOceanConfig.Region)
-	if err != nil {
-		return err
-	}
-	// TODO in this situation, and many others, it seems to be NOT the provider
-	// implementation's job to save the record... AWS throws a wrench in that
-	// design pattern due to how it saves mid-method for resizes to update provider ID.
-	return p.Core.DB.Save(m)
-}
-
-// WaitForVolumeAvailable waits for DO volume to become available.
-func (p *Provider) WaitForVolumeAvailable(m *model.Volume, action *core.Action) error {
-	return nil
-}
-
-// DeleteVolume deletes a DO volume.
-func (p *Provider) DeleteVolume(m *model.Volume, action *core.Action) error {
-	if m.ProviderID == "" {
-		p.Core.Log.Warnf("Deleting DigitalOcean Volume '%s' with empty ProviderID", m.Name)
-		return nil
-	}
-	_, err := p.Client(m.Kube).Storage.DeleteVolume(m.ProviderID)
-	return err
-}
-
-// CreateEntrypoint creates a new Load Balancer for Kubernetes in DO
-func (p *Provider) CreateEntrypoint(m *model.Entrypoint, action *core.Action) error {
-	return nil
-}
-
-// DeleteEntrypoint deletes load balancer from DO.
-func (p *Provider) DeleteEntrypoint(m *model.Entrypoint, action *core.Action) error {
-	return nil
-}
-
-func (p *Provider) CreateEntrypointListener(m *model.EntrypointListener, action *core.Action) error {
-	return nil
-}
-
-func (p *Provider) DeleteEntrypointListener(m *model.EntrypointListener, action *core.Action) error {
-	return nil
+func (p *Provider) DeleteLoadBalancer(m *model.LoadBalancer, action *core.Action) error {
+	return p.Core.K8SProvider.DeleteLoadBalancer(m, action)
 }
 
 ////////////////////////////////////////////////////////////////////////////////

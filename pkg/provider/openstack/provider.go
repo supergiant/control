@@ -2,15 +2,12 @@ package openstack
 
 import (
 	"bytes"
-	"errors"
 	"strings"
 	"text/template"
 	"time"
 
 	"github.com/rackspace/gophercloud"
 	"github.com/rackspace/gophercloud/openstack"
-	"github.com/rackspace/gophercloud/openstack/blockstorage/v1/snapshots"
-	"github.com/rackspace/gophercloud/openstack/blockstorage/v1/volumes"
 	"github.com/rackspace/gophercloud/openstack/compute/v2/extensions/floatingip"
 	"github.com/rackspace/gophercloud/openstack/compute/v2/servers"
 	"github.com/rackspace/gophercloud/openstack/networking/v2/extensions/layer3/floatingips"
@@ -19,7 +16,6 @@ import (
 	"github.com/rackspace/gophercloud/openstack/networking/v2/subnets"
 	"github.com/supergiant/supergiant/bindata"
 	"github.com/supergiant/supergiant/pkg/core"
-	"github.com/supergiant/supergiant/pkg/kubernetes"
 	"github.com/supergiant/supergiant/pkg/model"
 	"github.com/supergiant/supergiant/pkg/util"
 )
@@ -488,158 +484,16 @@ func (p *Provider) DeleteNode(m *model.Node, action *core.Action) error {
 	return nil
 }
 
-// CreateVolume createss a Volume on DO for Kubernetes
-func (p *Provider) CreateVolume(m *model.Volume, action *core.Action) error {
-	// fetch an authenticated provider.
-	authenticatedProvider, err := p.Client(m.Kube)
-	if err != nil {
-		return err
-	}
-
-	// Fetch compute client.
-	computeClient, err := openstack.NewBlockStorageV1(authenticatedProvider, gophercloud.EndpointOpts{
-		Region: m.Kube.OpenStackConfig.Region,
-	})
-	if err != nil {
-		return err
-	}
-	// Create Volume
-	vol, err := volumes.Create(computeClient, volumes.CreateOpts{
-		Size:       m.Size,
-		Name:       m.Name,
-		VolumeType: m.Type,
-	}).Extract()
-	if err != nil {
-		return err
-	}
-
-	m.ProviderID = vol.ID
-	return p.Core.DB.Save(m)
+func (p *Provider) CreateLoadBalancer(m *model.LoadBalancer, action *core.Action) error {
+	return p.Core.K8SProvider.CreateLoadBalancer(m, action)
 }
 
-func (p *Provider) KubernetesVolumeDefinition(m *model.Volume) *kubernetes.Volume {
-	return &kubernetes.Volume{
-		Name: m.Name,
-		Cinder: &kubernetes.Cinder{
-			VolumeID: m.ProviderID,
-			FSType:   m.Type,
-		},
-	}
+func (p *Provider) UpdateLoadBalancer(m *model.LoadBalancer, action *core.Action) error {
+	return p.Core.K8SProvider.UpdateLoadBalancer(m, action)
 }
 
-// ResizeVolume re-sizes volume on DO kubernetes cluster.
-func (p *Provider) ResizeVolume(m *model.Volume, action *core.Action) error {
-	// fetch an authenticated provider.
-	authenticatedProvider, err := p.Client(m.Kube)
-	if err != nil {
-		return err
-	}
-
-	// Fetch compute client.
-	computeClient, err := openstack.NewBlockStorageV1(authenticatedProvider, gophercloud.EndpointOpts{
-		Region: m.Kube.OpenStackConfig.Region,
-	})
-	if err != nil {
-		return err
-	}
-	// Make snapshot of old volume
-	snap, err := snapshots.Create(computeClient, snapshots.CreateOpts{
-		Name:     "resize-snapshot",
-		VolumeID: m.ProviderID,
-	}).Extract()
-	if err != nil {
-		return err
-	}
-	// Wait for snapshot to complete.
-	duration := 30 * time.Minute
-	interval := 10 * time.Second
-	waitErr := util.WaitFor("Volume snapshot in progress", duration, interval, func() (bool, error) {
-		err := err
-		snapDeet, err := snapshots.Get(computeClient, snap.ID).Extract()
-		if err != nil {
-			return false, err
-		}
-
-		if snapDeet.Status == "error" {
-			return false, errors.New("Snapshot creation failed... Aborting resize.")
-		}
-		if snapDeet.Status == "available" {
-			return true, nil
-		}
-		return false, nil
-	})
-
-	if waitErr != nil {
-		err = snapshots.Delete(computeClient, snap.ID).ExtractErr()
-		if err != nil {
-			return err
-		}
-		return waitErr
-	}
-
-	// Create Volume
-	vol, err := volumes.Create(computeClient, volumes.CreateOpts{
-		Size:       m.Size,
-		Name:       m.Name,
-		VolumeType: m.Type,
-		SnapshotID: snap.ID,
-	}).Extract()
-	if err != nil {
-		return err
-	}
-	m.ProviderID = vol.ID
-
-	return nil
-}
-
-// WaitForVolumeAvailable waits for DO volume to become available.
-func (p *Provider) WaitForVolumeAvailable(m *model.Volume, action *core.Action) error {
-	return nil
-}
-
-// DeleteVolume deletes a DO volume.
-func (p *Provider) DeleteVolume(m *model.Volume, action *core.Action) error {
-	// fetch an authenticated provider.
-	authenticatedProvider, err := p.Client(m.Kube)
-	if err != nil {
-		return err
-	}
-
-	// Fetch compute client.
-	computeClient, err := openstack.NewBlockStorageV1(authenticatedProvider, gophercloud.EndpointOpts{
-		Region: m.Kube.OpenStackConfig.Region,
-	})
-	if err != nil {
-		return err
-	}
-	// Delete Volume
-	err = volumes.Delete(computeClient, m.ProviderID).ExtractErr()
-	if err != nil {
-		if strings.Contains(err.Error(), "404") {
-			// it does not exist,
-			return nil
-		}
-		return err
-	}
-	return nil
-}
-
-// CreateEntrypoint creates a new Load Balancer for Kubernetes in DO
-func (p *Provider) CreateEntrypoint(m *model.Entrypoint, action *core.Action) error {
-	return nil
-}
-
-// DeleteEntrypoint deletes load balancer from DO.
-func (p *Provider) DeleteEntrypoint(m *model.Entrypoint, action *core.Action) error {
-	return nil
-}
-
-func (p *Provider) CreateEntrypointListener(m *model.EntrypointListener, action *core.Action) error {
-	return nil
-}
-
-func (p *Provider) DeleteEntrypointListener(m *model.EntrypointListener, action *core.Action) error {
-	return nil
+func (p *Provider) DeleteLoadBalancer(m *model.LoadBalancer, action *core.Action) error {
+	return p.Core.K8SProvider.DeleteLoadBalancer(m, action)
 }
 
 ////////////////////////////////////////////////////////////////////////////////

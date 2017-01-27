@@ -339,11 +339,10 @@ func (p *Provider) CreateKube(m *model.Kube, action *core.Action) error {
 	// Create Subnet
 
 	procedure.AddStep("creating Subnet", func() error {
-		if m.AWSConfig.PublicSubnetID != "" {
-			return nil
-		}
-
 		for idx, subnet := range m.AWSConfig.PublicSubnetIPRange {
+			if m.AWSConfig.PublicSubnetIPRange[idx]["subnet_id"] != "" {
+				continue
+			}
 
 			resp, err := ec2S.CreateSubnet(&ec2.CreateSubnetInput{
 				VpcId:            aws.String(m.AWSConfig.VPCID),

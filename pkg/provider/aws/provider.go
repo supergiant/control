@@ -19,9 +19,7 @@ import (
 	"github.com/aws/aws-sdk-go/service/s3"
 	"github.com/aws/aws-sdk-go/service/s3/s3iface"
 	"github.com/supergiant/supergiant/pkg/core"
-	"github.com/supergiant/supergiant/pkg/kubernetes"
 	"github.com/supergiant/supergiant/pkg/model"
-	"github.com/supergiant/supergiant/pkg/util"
 )
 
 // TODO this and the similar concept in Kubes should be moved to core, not global vars
@@ -54,77 +52,16 @@ func (p *Provider) DeleteNode(m *model.Node, action *core.Action) error {
 	return p.deleteServer(m)
 }
 
-// CreateVolume creates a kubernetes Volume.
-func (p *Provider) CreateVolume(m *model.Volume, action *core.Action) error {
-	return p.createVolume(m, nil)
+func (p *Provider) CreateLoadBalancer(m *model.LoadBalancer, action *core.Action) error {
+	return p.Core.K8SProvider.CreateLoadBalancer(m, action)
 }
 
-// KubernetesVolumeDefinition defines object layout of a AWS volume.
-func (p *Provider) KubernetesVolumeDefinition(m *model.Volume) *kubernetes.Volume {
-	return &kubernetes.Volume{
-		Name: m.Name,
-		AwsElasticBlockStore: &kubernetes.AwsElasticBlockStore{
-			VolumeID: m.ProviderID,
-			FSType:   "ext4",
-		},
-	}
+func (p *Provider) UpdateLoadBalancer(m *model.LoadBalancer, action *core.Action) error {
+	return p.Core.K8SProvider.UpdateLoadBalancer(m, action)
 }
 
-// ResizeVolume resizes a AWS volume.
-func (p *Provider) ResizeVolume(m *model.Volume, action *core.Action) error {
-	return p.resizeVolume(m, action)
-}
-
-// WaitForVolumeAvailable waits for AWS volume to be available.
-func (p *Provider) WaitForVolumeAvailable(m *model.Volume, action *core.Action) error {
-	return p.waitForAvailable(m)
-}
-
-// DeleteVolume deletes a aws volume.
-func (p *Provider) DeleteVolume(m *model.Volume, action *core.Action) error {
-	return p.deleteVolume(m)
-}
-
-// CreateEntrypoint creates a AWS LoadBalancer
-func (p *Provider) CreateEntrypoint(m *model.Entrypoint, action *core.Action) error {
-	return p.createELB(m)
-}
-
-// DeleteEntrypoint deletes a aws loadbalancer.
-func (p *Provider) DeleteEntrypoint(m *model.Entrypoint, action *core.Action) error {
-	return p.deleteELB(m)
-}
-
-// CreateEntrypointListener creates a listener for a aws loadbalancer.
-func (p *Provider) CreateEntrypointListener(m *model.EntrypointListener, action *core.Action) error {
-	input := &elb.CreateLoadBalancerListenersInput{
-		LoadBalancerName: aws.String(m.Entrypoint.ProviderID),
-		Listeners: []*elb.Listener{
-			{
-				LoadBalancerPort: aws.Int64(m.EntrypointPort),
-				Protocol:         aws.String(m.EntrypointProtocol),
-				InstancePort:     aws.Int64(m.NodePort),
-				InstanceProtocol: aws.String(m.NodeProtocol),
-			},
-		},
-	}
-	_, err := p.ELB(m.Entrypoint.Kube).CreateLoadBalancerListeners(input)
-	return err
-}
-
-// DeleteEntrypointListener deletes a listener form an aws loadbalancer.
-func (p *Provider) DeleteEntrypointListener(m *model.EntrypointListener, action *core.Action) error {
-	input := &elb.DeleteLoadBalancerListenersInput{
-		LoadBalancerName: aws.String(m.Entrypoint.ProviderID),
-		LoadBalancerPorts: []*int64{
-			aws.Int64(m.EntrypointPort),
-		},
-	}
-	_, err := p.ELB(m.Entrypoint.Kube).DeleteLoadBalancerListeners(input)
-	if isErrAndNotAWSNotFound(err) {
-		return err
-	}
-	return nil
+func (p *Provider) DeleteLoadBalancer(m *model.LoadBalancer, action *core.Action) error {
+	return p.Core.K8SProvider.DeleteLoadBalancer(m, action)
 }
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -136,14 +73,14 @@ func EC2(kube *model.Kube) ec2iface.EC2API {
 	return ec2.New(globalAWSSession, awsConfig(kube))
 }
 
-// S3 client
-func S3(kube *model.Kube) s3iface.S3API {
-	return s3.New(globalAWSSession, awsConfig(kube))
-}
-
 // ELB client
 func ELB(kube *model.Kube) elbiface.ELBAPI {
 	return elb.New(globalAWSSession, awsConfig(kube))
+}
+
+// S3 client
+func S3(kube *model.Kube) s3iface.S3API {
+	return s3.New(globalAWSSession, awsConfig(kube))
 }
 
 // IAM client
@@ -159,23 +96,6 @@ func awsConfig(kube *model.Kube) *aws.Config {
 }
 
 //------------------------------------------------------------------------------
-
-//func (p *Provider) createNode(m *model.Node) error {
-//	server, err := p.createServer(m)
-//	if err != nil {
-//		return err
-//	}
-//	p.setAttrsFromServer(m, server)
-//	if err := p.Core.DB.Save(m); err != nil {
-//		return err
-//	}
-//	for _, entrypoint := range m.Kube.Entrypoints {
-//		if err := p.registerNodes(entrypoint, m); err != nil {
-//			return err
-//		}
-//	}
-//	return nil
-//}
 
 func (p *Provider) setAttrsFromServer(m *model.Node, server *ec2.Instance) {
 	m.ProviderID = *server.InstanceId
@@ -197,224 +117,6 @@ func (p *Provider) deleteServer(m *model.Node) error {
 	}
 	_, err := p.EC2(m.Kube).TerminateInstances(input)
 	if isErrAndNotAWSNotFound(err) {
-		return err
-	}
-	return nil
-}
-
-func (p *Provider) createELB(m *model.Entrypoint) error {
-
-	var subnets []*string
-	for _, subnet := range m.Kube.AWSConfig.PublicSubnetIPRange {
-		if subnet["subnet_id"] != "" {
-			subnets = append(subnets, aws.String(subnet["subnet_id"]))
-		}
-	}
-
-	params := &elb.CreateLoadBalancerInput{
-		Listeners: []*elb.Listener{ // NOTE we must provide at least 1 listener, it is currently arbitrary
-			{
-				InstancePort:     aws.Int64(420),
-				LoadBalancerPort: aws.Int64(420),
-				Protocol:         aws.String("TCP"),
-			},
-		},
-		LoadBalancerName: aws.String(m.ProviderID),
-		Scheme:           aws.String("internet-facing"),
-		SecurityGroups: []*string{
-			aws.String(m.Kube.AWSConfig.ELBSecurityGroupID),
-		},
-		Subnets: subnets,
-	}
-	resp, err := p.ELB(m.Kube).CreateLoadBalancer(params)
-	if err != nil {
-		return err
-	}
-
-	// Save Address
-	m.Address = *resp.DNSName
-	err = p.Core.DB.Save(m)
-	if err != nil {
-		return err
-	}
-
-	err = p.registerNodes(m, m.Kube.Nodes...)
-	if err != nil {
-		return err
-	}
-
-	// Configure health check
-	healthParams := &elb.ConfigureHealthCheckInput{
-		LoadBalancerName: aws.String(m.ProviderID),
-		HealthCheck: &elb.HealthCheck{
-			Target:             aws.String("HTTPS:10250/healthz"),
-			HealthyThreshold:   aws.Int64(2),
-			UnhealthyThreshold: aws.Int64(10),
-			Interval:           aws.Int64(30),
-			Timeout:            aws.Int64(5),
-		},
-	}
-	_, err = p.ELB(m.Kube).ConfigureHealthCheck(healthParams)
-	return err
-}
-
-func (p *Provider) registerNodes(m *model.Entrypoint, nodes ...*model.Node) error {
-	var elbInstances []*elb.Instance
-	for _, node := range nodes {
-		elbInstances = append(elbInstances, &elb.Instance{
-			InstanceId: aws.String(node.ProviderID),
-		})
-	}
-	input := &elb.RegisterInstancesWithLoadBalancerInput{
-		LoadBalancerName: aws.String(m.ProviderID),
-		Instances:        elbInstances,
-	}
-	_, err := p.ELB(m.Kube).RegisterInstancesWithLoadBalancer(input)
-	return err
-}
-
-func (p *Provider) deleteELB(m *model.Entrypoint) error {
-	// Delete ELB
-	params := &elb.DeleteLoadBalancerInput{
-		LoadBalancerName: aws.String(m.ProviderID),
-	}
-	_, err := p.ELB(m.Kube).DeleteLoadBalancer(params)
-	if isErrAndNotAWSNotFound(err) {
-		return err
-	}
-	return nil
-}
-
-func (p *Provider) createVolume(volume *model.Volume, snapshotID *string) error {
-	volInput := &ec2.CreateVolumeInput{
-		AvailabilityZone: aws.String(volume.Kube.AWSConfig.AvailabilityZone),
-		VolumeType:       aws.String(volume.Type),
-		Size:             aws.Int64(int64(volume.Size)),
-		SnapshotId:       snapshotID,
-	}
-	awsVol, err := p.EC2(volume.Kube).CreateVolume(volInput)
-	if err != nil {
-		return err
-	}
-
-	volume.ProviderID = *awsVol.VolumeId
-	volume.Size = int(*awsVol.Size)
-	err = p.Core.DB.Save(volume)
-	if err != nil {
-		return err
-	}
-
-	tagsInput := &ec2.CreateTagsInput{
-		Resources: []*string{
-			awsVol.VolumeId,
-		},
-		Tags: []*ec2.Tag{
-			{
-				Key:   aws.String("Name"),
-				Value: aws.String(volume.Name),
-			},
-		},
-	}
-	_, err = p.EC2(volume.Kube).CreateTags(tagsInput)
-	return err
-}
-
-func (p *Provider) resizeVolume(m *model.Volume, action *core.Action) error {
-	snapshot, err := p.createSnapshot(m, action)
-	if err != nil {
-		return err
-	}
-	if err := p.deleteVolume(m); err != nil {
-		return err
-	}
-	if err := p.createVolume(m, snapshot.SnapshotId); err != nil {
-		return err
-	}
-	if err := p.deleteSnapshot(m, snapshot); err != nil {
-		p.Core.Log.Errorf("Error deleting snapshot %s: %s", *snapshot.SnapshotId, err.Error())
-	}
-	return nil
-}
-
-func (p *Provider) deleteVolume(volume *model.Volume) error {
-	if volume.ProviderID == "" {
-		return nil
-	}
-	if err := p.waitForAvailable(volume); err != nil {
-		return err
-	}
-	input := &ec2.DeleteVolumeInput{
-		VolumeId: aws.String(volume.ProviderID),
-	}
-	if _, err := p.EC2(volume.Kube).DeleteVolume(input); isErrAndNotAWSNotFound(err) {
-		return err
-	}
-	return nil
-}
-
-func (p *Provider) waitForAvailable(volume *model.Volume) error {
-	input := &ec2.DescribeVolumesInput{
-		Filters: []*ec2.Filter{
-			{
-				Name: aws.String("volume-id"),
-				Values: []*string{
-					aws.String(volume.ProviderID),
-				},
-			},
-		},
-	}
-
-	desc := fmt.Sprintf("EBS volume %s to be available or deleted", volume.Name)
-	return util.WaitFor(desc, 5*time.Minute, 10*time.Second, func() (bool, error) {
-		resp, err := p.EC2(volume.Kube).DescribeVolumes(input)
-		if err != nil {
-			return false, err
-		}
-		if len(resp.Volumes) == 0 {
-			return true, nil
-		}
-		state := *resp.Volumes[0].State
-		return state == "available" || state == "deleted", nil
-	})
-}
-
-func (p *Provider) createSnapshot(volume *model.Volume, action *core.Action) (*ec2.Snapshot, error) {
-	input := &ec2.CreateSnapshotInput{
-		Description: aws.String(fmt.Sprintf("%s-%s", volume.Name, time.Now())),
-		VolumeId:    aws.String(volume.ProviderID),
-	}
-	snapshot, err := p.EC2(volume.Kube).CreateSnapshot(input)
-	if err != nil {
-		return nil, err
-	}
-	getInput := &ec2.DescribeSnapshotsInput{
-		SnapshotIds: []*string{snapshot.SnapshotId},
-	}
-
-	desc := fmt.Sprintf("Snapshot %s to complete", volume.Name)
-	waitErr := action.CancellableWaitFor(desc, 4*time.Hour, 15*time.Second, func() (bool, error) {
-		resp, err := p.EC2(volume.Kube).DescribeSnapshots(getInput)
-		if err != nil {
-			return false, err
-		}
-		if len(resp.Snapshots) == 0 {
-			return true, nil
-		}
-		state := *resp.Snapshots[0].State
-		return state == "completed", nil
-	})
-	if waitErr != nil {
-		return nil, waitErr
-	}
-
-	return snapshot, nil
-}
-
-func (p *Provider) deleteSnapshot(volume *model.Volume, snapshot *ec2.Snapshot) error {
-	input := &ec2.DeleteSnapshotInput{
-		SnapshotId: snapshot.SnapshotId,
-	}
-	if _, err := p.EC2(volume.Kube).DeleteSnapshot(input); isErrAndNotAWSNotFound(err) {
 		return err
 	}
 	return nil

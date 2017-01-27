@@ -24,9 +24,9 @@ type Model interface {
 // Supergiant resources.
 type BaseModel struct {
 	ID        *int64        `gorm:"primary_key" json:"id,omitempty" sg:"readonly"`
-	UUID      string        `json:"uuid,omitempty" sg:"readonly"`
-	CreatedAt time.Time     `json:"created_at,omitempty" sg:"readonly"` // TODO won't be omitted cuz not *time.Time
-	UpdatedAt time.Time     `json:"updated_at,omitempty" sg:"readonly"`
+	UUID      string        `json:"uuid" gorm:"not null" sg:"readonly"`
+	CreatedAt time.Time     `json:"created_at" sg:"readonly"`
+	UpdatedAt time.Time     `json:"updated_at" sg:"readonly"`
 	Status    *ActionStatus `gorm:"-" json:"status,omitempty"`
 
 	PassiveStatus     string `gorm:"-" json:"passive_status,omitempty"`

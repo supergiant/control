@@ -45,7 +45,7 @@ func (c *Nodes) Provision(id *int64, m *model.Node) ActionInterface {
 			MaxRetries: 0,
 		},
 		Core:  c.Core,
-		Scope: c.Core.DB.Preload("Kube.CloudAccount").Preload("Kube.Entrypoints.Kube.CloudAccount"),
+		Scope: c.Core.DB.Preload("Kube.CloudAccount"),
 		Model: m,
 		ID:    id,
 		Fn: func(a *Action) error {
