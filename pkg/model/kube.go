@@ -74,7 +74,8 @@ type AWSKubeConfig struct {
 	LastSelectedAZ                string   `json:"last_selected_az" sg:"readonly"` // if using multiAZ this is the last az the node build used.
 	ETCDDiscoveryURL              string   `json:"etcd_discovery_url" sg:"readonly"`
 	PrivateKey                    string   `json:"private_key,omitempty" sg:"readonly"`
-	VPCID                         string   `json:"vpc_id" sg:"readonly"`
+	VPCID                         string   `json:"vpc_id"`
+	VPCMANAGED                    bool     `json:"vpc_managed"`
 	InternetGatewayID             string   `json:"internet_gateway_id" sg:"readonly"`
 	RouteTableID                  string   `json:"route_table_id" sg:"readonly"`
 	RouteTableSubnetAssociationID []string `json:"route_table_subnet_association_id" sg:"readonly"`

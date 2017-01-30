@@ -275,6 +275,12 @@ func (p *Provider) CreateKube(m *model.Kube, action *core.Action) error {
 
 	procedure.AddStep("creating VPC", func() error {
 		if m.AWSConfig.VPCID != "" {
+			m.AWSConfig.VPCMANAGED = true
+			err := p.Core.DB.Save(m)
+			if err != nil {
+				return err
+			}
+			procedure.Core.Log.Info("This VPC is not managed. Using VPC ID supplied by user.")
 			return nil
 		}
 		input := &ec2.CreateVpcInput{

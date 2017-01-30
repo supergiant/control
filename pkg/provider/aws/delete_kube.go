@@ -241,7 +241,10 @@ func (p *Provider) DeleteKube(m *model.Kube, action *core.Action) error {
 	})
 
 	procedure.AddStep("deleting VPC", func() error {
-
+		if m.AWSConfig.VPCMANAGED {
+			procedure.Core.Log.Info("This VPC is not managed. It is NOT being deleted.")
+			return nil
+		}
 		// Delete the VPC
 		_, err := ec2S.DeleteVpc(&ec2.DeleteVpcInput{
 			VpcId: aws.String(m.AWSConfig.VPCID),
