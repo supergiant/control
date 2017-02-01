@@ -33,6 +33,8 @@ write_files:
       ## Run the build
       /usr/bin/coreos-cloudinit --from-file /tmp/master.yaml
 coreos:
+  update:
+    reboot-strategy: off
   units:
     - name: bypass-user-data-limit.service
       command: start

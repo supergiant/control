@@ -97,6 +97,8 @@ write_files:
         name: service-account-context
       current-context: service-account-context
 coreos:
+  update:
+    reboot-strategy: off
   flannel:
     iface: $COREOS_PRIVATE_IPV4
     etcd_endpoints: http://{{ .Kube.GCEConfig.MasterPrivateIP }}:2379

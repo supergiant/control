@@ -267,6 +267,8 @@ write_files:
         name: service-account-context
       current-context: service-account-context
 coreos:
+  update:
+    reboot-strategy: off
   flannel:
     iface: $public_ipv4
     etcd_endpoints: http://{{ .Kube.MasterPublicIP }}:2379

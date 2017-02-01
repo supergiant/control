@@ -599,6 +599,8 @@ write_files:
             initialDelaySeconds: 15
             timeoutSeconds: 1
 coreos:
+  update:
+    reboot-strategy: off
   etcd2:
     advertise-client-urls: http://$private_ipv4:2379
     listen-client-urls: http://0.0.0.0:2379
