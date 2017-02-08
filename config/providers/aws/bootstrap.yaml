@@ -14,7 +14,7 @@ write_files:
       TOKEN=$(curl -s http://169.254.169.254/latest/meta-data/iam/security-credentials/${PROFILE} | jq -r .Token)
       ## Bucket Info
       FILE="build/master.yaml"
-      BUCKET="kubernetes-{{ .Name }}"
+      BUCKET="{{ .AWSConfig.BucketName }}"
       DATE="$(date +'%a, %d %b %Y %H:%M:%S %z')"
       RESOURCE="/${BUCKET}/${FILE}"
       SIG_STRING="GET\n\n\n${DATE}\nx-amz-security-token:${TOKEN}\n/${RESOURCE}"

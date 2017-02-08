@@ -82,13 +82,6 @@ func NewKube(sg *client.Client, w http.ResponseWriter, r *http.Request) error {
 			"aws_config": map[string]interface{}{
 				"region":       "us-east-1",
 				"vpc_ip_range": "172.20.0.0/16",
-				"public_subnet_ip_range": []map[string]string{
-					map[string]string{
-						"zone":      "us-east-1b",
-						"ip_range":  "172.20.0.0/24",
-						"subnet_id": "",
-					},
-				},
 			},
 		}
 	}

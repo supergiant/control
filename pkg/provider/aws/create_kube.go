@@ -16,6 +16,7 @@ import (
 	"github.com/supergiant/supergiant/bindata"
 	"github.com/supergiant/supergiant/pkg/core"
 	"github.com/supergiant/supergiant/pkg/model"
+	"github.com/supergiant/supergiant/pkg/util"
 )
 
 // CreateKube creates a Kubernetes cluster.
@@ -38,8 +39,9 @@ func (p *Provider) CreateKube(m *model.Kube, action *core.Action) error {
 
 	// Init our AZ setup
 	// If zone configurtion is empty, the user did not pre-configure, so we need to set it up.
-	if len(m.AWSConfig.PublicSubnetIPRange) == 0 && m.AWSConfig.MultiAZ {
-		zones := map[string]string{
+	if len(m.AWSConfig.PublicSubnetIPRange) == 0 {
+		// map of default values.
+		zoneDefaults := map[string]string{
 			m.AWSConfig.Region + "a": "172.20.0.0/24",
 			m.AWSConfig.Region + "b": "172.20.1.0/24",
 			m.AWSConfig.Region + "c": "172.20.2.0/24",
@@ -47,32 +49,32 @@ func (p *Provider) CreateKube(m *model.Kube, action *core.Action) error {
 			m.AWSConfig.Region + "e": "172.20.4.0/24",
 		}
 
-		for zone, ipRange := range zones {
-			subnetObj := map[string]string{
-				"zone":      zone,
-				"ip_range":  ipRange,
-				"subnet_id": "",
-			}
-
-			m.AWSConfig.PublicSubnetIPRange = append(m.AWSConfig.PublicSubnetIPRange, subnetObj)
-		}
-	} else if len(m.AWSConfig.PublicSubnetIPRange) == 0 && !m.AWSConfig.MultiAZ {
-		zones := map[string]string{
-			m.AWSConfig.AvailabilityZone: "172.20.0.0/24",
+		// Get the available zones.
+		availableZones, err := ec2S.DescribeAvailabilityZones(&ec2.DescribeAvailabilityZonesInput{})
+		if err != nil {
+			return err
 		}
 
-		for zone, ipRange := range zones {
-			subnetObj := map[string]string{
-				"zone":      zone,
-				"ip_range":  ipRange,
-				"subnet_id": "",
+		// map available zones to default values.
+		var tempZones []map[string]string
+		for _, zone := range availableZones.AvailabilityZones {
+			if *zone.State == "available" {
+				subnetObj := map[string]string{
+					"zone":      *zone.ZoneName,
+					"ip_range":  zoneDefaults[*zone.ZoneName],
+					"subnet_id": "",
+				}
+				tempZones = append(tempZones, subnetObj)
 			}
+		}
 
-			m.AWSConfig.PublicSubnetIPRange = append(m.AWSConfig.PublicSubnetIPRange, subnetObj)
+		// Are we multiAZ? if so add all available zones. If not default to first available.
+		if m.AWSConfig.MultiAZ {
+			m.AWSConfig.PublicSubnetIPRange = tempZones
+		} else {
+			m.AWSConfig.PublicSubnetIPRange = append(m.AWSConfig.PublicSubnetIPRange, tempZones[0])
 		}
 	}
-
-	m.AWSConfig.AvailabilityZone = m.AWSConfig.PublicSubnetIPRange[0]["zone"]
 
 	err := p.Core.DB.Save(m)
 	if err != nil {
@@ -220,17 +222,23 @@ func (p *Provider) CreateKube(m *model.Kube, action *core.Action) error {
 	})
 
 	procedure.AddStep("creating S3 bucket", func() error {
+		m.AWSConfig.BucketName = "kubernetes-" + m.Name + "-" + util.RandomString(10)
 		_, err := s3S.CreateBucket(&s3.CreateBucketInput{
-			Bucket: aws.String("kubernetes-" + m.Name),
+			Bucket: aws.String(m.AWSConfig.BucketName),
 		})
 		if err != nil {
 			return err
 		}
 
 		s3S.PutBucketPolicy(&s3.PutBucketPolicyInput{
-			Bucket: aws.String("kubernetes-" + m.Name), // Required
+			Bucket: aws.String(m.AWSConfig.BucketName), // Required
 			Policy: aws.String(``),                     // Required
 		})
+
+		err = p.Core.DB.Save(m)
+		if err != nil {
+			return err
+		}
 
 		return nil
 	})
@@ -262,7 +270,7 @@ func (p *Provider) CreateKube(m *model.Kube, action *core.Action) error {
 		}
 
 		_, err = s3S.PutObject(&s3.PutObjectInput{
-			Bucket:        aws.String("kubernetes-" + m.Name), // Required
+			Bucket:        aws.String(m.AWSConfig.BucketName), // Required
 			Key:           aws.String("build/master.yaml"),    // Required
 			Body:          bytes.NewReader(userdata.Bytes()),
 			ContentLength: aws.Int64(int64(userdata.Len())),
@@ -686,65 +694,65 @@ func (p *Provider) CreateKube(m *model.Kube, action *core.Action) error {
 			m.AWSConfig.KubeMasterCount = 1
 		}
 
-		masterCount := m.AWSConfig.KubeMasterCount
-		loopCount := 0
+		for i := 1; i <= m.AWSConfig.KubeMasterCount; i++ {
 
-		for _, subnet := range m.AWSConfig.PublicSubnetIPRange {
-
-			if subnet["subnet_id"] != "" {
-				if loopCount >= masterCount {
-					break
+			// Grab our subnets
+			var subnets []string
+			for _, subnet := range m.AWSConfig.PublicSubnetIPRange {
+				if subnet["subnet_id"] != "" {
+					subnets = append(subnets, subnet["subnet_id"])
 				}
-
-				time.Sleep(5 * time.Second)
-
-				resp, err := ec2S.RunInstances(&ec2.RunInstancesInput{
-					MinCount:     aws.Int64(1),
-					MaxCount:     aws.Int64(1),
-					ImageId:      aws.String(ami),
-					InstanceType: aws.String(m.MasterNodeSize),
-					KeyName:      aws.String(m.Name + "-key"),
-					NetworkInterfaces: []*ec2.InstanceNetworkInterfaceSpecification{
-						{
-							DeviceIndex:              aws.Int64(0),
-							AssociatePublicIpAddress: aws.Bool(true),
-							DeleteOnTermination:      aws.Bool(true),
-							Groups: []*string{
-								aws.String(m.AWSConfig.NodeSecurityGroupID),
-							},
-							SubnetId: aws.String(subnet["subnet_id"]),
-							//PrivateIpAddress: aws.String(m.AWSConfig.MasterPrivateIP),
-						},
-					},
-					IamInstanceProfile: &ec2.IamInstanceProfileSpecification{
-						Name: aws.String("kubernetes-master"),
-					},
-					BlockDeviceMappings: []*ec2.BlockDeviceMapping{
-						{
-							DeviceName: aws.String("/dev/xvdb"),
-							Ebs: &ec2.EbsBlockDevice{
-								DeleteOnTermination: aws.Bool(true),
-								VolumeType:          aws.String("gp2"),
-								VolumeSize:          aws.Int64(20),
-							},
-						},
-					},
-					UserData: aws.String(encodedUserdata),
-				})
-				if err != nil {
-					return err
-				}
-
-				m.AWSConfig.MasterNodes = append(m.AWSConfig.MasterNodes, *resp.Instances[0].InstanceId)
-				loopCount++
-
+			}
+			// Randomly set a subnet
+			var selectedSubnet string
+			if len(subnets) == 1 {
+				selectedSubnet = subnets[0]
 			} else {
-				loopCount++
-				continue
+				selectedSubnet = subnets[(i-1)%len(m.AWSConfig.PublicSubnetIPRange)]
 			}
 
-		}
+			time.Sleep(5 * time.Second)
+			procedure.Core.Log.Info("Building master #" + strconv.Itoa(i) + ", in subnet " + selectedSubnet + "...")
+			resp, err := ec2S.RunInstances(&ec2.RunInstancesInput{
+				MinCount:     aws.Int64(1),
+				MaxCount:     aws.Int64(1),
+				ImageId:      aws.String(ami),
+				InstanceType: aws.String(m.MasterNodeSize),
+				KeyName:      aws.String(m.Name + "-key"),
+				NetworkInterfaces: []*ec2.InstanceNetworkInterfaceSpecification{
+					{
+						DeviceIndex:              aws.Int64(0),
+						AssociatePublicIpAddress: aws.Bool(true),
+						DeleteOnTermination:      aws.Bool(true),
+						Groups: []*string{
+							aws.String(m.AWSConfig.NodeSecurityGroupID),
+						},
+						SubnetId: aws.String(selectedSubnet),
+						//PrivateIpAddress: aws.String(m.AWSConfig.MasterPrivateIP),
+					},
+				},
+				IamInstanceProfile: &ec2.IamInstanceProfileSpecification{
+					Name: aws.String("kubernetes-master"),
+				},
+				BlockDeviceMappings: []*ec2.BlockDeviceMapping{
+					{
+						DeviceName: aws.String("/dev/xvdb"),
+						Ebs: &ec2.EbsBlockDevice{
+							DeleteOnTermination: aws.Bool(true),
+							VolumeType:          aws.String("gp2"),
+							VolumeSize:          aws.Int64(20),
+						},
+					},
+				},
+				UserData: aws.String(encodedUserdata),
+			})
+			if err != nil {
+				return err
+			}
 
+			m.AWSConfig.MasterNodes = append(m.AWSConfig.MasterNodes, *resp.Instances[0].InstanceId)
+
+		}
 		return nil
 	})
 

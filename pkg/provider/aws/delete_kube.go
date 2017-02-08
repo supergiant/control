@@ -206,11 +206,16 @@ func (p *Provider) DeleteKube(m *model.Kube, action *core.Action) error {
 
 	procedure.AddStep("deleting S3 bucket", func() error {
 
+		// if bucket does not exist skip.
+		if !bucketExist(s3S, m.AWSConfig.BucketName) {
+			return nil
+		}
+
 		objects, err := s3S.ListObjects(&s3.ListObjectsInput{
-			Bucket: aws.String("kubernetes-" + m.Name),
+			Bucket: aws.String(m.AWSConfig.BucketName),
 		})
 		if err != nil {
-			if strings.Contains(err.Error(), "The specified bucket does not exist") || strings.Contains(err.Error(), "The authorization header is malformed") {
+			if strings.Contains(err.Error(), "The authorization header is malformed") {
 				// it does not exist,
 				return nil
 			}
@@ -219,19 +224,23 @@ func (p *Provider) DeleteKube(m *model.Kube, action *core.Action) error {
 
 		for _, object := range objects.Contents {
 			_, err = s3S.DeleteObject(&s3.DeleteObjectInput{
-				Bucket: aws.String("kubernetes-" + m.Name),
+				Bucket: aws.String(m.AWSConfig.BucketName),
 				Key:    aws.String(*object.Key),
 			})
 			if err != nil {
+				if strings.Contains(err.Error(), "The specified method is not allowed against this resource.") {
+					// it does not exist,
+					return nil
+				}
 				return err
 			}
 		}
 
 		_, err = s3S.DeleteBucket(&s3.DeleteBucketInput{
-			Bucket: aws.String("kubernetes-" + m.Name),
+			Bucket: aws.String(m.AWSConfig.BucketName),
 		})
 		if err != nil {
-			if strings.Contains(err.Error(), "The specified bucket does not exist") {
+			if strings.Contains(err.Error(), "The specified method is not allowed against this resource.") {
 				// it does not exist,
 				return nil
 			}

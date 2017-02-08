@@ -296,3 +296,13 @@ func etcdToken(num string) (string, error) {
 	}
 	return string(body), nil
 }
+
+func bucketExist(s3S s3iface.S3API, name string) bool {
+	_, err := s3S.ListObjects(&s3.ListObjectsInput{
+		Bucket: aws.String(name),
+	})
+	if err != nil {
+		return false
+	}
+	return true
+}

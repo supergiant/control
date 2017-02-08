@@ -3,6 +3,7 @@ package aws
 import (
 	"bytes"
 	"encoding/base64"
+	"fmt"
 	"math/rand"
 	"text/template"
 	"time"
@@ -50,7 +51,8 @@ func (p *Provider) CreateNode(m *model.Node, action *core.Action) error {
 	if len(subnets) == 1 {
 		selectedSubnet = subnets[0]
 	} else {
-		selectedSubnet = subnets[random(0, len(subnets)-1)]
+		fmt.Println("Number of nodes:", len(m.Kube.Nodes))
+		selectedSubnet = subnets[(len(m.Kube.Nodes)-1)%len(m.Kube.AWSConfig.PublicSubnetIPRange)]
 	}
 
 	resp, err := ec2S.RunInstances(&ec2.RunInstancesInput{
