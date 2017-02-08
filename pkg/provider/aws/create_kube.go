@@ -222,7 +222,7 @@ func (p *Provider) CreateKube(m *model.Kube, action *core.Action) error {
 	})
 
 	procedure.AddStep("creating S3 bucket", func() error {
-		m.AWSConfig.BucketName = "kubernetes-" + m.Name + "-" + util.RandomString(10)
+		m.AWSConfig.BucketName = strings.ToLower("kubernetes-" + m.Name + "-" + util.RandomString(10))
 		_, err := s3S.CreateBucket(&s3.CreateBucketInput{
 			Bucket: aws.String(m.AWSConfig.BucketName),
 		})
