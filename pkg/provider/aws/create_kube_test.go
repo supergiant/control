@@ -41,6 +41,7 @@ func TestAWSProviderCreateKube(t *testing.T) {
 			mockCreateSecurityGroupError           error
 			mockAuthorizeSecurityGroupIngressError error
 			mockRunInstancesError                  error
+			mockDescribeAvailabilityZonesError     error
 			mockDescribeInstancesError             error
 			mockGetInstanceProfileError            error
 			mockCreateInstanceProfileError         error
@@ -386,6 +387,17 @@ func TestAWSProviderCreateKube(t *testing.T) {
 								Instances: []*ec2.Instance{
 									{
 										InstanceId: awssdk.String("instance-id"),
+									},
+								},
+							}
+							return output, item.mockRunInstancesError
+						},
+						DescribeAvailabilityZonesFn: func(input *ec2.DescribeAvailabilityZonesInput) (*ec2.DescribeAvailabilityZonesOutput, error) {
+							output := &ec2.DescribeAvailabilityZonesOutput{
+								AvailabilityZones: []*ec2.AvailabilityZone{
+									{
+										ZoneName: awssdk.String("aws-zone"),
+										State:    awssdk.String("available"),
 									},
 								},
 							}
