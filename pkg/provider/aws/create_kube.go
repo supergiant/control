@@ -711,14 +711,6 @@ func (p *Provider) CreateKube(m *model.Kube, action *core.Action) error {
 				selectedSubnet = subnets[(i-1)%len(m.AWSConfig.PublicSubnetIPRange)]
 			}
 
-			//Volume size
-			var volumeSize int
-			if m.AWSConfig.MasterVolumeSize == 0 {
-				volumeSize = 100
-			} else {
-				volumeSize = m.AWSConfig.MasterVolumeSize
-			}
-
 			time.Sleep(5 * time.Second)
 			procedure.Core.Log.Info("Building master #" + strconv.Itoa(i) + ", in subnet " + selectedSubnet + "...")
 			resp, err := ec2S.RunInstances(&ec2.RunInstancesInput{
@@ -748,7 +740,7 @@ func (p *Provider) CreateKube(m *model.Kube, action *core.Action) error {
 						Ebs: &ec2.EbsBlockDevice{
 							DeleteOnTermination: aws.Bool(true),
 							VolumeType:          aws.String("gp2"),
-							VolumeSize:          aws.Int64(int64(volumeSize)),
+							VolumeSize:          aws.Int64(int64(m.AWSConfig.MasterVolumeSize)),
 						},
 					},
 				},
