@@ -69,6 +69,8 @@ type AWSKubeConfig struct {
 	MultiAZ             bool                `json:"multi_az"`
 	SSHPubKey           string              `json:"ssh_pub_key"`
 	BucketName          string              `json:"bucket_name,omitempty" sg:"readonly"`
+	NodeVolumeSize      int                 `json:"node_volume_size"`
+	MasterVolumeSize    int                 `json:"master_volume_size"`
 	KubernetesVersion   string              `json:"kubernetes_version" validate:"nonzero" sg:"default=1.5.1"`
 
 	MasterPrivateIP               string   `json:"master_private_ip" sg:"readonly"`

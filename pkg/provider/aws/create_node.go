@@ -55,6 +55,14 @@ func (p *Provider) CreateNode(m *model.Node, action *core.Action) error {
 		selectedSubnet = subnets[(len(m.Kube.Nodes)-1)%len(m.Kube.AWSConfig.PublicSubnetIPRange)]
 	}
 
+	// volumes
+	var volume int
+	if m.Kube.AWSConfig.NodeVolumeSize == 0 {
+		volume = 100
+	} else {
+		volume = m.Kube.AWSConfig.NodeVolumeSize
+	}
+
 	resp, err := ec2S.RunInstances(&ec2.RunInstancesInput{
 		MinCount:     aws.Int64(1),
 		MaxCount:     aws.Int64(1),
@@ -67,6 +75,16 @@ func (p *Provider) CreateNode(m *model.Node, action *core.Action) error {
 		},
 		IamInstanceProfile: &ec2.IamInstanceProfileSpecification{
 			Name: aws.String("kubernetes-minion"),
+		},
+		BlockDeviceMappings: []*ec2.BlockDeviceMapping{
+			&ec2.BlockDeviceMapping{
+				DeviceName: aws.String("/dev/xvda"),
+				Ebs: &ec2.EbsBlockDevice{
+					DeleteOnTermination: aws.Bool(true),
+					VolumeType:          aws.String("gp2"),
+					VolumeSize:          aws.Int64(int64(volume)),
+				},
+			},
 		},
 		UserData: aws.String(encodedUserdata),
 		SubnetId: aws.String(selectedSubnet),
