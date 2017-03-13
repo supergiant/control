@@ -22,10 +22,10 @@ type KubeResource struct {
 	Kind string `json:"kind" validate:"nonzero" gorm:"not null;unique_index:kube_namespace_kind_name"`
 
 	// Namespace corresponds directly to the name of the Kubernetes namespace.
-	Namespace string `json:"namespace" validate:"max=63" gorm:"unique_index:kube_namespace_kind_name"`
+	Namespace string `json:"namespace" gorm:"unique_index:kube_namespace_kind_name"`
 
 	// Name corresponds directly to the name of the resource in Kubernetes.
-	Name string `json:"name" validate:"nonzero,max=63" gorm:"not null;unique_index:kube_namespace_kind_name"`
+	Name string `json:"name" validate:"nonzero" gorm:"not null;unique_index:kube_namespace_kind_name"`
 
 	// Resource is where the actual Kubernetes definition is stored.
 	Resource     *json.RawMessage `json:"resource" gorm:"-" sg:"store_as_json_in=ResourceJSON,readonly"`
