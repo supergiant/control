@@ -28,7 +28,7 @@ type KubeResource struct {
 	Name string `json:"name" validate:"nonzero" gorm:"not null;unique_index:kube_namespace_kind_name"`
 
 	// Resource is where the actual Kubernetes definition is stored.
-	Resource     *json.RawMessage `json:"resource" gorm:"-" sg:"store_as_json_in=ResourceJSON,readonly"`
+	Resource     *json.RawMessage `json:"resource" gorm:"-" sg:"store_as_json_in=ResourceJSON"`
 	ResourceJSON []byte           `json:"-"`
 
 	// Started represents whether the resource exists in Kubernetes or not. If it
