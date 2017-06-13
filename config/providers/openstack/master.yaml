@@ -100,6 +100,8 @@ write_files:
       username = {{ index .CloudAccount.Credentials "username" }}
       password = {{ index .CloudAccount.Credentials "password" }}
       tenant-id = {{ index .CloudAccount.Credentials "tenant_id" }}
+      domain-id = {{ index .CloudAccount.Credentials "domain_id" }}
+      domain-name = {{ index .CloudAccount.Credentials "domain_name" }}
       region = {{ .OpenStackConfig.Region }}
       [LoadBalancer]
       subnet-id = {{ .OpenStackConfig.SubnetID }}
