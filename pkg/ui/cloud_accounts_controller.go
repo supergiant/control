@@ -29,6 +29,8 @@ func NewCloudAccount(sg *client.Client, w http.ResponseWriter, r *http.Request) 
 				"username":          "",
 				"password":          "",
 				"tenant_id":         "",
+				"domain_id":         "",
+				"domain_name":       "",
 			},
 		}
 	case "gce":

@@ -47,6 +47,7 @@ func NewKube(sg *client.Client, w http.ResponseWriter, r *http.Request) error {
 				"m1.small",
 			},
 			"openstack_config": map[string]interface{}{
+				"image_name":          "CoreOS",
 				"region":              "RegionOne",
 				"ssh_key_fingerprint": "",
 				"ssh_pub_key":         "",

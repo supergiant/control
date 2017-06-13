@@ -37,6 +37,8 @@ write_files:
       username = {{ index .Kube.CloudAccount.Credentials "username" }}
       password = {{ index .Kube.CloudAccount.Credentials "password" }}
       tenant-id = {{ index .Kube.CloudAccount.Credentials "tenant_id" }}
+      domain-id = {{ index .Kube.CloudAccount.Credentials "domain_id" }}
+      domain-name = {{ index .Kube.CloudAccount.Credentials "domain_name" }}
       region = {{ .Kube.OpenStackConfig.Region }}
       [LoadBalancer]
       subnet-id = {{ .Kube.OpenStackConfig.SubnetID }}
