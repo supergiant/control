@@ -6,14 +6,14 @@ import (
 	"text/template"
 	"time"
 
-	"github.com/rackspace/gophercloud"
-	"github.com/rackspace/gophercloud/openstack"
-	"github.com/rackspace/gophercloud/openstack/compute/v2/extensions/floatingip"
-	"github.com/rackspace/gophercloud/openstack/compute/v2/servers"
-	"github.com/rackspace/gophercloud/openstack/networking/v2/extensions/layer3/floatingips"
-	"github.com/rackspace/gophercloud/openstack/networking/v2/extensions/layer3/routers"
-	"github.com/rackspace/gophercloud/openstack/networking/v2/networks"
-	"github.com/rackspace/gophercloud/openstack/networking/v2/subnets"
+	"github.com/gophercloud/gophercloud"
+	"github.com/gophercloud/gophercloud/openstack"
+	floatingip "github.com/gophercloud/gophercloud/openstack/compute/v2/extensions/floatingips"
+	"github.com/gophercloud/gophercloud/openstack/compute/v2/servers"
+	"github.com/gophercloud/gophercloud/openstack/networking/v2/extensions/layer3/floatingips"
+	"github.com/gophercloud/gophercloud/openstack/networking/v2/extensions/layer3/routers"
+	"github.com/gophercloud/gophercloud/openstack/networking/v2/networks"
+	"github.com/gophercloud/gophercloud/openstack/networking/v2/subnets"
 	"github.com/supergiant/supergiant/bindata"
 	"github.com/supergiant/supergiant/pkg/core"
 	"github.com/supergiant/supergiant/pkg/model"
@@ -82,7 +82,7 @@ func (p *Provider) CreateKube(m *model.Kube, action *core.Action) error {
 		// Create network
 		net, err := networks.Create(networkClient, networks.CreateOpts{
 			Name:         m.Name + "-network",
-			AdminStateUp: networks.Up,
+			AdminStateUp: gophercloud.Enabled,
 		}).Extract()
 		if err != nil {
 			return err
@@ -99,7 +99,7 @@ func (p *Provider) CreateKube(m *model.Kube, action *core.Action) error {
 		sub, err := subnets.Create(networkClient, subnets.CreateOpts{
 			NetworkID:      m.OpenStackConfig.NetworkID,
 			CIDR:           m.OpenStackConfig.PrivateSubnetRange,
-			IPVersion:      subnets.IPv4,
+			IPVersion:      gophercloud.IPv4,
 			Name:           m.Name + "-subnet",
 			DNSNameservers: []string{"8.8.8.8"},
 		}).Extract()
@@ -119,7 +119,7 @@ func (p *Provider) CreateKube(m *model.Kube, action *core.Action) error {
 		if m.OpenStackConfig.PublicGatwayID != publicDisabled {
 			opts = routers.CreateOpts{
 				Name:         m.Name + "-router",
-				AdminStateUp: networks.Up,
+				AdminStateUp: gophercloud.Enabled,
 				GatewayInfo: &routers.GatewayInfo{
 					NetworkID: m.OpenStackConfig.PublicGatwayID,
 				},
@@ -127,7 +127,7 @@ func (p *Provider) CreateKube(m *model.Kube, action *core.Action) error {
 		} else {
 			opts = routers.CreateOpts{
 				Name:         m.Name + "-router",
-				AdminStateUp: networks.Up,
+				AdminStateUp: gophercloud.Enabled,
 			}
 		}
 		router, err := routers.Create(networkClient, opts).Extract()
@@ -136,7 +136,7 @@ func (p *Provider) CreateKube(m *model.Kube, action *core.Action) error {
 		}
 
 		// interface our subnet to the new router.
-		routers.AddInterface(networkClient, router.ID, routers.InterfaceOpts{
+		routers.AddInterface(networkClient, router.ID, routers.AddInterfaceOpts{
 			SubnetID: m.OpenStackConfig.SubnetID,
 		})
 		m.OpenStackConfig.RouterID = router.ID
@@ -161,16 +161,20 @@ func (p *Provider) CreateKube(m *model.Kube, action *core.Action) error {
 		}
 
 		// Create Server
-		masterServer, err := servers.Create(computeClient, servers.CreateOpts{
-			Name:       masterName,
-			FlavorName: m.MasterNodeSize,
-			ImageName:  "CoreOS",
-			UserData:   masterUserdata.Bytes(),
+		//
+		serverCreateOpts := servers.CreateOpts{
+			ServiceClient: computeClient,
+			Name:          masterName,
+			FlavorName:    m.MasterNodeSize,
+			ImageName:     m.OpenStackConfig.ImageName,
+			UserData:      masterUserdata.Bytes(),
 			Networks: []servers.Network{
 				servers.Network{UUID: m.OpenStackConfig.NetworkID},
 			},
 			Metadata: map[string]string{"kubernetes-cluster": m.Name, "Role": "master"},
-		}).Extract()
+		}
+		p.Core.Log.Debug(m.OpenStackConfig.ImageName)
+		masterServer, err := servers.Create(computeClient, serverCreateOpts).Extract()
 		if err != nil {
 			return err
 		}
@@ -229,12 +233,12 @@ func (p *Provider) CreateKube(m *model.Kube, action *core.Action) error {
 				return waitErr
 			}
 			// save results
-			m.OpenStackConfig.FloatingIpID = floatIP.ID
+			m.OpenStackConfig.FloatingIPID = floatIP.ID
 			// Associate with master
-			err = floatingip.AssociateInstance(computeClient, floatingip.AssociateOpts{
-				ServerID:   m.OpenStackConfig.MasterID,
+			associateOpts := floatingip.AssociateOpts{
 				FloatingIP: floatIP.FloatingIP,
-			}).ExtractErr()
+			}
+			err = floatingip.AssociateInstance(computeClient, m.OpenStackConfig.MasterID, associateOpts).ExtractErr()
 			if err != nil {
 				return err
 			}
@@ -297,7 +301,7 @@ func (p *Provider) DeleteKube(m *model.Kube, action *core.Action) error {
 	if m.OpenStackConfig.PublicGatwayID != publicDisabled {
 		procedure.AddStep("Destroying kubernetes Floating IP...", func() error {
 			err := err
-			floatIP, err := floatingip.Get(computeClient, m.OpenStackConfig.FloatingIpID).Extract()
+			floatIP, err := floatingip.Get(computeClient, m.OpenStackConfig.FloatingIPID).Extract()
 			if err != nil {
 				if strings.Contains(err.Error(), "404") {
 					// it does not exist,
@@ -306,10 +310,10 @@ func (p *Provider) DeleteKube(m *model.Kube, action *core.Action) error {
 				return err
 			}
 			// Disassociate Instance from floating IP
-			err = floatingip.DisassociateInstance(computeClient, floatingip.AssociateOpts{
-				ServerID:   m.OpenStackConfig.MasterID,
+			disassociateOpts := floatingip.DisassociateOpts{
 				FloatingIP: floatIP.IP,
-			}).ExtractErr()
+			}
+			err = floatingip.DisassociateInstance(computeClient, floatIP.ID, disassociateOpts).ExtractErr()
 			if err != nil {
 				if strings.Contains(err.Error(), "field missing") {
 					// it does not exist,
@@ -345,7 +349,7 @@ func (p *Provider) DeleteKube(m *model.Kube, action *core.Action) error {
 
 	procedure.AddStep("Destroying kubernetes Router...", func() error {
 		// Remove router interface
-		_, err = routers.RemoveInterface(networkClient, m.OpenStackConfig.RouterID, routers.InterfaceOpts{
+		_, err = routers.RemoveInterface(networkClient, m.OpenStackConfig.RouterID, routers.RemoveInterfaceOpts{
 			SubnetID: m.OpenStackConfig.SubnetID,
 		}).Extract()
 		if err != nil {
@@ -416,17 +420,20 @@ func (p *Provider) CreateNode(m *model.Node, action *core.Action) error {
 		return err
 	}
 
-	// Create server
-	server, err := servers.Create(computeClient, servers.CreateOpts{
-		Name:       m.Name,
-		FlavorName: m.Size, // <- Do we need a minion node size? This will work for now.
-		ImageName:  "CoreOS",
-		UserData:   minionUserdata.Bytes(),
+	serverCreateOpts := servers.CreateOpts{
+		ServiceClient: computeClient,
+		Name:          m.Name,
+		FlavorName:    m.Size,
+		ImageName:     m.Kube.OpenStackConfig.ImageName,
+		UserData:      minionUserdata.Bytes(),
 		Networks: []servers.Network{
 			servers.Network{UUID: m.Kube.OpenStackConfig.NetworkID},
 		},
-		Metadata: map[string]string{"kubernetes-cluster": m.Kube.Name, "Role": "minion"},
-	}).Extract()
+		Metadata: map[string]string{"kubernetes-cluster": m.Name, "Role": "minion"},
+	}
+
+	// Create server
+	server, err := servers.Create(computeClient, serverCreateOpts).Extract()
 	if err != nil {
 		return err
 	}
@@ -507,6 +514,8 @@ func Client(kube *model.Kube) (*gophercloud.ProviderClient, error) {
 		Username:         kube.CloudAccount.Credentials["username"],
 		Password:         kube.CloudAccount.Credentials["password"],
 		TenantID:         kube.CloudAccount.Credentials["tenant_id"],
+		DomainID:         kube.CloudAccount.Credentials["domain_id"],
+		DomainName:       kube.CloudAccount.Credentials["domain_name"],
 	}
 
 	client, err := openstack.AuthenticatedClient(opts)
