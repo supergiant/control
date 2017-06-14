@@ -108,7 +108,8 @@ type OSKubeConfig struct {
 	NetworkID       string `json:"network_id" sg:"readonly"`
 	SubnetID        string `json:"subnet_id" sg:"readonly"`
 	RouterID        string `json:"router_id" sg:"readonly"`
-	FloatingIpID    string `json:"floating_ip_id" sg:"readonly"`
+	FloatingIPID    string `json:"floating_ip_id" sg:"readonly"`
+	ImageName       string `json:"image_name" validate:"nonzero"`
 }
 
 // GCEKubeConfig holds do specific information about DO based KUbernetes clusters.

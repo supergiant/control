@@ -166,14 +166,14 @@ func (p *Provider) CreateKube(m *model.Kube, action *core.Action) error {
 			ServiceClient: computeClient,
 			Name:          masterName,
 			FlavorName:    m.MasterNodeSize,
-			ImageName:     "CoreOS",
+			ImageName:     m.OpenStackConfig.ImageName,
 			UserData:      masterUserdata.Bytes(),
 			Networks: []servers.Network{
 				servers.Network{UUID: m.OpenStackConfig.NetworkID},
 			},
 			Metadata: map[string]string{"kubernetes-cluster": m.Name, "Role": "master"},
 		}
-
+		p.Core.Log.Debug(m.OpenStackConfig.ImageName)
 		masterServer, err := servers.Create(computeClient, serverCreateOpts).Extract()
 		if err != nil {
 			return err
@@ -233,7 +233,7 @@ func (p *Provider) CreateKube(m *model.Kube, action *core.Action) error {
 				return waitErr
 			}
 			// save results
-			m.OpenStackConfig.FloatingIpID = floatIP.ID
+			m.OpenStackConfig.FloatingIPID = floatIP.ID
 			// Associate with master
 			associateOpts := floatingip.AssociateOpts{
 				FloatingIP: floatIP.FloatingIP,
@@ -301,7 +301,7 @@ func (p *Provider) DeleteKube(m *model.Kube, action *core.Action) error {
 	if m.OpenStackConfig.PublicGatwayID != publicDisabled {
 		procedure.AddStep("Destroying kubernetes Floating IP...", func() error {
 			err := err
-			floatIP, err := floatingip.Get(computeClient, m.OpenStackConfig.FloatingIpID).Extract()
+			floatIP, err := floatingip.Get(computeClient, m.OpenStackConfig.FloatingIPID).Extract()
 			if err != nil {
 				if strings.Contains(err.Error(), "404") {
 					// it does not exist,
