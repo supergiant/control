@@ -161,16 +161,20 @@ func (p *Provider) CreateKube(m *model.Kube, action *core.Action) error {
 		}
 
 		// Create Server
-		masterServer, err := servers.Create(computeClient, servers.CreateOpts{
-			Name:       masterName,
-			FlavorName: m.MasterNodeSize,
-			ImageName:  "CoreOS",
-			UserData:   masterUserdata.Bytes(),
+		//
+		serverCreateOpts := servers.CreateOpts{
+			ServiceClient: computeClient,
+			Name:          masterName,
+			FlavorName:    m.MasterNodeSize,
+			ImageName:     "CoreOS",
+			UserData:      masterUserdata.Bytes(),
 			Networks: []servers.Network{
 				servers.Network{UUID: m.OpenStackConfig.NetworkID},
 			},
 			Metadata: map[string]string{"kubernetes-cluster": m.Name, "Role": "master"},
-		}).Extract()
+		}
+
+		masterServer, err := servers.Create(computeClient, serverCreateOpts).Extract()
 		if err != nil {
 			return err
 		}
