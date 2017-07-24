@@ -1,14 +1,14 @@
-import { ClientPage } from './app.po';
+import { SguiPage } from './app.po';
 
-describe('client App', () => {
-  let page: ClientPage;
+describe('sgui App', () => {
+  let page: SguiPage;
 
   beforeEach(() => {
-    page = new ClientPage();
+    page = new SguiPage();
   });
 
-  it('should display message saying app works', () => {
+  it('should display welcome message', () => {
     page.navigateTo();
-    expect(page.getParagraphText()).toEqual('app works!');
+    expect(page.getParagraphText()).toEqual('Welcome to app!');
   });
 });
