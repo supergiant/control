@@ -476,7 +476,9 @@ func (p *Provider) CreateKube(m *model.Kube, action *core.Action) error {
 	})
 
 	procedure.AddStep("enabling public IP assignment setting of Subnet", func() error {
-
+		if m.AWSConfig.VPCMANAGED == true {
+			return nil
+		}
 		for _, subnet := range m.AWSConfig.PublicSubnetIPRange {
 			if subnet["subnet_id"] != "" {
 				_, err := ec2S.ModifySubnetAttribute(&ec2.ModifySubnetAttributeInput{
