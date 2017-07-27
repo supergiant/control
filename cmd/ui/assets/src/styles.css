@@ -40,46 +40,22 @@
   border-radius: 0 4px 4px 0;
   margin-right: 0;
 }
-.vertical-text {
-  margin-top:50px;
-  border: none;
-  position: relative;
+
+#logo {
+  display: block;
+  height: 120px;
+  text-indent: -9999px;
+  background: url(assets/img/supergiant.svg) no-repeat;
+  background-size: 130px auto;
+  background-position: center;
 }
-.vertical-text>li {
-  height: 20px;
-  width: 120px;
-  margin-bottom: 100px;
+#container {
+  /*display: table;*/
+  /*position: absolute;*/
 }
-.vertical-text>li>a {
-  border-bottom: 1px solid #ddd;
-  border-right-color: transparent;
-  text-align: center;
-  border-radius: 4px 4px 0px 0px;
-}
-.vertical-text>li.active>a,
-.vertical-text>li.active>a:hover,
-.vertical-text>li.active>a:focus {
-  border-bottom-color: transparent;
-  border-right-color: #ddd;
-  border-left-color: #ddd;
-}
-.vertical-text.tabs-left {
-  left: -50px;
-}
-.vertical-text.tabs-right {
-  right: -50px;
-}
-.vertical-text.tabs-right>li {
-  -webkit-transform: rotate(90deg);
-  -moz-transform: rotate(90deg);
-  -ms-transform: rotate(90deg);
-  -o-transform: rotate(90deg);
-  transform: rotate(90deg);
-}
-.vertical-text.tabs-left>li {
-  -webkit-transform: rotate(-90deg);
-  -moz-transform: rotate(-90deg);
-  -ms-transform: rotate(-90deg);
-  -o-transform: rotate(-90deg);
-  transform: rotate(-90deg);
+
+#sidebar, #content {
+  /*display: table-cell;*/
+  box-sizing: border-box;
+  /*vertical-align: top;*/
 }

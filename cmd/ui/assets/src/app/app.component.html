@@ -1,89 +1,40 @@
-<!DOCTYPE html>
-<html lang="en">
-  <head>
-  </head>
-  <body>
 
-    <div>
-
-      <div>
-
-        <a>
-          <h1>Supergiant</h1>
+  <div  class="col-sm-6">
+    <div class="col-xs-3">
+        <a href="/" id="logo">
+          Supergiant
         </a>
-
-        <div class="container" style="width: 100px; float: left;">
-          <ngb-tabset type="pills">
-            <ngb-tab title="Sessions">
-              <ng-template ngbTabContent>
-                <p>SG Sessions page.</p>
-              </ng-template>
-            </ngb-tab>
-            <ngb-tab title="Users">
-              <ng-template ngbTabContent>
-                <p>SG Users page.</p>
-              </ng-template>
-            </ngb-tab>
-            <ngb-tab title="Cloud Accounts">
-              <ng-template ngbTabContent>
-                <p>Cloud Accounts</p>
-              </ng-template>
-            </ngb-tab>
-            <ngb-tab title="Kubes">
-              <ng-template ngbTabContent>
-                <p>Kubes</p>
-              </ng-template>
-            </ngb-tab>
-            <ngb-tab title="Nodes">
-              <ng-template ngbTabContent>
-                <p>Nodes</p>
-              </ng-template>
-            </ngb-tab>
-            <ngb-tab title="Load Balancers">
-              <ng-template ngbTabContent>
-                <p>Load Balancers</p>
-              </ng-template>
-            </ngb-tab>
-            <ngb-tab title="Pods">
-              <ng-template ngbTabContent>
-                <p>Pods</p>
-              </ng-template>
-            </ngb-tab>
-            <ngb-tab title="Services">
-              <ng-template ngbTabContent>
-                <p>Services</p>
-              </ng-template>
-            </ngb-tab>
-            <ngb-tab title="Volumes">
-              <ng-template ngbTabContent>
-                <p>Volumes</p>
-              </ng-template>
-            </ngb-tab>
-            <ngb-tab title="Helm Repos">
-              <ng-template ngbTabContent>
-                <p>Helm Repos</p>
-              </ng-template>
-            </ngb-tab>
-            <ngb-tab title="Helm Charts">
-              <ng-template ngbTabContent>
-                <p>Helm Charts</p>
-              </ng-template>
-            </ngb-tab>
-            <ngb-tab title="Helm Releases">
-              <ng-template ngbTabContent>
-                <p>Helm Releases</p>
-              </ng-template>
-            </ngb-tab>
-          </ngb-tabset>
+        <hr/>
+          <ul class="nav nav-pills tabs-left sideways">
+            <li class="active"><a href="#sessions-v" data-toggle="tab">Sessions</a></li>
+            <li><a href="#users-v" data-toggle="tab">Users</a></li>
+            <li><a href="#accounts-v" data-toggle="tab">Cloud Accounts</a></li>
+            <li><a href="#kubes-v" data-toggle="tab">Kubes</a></li>
+            <li><a href="#nodes-v" data-toggle="tab">Nodes</a></li>
+            <li><a href="#lb-v" data-toggle="tab">Load Balancers</a></li>
+            <li><a href="#pods-v" data-toggle="tab">Pods</a></li>
+            <li><a href="#services-v" data-toggle="tab">Services</a></li>
+            <li><a href="#volumes-v" data-toggle="tab">Volumes</a></li>
+            <li><a href="#repos-v" data-toggle="tab">Helm Repos</a></li>
+            <li><a href="#charts-v" data-toggle="tab">Helm Charts</a></li>
+            <li><a href="#releases-v" data-toggle="tab">Helm Releases</a></li>
+          </ul>
         </div>
 
+        <div class="col-xs-9">
+          <div class="tab-content">
+            <div class="tab-pane active" id="sessions-v">Sessions Tab.</div>
+            <div class="tab-pane" id="users-v">Users Tab.</div>
+            <div class="tab-pane" id="acounts-v">Accounts Tab.</div>
+            <div class="tab-pane" id="kubes-v">Kubes Tab.</div>
+            <div class="tab-pane" id="nodes-v">Nodes Tab.</div>
+            <div class="tab-pane" id="lb-v">Load Balancers Tab.</div>
+            <div class="tab-pane" id="pods-v">Pods Tab.</div>
+            <div class="tab-pane" id="services-v">Services Tab.</div>
+            <div class="tab-pane" id="volumes-v">Volumes Tab.</div>
+            <div class="tab-pane" id="repos-v">Helm Repos Tab.</div>
+            <div class="tab-pane" id="charts-v">Helm Charts Tab.</div>
+            <div class="tab-pane" id="releases-v">Helm Releases Tab.</div>
+          </div>
+        </div>
       </div>
-
-      <div>
-        {{ body }}
-      </div>
-
-    </div>
-
-  </body>
-</html>
