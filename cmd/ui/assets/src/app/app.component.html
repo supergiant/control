@@ -1,58 +1,85 @@
 <!DOCTYPE html>
 <html lang="en">
   <head>
-    <title>
-      {{ title }}
-    </title>
-
-    <link rel="shortcut icon" href="/ui/assets/img/favicon.ico" type="image/x-icon">
-    <link rel="icon" href="/ui/assets/img/favicon.ico" type="image/x-icon">
-
-    <!-- Vendor -->
-    <script src="/ui/assets/js/vendor/jquery-3.1.0.min.js"></script>
-
-    <!-- Font -->
-    <link href="/ui/assets/fonts/Montserrat-Regular.ttf" rel="stylesheet">
-    <link href="/ui/assets/fonts/OpenSans-Regular.ttf" rel="stylesheet">
-    <link href="/ui/assets/fonts/OpenSans-Semibold.ttf" rel="stylesheet">
-
-    <!-- Supergiant main styles -->
-    <link rel="stylesheet" href="/ui/assets/css/main.css">
-
-    <!-- Supergiant main JavaScript -->
-    <script src="/ui/assets/js/main.js"></script>
-    <script src="/ui/assets/js/modal.js"></script>
-    <script src="/ui/assets/js/dropdown.js"></script>
-
   </head>
   <body>
 
-    <div id="container">
+    <div>
 
-      <div id="sidebar">
+      <div>
 
-        <a href="/" id="logo">
-          Supergiant
+        <a>
+          <h1>Supergiant</h1>
         </a>
 
-        <div id="nav">
-          <a>Sessions</a>
-          <a>Users</a>
-          <a>Cloud Accounts</a>
-          <a>Kubes</a>
-          <a>Nodes</a>
-          <a>Load Balancers</a>
-          <a>Pods</a>
-          <a>Services</a>
-          <a>Volumes</a>
-          <a>Helm Repos</a>
-          <a>Helm Charts</a>
-          <a>Helm Releases</a>
+        <div class="container" style="width: 100px; float: left;">
+          <ngb-tabset type="pills">
+            <ngb-tab title="Sessions">
+              <ng-template ngbTabContent>
+                <p>SG Sessions page.</p>
+              </ng-template>
+            </ngb-tab>
+            <ngb-tab title="Users">
+              <ng-template ngbTabContent>
+                <p>SG Users page.</p>
+              </ng-template>
+            </ngb-tab>
+            <ngb-tab title="Cloud Accounts">
+              <ng-template ngbTabContent>
+                <p>Cloud Accounts</p>
+              </ng-template>
+            </ngb-tab>
+            <ngb-tab title="Kubes">
+              <ng-template ngbTabContent>
+                <p>Kubes</p>
+              </ng-template>
+            </ngb-tab>
+            <ngb-tab title="Nodes">
+              <ng-template ngbTabContent>
+                <p>Nodes</p>
+              </ng-template>
+            </ngb-tab>
+            <ngb-tab title="Load Balancers">
+              <ng-template ngbTabContent>
+                <p>Load Balancers</p>
+              </ng-template>
+            </ngb-tab>
+            <ngb-tab title="Pods">
+              <ng-template ngbTabContent>
+                <p>Pods</p>
+              </ng-template>
+            </ngb-tab>
+            <ngb-tab title="Services">
+              <ng-template ngbTabContent>
+                <p>Services</p>
+              </ng-template>
+            </ngb-tab>
+            <ngb-tab title="Volumes">
+              <ng-template ngbTabContent>
+                <p>Volumes</p>
+              </ng-template>
+            </ngb-tab>
+            <ngb-tab title="Helm Repos">
+              <ng-template ngbTabContent>
+                <p>Helm Repos</p>
+              </ng-template>
+            </ngb-tab>
+            <ngb-tab title="Helm Charts">
+              <ng-template ngbTabContent>
+                <p>Helm Charts</p>
+              </ng-template>
+            </ngb-tab>
+            <ngb-tab title="Helm Releases">
+              <ng-template ngbTabContent>
+                <p>Helm Releases</p>
+              </ng-template>
+            </ngb-tab>
+          </ngb-tabset>
         </div>
 
       </div>
 
-      <div id="content">
+      <div>
         {{ body }}
       </div>
 
