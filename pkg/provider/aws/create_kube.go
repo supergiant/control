@@ -832,6 +832,13 @@ func (p *Provider) CreateKube(m *model.Kube, action *core.Action) error {
 				selectedSubnet = subnets[(i-1)%len(m.AWSConfig.PublicSubnetIPRange)]
 			}
 
+			var pubNet bool
+			if m.AWSConfig.PrivateNetwork {
+				pubNet = false
+			} else {
+				pubNet = true
+			}
+
 			time.Sleep(5 * time.Second)
 			procedure.Core.Log.Info("Building master #" + strconv.Itoa(i) + ", in subnet " + selectedSubnet + "...")
 			resp, err := ec2S.RunInstances(&ec2.RunInstancesInput{
@@ -843,7 +850,7 @@ func (p *Provider) CreateKube(m *model.Kube, action *core.Action) error {
 				NetworkInterfaces: []*ec2.InstanceNetworkInterfaceSpecification{
 					{
 						DeviceIndex:              aws.Int64(0),
-						AssociatePublicIpAddress: aws.Bool(true),
+						AssociatePublicIpAddress: aws.Bool(pubNet),
 						DeleteOnTermination:      aws.Bool(true),
 						Groups: []*string{
 							aws.String(m.AWSConfig.NodeSecurityGroupID),
