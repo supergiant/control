@@ -971,13 +971,18 @@ func (p *Provider) CreateKube(m *model.Kube, action *core.Action) error {
 			}
 			instance := resp.Reservations[0].Instances[0]
 
+			//Always save private IP
+			m.MasterPrivateIP = *instance.PrivateIpAddress
+			if m.AWSConfig.PrivateNetwork {
+				m.MasterPublicIP = *instance.PrivateIpAddress
+			}
+			p.Core.DB.Save(m)
+
 			// Save IP when ready
 			if m.MasterPublicIP == "" {
 				if ip := instance.PublicIpAddress; ip != nil {
 					m.MasterPublicIP = *ip
-					if m.MasterPrivateIP == "" {
-						m.MasterPrivateIP = *instance.PrivateIpAddress
-					}
+
 					if err := p.Core.DB.Save(m); err != nil {
 						return false, err
 					}
