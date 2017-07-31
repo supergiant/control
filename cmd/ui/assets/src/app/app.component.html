@@ -1,12 +1,12 @@
 
-  <div  class="col-sm-6">
-    <div class="col-xs-3">
+  <div id="container">
+    <div id="sidebar">
         <a href="/" id="logo">
           Supergiant
         </a>
-        <hr/>
-          <ul class="nav nav-pills tabs-left sideways">
-            <li class="active"><a href="#sessions-v" data-toggle="tab">Sessions</a></li>
+        <div id="nav">
+          <ul class="nav">
+            <li><a class="active" href="#sessions-v" data-toggle="tab">Sessions</a></li>
             <li><a href="#users-v" data-toggle="tab">Users</a></li>
             <li><a href="#accounts-v" data-toggle="tab">Cloud Accounts</a></li>
             <li><a href="#kubes-v" data-toggle="tab">Kubes</a></li>
@@ -20,8 +20,30 @@
             <li><a href="#releases-v" data-toggle="tab">Helm Releases</a></li>
           </ul>
         </div>
+      </div>
 
-        <div class="col-xs-9">
+    <div id="content">
+      <div id="control-bar">
+        <div class="btn-group">
+          <div class="row">
+          <div class="col">
+          <div ngbDropdown class="d-inline-block">
+            <button class="btn btn-outline-primary" id="dropdownBasic1" ngbDropdownToggle>Actions</button>
+            <div class="dropdown-menu" aria-labelledby="dropdownBasic1">
+              <button class="dropdown-item">Action - 1</button>
+              <button class="dropdown-item">Another Action</button>
+              <button class="dropdown-item">Something else is here</button>
+            </div>
+          </div>
+        </div>
+      </div>
+        </div>
+        <ul id="mini-nav">
+          <li><a href="#" data-toggle="modal" data-target="#system">System</a></li>
+          <li><a href="#" id="logout">Logout</a></li>
+        </ul>
+      </div>
+      <div id="item_list_container">
           <div class="tab-content">
             <div class="tab-pane active" id="sessions-v">Sessions Tab.</div>
             <div class="tab-pane" id="users-v">Users Tab.</div>
