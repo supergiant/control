@@ -34,7 +34,7 @@ func NewKube(sg *client.Client, w http.ResponseWriter, r *http.Request) error {
 			},
 			"digitalocean_config": map[string]interface{}{
 				"region":              "nyc1",
-				"ssh_key_fingerprint": []string{},
+				"ssh_key_fingerprint": []string{""},
 			},
 		}
 	case "openstack":

@@ -338,9 +338,7 @@ func (p *Provider) CreateKube(m *model.Kube, action *core.Action) error {
 
 	procedure.AddStep("creating VPC", func() error {
 		if m.AWSConfig.VPCID != "" {
-
 			m.AWSConfig.VPCMANAGED = true
-
 			err := p.Core.DB.Save(m)
 			if err != nil {
 				return err
@@ -348,7 +346,6 @@ func (p *Provider) CreateKube(m *model.Kube, action *core.Action) error {
 			procedure.Core.Log.Info("This VPC is not managed. Using VPC ID supplied by user.")
 			return nil
 		}
-
 		input := &ec2.CreateVpcInput{
 			CidrBlock: aws.String(m.AWSConfig.VPCIPRange),
 		}
@@ -361,9 +358,6 @@ func (p *Provider) CreateKube(m *model.Kube, action *core.Action) error {
 	})
 
 	procedure.AddStep("tagging VPC", func() error {
-		if m.AWSConfig.VPCMANAGED == true {
-			return nil
-		}
 		return tagAWSResource(ec2S, m.AWSConfig.VPCID, map[string]string{
 			"KubernetesCluster": m.Name,
 			"Name":              m.Name + "-vpc",
@@ -382,9 +376,6 @@ func (p *Provider) CreateKube(m *model.Kube, action *core.Action) error {
 	// Create Internet Gateway
 
 	procedure.AddStep("creating Internet Gateway", func() error {
-		if m.AWSConfig.VPCMANAGED == true {
-			return nil
-		}
 		if m.AWSConfig.InternetGatewayID != "" {
 			return nil
 		}
@@ -397,9 +388,6 @@ func (p *Provider) CreateKube(m *model.Kube, action *core.Action) error {
 	})
 
 	procedure.AddStep("tagging Internet Gateway", func() error {
-		if m.AWSConfig.VPCMANAGED == true {
-			return nil
-		}
 		return tagAWSResource(ec2S, m.AWSConfig.InternetGatewayID, map[string]string{
 			"KubernetesCluster": m.Name,
 			"Name":              m.Name + "-ig",
@@ -407,9 +395,6 @@ func (p *Provider) CreateKube(m *model.Kube, action *core.Action) error {
 	})
 
 	procedure.AddStep("attaching Internet Gateway to VPC", func() error {
-		if m.AWSConfig.VPCMANAGED == true {
-			return nil
-		}
 		input := &ec2.AttachInternetGatewayInput{
 			VpcId:             aws.String(m.AWSConfig.VPCID),
 			InternetGatewayId: aws.String(m.AWSConfig.InternetGatewayID),
@@ -423,9 +408,6 @@ func (p *Provider) CreateKube(m *model.Kube, action *core.Action) error {
 	// Create Subnet
 
 	procedure.AddStep("creating Subnet", func() error {
-		if m.AWSConfig.VPCMANAGED == true {
-			return nil
-		}
 		for idx, subnet := range m.AWSConfig.PublicSubnetIPRange {
 			if m.AWSConfig.PublicSubnetIPRange[idx]["subnet_id"] != "" {
 				continue
@@ -457,9 +439,7 @@ func (p *Provider) CreateKube(m *model.Kube, action *core.Action) error {
 	})
 
 	procedure.AddStep("tagging Subnet", func() error {
-		if m.AWSConfig.VPCMANAGED == true {
-			return nil
-		}
+
 		for _, subnet := range m.AWSConfig.PublicSubnetIPRange {
 			if subnet["subnet_id"] != "" {
 				err := tagAWSResource(ec2S, subnet["subnet_id"], map[string]string{
@@ -476,9 +456,7 @@ func (p *Provider) CreateKube(m *model.Kube, action *core.Action) error {
 	})
 
 	procedure.AddStep("enabling public IP assignment setting of Subnet", func() error {
-		if m.AWSConfig.VPCMANAGED == true {
-			return nil
-		}
+
 		for _, subnet := range m.AWSConfig.PublicSubnetIPRange {
 			if subnet["subnet_id"] != "" {
 				_, err := ec2S.ModifySubnetAttribute(&ec2.ModifySubnetAttributeInput{
@@ -496,7 +474,7 @@ func (p *Provider) CreateKube(m *model.Kube, action *core.Action) error {
 	// Route Table
 
 	procedure.AddStep("creating Route Table", func() error {
-		if m.AWSConfig.RouteTableID != "" || m.AWSConfig.VPCMANAGED == true {
+		if m.AWSConfig.RouteTableID != "" {
 			return nil
 		}
 
@@ -511,9 +489,6 @@ func (p *Provider) CreateKube(m *model.Kube, action *core.Action) error {
 	})
 
 	procedure.AddStep("tagging Route Table", func() error {
-		if m.AWSConfig.VPCMANAGED == true {
-			return nil
-		}
 		return tagAWSResource(ec2S, m.AWSConfig.RouteTableID, map[string]string{
 			"KubernetesCluster": m.Name,
 			"Name":              m.Name + "-rt",
@@ -521,7 +496,7 @@ func (p *Provider) CreateKube(m *model.Kube, action *core.Action) error {
 	})
 
 	procedure.AddStep("associating Route Table with Subnet", func() error {
-		if len(m.AWSConfig.RouteTableSubnetAssociationID) != 0 || m.AWSConfig.VPCMANAGED == true {
+		if len(m.AWSConfig.RouteTableSubnetAssociationID) != 0 {
 			return nil
 		}
 
@@ -553,9 +528,6 @@ func (p *Provider) CreateKube(m *model.Kube, action *core.Action) error {
 			GatewayId:            aws.String(m.AWSConfig.InternetGatewayID),
 		})
 		if err != nil && !strings.Contains(err.Error(), "InvalidPermission.Duplicate") {
-			if strings.Contains(err.Error(), "already exists") {
-				return nil
-			}
 			return err
 		}
 		return nil
@@ -832,13 +804,6 @@ func (p *Provider) CreateKube(m *model.Kube, action *core.Action) error {
 				selectedSubnet = subnets[(i-1)%len(m.AWSConfig.PublicSubnetIPRange)]
 			}
 
-			var pubNet bool
-			if m.AWSConfig.PrivateNetwork {
-				pubNet = false
-			} else {
-				pubNet = true
-			}
-
 			time.Sleep(5 * time.Second)
 			procedure.Core.Log.Info("Building master #" + strconv.Itoa(i) + ", in subnet " + selectedSubnet + "...")
 			resp, err := ec2S.RunInstances(&ec2.RunInstancesInput{
@@ -850,7 +815,7 @@ func (p *Provider) CreateKube(m *model.Kube, action *core.Action) error {
 				NetworkInterfaces: []*ec2.InstanceNetworkInterfaceSpecification{
 					{
 						DeviceIndex:              aws.Int64(0),
-						AssociatePublicIpAddress: aws.Bool(pubNet),
+						AssociatePublicIpAddress: aws.Bool(true),
 						DeleteOnTermination:      aws.Bool(true),
 						Groups: []*string{
 							aws.String(m.AWSConfig.NodeSecurityGroupID),
@@ -971,18 +936,13 @@ func (p *Provider) CreateKube(m *model.Kube, action *core.Action) error {
 			}
 			instance := resp.Reservations[0].Instances[0]
 
-			//Always save private IP
-			m.MasterPrivateIP = *instance.PrivateIpAddress
-			if m.AWSConfig.PrivateNetwork {
-				m.MasterPublicIP = *instance.PrivateIpAddress
-			}
-			p.Core.DB.Save(m)
-
 			// Save IP when ready
 			if m.MasterPublicIP == "" {
 				if ip := instance.PublicIpAddress; ip != nil {
 					m.MasterPublicIP = *ip
-
+					if m.MasterPrivateIP == "" {
+						m.MasterPrivateIP = *instance.PrivateIpAddress
+					}
 					if err := p.Core.DB.Save(m); err != nil {
 						return false, err
 					}

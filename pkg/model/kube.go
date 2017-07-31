@@ -92,10 +92,9 @@ type AWSKubeConfig struct {
 	PrivateKey                    string   `json:"private_key,omitempty" sg:"readonly"`
 	VPCID                         string   `json:"vpc_id"`
 	VPCMANAGED                    bool     `json:"vpc_managed"`
-	InternetGatewayID             string   `json:"internet_gateway_id"`
-	RouteTableID                  string   `json:"route_table_id"`
+	InternetGatewayID             string   `json:"internet_gateway_id" sg:"readonly"`
+	RouteTableID                  string   `json:"route_table_id" sg:"readonly"`
 	RouteTableSubnetAssociationID []string `json:"route_table_subnet_association_id" sg:"readonly"`
-	PrivateNetwork                bool     `json:"private_network"`
 	ELBSecurityGroupID            string   `json:"elb_security_group_id" sg:"readonly"`
 	NodeSecurityGroupID           string   `json:"node_security_group_id" sg:"readonly"`
 	ElasticFileSystemID           string   `json:"elastic_filesystem_id"`
