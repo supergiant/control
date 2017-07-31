@@ -113,12 +113,10 @@ func (p *Provider) DeleteKube(m *model.Kube, action *core.Action) error {
 	})
 
 	procedure.AddStep("deleting Internet Gateway", func() error {
-		if m.AWSConfig.InternetGatewayID == "" {
+		if m.AWSConfig.InternetGatewayID == "" || m.AWSConfig.VPCMANAGED == true {
 			return nil
 		}
-		if m.AWSConfig.VPCMANAGED == true {
-			return nil
-		}
+
 		diginput := &ec2.DetachInternetGatewayInput{
 			InternetGatewayId: aws.String(m.AWSConfig.InternetGatewayID),
 			VpcId:             aws.String(m.AWSConfig.VPCID),
@@ -171,10 +169,7 @@ func (p *Provider) DeleteKube(m *model.Kube, action *core.Action) error {
 	})
 
 	procedure.AddStep("deleting public Subnet(s)", func() error {
-		if len(m.AWSConfig.PublicSubnetIPRange) == 0 {
-			return nil
-		}
-		if m.AWSConfig.VPCMANAGED == true {
+		if len(m.AWSConfig.PublicSubnetIPRange) == 0 || m.AWSConfig.VPCMANAGED == true {
 			return nil
 		}
 
