@@ -98,13 +98,17 @@ func getPlan(m *model.Kube, client *packngo.Client, name string) (string, error)
 	return planID, nil
 }
 
+// getProject returns the name of the project, or an error, and takes in the Kube model (https://github.com/supergiant/supergiant/blob/master/pkg/model/kube.go), the Packet Client (https://github.com/packethost/packngo/blob/7cd5fed006859e86dd5641a6cf9812e855b7574a/packngo.go), and the name of the project passed in the settings when creating the Kube
 func getProject(m *model.Kube, client *packngo.Client, name string) (string, error) {
 	var projectID string
+
+	// Puts the projects from the client into an array
 	projects, _, err := client.Projects.List()
 	if err != nil {
 		return "", err
 	}
 
+	// Loops through the array to find a project ID from the user's Packet acount that matches the provided project ID passed in settings when creating the Kube
 	for _, project := range projects {
 		if project.Name == m.PACKConfig.Project {
 			projectID = project.ID

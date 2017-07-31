@@ -138,6 +138,8 @@ type GCEKubeConfig struct {
 	MasterPrivateIP   string `json:"master_private_ip" sg:"readonly"`
 }
 
+// Check these for variables included in the Kube struct
+// Remove them and then make sure everything works
 type PACKKubeConfig struct {
 	Project   string `json:"project" validate:"nonzero"`
 	ProjectID string `json:"project_id" sg:"readonly"`
