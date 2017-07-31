@@ -55,7 +55,6 @@ func (p *Provider) CreateKube(m *model.Kube, action *core.Action) error {
 
 		procedure.AddStep("Creating Kubernetes Master Node "+count+"...", func() error {
 
-			// Puts the project ID provided into a variable if it matches an existing project on the user's Packet account
 			project, err := getProject(m, client, m.PACKConfig.Project)
 			if err != nil {
 				return err
