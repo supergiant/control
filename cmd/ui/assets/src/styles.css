@@ -38,23 +38,14 @@ h1, h2, h3, h4, h5, h6 {
 
 
 
-#container {
-  /*display: table;*/
-  /*position: absolute;*/
-}
-
 #sidebar, #content {
   /*display: table-cell;*/
-  box-sizing: border-box;
+  /*box-sizing: border-box;*/
   /*vertical-align: top;*/
 }
 
 #sidebar {
-  width: 250px;
   border-right: 1px solid #ddd;
-
-  float: left;
-  overflow-y: hidden;
 }
 
 #content {

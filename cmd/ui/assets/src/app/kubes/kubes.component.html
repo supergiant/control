@@ -1,0 +1,7 @@
+<div>
+  <div class="row" style="margin: 5px 5px 20px 5px;">
+    <app-kube-header class="col-md-8"></app-kube-header>
+    <app-header class="col-md-3 column-right"></app-header>
+  </div>
+  <app-kube *ngFor="let kube of kubes" [kube]=kube></app-kube>
+</div>
