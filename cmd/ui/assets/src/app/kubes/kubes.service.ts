@@ -4,9 +4,9 @@ import { Kube } from './kubes.model'
 @Injectable()
 export class KubesService {
   private kubes: Kube[] = [
-    {name: "kube1", description: "desc1"},
-    {name: "kube2", description: "desc2"},
-    {name: "kube3", description: "desc3"},
+    {id: 1, name: "kube1", masterNodeSize: "desc1", status: "true"},
+    {id: 2, name: "kube2", masterNodeSize: "desc2", status: "true"},
+    {id: 3, name: "kube3", masterNodeSize: "desc3", status: "true"},
   ]
 
   getKubes() {

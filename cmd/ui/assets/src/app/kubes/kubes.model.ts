@@ -1,9 +1,12 @@
 export class Kube {
   public name: string;
-  public description: string;
+  public id: number;
+  public masterNodeSize: string;
+  public status: string;
 
   constructor(name: string, desc: string) {
     this.name = name;
-    this.description = desc;
+    this.masterNodeSize = desc;
+    this.status = status;
   }
 }

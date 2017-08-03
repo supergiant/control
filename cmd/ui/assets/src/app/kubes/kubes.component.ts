@@ -3,10 +3,11 @@ import { KubesService } from './kubes.service';
 import {Kube} from './kubes.model'
 
 @Component({
-  selector: 'app-kubes',
+  selector: 'app-kube',
   templateUrl: './kubes.component.html',
   styleUrls: ['./kubes.component.css']
 })
+
 export class KubesComponent implements OnInit {
   kubes: Kube[]
 

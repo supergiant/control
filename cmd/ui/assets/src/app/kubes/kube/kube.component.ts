@@ -2,7 +2,7 @@ import { Component, OnInit, Input } from '@angular/core';
 import { Kube } from '../kubes.model';
 
 @Component({
-  selector: 'app-kube',
+  selector: '[app-kube]',
   templateUrl: './kube.component.html',
   styleUrls: ['./kube.component.css']
 })
