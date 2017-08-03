@@ -18,6 +18,16 @@ h1, h2, h3, h4, h5, h6 {
   font-weight: 400;
 }
 
+.row.no-gutters {
+  margin-right: 0;
+  margin-left: 0;
+
+  & > [class^="col-"],
+  & > [class*=" col-"] {
+    padding-right: 0;
+    padding-left: 0;
+  }
+}
 
 .form-control {
   display: block;
@@ -96,7 +106,7 @@ h1, h2, h3, h4, h5, h6 {
   min-width: 559px;
 }
 
-a#new::after {
+#new::after {
   content: "+";
   font-size: 17px;
   line-height: 0;
@@ -106,22 +116,6 @@ a#new::after {
   padding-right: 3px;
 }
 
-
-
-button.dropdown-toggle::after {
-  content: '';
-  background: url(assets/img/dropdown-caret.svg) no-repeat;
-  background-size: 11px;
-  display: inline-block;
-  background-position: center;
-  height: 6px;
-  width: 10px;
-  position: relative;
-  left: 6px;
-  top: -1px;
-  padding-right: 3px;
-  opacity: 0.7;
-}
 
 
 button {

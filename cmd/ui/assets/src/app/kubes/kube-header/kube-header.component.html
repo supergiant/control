@@ -1,8 +1,18 @@
-    <div ngbDropdown class="d-inline-block">
-      <button class="btn btn-outline-primary" id="dropdownBasic1" ngbDropdownToggle>Toggle dropdown</button>
-      <div class="dropdown-menu" aria-labelledby="dropdownBasic1">
-        <button class="dropdown-item">Action - 1</button>
-        <button class="dropdown-item">Another Action</button>
-        <button class="dropdown-item">Something else is here</button>
-      </div>
-    </div>
+<div id="control-bar">
+  <div class="btn-group"></div>
+  <button class="btn btn-outline-primary" id="new">New</button>
+   <div ngbDropdown class="d-inline-block">
+     <button class="btn btn-outline-primary" id="actions" ngbDropdownToggle>Actions</button>
+     <div class="dropdown-menu" aria-labelledby="actions">
+       <button class="dropdown-item">Delete</button>
+       <button class="dropdown-item">Reprovision</button>
+     </div>
+   </div>
+    <div id="searchbar-icon"></div>
+    <div id="filters"></div>
+    <input id="searchbar" type="text" placeholder="field:value">
+    <ul id="mini-nav">
+      <li><a href="#" data-toggle="modal" data-target="#system">System</a></li>
+      <li><a href="#" id="logout">Logout</a></li>
+    </ul>
+ </div>
