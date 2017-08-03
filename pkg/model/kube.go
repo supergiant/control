@@ -95,6 +95,7 @@ type AWSKubeConfig struct {
 	InternetGatewayID             string   `json:"internet_gateway_id"`
 	RouteTableID                  string   `json:"route_table_id"`
 	RouteTableSubnetAssociationID []string `json:"route_table_subnet_association_id" sg:"readonly"`
+	PrivateNetwork                bool     `json:"private_network"`
 	ELBSecurityGroupID            string   `json:"elb_security_group_id" sg:"readonly"`
 	NodeSecurityGroupID           string   `json:"node_security_group_id" sg:"readonly"`
 	ElasticFileSystemID           string   `json:"elastic_filesystem_id"`
