@@ -1,0 +1,21 @@
+<div id="control-bar">
+  <div class="btn-group"></div>
+  <button class="btn btn-outline-primary" id="new">New</button>
+   <div ngbDropdown class="d-inline-block">
+     <button class="btn btn-outline-primary" id="actions" ngbDropdownToggle>Actions</button>
+     <div class="dropdown-menu" aria-labelledby="actions">
+       <button class="dropdown-item">Edit</button>
+       <hr>
+       <button class="dropdown-item">Delete</button>
+       <button class="dropdown-item">Start</button>
+       <button class="dropdown-item">Stop</button>
+     </div>
+   </div>
+    <div id="searchbar-icon"></div>
+    <div id="filters"></div>
+    <input id="searchbar" type="text" placeholder="field:value">
+    <ul id="mini-nav">
+      <li><a href="#" data-toggle="modal" data-target="#system">System</a></li>
+      <li><a href="#" id="logout">Logout</a></li>
+    </ul>
+ </div>
