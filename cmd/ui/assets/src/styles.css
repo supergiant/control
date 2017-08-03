@@ -424,61 +424,6 @@ input#searchbar:focus {
   opacity: .8;
 }
 
-
-
-
-
-
-
-
-
-
-.modal {
-  display: none;
-  position: fixed;
-  top: 0;
-  right: 0;
-  bottom: 0;
-  left: 0;
-  z-index: 9999;
-  background: rgba(0,0,0,0.75);
-}
-
-.modal-dialog {
-  position: relative;
-  width: 600px;
-  margin: 30px auto;
-}
-
-.modal-content {
-  background: white;
-  box-shadow: 0 5px 15px rgba(0,0,0,.5);
-  background-clip: padding-box;
-  border: 1px solid rgba(0,0,0,.2);
-  border-radius: 4px;
-}
-
-.modal-header {
-  padding: 15px;
-  border-bottom: 1px solid #e5e5e5;
-}
-
-.modal-header h4 {
-  margin: 0;
-  font-size: 16px;
-}
-
-.modal-body {
-  padding: 15px;
-  font-size: 14px;
-}
-
-.modal-footer {
-  padding: 15px;
-  text-align: right;
-  border-top: 1px solid #e5e5e5;
-}
-
 .close {
   float: right;
   font-size: 21px;
