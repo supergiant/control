@@ -297,7 +297,9 @@ table#item_list a:hover, table#item_list a:active {
 
 
 input[type=checkbox] {
-	visibility: hidden;
+	/*visibility: hidden;*/
+  width: 25px;
+  height: 25px;
 }
 
 .checkbox {
@@ -367,11 +369,10 @@ input#searchbar:focus {
   border-left: 1px solid #e0e0e0;
   display: inline-block;
   height: 16px;
-  width: 16px;
+  width: 32px;
   background: url(assets/img/magnifier.svg) no-repeat;
   background-size: 16px auto;
-  padding-left: 14px;
-  background-position-x: 14px;
+    background-position-x: 14px;
   position: relative;
   top: 4px;
 }
