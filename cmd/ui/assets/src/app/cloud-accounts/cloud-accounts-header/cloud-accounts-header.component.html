@@ -1,6 +1,6 @@
 <div id="control-bar">
   <div class="btn-group"></div>
-  <button class="btn btn-outline-primary" id="new">New</button>
+  <button class="btn btn-outline-primary" id="new" (click)="open(newCloudAccount)">New</button>
    <div ngbDropdown class="d-inline-block">
      <button class="btn btn-outline-primary" id="actions" ngbDropdownToggle>Actions</button>
      <div class="dropdown-menu" aria-labelledby="actions">
@@ -15,3 +15,19 @@
       <li><a href="#" id="logout">Logout</a></li>
     </ul>
  </div>
+
+ <!-- New Modal -->
+ <ng-template #newCloudAccount let-c="close" let-d="dismiss">
+   <div class="modal-header">
+     <h4 class="modal-title">New Cloud Account</h4>
+     <button type="button" class="close" aria-label="Close" (click)="d('Cross click')">
+       <span aria-hidden="true">&times;</span>
+     </button>
+   </div>
+   <div class="modal-body">
+     <p>Dropdown Here&hellip;</p>
+   </div>
+   <div class="modal-footer">
+     <button type="button" class="btn btn-secondary" (click)="c('Close click')">Close</button>
+   </div>
+ </ng-template>
