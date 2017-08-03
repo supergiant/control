@@ -476,7 +476,9 @@ func (p *Provider) CreateKube(m *model.Kube, action *core.Action) error {
 	})
 
 	procedure.AddStep("enabling public IP assignment setting of Subnet", func() error {
-
+		if m.AWSConfig.VPCMANAGED == true {
+			return nil
+		}
 		for _, subnet := range m.AWSConfig.PublicSubnetIPRange {
 			if subnet["subnet_id"] != "" {
 				_, err := ec2S.ModifySubnetAttribute(&ec2.ModifySubnetAttributeInput{
@@ -830,6 +832,13 @@ func (p *Provider) CreateKube(m *model.Kube, action *core.Action) error {
 				selectedSubnet = subnets[(i-1)%len(m.AWSConfig.PublicSubnetIPRange)]
 			}
 
+			var pubNet bool
+			if m.AWSConfig.PrivateNetwork {
+				pubNet = false
+			} else {
+				pubNet = true
+			}
+
 			time.Sleep(5 * time.Second)
 			procedure.Core.Log.Info("Building master #" + strconv.Itoa(i) + ", in subnet " + selectedSubnet + "...")
 			resp, err := ec2S.RunInstances(&ec2.RunInstancesInput{
@@ -841,7 +850,7 @@ func (p *Provider) CreateKube(m *model.Kube, action *core.Action) error {
 				NetworkInterfaces: []*ec2.InstanceNetworkInterfaceSpecification{
 					{
 						DeviceIndex:              aws.Int64(0),
-						AssociatePublicIpAddress: aws.Bool(true),
+						AssociatePublicIpAddress: aws.Bool(pubNet),
 						DeleteOnTermination:      aws.Bool(true),
 						Groups: []*string{
 							aws.String(m.AWSConfig.NodeSecurityGroupID),
@@ -962,13 +971,18 @@ func (p *Provider) CreateKube(m *model.Kube, action *core.Action) error {
 			}
 			instance := resp.Reservations[0].Instances[0]
 
+			//Always save private IP
+			m.MasterPrivateIP = *instance.PrivateIpAddress
+			if m.AWSConfig.PrivateNetwork {
+				m.MasterPublicIP = *instance.PrivateIpAddress
+			}
+			p.Core.DB.Save(m)
+
 			// Save IP when ready
 			if m.MasterPublicIP == "" {
 				if ip := instance.PublicIpAddress; ip != nil {
 					m.MasterPublicIP = *ip
-					if m.MasterPrivateIP == "" {
-						m.MasterPrivateIP = *instance.PrivateIpAddress
-					}
+
 					if err := p.Core.DB.Save(m); err != nil {
 						return false, err
 					}
