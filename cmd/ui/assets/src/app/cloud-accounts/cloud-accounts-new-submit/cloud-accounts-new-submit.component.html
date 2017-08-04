@@ -1,0 +1,17 @@
+<ng-template #newCloudAccountEditModal let-c="close" let-d="dismiss">
+  <div class="modal-body">
+    <form method="POST">
+
+      <div class="form-group">
+        <textarea rows=20 class="form-control" name="json_input">
+{{ newCloudDefault }}
+        </textarea>
+      </div>
+
+    </form>
+  </div>
+  <div class="modal-footer">
+    <button type="button" class="btn btn-secondary" (click)="c('Close click')">Save</button>
+    <button type="button" class="btn btn-secondary" (click)="c('Close click')">Cancel</button>
+  </div>
+</ng-template>

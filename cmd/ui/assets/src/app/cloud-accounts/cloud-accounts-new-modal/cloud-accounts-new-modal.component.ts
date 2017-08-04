@@ -9,10 +9,9 @@ import { CloudAccountsService } from '../cloud-accounts.service';
   styleUrls: ['./cloud-accounts-new-modal.component.css']
 })
 export class CloudAccountsNewModalComponent implements AfterViewInit, OnDestroy{
-
-   closeResult: string;
    private subscription: Subscription;
-   @ViewChild('content') content: ElementRef;
+   @ViewChild('newCloudAccountModal') content: ElementRef;
+   modalRef: any;
 
    constructor(private modalService: NgbModal, private cloudAccountsService: CloudAccountsService) {}
 
@@ -25,12 +24,13 @@ export class CloudAccountsNewModalComponent implements AfterViewInit, OnDestroy{
    }
 
    open(content) {
-     console.log(content);
-     this.modalService.open(content).result.then((result) => {
-       this.closeResult = `Closed with: ${result}`;
-     }, (reason) => {
-       this.closeResult = `Dismissed ${this.getDismissReason(reason)}`;
-     });
+     this.modalRef = this.modalService.open(content);
+   }
+
+   sendOpen(message){
+     this.modalRef.close();
+     this.cloudAccountsService.openNewCloudServiceEditModal(message);
+
    }
 
    private getDismissReason(reason: any): string {

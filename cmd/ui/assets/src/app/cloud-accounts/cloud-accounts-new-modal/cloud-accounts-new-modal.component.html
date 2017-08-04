@@ -1,4 +1,4 @@
-<ng-template #newCloudAccount let-c="close" let-d="dismiss">
+<ng-template #newCloudAccountModal let-c="close" let-d="dismiss">
   <div class="modal-header">
     <h4 class="modal-title">New Cloud Account</h4>
     <button type="button" class="close" aria-label="Close" (click)="d('Cross click')">
@@ -6,7 +6,16 @@
     </button>
   </div>
   <div class="modal-body">
-    <p>Dropdown Here&hellip;</p>
+    <div ngbDropdown class="d-inline-block">
+      <button class="btn btn-outline-primary" id="actions" ngbDropdownToggle>Select a Cloud Provider</button>
+      <div class="dropdown-menu" aria-labelledby="actions">
+        <button class="dropdown-item" (click)="sendOpen('aws')">AWS</button>
+        <button class="dropdown-item" (click)="sendOpen('do')">Digital Ocean</button>
+        <button class="dropdown-item" (click)="sendOpen('gce')">GCE</button>
+        <button class="dropdown-item" (click)="sendOpen('os')">Openstack</button>
+        <button class="dropdown-item" (click)="sendOpen('pkt')">Packet</button>
+      </div>
+    </div>
   </div>
   <div class="modal-footer">
     <button type="button" class="btn btn-secondary" (click)="c('Close click')">Close</button>
