@@ -32,6 +32,7 @@ import { UserComponent } from './users/user/user.component';
 import { UsersHeaderComponent } from './users/users-header/users-header.component';
 import { CloudAccountsNewModalComponent } from './cloud-accounts/cloud-accounts-new-modal/cloud-accounts-new-modal.component';
 import { CloudAccountsService } from './cloud-accounts/cloud-accounts.service';
+import { CloudAccountsNewSubmitComponent } from './cloud-accounts/cloud-accounts-new-submit/cloud-accounts-new-submit.component';
 
 
 @NgModule({
@@ -64,6 +65,7 @@ import { CloudAccountsService } from './cloud-accounts/cloud-accounts.service';
     UserComponent,
     UsersHeaderComponent,
     CloudAccountsNewModalComponent,
+    CloudAccountsNewSubmitComponent,
   ],
   imports: [
     BrowserModule,
