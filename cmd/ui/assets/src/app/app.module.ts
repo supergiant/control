@@ -30,6 +30,8 @@ import { ServiceComponent } from './services/service/service.component';
 import { SessionComponent } from './sessions/session/session.component';
 import { UserComponent } from './users/user/user.component';
 import { UsersHeaderComponent } from './users/users-header/users-header.component';
+import { CloudAccountsNewModalComponent } from './cloud-accounts/cloud-accounts-new-modal/cloud-accounts-new-modal.component';
+import { CloudAccountsService } from './cloud-accounts/cloud-accounts.service';
 
 
 @NgModule({
@@ -61,13 +63,14 @@ import { UsersHeaderComponent } from './users/users-header/users-header.componen
     SessionComponent,
     UserComponent,
     UsersHeaderComponent,
+    CloudAccountsNewModalComponent,
   ],
   imports: [
     BrowserModule,
     NgbModule.forRoot(),
     AppRoutingModule
   ],
-  providers: [KubesService],
+  providers: [KubesService, CloudAccountsService],
   bootstrap: [AppComponent]
 })
 export class AppModule { }
