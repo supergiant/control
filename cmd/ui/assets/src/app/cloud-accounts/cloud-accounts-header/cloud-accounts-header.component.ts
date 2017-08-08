@@ -8,7 +8,7 @@ import { CloudAccountsService } from '../cloud-accounts.service';
 })
 export class CloudAccountsHeaderComponent implements OnInit {
 
-  constructor(private messageService: CloudAccountsService) {}
+  constructor(private cloudAccountsService: CloudAccountsService) {}
 
   ngOnInit() {
   }
@@ -16,7 +16,10 @@ export class CloudAccountsHeaderComponent implements OnInit {
 
 
   sendOpen(message){
-      this.messageService.openNewCloudServiceModal(message);
+      this.cloudAccountsService.openNewCloudServiceModal(message);
+  }
+  sendDelete() {
+      this.cloudAccountsService.deleteCloudAccount();
   }
 
 }
