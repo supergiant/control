@@ -11,9 +11,5 @@
     </tr>
 </thead>
    <!-- <tr app-session *ngFor="let session of sessions" [session]="session"></tr> -->
-   <tr>
-     <td><input type="checkbox" id="checkbox" /></td>
-     <td>packet-test</td>
-     <td>Packet</td>
-   </tr>
+   <tr app-cloud-account *ngFor="let cloudAccount of cloudAccounts" [cloudAccount]="cloudAccount"></tr>
 </table>

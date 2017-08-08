@@ -1,4 +1,5 @@
 import { BrowserModule } from '@angular/platform-browser';
+import {FormsModule} from '@angular/forms'
 import { NgModule } from '@angular/core';
 import { AppComponent } from './app.component';
 import { NgbModule } from '@ng-bootstrap/ng-bootstrap';
@@ -33,6 +34,7 @@ import { UsersHeaderComponent } from './users/users-header/users-header.componen
 import { CloudAccountsNewModalComponent } from './cloud-accounts/cloud-accounts-new-modal/cloud-accounts-new-modal.component';
 import { CloudAccountsService } from './cloud-accounts/cloud-accounts.service';
 import { CloudAccountsNewSubmitComponent } from './cloud-accounts/cloud-accounts-new-submit/cloud-accounts-new-submit.component';
+import { HttpModule } from '@angular/http';
 
 
 @NgModule({
@@ -70,7 +72,9 @@ import { CloudAccountsNewSubmitComponent } from './cloud-accounts/cloud-accounts
   imports: [
     BrowserModule,
     NgbModule.forRoot(),
-    AppRoutingModule
+    AppRoutingModule,
+    HttpModule,
+    FormsModule
   ],
   providers: [KubesService, CloudAccountsService],
   bootstrap: [AppComponent]

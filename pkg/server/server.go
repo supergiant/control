@@ -6,6 +6,7 @@ import (
 	"net/http"
 	"time"
 
+	"github.com/gorilla/handlers"
 	"github.com/supergiant/supergiant/pkg/api"
 	"github.com/supergiant/supergiant/pkg/core"
 	"github.com/supergiant/supergiant/pkg/ui"
@@ -67,7 +68,9 @@ func (s *Server) Start() error {
 	// 	// NOTE we just kinda lose the error here, probably should do something
 	// 	go http.Serve(s.secondaryListener, s.secondaryHandler)
 	// }
-	return http.Serve(s.primaryListener, s.primaryHandler)
+	// CORS options added here
+	headersOk := handlers.AllowedHeaders([]string{"Access-Control-Request-Headers", "Authorization"})
+	return http.Serve(s.primaryListener, handlers.CORS(headersOk)(s.primaryHandler))
 }
 
 func (s *Server) Stop() error {
