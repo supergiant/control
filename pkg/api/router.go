@@ -27,6 +27,7 @@ func NewRouter(core *core.Core) *mux.Router {
 
 	s.HandleFunc("/cloud_accounts", restrictedHandler(core, CreateCloudAccount)).Methods("POST")
 	s.HandleFunc("/cloud_accounts", restrictedHandler(core, ListCloudAccounts)).Methods("GET")
+	s.HandleFunc("/cloud_accounts/schema", restrictedHandler(core, ReturnCloudAccountsSchema)).Methods("GET")
 	s.HandleFunc("/cloud_accounts/{id}", restrictedHandler(core, GetCloudAccount)).Methods("GET")
 	s.HandleFunc("/cloud_accounts/{id}", restrictedHandler(core, UpdateCloudAccount)).Methods("PATCH", "PUT")
 	s.HandleFunc("/cloud_accounts/{id}", restrictedHandler(core, DeleteCloudAccount)).Methods("DELETE")

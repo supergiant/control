@@ -11,6 +11,10 @@ func ListCloudAccounts(core *core.Core, user *model.User, r *http.Request) (*Res
 	return handleList(core, r, new(model.CloudAccount), new(model.CloudAccountList))
 }
 
+func ReturnCloudAccountsSchema(core *core.Core, user *model.User, r *http.Request) (*Response, error) {
+	return &Response{http.StatusCreated, model.CloudAccountSchema()}, nil
+}
+
 func CreateCloudAccount(core *core.Core, user *model.User, r *http.Request) (*Response, error) {
 	item := new(model.CloudAccount)
 	if err := decodeBodyInto(r, item); err != nil {
