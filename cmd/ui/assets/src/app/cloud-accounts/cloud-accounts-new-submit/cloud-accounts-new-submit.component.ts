@@ -36,6 +36,7 @@ export class CloudAccountsNewSubmitComponent implements AfterViewInit, OnDestroy
     private modalService: NgbModal,
     private cloudAccountsService: CloudAccountsService,
     private cloudAccountsComponant: CloudAccountsComponent,
+    private supergiant: Supergiant
   ) {}
 
   ngOnInit() {
@@ -66,7 +67,7 @@ export class CloudAccountsNewSubmitComponent implements AfterViewInit, OnDestroy
   }
 
   onSubmit() {
-    this.createCloudAccoutSub = Supergiant.CloudAccounts.create(this.cloudAccountModel).subscribe(
+    this.createCloudAccoutSub = this.supergiant.CloudAccounts.create(this.cloudAccountModel).subscribe(
       (data) => {
         if (data.status >= 200 && data.status <= 299) {
           this.cloudAccountsService.showNotification("success", "Cloud Account: " + this.cloudAccountModel.name, "Created...")

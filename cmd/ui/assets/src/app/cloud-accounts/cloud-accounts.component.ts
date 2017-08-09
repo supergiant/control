@@ -1,6 +1,7 @@
 import { Component, OnInit } from '@angular/core';
 import { CloudAccountsService } from './cloud-accounts.service';
 import { Subscription } from 'rxjs/Subscription';
+import { SupergiantService } from '../shared/supergiant/supergiant.service'
 import { Supergiant } from '../shared/supergiant/supergiant.service'
 
 
@@ -13,14 +14,13 @@ export class CloudAccountsComponent implements OnInit {
   cloudAccounts: any;
   private subscription: Subscription;
 
-  constructor(private cloudAccountsService: CloudAccountsService) { }
+  constructor(private cloudAccountsService: CloudAccountsService, private supergiant: Supergiant) { }
 
   ngOnInit() {
     this.getAccounts()
   }
-
   getAccounts() {
-    this.subscription = Supergiant.CloudAccounts.get().subscribe(
+    this.subscription = this.supergiant.CloudAccounts.get().subscribe(
       cloudAccount=>{ this.cloudAccounts = cloudAccount.json().items},
       (err) =>{ this.cloudAccountsService.showNotification("warn", "Connection Issue.", err)})
   }
