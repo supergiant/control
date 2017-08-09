@@ -1,30 +1,49 @@
-import { Component, AfterViewInit, OnDestroy,ViewChild, ElementRef } from '@angular/core';
-import {NgbModal, ModalDismissReasons} from '@ng-bootstrap/ng-bootstrap';
+import { Component, OnInit, AfterViewInit, OnDestroy,ViewChild, ElementRef } from '@angular/core';
+import {NgbModal, ModalDismissReasons, NgbModalRef} from '@ng-bootstrap/ng-bootstrap';
 import { Subscription } from 'rxjs/Subscription';
 import { CloudAccountsService } from '../cloud-accounts.service';
 import dedent from "dedent";
+import {FormlyFieldConfig} from 'ng-formly';
+import {Validators, FormGroup} from '@angular/forms';
+import { SchemaFormModule, WidgetRegistry, DefaultWidgetRegistry } from "angular2-schema-form";
+import { Subject } from 'rxjs/Subject';
+
+
+
 
 @Component({
   selector: 'app-cloud-accounts-new-submit',
   templateUrl: './cloud-accounts-new-submit.component.html',
   styleUrls: ['./cloud-accounts-new-submit.component.css']
 })
-export class CloudAccountsNewSubmitComponent implements AfterViewInit, OnDestroy {
+
+
+
+export class CloudAccountsNewSubmitComponent implements AfterViewInit, OnDestroy, OnInit {
   private subscription: Subscription;
   private newCloudDefault: string;
+  private cloudAccountSchema: any;
+  private cloudAccountModel: any;
+  private modalRef: NgbModalRef;
+  cloudAccountJSON = new Subject<any>();
   @ViewChild('newCloudAccountEditModal') content: ElementRef;
 
-
-
   constructor(private modalService: NgbModal, private cloudAccountsService: CloudAccountsService) {}
+
+  ngOnInit() {
+
+  }
+
+  convertToObj(json) {
+    this.cloudAccountModel = JSON.parse(json)
+  }
 
   ngAfterViewInit() {
     this.subscription = this.cloudAccountsService.newEditModal.subscribe( message => {
       {
         switch(message) {
           case "aws": {
-          this.newCloudDefault = dedent(`
-            {
+          this.cloudAccountModel = {
               "credentials": {
                 "access_key": "",
                 "secret_key": ""
@@ -32,7 +51,34 @@ export class CloudAccountsNewSubmitComponent implements AfterViewInit, OnDestroy
               "name": "",
               "provider": "aws"
             }
-                                 `);
+
+            this.cloudAccountSchema = {
+              "properties": {
+                "credentials": {
+                  "type": "object",
+                  "properties": {
+                    "access_key": {
+                      "type": "string",
+                      "description": "Access Key"
+                    },
+                    "secret_key": {
+                      "type": "string",
+                      "description": "Secret Access Key"
+                    }
+                  }
+                },
+                "name": {
+                  "type": "string",
+                  "description": "Provider Name"
+                },
+                "provider": {
+                  "type": "string",
+                  "default": "aws",
+                  "description": "Provider",
+                  "widget": "hidden"
+                }
+              }
+            }
           break;
           }
           case "do": {
@@ -111,12 +157,16 @@ export class CloudAccountsNewSubmitComponent implements AfterViewInit, OnDestroy
   }
 
   open(content) {
-    this.modalService.open(content);
+    this.modalRef = this.modalService.open(content);
   }
 
-  sendOpen(message){
-      this.cloudAccountsService.openNewCloudServiceEditModal(message);
+  onSubmit() {
+    var err = this.cloudAccountsService.createCloudAccount(JSON.stringify(this.cloudAccountModel))
+    if (!err) {
+    this.modalRef.close()
   }
+}
+
 
   private getDismissReason(reason: any): string {
     if (reason === ModalDismissReasons.ESC) {
@@ -127,5 +177,4 @@ export class CloudAccountsNewSubmitComponent implements AfterViewInit, OnDestroy
       return  `with: ${reason}`;
     }
   }
-
 }

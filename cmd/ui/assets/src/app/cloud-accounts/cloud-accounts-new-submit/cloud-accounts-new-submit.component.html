@@ -1,17 +1,30 @@
 <ng-template #newCloudAccountEditModal let-c="close" let-d="dismiss">
   <div class="modal-body">
-    <form method="POST">
-
-      <div class="form-group">
-        <textarea rows=20 class="form-control" name="json_input">
-{{ newCloudDefault }}
-        </textarea>
+    <ngb-tabset type="pills" justify="center">
+  <ngb-tab title="Simple">
+    <ng-template ngbTabContent>
+      <sf-form [schema]="cloudAccountSchema" [model]="cloudAccountModel" (onChange)="cloudAccountModel=$event.value"></sf-form>
+      <div class="modal-footer">
+        <button type="submit" class="btn btn-secondary" (click)="onSubmit()">Save</button>
+        <button type="button" class="btn btn-secondary" (click)="c('Close click')">Cancel</button>
       </div>
-
-    </form>
-  </div>
-  <div class="modal-footer">
-    <button type="button" class="btn btn-secondary" (click)="c('Close click')">Save</button>
-    <button type="button" class="btn btn-secondary" (click)="c('Close click')">Cancel</button>
+    </ng-template>
+  </ngb-tab>
+  <ngb-tab title="Advanced" >
+    <ng-template ngbTabContent>
+      <form>
+        <div class="form-group">
+          <textarea rows=20 class="form-control" name="json_input" (change)="convertToObj($event.target.value)">
+{{cloudAccountModel | json}}
+          </textarea>
+        </div>
+        <div class="modal-footer">
+          <button type="submit" class="btn btn-secondary" (click)="onSubmit()">Save</button>
+          <button type="button" class="btn btn-secondary" (click)="c('Close click')">Cancel</button>
+        </div>
+      </form>
+    </ng-template>
+  </ngb-tab>
+</ngb-tabset>
   </div>
 </ng-template>

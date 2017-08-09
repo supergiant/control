@@ -1,5 +1,5 @@
 import { BrowserModule } from '@angular/platform-browser';
-import {FormsModule} from '@angular/forms'
+import {FormsModule, ReactiveFormsModule} from '@angular/forms'
 import { NgModule } from '@angular/core';
 import { AppComponent } from './app.component';
 import { NgbModule } from '@ng-bootstrap/ng-bootstrap';
@@ -35,6 +35,10 @@ import { CloudAccountsNewModalComponent } from './cloud-accounts/cloud-accounts-
 import { CloudAccountsService } from './cloud-accounts/cloud-accounts.service';
 import { CloudAccountsNewSubmitComponent } from './cloud-accounts/cloud-accounts-new-submit/cloud-accounts-new-submit.component';
 import { HttpModule } from '@angular/http';
+import { SimpleNotificationsModule } from 'angular2-notifications';
+import { BrowserAnimationsModule } from '@angular/platform-browser/animations';
+import {FormlyModule, FormlyBootstrapModule} from 'ng-formly';
+import { SchemaFormModule, WidgetRegistry, DefaultWidgetRegistry } from "angular2-schema-form";
 
 
 @NgModule({
@@ -74,9 +78,16 @@ import { HttpModule } from '@angular/http';
     NgbModule.forRoot(),
     AppRoutingModule,
     HttpModule,
-    FormsModule
+    FormsModule,
+    BrowserModule,
+    BrowserAnimationsModule,
+    SimpleNotificationsModule.forRoot(),
+    FormlyModule,
+    FormlyBootstrapModule,
+    ReactiveFormsModule,
+    SchemaFormModule
   ],
-  providers: [KubesService, CloudAccountsService],
+  providers: [KubesService, CloudAccountsService, {provide: WidgetRegistry, useClass: DefaultWidgetRegistry}],
   bootstrap: [AppComponent]
 })
 export class AppModule { }
