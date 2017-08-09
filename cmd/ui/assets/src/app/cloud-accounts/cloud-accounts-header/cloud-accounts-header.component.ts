@@ -13,6 +13,7 @@ export class CloudAccountsHeaderComponent implements OnInit {
   constructor(
     private cloudAccountsService: CloudAccountsService,
     private cloudAccountsComponant: CloudAccountsComponent,
+    private supergiant: Supergiant
     ) {}
 
   ngOnInit() {
@@ -27,7 +28,7 @@ export class CloudAccountsHeaderComponent implements OnInit {
     var selectedItems = this.cloudAccountsService.returnSelectedCloudAccount()
 
     for(let provider of selectedItems){
-      Supergiant.CloudAccounts.destroy(provider.id).subscribe(
+      this.supergiant.CloudAccounts.delete(provider.id).subscribe(
         (data) => {
           if (data.status >= 200 && data.status <= 299) {
             this.cloudAccountsService.showNotification("success", "Cloud Account: " + provider.name, "Deleted...")

@@ -20,10 +20,13 @@ export class CloudAccountsNewModalComponent implements AfterViewInit, OnDestroy{
    providersObj: any;
 
 
-   constructor(private modalService: NgbModal, private cloudAccountsService: CloudAccountsService) {}
+   constructor(private modalService: NgbModal,
+     private cloudAccountsService: CloudAccountsService,
+     private supergiant: Supergiant) {}
 
    ngAfterViewInit() {
-     this.cloudAccountsSub = Supergiant.CloudAccounts.schema().subscribe(
+     console.log("here")
+     this.cloudAccountsSub = this.supergiant.CloudAccounts.schema().subscribe(
        (data) => { this.providersObj = data.json()
          for(let key in this.providersObj.providers){
            this.providers.push(key)

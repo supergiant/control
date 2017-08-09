@@ -39,8 +39,9 @@ import { SimpleNotificationsModule } from 'angular2-notifications';
 import { BrowserAnimationsModule } from '@angular/platform-browser/animations';
 import {FormlyModule, FormlyBootstrapModule} from 'ng-formly';
 import { SchemaFormModule, WidgetRegistry, DefaultWidgetRegistry } from "angular2-schema-form";
-import { SupergiantComponent } from './shared/supergiant/supergiant.component';
 import { Supergiant } from './shared/supergiant/supergiant.service';
+import { CloudAccount } from './shared/supergiant/cloud-accounts/cloud-accounts.service';
+import { UtilService} from './shared/supergiant/util/util.service';
 
 
 @NgModule({
@@ -73,9 +74,8 @@ import { Supergiant } from './shared/supergiant/supergiant.service';
     UserComponent,
     UsersHeaderComponent,
     CloudAccountsNewModalComponent,
-    CloudAccountsNewSubmitComponent,
-    SupergiantComponent,
-  ],
+    CloudAccountsNewSubmitComponent
+    ],
   imports: [
     BrowserModule,
     NgbModule.forRoot(),
@@ -90,7 +90,7 @@ import { Supergiant } from './shared/supergiant/supergiant.service';
     ReactiveFormsModule,
     SchemaFormModule
   ],
-  providers: [KubesService, CloudAccountsService, {provide: WidgetRegistry, useClass: DefaultWidgetRegistry}],
+  providers: [KubesService, CloudAccountsService, Supergiant, CloudAccount, UtilService, {provide: WidgetRegistry, useClass: DefaultWidgetRegistry}],
   bootstrap: [AppComponent]
 })
 export class AppModule { }
