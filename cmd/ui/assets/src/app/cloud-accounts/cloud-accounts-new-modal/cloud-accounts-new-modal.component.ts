@@ -2,20 +2,34 @@ import { Component, AfterViewInit, OnDestroy,ViewChild, ElementRef } from '@angu
 import {NgbModal, ModalDismissReasons} from '@ng-bootstrap/ng-bootstrap';
 import { Subscription } from 'rxjs/Subscription';
 import { CloudAccountsService } from '../cloud-accounts.service';
+import { Supergiant } from '../../shared/supergiant/supergiant.service'
+
 
 @Component({
   selector: 'app-cloud-accounts-new-modal',
   templateUrl: './cloud-accounts-new-modal.component.html',
   styleUrls: ['./cloud-accounts-new-modal.component.css']
 })
+
 export class CloudAccountsNewModalComponent implements AfterViewInit, OnDestroy{
    private subscription: Subscription;
+   private cloudAccountsSub: Subscription;
    @ViewChild('newCloudAccountModal') content: ElementRef;
    modalRef: any;
+   providers = [];
+   providersObj: any;
+
 
    constructor(private modalService: NgbModal, private cloudAccountsService: CloudAccountsService) {}
 
    ngAfterViewInit() {
+     this.cloudAccountsSub = Supergiant.CloudAccounts.schema().subscribe(
+       (data) => { this.providersObj = data.json()
+         for(let key in this.providersObj.providers){
+           this.providers.push(key)
+         }
+       },
+       (err) => {this.cloudAccountsService.showNotification("warn", "Connection Issue.", err)});
      this.subscription = this.cloudAccountsService.newModal.subscribe( message => {if (message) {this.open(this.content)};});
    }
 
@@ -29,7 +43,7 @@ export class CloudAccountsNewModalComponent implements AfterViewInit, OnDestroy{
 
    sendOpen(message){
      this.modalRef.close();
-     this.cloudAccountsService.openNewCloudServiceEditModal(message);
+     this.cloudAccountsService.openNewCloudServiceEditModal(message, this.providersObj);
 
    }
 

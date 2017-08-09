@@ -7,6 +7,8 @@ import {FormlyFieldConfig} from 'ng-formly';
 import {Validators, FormGroup} from '@angular/forms';
 import { SchemaFormModule, WidgetRegistry, DefaultWidgetRegistry } from "angular2-schema-form";
 import { Subject } from 'rxjs/Subject';
+import {CloudAccountsComponent} from '../cloud-accounts.component'
+import { Supergiant } from '../../shared/supergiant/supergiant.service'
 
 
 
@@ -21,6 +23,8 @@ import { Subject } from 'rxjs/Subject';
 
 export class CloudAccountsNewSubmitComponent implements AfterViewInit, OnDestroy, OnInit {
   private subscription: Subscription;
+  private createCloudAccoutSub: Subscription;
+  private cloudAccoutSchemaSub: Subscription;
   private newCloudDefault: string;
   private cloudAccountSchema: any;
   private cloudAccountModel: any;
@@ -28,7 +32,11 @@ export class CloudAccountsNewSubmitComponent implements AfterViewInit, OnDestroy
   cloudAccountJSON = new Subject<any>();
   @ViewChild('newCloudAccountEditModal') content: ElementRef;
 
-  constructor(private modalService: NgbModal, private cloudAccountsService: CloudAccountsService) {}
+  constructor(
+    private modalService: NgbModal,
+    private cloudAccountsService: CloudAccountsService,
+    private cloudAccountsComponant: CloudAccountsComponent,
+  ) {}
 
   ngOnInit() {
 
@@ -41,113 +49,10 @@ export class CloudAccountsNewSubmitComponent implements AfterViewInit, OnDestroy
   ngAfterViewInit() {
     this.subscription = this.cloudAccountsService.newEditModal.subscribe( message => {
       {
-        switch(message) {
-          case "aws": {
-          this.cloudAccountModel = {
-              "credentials": {
-                "access_key": "",
-                "secret_key": ""
-              },
-              "name": "",
-              "provider": "aws"
-            }
-
-            this.cloudAccountSchema = {
-              "properties": {
-                "credentials": {
-                  "type": "object",
-                  "properties": {
-                    "access_key": {
-                      "type": "string",
-                      "description": "Access Key"
-                    },
-                    "secret_key": {
-                      "type": "string",
-                      "description": "Secret Access Key"
-                    }
-                  }
-                },
-                "name": {
-                  "type": "string",
-                  "description": "Provider Name"
-                },
-                "provider": {
-                  "type": "string",
-                  "default": "aws",
-                  "description": "Provider",
-                  "widget": "hidden"
-                }
-              }
-            }
-          break;
-          }
-          case "do": {
-          this.newCloudDefault = dedent(`
-            {
-              "credentials": {
-                "token": ""
-              },
-              "name": "",
-              "provider": "digitalocean"
-            }
-                                 `);
-          break;
-          }
-          case "gce": {
-          this.newCloudDefault =dedent(`
-            {
-              "credentials": {
-                "auth_provider_x509_cert_url": "",
-                "auth_uri": "",
-                "client_email": "",
-                "client_id": "",
-                "client_x509_cert_url": "",
-                "private_key": "",
-                "private_key_id": "",
-                "project_id": "",
-                "token_uri": "",
-                "type": ""
-              },
-              "name": "",
-              "provider": "gce"
-            }
-                                 `);
-          break;
-          }
-          case "os": {
-          this.newCloudDefault =dedent(`
-            {
-              "credentials": {
-                "domain_id": "",
-                "domain_name": "",
-                "identity_endpoint": "",
-                "password": "",
-                "tenant_id": "",
-                "username": ""
-              },
-              "name": "",
-              "provider": "openstack"
-            }
-                                 `);
-          break;
-          }
-          case "pkt": {
-          this.newCloudDefault =dedent(`
-            {
-              "credentials": {
-                "api_token": ""
-              },
-              "name": "",
-              "provider": "packet"
-            }
-                                 `);
-          break;
-          }
-          default: {
-          this.newCloudDefault = "No Data"
-          break;
-          }
-        }
+        var msg = message[1]
+        var provider = message[0]
+        this.cloudAccountModel = msg.providers[provider].model
+        this.cloudAccountSchema = msg.providers[provider].schema
       };
       {this.open(this.content)};});
   }
@@ -161,12 +66,19 @@ export class CloudAccountsNewSubmitComponent implements AfterViewInit, OnDestroy
   }
 
   onSubmit() {
-    var err = this.cloudAccountsService.createCloudAccount(JSON.stringify(this.cloudAccountModel))
-    if (!err) {
-    this.modalRef.close()
+    this.createCloudAccoutSub = Supergiant.CloudAccounts.create(this.cloudAccountModel).subscribe(
+      (data) => {
+        if (data.status >= 200 && data.status <= 299) {
+          this.cloudAccountsService.showNotification("success", "Cloud Account: " + this.cloudAccountModel.name, "Created...")
+          this.modalRef.close()
+          this.cloudAccountsComponant.getAccounts()
+        }else{
+          this.cloudAccountsService.showNotification("error", "Cloud Account: " + this.cloudAccountModel.name, "Error:" + data.statusText)}},
+      (err) => {
+        if (err) {
+          this.cloudAccountsService.showNotification("error", "Cloud Account: " + this.cloudAccountModel.name, "Error:" + err)}},
+    );
   }
-}
-
 
   private getDismissReason(reason: any): string {
     if (reason === ModalDismissReasons.ESC) {

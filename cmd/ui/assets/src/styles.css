@@ -3,6 +3,8 @@ html, body, #container, #sidebar, #content {
   margin: 0;
 }
 
+body div.simple-notification-wrapper { z-index:10000; }
+
 a, a:visited {
   color: inherit;
   text-decoration: none;

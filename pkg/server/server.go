@@ -70,7 +70,8 @@ func (s *Server) Start() error {
 	// }
 	// CORS options added here
 	headersOk := handlers.AllowedHeaders([]string{"Access-Control-Request-Headers", "Authorization"})
-	return http.Serve(s.primaryListener, handlers.CORS(headersOk)(s.primaryHandler))
+	methodsOk := handlers.AllowedMethods([]string{"GET", "PUT", "UPDATE", "POST", "DELETE"})
+	return http.Serve(s.primaryListener, handlers.CORS(headersOk, methodsOk)(s.primaryHandler))
 }
 
 func (s *Server) Stop() error {
