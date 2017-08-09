@@ -18,8 +18,6 @@ export class CloudAccountsHeaderComponent implements OnInit {
   sendOpen(message){
       this.cloudAccountsService.openNewCloudServiceModal(message);
   }
-  sendDelete() {
-      this.cloudAccountsService.deleteCloudAccount();
-  }
+
 
 }

@@ -2,6 +2,7 @@ import { Injectable } from '@angular/core';
 import { Http, Response, Headers } from '@angular/http';
 import { Subject } from 'rxjs/Subject';
 import { Observable } from 'rxjs/Observable';
+import { NotificationsService } from 'angular2-notifications';
 
 @Injectable()
 export class CloudAccountsService {
@@ -10,7 +11,7 @@ export class CloudAccountsService {
     cloudAccounts: any;
     selectedItems= new Array();
 
-    constructor(private http: Http) {}
+    constructor(private http: Http, private _service: NotificationsService) {}
 
     openNewCloudServiceModal(message){
       this.newModal.next(message);
@@ -28,7 +29,47 @@ export class CloudAccountsService {
 
     // Delete all selected cloud accounts
     deleteCloudAccount(){
-      console.log("Deleting these items:" + this.selectedItems)
+
+      if (this.selectedItems.length === 0) {
+        this._service.error(
+          'No Accounts Selected...',
+          'You must select an account before it can be deleted.',
+        {}
+       )
+       return;
+      }
+
+      console.log("Deleting these items:" + this.selectedItems);
+      var error = false; // remove when api is connected.
+      if (!error) {
+        this._service.success(
+          'Success...',
+          'Deleted: ' + this.selectedItems,
+        {}
+       )
+      }
+      this.getCloudAccounts();
+    }
+
+    // Create a Cloud Account
+    createCloudAccount(account){
+      console.log(account);
+      var error = true; // remove when api is connected.
+      if (!error) {
+        this._service.success(
+          'Success...',
+          'New Cloud Account Created.',
+        {}
+       )
+     } else {
+       this._service.error(
+         'Error...',
+         'You jacked something up.',
+       {}
+      )
+      return error
+     }
+      this.getCloudAccounts();
     }
 
     ngOnInit() {
