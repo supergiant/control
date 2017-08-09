@@ -10,8 +10,8 @@ export class AppComponent {
 
   public options = {
     position: ["top", "left"],
-    timeOut: 5000,
-    lastOnBottom: true
+    timeOut: 2000,
+    lastOnBottom: true,
   }
 
 }

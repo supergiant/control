@@ -9,11 +9,7 @@
     <div ngbDropdown class="d-inline-block">
       <button class="btn btn-outline-primary" id="actions" ngbDropdownToggle>Select a Cloud Provider</button>
       <div class="dropdown-menu" aria-labelledby="actions">
-        <button class="dropdown-item" (click)="sendOpen('aws')">AWS</button>
-        <button class="dropdown-item" (click)="sendOpen('do')">Digital Ocean</button>
-        <button class="dropdown-item" (click)="sendOpen('gce')">GCE</button>
-        <button class="dropdown-item" (click)="sendOpen('os')">Openstack</button>
-        <button class="dropdown-item" (click)="sendOpen('pkt')">Packet</button>
+        <button *ngFor="let provider of providers" class="dropdown-item" (click)="sendOpen(provider)">{{ provider }}</button>
       </div>
     </div>
   </div>

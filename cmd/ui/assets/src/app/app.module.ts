@@ -39,6 +39,8 @@ import { SimpleNotificationsModule } from 'angular2-notifications';
 import { BrowserAnimationsModule } from '@angular/platform-browser/animations';
 import {FormlyModule, FormlyBootstrapModule} from 'ng-formly';
 import { SchemaFormModule, WidgetRegistry, DefaultWidgetRegistry } from "angular2-schema-form";
+import { SupergiantComponent } from './shared/supergiant/supergiant.component';
+import { Supergiant } from './shared/supergiant/supergiant.service';
 
 
 @NgModule({
@@ -72,6 +74,7 @@ import { SchemaFormModule, WidgetRegistry, DefaultWidgetRegistry } from "angular
     UsersHeaderComponent,
     CloudAccountsNewModalComponent,
     CloudAccountsNewSubmitComponent,
+    SupergiantComponent,
   ],
   imports: [
     BrowserModule,
