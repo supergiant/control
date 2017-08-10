@@ -2,6 +2,7 @@ import { Component, OnInit } from '@angular/core';
 import { CloudAccountsService } from './cloud-accounts.service';
 import { Subscription } from 'rxjs/Subscription';
 import { Supergiant } from '../shared/supergiant/supergiant.service'
+import { Notifications } from '../shared/notifications/notifications.service'
 
 
 @Component({
@@ -16,6 +17,7 @@ export class CloudAccountsComponent implements OnInit {
   constructor(
     private cloudAccountsService: CloudAccountsService,
     private supergiant: Supergiant,
+    private notifications: Notifications,
   ) { }
 
   //get accouts when page loads
@@ -26,6 +28,6 @@ export class CloudAccountsComponent implements OnInit {
   getAccounts() {
     this.subscription = this.supergiant.CloudAccounts.get().subscribe(
       cloudAccount=>{ this.cloudAccounts = cloudAccount.json().items},
-      (err) =>{ this.cloudAccountsService.showNotification("warn", "Connection Issue.", err)})
+      (err) =>{ this.notifications.display("warn", "Connection Issue.", err)})
   }
 }
