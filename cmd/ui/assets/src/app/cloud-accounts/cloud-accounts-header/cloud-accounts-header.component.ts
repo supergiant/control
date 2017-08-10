@@ -50,7 +50,11 @@ export class CloudAccountsHeaderComponent {
   // If the delete button is hit, the seleted accounts are deleted.
   deleteCloudAccount() {
     var selectedItems = this.cloudAccountsService.returnSelectedCloudAccount()
-
+    if (selectedItems.length === 0) {
+      this.notifications.display("warn", "Warning:", "No Provider Selected.")
+    } else if (selectedItems.length > 1) {
+      this.notifications.display("warn", "Warning:", "You cannot edit more than one provider at a time.")
+    } else {
     for(let provider of selectedItems){
       this.supergiant.CloudAccounts.delete(provider.id).subscribe(
         (data) => {
@@ -64,5 +68,6 @@ export class CloudAccountsHeaderComponent {
             this.notifications.display("error", "Cloud Account: " + provider.name, "Error:" + err)}},
       );
     }
+  }
   }
 }

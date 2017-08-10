@@ -1,15 +1,45 @@
-import { Component, OnInit } from '@angular/core';
+import { Component } from '@angular/core';
+import { SessionsService } from '../sessions.service';
+import { Supergiant } from '../../shared/supergiant/supergiant.service'
+import {SessionsComponent} from '../sessions.component'
+import { Subscription } from 'rxjs/Subscription';
+import { Notifications } from '../../shared/notifications/notifications.service'
 
 @Component({
   selector: 'app-sessions-header',
   templateUrl: './sessions-header.component.html',
   styleUrls: ['./sessions-header.component.css']
 })
-export class SessionsHeaderComponent implements OnInit {
+export class SessionsHeaderComponent {
+  private cloudAccountsSub: Subscription;
+  sessionsObj: any;
 
-  constructor() { }
+  constructor(
+    private sessionsService: SessionsService,
+    private sessionsComponant: SessionsComponent,
+    private supergiant: Supergiant,
+    private notifications: Notifications,
+    ) {}
 
-  ngOnInit() {
+  // If the delete button is hit, the seleted sessions are deleted.
+  deleteSession() {
+    var selectedItems = this.sessionsService.returnSelectedSessions()
+    if (selectedItems.length === 0) {
+      this.notifications.display("warn", "Warning:", "No Session Selected.")
+    } else {
+    for(let session of selectedItems){
+      this.supergiant.CloudAccounts.delete(session.id).subscribe(
+        (data) => {
+          if (data.status >= 200 && data.status <= 299) {
+            this.notifications.display("success", "Session: " + session.id, "Deleted...")
+            this.sessionsComponant.getAccounts()
+           }else{
+            this.notifications.display("error", "Session: " + session.id, "Error:" + data.statusText)}},
+        (err) => {
+          if (err) {
+            this.notifications.display("error", "Session: " + session.id, "Error:" + err)}},
+      );
+    }
   }
-
+  }
 }
