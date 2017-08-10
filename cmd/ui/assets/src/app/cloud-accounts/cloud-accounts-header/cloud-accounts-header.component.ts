@@ -1,8 +1,7 @@
-import { Component, OnInit } from '@angular/core';
+import { Component } from '@angular/core';
 import { CloudAccountsService } from '../cloud-accounts.service';
 import { Supergiant } from '../../shared/supergiant/supergiant.service'
 import {CloudAccountsComponent} from '../cloud-accounts.component'
-import {NgbModal, ModalDismissReasons} from '@ng-bootstrap/ng-bootstrap';
 import { Subscription } from 'rxjs/Subscription';
 
 @Component({
@@ -10,30 +9,29 @@ import { Subscription } from 'rxjs/Subscription';
   templateUrl: './cloud-accounts-header.component.html',
   styleUrls: ['./cloud-accounts-header.component.css']
 })
-export class CloudAccountsHeaderComponent implements OnInit {
-  modalRef: any;
+export class CloudAccountsHeaderComponent {
   private cloudAccountsSub: Subscription;
   providersObj: any;
 
   constructor(
     private cloudAccountsService: CloudAccountsService,
     private cloudAccountsComponant: CloudAccountsComponent,
-    private supergiant: Supergiant,
-    private modalService: NgbModal
+    private supergiant: Supergiant
     ) {}
 
-  ngOnInit() {
-  }
-
+  // After init, grab the schema
   ngAfterViewInit() {
     this.cloudAccountsSub = this.supergiant.CloudAccounts.schema().subscribe(
       (data) => { this.providersObj = data.json()},
       (err) => {this.cloudAccountsService.showNotification("warn", "Connection Issue.", err)});
   }
 
+  // If new button if hit, the New dropdown is triggered.
   sendOpen(message){
-      this.cloudAccountsService.openNewCloudServiceModal(message);
+      this.cloudAccountsService.openNewCloudServiceDropdownModal(message);
   }
+
+  // If the edit button is hit, the Edit modal is opened.
   editCloudAccount() {
     var selectedItems = this.cloudAccountsService.returnSelectedCloudAccount()
 
@@ -46,6 +44,8 @@ export class CloudAccountsHeaderComponent implements OnInit {
       this.cloudAccountsService.openNewCloudServiceEditModal("Edit", selectedItems[0].provider, this.providersObj);
     }
   }
+
+  // If the delete button is hit, the seleted accounts are deleted.
   deleteCloudAccount() {
     var selectedItems = this.cloudAccountsService.returnSelectedCloudAccount()
 
@@ -63,5 +63,4 @@ export class CloudAccountsHeaderComponent implements OnInit {
       );
     }
   }
-
 }

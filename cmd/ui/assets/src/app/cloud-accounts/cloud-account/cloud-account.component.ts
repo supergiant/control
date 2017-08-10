@@ -1,6 +1,4 @@
-import { Component, OnInit, Input, NgModule } from '@angular/core';
-import {BrowserModule} from '@angular/platform-browser'
-import {FormsModule} from '@angular/forms'
+import { Component, Input} from '@angular/core';
 import { CloudAccountsService } from '../cloud-accounts.service';
 
 @Component({
@@ -8,13 +6,7 @@ import { CloudAccountsService } from '../cloud-accounts.service';
   templateUrl: './cloud-account.component.html',
   styleUrls: ['./cloud-account.component.css']
 })
-export class CloudAccountComponent implements OnInit {
+export class CloudAccountComponent {
   @Input() cloudAccount: any;
-
   constructor(private cloudAccountsService: CloudAccountsService) { }
-
-  ngOnInit() {
-  }
-
-
 }

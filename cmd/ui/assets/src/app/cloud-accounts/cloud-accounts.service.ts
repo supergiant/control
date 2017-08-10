@@ -14,13 +14,17 @@ export class CloudAccountsService {
       private _service: NotificationsService,
     ) {}
 
-    openNewCloudServiceModal(message){
+    // msg to Cloud Service Modeal Dropdown to popup
+    openNewCloudServiceDropdownModal(message){
       this.newModal.next(message);
     }
+
+    // msg to Cloud Service New/Edit modal
     openNewCloudServiceEditModal(type, message, object){
       this.newEditModal.next([type, message, object]);
     }
 
+    // Notification Shortcut
     showNotification(kind, header, body) {
       switch (kind) {
         case "success": {
@@ -41,9 +45,6 @@ export class CloudAccountsService {
     // return all selected cloud accounts
     returnSelectedCloudAccount(){
       return this.selectedItems
-    }
-
-    ngOnInit() {
     }
 
     // Record/Delete a cloud account selection from the "selected items" array.
