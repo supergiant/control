@@ -4,7 +4,7 @@ import { Http, Response, Headers } from '@angular/http';
 @Injectable()
 export class UtilService {
   serverEndpoint = "http://localhost:8080"
-  apiToken = 'SGAPI token="DM5ijdza8wWhkMcN7RRDmQeuziogI2C7"'
+  apiToken = 'SGAPI token="iPIrhzlIHfRtHkRXW8NoAou0pUGFUfmo"'
 
   constructor(private http: Http){}
 

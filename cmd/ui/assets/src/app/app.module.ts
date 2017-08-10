@@ -40,7 +40,7 @@ import { BrowserAnimationsModule } from '@angular/platform-browser/animations';
 import {FormlyModule, FormlyBootstrapModule} from 'ng-formly';
 import { SchemaFormModule, WidgetRegistry, DefaultWidgetRegistry } from "angular2-schema-form";
 import { Supergiant } from './shared/supergiant/supergiant.service';
-import { CloudAccount } from './shared/supergiant/cloud-accounts/cloud-accounts.service';
+import { CloudAccounts } from './shared/supergiant/cloud-accounts/cloud-accounts.service';
 import { UtilService} from './shared/supergiant/util/util.service';
 
 
@@ -90,7 +90,7 @@ import { UtilService} from './shared/supergiant/util/util.service';
     ReactiveFormsModule,
     SchemaFormModule
   ],
-  providers: [KubesService, CloudAccountsService, Supergiant, CloudAccount, UtilService, {provide: WidgetRegistry, useClass: DefaultWidgetRegistry}],
+  providers: [KubesService, CloudAccounts, CloudAccountsService, Supergiant, UtilService, {provide: WidgetRegistry, useClass: DefaultWidgetRegistry}],
   bootstrap: [AppComponent]
 })
 export class AppModule { }

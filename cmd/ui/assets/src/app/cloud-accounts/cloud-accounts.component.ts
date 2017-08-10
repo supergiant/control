@@ -1,7 +1,6 @@
 import { Component, OnInit } from '@angular/core';
 import { CloudAccountsService } from './cloud-accounts.service';
 import { Subscription } from 'rxjs/Subscription';
-import { SupergiantService } from '../shared/supergiant/supergiant.service'
 import { Supergiant } from '../shared/supergiant/supergiant.service'
 
 

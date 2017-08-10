@@ -5,7 +5,7 @@
     <ng-template ngbTabContent>
       <sf-form [schema]="cloudAccountSchema" [model]="cloudAccountModel" (onChange)="cloudAccountModel=$event.value"></sf-form>
       <div class="modal-footer">
-        <button type="submit" class="btn btn-secondary" (click)="onSubmit()">Save</button>
+        <button type="submit" class="btn btn-secondary" (click)="onSubmit()">{{ action }}</button>
         <button type="button" class="btn btn-secondary" (click)="c('Close click')">Cancel</button>
       </div>
     </ng-template>
@@ -19,7 +19,7 @@
           </textarea>
         </div>
         <div class="modal-footer">
-          <button type="submit" class="btn btn-secondary" (click)="onSubmit()">Save</button>
+          <button type="submit" class="btn btn-secondary" (click)="onSubmit()">{{ action }}</button>
           <button type="button" class="btn btn-secondary" (click)="c('Close click')">Cancel</button>
         </div>
       </form>

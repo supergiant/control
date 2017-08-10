@@ -1,8 +1,8 @@
 import { Injectable } from '@angular/core';
 import {UtilService} from '../util/util.service'
 
-Injectable()
-export class CloudAccount{
+@Injectable()
+export class CloudAccounts{
   cloudAccountsPath = "/api/v0/cloud_accounts"
 
   constructor(private util: UtilService) {}

@@ -17,8 +17,8 @@ export class CloudAccountsService {
     openNewCloudServiceModal(message){
       this.newModal.next(message);
     }
-    openNewCloudServiceEditModal(message, object){
-      this.newEditModal.next([message, object]);
+    openNewCloudServiceEditModal(type, message, object){
+      this.newEditModal.next([type, message, object]);
     }
 
     showNotification(kind, header, body) {
