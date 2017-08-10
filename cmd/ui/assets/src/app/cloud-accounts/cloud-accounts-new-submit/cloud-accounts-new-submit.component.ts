@@ -29,6 +29,8 @@ export class CloudAccountsNewSubmitComponent implements AfterViewInit, OnDestroy
   private cloudAccountSchema: any;
   private cloudAccountModel: any;
   private modalRef: NgbModalRef;
+  private action: string;
+  private providerID: any;
   cloudAccountJSON = new Subject<any>();
   @ViewChild('newCloudAccountEditModal') content: ElementRef;
 
@@ -50,10 +52,12 @@ export class CloudAccountsNewSubmitComponent implements AfterViewInit, OnDestroy
   ngAfterViewInit() {
     this.subscription = this.cloudAccountsService.newEditModal.subscribe( message => {
       {
-        var msg = message[1]
-        var provider = message[0]
+        var msg = message[2]
+        var provider = message[1]
+        this.action = message[0]
         this.cloudAccountModel = msg.providers[provider].model
         this.cloudAccountSchema = msg.providers[provider].schema
+        this.providerID = this.cloudAccountModel.id
       };
       {this.open(this.content)};});
   }
@@ -67,6 +71,22 @@ export class CloudAccountsNewSubmitComponent implements AfterViewInit, OnDestroy
   }
 
   onSubmit() {
+
+    if (this.action === "Edit") {
+      console.log(this.cloudAccountModel)
+    this.createCloudAccoutSub = this.supergiant.CloudAccounts.update(this.providerID, this.cloudAccountModel).subscribe(
+      (data) => {
+        if (data.status >= 200 && data.status <= 299) {
+          this.cloudAccountsService.showNotification("success", "Cloud Account: " + this.cloudAccountModel.name, "Created...")
+          this.modalRef.close()
+          this.cloudAccountsComponant.getAccounts()
+        }else{
+          this.cloudAccountsService.showNotification("error", "Cloud Account: " + this.cloudAccountModel.name, "Error:" + data.statusText)}},
+      (err) => {
+        if (err) {
+          this.cloudAccountsService.showNotification("error", "Cloud Account: " + this.cloudAccountModel.name, "Error:" + err)}},
+    );
+  } else {
     this.createCloudAccoutSub = this.supergiant.CloudAccounts.create(this.cloudAccountModel).subscribe(
       (data) => {
         if (data.status >= 200 && data.status <= 299) {
@@ -79,6 +99,7 @@ export class CloudAccountsNewSubmitComponent implements AfterViewInit, OnDestroy
         if (err) {
           this.cloudAccountsService.showNotification("error", "Cloud Account: " + this.cloudAccountModel.name, "Error:" + err)}},
     );
+  }
   }
 
   private getDismissReason(reason: any): string {

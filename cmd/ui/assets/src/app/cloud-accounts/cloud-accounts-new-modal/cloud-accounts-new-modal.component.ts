@@ -25,7 +25,6 @@ export class CloudAccountsNewModalComponent implements AfterViewInit, OnDestroy{
      private supergiant: Supergiant) {}
 
    ngAfterViewInit() {
-     console.log("here")
      this.cloudAccountsSub = this.supergiant.CloudAccounts.schema().subscribe(
        (data) => { this.providersObj = data.json()
          for(let key in this.providersObj.providers){
@@ -46,7 +45,7 @@ export class CloudAccountsNewModalComponent implements AfterViewInit, OnDestroy{
 
    sendOpen(message){
      this.modalRef.close();
-     this.cloudAccountsService.openNewCloudServiceEditModal(message, this.providersObj);
+     this.cloudAccountsService.openNewCloudServiceEditModal("Save", message, this.providersObj);
 
    }
 
