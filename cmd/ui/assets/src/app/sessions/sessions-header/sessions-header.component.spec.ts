@@ -2,7 +2,7 @@ import { async, ComponentFixture, TestBed } from '@angular/core/testing';
 
 import { SessionsHeaderComponent } from './sessions-header.component';
 
-describe('SessionsHeaderComponent', () => {
+describe('CloudAccountsHeaderComponent', () => {
   let component: SessionsHeaderComponent;
   let fixture: ComponentFixture<SessionsHeaderComponent>;
 

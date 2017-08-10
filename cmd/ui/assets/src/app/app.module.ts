@@ -1,14 +1,22 @@
+// Modules
 import { BrowserModule } from '@angular/platform-browser';
 import {FormsModule, ReactiveFormsModule} from '@angular/forms'
 import { NgModule } from '@angular/core';
-import { AppComponent } from './app.component';
 import { NgbModule } from '@ng-bootstrap/ng-bootstrap';
+import { HttpModule } from '@angular/http';
+import { SimpleNotificationsModule } from 'angular2-notifications';
+import { BrowserAnimationsModule } from '@angular/platform-browser/animations';
+import {FormlyModule, FormlyBootstrapModule} from 'ng-formly';
+import { SchemaFormModule, WidgetRegistry, DefaultWidgetRegistry } from "angular2-schema-form";
+import { AppRoutingModule } from './app-routing.module';
+
+// Components
+import { AppComponent } from './app.component';
 import { NavigationComponent } from './navigation/navigation.component';
 import { UsersComponent } from './users/users.component';
 import { KubesComponent } from './kubes/kubes.component';
-import { AppRoutingModule } from './app-routing.module';
+import { NotificationsComponent } from './shared/notifications/notifications.component';
 import { KubeComponent } from './kubes/kube/kube.component';
-import { KubesService } from './kubes/kubes.service';
 import { KubeHeaderComponent } from './kubes/kube-header/kube-header.component';
 import { HeaderComponent } from './shared/header/header.component';
 import { SessionsComponent } from './sessions/sessions.component';
@@ -32,19 +40,27 @@ import { SessionComponent } from './sessions/session/session.component';
 import { UserComponent } from './users/user/user.component';
 import { UsersHeaderComponent } from './users/users-header/users-header.component';
 import { CloudAccountsNewModalComponent } from './cloud-accounts/cloud-accounts-new-modal/cloud-accounts-new-modal.component';
-import { CloudAccountsService } from './cloud-accounts/cloud-accounts.service';
 import { CloudAccountsNewSubmitComponent } from './cloud-accounts/cloud-accounts-new-submit/cloud-accounts-new-submit.component';
-import { HttpModule } from '@angular/http';
-import { SimpleNotificationsModule } from 'angular2-notifications';
-import { BrowserAnimationsModule } from '@angular/platform-browser/animations';
-import {FormlyModule, FormlyBootstrapModule} from 'ng-formly';
-import { SchemaFormModule, WidgetRegistry, DefaultWidgetRegistry } from "angular2-schema-form";
-import { Supergiant } from './shared/supergiant/supergiant.service';
-import { CloudAccounts } from './shared/supergiant/cloud-accounts/cloud-accounts.service';
-import { UtilService} from './shared/supergiant/util/util.service';
-import { NotificationsComponent } from './shared/notifications/notifications.component';
+// Component Services
+import { SessionsService } from './sessions/sessions.service';
+import { CloudAccountsService } from './cloud-accounts/cloud-accounts.service';
+import { KubesService } from './kubes/kubes.service';
 import { Notifications } from './shared/notifications/notifications.service';
 
+// Supergiant API Services
+import { Supergiant } from './shared/supergiant/supergiant.service';
+import { UtilService} from './shared/supergiant/util/util.service';
+import { Sessions } from './shared/supergiant/sessions/sessions.service';
+import { Users } from './shared/supergiant/users/users.service';
+import { CloudAccounts } from './shared/supergiant/cloud-accounts/cloud-accounts.service';
+import { Kubes } from './shared/supergiant/kubes/kubes.service';
+import { KubeResources } from './shared/supergiant/kube-resources/kube-resources.service';
+import { Nodes } from './shared/supergiant/nodes/nodes.service';
+import { LoadBalancers } from './shared/supergiant/load-balancers/load-balancers.service';
+import { HelmRepos } from './shared/supergiant/helm-repos/helm-repos.service';
+import { HelmCharts } from './shared/supergiant/helm-charts/helm-charts.service';
+import { HelmReleases } from './shared/supergiant/helm-releases/helm-releases.service';
+import { Logs } from './shared/supergiant/logs/logs.service';
 
 @NgModule({
   declarations: [
@@ -94,11 +110,25 @@ import { Notifications } from './shared/notifications/notifications.service';
     SchemaFormModule
   ],
   providers: [
+    // Component Services
     KubesService,
-    CloudAccounts,
     CloudAccountsService,
+    SessionsService,
+    // Supergiant API Services
     Supergiant,
     UtilService,
+    CloudAccounts,
+    Sessions,
+    Users,
+    Kubes,
+    KubeResources,
+    Nodes,
+    LoadBalancers,
+    HelmRepos,
+    HelmCharts,
+    HelmReleases,
+    Logs,
+    // Other Shared Services
     {provide: WidgetRegistry, useClass: DefaultWidgetRegistry},
     Notifications,
   ],
