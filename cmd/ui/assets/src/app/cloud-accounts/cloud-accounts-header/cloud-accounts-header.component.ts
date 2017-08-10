@@ -3,6 +3,7 @@ import { CloudAccountsService } from '../cloud-accounts.service';
 import { Supergiant } from '../../shared/supergiant/supergiant.service'
 import {CloudAccountsComponent} from '../cloud-accounts.component'
 import { Subscription } from 'rxjs/Subscription';
+import { Notifications } from '../../shared/notifications/notifications.service'
 
 @Component({
   selector: 'app-cloud-accounts-header',
@@ -16,14 +17,15 @@ export class CloudAccountsHeaderComponent {
   constructor(
     private cloudAccountsService: CloudAccountsService,
     private cloudAccountsComponant: CloudAccountsComponent,
-    private supergiant: Supergiant
+    private supergiant: Supergiant,
+    private notifications: Notifications,
     ) {}
 
   // After init, grab the schema
   ngAfterViewInit() {
     this.cloudAccountsSub = this.supergiant.CloudAccounts.schema().subscribe(
       (data) => { this.providersObj = data.json()},
-      (err) => {this.cloudAccountsService.showNotification("warn", "Connection Issue.", err)});
+      (err) => {this.notifications.display("warn", "Connection Issue.", err)});
   }
 
   // If new button if hit, the New dropdown is triggered.
@@ -36,9 +38,9 @@ export class CloudAccountsHeaderComponent {
     var selectedItems = this.cloudAccountsService.returnSelectedCloudAccount()
 
     if (selectedItems.length === 0) {
-      this.cloudAccountsService.showNotification("warn", "Warning:", "No Provider Selected.")
+      this.notifications.display("warn", "Warning:", "No Provider Selected.")
     } else if (selectedItems.length > 1) {
-      this.cloudAccountsService.showNotification("warn", "Warning:", "You cannot edit more than one provider at a time.")
+      this.notifications.display("warn", "Warning:", "You cannot edit more than one provider at a time.")
     } else {
       this.providersObj.providers[selectedItems[0].provider].model = selectedItems[0]
       this.cloudAccountsService.openNewCloudServiceEditModal("Edit", selectedItems[0].provider, this.providersObj);
@@ -53,13 +55,13 @@ export class CloudAccountsHeaderComponent {
       this.supergiant.CloudAccounts.delete(provider.id).subscribe(
         (data) => {
           if (data.status >= 200 && data.status <= 299) {
-            this.cloudAccountsService.showNotification("success", "Cloud Account: " + provider.name, "Deleted...")
+            this.notifications.display("success", "Cloud Account: " + provider.name, "Deleted...")
             this.cloudAccountsComponant.getAccounts()
            }else{
-            this.cloudAccountsService.showNotification("error", "Cloud Account: " + provider.name, "Error:" + data.statusText)}},
+            this.notifications.display("error", "Cloud Account: " + provider.name, "Error:" + data.statusText)}},
         (err) => {
           if (err) {
-            this.cloudAccountsService.showNotification("error", "Cloud Account: " + provider.name, "Error:" + err)}},
+            this.notifications.display("error", "Cloud Account: " + provider.name, "Error:" + err)}},
       );
     }
   }

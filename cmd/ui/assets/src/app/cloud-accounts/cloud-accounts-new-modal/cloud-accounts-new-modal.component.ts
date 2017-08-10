@@ -3,6 +3,7 @@ import { NgbModal, ModalDismissReasons } from '@ng-bootstrap/ng-bootstrap';
 import { Subscription } from 'rxjs/Subscription';
 import { CloudAccountsService } from '../cloud-accounts.service';
 import { Supergiant } from '../../shared/supergiant/supergiant.service'
+import { Notifications } from '../../shared/notifications/notifications.service'
 
 
 @Component({
@@ -24,6 +25,7 @@ export class CloudAccountsNewModalComponent implements AfterViewInit, OnDestroy{
      private modalService: NgbModal,
      private cloudAccountsService: CloudAccountsService,
      private supergiant: Supergiant,
+     private notifications: Notifications,
    ) {}
 
    // After init, grab the schema
@@ -35,7 +37,7 @@ export class CloudAccountsNewModalComponent implements AfterViewInit, OnDestroy{
            this.providers.push(key)
          }
        },
-       (err) => {this.cloudAccountsService.showNotification("warn", "Connection Issue.", err)});
+       (err) => {this.notifications.display("warn", "Connection Issue.", err)});
      this.subscription = this.cloudAccountsService.newModal.subscribe( message => {if (message) {this.open(this.content)};});
    }
 

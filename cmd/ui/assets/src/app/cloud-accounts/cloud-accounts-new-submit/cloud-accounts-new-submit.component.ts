@@ -4,6 +4,7 @@ import { Subscription } from 'rxjs/Subscription';
 import { CloudAccountsService } from '../cloud-accounts.service';
 import { CloudAccountsComponent } from '../cloud-accounts.component'
 import { Supergiant } from '../../shared/supergiant/supergiant.service'
+import { Notifications } from '../../shared/notifications/notifications.service'
 
 @Component({
   selector: 'app-cloud-accounts-new-submit',
@@ -25,7 +26,8 @@ export class CloudAccountsNewSubmitComponent implements AfterViewInit, OnDestroy
     private modalService: NgbModal,
     private cloudAccountsService: CloudAccountsService,
     private cloudAccountsComponant: CloudAccountsComponent,
-    private supergiant: Supergiant
+    private supergiant: Supergiant,
+    private notifications: Notifications,
   ) {}
 
   // Converts a Cloud Account Object JSON to an object, used with the "simple/advanced"
@@ -78,27 +80,27 @@ export class CloudAccountsNewSubmitComponent implements AfterViewInit, OnDestroy
     this.createCloudAccoutSub = this.supergiant.CloudAccounts.update(this.providerID, this.cloudAccountModel).subscribe(
       (data) => {
         if (data.status >= 200 && data.status <= 299) {
-          this.cloudAccountsService.showNotification("success", "Cloud Account: " + this.cloudAccountModel.name, "Created...")
+          this.notifications.display("success", "Cloud Account: " + this.cloudAccountModel.name, "Created...")
           this.modalRef.close()
           this.cloudAccountsComponant.getAccounts()
         }else{
-          this.cloudAccountsService.showNotification("error", "Cloud Account: " + this.cloudAccountModel.name, "Error:" + data.statusText)}},
+          this.notifications.display("error", "Cloud Account: " + this.cloudAccountModel.name, "Error:" + data.statusText)}},
       (err) => {
         if (err) {
-          this.cloudAccountsService.showNotification("error", "Cloud Account: " + this.cloudAccountModel.name, "Error:" + err)}},
+          this.notifications.display("error", "Cloud Account: " + this.cloudAccountModel.name, "Error:" + err)}},
     );
   } else {
     this.createCloudAccoutSub = this.supergiant.CloudAccounts.create(this.cloudAccountModel).subscribe(
       (data) => {
         if (data.status >= 200 && data.status <= 299) {
-          this.cloudAccountsService.showNotification("success", "Cloud Account: " + this.cloudAccountModel.name, "Created...")
+          this.notifications.display("success", "Cloud Account: " + this.cloudAccountModel.name, "Created...")
           this.modalRef.close()
           this.cloudAccountsComponant.getAccounts()
         }else{
-          this.cloudAccountsService.showNotification("error", "Cloud Account: " + this.cloudAccountModel.name, "Error:" + data.statusText)}},
+          this.notifications.display("error", "Cloud Account: " + this.cloudAccountModel.name, "Error:" + data.statusText)}},
       (err) => {
         if (err) {
-          this.cloudAccountsService.showNotification("error", "Cloud Account: " + this.cloudAccountModel.name, "Error:" + err)}},
+          this.notifications.display("error", "Cloud Account: " + this.cloudAccountModel.name, "Error:" + err)}},
     );
   }
   }

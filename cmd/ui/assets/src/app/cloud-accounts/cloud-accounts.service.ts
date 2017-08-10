@@ -1,7 +1,6 @@
 import { Injectable } from '@angular/core';
 import { Subject } from 'rxjs/Subject';
 import { Observable } from 'rxjs/Observable';
-import { NotificationsService } from 'angular2-notifications';
 
 @Injectable()
 export class CloudAccountsService {
@@ -10,9 +9,7 @@ export class CloudAccountsService {
     cloudAccounts: any;
     selectedItems= new Array();
 
-    constructor(
-      private _service: NotificationsService,
-    ) {}
+    constructor() {}
 
     // msg to Cloud Service Modeal Dropdown to popup
     openNewCloudServiceDropdownModal(message){
@@ -22,24 +19,6 @@ export class CloudAccountsService {
     // msg to Cloud Service New/Edit modal
     openNewCloudServiceEditModal(type, message, object){
       this.newEditModal.next([type, message, object]);
-    }
-
-    // Notification Shortcut
-    showNotification(kind, header, body) {
-      switch (kind) {
-        case "success": {
-          this._service.success(header, body, {})
-          break
-        }
-        case "error": {
-          this._service.error(header, body, {})
-          break
-        }
-        case "warn": {
-          this._service.warn(header, body, {})
-          break
-        }
-      }
     }
 
     // return all selected cloud accounts

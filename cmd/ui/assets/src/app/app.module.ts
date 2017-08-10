@@ -42,6 +42,8 @@ import { SchemaFormModule, WidgetRegistry, DefaultWidgetRegistry } from "angular
 import { Supergiant } from './shared/supergiant/supergiant.service';
 import { CloudAccounts } from './shared/supergiant/cloud-accounts/cloud-accounts.service';
 import { UtilService} from './shared/supergiant/util/util.service';
+import { NotificationsComponent } from './shared/notifications/notifications.component';
+import { Notifications } from './shared/notifications/notifications.service';
 
 
 @NgModule({
@@ -74,7 +76,8 @@ import { UtilService} from './shared/supergiant/util/util.service';
     UserComponent,
     UsersHeaderComponent,
     CloudAccountsNewModalComponent,
-    CloudAccountsNewSubmitComponent
+    CloudAccountsNewSubmitComponent,
+    NotificationsComponent
     ],
   imports: [
     BrowserModule,
@@ -90,7 +93,15 @@ import { UtilService} from './shared/supergiant/util/util.service';
     ReactiveFormsModule,
     SchemaFormModule
   ],
-  providers: [KubesService, CloudAccounts, CloudAccountsService, Supergiant, UtilService, {provide: WidgetRegistry, useClass: DefaultWidgetRegistry}],
+  providers: [
+    KubesService,
+    CloudAccounts,
+    CloudAccountsService,
+    Supergiant,
+    UtilService,
+    {provide: WidgetRegistry, useClass: DefaultWidgetRegistry},
+    Notifications,
+  ],
   bootstrap: [AppComponent]
 })
 export class AppModule { }
