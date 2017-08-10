@@ -1,17 +1,9 @@
-import { Component, OnInit, AfterViewInit, OnDestroy,ViewChild, ElementRef } from '@angular/core';
-import {NgbModal, ModalDismissReasons, NgbModalRef} from '@ng-bootstrap/ng-bootstrap';
+import { Component, AfterViewInit, OnDestroy,ViewChild, ElementRef } from '@angular/core';
+import { NgbModal, ModalDismissReasons, NgbModalRef } from '@ng-bootstrap/ng-bootstrap';
 import { Subscription } from 'rxjs/Subscription';
 import { CloudAccountsService } from '../cloud-accounts.service';
-import dedent from "dedent";
-import {FormlyFieldConfig} from 'ng-formly';
-import {Validators, FormGroup} from '@angular/forms';
-import { SchemaFormModule, WidgetRegistry, DefaultWidgetRegistry } from "angular2-schema-form";
-import { Subject } from 'rxjs/Subject';
-import {CloudAccountsComponent} from '../cloud-accounts.component'
+import { CloudAccountsComponent } from '../cloud-accounts.component'
 import { Supergiant } from '../../shared/supergiant/supergiant.service'
-
-
-
 
 @Component({
   selector: 'app-cloud-accounts-new-submit',
@@ -19,19 +11,14 @@ import { Supergiant } from '../../shared/supergiant/supergiant.service'
   styleUrls: ['./cloud-accounts-new-submit.component.css']
 })
 
-
-
-export class CloudAccountsNewSubmitComponent implements AfterViewInit, OnDestroy, OnInit {
+export class CloudAccountsNewSubmitComponent implements AfterViewInit, OnDestroy {
   private subscription: Subscription;
   private createCloudAccoutSub: Subscription;
-  private cloudAccoutSchemaSub: Subscription;
-  private newCloudDefault: string;
   private cloudAccountSchema: any;
   private cloudAccountModel: any;
   private modalRef: NgbModalRef;
   private action: string;
   private providerID: any;
-  cloudAccountJSON = new Subject<any>();
   @ViewChild('newCloudAccountEditModal') content: ElementRef;
 
   constructor(
@@ -41,24 +28,36 @@ export class CloudAccountsNewSubmitComponent implements AfterViewInit, OnDestroy
     private supergiant: Supergiant
   ) {}
 
-  ngOnInit() {
-
-  }
-
+  // Converts a Cloud Account Object JSON to an object, used with the "simple/advanced"
+  // mode switcher.
   convertToObj(json) {
     this.cloudAccountModel = JSON.parse(json)
   }
 
+  // Data init after load
   ngAfterViewInit() {
+    // Check for messages from the new Cloud Accont dropdown, or edit button.
     this.subscription = this.cloudAccountsService.newEditModal.subscribe( message => {
       {
+        // A schema object, contains:
+        // .model -> Default UI settings.
+        // .schema -> Rules for acceptance from the user.
         var msg = message[2]
+
+        // The provider slug. Dynamically provided to the dropdown
+        // by the supergiant schema api.
         var provider = message[1]
+
+        // The action type. Edit (existing), Save(new)
         this.action = message[0]
+
+        // Feed the model and schema to the UI.
         this.cloudAccountModel = msg.providers[provider].model
         this.cloudAccountSchema = msg.providers[provider].schema
+        // Save the id in case of edit action type.
         this.providerID = this.cloudAccountModel.id
       };
+      // open the New/Edit modal
       {this.open(this.content)};});
   }
 
@@ -66,10 +65,12 @@ export class CloudAccountsNewSubmitComponent implements AfterViewInit, OnDestroy
     this.subscription.unsubscribe();
   }
 
+  // open the New/Edit modal, save the ref so we can close it later.
   open(content) {
     this.modalRef = this.modalService.open(content);
   }
 
+  // When the user clicks Save/Edit
   onSubmit() {
 
     if (this.action === "Edit") {

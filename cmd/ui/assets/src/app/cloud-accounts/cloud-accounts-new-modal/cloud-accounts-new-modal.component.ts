@@ -1,5 +1,5 @@
 import { Component, AfterViewInit, OnDestroy,ViewChild, ElementRef } from '@angular/core';
-import {NgbModal, ModalDismissReasons} from '@ng-bootstrap/ng-bootstrap';
+import { NgbModal, ModalDismissReasons } from '@ng-bootstrap/ng-bootstrap';
 import { Subscription } from 'rxjs/Subscription';
 import { CloudAccountsService } from '../cloud-accounts.service';
 import { Supergiant } from '../../shared/supergiant/supergiant.service'
@@ -20,13 +20,17 @@ export class CloudAccountsNewModalComponent implements AfterViewInit, OnDestroy{
    providersObj: any;
 
 
-   constructor(private modalService: NgbModal,
+   constructor(
+     private modalService: NgbModal,
      private cloudAccountsService: CloudAccountsService,
-     private supergiant: Supergiant) {}
+     private supergiant: Supergiant,
+   ) {}
 
+   // After init, grab the schema
    ngAfterViewInit() {
      this.cloudAccountsSub = this.supergiant.CloudAccounts.schema().subscribe(
        (data) => { this.providersObj = data.json()
+         // Push available providers to an array. Displayed in the dropdown.
          for(let key in this.providersObj.providers){
            this.providers.push(key)
          }
@@ -43,10 +47,11 @@ export class CloudAccountsNewModalComponent implements AfterViewInit, OnDestroy{
      this.modalRef = this.modalService.open(content);
    }
 
+   // After user selects a provider from dropdown, new/edit modal
+   // in Save mode it launched.
    sendOpen(message){
      this.modalRef.close();
      this.cloudAccountsService.openNewCloudServiceEditModal("Save", message, this.providersObj);
-
    }
 
    private getDismissReason(reason: any): string {

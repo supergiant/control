@@ -13,17 +13,19 @@ export class CloudAccountsComponent implements OnInit {
   cloudAccounts: any;
   private subscription: Subscription;
 
-  constructor(private cloudAccountsService: CloudAccountsService, private supergiant: Supergiant) { }
+  constructor(
+    private cloudAccountsService: CloudAccountsService,
+    private supergiant: Supergiant,
+  ) { }
 
+  //get accouts when page loads
   ngOnInit() {
     this.getAccounts()
   }
+  //get accounts
   getAccounts() {
     this.subscription = this.supergiant.CloudAccounts.get().subscribe(
       cloudAccount=>{ this.cloudAccounts = cloudAccount.json().items},
       (err) =>{ this.cloudAccountsService.showNotification("warn", "Connection Issue.", err)})
   }
-
-
-
 }
