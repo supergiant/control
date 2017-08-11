@@ -1,9 +1,9 @@
-<ng-template #newCloudAccountEditModal let-c="close" let-d="dismiss">
+<ng-template #editModal let-c="close" let-d="dismiss">
   <div class="modal-body">
     <ngb-tabset type="pills" justify="center">
   <ngb-tab title="Simple">
     <ng-template ngbTabContent>
-      <sf-form [schema]="cloudAccountSchema" [model]="cloudAccountModel" (onChange)="cloudAccountModel=$event.value"></sf-form>
+      <sf-form [schema]="schema" [model]="model" (onChange)="model=$event.value"></sf-form>
       <div class="modal-footer">
         <button type="submit" class="btn btn-secondary" (click)="onSubmit()">{{ action }}</button>
         <button type="button" class="btn btn-secondary" (click)="c('Close click')">Cancel</button>
@@ -15,7 +15,7 @@
       <form>
         <div class="form-group">
           <textarea rows=20 class="form-control" name="json_input" (change)="convertToObj($event.target.value)">
-{{cloudAccountModel | json}}
+{{model | json}}
           </textarea>
         </div>
         <div class="modal-footer">

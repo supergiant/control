@@ -1,7 +1,5 @@
 <app-cloud-accounts-header></app-cloud-accounts-header>
-<app-cloud-accounts-new-modal></app-cloud-accounts-new-modal>
-<app-cloud-accounts-new-submit></app-cloud-accounts-new-submit>
-<app-header></app-header>
+<!-- <app-header></app-header> -->
 <table class="table table-hover">
   <thead>
     <tr>
@@ -10,6 +8,5 @@
       <th>Provider</th>
     </tr>
 </thead>
-   <!-- <tr app-session *ngFor="let session of sessions" [session]="session"></tr> -->
    <tr app-cloud-account *ngFor="let cloudAccount of cloudAccounts" [cloudAccount]="cloudAccount"></tr>
 </table>

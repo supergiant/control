@@ -11,18 +11,8 @@ export class CloudAccountsService {
 
     constructor() {}
 
-    // msg to Cloud Service Modeal Dropdown to popup
-    openNewCloudServiceDropdownModal(message){
-      this.newModal.next(message);
-    }
-
-    // msg to Cloud Service New/Edit modal
-    openNewCloudServiceEditModal(type, message, object){
-      this.newEditModal.next([type, message, object]);
-    }
-
     // return all selected cloud accounts
-    returnSelectedCloudAccount(){
+    returnSelected(){
       return this.selectedItems
     }
 

@@ -1,7 +1,7 @@
 import { Component } from '@angular/core';
-import { CloudAccountsService } from '../cloud-accounts.service';
+import { KubesService } from '../kubes.service';
 import { Supergiant } from '../../shared/supergiant/supergiant.service'
-import {CloudAccountsComponent} from '../cloud-accounts.component'
+import {KubesComponent} from '../kubes.component'
 import { Subscription } from 'rxjs/Subscription';
 import { Notifications } from '../../shared/notifications/notifications.service'
 import { SystemModalService } from '../../shared/system-modal/system-modal.service'
@@ -10,16 +10,16 @@ import { EditModalService } from '../../shared/edit-modal/edit-modal.service'
 
 
 @Component({
-  selector: 'app-cloud-accounts-header',
-  templateUrl: './cloud-accounts-header.component.html',
-  styleUrls: ['./cloud-accounts-header.component.css']
+  selector: 'app-kubes-header',
+  templateUrl: './kubes-header.component.html',
+  styleUrls: ['./kubes-header.component.css']
 })
-export class CloudAccountsHeaderComponent {
+export class KubesHeaderComponent {
   providersObj: any;
 
   constructor(
-    private cloudAccountsService: CloudAccountsService,
-    private cloudAccountsComponant: CloudAccountsComponent,
+    private kubesService: KubesService,
+    private kubesComponant: KubesComponent,
     private supergiant: Supergiant,
     private notifications: Notifications,
     private systemModalService: SystemModalService,
@@ -29,7 +29,7 @@ export class CloudAccountsHeaderComponent {
 
   // After init, grab the schema
   ngAfterViewInit() {
-    this.supergiant.CloudAccounts.schema().subscribe(
+    this.supergiant.Kubes.schema().subscribe(
       (data) => { this.providersObj = data.json()},
       (err) => {this.notifications.display("warn", "Connection Issue.", err)});
   }
@@ -38,7 +38,7 @@ export class CloudAccountsHeaderComponent {
   sendOpen(message){
      let providers = [];
      // Fetch options.
-     this.supergiant.CloudAccounts.schema().subscribe(
+     this.supergiant.Kubes.schema().subscribe(
        (data) => { this.providersObj = data.json()
          // Push available providers to an array. Displayed in the dropdown.
          for(let key in this.providersObj.providers){
@@ -48,7 +48,7 @@ export class CloudAccountsHeaderComponent {
 
       // Open Dropdown Modal
       this.dropdownModalService.open(
-        "New Cloud Account", "Cloud Account", providers).subscribe(
+        "New Kube", "Providers", providers).subscribe(
           (option) => {
             this.editModalService.open("Save", option, this.providersObj).subscribe(
               (userInput) => {
@@ -56,49 +56,49 @@ export class CloudAccountsHeaderComponent {
                 var providerID = 1
                 var model = userInput[2]
                 if (action === "Edit") {
-                this.supergiant.CloudAccounts.update(providerID, model).subscribe(
+                this.supergiant.Kubes.update(providerID, model).subscribe(
                   (data) => {
                     if (data.status >= 200 && data.status <= 299) {
                       this.notifications.display(
                         "success",
-                        "Cloud Account: " + model.name,
+                        "Kube: " + model.name,
                         "Created...",
                       )
-                      this.cloudAccountsComponant.getAccounts()
+                      this.kubesComponant.getAccounts()
                     }else{
                       this.notifications.display(
                         "error",
-                        "Cloud Account: " + model.name,
+                        "Kube: " + model.name,
                         "Error:" + data.statusText)
                       }},
                   (err) => {
                     if (err) {
                       this.notifications.display(
                         "error",
-                        "Cloud Account: " + model.name,
+                        "Kube: " + model.name,
                         "Error:" + err)
                       }});
               } else {
-                this.supergiant.CloudAccounts.create(model).subscribe(
+                this.supergiant.Kubes.create(model).subscribe(
                   (data) => {
                     if (data.status >= 200 && data.status <= 299) {
                       this.notifications.display(
                         "success",
-                        "Cloud Account: " + model.name.name,
+                        "Kube: " + model.name.name,
                         "Created...",
                       )
-                      this.cloudAccountsComponant.getAccounts()
+                      this.kubesComponant.getAccounts()
                     }else{
                       this.notifications.display(
                         "error",
-                        "Cloud Account: " + model.name.name,
+                        "Kube: " + model.name.name,
                         "Error:" + data.statusText)
                       }},
                   (err) => {
                     if (err) {
                       this.notifications.display(
                         "error",
-                        "Cloud Account: " + model.name.name,
+                        "Kube: " + model.name.name,
                         "Error:" + err)
                       }});}
               });
@@ -110,8 +110,8 @@ export class CloudAccountsHeaderComponent {
       this.systemModalService.openSystemModal(message);
   }
   // If the edit button is hit, the Edit modal is opened.
-  editCloudAccount() {
-    var selectedItems = this.cloudAccountsService.returnSelected()
+  editKube() {
+    var selectedItems = this.kubesService.returnSelected()
 
     if (selectedItems.length === 0) {
       this.notifications.display("warn", "Warning:", "No Provider Selected.")
@@ -125,7 +125,7 @@ export class CloudAccountsHeaderComponent {
 
   // If the delete button is hit, the seleted accounts are deleted.
   deleteCloudAccount() {
-    var selectedItems = this.cloudAccountsService.returnSelected()
+    var selectedItems = this.kubesService.returnSelected()
     if (selectedItems.length === 0) {
       this.notifications.display("warn", "Warning:", "No Provider Selected.")
     } else if (selectedItems.length > 1) {
@@ -135,13 +135,13 @@ export class CloudAccountsHeaderComponent {
       this.supergiant.CloudAccounts.delete(provider.id).subscribe(
         (data) => {
           if (data.status >= 200 && data.status <= 299) {
-            this.notifications.display("success", "Cloud Account: " + provider.name, "Deleted...")
-            this.cloudAccountsComponant.getAccounts()
+            this.notifications.display("success", "Kube: " + provider.name, "Deleted...")
+            this.kubesComponant.getAccounts()
            }else{
-            this.notifications.display("error", "Cloud Account: " + provider.name, "Error:" + data.statusText)}},
+            this.notifications.display("error", "Kube: " + provider.name, "Error:" + data.statusText)}},
         (err) => {
           if (err) {
-            this.notifications.display("error", "Cloud Account: " + provider.name, "Error:" + err)}},
+            this.notifications.display("error", "Kube: " + provider.name, "Error:" + err)}},
       );
     }
   }

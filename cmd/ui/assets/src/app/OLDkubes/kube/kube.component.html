@@ -1,0 +1,4 @@
+<td><input type="checkbox" id="checkbox" /></td>
+<td>{{kube.name}}</td>
+<td>{{kube.masterNodeSize}}</td>
+<td [ngClass]="{'text-success': kube.status, 'text-danger': !kube.status }"><i class="fa fa-dot-circle-o fa-2x" aria-hidden="true"></i></td>

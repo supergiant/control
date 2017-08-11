@@ -17,7 +17,7 @@ import { UsersComponent } from './users/users.component';
 import { KubesComponent } from './kubes/kubes.component';
 import { NotificationsComponent } from './shared/notifications/notifications.component';
 import { KubeComponent } from './kubes/kube/kube.component';
-import { KubeHeaderComponent } from './kubes/kube-header/kube-header.component';
+import { KubesHeaderComponent } from './kubes/kubes-header/kubes-header.component';
 import { HeaderComponent } from './shared/header/header.component';
 import { SessionsComponent } from './sessions/sessions.component';
 import { CloudAccountsComponent } from './cloud-accounts/cloud-accounts.component';
@@ -39,15 +39,17 @@ import { ServiceComponent } from './services/service/service.component';
 import { SessionComponent } from './sessions/session/session.component';
 import { UserComponent } from './users/user/user.component';
 import { UsersHeaderComponent } from './users/users-header/users-header.component';
-import { CloudAccountsNewModalComponent } from './cloud-accounts/cloud-accounts-new-modal/cloud-accounts-new-modal.component';
-import { CloudAccountsNewSubmitComponent } from './cloud-accounts/cloud-accounts-new-submit/cloud-accounts-new-submit.component';
 import { SystemModalComponent } from './shared/system-modal/system-modal.component';
+import { DropdownModalComponent } from './shared/dropdown-modal/dropdown-modal.component';
+import { EditModalComponent } from './shared/edit-modal/edit-modal.component';
 // Component Services
 import { SessionsService } from './sessions/sessions.service';
 import { CloudAccountsService } from './cloud-accounts/cloud-accounts.service';
 import { KubesService } from './kubes/kubes.service';
 import { Notifications } from './shared/notifications/notifications.service';
 import { SystemModalService } from './shared/system-modal/system-modal.service';
+import { DropdownModalService } from './shared/dropdown-modal/dropdown-modal.service';
+import { EditModalService } from './shared/edit-modal/edit-modal.service';
 
 // Supergiant API Services
 import { Supergiant } from './shared/supergiant/supergiant.service';
@@ -65,6 +67,8 @@ import { HelmReleases } from './shared/supergiant/helm-releases/helm-releases.se
 import { Logs } from './shared/supergiant/logs/logs.service';
 
 
+
+
 @NgModule({
   declarations: [
     AppComponent,
@@ -72,7 +76,7 @@ import { Logs } from './shared/supergiant/logs/logs.service';
     UsersComponent,
     KubesComponent,
     KubeComponent,
-    KubeHeaderComponent,
+    KubesHeaderComponent,
     HeaderComponent,
     SessionsComponent,
     CloudAccountsComponent,
@@ -94,10 +98,10 @@ import { Logs } from './shared/supergiant/logs/logs.service';
     SessionComponent,
     UserComponent,
     UsersHeaderComponent,
-    CloudAccountsNewModalComponent,
-    CloudAccountsNewSubmitComponent,
     NotificationsComponent,
-    SystemModalComponent
+    SystemModalComponent,
+    DropdownModalComponent,
+    EditModalComponent
     ],
   imports: [
     BrowserModule,
@@ -136,6 +140,8 @@ import { Logs } from './shared/supergiant/logs/logs.service';
     {provide: WidgetRegistry, useClass: DefaultWidgetRegistry},
     Notifications,
     SystemModalService,
+    DropdownModalService,
+    EditModalService,
   ],
   bootstrap: [AppComponent]
 })

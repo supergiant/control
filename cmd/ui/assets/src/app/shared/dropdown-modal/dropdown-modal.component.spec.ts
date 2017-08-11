@@ -1,20 +1,20 @@
 import { async, ComponentFixture, TestBed } from '@angular/core/testing';
 
-import { KubesComponent } from './kubes.component';
+import { DropdownModalComponent } from './dropdown-modal.component';
 
-describe('CloudAccountsComponent', () => {
-  let component: KubesComponent;
-  let fixture: ComponentFixture<KubesComponent>;
+describe('DropdownModalComponent', () => {
+  let component: DropdownModalComponent;
+  let fixture: ComponentFixture<DropdownModalComponent>;
 
   beforeEach(async(() => {
     TestBed.configureTestingModule({
-      declarations: [ KubesComponent ]
+      declarations: [ DropdownModalComponent ]
     })
     .compileComponents();
   }));
 
   beforeEach(() => {
-    fixture = TestBed.createComponent(KubesComponent);
+    fixture = TestBed.createComponent(DropdownModalComponent);
     component = fixture.componentInstance;
     fixture.detectChanges();
   });
