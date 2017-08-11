@@ -4,6 +4,7 @@ import { Supergiant } from '../../shared/supergiant/supergiant.service'
 import {CloudAccountsComponent} from '../cloud-accounts.component'
 import { Subscription } from 'rxjs/Subscription';
 import { Notifications } from '../../shared/notifications/notifications.service'
+import { SystemModalService } from '../../shared/system-modal/system-modal.service'
 
 @Component({
   selector: 'app-cloud-accounts-header',
@@ -19,6 +20,7 @@ export class CloudAccountsHeaderComponent {
     private cloudAccountsComponant: CloudAccountsComponent,
     private supergiant: Supergiant,
     private notifications: Notifications,
+    private systemModalService: SystemModalService,
     ) {}
 
   // After init, grab the schema
@@ -33,6 +35,9 @@ export class CloudAccountsHeaderComponent {
       this.cloudAccountsService.openNewCloudServiceDropdownModal(message);
   }
 
+  openSystemModal(message){
+      this.systemModalService.openSystemModal(message);
+  }
   // If the edit button is hit, the Edit modal is opened.
   editCloudAccount() {
     var selectedItems = this.cloudAccountsService.returnSelectedCloudAccount()

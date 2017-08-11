@@ -100,10 +100,20 @@ h1, h2, h3, h4, h5, h6 {
 }
 
 
+.pull-right {
+    float: right !important;
+    margin-left: 2px;
+    margin-right: 5px;
+}
 
+.app-system-modal .modal-dialog {
+  width: 80%;
+}
 
 #control-bar {
   background: #f3f3f3;
+  padding-bottom: 5px;
+  padding-top: 5px;
   border-bottom: 1px solid #ddd;
   min-width: 559px;
 }
@@ -117,71 +127,6 @@ h1, h2, h3, h4, h5, h6 {
   top: 2px;
   padding-right: 3px;
 }
-
-
-
-button {
-  outline: none;
-}
-
-
-.btn-group {
-  display: inline-block;
-  padding: 12px;
-}
-
-.btn {
-  cursor: pointer;
-  font-family: 'Montserrat', sans-serif;
-  display: inline-block;
-  margin: 1px;
-  padding: 9px 14px;
-  border-radius: 4px;
-  text-transform: uppercase;
-  font-size: 11px;
-  letter-spacing: 0.1em;
-  outline: none;
-}
-
-.btn.btn-primary {
-  background: #0e6ccc;
-  color: white;
-  text-shadow: 0.5px 0.866px 2px rgba(0, 0, 0, 0.2);
-  border: none;
-}
-
-.btn.btn-primary:hover {
-  background: #0d61b7;
-}
-
-.btn:active {
-  box-shadow: inset 0 3px 5px rgba(0,0,0,.125);
-}
-
-.btn.dropdown-toggle.open {
-  box-shadow: inset 0 3px 5px rgba(0,0,0,.125);
-}
-
-.btn.btn-default {
-  border: 1px solid #b4b4b4;
-  background: #f3f3f3;
-  color: #4e4e4e;
-}
-
-.btn.btn-default:hover {
-  background: #ebebeb;
-}
-
-
-
-
-
-
-
-
-
-
-
 
 .dropdown {
   position: relative;

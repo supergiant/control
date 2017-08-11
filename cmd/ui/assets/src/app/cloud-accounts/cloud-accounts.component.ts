@@ -1,8 +1,9 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnDestroy, OnInit } from '@angular/core';
 import { CloudAccountsService } from './cloud-accounts.service';
 import { Subscription } from 'rxjs/Subscription';
 import { Supergiant } from '../shared/supergiant/supergiant.service'
 import { Notifications } from '../shared/notifications/notifications.service'
+import { Observable } from 'rxjs/Rx';
 
 
 @Component({
@@ -26,8 +27,13 @@ export class CloudAccountsComponent implements OnInit {
   }
   //get accounts
   getAccounts() {
-    this.subscription = this.supergiant.CloudAccounts.get().subscribe(
+    this.subscription = Observable.timer(0, 10000)
+    .switchMap(() => this.supergiant.CloudAccounts.get()).subscribe(
       cloudAccount=>{ this.cloudAccounts = cloudAccount.json().items},
       (err) =>{ this.notifications.display("warn", "Connection Issue.", err)})
+  }
+
+  ngOnDestroy(){
+    this.subscription.unsubscribe();
   }
 }
