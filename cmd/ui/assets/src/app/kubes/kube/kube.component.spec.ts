@@ -1,8 +1,7 @@
 import { async, ComponentFixture, TestBed } from '@angular/core/testing';
-
 import { KubeComponent } from './kube.component';
 
-describe('KubeComponent', () => {
+describe('CloudAccountComponent', () => {
   let component: KubeComponent;
   let fixture: ComponentFixture<KubeComponent>;
 

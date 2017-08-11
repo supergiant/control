@@ -1,22 +1,30 @@
 import { Injectable } from '@angular/core';
-import { Kube } from './kubes.model'
+import { Subject } from 'rxjs/Subject';
+import { Observable } from 'rxjs/Observable';
 
 @Injectable()
 export class KubesService {
-  private kubes: Kube[] = [
-    {id: 1, name: "kube1", masterNodeSize: "desc1", status: true},
-    {id: 2, name: "kube2", masterNodeSize: "desc2", status: false},
-    {id: 3, name: "kube3", masterNodeSize: "desc3", status: true},
-  ]
+    newModal = new Subject<any>();
+    newEditModal = new Subject<any>();
+    kubes: any;
+    selectedItems= new Array();
 
-  getKubes() {
-    return this.kubes;
-  }
+    constructor() {}
 
-  getKube(id: number) {
-    return this.kubes[id];
-  }
+    // return all selected cloud accounts
+    returnSelected(){
+      return this.selectedItems
+    }
 
-  constructor() { }
-
+    // Record/Delete a ui selection from the "selected items" array.
+    selectItem(val,event){
+     if (event) {
+       this.selectedItems.push(val);
+     } else {
+       var index = this.selectedItems.indexOf(val);
+         if (index > -1) {
+          this.selectedItems.splice(index, 1);
+         }
+     }
+   }
 }

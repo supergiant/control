@@ -1,17 +1,12 @@
-import { Component, OnInit, Input } from '@angular/core';
-import { Kube } from '../kubes.model';
+import { Component, Input} from '@angular/core';
+import { KubesService } from '../kubes.service';
 
 @Component({
   selector: '[app-kube]',
   templateUrl: './kube.component.html',
   styleUrls: ['./kube.component.css']
 })
-export class KubeComponent implements OnInit {
-  @Input() kube: Kube[];
-
-  constructor() { }
-
-  ngOnInit() {
-  }
-
+export class KubeComponent {
+  @Input() kube: any;
+  constructor(private kubesService: KubesService) { }
 }
