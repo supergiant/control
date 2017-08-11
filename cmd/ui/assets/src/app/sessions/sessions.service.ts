@@ -13,8 +13,18 @@ export class SessionsService {
       return this.selectedItems
     }
 
+    checked(val) {
+      console.log(this.selectedItems)
+      for(let session of this.selectedItems){
+        if (val.id === session.id){
+          return true
+        }
+      }
+      return false
+    }
     // Record/Delete a session selection from the "selected items" array.
     selectItem(val,event){
+      console.log(event)
      if (event) {
        this.selectedItems.push(val);
      } else {

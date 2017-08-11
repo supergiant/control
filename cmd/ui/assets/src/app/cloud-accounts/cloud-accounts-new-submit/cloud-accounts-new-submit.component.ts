@@ -1,5 +1,5 @@
 import { Component, AfterViewInit, OnDestroy,ViewChild, ElementRef } from '@angular/core';
-import { NgbModal, ModalDismissReasons, NgbModalRef } from '@ng-bootstrap/ng-bootstrap';
+import { NgbModal, ModalDismissReasons, NgbModalRef, NgbModalOptions } from '@ng-bootstrap/ng-bootstrap';
 import { Subscription } from 'rxjs/Subscription';
 import { CloudAccountsService } from '../cloud-accounts.service';
 import { CloudAccountsComponent } from '../cloud-accounts.component'
@@ -69,7 +69,10 @@ export class CloudAccountsNewSubmitComponent implements AfterViewInit, OnDestroy
 
   // open the New/Edit modal, save the ref so we can close it later.
   open(content) {
-    this.modalRef = this.modalService.open(content);
+    let options: NgbModalOptions = {
+      size: 'lg'
+    };
+    this.modalRef = this.modalService.open(content, options);
   }
 
   // When the user clicks Save/Edit

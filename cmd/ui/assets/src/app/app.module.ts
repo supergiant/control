@@ -41,11 +41,13 @@ import { UserComponent } from './users/user/user.component';
 import { UsersHeaderComponent } from './users/users-header/users-header.component';
 import { CloudAccountsNewModalComponent } from './cloud-accounts/cloud-accounts-new-modal/cloud-accounts-new-modal.component';
 import { CloudAccountsNewSubmitComponent } from './cloud-accounts/cloud-accounts-new-submit/cloud-accounts-new-submit.component';
+import { SystemModalComponent } from './shared/system-modal/system-modal.component';
 // Component Services
 import { SessionsService } from './sessions/sessions.service';
 import { CloudAccountsService } from './cloud-accounts/cloud-accounts.service';
 import { KubesService } from './kubes/kubes.service';
 import { Notifications } from './shared/notifications/notifications.service';
+import { SystemModalService } from './shared/system-modal/system-modal.service';
 
 // Supergiant API Services
 import { Supergiant } from './shared/supergiant/supergiant.service';
@@ -61,6 +63,7 @@ import { HelmRepos } from './shared/supergiant/helm-repos/helm-repos.service';
 import { HelmCharts } from './shared/supergiant/helm-charts/helm-charts.service';
 import { HelmReleases } from './shared/supergiant/helm-releases/helm-releases.service';
 import { Logs } from './shared/supergiant/logs/logs.service';
+
 
 @NgModule({
   declarations: [
@@ -93,7 +96,8 @@ import { Logs } from './shared/supergiant/logs/logs.service';
     UsersHeaderComponent,
     CloudAccountsNewModalComponent,
     CloudAccountsNewSubmitComponent,
-    NotificationsComponent
+    NotificationsComponent,
+    SystemModalComponent
     ],
   imports: [
     BrowserModule,
@@ -131,6 +135,7 @@ import { Logs } from './shared/supergiant/logs/logs.service';
     // Other Shared Services
     {provide: WidgetRegistry, useClass: DefaultWidgetRegistry},
     Notifications,
+    SystemModalService,
   ],
   bootstrap: [AppComponent]
 })

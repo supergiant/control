@@ -1,5 +1,5 @@
 import { Component, AfterViewInit, OnDestroy,ViewChild, ElementRef } from '@angular/core';
-import { NgbModal, ModalDismissReasons } from '@ng-bootstrap/ng-bootstrap';
+import { NgbModal, ModalDismissReasons, NgbModalOptions } from '@ng-bootstrap/ng-bootstrap';
 import { Subscription } from 'rxjs/Subscription';
 import { CloudAccountsService } from '../cloud-accounts.service';
 import { Supergiant } from '../../shared/supergiant/supergiant.service'
@@ -46,7 +46,10 @@ export class CloudAccountsNewModalComponent implements AfterViewInit, OnDestroy{
    }
 
    open(content) {
-     this.modalRef = this.modalService.open(content);
+     let options: NgbModalOptions = {
+       size: 'sm'
+     };
+     this.modalRef = this.modalService.open(content, options);
    }
 
    // After user selects a provider from dropdown, new/edit modal

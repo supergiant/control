@@ -1,4 +1,4 @@
-<td><input type="checkbox" id="checkbox" (ngModelChange)="sessionsService.selectItem(session, $event)" checked="false" [ngModel]="!session.id"/></td>
+<td><input type="checkbox" id="checkbox" (ngModelChange)="sessionsService.selectItem(session, $event)" [ngModel]="!session.id" /></td>
 <td>{{ session.user_id }}</td>
 <td>{{ session.user.username }}</td>
 <td>{{ session.user.role }}</td>
