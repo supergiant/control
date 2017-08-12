@@ -1,8 +1,7 @@
 import { async, ComponentFixture, TestBed } from '@angular/core/testing';
-
 import { NodeComponent } from './node.component';
 
-describe('NodeComponent', () => {
+describe('CloudAccountComponent', () => {
   let component: NodeComponent;
   let fixture: ComponentFixture<NodeComponent>;
 

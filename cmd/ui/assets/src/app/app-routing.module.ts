@@ -8,6 +8,7 @@ import { NodesComponent } from './nodes/nodes.component';
 import { ServicesComponent } from './services/services.component';
 import { SessionsComponent } from './sessions/sessions.component';
 import { PodsComponent } from './pods/pods.component';
+import { VolumesComponent } from './volumes/volumes.component';
 import { LoadBalancersComponent } from './load-balancers/load-balancers.component';
 
 const appRoutes: Routes = [
@@ -21,6 +22,7 @@ const appRoutes: Routes = [
   { path: 'cloud-accounts', component: CloudAccountsComponent },
   { path: 'nodes', component: NodesComponent },
   { path: 'pods', component: PodsComponent },
+  { path: 'volumes', component: VolumesComponent },
   { path: 'services', component: ServicesComponent },
   { path: 'sessions', component: SessionsComponent },
   { path: 'load-balancers', component: LoadBalancersComponent },

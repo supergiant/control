@@ -1,20 +1,20 @@
 import { async, ComponentFixture, TestBed } from '@angular/core/testing';
 
-import { CloudAccountsHeaderComponent } from './cloud-accounts-header.component';
+import { KubesHeaderComponent } from './kubes-header.component';
 
 describe('CloudAccountsHeaderComponent', () => {
-  let component: CloudAccountsHeaderComponent;
-  let fixture: ComponentFixture<CloudAccountsHeaderComponent>;
+  let component: KubesHeaderComponent;
+  let fixture: ComponentFixture<KubesHeaderComponent>;
 
   beforeEach(async(() => {
     TestBed.configureTestingModule({
-      declarations: [ CloudAccountsHeaderComponent ]
+      declarations: [ KubesHeaderComponent ]
     })
     .compileComponents();
   }));
 
   beforeEach(() => {
-    fixture = TestBed.createComponent(CloudAccountsHeaderComponent);
+    fixture = TestBed.createComponent(KubesHeaderComponent);
     component = fixture.componentInstance;
     fixture.detectChanges();
   });
