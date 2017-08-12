@@ -16,15 +16,24 @@ export class VolumesService {
       return this.selectedItems
     }
 
-    // Record/Delete a ui selection from the "selected items" array.
-    selectItem(val,event){
+    isChecked(item) {
+      for (let obj of this.selectedItems) {
+        if (item.id === obj.id) {return true}
+      }
+      return false
+    }
+
+    // Record/Delete a selection from the "selected items" array.
+    selectItem(item,event){
      if (event) {
-       this.selectedItems.push(val);
+       this.selectedItems.push(item);
      } else {
-       var index = this.selectedItems.indexOf(val);
-         if (index > -1) {
-          this.selectedItems.splice(index, 1);
+       for (let obj of this.selectedItems) {
+         if (item.id === obj.id) {
+           this.selectedItems.splice(
+             this.selectedItems.indexOf(obj), 1);
          }
+       }
      }
    }
 }

@@ -29,28 +29,7 @@ export class NodesComponent implements OnInit {
   getAccounts() {
     this.subscription = Observable.timer(0, 5000)
     .switchMap(() => this.supergiant.Nodes.get()).subscribe(
-      (nodesObj) => {
-        // Because of the check boxes we must reconsile the array.
-        // If does not exist locally push it locally.
-        for(let node of nodesObj.json().items) {
-          var present = false
-          for(let uiNodes of this.nodes) {
-            if ( node.id === uiNodes.id ) {present = true}
-          }
-          if (!present) {this.nodes.push(node)}
-         }
-
-         // If does not exist on the API remove it locally.
-         for(let uiNode of this.nodes) {
-           var present = false
-           for(let node of nodesObj.json().items) {
-             if ( node.id === uiNode.id ) {present = true}
-           }
-           if (!present) {
-             var index = this.nodes.indexOf(uiNode)
-             this.nodes.splice(index, 1)}
-          }
-      },
+      (nodes) => { this.nodes = nodes.items},
       (err) => { this.notifications.display("warn", "Connection Issue.", err)});
   }
 

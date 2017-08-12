@@ -1,4 +1,4 @@
-<td><input type="checkbox" id="checkbox" (ngModelChange)="loadBalancersService.selectItem(loadBalancer, $event)" checked="false" [ngModel]="!loadBalancer.name"/></td>
+<td><input type="checkbox" id="checkbox" (ngModelChange)="loadBalancersService.selectItem(loadBalancer, $event)" checked="false" [ngModel]="loadBalancersService.isChecked(loadBalancer)"/></td>
 <td>{{ loadBalancer.kube_name }}</td>
 <td>{{ loadBalancer.name }}</td>
 <td>{{ loadBalancer.address }}</td>

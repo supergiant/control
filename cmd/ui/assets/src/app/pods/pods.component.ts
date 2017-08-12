@@ -29,28 +29,7 @@ export class PodsComponent implements OnInit {
   getAccounts() {
     this.subscription = Observable.timer(0, 5000)
     .switchMap(() => this.supergiant.KubeResources.get()).subscribe(
-      (podsObj) => {
-        // Because of the check boxes we must reconsile the array.
-        // If does not exist locally push it locally.
-        for(let pod of podsObj.json().items) {
-          var present = false
-          for(let uiPod of this.pods) {
-            if ( pod.id === uiPod.id ) {present = true}
-          }
-          if (!present) { if (pod.kind === "Pod") {this.pods.push(pod)}}
-         }
-
-         // If does not exist on the API remove it locally.
-         for(let uiPod of this.pods) {
-           var present = false
-           for(let pod of podsObj.json().items) {
-             if ( pod.id === uiPod.id ) {present = true}
-           }
-           if (!present) {
-             var index = this.pods.indexOf(uiPod)
-             this.pods.splice(index, 1)}
-          }
-      },
+      (pods) => {this.pods = pods.items.filter( resource => resource.kind === "Pod")},
       (err) => { this.notifications.display("warn", "Connection Issue.", err)});
   }
 

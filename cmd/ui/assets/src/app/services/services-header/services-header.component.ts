@@ -30,7 +30,7 @@ export class ServicesHeaderComponent {
   // After init, grab the schema
   ngAfterViewInit() {
     // this.supergiant.KubeResources.schema().subscribe(
-    //   (data) => { this.providersObj = data.json()},
+    //   (data) => { this.providersObj = data},
     //   (err) => {this.notifications.display("warn", "Connection Issue.", err)});
   }
 
@@ -39,7 +39,7 @@ export class ServicesHeaderComponent {
      let providers = [];
      // Fetch options.
      this.supergiant.KubeResources.schema().subscribe(
-       (data) => { this.providersObj = data.json()
+       (data) => { this.providersObj = data
          // Push available providers to an array. Displayed in the dropdown.
          for(let key in this.providersObj.providers){
            providers.push(key)
