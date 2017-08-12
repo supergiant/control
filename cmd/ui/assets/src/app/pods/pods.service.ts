@@ -3,17 +3,20 @@ import { Subject } from 'rxjs/Subject';
 import { Observable } from 'rxjs/Observable';
 
 @Injectable()
-export class SessionsService {
+export class PodsService {
+    newModal = new Subject<any>();
+    newEditModal = new Subject<any>();
+    pods: any;
     selectedItems= new Array();
 
     constructor() {}
 
-    // return all selected sessions
-    returnSelectedSessions(){
+    // return all selected
+    returnSelected(){
       return this.selectedItems
     }
 
-    // Record/Delete a session selection from the "selected items" array.
+    // Record/Delete a ui selection from the "selected items" array.
     selectItem(val,event){
      if (event) {
        this.selectedItems.push(val);

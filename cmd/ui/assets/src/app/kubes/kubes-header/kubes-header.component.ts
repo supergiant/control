@@ -29,9 +29,9 @@ export class KubesHeaderComponent {
 
   // After init, grab the schema
   ngAfterViewInit() {
-    this.supergiant.Kubes.schema().subscribe(
-      (data) => { this.providersObj = data.json()},
-      (err) => {this.notifications.display("warn", "Connection Issue.", err)});
+    // this.supergiant.Kubes.schema().subscribe(
+    //   (data) => { this.providersObj = data.json()},
+    //   (err) => {this.notifications.display("warn", "Connection Issue.", err)});
   }
 
   // If new button if hit, the New dropdown is triggered.

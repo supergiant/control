@@ -1,37 +1,16 @@
 <div id="control-bar">
   <div class="btn-group"></div>
-  <button class="btn btn-outline-primary" id="new" (click)="open(newPod)">New</button>
+  <button class="btn btn-sm btn-outline-primary" id="new" (click)="sendOpen(true)">New</button>
    <div ngbDropdown class="d-inline-block">
-     <button class="btn btn-outline-primary" id="actions" ngbDropdownToggle>Actions</button>
+     <button class="btn btn-sm btn-outline-primary" id="actions" ngbDropdownToggle>Actions</button>
      <div class="dropdown-menu" aria-labelledby="actions">
-       <button class="dropdown-item">Edit</button>
-       <hr>
-       <button class="dropdown-item">Delete</button>
-       <button class="dropdown-item">Start</button>
-       <button class="dropdown-item">Stop</button>
+       <button class="dropdown-item" (click)="editCloudAccount()">Edit</button>
+       <button class="dropdown-item" (click)="deleteCloudAccount()">Delete</button>
      </div>
    </div>
     <div id="searchbar-icon"></div>
     <div id="filters"></div>
     <input id="searchbar" type="text" placeholder="field:value">
-    <ul id="mini-nav">
-      <li><a href="#" data-toggle="modal" data-target="#system">System</a></li>
-      <li><a href="#" id="logout">Logout</a></li>
-    </ul>
+      <button type="button" class="btn btn-sm pull-right btn-danger">Log Out</button>
+      <button type="button" class="btn btn-sm pull-right btn-info" (click)="openSystemModal(true)">System</button>
  </div>
-
- <!-- New Modal -->
- <ng-template #newPod let-c="close" let-d="dismiss">
-   <div class="modal-header">
-     <h4 class="modal-title">New Pod</h4>
-     <button type="button" class="close" aria-label="Close" (click)="d('Cross click')">
-       <span aria-hidden="true">&times;</span>
-     </button>
-   </div>
-   <div class="modal-body">
-     <p>Dropdown Here&hellip;</p>
-   </div>
-   <div class="modal-footer">
-     <button type="button" class="btn btn-secondary" (click)="c('Close click')">Close</button>
-   </div>
- </ng-template>

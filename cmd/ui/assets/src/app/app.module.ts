@@ -34,7 +34,10 @@ import { CloudAccountsHeaderComponent } from './cloud-accounts/cloud-accounts-he
 import { CloudAccountComponent } from './cloud-accounts/cloud-account/cloud-account.component';
 import { LoadBalancerComponent } from './load-balancers/load-balancer/load-balancer.component';
 import { NodeComponent } from './nodes/node/node.component';
-import { PodComponent } from './pods/pod/pod.component';
+import { PodComponent } from './pods/pods/pod.component';
+import { VolumesComponent } from './volumes/volumes.component';
+import { VolumeComponent } from './volumes/volume/volume.component';
+import { VolumesHeaderComponent } from './volumes/volumes-header/volumes-header.component';
 import { ServiceComponent } from './services/service/service.component';
 import { SessionComponent } from './sessions/session/session.component';
 import { UserComponent } from './users/user/user.component';
@@ -46,6 +49,12 @@ import { EditModalComponent } from './shared/edit-modal/edit-modal.component';
 import { SessionsService } from './sessions/sessions.service';
 import { CloudAccountsService } from './cloud-accounts/cloud-accounts.service';
 import { KubesService } from './kubes/kubes.service';
+import { UsersService } from './users/users.service';
+import { NodesService } from './nodes/nodes.service';
+import { PodsService } from './pods/pods.service';
+import { VolumesService } from './volumes/volumes.service';
+import { ServicesService } from './services/services.service';
+import { LoadBalancersService } from './load-balancers/load-balancers.service';
 import { Notifications } from './shared/notifications/notifications.service';
 import { SystemModalService } from './shared/system-modal/system-modal.service';
 import { DropdownModalService } from './shared/dropdown-modal/dropdown-modal.service';
@@ -72,6 +81,9 @@ import { Logs } from './shared/supergiant/logs/logs.service';
 @NgModule({
   declarations: [
     AppComponent,
+    VolumesComponent,
+    VolumeComponent,
+    VolumesHeaderComponent,
     NavigationComponent,
     UsersComponent,
     KubesComponent,
@@ -122,6 +134,13 @@ import { Logs } from './shared/supergiant/logs/logs.service';
     KubesService,
     CloudAccountsService,
     SessionsService,
+    UsersService,
+    KubesService,
+    NodesService,
+    LoadBalancersService,
+    PodsService,
+    ServicesService,
+    VolumesService,
     // Supergiant API Services
     Supergiant,
     UtilService,

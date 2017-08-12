@@ -50,7 +50,6 @@ export class DropdownModalComponent implements OnInit {
     this.subscription.unsubscribe();
   }
 
-
   sendChoice(choice){
     this.modalRef.close();
     this.dropdownModalService.dropdownModalResponse.next(choice)

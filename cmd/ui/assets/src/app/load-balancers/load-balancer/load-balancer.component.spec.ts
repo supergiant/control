@@ -1,5 +1,4 @@
 import { async, ComponentFixture, TestBed } from '@angular/core/testing';
-
 import { LoadBalancerComponent } from './load-balancer.component';
 
 describe('LoadBalancerComponent', () => {

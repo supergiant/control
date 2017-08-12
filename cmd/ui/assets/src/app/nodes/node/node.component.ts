@@ -1,15 +1,12 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, Input} from '@angular/core';
+import { NodesService } from '../nodes.service';
 
 @Component({
-  selector: 'app-node',
+  selector: '[app-node]',
   templateUrl: './node.component.html',
   styleUrls: ['./node.component.css']
 })
-export class NodeComponent implements OnInit {
-
-  constructor() { }
-
-  ngOnInit() {
-  }
-
+export class NodeComponent {
+  @Input() node: any;
+  constructor(private nodesService: NodesService) { }
 }

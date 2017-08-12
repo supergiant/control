@@ -1,0 +1,5 @@
+<td><input type="checkbox" id="checkbox" (ngModelChange)="podsService.selectItem(pod, $event)" checked="false" [ngModel]="!pod.name"/></td>
+<td>{{ pod.name }}</td>
+<td>{{ pod.kube_name }}</td>
+<td>{{ pod.namespace }}</td>
+<td>{{ pod.passive_status }}</td>

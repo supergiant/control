@@ -1,5 +1,5 @@
 import { Component, OnDestroy, OnInit } from '@angular/core';
-import { PodsService } from './pods.service';
+import { VolumesService } from './volumes.service';
 import { Subscription } from 'rxjs/Subscription';
 import { Supergiant } from '../shared/supergiant/supergiant.service'
 import { Notifications } from '../shared/notifications/notifications.service'
@@ -7,16 +7,16 @@ import { Observable } from 'rxjs/Rx';
 
 
 @Component({
-  selector: 'app-pods',
-  templateUrl: './pods.component.html',
-  styleUrls: ['./pods.component.css']
+  selector: 'app-volumes',
+  templateUrl: './volumes.component.html',
+  styleUrls: ['./volumes.component.css']
 })
-export class PodsComponent implements OnInit {
-  private pods = [];
+export class VolumesComponent implements OnInit {
+  private volumes = [];
   private subscription: Subscription;
 
   constructor(
-    private podsService: PodsService,
+    private volumesService: VolumesService,
     private supergiant: Supergiant,
     private notifications: Notifications,
   ) { }
@@ -29,26 +29,26 @@ export class PodsComponent implements OnInit {
   getAccounts() {
     this.subscription = Observable.timer(0, 5000)
     .switchMap(() => this.supergiant.KubeResources.get()).subscribe(
-      (podsObj) => {
+      (volumesObj) => {
         // Because of the check boxes we must reconsile the array.
         // If does not exist locally push it locally.
-        for(let pod of podsObj.json().items) {
+        for(let volume of volumesObj.json().items) {
           var present = false
-          for(let uiPod of this.pods) {
-            if ( pod.id === uiPod.id ) {present = true}
+          for(let uiVolume of this.volumes) {
+            if ( volume.id === uiVolume.id ) {present = true}
           }
-          if (!present) { if (pod.kind === "Pod") {this.pods.push(pod)}}
+          if (!present) { if (volume.kind === "Volume") {this.volumes.push(volume)}}
          }
 
          // If does not exist on the API remove it locally.
-         for(let uiPod of this.pods) {
+         for(let uiVolume of this.volumes) {
            var present = false
-           for(let pod of podsObj.json().items) {
-             if ( pod.id === uiPod.id ) {present = true}
+           for(let volume of volumesObj.json().items) {
+             if ( volume.id === uiVolume.id ) {present = true}
            }
            if (!present) {
-             var index = this.pods.indexOf(uiPod)
-             this.pods.splice(index, 1)}
+             var index = this.volumes.indexOf(uiVolume)
+             this.volumes.splice(index, 1)}
           }
       },
       (err) => { this.notifications.display("warn", "Connection Issue.", err)});

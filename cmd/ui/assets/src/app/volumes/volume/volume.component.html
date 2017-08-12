@@ -1,0 +1,5 @@
+<td><input type="checkbox" id="checkbox" (ngModelChange)="volumesService.selectItem(volume, $event)" checked="false" [ngModel]="!volume.name"/></td>
+<td>{{ volume.name }}</td>
+<td>{{ volume.kube_name }}</td>
+<td>{{ volume.size }}</td>
+<td>{{ volume.passive_status }}</td>

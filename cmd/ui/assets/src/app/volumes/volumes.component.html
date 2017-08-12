@@ -1,4 +1,4 @@
-<app-pods-header></app-pods-header>
+<app-volumes-header></app-volumes-header>
 <!-- <app-header></app-header> -->
 <table class="table table-hover">
   <thead>
@@ -6,9 +6,9 @@
       <th></th>
       <th>Name</th>
       <th>Kube Name</th>
-      <th>Namespace</th>
+      <th>Capacity</th>
       <th>Status</th>
     </tr>
 </thead>
-   <tr app-pod *ngFor="let pod of pods" [pod]="pod"></tr>
+   <tr app-volume *ngFor="let volume of volumes" [volume]="volume"></tr>
 </table>
