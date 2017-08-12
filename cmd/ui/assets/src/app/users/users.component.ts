@@ -29,28 +29,7 @@ export class UsersComponent implements OnInit {
   getAccounts() {
     this.subscription = Observable.timer(0, 5000)
     .switchMap(() => this.supergiant.Users.get()).subscribe(
-      (usersObj) => {
-        // Because of the check boxes we must reconsile the array.
-        // If does not exist locally push it locally.
-        for(let user of usersObj.json().items) {
-          var present = false
-          for(let uiUser of this.users) {
-            if ( user.id === uiUser.id ) {present = true}
-          }
-          if (!present) {this.users.push(user)}
-         }
-
-         // If does not exist on the API remove it locally.
-         for(let uiKube of this.users) {
-           var present = false
-           for(let kube of usersObj.json().items) {
-             if ( kube.id === uiKube.id ) {present = true}
-           }
-           if (!present) {
-             var index = this.users.indexOf(uiKube)
-             this.users.splice(index, 1)}
-          }
-      },
+      (users) => { this.users = users.items},
       (err) => { this.notifications.display("warn", "Connection Issue.", err)});
   }
 

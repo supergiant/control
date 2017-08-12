@@ -1,4 +1,4 @@
-<td><input type="checkbox" id="checkbox" (ngModelChange)="kubesService.selectItem(kube, $event)" checked="false" [ngModel]="!kube.name"/></td>
+<td><input type="checkbox" id="checkbox" (ngModelChange)="kubesService.selectItem(kube, $event)" checked="false" [ngModel]="kubesService.isChecked(kube)"/></td>
 <td>{{ kube.name }}</td>
 <td>{{ kube.master_node_size }}</td>
 <td>{{ kube.ready }}</td>

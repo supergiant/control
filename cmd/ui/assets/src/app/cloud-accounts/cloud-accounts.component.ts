@@ -29,28 +29,7 @@ export class CloudAccountsComponent implements OnInit {
   getAccounts() {
     this.subscription = Observable.timer(0, 5000)
     .switchMap(() => this.supergiant.CloudAccounts.get()).subscribe(
-      (cloudAccount) => {
-        // Because of the check boxes we must reconsile the array.
-        // If does not exist locally push it locally.
-        for(let account of cloudAccount.json().items) {
-          var present = false
-          for(let uiAccount of this.cloudAccounts) {
-            if ( account.id === uiAccount.id ) {present = true}
-          }
-          if (!present) {this.cloudAccounts.push(account)}
-         }
-
-         // If does not exist on the API remove it locally.
-         for(let uiAccount of this.cloudAccounts) {
-           var present = false
-           for(let account of cloudAccount.json().items) {
-             if ( account.id === uiAccount.id ) {present = true}
-           }
-           if (!present) {
-             var index = this.cloudAccounts.indexOf(uiAccount)
-             this.cloudAccounts.splice(index, 1)}
-          }
-      },
+      (cloudAccounts) => { this.cloudAccounts = cloudAccounts.items},
       (err) => { this.notifications.display("warn", "Connection Issue.", err)});
   }
 

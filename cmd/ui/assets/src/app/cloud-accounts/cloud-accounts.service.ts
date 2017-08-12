@@ -16,15 +16,24 @@ export class CloudAccountsService {
       return this.selectedItems
     }
 
+    isChecked(item) {
+      for (let obj of this.selectedItems) {
+        if (item.id === obj.id) {return true}
+      }
+      return false
+    }
+
     // Record/Delete a cloud account selection from the "selected items" array.
-    selectItem(val,event){
+    selectItem(item,event){
      if (event) {
-       this.selectedItems.push(val);
+       this.selectedItems.push(item);
      } else {
-       var index = this.selectedItems.indexOf(val);
-         if (index > -1) {
-          this.selectedItems.splice(index, 1);
+       for (let obj of this.selectedItems) {
+         if (item.id === obj.id) {
+           this.selectedItems.splice(
+             this.selectedItems.indexOf(obj), 1);
          }
+       }
      }
    }
 }
