@@ -29,28 +29,7 @@ export class VolumesComponent implements OnInit {
   getAccounts() {
     this.subscription = Observable.timer(0, 5000)
     .switchMap(() => this.supergiant.KubeResources.get()).subscribe(
-      (volumesObj) => {
-        // Because of the check boxes we must reconsile the array.
-        // If does not exist locally push it locally.
-        for(let volume of volumesObj.json().items) {
-          var present = false
-          for(let uiVolume of this.volumes) {
-            if ( volume.id === uiVolume.id ) {present = true}
-          }
-          if (!present) { if (volume.kind === "Volume") {this.volumes.push(volume)}}
-         }
-
-         // If does not exist on the API remove it locally.
-         for(let uiVolume of this.volumes) {
-           var present = false
-           for(let volume of volumesObj.json().items) {
-             if ( volume.id === uiVolume.id ) {present = true}
-           }
-           if (!present) {
-             var index = this.volumes.indexOf(uiVolume)
-             this.volumes.splice(index, 1)}
-          }
-      },
+      (volumes) => { this.volumes = volumes.items.filter(resource => resource.kind === "Volume")},
       (err) => { this.notifications.display("warn", "Connection Issue.", err)});
   }
 

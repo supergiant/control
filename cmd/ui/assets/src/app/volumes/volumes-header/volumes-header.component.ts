@@ -28,11 +28,7 @@ export class VolumesHeaderComponent {
     ) {}
 
   // After init, grab the schema
-  ngAfterViewInit() {
-    // this.supergiant.KubeResources.schema().subscribe(
-    //   (data) => { this.providersObj = data.json()},
-    //   (err) => {this.notifications.display("warn", "Connection Issue.", err)});
-  }
+  ngAfterViewInit() {}
 
   openSystemModal(message){
       this.systemModalService.openSystemModal(message);

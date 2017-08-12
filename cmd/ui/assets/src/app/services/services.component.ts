@@ -29,28 +29,7 @@ export class ServicesComponent implements OnInit {
   getAccounts() {
     this.subscription = Observable.timer(0, 5000)
     .switchMap(() => this.supergiant.KubeResources.get()).subscribe(
-      (servicesObj) => {
-        // Because of the check boxes we must reconsile the array.
-        // If does not exist locally push it locally.
-        for(let service of servicesObj.json().items) {
-          var present = false
-          for(let uiService of this.services) {
-            if ( service.id === uiService.id ) {present = true}
-          }
-          if (!present) { if (service.kind === "Service") {this.services.push(service)}}
-         }
-
-         // If does not exist on the API remove it locally.
-         for(let uiService of this.services) {
-           var present = false
-           for(let service of servicesObj.json().items) {
-             if ( service.id === uiService.id ) {present = true}
-           }
-           if (!present) {
-             var index = this.services.indexOf(uiService)
-             this.services.splice(index, 1)}
-          }
-      },
+      (services) => { this.services = services.items.filter(resource => resource.kind === "Service")},
       (err) => { this.notifications.display("warn", "Connection Issue.", err)});
   }
 

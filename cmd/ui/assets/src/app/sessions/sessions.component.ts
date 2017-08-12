@@ -29,7 +29,7 @@ export class SessionsComponent implements OnInit {
   getAccounts() {
     this.subscription = Observable.timer(0, 10000)
     .switchMap(() => this.supergiant.Sessions.get()).subscribe(
-      session=>{ this.sessions = session.json().items; },
+      (sessions) =>{ this.sessions = sessions.items; },
       (err) =>{ this.notifications.display("warn", "Connection Issue.", err)})
   }
   ngOnDestroy(){

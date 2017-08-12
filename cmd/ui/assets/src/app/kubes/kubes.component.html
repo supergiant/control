@@ -1,13 +1,15 @@
 <app-kubes-header></app-kubes-header>
 <!-- <app-header></app-header> -->
-<table class="table table-hover">
-  <thead>
-    <tr>
-      <th></th>
-      <th>Name</th>
-      <th>Master Size</th>
-      <th>Status</th>
-    </tr>
-</thead>
-   <tr app-kube *ngFor="let kube of kubes" [kube]="kube"></tr>
-</table>
+<div id="item_list_container">
+  <table id="item_list" class="table table-hover">
+    <thead>
+      <tr>
+        <th></th>
+        <th>Name</th>
+        <th>Master Size</th>
+        <th>Status</th>
+      </tr>
+  </thead>
+     <tr class="item" app-kube *ngFor="let kube of kubes" [kube]="kube"></tr>
+  </table>
+</div>
