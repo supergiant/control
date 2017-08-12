@@ -29,28 +29,7 @@ export class KubesComponent implements OnInit {
   getAccounts() {
     this.subscription = Observable.timer(0, 5000)
     .switchMap(() => this.supergiant.Kubes.get()).subscribe(
-      (kubesObj) => {
-        // Because of the check boxes we must reconsile the array.
-        // If does not exist locally push it locally.
-        for(let kube of kubesObj.json().items) {
-          var present = false
-          for(let uiKube of this.kubes) {
-            if ( kube.id === uiKube.id ) {present = true}
-          }
-          if (!present) {this.kubes.push(kube)}
-         }
-
-         // If does not exist on the API remove it locally.
-         for(let uiKube of this.kubes) {
-           var present = false
-           for(let kube of kubesObj.json().items) {
-             if ( kube.id === uiKube.id ) {present = true}
-           }
-           if (!present) {
-             var index = this.kubes.indexOf(uiKube)
-             this.kubes.splice(index, 1)}
-          }
-      },
+      (kubes) => { this.kubes = kubes.items},
       (err) => { this.notifications.display("warn", "Connection Issue.", err)});
   }
 
