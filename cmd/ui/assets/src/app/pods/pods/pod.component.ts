@@ -9,4 +9,8 @@ import { PodsService } from '../pods.service';
 export class PodComponent {
   @Input() pod: any;
   constructor(private podsService: PodsService) { }
+  status(kube) {
+    // Status logic needs to be added here.
+      return "status status-ok"
+   }
 }

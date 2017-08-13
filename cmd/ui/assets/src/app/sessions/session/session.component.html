@@ -1,4 +1,11 @@
-<td><input type="checkbox" id="checkbox" (ngModelChange)="sessionsService.selectItem(session, $event)" [ngModel]="sessionsService.isChecked(session)" /></td>
+<td>
+  <div class="container">
+    <div class="round">
+      <input type="checkbox" [id]="sessionsService.id" (ngModelChange)="sessionsService.selectItem(session, $event)" [ngModel]="sessionsService.isChecked(session)" />
+      <label [for]="sessionsService.id"></label>
+    </div>
+  </div>
+</td>
 <td>{{ session.user_id }}</td>
 <td>{{ session.user.username }}</td>
 <td>{{ session.user.role }}</td>

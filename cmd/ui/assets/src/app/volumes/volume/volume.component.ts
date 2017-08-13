@@ -9,4 +9,9 @@ import { VolumesService } from '../volumes.service';
 export class VolumeComponent {
   @Input() volume: any;
   constructor(private volumesService: VolumesService) { }
+
+  status(kube) {
+    // Status logic needs to be added here.
+      return "status status-ok"
+   }
 }

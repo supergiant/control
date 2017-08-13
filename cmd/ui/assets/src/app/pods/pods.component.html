@@ -1,6 +1,7 @@
 <app-pods-header></app-pods-header>
 <!-- <app-header></app-header> -->
-<table class="table table-hover">
+<div id="item_list_container">
+<table id="item_list" class="table table-hover">
   <thead>
     <tr>
       <th></th>
@@ -12,3 +13,4 @@
 </thead>
    <tr app-pod *ngFor="let pod of pods" [pod]="pod"></tr>
 </table>
+</div>
