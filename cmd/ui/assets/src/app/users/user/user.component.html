@@ -1,3 +1,10 @@
-<td><input type="checkbox" id="checkbox" (ngModelChange)="usersService.selectItem(user, $event)" checked="false" [ngModel]="usersService.isChecked(user)"/></td>
+<td>
+  <div class="container">
+    <div class="round">
+      <input type="checkbox" [id]="user.id" (ngModelChange)="usersService.selectItem(user, $event)" checked="false" [ngModel]="usersService.isChecked(user)"/>
+      <label [for]="user.id"></label>
+    </div>
+  </div>
+</td>
 <td>{{ user.username }}</td>
 <td>{{ user.role }}</td>

@@ -1,5 +1,12 @@
-<td><input type="checkbox" id="checkbox" (ngModelChange)="volumesService.selectItem(volume, $event)" checked="false" [ngModel]="volumesService.isChecked(volume)"/></td>
+<td>
+  <div class="container">
+    <div class="round">
+      <input type="checkbox" id="checkbox" (ngModelChange)="volumesService.selectItem(volume, $event)" checked="false" [ngModel]="volumesService.isChecked(volume)"/>
+      <label [for]="pod.id"></label>
+    </div>
+  </div>
+</td>
 <td>{{ volume.name }}</td>
 <td>{{ volume.kube_name }}</td>
 <td>{{ volume.size }}</td>
-<td>{{ volume.passive_status }}</td>
+<td><div [class]="status(kube)"></div></td>

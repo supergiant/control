@@ -1,5 +1,12 @@
-<td><input type="checkbox" id="checkbox" (ngModelChange)="servicesService.selectItem(service, $event)" checked="false" [ngModel]="servicesService.isChecked(service)"/></td>
+<td>
+  <div class="container">
+    <div class="round">
+      <input type="checkbox" [id]="service.id" (ngModelChange)="servicesService.selectItem(service, $event)" checked="false" [ngModel]="servicesService.isChecked(service)"/>
+      <label [for]="service.id"></label>
+    </div>
+  </div>
+</td>
 <td>{{ service.name }}</td>
 <td>{{ service.kube_name }}</td>
 <td>{{ service.namespace }}</td>
-<td>{{ service.passive_status }}</td>
+<td><div [class]="status(kube)"></div></td>
