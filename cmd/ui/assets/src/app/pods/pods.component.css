@@ -13,14 +13,13 @@ table#item_list {
   font-size: 13px;
 }
 
-table#item_list td, table#item_list th {
+table#item_list td, table#item_list th, table#item_list tr {
   background: white;
   border-top: 1px solid #ddd;
   border-bottom: 1px solid #ddd;
-
   overflow: hidden;
   text-overflow: ellipsis;
-  white-space: nowrap;
+  /*white-space: nowrap;*/
 }
 
 table#item_list th {

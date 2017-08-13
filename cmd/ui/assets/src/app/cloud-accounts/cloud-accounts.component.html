@@ -9,6 +9,9 @@
       <th>Provider</th>
     </tr>
 </thead>
-   <tr app-cloud-account *ngFor="let cloudAccount of cloudAccounts" [cloudAccount]="cloudAccount"></tr>
+  <tbody>
+   <tr app-cloud-account *ngFor="let cloudAccount of cloudAccounts" [cloudAccount]="cloudAccount">
+   </tr>
+ </tbody>
 </table>
 </div>
