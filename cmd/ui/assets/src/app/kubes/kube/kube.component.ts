@@ -9,4 +9,11 @@ import { KubesService } from '../kubes.service';
 export class KubeComponent {
   @Input() kube: any;
   constructor(private kubesService: KubesService) { }
+  status(kube) {
+    if (kube.ready) {
+      return "status status-ok"
+    } else {
+      return "status status-transitioning"
+    }
+  }
 }

@@ -6,10 +6,10 @@
       <tr>
         <th></th>
         <th>Name</th>
-        <th>Master Size</th>
-        <th>Status</th>
+        <th>MASTER SIZE</th>
+        <th>STATUS</th>
       </tr>
   </thead>
-     <tr class="item" app-kube *ngFor="let kube of kubes" [kube]="kube"></tr>
+     <tr app-kube *ngFor="let kube of kubes" [kube]="kube"></tr>
   </table>
 </div>

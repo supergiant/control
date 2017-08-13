@@ -1,3 +1,10 @@
-<td><input type="checkbox" id="checkbox" (ngModelChange)="cloudAccountsService.selectItem(cloudAccount, $event)" checked="false" [ngModel]="cloudAccountsService.isChecked(cloudAccount)"/></td>
+<td>
+  <div class="container">
+    <div class="round">
+      <input type="checkbox" [id]="cloudAccount.id" (ngModelChange)="cloudAccountsService.selectItem(cloudAccount, $event)" checked="false" [ngModel]="cloudAccountsService.isChecked(cloudAccount)"/>
+      <label [for]="cloudAccount.id"></label>
+    </div>
+  </div>
+</td>
 <td>{{ cloudAccount.name }}</td>
 <td>{{ cloudAccount.provider }}</td>
