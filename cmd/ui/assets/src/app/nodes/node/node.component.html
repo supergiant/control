@@ -11,4 +11,4 @@
 <td>{{ node.provider_id }}</td>
 <td>{{ node.cpu_usage }}</td>
 <td>{{ node.ram_usage }}</td>
-<td>{{ node.name }}</td>
+<td><div [class]="status(node)"></div></td>
