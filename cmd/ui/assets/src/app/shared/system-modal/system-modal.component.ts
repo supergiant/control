@@ -41,7 +41,13 @@ export class SystemModalComponent {
   open(content) {
     this.logstream = Observable.timer(0, 1000)
     .switchMap(() => this.supergiant.Logs.get()).subscribe(
-      (data) => { this.logData = data.text()},
+      (data) => {
+        this.logData = data.text()
+        this.logData = this.logData.replace(/[\x00-\x7F]\[\d+mINFO[\x00-\x7F]\[0m/g, "<span class='text-info'>INFO</span> ")
+        this.logData = this.logData.replace(/[\x00-\x7F]\[\d+mWARN[\x00-\x7F]\[0m/g, "<span class='text-warning'>WARN</span> ")
+        this.logData = this.logData.replace(/[\x00-\x7F]\[\d+mERRO[\x00-\x7F]\[0m/g, "<span class='text-danger'>ERRO</span> ")
+        this.logData = this.logData.replace(/[\x00-\x7F]\[\d+mDEBU[\x00-\x7F]\[0m/g, "<span class='text-muted'>DEBU</span> ")
+      },
       );
 
     let options: NgbModalOptions = {
