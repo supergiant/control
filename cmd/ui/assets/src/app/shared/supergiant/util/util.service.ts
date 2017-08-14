@@ -5,7 +5,7 @@ import {Observable} from "RxJS/Rx";
 @Injectable()
 export class UtilService {
   serverEndpoint = "http://localhost:8080"
-  apiToken = 'SGAPI token="3roIJ9WKhS0NLk1LBKalNgETfFxyrQSX"'
+  apiToken = 'SGAPI token="iPIrhzlIHfRtHkRXW8NoAou0pUGFUfmo"'
 
   constructor(private http: Http){}
 
@@ -13,6 +13,12 @@ export class UtilService {
     let headers = new Headers();
     headers.append('Authorization', this.apiToken);
     return this.http.get(this.serverEndpoint + path, { headers: headers }).map(response => response.json())
+  }
+
+  fetchNoMap(path) {
+    let headers = new Headers();
+    headers.append('Authorization', this.apiToken);
+    return this.http.get(this.serverEndpoint + path, { headers: headers }).map(response => response)
   }
 
   post(path, data) {

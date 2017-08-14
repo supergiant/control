@@ -7,6 +7,6 @@ export class Logs{
 
   constructor(private util: UtilService) {}
   public get(){
-    return this.util.fetch(this.logsPath)
+    return this.util.fetchNoMap(this.logsPath)
   }
 }

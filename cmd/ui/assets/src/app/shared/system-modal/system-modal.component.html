@@ -1,11 +1,10 @@
-<ng-template #systemModal let-c="close" let-d="dismiss">
+<ng-template style="width: 80%;" #systemModal let-c="close" let-d="dismiss">
         <div class="modal-header">
           <h4 class="modal-title" id="system">Supergiant: poop123.567</h4>
         </div>
         <div class="modal-body">
 
-          <div id="log">
-            {{ logData }}
+          <div id="log" [innerHTML]="logData">
           </div>
 
         </div>
