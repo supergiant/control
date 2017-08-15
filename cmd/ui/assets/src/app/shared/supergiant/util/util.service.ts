@@ -5,39 +5,42 @@ import {Observable} from "RxJS/Rx";
 @Injectable()
 export class UtilService {
   serverEndpoint = "http://localhost:8080"
-  apiToken = 'SGAPI token="iPIrhzlIHfRtHkRXW8NoAou0pUGFUfmo"'
+  sessionToken: string;
+  SessionID: string;
 
-  constructor(private http: Http){}
+  constructor(
+    private http: Http,
+  ){}
 
   fetch(path) {
     let headers = new Headers();
-    headers.append('Authorization', this.apiToken);
+    headers.append('Authorization', this.sessionToken);
     return this.http.get(this.serverEndpoint + path, { headers: headers }).map(response => response.json())
   }
 
   fetchNoMap(path) {
     let headers = new Headers();
-    headers.append('Authorization', this.apiToken);
+    headers.append('Authorization', this.sessionToken);
     return this.http.get(this.serverEndpoint + path, { headers: headers }).map(response => response)
   }
 
   post(path, data) {
     var json = JSON.stringify(data)
     let headers = new Headers();
-    headers.append('Authorization', this.apiToken);
+    headers.append('Authorization', this.sessionToken);
     return this.http.post(this.serverEndpoint + path, json, { headers: headers }).map(response => response.json())
   }
 
   update(path, data) {
     var json = JSON.stringify(data)
     let headers = new Headers();
-    headers.append('Authorization', this.apiToken);
+    headers.append('Authorization', this.sessionToken);
     return this.http.put(this.serverEndpoint + path, json, { headers: headers }).map(response => response.json())
   }
 
   destroy(path) {
     let headers = new Headers();
-    headers.append('Authorization', this.apiToken);
+    headers.append('Authorization', this.sessionToken);
     return this.http.delete(this.serverEndpoint + path, { headers: headers }).map(response => response.json())
   }
 }
