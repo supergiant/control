@@ -54,6 +54,7 @@ export class LoginComponent implements OnInit {
             this.supergiant.loginSuccess = true
             if (this.refresh) {
               this.router.navigate(['/kubes']);
+              this.refresh = false
             }
           }else{
             this.supergiant.loginSuccess = false
