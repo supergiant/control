@@ -4,6 +4,7 @@ import { Supergiant } from '../../shared/supergiant/supergiant.service'
 import {SessionsComponent} from '../sessions.component'
 import { Subscription } from 'rxjs/Subscription';
 import { Notifications } from '../../shared/notifications/notifications.service'
+import { LoginComponent } from '../../login/login.component';
 
 @Component({
   selector: 'app-sessions-header',
@@ -19,6 +20,7 @@ export class SessionsHeaderComponent {
     private sessionsComponant: SessionsComponent,
     private supergiant: Supergiant,
     private notifications: Notifications,
+    private loginComponent: LoginComponent,
     ) {}
 
   // If the delete button is hit, the seleted sessions are deleted.

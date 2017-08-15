@@ -1,8 +1,8 @@
 <td>
   <div class="container">
     <div class="round">
-      <input type="checkbox" [id]="sessionsService.id" (ngModelChange)="sessionsService.selectItem(session, $event)" [ngModel]="sessionsService.isChecked(session)" />
-      <label [for]="sessionsService.id"></label>
+      <input type="checkbox" [id]="session.id" (ngModelChange)="sessionsService.selectItem(session, $event)" [ngModel]="sessionsService.isChecked(session)" />
+      <label [for]="session.id"></label>
     </div>
   </div>
 </td>

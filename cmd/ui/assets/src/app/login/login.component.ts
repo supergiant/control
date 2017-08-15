@@ -17,6 +17,7 @@ export class LoginComponent implements OnInit {
   private id: string;
   private sessionCookie: string;
   previousUrl: string;
+  private refresh:boolean;
 
   constructor(
     private supergiant: Supergiant,
@@ -31,11 +32,11 @@ export class LoginComponent implements OnInit {
       this.supergiant.UtilService.sessionToken = 'SGAPI session="'+ this.sessionCookie +'"'
       this.supergiant.sessionID = this.sessionCookie
       this.supergiant.loginSuccess = true
-      this.router.navigate(['/kubes']);
+      this.refresh = true
     }
 
 
-    Observable.timer(0, 5000)
+    Observable.timer(0, 20000)
     .switchMap(() => this.supergiant.Sessions.get().map(
       (res) => {
          switch (res.status) {
@@ -51,6 +52,9 @@ export class LoginComponent implements OnInit {
         if (this.supergiant.sessionID){
           if (data) {
             this.supergiant.loginSuccess = true
+            if (this.refresh) {
+              this.router.navigate(['/kubes']);
+            }
           }else{
             this.supergiant.loginSuccess = false
             this.supergiant.sessionID = ''
@@ -74,6 +78,18 @@ export class LoginComponent implements OnInit {
         this.cookieMonster.setCookie({name:'session',value:this.session.id, secure:true });
         this.supergiant.loginSuccess = true
         this.router.navigate(['/kubes']);
+      }
+    )
+  }
+
+  logOut() {
+    this.supergiant.Sessions.delete(this.supergiant.sessionID).subscribe(
+      (session) => {
+        console.log(session)
+        this.supergiant.sessionID = ''
+        this.cookieMonster.deleteCookie('session')
+        this.supergiant.loginSuccess = false
+        this.router.navigate(['/login']);
       }
     )
   }
