@@ -1,8 +1,8 @@
 <td>
   <div class="container">
     <div class="round">
-      <input type="checkbox" id="checkbox" (ngModelChange)="volumesService.selectItem(volume, $event)" checked="false" [ngModel]="volumesService.isChecked(volume)"/>
-      <label [for]="pod.id"></label>
+      <input type="checkbox" [id]="volume.id" (ngModelChange)="volumesService.selectItem(volume, $event)" checked="false" [ngModel]="volumesService.isChecked(volume)"/>
+      <label [for]="volume.id"></label>
     </div>
   </div>
 </td>

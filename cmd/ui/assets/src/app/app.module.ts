@@ -169,6 +169,7 @@ import { Logs } from './shared/supergiant/logs/logs.service';
     DropdownModalService,
     EditModalService,
     CookieMonster,
+    LoginComponent,
   ],
   bootstrap: [AppComponent]
 })

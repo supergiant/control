@@ -7,7 +7,7 @@ import { Notifications } from '../../shared/notifications/notifications.service'
 import { SystemModalService } from '../../shared/system-modal/system-modal.service'
 import { DropdownModalService } from '../../shared/dropdown-modal/dropdown-modal.service'
 import { EditModalService } from '../../shared/edit-modal/edit-modal.service'
-
+import { LoginComponent } from '../../login/login.component';
 
 @Component({
   selector: 'app-load-balancers-header',
@@ -25,6 +25,7 @@ export class LoadBalancersHeaderComponent {
     private systemModalService: SystemModalService,
     private dropdownModalService: DropdownModalService,
     private editModalService: EditModalService,
+    private loginComponent: LoginComponent,
     ) {}
 
   // After init, grab the schema
