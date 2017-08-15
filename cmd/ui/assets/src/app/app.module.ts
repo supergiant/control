@@ -45,6 +45,9 @@ import { UsersHeaderComponent } from './users/users-header/users-header.componen
 import { SystemModalComponent } from './shared/system-modal/system-modal.component';
 import { DropdownModalComponent } from './shared/dropdown-modal/dropdown-modal.component';
 import { EditModalComponent } from './shared/edit-modal/edit-modal.component';
+import { LoginComponent } from './login/login.component';
+import { CookiesComponent } from './shared/cookies/cookies.component';
+
 // Component Services
 import { SessionsService } from './sessions/sessions.service';
 import { CloudAccountsService } from './cloud-accounts/cloud-accounts.service';
@@ -59,6 +62,7 @@ import { Notifications } from './shared/notifications/notifications.service';
 import { SystemModalService } from './shared/system-modal/system-modal.service';
 import { DropdownModalService } from './shared/dropdown-modal/dropdown-modal.service';
 import { EditModalService } from './shared/edit-modal/edit-modal.service';
+import { CookieMonster } from './shared/cookies/cookies.service';
 
 // Supergiant API Services
 import { Supergiant } from './shared/supergiant/supergiant.service';
@@ -74,6 +78,7 @@ import { HelmRepos } from './shared/supergiant/helm-repos/helm-repos.service';
 import { HelmCharts } from './shared/supergiant/helm-charts/helm-charts.service';
 import { HelmReleases } from './shared/supergiant/helm-releases/helm-releases.service';
 import { Logs } from './shared/supergiant/logs/logs.service';
+
 
 
 
@@ -113,7 +118,9 @@ import { Logs } from './shared/supergiant/logs/logs.service';
     NotificationsComponent,
     SystemModalComponent,
     DropdownModalComponent,
-    EditModalComponent
+    EditModalComponent,
+    LoginComponent,
+    CookiesComponent
     ],
   imports: [
     BrowserModule,
@@ -161,6 +168,7 @@ import { Logs } from './shared/supergiant/logs/logs.service';
     SystemModalService,
     DropdownModalService,
     EditModalService,
+    CookieMonster,
   ],
   bootstrap: [AppComponent]
 })

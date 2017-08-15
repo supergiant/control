@@ -1,4 +1,4 @@
-import { Component, OnDestroy,ViewChild, ElementRef } from '@angular/core';
+import { Component, OnDestroy,ViewChild, ElementRef, ViewEncapsulation} from '@angular/core';
 import { NgbModal, NgbModalOptions } from '@ng-bootstrap/ng-bootstrap';
 import { Subscription } from 'rxjs/Subscription';
 import { Supergiant } from '../../shared/supergiant/supergiant.service'
@@ -10,12 +10,15 @@ import {Http} from '@angular/http';
 @Component({
   selector: 'app-system-modal',
   templateUrl: './system-modal.component.html',
-  styleUrls: ['./system-modal.component.css']
+  styleUrls: ['./system-modal.component.css'],
+  encapsulation: ViewEncapsulation.None
 })
 export class SystemModalComponent {
   private subscription: Subscription;
   private logstream: Subscription;
   private logData: any;
+  private notificationItem: any;
+  private notificationItems = [];
   @ViewChild('systemModal') content: ElementRef;
 
 
@@ -31,6 +34,8 @@ export class SystemModalComponent {
   ngAfterViewInit() {
     this.subscription = this.systemModalService.newModal.subscribe(
       message => {if (message) {this.open(this.content)};});
+
+      this.notificationItems = this.systemModalService.notifications
   }
 
   ngOnDestroy(){
@@ -55,4 +60,5 @@ export class SystemModalComponent {
     };
     this.modalService.open(content, options);
   }
+
 }

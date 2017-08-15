@@ -15,6 +15,8 @@ import { UtilService } from './util/util.service'
 
 @Injectable()
 export class Supergiant {
+  loginSuccess: boolean;
+  sessionID: string;
 constructor(
   public CloudAccounts: CloudAccounts,
   public Sessions: Sessions,
@@ -27,5 +29,6 @@ constructor(
   public HelmCharts: HelmCharts,
   public HelmReleases: HelmReleases,
   public Logs: Logs,
+  public UtilService: UtilService,
 ) {}
 }

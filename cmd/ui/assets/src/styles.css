@@ -442,24 +442,6 @@ ul#mini-nav li a:hover {
   color: #444;
 }
 
-
-
-
-
-div#log {
-  border-radius: 4px;
-  background: #222;
-  color: #777;
-  white-space: pre-wrap;
-  height: 400px;
-  padding: 0 0 0 15px;
-  overflow-y: scroll;
-  font-family: Consolas, Menlo, Courier, monospace;
-}
-
-
-
-
 /* Bootstrap legacy */
 .sr-only {
   display: none;

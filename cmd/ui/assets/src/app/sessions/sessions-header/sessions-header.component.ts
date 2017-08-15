@@ -28,7 +28,7 @@ export class SessionsHeaderComponent {
       this.notifications.display("warn", "Warning:", "No Session Selected.")
     } else {
     for(let session of selectedItems){
-      this.supergiant.CloudAccounts.delete(session.id).subscribe(
+      this.supergiant.Sessions.delete(session.id).subscribe(
         (data) => {
           if (data.status >= 200 && data.status <= 299) {
             this.notifications.display("success", "Session: " + session.id, "Deleted...")
