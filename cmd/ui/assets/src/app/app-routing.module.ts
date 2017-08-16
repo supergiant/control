@@ -8,6 +8,7 @@ import { NodesComponent } from './nodes/nodes.component';
 import { ServicesComponent } from './services/services.component';
 import { SessionsComponent } from './sessions/sessions.component';
 import { PodsComponent } from './pods/pods.component';
+import { AppsComponent } from './apps/apps.component';
 import { LoginComponent } from './login/login.component';
 import { VolumesComponent } from './volumes/volumes.component';
 import { LoadBalancersComponent } from './load-balancers/load-balancers.component';
@@ -39,6 +40,7 @@ const appRoutes: Routes = [
   { path: 'cloud-accounts', component: CloudAccountsComponent, canActivate: [AuthGuard] },
   { path: 'nodes', component: NodesComponent, canActivate: [AuthGuard] },
   { path: 'pods', component: PodsComponent, canActivate: [AuthGuard] },
+  { path: 'apps', component: AppsComponent, canActivate: [AuthGuard] },
   { path: 'volumes', component: VolumesComponent, canActivate: [AuthGuard] },
   { path: 'services', component: ServicesComponent, canActivate: [AuthGuard] },
   { path: 'sessions', component: SessionsComponent, canActivate: [AuthGuard] },
