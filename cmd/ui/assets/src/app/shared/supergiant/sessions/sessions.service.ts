@@ -7,6 +7,10 @@ export class Sessions{
 
   constructor(private util: UtilService) {}
 
+  public valid(id){
+      return this.util.fetchNoMap(this.sessionsPath +"/" + id)
+  }
+
   public get(id?){
     if (id) {
       return this.util.fetch(this.sessionsPath +"/" + id)
