@@ -1,0 +1,12 @@
+<td>
+  <div class="container">
+    <div class="round">
+      <input type="checkbox" [id]="app.id" (ngModelChange)="appsService.selectItem(app, $event)" checked="false" [ngModel]="appsService.isChecked(app)"/>
+      <label [for]="app.id"></label>
+    </div>
+  </div>
+</td>
+<td>{{ app.name }}</td>
+<td>{{ app.repo_name }}</td>
+<td>{{ app.version }}</td>
+<td>{{ app.description }}</td>

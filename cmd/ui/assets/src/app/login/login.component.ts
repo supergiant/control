@@ -25,45 +25,16 @@ export class LoginComponent implements OnInit {
     private cookieMonster: CookieMonster,
   ) { }
 
-  ngOnInit() {
+  ngOnInit() {}
 
+  validateUser() {
     this.sessionCookie = this.cookieMonster.getCookie('session')
     if (this.sessionCookie) {
       this.supergiant.UtilService.sessionToken = 'SGAPI session="'+ this.sessionCookie +'"'
       this.supergiant.sessionID = this.sessionCookie
-      this.supergiant.loginSuccess = true
-      this.refresh = true
     }
 
-
-    Observable.timer(0, 20000)
-    .switchMap(() => this.supergiant.Sessions.get().map(
-      (res) => {
-         switch (res.status) {
-           case 401:
-             return false;
-           case 200:
-             return true;
-           default:
-             return true;
-         }
-    }).catch(this.handleError)).subscribe(
-      (data) => {
-        if (this.supergiant.sessionID){
-          if (data) {
-            this.supergiant.loginSuccess = true
-            if (this.refresh) {
-              this.router.navigate(['/kubes']);
-              this.refresh = false
-            }
-          }else{
-            this.supergiant.loginSuccess = false
-            this.supergiant.sessionID = ''
-            this.router.navigate(['/login']);
-          }
-        }
-      },
-    )
+    return this.supergiant.Sessions.valid(this.supergiant.sessionID)
   }
 
   handleError() {
