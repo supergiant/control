@@ -49,6 +49,8 @@ import { LoginComponent } from './login/login.component';
 import { CookiesComponent } from './shared/cookies/cookies.component';
 import { AppsComponent } from './apps/apps.component';
 import { AppsHeaderComponent } from './apps/apps-header/apps-header.component';
+import { HelmAppComponent } from './apps/app/helm-app.component';
+import { DeploymentComponent } from './apps/deployment/deployment.component';
 // Component Services
 import { SessionsService } from './sessions/sessions.service';
 import { CloudAccountsService } from './cloud-accounts/cloud-accounts.service';
@@ -126,6 +128,8 @@ import { Logs } from './shared/supergiant/logs/logs.service';
     CookiesComponent,
     AppsComponent,
     AppsHeaderComponent,
+    HelmAppComponent,
+    DeploymentComponent,
     ],
   imports: [
     BrowserModule,

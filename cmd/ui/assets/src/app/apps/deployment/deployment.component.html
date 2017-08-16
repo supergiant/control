@@ -1,0 +1,14 @@
+<td>
+  <div class="container">
+    <div class="round">
+      <input type="checkbox" [id]="deployment.id" (ngModelChange)="appsService.selectItem(deployment, $event)" checked="false" [ngModel]="appsService.isChecked(deployment)"/>
+      <label [for]="kube.id"></label>
+    </div>
+  </div>
+</td>
+<td>{{ deployment.name }}</td>
+<td>{{ deployment.kube_name }}</td>
+<td>{{ deployment.chart_name }}</td>
+<td>{{ deployment.revision }}</td>
+<td>{{ deployment.updated }}</td>
+<td><div [class]="status(kube)"></div></td>
