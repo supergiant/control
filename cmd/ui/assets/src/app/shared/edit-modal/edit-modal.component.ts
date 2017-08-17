@@ -64,6 +64,8 @@ export class EditModalComponent implements OnInit {
       size: 'lg'
     };
     this.modalRef = this.modalService.open(content, options);
+    this.modalRef.result.then((result) => {
+    });
   }
 
   ngOnDestroy(){
