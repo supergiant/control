@@ -36,6 +36,7 @@ export class CloudAccountsHeaderComponent {
   // If new button if hit, the New dropdown is triggered.
   sendOpen(message){
      let providers = [];
+     var blah: any;
      // Push available providers to an array. Displayed in the dropdown.
      for(let key in this.providersObj.providers){
        console.log(key)
@@ -44,7 +45,7 @@ export class CloudAccountsHeaderComponent {
      console.log(providers)
 
       // Open Dropdown Modal
-      this.dropdownModalService.open(
+      blah = this.dropdownModalService.open(
         "New Cloud Account", "Cloud Account", providers).subscribe(
           (option) => {
             this.editModalService.open("Save", option, this.providersObj).subscribe(
@@ -99,8 +100,8 @@ export class CloudAccountsHeaderComponent {
                         "Error:" + err)
                       }});}
               });
-          });
-
+          }
+        );
   }
 
   openSystemModal(message){
@@ -109,14 +110,19 @@ export class CloudAccountsHeaderComponent {
   // If the edit button is hit, the Edit modal is opened.
   editCloudAccount() {
     var selectedItems = this.cloudAccountsService.returnSelected()
-
+    var itemindex: string
     if (selectedItems.length === 0) {
       this.notifications.display("warn", "Warning:", "No Provider Selected.")
     } else if (selectedItems.length > 1) {
       this.notifications.display("warn", "Warning:", "You cannot edit more than one provider at a time.")
     } else {
-      this.providersObj.providers[selectedItems[0].provider].model = selectedItems[0]
-      this.editModalService.open("Edit", selectedItems[0].provider, this.providersObj);
+      for (let aprovider in this.providersObj.providers) {
+        if (this.providersObj.providers[aprovider]["model"]["provider"] == selectedItems[0].provider) {
+          this.providersObj.providers[aprovider]["model"] = selectedItems[0]
+          itemindex = aprovider
+        }
+      }
+      this.editModalService.open("Edit", itemindex, this.providersObj);
     }
   }
 
