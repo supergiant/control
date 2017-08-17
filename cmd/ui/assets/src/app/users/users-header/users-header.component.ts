@@ -20,6 +20,7 @@ import { UsersModel } from '../users.model';
 export class UsersHeaderComponent {
   providersObj: any;
   subscription: Subscription
+  editID: number;
   constructor(
     private usersService: UsersService,
     private usersComponent: UsersComponent,
@@ -33,76 +34,52 @@ export class UsersHeaderComponent {
 
   // After init, grab the schema
   ngAfterViewInit() {
-    this.providersObj = UsersModel
-    this.subscription = this.dropdownModalService.dropdownModalResponse.subscribe(
-        (option) => {
-          this.editModalService.open("Save", option, this.providersObj).subscribe(
-            (userInput) => {
-              var action = userInput[0]
-              var providerID = 1
-              var model = userInput[2]
-              if (action === "Edit") {
-              this.supergiant.Kubes.update(providerID, model).subscribe(
-                (data) => {
-                  if (data.status >= 200 && data.status <= 299) {
-                    this.notifications.display(
-                      "success",
-                      "User: " + model.name,
-                      "Created...",
-                    )
-                    this.usersComponent.getAccounts()
-                  }else{
-                    this.notifications.display(
-                      "error",
-                      "User: " + model.name,
-                      "Error:" + data.statusText)
-                    }},
-                (err) => {
-                  if (err) {
-                    this.notifications.display(
-                      "error",
-                      "User: " + model.name,
-                      "Error:" + err)
-                    }});
-            } else {
-              this.supergiant.Users.create(model).subscribe(
-                (data) => {
-                  if (data.status >= 200 && data.status <= 299) {
-                    this.notifications.display(
-                      "success",
-                      "User: " + model.name.name,
-                      "Created...",
-                    )
-                    this.usersComponent.getAccounts()
-                  }else{
-                    this.notifications.display(
-                      "error",
-                      "User: " + model.name.name,
-                      "Error:" + data.statusText)
-                    }},
-                (err) => {
-                  if (err) {
-                    this.notifications.display(
-                      "error",
-                      "Users: " + model.name.name,
-                      "Error:" + err)
-                    }});}
-            });
-        });
+    this.subscription = this.editModalService.editModalResponse.subscribe(
+       (userInput) => {
+         var action = userInput[0]
+         var providerID = 1
+         var model = userInput[2]
+
+        if (action === "Save") {
+          this.supergiant.Users.create(model).subscribe(
+            (data) => {
+                this.success(model)
+                this.usersComponent.getAccounts()},
+            (err) => { this.error(model, err)}
+          );
+        } else if ( action === "Edit"){
+          this.supergiant.Users.update(this.editID, model).subscribe(
+            (data) => {
+                this.success(model)
+                this.usersService.resetSelected()
+                this.usersComponent.getAccounts()},
+            (err) => { this.error(model, err)}
+          );
+        }
+
+       }
+     );
+  }
+
+  success(model){
+    this.notifications.display(
+      "success",
+      "User: " + model.name,
+      "Created...",
+    )
+  }
+
+  error(model, data) {
+    this.notifications.display(
+      "error",
+      "User: " + model.name,
+      "Error:" + data.statusText)
   }
 
   // If new button if hit, the New dropdown is triggered.
-  sendOpen(message){
-     let providers = [];
-     // Push available providers to an array. Displayed in the dropdown.
-     for(let key in this.providersObj.providers){
-       providers.push(key)
-     }
-
-      // Open Dropdown Modal
-
-      this.dropdownModalService.open(
-        "New User", "Providers", providers)
+  newUser(message){
+    let userModel = new UsersModel
+         this.editModalService.open("Save", 'user', userModel)
   }
 
   openSystemModal(message){
@@ -110,37 +87,34 @@ export class UsersHeaderComponent {
   }
   // If the edit button is hit, the Edit modal is opened.
   editUser() {
+    let userModel = new UsersModel
     var selectedItems = this.usersService.returnSelected()
 
     if (selectedItems.length === 0) {
-      this.notifications.display("warn", "Warning:", "No Provider Selected.")
+      this.notifications.display("warn", "Warning:", "No User Selected.")
     } else if (selectedItems.length > 1) {
-      this.notifications.display("warn", "Warning:", "You cannot edit more than one provider at a time.")
+      this.notifications.display("warn", "Warning:", "You cannot edit more than one User at a time.")
     } else {
-      this.providersObj.providers[selectedItems[0].provider].model = selectedItems[0]
-      this.editModalService.open("Edit", selectedItems[0].provider, this.providersObj);
+      this.editID = selectedItems[0].id
+      userModel.user["model"] = selectedItems[0]
+      this.editModalService.open("Edit", 'user',userModel);
     }
   }
 
   // If the delete button is hit, the seleted accounts are deleted.
-  deleteCloudAccount() {
+  deleteUser() {
     var selectedItems = this.usersService.returnSelected()
     if (selectedItems.length === 0) {
-      this.notifications.display("warn", "Warning:", "No Provider Selected.")
-    } else if (selectedItems.length > 1) {
-      this.notifications.display("warn", "Warning:", "You cannot edit more than one provider at a time.")
+      this.notifications.display("warn", "Warning:", "No User Selected.")
     } else {
-    for(let provider of selectedItems){
-      this.supergiant.CloudAccounts.delete(provider.id).subscribe(
+    for(let user of selectedItems){
+      this.supergiant.Users.delete(user.id).subscribe(
         (data) => {
-          if (data.status >= 200 && data.status <= 299) {
-            this.notifications.display("success", "User: " + provider.name, "Deleted...")
-            this.usersComponent.getAccounts()
-           }else{
-            this.notifications.display("error", "User: " + provider.name, "Error:" + data.statusText)}},
+            this.notifications.display("success", "User: " + user.username, "Deleted...")
+            this.usersService.resetSelected()
+            this.usersComponent.getAccounts()},
         (err) => {
-          if (err) {
-            this.notifications.display("error", "User: " + provider.name, "Error:" + err)}},
+            this.notifications.display("error", "User: " + user.username, "Error:" + err)},
       );
     }
   }

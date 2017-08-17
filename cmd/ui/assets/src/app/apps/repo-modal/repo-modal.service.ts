@@ -1,17 +1,19 @@
 import { Injectable } from '@angular/core';
 import { Subject } from 'rxjs/Subject';
-import { Observable } from 'rxjs/Observable';
 
 @Injectable()
-export class UsersService {
+export class RepoModalService {
     newModal = new Subject<any>();
-    newEditModal = new Subject<any>();
-    users: any;
+    repoModalResponse = new Subject<any>();
     selectedItems= new Array();
 
     constructor() {}
 
-    // return all selected
+    openRepoModal(message){
+      this.newModal.next(message);
+    }
+
+    // return all selected cloud accounts
     returnSelected(){
       return this.selectedItems
     }
@@ -21,10 +23,6 @@ export class UsersService {
         if (item.id === obj.id) {return true}
       }
       return false
-    }
-
-    resetSelected(){
-      this.selectedItems = []
     }
 
     // Record/Delete a selection from the "selected items" array.

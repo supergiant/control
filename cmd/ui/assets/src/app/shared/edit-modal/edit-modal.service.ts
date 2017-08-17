@@ -10,6 +10,5 @@ export class EditModalService {
 
     open(type, message, object){
       this.newModal.next([type, message, object]);
-      return this.editModalResponse
     }
 }
