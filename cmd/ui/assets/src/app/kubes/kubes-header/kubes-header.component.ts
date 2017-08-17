@@ -17,7 +17,7 @@ import { KubesModel } from '../kubes.model';
 })
 export class KubesHeaderComponent {
   providersObj = {"providers": []}
-  public subscription: any = {}
+  subscription: Subscription
 
   kubesModel = new KubesModel
   constructor(
@@ -49,6 +49,62 @@ export class KubesHeaderComponent {
            this.providersObj.providers[account["name"]]["cloud_account_name"] = account["name"]
          }}
     )
+
+    this.subscription = this.dropdownModalService.dropdownModalResponse.subscribe(
+        (option) => {
+          this.editModalService.open("Save", option, this.providersObj).subscribe(
+            (userInput) => {
+              var action = userInput[0]
+              var providerID = 1
+              var model = userInput[2]
+              if (action === "Edit") {
+              this.supergiant.Kubes.update(providerID, model).subscribe(
+                (data) => {
+                  if (data.status >= 200 && data.status <= 299) {
+                    this.notifications.display(
+                      "success",
+                      "Kube: " + model.name,
+                      "Created...",
+                    )
+                    this.kubesComponent.getAccounts()
+                  }else{
+                    this.notifications.display(
+                      "error",
+                      "Kube: " + model.name,
+                      "Error:" + data.statusText)
+                    }},
+                (err) => {
+                  if (err) {
+                    this.notifications.display(
+                      "error",
+                      "Kube: " + model.name,
+                      "Error:" + err)
+                    }});
+            } else {
+              this.supergiant.Kubes.create(model).subscribe(
+                (data) => {
+                  if (data.status >= 200 && data.status <= 299) {
+                    this.notifications.display(
+                      "success",
+                      "Kube: " + model.name.name,
+                      "Created...",
+                    )
+                    this.kubesComponent.getAccounts()
+                  }else{
+                    this.notifications.display(
+                      "error",
+                      "Kube: " + model.name.name,
+                      "Error:" + data.statusText)
+                    }},
+                (err) => {
+                  if (err) {
+                    this.notifications.display(
+                      "error",
+                      "Kube: " + model.name.name,
+                      "Error:" + err)
+                    }});}
+            });
+        });
   }
 
   // If new button if hit, the New dropdown is triggered.
@@ -60,67 +116,8 @@ export class KubesHeaderComponent {
      }
 
       // Open Dropdown Modal
-      this.subscription["button"] = this.dropdownModalService.open(
-        "New Kube", "Providers", providers).subscribe(
-          (option) => {
-            this.subscription["edit_button"] = this.editModalService.open("Save", option, this.providersObj).subscribe(
-              (userInput) => {
-                var action = userInput[0]
-                var providerID = 1
-                var model = userInput[2]
-                if (action === "Edit") {
-                this.subscription["update_button"] = this.supergiant.Kubes.update(providerID, model).subscribe(
-                  (data) => {
-                    if (data.status >= 200 && data.status <= 299) {
-                      this.notifications.display(
-                        "success",
-                        "Kube: " + model.name,
-                        "Created...",
-                      )
-                      this.kubesComponent.getAccounts()
-                    }else{
-                      this.notifications.display(
-                        "error",
-                        "Kube: " + model.name,
-                        "Error:" + data.statusText)
-                      }},
-                  (err) => {
-                    if (err) {
-                      this.notifications.display(
-                        "error",
-                        "Kube: " + model.name,
-                        "Error:" + err)
-                      }});
-              } else {
-                this.subscription["create_button"] = this.supergiant.Kubes.create(model).subscribe(
-                  (data) => {
-                    if (data.status >= 200 && data.status <= 299) {
-                      this.notifications.display(
-                        "success",
-                        "Kube: " + model.name.name,
-                        "Created...",
-                      )
-                      this.kubesComponent.getAccounts()
-                    }else{
-                      this.notifications.display(
-                        "error",
-                        "Kube: " + model.name.name,
-                        "Error:" + data.statusText)
-                      }},
-                  (err) => {
-                    if (err) {
-                      this.notifications.display(
-                        "error",
-                        "Kube: " + model.name.name,
-                        "Error:" + err)
-                      }});}
-              });
-          });
-      console.log(this.subscription)
-      for (let sub of this.subscription){
-        sub.unsubscribe()
-        console.log("unsub")
-      }
+      this.dropdownModalService.open(
+        "New Kube", "Providers", providers)
   }
 
   openSystemModal(message){

@@ -17,6 +17,7 @@ import { NodesModel } from '../nodes.model'
 })
 export class NodesHeaderComponent {
   providersObj: any;
+  subscription: Subscription
 
   constructor(
     private nodesService: NodesService,
@@ -32,6 +33,61 @@ export class NodesHeaderComponent {
   // After init, grab the schema
   ngAfterViewInit() {
     this.providersObj = NodesModel
+    this.subscription = this.dropdownModalService.dropdownModalResponse.subscribe(
+        (option) => {
+          this.editModalService.open("Save", option, this.providersObj).subscribe(
+            (userInput) => {
+              var action = userInput[0]
+              var providerID = 1
+              var model = userInput[2]
+              if (action === "Edit") {
+              this.supergiant.Nodes.update(providerID, model).subscribe(
+                (data) => {
+                  if (data.status >= 200 && data.status <= 299) {
+                    this.notifications.display(
+                      "success",
+                      "Node: " + model.name,
+                      "Created...",
+                    )
+                    this.nodesComponent.getAccounts()
+                  }else{
+                    this.notifications.display(
+                      "error",
+                      "Node: " + model.name,
+                      "Error:" + data.statusText)
+                    }},
+                (err) => {
+                  if (err) {
+                    this.notifications.display(
+                      "error",
+                      "Node: " + model.name,
+                      "Error:" + err)
+                    }});
+            } else {
+              this.supergiant.Nodes.create(model).subscribe(
+                (data) => {
+                  if (data.status >= 200 && data.status <= 299) {
+                    this.notifications.display(
+                      "success",
+                      "Node: " + model.name.name,
+                      "Created...",
+                    )
+                    this.nodesComponent.getAccounts()
+                  }else{
+                    this.notifications.display(
+                      "error",
+                      "Node: " + model.name.name,
+                      "Error:" + data.statusText)
+                    }},
+                (err) => {
+                  if (err) {
+                    this.notifications.display(
+                      "error",
+                      "Node: " + model.name.name,
+                      "Error:" + err)
+                    }});}
+            });
+        });
   }
 
   // If new button if hit, the New dropdown is triggered.
@@ -43,61 +99,7 @@ export class NodesHeaderComponent {
      }
       // Open Dropdown Modal
       this.dropdownModalService.open(
-        "New Node", "Providers", providers).subscribe(
-          (option) => {
-            this.editModalService.open("Save", option, this.providersObj).subscribe(
-              (userInput) => {
-                var action = userInput[0]
-                var providerID = 1
-                var model = userInput[2]
-                if (action === "Edit") {
-                this.supergiant.Nodes.update(providerID, model).subscribe(
-                  (data) => {
-                    if (data.status >= 200 && data.status <= 299) {
-                      this.notifications.display(
-                        "success",
-                        "Node: " + model.name,
-                        "Created...",
-                      )
-                      this.nodesComponent.getAccounts()
-                    }else{
-                      this.notifications.display(
-                        "error",
-                        "Node: " + model.name,
-                        "Error:" + data.statusText)
-                      }},
-                  (err) => {
-                    if (err) {
-                      this.notifications.display(
-                        "error",
-                        "Node: " + model.name,
-                        "Error:" + err)
-                      }});
-              } else {
-                this.supergiant.Nodes.create(model).subscribe(
-                  (data) => {
-                    if (data.status >= 200 && data.status <= 299) {
-                      this.notifications.display(
-                        "success",
-                        "Node: " + model.name.name,
-                        "Created...",
-                      )
-                      this.nodesComponent.getAccounts()
-                    }else{
-                      this.notifications.display(
-                        "error",
-                        "Node: " + model.name.name,
-                        "Error:" + data.statusText)
-                      }},
-                  (err) => {
-                    if (err) {
-                      this.notifications.display(
-                        "error",
-                        "Node: " + model.name.name,
-                        "Error:" + err)
-                      }});}
-              });
-          });
+        "New Node", "Providers", providers)
 
   }
 
