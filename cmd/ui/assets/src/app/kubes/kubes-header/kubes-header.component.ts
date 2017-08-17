@@ -17,7 +17,7 @@ import { KubesModel } from '../kubes.model';
 })
 export class KubesHeaderComponent {
   providersObj = {"providers": []}
-  subscription: any = {}
+  subscriptions = []
 
   kubesModel = new KubesModel
   constructor(
@@ -31,12 +31,17 @@ export class KubesHeaderComponent {
     private loginComponent: LoginComponent
     ) {}
 
+    ngOnDestroy(){
+      for (let subscription of this.subscriptions)  {
+        subscription.unsubscribe();
+      }
+    }
   // After init, grab the schema
   ngAfterViewInit() {
     let providers = [];
     let cloudAccountsList
     //this.providersObj = KubesModel
-    this.subscription["accounts"] = this.supergiant.CloudAccounts.get().subscribe(
+    this.subscriptions["accounts"] = this.supergiant.CloudAccounts.get().subscribe(
       (data) => { cloudAccountsList = data
       console.log(cloudAccountsList["items"])
       for(let account of cloudAccountsList["items"]){
@@ -50,9 +55,10 @@ export class KubesHeaderComponent {
          }}
     )
 
-    this.subscription["button"] = this.dropdownModalService.dropdownModalResponse.subscribe(
-        (option) => {
-          this.editModalService.open("Save", option, this.providersObj).subscribe(
+    this.subscriptions["dropdown"] = this.dropdownModalService.dropdownModalResponse.subscribe(
+        (option) => {this.editModalService.open("Save", option, this.providersObj)});
+
+    this.subscriptions["edit"] = this.editModalService.editModalResponse.subscribe(
             (userInput) => {
               var action = userInput[0]
               var providerID = 1
@@ -104,7 +110,6 @@ export class KubesHeaderComponent {
                       "Error:" + err)
                     }});}
             });
-        });
   }
 
   // If new button if hit, the New dropdown is triggered.
