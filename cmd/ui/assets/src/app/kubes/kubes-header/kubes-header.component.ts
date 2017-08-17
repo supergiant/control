@@ -17,7 +17,7 @@ import { KubesModel } from '../kubes.model';
 })
 export class KubesHeaderComponent {
   providersObj = {"providers": []}
-  subscription: Subscription
+  subscription: any
 
   kubesModel = new KubesModel
   constructor(
@@ -36,7 +36,7 @@ export class KubesHeaderComponent {
     let providers = [];
     let cloudAccountsList
     //this.providersObj = KubesModel
-    this.subscription["accounts"]=this.supergiant.CloudAccounts.get().subscribe(
+    this.subscription["accounts"] = this.supergiant.CloudAccounts.get().subscribe(
       (data) => { cloudAccountsList = data
       console.log(cloudAccountsList["items"])
       for(let account of cloudAccountsList["items"]){
@@ -50,7 +50,7 @@ export class KubesHeaderComponent {
          }}
     )
 
-    this.subscription = this.dropdownModalService.dropdownModalResponse.subscribe(
+    this.subscription["button"] = this.dropdownModalService.dropdownModalResponse.subscribe(
         (option) => {
           this.editModalService.open("Save", option, this.providersObj).subscribe(
             (userInput) => {
