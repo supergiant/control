@@ -18,6 +18,7 @@ import { CloudAccountModel } from '../cloud-accounts.model';
 })
 export class CloudAccountsHeaderComponent {
   providersObj = new CloudAccountModel
+  subscription = new Subscription
 
   constructor(
     private cloudAccountsService: CloudAccountsService,
@@ -31,12 +32,68 @@ export class CloudAccountsHeaderComponent {
     ) {}
 
   ngAfterViewInit() {
+    this.subscription = this.dropdownModalService.dropdownModalResponse.subscribe(
+        (option) => {
+          this.editModalService.open("Save", option, this.providersObj).subscribe(
+            (userInput) => {
+              var action = userInput[0]
+              var providerID = 1
+              var model = userInput[2]
+              if (action === "Edit") {
+              this.supergiant.CloudAccounts.update(providerID, model).subscribe(
+                (data) => {
+                  if (data.status >= 200 && data.status <= 299) {
+                    this.notifications.display(
+                      "success",
+                      "Cloud Account: " + model.name,
+                      "Created...",
+                    )
+                    this.cloudAccountsComponent.getAccounts()
+                  }else{
+                    this.notifications.display(
+                      "error",
+                      "Cloud Account: " + model.name,
+                      "Error:" + data.statusText)
+                    }},
+                (err) => {
+                  if (err) {
+                    this.notifications.display(
+                      "error",
+                      "Cloud Account: " + model.name,
+                      "Error:" + err)
+                    }});
+            } else {
+              this.supergiant.CloudAccounts.create(model).subscribe(
+                (data) => {
+                  if (data.status >= 200 && data.status <= 299) {
+                    this.notifications.display(
+                      "success",
+                      "Cloud Account: " + model.name.name,
+                      "Created...",
+                    )
+                    this.cloudAccountsComponent.getAccounts()
+                  }else{
+                    this.notifications.display(
+                      "error",
+                      "Cloud Account: " + model.name.name,
+                      "Error:" + data.statusText)
+                    }},
+                (err) => {
+                  if (err) {
+                    this.notifications.display(
+                      "error",
+                      "Cloud Account: " + model.name.name,
+                      "Error:" + err)
+                    }});}
+            });
+        }
+      );
   }
 
   // If new button if hit, the New dropdown is triggered.
   sendOpen(message){
      let providers = [];
-     var blah: any;
+
      // Push available providers to an array. Displayed in the dropdown.
      for(let key in this.providersObj.providers){
        console.log(key)
@@ -45,63 +102,8 @@ export class CloudAccountsHeaderComponent {
      console.log(providers)
 
       // Open Dropdown Modal
-      blah = this.dropdownModalService.open(
-        "New Cloud Account", "Cloud Account", providers).subscribe(
-          (option) => {
-            this.editModalService.open("Save", option, this.providersObj).subscribe(
-              (userInput) => {
-                var action = userInput[0]
-                var providerID = 1
-                var model = userInput[2]
-                if (action === "Edit") {
-                this.supergiant.CloudAccounts.update(providerID, model).subscribe(
-                  (data) => {
-                    if (data.status >= 200 && data.status <= 299) {
-                      this.notifications.display(
-                        "success",
-                        "Cloud Account: " + model.name,
-                        "Created...",
-                      )
-                      this.cloudAccountsComponent.getAccounts()
-                    }else{
-                      this.notifications.display(
-                        "error",
-                        "Cloud Account: " + model.name,
-                        "Error:" + data.statusText)
-                      }},
-                  (err) => {
-                    if (err) {
-                      this.notifications.display(
-                        "error",
-                        "Cloud Account: " + model.name,
-                        "Error:" + err)
-                      }});
-              } else {
-                this.supergiant.CloudAccounts.create(model).subscribe(
-                  (data) => {
-                    if (data.status >= 200 && data.status <= 299) {
-                      this.notifications.display(
-                        "success",
-                        "Cloud Account: " + model.name.name,
-                        "Created...",
-                      )
-                      this.cloudAccountsComponent.getAccounts()
-                    }else{
-                      this.notifications.display(
-                        "error",
-                        "Cloud Account: " + model.name.name,
-                        "Error:" + data.statusText)
-                      }},
-                  (err) => {
-                    if (err) {
-                      this.notifications.display(
-                        "error",
-                        "Cloud Account: " + model.name.name,
-                        "Error:" + err)
-                      }});}
-              });
-          }
-        );
+      this.dropdownModalService.open("New Cloud Account", "Cloud Account", providers)
+
   }
 
   openSystemModal(message){

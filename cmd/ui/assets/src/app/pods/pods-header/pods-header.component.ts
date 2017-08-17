@@ -17,6 +17,7 @@ import { PodsModel } from '../pods.model';
 })
 export class PodsHeaderComponent {
   providersObj: any;
+  subscription: Subscription
 
   constructor(
     private podsService: PodsService,
@@ -32,6 +33,61 @@ export class PodsHeaderComponent {
   // After init, grab the schema
   ngAfterViewInit() {
     this.providersObj = PodsModel
+    this.subscription = this.dropdownModalService.dropdownModalResponse.subscribe(
+        (option) => {
+          this.editModalService.open("Save", option, this.providersObj).subscribe(
+            (userInput) => {
+              var action = userInput[0]
+              var providerID = 1
+              var model = userInput[2]
+              if (action === "Edit") {
+              this.supergiant.Nodes.update(providerID, model).subscribe(
+                (data) => {
+                  if (data.status >= 200 && data.status <= 299) {
+                    this.notifications.display(
+                      "success",
+                      "Pod: " + model.name,
+                      "Created...",
+                    )
+                    this.podsComponent.getAccounts()
+                  }else{
+                    this.notifications.display(
+                      "error",
+                      "Pod: " + model.name,
+                      "Error:" + data.statusText)
+                    }},
+                (err) => {
+                  if (err) {
+                    this.notifications.display(
+                      "error",
+                      "Pod: " + model.name,
+                      "Error:" + err)
+                    }});
+            } else {
+              this.supergiant.Nodes.create(model).subscribe(
+                (data) => {
+                  if (data.status >= 200 && data.status <= 299) {
+                    this.notifications.display(
+                      "success",
+                      "Pod: " + model.name.name,
+                      "Created...",
+                    )
+                    this.podsComponent.getAccounts()
+                  }else{
+                    this.notifications.display(
+                      "error",
+                      "Pod: " + model.name.name,
+                      "Error:" + data.statusText)
+                    }},
+                (err) => {
+                  if (err) {
+                    this.notifications.display(
+                      "error",
+                      "Pod: " + model.name.name,
+                      "Error:" + err)
+                    }});}
+            });
+        });
   }
 
   // If new button if hit, the New dropdown is triggered.
@@ -44,61 +100,7 @@ export class PodsHeaderComponent {
 
       // Open Dropdown Modal
       this.dropdownModalService.open(
-        "New Pod", "Providers", providers).subscribe(
-          (option) => {
-            this.editModalService.open("Save", option, this.providersObj).subscribe(
-              (userInput) => {
-                var action = userInput[0]
-                var providerID = 1
-                var model = userInput[2]
-                if (action === "Edit") {
-                this.supergiant.Nodes.update(providerID, model).subscribe(
-                  (data) => {
-                    if (data.status >= 200 && data.status <= 299) {
-                      this.notifications.display(
-                        "success",
-                        "Pod: " + model.name,
-                        "Created...",
-                      )
-                      this.podsComponent.getAccounts()
-                    }else{
-                      this.notifications.display(
-                        "error",
-                        "Pod: " + model.name,
-                        "Error:" + data.statusText)
-                      }},
-                  (err) => {
-                    if (err) {
-                      this.notifications.display(
-                        "error",
-                        "Pod: " + model.name,
-                        "Error:" + err)
-                      }});
-              } else {
-                this.supergiant.Nodes.create(model).subscribe(
-                  (data) => {
-                    if (data.status >= 200 && data.status <= 299) {
-                      this.notifications.display(
-                        "success",
-                        "Pod: " + model.name.name,
-                        "Created...",
-                      )
-                      this.podsComponent.getAccounts()
-                    }else{
-                      this.notifications.display(
-                        "error",
-                        "Pod: " + model.name.name,
-                        "Error:" + data.statusText)
-                      }},
-                  (err) => {
-                    if (err) {
-                      this.notifications.display(
-                        "error",
-                        "Pod: " + model.name.name,
-                        "Error:" + err)
-                      }});}
-              });
-          });
+        "New Pod", "Providers", providers)
 
   }
 

@@ -17,6 +17,7 @@ import { LoadBalancersModel } from '../load-balancers.model'
 })
 export class LoadBalancersHeaderComponent {
   providersObj: any;
+  subscription: Subscription
 
   constructor(
     private loadBalancersService: LoadBalancersService,
@@ -32,6 +33,61 @@ export class LoadBalancersHeaderComponent {
   // After init, grab the schema
   ngAfterViewInit() {
     this.providersObj = LoadBalancersModel
+    this.subscription = this.dropdownModalService.dropdownModalResponse.subscribe(
+        (option) => {
+          this.editModalService.open("Save", option, this.providersObj).subscribe(
+            (userInput) => {
+              var action = userInput[0]
+              var providerID = 1
+              var model = userInput[2]
+              if (action === "Edit") {
+              this.supergiant.Kubes.update(providerID, model).subscribe(
+                (data) => {
+                  if (data.status >= 200 && data.status <= 299) {
+                    this.notifications.display(
+                      "success",
+                      "Load Balancer: " + model.name,
+                      "Created...",
+                    )
+                    this.loadBalancersComponent.getAccounts()
+                  }else{
+                    this.notifications.display(
+                      "error",
+                      "Load Balancer: " + model.name,
+                      "Error:" + data.statusText)
+                    }},
+                (err) => {
+                  if (err) {
+                    this.notifications.display(
+                      "error",
+                      "Load Balancer: " + model.name,
+                      "Error:" + err)
+                    }});
+            } else {
+              this.supergiant.LoadBalancers.create(model).subscribe(
+                (data) => {
+                  if (data.status >= 200 && data.status <= 299) {
+                    this.notifications.display(
+                      "success",
+                      "Load Balancer: " + model.name.name,
+                      "Created...",
+                    )
+                    this.loadBalancersComponent.getAccounts()
+                  }else{
+                    this.notifications.display(
+                      "error",
+                      "Load Balancer: " + model.name.name,
+                      "Error:" + data.statusText)
+                    }},
+                (err) => {
+                  if (err) {
+                    this.notifications.display(
+                      "error",
+                      "Load Balancer: " + model.name.name,
+                      "Error:" + err)
+                    }});}
+            });
+        });
   }
 
   // If new button if hit, the New dropdown is triggered.
@@ -45,61 +101,7 @@ export class LoadBalancersHeaderComponent {
 
       // Open Dropdown Modal
       this.dropdownModalService.open(
-        "New Load Balancer", "Providers", providers).subscribe(
-          (option) => {
-            this.editModalService.open("Save", option, this.providersObj).subscribe(
-              (userInput) => {
-                var action = userInput[0]
-                var providerID = 1
-                var model = userInput[2]
-                if (action === "Edit") {
-                this.supergiant.Kubes.update(providerID, model).subscribe(
-                  (data) => {
-                    if (data.status >= 200 && data.status <= 299) {
-                      this.notifications.display(
-                        "success",
-                        "Load Balancer: " + model.name,
-                        "Created...",
-                      )
-                      this.loadBalancersComponent.getAccounts()
-                    }else{
-                      this.notifications.display(
-                        "error",
-                        "Load Balancer: " + model.name,
-                        "Error:" + data.statusText)
-                      }},
-                  (err) => {
-                    if (err) {
-                      this.notifications.display(
-                        "error",
-                        "Load Balancer: " + model.name,
-                        "Error:" + err)
-                      }});
-              } else {
-                this.supergiant.LoadBalancers.create(model).subscribe(
-                  (data) => {
-                    if (data.status >= 200 && data.status <= 299) {
-                      this.notifications.display(
-                        "success",
-                        "Load Balancer: " + model.name.name,
-                        "Created...",
-                      )
-                      this.loadBalancersComponent.getAccounts()
-                    }else{
-                      this.notifications.display(
-                        "error",
-                        "Load Balancer: " + model.name.name,
-                        "Error:" + data.statusText)
-                      }},
-                  (err) => {
-                    if (err) {
-                      this.notifications.display(
-                        "error",
-                        "Load Balancer: " + model.name.name,
-                        "Error:" + err)
-                      }});}
-              });
-          });
+        "New Load Balancer", "Providers", providers)
 
   }
 

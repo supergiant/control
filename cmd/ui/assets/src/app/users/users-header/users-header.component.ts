@@ -19,7 +19,7 @@ import { UsersModel } from '../users.model';
 })
 export class UsersHeaderComponent {
   providersObj: any;
-
+  subscription: Subscription
   constructor(
     private usersService: UsersService,
     private usersComponent: UsersComponent,
@@ -34,6 +34,61 @@ export class UsersHeaderComponent {
   // After init, grab the schema
   ngAfterViewInit() {
     this.providersObj = UsersModel
+    this.subscription = this.dropdownModalService.dropdownModalResponse.subscribe(
+        (option) => {
+          this.editModalService.open("Save", option, this.providersObj).subscribe(
+            (userInput) => {
+              var action = userInput[0]
+              var providerID = 1
+              var model = userInput[2]
+              if (action === "Edit") {
+              this.supergiant.Kubes.update(providerID, model).subscribe(
+                (data) => {
+                  if (data.status >= 200 && data.status <= 299) {
+                    this.notifications.display(
+                      "success",
+                      "User: " + model.name,
+                      "Created...",
+                    )
+                    this.usersComponent.getAccounts()
+                  }else{
+                    this.notifications.display(
+                      "error",
+                      "User: " + model.name,
+                      "Error:" + data.statusText)
+                    }},
+                (err) => {
+                  if (err) {
+                    this.notifications.display(
+                      "error",
+                      "User: " + model.name,
+                      "Error:" + err)
+                    }});
+            } else {
+              this.supergiant.Users.create(model).subscribe(
+                (data) => {
+                  if (data.status >= 200 && data.status <= 299) {
+                    this.notifications.display(
+                      "success",
+                      "User: " + model.name.name,
+                      "Created...",
+                    )
+                    this.usersComponent.getAccounts()
+                  }else{
+                    this.notifications.display(
+                      "error",
+                      "User: " + model.name.name,
+                      "Error:" + data.statusText)
+                    }},
+                (err) => {
+                  if (err) {
+                    this.notifications.display(
+                      "error",
+                      "Users: " + model.name.name,
+                      "Error:" + err)
+                    }});}
+            });
+        });
   }
 
   // If new button if hit, the New dropdown is triggered.
@@ -45,63 +100,9 @@ export class UsersHeaderComponent {
      }
 
       // Open Dropdown Modal
-      this.dropdownModalService.open(
-        "New User", "Providers", providers).subscribe(
-          (option) => {
-            this.editModalService.open("Save", option, this.providersObj).subscribe(
-              (userInput) => {
-                var action = userInput[0]
-                var providerID = 1
-                var model = userInput[2]
-                if (action === "Edit") {
-                this.supergiant.Kubes.update(providerID, model).subscribe(
-                  (data) => {
-                    if (data.status >= 200 && data.status <= 299) {
-                      this.notifications.display(
-                        "success",
-                        "User: " + model.name,
-                        "Created...",
-                      )
-                      this.usersComponent.getAccounts()
-                    }else{
-                      this.notifications.display(
-                        "error",
-                        "User: " + model.name,
-                        "Error:" + data.statusText)
-                      }},
-                  (err) => {
-                    if (err) {
-                      this.notifications.display(
-                        "error",
-                        "User: " + model.name,
-                        "Error:" + err)
-                      }});
-              } else {
-                this.supergiant.Users.create(model).subscribe(
-                  (data) => {
-                    if (data.status >= 200 && data.status <= 299) {
-                      this.notifications.display(
-                        "success",
-                        "User: " + model.name.name,
-                        "Created...",
-                      )
-                      this.usersComponent.getAccounts()
-                    }else{
-                      this.notifications.display(
-                        "error",
-                        "User: " + model.name.name,
-                        "Error:" + data.statusText)
-                      }},
-                  (err) => {
-                    if (err) {
-                      this.notifications.display(
-                        "error",
-                        "Users: " + model.name.name,
-                        "Error:" + err)
-                      }});}
-              });
-          });
 
+      this.dropdownModalService.open(
+        "New User", "Providers", providers)
   }
 
   openSystemModal(message){
