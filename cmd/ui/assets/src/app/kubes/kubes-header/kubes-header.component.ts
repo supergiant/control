@@ -17,7 +17,7 @@ import { KubesModel } from '../kubes.model';
 })
 export class KubesHeaderComponent {
   providersObj = {"providers": []}
-  subscription: any
+  subscription: any = {}
 
   kubesModel = new KubesModel
   constructor(

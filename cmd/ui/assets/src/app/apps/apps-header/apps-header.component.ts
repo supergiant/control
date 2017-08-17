@@ -20,7 +20,7 @@ export class AppsHeaderComponent {
 
   constructor(
     private appsService: AppsService,
-    private appsComponant: AppsComponent,
+    private appsComponent: AppsComponent,
     private supergiant: Supergiant,
     private notifications: Notifications,
     private systemModalService: SystemModalService,
@@ -89,7 +89,7 @@ export class AppsHeaderComponent {
                         "Kube: " + model.name.name,
                         "Created...",
                       )
-                      // this.kubesComponant.getAccounts()
+                      // this.kubesComponent.getAccounts()
                     }else{
                       this.notifications.display(
                         "error",
@@ -138,7 +138,7 @@ export class AppsHeaderComponent {
         (data) => {
           if (data.status >= 200 && data.status <= 299) {
             this.notifications.display("success", "Kube: " + provider.name, "Deleted...")
-            // this.appsComponant.getAccounts()
+            // this.appsComponent.getAccounts()
            }else{
             this.notifications.display("error", "Kube: " + provider.name, "Error:" + data.statusText)}},
         (err) => {

@@ -38,14 +38,14 @@ export class AuthGuard implements CanActivate {
     }
 }
 const appRoutes: Routes = [
-  { path: '', redirectTo: '/kubes', pathMatch: 'full' },
-  { path: 'kubes', component: KubesComponent, canActivate: [AuthGuard], children: [
+  { path: '', redirectTo: '/login', pathMatch: 'full' },
+  { path: 'kubes', component: KubesComponent,  canActivate: [AuthGuard], children: [
     { path: '', component: KubesComponent },
     { path: 'new', component: KubesComponent },
     { path: ':id', component: KubesComponent}
   ] },
   { path: 'users', component: UsersComponent, canActivate: [AuthGuard] },
-  { path: 'cloud-accounts', component: CloudAccountsComponent, canActivate: [AuthGuard] },
+  { path: 'cloud-accounts', component: CloudAccountsComponent, canActivate: [AuthGuard]},
   { path: 'nodes', component: NodesComponent, canActivate: [AuthGuard] },
   { path: 'pods', component: PodsComponent, canActivate: [AuthGuard] },
   { path: 'apps', component: AppsComponent, canActivate: [AuthGuard] },
