@@ -43,7 +43,8 @@ export class DropdownModalComponent implements OnInit {
     let options: NgbModalOptions = {
       size: 'sm'
     };
-    this.modalRef = this.modalService.open(content, options);
+    console.log(this.subscription)
+    this.modalRef = this.modalService.open(content, options)
   }
 
   ngOnDestroy(){
