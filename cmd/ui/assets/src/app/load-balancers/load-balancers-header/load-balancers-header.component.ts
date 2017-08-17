@@ -8,6 +8,7 @@ import { SystemModalService } from '../../shared/system-modal/system-modal.servi
 import { DropdownModalService } from '../../shared/dropdown-modal/dropdown-modal.service'
 import { EditModalService } from '../../shared/edit-modal/edit-modal.service'
 import { LoginComponent } from '../../login/login.component';
+import { LoadBalancersModel } from '../load-balancers.model'
 
 @Component({
   selector: 'app-load-balancers-header',
@@ -19,7 +20,7 @@ export class LoadBalancersHeaderComponent {
 
   constructor(
     private loadBalancersService: LoadBalancersService,
-    private loadBalancersComponant: LoadBalancersComponent,
+    private loadBalancersComponent: LoadBalancersComponent,
     private supergiant: Supergiant,
     private notifications: Notifications,
     private systemModalService: SystemModalService,
@@ -30,22 +31,17 @@ export class LoadBalancersHeaderComponent {
 
   // After init, grab the schema
   ngAfterViewInit() {
-    // this.supergiant.Users.schema().subscribe(
-    //   (data) => { this.providersObj = data},
-    //   (err) => {this.notifications.display("warn", "Connection Issue.", err)});
+    this.providersObj = LoadBalancersModel
   }
 
   // If new button if hit, the New dropdown is triggered.
   sendOpen(message){
      let providers = [];
-     // Fetch options.
-     this.supergiant.LoadBalancers.schema().subscribe(
-       (data) => { this.providersObj = data
-         // Push available providers to an array. Displayed in the dropdown.
-         for(let key in this.providersObj.providers){
-           providers.push(key)
-         }
-       });
+     // Push available providers to an array. Displayed in the dropdown.
+     for(let key in this.providersObj.providers){
+       providers.push(key)
+     }
+
 
       // Open Dropdown Modal
       this.dropdownModalService.open(
@@ -65,7 +61,7 @@ export class LoadBalancersHeaderComponent {
                         "Load Balancer: " + model.name,
                         "Created...",
                       )
-                      this.loadBalancersComponant.getAccounts()
+                      this.loadBalancersComponent.getAccounts()
                     }else{
                       this.notifications.display(
                         "error",
@@ -88,7 +84,7 @@ export class LoadBalancersHeaderComponent {
                         "Load Balancer: " + model.name.name,
                         "Created...",
                       )
-                      this.loadBalancersComponant.getAccounts()
+                      this.loadBalancersComponent.getAccounts()
                     }else{
                       this.notifications.display(
                         "error",
@@ -137,7 +133,7 @@ export class LoadBalancersHeaderComponent {
         (data) => {
           if (data.status >= 200 && data.status <= 299) {
             this.notifications.display("success", "User: " + provider.name, "Deleted...")
-            this.loadBalancersComponant.getAccounts()
+            this.loadBalancersComponent.getAccounts()
            }else{
             this.notifications.display("error", "User: " + provider.name, "Error:" + data.statusText)}},
         (err) => {

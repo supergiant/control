@@ -8,7 +8,7 @@ import { SystemModalService } from '../../shared/system-modal/system-modal.servi
 import { DropdownModalService } from '../../shared/dropdown-modal/dropdown-modal.service'
 import { EditModalService } from '../../shared/edit-modal/edit-modal.service'
 import { LoginComponent } from '../../login/login.component';
-
+import { KubesModel } from '../kubes.model';
 
 @Component({
   selector: 'app-kubes-header',
@@ -16,49 +16,60 @@ import { LoginComponent } from '../../login/login.component';
   styleUrls: ['./kubes-header.component.css']
 })
 export class KubesHeaderComponent {
-  providersObj: any;
+  providersObj = {"providers": []}
+  public subscription: any = {}
 
+  kubesModel = new KubesModel
   constructor(
     private kubesService: KubesService,
-    private kubesComponant: KubesComponent,
+    private kubesComponent: KubesComponent,
     private supergiant: Supergiant,
     private notifications: Notifications,
     private systemModalService: SystemModalService,
     private dropdownModalService: DropdownModalService,
     private editModalService: EditModalService,
-    private loginComponent: LoginComponent,
+    private loginComponent: LoginComponent
     ) {}
 
   // After init, grab the schema
   ngAfterViewInit() {
-    // this.supergiant.Kubes.schema().subscribe(
-    //   (data) => { this.providersObj = data},
-    //   (err) => {this.notifications.display("warn", "Connection Issue.", err)});
+    let providers = [];
+    let cloudAccountsList
+    //this.providersObj = KubesModel
+    this.subscription["accounts"]=this.supergiant.CloudAccounts.get().subscribe(
+      (data) => { cloudAccountsList = data
+      console.log(cloudAccountsList["items"])
+      for(let account of cloudAccountsList["items"]){
+           console.log(account)
+           providers.push(account["name"])
+           console.log(this.providersObj.providers)
+           this.providersObj.providers[account["name"]] = this.kubesModel.providers[account["provider"]]
+           console.log(this.providersObj.providers)
+           console.log(this.providersObj.providers[account["name"]])
+           this.providersObj.providers[account["name"]]["cloud_account_name"] = account["name"]
+         }}
+    )
   }
 
   // If new button if hit, the New dropdown is triggered.
   sendOpen(message){
      let providers = [];
-     // Fetch options.
-     this.supergiant.Kubes.schema().subscribe(
-       (data) => { this.providersObj = data
-         // Push available providers to an array. Displayed in the dropdown.
-         for(let key in this.providersObj.providers){
-           providers.push(key)
-         }
-       });
+     // Push available providers to an array. Displayed in the dropdown.
+     for(let key in this.providersObj.providers){
+       providers.push(key)
+     }
 
       // Open Dropdown Modal
-      this.dropdownModalService.open(
+      this.subscription["button"] = this.dropdownModalService.open(
         "New Kube", "Providers", providers).subscribe(
           (option) => {
-            this.editModalService.open("Save", option, this.providersObj).subscribe(
+            this.subscription["edit_button"] = this.editModalService.open("Save", option, this.providersObj).subscribe(
               (userInput) => {
                 var action = userInput[0]
                 var providerID = 1
                 var model = userInput[2]
                 if (action === "Edit") {
-                this.supergiant.Kubes.update(providerID, model).subscribe(
+                this.subscription["update_button"] = this.supergiant.Kubes.update(providerID, model).subscribe(
                   (data) => {
                     if (data.status >= 200 && data.status <= 299) {
                       this.notifications.display(
@@ -66,7 +77,7 @@ export class KubesHeaderComponent {
                         "Kube: " + model.name,
                         "Created...",
                       )
-                      this.kubesComponant.getAccounts()
+                      this.kubesComponent.getAccounts()
                     }else{
                       this.notifications.display(
                         "error",
@@ -81,7 +92,7 @@ export class KubesHeaderComponent {
                         "Error:" + err)
                       }});
               } else {
-                this.supergiant.Kubes.create(model).subscribe(
+                this.subscription["create_button"] = this.supergiant.Kubes.create(model).subscribe(
                   (data) => {
                     if (data.status >= 200 && data.status <= 299) {
                       this.notifications.display(
@@ -89,7 +100,7 @@ export class KubesHeaderComponent {
                         "Kube: " + model.name.name,
                         "Created...",
                       )
-                      this.kubesComponant.getAccounts()
+                      this.kubesComponent.getAccounts()
                     }else{
                       this.notifications.display(
                         "error",
@@ -105,7 +116,11 @@ export class KubesHeaderComponent {
                       }});}
               });
           });
-
+      console.log(this.subscription)
+      for (let sub of this.subscription){
+        sub.unsubscribe()
+        console.log("unsub")
+      }
   }
 
   openSystemModal(message){
@@ -138,7 +153,7 @@ export class KubesHeaderComponent {
         (data) => {
           if (data.status >= 200 && data.status <= 299) {
             this.notifications.display("success", "Kube: " + provider.name, "Deleted...")
-            this.kubesComponant.getAccounts()
+            this.kubesComponent.getAccounts()
            }else{
             this.notifications.display("error", "Kube: " + provider.name, "Error:" + data.statusText)}},
         (err) => {

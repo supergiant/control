@@ -1,6 +1,6 @@
 import { Injectable } from '@angular/core';
 import { Http, Response, Headers } from '@angular/http';
-import {Observable} from "RxJS/Rx";
+import {Observable} from "rxjs/Rx";
 
 @Injectable()
 export class UtilService {

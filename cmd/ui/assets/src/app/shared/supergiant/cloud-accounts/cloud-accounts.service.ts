@@ -12,9 +12,6 @@ export class CloudAccounts{
     }
     return this.util.fetch(this.cloudAccountsPath)
   }
-  public schema(){
-    return this.util.fetch(this.cloudAccountsPath + "/schema")
-  }
   public create(data) {
     return this.util.post(this.cloudAccountsPath, data)
   }

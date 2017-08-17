@@ -13,9 +13,6 @@ export class KubeResources{
     return this.util.fetch(this.kubeResourcesPath)
 
   }
-  public schema(){
-    return this.util.fetch(this.kubeResourcesPath + "/schema")
-  }
   public create(data) {
     return this.util.post(this.kubeResourcesPath, data)
   }

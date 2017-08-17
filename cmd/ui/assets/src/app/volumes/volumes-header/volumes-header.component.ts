@@ -9,19 +9,15 @@ import { DropdownModalService } from '../../shared/dropdown-modal/dropdown-modal
 import { EditModalService } from '../../shared/edit-modal/edit-modal.service'
 import { LoginComponent } from '../../login/login.component';
 
-
-
 @Component({
   selector: 'app-volumes-header',
   templateUrl: './volumes-header.component.html',
   styleUrls: ['./volumes-header.component.css']
 })
 export class VolumesHeaderComponent {
-  providersObj: any;
-
   constructor(
     private volumesService: VolumesService,
-    private volumesComponant: VolumesComponent,
+    private volumesComponent: VolumesComponent,
     private supergiant: Supergiant,
     private notifications: Notifications,
     private systemModalService: SystemModalService,
@@ -30,7 +26,6 @@ export class VolumesHeaderComponent {
     private loginComponent: LoginComponent,
     ) {}
 
-  // After init, grab the schema
   ngAfterViewInit() {}
 
   openSystemModal(message){
@@ -50,7 +45,7 @@ export class VolumesHeaderComponent {
         (data) => {
           if (data.status >= 200 && data.status <= 299) {
             this.notifications.display("success", "Volume: " + provider.name, "Deleted...")
-            this.volumesComponant.getAccounts()
+            this.volumesComponent.getAccounts()
            }else{
             this.notifications.display("error", "Volume: " + provider.name, "Error:" + data.statusText)}},
         (err) => {

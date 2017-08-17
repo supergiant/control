@@ -8,6 +8,7 @@ import { SystemModalService } from '../../shared/system-modal/system-modal.servi
 import { DropdownModalService } from '../../shared/dropdown-modal/dropdown-modal.service'
 import { EditModalService } from '../../shared/edit-modal/edit-modal.service'
 import { LoginComponent } from '../../login/login.component';
+import { UsersModel } from '../users.model';
 
 
 
@@ -21,7 +22,7 @@ export class UsersHeaderComponent {
 
   constructor(
     private usersService: UsersService,
-    private usersComponant: UsersComponent,
+    private usersComponent: UsersComponent,
     private supergiant: Supergiant,
     private notifications: Notifications,
     private systemModalService: SystemModalService,
@@ -32,22 +33,16 @@ export class UsersHeaderComponent {
 
   // After init, grab the schema
   ngAfterViewInit() {
-    // this.supergiant.Users.schema().subscribe(
-    //   (data) => { this.providersObj = data},
-    //   (err) => {this.notifications.display("warn", "Connection Issue.", err)});
+    this.providersObj = UsersModel
   }
 
   // If new button if hit, the New dropdown is triggered.
   sendOpen(message){
      let providers = [];
-     // Fetch options.
-     this.supergiant.Users.schema().subscribe(
-       (data) => { this.providersObj = data
-         // Push available providers to an array. Displayed in the dropdown.
-         for(let key in this.providersObj.providers){
-           providers.push(key)
-         }
-       });
+     // Push available providers to an array. Displayed in the dropdown.
+     for(let key in this.providersObj.providers){
+       providers.push(key)
+     }
 
       // Open Dropdown Modal
       this.dropdownModalService.open(
@@ -67,7 +62,7 @@ export class UsersHeaderComponent {
                         "User: " + model.name,
                         "Created...",
                       )
-                      this.usersComponant.getAccounts()
+                      this.usersComponent.getAccounts()
                     }else{
                       this.notifications.display(
                         "error",
@@ -90,7 +85,7 @@ export class UsersHeaderComponent {
                         "User: " + model.name.name,
                         "Created...",
                       )
-                      this.usersComponant.getAccounts()
+                      this.usersComponent.getAccounts()
                     }else{
                       this.notifications.display(
                         "error",
@@ -139,7 +134,7 @@ export class UsersHeaderComponent {
         (data) => {
           if (data.status >= 200 && data.status <= 299) {
             this.notifications.display("success", "User: " + provider.name, "Deleted...")
-            this.usersComponant.getAccounts()
+            this.usersComponent.getAccounts()
            }else{
             this.notifications.display("error", "User: " + provider.name, "Error:" + data.statusText)}},
         (err) => {

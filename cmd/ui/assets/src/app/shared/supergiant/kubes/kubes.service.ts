@@ -12,10 +12,11 @@ export class Kubes{
     }
     return this.util.fetch(this.kubesPath)
   }
-  public schema(){
-    return this.util.fetch(this.kubesPath + "/schema")
-  }
   public create(data) {
+    return this.util.post(this.kubesPath, data)
+  }
+  // adding this back so I don't have to touch apps component right now
+  public schema(data?) {
     return this.util.post(this.kubesPath, data)
   }
   public provision(id, data) {

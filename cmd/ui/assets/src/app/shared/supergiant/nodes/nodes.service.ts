@@ -12,9 +12,6 @@ export class Nodes{
     }
     return this.util.fetch(this.nodesPath)
   }
-  public schema(){
-    return this.util.fetch(this.nodesPath + "/schema")
-  }
   public create(data) {
     return this.util.post(this.nodesPath, data)
   }
