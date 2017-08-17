@@ -48,8 +48,8 @@ export class EditModalComponent implements OnInit {
         this.action = message[0]
 
         // Feed the model and schema to the UI.
-        this.model = this.schemaBlob.providers[this.item].model
-        this.schema = this.schemaBlob.providers[this.item].schema
+        this.model = this.schemaBlob[this.item].model
+        this.schema = this.schemaBlob[this.item].schema
       };
       // open the New/Edit modal
       {this.open(this.content)};});

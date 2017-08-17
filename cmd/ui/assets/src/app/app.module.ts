@@ -51,6 +51,7 @@ import { AppsComponent } from './apps/apps.component';
 import { AppsHeaderComponent } from './apps/apps-header/apps-header.component';
 import { HelmAppComponent } from './apps/app/helm-app.component';
 import { DeploymentComponent } from './apps/deployment/deployment.component';
+import { RepoModalComponent } from './apps/repo-modal/repo-modal.component';
 // Component Services
 import { SessionsService } from './sessions/sessions.service';
 import { CloudAccountsService } from './cloud-accounts/cloud-accounts.service';
@@ -67,6 +68,7 @@ import { SystemModalService } from './shared/system-modal/system-modal.service';
 import { DropdownModalService } from './shared/dropdown-modal/dropdown-modal.service';
 import { EditModalService } from './shared/edit-modal/edit-modal.service';
 import { CookieMonster } from './shared/cookies/cookies.service';
+import { RepoModalService } from './apps/repo-modal/repo-modal.service';
 
 // Supergiant API Services
 import { Supergiant } from './shared/supergiant/supergiant.service';
@@ -130,6 +132,7 @@ import { Logs } from './shared/supergiant/logs/logs.service';
     AppsHeaderComponent,
     HelmAppComponent,
     DeploymentComponent,
+    RepoModalComponent,
     ],
   imports: [
     BrowserModule,
@@ -158,6 +161,7 @@ import { Logs } from './shared/supergiant/logs/logs.service';
     ServicesService,
     VolumesService,
     AppsService,
+    RepoModalService,
     // Supergiant API Services
     Supergiant,
     UtilService,

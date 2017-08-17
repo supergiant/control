@@ -32,14 +32,10 @@ export class SessionsHeaderComponent {
     for(let session of selectedItems){
       this.supergiant.Sessions.delete(session.id).subscribe(
         (data) => {
-          if (data.status >= 200 && data.status <= 299) {
             this.notifications.display("success", "Session: " + session.id, "Deleted...")
-            this.sessionsComponent.getAccounts()
-           }else{
-            this.notifications.display("error", "Session: " + session.id, "Error:" + data.statusText)}},
+            this.sessionsComponent.getAccounts()},
         (err) => {
-          if (err) {
-            this.notifications.display("error", "Session: " + session.id, "Error:" + err)}},
+            this.notifications.display("error", "Session: " + session.id, "Error:" + err)},
       );
     }
   }

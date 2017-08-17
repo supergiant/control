@@ -8,6 +8,7 @@ import { SystemModalService } from '../../shared/system-modal/system-modal.servi
 import { DropdownModalService } from '../../shared/dropdown-modal/dropdown-modal.service'
 import { EditModalService } from '../../shared/edit-modal/edit-modal.service'
 import { LoginComponent } from '../../login/login.component';
+import { RepoModalService} from '../repo-modal/repo-modal.service';
 
 
 @Component({
@@ -24,6 +25,7 @@ export class AppsHeaderComponent {
     private supergiant: Supergiant,
     private notifications: Notifications,
     private systemModalService: SystemModalService,
+    private repoModalService: RepoModalService,
     private dropdownModalService: DropdownModalService,
     private editModalService: EditModalService,
     private loginComponent: LoginComponent,
@@ -110,6 +112,10 @@ export class AppsHeaderComponent {
 
   openSystemModal(message){
       this.systemModalService.openSystemModal(message);
+  }
+
+  openRepoModal(message){
+      this.repoModalService.openRepoModal(message);
   }
   // If the edit button is hit, the Edit modal is opened.
   editKube() {

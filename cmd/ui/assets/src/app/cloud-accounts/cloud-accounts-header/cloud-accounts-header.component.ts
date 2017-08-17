@@ -1,4 +1,4 @@
-import { Component } from '@angular/core';
+import { Component, OnDestroy } from '@angular/core';
 import { CloudAccountsService } from '../cloud-accounts.service';
 import { Supergiant } from '../../shared/supergiant/supergiant.service'
 import {CloudAccountsComponent} from '../cloud-accounts.component'
@@ -18,7 +18,8 @@ import { CloudAccountModel } from '../cloud-accounts.model';
 })
 export class CloudAccountsHeaderComponent {
   providersObj = new CloudAccountModel
-  subscription = new Subscription
+  subscriptions = [];
+  editID: number;
 
   constructor(
     private cloudAccountsService: CloudAccountsService,
@@ -31,75 +32,62 @@ export class CloudAccountsHeaderComponent {
     private loginComponent: LoginComponent,
     ) {}
 
+    ngOnDestroy(){
+      for (let subscription of this.subscriptions)  {
+        subscription.unsubscribe();
+      }
+    }
+
   ngAfterViewInit() {
-    this.subscription = this.dropdownModalService.dropdownModalResponse.subscribe(
-        (option) => {
-          this.editModalService.open("Save", option, this.providersObj).subscribe(
-            (userInput) => {
-              var action = userInput[0]
-              var providerID = 1
-              var model = userInput[2]
-              if (action === "Edit") {
-              this.supergiant.CloudAccounts.update(providerID, model).subscribe(
-                (data) => {
-                  if (data.status >= 200 && data.status <= 299) {
-                    this.notifications.display(
-                      "success",
-                      "Cloud Account: " + model.name,
-                      "Created...",
-                    )
-                    this.cloudAccountsComponent.getAccounts()
-                  }else{
-                    this.notifications.display(
-                      "error",
-                      "Cloud Account: " + model.name,
-                      "Error:" + data.statusText)
-                    }},
-                (err) => {
-                  if (err) {
-                    this.notifications.display(
-                      "error",
-                      "Cloud Account: " + model.name,
-                      "Error:" + err)
-                    }});
-            } else {
-              this.supergiant.CloudAccounts.create(model).subscribe(
-                (data) => {
-                  if (data.status >= 200 && data.status <= 299) {
-                    this.notifications.display(
-                      "success",
-                      "Cloud Account: " + model.name.name,
-                      "Created...",
-                    )
-                    this.cloudAccountsComponent.getAccounts()
-                  }else{
-                    this.notifications.display(
-                      "error",
-                      "Cloud Account: " + model.name.name,
-                      "Error:" + data.statusText)
-                    }},
-                (err) => {
-                  if (err) {
-                    this.notifications.display(
-                      "error",
-                      "Cloud Account: " + model.name.name,
-                      "Error:" + err)
-                    }});}
-            });
-        }
+    this.subscriptions["dropdown"] = this.dropdownModalService.dropdownModalResponse.subscribe(
+      (option) => {
+        this.editModalService.open("Save", option, this.providersObj)},
       );
+
+    this.subscriptions["edit"] = this.editModalService.editModalResponse.subscribe(
+      (userInput) => {
+        var action = userInput[0]
+        var providerID = 1
+        var model = userInput[2]
+
+        if (action === "Edit") {
+          this.supergiant.CloudAccounts.update(providerID, model).subscribe(
+            (data) => {
+              this.success(model)
+              this.cloudAccountsComponent.getAccounts()},
+            (err) => {this.error(model, err)},);
+        } else {
+          this.supergiant.CloudAccounts.create(model).subscribe(
+            (data) => {
+              this.success(model)
+              this.cloudAccountsComponent.getAccounts()},
+            (err) => {this.error(model, err)});
+        }
+      });
   }
 
+  success(model){
+    this.notifications.display(
+      "success",
+      "Cloud Account: " + model.name,
+      "Created...",
+    )
+  }
+
+  error(model, data) {
+    this.notifications.display(
+      "error",
+      "Cloud Account: " + model.name,
+      "Error:" + data.statusText)
+  }
   // If new button if hit, the New dropdown is triggered.
   sendOpen(message){
      let providers = [];
 
      // Push available providers to an array. Displayed in the dropdown.
      for(let key in this.providersObj.providers){
-       console.log(key)
        providers.push(key)
      }
-     console.log(providers)
 
       // Open Dropdown Modal
       this.dropdownModalService.open("New Cloud Account", "Cloud Account", providers)
@@ -114,9 +102,9 @@ export class CloudAccountsHeaderComponent {
     var selectedItems = this.cloudAccountsService.returnSelected()
     var itemindex: string
     if (selectedItems.length === 0) {
-      this.notifications.display("warn", "Warning:", "No Provider Selected.")
+      this.notifications.display("warn", "Warning:", "No Cloud Account Selected.")
     } else if (selectedItems.length > 1) {
-      this.notifications.display("warn", "Warning:", "You cannot edit more than one provider at a time.")
+      this.notifications.display("warn", "Warning:", "You cannot edit more than one Cloud Account at a time.")
     } else {
       for (let aprovider in this.providersObj.providers) {
         if (this.providersObj.providers[aprovider]["model"]["provider"] == selectedItems[0].provider) {
@@ -124,6 +112,8 @@ export class CloudAccountsHeaderComponent {
           itemindex = aprovider
         }
       }
+      console.log(itemindex)
+      console.log(this.providersObj)
       this.editModalService.open("Edit", itemindex, this.providersObj);
     }
   }
@@ -132,9 +122,7 @@ export class CloudAccountsHeaderComponent {
   deleteCloudAccount() {
     var selectedItems = this.cloudAccountsService.returnSelected()
     if (selectedItems.length === 0) {
-      this.notifications.display("warn", "Warning:", "No Provider Selected.")
-    } else if (selectedItems.length > 1) {
-      this.notifications.display("warn", "Warning:", "You cannot edit more than one provider at a time.")
+      this.notifications.display("warn", "Warning:", "No Cloud Account Selected.")
     } else {
     for(let provider of selectedItems){
       this.supergiant.CloudAccounts.delete(provider.id).subscribe(
