@@ -12,9 +12,6 @@ export class LoadBalancers{
     }
     return this.util.fetch(this.loadBalancersPath)
   }
-  public schema(){
-    return this.util.fetch(this.loadBalancersPath + "/schema")
-  }
   public create(data) {
     return this.util.post(this.loadBalancersPath, data)
   }

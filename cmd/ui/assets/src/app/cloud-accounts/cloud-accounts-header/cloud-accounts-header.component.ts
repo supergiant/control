@@ -8,6 +8,7 @@ import { SystemModalService } from '../../shared/system-modal/system-modal.servi
 import { DropdownModalService } from '../../shared/dropdown-modal/dropdown-modal.service'
 import { EditModalService } from '../../shared/edit-modal/edit-modal.service'
 import { LoginComponent } from '../../login/login.component';
+import { CloudAccountModel } from '../cloud-accounts.model';
 
 
 @Component({
@@ -16,11 +17,11 @@ import { LoginComponent } from '../../login/login.component';
   styleUrls: ['./cloud-accounts-header.component.css']
 })
 export class CloudAccountsHeaderComponent {
-  providersObj: any;
+  providersObj = new CloudAccountModel
 
   constructor(
     private cloudAccountsService: CloudAccountsService,
-    private cloudAccountsComponant: CloudAccountsComponent,
+    private cloudAccountsComponent: CloudAccountsComponent,
     private supergiant: Supergiant,
     private notifications: Notifications,
     private systemModalService: SystemModalService,
@@ -29,24 +30,18 @@ export class CloudAccountsHeaderComponent {
     private loginComponent: LoginComponent,
     ) {}
 
-  // After init, grab the schema
   ngAfterViewInit() {
-    this.supergiant.CloudAccounts.schema().subscribe(
-      (data) => { this.providersObj = data},
-      (err) => {this.notifications.display("warn", "Connection Issue.", err)});
   }
 
   // If new button if hit, the New dropdown is triggered.
   sendOpen(message){
      let providers = [];
-     // Fetch options.
-     this.supergiant.CloudAccounts.schema().subscribe(
-       (data) => { this.providersObj = data
-         // Push available providers to an array. Displayed in the dropdown.
-         for(let key in this.providersObj.providers){
-           providers.push(key)
-         }
-       });
+     // Push available providers to an array. Displayed in the dropdown.
+     for(let key in this.providersObj.providers){
+       console.log(key)
+       providers.push(key)
+     }
+     console.log(providers)
 
       // Open Dropdown Modal
       this.dropdownModalService.open(
@@ -66,7 +61,7 @@ export class CloudAccountsHeaderComponent {
                         "Cloud Account: " + model.name,
                         "Created...",
                       )
-                      this.cloudAccountsComponant.getAccounts()
+                      this.cloudAccountsComponent.getAccounts()
                     }else{
                       this.notifications.display(
                         "error",
@@ -89,7 +84,7 @@ export class CloudAccountsHeaderComponent {
                         "Cloud Account: " + model.name.name,
                         "Created...",
                       )
-                      this.cloudAccountsComponant.getAccounts()
+                      this.cloudAccountsComponent.getAccounts()
                     }else{
                       this.notifications.display(
                         "error",
@@ -138,7 +133,7 @@ export class CloudAccountsHeaderComponent {
         (data) => {
           if (data.status >= 200 && data.status <= 299) {
             this.notifications.display("success", "Cloud Account: " + provider.name, "Deleted...")
-            this.cloudAccountsComponant.getAccounts()
+            this.cloudAccountsComponent.getAccounts()
            }else{
             this.notifications.display("error", "Cloud Account: " + provider.name, "Error:" + data.statusText)}},
         (err) => {

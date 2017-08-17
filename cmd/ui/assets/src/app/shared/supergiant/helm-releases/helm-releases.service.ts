@@ -12,9 +12,6 @@ export class HelmReleases{
     }
     return this.util.fetch(this.helmReleasesPath)
   }
-  public schema(){
-    return this.util.fetch(this.helmReleasesPath + "/schema")
-  }
   public create(data) {
     return this.util.post(this.helmReleasesPath, data)
   }

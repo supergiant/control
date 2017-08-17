@@ -12,9 +12,6 @@ export class Users{
     }
     return this.util.fetch(this.usersPath)
   }
-  public schema(){
-    return this.util.fetch(this.usersPath + "/schema")
-  }
   public create(data) {
     return this.util.post(this.usersPath, data)
   }

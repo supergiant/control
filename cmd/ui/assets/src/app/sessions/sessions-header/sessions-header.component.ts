@@ -17,7 +17,7 @@ export class SessionsHeaderComponent {
 
   constructor(
     private sessionsService: SessionsService,
-    private sessionsComponant: SessionsComponent,
+    private sessionsComponent: SessionsComponent,
     private supergiant: Supergiant,
     private notifications: Notifications,
     private loginComponent: LoginComponent,
@@ -34,7 +34,7 @@ export class SessionsHeaderComponent {
         (data) => {
           if (data.status >= 200 && data.status <= 299) {
             this.notifications.display("success", "Session: " + session.id, "Deleted...")
-            this.sessionsComponant.getAccounts()
+            this.sessionsComponent.getAccounts()
            }else{
             this.notifications.display("error", "Session: " + session.id, "Error:" + data.statusText)}},
         (err) => {

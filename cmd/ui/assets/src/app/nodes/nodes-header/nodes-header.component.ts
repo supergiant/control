@@ -8,7 +8,7 @@ import { SystemModalService } from '../../shared/system-modal/system-modal.servi
 import { DropdownModalService } from '../../shared/dropdown-modal/dropdown-modal.service'
 import { EditModalService } from '../../shared/edit-modal/edit-modal.service'
 import { LoginComponent } from '../../login/login.component';
-
+import { NodesModel } from '../nodes.model'
 
 @Component({
   selector: 'app-nodes-header',
@@ -20,7 +20,7 @@ export class NodesHeaderComponent {
 
   constructor(
     private nodesService: NodesService,
-    private nodesComponant: NodesComponent,
+    private nodesComponent: NodesComponent,
     private supergiant: Supergiant,
     private notifications: Notifications,
     private systemModalService: SystemModalService,
@@ -31,23 +31,16 @@ export class NodesHeaderComponent {
 
   // After init, grab the schema
   ngAfterViewInit() {
-    // this.supergiant.Nodes.schema().subscribe(
-    //   (data) => { this.providersObj = data},
-    //   (err) => {this.notifications.display("warn", "Connection Issue.", err)});
+    this.providersObj = NodesModel
   }
 
   // If new button if hit, the New dropdown is triggered.
   sendOpen(message){
      let providers = [];
-     // Fetch options.
-     this.supergiant.Nodes.schema().subscribe(
-       (data) => { this.providersObj = data
-         // Push available providers to an array. Displayed in the dropdown.
-         for(let key in this.providersObj.providers){
-           providers.push(key)
-         }
-       });
-
+     // Push available providers to an array. Displayed in the dropdown.
+     for(let key in this.providersObj.providers){
+       providers.push(key)
+     }
       // Open Dropdown Modal
       this.dropdownModalService.open(
         "New Node", "Providers", providers).subscribe(
@@ -66,7 +59,7 @@ export class NodesHeaderComponent {
                         "Node: " + model.name,
                         "Created...",
                       )
-                      this.nodesComponant.getAccounts()
+                      this.nodesComponent.getAccounts()
                     }else{
                       this.notifications.display(
                         "error",
@@ -89,7 +82,7 @@ export class NodesHeaderComponent {
                         "Node: " + model.name.name,
                         "Created...",
                       )
-                      this.nodesComponant.getAccounts()
+                      this.nodesComponent.getAccounts()
                     }else{
                       this.notifications.display(
                         "error",
@@ -138,7 +131,7 @@ export class NodesHeaderComponent {
         (data) => {
           if (data.status >= 200 && data.status <= 299) {
             this.notifications.display("success", "User: " + provider.name, "Deleted...")
-            this.nodesComponant.getAccounts()
+            this.nodesComponent.getAccounts()
            }else{
             this.notifications.display("error", "User: " + provider.name, "Error:" + data.statusText)}},
         (err) => {
