@@ -112,9 +112,7 @@ export class CloudAccountsHeaderComponent {
           itemindex = aprovider
         }
       }
-      console.log(itemindex)
-      console.log(this.providersObj)
-      this.editModalService.open("Edit", itemindex, this.providersObj);
+      this.editModalService.open("Edit", itemindex, this.providersObj.providers);
     }
   }
 

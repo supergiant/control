@@ -17,7 +17,7 @@ import { ServicesModel } from '../services.model';
 })
 export class ServicesHeaderComponent {
   providersObj: any;
-  subscription: Subscription
+  subscriptions = [];
 
   constructor(
     private servicesService: ServicesService,
@@ -30,12 +30,19 @@ export class ServicesHeaderComponent {
     private loginComponent: LoginComponent,
     ) {}
 
+    ngOnDestroy(){
+      for (let subscription of this.subscriptions)  {
+        subscription.unsubscribe();
+      }
+    }
   // After init, grab the schema
   ngAfterViewInit() {
     this.providersObj = ServicesModel
-    this.subscription = this.dropdownModalService.dropdownModalResponse.subscribe(
-        (option) => {
-          this.editModalService.open("Save", option, this.providersObj).subscribe(
+    this.subscriptions["dropdown"] = this.dropdownModalService.dropdownModalResponse.subscribe(
+        (option) => {this.editModalService.open("Save", option, this.providersObj)},);
+
+
+    this.subscriptions["edit"] = this.editModalService.editModalResponse.subscribe(
             (userInput) => {
               var action = userInput[0]
               var providerID = 1
@@ -87,7 +94,6 @@ export class ServicesHeaderComponent {
                       "Error:" + err)
                     }});}
             });
-        });
   }
 
   // If new button if hit, the New dropdown is triggered.

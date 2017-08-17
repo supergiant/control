@@ -18,6 +18,7 @@ import { RepoModalService} from '../repo-modal/repo-modal.service';
 })
 export class AppsHeaderComponent {
   providersObj: any;
+  subscriptions = []
 
   constructor(
     private appsService: AppsService,
@@ -31,11 +32,65 @@ export class AppsHeaderComponent {
     private loginComponent: LoginComponent,
     ) {}
 
+    ngOnDestroy(){
+      for (let subscription of this.subscriptions)  {
+        subscription.unsubscribe();
+      }
+    }
   // After init, grab the schema
   ngAfterViewInit() {
-    // this.supergiant.Kubes.schema().subscribe(
-    //   (data) => { this.providersObj = data},
-    //   (err) => {this.notifications.display("warn", "Connection Issue.", err)});
+    this.subscriptions["edit"] = this.editModalService.editModalResponse.subscribe(
+          (userInput) => {
+            var action = userInput[0]
+            var providerID = 1
+            var model = userInput[2]
+            if (action === "Edit") {
+            this.supergiant.Kubes.update(providerID, model).subscribe(
+              (data) => {
+                if (data.status >= 200 && data.status <= 299) {
+                  this.notifications.display(
+                    "success",
+                    "Kube: " + model.name,
+                    "Created...",
+                  )
+                  // this.appsCom.getAccounts()
+                }else{
+                  this.notifications.display(
+                    "error",
+                    "Kube: " + model.name,
+                    "Error:" + data.statusText)
+                  }},
+              (err) => {
+                if (err) {
+                  this.notifications.display(
+                    "error",
+                    "Kube: " + model.name,
+                    "Error:" + err)
+                  }});
+          } else {
+            this.supergiant.Kubes.create(model).subscribe(
+              (data) => {
+                if (data.status >= 200 && data.status <= 299) {
+                  this.notifications.display(
+                    "success",
+                    "Kube: " + model.name.name,
+                    "Created...",
+                  )
+                  // this.kubesComponent.getAccounts()
+                }else{
+                  this.notifications.display(
+                    "error",
+                    "Kube: " + model.name.name,
+                    "Error:" + data.statusText)
+                  }},
+              (err) => {
+                if (err) {
+                  this.notifications.display(
+                    "error",
+                    "Kube: " + model.name.name,
+                    "Error:" + err)
+                  }});}
+          });
   }
 
   // If new button if hit, the New dropdown is triggered.
@@ -53,61 +108,7 @@ export class AppsHeaderComponent {
       // Open Dropdown Modal
       this.dropdownModalService.open(
         "New App", "Providers", providers).subscribe(
-          (option) => {
-            this.editModalService.open("Save", option, this.providersObj).subscribe(
-              (userInput) => {
-                var action = userInput[0]
-                var providerID = 1
-                var model = userInput[2]
-                if (action === "Edit") {
-                this.supergiant.Kubes.update(providerID, model).subscribe(
-                  (data) => {
-                    if (data.status >= 200 && data.status <= 299) {
-                      this.notifications.display(
-                        "success",
-                        "Kube: " + model.name,
-                        "Created...",
-                      )
-                      // this.appsCom.getAccounts()
-                    }else{
-                      this.notifications.display(
-                        "error",
-                        "Kube: " + model.name,
-                        "Error:" + data.statusText)
-                      }},
-                  (err) => {
-                    if (err) {
-                      this.notifications.display(
-                        "error",
-                        "Kube: " + model.name,
-                        "Error:" + err)
-                      }});
-              } else {
-                this.supergiant.Kubes.create(model).subscribe(
-                  (data) => {
-                    if (data.status >= 200 && data.status <= 299) {
-                      this.notifications.display(
-                        "success",
-                        "Kube: " + model.name.name,
-                        "Created...",
-                      )
-                      // this.kubesComponent.getAccounts()
-                    }else{
-                      this.notifications.display(
-                        "error",
-                        "Kube: " + model.name.name,
-                        "Error:" + data.statusText)
-                      }},
-                  (err) => {
-                    if (err) {
-                      this.notifications.display(
-                        "error",
-                        "Kube: " + model.name.name,
-                        "Error:" + err)
-                      }});}
-              });
-          });
-
+          (option) => {this.editModalService.open("Save", option, this.providersObj)});
   }
 
   openSystemModal(message){
