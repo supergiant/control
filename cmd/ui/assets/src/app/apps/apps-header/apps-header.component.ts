@@ -39,6 +39,9 @@ export class AppsHeaderComponent {
     }
   // After init, grab the schema
   ngAfterViewInit() {
+    this.subscriptions["dropdown"] = this.dropdownModalService.dropdownModalResponse.subscribe(
+      (option) => {this.editModalService.open("Save", option, this.providersObj)});
+
     this.subscriptions["edit"] = this.editModalService.editModalResponse.subscribe(
           (userInput) => {
             var action = userInput[0]
@@ -103,12 +106,9 @@ export class AppsHeaderComponent {
          for(let key in this.providersObj.providers){
            providers.push(key)
          }
+         // Open Dropdown Modal
+         this.dropdownModalService.open("New App", "Providers", providers)
        });
-
-      // Open Dropdown Modal
-      this.dropdownModalService.open(
-        "New App", "Providers", providers).subscribe(
-          (option) => {this.editModalService.open("Save", option, this.providersObj)});
   }
 
   openSystemModal(message){

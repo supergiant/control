@@ -1,7 +1,7 @@
 import { Component, OnDestroy } from '@angular/core';
 import { CloudAccountsService } from '../cloud-accounts.service';
 import { Supergiant } from '../../shared/supergiant/supergiant.service'
-import {CloudAccountsComponent} from '../cloud-accounts.component'
+import { CloudAccountsComponent } from '../cloud-accounts.component'
 import { Subscription } from 'rxjs/Subscription';
 import { Notifications } from '../../shared/notifications/notifications.service'
 import { SystemModalService } from '../../shared/system-modal/system-modal.service'
@@ -30,43 +30,51 @@ export class CloudAccountsHeaderComponent {
     private dropdownModalService: DropdownModalService,
     private editModalService: EditModalService,
     private loginComponent: LoginComponent,
-    ) {}
+  ) { }
 
-    ngOnDestroy(){
-      for (let subscription of this.subscriptions)  {
-        subscription.unsubscribe();
-      }
+  ngOnDestroy() {
+    for (let subscription of this.subscriptions) {
+      subscription.unsubscribe();
     }
+  }
 
   ngAfterViewInit() {
     this.subscriptions["dropdown"] = this.dropdownModalService.dropdownModalResponse.subscribe(
       (option) => {
-        this.editModalService.open("Save", option, this.providersObj)},
-      );
+        if (option != "closed") {
+          this.editModalService.open("Save", option, this.providersObj.providers)
+        }
+      },
+    );
 
     this.subscriptions["edit"] = this.editModalService.editModalResponse.subscribe(
       (userInput) => {
-        var action = userInput[0]
-        var providerID = 1
-        var model = userInput[2]
+        if (userInput != "closed") {
+          var action = userInput[0]
+          var providerID = 1
+          var model = userInput[2]
 
-        if (action === "Edit") {
-          this.supergiant.CloudAccounts.update(providerID, model).subscribe(
-            (data) => {
-              this.success(model)
-              this.cloudAccountsComponent.getAccounts()},
-            (err) => {this.error(model, err)},);
-        } else {
-          this.supergiant.CloudAccounts.create(model).subscribe(
-            (data) => {
-              this.success(model)
-              this.cloudAccountsComponent.getAccounts()},
-            (err) => {this.error(model, err)});
+          if (action === "Edit") {
+            this.supergiant.CloudAccounts.update(providerID, model).subscribe(
+              (data) => {
+                this.success(model)
+                this.cloudAccountsComponent.getAccounts()
+              },
+              (err) => { this.error(model, err) }, );
+          } else {
+            this.supergiant.CloudAccounts.create(model).subscribe(
+              (data) => {
+                this.success(model)
+                this.cloudAccountsComponent.getAccounts()
+              },
+              (err) => { this.error(model, err) });
+          }
         }
-      });
+      }
+    );
   }
 
-  success(model){
+  success(model) {
     this.notifications.display(
       "success",
       "Cloud Account: " + model.name,
@@ -81,21 +89,21 @@ export class CloudAccountsHeaderComponent {
       "Error:" + data.statusText)
   }
   // If new button if hit, the New dropdown is triggered.
-  sendOpen(message){
-     let providers = [];
+  sendOpen(message) {
+    let providers = [];
 
-     // Push available providers to an array. Displayed in the dropdown.
-     for(let key in this.providersObj.providers){
-       providers.push(key)
-     }
+    // Push available providers to an array. Displayed in the dropdown.
+    for (let key in this.providersObj.providers) {
+      providers.push(key)
+    }
 
-      // Open Dropdown Modal
-      this.dropdownModalService.open("New Cloud Account", "Cloud Account", providers)
+    // Open Dropdown Modal
+    this.dropdownModalService.open("New Cloud Account", "Cloud Account", providers)
 
   }
 
-  openSystemModal(message){
-      this.systemModalService.openSystemModal(message);
+  openSystemModal(message) {
+    this.systemModalService.openSystemModal(message);
   }
   // If the edit button is hit, the Edit modal is opened.
   editCloudAccount() {
@@ -122,19 +130,19 @@ export class CloudAccountsHeaderComponent {
     if (selectedItems.length === 0) {
       this.notifications.display("warn", "Warning:", "No Cloud Account Selected.")
     } else {
-    for(let provider of selectedItems){
-      this.supergiant.CloudAccounts.delete(provider.id).subscribe(
-        (data) => {
-          if (data.status >= 200 && data.status <= 299) {
-            this.notifications.display("success", "Cloud Account: " + provider.name, "Deleted...")
-            this.cloudAccountsComponent.getAccounts()
-           }else{
-            this.notifications.display("error", "Cloud Account: " + provider.name, "Error:" + data.statusText)}},
-        (err) => {
-          if (err) {
-            this.notifications.display("error", "Cloud Account: " + provider.name, "Error:" + err)}},
-      );
+      for (let provider of selectedItems) {
+        this.supergiant.CloudAccounts.delete(provider.id).subscribe(
+          (data) => {
+              this.notifications.display("success", "Cloud Account: " + provider.name, "Deleted...")
+              this.cloudAccountsComponent.getAccounts()
+            },
+          (err) => {
+            if (err) {
+              this.notifications.display("error", "Cloud Account: " + provider.name, "Error:" + err)
+            }
+          },
+        );
+      }
     }
-  }
   }
 }

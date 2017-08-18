@@ -30,7 +30,7 @@ export class CloudAccountModel {
         },
         "provider": {
           "default": "aws",
-          "description": "Provider",
+          "description": "AWS - Amazon Web Services",
           "type": "string",
           "widget": "hidden"
         }
@@ -62,7 +62,7 @@ export class CloudAccountModel {
         },
         "provider": {
           "default": "digitalocean",
-          "description": "Provider",
+          "description": "Digital Ocean",
           "type": "string",
           "widget": "hidden"
         }
@@ -140,7 +140,7 @@ export class CloudAccountModel {
         },
         "provider": {
           "default": "gce",
-          "description": "Provider",
+          "description": "GCE - Google Compute Engine",
           "type": "string",
           "widget": "hidden"
         }
@@ -197,7 +197,7 @@ export class CloudAccountModel {
         },
         "provider": {
           "default": "openstack",
-          "description": "Provider",
+          "description": "OpenStack",
           "type": "string",
           "widget": "hidden"
         }
@@ -229,7 +229,7 @@ export class CloudAccountModel {
         },
         "provider": {
           "default": "packet",
-          "description": "Provider",
+          "description": "Packet.net",
           "type": "string",
           "widget": "hidden"
         }

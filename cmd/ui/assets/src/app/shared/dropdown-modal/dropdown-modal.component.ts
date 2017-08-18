@@ -43,8 +43,12 @@ export class DropdownModalComponent implements OnInit {
     let options: NgbModalOptions = {
       size: 'sm'
     };
-    console.log(this.subscription)
     this.modalRef = this.modalService.open(content, options)
+    // If user cancels or closes the window.. we need to answer the promise.
+    this.modalRef.result.then(
+      (window) => { this.dropdownModalService.dropdownModalResponse.next("closed") },
+      (err) => { this.dropdownModalService.dropdownModalResponse.next("closed") },
+    );
   }
 
   ngOnDestroy(){

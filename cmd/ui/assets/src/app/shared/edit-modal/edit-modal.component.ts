@@ -1,4 +1,4 @@
-import { Component, OnInit, AfterViewInit, OnDestroy,ViewChild, ElementRef } from '@angular/core';
+import { Component, OnInit, AfterViewInit, OnDestroy, ViewChild, ElementRef } from '@angular/core';
 import { NgbModal, ModalDismissReasons, NgbModalOptions, NgbModalRef } from '@ng-bootstrap/ng-bootstrap';
 import { Subscription } from 'rxjs/Subscription';
 import { EditModalService } from './edit-modal.service';
@@ -34,7 +34,7 @@ export class EditModalComponent implements OnInit {
   // Data init after load
   ngAfterViewInit() {
     // Check for messages from the new Cloud Accont dropdown, or edit button.
-    this.subscription = this.editModalService.newModal.subscribe( message => {
+    this.subscription = this.editModalService.newModal.subscribe(message => {
       {
         // A schema object, contains:
         // .model -> Default UI settings.
@@ -52,7 +52,8 @@ export class EditModalComponent implements OnInit {
         this.schema = this.schemaBlob[this.item].schema
       };
       // open the New/Edit modal
-      {this.open(this.content)};});
+      { this.open(this.content) };
+    });
   }
 
   convertToObj(json) {
@@ -64,9 +65,14 @@ export class EditModalComponent implements OnInit {
       size: 'lg'
     };
     this.modalRef = this.modalService.open(content, options);
+    // If user cancels or closes the window.. we need to answer the promise.
+    this.modalRef.result.then(
+      (window) => { this.editModalService.editModalResponse.next("closed") },
+      (err) => { this.editModalService.editModalResponse.next("closed") },
+    );
   }
 
-  ngOnDestroy(){
+  ngOnDestroy() {
     this.subscription.unsubscribe();
   }
 
