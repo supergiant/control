@@ -10,10 +10,19 @@ export class KubeComponent {
   @Input() kube: any;
   constructor(private kubesService: KubesService) { }
   status(kube) {
-    if (kube.ready) {
-      return "status status-ok"
-    } else {
-      return "status status-transitioning"
+    switch (kube.status) {
+      case "completed": {
+        return "status status-ok"
+      }
+      case "provisioning": {
+        return "status status-transitioning"
+      }
+      case "deleting": {
+        return "status status-transitioning"
+      }
+       default: {
+         return "status status-warning"
+       }
     }
   }
 }

@@ -10,6 +10,5 @@ export class DropdownModalService {
 
     open(title, type, options){
       this.newModal.next([title, type, options]);
-      return this.dropdownModalResponse
     }
 }
