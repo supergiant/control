@@ -13,7 +13,7 @@ import { Observable } from 'rxjs/Rx';
 })
 export class SessionsComponent implements OnInit {
   sessions: any;
-  private subscription: Subscription;
+  private subscriptions = new Subscription();
 
   constructor(
     private sessionsService: SessionsService,
@@ -27,12 +27,12 @@ export class SessionsComponent implements OnInit {
   }
   //get accounts
   getAccounts() {
-    this.subscription = Observable.timer(0, 10000)
+    this.subscriptions.add(Observable.timer(0, 10000)
     .switchMap(() => this.supergiant.Sessions.get()).subscribe(
       (sessions) =>{ this.sessions = sessions.items; },
-      (err) =>{ this.notifications.display("warn", "Connection Issue.", err)})
+      (err) =>{ this.notifications.display("warn", "Connection Issue.", err)}))
   }
-  ngOnDestroy(){
-    this.subscription.unsubscribe();
+  ngOnDestroy() {
+    this.subscriptions.unsubscribe()
   }
 }

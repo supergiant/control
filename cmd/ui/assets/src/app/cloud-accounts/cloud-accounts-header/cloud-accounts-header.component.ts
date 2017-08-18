@@ -18,7 +18,7 @@ import { CloudAccountModel } from '../cloud-accounts.model';
 })
 export class CloudAccountsHeaderComponent {
   providersObj = new CloudAccountModel
-  subscriptions = [];
+  subscriptions = new Subscription();
   editID: number;
 
   constructor(
@@ -33,25 +33,23 @@ export class CloudAccountsHeaderComponent {
   ) { }
 
   ngOnDestroy() {
-    for (let subscription of this.subscriptions) {
-      subscription.unsubscribe();
-    }
+    this.subscriptions.unsubscribe()
   }
 
   ngAfterViewInit() {
-    this.subscriptions["dropdown"] = this.dropdownModalService.dropdownModalResponse.subscribe(
+    this.subscriptions.add(this.dropdownModalService.dropdownModalResponse.subscribe(
       (option) => {
         if (option != "closed") {
           this.editModalService.open("Save", option, this.providersObj.providers)
         }
       },
-    );
+    ))
 
-    this.subscriptions["edit"] = this.editModalService.editModalResponse.subscribe(
+    this.subscriptions.add(this.editModalService.editModalResponse.subscribe(
       (userInput) => {
         if (userInput != "closed") {
           var action = userInput[0]
-          var providerID = 1
+          var providerID = userInput[1]
           var model = userInput[2]
 
           if (action === "Edit") {
@@ -71,7 +69,7 @@ export class CloudAccountsHeaderComponent {
           }
         }
       }
-    );
+    ))
   }
 
   success(model) {

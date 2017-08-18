@@ -16,6 +16,10 @@ export class KubesService {
       return this.selectedItems
     }
 
+    resetSelected() {
+      this.selectedItems = []
+    }
+
     isChecked(item) {
       for (let obj of this.selectedItems) {
         if (item.id === obj.id) {return true}

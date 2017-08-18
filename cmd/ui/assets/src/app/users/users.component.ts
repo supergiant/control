@@ -12,7 +12,7 @@ import { Observable } from 'rxjs/Rx';
 })
 export class UsersComponent implements OnInit {
   private users = [];
-  private subscription: Subscription;
+  private subscriptions = new Subscription();
 
   constructor(
     private supergiant: Supergiant,
@@ -24,13 +24,13 @@ export class UsersComponent implements OnInit {
   }
 
   getUsers() {
-    this.subscription = Observable.timer(0, 5000)
+    this.subscriptions.add(Observable.timer(0, 5000)
       .switchMap(() => this.supergiant.Users.get()).subscribe(
       (users) => { this.users = users.items },
-      (err) => { this.notifications.display("warn", "Connection Issue.", err) });
+      (err) => { this.notifications.display("warn", "Connection Issue.", err) }))
   }
 
   ngOnDestroy() {
-    this.subscription.unsubscribe();
+    this.subscriptions.unsubscribe()
   }
 }

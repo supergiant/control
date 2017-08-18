@@ -16,7 +16,7 @@ import { KubesModel } from '../kubes.model';
   styleUrls: ['./kubes-header.component.css']
 })
 export class KubesHeaderComponent {
-  subscriptions = []
+  subscriptions = new Subscription();
   cloudAccountsList = [];
 
   kubesModel = new KubesModel
@@ -32,18 +32,16 @@ export class KubesHeaderComponent {
   ) { }
 
   ngOnDestroy() {
-    for (let subscription of this.subscriptions) {
-      subscription.unsubscribe();
-    }
+    this.subscriptions.unsubscribe()
   }
   // After init, grab the schema
   ngAfterViewInit() {
     //this.providersObj = KubesModel
-    this.subscriptions["accounts"] = this.supergiant.CloudAccounts.get().subscribe(
+    this.subscriptions.add(this.supergiant.CloudAccounts.get().subscribe(
       (data) => { this.cloudAccountsList = data.items }
-    )
+    ))
 
-    this.subscriptions["dropdown"] = this.dropdownModalService.dropdownModalResponse.subscribe(
+    this.subscriptions.add(this.dropdownModalService.dropdownModalResponse.subscribe(
       (option) => {
         if (option != "closed") {
           let cloudAccount = this.cloudAccountsList.filter(resource => resource.name == option)[0]
@@ -51,31 +49,32 @@ export class KubesHeaderComponent {
         }
       },
       (err) => { console.log("ERROR: " + err) }
-    );
+    ))
 
-    this.subscriptions["edit"] = this.editModalService.editModalResponse.subscribe(
+    this.subscriptions.add(this.editModalService.editModalResponse.subscribe(
       (userInput) => {
         if (userInput != "closed") {
           var action = userInput[0]
           var providerID = 1
           var model = userInput[2]
           if (action === "Edit") {
-            this.supergiant.Kubes.update(providerID, model).subscribe(
+            this.subscriptions.add(this.supergiant.Kubes.update(providerID, model).subscribe(
               (data) => {
+                console.log(data)
                 this.success(model)
                 this.kubesComponent.getAccounts()
               },
-              (err) => { this.error(model, err) });
+              (err) => { this.error(model, err) }))
           } else {
-            this.supergiant.Kubes.create(model).subscribe(
+            this.subscriptions.add(this.supergiant.Kubes.create(model).subscribe(
               (data) => {
                 this.success(model)
                 this.kubesComponent.getAccounts()
               },
-              (err) => { this.error(model, err) });
+              (err) => { this.error(model, err) }))
           }
         }
-      });
+      }))
   }
 
   success(model) {
@@ -117,22 +116,22 @@ export class KubesHeaderComponent {
   }
 
   // If the delete button is hit, the seleted accounts are deleted.
-  deleteCloudAccount() {
+  deleteKube() {
     var selectedItems = this.kubesService.returnSelected()
     if (selectedItems.length === 0) {
       this.notifications.display("warn", "Warning:", "No Kube Selected.")
-    } else if (selectedItems.length > 1) {
-      this.notifications.display("warn", "Warning:", "You cannot edit more than one Kube at a time.")
     } else {
       for (let provider of selectedItems) {
-        this.supergiant.Kubes.delete(provider.id).subscribe(
+        this.subscriptions.add(this.supergiant.Kubes.delete(provider.id).subscribe(
           (data) => {
-              this.notifications.display("success", "Kube: " + provider.name, "Deleted...")
-              this.kubesComponent.getAccounts()},
-          (err) => {
-              this.notifications.display("error", "Kube: " + provider.name, "Error:" + err)
+            this.notifications.display("success", "Kube: " + provider.name, "Deleted...")
+            this.kubesService.resetSelected()
+            this.kubesComponent.getAccounts()
           },
-        );
+          (err) => {
+            this.notifications.display("error", "Kube: " + provider.name, "Error:" + err)
+          },
+        ))
       }
     }
   }

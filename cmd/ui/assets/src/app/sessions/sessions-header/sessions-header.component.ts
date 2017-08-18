@@ -12,7 +12,7 @@ import { LoginComponent } from '../../login/login.component';
   styleUrls: ['./sessions-header.component.css']
 })
 export class SessionsHeaderComponent {
-  private cloudAccountsSub: Subscription;
+  subscriptions = new Subscription();
   sessionsObj: any;
 
   constructor(
@@ -23,6 +23,9 @@ export class SessionsHeaderComponent {
     private loginComponent: LoginComponent,
     ) {}
 
+    ngOnDestroy() {
+      this.subscriptions.unsubscribe()
+    }
   // If the delete button is hit, the seleted sessions are deleted.
   deleteSession() {
     var selectedItems = this.sessionsService.returnSelectedSessions()
@@ -30,13 +33,13 @@ export class SessionsHeaderComponent {
       this.notifications.display("warn", "Warning:", "No Session Selected.")
     } else {
     for(let session of selectedItems){
-      this.supergiant.Sessions.delete(session.id).subscribe(
+      this.subscriptions.add(this.supergiant.Sessions.delete(session.id).subscribe(
         (data) => {
             this.notifications.display("success", "Session: " + session.id, "Deleted...")
             this.sessionsComponent.getAccounts()},
         (err) => {
             this.notifications.display("error", "Session: " + session.id, "Error:" + err)},
-      );
+      ))
     }
   }
   }

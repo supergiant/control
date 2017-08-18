@@ -18,7 +18,7 @@ import { UsersModel } from '../users.model';
 })
 export class UsersHeaderComponent {
   providersObj: any;
-  subscriptions = [];
+  subscriptions = new Subscription();
   editID: number;
   constructor(
     private usersService: UsersService,
@@ -31,13 +31,11 @@ export class UsersHeaderComponent {
   ) { }
 
   ngOnDestroy() {
-    for (let subscription of this.subscriptions) {
-      subscription.unsubscribe();
-    }
+    this.subscriptions.unsubscribe()
   }
 
   ngAfterViewInit() {
-    this.subscriptions["edit"] = this.editModalService.editModalResponse.subscribe(
+    this.subscriptions.add(this.editModalService.editModalResponse.subscribe(
       (userInput) => {
         if (userInput != "close") {
           var action = userInput[0]
@@ -45,26 +43,26 @@ export class UsersHeaderComponent {
           var model = userInput[2]
 
           if (action === "Save") {
-            this.supergiant.Users.create(model).subscribe(
+            this.subscriptions.add(this.supergiant.Users.create(model).subscribe(
               (data) => {
                 this.success(model)
                 this.usersComponent.getUsers()
               },
               (err) => { this.error(model, err) }
-            );
+            ))
           } else if (action === "Edit") {
-            this.supergiant.Users.update(this.editID, model).subscribe(
+            this.subscriptions.add(this.supergiant.Users.update(this.editID, model).subscribe(
               (data) => {
                 this.success(model)
                 this.usersService.resetSelected()
                 this.usersComponent.getUsers()
               },
               (err) => { this.error(model, err) }
-            );
+            ))
           }
         }
       }
-    );
+    ))
   }
 
   success(model) {
@@ -114,7 +112,7 @@ export class UsersHeaderComponent {
       this.notifications.display("warn", "Warning:", "No User Selected.")
     } else {
       for (let user of selectedItems) {
-        this.subscriptions[user.id] = this.supergiant.Users.generateToken(user.id).subscribe(
+        this.subscriptions.add(this.supergiant.Users.generateToken(user.id).subscribe(
           (data) => {
             this.notifications.display("success", "User: " + user.username, "API Key Updated...")
             this.usersService.resetSelected()
@@ -123,7 +121,7 @@ export class UsersHeaderComponent {
           (err) => {
             this.notifications.display("error", "User: " + user.username, "Error:" + err)
           },
-        )
+        ))
       }
     }
   }
@@ -134,7 +132,7 @@ export class UsersHeaderComponent {
       this.notifications.display("warn", "Warning:", "No User Selected.")
     } else {
       for (let user of selectedItems) {
-        this.supergiant.Users.delete(user.id).subscribe(
+        this.subscriptions.add(this.supergiant.Users.delete(user.id).subscribe(
           (data) => {
             this.notifications.display("success", "User: " + user.username, "Deleted...")
             this.usersService.resetSelected()
@@ -143,7 +141,7 @@ export class UsersHeaderComponent {
           (err) => {
             this.notifications.display("error", "User: " + user.username, "Error:" + err)
           },
-        );
+        ))
       }
     }
   }
