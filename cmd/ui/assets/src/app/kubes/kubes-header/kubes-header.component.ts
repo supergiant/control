@@ -96,7 +96,7 @@ export class KubesHeaderComponent {
   sendOpen(message) {
     let providers = [];
     providers = this.cloudAccountsList.map((resource) => { return resource.name })
-    this.dropdownModalService.open("New Kube", "Providers", providers)
+    this.dropdownModalService.open("New Kube", "Provider", providers)
   }
 
   openSystemModal(message) {

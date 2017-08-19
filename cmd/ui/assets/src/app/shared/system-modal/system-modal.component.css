@@ -1,5 +1,6 @@
 .modal-dialog.modal-lg {
     max-width: 90%;
+    max-height: 90%;
 }
 .tab-content {
   padding-top: 10px;
@@ -15,7 +16,7 @@ div#log {
   background: #222;
   color: #777;
   white-space: pre-wrap;
-  height: 400px;
+  height: 90%;
   padding: 0 0 0 15px;
   overflow-y: scroll;
   font-family: Consolas, Menlo, Courier, monospace;

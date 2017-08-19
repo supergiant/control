@@ -1,4 +1,4 @@
-import { Component, Input} from '@angular/core';
+import { Component, Input } from '@angular/core';
 import { KubesService } from '../kubes.service';
 import { Notifications } from '../../shared/notifications/notifications.service'
 
@@ -13,21 +13,17 @@ export class KubeComponent {
   constructor(
     private kubesService: KubesService,
     private notifications: Notifications,
-) { }
+  ) { }
+
   status(kube) {
-    switch (kube.buildStatus) {
-      case "completed": {
-        return "status status-ok"
-      }
-      case "provisioning": {
-        return "status status-transitioning"
-      }
-      case "deleting": {
-        return "status status-transitioning"
-      }
-       default: {
-         return "status status-warning"
-       }
+    if (kube.status && kube.status.error && kube.status.retries == kube.status.max_retries) {
+      return "status status-danger"
+    } else if (kube.status) {
+      return "status status-transitioning"
+    } else if (kube.passive_status && !kube.passive_status_okay) {
+      return "status status-warning"
+    } else {
+      return "status status-ok"
     }
   }
 }

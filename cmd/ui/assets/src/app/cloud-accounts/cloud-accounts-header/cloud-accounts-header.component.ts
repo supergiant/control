@@ -131,9 +131,9 @@ export class CloudAccountsHeaderComponent {
       for (let provider of selectedItems) {
         this.supergiant.CloudAccounts.delete(provider.id).subscribe(
           (data) => {
-              this.notifications.display("success", "Cloud Account: " + provider.name, "Deleted...")
-              this.cloudAccountsComponent.getAccounts()
-            },
+            this.notifications.display("success", "Cloud Account: " + provider.name, "Deleted...")
+            this.cloudAccountsComponent.getAccounts()
+          },
           (err) => {
             if (err) {
               this.notifications.display("error", "Cloud Account: " + provider.name, "Error:" + err)

@@ -7,7 +7,7 @@
   </div>
   <div class="modal-body">
     <div ngbDropdown>
-      <button class="btn btn-primary btn-block" ngbDropdownToggle>Select a {{ optionName }}</button>
+      <button class="btn btn-primary btn-block" ngbDropdownToggle>Select a {{ type }}</button>
       <div class="dropdown-menu" aria-labelledby="actions">
         <button *ngFor="let option of options" class="dropdown-item" (click)="sendChoice(option)">{{ option }}</button>
       </div>

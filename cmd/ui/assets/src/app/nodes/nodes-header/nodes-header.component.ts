@@ -95,7 +95,7 @@ export class NodesHeaderComponent {
   sendOpen(message) {
     let options = [];
     options = this.kubes.map((kube) => { return kube.name })
-    this.dropdownModalService.open("New Node", "Kubes", options)
+    this.dropdownModalService.open("New Node", "Kube", options)
   }
 
   openSystemModal(message) {
