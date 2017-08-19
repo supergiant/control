@@ -45,6 +45,7 @@ export class KubesHeaderComponent {
       (option) => {
         if (option != "closed") {
           let cloudAccount = this.cloudAccountsList.filter(resource => resource.name == option)[0]
+          this.kubesModel.providers[cloudAccount.provider].model.cloud_account_name = cloudAccount.name
           this.editModalService.open("Save", cloudAccount.provider, this.kubesModel.providers)
         }
       },
