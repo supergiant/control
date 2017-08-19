@@ -73,7 +73,8 @@ type Kube struct {
 
 	MasterPublicIP string `json:"master_public_ip" sg:"readonly"`
 
-	Ready bool `json:"ready" sg:"readonly" gorm:"index"`
+	Ready       bool   `json:"ready" sg:"readonly" gorm:"index"`
+	BuildStatus string `json:"buildStatus" sg:"readonly"`
 }
 
 // AWSKubeConfig holds aws specific information about AWS based KUbernetes clusters.

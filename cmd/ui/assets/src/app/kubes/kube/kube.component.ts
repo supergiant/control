@@ -1,5 +1,7 @@
 import { Component, Input} from '@angular/core';
 import { KubesService } from '../kubes.service';
+import { Notifications } from '../../shared/notifications/notifications.service'
+
 
 @Component({
   selector: '[app-kube]',
@@ -8,9 +10,12 @@ import { KubesService } from '../kubes.service';
 })
 export class KubeComponent {
   @Input() kube: any;
-  constructor(private kubesService: KubesService) { }
+  constructor(
+    private kubesService: KubesService,
+    private notifications: Notifications,
+) { }
   status(kube) {
-    switch (kube.status) {
+    switch (kube.buildStatus) {
       case "completed": {
         return "status status-ok"
       }

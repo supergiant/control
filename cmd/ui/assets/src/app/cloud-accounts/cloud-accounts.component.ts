@@ -13,7 +13,7 @@ import { Observable } from 'rxjs/Rx';
 })
 export class CloudAccountsComponent implements OnInit {
   private cloudAccounts = [];
-  private subscription: Subscription;
+  subscriptions = new Subscription();
 
   constructor(
     private cloudAccountsService: CloudAccountsService,
@@ -27,13 +27,13 @@ export class CloudAccountsComponent implements OnInit {
   }
   //get accounts
   getAccounts() {
-    this.subscription = Observable.timer(0, 5000)
+    this.subscriptions.add(Observable.timer(0, 5000)
     .switchMap(() => this.supergiant.CloudAccounts.get()).subscribe(
       (cloudAccounts) => { this.cloudAccounts = cloudAccounts.items},
-      (err) => { this.notifications.display("warn", "Connection Issue.", err)});
+      (err) => { this.notifications.display("warn", "Connection Issue.", err)}))
   }
 
-  ngOnDestroy(){
-    this.subscription.unsubscribe();
+  ngOnDestroy() {
+    this.subscriptions.unsubscribe()
   }
 }
