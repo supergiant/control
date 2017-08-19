@@ -13,7 +13,7 @@ import { Observable } from 'rxjs/Rx';
 })
 export class PodsComponent implements OnInit {
   private pods = [];
-  private subscription: Subscription;
+  subscriptions = new Subscription();
 
   constructor(
     private podsService: PodsService,
@@ -27,13 +27,13 @@ export class PodsComponent implements OnInit {
   }
   //get accounts
   getAccounts() {
-    this.subscription = Observable.timer(0, 5000)
-    .switchMap(() => this.supergiant.KubeResources.get()).subscribe(
-      (pods) => {this.pods = pods.items.filter( resource => resource.kind === "Pod")},
-      (err) => { this.notifications.display("warn", "Connection Issue.", err)});
+    this.subscriptions.add(Observable.timer(0, 5000)
+      .switchMap(() => this.supergiant.KubeResources.get()).subscribe(
+      (pods) => { this.pods = pods.items.filter(resource => resource.kind === "Pod") },
+      (err) => { this.notifications.display("warn", "Connection Issue.", err) }))
   }
 
-  ngOnDestroy(){
-    this.subscription.unsubscribe();
+  ngOnDestroy() {
+    this.subscriptions.unsubscribe()
   }
 }

@@ -11,8 +11,7 @@ import { Supergiant } from '../shared/supergiant/supergiant.service'
 export class AppsComponent implements OnInit {
   private apps = [];
   private deployments = [];
-  private deploySubscription: Subscription;
-  private appsSubscription: Subscription;
+  subscriptions = new Subscription();
 
   constructor(
     private supergiant: Supergiant,
@@ -25,21 +24,20 @@ export class AppsComponent implements OnInit {
   }
   //get accounts
   getApps() {
-    this.appsSubscription = Observable.timer(0, 5000)
+    this.subscriptions.add(Observable.timer(0, 5000)
     .switchMap(() => this.supergiant.HelmCharts.get()).subscribe(
       (apps) => { this.apps = apps.items},
-      () => {});
+      () => {}))
   }
 
   getDeployments() {
-    this.deploySubscription = Observable.timer(0, 5000)
+    this.subscriptions.add(Observable.timer(0, 5000)
     .switchMap(() => this.supergiant.HelmReleases.get()).subscribe(
       (deployments) => { this.deployments = deployments.items},
-      () => {});
+      () => {}))
   }
 
-  ngOnDestroy(){
-    this.appsSubscription.unsubscribe();
-    this.deploySubscription.unsubscribe();
+  ngOnDestroy() {
+    this.subscriptions.unsubscribe()
   }
 }

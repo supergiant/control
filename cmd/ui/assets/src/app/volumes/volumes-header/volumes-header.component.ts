@@ -15,6 +15,7 @@ import { LoginComponent } from '../../login/login.component';
   styleUrls: ['./volumes-header.component.css']
 })
 export class VolumesHeaderComponent {
+  subscriptions = new Subscription();
   constructor(
     private volumesService: VolumesService,
     private volumesComponent: VolumesComponent,
@@ -24,35 +25,35 @@ export class VolumesHeaderComponent {
     private dropdownModalService: DropdownModalService,
     private editModalService: EditModalService,
     private loginComponent: LoginComponent,
-    ) {}
+  ) { }
 
-  ngAfterViewInit() {}
+  ngAfterViewInit() { }
 
-  openSystemModal(message){
-      this.systemModalService.openSystemModal(message);
+  ngOnDestroy() {
+    this.subscriptions.unsubscribe()
+  }
+
+  openSystemModal(message) {
+    this.systemModalService.openSystemModal(message);
   }
 
   // If the delete button is hit, the seleted accounts are deleted.
   deleteVolume() {
     var selectedItems = this.volumesService.returnSelected()
     if (selectedItems.length === 0) {
-      this.notifications.display("warn", "Warning:", "No Provider Selected.")
-    } else if (selectedItems.length > 1) {
-      this.notifications.display("warn", "Warning:", "You cannot edit more than one provider at a time.")
+      this.notifications.display("warn", "Warning:", "No Volume Selected.")
     } else {
-    for(let provider of selectedItems){
-      this.supergiant.KubeResources.delete(provider.id).subscribe(
-        (data) => {
-          if (data.status >= 200 && data.status <= 299) {
+      for (let provider of selectedItems) {
+        this.subscriptions.add(this.supergiant.KubeResources.delete(provider.id).subscribe(
+          (data) => {
             this.notifications.display("success", "Volume: " + provider.name, "Deleted...")
             this.volumesComponent.getAccounts()
-           }else{
-            this.notifications.display("error", "Volume: " + provider.name, "Error:" + data.statusText)}},
-        (err) => {
-          if (err) {
-            this.notifications.display("error", "Volume: " + provider.name, "Error:" + err)}},
-      );
+          },
+          (err) => {
+            this.notifications.display("error", "Volume: " + provider.name, "Error:" + err)
+          },
+        ))
+      }
     }
-  }
   }
 }
