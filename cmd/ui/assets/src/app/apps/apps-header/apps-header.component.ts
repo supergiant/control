@@ -19,6 +19,7 @@ import { RepoModalService } from '../repo-modal/repo-modal.service';
 export class AppsHeaderComponent {
   providersObj: any;
   subscriptions = new Subscription();
+  kubes = [];
 
   constructor(
     private appsService: AppsService,
@@ -37,27 +38,47 @@ export class AppsHeaderComponent {
   }
   // After init, grab the schema
   ngAfterViewInit() {
+    this.subscriptions.add(this.supergiant.Kubes.get().subscribe(
+      (kubes) => { this.kubes = kubes.items },
+      (err) => { this.notifications.display("warn", "Connection Issue.", err) },
+    ))
+
     this.subscriptions.add(this.dropdownModalService.dropdownModalResponse.subscribe(
-      (option) => { this.editModalService.open("Save", option, this.providersObj) }))
+      (option) => {
+        if (option != "closed") {
+          let chart = this.appsService.returnSelected()
+          if (chart.length === 0) {
+            this.notifications.display("warn", "Warning:", "No App Selected.")
+          } else if (chart.length > 1) {
+            this.notifications.display("warn", "Warning:", "You cannot deploy more than on App at a time.")
+          } else {
+            console.log(chart)
+          }
+          // this.editModalService.open("Save", option, this.providersObj)
+        }
+      }
+    ))
 
     this.subscriptions.add(this.editModalService.editModalResponse.subscribe(
       (userInput) => {
-        var action = userInput[0]
-        var providerID = 1
-        var model = userInput[2]
-        if (action === "Edit") {
-          this.subscriptions.add(this.supergiant.Nodes.update(providerID, model).subscribe(
-            (data) => {
-              this.success(model)
-              // this.appsCom.getAccounts()
-            },
-            (err) => { this.error(model, err) }))
-        } else {
-          this.subscriptions.add(this.supergiant.Kubes.create(model).subscribe(
-            (data) => {
-              this.success(model)
-            },
-            (err) => { this.error(model, err) }))
+        if (userInput != "closed") {
+          var action = userInput[0]
+          var providerID = 1
+          var model = userInput[2]
+          if (action === "Edit") {
+            this.subscriptions.add(this.supergiant.Nodes.update(providerID, model).subscribe(
+              (data) => {
+                this.success(model)
+                // this.appsCom.getAccounts()
+              },
+              (err) => { this.error(model, err) }))
+          } else {
+            this.subscriptions.add(this.supergiant.Kubes.create(model).subscribe(
+              (data) => {
+                this.success(model)
+              },
+              (err) => { this.error(model, err) }))
+          }
         }
       }))
   }
@@ -78,18 +99,9 @@ export class AppsHeaderComponent {
   }
   // If new button if hit, the New dropdown is triggered.
   sendOpen(message) {
-    let providers = [];
-    // Fetch options.
-    this.supergiant.Kubes.schema().subscribe(
-      (data) => {
-        this.providersObj = data
-        // Push available providers to an array. Displayed in the dropdown.
-        for (let key in this.providersObj.providers) {
-          providers.push(key)
-        }
-        // Open Dropdown Modal
-        this.dropdownModalService.open("New App", "Providers", providers)
-      });
+    let options = [];
+    options = this.kubes.map((kube) => { return kube.name })
+    this.dropdownModalService.open("New App", "Kubes", options)
   }
 
   openSystemModal(message) {
