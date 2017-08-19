@@ -1,7 +1,7 @@
 <td>
   <div class="container">
     <div class="round">
-      <input type="checkbox" [id]="node.id" (ngModelChange)="nodesService.selectItem(node, $event)" checked="false" [ngModel]="nodesService.isChecked(node)"/>
+      <input type="checkbox" [id]="node.id" (ngModelChange)="nodesService.selectItem(node, $event)" checked="false" [ngModel]="nodesService.isChecked(node)" />
       <label [for]="node.id"></label>
     </div>
   </div>
@@ -11,4 +11,6 @@
 <td>{{ node.provider_id }}</td>
 <td>{{ node.cpu_usage }}</td>
 <td>{{ node.ram_usage }}</td>
-<td><div [class]="status(node)"></div></td>
+<td>
+  <div [class]="status(node)"></div>
+</td>
