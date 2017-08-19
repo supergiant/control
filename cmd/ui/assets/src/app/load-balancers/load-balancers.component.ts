@@ -13,7 +13,7 @@ import { Observable } from 'rxjs/Rx';
 })
 export class LoadBalancersComponent implements OnInit {
   private loadBalancers = [];
-  private subscription: Subscription;
+  subscriptions = new Subscription();
 
   constructor(
     private loadBalancersService: LoadBalancersService,
@@ -27,13 +27,13 @@ export class LoadBalancersComponent implements OnInit {
   }
   //get accounts
   getAccounts() {
-    this.subscription = Observable.timer(0, 5000)
-    .switchMap(() => this.supergiant.LoadBalancers.get()).subscribe(
-      (loadBalancers) => { this.loadBalancers = loadBalancers.items},
-      (err) => { this.notifications.display("Warning!", "Cannot connect to Load Balancers API.", err)});
+    this.subscriptions.add(Observable.timer(0, 5000)
+      .switchMap(() => this.supergiant.LoadBalancers.get()).subscribe(
+      (loadBalancers) => { this.loadBalancers = loadBalancers.items },
+      (err) => { this.notifications.display("Warning!", "Cannot connect to Load Balancers API.", err) }))
   }
 
-  ngOnDestroy(){
-    this.subscription.unsubscribe();
+  ngOnDestroy() {
+    this.subscriptions.unsubscribe()
   }
 }

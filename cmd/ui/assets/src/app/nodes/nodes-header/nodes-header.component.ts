@@ -18,6 +18,8 @@ import { NodesModel } from '../nodes.model'
 export class NodesHeaderComponent {
   providersObj: any;
   subscriptions = new Subscription();
+  nodesModel = new NodesModel
+  kubes = [];
 
   constructor(
     private nodesService: NodesService,
@@ -28,42 +30,57 @@ export class NodesHeaderComponent {
     private dropdownModalService: DropdownModalService,
     private editModalService: EditModalService,
     private loginComponent: LoginComponent,
-    ) {}
+  ) { }
 
-    ngOnDestroy() {
-      this.subscriptions.unsubscribe()
-    }
+  ngOnDestroy() {
+    this.subscriptions.unsubscribe()
+  }
 
   // After init, grab the schema
   ngAfterViewInit() {
-    this.providersObj = NodesModel
+    this.subscriptions.add(this.supergiant.Kubes.get().subscribe(
+      (kubes) => { this.kubes = kubes.items },
+      (err) => { this.notifications.display("warn", "Connection Issue.", err) },
+    ))
+
     this.subscriptions.add(this.dropdownModalService.dropdownModalResponse.subscribe(
-        (option) => {this.editModalService.open("Save", option, this.providersObj)},))
+      (option) => {
+        if (option != "closed") {
+          let kube = this.kubes.filter(resource => resource.name == option)[0]
+          this.nodesModel.node.model.kube_name = kube.name
+          this.editModalService.open("Save", "node", this.nodesModel.providers)
+        }
+      }, ))
 
     this.subscriptions.add(this.editModalService.editModalResponse.subscribe(
-            (userInput) => {
-              var action = userInput[0]
-              var providerID = 1
-              var model = userInput[2]
-              if (action === "Edit") {
-              this.subscriptions.add(this.supergiant.Nodes.update(providerID, model).subscribe(
-                (data) => {
-                    this.success(model)
-                    this.nodesComponent.getAccounts()},
-                (err) => {this.error(model, err)}))
-            } else {
-              this.subscriptions.add(this.supergiant.Nodes.create(model).subscribe(
-                (data) => {
-                    this.success(model)
-                    this.nodesComponent.getAccounts()},
-                (err) => {this.error(model, err)}))}
-            }))
+      (userInput) => {
+        if (userInput != "closed") {
+          var action = userInput[0]
+          var providerID = 1
+          var model = userInput[2]
+          if (action === "Edit") {
+            this.subscriptions.add(this.supergiant.Nodes.update(providerID, model).subscribe(
+              (data) => {
+                this.success(model)
+                this.nodesComponent.getAccounts()
+              },
+              (err) => { this.error(model, err) }))
+          } else {
+            this.subscriptions.add(this.supergiant.Nodes.create(model).subscribe(
+              (data) => {
+                this.success(model)
+                this.nodesComponent.getAccounts()
+              },
+              (err) => { this.error(model, err) }))
+          }
+        }
+      }))
   }
 
   success(model) {
     this.notifications.display(
       "success",
-      "Node: " + model.name,
+      "Node: " + model.provider_id,
       "Created...",
     )
   }
@@ -71,25 +88,18 @@ export class NodesHeaderComponent {
   error(model, data) {
     this.notifications.display(
       "error",
-      "Node: " + model.name,
+      "Node: " + model.provider_id,
       "Error:" + data.statusText)
   }
 
-  // If new button if hit, the New dropdown is triggered.
-  sendOpen(message){
-     let providers = [];
-     // Push available providers to an array. Displayed in the dropdown.
-     for(let key in this.providersObj.providers){
-       providers.push(key)
-     }
-      // Open Dropdown Modal
-      this.dropdownModalService.open(
-        "New Node", "Providers", providers)
-
+  sendOpen(message) {
+    let options = [];
+    options = this.kubes.map((kube) => { return kube.name })
+    this.dropdownModalService.open("New Node", "Kubes", options)
   }
 
-  openSystemModal(message){
-      this.systemModalService.openSystemModal(message);
+  openSystemModal(message) {
+    this.systemModalService.openSystemModal(message);
   }
   // If the edit button is hit, the Edit modal is opened.
   editUser() {
@@ -111,19 +121,17 @@ export class NodesHeaderComponent {
     if (selectedItems.length === 0) {
       this.notifications.display("warn", "Warning:", "No Node Selected.")
     } else {
-    for(let node of selectedItems){
-      this.subscriptions.add(this.supergiant.Nodes.delete(node.id).subscribe(
-        (data) => {
-          if (data.status >= 200 && data.status <= 299) {
-            this.notifications.display("success", "Node: " + node.name, "Deleted...")
+      for (let node of selectedItems) {
+        this.subscriptions.add(this.supergiant.Nodes.delete(node.id).subscribe(
+          (data) => {
+            this.notifications.display("success", "Node: " + node.provider_id, "Deleted...")
             this.nodesComponent.getAccounts()
-           }else{
-            this.notifications.display("error", "Node: " + node.name, "Error:" + data.statusText)}},
-        (err) => {
-          if (err) {
-            this.notifications.display("error", "Node: " + node.name, "Error:" + err)}},
-      ))
+          },
+          (err) => {
+            this.notifications.display("error", "Node: " + node.provider_id, "Error:" + err)
+          },
+        ))
+      }
     }
-  }
   }
 }

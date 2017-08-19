@@ -1,11 +1,13 @@
 <td>
   <div class="container">
     <div class="round">
-      <input type="checkbox" [id]="kube.id" (ngModelChange)="kubesService.selectItem(kube, $event)" checked="false" [ngModel]="kubesService.isChecked(kube)"/>
+      <input type="checkbox" [id]="kube.id" (ngModelChange)="kubesService.selectItem(kube, $event)" checked="false" [ngModel]="kubesService.isChecked(kube)" />
       <label [for]="kube.id"></label>
     </div>
   </div>
 </td>
 <td>{{ kube.name }}</td>
 <td>{{ kube.master_node_size }}</td>
-<td><div [class]="status(kube)"></div></td>
+<td>
+  <div [class]="status(kube)"></div>
+</td>

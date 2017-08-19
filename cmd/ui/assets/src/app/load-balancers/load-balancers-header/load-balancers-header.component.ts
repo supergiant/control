@@ -17,7 +17,7 @@ import { LoadBalancersModel } from '../load-balancers.model'
 })
 export class LoadBalancersHeaderComponent {
   providersObj: any;
-  subscriptions = [];
+  subscriptions = new Subscription();
 
   constructor(
     private loadBalancersService: LoadBalancersService,
@@ -28,100 +28,82 @@ export class LoadBalancersHeaderComponent {
     private dropdownModalService: DropdownModalService,
     private editModalService: EditModalService,
     private loginComponent: LoginComponent,
-    ) {}
+  ) { }
 
-    ngOnDestroy(){
-      for (let subscription of this.subscriptions)  {
-        subscription.unsubscribe();
-      }
-    }
+  ngOnDestroy() {
+    this.subscriptions.unsubscribe()
+  }
 
   // After init, grab the schema
   ngAfterViewInit() {
     this.providersObj = LoadBalancersModel
-    this.subscriptions["dropdown"] = this.dropdownModalService.dropdownModalResponse.subscribe(
-        (option) => {this.editModalService.open("Save", option, this.providersObj)},);
+    this.subscriptions.add(this.dropdownModalService.dropdownModalResponse.subscribe(
+      (option) => { this.editModalService.open("Save", option, this.providersObj) }, ))
 
-    this.subscriptions["edit"] = this.editModalService.editModalResponse.subscribe(
-            (userInput) => {
-              var action = userInput[0]
-              var providerID = 1
-              var model = userInput[2]
-              if (action === "Edit") {
-              this.supergiant.Kubes.update(providerID, model).subscribe(
-                (data) => {
-                  if (data.status >= 200 && data.status <= 299) {
-                    this.notifications.display(
-                      "success",
-                      "Load Balancer: " + model.name,
-                      "Created...",
-                    )
-                    this.loadBalancersComponent.getAccounts()
-                  }else{
-                    this.notifications.display(
-                      "error",
-                      "Load Balancer: " + model.name,
-                      "Error:" + data.statusText)
-                    }},
-                (err) => {
-                  if (err) {
-                    this.notifications.display(
-                      "error",
-                      "Load Balancer: " + model.name,
-                      "Error:" + err)
-                    }});
-            } else {
-              this.supergiant.LoadBalancers.create(model).subscribe(
-                (data) => {
-                  if (data.status >= 200 && data.status <= 299) {
-                    this.notifications.display(
-                      "success",
-                      "Load Balancer: " + model.name.name,
-                      "Created...",
-                    )
-                    this.loadBalancersComponent.getAccounts()
-                  }else{
-                    this.notifications.display(
-                      "error",
-                      "Load Balancer: " + model.name.name,
-                      "Error:" + data.statusText)
-                    }},
-                (err) => {
-                  if (err) {
-                    this.notifications.display(
-                      "error",
-                      "Load Balancer: " + model.name.name,
-                      "Error:" + err)
-                    }});}
-            });
+    this.subscriptions.add(this.editModalService.editModalResponse.subscribe(
+      (userInput) => {
+        var action = userInput[0]
+        var providerID = 1
+        var model = userInput[2]
+        if (action === "Edit") {
+          this.subscriptions.add(this.supergiant.Kubes.update(providerID, model).subscribe(
+            (data) => {
+              this.success(model)
+              this.loadBalancersComponent.getAccounts()
+            },
+            (err) => { this.error(model, err) }))
+        } else {
+          this.subscriptions.add(this.supergiant.LoadBalancers.create(model).subscribe(
+            (data) => {
+              this.success(model)
+              this.loadBalancersComponent.getAccounts()
+            },
+            (err) => { this.error(model, err) }))
+        }
+      }))
+  }
+
+  success(model) {
+    this.notifications.display(
+      "success",
+      "Load Balancer: " + model.name,
+      "Created...",
+    )
+  }
+
+  error(model, data) {
+    this.notifications.display(
+      "error",
+      "Load Balancer: " + model.name,
+      "Error:" + data.statusText)
   }
 
   // If new button if hit, the New dropdown is triggered.
-  sendOpen(message){
-     let providers = [];
-     // Push available providers to an array. Displayed in the dropdown.
-     for(let key in this.providersObj.providers){
-       providers.push(key)
-     }
+  sendOpen(message) {
+    let providers = [];
+    // Push available providers to an array. Displayed in the dropdown.
+    for (let key in this.providersObj.providers) {
+      providers.push(key)
+    }
 
 
-      // Open Dropdown Modal
-      this.dropdownModalService.open(
-        "New Load Balancer", "Providers", providers)
+    // Open Dropdown Modal
+    this.dropdownModalService.open(
+      "New Load Balancer", "Providers", providers)
 
   }
 
-  openSystemModal(message){
-      this.systemModalService.openSystemModal(message);
+  openSystemModal(message) {
+    this.systemModalService.openSystemModal(message);
   }
   // If the edit button is hit, the Edit modal is opened.
   editUser() {
     var selectedItems = this.loadBalancersService.returnSelected()
 
     if (selectedItems.length === 0) {
-      this.notifications.display("warn", "Warning:", "No Provider Selected.")
+      this.notifications.display("warn", "Warning:", "No Load Balancer Selected.")
     } else if (selectedItems.length > 1) {
-      this.notifications.display("warn", "Warning:", "You cannot edit more than one provider at a time.")
+      this.notifications.display("warn", "Warning:", "You cannot edit more than one Load Balancer at a time.")
     } else {
       this.providersObj.providers[selectedItems[0].provider].model = selectedItems[0]
       this.editModalService.open("Edit", selectedItems[0].provider, this.providersObj);
@@ -132,23 +114,21 @@ export class LoadBalancersHeaderComponent {
   deleteCloudAccount() {
     var selectedItems = this.loadBalancersService.returnSelected()
     if (selectedItems.length === 0) {
-      this.notifications.display("warn", "Warning:", "No Provider Selected.")
-    } else if (selectedItems.length > 1) {
-      this.notifications.display("warn", "Warning:", "You cannot edit more than one provider at a time.")
+      this.notifications.display("warn", "Warning:", "No Load Balancer Selected.")
     } else {
-    for(let provider of selectedItems){
-      this.supergiant.CloudAccounts.delete(provider.id).subscribe(
-        (data) => {
-          if (data.status >= 200 && data.status <= 299) {
-            this.notifications.display("success", "User: " + provider.name, "Deleted...")
+      for (let provider of selectedItems) {
+        this.subscriptions.add(this.supergiant.CloudAccounts.delete(provider.id).subscribe(
+          (data) => {
+            this.notifications.display("success", "Load Balancer: " + provider.name, "Deleted...")
             this.loadBalancersComponent.getAccounts()
-           }else{
-            this.notifications.display("error", "User: " + provider.name, "Error:" + data.statusText)}},
-        (err) => {
-          if (err) {
-            this.notifications.display("error", "User: " + provider.name, "Error:" + err)}},
-      );
+          },
+          (err) => {
+            if (err) {
+              this.notifications.display("error", "Load Balancer: " + provider.name, "Error:" + err)
+            }
+          },
+        ))
+      }
     }
-  }
   }
 }
