@@ -1,8 +1,8 @@
 import { Component, OnDestroy, OnInit } from '@angular/core';
 import { LoadBalancersService } from './load-balancers.service';
 import { Subscription } from 'rxjs/Subscription';
-import { Supergiant } from '../shared/supergiant/supergiant.service'
-import { Notifications } from '../shared/notifications/notifications.service'
+import { Supergiant } from '../shared/supergiant/supergiant.service';
+import { Notifications } from '../shared/notifications/notifications.service';
 import { Observable } from 'rxjs/Rx';
 
 
@@ -11,7 +11,7 @@ import { Observable } from 'rxjs/Rx';
   templateUrl: './load-balancers.component.html',
   styleUrls: ['./load-balancers.component.css']
 })
-export class LoadBalancersComponent implements OnInit {
+export class LoadBalancersComponent implements OnInit, OnDestroy {
   private loadBalancers = [];
   subscriptions = new Subscription();
 
@@ -21,19 +21,18 @@ export class LoadBalancersComponent implements OnInit {
     private notifications: Notifications,
   ) { }
 
-  //get accouts when page loads
   ngOnInit() {
-    this.getAccounts()
+    this.getAccounts();
   }
-  //get accounts
+
   getAccounts() {
     this.subscriptions.add(Observable.timer(0, 5000)
       .switchMap(() => this.supergiant.LoadBalancers.get()).subscribe(
-      (loadBalancers) => { this.loadBalancers = loadBalancers.items },
-      (err) => { this.notifications.display("Warning!", "Cannot connect to Load Balancers API.", err) }))
+      (loadBalancers) => { this.loadBalancers = loadBalancers.items; },
+      (err) => { this.notifications.display('Warning!', 'Cannot connect to Load Balancers API.', err); }));
   }
 
   ngOnDestroy() {
-    this.subscriptions.unsubscribe()
+    this.subscriptions.unsubscribe();
   }
 }

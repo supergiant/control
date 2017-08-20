@@ -3,12 +3,12 @@ import { Subject } from 'rxjs/Subject';
 
 @Injectable()
 export class EditModalService {
-    newModal = new Subject<any>();
-    editModalResponse = new Subject<any>();
+  newModal = new Subject<any>();
+  editModalResponse = new Subject<any>();
 
-    constructor() {}
+  constructor() { }
 
-    open(type, message, object){
-      this.newModal.next([type, message, object]);
-    }
+  open(type, message, object) {
+    this.newModal.next([type, message, object]);
+  }
 }

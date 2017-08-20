@@ -75,7 +75,6 @@ export class AppsHeaderComponent implements OnDestroy, AfterViewInit {
               this.appsModel.app.model.kube_name = kube.name;
               this.appsModel.app.model.repo_name = chart[0].repo_name;
               this.editModalService.editModalResponse.next(['Save', 'app', this.appsModel.app.model]);
-              console.log('Launch config... no edit box needed');
             }
           }
         }
@@ -137,6 +136,7 @@ export class AppsHeaderComponent implements OnDestroy, AfterViewInit {
   }
   // If the edit button is hit, the Edit modal is opened.
   editKube() {
+    // TODO: Can we edit???
     // var selectedItems = this.appsService.returnSelected()
     //
     // if (selectedItems.length === 0) {
