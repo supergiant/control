@@ -1,4 +1,4 @@
-import { Component, Input} from '@angular/core';
+import { Component, Input } from '@angular/core';
 import { AppsService } from '../apps.service';
 
 @Component({
@@ -9,11 +9,11 @@ import { AppsService } from '../apps.service';
 export class DeploymentComponent {
   @Input() deployment: any;
   constructor(private appsService: AppsService) { }
-  status(kube) {
-    if (kube.ready) {
-      return "status status-ok"
+  status(deployment) {
+    if (deployment.status_value === 'DEPLOYED') {
+      return 'status status-ok';
     } else {
-      return "status status-transitioning"
+      return 'status status-transitioning';
     }
   }
 }

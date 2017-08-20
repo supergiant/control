@@ -1,14 +1,14 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, OnDestroy } from '@angular/core';
 import { Observable } from 'rxjs/Rx';
 import { Subscription } from 'rxjs/Subscription';
-import { Supergiant } from '../shared/supergiant/supergiant.service'
+import { Supergiant } from '../shared/supergiant/supergiant.service';
 
 @Component({
   selector: 'app-apps',
   templateUrl: './apps.component.html',
   styleUrls: ['./apps.component.css']
 })
-export class AppsComponent implements OnInit {
+export class AppsComponent implements OnInit, OnDestroy {
   private apps = [];
   private deployments = [];
   subscriptions = new Subscription();
@@ -17,27 +17,26 @@ export class AppsComponent implements OnInit {
     private supergiant: Supergiant,
   ) { }
 
-  //get accouts when page loads
   ngOnInit() {
-    this.getApps()
-    this.getDeployments()
+    this.getApps();
+    this.getDeployments();
   }
-  //get accounts
+
   getApps() {
     this.subscriptions.add(Observable.timer(0, 5000)
-    .switchMap(() => this.supergiant.HelmCharts.get()).subscribe(
-      (apps) => { this.apps = apps.items},
-      () => {}))
+      .switchMap(() => this.supergiant.HelmCharts.get()).subscribe(
+      (apps) => { this.apps = apps.items; },
+      () => { }));
   }
 
   getDeployments() {
     this.subscriptions.add(Observable.timer(0, 5000)
-    .switchMap(() => this.supergiant.HelmReleases.get()).subscribe(
-      (deployments) => { this.deployments = deployments.items},
-      () => {}))
+      .switchMap(() => this.supergiant.HelmReleases.get()).subscribe(
+      (deployments) => { this.deployments = deployments.items; console.log(this.deployments) },
+      () => { }));
   }
 
   ngOnDestroy() {
-    this.subscriptions.unsubscribe()
+    this.subscriptions.unsubscribe();
   }
 }

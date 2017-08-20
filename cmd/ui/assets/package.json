@@ -34,10 +34,12 @@
     "bootstrap": "^4.0.0-alpha.6",
     "core-js": "^2.4.1",
     "dedent": "^0.7.0",
+    "generate-schema": "^2.5.1",
     "jquery": "^3.2.1",
     "ng-bootstrap": "^1.6.3",
     "ng-formly": "^1.0.0-rc.10",
     "rxjs": "^5.1.0",
+    "typescript-json-schema": "^0.16.0",
     "zone.js": "^0.8.4"
   },
   "devDependencies": {
