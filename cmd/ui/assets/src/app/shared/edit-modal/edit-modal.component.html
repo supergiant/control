@@ -1,30 +1,30 @@
 <ng-template #editModal let-c="close" let-d="dismiss">
   <div class="modal-body">
     <ngb-tabset type="pills" justify="center">
-  <ngb-tab title="Simple">
-    <ng-template ngbTabContent>
-      <sf-form [schema]="schema" [model]="model" (onChange)="model=$event.value"></sf-form>
-      <div class="modal-footer">
-        <button type="submit" class="btn btn-secondary" (click)="onSubmit()">{{ action }}</button>
-        <button type="button" class="btn btn-secondary" (click)="c('Close click')">Cancel</button>
-      </div>
-    </ng-template>
-  </ngb-tab>
-  <ngb-tab title="Advanced" >
-    <ng-template ngbTabContent>
-      <form>
-        <div class="form-group">
-          <textarea rows=20 class="form-control" name="json_input" (change)="convertToObj($event.target.value)">
+      <ngb-tab title="Simple" [disabled]="isDisabled">
+        <ng-template ngbTabContent>
+          <sf-form [schema]="schema" [model]="model" (onChange)="model=$event.value"></sf-form>
+          <div class="modal-footer">
+            <button type="submit" class="btn btn-secondary" (click)="onSubmit()">{{ action }}</button>
+            <button type="button" class="btn btn-secondary" (click)="c('Close click')">Cancel</button>
+          </div>
+        </ng-template>
+      </ngb-tab>
+      <ngb-tab title="Advanced" [disabled]="isDisabled">
+        <ng-template ngbTabContent>
+          <form>
+            <div class="form-group">
+              <textarea rows=20 [className]="textStatus" name="json_input" (keypress)="convertToObj($event.target.value)" (keydown)="convertToObj($event.target.value)">
 {{model | json}}
-          </textarea>
-        </div>
-        <div class="modal-footer">
-          <button type="submit" class="btn btn-secondary" (click)="onSubmit()">{{ action }}</button>
-          <button type="button" class="btn btn-secondary" (click)="c('Close click')">Cancel</button>
-        </div>
-      </form>
-    </ng-template>
-  </ngb-tab>
-</ngb-tabset>
+          </textarea> {{ badString }}
+            </div>
+            <div class="modal-footer">
+              <button type="submit" class="btn btn-secondary" (click)="onSubmit()" [disabled]="isDisabled">{{ action }}</button>
+              <button type="button" class="btn btn-secondary" (click)="c('Close click')">Cancel</button>
+            </div>
+          </form>
+        </ng-template>
+      </ngb-tab>
+    </ngb-tabset>
   </div>
 </ng-template>

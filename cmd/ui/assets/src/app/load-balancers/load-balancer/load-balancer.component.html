@@ -1,7 +1,7 @@
 <td>
   <div class="container">
     <div class="round">
-      <input type="checkbox" [id]="loadBalancer.id" (ngModelChange)="loadBalancersService.selectItem(loadBalancer, $event)" checked="false" [ngModel]="loadBalancersService.isChecked(loadBalancer)"/>
+      <input type="checkbox" [id]="loadBalancer.id" (ngModelChange)="loadBalancersService.selectItem(loadBalancer, $event)" checked="false" [ngModel]="loadBalancersService.isChecked(loadBalancer)" />
       <label [for]="loadBalancer.id"></label>
     </div>
   </div>
@@ -9,4 +9,6 @@
 <td>{{ loadBalancer.kube_name }}</td>
 <td>{{ loadBalancer.name }}</td>
 <td>{{ loadBalancer.address }}</td>
-<td>{{ loadBalancer.name }}</td>
+<td>
+  <div [class]="status(loadBalancer)"></div>
+</td>

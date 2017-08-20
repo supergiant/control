@@ -32,7 +32,7 @@ export class AppsComponent implements OnInit, OnDestroy {
   getDeployments() {
     this.subscriptions.add(Observable.timer(0, 5000)
       .switchMap(() => this.supergiant.HelmReleases.get()).subscribe(
-      (deployments) => { this.deployments = deployments.items; console.log(this.deployments) },
+      (deployments) => { this.deployments = deployments.items; },
       () => { }));
   }
 

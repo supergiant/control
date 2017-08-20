@@ -18,7 +18,7 @@ import { NodesModel } from '../nodes.model'
 export class NodesHeaderComponent {
   providersObj: any;
   subscriptions = new Subscription();
-  nodesModel = new NodesModel
+  nodesModel = new NodesModel;
   kubes = [];
 
   constructor(
