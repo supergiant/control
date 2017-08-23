@@ -75,6 +75,9 @@ type Kube struct {
 
 	Ready       bool   `json:"ready" sg:"readonly" gorm:"index"`
 	BuildStatus string `json:"buildStatus" sg:"readonly"`
+	// This is used to store unstructured data such as metrics from Heapster.
+	ExtraData     map[string]interface{} `json:"extra_data" gorm:"-" sg:"store_as_json_in=ExtraDataJSON,readonly"`
+	ExtraDataJSON []byte                 `json:"-"`
 }
 
 // AWSKubeConfig holds aws specific information about AWS based KUbernetes clusters.

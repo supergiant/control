@@ -14,7 +14,8 @@ type HeapsterMetric struct {
 }
 
 type HeapsterMetrics struct {
-	Metrics []*HeapsterMetric `json:"metrics"`
+	MetricName string            `json:"metric_name"`
+	Metrics    []*HeapsterMetric `json:"metrics"`
 }
 
 type Metadata struct {

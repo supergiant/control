@@ -9,6 +9,7 @@ type NodeObserver struct {
 	core *Core
 }
 
+// Perform - Gathers metric information on nodes.
 func (s *NodeObserver) Perform() error {
 	var kubes []*model.Kube
 	if err := s.core.DB.Where("ready = ?", true).Preload("CloudAccount").Preload("Nodes", "provider_id <> ?", "").Find(&kubes); err != nil {
@@ -16,20 +17,52 @@ func (s *NodeObserver) Perform() error {
 	}
 
 	for _, kube := range kubes {
-
 		k8s := s.core.K8S(kube)
-
-		metrics, err := k8s.ListNodeHeapsterStats()
-		if err != nil {
-			continue // very common to get an error here, and it's not critical
-		}
 
 		k8sNodes, err := k8s.ListNodes("")
 		if err != nil {
 			return err
 		}
 
+		// Kube level metrics
+		kubemetrics, err := k8s.ListKubeHeapsterStats()
+		if err != nil {
+			continue // very common to get an error here, and it's not critical
+		}
+		kube.ExtraData = map[string]interface{}{
+			"metrics": map[string][]*kubernetes.HeapsterMetric{},
+		}
+		for _, metric := range kubemetrics {
+			mets, err := k8s.GetKubeHeapsterStats(metric)
+			if err != nil {
+				continue // very common to get an error here, and it's not critical
+			}
+			kube.ExtraData[mets.MetricName] = mets.Metrics
+		}
+		if err := s.core.DB.Save(kube); err != nil {
+			return err
+		}
+
 		for _, node := range kube.Nodes {
+
+			// node level metrics
+			metrics, err := k8s.ListNodeHeapsterStats(node.Name)
+			if err != nil {
+				continue // very common to get an error here, and it's not critical
+			}
+
+			node.ExtraData = map[string]interface{}{
+				"metrics": map[string][]*kubernetes.HeapsterMetric{},
+			}
+			metData := map[string][]*kubernetes.HeapsterMetric{}
+			for _, metric := range metrics {
+				mets, err := k8s.GetNodeHeapsterStats(node.Name, metric)
+				if err != nil {
+					continue // very common to get an error here, and it's not critical
+				}
+				metData[mets.MetricName] = mets.Metrics
+				node.ExtraData[mets.MetricName] = mets.Metrics
+			}
 
 			var knode *kubernetes.Node
 			for _, kn := range k8sNodes {
@@ -65,20 +98,17 @@ func (s *NodeObserver) Perform() error {
 				}
 			}
 
-			var metric *kubernetes.HeapsterStats
-			for _, mtrc := range metrics {
-				if mtrc.Name == node.Name {
-					metric = mtrc
-					break
+			for metricType, metricValue := range metData {
+				switch metricType {
+				case "cpu/usage_rate":
+					node.CPUUsage = metricValue[len(metricValue)-1].Value
+				case "memory/usage":
+					node.RAMUsage = metricValue[len(metricValue)-1].Value
+				case "cpu/limit":
+					node.CPULimit = int64(nodeSize.CPUCores * 1000)
+				case "memory/limit":
+					node.RAMLimit = int64(nodeSize.RAMGIB * 1073741824)
 				}
-			}
-
-			// Set Stats
-			if metric != nil {
-				node.CPUUsage = metric.CPUUsage
-				node.RAMUsage = metric.RAMUsage
-				node.CPULimit = int64(nodeSize.CPUCores * 1000)
-				node.RAMLimit = int64(nodeSize.RAMGIB * 1073741824)
 			}
 
 			if err := s.core.DB.Save(node); err != nil {
