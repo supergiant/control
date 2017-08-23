@@ -11,14 +11,14 @@ export class NodeComponent {
   constructor(private nodesService: NodesService) { }
 
   status(node) {
-    if (node.status && node.status.error && node.status.retries == node.status.max_retries) {
-      return "status status-danger"
+    if (node.status && node.status.error && node.status.retries === node.status.max_retries) {
+      return 'status status-danger';
     } else if (node.status) {
-      return "status status-transitioning"
+      return 'status status-transitioning';
     } else if (node.passive_status && !node.passive_status_okay) {
-      return "status status-warning"
+      return 'status status-warning';
     } else {
-      return "status status-ok"
+      return 'status status-ok';
     }
   }
 }

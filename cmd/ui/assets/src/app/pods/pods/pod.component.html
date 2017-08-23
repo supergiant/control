@@ -1,7 +1,7 @@
 <td>
   <div class="container">
     <div class="round">
-      <input type="checkbox" [id]="pod.id" (ngModelChange)="podsService.selectItem(pod, $event)" checked="false" [ngModel]="podsService.isChecked(pod)"/>
+      <input type="checkbox" [id]="pod.id" (ngModelChange)="podsService.selectItem(pod, $event)" checked="false" [ngModel]="podsService.isChecked(pod)" />
       <label [for]="pod.id"></label>
     </div>
   </div>
@@ -9,4 +9,6 @@
 <td>{{ pod.name }}</td>
 <td>{{ pod.kube_name }}</td>
 <td>{{ pod.namespace }}</td>
-<td><div [class]="status(kube)"></div></td>
+<td>
+  <div [class]="status(pod)"></div>
+</td>

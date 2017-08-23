@@ -3,39 +3,39 @@ import { Subject } from 'rxjs/Subject';
 
 @Injectable()
 export class RepoModalService {
-    newModal = new Subject<any>();
-    repoModalResponse = new Subject<any>();
-    selectedItems= new Array();
+  newModal = new Subject<any>();
+  repoModalResponse = new Subject<any>();
+  selectedItems = new Array();
 
-    constructor() {}
+  constructor() { }
 
-    openRepoModal(message){
-      this.newModal.next(message);
+  openRepoModal(message) {
+    this.newModal.next(message);
+  }
+
+  // return all selected cloud accounts
+  returnSelected() {
+    return this.selectedItems;
+  }
+
+  isChecked(item) {
+    for (const obj of this.selectedItems) {
+      if (item.id === obj.id) { return true; }
     }
+    return false;
+  }
 
-    // return all selected cloud accounts
-    returnSelected(){
-      return this.selectedItems
-    }
-
-    isChecked(item) {
-      for (let obj of this.selectedItems) {
-        if (item.id === obj.id) {return true}
+  // Record/Delete a selection from the "selected items" array.
+  selectItem(item, event) {
+    if (event) {
+      this.selectedItems.push(item);
+    } else {
+      for (const obj of this.selectedItems) {
+        if (item.id === obj.id) {
+          this.selectedItems.splice(
+            this.selectedItems.indexOf(obj), 1);
+        }
       }
-      return false
     }
-
-    // Record/Delete a selection from the "selected items" array.
-    selectItem(item,event){
-     if (event) {
-       this.selectedItems.push(item);
-     } else {
-       for (let obj of this.selectedItems) {
-         if (item.id === obj.id) {
-           this.selectedItems.splice(
-             this.selectedItems.indexOf(obj), 1);
-         }
-       }
-     }
-   }
+  }
 }

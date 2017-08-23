@@ -1,4 +1,5 @@
 /*Check Box*/
+
 /.round {
   position: relative;
 }
@@ -33,12 +34,12 @@
   visibility: hidden;
 }
 
-.round input[type="checkbox"]:checked + label {
+.round input[type="checkbox"]:checked+label {
   background-color: #0e6ccc;
   border-color: #0e6ccc;
 }
 
-.round input[type="checkbox"]:checked + label:after {
+.round input[type="checkbox"]:checked+label:after {
   opacity: 1;
 }
 
@@ -50,8 +51,8 @@ html, body {
 body {
   background-color: #f1f2f3;
   -webkit-box-align: center;
-      -ms-flex-align: center;
-          align-items: center;
+  -ms-flex-align: center;
+  align-items: center;
   display: -webkit-box;
   display: -ms-flexbox;
   display: flex;
@@ -61,6 +62,7 @@ body {
   margin: 0 auto;
 }
 
+
 /*STATUS*/
 
 .status-text {
@@ -68,9 +70,6 @@ body {
   bottom: 6px;
   left: 7px;
 }
-
-
-
 
 .status {
   display: inline-block;
@@ -130,6 +129,10 @@ body {
 }
 
 @keyframes rotate {
-  from {transform: rotate(0deg);}
-  to {transform: rotate(360deg);}
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
 }

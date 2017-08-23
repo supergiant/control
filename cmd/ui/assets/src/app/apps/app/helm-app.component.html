@@ -1,7 +1,7 @@
 <td>
   <div class="container">
     <div class="round">
-      <input type="checkbox" [id]="app.id" (ngModelChange)="appsService.selectItem(app, $event)" checked="false" [ngModel]="appsService.isChecked(app)"/>
+      <input type="checkbox" [id]="app.id" (ngModelChange)="appsService.selectItem(app, $event)" checked="false" [ngModel]="appsService.isChecked(app)" />
       <label [for]="app.id"></label>
     </div>
   </div>
