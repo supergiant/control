@@ -33,9 +33,12 @@ type ClientInterface interface {
 
 	GetPodLog(namespace, name string) (string, error)
 
-	ListNodeHeapsterStats() ([]*HeapsterStats, error)
+	ListNodeHeapsterStats(node string) ([]string, error)
 	ListPodHeapsterCPUUsageMetrics(namespace string, name string) ([]*HeapsterMetric, error)
 	ListPodHeapsterRAMUsageMetrics(namespace string, name string) ([]*HeapsterMetric, error)
+	GetNodeHeapsterStats(node string, metricPath string) (HeapsterMetrics, error)
+	ListKubeHeapsterStats() ([]string, error)
+	GetKubeHeapsterStats(metricPath string) (HeapsterMetrics, error)
 }
 
 //------------------------------------------------------------------------------
@@ -159,9 +162,29 @@ func (k *Client) GetPodLog(namespace, name string) (string, error) {
 	return string(body), nil
 }
 
-func (k *Client) ListNodeHeapsterStats() ([]*HeapsterStats, error) {
-	var metrics []*HeapsterStats
-	err := k.requestInto("GET", "api/v1", "proxy/namespaces/kube-system/services/heapster/api/v1/model/nodes", nil, &metrics)
+func (k *Client) ListKubeHeapsterStats() ([]string, error) {
+	var metrics []string
+	err := k.requestInto("GET", "api/v1", "proxy/namespaces/kube-system/services/heapster/api/v1/model/metrics/", nil, &metrics)
+	return metrics, err
+}
+
+func (k *Client) GetKubeHeapsterStats(metricPath string) (HeapsterMetrics, error) {
+	metrics := HeapsterMetrics{}
+	metrics.MetricName = metricPath
+	err := k.requestInto("GET", "api/v1", "proxy/namespaces/kube-system/services/heapster/api/v1/model/metrics/"+metricPath+"", nil, &metrics)
+	return metrics, err
+}
+
+func (k *Client) ListNodeHeapsterStats(node string) ([]string, error) {
+	var metrics []string
+	err := k.requestInto("GET", "api/v1", "proxy/namespaces/kube-system/services/heapster/api/v1/model/nodes/"+node+"/metrics/", nil, &metrics)
+	return metrics, err
+}
+
+func (k *Client) GetNodeHeapsterStats(node string, metricPath string) (HeapsterMetrics, error) {
+	metrics := HeapsterMetrics{}
+	metrics.MetricName = metricPath
+	err := k.requestInto("GET", "api/v1", "proxy/namespaces/kube-system/services/heapster/api/v1/model/nodes/"+node+"/metrics/"+metricPath+"", nil, &metrics)
 	return metrics, err
 }
 

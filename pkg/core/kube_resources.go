@@ -55,10 +55,10 @@ func (c *KubeResources) Populate() error {
 			if oldResource != nil {
 				// remove from oldResources
 				oldResources = append(oldResources[:oldIndex], oldResources[oldIndex+1:]...)
-
 				// Update
 
 				newResource.ID = oldResource.ID
+				newResource.UUID = oldResource.UUID
 
 				// TODO this is a bit.. freestyle right now.
 				// We set i there and let the Save in Refresh() persist it.
@@ -75,11 +75,9 @@ func (c *KubeResources) Populate() error {
 						}
 					}
 				}
-
 				if err := c.Core.KubeResources.Refresh(newResource); err != nil {
 					return err
 				}
-
 			} else {
 				newResource.Started, err = kubeResourceIsRunning(newResource)
 				if err != nil {
