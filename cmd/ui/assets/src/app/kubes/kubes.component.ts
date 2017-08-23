@@ -1,8 +1,8 @@
 import { Component, OnDestroy, OnInit } from '@angular/core';
 import { KubesService } from './kubes.service';
 import { Subscription } from 'rxjs/Subscription';
-import { Supergiant } from '../shared/supergiant/supergiant.service'
-import { Notifications } from '../shared/notifications/notifications.service'
+import { Supergiant } from '../shared/supergiant/supergiant.service';
+import { Notifications } from '../shared/notifications/notifications.service';
 import { Observable } from 'rxjs/Rx';
 
 
@@ -11,7 +11,7 @@ import { Observable } from 'rxjs/Rx';
   templateUrl: './kubes.component.html',
   styleUrls: ['./kubes.component.css']
 })
-export class KubesComponent implements OnInit {
+export class KubesComponent implements OnInit, OnDestroy {
   private kubes = [];
   subscriptions = new Subscription();
 
@@ -21,19 +21,19 @@ export class KubesComponent implements OnInit {
     private notifications: Notifications,
   ) { }
 
-  //get accouts when page loads
+
   ngOnInit() {
-    this.getAccounts()
+    this.getAccounts();
   }
-  //get accounts
+
   getAccounts() {
     this.subscriptions.add(Observable.timer(0, 5000)
-    .switchMap(() => this.supergiant.Kubes.get()).subscribe(
-      (kubes) => { this.kubes = kubes.items},
-      (err) => { this.notifications.display("warn", "Connection Issue.", err)}))
+      .switchMap(() => this.supergiant.Kubes.get()).subscribe(
+      (kubes) => { this.kubes = kubes.items; },
+      (err) => { this.notifications.display('warn', 'Connection Issue.', err); }));
   }
 
   ngOnDestroy() {
-    this.subscriptions.unsubscribe()
+    this.subscriptions.unsubscribe();
   }
 }

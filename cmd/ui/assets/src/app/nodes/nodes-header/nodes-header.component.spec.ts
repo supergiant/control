@@ -2,15 +2,15 @@ import { async, ComponentFixture, TestBed } from '@angular/core/testing';
 
 import { NodesHeaderComponent } from './nodes-header.component';
 
-describe('CloudAccountsHeaderComponent', () => {
+describe('NodesHeaderComponent', () => {
   let component: NodesHeaderComponent;
   let fixture: ComponentFixture<NodesHeaderComponent>;
 
   beforeEach(async(() => {
     TestBed.configureTestingModule({
-      declarations: [ NodesHeaderComponent ]
+      declarations: [NodesHeaderComponent]
     })
-    .compileComponents();
+      .compileComponents();
   }));
 
   beforeEach(() => {

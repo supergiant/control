@@ -1,15 +1,15 @@
 import { async, ComponentFixture, TestBed } from '@angular/core/testing';
 import { KubeComponent } from './kube.component';
 
-describe('CloudAccountComponent', () => {
+describe('KubeComponent', () => {
   let component: KubeComponent;
   let fixture: ComponentFixture<KubeComponent>;
 
   beforeEach(async(() => {
     TestBed.configureTestingModule({
-      declarations: [ KubeComponent ]
+      declarations: [KubeComponent]
     })
-    .compileComponents();
+      .compileComponents();
   }));
 
   beforeEach(() => {

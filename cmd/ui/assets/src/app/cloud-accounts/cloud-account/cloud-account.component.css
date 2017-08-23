@@ -1,4 +1,5 @@
 /*Check Box*/
+
 /.round {
   position: relative;
 }
@@ -33,12 +34,12 @@
   visibility: hidden;
 }
 
-.round input[type="checkbox"]:checked + label {
+.round input[type="checkbox"]:checked+label {
   background-color: #0e6ccc;
   border-color: #0e6ccc;
 }
 
-.round input[type="checkbox"]:checked + label:after {
+.round input[type="checkbox"]:checked+label:after {
   opacity: 1;
 }
 
@@ -50,8 +51,8 @@ html, body {
 body {
   background-color: #f1f2f3;
   -webkit-box-align: center;
-      -ms-flex-align: center;
-          align-items: center;
+  -ms-flex-align: center;
+  align-items: center;
   display: -webkit-box;
   display: -ms-flexbox;
   display: flex;

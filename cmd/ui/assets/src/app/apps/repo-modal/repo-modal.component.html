@@ -4,29 +4,29 @@
   </div>
   <div class="modal-body">
     <div id="item_list_container">
-    <table id="item_list" class="table table-hover">
-      <thead>
-        <tr>
-          <th></th>
-          <th>Name</th>
-          <th>URL</th>
-        </tr>
-    </thead>
-      <tbody>
-       <tr *ngFor="let repo of repos">
-         <td>
-           <div class="container">
-             <div class="round">
-               <input type="checkbox" [id]="repo.id" (ngModelChange)="repoModalService.selectItem(repo, $event)" checked="false" [ngModel]="repoModalService.isChecked(repo)"/>
-               <label [for]="repo.id"></label>
-             </div>
-           </div>
-         </td>
-         <td>{{ repo.name }}</td>
-         <td>{{ repo.url }}</td>
-       </tr>
-     </tbody>
-    </table>
+      <table id="item_list" class="table table-hover">
+        <thead>
+          <tr>
+            <th></th>
+            <th>Name</th>
+            <th>URL</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr *ngFor="let repo of repos">
+            <td>
+              <div class="container">
+                <div class="round">
+                  <input type="checkbox" [id]="repo.id" (ngModelChange)="repoModalService.selectItem(repo, $event)" checked="false" [ngModel]="repoModalService.isChecked(repo)" />
+                  <label [for]="repo.id"></label>
+                </div>
+              </div>
+            </td>
+            <td>{{ repo.name }}</td>
+            <td>{{ repo.url }}</td>
+          </tr>
+        </tbody>
+      </table>
     </div>
   </div>
   <div class="modal-footer">

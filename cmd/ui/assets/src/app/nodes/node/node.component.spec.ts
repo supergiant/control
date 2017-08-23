@@ -1,15 +1,15 @@
 import { async, ComponentFixture, TestBed } from '@angular/core/testing';
 import { NodeComponent } from './node.component';
 
-describe('CloudAccountComponent', () => {
+describe('NodeComponent', () => {
   let component: NodeComponent;
   let fixture: ComponentFixture<NodeComponent>;
 
   beforeEach(async(() => {
     TestBed.configureTestingModule({
-      declarations: [ NodeComponent ]
+      declarations: [NodeComponent]
     })
-    .compileComponents();
+      .compileComponents();
   }));
 
   beforeEach(() => {
