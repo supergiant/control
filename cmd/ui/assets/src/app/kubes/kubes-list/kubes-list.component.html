@@ -1,0 +1,15 @@
+<div id="item_list_container">
+  <table id="item_list" class="table table-hover">
+    <thead>
+      <tr>
+        <th></th>
+        <th>Name</th>
+        <th>MASTER SIZE</th>
+        <th>STATUS</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr app-kube *ngFor="let kube of kubes" [kube]="kube"></tr>
+    </tbody>
+  </table>
+</div>

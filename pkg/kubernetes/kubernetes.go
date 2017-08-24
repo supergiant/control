@@ -170,7 +170,7 @@ func (k *Client) ListKubeHeapsterStats() ([]string, error) {
 
 func (k *Client) GetKubeHeapsterStats(metricPath string) (HeapsterMetrics, error) {
 	metrics := HeapsterMetrics{}
-	metrics.MetricName = metricPath
+	metrics.MetricName = strings.Replace(metricPath, "/", "_", -1)
 	err := k.requestInto("GET", "api/v1", "proxy/namespaces/kube-system/services/heapster/api/v1/model/metrics/"+metricPath+"", nil, &metrics)
 	return metrics, err
 }
@@ -183,7 +183,7 @@ func (k *Client) ListNodeHeapsterStats(node string) ([]string, error) {
 
 func (k *Client) GetNodeHeapsterStats(node string, metricPath string) (HeapsterMetrics, error) {
 	metrics := HeapsterMetrics{}
-	metrics.MetricName = metricPath
+	metrics.MetricName = strings.Replace(metricPath, "/", "_", -1)
 	err := k.requestInto("GET", "api/v1", "proxy/namespaces/kube-system/services/heapster/api/v1/model/nodes/"+node+"/metrics/"+metricPath+"", nil, &metrics)
 	return metrics, err
 }
