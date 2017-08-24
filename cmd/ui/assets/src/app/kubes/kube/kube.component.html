@@ -10,4 +10,5 @@
 <td>{{ kube.master_node_size }}</td>
 <td>
   <div [class]="status(kube)"></div>
+  <button type="button" class="btn btn-sm pull-right btn-info" [routerLink]="[kube.id + '/details']">Details >></button>
 </td>

@@ -1,14 +1,15 @@
 // Modules
 import { BrowserModule } from '@angular/platform-browser';
-import {FormsModule, ReactiveFormsModule} from '@angular/forms'
+import { FormsModule, ReactiveFormsModule } from '@angular/forms';
 import { NgModule } from '@angular/core';
 import { NgbModule } from '@ng-bootstrap/ng-bootstrap';
 import { HttpModule } from '@angular/http';
 import { SimpleNotificationsModule } from 'angular2-notifications';
 import { BrowserAnimationsModule } from '@angular/platform-browser/animations';
-import {FormlyModule, FormlyBootstrapModule} from 'ng-formly';
-import { SchemaFormModule, WidgetRegistry, DefaultWidgetRegistry } from "angular2-schema-form";
+import { FormlyModule, FormlyBootstrapModule } from 'ng-formly';
+import { SchemaFormModule, WidgetRegistry, DefaultWidgetRegistry } from 'angular2-schema-form';
 import { AppRoutingModule } from './app-routing.module';
+import { ChartsModule } from 'ng2-charts';
 
 // Components
 import { AppComponent } from './app.component';
@@ -52,6 +53,8 @@ import { AppsHeaderComponent } from './apps/apps-header/apps-header.component';
 import { HelmAppComponent } from './apps/app/helm-app.component';
 import { DeploymentComponent } from './apps/deployment/deployment.component';
 import { RepoModalComponent } from './apps/repo-modal/repo-modal.component';
+import { KubeDetailsComponent } from './kubes/kube-details/kube-details.component';
+import { KubesListComponent } from './kubes/kubes-list/kubes-list.component';
 // Component Services
 import { SessionsService } from './sessions/sessions.service';
 import { CloudAccountsService } from './cloud-accounts/cloud-accounts.service';
@@ -72,7 +75,7 @@ import { RepoModalService } from './apps/repo-modal/repo-modal.service';
 
 // Supergiant API Services
 import { Supergiant } from './shared/supergiant/supergiant.service';
-import { UtilService} from './shared/supergiant/util/util.service';
+import { UtilService } from './shared/supergiant/util/util.service';
 import { Sessions } from './shared/supergiant/sessions/sessions.service';
 import { Users } from './shared/supergiant/users/users.service';
 import { CloudAccounts } from './shared/supergiant/cloud-accounts/cloud-accounts.service';
@@ -84,6 +87,8 @@ import { HelmRepos } from './shared/supergiant/helm-repos/helm-repos.service';
 import { HelmCharts } from './shared/supergiant/helm-charts/helm-charts.service';
 import { HelmReleases } from './shared/supergiant/helm-releases/helm-releases.service';
 import { Logs } from './shared/supergiant/logs/logs.service';
+
+
 
 
 
@@ -133,7 +138,9 @@ import { Logs } from './shared/supergiant/logs/logs.service';
     HelmAppComponent,
     DeploymentComponent,
     RepoModalComponent,
-    ],
+    KubeDetailsComponent,
+    KubesListComponent,
+  ],
   imports: [
     BrowserModule,
     NgbModule.forRoot(),
@@ -146,7 +153,8 @@ import { Logs } from './shared/supergiant/logs/logs.service';
     FormlyModule,
     FormlyBootstrapModule,
     ReactiveFormsModule,
-    SchemaFormModule
+    SchemaFormModule,
+    ChartsModule
   ],
   providers: [
     // Component Services
@@ -177,7 +185,7 @@ import { Logs } from './shared/supergiant/logs/logs.service';
     HelmReleases,
     Logs,
     // Other Shared Services
-    {provide: WidgetRegistry, useClass: DefaultWidgetRegistry},
+    { provide: WidgetRegistry, useClass: DefaultWidgetRegistry },
     Notifications,
     SystemModalService,
     DropdownModalService,

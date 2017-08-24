@@ -1,0 +1,22 @@
+<div id="control-bar">
+  <div class="btn-group"></div>
+  <button class="btn btn-sm btn-info" (click)="goBack()"><< Back</button>
+  <button type="button" class="btn btn-sm pull-right btn-danger" (click)="loginComponent.logOut()">Log Out</button>
+  <button type="button" class="btn btn-sm pull-right btn-info" (click)="openSystemModal(true)">System</button>
+</div>
+<ngb-tabset type="pills" justify="center">
+  <ngb-tab title="Details" [disabled]="isDisabled">
+    <ng-template ngbTabContent>
+      <div class="col-md-6">
+        <canvas baseChart height="50" width="100" [data]="lineChartData" [labels]="lineChartLabels" [options]="lineChartOptions" [chartType]="lineChartType"></canvas>
+      </div>
+    </ng-template>
+  </ngb-tab>
+  <ngb-tab title="Raw Data" [disabled]="isDisabled">
+    <ng-template ngbTabContent>
+      <textarea class="form-control" disabled>
+{{kube | json}}
+      </textarea>
+    </ng-template>
+  </ngb-tab>
+</ngb-tabset>
