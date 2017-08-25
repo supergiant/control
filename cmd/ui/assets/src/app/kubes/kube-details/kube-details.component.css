@@ -5,3 +5,12 @@ textarea {
   width: 90%;
   height: 600px;
 }
+
+.graph-container {
+  display: block;
+  margin-left: auto;
+  margin-right: auto;
+  width: 90%;
+  height: auto;
+  background-color: white;
+}
