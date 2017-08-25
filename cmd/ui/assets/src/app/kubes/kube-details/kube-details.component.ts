@@ -53,16 +53,18 @@ export class KubeDetailsComponent implements OnInit, OnDestroy {
       .switchMap(() => this.supergiant.Kubes.get(this.id)).subscribe(
       (kube) => {
         this.kube = kube.items[0];
+        const cpuCapacity = this.kube.extra_data.kube_cpu_capacity.value;
         this.cpuChartData = [
           { label: 'CPU Usage', data: this.kube.extra_data.cpu_usage_rate.map((data) => data.value) },
-          { label: 'CPU Limit', data: this.padArrayWithDefault(this.kube.extra_data.cpu_limit.map((data) => data.value), 45) },
+          { label: 'CPU Capacity', data: this.padArrayWithDefault([cpuCapacity, cpuCapacity], 45) },
           // this should be set to the length of largest array.
         ];
+        const ramCapacity = this.kube.extra_data.kube_memory_capacity.value / 1073741824;
         this.ramChartData = [
           { label: 'RAM Usage', data: this.kube.extra_data.memory_usage.map((data) => data.value / 1073741824) },
           {
-            label: 'CPU Limit',
-            data: this.padArrayWithDefault(this.kube.extra_data.memory_limit.map((data) => data.value / 1073741824), 45)
+            label: 'CPU Capacity',
+            data: this.padArrayWithDefault([ramCapacity, ramCapacity], 45)
           },
           // this should be set to the length of largest array.
         ];

@@ -43,6 +43,8 @@ func (s *NodeObserver) Perform() error {
 			return err
 		}
 
+		kube.ExtraData["memory_node_capacity"] = 0
+		kube.ExtraData["kube_cpu_capacity"] = 0
 		for _, node := range kube.Nodes {
 
 			// node level metrics
@@ -100,20 +102,31 @@ func (s *NodeObserver) Perform() error {
 
 			for metricType, metricValue := range metData {
 				switch metricType {
-				case "cpu/usage_rate":
+				case "cpu_usage_rate":
 					node.CPUUsage = metricValue[len(metricValue)-1].Value
-				case "memory/usage":
+				case "memory_usage":
 					node.RAMUsage = metricValue[len(metricValue)-1].Value
-				case "cpu/limit":
+				case "cpu_limit":
 					node.CPULimit = int64(nodeSize.CPUCores * 1000)
-				case "memory/limit":
+				case "memory_limit":
 					node.RAMLimit = int64(nodeSize.RAMGIB * 1073741824)
+				case "cpu_node_capacity":
+					kube.ExtraData["kube_cpu_capacity"] = &kubernetes.HeapsterMetric{
+						Value: metricValue[len(metricValue)-1].Value,
+					}
+				case "memory_node_capacity":
+					kube.ExtraData["kube_memory_capacity"] = &kubernetes.HeapsterMetric{
+						Value: metricValue[len(metricValue)-1].Value,
+					}
 				}
 			}
 
 			if err := s.core.DB.Save(node); err != nil {
 				return err
 			}
+		}
+		if err := s.core.DB.Save(kube); err != nil {
+			return err
 		}
 	}
 

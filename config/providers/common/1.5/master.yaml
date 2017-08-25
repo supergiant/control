@@ -14,7 +14,6 @@ write_files:
       curl -sSL -o /opt/bin/kubectl https://storage.googleapis.com/kubernetes-release/release/${K8S_VERSION}/bin/linux/amd64/kubectl
       chmod +x /opt/bin/$FILE
       chmod +x /opt/bin/kubectl
-      mkdir -p /var/log/containers
 
       ## Install Tiller ##
       wget http://storage.googleapis.com/kubernetes-helm/helm-v2.1.3-linux-amd64.tar.gz --directory-prefix=/tmp/
@@ -590,8 +589,8 @@ coreos:
         Environment=KUBELET_IMAGE_TAG=v{{ .KubernetesVersion }}_coreos.0
         Environment="RKT_RUN_ARGS=--volume=resolv,kind=host,source=/etc/resolv.conf \
           --mount volume=resolv,target=/etc/resolv.conf \
-          --volume log,kind=host,source=/var/log/containers/ \
-          --mount volume=log,target=/var/log/containers/ \
+          --volume log,kind=host,source=/var/log/ \
+          --mount volume=log,target=/var/log/ \
           --uuid-file-save=/var/run/kubelet-pod.uuid"
         ExecStartPre=-/usr/bin/rkt rm --uuid-file=/var/run/kubelet-pod.uuid
         ExecStartPre=/bin/bash -c "/opt/bin/download-k8s-binary"

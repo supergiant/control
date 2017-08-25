@@ -10,5 +10,5 @@ if [[ "$TAG" =~ ^v[0-100]. ]]; then
   ./packer build build/build_release.json
 else
   echo "private unstable"
-  ./packer build build/build_branch.json
+  # ./packer build build/build_branch.json
 fi
