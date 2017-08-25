@@ -16,7 +16,6 @@ write_files:
       curl -sSL -o /opt/bin/kubectl https://storage.googleapis.com/kubernetes-release/release/${K8S_VERSION}/bin/linux/amd64/kubectl
       chmod +x /opt/bin/$FILE
       chmod +x /opt/bin/kubectl
-      mkdir -p /var/log/containers
 
       curl -sSL -o /opt/bin/cni.tar.gz https://storage.googleapis.com/kubernetes-release/network-plugins/cni-07a8a28637e97b22eb8dfe710eeae1344f69d16e.tar.gz
       tar xzf "/opt/bin/cni.tar.gz" -C "/opt/bin" --overwrite
@@ -145,8 +144,8 @@ coreos:
           --mount volume=packet,target=/opt/bin/packet-block-storage/ \
           --volume doconfig,kind=host,source=/root/.config/doctl/config.yaml \
           --mount volume=doconfig,target=/root/.config/doctl/config.yaml \
-          --volume log,kind=host,source=/var/log/containers/ \
-          --mount volume=log,target=/var/log/containers/ \
+          --volume log,kind=host,source=/var/log/ \
+          --mount volume=log,target=/var/log/ \
           --uuid-file-save=/var/run/kubelet-pod.uuid"
         ExecStartPre=-/usr/bin/rkt rm --uuid-file=/var/run/kubelet-pod.uuid
         ExecStartPre=/bin/bash -c "/opt/bin/download-k8s-binary kubelet"

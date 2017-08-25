@@ -41,6 +41,7 @@ type ActionStatus struct {
 	Retries        int    `json:"retries"`
 	Error          string `json:"error,omitempty"`
 	Cancelled      bool   `json:"cancelled,omitempty"`
+	TotalSteps     int    `json:"total_steps,omitempty"`
 	StepsCompleted int    `json:"steps_completed,omitempty"`
 }
 

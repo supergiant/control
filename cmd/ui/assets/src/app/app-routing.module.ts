@@ -43,12 +43,8 @@ const appRoutes: Routes = [
   { path: '', redirectTo: '/login', pathMatch: 'full' },
   {
     path: 'kubes', component: KubesComponent, canActivate: [AuthGuard], children: [
-      { path: '', component: KubesListComponent }
-    ]
-  },
-  {
-    path: 'kubes/:id', component: KubeDetailsComponent, canActivate: [AuthGuard], children: [
-      { path: 'details', component: KubeDetailsComponent }
+      { path: '', component: KubesListComponent },
+      { path: ':id', component: KubeDetailsComponent }
     ]
   },
   { path: 'users', component: UsersComponent, canActivate: [AuthGuard] },

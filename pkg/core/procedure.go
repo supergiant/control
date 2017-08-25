@@ -36,6 +36,7 @@ func (p *Procedure) Run() error {
 		// If there is no error, it means we've moved past whatever error there may
 		// have been from a previous try of this step.
 		p.Action.Status.Error = ""
+		p.Action.Status.TotalSteps = len(p.steps)
 		p.Action.Status.StepsCompleted = n + 1
 
 		// We save here so that attributes changed on model during fn() are saved

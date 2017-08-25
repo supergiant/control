@@ -29,7 +29,6 @@ write_files:
       chmod 755 ./*
       /opt/bin/packet-block-storage/packet-block-storage-attach
 
-      mkdir -p /var/log/containers
 
       cd /tmp
       wget https://github.com/digitalocean/doctl/releases/download/v1.4.0/doctl-1.4.0-linux-amd64.tar.gz
@@ -142,8 +141,8 @@ coreos:
           --mount volume=multipath,target=/etc/multipath/ \
           --volume packet,kind=host,source=/opt/bin/packet-block-storage/ \
           --mount volume=packet,target=/opt/bin/packet-block-storage/ \
-          --volume log,kind=host,source=/var/log/containers/ \
-          --mount volume=log,target=/var/log/containers/ \
+          --volume log,kind=host,source=/var/log/ \
+          --mount volume=log,target=/var/log/ \
           --uuid-file-save=/var/run/kubelet-pod.uuid"
         ExecStartPre=-/usr/bin/rkt rm --uuid-file=/var/run/kubelet-pod.uuid
         ExecStartPre=/bin/bash -c "/opt/bin/download-k8s-binary kubelet"

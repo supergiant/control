@@ -21,9 +21,7 @@
       "../node_modules/bootstrap/dist/css/bootstrap.min.css",
       "styles.css"
     ],
-    "scripts": [
-      "../node_modules/chart.js/dist/Chart.bundle.js"
-    ],
+    "scripts": ["../node_modules/Chart.js/dist/Chart.bundle.js"],
     "environmentSource": "environments/environment.ts",
     "environments": {
       "dev": "environments/environment.ts",
