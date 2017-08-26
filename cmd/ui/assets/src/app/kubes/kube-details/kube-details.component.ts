@@ -42,9 +42,7 @@ export class KubeDetailsComponent implements OnInit, OnDestroy {
 
   isDataAvailable = false;
   ngOnInit() {
-    this.subscriptions.add(this.route.params.subscribe(params => {
-      this.id = +params['id']; // (+) converts string 'id' to a number
-    }));
+    this.id = this.route.snapshot.params.id;
     this.getAccounts();
   }
 
@@ -52,19 +50,17 @@ export class KubeDetailsComponent implements OnInit, OnDestroy {
     this.subscriptions.add(Observable.timer(0, 5000)
       .switchMap(() => this.supergiant.Kubes.get(this.id)).subscribe(
       (kube) => {
-        this.kube = kube.items[0];
-        const cpuCapacity = this.kube.extra_data.kube_cpu_capacity.value;
+        this.kube = kube;
         this.cpuChartData = [
           { label: 'CPU Usage', data: this.kube.extra_data.cpu_usage_rate.map((data) => data.value) },
-          { label: 'CPU Capacity', data: this.padArrayWithDefault([cpuCapacity, cpuCapacity], 45) },
+          { label: 'CPU Capacity', data: this.kube.extra_data.kube_cpu_capacity.map((data) => data.value) },
           // this should be set to the length of largest array.
         ];
-        const ramCapacity = this.kube.extra_data.kube_memory_capacity.value / 1073741824;
         this.ramChartData = [
           { label: 'RAM Usage', data: this.kube.extra_data.memory_usage.map((data) => data.value / 1073741824) },
           {
-            label: 'CPU Capacity',
-            data: this.padArrayWithDefault([ramCapacity, ramCapacity], 45)
+            label: 'RAM Capacity',
+            data: this.kube.extra_data.kube_memory_capacity.map((data) => data.value / 1073741824)
           },
           // this should be set to the length of largest array.
         ];

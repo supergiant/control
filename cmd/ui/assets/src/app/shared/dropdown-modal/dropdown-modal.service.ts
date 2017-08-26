@@ -3,12 +3,12 @@ import { Subject } from 'rxjs/Subject';
 
 @Injectable()
 export class DropdownModalService {
-    newModal = new Subject<any>();
-    dropdownModalResponse = new Subject<any>();
+  newModal = new Subject<any>();
+  dropdownModalResponse = new Subject<any>();
 
-    constructor() {}
+  constructor() { }
 
-    open(title, type, options){
-      this.newModal.next([title, type, options]);
-    }
+  open(title, type, options) {
+    this.newModal.next([title, type, options]);
+  }
 }

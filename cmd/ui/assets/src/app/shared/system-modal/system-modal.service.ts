@@ -3,16 +3,16 @@ import { Subject } from 'rxjs/Subject';
 
 @Injectable()
 export class SystemModalService {
-    newModal = new Subject<any>();
-    notifications = new Array();
+  newModal = new Subject<any>();
+  notifications = new Array();
 
-    constructor() {}
+  constructor() { }
 
-    openSystemModal(message){
-      this.newModal.next(message);
-    }
+  openSystemModal(message) {
+    this.newModal.next(message);
+  }
 
-    recordNotification(notification){
-      this.notifications.push(notification)
-    }
+  recordNotification(notification) {
+    this.notifications.push(notification);
+  }
 }

@@ -195,7 +195,7 @@ type ContainerStatus struct {
 	Ready        bool           `json:"ready"`
 	RestartCount int            `json:"restartCount"`
 	State        ContainerState `json:"state"`
-	LastState    ContainerState `json:"state"`
+	LastState    ContainerState `json:"Last_state"`
 }
 
 type PodStatusCondition struct {

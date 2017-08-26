@@ -1,6 +1,8 @@
 package core
 
 import (
+	"time"
+
 	"github.com/supergiant/supergiant/pkg/kubernetes"
 	"github.com/supergiant/supergiant/pkg/model"
 )
@@ -29,13 +31,16 @@ func (s *NodeObserver) Perform() error {
 		if err != nil {
 			continue // very common to get an error here, and it's not critical
 		}
-		kube.ExtraData = map[string]interface{}{
-			"metrics": map[string][]*kubernetes.HeapsterMetric{},
+
+		if len(kube.ExtraData) == 0 {
+			kube.ExtraData = map[string]interface{}{
+				"metrics": map[string][]*kubernetes.HeapsterMetric{},
+			}
 		}
 		for _, metric := range kubemetrics {
 			mets, err := k8s.GetKubeHeapsterStats(metric)
 			if err != nil {
-				continue // very common to get an error here, and it's not critical
+				continue // very common to get an error here, and it's not critical()
 			}
 			kube.ExtraData[mets.MetricName] = mets.Metrics
 		}
@@ -43,8 +48,12 @@ func (s *NodeObserver) Perform() error {
 			return err
 		}
 
-		kube.ExtraData["memory_node_capacity"] = 0
-		kube.ExtraData["kube_cpu_capacity"] = 0
+		if err := s.core.DB.Save(kube); err != nil {
+			return err
+		}
+
+		kubeCPU := int64(0)
+		kubeRAM := int64(0)
 		for _, node := range kube.Nodes {
 
 			// node level metrics
@@ -111,13 +120,9 @@ func (s *NodeObserver) Perform() error {
 				case "memory_limit":
 					node.RAMLimit = int64(nodeSize.RAMGIB * 1073741824)
 				case "cpu_node_capacity":
-					kube.ExtraData["kube_cpu_capacity"] = &kubernetes.HeapsterMetric{
-						Value: metricValue[len(metricValue)-1].Value,
-					}
+					kubeCPU = kubeCPU + metricValue[len(metricValue)-1].Value
 				case "memory_node_capacity":
-					kube.ExtraData["kube_memory_capacity"] = &kubernetes.HeapsterMetric{
-						Value: metricValue[len(metricValue)-1].Value,
-					}
+					kubeRAM = kubeRAM + metricValue[len(metricValue)-1].Value
 				}
 			}
 
@@ -125,10 +130,46 @@ func (s *NodeObserver) Perform() error {
 				return err
 			}
 		}
+
+		// Compile total kube cpu
+		switch kube.ExtraData["kube_cpu_capacity"].(type) {
+		case nil:
+			kube.ExtraData["kube_cpu_capacity"] = []*kubernetes.HeapsterMetric{}
+		case []interface{}:
+			kube.ExtraData["kube_cpu_capacity"] = append(
+				kube.ExtraData["kube_cpu_capacity"].([]interface{}),
+				&kubernetes.HeapsterMetric{
+					Timestamp: time.Now(),
+					Value:     kubeCPU,
+				})
+			for len(kube.ExtraData["kube_cpu_capacity"].([]interface{})) > 45 {
+				kube.ExtraData["kube_cpu_capacity"] = append(
+					kube.ExtraData["kube_cpu_capacity"].([]interface{})[:0],
+					kube.ExtraData["kube_cpu_capacity"].([]interface{})[1:]...)
+			}
+		}
+
+		// compile total kube ram
+		switch kube.ExtraData["kube_memory_capacity"].(type) {
+		case nil:
+			kube.ExtraData["kube_memory_capacity"] = []*kubernetes.HeapsterMetric{}
+		case []interface{}:
+			kube.ExtraData["kube_memory_capacity"] = append(
+				kube.ExtraData["kube_memory_capacity"].([]interface{}),
+				&kubernetes.HeapsterMetric{
+					Timestamp: time.Now(),
+					Value:     kubeRAM,
+				})
+			for len(kube.ExtraData["kube_memory_capacity"].([]interface{})) > 45 {
+				kube.ExtraData["kube_memory_capacity"] = append(
+					kube.ExtraData["kube_memory_capacity"].([]interface{})[:0],
+					kube.ExtraData["kube_memory_capacity"].([]interface{})[1:]...)
+			}
+		}
+
 		if err := s.core.DB.Save(kube); err != nil {
 			return err
 		}
 	}
-
 	return nil
 }

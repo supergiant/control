@@ -5,14 +5,14 @@ export class CookieMonster {
   constructor() { }
 
   public getCookie(name: string) {
-    let ca: Array<string> = document.cookie.split(';');
-    let caLen: number = ca.length;
-    let cookieName = `${name}=`;
+    const ca: Array<string> = document.cookie.split(';');
+    const caLen: number = ca.length;
+    const cookieName = `${name}=`;
     let c: string;
 
-    for (let i: number = 0; i < caLen; i += 1) {
+    for (let i = 0; i < caLen; i += 1) {
       c = ca[i].replace(/^\s+/g, '');
-      if (c.indexOf(cookieName) == 0) {
+      if (c.indexOf(cookieName) === 0) {
         return c.substring(cookieName.length, c.length);
       }
     }
@@ -20,7 +20,7 @@ export class CookieMonster {
   }
 
   public deleteCookie(cookieName) {
-    this.setCookie({name:cookieName,value:'',expireDays:-1});
+    this.setCookie({ name: cookieName, value: '', expireDays: -1 });
   }
 
   /**
@@ -31,16 +31,15 @@ export class CookieMonster {
    * Examples of usage:
    * {service instance}.setCookie({name:'token',value:'abcd12345', session:true }); <- This cookie will not expire
    * {service instance}.setCookie({name:'userName',value:'John Doe', secure:true }); <- If page is not https then secure will not apply
-   * {service instance}.setCookie({name:'niceCar', value:'red', expireDays:10 }); <- For all this examples if path is not provided default will be root
+   * {service instance}.setCookie({name:'niceCar', value:'red', expireDays:10 });
    */
-  public setCookie(params:any)
-  {
-    let d: Date = new Date();
-    d.setTime(d.getTime() + (params.expireDays ? params.expireDays:1) * 24 * 60 * 60 * 1000);
+  public setCookie(params: any) {
+    const d: Date = new Date();
+    d.setTime(d.getTime() + (params.expireDays ? params.expireDays : 1) * 24 * 60 * 60 * 1000);
     document.cookie =
-        (params.name? params.name:'') + "=" + (params.value?params.value:'') + ";"
-        + (params.session && params.session == true ? "" : "expires=" + d.toUTCString() + ";")
-        + "path=" +(params.path && params.path.length > 0 ? params.path:"/") + ";"
-        + (location.protocol === 'https:' && params.secure && params.secure == true ? "secure":"");
+      (params.name ? params.name : '') + '=' + (params.value ? params.value : '') + ';'
+      + (params.session && params.session === true ? '' : 'expires=' + d.toUTCString() + ';')
+      + 'path=' + (params.path && params.path.length > 0 ? params.path : '/') + ';'
+      + (location.protocol === 'https:' && params.secure && params.secure === true ? 'secure' : '');
   }
 }
