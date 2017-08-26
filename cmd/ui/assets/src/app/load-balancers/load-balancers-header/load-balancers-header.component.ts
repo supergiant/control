@@ -1,7 +1,6 @@
 import { Component, OnDestroy, AfterViewInit } from '@angular/core';
 import { LoadBalancersService } from '../load-balancers.service';
 import { Supergiant } from '../../shared/supergiant/supergiant.service';
-import { LoadBalancersComponent } from '../load-balancers.component';
 import { Subscription } from 'rxjs/Subscription';
 import { Notifications } from '../../shared/notifications/notifications.service';
 import { SystemModalService } from '../../shared/system-modal/system-modal.service';
@@ -23,7 +22,6 @@ export class LoadBalancersHeaderComponent implements OnDestroy, AfterViewInit {
 
   constructor(
     private loadBalancersService: LoadBalancersService,
-    private loadBalancersComponent: LoadBalancersComponent,
     private supergiant: Supergiant,
     private notifications: Notifications,
     private systemModalService: SystemModalService,
@@ -63,14 +61,12 @@ export class LoadBalancersHeaderComponent implements OnDestroy, AfterViewInit {
             this.subscriptions.add(this.supergiant.LoadBalancers.update(providerID, model).subscribe(
               (data) => {
                 this.success(model);
-                this.loadBalancersComponent.getAccounts();
               },
               (err) => { this.error(model, err); }));
           } else {
             this.subscriptions.add(this.supergiant.LoadBalancers.create(model).subscribe(
               (data) => {
                 this.success(model);
-                this.loadBalancersComponent.getAccounts();
               },
               (err) => { this.error(model, err); }));
           }
@@ -128,7 +124,6 @@ export class LoadBalancersHeaderComponent implements OnDestroy, AfterViewInit {
         this.subscriptions.add(this.supergiant.LoadBalancers.delete(provider.id).subscribe(
           (data) => {
             this.notifications.display('success', 'Load Balancer: ' + provider.name, 'Deleted...');
-            this.loadBalancersComponent.getAccounts();
           },
           (err) => {
             this.notifications.display('error', 'Load Balancer: ' + provider.name, 'Error:' + err);

@@ -11,4 +11,5 @@
 <td>{{ loadBalancer.address }}</td>
 <td>
   <div [class]="status(loadBalancer)"></div>
+  <button type="button" class="btn btn-sm pull-right btn-info" [routerLink]="[loadBalancer.id]">Details >></button>
 </td>

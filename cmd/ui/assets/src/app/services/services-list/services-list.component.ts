@@ -1,35 +1,33 @@
 import { Component, OnDestroy, OnInit } from '@angular/core';
-import { NodesService } from '../nodes.service';
+import { ServicesService } from '../services.service';
 import { Subscription } from 'rxjs/Subscription';
 import { Supergiant } from '../../shared/supergiant/supergiant.service';
 import { Notifications } from '../../shared/notifications/notifications.service';
 import { Observable } from 'rxjs/Observable';
 
 @Component({
-  selector: 'app-nodes-list',
-  templateUrl: './nodes-list.component.html',
-  styleUrls: ['./nodes-list.component.css']
+  selector: 'app-services-list',
+  templateUrl: './services-list.component.html',
+  styleUrls: ['./services-list.component.css']
 })
-export class NodesListComponent implements OnInit, OnDestroy {
-
-  private nodes = [];
+export class ServicesListComponent implements OnInit, OnDestroy {
+  private services = [];
   subscriptions = new Subscription();
 
   constructor(
-    private nodesService: NodesService,
+    private servicesService: ServicesService,
     private supergiant: Supergiant,
     private notifications: Notifications,
   ) { }
 
-
   ngOnInit() {
-    this.getNodes();
+    this.getServices();
   }
 
-  getNodes() {
+  getServices() {
     this.subscriptions.add(Observable.timer(0, 5000)
-      .switchMap(() => this.supergiant.Nodes.get()).subscribe(
-      (nodes) => { this.nodes = nodes.items; },
+      .switchMap(() => this.supergiant.KubeResources.get()).subscribe(
+      (services) => { this.services = services.items.filter(resource => resource.kind === 'Service'); },
       (err) => { this.notifications.display('warn', 'Connection Issue.', err); }));
   }
 

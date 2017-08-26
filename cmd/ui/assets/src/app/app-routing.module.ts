@@ -25,6 +25,10 @@ import { UserDetailsComponent } from './users/user-details/user-details.componen
 import { UsersListComponent } from './users/users-list/users-list.component';
 import { CloudAccountDetailsComponent } from './cloud-accounts/cloud-account-details/cloud-account-details.component';
 import { CloudAccountsListComponent } from './cloud-accounts/cloud-accounts-list/cloud-accounts-list.component';
+import { LoadBalancerDetailsComponent } from './load-balancers/load-balancer-details/load-balancer-details.component';
+import { LoadBalancersListComponent } from './load-balancers/load-balancers-list/load-balancers-list.component';
+import { ServiceDetailsComponent } from './services/service-details/service-details.component';
+import { ServicesListComponent } from './services/services-list/services-list.component';
 
 @Injectable()
 export class AuthGuard implements CanActivate {
@@ -83,14 +87,24 @@ const appRoutes: Routes = [
   },
   { path: 'apps', component: AppsComponent, canActivate: [AuthGuard] },
   { path: 'volumes', component: VolumesComponent, canActivate: [AuthGuard] },
-  { path: 'services', component: ServicesComponent, canActivate: [AuthGuard] },
+  {
+    path: 'services', component: ServicesComponent, canActivate: [AuthGuard], children: [
+      { path: '', component: ServicesListComponent },
+      { path: ':id', component: ServiceDetailsComponent }
+    ]
+  },
   {
     path: 'sessions', component: SessionsComponent, canActivate: [AuthGuard], children: [
       { path: '', component: SessionsListComponent },
       { path: ':id', component: SessionDetailsComponent }
     ]
   },
-  { path: 'load-balancers', component: LoadBalancersComponent, canActivate: [AuthGuard] },
+  {
+    path: 'load-balancers', component: LoadBalancersComponent, canActivate: [AuthGuard], children: [
+      { path: '', component: LoadBalancersListComponent },
+      { path: ':id', component: LoadBalancerDetailsComponent }
+    ]
+  },
   { path: 'login', component: LoginComponent },
 ];
 
