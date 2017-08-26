@@ -1,3 +1,19 @@
+/*Progress Bar*/
+
+div.status-container {
+  width: 160px;
+  height: 20px;
+  float: left;
+}
+
+div.bar-width {
+  width: 140px;
+  padding-left: 5px;
+  padding-top: 2px;
+  float: right;
+}
+
+
 /*Check Box*/
 
 /.round {

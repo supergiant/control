@@ -1,11 +1,11 @@
-import { Component, OnDestroy,ViewChild, ElementRef, ViewEncapsulation} from '@angular/core';
+import { Component, OnDestroy, ViewChild, ElementRef, ViewEncapsulation, AfterViewInit } from '@angular/core';
 import { NgbModal, NgbModalOptions } from '@ng-bootstrap/ng-bootstrap';
 import { Subscription } from 'rxjs/Subscription';
-import { Supergiant } from '../../shared/supergiant/supergiant.service'
-import { SystemModalService } from './system-modal.service'
-import { Notifications } from '../notifications/notifications.service'
-import { Observable } from 'rxjs/Rx';
-import {Http} from '@angular/http';
+import { Supergiant } from '../../shared/supergiant/supergiant.service';
+import { SystemModalService } from './system-modal.service';
+import { Notifications } from '../notifications/notifications.service';
+import { Observable } from 'rxjs/Observable';
+import { Http } from '@angular/http';
 
 @Component({
   selector: 'app-system-modal',
@@ -13,9 +13,8 @@ import {Http} from '@angular/http';
   styleUrls: ['./system-modal.component.css'],
   encapsulation: ViewEncapsulation.None
 })
-export class SystemModalComponent {
-  private subscription: Subscription;
-  private logstream: Subscription;
+export class SystemModalComponent implements AfterViewInit, OnDestroy {
+  subscriptions = new Subscription();
   private logData: any;
   private notificationItem: any;
   private notificationItems = [];
@@ -28,34 +27,33 @@ export class SystemModalComponent {
     private systemModalService: SystemModalService,
     private notifications: Notifications,
     http: Http,
-  ) {}
+  ) { }
 
   // After init, grab the subscription.
   ngAfterViewInit() {
-    this.subscription = this.systemModalService.newModal.subscribe(
-      message => {if (message) {this.open(this.content)};});
+    this.subscriptions.add(this.systemModalService.newModal.subscribe(
+      message => { if (message) { this.open(this.content); } }));
 
-      this.notificationItems = this.systemModalService.notifications
+    this.notificationItems = this.systemModalService.notifications;
   }
 
-  ngOnDestroy(){
-    this.logstream.unsubscribe();
-    this.subscription.unsubscribe();
+  ngOnDestroy() {
+    this.subscriptions.unsubscribe();
   }
 
   open(content) {
-    this.logstream = Observable.timer(0, 1000)
-    .switchMap(() => this.supergiant.Logs.get()).subscribe(
+    this.subscriptions.add(Observable.timer(0, 1000)
+      .switchMap(() => this.supergiant.Logs.get()).subscribe(
       (data) => {
-        this.logData = data.text()
-        this.logData = this.logData.replace(/[\x00-\x7F]\[\d+mINFO[\x00-\x7F]\[0m/g, "<span class='text-info'>INFO</span> ")
-        this.logData = this.logData.replace(/[\x00-\x7F]\[\d+mWARN[\x00-\x7F]\[0m/g, "<span class='text-warning'>WARN</span> ")
-        this.logData = this.logData.replace(/[\x00-\x7F]\[\d+mERRO[\x00-\x7F]\[0m/g, "<span class='text-danger'>ERRO</span> ")
-        this.logData = this.logData.replace(/[\x00-\x7F]\[\d+mDEBU[\x00-\x7F]\[0m/g, "<span class='text-muted'>DEBU</span> ")
+        this.logData = data.text();
+        this.logData = this.logData.replace(/[\x00-\x7F]\[\d+mINFO[\x00-\x7F]\[0m/g, '<span class=\'text-info\'>INFO</span> ');
+        this.logData = this.logData.replace(/[\x00-\x7F]\[\d+mWARN[\x00-\x7F]\[0m/g, '<span class=\'text-warning\'>WARN</span> ');
+        this.logData = this.logData.replace(/[\x00-\x7F]\[\d+mERRO[\x00-\x7F]\[0m/g, '<span class=\'text-danger\'>ERRO</span> ');
+        this.logData = this.logData.replace(/[\x00-\x7F]\[\d+mDEBU[\x00-\x7F]\[0m/g, '<span class=\'text-muted\'>DEBU</span> ');
       },
-      );
+    ));
 
-    let options: NgbModalOptions = {
+    const options: NgbModalOptions = {
       size: 'lg'
     };
     this.modalService.open(content, options);

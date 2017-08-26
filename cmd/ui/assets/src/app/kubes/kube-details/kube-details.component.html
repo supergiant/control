@@ -8,12 +8,15 @@
   <ngb-tab title="Details" [disabled]="isDisabled">
     <ng-template ngbTabContent>
       <div *ngIf="isDataAvailable" class="graph-container">
-        <h1 align="center">CPU</h1>
+        <h1 align="center">CPU (Millicores)</h1>
         <canvas baseChart #baseChart="base-chart" [colors]="cpuChartColors" [datasets]="cpuChartData" [labels]="cpuChartLabels" [options]="cpuChartOptions" [chartType]="cpuChartType"></canvas>
       </div>
       <div *ngIf="isDataAvailable" class="graph-container">
-        <h1 align="center">RAM</h1>
+        <h1 align="center">RAM (GB)</h1>
         <canvas baseChart #baseChart="base-chart" [colors]="ramChartColors" [datasets]="ramChartData" [labels]="ramChartLabels" [options]="ramChartOptions" [chartType]="ramChartType"></canvas>
+      </div>
+      <div *ngIf="!isDataAvailable" class="graph-container">
+        <p>Loading Data... This can take a few minutes. Click the Raw Data Tab.</p>
       </div>
     </ng-template>
   </ngb-tab>

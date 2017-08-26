@@ -8,7 +8,7 @@ export class KubeResources {
   constructor(private util: UtilService) { }
   public get(id?) {
     if (id) {
-      this.util.fetch(this.kubeResourcesPath + '/' + id);
+      return this.util.fetch(this.kubeResourcesPath + '/' + id);
     }
     return this.util.fetch(this.kubeResourcesPath);
   }

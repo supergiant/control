@@ -1,7 +1,8 @@
 .modal-dialog.modal-lg {
-    max-width: 90%;
-    max-height: 90%;
+  max-width: 90%;
+  max-height: 90%;
 }
+
 .tab-content {
   padding-top: 10px;
 }
@@ -41,7 +42,6 @@ table#item_list td, table#item_list th, table#item_list tr {
   background: white;
   border-top: 1px solid #ddd;
   border-bottom: 1px solid #ddd;
-
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
@@ -54,7 +54,6 @@ table#item_list th {
   letter-spacing: 0.1em;
   color: #999;
   padding: 8px 0;
-
   font-weight: normal;
 }
 

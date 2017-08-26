@@ -9,6 +9,15 @@
 <td>{{ kube.name }}</td>
 <td>{{ kube.master_node_size }}</td>
 <td>
-  <div [class]="status(kube)"></div>{{ kube.id }}
+  <div class="status-container">
+    <div *ngIf="progress" class="bar-width">
+      <ngb-progressbar [value]="progressValue">
+        <font size="1">
+          {{ kube.status.description }}: {{kube.status.steps_completed}} of {{kube.status.total_steps}}
+        </font>
+      </ngb-progressbar>
+    </div>
+    <div [class]="status(kube)"></div>
+  </div>
   <button type="button" class="btn btn-sm pull-right btn-info" [routerLink]="[kube.id]">Details >></button>
 </td>

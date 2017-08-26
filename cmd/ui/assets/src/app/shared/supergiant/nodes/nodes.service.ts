@@ -1,24 +1,24 @@
 import { Injectable } from '@angular/core';
-import {UtilService} from '../util/util.service'
+import { UtilService } from '../util/util.service';
 
 @Injectable()
-export class Nodes{
-  nodesPath = "/api/v0/nodes"
+export class Nodes {
+  nodesPath = '/api/v0/nodes';
 
-  constructor(private util: UtilService) {}
-  public get(id?){
+  constructor(private util: UtilService) { }
+  public get(id?) {
     if (id) {
-      this.util.fetch(this.nodesPath +"/" + id)
+      return this.util.fetch(this.nodesPath + '/' + id);
     }
-    return this.util.fetch(this.nodesPath)
+    return this.util.fetch(this.nodesPath);
   }
   public create(data) {
-    return this.util.post(this.nodesPath, data)
+    return this.util.post(this.nodesPath, data);
   }
   public update(id, data) {
-    return this.util.update(this.nodesPath+ "/" + id, data)
+    return this.util.update(this.nodesPath + '/' + id, data);
   }
-  public delete(id){
-    return this.util.destroy(this.nodesPath + "/" + id)
+  public delete(id) {
+    return this.util.destroy(this.nodesPath + '/' + id);
   }
 }
