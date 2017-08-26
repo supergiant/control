@@ -1,7 +1,6 @@
 import { Component, OnDestroy, AfterViewInit } from '@angular/core';
 import { CloudAccountsService } from '../cloud-accounts.service';
 import { Supergiant } from '../../shared/supergiant/supergiant.service';
-import { CloudAccountsComponent } from '../cloud-accounts.component';
 import { Subscription } from 'rxjs/Subscription';
 import { Notifications } from '../../shared/notifications/notifications.service';
 import { SystemModalService } from '../../shared/system-modal/system-modal.service';
@@ -23,7 +22,6 @@ export class CloudAccountsHeaderComponent implements OnDestroy, AfterViewInit {
 
   constructor(
     private cloudAccountsService: CloudAccountsService,
-    private cloudAccountsComponent: CloudAccountsComponent,
     private supergiant: Supergiant,
     private notifications: Notifications,
     private systemModalService: SystemModalService,
@@ -56,14 +54,12 @@ export class CloudAccountsHeaderComponent implements OnDestroy, AfterViewInit {
             this.supergiant.CloudAccounts.update(providerID, model).subscribe(
               (data) => {
                 this.success(model);
-                this.cloudAccountsComponent.getAccounts();
               },
               (err) => { this.error(model, err); }, );
           } else {
             this.supergiant.CloudAccounts.create(model).subscribe(
               (data) => {
                 this.success(model);
-                this.cloudAccountsComponent.getAccounts();
               },
               (err) => { this.error(model, err); });
           }
@@ -133,7 +129,6 @@ export class CloudAccountsHeaderComponent implements OnDestroy, AfterViewInit {
         this.supergiant.CloudAccounts.delete(provider.id).subscribe(
           (data) => {
             this.notifications.display('success', 'Cloud Account: ' + provider.name, 'Deleted...');
-            this.cloudAccountsComponent.getAccounts();
           },
           (err) => {
             this.notifications.display('error', 'Cloud Account: ' + provider.name, 'Error:' + err);

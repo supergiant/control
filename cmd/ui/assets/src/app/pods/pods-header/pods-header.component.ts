@@ -1,7 +1,6 @@
 import { Component, OnDestroy, AfterViewInit } from '@angular/core';
 import { PodsService } from '../pods.service';
 import { Supergiant } from '../../shared/supergiant/supergiant.service';
-import { PodsComponent } from '../pods.component';
 import { Subscription } from 'rxjs/Subscription';
 import { Notifications } from '../../shared/notifications/notifications.service';
 import { SystemModalService } from '../../shared/system-modal/system-modal.service';
@@ -23,7 +22,6 @@ export class PodsHeaderComponent implements OnDestroy, AfterViewInit {
 
   constructor(
     private podsService: PodsService,
-    private podsComponent: PodsComponent,
     private supergiant: Supergiant,
     private notifications: Notifications,
     private systemModalService: SystemModalService,
@@ -61,14 +59,12 @@ export class PodsHeaderComponent implements OnDestroy, AfterViewInit {
             this.subscriptions.add(this.supergiant.KubeResources.update(providerID, model).subscribe(
               (data) => {
                 this.success(model);
-                this.podsComponent.getAccounts();
               },
               (err) => { this.error(model, err); }));
           } else {
             this.subscriptions.add(this.supergiant.KubeResources.create(model).subscribe(
               (data) => {
                 this.success(model);
-                this.podsComponent.getAccounts();
               },
               (err) => { this.error(model, err); }));
           }
@@ -124,7 +120,6 @@ export class PodsHeaderComponent implements OnDestroy, AfterViewInit {
         this.subscriptions.add(this.supergiant.KubeResources.delete(provider.id).subscribe(
           (data) => {
             this.notifications.display('success', 'Pod: ' + provider.name, 'Deleted...');
-            this.podsComponent.getAccounts();
           },
           (err) => {
             this.notifications.display('error', 'Pod: ' + provider.name, 'Error:' + err);

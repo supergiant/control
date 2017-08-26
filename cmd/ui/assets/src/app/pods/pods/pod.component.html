@@ -11,4 +11,5 @@
 <td>{{ pod.namespace }}</td>
 <td>
   <div [class]="status(pod)"></div>
+  <button type="button" class="btn btn-sm pull-right btn-info" [routerLink]="[pod.id]">Details >></button>
 </td>

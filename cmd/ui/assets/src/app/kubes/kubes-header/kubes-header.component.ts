@@ -1,7 +1,6 @@
 import { Component, OnDestroy, AfterViewInit } from '@angular/core';
 import { KubesService } from '../kubes.service';
 import { Supergiant } from '../../shared/supergiant/supergiant.service';
-import { KubesComponent } from '../kubes.component';
 import { Subscription } from 'rxjs/Subscription';
 import { Notifications } from '../../shared/notifications/notifications.service';
 import { SystemModalService } from '../../shared/system-modal/system-modal.service';
@@ -22,7 +21,6 @@ export class KubesHeaderComponent implements OnDestroy, AfterViewInit {
 
   constructor(
     private kubesService: KubesService,
-    private kubesComponent: KubesComponent,
     private supergiant: Supergiant,
     private notifications: Notifications,
     private systemModalService: SystemModalService,
@@ -62,14 +60,12 @@ export class KubesHeaderComponent implements OnDestroy, AfterViewInit {
             this.subscriptions.add(this.supergiant.Kubes.update(providerID, model).subscribe(
               (data) => {
                 this.success(model);
-                this.kubesComponent.getAccounts();
               },
               (err) => { this.error(model, err); }));
           } else {
             this.subscriptions.add(this.supergiant.Kubes.create(model).subscribe(
               (data) => {
                 this.success(model);
-                this.kubesComponent.getAccounts();
               },
               (err) => { this.error(model, err); }));
           }
@@ -126,7 +122,6 @@ export class KubesHeaderComponent implements OnDestroy, AfterViewInit {
           (data) => {
             this.notifications.display('success', 'Kube: ' + provider.name, 'Deleted...');
             this.kubesService.resetSelected();
-            this.kubesComponent.getAccounts();
           },
           (err) => {
             this.notifications.display('error', 'Kube: ' + provider.name, 'Error:' + err);

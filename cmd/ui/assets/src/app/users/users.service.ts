@@ -13,18 +13,18 @@ export class UsersService {
 
   // return all selected
   returnSelected() {
-    return this.selectedItems
+    return this.selectedItems;
   }
 
   isChecked(item) {
-    for (let obj of this.selectedItems) {
-      if (item.id === obj.id) { return true }
+    for (const obj of this.selectedItems) {
+      if (item.id === obj.id) { return true; }
     }
-    return false
+    return false;
   }
 
   resetSelected() {
-    this.selectedItems = []
+    this.selectedItems = [];
   }
 
   // Record/Delete a selection from the "selected items" array.
@@ -32,7 +32,7 @@ export class UsersService {
     if (event) {
       this.selectedItems.push(item);
     } else {
-      for (let obj of this.selectedItems) {
+      for (const obj of this.selectedItems) {
         if (item.id === obj.id) {
           this.selectedItems.splice(
             this.selectedItems.indexOf(obj), 1);

@@ -23,10 +23,10 @@ export class KubesListComponent implements OnInit, OnDestroy {
 
 
   ngOnInit() {
-    this.getAccounts();
+    this.getKubes();
   }
 
-  getAccounts() {
+  getKubes() {
     this.subscriptions.add(Observable.timer(0, 5000)
       .switchMap(() => this.supergiant.Kubes.get()).subscribe(
       (kubes) => { this.kubes = kubes.items; },

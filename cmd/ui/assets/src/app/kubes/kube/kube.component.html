@@ -11,11 +11,7 @@
 <td>
   <div class="status-container">
     <div *ngIf="progress" class="bar-width">
-      <ngb-progressbar [value]="progressValue">
-        <font size="1">
-          {{ kube.status.description }}: {{kube.status.steps_completed}} of {{kube.status.total_steps}}
-        </font>
-      </ngb-progressbar>
+      <ngb-progressbar [value]="progressValue">{{ kube.status.description }}</ngb-progressbar>
     </div>
     <div [class]="status(kube)"></div>
   </div>

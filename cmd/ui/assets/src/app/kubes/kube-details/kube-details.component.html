@@ -5,7 +5,18 @@
   <button type="button" class="btn btn-sm pull-right btn-info" (click)="openSystemModal(true)">System</button>
 </div>
 <ngb-tabset type="pills" justify="center">
-  <ngb-tab title="Details" [disabled]="isDisabled">
+  <ngb-tab title="Info">
+    <ng-template ngbTabContent>
+      <div *ngIf="kube" class="graph-container">
+        <b>Name:</b> {{ kube.name }}<br />
+        <b>Cloud Account:</b> {{ kube.cloud_account_name }}<br />
+        <b>Master Node Size:</b> {{ kube.master_node_size }}<br />
+        <b>Master Node Count:</b> {{ kube.kube_master_count }}<br />
+        <b>Master Public IP:</b> {{ kube.master_public_ip }}<br />
+      </div>
+    </ng-template>
+  </ngb-tab>
+  <ngb-tab title="Metrics">
     <ng-template ngbTabContent>
       <div *ngIf="isDataAvailable" class="graph-container">
         <h1 align="center">CPU (Millicores)</h1>
@@ -20,7 +31,7 @@
       </div>
     </ng-template>
   </ngb-tab>
-  <ngb-tab title="Raw Data" [disabled]="isDisabled">
+  <ngb-tab title="Raw Data">
     <ng-template ngbTabContent>
       <textarea class="form-control" disabled>
 {{kube | json}}

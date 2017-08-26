@@ -1,11 +1,11 @@
-import { Component, Input, AfterViewInit } from '@angular/core';
+import { Component, Input, ChangeDetectorRef, AfterViewInit } from '@angular/core';
 import { KubesService } from '../kubes.service';
 import { Notifications } from '../../shared/notifications/notifications.service';
 import { NgbProgressbarConfig } from '@ng-bootstrap/ng-bootstrap';
 
 
 @Component({
-  selector: '[app-kube]',
+  selector: '[app-kube]', // tslint:disable-line
   templateUrl: './kube.component.html',
   styleUrls: ['./kube.component.css'],
 })
@@ -17,6 +17,7 @@ export class KubeComponent implements AfterViewInit {
     private kubesService: KubesService,
     private notifications: Notifications,
     private config: NgbProgressbarConfig,
+    private cdRef: ChangeDetectorRef
   ) {
     // config.max = 1000;
     config.striped = true;
@@ -25,7 +26,7 @@ export class KubeComponent implements AfterViewInit {
   }
 
   ngAfterViewInit() {
-    setTimeout(_ => this.status(this.kube)); // BUGFIX: https://github.com/angular/angular/issues/6005#issuecomment-165911194
+    this.cdRef.detectChanges();
   }
 
   status(kube) {

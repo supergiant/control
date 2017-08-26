@@ -1,7 +1,6 @@
 import { Component, OnDestroy, AfterViewInit } from '@angular/core';
 import { NodesService } from '../nodes.service';
 import { Supergiant } from '../../shared/supergiant/supergiant.service';
-import { NodesComponent } from '../nodes.component';
 import { Subscription } from 'rxjs/Subscription';
 import { Notifications } from '../../shared/notifications/notifications.service';
 import { SystemModalService } from '../../shared/system-modal/system-modal.service';
@@ -23,7 +22,6 @@ export class NodesHeaderComponent implements OnDestroy, AfterViewInit {
 
   constructor(
     private nodesService: NodesService,
-    private nodesComponent: NodesComponent,
     private supergiant: Supergiant,
     private notifications: Notifications,
     private systemModalService: SystemModalService,
@@ -62,14 +60,12 @@ export class NodesHeaderComponent implements OnDestroy, AfterViewInit {
             this.subscriptions.add(this.supergiant.Nodes.update(providerID, model).subscribe(
               (data) => {
                 this.success(model);
-                this.nodesComponent.getAccounts();
               },
               (err) => { this.error(model, err); }));
           } else {
             this.subscriptions.add(this.supergiant.Nodes.create(model).subscribe(
               (data) => {
                 this.success(model);
-                this.nodesComponent.getAccounts();
               },
               (err) => { this.error(model, err); }));
           }
@@ -125,7 +121,6 @@ export class NodesHeaderComponent implements OnDestroy, AfterViewInit {
         this.subscriptions.add(this.supergiant.Nodes.delete(node.id).subscribe(
           (data) => {
             this.notifications.display('success', 'Node: ' + node.provider_id, 'Deleted...');
-            this.nodesComponent.getAccounts();
           },
           (err) => {
             this.notifications.display('error', 'Node: ' + node.provider_id, 'Error:' + err);
