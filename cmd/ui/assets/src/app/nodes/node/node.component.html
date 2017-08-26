@@ -13,4 +13,5 @@
 <td>{{ node.ram_usage }}</td>
 <td>
   <div [class]="status(node)"></div>
+  <button type="button" class="btn btn-sm pull-right btn-info" [routerLink]="[node.id]">Details >></button>
 </td>

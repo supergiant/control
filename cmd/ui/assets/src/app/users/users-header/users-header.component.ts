@@ -1,12 +1,11 @@
-import { Component } from '@angular/core';
+import { Component, OnDestroy, AfterViewInit } from '@angular/core';
 import { UsersService } from '../users.service';
-import { Supergiant } from '../../shared/supergiant/supergiant.service'
-import { UsersComponent } from '../users.component'
+import { Supergiant } from '../../shared/supergiant/supergiant.service';
 import { Subscription } from 'rxjs/Subscription';
-import { Notifications } from '../../shared/notifications/notifications.service'
-import { SystemModalService } from '../../shared/system-modal/system-modal.service'
-import { DropdownModalService } from '../../shared/dropdown-modal/dropdown-modal.service'
-import { EditModalService } from '../../shared/edit-modal/edit-modal.service'
+import { Notifications } from '../../shared/notifications/notifications.service';
+import { SystemModalService } from '../../shared/system-modal/system-modal.service';
+import { DropdownModalService } from '../../shared/dropdown-modal/dropdown-modal.service';
+import { EditModalService } from '../../shared/edit-modal/edit-modal.service';
 import { UsersModel } from '../users.model';
 
 
@@ -16,13 +15,12 @@ import { UsersModel } from '../users.model';
   templateUrl: './users-header.component.html',
   styleUrls: ['./users-header.component.css']
 })
-export class UsersHeaderComponent {
+export class UsersHeaderComponent implements OnDestroy, AfterViewInit {
   providersObj: any;
   subscriptions = new Subscription();
   editID: number;
   constructor(
     private usersService: UsersService,
-    private usersComponent: UsersComponent,
     private supergiant: Supergiant,
     private notifications: Notifications,
     private systemModalService: SystemModalService,
@@ -31,59 +29,57 @@ export class UsersHeaderComponent {
   ) { }
 
   ngOnDestroy() {
-    this.subscriptions.unsubscribe()
+    this.subscriptions.unsubscribe();
   }
 
   ngAfterViewInit() {
     this.subscriptions.add(this.editModalService.editModalResponse.subscribe(
       (userInput) => {
-        if (userInput != "close") {
-          var action = userInput[0]
-          var providerID = 1
-          var model = userInput[2]
+        if (userInput !== 'close') {
+          const action = userInput[0];
+          const providerID = userInput[1];
+          const model = userInput[2];
 
-          if (action === "Save") {
+          if (action === 'Save') {
             this.subscriptions.add(this.supergiant.Users.create(model).subscribe(
               (data) => {
-                this.success(model)
-                this.usersComponent.getUsers()
+                this.success(model);
               },
-              (err) => { this.error(model, err) }
-            ))
-          } else if (action === "Edit") {
+              (err) => { this.error(model, err); }
+            ));
+          } else if (action === 'Edit') {
             this.subscriptions.add(this.supergiant.Users.update(this.editID, model).subscribe(
               (data) => {
-                this.success(model)
-                this.usersService.resetSelected()
-                this.usersComponent.getUsers()
+                this.success(model);
+                this.usersService.resetSelected();
               },
-              (err) => { this.error(model, err) }
-            ))
+              (err) => { this.error(model, err); }
+            ));
           }
         }
       }
-    ))
+    ));
   }
 
   success(model) {
     this.notifications.display(
-      "success",
-      "User: " + model.name,
-      "Created...",
-    )
+      'success',
+      'User: ' + model.name,
+      'Created...',
+    );
   }
 
   error(model, data) {
     this.notifications.display(
-      "error",
-      "User: " + model.name,
-      "Error:" + data.statusText)
+      'error',
+      'User: ' + model.name,
+      'Error:' + data.statusText);
   }
 
   // If new button if hit, the New dropdown is triggered.
   newUser(message) {
-    let userModel = new UsersModel
-    this.editModalService.open("Save", 'user', userModel)
+    const userModel = new UsersModel;
+    this.editModalService.open('Save', 'user', userModel);
   }
 
   openSystemModal(message) {
@@ -91,57 +87,55 @@ export class UsersHeaderComponent {
   }
   // If the edit button is hit, the Edit modal is opened.
   editUser() {
-    let userModel = new UsersModel
-    var selectedItems = this.usersService.returnSelected()
+    const userModel = new UsersModel;
+    const selectedItems = this.usersService.returnSelected();
 
     if (selectedItems.length === 0) {
-      this.notifications.display("warn", "Warning:", "No User Selected.")
+      this.notifications.display('warn', 'Warning:', 'No User Selected.');
     } else if (selectedItems.length > 1) {
-      this.notifications.display("warn", "Warning:", "You cannot edit more than one User at a time.")
+      this.notifications.display('warn', 'Warning:', 'You cannot edit more than one User at a time.');
     } else {
-      this.editID = selectedItems[0].id
-      userModel.user["model"] = selectedItems[0]
-      this.editModalService.open("Edit", 'user', userModel);
+      this.editID = selectedItems[0].id;
+      userModel.user['model'] = selectedItems[0];
+      this.editModalService.open('Edit', 'user', userModel);
     }
   }
 
   generateApiToken() {
-    var selectedItems = this.usersService.returnSelected()
+    const selectedItems = this.usersService.returnSelected();
 
     if (selectedItems.length === 0) {
-      this.notifications.display("warn", "Warning:", "No User Selected.")
+      this.notifications.display('warn', 'Warning:', 'No User Selected.');
     } else {
-      for (let user of selectedItems) {
+      for (const user of selectedItems) {
         this.subscriptions.add(this.supergiant.Users.generateToken(user.id).subscribe(
           (data) => {
-            this.notifications.display("success", "User: " + user.username, "API Key Updated...")
-            this.usersService.resetSelected()
-            this.usersComponent.getUsers()
+            this.notifications.display('success', 'User: ' + user.username, 'API Key Updated...');
+            this.usersService.resetSelected();
           },
           (err) => {
-            this.notifications.display("error", "User: " + user.username, "Error:" + err)
+            this.notifications.display('error', 'User: ' + user.username, 'Error:' + err);
           },
-        ))
+        ));
       }
     }
   }
   // If the delete button is hit, the seleted accounts are deleted.
   deleteUser() {
-    var selectedItems = this.usersService.returnSelected()
+    const selectedItems = this.usersService.returnSelected();
     if (selectedItems.length === 0) {
-      this.notifications.display("warn", "Warning:", "No User Selected.")
+      this.notifications.display('warn', 'Warning:', 'No User Selected.');
     } else {
-      for (let user of selectedItems) {
+      for (const user of selectedItems) {
         this.subscriptions.add(this.supergiant.Users.delete(user.id).subscribe(
           (data) => {
-            this.notifications.display("success", "User: " + user.username, "Deleted...")
-            this.usersService.resetSelected()
-            this.usersComponent.getUsers()
+            this.notifications.display('success', 'User: ' + user.username, 'Deleted...');
+            this.usersService.resetSelected();
           },
           (err) => {
-            this.notifications.display("error", "User: " + user.username, "Error:" + err)
+            this.notifications.display('error', 'User: ' + user.username, 'Error:' + err);
           },
-        ))
+        ));
       }
     }
   }

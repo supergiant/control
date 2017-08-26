@@ -43,29 +43,33 @@ export class KubeDetailsComponent implements OnInit, OnDestroy {
   isDataAvailable = false;
   ngOnInit() {
     this.id = this.route.snapshot.params.id;
-    this.getAccounts();
+    this.getKube();
   }
 
-  getAccounts() {
+  getKube() {
     this.subscriptions.add(Observable.timer(0, 5000)
       .switchMap(() => this.supergiant.Kubes.get(this.id)).subscribe(
       (kube) => {
         this.kube = kube;
-        this.cpuChartData = [
-          { label: 'CPU Usage', data: this.kube.extra_data.cpu_usage_rate.map((data) => data.value) },
-          { label: 'CPU Capacity', data: this.kube.extra_data.kube_cpu_capacity.map((data) => data.value) },
-          // this should be set to the length of largest array.
-        ];
-        this.ramChartData = [
-          { label: 'RAM Usage', data: this.kube.extra_data.memory_usage.map((data) => data.value / 1073741824) },
-          {
-            label: 'RAM Capacity',
-            data: this.kube.extra_data.kube_memory_capacity.map((data) => data.value / 1073741824)
-          },
-          // this should be set to the length of largest array.
-        ];
-        this.cpuChartLabels = this.kube.extra_data.memory_usage.map((data) => data.timestamp);
-        this.ramChartLabels = this.kube.extra_data.cpu_usage_rate.map((data) => data.timestamp);
+        if (this.kube.extra_data.cpu_usage_rate && this.kube.extra_data.kube_cpu_capacity) {
+          this.cpuChartData = [
+            { label: 'CPU Usage', data: this.kube.extra_data.cpu_usage_rate.map((data) => data.value) },
+            { label: 'CPU Capacity', data: this.kube.extra_data.kube_cpu_capacity.map((data) => data.value) },
+            // this should be set to the length of largest array.
+          ];
+          this.ramChartLabels = this.kube.extra_data.cpu_usage_rate.map((data) => data.timestamp);
+        }
+        if (this.kube.extra_data.memory_usage && this.kube.extra_data.kube_memory_capacity) {
+          this.ramChartData = [
+            { label: 'RAM Usage', data: this.kube.extra_data.memory_usage.map((data) => data.value / 1073741824) },
+            {
+              label: 'RAM Capacity',
+              data: this.kube.extra_data.kube_memory_capacity.map((data) => data.value / 1073741824)
+            },
+            // this should be set to the length of largest array.
+          ];
+          this.cpuChartLabels = this.kube.extra_data.memory_usage.map((data) => data.timestamp);
+        }
         this.isDataAvailable = true;
       },
       (err) => { this.notifications.display('warn', 'Connection Issue.', err); }));

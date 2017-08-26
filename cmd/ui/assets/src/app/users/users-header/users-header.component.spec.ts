@@ -2,15 +2,15 @@ import { async, ComponentFixture, TestBed } from '@angular/core/testing';
 
 import { UsersHeaderComponent } from './users-header.component';
 
-describe('CloudAccountsHeaderComponent', () => {
+describe('UsersHeaderComponent', () => {
   let component: UsersHeaderComponent;
   let fixture: ComponentFixture<UsersHeaderComponent>;
 
   beforeEach(async(() => {
     TestBed.configureTestingModule({
-      declarations: [ UsersHeaderComponent ]
+      declarations: [UsersHeaderComponent]
     })
-    .compileComponents();
+      .compileComponents();
   }));
 
   beforeEach(() => {

@@ -15,6 +15,16 @@ import { Supergiant } from './shared/supergiant/supergiant.service';
 import { Observable } from 'rxjs/Observable';
 import { KubeDetailsComponent } from './kubes/kube-details/kube-details.component';
 import { KubesListComponent } from './kubes/kubes-list/kubes-list.component';
+import { NodeDetailsComponent } from './nodes/node-details/node-details.component';
+import { NodesListComponent } from './nodes/nodes-list/nodes-list.component';
+import { PodDetailsComponent } from './pods/pod-details/pod-details.component';
+import { PodsListComponent } from './pods/pods-list/pods-list.component';
+import { SessionDetailsComponent } from './sessions/session-details/session-details.component';
+import { SessionsListComponent } from './sessions/sessions-list/sessions-list.component';
+import { UserDetailsComponent } from './users/user-details/user-details.component';
+import { UsersListComponent } from './users/users-list/users-list.component';
+import { CloudAccountDetailsComponent } from './cloud-accounts/cloud-account-details/cloud-account-details.component';
+import { CloudAccountsListComponent } from './cloud-accounts/cloud-accounts-list/cloud-accounts-list.component';
 
 @Injectable()
 export class AuthGuard implements CanActivate {
@@ -47,14 +57,39 @@ const appRoutes: Routes = [
       { path: ':id', component: KubeDetailsComponent }
     ]
   },
-  { path: 'users', component: UsersComponent, canActivate: [AuthGuard] },
-  { path: 'cloud-accounts', component: CloudAccountsComponent, canActivate: [AuthGuard] },
-  { path: 'nodes', component: NodesComponent, canActivate: [AuthGuard] },
-  { path: 'pods', component: PodsComponent, canActivate: [AuthGuard] },
+  {
+    path: 'users', component: UsersComponent, canActivate: [AuthGuard], children: [
+      { path: '', component: UsersListComponent },
+      { path: ':id', component: UserDetailsComponent }
+    ]
+  },
+  {
+    path: 'cloud-accounts', component: CloudAccountsComponent, canActivate: [AuthGuard], children: [
+      { path: '', component: CloudAccountsListComponent },
+      { path: ':id', component: CloudAccountDetailsComponent }
+    ]
+  },
+  {
+    path: 'nodes', component: NodesComponent, canActivate: [AuthGuard], children: [
+      { path: '', component: NodesListComponent },
+      { path: ':id', component: NodeDetailsComponent }
+    ]
+  },
+  {
+    path: 'pods', component: PodsComponent, canActivate: [AuthGuard], children: [
+      { path: '', component: PodsListComponent },
+      { path: ':id', component: PodDetailsComponent }
+    ]
+  },
   { path: 'apps', component: AppsComponent, canActivate: [AuthGuard] },
   { path: 'volumes', component: VolumesComponent, canActivate: [AuthGuard] },
   { path: 'services', component: ServicesComponent, canActivate: [AuthGuard] },
-  { path: 'sessions', component: SessionsComponent, canActivate: [AuthGuard] },
+  {
+    path: 'sessions', component: SessionsComponent, canActivate: [AuthGuard], children: [
+      { path: '', component: SessionsListComponent },
+      { path: ':id', component: SessionDetailsComponent }
+    ]
+  },
   { path: 'load-balancers', component: LoadBalancersComponent, canActivate: [AuthGuard] },
   { path: 'login', component: LoginComponent },
 ];

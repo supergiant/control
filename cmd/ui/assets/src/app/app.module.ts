@@ -55,6 +55,16 @@ import { DeploymentComponent } from './apps/deployment/deployment.component';
 import { RepoModalComponent } from './apps/repo-modal/repo-modal.component';
 import { KubeDetailsComponent } from './kubes/kube-details/kube-details.component';
 import { KubesListComponent } from './kubes/kubes-list/kubes-list.component';
+import { NodeDetailsComponent } from './nodes/node-details/node-details.component';
+import { NodesListComponent } from './nodes/nodes-list/nodes-list.component';
+import { PodDetailsComponent } from './pods/pod-details/pod-details.component';
+import { PodsListComponent } from './pods/pods-list/pods-list.component';
+import { SessionDetailsComponent } from './sessions/session-details/session-details.component';
+import { SessionsListComponent } from './sessions/sessions-list/sessions-list.component';
+import { UserDetailsComponent } from './users/user-details/user-details.component';
+import { UsersListComponent } from './users/users-list/users-list.component';
+import { CloudAccountDetailsComponent } from './cloud-accounts/cloud-account-details/cloud-account-details.component';
+import { CloudAccountsListComponent } from './cloud-accounts/cloud-accounts-list/cloud-accounts-list.component';
 // Component Services
 import { SessionsService } from './sessions/sessions.service';
 import { CloudAccountsService } from './cloud-accounts/cloud-accounts.service';
@@ -140,6 +150,16 @@ import { Logs } from './shared/supergiant/logs/logs.service';
     RepoModalComponent,
     KubeDetailsComponent,
     KubesListComponent,
+    NodeDetailsComponent,
+    NodesListComponent,
+    PodDetailsComponent,
+    PodsListComponent,
+    SessionDetailsComponent,
+    SessionsListComponent,
+    UserDetailsComponent,
+    UsersListComponent,
+    CloudAccountDetailsComponent,
+    CloudAccountsListComponent,
   ],
   imports: [
     BrowserModule,

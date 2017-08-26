@@ -1,0 +1,16 @@
+<app-users-header></app-users-header>
+<div id="item_list_container">
+  <table id="item_list" class="table table-hover">
+    <thead>
+      <tr>
+        <th></th>
+        <th>Name</th>
+        <th>Role</th>
+        <th></th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr app-user *ngFor="let user of users" [user]="user"></tr>
+    </tbody>
+  </table>
+</div>

@@ -2,7 +2,7 @@ import { Component, Input } from '@angular/core';
 import { CloudAccountsService } from '../cloud-accounts.service';
 
 @Component({
-  selector: '[app-cloud-account]',
+  selector: '[app-cloud-account]', // tslint:disable-line
   templateUrl: './cloud-account.component.html',
   styleUrls: ['./cloud-account.component.css']
 })
