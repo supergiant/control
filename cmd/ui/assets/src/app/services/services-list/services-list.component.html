@@ -1,0 +1,17 @@
+<app-services-header></app-services-header>
+<div id="item_list_container">
+  <table id="item_list" class="table table-hover">
+    <thead>
+      <tr>
+        <th></th>
+        <th>Name</th>
+        <th>Kube Name</th>
+        <th>Namespace</th>
+        <th>Status</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr app-service *ngFor="let service of services" [service]="service"></tr>
+    </tbody>
+  </table>
+</div>

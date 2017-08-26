@@ -2,7 +2,7 @@ import { Component, Input } from '@angular/core';
 import { NodesService } from '../nodes.service';
 
 @Component({
-  selector: '[app-node]',
+  selector: '[app-node]', // tslint:disable-line
   templateUrl: './node.component.html',
   styleUrls: ['./node.component.css']
 })

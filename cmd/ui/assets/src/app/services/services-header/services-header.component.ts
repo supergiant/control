@@ -1,12 +1,11 @@
-import { Component } from '@angular/core';
+import { Component, OnDestroy, AfterViewInit } from '@angular/core';
 import { ServicesService } from '../services.service';
-import { Supergiant } from '../../shared/supergiant/supergiant.service'
-import { ServicesComponent } from '../services.component'
+import { Supergiant } from '../../shared/supergiant/supergiant.service';
 import { Subscription } from 'rxjs/Subscription';
-import { Notifications } from '../../shared/notifications/notifications.service'
-import { SystemModalService } from '../../shared/system-modal/system-modal.service'
-import { DropdownModalService } from '../../shared/dropdown-modal/dropdown-modal.service'
-import { EditModalService } from '../../shared/edit-modal/edit-modal.service'
+import { Notifications } from '../../shared/notifications/notifications.service';
+import { SystemModalService } from '../../shared/system-modal/system-modal.service';
+import { DropdownModalService } from '../../shared/dropdown-modal/dropdown-modal.service';
+import { EditModalService } from '../../shared/edit-modal/edit-modal.service';
 import { LoginComponent } from '../../login/login.component';
 import { ServicesModel } from '../services.model';
 
@@ -15,13 +14,14 @@ import { ServicesModel } from '../services.model';
   templateUrl: './services-header.component.html',
   styleUrls: ['./services-header.component.css']
 })
-export class ServicesHeaderComponent {
+export class ServicesHeaderComponent implements OnDestroy, AfterViewInit {
   providersObj: any;
   subscriptions = new Subscription();
+  servicesModel = new ServicesModel;
+  kubes = [];
 
   constructor(
     private servicesService: ServicesService,
-    private servicesComponent: ServicesComponent,
     private supergiant: Supergiant,
     private notifications: Notifications,
     private systemModalService: SystemModalService,
@@ -31,64 +31,69 @@ export class ServicesHeaderComponent {
   ) { }
 
   ngOnDestroy() {
-    this.subscriptions.unsubscribe()
+    this.subscriptions.unsubscribe();
   }
   // After init, grab the schema
   ngAfterViewInit() {
-    this.providersObj = ServicesModel
+    this.subscriptions.add(this.supergiant.Kubes.get().subscribe(
+      (kubes) => { this.kubes = kubes.items; },
+      (err) => { this.notifications.display('warn', 'Connection Issue.', err); },
+    ));
+
     this.subscriptions.add(this.dropdownModalService.dropdownModalResponse.subscribe(
-      (option) => { this.editModalService.open("Save", option, this.providersObj) }, ))
+      (option) => {
+        if (option !== 'closed') {
+          const kube = this.kubes.filter(resource => resource.name === option)[0];
+          this.servicesModel.service.model.kube_name = kube.name;
+          this.editModalService.open('Save', 'service', this.servicesModel.providers);
+        }
+      }, ));
 
 
     this.subscriptions.add(this.editModalService.editModalResponse.subscribe(
       (userInput) => {
-        var action = userInput[0]
-        var providerID = 1
-        var model = userInput[2]
-        if (action === "Edit") {
-          this.subscriptions.add(this.supergiant.Nodes.update(providerID, model).subscribe(
-            (data) => {
-              this.success(model)
-              this.servicesComponent.getAccounts()
-            },
-            (err) => { this.error(model, err) }))
-        } else {
-          this.subscriptions.add(this.supergiant.KubeResources.create(model).subscribe(
-            (data) => {
-              this.success(model)
-              this.servicesComponent.getAccounts()
-            },
-            (err) => { this.error(model, err) }))
+        if (userInput !== 'closed') {
+          const action = userInput[0];
+          const providerID = userInput[1];
+          const model = userInput[2];
+          if (action === 'Edit') {
+            this.subscriptions.add(this.supergiant.KubeResources.update(providerID, model).subscribe(
+              (data) => {
+                this.success(model);
+              },
+              (err) => { this.error(model, err); }));
+          } else {
+            console.log('Bug here in API... TODO: FIX IT!');
+            console.log(model);
+            // this.subscriptions.add(this.supergiant.KubeResources.create(model).subscribe(
+            //   (data) => {
+            //     this.success(model);
+            //   },
+            //   (err) => { this.error(model, err); }));
+          }
         }
-      }))
+      }));
   }
 
   success(model) {
     this.notifications.display(
-      "success",
-      "Service: " + model.name,
-      "Created...",
-    )
+      'success',
+      'Service: ' + model.name,
+      'Created...',
+    );
   }
 
   error(model, data) {
     this.notifications.display(
-      "error",
-      "Service: " + model.name,
-      "Error:" + data.statusText)
+      'error',
+      'Service: ' + model.name,
+      'Error:' + data.statusText);
   }
 
-  // If new button if hit, the New dropdown is triggered.
   sendOpen(message) {
-    let providers = [];
-    // Push available providers to an array. Displayed in the dropdown.
-    for (let key in this.providersObj.providers) {
-      providers.push(key)
-    }
-
-    // Open Dropdown Modal
-    this.dropdownModalService.open(
-      "New Service", "Providers", providers)
+    let options = [];
+    options = this.kubes.map((kube) => kube.name);
+    this.dropdownModalService.open('New Service', 'Kube', options);
 
   }
 
@@ -96,37 +101,34 @@ export class ServicesHeaderComponent {
     this.systemModalService.openSystemModal(message);
   }
   // If the edit button is hit, the Edit modal is opened.
-  editUser() {
-    var selectedItems = this.servicesService.returnSelected()
+  editService() {
+    const selectedItems = this.servicesService.returnSelected();
 
     if (selectedItems.length === 0) {
-      this.notifications.display("warn", "Warning:", "No Provider Selected.")
+      this.notifications.display('warn', 'Warning:', 'No Service Selected.');
     } else if (selectedItems.length > 1) {
-      this.notifications.display("warn", "Warning:", "You cannot edit more than one provider at a time.")
+      this.notifications.display('warn', 'Warning:', 'You cannot edit more than one provider at a time.');
     } else {
-      this.providersObj.providers[selectedItems[0].provider].model = selectedItems[0]
-      this.editModalService.open("Edit", selectedItems[0].provider, this.providersObj);
+      this.providersObj.providers[selectedItems[0].provider].model = selectedItems[0];
+      this.editModalService.open('Edit', selectedItems[0].provider, this.providersObj);
     }
   }
 
   // If the delete button is hit, the seleted accounts are deleted.
   deleteCloudAccount() {
-    var selectedItems = this.servicesService.returnSelected()
+    const selectedItems = this.servicesService.returnSelected();
     if (selectedItems.length === 0) {
-      this.notifications.display("warn", "Warning:", "No Service Selected.")
+      this.notifications.display('warn', 'Warning:', 'No Service Selected.');
     } else {
-      for (let provider of selectedItems) {
-        this.subscriptions.add(this.supergiant.CloudAccounts.delete(provider.id).subscribe(
+      for (const provider of selectedItems) {
+        this.subscriptions.add(this.supergiant.KubeResources.delete(provider.id).subscribe(
           (data) => {
-            this.notifications.display("success", "Service: " + provider.name, "Deleted...")
-            this.servicesComponent.getAccounts()
+            this.notifications.display('success', 'Service: ' + provider.name, 'Deleted...');
           },
           (err) => {
-            if (err) {
-              this.notifications.display("error", "Service: " + provider.name, "Error:" + err)
-            }
+            this.notifications.display('error', 'Service: ' + provider.name, 'Error:' + err);
           },
-        ))
+        ));
       }
     }
   }

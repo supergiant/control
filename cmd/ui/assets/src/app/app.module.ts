@@ -65,6 +65,10 @@ import { UserDetailsComponent } from './users/user-details/user-details.componen
 import { UsersListComponent } from './users/users-list/users-list.component';
 import { CloudAccountDetailsComponent } from './cloud-accounts/cloud-account-details/cloud-account-details.component';
 import { CloudAccountsListComponent } from './cloud-accounts/cloud-accounts-list/cloud-accounts-list.component';
+import { LoadBalancerDetailsComponent } from './load-balancers/load-balancer-details/load-balancer-details.component';
+import { LoadBalancersListComponent } from './load-balancers/load-balancers-list/load-balancers-list.component';
+import { ServiceDetailsComponent } from './services/service-details/service-details.component';
+import { ServicesListComponent } from './services/services-list/services-list.component';
 // Component Services
 import { SessionsService } from './sessions/sessions.service';
 import { CloudAccountsService } from './cloud-accounts/cloud-accounts.service';
@@ -160,6 +164,10 @@ import { Logs } from './shared/supergiant/logs/logs.service';
     UsersListComponent,
     CloudAccountDetailsComponent,
     CloudAccountsListComponent,
+    LoadBalancerDetailsComponent,
+    LoadBalancersListComponent,
+    ServiceDetailsComponent,
+    ServicesListComponent,
   ],
   imports: [
     BrowserModule,

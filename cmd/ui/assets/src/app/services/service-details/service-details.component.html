@@ -1,0 +1,40 @@
+<div id="control-bar">
+  <div class="btn-group"></div>
+  <button class="btn btn-sm btn-info" (click)="goBack()"><< Back</button>
+  <button type="button" class="btn btn-sm pull-right btn-danger" (click)="loginComponent.logOut()">Log Out</button>
+  <button type="button" class="btn btn-sm pull-right btn-info" (click)="openSystemModal(true)">System</button>
+</div>
+<ngb-tabset type="pills" justify="center">
+  <ngb-tab title="Info">
+    <ng-template ngbTabContent>
+      <div *ngIf="service" class="graph-container">
+        <b>Kube Name:</b> {{ service.kube_name }}<br />
+        <b>Name:</b> {{ service.name }}<br />
+        <b>Namespace:</b> {{ service.namespace }}<br />
+        <b>Status:</b> {{ service.resource.status.phase }}<br />
+      </div>
+    </ng-template>
+  </ngb-tab>
+  <ngb-tab title="Metrics">
+    <ng-template ngbTabContent>
+      <div *ngIf="isDataAvailable" class="graph-container">
+        <h1 align="center">CPU (Millicores)</h1>
+        <canvas baseChart #baseChart="base-chart" [colors]="cpuChartColors" [datasets]="cpuChartData" [labels]="cpuChartLabels" [options]="cpuChartOptions" [chartType]="cpuChartType"></canvas>
+      </div>
+      <div *ngIf="isDataAvailable" class="graph-container">
+        <h1 align="center">RAM (GB)</h1>
+        <canvas baseChart #baseChart="base-chart" [colors]="ramChartColors" [datasets]="ramChartData" [labels]="ramChartLabels" [options]="ramChartOptions" [chartType]="ramChartType"></canvas>
+      </div>
+      <div *ngIf="!isDataAvailable" class="graph-container">
+        <p>Loading Data... This can take a few minutes. Click the Raw Data Tab.</p>
+      </div>
+    </ng-template>
+  </ngb-tab>
+  <ngb-tab title="Raw Data">
+    <ng-template ngbTabContent>
+      <textarea class="form-control" disabled>
+{{service | json}}
+      </textarea>
+    </ng-template>
+  </ngb-tab>
+</ngb-tabset>

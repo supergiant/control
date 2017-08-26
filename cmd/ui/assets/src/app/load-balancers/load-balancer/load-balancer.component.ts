@@ -2,7 +2,7 @@ import { Component, Input } from '@angular/core';
 import { LoadBalancersService } from '../load-balancers.service';
 
 @Component({
-  selector: '[app-load-balancer]',
+  selector: '[app-load-balancer]', // tslint:disable-line
   templateUrl: './load-balancer.component.html',
   styleUrls: ['./load-balancer.component.css']
 })

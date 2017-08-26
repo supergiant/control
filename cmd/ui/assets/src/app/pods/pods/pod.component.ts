@@ -2,7 +2,7 @@ import { Component, Input } from '@angular/core';
 import { PodsService } from '../pods.service';
 
 @Component({
-  selector: '[app-pod]',
+  selector: '[app-pod]',  // tslint:disable-line
   templateUrl: './pod.component.html',
   styleUrls: ['./pod.component.css']
 })
