@@ -11,6 +11,7 @@ import { Observable } from 'rxjs/Observable';
   styleUrls: ['./cloud-accounts-list.component.css']
 })
 export class CloudAccountsListComponent implements OnInit, OnDestroy {
+  p: number[] = [];
   private cloudAccounts = [];
   subscriptions = new Subscription();
 

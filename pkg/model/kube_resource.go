@@ -31,6 +31,8 @@ type KubeResource struct {
 	Resource     *json.RawMessage `json:"resource" gorm:"-" sg:"store_as_json_in=ResourceJSON"`
 	ResourceJSON []byte           `json:"-"`
 
+	Template     *json.RawMessage `json:"template" gorm:"-" sg:"store_as_json_in=ResourceJSON"`
+	TemplateJSON []byte           `json:"-"`
 	// Started represents whether the resource exists in Kubernetes or not. If it
 	// is a Pod, it also means the Pod is running.
 	Started bool `json:"started" sg:"readonly"`

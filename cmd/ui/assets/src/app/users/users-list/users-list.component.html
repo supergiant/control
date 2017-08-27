@@ -10,7 +10,10 @@
       </tr>
     </thead>
     <tbody>
-      <tr app-user *ngFor="let user of users" [user]="user"></tr>
+      <tr app-user *ngFor="let user of users | paginate: { itemsPerPage: 10, currentPage: p[i], id: id }" [user]="user"></tr>
     </tbody>
   </table>
+  <nav aria-label="Page navigation">
+    <pagination-controls (pageChange)="p[i] = $event" [id]="id"></pagination-controls>
+  </nav>
 </div>

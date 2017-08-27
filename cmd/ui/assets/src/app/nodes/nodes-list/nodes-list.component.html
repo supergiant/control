@@ -14,7 +14,10 @@
       </tr>
     </thead>
     <tbody>
-      <tr app-node *ngFor="let node of nodes" [node]="node"></tr>
+      <tr app-node *ngFor="let node of nodes | paginate: { itemsPerPage: 10, currentPage: p[i], id: id }" [node]="node"></tr>
     </tbody>
   </table>
+  <nav aria-label="Page navigation">
+    <pagination-controls (pageChange)="p[i] = $event" [id]="id"></pagination-controls>
+  </nav>
 </div>

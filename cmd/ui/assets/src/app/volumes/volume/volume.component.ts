@@ -1,8 +1,8 @@
-import { Component, Input} from '@angular/core';
+import { Component, Input } from '@angular/core';
 import { VolumesService } from '../volumes.service';
 
 @Component({
-  selector: '[app-volume]',
+  selector: '[app-volume]', // tslint:disable-line
   templateUrl: './volume.component.html',
   styleUrls: ['./volume.component.css']
 })
@@ -10,8 +10,15 @@ export class VolumeComponent {
   @Input() volume: any;
   constructor(private volumesService: VolumesService) { }
 
-  status(kube) {
-    // Status logic needs to be added here.
-      return "status status-ok"
-   }
+  status(volume) {
+    if (volume.status && volume.status.error && volume.status.retries === volume.status.max_retries) {
+      return 'status status-danger';
+    } else if (volume.status) {
+      return 'status status-transitioning';
+    } else if (volume.passive_status && !volume.passive_status_okay) {
+      return 'status status-warning';
+    } else {
+      return 'status status-ok';
+    }
+  }
 }

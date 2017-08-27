@@ -51,21 +51,21 @@ export class ServiceDetailsComponent implements OnInit, OnDestroy {
       .switchMap(() => this.supergiant.KubeResources.get(this.id)).subscribe(
       (service) => {
         this.service = service;
-        if (this.service.extra_data.metrics.cpu_usage) {
+        if (this.service.extra_data) {
+          this.isDataAvailable = true;
           this.cpuChartData = [
             { label: 'CPU Usage', data: this.service.extra_data.metrics.cpu_usage.map((data) => data.value) },
             // this should be set to the length of largest array.
           ];
           this.ramChartLabels = this.service.extra_data.metrics.cpu_usage.map((data) => data.timestamp);
-        }
-        if (this.service.extra_data.metrics.ram_usage) {
+
           this.ramChartData = [
             { label: 'RAM Usage', data: this.service.extra_data.metrics.ram_usage.map((data) => data.value / 1073741824) },
             // this should be set to the length of largest array.
           ];
           this.cpuChartLabels = this.service.extra_data.metrics.ram_usage.map((data) => data.timestamp);
         }
-        this.isDataAvailable = true;
+
       },
       (err) => { this.notifications.display('warn', 'Connection Issue.', err); }));
   }

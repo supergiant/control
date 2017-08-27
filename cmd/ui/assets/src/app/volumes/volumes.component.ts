@@ -1,9 +1,9 @@
 import { Component, OnDestroy, OnInit } from '@angular/core';
 import { VolumesService } from './volumes.service';
 import { Subscription } from 'rxjs/Subscription';
-import { Supergiant } from '../shared/supergiant/supergiant.service'
-import { Notifications } from '../shared/notifications/notifications.service'
-import { Observable } from 'rxjs/Rx';
+import { Supergiant } from '../shared/supergiant/supergiant.service';
+import { Notifications } from '../shared/notifications/notifications.service';
+import { Observable } from 'rxjs/Observable';
 
 
 @Component({
@@ -11,7 +11,8 @@ import { Observable } from 'rxjs/Rx';
   templateUrl: './volumes.component.html',
   styleUrls: ['./volumes.component.css']
 })
-export class VolumesComponent implements OnInit {
+export class VolumesComponent implements OnInit, OnDestroy {
+  p: number[] = [];
   private volumes = [];
   subscriptions = new Subscription();
 
@@ -21,19 +22,18 @@ export class VolumesComponent implements OnInit {
     private notifications: Notifications,
   ) { }
 
-  //get accouts when page loads
   ngOnInit() {
-    this.getAccounts()
+    this.getVolumes();
   }
-  //get accounts
-  getAccounts() {
+
+  getVolumes() {
     this.subscriptions.add(Observable.timer(0, 5000)
       .switchMap(() => this.supergiant.KubeResources.get()).subscribe(
-      (volumes) => { this.volumes = volumes.items.filter(resource => resource.kind === "Volume") },
-      (err) => { this.notifications.display("warn", "Connection Issue.", err) }))
+      (volumes) => { this.volumes = volumes.items.filter(resource => resource.kind === 'Volume'); },
+      (err) => { this.notifications.display('warn', 'Connection Issue.', err); }));
   }
 
   ngOnDestroy() {
-    this.subscriptions.unsubscribe()
+    this.subscriptions.unsubscribe();
   }
 }

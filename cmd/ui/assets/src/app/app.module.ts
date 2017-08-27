@@ -10,6 +10,7 @@ import { FormlyModule, FormlyBootstrapModule } from 'ng-formly';
 import { SchemaFormModule, WidgetRegistry, DefaultWidgetRegistry } from 'angular2-schema-form';
 import { AppRoutingModule } from './app-routing.module';
 import { ChartsModule } from 'ng2-charts';
+import { NgxPaginationModule } from 'ngx-pagination';
 
 // Components
 import { AppComponent } from './app.component';
@@ -182,7 +183,8 @@ import { Logs } from './shared/supergiant/logs/logs.service';
     FormlyBootstrapModule,
     ReactiveFormsModule,
     SchemaFormModule,
-    ChartsModule
+    ChartsModule,
+    NgxPaginationModule
   ],
   providers: [
     // Component Services

@@ -51,15 +51,15 @@ export class NodeDetailsComponent implements OnInit, OnDestroy {
       .switchMap(() => this.supergiant.Nodes.get(this.id)).subscribe(
       (node) => {
         this.node = node;
-        if (this.node.extra_data.cpu_usage_rate && this.node.extra_data.cpu_node_capacity) {
+        if (this.node.extra_data && this.node.extra_data.cpu_usage_rate && this.node.extra_data.cpu_node_capacity) {
+          this.isDataAvailable = true;
           this.cpuChartData = [
             { label: 'CPU Usage', data: this.node.extra_data.cpu_usage_rate.map((data) => data.value) },
             { label: 'CPU Capacity', data: this.node.extra_data.cpu_node_capacity.map((data) => data.value) },
             // this should be set to the length of largest array.
           ];
           this.ramChartLabels = this.node.extra_data.cpu_usage_rate.map((data) => data.timestamp);
-        }
-        if (this.node.extra_data.memory_usage && this.node.extra_data.memory_node_capacity) {
+
           this.ramChartData = [
             { label: 'RAM Usage', data: this.node.extra_data.memory_usage.map((data) => data.value / 1073741824) },
             {
@@ -70,7 +70,6 @@ export class NodeDetailsComponent implements OnInit, OnDestroy {
           ];
           this.cpuChartLabels = this.node.extra_data.memory_usage.map((data) => data.timestamp);
         }
-        this.isDataAvailable = true;
       },
       (err) => { this.notifications.display('warn', 'Connection Issue.', err); }));
   }

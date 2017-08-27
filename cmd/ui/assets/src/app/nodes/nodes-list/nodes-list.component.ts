@@ -11,7 +11,7 @@ import { Observable } from 'rxjs/Observable';
   styleUrls: ['./nodes-list.component.css']
 })
 export class NodesListComponent implements OnInit, OnDestroy {
-
+  p: number[] = [];
   private nodes = [];
   subscriptions = new Subscription();
 

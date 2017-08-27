@@ -11,7 +11,10 @@
       </tr>
     </thead>
     <tbody>
-      <tr app-service *ngFor="let service of services" [service]="service"></tr>
+      <tr app-service *ngFor="let service of services | paginate: { itemsPerPage: 10, currentPage: p[i], id: id }" [service]="service"></tr>
     </tbody>
   </table>
+  <nav aria-label="Page navigation">
+    <pagination-controls (pageChange)="p[i] = $event" [id]="id"></pagination-controls>
+  </nav>
 </div>

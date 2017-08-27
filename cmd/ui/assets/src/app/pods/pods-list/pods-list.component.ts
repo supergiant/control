@@ -5,12 +5,14 @@ import { Supergiant } from '../../shared/supergiant/supergiant.service';
 import { Notifications } from '../../shared/notifications/notifications.service';
 import { Observable } from 'rxjs/Observable';
 
+
 @Component({
   selector: 'app-pods-list',
   templateUrl: './pods-list.component.html',
   styleUrls: ['./pods-list.component.css']
 })
 export class PodsListComponent implements OnInit, OnDestroy {
+  p: number[] = [];
   private pods = [];
   subscriptions = new Subscription();
 
