@@ -11,6 +11,7 @@ import { Observable } from 'rxjs/Observable';
   styleUrls: ['./sessions-list.component.css']
 })
 export class SessionsListComponent implements OnInit, OnDestroy {
+  p: number[] = [];
   sessions: any;
   private subscriptions = new Subscription();
 

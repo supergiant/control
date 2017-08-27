@@ -15,9 +15,12 @@
             </tr>
           </thead>
           <tbody>
-            <tr app-helm-app *ngFor="let app of apps" [app]="app"></tr>
+            <tr app-helm-app *ngFor="let app of apps | paginate: { itemsPerPage: 10, currentPage: pApps[i], id: id }" [app]="app"></tr>
           </tbody>
         </table>
+        <nav aria-label="Page navigation">
+          <pagination-controls (pageChange)="pApps[i] = $event" [id]="id"></pagination-controls>
+        </nav>
       </div>
     </ng-template>
   </ngb-tab>
@@ -38,9 +41,12 @@
             </tr>
           </thead>
           <tbody>
-            <tr app-deployment *ngFor="let deployment of deployments" [deployment]="deployment"></tr>
+            <tr app-deployment *ngFor="let deployment of deployments | paginate: { itemsPerPage: 10, currentPage: pDeployments[i], id: id }" [deployment]="deployment"></tr>
           </tbody>
         </table>
+        <nav aria-label="Page navigation">
+          <pagination-controls (pageChange)="pDeployments[i] = $event" [id]="id"></pagination-controls>
+        </nav>
       </div>
     </ng-template>
   </ngb-tab>

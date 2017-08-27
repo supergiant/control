@@ -9,6 +9,8 @@ import { Supergiant } from '../shared/supergiant/supergiant.service';
   styleUrls: ['./apps.component.css']
 })
 export class AppsComponent implements OnInit, OnDestroy {
+  pApps: number[] = [];
+  pDeployments: number[] = [];
   private apps = [];
   private deployments = [];
   subscriptions = new Subscription();

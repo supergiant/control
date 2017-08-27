@@ -11,6 +11,7 @@ import { Observable } from 'rxjs/Observable';
   styleUrls: ['./users-list.component.css']
 })
 export class UsersListComponent implements OnInit, OnDestroy {
+  p: number[] = [];
   private users = [];
   private subscriptions = new Subscription();
 

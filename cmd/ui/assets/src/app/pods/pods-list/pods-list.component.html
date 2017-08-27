@@ -11,7 +11,10 @@
       </tr>
     </thead>
     <tbody>
-      <tr app-pod *ngFor="let pod of pods" [pod]="pod"></tr>
+      <tr app-pod *ngFor="let pod of pods | paginate: { itemsPerPage: 10, currentPage: p[i], id: id }" [pod]="pod"></tr>
     </tbody>
   </table>
+  <nav aria-label="Page navigation">
+    <pagination-controls (pageChange)="p[i] = $event" [id]="id"></pagination-controls>
+  </nav>
 </div>

@@ -11,6 +11,7 @@ import { Observable } from 'rxjs/Observable';
   styleUrls: ['./load-balancers-list.component.css']
 })
 export class LoadBalancersListComponent implements OnInit, OnDestroy {
+  p: number[] = [];
   private loadBalancers = [];
   subscriptions = new Subscription();
 

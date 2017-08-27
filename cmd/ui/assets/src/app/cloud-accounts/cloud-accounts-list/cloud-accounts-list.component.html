@@ -10,8 +10,11 @@
       </tr>
     </thead>
     <tbody>
-      <tr app-cloud-account *ngFor="let cloudAccount of cloudAccounts" [cloudAccount]="cloudAccount">
+      <tr app-cloud-account *ngFor="let cloudAccount of cloudAccounts | paginate: { itemsPerPage: 10, currentPage: p[i], id: id }" [cloudAccount]="cloudAccount">
       </tr>
     </tbody>
   </table>
+  <nav aria-label="Page navigation">
+    <pagination-controls (pageChange)="p[i] = $event" [id]="id"></pagination-controls>
+  </nav>
 </div>

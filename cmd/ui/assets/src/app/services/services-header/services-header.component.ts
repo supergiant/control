@@ -58,18 +58,12 @@ export class ServicesHeaderComponent implements OnDestroy, AfterViewInit {
           const model = userInput[2];
           if (action === 'Edit') {
             this.subscriptions.add(this.supergiant.KubeResources.update(providerID, model).subscribe(
-              (data) => {
-                this.success(model);
-              },
+              (data) => { this.success(model); },
               (err) => { this.error(model, err); }));
           } else {
-            console.log('Bug here in API... TODO: FIX IT!');
-            console.log(model);
-            // this.subscriptions.add(this.supergiant.KubeResources.create(model).subscribe(
-            //   (data) => {
-            //     this.success(model);
-            //   },
-            //   (err) => { this.error(model, err); }));
+            this.subscriptions.add(this.supergiant.KubeResources.create(model).subscribe(
+              (data) => { this.success(model); },
+              (err) => { this.error(model, err); }));
           }
         }
       }));

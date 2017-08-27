@@ -40,6 +40,7 @@
     "ng-bootstrap": "^1.6.3",
     "ng-formly": "^1.0.0-rc.10",
     "ng2-charts": "^1.6.0",
+    "ngx-pagination": "^3.0.1",
     "rxjs": "^5.1.0",
     "typescript-json-schema": "^0.16.0",
     "zone.js": "^0.8.4"

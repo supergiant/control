@@ -11,7 +11,7 @@ import { Observable } from 'rxjs/Observable';
   styleUrls: ['./kubes-list.component.css']
 })
 export class KubesListComponent implements OnInit, OnDestroy {
-
+  p: number[] = [];
   private kubes = [];
   subscriptions = new Subscription();
 
