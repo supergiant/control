@@ -38,12 +38,17 @@ export class AppsHeaderComponent implements OnDestroy, AfterViewInit {
   ngOnDestroy() {
     this.subscriptions.unsubscribe();
   }
+
+  firstToUpperCase(str) {
+    return str.substr(0, 1).toUpperCase() + str.substr(1);
+  }
   // After init, grab the schema
   ngAfterViewInit() {
     this.subscriptions.add(this.supergiant.Kubes.get().subscribe(
       (kubes) => { this.kubes = kubes.items; },
       (err) => { this.notifications.display('warn', 'Connection Issue.', err); },
     ));
+
 
     this.subscriptions.add(this.dropdownModalService.dropdownModalResponse.subscribe(
       (option) => {
@@ -66,6 +71,7 @@ export class AppsHeaderComponent implements OnDestroy, AfterViewInit {
               // TODO: Note - we need to add a sniffer here to look for a schema file
               // and any icon images in the chart. If they exist, we should use them instead of the generated one.
               this.appsModel.app.schema = GenerateSchema.json(this.appsModel.app.model);
+              (this.appsModel.app.schema as any).properties = this.setDescriptions((this.appsModel.app.schema as any).properties);
               this.editModalService.open('Save', 'app', this.appsModel);
             } else {
               // Some charts do not have var files. In that case there is no need for a editor at all...
@@ -104,6 +110,23 @@ export class AppsHeaderComponent implements OnDestroy, AfterViewInit {
           }
         }
       }));
+  }
+
+  setDescriptions(schema) {
+    for (const property in schema) {
+      if ((schema as any).hasOwnProperty(property)) {
+        if (schema[property].type === 'string') {
+          schema[property].description = this.firstToUpperCase(property.replace(/_/g, ' '));
+        } else if (schema[property].type === 'object') {
+          schema[property].description = this.firstToUpperCase(property.replace(/_/g, ' '));
+          schema[property].properties = this.setDescriptions(schema[property].properties);
+        } else if (schema[property].type === 'array') {
+          schema[property].description = this.firstToUpperCase(property.replace(/_/g, ' '));
+          schema[property].items.properties = this.setDescriptions(schema[property].items.properties);
+        }
+      }
+    }
+    return schema;
   }
 
   success(model) {

@@ -37,6 +37,7 @@
     "dedent": "^0.7.0",
     "generate-schema": "^2.5.1",
     "jquery": "^3.2.1",
+    "lodash": "^4.17.4",
     "ng-bootstrap": "^1.6.3",
     "ng-formly": "^1.0.0-rc.10",
     "ng2-charts": "^1.6.0",
