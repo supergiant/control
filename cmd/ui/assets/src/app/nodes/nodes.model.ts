@@ -12,7 +12,10 @@ export class NodesModel {
         },
         'size': {
           'description': 'Size',
-          'type': 'string'
+          'type': 'string',
+          'widget': 'select',
+          'oneOf': [],
+          'default': '',
         }
       }
     }

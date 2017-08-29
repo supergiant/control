@@ -8,6 +8,8 @@ export class KubesModel {
       'cloud_account_name': '',
       'master_node_size': 'm4.large',
       'name': '',
+      'ssh_pub_key': '',
+      'kube_master_count': 1,
       'node_sizes': [
         'm4.large',
         'm4.xlarge',
@@ -45,9 +47,23 @@ export class KubesModel {
           'description': 'Name',
           'type': 'string'
         },
+        'kube_master_count': {
+          'description': 'Kube Master Count',
+          'type': 'number',
+          'widget': 'number',
+        },
+        'ssh_pub_key': {
+          'description': 'SSH Public Key',
+          'type': 'string',
+          'widget': 'textarea',
+        },
         'node_sizes': {
           'description': 'Node Sizes',
-          'type': 'string'
+          'widget': 'array',
+          'items': {
+            'type': 'string'
+          },
+          'type': 'array'
         }
       }
     }
@@ -58,6 +74,7 @@ export class KubesModel {
       'cloud_account_name': '',
       'digitalocean_config': {
         'region': 'nyc1',
+        'kube_master_count': 1,
         'ssh_key_fingerprint': []
       },
       'master_node_size': '1gb',
@@ -102,9 +119,19 @@ export class KubesModel {
           'description': 'Name',
           'type': 'string'
         },
+        'kube_master_count': {
+          'description': 'Kube Master Count',
+          'type': 'number',
+          'widget': 'number',
+        },
         'node_sizes': {
           'description': 'Node Sizes',
-          'type': 'string'
+          'id': '/properties/node_sizes',
+          'items': {
+            'id': '/properties/node_sizes/items',
+            'type': 'string'
+          },
+          'type': 'array'
         }
       }
     }
@@ -119,6 +146,7 @@ export class KubesModel {
       },
       'master_node_size': 'n1-standard-1',
       'name': '',
+      'kube_master_count': 1,
       'node_sizes': [
         'n1-standard-1',
         'n1-standard-2',
@@ -155,9 +183,19 @@ export class KubesModel {
           'description': 'Name',
           'type': 'string'
         },
+        'kube_master_count': {
+          'description': 'Kube Master Count',
+          'type': 'number',
+          'widget': 'number',
+        },
         'node_sizes': {
           'description': 'Node Sizes',
-          'type': 'string'
+          'id': '/properties/node_sizes',
+          'items': {
+            'id': '/properties/node_sizes/items',
+            'type': 'string'
+          },
+          'type': 'array'
         }
       }
     }
@@ -168,6 +206,7 @@ export class KubesModel {
       'cloud_account_name': '',
       'master_node_size': 'm1.smaller',
       'name': '',
+      'kube_master_count': 1,
       'node_sizes': [
         'm1.smaller',
         'm1.small'
@@ -196,7 +235,12 @@ export class KubesModel {
         },
         'node_sizes': {
           'description': 'Node Sizes',
-          'type': 'string'
+          'id': '/properties/node_sizes',
+          'items': {
+            'id': '/properties/node_sizes/items',
+            'type': 'string'
+          },
+          'type': 'array'
         },
         'openstack_config': {
           'properties': {
@@ -209,6 +253,11 @@ export class KubesModel {
               'default': 'RegionOne',
               'description': 'Region',
               'type': 'string'
+            },
+            'kube_master_count': {
+              'description': 'Kube Master Count',
+              'type': 'number',
+              'widget': 'number',
             },
             'ssh_key_fingerprint': {
               'description': 'SSH Key Fingerprint',
@@ -260,7 +309,12 @@ export class KubesModel {
         },
         'node_sizes': {
           'description': 'Node Sizes',
-          'type': 'string'
+          'id': '/properties/node_sizes',
+          'items': {
+            'id': '/properties/node_sizes/items',
+            'type': 'string'
+          },
+          'type': 'array'
         },
         'packet_config': {
           'properties': {
@@ -271,7 +325,8 @@ export class KubesModel {
             },
             'kube_master_count': {
               'description': 'Kube Master Count',
-              'type': 'string'
+              'type': 'number',
+              'widget': 'number',
             },
             'project': {
               'description': 'Project',
@@ -279,7 +334,8 @@ export class KubesModel {
             },
             'ssh_pub_key': {
               'description': 'SSH Public Key',
-              'type': 'string'
+              'type': 'string',
+              'widget': 'textarea',
             }
           },
           'type': 'object'

@@ -8,7 +8,14 @@ import { NodesService } from '../nodes.service';
 })
 export class NodeComponent {
   @Input() node: any;
-  constructor(private nodesService: NodesService) { }
+  constructor(
+    private nodesService: NodesService,
+  ) { }
+
+  round(value, precision) {
+    const multiplier = Math.pow(10, precision || 1);
+    return Math.round(value * multiplier) / multiplier;
+  }
 
   status(node) {
     if (node.status && node.status.error && node.status.retries === node.status.max_retries) {

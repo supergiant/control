@@ -6,7 +6,6 @@ import { NgbModule } from '@ng-bootstrap/ng-bootstrap';
 import { HttpModule } from '@angular/http';
 import { SimpleNotificationsModule } from 'angular2-notifications';
 import { BrowserAnimationsModule } from '@angular/platform-browser/animations';
-import { FormlyModule, FormlyBootstrapModule } from 'ng-formly';
 import { SchemaFormModule, WidgetRegistry, DefaultWidgetRegistry } from 'angular2-schema-form';
 import { AppRoutingModule } from './app-routing.module';
 import { ChartsModule } from 'ng2-charts';
@@ -179,8 +178,6 @@ import { Logs } from './shared/supergiant/logs/logs.service';
     BrowserModule,
     BrowserAnimationsModule,
     SimpleNotificationsModule.forRoot(),
-    FormlyModule,
-    FormlyBootstrapModule,
     ReactiveFormsModule,
     SchemaFormModule,
     ChartsModule,

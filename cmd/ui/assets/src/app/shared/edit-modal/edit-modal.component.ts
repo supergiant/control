@@ -1,4 +1,4 @@
-import { Component, OnInit, AfterViewInit, OnDestroy, ViewChild, ElementRef } from '@angular/core';
+import { Component, OnInit, AfterViewInit, OnDestroy, ViewChild, ElementRef, ViewEncapsulation } from '@angular/core';
 import { NgbModal, ModalDismissReasons, NgbModalOptions, NgbModalRef } from '@ng-bootstrap/ng-bootstrap';
 import { Subscription } from 'rxjs/Subscription';
 import { EditModalService } from './edit-modal.service';
@@ -7,7 +7,8 @@ import { Notifications } from '../../shared/notifications/notifications.service'
 @Component({
   selector: 'app-edit-modal',
   templateUrl: './edit-modal.component.html',
-  styleUrls: ['./edit-modal.component.css']
+  styleUrls: ['./edit-modal.component.css'],
+  encapsulation: ViewEncapsulation.None
 })
 export class EditModalComponent implements OnInit, AfterViewInit, OnDestroy {
   private modalRef: NgbModalRef;
