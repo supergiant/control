@@ -18,6 +18,7 @@ export class UsersListComponent implements OnInit, OnDestroy {
   constructor(
     private supergiant: Supergiant,
     private notifications: Notifications,
+    private usersService: UsersService,
   ) { }
 
   ngOnInit() {

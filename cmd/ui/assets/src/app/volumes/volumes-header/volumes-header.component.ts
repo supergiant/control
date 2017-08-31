@@ -33,6 +33,10 @@ export class VolumesHeaderComponent implements OnDestroy {
     this.systemModalService.openSystemModal(message);
   }
 
+  setSearch(value) {
+    this.volumesService.searchString = value;
+  }
+
   // If the delete button is hit, the seleted accounts are deleted.
   deleteVolume() {
     const selectedItems = this.volumesService.returnSelected();
@@ -43,6 +47,7 @@ export class VolumesHeaderComponent implements OnDestroy {
         this.subscriptions.add(this.supergiant.KubeResources.delete(provider.id).subscribe(
           (data) => {
             this.notifications.display('success', 'Volume: ' + provider.name, 'Deleted...');
+            this.volumesService.resetSelected();
           },
           (err) => {
             this.notifications.display('error', 'Volume: ' + provider.name, 'Error:' + err);

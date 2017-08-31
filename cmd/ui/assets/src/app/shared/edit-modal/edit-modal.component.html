@@ -3,7 +3,7 @@
     <ngb-tabset type="pills" justify="center">
       <ngb-tab title="Simple" [disabled]="isDisabled">
         <ng-template ngbTabContent>
-          <sf-form [schema]="schema" [model]="model" (onChange)="value=$event.value"></sf-form>
+          <sf-form [schema]="schema" [model]="model" (onChange)="value=$event.value; model=value"></sf-form>
           <div class="modal-footer">
             <button type="submit" class="btn btn-secondary" (click)="onSubmit()">{{ action }}</button>
             <button type="button" class="btn btn-secondary" (click)="c('Close click')">Cancel</button>

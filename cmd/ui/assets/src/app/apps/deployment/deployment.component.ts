@@ -2,7 +2,7 @@ import { Component, Input } from '@angular/core';
 import { AppsService } from '../apps.service';
 
 @Component({
-  selector: '[app-deployment]',
+  selector: '[app-deployment]',  // tslint:disable-line
   templateUrl: './deployment.component.html',
   styleUrls: ['./deployment.component.css']
 })

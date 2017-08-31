@@ -8,6 +8,7 @@ export class KubesService {
   newEditModal = new Subject<any>();
   kubes: any;
   selectedItems = new Array();
+  searchString: string;
 
   constructor() { }
 

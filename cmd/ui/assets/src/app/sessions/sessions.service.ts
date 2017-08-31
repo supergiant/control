@@ -5,6 +5,7 @@ import { Observable } from 'rxjs/Observable';
 @Injectable()
 export class SessionsService {
   selectedItems = new Array();
+  searchString: string;
 
   constructor() { }
 
@@ -20,6 +21,9 @@ export class SessionsService {
     return false;
   }
 
+  resetSelected() {
+    this.selectedItems = [];
+  }
   // Record/Delete a selection from the "selected items" array.
   selectItem(item, event) {
     if (event) {

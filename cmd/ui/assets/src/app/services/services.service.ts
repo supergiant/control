@@ -8,6 +8,7 @@ export class ServicesService {
   newEditModal = new Subject<any>();
   services: any;
   selectedItems = new Array();
+  searchString: string;
 
   constructor() { }
 
@@ -21,6 +22,10 @@ export class ServicesService {
       if (item.id === obj.id) { return true; }
     }
     return false;
+  }
+
+  resetSelected() {
+    this.selectedItems = [];
   }
 
   // Record/Delete a selection from the "selected items" array.

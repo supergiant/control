@@ -8,6 +8,7 @@ export class CloudAccountsService {
   newEditModal = new Subject<any>();
   cloudAccounts: any;
   selectedItems = new Array();
+  searchString: string;
 
   constructor() { }
 
@@ -23,6 +24,9 @@ export class CloudAccountsService {
     return false;
   }
 
+  resetSelected() {
+    this.selectedItems = [];
+  }
   // Record/Delete a cloud account selection from the "selected items" array.
   selectItem(item, event) {
     if (event) {

@@ -8,6 +8,7 @@ export class NodesService {
   newEditModal = new Subject<any>();
   nodes: any;
   selectedItems = new Array();
+  searchString: string;
 
   constructor() { }
 
@@ -21,6 +22,10 @@ export class NodesService {
       if (item.id === obj.id) { return true; }
     }
     return false;
+  }
+
+  resetSelected() {
+    this.selectedItems = [];
   }
 
   // Record/Delete a selection from the "selected items" array.

@@ -2,7 +2,7 @@ import { Component, OnDestroy } from '@angular/core';
 import { Supergiant } from '../shared/supergiant/supergiant.service';
 import { CookieMonster } from '../shared/cookies/cookies.service';
 import { Router } from '@angular/router';
-import { Observable } from 'rxjs/Rx';
+import { Observable } from 'rxjs/Observable';
 import { Subscription } from 'rxjs/Subscription';
 
 @Component({

@@ -10,7 +10,7 @@
       </tr>
     </thead>
     <tbody>
-      <tr app-cloud-account *ngFor="let cloudAccount of cloudAccounts | paginate: { itemsPerPage: 10, currentPage: p[i], id: id }" [cloudAccount]="cloudAccount">
+      <tr app-cloud-account *ngFor="let cloudAccount of cloudAccounts | Search:cloudAccountsService.searchString | paginate: { itemsPerPage: 10, currentPage: p[i], id: id }" [cloudAccount]="cloudAccount">
       </tr>
     </tbody>
   </table>

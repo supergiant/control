@@ -8,6 +8,7 @@ export class UsersService {
   newEditModal = new Subject<any>();
   users: any;
   selectedItems = new Array();
+  searchString: string;
 
   constructor() { }
 

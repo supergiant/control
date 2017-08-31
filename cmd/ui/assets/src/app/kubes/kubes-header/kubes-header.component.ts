@@ -18,6 +18,7 @@ export class KubesHeaderComponent implements OnDestroy, AfterViewInit {
   subscriptions = new Subscription();
   cloudAccountsList = [];
   kubesModel = new KubesModel;
+  searchString = '';
 
   constructor(
     private kubesService: KubesService,
@@ -31,6 +32,10 @@ export class KubesHeaderComponent implements OnDestroy, AfterViewInit {
 
   ngOnDestroy() {
     this.subscriptions.unsubscribe();
+  }
+
+  setSearch(value) {
+    this.kubesService.searchString = value;
   }
 
   // After init, grab the schema
@@ -60,12 +65,14 @@ export class KubesHeaderComponent implements OnDestroy, AfterViewInit {
             this.subscriptions.add(this.supergiant.Kubes.update(providerID, model).subscribe(
               (data) => {
                 this.success(model);
+                this.kubesService.resetSelected();
               },
               (err) => { this.error(model, err); }));
           } else {
             this.subscriptions.add(this.supergiant.Kubes.create(model).subscribe(
               (data) => {
                 this.success(model);
+                this.kubesService.resetSelected();
               },
               (err) => { this.error(model, err); }));
           }

@@ -22,7 +22,7 @@ export class AppsHeaderComponent implements OnDestroy, AfterViewInit {
   subscriptions = new Subscription();
   kubes = [];
   appsModel = new AppsModel;
-
+  searchString = '';
   constructor(
     private appsService: AppsService,
     private appsComponent: AppsComponent,
@@ -42,6 +42,11 @@ export class AppsHeaderComponent implements OnDestroy, AfterViewInit {
   firstToUpperCase(str) {
     return str.substr(0, 1).toUpperCase() + str.substr(1);
   }
+
+  setSearch(value) {
+    this.appsService.searchString = value;
+  }
+
   // After init, grab the schema
   ngAfterViewInit() {
     this.subscriptions.add(this.supergiant.Kubes.get().subscribe(
@@ -73,6 +78,7 @@ export class AppsHeaderComponent implements OnDestroy, AfterViewInit {
               this.appsModel.app.schema = GenerateSchema.json(this.appsModel.app.model);
               (this.appsModel.app.schema as any).properties = this.setDescriptions((this.appsModel.app.schema as any).properties);
               this.editModalService.open('Save', 'app', this.appsModel);
+              this.appsService.resetSelected();
             } else {
               // Some charts do not have var files. In that case there is no need for a editor at all...
               // In this case we skip the editor and just deploy.
@@ -81,6 +87,7 @@ export class AppsHeaderComponent implements OnDestroy, AfterViewInit {
               this.appsModel.app.model.kube_name = kube.name;
               this.appsModel.app.model.repo_name = chart[0].repo_name;
               this.editModalService.editModalResponse.next(['Save', 'app', this.appsModel.app.model]);
+              this.appsService.resetSelected();
             }
           }
         }
@@ -169,6 +176,7 @@ export class AppsHeaderComponent implements OnDestroy, AfterViewInit {
     // } else {
     //   this.providersObj.providers[selectedItems[0].provider].model = selectedItems[0]
     //   this.editModalService.open("Edit", selectedItems[0].provider, this.providersObj);
+    // this.appsService.resetSelected();
     // }
   }
 
@@ -182,6 +190,7 @@ export class AppsHeaderComponent implements OnDestroy, AfterViewInit {
         this.subscriptions.add(this.supergiant.HelmReleases.delete(provider.id).subscribe(
           (data) => {
             this.notifications.display('success', 'App: ' + provider.name, 'Deleted...');
+            this.appsService.resetSelected();
           },
           (err) => {
             this.notifications.display('error', 'App: ' + provider.name, 'Error:' + err);

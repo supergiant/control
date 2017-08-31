@@ -25,6 +25,10 @@ export class RepoModalService {
     return false;
   }
 
+  resetSelected() {
+    this.selectedItems = [];
+  }
+
   // Record/Delete a selection from the "selected items" array.
   selectItem(item, event) {
     if (event) {

@@ -12,7 +12,7 @@
       </tr>
     </thead>
     <tbody>
-      <tr app-volume *ngFor="let volume of volumes | paginate: { itemsPerPage: 10, currentPage: p[i], id: id }" [volume]="volume"></tr>
+      <tr app-volume *ngFor="let volume of volumes | Search:volumesService.searchString | paginate: { itemsPerPage: 10, currentPage: p[i], id: id }" [volume]="volume"></tr>
     </tbody>
   </table>
   <nav aria-label="Page navigation">
