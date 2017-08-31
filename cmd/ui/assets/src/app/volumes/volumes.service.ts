@@ -8,6 +8,7 @@ export class VolumesService {
   newEditModal = new Subject<any>();
   volumes: any;
   selectedItems = new Array();
+  searchString: string;
 
   constructor() { }
 
@@ -21,6 +22,10 @@ export class VolumesService {
       if (item.id === obj.id) { return true; }
     }
     return false;
+  }
+
+  resetSelected() {
+    this.selectedItems = [];
   }
 
   // Record/Delete a selection from the "selected items" array.

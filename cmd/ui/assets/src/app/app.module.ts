@@ -50,6 +50,7 @@ import { LoginComponent } from './login/login.component';
 import { CookiesComponent } from './shared/cookies/cookies.component';
 import { AppsComponent } from './apps/apps.component';
 import { AppsHeaderComponent } from './apps/apps-header/apps-header.component';
+import { Search } from './shared/search-pipe/search-pipe';
 import { HelmAppComponent } from './apps/app/helm-app.component';
 import { DeploymentComponent } from './apps/deployment/deployment.component';
 import { RepoModalComponent } from './apps/repo-modal/repo-modal.component';
@@ -101,6 +102,8 @@ import { HelmRepos } from './shared/supergiant/helm-repos/helm-repos.service';
 import { HelmCharts } from './shared/supergiant/helm-charts/helm-charts.service';
 import { HelmReleases } from './shared/supergiant/helm-releases/helm-releases.service';
 import { Logs } from './shared/supergiant/logs/logs.service';
+import { AuthenticatedHttpService } from './shared/auth/authenticated-http-service.service';
+import { Http } from '@angular/http';
 
 
 
@@ -168,6 +171,7 @@ import { Logs } from './shared/supergiant/logs/logs.service';
     LoadBalancersListComponent,
     ServiceDetailsComponent,
     ServicesListComponent,
+    Search,
   ],
   imports: [
     BrowserModule,
@@ -219,6 +223,7 @@ import { Logs } from './shared/supergiant/logs/logs.service';
     EditModalService,
     CookieMonster,
     LoginComponent,
+    { provide: Http, useClass: AuthenticatedHttpService },
   ],
   bootstrap: [AppComponent]
 })

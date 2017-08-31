@@ -15,7 +15,7 @@ export class UtilService {
   fetch(path) {
     const headers = new Headers();
     headers.append('Authorization', this.sessionToken);
-    return this.http.get(this.serverEndpoint + path, { headers: headers }).map(response => response.json());
+    return this.http.get(this.serverEndpoint + path + '?limit=1000', { headers: headers }).map(response => response.json());
   }
 
   fetchNoMap(path) {

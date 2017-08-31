@@ -10,7 +10,7 @@
       </tr>
     </thead>
     <tbody>
-      <tr app-kube *ngFor="let kube of kubes | paginate: { itemsPerPage: 10, currentPage: p[i], id: id }" [kube]="kube"></tr>
+      <tr app-kube *ngFor="let kube of kubes | Search:kubesService.searchString | paginate: { itemsPerPage: 10, currentPage: p[i], id: id }" [kube]="kube"></tr>
     </tbody>
   </table>
   <nav aria-label="Page navigation">

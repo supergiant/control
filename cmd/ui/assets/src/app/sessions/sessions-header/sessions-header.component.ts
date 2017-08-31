@@ -15,6 +15,7 @@ import { SystemModalService } from '../../shared/system-modal/system-modal.servi
 export class SessionsHeaderComponent implements OnDestroy {
   subscriptions = new Subscription();
   sessionsObj: any;
+  searchString = '';
 
   constructor(
     private sessionsService: SessionsService,
@@ -32,6 +33,10 @@ export class SessionsHeaderComponent implements OnDestroy {
     this.systemModalService.openSystemModal(message);
   }
 
+  setSearch(value) {
+    this.sessionsService.searchString = value;
+  }
+
   // If the delete button is hit, the seleted sessions are deleted.
   deleteSession() {
     const selectedItems = this.sessionsService.returnSelectedSessions();
@@ -42,6 +47,7 @@ export class SessionsHeaderComponent implements OnDestroy {
         this.subscriptions.add(this.subscriptions.add(this.supergiant.Sessions.delete(session.id).subscribe(
           (data) => {
             this.notifications.display('success', 'Session: ' + session.id, 'Deleted...');
+            this.sessionsService.resetSelected();
           },
           (err) => {
             this.notifications.display('error', 'Session: ' + session.id, 'Error:' + err);

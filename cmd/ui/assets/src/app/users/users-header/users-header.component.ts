@@ -19,6 +19,7 @@ export class UsersHeaderComponent implements OnDestroy, AfterViewInit {
   providersObj: any;
   subscriptions = new Subscription();
   editID: number;
+  searchString = '';
   constructor(
     private usersService: UsersService,
     private supergiant: Supergiant,
@@ -30,6 +31,10 @@ export class UsersHeaderComponent implements OnDestroy, AfterViewInit {
 
   ngOnDestroy() {
     this.subscriptions.unsubscribe();
+  }
+
+  setSearch(value) {
+    this.usersService.searchString = value;
   }
 
   ngAfterViewInit() {
@@ -44,6 +49,7 @@ export class UsersHeaderComponent implements OnDestroy, AfterViewInit {
             this.subscriptions.add(this.supergiant.Users.create(model).subscribe(
               (data) => {
                 this.success(model);
+                this.usersService.resetSelected();
               },
               (err) => { this.error(model, err); }
             ));

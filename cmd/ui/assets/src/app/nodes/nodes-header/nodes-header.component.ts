@@ -19,6 +19,7 @@ export class NodesHeaderComponent implements OnDestroy, AfterViewInit {
   subscriptions = new Subscription();
   nodesModel = new NodesModel;
   kubes = [];
+  searchString = '';
 
   constructor(
     private nodesService: NodesService,
@@ -32,6 +33,10 @@ export class NodesHeaderComponent implements OnDestroy, AfterViewInit {
 
   ngOnDestroy() {
     this.subscriptions.unsubscribe();
+  }
+
+  setSearch(value) {
+    this.nodesService.searchString = value;
   }
 
   // After init, grab the schema
@@ -67,12 +72,14 @@ export class NodesHeaderComponent implements OnDestroy, AfterViewInit {
             this.subscriptions.add(this.supergiant.Nodes.update(providerID, model).subscribe(
               (data) => {
                 this.success(model);
+                this.nodesService.resetSelected();
               },
               (err) => { this.error(model, err); }));
           } else {
             this.subscriptions.add(this.supergiant.Nodes.create(model).subscribe(
               (data) => {
                 this.success(model);
+                this.nodesService.resetSelected();
               },
               (err) => { this.error(model, err); }));
           }
@@ -128,6 +135,7 @@ export class NodesHeaderComponent implements OnDestroy, AfterViewInit {
         this.subscriptions.add(this.supergiant.Nodes.delete(node.id).subscribe(
           (data) => {
             this.notifications.display('success', 'Node: ' + node.provider_id, 'Deleted...');
+            this.nodesService.resetSelected();
           },
           (err) => {
             this.notifications.display('error', 'Node: ' + node.provider_id, 'Error:' + err);

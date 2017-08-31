@@ -1,25 +1,31 @@
-import { Component, OnInit, OnDestroy } from '@angular/core';
-import { Observable } from 'rxjs/Rx';
+import { Component, OnInit, OnDestroy, Pipe, PipeTransform } from '@angular/core';
+import { Observable } from 'rxjs/Observable';
 import { Subscription } from 'rxjs/Subscription';
 import { Supergiant } from '../shared/supergiant/supergiant.service';
+import { AppsService } from './apps.service';
 
 @Component({
   selector: 'app-apps',
   templateUrl: './apps.component.html',
-  styleUrls: ['./apps.component.css']
+  styleUrls: ['./apps.component.css'],
 })
 export class AppsComponent implements OnInit, OnDestroy {
   pApps: number[] = [];
   pDeployments: number[] = [];
   private apps = [];
   private deployments = [];
+  filteredApps = [];
+  filteredDeployments = [];
   subscriptions = new Subscription();
+  searchString = '';
 
   constructor(
+    private appsService: AppsService,
     private supergiant: Supergiant,
   ) { }
 
   ngOnInit() {
+    this.searchString = this.appsService.searchString;
     this.getApps();
     this.getDeployments();
   }

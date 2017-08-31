@@ -19,6 +19,7 @@ export class LoadBalancersHeaderComponent implements OnDestroy, AfterViewInit {
   subscriptions = new Subscription();
   loadBalancersModel = new LoadBalancersModel;
   kubes = [];
+  searchString = '';
 
   constructor(
     private loadBalancersService: LoadBalancersService,
@@ -32,6 +33,10 @@ export class LoadBalancersHeaderComponent implements OnDestroy, AfterViewInit {
 
   ngOnDestroy() {
     this.subscriptions.unsubscribe();
+  }
+
+  setSearch(value) {
+    this.loadBalancersService.searchString = value;
   }
 
   // After init, grab the schema
@@ -61,12 +66,14 @@ export class LoadBalancersHeaderComponent implements OnDestroy, AfterViewInit {
             this.subscriptions.add(this.supergiant.LoadBalancers.update(providerID, model).subscribe(
               (data) => {
                 this.success(model);
+                this.loadBalancersService.resetSelected();
               },
               (err) => { this.error(model, err); }));
           } else {
             this.subscriptions.add(this.supergiant.LoadBalancers.create(model).subscribe(
               (data) => {
                 this.success(model);
+                this.loadBalancersService.resetSelected();
               },
               (err) => { this.error(model, err); }));
           }
@@ -124,6 +131,7 @@ export class LoadBalancersHeaderComponent implements OnDestroy, AfterViewInit {
         this.subscriptions.add(this.supergiant.LoadBalancers.delete(provider.id).subscribe(
           (data) => {
             this.notifications.display('success', 'Load Balancer: ' + provider.name, 'Deleted...');
+            this.loadBalancersService.resetSelected();
           },
           (err) => {
             this.notifications.display('error', 'Load Balancer: ' + provider.name, 'Error:' + err);

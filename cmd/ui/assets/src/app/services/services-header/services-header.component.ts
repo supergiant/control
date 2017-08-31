@@ -19,6 +19,7 @@ export class ServicesHeaderComponent implements OnDestroy, AfterViewInit {
   subscriptions = new Subscription();
   servicesModel = new ServicesModel;
   kubes = [];
+  searchString = '';
 
   constructor(
     private servicesService: ServicesService,
@@ -32,6 +33,10 @@ export class ServicesHeaderComponent implements OnDestroy, AfterViewInit {
 
   ngOnDestroy() {
     this.subscriptions.unsubscribe();
+  }
+
+  setSearch(value) {
+    this.servicesService.searchString = value;
   }
   // After init, grab the schema
   ngAfterViewInit() {
@@ -58,11 +63,11 @@ export class ServicesHeaderComponent implements OnDestroy, AfterViewInit {
           const model = userInput[2];
           if (action === 'Edit') {
             this.subscriptions.add(this.supergiant.KubeResources.update(providerID, model).subscribe(
-              (data) => { this.success(model); },
+              (data) => { this.success(model); this.servicesService.resetSelected(); },
               (err) => { this.error(model, err); }));
           } else {
             this.subscriptions.add(this.supergiant.KubeResources.create(model).subscribe(
-              (data) => { this.success(model); },
+              (data) => { this.success(model); this.servicesService.resetSelected(); },
               (err) => { this.error(model, err); }));
           }
         }
@@ -118,6 +123,7 @@ export class ServicesHeaderComponent implements OnDestroy, AfterViewInit {
         this.subscriptions.add(this.supergiant.KubeResources.delete(provider.id).subscribe(
           (data) => {
             this.notifications.display('success', 'Service: ' + provider.name, 'Deleted...');
+            this.servicesService.resetSelected();
           },
           (err) => {
             this.notifications.display('error', 'Service: ' + provider.name, 'Error:' + err);

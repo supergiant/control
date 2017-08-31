@@ -8,6 +8,7 @@ export class AppsService {
   newEditModal = new Subject<any>();
   apps: any;
   selectedItems = new Array();
+  searchString: string;
 
   constructor() { }
 
@@ -23,6 +24,9 @@ export class AppsService {
     return false;
   }
 
+  resetSelected() {
+    this.selectedItems = [];
+  }
   // Record/Delete a selection from the "selected items" array.
   selectItem(item, event) {
     if (event) {

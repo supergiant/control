@@ -19,6 +19,7 @@ export class CloudAccountsHeaderComponent implements OnDestroy, AfterViewInit {
   providersObj = new CloudAccountModel;
   subscriptions = new Subscription();
   editID: number;
+  searchString = '';
 
   constructor(
     private cloudAccountsService: CloudAccountsService,
@@ -33,6 +34,11 @@ export class CloudAccountsHeaderComponent implements OnDestroy, AfterViewInit {
   ngOnDestroy() {
     this.subscriptions.unsubscribe();
   }
+
+  setSearch(value) {
+    this.cloudAccountsService.searchString = value;
+  }
+
 
   ngAfterViewInit() {
     this.subscriptions.add(this.dropdownModalService.dropdownModalResponse.subscribe(
@@ -54,12 +60,14 @@ export class CloudAccountsHeaderComponent implements OnDestroy, AfterViewInit {
             this.supergiant.CloudAccounts.update(providerID, model).subscribe(
               (data) => {
                 this.success(model);
+                this.cloudAccountsService.resetSelected();
               },
               (err) => { this.error(model, err); }, );
           } else {
             this.supergiant.CloudAccounts.create(model).subscribe(
               (data) => {
                 this.success(model);
+                this.cloudAccountsService.resetSelected();
               },
               (err) => { this.error(model, err); });
           }
@@ -129,6 +137,7 @@ export class CloudAccountsHeaderComponent implements OnDestroy, AfterViewInit {
         this.supergiant.CloudAccounts.delete(provider.id).subscribe(
           (data) => {
             this.notifications.display('success', 'Cloud Account: ' + provider.name, 'Deleted...');
+            this.cloudAccountsService.resetSelected();
           },
           (err) => {
             this.notifications.display('error', 'Cloud Account: ' + provider.name, 'Error:' + err);
