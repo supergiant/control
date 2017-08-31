@@ -4,6 +4,9 @@ import { ActivatedRoute, Router } from '@angular/router';
 import { Observable } from 'rxjs/Observable';
 import { Supergiant } from '../../shared/supergiant/supergiant.service';
 import { Notifications } from '../../shared/notifications/notifications.service';
+import { SystemModalService } from '../../shared/system-modal/system-modal.service';
+import { LoginComponent } from '../../login/login.component';
+
 
 @Component({
   selector: 'app-cloud-account-details',
@@ -19,11 +22,17 @@ export class CloudAccountDetailsComponent implements OnInit, OnDestroy {
     private router: Router,
     private supergiant: Supergiant,
     private notifications: Notifications,
+    private systemModalService: SystemModalService,
+    public loginComponent: LoginComponent,
   ) { }
 
   ngOnInit() {
     this.id = this.route.snapshot.params.id;
     this.getAccount();
+  }
+
+  openSystemModal(message) {
+    this.systemModalService.openSystemModal(message);
   }
 
   getAccount() {

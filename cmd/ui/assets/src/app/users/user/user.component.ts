@@ -8,5 +8,5 @@ import { UsersService } from '../users.service';
 })
 export class UserComponent {
   @Input() user: any;
-  constructor(private usersService: UsersService) { }
+  constructor(public usersService: UsersService) { }
 }

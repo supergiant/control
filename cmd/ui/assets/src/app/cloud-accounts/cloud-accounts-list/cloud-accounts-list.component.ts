@@ -11,12 +11,14 @@ import { Observable } from 'rxjs/Observable';
   styleUrls: ['./cloud-accounts-list.component.css']
 })
 export class CloudAccountsListComponent implements OnInit, OnDestroy {
-  p: number[] = [];
-  private cloudAccounts = [];
-  subscriptions = new Subscription();
+  public p: number[] = [];
+  public cloudAccounts = [];
+  private subscriptions = new Subscription();
+  public i: number;
+  public id: number;
 
   constructor(
-    private cloudAccountsService: CloudAccountsService,
+    public cloudAccountsService: CloudAccountsService,
     private supergiant: Supergiant,
     private notifications: Notifications,
   ) { }

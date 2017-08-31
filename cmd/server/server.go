@@ -156,6 +156,11 @@ func main() {
 			Destination: &c.LogPath,
 		},
 		cli.StringFlag{
+			Name:        "support-password",
+			Usage:       "Password for support user",
+			Destination: &c.SupportPassword,
+		},
+		cli.StringFlag{
 			Name:        "log-level",
 			Usage:       "Log level",
 			Destination: &c.LogLevel,

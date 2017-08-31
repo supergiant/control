@@ -12,12 +12,14 @@ import { Observable } from 'rxjs/Observable';
   styleUrls: ['./pods-list.component.css']
 })
 export class PodsListComponent implements OnInit, OnDestroy {
-  p: number[] = [];
-  private pods = [];
-  subscriptions = new Subscription();
+  public p: number[] = [];
+  public pods = [];
+  private subscriptions = new Subscription();
+  public i: number;
+  public id: number;
 
   constructor(
-    private podsService: PodsService,
+    public podsService: PodsService,
     private supergiant: Supergiant,
     private notifications: Notifications,
   ) { }

@@ -27,7 +27,7 @@ export class KubesHeaderComponent implements OnDestroy, AfterViewInit {
     private systemModalService: SystemModalService,
     private dropdownModalService: DropdownModalService,
     private editModalService: EditModalService,
-    private loginComponent: LoginComponent
+    public loginComponent: LoginComponent
   ) { }
 
   ngOnDestroy() {

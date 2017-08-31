@@ -19,7 +19,6 @@ import { KubesComponent } from './kubes/kubes.component';
 import { NotificationsComponent } from './shared/notifications/notifications.component';
 import { KubeComponent } from './kubes/kube/kube.component';
 import { KubesHeaderComponent } from './kubes/kubes-header/kubes-header.component';
-import { HeaderComponent } from './shared/header/header.component';
 import { SessionsComponent } from './sessions/sessions.component';
 import { CloudAccountsComponent } from './cloud-accounts/cloud-accounts.component';
 import { LoadBalancersComponent } from './load-balancers/load-balancers.component';
@@ -70,6 +69,7 @@ import { LoadBalancerDetailsComponent } from './load-balancers/load-balancer-det
 import { LoadBalancersListComponent } from './load-balancers/load-balancers-list/load-balancers-list.component';
 import { ServiceDetailsComponent } from './services/service-details/service-details.component';
 import { ServicesListComponent } from './services/services-list/services-list.component';
+import { SupergiantComponent } from './shared/supergiant/supergiant.component';
 // Component Services
 import { SessionsService } from './sessions/sessions.service';
 import { CloudAccountsService } from './cloud-accounts/cloud-accounts.service';
@@ -123,7 +123,6 @@ import { Http } from '@angular/http';
     KubesComponent,
     KubeComponent,
     KubesHeaderComponent,
-    HeaderComponent,
     SessionsComponent,
     CloudAccountsComponent,
     LoadBalancersComponent,
@@ -172,6 +171,7 @@ import { Http } from '@angular/http';
     ServiceDetailsComponent,
     ServicesListComponent,
     Search,
+    SupergiantComponent,
   ],
   imports: [
     BrowserModule,

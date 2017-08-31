@@ -9,10 +9,10 @@ import { NodesService } from '../nodes.service';
 export class NodeComponent {
   @Input() node: any;
   constructor(
-    private nodesService: NodesService,
+    public nodesService: NodesService,
   ) { }
 
-  round(value, precision) {
+  round(value, precision?) {
     const multiplier = Math.pow(10, precision || 1);
     return Math.round(value * multiplier) / multiplier;
   }

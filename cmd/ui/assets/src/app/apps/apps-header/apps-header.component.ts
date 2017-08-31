@@ -7,10 +7,10 @@ import { Notifications } from '../../shared/notifications/notifications.service'
 import { SystemModalService } from '../../shared/system-modal/system-modal.service';
 import { DropdownModalService } from '../../shared/dropdown-modal/dropdown-modal.service';
 import { EditModalService } from '../../shared/edit-modal/edit-modal.service';
-import { LoginComponent } from '../../login/login.component';
 import { RepoModalService } from '../repo-modal/repo-modal.service';
 import { AppsModel } from '../apps.model';
 import * as GenerateSchema from 'generate-schema';
+import { LoginComponent } from '../../login/login.component';
 
 
 @Component({
@@ -32,7 +32,7 @@ export class AppsHeaderComponent implements OnDestroy, AfterViewInit {
     private repoModalService: RepoModalService,
     private dropdownModalService: DropdownModalService,
     private editModalService: EditModalService,
-    private loginComponent: LoginComponent,
+    public loginComponent: LoginComponent
   ) { }
 
   ngOnDestroy() {
@@ -164,24 +164,10 @@ export class AppsHeaderComponent implements OnDestroy, AfterViewInit {
   openRepoModal(message) {
     this.repoModalService.openRepoModal(message);
   }
-  // If the edit button is hit, the Edit modal is opened.
-  editKube() {
-    // TODO: Can we edit???
-    // var selectedItems = this.appsService.returnSelected()
-    //
-    // if (selectedItems.length === 0) {
-    //   this.notifications.display("warn", "Warning:", "No Provider Selected.")
-    // } else if (selectedItems.length > 1) {
-    //   this.notifications.display("warn", "Warning:", "You cannot edit more than one provider at a time.")
-    // } else {
-    //   this.providersObj.providers[selectedItems[0].provider].model = selectedItems[0]
-    //   this.editModalService.open("Edit", selectedItems[0].provider, this.providersObj);
-    // this.appsService.resetSelected();
-    // }
-  }
+
 
   // If the delete button is hit, the seleted accounts are deleted.
-  deleteCloudAccount() {
+  deleteApp() {
     const selectedItems = this.appsService.returnSelected();
     if (selectedItems.length === 0) {
       this.notifications.display('warn', 'Warning:', 'No App Selected.');

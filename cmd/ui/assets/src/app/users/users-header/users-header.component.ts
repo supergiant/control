@@ -7,6 +7,7 @@ import { SystemModalService } from '../../shared/system-modal/system-modal.servi
 import { DropdownModalService } from '../../shared/dropdown-modal/dropdown-modal.service';
 import { EditModalService } from '../../shared/edit-modal/edit-modal.service';
 import { UsersModel } from '../users.model';
+import { LoginComponent } from '../../login/login.component';
 
 
 
@@ -27,6 +28,7 @@ export class UsersHeaderComponent implements OnDestroy, AfterViewInit {
     private systemModalService: SystemModalService,
     private dropdownModalService: DropdownModalService,
     private editModalService: EditModalService,
+    public loginComponent: LoginComponent
   ) { }
 
   ngOnDestroy() {

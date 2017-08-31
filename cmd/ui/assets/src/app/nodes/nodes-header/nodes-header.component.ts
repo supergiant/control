@@ -28,7 +28,7 @@ export class NodesHeaderComponent implements OnDestroy, AfterViewInit {
     private systemModalService: SystemModalService,
     private dropdownModalService: DropdownModalService,
     private editModalService: EditModalService,
-    private loginComponent: LoginComponent,
+    public loginComponent: LoginComponent,
   ) { }
 
   ngOnDestroy() {
@@ -112,7 +112,7 @@ export class NodesHeaderComponent implements OnDestroy, AfterViewInit {
     this.systemModalService.openSystemModal(message);
   }
   // If the edit button is hit, the Edit modal is opened.
-  editUser() {
+  editNode() {
     const selectedItems = this.nodesService.returnSelected();
 
     if (selectedItems.length === 0) {
@@ -126,7 +126,7 @@ export class NodesHeaderComponent implements OnDestroy, AfterViewInit {
   }
 
   // If the delete button is hit, the seleted accounts are deleted.
-  deleteCloudAccount() {
+  deleteNode() {
     const selectedItems = this.nodesService.returnSelected();
     if (selectedItems.length === 0) {
       this.notifications.display('warn', 'Warning:', 'No Node Selected.');

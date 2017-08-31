@@ -8,7 +8,7 @@ import { PodsService } from '../pods.service';
 })
 export class PodComponent {
   @Input() pod: any;
-  constructor(private podsService: PodsService) { }
+  constructor(public podsService: PodsService) { }
 
   status(pod) {
     if (pod.status && pod.status.error && pod.status.retries === pod.status.max_retries) {
