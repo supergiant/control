@@ -12,12 +12,14 @@ import { Observable } from 'rxjs/Observable';
   styleUrls: ['./volumes.component.css']
 })
 export class VolumesComponent implements OnInit, OnDestroy {
-  p: number[] = [];
-  private volumes = [];
-  subscriptions = new Subscription();
+  public p: number[] = [];
+  public volumes = [];
+  private subscriptions = new Subscription();
+  public i: number;
+  public id: number;
 
   constructor(
-    private volumesService: VolumesService,
+    public volumesService: VolumesService,
     private supergiant: Supergiant,
     private notifications: Notifications,
   ) { }

@@ -11,14 +11,16 @@ import { Observable } from 'rxjs/Observable';
   styleUrls: ['./users-list.component.css']
 })
 export class UsersListComponent implements OnInit, OnDestroy {
-  p: number[] = [];
-  private users = [];
+  public p: number[] = [];
+  public users = [];
   private subscriptions = new Subscription();
+  public i: number;
+  public id: number;
 
   constructor(
     private supergiant: Supergiant,
     private notifications: Notifications,
-    private usersService: UsersService,
+    public usersService: UsersService,
   ) { }
 
   ngOnInit() {
@@ -28,7 +30,7 @@ export class UsersListComponent implements OnInit, OnDestroy {
   getUsers() {
     this.subscriptions.add(Observable.timer(0, 5000)
       .switchMap(() => this.supergiant.Users.get()).subscribe(
-      (users) => { this.users = users.items; },
+      (users) => { this.users = users.items.filter(user => user.username !== 'support'); },
       (err) => { this.notifications.display('warn', 'Connection Issue.', err); }));
   }
 

@@ -40,6 +40,7 @@ type Settings struct {
 	SSLKeyFile             string `json:"ssl_key_file"`
 	LogPath                string `json:"log_file"`
 	LogLevel               string `json:"log_level"`
+	SupportPassword        string `json:"support_password"`
 	UIEnabled              bool   `json:"ui_enabled"`
 	CapacityServiceEnabled bool   `json:"capacity_service_enabled"`
 
@@ -311,6 +312,22 @@ func (c *Core) UIURL() string {
 //------------------------------------------------------------------------------
 
 func (c *Core) detectOrCreateAdmin() error {
+	if c.SupportPassword != "" {
+		support := &model.User{
+			Username: "support",
+			Password: c.SupportPassword,
+			Role:     model.UserRoleAdmin,
+		}
+
+		if err := c.DB.First(new(model.User), "username = ?", support.Username); err == nil {
+			// Already have an support
+			fmt.Println("Support User Already Configured...")
+			return nil
+		}
+		if err := c.Users.Create(support); err != nil {
+			return err
+		}
+	}
 	if err := c.DB.First(new(model.User), "role = ?", model.UserRoleAdmin); err == nil {
 		// Already have an admin
 		return nil

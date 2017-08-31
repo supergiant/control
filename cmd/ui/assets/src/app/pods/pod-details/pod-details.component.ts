@@ -5,6 +5,8 @@ import { Observable } from 'rxjs/Observable';
 import { Supergiant } from '../../shared/supergiant/supergiant.service';
 import { Notifications } from '../../shared/notifications/notifications.service';
 import { ChartsModule, BaseChartDirective } from 'ng2-charts';
+import { SystemModalService } from '../../shared/system-modal/system-modal.service';
+import { LoginComponent } from '../../login/login.component';
 
 @Component({
   selector: 'app-pod-details',
@@ -21,6 +23,8 @@ export class PodDetailsComponent implements OnInit, OnDestroy {
     private supergiant: Supergiant,
     private notifications: Notifications,
     private chartsModule: ChartsModule,
+    private systemModalService: SystemModalService,
+    public loginComponent: LoginComponent,
   ) { }
 
   // CPU Usage
@@ -44,6 +48,10 @@ export class PodDetailsComponent implements OnInit, OnDestroy {
   ngOnInit() {
     this.id = this.route.snapshot.params.id;
     this.getPod();
+  }
+
+  openSystemModal(message) {
+    this.systemModalService.openSystemModal(message);
   }
 
   getPod() {

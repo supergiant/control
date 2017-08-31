@@ -8,7 +8,8 @@ import { AppsService } from '../apps.service';
 })
 export class DeploymentComponent {
   @Input() deployment: any;
-  constructor(private appsService: AppsService) { }
+  constructor(public appsService: AppsService) { }
+
   status(deployment) {
     if (deployment.status && deployment.status.error && deployment.status.retries === deployment.status.max_retries) {
       return 'status status-danger';

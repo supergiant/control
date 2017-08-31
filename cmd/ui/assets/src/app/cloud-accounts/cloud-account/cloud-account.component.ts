@@ -9,7 +9,7 @@ import { CloudAccountsService } from '../cloud-accounts.service';
 export class CloudAccountComponent {
   @Input() cloudAccount: any;
   private show: boolean;
-  constructor(private cloudAccountsService: CloudAccountsService) { }
+  constructor(public cloudAccountsService: CloudAccountsService) { }
 
 
 }

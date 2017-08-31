@@ -11,10 +11,10 @@ import { NgbProgressbarConfig } from '@ng-bootstrap/ng-bootstrap';
 })
 export class KubeComponent implements AfterViewInit {
   @Input() kube: any;
-  private progress = false;
+  public progress = false;
   private progressValue: number;
   constructor(
-    private kubesService: KubesService,
+    public kubesService: KubesService,
     private notifications: Notifications,
     private config: NgbProgressbarConfig,
     private cdRef: ChangeDetectorRef

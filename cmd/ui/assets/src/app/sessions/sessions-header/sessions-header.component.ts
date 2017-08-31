@@ -21,7 +21,7 @@ export class SessionsHeaderComponent implements OnDestroy {
     private sessionsService: SessionsService,
     private supergiant: Supergiant,
     private notifications: Notifications,
-    private loginComponent: LoginComponent,
+    public loginComponent: LoginComponent,
     private systemModalService: SystemModalService,
   ) { }
 

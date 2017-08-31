@@ -11,12 +11,14 @@ import { Observable } from 'rxjs/Observable';
   styleUrls: ['./nodes-list.component.css']
 })
 export class NodesListComponent implements OnInit, OnDestroy {
-  p: number[] = [];
-  private nodes = [];
-  subscriptions = new Subscription();
+  public p: number[] = [];
+  public nodes = [];
+  private subscriptions = new Subscription();
+  public i: number;
+  public id: number;
 
   constructor(
-    private nodesService: NodesService,
+    public nodesService: NodesService,
     private supergiant: Supergiant,
     private notifications: Notifications,
   ) { }

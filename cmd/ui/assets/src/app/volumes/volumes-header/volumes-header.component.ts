@@ -22,7 +22,7 @@ export class VolumesHeaderComponent implements OnDestroy {
     private systemModalService: SystemModalService,
     private dropdownModalService: DropdownModalService,
     private editModalService: EditModalService,
-    private loginComponent: LoginComponent,
+    public loginComponent: LoginComponent,
   ) { }
 
   ngOnDestroy() {

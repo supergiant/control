@@ -11,12 +11,14 @@ import { Observable } from 'rxjs/Observable';
   styleUrls: ['./sessions-list.component.css']
 })
 export class SessionsListComponent implements OnInit, OnDestroy {
-  p: number[] = [];
-  sessions: any;
+  public p: number[] = [];
+  public sessions: any;
   private subscriptions = new Subscription();
+  public i: number;
+  public id: number;
 
   constructor(
-    private sessionsService: SessionsService,
+    public sessionsService: SessionsService,
     private supergiant: Supergiant,
     private notifications: Notifications,
   ) { }

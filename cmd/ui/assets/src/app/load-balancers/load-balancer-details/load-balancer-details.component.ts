@@ -4,6 +4,8 @@ import { ActivatedRoute, Router } from '@angular/router';
 import { Observable } from 'rxjs/Observable';
 import { Supergiant } from '../../shared/supergiant/supergiant.service';
 import { Notifications } from '../../shared/notifications/notifications.service';
+import { SystemModalService } from '../../shared/system-modal/system-modal.service';
+import { LoginComponent } from '../../login/login.component';
 
 @Component({
   selector: 'app-load-balancer-details',
@@ -19,6 +21,8 @@ export class LoadBalancerDetailsComponent implements OnInit, OnDestroy {
     private router: Router,
     private supergiant: Supergiant,
     private notifications: Notifications,
+    private systemModalService: SystemModalService,
+    public loginComponent: LoginComponent,
   ) { }
 
   ngOnInit() {
@@ -31,6 +35,10 @@ export class LoadBalancerDetailsComponent implements OnInit, OnDestroy {
       .switchMap(() => this.supergiant.LoadBalancers.get(this.id)).subscribe(
       (loadBalancer) => { this.loadBalancer = loadBalancer; },
       (err) => { this.notifications.display('warn', 'Connection Issue.', err); }));
+  }
+
+  openSystemModal(message) {
+    this.systemModalService.openSystemModal(message);
   }
 
   goBack() {

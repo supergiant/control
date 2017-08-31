@@ -8,7 +8,7 @@ import { LoadBalancersService } from '../load-balancers.service';
 })
 export class LoadBalancerComponent {
   @Input() loadBalancer: any;
-  constructor(private loadBalancersService: LoadBalancersService) { }
+  constructor(public loadBalancersService: LoadBalancersService) { }
 
   status(loadBalancer) {
     if (loadBalancer.status && loadBalancer.status.error && loadBalancer.status.retries === loadBalancer.status.max_retries) {

@@ -8,5 +8,5 @@ import { SessionsService } from '../sessions.service';
 })
 export class SessionComponent {
   @Input() session: any;
-  constructor(private sessionsService: SessionsService) { }
+  constructor(public sessionsService: SessionsService) { }
 }

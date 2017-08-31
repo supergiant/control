@@ -28,7 +28,7 @@ export class ServicesHeaderComponent implements OnDestroy, AfterViewInit {
     private systemModalService: SystemModalService,
     private dropdownModalService: DropdownModalService,
     private editModalService: EditModalService,
-    private loginComponent: LoginComponent,
+    public loginComponent: LoginComponent,
   ) { }
 
   ngOnDestroy() {
@@ -114,7 +114,7 @@ export class ServicesHeaderComponent implements OnDestroy, AfterViewInit {
   }
 
   // If the delete button is hit, the seleted accounts are deleted.
-  deleteCloudAccount() {
+  deleteService() {
     const selectedItems = this.servicesService.returnSelected();
     if (selectedItems.length === 0) {
       this.notifications.display('warn', 'Warning:', 'No Service Selected.');

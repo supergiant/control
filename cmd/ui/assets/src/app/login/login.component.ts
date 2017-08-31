@@ -11,14 +11,14 @@ import { Subscription } from 'rxjs/Subscription';
   styleUrls: ['./login.component.css']
 })
 export class LoginComponent implements OnDestroy {
-  private username: string;
-  private password: string;
+  public username: string;
+  public password: string;
   private session: any;
   private id: string;
   private sessionCookie: string;
-  previousUrl: string;
+  private previousUrl: string;
   private refresh: boolean;
-  subscriptions = new Subscription();
+  private subscriptions = new Subscription();
 
   constructor(
     private supergiant: Supergiant,

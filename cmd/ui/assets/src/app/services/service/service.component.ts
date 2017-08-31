@@ -8,7 +8,7 @@ import { ServicesService } from '../services.service';
 })
 export class ServiceComponent {
   @Input() service: any;
-  constructor(private servicesService: ServicesService) { }
+  constructor(public servicesService: ServicesService) { }
 
   status(service) {
     if (service.status && service.status.error && service.status.retries === service.status.max_retries) {

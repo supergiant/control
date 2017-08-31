@@ -28,7 +28,7 @@ export class LoadBalancersHeaderComponent implements OnDestroy, AfterViewInit {
     private systemModalService: SystemModalService,
     private dropdownModalService: DropdownModalService,
     private editModalService: EditModalService,
-    private loginComponent: LoginComponent,
+    public loginComponent: LoginComponent,
   ) { }
 
   ngOnDestroy() {
@@ -108,7 +108,7 @@ export class LoadBalancersHeaderComponent implements OnDestroy, AfterViewInit {
     this.systemModalService.openSystemModal(message);
   }
   // If the edit button is hit, the Edit modal is opened.
-  editUser() {
+  editLoadBalancer() {
     const selectedItems = this.loadBalancersService.returnSelected();
 
     if (selectedItems.length === 0) {
@@ -122,7 +122,7 @@ export class LoadBalancersHeaderComponent implements OnDestroy, AfterViewInit {
   }
 
   // If the delete button is hit, the seleted accounts are deleted.
-  deleteCloudAccount() {
+  deleteLoadBalancer() {
     const selectedItems = this.loadBalancersService.returnSelected();
     if (selectedItems.length === 0) {
       this.notifications.display('warn', 'Warning:', 'No Load Balancer Selected.');

@@ -8,7 +8,7 @@ import { VolumesService } from '../volumes.service';
 })
 export class VolumeComponent {
   @Input() volume: any;
-  constructor(private volumesService: VolumesService) { }
+  constructor(public volumesService: VolumesService) { }
 
   status(volume) {
     if (volume.status && volume.status.error && volume.status.retries === volume.status.max_retries) {
