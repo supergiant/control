@@ -34,6 +34,8 @@ script:
 
   # Compile assets
   - go-bindata -pkg bindata -o bindata/bindata.go config/providers/... ui/assets/... ui/views/...
+  - cd cmd/ui/assets && yarn install && npm install && ng build --aot && cd ../../../
+  - go-bindata -pkg ui -o bindata/ui/bindata.go cmd/ui/assets/dist/...
 
   # Coverage
   - go list -f "{{ if or (len .TestGoFiles) (len .XTestGoFiles) }}\"go test -covermode=count -coverpkg $(go list ./pkg/... | awk -v ORS=, '{ print $1 }' | sed 's/,$//') -coverprofile={{ .Dir }}/.coverprofile {{ .ImportPath }}\"{{ end }}" ./... | xargs -L 1 sh -c
