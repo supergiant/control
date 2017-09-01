@@ -36,7 +36,10 @@ script:
 
   # Compile assets
   - go-bindata -pkg bindata -o bindata/bindata.go config/providers/... ui/assets/... ui/views/...
-  - cd cmd/ui/assets && yarn install && npm install && ng build --aot && cd ../../../
+  - npm install cmd/ui/assets/
+  - cd cmd/ui/assets
+  - ng build --aot
+  - cd ../../../
   - go-bindata -pkg ui -o bindata/ui/bindata.go cmd/ui/assets/dist/...
 
   # Coverage
