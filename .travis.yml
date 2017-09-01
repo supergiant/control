@@ -36,8 +36,8 @@ script:
 
   # Compile assets
   - go-bindata -pkg bindata -o bindata/bindata.go config/providers/... ui/assets/... ui/views/...
-  - npm install cmd/ui/assets/
   - cd cmd/ui/assets
+  - npm install
   - ng build --aot
   - cd ../../../
   - go-bindata -pkg ui -o bindata/ui/bindata.go cmd/ui/assets/dist/...
