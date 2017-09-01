@@ -12,13 +12,22 @@ if [[ "$TAG" =~ ^v[0-100]. ]]; then
 else
   echo "private unstable"
   docker login -u $DOCKER_USER -p $DOCKER_PASS
+
+  ## UI Docker Build
   REPO=supergiant/supergiant-ui
   cp dist/supergiant-ui-linux-amd64 build/docker/ui/linux-amd64/
   cp dist/supergiant-ui-linux-arm64 build/docker/ui/linux-arm64/
-  ls -l build/docker/ui/linux-amd64/
-  ls -l build/docker/ui/linux-arm64/
-  docker build -t $REPO:$TAG-amd build/docker/ui/linux-amd64/
+  docker build -t $REPO:unstable-$TAG-amd build/docker/ui/linux-amd64/
   docker push $REPO
-  docker build -t $REPO:$TAG-arm build/docker/ui/linux-arm64/
+  docker build -t $REPO:unstable-$TAG-arm build/docker/ui/linux-arm64/
+  docker push $REPO
+
+  ## API Docker Build
+  REPO=supergiant/supergiant-api
+  cp dist/supergiant-server-linux-amd64 build/docker/api/linux-amd64/
+  cp dist/supergiant-server-linux-arm64 build/docker/api/linux-arm64/
+  docker build -t $REPO:unstable-$TAG-amd build/docker/api/linux-amd64/
+  docker push $REPO
+  docker build -t $REPO:unstable-$TAG-arm build/docker/api/linux-arm64/
   docker push $REPO
 fi
