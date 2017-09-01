@@ -3,7 +3,7 @@
 # Travis deployment script. After test success actions go here.
 
 TAG=${TRAVIS_BRANCH:-unstable}
-REPO=supergiant/supergiant-ui
+
 
 echo "Tag Name: ${TAG}"
 if [[ "$TAG" =~ ^v[0-100]. ]]; then
@@ -11,8 +11,10 @@ if [[ "$TAG" =~ ^v[0-100]. ]]; then
   ./packer build build/build_release.json
 else
   echo "private unstable"
-  docker login -e $DOCKER_EMAIL -u $DOCKER_USER -p $DOCKER_PASS
-  cp dist/supergiant-ui-linux-amd64 build/docker/ui/linux-amd64/dist/supergiant-ui-linux-amd64
-  docker build -t $REPO:$TAG build/docker/ui/linux-amd64/
+  docker login -u $DOCKER_USER -p $DOCKER_PASS
+  REPO=supergiant/supergiant-ui
+  docker build -t $REPO:$TAG-amd build/docker/ui/linux-amd64/
+  docker push $REPO
+  docker build -t $REPO:$TAG-arm build/docker/ui/linux-arm64/
   docker push $REPO
 fi
