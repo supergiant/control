@@ -39,7 +39,7 @@ script:
   - cd cmd/ui/assets
   - npm --version
   - npm install
-  - ng build --aot
+  - ng build --aot >out 2>&1
   - ls -l
   - cd ../../../
   - ls -l
