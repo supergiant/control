@@ -27,7 +27,7 @@ install:
   - go get github.com/tcnksm/ghr
   - go get github.com/karalabe/xgo
   - go get -u github.com/jteeuwen/go-bindata/...
-  - npm install -g angular-cli
+  - npm install -g @angular-cli@latest
 
 script:
   # Test
