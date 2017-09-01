@@ -16,6 +16,8 @@ else
   ## UI Docker Build
   REPO=supergiant/supergiant-ui
   cp dist/supergiant-ui-linux-amd64 build/docker/ui/linux-amd64/
+  cp dist/supergiant-ui-darwin-amd64 build/docker/ui/darwin-amd64/
+  cp dist/supergiant-ui-windows-amd64 build/docker/ui/windows-amd64/
   cp dist/supergiant-ui-linux-arm64 build/docker/ui/linux-arm64/
   docker build -t $REPO:unstable-$TAG-amd build/docker/ui/linux-amd64/
   docker push $REPO
@@ -25,6 +27,8 @@ else
   ## API Docker Build
   REPO=supergiant/supergiant-api
   cp dist/supergiant-server-linux-amd64 build/docker/api/linux-amd64/
+  cp dist/supergiant-server-darwin-amd64 build/docker/api/darwin-amd64/
+  cp dist/supergiant-server-windows-amd64 build/docker/api/windows-amd64/
   cp dist/supergiant-server-linux-arm64 build/docker/api/linux-arm64/
   docker build -t $REPO:unstable-$TAG-amd build/docker/api/linux-amd64/
   docker push $REPO

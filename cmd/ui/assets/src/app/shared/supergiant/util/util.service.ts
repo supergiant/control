@@ -1,6 +1,7 @@
 import { Injectable } from '@angular/core';
 import { Http, Response, Headers } from '@angular/http';
 import { Observable } from 'rxjs/Observable';
+import { PlatformLocation } from '@angular/common';
 
 @Injectable()
 export class UtilService {
@@ -10,7 +11,10 @@ export class UtilService {
 
   constructor(
     private http: Http,
-  ) { }
+    platformLocation: PlatformLocation,
+  ) {
+    console.log(platformLocation.getBaseHrefFromDOM);
+  }
 
   fetch(path) {
     const headers = new Headers();
