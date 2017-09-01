@@ -19,7 +19,9 @@ else
   cp dist/supergiant-ui-darwin-amd64 build/docker/ui/darwin-amd64/
   cp dist/supergiant-ui-windows-amd64 build/docker/ui/windows-amd64/
   cp dist/supergiant-ui-linux-arm64 build/docker/ui/linux-arm64/
-  docker build -t $REPO:unstable-$TAG-amd build/docker/ui/linux-amd64/
+  docker build -t $REPO:unstable-$TAG-linux build/docker/ui/linux-amd64/
+  docker build -t $REPO:unstable-$TAG-darwin build/docker/ui/linux-amd64/
+  docker build -t $REPO:unstable-$TAG-windows build/docker/ui/linux-amd64/
   docker push $REPO
   docker build -t $REPO:unstable-$TAG-arm build/docker/ui/linux-arm64/
   docker push $REPO
@@ -30,7 +32,9 @@ else
   cp dist/supergiant-server-darwin-amd64 build/docker/api/darwin-amd64/
   cp dist/supergiant-server-windows-amd64 build/docker/api/windows-amd64/
   cp dist/supergiant-server-linux-arm64 build/docker/api/linux-arm64/
-  docker build -t $REPO:unstable-$TAG-amd build/docker/api/linux-amd64/
+  docker build -t $REPO:unstable-$TAG-linux build/docker/api/linux-amd64/
+  docker build -t $REPO:unstable-$TAG-darwin build/docker/api/linux-amd64/
+  docker build -t $REPO:unstable-$TAG-windows build/docker/api/linux-amd64/
   docker push $REPO
   docker build -t $REPO:unstable-$TAG-arm build/docker/api/linux-arm64/
   docker push $REPO
