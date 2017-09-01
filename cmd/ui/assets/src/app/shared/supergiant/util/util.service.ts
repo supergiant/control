@@ -1,19 +1,26 @@
-import { Injectable } from '@angular/core';
+import { Injectable, OnInit } from '@angular/core';
 import { Http, Response, Headers } from '@angular/http';
 import { Observable } from 'rxjs/Observable';
-import { PlatformLocation } from '@angular/common';
+import { Location } from '@angular/common';
 
 @Injectable()
-export class UtilService {
+export class UtilService implements OnInit {
   serverEndpoint = 'http://localhost:8080';
   sessionToken: string;
   SessionID: string;
 
   constructor(
     private http: Http,
-    platformLocation: PlatformLocation,
+    private location: Location,
   ) {
-    console.log(platformLocation.getBaseHrefFromDOM);
+    console.log('foo' + location.prepareExternalUrl(location.path()));
+    console.log('window.location', window.location);
+    console.log('window.location.href', window.location.href);
+    console.log('window.location.origin', window.location.origin);
+  }
+
+  ngOnInit() {
+    console.log('foo' + this.location.prepareExternalUrl);
   }
 
   fetch(path) {
