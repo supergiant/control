@@ -10,10 +10,10 @@ import { SchemaFormModule, WidgetRegistry, DefaultWidgetRegistry } from 'angular
 import { AppRoutingModule } from './app-routing.module';
 import { ChartsModule } from 'ng2-charts';
 import { NgxPaginationModule } from 'ngx-pagination';
-import { APP_BASE_HREF, Location } from '@angular/common';
 
 // Components
 import { AppComponent } from './app.component';
+import { getBaseLocation } from './helpers';
 import { NavigationComponent } from './navigation/navigation.component';
 import { UsersComponent } from './users/users.component';
 import { KubesComponent } from './kubes/kubes.component';
@@ -225,8 +225,8 @@ import { Http } from '@angular/http';
     CookieMonster,
     LoginComponent,
     { provide: Http, useClass: AuthenticatedHttpService },
-    { provide: APP_BASE_HREF, useValue: window['_app_base'] || '/' },
   ],
   bootstrap: [AppComponent]
 })
+
 export class AppModule { }
