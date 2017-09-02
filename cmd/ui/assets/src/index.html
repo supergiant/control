@@ -2,7 +2,20 @@
 <html lang="en">
 
 <head>
-  <base href="./">
+  <script>
+    console.log("this", document.location)
+    console.log("this2", window.location.pathname.split('/').splice(1).join('/'))
+
+    base = document.location
+
+    if (window.location.pathname.split('/')[2] === 'ui') {
+      base = '/' + window.location.pathname.split('/')[1] + '/ui/';
+    } else {
+      base = '/';
+    }
+    console.log("base:", base)
+    document.write('<base href="' + base + '" />');
+  </script>
   <meta charset="utf-8">
   <title>Sgui</title>
   <meta name="viewport" content="width=device-width, initial-scale=1">

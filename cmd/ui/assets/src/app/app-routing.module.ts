@@ -43,7 +43,7 @@ export class AuthGuard implements CanActivate {
     return this.loginComponent.validateUser().map((res) => {
       if (res) { return true; }
     }).catch(() => {
-      this.router.navigate(['/login']);
+      this.router.navigate(['login']);
       return Observable.of(false);
     });
   }
@@ -54,7 +54,7 @@ export class AuthGuard implements CanActivate {
   }
 }
 const appRoutes: Routes = [
-  { path: '', redirectTo: '/login', pathMatch: 'full' },
+  { path: '', component: LoginComponent },
   {
     path: 'kubes', component: KubesComponent, canActivate: [AuthGuard], children: [
       { path: '', component: KubesListComponent },

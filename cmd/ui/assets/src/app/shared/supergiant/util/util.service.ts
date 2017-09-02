@@ -13,11 +13,18 @@ export class UtilService {
     private http: Http,
     private location: Location,
   ) {
-    console.log('foo' + location.prepareExternalUrl(location.path()));
-    console.log('window.location', window.location);
-    console.log('window.location.href', window.location.href);
     console.log('window.location.origin', window.location.origin);
-    this.serverEndpoint = window.location.origin + '/api';
+    console.log('window.location.host', window.location.hostname);
+    console.log('window.location.splice', window.location.pathname.split('/').splice(1).join('/'));
+    console.log('window.location.split', window.location.pathname.split('/'));
+    console.log('window.location.path', window.location.pathname);
+    console.log('window.location.href', window.location.href);
+
+    if (window.location.pathname.split('/')[2] === 'ui') {
+      this.serverEndpoint = '/' + window.location.pathname.split('/')[1] + '/server';
+    } else {
+      this.serverEndpoint = 'http://localhost:8080';
+    }
   }
 
   fetch(path) {
