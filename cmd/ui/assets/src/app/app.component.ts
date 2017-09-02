@@ -9,9 +9,9 @@ export class AppComponent {
   title = 'app';
 
   public options = {
-    position: ["top", "left"],
+    position: ['top', 'left'],
     timeOut: 2000,
     lastOnBottom: true,
-  }
+  };
 
 }

@@ -7,3 +7,12 @@ config/config.json
 /bindata/
 /build/dist/
 /data/
+/dist/
+/build/docker/ui/linux-amd64/supergiant-ui-linux-amd64
+/build/docker/ui/darwin-amd64/supergiant-ui-darwin-10.6-amd64
+/build/docker/ui/windows-amd64/supergiant-ui-windows-4.0-amd64.exe
+/build/docker/ui/linux-arm64/supergiant-ui-linux-arm64
+/build/docker/api/linux-amd64/supergiant-server-linux-amd64
+/build/docker/api/darwin-amd64/supergiant-server-darwin-10.6-amd64
+/build/docker/api/windows-amd64/supergiant-server-windows-4.0-amd64.exe
+/build/docker/api/linux-arm64/supergiant-server-linux-arm64

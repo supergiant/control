@@ -1,3 +1,3 @@
 from scratch
-COPY ./supergiant-server-darwin-amd64 /suipergiant-server
+COPY ./supergiant-server-darwin-10.6-amd64 /supergiant-server
 CMD ["/supergiant-server"]

@@ -1,3 +1,3 @@
 from scratch
-COPY ./supergiant-ui-windows-amd64 /suipergiant-ui
+COPY ./supergiant-ui-windows-4.0-amd64.exe /supergiant-ui.exe
 CMD ["/supergiant-ui"]

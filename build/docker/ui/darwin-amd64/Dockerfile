@@ -1,3 +1,3 @@
-from scratch
-COPY ./supergiant-ui-darwin-amd64 /suipergiant-ui
+from alpine
+COPY ./supergiant-ui-darwin-10.6-amd64 /supergiant-ui
 CMD ["/supergiant-ui"]
