@@ -16,26 +16,24 @@ else
   ## UI Docker Build
   REPO=supergiant/supergiant-ui
   cp dist/supergiant-ui-linux-amd64 build/docker/ui/linux-amd64/
-  cp dist/supergiant-ui-darwin-amd64 build/docker/ui/darwin-amd64/
-  cp dist/supergiant-ui-windows-amd64 build/docker/ui/windows-amd64/
+  cp dist/supergiant-ui-darwin-10.6-amd64 build/docker/ui/darwin-amd64/
+  cp dist/supergiant-ui-windows-4.0-amd64.exe build/docker/ui/windows-amd64/
   cp dist/supergiant-ui-linux-arm64 build/docker/ui/linux-arm64/
-  docker build -t $REPO:unstable-$TAG-linux build/docker/ui/linux-amd64/
-  docker build -t $REPO:unstable-$TAG-darwin build/docker/ui/linux-amd64/
-  docker build -t $REPO:unstable-$TAG-windows build/docker/ui/linux-amd64/
-  docker push $REPO
-  docker build -t $REPO:unstable-$TAG-arm build/docker/ui/linux-arm64/
+  docker build -t $REPO:$TAG-linux-x64 build/docker/ui/linux-amd64/
+  docker build -t $REPO:$TAG-darwin-x64 build/docker/ui/linux-amd64/
+  docker build -t $REPO:$TAG-windows-x64 build/docker/ui/linux-amd64/
+  docker build -t $REPO:$TAG-linux-arm64 build/docker/ui/linux-arm64/
   docker push $REPO
 
   ## API Docker Build
   REPO=supergiant/supergiant-api
   cp dist/supergiant-server-linux-amd64 build/docker/api/linux-amd64/
-  cp dist/supergiant-server-darwin-amd64 build/docker/api/darwin-amd64/
-  cp dist/supergiant-server-windows-amd64 build/docker/api/windows-amd64/
+  cp dist/supergiant-server-darwin-10.6-amd64 build/docker/api/darwin-amd64/
+  cp dist/supergiant-server-windows-4.0-amd64.exe build/docker/api/windows-amd64/
   cp dist/supergiant-server-linux-arm64 build/docker/api/linux-arm64/
-  docker build -t $REPO:unstable-$TAG-linux build/docker/api/linux-amd64/
-  docker build -t $REPO:unstable-$TAG-darwin build/docker/api/linux-amd64/
-  docker build -t $REPO:unstable-$TAG-windows build/docker/api/linux-amd64/
-  docker push $REPO
-  docker build -t $REPO:unstable-$TAG-arm build/docker/api/linux-arm64/
+  docker build -t $REPO:$TAG-linux-x64 build/docker/api/linux-amd64/
+  docker build -t $REPO:$TAG-darwin-x64 build/docker/api/linux-amd64/
+  docker build -t $REPO:$TAG-windows-x64 build/docker/api/linux-amd64/
+  docker build -t $REPO:$TAG-linux-arm64 build/docker/api/linux-arm64/
   docker push $REPO
 fi

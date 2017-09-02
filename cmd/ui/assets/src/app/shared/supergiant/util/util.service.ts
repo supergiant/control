@@ -1,10 +1,10 @@
-import { Injectable, OnInit } from '@angular/core';
+import { Injectable } from '@angular/core';
 import { Http, Response, Headers } from '@angular/http';
 import { Observable } from 'rxjs/Observable';
 import { Location } from '@angular/common';
 
 @Injectable()
-export class UtilService implements OnInit {
+export class UtilService {
   serverEndpoint = 'http://localhost:8080';
   sessionToken: string;
   SessionID: string;
@@ -17,10 +17,7 @@ export class UtilService implements OnInit {
     console.log('window.location', window.location);
     console.log('window.location.href', window.location.href);
     console.log('window.location.origin', window.location.origin);
-  }
-
-  ngOnInit() {
-    console.log('foo' + this.location.prepareExternalUrl);
+    this.serverEndpoint = window.location.origin + '/api';
   }
 
   fetch(path) {
