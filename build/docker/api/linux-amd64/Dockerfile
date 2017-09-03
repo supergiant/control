@@ -12,7 +12,8 @@ RUN apk add --update curl && \
   echo 'hosts: files mdns4_minimal [NOTFOUND=return] dns mdns4' >> /etc/nsswitch.conf && \
   apk del curl && \
   rm -rf glibc.apk glibc-bin.apk /var/cache/apk/*
-  
+
+RUN apk add --no-cache ca-certificates
 ADD ./supergiant-server-linux-amd64 /supergiant-api
 ADD ./config.json /
 CMD ["/supergiant-api"]
