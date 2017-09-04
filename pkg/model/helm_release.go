@@ -20,7 +20,8 @@ type HelmRelease struct {
 	ChartName    string `json:"chart_name" gorm:"not null;index" validate:"nonzero" sg:"immutable"`
 	ChartVersion string `json:"chart_version" validate:"nonzero" sg:"immutable"`
 
-	Name string `json:"name" validate:"regexp=^[\\w-\\.]*$" gorm:"index" sg:"immutable"`
+	Name      string `json:"name" validate:"regexp=^[\\w-\\.]*$" gorm:"index" sg:"immutable"`
+	Namespace string `json:"namespace" validate:"regexp=^[\\w-\\.]*$" gorm:"index" sg:"immutable"`
 
 	Revision string `json:"revision"`
 	// TODO weird naming, but Status is already taken
