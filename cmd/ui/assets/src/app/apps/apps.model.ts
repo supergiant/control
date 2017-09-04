@@ -6,7 +6,8 @@ export class AppsModel {
       'config': null,
       'kube_name': '',
       'name': '',
-      'repo_name': ''
+      'repo_name': '',
+      'namespace': ''
     },
     'schema': {}
   };

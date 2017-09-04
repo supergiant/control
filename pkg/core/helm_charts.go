@@ -48,6 +48,11 @@ func (c *HelmCharts) Populate() error {
 			}
 
 			for i, chart := range repoModel.Charts {
+				err := c.Get(chart.ID, new(model.HelmChart)) // TODO: Shuould we only look if null?
+				if err != nil {
+					fmt.Println("Chart Config Load Error:", err)
+				}
+
 				if chart.Name == newChart.Name {
 					existingChart = chart
 					existingIndex = i

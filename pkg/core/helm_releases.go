@@ -102,13 +102,16 @@ func (c *HelmReleases) Create(m *model.HelmRelease) error {
 		Fn: func(a *Action) error {
 			cmd := fmt.Sprintf("install %s/%s", m.RepoName, m.ChartName)
 			if len(m.Config) > 0 {
-				cmd += fmt.Sprintf(" --set %s", releaseConfigAsFlagValue(m.Config, ""))
+				cmd += fmt.Sprintf(" --set %s", strings.Replace(releaseConfigAsFlagValue(m.Config, ""), ",,", ",", -1)) // TODO: This will remove double , but what if we have 3?
 			}
 			if m.ChartVersion != "" {
 				cmd += " --version " + m.ChartVersion
 			}
 			if m.Name != "" {
 				cmd += " --name " + m.Name
+			}
+			if m.Namespace != "" {
+				cmd += " --namespace " + m.Namespace
 			}
 
 			_, err := execHelmCmd(c.Core, m.Kube, cmd)
