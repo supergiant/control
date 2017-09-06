@@ -34,12 +34,6 @@ func (p *Provider) CreateKube(m *model.Kube, action *core.Action) error {
 		Action: action,
 	}
 
-	m.BuildStatus = "provisioning"
-	err := p.Core.DB.Save(m)
-	if err != nil {
-		return err
-	}
-
 	// mock a fake ssh key if the user does not enter one. CoreOS may barf if we don't.
 	// Don't worry. This key is a example key used in github doc.
 	if m.SSHPubKey == "" {
@@ -95,7 +89,7 @@ func (p *Provider) CreateKube(m *model.Kube, action *core.Action) error {
 		}
 	}
 
-	err = p.Core.DB.Save(m)
+	err := p.Core.DB.Save(m)
 	if err != nil {
 		return err
 	}
@@ -1023,13 +1017,6 @@ func (p *Provider) CreateKube(m *model.Kube, action *core.Action) error {
 			nodes, err := k8s.ListNodes("")
 			if err != nil {
 				return false, nil
-			}
-			if len(nodes) > 0 {
-				m.BuildStatus = "completed"
-				err := p.Core.DB.Save(m)
-				if err != nil {
-					return false, nil
-				}
 			}
 			return len(nodes) > 0, nil
 		})
