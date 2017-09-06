@@ -73,8 +73,7 @@ type Kube struct {
 
 	MasterPublicIP string `json:"master_public_ip" sg:"readonly"`
 
-	Ready       bool   `json:"ready" sg:"readonly" gorm:"index"`
-	BuildStatus string `json:"buildStatus" sg:"readonly"`
+	Ready bool `json:"ready" sg:"readonly" gorm:"index"`
 	// This is used to store unstructured data such as metrics from Heapster.
 	ExtraData     map[string]interface{} `json:"extra_data" gorm:"-" sg:"store_as_json_in=ExtraDataJSON,readonly"`
 	ExtraDataJSON []byte                 `json:"-"`

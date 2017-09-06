@@ -14,10 +14,13 @@ type KubernetesClient struct {
 	ListPodsFn                       func(query string) ([]*kubernetes.Pod, error)
 	ListServicesFn                   func(query string) ([]*kubernetes.Service, error)
 	ListPersistentVolumesFn          func(query string) ([]*kubernetes.PersistentVolume, error)
-	ListNodeHeapsterStatsFn          func() ([]*kubernetes.HeapsterStats, error)
+	ListNodeHeapsterStatsFn          func(node string) ([]string, error)
 	ListPodHeapsterCPUUsageMetricsFn func(namespace, name string) ([]*kubernetes.HeapsterMetric, error)
 	ListPodHeapsterRAMUsageMetricsFn func(namespace, name string) ([]*kubernetes.HeapsterMetric, error)
 	GetPodLogFn                      func(namespace, name string) (string, error)
+	GetKubeHeapsterStatsfn           func(metricPath string) (kubernetes.HeapsterMetrics, error)
+	GetNodeHeapsterStatsfn           func(node string, metricPath string) (kubernetes.HeapsterMetrics, error)
+	ListKubeHeapsterStatsfn          func() ([]string, error)
 }
 
 func (k *KubernetesClient) EnsureNamespace(name string) error {
@@ -97,11 +100,11 @@ func (k *KubernetesClient) ListPersistentVolumes(query string) ([]*kubernetes.Pe
 	return k.ListPersistentVolumesFn(query)
 }
 
-func (k *KubernetesClient) ListNodeHeapsterStats() ([]*kubernetes.HeapsterStats, error) {
+func (k *KubernetesClient) ListNodeHeapsterStats(node string) ([]string, error) {
 	if k.ListNodeHeapsterStatsFn == nil {
-		return nil, nil
+		return []string{}, nil
 	}
-	return k.ListNodeHeapsterStatsFn()
+	return k.ListNodeHeapsterStatsFn(node)
 }
 
 func (k *KubernetesClient) ListPodHeapsterCPUUsageMetrics(namespace string, name string) ([]*kubernetes.HeapsterMetric, error) {
@@ -123,4 +126,24 @@ func (k *KubernetesClient) GetPodLog(namespace string, name string) (string, err
 		return "", nil
 	}
 	return k.GetPodLogFn(namespace, name)
+}
+
+func (k *KubernetesClient) GetKubeHeapsterStats(metricPath string) (kubernetes.HeapsterMetrics, error) {
+	if k.GetKubeHeapsterStatsfn == nil {
+		return kubernetes.HeapsterMetrics{}, nil
+	}
+	return k.GetKubeHeapsterStatsfn(metricPath)
+}
+
+func (k *KubernetesClient) GetNodeHeapsterStats(node string, metricPath string) (kubernetes.HeapsterMetrics, error) {
+	if k.GetNodeHeapsterStatsfn == nil {
+		return kubernetes.HeapsterMetrics{}, nil
+	}
+	return k.GetNodeHeapsterStatsfn(node, metricPath)
+}
+func (k *KubernetesClient) ListKubeHeapsterStats() ([]string, error) {
+	if k.ListKubeHeapsterStatsfn == nil {
+		return []string{}, nil
+	}
+	return k.ListKubeHeapsterStatsfn()
 }
