@@ -44,7 +44,7 @@ script:
   - go-bindata -pkg ui -o bindata/ui/bindata.go cmd/ui/assets/dist/...
 
   # Coverage
-  - go list -f "{{ if or (len .TestGoFiles) (len .XTestGoFiles) }}\"go test -covermode=count -coverpkg $(go list ./pkg/... | awk -v ORS=, '{ print $1 }' | sed 's/,$//') -coverprofile={{ .Dir }}/.coverprofile {{ .ImportPath }}\"{{ end }}" ./... | xargs -L 1 sh -c
+  - go list -f "{{ if or (len .TestGoFiles) (len .XTestGoFiles) }}\"go test -v -covermode=count -coverpkg $(go list ./pkg/... | awk -v ORS=, '{ print $1 }' | sed 's/,$//') -coverprofile={{ .Dir }}/.coverprofile {{ .ImportPath }}\"{{ end }}" ./... | xargs -L 1 sh -c
   - cat $(find . -regex '.*/.coverprofile') > .coverprofile
   - sed -i.bak '/^mode:\ count$/d' .coverprofile
   - echo 'mode':' count' | cat - .coverprofile > /tmp/out && mv /tmp/out .coverprofile
