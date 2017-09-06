@@ -1,0 +1,28 @@
+<!--The content below is only a placeholder and can be replaced.-->
+<div class="col-md-4">
+  <div style=" display: block ">
+    <canvas *ngIf="isDataAvailable " baseChart [data]="pieChartData " [labels]="pieChartLabels " [chartType]="pieChartType "></canvas>
+  </div>
+</div>
+<table class="table table-sm">
+  <thead>
+    <tr>
+      <th>Metric</th>
+      <th>Value</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td>Average Response Time:</td>
+      <td>{{ healthData?.average_response_time }}</td>
+    </tr>
+    <tr>
+      <td>Total Response Time:</td>
+      <td>{{ healthData?.total_response_time }}</td>
+    </tr>
+    <tr>
+      <td>Uptime:</td>
+      <td>{{ healthData?.uptime }}</td>
+    </tr>
+  </tbody>
+</table>
