@@ -32,6 +32,16 @@ export class LoadBalancersListComponent implements OnInit, OnDestroy {
       .switchMap(() => this.supergiant.LoadBalancers.get()).subscribe(
       (loadBalancers) => { this.loadBalancers = loadBalancers.items; },
       (err) => { this.notifications.display('Warning!', 'Cannot connect to Load Balancers API.', err); }));
+
+    this.subscriptions.add(Observable.timer(0, 5000)
+      .switchMap(() => this.supergiant.KubeResources.get()).subscribe(
+      (resources) => {
+      this.loadBalancers = this.loadBalancers.concat(
+        resources.items.filter(
+          service => service.resource.spec.type === 'LoadBalancer'
+        ));
+      },
+      (err) => { this.notifications.display('warn', 'Connection Issue.', err); }));
   }
 
   ngOnDestroy() {
