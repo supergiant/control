@@ -13,7 +13,6 @@ import { NgxPaginationModule } from 'ngx-pagination';
 
 // Components
 import { AppComponent } from './app.component';
-import { getBaseLocation } from './helpers';
 import { NavigationComponent } from './navigation/navigation.component';
 import { UsersComponent } from './users/users.component';
 import { KubesComponent } from './kubes/kubes.component';
