@@ -10,6 +10,7 @@ textarea {
   display: block;
   margin-left: auto;
   margin-right: auto;
+  padding: 10px;
   width: 90%;
   height: auto;
   background-color: white;
