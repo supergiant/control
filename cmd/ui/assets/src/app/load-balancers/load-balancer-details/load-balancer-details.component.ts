@@ -34,7 +34,12 @@ export class LoadBalancerDetailsComponent implements OnInit, OnDestroy {
     this.subscriptions.add(Observable.timer(0, 5000)
       .switchMap(() => this.supergiant.LoadBalancers.get(this.id)).subscribe(
       (loadBalancer) => { this.loadBalancer = loadBalancer; },
-      (err) => { this.notifications.display('warn', 'Connection Issue.', err); }));
+      (err) => { }));
+
+    this.subscriptions.add(Observable.timer(0, 5000)
+      .switchMap(() => this.supergiant.KubeResources.get(this.id)).subscribe(
+      (resource) => { this.loadBalancer = resource; },
+      (err) => { }));
   }
 
   openSystemModal(message) {

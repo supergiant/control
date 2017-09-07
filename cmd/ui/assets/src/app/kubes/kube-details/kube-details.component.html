@@ -14,6 +14,16 @@
         <b>Master Node Count:</b> {{ kube.kube_master_count }}<br />
         <b>Master Public IP:</b> {{ kube.master_public_ip }}<br />
       </div>
+      <div *ngIf="kube" class="graph-container">
+        <b>Planets: ( Have your kube username and password handy from the "Raw Data tab")</b>
+        <ul class="nav flex-column nav-pills">
+          <li *ngFor="let planet of planets" class="nav-item">
+            <button class="btn btn-sm btn-outline-primary" (click)="goToPlanet(planet.name)">{{ planet.name }}</button>
+          </li>
+        </ul>
+      </div>
+      <div *ngIf="fetchedHtml" [innerHTML]="fetchedHtml">
+      </div>
     </ng-template>
   </ngb-tab>
   <ngb-tab *ngIf="isDataAvailable" title="Metrics">

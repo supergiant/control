@@ -8,7 +8,7 @@
 </td>
 <td>{{ loadBalancer.kube_name }}</td>
 <td>{{ loadBalancer.name }}</td>
-<td>{{ loadBalancer.address }}</td>
+<td>{{ loadBalancer.address || loadBalancer.resource.status.loadBalancer.ingress[0].hostname}}</td>
 <td>
   <div [class]="status(loadBalancer)"></div>
   <button type="button" class="btn btn-sm pull-right btn-info" [routerLink]="[loadBalancer.id]">Details >></button>

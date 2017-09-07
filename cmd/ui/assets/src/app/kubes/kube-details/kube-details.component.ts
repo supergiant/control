@@ -7,6 +7,7 @@ import { Notifications } from '../../shared/notifications/notifications.service'
 import { ChartsModule, BaseChartDirective } from 'ng2-charts';
 import { SystemModalService } from '../../shared/system-modal/system-modal.service';
 import { LoginComponent } from '../../login/login.component';
+import { Http, Response, Headers } from '@angular/http';
 
 @Component({
   selector: 'app-kube-details',
@@ -17,6 +18,9 @@ export class KubeDetailsComponent implements OnInit, OnDestroy {
   id: number;
   subscriptions = new Subscription();
   kube: any;
+  url: string;
+  fetchedHtml: any;
+  public planets = [];
   constructor(
     private route: ActivatedRoute,
     private router: Router,
@@ -24,7 +28,8 @@ export class KubeDetailsComponent implements OnInit, OnDestroy {
     private notifications: Notifications,
     private chartsModule: ChartsModule,
     private systemModalService: SystemModalService,
-    public loginComponent: LoginComponent
+    public loginComponent: LoginComponent,
+    private http: Http,
   ) { }
 
   // CPU Usage
@@ -55,7 +60,7 @@ export class KubeDetailsComponent implements OnInit, OnDestroy {
   }
 
   getKube() {
-    this.subscriptions.add(Observable.timer(0, 5000)
+    this.subscriptions.add(Observable.timer(0, 10000)
       .switchMap(() => this.supergiant.Kubes.get(this.id)).subscribe(
       (kube) => {
         this.kube = kube;
@@ -80,6 +85,20 @@ export class KubeDetailsComponent implements OnInit, OnDestroy {
         }
       },
       (err) => { this.notifications.display('warn', 'Connection Issue.', err); }));
+
+    // Get any planets
+    this.subscriptions.add(Observable.timer(0, 20000)
+      .switchMap(() => this.supergiant.KubeResources.get()).subscribe(
+      (services) => {
+        this.planets = services.items.filter(
+          planet => {
+            if (planet.resource.metadata.labels) {
+              return planet.resource.metadata.labels['kubernetes.io/cluster-service'] === 'true';
+            }
+          }
+        );
+      },
+      (err) => { this.notifications.display('warn', 'Connection Issue.', err); }));
   }
 
   padArrayWithDefault(arr: any, n: number) {
@@ -98,6 +117,13 @@ export class KubeDetailsComponent implements OnInit, OnDestroy {
       });
     }
     return tmpArr;
+  }
+
+  goToPlanet(name) {
+    const service = '/api/v1/proxy/namespaces/kube-system/services/' + name;
+    const basicAuth = this.kube.username + ':' + this.kube.password; // Can we send this somehow??
+    this.url = 'https://' + this.kube.master_public_ip + service;
+    window.open(this.url);
   }
 
   goBack() {

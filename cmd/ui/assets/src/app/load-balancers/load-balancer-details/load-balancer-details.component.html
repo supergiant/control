@@ -11,7 +11,7 @@
         <b>Kube Name:</b> {{ loadBalancer.kube_name }}<br />
         <b>Name:</b> {{ loadBalancer.name }}<br />
         <b>Namespace:</b> {{ loadBalancer.namespace }}<br />
-        <b>Public Address:</b> {{ loadBalancer.address }}<br />
+        <b>Public Address:</b> {{ loadBalancer.address || loadBalancer.resource.status.loadBalancer.ingress[0].hostname }}<br />
       </div>
     </ng-template>
   </ngb-tab>
