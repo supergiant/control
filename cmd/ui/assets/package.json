@@ -23,7 +23,7 @@
     "@angular/router": "^4.0.0",
     "@jaspero/ng2-alerts": "0.0.7",
     "@jaspero/ng2-form-builder": "0.0.9",
-    "@ng-bootstrap/ng-bootstrap": "^1.0.0-alpha.29",
+    "@ng-bootstrap/ng-bootstrap": "^1.0.0-beta.3",
     "angular": "^1.6.5",
     "angular-formly": "^8.4.1",
     "angular-schema-form": "^1.0.0-alpha.4",

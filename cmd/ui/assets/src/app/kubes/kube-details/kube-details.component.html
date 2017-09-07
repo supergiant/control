@@ -4,7 +4,7 @@
   <button type="button" class="btn btn-sm pull-right btn-danger" (click)="loginComponent.logOut()">Log Out</button>
   <button type="button" class="btn btn-sm pull-right btn-info" (click)="openSystemModal(true)">System</button>
 </div>
-<ngb-tabset type="pills" justify="center">
+<ngb-tabset type="pills" justify="center" #t (tabChange)="resetTabs($event)">
   <ngb-tab title="Info">
     <ng-template ngbTabContent>
       <div *ngIf="kube" class="graph-container">
@@ -18,11 +18,16 @@
         <b>Planets: ( Have your kube username and password handy from the "Raw Data tab")</b>
         <ul class="nav flex-column nav-pills">
           <li *ngFor="let planet of planets" class="nav-item">
-            <button class="btn btn-sm btn-outline-primary" (click)="goToPlanet(planet.name)">{{ planet.name }}</button>
+            <button class="btn btn-sm btn-outline-primary" (click)="planetName=planet.name; getIframeURL(planet.name)">{{ planet.name }}</button>
           </li>
         </ul>
       </div>
-      <div *ngIf="fetchedHtml" [innerHTML]="fetchedHtml">
+    </ng-template>
+  </ngb-tab>
+  <ngb-tab [hidden]="planetName" [title]="planetName" id="planetTab">
+    <ng-template ngbTabContent>
+      <div class="graph-container">
+        <iframe class="full" #iframe [src]="secureSrc" (load)="onIframeLoad()" frameborder="0" width="95%" height="1000px"></iframe>
       </div>
     </ng-template>
   </ngb-tab>

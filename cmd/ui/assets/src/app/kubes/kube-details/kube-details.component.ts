@@ -1,4 +1,4 @@
-import { Component, OnInit, OnDestroy, ViewChild } from '@angular/core';
+import { Component, OnInit, OnDestroy, ViewChild, ElementRef, ViewContainerRef } from '@angular/core';
 import { Subscription } from 'rxjs/Subscription';
 import { ActivatedRoute, Router } from '@angular/router';
 import { Observable } from 'rxjs/Observable';
@@ -7,7 +7,7 @@ import { Notifications } from '../../shared/notifications/notifications.service'
 import { ChartsModule, BaseChartDirective } from 'ng2-charts';
 import { SystemModalService } from '../../shared/system-modal/system-modal.service';
 import { LoginComponent } from '../../login/login.component';
-import { Http, Response, Headers } from '@angular/http';
+import { DomSanitizer, SafeResourceUrl } from '@angular/platform-browser';
 
 @Component({
   selector: 'app-kube-details',
@@ -19,8 +19,13 @@ export class KubeDetailsComponent implements OnInit, OnDestroy {
   subscriptions = new Subscription();
   kube: any;
   url: string;
-  fetchedHtml: any;
+  private tabSet: ViewContainerRef;
+  @ViewChild('iframe') iframe: ElementRef;
+  @ViewChild('t') ngbTabSet;
+  public isLoading: Boolean;
+  public secureSrc: SafeResourceUrl;
   public planets = [];
+  public planetName: string;
   constructor(
     private route: ActivatedRoute,
     private router: Router,
@@ -29,7 +34,7 @@ export class KubeDetailsComponent implements OnInit, OnDestroy {
     private chartsModule: ChartsModule,
     private systemModalService: SystemModalService,
     public loginComponent: LoginComponent,
-    private http: Http,
+    private sanitizer: DomSanitizer,
   ) { }
 
   // CPU Usage
@@ -119,11 +124,31 @@ export class KubeDetailsComponent implements OnInit, OnDestroy {
     return tmpArr;
   }
 
-  goToPlanet(name) {
+  resetTabs(tab) {
+    if (tab.nextId !== 'planetTab') {
+      this.planetName = '';
+    }
+  }
+
+  getIframeURL(name) {
+    this.planetName = name;
     const service = '/api/v1/proxy/namespaces/kube-system/services/' + name;
     const basicAuth = this.kube.username + ':' + this.kube.password; // Can we send this somehow??
     this.url = 'https://' + this.kube.master_public_ip + service;
-    window.open(this.url);
+    this.secureSrc = this.sanitizer.bypassSecurityTrustResourceUrl(this.url);
+    this.ngbTabSet.select('planetTab');
+  }
+
+  onIframeLoad() {
+    const basicAuth = 'Basic ' + btoa(this.kube.username + ':' + this.kube.password);
+    if (typeof this.iframe !== 'undefined') {
+      this.iframe
+        .nativeElement
+        .contentWindow
+        .postMessage('Authorization:', basicAuth);
+
+      this.isLoading = false;
+    }
   }
 
   goBack() {
