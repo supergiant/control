@@ -36,4 +36,7 @@ else
   docker build -t $REPO:$TAG-windows-x64 build/docker/api/linux-amd64/
   docker build -t $REPO:$TAG-linux-arm64 build/docker/api/linux-arm64/
   docker push $REPO
+
+  echo "private unstable"
+  ./packer build build/build_branch.json
 fi
