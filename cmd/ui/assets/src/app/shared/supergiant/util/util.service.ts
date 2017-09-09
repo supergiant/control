@@ -16,7 +16,12 @@ export class UtilService {
     if (window.location.pathname.split('/')[2] === 'ui') {
       this.serverEndpoint = '/' + window.location.pathname.split('/')[1] + '/server';
     } else {
-      this.serverEndpoint = 'http://localhost:8080';
+      console.log(window.location.protocol);
+      if (window.location.hostname === 'localhost') {
+        this.serverEndpoint = window.location.protocol + '//' + window.location.hostname + '8080';
+      } else {
+        this.serverEndpoint = window.location.protocol + '//' + window.location.hostname;
+      }
     }
   }
 
