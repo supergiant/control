@@ -29,6 +29,8 @@ import { LoadBalancerDetailsComponent } from './load-balancers/load-balancer-det
 import { LoadBalancersListComponent } from './load-balancers/load-balancers-list/load-balancers-list.component';
 import { ServiceDetailsComponent } from './services/service-details/service-details.component';
 import { ServicesListComponent } from './services/services-list/services-list.component';
+import 'rxjs/add/operator/map';
+import 'rxjs/add/operator/switchMap';
 
 @Injectable()
 export class AuthGuard implements CanActivate {

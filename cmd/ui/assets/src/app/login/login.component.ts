@@ -44,13 +44,15 @@ export class LoginComponent implements OnDestroy {
     const creds = '{"user":{"username":"' + this.username + '", "password":"' + this.password + '"}}';
     this.subscriptions.add(this.supergiant.Sessions.create(JSON.parse(creds)).subscribe(
       (session) => {
+        console.log('session');
         this.session = session;
         this.supergiant.UtilService.sessionToken = 'SGAPI session="' + this.session.id + '"';
         this.supergiant.sessionID = this.session.id;
         this.cookieMonster.setCookie({ name: 'session', value: this.session.id, secure: true });
         this.supergiant.loginSuccess = true;
         this.router.navigate(['/kubes']);
-      }
+      },
+      (err) => { console.log('error:', err); }
     ));
   }
 

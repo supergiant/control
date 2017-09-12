@@ -12,7 +12,7 @@
       </tr>
     </thead>
     <tbody>
-      <tr class="item" [id]="'item_'+session.id" app-session *ngFor="let session of sessions | Search:sessionsService.searchString | paginate: { itemsPerPage: 10, currentPage: p[i], id: id }" [session]="session"></tr>
+      <tr app-session *ngFor="let session of sessions | Search:sessionsService.searchString | paginate: { itemsPerPage: 10, currentPage: p[i], id: id }" [session]="session"></tr>
     </tbody>
   </table>
   <nav aria-label="Page navigation">
