@@ -44,7 +44,7 @@ export class KubesModel {
           'type': 'string'
         },
         'name': {
-          'description': 'Name',
+          'description': 'Name (a-z,0-9)',
           'type': 'string'
         },
         'kube_master_count': {
