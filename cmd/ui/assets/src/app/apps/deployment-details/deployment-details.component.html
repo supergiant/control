@@ -1,0 +1,24 @@
+<div id="control-bar">
+  <div class="btn-group"></div>
+  <button class="btn btn-sm btn-info" (click)="goBack()"><< Back</button>
+  <button type="button" class="btn btn-sm pull-right btn-danger" (click)="loginComponent.logOut()">Log Out</button>
+  <button type="button" class="btn btn-sm pull-right btn-info" (click)="openSystemModal(true)">System</button>
+</div>
+<ngb-tabset type="pills" justify="center">
+  <ngb-tab title="Info">
+    <ng-template ngbTabContent>
+      <div *ngIf="deployment" class="graph-container">
+        <b>App Name:</b> {{ deployment.name }}<br />
+        <b>Repo:</b> {{ deployment.repo_name }}<br />
+        <b>Description:</b> {{ deployment.description }}<br />
+      </div>
+    </ng-template>
+  </ngb-tab>
+  <ngb-tab title="Raw Data">
+    <ng-template ngbTabContent>
+      <textarea class="form-control" disabled>
+{{deployment | json}}
+      </textarea>
+    </ng-template>
+  </ngb-tab>
+</ngb-tabset>

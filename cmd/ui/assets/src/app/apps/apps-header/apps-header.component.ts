@@ -104,14 +104,12 @@ export class AppsHeaderComponent implements OnDestroy, AfterViewInit {
             this.subscriptions.add(this.supergiant.HelmReleases.update(providerID, model).subscribe(
               (data) => {
                 this.success(model);
-                this.appsComponent.getDeployments();
               },
               (err) => { this.error(model, err); }));
           } else {
             this.subscriptions.add(this.supergiant.HelmReleases.create(model).subscribe(
               (data) => {
                 this.success(model);
-                this.appsComponent.getDeployments();
               },
               (err) => { this.error(model, err); }));
           }

@@ -29,6 +29,9 @@ import { LoadBalancerDetailsComponent } from './load-balancers/load-balancer-det
 import { LoadBalancersListComponent } from './load-balancers/load-balancers-list/load-balancers-list.component';
 import { ServiceDetailsComponent } from './services/service-details/service-details.component';
 import { ServicesListComponent } from './services/services-list/services-list.component';
+import { DeploymentDetailsComponent } from './apps/deployment-details/deployment-details.component';
+import { AppDetailsComponent } from './apps/app-details/app-details.component';
+import { AppsListComponent } from './apps/apps-list/apps-list.component';
 import 'rxjs/add/operator/map';
 import 'rxjs/add/operator/switchMap';
 
@@ -87,7 +90,17 @@ const appRoutes: Routes = [
       { path: ':id', component: PodDetailsComponent }
     ]
   },
-  { path: 'apps', component: AppsComponent, canActivate: [AuthGuard] },
+  {
+    path: 'apps', component: AppsComponent, canActivate: [AuthGuard], children: [
+      { path: '', component: AppsListComponent },
+      {
+        path: 'app/:id', component: AppDetailsComponent
+      },
+      {
+        path: 'deployment/:id', component: DeploymentDetailsComponent
+      },
+    ]
+  },
   { path: 'volumes', component: VolumesComponent, canActivate: [AuthGuard] },
   {
     path: 'services', component: ServicesComponent, canActivate: [AuthGuard], children: [
