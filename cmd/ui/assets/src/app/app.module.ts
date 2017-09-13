@@ -70,6 +70,9 @@ import { LoadBalancersListComponent } from './load-balancers/load-balancers-list
 import { ServiceDetailsComponent } from './services/service-details/service-details.component';
 import { ServicesListComponent } from './services/services-list/services-list.component';
 import { SupergiantComponent } from './shared/supergiant/supergiant.component';
+import { AppsListComponent } from './apps/apps-list/apps-list.component';
+import { AppDetailsComponent } from './apps/app-details/app-details.component';
+import { DeploymentDetailsComponent } from './apps/deployment-details/deployment-details.component';
 // Component Services
 import { SessionsService } from './sessions/sessions.service';
 import { CloudAccountsService } from './cloud-accounts/cloud-accounts.service';
@@ -104,6 +107,7 @@ import { HelmReleases } from './shared/supergiant/helm-releases/helm-releases.se
 import { Logs } from './shared/supergiant/logs/logs.service';
 import { AuthenticatedHttpService } from './shared/auth/authenticated-http-service.service';
 import { Http } from '@angular/http';
+
 
 
 
@@ -172,6 +176,9 @@ import { Http } from '@angular/http';
     ServicesListComponent,
     Search,
     SupergiantComponent,
+    AppDetailsComponent,
+    AppsListComponent,
+    DeploymentDetailsComponent,
   ],
   imports: [
     BrowserModule,
