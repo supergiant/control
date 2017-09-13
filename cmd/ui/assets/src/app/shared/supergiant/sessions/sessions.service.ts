@@ -8,6 +8,7 @@ export class Sessions {
   constructor(private util: UtilService) { }
 
   public valid(id) {
+    if (id === '') { return; }
     return this.util.fetchNoMap(this.sessionsPath + '/' + id);
   }
 

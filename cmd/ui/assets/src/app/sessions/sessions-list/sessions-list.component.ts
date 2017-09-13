@@ -30,7 +30,7 @@ export class SessionsListComponent implements OnInit, OnDestroy {
   getSessions() {
     this.subscriptions.add(Observable.timer(0, 10000)
       .switchMap(() => this.supergiant.Sessions.get()).subscribe(
-      (sessions) => { this.sessions = sessions.items; },
+      (sessions) => { this.sessions = sessions.items.filter(resource => !!resource.user); },
       (err) => { this.notifications.display('warn', 'Connection Issue.', err); }));
   }
   ngOnDestroy() {
