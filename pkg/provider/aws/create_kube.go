@@ -94,8 +94,9 @@ func (p *Provider) CreateKube(m *model.Kube, action *core.Action) error {
 		return err
 	}
 
-	procedure.AddStep("preparing IAM Role kubernetes-master", func() error {
-		policy := `{
+	if m.AWSConfig.MasterRoleName == "" {
+		procedure.AddStep("preparing IAM Role kubernetes-master", func() error {
+			policy := `{
   "Version": "2012-10-17",
   "Statement": [
     {
@@ -105,11 +106,11 @@ func (p *Provider) CreateKube(m *model.Kube, action *core.Action) error {
     }
   ]
 }`
-		return createIAMRole(iamS, "kubernetes-master", policy)
-	})
+			return createIAMRole(iamS, "kubernetes-master", policy)
+		})
 
-	procedure.AddStep("preparing IAM Role Policy kubernetes-master", func() error {
-		policy := `{
+		procedure.AddStep("preparing IAM Role Policy kubernetes-master", func() error {
+			policy := `{
   "Version": "2012-10-17",
   "Statement": [
     {
@@ -136,15 +137,17 @@ func (p *Provider) CreateKube(m *model.Kube, action *core.Action) error {
     }
   ]
 }`
-		return createIAMRolePolicy(iamS, "kubernetes-master", policy)
-	})
+			return createIAMRolePolicy(iamS, "kubernetes-master", policy)
+		})
 
-	procedure.AddStep("preparing IAM Instance Profile kubernetes-master", func() error {
-		return createIAMInstanceProfile(iamS, "kubernetes-master")
-	})
+		procedure.AddStep("preparing IAM Instance Profile kubernetes-master", func() error {
+			return createIAMInstanceProfile(iamS, "kubernetes-master")
+		})
+	}
 
-	procedure.AddStep("preparing IAM Role kubernetes-minion", func() error {
-		policy := `{
+	if m.AWSConfig.NodeRoleName == "" {
+		procedure.AddStep("preparing IAM Role kubernetes-minion", func() error {
+			policy := `{
   "Version": "2012-10-17",
   "Statement": [
     {
@@ -154,11 +157,11 @@ func (p *Provider) CreateKube(m *model.Kube, action *core.Action) error {
     }
   ]
 }`
-		return createIAMRole(iamS, "kubernetes-minion", policy)
-	})
+			return createIAMRole(iamS, "kubernetes-minion", policy)
+		})
 
-	procedure.AddStep("preparing IAM Role Policy kubernetes-minion", func() error {
-		policy := `{
+		procedure.AddStep("preparing IAM Role Policy kubernetes-minion", func() error {
+			policy := `{
   "Version": "2012-10-17",
   "Statement": [
     {
@@ -203,13 +206,13 @@ func (p *Provider) CreateKube(m *model.Kube, action *core.Action) error {
     }
   ]
 }`
-		return createIAMRolePolicy(iamS, "kubernetes-minion", policy)
-	})
+			return createIAMRolePolicy(iamS, "kubernetes-minion", policy)
+		})
 
-	procedure.AddStep("preparing IAM Instance Profile kubernetes-minion", func() error {
-		return createIAMInstanceProfile(iamS, "kubernetes-minion")
-	})
-
+		procedure.AddStep("preparing IAM Instance Profile kubernetes-minion", func() error {
+			return createIAMInstanceProfile(iamS, "kubernetes-minion")
+		})
+	}
 	if m.AWSConfig.BuildElasticFileSystem {
 
 		procedure.AddStep("creating EFS share", func() error {
@@ -320,7 +323,7 @@ func (p *Provider) CreateKube(m *model.Kube, action *core.Action) error {
 		}
 
 		var userdata bytes.Buffer
-		if err = template.Execute(&userdata, m); err != nil {
+		if err = template.Execute(&userdata, m.AWSConfig.Tags); err != nil {
 			return err
 		}
 
@@ -367,7 +370,7 @@ func (p *Provider) CreateKube(m *model.Kube, action *core.Action) error {
 		return tagAWSResource(ec2S, m.AWSConfig.VPCID, map[string]string{
 			"KubernetesCluster": m.Name,
 			"Name":              m.Name + "-vpc",
-		})
+		}, m.AWSConfig.Tags)
 	})
 
 	procedure.AddStep("enabling VPC DNS", func() error {
@@ -403,7 +406,7 @@ func (p *Provider) CreateKube(m *model.Kube, action *core.Action) error {
 		return tagAWSResource(ec2S, m.AWSConfig.InternetGatewayID, map[string]string{
 			"KubernetesCluster": m.Name,
 			"Name":              m.Name + "-ig",
-		})
+		}, m.AWSConfig.Tags)
 	})
 
 	procedure.AddStep("attaching Internet Gateway to VPC", func() error {
@@ -465,7 +468,7 @@ func (p *Provider) CreateKube(m *model.Kube, action *core.Action) error {
 				err := tagAWSResource(ec2S, subnet["subnet_id"], map[string]string{
 					"KubernetesCluster": m.Name,
 					"Name":              m.Name + "-" + subnet["zone"] + "-psub",
-				})
+				}, m.AWSConfig.Tags)
 				if err != nil {
 					return err
 				}
@@ -517,7 +520,7 @@ func (p *Provider) CreateKube(m *model.Kube, action *core.Action) error {
 		return tagAWSResource(ec2S, m.AWSConfig.RouteTableID, map[string]string{
 			"KubernetesCluster": m.Name,
 			"Name":              m.Name + "-rt",
-		})
+		}, m.AWSConfig.Tags)
 	})
 
 	procedure.AddStep("associating Route Table with Subnet", func() error {
@@ -583,7 +586,7 @@ func (p *Provider) CreateKube(m *model.Kube, action *core.Action) error {
 	procedure.AddStep("tagging ELB Security Group", func() error {
 		return tagAWSResource(ec2S, m.AWSConfig.ELBSecurityGroupID, map[string]string{
 			"KubernetesCluster": m.Name,
-		})
+		}, m.AWSConfig.Tags)
 	})
 
 	procedure.AddStep("creating ELB Security Group ingress rules", func() error {
@@ -660,7 +663,7 @@ func (p *Provider) CreateKube(m *model.Kube, action *core.Action) error {
 	procedure.AddStep("tagging Node Security Group", func() error {
 		return tagAWSResource(ec2S, m.AWSConfig.NodeSecurityGroupID, map[string]string{
 			"KubernetesCluster": m.Name,
-		})
+		}, m.AWSConfig.Tags)
 	})
 
 	procedure.AddStep("creating Node Security Group ingress rules", func() error {
@@ -841,6 +844,14 @@ func (p *Provider) CreateKube(m *model.Kube, action *core.Action) error {
 
 			time.Sleep(5 * time.Second)
 			procedure.Core.Log.Info("Building master #" + strconv.Itoa(i) + ", in subnet " + selectedSubnet + "...")
+
+			var masterRole *string
+			if m.AWSConfig.MasterRoleName != "" {
+				masterRole = aws.String(m.AWSConfig.MasterRoleName)
+			} else {
+				masterRole = aws.String("kubernetes-master")
+			}
+
 			resp, err := ec2S.RunInstances(&ec2.RunInstancesInput{
 				MinCount:     aws.Int64(1),
 				MaxCount:     aws.Int64(1),
@@ -860,7 +871,7 @@ func (p *Provider) CreateKube(m *model.Kube, action *core.Action) error {
 					},
 				},
 				IamInstanceProfile: &ec2.IamInstanceProfileSpecification{
-					Name: aws.String("kubernetes-master"),
+					Name: masterRole,
 				},
 				BlockDeviceMappings: []*ec2.BlockDeviceMapping{
 					{
@@ -891,7 +902,7 @@ func (p *Provider) CreateKube(m *model.Kube, action *core.Action) error {
 				"KubernetesCluster": m.Name,
 				"Name":              m.Name + "-master",
 				"Role":              m.Name + "-master",
-			})
+			}, m.AWSConfig.Tags)
 			if err != nil {
 				return err
 			}

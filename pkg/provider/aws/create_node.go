@@ -62,6 +62,13 @@ func (p *Provider) CreateNode(m *model.Node, action *core.Action) error {
 		selectedSubnet = subnets[(len(m.Kube.Nodes)-1)%len(m.Kube.AWSConfig.PublicSubnetIPRange)]
 	}
 
+	var nodeRole *string
+	if m.Kube.AWSConfig.NodeRoleName != "" {
+		nodeRole = aws.String(m.Kube.AWSConfig.NodeRoleName)
+	} else {
+		nodeRole = aws.String("kubernetes-minion")
+	}
+
 	resp, err := ec2S.RunInstances(&ec2.RunInstancesInput{
 		MinCount:     aws.Int64(1),
 		MaxCount:     aws.Int64(1),
@@ -73,7 +80,7 @@ func (p *Provider) CreateNode(m *model.Node, action *core.Action) error {
 			aws.String(m.Kube.AWSConfig.NodeSecurityGroupID),
 		},
 		IamInstanceProfile: &ec2.IamInstanceProfileSpecification{
-			Name: aws.String("kubernetes-minion"),
+			Name: nodeRole,
 		},
 		BlockDeviceMappings: []*ec2.BlockDeviceMapping{
 			&ec2.BlockDeviceMapping{
@@ -98,7 +105,7 @@ func (p *Provider) CreateNode(m *model.Node, action *core.Action) error {
 		"KubernetesCluster": m.Kube.Name,
 		"Name":              m.Name,
 		"Role":              m.Kube.Name + "-minion",
-	})
+	}, m.Kube.AWSConfig.Tags)
 	if err != nil {
 		// TODO
 		p.Core.Log.Error("Failed to tag EC2 Instance " + *server.InstanceId)

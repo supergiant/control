@@ -218,8 +218,13 @@ func createIAMInstanceProfile(iamS iamiface.IAMAPI, name string) error {
 	return nil
 }
 
-func tagAWSResource(ec2S ec2iface.EC2API, idstr string, tags map[string]string) error {
+func tagAWSResource(ec2S ec2iface.EC2API, idstr string, tags map[string]string, confTags map[string]string) error {
 	var ec2Tags []*ec2.Tag
+	if len(confTags) != 0 {
+		for key, val := range confTags {
+			tags[key] = val
+		}
+	}
 	for key, val := range tags {
 		ec2Tags = append(ec2Tags, &ec2.Tag{
 			Key:   aws.String(key),

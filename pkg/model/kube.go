@@ -91,19 +91,22 @@ type AWSKubeConfig struct {
 	NodeVolumeSize      int                 `json:"node_volume_size" sg:"default=100"`
 	MasterVolumeSize    int                 `json:"master_volume_size" sg:"default=100"`
 
-	LastSelectedAZ                string   `json:"last_selected_az" sg:"readonly"` // if using multiAZ this is the last az the node build used.
-	PrivateKey                    string   `json:"private_key,omitempty" sg:"readonly"`
-	VPCID                         string   `json:"vpc_id"`
-	VPCMANAGED                    bool     `json:"vpc_managed"`
-	InternetGatewayID             string   `json:"internet_gateway_id"`
-	RouteTableID                  string   `json:"route_table_id"`
-	RouteTableSubnetAssociationID []string `json:"route_table_subnet_association_id" sg:"readonly"`
-	PrivateNetwork                bool     `json:"private_network"`
-	ELBSecurityGroupID            string   `json:"elb_security_group_id" sg:"readonly"`
-	NodeSecurityGroupID           string   `json:"node_security_group_id" sg:"readonly"`
-	ElasticFileSystemID           string   `json:"elastic_filesystem_id"`
-	ElasticFileSystemTargets      []string `json:"elastic_filesystem_targets" sg:"readonly"`
-	BuildElasticFileSystem        bool     `json:"build_elastic_filesystem"`
+	MasterRoleName                string            `json:"master_role"`
+	NodeRoleName                  string            `json:"node_role"`
+	Tags                          map[string]string `json:"tags"`
+	LastSelectedAZ                string            `json:"last_selected_az" sg:"readonly"` // if using multiAZ this is the last az the node build used.
+	PrivateKey                    string            `json:"private_key,omitempty" sg:"readonly"`
+	VPCID                         string            `json:"vpc_id"`
+	VPCMANAGED                    bool              `json:"vpc_managed"`
+	InternetGatewayID             string            `json:"internet_gateway_id"`
+	RouteTableID                  string            `json:"route_table_id"`
+	RouteTableSubnetAssociationID []string          `json:"route_table_subnet_association_id" sg:"readonly"`
+	PrivateNetwork                bool              `json:"private_network"`
+	ELBSecurityGroupID            string            `json:"elb_security_group_id" sg:"readonly"`
+	NodeSecurityGroupID           string            `json:"node_security_group_id" sg:"readonly"`
+	ElasticFileSystemID           string            `json:"elastic_filesystem_id"`
+	ElasticFileSystemTargets      []string          `json:"elastic_filesystem_targets" sg:"readonly"`
+	BuildElasticFileSystem        bool              `json:"build_elastic_filesystem"`
 }
 
 // DOKubeConfig holds do specific information about DO based KUbernetes clusters.
