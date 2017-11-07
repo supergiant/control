@@ -1,19 +1,24 @@
-<div id="sidebar">
-  <a href="/" id="logo">
-      Supergiant
-    </a>
-  <div id="nav">
-    <ul class="nav flex-column nav-pills">
-      <li class="nav-item"><a [routerLink]="['/sessions']" routerLinkActive="active" class="nav-link">Sessions</a></li>
-      <li class="nav-item"><a [routerLink]="['/users']" routerLinkActive="active" class="nav-link">Users</a></li>
-      <li class="nav-item"><a [routerLink]="['/cloud-accounts']" routerLinkActive="active" class="nav-link">Cloud Accounts</a></li>
-      <li class="nav-item"><a [routerLink]="['/kubes']" routerLinkActive="active" class="nav-link">Kubes</a></li>
-      <li class="nav-item"><a [routerLink]="['/nodes']" routerLinkActive="active" class="nav-link">Nodes</a></li>
-      <li class="nav-item"><a [routerLink]="['/apps']" routerLinkActive="active" class="nav-link">Apps</a></li>
-      <li class="nav-item"><a [routerLink]="['/load-balancers']" routerLinkActive="active" class="nav-link">Load Balancers</a></li>
-      <li class="nav-item"><a [routerLink]="['/pods']" routerLinkActive="active" class="nav-link">Pods</a></li>
-      <li class="nav-item"><a [routerLink]="['/services']" routerLinkActive="active" class="nav-link">Services</a></li>
-      <li class="nav-item"><a [routerLink]="['/volumes']" routerLinkActive="active" class="nav-link">Volumes</a></li>
-    </ul>
+<div class="container">
+  <div class="row justify-content-md-center">
+    <div class="logo col-md-2">
+      <a href="/" id="logo">
+        Supergiant
+      </a>
+    </div>
+    <div id="nav" class="col-md-auto">
+      <ul class="nav nav-tabs">
+        <li class="nav-item"><a [routerLink]="['/sessions']" routerLinkActive="active" class="nav-link">Sessions</a></li>
+        <li class="nav-item"><a [routerLink]="['/users']" routerLinkActive="active" class="nav-link">Users</a></li>
+        <li class="nav-item"><a [routerLink]="['/cloud-accounts']" routerLinkActive="active" class="nav-link">Cloud Accounts</a></li>
+        <li class="nav-item"><a [routerLink]="['/kubes']" routerLinkActive="active" class="nav-link">Kubes</a></li>
+        <li class="nav-item"><a [routerLink]="['/nodes']" routerLinkActive="active" class="nav-link">Nodes</a></li>
+        <li class="nav-item"><a [routerLink]="['/apps']" routerLinkActive="active" class="nav-link">Apps</a></li>
+        <li class="nav-item"><a [routerLink]="['/load-balancers']" routerLinkActive="active" class="nav-link">Load Balancers</a></li>
+        <li class="nav-item"><a [routerLink]="['/pods']" routerLinkActive="active" class="nav-link">Pods</a></li>
+        <li class="nav-item"><a [routerLink]="['/services']" routerLinkActive="active" class="nav-link">Services</a></li>
+        <li class="nav-item"><a [routerLink]="['/volumes']" routerLinkActive="active" class="nav-link">Volumes</a></li>
+      </ul>
+    </div>
+    <div class="user col-md-2"></div>
   </div>
 </div>
