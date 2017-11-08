@@ -47,7 +47,6 @@ import { HelmReposComponent } from './system/main/helm-repos/helm-repos.componen
 import { NewClusterComponent } from './clusters/new-cluster/new-cluster.component';
 import { ClusterComponent } from './clusters/cluster/cluster.component';
 
-
 @Injectable()
 export class AuthGuard implements CanActivate {
 
@@ -88,7 +87,6 @@ const appRoutes: Routes = [
         { path: ':id', component: CloudAccount2000Component },
       ]},
       { path: '', component: MainComponent }
-    ]
   },
   {
     path: 'kubes', component: KubesComponent, canActivate: [AuthGuard], children: [
