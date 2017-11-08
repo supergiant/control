@@ -108,6 +108,9 @@ import { HelmReleases } from './shared/supergiant/helm-releases/helm-releases.se
 import { Logs } from './shared/supergiant/logs/logs.service';
 import { AuthenticatedHttpService } from './shared/auth/authenticated-http-service.service';
 import { Http } from '@angular/http';
+import { ClustersComponent } from './clusters/clusters.component';
+import { ClusterComponent } from './clusters/cluster/cluster.component';
+import { ClusterDetailsComponent } from './clusters/cluster-details/cluster-details.component';
 
 import 'rxjs/add/operator/map';
 import 'rxjs/add/operator/switchMap';
