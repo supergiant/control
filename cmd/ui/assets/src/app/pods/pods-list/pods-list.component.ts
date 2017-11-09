@@ -9,7 +9,7 @@ import { Observable } from 'rxjs/Observable';
 @Component({
   selector: 'app-pods-list',
   templateUrl: './pods-list.component.html',
-  styleUrls: ['./pods-list.component.css']
+  styleUrls: ['./pods-list.component.scss']
 })
 export class PodsListComponent implements OnInit, OnDestroy {
   public p: number[] = [];

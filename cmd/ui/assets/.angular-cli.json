@@ -18,8 +18,7 @@
     "testTsconfig": "tsconfig.spec.json",
     "prefix": "app",
     "styles": [
-      "../node_modules/bootstrap/dist/css/bootstrap.min.css",
-      "styles.css"
+      "styles.scss"
     ],
     "scripts": [
       "../node_modules/chart.js/dist/Chart.bundle.min.js"
@@ -43,15 +42,14 @@
     },
     {
       "project": "e2e/tsconfig.e2e.json"
-    }
-  ],
+    }],
   "test": {
     "karma": {
       "config": "./karma.conf.js"
     }
   },
   "defaults": {
-    "styleExt": "css",
+    "styleExt": "scss",
     "component": {}
   }
 }

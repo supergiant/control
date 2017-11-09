@@ -16,7 +16,7 @@ import { LoginComponent } from '../../login/login.component';
 @Component({
   selector: 'app-apps-header',
   templateUrl: './apps-header.component.html',
-  styleUrls: ['./apps-header.component.css']
+  styleUrls: ['./apps-header.component.scss']
 })
 export class AppsHeaderComponent implements OnDestroy, AfterViewInit {
   subscriptions = new Subscription();

@@ -4,7 +4,7 @@ import { ServicesService } from '../services.service';
 @Component({
   selector: '[app-service]',  // tslint:disable-line
   templateUrl: './service.component.html',
-  styleUrls: ['./service.component.css']
+  styleUrls: ['./service.component.scss']
 })
 export class ServiceComponent {
   @Input() service: any;

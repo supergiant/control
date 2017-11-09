@@ -18,7 +18,7 @@ export class RepoModel {
 @Component({
   selector: 'app-repo-modal',
   templateUrl: './repo-modal.component.html',
-  styleUrls: ['./repo-modal.component.css']
+  styleUrls: ['./repo-modal.component.scss']
 })
 export class RepoModalComponent implements OnInit, AfterViewInit, OnDestroy {
   private modalRef: NgbModalRef;

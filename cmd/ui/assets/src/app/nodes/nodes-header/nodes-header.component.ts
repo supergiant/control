@@ -12,7 +12,7 @@ import { NodesModel } from '../nodes.model';
 @Component({
   selector: 'app-nodes-header',
   templateUrl: './nodes-header.component.html',
-  styleUrls: ['./nodes-header.component.css']
+  styleUrls: ['./nodes-header.component.scss']
 })
 export class NodesHeaderComponent implements OnDestroy, AfterViewInit {
   providersObj: any;

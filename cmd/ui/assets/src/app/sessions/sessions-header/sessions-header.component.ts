@@ -10,7 +10,7 @@ import { SystemModalService } from '../../shared/system-modal/system-modal.servi
 @Component({
   selector: 'app-sessions-header',
   templateUrl: './sessions-header.component.html',
-  styleUrls: ['./sessions-header.component.css']
+  styleUrls: ['./sessions-header.component.scss']
 })
 export class SessionsHeaderComponent implements OnDestroy {
   subscriptions = new Subscription();

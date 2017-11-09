@@ -11,7 +11,7 @@ import { LoginComponent } from '../../login/login.component';
 @Component({
   selector: 'app-pod-details',
   templateUrl: './pod-details.component.html',
-  styleUrls: ['./pod-details.component.css']
+  styleUrls: ['./pod-details.component.scss']
 })
 export class PodDetailsComponent implements OnInit, OnDestroy {
   id: number;

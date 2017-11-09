@@ -10,7 +10,7 @@ import { LoginComponent } from '../../login/login.component';
 @Component({
   selector: 'app-app-details',
   templateUrl: './app-details.component.html',
-  styleUrls: ['./app-details.component.css']
+  styleUrls: ['./app-details.component.scss']
 })
 export class AppDetailsComponent implements OnInit, OnDestroy {
 

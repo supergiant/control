@@ -11,7 +11,7 @@ import { LoginComponent } from '../../login/login.component';
 @Component({
   selector: 'app-cloud-account-details',
   templateUrl: './cloud-account-details.component.html',
-  styleUrls: ['./cloud-account-details.component.css']
+  styleUrls: ['./cloud-account-details.component.scss']
 })
 export class CloudAccountDetailsComponent implements OnInit, OnDestroy {
   id: number;

@@ -7,7 +7,7 @@ import { Notifications } from '../../shared/notifications/notifications.service'
 @Component({
   selector: 'app-dropdown-modal',
   templateUrl: './dropdown-modal.component.html',
-  styleUrls: ['./dropdown-modal.component.css']
+  styleUrls: ['./dropdown-modal.component.scss']
 })
 export class DropdownModalComponent implements AfterViewInit, OnDestroy {
   private title: string;

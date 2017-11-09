@@ -8,7 +8,7 @@ import { Observable } from 'rxjs/Observable';
 @Component({
   selector: 'app-cloud-accounts-list',
   templateUrl: './cloud-accounts-list.component.html',
-  styleUrls: ['./cloud-accounts-list.component.css']
+  styleUrls: ['./cloud-accounts-list.component.scss']
 })
 export class CloudAccountsListComponent implements OnInit, OnDestroy {
   public p: number[] = [];

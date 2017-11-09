@@ -12,7 +12,7 @@ import { PodsModel } from '../pods.model';
 @Component({
   selector: 'app-pods-header',
   templateUrl: './pods-header.component.html',
-  styleUrls: ['./pods-header.component.css']
+  styleUrls: ['./pods-header.component.scss']
 })
 export class PodsHeaderComponent implements OnDestroy, AfterViewInit {
   providersObj: any;

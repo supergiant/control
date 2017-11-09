@@ -4,7 +4,7 @@ import { CloudAccountsService } from '../cloud-accounts.service';
 @Component({
   selector: '[app-cloud-account]', // tslint:disable-line
   templateUrl: './cloud-account.component.html',
-  styleUrls: ['./cloud-account.component.css']
+  styleUrls: ['./cloud-account.component.scss']
 })
 export class CloudAccountComponent {
   @Input() cloudAccount: any;

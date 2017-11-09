@@ -10,7 +10,7 @@ import { Http } from '@angular/http';
 @Component({
   selector: 'app-system-modal',
   templateUrl: './system-modal.component.html',
-  styleUrls: ['./system-modal.component.css'],
+  styleUrls: ['./system-modal.component.scss'],
   encapsulation: ViewEncapsulation.None
 })
 export class SystemModalComponent implements AfterViewInit, OnDestroy {
