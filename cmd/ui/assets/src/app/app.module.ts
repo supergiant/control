@@ -111,6 +111,13 @@ import { Http } from '@angular/http';
 import { ClustersComponent } from './clusters/clusters.component';
 import { ClusterComponent } from './clusters/cluster/cluster.component';
 import { ClusterDetailsComponent } from './clusters/cluster-details/cluster-details.component';
+import { SystemComponent } from './system/system.component';
+import { HelmReposComponent } from './system/helm-repos/helm-repos.component';
+import { KeysComponent } from './system/users/keys/keys.component';
+import { NewComponent } from './system/cloud-accounts/new/new.component';
+import { DetailsComponent } from './system/cloud-accounts/details/details.component';
+import { CloudAccountNewComponent } from './system/cloud-accounts/cloud-account-new/cloud-account-new.component';
+import { CloudAccountDetailComponent } from './system/cloud-accounts/cloud-account-detail/cloud-account-detail.component';
 
 
 
@@ -186,6 +193,13 @@ import { ClusterDetailsComponent } from './clusters/cluster-details/cluster-deta
     ClustersComponent,
     ClusterComponent,
     ClusterDetailsComponent,
+    SystemComponent,
+    HelmReposComponent,
+    KeysComponent,
+    NewComponent,
+    DetailsComponent,
+    CloudAccountNewComponent,
+    CloudAccountDetailComponent,
   ],
   imports: [
     BrowserModule,
