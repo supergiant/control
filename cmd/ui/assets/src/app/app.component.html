@@ -1,3 +1,8 @@
-<app-navigation></app-navigation>
-<router-outlet></router-outlet>
-<simple-notifications [options]="options"></simple-notifications>
+<header class="app-header">
+  <app-navigation></app-navigation>
+</header>
+<main class="app-main">
+  <router-outlet></router-outlet>
+  <simple-notifications [options]="options"></simple-notifications>
+</main>
+<footer class="app-footer"></footer>

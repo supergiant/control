@@ -1,24 +1,126 @@
-<div class="container">
-  <div class="row justify-content-md-center">
-    <div class="logo col-md-2">
-      <a href="/" id="logo">
-        Supergiant
-      </a>
-    </div>
-    <div id="nav" class="col-md-auto">
-      <ul class="nav nav-tabs">
-        <li class="nav-item"><a [routerLink]="['/sessions']" routerLinkActive="active" class="nav-link">Sessions</a></li>
-        <li class="nav-item"><a [routerLink]="['/users']" routerLinkActive="active" class="nav-link">Users</a></li>
-        <li class="nav-item"><a [routerLink]="['/cloud-accounts']" routerLinkActive="active" class="nav-link">Cloud Accounts</a></li>
-        <li class="nav-item"><a [routerLink]="['/kubes']" routerLinkActive="active" class="nav-link">Kubes</a></li>
-        <li class="nav-item"><a [routerLink]="['/nodes']" routerLinkActive="active" class="nav-link">Nodes</a></li>
-        <li class="nav-item"><a [routerLink]="['/apps']" routerLinkActive="active" class="nav-link">Apps</a></li>
-        <li class="nav-item"><a [routerLink]="['/load-balancers']" routerLinkActive="active" class="nav-link">Load Balancers</a></li>
-        <li class="nav-item"><a [routerLink]="['/pods']" routerLinkActive="active" class="nav-link">Pods</a></li>
-        <li class="nav-item"><a [routerLink]="['/services']" routerLinkActive="active" class="nav-link">Services</a></li>
-        <li class="nav-item"><a [routerLink]="['/volumes']" routerLinkActive="active" class="nav-link">Volumes</a></li>
+<div class="app-nav-container">
+  <nav class="app-nav">
+    <a class="app-nav-logo" href="/" style="background-size: contain; background-position: 0 50%; text-align: left; text-indent: -5000em; background-repeat: no-repeat; background-image: url(data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIGZpbGwtcnVsZT0iZXZlbm9kZCIgc3Ryb2tlLW1pdGVybGltaXQ9IjEuNDE0IiB2aWV3Qm94PSIwIDAgMzMwIDg4IiBjbGlwLXJ1bGU9ImV2ZW5vZGQiIHN0cm9rZS1saW5lam9pbj0icm91bmQiPjxwYXRoIGQ9Ik0yMjUuODggNDQuMDVWNDRjMC00LjU1OCAzLjQ5LTguNDIgOC4zOTctOC40MiAyLjgzNyAwIDQuNTgyLjc5IDYuMjU2IDIuMjFsLTEuODE0IDIuMTYzYy0xLjI1Ny0xLjA3LTIuNDktMS43NDQtNC41Ni0xLjc0NC0zIDAtNS4yOCAyLjYzLTUuMjggNS43NDZ2LjA0NmMwIDMuMzUgMi4yMSA1LjgxNCA1LjUzNSA1LjgxNCAxLjUzNiAwIDIuOTMyLS40ODggMy45My0xLjIzMnYtMy4wNDZoLTQuMTZ2LTIuNDloNi45M3Y2Ljg0Yy0xLjYwNSAxLjM3LTMuOTA4IDIuNTMzLTYuNzkyIDIuNTMzLTUuMDkzIDAtOC40NDItMy42MjYtOC40NDItOC4zN3ptLTkzLjYyMyAxLjE4NXYtOS4zNzNoMi44NnY5LjI1N2MwIDMuMDIyIDEuNTYgNC42MjcgNC4xMTggNC42MjcgMi41MzYgMCA0LjA5NC0xLjUxMiA0LjA5NC00LjUxMnYtOS4zNzNoMi44NnY5LjIzM2MwIDQuODYyLTIuNzQ1IDcuMzAzLTcuMDAyIDcuMzAzLTQuMjMzIDAtNi45My0yLjQ0LTYuOTMtNy4xNjN6bS0yMi44IDQuNTM1bDEuNzItMi4wNDdjMS41NTggMS4zNSAzLjE0IDIuMTE3IDUuMTQgMi4xMTcgMS43NjggMCAyLjg4NC0uODM3IDIuODg0LTIuMDQ3di0uMDQ2YzAtMS4xNjMtLjY1LTEuNzktMy42NzMtMi40OS0zLjQ2Ni0uODM2LTUuNDItMS44Ni01LjQyLTQuODZ2LS4wNDZjMC0yLjc5IDIuMzI2LTQuNzIgNS41Ni00LjcyIDIuMzcgMCA0LjI1NS43MiA1LjkwNiAyLjA0N2wtMS41MzQgMi4xNjJjLTEuNDY2LTEuMDk0LTIuOTMtMS42NzUtNC40Mi0xLjY3NS0xLjY3NSAwLTIuNjUuODYtMi42NSAxLjkzdi4wNDZjMCAxLjI1Ny43NDIgMS44MTYgMy44ODIgMi41NiAzLjQ0My44MzggNS4yMSAyLjA3IDUuMjEgNC43Njh2LjA0N2MwIDMuMDQ2LTIuMzk1IDQuODYtNS44MTQgNC44Ni0yLjQ4OCAwLTQuODM4LS44Ni02Ljc5LTIuNjA1em0xNzIuNDg0IDIuMzczaC0zLjAyMmwtMS42NS0zLjkzMmgtNy42OThsLTEuNjc1IDMuOTMzaC0yLjkzbDcuMTYyLTE2LjM5OGgyLjY1bDcuMTY0IDE2LjM5OHptLTc2LjE2MyAwaC0yLjg2di0xNi4yOGg3LjI1NmMyLjA0NyAwIDMuNjUyLjYwNCA0LjY5OCAxLjYyOC44NjIuODg0IDEuMzUgMi4wOTMgMS4zNSAzLjUxMnYuMDQ3YzAgMi42NzItMS42MDQgNC4yNzgtMy44NiA0LjkzbDQuMzk2IDYuMTYzaC0zLjM5NmwtNC01LjY3NmgtMy41ODN2NS42NzZ6bS00NS40MyAwaC0yLjg2di0xNi4yOGg2LjQyYzMuODEzIDAgNi4xODUgMi4xNjIgNi4xODUgNS40NDJ2LjA0N2MwIDMuNjUtMi45MyA1LjU1OC02LjUxMiA1LjU1OGgtMy4yMzJ2NS4yMzN6TTMyOSAzOC41MTNoLTUuMTYzdjEzLjYzaC0yLjg4M3YtMTMuNjNoLTUuMTY0di0yLjY1SDMyOXYyLjY1em0tMTM2Ljg1Ny0uMDkyaC05LjIxdjQuMjMzaDguMTYzdjIuNTU4aC04LjE2NHY0LjM3NWg5LjMyN3YyLjU1N2gtMTIuMTl2LTE2LjI4aDEyLjA3M3YyLjU2ek0yOTQuNTQgNTIuMTQzaC0yLjgxM3YtMTYuMjhoMi42NWw4LjcyIDExLjI1N1YzNS44NmgyLjgxNnYxNi4yOGgtMi4zOTZsLTguOTc2LTExLjU4djExLjU4em0tMzkuMzggMGgtMi44NjJ2LTE2LjI4aDIuODYydjE2LjI4em0yMS4wNi02LjQ2NWwtMi44MTQtNi41MTItMi43OSA2LjUxMmg1LjYwNXptLTExMi41NDYtMS4zNWMyLjE2MyAwIDMuNTEtMS4yMDggMy41MS0yLjkwNnYtLjA0NmMwLTEuOTA3LTEuMzctMi45MDctMy41MS0yLjkwN2gtMy4zMjZ2NS44NmgzLjMyNnptNDYuMjktLjM5NGMyLjA0NyAwIDMuMzUtMS4wNyAzLjM1LTIuNzJ2LS4wNDhjMC0xLjc0NS0xLjI1Ny0yLjY5OC0zLjM3My0yLjY5OGgtNC4xNjN2NS40NjZoNC4xODd6TTI4LjU2NyAzLjc4OEM2LjM1NyAxMi4zODItNC42NzggMzcuMzUyIDMuOTIgNTkuNTYyYzguNTkgMjIuMjA4IDMzLjU2IDMzLjI0NCA1NS43NjYgMjQuNjUgMTQuMjYtNS41MTYgMjMuOTA1LTE3Ljc3NyAyNi43Mi0zMS43MjMtNS4yOCAzLjQ3My0xMS40MDQgNi42MzgtMTguMTI3IDkuMjQyLTI1LjUzIDkuODc4LTUwLjA4MyA3LjkxNi01NC44NC00LjM4NC0yLjE4LTUuNjI4LjE2Ni0xMi40NDYgNS43OTYtMTkuMTNhMi40NjUgMi40NjUgMCAwIDEgMy4zMTYtMy41NTdjNi44MTItNi42NDMgMTYuNzMtMTIuOTE1IDI4LjQ5LTE3LjQ2OCA3LjQwMi0yLjg2MyAxNC43MTYtNC43MyAyMS40OTQtNS42NEM2NC43MTQgNC43MTYgNTQuNTkyLjg3IDQ0LjExNi44N2E0Mi45NSA0Mi45NSAwIDAgMC0xNS41NSAyLjkxNnptMjIuODk1IDE0LjQ5NmMtMTEuNzA4IDQuNTMtMjEuNTQ0IDEwLjczNi0yOC4xMzcgMTcuMjAyYTIuNDYyIDIuNDYyIDAgMCAxLTEuMjUgMy41MjQgMi40MzggMi40MzggMCAwIDEtMS45MzgtLjA3Yy00LjkxIDUuOTItNi45MzggMTEuODQ4LTUuMDUgMTYuNzI3IDQuMzMzIDExLjE5NSAyNy42NDIgMTIuNjA3IDUyLjA2NSAzLjE1NyA3LjUxNy0yLjkxIDE0LjI2NC02LjUxIDE5Ljg4LTEwLjQyNi4yNTUtMi40Ny4yOTQtNC45OC4xMTMtNy40OTQtNS4xMiA1LjExLTEyLjcgOS45NS0yMS43MjYgMTMuNDQyLTguNTQ0IDMuMzEtMTYuOTQ1IDQuODQ4LTIzLjk0NSA0LjcyMmE0LjA2NyA0LjA2NyAwIDAgMS0yLjM3IDIuNDQ2IDQuMDYyIDQuMDYyIDAgMCAxLTUuNTA4LTMuNDQ3Yy00LjY4NS0xLjIzNS04LjA1LTMuNTktOS4zNzUtNy4wMTUtMy41NzYtOS4yNCA5LjA3My0yMi43NDYgMjguMjQ2LTMwLjE2OCA4LjgxOC0zLjQxIDE3LjQ4NC00Ljk0MyAyNC42MTYtNC43MDRhNDMuMDI0IDQzLjAyNCAwIDAgMC0zLjQzNy0zLjYyM2MtNi45MTYuODU0LTE0LjQ5NCAyLjc1My0yMi4xODUgNS43M3ptMS40MTcgMy42NTdDMzQuNzk1IDI4Ljk0IDIyLjY5IDQxLjIxNyAyNS44NDQgNDkuMzYzYzEuMTU4IDIuOTg3IDQuMjAyIDUuMDA0IDguNDg2IDYuMDE1YTQuMDY0IDQuMDY0IDAgMCAxIDEuODQ3LTEuNDM3IDQuMDY2IDQuMDY2IDAgMCAxIDUuMiAyLjE5NmM2LjYyNy4wMzYgMTQuNjgzLTEuNTA2IDIyLjkyMi00LjY5NCA5LjYzNS0zLjczIDE3LjU3Ni04Ljk2IDIyLjQxLTE0LjI2NC0uMzctMi4zLS45My00LjU5NC0xLjY5Ny02Ljg2OC0yLjI0MyA1LjUzNy0xMC4zIDExLjk0NS0yMS4wMDIgMTYuMDg1LTE0LjEyMyA1LjQ2Ni0yNy40OTcgNC45MTYtMjkuODc2LTEuMjMtLjQyNC0xLjA5LS40NjgtMi4yODMtLjE4My0zLjU0YTIuOTQgMi45NCAwIDAgMS0xLjA1Ni0xLjM1NGMtLjU4Ny0xLjUxMi4xNTMtMy4yMTUgMS42NS0zLjc5NGEyLjg4NCAyLjg4NCAwIDAgMSAyLjEzLjAyYzMuNjIzLTQuNTA0IDEwLjM3LTkuMTIgMTguNzI2LTEyLjM1NSAxMC4xODctMy45NCAxOS45OC00Ljc1MyAyNS41NDQtMi41OTVhNDIuNjk0IDQyLjY5NCAwIDAgMC0yLjkzLTQuMjI2IDM4LjMyNCAzOC4zMjQgMCAwIDAtMi40My0uMDc2Yy02LjU4OCAwLTE0LjU1OCAxLjU0My0yMi43MDUgNC42OTd6bTIuOTcgMy4zNjZjLTguMzEyIDMuMjE4LTE0Ljk3MiA3LjcxMi0xOC4xODUgMTEuODUyLjI4LjI4LjUwMy42Mi42NTggMS4wMTIuNTg2IDEuNTEzLS4xNTUgMy4yMTctMS42NTIgMy43OTYtLjM2LjE0LS43MjUuMi0xLjA5LjE5NC4wMS40NzMuMDk4LjkyNy4yNjQgMS4zNTggMS45NDYgNS4wMjggMTQuMDYyIDUuMDI4IDI3LjA1MyAwIDEyLjk5Ny01LjAzIDIxLjk1NC0xMy4xODQgMjAuMDEyLTE4LjIxMy0uOTc2LTIuNTEzLTQuNDkyLTMuNzctOS4zODctMy43Ny00Ljg5NyAwLTExLjE3NCAxLjI1Ny0xNy42NzMgMy43N3ptLTMuNjQ0IDExLjczYy0xLjQwNy0zLjY0LjQwNi03Ljc1MyA0LjA1LTkuMTYzIDMuNjQ0LTEuNDEgNy43NTQuNDA4IDkuMTYzIDQuMDUgMS40MSAzLjY0NC0uNDA4IDcuNzU0LTQuMDUgOS4xNjQtLjgzNy4zMjQtMS43LjQ3Ny0yLjU0Ny40NzdhNy4xIDcuMSAwIDAgMS02LjYxNy00LjUyN3oiIGZpbGw9IiNmZmYiLz48L3N2Zz4=);">
+      Supergiant Container Orchestration System
+    </a>
+
+    <div class="app-nav-main" id="collapseExample" [ngbCollapse]="isCollapsed">
+      <ul class="app-nav-bar">
+        <li class="nav-item"><a [routerLink]="['/']" class="nav-link" routerLinkActive="active">
+          <i class="fa fa-tachometer"></i>
+          Dashboard
+        </a></li>
+        <li class="nav-item"><a [routerLink]="['/apps']" class="nav-link" routerLinkActive="active">
+          <i class="fa fa-puzzle-piece"></i>
+          Apps
+        </a></li>
+        <li class="nav-item"><a [routerLink]="['/apps']" class="nav-link" routerLinkActive="active">
+          <i class="fa fa-server"></i>
+          Clusters
+        </a></li>
+        <li class="nav-item"><a [routerLink]="['/sessions']" class="nav-link" routerLinkActive="active">
+          <i class="fa fa-gear"></i>
+          System
+        </a></li>
+        <!--
+        <li class="nav-item"><a [routerLink]="['/sessions']" class="nav-link" routerLinkActive="active">
+          Sessions
+        </a></li>
+        <li class="nav-item"><a [routerLink]="['/cloud-accounts']" class="nav-link" routerLinkActive="active">
+          Cloud Accounts
+        </a></li>
+        <li class="nav-item"><a [routerLink]="['/kubes']" class="nav-link" routerLinkActive="active">
+          Kubes
+        </a></li>
+        <li class="nav-item"><a [routerLink]="['/nodes']" class="nav-link" routerLinkActive="active">
+          Nodes
+        </a></li>
+        <li class="nav-item"><a [routerLink]="['/apps']" class="nav-link" routerLinkActive="active">
+          Apps
+        </a></li>
+        <li class="nav-item"><a [routerLink]="['/load-balancers']" class="nav-link" routerLinkActive="active">
+          Load Balancers
+        </a></li>
+        <li class="nav-item"><a [routerLink]="['/pods']" class="nav-link" routerLinkActive="active">
+          Pods
+        </a></li>
+        <li class="nav-item"><a [routerLink]="['/services']" class="nav-link" routerLinkActive="active">
+          Services
+        </a></li>
+        <li class="nav-item"><a [routerLink]="['/volumes']" class="nav-link" routerLinkActive="active">
+          Volumes
+        </a></li>
+      -->
       </ul>
     </div>
-    <div class="user col-md-2"></div>
-  </div>
+
+    <div class="app-metanav">
+      <button class="app-nav-toggler"
+        type="button"
+        (click)="isCollapsed = !isCollapsed"
+        [attr.aria-expanded]="!isCollapsed"
+        aria-controls="collapseExample"
+        aria-label="Toggle navigation">
+        <i class="fa fa-bars"></i>
+      </button>
+
+      <span ngbDropdown placement="bottom-right">
+        <button ngbDropdownToggle
+          class="app-metanav-btn"
+          type="button"
+          id="app-meta-menu-button"
+          data-toggle="dropdown"
+          aria-haspopup="true"
+          aria-expanded="false"
+          >
+          <i class="fa fa-gear"></i>
+          <span class="sr-only" aria-hidden="true"> System</span>
+        </button>
+
+        <div ngbDropdownMenu aria-labelledby="app-meta-menu-button" placement="right-bottom">
+          <a class="dropdown-item" href="#">
+            <i class="fa fa-expand"></i>
+            Capacity
+          </a>
+          <a class="dropdown-item" [routerLink]="['/cloud-accounts']">
+            <i class="fa fa-cloud"></i>
+            Cloud Accounts
+          </a>
+          <a class="dropdown-item" href="#">
+            <i class="fa fa-link"></i>
+            App &amp; Helm Repositories
+          </a>
+        </div>
+      </span>
+
+      <span ngbDropdown placement="bottom-right">
+        <button ngbDropdownToggle
+          class="app-usermenu-btn"
+          type="button"
+          id="app-user-menu-button"
+          data-toggle="dropdown"
+          aria-haspopup="true"
+          aria-expanded="false"
+          >
+          <i class="fa fa-user-circle-o"></i>
+          <span class="sr-only" aria-hidden="true"> System</span>
+        </button>
+
+        <div ngbDropdownMenu aria-labelledby="app-user-menu-button" placement="right-bottom">
+          <a class="dropdown-item" [routerLink]="['/users']">
+            <i class="fa fa-key"></i>
+            Users &amp; Keys
+          </a>
+          <a class="dropdown-item" [routerLink]="['/sessions']">
+            <i class="fa fa-users"></i>
+            All Sessions
+          </a>
+          <a class="dropdown-item" href="#log-out" (click)="loginComponent.logOut()">
+            <i class="fa fa-sign-out"></i>
+            Log Out Now
+          </a>
+        </div>
+      </span>
+    </div>
+  </nav>
 </div>
