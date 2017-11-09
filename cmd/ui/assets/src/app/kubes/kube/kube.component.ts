@@ -7,7 +7,7 @@ import { NgbProgressbarConfig } from '@ng-bootstrap/ng-bootstrap';
 @Component({
   selector: '[app-kube]', // tslint:disable-line
   templateUrl: './kube.component.html',
-  styleUrls: ['./kube.component.css'],
+  styleUrls: ['./kube.component.scss'],
 })
 export class KubeComponent implements AfterViewInit {
   @Input() kube: any;

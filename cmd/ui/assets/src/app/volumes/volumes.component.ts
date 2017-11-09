@@ -9,7 +9,7 @@ import { Observable } from 'rxjs/Observable';
 @Component({
   selector: 'app-volumes',
   templateUrl: './volumes.component.html',
-  styleUrls: ['./volumes.component.css']
+  styleUrls: ['./volumes.component.scss']
 })
 export class VolumesComponent implements OnInit, OnDestroy {
   public p: number[] = [];

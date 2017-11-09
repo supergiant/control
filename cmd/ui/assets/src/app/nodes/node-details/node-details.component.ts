@@ -11,7 +11,7 @@ import { LoginComponent } from '../../login/login.component';
 @Component({
   selector: 'app-node-details',
   templateUrl: './node-details.component.html',
-  styleUrls: ['./node-details.component.css']
+  styleUrls: ['./node-details.component.scss']
 })
 export class NodeDetailsComponent implements OnInit, OnDestroy {
   id: number;

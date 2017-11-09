@@ -7,7 +7,7 @@ import { Notifications } from '../../shared/notifications/notifications.service'
 @Component({
   selector: 'app-edit-modal',
   templateUrl: './edit-modal.component.html',
-  styleUrls: ['./edit-modal.component.css'],
+  styleUrls: ['./edit-modal.component.scss'],
   encapsulation: ViewEncapsulation.None
 })
 export class EditModalComponent implements OnInit, AfterViewInit, OnDestroy {

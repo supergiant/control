@@ -11,7 +11,7 @@ import { LoginComponent } from '../../login/login.component';
 @Component({
   selector: 'app-volumes-header',
   templateUrl: './volumes-header.component.html',
-  styleUrls: ['./volumes-header.component.css']
+  styleUrls: ['./volumes-header.component.scss']
 })
 export class VolumesHeaderComponent implements OnDestroy {
   subscriptions = new Subscription();

@@ -12,7 +12,7 @@ import { DomSanitizer, SafeResourceUrl } from '@angular/platform-browser';
 @Component({
   selector: 'app-kube-details',
   templateUrl: './kube-details.component.html',
-  styleUrls: ['./kube-details.component.css']
+  styleUrls: ['./kube-details.component.scss']
 })
 export class KubeDetailsComponent implements OnInit, OnDestroy {
   id: number;

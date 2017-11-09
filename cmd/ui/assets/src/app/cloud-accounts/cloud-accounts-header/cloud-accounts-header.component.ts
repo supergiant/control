@@ -13,7 +13,7 @@ import { CloudAccountModel } from '../cloud-accounts.model';
 @Component({
   selector: 'app-cloud-accounts-header',
   templateUrl: './cloud-accounts-header.component.html',
-  styleUrls: ['./cloud-accounts-header.component.css']
+  styleUrls: ['./cloud-accounts-header.component.scss']
 })
 export class CloudAccountsHeaderComponent implements OnDestroy, AfterViewInit {
   providersObj = new CloudAccountModel;

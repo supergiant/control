@@ -4,7 +4,7 @@ import { LoadBalancersService } from '../load-balancers.service';
 @Component({
   selector: '[app-load-balancer]', // tslint:disable-line
   templateUrl: './load-balancer.component.html',
-  styleUrls: ['./load-balancer.component.css']
+  styleUrls: ['./load-balancer.component.scss']
 })
 export class LoadBalancerComponent {
   @Input() loadBalancer: any;

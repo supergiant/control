@@ -12,7 +12,7 @@ import { ServicesModel } from '../services.model';
 @Component({
   selector: 'app-services-header',
   templateUrl: './services-header.component.html',
-  styleUrls: ['./services-header.component.css']
+  styleUrls: ['./services-header.component.scss']
 })
 export class ServicesHeaderComponent implements OnDestroy, AfterViewInit {
   providersObj: any;

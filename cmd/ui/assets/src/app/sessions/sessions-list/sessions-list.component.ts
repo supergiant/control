@@ -8,7 +8,7 @@ import { Observable } from 'rxjs/Observable';
 @Component({
   selector: 'app-sessions-list',
   templateUrl: './sessions-list.component.html',
-  styleUrls: ['./sessions-list.component.css']
+  styleUrls: ['./sessions-list.component.scss']
 })
 export class SessionsListComponent implements OnInit, OnDestroy {
   public p: number[] = [];

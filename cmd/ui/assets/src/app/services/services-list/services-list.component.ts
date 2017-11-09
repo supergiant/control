@@ -8,7 +8,7 @@ import { Observable } from 'rxjs/Observable';
 @Component({
   selector: 'app-services-list',
   templateUrl: './services-list.component.html',
-  styleUrls: ['./services-list.component.css']
+  styleUrls: ['./services-list.component.scss']
 })
 export class ServicesListComponent implements OnInit, OnDestroy {
   public p: number[] = [];

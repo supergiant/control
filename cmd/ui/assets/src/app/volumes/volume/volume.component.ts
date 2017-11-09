@@ -4,7 +4,7 @@ import { VolumesService } from '../volumes.service';
 @Component({
   selector: '[app-volume]', // tslint:disable-line
   templateUrl: './volume.component.html',
-  styleUrls: ['./volume.component.css']
+  styleUrls: ['./volume.component.scss']
 })
 export class VolumeComponent {
   @Input() volume: any;

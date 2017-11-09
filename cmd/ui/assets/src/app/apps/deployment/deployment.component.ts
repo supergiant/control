@@ -4,7 +4,7 @@ import { AppsService } from '../apps.service';
 @Component({
   selector: '[app-deployment]',  // tslint:disable-line
   templateUrl: './deployment.component.html',
-  styleUrls: ['./deployment.component.css']
+  styleUrls: ['./deployment.component.scss']
 })
 export class DeploymentComponent {
   @Input() deployment: any;

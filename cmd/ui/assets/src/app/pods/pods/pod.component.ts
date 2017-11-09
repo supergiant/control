@@ -4,7 +4,7 @@ import { PodsService } from '../pods.service';
 @Component({
   selector: '[app-pod]',  // tslint:disable-line
   templateUrl: './pod.component.html',
-  styleUrls: ['./pod.component.css']
+  styleUrls: ['./pod.component.scss']
 })
 export class PodComponent {
   @Input() pod: any;

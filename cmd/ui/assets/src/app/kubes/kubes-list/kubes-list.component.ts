@@ -8,7 +8,7 @@ import { Observable } from 'rxjs/Observable';
 @Component({
   selector: 'app-kubes-list',
   templateUrl: './kubes-list.component.html',
-  styleUrls: ['./kubes-list.component.css']
+  styleUrls: ['./kubes-list.component.scss']
 })
 export class KubesListComponent implements OnInit, OnDestroy {
   public p: number[] = [];

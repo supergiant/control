@@ -10,7 +10,7 @@ import { LoginComponent } from '../../login/login.component';
 @Component({
   selector: 'app-load-balancer-details',
   templateUrl: './load-balancer-details.component.html',
-  styleUrls: ['./load-balancer-details.component.css']
+  styleUrls: ['./load-balancer-details.component.scss']
 })
 export class LoadBalancerDetailsComponent implements OnInit, OnDestroy {
   id: number;

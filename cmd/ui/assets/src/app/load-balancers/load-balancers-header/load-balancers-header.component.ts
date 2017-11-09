@@ -12,7 +12,7 @@ import { LoadBalancersModel } from '../load-balancers.model';
 @Component({
   selector: 'app-load-balancers-header',
   templateUrl: './load-balancers-header.component.html',
-  styleUrls: ['./load-balancers-header.component.css']
+  styleUrls: ['./load-balancers-header.component.scss']
 })
 export class LoadBalancersHeaderComponent implements OnDestroy, AfterViewInit {
   providersObj: any;

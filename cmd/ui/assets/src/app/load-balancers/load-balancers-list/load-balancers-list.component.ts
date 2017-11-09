@@ -8,7 +8,7 @@ import { Observable } from 'rxjs/Observable';
 @Component({
   selector: 'app-load-balancers-list',
   templateUrl: './load-balancers-list.component.html',
-  styleUrls: ['./load-balancers-list.component.css']
+  styleUrls: ['./load-balancers-list.component.scss']
 })
 export class LoadBalancersListComponent implements OnInit, OnDestroy {
   public p: number[] = [];

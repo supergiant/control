@@ -12,7 +12,7 @@ import { KubesModel } from '../kubes.model';
 @Component({
   selector: 'app-kubes-header',
   templateUrl: './kubes-header.component.html',
-  styleUrls: ['./kubes-header.component.css']
+  styleUrls: ['./kubes-header.component.scss']
 })
 export class KubesHeaderComponent implements OnDestroy, AfterViewInit {
   subscriptions = new Subscription();

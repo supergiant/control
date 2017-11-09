@@ -4,7 +4,7 @@ import { NodesService } from '../nodes.service';
 @Component({
   selector: '[app-node]', // tslint:disable-line
   templateUrl: './node.component.html',
-  styleUrls: ['./node.component.css']
+  styleUrls: ['./node.component.scss']
 })
 export class NodeComponent {
   @Input() node: any;

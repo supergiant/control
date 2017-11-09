@@ -7,7 +7,7 @@ import { AppsService } from '../apps.service';
 @Component({
   selector: 'app-apps-list',
   templateUrl: './apps-list.component.html',
-  styleUrls: ['./apps-list.component.css']
+  styleUrls: ['./apps-list.component.scss']
 })
 export class AppsListComponent implements OnInit, OnDestroy {
 
