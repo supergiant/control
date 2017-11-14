@@ -17,7 +17,7 @@
     "@angular/common": "^5.0.1",
     "@angular/compiler": "^5.0.0",
     "@angular/core": "^5.0.1",
-    "@angular/flex-layout": "^2.0.0-rc.1",
+    "@angular/flex-layout": "^5.0.0",
     "@angular/forms": "^5.0.0",
     "@angular/http": "^5.0.0",
     "@angular/material": "^5.0.0-rc.0",
@@ -27,9 +27,7 @@
     "@jaspero/ng-alerts": "^0.1.0",
     "@ng-bootstrap/ng-bootstrap": "^1.0.0-beta.3",
     "angular": "^1.6.5",
-    "angular2-json-schema-form": "^0.5.0-alpha.16",
-    "angular2-notifications": "^0.7.7",
-    "angular2-schema-form": "^1.0.0-beta.7",
+    "angular2-json-schema-form": "^0.6.0-alpha.1",
     "api-check": "^7.5.5",
     "bootstrap": "^4.0.0-alpha.6",
     "bootstrap-sass": "^3.3.7",
@@ -41,13 +39,12 @@
     "generate-schema": "^2.5.1",
     "jquery": "^3.2.1",
     "lodash": "^4.17.4",
-    "ng-bootstrap": "^1.6.3",
-    "ng-formly": "^1.0.0-rc.12",
+    "ngx-bootstrap": "^2.0.0-beta.8",
     "ng2-ace-editor": "^0.2.5",
     "ng2-charts": "^1.6.0",
     "ngx-pagination": "^3.0.1",
     "rxjs": "^5.1.0",
-    "typescript": "^2.6.1",
+    "typescript": "^2.5.1",
     "typescript-json-schema": "^0.16.0",
     "zone.js": "^0.8.4"
   },
@@ -58,7 +55,7 @@
     "@types/jasmine": "~2.5.53",
     "@types/jasminewd2": "~2.0.2",
     "@types/node": "~6.0.60",
-    "codelyzer": "~3.0.1",
+    "codelyzer": "4.0.1",
     "jasmine-core": "~2.6.2",
     "jasmine-spec-reporter": "~4.1.0",
     "karma": "~1.7.0",
@@ -70,6 +67,6 @@
     "protractor": "^5.1.2",
     "ts-node": "^3.0.4",
     "tslint": "^5.3.2",
-    "typescript": "^2.3.3"
+    "typescript": "^2.5.1"
   }
 }
