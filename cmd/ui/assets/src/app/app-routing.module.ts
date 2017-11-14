@@ -34,12 +34,8 @@ import { AppDetailsComponent } from './apps/app-details/app-details.component';
 import { AppsListComponent } from './apps/apps-list/apps-list.component';
 
 // ui 2000 components
-import { ClustersComponent } from './clusters/clusters.component';
-import { ClusterComponent } from './clusters/cluster/cluster.component';
-import { ClusterDetailsComponent } from './clusters/cluster-details/cluster-details.component';
 
-import 'rxjs/add/operator/map';
-import 'rxjs/add/operator/switchMap';
+
 
 @Injectable()
 export class AuthGuard implements CanActivate {
@@ -66,12 +62,6 @@ export class AuthGuard implements CanActivate {
 }
 const appRoutes: Routes = [
   { path: '', component: LoginComponent },
-  {
-    path: 'clusters', component: ClustersComponent, canActivate: [AuthGuard], children: [
-      { path: '', component: ClustersComponent },
-      { path: ':id', component: ClustersDetailComponent }
-    ]
-  },
   {
     path: 'kubes', component: KubesComponent, canActivate: [AuthGuard], children: [
       { path: '', component: KubesListComponent },

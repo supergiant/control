@@ -108,18 +108,13 @@ import { HelmReleases } from './shared/supergiant/helm-releases/helm-releases.se
 import { Logs } from './shared/supergiant/logs/logs.service';
 import { AuthenticatedHttpService } from './shared/auth/authenticated-http-service.service';
 import { Http } from '@angular/http';
-import { ClustersComponent } from './clusters/clusters.component';
-import { ClusterComponent } from './clusters/cluster/cluster.component';
-import { ClusterDetailsComponent } from './clusters/cluster-details/cluster-details.component';
-import { SystemComponent } from './system/system.component';
-import { HelmReposComponent } from './system/helm-repos/helm-repos.component';
-import { KeysComponent } from './system/users/keys/keys.component';
-import { NewComponent } from './system/cloud-accounts/new/new.component';
-import { DetailsComponent } from './system/cloud-accounts/details/details.component';
-import { CloudAccountNewComponent } from './system/cloud-accounts/cloud-account-new/cloud-account-new.component';
-import { CloudAccountDetailComponent } from './system/cloud-accounts/cloud-account-detail/cloud-account-detail.component';
 
-
+import 'rxjs/add/operator/map';
+import 'rxjs/add/operator/switchMap';
+import 'rxjs/add/observable/of';
+import 'rxjs/add/observable/timer';
+import 'rxjs/add/observable/interval';
+import 'rxjs/add/operator/take';
 
 
 
@@ -190,16 +185,6 @@ import { CloudAccountDetailComponent } from './system/cloud-accounts/cloud-accou
     AppDetailsComponent,
     AppsListComponent,
     DeploymentDetailsComponent,
-    ClustersComponent,
-    ClusterComponent,
-    ClusterDetailsComponent,
-    SystemComponent,
-    HelmReposComponent,
-    KeysComponent,
-    NewComponent,
-    DetailsComponent,
-    CloudAccountNewComponent,
-    CloudAccountDetailComponent,
   ],
   imports: [
     BrowserModule,
