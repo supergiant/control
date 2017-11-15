@@ -130,6 +130,14 @@ a#new::after {
             opacity: 0.7;
             vertical-align: text-bottom;
           }
+
+          &.active {
+            background-color: $app-button-translucent-light;
+
+            i.fa {
+              opacity: 1;
+            }
+          }
         }
       }
     }
