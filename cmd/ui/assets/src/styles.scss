@@ -1,7 +1,9 @@
-@import "assets/bootstrap-sass/variables";
-@import '../node_modules/bootstrap-sass/assets/stylesheets/_bootstrap';
+// Setup
+@import "~assets/css/variables";
 
-@import "assets/font-awesome/variables";
-@import '../node_modules/font-awesome/scss/font-awesome';
+// Libraries
+@import "~assets/bootstrap/custom";
+@import "~assets/font-awesome/custom";
 
-@import "assets/css/main.scss";
+// App Styles
+@import "~assets/css/main.scss";

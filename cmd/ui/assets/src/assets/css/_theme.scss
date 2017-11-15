@@ -1,0 +1,27 @@
+/*
+  Theme
+  =====
+
+  Similar to state rules in that they describe how modules or layouts might
+  look. Most sites don’t require a layer of theming but it is good to be aware
+  of it.
+*/
+
+.app-login-container {
+  @extend ._app-container-marquee;
+
+  h2 {
+    &::before {
+      background-image: $brand-image-data;
+      background-position: 50% 50%;
+      background-repeat: no-repeat;
+      background-size: contain;
+      content: "Supergiant";
+      display: block;
+      height: 4rem;
+      margin-bottom: 2rem;
+      text-align: left;
+      text-indent: -5000px;
+    }
+  }
+}

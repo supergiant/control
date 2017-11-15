@@ -1,0 +1,166 @@
+/*
+  Layout Rules
+  ==========
+
+  Layout rules divide the page into sections. Layouts hold one or more modules
+  together.
+*/
+
+
+#container,
+#sidebar,
+#content {
+  height: 100%;
+  margin: 0;
+}
+
+#container {
+  /*display: table;*/
+  /*position: absolute;*/
+}
+
+#sidebar, #content {
+  /*display: table-cell;*/
+  box-sizing: border-box;
+  /*vertical-align: top;*/
+}
+
+#sidebar {
+  width: 250px;
+  border-right: 1px solid #ddd;
+  float: left;
+  overflow-y: hidden;
+}
+
+#content {
+  /*width: 100%;*/
+  background: #f2f1f7;
+  margin-left: 250px;
+}
+
+#logo {
+  display: block;
+  height: 160px;
+  text-indent: -9999px;
+  background: url(/ui/assets/img/supergiant.svg) no-repeat;
+  background-size: 130px auto;
+  background-position: center;
+}
+
+#nav a {
+  font-family: 'Montserrat', sans-serif;
+  color: #595959;
+  font-size: 13px;
+  display: block;
+  padding: 13px 59px;
+  border-top: 1px solid #ddd;
+}
+
+#nav a:hover, #nav a:active {
+  background: #fafafa;
+}
+
+#nav a.active {
+  background: #0e6ccc;
+  color: white;
+}
+
+#nav a:last-child {
+  border-bottom: 1px solid #ddd;
+}
+
+#control-bar {
+  background: #f3f3f3;
+  border-bottom: 1px solid #ddd;
+  min-width: 559px;
+}
+
+a#new::after {
+  content: "+";
+  font-size: 17px;
+  line-height: 0;
+  position: relative;
+  left: 8px;
+  top: 2px;
+  padding-right: 3px;
+}
+
+
+.app-nav-container {
+  @extend .container-fluid;
+  @extend ._layer-shadow;
+
+  background: $app-accent-color;
+  color: $app-text-color-inverted;
+
+  .app-nav {
+    @extend .navbar;
+    @extend .navbar-expand-sm;
+    @extend .row;
+    @extend .justify-content-sm-center;
+
+    padding-top: 0.75rem;
+    padding-bottom: 0.75rem;
+
+    .app-nav-logo {
+      @extend .navbar-brand;
+      @extend .col-sm-2;
+      @extend .col-md-3;
+      @extend .col-lg-2;
+
+      display: block;
+    }
+
+    .app-nav-main {
+      @extend .col;
+
+      .app-nav-bar {
+        @extend .navbar-nav;
+        @extend .mr-auto;
+        @extend .nav-fill;
+
+        a {
+          font-size: 1rem;
+          font-weight: 300;
+          text-transform: uppercase;
+
+          i.fa {
+            font-size: 1.4em;
+            margin-right: 0.2em;
+            opacity: 0.7;
+            vertical-align: text-bottom;
+          }
+        }
+      }
+    }
+
+    .app-metanav {
+      @extend .text-right;
+      @extend .col-sm-3;
+      @extend .col-md-3;
+      @extend .col-lg-2;
+
+      .app-nav-toggler {
+        @extend .navbar-toggler;
+        @extend .btn;
+        @extend .btn-translucent;
+
+        color: $app-text-color-inverted;
+      }
+
+      .app-metanav-btn,
+      .app-usermenu-btn {
+        @extend .btn;
+        @extend .btn-translucent;
+
+        color: $app-text-color-inverted;
+      }
+
+      .app-usermenu-btn {
+        i.fa {
+          font-size: 1.3em;
+        }
+      }
+    }
+  }
+}
