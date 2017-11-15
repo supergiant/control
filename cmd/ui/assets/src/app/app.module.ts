@@ -116,6 +116,20 @@ import 'rxjs/add/observable/timer';
 import 'rxjs/add/observable/interval';
 import 'rxjs/add/operator/take';
 
+// ui2000
+import { SystemComponent } from './system/system.component';
+import { DashboardComponent } from './dashboard/dashboard.component';
+import { ClustersComponent } from './clusters/clusters.component';
+import { NewCloudAccountComponent } from './system/cloud-accounts/new-cloud-account/new-cloud-account.component';
+// temporary 2000 name hack because of conflict
+import { CloudAccount2000Component } from './system/cloud-accounts/cloud-account/cloud-account.component';
+import { CloudAccounts2000Component } from './system/cloud-accounts/cloud-accounts.component';
+import { EditCloudAccountComponent } from './system/cloud-accounts/edit-cloud-account/edit-cloud-account.component';
+import { MainComponent } from './system/main/main.component';
+import { HelmReposComponent } from './system/main/helm-repos/helm-repos.component';
+import { NewClusterComponent } from './clusters/new-cluster/new-cluster.component';
+import { ClusterComponent } from './clusters/cluster/cluster.component';
+
 
 
 
@@ -185,6 +199,17 @@ import 'rxjs/add/operator/take';
     AppDetailsComponent,
     AppsListComponent,
     DeploymentDetailsComponent,
+    SystemComponent,
+    DashboardComponent,
+    ClustersComponent,
+    NewCloudAccountComponent,
+    EditCloudAccountComponent,
+    MainComponent,
+    HelmReposComponent,
+    NewClusterComponent,
+    ClusterComponent,
+    CloudAccount2000Component,
+    CloudAccounts2000Component,
   ],
   imports: [
     BrowserModule,
