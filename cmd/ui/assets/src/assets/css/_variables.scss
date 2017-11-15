@@ -22,11 +22,7 @@ $app-button-translucent-dark: rgba($app-interactive-color-inverted, 0.33);
 $app-button-translucent-dark-border: rgba($app-interactive-color-inverted, 0.5);
 
 
-// Bootstrap Settings
-$border-radius:    .125rem !default;
-$border-radius-lg: $border-radius !default;
-$border-radius-sm: $border-radius !default;
-
+// Z-indices
 $zindex-dropdown:       1000 !default;
 $zindex-sticky:         1020 !default;
 $zindex-fixed:          1030 !default;
