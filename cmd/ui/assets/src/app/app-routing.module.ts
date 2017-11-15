@@ -86,7 +86,8 @@ const appRoutes: Routes = [
         { path: 'edit/:id', component: EditCloudAccountComponent },
         { path: ':id', component: CloudAccount2000Component },
       ]},
-      { path: '', component: MainComponent }
+      { path: '', component: MainComponent },
+    ]
   },
   {
     path: 'kubes', component: KubesComponent, canActivate: [AuthGuard], children: [
