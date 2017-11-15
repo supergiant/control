@@ -34,7 +34,18 @@ import { AppDetailsComponent } from './apps/app-details/app-details.component';
 import { AppsListComponent } from './apps/apps-list/apps-list.component';
 
 // ui 2000 components
-
+import { SystemComponent } from './system/system.component';
+import { DashboardComponent } from './dashboard/dashboard.component';
+import { ClustersComponent } from './clusters/clusters.component';
+import { NewCloudAccountComponent } from './system/cloud-accounts/new-cloud-account/new-cloud-account.component';
+// temporary 2000 name hack because of conflict
+import { CloudAccount2000Component } from './system/cloud-accounts/cloud-account/cloud-account.component';
+import { CloudAccounts2000Component } from './system/cloud-accounts/cloud-accounts.component';
+import { EditCloudAccountComponent } from './system/cloud-accounts/edit-cloud-account/edit-cloud-account.component';
+import { MainComponent } from './system/main/main.component';
+import { HelmReposComponent } from './system/main/helm-repos/helm-repos.component';
+import { NewClusterComponent } from './clusters/new-cluster/new-cluster.component';
+import { ClusterComponent } from './clusters/cluster/cluster.component';
 
 
 @Injectable()
@@ -62,6 +73,23 @@ export class AuthGuard implements CanActivate {
 }
 const appRoutes: Routes = [
   { path: '', component: LoginComponent },
+  {
+    path: 'dashboard', component: DashboardComponent, canActivate: [AuthGuard]},
+  {
+    path: 'clusters', component: ClustersComponent, canActivate: [AuthGuard], children: [
+      { path: ':id', component: ClusterComponent }
+    ]
+  },
+  {
+    path: 'system', component: SystemComponent, canActivate: [AuthGuard], children: [
+      { path: 'cloud-accounts', component: CloudAccounts2000Component, children: [
+        { path: 'new', component: NewCloudAccountComponent },
+        { path: 'edit/:id', component: EditCloudAccountComponent },
+        { path: ':id', component: CloudAccount2000Component },
+      ]},
+      { path: '', component: MainComponent }
+    ]
+  },
   {
     path: 'kubes', component: KubesComponent, canActivate: [AuthGuard], children: [
       { path: '', component: KubesListComponent },
