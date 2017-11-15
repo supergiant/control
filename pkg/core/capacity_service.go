@@ -20,6 +20,8 @@ var (
 		"PodExceedsFreeCPU",
 		"no nodes available to schedule pods",
 		"failed to fit in any node",
+		"Insufficient cpu",
+		"Insufficient memory",
 	}
 )
 

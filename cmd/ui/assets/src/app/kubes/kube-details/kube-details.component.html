@@ -1,19 +1,26 @@
 <div id="control-bar">
   <div class="btn-group"></div>
-  <button class="btn btn-sm btn-info" (click)="goBack()"><< Back</button>
-  <button type="button" class="btn btn-sm pull-right btn-danger" (click)="loginComponent.logOut()">Log Out</button>
-  <button type="button" class="btn btn-sm pull-right btn-info" (click)="openSystemModal(true)">System</button>
+  <button class="btn btn-sm btn-info" (click)="goBack()">
+    <i class="fa fa-chevron-left"></i>
+    Back
+  </button>
 </div>
+
 <ngb-tabset type="pills" justify="center" #t (tabChange)="resetTabs($event)">
   <ngb-tab title="Info">
     <ng-template ngbTabContent>
       <div *ngIf="kube" class="graph-container">
         <b>Name:</b> {{ kube.name }}<br />
+
         <b>Cloud Account:</b> {{ kube.cloud_account_name }}<br />
+
         <b>Master Node Size:</b> {{ kube.master_node_size }}<br />
+
         <b>Master Node Count:</b> {{ kube.kube_master_count }}<br />
+
         <b>Master Public IP:</b> {{ kube.master_public_ip }}<br />
       </div>
+
       <div *ngIf="kube" class="graph-container">
         <b>Planets: ( Have your kube username and password handy from the "Raw Data tab")</b>
         <ul class="nav flex-column nav-pills">
@@ -24,6 +31,7 @@
       </div>
     </ng-template>
   </ngb-tab>
+
   <ngb-tab [hidden]="planetName" [title]="planetName" id="planetTab">
     <ng-template ngbTabContent>
       <div class="graph-container">
@@ -31,18 +39,22 @@
       </div>
     </ng-template>
   </ngb-tab>
+
   <ngb-tab *ngIf="isDataAvailable" title="Metrics">
     <ng-template ngbTabContent>
       <div class="graph-container">
         <h1 align="center">CPU (Millicores)</h1>
+
         <canvas baseChart #baseChart="base-chart" [colors]="cpuChartColors" [datasets]="cpuChartData" [labels]="cpuChartLabels" [options]="cpuChartOptions" [chartType]="cpuChartType"></canvas>
       </div>
       <div class="graph-container">
         <h1 align="center">RAM (GB)</h1>
+
         <canvas baseChart #baseChart="base-chart" [colors]="ramChartColors" [datasets]="ramChartData" [labels]="ramChartLabels" [options]="ramChartOptions" [chartType]="ramChartType"></canvas>
       </div>
     </ng-template>
   </ngb-tab>
+
   <ngb-tab title="Raw Data">
     <ng-template ngbTabContent>
       <textarea class="form-control" disabled>

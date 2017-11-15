@@ -1,19 +1,34 @@
 #cloud-config
 
-hostname: "{{ .MasterName }}"
+hostname: "{{ .PACKConfig.MasterName }}"
 ssh_authorized_keys:
-  - "{{ .SSHPubKey }}"
+  - "{{ .PACKConfig.SSHPubKey }}"
 write_files:
   - path: "/opt/bin/download-k8s-binary"
     permissions: "0755"
     content: |
       #!/bin/bash
       source /etc/environment
-      K8S_VERSION=v{{ .KubernetesVersion }}
+      K8S_VERSION=v{{ .PACKConfig.KubernetesVersion }}
       mkdir -p /opt/bin
-      curl -sSL -o /opt/bin/kubectl https://storage.googleapis.com/kubernetes-release/release/${K8S_VERSION}/bin/linux/amd64/kubectl
-      chmod +x /opt/bin/$FILE
-      chmod +x /opt/bin/kubectl
+      FILE=$1
+      if [ ! -f /opt/bin/$FILE ]; then
+        curl -sSL -o /opt/bin/$FILE https://storage.googleapis.com/kubernetes-release/release/${K8S_VERSION}/bin/linux/amd64/$FILE
+        curl -sSL -o /opt/bin/kubectl https://storage.googleapis.com/kubernetes-release/release/${K8S_VERSION}/bin/linux/amd64/kubectl
+        chmod +x /opt/bin/$FILE
+        chmod +x /opt/bin/kubectl
+      else
+        # we check the version of the binary
+        INSTALLED_VERSION=$(/opt/bin/$FILE --version)
+        MATCH=$(echo "${INSTALLED_VERSION}" | grep -c "${K8S_VERSION}")
+        if [ $MATCH -eq 0 ]; then
+          # the version is different
+          curl -sSL -o /opt/bin/$FILE https://storage.googleapis.com/kubernetes-release/release/${K8S_VERSION}/bin/linux/amd64/$FILE
+          curl -sSL -o /opt/bin/kubectl https://storage.googleapis.com/kubernetes-release/release/${K8S_VERSION}/bin/linux/amd64/kubectl
+          chmod +x /opt/bin/$FILE
+          chmod +x /opt/bin/kubectl
+        fi
+      fi
 
       ## Install Tiller ##
       wget http://storage.googleapis.com/kubernetes-helm/helm-v2.6.2-linux-amd64.tar.gz --directory-prefix=/tmp/
@@ -32,7 +47,7 @@ write_files:
 
       openssl genrsa -out /etc/kubernetes/ssl/ca-key.pem 2048
       openssl req -x509 -new -nodes -key /etc/kubernetes/ssl/ca-key.pem -days 10000 -out /etc/kubernetes/ssl/ca.pem -subj "/CN=kube-ca"
-      sed -e "s/\${MASTER_HOST}/`curl ipinfo.io/ip`/" < /etc/kubernetes/ssl/openssl.cnf.template > /etc/kubernetes/ssl/openssl.cnf.public
+      sed -e "s/\${MASTER_HOST}/$COREOS_PUBLIC_IPV4/" < /etc/kubernetes/ssl/openssl.cnf.template > /etc/kubernetes/ssl/openssl.cnf.public
       sed -e "s/\${PRIVATE_HOST}/$COREOS_PRIVATE_IPV4/" < /etc/kubernetes/ssl/openssl.cnf.public > /etc/kubernetes/ssl/openssl.cnf
       openssl genrsa -out /etc/kubernetes/ssl/apiserver-key.pem 2048
       openssl req -new -key /etc/kubernetes/ssl/apiserver-key.pem -out /etc/kubernetes/ssl/apiserver.csr -subj "/CN=kube-apiserver" -config /etc/kubernetes/ssl/openssl.cnf
@@ -88,7 +103,6 @@ write_files:
       {{ .Password }},system:logging,system:logging
       {{ .Password }},system:monitoring,system:monitoring
       {{ .Password }},system:dns,system:dns
-{{- .CustomFiles }}
   - path: "/etc/kubernetes/addons/namespace.yaml"
     permissions: "0644"
     content: |
@@ -128,11 +142,13 @@ write_files:
         hostNetwork: true
         containers:
         - name: kube-apiserver
-          image: gcr.io/google_containers/hyperkube:v{{ .KubernetesVersion }}
+          image: gcr.io/google_containers/hyperkube:v{{ .PACKConfig.KubernetesVersion }}
           command:
           - /hyperkube
           - apiserver
           - --bind-address=0.0.0.0
+          - --v=2
+          - --address=127.0.0.1
           - --etcd-servers=http://127.0.0.1:2379
           - --allow-privileged=true
           - --service-cluster-ip-range=10.3.0.0/24
@@ -146,7 +162,6 @@ write_files:
           - --basic-auth-file=/etc/kubernetes/ssl/basic_auth.csv
           - --token-auth-file=/etc/kubernetes/ssl/known_tokens.csv
           - --kubelet-preferred-address-types=InternalIP,Hostname,ExternalIP
-          {{- .ProviderString }}
           ports:
           - containerPort: 443
             hostPort: 443
@@ -187,7 +202,7 @@ write_files:
         hostNetwork: true
         containers:
         - name: kube-proxy
-          image: gcr.io/google_containers/hyperkube:v{{ .KubernetesVersion }}
+          image: gcr.io/google_containers/hyperkube:v{{ .PACKConfig.KubernetesVersion }}
           command:
           - /hyperkube
           - proxy
@@ -477,7 +492,57 @@ write_files:
             - name: etcd-storage
               emptyDir: {}
             dnsPolicy: Default
-  - path: "/etc/kubernetes/manifests/kube-controller-manager.yaml"
+  - path: "/etc/kubernetes/manifests/kube-podmaster.yaml"
+    permissions: "0644"
+    owner: "root"
+    content: |
+      apiVersion: v1
+      kind: Pod
+      metadata:
+        name: kube-podmaster
+        namespace: kube-system
+      spec:
+        hostNetwork: true
+        containers:
+        - name: scheduler-elector
+          image: gcr.io/google_containers/podmaster:1.1
+          command:
+          - /podmaster
+          - --etcd-servers=http://127.0.0.1:2379
+          - --key=scheduler
+          - --whoami=$private_ipv4
+          - --source-file=/src/manifests/kube-scheduler.yaml
+          - --dest-file=/dst/manifests/kube-scheduler.yaml
+          volumeMounts:
+          - mountPath: /src/manifests
+            name: manifest-src
+            readOnly: true
+          - mountPath: /dst/manifests
+            name: manifest-dst
+        - name: controller-manager-elector
+          image: gcr.io/google_containers/podmaster:1.1
+          command:
+          - /podmaster
+          - --etcd-servers=http://127.0.0.1:2379
+          - --key=controller
+          - --whoami=$private_ipv4
+          - --source-file=/src/manifests/kube-controller-manager.yaml
+          - --dest-file=/dst/manifests/kube-controller-manager.yaml
+          terminationMessagePath: /dev/termination-log
+          volumeMounts:
+          - mountPath: /src/manifests
+            name: manifest-src
+            readOnly: true
+          - mountPath: /dst/manifests
+            name: manifest-dst
+        volumes:
+        - hostPath:
+            path: /srv/kubernetes/manifests
+          name: manifest-src
+        - hostPath:
+            path: /etc/kubernetes/manifests
+          name: manifest-dst
+  - path: "/srv/kubernetes/manifests/kube-controller-manager.yaml"
     permissions: "0644"
     owner: "root"
     content: |
@@ -490,7 +555,7 @@ write_files:
         hostNetwork: true
         containers:
         - name: kube-controller-manager
-          image: gcr.io/google_containers/hyperkube:v{{ .KubernetesVersion }}
+          image: gcr.io/google_containers/hyperkube:v{{ .PACKConfig.KubernetesVersion }}
           command:
           - /hyperkube
           - controller-manager
@@ -500,7 +565,6 @@ write_files:
           - --v=2
           - --cluster-cidr=10.244.0.0/14
           - --allocate-node-cidrs=true
-          {{- .ProviderString }}
           livenessProbe:
             httpGet:
               host: 127.0.0.1
@@ -522,7 +586,7 @@ write_files:
         - hostPath:
             path: /usr/share/ca-certificates
           name: ssl-certs-host
-  - path: "/etc/kubernetes/manifests/kube-scheduler.yaml"
+  - path: "/srv/kubernetes/manifests/kube-scheduler.yaml"
     permissions: "0644"
     owner: "root"
     content: |
@@ -535,7 +599,7 @@ write_files:
         hostNetwork: true
         containers:
         - name: kube-scheduler
-          image: gcr.io/google_containers/hyperkube:v{{ .KubernetesVersion }}
+          image: gcr.io/google_containers/hyperkube:v{{ .PACKConfig.KubernetesVersion }}
           command:
           - /hyperkube
           - scheduler
@@ -555,7 +619,7 @@ coreos:
     initial-advertise-peer-urls: http://$private_ipv4:2380
     listen-client-urls: http://0.0.0.0:2379,http://0.0.0.0:4001
     listen-peer-urls: http://0.0.0.0:2380
-    discovery: {{ .ETCDDiscoveryURL }}
+    discovery: {{ .PACKConfig.ETCDDiscoveryURL }}
   flannel:
     iface: $private_ipv4
     etcd_endpoints: http://127.0.0.1:2379
@@ -586,14 +650,12 @@ coreos:
         [Unit]
         Description=Kubernetes Kubelet
         [Service]
-        Environment=KUBELET_IMAGE_TAG=v{{ .KubernetesVersion }}_coreos.0
+        Environment=KUBELET_IMAGE_TAG=v{{ .PACKConfig.KubernetesVersion }}_coreos.0
         Environment="RKT_RUN_ARGS=--volume=resolv,kind=host,source=/etc/resolv.conf \
           --mount volume=resolv,target=/etc/resolv.conf \
-          --volume log,kind=host,source=/var/log/ \
-          --mount volume=log,target=/var/log/ \
           --uuid-file-save=/var/run/kubelet-pod.uuid"
         ExecStartPre=-/usr/bin/rkt rm --uuid-file=/var/run/kubelet-pod.uuid
-        ExecStartPre=/bin/bash -c "/opt/bin/download-k8s-binary"
+        ExecStartPre=/bin/bash -c "/opt/bin/download-k8s-binary kubelet"
         ExecStartPost=/bin/bash -c "/opt/bin/kube-post-start.sh"
         ExecStart=/usr/lib/coreos/kubelet-wrapper \
          --api-servers=http://127.0.0.1:8080 \
@@ -603,7 +665,6 @@ coreos:
          --pod-manifest-path=/etc/kubernetes/manifests \
          --cluster-dns=10.3.0.10 \
          --cluster_domain=cluster.local \
-         {{- .KubeProviderString }}
          --register-node=false
         ExecStop=-/usr/bin/rkt stop --uuid-file=/var/run/kubelet-pod.uuid
         Restart=on-failure

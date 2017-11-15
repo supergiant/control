@@ -1,0 +1,75 @@
+/*
+  Base Rules
+  ==========
+
+  These are the defaults. They are almost exclusively single element selectors
+  but it could include attribute selectors, pseudo-class selectors, child
+  selectors or sibling selectors. Essentially, a base style says that wherever
+  this element is on the page, it should look like this.
+*/
+
+
+html, body {
+  height: 100%;
+  margin: 0;
+  overflow: hidden;
+}
+
+body,
+input {
+  font-family: 'Open Sans', sans-serif;
+  font-size: 13px;
+}
+
+a {
+  &,
+  &:visited {
+    color: inherit;
+    text-decoration: none;
+  }
+}
+
+h1,
+h2,
+h3,
+h4,
+h5,
+h6 {
+  font-family: "Montserrat", sans-serif;
+  font-weight: 400;
+}
+
+h2 {
+  font-weight: 200;
+}
+
+.app-header {
+  height: 4rem;
+  left: 0;
+  overflow: visible;
+  position: fixed;
+  right: 0;
+  top: 0;
+  width: 100%;
+  z-index: $zindex-app-header;
+}
+.app-main {
+  bottom: 0;
+  left: 0;
+  overflow: scroll;
+  position: fixed;
+  right: 0;
+  top: 4rem;
+  width: 100%;
+  z-index: $zindex-app-main;
+}
+.app-footer {
+  bottom: 0;
+  height: auto;
+  left: 0;
+  overflow: visible;
+  position: fixed;
+  right: 0;
+  width: 100%;
+  z-index: $zindex-app-footer;
+}
