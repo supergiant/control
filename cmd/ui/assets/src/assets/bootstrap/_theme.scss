@@ -5,3 +5,6 @@ $enable-shadows: false;
 $border-radius:    .125rem !default;
 $border-radius-lg: $border-radius !default;
 $border-radius-sm: $border-radius !default;
+
+$link-color:                $app-interactive-text-color;
+$input-btn-focus-color:     $app-interactive-object-color;

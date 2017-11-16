@@ -10,26 +10,36 @@ $app-accent-color-alt: #7e117c;
 $app-text-color: #222;
 $app-text-color-inverted: #fff;
 
-$app-interactive-color: #fff;
-$app-interactive-color-inverted: #666;
+$app-interactive-text-color: #0275d8;
+$app-interactive-text-hover-color: darken($app-interactive-text-color, 10%);
+$app-interactive-object-color: #0275d8;
+$app-interactive-object-hover-color: darken($app-interactive-object-color, 10%);
+$app-interactive-object-color-alt: #ffc200;
+$app-interactive-object-hover-color-alt: darken($app-interactive-object-color-alt, 10%);
+$app-interactive-object-color-inverted: transparent;
+$app-interactive-object-hover-color-inverted: rgba(#fff, 0.1);
 
 // UI Elements
 $app-button-translucent: rgba($app-text-color, 0.2);
 $app-button-translucent-border: rgba($app-text-color, 0.4);
-$app-button-translucent-light: rgba($app-interactive-color, 0.1);
-$app-button-translucent-light-border: rgba($app-interactive-color, 0.1);
-$app-button-translucent-dark: rgba($app-interactive-color-inverted, 0.33);
-$app-button-translucent-dark-border: rgba($app-interactive-color-inverted, 0.5);
 
 
-// Z-indices
-$zindex-dropdown:       1000 !default;
-$zindex-sticky:         1020 !default;
-$zindex-fixed:          1030 !default;
-$zindex-modal-backdrop: 1040 !default;
-$zindex-modal:          1050 !default;
-$zindex-popover:        1060 !default;
-$zindex-tooltip:        1070 !default;
-$zindex-app-header:     3 !default;
-$zindex-app-main:       1 !default;
-$zindex-app-footer:     2 !default;
+/* Z-indices */
+
+// Bootstrap
+$zindex-dropdown:           1000 !default;
+$zindex-sticky:             1020 !default;
+$zindex-fixed:              1030 !default;
+$zindex-modal-backdrop:     1040 !default;
+$zindex-modal:              1050 !default;
+$zindex-popover:            1060 !default;
+$zindex-tooltip:            1070 !default;
+
+// Layout
+$zindex-app-header:         300;
+$zindex-app-body:           100;
+$zindex-app-footer:         200;
+
+// Drawer system
+$zindex-app-assist-toggles: 120;
+$zindex-app-main:           110;

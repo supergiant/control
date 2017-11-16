@@ -86,89 +86,219 @@ a#new::after {
 }
 
 
-.app-nav-container {
-  @extend .container-fluid;
-  @extend ._layer-shadow;
+.app-header {
+  height: 4rem;
+  left: 0;
+  overflow: visible;
+  position: fixed;
+  right: 0;
+  top: 0;
+  width: 100%;
+  z-index: $zindex-app-header;
 
-  background: $app-accent-color;
-  color: $app-text-color-inverted;
+  .app-nav-container {
+    @extend .container-fluid;
+    @extend ._layer-shadow;
 
-  .app-nav {
-    @extend .navbar;
-    @extend .navbar-expand-sm;
-    @extend .row;
-    @extend .justify-content-sm-center;
+    background: $app-accent-color;
+    color: $app-text-color-inverted;
 
-    padding-top: 0.75rem;
-    padding-bottom: 0.75rem;
+    .app-nav {
+      @extend .navbar;
+      @extend .navbar-expand;
+      @extend .row;
+      @extend .justify-content-center;
 
-    .app-nav-logo {
-      @extend .navbar-brand;
-      @extend .col-sm-2;
-      @extend .col-md-3;
-      @extend .col-lg-2;
+      padding-top: 0.75rem;
+      padding-bottom: 0.75rem;
 
-      display: block;
-    }
+      .app-nav-logo {
+        @extend .navbar-brand;
+        @extend .col-10;
+        @extend .col-sm-2;
+        @extend .col-md-3;
+        @extend .col-lg-2;
 
-    .app-nav-main {
-      @extend .col;
+        display: block;
+      }
 
-      .app-nav-bar {
-        @extend .navbar-nav;
-        @extend .mr-auto;
-        @extend .nav-fill;
+      .app-nav-main {
+        @extend .col;
 
-        a {
-          font-size: 1rem;
-          font-weight: 300;
-          text-transform: uppercase;
+        .app-nav-bar {
+          @extend .navbar-nav;
+          @extend .mr-auto;
+          @extend .nav-fill;
 
-          i.fa {
-            font-size: 1.4em;
-            margin-right: 0.2em;
-            opacity: 0.7;
-            vertical-align: text-bottom;
-          }
-
-          &.active {
-            background-color: $app-button-translucent-light;
+          a {
+            font-size: 1rem;
+            font-weight: 300;
+            text-transform: uppercase;
 
             i.fa {
-              opacity: 1;
+              font-size: 1.4em;
+              margin-right: 0.2em;
+              opacity: 0.7;
+              vertical-align: text-bottom;
+            }
+
+            &.active {
+              background-color: $app-interactive-object-hover-color-inverted;
+
+              i.fa {
+                opacity: 1;
+              }
             }
           }
         }
       }
-    }
 
-    .app-metanav {
-      @extend .text-right;
-      @extend .col-sm-3;
-      @extend .col-md-3;
-      @extend .col-lg-2;
+      .app-metanav {
+        @extend .text-right;
+        @extend .col-sm-3;
+        @extend .col-md-3;
+        @extend .col-lg-2;
 
-      .app-nav-toggler {
-        @extend .navbar-toggler;
-        @extend .btn;
-        @extend .btn-translucent;
+        .app-nav-toggler {
+          @extend .navbar-toggler;
+          @extend .btn;
+          @extend .btn-translucent;
 
-        color: $app-text-color-inverted;
-      }
+          color: $app-text-color-inverted;
+        }
 
-      .app-metanav-btn,
-      .app-usermenu-btn {
-        @extend .btn;
-        @extend .btn-translucent;
+        .app-metanav-btn,
+        .app-usermenu-btn {
+          @extend .btn;
+          @extend .btn-translucent;
 
-        color: $app-text-color-inverted;
-      }
+          color: $app-text-color-inverted;
+        }
 
-      .app-usermenu-btn {
-        i.fa {
-          font-size: 1.3em;
+        .app-usermenu-btn {
+          i.fa {
+            font-size: 1.3em;
+          }
         }
       }
     }
   }
+}
+
+.app-body {
+  @extend .container-fluid;
+
+  bottom: 0;
+  left: 0;
+  position: fixed;
+  right: 0;
+  top: 4rem;
+  z-index: $zindex-app-body;
+
+  .app-assist-toggles {
+    position: absolute;
+    right: 1rem;
+    top: 1rem;
+    display: inline-block;
+    z-index: $zindex-app-assist-toggles;
+
+    label {
+      background: $app-interactive-object-color-alt;
+      border-radius: 100%;
+      box-shadow: 0 4px 5px 0 rgba(0, 0, 0, 0.14),
+        0 1px 10px 0 rgba(0, 0, 0, 0.12),
+        0 2px 4px -1px rgba(0, 0, 0, 0.2);
+      cursor: pointer;
+      display: block;
+      height: 2rem;
+      line-height: 2rem;
+      overflow: hidden;
+      text-align: center;
+      -webkit-user-select: none;
+      -moz-user-select: none;
+      -ms-user-select: none;
+      user-select: none;
+      width: 2rem;
+
+      &:hover {
+        background: $app-interactive-object-hover-color-alt;
+        cursor: pointer;
+      }
+    }
+  }
+
+  .app-main {
+    -ms-flex-wrap: wrap;
+    bottom: 0;
+    display: -ms-flexbox;
+    display: -webkit-box;
+    display: flex;
+    flex-wrap: wrap;
+    left: 0;
+    position: absolute;
+    right: 0;
+    top: 0;
+    z-index: $zindex-app-main;
+
+    .app-assist-toggle-status {
+      position: absolute;
+      display: none;
+    }
+
+    .app-context {
+      @extend ._scrollable;
+
+      -ms-flex-preferred-size: 0;
+      flex-basis: 0;
+      -webkit-box-flex: 1;
+      -ms-flex-positive: 1;
+      flex-grow: 1;
+      max-width: 100%;
+    }
+
+    .app-assist {
+      @extend .col;
+
+      background: #fff;
+      box-shadow: 0 4px 5px 0 rgba(0, 0, 0, 0.14),
+        0 1px 10px 0 rgba(0, 0, 0, 0.12),
+        0 2px 4px -1px rgba(0, 0, 0, 0.2);
+      margin: 0;
+      max-width: 0;
+      overflow: hidden;
+      padding: 0;
+      position: relative;
+      transition: max-width .5s ease-in-out;
+
+      .app-assist-content {
+        @extend ._scrollable;
+
+        bottom: 0;
+        min-width: 16rem;
+        padding: 1rem;
+        position: absolute;
+        right: 0;
+        top: 0;
+        width: 100%;
+      }
+    }
+
+    .app-assist-toggle-status:checked ~ .app-assist {
+      @extend .col-4;
+
+      margin: 0;
+      padding: 0;
+    }
+  }
+}
+
+.app-footer {
+  bottom: 0;
+  height: auto;
+  left: 0;
+  overflow: visible;
+  position: fixed;
+  right: 0;
+  width: 100%;
+  z-index: $zindex-app-footer;
 }
