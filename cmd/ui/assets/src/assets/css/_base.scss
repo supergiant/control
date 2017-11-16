@@ -42,34 +42,3 @@ h6 {
 h2 {
   font-weight: 200;
 }
-
-.app-header {
-  height: 4rem;
-  left: 0;
-  overflow: visible;
-  position: fixed;
-  right: 0;
-  top: 0;
-  width: 100%;
-  z-index: $zindex-app-header;
-}
-.app-main {
-  bottom: 0;
-  left: 0;
-  overflow: scroll;
-  position: fixed;
-  right: 0;
-  top: 4rem;
-  width: 100%;
-  z-index: $zindex-app-main;
-}
-.app-footer {
-  bottom: 0;
-  height: auto;
-  left: 0;
-  overflow: visible;
-  position: fixed;
-  right: 0;
-  width: 100%;
-  z-index: $zindex-app-footer;
-}
