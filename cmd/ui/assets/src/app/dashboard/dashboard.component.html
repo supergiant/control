@@ -1,3 +1,48 @@
-<p>
-  dashboard works!
-</p>
+<div class="row">
+  <div class="col-md-12">
+    <div style="display: block;">
+    <canvas baseChart width="800" height="200"
+                [datasets]="lineChartData"
+                [labels]="lineChartLabels"
+                [options]="lineChartOptions"
+                [colors]="lineChartColors"
+                [legend]="lineChartLegend"
+                [chartType]="lineChartType"
+                (chartHover)="chartHovered($event)"
+                (chartClick)="chartClicked($event)"></canvas>
+    </div>
+  </div>
+</div>
+<br><br>
+<div class="row">
+  <div class="col-md-4"><p>Apps</p></div>
+  <div class="col-md-4"><p>Nodes</p></div>
+  <div class="col-md-4"><p>Clusters</p></div>
+</div>
+<div class="row">
+  <div class="col-md-4"><p>12</p></div>
+  <div class="col-md-4"><p>546</p></div>
+  <div class="col-md-4"><p>19</p></div>
+</div>
+
+<div class="row">
+  <div class="eventsbox">
+    <p>Events</p>
+    <ul>
+      <li *ngFor="let event of events">
+        {{ event }}
+      </li>
+    </ul>
+  </div>
+</div>
+
+<div class="row">
+  <div class="newsbox">
+    <p>Supergiant News</p>
+    <ul>
+      <li *ngFor="let news of newses">
+        {{ news }}
+      </li>
+    </ul>
+  </div>
+</div>
