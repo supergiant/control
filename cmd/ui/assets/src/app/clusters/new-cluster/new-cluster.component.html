@@ -1,3 +1,12 @@
-<p>
-  new-cluster works!
-</p>
+<div class="row" *ngIf="!schema">
+  <div class="col">
+    <button *ngFor="let provider of providers" type="button" class="btn btn-primary" (click)="sendChoice(provider)">{{ provider.name }}</button>
+  </div>
+</div>
+
+<div class="row" *ngIf="schema">
+  <div class="col">
+    <button type="button" class="btn btn-primary" (click)="back()"><< Back</button>
+    <json-schema-form framework="bootstrap-3" [schema]="schema" [data]="model"></json-schema-form>
+  </div>
+</div>

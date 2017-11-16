@@ -73,20 +73,23 @@ export class AuthGuard implements CanActivate {
 const appRoutes: Routes = [
   { path: '', component: LoginComponent },
   {
-    path: 'dashboard', component: DashboardComponent, canActivate: [AuthGuard]},
+    path: 'dashboard', component: DashboardComponent, canActivate: [AuthGuard]
+  },
   {
-    path: 'clusters', component: ClustersComponent, children: [
-      { path: ':id', component: ClusterComponent },
-      { path: 'new', component: NewClusterComponent }
+    path: 'clusters', component: ClustersComponent, canActivate: [AuthGuard], children: [
+      { path: 'new', component: NewClusterComponent },
+      { path: ':id', component: ClusterComponent }
     ]
   },
   {
     path: 'system', component: SystemComponent, canActivate: [AuthGuard], children: [
-      { path: 'cloud-accounts', component: CloudAccounts2000Component, children: [
-        { path: 'new', component: NewCloudAccountComponent },
-        { path: 'edit/:id', component: EditCloudAccountComponent },
-        { path: ':id', component: CloudAccount2000Component },
-      ]},
+      {
+        path: 'cloud-accounts', component: CloudAccounts2000Component, children: [
+          { path: 'new', component: NewCloudAccountComponent },
+          { path: 'edit/:id', component: EditCloudAccountComponent },
+          { path: ':id', component: CloudAccount2000Component },
+        ]
+      },
       { path: '', component: MainComponent },
     ]
   },
