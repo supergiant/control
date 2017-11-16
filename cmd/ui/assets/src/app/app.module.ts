@@ -124,6 +124,7 @@ import { NewCloudAccountComponent } from './system/cloud-accounts/new-cloud-acco
 // temporary 2000 name hack because of conflict
 import { CloudAccount2000Component } from './system/cloud-accounts/cloud-account/cloud-account.component';
 import { CloudAccounts2000Component } from './system/cloud-accounts/cloud-accounts.component';
+import { Users2000Component } from './system/users/users.component';
 import { EditCloudAccountComponent } from './system/cloud-accounts/edit-cloud-account/edit-cloud-account.component';
 import { MainComponent } from './system/main/main.component';
 import { HelmReposComponent } from './system/main/helm-repos/helm-repos.component';
@@ -211,6 +212,7 @@ import { ClusterComponent } from './clusters/cluster/cluster.component';
     CloudAccounts2000Component,
     SystemComponent,
     HelmReposComponent,
+    Users2000Component,
   ],
   imports: [
     BrowserModule,

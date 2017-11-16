@@ -75,8 +75,9 @@ const appRoutes: Routes = [
   {
     path: 'dashboard', component: DashboardComponent, canActivate: [AuthGuard]},
   {
-    path: 'clusters', component: ClustersComponent, canActivate: [AuthGuard], children: [
-      { path: ':id', component: ClusterComponent }
+    path: 'clusters', component: ClustersComponent, children: [
+      { path: ':id', component: ClusterComponent },
+      { path: 'new', component: NewClusterComponent }
     ]
   },
   {
