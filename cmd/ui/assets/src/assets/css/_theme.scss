@@ -25,3 +25,33 @@
     }
   }
 }
+
+
+.app-dashboard-container {
+  @extend ._app-container-default;
+
+  section {
+    @extend ._layer-shadow-light;
+
+    background: #fff;
+    margin: 1rem 0;
+    padding: 1rem;
+    // width: calc(100% - 2rem);
+
+    &.app-dashboard-primary {
+    }
+
+    &.app-dashboard-secondary {
+      .app-dashboard-events,
+      .app-dashboard-news {
+        @extend .col-lg-6;
+      }
+
+      .app-dashboard-events {
+        @include media-breakpoint-up(lg) {
+          border-right: 1px solid rgba(0,0,0,0.1);
+        }
+      }
+    }
+  }
+}

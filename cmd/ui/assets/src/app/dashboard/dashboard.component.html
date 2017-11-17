@@ -1,48 +1,77 @@
-<div class="row">
-  <div class="col-md-12">
-    <div style="display: block;">
-    <canvas baseChart width="800" height="200"
-                [datasets]="lineChartData"
-                [labels]="lineChartLabels"
-                [options]="lineChartOptions"
-                [colors]="lineChartColors"
-                [legend]="lineChartLegend"
-                [chartType]="lineChartType"
-                (chartHover)="chartHovered($event)"
-                (chartClick)="chartClicked($event)"></canvas>
+<div class="app-dashboard-container">
+  <section class="app-dashboard-primary">
+    <div class="row">
+      <div class="col-12">
+        <h2>Cluster Status History</h2>
+      </div>
     </div>
-  </div>
-</div>
-<br><br>
-<div class="row">
-  <div class="col-md-4"><p>Apps</p></div>
-  <div class="col-md-4"><p>Nodes</p></div>
-  <div class="col-md-4"><p>Clusters</p></div>
-</div>
-<div class="row">
-  <div class="col-md-4"><p>12</p></div>
-  <div class="col-md-4"><p>546</p></div>
-  <div class="col-md-4"><p>19</p></div>
-</div>
 
-<div class="row">
-  <div class="eventsbox">
-    <p>Events</p>
-    <ul>
-      <li *ngFor="let event of events">
-        {{ event }}
-      </li>
-    </ul>
-  </div>
-</div>
+    <div class="row">
+      <div class="col-12">
+        <div style="display: block;">
+          <canvas baseChart width="800" height="200"
+                  [datasets]="lineChartData"
+                  [labels]="lineChartLabels"
+                  [options]="lineChartOptions"
+                  [colors]="lineChartColors"
+                  [legend]="lineChartLegend"
+                  [chartType]="lineChartType"
+                  (chartHover)="chartHovered($event)"
+                  (chartClick)="chartClicked($event)">
+          </canvas>
+        </div>
+      </div>
+    </div>
 
-<div class="row">
-  <div class="newsbox">
-    <p>Supergiant News</p>
-    <ul>
-      <li *ngFor="let news of newses">
-        {{ news }}
-      </li>
-    </ul>
-  </div>
+    <div class="row">
+      <div class="col-4 text-center">
+        <a [routerLink]="['/apps']" class="quickstatus">
+          <span class="quickstatus-label">Apps</span>
+          <span class="quickstatus-data">12</span>
+        </a>
+      </div>
+
+      <div class="col-4 text-center">
+        <a [routerLink]="['/clusters']" class="quickstatus">
+          <span class="quickstatus-label">Nodes</span>
+          <span class="quickstatus-data">546</span>
+        </a>
+      </div>
+
+      <div class="col-4 text-center">
+        <a [routerLink]="['/clusters']" class="quickstatus">
+          <span class="quickstatus-label">Clusters</span>
+          <span class="quickstatus-data">19</span>
+        </a>
+      </div>
+    </div>
+  </section>
+
+  <section class="app-dashboard-secondary">
+    <div class="row">
+      <aside class="app-dashboard-events">
+        <h2>Cluster Events</h2>
+
+        <div class="eventsbox">
+          <ul>
+            <li *ngFor="let event of events">
+              {{ event }}
+            </li>
+          </ul>
+        </div>
+      </aside>
+
+      <aside class="app-dashboard-news">
+        <h2>Supergiant News</h2>
+
+        <div class="newsbox">
+          <ul>
+            <li *ngFor="let news of newses">
+              {{ news }}
+            </li>
+          </ul>
+        </div>
+      </aside>
+    </div>
+  </section>
 </div>

@@ -66,6 +66,32 @@
   }
 }
 
+a.quickstatus {
+  background: lighten($app-interactive-object-color, 33%);
+  border-radius: $border-radius;
+  color: #fff;
+  display: block;
+  font-size: 1.5rem;
+  font-weight: 300;
+  line-height: 1.1;
+  margin: 1rem;
+  padding: 1rem;
+  text-align: center;
+
+  &:hover {
+    background: $app-interactive-object-hover-color;
+    text-decoration: none;
+  }
+
+  .quickstatus-label {
+    display: block;
+    font-size: 0.8em;
+  }
+  .quickstatus-data {
+    display: block;
+    font-size: 1.5em;
+  }
+}
 
 // Menus
 
