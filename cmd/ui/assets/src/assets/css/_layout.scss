@@ -131,7 +131,7 @@ a#new::after {
           @extend .nav-fill;
 
           a {
-            font-size: 1rem;
+            font-size: 0.6rem;
             font-weight: 300;
             text-transform: uppercase;
 
@@ -148,6 +148,10 @@ a#new::after {
               i.fa {
                 opacity: 1;
               }
+            }
+
+            @include media-breakpoint-up(md) {
+              font-size: 1rem;
             }
           }
         }

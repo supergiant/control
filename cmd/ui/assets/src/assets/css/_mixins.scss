@@ -31,19 +31,22 @@
   box-shadow: 0 4px 5px 0 rgba(0,0,0,0.14), 0 1px 10px 0 rgba(0,0,0,0.12), 0 2px 4px -1px rgba(0,0,0,0.2)
 }
 
+._layer-shadow-light {
+  box-shadow: inset 1px 1px 0 rgba(0,0,0,.1), inset 0 -1px 0 rgba(0,0,0,.07), 0 2px 2px 0 rgba(0,0,0,0.14), 0 3px 1px -2px rgba(0,0,0,0.12), 0 1px 5px 0 rgba(0,0,0,0.2);
+}
+
 ._app-container-default {
   @extend .container-fluid;
 
-  padding-top: 1rem;
+  margin-top: 1rem;
+  margin-bottom: 1rem;
 }
 
 ._app-container-marquee {
   @extend .container;
+  @extend ._layer-shadow-light;
 
   background: #fff;
-  box-shadow: 0 2px 2px 0 rgba(0,0,0,0.14),
-    0 3px 1px -2px rgba(0,0,0,0.12),
-    0 1px 5px 0 rgba(0,0,0,0.2);
   margin-top: 3rem;
   padding: 3rem;
 
@@ -52,15 +55,4 @@
   @extend .col-md-8;
   @extend .col-lg-6;
   @extend .col-xl-4;
-
-  @include media-breakpoint-only(xs) {
-  }
-  @include media-breakpoint-only(sm) {
-  }
-  @include media-breakpoint-only(md) {
-  }
-  @include media-breakpoint-only(lg) {
-  }
-  @include media-breakpoint-only(xl) {
-  }
 }
