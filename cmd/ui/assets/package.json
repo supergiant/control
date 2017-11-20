@@ -26,6 +26,7 @@
     "@angular/router": "^5.0.0",
     "@jaspero/ng-alerts": "^0.1.0",
     "@ng-bootstrap/ng-bootstrap": "^1.0.0-beta.5",
+    "@swimlane/ngx-datatable": "^11.1.2",
     "angular": "^1.6.5",
     "angular2-json-schema-form": "^0.6.0-alpha.1",
     "angular2-notifications": "^0.9.6",

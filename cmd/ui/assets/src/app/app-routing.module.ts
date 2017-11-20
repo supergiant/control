@@ -46,7 +46,7 @@ import { MainComponent } from './system/main/main.component';
 import { HelmReposComponent } from './system/main/helm-repos/helm-repos.component';
 import { NewClusterComponent } from './clusters/new-cluster/new-cluster.component';
 import { ClusterComponent } from './clusters/cluster/cluster.component';
-
+import { ClustersListComponent } from './clusters/clusters-list/clusters-list.component';
 @Injectable()
 export class AuthGuard implements CanActivate {
 
@@ -77,6 +77,7 @@ const appRoutes: Routes = [
   },
   {
     path: 'clusters', component: ClustersComponent, canActivate: [AuthGuard], children: [
+      { path: '', component: ClustersListComponent },
       { path: 'new', component: NewClusterComponent },
       { path: ':id', component: ClusterComponent }
     ]

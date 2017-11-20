@@ -121,6 +121,7 @@ import { SystemComponent } from './system/system.component';
 import { DashboardComponent } from './dashboard/dashboard.component';
 import { ClustersComponent } from './clusters/clusters.component';
 import { NewCloudAccountComponent } from './system/cloud-accounts/new-cloud-account/new-cloud-account.component';
+import { NgxDatatableModule } from '@swimlane/ngx-datatable';
 // temporary 2000 name hack because of conflict
 import { CloudAccount2000Component } from './system/cloud-accounts/cloud-account/cloud-account.component';
 import { CloudAccounts2000Component } from './system/cloud-accounts/cloud-accounts.component';
@@ -130,6 +131,7 @@ import { MainComponent } from './system/main/main.component';
 import { HelmReposComponent } from './system/main/helm-repos/helm-repos.component';
 import { NewClusterComponent } from './clusters/new-cluster/new-cluster.component';
 import { ClusterComponent } from './clusters/cluster/cluster.component';
+import { ClustersListComponent } from './clusters/clusters-list/clusters-list.component';
 
 
 
@@ -213,6 +215,7 @@ import { ClusterComponent } from './clusters/cluster/cluster.component';
     SystemComponent,
     HelmReposComponent,
     Users2000Component,
+    ClustersListComponent,
   ],
   imports: [
     BrowserModule,
@@ -228,6 +231,7 @@ import { ClusterComponent } from './clusters/cluster/cluster.component';
     ChartsModule,
     NgxPaginationModule,
     JsonSchemaFormModule,
+    NgxDatatableModule,
   ],
   providers: [
     // Component Services

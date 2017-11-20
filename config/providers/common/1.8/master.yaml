@@ -17,8 +17,8 @@ write_files:
 
 
       ## Install Tiller ##
-      wget http://storage.googleapis.com/kubernetes-helm/helm-v2.6.2-linux-amd64.tar.gz --directory-prefix=/tmp/
-      tar -C /tmp -xvf /tmp/helm-v2.6.2-linux-amd64.tar.gz
+      wget http://storage.googleapis.com/kubernetes-helm/helm-v2.7.0-linux-amd64.tar.gz --directory-prefix=/tmp/
+      tar -C /tmp -xvf /tmp/helm-v2.7.0-linux-amd64.tar.gz
       cp /tmp/linux-amd64/helm /opt/bin/helm
       chmod +x /opt/bin/helm
       /opt/bin/helm init
@@ -151,6 +151,7 @@ write_files:
           {{if .RBACEnabled }}- --authorization-mode=Node,RBAC{{end}}
           - --service-cluster-ip-range=10.3.0.0/24
           - --secure-port=443
+          - --v=2
           - --advertise-address=$private_ipv4
           - --admission-control=NamespaceLifecycle,NamespaceExists,LimitRanger,ServiceAccount,ResourceQuota,DefaultStorageClass{{if .RBACEnabled }},NodeRestriction{{end}}
           - --tls-cert-file=/etc/kubernetes/ssl/apiserver.pem
@@ -206,6 +207,7 @@ write_files:
           command:
           - /hyperkube
           - proxy
+          - --v=2
           - --master=http://127.0.0.1:8080
           - --proxy-mode=iptables
           securityContext:
@@ -492,7 +494,7 @@ write_files:
             - name: etcd-storage
               emptyDir: {}
             dnsPolicy: Default
-    - path: "/etc/kubernetes/addons/default-storage-class.yaml"
+  - path: "/etc/kubernetes/addons/default-storage-class.yaml"
     permissions: "0644"
     owner: "root"
     content: |
@@ -570,6 +572,7 @@ write_files:
           command:
           - /hyperkube
           - scheduler
+          - --v=2
           - --master=http://127.0.0.1:8080
           livenessProbe:
             httpGet:
@@ -601,6 +604,7 @@ coreos:
             [Unit]
             Requires=etcd2.service
             [Service]
+            Environment=FLANNEL_IMAGE_TAG=v0.9.0
             ExecStartPre=/usr/bin/etcdctl set /coreos.com/network/config '{"Network":"10.2.0.0/16", "Backend": {"Type": "vxlan"}}'
     - name: "docker.service"
       command: start
@@ -622,7 +626,7 @@ coreos:
         [Service]
         ExecStartPre=/bin/bash -c "/opt/bin/download-k8s-binary"
         ExecStartPost=/bin/bash -c "/opt/bin/kube-post-start.sh"
-        
+
         ExecStart=/usr/bin/docker run \
                 --net=host \
                 --pid=host \

@@ -54,6 +54,7 @@ write_files:
           - proxy
           - --master=https://{{ .Kube.MasterPrivateIP }}
           - --kubeconfig=/etc/kubernetes/worker-kubeconfig.yaml
+          - --v=2
           - --proxy-mode=iptables
           securityContext:
             privileged: true
@@ -91,6 +92,7 @@ write_files:
       - name: local
         cluster:
           insecure-skip-tls-verify: true
+          server: https://{{ .Kube.MasterPrivateIP }}
       contexts:
       - context:
           cluster: local
@@ -103,7 +105,6 @@ coreos:
   flannel:
     iface: $COREOS_PRIVATE_IPV4
     etcd_endpoints: http://{{ .Kube.MasterPrivateIP }}:2379
-
   units:
     - name: "flanneld.service"
       command: start
@@ -113,7 +114,8 @@ coreos:
             [Unit]
             Requires=etcd2.service
             [Service]
-            ExecStartPre=/usr/bin/etcdctl set /coreos.com/network/config '{"Network":"10.2.0.0/16", "Backend": {"Type": "vxlan"}}'
+            Environment=FLANNEL_IMAGE_TAG=v0.9.0
+            ExecStartPre=/usr/bin/etcdctl set /coreos.com/network/config '{"Network":"10.2.0.0/16", "Backend": {"Type": "vxlan"}}' 
     - name: "docker.service"
       command: start
       drop-ins:
@@ -153,7 +155,6 @@ coreos:
                 -v /etc/kubernetes:/etc/kubernetes:ro \
                 gcr.io/google-containers/hyperkube:v{{ .Kube.KubernetesVersion }} \
                 /hyperkube kubelet --allow-privileged=true \
-                --api_servers=https://{{ .Kube.MasterPrivateIP }} \
                 --cluster-dns=10.3.0.10 \
                 --cluster_domain=cluster.local \
                 --pod-manifest-path=/etc/kubernetes/manifests \

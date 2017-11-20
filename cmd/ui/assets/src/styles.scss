@@ -7,3 +7,8 @@
 
 /* App Styles */
 @import "~assets/css/main.scss";
+
+// Data Grid Styles
+@import '~@swimlane/ngx-datatable/release/index.css';
+@import '~@swimlane/ngx-datatable/release/themes/material.css';
+@import '~@swimlane/ngx-datatable/release/assets/icons.css';
