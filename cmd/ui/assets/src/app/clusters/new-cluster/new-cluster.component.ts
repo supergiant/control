@@ -6,6 +6,9 @@ import { ClusterDigitalOceanModel } from '../cluster.digitalocean.model';
 import { ClusterGCEModel } from '../cluster.gce.model';
 import { ClusterOpenStackModel } from '../cluster.openstack.model';
 import { ClusterPacketModel } from '../cluster.packet.model';
+import { Notifications } from '../../shared/notifications/notifications.service';
+import { Router } from '@angular/router';
+
 @Component({
   selector: 'app-new-cluster',
   templateUrl: './new-cluster.component.html',
@@ -27,6 +30,8 @@ export class NewClusterComponent implements OnDestroy, AfterViewInit {
 
   constructor(
     private supergiant: Supergiant,
+    private notifications: Notifications,
+    private router: Router,
   ) { }
 
   ngOnDestroy() {
@@ -43,6 +48,30 @@ export class NewClusterComponent implements OnDestroy, AfterViewInit {
   back() {
     this.model = null;
     this.schema = null;
+  }
+
+  createKube(model) {
+    this.subscriptions.add(this.supergiant.Kubes.create(model).subscribe(
+      (data) => {
+        this.success(model);
+        this.router.navigate(['/clusters']);
+      },
+      (err) => { this.error(model, err); }));
+  }
+
+  success(model) {
+    this.notifications.display(
+      'success',
+      'Kube: ' + model.name,
+      'Created...',
+    );
+  }
+
+  error(model, data) {
+    this.notifications.display(
+      'error',
+      'Kube: ' + model.name,
+      'Error:' + data.statusText);
   }
 
   sendChoice(choice) {
