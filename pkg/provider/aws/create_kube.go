@@ -323,7 +323,7 @@ func (p *Provider) CreateKube(m *model.Kube, action *core.Action) error {
 		}
 
 		var userdata bytes.Buffer
-		if err = template.Execute(&userdata, m.AWSConfig.Tags); err != nil {
+		if err = template.Execute(&userdata, m); err != nil {
 			return err
 		}
 
