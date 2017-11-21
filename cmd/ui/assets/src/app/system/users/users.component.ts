@@ -14,9 +14,9 @@ import { UsersModel } from './users.model';
 export class Users2000Component implements OnInit, OnDestroy {
 
 
-  private rows = [];
-  private selected = [];
-  private columns = [
+  public rows = [];
+  public selected = [];
+  public columns = [
     { prop: 'username' },
     { prop: 'role' },
   ];

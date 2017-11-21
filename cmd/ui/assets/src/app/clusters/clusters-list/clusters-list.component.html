@@ -4,7 +4,7 @@
       <h2>Clusters</h2>
 
       <div class="context-secondary-panel">
-        <button *ngIf="!selected.length > 0" type="button" class="btn btn-primary" [routerLink]="['/clusters/new']">Deploy New Cluster</button>
+        <button *ngIf="selected.length === 0" type="button" class="btn btn-primary" [routerLink]="['/clusters/new']">Deploy New Cluster</button>
 
         <button *ngIf="selected.length > 0" type="button" class="btn btn-primary" (click)="deleteKube()">Delete Selected Cluster</button>
       </div>

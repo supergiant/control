@@ -16,7 +16,7 @@ export class NewCloudAccountComponent implements OnInit, OnDestroy {
   private subscriptions = new Subscription();
   private providers = [];
   private model: any;
-  private schema: any;
+  public schema: any;
 
   constructor(
     private supergiant: Supergiant,

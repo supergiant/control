@@ -4,7 +4,7 @@
       <h2>Users</h2>
 
       <div class="context-secondary-panel">
-        <div *ngIf="!selected.length > 0" class="form-group row">
+        <div *ngIf="selected.length === 0" class="form-group row">
           <div class="col-2">
             <input [(ngModel)]="username" type="text" class="form-control" aria-describedby="Repo URL" placeholder="Username">
           </div>
