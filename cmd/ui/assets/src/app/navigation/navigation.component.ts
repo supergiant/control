@@ -1,4 +1,5 @@
 import { Component } from '@angular/core';
+import { LoginComponent } from '../login/login.component';
 
 @Component({
   selector: 'app-navigation',
@@ -6,5 +7,8 @@ import { Component } from '@angular/core';
   styleUrls: ['./navigation.component.scss']
 })
 export class NavigationComponent {
-  constructor() { }
+  public isCollapsed: boolean;
+  constructor(
+    public loginComponent: LoginComponent,
+  ) { }
 }

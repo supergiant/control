@@ -21,9 +21,9 @@ export class RepoModel {
 })
 export class MainComponent implements OnInit, OnDestroy {
 
-  private rows = [];
-  private selected = [];
-  private columns = [
+  public rows = [];
+  public selected = [];
+  public columns = [
     { prop: 'name' },
     { prop: 'url' },
   ];
