@@ -1,21 +1,30 @@
-<app-sessions-header></app-sessions-header>
-<div id="item_list_container">
-  <table id="item_list" class="table table-hover">
-    <thead>
-      <tr>
-        <th></th>
-        <th>ID</th>
-        <th>USER</th>
-        <th>ROLE</th>
-        <th>CREATED AT</th>
-        <th></th>
-      </tr>
-    </thead>
-    <tbody>
-      <tr app-session *ngFor="let session of sessions | Search:sessionsService.searchString | paginate: { itemsPerPage: 10, currentPage: p[i], id: id }" [session]="session"></tr>
-    </tbody>
-  </table>
-  <nav aria-label="Page navigation">
-    <pagination-controls (pageChange)="p[i] = $event" [id]="id"></pagination-controls>
-  </nav>
+<div class="app-apps-container">
+  <section class="app-apps-index">
+    <div class="app-context-header-panel">
+      <app-sessions-header></app-sessions-header>
+    </div>
+
+    <div id="item_list_container">
+      <table id="item_list" class="table table-hover">
+        <thead>
+          <tr>
+            <th></th>
+            <th>ID</th>
+            <th>USER</th>
+            <th>ROLE</th>
+            <th>CREATED AT</th>
+            <th></th>
+          </tr>
+        </thead>
+
+        <tbody>
+          <tr app-session *ngFor="let session of sessions | Search:sessionsService.searchString | paginate: { itemsPerPage: 10, currentPage: p[i], id: id }" [session]="session"></tr>
+        </tbody>
+      </table>
+
+      <nav aria-label="Page navigation">
+        <pagination-controls (pageChange)="p[i] = $event" [id]="id"></pagination-controls>
+      </nav>
+    </div>
+  </section>
 </div>

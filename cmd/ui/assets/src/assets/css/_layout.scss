@@ -69,12 +69,6 @@
   border-bottom: 1px solid #ddd;
 }
 
-#control-bar {
-  background: #f3f3f3;
-  border-bottom: 1px solid #ddd;
-  min-width: 559px;
-}
-
 a#new::after {
   content: "+";
   font-size: 17px;
@@ -95,6 +89,10 @@ a#new::after {
   top: 0;
   width: 100%;
   z-index: $zindex-app-header;
+
+  simple-notifications {
+    z-index: $zindex-notifications;
+  }
 
   .app-nav-container {
     @extend .container-fluid;

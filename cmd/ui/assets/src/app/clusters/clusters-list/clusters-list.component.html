@@ -1,13 +1,17 @@
-<div class="app-dashboard-container">
-  <section class="app-dashboard-primary">
-    <div class="row">
-      <div class="col-12">
-        <h2>Clusters List</h2>
-        <button *ngIf="!selected.length > 0" type="button" class="btn btn-primary" [routerLink]="['/clusters/new']">Deploy Cluster</button>
-        <button *ngIf="selected.length > 0" type="button" class="btn btn-primary" (click)="deleteKube()">Delete</button>
-        <div>
-          <ngx-datatable class="material" [rows]="rows" [columnMode]="'force'" [columns]="columns" [headerHeight]="50" [footerHeight]="50" [rowHeight]="'auto'" [limit]="5" [selected]="selected" [selectionType]="'multiClick'" (select)='onSelect($event)'>
-          </ngx-datatable>
-        </div>
+<div class="app-clusters-container">
+  <section class="app-clusters-index">
+    <div class="app-context-header-panel">
+      <h2>Clusters</h2>
+
+      <div class="context-secondary-panel">
+        <button *ngIf="!selected.length > 0" type="button" class="btn btn-primary" [routerLink]="['/clusters/new']">Deploy New Cluster</button>
+
+        <button *ngIf="selected.length > 0" type="button" class="btn btn-primary" (click)="deleteKube()">Delete Selected Cluster</button>
       </div>
     </div>
+
+    <div>
+      <ngx-datatable class="material" [rows]="rows" [columnMode]="'force'" [columns]="columns" [headerHeight]="50" [footerHeight]="50" [rowHeight]="'auto'" [limit]="5" [selected]="selected" [selectionType]="'multiClick'" (select)='onSelect($event)'></ngx-datatable>
+    </div>
+  </section>
+</div>

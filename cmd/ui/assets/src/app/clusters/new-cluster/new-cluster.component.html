@@ -1,15 +1,18 @@
-<div class="app-dashboard-container">
-  <section class="app-dashboard-primary">
-    <div class="row">
-      <div class="col-12">
-        <div class="row" *ngIf="!schema">
-          <button *ngFor="let provider of providers" type="button" class="btn btn-primary" (click)="sendChoice(provider)">{{ provider.name }}</button>
-        </div>
-        <div class="row" *ngIf="schema">
-          <button *ngIf="schema" type="button" class="btn btn-primary" (click)="back()"><< Back</button>
-        </div>
-        <div *ngIf="schema">
-          <json-schema-form framework="bootstrap-3" [schema]="schema" [data]="model" (onSubmit)="createKube(value)" (onChanges)="value=$event"></json-schema-form>
-        </div>
-      </div>
+<div class="app-clusters-container">
+  <section class="app-clusters-new">
+
+    <header class="app-context-header-panel">
+      <button *ngIf="schema" type="button" class="back-button" (click)="back()"></button>
+
+      <h2>Create a Cluster</h2>
+    </header>
+
+    <h3 *ngIf="!schema">Select a Cloud Account</h3>
+
+    <div *ngIf="!schema">
+      <button *ngFor="let provider of providers" type="button" class="btn btn-primary" (click)="sendChoice(provider)">{{ provider.name }}</button>
+    </div>
+
+    <div *ngIf="schema">
+      <json-schema-form framework="bootstrap-3" [schema]="schema" [data]="model" (onSubmit)="createKube(value)" (onChanges)="value=$event"></json-schema-form>
     </div>

@@ -31,15 +31,7 @@
   @extend ._app-container-default;
 
   section {
-    @extend ._layer-shadow-light;
-
-    background: #fff;
-    margin: 1rem 0;
-    padding: 1rem;
-    // width: calc(100% - 2rem);
-
-    &.app-dashboard-primary {
-    }
+    &.app-dashboard-primary {}
 
     &.app-dashboard-secondary {
       .app-dashboard-events,
@@ -54,4 +46,20 @@
       }
     }
   }
+}
+
+.app-apps-container {
+  @extend ._app-container-default;
+}
+
+.app-clusters-container {
+  @extend ._app-container-default;
+}
+
+.app-accounts-container {
+  @extend ._app-container-default;
+}
+
+.app-sessions-container {
+  @extend ._app-container-default;
 }
