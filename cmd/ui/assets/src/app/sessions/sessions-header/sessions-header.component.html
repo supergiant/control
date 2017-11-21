@@ -1,12 +1,9 @@
-<div id="control-bar">
-  <div class="btn-group"></div>
-  <div ngbDropdown class="d-inline-block">
-    <button class="btn btn-sm btn-outline-primary" id="actions" ngbDropdownToggle>Actions</button>
-    <div class="dropdown-menu" aria-labelledby="actions">
-      <button class="dropdown-item" (click)="deleteSession()">Delete</button>
-    </div>
-  </div>
-  <div id="searchbar-icon"></div>
-  <div id="filters"></div>
-  <input id="searchbar" type="text" placeholder="Search..." (input)="setSearch($event.target.value)">
+<h2>Active Sessions</h2>
+
+<div class="context-search-layout">
+  <input type="search" placeholder="Search Apps" (input)="setSearch($event.target.value)">
+</div>
+
+<div class="context-secondary-panel">
+  <button class="btn btn-primary" (click)="deleteSession()">Delete Selected</button>
 </div>

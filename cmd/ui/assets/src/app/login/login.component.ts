@@ -70,7 +70,7 @@ export class LoginComponent implements OnDestroy {
           .subscribe(y => {
             if (this.cookieMonster.getCookie('session') === this.session.id) {
               this.supergiant.loginSuccess = true;
-              this.router.navigate(['/kubes']);
+              this.router.navigate(['/dashboard']);
               countdown.unsubscribe();
             }
 

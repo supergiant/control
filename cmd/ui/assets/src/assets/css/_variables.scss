@@ -27,16 +27,22 @@ $app-button-translucent-border: rgba($app-text-color, 0.4);
 /* Z-indices */
 
 // Bootstrap
-$zindex-dropdown:           1000 !default;
-$zindex-sticky:             1020 !default;
-$zindex-fixed:              1030 !default;
-$zindex-modal-backdrop:     1040 !default;
-$zindex-modal:              1050 !default;
-$zindex-popover:            1060 !default;
-$zindex-tooltip:            1070 !default;
+$zindex-dropdown:           1000;
+$zindex-sticky:             1020;
+$zindex-fixed:              1030;
+$zindex-modal-backdrop:     1040;
+$zindex-modal:              1050;
+$zindex-popover:            1060;
+$zindex-tooltip:            1070;
+$zindex-notifications:      2000;
+
+// Bootstrap buttons
+$light:                     #e9ecef;
+
 
 // Layout
 $zindex-app-header:         300;
+$zindex-app-notifications:  100;
 $zindex-app-body:           100;
 $zindex-app-footer:         200;
 

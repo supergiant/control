@@ -78,10 +78,6 @@
         </button>
 
         <div ngbDropdownMenu aria-labelledby="app-meta-menu-button" placement="right-bottom">
-          <a class="dropdown-item" href="#">
-            <i class="fa fa-expand"></i>
-            Capacity
-          </a>
           <a class="dropdown-item" [routerLink]="['/cloud-accounts']">
             <i class="fa fa-cloud"></i>
             Cloud Accounts
@@ -89,6 +85,18 @@
           <a class="dropdown-item" href="#">
             <i class="fa fa-link"></i>
             App &amp; Helm Repositories
+          </a>
+          <a class="dropdown-item" href="#">
+            <i class="fa fa-expand"></i>
+            Capacity
+          </a>
+          <a class="dropdown-item" [routerLink]="['/users']">
+            <i class="fa fa-key"></i>
+            Users &amp; Keys
+          </a>
+          <a class="dropdown-item" [routerLink]="['/sessions']">
+            <i class="fa fa-users"></i>
+            Active Sessions
           </a>
         </div>
       </span>
@@ -107,14 +115,6 @@
         </button>
 
         <div ngbDropdownMenu aria-labelledby="app-user-menu-button" placement="right-bottom">
-          <a class="dropdown-item" [routerLink]="['/users']">
-            <i class="fa fa-key"></i>
-            Users &amp; Keys
-          </a>
-          <a class="dropdown-item" [routerLink]="['/sessions']">
-            <i class="fa fa-users"></i>
-            All Sessions
-          </a>
           <a class="dropdown-item" href="#log-out" (click)="loginComponent.logOut()">
             <i class="fa fa-sign-out"></i>
             Log Out Now

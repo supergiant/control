@@ -54,6 +54,10 @@
 
 // Buttons
 
+.btn-default {
+  @extend .btn-light;
+}
+
 .btn-translucent {
   @extend .btn-secondary;
 
@@ -103,5 +107,99 @@ a.quickstatus {
     opacity: 0.5;
     padding-top: 0.4rem;
     padding-bottom: 0.4rem;
+  }
+}
+
+.primary-actions {
+  padding-top: 1rem;
+  padding-bottom: 1rem;
+}
+
+.app-context-header-panel {
+  padding: 1rem 0;
+
+  .back-button {
+    @extend .fa;
+    @extend .fa-chevron-left;
+    @extend ._interactive-shadow-none;
+
+    background-color: $light;
+    color: #555;
+    border: none;
+    border-radius: 100%;
+    cursor: pointer;
+    display: inline-block;
+    height: 3rem;
+    line-height: 3rem;
+    margin-right: 1rem;
+    margin-bottom: -1rem;
+    position: relative;
+    text-align: center;
+    top: -0.25rem;
+    -webkit-user-select: none;
+    -moz-user-select: none;
+    -ms-user-select: none;
+    user-select: none;
+    width: 3rem;
+
+    transition: box-shadow 0.2s ease-in-out,
+       background-color 0.2s ease-in-out;
+
+    &:hover {
+      @extend ._interactive-shadow-light;
+
+      background-color: darken($light, 5%);
+    }
+  }
+
+  h1, h2, h3 {
+    display: inline-block;
+    margin-right: 2rem;
+  }
+
+  .context-search-layout {
+    display: inline-block;
+    margin: 0 1rem -1rem;
+    min-width: 40%;
+    position: relative;
+    top: -0.25rem;
+
+    &:before {
+      @extend .fa;
+      @extend .fa-search;
+
+      font-size: 1.1rem;
+      left: 1rem;
+      position: absolute;
+      top: 1rem;
+    }
+
+    input[type="search"] {
+      @extend ._interactive-shadow-none;
+
+      background: #f5f5f5;
+      border: none;
+      border-radius: 2px;
+      display: inline-block;
+      font-size: 1rem;
+      height: 3rem;
+      padding-left: 3rem;
+      width: 100%;
+
+      &:focus,
+      &:active {
+        @extend ._interactive-shadow-light;
+
+        background: #fff;
+        outline: none;
+
+        transition: box-shadow 0.2s ease-in-out,
+           background-color 0.2s ease-in-out;
+      }
+    }
+  }
+
+  .context-secondary-panel {
+    padding: 1rem 0;
   }
 }

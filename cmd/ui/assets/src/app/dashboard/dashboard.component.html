@@ -2,24 +2,24 @@
   <section class="app-dashboard-primary">
     <div class="row">
       <div class="col-12">
-        <h2>Cluster Status History</h2>
+        <div class="app-context-header-panel">
+          <h2>Cluster Status History</h2>
+        </div>
       </div>
     </div>
 
     <div class="row">
       <div class="col-12">
-        <div style="display: block;">
-          <canvas baseChart width="800" height="200"
-                  [datasets]="lineChartData"
-                  [labels]="lineChartLabels"
-                  [options]="lineChartOptions"
-                  [colors]="lineChartColors"
-                  [legend]="lineChartLegend"
-                  [chartType]="lineChartType"
-                  (chartHover)="chartHovered($event)"
-                  (chartClick)="chartClicked($event)">
-          </canvas>
-        </div>
+        <canvas baseChart width="800" height="200"
+                [datasets]="lineChartData"
+                [labels]="lineChartLabels"
+                [options]="lineChartOptions"
+                [colors]="lineChartColors"
+                [legend]="lineChartLegend"
+                [chartType]="lineChartType"
+                (chartHover)="chartHovered($event)"
+                (chartClick)="chartClicked($event)">
+        </canvas>
       </div>
     </div>
 

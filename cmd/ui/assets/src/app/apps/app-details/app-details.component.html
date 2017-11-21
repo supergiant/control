@@ -1,30 +1,33 @@
-<div id="control-bar">
-  <div class="btn-group"></div>
+<div class="app-apps-container">
+  <section class="app-app-details">
+    <div class="app-context-header-panel">
+      <button class="back-button" (click)="goBack()">
+        <span class="sr-only sr-only-focusable">Back</span>
+      </button>
 
-  <button class="btn btn-sm btn-info" (click)="goBack()">
-    <i class="fa fa-chevron-left"></i>
-    Back
-  </button>
+      <h2>App Repository Details</h2>
+    </div>
+
+    <ngb-tabset type="pills" justify="center">
+      <ngb-tab title="Info">
+        <ng-template ngbTabContent>
+          <div *ngIf="app" class="graph-container">
+            <b>App Name:</b> {{ app.name }}<br />
+
+            <b>Repo:</b> {{ app.repo_name }}<br />
+
+            <b>Description:</b> {{ app.description }}<br />
+          </div>
+        </ng-template>
+      </ngb-tab>
+
+      <ngb-tab title="Raw Data">
+        <ng-template ngbTabContent>
+          <textarea class="form-control" disabled>
+    {{app | json}}
+          </textarea>
+        </ng-template>
+      </ngb-tab>
+    </ngb-tabset>
+  </section>
 </div>
-
-<ngb-tabset type="pills" justify="center">
-  <ngb-tab title="Info">
-    <ng-template ngbTabContent>
-      <div *ngIf="app" class="graph-container">
-        <b>App Name:</b> {{ app.name }}<br />
-
-        <b>Repo:</b> {{ app.repo_name }}<br />
-
-        <b>Description:</b> {{ app.description }}<br />
-      </div>
-    </ng-template>
-  </ngb-tab>
-
-  <ngb-tab title="Raw Data">
-    <ng-template ngbTabContent>
-      <textarea class="form-control" disabled>
-{{app | json}}
-      </textarea>
-    </ng-template>
-  </ngb-tab>
-</ngb-tabset>
