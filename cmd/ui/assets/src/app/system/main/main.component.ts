@@ -21,14 +21,13 @@ export class RepoModel {
 })
 export class MainComponent implements OnInit, OnDestroy {
 
-  rows = [];
-  selected = [];
-  columns = [
+  private rows = [];
+  private selected = [];
+  private columns = [
     { prop: 'name' },
     { prop: 'url' },
   ];
   private subscriptions = new Subscription();
-  public kubes = [];
   private name: string;
   private url: string;
   private repoModel = new RepoModel;
@@ -38,7 +37,7 @@ export class MainComponent implements OnInit, OnDestroy {
   ) { }
 
   ngOnInit() {
-    this.getRepos();
+    this.get();
   }
 
   ngOnDestroy() {
@@ -50,7 +49,7 @@ export class MainComponent implements OnInit, OnDestroy {
     this.selected.push(...selected);
   }
 
-  getRepos() {
+  get() {
     this.subscriptions.add(Observable.timer(0, 5000)
       .switchMap(() => this.supergiant.HelmRepos.get()).subscribe(
       (repos) => {
@@ -76,7 +75,7 @@ export class MainComponent implements OnInit, OnDestroy {
     this.subscriptions.add(this.supergiant.HelmRepos.create(this.repoModel.repo.model).subscribe(
       (success) => {
         this.notifications.display('success', 'Repo: ' + this.name, 'Created...');
-        this.getRepos();
+        this.get();
         this.name = '';
         this.url = '';
       },
@@ -84,18 +83,18 @@ export class MainComponent implements OnInit, OnDestroy {
     ));
   }
 
-  deleteRepo() {
+  delete() {
     if (this.selected.length === 0) {
-      this.notifications.display('warn', 'Warning:', 'No Kube Selected.');
+      this.notifications.display('warn', 'Warning:', 'No Repo Selected.');
     } else {
       for (const repo of this.selected) {
         this.subscriptions.add(this.supergiant.HelmRepos.delete(repo.id).subscribe(
           (data) => {
-            this.notifications.display('success', 'Kube: ' + repo.name, 'Deleted...');
+            this.notifications.display('success', 'Repo: ' + repo.name, 'Deleted...');
             this.selected = [];
           },
           (err) => {
-            this.notifications.display('error', 'Kube: ' + repo.name, 'Error:' + err);
+            this.notifications.display('error', 'Repo: ' + repo.name, 'Error:' + err);
           },
         ));
       }

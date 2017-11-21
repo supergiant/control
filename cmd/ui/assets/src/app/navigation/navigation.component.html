@@ -55,12 +55,7 @@
     </div>
 
     <div class="app-metanav">
-      <button class="app-nav-toggler"
-        type="button"
-        (click)="isCollapsed = !isCollapsed"
-        [attr.aria-expanded]="!isCollapsed"
-        aria-controls="collapseExample"
-        aria-label="Toggle navigation">
+      <button class="app-nav-toggler" type="button" (click)="isCollapsed = !isCollapsed" [attr.aria-expanded]="!isCollapsed" aria-controls="collapseExample" aria-label="Toggle navigation">
         <i class="fa fa-bars"></i>
       </button>
 
@@ -75,30 +70,30 @@
           >
           <i class="fa fa-gear"></i>
           <span class="sr-only" aria-hidden="true"> System</span>
-        </button>
+      </button>
 
-        <div ngbDropdownMenu aria-labelledby="app-meta-menu-button" placement="right-bottom">
-          <a class="dropdown-item" [routerLink]="['/cloud-accounts']">
+      <div ngbDropdownMenu aria-labelledby="app-meta-menu-button" placement="right-bottom">
+        <a class="dropdown-item" [routerLink]="['/cloud-accounts']">
             <i class="fa fa-cloud"></i>
             Cloud Accounts
           </a>
-          <a class="dropdown-item" href="#">
+        <a class="dropdown-item" href="#">
             <i class="fa fa-link"></i>
             App &amp; Helm Repositories
           </a>
-          <a class="dropdown-item" href="#">
+        <a class="dropdown-item disabled" href="#">
             <i class="fa fa-expand"></i>
             Capacity
           </a>
-          <a class="dropdown-item" [routerLink]="['/users']">
+        <a class="dropdown-item" [routerLink]="['/users']">
             <i class="fa fa-key"></i>
             Users &amp; Keys
           </a>
-          <a class="dropdown-item" [routerLink]="['/sessions']">
+        <a class="dropdown-item" [routerLink]="['/sessions']">
             <i class="fa fa-users"></i>
             Active Sessions
           </a>
-        </div>
+      </div>
       </span>
 
       <span ngbDropdown placement="bottom-right">
@@ -112,14 +107,14 @@
           >
           <i class="fa fa-user-circle-o"></i>
           <span class="sr-only" aria-hidden="true"> System</span>
-        </button>
+      </button>
 
-        <div ngbDropdownMenu aria-labelledby="app-user-menu-button" placement="right-bottom">
-          <a class="dropdown-item" href="#log-out" (click)="loginComponent.logOut()">
+      <div ngbDropdownMenu aria-labelledby="app-user-menu-button" placement="right-bottom">
+        <a class="dropdown-item" href="#log-out" (click)="loginComponent.logOut()">
             <i class="fa fa-sign-out"></i>
             Log Out Now
           </a>
-        </div>
+      </div>
       </span>
     </div>
   </nav>
