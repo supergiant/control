@@ -41,6 +41,7 @@ import { NewCloudAccountComponent } from './system/cloud-accounts/new-cloud-acco
 // temporary 2000 name hack because of conflict
 import { CloudAccount2000Component } from './system/cloud-accounts/cloud-account/cloud-account.component';
 import { CloudAccounts2000Component } from './system/cloud-accounts/cloud-accounts.component';
+import { Users2000Component } from './system/users/users.component';
 import { EditCloudAccountComponent } from './system/cloud-accounts/edit-cloud-account/edit-cloud-account.component';
 import { MainComponent } from './system/main/main.component';
 import { HelmReposComponent } from './system/main/helm-repos/helm-repos.component';
@@ -86,6 +87,20 @@ const appRoutes: Routes = [
     path: 'system', component: SystemComponent, canActivate: [AuthGuard], children: [
       {
         path: 'cloud-accounts', component: CloudAccounts2000Component, children: [
+          { path: 'new', component: NewCloudAccountComponent },
+          { path: 'edit/:id', component: EditCloudAccountComponent },
+          { path: ':id', component: CloudAccount2000Component },
+        ],
+      },
+      {
+        path: 'users', component: Users2000Component, children: [
+          { path: 'new', component: NewCloudAccountComponent },
+          { path: 'edit/:id', component: EditCloudAccountComponent },
+          { path: ':id', component: CloudAccount2000Component },
+        ]
+      },
+      {
+        path: 'main', component: MainComponent, children: [
           { path: 'new', component: NewCloudAccountComponent },
           { path: 'edit/:id', component: EditCloudAccountComponent },
           { path: ':id', component: CloudAccount2000Component },
