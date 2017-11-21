@@ -132,6 +132,7 @@ import { HelmReposComponent } from './system/main/helm-repos/helm-repos.componen
 import { NewClusterComponent } from './clusters/new-cluster/new-cluster.component';
 import { ClusterComponent } from './clusters/cluster/cluster.component';
 import { ClustersListComponent } from './clusters/clusters-list/clusters-list.component';
+import { ListCloudAccountsComponent } from './system/cloud-accounts/list-cloud-accounts/list-cloud-accounts.component';
 
 
 
@@ -216,6 +217,7 @@ import { ClustersListComponent } from './clusters/clusters-list/clusters-list.co
     HelmReposComponent,
     Users2000Component,
     ClustersListComponent,
+    ListCloudAccountsComponent,
   ],
   imports: [
     BrowserModule,
