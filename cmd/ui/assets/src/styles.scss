@@ -2,8 +2,9 @@
 @import "~assets/css/variables";
 
 /* Libraries */
-@import "~assets/bootstrap/custom";
-@import "~assets/font-awesome/custom";
+@import "~assets/css/vendor/bootstrap/custom";
+@import "~assets/css/vendor/ngx-contextmenu/custom";
+@import "~assets/css/vendor/font-awesome/custom";
 
 /* App Styles */
 @import "~assets/css/main.scss";

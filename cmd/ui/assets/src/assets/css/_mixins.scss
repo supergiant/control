@@ -42,6 +42,7 @@
   box-shadow: 0 2px 5px rgba(0,0,0,0.25);
 }
 
+
 ._app-container-default {
   @extend .container-fluid;
 
@@ -54,6 +55,11 @@
     background: #fff;
     margin: 1rem 0;
     padding: 1rem;
+
+    .ngx-datatable.material {
+      border: 1px solid #eee;
+      box-shadow: none;
+    }
   }
 }
 

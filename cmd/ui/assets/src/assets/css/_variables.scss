@@ -24,9 +24,9 @@ $app-button-translucent: rgba($app-text-color, 0.2);
 $app-button-translucent-border: rgba($app-text-color, 0.4);
 
 
-/* Z-indices */
+$font-size-base:            1rem;
 
-// Bootstrap
+// Z-indices
 $zindex-dropdown:           1000;
 $zindex-sticky:             1020;
 $zindex-fixed:              1030;
@@ -39,6 +39,9 @@ $zindex-notifications:      2000;
 // Bootstrap buttons
 $light:                     #e9ecef;
 
+$context-menu-icon-color:          #8f8f8f;
+$context-menu-item-padding-top:    8px;
+$context-menu-item-padding-bottom: $context-menu-item-padding-top;
 
 // Layout
 $zindex-app-header:         300;
