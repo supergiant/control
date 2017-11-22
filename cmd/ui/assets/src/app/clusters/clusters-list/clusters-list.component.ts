@@ -6,30 +6,15 @@ import { Supergiant } from '../../shared/supergiant/supergiant.service';
 import { Notifications } from '../../shared/notifications/notifications.service';
 
 import { ContextMenuService, ContextMenuComponent } from 'ngx-contextmenu';
-import { ClustersContextComponent } from './clusters-context/clusters-context.component';
 
 @Component({
   selector: 'app-clusters-list',
   templateUrl: './clusters-list.component.html',
   styleUrls: ['./clusters-list.component.scss'],
-  styles: [`
-.dashboardContainer {
-width: 100%;
-height: 100%;
-position: fixed;
-}
-.componentsContainer {
-position: fixed;
-bottom: 0;
-top: 100px;
-width: 100%; }
-.componentContainer {
-overflow: auto;
-position: absolute; }
-`]
+
 })
 export class ClustersListComponent implements OnInit, OnDestroy {
-
+  @ViewChild(ContextMenuComponent) public basicMenu: ContextMenuComponent;
   rows = [];
   selected = [];
   columns = [];
@@ -92,12 +77,12 @@ export class ClustersListComponent implements OnInit, OnDestroy {
   onTableContextMenu(contextMenuEvent) {
       this.rawEvent = contextMenuEvent.event;
       if (contextMenuEvent.type === 'body') {
-        console.log(contextMenuEvent.content);
+        console.log(contextMenuEvent);
         this.contextmenuColumn = undefined;
         this.contextMenuService.show.next({
-        // contextMenu: ClustersContextComponent,
+        contextMenu: this.basicMenu,
         item: contextMenuEvent.content,
-        event: contextMenuEvent,
+        event: contextMenuEvent.event,
         });
       } else {
         this.contextmenuColumn = contextMenuEvent.content;
