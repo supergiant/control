@@ -11,6 +11,8 @@ import { JsonSchemaFormModule } from 'angular2-json-schema-form';
 import { AppRoutingModule } from './app-routing.module';
 import { ChartsModule } from 'ng2-charts';
 import { NgxPaginationModule } from 'ngx-pagination';
+import { TitleCasePipe } from '@angular/common';
+import {ContextMenuModule} from 'ngx-contextmenu';
 
 // Components
 import { AppComponent } from './app.component';
@@ -133,6 +135,7 @@ import { NewClusterComponent } from './clusters/new-cluster/new-cluster.componen
 import { ClusterComponent } from './clusters/cluster/cluster.component';
 import { ClustersListComponent } from './clusters/clusters-list/clusters-list.component';
 import { ListCloudAccountsComponent } from './system/cloud-accounts/list-cloud-accounts/list-cloud-accounts.component';
+import { ClustersContextComponent } from './clusters/clusters-list/clusters-context/clusters-context.component';
 
 
 
@@ -218,9 +221,14 @@ import { ListCloudAccountsComponent } from './system/cloud-accounts/list-cloud-a
     Users2000Component,
     ClustersListComponent,
     ListCloudAccountsComponent,
+    ClustersContextComponent,
   ],
   imports: [
     BrowserModule,
+    ContextMenuModule.forRoot({
+      autoFocus: true,
+      useBootstrap4: true,
+    }),
     NgbModule.forRoot(),
     AppRoutingModule,
     HttpModule,
@@ -236,6 +244,7 @@ import { ListCloudAccountsComponent } from './system/cloud-accounts/list-cloud-a
     NgxDatatableModule,
   ],
   providers: [
+    TitleCasePipe,
     // Component Services
     KubesService,
     CloudAccountsService,
