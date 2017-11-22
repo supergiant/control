@@ -225,10 +225,11 @@ import { ClustersContextComponent } from './clusters/clusters-list/clusters-cont
   ],
   imports: [
     BrowserModule,
-    ContextMenuModule.forRoot({
-      autoFocus: true,
-      useBootstrap4: true,
-    }),
+    ContextMenuModule,
+    // ContextMenuModule.forRoot({
+    //   autoFocus: true,
+    //   useBootstrap4: true,
+    // }),
     NgbModule.forRoot(),
     AppRoutingModule,
     HttpModule,

@@ -4,8 +4,14 @@
       <h2>Clusters</h2>
 
       <div class="context-secondary-panel">
+<<<<<<< HEAD
+        <button *ngIf="selected.length === 0" type="button" class="btn btn-primary" [routerLink]="['/clusters/new']">Deploy New Cluster</button>
+
+        <button *ngIf="selected.length > 0" type="button" class="btn btn-primary" (click)="deleteKube()">Delete Selected Cluster</button>
+=======
         <button type="button" class="btn btn-primary" [routerLink]="['/clusters/new']">Deploy New Cluster</button>
         <button [disabled]="selected.length === 0" type="button" class="btn btn-primary" (click)="deleteKube()">Delete Selected Cluster</button>
+>>>>>>> Styled clusters view, added context menu but it isn't working currently. Fake test data still exists, real data needs to be hooked  up
       </div>
     </div>
 
@@ -56,11 +62,7 @@
           </ng-template>
         </ngx-datatable-column>
     </ngx-datatable>
-    <context-menu #basicMenu>
-      <ng-template contextMenuItem let-item>
-        Delete {{item?.name}}
-      </ng-template>
-    </context-menu>
+
     </div>
   </section>
 </div>
