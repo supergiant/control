@@ -1,27 +1,84 @@
-import { Component, OnInit, OnDestroy } from '@angular/core';
+import { Component, OnInit, OnDestroy, TemplateRef, ViewChild } from '@angular/core';
+import { TitleCasePipe } from '@angular/common';
 import { Subscription } from 'rxjs/Subscription';
 import { Observable } from 'rxjs/Observable';
 import { Supergiant } from '../../shared/supergiant/supergiant.service';
 import { Notifications } from '../../shared/notifications/notifications.service';
 
+import { ContextMenuService, ContextMenuComponent } from 'ngx-contextmenu';
+import { ClustersContextComponent } from './clusters-context/clusters-context.component';
+
 @Component({
   selector: 'app-clusters-list',
   templateUrl: './clusters-list.component.html',
-  styleUrls: ['./clusters-list.component.scss']
+  styleUrls: ['./clusters-list.component.scss'],
+  styles: [`
+.dashboardContainer {
+width: 100%;
+height: 100%;
+position: fixed;
+}
+.componentsContainer {
+position: fixed;
+bottom: 0;
+top: 100px;
+width: 100%; }
+.componentContainer {
+overflow: auto;
+position: absolute; }
+`]
 })
 export class ClustersListComponent implements OnInit, OnDestroy {
+
   rows = [];
   selected = [];
-  columns = [
-    { prop: 'name' },
-    { prop: 'master' },
-    { prop: 'status' }
+  columns = [];
+
+  public rowChartOptions: any = {
+    responsive: false
+  };
+  public rowChartColors: Array<any> = [
+    { // grey
+      backgroundColor: 'rgba(148,159,177,0.2)',
+      borderColor: 'rgba(148,159,177,1)',
+      pointBackgroundColor: 'rgba(148,159,177,1)',
+      pointBorderColor: '#fff',
+      pointHoverBackgroundColor: '#fff',
+      pointHoverBorderColor: 'rgba(148,159,177,0.8)'
+    },
+    { // dark grey
+      backgroundColor: 'rgba(77,83,96,0.2)',
+      borderColor: 'rgba(77,83,96,1)',
+      pointBackgroundColor: 'rgba(77,83,96,1)',
+      pointBorderColor: '#fff',
+      pointHoverBackgroundColor: '#fff',
+      pointHoverBorderColor: 'rgba(77,83,96,1)'
+    },
+    { // grey
+      backgroundColor: 'rgba(148,159,177,0.2)',
+      borderColor: 'rgba(148,159,177,1)',
+      pointBackgroundColor: 'rgba(148,159,177,1)',
+      pointBorderColor: '#fff',
+      pointHoverBackgroundColor: '#fff',
+      pointHoverBorderColor: 'rgba(148,159,177,0.8)'
+    }
   ];
+
+
+  public rowChartLegend: boolean = false;
+  public rowChartType: string = 'line';
+  public rowChartLabels: Array<any> = ['', '', '', '', '', '', '', '', ''];
+
   private subscriptions = new Subscription();
   public kubes = [];
+  rawEvent: any;
+  contextmenuRow: any;
+  contextmenuColumn: any;
   constructor(
     private supergiant: Supergiant,
     private notifications: Notifications,
+    private titleCase: TitleCasePipe,
+    private contextMenuService: ContextMenuService,
   ) { }
 
   ngOnInit() {
@@ -32,6 +89,36 @@ export class ClustersListComponent implements OnInit, OnDestroy {
     this.subscriptions.unsubscribe();
   }
 
+  onTableContextMenu(contextMenuEvent) {
+      this.rawEvent = contextMenuEvent.event;
+      if (contextMenuEvent.type === 'body') {
+        console.log(contextMenuEvent.content);
+        this.contextmenuColumn = undefined;
+        this.contextMenuService.show.next({
+        // contextMenu: ClustersContextComponent,
+        item: contextMenuEvent.content,
+        event: contextMenuEvent,
+        });
+      } else {
+        this.contextmenuColumn = contextMenuEvent.content;
+        this.contextmenuRow = undefined;
+      }
+
+      contextMenuEvent.event.preventDefault();
+      contextMenuEvent.event.stopPropagation();
+  }
+
+  // public onContextMenu($event: MouseEvent, item: any): void {
+  //     this.contextMenuService.show.next({
+  //       // Optional - if unspecified, all context menu components will open
+  //       contextMenu: this.contextMenu,
+  //       event: $event,
+  //       item: item,
+  //     });
+  //     $event.preventDefault();
+  //     $event.stopPropagation();
+  //   }
+
   onSelect({ selected }) {
     this.selected.splice(0, this.selected.length);
     this.selected.push(...selected);
@@ -41,18 +128,47 @@ export class ClustersListComponent implements OnInit, OnDestroy {
     this.subscriptions.add(Observable.timer(0, 5000)
       .switchMap(() => this.supergiant.Kubes.get()).subscribe(
       (kubes) => {
-        this.rows = kubes.items.map(kube => ({
-          id: kube.id, name: kube.name, master: kube.master_node_size, status: kube.status.description
+        const rows = kubes.items.map(kube => ({
+          id: kube.id, name: kube.name, version: kube.KubernetsVersion, cloudaccount: kube.CloudAccountName,
+          nodes: Object.keys(kube.nodes).length, apps: Object.keys(kube.helmreleases).length,
+          status: this.titleCase.transform(kube.status.description), kube: kube
         }));
-
+      rows.push({
+        id: 1234,
+        name: 'Test Kube',
+        version: '1.5.9',
+        cloudaccount: 'TestAccount',
+        nodes: 12,
+        apps: 123,
+        status: this.titleCase.transform('running'),
+        kube: {masternodesize: 'XXL5',
+          usage: [{data: [65, 59, 80, 81, 100, 55, 40], labels: 'cpu'}],
+        }
+      });
+      rows.push({
+        id: 12354,
+        name: 'Test Kube2',
+        version: '1.5.9',
+        cloudaccount: 'TestAccount',
+        nodes: 4,
+        apps: 23,
+        status: this.titleCase.transform('running'),
+        kube: {masternodesize: 'XXL',
+          usage: [{data: [5, 59, 100, 5, 100, 5, 55], labels: 'cpu'}],
+        }
+      });
         // Copy over any kubes that happen to be currently selected.
-        this.selected.forEach((kube, index, array) => {
-          for (const row of this.rows) {
+        const selected: Array<any> = [];
+        this.selected.forEach((kube, index) => {
+          for (const row of rows) {
             if (row.id === kube.id) {
-              array[index] = row;
+              selected.push(row);
+              break;
             }
           }
         });
+        this.rows = rows;
+        this.selected = selected;
       },
       (err) => { this.notifications.display('warn', 'Connection Issue.', err); }));
   }
