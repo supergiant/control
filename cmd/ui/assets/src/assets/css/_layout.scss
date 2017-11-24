@@ -129,8 +129,15 @@ a#new::after {
           @extend .nav-fill;
 
           a {
+            border-bottom: 4px solid transparent;
+            font-family: Montserrat, sans-serif;
             font-size: 0.6rem;
             font-weight: 300;
+            height: 64px;
+            letter-spacing: 0.05em;
+            line-height: 52px;
+            margin-bottom: -0.75rem;
+            margin-top: -0.75rem;
             text-transform: uppercase;
 
             i.fa {
@@ -141,7 +148,8 @@ a#new::after {
             }
 
             &.active {
-              background-color: $app-interactive-object-hover-color-inverted;
+              background-color: transparent;
+              border-bottom-color: #9BDCFF;
 
               i.fa {
                 opacity: 1;

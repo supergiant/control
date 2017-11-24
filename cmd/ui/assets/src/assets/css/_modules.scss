@@ -203,3 +203,233 @@ a.quickstatus {
     padding: 1rem 0;
   }
 }
+
+
+.tutorial-steps {
+  display: -webkit-box;
+  display: -ms-flexbox;
+  display: flex;
+  -ms-flex-wrap: wrap;
+  flex-wrap: wrap;
+  list-style: none;
+  margin: 0;
+  padding: 0;
+
+  li {
+    -ms-flex-preferred-size: 0;
+    flex-basis: 0;
+    -webkit-box-flex: 1;
+    -ms-flex-positive: 1;
+    flex-grow: 1;
+    max-width: 100%;
+    position: relative;
+    text-align: center;
+
+    a.btn.btn-primary {
+      color: #fff;
+    }
+  }
+
+  .tutorial-step-pager {
+    background-color: #f8f8f8;
+    border-width: 1px;
+    border-style: solid;
+    border-color: #ddd;
+    border-radius: 3rem;
+    box-shadow: 0 1px 2px rgba(0, 0, 0, 0.2);
+    color: #aaa;
+    cursor: pointer;
+    display: none;
+    font: normal normal normal 28px/1 FontAwesome;
+    height: 4rem;
+    left: -44.5%;
+    margin-top: -2rem;
+    opacity: 0;
+    overflow: hidden;
+    position: absolute;
+    text-align: left;
+    text-indent: -5000px;
+    text-rendering: auto;
+    top: 50%;
+    -webkit-font-smoothing: antialiased;
+    width: 4rem;
+    z-index: 2;
+
+    transition: opacity 0.4s ease-in-out,
+       box-shadow 0.2s ease-in-out,
+       border-color 0.2s ease-in-out,
+       color 0.2s ease-in-out,
+       background-color 0.2s ease-in-out;
+
+    &:hover {
+      background-color: #fff;
+      color: #999;
+      box-shadow: 0 3px 6px rgba(0, 0, 0, 0.4);
+      border-color: #aaa;
+    }
+
+    &::before {
+      content: "\F104";
+      display: inline-block;
+      height: 1rem;
+      left: 2.5rem;
+      margin-top: -.5em;
+      position: absolute;
+      text-indent: 0;
+      top: 50%;
+      width: 1rem;
+    }
+  }
+  .tutorial-step-previous {
+    @extend .tutorial-step-pager;
+  }
+  .tutorial-step-next {
+    @extend .tutorial-step-pager;
+    
+    left: auto;
+    right: -44.5%;
+    
+    &::before {
+      content: "\F105";
+      left: 1rem;
+      right: auto;
+    }
+  }
+  &:hover .tutorial-step-previous,
+  &:hover .tutorial-step-next {
+    opacity: 1;
+  }
+}
+
+
+.app-dashboard-tutorial {
+  @extend ._layer-shadow;
+
+  background: #f8f8f8;
+  left: 50%;
+  margin-left: -430px;
+  position: fixed;
+  text-align: center;
+  top: 100px;
+  width: 860px;
+  z-index: $zindex-tutorials;
+
+  > input[type="radio"] {
+    -moz-appearance: none;
+    -webkit-appearance: none;
+    appearance: none;
+    background: #f8f8f8;
+    border-color: #ddd;
+    border-radius: 1rem;
+    border-style: solid;
+    border-width: 2px;
+    height: 1rem;
+    left: calc(430px - 0.5rem);
+    outline: none;
+    position: absolute;
+    top: 22rem;
+    width: 1rem;
+    z-index: 2;
+
+    &:nth-of-type(1) {
+      left: calc(400px - 0.5rem);
+    }
+
+    &:nth-of-type(3) {
+      left: calc(460px - 0.5rem);
+    }
+
+    &:checked {
+      background: #ddd;
+    }
+  }
+
+  .tutorial-primary {
+    background-color: #fff;
+    background-image: $brand-image-data-alt;
+    background-position: 50% 0;
+    background-repeat: no-repeat;
+    background-size: auto 200px;
+    overflow: hidden;
+    padding: 200px 1rem 1rem;
+    position: relative;
+    text-align: center;
+    height: 22.5rem;
+  }
+
+  .tutorial-secondary {
+    box-shadow: inset 0 4px 5px -4px rgba(0, 0, 0, 0.2);
+    padding: 1rem;
+
+    section + section {
+      border-top: 1px solid rgba(0,0,0,0.1);
+    }
+
+    h4 {
+      color: #444;
+      font-family: Montserrat, sans-serif;
+      font-size: 12px;
+      font-weight: 300;
+      text-align: left;
+    }
+  }
+
+  .tutorial-primary-steps {
+    @extend .tutorial-steps;
+
+    left: 0;
+    margin: 0 -1rem;
+    padding-left: 22.333%;
+    position: relative;
+    width: 200%;
+
+    transition: left 0.5s ease-in-out;
+    
+    li {
+      filter: blur(5px);
+      opacity: 0.333;
+
+      transition: filter 0.5s ease-in-out,
+        opacity 0.5s ease-in-out;
+
+      a {
+        width: 66.666%;
+      }
+    }
+  }
+
+  .tutorial-secondary-steps {
+    @extend .tutorial-steps;
+
+    padding-bottom: 1rem;
+
+    li {
+      a {
+        background: transparent;
+        border-color: transparent;
+        border-radius: 2px;
+        border-style: solid;
+        border-width: 0;
+        color: #555;
+        display: inline-block;
+        min-width: 9rem;
+        padding: 0.5rem 1.5rem;
+        text-decoration: none;
+
+        transition: background-color 0.2s ease-in-out,
+          border-color 0.2s ease-in-out,
+          box-shadow 0.2s ease-in-out,
+          color 0.2s ease-in-out;
+
+        &:hover {
+          @extend ._interactive-shadow-light;
+
+          background: #fff;
+          border-color: #ddd;
+          color: #222;
+          text-decoration: none;
+        }
+      }
+    }
+  }
+}

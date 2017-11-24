@@ -80,6 +80,7 @@
         </section>
       </div>
     </div>
+
     <div *ngIf="!hasCluster && !hasCloudAccount">
       <p>Has no cloud account and no cluster</p>
     </div>
@@ -87,14 +88,155 @@
     <div *ngIf="!hasCluster && hasCloudAccount">
       <p>Has Cloud account but no cluster</p>
     </div>
-</main>
+  </main>
 
-<input class="app-assist-toggle-status" id="app-assist-toggle-status" type="checkbox" autocomplete="off">
+  <input class="app-assist-toggle-status" id="app-assist-toggle-status" type="checkbox" autocomplete="off">
 
-<aside class="app-assist">
-<div class="app-assist-content">
-  <p>bloop</p>
-  <router-outlet name="tutorial"></router-outlet>
+  <aside class="app-assist">
+  <div class="app-assist-content">
+    <p>bloop</p>
+    <router-outlet name="tutorial"></router-outlet>
+  </div>
+  </aside>
 </div>
+
+<aside *ngIf="!hasApp" class="app-dashboard-tutorial">
+  <input name="tutorial-steps" type="radio" value="cloudaccount" id="tutorial-steps-cloudaccount" [checked]="!hasCloudAccount">
+  <input name="tutorial-steps" type="radio" value="cluster" id="tutorial-steps-cluster" [checked]="hasCloudAccount && !hasCluster">
+  <input name="tutorial-steps" type="radio" value="app" id="tutorial-steps-app" [checked]="hasCloudAccount && hasCluster && !hasApp">
+
+  <style type="text/css">
+    #tutorial-steps-cloudaccount:checked ~ .tutorial-primary ul {
+      left: 0;
+    }
+      #tutorial-steps-cloudaccount:checked ~ .tutorial-primary li.tutorial-step-cloudaccount {
+        opacity: 1;
+        filter: none;
+      }
+        #tutorial-steps-cloudaccount:checked ~ .tutorial-primary li.tutorial-step-cloudaccount label {
+          display: block;
+        }
+
+    #tutorial-steps-cluster:checked ~ .tutorial-primary ul {
+      left: -59.333%;
+    }
+      #tutorial-steps-cluster:checked ~ .tutorial-primary li.tutorial-step-cluster {
+        opacity: 1;
+        filter: none;
+      }
+        #tutorial-steps-cluster:checked ~ .tutorial-primary li.tutorial-step-cluster label {
+          display: block;
+        }
+
+    #tutorial-steps-app:checked ~ .tutorial-primary ul {
+      left: -118.666%;
+    }
+      #tutorial-steps-app:checked ~ .tutorial-primary li.tutorial-step-app {
+        opacity: 1;
+        filter: none;
+      }
+        #tutorial-steps-app:checked ~ .tutorial-primary li.tutorial-step-app label {
+          display: block;
+        }
+  </style>
+
+  <header class="tutorial-primary">
+    <h2>Welcome to Your Dashboard</h2>
+
+    <ul class="tutorial-primary-steps">
+      <li class="tutorial-step-cloudaccount">
+        <p class="lead">First step: add a <b>Cloud Account</b></p>
+
+        <p>
+          <a [routerLink]="['/system/cloud-accounts/new']" class="btn btn-primary">
+            Take me to <b>Cloud Accounts <i class="fa fa-angle-right"></i> New</b>
+          </a>
+        </p>
+
+        <label class="tutorial-step-previous" for="tutorial-steps-app">Previous</label>
+
+        <label class="tutorial-step-next" for="tutorial-steps-cluster">>Next</label>
+      </li>
+
+      <li class="tutorial-step-cluster">
+        <p class="lead">Next step: launch a <b>Cluster</b></p>
+
+        <p>
+          <a [routerLink]="['/clusters/new']" class="btn btn-primary">
+            Take me to <b>Clusters <i class="fa fa-angle-right"></i> New</b>
+          </a>
+        </p>
+
+        <label class="tutorial-step-previous" for="tutorial-steps-cloudaccount">Previous</label>
+
+        <label class="tutorial-step-next" for="tutorial-steps-app">Next</label>
+      </li>
+
+      <li class="tutorial-step-app">
+        <p class="lead">Next step: launch an <b>App</b></p>
+
+        <p>
+          <a [routerLink]="['/apps']" class="btn btn-primary">
+            Take me to <b>Apps</b>
+          </a>
+        </p>
+
+        <label class="tutorial-step-previous" for="tutorial-steps-cluster">Previous</label>
+
+        <label class="tutorial-step-next" for="tutorial-steps-cloudaccount">Next</label>
+      </li>
+    </ul>
+  </header>
+
+  <footer class="tutorial-secondary">
+    <section>
+      <h4>Quick Start</h4>
+
+      <ul class="tutorial-secondary-steps">
+        <li>
+          <a [routerLink]="['/system/cloud-accounts/new']">
+            Add a<br>
+            <b>Cloud Account</b><br>
+            <i class="fa fa-cloud fa-3x"></i>
+          </a>
+        </li>
+        
+        <li>
+          <a [routerLink]="['/clusters/new']">
+            Launch a<br>
+            <b>Cluster</b><br>
+            <i class="fa fa-server fa-3x"></i>
+          </a>
+        </li>
+        
+        <li>
+          <a [routerLink]="['/apps']">
+            Launch an<br>
+            <b>App</b><br>
+            <i class="fa fa-puzzle-piece fa-3x"></i>
+          </a>
+        </li>
+      </ul>
+    </section>
+
+    <section>
+      <h4>More</h4>
+
+      <ul class="tutorial-secondary-steps">
+        <li>
+          <a [routerLink]="['/system/users']">
+            <i class="fa fa-key"></i>
+            Manage Users &amp; Keys
+          </a>
+        </li>
+
+        <li>
+          <a [routerLink]="['/system/main']">
+            <i class="fa fa-link"></i>
+            Add an App or Helm Repo
+          </a>
+        </li>
+      </ul>
+    </section>
+  </footer>
 </aside>
-</div>

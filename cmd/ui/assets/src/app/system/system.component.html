@@ -1,38 +1,49 @@
-<div class="app-main">
-  <main class="app-context">
-    <div class="app-context-content">
-      <div class="app-clusters-container">
-        <section class="app-clusters-index">
-          <div class="app-context-header-panel">
-            <div class="context-secondary-panel">
-              <ul class="nav nav-tabs">
-                <li class="nav-item">
-                  <a [routerLink]="['/system/main']" class="nav-link" routerLinkActive="active">Main</a>
-                </li>
-                <li class="nav-item">
-                  <a [routerLink]="['/system/users']" class="nav-link" routerLinkActive="active">Users/Keys</a>
-                </li>
-                <li class="nav-item">
-                  <a [routerLink]="['/system/capacity']" class="nav-link disabled" routerLinkActive="active">Capacity</a>
-                </li>
-                <li class="nav-item">
-                  <a [routerLink]="['/system/cloud-accounts']" class="nav-link" routerLinkActive="active">Cloud Accounts</a>
-                </li>
-              </ul>
-            </div>
-          </div>
-          <router-outlet name="primary"></router-outlet>
-        </section>
+<div class="app-system-container">
+  <section class="app-clusters-index">
+    <div class="app-context-header-panel">
+      <h2>
+        <i class="fa fa-gear"></i>
+        System Settings
+      </h2>
+
+      <div class="context-secondary-panel">
+        <ul class="nav nav-tabs">
+          <li class="nav-item">
+            <a [routerLink]="['/system/cloud-accounts']" class="nav-link" routerLinkActive="active">
+              <i class="fa fa-cloud"></i>
+              Cloud Accounts
+            </a>
+          </li>
+          <li class="nav-item">
+            <a [routerLink]="['/system/main']" class="nav-link" routerLinkActive="active">
+              <i class="fa fa-link"></i>
+              App &amp; Helm Repositories
+            </a>
+          </li>
+          <li class="nav-item">
+            <a [routerLink]="['/system/capacity']" class="nav-link disabled" routerLinkActive="active">
+              <i class="fa fa-expand"></i>
+              Capacity
+            </a>
+          </li>
+          <li class="nav-item">
+            <a [routerLink]="['/system/users']" class="nav-link" routerLinkActive="active">
+              <i class="fa fa-link"></i>
+              Users &amp; Keys
+            </a>
+          </li>
+        </ul>
       </div>
     </div>
-</main>
 
-<input class="app-assist-toggle-status" id="app-assist-toggle-status" type="checkbox" autocomplete="off">
+    <input class="app-assist-toggle-status" id="app-assist-toggle-status" type="checkbox" autocomplete="off">
 
-<aside class="app-assist">
-<div class="app-assist-content">
-  <p>bloop</p>
-  <router-outlet name="tutorial"></router-outlet>
-</div>
-</aside>
+    <aside class="app-assist">
+      <div class="app-assist-content">
+        <p>bloop</p>
+        <router-outlet name="tutorial"></router-outlet>
+      </div>
+    </aside>
+
+  </section>
 </div>
