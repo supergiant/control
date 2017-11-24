@@ -12,6 +12,7 @@ import { AppRoutingModule } from './app-routing.module';
 import { ChartsModule } from 'ng2-charts';
 import { NgxPaginationModule } from 'ngx-pagination';
 import { TitleCasePipe } from '@angular/common';
+import { CommonModule } from '@angular/common';
 import {ContextMenuModule} from 'ngx-contextmenu';
 
 // Components
@@ -233,6 +234,7 @@ import { AppsTutorialComponent } from './tutorials/apps-tutorial/apps-tutorial.c
   ],
   imports: [
     BrowserModule,
+    CommonModule,
     ContextMenuModule,
     // ContextMenuModule.forRoot({
     //   autoFocus: true,
@@ -242,7 +244,6 @@ import { AppsTutorialComponent } from './tutorials/apps-tutorial/apps-tutorial.c
     AppRoutingModule,
     HttpModule,
     FormsModule,
-    BrowserModule,
     BrowserAnimationsModule,
     SimpleNotificationsModule.forRoot(),
     ReactiveFormsModule,

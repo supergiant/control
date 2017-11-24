@@ -1,6 +1,6 @@
 <div class="app-main">
-  <main class="app-context">
-    <div class="app-context-content">
+  <main class="app-context" >
+    <div class="app-context-content" *ngIf="hasCluster && hasCloudAccount">
       <!-- <router-outlet name="primary"></router-outlet> -->
       <div class="app-dashboard-container">
         <section class="app-dashboard-primary">
@@ -79,6 +79,13 @@
           </div>
         </section>
       </div>
+    </div>
+    <div *ngIf="!hasCluster && !hasCloudAccount">
+      <p>Has no cloud account and no cluster</p>
+    </div>
+
+    <div *ngIf="!hasCluster && hasCloudAccount">
+      <p>Has Cloud account but no cluster</p>
     </div>
 </main>
 

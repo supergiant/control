@@ -8,6 +8,8 @@ import { Component, OnInit, ViewEncapsulation } from '@angular/core';
 })
 export class DashboardComponent implements OnInit {
 
+  public hasCloudAccount = true;
+  public hasCluster = false;
   public events: Array<any> = ['2018-01-01 Events from the future', '2012fasg I am bad at dates'];
   public newses: Array<any> = ['2018-01-01 Events from the future', '2012fasg I am bad at dates'];
   // lineChart

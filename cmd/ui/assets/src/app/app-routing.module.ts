@@ -87,7 +87,7 @@ const appRoutes: Routes = [
   },
   {
     path: 'clusters', component: ClustersComponent, canActivate: [AuthGuard], children: [
-      {path: '', component: ClustersTutorialComponent, outlet: 'tutorial' },
+      { path: '', component: ClustersTutorialComponent, outlet: 'tutorial' },
       { path: '', component: ClustersListComponent },
       { path: 'new', component: NewClusterComponent },
       { path: ':id', component: ClusterComponent }
