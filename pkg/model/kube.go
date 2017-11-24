@@ -14,8 +14,8 @@ type Kube struct {
 	CloudAccountName string        `json:"cloud_account_name" validate:"nonzero" gorm:"not null;index" sg:"immutable"`
 
 	// has_many Nodes
-	Nodes []*Node `json:"nodes,omitempty" gorm:"ForeignKey:KubeName;AssociationForeignKey:Name"`
-
+	Nodes     []*Node `json:"nodes,omitempty" gorm:"ForeignKey:KubeName;AssociationForeignKey:Name" sg:"store_as_json_in=NodesJSON"`
+	NodesJSON []byte  `json:"-"`
 	// has_many LoadBalancers
 	LoadBalancers []*LoadBalancer `json:"load_balancers,omitempty" gorm:"ForeignKey:KubeName;AssociationForeignKey:Name"`
 
