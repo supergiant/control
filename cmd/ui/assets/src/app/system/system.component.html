@@ -1,23 +1,38 @@
-<div class="app-clusters-container">
-  <section class="app-clusters-index">
-    <div class="app-context-header-panel">
-      <div class="context-secondary-panel">
-        <ul class="nav nav-tabs">
-          <li class="nav-item">
-            <a [routerLink]="['/system/main']" class="nav-link" routerLinkActive="active">Main</a>
-          </li>
-          <li class="nav-item">
-            <a [routerLink]="['/system/users']" class="nav-link" routerLinkActive="active">Users/Keys</a>
-          </li>
-          <li class="nav-item">
-            <a [routerLink]="['/system/capacity']" class="nav-link disabled" routerLinkActive="active">Capacity</a>
-          </li>
-          <li class="nav-item">
-            <a [routerLink]="['/system/cloud-accounts']" class="nav-link" routerLinkActive="active">Cloud Accounts</a>
-          </li>
-        </ul>
+<div class="app-main">
+  <main class="app-context">
+    <div class="app-context-content">
+      <div class="app-clusters-container">
+        <section class="app-clusters-index">
+          <div class="app-context-header-panel">
+            <div class="context-secondary-panel">
+              <ul class="nav nav-tabs">
+                <li class="nav-item">
+                  <a [routerLink]="['/system/main']" class="nav-link" routerLinkActive="active">Main</a>
+                </li>
+                <li class="nav-item">
+                  <a [routerLink]="['/system/users']" class="nav-link" routerLinkActive="active">Users/Keys</a>
+                </li>
+                <li class="nav-item">
+                  <a [routerLink]="['/system/capacity']" class="nav-link disabled" routerLinkActive="active">Capacity</a>
+                </li>
+                <li class="nav-item">
+                  <a [routerLink]="['/system/cloud-accounts']" class="nav-link" routerLinkActive="active">Cloud Accounts</a>
+                </li>
+              </ul>
+            </div>
+          </div>
+          <router-outlet name="primary"></router-outlet>
+        </section>
       </div>
     </div>
-    <router-outlet></router-outlet>
-  </section>
+</main>
+
+<input class="app-assist-toggle-status" id="app-assist-toggle-status" type="checkbox" autocomplete="off">
+
+<aside class="app-assist">
+<div class="app-assist-content">
+  <p>bloop</p>
+  <router-outlet name="tutorial"></router-outlet>
+</div>
+</aside>
 </div>

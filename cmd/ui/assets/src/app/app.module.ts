@@ -136,6 +136,10 @@ import { ClusterComponent } from './clusters/cluster/cluster.component';
 import { ClustersListComponent } from './clusters/clusters-list/clusters-list.component';
 import { ListCloudAccountsComponent } from './system/cloud-accounts/list-cloud-accounts/list-cloud-accounts.component';
 import { ClustersContextComponent } from './clusters/clusters-list/clusters-context/clusters-context.component';
+import { DashboardTutorialComponent } from './tutorials/dashboard-tutorial/dashboard-tutorial.component';
+import { ClustersTutorialComponent } from './tutorials/clusters-tutorial/clusters-tutorial.component';
+import { SystemTutorialComponent } from './tutorials/system-tutorial/system-tutorial.component';
+import { AppsTutorialComponent } from './tutorials/apps-tutorial/apps-tutorial.component';
 
 
 
@@ -222,6 +226,10 @@ import { ClustersContextComponent } from './clusters/clusters-list/clusters-cont
     ClustersListComponent,
     ListCloudAccountsComponent,
     ClustersContextComponent,
+    DashboardTutorialComponent,
+    ClustersTutorialComponent,
+    SystemTutorialComponent,
+    AppsTutorialComponent,
   ],
   imports: [
     BrowserModule,

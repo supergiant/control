@@ -46,7 +46,7 @@
           </ng-template>
           <ng-template let-row="row" let-value="value" ngx-datatable-cell-template>
             <canvas baseChart width="200" height="50"
-                    [datasets]="row['kube']['usage']"
+                    [datasets]="row['chartData']"
                     [labels]="rowChartLabels"
                     [legend]="rowChartLegend"
                     [options]="rowChartOptions"
@@ -55,13 +55,12 @@
             </canvas>
           </ng-template>
         </ngx-datatable-column>
-      </ngx-datatable>
-
-      <context-menu #basicMenu>
-        <ng-template contextMenuItem let-item>
-          <i class="fa fa-trash"></i> Delete {{item?.name}}
-        </ng-template>
-      </context-menu>
+    </ngx-datatable>
+    <context-menu #basicMenu>
+      <ng-template contextMenuItem let-item (execute)="contextDelete($event.item)">
+        Delete {{item?.name}}
+      </ng-template>
+    </context-menu>
     </div>
   </section>
 </div>

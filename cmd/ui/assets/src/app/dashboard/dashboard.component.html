@@ -1,77 +1,93 @@
-<div class="app-dashboard-container">
-  <section class="app-dashboard-primary">
-    <div class="row">
-      <div class="col-12">
-        <div class="app-context-header-panel">
-          <h2>Cluster Status History</h2>
-        </div>
+<div class="app-main">
+  <main class="app-context">
+    <div class="app-context-content">
+      <!-- <router-outlet name="primary"></router-outlet> -->
+      <div class="app-dashboard-container">
+        <section class="app-dashboard-primary">
+          <div class="row">
+            <div class="col-12">
+              <div class="app-context-header-panel">
+                <h2>Cluster Status History</h2>
+              </div>
+            </div>
+          </div>
+
+          <div class="row">
+            <div class="col-12">
+              <canvas baseChart width="800" height="200"
+                      [datasets]="lineChartData"
+                      [labels]="lineChartLabels"
+                      [options]="lineChartOptions"
+                      [colors]="lineChartColors"
+                      [legend]="lineChartLegend"
+                      [chartType]="lineChartType"
+                      (chartHover)="chartHovered($event)"
+                      (chartClick)="chartClicked($event)">
+              </canvas>
+            </div>
+          </div>
+
+          <div class="row">
+            <div class="col-4 text-center">
+              <a [routerLink]="['/apps']" class="quickstatus">
+                <span class="quickstatus-label">Apps</span>
+                <span class="quickstatus-data">12</span>
+              </a>
+            </div>
+
+            <div class="col-4 text-center">
+              <a [routerLink]="['/clusters']" class="quickstatus">
+                <span class="quickstatus-label">Nodes</span>
+                <span class="quickstatus-data">546</span>
+              </a>
+            </div>
+
+            <div class="col-4 text-center">
+              <a [routerLink]="['/clusters']" class="quickstatus">
+                <span class="quickstatus-label">Clusters</span>
+                <span class="quickstatus-data">19</span>
+              </a>
+            </div>
+          </div>
+        </section>
+
+        <section class="app-dashboard-secondary">
+          <div class="row">
+            <aside class="app-dashboard-events">
+              <h2>Cluster Events</h2>
+
+              <div class="eventsbox">
+                <ul>
+                  <li *ngFor="let event of events">
+                    {{ event }}
+                  </li>
+                </ul>
+              </div>
+            </aside>
+
+            <aside class="app-dashboard-news">
+              <h2>Supergiant News</h2>
+
+              <div class="newsbox">
+                <ul>
+                  <li *ngFor="let news of newses">
+                    {{ news }}
+                  </li>
+                </ul>
+              </div>
+            </aside>
+          </div>
+        </section>
       </div>
     </div>
+</main>
 
-    <div class="row">
-      <div class="col-12">
-        <canvas baseChart width="800" height="200"
-                [datasets]="lineChartData"
-                [labels]="lineChartLabels"
-                [options]="lineChartOptions"
-                [colors]="lineChartColors"
-                [legend]="lineChartLegend"
-                [chartType]="lineChartType"
-                (chartHover)="chartHovered($event)"
-                (chartClick)="chartClicked($event)">
-        </canvas>
-      </div>
-    </div>
+<input class="app-assist-toggle-status" id="app-assist-toggle-status" type="checkbox" autocomplete="off">
 
-    <div class="row">
-      <div class="col-4 text-center">
-        <a [routerLink]="['/apps']" class="quickstatus">
-          <span class="quickstatus-label">Apps</span>
-          <span class="quickstatus-data">12</span>
-        </a>
-      </div>
-
-      <div class="col-4 text-center">
-        <a [routerLink]="['/clusters']" class="quickstatus">
-          <span class="quickstatus-label">Nodes</span>
-          <span class="quickstatus-data">546</span>
-        </a>
-      </div>
-
-      <div class="col-4 text-center">
-        <a [routerLink]="['/clusters']" class="quickstatus">
-          <span class="quickstatus-label">Clusters</span>
-          <span class="quickstatus-data">19</span>
-        </a>
-      </div>
-    </div>
-  </section>
-
-  <section class="app-dashboard-secondary">
-    <div class="row">
-      <aside class="app-dashboard-events">
-        <h2>Cluster Events</h2>
-
-        <div class="eventsbox">
-          <ul>
-            <li *ngFor="let event of events">
-              {{ event }}
-            </li>
-          </ul>
-        </div>
-      </aside>
-
-      <aside class="app-dashboard-news">
-        <h2>Supergiant News</h2>
-
-        <div class="newsbox">
-          <ul>
-            <li *ngFor="let news of newses">
-              {{ news }}
-            </li>
-          </ul>
-        </div>
-      </aside>
-    </div>
-  </section>
+<aside class="app-assist">
+<div class="app-assist-content">
+  <p>bloop</p>
+  <router-outlet name="tutorial"></router-outlet>
+</div>
+</aside>
 </div>
