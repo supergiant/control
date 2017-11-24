@@ -61,6 +61,12 @@
       box-shadow: none;
     }
   }
+
+  .subcontext {
+    .subcontext-actions {
+      margin-bottom: 1rem;
+    }
+  }
 }
 
 ._app-container-marquee {
