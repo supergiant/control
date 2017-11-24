@@ -18,10 +18,6 @@
           <i class="fa fa-server"></i>
           Clusters
         </a></li>
-        <li class="nav-item"><a [routerLink]="['/system']" class="nav-link" routerLinkActive="active">
-          <i class="fa fa-gear"></i>
-          System
-        </a></li>
         <!--
         <li class="nav-item"><a [routerLink]="['/sessions']" class="nav-link" routerLinkActive="active">
           Sessions
@@ -73,25 +69,21 @@
       </button>
 
       <div ngbDropdownMenu aria-labelledby="app-meta-menu-button" placement="right-bottom">
-        <a class="dropdown-item" [routerLink]="['/cloud-accounts']">
+        <a class="dropdown-item" [routerLink]="['/system/cloud-accounts']">
             <i class="fa fa-cloud"></i>
             Cloud Accounts
           </a>
-        <a class="dropdown-item" href="#">
+        <a class="dropdown-item" [routerLink]="['/system/main']">
             <i class="fa fa-link"></i>
             App &amp; Helm Repositories
           </a>
-        <a class="dropdown-item disabled" href="#">
+        <a class="dropdown-item disabled" href="#" disabled>
             <i class="fa fa-expand"></i>
             Capacity
           </a>
-        <a class="dropdown-item" [routerLink]="['/users']">
+        <a class="dropdown-item" [routerLink]="['/system/users']">
             <i class="fa fa-key"></i>
             Users &amp; Keys
-          </a>
-        <a class="dropdown-item" [routerLink]="['/sessions']">
-            <i class="fa fa-users"></i>
-            Active Sessions
           </a>
       </div>
       </span>

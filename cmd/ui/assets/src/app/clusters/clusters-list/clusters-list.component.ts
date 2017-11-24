@@ -52,7 +52,7 @@ export class ClustersListComponent implements OnInit, OnDestroy {
 
   public rowChartLegend: boolean = false;
   public rowChartType: string = 'line';
-  public rowChartLabels: Array<any> = ['', '', '', '', '', '', '', '', ''];
+  public rowChartLabels: Array<any> = ['', '', '', '', '', '', ''];
 
   private subscriptions = new Subscription();
   public kubes = [];
@@ -109,39 +109,59 @@ export class ClustersListComponent implements OnInit, OnDestroy {
     this.selected.push(...selected);
   }
 
+  lengthOrZero(lenobj) {
+    if (lenobj == null) {
+      return 0;
+    } else {
+      return Object.keys(lenobj).length;
+    }
+  }
+
+  progressOrDone(progobj) {
+    if (progobj.status == null) {
+      return 'Running';
+    } else {
+      return progobj.status.description;
+    }
+   }
+
+  usageOrZeroCPU(usage) {
+    if (usage == null) {
+      return( [0, 0, 0, 0, 0, 0, 0, 0, 0, 0] );
+    } else {
+      return usage.cpu_usage_rate.map((data) => data.value);
+    }
+  }
+
+  usageOrZeroMEM(usage) {
+    if (usage == null) {
+      return( [0, 0, 0, 0, 0, 0, 0, 0, 0, 0] );
+    } else {
+      return usage.memory_usage.map((data) => data.value / 1073741824);
+    }
+  }
+
   getKubes() {
     this.subscriptions.add(Observable.timer(0, 5000)
       .switchMap(() => this.supergiant.Kubes.get()).subscribe(
       (kubes) => {
+
         const rows = kubes.items.map(kube => ({
-          id: kube.id, name: kube.name, version: kube.KubernetsVersion, cloudaccount: kube.CloudAccountName,
-          nodes: Object.keys(kube.nodes).length, apps: Object.keys(kube.helmreleases).length,
-          status: this.titleCase.transform(kube.status.description), kube: kube
+          id: kube.id,
+          name: kube.name,
+          version: kube.kubernetes_version,
+          cloudaccount: kube.cloud_account_name,
+          nodes: this.lengthOrZero(kube.nodes),
+          apps: this.lengthOrZero(kube.helmreleases),
+          status: this.titleCase.transform(this.progressOrDone(kube)),
+          kube: kube,
+          chartData: [
+            { label: 'CPU Usage', data: this.usageOrZeroCPU(kube.extra_data) },
+            { label: 'RAM Usage', data: this.usageOrZeroMEM(kube.extra_data) },
+            // this should be set to the length of largest array.
+          ],
         }));
-      rows.push({
-        id: 1234,
-        name: 'Test Kube',
-        version: '1.5.9',
-        cloudaccount: 'TestAccount',
-        nodes: 12,
-        apps: 123,
-        status: this.titleCase.transform('running'),
-        kube: {masternodesize: 'XXL5',
-          usage: [{data: [65, 59, 80, 81, 100, 55, 40], labels: 'cpu'}],
-        }
-      });
-      rows.push({
-        id: 12354,
-        name: 'Test Kube2',
-        version: '1.5.9',
-        cloudaccount: 'TestAccount',
-        nodes: 4,
-        apps: 23,
-        status: this.titleCase.transform('running'),
-        kube: {masternodesize: 'XXL',
-          usage: [{data: [5, 59, 100, 5, 100, 5, 55], labels: 'cpu'}],
-        }
-      });
+        console.log(rows);
         // Copy over any kubes that happen to be currently selected.
         const selected: Array<any> = [];
         this.selected.forEach((kube, index) => {
@@ -156,6 +176,16 @@ export class ClustersListComponent implements OnInit, OnDestroy {
         this.selected = selected;
       },
       (err) => { this.notifications.display('warn', 'Connection Issue.', err); }));
+  }
+
+  contextDelete(item) {
+    console.log(item);
+    for (const row of this.rows) {
+      if (row.id === item.id) {
+        this.selected.push(row);
+        break;
+      }
+    }
   }
 
   deleteKube() {
