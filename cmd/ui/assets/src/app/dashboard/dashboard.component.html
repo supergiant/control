@@ -1,6 +1,6 @@
 <div class="app-main">
   <main class="app-context" >
-    <div class="app-context-content" *ngIf="hasCluster && hasCloudAccount">
+    <div class="app-context-content" *ngIf="hasCluster && hasCloudAccount && hasApp">
       <!-- <router-outlet name="primary"></router-outlet> -->
       <div class="app-dashboard-container">
         <section class="app-dashboard-primary">
@@ -20,9 +20,7 @@
                       [options]="lineChartOptions"
                       [colors]="lineChartColors"
                       [legend]="lineChartLegend"
-                      [chartType]="lineChartType"
-                      (chartHover)="chartHovered($event)"
-                      (chartClick)="chartClicked($event)">
+                      [chartType]="lineChartType">
               </canvas>
             </div>
           </div>
@@ -31,21 +29,21 @@
             <div class="col-4 text-center">
               <a [routerLink]="['/apps']" class="quickstatus">
                 <span class="quickstatus-label">Apps</span>
-                <span class="quickstatus-data">12</span>
+                <span class="quickstatus-data">{{ appCount }}</span>
               </a>
             </div>
 
             <div class="col-4 text-center">
               <a [routerLink]="['/clusters']" class="quickstatus">
                 <span class="quickstatus-label">Nodes</span>
-                <span class="quickstatus-data">546</span>
+                <span class="quickstatus-data">{{ nodeCount}}</span>
               </a>
             </div>
 
             <div class="col-4 text-center">
               <a [routerLink]="['/clusters']" class="quickstatus">
                 <span class="quickstatus-label">Clusters</span>
-                <span class="quickstatus-data">19</span>
+                <span class="quickstatus-data">{{ clusterCount }}</span>
               </a>
             </div>
           </div>
@@ -80,21 +78,12 @@
         </section>
       </div>
     </div>
-
-    <div *ngIf="!hasCluster && !hasCloudAccount">
-      <p>Has no cloud account and no cluster</p>
-    </div>
-
-    <div *ngIf="!hasCluster && hasCloudAccount">
-      <p>Has Cloud account but no cluster</p>
-    </div>
   </main>
 
   <input class="app-assist-toggle-status" id="app-assist-toggle-status" type="checkbox" autocomplete="off">
 
   <aside class="app-assist">
   <div class="app-assist-content">
-    <p>bloop</p>
     <router-outlet name="tutorial"></router-outlet>
   </div>
   </aside>
@@ -200,7 +189,7 @@
             <i class="fa fa-cloud fa-3x"></i>
           </a>
         </li>
-        
+
         <li>
           <a [routerLink]="['/clusters/new']">
             Launch a<br>
@@ -208,7 +197,7 @@
             <i class="fa fa-server fa-3x"></i>
           </a>
         </li>
-        
+
         <li>
           <a [routerLink]="['/apps']">
             Launch an<br>
