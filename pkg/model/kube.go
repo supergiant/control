@@ -17,13 +17,14 @@ type Kube struct {
 	Nodes     []*Node `json:"nodes,omitempty" gorm:"ForeignKey:KubeName;AssociationForeignKey:Name" sg:"store_as_json_in=NodesJSON"`
 	NodesJSON []byte  `json:"-"`
 	// has_many LoadBalancers
-	LoadBalancers []*LoadBalancer `json:"load_balancers,omitempty" gorm:"ForeignKey:KubeName;AssociationForeignKey:Name"`
-
+	LoadBalancers     []*LoadBalancer `json:"load_balancers,omitempty" gorm:"ForeignKey:KubeName;AssociationForeignKey:Name" sg:"store_as_json_in=MasterNodesJSON"`
+	LoadBalancersJSON []byte          `json:"-"`
 	// has_many KubeResources
-	KubeResources []*KubeResource `json:"kube_resources,omitempty" gorm:"ForeignKey:KubeName;AssociationForeignKey:Name"`
-
+	KubeResources     []*KubeResource `json:"kube_resources,omitempty" gorm:"ForeignKey:KubeName;AssociationForeignKey:Name" sg:"store_as_json_in=KubeResourceJSON"`
+	KubeResourcesJSON []byte          `json:"-"`
 	// has_many HelmReleases
-	HelmReleases []*HelmRelease `json:"helm_releases,omitempty" gorm:"ForeignKey:KubeName;AssociationForeignKey:Name"`
+	HelmReleases     []*HelmRelease `json:"helm_releases,omitempty" gorm:"ForeignKey:KubeName;AssociationForeignKey:Name" sg:"store_as_json_in=HelmReleasesJSON"`
+	HelmReleasesJSON []byte         `json:"-"`
 
 	Name string `json:"name" validate:"nonzero,max=12,regexp=^[a-z]([-a-z0-9]*[a-z0-9])?$" gorm:"not null;unique_index" sg:"immutable"`
 	// Kubernetes

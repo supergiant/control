@@ -1,4 +1,5 @@
 import { Component, OnInit, OnDestroy, TemplateRef, ViewChild } from '@angular/core';
+import { Router } from '@angular/router';
 import { TitleCasePipe } from '@angular/common';
 import { Subscription } from 'rxjs/Subscription';
 import { Observable } from 'rxjs/Observable';
@@ -15,9 +16,13 @@ import { ContextMenuService, ContextMenuComponent } from 'ngx-contextmenu';
 })
 export class ClustersListComponent implements OnInit, OnDestroy {
   @ViewChild(ContextMenuComponent) public basicMenu: ContextMenuComponent;
-  rows = [];
-  selected = [];
-  columns = [];
+  hasCluster = false;
+  hasCloudAccount = false;
+  filterText = '';
+  unfilteredRows: Array<any> = [];
+  rows: Array<any> = [];
+  selected: Array<any> = [];
+  columns: Array<any> = [];
 
   public rowChartOptions: any = {
     responsive: false
@@ -50,6 +55,7 @@ export class ClustersListComponent implements OnInit, OnDestroy {
   ];
 
 
+  // linter is angry about the boolean typing but without it charts
   public rowChartLegend: boolean = false;
   public rowChartType: string = 'line';
   public rowChartLabels: Array<any> = ['', '', '', '', '', '', ''];
@@ -64,14 +70,38 @@ export class ClustersListComponent implements OnInit, OnDestroy {
     private notifications: Notifications,
     private titleCase: TitleCasePipe,
     private contextMenuService: ContextMenuService,
+    private router: Router,
   ) { }
 
   ngOnInit() {
     this.getKubes();
+    this.getCloudAccounts();
   }
 
   ngOnDestroy() {
     this.subscriptions.unsubscribe();
+  }
+
+  filterRows(filterRows: Array<any>, filterText: string): Array<any> {
+    if (filterText === '') {
+      return filterRows;
+    }
+    const matchingRows = [];
+    for (const row of filterRows) {
+      for (const key of Object.keys(row)) {
+        const value = row[key].toString().toLowerCase();
+        if (value.toString().indexOf(filterText.toLowerCase()) >= 0) {
+          matchingRows.push(row);
+          break;
+        }
+      }
+    }
+    return matchingRows;
+  }
+
+  keyUpFilter(filterText) {
+    this.filterText = filterText;
+    this.rows = this.filterRows(this.unfilteredRows, filterText);
   }
 
   onTableContextMenu(contextMenuEvent) {
@@ -109,6 +139,13 @@ export class ClustersListComponent implements OnInit, OnDestroy {
     this.selected.push(...selected);
   }
 
+  onActivate(activated) {
+    if (activated.type == 'click') {
+      this.router.navigate(['/clusters', activated.row.id]);
+    }
+
+  }
+
   lengthOrZero(lenobj) {
     if (lenobj == null) {
       return 0;
@@ -133,13 +170,12 @@ export class ClustersListComponent implements OnInit, OnDestroy {
     }
   }
 
-  usageOrZeroMEM(usage) {
-    if (usage == null) {
-      return( [0, 0, 0, 0, 0, 0, 0, 0, 0, 0] );
-    } else {
-      return usage.memory_usage.map((data) => data.value / 1073741824);
+  getCloudAccounts() {
+    this.subscriptions.add(this.supergiant.CloudAccounts.get().subscribe(
+      (cloudAccounts) => {
+        if (Object.keys(cloudAccounts).length > 0) {this.hasCloudAccount = true; }
+      }));
     }
-  }
 
   getKubes() {
     this.subscriptions.add(Observable.timer(0, 5000)
@@ -157,11 +193,9 @@ export class ClustersListComponent implements OnInit, OnDestroy {
           kube: kube,
           chartData: [
             { label: 'CPU Usage', data: this.usageOrZeroCPU(kube.extra_data) },
-            { label: 'RAM Usage', data: this.usageOrZeroMEM(kube.extra_data) },
             // this should be set to the length of largest array.
           ],
         }));
-        console.log(rows);
         // Copy over any kubes that happen to be currently selected.
         const selected: Array<any> = [];
         this.selected.forEach((kube, index) => {
@@ -172,7 +206,9 @@ export class ClustersListComponent implements OnInit, OnDestroy {
             }
           }
         });
-        this.rows = rows;
+        this.unfilteredRows = rows;
+        if (Object.keys(rows).length > 0) {this.hasCluster = true; }
+        this.rows = this.filterRows(rows, this.filterText);
         this.selected = selected;
       },
       (err) => { this.notifications.display('warn', 'Connection Issue.', err); }));
