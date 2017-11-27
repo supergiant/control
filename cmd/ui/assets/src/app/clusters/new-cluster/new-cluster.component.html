@@ -3,6 +3,7 @@
 
     <header class="app-context-header-panel">
       <button *ngIf="schema" type="button" class="back-button" (click)="back()"></button>
+      <button *ngIf="!schema" type="button" class="back-button" [routerLink]="['/clusters']"></button>
 
       <h2>Create a Cluster</h2>
     </header>

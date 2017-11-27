@@ -136,7 +136,6 @@ import { NewClusterComponent } from './clusters/new-cluster/new-cluster.componen
 import { ClusterComponent } from './clusters/cluster/cluster.component';
 import { ClustersListComponent } from './clusters/clusters-list/clusters-list.component';
 import { ListCloudAccountsComponent } from './system/cloud-accounts/list-cloud-accounts/list-cloud-accounts.component';
-import { ClustersContextComponent } from './clusters/clusters-list/clusters-context/clusters-context.component';
 import { DashboardTutorialComponent } from './tutorials/dashboard-tutorial/dashboard-tutorial.component';
 import { ClustersTutorialComponent } from './tutorials/clusters-tutorial/clusters-tutorial.component';
 import { SystemTutorialComponent } from './tutorials/system-tutorial/system-tutorial.component';
@@ -226,7 +225,6 @@ import { AppsTutorialComponent } from './tutorials/apps-tutorial/apps-tutorial.c
     Users2000Component,
     ClustersListComponent,
     ListCloudAccountsComponent,
-    ClustersContextComponent,
     DashboardTutorialComponent,
     ClustersTutorialComponent,
     SystemTutorialComponent,
