@@ -17,10 +17,10 @@ type Kube struct {
 	Nodes     []*Node `json:"nodes,omitempty" gorm:"ForeignKey:KubeName;AssociationForeignKey:Name" sg:"store_as_json_in=NodesJSON"`
 	NodesJSON []byte  `json:"-"`
 	// has_many LoadBalancers
-	LoadBalancers     []*LoadBalancer `json:"load_balancers,omitempty" gorm:"ForeignKey:KubeName;AssociationForeignKey:Name" sg:"store_as_json_in=MasterNodesJSON"`
+	LoadBalancers     []*LoadBalancer `json:"load_balancers,omitempty" gorm:"ForeignKey:KubeName;AssociationForeignKey:Name" sg:"store_as_json_in=LoadBalancersJSON"`
 	LoadBalancersJSON []byte          `json:"-"`
 	// has_many KubeResources
-	KubeResources     []*KubeResource `json:"kube_resources,omitempty" gorm:"ForeignKey:KubeName;AssociationForeignKey:Name" sg:"store_as_json_in=KubeResourceJSON"`
+	KubeResources     []*KubeResource `json:"kube_resources,omitempty" gorm:"ForeignKey:KubeName;AssociationForeignKey:Name" sg:"store_as_json_in=KubeResourcesJSON"`
 	KubeResourcesJSON []byte          `json:"-"`
 	// has_many HelmReleases
 	HelmReleases     []*HelmRelease `json:"helm_releases,omitempty" gorm:"ForeignKey:KubeName;AssociationForeignKey:Name" sg:"store_as_json_in=HelmReleasesJSON"`
