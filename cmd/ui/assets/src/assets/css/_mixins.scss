@@ -56,6 +56,10 @@
     margin: 1rem 0;
     padding: 1rem;
 
+    .datatable-body-cell {
+      cursor: pointer;
+    }
+    
     .ngx-datatable.material {
       border: 1px solid #eee;
       box-shadow: none;
