@@ -1,27 +1,23 @@
-<div class="app-clusters-container">
-  <section class="app-clusters-index">
-    <div class="app-context-header-panel">
-      <h2>App/Helm Repos</h2>
-
-      <div class="context-secondary-panel">
-        <div *ngIf="selected.length === 0" class="form-group row">
-          <div class="col-5">
-            <input [(ngModel)]="url" type="url" class="form-control" aria-describedby="Repo URL" placeholder="Repo URL">
-          </div>
-          <div class="col-5">
-            <input [(ngModel)]="name" type="text" class="form-control" aria-describedby="Repo URL" placeholder="Repo Name">
-          </div>
-          <div class="col-2">
-            <button type="submit" class="btn btn-primary" (click)="save()">Add</button>
-          </div>
-        </div>
-
-        <button *ngIf="selected.length > 0" type="button" class="btn btn-primary" (click)="delete()">Delete Selected Repo</button>
+<div class="subcontext">
+  <div class="subcontext-actions">
+    <div *ngIf="selected.length === 0" class="form-group row">
+      <div class="col-5">
+        <input [(ngModel)]="url" type="url" class="form-control" aria-describedby="Repo URL" placeholder="Repo URL">
+      </div>
+      <div class="col-5">
+        <input [(ngModel)]="name" type="text" class="form-control" aria-describedby="Repo URL" placeholder="Repo Name">
+      </div>
+      <div class="col-2">
+        <button type="submit" class="btn btn-primary btn-block" (click)="save()">Add</button>
       </div>
     </div>
-
-    <div>
-      <ngx-datatable class="material" [rows]="rows" [columnMode]="'force'" [columns]="columns" [headerHeight]="50" [footerHeight]="50" [rowHeight]="'auto'" [limit]="5" [selected]="selected" [selectionType]="'multiClick'" (select)='onSelect($event)'></ngx-datatable>
+    
+    <div *ngIf="selected.length > 0">
+      <button type="button" class="btn btn-primary" (click)="delete()">Delete Selected Repo</button>
     </div>
-  </section>
+  </div>
+
+  <div>
+    <ngx-datatable class="material" [rows]="rows" [columnMode]="'force'" [columns]="columns" [headerHeight]="50" [footerHeight]="50" [rowHeight]="'auto'" [limit]="5" [selected]="selected" [selectionType]="'multiClick'" (select)='onSelect($event)'></ngx-datatable>
+  </div>
 </div>

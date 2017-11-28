@@ -97,6 +97,26 @@ a.quickstatus {
   }
 }
 
+
+// Tabbed Navigation
+
+.nav {
+  &.nav-tabs {
+    border-bottom: none;
+    font-size: 1rem;
+    box-shadow: inset 0 -10px 30px -20px rgba(0, 0, 0, 0.3);
+
+    .nav-link {
+      &.active {
+        background-color: #fff;
+        border-width: 0 0 4px;
+        border-color: #660066;
+      }
+    }
+  }
+}
+
+
 // Menus
 
 .dropdown-item {
@@ -432,4 +452,11 @@ a.quickstatus {
       }
     }
   }
+}
+
+
+// Bootstrap Form Tweaks
+
+.form-group:last-child {
+  margin-bottom: 0;
 }
