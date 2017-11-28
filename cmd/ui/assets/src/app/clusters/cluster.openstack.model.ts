@@ -1,6 +1,6 @@
 export class ClusterOpenStackModel {
   openstack = {
-    'model': {
+    'data': {
       'cloud_account_name': '',
       'master_node_size': 'm1.smaller',
       'name': '',

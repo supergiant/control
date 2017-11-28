@@ -14,18 +14,23 @@
               Cloud Accounts
             </a>
           </li>
+          
           <li class="nav-item">
             <a [routerLink]="['/system/main']" class="nav-link" routerLinkActive="active">
               <i class="fa fa-link"></i>
               App &amp; Helm Repositories
             </a>
           </li>
+
+          <!--
           <li class="nav-item">
             <a [routerLink]="['/system/capacity']" class="nav-link disabled" routerLinkActive="active">
               <i class="fa fa-expand"></i>
               Capacity
             </a>
           </li>
+          -->
+
           <li class="nav-item">
             <a [routerLink]="['/system/users']" class="nav-link" routerLinkActive="active">
               <i class="fa fa-link"></i>
@@ -37,6 +42,7 @@
       <router-outlet name="primary"></router-outlet>
     </div>
 
+    <!-- 
     <input class="app-assist-toggle-status" id="app-assist-toggle-status" type="checkbox" autocomplete="off">
 
     <aside class="app-assist">
@@ -45,6 +51,7 @@
         <router-outlet name="tutorial"></router-outlet>
       </div>
     </aside>
+    -->
 
   </section>
 </div>

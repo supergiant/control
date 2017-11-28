@@ -30,7 +30,7 @@ export class ClusterComponent implements OnInit, OnDestroy {
   public planets = [];
   public planetName: string;
   public rowChartOptions: any = {
-    responsive: false
+    responsive: true
   };
   public rowChartColors: Array<any> = [
     { // grey

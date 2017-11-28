@@ -18,6 +18,9 @@ export class ClustersListComponent implements OnInit, OnDestroy {
   @ViewChild(ContextMenuComponent) public basicMenu: ContextMenuComponent;
   hasCluster = false;
   hasCloudAccount = false;
+  hasApp = false;
+  clusterCount = 0;
+  appCount = 0;
   filterText = '';
   unfilteredRows: Array<any> = [];
   rows: Array<any> = [];
@@ -54,7 +57,6 @@ export class ClustersListComponent implements OnInit, OnDestroy {
     }
   ];
 
-
   // linter is angry about the boolean typing but without it charts
   public rowChartLegend: boolean = false;
   public rowChartType: string = 'line';
@@ -76,6 +78,8 @@ export class ClustersListComponent implements OnInit, OnDestroy {
   ngOnInit() {
     this.getKubes();
     this.getCloudAccounts();
+    this.getClusters();
+    this.getDeployments();
   }
 
   ngOnDestroy() {
@@ -143,7 +147,6 @@ export class ClustersListComponent implements OnInit, OnDestroy {
     if (activated.type == 'click') {
       this.router.navigate(['/clusters', activated.row.id]);
     }
-
   }
 
   lengthOrZero(lenobj) {
@@ -174,8 +177,39 @@ export class ClustersListComponent implements OnInit, OnDestroy {
     this.subscriptions.add(this.supergiant.CloudAccounts.get().subscribe(
       (cloudAccounts) => {
         if (Object.keys(cloudAccounts).length > 0) {this.hasCloudAccount = true; }
-      }));
-    }
+      })
+    );
+  }
+
+  getClusters() {
+    this.subscriptions.add(this.supergiant.Kubes.get().subscribe(
+      (clusters) => {
+        if (Object.keys(clusters.items).length > 0) {
+          this.hasCluster = true;
+          // this.lineChartData[0]['data'].length = 0;
+          // this.lineChartData[0]['data'].length = 0;
+          for (const cluster of clusters.items) {
+            console.log(cluster.id);
+            // this.getKubes(cluster.id);
+            this.getKubes();
+          }
+          this.clusterCount = Object.keys(clusters.items).length;
+        }
+      })
+    );
+  }
+
+  getDeployments() {
+    this.subscriptions.add(this.supergiant.HelmReleases.get().subscribe(
+      (deployments) => {
+        if (Object.keys(deployments.items).length > 0) {
+          console.log(deployments);
+          this.hasApp = true;
+          this.appCount = Object.keys(deployments.items).length;
+        }
+      })
+    );
+  }
 
   getKubes() {
     this.subscriptions.add(Observable.timer(0, 5000)

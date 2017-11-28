@@ -55,6 +55,22 @@
 .app-clusters-container {
   @extend ._app-container-default;
 }
+.clusters-index-empty {
+  background-position: 50% 0;
+  background-repeat: no-repeat;
+  background-size: auto 200px;
+  padding-top: 200px;
+  text-align: center;
+
+  &.no-clusters {
+    background-image: url(assets/img/supergiant-cloud-autoscaling.svg);
+  }
+  
+  &.no-cloud-account {
+    background-image: url(assets/img/supergiant-cloud-providers.svg);
+  }
+}
+
 
 .app-accounts-container {
   @extend ._app-container-default;

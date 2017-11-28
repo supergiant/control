@@ -10,21 +10,21 @@
         <label>Password</label>
         <input [(ngModel)]="password" type="password" class="form-control" aria-describedby="Repo URL" placeholder="Password">
       </div>
-      <div class="col-4">
+      <div class="col-3">
         <label>Role</label>
         <select [(ngModel)]="role" class="form-control">
           <option>user</option>
           <option>admin</option>
         </select>
       </div>
-      <div class="col-2">
+      <div class="col-3">
         <label>&nbsp;</label>
-        <button type="submit" class="btn btn-primary btn-block" (click)="save()">Add</button>
+        <button type="submit" class="btn btn-primary btn-block" (click)="save()">Add New User</button>
       </div>
     </div>
 
     <div *ngIf="selected.length > 0">
-      <button type="button" class="btn btn-primary" (click)="delete()">Delete Selected User</button>
+      <button type="button" class="btn btn-danger" (click)="delete()">Delete Selected User</button>
     </div>
   </div>
 

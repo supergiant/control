@@ -1,6 +1,6 @@
 export class ClusterDigitalOceanModel {
   digitalocean = {
-    'model': {
+    'data': {
       'cloud_account_name': '',
       'digitalocean_config': {
         'region': 'nyc1',

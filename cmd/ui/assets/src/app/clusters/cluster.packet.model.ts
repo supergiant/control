@@ -1,6 +1,6 @@
 export class ClusterPacketModel {
   packet = {
-    'model': {
+    'data': {
       'cloud_account_name': '',
       'master_node_size': 'Type 0',
       'kube_master_count': 1,
