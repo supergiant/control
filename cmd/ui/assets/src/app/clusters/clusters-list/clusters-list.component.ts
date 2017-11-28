@@ -144,7 +144,8 @@ export class ClustersListComponent implements OnInit, OnDestroy {
   }
 
   onActivate(activated) {
-    if (activated.type == 'click') {
+    console.log(activated);
+    if (activated.type === 'click' && activated.column.name !== 'checkbox') {
       this.router.navigate(['/clusters', activated.row.id]);
     }
   }
@@ -253,6 +254,7 @@ export class ClustersListComponent implements OnInit, OnDestroy {
     for (const row of this.rows) {
       if (row.id === item.id) {
         this.selected.push(row);
+        this.deleteKube();
         break;
       }
     }

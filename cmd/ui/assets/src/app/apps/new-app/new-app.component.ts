@@ -44,7 +44,7 @@ export class NewAppComponent implements OnInit, OnDestroy {
         const chart = data;
         if (chart.default_config) {
           // this is our model: the vars file provided by the chart.
-          this.appsModel.app.model.config = chart.default_config;
+          this.appsModel.app.model.config = JSON.parse(JSON.stringify(chart.default_config).replace(/\[\]/g, '["Enter Info"]', ));
         }
         this.appsModel.app.model.chart_name = chart.name;
         this.appsModel.app.model.chart_version = chart.version;
@@ -104,7 +104,7 @@ export class NewAppComponent implements OnInit, OnDestroy {
   ngOnDestroy() {
     this.subscriptions.unsubscribe();
   }
-  
+
   goBack() {
     this.location.back();
   }

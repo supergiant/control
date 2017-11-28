@@ -24,8 +24,24 @@
       [footerHeight]="50"
       [rowHeight]="'auto'"
       [limit]="20"
+      [selected]="selected"
+      (select)='onSelect($event)'
       (activate)='onActivate($event)'
-      [selectAllRowsOnPage]="true">
+      [selectionType]="'checkbox'"
+      [selectAllRowsOnPage]="true"
+      [displayCheck]="displayCheck"
+      (tableContextmenu)="onTableContextMenu($event)">
+      <ngx-datatable-column
+          name="checkbox"
+          [width]="30"
+          [sortable]="false"
+          [canAutoResize]="false"
+          [draggable]="false"
+          [resizeable]="false"
+          [headerCheckboxable]="true"
+          [checkboxable]="true"
+          >
+      </ngx-datatable-column>
       <ngx-datatable-column name="Name" prop="name"></ngx-datatable-column>
       <ngx-datatable-column name="Cluster" prop="kube_name"></ngx-datatable-column>
       <ngx-datatable-column name="Revision" prop="Revision"></ngx-datatable-column>
@@ -33,6 +49,11 @@
       <ngx-datatable-column name="App Version" prop="chart_version"></ngx-datatable-column>
       <ngx-datatable-column name="Updated" prop="updated_value"></ngx-datatable-column>
       <ngx-datatable-column name="Status" prop="status_value"></ngx-datatable-column>
-    </ngx-datatable>
+  </ngx-datatable>
+  <context-menu #basicMenu>
+    <ng-template contextMenuItem let-item (execute)="contextDelete($event.item)">
+      Delete {{item?.name}}
+    </ng-template>
+  </context-menu>
   </section>
 </div>

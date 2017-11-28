@@ -33,14 +33,15 @@
         [displayCheck]="displayCheck"
         (tableContextmenu)="onTableContextMenu($event)">
         <ngx-datatable-column
-          [width]="30"
-          [sortable]="false"
-          [canAutoResize]="false"
-          [draggable]="false"
-          [resizeable]="false"
-          [headerCheckboxable]="true"
-          [checkboxable]="true"
-        >
+            name="checkbox"
+            [width]="30"
+            [sortable]="false"
+            [canAutoResize]="false"
+            [draggable]="false"
+            [resizeable]="false"
+            [headerCheckboxable]="true"
+            [checkboxable]="true"
+            >
         </ngx-datatable-column>
         
         <ngx-datatable-column name="Name" prop="name"></ngx-datatable-column>
