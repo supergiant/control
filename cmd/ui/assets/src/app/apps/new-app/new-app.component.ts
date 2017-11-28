@@ -40,7 +40,6 @@ export class NewAppComponent implements OnInit, OnDestroy {
   get(id) {
     this.subscriptions.add(this.supergiant.HelmCharts.get(id).subscribe(
       (data) => {
-        console.log(data);
         const chart = data;
         if (chart.default_config) {
           // this is our model: the vars file provided by the chart.
@@ -58,8 +57,6 @@ export class NewAppComponent implements OnInit, OnDestroy {
         this.schema.properties.kube_name.enum = this.clusters;
         this.model = this.appsModel.app.model;
         this.loaded = true;
-        console.log(this.model);
-        console.log(this.schema);
       },
       (err) => { console.log(err); }));
   }
