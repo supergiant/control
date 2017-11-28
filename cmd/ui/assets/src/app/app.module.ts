@@ -19,10 +19,7 @@ import {ContextMenuModule} from 'ngx-contextmenu';
 import { AppComponent } from './app.component';
 import { NavigationComponent } from './navigation/navigation.component';
 import { UsersComponent } from './users/users.component';
-import { KubesComponent } from './kubes/kubes.component';
 import { NotificationsComponent } from './shared/notifications/notifications.component';
-import { KubeComponent } from './kubes/kube/kube.component';
-import { KubesHeaderComponent } from './kubes/kubes-header/kubes-header.component';
 import { SessionsComponent } from './sessions/sessions.component';
 import { CloudAccountsComponent } from './cloud-accounts/cloud-accounts.component';
 import { LoadBalancersComponent } from './load-balancers/load-balancers.component';
@@ -52,13 +49,8 @@ import { EditModalComponent } from './shared/edit-modal/edit-modal.component';
 import { LoginComponent } from './login/login.component';
 import { CookiesComponent } from './shared/cookies/cookies.component';
 import { AppsComponent } from './apps/apps.component';
-import { AppsHeaderComponent } from './apps/apps-header/apps-header.component';
 import { Search } from './shared/search-pipe/search-pipe';
 import { HelmAppComponent } from './apps/app/helm-app.component';
-import { DeploymentComponent } from './apps/deployment/deployment.component';
-import { RepoModalComponent } from './apps/repo-modal/repo-modal.component';
-import { KubeDetailsComponent } from './kubes/kube-details/kube-details.component';
-import { KubesListComponent } from './kubes/kubes-list/kubes-list.component';
 import { NodeDetailsComponent } from './nodes/node-details/node-details.component';
 import { NodesListComponent } from './nodes/nodes-list/nodes-list.component';
 import { PodDetailsComponent } from './pods/pod-details/pod-details.component';
@@ -75,12 +67,9 @@ import { ServiceDetailsComponent } from './services/service-details/service-deta
 import { ServicesListComponent } from './services/services-list/services-list.component';
 import { SupergiantComponent } from './shared/supergiant/supergiant.component';
 import { AppsListComponent } from './apps/apps-list/apps-list.component';
-import { AppDetailsComponent } from './apps/app-details/app-details.component';
-import { DeploymentDetailsComponent } from './apps/deployment-details/deployment-details.component';
 // Component Services
 import { SessionsService } from './sessions/sessions.service';
 import { CloudAccountsService } from './cloud-accounts/cloud-accounts.service';
-import { KubesService } from './kubes/kubes.service';
 import { UsersService } from './users/users.service';
 import { NodesService } from './nodes/nodes.service';
 import { PodsService } from './pods/pods.service';
@@ -93,7 +82,6 @@ import { SystemModalService } from './shared/system-modal/system-modal.service';
 import { DropdownModalService } from './shared/dropdown-modal/dropdown-modal.service';
 import { EditModalService } from './shared/edit-modal/edit-modal.service';
 import { CookieMonster } from './shared/cookies/cookies.service';
-import { RepoModalService } from './apps/repo-modal/repo-modal.service';
 
 // Supergiant API Services
 import { Supergiant } from './shared/supergiant/supergiant.service';
@@ -140,6 +128,8 @@ import { DashboardTutorialComponent } from './tutorials/dashboard-tutorial/dashb
 import { ClustersTutorialComponent } from './tutorials/clusters-tutorial/clusters-tutorial.component';
 import { SystemTutorialComponent } from './tutorials/system-tutorial/system-tutorial.component';
 import { AppsTutorialComponent } from './tutorials/apps-tutorial/apps-tutorial.component';
+import { NewAppListComponent } from './apps/new-app-list/new-app-list.component';
+import { NewAppComponent } from './apps/new-app/new-app.component';
 
 
 
@@ -155,9 +145,6 @@ import { AppsTutorialComponent } from './tutorials/apps-tutorial/apps-tutorial.c
     VolumesHeaderComponent,
     NavigationComponent,
     UsersComponent,
-    KubesComponent,
-    KubeComponent,
-    KubesHeaderComponent,
     SessionsComponent,
     CloudAccountsComponent,
     LoadBalancersComponent,
@@ -185,12 +172,7 @@ import { AppsTutorialComponent } from './tutorials/apps-tutorial/apps-tutorial.c
     LoginComponent,
     CookiesComponent,
     AppsComponent,
-    AppsHeaderComponent,
     HelmAppComponent,
-    DeploymentComponent,
-    RepoModalComponent,
-    KubeDetailsComponent,
-    KubesListComponent,
     NodeDetailsComponent,
     NodesListComponent,
     PodDetailsComponent,
@@ -207,9 +189,7 @@ import { AppsTutorialComponent } from './tutorials/apps-tutorial/apps-tutorial.c
     ServicesListComponent,
     Search,
     SupergiantComponent,
-    AppDetailsComponent,
     AppsListComponent,
-    DeploymentDetailsComponent,
     DashboardComponent,
     ClustersComponent,
     NewCloudAccountComponent,
@@ -229,6 +209,8 @@ import { AppsTutorialComponent } from './tutorials/apps-tutorial/apps-tutorial.c
     ClustersTutorialComponent,
     SystemTutorialComponent,
     AppsTutorialComponent,
+    NewAppListComponent,
+    NewAppComponent,
   ],
   imports: [
     BrowserModule,
@@ -254,18 +236,15 @@ import { AppsTutorialComponent } from './tutorials/apps-tutorial/apps-tutorial.c
   providers: [
     TitleCasePipe,
     // Component Services
-    KubesService,
     CloudAccountsService,
     SessionsService,
     UsersService,
-    KubesService,
     NodesService,
     LoadBalancersService,
     PodsService,
     ServicesService,
     VolumesService,
     AppsService,
-    RepoModalService,
     // Supergiant API Services
     Supergiant,
     UtilService,

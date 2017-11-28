@@ -2,13 +2,12 @@
   <section class="app-apps-index">
     <div class="app-context-header-panel">
       <h2>
+        <button type="button" class="back-button" (click)="goBack()"></button>
         <i class="fa fa-puzzle-piece"></i>
-        Running Apps
+        Deploy New App
       </h2>
 
-      <button type="button" class="btn btn-primary" [routerLink]="['/apps/new']">Deploy New App</button>
       <div class="context-secondary-panel">
-        <button [disabled]="selected.length === 0" type="button" class="btn btn-primary" (click)="deleteKube()">Delete Selected App</button>
         <div class="context-search-layout">
           <input (keyup)="keyUpFilter($event.target.value)" name="search" placeholder="Search" type="search">
         </div>
@@ -26,12 +25,9 @@
       (activate)='onActivate($event)'
       [selectAllRowsOnPage]="true">
       <ngx-datatable-column name="Name" prop="name"></ngx-datatable-column>
-      <ngx-datatable-column name="Cluster" prop="kube_name"></ngx-datatable-column>
-      <ngx-datatable-column name="Revision" prop="Revision"></ngx-datatable-column>
-      <ngx-datatable-column name="App Name" prop="chart_name"></ngx-datatable-column>
-      <ngx-datatable-column name="App Version" prop="chart_version"></ngx-datatable-column>
-      <ngx-datatable-column name="Updated" prop="updated_value"></ngx-datatable-column>
-      <ngx-datatable-column name="Status" prop="status_value"></ngx-datatable-column>
+      <ngx-datatable-column name="Version" prop="version"></ngx-datatable-column>
+      <ngx-datatable-column name="Repo" prop="repo_name"></ngx-datatable-column>
+      <ngx-datatable-column name="Description" prop="description"></ngx-datatable-column>
   </ngx-datatable>
   </section>
 </div>

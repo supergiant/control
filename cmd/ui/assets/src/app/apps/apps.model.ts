@@ -4,6 +4,7 @@ export class AppsModel {
       'chart_name': '',
       'chart_version': '',
       'config': null,
+      // this needs to be called cluster in display
       'kube_name': '',
       'name': '',
       'repo_name': '',
