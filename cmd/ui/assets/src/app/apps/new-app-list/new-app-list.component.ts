@@ -46,8 +46,6 @@ export class NewAppListComponent implements OnInit, OnDestroy {
     this.location.back();
   }
   filterRows(filterRows: Array<any>, filterText: string): Array<any> {
-    console.log(filterRows);
-    console.log(filterText);
     if (filterText === '') {
       return filterRows;
     }

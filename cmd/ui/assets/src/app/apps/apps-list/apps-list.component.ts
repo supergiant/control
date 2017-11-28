@@ -78,7 +78,6 @@ export class AppsListComponent implements OnInit, OnDestroy {
   onTableContextMenu(contextMenuEvent) {
       this.rawEvent = contextMenuEvent.event;
       if (contextMenuEvent.type === 'body') {
-        console.log(contextMenuEvent);
         this.contextmenuColumn = undefined;
         this.contextMenuService.show.next({
         contextMenu: this.basicMenu,
@@ -101,8 +100,6 @@ export class AppsListComponent implements OnInit, OnDestroy {
   }
 
   filterRows(filterRows: Array<any>, filterText: string): Array<any> {
-    console.log(filterRows);
-    console.log(filterText);
     if (filterText === '') {
       return filterRows;
     }
@@ -127,7 +124,6 @@ export class AppsListComponent implements OnInit, OnDestroy {
   }
 
   contextDelete(item) {
-    console.log(item);
     for (const row of this.rows) {
       if (row.id === item.id) {
         this.selected.push(row);
