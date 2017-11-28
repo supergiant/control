@@ -80,26 +80,31 @@ export class NewClusterComponent implements OnDestroy, AfterViewInit {
       case 'aws': {
         this.model = this.awsModel.aws.model;
         this.schema = this.awsModel.aws.schema;
+        this.model.cloud_account_name = choice.name;
         break;
       }
       case 'digitalocean': {
         this.model = this.doModel.digitalocean.model;
         this.schema = this.doModel.digitalocean.schema;
+        this.model.cloud_account_name = choice.name;
         break;
       }
       case 'packet': {
         this.model = this.packModel.packet.model;
         this.schema = this.packModel.packet.schema;
+        this.model.cloud_account_name = choice.name;
         break;
       }
       case 'openstack': {
         this.model = this.osModel.openstack.model;
         this.schema = this.osModel.openstack.schema;
+        this.model.cloud_account_name = choice.name;
         break;
       }
       case 'gce': {
         this.model = this.gceModel.gce.model;
         this.schema = this.gceModel.gce.schema;
+        this.model.cloud_account_name = choice.name;
         break;
       }
       default: {
