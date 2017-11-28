@@ -1,6 +1,6 @@
 export class ClusterGCEModel {
   gce = {
-    'model': {
+    'data': {
       'cloud_account_name': '',
       'gce_config': {
         'ssh_pub_key': '',

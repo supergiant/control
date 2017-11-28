@@ -101,6 +101,7 @@
       #tutorial-steps-cloudaccount:checked ~ .tutorial-primary li.tutorial-step-cloudaccount {
         opacity: 1;
         filter: none;
+        pointer-events: all;
       }
         #tutorial-steps-cloudaccount:checked ~ .tutorial-primary li.tutorial-step-cloudaccount label {
           display: block;
@@ -112,6 +113,7 @@
       #tutorial-steps-cluster:checked ~ .tutorial-primary li.tutorial-step-cluster {
         opacity: 1;
         filter: none;
+        pointer-events: all;
       }
         #tutorial-steps-cluster:checked ~ .tutorial-primary li.tutorial-step-cluster label {
           display: block;
@@ -123,6 +125,7 @@
       #tutorial-steps-app:checked ~ .tutorial-primary li.tutorial-step-app {
         opacity: 1;
         filter: none;
+        pointer-events: all;
       }
         #tutorial-steps-app:checked ~ .tutorial-primary li.tutorial-step-app label {
           display: block;
@@ -137,8 +140,8 @@
         <p class="lead">First step: add a <b>Cloud Account</b></p>
 
         <p>
-          <a [routerLink]="['/system/cloud-accounts/new']" class="btn btn-primary">
-            Take me to <b>Cloud Accounts <i class="fa fa-angle-right"></i> New</b>
+          <a [routerLink]="['/system/cloud-accounts']" class="btn btn-primary">
+            Take me to <b>Cloud Accounts</b>
           </a>
         </p>
 
@@ -151,8 +154,8 @@
         <p class="lead">Next step: launch a <b>Cluster</b></p>
 
         <p>
-          <a [routerLink]="['/clusters/new']" class="btn btn-primary">
-            Take me to <b>Clusters <i class="fa fa-angle-right"></i> New</b>
+          <a [routerLink]="['/clusters']" class="btn btn-primary">
+            Take me to <b>Clusters</b>
           </a>
         </p>
 

@@ -5,10 +5,10 @@
         <span class="sr-only sr-only-focusable">Back</span>
       </button>
 
-      <h2>Cloud Account Details</h2>
+      <h2><i class="fa fa-cloud"></i> Cloud Account Details</h2>
     </div>
 
-    <ngb-tabset type="pills" justify="center">
+    <ngb-tabset>
       <ngb-tab title="Info">
         <ng-template ngbTabContent>
           <div *ngIf="cloudAccount" class="graph-container">
@@ -21,8 +21,8 @@
 
       <ngb-tab title="Raw Data">
         <ng-template ngbTabContent>
-          <textarea class="form-control" disabled>
-    {{cloudAccount | json}}
+            <textarea class="monospace" disabled>
+              {{cloudAccount | json}}
           </textarea>
         </ng-template>
       </ngb-tab>

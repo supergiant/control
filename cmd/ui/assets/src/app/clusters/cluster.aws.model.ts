@@ -1,13 +1,13 @@
 export class ClusterAWSModel {
   aws = {
-    'model': {
+    'data': {
+      'name': '',
       'aws_config': {
         'region': 'us-east-1',
         'vpc_ip_range': '172.20.0.0/16'
       },
       'cloud_account_name': '',
       'master_node_size': 'm4.large',
-      'name': '',
       'ssh_pub_key': '',
       'kube_master_count': 1,
       'node_sizes': [
@@ -19,6 +19,12 @@ export class ClusterAWSModel {
     },
     'schema': {
       'properties': {
+        'name': {
+          'description': 'Name (a-z,0-9)',
+          'type': 'string',
+          'pattern': '^[a-z]([-a-z0-9]*[a-z0-9])?$',
+          'maxLength': 12
+        },
         'aws_config': {
           'properties': {
             'region': {
@@ -42,12 +48,6 @@ export class ClusterAWSModel {
           'default': 'm4.large',
           'description': 'Master Node Size',
           'type': 'string'
-        },
-        'name': {
-          'description': 'Name (a-z,0-9)',
-          'type': 'string',
-          'pattern': '^[a-z]([-a-z0-9]*[a-z0-9])?$',
-          'maxLength': 12
         },
         'kube_master_count': {
           'description': 'Kube Master Count',

@@ -1,154 +1,192 @@
 <div class="app-clusters-container">
-  <section class="app-clusters-index">
-    <div class="app-context-header-panel">
-      <button type="button" class="back-button" (click)="goBack()"></button><h2>{{ kube?.name }}</h2>
-      <div class="context-secondary-panel">
-      <b>Name:</b> {{ kube?.name }}<br />
-      <b>Cloud Account:</b> {{ kube?.cloud_account_name }}<br />
-      <b>Master Node Size:</b> {{ kube?.master_node_size }}<br />
-      <b>Master Node Count:</b> {{ kube?.kube_master_count }}<br />
-      <b>Master Public IP:</b> {{ kube?.master_public_ip }}<br />
-      </div>
+  <section class="app-context-header-panel">
+    <button type="button" class="back-button" (click)="goBack()"></button>
+    
+    <h1>
+      <i class="fa fa-server"></i> {{ kube?.name }}
+    </h1>
+    
+    <div class="context-secondary-panel">
+      <table class="table">
+        <thead>
+          <tr>
+            <th scope="col">Name</th>
+            <th scope="col">Cloud Account</th>
+            <th scope="col">
+              Master Node<span *ngIf="kube?.kube_master_count > 1">s</span>
+            </th>
+            <th scope="col">Master Public IP</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>{{ kube?.name }}</td>
+            <td>{{ kube?.cloud_account_name }}</td>
+            <td>{{ kube?.master_node_size }} x{{ kube?.kube_master_count }}</td>
+            <td>{{ kube?.master_public_ip }}</td>
+          </tr>
+        </tbody>
+      </table>
     </div>
-      <div>
-        <h1 align="center">CPU (Millicores)</h1>
-        <canvas baseChart width="600" height="200"
-                [datasets]="cpuChartData"
-                [labels]="cpuChartLabels"
-                [legend]="cpuChartLegend"
-                [options]="cpuChartOptions"
-                [colors]="cpuChartColors"
-                [chartType]="cpuChartType">
-        </canvas>
-      </div>
-      <div>
-        <h1 align="center">RAM (GB)</h1>
-        <canvas baseChart
-          width="600" height="200"
-          [colors]="ramChartColors"
-          [datasets]="ramChartData"
-          [labels]="ramChartLabels"
-          [options]="ramChartOptions"
-          [chartType]="ramChartType">
-        </canvas>
-      </div>
-      <!-- <b>Planets: ( Have your kube username and password handy from the "Raw Data tab")</b>
-        <ul class="nav flex-column nav-pills">
-          <li *ngFor="let planet of planets" class="nav-item">
-            <button class="btn btn-sm btn-outline-primary" (click)="planetName=planet.name; getIframeURL(planet.name)">{{ planet?.name }}</button>
-          </li>
-        </ul>
+  </section>
 
-      <div class="graph-container">
-        <iframe class="full" #iframe [src]="secureSrc" (load)="onIframeLoad()" frameborder="0" width="95%" height="1000px"></iframe>
-      </div> -->
-      <br><br><br>
-      <div>
-      <h2>Apps</h2>
-      <div *ngIf="hasApps">
-        <ngx-datatable class="material expandable"
-          [rows]="approws"
-          [columnMode]="'force'"
-          [columns]="appcolumns"
-          [headerHeight]="50"
-          [footerHeight]="50"
-          [rowHeight]="'auto'"
-          [limit]="20"
-          (activate)='onAppActivate($event)'
-          [selectAllRowsOnPage]="true"
-          (tableContextmenu)="onAppTableContextMenu($event)">
-          <ngx-datatable-column name="Name" prop="name"></ngx-datatable-column>
-          <ngx-datatable-column name="Version" prop="version"></ngx-datatable-column>
-          <ngx-datatable-column name="App Name" prop="appname"></ngx-datatable-column>
-          <ngx-datatable-column name="App Version" prop="appversion"></ngx-datatable-column>
-          <ngx-datatable-column name="Status" prop="statusvalue"></ngx-datatable-column>
+  <section>
+    <div style="width: 50%; float: left;">
+      <h2 align="center">CPU (Millicores)</h2>
+
+      <canvas baseChart width="600" height="200"
+        [datasets]="cpuChartData"
+        [labels]="cpuChartLabels"
+        [legend]="cpuChartLegend"
+        [options]="cpuChartOptions"
+        [colors]="cpuChartColors"
+        [chartType]="cpuChartType">
+      </canvas>
+    </div>
+
+    <div style="width: 50%; float: left;">
+      <h2 align="center">RAM (GB)</h2>
+
+      <canvas baseChart
+        width="600" height="200"
+        [colors]="ramChartColors"
+        [datasets]="ramChartData"
+        [labels]="ramChartLabels"
+        [options]="ramChartOptions"
+        [chartType]="ramChartType">
+      </canvas>
+    </div>
+
+    <div style="clear: both; height: 1px; width: 100%;"></div>
+  </section>
+  <!-- <b>Planets: ( Have your kube username and password handy from the "Raw Data tab")</b>
+    <ul class="nav flex-column nav-pills">
+      <li *ngFor="let planet of planets" class="nav-item">
+        <button class="btn btn-sm btn-outline-primary" (click)="planetName=planet.name; getIframeURL(planet.name)">{{ planet?.name }}</button>
+      </li>
+    </ul>
+
+  <div class="graph-container">
+    <iframe class="full" #iframe [src]="secureSrc" (load)="onIframeLoad()" frameborder="0" width="95%" height="1000px"></iframe>
+  </div> -->
+    
+  <section>
+    <h2>Apps</h2>
+
+    <div *ngIf="hasApps">
+      <ngx-datatable class="material expandable"
+        [rows]="approws"
+        [columnMode]="'force'"
+        [columns]="appcolumns"
+        [headerHeight]="50"
+        [footerHeight]="50"
+        [rowHeight]="'auto'"
+        [limit]="20"
+        (activate)='onAppActivate($event)'
+        [selectAllRowsOnPage]="true"
+        (tableContextmenu)="onAppTableContextMenu($event)">
+        <ngx-datatable-column name="Name" prop="name"></ngx-datatable-column>
+        <ngx-datatable-column name="Version" prop="version"></ngx-datatable-column>
+        <ngx-datatable-column name="App Name" prop="appname"></ngx-datatable-column>
+        <ngx-datatable-column name="App Version" prop="appversion"></ngx-datatable-column>
+        <ngx-datatable-column name="Status" prop="statusvalue"></ngx-datatable-column>
       </ngx-datatable>
+
       <context-menu #basicMenu>
         <ng-template contextMenuItem let-item (execute)="contextAppDelete($event.item)">
           Delete {{item?.name}}
         </ng-template>
       </context-menu>
-      </div>
-      <div  *ngIf="!hasApps">
-        <h3>No Apps Deployed</h3>
-      </div>
     </div>
 
-      <br><br><br>
-      <h2>Nodes</h2>
-      <div>
-        <ngx-datatable class="material expandable"
-          [rows]="noderows"
-          [columnMode]="'force'"
-          [columns]="nodecolumns"
-          [headerHeight]="50"
-          [footerHeight]="50"
-          [rowHeight]="'auto'"
-          [limit]="20"
-          (activate)='onActivate($event)'
-          [selectAllRowsOnPage]="true"
-          (tableContextmenu)="onNodeTableContextMenu($event)">
-          <ngx-datatable-column name="Name" prop="name"></ngx-datatable-column>
-          <ngx-datatable-column name="Size" prop="size"></ngx-datatable-column>
-          <ngx-datatable-column name="IP" prop="ip"></ngx-datatable-column>
-          <ngx-datatable-column name="Usage" prop="usage">
-            <ng-template let-column="column" let-sort="sortFn" ngx-datatable-header-template>
-              {{column.name}}
-            </ng-template>
-            <ng-template let-row="row" let-value="value" ngx-datatable-cell-template>
-              <canvas baseChart width="200" height="50"
-                      [datasets]="row['chartData']"
-                      [labels]="rowChartLabels"
-                      [legend]="rowChartLegend"
-                      [options]="rowChartOptions"
-                      [colors]="rowChartColors"
-                      [chartType]="rowChartType">
-              </canvas>
-            </ng-template>
-          </ngx-datatable-column>
+    <div  *ngIf="!hasApps">
+      <p class="badge badge-info">No Apps Deployed</p>
+    </div>
+  </section>
+
+    
+  <section>
+    <h2>Nodes</h2>
+    
+    <ngx-datatable class="material expandable"
+      [rows]="noderows"
+      [columnMode]="'force'"
+      [columns]="nodecolumns"
+      [headerHeight]="50"
+      [footerHeight]="50"
+      [rowHeight]="'auto'"
+      [limit]="20"
+      (activate)='onActivate($event)'
+      [selectAllRowsOnPage]="true"
+      (tableContextmenu)="onNodeTableContextMenu($event)"
+    >
+      <ngx-datatable-column name="Name" prop="name"></ngx-datatable-column>
+      <ngx-datatable-column name="Size" prop="size"></ngx-datatable-column>
+      <ngx-datatable-column name="IP" prop="ip"></ngx-datatable-column>
+      <ngx-datatable-column name="Usage" prop="usage">
+        <ng-template let-column="column" let-sort="sortFn" ngx-datatable-header-template>
+          {{column.name}}
+        </ng-template>
+        <ng-template let-row="row" let-value="value" ngx-datatable-cell-template>
+          <canvas baseChart width="200" height="50"
+            [datasets]="row['chartData']"
+            [labels]="rowChartLabels"
+            [legend]="rowChartLegend"
+            [options]="rowChartOptions"
+            [colors]="rowChartColors"
+            [chartType]="rowChartType">
+          </canvas>
+        </ng-template>
+      </ngx-datatable-column>
+    </ngx-datatable>
+
+    <context-menu #basicMenu>
+      <ng-template contextMenuItem let-item (execute)="contextNodeDelete($event.item)">
+        Delete {{item?.name}}
+      </ng-template>
+    </context-menu>
+  </section>
+
+  <section>
+    <h2>Load Balancers</h2>
+
+    <div *ngIf="hasLB">
+      <ngx-datatable class="material expandable"
+        [rows]="lbrows"
+        [columnMode]="'force'"
+        [columns]="lbcolumns"
+        [headerHeight]="50"
+        [footerHeight]="50"
+        [rowHeight]="'auto'"
+        [limit]="20"
+        (activate)='onActivate($event)'
+        [selectAllRowsOnPage]="true"
+        (tableContextmenu)="onNodeTableContextMenu($event)">
+        <ngx-datatable-column name="Name" prop="name"></ngx-datatable-column>
+        <ngx-datatable-column name="IP" prop="ip"></ngx-datatable-column>
       </ngx-datatable>
+
       <context-menu #basicMenu>
         <ng-template contextMenuItem let-item (execute)="contextNodeDelete($event.item)">
           Delete {{item?.name}}
         </ng-template>
       </context-menu>
-      </div>
+    </div>
 
-      <br><br><br>
-      <h2>Load Balancers</h2>
-      <div *ngIf="hasLB">
-        <ngx-datatable class="material expandable"
-          [rows]="lbrows"
-          [columnMode]="'force'"
-          [columns]="lbcolumns"
-          [headerHeight]="50"
-          [footerHeight]="50"
-          [rowHeight]="'auto'"
-          [limit]="20"
-          (activate)='onActivate($event)'
-          [selectAllRowsOnPage]="true"
-          (tableContextmenu)="onNodeTableContextMenu($event)">
-          <ngx-datatable-column name="Name" prop="name"></ngx-datatable-column>
-          <ngx-datatable-column name="IP" prop="ip"></ngx-datatable-column>
-      </ngx-datatable>
-      <context-menu #basicMenu>
-        <ng-template contextMenuItem let-item (execute)="contextNodeDelete($event.item)">
-          Delete {{item?.name}}
-        </ng-template>
-      </context-menu>
-      </div>
-      <div *ngIf="!hasLB">
-        <h3> No Loadbalancers</h3>
-      </div>
+    <div *ngIf="!hasLB">
+      <p class="badge badge-info">No Load Balancers</p>
+    </div>
+  </section>
 
-      <br><br><br>
-      <button (click)="showRaw = !showRaw" type="button" class="btn btn-primary">Toggle Raw Data</button>
-      <div *ngIf="showRaw">
+  <section class="details-showmore">
+    <button (click)="showRaw = !showRaw" type="button" class="btn btn-info btn-block">Show/hide raw data</button>
+  
+    <div *ngIf="showRaw">
       <h2>Raw Data</h2>
-      <textarea class="form-control" disabled rows="40">
-{{kube | json}}
+  
+      <textarea class="form-control" disabled rows="120">
+        {{kube | json}}
       </textarea>
     </div>
-
-</section>
+  </section>
 </div>

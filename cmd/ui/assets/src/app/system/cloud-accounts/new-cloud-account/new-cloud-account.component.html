@@ -1,11 +1,11 @@
-<div class="subcontext">
+<div class="subcontext-form">
   <header>
-    <button type="button" class="back-button" (click)="back()"></button>
+    <button type="button" class="back-button" [routerLink]="['/system/cloud-accounts']"></button>
 
-    <h3>Create a Cloud Account</h3>
+    <h3><i class="fa fa-cloud"></i> Create a Cloud Account</h3>
   </header>
 
-  <h4 *ngIf="!schema">Select a Cloud</h4>
+  <p *ngIf="!schema">Select a Cloud</p>
 
   <div *ngIf="!schema" class="btn-group" role="group">
     <button *ngFor="let provider of providers" type="button" class="btn btn-light" (click)="sendChoice(provider)">{{ provider }}</button>

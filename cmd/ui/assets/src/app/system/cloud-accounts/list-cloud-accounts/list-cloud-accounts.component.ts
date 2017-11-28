@@ -11,17 +11,51 @@ import { Notifications } from '../../../shared/notifications/notifications.servi
   encapsulation: ViewEncapsulation.None
 })
 export class ListCloudAccountsComponent implements OnInit, OnDestroy {
-
-
-
+  public subscriptions = new Subscription();
+  public hasCloudAccount = false;
+  public hasCluster = false;
+  public hasApp = false;
+  public appCount = 0;
+  public kubes = [];
   rows = [];
   selected = [];
   columns = [
     { prop: 'name' },
     { prop: 'provider' },
   ];
-  private subscriptions = new Subscription();
-  public kubes = [];
+
+
+  getCloudAccounts() {
+    this.subscriptions.add(this.supergiant.CloudAccounts.get().subscribe(
+      (cloudAccounts) => {
+        if (Object.keys(cloudAccounts.items).length > 0) {
+          this.hasCloudAccount = true;
+        }
+      })
+    );
+  }
+
+  getClusters() {
+    this.subscriptions.add(this.supergiant.Kubes.get().subscribe(
+      (clusters) => {
+        if (Object.keys(clusters.items).length > 0) {
+          this.hasCluster = true;
+        }
+      })
+    );
+  }
+  getDeployments() {
+    this.subscriptions.add(this.supergiant.HelmReleases.get().subscribe(
+      (deployments) => {
+        if (Object.keys(deployments.items).length > 0) {
+          console.log(deployments);
+          this.hasApp = true;
+          this.appCount = Object.keys(deployments.items).length;
+        }
+      })
+    );
+  }
+
   constructor(
     private supergiant: Supergiant,
     private notifications: Notifications,
@@ -29,6 +63,9 @@ export class ListCloudAccountsComponent implements OnInit, OnDestroy {
 
   ngOnInit() {
     this.get();
+    this.getCloudAccounts();
+    this.getClusters();
+    this.getDeployments();
   }
 
   ngOnDestroy() {

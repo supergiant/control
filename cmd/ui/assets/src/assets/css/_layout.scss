@@ -118,6 +118,12 @@ a#new::after {
         @extend .col-lg-2;
 
         display: block;
+        background-size: contain;
+        background-position: 0 50%;
+        text-align: left;
+        text-indent: -5000em;
+        background-repeat: no-repeat;
+        background-image: $brand-image-data-silhouette;
       }
 
       .app-nav-main {

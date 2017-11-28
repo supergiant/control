@@ -1,4 +1,4 @@
-import { Component, OnDestroy, AfterViewInit, ViewEncapsulation } from '@angular/core';
+import { Component, OnInit, OnDestroy, AfterViewInit, ViewEncapsulation } from '@angular/core';
 import { Subscription } from 'rxjs/Subscription';
 import { Supergiant } from '../../shared/supergiant/supergiant.service';
 import { ClusterAWSModel } from '../cluster.aws.model';
@@ -15,7 +15,7 @@ import { Router } from '@angular/router';
   styleUrls: ['./new-cluster.component.scss'],
   encapsulation: ViewEncapsulation.None
 })
-export class NewClusterComponent implements OnDestroy, AfterViewInit {
+export class NewClusterComponent implements OnInit, OnDestroy, AfterViewInit {
   subscriptions = new Subscription();
   cloudAccountsList = [];
   providers = [];
@@ -24,9 +24,44 @@ export class NewClusterComponent implements OnDestroy, AfterViewInit {
   gceModel = new ClusterGCEModel;
   osModel = new ClusterOpenStackModel;
   packModel = new ClusterPacketModel;
-  model: any;
+  hasCluster = false;
+  hasCloudAccount = false;
+  hasApp = false;
+  appCount = 0;
+  data: any;
   schema: any;
 
+  getCloudAccounts() {
+    this.subscriptions.add(this.supergiant.CloudAccounts.get().subscribe(
+      (cloudAccounts) => {
+        if (Object.keys(cloudAccounts.items).length > 0) {
+          this.hasCloudAccount = true;
+        }
+      })
+    );
+  }
+
+  getClusters() {
+    this.subscriptions.add(this.supergiant.Kubes.get().subscribe(
+      (clusters) => {
+        if (Object.keys(clusters.items).length > 0) {
+          this.hasCluster = true;
+        }
+      })
+    );
+  }
+
+  getDeployments() {
+    this.subscriptions.add(this.supergiant.HelmReleases.get().subscribe(
+      (deployments) => {
+        if (Object.keys(deployments.items).length > 0) {
+          console.log(deployments);
+          this.hasApp = true;
+          this.appCount = Object.keys(deployments.items).length;
+        }
+      })
+    );
+  }
 
   constructor(
     private supergiant: Supergiant,
@@ -34,10 +69,15 @@ export class NewClusterComponent implements OnDestroy, AfterViewInit {
     private router: Router,
   ) { }
 
+  ngOnInit() {
+    this.getCloudAccounts();
+    this.getClusters();
+    this.getDeployments();
+  }
+
   ngOnDestroy() {
     this.subscriptions.unsubscribe();
   }
-
 
   ngAfterViewInit() {
     this.subscriptions.add(this.supergiant.CloudAccounts.get().subscribe(
@@ -46,7 +86,7 @@ export class NewClusterComponent implements OnDestroy, AfterViewInit {
   }
 
   back() {
-    this.model = null;
+    this.data = null;
     this.schema = null;
   }
 
@@ -62,7 +102,7 @@ export class NewClusterComponent implements OnDestroy, AfterViewInit {
   success(model) {
     this.notifications.display(
       'success',
-      'Kube: ' + model.name,
+      'Kube: ' + this.data.name,
       'Created...',
     );
   }
@@ -78,37 +118,37 @@ export class NewClusterComponent implements OnDestroy, AfterViewInit {
     console.log(choice);
     switch (choice.provider) {
       case 'aws': {
-        this.model = this.awsModel.aws.model;
+        this.data = this.awsModel.aws.data;
         this.schema = this.awsModel.aws.schema;
-        this.model.cloud_account_name = choice.name;
+        this.data.cloud_account_name = choice.name;
         break;
       }
       case 'digitalocean': {
-        this.model = this.doModel.digitalocean.model;
+        this.data = this.doModel.digitalocean.data;
         this.schema = this.doModel.digitalocean.schema;
-        this.model.cloud_account_name = choice.name;
+        this.data.cloud_account_name = choice.name;
         break;
       }
       case 'packet': {
-        this.model = this.packModel.packet.model;
+        this.data = this.packModel.packet.data;
         this.schema = this.packModel.packet.schema;
-        this.model.cloud_account_name = choice.name;
+        this.data.cloud_account_name = choice.name;
         break;
       }
       case 'openstack': {
-        this.model = this.osModel.openstack.model;
+        this.data = this.osModel.openstack.data;
         this.schema = this.osModel.openstack.schema;
-        this.model.cloud_account_name = choice.name;
+        this.data.cloud_account_name = choice.name;
         break;
       }
       case 'gce': {
-        this.model = this.gceModel.gce.model;
+        this.data = this.gceModel.gce.data;
         this.schema = this.gceModel.gce.schema;
-        this.model.cloud_account_name = choice.name;
+        this.data.cloud_account_name = choice.name;
         break;
       }
       default: {
-        this.model = null;
+        this.data = null;
         this.schema = null;
         break;
       }

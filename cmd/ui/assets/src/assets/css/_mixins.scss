@@ -70,6 +70,18 @@
       padding: 0.5rem;
     }
   }
+
+  .subcontext-form {
+    @extend ._layer-shadow-light;
+    padding: 1rem;
+    margin: 1rem;
+
+    header {
+      border-bottom: 1px solid rgba(0,0,0,0.1);
+      margin-bottom: 1rem;
+      padding-bottom: 1rem;
+    }
+  }
 }
 
 ._app-container-marquee {
