@@ -1,0 +1,111 @@
+import { Component, OnInit, ViewEncapsulation, OnDestroy } from '@angular/core';
+import { Subscription } from 'rxjs/Subscription';
+import { Supergiant } from '../../shared/supergiant/supergiant.service';
+import { Notifications } from '../../shared/notifications/notifications.service';
+import { ActivatedRoute, Router } from '@angular/router';
+import { AppsModel } from '../apps.model';
+import * as GenerateSchema from 'generate-schema';
+import {Location} from '@angular/common';
+
+@Component({
+  selector: 'app-new-app',
+  templateUrl: './new-app.component.html',
+  styleUrls: ['./new-app.component.scss']
+})
+export class NewAppComponent implements OnInit, OnDestroy {
+  private subscriptions = new Subscription();
+  private appsModel = new AppsModel;
+  private clusters = [];
+  private chart: any;
+  private model: any;
+  public schema: any;
+  private id: number;
+  public loaded = false;
+
+  constructor(
+    private supergiant: Supergiant,
+    private notifications: Notifications,
+    private router: Router,
+    private route: ActivatedRoute,
+    private location: Location,
+  ) { }
+
+  ngOnInit() {
+    this.id = this.route.snapshot.params.id;
+    // quick hack, tucking get into get clusters so enum isnt empty
+    this.getClusters();
+
+  }
+
+  get(id) {
+    this.subscriptions.add(this.supergiant.HelmCharts.get(id).subscribe(
+      (data) => {
+        console.log(data);
+        const chart = data;
+        if (chart.default_config) {
+          // this is our model: the vars file provided by the chart.
+          this.appsModel.app.model.config = chart.default_config;
+        }
+        this.appsModel.app.model.chart_name = chart.name;
+        this.appsModel.app.model.chart_version = chart.version;
+        // this needs to be called cluster in display
+        // this.appsModel.app.model.kube_name = 'FIXME';
+        this.appsModel.app.model.repo_name = chart.repo_name;
+        // We dynamically generate a schema from the vars file.
+        // TODO: Note - we need to add a sniffer here to look for a schema file
+        // and any icon images in the chart. If they exist, we should use them instead of the generated one.
+        this.schema = GenerateSchema.json(this.appsModel.app.model);
+        this.schema.properties.kube_name.enum = this.clusters;
+        this.model = this.appsModel.app.model;
+        this.loaded = true;
+        console.log(this.model);
+        console.log(this.schema);
+      },
+      (err) => { console.log(err); }));
+  }
+
+  create(model) {
+    this.subscriptions.add(this.supergiant.HelmReleases.create(model).subscribe(
+      (data) => {
+        this.success(model);
+        this.router.navigate(['/apps']);
+      },
+      (err) => { this.error(model, err); }));
+  }
+
+  success(model) {
+    this.notifications.display(
+      'success',
+      'App: ' + model.name,
+      'Deployed...',
+    );
+  }
+
+  error(model, data) {
+    this.notifications.display(
+      'error',
+      'App: ' + model.name,
+      'Error:' + data.statusText);
+  }
+
+  getClusters() {
+    this.subscriptions.add(this.supergiant.Kubes.get().subscribe(
+      (kubes) => {
+        const clusters: Array<any> = [];
+        for (const kube of kubes.items) {
+          clusters.push(kube.name);
+        }
+        this.clusters = clusters;
+        this.get(this.id);
+      },
+      (err) => { this.notifications.display('warn', 'Connection Issue.', err); }));
+  }
+
+  ngOnDestroy() {
+    this.subscriptions.unsubscribe();
+  }
+  
+  goBack() {
+    this.location.back();
+  }
+}

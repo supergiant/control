@@ -1,6 +1,5 @@
 import { NgModule, Injectable } from '@angular/core';
 import { Routes, Router, RouterModule, CanActivate } from '@angular/router';
-import { KubesComponent } from './kubes/kubes.component';
 import { UsersComponent } from './users/users.component';
 import { CloudAccountsComponent } from './cloud-accounts/cloud-accounts.component';
 import { NodesComponent } from './nodes/nodes.component';
@@ -13,8 +12,6 @@ import { VolumesComponent } from './volumes/volumes.component';
 import { LoadBalancersComponent } from './load-balancers/load-balancers.component';
 import { Supergiant } from './shared/supergiant/supergiant.service';
 import { Observable } from 'rxjs/Observable';
-import { KubeDetailsComponent } from './kubes/kube-details/kube-details.component';
-import { KubesListComponent } from './kubes/kubes-list/kubes-list.component';
 import { NodeDetailsComponent } from './nodes/node-details/node-details.component';
 import { NodesListComponent } from './nodes/nodes-list/nodes-list.component';
 import { PodDetailsComponent } from './pods/pod-details/pod-details.component';
@@ -29,8 +26,6 @@ import { LoadBalancerDetailsComponent } from './load-balancers/load-balancer-det
 import { LoadBalancersListComponent } from './load-balancers/load-balancers-list/load-balancers-list.component';
 import { ServiceDetailsComponent } from './services/service-details/service-details.component';
 import { ServicesListComponent } from './services/services-list/services-list.component';
-import { DeploymentDetailsComponent } from './apps/deployment-details/deployment-details.component';
-import { AppDetailsComponent } from './apps/app-details/app-details.component';
 import { AppsListComponent } from './apps/apps-list/apps-list.component';
 
 // ui 2000 components
@@ -53,6 +48,8 @@ import {DashboardTutorialComponent} from './tutorials/dashboard-tutorial/dashboa
 import {ClustersTutorialComponent} from './tutorials/clusters-tutorial/clusters-tutorial.component';
 import {SystemTutorialComponent} from './tutorials/system-tutorial/system-tutorial.component';
 import {AppsTutorialComponent} from './tutorials/apps-tutorial/apps-tutorial.component';
+import {NewAppListComponent} from './apps/new-app-list/new-app-list.component';
+import {NewAppComponent} from './apps/new-app/new-app.component';
 
 
 @Injectable()
@@ -86,6 +83,16 @@ const appRoutes: Routes = [
     ]
   },
   {
+    path: 'apps', component: AppsComponent, canActivate: [AuthGuard], children: [
+      { path: '', component: AppsTutorialComponent, outlet: 'tutorial' },
+      { path: '', component: AppsListComponent },
+      { path: 'new', component: NewAppListComponent},
+      { path: 'new/:id', component: NewAppComponent },
+      // { path: ':id', component: AppDetailsComponent },
+      // { path: 'deployable/:id', component: DeploymentDetailsComponent },
+    ]
+  },
+  {
     path: 'clusters', component: ClustersComponent, canActivate: [AuthGuard], children: [
       { path: '', component: ClustersTutorialComponent, outlet: 'tutorial' },
       { path: '', component: ClustersListComponent },
@@ -113,69 +120,58 @@ const appRoutes: Routes = [
       },
       {path: 'main', component: MainComponent},
       {path: '', component: MainComponent },
-    ]
-  },
-  {
-    path: 'kubes', component: KubesComponent, canActivate: [AuthGuard], children: [
-      { path: '', component: KubesListComponent },
-      { path: ':id', component: KubeDetailsComponent }
-    ]
-  },
-  {
-    path: 'users', component: UsersComponent, canActivate: [AuthGuard], children: [
-      { path: '', component: UsersListComponent },
-      { path: ':id', component: UserDetailsComponent }
-    ]
-  },
-  {
-    path: 'cloud-accounts', component: CloudAccountsComponent, canActivate: [AuthGuard], children: [
-      { path: '', component: CloudAccountsListComponent },
-      { path: ':id', component: CloudAccountDetailsComponent }
-    ]
-  },
-  {
-    path: 'nodes', component: NodesComponent, canActivate: [AuthGuard], children: [
-      { path: '', component: NodesListComponent },
-      { path: ':id', component: NodeDetailsComponent }
-    ]
-  },
-  {
-    path: 'pods', component: PodsComponent, canActivate: [AuthGuard], children: [
-      { path: '', component: PodsListComponent },
-      { path: ':id', component: PodDetailsComponent }
-    ]
-  },
-  {
-    path: 'apps', component: AppsComponent, canActivate: [AuthGuard], children: [
-      { path: '', component: AppsListComponent },
-      {
-        path: 'app/:id', component: AppDetailsComponent
-      },
-      {
-        path: 'deployment/:id', component: DeploymentDetailsComponent
-      },
-    ]
-  },
-  { path: 'volumes', component: VolumesComponent, canActivate: [AuthGuard] },
-  {
-    path: 'services', component: ServicesComponent, canActivate: [AuthGuard], children: [
-      { path: '', component: ServicesListComponent },
-      { path: ':id', component: ServiceDetailsComponent }
-    ]
-  },
-  {
-    path: 'sessions', component: SessionsComponent, canActivate: [AuthGuard], children: [
-      { path: '', component: SessionsListComponent },
-      { path: ':id', component: SessionDetailsComponent }
-    ]
-  },
-  {
-    path: 'load-balancers', component: LoadBalancersComponent, canActivate: [AuthGuard], children: [
-      { path: '', component: LoadBalancersListComponent },
-      { path: ':id', component: LoadBalancerDetailsComponent }
-    ]
-  },
-  { path: 'login', component: LoginComponent },
+      ]
+    },
+  // {
+  //   path: 'kubes', component: KubesComponent, canActivate: [AuthGuard], children: [
+  //     { path: '', component: KubesListComponent },
+  //     { path: ':id', component: KubeDetailsComponent }
+  //   ]
+  // },
+  // {
+  //   path: 'users', component: UsersComponent, canActivate: [AuthGuard], children: [
+  //     { path: '', component: UsersListComponent },
+  //     { path: ':id', component: UserDetailsComponent }
+  //   ]
+  // },
+  // {
+  //   path: 'cloud-accounts', component: CloudAccountsComponent, canActivate: [AuthGuard], children: [
+  //     { path: '', component: CloudAccountsListComponent },
+  //     { path: ':id', component: CloudAccountDetailsComponent }
+  //   ]
+  // },
+  // {
+  //   path: 'nodes', component: NodesComponent, canActivate: [AuthGuard], children: [
+  //     { path: '', component: NodesListComponent },
+  //     { path: ':id', component: NodeDetailsComponent }
+  //   ]
+  // },
+  // {
+  //   path: 'pods', component: PodsComponent, canActivate: [AuthGuard], children: [
+  //     { path: '', component: PodsListComponent },
+  //     { path: ':id', component: PodDetailsComponent }
+  //   ]
+  // },
+  // { path: 'volumes', component: VolumesComponent, canActivate: [AuthGuard] },
+  // {
+  //   path: 'services', component: ServicesComponent, canActivate: [AuthGuard], children: [
+  //     { path: '', component: ServicesListComponent },
+  //     { path: ':id', component: ServiceDetailsComponent }
+  //   ]
+  // },
+  // {
+  //   path: 'sessions', component: SessionsComponent, canActivate: [AuthGuard], children: [
+  //     { path: '', component: SessionsListComponent },
+  //     { path: ':id', component: SessionDetailsComponent }
+  //   ]
+  // },
+  // {
+  //   path: 'load-balancers', component: LoadBalancersComponent, canActivate: [AuthGuard], children: [
+  //     { path: '', component: LoadBalancersListComponent },
+  //     { path: ':id', component: LoadBalancerDetailsComponent }
+  //   ]
+  // },
+  // { path: 'login', component: LoginComponent },
 ];
 
 @NgModule({

@@ -1,25 +1,25 @@
 import { async, ComponentFixture, TestBed } from '@angular/core/testing';
 
-import { RepoModalComponent } from './repo-modal.component';
+import { NewAppComponent } from './new-app.component';
 
-describe('RepoModalComponent', () => {
-  let component: RepoModalComponent;
-  let fixture: ComponentFixture<RepoModalComponent>;
+describe('NewAppComponent', () => {
+  let component: NewAppComponent;
+  let fixture: ComponentFixture<NewAppComponent>;
 
   beforeEach(async(() => {
     TestBed.configureTestingModule({
-      declarations: [ RepoModalComponent ]
+      declarations: [ NewAppComponent ]
     })
     .compileComponents();
   }));
 
   beforeEach(() => {
-    fixture = TestBed.createComponent(RepoModalComponent);
+    fixture = TestBed.createComponent(NewAppComponent);
     component = fixture.componentInstance;
     fixture.detectChanges();
   });
 
-  it('should be created', () => {
+  it('should create', () => {
     expect(component).toBeTruthy();
   });
 });

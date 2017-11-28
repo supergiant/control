@@ -1,15 +1,16 @@
 import { Component, OnInit, OnDestroy, Pipe, PipeTransform } from '@angular/core';
 import { Observable } from 'rxjs/Observable';
+import { Router } from '@angular/router';
 import { Subscription } from 'rxjs/Subscription';
 import { Supergiant } from '../../shared/supergiant/supergiant.service';
-import { AppsService } from '../apps.service';
+import {Location} from '@angular/common';
 
 @Component({
-  selector: 'app-apps-list',
-  templateUrl: './apps-list.component.html',
-  styleUrls: ['./apps-list.component.scss']
+  selector: 'app-new-app-list',
+  templateUrl: './new-app-list.component.html',
+  styleUrls: ['./new-app-list.component.scss']
 })
-export class AppsListComponent implements OnInit, OnDestroy {
+export class NewAppListComponent implements OnInit, OnDestroy {
   public selected: Array<any> = [];
   public rows: Array<any> = [];
   private subscriptions = new Subscription();
@@ -17,35 +18,33 @@ export class AppsListComponent implements OnInit, OnDestroy {
   public filterText: string = '';
   constructor(
     private supergiant: Supergiant,
+    private router: Router,
+    private location: Location,
   ) { }
 
   ngOnInit() {
-    this.getApps();
+    this.getCharts();
+
+  }
+  onActivate(activated) {
+    if (activated.type === 'click') {
+      this.router.navigate(['/apps/new', activated.row.id]);
+    }
   }
 
-  // getCharts() {
-  //   this.subscriptions.add(Observable.timer(0, 5000)
-  //     .switchMap(() => this.supergiant.HelmCharts.get()).subscribe(
-  //     (apps) => { this.apps = apps.items; },
-  //     () => { }));
-  // }
-
-  getApps() {
-    this.subscriptions.add(Observable.timer(0, 10000)
-      .switchMap(() => this.supergiant.HelmReleases.get()).subscribe(
-      (deployments) => {
-        this.unfilteredRows = deployments.items;
-        this.rows = this.filterRows(deployments.items, this.filterText);
+  getCharts() {
+    this.subscriptions.add(Observable.timer(0, 30000)
+      .switchMap(() => this.supergiant.HelmCharts.get()).subscribe(
+      (apps) => {
+        this.unfilteredRows = apps.items;
+        this.rows = this.filterRows(apps.items, this.filterText);
       },
       () => { }));
   }
 
-  onActivate(activated) {
-    if (activated.type === 'click') {
-      // this.router.navigate(['/apps', activated.row.id]);
-    }
+  goBack() {
+    this.location.back();
   }
-
   filterRows(filterRows: Array<any>, filterText: string): Array<any> {
     console.log(filterRows);
     console.log(filterText);
@@ -71,6 +70,12 @@ export class AppsListComponent implements OnInit, OnDestroy {
     this.filterText = filterText;
     this.rows = this.filterRows(this.unfilteredRows, filterText);
   }
+  // getApps() {
+  //   this.subscriptions.add(Observable.timer(0, 10000)
+  //     .switchMap(() => this.supergiant.HelmReleases.get()).subscribe(
+  //     (deployments) => { this.rows = deployments.items; },
+  //     () => { }));
+  // }
 
   ngOnDestroy() {
     this.subscriptions.unsubscribe();
