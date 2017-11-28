@@ -39,7 +39,7 @@ script:
   - cd cmd/ui/assets
   - npm --version
   - npm install
-  - ng build --aot --prod
+  - ng build --env=prod
   - cd ../../../
   - go-bindata -pkg ui -o bindata/ui/bindata.go cmd/ui/assets/dist/...
 
