@@ -1,6 +1,6 @@
 {
   "ui_enabled": true,
-  "capacity_service_enabled": true,
+  "capacity_service_enabled": false,
   "publish_host": "localhost",
   "http_port": "8080",
   "log_file": "tmp/development.log",
