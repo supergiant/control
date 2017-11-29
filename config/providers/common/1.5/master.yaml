@@ -135,7 +135,7 @@ write_files:
           - --bind-address=0.0.0.0
           - --etcd-servers=http://127.0.0.1:2379
           - --allow-privileged=true
-          - --service-cluster-ip-range=10.3.0.0/24
+          - --service-cluster-ip-range=10.3.0.0/16
           - --secure-port=443
           - --advertise-address=$private_ipv4
           - --admission-control=NamespaceLifecycle,NamespaceExists,LimitRanger,ServiceAccount,ResourceQuota
