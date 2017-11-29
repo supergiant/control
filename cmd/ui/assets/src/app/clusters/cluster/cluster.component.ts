@@ -208,13 +208,13 @@ export class ClusterComponent implements OnInit, OnDestroy {
             // this should be set to the length of largest array.
           ],
         }));
-        // FAKEDATA
-        this.noderows.push({id: 12345, name: 'fake-node', size: 'fake.size.5', ip: '1.2.3.4',
-          chartData: [
-            { label: 'CPU Usage', data: ['20', '80', '1', '99', '0'] },
-            // this should be set to the length of largest array.
-          ]
-        });
+        // // FAKEDATA
+        // this.noderows.push({id: 12345, name: 'fake-node', size: 'fake.size.5', ip: '1.2.3.4',
+        //   chartData: [
+        //     { label: 'CPU Usage', data: ['20', '80', '1', '99', '0'] },
+        //     // this should be set to the length of largest array.
+        //   ]
+        // });
 
         this.hasApps = false;
         if (kube.helm_releases) {
@@ -229,10 +229,10 @@ export class ClusterComponent implements OnInit, OnDestroy {
           }));
         }
 
-        // FAKEDATA
-        this.hasApps = true;
-        this.approws.push({id: '12345', name: 'fake-app', version: '1.2.3', appname: 'fake-wordpress',
-          appversion: '3.4.5', statusvalue: 'A OK'});
+        // // FAKEDATA
+        // this.hasApps = true;
+        // this.approws.push({id: '12345', name: 'fake-app', version: '1.2.3', appname: 'fake-wordpress',
+        //   appversion: '3.4.5', statusvalue: 'A OK'});
 
         this.hasLB = false;
         if (kube.load_balancers) {
@@ -244,9 +244,9 @@ export class ClusterComponent implements OnInit, OnDestroy {
           }));
         }
 
-        // FAKEDATA
-        this.hasLB = true;
-        this.lbrows.push({id: '12345', name: 'fake-lb', ip: '1.2.3.4'});
+        // // FAKEDATA
+        // this.hasLB = true;
+        // this.lbrows.push({id: '12345', name: 'fake-lb', ip: '1.2.3.4'});
       },
       (err) => { this.notifications.display('warn', 'Connection Issue.', err); }));
 
