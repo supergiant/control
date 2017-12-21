@@ -156,6 +156,7 @@ coreos:
                 --api_servers=https://{{ .Kube.MasterPrivateIP }} \
                 --cluster-dns=10.3.0.10 \
                 --cluster_domain=cluster.local \
+                --max-pods 1000 \
                 --pod-manifest-path=/etc/kubernetes/manifests \
                 --kubeconfig=/etc/kubernetes/worker-kubeconfig.yaml \
                 --volume-plugin-dir=/etc/kubernetes/volumeplugins \

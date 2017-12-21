@@ -151,6 +151,7 @@ coreos:
         ExecStartPre=/bin/bash -c "/opt/bin/download-k8s-binary kubelet"
         ExecStart=/usr/lib/coreos/kubelet-wrapper \
           --allow-privileged=true \
+          --max-pods 1000 \
           --api_servers=https://{{ .Kube.MasterPrivateIP }} \
           --cluster-dns=10.3.0.10 \
           --cluster_domain=cluster.local \
