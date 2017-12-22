@@ -190,6 +190,7 @@ write_files:
               /hyperkube kubelet --allow-privileged=true \
               --api_servers=https://{{ .Kube.MasterPrivateIP }} \
               --cluster-dns=10.3.0.10 \
+              --max-pods 1000 \
               --cluster_domain=cluster.local \
               --pod-manifest-path=/etc/kubernetes/manifests \
               --kubeconfig=/etc/kubernetes/worker-kubeconfig.yaml \
