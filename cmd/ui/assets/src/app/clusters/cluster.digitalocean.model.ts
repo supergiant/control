@@ -33,10 +33,15 @@ export class ClusterDigitalOceanModel {
               'description': 'Region',
               'type': 'string'
             },
-            'ssh_key_fingerprint': {
-              'description': 'SSH Key Fingerprint',
-              'type': 'string'
-            }
+           'ssh_key_fingerprint': {
+             'description': 'SSH Key Fingerprint',
+             'id': '/properties/ssh_key_fingerprint',
+             'items': {
+               'id': '/properties/ssh_key_fingerprint/items',
+               'type': 'string'
+             },
+             'type': 'array'
+           }
           },
           'type': 'object'
         },
