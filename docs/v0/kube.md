@@ -46,7 +46,7 @@ _Note the node_sizes field corresponds to what server sizes the
   ],
   "digitalocean_config": {
     "region": "nyc1",
-    "ssh_key_fingerprint": "<your_do_ssh_key_fingerprint>"
+    "ssh_key_fingerprint": ["<your_do_ssh_key_fingerprint>","etc"]
   }
 }
 ```
