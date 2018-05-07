@@ -9,10 +9,15 @@
       <div class="context-search-layout">
         <input (keyup)="keyUpFilter($event.target.value)" name="search" placeholder="Search" type="search">
       </div>
+    </div>
 
-      <div class="context-secondary-panel">
-        <button type="button" class="btn btn-primary" [routerLink]="['/apps/new']">Deploy New App</button>
-        <button [disabled]="selected.length === 0" type="button" class="btn btn-primary" (click)="deleteApp()">Delete Selected App</button>
+    <div class="subcontext-actions">
+      <div *ngIf="selected.length === 0" class="context-secondary-panel">
+          <button mat-raised-button color="primary" type="button" [routerLink]="['/apps/new']">Deploy New App</button>
+      </div>
+    
+      <div *ngIf="selected.length > 0">
+          <button mat-raised-button color="warn" type="button" class="btn btn-primary" (click)="deleteApp()">Delete Selected App</button>
       </div>
     </div>
 
