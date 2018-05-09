@@ -2,18 +2,15 @@
   <div class="subcontext-actions">
     <div class="form-group row">
       <mat-form-field class="col-3">
-        <input matInput [(ngModel)]="name" class="form-control" aria-describedby="Repo URL" placeholder="Repo Name">
+        <input matInput [(ngModel)]="name" aria-describedby="Repo URL" placeholder="Repo Name">
       </mat-form-field>
 
       <mat-form-field class="col-5">
-        <input matInput [(ngModel)]="url" type="url" class="form-control" aria-describedby="Repo URL" placeholder="Repo URL">
+        <input matInput [(ngModel)]="url" type="url" aria-describedby="Repo URL" placeholder="Repo URL">
       </mat-form-field>
       
-      <div class="col-2">
-        <button mat-button color="primary" type="submit" (click)="save()">Add new Repo</button>
-      </div>
-
-      <div class="col-2">
+      <div class="col-4">
+        <button mat-button color="primary" type="submit" (click)="save()">Add New Repo</button>
         <button mat-button color="warn" [disabled]="selected.length === 0" (click)="delete()">Delete Selected Repo</button>
       </div>
     </div>

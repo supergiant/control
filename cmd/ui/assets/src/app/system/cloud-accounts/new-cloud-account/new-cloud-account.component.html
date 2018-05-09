@@ -5,11 +5,11 @@
     <h3><i class="fa fa-cloud"></i> Create a Cloud Account</h3>
   </header>
 
-  <p *ngIf="!schema">Select a Cloud</p>
+  <mat-button-toggle-group>
+    <mat-button-toggle *ngFor="let provider of providers" (click)="sendChoice(provider)">{{ provider }}</mat-button-toggle>
+  </mat-button-toggle-group>
 
-  <div *ngIf="!schema" class="btn-group" role="group">
-    <button *ngFor="let provider of providers" type="button" class="btn btn-light" (click)="sendChoice(provider)">{{ provider }}</button>
-  </div>
+  <p *ngIf="!schema">Select a Cloud</p>
 
   <div *ngIf="schema">
     <json-schema-form framework="bootstrap-3" [schema]="schema" [data]="model" (onSubmit)="create(value)" (onChanges)="value=$event"></json-schema-form>
