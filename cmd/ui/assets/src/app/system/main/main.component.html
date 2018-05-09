@@ -1,24 +1,21 @@
 <div class="subcontext">
   <div class="subcontext-actions">
-    <div *ngIf="selected.length === 0" class="form-group row">
-      <div class="col-4">
-        <label>Name</label>
-        <input [(ngModel)]="name" type="text" class="form-control" aria-describedby="Repo URL" placeholder="Repo Name">
+    <div class="form-group row">
+      <mat-form-field class="col-3">
+        <input matInput [(ngModel)]="name" class="form-control" aria-describedby="Repo URL" placeholder="Repo Name">
+      </mat-form-field>
+
+      <mat-form-field class="col-5">
+        <input matInput [(ngModel)]="url" type="url" class="form-control" aria-describedby="Repo URL" placeholder="Repo URL">
+      </mat-form-field>
+      
+      <div class="col-2">
+        <button mat-button color="primary" type="submit" (click)="save()">Add new Repo</button>
       </div>
 
-      <div class="col-5">
-        <label>URL</label>
-        <input [(ngModel)]="url" type="url" class="form-control" aria-describedby="Repo URL" placeholder="Repo URL">
+      <div class="col-2">
+        <button mat-button color="warn" [disabled]="selected.length === 0" (click)="delete()">Delete Selected Repo</button>
       </div>
-      
-      <div class="col-3">
-        <label>&nbsp;</label>
-        <button type="submit" class="btn btn-primary btn-block" (click)="save()">Add new Repo</button>
-      </div>
-    </div>
-    
-    <div *ngIf="selected.length > 0">
-      <button type="button" class="btn btn-danger" (click)="delete()">Delete Selected Repo</button>
     </div>
   </div>
 

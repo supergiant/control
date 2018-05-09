@@ -28,7 +28,8 @@ export class ClustersListComponent implements OnInit, OnDestroy {
   columns: Array<any> = [];
 
   public rowChartOptions: any = {
-    responsive: false
+    responsive: true,
+    maintainAspectRatio: true,
   };
   public rowChartColors: Array<any> = [
     { // grey

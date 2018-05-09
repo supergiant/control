@@ -29,7 +29,8 @@ export class ClusterComponent implements OnInit, OnDestroy {
   public planets = [];
   public planetName: string;
   public rowChartOptions: any = {
-    responsive: true
+    responsive: true,
+    maintainAspectRatio: true,
   };
   public rowChartColors: Array<any> = [
     { // grey
@@ -128,8 +129,8 @@ export class ClusterComponent implements OnInit, OnDestroy {
   // I can't get this to update with push, so it has to have the same struct as eventual data.
   public cpuChartData: Array<any> = [{ data: [] }, { data: [] }];
   public cpuChartOptions: any = {
-    maintainAspectRatio: false,
-    responsive: true
+    responsive: true,
+    maintainAspectRatio: true,
   };
   public cpuChartLabels: Array<any> = [];
   public cpuChartType: string = 'line';
@@ -139,7 +140,7 @@ export class ClusterComponent implements OnInit, OnDestroy {
   public ramChartData: Array<any> = [{ data: [] }, { data: [] }];
   public ramChartOptions: any = {
     responsive: true,
-    maintainAspectRatio: false,
+    maintainAspectRatio: true,
   };
   public ramChartLabels: Array<any> = [];
   public ramChartType = 'line';

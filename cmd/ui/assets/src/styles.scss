@@ -8,13 +8,12 @@
 
 /* App Styles */
 @import "~assets/css/main.scss";
+@import '~assets/css/supergiant-material.scss';
 
 // Data Grid Styles
 @import '~@swimlane/ngx-datatable/release/index.css';
 @import '~@swimlane/ngx-datatable/release/themes/material.css';
 @import '~@swimlane/ngx-datatable/release/assets/icons.css';
-@import "../node_modules/@angular/material/prebuilt-themes/deeppurple-amber.css";
-@import "~@angular/material/prebuilt-themes/indigo-pink.css";
 
 /* Bootstrap does not disable things fully by default */
 a.disabled {

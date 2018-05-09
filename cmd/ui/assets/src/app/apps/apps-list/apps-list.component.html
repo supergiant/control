@@ -12,13 +12,8 @@
     </div>
 
     <div class="subcontext-actions">
-      <div *ngIf="selected.length === 0" class="context-secondary-panel">
-          <button mat-raised-button color="primary" type="button" [routerLink]="['/apps/new']">Deploy New App</button>
-      </div>
-    
-      <div *ngIf="selected.length > 0">
-          <button mat-raised-button color="warn" type="button" class="btn btn-primary" (click)="deleteApp()">Delete Selected App</button>
-      </div>
+      <button mat-button color="primary" type="button" [routerLink]="['/apps/new']">Deploy New App</button>
+      <button mat-button color="warn" type="button" [disabled]="selected.length === 0" (click)="deleteApp()">Delete Selected App</button>
     </div>
 
     <ngx-datatable class="material expandable" [rows]="rows" [columnMode]="'force'" [columns]="columns" [headerHeight]="50" [footerHeight]="50" [rowHeight]="'auto'" [limit]="20" [selected]="selected" (select)='onSelect($event)' (activate)='onActivate($event)'

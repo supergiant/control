@@ -1,8 +1,7 @@
 <div *ngIf="hasCloudAccount" class="subcontext">
   <div class="subcontext-actions">
-    <button *ngIf="selected.length === 0" type="button" class="btn btn-primary" [routerLink]="['/system/cloud-accounts/new']">New Cloud Account</button>
-
-    <button *ngIf="selected.length > 0" type="button" class="btn btn-danger" (click)="delete()">Delete Selected Cloud Account</button>
+    <button mat-button color="primary" [routerLink]="['/system/cloud-accounts/new']">Create New Cloud Account</button>
+    <button mat-button color="warn" [disabled]="selected.length === 0" (click)="delete()">Delete Selected Cloud Account</button>
   </div>
 
   <ngx-datatable class="material" [rows]="rows" [columnMode]="'force'" [columns]="columns" [headerHeight]="50" [footerHeight]="50" [rowHeight]="'auto'" [limit]="5" [selected]="selected" [selectionType]="'multiClick'" (select)='onSelect($event)'></ngx-datatable>

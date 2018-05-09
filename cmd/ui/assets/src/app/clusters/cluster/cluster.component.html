@@ -34,14 +34,14 @@
     <div style="width: 50%; float: left;">
       <h2 align="center">CPU (Millicores)</h2>
 
-      <canvas baseChart width="600" height="200" [datasets]="cpuChartData" [labels]="cpuChartLabels" [legend]="cpuChartLegend" [options]="cpuChartOptions" [colors]="cpuChartColors" [chartType]="cpuChartType">
+      <canvas baseChart width="600" height="300" [datasets]="cpuChartData" [labels]="cpuChartLabels" [legend]="cpuChartLegend" [options]="cpuChartOptions" [colors]="cpuChartColors" [chartType]="cpuChartType">
       </canvas>
     </div>
 
     <div style="width: 50%; float: left;">
       <h2 align="center">RAM (GB)</h2>
 
-      <canvas baseChart width="600" height="200" [colors]="ramChartColors" [datasets]="ramChartData" [labels]="ramChartLabels" [options]="ramChartOptions" [chartType]="ramChartType">
+      <canvas baseChart width="600" height="300" [colors]="ramChartColors" [datasets]="ramChartData" [labels]="ramChartLabels" [options]="ramChartOptions" [chartType]="ramChartType">
       </canvas>
     </div>
 
@@ -69,7 +69,7 @@
   </section>
 
   <section class="details-showmore">
-    <button mat-raised-button color="primary" type="button" (click)="showRaw = !showRaw">Show/hide raw data</button>
+    <button mat-button color="primary" type="button" (click)="showRaw = !showRaw">Show/hide raw data</button>
 
     <div *ngIf="showRaw">
       <h2>Raw Data</h2>

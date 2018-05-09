@@ -1,7 +1,7 @@
 <h2>Nodes</h2>
 
 <div class="subcontext-actions">
-  <div *ngIf="selected.length === 0" class="form-group row">
+  <div class="form-group row">
     <mat-form-field>
       <mat-select placeholder="Node Size" [(ngModel)]="selectedSize">
         <mat-option *ngFor="let option of kube.node_sizes" [value]="option">
@@ -9,11 +9,8 @@
         </mat-option>
       </mat-select>
     </mat-form-field>
-    <button mat-raised-button color="primary" (click)="createNode()">Create Node</button>
-  </div>
-
-  <div *ngIf="selected.length > 0">
-    <button mat-raised-button color="warn" (click)="delete()">Delete Selected Node</button>
+    <button mat-button color="primary" (click)="createNode()">Create New Node</button>
+    <button mat-button color="warn" [disabled]="selected.length === 0" (click)="delete()">Delete Selected Node</button>
   </div>
 </div>
 
