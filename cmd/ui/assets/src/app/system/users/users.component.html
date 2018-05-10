@@ -6,8 +6,8 @@
         <input matInput [(ngModel)]="username" type="text" placeholder="Username">
       </mat-form-field>
       <mat-form-field class="col-3">
-        <input matInput [(ngModel)]="password" placeholder="Password" [type]="hide ? 'password' : 'text'">
-        <mat-icon matSuffix svgIcon="thumb-up" (click)="hide = !hide">{{hide ? '&#9728;' : '&#8856;'}}</mat-icon>
+        <input matInput [(ngModel)]="password" placeholder="Password" [type]="hide ? 'text' : 'password'">
+        <mat-icon matSuffix svgIcon="thumb-up" (click)="hide = !hide">{{hide ? '&#8856;' : '&#9728;'}}</mat-icon>
       </mat-form-field>
       <mat-form-field class="col-1">
         <mat-select matInput [(ngModel)]="role" placeholder="Role">
