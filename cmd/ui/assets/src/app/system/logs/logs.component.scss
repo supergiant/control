@@ -17,11 +17,12 @@ div#log {
   background: #444;
   color: #DDD;
   white-space: pre-wrap;
-  height: 90%;
+  height: 92vh;
   margin-top: 10px;
   padding: 15px;
   font-family: Consolas, Menlo, Courier, monospace;
   border: solid 3px #000;
+  overflow-y: scroll;
 }
 
 #item_list_container {
