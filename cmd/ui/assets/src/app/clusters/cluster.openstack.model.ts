@@ -19,29 +19,21 @@ export class ClusterOpenStackModel {
     },
     'schema': {
       'properties': {
-        'cloud_account_name': {
-          'description': 'The Supergiant cloud account you created for use with Openstack.',
-          'type': 'string'
-        },
-        'master_node_size': {
-          'default': 'm1.smaller',
-          'description': 'The size of the server the master will live on.',
-          'type': 'string'
-        },
         'name': {
           'description': 'The desired name of the kube. Max length of 12 characters.',
           'type': 'string',
           'pattern': '^[a-z]([-a-z0-9]*[a-z0-9])?$',
           'maxLength': 12
         },
-        'node_sizes': {
-          'description': 'The sizes you want to be available to Supergiant when scaling.',
-          'id': '/properties/node_sizes',
-          'items': {
-            'id': '/properties/node_sizes/items',
-            'type': 'string'
-          },
-          'type': 'array'
+        'kubernetes_version': {
+          'default': '1.5.7',
+          'description': 'The Version of Kubernetes to be deployed.',
+          'type': 'string',
+          'enum': ['1.5.7', '1.6.7', '1.7.7', '1.8.7'] // TODO: <-- Should be dynamically populated.
+        },
+        'cloud_account_name': {
+          'description': 'The Supergiant cloud account you created for use with Openstack.',
+          'type': 'string'
         },
         'openstack_config': {
           'properties': {
@@ -74,6 +66,20 @@ export class ClusterOpenStackModel {
         'ssh_pub_key': {
           'description': 'The public key that will be used to SSH into the kube.',
           'type': 'string'
+        },
+        'master_node_size': {
+          'default': 'm1.smaller',
+          'description': 'The size of the server the master will live on.',
+          'type': 'string'
+        },
+        'node_sizes': {
+          'description': 'The sizes you want to be available to Supergiant when scaling.',
+          'id': '/properties/node_sizes',
+          'items': {
+            'id': '/properties/node_sizes/items',
+            'type': 'string'
+          },
+          'type': 'array'
         }
       }
     }

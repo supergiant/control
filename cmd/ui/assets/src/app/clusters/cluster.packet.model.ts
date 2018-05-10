@@ -24,37 +24,21 @@ export class ClusterPacketModel {
     },
     'schema': {
       'properties': {
-        'cloud_account_name': {
-          'description': 'The Supergiant cloud account you created for use with Packet.',
-          'type': 'string'
-        },
-        'master_node_size': {
-          'default': 't1.small (Type 0)',
-          'description': 'The size of the server the master will live on.',
-          'type': 'string'
-        },
-        'kube_master_count': {
-          'description': 'The number of masters desired--for High Availability.',
-          'type': 'number',
-          'widget': 'number',
-        },
-        'ssh_pub_key': {
-          'description': 'The public key that will be used to SSH into the kube.',
-          'type': 'string',
-          'widget': 'textarea',
-        },
         'name': {
           'description': 'The desired name of the kube. Max length of 12 characters.',
           'type': 'string',
           'pattern': '^[a-z]([-a-z0-9]*[a-z0-9])?$',
           'maxLength': 12
         },
-        'node_sizes': {
-          'description': 'The sizes you want to be available to Supergiant when scaling.',
-          'items': {
-            'type': 'string'
-          },
-          'type': 'array'
+        'kubernetes_version': {
+          'default': '1.5.7',
+          'description': 'The Version of Kubernetes to be deployed.',
+          'type': 'string',
+          'enum': ['1.5.7', '1.6.7', '1.7.7', '1.8.7'] // TODO: <-- Should be dynamically populated.
+        },
+        'cloud_account_name': {
+          'description': 'The Supergiant cloud account you created for use with Packet.',
+          'type': 'string'
         },
         'packet_config': {
           'properties': {
@@ -69,7 +53,29 @@ export class ClusterPacketModel {
             }
           },
           'type': 'object'
-        }
+        },
+        'ssh_pub_key': {
+          'description': 'The public key that will be used to SSH into the kube.',
+          'type': 'string',
+          'widget': 'textarea',
+        },
+        'master_node_size': {
+          'default': 't1.small (Type 0)',
+          'description': 'The size of the server the master will live on.',
+          'type': 'string'
+        },
+        'kube_master_count': {
+          'description': 'The number of masters desired--for High Availability.',
+          'type': 'number',
+          'widget': 'number',
+        },
+        'node_sizes': {
+          'description': 'The sizes you want to be available to Supergiant when scaling.',
+          'items': {
+            'type': 'string'
+          },
+          'type': 'array'
+        },
       }
     }
   };
