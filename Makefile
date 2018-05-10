@@ -3,6 +3,12 @@ DOCKER_IMAGE_TAG := $(shell git describe --tags --always | tr -d v || echo 'late
 
 .PHONY: build test push release
 
+clean:
+	rm -r bindata/ || true && rm -rf tmp/ && mkdir tmp
+
+generate-bindata:
+	go-bindata -pkg bindata -o bindata/bindata.go config/providers/... ui/assets/... ui/views/...
+
 build-builder:
 	docker build -t supergiant-builder --file build/Dockerfile.build .
 	docker create --name supergiant-builder supergiant-builder
