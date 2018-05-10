@@ -19,11 +19,13 @@ export class Users2000Component implements OnInit, OnDestroy {
   public columns = [
     { prop: 'username' },
     { prop: 'role' },
+    { prop: 'token' },
   ];
   private subscriptions = new Subscription();
   private username: string;
   private password: string;
   private role: string;
+  private token: string;
   private userModel = new UsersModel;
   constructor(
     private supergiant: Supergiant,
@@ -46,21 +48,21 @@ export class Users2000Component implements OnInit, OnDestroy {
   get() {
     this.subscriptions.add(Observable.timer(0, 5000)
       .switchMap(() => this.supergiant.Users.get()).subscribe(
-      (users) => {
-        this.rows = users.items.map(user => ({
-          id: user.id, username: user.username, role: user.role
-        }));
+        (users) => {
+          this.rows = users.items.map(user => ({
+            id: user.id, username: user.username, role: user.role, token: user.api_token
+          }));
 
-        // Copy over any kubes that happen to be currently selected.
-        this.selected.forEach((user, index, array) => {
-          for (const row of this.rows) {
-            if (row.id === user.id) {
-              array[index] = row;
+          // Copy over any kubes that happen to be currently selected.
+          this.selected.forEach((user, index, array) => {
+            for (const row of this.rows) {
+              if (row.id === user.id) {
+                array[index] = row;
+              }
             }
-          }
-        });
-      },
-      (err) => { this.notifications.display('warn', 'Connection Issue.', err); }));
+          });
+        },
+        (err) => { this.notifications.display('warn', 'Connection Issue.', err); }));
   }
 
   save() {
