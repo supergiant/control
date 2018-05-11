@@ -125,7 +125,7 @@ func TestHelmReleasesCreate(t *testing.T) {
 				mockKubeGetResourceFn: func(apiVersion, kind, namespace, name string, out interface{}) error {
 					return errors.New("404") // means job finishes successfully
 				},
-				fullCommand: `/helm init --client-only && /helm install stable/redis --set nested.key="value",not-nested=6 --version 0.1.0 --name test`,
+				fullCommand: `/helm init --client-only && /helm install stable/redis --set nested.key='value',not-nested=6 --version 0.1.0 --name test`,
 				err:         nil,
 				asyncErr:    "",
 			},
