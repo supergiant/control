@@ -145,18 +145,18 @@ const appRoutes: Routes = [
   //     { path: ':id', component: CloudAccountDetailsComponent }
   //   ]
   // },
-  // {
-  //   path: 'nodes', component: NodesComponent, canActivate: [AuthGuard], children: [
-  //     { path: '', component: NodesListComponent },
-  //     { path: ':id', component: NodeDetailsComponent }
-  //   ]
-  // },
-  // {
-  //   path: 'pods', component: PodsComponent, canActivate: [AuthGuard], children: [
-  //     { path: '', component: PodsListComponent },
-  //     { path: ':id', component: PodDetailsComponent }
-  //   ]
-  // },
+  {
+    path: 'nodes', component: NodesComponent, canActivate: [AuthGuard], children: [
+      { path: '', component: NodesListComponent },
+      { path: ':id', component: NodeDetailsComponent }
+    ]
+  },
+  {
+    path: 'pods', component: PodsComponent, canActivate: [AuthGuard], children: [
+      { path: '', component: PodsListComponent },
+      { path: ':id', component: PodDetailsComponent }
+    ]
+  },
   // { path: 'volumes', component: VolumesComponent, canActivate: [AuthGuard] },
   // {
   //   path: 'services', component: ServicesComponent, canActivate: [AuthGuard], children: [
