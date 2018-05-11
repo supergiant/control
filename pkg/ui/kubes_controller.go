@@ -73,12 +73,17 @@ func NewKube(sg *client.Client, w http.ResponseWriter, r *http.Request) error {
 		m = map[string]interface{}{
 			"cloud_account_name": "",
 			"name":               "",
-			"master_node_size":   "Type 0",
+			"master_node_size":   "t1.small (Type 0)",
 			"node_sizes": []string{
-				"Type 0",
-				"Type 1",
-				"Type 2",
-				"Type 3",
+				"t1.small (Type 0)",
+				"m2.xlarge.x86",
+				"c1.small (Type 1)",
+				"c2.medium.x86",
+				"m1.xlarge (Type 2)",
+				"c1.large.arm (Type 2A)",
+				"x1.small (Type 1E)",
+				"c1.xlarge (Type 3)",
+				"s1.large (Type S)",
 			},
 			"packet_config": map[string]interface{}{
 				"project":           "",
