@@ -5,3 +5,7 @@ $secondary-color: rgb(110,0,190);
 div.app-nav-container {
 background-color: $brand-color;
 }
+
+.dropdown-item:active {
+    background-color: #660066;
+}

@@ -146,18 +146,18 @@ $custom-theme: mat-light-theme($custom-theme-primary, $custom-theme-accent, $cus
 @include angular-material-theme($custom-theme);
 
 // Custom adjustments:
-button[mat-button] {
+button[mat-button], button[mat-raised-button] {
   height: 2.7rem;
 }
 
 button[mat-button][color="primary"] {
-    border: solid 0.1rem #660066;
+    border: solid 0.1rem #850c75;
     // border: solid 0.1rem #af097a;
     border-radius: 3px;
 }
 
 button[mat-button][color="accent"] {
-    border: solid 0.1rem #af097a;
+    border: solid 0.1rem #dd0088;
     // border: solid 0.1rem #6f00be;
     border-radius: 3px;
 }

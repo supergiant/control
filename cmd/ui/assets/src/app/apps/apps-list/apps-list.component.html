@@ -12,8 +12,8 @@
     </div>
 
     <div class="subcontext-actions">
-      <button mat-button color="primary" type="button" [routerLink]="['/apps/new']">Deploy New App</button>
-      <button mat-button color="warn" type="button" [disabled]="selected.length === 0" (click)="deleteApp()">Delete Selected App</button>
+      <button mat-button color="primary" [routerLink]="['/apps/new']">Deploy New App</button>
+      <button mat-button color="warn" [disabled]="selected.length === 0" (click)="deleteApp()">Delete Selected App</button>
     </div>
 
     <ngx-datatable class="material expandable" [rows]="rows" [columnMode]="'force'" [columns]="columns" [headerHeight]="50" [footerHeight]="50" [rowHeight]="'auto'" [limit]="20" [selected]="selected" (select)='onSelect($event)' (activate)='onActivate($event)'
