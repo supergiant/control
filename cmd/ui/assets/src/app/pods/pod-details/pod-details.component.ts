@@ -7,6 +7,7 @@ import { Notifications } from '../../shared/notifications/notifications.service'
 import { ChartsModule, BaseChartDirective } from 'ng2-charts';
 import { SystemModalService } from '../../shared/system-modal/system-modal.service';
 import { LoginComponent } from '../../login/login.component';
+import { Location } from '@angular/common';
 
 @Component({
   selector: 'app-pod-details',
@@ -25,6 +26,7 @@ export class PodDetailsComponent implements OnInit, OnDestroy {
     private chartsModule: ChartsModule,
     private systemModalService: SystemModalService,
     public loginComponent: LoginComponent,
+    private location: Location,
   ) { }
 
   // CPU Usage
@@ -57,25 +59,25 @@ export class PodDetailsComponent implements OnInit, OnDestroy {
   getPod() {
     this.subscriptions.add(Observable.timer(0, 5000)
       .switchMap(() => this.supergiant.KubeResources.get(this.id)).subscribe(
-      (pod) => {
-        this.pod = pod;
-        if (this.pod.extra_data && this.pod.extra_data.metrics.cpu_usage) {
-          this.isDataAvailable = true;
-          this.cpuChartData = [
-            { label: 'CPU Usage', data: this.pod.extra_data.metrics.cpu_usage.map((data) => data.value) },
-            // this should be set to the length of largest array.
-          ];
-          this.ramChartLabels = this.pod.extra_data.metrics.cpu_usage.map((data) => data.timestamp);
+        (pod) => {
+          this.pod = pod;
+          if (this.pod.extra_data && this.pod.extra_data.metrics.cpu_usage) {
+            this.isDataAvailable = true;
+            this.cpuChartData = [
+              { label: 'CPU Usage', data: this.pod.extra_data.metrics.cpu_usage.map((data) => data.value) },
+              // this should be set to the length of largest array.
+            ];
+            this.ramChartLabels = this.pod.extra_data.metrics.cpu_usage.map((data) => data.timestamp);
 
-          this.ramChartData = [
-            { label: 'RAM Usage', data: this.pod.extra_data.metrics.ram_usage.map((data) => data.value / 1073741824) },
-            // this should be set to the length of largest array.
-          ];
-          this.cpuChartLabels = this.pod.extra_data.metrics.ram_usage.map((data) => data.timestamp);
-        }
+            this.ramChartData = [
+              { label: 'RAM Usage', data: this.pod.extra_data.metrics.ram_usage.map((data) => data.value / 1073741824) },
+              // this should be set to the length of largest array.
+            ];
+            this.cpuChartLabels = this.pod.extra_data.metrics.ram_usage.map((data) => data.timestamp);
+          }
 
-      },
-      (err) => { this.notifications.display('warn', 'Connection Issue.', err); }));
+        },
+        (err) => { this.notifications.display('warn', 'Connection Issue.', err); }));
   }
 
   padArrayWithDefault(arr: any, n: number) {
@@ -97,7 +99,7 @@ export class PodDetailsComponent implements OnInit, OnDestroy {
   }
 
   goBack() {
-    this.router.navigate(['/pods']);
+    this.location.back();
   }
   ngOnDestroy() {
     this.subscriptions.unsubscribe();
