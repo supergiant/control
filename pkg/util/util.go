@@ -13,30 +13,23 @@ import (
 )
 
 const letterBytes = "0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ"
-const (
-	letterIdxBits = 6                    // 6 bits to represent a letter index
-	letterIdxMask = 1<<letterIdxBits - 1 // All 1-bits, as many as letterIdxBits
-	letterIdxMax  = 63 / letterIdxBits   // # of letter indices fitting in 63 bits
-)
 
 var src = rand.NewSource(time.Now().UnixNano())
 
-// RandomString
+// Generate random string with reservoir sampling algorithm https://en.wikipedia.org/wiki/Reservoir_sampling
 func RandomString(n int) string {
-	b := make([]byte, n)
-	// A src.Int63() generates 63 random bits, enough for letterIdxMax characters!
-	for i, cache, remain := n-1, src.Int63(), letterIdxMax; i >= 0; {
-		if remain == 0 {
-			cache, remain = src.Int63(), letterIdxMax
+	buffer := make([]byte, n)
+	copy(buffer, letterBytes[:n])
+
+	for i := n; i < len(letterBytes); i++ {
+		rndIndex := src.Int63() % int64(i)
+
+		if rndIndex < int64(n) {
+			buffer[rndIndex] = letterBytes[i]
 		}
-		if idx := int(cache & letterIdxMask); idx < len(letterBytes) {
-			b[i] = letterBytes[idx]
-			i--
-		}
-		cache >>= letterIdxBits
-		remain--
 	}
-	return string(b)
+
+	return string(buffer)
 }
 
 // func UniqueStrings(in []string) (out []string) {
