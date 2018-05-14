@@ -2,6 +2,7 @@ package providers
 
 import (
 	"encoding/json"
+	"fmt"
 	"github.com/phayes/freeport"
 	"github.com/supergiant/supergiant/pkg/cli"
 	"github.com/supergiant/supergiant/pkg/client"
@@ -22,28 +23,36 @@ func newClient(fileName string) *client.Client {
 	return client.New(globalConf.Server, "token", globalConf.Token, "")
 }
 
-func newTestServer() (*server.Server, error) {
-	c := new(core.Core)
-	c.LogLevel = "debug"
-	c.PublishHost = "localhost"
+func newClientServer() (*server.Server, *client.Client, error) {
 	port, err := freeport.GetFreePort()
 
 	if err != nil {
-		return nil, err
+		return nil, nil, err
 	}
 
-	c.HTTPPort = string(port)
-	c.SQLiteFile = "file::memory:?cache=shared"
+	settings := core.Settings{
+		LogLevel:        "debug",
+		PublishHost:     "localhost",
+		HTTPPort:        fmt.Sprintf("%d", port),
+		SQLiteFile:      "file::memory:?cache=shared",
+		SupportPassword: "1234",
+	}
+
+	c := &core.Core{}
+	c.Settings = settings
+
+	sgClient := client.New(c.BaseURL(), "session", "", "")
 
 	if err := c.InitializeForeground(); err != nil {
 		panic(err)
 	}
+
 	srv, err := server.New(c)
 	if err != nil {
 		panic(err)
 	}
 
-	return srv, nil
+	return srv, sgClient, nil
 }
 
 func createKube(sg *client.Client, version string) (*model.Kube, error) {
@@ -52,7 +61,12 @@ func createKube(sg *client.Client, version string) (*model.Kube, error) {
 		Provider:    "aws",
 		Credentials: map[string]string{"thanks": "for being great"},
 	}
-	sg.CloudAccounts.Create(cloudAccount)
+
+	err := sg.CloudAccounts.Create(cloudAccount)
+
+	if err != nil {
+		return nil, err
+	}
 
 	kube := &model.Kube{
 		CloudAccountName:  cloudAccount.Name,
@@ -65,7 +79,8 @@ func createKube(sg *client.Client, version string) (*model.Kube, error) {
 			AvailabilityZone: "us-east-1a",
 		},
 	}
-	err := sg.Kubes.Create(kube)
+
+	err = sg.Kubes.Create(kube)
 
 	return kube, err
 }
