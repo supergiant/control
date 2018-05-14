@@ -1,27 +1,14 @@
 package providers
 
 import (
-	"encoding/json"
 	"fmt"
+	
 	"github.com/phayes/freeport"
-	"github.com/supergiant/supergiant/pkg/cli"
 	"github.com/supergiant/supergiant/pkg/client"
 	"github.com/supergiant/supergiant/pkg/core"
 	"github.com/supergiant/supergiant/pkg/model"
 	"github.com/supergiant/supergiant/pkg/server"
-	"io/ioutil"
 )
-
-func newClient(fileName string) *client.Client {
-	globalConf := cli.GlobalConfig{}
-
-	if b, err := ioutil.ReadFile(fileName); err == nil {
-		// NOTE no error handling here, silently continues
-		json.Unmarshal(b, &globalConf)
-	}
-
-	return client.New(globalConf.Server, "token", globalConf.Token, "")
-}
 
 func newClientServer() (*server.Server, *client.Client, error) {
 	port, err := freeport.GetFreePort()
@@ -41,8 +28,6 @@ func newClientServer() (*server.Server, *client.Client, error) {
 	c := &core.Core{}
 	c.Settings = settings
 
-	sgClient := client.New(c.BaseURL(), "session", "", "")
-
 	if err := c.InitializeForeground(); err != nil {
 		panic(err)
 	}
@@ -52,6 +37,8 @@ func newClientServer() (*server.Server, *client.Client, error) {
 		panic(err)
 	}
 
+	sgClient := c.APIClient("session", "")
+
 	return srv, sgClient, nil
 }
 
@@ -59,7 +46,7 @@ func createKube(sg *client.Client, version string) (*model.Kube, error) {
 	cloudAccount := &model.CloudAccount{
 		Name:        "test",
 		Provider:    "aws",
-		Credentials: map[string]string{"thanks": "for being great"},
+		Credentials: map[string]string{"support": "1234"},
 	}
 
 	err := sg.CloudAccounts.Create(cloudAccount)

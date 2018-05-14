@@ -2,11 +2,12 @@ package providers
 
 import (
 	"fmt"
-	"github.com/supergiant/supergiant/pkg/model"
-	"github.com/supergiant/supergiant/pkg/util"
 	"strings"
 	"testing"
 	"time"
+
+	"github.com/supergiant/supergiant/pkg/model"
+	"github.com/supergiant/supergiant/pkg/util"
 )
 
 // Run test on AWS against all support versions of k8s
@@ -19,23 +20,24 @@ func TestAmazon(t *testing.T) {
 		return
 	}
 
+	go srv.Start()
+	defer srv.Stop()
+
 	session := &model.Session{
 		User: &model.User{
 			Username: "support",
 			Password: "1234",
 		},
 	}
+
+	fmt.Println(client.BaseURL)
 	err = client.Sessions.Create(session)
 
 	for _, k8sVersion := range k8sVersions {
 		t.Run(fmt.Sprintf("Test-AWS-%s", k8sVersion), func(t *testing.T) {
 			t.Parallel()
 
-			go srv.Start()
-			defer srv.Stop()
-
-			kube, err := createKube(client, "1.8.7")
-
+			kube, err := createKube(client, k8sVersion)
 			if err != nil {
 				t.Error(err)
 				return
