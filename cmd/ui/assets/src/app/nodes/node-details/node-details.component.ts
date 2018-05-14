@@ -7,6 +7,7 @@ import { Notifications } from '../../shared/notifications/notifications.service'
 import { ChartsModule, BaseChartDirective } from 'ng2-charts';
 import { SystemModalService } from '../../shared/system-modal/system-modal.service';
 import { LoginComponent } from '../../login/login.component';
+import { Location } from '@angular/common';
 
 @Component({
   selector: 'app-node-details',
@@ -25,6 +26,7 @@ export class NodeDetailsComponent implements OnInit, OnDestroy {
     private chartsModule: ChartsModule,
     private systemModalService: SystemModalService,
     public loginComponent: LoginComponent,
+    private location: Location,
   ) { }
 
   // CPU Usage
@@ -57,29 +59,29 @@ export class NodeDetailsComponent implements OnInit, OnDestroy {
   getNode() {
     this.subscriptions.add(Observable.timer(0, 5000)
       .switchMap(() => this.supergiant.Nodes.get(this.id)).subscribe(
-      (node) => {
-        this.node = node;
-        if (this.node.extra_data && this.node.extra_data.cpu_usage_rate && this.node.extra_data.cpu_node_capacity) {
-          this.isDataAvailable = true;
-          this.cpuChartData = [
-            { label: 'CPU Usage', data: this.node.extra_data.cpu_usage_rate.map((data) => data.value) },
-            { label: 'CPU Capacity', data: this.node.extra_data.cpu_node_capacity.map((data) => data.value) },
-            // this should be set to the length of largest array.
-          ];
-          this.ramChartLabels = this.node.extra_data.cpu_usage_rate.map((data) => data.timestamp);
+        (node) => {
+          this.node = node;
+          if (this.node.extra_data && this.node.extra_data.cpu_usage_rate && this.node.extra_data.cpu_node_capacity) {
+            this.isDataAvailable = true;
+            this.cpuChartData = [
+              { label: 'CPU Usage', data: this.node.extra_data.cpu_usage_rate.map((data) => data.value) },
+              { label: 'CPU Capacity', data: this.node.extra_data.cpu_node_capacity.map((data) => data.value) },
+              // this should be set to the length of largest array.
+            ];
+            this.ramChartLabels = this.node.extra_data.cpu_usage_rate.map((data) => data.timestamp);
 
-          this.ramChartData = [
-            { label: 'RAM Usage', data: this.node.extra_data.memory_usage.map((data) => data.value / 1073741824) },
-            {
-              label: 'RAM Capacity',
-              data: this.node.extra_data.memory_node_capacity.map((data) => data.value / 1073741824)
-            },
-            // this should be set to the length of largest array.
-          ];
-          this.cpuChartLabels = this.node.extra_data.memory_usage.map((data) => data.timestamp);
-        }
-      },
-      (err) => { this.notifications.display('warn', 'Connection Issue.', err); }));
+            this.ramChartData = [
+              { label: 'RAM Usage', data: this.node.extra_data.memory_usage.map((data) => data.value / 1073741824) },
+              {
+                label: 'RAM Capacity',
+                data: this.node.extra_data.memory_node_capacity.map((data) => data.value / 1073741824)
+              },
+              // this should be set to the length of largest array.
+            ];
+            this.cpuChartLabels = this.node.extra_data.memory_usage.map((data) => data.timestamp);
+          }
+        },
+        (err) => { this.notifications.display('warn', 'Connection Issue.', err); }));
   }
 
   padArrayWithDefault(arr: any, n: number) {
@@ -101,8 +103,9 @@ export class NodeDetailsComponent implements OnInit, OnDestroy {
   }
 
   goBack() {
-    this.router.navigate(['/nodes']);
+    this.location.back();
   }
+
   ngOnDestroy() {
     this.subscriptions.unsubscribe();
   }
