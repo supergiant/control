@@ -9,6 +9,7 @@ import (
 	"github.com/gophercloud/gophercloud"
 	"github.com/gophercloud/gophercloud/openstack"
 	"github.com/gophercloud/gophercloud/openstack/compute/v2/servers"
+	"github.com/gophercloud/gophercloud/openstack/compute/v2/extensions/keypairs"
 	"github.com/supergiant/supergiant/bindata"
 	"github.com/supergiant/supergiant/pkg/core"
 	"github.com/supergiant/supergiant/pkg/model"
@@ -56,9 +57,13 @@ func (p *Provider) CreateNode(m *model.Node, action *core.Action) error {
 		},
 		Metadata: map[string]string{"kubernetes-cluster": m.Kube.Name, "Role": "minion"},
 	}
+	createOpts := keypairs.CreateOptsExt{
+		CreateOptsBuilder: serverCreateOpts,
+		KeyName:           m.Kube.OpenStackConfig.KeyPair,
+	}
 
 	// Create server
-	server, err := servers.Create(computeClient, serverCreateOpts).Extract()
+	server, err := servers.Create(computeClient, createOpts).Extract()
 	if err != nil {
 		return err
 	}

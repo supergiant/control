@@ -6,6 +6,7 @@ import (
 	"github.com/gophercloud/gophercloud"
 	"github.com/gophercloud/gophercloud/openstack"
 	floatingip "github.com/gophercloud/gophercloud/openstack/compute/v2/extensions/floatingips"
+	"github.com/gophercloud/gophercloud/openstack/compute/v2/extensions/keypairs"
 	"github.com/gophercloud/gophercloud/openstack/compute/v2/servers"
 	"github.com/gophercloud/gophercloud/openstack/networking/v2/extensions/layer3/routers"
 	"github.com/gophercloud/gophercloud/openstack/networking/v2/networks"
@@ -105,6 +106,18 @@ func (p *Provider) DeleteKube(m *model.Kube, action *core.Action) error {
 				return true, nil
 			})
 
+		}
+		return nil
+	})
+
+	procedure.AddStep("Destroying keypair...", func() error {
+		err := err
+		err = keypairs.Delete(computeClient, m.OpenStackConfig.KeyPair).ExtractErr()
+		if err != nil {
+			if ignoreErrors(err) {
+				return nil
+			}
+			return err
 		}
 		return nil
 	})

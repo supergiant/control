@@ -387,6 +387,12 @@
 			"revisionTime": "2017-06-11T02:52:58Z"
 		},
 		{
+			"checksumSHA1": "jOyPWAJGRqLHofGLL/aiYBZzJR0=",
+			"path": "github.com/gophercloud/gophercloud/openstack/compute/v2/extensions/keypairs",
+			"revision": "afbf0422412f5dc726fa12be280fa0c3cb31fcbd",
+			"revisionTime": "2018-02-28T16:50:54Z"
+		},
+		{
 			"checksumSHA1": "vTyXSR+Znw7/o/70UBOWG0F09r8=",
 			"path": "github.com/gophercloud/gophercloud/openstack/compute/v2/flavors",
 			"revision": "64e5161c25fde7f0ccfb85f9af29ed22eeab4cd0",
