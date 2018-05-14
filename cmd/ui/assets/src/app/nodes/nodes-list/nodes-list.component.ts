@@ -113,7 +113,7 @@ export class NodesListComponent implements OnInit, OnDestroy {
   onActivate(activated) {
 
     if (activated.type === 'click' && activated.column.name !== 'checkbox') {
-      this.router.navigate(['/clusters', activated.row.id]);
+      this.router.navigate(['/nodes', activated.row.id]);
     }
   }
 
