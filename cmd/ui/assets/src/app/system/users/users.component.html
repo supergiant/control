@@ -1,5 +1,4 @@
 <div class="subcontext">
-
   <div class="subcontext-actions">
     <div class="form-group row">
       <mat-form-field class="col-3">
@@ -7,12 +6,12 @@
       </mat-form-field>
       <mat-form-field class="col-3">
         <input matInput [(ngModel)]="password" placeholder="Password" [type]="hide ? 'text' : 'password'">
-        <mat-icon matSuffix svgIcon="thumb-up" (click)="hide = !hide">{{hide ? '&#8856;' : '&#9728;'}}</mat-icon>
+        <mat-icon matSuffix (click)="hide = !hide">{{hide ? '&#8856;' : '&#9728;'}}</mat-icon>
       </mat-form-field>
       <mat-form-field class="col-1">
         <mat-select matInput [(ngModel)]="role" placeholder="Role">
-          <mat-option>user</mat-option>
-          <mat-option>admin</mat-option>
+          <mat-option value="user">User</mat-option>
+          <mat-option value="admin">Admin</mat-option>
         </mat-select>
       </mat-form-field>
 
