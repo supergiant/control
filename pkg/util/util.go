@@ -32,17 +32,6 @@ func RandomString(n int) string {
 	return string(buffer)
 }
 
-// func UniqueStrings(in []string) (out []string) {
-// 	tab := make(map[string]struct{})
-// 	for _, str := range in {
-// 		if _, ok := tab[str]; !ok {
-// 			tab[str] = struct{}{}
-// 			out = append(out, str)
-// 		}
-// 	}
-// 	return out
-// }
-
 // WaitFor
 func WaitFor(desc string, d time.Duration, i time.Duration, fn func() (bool, error)) error {
 	started := time.Now()
