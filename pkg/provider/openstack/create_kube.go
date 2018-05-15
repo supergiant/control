@@ -9,6 +9,7 @@ import (
 	"time"
 
 	"context"
+
 	"github.com/gophercloud/gophercloud"
 	"github.com/gophercloud/gophercloud/openstack"
 	floatingip "github.com/gophercloud/gophercloud/openstack/compute/v2/extensions/floatingips"
