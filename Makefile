@@ -9,10 +9,13 @@ clean:
 generate-bindata:
 	go-bindata -pkg bindata -o bindata/bindata.go config/providers/... ui/assets/... ui/views/...
 
-verify: gofmt lint
+verify: gofmt goimports lint
 
 gofmt:
-	@build/verify/gofmt.sh
+	@FLAGS="-w" build/verify/gofmt.sh
+
+goimports:
+	@FLAGS="-w -local github.com/supergiant/supergiant" build/verify/goimports.sh
 
 lint:
 	# TODO: enable the test directory when e2e tests will be updated
