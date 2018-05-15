@@ -55,7 +55,7 @@ func ListLoadBalancers(sg *client.Client, w http.ResponseWriter, r *http.Request
 			"Edit": "/ui/load_balancers/{{ ID }}/edit",
 		},
 		"batchActionPaths": map[string]map[string]string{
-			"Delete": map[string]string{
+			"Delete": {
 				"method":       "DELETE",
 				"relativePath": "",
 			},

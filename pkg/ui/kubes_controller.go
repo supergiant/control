@@ -158,11 +158,11 @@ func ListKubes(sg *client.Client, w http.ResponseWriter, r *http.Request) error 
 			"packet":       "Packet",
 		},
 		"batchActionPaths": map[string]map[string]string{
-			"Reprovision": map[string]string{
+			"Reprovision": {
 				"method":       "POST",
 				"relativePath": "/provision",
 			},
-			"Delete": map[string]string{
+			"Delete": {
 				"method":       "DELETE",
 				"relativePath": "",
 			},

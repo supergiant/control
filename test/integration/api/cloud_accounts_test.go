@@ -27,7 +27,7 @@ func TestCloudAccountsList(t *testing.T) {
 			// A successful example
 			{
 				existingModels: []*model.CloudAccount{
-					&model.CloudAccount{
+					{
 						Name:        "test",
 						Provider:    "aws",
 						Credentials: map[string]string{"access_key": "blah", "secret_key": "bleh"},

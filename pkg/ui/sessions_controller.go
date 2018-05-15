@@ -4,6 +4,7 @@ import (
 	"net/http"
 
 	"github.com/gorilla/mux"
+
 	"github.com/supergiant/supergiant/pkg/client"
 	"github.com/supergiant/supergiant/pkg/core"
 	"github.com/supergiant/supergiant/pkg/model"
@@ -66,7 +67,7 @@ func ListSessions(sg *client.Client, w http.ResponseWriter, r *http.Request) err
 		"fields":      fields,
 		"showNewLink": false,
 		"batchActionPaths": map[string]map[string]string{
-			"Delete": map[string]string{
+			"Delete": {
 				"method":       "DELETE",
 				"relativePath": "",
 			},

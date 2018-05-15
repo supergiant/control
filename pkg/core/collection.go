@@ -5,6 +5,7 @@ import (
 	"sync"
 
 	"github.com/imdario/mergo"
+
 	"github.com/supergiant/supergiant/pkg/model"
 )
 
