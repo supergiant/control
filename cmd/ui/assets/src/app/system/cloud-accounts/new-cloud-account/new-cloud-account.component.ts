@@ -14,7 +14,7 @@ import { Router } from '@angular/router';
 export class NewCloudAccountComponent implements OnInit, OnDestroy {
   private providersObj = new CloudAccountModel;
   private subscriptions = new Subscription();
-  private providers = [];
+  private providers = this.providersObj.providers;
   private model: any;
   public schema: any;
 
@@ -25,7 +25,6 @@ export class NewCloudAccountComponent implements OnInit, OnDestroy {
   ) { }
 
   ngOnInit() {
-    this.get();
   }
 
   ngOnDestroy() {
@@ -35,14 +34,6 @@ export class NewCloudAccountComponent implements OnInit, OnDestroy {
   back() {
     this.model = null;
     this.schema = null;
-  }
-
-  get() {
-    for (const key in this.providersObj.providers) {
-      if (key) {
-        this.providers.push(key);
-      }
-    }
   }
 
   create(model) {

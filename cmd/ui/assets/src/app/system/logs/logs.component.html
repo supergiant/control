@@ -1,5 +1,6 @@
 <div>
-  <mat-tab-group layout-align="center center">
+  <!-- [@.disabled]="true" tells Material not to render the sliding animation for tab content. https://github.com/angular/material2/issues/2706 -->
+  <mat-tab-group [@.disabled]="true">
     <mat-tab id="mat-tab-1" label="Logs">
         <div class="container" id="log" [innerHTML]="logData" (scroll)="onScroll($event)"></div>
     </mat-tab>

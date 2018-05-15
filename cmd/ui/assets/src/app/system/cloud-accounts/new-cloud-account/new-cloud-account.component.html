@@ -9,11 +9,11 @@
   <mat-tab-group [@.disabled]="true">
     <mat-tab *ngFor="let provider of providers">
       <ng-template mat-tab-label>
-        {{ provider }}
+        {{ provider.name }}
       </ng-template>
       <br>
 
-      <json-schema-form framework="bootstrap-3" [schema]="provider.schema" [data]="provider.model" (onSubmit)="create(value)" (onChanges)="value=$event"></json-schema-form>
+      <json-schema-form framework="bootstrap-3" [schema]="provider.data.schema" [data]="provider.data.model" (onSubmit)="create(value)" (onChanges)="value=$event"></json-schema-form>
     </mat-tab>
   </mat-tab-group>
   
