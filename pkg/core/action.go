@@ -102,7 +102,7 @@ func (a *Action) CancellableWaitFor(desc string, d time.Duration, i time.Duratio
 	ctx, cancel := context.WithTimeout(context.Background(), d)
 	defer cancel()
 
-	return util.WaitFor(desc, ctx, i, func() (bool, error) {
+	return util.WaitFor(ctx, desc, i, func() (bool, error) {
 		if a.Status.Cancelled {
 			return false, fmt.Errorf("action cancelled while waiting for %s", desc)
 		}
