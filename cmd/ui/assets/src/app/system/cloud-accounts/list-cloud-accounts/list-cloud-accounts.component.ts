@@ -3,6 +3,8 @@ import { Subscription } from 'rxjs/Subscription';
 import { Observable } from 'rxjs/Observable';
 import { Supergiant } from '../../../shared/supergiant/supergiant.service';
 import { Notifications } from '../../../shared/notifications/notifications.service';
+import { ChartsModule, BaseChartDirective } from 'ng2-charts';
+import { ContextMenuService, ContextMenuComponent } from 'ngx-contextmenu';
 
 @Component({
   selector: 'app-list-cloud-accounts',
@@ -23,6 +25,7 @@ export class ListCloudAccountsComponent implements OnInit, OnDestroy {
     { prop: 'name' },
     { prop: 'provider' },
   ];
+  public displayCheck: boolean;
 
 
   getCloudAccounts() {

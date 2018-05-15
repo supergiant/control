@@ -4,7 +4,13 @@
     <button mat-button color="warn" [disabled]="selected.length === 0" (click)="delete()">Delete Selected Cloud Account</button>
   </div>
 
-  <ngx-datatable class="material" [rows]="rows" [columnMode]="'force'" [columns]="columns" [headerHeight]="50" [footerHeight]="50" [rowHeight]="'auto'" [limit]="5" [selected]="selected" [selectionType]="'multiClick'" (select)='onSelect($event)'></ngx-datatable>
+  <ngx-datatable class="material expandable" [rows]="rows" [columnMode]="'force'" [columns]="columns" [headerHeight]="50" [footerHeight]="50" [rowHeight]="'auto'" [limit]="20" [selected]="selected" [selectionType]="'checkbox'" [selectAllRowsOnPage]="false" [displayCheck]="displayCheck" (select)='onSelect($event)'>
+    <ngx-datatable-column name="checkbox" [width]="30" [sortable]="false" [canAutoResize]="false" [draggable]="false" [resizeable]="false" [headerCheckboxable]="true" [checkboxable]="true">
+    </ngx-datatable-column>
+    <ngx-datatable-column name="Name" prop="name"></ngx-datatable-column>
+    <ngx-datatable-column name="Provider" prop="provider">
+    </ngx-datatable-column>
+  </ngx-datatable>
 </div>
 
 <div *ngIf="!hasCloudAccount" class="subcontext">

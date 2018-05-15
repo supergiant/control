@@ -3,6 +3,8 @@ import { Subscription } from 'rxjs/Subscription';
 import { Observable } from 'rxjs/Observable';
 import { Supergiant } from '../../shared/supergiant/supergiant.service';
 import { Notifications } from '../../shared/notifications/notifications.service';
+import { ChartsModule, BaseChartDirective } from 'ng2-charts';
+import { ContextMenuService, ContextMenuComponent } from 'ngx-contextmenu';
 
 export class RepoModel {
   repo = {
@@ -27,6 +29,7 @@ export class MainComponent implements OnInit, OnDestroy {
     { prop: 'name' },
     { prop: 'url' },
   ];
+  public displayCheck: boolean;
   private subscriptions = new Subscription();
   private name: string;
   private url: string;

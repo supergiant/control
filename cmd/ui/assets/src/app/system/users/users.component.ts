@@ -4,6 +4,8 @@ import { Observable } from 'rxjs/Observable';
 import { Supergiant } from '../../shared/supergiant/supergiant.service';
 import { Notifications } from '../../shared/notifications/notifications.service';
 import { UsersModel } from './users.model';
+import { ChartsModule, BaseChartDirective } from 'ng2-charts';
+import { ContextMenuService, ContextMenuComponent } from 'ngx-contextmenu';
 
 @Component({
   selector: 'app-users',
@@ -12,14 +14,14 @@ import { UsersModel } from './users.model';
   encapsulation: ViewEncapsulation.None
 })
 export class Users2000Component implements OnInit, OnDestroy {
-
-
   public rows = [];
   public selected = [];
   public columns = [
     { prop: 'username' },
     { prop: 'role' },
   ];
+  public displayCheck: boolean;
+
   private subscriptions = new Subscription();
   private username: string;
   private password: string;
