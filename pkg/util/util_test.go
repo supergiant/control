@@ -2,7 +2,7 @@ package util
 
 import (
 	"context"
-	"strings"
+	"github.com/pkg/errors"
 	"testing"
 	"time"
 )
@@ -23,9 +23,9 @@ func TestWaitForCancelled(t *testing.T) {
 		cancel()
 	}()
 
-	err := WaitFor("Test cancelled", ctx, p, fn)
+	err := WaitFor(ctx, "Test cancelled", p, fn)
 
-	if !strings.Contains(err.Error(), context.Canceled.Error()) {
+	if errors.Cause(context.Canceled) != context.Canceled {
 		t.Errorf("Unexpected error expected %v actual %v", context.Canceled, err)
 	}
 }
@@ -38,11 +38,11 @@ func TestWaitForDeadline(t *testing.T) {
 
 	d := time.Millisecond * 100
 	p := time.Millisecond * 10
+
 	ctx, _ := context.WithTimeout(context.Background(), d)
+	err := WaitFor(ctx, "Test deadline", p, fn)
 
-	err := WaitFor("Test deadline", ctx, p, fn)
-
-	if !strings.Contains(err.Error(), context.DeadlineExceeded.Error()) {
+	if errors.Cause(err) != context.DeadlineExceeded {
 		t.Errorf("Unexpected error expected %v actual %v", context.Canceled, err)
 	}
 }
@@ -66,8 +66,7 @@ func TestWaitForSucceed(t *testing.T) {
 	}
 
 	ctx, _ := context.WithTimeout(context.Background(), d)
-
-	err := WaitFor("Test succeed", ctx, p, fn)
+	err := WaitFor(ctx, "Test succeed", p, fn)
 
 	if err != nil {
 		t.Errorf("Unexpected error %v", err)
