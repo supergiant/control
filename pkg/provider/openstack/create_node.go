@@ -6,6 +6,7 @@ import (
 	"text/template"
 	"time"
 
+	"context"
 	"github.com/gophercloud/gophercloud"
 	"github.com/gophercloud/gophercloud/openstack"
 	"github.com/gophercloud/gophercloud/openstack/compute/v2/servers"
@@ -72,7 +73,11 @@ func (p *Provider) CreateNode(m *model.Node, action *core.Action) error {
 	pNetwork := m.Kube.Name + "-network"
 	duration := 2 * time.Minute
 	interval := 10 * time.Second
-	waitErr := util.WaitFor("Kubernetes Minion IP asssign...", duration, interval, func() (bool, error) {
+
+	// TODO(stgleb): Context should be inherited from higher level context
+	ctx, _ := context.WithTimeout(context.Background(), duration)
+
+	waitErr := util.WaitFor("Kubernetes Minion IP assign...", ctx, interval, func() (bool, error) {
 		serverObj, _ := servers.Get(computeClient, server.ID).Extract()
 		if serverObj.Addresses[pNetwork] == nil {
 			return false, nil

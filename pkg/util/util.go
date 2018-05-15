@@ -9,7 +9,9 @@ import (
 	"strings"
 	"time"
 
+	"context"
 	"github.com/fatih/structs"
+	"github.com/pkg/errors"
 )
 
 const letterBytes = "0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ"
@@ -50,20 +52,23 @@ func RandomString(n int) string {
 // 	return out
 // }
 
-// WaitFor
-func WaitFor(desc string, d time.Duration, i time.Duration, fn func() (bool, error)) error {
-	started := time.Now()
+// WaitFor event using context
+func WaitFor(desc string, ctx context.Context, period time.Duration, fn func() (bool, error)) error {
+	ticker := time.NewTicker(period)
+
 	for {
-		if done, err := fn(); done {
-			return nil
-		} else if err != nil {
-			return err
+		select {
+		case <-ctx.Done():
+			if ctx.Err() != nil {
+				return errors.Wrap(ctx.Err(), desc)
+			}
+		case <-ticker.C:
+			if done, err := fn(); done {
+				return nil
+			} else if err != nil {
+				return err
+			}
 		}
-		elapsed := time.Since(started)
-		if elapsed > d {
-			return fmt.Errorf("Timed out waiting for %s", desc)
-		}
-		time.Sleep(i)
 	}
 }
 
