@@ -216,7 +216,7 @@ func TestKubesCreate(t *testing.T) {
 //------------------------------------------------------------------------------
 //
 // TODO this repeats some of the Create test above. The Create test should
-// really check validations, and then assert Provision was called.
+// really check validations, and then assert DOClient was called.
 //
 //
 //
@@ -225,7 +225,7 @@ func TestKubesProvision(t *testing.T) {
 	go srv.Start()
 	defer srv.Stop()
 
-	Convey("Kubes Provision works correctly", t, func() {
+	Convey("Kubes DOClient works correctly", t, func() {
 
 		table := []struct {
 			// Input
