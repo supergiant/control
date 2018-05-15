@@ -584,25 +584,30 @@ write_files:
 coreos:
   update:
     reboot-strategy: off
-  etcd2:
-    advertise-client-urls: http://$private_ipv4:2379
-    initial-advertise-peer-urls: http://$private_ipv4:2380
-    listen-client-urls: http://0.0.0.0:2379,http://0.0.0.0:4001
-    listen-peer-urls: http://0.0.0.0:2380
-    discovery: {{ .ETCDDiscoveryURL }}
   flannel:
     iface: $private_ipv4
     etcd_endpoints: http://127.0.0.1:2379
   units:
-    - name: etcd2.service
+    - name: etcd-member.service
+      enable: true
       command: start
+      drop-ins:
+        - name: 40-etcd-cluster.conf
+          content: |
+            [Service]
+            Environment="ETCD_IMAGE_TAG=v3.1.8"
+            Environment="ETCD_ADVERTISE_CLIENT_URLS=http://$private_ipv4:2379"
+            Environment="ETCD_INITIAL_ADVERTISE_PEER_URLS=http://$private_ipv4:2380"
+            Environment="ETCD_LISTEN_CLIENT_URLS=http://0.0.0.0:2379"
+            Environment="ETCD_LISTEN_PEER_URLS=http://$private_ipv4:2380"
+            Environment="ETCD_DISCOVERY={{ .ETCDDiscoveryURL }}"
     - name: "flanneld.service"
       command: start
       drop-ins:
         - name: 50-network-config.conf
           content: |
             [Unit]
-            Requires=etcd2.service
+            Requires=etcd-member.service
             [Service]
             Environment=FLANNEL_IMAGE_TAG=v0.9.0
             ExecStartPre=/usr/bin/etcdctl set /coreos.com/network/config '{"Network":"10.2.0.0/16", "Backend": {"Type": "vxlan"}}'

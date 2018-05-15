@@ -42,8 +42,8 @@ var baseFlags = []cli.Flag{
 
 type CLI struct {
 	*cli.App
-	Client  func(*cli.Context) *client.Client
-	Stdin   *os.File
+	Client func(*cli.Context) *client.Client
+	Stdin  *os.File
 }
 
 func New(clientFn func(*cli.Context) *client.Client, stdin *os.File, version string) *CLI {
