@@ -52,9 +52,10 @@ func (p *Provider) DeleteKube(m *model.Kube, action *core.Action) error {
 			}
 
 			// TODO(stgleb): Context should be inherited from higher level context
-			ctx, _ := context.WithTimeout(context.Background(), 5*time.Minute)
+			ctx, cancel := context.WithTimeout(context.Background(), 5*time.Minute)
+			defer cancel()
 
-			waitErr := util.WaitFor("Kubernetes master termination", ctx, 3*time.Second, func() (bool, error) { // TODO --------- use server() method
+			waitErr := util.WaitFor(ctx, "Kubernetes master termination", 3*time.Second, func() (bool, error) { // TODO --------- use server() method
 				resp, err := ec2S.DescribeInstances(descinput)
 				if err != nil && isErrAndNotAWSNotFound(err) {
 					return false, err
@@ -132,7 +133,8 @@ func (p *Provider) DeleteKube(m *model.Kube, action *core.Action) error {
 		// NOTE we do this (maybe we should just describe, not spam detach) because
 		// we can't wait directly on minions to terminate (we can, but I'm lazy rn)
 		// TODO(stgleb): Context should be inherited from higher level context
-		ctx, _ := context.WithTimeout(context.Background(), 5*time.Minute)
+		ctx, cancel := context.WithTimeout(context.Background(), 5*time.Minute)
+		defer cancel()
 
 		waitErr := util.WaitFor(ctx, "Internet Gateway to detach", 5*time.Second, func() (bool, error) {
 			if _, err := ec2S.DetachInternetGateway(diginput); err != nil && !strings.Contains(err.Error(), "not attached") {
@@ -190,7 +192,8 @@ func (p *Provider) DeleteKube(m *model.Kube, action *core.Action) error {
 				}
 
 				// TODO(stgleb): Context should be inherited from higher level context
-				ctx, _ := context.WithTimeout(context.Background(), 2*time.Minute)
+				ctx, cancel := context.WithTimeout(context.Background(), 2*time.Minute)
+				defer cancel()
 
 				waitErr := util.WaitFor(ctx, "Public Subnet to delete", 5*time.Second, func() (bool, error) {
 					if _, err := ec2S.DeleteSubnet(input); isErrAndNotAWSNotFound(err) {

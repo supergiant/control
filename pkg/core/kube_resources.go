@@ -156,7 +156,8 @@ func (c *KubeResources) Start(id *int64, m *model.KubeResource) ActionInterface 
 			desc := fmt.Sprintf("%s '%s' in Namespace '%s' to start", m.Kind, m.Name, m.Namespace)
 
 			// TODO(stgleb): Context should be inherited from higher level context
-			ctx, _ := context.WithTimeout(context.Background(), c.Core.KubeResourceStartTimeout)
+			ctx, cancel := context.WithTimeout(context.Background(), c.Core.KubeResourceStartTimeout)
+			defer cancel()
 
 			waitErr := util.WaitFor(ctx, desc, 3*time.Second, func() (bool, error) {
 				return c.provisioner(m).IsRunning(m)

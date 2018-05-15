@@ -99,7 +99,8 @@ func (a *Action) Async() error {
 
 func (a *Action) CancellableWaitFor(desc string, d time.Duration, i time.Duration, fn func() (bool, error)) error {
 	// TODO(stgleb): Context should be inherited from higher level context
-	ctx, _ := context.WithTimeout(context.Background(), d)
+	ctx, cancel := context.WithTimeout(context.Background(), d)
+	defer cancel()
 
 	return util.WaitFor(desc, ctx, i, func() (bool, error) {
 		if a.Status.Cancelled {

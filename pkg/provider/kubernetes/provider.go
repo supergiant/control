@@ -50,7 +50,8 @@ func (p *Provider) CreateLoadBalancer(m *model.LoadBalancer, action *core.Action
 	}
 
 	// TODO(stgleb): Context should be inherited from higher level context
-	ctx, _ := context.WithTimeout(context.Background(), 5*time.Minute)
+	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Minute)
+	defer cancel()
 
 	waitDesc := fmt.Sprintf("LoadBalancer %s address", m.Name)
 	err := util.WaitFor(ctx, waitDesc, 4*time.Second, func() (bool, error) {

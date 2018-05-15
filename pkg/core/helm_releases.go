@@ -265,7 +265,9 @@ func execHelmCmd(c *Core, kube *model.Kube, cmd string) (out string, err error) 
 	defer c.K8S(kube).DeleteResource("api/v1", "Pod", "default", podName)
 
 	// TODO(stgleb): Context should be inherited from higher level context
-	ctx, _ := context.WithTimeout(context.Background(), c.HelmJobStartTimeout)
+	ctx, cancel := context.WithTimeout(context.Background(), c.HelmJobStartTimeout)
+	defer cancel()
+
 	waitErr := util.WaitFor(ctx, fmt.Sprintf("Helm cmd '%s'", cmd), 1*time.Second, func() (bool, error) {
 		if err = c.K8S(kube).GetResource("api/v1", "Pod", "default", podName, pod); err != nil {
 			if strings.Contains(err.Error(), "404") {
