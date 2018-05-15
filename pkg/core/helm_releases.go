@@ -9,6 +9,8 @@ import (
 	"sync"
 	"time"
 
+	"context"
+
 	"github.com/supergiant/supergiant/pkg/kubernetes"
 	"github.com/supergiant/supergiant/pkg/model"
 	"github.com/supergiant/supergiant/pkg/util"
@@ -262,7 +264,11 @@ func execHelmCmd(c *Core, kube *model.Kube, cmd string) (out string, err error) 
 
 	defer c.K8S(kube).DeleteResource("api/v1", "Pod", "default", podName)
 
-	waitErr := util.WaitFor(fmt.Sprintf("Helm cmd '%s'", cmd), c.HelmJobStartTimeout, 1*time.Second, func() (bool, error) {
+	// TODO(stgleb): Context should be inherited from higher level context
+	ctx, cancel := context.WithTimeout(context.Background(), c.HelmJobStartTimeout)
+	defer cancel()
+
+	waitErr := util.WaitFor(ctx, fmt.Sprintf("Helm cmd '%s'", cmd), 1*time.Second, func() (bool, error) {
 		if err = c.K8S(kube).GetResource("api/v1", "Pod", "default", podName, pod); err != nil {
 			if strings.Contains(err.Error(), "404") {
 				// This or the Phase == "Succeeded" line may fire, but this one is much
