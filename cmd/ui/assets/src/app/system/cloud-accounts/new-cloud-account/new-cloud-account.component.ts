@@ -59,43 +59,4 @@ export class NewCloudAccountComponent implements OnInit, OnDestroy {
       'Kube: ' + model.name,
       'Error:' + data.statusText);
   }
-
-  sendChoice(choice) {
-    console.log(choice);
-    switch (choice) {
-      case 'AWS - Amazon Web Services': {
-        this.model = this.providersObj.aws.model;
-        this.schema = this.providersObj.aws.schema;
-        break;
-      }
-      case 'Digital Ocean': {
-        this.model = this.providersObj.digitalocean.model;
-        this.schema = this.providersObj.digitalocean.schema;
-        break;
-      }
-      case 'Packet.net': {
-        this.model = this.providersObj.packet.model;
-        this.schema = this.providersObj.packet.schema;
-        break;
-      }
-      case 'OpenStack': {
-        this.model = this.providersObj.openstack.model;
-        this.schema = this.providersObj.openstack.schema;
-        break;
-      }
-      case 'GCE - Google Compute Engine': {
-        this.model = this.providersObj.gce.model;
-        this.schema = this.providersObj.gce.schema;
-        break;
-      }
-      default: {
-        this.model = null;
-        this.schema = null;
-        break;
-      }
-    }
-
-
-  }
-
 }

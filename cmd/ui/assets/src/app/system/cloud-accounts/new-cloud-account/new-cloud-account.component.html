@@ -16,7 +16,4 @@
       <json-schema-form framework="bootstrap-3" [schema]="provider.data.schema" [data]="provider.data.model" (onSubmit)="create(value)" (onChanges)="value=$event"></json-schema-form>
     </mat-tab>
   </mat-tab-group>
-  
-  <br>
-  <p *ngIf="!schema">Select a Cloud</p>
 </div>
