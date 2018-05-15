@@ -54,7 +54,7 @@ func RandomString(n int) string {
 // }
 
 // WaitFor event using context
-func WaitFor(desc string, ctx context.Context, period time.Duration, fn func() (bool, error)) error {
+func WaitFor(ctx context.Context, desc string, period time.Duration, fn func() (bool, error)) error {
 	ticker := time.NewTicker(period)
 
 	for {

@@ -134,7 +134,7 @@ func (p *Provider) DeleteKube(m *model.Kube, action *core.Action) error {
 		// TODO(stgleb): Context should be inherited from higher level context
 		ctx, _ := context.WithTimeout(context.Background(), 5*time.Minute)
 
-		waitErr := util.WaitFor("Internet Gateway to detach", ctx, 5*time.Second, func() (bool, error) {
+		waitErr := util.WaitFor(ctx, "Internet Gateway to detach", 5*time.Second, func() (bool, error) {
 			if _, err := ec2S.DetachInternetGateway(diginput); err != nil && !strings.Contains(err.Error(), "not attached") {
 				if strings.Contains(err.Error(), "does not exist") {
 					// it does not exist,
@@ -192,7 +192,7 @@ func (p *Provider) DeleteKube(m *model.Kube, action *core.Action) error {
 				// TODO(stgleb): Context should be inherited from higher level context
 				ctx, _ := context.WithTimeout(context.Background(), 2*time.Minute)
 
-				waitErr := util.WaitFor("Public Subnet to delete", ctx, 5*time.Second, func() (bool, error) {
+				waitErr := util.WaitFor(ctx, "Public Subnet to delete", 5*time.Second, func() (bool, error) {
 					if _, err := ec2S.DeleteSubnet(input); isErrAndNotAWSNotFound(err) {
 						return false, nil
 					}

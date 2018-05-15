@@ -266,7 +266,7 @@ func execHelmCmd(c *Core, kube *model.Kube, cmd string) (out string, err error) 
 
 	// TODO(stgleb): Context should be inherited from higher level context
 	ctx, _ := context.WithTimeout(context.Background(), c.HelmJobStartTimeout)
-	waitErr := util.WaitFor(fmt.Sprintf("Helm cmd '%s'", cmd), ctx, 1*time.Second, func() (bool, error) {
+	waitErr := util.WaitFor(ctx, fmt.Sprintf("Helm cmd '%s'", cmd), 1*time.Second, func() (bool, error) {
 		if err = c.K8S(kube).GetResource("api/v1", "Pod", "default", podName, pod); err != nil {
 			if strings.Contains(err.Error(), "404") {
 				// This or the Phase == "Succeeded" line may fire, but this one is much

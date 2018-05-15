@@ -157,7 +157,8 @@ func (c *KubeResources) Start(id *int64, m *model.KubeResource) ActionInterface 
 
 			// TODO(stgleb): Context should be inherited from higher level context
 			ctx, _ := context.WithTimeout(context.Background(), c.Core.KubeResourceStartTimeout)
-			waitErr := util.WaitFor(desc, ctx, 3*time.Second, func() (bool, error) {
+
+			waitErr := util.WaitFor(ctx, desc, 3*time.Second, func() (bool, error) {
 				return c.provisioner(m).IsRunning(m)
 			})
 			if waitErr != nil {

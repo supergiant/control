@@ -53,7 +53,7 @@ func (p *Provider) CreateLoadBalancer(m *model.LoadBalancer, action *core.Action
 	ctx, _ := context.WithTimeout(context.Background(), 5*time.Minute)
 
 	waitDesc := fmt.Sprintf("LoadBalancer %s address", m.Name)
-	err := util.WaitFor(waitDesc, ctx, 4*time.Second, func() (bool, error) {
+	err := util.WaitFor(ctx, waitDesc, 4*time.Second, func() (bool, error) {
 		if getErr := p.Core.K8S(m.Kube).GetResource("api/v1", "Service", m.Namespace, m.Name, service); getErr != nil {
 			return false, getErr
 		}

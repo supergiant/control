@@ -244,7 +244,7 @@ func (p *Provider) CreateKube(m *model.Kube, action *core.Action) error {
 			// TODO(stgleb): Context should be inherited from higher level context
 			ctx, _ := context.WithTimeout(context.Background(), duration)
 
-			waitErr := util.WaitFor("Kubernetes Master IP asssign...", ctx, interval, func() (bool, error) {
+			waitErr := util.WaitFor(ctx, "Kubernetes Master IP asssign...", interval, func() (bool, error) {
 				server, _ := servers.Get(computeClient, masterServer.ID).Extract()
 				if server.Addresses[pNetwork] == nil {
 					return false, nil
@@ -277,7 +277,7 @@ func (p *Provider) CreateKube(m *model.Kube, action *core.Action) error {
 			// TODO(stgleb): Context should be inherited from higher level context
 			ctx, _ := context.WithTimeout(context.Background(), duration)
 
-			waitErr := util.WaitFor("OpenStack floating IP creation", ctx, interval, func() (bool, error) {
+			waitErr := util.WaitFor(ctx, "OpenStack floating IP creation", interval, func() (bool, error) {
 				opts := floatingips.CreateOpts{
 					FloatingNetworkID: m.OpenStackConfig.PublicGatwayID,
 				}

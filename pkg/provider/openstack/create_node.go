@@ -78,7 +78,7 @@ func (p *Provider) CreateNode(m *model.Node, action *core.Action) error {
 	// TODO(stgleb): Context should be inherited from higher level context
 	ctx, _ := context.WithTimeout(context.Background(), duration)
 
-	waitErr := util.WaitFor("Kubernetes Minion IP assign...", ctx, interval, func() (bool, error) {
+	waitErr := util.WaitFor(ctx, "Kubernetes Minion IP assign...", interval, func() (bool, error) {
 		serverObj, _ := servers.Get(computeClient, server.ID).Extract()
 		if serverObj.Addresses[pNetwork] == nil {
 			return false, nil
