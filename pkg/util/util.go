@@ -16,7 +16,7 @@ const letterBytes = "0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVW
 
 var src = rand.NewSource(time.Now().UnixNano())
 
-// Generate random string with reservoir sampling algorithm https://en.wikipedia.org/wiki/Reservoir_sampling
+// RandomString generates random string with reservoir sampling algorithm https://en.wikipedia.org/wiki/Reservoir_sampling
 func RandomString(n int) string {
 	buffer := make([]byte, n)
 	copy(buffer, letterBytes[:n])
