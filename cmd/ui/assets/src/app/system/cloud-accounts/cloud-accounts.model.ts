@@ -1,6 +1,7 @@
 // This is the only model that is pre-populated with providers given that the possibilities are known in advance
 export class CloudAccountModel {
   aws = {
+    'name': 'AWS - Amazon Web Services',
     'model': {
       'credentials': {
         'access_key': '',
