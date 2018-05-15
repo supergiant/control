@@ -54,7 +54,16 @@ func (p *Provider) CreateKube(m *model.Kube, ac *core.Action) error {
 }
 
 func (p *Provider) DeleteKube(kube *model.Kube, action *core.Action) error {
-	panic("implement me")
+	ctx := context.Background()
+	for _, node := range kube.Nodes {
+		nodeID := node.ID
+		err := p.DOClient.DeleteDroplet(DropletID(*nodeID), ctx)
+		if err != nil {
+			//TODO FIXME
+			return errors.Wrap(err, "failed to delete node")
+		}
+	}
+	return nil
 }
 
 func (*Provider) CreateNode(n *model.Node, action *core.Action) error {
