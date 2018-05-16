@@ -13,6 +13,12 @@
   </ngx-datatable>
 </div>
 
+<context-menu #basicMenu>
+  <ng-template contextMenuItem let-item (execute)="contextDelete($event.item)">
+    Delete <i>&quot;{{item?.name}}&quot;</i>
+  </ng-template>
+</context-menu>
+
 <div *ngIf="!hasCloudAccount" class="subcontext">
   <div class="clusters-index-empty no-cloud-account">
     <p>
@@ -23,10 +29,4 @@
       <button mat-raised-button color="primary" [routerLink]="['/system/cloud-accounts/new']">Add Your First Cloud Account</button>
     </p>
   </div>
-
-  <context-menu #basicMenu>
-    <ng-template contextMenuItem let-item (execute)="contextDelete($event.item)">
-      Delete <i>&quot;{{item?.name}}&quot;</i>
-    </ng-template>
-  </context-menu>
 </div>

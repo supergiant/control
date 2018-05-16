@@ -16,3 +16,4 @@ config/config.json
 /build/docker/api/darwin-amd64/supergiant-api-darwin-10.6-amd64
 /build/docker/api/windows-amd64/supergiant-api-windows-4.0-amd64.exe
 /build/docker/api/linux-arm64/supergiant-api-linux-arm64
+.vscode/
