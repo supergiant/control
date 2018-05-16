@@ -5,6 +5,8 @@ import (
 	"strings"
 	"time"
 
+	"context"
+
 	"github.com/supergiant/supergiant/pkg/core"
 	"github.com/supergiant/supergiant/pkg/kubernetes"
 	"github.com/supergiant/supergiant/pkg/model"
@@ -47,8 +49,12 @@ func (p *Provider) CreateLoadBalancer(m *model.LoadBalancer, action *core.Action
 		return err
 	}
 
+	// TODO(stgleb): Context should be inherited from higher level context
+	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Minute)
+	defer cancel()
+
 	waitDesc := fmt.Sprintf("LoadBalancer %s address", m.Name)
-	err := util.WaitFor(waitDesc, 5*time.Minute, 4*time.Second, func() (bool, error) {
+	err := util.WaitFor(ctx, waitDesc, 4*time.Second, func() (bool, error) {
 		if getErr := p.Core.K8S(m.Kube).GetResource("api/v1", "Service", m.Namespace, m.Name, service); getErr != nil {
 			return false, getErr
 		}

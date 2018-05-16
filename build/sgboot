@@ -96,11 +96,15 @@ cat > /etc/supergiant.json <<- EOM
       {"name": "n1-standard-8", "ram_gib": 30, "cpu_cores": 8}
     ],
     "packet": [
-      {"name": "Type 0", "ram_gib": 8, "cpu_cores": 4},
-      {"name": "Type 1", "ram_gib": 32, "cpu_cores": 4},
-      {"name": "Type 2", "ram_gib": 256, "cpu_cores": 24},
-      {"name": "Type 2A", "ram_gib": 128, "cpu_cores": 96},
-      {"name": "Type 3", "ram_gib": 128, "cpu_cores": 16}
+      {"name": "t1.small (Type 0)", "ram_gib": 8, "cpu_cores": 4},
+      {"name": "m2.xlarge.x86", "ram_gib": 384, "cpu_cores": 28},
+      {"name": "c1.small (Type 1)", "ram_gib": 32, "cpu_cores": 4},
+      {"name": "c2.medium.x86", "ram_gib": 64, "cpu_cores": 24},
+      {"name": "m1.xlarge (Type 2)", "ram_gib": 256, "cpu_cores": 24},
+      {"name": "c1.large.arm (Type 2A)", "ram_gib": 128, "cpu_cores": 96},
+      {"name": "x1.small (Type 1E)", "ram_gib": 32, "cpu_cores": 4},
+      {"name": "c1.xlarge (Type 3)", "ram_gib": 128, "cpu_cores": 16},
+      {"name": "s1.large (Type S)", "ram_gib": 128, "cpu_cores": 16}
     ]
   }
 }

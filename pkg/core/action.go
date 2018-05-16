@@ -6,6 +6,8 @@ import (
 	"strings"
 	"time"
 
+	"context"
+
 	"github.com/supergiant/supergiant/pkg/model"
 	"github.com/supergiant/supergiant/pkg/util"
 )
@@ -96,9 +98,13 @@ func (a *Action) Async() error {
 }
 
 func (a *Action) CancellableWaitFor(desc string, d time.Duration, i time.Duration, fn func() (bool, error)) error {
-	return util.WaitFor(desc, d, i, func() (bool, error) {
+	// TODO(stgleb): Context should be inherited from higher level context
+	ctx, cancel := context.WithTimeout(context.Background(), d)
+	defer cancel()
+
+	return util.WaitFor(ctx, desc, i, func() (bool, error) {
 		if a.Status.Cancelled {
-			return false, fmt.Errorf("Action cancelled while waiting for %s", desc)
+			return false, fmt.Errorf("action cancelled while waiting for %s", desc)
 		}
 		return fn()
 	})

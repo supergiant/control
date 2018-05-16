@@ -5,6 +5,8 @@ import (
 	"fmt"
 	"time"
 
+	"context"
+
 	"github.com/supergiant/supergiant/pkg/kubernetes"
 	"github.com/supergiant/supergiant/pkg/model"
 	"github.com/supergiant/supergiant/pkg/util"
@@ -152,7 +154,12 @@ func (c *KubeResources) Start(id *int64, m *model.KubeResource) ActionInterface 
 			}
 			// Wait for Resource to be ready
 			desc := fmt.Sprintf("%s '%s' in Namespace '%s' to start", m.Kind, m.Name, m.Namespace)
-			waitErr := util.WaitFor(desc, c.Core.KubeResourceStartTimeout, 3*time.Second, func() (bool, error) {
+
+			// TODO(stgleb): Context should be inherited from higher level context
+			ctx, cancel := context.WithTimeout(context.Background(), c.Core.KubeResourceStartTimeout)
+			defer cancel()
+
+			waitErr := util.WaitFor(ctx, desc, 3*time.Second, func() (bool, error) {
 				return c.provisioner(m).IsRunning(m)
 			})
 			if waitErr != nil {

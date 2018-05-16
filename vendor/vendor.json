@@ -568,6 +568,12 @@
 			"revisionTime": "2017-04-11T13:00:46Z"
 		},
 		{
+			"checksumSHA1": "ljd3FhYRJ91cLZz3wsH9BQQ2JbA=",
+			"path": "github.com/pkg/errors",
+			"revision": "816c9085562cd7ee03e7f8188a1cfd942858cded",
+			"revisionTime": "2018-03-11T21:45:15Z"
+		},
+		{
 			"checksumSHA1": "7Ck3I7G0hgz+1WD5ohzUMFJsvGg=",
 			"path": "github.com/satori/go.uuid",
 			"revision": "e673fdd4dea8a7334adbbe7f57b7e4b00bdc5502",

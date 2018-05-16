@@ -9,6 +9,24 @@ clean:
 generate-bindata:
 	go-bindata -pkg bindata -o bindata/bindata.go config/providers/... ui/assets/... ui/views/...
 
+verify: gofmt goimports lint
+
+gofmt:
+	@FLAGS="-w" build/verify/gofmt.sh
+
+goimports:
+	@FLAGS="-w -local github.com/supergiant/supergiant" build/verify/goimports.sh
+
+lint:
+	# TODO: enable the test directory when e2e tests will be updated
+	@build/verify/gometalinter.sh
+
+get-tools:
+	go get -u github.com/jteeuwen/go-bindata/...
+	go get -u github.com/kardianos/govendor
+	go get -u github.com/alecthomas/gometalinter
+	gometalinter --install
+
 build-builder:
 	docker build -t supergiant-builder --file build/Dockerfile.build .
 	docker create --name supergiant-builder supergiant-builder
