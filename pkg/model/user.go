@@ -1,8 +1,9 @@
 package model
 
 import (
-	"github.com/supergiant/supergiant/pkg/util"
 	"golang.org/x/crypto/bcrypt"
+
+	"github.com/supergiant/supergiant/pkg/util"
 )
 
 const (

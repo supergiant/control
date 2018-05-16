@@ -36,6 +36,7 @@ type Kube struct {
 	MasterNodeSize     string   `json:"master_node_size" validate:"nonzero" sg:"immutable"`
 	MasterID           string   `json:"master_id" sg:"readonly"`
 	MasterPrivateIP    string   `json:"master_private_ip" sg:"readonly"`
+	KubeAPIPort        string   `json:"kube_api_port" sg:"readonly"`
 	KubeMasterCount    int      `json:"kube_master_count"`
 	MasterNodes        []string `json:"master_nodes" gorm:"-" sg:"store_as_json_in=MasterNodesJSON"`
 	MasterNodesJSON    []byte   `json:"-"`
