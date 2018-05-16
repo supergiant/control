@@ -6,24 +6,19 @@ import (
 	"testing"
 	"time"
 
-	"github.com/supergiant/supergiant/pkg/model"
-	"github.com/supergiant/supergiant/pkg/util"
 	"context"
-	"github.com/supergiant/supergiant/pkg/core"
+	"github.com/supergiant/supergiant/pkg/util"
+	"os"
 )
-
-func createAdmin(c *core.Core) *model.User {
-	admin := &model.User{
-		Username: "bossman",
-		Password: "password",
-		Role:     "admin",
-	}
-	c.Users.Create(admin)
-	return admin
-}
 
 // Run test on AWS against all support versions of k8s
 func TestAmazon(t *testing.T) {
+	awsAccessKey := os.Getenv("AWS_ACCESS_KEY")
+	awsSecretKey := os.Getenv("AWS_SECRET_KEY")
+	awsRegion := os.Getenv("AWS_REGION")
+	awsAZ := os.Getenv("AWS_AVAILABILITY_ZONE")
+	pubKey := os.Getenv("AWS_SSH_PUB_KEY")
+
 	k8sVersions := []string{"1.8.7", "1.7.7", "1.6.7", "1.5.7"}
 	srv, err := newServer()
 
@@ -38,42 +33,42 @@ func TestAmazon(t *testing.T) {
 	go srv.Start()
 	defer srv.Stop()
 
+	cloudAccount, err := createCloudAccount(client, awsAccessKey, awsSecretKey, "aws")
+
+	if err != nil {
+		t.Error(err)
+		return
+	}
+
 	for _, k8sVersion := range k8sVersions {
 		t.Run(fmt.Sprintf("Test-AWS-%s", k8sVersion), func(t *testing.T) {
-			kube, err := createKube(client, k8sVersion)
+			kube, err := createKube(client, cloudAccount,
+				fmt.Sprintf("test-%s", strings.ToLower(util.RandomString(5))),
+				awsRegion,
+				awsAZ,
+				pubKey,
+				k8sVersion)
+
 			if err != nil {
 				t.Error(err)
 				return
 			}
 
-			list := &model.NodeList{}
-			client.Nodes.List(list)
-
 			ctx, cancel := context.WithTimeout(context.Background(), time.Second*600)
 			defer cancel()
 
-			err = util.WaitFor(ctx, "Wait for cluster to start", time.Second*1, func() (bool, error) {
+			err = util.WaitFor(ctx, "Wait for cluster to start", time.Second*30, func() (bool, error) {
 				err := client.Kubes.Get(kube.ID, kube)
 
 				if err != nil {
 					return false, err
 				}
 
-				// TODO(stgleb): Create string constants list for cluster/node/service statuses
-				if strings.Contains(kube.Status.Description, "Run") {
-					return true, nil
-				}
-
-				return false, nil
+				return kube.Ready, nil
 			})
 
-			if err != nil {
-				t.Error(err)
-			}
-
-			if len(list.Items) != 1 {
-				t.Errorf("Wrong nodes count expected %d actual %d", 1, len(list.Items))
-			}
+			// Clean up afterwards
+			client.Kubes.Delete(kube.ID, kube)
 		})
 	}
 }

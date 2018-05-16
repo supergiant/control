@@ -1,12 +1,19 @@
 package providers
 
 import (
-	"github.com/supergiant/supergiant/pkg/client"
-	"github.com/supergiant/supergiant/pkg/model"
-	"github.com/supergiant/supergiant/pkg/server"
-	"github.com/phayes/freeport"
-	"github.com/supergiant/supergiant/pkg/core"
 	"fmt"
+	"github.com/Sirupsen/logrus"
+	"github.com/phayes/freeport"
+	"github.com/supergiant/supergiant/pkg/client"
+	"github.com/supergiant/supergiant/pkg/core"
+	"github.com/supergiant/supergiant/pkg/model"
+	"github.com/supergiant/supergiant/pkg/provider/aws"
+	"github.com/supergiant/supergiant/pkg/provider/digitalocean"
+	"github.com/supergiant/supergiant/pkg/provider/gce"
+	"github.com/supergiant/supergiant/pkg/provider/kubernetes"
+	"github.com/supergiant/supergiant/pkg/provider/openstack"
+	"github.com/supergiant/supergiant/pkg/provider/packet"
+	"github.com/supergiant/supergiant/pkg/server"
 )
 
 func newServer() (*server.Server, error) {
@@ -25,7 +32,46 @@ func newServer() (*server.Server, error) {
 	}
 
 	c := &core.Core{}
+	c.Log = logrus.New()
+
 	c.Settings = settings
+	// See relevant NOTE in core.go
+	c.AWSProvider = func(creds map[string]string) core.Provider {
+		return &aws.Provider{
+			Core: c,
+			EC2:  aws.EC2,
+			IAM:  aws.IAM,
+			ELB:  aws.ELB,
+			S3:   aws.S3,
+			EFS:  aws.EFS,
+		}
+	}
+	c.DOProvider = func(creds map[string]string) core.Provider {
+		return &digitalocean.Provider{
+			Core:   c,
+			Client: digitalocean.Client,
+		}
+	}
+	c.OSProvider = func(creds map[string]string) core.Provider {
+		return &openstack.Provider{
+			Core:   c,
+			Client: openstack.Client,
+		}
+	}
+	c.GCEProvider = func(creds map[string]string) core.Provider {
+		return &gce.Provider{
+			Core:   c,
+			Client: gce.Client,
+		}
+	}
+	c.PACKProvider = func(creds map[string]string) core.Provider {
+		return &packet.Provider{
+			Core:   c,
+			Client: packet.Client,
+		}
+	}
+
+	c.K8SProvider = &kubernetes.Provider{Core: c}
 
 	if err := c.InitializeForeground(); err != nil {
 		panic(err)
@@ -39,32 +85,53 @@ func newServer() (*server.Server, error) {
 	return srv, nil
 }
 
-func createKube(sg *client.Client, version string) (*model.Kube, error) {
+func createCloudAccount(client *client.Client, accessKey, secretKey, provider string) (*model.CloudAccount, error) {
 	cloudAccount := &model.CloudAccount{
-		Name:        "test",
-		Provider:    "aws",
-		Credentials: map[string]string{"support": "1234"},
+		Name:     "test",
+		Provider: provider,
+
+		Credentials: map[string]string{
+			"support":    "1234",
+			"access_key": accessKey,
+			"secret_key": secretKey,
+		},
 	}
 
-	err := sg.CloudAccounts.Create(cloudAccount)
+	err := client.CloudAccounts.Create(cloudAccount)
 
 	if err != nil {
 		return nil, err
 	}
 
+	return cloudAccount, nil
+}
+
+func createAdmin(c *core.Core) *model.User {
+	admin := &model.User{
+		Username: "bossman",
+		Password: "password",
+		Role:     "admin",
+	}
+	c.Users.Create(admin)
+	return admin
+}
+
+func createKube(sg *client.Client, cloudAccount *model.CloudAccount, kubeName, awsRegion, awsAZ, pubKey, version string) (*model.Kube, error) {
 	kube := &model.Kube{
 		CloudAccountName:  cloudAccount.Name,
-		Name:              "test",
+		CloudAccount:      cloudAccount,
+		Name:              kubeName,
 		MasterNodeSize:    "m4.large",
 		KubernetesVersion: version,
+		SSHPubKey:         pubKey,
 		NodeSizes:         []string{"m4.large"},
 		AWSConfig: &model.AWSKubeConfig{
-			Region:           "us-east-1",
-			AvailabilityZone: "us-east-1a",
+			Region:           awsRegion,
+			AvailabilityZone: awsAZ,
 		},
 	}
 
-	err = sg.Kubes.Create(kube)
+	err := sg.Kubes.Create(kube)
 
 	return kube, err
 }
