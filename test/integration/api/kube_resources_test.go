@@ -235,7 +235,7 @@ func TestKubeResourcesStart(t *testing.T) {
 			var namespaceEnsured string
 			// var provisionerCalled string
 
-			srv.Core.KubeResourceStartTimeout = time.Nanosecond
+			srv.Core.KubeResourceStartTimeout = time.Second * 10
 
 			srv.Core.K8S = func(_ *model.Kube) kubernetes.ClientInterface {
 				return &fake_core.KubernetesClient{

@@ -291,7 +291,7 @@ func TestHelmReleasesCreate(t *testing.T) {
 
 			var fullCommand string
 
-			srv.Core.HelmJobStartTimeout = time.Nanosecond
+			srv.Core.HelmJobStartTimeout = time.Second * 5
 
 			srv.Core.K8S = func(_ *model.Kube) kubernetes.ClientInterface {
 				return &fake_core.KubernetesClient{
@@ -564,7 +564,7 @@ func TestHelmReleasesDelete(t *testing.T) {
 
 			var fullCommand string
 
-			srv.Core.HelmJobStartTimeout = time.Nanosecond
+			srv.Core.HelmJobStartTimeout = time.Second * 10
 
 			srv.Core.K8S = func(_ *model.Kube) kubernetes.ClientInterface {
 				return &fake_core.KubernetesClient{
