@@ -23,11 +23,17 @@
   </div>
 
   <!-- Don't forget the context menu! -->
-  <ngx-datatable class="material expandable" [rows]="rows" [columnMode]="'force'" [columns]="columns" [headerHeight]="50" [footerHeight]="50" [rowHeight]="'auto'" [limit]="20" [selected]="selected" [selectionType]="'checkbox'" [selectAllRowsOnPage]="false" [displayCheck]="displayCheck" (select)='onSelect($event)'>
+  <ngx-datatable class="material expandable" [rows]="rows" [columnMode]="'force'" [columns]="columns" [headerHeight]="50" [footerHeight]="50" [rowHeight]="'auto'" [limit]="20" [selected]="selected" [selectionType]="'checkbox'" [selectAllRowsOnPage]="false" [displayCheck]="displayCheck" (select)='onSelect($event)' (tableContextmenu)="onTableContextMenu($event)">
     <ngx-datatable-column name="checkbox" [width]="30" [sortable]="false" [canAutoResize]="false" [draggable]="false" [resizeable]="false" [headerCheckboxable]="true" [checkboxable]="true">
     </ngx-datatable-column>
     <ngx-datatable-column name="Username" prop="username"></ngx-datatable-column>
     <ngx-datatable-column name="Role" prop="role">
     </ngx-datatable-column>
   </ngx-datatable>
+
+  <context-menu #basicMenu>
+    <ng-template contextMenuItem let-item (execute)="contextDelete($event.item)">
+      Delete <i>&quot;{{item?.username}}&quot;</i>
+    </ng-template>
+  </context-menu>
 </div>

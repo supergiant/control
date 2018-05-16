@@ -17,7 +17,7 @@
   </div>
 
   <div>
-    <ngx-datatable class="material expandable" [rows]="rows" [columnMode]="'force'" [columns]="columns" [headerHeight]="50" [footerHeight]="50" [rowHeight]="'auto'" [limit]="20" [selected]="selected" [selectionType]="'checkbox'" [selectAllRowsOnPage]="false" [displayCheck]="displayCheck" (select)='onSelect($event)'>
+    <ngx-datatable class="material expandable" [rows]="rows" [columnMode]="'force'" [columns]="columns" [headerHeight]="50" [footerHeight]="50" [rowHeight]="'auto'" [limit]="20" [selected]="selected" [selectionType]="'checkbox'" [selectAllRowsOnPage]="false" [displayCheck]="displayCheck" (select)='onSelect($event)' (tableContextmenu)="onTableContextMenu($event)">
       <ngx-datatable-column name="checkbox" [width]="30" [sortable]="false" [canAutoResize]="false" [draggable]="false" [resizeable]="false" [headerCheckboxable]="true" [checkboxable]="true">
       </ngx-datatable-column>
       <ngx-datatable-column name="Name" prop="name"></ngx-datatable-column>
@@ -25,4 +25,10 @@
       </ngx-datatable-column>
     </ngx-datatable>
   </div>
+
+  <context-menu #basicMenu>
+    <ng-template contextMenuItem let-item (execute)="contextDelete($event.item)">
+      Delete <i>&quot;{{item?.name}}&quot;</i>
+    </ng-template>
+  </context-menu>
 </div>

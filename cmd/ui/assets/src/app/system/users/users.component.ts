@@ -1,4 +1,4 @@
-import { Component, OnInit, OnDestroy, ViewEncapsulation } from '@angular/core';
+import { Component, OnInit, OnDestroy, ViewEncapsulation, ViewChild } from '@angular/core';
 import { Subscription } from 'rxjs/Subscription';
 import { Observable } from 'rxjs/Observable';
 import { Supergiant } from '../../shared/supergiant/supergiant.service';
@@ -16,6 +16,7 @@ import { ContextMenuService, ContextMenuComponent } from 'ngx-contextmenu';
 export class Users2000Component implements OnInit, OnDestroy {
   public rows = [];
   public selected = [];
+  public users = [];
   public columns = [
     { prop: 'username' },
     { prop: 'role' },
@@ -27,9 +28,15 @@ export class Users2000Component implements OnInit, OnDestroy {
   private password: string;
   private role: string;
   private userModel = new UsersModel;
+
+  private rawEvent: any;
+  private contextmenuRow: any;
+  private contextmenuColumn: any;
+  @ViewChild(ContextMenuComponent) public basicMenu: ContextMenuComponent;
   constructor(
     private supergiant: Supergiant,
     private notifications: Notifications,
+    private contextMenuService: ContextMenuService,
   ) { }
 
   ngOnInit() {
@@ -53,14 +60,17 @@ export class Users2000Component implements OnInit, OnDestroy {
           id: user.id, username: user.username, role: user.role
         }));
 
-        // Copy over any kubes that happen to be currently selected.
-        this.selected.forEach((user, index, array) => {
+        // Maintain selection of users:
+        const selected: Array<any> = [];
+        this.selected.forEach((user, index) => {
           for (const row of this.rows) {
             if (row.id === user.id) {
-              array[index] = row;
+              selected.push(row);
+              break;
             }
           }
         });
+        this.selected = selected;
       },
       (err) => { this.notifications.display('warn', 'Connection Issue.', err); }));
   }
@@ -99,6 +109,32 @@ export class Users2000Component implements OnInit, OnDestroy {
     }
   }
 
+  onTableContextMenu(contextMenuEvent) {
+    this.rawEvent = contextMenuEvent.event;
+    if (contextMenuEvent.type === 'body') {
+      this.contextmenuColumn = undefined;
+      this.contextMenuService.show.next({
+        contextMenu: this.basicMenu,
+        item: contextMenuEvent.content,
+        event: contextMenuEvent.event,
+      });
+    } else {
+      this.contextmenuColumn = contextMenuEvent.content;
+      this.contextmenuRow = undefined;
+    }
 
+    contextMenuEvent.event.preventDefault();
+    contextMenuEvent.event.stopPropagation();
+  }
+
+  contextDelete(item) {
+    for (const row of this.rows) {
+      if (row.id === item.id) {
+        this.selected.push(row);
+        this.delete();
+        break;
+      }
+    }
+  }
 
 }
