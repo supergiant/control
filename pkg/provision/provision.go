@@ -1,17 +1,16 @@
 package provision
 
 import (
-	"github.com/supergiant/supergiant/pkg/model"
 	"context"
+	"github.com/supergiant/supergiant/pkg/profile"
 )
 
+type Settings struct {
+	IPS        []string
+	K8SVersion string
+	//TODO Add credentials handling
+}
+
 type Interface interface {
-	CreateMaster(kube *model.Kube, ips []string, ctx context.Context) error
-}
-
-type SSHService struct {
-}
-
-func (s *SSHService) CreateMaster(kube *model.Kube, ips []string, ctx context.Context) error {
-	return nil
+	Provision(context.Context, *profile.NodeProfile, *Settings) (error)
 }
