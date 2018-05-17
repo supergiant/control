@@ -6,6 +6,7 @@ import (
 	"github.com/gophercloud/gophercloud"
 	"github.com/gophercloud/gophercloud/openstack"
 	floatingip "github.com/gophercloud/gophercloud/openstack/compute/v2/extensions/floatingips"
+	"github.com/gophercloud/gophercloud/openstack/compute/v2/extensions/secgroups"
 	"github.com/gophercloud/gophercloud/openstack/compute/v2/servers"
 	"github.com/gophercloud/gophercloud/openstack/networking/v2/extensions/layer3/routers"
 	"github.com/gophercloud/gophercloud/openstack/networking/v2/networks"
@@ -151,6 +152,31 @@ func (p *Provider) DeleteKube(m *model.Kube, action *core.Action) error {
 			networks.Delete(networkClient, m.OpenStackConfig.NetworkID).ExtractErr()
 			return true, nil
 		})
+	})
+
+	// TODO: Remove duplication in destroying security groups...
+	procedure.AddStep("Destroying master security group...", func() error {
+		err := secgroups.Delete(computeClient, m.OpenStackConfig.MasterSecurityGroupID).ExtractErr()
+		if err != nil {
+			if ignoreErrors(err) {
+				return nil
+			}
+			return err
+		}
+
+		return nil
+	})
+
+	procedure.AddStep("Destroying node security group...", func() error {
+		err := secgroups.Delete(computeClient, m.OpenStackConfig.NodeSecurityGroupID).ExtractErr()
+		if err != nil {
+			if ignoreErrors(err) {
+				return nil
+			}
+			return err
+		}
+
+		return nil
 	})
 
 	return procedure.Run()

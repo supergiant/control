@@ -387,6 +387,12 @@
 			"revisionTime": "2017-06-11T02:52:58Z"
 		},
 		{
+			"checksumSHA1": "Z8X3+qVpl9EImYGJ5tJ9Pxn3qqc=",
+			"path": "github.com/gophercloud/gophercloud/openstack/compute/v2/extensions/secgroups",
+			"revision": "32083cdce4c64eff52ec57f82b2d3b522d1ba48a",
+			"revisionTime": "2018-03-02T19:53:23Z"
+		},
+		{
 			"checksumSHA1": "vTyXSR+Znw7/o/70UBOWG0F09r8=",
 			"path": "github.com/gophercloud/gophercloud/openstack/compute/v2/flavors",
 			"revision": "64e5161c25fde7f0ccfb85f9af29ed22eeab4cd0",

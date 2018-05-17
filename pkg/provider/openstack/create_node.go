@@ -57,7 +57,8 @@ func (p *Provider) CreateNode(m *model.Node, action *core.Action) error {
 		Networks: []servers.Network{
 			{UUID: m.Kube.OpenStackConfig.NetworkID},
 		},
-		Metadata: map[string]string{"kubernetes-cluster": m.Kube.Name, "Role": "minion"},
+		SecurityGroups: []string{m.Kube.OpenStackConfig.NodeSecurityGroupID},
+		Metadata:       map[string]string{"kubernetes-cluster": m.Kube.Name, "Role": "minion"},
 	}
 
 	// Create server

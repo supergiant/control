@@ -124,11 +124,13 @@ type OSKubeConfig struct {
 	PrivateSubnetRange string `json:"private_subnet_ip_range" validate:"nonzero" sg:"default=172.20.0.0/24"`
 	PublicGatwayID     string `json:"public_gateway_id" validate:"nonzero" sg:"default=disabled"`
 
-	NetworkID    string `json:"network_id" sg:"readonly"`
-	SubnetID     string `json:"subnet_id" sg:"readonly"`
-	RouterID     string `json:"router_id" sg:"readonly"`
-	FloatingIPID string `json:"floating_ip_id" sg:"readonly"`
-	ImageName    string `json:"image_name" validate:"nonzero"`
+	NetworkID             string `json:"network_id" sg:"readonly"`
+	SubnetID              string `json:"subnet_id" sg:"readonly"`
+	RouterID              string `json:"router_id" sg:"readonly"`
+	FloatingIPID          string `json:"floating_ip_id" sg:"readonly"`
+	ImageName             string `json:"image_name" validate:"nonzero"`
+	MasterSecurityGroupID string `json:"master_security_group_id" sg:"readonly"`
+	NodeSecurityGroupID   string `json:"node_security_group_id" sg:"readonly"`
 }
 
 // GCEKubeConfig holds do specific information about DO based KUbernetes clusters.
