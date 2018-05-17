@@ -38,7 +38,7 @@ func TestLoadBalancersList(t *testing.T) {
 			// A successful example
 			{
 				existingModels: []*model.LoadBalancer{
-					&model.LoadBalancer{
+					{
 						KubeName:  kube.Name,
 						Name:      "test",
 						Namespace: "default",

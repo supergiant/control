@@ -20,6 +20,7 @@ export class Users2000Component implements OnInit, OnDestroy {
   public columns = [
     { prop: 'username' },
     { prop: 'role' },
+    { prop: 'token' },
   ];
   public displayCheck: boolean;
 
@@ -27,6 +28,7 @@ export class Users2000Component implements OnInit, OnDestroy {
   private username: string;
   private password: string;
   private role: string;
+  private token: string;
   private userModel = new UsersModel;
 
   private rawEvent: any;
@@ -55,10 +57,10 @@ export class Users2000Component implements OnInit, OnDestroy {
   get() {
     this.subscriptions.add(Observable.timer(0, 5000)
       .switchMap(() => this.supergiant.Users.get()).subscribe(
-      (users) => {
-        this.rows = users.items.map(user => ({
-          id: user.id, username: user.username, role: user.role
-        }));
+        (users) => {
+          this.rows = users.items.map(user => ({
+            id: user.id, username: user.username, role: user.role, token: user.api_token
+          }));
 
         // Maintain selection of users:
         const selected: Array<any> = [];

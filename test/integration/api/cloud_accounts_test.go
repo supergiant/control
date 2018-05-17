@@ -5,8 +5,8 @@ import (
 	"testing"
 
 	"github.com/supergiant/supergiant/pkg/core"
-	"github.com/supergiant/supergiant/test/fake_core"
 	"github.com/supergiant/supergiant/pkg/model"
+	"github.com/supergiant/supergiant/test/fake_core"
 
 	. "github.com/smartystreets/goconvey/convey"
 )
@@ -27,7 +27,7 @@ func TestCloudAccountsList(t *testing.T) {
 			// A successful example
 			{
 				existingModels: []*model.CloudAccount{
-					&model.CloudAccount{
+					{
 						Name:        "test",
 						Provider:    "aws",
 						Credentials: map[string]string{"access_key": "blah", "secret_key": "bleh"},

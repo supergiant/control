@@ -30,6 +30,13 @@ export class ClustersListComponent implements OnInit, OnDestroy {
   public rowChartOptions: any = {
     responsive: true,
     maintainAspectRatio: true,
+    scales: {
+      yAxes: [{
+        ticks: {
+          beginAtZero: true,
+        }
+      }]
+    }
   };
   public rowChartColors: Array<any> = [
     { // grey
@@ -59,8 +66,8 @@ export class ClustersListComponent implements OnInit, OnDestroy {
   ];
 
   // linter is angry about the boolean typing but without it charts
-  public rowChartLegend: boolean = false;
-  public rowChartType: string = 'line';
+  public rowChartLegend = false;
+  public rowChartType = 'line';
   public rowChartLabels: Array<any> = ['', '', '', '', '', '', ''];
 
   private subscriptions = new Subscription();

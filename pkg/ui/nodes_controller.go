@@ -75,7 +75,7 @@ func ListNodes(sg *client.Client, w http.ResponseWriter, r *http.Request) error 
 		"showNewLink":   true,
 		"showStatusCol": true,
 		"batchActionPaths": map[string]map[string]string{
-			"Delete": map[string]string{
+			"Delete": {
 				"method":       "DELETE",
 				"relativePath": "",
 			},

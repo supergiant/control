@@ -29,7 +29,7 @@ func TestHelmChartsList(t *testing.T) {
 					URL:  "www.test.com",
 				},
 				existingModels: []*model.HelmChart{
-					&model.HelmChart{
+					{
 						RepoName:    "test",
 						Name:        "test",
 						Version:     "0.1.0",

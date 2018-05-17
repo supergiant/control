@@ -6,9 +6,12 @@ import (
 	"text/template"
 	"time"
 
+	"context"
+
 	"github.com/gophercloud/gophercloud"
 	"github.com/gophercloud/gophercloud/openstack"
 	"github.com/gophercloud/gophercloud/openstack/compute/v2/servers"
+
 	"github.com/supergiant/supergiant/bindata"
 	"github.com/supergiant/supergiant/pkg/core"
 	"github.com/supergiant/supergiant/pkg/model"
@@ -52,7 +55,7 @@ func (p *Provider) CreateNode(m *model.Node, action *core.Action) error {
 		ImageName:     m.Kube.OpenStackConfig.ImageName,
 		UserData:      minionUserdata.Bytes(),
 		Networks: []servers.Network{
-			servers.Network{UUID: m.Kube.OpenStackConfig.NetworkID},
+			{UUID: m.Kube.OpenStackConfig.NetworkID},
 		},
 		Metadata: map[string]string{"kubernetes-cluster": m.Kube.Name, "Role": "minion"},
 	}
@@ -72,7 +75,12 @@ func (p *Provider) CreateNode(m *model.Node, action *core.Action) error {
 	pNetwork := m.Kube.Name + "-network"
 	duration := 2 * time.Minute
 	interval := 10 * time.Second
-	waitErr := util.WaitFor("Kubernetes Minion IP asssign...", duration, interval, func() (bool, error) {
+
+	// TODO(stgleb): Context should be inherited from higher level context
+	ctx, cancel := context.WithTimeout(context.Background(), duration)
+	defer cancel()
+
+	waitErr := util.WaitFor(ctx, "Kubernetes Minion IP assign...", interval, func() (bool, error) {
 		serverObj, _ := servers.Get(computeClient, server.ID).Extract()
 		if serverObj.Addresses[pNetwork] == nil {
 			return false, nil

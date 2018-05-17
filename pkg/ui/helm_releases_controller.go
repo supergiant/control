@@ -101,7 +101,7 @@ func ListHelmReleases(sg *client.Client, w http.ResponseWriter, r *http.Request)
 		"showNewLink":   true,
 		"showStatusCol": true,
 		"batchActionPaths": map[string]map[string]string{
-			"Delete": map[string]string{
+			"Delete": {
 				"method":       "DELETE",
 				"relativePath": "",
 			},
