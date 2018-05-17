@@ -61,11 +61,11 @@ func ListUsers(sg *client.Client, w http.ResponseWriter, r *http.Request) error 
 			"Edit": "/ui/users/{{ ID }}/edit",
 		},
 		"batchActionPaths": map[string]map[string]string{
-			"Delete": map[string]string{
+			"Delete": {
 				"method":       "DELETE",
 				"relativePath": "",
 			},
-			"Regenerate API token": map[string]string{
+			"Regenerate API token": {
 				"method":       "POST",
 				"relativePath": "/regenerate_api_token",
 			},

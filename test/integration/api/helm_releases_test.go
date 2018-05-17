@@ -39,7 +39,7 @@ func TestHelmReleasesList(t *testing.T) {
 			// A successful example
 			{
 				existingModels: []*model.HelmRelease{
-					&model.HelmRelease{
+					{
 						KubeName:     kube.Name,
 						RepoName:     "stable",
 						ChartName:    "redis",
@@ -193,7 +193,7 @@ func TestHelmReleasesCreate(t *testing.T) {
 					return nil
 				},
 				fullCommand: `/helm init --client-only && /helm install supergiant/elasticsearch --version 0.7.1 --name test`,
-				asyncErr:    "Timed out waiting for Helm cmd 'install supergiant/elasticsearch --version 0.7.1 --name test'",
+				asyncErr:    "Helm cmd 'install supergiant/elasticsearch --version 0.7.1 --name test': context deadline exceeded",
 			},
 
 			// Unexpected error on Kubernetes CreateResource
@@ -291,7 +291,7 @@ func TestHelmReleasesCreate(t *testing.T) {
 
 			var fullCommand string
 
-			srv.Core.HelmJobStartTimeout = time.Nanosecond
+			srv.Core.HelmJobStartTimeout = time.Nanosecond * 1
 
 			srv.Core.K8S = func(_ *model.Kube) kubernetes.ClientInterface {
 				return &fake_core.KubernetesClient{

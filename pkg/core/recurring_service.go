@@ -22,7 +22,7 @@ type RecurringService struct {
 
 func (s *RecurringService) Run() {
 	s.tick() // we want to run Service once immediately before waiting interval
-	for _ = range time.NewTicker(s.interval).C {
+	for range time.NewTicker(s.interval).C {
 		s.tick()
 	}
 }

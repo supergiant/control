@@ -8,6 +8,7 @@ import (
 	"time"
 
 	"github.com/packethost/packngo"
+
 	"github.com/supergiant/supergiant/bindata"
 	"github.com/supergiant/supergiant/pkg/core"
 	"github.com/supergiant/supergiant/pkg/model"

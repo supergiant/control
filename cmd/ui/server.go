@@ -8,6 +8,7 @@ import (
 	"net/http"
 
 	"github.com/elazarl/go-bindata-assetfs"
+
 	"github.com/supergiant/supergiant/bindata/ui"
 )
 
