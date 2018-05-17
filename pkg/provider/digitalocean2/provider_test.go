@@ -19,14 +19,14 @@ type DOClientMock struct {
 
 var _ DigitalOceanClient = (*DOClientMock)(nil)
 
-func (m *DOClientMock) NewDroplet(k *model.Kube, s string, c context.Context) (*godo.Droplet, error) {
-	args := m.Called(k, s, c)
+func (m *DOClientMock) NewDroplet(c context.Context, k *model.Kube, s string) (*godo.Droplet, error) {
+	args := m.Called(c, k, s)
 	dr := args.Get(0).(godo.Droplet)
 	return &dr, args.Error(1)
 }
 
-func (m *DOClientMock) DeleteDroplet(ID DropletID, c context.Context) (error) {
-	args := m.Called(ID, c)
+func (m *DOClientMock) DeleteDroplet(c context.Context, ID DropletID) (error) {
+	args := m.Called(c, ID)
 	return args.Error(0)
 }
 
@@ -34,12 +34,17 @@ type ProvisionMock struct {
 	mock.Mock
 }
 
-var _ provision.Interface = (*ProvisionMock)(nil)
-
-func (m *ProvisionMock) CreateMaster(kube *model.Kube, ips []string, ctx context.Context) error {
-	args := m.Called(kube, ips, ctx)
+func (m *ProvisionMock) ProvisionK8SMaster(ctx context.Context, kube *model.Kube, settings *provision.Settings) error {
+	args := m.Called(ctx, kube, settings)
 	return args.Error(0)
 }
+
+func (m *ProvisionMock) ProvisionK8SNode(ctx context.Context, kube *model.Kube, settings *provision.Settings) error {
+	args := m.Called(ctx, kube, settings)
+	return args.Error(0)
+}
+
+var _ provision.Interface = (*ProvisionMock)(nil)
 
 func TestProvider_CreateKube(t *testing.T) {
 	c := &core.Core{
@@ -50,9 +55,9 @@ func TestProvider_CreateKube(t *testing.T) {
 	provMock := new(ProvisionMock)
 
 	p := Provider{
-		DOClient:  clientMock,
-		Core:      c,
-		Provision: provMock,
+		DOClient:    clientMock,
+		Core:        c,
+		Provisioner: provMock,
 	}
 
 	clientMock.On("NewDroplet", mock.Anything, mock.Anything, mock.Anything).Return(godo.Droplet{
@@ -66,7 +71,7 @@ func TestProvider_CreateKube(t *testing.T) {
 				}},
 		},
 	}, nil)
-	provMock.On("CreateMaster",
+	provMock.On("ProvisionMaster",
 		mock.Anything,
 		mock.Anything,
 		mock.Anything).Return(nil)
