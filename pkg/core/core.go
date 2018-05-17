@@ -9,6 +9,7 @@ import (
 
 	"github.com/Sirupsen/logrus"
 	"github.com/imdario/mergo"
+
 	"github.com/supergiant/supergiant/pkg/client"
 	"github.com/supergiant/supergiant/pkg/kubernetes"
 	"github.com/supergiant/supergiant/pkg/model"

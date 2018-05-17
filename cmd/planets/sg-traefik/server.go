@@ -9,7 +9,6 @@ import (
 	"net/http"
 
 	"github.com/elazarl/go-bindata-assetfs"
-	"github.com/supergiant/supergiant/bindata/planets/sg-traefik"
 )
 
 type fsWithDefault struct {

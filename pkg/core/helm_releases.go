@@ -11,10 +11,11 @@ import (
 
 	"context"
 
+	"github.com/technosophos/moniker"
+
 	"github.com/supergiant/supergiant/pkg/kubernetes"
 	"github.com/supergiant/supergiant/pkg/model"
 	"github.com/supergiant/supergiant/pkg/util"
-	"github.com/technosophos/moniker"
 )
 
 type HelmReleases struct {

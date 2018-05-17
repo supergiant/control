@@ -7,6 +7,7 @@ import (
 	"time"
 
 	"github.com/gorilla/handlers"
+
 	"github.com/supergiant/supergiant/pkg/api"
 	"github.com/supergiant/supergiant/pkg/core"
 	"github.com/supergiant/supergiant/pkg/ui"

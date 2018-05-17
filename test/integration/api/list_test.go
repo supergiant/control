@@ -48,42 +48,42 @@ func TestListFiltering(t *testing.T) {
 			},
 			// Empty
 			{
-				map[string][]string{"username": []string{}},
+				map[string][]string{"username": {}},
 				[]string{"user1", "user2", "admin1"},
 			},
 			// Single key, single value
 			{
-				map[string][]string{"username": []string{"user1"}},
+				map[string][]string{"username": {"user1"}},
 				[]string{"user1"},
 			},
 			// Single key, single invalid value
 			{
-				map[string][]string{"username": []string{"userbutt"}},
+				map[string][]string{"username": {"userbutt"}},
 				nil,
 			},
 			// Single key, multiple values (OR)
 			{
-				map[string][]string{"username": []string{"user1", "user2"}},
+				map[string][]string{"username": {"user1", "user2"}},
 				[]string{"user1", "user2"},
 			},
 			// Multiple keys, single values (AND)
 			{
-				map[string][]string{"username": []string{"user1"}, "role": []string{"admin"}},
+				map[string][]string{"username": {"user1"}, "role": {"admin"}},
 				nil,
 			},
 			// Multiple keys, single values (AND)
 			{
-				map[string][]string{"username": []string{"admin1"}, "role": []string{"admin"}},
+				map[string][]string{"username": {"admin1"}, "role": {"admin"}},
 				[]string{"admin1"},
 			},
 			// Multiple keys, multiple values (AND of ORs)
 			{
-				map[string][]string{"username": []string{"admin1", "user2"}, "role": []string{"user"}},
+				map[string][]string{"username": {"admin1", "user2"}, "role": {"user"}},
 				[]string{"user2"},
 			},
 			// Multiple keys, multiple values (AND of ORs)
 			{
-				map[string][]string{"username": []string{"admin1", "user2"}, "role": []string{"user", "admin"}},
+				map[string][]string{"username": {"admin1", "user2"}, "role": {"user", "admin"}},
 				[]string{"admin1", "user2"},
 			},
 		}

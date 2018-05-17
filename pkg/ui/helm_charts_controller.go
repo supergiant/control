@@ -69,7 +69,7 @@ func ListHelmCharts(sg *client.Client, w http.ResponseWriter, r *http.Request) e
 			"Launch": "/ui/helm_releases/new?chart_id={{ ID }}",
 		},
 		"batchActionPaths": map[string]map[string]string{
-			"Delete": map[string]string{
+			"Delete": {
 				"method":       "DELETE",
 				"relativePath": "",
 			},

@@ -11,6 +11,7 @@ import (
 	"github.com/gophercloud/gophercloud"
 	"github.com/gophercloud/gophercloud/openstack"
 	"github.com/gophercloud/gophercloud/openstack/compute/v2/servers"
+
 	"github.com/supergiant/supergiant/bindata"
 	"github.com/supergiant/supergiant/pkg/core"
 	"github.com/supergiant/supergiant/pkg/model"
@@ -54,7 +55,7 @@ func (p *Provider) CreateNode(m *model.Node, action *core.Action) error {
 		ImageName:     m.Kube.OpenStackConfig.ImageName,
 		UserData:      minionUserdata.Bytes(),
 		Networks: []servers.Network{
-			servers.Network{UUID: m.Kube.OpenStackConfig.NetworkID},
+			{UUID: m.Kube.OpenStackConfig.NetworkID},
 		},
 		Metadata: map[string]string{"kubernetes-cluster": m.Kube.Name, "Role": "minion"},
 	}

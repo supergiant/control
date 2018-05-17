@@ -5,11 +5,12 @@ import (
 	"os"
 	"testing"
 
+	cli_lib "github.com/urfave/cli"
+
 	"github.com/supergiant/supergiant/pkg/cli"
 	"github.com/supergiant/supergiant/pkg/client"
 	"github.com/supergiant/supergiant/pkg/model"
 	"github.com/supergiant/supergiant/test/fake_client"
-	cli_lib "github.com/urfave/cli"
 
 	. "github.com/smartystreets/goconvey/convey"
 )

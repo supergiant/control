@@ -10,8 +10,9 @@ import (
 	"strings"
 
 	"github.com/imdario/mergo"
-	"github.com/supergiant/supergiant/pkg/client"
 	"github.com/urfave/cli"
+
+	"github.com/supergiant/supergiant/pkg/client"
 )
 
 type GlobalConfig struct {

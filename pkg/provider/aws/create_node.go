@@ -11,6 +11,7 @@ import (
 
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/service/ec2"
+
 	"github.com/supergiant/supergiant/bindata"
 	"github.com/supergiant/supergiant/pkg/core"
 	"github.com/supergiant/supergiant/pkg/model"
@@ -83,7 +84,7 @@ func (p *Provider) CreateNode(m *model.Node, action *core.Action) error {
 			Name: nodeRole,
 		},
 		BlockDeviceMappings: []*ec2.BlockDeviceMapping{
-			&ec2.BlockDeviceMapping{
+			{
 				DeviceName: aws.String("/dev/xvda"),
 				Ebs: &ec2.EbsBlockDevice{
 					DeleteOnTermination: aws.Bool(true),

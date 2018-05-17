@@ -5,11 +5,12 @@ import (
 	"net/http"
 	"strings"
 
-	"github.com/supergiant/supergiant/pkg/core"
-	"github.com/supergiant/supergiant/pkg/model"
 	"golang.org/x/oauth2"
 	"golang.org/x/oauth2/jwt"
 	compute "google.golang.org/api/compute/v1"
+
+	"github.com/supergiant/supergiant/pkg/core"
+	"github.com/supergiant/supergiant/pkg/model"
 )
 
 // Provider Holds DO account info.

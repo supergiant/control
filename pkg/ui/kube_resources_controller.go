@@ -58,15 +58,15 @@ func ListKubeResources(sg *client.Client, w http.ResponseWriter, r *http.Request
 			"Edit": "/ui/kube_resources/{{ ID }}/edit",
 		},
 		"batchActionPaths": map[string]map[string]string{
-			"Delete": map[string]string{
+			"Delete": {
 				"method":       "DELETE",
 				"relativePath": "",
 			},
-			"Start": map[string]string{
+			"Start": {
 				"method":       "POST",
 				"relativePath": "/start",
 			},
-			"Stop": map[string]string{
+			"Stop": {
 				"method":       "POST",
 				"relativePath": "/stop",
 			},
