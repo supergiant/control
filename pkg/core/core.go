@@ -2,23 +2,23 @@ package core
 
 import (
 	"encoding/json"
-	"errors"
 	"fmt"
 	"os"
 	"time"
 
 	"github.com/Sirupsen/logrus"
+	"github.com/creasty/defaults"
 	"github.com/imdario/mergo"
+	"github.com/jinzhu/gorm"
+	_ "github.com/jinzhu/gorm/dialects/postgres"
+	_ "github.com/jinzhu/gorm/dialects/sqlite"
+	"github.com/pkg/errors"
+	kclient "k8s.io/client-go/kubernetes"
 
 	"github.com/supergiant/supergiant/pkg/client"
 	"github.com/supergiant/supergiant/pkg/kubernetes"
 	"github.com/supergiant/supergiant/pkg/model"
 	"github.com/supergiant/supergiant/pkg/util"
-
-	"github.com/creasty/defaults"
-	"github.com/jinzhu/gorm"
-	_ "github.com/jinzhu/gorm/dialects/postgres"
-	_ "github.com/jinzhu/gorm/dialects/sqlite"
 )
 
 type NodeSize struct {
@@ -73,7 +73,8 @@ type Core struct {
 	// A little different from the above
 	K8SProvider Provider
 
-	K8S func(*model.Kube) kubernetes.ClientInterface
+	K8S        func(*model.Kube) kubernetes.ClientInterface
+	KubeClient func(*model.Kube) (kclient.Interface, error)
 
 	DefaultProvisioner Provisioner
 
@@ -211,10 +212,19 @@ func (c *Core) InitializeForeground() error {
 
 	// Kubernetes Client
 	c.K8S = func(kube *model.Kube) kubernetes.ClientInterface {
-		return &kubernetes.Client{
-			Kube:       kube,
-			HTTPClient: kubernetes.DefaultHTTPClient,
+		return kubernetes.NewClient(kube, kubernetes.DefaultHTTPClient)
+	}
+	c.KubeClient = func(kube *model.Kube) (kclient.Interface, error) {
+		if kube.KubeAPIPort == "" {
+			kube.KubeAPIPort = "443"
 		}
+
+		config, err := kubernetes.BuildBasicAuthConfig(kube.MasterPublicIP, kube.KubeAPIPort, kube.Username, kube.Password)
+		if err != nil {
+			return nil, errors.Wrap(err, "build config")
+		}
+
+		return kclient.NewForConfig(config)
 	}
 
 	// Kubernetes Provisioners

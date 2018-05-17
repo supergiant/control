@@ -41,8 +41,6 @@ type ClientInterface interface {
 	GetKubeHeapsterStats(metricPath string) (HeapsterMetrics, error)
 }
 
-//------------------------------------------------------------------------------
-
 var DefaultHTTPClient = &http.Client{
 	Timeout: 30 * time.Second,
 	Transport: &http.Transport{
@@ -56,6 +54,13 @@ var DefaultHTTPClient = &http.Client{
 type Client struct {
 	Kube       *model.Kube
 	HTTPClient *http.Client
+}
+
+func NewClient(kube *model.Kube, httpClient *http.Client) ClientInterface {
+	return &Client{
+		Kube:       kube,
+		HTTPClient: httpClient,
+	}
 }
 
 // EnsureNamespace implements the ClientInterface.
