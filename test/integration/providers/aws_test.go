@@ -33,7 +33,11 @@ func TestAmazon(t *testing.T) {
 	go srv.Start()
 	defer srv.Stop()
 
-	cloudAccount, err := createCloudAccount(client, awsAccessKey, awsSecretKey, "aws")
+	cloudAccount, err := createCloudAccount(client,
+		map[string]string{
+			"access_key": awsAccessKey,
+			"secret_key": awsSecretKey},
+		"aws")
 
 	if err != nil {
 		t.Error(err)
@@ -68,7 +72,11 @@ func TestAmazon(t *testing.T) {
 			})
 
 			// Clean up afterwards
-			client.Kubes.Delete(kube.ID, kube)
+			err = client.Kubes.Delete(kube.ID, kube)
+
+			if err != nil {
+				t.Errorf("Error while deleting the kube %s", kube.ID)
+			}
 		})
 	}
 }

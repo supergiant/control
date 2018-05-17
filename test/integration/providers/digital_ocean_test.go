@@ -1,13 +1,13 @@
 package providers
 
 import (
-	"testing"
-	"os"
-	"fmt"
-	"strings"
-	"github.com/supergiant/supergiant/pkg/util"
-	"time"
 	"context"
+	"fmt"
+	"github.com/supergiant/supergiant/pkg/util"
+	"os"
+	"strings"
+	"testing"
+	"time"
 )
 
 func TestDigitalOcean(t *testing.T) {
@@ -29,13 +29,20 @@ func TestDigitalOcean(t *testing.T) {
 	go srv.Start()
 	defer srv.Stop()
 
+	cloudAccount, err := createCloudAccount(client, map[string]string{"token": token}, "digitalocean")
+
+	if err != nil {
+		t.Errorf("Unexpected error while creating cloud account %v", err)
+		return
+	}
+
 	for _, k8sVersion := range k8sVersions {
-		t.Run(fmt.Sprintf("Test Digital Ocean k8s version %s", k8sVersion), func(t *testing.T){
+		t.Run(fmt.Sprintf("Test Digital Ocean k8s version %s", k8sVersion), func(t *testing.T) {
 			kube, err := createKubeDO(client,
+				cloudAccount,
 				fmt.Sprintf("test-%s", strings.ToLower(util.RandomString(5))),
 				region,
 				fingerPrint,
-				token,
 				k8sVersion)
 
 			if err != nil {
@@ -57,7 +64,11 @@ func TestDigitalOcean(t *testing.T) {
 			})
 
 			// Clean up afterwards
-			client.Kubes.Delete(kube.ID, kube)
+			err = client.Kubes.Delete(kube.ID, kube)
+
+			if err != nil {
+				t.Errorf("Error while deleting the kube %s", kube.ID)
+			}
 		})
 	}
 }

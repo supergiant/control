@@ -85,16 +85,12 @@ func newServer() (*server.Server, error) {
 	return srv, nil
 }
 
-func createCloudAccount(client *client.Client, accessKey, secretKey, provider string) (*model.CloudAccount, error) {
+func createCloudAccount(client *client.Client, credentials map[string]string, provider string) (*model.CloudAccount, error) {
 	cloudAccount := &model.CloudAccount{
 		Name:     "test",
 		Provider: provider,
 
-		Credentials: map[string]string{
-			"support":    "1234",
-			"access_key": accessKey,
-			"secret_key": secretKey,
-		},
+		Credentials: credentials,
 	}
 
 	err := client.CloudAccounts.Create(cloudAccount)
@@ -136,22 +132,17 @@ func createKubeAWS(sg *client.Client, cloudAccount *model.CloudAccount, kubeName
 	return kube, err
 }
 
-func createKubeDO(sg *client.Client, kubeName, region, keyFingerPrint, token, version string) (*model.Kube, error) {
+func createKubeDO(sg *client.Client, cloudAccount *model.CloudAccount, kubeName, region, keyFingerPrint, version string) (*model.Kube, error) {
 	kube := &model.Kube{
-		CloudAccountName:  "test",
-		CloudAccount:      &model.CloudAccount{
-			Credentials: map[string]string{
-				"token": token,
-			},
-		},
+		CloudAccountName:  cloudAccount.Name,
+		CloudAccount:      cloudAccount,
 		Name:              kubeName,
-		MasterNodeSize:    "m4.large",
+		MasterNodeSize:    "1gb",
 		KubernetesVersion: version,
-		NodeSizes:          []string{"2gb"},
+		NodeSizes:         []string{"2gb"},
 		DigitalOceanConfig: &model.DOKubeConfig{
-			Region: region,
+			Region:            region,
 			SSHKeyFingerprint: []string{keyFingerPrint},
-
 		},
 	}
 
