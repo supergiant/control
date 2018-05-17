@@ -116,7 +116,7 @@ func createAdmin(c *core.Core) *model.User {
 	return admin
 }
 
-func createKube(sg *client.Client, cloudAccount *model.CloudAccount, kubeName, awsRegion, awsAZ, pubKey, version string) (*model.Kube, error) {
+func createKubeAWS(sg *client.Client, cloudAccount *model.CloudAccount, kubeName, awsRegion, awsAZ, pubKey, version string) (*model.Kube, error) {
 	kube := &model.Kube{
 		CloudAccountName:  cloudAccount.Name,
 		CloudAccount:      cloudAccount,
@@ -128,6 +128,30 @@ func createKube(sg *client.Client, cloudAccount *model.CloudAccount, kubeName, a
 		AWSConfig: &model.AWSKubeConfig{
 			Region:           awsRegion,
 			AvailabilityZone: awsAZ,
+		},
+	}
+
+	err := sg.Kubes.Create(kube)
+
+	return kube, err
+}
+
+func createKubeDO(sg *client.Client, kubeName, region, keyFingerPrint, token, version string) (*model.Kube, error) {
+	kube := &model.Kube{
+		CloudAccountName:  "test",
+		CloudAccount:      &model.CloudAccount{
+			Credentials: map[string]string{
+				"token": token,
+			},
+		},
+		Name:              kubeName,
+		MasterNodeSize:    "m4.large",
+		KubernetesVersion: version,
+		NodeSizes:          []string{"2gb"},
+		DigitalOceanConfig: &model.DOKubeConfig{
+			Region: region,
+			SSHKeyFingerprint: []string{keyFingerPrint},
+
 		},
 	}
 

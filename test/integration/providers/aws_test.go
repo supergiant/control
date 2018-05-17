@@ -42,7 +42,7 @@ func TestAmazon(t *testing.T) {
 
 	for _, k8sVersion := range k8sVersions {
 		t.Run(fmt.Sprintf("Test-AWS-%s", k8sVersion), func(t *testing.T) {
-			kube, err := createKube(client, cloudAccount,
+			kube, err := createKubeAWS(client, cloudAccount,
 				fmt.Sprintf("test-%s", strings.ToLower(util.RandomString(5))),
 				awsRegion,
 				awsAZ,
