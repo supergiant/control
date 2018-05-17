@@ -1,15 +1,17 @@
 package digitalocean2
 
 import (
-	"github.com/supergiant/supergiant/pkg/model"
+	"github.com/pkg/errors"
 	"github.com/supergiant/supergiant/pkg/core"
+	"github.com/supergiant/supergiant/pkg/model"
+	"github.com/supergiant/supergiant/pkg/profile"
+	"github.com/supergiant/supergiant/pkg/provision"
+	"github.com/supergiant/supergiant/pkg/util"
+
+	"context"
+
 	"github.com/digitalocean/godo"
 	"golang.org/x/oauth2"
-	"context"
-	"github.com/supergiant/supergiant/pkg/util"
-	"github.com/pkg/errors"
-	"github.com/supergiant/supergiant/pkg/provision"
-	"github.com/supergiant/supergiant/pkg/profile"
 )
 
 type Provider struct {
