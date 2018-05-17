@@ -9,12 +9,15 @@ import (
 	"github.com/supergiant/supergiant/pkg/util"
 	"github.com/pkg/errors"
 	"github.com/supergiant/supergiant/pkg/provision"
+	"github.com/supergiant/supergiant/pkg/profile"
 )
 
 type Provider struct {
-	DOClient  DigitalOceanClient
-	Core      *core.Core
-	Provision provision.Interface
+	DOClient        DigitalOceanClient
+	Core            *core.Core
+	Provisioner     provision.Interface
+	NodeProfiles    profile.NodeProfileService
+	ClusterProfiles profile.ClusterProfileService
 }
 
 func (p *Provider) ValidateAccount(m *model.CloudAccount) error {
@@ -29,27 +32,34 @@ func (p *Provider) ValidateAccount(m *model.CloudAccount) error {
 
 func (p *Provider) CreateKube(m *model.Kube, ac *core.Action) error {
 	ctx := context.Background()
+	clusterProfile, err := p.ClusterProfiles.GetByName(profile.OneNodeCluster)
 
-	//TODO FIXME
-	droplet, err := p.DOClient.NewDroplet(m, "digitalocean/digital_ocean_ubuntu_x64_master.sh", ctx)
+	masterProfile, err := p.NodeProfiles.GetByName(clusterProfile.MasterProfileName)
+	if err != nil {
+		return errors.WithStack(err)
+	}
+	droplet, err := p.DOClient.NewDroplet(ctx, m, masterProfile)
 	if err != nil {
 		return errors.Wrapf(err, "error while provisioning droplet for cluster ID %d", *m.ID)
 	}
 
 	ip, err := droplet.PublicIPv4()
 	if err != nil {
-		return errors.Wrapf(err, "error while creating the IP for droplet ID %d", droplet.ID)
+		return errors.Wrapf(err, "error while obtaining the IP for droplet ID %d", droplet.ID)
 	}
 	if ip == "" {
 		return errors.Wrapf(err, "error no ip assigned for droplet ID %d", droplet.ID)
 	}
 
-	err = p.Provision.CreateMaster(m, []string{ip}, ctx)
+	settings := &provision.Settings{
+		IPS: []string{ip},
+	}
+	err = p.Provisioner.Provision(ctx, masterProfile, settings)
+
 	if err != nil {
 		return errors.Wrapf(err, "error while provisioning k8s master on droplet ID %d with IP %s",
 			droplet.ID, ip)
 	}
-
 	return nil
 }
 
@@ -57,7 +67,7 @@ func (p *Provider) DeleteKube(kube *model.Kube, action *core.Action) error {
 	ctx := context.Background()
 	for _, node := range kube.Nodes {
 		nodeID := node.ID
-		err := p.DOClient.DeleteDroplet(DropletID(*nodeID), ctx)
+		err := p.DOClient.DeleteDroplet(ctx, DropletID(*nodeID))
 		if err != nil {
 			//TODO FIXME
 			return errors.Wrap(err, "failed to delete node")

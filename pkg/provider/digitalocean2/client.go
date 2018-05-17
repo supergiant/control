@@ -15,13 +15,13 @@ import (
 type DropletID int
 
 type DigitalOceanClient interface {
-	NewDroplet(*model.Kube, string, context.Context) (*godo.Droplet, error)
-	DeleteDroplet(DropletID, context.Context) (error)
+	NewDroplet(context.Context, *model.Kube, *profile.NodeProfile) (*godo.Droplet, error)
+	DeleteDroplet(context.Context, DropletID) (error)
 }
 
 type DOClient struct {
-	Client   *godo.Client
-	Profiles profile.Interface
+	Client       *godo.Client
+	NodeProfiles profile.NodeProfileService
 }
 
 func NewClient(digitalOceanToken string) *DOClient {
@@ -30,35 +30,28 @@ func NewClient(digitalOceanToken string) *DOClient {
 	}
 	oauthClient := oauth2.NewClient(context.Background(), token)
 	return &DOClient{
-		Client:   godo.NewClient(oauthClient),
-		Profiles: &profile.Service{},
+		Client:       godo.NewClient(oauthClient),
+		NodeProfiles: &profile.NodeProfiles{},
 	}
 }
 
-func (d *DOClient) NewDroplet(kube *model.Kube, profileName string, ctx context.Context) (*godo.Droplet, error) {
+func (d *DOClient) NewDroplet(ctx context.Context, kube *model.Kube, profile *profile.NodeProfile) (*godo.Droplet, error) {
 	var fingers []godo.DropletCreateSSHKey
 	for _, ssh := range kube.DigitalOceanConfig.SSHKeyFingerprint {
 		fingers = append(fingers, godo.DropletCreateSSHKey{
 			Fingerprint: ssh,
 		})
 	}
-	userData, err := d.Profiles.GetUserData(profileName)
-	if err != nil {
-		return nil, errors.Wrapf(err, "Profile script not found or profile %s is unknown", profileName)
-	}
-
 	name := kube.Name + "-master" + "-" + strings.ToLower(util.RandomString(5))
-	//TODO Move to profiles
+
 	dropletRequest := &godo.DropletCreateRequest{
 		Name:              name,
 		Region:            kube.DigitalOceanConfig.Region,
 		Size:              kube.MasterNodeSize,
 		PrivateNetworking: true,
-		//TODO Introduce profiles
-		UserData: string(userData),
-		SSHKeys:  fingers,
+		SSHKeys:           fingers,
 		Image: godo.DropletCreateImage{
-			Slug: "ubuntu-16-04-x64",
+			Slug: profile.Name,
 		},
 	}
 
@@ -70,7 +63,7 @@ func (d *DOClient) NewDroplet(kube *model.Kube, profileName string, ctx context.
 	return droplet, err
 }
 
-func (d *DOClient) DeleteDroplet(ID DropletID, ctx context.Context) (error) {
+func (d *DOClient) DeleteDroplet(ctx context.Context, ID DropletID) (error) {
 	resp, err := d.Client.Droplets.Delete(int(ID))
 	if err != nil {
 		if resp.StatusCode == http.StatusNotFound {
