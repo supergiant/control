@@ -2,6 +2,7 @@ package provision
 
 import (
 	"context"
+
 	"github.com/supergiant/supergiant/pkg/profile"
 )
 
@@ -12,5 +13,5 @@ type Settings struct {
 }
 
 type Interface interface {
-	Provision(context.Context, *profile.NodeProfile, *Settings) (error)
+	Provision(context.Context, *profile.NodeProfile, *Settings) error
 }

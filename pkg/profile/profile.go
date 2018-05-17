@@ -1,10 +1,11 @@
 package profile
 
 import (
-	"github.com/supergiant/supergiant/pkg/util"
 	"sync"
-	"github.com/supergiant/supergiant/pkg/core"
+
 	"github.com/pkg/errors"
+	"github.com/supergiant/supergiant/pkg/core"
+	"github.com/supergiant/supergiant/pkg/util"
 )
 
 const (

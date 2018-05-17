@@ -1,22 +1,23 @@
 package digitalocean2
 
 import (
-	"github.com/digitalocean/godo"
-	"github.com/supergiant/supergiant/pkg/model"
 	"context"
-	"golang.org/x/oauth2"
-	"github.com/pkg/errors"
 	"net/http"
-	"github.com/supergiant/supergiant/pkg/profile"
 	"strings"
+
+	"github.com/digitalocean/godo"
+	"github.com/pkg/errors"
+	"github.com/supergiant/supergiant/pkg/model"
+	"github.com/supergiant/supergiant/pkg/profile"
 	"github.com/supergiant/supergiant/pkg/util"
+	"golang.org/x/oauth2"
 )
 
 type DropletID int
 
 type DigitalOceanClient interface {
 	NewDroplet(context.Context, *model.Kube, *profile.NodeProfile) (*godo.Droplet, error)
-	DeleteDroplet(context.Context, DropletID) (error)
+	DeleteDroplet(context.Context, DropletID) error
 }
 
 type DOClient struct {
@@ -63,7 +64,7 @@ func (d *DOClient) NewDroplet(ctx context.Context, kube *model.Kube, profile *pr
 	return droplet, err
 }
 
-func (d *DOClient) DeleteDroplet(ctx context.Context, ID DropletID) (error) {
+func (d *DOClient) DeleteDroplet(ctx context.Context, ID DropletID) error {
 	resp, err := d.Client.Droplets.Delete(int(ID))
 	if err != nil {
 		if resp.StatusCode == http.StatusNotFound {
