@@ -5,12 +5,12 @@ import (
 	"net/http"
 	"strings"
 
-	"golang.org/x/oauth2"
 	"golang.org/x/oauth2/jwt"
-	compute "google.golang.org/api/compute/v1"
+	"google.golang.org/api/compute/v1"
 
 	"github.com/supergiant/supergiant/pkg/core"
 	"github.com/supergiant/supergiant/pkg/model"
+	"context"
 )
 
 // Provider Holds DO account info.
@@ -67,7 +67,7 @@ func Client(kube *model.Kube) (*compute.Service, error) {
 		TokenURL:   kube.CloudAccount.Credentials["token_uri"],
 	}
 
-	client := conf.Client(oauth2.NoContext)
+	client := conf.Client(context.Background())
 
 	computeService, err := compute.New(client)
 	if err != nil {

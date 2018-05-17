@@ -87,9 +87,8 @@ func newServer() (*server.Server, error) {
 
 func createCloudAccount(client *client.Client, credentials map[string]string, provider string) (*model.CloudAccount, error) {
 	cloudAccount := &model.CloudAccount{
-		Name:     "test",
-		Provider: provider,
-
+		Name:        "test",
+		Provider:    provider,
 		Credentials: credentials,
 	}
 
@@ -143,6 +142,28 @@ func createKubeDO(sg *client.Client, cloudAccount *model.CloudAccount, kubeName,
 		DigitalOceanConfig: &model.DOKubeConfig{
 			Region:            region,
 			SSHKeyFingerprint: []string{keyFingerPrint},
+		},
+	}
+
+	err := sg.Kubes.Create(kube)
+
+	return kube, err
+}
+
+func createKubeGCE(sg *client.Client, cloudAccount *model.CloudAccount, kubeName, zone, pubKey, version string) (*model.Kube, error) {
+	kube := &model.Kube{
+		CloudAccountName:  cloudAccount.Name,
+		CloudAccount:      cloudAccount,
+		Name:              kubeName,
+		MasterNodeSize:    "n1-standard-1",
+		KubernetesVersion: version,
+		SSHPubKey:         pubKey,
+
+		NodeSizes: []string{"n1-standard-1"},
+		GCEConfig: &model.GCEKubeConfig{
+			SSHPubKey:         pubKey,
+			Zone:              zone,
+			KubernetesVersion: version,
 		},
 	}
 
