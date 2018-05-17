@@ -193,7 +193,7 @@ func TestHelmReleasesCreate(t *testing.T) {
 					return nil
 				},
 				fullCommand: `/helm init --client-only && /helm install supergiant/elasticsearch --version 0.7.1 --name test`,
-				asyncErr:    "Timed out waiting for Helm cmd 'install supergiant/elasticsearch --version 0.7.1 --name test'",
+				asyncErr:    "Helm cmd 'install supergiant/elasticsearch --version 0.7.1 --name test': context deadline exceeded",
 			},
 
 			// Unexpected error on Kubernetes CreateResource
