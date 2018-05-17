@@ -96,15 +96,15 @@ func ListPods(sg *client.Client, w http.ResponseWriter, r *http.Request) error {
 			"Edit": "/ui/pods/{{ ID }}/edit",
 		},
 		"batchActionPaths": map[string]map[string]string{
-			"Delete": map[string]string{
+			"Delete": {
 				"method":       "DELETE",
 				"relativePath": "",
 			},
-			"Start": map[string]string{
+			"Start": {
 				"method":       "POST",
 				"relativePath": "/start",
 			},
-			"Stop": map[string]string{
+			"Stop": {
 				"method":       "POST",
 				"relativePath": "/stop",
 			},

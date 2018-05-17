@@ -19,6 +19,7 @@ import (
 	"github.com/gophercloud/gophercloud/openstack/networking/v2/extensions/layer3/routers"
 	"github.com/gophercloud/gophercloud/openstack/networking/v2/networks"
 	"github.com/gophercloud/gophercloud/openstack/networking/v2/subnets"
+
 	"github.com/supergiant/supergiant/bindata"
 	"github.com/supergiant/supergiant/pkg/core"
 	"github.com/supergiant/supergiant/pkg/model"
@@ -222,7 +223,7 @@ func (p *Provider) CreateKube(m *model.Kube, action *core.Action) error {
 				ImageName:     m.OpenStackConfig.ImageName,
 				UserData:      masterUserdata.Bytes(),
 				Networks: []servers.Network{
-					servers.Network{UUID: m.OpenStackConfig.NetworkID},
+					{UUID: m.OpenStackConfig.NetworkID},
 				},
 				Metadata: map[string]string{"kubernetes-cluster": m.Name, "Role": "master"},
 			}

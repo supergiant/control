@@ -20,6 +20,7 @@ import (
 	"github.com/aws/aws-sdk-go/service/iam/iamiface"
 	"github.com/aws/aws-sdk-go/service/s3"
 	"github.com/aws/aws-sdk-go/service/s3/s3iface"
+
 	"github.com/supergiant/supergiant/pkg/core"
 	"github.com/supergiant/supergiant/pkg/model"
 )
@@ -242,31 +243,31 @@ func tagAWSResource(ec2S ec2iface.EC2API, idstr string, tags map[string]string, 
 func getAMI(ec2S ec2iface.EC2API) (string, error) {
 	images, err := ec2S.DescribeImages(&ec2.DescribeImagesInput{
 		Filters: []*ec2.Filter{
-			&ec2.Filter{
+			{
 				Name: aws.String("architecture"),
 				Values: []*string{
 					aws.String("x86_64"),
 				},
 			},
-			&ec2.Filter{
+			{
 				Name: aws.String("owner-id"),
 				Values: []*string{
 					aws.String("595879546273"),
 				},
 			},
-			&ec2.Filter{
+			{
 				Name: aws.String("name"),
 				Values: []*string{
 					aws.String("*stable*"),
 				},
 			},
-			&ec2.Filter{
+			{
 				Name: aws.String("name"),
 				Values: []*string{
 					aws.String("*3.0*"),
 				},
 			},
-			&ec2.Filter{
+			{
 				Name: aws.String("virtualization-type"),
 				Values: []*string{
 					aws.String("hvm"),

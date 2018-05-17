@@ -29,8 +29,8 @@ type BaseList struct {
 
 func (l BaseList) QueryValues() map[string][]string {
 	qv := map[string][]string{
-		"offset": []string{strconv.FormatInt(l.Offset, 10)},
-		"limit":  []string{strconv.FormatInt(l.Limit, 10)},
+		"offset": {strconv.FormatInt(l.Offset, 10)},
+		"limit":  {strconv.FormatInt(l.Limit, 10)},
 	}
 	for key, values := range l.Filters {
 		qv["filter."+key] = values

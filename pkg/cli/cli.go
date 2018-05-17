@@ -10,9 +10,10 @@ import (
 	"reflect"
 
 	"github.com/mitchellh/go-homedir"
+	"github.com/urfave/cli"
+
 	"github.com/supergiant/supergiant/pkg/client"
 	"github.com/supergiant/supergiant/pkg/model"
-	"github.com/urfave/cli"
 )
 
 var globalConfFile string

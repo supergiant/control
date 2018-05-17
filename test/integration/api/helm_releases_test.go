@@ -39,7 +39,7 @@ func TestHelmReleasesList(t *testing.T) {
 			// A successful example
 			{
 				existingModels: []*model.HelmRelease{
-					&model.HelmRelease{
+					{
 						KubeName:     kube.Name,
 						RepoName:     "stable",
 						ChartName:    "redis",

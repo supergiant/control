@@ -7,6 +7,7 @@ import (
 
 	"github.com/hashicorp/go-cleanhttp"
 	"github.com/packethost/packngo"
+
 	"github.com/supergiant/supergiant/pkg/core"
 	"github.com/supergiant/supergiant/pkg/model"
 )
