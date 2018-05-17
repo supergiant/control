@@ -55,6 +55,14 @@ func RandomString(n int) string {
 
 // WaitFor event using context
 func WaitFor(ctx context.Context, desc string, period time.Duration, fn func() (bool, error)) error {
+	// Make one check before polling for the case when context
+	// timeout has already exceeded
+	if done, err := fn(); done {
+		return nil
+	} else if err != nil {
+		return err
+	}
+
 	ticker := time.NewTicker(period)
 
 	for {
