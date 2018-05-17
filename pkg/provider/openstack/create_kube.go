@@ -110,8 +110,8 @@ func (p *Provider) CreateKube(m *model.Kube, action *core.Action) error {
 
 	// Procedures
 	// Check for image.
-	procedure.AddStep("Checking that a CoreOS image exists...", func() error {
-		_, err = images.IDFromName(computeClient, "CoreOS")
+	procedure.AddStep(fmt.Sprintf("Checking that the \"%s\" image exists...", m.OpenStackConfig.ImageName), func() error {
+		_, err = images.IDFromName(computeClient, m.OpenStackConfig.ImageName)
 		if err != nil {
 			return err
 		}
