@@ -1,15 +1,19 @@
 <div class="app-main">
   <main class="app-context">
     <div class="app-context-content">
-      <router-outlet name="primary"></router-outlet>
+      <div class="app-apps-container">
+        <section class="app-apps-index">
+          <router-outlet name="primary"></router-outlet>
+        </section>
+      </div>
     </div>
   </main>
 
   <input class="app-assist-toggle-status" id="app-assist-toggle-status" type="checkbox" autocomplete="off">
 
   <aside class="app-assist">
-  <div class="app-assist-content">
-    <router-outlet name="tutorial"></router-outlet>
-  </div>
+    <div class="app-assist-content">
+      <router-outlet name="tutorial"></router-outlet>
+    </div>
   </aside>
 </div>
