@@ -226,7 +226,7 @@ func TestKubeResourcesStart(t *testing.T) {
 				mockStartTimeout: true,
 				namespaceEnsured: "foo",
 				// provisionerCalled: "service",
-				errorReturned: errors.New("Timed out waiting for Service 'test' in Namespace 'foo' to start"),
+				errorReturned: errors.New("Service 'test' in Namespace 'foo' to start: context deadline exceeded"),
 			},
 		}
 

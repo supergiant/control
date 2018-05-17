@@ -2,16 +2,20 @@ export class ClusterPacketModel {
   packet = {
     'data': {
       'cloud_account_name': '',
-      'master_node_size': 'Type 0',
+      'master_node_size': 't1.small (Type 0)',
       'kube_master_count': 1,
       'ssh_pub_key': '',
       'name': '',
       'node_sizes': [
-        'Type 0',
-        'Type 1',
-        'Type 2',
-        'Type 3',
-        'Type 2A'
+        't1.small (Type 0)',
+        'c1.small (Type 1)',
+        'x1.small (Type 1E)',
+        'c2.medium.x86',
+        'c1.large.arm (Type 2A)',
+        's1.large (Type S)',
+        'c1.xlarge (Type 3)',
+        'm1.xlarge (Type 2)',
+        'm2.xlarge.x86'
       ],
       'packet_config': {
         'facility': 'ewr1',
@@ -25,7 +29,7 @@ export class ClusterPacketModel {
           'type': 'string'
         },
         'master_node_size': {
-          'default': 'Type 0',
+          'default': 't1.small (Type 0)',
           'description': 'The size of the server the master will live on.',
           'type': 'string'
         },
