@@ -67,7 +67,7 @@ func TestDigitalOcean(t *testing.T) {
 			err = client.Kubes.Delete(kube.ID, kube)
 
 			if err != nil {
-				t.Errorf("Error while deleting the kube %s", kube.ID)
+				t.Errorf("Error while deleting the kube %d", kube.ID)
 			}
 		})
 	}
