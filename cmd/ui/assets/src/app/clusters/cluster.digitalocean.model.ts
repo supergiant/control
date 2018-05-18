@@ -22,6 +22,18 @@ export class ClusterDigitalOceanModel {
     },
     'schema': {
       'properties': {
+        'name': {
+          'description': 'The desired name of the kube. Max length of 12 characters.',
+          'type': 'string',
+          'pattern': '^[a-z]([-a-z0-9]*[a-z0-9])?$',
+          'maxLength': 12
+        },
+        'kubernetes_version': {
+          'default': '1.5.7',
+          'description': 'The Version of Kubernetes to be deployed.',
+          'type': 'string',
+          'enum': ['1.5.7', '1.6.7', '1.7.7', '1.8.7'] // TODO: <-- Should be dynamically populated.
+        },
         'cloud_account_name': {
           'description': 'The Supergiant cloud account you created for use with Packet.',
           'type': 'string'
@@ -49,12 +61,6 @@ export class ClusterDigitalOceanModel {
           'default': '1gb',
           'description': 'The size of the server the master will live on.',
           'type': 'string'
-        },
-        'name': {
-          'description': 'The desired name of the kube. Max length of 12 characters.',
-          'type': 'string',
-          'pattern': '^[a-z]([-a-z0-9]*[a-z0-9])?$',
-          'maxLength': 12
         },
         'kube_master_count': {
           'description': 'The number of masters desired--for High Availability.',

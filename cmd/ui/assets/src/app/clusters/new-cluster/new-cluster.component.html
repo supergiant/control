@@ -12,7 +12,7 @@
       <h3 *ngIf="!schema">Select a Cloud Account</h3>
 
       <div *ngIf="!schema">
-        <button *ngFor="let provider of providers" type="button" class="btn btn-primary" (click)="sendChoice(provider)">{{ provider.name }}</button>
+        <button mat-button color="primary" *ngFor="let provider of providers" (click)="sendChoice(provider)">{{ provider.name }}</button>
       </div>
 
       <div *ngIf="schema">
@@ -29,7 +29,7 @@
       </p>
 
       <p>
-        <button type="button" class="btn btn-primary" [routerLink]="['/system/cloud-accounts/new']">Add Your First Cloud Account</button>
+        <button mat-raised-button color="primary" [routerLink]="['/system/cloud-accounts/new']">Add Your First Cloud Account</button>
       </p>
     </div>
   </section>
