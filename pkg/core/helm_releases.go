@@ -16,6 +16,7 @@ import (
 	"github.com/supergiant/supergiant/pkg/kubernetes"
 	"github.com/supergiant/supergiant/pkg/model"
 	"github.com/supergiant/supergiant/pkg/util"
+	"sort"
 )
 
 type HelmReleases struct {
@@ -304,7 +305,17 @@ func releaseConfigAsFlagValue(config map[string]interface{}, parent string) (fv 
 		parent += "."
 	}
 
-	for key, value := range config {
+	// Sort keys before map traversal to have stable order of keys for tests.
+	keys := make([]string, len(config))
+
+	for key := range config {
+		keys = append(keys, key)
+	}
+
+	sort.Strings(keys)
+
+	for _, key := range keys {
+		value := config[key]
 
 		if value == nil {
 			value = ""
