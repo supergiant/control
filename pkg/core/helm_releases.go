@@ -307,7 +307,7 @@ func releaseConfigAsFlagValue(config map[string]interface{}, parent string) (fv 
 	}
 
 	// Sort keys before map traversal to have stable order of keys for tests.
-	keys := make([]string, len(config))
+	keys := make([]string, 0, len(config))
 
 	for key := range config {
 		keys = append(keys, key)
