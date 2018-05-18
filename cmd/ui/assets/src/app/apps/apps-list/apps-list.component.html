@@ -1,37 +1,33 @@
-<div class="app-apps-container">
-  <section class="app-apps-index">
-    <div class="app-context-header-panel">
-      <h2>
-        <i class="fa fa-puzzle-piece"></i>
-        Running Apps
-      </h2>
-
-      <div class="context-search-layout">
-        <input (keyup)="keyUpFilter($event.target.value)" name="search" placeholder="Search" type="search">
-      </div>
-    </div>
-
-    <div class="subcontext-actions">
-      <button mat-button color="primary" [routerLink]="['/apps/new']">Deploy New App</button>
-      <button mat-button color="warn" [disabled]="selected.length === 0" (click)="deleteApp()">Delete Selected App</button>
-    </div>
-
-    <ngx-datatable class="material expandable" [rows]="rows" [columnMode]="'force'" [columns]="columns" [headerHeight]="50" [footerHeight]="50" [rowHeight]="'auto'" [limit]="20" [selected]="selected" (select)='onSelect($event)' (activate)='onActivate($event)'
-      [selectionType]="'checkbox'" [selectAllRowsOnPage]="true" [displayCheck]="displayCheck" (tableContextmenu)="onTableContextMenu($event)">
-      <ngx-datatable-column name="checkbox" [width]="30" [sortable]="false" [canAutoResize]="false" [draggable]="false" [resizeable]="false" [headerCheckboxable]="true" [checkboxable]="true">
-      </ngx-datatable-column>
-      <ngx-datatable-column name="Name" prop="name"></ngx-datatable-column>
-      <ngx-datatable-column name="Cluster" prop="kube_name"></ngx-datatable-column>
-      <ngx-datatable-column name="Revision" prop="revision"></ngx-datatable-column>
-      <ngx-datatable-column name="App Name" prop="chart_name"></ngx-datatable-column>
-      <ngx-datatable-column name="App Version" prop="chart_version"></ngx-datatable-column>
-      <ngx-datatable-column name="Updated" prop="updated_value"></ngx-datatable-column>
-      <ngx-datatable-column name="Status" prop="status_value"></ngx-datatable-column>
-    </ngx-datatable>
-    <context-menu #basicMenu>
-      <ng-template contextMenuItem let-item (execute)="contextDelete($event.item)">
-        Delete {{item?.name}}
-      </ng-template>
-    </context-menu>
-  </section>
+<div class="app-context-header-panel">
+  <h2>
+    <i class="fa fa-puzzle-piece"></i>
+    Running Apps
+  </h2>
+  
+  <div class="context-search-layout">
+    <input (keyup)="keyUpFilter($event.target.value)" name="search" placeholder="Search" type="search">
+  </div>
 </div>
+
+ <div class="subcontext-actions">
+   <button mat-button color="primary" [routerLink]="['/apps/new']">Deploy New App</button>
+   <button mat-button color="warn" [disabled]="selected.length === 0" (click)="deleteApp()">Delete Selected App</button>
+ </div>
+
+<ngx-datatable class="material expandable" [rows]="rows" [columnMode]="'force'" [columns]="columns" [headerHeight]="50" [footerHeight]="50" [rowHeight]="'auto'" [limit]="20" [selected]="selected" (select)='onSelect($event)' (activate)='onActivate($event)'
+  [selectionType]="'checkbox'" [selectAllRowsOnPage]="true" [displayCheck]="displayCheck" (tableContextmenu)="onTableContextMenu($event)">
+  <ngx-datatable-column name="checkbox" [width]="30" [sortable]="false" [canAutoResize]="false" [draggable]="false" [resizeable]="false" [headerCheckboxable]="true" [checkboxable]="true">
+  </ngx-datatable-column>
+  <ngx-datatable-column name="Name" prop="name"></ngx-datatable-column>
+  <ngx-datatable-column name="Cluster" prop="kube_name"></ngx-datatable-column>
+  <ngx-datatable-column name="Revision" prop="revision"></ngx-datatable-column>
+  <ngx-datatable-column name="App Name" prop="chart_name"></ngx-datatable-column>
+  <ngx-datatable-column name="App Version" prop="chart_version"></ngx-datatable-column>
+  <ngx-datatable-column name="Updated" prop="updated_value"></ngx-datatable-column>
+  <ngx-datatable-column name="Status" prop="status_value"></ngx-datatable-column>
+</ngx-datatable>
+<context-menu #basicMenu>
+  <ng-template contextMenuItem let-item (execute)="contextDelete($event.item)">
+    Delete {{item?.name}}
+  </ng-template>
+</context-menu>
