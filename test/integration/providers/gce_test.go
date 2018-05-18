@@ -11,6 +11,10 @@ import (
 )
 
 func TestGCE(t *testing.T) {
+	if testing.Short() {
+		t.Skip("Skip integration tests for short mode")
+	}
+	
 	projectId := os.Getenv("GCE_PROJECT_ID")
 	region := os.Getenv("GCE_REGION")
 	zone := os.Getenv("GCE_ZONE")

@@ -13,6 +13,10 @@ import (
 
 // Run test on AWS against all support versions of k8s
 func TestAmazon(t *testing.T) {
+	if testing.Short() {
+		t.Skip("Skip integration tests for short mode")
+	}
+
 	awsAccessKey := os.Getenv("AWS_ACCESS_KEY")
 	awsSecretKey := os.Getenv("AWS_SECRET_KEY")
 	awsRegion := os.Getenv("AWS_REGION")

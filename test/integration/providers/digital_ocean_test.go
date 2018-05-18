@@ -11,6 +11,10 @@ import (
 )
 
 func TestDigitalOcean(t *testing.T) {
+	if testing.Short() {
+		t.Skip("Skip integration tests for short mode")
+	}
+
 	region := os.Getenv("DO_REGION")
 	fingerPrint := os.Getenv("DO_KEY_FINGER_PRINT")
 	token := os.Getenv("DO_TOKEN")
