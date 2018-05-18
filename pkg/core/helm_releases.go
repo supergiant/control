@@ -13,10 +13,11 @@ import (
 
 	"github.com/technosophos/moniker"
 
+	"sort"
+
 	"github.com/supergiant/supergiant/pkg/kubernetes"
 	"github.com/supergiant/supergiant/pkg/model"
 	"github.com/supergiant/supergiant/pkg/util"
-	"sort"
 )
 
 type HelmReleases struct {
