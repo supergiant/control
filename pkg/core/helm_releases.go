@@ -1,15 +1,15 @@
 package core
 
 import (
+	"context"
 	"errors"
 	"fmt"
 	"reflect"
 	"regexp"
+	"sort"
 	"strings"
 	"sync"
 	"time"
-
-	"context"
 
 	"github.com/technosophos/moniker"
 
@@ -304,7 +304,17 @@ func releaseConfigAsFlagValue(config map[string]interface{}, parent string) (fv 
 		parent += "."
 	}
 
-	for key, value := range config {
+	// Sort keys before map traversal to have stable order of keys for tests.
+	keys := make([]string, 0, len(config))
+
+	for key := range config {
+		keys = append(keys, key)
+	}
+
+	sort.Strings(keys)
+
+	for _, key := range keys {
+		value := config[key]
 
 		if value == nil {
 			value = ""
