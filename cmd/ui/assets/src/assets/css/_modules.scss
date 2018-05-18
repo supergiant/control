@@ -75,9 +75,10 @@
 }
 
 a.quickstatus {
-  background: lighten($app-interactive-object-color, 33%);
+  background: #f2e2ee;
   border-radius: $border-radius;
-  color: #fff;
+
+  color: #4c0057;
   display: block;
   font-size: 1.5rem;
   font-weight: 300;
@@ -87,7 +88,7 @@ a.quickstatus {
   text-align: center;
 
   &:hover {
-    background: $app-interactive-object-hover-color;
+    background: #deb7d5;
     text-decoration: none;
   }
 

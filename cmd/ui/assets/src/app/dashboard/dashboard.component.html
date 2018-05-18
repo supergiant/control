@@ -138,43 +138,28 @@
     <ul class="tutorial-primary-steps">
       <li class="tutorial-step-cloudaccount">
         <p class="lead">First step: add a <b>Cloud Account</b></p>
-
-        <p>
-          <a [routerLink]="['/system/cloud-accounts']" class="btn btn-primary">
-            Take me to <b>Cloud Accounts</b>
+          <a mat-raised-button color="primary" [routerLink]="['/system/cloud-accounts']">
+            <p>Take me to <b>Cloud Accounts</b></p>
           </a>
-        </p>
-
         <label class="tutorial-step-previous" for="tutorial-steps-app">Previous</label>
-
         <label class="tutorial-step-next" for="tutorial-steps-cluster">>Next</label>
       </li>
 
       <li class="tutorial-step-cluster">
         <p class="lead">Next step: launch a <b>Cluster</b></p>
-
-        <p>
-          <a [routerLink]="['/clusters']" class="btn btn-primary">
-            Take me to <b>Clusters</b>
+          <a mat-raised-button color="primary" [routerLink]="['/clusters']">
+            <p>Take me to <b>Clusters</b></p>
           </a>
-        </p>
-
         <label class="tutorial-step-previous" for="tutorial-steps-cloudaccount">Previous</label>
-
         <label class="tutorial-step-next" for="tutorial-steps-app">Next</label>
       </li>
 
       <li class="tutorial-step-app">
         <p class="lead">Next step: launch an <b>App</b></p>
-
-        <p>
-          <a [routerLink]="['/apps']" class="btn btn-primary">
-            Take me to <b>Apps</b>
+          <a mat-raised-button color="primary" [routerLink]="['/apps']">
+            <p>Take me to <b>Apps</b></p>
           </a>
-        </p>
-
         <label class="tutorial-step-previous" for="tutorial-steps-cluster">Previous</label>
-
         <label class="tutorial-step-next" for="tutorial-steps-cloudaccount">Next</label>
       </li>
     </ul>

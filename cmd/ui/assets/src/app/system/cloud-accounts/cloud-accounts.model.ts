@@ -1,6 +1,7 @@
 // This is the only model that is pre-populated with providers given that the possibilities are known in advance
 export class CloudAccountModel {
   aws = {
+    'name' : 'AWS - Amazon Web Services',
     'model': {
       'credentials': {
         'access_key': '',
@@ -38,6 +39,7 @@ export class CloudAccountModel {
     }
   };
   digitalocean = {
+    'name' : 'Digital Ocean',
     'model': {
       'credentials': {
         'token': ''
@@ -71,6 +73,7 @@ export class CloudAccountModel {
   };
 
   gce = {
+    'name' : 'GCE - Google Compute Engine',
     'model': {
       'credentials': {
         'auth_provider_x509_cert_url': '',
@@ -148,6 +151,7 @@ export class CloudAccountModel {
     }
   };
   openstack = {
+    'name' : 'OpenStack',
     'model': {
       'credentials': {
         'domain_id': '',
@@ -205,6 +209,7 @@ export class CloudAccountModel {
     }
   };
   packet = {
+    'name' : 'Packet.net',
     'model': {
       'credentials': {
         'api_token': ''
@@ -236,11 +241,26 @@ export class CloudAccountModel {
       }
     }
   };
-  public providers = {
-    'AWS - Amazon Web Services': this.aws,
-    'Digital Ocean': this.digitalocean,
-    'GCE - Google Compute Engine': this.gce,
-    'OpenStack': this.openstack,
-    'Packet.net': this.packet
-  };
+  public providers = [
+    {
+      name: 'AWS - Amazon Web Services',
+      data: this.aws,
+    },
+    {
+      name: 'Digital Ocean',
+      data: this.digitalocean,
+    },
+    {
+      name: 'GCE - Google Compute Engine',
+      data: this.gce,
+    },
+    {
+      name: 'OpenStack',
+      data: this.openstack,
+    },
+    {
+      name: 'Packet.net',
+      data: this.packet,
+    },
+  ];
 }
