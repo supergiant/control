@@ -31,8 +31,6 @@ func TestGCE(t *testing.T) {
 	client := srv.Core.APIClient("token", requestor.APIToken)
 
 	go srv.Start()
-
-	// TODO(stgleb): Need to add proper server shutdown to finish del requests
 	defer srv.Stop()
 
 	cloudAccount, err := createCloudAccount(client,

@@ -2,8 +2,9 @@ package providers
 
 import (
 	"fmt"
+	"net"
+	
 	"github.com/Sirupsen/logrus"
-	"github.com/phayes/freeport"
 	"github.com/supergiant/supergiant/pkg/client"
 	"github.com/supergiant/supergiant/pkg/core"
 	"github.com/supergiant/supergiant/pkg/model"
@@ -16,8 +17,22 @@ import (
 	"github.com/supergiant/supergiant/pkg/server"
 )
 
+func getPort() (int, error) {
+	addr, err := net.ResolveTCPAddr("tcp", "localhost:0")
+	if err != nil {
+		return 0, err
+	}
+
+	l, err := net.ListenTCP("tcp", addr)
+	if err != nil {
+		return 0, err
+	}
+	defer l.Close()
+	return l.Addr().(*net.TCPAddr).Port, nil
+}
+
 func newServer() (*server.Server, error) {
-	port, err := freeport.GetFreePort()
+	port, err := getPort()
 
 	if err != nil {
 		return nil, err

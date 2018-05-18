@@ -1,6 +1,7 @@
 package gce
 
 import (
+	"context"
 	"io/ioutil"
 	"net/http"
 	"strings"
@@ -10,7 +11,6 @@ import (
 
 	"github.com/supergiant/supergiant/pkg/core"
 	"github.com/supergiant/supergiant/pkg/model"
-	"context"
 )
 
 // Provider Holds DO account info.
