@@ -1,19 +1,17 @@
 package core
 
 import (
+	"context"
 	"errors"
 	"fmt"
 	"reflect"
 	"regexp"
+	"sort"
 	"strings"
 	"sync"
 	"time"
 
-	"context"
-
 	"github.com/technosophos/moniker"
-
-	"sort"
 
 	"github.com/supergiant/supergiant/pkg/kubernetes"
 	"github.com/supergiant/supergiant/pkg/model"

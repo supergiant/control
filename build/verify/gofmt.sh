@@ -1,4 +1,4 @@
-#!/bin/env bash
+#!/bin/bash
 # https://github.com/kubernetes/repo-infra/blob/master/verify/go-tools/verify-gofmt.sh
 
 set -o errexit
