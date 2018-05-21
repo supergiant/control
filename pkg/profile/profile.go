@@ -6,11 +6,13 @@ import (
 	"github.com/pkg/errors"
 	"github.com/supergiant/supergiant/pkg/core"
 	"github.com/supergiant/supergiant/pkg/util"
+	"github.com/supergiant/supergiant/pkg/provider"
 )
 
 const (
+	//DigitalOceanDefaultProfile is default node profile for digital ocean
 	DigitalOceanDefaultProfile = "DigitalOceanDefault"
-
+	//OneNodeCluster is default kubernetes one master one node kube profile
 	OneNodeCluster = "OneNodeK8s"
 )
 
@@ -22,7 +24,7 @@ func init() {
 	nodeProfiles = new(sync.Map)
 	nodeProfiles.Store(DigitalOceanDefaultProfile, NodeProfile{
 		Name:     DigitalOceanDefaultProfile,
-		Provider: util.DigitalOcean,
+		Provider: provider.DigitalOcean,
 		OS:       util.UbuntuSlug1604,
 		NodeSize: &core.NodeSize{
 			Name:     "s-1vcpu-2gb",
@@ -32,7 +34,7 @@ func init() {
 	})
 
 	masterProfiles = new(sync.Map)
-	masterProfiles.Store(OneNodeCluster, ClusterProfile{
+	masterProfiles.Store(OneNodeCluster, KubeProfile{
 		Name:              OneNodeCluster,
 		MastersCount:      1,
 		NodesCount:        1,
@@ -41,18 +43,18 @@ func init() {
 	})
 }
 
-//A NodeProfile is the settings of a physical node
+//NodeProfile is the settings of a physical node
 type NodeProfile struct {
 	Name     string
 	OS       string
-	Provider util.ProviderName
+	Provider provider.Name
 	Tags     []string
 	NodeType string
 	NodeSize *core.NodeSize
 }
 
-//A cluster profile is the settings of a kubernetes cluster
-type ClusterProfile struct {
+//KubeProfile is the settings for a k8s cluster
+type KubeProfile struct {
 	Name              string
 	MastersCount      int
 	NodesCount        int
@@ -61,13 +63,16 @@ type ClusterProfile struct {
 	K8SVersion        string
 }
 
+//NodeProfileService provides operations over node profiles
 type NodeProfileService interface {
 	GetByName(profileName string) (*NodeProfile, error)
 }
 
+//NodeProfiles is an implementation of NodeProfileService
 type NodeProfiles struct {
 }
 
+//GetByName retrieves a node profile from the storage by it's unique name
 func (s *NodeProfiles) GetByName(profileName string) (*NodeProfile, error) {
 	obj, ok := nodeProfiles.Load(profileName)
 	if !ok {
@@ -76,17 +81,20 @@ func (s *NodeProfiles) GetByName(profileName string) (*NodeProfile, error) {
 	return obj.(*NodeProfile), nil
 }
 
-type ClusterProfileService interface {
-	GetByName(profileName string) (*ClusterProfile, error)
+//KubeProfileService provides operations over cluster profiles
+type KubeProfileService interface {
+	GetByName(profileName string) (*KubeProfile, error)
 }
 
-type ClusterProfiles struct {
+//KubeProfiles is an implementation of KubeProfileService
+type KubeProfiles struct {
 }
 
-func (s *ClusterProfiles) GetByName(profileName string) (*ClusterProfile, error) {
+//GetByName retrieves a kube profile from the storage by it's unique name
+func (s *KubeProfiles) GetByName(profileName string) (*KubeProfile, error) {
 	obj, ok := nodeProfiles.Load(profileName)
 	if !ok {
 		return nil, errors.Errorf("cluster profile %s not found", profileName)
 	}
-	return obj.(*ClusterProfile), nil
+	return obj.(*KubeProfile), nil
 }

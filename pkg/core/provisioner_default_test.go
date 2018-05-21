@@ -20,7 +20,7 @@ func newRawMessage(str string) *json.RawMessage {
 }
 
 func TestDefaultProvisionerProvision(t *testing.T) {
-	Convey("DefaultProvisioner DOClient passses correct arguments to KubernetesClient CreateResource(), and passes error through", t, func() {
+	Convey("DefaultProvisioner Provision passses correct arguments to KubernetesClient CreateResource(), and passes error through", t, func() {
 		table := []struct {
 			// Input
 			kubeResource *model.KubeResource
