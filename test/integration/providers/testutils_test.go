@@ -90,12 +90,12 @@ func newServer() (*server.Server, error) {
 	c.K8SProvider = &kubernetes.Provider{Core: c}
 
 	if err := c.InitializeForeground(); err != nil {
-		panic(err)
+		return nil, err
 	}
 
 	srv, err := server.New(c)
 	if err != nil {
-		panic(err)
+		return nil, err
 	}
 
 	return srv, nil

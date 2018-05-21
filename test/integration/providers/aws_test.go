@@ -16,8 +16,6 @@ func TestAmazon(t *testing.T) {
 	if testing.Short() {
 		t.Skip("Skip integration tests for short mode")
 	}
-	// May integration tests run parallel for different cloud providers
-	t.Parallel()
 
 	awsAccessKey := os.Getenv("AWS_ACCESS_KEY")
 	awsSecretKey := os.Getenv("AWS_SECRET_KEY")
