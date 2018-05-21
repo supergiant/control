@@ -35,7 +35,6 @@ func TestRandomStringUnique(t *testing.T) {
 	}
 }
 
-
 func TestWaitForCancelled(t *testing.T) {
 	t.Parallel()
 	fn := func() (bool, error) {
