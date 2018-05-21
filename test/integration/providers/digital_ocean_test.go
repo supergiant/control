@@ -16,6 +16,9 @@ func TestDigitalOcean(t *testing.T) {
 		t.Skip("Skip integration tests for short mode")
 	}
 
+	// Run test in parallel for different cloud providers
+	t.Parallel()
+
 	region := os.Getenv("DO_REGION")
 	fingerPrint := os.Getenv("DO_KEY_FINGER_PRINT")
 	token := os.Getenv("DO_TOKEN")

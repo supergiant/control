@@ -16,6 +16,9 @@ func TestGCE(t *testing.T) {
 		t.Skip("Skip integration tests for short mode")
 	}
 
+	// Run test in parallel for different cloud providers
+	t.Parallel()
+
 	projectId := os.Getenv("GCE_PROJECT_ID")
 	region := os.Getenv("GCE_REGION")
 	zone := os.Getenv("GCE_ZONE")
