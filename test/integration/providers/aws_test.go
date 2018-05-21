@@ -1,14 +1,14 @@
 package providers
 
 import (
+	"context"
 	"fmt"
+	"os"
 	"strings"
 	"testing"
 	"time"
 
-	"context"
 	"github.com/supergiant/supergiant/pkg/util"
-	"os"
 )
 
 // Run test on AWS against all support versions of k8s
@@ -16,6 +16,8 @@ func TestAmazon(t *testing.T) {
 	if testing.Short() {
 		t.Skip("Skip integration tests for short mode")
 	}
+	// May integration tests run parallel for different cloud providers
+	t.Parallel()
 
 	awsAccessKey := os.Getenv("AWS_ACCESS_KEY")
 	awsSecretKey := os.Getenv("AWS_SECRET_KEY")
@@ -81,6 +83,8 @@ func TestAmazon(t *testing.T) {
 			if err != nil {
 				t.Errorf("Error while deleting the kube %d", kube.ID)
 			}
+
+			time.Sleep(time.Minute)
 		})
 	}
 }

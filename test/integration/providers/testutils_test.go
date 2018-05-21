@@ -3,8 +3,9 @@ package providers
 import (
 	"fmt"
 	"net"
-	
+
 	"github.com/Sirupsen/logrus"
+
 	"github.com/supergiant/supergiant/pkg/client"
 	"github.com/supergiant/supergiant/pkg/core"
 	"github.com/supergiant/supergiant/pkg/model"

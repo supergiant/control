@@ -3,17 +3,21 @@ package providers
 import (
 	"context"
 	"fmt"
-	"github.com/supergiant/supergiant/pkg/util"
 	"os"
 	"strings"
 	"testing"
 	"time"
+
+	"github.com/supergiant/supergiant/pkg/util"
 )
 
 func TestDigitalOcean(t *testing.T) {
 	if testing.Short() {
 		t.Skip("Skip integration tests for short mode")
 	}
+
+	// May integration tests run parallel for different cloud providers
+	t.Parallel()
 
 	region := os.Getenv("DO_REGION")
 	fingerPrint := os.Getenv("DO_KEY_FINGER_PRINT")
@@ -73,6 +77,8 @@ func TestDigitalOcean(t *testing.T) {
 			if err != nil {
 				t.Errorf("Error while deleting the kube %d", kube.ID)
 			}
+
+			time.Sleep(time.Minute)
 		})
 	}
 }

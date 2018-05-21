@@ -3,18 +3,22 @@ package providers
 import (
 	"context"
 	"fmt"
-	"github.com/supergiant/supergiant/pkg/util"
 	"os"
 	"strings"
 	"testing"
 	"time"
+
+	"github.com/supergiant/supergiant/pkg/util"
 )
 
 func TestGCE(t *testing.T) {
 	if testing.Short() {
 		t.Skip("Skip integration tests for short mode")
 	}
-	
+
+	// May integration tests run parallel for different cloud providers
+	t.Parallel()
+
 	projectId := os.Getenv("GCE_PROJECT_ID")
 	region := os.Getenv("GCE_REGION")
 	zone := os.Getenv("GCE_ZONE")
@@ -85,6 +89,8 @@ func TestGCE(t *testing.T) {
 			if err != nil {
 				t.Errorf("Error while deleting the kube %d", kube.ID)
 			}
+
+			time.Sleep(time.Minute)
 		})
 	}
 }
