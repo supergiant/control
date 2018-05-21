@@ -66,7 +66,7 @@ func TestGCE(t *testing.T) {
 				k8sVersion)
 
 			if err != nil {
-				t.Errorf("error creating the kube %v", err)
+				t.Errorf("Unexpected error while creating a kube %v", err)
 				return
 			}
 

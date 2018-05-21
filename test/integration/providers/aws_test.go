@@ -47,7 +47,7 @@ func TestAmazon(t *testing.T) {
 		"aws")
 
 	if err != nil {
-		t.Error(err)
+		t.Errorf("Unexpected error while creating cloud account %v", err)
 		return
 	}
 
@@ -61,7 +61,7 @@ func TestAmazon(t *testing.T) {
 				k8sVersion)
 
 			if err != nil {
-				t.Error(err)
+				t.Errorf("Unexpected error while creating a kube %v", err)
 				return
 			}
 

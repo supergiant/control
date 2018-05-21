@@ -54,7 +54,7 @@ func TestDigitalOcean(t *testing.T) {
 				k8sVersion)
 
 			if err != nil {
-				t.Error(err)
+				t.Errorf("Unexpected error while creating a kube %v", err)
 				return
 			}
 
