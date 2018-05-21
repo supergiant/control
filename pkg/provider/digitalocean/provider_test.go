@@ -3,8 +3,8 @@ package digitalocean_test
 import (
 	"testing"
 
-	"github.com/Sirupsen/logrus"
 	"github.com/digitalocean/godo"
+	"github.com/sirupsen/logrus"
 
 	"github.com/supergiant/supergiant/pkg/core"
 	"github.com/supergiant/supergiant/pkg/kubernetes"
