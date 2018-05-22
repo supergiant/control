@@ -31,11 +31,8 @@ func (r *ETCDRepository) GetAll(ctx context.Context) ([]CloudAccount, error) {
 		Recursive: true,
 	})
 	if err != nil {
-		if clientErr, ok := err.(client.Error); ok {
-			//If account is not found return nil
-			if clientErr.Code == client.ErrorCodeKeyNotFound {
-				return accounts, nil
-			}
+		if client.IsKeyNotFound(err) {
+			return accounts, nil
 		}
 		return accounts, errors.WithStack(err)
 	}
@@ -55,11 +52,11 @@ func (r *ETCDRepository) GetAll(ctx context.Context) ([]CloudAccount, error) {
 
 //Create stores account in etcd, if account with such name is already present it will return an error
 func (r *ETCDRepository) Create(ctx context.Context, acc *CloudAccount) (error) {
-	rawJson, err := json.Marshal(acc)
+	rawJSON, err := json.Marshal(acc)
 	if err != nil {
 		return errors.WithStack(err)
 	}
-	_, err = r.keysAPI.Create(ctx, prefix+acc.Name, string(rawJson))
+	_, err = r.keysAPI.Create(ctx, prefix+acc.Name, string(rawJSON))
 	if err != nil {
 		return errors.WithStack(err)
 	}
@@ -70,11 +67,8 @@ func (r *ETCDRepository) Create(ctx context.Context, acc *CloudAccount) (error) 
 func (r *ETCDRepository) Get(ctx context.Context, accountName string) (*CloudAccount, error) {
 	resp, err := r.keysAPI.Get(ctx, prefix+accountName, nil)
 	if err != nil {
-		if clientErr, ok := err.(client.Error); ok {
-			//If account is not found return nil
-			if clientErr.Code == client.ErrorCodeKeyNotFound {
-				return nil, nil
-			}
+		if client.IsKeyNotFound(err) {
+			return nil, nil
 		}
 		return nil, errors.WithStack(err)
 	}
@@ -103,11 +97,8 @@ func (r *ETCDRepository) Update(ctx context.Context, acc *CloudAccount) (error) 
 func (r *ETCDRepository) Delete(ctx context.Context, accountName string) (error) {
 	_, err := r.keysAPI.Delete(ctx, prefix+accountName, nil)
 	if err != nil {
-		if clientErr, ok := err.(client.Error); ok {
-			//If account is not found return nil, because we can't delete smth that doesn't exists
-			if clientErr.Code == client.ErrorCodeKeyNotFound {
-				return nil
-			}
+		if client.IsKeyNotFound(err) {
+			return nil
 		}
 		return errors.WithStack(err)
 	}
