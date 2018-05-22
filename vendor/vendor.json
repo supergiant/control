@@ -10,12 +10,6 @@
 			"revisionTime": "2017-01-03T20:23:41Z"
 		},
 		{
-			"checksumSHA1": "DWPL08pD/SQ2GzLfoR7ZXnjj7Sw=",
-			"path": "github.com/Sirupsen/logrus",
-			"revision": "4b6ea7319e214d98c938f12692336f7ca9348d6b",
-			"revisionTime": "2016-03-17T14:11:10Z"
-		},
-		{
 			"checksumSHA1": "JV/23qugPFuOPZWfa9CCwLXPJqE=",
 			"path": "github.com/aws/aws-sdk-go/aws",
 			"revision": "8041be5461786460d86b4358305fbdf32d37cfb2",
