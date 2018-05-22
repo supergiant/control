@@ -158,6 +158,7 @@ func (c *Core) InitializeForeground() error {
 			return err
 		}
 		c.Log.SetLevel(levelInt)
+		logrus.SetLevel(levelInt)
 	}
 	// db.LogMode(true)
 
