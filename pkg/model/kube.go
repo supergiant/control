@@ -1,5 +1,9 @@
 package model
 
+const (
+	TillerNamespace = "kube-system"
+)
+
 type KubeList struct {
 	BaseList
 	Items []*Kube `json:"items"`
@@ -31,6 +35,9 @@ type Kube struct {
 	KubernetesVersion string `json:"kubernetes_version" validate:"nonzero" sg:"default=1.8.7"`
 	SSHPubKey         string `json:"ssh_pub_key"`
 	ETCDDiscoveryURL  string `json:"etcd_discovery_url" sg:"readonly"`
+
+	// Tiller
+	TillerNamespace string `json:"tiller_namespace"`
 
 	// Kubernetes Master
 	MasterNodeSize     string   `json:"master_node_size" validate:"nonzero" sg:"immutable"`

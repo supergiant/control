@@ -17,6 +17,7 @@ limitations under the License.
 package chartutil
 
 import (
+	"errors"
 	"fmt"
 	"io"
 	"io/ioutil"
@@ -30,6 +31,9 @@ import (
 
 // ErrNoTable indicates that a chart does not have a matching table.
 type ErrNoTable error
+
+// ErrNoValue indicates that Values does not contain a key with a value
+type ErrNoValue error
 
 // GlobalKey is the name of the Values key that is used for storing global vars.
 const GlobalKey = "global"
@@ -275,19 +279,26 @@ func coalesceValues(c *chart.Chart, v map[string]interface{}) (map[string]interf
 	}
 
 	for key, val := range nv {
-		if _, ok := v[key]; !ok {
+		if value, ok := v[key]; ok {
+			if value == nil {
+				// When the YAML value is null, we remove the value's key.
+				// This allows Helm's various sources of values (value files or --set) to
+				// remove incompatible keys from any previous chart, file, or set values.
+				delete(v, key)
+			} else if dest, ok := value.(map[string]interface{}); ok {
+				// if v[key] is a table, merge nv's val table into v[key].
+				src, ok := val.(map[string]interface{})
+				if !ok {
+					log.Printf("warning: skipped value for %s: Not a table.", key)
+					continue
+				}
+				// Because v has higher precedence than nv, dest values override src
+				// values.
+				coalesceTables(dest, src)
+			}
+		} else {
 			// If the key is not in v, copy it from nv.
 			v[key] = val
-		} else if dest, ok := v[key].(map[string]interface{}); ok {
-			// if v[key] is a table, merge nv's val table into v[key].
-			src, ok := val.(map[string]interface{})
-			if !ok {
-				log.Printf("warning: skipped value for %s: Not a table.", key)
-				continue
-			}
-			// Because v has higher precedence than nv, dest values override src
-			// values.
-			coalesceTables(dest, src)
 		}
 	}
 	return v, nil
@@ -332,7 +343,20 @@ type ReleaseOptions struct {
 }
 
 // ToRenderValues composes the struct from the data coming from the Releases, Charts and Values files
+//
+// WARNING: This function is deprecated for Helm > 2.1.99 Use ToRenderValuesCaps() instead. It will
+// remain in the codebase to stay SemVer compliant.
+//
+// In Helm 3.0, this will be changed to accept Capabilities as a fourth parameter.
 func ToRenderValues(chrt *chart.Chart, chrtVals *chart.Config, options ReleaseOptions) (Values, error) {
+	caps := &Capabilities{APIVersions: DefaultVersionSet}
+	return ToRenderValuesCaps(chrt, chrtVals, options, caps)
+}
+
+// ToRenderValuesCaps composes the struct from the data coming from the Releases, Charts and Values files
+//
+// This takes both ReleaseOptions and Capabilities to merge into the render values.
+func ToRenderValuesCaps(chrt *chart.Chart, chrtVals *chart.Config, options ReleaseOptions, caps *Capabilities) (Values, error) {
 
 	top := map[string]interface{}{
 		"Release": map[string]interface{}{
@@ -344,8 +368,9 @@ func ToRenderValues(chrt *chart.Chart, chrtVals *chart.Config, options ReleaseOp
 			"Revision":  options.Revision,
 			"Service":   "Tiller",
 		},
-		"Chart": chrt.Metadata,
-		"Files": NewFiles(chrt.Files),
+		"Chart":        chrt.Metadata,
+		"Files":        NewFiles(chrt.Files),
+		"Capabilities": caps,
 	}
 
 	vals, err := CoalesceValues(chrt, chrtVals)
@@ -361,4 +386,50 @@ func ToRenderValues(chrt *chart.Chart, chrtVals *chart.Config, options ReleaseOp
 func istable(v interface{}) bool {
 	_, ok := v.(map[string]interface{})
 	return ok
+}
+
+// PathValue takes a path that traverses a YAML structure and returns the value at the end of that path.
+// The path starts at the root of the YAML structure and is comprised of YAML keys separated by periods.
+// Given the following YAML data the value at path "chapter.one.title" is "Loomings".
+//
+//	chapter:
+//	  one:
+//	    title: "Loomings"
+func (v Values) PathValue(ypath string) (interface{}, error) {
+	if len(ypath) == 0 {
+		return nil, errors.New("YAML path string cannot be zero length")
+	}
+	yps := strings.Split(ypath, ".")
+	if len(yps) == 1 {
+		// if exists must be root key not table
+		vals := v.AsMap()
+		k := yps[0]
+		if _, ok := vals[k]; ok && !istable(vals[k]) {
+			// key found
+			return vals[yps[0]], nil
+		}
+		// key not found
+		return nil, ErrNoValue(fmt.Errorf("%v is not a value", k))
+	}
+	// join all elements of YAML path except last to get string table path
+	ypsLen := len(yps)
+	table := yps[:ypsLen-1]
+	st := strings.Join(table, ".")
+	// get the last element as a string key
+	key := yps[ypsLen-1:]
+	sk := string(key[0])
+	// get our table for table path
+	t, err := v.Table(st)
+	if err != nil {
+		//no table
+		return nil, ErrNoValue(fmt.Errorf("%v is not a value", sk))
+	}
+	// check table for key and ensure value is not a table
+	if k, ok := t[sk]; ok && !istable(k) {
+		// key found
+		return k, nil
+	}
+
+	// key not found
+	return nil, ErrNoValue(fmt.Errorf("key not found: %s", sk))
 }

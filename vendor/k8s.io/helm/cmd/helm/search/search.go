@@ -30,7 +30,6 @@ import (
 	"strings"
 
 	"github.com/Masterminds/semver"
-
 	"k8s.io/helm/pkg/repo"
 )
 
@@ -62,6 +61,7 @@ const verSep = "$$"
 
 // AddRepo adds a repository index to the search index.
 func (i *Index) AddRepo(rname string, ind *repo.IndexFile, all bool) {
+	ind.SortEntries()
 	for name, ref := range ind.Entries {
 		if len(ref) == 0 {
 			// Skip chart names that have zero releases.
@@ -146,9 +146,11 @@ func (i *Index) SearchLiteral(term string, threshold int) []*Result {
 	term = strings.ToLower(term)
 	buf := []*Result{}
 	for k, v := range i.lines {
-		res := strings.Index(v, term)
-		if score := i.calcScore(res, v); res != -1 && score < threshold {
-			parts := strings.Split(k, verSep) // Remove version, if it is there.
+		lk := strings.ToLower(k)
+		lv := strings.ToLower(v)
+		res := strings.Index(lv, term)
+		if score := i.calcScore(res, lv); res != -1 && score < threshold {
+			parts := strings.Split(lk, verSep) // Remove version, if it is there.
 			buf = append(buf, &Result{Name: parts[0], Score: score, Chart: i.charts[k]})
 		}
 	}
@@ -175,7 +177,7 @@ func (i *Index) SearchRegexp(re string, threshold int) ([]*Result, error) {
 	return buf, nil
 }
 
-// Chart returns the ChartRef for a particular name.
+// Chart returns the ChartVersion for a particular name.
 func (i *Index) Chart(name string) (*repo.ChartVersion, error) {
 	c, ok := i.charts[name]
 	if !ok {
@@ -220,6 +222,8 @@ func (s scoreSorter) Less(a, b int) bool {
 		if err != nil {
 			return true
 		}
+		// Sort so that the newest chart is higher than the oldest chart. This is
+		// the opposite of what you'd expect in a function called Less.
 		return v1.GreaterThan(v2)
 	}
 	return first.Name < second.Name
@@ -228,5 +232,5 @@ func (s scoreSorter) Less(a, b int) bool {
 func indstr(name string, ref *repo.ChartVersion) string {
 	i := ref.Name + sep + name + "/" + ref.Name + sep +
 		ref.Description + sep + strings.Join(ref.Keywords, " ")
-	return strings.ToLower(i)
+	return i
 }

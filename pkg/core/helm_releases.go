@@ -2,7 +2,6 @@ package core
 
 import (
 	"context"
-	"errors"
 	"fmt"
 	"reflect"
 	"regexp"
@@ -11,6 +10,7 @@ import (
 	"sync"
 	"time"
 
+	"github.com/pkg/errors"
 	"github.com/technosophos/moniker"
 
 	"github.com/supergiant/supergiant/pkg/kubernetes"
@@ -150,53 +150,29 @@ func (c *HelmReleases) Delete(id *int64, m *model.HelmRelease) ActionInterface {
 	}
 }
 
-//------------------------------------------------------------------------------
-
 func getHelmReleases(c *Core, kube *model.Kube) ([]*model.HelmRelease, error) {
-	log, err := execHelmCmd(c, kube, "list")
+	hclient, err := c.HelmClient(kube)
 	if err != nil {
-		return nil, err
+		return nil, errors.Wrap(err,"build helm client")
 	}
 
-	lines := strings.Split(log, "\n")
-
-	var headerExists bool
-	var headerLineNo int
-
-	for lineNo, line := range lines {
-		if regexp.MustCompile(`^NAME`).MatchString(line) {
-			headerExists = true
-			headerLineNo = lineNo
-			break
-		}
-	}
-
-	if !headerExists {
-		return nil, nil
+	resp, err := hclient.ListReleases()
+	if err != nil {
+		return nil, errors.Wrap(err, "list releases")
 	}
 
 	var releases []*model.HelmRelease
-	for _, line := range lines[headerLineNo+1:] {
-		cols := regexp.MustCompile(" *\t").Split(line, -1)
-
-		// NOTE this should really only be the last line causing this to trigger
-		if len(cols) < 5 {
-			continue
-		}
-
-		chartNameSplit := strings.Split(cols[4], "-")
-
-		release := &model.HelmRelease{
+	for _, r := range resp.GetReleases() {
+		releases = append(releases, &model.HelmRelease{
 			KubeName:     kube.Name,
-			Name:         cols[0],
-			Revision:     cols[1],
+			Name:         r.Name,
+			Revision:     r.Info.,
 			UpdatedValue: cols[2],
 			StatusValue:  cols[3],
 			// TODO this is not full ChartName (does not include Repo)
 			ChartName:    chartNameSplit[0],
 			ChartVersion: chartNameSplit[1],
-		}
-		releases = append(releases, release)
+		})
 	}
 
 	return releases, nil
