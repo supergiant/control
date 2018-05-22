@@ -1,8 +1,6 @@
 package pool
 
 type Task struct {
-	id string
-
 	fn func() error
 
 	result chan interface{}
@@ -12,13 +10,9 @@ type Task struct {
 func NewTask(action func() error, resultChan chan interface{}) *Task {
 	return &Task{
 		fn:     action,
-		result: resultChan,	
+		result: resultChan,
 		err:    nil,
 	}
-}
-
-func (t *Task) GetID() string {
-	return t.id
 }
 
 func (t *Task) Result() <-chan interface{} {

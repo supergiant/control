@@ -1,7 +1,6 @@
 package pool
 
 import (
-	"github.com/satori/go.uuid"
 	"sync"
 )
 
@@ -29,6 +28,7 @@ func NewPool(workerCount, bufferSize int) *Pool {
 	}
 
 	return &Pool{
+		doneChan:       make(chan struct{}),
 		submitChan:     make(chan *Task, bufferSize),
 		idleWorkerChan: make(chan chan *Task, workerCount),
 		workerCount:    workerCount,
@@ -58,7 +58,6 @@ func (p *Pool) Run() {
 }
 
 func (p *Pool) Submit(t *Task) {
-	t.id = uuid.NewV4().String()
 	p.submitChan <- t
 }
 
