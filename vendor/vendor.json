@@ -226,6 +226,42 @@
 			"revisionTime": "2016-02-12T00:23:28Z"
 		},
 		{
+			"checksumSHA1": "APRJtya3c5FX3g4HTCNWGGeCcM8=",
+			"path": "github.com/coreos/etcd/client",
+			"revision": "346589edd1dcb04016594774cef0c0273eeaeb60",
+			"revisionTime": "2018-05-21T16:40:13Z"
+		},
+		{
+			"checksumSHA1": "mKIXx1kDwmVmdIpZ3pJtRBuUKso=",
+			"path": "github.com/coreos/etcd/pkg/pathutil",
+			"revision": "346589edd1dcb04016594774cef0c0273eeaeb60",
+			"revisionTime": "2018-05-21T16:40:13Z"
+		},
+		{
+			"checksumSHA1": "wAOmJuqYSwbVNGdofRaxF1jm1ak=",
+			"path": "github.com/coreos/etcd/pkg/srv",
+			"revision": "346589edd1dcb04016594774cef0c0273eeaeb60",
+			"revisionTime": "2018-05-21T16:40:13Z"
+		},
+		{
+			"checksumSHA1": "KU44RoTf7eoYTiIJcPuP70wFNrk=",
+			"path": "github.com/coreos/etcd/pkg/types",
+			"revision": "346589edd1dcb04016594774cef0c0273eeaeb60",
+			"revisionTime": "2018-05-21T16:40:13Z"
+		},
+		{
+			"checksumSHA1": "SCXhykntdCkvDe22S/RNButQ0C0=",
+			"path": "github.com/coreos/etcd/version",
+			"revision": "346589edd1dcb04016594774cef0c0273eeaeb60",
+			"revisionTime": "2018-05-21T16:40:13Z"
+		},
+		{
+			"checksumSHA1": "97BsbXOiZ8+Kr+LIuZkQFtSj7H4=",
+			"path": "github.com/coreos/go-semver/semver",
+			"revision": "e214231b295a8ea9479f11b70b35d5acf3556d9b",
+			"revisionTime": "2018-01-08T23:09:05Z"
+		},
+		{
 			"checksumSHA1": "Oa32kLgyGXbYDkIIILZb2KsQ7CA=",
 			"path": "github.com/creasty/defaults",
 			"revision": "6c4fe17c81344743a94a3c1bb05f8425baa5ee09",
@@ -704,6 +740,12 @@
 			"path": "github.com/tent/http-link-go",
 			"revision": "ac974c61c2f990f4115b119354b5e0b47550e888",
 			"revisionTime": "2013-07-02T22:55:49Z"
+		},
+		{
+			"checksumSHA1": "kdas0zQNtQqfUMEMFGkUF1OcgPc=",
+			"path": "github.com/ugorji/go/codec",
+			"revision": "f3cacc17c85ecb7f1b6a9e373ee85d1480919868",
+			"revisionTime": "2018-04-07T10:30:00Z"
 		},
 		{
 			"checksumSHA1": "VGCGId2YuDDw3LhT+P7TQmqtTgQ=",
