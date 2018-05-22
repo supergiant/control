@@ -62,6 +62,7 @@ func (p *Pool) Run() {
 			taskChan := <-p.idleWorkerChan
 			taskChan <- task
 		case <-p.doneChan:
+			return
 		}
 	}
 }
