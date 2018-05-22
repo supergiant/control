@@ -9,10 +9,6 @@ type Worker struct {
 func (w *Worker) Run(taskChanChan chan chan *Task, wg *sync.WaitGroup) {
 	taskChan := make(chan *Task)
 
-	taskChanChan <- taskChan
-	t := <-taskChan
-	t.fn()
-
 	for {
 		select {
 		case task := <-taskChan:
@@ -22,6 +18,7 @@ func (w *Worker) Run(taskChanChan chan chan *Task, wg *sync.WaitGroup) {
 
 			close(task.result)
 			wg.Done()
+			// Notify pool that worker is available now
 			taskChanChan <- taskChan
 		case <-w.doneChan:
 			return
