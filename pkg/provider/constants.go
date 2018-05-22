@@ -7,4 +7,5 @@ const (
 	DigitalOcean Name = "digitalocean"
 	Packet       Name = "packet"
 	GCE          Name = "gce"
+	OpenStack    Name = "openstack"
 )

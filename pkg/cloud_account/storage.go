@@ -12,19 +12,19 @@ import (
 
 const prefix = "cloudaccount/"
 
-//ETCDRepository is implementation of cloud_account.Repository
+// ETCDRepository is implementation of cloud_account.Repository
 type ETCDRepository struct {
 	keysAPI client.KeysAPI
 }
 
-//NewRepository is function constructor
+// NewRepository is function constructor
 func NewRepository(cl client.Client) Repository {
 	return &ETCDRepository{
 		keysAPI: client.NewKeysAPI(cl),
 	}
 }
 
-//GetAll - retrieves all accounts, returns empty slice if none
+// GetAll - retrieves all accounts, returns empty slice if none
 func (r *ETCDRepository) GetAll(ctx context.Context) ([]CloudAccount, error) {
 	accounts := make([]CloudAccount, 0)
 	resp, err := r.keysAPI.Get(ctx, prefix, &client.GetOptions{
@@ -50,8 +50,8 @@ func (r *ETCDRepository) GetAll(ctx context.Context) ([]CloudAccount, error) {
 	return accounts, nil
 }
 
-//Create stores account in etcd, if account with such name is already present it will return an error
-func (r *ETCDRepository) Create(ctx context.Context, acc *CloudAccount) (error) {
+// Create stores account in etcd, if account with such name is already present it will return an error
+func (r *ETCDRepository) Create(ctx context.Context, acc *CloudAccount) error {
 	rawJSON, err := json.Marshal(acc)
 	if err != nil {
 		return errors.WithStack(err)
@@ -63,7 +63,7 @@ func (r *ETCDRepository) Create(ctx context.Context, acc *CloudAccount) (error) 
 	return nil
 }
 
-//Get retrieves account from etcd returns nil if account is not found
+// Get retrieves account from etcd returns nil if account is not found
 func (r *ETCDRepository) Get(ctx context.Context, accountName string) (*CloudAccount, error) {
 	resp, err := r.keysAPI.Get(ctx, prefix+accountName, nil)
 	if err != nil {
@@ -80,21 +80,21 @@ func (r *ETCDRepository) Get(ctx context.Context, accountName string) (*CloudAcc
 	return ac, nil
 }
 
-//Update overwrites the cloud account record, account name should not be changed.
-func (r *ETCDRepository) Update(ctx context.Context, acc *CloudAccount) (error) {
-	rawJson, err := json.Marshal(acc)
+// Update overwrites the cloud account record, account name should not be changed.
+func (r *ETCDRepository) Update(ctx context.Context, acc *CloudAccount) error {
+	rawJSON, err := json.Marshal(acc)
 	if err != nil {
 		return errors.WithStack(err)
 	}
-	_, err = r.keysAPI.Set(ctx, prefix+acc.Name, string(rawJson), nil)
+	_, err = r.keysAPI.Set(ctx, prefix+acc.Name, string(rawJSON), nil)
 	if err != nil {
 		return errors.WithStack(err)
 	}
 	return nil
 }
 
-//Delete removes amn account from the etcd storage, this is idempotent operation.
-func (r *ETCDRepository) Delete(ctx context.Context, accountName string) (error) {
+// Delete removes amn account from the etcd storage, this is idempotent operation.
+func (r *ETCDRepository) Delete(ctx context.Context, accountName string) error {
 	_, err := r.keysAPI.Delete(ctx, prefix+accountName, nil)
 	if err != nil {
 		if client.IsKeyNotFound(err) {
