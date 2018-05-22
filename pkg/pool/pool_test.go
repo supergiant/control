@@ -21,9 +21,14 @@ func TestTaskFinished(t *testing.T) {
 			return nil
 		}
 
-		t := NewTask(f, result)
-		pool.Submit(t)
-		tasks = append(tasks, t)
+		task := NewTask(f, result)
+		err := pool.Submit(task)
+
+		if err != nil {
+			t.Errorf("Unexpected error when submit task %v", err)
+		}
+
+		tasks = append(tasks, task)
 	}
 
 	pool.Stop()
@@ -39,5 +44,18 @@ func TestTaskFinished(t *testing.T) {
 			t.Error("Time limit exceeded for completing task")
 			return
 		}
+	}
+}
+
+func TestPoolSubmit(t *testing.T) {
+	pool := NewPool(1, 1)
+	task := NewTask(func() error {
+		return nil
+	}, make(chan interface{}))
+
+	err := pool.Submit(task)
+
+	if err == nil {
+		t.Errorf("Expected error %v actual %v", poolIsNotRunning, err)
 	}
 }

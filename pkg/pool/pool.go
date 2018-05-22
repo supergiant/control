@@ -1,7 +1,12 @@
 package pool
 
 import (
+	"errors"
 	"sync"
+)
+
+var (
+	poolIsNotRunning = errors.New("pool is not running")
 )
 
 type Pool struct {
@@ -15,6 +20,7 @@ type Pool struct {
 
 	workerCount       int
 	activeWorkerCount int
+	isRunning         bool
 }
 
 // Create new pool with specified buffer size for new tasks and count of workers
@@ -37,7 +43,9 @@ func NewPool(workerCount, bufferSize int) *Pool {
 	}
 }
 
+// Run pool event loop
 func (p *Pool) Run() {
+	p.isRunning = true
 	// Spawn all workers
 	for i := 0; i < p.workerCount; i++ {
 		// Stop all workers with the same chan as pool stops
@@ -57,8 +65,13 @@ func (p *Pool) Run() {
 	}
 }
 
-func (p *Pool) Submit(t *Task) {
+func (p *Pool) Submit(t *Task) error {
+	if !p.isRunning {
+		return poolIsNotRunning
+	}
+
 	p.submitChan <- t
+	return nil
 }
 
 func (p *Pool) Stop() {
