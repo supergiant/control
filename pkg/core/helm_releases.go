@@ -4,8 +4,8 @@ import (
 	"context"
 	"fmt"
 	"reflect"
-	"regexp"
 	"sort"
+	"strconv"
 	"strings"
 	"sync"
 	"time"
@@ -153,7 +153,7 @@ func (c *HelmReleases) Delete(id *int64, m *model.HelmRelease) ActionInterface {
 func getHelmReleases(c *Core, kube *model.Kube) ([]*model.HelmRelease, error) {
 	hclient, err := c.HelmClient(kube)
 	if err != nil {
-		return nil, errors.Wrap(err,"build helm client")
+		return nil, errors.Wrap(err, "build helm client")
 	}
 
 	resp, err := hclient.ListReleases()
@@ -166,12 +166,12 @@ func getHelmReleases(c *Core, kube *model.Kube) ([]*model.HelmRelease, error) {
 		releases = append(releases, &model.HelmRelease{
 			KubeName:     kube.Name,
 			Name:         r.Name,
-			Revision:     r.Info.,
-			UpdatedValue: cols[2],
-			StatusValue:  cols[3],
+			Revision:     strconv.Itoa(int(r.Version)),
+			UpdatedValue: r.Info.LastDeployed.String(),
+			StatusValue:  r.Info.Status.Code.String(),
 			// TODO this is not full ChartName (does not include Repo)
-			ChartName:    chartNameSplit[0],
-			ChartVersion: chartNameSplit[1],
+			ChartName:    r.Chart.GetMetadata().Name,
+			ChartVersion: r.Chart.GetMetadata().Version,
 		})
 	}
 

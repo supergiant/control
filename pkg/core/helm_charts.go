@@ -7,11 +7,13 @@ import (
 	"strings"
 
 	"github.com/ghodss/yaml"
-
-	"k8s.io/helm/cmd/helm/downloader"
-	"k8s.io/helm/cmd/helm/helmpath"
+	"github.com/pkg/errors"
 	"k8s.io/helm/cmd/helm/search"
 	"k8s.io/helm/pkg/chartutil"
+	"k8s.io/helm/pkg/downloader"
+	"k8s.io/helm/pkg/getter"
+	"k8s.io/helm/pkg/helm/environment"
+	"k8s.io/helm/pkg/helm/helmpath"
 	"k8s.io/helm/pkg/repo"
 
 	"github.com/supergiant/supergiant/pkg/model"
@@ -163,24 +165,34 @@ func init() {
 
 func searchHelmRepo(repoModel *model.HelmRepo) ([]*search.Result, error) {
 	home := helmHome()
-	index := search.NewIndex()
 
-	cif := home.CacheIndex(repoModel.Name)
-	if err := repo.DownloadIndexFile(repoModel.Name, repoModel.URL, cif); err != nil {
+	r, err := repo.NewChartRepository(
+		&repo.Entry{
+			Name:  repoModel.Name,
+			URL:   repoModel.URL,
+			Cache: home.CacheIndex(repoModel.Name),
+		},
+		getter.All(environment.EnvSettings{}),
+	)
+	if err != nil {
+		return nil, errors.Wrapf(err, "build %s chart repository", repoModel.Name)
+	}
+
+	if err = r.DownloadIndexFile(""); err != nil {
 		return nil, err
 	}
 
-	ind, err := repo.LoadIndexFile(cif)
+	ind, err := repo.LoadIndexFile("")
 	if err != nil {
 		return nil, err
 	}
 
+	// TODO: get rid of the index, instead use result of the LoadIndexFile()
+	index := search.NewIndex()
 	index.AddRepo(repoModel.Name, ind, false)
 
 	return index.All(), nil
 }
-
-//------------------------------------------------------------------------------
 
 func updateHelmRepoFile(c *Core) error {
 	home := helmHome()

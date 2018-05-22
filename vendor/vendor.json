@@ -2070,6 +2070,14 @@
 			"versionExact": "v2.8.2"
 		},
 		{
+			"checksumSHA1": "pJDQpfOmQcdPvkrEJ8nCbOm7ocM=",
+			"path": "k8s.io/helm/pkg/downloader",
+			"revision": "a80231648a1473929271764b920a8e346f6de844",
+			"revisionTime": "2018-03-09T20:44:06Z",
+			"version": "v2.8.2",
+			"versionExact": "v2.8.2"
+		},
+		{
 			"checksumSHA1": "7Z1nanR3WYFbHbH0CDqUspQw/HY=",
 			"path": "k8s.io/helm/pkg/getter",
 			"revision": "a80231648a1473929271764b920a8e346f6de844",
@@ -2160,6 +2168,14 @@
 		{
 			"checksumSHA1": "M7uiSB3sK1q2rixRH1OSsYS9u6Y=",
 			"path": "k8s.io/helm/pkg/repo",
+			"revision": "a80231648a1473929271764b920a8e346f6de844",
+			"revisionTime": "2018-03-09T20:44:06Z",
+			"version": "v2.8.2",
+			"versionExact": "v2.8.2"
+		},
+		{
+			"checksumSHA1": "+Gjxek69e2LPlCUoRXWzB75LpD8=",
+			"path": "k8s.io/helm/pkg/resolver",
 			"revision": "a80231648a1473929271764b920a8e346f6de844",
 			"revisionTime": "2018-03-09T20:44:06Z",
 			"version": "v2.8.2",
