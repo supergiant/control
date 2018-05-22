@@ -6,11 +6,12 @@ import (
 )
 
 var (
-	poolIsNotRunning = errors.New("pool is not running")
+	errPoolIsNotRunning = errors.New("pool is not running")
 )
 
+// Pool that handles execution of delayed tasks
 type Pool struct {
-	workers []Worker
+	workers []worker
 
 	submitChan     chan *Task
 	idleWorkerChan chan chan *Task
@@ -23,7 +24,7 @@ type Pool struct {
 	isRunning         bool
 }
 
-// Create new pool with specified buffer size for new tasks and count of workers
+// NewPool creates pool with specified buffer size for new tasks and count of workers
 func NewPool(workerCount, bufferSize int) *Pool {
 	if bufferSize <= 0 {
 		bufferSize = 64
@@ -38,7 +39,7 @@ func NewPool(workerCount, bufferSize int) *Pool {
 		submitChan:     make(chan *Task, bufferSize),
 		idleWorkerChan: make(chan chan *Task, workerCount),
 		workerCount:    workerCount,
-		workers:        make([]Worker, workerCount),
+		workers:        make([]worker, workerCount),
 		wg:             &sync.WaitGroup{},
 	}
 }
@@ -65,15 +66,17 @@ func (p *Pool) Run() {
 	}
 }
 
+// Submit new task to pool for execution
 func (p *Pool) Submit(t *Task) error {
 	if !p.isRunning {
-		return poolIsNotRunning
+		return errPoolIsNotRunning
 	}
 
 	p.submitChan <- t
 	return nil
 }
 
+// Stop pool work and waits until all tasks are done
 func (p *Pool) Stop() {
 	// Wait for all submitted tasks to finish
 	p.wg.Wait()

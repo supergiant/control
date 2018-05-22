@@ -2,11 +2,12 @@ package pool
 
 import "sync"
 
-type Worker struct {
+type worker struct {
 	doneChan chan struct{}
 }
 
-func (w *Worker) Run(taskChanChan chan chan *Task, wg *sync.WaitGroup) {
+// Run main event loop of worker
+func (w *worker) Run(taskChanChan chan chan *Task, wg *sync.WaitGroup) {
 	taskChan := make(chan *Task)
 
 	for {

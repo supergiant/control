@@ -56,6 +56,6 @@ func TestPoolSubmit(t *testing.T) {
 	err := pool.Submit(task)
 
 	if err == nil {
-		t.Errorf("Expected error %v actual %v", poolIsNotRunning, err)
+		t.Errorf("Expected error %v actual %v", errPoolIsNotRunning, err)
 	}
 }
