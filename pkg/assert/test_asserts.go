@@ -1,7 +1,6 @@
-package util
+package assert
 
 import (
-	"fmt"
 	"time"
 
 	"github.com/coreos/etcd/client"
@@ -9,8 +8,8 @@ import (
 	"golang.org/x/net/context"
 )
 
-//AssertETCDRunning is test assert function useful in integration tests to assert that test dependencies are running
-func AssertETCDRunning(etcdHost string) {
+//etcdRunning is test assert function useful in integration tests to assert that test dependencies are running
+func EtcdRunning(etcdHost string) {
 	cl, err := client.New(client.Config{
 		Endpoints: []string{etcdHost},
 	})
@@ -19,8 +18,7 @@ func AssertETCDRunning(etcdHost string) {
 		logrus.Fatal(err)
 	}
 	defer cancel()
-	vers, err := cl.GetVersion(ctx)
-	fmt.Println(vers)
+	_, err = cl.GetVersion(ctx)
 	if err != nil {
 		logrus.Fatal(err)
 	}

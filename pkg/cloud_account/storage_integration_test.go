@@ -9,14 +9,14 @@ import (
 
 	"github.com/coreos/etcd/client"
 	"github.com/stretchr/testify/require"
+	"github.com/supergiant/supergiant/pkg/assert"
 	"github.com/supergiant/supergiant/pkg/provider"
-	"github.com/supergiant/supergiant/pkg/util"
 	"golang.org/x/net/context"
 )
 
 func init() {
 	//TODO tests config should be introduced
-	util.AssertETCDRunning("http://127.0.0.1:2379")
+	assert.EtcdRunning("http://127.0.0.1:2379")
 }
 
 func TestStorageE2E(t *testing.T) {
