@@ -5,7 +5,8 @@ import (
 	"sync"
 
 	"github.com/imdario/mergo"
-
+	"github.com/pkg/errors"
+	
 	"github.com/supergiant/supergiant/pkg/model"
 )
 
@@ -14,11 +15,11 @@ type Collection struct {
 }
 
 func (c *Collection) Create(m model.Model) error {
-	return c.Core.DB.Create(m)
+	return wrap(c.Core.DB.Create(m))
 }
 
 func (c *Collection) Get(id *int64, m model.Model) error {
-	return c.Core.DB.First(m, *id)
+	return wrap(c.Core.DB.First(m, *id))
 }
 
 func (c *Collection) GetWithIncludes(id *int64, m model.Model, includes []string) error {
@@ -26,21 +27,25 @@ func (c *Collection) GetWithIncludes(id *int64, m model.Model, includes []string
 	for _, include := range includes {
 		scope = scope.Preload(include)
 	}
-	return scope.First(m, *id)
+	return wrap(scope.First(m, *id))
 }
 
 func (c *Collection) Update(id *int64, oldM model.Model, m model.Model) error {
 	if err := model.CheckImmutableFields(m); err != nil {
-		return err
+		return wrap(err)
 	}
-	return c.mergeUpdate(id, oldM, m)
+	return wrap(c.mergeUpdate(id, oldM, m))
 }
 
 func (c *Collection) Delete(id *int64, m model.Model) error { // Loaded so we can render out
 	if err := c.Core.DB.First(m, *id); err != nil {
-		return err
+		return wrap(err)
 	}
-	return c.Core.DB.Delete(m)
+	return wrap(c.Core.DB.Delete(m))
+}
+
+func wrap(err error) error {
+	return errors.Wrap(err, "db")
 }
 
 ////////////////////////////////////////////////////////////////////////////////
