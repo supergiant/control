@@ -11,7 +11,7 @@ import (
 
 const supergiantAuthHeader = "SGTOKEN"
 
-type middleware struct {
+type AuthMiddleware struct {
 	userService  user.Service
 	tokenService sgjwt.TokenService
 }
@@ -22,7 +22,7 @@ type authRequest struct {
 }
 
 // TODO(stgleb): move to separate handlers module
-func (m *middleware) LoginHandler(w http.ResponseWriter, r *http.Request) {
+func (m *AuthMiddleware) LoginHandler(w http.ResponseWriter, r *http.Request) {
 	var ar authRequest
 
 	err := json.NewDecoder(r.Body).Decode(&ar)
@@ -32,8 +32,8 @@ func (m *middleware) LoginHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if ok, err := m.userService.Authenticate(r.Context(), ar.UserName, ar.Password); !ok || err != nil {
-		http.Error(w, "unknown user", http.StatusForbidden)
+	if err := m.userService.Authenticate(r.Context(), ar.UserName, ar.Password); err != nil {
+		http.Error(w, err.Error(), http.StatusForbidden)
 		return
 	}
 
@@ -46,7 +46,7 @@ func (m *middleware) LoginHandler(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
-func (m *middleware) AuthMiddleware(next http.Handler) http.Handler {
+func (m *AuthMiddleware) Authenticate(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		tokenString := r.Header.Get(supergiantAuthHeader)
 		err := m.tokenService.Validate(tokenString)
