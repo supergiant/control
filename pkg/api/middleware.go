@@ -1,13 +1,12 @@
 package api
 
 import (
+	"encoding/json"
+	"fmt"
 	"net/http"
-	"regexp"
 
 	sgjwt "github.com/supergiant/supergiant/pkg/jwt"
 	"github.com/supergiant/supergiant/pkg/user"
-	"encoding/json"
-	"fmt"
 )
 
 const supergiantAuthHeader = "SGTOKEN"
@@ -21,7 +20,6 @@ type authRequest struct {
 	UserName string
 	Password string
 }
-
 
 // TODO(stgleb): move to separate handlers module
 func (m *middleware) LoginHandler(w http.ResponseWriter, r *http.Request) {
@@ -59,38 +57,5 @@ func (m *middleware) AuthMiddleware(next http.Handler) http.Handler {
 		}
 
 		next.ServeHTTP(w, r)
-	})
-}
-
-//FIXME Reusing the old code to keep frontend from being broken
-func (m *middleware) authorisationHandler(next http.Handler) http.Handler {
-	return http.HandlerFunc(func(rw http.ResponseWriter, r *http.Request) {
-		auth := r.Header.Get("Authorization")
-		tokenMatch := regexp.MustCompile(`^SGAPI (token|session)="([A-Za-z0-9]{32})"$`).FindStringSubmatch(auth)
-
-		if len(tokenMatch) != 3 {
-			respond(rw, nil, errorBadAuthHeader)
-		}
-		switch tokenMatch[1] {
-		case "token":
-			token := tokenMatch[2]
-			_, err := m.userService.GetByToken(r.Context(), token)
-			if err != nil {
-				respond(rw, nil, errorUnauthorized)
-				return
-			}
-			//return user
-		case "session":
-			session := tokenMatch[3]
-			if err := m.userService.GetBySession(r.Context(), session); err != nil {
-				respond(rw, nil, errorUnauthorized)
-				return
-			}
-			return
-		default:
-			respond(rw, nil, errorBadAuthHeader)
-			return
-		}
-		next.ServeHTTP(rw, r)
 	})
 }

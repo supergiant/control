@@ -2,9 +2,10 @@ package jwt
 
 import (
 	"fmt"
+	"time"
+
 	"github.com/dgrijalva/jwt-go"
 	"github.com/pkg/errors"
-	"time"
 )
 
 type TokenService struct {
