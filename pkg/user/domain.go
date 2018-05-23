@@ -15,7 +15,7 @@ type User struct {
 
 type Repository interface {
 	GetAll(context.Context) ([]User, error)
-	Get(ctx context.Context, login string) (*User, error)
+	Get(context.Context, string) (*User, error)
 	Create(context.Context, *User) error
 }
 
