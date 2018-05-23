@@ -34,19 +34,18 @@ func (r *ETCDRepository) GetAll(ctx context.Context) ([]CloudAccount, error) {
 		if client.IsKeyNotFound(err) {
 			return accounts, nil
 		}
-		return accounts, errors.WithStack(err)
+		return nil, errors.WithStack(err)
 	}
-	if resp.Node != nil {
-		for _, v := range resp.Node.Nodes {
-			ca := CloudAccount{}
-			err = json.NewDecoder(strings.NewReader(v.Value)).Decode(&ca)
-			if err != nil {
-				logrus.Warningf("corrupted data in etcd node %s", v.Key)
-				continue
-			}
-			accounts = append(accounts, ca)
+	for _, v := range resp.Node.Nodes {
+		ca := CloudAccount{}
+		err = json.NewDecoder(strings.NewReader(v.Value)).Decode(&ca)
+		if err != nil {
+			logrus.Warningf("corrupted data in etcd node %s", v.Key)
+			continue
 		}
+		accounts = append(accounts, ca)
 	}
+
 	return accounts, nil
 }
 
@@ -57,10 +56,7 @@ func (r *ETCDRepository) Create(ctx context.Context, acc *CloudAccount) error {
 		return errors.WithStack(err)
 	}
 	_, err = r.keysAPI.Create(ctx, prefix+acc.Name, string(rawJSON))
-	if err != nil {
-		return errors.WithStack(err)
-	}
-	return nil
+	return errors.WithStack(err)
 }
 
 // Get retrieves account from etcd returns nil if account is not found
@@ -87,20 +83,14 @@ func (r *ETCDRepository) Update(ctx context.Context, acc *CloudAccount) error {
 		return errors.WithStack(err)
 	}
 	_, err = r.keysAPI.Set(ctx, prefix+acc.Name, string(rawJSON), nil)
-	if err != nil {
-		return errors.WithStack(err)
-	}
-	return nil
+	return errors.WithStack(err)
 }
 
 // Delete removes amn account from the etcd storage, this is idempotent operation.
 func (r *ETCDRepository) Delete(ctx context.Context, accountName string) error {
 	_, err := r.keysAPI.Delete(ctx, prefix+accountName, nil)
-	if err != nil {
-		if client.IsKeyNotFound(err) {
-			return nil
-		}
-		return errors.WithStack(err)
+	if client.IsKeyNotFound(err) {
+		return nil
 	}
-	return nil
+	return errors.WithStack(err)
 }
