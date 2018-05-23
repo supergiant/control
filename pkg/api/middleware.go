@@ -7,6 +7,8 @@ import (
 	"github.com/supergiant/supergiant/pkg/user"
 )
 
+const tokenRegexp = `SGAPI (token|session)="([A-Za-z0-9]{32})"$`
+
 type middleware struct {
 	Users user.Service
 }
@@ -15,7 +17,7 @@ type middleware struct {
 func (m *middleware) authorisationHandler(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(rw http.ResponseWriter, r *http.Request) {
 		auth := r.Header.Get("Authorization")
-		tokenMatch := regexp.MustCompile(`^SGAPI (token|session)="([A-Za-z0-9]{32})"$`).FindStringSubmatch(auth)
+		tokenMatch := regexp.MustCompile(tokenRegexp).FindStringSubmatch(auth)
 
 		if len(tokenMatch) != 3 {
 			respond(rw, nil, errorBadAuthHeader)
