@@ -1,4 +1,4 @@
-package api
+package user
 
 import (
 	"encoding/json"
@@ -6,13 +6,10 @@ import (
 	"net/http"
 
 	sgjwt "github.com/supergiant/supergiant/pkg/jwt"
-	"github.com/supergiant/supergiant/pkg/user"
 )
 
-const supergiantAuthHeader = "SGTOKEN"
-
-type AuthMiddleware struct {
-	userService  user.Service
+type AuthHandler struct {
+	userService  Service
 	tokenService sgjwt.TokenService
 }
 
@@ -22,7 +19,7 @@ type authRequest struct {
 }
 
 // TODO(stgleb): move to separate handlers module
-func (m *AuthMiddleware) LoginHandler(w http.ResponseWriter, r *http.Request) {
+func (m *AuthHandler) LoginHandler(w http.ResponseWriter, r *http.Request) {
 	var ar authRequest
 
 	err := json.NewDecoder(r.Body).Decode(&ar)
@@ -44,18 +41,4 @@ func (m *AuthMiddleware) LoginHandler(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, fmt.Sprintf("Error while generating token %s", err.Error()), http.StatusInternalServerError)
 		return
 	}
-}
-
-func (m *AuthMiddleware) Authenticate(next http.Handler) http.Handler {
-	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		tokenString := r.Header.Get(supergiantAuthHeader)
-		err := m.tokenService.Validate(tokenString)
-
-		if err != nil {
-			http.Error(w, err.Error(), http.StatusUnauthorized)
-			return
-		}
-
-		next.ServeHTTP(w, r)
-	})
 }
