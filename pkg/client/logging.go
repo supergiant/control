@@ -1,23 +1,12 @@
 package client
 
 import (
-	"github.com/Sirupsen/logrus"
+	"github.com/sirupsen/logrus"
 )
 
-type logger struct {
-	*logrus.Logger
-}
-
-func (l *logger) SetLevel(level string) {
-	levelConst, err := logrus.ParseLevel(level)
-	if err != nil {
-		panic(err)
-	}
-	l.Level = levelConst
-}
-
-var Log *logger
+var Log *logrus.Logger
 
 func init() {
-	Log = &logger{logrus.New()}
+	logger := logrus.New()
+	Log = logger
 }

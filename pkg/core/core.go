@@ -6,13 +6,13 @@ import (
 	"os"
 	"time"
 
-	"github.com/Sirupsen/logrus"
 	"github.com/creasty/defaults"
 	"github.com/imdario/mergo"
 	"github.com/jinzhu/gorm"
 	_ "github.com/jinzhu/gorm/dialects/postgres"
 	_ "github.com/jinzhu/gorm/dialects/sqlite"
 	"github.com/pkg/errors"
+	"github.com/sirupsen/logrus"
 	kclient "k8s.io/client-go/kubernetes"
 
 	"github.com/supergiant/supergiant/pkg/client"
@@ -148,14 +148,17 @@ func (c *Core) InitializeForeground() error {
 		}
 	}
 
-	// Logging
+	// Log to stdout by default instead of stderr
 	c.Log = logrus.New()
+	c.Log.Out = os.Stdout
+
 	if c.LogLevel != "" {
 		levelInt, err := logrus.ParseLevel(c.LogLevel)
 		if err != nil {
 			return err
 		}
-		c.Log.Level = levelInt
+		c.Log.SetLevel(levelInt)
+		logrus.SetLevel(levelInt)
 	}
 	// db.LogMode(true)
 
