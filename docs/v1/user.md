@@ -6,7 +6,7 @@ A User is an entity with user credentials (**username/password**) and a role. Th
 
 To add a new user, first click **Profile -> Users & Keys**. In a new window, you'll see a list of existing users and a 'new user' form. Enter the Username and Password into the respective form fields and click "**Add New User**" and the new user will be created almost instantly. 
 
-![](https://s3-ap-southeast-2.amazonaws.com/sg-github-wiki-images/concepts/new-user.gif)
+![](../img/new-user.gif)
 
 ### Adding a New User with Supergiant API
 
@@ -29,3 +29,4 @@ To add a new user, first click **Profile -> Users & Keys**. In a new window, you
   "api_token": "GENERATED_API_TOKEN"
 }
 ```
+

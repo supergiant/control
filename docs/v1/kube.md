@@ -8,13 +8,13 @@ Configuration for Kubes differs across cloud providers but all Kubes share a def
 
 #### Amazon AWS
 
-![](https://s3-ap-southeast-2.amazonaws.com/sg-github-wiki-images/wiki-deploying-cluster/kube-deploy_aws.gif)
+![](../img/kube-deploy_aws.gif)
 
 
 
 #### DigitalOcean
 
-![](https://s3-ap-southeast-2.amazonaws.com/sg-github-wiki-images/wiki-deploying-cluster/digital-ocean-deploy.gif)
+![](../img/digital-ocean-deploy.gif)
 
 #### 
 

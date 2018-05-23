@@ -4,15 +4,15 @@ A Cloud Account is a simple object that holds API access credentials (e.g., API 
 
 ### DigitalOcean
 
-![](https://s3-ap-southeast-2.amazonaws.com/sg-github-wiki-images/linking-cloud-accs/digital-ocean-credentials.png)
+![](../img/digital-ocean-credentials.png)
 
 ### Amazon AWS
 
-![](https://s3-ap-southeast-2.amazonaws.com/sg-github-wiki-images/linking-cloud-accs/aws-cloud-acc-credentials.png)
+![](../img/aws-cloud-acc-credentials.png)
 
 ### OpenStack
 
-![](https://s3-ap-southeast-2.amazonaws.com/sg-github-wiki-images/linking-cloud-accs/openstack-cloud-credentials.png)
+![](../img/openstack-cloud-credentials.png)
 
 
 
