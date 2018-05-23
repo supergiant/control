@@ -26,3 +26,13 @@ func (s *Service) GetBySession(ctx context.Context, session string) error {
 	//TODO implement
 	panic("Implement me")
 }
+
+func (s *Service) Authenticate(ctx context.Context, username, password string) (bool, error) {
+	_, err := s.Repository.GetByUserName(ctx, username)
+
+	if err != nil {
+		return false, err
+	}
+
+	return true, nil
+}
