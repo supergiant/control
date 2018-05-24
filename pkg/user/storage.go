@@ -1,9 +1,9 @@
 package user
 
 import (
+	"context"
 	"encoding/json"
 	"strings"
-	"context"
 
 	"github.com/coreos/etcd/client"
 	"github.com/pkg/errors"
@@ -36,7 +36,7 @@ func (r *ETCDRepository) Get(ctx context.Context, login string) (*User, error) {
 }
 
 // Create adds user to the etcd
-func (r *ETCDRepository) Create(ctx context.Context, u *User) (error) {
+func (r *ETCDRepository) Create(ctx context.Context, u *User) error {
 	rawJSON, err := json.Marshal(u)
 	if err != nil {
 		return errors.WithStack(err)

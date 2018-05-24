@@ -4,6 +4,7 @@ import (
 	"context"
 
 	"github.com/pkg/errors"
+	"golang.org/x/crypto/bcrypt"
 )
 
 // Service contains business logic related to users
@@ -26,4 +27,14 @@ func (s *Service) GetByToken(ctx context.Context, apiToken string) (*User, error
 
 func (s *Service) RegisterUser(ctx context.Context, user *User) error {
 	return nil
+}
+
+func (s *Service) Authenticate(ctx context.Context, username, password string) error {
+	user, err := s.Repository.Get(ctx, username)
+
+	if err != nil {
+		return err
+	}
+
+	return bcrypt.CompareHashAndPassword(user.EncryptedPassword, []byte(password))
 }

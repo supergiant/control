@@ -2,17 +2,36 @@ package api
 
 import (
 	"net/http"
-	"github.com/supergiant/supergiant/pkg/user"
+
+	"strings"
+
+	sgjwt "github.com/supergiant/supergiant/pkg/jwt"
 )
 
+func AuthMiddleware(tokenService sgjwt.TokenService, next http.Handler) http.Handler {
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		// Get rid of Bearer
+		tokenString := strings.Split(r.Header.Get("Authorization"), " ")[1]
+		claims, err := tokenService.Validate(tokenString)
 
-type middleware struct {
-	Users user.Service
-}
+		// TODO(stgleb): Do something with claims
+		userId, ok := claims["user_id"].(string)
 
-func (m *middleware) authorisationHandler(next http.Handler) http.Handler {
-	return http.HandlerFunc(func(rw http.ResponseWriter, r *http.Request) {
-		//TODO Implement JWT
-		next.ServeHTTP(rw, r)
+		if !ok {
+			http.Error(w, err.Error(), http.StatusForbidden)
+			return
+		}
+
+		if len(userId) == 0 {
+			http.Error(w, "unknown user", http.StatusForbidden)
+			return
+		}
+
+		if err != nil {
+			http.Error(w, err.Error(), http.StatusForbidden)
+			return
+		}
+
+		next.ServeHTTP(w, r)
 	})
 }
