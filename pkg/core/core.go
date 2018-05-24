@@ -246,7 +246,7 @@ func (c *Core) InitializeForeground() error {
 		}
 
 		if kube.TillerNamespace == "" {
-			kube.TillerNamespace = model.TillerNamespace
+			kube.TillerNamespace = model.DefaultTillerNamespace
 		}
 
 		return helm.New(kclient, config, kube.TillerNamespace)

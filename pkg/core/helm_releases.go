@@ -5,7 +5,6 @@ import (
 
 	"github.com/pkg/errors"
 	"github.com/technosophos/moniker"
-
 	"k8s.io/helm/pkg/chartutil"
 	"k8s.io/helm/pkg/helm"
 	"k8s.io/helm/pkg/timeconv"

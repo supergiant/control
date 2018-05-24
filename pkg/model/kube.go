@@ -1,7 +1,7 @@
 package model
 
 const (
-	TillerNamespace = "kube-system"
+	DefaultTillerNamespace = "kube-system"
 )
 
 type KubeList struct {
