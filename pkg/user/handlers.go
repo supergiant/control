@@ -18,8 +18,15 @@ type authRequest struct {
 	Password string
 }
 
+func NewAuthHandler(userService Service, tokenService sgjwt.TokenService) *AuthHandler {
+	return &AuthHandler{
+		userService:  userService,
+		tokenService: tokenService,
+	}
+}
+
 // TODO(stgleb): move to separate handlers module
-func (m *AuthHandler) LoginHandler(w http.ResponseWriter, r *http.Request) {
+func (m *AuthHandler) AuthHandler(w http.ResponseWriter, r *http.Request) {
 	var ar authRequest
 
 	err := json.NewDecoder(r.Body).Decode(&ar)
@@ -35,7 +42,7 @@ func (m *AuthHandler) LoginHandler(w http.ResponseWriter, r *http.Request) {
 	}
 
 	if token, err := m.tokenService.Issue(ar.UserName); err == nil {
-		w.Header().Set(supergiantAuthHeader, token)
+		w.Header().Set("Authorization", token)
 		return
 	} else {
 		http.Error(w, fmt.Sprintf("Error while generating token %s", err.Error()), http.StatusInternalServerError)

@@ -3,18 +3,27 @@ package user
 import (
 	"net/http"
 
+	"strings"
+
 	sgjwt "github.com/supergiant/supergiant/pkg/jwt"
 )
 
-const supergiantAuthHeader = "SGTOKEN"
-
-func Authenticate(tokenService sgjwt.TokenService, next http.Handler) http.Handler {
+func AuthMiddleware(tokenService sgjwt.TokenService, next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		tokenString := r.Header.Get(supergiantAuthHeader)
-		err := tokenService.Validate(tokenString)
+		// Get rid of Bearer
+		tokenString := strings.Split(r.Header.Get("Authorization"), " ")[0]
+		claims, err := tokenService.Validate(tokenString)
+
+		// TODO(stgleb): Do something with claims
+		userId := claims["user_id"].(string)
+
+		if len(userId) == 0 {
+			http.Error(w, "unknown user", http.StatusForbidden)
+			return
+		}
 
 		if err != nil {
-			http.Error(w, err.Error(), http.StatusUnauthorized)
+			http.Error(w, err.Error(), http.StatusForbidden)
 			return
 		}
 

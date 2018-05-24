@@ -21,7 +21,8 @@ func NewTokenService(tokenTTL int64, secret []byte) TokenService {
 }
 
 func (ts TokenService) Issue(userId string) (string, error) {
-	token := jwt.NewWithClaims(jwt.SigningMethodES512, jwt.MapClaims{
+	token := jwt.NewWithClaims(jwt.SigningMethodHS512, jwt.MapClaims{
+		// TODO(stgleb): Pass list of access here
 		"accesses":   []string{"edit", "view"},
 		"user_id":    userId,
 		"issued_at":  time.Now().Unix(),
@@ -37,9 +38,9 @@ func (ts TokenService) Issue(userId string) (string, error) {
 	return tokenString, nil
 }
 
-func (ts TokenService) Validate(tokenString string) error {
+func (ts TokenService) Validate(tokenString string) (jwt.MapClaims, error) {
 	token, err := jwt.Parse(tokenString, func(token *jwt.Token) (interface{}, error) {
-		if _, ok := token.Method.(*jwt.SigningMethodECDSA); !ok {
+		if _, ok := token.Method.(*jwt.SigningMethodHMAC); !ok {
 			return nil, fmt.Errorf("unexpected signing method: %v", token.Header["alg"])
 		}
 
@@ -47,7 +48,7 @@ func (ts TokenService) Validate(tokenString string) error {
 	})
 
 	if err != nil {
-		return err
+		return nil, err
 	}
 
 	if claims, ok := token.Claims.(jwt.MapClaims); ok && token.Valid {
@@ -55,15 +56,17 @@ func (ts TokenService) Validate(tokenString string) error {
 		expiresAt := int64(e)
 
 		if !ok {
-			return errors.New("Token malformed")
+			return nil, errors.New("Token malformed")
 		}
 
 		if int64(expiresAt) < time.Now().Unix() {
-			return errors.New("Token has been expired")
+			return nil, errors.New("Token has been expired")
 		}
+
+		return claims, nil
 	} else {
-		return errors.New("Error while converting to jwt claims map")
+		return nil, errors.New("Error while converting to jwt claims map")
 	}
 
-	return nil
+	return nil, nil
 }
