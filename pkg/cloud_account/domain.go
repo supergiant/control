@@ -1,8 +1,6 @@
 package cloud_account
 
 import (
-	"context"
-
 	"github.com/supergiant/supergiant/pkg/provider"
 )
 
@@ -16,11 +14,3 @@ type CloudAccount struct {
 	Credentials Credentials
 }
 
-//Repository is used to abstract domain storage from implementation
-type Repository interface {
-	Create(context.Context, *CloudAccount) error
-	Get(ctx context.Context, accountName string) (*CloudAccount, error)
-	GetAll(ctx context.Context) ([]CloudAccount, error)
-	Update(context.Context, *CloudAccount) error
-	Delete(ctx context.Context, accountName string) error
-}
