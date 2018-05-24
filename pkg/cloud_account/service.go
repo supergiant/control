@@ -3,73 +3,28 @@ package cloud_account
 import (
 	"context"
 
-	"bytes"
-	"encoding/json"
-
 	"github.com/pkg/errors"
-	"github.com/sirupsen/logrus"
-	"github.com/supergiant/supergiant/pkg/storage"
 )
 
-// Service holds all business logic related to cloud accounts
 type Service struct {
-	Repository storage.Interface
+	Repository Repository
 }
 
-const prefix = "/cloud_account/"
-
-// GetAll retrieves cloud accounts from underlying storage, returns empty slice if none found
 func (s *Service) GetAll(ctx context.Context) ([]CloudAccount, error) {
-	logrus.Debug("cloud_account.Service.GetAll start")
-
-	accounts := make([]CloudAccount, 0)
-	res, err := s.Repository.GetAll(ctx, prefix)
-	if err != nil {
-		return accounts, err
-	}
-	for _, v := range res {
-		ca := new(CloudAccount)
-		err = json.NewDecoder(bytes.NewReader(v)).Decode(ca)
-		if err != nil {
-			logrus.Warningf("failed to convert stored data to cloud account struct")
-			logrus.Debugf("corrupted data: %v", string(v))
-			continue
-		}
-		accounts = append(accounts, *ca)
-	}
-
-	logrus.Debug("cloud_account.Service.GetAll end")
-	return accounts, nil
+	return s.Repository.GetAll(ctx)
 }
 
-// Get retrieves a user by it's accountName, returns nil if not found
+//TODO add validations
 func (s *Service) Get(ctx context.Context, accountName string) (*CloudAccount, error) {
-	logrus.Debug("cloud_account.Service.Get start")
-	res, err := s.Repository.Get(ctx, prefix, accountName)
-	if err != nil {
-		return nil, err
+	if accountName == "" {
+		return nil, errors.New("cloud account name can't be empty")
 	}
-	if res == nil {
-		return nil, nil
-	}
-	ca := new(CloudAccount)
-	err = json.NewDecoder(bytes.NewReader(res)).Decode(ca)
-	if err != nil {
-		logrus.Warning("failed to convert stored data to cloud acccount struct")
-		return nil, errors.WithStack(err)
-	}
-	logrus.Debug("cloud_account.Service.Get end")
-	return ca, nil
+	return s.Repository.Get(ctx, accountName)
 }
 
-// Create stores user in the underlying storage
 func (s *Service) Create(ctx context.Context, account *CloudAccount) error {
-	logrus.Debug("cloud_account.Service.Create start")
-	rawJSON, err := json.Marshal(account)
-	if err != nil {
-		return errors.WithStack(err)
+	if account.Name == "" {
+		return errors.New("cloud account name can't be empty")
 	}
-	err = s.Repository.Put(ctx, prefix, account.Name, rawJSON)
-	logrus.Debug("cloud_account.Service.Create end")
-	return err
+	return s.Repository.Create(ctx, account)
 }
