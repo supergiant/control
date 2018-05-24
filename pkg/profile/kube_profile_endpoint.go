@@ -1,22 +1,31 @@
 package profile
 
 import (
-	"net/http"
-	"github.com/gorilla/mux"
 	"encoding/json"
+	"net/http"
+
+	"github.com/gorilla/mux"
+
+	"github.com/supergiant/supergiant/pkg/storage"
 )
 
-const prefix  = "/profile/"
+const prefix = "/profile/"
 
-type KubeProfileHandler struct{
-	service KubeProfileService
+type KubeProfileEndpoint struct {
+	service *KubeProfileService
 }
 
-func (h *KubeProfileHandler) GetProfile(w http.ResponseWriter,r *http.Request) {
+func NewKubeProfileEndpoint(prefix string, storage storage.Interface) *KubeProfileEndpoint {
+	return &KubeProfileEndpoint{
+		service: NewKubeProfileService(prefix, storage),
+	}
+}
+
+func (h *KubeProfileEndpoint) GetProfile(w http.ResponseWriter, r *http.Request) {
 	vars := mux.Vars(r)
 	profileId := vars["id"]
 
-	kubeProfile, err := h.service.Get(profileId)
+	kubeProfile, err := h.service.Get(r.Context(), profileId)
 
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusNotFound)
@@ -26,7 +35,7 @@ func (h *KubeProfileHandler) GetProfile(w http.ResponseWriter,r *http.Request) {
 	json.NewEncoder(w).Encode(kubeProfile)
 }
 
-func (h *KubeProfileHandler) CreateProfile(w http.ResponseWriter,r *http.Request) {
+func (h *KubeProfileEndpoint) CreateProfile(w http.ResponseWriter, r *http.Request) {
 	profile := &KubeProfile{}
 
 	err := json.NewDecoder(r.Body).Decode(&profile)
@@ -36,7 +45,7 @@ func (h *KubeProfileHandler) CreateProfile(w http.ResponseWriter,r *http.Request
 		return
 	}
 
-	err = h.service.Create(profile)
+	err = h.service.Create(r.Context(), profile)
 
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
@@ -46,8 +55,8 @@ func (h *KubeProfileHandler) CreateProfile(w http.ResponseWriter,r *http.Request
 	w.WriteHeader(http.StatusCreated)
 }
 
-func (h *KubeProfileHandler) GetProfiles(w http.ResponseWriter,r *http.Request) {
-	profiles, err := h.service.GetAll()
+func (h *KubeProfileEndpoint) GetProfiles(w http.ResponseWriter, r *http.Request) {
+	profiles, err := h.service.GetAll(r.Context())
 
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)

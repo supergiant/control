@@ -1,6 +1,7 @@
 package profile
 
 type NodeProfile struct {
+	Id       string `json:"id"`
 	Size     string `json:"size"`
 	Image    string `json:"image"`
 	Provider string `json:"provider"`

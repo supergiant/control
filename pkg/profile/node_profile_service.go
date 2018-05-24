@@ -4,7 +4,7 @@ import (
 	"github.com/supergiant/supergiant/pkg/storage"
 )
 
-type NodeProfileService struct{
+type NodeProfileService struct {
 	storage.Interface
 }
 
