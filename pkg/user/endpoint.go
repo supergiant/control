@@ -25,20 +25,17 @@ func NewAuthHandler(userService Service, tokenService sgjwt.TokenService) *AuthH
 	}
 }
 
-func (m *AuthHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
+func (m *AuthHandler) Authenticate(w http.ResponseWriter, r *http.Request) {
 	var ar authRequest
-
 	err := json.NewDecoder(r.Body).Decode(&ar)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusBadRequest)
 		return
 	}
-
 	if err := m.userService.Authenticate(r.Context(), ar.UserName, ar.Password); err != nil {
 		http.Error(w, err.Error(), http.StatusForbidden)
 		return
 	}
-
 	if token, err := m.tokenService.Issue(ar.UserName); err == nil {
 		w.Header().Set("Authorization", token)
 		return
