@@ -25,7 +25,7 @@ func NewAuthHandler(userService Service, tokenService sgjwt.TokenService) *AuthH
 	}
 }
 
-func (m *AuthHandler) AuthHandler(w http.ResponseWriter, r *http.Request) {
+func (m *AuthHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	var ar authRequest
 
 	err := json.NewDecoder(r.Body).Decode(&ar)
