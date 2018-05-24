@@ -23,6 +23,18 @@ var (
 	tillerPodLabels = labels.Set{"app": "helm", "name": "tiller"}
 )
 
+// TODO: remove after refactoring
+// keep track of the created clients
+var (
+	clients map[string]*client
+)
+
+func init() {
+	if clients == nil {
+		clients = make(map[string]*client)
+	}
+}
+
 // Interface is an extended interface for the helm client.
 type Interface interface {
 	helm.Interface
@@ -38,6 +50,14 @@ type client struct {
 
 // New creates a new helm client.
 func New(kclient kubernetes.Interface, restConf *rest.Config, tillerNamespace string) (Interface, error) {
+
+	// TODO: remove after refactoring!!!!
+	// check if the client has already created
+	khost := restConf.Host
+	if h, ok := clients[khost]; ok {
+		return h, nil
+	}
+
 	tillerPodName, err := getTillerPodName(kclient.CoreV1(), tillerNamespace)
 	if err != nil {
 		return nil, errors.Wrap(err, "get tiller")
@@ -48,9 +68,13 @@ func New(kclient kubernetes.Interface, restConf *rest.Config, tillerNamespace st
 		return nil, errors.Wrap(err, "setup port forwarding")
 	}
 
-	hclient := helm.NewClient(helm.Host(fmt.Sprintf("127.0.0.1:%d", tun.Local)), helm.ConnectTimeout(TillerConnectionTimeout))
+	h := &client{
+		Client: helm.NewClient(helm.Host(fmt.Sprintf("127.0.0.1:%d", tun.Local)), helm.ConnectTimeout(TillerConnectionTimeout)),
+		tun:    tun,
+	}
+	clients[khost] = h
 
-	return &client{hclient, tun}, nil
+	return h, nil
 }
 
 // Close disconnects an underlying tunnel connection.

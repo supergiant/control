@@ -2190,6 +2190,14 @@
 			"versionExact": "v2.8.2"
 		},
 		{
+			"checksumSHA1": "Tw9pYY3N8PesPHfbWaPds553TZA=",
+			"path": "k8s.io/helm/pkg/timeconv",
+			"revision": "a80231648a1473929271764b920a8e346f6de844",
+			"revisionTime": "2018-03-09T20:44:06Z",
+			"version": "v2.8.2",
+			"versionExact": "v2.8.2"
+		},
+		{
 			"checksumSHA1": "T8AePsVCWkqqlD1hD3D9nWqnUDo=",
 			"path": "k8s.io/helm/pkg/tlsutil",
 			"revision": "a80231648a1473929271764b920a8e346f6de844",
