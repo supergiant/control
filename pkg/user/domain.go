@@ -14,9 +14,9 @@ type User struct {
 }
 
 type Repository interface {
-	GetAll(context.Context) ([]User, error)
-	Get(context.Context, string) (*User, error)
-	Create(context.Context, *User) error
+	GetAll(ctx context.Context) ([]User, error)
+	Get(ctx context.Context, login string) (*User, error)
+	Create(ctx context.Context, user *User) error
 }
 
 func (m *User) encryptPassword() error {
