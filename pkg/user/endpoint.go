@@ -29,7 +29,6 @@ func (m *AuthHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	var ar authRequest
 
 	err := json.NewDecoder(r.Body).Decode(&ar)
-
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusBadRequest)
 		return

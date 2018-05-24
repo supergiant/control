@@ -45,11 +45,16 @@ func (s *Service) RegisterUser(ctx context.Context, user *User) error {
 }
 
 func (s *Service) Authenticate(ctx context.Context, username, password string) error {
-	user, err := s.Repository.Get(ctx, username)
-
+	logrus.Debug("user.Service.Authenticate start")
+	rawJSON, err := s.Repository.Get(ctx, prefix, username)
 	if err != nil {
 		return err
 	}
-
+	user := new(User)
+	err = json.NewDecoder(bytes.NewReader(rawJSON)).Decode(user)
+	if err != nil {
+		return errors.WithStack(err)
+	}
+	logrus.Debug("user.Service.Authenticate end")
 	return bcrypt.CompareHashAndPassword(user.EncryptedPassword, []byte(password))
 }

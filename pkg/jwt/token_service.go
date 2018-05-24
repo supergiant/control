@@ -43,7 +43,6 @@ func (ts TokenService) Validate(tokenString string) (jwt.MapClaims, error) {
 		if _, ok := token.Method.(*jwt.SigningMethodHMAC); !ok {
 			return nil, fmt.Errorf("unexpected signing method: %v", token.Header["alg"])
 		}
-
 		return ts.secretKey, nil
 	})
 
