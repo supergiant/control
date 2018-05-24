@@ -25,7 +25,6 @@ func NewAuthHandler(userService Service, tokenService sgjwt.TokenService) *AuthH
 	}
 }
 
-// TODO(stgleb): move to separate handlers module
 func (m *AuthHandler) AuthHandler(w http.ResponseWriter, r *http.Request) {
 	var ar authRequest
 
