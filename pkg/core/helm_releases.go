@@ -7,6 +7,7 @@ import (
 	"github.com/technosophos/moniker"
 	"k8s.io/helm/pkg/chartutil"
 	"k8s.io/helm/pkg/helm"
+	"k8s.io/helm/pkg/proto/hapi/release"
 	"k8s.io/helm/pkg/timeconv"
 
 	"github.com/supergiant/supergiant/pkg/model"
@@ -116,10 +117,17 @@ func (c *HelmReleases) Create(m *model.HelmRelease) error {
 				return errors.Wrap(err, "load chart config")
 			}
 
+			// use default namespace if no one is provided
+			if m.Namespace == "" {
+				m.Namespace = "default"
+			}
+
 			resp, err := hclient.InstallReleaseFromChart(
 				chartRequested,
 				m.Namespace,
 				helm.ReleaseName(m.Name),
+				// TODO: add ability to pass custom values
+				helm.ValueOverrides(nil),
 				helm.InstallWait(false),
 				helm.InstallTimeout(HelmInstallTimeout),
 			)
@@ -169,7 +177,19 @@ func getHelmReleases(c *Core, kube *model.Kube) ([]*model.HelmRelease, error) {
 		return nil, errors.Wrap(err, "build helm client")
 	}
 
-	resp, err := hclient.ListReleases()
+	// TODO: filter releases by statuses on the UI side?
+	statuses := []release.Status_Code{
+		release.Status_UNKNOWN,
+		release.Status_DEPLOYED,
+		release.Status_DELETED,
+		release.Status_DELETING,
+		release.Status_FAILED,
+		release.Status_PENDING_INSTALL,
+		release.Status_PENDING_UPGRADE,
+		release.Status_PENDING_ROLLBACK,
+	}
+
+	resp, err := hclient.ListReleases(helm.ReleaseListStatuses(statuses))
 	if err != nil {
 		return nil, errors.Wrap(err, "list releases")
 	}
