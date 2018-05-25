@@ -40,11 +40,13 @@ func TestAuthMiddleware(t *testing.T) {
 			t.Error(err)
 		}
 
-		md := AuthMiddleware(ts, http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-			w.WriteHeader(http.StatusOK)
-		}))
+		md := middleware{
+			TokenService: &ts,
+		}
 
-		md.ServeHTTP(rec, req)
+		md.AuthMiddleware(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+			w.WriteHeader(http.StatusOK)
+		})).ServeHTTP(rec, req)
 
 		if rec.Code != testCase.expectedCode {
 			t.Errorf("Wrong response code expected %d actual %d", testCase.expectedCode, rec.Code)
