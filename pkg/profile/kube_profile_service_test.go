@@ -4,6 +4,8 @@ import (
 	"context"
 	"testing"
 
+	"encoding/json"
+
 	"github.com/pkg/errors"
 )
 
@@ -72,7 +74,39 @@ func TestKubeProfileServiceGet(t *testing.T) {
 }
 
 func TestKubeProfileServiceCreate(t *testing.T) {
+	testCases := []struct {
+		kube *KubeProfile
+		err  error
+	}{
+		{
+			kube: &KubeProfile{},
+			err:  nil,
+		},
+		{
+			kube: &KubeProfile{},
+			err:  errors.New("test err"),
+		},
+	}
 
+	for _, testCase := range testCases {
+		storage := &fakeStorage{
+			create: func(ctx context.Context, prefix string, key string, value []byte) error {
+				return testCase.err
+			},
+		}
+
+		data, err := json.Marshal(testCase.kube)
+
+		if err != nil {
+			t.Errorf("Unexpected error when marshalling kube %v", err)
+		}
+
+		err = storage.Put(context.Background(), "", "key", data)
+
+		if testCase.err != err {
+			t.Errorf("Unexpected error when create kube %v", err)
+		}
+	}
 }
 
 func TestKubeProfileServiceGetAll(t *testing.T) {
