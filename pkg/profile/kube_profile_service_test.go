@@ -110,5 +110,41 @@ func TestKubeProfileServiceCreate(t *testing.T) {
 }
 
 func TestKubeProfileServiceGetAll(t *testing.T) {
+	testCases := []struct {
+		data [][]byte
+		err  error
+	}{
+		{
+			data: [][]byte{[]byte(`{"id":"1234", "nodes":[{},{}]}`), []byte(`{"id":"5678", "nodes":[{},{}]}`)},
+			err:  nil,
+		},
+		{
+			data: nil,
+			err:  errors.New("test err"),
+		},
+	}
 
+	for _, testCase := range testCases {
+		storage := &fakeStorage{
+			getAll: func(ctx context.Context, prefix string) ([][]byte, error) {
+				return testCase.data, testCase.err
+			},
+		}
+
+		service := KubeProfileService{
+			"",
+			storage,
+		}
+
+		profiles, err := service.GetAll(context.Background())
+
+		if testCase.err != err {
+			t.Errorf("Wrong error expected %v actual %v", testCase.err, err)
+			return
+		}
+
+		if testCase.err == nil && len(profiles) != 2 {
+			t.Errorf("Wrong len of profiles expected 2 actual %d", len(profiles))
+		}
+	}
 }
