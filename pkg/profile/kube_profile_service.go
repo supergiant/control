@@ -8,19 +8,19 @@ import (
 )
 
 type KubeProfileService struct {
-	prefix         string
-	profileStorage storage.Interface
+	prefix             string
+	kubeProfileStorage storage.Interface
 }
 
 func NewKubeProfileService(prefix string, s storage.Interface) *KubeProfileService {
 	return &KubeProfileService{
-		prefix:         prefix,
-		profileStorage: s,
+		prefix:             prefix,
+		kubeProfileStorage: s,
 	}
 }
 
 func (s *KubeProfileService) Get(ctx context.Context, profileId string) (*KubeProfile, error) {
-	profileData, err := s.profileStorage.Get(ctx, s.prefix, profileId)
+	profileData, err := s.kubeProfileStorage.Get(ctx, s.prefix, profileId)
 	profile := &KubeProfile{}
 
 	if err != nil {
@@ -44,7 +44,7 @@ func (s *KubeProfileService) Create(ctx context.Context, profile *KubeProfile) e
 		return err
 	}
 
-	return s.profileStorage.Create(ctx, s.prefix, profile.Id, profileData)
+	return s.kubeProfileStorage.Put(ctx, s.prefix, profile.Id, profileData)
 }
 
 func (s *KubeProfileService) GetAll(ctx context.Context) ([]KubeProfile, error) {
@@ -53,7 +53,7 @@ func (s *KubeProfileService) GetAll(ctx context.Context) ([]KubeProfile, error) 
 		profile  KubeProfile
 	)
 
-	profilesData, err := s.profileStorage.GetAll(ctx, s.prefix)
+	profilesData, err := s.kubeProfileStorage.GetAll(ctx, s.prefix)
 
 	if err != nil {
 		return nil, err
