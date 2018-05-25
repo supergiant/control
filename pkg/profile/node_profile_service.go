@@ -20,7 +20,7 @@ func (s *NodeProfileService) Get(ctx context.Context, profileId string) (*NodePr
 		return nil, err
 	}
 
-	// TODO(stgleb): maybe we don't need to unmarshall it in service to marshall again in handler?
+	// TODO(stgleb): maybe we don't need to unmarshal it in service to marshall again in handler?
 	err = json.Unmarshal(profileData, profile)
 
 	if err != nil {
