@@ -9,7 +9,7 @@ clean:
 generate-bindata:
 	go-bindata -pkg bindata -o bindata/bindata.go config/providers/... ui/assets/... ui/views/...
 
-verify: gofmt goimports lint
+fmt: gofmt goimports
 
 gofmt:
 	@FLAGS="-w" build/verify/gofmt.sh

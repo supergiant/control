@@ -16,6 +16,7 @@ import (
 	kclient "k8s.io/client-go/kubernetes"
 
 	"github.com/supergiant/supergiant/pkg/client"
+	"github.com/supergiant/supergiant/pkg/helm"
 	"github.com/supergiant/supergiant/pkg/kubernetes"
 	"github.com/supergiant/supergiant/pkg/model"
 	"github.com/supergiant/supergiant/pkg/util"
@@ -75,6 +76,7 @@ type Core struct {
 
 	K8S        func(*model.Kube) kubernetes.ClientInterface
 	KubeClient func(*model.Kube) (kclient.Interface, error)
+	HelmClient func(*model.Kube) (helm.Interface, error)
 
 	DefaultProvisioner Provisioner
 
@@ -228,6 +230,27 @@ func (c *Core) InitializeForeground() error {
 		}
 
 		return kclient.NewForConfig(config)
+	}
+	c.HelmClient = func(kube *model.Kube) (helm.Interface, error) {
+		if kube.KubeAPIPort == "" {
+			kube.KubeAPIPort = "443"
+		}
+
+		config, err := kubernetes.BuildBasicAuthConfig(kube.MasterPublicIP, kube.KubeAPIPort, kube.Username, kube.Password)
+		if err != nil {
+			return nil, errors.Wrap(err, "build config")
+		}
+
+		kclient, err := kclient.NewForConfig(config)
+		if err != nil {
+			return nil, errors.Wrap(err, "build kube client")
+		}
+
+		if kube.TillerNamespace == "" {
+			kube.TillerNamespace = model.DefaultTillerNamespace
+		}
+
+		return helm.New(kclient, config, kube.TillerNamespace)
 	}
 
 	// Kubernetes Provisioners
