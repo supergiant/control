@@ -2,44 +2,42 @@ package api
 
 import (
 	"net/http"
-	"regexp"
 
+	"strings"
+
+	sgjwt "github.com/supergiant/supergiant/pkg/jwt"
 	"github.com/supergiant/supergiant/pkg/user"
 )
 
 type middleware struct {
-	Users user.Service
+	TokenService *sgjwt.TokenService
+	UserService  *user.Service
 }
 
-//FIXME Reusing the old code to keep frontend from being broken
-func (m *middleware) authorisationHandler(next http.Handler) http.Handler {
-	return http.HandlerFunc(func(rw http.ResponseWriter, r *http.Request) {
-		auth := r.Header.Get("Authorization")
-		tokenMatch := regexp.MustCompile(`^SGAPI (token|session)="([A-Za-z0-9]{32})"$`).FindStringSubmatch(auth)
+func (m *middleware) AuthMiddleware(next http.Handler) http.Handler {
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		// Get rid of Bearer
+		tokenString := strings.Split(r.Header.Get("Authorization"), " ")[1]
+		claims, err := m.TokenService.Validate(tokenString)
 
-		if len(tokenMatch) != 3 {
-			respond(rw, nil, errorBadAuthHeader)
-		}
-		switch tokenMatch[1] {
-		case "token":
-			token := tokenMatch[2]
-			_, err := m.Users.GetByToken(r.Context(), token)
-			if err != nil {
-				respond(rw, nil, errorUnauthorized)
-				return
-			}
-			//return user
-		case "session":
-			session := tokenMatch[3]
-			if err := m.Users.GetBySession(r.Context(), session); err != nil {
-				respond(rw, nil, errorUnauthorized)
-				return
-			}
-			return
-		default:
-			respond(rw, nil, errorBadAuthHeader)
+		// TODO(stgleb): Do something with claims
+		userId, ok := claims["user_id"].(string)
+
+		if !ok {
+			http.Error(w, err.Error(), http.StatusForbidden)
 			return
 		}
-		next.ServeHTTP(rw, r)
+
+		if len(userId) == 0 {
+			http.Error(w, "unknown user", http.StatusForbidden)
+			return
+		}
+
+		if err != nil {
+			http.Error(w, err.Error(), http.StatusForbidden)
+			return
+		}
+
+		next.ServeHTTP(w, r)
 	})
 }

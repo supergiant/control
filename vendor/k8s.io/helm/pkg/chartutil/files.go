@@ -16,12 +16,15 @@ limitations under the License.
 package chartutil
 
 import (
+	"bytes"
 	"encoding/base64"
+	"encoding/json"
 	"path"
 	"strings"
 
-	yaml "gopkg.in/yaml.v2"
+	"github.com/ghodss/yaml"
 
+	"github.com/BurntSushi/toml"
 	"github.com/gobwas/glob"
 	"github.com/golang/protobuf/ptypes/any"
 )
@@ -91,8 +94,8 @@ func (f Files) Glob(pattern string) Files {
 }
 
 // AsConfig turns a Files group and flattens it to a YAML map suitable for
-// including in the `data` section of a kubernetes ConfigMap definition.
-// Duplicate keys will be overwritten, so be aware that your filenames
+// including in the 'data' section of a Kubernetes ConfigMap definition.
+// Duplicate keys will be overwritten, so be aware that your file names
 // (regardless of path) should be unique.
 //
 // This is designed to be called from a template, and will return empty string
@@ -100,7 +103,7 @@ func (f Files) Glob(pattern string) Files {
 // object is nil.
 //
 // The output will not be indented, so you will want to pipe this to the
-// `indent` template function.
+// 'indent' template function.
 //
 //   data:
 // {{ .Files.Glob("config/**").AsConfig() | indent 4 }}
@@ -119,9 +122,9 @@ func (f Files) AsConfig() string {
 	return ToYaml(m)
 }
 
-// AsSecrets returns the value of a Files object as base64 suitable for
-// including in the `data` section of a kubernetes Secret definition.
-// Duplicate keys will be overwritten, so be aware that your filenames
+// AsSecrets returns the base64-encoded value of a Files object suitable for
+// including in the 'data' section of a Kubernetes Secret definition.
+// Duplicate keys will be overwritten, so be aware that your file names
 // (regardless of path) should be unique.
 //
 // This is designed to be called from a template, and will return empty string
@@ -129,7 +132,7 @@ func (f Files) AsConfig() string {
 // object is nil.
 //
 // The output will not be indented, so you will want to pipe this to the
-// `indent` template function.
+// 'indent' template function.
 //
 //   data:
 // {{ .Files.Glob("secrets/*").AsSecrets() }}
@@ -180,11 +183,53 @@ func ToYaml(v interface{}) string {
 // This is not a general-purpose YAML parser, and will not parse all valid
 // YAML documents. Additionally, because its intended use is within templates
 // it tolerates errors. It will insert the returned error message string into
-// m["error"] in the returned map.
+// m["Error"] in the returned map.
 func FromYaml(str string) map[string]interface{} {
 	m := map[string]interface{}{}
 
 	if err := yaml.Unmarshal([]byte(str), &m); err != nil {
+		m["Error"] = err.Error()
+	}
+	return m
+}
+
+// ToToml takes an interface, marshals it to toml, and returns a string. It will
+// always return a string, even on marshal error (empty string).
+//
+// This is designed to be called from a template.
+func ToToml(v interface{}) string {
+	b := bytes.NewBuffer(nil)
+	e := toml.NewEncoder(b)
+	err := e.Encode(v)
+	if err != nil {
+		return err.Error()
+	}
+	return b.String()
+}
+
+// ToJson takes an interface, marshals it to json, and returns a string. It will
+// always return a string, even on marshal error (empty string).
+//
+// This is designed to be called from a template.
+func ToJson(v interface{}) string {
+	data, err := json.Marshal(v)
+	if err != nil {
+		// Swallow errors inside of a template.
+		return ""
+	}
+	return string(data)
+}
+
+// FromJson converts a YAML document into a map[string]interface{}.
+//
+// This is not a general-purpose JSON parser, and will not parse all valid
+// YAML documents. Additionally, because its intended use is within templates
+// it tolerates errors. It will insert the returned error message string into
+// m["Error"] in the returned map.
+func FromJson(str string) map[string]interface{} {
+	m := map[string]interface{}{}
+
+	if err := json.Unmarshal([]byte(str), &m); err != nil {
 		m["Error"] = err.Error()
 	}
 	return m

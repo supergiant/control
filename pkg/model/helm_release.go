@@ -16,7 +16,7 @@ type HelmRelease struct {
 
 	// NOTE this is just a "soft" belongs_to.
 	// We don't do relation since there's no real need, and it complicates things.
-	RepoName     string `json:"repo_name" gorm:"not null;index" validate:"nonzero" sg:"immutable"`
+	RepoName     string `json:"repo_name" gorm:"not null;index" sg:"immutable"`
 	ChartName    string `json:"chart_name" gorm:"not null;index" validate:"nonzero" sg:"immutable"`
 	ChartVersion string `json:"chart_version" validate:"nonzero" sg:"immutable"`
 
