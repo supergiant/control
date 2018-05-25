@@ -1,4 +1,4 @@
-package cloud_account
+package account
 
 import (
 	"context"
@@ -71,5 +71,30 @@ func (s *Service) Create(ctx context.Context, account *CloudAccount) error {
 	}
 	err = s.Repository.Put(ctx, prefix, account.Name, rawJSON)
 	logrus.Debug("cloud_account.Service.Create end")
+	return err
+}
+
+func (s *Service) Update(ctx context.Context, account *CloudAccount) error {
+	logrus.Debug("cloud_account.Service.Update start")
+	rawJSON, err := json.Marshal(account)
+	if err != nil {
+		return errors.WithStack(err)
+	}
+	oldAcc, err := s.Get(ctx, account.Name)
+	if err != nil {
+		return err
+	}
+	if oldAcc.Name != account.Name || oldAcc.Provider != account.Provider {
+		return errors.New("account name or provider can't be changed")
+	}
+	err = s.Repository.Put(ctx, prefix, account.Name, rawJSON)
+	logrus.Debug("cloud_account.Service.Update end")
+	return err
+}
+
+func (s *Service) Delete(ctx context.Context, accountName string) error {
+	logrus.Debug("cloud_account.Service.Delete start")
+	err := s.Repository.Delete(ctx, prefix, accountName)
+	logrus.Debug("cloud_account.Service.Delete end")
 	return err
 }
