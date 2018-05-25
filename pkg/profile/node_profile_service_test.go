@@ -7,29 +7,7 @@ import (
 	"github.com/pkg/errors"
 )
 
-type fakeStorage struct {
-	get    func(ctx context.Context, prefix string, key string) ([]byte, error)
-	create func(ctx context.Context, prefix string, key string, value []byte) error
-	getAll func(ctx context.Context, prefix string) ([][]byte, error)
-}
-
-func (f *fakeStorage) Get(ctx context.Context, prefix string, key string) ([]byte, error) {
-	return f.get(ctx, prefix, key)
-}
-
-func (f *fakeStorage) GetAll(ctx context.Context, prefix string) ([][]byte, error) {
-	return f.getAll(ctx, prefix)
-}
-
-func (f *fakeStorage) Put(ctx context.Context, prefix string, key string, value []byte) error {
-	return f.create(ctx, prefix, key, value)
-}
-
-func (f *fakeStorage) Delete(ctx context.Context, prefix string, key string) error {
-	return nil
-}
-
-func TestKubeProfileServiceGet(t *testing.T) {
+func TestNodeProfileServiceGet(t *testing.T) {
 	testCases := []struct {
 		expectedId string
 		data       []byte
@@ -53,7 +31,7 @@ func TestKubeProfileServiceGet(t *testing.T) {
 			},
 		}
 
-		service := KubeProfileService{
+		service := NodeProfileService{
 			"",
 			storage,
 		}
@@ -71,17 +49,17 @@ func TestKubeProfileServiceGet(t *testing.T) {
 	}
 }
 
-func TestKubeProfileServiceCreate(t *testing.T) {
+func TestNodeProfileServiceCreate(t *testing.T) {
 	testCases := []struct {
-		kube *KubeProfile
+		node *NodeProfile
 		err  error
 	}{
 		{
-			kube: &KubeProfile{},
+			node: &NodeProfile{},
 			err:  nil,
 		},
 		{
-			kube: &KubeProfile{},
+			node: &NodeProfile{},
 			err:  errors.New("test err"),
 		},
 	}
@@ -93,12 +71,12 @@ func TestKubeProfileServiceCreate(t *testing.T) {
 			},
 		}
 
-		service := KubeProfileService{
+		service := NodeProfileService{
 			"",
 			storage,
 		}
 
-		err := service.Create(context.Background(), testCase.kube)
+		err := service.Create(context.Background(), testCase.node)
 
 		if testCase.err != err {
 			t.Errorf("Unexpected error when create node %v", err)
@@ -106,7 +84,7 @@ func TestKubeProfileServiceCreate(t *testing.T) {
 	}
 }
 
-func TestKubeProfileServiceGetAll(t *testing.T) {
+func TestNodeProfileServiceGetAll(t *testing.T) {
 	testCases := []struct {
 		data [][]byte
 		err  error
@@ -128,7 +106,7 @@ func TestKubeProfileServiceGetAll(t *testing.T) {
 			},
 		}
 
-		service := KubeProfileService{
+		service := NodeProfileService{
 			"",
 			storage,
 		}
