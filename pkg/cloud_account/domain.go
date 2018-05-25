@@ -13,4 +13,3 @@ type CloudAccount struct {
 	Provider    provider.Name
 	Credentials Credentials
 }
-
