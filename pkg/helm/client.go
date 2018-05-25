@@ -2,6 +2,7 @@ package helm
 
 import (
 	"fmt"
+	"sync"
 
 	"github.com/pkg/errors"
 	apiv1 "k8s.io/api/core/v1"
@@ -26,12 +27,12 @@ var (
 // TODO: remove after refactoring
 // keep track of the created clients
 var (
-	clients map[string]*client
+	clients *sync.Map
 )
 
 func init() {
 	if clients == nil {
-		clients = make(map[string]*client)
+		clients = &sync.Map{}
 	}
 }
 
@@ -54,8 +55,13 @@ func New(kclient kubernetes.Interface, restConf *rest.Config, tillerNamespace st
 	// TODO: remove after refactoring!!!!
 	// check if the client has already created
 	khost := restConf.Host
-	if h, ok := clients[khost]; ok {
-		return h, nil
+	if i, ok := clients.Load(khost); ok {
+		h, ok := i.(Interface)
+		if ok {
+			return h, nil
+		}
+
+		clients.Delete(khost)
 	}
 
 	tillerPodName, err := getTillerPodName(kclient.CoreV1(), tillerNamespace)
@@ -72,7 +78,7 @@ func New(kclient kubernetes.Interface, restConf *rest.Config, tillerNamespace st
 		Client: helm.NewClient(helm.Host(fmt.Sprintf("127.0.0.1:%d", tun.Local)), helm.ConnectTimeout(TillerConnectionTimeout)),
 		tun:    tun,
 	}
-	clients[khost] = h
+	clients.Store(khost, h)
 
 	return h, nil
 }

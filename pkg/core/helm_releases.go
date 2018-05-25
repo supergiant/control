@@ -4,6 +4,7 @@ import (
 	"strconv"
 
 	"github.com/pkg/errors"
+	log "github.com/sirupsen/logrus"
 	"github.com/technosophos/moniker"
 	"k8s.io/helm/pkg/chartutil"
 	"k8s.io/helm/pkg/helm"
@@ -135,7 +136,7 @@ func (c *HelmReleases) Create(m *model.HelmRelease) error {
 				return errors.Wrapf(err, "install %s chart", m.ChartName)
 			}
 
-			c.Core.Log.Debugf("DEBUG - Install %s chart: %s", m.ChartName, resp.Release.Info.Status.Code.String())
+			log.Debugf("DEBUG - Install %s chart: %s", m.ChartName, resp.Release.Info.Status.Code.String())
 			return err
 		},
 	}
@@ -164,7 +165,7 @@ func (c *HelmReleases) Delete(id *int64, m *model.HelmRelease) ActionInterface {
 					return errors.Wrapf(err, "delete %s release", m.Name)
 				}
 
-				c.Core.Log.Debugf("DEBUG - Delete %s release: %s", m.Name, resp.Info)
+				log.Debugf("DEBUG - Delete %s release: %s", m.Name, resp.Info)
 			}
 			return c.Collection.Delete(id, m)
 		},
