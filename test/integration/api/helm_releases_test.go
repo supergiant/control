@@ -512,94 +512,94 @@ func TestHelmReleasesUpdate(t *testing.T) {
 
 //------------------------------------------------------------------------------
 
-func TestHelmReleasesDelete(t *testing.T) {
-	srv := newTestServer()
-	go srv.Start()
-	defer srv.Stop()
-
-	requestor := createAdmin(srv.Core)
-	sg := srv.Core.APIClient("token", requestor.APIToken)
-
-	srv.Core.AWSProvider = func(_ map[string]string) core.Provider {
-		return new(fake_core.Provider)
-	}
-	kube := createKube(sg)
-
-	Convey("HelmReleases Delete works correctly", t, func() {
-
-		table := []struct {
-			// Input
-			existingModel *model.HelmRelease
-			// Mocks
-			mockKubeCreateResourceError error
-			mockKubeGetResourceFn       func(apiVersion, kind, namespace, name string, out interface{}) error
-			// Expectations
-			fullCommand string
-			asyncErr    string
-		}{
-			// A successful example
-			{
-				existingModel: &model.HelmRelease{
-					BaseModel:    model.BaseModel{ID: &helmReleaseID},
-					KubeName:     kube.Name,
-					Name:         "test",
-					RepoName:     "stable",
-					ChartName:    "redis",
-					ChartVersion: "0.1.0",
-				},
-				mockKubeCreateResourceError: nil,
-				mockKubeGetResourceFn: func(apiVersion, kind, namespace, name string, out interface{}) error {
-					return errors.New("404") // means job finishes successfully
-				},
-				fullCommand: `/helm init --client-only && /helm delete test --purge`,
-				asyncErr:    "",
-			},
-
-			// NOTE We don't really need many other scenarios tested, since anything
-			// else would test execHelmCmd, which we test in Create.
-
-		}
-
-		for _, item := range table {
-
-			var fullCommand string
-
-			srv.Core.HelmJobStartTimeout = time.Nanosecond
-
-			srv.Core.K8S = func(_ *model.Kube) kubernetes.ClientInterface {
-				return &fake_core.KubernetesClient{
-					CreateResourceFn: func(apiVersion, kind, namespace string, in, out interface{}) error {
-						pod := in.(*kubernetes.Pod)
-						fullCommand = pod.Spec.Containers[0].Args[0]
-						return item.mockKubeCreateResourceError
-					},
-					GetResourceFn: item.mockKubeGetResourceFn,
-				}
-			}
-
-			srv.Core.HelmReleases.Create(item.existingModel)
-
-			// NOTE no need to test this error here
-			_ = sg.HelmReleases.Delete(item.existingModel.ID, item.existingModel)
-
-			time.Sleep(10 * time.Millisecond)
-
-			// Reload to get new status
-			// We use fresh to get rid of status (which was set by Delete, and is nil at Get)
-			freshModel := new(model.HelmRelease)
-			getErr := sg.HelmReleases.Get(item.existingModel.ID, freshModel)
-
-			if item.asyncErr == "" {
-				So(getErr, ShouldNotBeNil)
-			} else {
-				So(freshModel.Status.Error, ShouldEqual, item.asyncErr)
-			}
-
-			So(fullCommand, ShouldEqual, item.fullCommand)
-
-			// NOTE we have to clean up HelmReleases manually since we do not wipe DB each time
-			srv.Core.DB.Delete(&model.HelmRelease{})
-			srv.Core.DB.Delete(&model.HelmRepo{})
-		}
-	})
-}
+//func TestHelmReleasesDelete(t *testing.T) {
+//	srv := newTestServer()
+//	go srv.Start()
+//	defer srv.Stop()
+//
+//	requestor := createAdmin(srv.Core)
+//	sg := srv.Core.APIClient("token", requestor.APIToken)
+//
+//	srv.Core.AWSProvider = func(_ map[string]string) core.Provider {
+//		return new(fake_core.Provider)
+//	}
+//	kube := createKube(sg)
+//
+//	Convey("HelmReleases Delete works correctly", t, func() {
+//
+//		table := []struct {
+//			// Input
+//			existingModel *model.HelmRelease
+//			// Mocks
+//			mockKubeCreateResourceError error
+//			mockKubeGetResourceFn       func(apiVersion, kind, namespace, name string, out interface{}) error
+//			// Expectations
+//			fullCommand string
+//			asyncErr    string
+//		}{
+//			// A successful example
+//			{
+//				existingModel: &model.HelmRelease{
+//					BaseModel:    model.BaseModel{ID: &helmReleaseID},
+//					KubeName:     kube.Name,
+//					Name:         "test",
+//					RepoName:     "stable",
+//					ChartName:    "redis",
+//					ChartVersion: "0.1.0",
+//				},
+//				mockKubeCreateResourceError: nil,
+//				mockKubeGetResourceFn: func(apiVersion, kind, namespace, name string, out interface{}) error {
+//					return errors.New("404") // means job finishes successfully
+//				},
+//				fullCommand: `/helm init --client-only && /helm delete test --purge`,
+//				asyncErr:    "",
+//			},
+//
+//			// NOTE We don't really need many other scenarios tested, since anything
+//			// else would test execHelmCmd, which we test in Create.
+//
+//		}
+//
+//		for _, item := range table {
+//
+//			var fullCommand string
+//
+//			srv.Core.HelmJobStartTimeout = time.Nanosecond
+//
+//			srv.Core.K8S = func(_ *model.Kube) kubernetes.ClientInterface {
+//				return &fake_core.KubernetesClient{
+//					CreateResourceFn: func(apiVersion, kind, namespace string, in, out interface{}) error {
+//						pod := in.(*kubernetes.Pod)
+//						fullCommand = pod.Spec.Containers[0].Args[0]
+//						return item.mockKubeCreateResourceError
+//					},
+//					GetResourceFn: item.mockKubeGetResourceFn,
+//				}
+//			}
+//
+//			srv.Core.HelmReleases.Create(item.existingModel)
+//
+//			// NOTE no need to test this error here
+//			_ = sg.HelmReleases.Delete(item.existingModel.ID, item.existingModel)
+//
+//			time.Sleep(10 * time.Millisecond)
+//
+//			// Reload to get new status
+//			// We use fresh to get rid of status (which was set by Delete, and is nil at Get)
+//			freshModel := new(model.HelmRelease)
+//			getErr := sg.HelmReleases.Get(item.existingModel.ID, freshModel)
+//
+//			if item.asyncErr == "" {
+//				So(getErr, ShouldNotBeNil)
+//			} else {
+//				So(freshModel.Status.Error, ShouldEqual, item.asyncErr)
+//			}
+//
+//			So(fullCommand, ShouldEqual, item.fullCommand)
+//
+//			// NOTE we have to clean up HelmReleases manually since we do not wipe DB each time
+//			srv.Core.DB.Delete(&model.HelmRelease{})
+//			srv.Core.DB.Delete(&model.HelmRepo{})
+//		}
+//	})
+//}
