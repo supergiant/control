@@ -54,7 +54,7 @@ func TestKubeProfileServiceGet(t *testing.T) {
 		}
 
 		service := KubeProfileService{
-			"",
+			"/kube/",
 			storage,
 		}
 
@@ -94,7 +94,7 @@ func TestKubeProfileServiceCreate(t *testing.T) {
 		}
 
 		service := KubeProfileService{
-			"",
+			"/kube/",
 			storage,
 		}
 
@@ -129,7 +129,7 @@ func TestKubeProfileServiceGetAll(t *testing.T) {
 		}
 
 		service := KubeProfileService{
-			"",
+			"/kube/",
 			storage,
 		}
 

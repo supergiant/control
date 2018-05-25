@@ -32,7 +32,7 @@ func TestNodeProfileServiceGet(t *testing.T) {
 		}
 
 		service := NodeProfileService{
-			"",
+			"/node/",
 			storage,
 		}
 
@@ -72,7 +72,7 @@ func TestNodeProfileServiceCreate(t *testing.T) {
 		}
 
 		service := NodeProfileService{
-			"",
+			"/node/",
 			storage,
 		}
 
@@ -107,7 +107,7 @@ func TestNodeProfileServiceGetAll(t *testing.T) {
 		}
 
 		service := NodeProfileService{
-			"",
+			"/node/",
 			storage,
 		}
 
