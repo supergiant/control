@@ -16,16 +16,17 @@ type Endpoint struct {
 func (e *Endpoint) Create(rw http.ResponseWriter, r *http.Request) {
 	account := new(CloudAccount)
 	err := json.NewDecoder(r.Body).Decode(account)
-	//TODO Revise error handling
 	if err != nil {
 		http.Error(rw, err.Error(), http.StatusBadRequest)
 		return
 	}
+
 	ok, err := govalidator.ValidateStruct(account)
 	if !ok {
 		http.Error(rw, err.Error(), http.StatusBadRequest)
 		return
 	}
+
 	if err = e.Service.Create(r.Context(), account); err != nil {
 		logrus.Error(err)
 		http.Error(rw, err.Error(), http.StatusInternalServerError)

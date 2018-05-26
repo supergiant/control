@@ -1,17 +1,18 @@
 package account
 
 import (
-	"testing"
 	"bytes"
 	"context"
 	"encoding/json"
 	"net/http"
+	"net/http/httptest"
+	"strings"
+	"testing"
+
+	"github.com/pkg/errors"
 	"github.com/stretchr/testify/mock"
 	"github.com/stretchr/testify/require"
 	"gopkg.in/asaskevich/govalidator.v8"
-	"strings"
-	"net/http/httptest"
-	"github.com/pkg/errors"
 )
 
 type MockStorage struct {
