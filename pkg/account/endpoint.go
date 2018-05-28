@@ -9,10 +9,12 @@ import (
 	"gopkg.in/asaskevich/govalidator.v8"
 )
 
+// Endpoint is a http controller for account entity
 type Endpoint struct {
 	Service *Service
 }
 
+// Create register new cloud account
 func (e *Endpoint) Create(rw http.ResponseWriter, r *http.Request) {
 	account := new(CloudAccount)
 	err := json.NewDecoder(r.Body).Decode(account)
@@ -34,6 +36,7 @@ func (e *Endpoint) Create(rw http.ResponseWriter, r *http.Request) {
 	}
 }
 
+// ListAll retrieves all cloud accounts
 func (e *Endpoint) ListAll(rw http.ResponseWriter, r *http.Request) {
 	accounts, err := e.Service.GetAll(r.Context())
 	if err != nil {
@@ -44,6 +47,7 @@ func (e *Endpoint) ListAll(rw http.ResponseWriter, r *http.Request) {
 	json.NewEncoder(rw).Encode(accounts)
 }
 
+// Get retrieves individual account by name
 func (e *Endpoint) Get(rw http.ResponseWriter, r *http.Request) {
 	accountName := mux.Vars(r)["accountName"]
 	if accountName == "" {
@@ -63,14 +67,20 @@ func (e *Endpoint) Get(rw http.ResponseWriter, r *http.Request) {
 	json.NewEncoder(rw).Encode(account)
 }
 
+// Update saves updated state of an cloud account, account name can't be changed
 func (e *Endpoint) Update(rw http.ResponseWriter, r *http.Request) {
-	acc := new(CloudAccount)
-	err := json.NewDecoder(r.Body).Decode(acc)
+	account := new(CloudAccount)
+	err := json.NewDecoder(r.Body).Decode(account)
 	if err != nil {
 		http.Error(rw, err.Error(), http.StatusBadRequest)
 		return
 	}
-	err = e.Service.Update(r.Context(), acc)
+	ok, err := govalidator.ValidateStruct(account)
+	if !ok {
+		http.Error(rw, err.Error(), http.StatusBadRequest)
+		return
+	}
+	err = e.Service.Update(r.Context(), account)
 	if err != nil {
 		logrus.Error(err)
 		http.Error(rw, err.Error(), http.StatusInternalServerError)
@@ -78,8 +88,10 @@ func (e *Endpoint) Update(rw http.ResponseWriter, r *http.Request) {
 	}
 }
 
+// Delete cloud account
 func (e *Endpoint) Delete(rw http.ResponseWriter, r *http.Request) {
 	accountName := mux.Vars(r)["accountName"]
+
 	if accountName == "" {
 		http.Error(rw, "account name can't be blank", http.StatusBadRequest)
 		return
