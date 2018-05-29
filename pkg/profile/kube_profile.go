@@ -2,7 +2,7 @@ package profile
 
 type KubeProfile struct {
 	Id                string        `json:"id" valid:"required"`
-	KubernetesVersion string        `json:"kubernetes_version" `
+	KubernetesVersion string        `json:"kubernetes_version" valid:"required"`
 	Provider          string        `json:"provider" valid:"in(aws|digitalocean|packet|gce|openstack)"`
 	Nodes             []NodeProfile `json:"nodes" valid:"required"`
 	MasterNodeCount   int           `json:"master_node_count" valid:"required"`

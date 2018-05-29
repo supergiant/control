@@ -78,7 +78,7 @@ func TestNodeProfileCreate(t *testing.T) {
 		t.Errorf("Unexpected error while getting node profile %v", err)
 	}
 
-	if node.Id != node.Id || node.Image != node2.Image || node.Size != node2.Size {
+	if node.Id != key || node.Image != node2.Image || node.Size != node2.Size {
 		t.Errorf("Wrong data in etcd")
 	}
 }

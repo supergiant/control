@@ -97,7 +97,7 @@ func TestKubeProfileCreate(t *testing.T) {
 		t.Errorf("Unexpected error while getting kube profile %v", err)
 	}
 
-	if kube.Id != kube.Id || kube.KubernetesVersion != kube2.KubernetesVersion {
+	if kube.Id != key || kube.KubernetesVersion != kube2.KubernetesVersion {
 		t.Errorf("Wrong data in etcd")
 	}
 }
