@@ -16,7 +16,7 @@ type Service struct {
 	Repository storage.Interface
 }
 
-const prefix = "/cloud_account/"
+const prefix = "/supergiant/cloud_account/"
 
 // GetAll retrieves cloud accounts from underlying storage, returns empty slice if none found
 func (s *Service) GetAll(ctx context.Context) ([]CloudAccount, error) {
@@ -80,6 +80,7 @@ func (s *Service) Create(ctx context.Context, account *CloudAccount) error {
 	return err
 }
 
+// Update cloud account
 func (s *Service) Update(ctx context.Context, account *CloudAccount) error {
 	logrus.Debug("cloud_account.Service.Update start")
 
@@ -102,6 +103,7 @@ func (s *Service) Update(ctx context.Context, account *CloudAccount) error {
 	return err
 }
 
+// Delete cloud account by name
 func (s *Service) Delete(ctx context.Context, accountName string) error {
 	logrus.Debug("cloud_account.Service.Delete start")
 	err := s.Repository.Delete(ctx, prefix, accountName)

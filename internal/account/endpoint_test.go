@@ -96,7 +96,7 @@ func TestEndpoint_Create(t *testing.T) {
 
 func TestEndpoint_CreateError(t *testing.T) {
 	e, m := fixtures()
-	m.On("Put", mock.Anything, mock.Anything, mock.Anything, mock.Anything).Return(errors.New("ERROR!"))
+	m.On("Put", mock.Anything, mock.Anything, mock.Anything, mock.Anything).Return(errors.New("error!"))
 	rr := httptest.NewRecorder()
 
 	okAccount, _ := json.Marshal(CloudAccount{
