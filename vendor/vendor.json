@@ -730,6 +730,12 @@
 			"revisionTime": "2018-03-14T08:05:35Z"
 		},
 		{
+			"checksumSHA1": "ktEYN4KC8f/rdhtfVslmtcKaX8E=",
+			"path": "github.com/stretchr/testify/mock",
+			"revision": "be8372ae8ec5c6daaed3cc28ebf73c54b737c240",
+			"revisionTime": "2018-02-02T15:35:43Z"
+		},
+		{
 			"checksumSHA1": "bQpnAdQ32BXkd9PrraTJOjFIZZI=",
 			"path": "github.com/technosophos/moniker",
 			"revision": "9f956786b91d9786ca11aa5be6104542fa911546",
