@@ -59,6 +59,9 @@ script:
   - echo 'mode':' count' | cat - .coverprofile > /tmp/out && mv /tmp/out .coverprofile
   - goveralls -coverprofile=.coverprofile -service=travis-ci
 
+  # Integration
+  - if [ "$TRAVIS_EVENT_TYPE" == "cron" ] ; then test -tags=integration ./pkg/... ./test/... ; fi
+
   # Cross compile
   - CGO_ENABLED=0 GOOS=linux GOARCH=arm64 go build -a -o dist/supergiant-api-linux-arm64 -ldflags '-extldflags "-static"' ./cmd/server
   - CGO_ENABLED=0 GOOS=linux GOARCH=amd64 go build -a -o dist/supergiant-api-linux-amd64 -ldflags '-extldflags "-static"' ./cmd/server
