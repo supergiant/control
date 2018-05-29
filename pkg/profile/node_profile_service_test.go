@@ -4,6 +4,8 @@ import (
 	"context"
 	"testing"
 
+	"encoding/json"
+
 	"github.com/pkg/errors"
 )
 
@@ -24,16 +26,15 @@ func TestNodeProfileServiceGet(t *testing.T) {
 		},
 	}
 
+	prefix := "/node/"
+
 	for _, testCase := range testCases {
-		storage := &fakeStorage{
-			get: func(ctx context.Context, prefix string, key string) ([]byte, error) {
-				return testCase.data, testCase.err
-			},
-		}
+		m := new(mockStorage)
+		m.On("Get", context.Background(), prefix, "fake_id").Return(testCase.data, testCase.err)
 
 		service := NodeProfileService{
-			"/node/",
-			storage,
+			prefix,
+			m,
 		}
 
 		profile, err := service.Get(context.Background(), "fake_id")
@@ -64,16 +65,16 @@ func TestNodeProfileServiceCreate(t *testing.T) {
 		},
 	}
 
+	prefix := "/node/"
+
 	for _, testCase := range testCases {
-		storage := &fakeStorage{
-			create: func(ctx context.Context, prefix string, key string, value []byte) error {
-				return testCase.err
-			},
-		}
+		m := new(mockStorage)
+		nodeData, _ := json.Marshal(testCase.node)
+		m.On("Put", context.Background(), prefix, "", nodeData).Return(testCase.err)
 
 		service := NodeProfileService{
-			"/node/",
-			storage,
+			prefix,
+			m,
 		}
 
 		err := service.Create(context.Background(), testCase.node)
@@ -99,16 +100,15 @@ func TestNodeProfileServiceGetAll(t *testing.T) {
 		},
 	}
 
+	prefix := "/node/"
+
 	for _, testCase := range testCases {
-		storage := &fakeStorage{
-			getAll: func(ctx context.Context, prefix string) ([][]byte, error) {
-				return testCase.data, testCase.err
-			},
-		}
+		m := new(mockStorage)
+		m.On("GetAll", context.Background(), prefix).Return(testCase.data, testCase.err)
 
 		service := NodeProfileService{
-			"/node/",
-			storage,
+			prefix,
+			m,
 		}
 
 		profiles, err := service.GetAll(context.Background())

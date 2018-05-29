@@ -4,28 +4,49 @@ import (
 	"context"
 	"testing"
 
+	"encoding/json"
+
 	"github.com/pkg/errors"
+	"github.com/stretchr/testify/mock"
 )
 
-type fakeStorage struct {
-	get    func(ctx context.Context, prefix string, key string) ([]byte, error)
-	create func(ctx context.Context, prefix string, key string, value []byte) error
-	getAll func(ctx context.Context, prefix string) ([][]byte, error)
+type mockStorage struct {
+	mock.Mock
 }
 
-func (f *fakeStorage) Get(ctx context.Context, prefix string, key string) ([]byte, error) {
-	return f.get(ctx, prefix, key)
+func (m *mockStorage) Get(ctx context.Context, prefix string, key string) ([]byte, error) {
+	ret := m.Called(ctx, prefix, key)
+	r1 := ret.Get(0).([]byte)
+
+	if r2 := ret.Get(1); r2 == nil {
+		return r1, nil
+	} else {
+		return r1, r2.(error)
+	}
 }
 
-func (f *fakeStorage) GetAll(ctx context.Context, prefix string) ([][]byte, error) {
-	return f.getAll(ctx, prefix)
+func (m *mockStorage) GetAll(ctx context.Context, prefix string) ([][]byte, error) {
+	ret := m.Called(ctx, prefix)
+	r1 := ret.Get(0).([][]byte)
+
+	if r2 := ret.Get(1); r2 == nil {
+		return r1, nil
+	} else {
+		return r1, r2.(error)
+	}
 }
 
-func (f *fakeStorage) Put(ctx context.Context, prefix string, key string, value []byte) error {
-	return f.create(ctx, prefix, key, value)
+func (m *mockStorage) Put(ctx context.Context, prefix string, key string, value []byte) error {
+	ret := m.Called(ctx, prefix, key, value)
+
+	if r := ret.Get(0); r == nil {
+		return nil
+	} else {
+		return r.(error)
+	}
 }
 
-func (f *fakeStorage) Delete(ctx context.Context, prefix string, key string) error {
+func (m *mockStorage) Delete(ctx context.Context, prefix string, key string) error {
 	return nil
 }
 
@@ -46,16 +67,15 @@ func TestKubeProfileServiceGet(t *testing.T) {
 		},
 	}
 
+	prefix := "/kube/"
+
 	for _, testCase := range testCases {
-		storage := &fakeStorage{
-			get: func(ctx context.Context, prefix string, key string) ([]byte, error) {
-				return testCase.data, testCase.err
-			},
-		}
+		m := new(mockStorage)
+		m.On("Get", context.Background(), prefix, "fake_id").Return(testCase.data, testCase.err)
 
 		service := KubeProfileService{
-			"/kube/",
-			storage,
+			prefix,
+			m,
 		}
 
 		profile, err := service.Get(context.Background(), "fake_id")
@@ -86,16 +106,22 @@ func TestKubeProfileServiceCreate(t *testing.T) {
 		},
 	}
 
+	prefix := "/kube/"
+
 	for _, testCase := range testCases {
-		storage := &fakeStorage{
-			create: func(ctx context.Context, prefix string, key string, value []byte) error {
-				return testCase.err
-			},
-		}
+		m := new(mockStorage)
+		kubeData, _ := json.Marshal(testCase.kube)
+
+		m.On("Put",
+			context.Background(),
+			prefix,
+			testCase.kube.Id,
+			kubeData).
+			Return(testCase.err)
 
 		service := KubeProfileService{
-			"/kube/",
-			storage,
+			prefix,
+			m,
 		}
 
 		err := service.Create(context.Background(), testCase.kube)
@@ -121,16 +147,15 @@ func TestKubeProfileServiceGetAll(t *testing.T) {
 		},
 	}
 
+	prefix := "/kube/"
+
 	for _, testCase := range testCases {
-		storage := &fakeStorage{
-			getAll: func(ctx context.Context, prefix string) ([][]byte, error) {
-				return testCase.data, testCase.err
-			},
-		}
+		m := new(mockStorage)
+		m.On("GetAll", context.Background(), prefix).Return(testCase.data, testCase.err)
 
 		service := KubeProfileService{
-			"/kube/",
-			storage,
+			prefix,
+			m,
 		}
 
 		profiles, err := service.GetAll(context.Background())
