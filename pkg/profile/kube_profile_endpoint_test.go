@@ -6,7 +6,12 @@ import (
 	"net/http"
 	"net/http/httptest"
 	"testing"
+	"gopkg.in/asaskevich/govalidator.v8"
 )
+
+func init() {
+	govalidator.SetFieldsRequiredByDefault(true)
+}
 
 func TestKubeProfileEndpointCreateProfile(t *testing.T) {
 	endpoint := &KubeProfileEndpoint{}
