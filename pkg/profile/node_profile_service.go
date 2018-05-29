@@ -12,6 +12,13 @@ type NodeProfileService struct {
 	nodeProfileStorage storage.Interface
 }
 
+func NewNodeProfileService(prefix string, storage storage.Interface) *NodeProfileService {
+	return &NodeProfileService{
+		prefix:             prefix,
+		nodeProfileStorage: storage,
+	}
+}
+
 func (s *NodeProfileService) Get(ctx context.Context, profileId string) (*NodeProfile, error) {
 	profileData, err := s.nodeProfileStorage.Get(ctx, s.prefix, profileId)
 	profile := &NodeProfile{}

@@ -17,7 +17,7 @@ func TestNodeProfileServiceGet(t *testing.T) {
 	}{
 		{
 			expectedId: "1234",
-			data:       []byte(`{"id":"1234", "nodes":[{},{}]}`),
+			data:       []byte(`{"id": "1234", "size": "2gb", "image": "ubuntu"}`),
 			err:        nil,
 		},
 		{
