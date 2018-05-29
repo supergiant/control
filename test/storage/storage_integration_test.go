@@ -1,5 +1,3 @@
-// +build integration
-
 package storage
 
 import (
@@ -8,9 +6,11 @@ import (
 	"time"
 
 	"github.com/coreos/etcd/clientv3"
-	"github.com/stretchr/testify/require"
 	"github.com/supergiant/supergiant/pkg/assert"
 	"github.com/supergiant/supergiant/pkg/storage"
+	"github.com/supergiant/supergiant/pkg/user"
+	"github.com/stretchr/testify/require"
+	"reflect"
 )
 
 const (
@@ -28,47 +28,37 @@ func init() {
 }
 
 func TestStorageE2E(t *testing.T) {
+	assert.EtcdRunning(defaultETCDHost)
 	ctx, cancel := context.WithTimeout(context.Background(), 3*time.Second)
 	defer cancel()
 	kv := storage.NewETCDRepository(defaultConfig)
+	tt := []struct {
+		key   string
+		value *user.User
+	}{
+		{
+			key: "valid_object",
+			value: &user.User{
+				Password: "test",
+				Login:    "test",
+			},
+		},
+	}
 
-	err := kv.Delete(ctx, testPrefix, "")
-	require.NoError(t, err)
+	for _, tc := range tt {
+		err := kv.Delete(ctx, testPrefix, "")
+		require.NoError(t, err)
 
-	res, err := kv.GetAll(ctx, testPrefix)
-	require.NoError(t, err)
-	require.Empty(t, res)
+		err = kv.Put(ctx, testPrefix, tc.key, tc.value)
+		require.NoError(t, err)
 
-	err = kv.Put(ctx, testPrefix, "1", []byte("test"))
-	require.NoError(t, err)
+		obj, err := kv.Get(ctx, testPrefix, tc.key, reflect.TypeOf(tc.value).Elem())
+		require.NoError(t, err)
 
-	getResult, err := kv.Get(ctx, testPrefix, "1")
-	require.Equal(t, "test", string(getResult))
+		u, ok := obj.(*user.User)
+		require.True(t, ok)
 
-	err = kv.Put(ctx, testPrefix, "2", []byte("test"))
-	require.NoError(t, err)
-
-	err = kv.Put(ctx, testPrefix, "2", []byte("test222"))
-	require.NoError(t, err)
-
-	getResult, err = kv.Get(ctx, testPrefix, "2")
-	require.Equal(t, "test222", string(getResult))
-
-	res, err = kv.GetAll(ctx, testPrefix)
-	require.NoError(t, err)
-	require.True(t, len(res) == 2)
-
-	err = kv.Delete(ctx, testPrefix, "")
-	require.NoError(t, err)
-
-	res, err = kv.GetAll(ctx, testPrefix)
-	require.NoError(t, err)
-	require.Empty(t, res)
-
-	x, err := kv.Get(ctx, testPrefix, "NO_SUCH_KEY")
-	require.NoError(t, err)
-	require.Nil(t, x)
-
-	resultSlice, err := kv.GetAll(ctx, "NO_SUCH_PREFIX")
-	require.Empty(t, resultSlice)
+		require.Equal(t, tc.value.Login, u.Login, )
+		require.Equal(t, tc.value.Password, u.Password)
+	}
 }
