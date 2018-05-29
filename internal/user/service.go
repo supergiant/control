@@ -1,7 +1,6 @@
 package user
 
 import (
-	"bytes"
 	"context"
 	"encoding/json"
 
@@ -18,8 +17,10 @@ type Service struct {
 	Repository storage.Interface
 }
 
-func (s *Service) RegisterUser(ctx context.Context, user *User) error {
+func (s *Service) Create(ctx context.Context, user *User) error {
+	logrus.Debug("user.Service.Create start")
 	return nil
+	logrus.Debug("user.Service.Create end")
 }
 
 func (s *Service) Authenticate(ctx context.Context, username, password string) error {
@@ -29,7 +30,7 @@ func (s *Service) Authenticate(ctx context.Context, username, password string) e
 		return err
 	}
 	user := new(User)
-	err = json.NewDecoder(bytes.NewReader(rawJSON)).Decode(user)
+	err = json.Unmarshal(rawJSON, err)
 	if err != nil {
 		return errors.WithStack(err)
 	}

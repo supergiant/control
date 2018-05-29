@@ -9,7 +9,7 @@ import (
 
 	"github.com/coreos/etcd/clientv3"
 	"github.com/stretchr/testify/require"
-	"github.com/supergiant/supergiant/pkg/assert"
+	"github.com/supergiant/supergiant/internal/testutils/assert"
 	"github.com/supergiant/supergiant/pkg/storage"
 )
 

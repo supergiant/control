@@ -1,101 +1,116 @@
 package user
 
-//TODO rewrite the test
-//
-//import (
-//	"bytes"
-//	"context"
-//	"encoding/json"
-//	"net/http"
-//	"net/http/httptest"
-//	"testing"
-//
-//	sgjwt "github.com/supergiant/supergiant/pkg/jwt"
-//)
-//
-//type MockUserRepository struct {
-//	getUser func() (*User, error)
-//
-//	storage map[string]*User
-//}
-//
-//func (m *MockUserRepository) GetAll(ctx context.Context) ([]User, error) {
-//	return nil, nil
-//}
-//
-//func (m *MockUserRepository) Get(ctx context.Context, userId string) (*User, error) {
-//	return m.getUser()
-//}
-//
-//func (m *MockUserRepository) Create(context.Context, *User) error {
-//	return nil
-//}
-//
-//func TestAuthHandler(t *testing.T) {
-//	ts := sgjwt.NewTokenService(60, []byte("secret"))
-//
-//	testCases := []struct {
-//		user         *User
-//		ar           authRequest
-//		expectedCode int
-//	}{
-//		{
-//			&User{
-//				Login:    "user1",
-//				Password: "1234",
-//			},
-//			authRequest{
-//				UserName: "user1",
-//				Password: "1234",
-//			},
-//			http.StatusOK,
-//		},
-//		{
-//			&User{
-//				Login:    "user2",
-//				Password: "1234",
-//			},
-//			authRequest{
-//				UserName: "user1",
-//				Password: "12345",
-//			},
-//			http.StatusForbidden,
-//		},
-//	}
-//
-//	for _, testCase := range testCases {
-//		err := testCase.user.encryptPassword()
-//
-//		if err != nil {
-//			t.Error(err)
-//		}
-//
-//		buf := bytes.NewBuffer([]byte(""))
-//		json.NewEncoder(buf).Encode(testCase.ar)
-//
-//		if err != nil {
-//			t.Error(err)
-//		}
-//
-//		req, err := http.NewRequest("", "", buf)
-//
-//		if err != nil {
-//			t.Error(err)
-//		}
-//
-//		rec := httptest.NewRecorder()
-//
-//		authHandler := &AuthHandler{
-//			tokenService: ts,
-//			userService: Service{
-//				Repository: &MockUserRepository{
-//					getUser: func() (*User, error) {
-//						return testCase.user, nil
-//					},
-//				},
-//			},
-//		}
-//
-//		authHandler.ServeHTTP(rec, req)
-//	}
-//}
+import (
+	"testing"
+	"net/http"
+	"github.com/supergiant/supergiant/pkg/jwt"
+	"bytes"
+	"net/http/httptest"
+	"encoding/json"
+	"github.com/stretchr/testify/require"
+	"github.com/supergiant/supergiant/internal/testutils"
+	"github.com/stretchr/testify/mock"
+)
+
+func TestEndpoint_Authenticate(t *testing.T) {
+	ts := jwt.NewTokenService(60, []byte("secret"))
+	testCases := []struct {
+		user         *User
+		ar           authRequest
+		expectedCode int
+	}{
+		{
+			&User{
+				Login:    "user1",
+				Password: "1234",
+			},
+			authRequest{
+				UserName: "user1",
+				Password: "1234",
+			},
+			http.StatusOK,
+		},
+		{
+			&User{
+				Login:    "user2",
+				Password: "1234",
+			},
+			authRequest{
+				UserName: "user1",
+				Password: "12345",
+			},
+			http.StatusForbidden,
+		},
+	}
+	storage := new(testutils.MockStorage)
+
+	userEndpoint := &Endpoint{
+		tokenService: ts,
+		userService:  Service{Repository: storage},
+	}
+	handler := http.HandlerFunc(userEndpoint.Authenticate)
+
+	for _, testCase := range testCases {
+		err := testCase.user.encryptPassword()
+		require.NoError(t, err)
+
+		buf := bytes.NewBuffer([]byte(""))
+		json.NewEncoder(buf).Encode(testCase.ar)
+
+		req, err := http.NewRequest("", "", buf)
+		require.NoError(t, err)
+
+		storage.On("Get", mock.Anything,
+			mock.Anything,
+			mock.Anything).Return(userToJSON(testCase.user), nil)
+
+		rec := httptest.NewRecorder()
+		handler.ServeHTTP(rec, req)
+
+		require.Equal(t, testCase.expectedCode, rec.Code)
+	}
+}
+
+func userToJSON(user *User) (data []byte) {
+	data, _ = json.Marshal(user)
+	return
+}
+
+func TestEndpoint_Create(t *testing.T) {
+	tt := []struct {
+		user         *User
+		expectedCode int
+	}{
+		{
+			user: &User{
+				Login:    "login",
+				Password: "password",
+			},
+			expectedCode: http.StatusOK,
+		},
+		{
+			user: &User{
+				Login:    "",
+				Password: "",
+			},
+			expectedCode: http.StatusBadRequest,
+		},
+	}
+	storage := new(testutils.MockStorage)
+	userEndpoint := &Endpoint{
+		userService: Service{Repository: storage},
+	}
+	handler := http.HandlerFunc(userEndpoint.Create)
+
+	storage.On("Put", mock.Anything, mock.Anything,
+		mock.Anything, mock.Anything).Return(nil)
+
+	for _, testCase := range tt {
+		req, err := http.NewRequest("", "", bytes.NewReader(userToJSON(testCase.user)))
+		require.NoError(t, err)
+
+		rec := httptest.NewRecorder()
+		handler.ServeHTTP(rec, req)
+		require.Equal(t, testCase.expectedCode, rec.Code)
+	}
+}

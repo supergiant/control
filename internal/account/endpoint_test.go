@@ -2,47 +2,23 @@ package account
 
 import (
 	"bytes"
-	"context"
 	"encoding/json"
 	"net/http"
 	"net/http/httptest"
 	"strings"
 	"testing"
 
+	"github.com/gorilla/mux"
 	"github.com/pkg/errors"
 	"github.com/stretchr/testify/mock"
 	"github.com/stretchr/testify/require"
-	"gopkg.in/asaskevich/govalidator.v8"
-	"github.com/gorilla/mux"
+	"github.com/supergiant/supergiant/internal/testutils"
 	"github.com/supergiant/supergiant/pkg/provider"
+	"gopkg.in/asaskevich/govalidator.v8"
 )
 
-type MockStorage struct {
-	mock.Mock
-}
-
-func (m *MockStorage) GetAll(ctx context.Context, prefix string) ([][]byte, error) {
-	args := m.Called(ctx, prefix)
-	return args.Get(0).([][]byte), args.Error(1)
-}
-
-func (m *MockStorage) Get(ctx context.Context, prefix string, key string) ([]byte, error) {
-	args := m.Called(ctx, prefix, key)
-	return args.Get(0).([]byte), args.Error(1)
-}
-
-func (m *MockStorage) Put(ctx context.Context, prefix string, key string, value []byte) error {
-	args := m.Called(ctx, prefix, key, value)
-	return args.Error(0)
-}
-
-func (m *MockStorage) Delete(ctx context.Context, prefix string, key string) error {
-	args := m.Called(ctx, prefix, key)
-	return args.Error(0)
-}
-
-func fixtures() (*Endpoint, *MockStorage) {
-	mockStorage := new(MockStorage)
+func fixtures() (*Endpoint, *testutils.MockStorage) {
+	mockStorage := new(testutils.MockStorage)
 	return &Endpoint{
 		Service: &Service{
 			Repository: mockStorage,
