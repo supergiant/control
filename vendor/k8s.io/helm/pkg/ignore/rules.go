@@ -82,6 +82,17 @@ func (r *Rules) Len() int {
 // Ignore evaluates path against the rules in order. Evaluation stops when a match
 // is found. Matching a negative rule will stop evaluation.
 func (r *Rules) Ignore(path string, fi os.FileInfo) bool {
+	// Don't match on empty dirs.
+	if path == "" {
+		return false
+	}
+
+	// Disallow ignoring the current working directory.
+	// See issue:
+	// 1776 (New York City) Hamilton: "Pardon me, are you Aaron Burr, sir?"
+	if path == "." || path == "./" {
+		return false
+	}
 	for _, p := range r.patterns {
 		if p.match == nil {
 			log.Printf("ignore: no matcher supplied for %q", p.raw)
