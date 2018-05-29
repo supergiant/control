@@ -6,6 +6,8 @@ import (
 
 	"github.com/gorilla/mux"
 
+	"gopkg.in/asaskevich/govalidator.v8"
+
 	"github.com/supergiant/supergiant/pkg/storage"
 )
 
@@ -41,6 +43,13 @@ func (h *KubeProfileEndpoint) CreateProfile(w http.ResponseWriter, r *http.Reque
 	err := json.NewDecoder(r.Body).Decode(&profile)
 
 	if err != nil {
+		http.Error(w, err.Error(), http.StatusBadRequest)
+		return
+	}
+
+	ok, err := govalidator.ValidateStruct(profile)
+
+	if !ok {
 		http.Error(w, err.Error(), http.StatusBadRequest)
 		return
 	}
