@@ -132,7 +132,7 @@ func (p *Provider) DeleteKube(m *model.Kube, action *core.Action) error {
 		}
 
 		// NOTE we do this (maybe we should just describe, not spam detach) because
-		// we can't wait directly on minions to terminate (we can, but I'm lazy rn)
+		// we can't wait directly on Nodes to terminate (we can, but I'm lazy rn)
 		// TODO(stgleb): Context should be inherited from higher level context
 		ctx, cancel := context.WithTimeout(context.Background(), 5*time.Minute)
 		defer cancel()
@@ -226,17 +226,17 @@ func (p *Provider) DeleteKube(m *model.Kube, action *core.Action) error {
 		return nil
 	})
 
-	procedure.AddStep("deleting ELB Security Group", func() error {
-		if m.AWSConfig.ELBSecurityGroupID == "" {
+	procedure.AddStep("deleting Master Security Group", func() error {
+		if m.AWSConfig.MasterSecurityGroupID == "" {
 			return nil
 		}
 		input := &ec2.DeleteSecurityGroupInput{
-			GroupId: aws.String(m.AWSConfig.ELBSecurityGroupID),
+			GroupId: aws.String(m.AWSConfig.MasterSecurityGroupID),
 		}
 		if _, err := ec2S.DeleteSecurityGroup(input); isErrAndNotAWSNotFound(err) {
 			return err
 		}
-		m.AWSConfig.ELBSecurityGroupID = ""
+		m.AWSConfig.MasterSecurityGroupID = ""
 		return nil
 	})
 
