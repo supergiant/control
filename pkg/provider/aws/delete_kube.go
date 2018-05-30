@@ -212,6 +212,58 @@ func (p *Provider) DeleteKube(m *model.Kube, action *core.Action) error {
 		return nil
 	})
 
+	procedure.AddStep("revoking Node Security Group ingress rules", func() error {
+		input := &ec2.RevokeSecurityGroupIngressInput{
+			GroupId: aws.String(m.AWSConfig.NodeSecurityGroupID),
+			IpPermissions: []*ec2.IpPermission{
+				{
+					FromPort:   aws.Int64(22),
+					ToPort:     aws.Int64(22),
+					IpProtocol: aws.String("tcp"),
+					IpRanges: []*ec2.IpRange{
+						{
+							CidrIp: aws.String("0.0.0.0/0"),
+						},
+					},
+				},
+				{
+					FromPort:   aws.Int64(443),
+					ToPort:     aws.Int64(443),
+					IpProtocol: aws.String("tcp"),
+					IpRanges: []*ec2.IpRange{
+						{
+							CidrIp: aws.String("0.0.0.0/0"),
+						},
+					},
+				},
+				{
+					FromPort:   aws.Int64(10250),
+					ToPort:     aws.Int64(10255),
+					IpProtocol: aws.String("tcp"),
+					UserIdGroupPairs: []*ec2.UserIdGroupPair{
+						{
+							GroupId: aws.String(m.AWSConfig.MasterSecurityGroupID),
+						},
+					},
+				},
+				{
+					FromPort:   aws.Int64(30000),
+					ToPort:     aws.Int64(32767),
+					IpProtocol: aws.String("tcp"),
+					IpRanges: []*ec2.IpRange{
+						{
+							CidrIp: aws.String("0.0.0.0/0"),
+						},
+					},
+				},
+			},
+		}
+		if _, err := ec2S.RevokeSecurityGroupIngress(input); isErrAndNotAWSNotFound(err) {
+			return err
+		}
+		return nil
+	})
+
 	procedure.AddStep("deleting Node Security Group", func() error {
 		if m.AWSConfig.NodeSecurityGroupID == "" {
 			return nil
