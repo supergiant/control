@@ -2,16 +2,14 @@ package openstack
 
 import (
 	"bytes"
-	"time"
-
 	"context"
+	"fmt"
+	"strings"
+	"time"
 
 	"github.com/gophercloud/gophercloud"
 	"github.com/gophercloud/gophercloud/openstack"
 	"github.com/gophercloud/gophercloud/openstack/compute/v2/servers"
-
-	"fmt"
-	"strings"
 
 	"github.com/supergiant/supergiant/pkg/core"
 	"github.com/supergiant/supergiant/pkg/model"

@@ -2,13 +2,12 @@ package packet
 
 import (
 	"bytes"
+	"fmt"
 	"strconv"
 	"strings"
 	"time"
 
 	"github.com/packethost/packngo"
-
-	"fmt"
 
 	"github.com/supergiant/supergiant/pkg/core"
 	"github.com/supergiant/supergiant/pkg/model"

@@ -2,15 +2,13 @@ package digitalocean
 
 import (
 	"bytes"
+	"fmt"
 	"strconv"
 	"strings"
 	"time"
 
 	"github.com/digitalocean/godo"
-
 	"github.com/sirupsen/logrus"
-
-	"fmt"
 
 	"github.com/supergiant/supergiant/pkg/core"
 	"github.com/supergiant/supergiant/pkg/model"
