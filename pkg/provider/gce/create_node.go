@@ -51,19 +51,19 @@ func (p *Provider) CreateNode(m *model.Node, action *core.Action) error {
 
 		m.Name = m.Kube.Name + "-minion" + "-" + strings.ToLower(util.RandomString(5))
 		// Build template
-		masterUserdataTemplate, err := bindata.Asset("config/providers/gce/minion.yaml")
+		minionUserDataTemplate, err := bindata.Asset("config/providers/gce/minion.yaml")
 		if err != nil {
 			return err
 		}
-		masterTemplate, err := template.New("master_template").Parse(string(masterUserdataTemplate))
+		minionTemplate, err := template.New("minion_template").Parse(string(minionUserDataTemplate))
 		if err != nil {
 			return err
 		}
-		var masterUserdata bytes.Buffer
-		if err = masterTemplate.Execute(&masterUserdata, m); err != nil {
+		var minionUserData bytes.Buffer
+		if err = minionTemplate.Execute(&minionUserData, m); err != nil {
 			return err
 		}
-		userData := string(masterUserdata.Bytes())
+		userData := string(minionUserData.Bytes())
 
 		// launch master.
 		role := "minion"

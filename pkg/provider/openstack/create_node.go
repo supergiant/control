@@ -2,8 +2,6 @@ package openstack
 
 import (
 	"bytes"
-	"strings"
-	"text/template"
 	"time"
 
 	"context"
@@ -12,9 +10,9 @@ import (
 	"github.com/gophercloud/gophercloud/openstack"
 	"github.com/gophercloud/gophercloud/openstack/compute/v2/servers"
 
-	"github.com/supergiant/supergiant/bindata"
 	"github.com/supergiant/supergiant/pkg/core"
 	"github.com/supergiant/supergiant/pkg/model"
+	"github.com/supergiant/supergiant/pkg/provider/template"
 	"github.com/supergiant/supergiant/pkg/util"
 )
 
@@ -34,16 +32,9 @@ func (p *Provider) CreateNode(m *model.Node, action *core.Action) error {
 		return err
 	}
 	m.Name = m.Kube.Name + "-node"
-	// Build template
-	mversion := strings.Split(m.Kube.KubernetesVersion, ".")
-	minionUserdataTemplate, err := bindata.Asset("config/providers/common/" + mversion[0] + "." + mversion[1] + "/minion.yaml")
-	if err != nil {
-		return err
-	}
-	minionTemplate, err := template.New("minion_template").Parse(string(minionUserdataTemplate))
-	if err != nil {
-		return err
-	}
+	// Get and fill template
+	minionTemplate := template.Templates[m.Kube.KubernetesVersion]
+
 	var minionUserdata bytes.Buffer
 	if err = minionTemplate.Execute(&minionUserdata, m); err != nil {
 		return err

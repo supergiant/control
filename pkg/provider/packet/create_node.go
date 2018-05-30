@@ -54,11 +54,11 @@ func (p *Provider) CreateNode(m *model.Node, action *core.Action) error {
 			oS = "ubuntu_17_04"
 		}
 		// Build template
-		masterUserdataTemplate, err := bindata.Asset(userDatatemplate)
+		minionUserdataTemplate, err := bindata.Asset(userDatatemplate)
 		if err != nil {
 			return err
 		}
-		masterTemplate, err := template.New("master_template").Parse(string(masterUserdataTemplate))
+		minionTemplate, err := template.New("minion_template").Parse(string(minionUserdataTemplate))
 		if err != nil {
 			return err
 		}
@@ -71,11 +71,11 @@ func (p *Provider) CreateNode(m *model.Node, action *core.Action) error {
 			m.Kube.CloudAccount.Credentials["api_token"],
 		}
 
-		var masterUserdata bytes.Buffer
-		if err = masterTemplate.Execute(&masterUserdata, data); err != nil {
+		var minionUserdata bytes.Buffer
+		if err = minionTemplate.Execute(&minionUserdata, data); err != nil {
 			return err
 		}
-		userData := string(masterUserdata.Bytes())
+		userData := string(minionUserdata.Bytes())
 
 		createRequest := &packngo.DeviceCreateRequest{
 			HostName:     m.Name,
