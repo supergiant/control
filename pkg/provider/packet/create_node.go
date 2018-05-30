@@ -12,6 +12,7 @@ import (
 	"github.com/supergiant/supergiant/bindata"
 	"github.com/supergiant/supergiant/pkg/core"
 	"github.com/supergiant/supergiant/pkg/model"
+	sgtemplate "github.com/supergiant/supergiant/pkg/provider/template"
 	"github.com/supergiant/supergiant/pkg/util"
 )
 
@@ -46,21 +47,31 @@ func (p *Provider) CreateNode(m *model.Node, action *core.Action) error {
 
 		mversion := strings.Split(m.Kube.KubernetesVersion, ".")
 
-		userDatatemplate := "config/providers/common/" + mversion[0] + "." + mversion[1] + "/minion.yaml"
-		oS := "coreos_stable"
+		var (
+			userDatatemplate string
+			oS               string
+		)
 
+		var minionTemplate *template.Template
+
+		// Special config template for ARM architecture
 		if m.Size == "Type 2A" {
 			userDatatemplate = "config/providers/common/" + mversion[0] + "." + mversion[1] + "/arm/ubuntu/minion.yaml"
 			oS = "ubuntu_17_04"
-		}
-		// Build template
-		minionUserdataTemplate, err := bindata.Asset(userDatatemplate)
-		if err != nil {
-			return err
-		}
-		minionTemplate, err := template.New("minion_template").Parse(string(minionUserdataTemplate))
-		if err != nil {
-			return err
+
+			// Build template
+			minionUserdataTemplate, err := bindata.Asset(userDatatemplate)
+			if err != nil {
+				return err
+			}
+			minionTemplate, err = template.New("minion_template").Parse(string(minionUserdataTemplate))
+			if err != nil {
+				return err
+			}
+		} else {
+			userDatatemplate = "config/providers/common/" + mversion[0] + "." + mversion[1] + "/minion.yaml"
+			oS = "coreos_stable"
+			minionTemplate = sgtemplate.Templates[userDatatemplate]
 		}
 
 		data := struct {

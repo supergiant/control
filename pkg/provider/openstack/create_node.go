@@ -10,6 +10,9 @@ import (
 	"github.com/gophercloud/gophercloud/openstack"
 	"github.com/gophercloud/gophercloud/openstack/compute/v2/servers"
 
+	"fmt"
+	"strings"
+
 	"github.com/supergiant/supergiant/pkg/core"
 	"github.com/supergiant/supergiant/pkg/model"
 	"github.com/supergiant/supergiant/pkg/provider/template"
@@ -33,7 +36,9 @@ func (p *Provider) CreateNode(m *model.Node, action *core.Action) error {
 	}
 	m.Name = m.Kube.Name + "-node"
 	// Get and fill template
-	minionTemplate := template.Templates[m.Kube.KubernetesVersion]
+	mversion := strings.Split(m.Kube.KubernetesVersion, ".")
+	minionFileName := fmt.Sprintf("config/providers/common/%s.%s/minion.yaml)", mversion[0], mversion[1])
+	minionTemplate := template.Templates[minionFileName]
 
 	var minionUserdata bytes.Buffer
 	if err = minionTemplate.Execute(&minionUserdata, m); err != nil {

@@ -4,14 +4,13 @@ import (
 	"bytes"
 	"strconv"
 	"strings"
-	"text/template"
 	"time"
 
-	compute "google.golang.org/api/compute/v1"
+	"google.golang.org/api/compute/v1"
 
-	"github.com/supergiant/supergiant/bindata"
 	"github.com/supergiant/supergiant/pkg/core"
 	"github.com/supergiant/supergiant/pkg/model"
+	template "github.com/supergiant/supergiant/pkg/provider/template"
 	"github.com/supergiant/supergiant/pkg/util"
 )
 
@@ -115,14 +114,9 @@ func (p *Provider) CreateKube(m *model.Kube, action *core.Action) error {
 			name := m.Name + "-master" + "-" + strings.ToLower(util.RandomString(5))
 			m.GCEConfig.MasterName = name
 			// Build template
-			masterUserdataTemplate, err := bindata.Asset("config/providers/gce/master.yaml")
-			if err != nil {
-				return err
-			}
-			masterTemplate, err := template.New("master_template").Parse(string(masterUserdataTemplate))
-			if err != nil {
-				return err
-			}
+			masterFileName := "config/providers/gce/master.yaml"
+			masterTemplate := template.Templates[masterFileName]
+
 			var masterUserdata bytes.Buffer
 			if err = masterTemplate.Execute(&masterUserdata, m); err != nil {
 				return err

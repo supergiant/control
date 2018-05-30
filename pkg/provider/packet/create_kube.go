@@ -4,14 +4,15 @@ import (
 	"bytes"
 	"strconv"
 	"strings"
-	"text/template"
 	"time"
 
 	"github.com/packethost/packngo"
 
-	"github.com/supergiant/supergiant/bindata"
+	"fmt"
+
 	"github.com/supergiant/supergiant/pkg/core"
 	"github.com/supergiant/supergiant/pkg/model"
+	"github.com/supergiant/supergiant/pkg/provider/template"
 	"github.com/supergiant/supergiant/pkg/util"
 )
 
@@ -72,14 +73,9 @@ func (p *Provider) CreateKube(m *model.Kube, action *core.Action) error {
 			m.MasterName = name
 			// Build template
 			mversion := strings.Split(m.KubernetesVersion, ".")
-			masterUserdataTemplate, err := bindata.Asset("config/providers/common/" + mversion[0] + "." + mversion[1] + "/master.yaml")
-			if err != nil {
-				return err
-			}
-			masterTemplate, err := template.New("master_template").Parse(string(masterUserdataTemplate))
-			if err != nil {
-				return err
-			}
+			masterFileName := fmt.Sprintf("config/providers/common/%s.%s/master.yaml)", mversion[0], mversion[1])
+			masterTemplate := template.Templates[masterFileName]
+
 			var masterUserdata bytes.Buffer
 			if err = masterTemplate.Execute(&masterUserdata, m); err != nil {
 				return err

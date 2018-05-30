@@ -6,32 +6,53 @@ import (
 
 	"github.com/sirupsen/logrus"
 
+	"fmt"
+
 	"github.com/supergiant/supergiant/bindata"
+	"github.com/supergiant/supergiant/pkg/provider"
 )
 
 var (
 	Templates map[string]*template.Template
-
-	kubeVersions []string
 )
 
 func init() {
-	// TODO(stgleb): We need single place to have all supported k8s versions
-	kubeVersions = []string{"1.5", "1.6", "1.7", "1.8"}
+	kubeVersions := []provider.K8SVersion{provider.K8S15, provider.K8S16, provider.K8S17, provider.K8S18}
+	NodeRoles := []provider.NodeRole{provider.Master, provider.Minion}
 	Templates = make(map[string]*template.Template)
 
-	for _, kubeVersion := range kubeVersions {
-		mversion := strings.Split(kubeVersion, ".")
-		userdataTemplate, err := bindata.Asset("config/providers/common/" + mversion[0] + "." + mversion[1] + "/minion.yaml")
+	for _, nodeRole := range NodeRoles {
+		for _, kubeVersion := range kubeVersions {
+			mversion := strings.Split(string(kubeVersion), ".")
+			fileName := fmt.Sprintf("config/providers/common/%s.%s/%s.yaml)", mversion[0], mversion[1], string(nodeRole))
+
+			// Create minion template
+			userdataTemplate, err := bindata.Asset(fileName)
+			if err != nil {
+				logrus.Fatalf("Error binding data")
+			}
+			tpl, err := template.New(fmt.Sprintf("%s_template", string(nodeRole))).Parse(string(userdataTemplate))
+
+			if err != nil {
+				logrus.Fatalf("Error creating %s template for %s", string(nodeRole), kubeVersions)
+			}
+
+			Templates[fileName] = tpl
+		}
+		// GCE case
+		fileName := fmt.Sprintf("config/providers/gce/%s.yaml)", string(nodeRole))
+
+		// Create minion template
+		userdataTemplate, err := bindata.Asset(fileName)
 		if err != nil {
 			logrus.Fatalf("Error binding data")
 		}
-		tpl, err := template.New("minion_template").Parse(string(userdataTemplate))
+		tpl, err := template.New(fmt.Sprintf("%s_template", string(nodeRole))).Parse(string(userdataTemplate))
 
 		if err != nil {
-			logrus.Fatalf("Error creating template for %s", kubeVersions)
+			logrus.Fatalf("Error creating %s template for GCE %s", string(nodeRole))
 		}
 
-		Templates[kubeVersion] = tpl
+		Templates[fileName] = tpl
 	}
 }

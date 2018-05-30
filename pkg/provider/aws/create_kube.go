@@ -318,13 +318,13 @@ func (p *Provider) CreateKube(m *model.Kube, action *core.Action) error {
 		if err != nil {
 			return err
 		}
-		template, err := template.New("minion_template").Parse(string(userdataTemplate))
+		tpl, err := template.New("master_template").Parse(string(userdataTemplate))
 		if err != nil {
 			return err
 		}
 
 		var userdata bytes.Buffer
-		if err = template.Execute(&userdata, m); err != nil {
+		if err = tpl.Execute(&userdata, m); err != nil {
 			return err
 		}
 

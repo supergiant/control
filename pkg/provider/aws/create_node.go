@@ -12,6 +12,8 @@ import (
 
 	"github.com/Sirupsen/logrus"
 
+	"strings"
+
 	"github.com/supergiant/supergiant/pkg/core"
 	"github.com/supergiant/supergiant/pkg/model"
 	"github.com/supergiant/supergiant/pkg/provider/template"
@@ -26,7 +28,9 @@ func (p *Provider) CreateNode(m *model.Node, action *core.Action) error {
 	if m.Kube.KubernetesVersion == "" {
 		m.Kube.KubernetesVersion = "1.5.7"
 	}
-	tpl := template.Templates[m.Kube.KubernetesVersion]
+	mversion := strings.Split(m.Kube.KubernetesVersion, ".")
+	minionFileName := fmt.Sprintf("config/providers/common/%s.%s/minion.yaml)", mversion[0], mversion[1])
+	tpl := template.Templates[minionFileName]
 
 	var userdata bytes.Buffer
 	if err := tpl.Execute(&userdata, m); err != nil {
