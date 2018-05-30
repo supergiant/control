@@ -39,10 +39,8 @@ func init() {
 
 			Templates[fileName] = tpl
 		}
-		// GCE case
+		// GCE case create either master or minion
 		fileName := fmt.Sprintf("config/providers/gce/%s.yaml)", string(nodeRole))
-
-		// Create minion template
 		userdataTemplate, err := bindata.Asset(fileName)
 		if err != nil {
 			logrus.Fatalf("Error binding data")
