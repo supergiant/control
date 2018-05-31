@@ -22,8 +22,8 @@ var (
 )
 
 func init() {
-	kubeVersions := []provider.K8SVersion{provider.K8S15, provider.K8S16, provider.K8S17, provider.K8S18}
-	NodeRoles := []provider.NodeRole{provider.Master, provider.Minion}
+	kubeVersions := provider.GetK8sVersions()
+	NodeRoles := provider.GetNodeRoles()
 	Templates = templateMap{make(map[string]*template.Template)}
 
 	for _, nodeRole := range NodeRoles {

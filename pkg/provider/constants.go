@@ -24,3 +24,11 @@ const (
 	Master NodeRole = "master"
 	Minion NodeRole = "minion"
 )
+
+func GetNodeRoles() []NodeRole {
+	return []NodeRole{Master, Minion}
+}
+
+func GetK8sVersions() []K8SVersion {
+	return []K8SVersion{K8S15, K8S16, K8S17, K8S18}
+}
