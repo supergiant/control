@@ -115,7 +115,11 @@ func (p *Provider) CreateKube(m *model.Kube, action *core.Action) error {
 			m.GCEConfig.MasterName = name
 			// Build template
 			masterFileName := "config/providers/gce/master.yaml"
-			masterTemplate := template.Templates[masterFileName]
+			masterTemplate, ok := template.Templates[masterFileName]
+
+			if !ok {
+				return template.errTemplateNotFound
+			}
 
 			var masterUserdata bytes.Buffer
 			if err = masterTemplate.Execute(&masterUserdata, m); err != nil {

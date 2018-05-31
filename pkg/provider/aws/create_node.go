@@ -4,15 +4,15 @@ import (
 	"bytes"
 	"encoding/base64"
 	"fmt"
+
 	"math/rand"
+	"strings"
 	"time"
 
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/service/ec2"
 
-	"github.com/Sirupsen/logrus"
-
-	"strings"
+	"github.com/sirupsen/logrus"
 
 	"github.com/supergiant/supergiant/pkg/core"
 	"github.com/supergiant/supergiant/pkg/model"
@@ -30,10 +30,14 @@ func (p *Provider) CreateNode(m *model.Node, action *core.Action) error {
 	}
 	mversion := strings.Split(m.Kube.KubernetesVersion, ".")
 	minionFileName := fmt.Sprintf("config/providers/common/%s.%s/minion.yaml)", mversion[0], mversion[1])
-	tpl := template.Templates[minionFileName]
+	minionTemplate, err := template.Templates.Get(minionFileName)
+
+	if err != nil {
+		return err
+	}
 
 	var userdata bytes.Buffer
-	if err := tpl.Execute(&userdata, m); err != nil {
+	if err := minionTemplate.Execute(&userdata, m); err != nil {
 		return err
 	}
 	encodedUserdata := base64.StdEncoding.EncodeToString(userdata.Bytes())

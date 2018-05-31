@@ -254,7 +254,11 @@ func (p *Provider) CreateKube(m *model.Kube, action *core.Action) error {
 			// Build template
 			mversion := strings.Split(m.KubernetesVersion, ".")
 			masterFileName := fmt.Sprintf("config/providers/common/%s.%s/master.yaml)", mversion[0], mversion[1])
-			masterTemplate := template.Templates[masterFileName]
+			masterTemplate, err := template.Templates.Get(masterFileName)
+
+			if err != nil {
+				return err
+			}
 
 			var masterUserdata bytes.Buffer
 			if err = masterTemplate.Execute(&masterUserdata, m); err != nil {

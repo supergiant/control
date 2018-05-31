@@ -1,9 +1,12 @@
 package provider
 
 type (
-	Name       string
+	// Name of provider
+	Name string
+	// K8SVersion version in format major.minor.patch
 	K8SVersion string
-	NodeRole   string
+	// NodeRole either master or minion
+	NodeRole string
 )
 
 const (

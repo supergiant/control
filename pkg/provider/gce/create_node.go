@@ -51,7 +51,11 @@ func (p *Provider) CreateNode(m *model.Node, action *core.Action) error {
 		m.Name = m.Kube.Name + "-minion" + "-" + strings.ToLower(util.RandomString(5))
 		// Build template
 		minionFileName := "config/providers/gce/minion.yaml"
-		minionTemplate := template.Templates[minionFileName]
+		minionTemplate, ok := template.Templates[minionFileName]
+
+		if !ok {
+			return template.errTemplateNotFound
+		}
 
 		var minionUserData bytes.Buffer
 		if err = minionTemplate.Execute(&minionUserData, m); err != nil {

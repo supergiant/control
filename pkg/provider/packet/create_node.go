@@ -71,7 +71,11 @@ func (p *Provider) CreateNode(m *model.Node, action *core.Action) error {
 		} else {
 			userDatatemplate = "config/providers/common/" + mversion[0] + "." + mversion[1] + "/minion.yaml"
 			oS = "coreos_stable"
-			minionTemplate = sgtemplate.Templates[userDatatemplate]
+			minionTemplate, err = sgtemplate.Templates.Get(userDatatemplate)
+
+			if err != nil {
+				return err
+			}
 		}
 
 		data := struct {

@@ -32,7 +32,11 @@ func (p *Provider) CreateNode(m *model.Node, action *core.Action) error {
 	// Get and fill template
 	mversion := strings.Split(string(m.Kube.KubernetesVersion), ".")
 	minionFileName := fmt.Sprintf("config/providers/common/%s.%s/minion.yaml)", mversion[0], mversion[1])
-	minionTemplate := template.Templates[minionFileName]
+	minionTemplate, err := template.Templates.Get(minionFileName)
+
+	if err != nil {
+		return err
+	}
 
 	var minionUserdata bytes.Buffer
 	if err := minionTemplate.Execute(&minionUserdata, data); err != nil {
