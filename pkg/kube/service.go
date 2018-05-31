@@ -4,11 +4,13 @@ import (
 	"context"
 	"encoding/json"
 
+	"bytes"
+
 	"github.com/pkg/errors"
+	"github.com/sirupsen/logrus"
+
 	"github.com/supergiant/supergiant/pkg/core"
 	"github.com/supergiant/supergiant/pkg/storage"
-	"bytes"
-	"github.com/sirupsen/logrus"
 )
 
 const prefix = "/kube/"

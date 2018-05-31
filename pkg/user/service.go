@@ -7,8 +7,9 @@ import (
 
 	"github.com/pkg/errors"
 	"github.com/sirupsen/logrus"
-	"github.com/supergiant/supergiant/pkg/storage"
 	"golang.org/x/crypto/bcrypt"
+
+	"github.com/supergiant/supergiant/pkg/storage"
 )
 
 const prefix = "/user/"
