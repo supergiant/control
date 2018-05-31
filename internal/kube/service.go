@@ -8,15 +8,12 @@ import (
 
 	"github.com/pkg/errors"
 	"github.com/sirupsen/logrus"
-
-	"github.com/supergiant/supergiant/pkg/core"
 	"github.com/supergiant/supergiant/pkg/storage"
 )
 
-const prefix = "/kube/"
+const prefix = "/supergiant/kube/"
 
 type Service struct {
-	provider   core.Provider
 	repository storage.Interface
 }
 
@@ -27,7 +24,7 @@ func (s *Service) CreateKube(ctx context.Context, kube *Kube) (*Kube, error) {
 	if err != nil {
 		return nil, errors.WithStack(err)
 	}
-	err = s.repository.Put(ctx, prefix, kube.KubeName, raw)
+	err = s.repository.Put(ctx, prefix, kube.Name, raw)
 	if err != nil {
 		return nil, err
 	}

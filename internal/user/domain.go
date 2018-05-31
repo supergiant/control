@@ -6,10 +6,9 @@ import (
 
 // User is the representation of supergiant user
 type User struct {
-	APIToken          string
-	Login             string
-	EncryptedPassword []byte
-	Password          string
+	Login             string `json:"login" valid:"required, length(1|32)"`
+	EncryptedPassword []byte `json:"encrypted_password" valid:"-"`
+	Password          string `json:"password" valid:"required, length(8|24), printableascii"`
 }
 
 func (m *User) encryptPassword() error {
