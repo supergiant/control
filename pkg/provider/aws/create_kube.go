@@ -651,6 +651,16 @@ func (p *Provider) CreateKube(m *model.Kube, action *core.Action) error {
 						},
 					},
 				},
+				{
+					FromPort:   aws.Int64(0),
+					ToPort:     aws.Int64(0),
+					IpProtocol: aws.String("-1"),
+					IpRanges: []*ec2.IpRange{
+						{
+							CidrIp: aws.String("0.0.0.0/0"),
+						},
+					},
+				},
 			},
 		}
 		if _, err := ec2S.AuthorizeSecurityGroupIngress(input); err != nil && !strings.Contains(err.Error(), "InvalidPermission.Duplicate") {
@@ -659,57 +669,57 @@ func (p *Provider) CreateKube(m *model.Kube, action *core.Action) error {
 		return nil
 	})
 
-	procedure.AddStep("creating Master Security Group egress rules", func() error {
-		input := &ec2.AuthorizeSecurityGroupEgressInput{
-			GroupId: aws.String(m.AWSConfig.MasterSecurityGroupID),
-			IpPermissions: []*ec2.IpPermission{
-				{
-					FromPort:   aws.Int64(22),
-					ToPort:     aws.Int64(22),
-					IpProtocol: aws.String("tcp"),
-					IpRanges: []*ec2.IpRange{
-						{
-							CidrIp: aws.String("0.0.0.0/0"),
-						},
-					},
-				},
-				{
-					FromPort:   aws.Int64(443),
-					ToPort:     aws.Int64(443),
-					IpProtocol: aws.String("tcp"),
-					IpRanges: []*ec2.IpRange{
-						{
-							CidrIp: aws.String("0.0.0.0/0"),
-						},
-					},
-				},
-				{
-					FromPort:   aws.Int64(2379),
-					ToPort:     aws.Int64(2379),
-					IpProtocol: aws.String("tcp"),
-					UserIdGroupPairs: []*ec2.UserIdGroupPair{
-						{
-							GroupId: aws.String(m.AWSConfig.MasterSecurityGroupID),
-						},
-					},
-				},
-				{
-					FromPort:   aws.Int64(10250),
-					ToPort:     aws.Int64(10255),
-					IpProtocol: aws.String("tcp"),
-					UserIdGroupPairs: []*ec2.UserIdGroupPair{
-						{
-							GroupId: aws.String(m.AWSConfig.NodeSecurityGroupID),
-						},
-					},
-				},
-			},
-		}
-		if _, err := ec2S.AuthorizeSecurityGroupEgress(input); err != nil && !strings.Contains(err.Error(), "InvalidPermission.Duplicate") {
-			return err
-		}
-		return nil
-	})
+	// procedure.AddStep("creating Master Security Group egress rules", func() error {
+	// 	input := &ec2.AuthorizeSecurityGroupEgressInput{
+	// 		GroupId: aws.String(m.AWSConfig.MasterSecurityGroupID),
+	// 		IpPermissions: []*ec2.IpPermission{
+	// 			{
+	// 				FromPort:   aws.Int64(22),
+	// 				ToPort:     aws.Int64(22),
+	// 				IpProtocol: aws.String("tcp"),
+	// 				IpRanges: []*ec2.IpRange{
+	// 					{
+	// 						CidrIp: aws.String("0.0.0.0/0"),
+	// 					},
+	// 				},
+	// 			},
+	// 			{
+	// 				FromPort:   aws.Int64(443),
+	// 				ToPort:     aws.Int64(443),
+	// 				IpProtocol: aws.String("tcp"),
+	// 				IpRanges: []*ec2.IpRange{
+	// 					{
+	// 						CidrIp: aws.String("0.0.0.0/0"),
+	// 					},
+	// 				},
+	// 			},
+	// 			{
+	// 				FromPort:   aws.Int64(2379),
+	// 				ToPort:     aws.Int64(2379),
+	// 				IpProtocol: aws.String("tcp"),
+	// 				UserIdGroupPairs: []*ec2.UserIdGroupPair{
+	// 					{
+	// 						GroupId: aws.String(m.AWSConfig.MasterSecurityGroupID),
+	// 					},
+	// 				},
+	// 			},
+	// 			{
+	// 				FromPort:   aws.Int64(10250),
+	// 				ToPort:     aws.Int64(10255),
+	// 				IpProtocol: aws.String("tcp"),
+	// 				UserIdGroupPairs: []*ec2.UserIdGroupPair{
+	// 					{
+	// 						GroupId: aws.String(m.AWSConfig.NodeSecurityGroupID),
+	// 					},
+	// 				},
+	// 			},
+	// 		},
+	// 	}
+	// 	if _, err := ec2S.AuthorizeSecurityGroupEgress(input); err != nil && !strings.Contains(err.Error(), "InvalidPermission.Duplicate") {
+	// 		return err
+	// 	}
+	// 	return nil
+	// })
 
 	procedure.AddStep("creating Node Security Group ingress rules", func() error {
 		input := &ec2.AuthorizeSecurityGroupIngressInput{
@@ -755,6 +765,16 @@ func (p *Provider) CreateKube(m *model.Kube, action *core.Action) error {
 						},
 					},
 				},
+				{
+					FromPort:   aws.Int64(0),
+					ToPort:     aws.Int64(0),
+					IpProtocol: aws.String("-1"),
+					IpRanges: []*ec2.IpRange{
+						{
+							CidrIp: aws.String("0.0.0.0/0"),
+						},
+					},
+				},
 			},
 		}
 		if _, err := ec2S.AuthorizeSecurityGroupIngress(input); err != nil && !strings.Contains(err.Error(), "InvalidPermission.Duplicate") {
@@ -763,57 +783,57 @@ func (p *Provider) CreateKube(m *model.Kube, action *core.Action) error {
 		return nil
 	})
 
-	procedure.AddStep("creating Node Security Group egress rules", func() error {
-		input := &ec2.AuthorizeSecurityGroupEgressInput{
-			GroupId: aws.String(m.AWSConfig.NodeSecurityGroupID),
-			IpPermissions: []*ec2.IpPermission{
-				{
-					FromPort:   aws.Int64(22),
-					ToPort:     aws.Int64(22),
-					IpProtocol: aws.String("tcp"),
-					IpRanges: []*ec2.IpRange{
-						{
-							CidrIp: aws.String("0.0.0.0/0"),
-						},
-					},
-				},
-				{
-					FromPort:   aws.Int64(443),
-					ToPort:     aws.Int64(443),
-					IpProtocol: aws.String("tcp"),
-					IpRanges: []*ec2.IpRange{
-						{
-							CidrIp: aws.String("0.0.0.0/0"),
-						},
-					},
-				},
-				{
-					FromPort:   aws.Int64(10250),
-					ToPort:     aws.Int64(10255),
-					IpProtocol: aws.String("tcp"),
-					UserIdGroupPairs: []*ec2.UserIdGroupPair{
-						{
-							GroupId: aws.String(m.AWSConfig.MasterSecurityGroupID),
-						},
-					},
-				},
-				{
-					FromPort:   aws.Int64(30000),
-					ToPort:     aws.Int64(32767),
-					IpProtocol: aws.String("tcp"),
-					IpRanges: []*ec2.IpRange{
-						{
-							CidrIp: aws.String("0.0.0.0/0"),
-						},
-					},
-				},
-			},
-		}
-		if _, err := ec2S.AuthorizeSecurityGroupEgress(input); err != nil && !strings.Contains(err.Error(), "InvalidPermission.Duplicate") {
-			return err
-		}
-		return nil
-	})
+	// procedure.AddStep("creating Node Security Group egress rules", func() error {
+	// 	input := &ec2.AuthorizeSecurityGroupEgressInput{
+	// 		GroupId: aws.String(m.AWSConfig.NodeSecurityGroupID),
+	// 		IpPermissions: []*ec2.IpPermission{
+	// 			{
+	// 				FromPort:   aws.Int64(22),
+	// 				ToPort:     aws.Int64(22),
+	// 				IpProtocol: aws.String("tcp"),
+	// 				IpRanges: []*ec2.IpRange{
+	// 					{
+	// 						CidrIp: aws.String("0.0.0.0/0"),
+	// 					},
+	// 				},
+	// 			},
+	// 			{
+	// 				FromPort:   aws.Int64(443),
+	// 				ToPort:     aws.Int64(443),
+	// 				IpProtocol: aws.String("tcp"),
+	// 				IpRanges: []*ec2.IpRange{
+	// 					{
+	// 						CidrIp: aws.String("0.0.0.0/0"),
+	// 					},
+	// 				},
+	// 			},
+	// 			{
+	// 				FromPort:   aws.Int64(10250),
+	// 				ToPort:     aws.Int64(10255),
+	// 				IpProtocol: aws.String("tcp"),
+	// 				UserIdGroupPairs: []*ec2.UserIdGroupPair{
+	// 					{
+	// 						GroupId: aws.String(m.AWSConfig.MasterSecurityGroupID),
+	// 					},
+	// 				},
+	// 			},
+	// 			{
+	// 				FromPort:   aws.Int64(30000),
+	// 				ToPort:     aws.Int64(32767),
+	// 				IpProtocol: aws.String("tcp"),
+	// 				IpRanges: []*ec2.IpRange{
+	// 					{
+	// 						CidrIp: aws.String("0.0.0.0/0"),
+	// 					},
+	// 				},
+	// 			},
+	// 		},
+	// 	}
+	// 	if _, err := ec2S.AuthorizeSecurityGroupEgress(input); err != nil && !strings.Contains(err.Error(), "InvalidPermission.Duplicate") {
+	// 		return err
+	// 	}
+	// 	return nil
+	// })
 
 	// Create EFS:
 
@@ -930,7 +950,7 @@ func (p *Provider) CreateKube(m *model.Kube, action *core.Action) error {
 						AssociatePublicIpAddress: aws.Bool(pubNet),
 						DeleteOnTermination:      aws.Bool(true),
 						Groups: []*string{
-							aws.String(m.AWSConfig.NodeSecurityGroupID),
+							aws.String(m.AWSConfig.MasterSecurityGroupID),
 						},
 						SubnetId: aws.String(selectedSubnet),
 						//PrivateIpAddress: aws.String(m.AWSConfig.MasterPrivateIP),
