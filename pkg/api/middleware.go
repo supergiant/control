@@ -6,7 +6,7 @@ import (
 	"strings"
 
 	sgjwt "github.com/supergiant/supergiant/pkg/jwt"
-	"github.com/supergiant/supergiant/pkg/user"
+	"github.com/supergiant/supergiant/internal/user"
 )
 
 type middleware struct {
