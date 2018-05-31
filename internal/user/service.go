@@ -19,8 +19,8 @@ type Service struct {
 
 func (s *Service) Create(ctx context.Context, user *User) error {
 	logrus.Debug("user.Service.Create start")
-	return nil
 	logrus.Debug("user.Service.Create end")
+	return nil
 }
 
 func (s *Service) Authenticate(ctx context.Context, username, password string) error {
