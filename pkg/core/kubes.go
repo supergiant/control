@@ -69,6 +69,12 @@ func (c *Kubes) Delete(id *int64, m *model.Kube) ActionInterface {
 					return err
 				}
 			}
+			
+			// Get all kube nodes
+			if err := c.Core.DB.Find(&m.Nodes, "kube_name = ?", m.Name); err != nil {
+				return err
+			}
+
 			// Delete nodes first to get rid of any potential hanging volumes
 			for _, node := range m.Nodes {
 				err := c.Core.Nodes.Delete(node.ID, node).Now()
@@ -76,6 +82,7 @@ func (c *Kubes) Delete(id *int64, m *model.Kube) ActionInterface {
 					return err
 				}
 			}
+
 			// TODO -------------------------------------- and what about Volumes        (maybe we don't have to delete these?)
 			// // Delete Volumes
 			// for _, volume := range m.Volumes {
