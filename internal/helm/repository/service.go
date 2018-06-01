@@ -51,8 +51,12 @@ func (s *Service) Get(ctx context.Context, repoName string) (*helm.Repository, e
 	if err != nil {
 		return nil, errors.Wrap(err, "unmarshal")
 	}
+	// not found
+	if res == nil {
+		return nil, nil
+	}
 
-	return nil, nil
+	return repo, nil
 }
 
 // GetAll retrieves all helm repositories from the storage.
