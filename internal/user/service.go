@@ -30,7 +30,7 @@ func (s *Service) Authenticate(ctx context.Context, username, password string) e
 		return err
 	}
 	user := new(User)
-	err = json.Unmarshal(rawJSON, err)
+	err = json.Unmarshal(rawJSON, user)
 	if err != nil {
 		return errors.WithStack(err)
 	}
