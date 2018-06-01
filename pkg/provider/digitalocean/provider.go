@@ -106,7 +106,7 @@ func (p *Provider) createDroplet(client *godo.Client, action *core.Action, req *
 }
 
 func etcdToken(num string) (string, error) {
-	resp, err := http.Get("https://.io/new?size=" + num + "")
+	resp, err := http.Get("https://discovery.etcd.io/new?size=" + num + "")
 	if err != nil {
 		return "", err
 	}
