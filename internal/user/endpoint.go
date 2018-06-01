@@ -1,10 +1,11 @@
 package user
 
 import (
-	sgjwt "github.com/supergiant/supergiant/pkg/jwt"
-	"net/http"
 	"encoding/json"
 	"fmt"
+	"net/http"
+
+	sgjwt "github.com/supergiant/supergiant/pkg/jwt"
 	"gopkg.in/asaskevich/govalidator.v8"
 )
 
@@ -19,12 +20,12 @@ type authRequest struct {
 }
 
 /**
-	s.HandleFunc("/users", restrictedHandler(core, CreateUser)).Methods("POST")
-	s.HandleFunc("/users", restrictedHandler(core, ListUsers)).Methods("GET")
-	s.HandleFunc("/users/{id}", restrictedHandler(core, GetUser)).Methods("GET")
-	s.HandleFunc("/users/{id}", restrictedHandler(core, UpdateUser)).Methods("PATCH", "PUT")
-	s.HandleFunc("/users/{id}", restrictedHandler(core, DeleteUser)).Methods("DELETE")
- */
+s.HandleFunc("/users", restrictedHandler(core, CreateUser)).Methods("POST")
+s.HandleFunc("/users", restrictedHandler(core, ListUsers)).Methods("GET")
+s.HandleFunc("/users/{id}", restrictedHandler(core, GetUser)).Methods("GET")
+s.HandleFunc("/users/{id}", restrictedHandler(core, UpdateUser)).Methods("PATCH", "PUT")
+s.HandleFunc("/users/{id}", restrictedHandler(core, DeleteUser)).Methods("DELETE")
+*/
 
 func NewEndpoint(userService Service, tokenService sgjwt.TokenService) *Endpoint {
 	return &Endpoint{

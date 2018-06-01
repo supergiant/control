@@ -4,14 +4,13 @@ import (
 	"bytes"
 	"fmt"
 	"strings"
-	"text/template"
 	"time"
 
 	"google.golang.org/api/compute/v1"
 
-	"github.com/supergiant/supergiant/bindata"
 	"github.com/supergiant/supergiant/pkg/core"
 	"github.com/supergiant/supergiant/pkg/model"
+	"github.com/supergiant/supergiant/pkg/provider/template"
 	"github.com/supergiant/supergiant/pkg/util"
 )
 
@@ -51,19 +50,18 @@ func (p *Provider) CreateNode(m *model.Node, action *core.Action) error {
 
 		m.Name = m.Kube.Name + "-minion" + "-" + strings.ToLower(util.RandomString(5))
 		// Build template
-		masterUserdataTemplate, err := bindata.Asset("config/providers/gce/minion.yaml")
-		if err != nil {
+		minionFileName := "config/providers/gce/minion.yaml"
+		minionTemplate, ok := template.Templates[minionFileName]
+
+		if !ok {
+			return template.errTemplateNotFound
+		}
+
+		var minionUserData bytes.Buffer
+		if err = minionTemplate.Execute(&minionUserData, m); err != nil {
 			return err
 		}
-		masterTemplate, err := template.New("master_template").Parse(string(masterUserdataTemplate))
-		if err != nil {
-			return err
-		}
-		var masterUserdata bytes.Buffer
-		if err = masterTemplate.Execute(&masterUserdata, m); err != nil {
-			return err
-		}
-		userData := string(masterUserdata.Bytes())
+		userData := string(minionUserData.Bytes())
 
 		// launch master.
 		role := "minion"

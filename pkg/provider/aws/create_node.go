@@ -4,17 +4,19 @@ import (
 	"bytes"
 	"encoding/base64"
 	"fmt"
+
 	"math/rand"
 	"strings"
-	"text/template"
 	"time"
 
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/service/ec2"
 
-	"github.com/supergiant/supergiant/bindata"
+	"github.com/sirupsen/logrus"
+
 	"github.com/supergiant/supergiant/pkg/core"
 	"github.com/supergiant/supergiant/pkg/model"
+	"github.com/supergiant/supergiant/pkg/provider/template"
 	"github.com/supergiant/supergiant/pkg/util"
 )
 
@@ -26,18 +28,16 @@ func (p *Provider) CreateNode(m *model.Node, action *core.Action) error {
 	if m.Kube.KubernetesVersion == "" {
 		m.Kube.KubernetesVersion = "1.5.7"
 	}
-	// TODO move to init outside of func
 	mversion := strings.Split(m.Kube.KubernetesVersion, ".")
-	userdataTemplate, err := bindata.Asset("config/providers/common/" + mversion[0] + "." + mversion[1] + "/minion.yaml")
+	minionFileName := fmt.Sprintf("config/providers/common/%s.%s/minion.yaml)", mversion[0], mversion[1])
+	minionTemplate, err := template.Templates.Get(minionFileName)
+
 	if err != nil {
 		return err
 	}
-	template, err := template.New("minion_template").Parse(string(userdataTemplate))
-	if err != nil {
-		return err
-	}
+
 	var userdata bytes.Buffer
-	if err = template.Execute(&userdata, m); err != nil {
+	if err := minionTemplate.Execute(&userdata, m); err != nil {
 		return err
 	}
 	encodedUserdata := base64.StdEncoding.EncodeToString(userdata.Bytes())
@@ -108,8 +108,7 @@ func (p *Provider) CreateNode(m *model.Node, action *core.Action) error {
 		"Role":              m.Kube.Name + "-minion",
 	}, m.Kube.AWSConfig.Tags)
 	if err != nil {
-		// TODO
-		p.Core.Log.Error("Failed to tag EC2 Instance " + *server.InstanceId)
+		logrus.Warningf("Failed to tag EC2 Instance " + *server.InstanceId)
 	}
 	m.ProviderID = *server.InstanceId
 	m.Name = *server.PrivateDnsName

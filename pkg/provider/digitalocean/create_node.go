@@ -2,16 +2,17 @@ package digitalocean
 
 import (
 	"bytes"
+	"fmt"
 	"strconv"
 	"strings"
-	"text/template"
 	"time"
 
 	"github.com/digitalocean/godo"
+	"github.com/sirupsen/logrus"
 
-	"github.com/supergiant/supergiant/bindata"
 	"github.com/supergiant/supergiant/pkg/core"
 	"github.com/supergiant/supergiant/pkg/model"
+	"github.com/supergiant/supergiant/pkg/provider/template"
 	"github.com/supergiant/supergiant/pkg/util"
 )
 
@@ -20,15 +21,6 @@ func (p *Provider) CreateNode(m *model.Node, action *core.Action) error {
 
 	name := m.Kube.Name + "-node" + "-" + strings.ToLower(util.RandomString(5))
 	// Build template
-	mversion := strings.Split(m.Kube.KubernetesVersion, ".")
-	minionUserdataTemplate, err := bindata.Asset("config/providers/common/" + mversion[0] + "." + mversion[1] + "/minion.yaml")
-	if err != nil {
-		return err
-	}
-	minionTemplate, err := template.New("minion_template").Parse(string(minionUserdataTemplate))
-	if err != nil {
-		return err
-	}
 
 	data := struct {
 		*model.Node
@@ -37,9 +29,17 @@ func (p *Provider) CreateNode(m *model.Node, action *core.Action) error {
 		m,
 		m.Kube.CloudAccount.Credentials["token"],
 	}
+	// Get and fill template
+	mversion := strings.Split(string(m.Kube.KubernetesVersion), ".")
+	minionFileName := fmt.Sprintf("config/providers/common/%s.%s/minion.yaml)", mversion[0], mversion[1])
+	minionTemplate, err := template.Templates.Get(minionFileName)
+
+	if err != nil {
+		return err
+	}
 
 	var minionUserdata bytes.Buffer
-	if err = minionTemplate.Execute(&minionUserdata, data); err != nil {
+	if err := minionTemplate.Execute(&minionUserdata, data); err != nil {
 		return err
 	}
 
@@ -71,8 +71,8 @@ func (p *Provider) CreateNode(m *model.Node, action *core.Action) error {
 	// Parse creation timestamp
 	createdAt, err := time.Parse("2006-01-02T15:04:05Z", minionDroplet.Created)
 	if err != nil {
-		// TODO need to return on error here
-		p.Core.Log.Warnf("Could not parse Droplet creation timestamp string '%s': %s", minionDroplet.Created, err)
+		logrus.Warning("Could not parse Droplet creation timestamp string '%s': %s", minionDroplet.Created, err)
+		return err
 	}
 
 	// Save info before waiting on IP

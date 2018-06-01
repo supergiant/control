@@ -19,6 +19,7 @@ import (
 	"github.com/supergiant/supergiant/bindata"
 	"github.com/supergiant/supergiant/pkg/core"
 	"github.com/supergiant/supergiant/pkg/model"
+	sgtemplate "github.com/supergiant/supergiant/pkg/provider/template"
 	"github.com/supergiant/supergiant/pkg/util"
 )
 
@@ -313,18 +314,17 @@ func (p *Provider) CreateKube(m *model.Kube, action *core.Action) error {
 
 		m.ETCDDiscoveryURL = url
 
+		// Build template
 		mversion := strings.Split(m.KubernetesVersion, ".")
-		userdataTemplate, err := bindata.Asset("config/providers/common/" + mversion[0] + "." + mversion[1] + "/master.yaml")
-		if err != nil {
-			return err
-		}
-		template, err := template.New("minion_template").Parse(string(userdataTemplate))
+		masterFileName := fmt.Sprintf("config/providers/common/%s.%s/master.yaml)", mversion[0], mversion[1])
+		masterTemplate, err := sgtemplate.Templates.Get(masterFileName)
+
 		if err != nil {
 			return err
 		}
 
 		var userdata bytes.Buffer
-		if err = template.Execute(&userdata, m); err != nil {
+		if err = masterTemplate.Execute(&userdata, m); err != nil {
 			return err
 		}
 
