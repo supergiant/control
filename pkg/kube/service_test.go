@@ -1,26 +1,25 @@
-package profile
+package kube
 
 import (
 	"context"
+	"errors"
 	"testing"
 
 	"encoding/json"
 
-	"github.com/pkg/errors"
-
 	"github.com/supergiant/supergiant/pkg/storage"
 )
 
-func TestKubeProfileServiceGet(t *testing.T) {
+func TestKubeServiceGet(t *testing.T) {
 	testCases := []struct {
-		expectedId string
-		data       []byte
-		err        error
+		expectedName string
+		data         []byte
+		err          error
 	}{
 		{
-			expectedId: "1234",
-			data:       []byte(`{"id":"1234", "nodes":[{},{}]}`),
-			err:        nil,
+			expectedName: "kube-name-1234",
+			data:         []byte(`{"name":"kube-name-1234"}`),
+			err:          nil,
 		},
 		{
 			data: nil,
@@ -34,35 +33,35 @@ func TestKubeProfileServiceGet(t *testing.T) {
 		m := new(storage.MockStorage)
 		m.On("Get", context.Background(), prefix, "fake_id").Return(testCase.data, testCase.err)
 
-		service := KubeProfileService{
+		service := KubeService{
 			prefix,
 			m,
 		}
 
-		profile, err := service.Get(context.Background(), "fake_id")
+		kube, err := service.Get(context.Background(), "fake_id")
 
 		if testCase.err != err {
 			t.Errorf("Wrong error expected %v actual %v", testCase.err, err)
 			return
 		}
 
-		if testCase.err == nil && profile.Id != testCase.expectedId {
-			t.Errorf("Wrong profile id expected %s actual %s", testCase.expectedId, profile.Id)
+		if testCase.err == nil && kube.Name != testCase.expectedName {
+			t.Errorf("Wrong kube name expected %s actual %s", testCase.expectedName, kube.Name)
 		}
 	}
 }
 
-func TestKubeProfileServiceCreate(t *testing.T) {
+func TestKubeServiceCreate(t *testing.T) {
 	testCases := []struct {
-		kube *KubeProfile
+		kube *Kube
 		err  error
 	}{
 		{
-			kube: &KubeProfile{},
+			kube: &Kube{},
 			err:  nil,
 		},
 		{
-			kube: &KubeProfile{},
+			kube: &Kube{},
 			err:  errors.New("test err"),
 		},
 	}
@@ -76,11 +75,11 @@ func TestKubeProfileServiceCreate(t *testing.T) {
 		m.On("Put",
 			context.Background(),
 			prefix,
-			testCase.kube.Id,
+			testCase.kube.Name,
 			kubeData).
 			Return(testCase.err)
 
-		service := KubeProfileService{
+		service := KubeService{
 			prefix,
 			m,
 		}
@@ -93,13 +92,13 @@ func TestKubeProfileServiceCreate(t *testing.T) {
 	}
 }
 
-func TestKubeProfileServiceGetAll(t *testing.T) {
+func TestKubeServiceGetAll(t *testing.T) {
 	testCases := []struct {
 		data [][]byte
 		err  error
 	}{
 		{
-			data: [][]byte{[]byte(`{"id":"1234", "nodes":[{},{}]}`), []byte(`{"id":"5678", "nodes":[{},{}]}`)},
+			data: [][]byte{[]byte(`{"name":"kube-name-1234"}`), []byte(`{"id":"56kube-name-5678"}`)},
 			err:  nil,
 		},
 		{
@@ -114,20 +113,20 @@ func TestKubeProfileServiceGetAll(t *testing.T) {
 		m := new(storage.MockStorage)
 		m.On("GetAll", context.Background(), prefix).Return(testCase.data, testCase.err)
 
-		service := KubeProfileService{
+		service := KubeService{
 			prefix,
 			m,
 		}
 
-		profiles, err := service.GetAll(context.Background())
+		kubes, err := service.GetAll(context.Background())
 
 		if testCase.err != err {
 			t.Errorf("Wrong error expected %v actual %v", testCase.err, err)
 			return
 		}
 
-		if testCase.err == nil && len(profiles) != 2 {
-			t.Errorf("Wrong len of profiles expected 2 actual %d", len(profiles))
+		if testCase.err == nil && len(kubes) != 2 {
+			t.Errorf("Wrong len of kubes expected 2 actual %d", len(kubes))
 		}
 	}
 }
