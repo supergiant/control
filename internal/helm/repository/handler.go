@@ -12,20 +12,20 @@ import (
 	"github.com/supergiant/supergiant/pkg/model/helm"
 )
 
-// Controller is a http controller for a helm repositories.
-type Controller struct {
+// Handler is a http controller for a helm repositories.
+type Handler struct {
 	svc *Service
 }
 
-// New constructs a Controller for helm repositories.
-func New(svc *Service) (*Controller, error) {
-	return &Controller{
+// New constructs a Handler for helm repositories.
+func NewHandler(svc *Service) *Handler {
+	return &Handler{
 		svc: svc,
-	}, nil
+	}
 }
 
 // Create stores a new helm repository.
-func (c *Controller) Create(w http.ResponseWriter, r *http.Request) {
+func (h *Handler) Create(w http.ResponseWriter, r *http.Request) {
 	repo := new(helm.Repository)
 	err := json.NewDecoder(r.Body).Decode(repo)
 	if err != nil {
@@ -39,24 +39,24 @@ func (c *Controller) Create(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if err = c.svc.Create(r.Context(), repo); err != nil {
-		logrus.Errorf("controller: create %s helm repo: %v", repo.Name, err)
+	if err = h.svc.Create(r.Context(), repo); err != nil {
+		logrus.Errorf("handler: create %s helm repo: %v", repo.Name, err)
 		http.Error(w, "failed to create", http.StatusInternalServerError)
 		return
 	}
 }
 
 // Get retrieves a helm repository.
-func (c *Controller) Get(w http.ResponseWriter, r *http.Request) {
+func (h *Handler) Get(w http.ResponseWriter, r *http.Request) {
 	repoName := mux.Vars(r)["repoName"]
 	if strings.TrimSpace(repoName) == "" {
 		http.Error(w, "name can't be empty", http.StatusBadRequest)
 		return
 	}
 
-	repo, err := c.svc.Get(r.Context(), repoName)
+	repo, err := h.svc.Get(r.Context(), repoName)
 	if err != nil {
-		logrus.Errorf("controller: get %s relm repository: %v", repo.Name, err)
+		logrus.Errorf("handler: get %s relm repository: %v", repo.Name, err)
 		http.Error(w, "", http.StatusInternalServerError)
 		return
 	}
@@ -69,10 +69,10 @@ func (c *Controller) Get(w http.ResponseWriter, r *http.Request) {
 }
 
 // ListAll retrieves all helm repositories.
-func (c *Controller) ListAll(w http.ResponseWriter, r *http.Request) {
-	repos, err := c.svc.GetAll(r.Context())
+func (h *Handler) ListAll(w http.ResponseWriter, r *http.Request) {
+	repos, err := h.svc.GetAll(r.Context())
 	if err != nil {
-		logrus.Errorf("controller: get all relm repositories: %v", err)
+		logrus.Errorf("handler: get all relm repositories: %v", err)
 		http.Error(w, "", http.StatusInternalServerError)
 		return
 	}
@@ -81,16 +81,16 @@ func (c *Controller) ListAll(w http.ResponseWriter, r *http.Request) {
 }
 
 // Delete removes a helm repository from the storage.
-func (c *Controller) Delete(w http.ResponseWriter, r *http.Request) {
+func (h *Handler) Delete(w http.ResponseWriter, r *http.Request) {
 	repoName := mux.Vars(r)["repoName"]
 	if strings.TrimSpace(repoName) == "" {
 		http.Error(w, "name can't be empty", http.StatusBadRequest)
 		return
 	}
 
-	err := c.svc.Delete(r.Context(), repoName)
+	err := h.svc.Delete(r.Context(), repoName)
 	if err != nil {
-		logrus.Errorf("controller: delete %s relm repository: %v", repoName, err)
+		logrus.Errorf("handler: delete %s relm repository: %v", repoName, err)
 		http.Error(w, "", http.StatusInternalServerError)
 		return
 	}

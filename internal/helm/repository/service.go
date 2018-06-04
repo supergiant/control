@@ -17,11 +17,11 @@ type Service struct {
 }
 
 // NewService constructs a Service for helm repository.
-func NewService(s storage.Interface) (*Service, error) {
+func NewService(s storage.Interface) *Service {
 	return &Service{
 		prefix:  "/helm/repositories/",
 		storage: s,
-	}, nil
+	}
 }
 
 // Create stores a helm repository in the provided storage.
