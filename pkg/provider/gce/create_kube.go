@@ -97,6 +97,16 @@ func (p *Provider) CreateKube(m *model.Kube, action *core.Action) error {
 		return err
 	}
 
+	m.KubeProviderString = `
+         --cloud-provider=gce \`
+
+	m.ProviderString = `
+          - --cloud-provider=gce`
+
+	if m.KubernetesVersion == "" {
+		m.KubernetesVersion = "1.5.7"
+	}
+
 	// save the token
 	m.GCEConfig.ETCDDiscoveryURL = url
 

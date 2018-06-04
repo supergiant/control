@@ -1,13 +1,13 @@
 package gce
 
 import (
+	"context"
 	"io/ioutil"
 	"net/http"
 	"strings"
 
-	"golang.org/x/oauth2"
 	"golang.org/x/oauth2/jwt"
-	compute "google.golang.org/api/compute/v1"
+	computev1 "google.golang.org/api/compute/v1"
 
 	"github.com/supergiant/supergiant/pkg/core"
 	"github.com/supergiant/supergiant/pkg/model"
@@ -16,7 +16,7 @@ import (
 // Provider Holds DO account info.
 type Provider struct {
 	Core   *core.Core
-	Client func(*model.Kube) (*compute.Service, error)
+	Client func(*model.Kube) (*computev1.Service, error)
 }
 
 // ValidateAccount Valitades Open Stack account info.
@@ -51,7 +51,7 @@ func (p *Provider) DeleteLoadBalancer(m *model.LoadBalancer, action *core.Action
 ////////////////////////////////////////////////////////////////////////////////
 
 // Client creates the client for the provider.
-func Client(kube *model.Kube) (*compute.Service, error) {
+func Client(kube *model.Kube) (*computev1.Service, error) {
 
 	clientScopes := []string{
 		"https://www.googleapis.com/auth/compute",
@@ -67,9 +67,9 @@ func Client(kube *model.Kube) (*compute.Service, error) {
 		TokenURL:   kube.CloudAccount.Credentials["token_uri"],
 	}
 
-	client := conf.Client(oauth2.NoContext)
+	client := conf.Client(context.Background())
 
-	computeService, err := compute.New(client)
+	computeService, err := computev1.New(client)
 	if err != nil {
 		return nil, err
 	}

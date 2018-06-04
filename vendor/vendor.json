@@ -742,10 +742,10 @@
 			"revisionTime": "2018-04-12T12:09:13Z"
 		},
 		{
-			"checksumSHA1": "80hVbUEe+P1wlyHNv3p8Al3reEY=",
+			"checksumSHA1": "yl0OCJbGYu4qJx57EcIjcUm2Z4U=",
 			"path": "github.com/stretchr/objx",
-			"revision": "6667b53588d15f3c8c519f0d1802d282e163381f",
-			"revisionTime": "2018-05-25T15:34:50Z"
+			"revision": "d1e4838ff99bdc9b78118344a62885513e090da5",
+			"revisionTime": "2018-05-28T12:27:24Z"
 		},
 		{
 			"checksumSHA1": "6LwXZI7kXm1C0h4Ui0Y52p9uQhk=",
@@ -754,16 +754,10 @@
 			"revisionTime": "2018-03-14T08:05:35Z"
 		},
 		{
-			"checksumSHA1": "GxKV+q3Z/H3VsIiZ/dG3u88rnbc=",
+			"checksumSHA1": "ktEYN4KC8f/rdhtfVslmtcKaX8E=",
 			"path": "github.com/stretchr/testify/mock",
-			"revision": "12b6f73e6084dad08a7c6e575284b177ecafbc71",
-			"revisionTime": "2018-01-31T22:23:50Z"
-		},
-		{
-			"checksumSHA1": "rgS26tbD9zdX0xvmSH44lW3FMsA=",
-			"path": "github.com/stretchr/testify/require",
-			"revision": "12b6f73e6084dad08a7c6e575284b177ecafbc71",
-			"revisionTime": "2018-01-31T22:23:50Z"
+			"revision": "be8372ae8ec5c6daaed3cc28ebf73c54b737c240",
+			"revisionTime": "2018-02-02T15:35:43Z"
 		},
 		{
 			"checksumSHA1": "bQpnAdQ32BXkd9PrraTJOjFIZZI=",
@@ -1201,12 +1195,6 @@
 			"path": "google.golang.org/grpc/transport",
 			"revision": "1fa3750c9a209f5efbdc2722d40f2657885af5e5",
 			"revisionTime": "2018-05-24T17:21:01Z"
-		},
-		{
-			"checksumSHA1": "se78LN6z4CUdSr9LxVs7XMxU/ak=",
-			"path": "gopkg.in/asaskevich/govalidator.v8",
-			"revision": "521b25f4b05fd26bec69d9dedeb8f9c9a83939a8",
-			"revisionTime": "2017-11-11T15:10:18Z"
 		},
 		{
 			"checksumSHA1": "COfXAfInbcFT/YRsvLUQnNKHzF0=",
