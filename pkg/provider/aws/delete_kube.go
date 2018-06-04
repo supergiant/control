@@ -236,6 +236,16 @@ func (p *Provider) DeleteKube(m *model.Kube, action *core.Action) error {
 						},
 					},
 				},
+				{
+					FromPort:   aws.Int64(40734),
+					ToPort:     aws.Int64(40734),
+					IpProtocol: aws.String("tcp"),
+					UserIdGroupPairs: []*ec2.UserIdGroupPair{
+						{
+							GroupId: aws.String(m.AWSConfig.MasterSecurityGroupID),
+						},
+					},
+				},
 			},
 		}
 		if _, err := ec2S.RevokeSecurityGroupIngress(input); isErrAndNotAWSNotFound(err) {
@@ -246,33 +256,7 @@ func (p *Provider) DeleteKube(m *model.Kube, action *core.Action) error {
 
 	// Revoke only Security Group OUTbound rules for Nodes that are dependent on other Security Groups (so that the Security Group can be deleted):
 
-	procedure.AddStep("revoking dependent Node Security Group egress rules", func() error {
-		// Check if Security Group has already been deleted:
-		if m.AWSConfig.NodeSecurityGroupID == "" {
-			return nil
-		}
-
-		// Choose rules to revoke:
-		input := &ec2.RevokeSecurityGroupEgressInput{
-			GroupId: aws.String(m.AWSConfig.NodeSecurityGroupID),
-			IpPermissions: []*ec2.IpPermission{
-				{
-					FromPort:   aws.Int64(10250),
-					ToPort:     aws.Int64(10255),
-					IpProtocol: aws.String("tcp"),
-					UserIdGroupPairs: []*ec2.UserIdGroupPair{
-						{
-							GroupId: aws.String(m.AWSConfig.MasterSecurityGroupID),
-						},
-					},
-				},
-			},
-		}
-		if _, err := ec2S.RevokeSecurityGroupEgress(input); isErrAndNotAWSNotFound(err) {
-			return err
-		}
-		return nil
-	})
+	// None currently exist.
 
 	// Revoke only Security Group INbound rules for Masters that are dependent on other Security Groups (so that the Security Group can be deleted):
 
@@ -280,33 +264,7 @@ func (p *Provider) DeleteKube(m *model.Kube, action *core.Action) error {
 
 	// Revoke only Security Group OUTbound rules for Masters that are dependent on other Security Groups (so that the Security Group can be deleted):
 
-	procedure.AddStep("revoking dependent Master Security Group egress rules", func() error {
-		// Check if Security Group has already been deleted:
-		if m.AWSConfig.MasterSecurityGroupID == "" {
-			return nil
-		}
-
-		// Choose rules to revoke:
-		input := &ec2.RevokeSecurityGroupEgressInput{
-			GroupId: aws.String(m.AWSConfig.MasterSecurityGroupID),
-			IpPermissions: []*ec2.IpPermission{
-				{
-					FromPort:   aws.Int64(10250),
-					ToPort:     aws.Int64(10255),
-					IpProtocol: aws.String("tcp"),
-					UserIdGroupPairs: []*ec2.UserIdGroupPair{
-						{
-							GroupId: aws.String(m.AWSConfig.NodeSecurityGroupID),
-						},
-					},
-				},
-			},
-		}
-		if _, err := ec2S.RevokeSecurityGroupEgress(input); isErrAndNotAWSNotFound(err) {
-			return err
-		}
-		return nil
-	})
+	// None currently exist.
 
 	// Delete the Security Groups:
 
