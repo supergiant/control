@@ -1,33 +1,20 @@
-<div class="app-apps-container">
-  <section class="app-apps-index">
-    <div class="app-context-header-panel">
-      <h2>
+<div class="app-context-header-panel">
+  <h2>
         <button type="button" class="back-button" (click)="goBack()"></button>
         <i class="fa fa-puzzle-piece"></i>
         Deploy New App
       </h2>
 
-      <div class="context-secondary-panel">
-        <div class="context-search-layout">
-          <input (keyup)="keyUpFilter($event.target.value)" name="search" placeholder="Search" type="search">
-        </div>
-      </div>
+  <div class="context-secondary-panel">
+    <div class="context-search-layout">
+      <input (keyup)="keyUpFilter($event.target.value)" name="search" placeholder="Search" type="search">
     </div>
-
-    <ngx-datatable class="material expandable"
-      [rows]="rows"
-      [columnMode]="'force'"
-      [columns]="columns"
-      [headerHeight]="50"
-      [footerHeight]="50"
-      [rowHeight]="'auto'"
-      [limit]="20"
-      (activate)='onActivate($event)'
-      [selectAllRowsOnPage]="true">
-      <ngx-datatable-column name="Name" prop="name"></ngx-datatable-column>
-      <ngx-datatable-column name="Version" prop="version"></ngx-datatable-column>
-      <ngx-datatable-column name="Repo" prop="repo_name"></ngx-datatable-column>
-      <ngx-datatable-column name="Description" prop="description"></ngx-datatable-column>
-  </ngx-datatable>
-  </section>
+  </div>
 </div>
+
+<ngx-datatable class="material expandable" [rows]="rows" [columnMode]="'force'" [columns]="columns" [headerHeight]="50" [footerHeight]="50" [rowHeight]="'auto'" [limit]="20" (activate)='onActivate($event)' [selectAllRowsOnPage]="true" [selected]="selected">
+  <ngx-datatable-column name="Name" prop="name"></ngx-datatable-column>
+  <ngx-datatable-column name="Version" prop="version"></ngx-datatable-column>
+  <ngx-datatable-column name="Repo" prop="repo_name"></ngx-datatable-column>
+  <ngx-datatable-column name="Description" prop="description"></ngx-datatable-column>
+</ngx-datatable>

@@ -4,11 +4,14 @@ import (
 	"strings"
 	"time"
 
+	"context"
+
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/service/ec2"
 	"github.com/aws/aws-sdk-go/service/efs"
 	"github.com/aws/aws-sdk-go/service/elb"
 	"github.com/aws/aws-sdk-go/service/s3"
+
 	"github.com/supergiant/supergiant/pkg/core"
 	"github.com/supergiant/supergiant/pkg/model"
 	"github.com/supergiant/supergiant/pkg/util"
@@ -48,7 +51,12 @@ func (p *Provider) DeleteKube(m *model.Kube, action *core.Action) error {
 					aws.String(master),
 				},
 			}
-			waitErr := util.WaitFor("Kubernetes master termination", 5*time.Minute, 3*time.Second, func() (bool, error) { // TODO --------- use server() method
+
+			// TODO(stgleb): Context should be inherited from higher level context
+			ctx, cancel := context.WithTimeout(context.Background(), 5*time.Minute)
+			defer cancel()
+
+			waitErr := util.WaitFor(ctx, "Kubernetes master termination", 3*time.Second, func() (bool, error) { // TODO --------- use server() method
 				resp, err := ec2S.DescribeInstances(descinput)
 				if err != nil && isErrAndNotAWSNotFound(err) {
 					return false, err
@@ -125,7 +133,11 @@ func (p *Provider) DeleteKube(m *model.Kube, action *core.Action) error {
 
 		// NOTE we do this (maybe we should just describe, not spam detach) because
 		// we can't wait directly on minions to terminate (we can, but I'm lazy rn)
-		waitErr := util.WaitFor("Internet Gateway to detach", 5*time.Minute, 5*time.Second, func() (bool, error) {
+		// TODO(stgleb): Context should be inherited from higher level context
+		ctx, cancel := context.WithTimeout(context.Background(), 5*time.Minute)
+		defer cancel()
+
+		waitErr := util.WaitFor(ctx, "Internet Gateway to detach", 5*time.Second, func() (bool, error) {
 			if _, err := ec2S.DetachInternetGateway(diginput); err != nil && !strings.Contains(err.Error(), "not attached") {
 				if strings.Contains(err.Error(), "does not exist") {
 					// it does not exist,
@@ -180,7 +192,11 @@ func (p *Provider) DeleteKube(m *model.Kube, action *core.Action) error {
 					SubnetId: aws.String(subnet["subnet_id"]),
 				}
 
-				waitErr := util.WaitFor("Public Subnet to delete", 2*time.Minute, 5*time.Second, func() (bool, error) {
+				// TODO(stgleb): Context should be inherited from higher level context
+				ctx, cancel := context.WithTimeout(context.Background(), 2*time.Minute)
+				defer cancel()
+
+				waitErr := util.WaitFor(ctx, "Public Subnet to delete", 5*time.Second, func() (bool, error) {
 					if _, err := ec2S.DeleteSubnet(input); isErrAndNotAWSNotFound(err) {
 						return false, nil
 					}

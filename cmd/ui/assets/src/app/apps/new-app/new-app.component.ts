@@ -42,7 +42,7 @@ export class NewAppComponent implements OnInit, OnDestroy {
       (chart) => {
         if (chart.default_config) {
           // this is our model: the vars file provided by the chart.
-          this.appsModel.app.model.config = JSON.parse(JSON.stringify(chart.default_config).replace(/\[\]/g, '["Enter Info"]', ));
+          this.appsModel.app.model.config = JSON.parse(JSON.stringify(chart.default_config).replace(/\[\]/g, '["Enter-Info"]', ));
           // this.appsModel.app.model.config = chart.default_config;
 
         }

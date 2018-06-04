@@ -6,8 +6,9 @@ import (
 	"regexp"
 	"testing"
 
-	"github.com/Sirupsen/logrus"
+	"github.com/sirupsen/logrus"
 	. "github.com/smartystreets/goconvey/convey"
+
 	"github.com/supergiant/supergiant/pkg/core"
 	"github.com/supergiant/supergiant/pkg/kubernetes"
 	"github.com/supergiant/supergiant/pkg/model"
@@ -69,7 +70,7 @@ func TestCapacityServicePerform(t *testing.T) {
 					},
 				},
 				providerNodeSizes: map[string][]*core.NodeSize{
-					"test-provider": []*core.NodeSize{
+					"test-provider": {
 						{
 							Name:     "1gb-test-size",
 							RAMGIB:   1,
@@ -152,19 +153,19 @@ func TestCapacityServicePerform(t *testing.T) {
 					},
 				},
 				mockPodEvents: map[string][]*kubernetes.Event{
-					"test-pod": []*kubernetes.Event{
+					"test-pod": {
 						{
 							Message: "failed to fit in any node",
 						},
 					},
-					"test-pod-2": []*kubernetes.Event{
+					"test-pod-2": {
 						{
 							Message: "failed to fit in any node",
 						},
 					},
 				},
 				mockNodeExistingPods: map[string][]*kubernetes.Pod{
-					"existing-node": []*kubernetes.Pod{
+					"existing-node": {
 						{
 							Metadata: kubernetes.Metadata{
 								Name: "test-pod",
@@ -212,7 +213,7 @@ func TestCapacityServicePerform(t *testing.T) {
 					},
 				},
 				providerNodeSizes: map[string][]*core.NodeSize{
-					"test-provider": []*core.NodeSize{
+					"test-provider": {
 						{
 							Name:     "1gb-test-size",
 							RAMGIB:   1,
@@ -239,7 +240,7 @@ func TestCapacityServicePerform(t *testing.T) {
 					},
 				},
 				providerNodeSizes: map[string][]*core.NodeSize{
-					"test-provider": []*core.NodeSize{
+					"test-provider": {
 						{
 							Name:     "1gb-test-size",
 							RAMGIB:   1,
@@ -256,7 +257,7 @@ func TestCapacityServicePerform(t *testing.T) {
 					},
 				},
 				mockPodEvents: map[string][]*kubernetes.Event{
-					"test-pod": []*kubernetes.Event{
+					"test-pod": {
 						{
 							Message: "failed to fit in any node",
 						},
@@ -281,7 +282,7 @@ func TestCapacityServicePerform(t *testing.T) {
 					},
 				},
 				providerNodeSizes: map[string][]*core.NodeSize{
-					"test-provider": []*core.NodeSize{
+					"test-provider": {
 						{
 							Name:     "1gb-test-size",
 							RAMGIB:   1,
@@ -298,7 +299,7 @@ func TestCapacityServicePerform(t *testing.T) {
 					},
 				},
 				mockPodEvents: map[string][]*kubernetes.Event{
-					"test-pod": []*kubernetes.Event{
+					"test-pod": {
 						{
 							Message: "failed to fit in any node",
 						},
@@ -329,7 +330,7 @@ func TestCapacityServicePerform(t *testing.T) {
 					},
 				},
 				providerNodeSizes: map[string][]*core.NodeSize{
-					"test-provider": []*core.NodeSize{
+					"test-provider": {
 						{
 							Name:     "1gb-test-size",
 							RAMGIB:   1,
@@ -338,7 +339,7 @@ func TestCapacityServicePerform(t *testing.T) {
 					},
 				},
 				mockNodeExistingPods: map[string][]*kubernetes.Pod{
-					"existing-node": []*kubernetes.Pod{
+					"existing-node": {
 						{
 							Metadata: kubernetes.Metadata{
 								Name: "test-pod",

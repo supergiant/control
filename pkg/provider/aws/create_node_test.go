@@ -4,12 +4,13 @@ import (
 	"testing"
 	"time"
 
-	"github.com/Sirupsen/logrus"
 	awssdk "github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/service/ec2"
 	"github.com/aws/aws-sdk-go/service/ec2/ec2iface"
 	"github.com/aws/aws-sdk-go/service/elb"
 	"github.com/aws/aws-sdk-go/service/elb/elbiface"
+	"github.com/sirupsen/logrus"
+
 	"github.com/supergiant/supergiant/pkg/core"
 	"github.com/supergiant/supergiant/pkg/model"
 	"github.com/supergiant/supergiant/pkg/provider/aws"
@@ -38,7 +39,7 @@ func TestAWSProviderCreateNode(t *testing.T) {
 						NodeSizes: []string{"m4.large"},
 						AWSConfig: &model.AWSKubeConfig{
 							PublicSubnetIPRange: []map[string]string{
-								map[string]string{
+								{
 									"subnet_id": "test",
 								},
 							},
@@ -75,7 +76,7 @@ func TestAWSProviderCreateNode(t *testing.T) {
 						DescribeImagesFn: func(input *ec2.DescribeImagesInput) (*ec2.DescribeImagesOutput, error) {
 							output := &ec2.DescribeImagesOutput{
 								Images: []*ec2.Image{
-									&ec2.Image{
+									{
 										ImageId:      awssdk.String("ami-1234"),
 										CreationDate: awssdk.String("August 24, 2016 at 4:36:22 PM UTC-5"),
 									},

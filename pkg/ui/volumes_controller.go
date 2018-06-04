@@ -35,7 +35,7 @@ func ListVolumes(sg *client.Client, w http.ResponseWriter, r *http.Request) erro
 			"Edit": "/ui/volumes/{{ ID }}/edit",
 		},
 		"batchActionPaths": map[string]map[string]string{
-			"Delete": map[string]string{
+			"Delete": {
 				"method":       "DELETE",
 				"relativePath": "",
 			},

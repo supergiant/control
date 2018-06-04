@@ -7,6 +7,9 @@ import (
 	"time"
 
 	"github.com/gorilla/handlers"
+
+	"context"
+
 	"github.com/supergiant/supergiant/pkg/api"
 	"github.com/supergiant/supergiant/pkg/core"
 	"github.com/supergiant/supergiant/pkg/ui"
@@ -61,26 +64,29 @@ type Server struct {
 
 	primaryListener net.Listener
 	// secondaryListener net.Listener
+	server *http.Server
 }
 
 func (s *Server) Start() error {
-	// if s.secondaryListener != nil {
-	// 	// NOTE we just kinda lose the error here, probably should do something
-	// 	go http.Serve(s.secondaryListener, s.secondaryHandler)
-	// }
 	// CORS options added here
 	headersOk := handlers.AllowedHeaders([]string{"Access-Control-Request-Headers", "Authorization"})
 	methodsOk := handlers.AllowedMethods([]string{"GET", "PUT", "UPDATE", "POST", "DELETE"})
-	return http.Serve(s.primaryListener, handlers.CORS(headersOk, methodsOk)(s.primaryHandler))
+
+	s.server = &http.Server{
+		Handler:      handlers.CORS(headersOk, methodsOk)(s.primaryHandler),
+		ReadTimeout:  time.Second * 10,
+		WriteTimeout: time.Second * 15,
+		IdleTimeout:  time.Second * 120,
+	}
+
+	return s.server.Serve(s.primaryListener)
 }
 
 func (s *Server) Stop() error {
-	// if s.secondaryListener != nil {
-	// 	if err := s.secondaryListener.Close(); err != nil {
-	// 		return err
-	// 	}
-	// }
-	return s.primaryListener.Close()
+	ctx, cancel := context.WithTimeout(context.Background(), time.Second*30)
+	defer cancel()
+
+	return s.server.Shutdown(ctx)
 }
 
 //------------------------------------------------------------------------------

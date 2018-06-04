@@ -10,7 +10,7 @@ export class ClusterAWSModel {
       'master_node_size': 'm4.large',
       'ssh_pub_key': '',
       'kube_master_count': 1,
-      'kubernetes_version': '1.5.7',
+      'kubernetes_version': '1.8.7',
       'node_sizes': [
         'm4.large',
         'm4.xlarge',
@@ -25,6 +25,16 @@ export class ClusterAWSModel {
           'type': 'string',
           'pattern': '^[a-z]([-a-z0-9]*[a-z0-9])?$',
           'maxLength': 12
+        },
+        'kubernetes_version': {
+          'default': '1.5.7',
+          'description': 'The Version of Kubernetes to be deployed.',
+          'type': 'string',
+          'enum': ['1.5.7', '1.6.7', '1.7.7', '1.8.7'] // TODO: <-- Should be dynamically populated.
+        },
+        'cloud_account_name': {
+          'description': 'The Supergiant cloud account you created for use with AWS.',
+          'type': 'string'
         },
         'aws_config': {
           'properties': {
@@ -41,9 +51,10 @@ export class ClusterAWSModel {
           },
           'type': 'object'
         },
-        'cloud_account_name': {
-          'description': 'The Supergiant cloud account you created for use with AWS.',
-          'type': 'string'
+        'ssh_pub_key': {
+          'description': 'The public key that will be used to SSH into the kube.',
+          'type': 'string',
+          'widget': 'textarea',
         },
         'master_node_size': {
           'default': 'm4.large',
@@ -54,17 +65,6 @@ export class ClusterAWSModel {
           'description': 'The number of masters desired--for High Availability.',
           'type': 'number',
           'widget': 'number',
-        },
-        'kubernetes_version': {
-          'default': '1.5.7',
-          'description': 'The Version of Kubernetes to be deployed.',
-          'type': 'string',
-          'enum': ['1.5.7', '1.6.7', '1.7.7', '1.8.7'] // TODO: <-- Should be dynamically populated.
-        },
-        'ssh_pub_key': {
-          'description': 'The public key that will be used to SSH into the kube.',
-          'type': 'string',
-          'widget': 'textarea',
         },
         'node_sizes': {
           'description': 'The sizes you want to be available to Supergiant when scaling.',

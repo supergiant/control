@@ -8,6 +8,7 @@ import (
 
 	"github.com/go-validator/validator"
 	"github.com/jinzhu/gorm"
+
 	"github.com/supergiant/supergiant/pkg/model"
 )
 

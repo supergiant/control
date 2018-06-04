@@ -1,32 +1,39 @@
 <div class="subcontext">
-
   <div class="subcontext-actions">
-    <div *ngIf="selected.length === 0" class="form-group row">
-      <div class="col-3">
-        <label>Username</label>
-        <input [(ngModel)]="username" type="text" class="form-control" aria-describedby="Repo URL" placeholder="Username">
-      </div>
-      <div class="col-3">
-        <label>Password</label>
-        <input [(ngModel)]="password" type="password" class="form-control" aria-describedby="Repo URL" placeholder="Password">
-      </div>
-      <div class="col-3">
-        <label>Role</label>
-        <select [(ngModel)]="role" class="form-control">
-          <option>user</option>
-          <option>admin</option>
-        </select>
-      </div>
-      <div class="col-3">
-        <label>&nbsp;</label>
-        <button type="submit" class="btn btn-primary btn-block" (click)="save()">Add New User</button>
-      </div>
-    </div>
+    <div class="form-group row">
+      <mat-form-field class="col-3">
+        <input matInput [(ngModel)]="username" type="text" placeholder="Username">
+      </mat-form-field>
+      <mat-form-field class="col-3">
+        <input matInput [(ngModel)]="password" placeholder="Password" [type]="hide ? 'text' : 'password'">
+        <mat-icon matSuffix (click)="hide = !hide">{{hide ? '&#8856;' : '&#9728;'}}</mat-icon>
+      </mat-form-field>
+      <mat-form-field class="col-1">
+        <mat-select matInput [(ngModel)]="role" placeholder="Role">
+          <mat-option value="user">User</mat-option>
+          <mat-option value="admin">Admin</mat-option>
+        </mat-select>
+      </mat-form-field>
 
-    <div *ngIf="selected.length > 0">
-      <button type="button" class="btn btn-danger" (click)="delete()">Delete Selected User</button>
+      <div class="col-5">
+        <button mat-button color="primary" type="submit" (click)="save()">Add New User</button>
+        <button mat-button color="warn" [disabled]="selected.length === 0" (click)="delete()">Delete Selected User</button>
+      </div>
     </div>
   </div>
 
-  <ngx-datatable class="material" [rows]="rows" [columnMode]="'force'" [columns]="columns" [headerHeight]="50" [footerHeight]="50" [rowHeight]="'auto'" [limit]="5" [selected]="selected" [selectionType]="'multiClick'" (select)='onSelect($event)'></ngx-datatable>
+  <!-- Don't forget the context menu! -->
+  <ngx-datatable class="material expandable" [rows]="rows" [columnMode]="'force'" [columns]="columns" [headerHeight]="50" [footerHeight]="50" [rowHeight]="'auto'" [limit]="20" [selected]="selected" [selectionType]="'checkbox'" [selectAllRowsOnPage]="false" [displayCheck]="displayCheck" (select)='onSelect($event)' (tableContextmenu)="onTableContextMenu($event)">
+    <ngx-datatable-column name="checkbox" [width]="30" [sortable]="false" [canAutoResize]="false" [draggable]="false" [resizeable]="false" [headerCheckboxable]="true" [checkboxable]="true">
+    </ngx-datatable-column>
+    <ngx-datatable-column name="Username" prop="username"></ngx-datatable-column>
+    <ngx-datatable-column name="Role" prop="role">
+    </ngx-datatable-column>
+  </ngx-datatable>
+
+  <context-menu #basicMenu>
+    <ng-template contextMenuItem let-item (execute)="contextDelete($event.item)">
+      Delete <i>&quot;{{item?.username}}&quot;</i>
+    </ng-template>
+  </context-menu>
 </div>

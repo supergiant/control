@@ -1,5 +1,9 @@
 package model
 
+const (
+	DefaultTillerNamespace = "kube-system"
+)
+
 type KubeList struct {
 	BaseList
 	Items []*Kube `json:"items"`
@@ -28,14 +32,18 @@ type Kube struct {
 
 	Name string `json:"name" validate:"nonzero,max=12,regexp=^[a-z]([-a-z0-9]*[a-z0-9])?$" gorm:"not null;unique_index" sg:"immutable"`
 	// Kubernetes
-	KubernetesVersion string `json:"kubernetes_version" validate:"nonzero" sg:"default=1.5.7"`
+	KubernetesVersion string `json:"kubernetes_version" validate:"nonzero" sg:"default=1.8.7"`
 	SSHPubKey         string `json:"ssh_pub_key"`
 	ETCDDiscoveryURL  string `json:"etcd_discovery_url" sg:"readonly"`
+
+	// Tiller
+	TillerNamespace string `json:"tiller_namespace"`
 
 	// Kubernetes Master
 	MasterNodeSize     string   `json:"master_node_size" validate:"nonzero" sg:"immutable"`
 	MasterID           string   `json:"master_id" sg:"readonly"`
 	MasterPrivateIP    string   `json:"master_private_ip" sg:"readonly"`
+	KubeAPIPort        string   `json:"kube_api_port" sg:"readonly"`
 	KubeMasterCount    int      `json:"kube_master_count"`
 	MasterNodes        []string `json:"master_nodes" gorm:"-" sg:"store_as_json_in=MasterNodesJSON"`
 	MasterNodesJSON    []byte   `json:"-"`

@@ -56,7 +56,7 @@ func ListHelmRepos(sg *client.Client, w http.ResponseWriter, r *http.Request) er
 		"fields":      fields,
 		"showNewLink": true,
 		"batchActionPaths": map[string]map[string]string{
-			"Delete": map[string]string{
+			"Delete": {
 				"method":       "DELETE",
 				"relativePath": "",
 			},

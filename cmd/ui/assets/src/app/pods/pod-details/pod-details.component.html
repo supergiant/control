@@ -1,9 +1,12 @@
 <div id="control-bar">
   <div class="btn-group"></div>
-  <button class="btn btn-sm btn-info" (click)="goBack()">
-    <i class="fa fa-chevron-left"></i>
-    Back
-  </button>
+  <section class="app-context-header-panel">
+    <button type="button" class="back-button" (click)="goBack()"></button>
+
+    <h1>
+      <i class="fa fa-server"></i> {{ pod?.name }}
+    </h1>
+  </section>
 </div>
 <ngb-tabset type="pills" justify="center">
   <ngb-tab title="Info">

@@ -8,6 +8,8 @@ import (
 	"text/template"
 	"time"
 
+	"context"
+
 	"github.com/gophercloud/gophercloud"
 	"github.com/gophercloud/gophercloud/openstack"
 	floatingip "github.com/gophercloud/gophercloud/openstack/compute/v2/extensions/floatingips"
@@ -17,6 +19,7 @@ import (
 	"github.com/gophercloud/gophercloud/openstack/networking/v2/extensions/layer3/routers"
 	"github.com/gophercloud/gophercloud/openstack/networking/v2/networks"
 	"github.com/gophercloud/gophercloud/openstack/networking/v2/subnets"
+
 	"github.com/supergiant/supergiant/bindata"
 	"github.com/supergiant/supergiant/pkg/core"
 	"github.com/supergiant/supergiant/pkg/model"
@@ -220,7 +223,7 @@ func (p *Provider) CreateKube(m *model.Kube, action *core.Action) error {
 				ImageName:     m.OpenStackConfig.ImageName,
 				UserData:      masterUserdata.Bytes(),
 				Networks: []servers.Network{
-					servers.Network{UUID: m.OpenStackConfig.NetworkID},
+					{UUID: m.OpenStackConfig.NetworkID},
 				},
 				Metadata: map[string]string{"kubernetes-cluster": m.Name, "Role": "master"},
 			}
@@ -238,7 +241,12 @@ func (p *Provider) CreateKube(m *model.Kube, action *core.Action) error {
 			pNetwork := m.Name + "-network"
 			duration := 2 * time.Minute
 			interval := 10 * time.Second
-			waitErr := util.WaitFor("Kubernetes Master IP asssign...", duration, interval, func() (bool, error) {
+
+			// TODO(stgleb): Context should be inherited from higher level context
+			ctx, cancel := context.WithTimeout(context.Background(), duration)
+			defer cancel()
+
+			waitErr := util.WaitFor(ctx, "Kubernetes Master IP asssign...", interval, func() (bool, error) {
 				server, _ := servers.Get(computeClient, masterServer.ID).Extract()
 				if server.Addresses[pNetwork] == nil {
 					return false, nil
@@ -267,7 +275,12 @@ func (p *Provider) CreateKube(m *model.Kube, action *core.Action) error {
 			var floatIP *floatingips.FloatingIP
 			duration := 5 * time.Minute
 			interval := 10 * time.Second
-			waitErr := util.WaitFor("OpenStack floating IP creation", duration, interval, func() (bool, error) {
+
+			// TODO(stgleb): Context should be inherited from higher level context
+			ctx, cancel := context.WithTimeout(context.Background(), duration)
+			defer cancel()
+
+			waitErr := util.WaitFor(ctx, "OpenStack floating IP creation", interval, func() (bool, error) {
 				opts := floatingips.CreateOpts{
 					FloatingNetworkID: m.OpenStackConfig.PublicGatwayID,
 				}

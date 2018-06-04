@@ -7,11 +7,12 @@ import (
 	"text/template"
 	"time"
 
+	compute "google.golang.org/api/compute/v1"
+
 	"github.com/supergiant/supergiant/bindata"
 	"github.com/supergiant/supergiant/pkg/core"
 	"github.com/supergiant/supergiant/pkg/model"
 	"github.com/supergiant/supergiant/pkg/util"
-	compute "google.golang.org/api/compute/v1"
 )
 
 // CreateKube creates a new GCE kubernetes cluster.
@@ -96,6 +97,16 @@ func (p *Provider) CreateKube(m *model.Kube, action *core.Action) error {
 		return err
 	}
 
+	m.KubeProviderString = `
+         --cloud-provider=gce \`
+
+	m.ProviderString = `
+          - --cloud-provider=gce`
+
+	if m.KubernetesVersion == "" {
+		m.KubernetesVersion = "1.5.7"
+	}
+
 	// save the token
 	m.GCEConfig.ETCDDiscoveryURL = url
 
@@ -140,15 +151,15 @@ func (p *Provider) CreateKube(m *model.Kube, action *core.Action) error {
 				},
 				Metadata: &compute.Metadata{
 					Items: []*compute.MetadataItems{
-						&compute.MetadataItems{
+						{
 							Key:   "KubernetesCluster",
 							Value: &m.Name,
 						},
-						&compute.MetadataItems{
+						{
 							Key:   "Role",
 							Value: &role,
 						},
-						&compute.MetadataItems{
+						{
 							Key:   "user-data",
 							Value: &userData,
 						},
@@ -166,9 +177,9 @@ func (p *Provider) CreateKube(m *model.Kube, action *core.Action) error {
 					},
 				},
 				NetworkInterfaces: []*compute.NetworkInterface{
-					&compute.NetworkInterface{
+					{
 						AccessConfigs: []*compute.AccessConfig{
-							&compute.AccessConfig{
+							{
 								Type: "ONE_TO_ONE_NAT",
 								Name: "External NAT",
 							},
@@ -220,7 +231,7 @@ func (p *Provider) CreateKube(m *model.Kube, action *core.Action) error {
 				m.Name+"-kubernetes-masters",
 				&compute.InstanceGroupsAddInstancesRequest{
 					Instances: []*compute.InstanceReference{
-						&compute.InstanceReference{
+						{
 							Instance: masterSelfLink,
 						},
 					},

@@ -43,20 +43,41 @@ export class AppsListComponent implements OnInit, OnDestroy {
   // }
 
   getApps() {
+
     this.subscriptions.add(timer(0, 10000)
       .switchMap(() => this.supergiant.HelmReleases.get()).subscribe(
         (deployments) => {
+          if (this.kube) {
+            this.rows = deployments.items.filter(
+              deployment =>
+                deployment.kube_name === this.kube.name
+            );
+          } else {
+            this.rows = deployments.items;
+          }
+
+          this.rows.map(deployment => ({
+            id: deployment.id,
+            name: deployment.name,
+            kube_name: deployment.kube_name,
+            revision: deployment.revision,
+            chart_name: deployment.chart_name,
+            chart_version: deployment.chart_version,
+            updated_value: deployment.updated_value,
+            status_value: deployment.status_value
+          })
+          );
+
           const selected: Array<any> = [];
-          this.selected.forEach((app, index) => {
-            for (const row of deployments.items) {
-              if (row.id === app.id) {
+          this.selected.forEach((kube, index) => {
+            for (const row of this.rows) {
+              if (row.id === kube.id) {
                 selected.push(row);
                 break;
               }
             }
           });
-          this.unfilteredRows = deployments.items;
-          this.rows = this.filterRows(deployments.items, this.filterText);
+          this.selected = selected;
         },
         () => { }));
   }

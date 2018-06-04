@@ -2,22 +2,24 @@ package core
 
 import (
 	"encoding/json"
-	"errors"
 	"fmt"
 	"os"
 	"time"
 
-	"github.com/Sirupsen/logrus"
-	"github.com/imdario/mergo"
-	"github.com/supergiant/supergiant/pkg/client"
-	"github.com/supergiant/supergiant/pkg/kubernetes"
-	"github.com/supergiant/supergiant/pkg/model"
-	"github.com/supergiant/supergiant/pkg/util"
-
 	"github.com/creasty/defaults"
+	"github.com/imdario/mergo"
 	"github.com/jinzhu/gorm"
 	_ "github.com/jinzhu/gorm/dialects/postgres"
 	_ "github.com/jinzhu/gorm/dialects/sqlite"
+	"github.com/pkg/errors"
+	"github.com/sirupsen/logrus"
+	kclient "k8s.io/client-go/kubernetes"
+
+	"github.com/supergiant/supergiant/pkg/client"
+	"github.com/supergiant/supergiant/pkg/helm"
+	"github.com/supergiant/supergiant/pkg/kubernetes"
+	"github.com/supergiant/supergiant/pkg/model"
+	"github.com/supergiant/supergiant/pkg/util"
 )
 
 type NodeSize struct {
@@ -72,7 +74,9 @@ type Core struct {
 	// A little different from the above
 	K8SProvider Provider
 
-	K8S func(*model.Kube) kubernetes.ClientInterface
+	K8S        func(*model.Kube) kubernetes.ClientInterface
+	KubeClient func(*model.Kube) (kclient.Interface, error)
+	HelmClient func(*model.Kube) (helm.Interface, error)
 
 	DefaultProvisioner Provisioner
 
@@ -146,14 +150,17 @@ func (c *Core) InitializeForeground() error {
 		}
 	}
 
-	// Logging
+	// Log to stdout by default instead of stderr
 	c.Log = logrus.New()
+	c.Log.Out = os.Stdout
+
 	if c.LogLevel != "" {
 		levelInt, err := logrus.ParseLevel(c.LogLevel)
 		if err != nil {
 			return err
 		}
-		c.Log.Level = levelInt
+		c.Log.SetLevel(levelInt)
+		logrus.SetLevel(levelInt)
 	}
 	// db.LogMode(true)
 
@@ -210,10 +217,40 @@ func (c *Core) InitializeForeground() error {
 
 	// Kubernetes Client
 	c.K8S = func(kube *model.Kube) kubernetes.ClientInterface {
-		return &kubernetes.Client{
-			Kube:       kube,
-			HTTPClient: kubernetes.DefaultHTTPClient,
+		return kubernetes.NewClient(kube, kubernetes.DefaultHTTPClient)
+	}
+	c.KubeClient = func(kube *model.Kube) (kclient.Interface, error) {
+		if kube.KubeAPIPort == "" {
+			kube.KubeAPIPort = "443"
 		}
+
+		config, err := kubernetes.BuildBasicAuthConfig(kube.MasterPublicIP, kube.KubeAPIPort, kube.Username, kube.Password)
+		if err != nil {
+			return nil, errors.Wrap(err, "build config")
+		}
+
+		return kclient.NewForConfig(config)
+	}
+	c.HelmClient = func(kube *model.Kube) (helm.Interface, error) {
+		if kube.KubeAPIPort == "" {
+			kube.KubeAPIPort = "443"
+		}
+
+		config, err := kubernetes.BuildBasicAuthConfig(kube.MasterPublicIP, kube.KubeAPIPort, kube.Username, kube.Password)
+		if err != nil {
+			return nil, errors.Wrap(err, "build config")
+		}
+
+		kclient, err := kclient.NewForConfig(config)
+		if err != nil {
+			return nil, errors.Wrap(err, "build kube client")
+		}
+
+		if kube.TillerNamespace == "" {
+			kube.TillerNamespace = model.DefaultTillerNamespace
+		}
+
+		return helm.New(kclient, config, kube.TillerNamespace)
 	}
 
 	// Kubernetes Provisioners

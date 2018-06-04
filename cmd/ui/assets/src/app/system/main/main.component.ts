@@ -1,8 +1,10 @@
-import { Component, OnInit, OnDestroy, ViewEncapsulation } from '@angular/core';
+import { Component, OnInit, OnDestroy, ViewEncapsulation, ViewChild } from '@angular/core';
 import { Subscription } from 'rxjs/Subscription';
 import { Observable } from 'rxjs/Observable';
 import { Supergiant } from '../../shared/supergiant/supergiant.service';
 import { Notifications } from '../../shared/notifications/notifications.service';
+import { ChartsModule, BaseChartDirective } from 'ng2-charts';
+import { ContextMenuService, ContextMenuComponent } from 'ngx-contextmenu';
 
 export class RepoModel {
   repo = {
@@ -27,13 +29,20 @@ export class MainComponent implements OnInit, OnDestroy {
     { prop: 'name' },
     { prop: 'url' },
   ];
+  public displayCheck: boolean;
   private subscriptions = new Subscription();
   private name: string;
   private url: string;
   private repoModel = new RepoModel;
+
+  private rawEvent: any;
+  private contextmenuRow: any;
+  private contextmenuColumn: any;
+  @ViewChild(ContextMenuComponent) public basicMenu: ContextMenuComponent;
   constructor(
     private supergiant: Supergiant,
     private notifications: Notifications,
+    private contextMenuService: ContextMenuService,
   ) { }
 
   ngOnInit() {
@@ -57,14 +66,17 @@ export class MainComponent implements OnInit, OnDestroy {
           id: repo.id, name: repo.name, url: repo.url
         }));
 
-        // Copy over any kubes that happen to be currently selected.
-        this.selected.forEach((repo, index, array) => {
+        // Maintain selection of Helm repos:
+        const selected: Array<any> = [];
+        this.selected.forEach((repo, index) => {
           for (const row of this.rows) {
             if (row.id === repo.id) {
-              array[index] = row;
+              selected.push(row);
+              break;
             }
           }
         });
+        this.selected = selected;
       },
       (err) => { this.notifications.display('warn', 'Connection Issue.', err); }));
   }
@@ -101,5 +113,32 @@ export class MainComponent implements OnInit, OnDestroy {
     }
   }
 
+  onTableContextMenu(contextMenuEvent) {
+    this.rawEvent = contextMenuEvent.event;
+    if (contextMenuEvent.type === 'body') {
+      this.contextmenuColumn = undefined;
+      this.contextMenuService.show.next({
+        contextMenu: this.basicMenu,
+        item: contextMenuEvent.content,
+        event: contextMenuEvent.event,
+      });
+    } else {
+      this.contextmenuColumn = contextMenuEvent.content;
+      this.contextmenuRow = undefined;
+    }
+
+    contextMenuEvent.event.preventDefault();
+    contextMenuEvent.event.stopPropagation();
+  }
+
+  contextDelete(item) {
+    for (const row of this.rows) {
+      if (row.id === item.id) {
+        this.selected.push(row);
+        this.delete();
+        break;
+      }
+    }
+  }
 
 }

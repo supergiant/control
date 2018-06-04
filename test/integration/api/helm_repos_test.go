@@ -24,7 +24,7 @@ func TestHelmReposList(t *testing.T) {
 			// A successful example
 			{
 				existingModels: []*model.HelmRepo{
-					&model.HelmRepo{
+					{
 						Name: "test",
 						URL:  "www.website.com",
 					},

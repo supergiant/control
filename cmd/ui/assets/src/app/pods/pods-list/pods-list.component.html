@@ -1,7 +1,7 @@
 <h2>Cluster Resources</h2>
 
 <div class="subcontext-actions">
-  <div *ngIf="resouceKinds.length > 0" class="form-group row">
+  <div *ngIf="resouceKinds.length > 0 && selected.length === 0" class="form-group row">
     <mat-form-field>
       <mat-select placeholder="Resource Kind" [(ngModel)]="selectedResourceKind" (change)="get()">
         <mat-option *ngFor="let resourceKind of resouceKinds" [value]="resourceKind">
@@ -9,9 +9,7 @@
         </mat-option>
       </mat-select>
     </mat-form-field>
-  </div>
-  <div *ngIf="selected.length > 0">
-    <button mat-raised-button color="warn" (click)="delete()">Delete Selected {{ selectedResourceKind }}</button>
+    <button mat-button color="warn" [disabled]="selected.length === 0" (click)="delete()">Delete Selected {{ selectedResourceKind }}</button>
   </div>
 </div>
 
@@ -21,7 +19,7 @@
   </ngx-datatable-column>
   <ngx-datatable-column name="Name" prop="name"></ngx-datatable-column>
   <ngx-datatable-column name="Namespace" prop="namespace"></ngx-datatable-column>
-  <ngx-datatable-column name="Status" prop="status"></ngx-datatable-column>
+  <ngx-datatable-column name="Status" prop="passive_status"></ngx-datatable-column>
 </ngx-datatable>
 
 <context-menu #basicMenu>

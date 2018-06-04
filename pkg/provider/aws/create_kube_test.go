@@ -4,7 +4,6 @@ import (
 	"errors"
 	"testing"
 
-	"github.com/Sirupsen/logrus"
 	awssdk "github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/service/ec2"
 	"github.com/aws/aws-sdk-go/service/ec2/ec2iface"
@@ -16,6 +15,8 @@ import (
 	"github.com/aws/aws-sdk-go/service/iam/iamiface"
 	"github.com/aws/aws-sdk-go/service/s3"
 	"github.com/aws/aws-sdk-go/service/s3/s3iface"
+	"github.com/sirupsen/logrus"
+
 	"github.com/supergiant/supergiant/pkg/core"
 	"github.com/supergiant/supergiant/pkg/kubernetes"
 	"github.com/supergiant/supergiant/pkg/model"
@@ -378,7 +379,7 @@ func TestAWSProviderCreateKube(t *testing.T) {
 						DescribeImagesFn: func(input *ec2.DescribeImagesInput) (*ec2.DescribeImagesOutput, error) {
 							output := &ec2.DescribeImagesOutput{
 								Images: []*ec2.Image{
-									&ec2.Image{
+									{
 										ImageId:      awssdk.String("ami-1234"),
 										CreationDate: awssdk.String("August 24, 2016 at 4:36:22 PM UTC-5"),
 									},
@@ -519,7 +520,7 @@ func TestAWSProviderCreateKube(t *testing.T) {
 						DescribeMountTargetsfn: func(input *efs.DescribeMountTargetsInput) (*efs.DescribeMountTargetsOutput, error) {
 							output := &efs.DescribeMountTargetsOutput{
 								MountTargets: []*efs.MountTargetDescription{
-									&efs.MountTargetDescription{
+									{
 										LifeCycleState: awssdk.String("available"),
 									},
 								},

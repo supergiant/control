@@ -11,64 +11,36 @@
       </div>
 
       <div class="context-secondary-panel">
-        <button type="button" class="btn btn-primary" [routerLink]="['/clusters/new']">Deploy New Cluster</button>
-        <button [disabled]="selected.length === 0" type="button" class="btn btn-primary" (click)="deleteKube()">Delete Selected Cluster</button>
+        <button mat-button color="primary" [routerLink]="['/clusters/new']">Deploy New Cluster</button>
+        <button mat-button color="warn" [disabled]="selected.length === 0" (click)="deleteKube()">Delete Selected Cluster</button>
       </div>
     </div>
 
     <div>
-      <ngx-datatable class="material expandable"
-        [rows]="rows"
-        [columnMode]="'force'"
-        [columns]="columns"
-        [headerHeight]="50"
-        [footerHeight]="50"
-        [rowHeight]="'auto'"
-        [limit]="20"
-        [selected]="selected"
-        (select)='onSelect($event)'
-        (activate)='onActivate($event)'
-        [selectionType]="'checkbox'"
-        [selectAllRowsOnPage]="true"
-        [displayCheck]="displayCheck"
-        (tableContextmenu)="onTableContextMenu($event)">
-        <ngx-datatable-column
-            name="checkbox"
-            [width]="30"
-            [sortable]="false"
-            [canAutoResize]="false"
-            [draggable]="false"
-            [resizeable]="false"
-            [headerCheckboxable]="true"
-            [checkboxable]="true"
-            >
+      <ngx-datatable class="material expandable" [rows]="rows" [columnMode]="'force'" [columns]="columns" [headerHeight]="50" [footerHeight]="50" [rowHeight]="'auto'" [limit]="20" [selected]="selected" (select)='onSelect($event)' (activate)='onActivate($event)'
+        [selectionType]="'checkbox'" [selectAllRowsOnPage]="true" [displayCheck]="displayCheck" (tableContextmenu)="onTableContextMenu($event)">
+        <ngx-datatable-column name="checkbox" [width]="30" [sortable]="false" [canAutoResize]="false" [draggable]="false" [resizeable]="false" [headerCheckboxable]="true" [checkboxable]="true">
         </ngx-datatable-column>
-        
+
         <ngx-datatable-column name="Name" prop="name"></ngx-datatable-column>
-        
+
         <ngx-datatable-column name="Cloud Account" prop="cloudaccount"></ngx-datatable-column>
-        
+
         <ngx-datatable-column name="Version" prop="version"></ngx-datatable-column>
-        
+
         <ngx-datatable-column name="Nodes" prop="nodes"></ngx-datatable-column>
-        
+
         <ngx-datatable-column name="Apps" prop="apps"></ngx-datatable-column>
-        
+
         <ngx-datatable-column name="Status" prop="status"></ngx-datatable-column>
-        
+
         <ngx-datatable-column name="Usage" prop="usage">
           <ng-template let-column="column" let-sort="sortFn" ngx-datatable-header-template>
             {{column.name}}
           </ng-template>
 
           <ng-template let-row="row" let-value="value" ngx-datatable-cell-template>
-            <canvas baseChart width="200" height="50"
-              [datasets]="row['chartData']"
-              [labels]="rowChartLabels"
-              [legend]="rowChartLegend"
-              [options]="rowChartOptions"
-              [colors]="rowChartColors"
-              [chartType]="rowChartType">
+            <canvas baseChart width="200" height="50" [datasets]="row['chartData']" [labels]="rowChartLabels" [legend]="rowChartLegend" [options]="rowChartOptions" [colors]="rowChartColors" [chartType]="rowChartType">
             </canvas>
           </ng-template>
         </ngx-datatable-column>
@@ -79,26 +51,25 @@
           Delete <i>&quot;{{item?.name}}&quot;</i>
         </ng-template>
       </context-menu>
-      
+
     </div>
   </section>
-  
+
   <section class="app-clusters-index" *ngIf="!hasCloudAccount && !hasCluster">
     <div class="app-context-header-panel">
       <h2>
         <i class="fa fa-server"></i>
         Clusters
       </h2>
-  
+
       <div class="clusters-index-empty no-cloud-account">
         <p>
           A
-          <a [routerLink]="['/system/cloud-accounts']">Cloud Account</a>
-          is missing.
+          <a [routerLink]="['/system/cloud-accounts']">Cloud Account</a> is missing.
         </p>
-  
+
         <p>
-          <button type="button" class="btn btn-primary" [routerLink]="['/system/cloud-accounts/new']">Add Your First Cloud Account</button>
+          <button mat-raised-button color="primary" [routerLink]="['/system/cloud-accounts/new']">Add Your First Cloud Account</button>
         </p>
       </div>
     </div>
@@ -115,7 +86,7 @@
         <p>All of your training has prepared you for this moment.</p>
 
         <p>
-          <button type="button" class="btn btn-primary" [routerLink]="['/clusters/new']">Deploy Your First Cluster</button>
+          <button mat-raised-button color="primary"[routerLink]="['/clusters/new']">Deploy Your First Cluster</button>
         </p>
       </div>
     </div>

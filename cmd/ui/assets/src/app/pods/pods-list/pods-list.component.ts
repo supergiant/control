@@ -71,9 +71,26 @@ export class PodsListComponent implements OnInit, OnDestroy {
     this.subscriptions.add(Observable.timer(0, 5000)
       .switchMap(() => this.supergiant.KubeResources.get()).subscribe(
         (pods) => {
-          this.resources = pods.items.filter(
-            resource => resource.kube_name === this.kube.name && resource.kind === this.selectedResourceKind
-          ).map(resource => ({
+
+          // Filter by kube if it is passed, else no filter.
+          if (this.kube) {
+            this.resources = pods.items.filter(
+              resource =>
+                resource.kube_name === this.kube.name
+                && resource.kind === this.selectedResourceKind
+                || resource.kube_name === this.kube.name
+                && resource.resource.spec.type === this.selectedResourceKind
+            );
+          } else {
+            this.resources = pods.items.filter(
+              resource =>
+                resource.kind === this.selectedResourceKind
+                || resource.resource.spec.type === this.selectedResourceKind
+            );
+          }
+
+
+          this.resources.map(resource => ({
             id: resource.id,
             name: resource.name,
             namespace: resource.namespace,
@@ -103,7 +120,7 @@ export class PodsListComponent implements OnInit, OnDestroy {
   onActivate(activated) {
 
     if (activated.type === 'click' && activated.column.name !== 'checkbox') {
-      this.router.navigate(['/clusters', activated.row.id]);
+      this.router.navigate(['/pods', activated.row.id]);
     }
   }
 

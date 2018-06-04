@@ -1,17 +1,13 @@
-<div class="app-apps-container">
-  <section class="app-apps-index">
-    <div class="app-context-header-panel">
-      <div>
-        <h2>
+<div class="app-context-header-panel">
+  <div>
+    <h2>
         <button type="button" class="back-button" (click)="goBack()"></button>
         <i class="fa fa-puzzle-piece"></i>
         Deploy New App : {{model?.chart_name}}     (Helm Repository: {{model?.repo_name}})
       </h2>
-      </div>
+  </div>
 
-      <div class="context-secondary-panel">
-      </div>
-    </div>
-    <json-schema-form *ngIf="loaded" framework="material-design" [schema]="schema" [data]="model" (onSubmit)="create(value)" (onChanges)="value=$event"></json-schema-form>
-  </section>
+  <div class="context-secondary-panel">
+  </div>
 </div>
+<json-schema-form *ngIf="loaded" framework="material-design" [schema]="schema" [data]="model" (onSubmit)="create(value)" (onChanges)="value=$event"></json-schema-form>

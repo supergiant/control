@@ -7,9 +7,10 @@ import (
 	"time"
 
 	"github.com/digitalocean/godo"
+	"golang.org/x/oauth2"
+
 	"github.com/supergiant/supergiant/pkg/core"
 	"github.com/supergiant/supergiant/pkg/model"
-	"golang.org/x/oauth2"
 )
 
 // Provider Holds DO account info.
