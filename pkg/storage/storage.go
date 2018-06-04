@@ -20,6 +20,8 @@ type ETCDRepository struct {
 	cfg clientv3.Config
 }
 
+var ErrKeyNotFound = errors.New("key not found")
+
 func (e *ETCDRepository) Get(ctx context.Context, prefix string, key string) ([]byte, error) {
 	cl, err := e.GetClient()
 	if err != nil {
@@ -33,7 +35,7 @@ func (e *ETCDRepository) Get(ctx context.Context, prefix string, key string) ([]
 		return nil, errors.WithStack(err)
 	}
 	if res.Count == 0 {
-		return nil, nil
+		return nil, ErrKeyNotFound
 	}
 	return res.Kvs[0].Value, nil
 }
