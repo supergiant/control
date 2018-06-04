@@ -227,19 +227,19 @@ func (p *Provider) DeleteKube(m *model.Kube, action *core.Action) error {
 			GroupId: aws.String(m.AWSConfig.NodeSecurityGroupID),
 			IpPermissions: []*ec2.IpPermission{
 				{
-					FromPort:   aws.Int64(10250),
-					ToPort:     aws.Int64(10255),
-					IpProtocol: aws.String("tcp"),
+					FromPort:   aws.Int64(0),
+					ToPort:     aws.Int64(0),
+					IpProtocol: aws.String("-1"),
 					UserIdGroupPairs: []*ec2.UserIdGroupPair{
 						{
-							GroupId: aws.String(m.AWSConfig.MasterSecurityGroupID),
+							GroupId: aws.String(m.AWSConfig.NodeSecurityGroupID),
 						},
 					},
 				},
 				{
-					FromPort:   aws.Int64(40734),
-					ToPort:     aws.Int64(40734),
-					IpProtocol: aws.String("tcp"),
+					FromPort:   aws.Int64(0),
+					ToPort:     aws.Int64(0),
+					IpProtocol: aws.String("-1"),
 					UserIdGroupPairs: []*ec2.UserIdGroupPair{
 						{
 							GroupId: aws.String(m.AWSConfig.MasterSecurityGroupID),
@@ -260,7 +260,43 @@ func (p *Provider) DeleteKube(m *model.Kube, action *core.Action) error {
 
 	// Revoke only Security Group INbound rules for Masters that are dependent on other Security Groups (so that the Security Group can be deleted):
 
-	// None currently exist.
+	procedure.AddStep("revoking dependent Master Security Group ingress rules", func() error {
+		// Check if Security Group has already been deleted:
+		if m.AWSConfig.MasterSecurityGroupID == "" {
+			return nil
+		}
+
+		// Choose rules to revoke:
+		input := &ec2.RevokeSecurityGroupIngressInput{
+			GroupId: aws.String(m.AWSConfig.MasterSecurityGroupID),
+			IpPermissions: []*ec2.IpPermission{
+				{
+					FromPort:   aws.Int64(0),
+					ToPort:     aws.Int64(0),
+					IpProtocol: aws.String("-1"),
+					UserIdGroupPairs: []*ec2.UserIdGroupPair{
+						{
+							GroupId: aws.String(m.AWSConfig.NodeSecurityGroupID),
+						},
+					},
+				},
+				{
+					FromPort:   aws.Int64(0),
+					ToPort:     aws.Int64(0),
+					IpProtocol: aws.String("-1"),
+					UserIdGroupPairs: []*ec2.UserIdGroupPair{
+						{
+							GroupId: aws.String(m.AWSConfig.MasterSecurityGroupID),
+						},
+					},
+				},
+			},
+		}
+		if _, err := ec2S.RevokeSecurityGroupIngress(input); isErrAndNotAWSNotFound(err) {
+			return err
+		}
+		return nil
+	})
 
 	// Revoke only Security Group OUTbound rules for Masters that are dependent on other Security Groups (so that the Security Group can be deleted):
 

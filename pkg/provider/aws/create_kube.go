@@ -642,22 +642,22 @@ func (p *Provider) CreateKube(m *model.Kube, action *core.Action) error {
 					},
 				},
 				{
-					FromPort:   aws.Int64(2379),
-					ToPort:     aws.Int64(2379),
-					IpProtocol: aws.String("tcp"),
+					FromPort:   aws.Int64(0),
+					ToPort:     aws.Int64(0),
+					IpProtocol: aws.String("-1"),
 					UserIdGroupPairs: []*ec2.UserIdGroupPair{
 						{
 							GroupId: aws.String(m.AWSConfig.MasterSecurityGroupID),
 						},
 					},
-					{
-						FromPort:   aws.Int64(0),
-						ToPort:     aws.Int64(0),
-						IpProtocol: aws.String("0"),
-						UserIdGroupPairs: []*ec2.UserIdGroupPair{
-							{
-								GroupId: aws.String(m.AWSConfig.NodeSecurityGroupID),
-							},
+				},
+				{
+					FromPort:   aws.Int64(0),
+					ToPort:     aws.Int64(0),
+					IpProtocol: aws.String("-1"),
+					UserIdGroupPairs: []*ec2.UserIdGroupPair{
+						{
+							GroupId: aws.String(m.AWSConfig.NodeSecurityGroupID),
 						},
 					},
 				},
@@ -706,10 +706,20 @@ func (p *Provider) CreateKube(m *model.Kube, action *core.Action) error {
 				{
 					FromPort:   aws.Int64(0),
 					ToPort:     aws.Int64(0),
-					IpProtocol: aws.String("0"),
+					IpProtocol: aws.String("-1"),
 					UserIdGroupPairs: []*ec2.UserIdGroupPair{
 						{
 							GroupId: aws.String(m.AWSConfig.MasterSecurityGroupID),
+						},
+					},
+				},
+				{
+					FromPort:   aws.Int64(0),
+					ToPort:     aws.Int64(0),
+					IpProtocol: aws.String("-1"),
+					UserIdGroupPairs: []*ec2.UserIdGroupPair{
+						{
+							GroupId: aws.String(m.AWSConfig.NodeSecurityGroupID),
 						},
 					},
 				},
