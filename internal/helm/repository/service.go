@@ -26,6 +26,10 @@ func NewService(s storage.Interface) *Service {
 
 // Create stores a helm repository in the provided storage.
 func (s *Service) Create(ctx context.Context, r *helm.Repository) error {
+	if r == nil {
+		return ErrRepoNil
+	}
+
 	rawJSON, err := json.Marshal(r)
 	if err != nil {
 		return errors.Wrap(err, "marshal")
@@ -45,15 +49,14 @@ func (s *Service) Get(ctx context.Context, repoName string) (*helm.Repository, e
 	if err != nil {
 		return nil, errors.Wrap(err, "storage")
 	}
-
-	repo := new(helm.Repository)
-	err = json.Unmarshal(res, repo)
-	if err != nil {
-		return nil, errors.Wrap(err, "unmarshal")
-	}
 	// not found
 	if res == nil {
 		return nil, nil
+	}
+
+	repo := new(helm.Repository)
+	if err = json.Unmarshal(res, repo); err != nil {
+		return nil, errors.Wrap(err, "unmarshal")
 	}
 
 	return repo, nil

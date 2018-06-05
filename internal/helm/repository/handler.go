@@ -3,13 +3,12 @@ package repository
 import (
 	"encoding/json"
 	"net/http"
-	"strings"
-
 	"github.com/gorilla/mux"
 	"github.com/sirupsen/logrus"
 	"gopkg.in/asaskevich/govalidator.v8"
 
 	"github.com/supergiant/supergiant/pkg/model/helm"
+	"github.com/supergiant/supergiant/pkg/storage"
 )
 
 // Handler is a http controller for a helm repositories.
@@ -18,9 +17,9 @@ type Handler struct {
 }
 
 // New constructs a Handler for helm repositories.
-func NewHandler(svc *Service) *Handler {
+func NewHandler(s storage.Interface) *Handler {
 	return &Handler{
-		svc: svc,
+		svc: NewService(s),
 	}
 }
 
@@ -35,7 +34,7 @@ func (h *Handler) Create(w http.ResponseWriter, r *http.Request) {
 
 	ok, err := govalidator.ValidateStruct(repo)
 	if !ok {
-		http.Error(w, err.Error(), http.StatusBadRequest)
+		http.Error(w, "invalid repository", http.StatusBadRequest)
 		return
 	}
 
@@ -49,14 +48,12 @@ func (h *Handler) Create(w http.ResponseWriter, r *http.Request) {
 // Get retrieves a helm repository.
 func (h *Handler) Get(w http.ResponseWriter, r *http.Request) {
 	repoName := mux.Vars(r)["repoName"]
-	if strings.TrimSpace(repoName) == "" {
-		http.Error(w, "name can't be empty", http.StatusBadRequest)
-		return
-	}
+
+	println("reponame:", repoName)
 
 	repo, err := h.svc.Get(r.Context(), repoName)
 	if err != nil {
-		logrus.Errorf("handler: get %s relm repository: %v", repo.Name, err)
+		logrus.Errorf("handler: get %s helm repository: %v", repoName, err)
 		http.Error(w, "", http.StatusInternalServerError)
 		return
 	}
@@ -72,7 +69,7 @@ func (h *Handler) Get(w http.ResponseWriter, r *http.Request) {
 func (h *Handler) ListAll(w http.ResponseWriter, r *http.Request) {
 	repos, err := h.svc.GetAll(r.Context())
 	if err != nil {
-		logrus.Errorf("handler: get all relm repositories: %v", err)
+		logrus.Errorf("handler: get all helm repositories: %v", err)
 		http.Error(w, "", http.StatusInternalServerError)
 		return
 	}
@@ -83,14 +80,10 @@ func (h *Handler) ListAll(w http.ResponseWriter, r *http.Request) {
 // Delete removes a helm repository from the storage.
 func (h *Handler) Delete(w http.ResponseWriter, r *http.Request) {
 	repoName := mux.Vars(r)["repoName"]
-	if strings.TrimSpace(repoName) == "" {
-		http.Error(w, "name can't be empty", http.StatusBadRequest)
-		return
-	}
 
 	err := h.svc.Delete(r.Context(), repoName)
 	if err != nil {
-		logrus.Errorf("handler: delete %s relm repository: %v", repoName, err)
+		logrus.Errorf("handler: delete %s helm repository: %v", repoName, err)
 		http.Error(w, "", http.StatusInternalServerError)
 		return
 	}
