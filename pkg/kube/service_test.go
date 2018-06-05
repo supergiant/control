@@ -7,7 +7,7 @@ import (
 
 	"encoding/json"
 
-	"github.com/supergiant/supergiant/pkg/storage"
+	"github.com/supergiant/supergiant/internal/testutils"
 )
 
 func TestKubeServiceGet(t *testing.T) {
@@ -30,7 +30,7 @@ func TestKubeServiceGet(t *testing.T) {
 	prefix := "/kube/"
 
 	for _, testCase := range testCases {
-		m := new(storage.MockStorage)
+		m := new(testutils.MockStorage)
 		m.On("Get", context.Background(), prefix, "fake_id").Return(testCase.data, testCase.err)
 
 		service := Service{
@@ -69,7 +69,7 @@ func TestKubeServiceCreate(t *testing.T) {
 	prefix := "/kube/"
 
 	for _, testCase := range testCases {
-		m := new(storage.MockStorage)
+		m := new(testutils.MockStorage)
 		kubeData, _ := json.Marshal(testCase.kube)
 
 		m.On("Put",
@@ -110,7 +110,7 @@ func TestKubeServiceGetAll(t *testing.T) {
 	prefix := "/kube/"
 
 	for _, testCase := range testCases {
-		m := new(storage.MockStorage)
+		m := new(testutils.MockStorage)
 		m.On("GetAll", context.Background(), prefix).Return(testCase.data, testCase.err)
 
 		service := Service{
