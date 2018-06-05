@@ -16,7 +16,6 @@ const (
 
 // Service manages helm repositories.
 type Service struct {
-	prefix  string
 	storage storage.Interface
 }
 
