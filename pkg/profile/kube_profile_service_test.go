@@ -8,7 +8,7 @@ import (
 
 	"github.com/pkg/errors"
 
-	"github.com/supergiant/supergiant/pkg/storage"
+	"github.com/supergiant/supergiant/internal/testutils"
 )
 
 func TestKubeProfileServiceGet(t *testing.T) {
@@ -31,7 +31,7 @@ func TestKubeProfileServiceGet(t *testing.T) {
 	prefix := "/kube/"
 
 	for _, testCase := range testCases {
-		m := new(storage.MockStorage)
+		m := new(testutils.MockStorage)
 		m.On("Get", context.Background(), prefix, "fake_id").Return(testCase.data, testCase.err)
 
 		service := KubeProfileService{
@@ -70,7 +70,7 @@ func TestKubeProfileServiceCreate(t *testing.T) {
 	prefix := "/kube/"
 
 	for _, testCase := range testCases {
-		m := new(storage.MockStorage)
+		m := new(testutils.MockStorage)
 		kubeData, _ := json.Marshal(testCase.kube)
 
 		m.On("Put",
@@ -111,7 +111,7 @@ func TestKubeProfileServiceGetAll(t *testing.T) {
 	prefix := "/kube/"
 
 	for _, testCase := range testCases {
-		m := new(storage.MockStorage)
+		m := new(testutils.MockStorage)
 		m.On("GetAll", context.Background(), prefix).Return(testCase.data, testCase.err)
 
 		service := KubeProfileService{
