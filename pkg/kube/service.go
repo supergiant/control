@@ -7,20 +7,20 @@ import (
 	"github.com/supergiant/supergiant/pkg/storage"
 )
 
-type KubeService struct {
-	prefix      string
-	kubeStorage storage.Interface
+type Service struct {
+	prefix  string
+	storage storage.Interface
 }
 
-func NewKubeService(prefix string, kubeStorage storage.Interface) *KubeService {
-	return &KubeService{
+func NewKubeService(prefix string, kubeStorage storage.Interface) *Service {
+	return &Service{
 		prefix,
 		kubeStorage,
 	}
 }
 
-func (s *KubeService) Get(ctx context.Context, id string) (*Kube, error) {
-	kubeData, err := s.kubeStorage.Get(ctx, s.prefix, id)
+func (s *Service) Get(ctx context.Context, id string) (*Kube, error) {
+	kubeData, err := s.storage.Get(ctx, s.prefix, id)
 	kube := &Kube{}
 
 	if err != nil {
@@ -36,23 +36,23 @@ func (s *KubeService) Get(ctx context.Context, id string) (*Kube, error) {
 	return kube, nil
 }
 
-func (s *KubeService) Create(ctx context.Context, kube *Kube) error {
+func (s *Service) Create(ctx context.Context, kube *Kube) error {
 	kubeData, err := json.Marshal(kube)
 
 	if err != nil {
 		return err
 	}
 
-	return s.kubeStorage.Put(ctx, s.prefix, kube.Name, kubeData)
+	return s.storage.Put(ctx, s.prefix, kube.Name, kubeData)
 }
 
-func (s *KubeService) GetAll(ctx context.Context) ([]Kube, error) {
+func (s *Service) GetAll(ctx context.Context) ([]Kube, error) {
 	var (
 		kubes []Kube
 		kube  Kube
 	)
 
-	kubesData, err := s.kubeStorage.GetAll(ctx, s.prefix)
+	kubesData, err := s.storage.GetAll(ctx, s.prefix)
 
 	if err != nil {
 		return nil, err
@@ -71,6 +71,6 @@ func (s *KubeService) GetAll(ctx context.Context) ([]Kube, error) {
 	return kubes, nil
 }
 
-func (s *KubeService) Delete(ctx context.Context, id string) error {
-	return s.kubeStorage.Delete(ctx, s.prefix, id)
+func (s *Service) Delete(ctx context.Context, id string) error {
+	return s.storage.Delete(ctx, s.prefix, id)
 }

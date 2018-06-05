@@ -8,11 +8,11 @@ import (
 	"gopkg.in/asaskevich/govalidator.v8"
 )
 
-type KubeEndpoint struct {
-	service *KubeService
+type Endpoint struct {
+	service *Service
 }
 
-func (e *KubeEndpoint) GetKube(w http.ResponseWriter, r *http.Request) {
+func (e *Endpoint) GetKube(w http.ResponseWriter, r *http.Request) {
 	vars := mux.Vars(r)
 	kubeId := vars["id"]
 
@@ -26,7 +26,7 @@ func (e *KubeEndpoint) GetKube(w http.ResponseWriter, r *http.Request) {
 	json.NewEncoder(w).Encode(kube)
 }
 
-func (e *KubeEndpoint) GetAllKubes(w http.ResponseWriter, r *http.Request) {
+func (e *Endpoint) GetAllKubes(w http.ResponseWriter, r *http.Request) {
 	kubes, err := e.service.GetAll(r.Context())
 
 	if err != nil {
@@ -42,7 +42,7 @@ func (e *KubeEndpoint) GetAllKubes(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
-func (e *KubeEndpoint) CreateKube(w http.ResponseWriter, r *http.Request) {
+func (e *Endpoint) CreateKube(w http.ResponseWriter, r *http.Request) {
 	kube := &Kube{}
 	err := json.NewDecoder(r.Body).Decode(&kube)
 
@@ -65,10 +65,10 @@ func (e *KubeEndpoint) CreateKube(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	w.WriteHeader(http.StatusCreated)
+	w.WriteHeader(http.StatusAccepted)
 }
 
-func (e *KubeEndpoint) DeleteKube(w http.ResponseWriter, r *http.Request) {
+func (e *Endpoint) DeleteKube(w http.ResponseWriter, r *http.Request) {
 	vars := mux.Vars(r)
 	kubeId := vars["id"]
 

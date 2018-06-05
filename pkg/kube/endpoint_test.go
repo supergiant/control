@@ -9,7 +9,7 @@ import (
 )
 
 func TestKubeProfileEndpointCreateProfile(t *testing.T) {
-	endpoint := &KubeEndpoint{}
+	endpoint := &Endpoint{}
 	kube := &Kube{
 		Name:              "",
 		KubernetesVersion: "1.8.7",
