@@ -12,6 +12,7 @@ import (
 	"github.com/stretchr/testify/require"
 
 	"github.com/gorilla/mux"
+
 	"github.com/supergiant/supergiant/internal/testutils"
 	"github.com/supergiant/supergiant/pkg/model/helm"
 )
@@ -142,7 +143,7 @@ func TestHandler_Get(t *testing.T) {
 		require.Equalf(t, tc.expectedStatus, rr.Code, "TC#%d", i+1)
 
 		if tc.storageRepo != nil {
-			repo :=  new(helm.Repository)
+			repo := new(helm.Repository)
 			require.Nil(t, json.NewDecoder(rr.Body).Decode(repo))
 
 			require.Equalf(t, tc.storageRepo, repo, "TC#%d", i+1)
@@ -150,22 +151,21 @@ func TestHandler_Get(t *testing.T) {
 	}
 }
 
-
 func TestHandler_ListAll(t *testing.T) {
 	tcs := []struct {
-		storageRepo    *helm.Repository
+		storageRepo  *helm.Repository
 		storageError error
 
 		expectedStatus int
 	}{
 		{ // TC#1
-			storageError: errors.New("storage error"),
+			storageError:   errors.New("storage error"),
 			expectedStatus: http.StatusInternalServerError,
 		},
 		{ // TC#2
 			storageRepo: &helm.Repository{
 				Name: "stable",
-				URL: "stable",
+				URL:  "stable",
 			},
 			expectedStatus: http.StatusOK,
 		},
@@ -194,12 +194,12 @@ func TestHandler_ListAll(t *testing.T) {
 		require.Equalf(t, tc.expectedStatus, rr.Code, "TC#%d", i+1)
 
 		if tc.storageRepo != nil {
-			repos :=  make([]helm.Repository, 1)
+			repos := make([]helm.Repository, 1)
 			if err = json.NewDecoder(rr.Body).Decode(&repos); err != nil {
 				t.Errorf("TC#%d: decode body: %v", i+1, err)
 			}
 
-			require.Equalf(t, []helm.Repository{*tc.storageRepo}, repos,"TC#%d", i+1 )
+			require.Equalf(t, []helm.Repository{*tc.storageRepo}, repos, "TC#%d", i+1)
 		}
 	}
 }
@@ -213,8 +213,8 @@ func TestHandler_Delete(t *testing.T) {
 		expectedStatus int
 	}{
 		{ // TC#1
-			repoName: "not_found",
-			storageError: errors.New("error"),
+			repoName:       "not_found",
+			storageError:   errors.New("error"),
 			expectedStatus: http.StatusInternalServerError,
 		},
 		{ // TC#2

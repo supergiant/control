@@ -3,9 +3,11 @@ package user
 import (
 	"encoding/json"
 	"fmt"
-	sgjwt "github.com/supergiant/supergiant/pkg/jwt"
-	"gopkg.in/asaskevich/govalidator.v8"
 	"net/http"
+
+	"gopkg.in/asaskevich/govalidator.v8"
+
+	sgjwt "github.com/supergiant/supergiant/pkg/jwt"
 )
 
 type Endpoint struct {
