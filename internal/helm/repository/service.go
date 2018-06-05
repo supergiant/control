@@ -10,6 +10,10 @@ import (
 	"github.com/supergiant/supergiant/pkg/storage"
 )
 
+const (
+	prefix = "/helm/repositories/"
+)
+
 // Service manages helm repositories.
 type Service struct {
 	prefix  string
@@ -19,7 +23,6 @@ type Service struct {
 // NewService constructs a Service for helm repository.
 func NewService(s storage.Interface) *Service {
 	return &Service{
-		prefix:  "/helm/repositories/",
 		storage: s,
 	}
 }
@@ -35,7 +38,7 @@ func (s *Service) Create(ctx context.Context, r *helm.Repository) error {
 		return errors.Wrap(err, "marshal")
 	}
 
-	err = s.storage.Put(ctx, s.prefix, r.Name, rawJSON)
+	err = s.storage.Put(ctx, prefix, r.Name, rawJSON)
 	if err != nil {
 		return errors.Wrap(err, "storage")
 	}
@@ -45,7 +48,7 @@ func (s *Service) Create(ctx context.Context, r *helm.Repository) error {
 
 // Get retrieves a helm repository from the storage by its name.
 func (s *Service) Get(ctx context.Context, repoName string) (*helm.Repository, error) {
-	res, err := s.storage.Get(ctx, s.prefix, repoName)
+	res, err := s.storage.Get(ctx, prefix, repoName)
 	if err != nil {
 		return nil, errors.Wrap(err, "storage")
 	}
@@ -64,7 +67,7 @@ func (s *Service) Get(ctx context.Context, repoName string) (*helm.Repository, e
 
 // GetAll retrieves all helm repositories from the storage.
 func (s *Service) GetAll(ctx context.Context) ([]helm.Repository, error) {
-	rawRepos, err := s.storage.GetAll(ctx, s.prefix)
+	rawRepos, err := s.storage.GetAll(ctx, prefix)
 	if err != nil {
 		return nil, errors.Wrap(err, "storage")
 	}
@@ -84,5 +87,5 @@ func (s *Service) GetAll(ctx context.Context) ([]helm.Repository, error) {
 
 // Delete removes a helm repository from the storage by its name.
 func (s *Service) Delete(ctx context.Context, repoName string) error {
-	return s.storage.Delete(ctx, s.prefix, repoName)
+	return s.storage.Delete(ctx, prefix, repoName)
 }

@@ -52,7 +52,7 @@ func TestHandler_Create(t *testing.T) {
 				Name: "success",
 				URL:  "test",
 			},
-			expectedStatus: http.StatusOK,
+			expectedStatus: http.StatusAccepted,
 		},
 	}
 
@@ -219,7 +219,7 @@ func TestHandler_Delete(t *testing.T) {
 		},
 		{ // TC#2
 			repoName:       "delete",
-			expectedStatus: http.StatusOK,
+			expectedStatus: http.StatusAccepted,
 		},
 	}
 
