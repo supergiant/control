@@ -1,12 +1,17 @@
 package ssh
 
 import (
+	"context"
 	"errors"
 	"fmt"
 	"io"
 	"os"
 
 	"golang.org/x/crypto/ssh"
+
+	"github.com/ayufan/gitlab-ci-multi-runner/helpers"
+
+	"github.com/supergiant/supergiant/pkg/runner/command"
 )
 
 type Config struct {
@@ -43,15 +48,6 @@ func NewRunner(config *Config) (*Runner, error) {
 
 // Connect to server with ssh
 func (r *Runner) Connect() error {
-	if r.Host == "" {
-		r.Host = "localhost"
-	}
-	if r.User == "" {
-		r.User = "root"
-	}
-	if r.Port == 0 {
-		r.Port = 22
-	}
 	client, err := ssh.Dial("tcp", fmt.Sprintf("%s:%d", r.Host, r.Port), r.SshClientConfig)
 	if err == nil {
 		r.client = client
@@ -61,12 +57,14 @@ func (r *Runner) Connect() error {
 	return err
 }
 
+//TODO(stgleb): Add  more context like env variables?
 // Exec single command on ssh session
-func (r *Runner) Exec(cmd string) (err error) {
+func (r *Runner) Run(c command.Command) (err error) {
 	if r.client == nil {
 		return errors.New("not connected")
 	}
 
+	cmd := helpers.ShellEscape(c.FullCommand())
 	session, err := r.client.NewSession()
 	defer session.Close()
 
@@ -77,9 +75,26 @@ func (r *Runner) Exec(cmd string) (err error) {
 	session.Stdout = r.out
 	session.Stderr = r.err
 
-	err = session.Run(cmd)
+	err = session.Start(cmd)
 
 	if err != nil {
+		return err
+	}
+
+	waitCh := make(chan error)
+	go func() {
+		waitCh <- session.Wait()
+	}()
+
+	select {
+	case <-c.Ctx.Done():
+
+		if c.Ctx.Err() == context.Canceled {
+			session.Signal(ssh.SIGKILL)
+			session.Close()
+		}
+		return <-waitCh
+	case err := <-waitCh:
 		return err
 	}
 
