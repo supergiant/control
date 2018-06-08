@@ -90,7 +90,6 @@ func (r *Runner) Run(c command.Command) (err error) {
 
 	select {
 	case <-c.Ctx.Done():
-
 		if c.Ctx.Err() == context.Canceled {
 			session.Signal(ssh.SIGKILL)
 			session.Close()

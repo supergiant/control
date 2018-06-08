@@ -15,7 +15,7 @@ func (r *Runner) Run(c command.Command) error {
 	cmd := exec.CommandContext(c.Ctx, c.Command, c.Args...)
 
 	// Start a process
-	err := cmd.Start()
+	err := cmd.Run()
 	if err != nil {
 		return errors.Wrap(err, "failed to start process: %s")
 	}
