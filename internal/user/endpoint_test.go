@@ -1,15 +1,17 @@
 package user
 
 import (
-	"testing"
-	"net/http"
-	"github.com/supergiant/supergiant/pkg/jwt"
 	"bytes"
-	"net/http/httptest"
 	"encoding/json"
-	"github.com/stretchr/testify/require"
-	"github.com/supergiant/supergiant/internal/testutils"
+	"net/http"
+	"net/http/httptest"
+	"testing"
+
 	"github.com/stretchr/testify/mock"
+	"github.com/stretchr/testify/require"
+
+	"github.com/supergiant/supergiant/internal/testutils"
+	"github.com/supergiant/supergiant/pkg/jwt"
 )
 
 func TestEndpoint_Authenticate(t *testing.T) {
