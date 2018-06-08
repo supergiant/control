@@ -15,7 +15,6 @@ export class DashboardComponent implements OnInit {
   public hasApp = false;
   public clusterCount = 0;
   public appCount = 0;
-  public nodeCount = 0;
   public events: Array<any> = ['No Cluster Events (disabled in beta currently)'];
   public newses: Array<any> = ['No Recent News (disabled in beta currently)'];
   // lineChart
@@ -63,7 +62,6 @@ export class DashboardComponent implements OnInit {
   getKube(id) {
     this.subscriptions.add(this.supergiant.Kubes.get(id).subscribe(
       (kube) => {
-        this.nodeCount = this.nodeCount + Object.keys(kube.nodes).length;
         if (kube.extra_data &&
           kube.extra_data.cpu_usage_rate &&
           kube.extra_data.kube_cpu_capacity) {
