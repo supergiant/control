@@ -3,10 +3,7 @@ package kube
 import (
 	"bytes"
 	"context"
-	"crypto/sha256"
-	"encoding/hex"
 	"encoding/json"
-	"strings"
 
 	"github.com/pkg/errors"
 	"github.com/sirupsen/logrus"
@@ -37,17 +34,12 @@ func NewService(s storage.Interface) *Service {
 
 // Create stores a kube in the provided storage.
 func (s *Service) CreateKube(ctx context.Context, k *Kube) (*Kube, error) {
-	k.ID = getHash(k.APIHost + k.APIPort + k.Auth.Username)
-	if k.ID == strings.TrimSpace(k.ID) {
-		return nil, ErrInvalidID
-	}
-
 	raw, err := json.Marshal(k)
 	if err != nil {
 		return nil, errors.Wrap(err, "marshal")
 	}
 
-	err = s.storage.Put(ctx, prefix, k.ID, raw)
+	err = s.storage.Put(ctx, prefix, k.Name, raw)
 	if err != nil {
 		return nil, errors.Wrap(err, "storage")
 	}
@@ -55,9 +47,9 @@ func (s *Service) CreateKube(ctx context.Context, k *Kube) (*Kube, error) {
 	return k, nil
 }
 
-// Get returns a kube with a specified id.
-func (s *Service) Get(ctx context.Context, kubeID string) (*Kube, error) {
-	raw, err := s.storage.Get(ctx, prefix, kubeID)
+// Get returns a kube with a specified name.
+func (s *Service) Get(ctx context.Context, name string) (*Kube, error) {
+	raw, err := s.storage.Get(ctx, prefix, name)
 	if err != nil {
 		return nil, errors.Wrap(err, "storage")
 	}
@@ -95,14 +87,14 @@ func (s *Service) ListAll(ctx context.Context) ([]Kube, error) {
 	return kubes, nil
 }
 
-// Get deletes a kube with a specified id.
-func (s *Service) Delete(ctx context.Context, kubeID string) error {
-	return s.storage.Delete(ctx, prefix, kubeID)
+// Get deletes a kube with a specified name.
+func (s *Service) Delete(ctx context.Context, name string) error {
+	return s.storage.Delete(ctx, prefix, name)
 }
 
 // ListKubeResources returns raw representation of the supported kubernetes resources.
-func (s *Service) ListKubeResources(ctx context.Context, kubeID string) ([]byte, error) {
-	kube, err := s.Get(ctx, kubeID)
+func (s *Service) ListKubeResources(ctx context.Context, name string) ([]byte, error) {
+	kube, err := s.Get(ctx, name)
 	if err != nil {
 		return nil, errors.Wrap(err, "get kube")
 	}
@@ -121,8 +113,8 @@ func (s *Service) ListKubeResources(ctx context.Context, kubeID string) ([]byte,
 }
 
 // GetKubeResources returns raw representation of the kubernetes resources.
-func (s *Service) GetKubeResources(ctx context.Context, kubeID, resource, ns, name string) ([]byte, error) {
-	kube, err := s.Get(ctx, kubeID)
+func (s *Service) GetKubeResources(ctx context.Context, kubeName, resource, ns, name string) ([]byte, error) {
+	kube, err := s.Get(ctx, kubeName)
 	if err != nil {
 		return nil, errors.Wrap(err, "get kube")
 	}
@@ -176,10 +168,4 @@ func (s *Service) resourcesGroupInfo(kube *Kube) (map[string]schema.GroupVersion
 	}
 
 	return resourcesGroupInfo, nil
-}
-
-func getHash(text string) string {
-	hasher := sha256.New()
-	hasher.Write([]byte(text))
-	return hex.EncodeToString(hasher.Sum(nil))
 }

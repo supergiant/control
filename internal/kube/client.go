@@ -1,8 +1,6 @@
 package kube
 
 import (
-	"fmt"
-
 	"k8s.io/apimachinery/pkg/runtime/schema"
 	"k8s.io/apimachinery/pkg/runtime/serializer"
 	"k8s.io/client-go/discovery"
@@ -13,7 +11,7 @@ import (
 )
 
 func restClientForGroupVersion(k *Kube, gv schema.GroupVersion) (rest.Interface, error) {
-	cfg, err := buildConfig(getAddr(k.APIHost, k.APIPort), k.Auth)
+	cfg, err := buildConfig(k.APIAddr, k.Auth)
 	if err != nil {
 		return nil, err
 	}
@@ -23,7 +21,7 @@ func restClientForGroupVersion(k *Kube, gv schema.GroupVersion) (rest.Interface,
 }
 
 func discoveryClient(k *Kube) (*discovery.DiscoveryClient, error) {
-	cfg, err := buildConfig(getAddr(k.APIHost, k.APIPort), k.Auth)
+	cfg, err := buildConfig(k.APIAddr, k.Auth)
 	if err != nil {
 		return nil, err
 	}
@@ -64,10 +62,6 @@ func buildConfig(addr string, auth Auth) (*rest.Config, error) {
 		&clientcmd.ConfigOverrides{},
 		nil,
 	).ClientConfig()
-}
-
-func getAddr(host, port string) string {
-	return fmt.Sprintf("https://%s:%s", host, port)
 }
 
 func setGroupDefaults(config *rest.Config, gv schema.GroupVersion) {
