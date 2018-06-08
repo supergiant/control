@@ -2,30 +2,33 @@ package kube
 
 import (
 	"encoding/json"
-	"fmt"
 	"net/http"
 
 	"github.com/gorilla/mux"
+	"github.com/sirupsen/logrus"
 )
 
+// Handler is a http controller for a kube entity.
 type Handler struct {
 	svc *Service
 }
 
+// NewHandler constructs a Handler for kubes.
 func NewHandler(svc *Service) *Handler {
 	return &Handler{svc}
 }
 
+// Register adds kube handlers to a router.
 func (h *Handler) Register(r mux.Router) {
-	r.HandleFunc("/kubes", h.CreateKube).Methods(http.MethodPost)
-	r.HandleFunc("/kubes", h.ListKubes).Methods(http.MethodGet)
-	r.HandleFunc("/kubes/{id}", h.GetKube).Methods(http.MethodGet)
-	r.HandleFunc("/kubes/{id}", h.DeleteKube).Methods(http.MethodDelete)
-	r.HandleFunc("/kubes/{id}/list", h.ListResources).Methods(http.MethodGet)
-	r.HandleFunc("/kubes/{id}/resources/{resource}", h.GetResource).Methods(http.MethodGet)
+	r.HandleFunc("/kubes", h.createKube).Methods(http.MethodPost)
+	r.HandleFunc("/kubes", h.listKubes).Methods(http.MethodGet)
+	r.HandleFunc("/kubes/{id}", h.getKube).Methods(http.MethodGet)
+	r.HandleFunc("/kubes/{id}", h.deleteKube).Methods(http.MethodDelete)
+	r.HandleFunc("/kubes/{id}/list", h.listResources).Methods(http.MethodGet)
+	r.HandleFunc("/kubes/{id}/resources/{resource}", h.getResource).Methods(http.MethodGet)
 }
 
-func (h *Handler) CreateKube(w http.ResponseWriter, r *http.Request) {
+func (h *Handler) createKube(w http.ResponseWriter, r *http.Request) {
 	k := &Kube{}
 	err := json.NewDecoder(r.Body).Decode(k)
 	if err != nil {
@@ -39,10 +42,11 @@ func (h *Handler) CreateKube(w http.ResponseWriter, r *http.Request) {
 	}
 
 	w.WriteHeader(http.StatusAccepted)
-	w.Write([]byte("kube has been added: " + k.ID))
+	_, err = w.Write([]byte("kube has been added: " + k.Name))
+	handle(err)
 }
 
-func (h *Handler) GetKube(w http.ResponseWriter, r *http.Request) {
+func (h *Handler) getKube(w http.ResponseWriter, r *http.Request) {
 	vars := mux.Vars(r)
 	if vars == nil {
 		http.Error(w, "invalid url path", http.StatusBadRequest)
@@ -55,10 +59,10 @@ func (h *Handler) GetKube(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	json.NewEncoder(w).Encode(k)
+	handle(json.NewEncoder(w).Encode(k))
 }
 
-func (h *Handler) DeleteKube(w http.ResponseWriter, r *http.Request) {
+func (h *Handler) deleteKube(w http.ResponseWriter, r *http.Request) {
 	vars := mux.Vars(r)
 	if vars == nil {
 		http.Error(w, "invalid url path", http.StatusBadRequest)
@@ -73,17 +77,17 @@ func (h *Handler) DeleteKube(w http.ResponseWriter, r *http.Request) {
 	w.WriteHeader(http.StatusAccepted)
 }
 
-func (h *Handler) ListKubes(w http.ResponseWriter, r *http.Request) {
+func (h *Handler) listKubes(w http.ResponseWriter, r *http.Request) {
 	kubes, err := h.svc.ListAll(r.Context())
 	if err != nil {
 		http.Error(w, "", http.StatusInternalServerError)
 		return
 	}
 
-	json.NewEncoder(w).Encode(kubes)
+	handle(json.NewEncoder(w).Encode(kubes))
 }
 
-func (h *Handler) ListResources(w http.ResponseWriter, r *http.Request) {
+func (h *Handler) listResources(w http.ResponseWriter, r *http.Request) {
 	vars := mux.Vars(r)
 	if vars == nil {
 		http.Error(w, "invalid url path", http.StatusBadRequest)
@@ -98,10 +102,11 @@ func (h *Handler) ListResources(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	w.Write(rawResources)
+	_, err = w.Write(rawResources)
+	handle(err)
 }
 
-func (h *Handler) GetResource(w http.ResponseWriter, r *http.Request) {
+func (h *Handler) getResource(w http.ResponseWriter, r *http.Request) {
 	vars := mux.Vars(r)
 	if vars == nil {
 		http.Error(w, "invalid url path", http.StatusBadRequest)
@@ -118,9 +123,12 @@ func (h *Handler) GetResource(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	w.Write(rawResources)
+	_, err = w.Write(rawResources)
+	handle(err)
 }
 
-func notImplemented(w http.ResponseWriter, r *http.Request) {
-	fmt.Fprintf(w, "not implemented!\n")
+func handle(err error) {
+	if err != nil {
+		logrus.Errorf("kube handler: http write: %v", err)
+	}
 }
