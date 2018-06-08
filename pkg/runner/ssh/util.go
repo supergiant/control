@@ -1,19 +1,15 @@
 package ssh
 
 import (
-	"io/ioutil"
 	"os/user"
 	"time"
 
 	"golang.org/x/crypto/ssh"
 )
 
-func getKey(keyFilePath string) (ssh.Signer, error) {
-	buf, err := ioutil.ReadFile(keyFilePath)
-	if err != nil {
-		return nil, err
-	}
-	key, err := ssh.ParsePrivateKey(buf)
+func getKey(rawKey []byte) (ssh.Signer, error) {
+	key, err := ssh.ParsePrivateKey(rawKey)
+
 	if err != nil {
 		return nil, err
 	}
@@ -21,7 +17,7 @@ func getKey(keyFilePath string) (ssh.Signer, error) {
 }
 
 func getSshConfig(config *Config) (*ssh.ClientConfig, error) {
-	key, err := getKey(config.KeyFilePath)
+	key, err := getKey(config.Key)
 
 	if err != nil {
 		return nil, err

@@ -4,10 +4,8 @@ import (
 	"context"
 	"errors"
 	"fmt"
-	"io"
-	"os"
-
 	"golang.org/x/crypto/ssh"
+	"io"
 
 	"github.com/ayufan/gitlab-ci-multi-runner/helpers"
 
@@ -21,7 +19,7 @@ type Config struct {
 	User    string
 	Timeout int
 
-	KeyFilePath string
+	Key []byte
 
 	SshClientConfig *ssh.ClientConfig
 }
@@ -37,21 +35,29 @@ type Runner struct {
 
 // NewRunner creates ssh runner object. It requires two io.Writer
 // to send output of ssh session and config for ssh client.
-func NewRunner(out, err io.Writer, config *Config) (*Runner, error) {
+func NewRunner(outStream, errStream io.Writer, config *Config) (*Runner, error) {
 	if sshConfig, err := getSshConfig(config); err != nil {
 		config.SshClientConfig = sshConfig
 	}
 
-	return &Runner{
+	r := &Runner{
 		config,
-		os.Stdout,
-		os.Stderr,
+		outStream,
+		errStream,
 		nil,
-	}, nil
+	}
+
+	err := r.connect()
+
+	if err != nil {
+		return nil, err
+	}
+
+	return r, nil
 }
 
 // Connect to server with ssh
-func (r *Runner) Connect() error {
+func (r *Runner) connect() error {
 	client, err := ssh.Dial("tcp", fmt.Sprintf("%s:%d", r.Host, r.Port), r.SshClientConfig)
 	if err == nil {
 		r.client = client
@@ -70,11 +76,12 @@ func (r *Runner) Run(c command.Command) (err error) {
 
 	cmd := helpers.ShellEscape(c.FullCommand())
 	session, err := r.client.NewSession()
-	defer session.Close()
 
 	if err != nil {
 		return err
 	}
+
+	defer session.Close()
 
 	session.Stdout = r.out
 	session.Stderr = r.err
