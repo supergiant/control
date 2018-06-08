@@ -5,6 +5,9 @@ import (
 	"net/http"
 
 	"github.com/gorilla/mux"
+	"github.com/sirupsen/logrus"
+	"github.com/supergiant/supergiant/pkg/message"
+	"github.com/supergiant/supergiant/pkg/sgerrors"
 	"gopkg.in/asaskevich/govalidator.v8"
 
 	"github.com/supergiant/supergiant/pkg/model/helm"
@@ -26,20 +29,19 @@ func NewHandler(s storage.Interface) *Handler {
 // Create stores a new helm repository.
 func (h *Handler) Create(w http.ResponseWriter, r *http.Request) {
 	repo := new(helm.Repository)
-	err := json.NewDecoder(r.Body).Decode(repo)
-	if err != nil {
-		http.Error(w, "can't unmarshal request body", http.StatusBadRequest)
+	if err := json.NewDecoder(r.Body).Decode(repo); err != nil {
+		message.SendInvalidJSON(w, err)
 		return
 	}
 
 	ok, err := govalidator.ValidateStruct(repo)
 	if !ok {
-		http.Error(w, "invalid repository", http.StatusBadRequest)
+		message.SendValidationFailed(w, err)
 		return
 	}
 
 	if err = h.svc.Create(r.Context(), repo); err != nil {
-		http.Error(w, "failed to create", http.StatusInternalServerError)
+		message.SendUnknownError(w, err)
 		return
 	}
 
@@ -52,35 +54,41 @@ func (h *Handler) Get(w http.ResponseWriter, r *http.Request) {
 
 	repo, err := h.svc.Get(r.Context(), repoName)
 	if err != nil {
-		http.Error(w, "", http.StatusInternalServerError)
-		return
-	}
-	if repo == nil {
-		w.WriteHeader(http.StatusNotFound)
+		if sgerrors.IsNotFound(err) {
+			message.SendNotFound(w, "helm repository", err)
+			return
+		}
+		logrus.Error(err)
+		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
 	}
 
-	json.NewEncoder(w).Encode(repo)
+	if err := json.NewEncoder(w).Encode(repo); err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+	}
 }
 
 // ListAll retrieves all helm repositories.
 func (h *Handler) ListAll(w http.ResponseWriter, r *http.Request) {
 	repos, err := h.svc.GetAll(r.Context())
 	if err != nil {
-		http.Error(w, "", http.StatusInternalServerError)
+		logrus.Error(err)
+		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
 	}
 
-	json.NewEncoder(w).Encode(repos)
+	if err := json.NewEncoder(w).Encode(repos); err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+	}
 }
 
 // Delete removes a helm repository from the storage.
 func (h *Handler) Delete(w http.ResponseWriter, r *http.Request) {
 	repoName := mux.Vars(r)["repoName"]
 
-	err := h.svc.Delete(r.Context(), repoName)
-	if err != nil {
-		http.Error(w, "", http.StatusInternalServerError)
+	if err := h.svc.Delete(r.Context(), repoName); err != nil {
+		logrus.Error(err)
+		message.SendUnknownError(w, err)
 		return
 	}
 

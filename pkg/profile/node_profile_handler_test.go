@@ -9,7 +9,7 @@ import (
 )
 
 func TestNodeProfileEndpointCreateProfileError(t *testing.T) {
-	endpoint := &NodeProfileEndpoint{}
+	endpoint := &NodeProfileHandler{}
 	nodeProfile := &NodeProfile{
 		Id:           "",
 		Size:         "4gb",

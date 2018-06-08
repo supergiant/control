@@ -7,7 +7,7 @@ import (
 
 	"encoding/json"
 
-	"github.com/supergiant/supergiant/internal/testutils"
+	"github.com/supergiant/supergiant/pkg/testutils"
 )
 
 func TestKubeServiceGet(t *testing.T) {

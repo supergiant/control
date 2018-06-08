@@ -15,7 +15,7 @@ func init() {
 }
 
 func TestKubeProfileEndpointCreateProfile(t *testing.T) {
-	endpoint := &KubeProfileEndpoint{}
+	endpoint := &KubeProfileHandler{}
 	kubeProfile := &KubeProfile{
 		Id:                "",
 		KubernetesVersion: "1.8.7",

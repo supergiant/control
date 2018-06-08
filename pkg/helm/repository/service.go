@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 
 	"github.com/pkg/errors"
+	"github.com/supergiant/supergiant/pkg/sgerrors"
 
 	"github.com/supergiant/supergiant/pkg/model/helm"
 	"github.com/supergiant/supergiant/pkg/storage"
@@ -29,7 +30,7 @@ func NewService(s storage.Interface) *Service {
 // Create stores a helm repository in the provided storage.
 func (s *Service) Create(ctx context.Context, r *helm.Repository) error {
 	if r == nil {
-		return ErrRepoNil
+		return sgerrors.ErrNotFound
 	}
 
 	rawJSON, err := json.Marshal(r)
@@ -53,7 +54,7 @@ func (s *Service) Get(ctx context.Context, repoName string) (*helm.Repository, e
 	}
 	// not found
 	if res == nil {
-		return nil, nil
+		return nil, errors.Wrap(sgerrors.ErrNotFound, "repo not found")
 	}
 
 	repo := new(helm.Repository)
