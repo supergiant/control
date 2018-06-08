@@ -1,0 +1,5 @@
+package digitalocean
+
+func ProvisionNode() {
+
+}
