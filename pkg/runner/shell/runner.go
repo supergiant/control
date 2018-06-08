@@ -10,6 +10,7 @@ import (
 
 type Runner struct{}
 
+// Run command on shell
 func (r *Runner) Run(c command.Command) error {
 	cmd := exec.CommandContext(c.Ctx, c.Command, c.Args...)
 

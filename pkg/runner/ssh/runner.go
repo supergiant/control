@@ -33,7 +33,9 @@ type Runner struct {
 	client *ssh.Client
 }
 
-func NewRunner(config *Config) (*Runner, error) {
+// NewRunner creates ssh runner object. It requires two io.Writer
+// to send output of ssh session and config for ssh client.
+func NewRunner(out, err io.Writer, config *Config) (*Runner, error) {
 	if sshConfig, err := getSshConfig(config); err != nil {
 		config.SshClientConfig = sshConfig
 	}
