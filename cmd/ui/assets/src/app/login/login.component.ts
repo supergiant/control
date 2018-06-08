@@ -94,7 +94,7 @@ export class LoginComponent implements OnDestroy {
         this.supergiant.sessionID = '';
         this.cookieMonster.deleteCookie('session');
         this.supergiant.loginSuccess = false;
-        this.router.navigate(['/login']);
+        this.router.navigate(['']);
       }
     ));
   }
