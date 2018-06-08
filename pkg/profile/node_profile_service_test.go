@@ -7,6 +7,8 @@ import (
 	"encoding/json"
 
 	"github.com/pkg/errors"
+
+	"github.com/supergiant/supergiant/internal/testutils"
 )
 
 func TestNodeProfileServiceGet(t *testing.T) {
@@ -29,7 +31,7 @@ func TestNodeProfileServiceGet(t *testing.T) {
 	prefix := "/node/"
 
 	for _, testCase := range testCases {
-		m := new(mockStorage)
+		m := new(testutils.MockStorage)
 		m.On("Get", context.Background(), prefix, "fake_id").Return(testCase.data, testCase.err)
 
 		service := NodeProfileService{
@@ -68,7 +70,7 @@ func TestNodeProfileServiceCreate(t *testing.T) {
 	prefix := "/node/"
 
 	for _, testCase := range testCases {
-		m := new(mockStorage)
+		m := new(testutils.MockStorage)
 		nodeData, _ := json.Marshal(testCase.node)
 		m.On("Put", context.Background(), prefix, "", nodeData).Return(testCase.err)
 
@@ -103,7 +105,7 @@ func TestNodeProfileServiceGetAll(t *testing.T) {
 	prefix := "/node/"
 
 	for _, testCase := range testCases {
-		m := new(mockStorage)
+		m := new(testutils.MockStorage)
 		m.On("GetAll", context.Background(), prefix).Return(testCase.data, testCase.err)
 
 		service := NodeProfileService{
