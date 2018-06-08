@@ -14,6 +14,7 @@ import (
 	"github.com/supergiant/supergiant/pkg/runner/command"
 )
 
+// Config is a set of params needed to create valid ssh.ClientConfig
 type Config struct {
 	Host    string
 	Port    int
@@ -25,6 +26,7 @@ type Config struct {
 	SshClientConfig *ssh.ClientConfig
 }
 
+// Runner is implementation of runner interface for ssh
 type Runner struct {
 	*Config
 	out io.Writer

@@ -8,6 +8,7 @@ import (
 	"github.com/supergiant/supergiant/pkg/runner/command"
 )
 
+// Runner is implementation of runner interface for shell
 type Runner struct{}
 
 // Run command on shell
