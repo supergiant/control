@@ -57,11 +57,8 @@ script:
   - go-bindata -pkg ui -o bindata/ui/bindata.go cmd/ui/assets/dist/...
 
   # Coverage
-  - go list -f "{{ if or (len .TestGoFiles) (len .XTestGoFiles) }}\"go test -v -covermode=count -coverpkg $(go list ./pkg/... | awk -v ORS=, '{ print $1 }' | sed 's/,$//') -coverprofile={{ .Dir }}/.coverprofile {{ .ImportPath }}\"{{ end }}" ./... | xargs -L 1 sh -c
-  - cat $(find . -regex '.*/.coverprofile') > .coverprofile
-  - sed -i.bak '/^mode:\ count$/d' .coverprofile
-  - echo 'mode':' count' | cat - .coverprofile > /tmp/out && mv /tmp/out .coverprofile
-  - goveralls -coverprofile=.coverprofile -service=travis-ci
+  - go test -covermode=count -coverprofile=profile.cov ./pkg/...
+  - goveralls -coverprofile=profile.cov -service=travis-ci
 
   # Cross compile
   - CGO_ENABLED=0 GOOS=linux GOARCH=arm64 go build -a -o dist/supergiant-api-linux-arm64 -ldflags '-extldflags "-static"' ./cmd/server
