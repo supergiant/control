@@ -14,7 +14,7 @@ func newTestServer() *server.Server {
 	c.LogLevel = "fatal"
 	c.PublishHost = "localhost"
 	c.HTTPPort = "9999"
-	c.SQLiteFile = "../../../tmp/test.db"
+	c.SQLiteFile = "../../tmp/test.db"
 
 	wipeAndInitialize(c)
 
