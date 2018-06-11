@@ -33,7 +33,7 @@ func (s *Service) GetAll(ctx context.Context) ([]CloudAccount, error) {
 		err = json.NewDecoder(bytes.NewReader(v)).Decode(ca)
 		if err != nil {
 			logrus.Warningf("failed to convert stored data to cloud account struct")
-			logrus.Debugf("corrupted data: %v", string(v))
+			logrus.Debugf("corrupted data: %s", string(v))
 			continue
 		}
 		accounts = append(accounts, *ca)

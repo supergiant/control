@@ -12,9 +12,10 @@ import (
 	"github.com/pkg/errors"
 	"github.com/stretchr/testify/mock"
 	"github.com/stretchr/testify/require"
+	"gopkg.in/asaskevich/govalidator.v8"
+
 	"github.com/supergiant/supergiant/internal/testutils"
 	"github.com/supergiant/supergiant/pkg/provider"
-	"gopkg.in/asaskevich/govalidator.v8"
 )
 
 func fixtures() (*Endpoint, *testutils.MockStorage) {
