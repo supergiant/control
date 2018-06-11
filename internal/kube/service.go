@@ -33,7 +33,7 @@ func NewService(s storage.Interface) *Service {
 }
 
 // Create stores a kube in the provided storage.
-func (s *Service) CreateKube(ctx context.Context, k *Kube) (*Kube, error) {
+func (s *Service) Create(ctx context.Context, k *Kube) (*Kube, error) {
 	raw, err := json.Marshal(k)
 	if err != nil {
 		return nil, errors.Wrap(err, "marshal")
@@ -41,7 +41,7 @@ func (s *Service) CreateKube(ctx context.Context, k *Kube) (*Kube, error) {
 
 	err = s.storage.Put(ctx, prefix, k.Name, raw)
 	if err != nil {
-		return nil, errors.Wrap(err, "storage")
+		return nil, errors.Wrap(err, "storage: put")
 	}
 
 	return k, nil
@@ -51,7 +51,7 @@ func (s *Service) CreateKube(ctx context.Context, k *Kube) (*Kube, error) {
 func (s *Service) Get(ctx context.Context, name string) (*Kube, error) {
 	raw, err := s.storage.Get(ctx, prefix, name)
 	if err != nil {
-		return nil, errors.Wrap(err, "storage")
+		return nil, errors.Wrap(err, "storage: get")
 	}
 	if raw == nil {
 		return nil, nil
@@ -66,11 +66,11 @@ func (s *Service) Get(ctx context.Context, name string) (*Kube, error) {
 	return k, nil
 }
 
-// Get returns all kubes.
+// ListAll returns all kubes.
 func (s *Service) ListAll(ctx context.Context) ([]Kube, error) {
 	rawKubes, err := s.storage.GetAll(ctx, prefix)
 	if err != nil {
-		return nil, errors.Wrap(err, "storage")
+		return nil, errors.Wrap(err, "storage: getAll")
 	}
 
 	kubes := make([]Kube, len(rawKubes))
@@ -87,7 +87,7 @@ func (s *Service) ListAll(ctx context.Context) ([]Kube, error) {
 	return kubes, nil
 }
 
-// Get deletes a kube with a specified name.
+// Delete deletes a kube with a specified name.
 func (s *Service) Delete(ctx context.Context, name string) error {
 	return s.storage.Delete(ctx, prefix, name)
 }
@@ -96,7 +96,7 @@ func (s *Service) Delete(ctx context.Context, name string) error {
 func (s *Service) ListKubeResources(ctx context.Context, name string) ([]byte, error) {
 	kube, err := s.Get(ctx, name)
 	if err != nil {
-		return nil, errors.Wrap(err, "get kube")
+		return nil, errors.Wrap(err, "storage: get")
 	}
 
 	resourcesInfo, err := s.resourcesGroupInfo(kube)
@@ -116,7 +116,7 @@ func (s *Service) ListKubeResources(ctx context.Context, name string) ([]byte, e
 func (s *Service) GetKubeResources(ctx context.Context, kubeName, resource, ns, name string) ([]byte, error) {
 	kube, err := s.Get(ctx, kubeName)
 	if err != nil {
-		return nil, errors.Wrap(err, "get kube")
+		return nil, errors.Wrap(err, "storage: get")
 	}
 
 	resourcesInfo, err := s.resourcesGroupInfo(kube)

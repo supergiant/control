@@ -19,7 +19,7 @@ func NewHandler(svc *Service) *Handler {
 }
 
 // Register adds kube handlers to a router.
-func (h *Handler) Register(r mux.Router) {
+func (h *Handler) Register(r *mux.Router) {
 	r.HandleFunc("/kubes", h.createKube).Methods(http.MethodPost)
 	r.HandleFunc("/kubes", h.listKubes).Methods(http.MethodGet)
 	r.HandleFunc("/kubes/{id}", h.getKube).Methods(http.MethodGet)
@@ -36,7 +36,7 @@ func (h *Handler) createKube(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if _, err = h.svc.CreateKube(r.Context(), k); err != nil {
+	if _, err = h.svc.Create(r.Context(), k); err != nil {
 		http.Error(w, "", http.StatusInternalServerError)
 		return
 	}
@@ -56,6 +56,10 @@ func (h *Handler) getKube(w http.ResponseWriter, r *http.Request) {
 	k, err := h.svc.Get(r.Context(), id)
 	if err != nil {
 		http.Error(w, "", http.StatusInternalServerError)
+		return
+	}
+	if k == nil {
+		http.Error(w, "", http.StatusNotFound)
 		return
 	}
 
