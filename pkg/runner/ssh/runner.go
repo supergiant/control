@@ -4,8 +4,9 @@ import (
 	"context"
 	"errors"
 	"fmt"
-	"golang.org/x/crypto/ssh"
 	"io"
+
+	"golang.org/x/crypto/ssh"
 
 	"github.com/ayufan/gitlab-ci-multi-runner/helpers"
 
@@ -83,8 +84,8 @@ func (r *Runner) Run(c command.Command) (err error) {
 
 	defer session.Close()
 
-	session.Stdout = r.out
-	session.Stderr = r.err
+	session.Stdout = io.MultiWriter(r.out, c.Out)
+	session.Stderr = io.MultiWriter(r.out, c.Out)
 
 	err = session.Start(cmd)
 
