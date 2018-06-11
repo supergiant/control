@@ -1,31 +1,25 @@
 package ssh
 
 import (
-	"os/user"
 	"time"
 
+	"github.com/pkg/errors"
 	"golang.org/x/crypto/ssh"
 )
 
-func getKey(rawKey []byte) (ssh.Signer, error) {
-	key, err := ssh.ParsePrivateKey(rawKey)
-
-	if err != nil {
-		return nil, err
-	}
-	return key, nil
-}
+var (
+	ErrUserNotSpecified = errors.New("user not specified")
+)
 
 func getSshConfig(config *Config) (*ssh.ClientConfig, error) {
-	key, err := getKey(config.Key)
+	key, err := ssh.ParsePrivateKey(config.Key)
 
 	if err != nil {
 		return nil, err
 	}
 
 	if config.User == "" {
-		u, _ := user.Current()
-		config.User = u.Name
+		return nil, ErrUserNotSpecified
 	}
 
 	return &ssh.ClientConfig{
