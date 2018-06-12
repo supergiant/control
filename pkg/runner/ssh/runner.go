@@ -5,11 +5,10 @@ import (
 	"errors"
 	"fmt"
 	"io"
-
-	"golang.org/x/crypto/ssh"
+	"strings"
 
 	"github.com/supergiant/supergiant/pkg/runner/command"
-	"strings"
+	"golang.org/x/crypto/ssh"
 )
 
 // Config is a set of params needed to create valid ssh.ClientConfig
