@@ -47,6 +47,9 @@ script:
   # Test
   # - govendor test +local (NOTE not needed with coverage line below)
 
+  # Check if a vendor is valid
+  - govendor status
+
   # Compile assets
   - go-bindata -pkg bindata -o bindata/bindata.go config/providers/... ui/assets/... ui/views/...
   - cd cmd/ui/assets
