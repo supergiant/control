@@ -5,6 +5,7 @@ import (
 	"testing"
 
 	"github.com/stretchr/testify/assert"
+	"github.com/supergiant/supergiant/pkg/sgerrors"
 	"k8s.io/client-go/rest"
 )
 
@@ -18,14 +19,10 @@ func TestBuildConfigFrom(t *testing.T) {
 		config *rest.Config
 		err    error
 	}{
-		// TC#1
-		{
-			err: ErrHostNotSpecified,
-		},
 		// TC#2
 		{
 			host: "localhost",
-			err:  ErrInvalidCredentials,
+			err:  sgerrors.ErrInvalidCredentials,
 		},
 		// TC#3
 		{

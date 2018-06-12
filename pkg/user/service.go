@@ -1,61 +1,52 @@
 package user
 
 import (
-	"bytes"
 	"context"
 	"encoding/json"
 
 	"github.com/pkg/errors"
-	"github.com/sirupsen/logrus"
-	"golang.org/x/crypto/bcrypt"
-
+	"github.com/supergiant/supergiant/pkg/sgerrors"
 	"github.com/supergiant/supergiant/pkg/storage"
+	"golang.org/x/crypto/bcrypt"
 )
 
-const prefix = "/user/"
+const prefix = "/supergiant/user/"
 
 // Service contains business logic related to users
 type Service struct {
-	Repository storage.Interface
+	repository storage.Interface
 }
 
-func (s *Service) GetByToken(ctx context.Context, apiToken string) (*User, error) {
-	logrus.Debug("user.Service.GetByToken start")
-	result, err := s.Repository.GetAll(ctx, prefix)
+func (s *Service) Create(ctx context.Context, user *User) error {
+	data, err := json.Marshal(user)
 	if err != nil {
-		return nil, err
+		return errors.Wrap(err, "user create")
 	}
-	for _, rawUser := range result {
-		u := new(User)
-		err = json.NewDecoder(bytes.NewReader(rawUser)).Decode(u)
-		if err != nil {
-			logrus.Warningf("failed to convert stored data to cloud account struct")
-			logrus.Debugf("corrupted data: %s", rawUser)
-			continue
-		}
-		if u.APIToken == apiToken {
-			return u, nil
+	if _, err := s.repository.Get(ctx, prefix, user.Login); err != nil {
+		if !sgerrors.IsNotFound(err) {
+			return errors.Wrap(err, "user get")
 		}
 	}
-	logrus.Debug("user.Service.GetByToken end")
-	return nil, errors.Errorf("user with api token %s not found", apiToken)
-}
-
-func (s *Service) RegisterUser(ctx context.Context, user *User) error {
-	return nil
+	err = s.repository.Put(ctx, prefix, user.Login, data)
+	return err
 }
 
 func (s *Service) Authenticate(ctx context.Context, username, password string) error {
-	logrus.Debug("user.Service.Authenticate start")
-	rawJSON, err := s.Repository.Get(ctx, prefix, username)
+	rawJSON, err := s.repository.Get(ctx, prefix, username)
 	if err != nil {
+		//If user doesn't exists we still want Forbidden instead of Not Found
+		if sgerrors.IsNotFound(err) {
+			return sgerrors.ErrInvalidCredentials
+		}
 		return err
 	}
 	user := new(User)
-	err = json.NewDecoder(bytes.NewReader(rawJSON)).Decode(user)
-	if err != nil {
-		return errors.WithStack(err)
+	if err = json.Unmarshal(rawJSON, user); err != nil {
+		return errors.Wrap(err, "user authenticate unmarshall user")
 	}
-	logrus.Debug("user.Service.Authenticate end")
-	return bcrypt.CompareHashAndPassword(user.EncryptedPassword, []byte(password))
+
+	if err := bcrypt.CompareHashAndPassword(user.EncryptedPassword, []byte(password)); err != nil {
+		return sgerrors.ErrInvalidCredentials
+	}
+	return nil
 }

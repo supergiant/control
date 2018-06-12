@@ -18,9 +18,9 @@ import (
 	"github.com/supergiant/supergiant/pkg/util"
 )
 
-// CreateNode creates a Kubernetes minion.
+// CreateNode creates a Kubernetes Node.
 func (p *Provider) CreateNode(m *model.Node, action *core.Action) error {
-	m.Name = m.Kube.Name + "-minion-" + util.RandomString(5)
+	m.Name = m.Kube.Name + "-node-" + util.RandomString(5)
 
 	// For the testzzzz
 	if m.Kube.KubernetesVersion == "" {
@@ -32,7 +32,7 @@ func (p *Provider) CreateNode(m *model.Node, action *core.Action) error {
 	if err != nil {
 		return err
 	}
-	template, err := template.New("minion_template").Parse(string(userdataTemplate))
+	template, err := template.New("node").Parse(string(userdataTemplate))
 	if err != nil {
 		return err
 	}
@@ -59,7 +59,7 @@ func (p *Provider) CreateNode(m *model.Node, action *core.Action) error {
 	if len(subnets) == 1 {
 		selectedSubnet = subnets[0]
 	} else {
-		fmt.Println("Number of nodes:", len(m.Kube.Nodes))
+		fmt.Println("Number of Nodes:", len(m.Kube.Nodes))
 		selectedSubnet = subnets[(len(m.Kube.Nodes)-1)%len(m.Kube.AWSConfig.PublicSubnetIPRange)]
 	}
 
@@ -67,7 +67,7 @@ func (p *Provider) CreateNode(m *model.Node, action *core.Action) error {
 	if m.Kube.AWSConfig.NodeRoleName != "" {
 		nodeRole = aws.String(m.Kube.AWSConfig.NodeRoleName)
 	} else {
-		nodeRole = aws.String("kubernetes-minion")
+		nodeRole = aws.String("kubernetes-node")
 	}
 
 	resp, err := ec2S.RunInstances(&ec2.RunInstancesInput{
@@ -105,7 +105,7 @@ func (p *Provider) CreateNode(m *model.Node, action *core.Action) error {
 	err = tagAWSResource(ec2S, *server.InstanceId, map[string]string{
 		"KubernetesCluster": m.Kube.Name,
 		"Name":              m.Name,
-		"Role":              m.Kube.Name + "-minion",
+		"Role":              m.Kube.Name + "-node",
 	}, m.Kube.AWSConfig.Tags)
 	if err != nil {
 		// TODO

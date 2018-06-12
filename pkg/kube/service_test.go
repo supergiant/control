@@ -2,12 +2,12 @@ package kube
 
 import (
 	"context"
-	"errors"
+	"github.com/pkg/errors"
 	"testing"
 
 	"encoding/json"
 
-	"github.com/supergiant/supergiant/internal/testutils"
+	"github.com/supergiant/supergiant/pkg/testutils"
 )
 
 func TestKubeServiceGet(t *testing.T) {
@@ -27,20 +27,17 @@ func TestKubeServiceGet(t *testing.T) {
 		},
 	}
 
-	prefix := "/kube/"
+	prefix := DefaultStoragePrefix
 
 	for _, testCase := range testCases {
 		m := new(testutils.MockStorage)
 		m.On("Get", context.Background(), prefix, "fake_id").Return(testCase.data, testCase.err)
 
-		service := Service{
-			prefix,
-			m,
-		}
+		service := NewService(prefix, m)
 
 		kube, err := service.Get(context.Background(), "fake_id")
 
-		if testCase.err != err {
+		if testCase.err != errors.Cause(err) {
 			t.Errorf("Wrong error expected %v actual %v", testCase.err, err)
 			return
 		}
@@ -66,7 +63,7 @@ func TestKubeServiceCreate(t *testing.T) {
 		},
 	}
 
-	prefix := "/kube/"
+	prefix := DefaultStoragePrefix
 
 	for _, testCase := range testCases {
 		m := new(testutils.MockStorage)
@@ -79,14 +76,11 @@ func TestKubeServiceCreate(t *testing.T) {
 			kubeData).
 			Return(testCase.err)
 
-		service := Service{
-			prefix,
-			m,
-		}
+		service := NewService(prefix, m)
 
 		err := service.Create(context.Background(), testCase.kube)
 
-		if testCase.err != err {
+		if testCase.err != errors.Cause(err) {
 			t.Errorf("Unexpected error when create node %v", err)
 		}
 	}
@@ -113,14 +107,11 @@ func TestKubeServiceGetAll(t *testing.T) {
 		m := new(testutils.MockStorage)
 		m.On("GetAll", context.Background(), prefix).Return(testCase.data, testCase.err)
 
-		service := Service{
-			prefix,
-			m,
-		}
+		service := NewService(prefix, m)
 
-		kubes, err := service.GetAll(context.Background())
+		kubes, err := service.ListAll(context.Background())
 
-		if testCase.err != err {
+		if testCase.err != errors.Cause(err) {
 			t.Errorf("Wrong error expected %v actual %v", testCase.err, err)
 			return
 		}
