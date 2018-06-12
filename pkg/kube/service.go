@@ -4,11 +4,7 @@ import (
 	"context"
 	"encoding/json"
 
-<<<<<<< HEAD
 	"github.com/pkg/errors"
-=======
-	"github.com/supergiant/supergiant/pkg/sgerrors"
->>>>>>> master
 	"github.com/supergiant/supergiant/pkg/storage"
 	"k8s.io/apimachinery/pkg/runtime/schema"
 	"k8s.io/client-go/discovery"
@@ -37,7 +33,6 @@ func NewService(prefix string, s storage.Interface) *Service {
 	}
 }
 
-<<<<<<< HEAD
 // Create stores a kube in the provided storage.
 func (s *Service) Create(ctx context.Context, k *Kube) error {
 	raw, err := json.Marshal(k)
@@ -46,15 +41,9 @@ func (s *Service) Create(ctx context.Context, k *Kube) error {
 	}
 
 	err = s.storage.Put(ctx, s.prefix, k.Name, raw)
-=======
-func (s *Service) Get(ctx context.Context, id string) (*Kube, error) {
-	kubeData, err := s.storage.Get(ctx, s.prefix, id)
-	kube := &Kube{}
->>>>>>> master
 	if err != nil {
 		return errors.Wrap(err, "storage: put")
 	}
-<<<<<<< HEAD
 
 	return nil
 }
@@ -62,12 +51,6 @@ func (s *Service) Get(ctx context.Context, id string) (*Kube, error) {
 // Get returns a kube with a specified name.
 func (s *Service) Get(ctx context.Context, name string) (*Kube, error) {
 	raw, err := s.storage.Get(ctx, s.prefix, name)
-=======
-	if kubeData == nil {
-		return nil, sgerrors.ErrNotFound
-	}
-	err = json.Unmarshal(kubeData, kube)
->>>>>>> master
 	if err != nil {
 		return nil, errors.Wrap(err, "storage: get")
 	}
@@ -80,21 +63,15 @@ func (s *Service) Get(ctx context.Context, name string) (*Kube, error) {
 		return nil, errors.Wrap(err, "unmarshal")
 	}
 
-<<<<<<< HEAD
 	return k, nil
 }
 
 // ListAll returns all kubes.
 func (s *Service) ListAll(ctx context.Context) ([]Kube, error) {
 	rawKubes, err := s.storage.GetAll(ctx, s.prefix)
-=======
-func (s *Service) Create(ctx context.Context, kube *Kube) error {
-	kubeData, err := json.Marshal(kube)
->>>>>>> master
 	if err != nil {
 		return nil, errors.Wrap(err, "storage: getAll")
 	}
-<<<<<<< HEAD
 
 	kubes := make([]Kube, len(rawKubes))
 	for i, v := range rawKubes {
@@ -106,9 +83,6 @@ func (s *Service) Create(ctx context.Context, kube *Kube) error {
 	}
 
 	return kubes, nil
-=======
-	return s.storage.Put(ctx, s.prefix, kube.Name, kubeData)
->>>>>>> master
 }
 
 // Delete deletes a kube with a specified name.
@@ -116,7 +90,6 @@ func (s *Service) Delete(ctx context.Context, name string) error {
 	return s.storage.Delete(ctx, s.prefix, name)
 }
 
-<<<<<<< HEAD
 // ListKubeResources returns raw representation of the supported kubernetes resources.
 func (s *Service) ListKubeResources(ctx context.Context, name string) ([]byte, error) {
 	kube, err := s.Get(ctx, name)
@@ -125,9 +98,6 @@ func (s *Service) ListKubeResources(ctx context.Context, name string) ([]byte, e
 	}
 
 	resourcesInfo, err := s.resourcesGroupInfo(kube)
-=======
-	kubesData, err := s.storage.GetAll(ctx, s.prefix)
->>>>>>> master
 	if err != nil {
 		return nil, err
 	}
