@@ -147,7 +147,7 @@ func (p *Provider) CreateKube(m *model.Kube, action *core.Action) error {
 	}
 
 	if m.AWSConfig.NodeRoleName == "" {
-		procedure.AddStep("preparing IAM Role kubernetes-minion", func() error {
+		procedure.AddStep("preparing IAM Role kubernetes-node", func() error {
 			policy := `{
   "Version": "2012-10-17",
   "Statement": [
@@ -158,10 +158,10 @@ func (p *Provider) CreateKube(m *model.Kube, action *core.Action) error {
     }
   ]
 }`
-			return createIAMRole(iamS, "kubernetes-minion", policy)
+			return createIAMRole(iamS, "kubernetes-node", policy)
 		})
 
-		procedure.AddStep("preparing IAM Role Policy kubernetes-minion", func() error {
+		procedure.AddStep("preparing IAM Role Policy kubernetes-node", func() error {
 			policy := `{
   "Version": "2012-10-17",
   "Statement": [
@@ -207,11 +207,11 @@ func (p *Provider) CreateKube(m *model.Kube, action *core.Action) error {
     }
   ]
 }`
-			return createIAMRolePolicy(iamS, "kubernetes-minion", policy)
+			return createIAMRolePolicy(iamS, "kubernetes-node", policy)
 		})
 
-		procedure.AddStep("preparing IAM Instance Profile kubernetes-minion", func() error {
-			return createIAMInstanceProfile(iamS, "kubernetes-minion")
+		procedure.AddStep("preparing IAM Instance Profile kubernetes-node", func() error {
+			return createIAMInstanceProfile(iamS, "kubernetes-node")
 		})
 	}
 	if m.AWSConfig.BuildElasticFileSystem {
@@ -318,7 +318,7 @@ func (p *Provider) CreateKube(m *model.Kube, action *core.Action) error {
 		if err != nil {
 			return err
 		}
-		template, err := template.New("minion_template").Parse(string(userdataTemplate))
+		template, err := template.New("node_template").Parse(string(userdataTemplate))
 		if err != nil {
 			return err
 		}
@@ -565,82 +565,22 @@ func (p *Provider) CreateKube(m *model.Kube, action *core.Action) error {
 		return nil
 	})
 
-	// Create Security Groups
+	// Create Security Groups:
 
-	procedure.AddStep("creating ELB Security Group", func() error {
-		if m.AWSConfig.ELBSecurityGroupID != "" {
+	procedure.AddStep("creating Master Security Group", func() error {
+		if m.AWSConfig.MasterSecurityGroupID != "" {
 			return nil
 		}
 		input := &ec2.CreateSecurityGroupInput{
-			GroupName:   aws.String(m.Name + "_elb_sg"),
-			Description: aws.String("Allow any external port through to internal 30-40k range"),
+			GroupName:   aws.String(m.Name + "_master_sg"),
+			Description: aws.String("A Security Group created to protect Kubernetes masters."),
 			VpcId:       aws.String(m.AWSConfig.VPCID),
 		}
 		resp, err := ec2S.CreateSecurityGroup(input)
 		if err != nil {
 			return err
 		}
-		m.AWSConfig.ELBSecurityGroupID = *resp.GroupId
-		return nil
-	})
-
-	procedure.AddStep("tagging ELB Security Group", func() error {
-		return tagAWSResource(ec2S, m.AWSConfig.ELBSecurityGroupID, map[string]string{
-			"KubernetesCluster": m.Name,
-		}, m.AWSConfig.Tags)
-	})
-
-	procedure.AddStep("creating ELB Security Group ingress rules", func() error {
-		input := &ec2.AuthorizeSecurityGroupIngressInput{
-			GroupId: aws.String(m.AWSConfig.ELBSecurityGroupID),
-			IpPermissions: []*ec2.IpPermission{
-				{
-					FromPort:   aws.Int64(0),
-					ToPort:     aws.Int64(0),
-					IpProtocol: aws.String("-1"),
-					IpRanges: []*ec2.IpRange{
-						{
-							CidrIp: aws.String("0.0.0.0/0"),
-						},
-					},
-				},
-			},
-		}
-		if _, err := ec2S.AuthorizeSecurityGroupIngress(input); err != nil && !strings.Contains(err.Error(), "InvalidPermission.Duplicate") {
-			return err
-		}
-		return nil
-	})
-
-	procedure.AddStep("creating ELB Security Group egress rules", func() error {
-		input := &ec2.AuthorizeSecurityGroupIngressInput{
-			GroupId: aws.String(m.AWSConfig.ELBSecurityGroupID),
-			IpPermissions: []*ec2.IpPermission{
-				{
-					FromPort:   aws.Int64(30000),
-					ToPort:     aws.Int64(40000),
-					IpProtocol: aws.String("tcp"),
-					IpRanges: []*ec2.IpRange{
-						{
-							CidrIp: aws.String("0.0.0.0/0"),
-						},
-					},
-				},
-				{
-					FromPort:   aws.Int64(10250),
-					ToPort:     aws.Int64(10250),
-					IpProtocol: aws.String("tcp"),
-					IpRanges: []*ec2.IpRange{
-						{
-							CidrIp: aws.String("0.0.0.0/0"),
-						},
-					},
-				},
-			},
-		}
-		if _, err := ec2S.AuthorizeSecurityGroupIngress(input); err != nil && !strings.Contains(err.Error(), "InvalidPermission.Duplicate") {
-			return err
-		}
+		m.AWSConfig.MasterSecurityGroupID = *resp.GroupId
 		return nil
 	})
 
@@ -650,7 +590,7 @@ func (p *Provider) CreateKube(m *model.Kube, action *core.Action) error {
 		}
 		input := &ec2.CreateSecurityGroupInput{
 			GroupName:   aws.String(m.Name + "_sg"),
-			Description: aws.String("Allow any traffic to 443 and 22, but only traffic from ELB for 10250 and 30k-40k"),
+			Description: aws.String("A Security Group created to protect Kubernetes nodes."),
 			VpcId:       aws.String(m.AWSConfig.VPCID),
 		}
 		resp, err := ec2S.CreateSecurityGroup(input)
@@ -661,26 +601,78 @@ func (p *Provider) CreateKube(m *model.Kube, action *core.Action) error {
 		return nil
 	})
 
+	// Tag Security Groups:
+
+	procedure.AddStep("tagging Master Security Group", func() error {
+		return tagAWSResource(ec2S, m.AWSConfig.MasterSecurityGroupID, map[string]string{
+			"KubernetesCluster": m.Name,
+		}, m.AWSConfig.Tags)
+	})
+
 	procedure.AddStep("tagging Node Security Group", func() error {
 		return tagAWSResource(ec2S, m.AWSConfig.NodeSecurityGroupID, map[string]string{
 			"KubernetesCluster": m.Name,
 		}, m.AWSConfig.Tags)
 	})
 
-	procedure.AddStep("creating Node Security Group ingress rules", func() error {
+	// Create Security Group rules:
+
+	procedure.AddStep("creating Master Security Group ingress rules", func() error {
 		input := &ec2.AuthorizeSecurityGroupIngressInput{
-			GroupId: aws.String(m.AWSConfig.NodeSecurityGroupID),
+			GroupId: aws.String(m.AWSConfig.MasterSecurityGroupID),
 			IpPermissions: []*ec2.IpPermission{
+				{
+					FromPort:   aws.Int64(22),
+					ToPort:     aws.Int64(22),
+					IpProtocol: aws.String("tcp"),
+					IpRanges: []*ec2.IpRange{
+						{
+							CidrIp: aws.String("0.0.0.0/0"),
+						},
+					},
+				},
+				{
+					FromPort:   aws.Int64(443),
+					ToPort:     aws.Int64(443),
+					IpProtocol: aws.String("tcp"),
+					IpRanges: []*ec2.IpRange{
+						{
+							CidrIp: aws.String("0.0.0.0/0"),
+						},
+					},
+				},
 				{
 					FromPort:   aws.Int64(0),
 					ToPort:     aws.Int64(0),
 					IpProtocol: aws.String("-1"),
 					UserIdGroupPairs: []*ec2.UserIdGroupPair{
 						{
-							GroupId: aws.String(m.AWSConfig.NodeSecurityGroupID), // ?? TODO is this correct? -- https://github.com/supergiant/terraform-assets/blob/master/aws/1.1.7/security_groups.tf#L39
+							GroupId: aws.String(m.AWSConfig.MasterSecurityGroupID),
 						},
 					},
 				},
+				{
+					FromPort:   aws.Int64(0),
+					ToPort:     aws.Int64(0),
+					IpProtocol: aws.String("-1"),
+					UserIdGroupPairs: []*ec2.UserIdGroupPair{
+						{
+							GroupId: aws.String(m.AWSConfig.NodeSecurityGroupID),
+						},
+					},
+				},
+			},
+		}
+		if _, err := ec2S.AuthorizeSecurityGroupIngress(input); err != nil && !strings.Contains(err.Error(), "InvalidPermission.Duplicate") {
+			return err
+		}
+		return nil
+	})
+
+	procedure.AddStep("creating Node Security Group ingress rules", func() error {
+		input := &ec2.AuthorizeSecurityGroupIngressInput{
+			GroupId: aws.String(m.AWSConfig.NodeSecurityGroupID),
+			IpPermissions: []*ec2.IpPermission{
 				{
 					FromPort:   aws.Int64(22),
 					ToPort:     aws.Int64(22),
@@ -703,21 +695,31 @@ func (p *Provider) CreateKube(m *model.Kube, action *core.Action) error {
 				},
 				{
 					FromPort:   aws.Int64(30000),
-					ToPort:     aws.Int64(40000),
+					ToPort:     aws.Int64(32767),
 					IpProtocol: aws.String("tcp"),
-					UserIdGroupPairs: []*ec2.UserIdGroupPair{
+					IpRanges: []*ec2.IpRange{
 						{
-							GroupId: aws.String(m.AWSConfig.ELBSecurityGroupID),
+							CidrIp: aws.String("0.0.0.0/0"),
 						},
 					},
 				},
 				{
-					FromPort:   aws.Int64(10250),
-					ToPort:     aws.Int64(10250),
-					IpProtocol: aws.String("tcp"),
+					FromPort:   aws.Int64(0),
+					ToPort:     aws.Int64(0),
+					IpProtocol: aws.String("-1"),
 					UserIdGroupPairs: []*ec2.UserIdGroupPair{
 						{
-							GroupId: aws.String(m.AWSConfig.ELBSecurityGroupID),
+							GroupId: aws.String(m.AWSConfig.MasterSecurityGroupID),
+						},
+					},
+				},
+				{
+					FromPort:   aws.Int64(0),
+					ToPort:     aws.Int64(0),
+					IpProtocol: aws.String("-1"),
+					UserIdGroupPairs: []*ec2.UserIdGroupPair{
+						{
+							GroupId: aws.String(m.AWSConfig.NodeSecurityGroupID),
 						},
 					},
 				},
@@ -729,27 +731,7 @@ func (p *Provider) CreateKube(m *model.Kube, action *core.Action) error {
 		return nil
 	})
 
-	procedure.AddStep("creating Node Security Group egress rules", func() error {
-		input := &ec2.AuthorizeSecurityGroupIngressInput{
-			GroupId: aws.String(m.AWSConfig.NodeSecurityGroupID),
-			IpPermissions: []*ec2.IpPermission{
-				{
-					FromPort:   aws.Int64(0),
-					ToPort:     aws.Int64(0),
-					IpProtocol: aws.String("-1"),
-					IpRanges: []*ec2.IpRange{
-						{
-							CidrIp: aws.String("0.0.0.0/0"),
-						},
-					},
-				},
-			},
-		}
-		if _, err := ec2S.AuthorizeSecurityGroupIngress(input); err != nil && !strings.Contains(err.Error(), "InvalidPermission.Duplicate") {
-			return err
-		}
-		return nil
-	})
+	// Create EFS:
 
 	procedure.AddStep("setting EFS share target info", func() error {
 
@@ -784,13 +766,12 @@ func (p *Provider) CreateKube(m *model.Kube, action *core.Action) error {
 			})
 
 		}
-
 		return nil
 	})
 
-	// Master Instance
+	// Create Master(s):
 
-	procedure.AddStep("creating Server for Kubernetes master(s)", func() error {
+	procedure.AddStep("creating Kubernetes Master(s)", func() error {
 		if m.MasterID != "" {
 			return nil
 		}
@@ -865,7 +846,7 @@ func (p *Provider) CreateKube(m *model.Kube, action *core.Action) error {
 						AssociatePublicIpAddress: aws.Bool(pubNet),
 						DeleteOnTermination:      aws.Bool(true),
 						Groups: []*string{
-							aws.String(m.AWSConfig.NodeSecurityGroupID),
+							aws.String(m.AWSConfig.MasterSecurityGroupID),
 						},
 						SubnetId: aws.String(selectedSubnet),
 						//PrivateIpAddress: aws.String(m.AWSConfig.MasterPrivateIP),
@@ -896,8 +877,9 @@ func (p *Provider) CreateKube(m *model.Kube, action *core.Action) error {
 		return nil
 	})
 
-	// Tag all of our masters.
-	procedure.AddStep("tagging Kubernetes master", func() error {
+	// Tag Master(s):
+
+	procedure.AddStep("tagging Kubernetes Master", func() error {
 		for _, master := range m.MasterNodes {
 			err := tagAWSResource(ec2S, master, map[string]string{
 				"KubernetesCluster": m.Name,
@@ -911,8 +893,9 @@ func (p *Provider) CreateKube(m *model.Kube, action *core.Action) error {
 		return nil
 	})
 
-	// If we have more then one master... Lets get them on a internal loadbalancer.
-	procedure.AddStep("creating master loadbalancer if needed", func() error {
+	// Create Load Balancer (if more than 1 Master is present).
+
+	procedure.AddStep("creating Load Balancer for Masters (if needed)", func() error {
 
 		if m.KubeMasterCount == 1 {
 			return nil
@@ -941,7 +924,7 @@ func (p *Provider) CreateKube(m *model.Kube, action *core.Action) error {
 			LoadBalancerName: aws.String(m.Name + "-api"),
 			Scheme:           aws.String("internal"),
 			SecurityGroups: []*string{
-				aws.String(m.AWSConfig.NodeSecurityGroupID),
+				aws.String(m.AWSConfig.MasterSecurityGroupID),
 			},
 			Subnets: subnets,
 		})
@@ -968,15 +951,15 @@ func (p *Provider) CreateKube(m *model.Kube, action *core.Action) error {
 		return nil
 	})
 
-	// Wait for server to be ready
+	// Verify launch of Master(s):
 
-	procedure.AddStep("waiting for Kubernetes master to launch", func() error {
+	procedure.AddStep("waiting for Kubernetes Master(s) to launch", func() error {
 		input := &ec2.DescribeInstancesInput{
 			InstanceIds: []*string{
 				aws.String(m.MasterNodes[0]),
 			},
 		}
-		return action.CancellableWaitFor("Kubernetes master launch", 5*time.Minute, 3*time.Second, func() (bool, error) {
+		return action.CancellableWaitFor("Kubernetes Master launch", 5*time.Minute, 3*time.Second, func() (bool, error) {
 			resp, err := ec2S.DescribeInstances(input)
 			if err != nil {
 				return false, err
@@ -1000,13 +983,13 @@ func (p *Provider) CreateKube(m *model.Kube, action *core.Action) error {
 					}
 				}
 			}
-
 			return *instance.State.Name == "running", nil
 		})
 	})
 
-	// Create first minion//
-	procedure.AddStep("creating Kubernetes minion", func() error {
+	// Create Node:
+
+	procedure.AddStep("creating Kubernetes Node", func() error {
 		// TODO repeated in DO provider
 		if err := p.Core.DB.Find(&m.Nodes, "kube_name = ?", m.Name); err != nil {
 			return err
@@ -1021,11 +1004,13 @@ func (p *Provider) CreateKube(m *model.Kube, action *core.Action) error {
 		return p.Core.Nodes.Create(node)
 	})
 
+	// Wait for Kube:
+
 	procedure.AddStep("waiting for Kubernetes", func() error {
 
 		k8s := p.Core.K8S(m)
 
-		return action.CancellableWaitFor("Kubernetes API and first minion", 20*time.Minute, time.Second, func() (bool, error) {
+		return action.CancellableWaitFor("Kubernetes API and first Node", 20*time.Minute, time.Second, func() (bool, error) {
 			nodes, err := k8s.ListNodes("")
 			if err != nil {
 				return false, nil
@@ -1034,6 +1019,5 @@ func (p *Provider) CreateKube(m *model.Kube, action *core.Action) error {
 		})
 
 	})
-
 	return procedure.Run()
 }

@@ -7,48 +7,9 @@ import (
 	"encoding/json"
 
 	"github.com/pkg/errors"
-	"github.com/stretchr/testify/mock"
+
+	"github.com/supergiant/supergiant/pkg/testutils"
 )
-
-type mockStorage struct {
-	mock.Mock
-}
-
-func (m *mockStorage) Get(ctx context.Context, prefix string, key string) ([]byte, error) {
-	ret := m.Called(ctx, prefix, key)
-	r1 := ret.Get(0).([]byte)
-
-	if r2 := ret.Get(1); r2 == nil {
-		return r1, nil
-	} else {
-		return r1, r2.(error)
-	}
-}
-
-func (m *mockStorage) GetAll(ctx context.Context, prefix string) ([][]byte, error) {
-	ret := m.Called(ctx, prefix)
-	r1 := ret.Get(0).([][]byte)
-
-	if r2 := ret.Get(1); r2 == nil {
-		return r1, nil
-	} else {
-		return r1, r2.(error)
-	}
-}
-
-func (m *mockStorage) Put(ctx context.Context, prefix string, key string, value []byte) error {
-	ret := m.Called(ctx, prefix, key, value)
-
-	if r := ret.Get(0); r == nil {
-		return nil
-	} else {
-		return r.(error)
-	}
-}
-
-func (m *mockStorage) Delete(ctx context.Context, prefix string, key string) error {
-	return nil
-}
 
 func TestKubeProfileServiceGet(t *testing.T) {
 	testCases := []struct {
@@ -70,7 +31,7 @@ func TestKubeProfileServiceGet(t *testing.T) {
 	prefix := "/kube/"
 
 	for _, testCase := range testCases {
-		m := new(mockStorage)
+		m := new(testutils.MockStorage)
 		m.On("Get", context.Background(), prefix, "fake_id").Return(testCase.data, testCase.err)
 
 		service := KubeProfileService{
@@ -109,7 +70,7 @@ func TestKubeProfileServiceCreate(t *testing.T) {
 	prefix := "/kube/"
 
 	for _, testCase := range testCases {
-		m := new(mockStorage)
+		m := new(testutils.MockStorage)
 		kubeData, _ := json.Marshal(testCase.kube)
 
 		m.On("Put",
@@ -150,7 +111,7 @@ func TestKubeProfileServiceGetAll(t *testing.T) {
 	prefix := "/kube/"
 
 	for _, testCase := range testCases {
-		m := new(mockStorage)
+		m := new(testutils.MockStorage)
 		m.On("GetAll", context.Background(), prefix).Return(testCase.data, testCase.err)
 
 		service := KubeProfileService{
