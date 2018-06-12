@@ -91,8 +91,8 @@ func (s *Service) Delete(ctx context.Context, name string) error {
 }
 
 // ListKubeResources returns raw representation of the supported kubernetes resources.
-func (s *Service) ListKubeResources(ctx context.Context, name string) ([]byte, error) {
-	kube, err := s.Get(ctx, name)
+func (s *Service) ListKubeResources(ctx context.Context, kname string) ([]byte, error) {
+	kube, err := s.Get(ctx, kname)
 	if err != nil {
 		return nil, errors.Wrap(err, "storage: get")
 	}
@@ -111,8 +111,8 @@ func (s *Service) ListKubeResources(ctx context.Context, name string) ([]byte, e
 }
 
 // GetKubeResources returns raw representation of the kubernetes resources.
-func (s *Service) GetKubeResources(ctx context.Context, kubeName, resource, ns, name string) ([]byte, error) {
-	kube, err := s.Get(ctx, kubeName)
+func (s *Service) GetKubeResources(ctx context.Context, kname, resource, ns, name string) ([]byte, error) {
+	kube, err := s.Get(ctx, kname)
 	if err != nil {
 		return nil, errors.Wrap(err, "storage: get")
 	}
@@ -124,7 +124,7 @@ func (s *Service) GetKubeResources(ctx context.Context, kubeName, resource, ns, 
 
 	gv, ok := resourcesInfo[resource]
 	if !ok {
-		return nil, ErrNotFound
+		return nil, sgerrors.ErrNotFound
 	}
 
 	client, err := s.clientForGroupFn(kube, gv)
