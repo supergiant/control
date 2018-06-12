@@ -9,9 +9,9 @@ import (
 
 	"github.com/stretchr/testify/mock"
 	"github.com/stretchr/testify/require"
-
-	"github.com/supergiant/supergiant/internal/testutils"
 	"github.com/supergiant/supergiant/pkg/jwt"
+	"github.com/supergiant/supergiant/pkg/sgerrors"
+	"github.com/supergiant/supergiant/pkg/testutils"
 )
 
 func TestEndpoint_Authenticate(t *testing.T) {
@@ -46,9 +46,9 @@ func TestEndpoint_Authenticate(t *testing.T) {
 	}
 	storage := new(testutils.MockStorage)
 
-	userEndpoint := &Endpoint{
+	userEndpoint := &Handler{
 		tokenService: ts,
-		userService:  Service{Repository: storage},
+		userService:  Service{repository: storage},
 	}
 	handler := http.HandlerFunc(userEndpoint.Authenticate)
 
@@ -99,13 +99,13 @@ func TestEndpoint_Create(t *testing.T) {
 		},
 	}
 	storage := new(testutils.MockStorage)
-	userEndpoint := &Endpoint{
-		userService: Service{Repository: storage},
+	userEndpoint := &Handler{
+		userService: Service{repository: storage},
 	}
 	handler := http.HandlerFunc(userEndpoint.Create)
 
-	storage.On("Put", mock.Anything, mock.Anything,
-		mock.Anything, mock.Anything).Return(nil)
+	storage.On("Get", mock.Anything, mock.Anything, mock.Anything).Return(nil, sgerrors.ErrNotFound)
+	storage.On("Put", mock.Anything, mock.Anything, mock.Anything, mock.Anything).Return(nil)
 
 	for _, testCase := range tt {
 		req, err := http.NewRequest("", "", bytes.NewReader(userToJSON(testCase.user)))

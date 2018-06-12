@@ -1,9 +1,8 @@
 package account
 
 import (
-	"context"
-
 	"bytes"
+	"context"
 	"encoding/json"
 
 	"github.com/pkg/errors"
@@ -14,7 +13,7 @@ import (
 
 // Service holds all business logic related to cloud accounts
 type Service struct {
-	Repository storage.Interface
+	repository storage.Interface
 }
 
 const prefix = "/supergiant/cloud_account/"
@@ -24,7 +23,7 @@ func (s *Service) GetAll(ctx context.Context) ([]CloudAccount, error) {
 	logrus.Debug("cloud_account.Service.GetAll start")
 
 	accounts := make([]CloudAccount, 0)
-	res, err := s.Repository.GetAll(ctx, prefix)
+	res, err := s.repository.GetAll(ctx, prefix)
 	if err != nil {
 		return accounts, err
 	}
@@ -47,7 +46,7 @@ func (s *Service) GetAll(ctx context.Context) ([]CloudAccount, error) {
 func (s *Service) Get(ctx context.Context, accountName string) (*CloudAccount, error) {
 	logrus.Debug("cloud_account.Service.Get start")
 
-	res, err := s.Repository.Get(ctx, prefix, accountName)
+	res, err := s.repository.Get(ctx, prefix, accountName)
 	if err != nil {
 		return nil, err
 	}
@@ -75,7 +74,7 @@ func (s *Service) Create(ctx context.Context, account *CloudAccount) error {
 		return errors.WithStack(err)
 	}
 
-	err = s.Repository.Put(ctx, prefix, account.Name, rawJSON)
+	err = s.repository.Put(ctx, prefix, account.Name, rawJSON)
 
 	logrus.Debug("cloud_account.Service.Create end")
 	return err
@@ -98,7 +97,7 @@ func (s *Service) Update(ctx context.Context, account *CloudAccount) error {
 		return errors.New("account name or provider can't be changed")
 	}
 
-	err = s.Repository.Put(ctx, prefix, account.Name, rawJSON)
+	err = s.repository.Put(ctx, prefix, account.Name, rawJSON)
 
 	logrus.Debug("cloud_account.Service.Update end")
 	return err
@@ -107,7 +106,7 @@ func (s *Service) Update(ctx context.Context, account *CloudAccount) error {
 // Delete cloud account by name
 func (s *Service) Delete(ctx context.Context, accountName string) error {
 	logrus.Debug("cloud_account.Service.Delete start")
-	err := s.Repository.Delete(ctx, prefix, accountName)
+	err := s.repository.Delete(ctx, prefix, accountName)
 	logrus.Debug("cloud_account.Service.Delete end")
 	return err
 }

@@ -5,47 +5,49 @@ import (
 	"net/http"
 
 	"github.com/gorilla/mux"
+	"github.com/sirupsen/logrus"
+	"github.com/supergiant/supergiant/pkg/sgerrors"
 	"gopkg.in/asaskevich/govalidator.v8"
 )
 
-type NodeProfileEndpoint struct {
+type NodeProfileHandler struct {
 	service *NodeProfileService
 }
 
-func (h *NodeProfileEndpoint) GetProfile(w http.ResponseWriter, r *http.Request) {
+func (h *NodeProfileHandler) GetProfile(w http.ResponseWriter, r *http.Request) {
 	vars := mux.Vars(r)
 	profileId := vars["id"]
 
 	nodeProfile, err := h.service.Get(r.Context(), profileId)
-
 	if err != nil {
-		http.Error(w, err.Error(), http.StatusNotFound)
+		if sgerrors.IsNotFound(err) {
+			http.Error(w, err.Error(), http.StatusNotFound)
+		}
+		logrus.Error(err)
+		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
 	}
 
 	json.NewEncoder(w).Encode(nodeProfile)
 }
 
-func (h *NodeProfileEndpoint) CreateProfile(w http.ResponseWriter, r *http.Request) {
+func (h *NodeProfileHandler) CreateProfile(w http.ResponseWriter, r *http.Request) {
 	profile := &NodeProfile{}
 
-	err := json.NewDecoder(r.Body).Decode(&profile)
-
-	if err != nil {
+	if err := json.NewDecoder(r.Body).Decode(&profile); err != nil {
+		logrus.Error(err)
 		http.Error(w, err.Error(), http.StatusBadRequest)
 		return
 	}
 
 	ok, err := govalidator.ValidateStruct(profile)
-
 	if !ok {
 		http.Error(w, err.Error(), http.StatusBadRequest)
 		return
 	}
 
-	err = h.service.Create(r.Context(), profile)
-
-	if err != nil {
+	if err := h.service.Create(r.Context(), profile); err != nil {
+		logrus.Error(err)
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
 	}
@@ -53,17 +55,16 @@ func (h *NodeProfileEndpoint) CreateProfile(w http.ResponseWriter, r *http.Reque
 	w.WriteHeader(http.StatusCreated)
 }
 
-func (h *NodeProfileEndpoint) GetProfiles(w http.ResponseWriter, r *http.Request) {
+func (h *NodeProfileHandler) GetProfiles(w http.ResponseWriter, r *http.Request) {
 	profiles, err := h.service.GetAll(r.Context())
-
 	if err != nil {
+		logrus.Error(err)
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
 	}
 
-	err = json.NewEncoder(w).Encode(profiles)
-
-	if err != nil {
+	if err = json.NewEncoder(w).Encode(profiles); err != nil {
+		logrus.Error(err)
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
 	}

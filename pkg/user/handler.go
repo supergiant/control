@@ -5,12 +5,13 @@ import (
 	"fmt"
 	"net/http"
 
-	"gopkg.in/asaskevich/govalidator.v8"
-
 	sgjwt "github.com/supergiant/supergiant/pkg/jwt"
+	"github.com/supergiant/supergiant/pkg/message"
+	"github.com/supergiant/supergiant/pkg/sgerrors"
+	"gopkg.in/asaskevich/govalidator.v8"
 )
 
-type Endpoint struct {
+type Handler struct {
 	userService  Service
 	tokenService sgjwt.TokenService
 }
@@ -20,32 +21,28 @@ type authRequest struct {
 	Password string
 }
 
-/**
-s.HandleFunc("/users", restrictedHandler(core, CreateUser)).Methods("POST")
-s.HandleFunc("/users", restrictedHandler(core, ListUsers)).Methods("GET")
-s.HandleFunc("/users/{id}", restrictedHandler(core, GetUser)).Methods("GET")
-s.HandleFunc("/users/{id}", restrictedHandler(core, UpdateUser)).Methods("PATCH", "PUT")
-s.HandleFunc("/users/{id}", restrictedHandler(core, DeleteUser)).Methods("DELETE")
-*/
-
-func NewEndpoint(userService Service, tokenService sgjwt.TokenService) *Endpoint {
-	return &Endpoint{
+func NewEndpoint(userService Service, tokenService sgjwt.TokenService) *Handler {
+	return &Handler{
 		userService:  userService,
 		tokenService: tokenService,
 	}
 }
 
-func (e *Endpoint) Authenticate(w http.ResponseWriter, r *http.Request) {
+func (e *Handler) Authenticate(w http.ResponseWriter, r *http.Request) {
 	var ar authRequest
-	err := json.NewDecoder(r.Body).Decode(&ar)
-	if err != nil {
+	if err := json.NewDecoder(r.Body).Decode(&ar); err != nil {
 		http.Error(w, err.Error(), http.StatusBadRequest)
 		return
 	}
+
 	if err := e.userService.Authenticate(r.Context(), ar.UserName, ar.Password); err != nil {
-		http.Error(w, err.Error(), http.StatusForbidden)
+		if sgerrors.IsInvalidCredentials(err) {
+			http.Error(w, sgerrors.ErrInvalidCredentials.Error(), http.StatusForbidden)
+		}
+		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
 	}
+
 	if token, err := e.tokenService.Issue(ar.UserName); err == nil {
 		w.Header().Set("Authorization", token)
 		return
@@ -55,10 +52,9 @@ func (e *Endpoint) Authenticate(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
-func (e *Endpoint) Create(rw http.ResponseWriter, r *http.Request) {
+func (e *Handler) Create(rw http.ResponseWriter, r *http.Request) {
 	var user User
-	err := json.NewDecoder(r.Body).Decode(&user)
-	if err != nil {
+	if err := json.NewDecoder(r.Body).Decode(&user); err != nil {
 		http.Error(rw, err.Error(), http.StatusBadRequest)
 		return
 	}
@@ -70,6 +66,11 @@ func (e *Endpoint) Create(rw http.ResponseWriter, r *http.Request) {
 	}
 
 	if err := e.userService.Create(r.Context(), &user); err != nil {
+		if sgerrors.IsAlreadyExists(err) {
+			msg := message.New(fmt.Sprintf("Login %s is already occupied", user.Login), "", sgerrors.EntityAlreadyExists, "")
+			message.SendMessage(rw, msg, http.StatusBadRequest)
+			return
+		}
 		http.Error(rw, err.Error(), http.StatusInternalServerError)
 		return
 	}
