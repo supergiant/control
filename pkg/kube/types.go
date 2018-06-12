@@ -1,5 +1,6 @@
 package kube
 
+// Kube represents a kubernetes cluster.
 type Kube struct {
 	Name              string `json:"name" valid:"required"`
 	Version           string
@@ -14,11 +15,13 @@ type Kube struct {
 	Auth              Auth
 }
 
+// Node represents a kubernetes worker node.
 type Node struct {
 	KubeName    string
 	ProfileName string
 }
 
+// LoadBalancer represents a cloud provider one.
 type LoadBalancer struct {
 	KubeName  string
 	Namespace string

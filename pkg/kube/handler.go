@@ -10,10 +10,6 @@ import (
 	"github.com/supergiant/supergiant/pkg/sgerrors"
 )
 
-const (
-	msgInvalidURLPath = "invalid url path"
-)
-
 // Handler is a http controller for a kube entity.
 type Handler struct {
 	svc *Service
