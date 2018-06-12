@@ -6,7 +6,7 @@ import (
 	"strings"
 
 	sgjwt "github.com/supergiant/supergiant/pkg/jwt"
-	"github.com/supergiant/supergiant/internal/user"
+	"github.com/supergiant/supergiant/pkg/user"
 )
 
 type middleware struct {
@@ -22,7 +22,6 @@ func (m *middleware) AuthMiddleware(next http.Handler) http.Handler {
 
 		// TODO(stgleb): Do something with claims
 		userId, ok := claims["user_id"].(string)
-
 		if !ok {
 			http.Error(w, err.Error(), http.StatusForbidden)
 			return

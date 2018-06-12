@@ -5,12 +5,10 @@ import (
 	"errors"
 	"fmt"
 	"io"
-
-	"golang.org/x/crypto/ssh"
-
-	"github.com/ayufan/gitlab-ci-multi-runner/helpers"
+	"strings"
 
 	"github.com/supergiant/supergiant/pkg/runner/command"
+	"golang.org/x/crypto/ssh"
 )
 
 // Config is a set of params needed to create valid ssh.ClientConfig
@@ -69,15 +67,18 @@ func (r *Runner) connect() error {
 }
 
 //TODO(stgleb): Add  more context like env variables?
-// Exec single command on ssh session
+// Run executes a single command on ssh session.
 func (r *Runner) Run(c command.Command) (err error) {
 	if r.client == nil {
 		return errors.New("not connected")
 	}
 
-	cmd := helpers.ShellEscape(c.FullCommand())
-	session, err := r.client.NewSession()
+	cmd := strings.TrimSpace(c.FullCommand())
+	if cmd == "" {
+		return nil
+	}
 
+	session, err := r.client.NewSession()
 	if err != nil {
 		return err
 	}
@@ -88,7 +89,6 @@ func (r *Runner) Run(c command.Command) (err error) {
 	session.Stderr = io.MultiWriter(r.out, c.Out)
 
 	err = session.Start(cmd)
-
 	if err != nil {
 		return err
 	}
