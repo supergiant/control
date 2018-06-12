@@ -132,7 +132,7 @@ func (p *Provider) DeleteKube(m *model.Kube, action *core.Action) error {
 		}
 
 		// NOTE we do this (maybe we should just describe, not spam detach) because
-		// we can't wait directly on minions to terminate (we can, but I'm lazy rn)
+		// we can't wait directly on Nodes to terminate (we can, but I'm lazy rn)
 		// TODO(stgleb): Context should be inherited from higher level context
 		ctx, cancel := context.WithTimeout(context.Background(), 5*time.Minute)
 		defer cancel()
@@ -181,6 +181,8 @@ func (p *Provider) DeleteKube(m *model.Kube, action *core.Action) error {
 		return nil
 	})
 
+	// Delete any public Subnets:
+
 	procedure.AddStep("deleting public Subnet(s)", func() error {
 		if len(m.AWSConfig.PublicSubnetIPRange) == 0 || m.AWSConfig.VPCMANAGED == true {
 			return nil
@@ -212,6 +214,96 @@ func (p *Provider) DeleteKube(m *model.Kube, action *core.Action) error {
 		return nil
 	})
 
+	// Revoke only Security Group INbound rules for Nodes that are dependent on other Security Groups (so that the Security Group can be deleted):
+
+	procedure.AddStep("revoking dependent Node Security Group ingress rules", func() error {
+		// Check if Security Group has already been deleted:
+		if m.AWSConfig.NodeSecurityGroupID == "" {
+			return nil
+		}
+
+		// Choose rules to revoke:
+		input := &ec2.RevokeSecurityGroupIngressInput{
+			GroupId: aws.String(m.AWSConfig.NodeSecurityGroupID),
+			IpPermissions: []*ec2.IpPermission{
+				{
+					FromPort:   aws.Int64(0),
+					ToPort:     aws.Int64(0),
+					IpProtocol: aws.String("-1"),
+					UserIdGroupPairs: []*ec2.UserIdGroupPair{
+						{
+							GroupId: aws.String(m.AWSConfig.NodeSecurityGroupID),
+						},
+					},
+				},
+				{
+					FromPort:   aws.Int64(0),
+					ToPort:     aws.Int64(0),
+					IpProtocol: aws.String("-1"),
+					UserIdGroupPairs: []*ec2.UserIdGroupPair{
+						{
+							GroupId: aws.String(m.AWSConfig.MasterSecurityGroupID),
+						},
+					},
+				},
+			},
+		}
+		if _, err := ec2S.RevokeSecurityGroupIngress(input); isErrAndNotAWSNotFound(err) {
+			return err
+		}
+		return nil
+	})
+
+	// Revoke only Security Group OUTbound rules for Nodes that are dependent on other Security Groups (so that the Security Group can be deleted):
+
+	// None currently exist.
+
+	// Revoke only Security Group INbound rules for Masters that are dependent on other Security Groups (so that the Security Group can be deleted):
+
+	procedure.AddStep("revoking dependent Master Security Group ingress rules", func() error {
+		// Check if Security Group has already been deleted:
+		if m.AWSConfig.MasterSecurityGroupID == "" {
+			return nil
+		}
+
+		// Choose rules to revoke:
+		input := &ec2.RevokeSecurityGroupIngressInput{
+			GroupId: aws.String(m.AWSConfig.MasterSecurityGroupID),
+			IpPermissions: []*ec2.IpPermission{
+				{
+					FromPort:   aws.Int64(0),
+					ToPort:     aws.Int64(0),
+					IpProtocol: aws.String("-1"),
+					UserIdGroupPairs: []*ec2.UserIdGroupPair{
+						{
+							GroupId: aws.String(m.AWSConfig.NodeSecurityGroupID),
+						},
+					},
+				},
+				{
+					FromPort:   aws.Int64(0),
+					ToPort:     aws.Int64(0),
+					IpProtocol: aws.String("-1"),
+					UserIdGroupPairs: []*ec2.UserIdGroupPair{
+						{
+							GroupId: aws.String(m.AWSConfig.MasterSecurityGroupID),
+						},
+					},
+				},
+			},
+		}
+		if _, err := ec2S.RevokeSecurityGroupIngress(input); isErrAndNotAWSNotFound(err) {
+			return err
+		}
+		return nil
+	})
+
+	// Revoke only Security Group OUTbound rules for Masters that are dependent on other Security Groups (so that the Security Group can be deleted):
+
+	// None currently exist.
+
+	// Delete the Security Groups:
+
 	procedure.AddStep("deleting Node Security Group", func() error {
 		if m.AWSConfig.NodeSecurityGroupID == "" {
 			return nil
@@ -226,19 +318,21 @@ func (p *Provider) DeleteKube(m *model.Kube, action *core.Action) error {
 		return nil
 	})
 
-	procedure.AddStep("deleting ELB Security Group", func() error {
-		if m.AWSConfig.ELBSecurityGroupID == "" {
+	procedure.AddStep("deleting Master Security Group", func() error {
+		if m.AWSConfig.MasterSecurityGroupID == "" {
 			return nil
 		}
 		input := &ec2.DeleteSecurityGroupInput{
-			GroupId: aws.String(m.AWSConfig.ELBSecurityGroupID),
+			GroupId: aws.String(m.AWSConfig.MasterSecurityGroupID),
 		}
 		if _, err := ec2S.DeleteSecurityGroup(input); isErrAndNotAWSNotFound(err) {
 			return err
 		}
-		m.AWSConfig.ELBSecurityGroupID = ""
+		m.AWSConfig.MasterSecurityGroupID = ""
 		return nil
 	})
+
+	// Delete the S3 Bucket:
 
 	procedure.AddStep("deleting S3 bucket", func() error {
 
@@ -285,12 +379,14 @@ func (p *Provider) DeleteKube(m *model.Kube, action *core.Action) error {
 		return nil
 	})
 
+	// Delete the VPC:
+
 	procedure.AddStep("deleting VPC", func() error {
 		if m.AWSConfig.VPCMANAGED {
 			procedure.Core.Log.Info("This VPC is not managed. It is NOT being deleted.")
 			return nil
 		}
-		// Delete the VPC
+
 		_, err := ec2S.DeleteVpc(&ec2.DeleteVpcInput{
 			VpcId: aws.String(m.AWSConfig.VPCID),
 		})
@@ -303,6 +399,8 @@ func (p *Provider) DeleteKube(m *model.Kube, action *core.Action) error {
 		}
 		return nil
 	})
+
+	// Delete the SSH key:
 
 	procedure.AddStep("deleting SSH Key Pair", func() error {
 		input := &ec2.DeleteKeyPairInput{

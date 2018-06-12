@@ -4,6 +4,7 @@ import (
 	"context"
 	"encoding/json"
 
+	"github.com/supergiant/supergiant/pkg/sgerrors"
 	"github.com/supergiant/supergiant/pkg/storage"
 )
 
@@ -22,13 +23,13 @@ func NewKubeService(prefix string, kubeStorage storage.Interface) *Service {
 func (s *Service) Get(ctx context.Context, id string) (*Kube, error) {
 	kubeData, err := s.storage.Get(ctx, s.prefix, id)
 	kube := &Kube{}
-
 	if err != nil {
 		return nil, err
 	}
-
+	if kubeData == nil {
+		return nil, sgerrors.ErrNotFound
+	}
 	err = json.Unmarshal(kubeData, kube)
-
 	if err != nil {
 		return nil, err
 	}
@@ -38,11 +39,9 @@ func (s *Service) Get(ctx context.Context, id string) (*Kube, error) {
 
 func (s *Service) Create(ctx context.Context, kube *Kube) error {
 	kubeData, err := json.Marshal(kube)
-
 	if err != nil {
 		return err
 	}
-
 	return s.storage.Put(ctx, s.prefix, kube.Name, kubeData)
 }
 
@@ -53,7 +52,6 @@ func (s *Service) GetAll(ctx context.Context) ([]Kube, error) {
 	)
 
 	kubesData, err := s.storage.GetAll(ctx, s.prefix)
-
 	if err != nil {
 		return nil, err
 	}
