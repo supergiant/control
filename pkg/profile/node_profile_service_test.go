@@ -19,7 +19,7 @@ func TestNodeProfileServiceGet(t *testing.T) {
 	}{
 		{
 			expectedId: "1234",
-			data:       []byte(`{"id": "1234", "size": "2gb", "image": "ubuntu"}`),
+			data:       []byte(`{"id": "1234", "size": { "Name":"t2.micro", "ram":"1gb", "cpu":"1" }, "image": "ubuntu"}`),
 			err:        nil,
 		},
 		{
@@ -46,8 +46,8 @@ func TestNodeProfileServiceGet(t *testing.T) {
 			return
 		}
 
-		if testCase.err == nil && profile.Id != testCase.expectedId {
-			t.Errorf("Wrong profile id expected %s actual %s", testCase.expectedId, profile.Id)
+		if testCase.err == nil && profile.ID != testCase.expectedId {
+			t.Errorf("Wrong profile id expected %s actual %s", testCase.expectedId, profile.ID)
 		}
 	}
 }

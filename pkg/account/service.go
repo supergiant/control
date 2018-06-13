@@ -9,6 +9,7 @@ import (
 	"github.com/sirupsen/logrus"
 
 	"github.com/supergiant/supergiant/pkg/storage"
+	"github.com/supergiant/supergiant/pkg/sgerrors"
 )
 
 // Service holds all business logic related to cloud accounts
@@ -51,7 +52,7 @@ func (s *Service) Get(ctx context.Context, accountName string) (*CloudAccount, e
 		return nil, err
 	}
 	if res == nil {
-		return nil, nil
+		return nil, sgerrors.ErrNotFound
 	}
 
 	ca := new(CloudAccount)
@@ -69,7 +70,7 @@ func (s *Service) Get(ctx context.Context, accountName string) (*CloudAccount, e
 func (s *Service) Create(ctx context.Context, account *CloudAccount) error {
 	logrus.Debug("cloud_account.Service.Create start")
 
-	rawJSON, err := json.Marshal(account)
+	rawJSON, err := json	.Marshal(account)
 	if err != nil {
 		return errors.WithStack(err)
 	}
