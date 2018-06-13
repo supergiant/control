@@ -37,6 +37,10 @@ export class NewCloudAccountComponent implements OnInit, OnDestroy {
   }
 
   create(model) {
+    // TODO: find a better way to do this...
+    if (model.provider === 'gce') {
+      model.credentials = JSON.parse(model.credentials.service_account_key);
+    }
     this.subscriptions.add(this.supergiant.CloudAccounts.create(model).subscribe(
       (data) => {
         this.success(model);

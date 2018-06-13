@@ -1,3 +1,40 @@
 mat-button-toggle-group {
     margin-bottom: 20px;
 }
+
+.new-cloud-account-wrapper {
+	margin: 20px;
+
+	header {
+		// border-bottom: 1px solid rgba(0, 0, 0, 0.1);
+		margin-bottom: 1rem;
+		// padding-bottom: 1rem;
+	}
+}
+
+.form-wrapper {
+	margin: 30px auto 0px;
+	width: 50%;
+
+	.creds-wrapper {
+		margin-top: 40px;
+
+		.legend {
+			font-size: 1.5em;
+		}
+
+		textarea {
+			background-color: #e9ecef;
+			border: 1px solid #ced4da;
+			border-radius: .125rem;
+			color: #495057;
+			height: 50vh;
+		}
+	}
+
+	button[type="submit"] {
+		font-size: 1.3em;
+		margin-top: 50px;
+		width: 100%;
+	}
+}

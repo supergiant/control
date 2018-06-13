@@ -13,22 +13,23 @@ export class CloudAccountModel {
     'schema': {
       'properties': {
         'credentials': {
+          'type': 'object',
           'properties': {
             'access_key': {
-              'description': 'Access Key',
-              'type': 'string'
+              'type': 'string',
+              'description': 'IAM user access key ID'
             },
             'secret_key': {
-              'description': 'Secret Access Key',
-              'type': 'string'
+              'type': 'string',
+              'description': 'IAM user secret access key'
             }
-          },
-          'type': 'object'
+          }
         },
         'name': {
-          'description': 'Provider Name',
-          'type': 'string'
+          'type': 'string',
+          'description': 'Choose a name for this cloud account'
         },
+
         'provider': {
           'default': 'aws',
           'description': 'AWS - Amazon Web Services',
@@ -36,8 +37,25 @@ export class CloudAccountModel {
           'widget': 'hidden'
         }
       }
-    }
+    },
+    'layout': [
+      { 'key': 'name' },
+      {
+        'key': 'credentials',
+        'type': 'div',
+        'htmlClass': 'creds-wrapper',
+        'items': [
+          { 'key': 'credentials.access_key' },
+          { 'key': 'credentials.secret_key' }
+        ]
+      },
+      {
+        'type': 'submit',
+        'title': 'Create'
+      }
+    ]
   };
+
   digitalocean = {
     'name' : 'Digital Ocean',
     'model': {
@@ -50,16 +68,16 @@ export class CloudAccountModel {
     'schema': {
       'properties': {
         'credentials': {
+          'type': 'object',
           'properties': {
             'token': {
               'description': 'API Token',
               'type': 'string'
             }
-          },
-          'type': 'object'
+          }
         },
         'name': {
-          'description': 'Provider Name',
+          'description': 'Choose a name for this cloud account',
           'type': 'string'
         },
         'provider': {
@@ -69,23 +87,29 @@ export class CloudAccountModel {
           'widget': 'hidden'
         }
       }
-    }
+    },
+    'layout': [
+      { 'key': 'name' },
+      {
+        'key': 'credentials',
+        'type': 'div',
+        'htmlClass': 'creds-wrapper',
+        'items': [
+          { 'key': 'credentials.token' }
+        ]
+      },
+      {
+        'type': 'submit',
+        'title': 'Create'
+      }
+    ]
   };
 
   gce = {
     'name' : 'GCE - Google Compute Engine',
     'model': {
       'credentials': {
-        'auth_provider_x509_cert_url': '',
-        'auth_uri': '',
-        'client_email': '',
-        'client_id': '',
-        'client_x509_cert_url': '',
-        'private_key': '',
-        'private_key_id': '',
-        'project_id': '',
-        'token_uri': '',
-        'type': ''
+        'service_account_key': ''
       },
       'name': '',
       'provider': 'gce'
@@ -93,52 +117,16 @@ export class CloudAccountModel {
     'schema': {
       'properties': {
         'credentials': {
+          'type': 'object',
           'properties': {
-            'auth_provider_x509_cert_url': {
-              'description': 'auth_provider_x509_cert_url',
-              'type': 'string'
-            },
-            'auth_uri': {
-              'description': 'Auth URI',
-              'type': 'string'
-            },
-            'client_email': {
-              'description': 'Client Email',
-              'type': 'string'
-            },
-            'client_id': {
-              'description': 'Client ID',
-              'type': 'string'
-            },
-            'client_x509_cert_url': {
-              'description': 'client_x509_cert_url',
-              'type': 'string'
-            },
-            'private_key': {
-              'description': 'Private Key',
-              'type': 'string'
-            },
-            'private_key_id': {
-              'description': 'Private Key ID',
-              'type': 'string'
-            },
-            'project_id': {
-              'description': 'Project ID',
-              'type': 'string'
-            },
-            'token_uri': {
-              'description': 'Token URI',
-              'type': 'string'
-            },
-            'type': {
-              'description': 'Type',
+            'service_account_key': {
+              'description': 'Paste in your service account key here.',
               'type': 'string'
             }
-          },
-          'type': 'object'
+          }
         },
         'name': {
-          'description': 'Provider Name',
+          'description': 'Choose a name for this cloud account',
           'type': 'string'
         },
         'provider': {
@@ -148,8 +136,27 @@ export class CloudAccountModel {
           'widget': 'hidden'
         }
       }
-    }
+    },
+    'layout': [
+      { 'key': 'name' },
+      {
+        'key': 'credentials',
+        'type': 'div',
+        'htmlClass': 'creds-wrapper',
+        'items': [
+          {
+            'key': 'credentials.service_account_key',
+            'type': 'textarea',
+          }
+        ]
+      },
+      {
+        'type': 'submit',
+        'title': 'Create'
+      }
+    ]
   };
+
   openstack = {
     'name' : 'OpenStack',
     'model': {
@@ -167,6 +174,7 @@ export class CloudAccountModel {
     'schema': {
       'properties': {
         'credentials': {
+          'type': 'object',
           'properties': {
             'domain_id': {
               'description': 'Domain ID',
@@ -192,11 +200,10 @@ export class CloudAccountModel {
               'description': 'User Name',
               'type': 'string'
             }
-          },
-          'type': 'object'
+          }
         },
         'name': {
-          'description': 'Provider Name',
+          'description': 'Choose a name for this cloud account',
           'type': 'string'
         },
         'provider': {
@@ -206,13 +213,34 @@ export class CloudAccountModel {
           'widget': 'hidden'
         }
       }
-    }
+    },
+    'layout': [
+      { 'key': 'name' },
+      {
+        'key': 'credentials',
+        'type': 'div',
+        'htmlClass': 'creds-wrapper',
+        'items': [
+          { 'key': 'credentials.domain_id' },
+          { 'key': 'credentials.domain_name' },
+          { 'key': 'credentials.identity_endpoint' },
+          { 'key': 'credentials.password' },
+          { 'key': 'credentials.tenant_id' },
+          { 'key': 'credentials.username' }
+        ]
+      },
+      {
+        'type': 'submit',
+        'title': 'Create'
+      }
+    ]
   };
+
   packet = {
     'name' : 'Packet.net',
     'model': {
       'credentials': {
-        'api_token': ''
+        'token': ''
       },
       'name': '',
       'provider': 'packet'
@@ -220,16 +248,16 @@ export class CloudAccountModel {
     'schema': {
       'properties': {
         'credentials': {
+          'type': 'object',
           'properties': {
-            'api_token': {
+            'token': {
               'description': 'API Token',
               'type': 'string'
             }
-          },
-          'type': 'object'
+          }
         },
         'name': {
-          'description': 'Provider Name',
+          'description': 'Choose a name for this cloud account',
           'type': 'string'
         },
         'provider': {
@@ -239,8 +267,24 @@ export class CloudAccountModel {
           'widget': 'hidden'
         }
       }
-    }
+    },
+    'layout': [
+      { 'key': 'name' },
+      {
+        'key': 'credentials',
+        'type': 'div',
+        'htmlClass': 'creds-wrapper',
+        'items': [
+          { 'key': 'credentials.token' }
+        ]
+      },
+      {
+        'type': 'submit',
+        'title': 'Create'
+      }
+    ]
   };
+
   public providers = [
     {
       name: 'AWS - Amazon Web Services',
