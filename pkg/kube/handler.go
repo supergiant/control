@@ -6,17 +6,17 @@ import (
 
 	"github.com/gorilla/mux"
 	"github.com/supergiant/supergiant/pkg/message"
-	"gopkg.in/asaskevich/govalidator.v8"
 	"github.com/supergiant/supergiant/pkg/sgerrors"
+	"gopkg.in/asaskevich/govalidator.v8"
 )
 
 // Handler is a http controller for a kube entity.
 type Handler struct {
-	svc *Service
+	svc Interface
 }
 
 // NewHandler constructs a Handler for kubes.
-func NewHandler(svc *Service) *Handler {
+func NewHandler(svc Interface) *Handler {
 	return &Handler{svc}
 }
 
@@ -26,8 +26,12 @@ func (h *Handler) Register(r *mux.Router) {
 	r.HandleFunc("/kubes", h.listKubes).Methods(http.MethodGet)
 	r.HandleFunc("/kubes/{kname}", h.getKube).Methods(http.MethodGet)
 	r.HandleFunc("/kubes/{kname}", h.deleteKube).Methods(http.MethodDelete)
-	r.HandleFunc("/kubes/{kname}/list", h.listResources).Methods(http.MethodGet)
+	r.HandleFunc("/kubes/{kname}/resources", h.listResources).Methods(http.MethodGet)
 	r.HandleFunc("/kubes/{kname}/resources/{resource}", h.getResource).Methods(http.MethodGet)
+
+	//resourceRouter := r.PathPrefix("/kubes/{kname}/resources").Subrouter()
+	//resourceRouter.HandleFunc("/", h.listResources).Methods(http.MethodGet)
+	//resourceRouter.HandleFunc("/{resource}", h.getResource).Methods(http.MethodGet)
 }
 
 func (h *Handler) createKube(w http.ResponseWriter, r *http.Request) {
@@ -56,10 +60,11 @@ func (h *Handler) getKube(w http.ResponseWriter, r *http.Request) {
 	vars := mux.Vars(r)
 
 	kname := vars["kname"]
+
 	k, err := h.svc.Get(r.Context(), kname)
 	if err != nil {
 		if sgerrors.IsNotFound(err) {
-			message.SendNotFound(w, "kube", err)
+			message.SendNotFound(w, kname, err)
 			return
 		}
 		message.SendUnknownError(w, err)
@@ -74,7 +79,7 @@ func (h *Handler) getKube(w http.ResponseWriter, r *http.Request) {
 func (h *Handler) listKubes(w http.ResponseWriter, r *http.Request) {
 	kubes, err := h.svc.ListAll(r.Context())
 	if err != nil {
-		http.Error(w, "", http.StatusInternalServerError)
+		message.SendUnknownError(w, err)
 		return
 	}
 
@@ -88,6 +93,10 @@ func (h *Handler) deleteKube(w http.ResponseWriter, r *http.Request) {
 
 	kname := vars["kname"]
 	if err := h.svc.Delete(r.Context(), kname); err != nil {
+		if sgerrors.IsNotFound(err) {
+			message.SendNotFound(w, kname, err)
+			return
+		}
 		message.SendUnknownError(w, err)
 		return
 	}
@@ -97,16 +106,16 @@ func (h *Handler) deleteKube(w http.ResponseWriter, r *http.Request) {
 
 func (h *Handler) listResources(w http.ResponseWriter, r *http.Request) {
 	vars := mux.Vars(r)
-	if vars == nil {
-		http.Error(w, "invalid url path", http.StatusBadRequest)
-		return
-	}
 
 	kname := vars["kname"]
 
 	rawResources, err := h.svc.ListKubeResources(r.Context(), kname)
 	if err != nil {
-		http.Error(w, "", http.StatusInternalServerError)
+		if sgerrors.IsNotFound(err) {
+			message.SendNotFound(w, kname, err)
+			return
+		}
+		message.SendUnknownError(w, err)
 		return
 	}
 
@@ -117,10 +126,6 @@ func (h *Handler) listResources(w http.ResponseWriter, r *http.Request) {
 
 func (h *Handler) getResource(w http.ResponseWriter, r *http.Request) {
 	vars := mux.Vars(r)
-	if vars == nil {
-		http.Error(w, "invalid url path", http.StatusBadRequest)
-		return
-	}
 
 	kname := vars["kname"]
 	rs := vars["resource"]
@@ -129,7 +134,11 @@ func (h *Handler) getResource(w http.ResponseWriter, r *http.Request) {
 
 	rawResources, err := h.svc.GetKubeResources(r.Context(), kname, rs, ns, name)
 	if err != nil {
-		http.Error(w, "", http.StatusInternalServerError)
+		if sgerrors.IsNotFound(err) {
+			message.SendNotFound(w, kname, err)
+			return
+		}
+		message.SendUnknownError(w, err)
 		return
 	}
 

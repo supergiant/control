@@ -2,7 +2,9 @@ package kube
 
 import (
 	"bytes"
+	"context"
 	"encoding/json"
+	"fmt"
 	"net/http"
 	"net/http/httptest"
 	"testing"
@@ -11,66 +13,107 @@ import (
 	"github.com/pkg/errors"
 	"github.com/stretchr/testify/mock"
 	"github.com/stretchr/testify/require"
-	"github.com/supergiant/supergiant/pkg/testutils"
+	"github.com/supergiant/supergiant/pkg/message"
+	"github.com/supergiant/supergiant/pkg/sgerrors"
 )
 
+type kubeServiceMock struct {
+	mock.Mock
+}
+
+const (
+	serviceCreate            = "Create"
+	serviceGet               = "Get"
+	serviceListAll           = "ListAll"
+	serviceDelete            = "Delete"
+	serviceListKubeResources = "ListKubeResources"
+	serviceGetKubeResources  = "GetKubeResources"
+)
+
+func (m *kubeServiceMock) Create(ctx context.Context, k *Kube) error {
+	args := m.Called(ctx, k)
+	return args.Error(0)
+}
+func (m *kubeServiceMock) Get(ctx context.Context, name string) (*Kube, error) {
+	args := m.Called(ctx, name)
+	val, ok := args.Get(0).(*Kube)
+	if !ok {
+		return nil, args.Error(1)
+	}
+	return val, args.Error(1)
+}
+func (m *kubeServiceMock) ListAll(ctx context.Context) ([]Kube, error) {
+	args := m.Called(ctx)
+	val, ok := args.Get(0).([]Kube)
+	if !ok {
+		return nil, args.Error(1)
+	}
+	return val, args.Error(1)
+}
+func (m *kubeServiceMock) Delete(ctx context.Context, name string) error {
+	args := m.Called(ctx, name)
+	return args.Error(0)
+}
+func (m *kubeServiceMock) ListKubeResources(ctx context.Context, kname string) ([]byte, error) {
+	args := m.Called(ctx, kname)
+	val, ok := args.Get(0).([]byte)
+	if !ok {
+		return nil, args.Error(1)
+	}
+	return val, args.Error(1)
+}
+func (m *kubeServiceMock) GetKubeResources(ctx context.Context, kname, resource, ns, name string) ([]byte, error) {
+	args := m.Called(ctx, kname, resource, ns, name)
+	val, ok := args.Get(0).([]byte)
+	if !ok {
+		return nil, args.Error(1)
+	}
+	return val, args.Error(1)
+}
 
 func TestHandler_createKube(t *testing.T) {
 	tcs := []struct {
-		kube    *Kube
 		rawKube []byte
 
-		storageError error
+		serviceError error
 
-		expectedStatus int
+		expectedStatus  int
+		expectedErrCode sgerrors.ErrorCode
 	}{
 		{ // TC#1
-			rawKube: []byte("{name:invalid_json,,}"),
-			kube: &Kube{
-				Name: "invalid_json",
-			},
-			expectedStatus: http.StatusBadRequest,
+			rawKube:         []byte(`{"name":"invalid_json"",,}`),
+			expectedStatus:  http.StatusBadRequest,
+			expectedErrCode: sgerrors.InvalidJSON,
 		},
 		{ // TC#2
-			kube: &Kube{
-				Name: "",
-			},
-			expectedStatus: http.StatusBadRequest,
+			rawKube:         []byte(`{"name":""}`),
+			expectedStatus:  http.StatusBadRequest,
+			expectedErrCode: sgerrors.ValidationFailed,
 		},
 		{ // TC#3
-			storageError: errors.New("error"),
-			kube: &Kube{
-				Name: "fail_to_put",
-			},
-			expectedStatus: http.StatusInternalServerError,
+			rawKube:         []byte(`{"name":"fail_to_put"}`),
+			serviceError:    errors.New("error"),
+			expectedStatus:  http.StatusInternalServerError,
+			expectedErrCode: sgerrors.UnknownError,
 		},
 		{ // TC#4
-			kube: &Kube{
-				Name: "success",
-			},
+			rawKube:        []byte(`{"name":"success"}`),
 			expectedStatus: http.StatusAccepted,
 		},
 	}
 
 	for i, tc := range tcs {
 		// setup handler
-		storage := new(testutils.MockStorage)
-		h := NewHandler(NewService(DefaultStoragePrefix, storage))
-
-		// prepare
-		if tc.rawKube == nil {
-			raw, err := json.Marshal(tc.kube)
-			require.Equalf(t, nil, err, "TC#%d: %v", i+1, err)
-			tc.rawKube = raw
-		}
+		svc := new(kubeServiceMock)
+		h := NewHandler(svc)
 
 		req, err := http.NewRequest(http.MethodPost, "/kubes", bytes.NewReader(tc.rawKube))
 		require.Equalf(t, nil, err, "TC#%d: create request: %v", i+1, err)
 
-		storage.On(testutils.StoragePut, mock.Anything, mock.Anything, tc.kube.Name, mock.Anything).Return(tc.storageError)
+		svc.On(serviceCreate, mock.Anything, mock.Anything).Return(tc.serviceError)
 		rr := httptest.NewRecorder()
 
-		router := mux.NewRouter()
+		router := mux.NewRouter().SkipClean(true)
 		h.Register(router)
 
 		// run
@@ -79,7 +122,13 @@ func TestHandler_createKube(t *testing.T) {
 		// check
 		require.Equalf(t, tc.expectedStatus, rr.Code, "TC#%d", i+1)
 
-		// TODO: check error message
+		if tc.expectedErrCode != sgerrors.ErrorCode(0) {
+			m := new(message.Message)
+			err = json.NewDecoder(rr.Body).Decode(m)
+			require.Equalf(t, nil, err, "TC#%d", i+1)
+
+			require.Equalf(t, tc.expectedErrCode, m.ErrorCode, "TC#%d", i+1)
+		}
 	}
 }
 
@@ -87,34 +136,32 @@ func TestHandler_getKube(t *testing.T) {
 	tcs := []struct {
 		kubeName string
 
-		storageKube    *Kube
-		storageKubeRaw []byte
-		storageError error
+		serviceKube  *Kube
+		serviceError error
 
-		expectedStatus int
+		expectedStatus  int
+		expectedErrCode sgerrors.ErrorCode
 	}{
 		{ // TC#1
-			kubeName:       "not_found",
+			kubeName:       "",
 			expectedStatus: http.StatusNotFound,
 		},
 		{ // TC#2
-			kubeName: "storage_error",
-			storageError: errors.New("error"),
-			expectedStatus: http.StatusInternalServerError,
-		},
-		{ // TC#2
-			kubeName:       "invalid_json",
-			storageKubeRaw: []byte("{name;}"),
-			expectedStatus: http.StatusInternalServerError,
+			kubeName:        "service_error",
+			serviceError:    errors.New("get error"),
+			expectedStatus:  http.StatusInternalServerError,
+			expectedErrCode: sgerrors.UnknownError,
 		},
 		{ // TC#3
-			kubeName:       "not_found",
-			expectedStatus: http.StatusNotFound,
+			kubeName:        "not_found",
+			serviceError:    sgerrors.ErrNotFound,
+			expectedStatus:  http.StatusNotFound,
+			expectedErrCode: sgerrors.NotFound,
 		},
 		{ // TC#4
-			kubeName: "stable",
-			storageKube: &Kube{
-				Name: "stable",
+			kubeName: "success",
+			serviceKube: &Kube{
+				Name: "success",
 			},
 			expectedStatus: http.StatusOK,
 		},
@@ -122,91 +169,101 @@ func TestHandler_getKube(t *testing.T) {
 
 	for i, tc := range tcs {
 		// setup handler
-		storage := new(testutils.MockStorage)
-		h := NewHandler(NewService(DefaultStoragePrefix, storage))
+		svc := new(kubeServiceMock)
+		h := NewHandler(svc)
 
 		// prepare
 		req, err := http.NewRequest(http.MethodGet, "/kubes/"+tc.kubeName, nil)
 		require.Equalf(t, nil, err, "TC#%d: create request: %v", i+1, err)
 
-		if tc.storageKube != nil {
-			raw, err := json.Marshal(tc.storageKube)
-			require.Equalf(t, nil, err, "TC#%d: %v", i+1, err)
-			tc.storageKubeRaw = raw
-		}
-		storage.On(testutils.StorageGet, mock.Anything, mock.Anything, tc.kubeName).Return(tc.storageKubeRaw, tc.storageError)
+		svc.On(serviceGet, mock.Anything, tc.kubeName).Return(tc.serviceKube, tc.serviceError)
 		rr := httptest.NewRecorder()
 
-		router := mux.NewRouter()
+		router := mux.NewRouter().SkipClean(true)
 		h.Register(router)
 
 		// run
 		router.ServeHTTP(rr, req)
 
 		// check
-		// TODO: check error message
 		require.Equalf(t, tc.expectedStatus, rr.Code, "TC#%d", i+1)
 
-		if tc.storageKube != nil {
-			repo := new(Kube)
-			require.Nil(t, json.NewDecoder(rr.Body).Decode(repo))
+		if tc.expectedErrCode != sgerrors.ErrorCode(0) {
+			m := new(message.Message)
+			err = json.NewDecoder(rr.Body).Decode(m)
+			require.Equalf(t, nil, err, "TC#%d", i+1)
 
-			require.Equalf(t, tc.storageKube, repo, "TC#%d", i+1)
+			require.Equalf(t, tc.expectedErrCode, m.ErrorCode, "TC#%d", i+1)
+		}
+
+		if tc.serviceKube != nil {
+			k := new(Kube)
+			err = json.NewDecoder(rr.Body).Decode(k)
+			require.Equalf(t, nil, err, "TC#%d", i+1)
+
+			require.Equalf(t, k, tc.serviceKube, "TC#%d", i+1)
 		}
 	}
 }
 
 func TestHandler_listKubes(t *testing.T) {
 	tcs := []struct {
-		storageKube  *Kube
-		storageError error
+		serviceKubes []Kube
+		serviceError error
 
-		expectedStatus int
+		expectedStatus  int
+		expectedErrCode sgerrors.ErrorCode
 	}{
 		{ // TC#1
-			storageError: errors.New("storage error"),
-			expectedStatus: http.StatusInternalServerError,
+			serviceError:    errors.New("error"),
+			expectedStatus:  http.StatusInternalServerError,
+			expectedErrCode: sgerrors.UnknownError,
 		},
 		{ // TC#2
-			storageKube: &Kube{
-				Name: "stable",
-			},
 			expectedStatus: http.StatusOK,
+			serviceKubes: []Kube{
+				{
+					Name: "success",
+				},
+			},
 		},
 	}
 
 	for i, tc := range tcs {
 		// setup handler
-		storage := new(testutils.MockStorage)
-		h := NewHandler(NewService(DefaultStoragePrefix, storage))
+		svc := new(kubeServiceMock)
+		h := NewHandler(svc)
 
 		// prepare
 		req, err := http.NewRequest(http.MethodGet, "/kubes", nil)
 		require.Equalf(t, nil, err, "TC#%d: create request: %v", i+1, err)
 
-		raw, err := json.Marshal(tc.storageKube)
-		require.Nil(t, err)
-
-		storage.On(testutils.StorageGetAll, mock.Anything, mock.Anything).Return([][]byte{raw}, tc.storageError)
+		svc.On(serviceListAll, mock.Anything).Return(tc.serviceKubes, tc.serviceError)
 		rr := httptest.NewRecorder()
 
-		router := mux.NewRouter()
+		router := mux.NewRouter().SkipClean(true)
 		h.Register(router)
 
 		// run
 		router.ServeHTTP(rr, req)
 
 		// check
-		// TODO: check error message
 		require.Equalf(t, tc.expectedStatus, rr.Code, "TC#%d", i+1)
 
-		if tc.storageKube != nil {
-			repos := make([]Kube, 1)
-			if err = json.NewDecoder(rr.Body).Decode(&repos); err != nil {
-				t.Errorf("TC#%d: decode body: %v", i+1, err)
-			}
+		if tc.expectedErrCode != sgerrors.ErrorCode(0) {
+			m := new(message.Message)
+			err = json.NewDecoder(rr.Body).Decode(m)
+			require.Equalf(t, nil, err, "TC#%d", i+1)
 
-			require.Equalf(t, []Kube{*tc.storageKube}, repos, "TC#%d", i+1)
+			require.Equalf(t, tc.expectedErrCode, m.ErrorCode, "TC#%d", i+1)
+		}
+
+		if tc.serviceKubes != nil {
+			kubes := new([]Kube)
+			err = json.NewDecoder(rr.Body).Decode(kubes)
+			require.Equalf(t, nil, err, "TC#%d", i+1)
+
+			require.Equalf(t, tc.serviceKubes, *kubes, "TC#%d", i+1)
 		}
 	}
 }
@@ -215,96 +272,191 @@ func TestHandler_deleteKube(t *testing.T) {
 	tcs := []struct {
 		kubeName string
 
-		storageError error
+		serviceError error
 
-		expectedStatus int
+		expectedStatus  int
+		expectedErrCode sgerrors.ErrorCode
 	}{
 		{ // TC#1
-			kubeName: "not_found",
-			storageError: errors.New("error"),
-			expectedStatus: http.StatusInternalServerError,
+			kubeName:       "",
+			expectedStatus: http.StatusNotFound,
 		},
 		{ // TC#2
-			kubeName: "delete",
+			kubeName:        "service_error",
+			serviceError:    errors.New("get error"),
+			expectedStatus:  http.StatusInternalServerError,
+			expectedErrCode: sgerrors.UnknownError,
+		},
+		{ // TC#3
+			kubeName:        "not_found",
+			serviceError:    sgerrors.ErrNotFound,
+			expectedStatus:  http.StatusNotFound,
+			expectedErrCode: sgerrors.NotFound,
+		},
+		{ // TC#3
+			kubeName:       "delete",
 			expectedStatus: http.StatusAccepted,
 		},
 	}
 
 	for i, tc := range tcs {
 		// setup handler
-		storage := new(testutils.MockStorage)
-		h := NewHandler(NewService(DefaultStoragePrefix, storage))
+		svc := new(kubeServiceMock)
+		h := NewHandler(svc)
 
 		// prepare
 		req, err := http.NewRequest(http.MethodDelete, "/kubes/"+tc.kubeName, nil)
 		require.Equalf(t, nil, err, "TC#%d: create request: %v", i+1, err)
 
-		storage.On(testutils.StorageDelete, mock.Anything, mock.Anything, mock.Anything).Return(tc.storageError)
+		svc.On(serviceDelete, mock.Anything, tc.kubeName).Return(tc.serviceError)
 		rr := httptest.NewRecorder()
 
-		router := mux.NewRouter()
+		router := mux.NewRouter().SkipClean(true)
 		h.Register(router)
 
 		// run
 		router.ServeHTTP(rr, req)
 
 		// check
-		// TODO: check error message
 		require.Equalf(t, tc.expectedStatus, rr.Code, "TC#%d", i+1)
+
+		if tc.expectedErrCode != sgerrors.ErrorCode(0) {
+			m := new(message.Message)
+			err = json.NewDecoder(rr.Body).Decode(m)
+			require.Equalf(t, nil, err, "TC#%d", i+1)
+
+			require.Equalf(t, tc.expectedErrCode, m.ErrorCode, "TC#%d", i+1)
+		}
 	}
 }
 
 func TestHandler_listResources(t *testing.T) {
 	tcs := []struct {
-		storageKube  *Kube
-		storageError error
+		kubeName string
 
-		expectedStatus int
+		serviceResources []byte
+		serviceError     error
+
+		expectedStatus  int
+		expectedErrCode sgerrors.ErrorCode
 	}{
 		{ // TC#1
-			storageError: errors.New("storage error"),
-			expectedStatus: http.StatusInternalServerError,
+			kubeName:       "",
+			expectedStatus: http.StatusNotFound,
 		},
 		{ // TC#2
-			storageKube: &Kube{
-				Name: "stable",
-			},
+			kubeName:        "service_error",
+			serviceError:    errors.New("get error"),
+			expectedStatus:  http.StatusInternalServerError,
+			expectedErrCode: sgerrors.UnknownError,
+		},
+		{ // TC#3
+			kubeName:        "not_found",
+			serviceError:    sgerrors.ErrNotFound,
+			expectedStatus:  http.StatusNotFound,
+			expectedErrCode: sgerrors.NotFound,
+		},
+		{ // TC#4
+			kubeName:       "list_resources",
 			expectedStatus: http.StatusOK,
 		},
 	}
 
 	for i, tc := range tcs {
 		// setup handler
-		storage := new(testutils.MockStorage)
-		h := NewHandler(NewService(DefaultStoragePrefix, storage))
+		svc := new(kubeServiceMock)
+		h := NewHandler(svc)
 
 		// prepare
-		req, err := http.NewRequest(http.MethodGet, "/kubes", nil)
+		req, err := http.NewRequest(http.MethodGet, fmt.Sprintf("/kubes/%s/resources", tc.kubeName), nil)
 		require.Equalf(t, nil, err, "TC#%d: create request: %v", i+1, err)
 
-		raw, err := json.Marshal(tc.storageKube)
-		require.Nil(t, err)
-
-		storage.On(testutils.StorageGetAll, mock.Anything, mock.Anything).Return([][]byte{raw}, tc.storageError)
+		svc.On(serviceListKubeResources, mock.Anything, tc.kubeName).Return(tc.serviceResources, tc.serviceError)
 		rr := httptest.NewRecorder()
 
-		router := mux.NewRouter()
+		router := mux.NewRouter().SkipClean(true)
 		h.Register(router)
 
 		// run
 		router.ServeHTTP(rr, req)
 
 		// check
-		// TODO: check error message
 		require.Equalf(t, tc.expectedStatus, rr.Code, "TC#%d", i+1)
 
-		if tc.storageKube != nil {
-			repos := make([]Kube, 1)
-			if err = json.NewDecoder(rr.Body).Decode(&repos); err != nil {
-				t.Errorf("TC#%d: decode body: %v", i+1, err)
-			}
+		if tc.expectedErrCode != sgerrors.ErrorCode(0) {
+			m := new(message.Message)
+			err = json.NewDecoder(rr.Body).Decode(m)
+			require.Equalf(t, nil, err, "TC#%d", i+1)
 
-			require.Equalf(t, []Kube{*tc.storageKube}, repos, "TC#%d", i+1)
+			require.Equalf(t, tc.expectedErrCode, m.ErrorCode, "TC#%d", i+1)
+		}
+	}
+}
+
+func TestHandler_getResources(t *testing.T) {
+	tcs := []struct {
+		kubeName     string
+		resourceName string
+
+		serviceResources []byte
+		serviceError     error
+
+		expectedStatus  int
+		expectedErrCode sgerrors.ErrorCode
+	}{
+		{ // TC#1
+			kubeName:       "",
+			expectedStatus: http.StatusNotFound,
+		},
+		{ // TC#2
+			kubeName:        "service_error",
+			resourceName:    "service_error",
+			serviceError:    errors.New("get error"),
+			expectedStatus:  http.StatusInternalServerError,
+			expectedErrCode: sgerrors.UnknownError,
+		},
+		{ // TC#3
+			kubeName:        "not_found",
+			resourceName:    "not_found",
+			serviceError:    sgerrors.ErrNotFound,
+			expectedStatus:  http.StatusNotFound,
+			expectedErrCode: sgerrors.NotFound,
+		},
+		{ // TC#4
+			kubeName:       "list_resources",
+			resourceName:   "list_resources",
+			expectedStatus: http.StatusOK,
+		},
+	}
+
+	for i, tc := range tcs {
+		// setup handler
+		svc := new(kubeServiceMock)
+		h := NewHandler(svc)
+
+		// prepare
+		req, err := http.NewRequest(http.MethodGet, fmt.Sprintf("/kubes/%s/resources/%s", tc.kubeName, tc.resourceName), nil)
+		require.Equalf(t, nil, err, "TC#%d: create request: %v", i+1, err)
+
+		svc.On(serviceGetKubeResources, mock.Anything, tc.kubeName, mock.Anything, mock.Anything, mock.Anything).
+			Return(tc.serviceResources, tc.serviceError)
+		rr := httptest.NewRecorder()
+
+		router := mux.NewRouter().SkipClean(true)
+		h.Register(router)
+
+		// run
+		router.ServeHTTP(rr, req)
+
+		// check
+		require.Equalf(t, tc.expectedStatus, rr.Code, "TC#%d", i+1)
+
+		if tc.expectedErrCode != sgerrors.ErrorCode(0) {
+			m := new(message.Message)
+			err = json.NewDecoder(rr.Body).Decode(m)
+			require.Equalf(t, nil, err, "TC#%d", i+1)
+
+			require.Equalf(t, tc.expectedErrCode, m.ErrorCode, "TC#%d", i+1)
 		}
 	}
 }

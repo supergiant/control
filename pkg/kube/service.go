@@ -5,14 +5,24 @@ import (
 	"encoding/json"
 
 	"github.com/pkg/errors"
+	"github.com/supergiant/supergiant/pkg/sgerrors"
 	"github.com/supergiant/supergiant/pkg/storage"
 	"k8s.io/apimachinery/pkg/runtime/schema"
 	"k8s.io/client-go/discovery"
 	"k8s.io/client-go/rest"
-	"github.com/supergiant/supergiant/pkg/sgerrors"
 )
 
 const DefaultStoragePrefix = "/kube/"
+
+// Interface represents an interface for a kube service.
+type Interface interface {
+	Create(ctx context.Context, k *Kube) error
+	Get(ctx context.Context, name string) (*Kube, error)
+	ListAll(ctx context.Context) ([]Kube, error)
+	Delete(ctx context.Context, name string) error
+	ListKubeResources(ctx context.Context, kname string) ([]byte, error)
+	GetKubeResources(ctx context.Context, kname, resource, ns, name string) ([]byte, error)
+}
 
 // Service manages kubernetes clusters.
 type Service struct {
@@ -24,7 +34,7 @@ type Service struct {
 }
 
 // NewService constructs a Service.
-func NewService(prefix string, s storage.Interface) *Service {
+func NewService(prefix string, s storage.Interface) Interface {
 	return &Service{
 		clientForGroupFn:  restClientForGroupVersion,
 		discoveryClientFn: discoveryClient,
