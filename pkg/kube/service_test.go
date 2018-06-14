@@ -2,10 +2,10 @@ package kube
 
 import (
 	"context"
-	"github.com/pkg/errors"
+	"encoding/json"
 	"testing"
 
-	"encoding/json"
+	"github.com/pkg/errors"
 
 	"github.com/supergiant/supergiant/pkg/testutils"
 )
@@ -101,7 +101,7 @@ func TestKubeServiceGetAll(t *testing.T) {
 		},
 	}
 
-	prefix := "/kube/"
+	prefix := DefaultStoragePrefix
 
 	for _, testCase := range testCases {
 		m := new(testutils.MockStorage)
