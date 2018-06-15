@@ -20,14 +20,14 @@ ExecStart=/usr/bin/docker run \
         -v /var/log:/var/log:shared \
         -v /srv/kubernetes:/srv/kubernetes:ro \
         -v /etc/kubernetes:/etc/kubernetes:ro \
-        gcr.io/google-containers/hyperkube:v{{ .Kube.KubernetesVersion }} \
+        gcr.io/google-containers/hyperkube:v{{ .KubernetesVersion }} \
         /hyperkube kubelet --allow-privileged=true \
         --cluster-dns=10.3.0.10 \
         --cluster_domain=cluster.local \
         --pod-manifest-path=/etc/kubernetes/manifests \
         --kubeconfig=/etc/kubernetes/worker-kubeconfig.yaml \
         --volume-plugin-dir=/etc/kubernetes/volumeplugins \
-        {{- .Kube.KubeProviderString }}
+        {{- .KubeProviderString }}
         --fail-swap-on=false \
         --register-node=true
 Restart=always
