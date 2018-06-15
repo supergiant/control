@@ -131,10 +131,10 @@ func NewRouter(c *core.Core, baseRouter *mux.Router) *mux.Router {
 	r.HandleFunc("/kube_resources", restrictedHandler(c, ListKubeResources)).Methods("GET")
 	r.HandleFunc("/kube_resources/new", restrictedHandler(c, NewKubeResource)).Methods("GET")
 	// TODO this is so gross
-	r.HandleFunc("/{kind:(kube_resource|pod|service|volume)}s", restrictedHandler(c, CreateKubeResource)).Methods("POST")
-	r.HandleFunc("/{kind:(kube_resource|pod|service|volume)}s/{id}", restrictedHandler(c, GetKubeResource)).Methods("GET")
-	r.HandleFunc("/{kind:(kube_resource|pod|service|volume)}s/{id}/edit", restrictedHandler(c, EditKubeResource)).Methods("GET")
-	r.HandleFunc("/{kind:(kube_resource|pod|service|volume)}s/{id}", restrictedHandler(c, UpdateKubeResource)).Methods("POST")
+	r.HandleFunc("/{kind:(?:kube_resource|pod|service|volume)}s", restrictedHandler(c, CreateKubeResource)).Methods("POST")
+	r.HandleFunc("/{kind:(?:kube_resource|pod|service|volume)}s/{id}", restrictedHandler(c, GetKubeResource)).Methods("GET")
+	r.HandleFunc("/{kind:(?:kube_resource|pod|service|volume)}s/{id}/edit", restrictedHandler(c, EditKubeResource)).Methods("GET")
+	r.HandleFunc("/{kind:(?:kube_resource|pod|service|volume)}s/{id}", restrictedHandler(c, UpdateKubeResource)).Methods("POST")
 
 	r.HandleFunc("/helm_repos/new", restrictedHandler(c, NewHelmRepo)).Methods("GET")
 	r.HandleFunc("/helm_repos", restrictedHandler(c, CreateHelmRepo)).Methods("POST")
