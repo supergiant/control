@@ -2,13 +2,13 @@ package ssh
 
 import (
 	"context"
-	"errors"
 	"fmt"
 	"io"
 	"strings"
 
 	"github.com/supergiant/supergiant/pkg/runner/command"
 	"golang.org/x/crypto/ssh"
+	"github.com/pkg/errors"
 )
 
 // Config is a set of params needed to create valid ssh.ClientConfig
@@ -35,9 +35,11 @@ type Runner struct {
 // NewRunner creates ssh runner object. It requires two io.Writer
 // to send output of ssh session and config for ssh client.
 func NewRunner(outStream, errStream io.Writer, config *Config) (*Runner, error) {
-	if sshConfig, err := getSshConfig(config); err != nil {
-		config.SshClientConfig = sshConfig
+	sshConfig, err := getSSHConfig(config)
+	if err != nil {
+		return nil, errors.Wrap(err, "getSSHConfig")
 	}
+	config.SshClientConfig = sshConfig
 
 	r := &Runner{
 		config,
@@ -46,10 +48,8 @@ func NewRunner(outStream, errStream io.Writer, config *Config) (*Runner, error) 
 		nil,
 	}
 
-	err := r.connect()
-
-	if err != nil {
-		return nil, err
+	if err := r.connect(); err != nil {
+		return nil, errors.Wrap(err, "runner connect")
 	}
 
 	return r, nil

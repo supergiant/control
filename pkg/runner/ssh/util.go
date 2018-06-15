@@ -11,7 +11,7 @@ var (
 	ErrUserNotSpecified = errors.New("user not specified")
 )
 
-func getSshConfig(config *Config) (*ssh.ClientConfig, error) {
+func getSSHConfig(config *Config) (*ssh.ClientConfig, error) {
 	key, err := ssh.ParsePrivateKey(config.Key)
 
 	if err != nil {
@@ -27,6 +27,7 @@ func getSshConfig(config *Config) (*ssh.ClientConfig, error) {
 		Auth: []ssh.AuthMethod{
 			ssh.PublicKeys(key),
 		},
-		Timeout: time.Duration(config.Timeout) * time.Second,
+		Timeout:         time.Duration(config.Timeout) * time.Second,
+		HostKeyCallback: ssh.InsecureIgnoreHostKey(),
 	}, nil
 }
