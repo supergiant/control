@@ -68,7 +68,7 @@ func (r *Runner) connect() error {
 
 //TODO(stgleb): Add  more context like env variables?
 // Run executes a single command on ssh session.
-func (r *Runner) Run(c command.Command) (err error) {
+func (r *Runner) Run(c *command.Command) (err error) {
 	if r.client == nil {
 		return errors.New("not connected")
 	}
