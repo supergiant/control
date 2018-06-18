@@ -118,20 +118,12 @@ func (t *Task) runTemplate(ctx context.Context, tpl *template.Template, cfg task
 		return err
 	}
 
-	for {
-		c, err := buffer.ReadString('\n')
+	// TODO(stgleb): pass writers for out and err from outside
+	cmd := command.NewCommand(context.Background(), buffer.String(), os.Stdout, os.Stderr)
+	err = t.runner.Run(cmd)
 
-		if err != nil {
-			break
-		}
-
-		// TODO(stgleb): pass writers for out and err from outside
-		cmd := command.NewCommand(context.Background(), c, nil, os.Stdout, os.Stderr)
-		err = t.runner.Run(cmd)
-
-		if err != nil {
-			return err
-		}
+	if err != nil {
+		return err
 	}
 
 	return nil
