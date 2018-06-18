@@ -94,30 +94,25 @@ func (t *Task) ProvisionNode(k8sVersion, masterPrivateIp string) error {
 
 	cfg.KubeletService = buffer.String()
 	buffer.Reset()
-	// TODO(stgleb): extract to separate functions
-	err = t.kubeletScript.Execute(buffer, cfg)
+
+	err = t.runTemplate(context.Background(), t.kubeletScript, cfg)
 
 	if err != nil {
 		return err
 	}
 
-	for {
-		c, err := buffer.ReadString('\n')
+	t.runTemplate(context.Background(), t.proxyScript, cfg)
 
-		if err != nil {
-			break
-		}
-
-		cmd := command.NewCommand(context.Background(), c, nil, os.Stdout, os.Stderr)
-		err = t.runner.Run(cmd)
-
-		if err != nil {
-			return err
-		}
+	if err != nil {
+		return err
 	}
 
-	buffer.Reset()
-	err = t.proxyScript.Execute(buffer, cfg)
+	return nil
+}
+
+func (t *Task) runTemplate(ctx context.Context, tpl *template.Template, cfg taskConfig) error {
+	buffer := new(bytes.Buffer)
+	err := t.kubeletScript.Execute(buffer, cfg)
 
 	if err != nil {
 		return err
