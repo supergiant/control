@@ -125,6 +125,7 @@ func (t *Task) runTemplate(ctx context.Context, tpl *template.Template, cfg task
 			break
 		}
 
+		// TODO(stgleb): pass writers for out and err from outside
 		cmd := command.NewCommand(context.Background(), c, nil, os.Stdout, os.Stderr)
 		err = t.runner.Run(cmd)
 
