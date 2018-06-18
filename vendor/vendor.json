@@ -16,6 +16,60 @@
 			"revisionTime": "2017-01-03T20:23:41Z"
 		},
 		{
+			"checksumSHA1": "9wEP7n6p1S6vcCSyNqTUCiEmsnY=",
+			"path": "github.com/RichardKnop/machinery/v1",
+			"revision": "41d81167d33d6399bb54087fa64510799dca3e74",
+			"revisionTime": "2018-05-26T09:10:19Z"
+		},
+		{
+			"checksumSHA1": "R8yvLgjLamLjsjb6VwQFeThBXp4=",
+			"path": "github.com/RichardKnop/machinery/v1/backends",
+			"revision": "41d81167d33d6399bb54087fa64510799dca3e74",
+			"revisionTime": "2018-05-26T09:10:19Z"
+		},
+		{
+			"checksumSHA1": "inHlFH8vJ5CoEfYv+qw0qrytGwA=",
+			"path": "github.com/RichardKnop/machinery/v1/brokers",
+			"revision": "41d81167d33d6399bb54087fa64510799dca3e74",
+			"revisionTime": "2018-05-26T09:10:19Z"
+		},
+		{
+			"checksumSHA1": "xHaXZ51uUlNsHDGFJy85W8YMdGc=",
+			"path": "github.com/RichardKnop/machinery/v1/common",
+			"revision": "41d81167d33d6399bb54087fa64510799dca3e74",
+			"revisionTime": "2018-05-26T09:10:19Z"
+		},
+		{
+			"checksumSHA1": "rq3N5tIgLONQzprnMYRLR+6w2k0=",
+			"path": "github.com/RichardKnop/machinery/v1/config",
+			"revision": "41d81167d33d6399bb54087fa64510799dca3e74",
+			"revisionTime": "2018-05-26T09:10:19Z"
+		},
+		{
+			"checksumSHA1": "SLzC++Io8YdjJdH8vjMj1f1U2tA=",
+			"path": "github.com/RichardKnop/machinery/v1/log",
+			"revision": "41d81167d33d6399bb54087fa64510799dca3e74",
+			"revisionTime": "2018-05-26T09:10:19Z"
+		},
+		{
+			"checksumSHA1": "7u2rgFHd0rIOObXERyDT6E8vUeM=",
+			"path": "github.com/RichardKnop/machinery/v1/retry",
+			"revision": "41d81167d33d6399bb54087fa64510799dca3e74",
+			"revisionTime": "2018-05-26T09:10:19Z"
+		},
+		{
+			"checksumSHA1": "r+h24ob19yULmwHD4AB7SrwFGQg=",
+			"path": "github.com/RichardKnop/machinery/v1/tasks",
+			"revision": "41d81167d33d6399bb54087fa64510799dca3e74",
+			"revisionTime": "2018-05-26T09:10:19Z"
+		},
+		{
+			"checksumSHA1": "No753udwDCxZZlcSIqKmMgO64Ig=",
+			"path": "github.com/RichardKnop/machinery/v1/tracing",
+			"revision": "41d81167d33d6399bb54087fa64510799dca3e74",
+			"revisionTime": "2018-05-26T09:10:19Z"
+		},
+		{
 			"checksumSHA1": "JV/23qugPFuOPZWfa9CCwLXPJqE=",
 			"path": "github.com/aws/aws-sdk-go/aws",
 			"revision": "8041be5461786460d86b4358305fbdf32d37cfb2",
