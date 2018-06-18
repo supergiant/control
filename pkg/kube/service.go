@@ -9,6 +9,7 @@ import (
 	"k8s.io/client-go/discovery"
 	"k8s.io/client-go/rest"
 
+	"github.com/supergiant/supergiant/pkg/runner/ssh"
 	"github.com/supergiant/supergiant/pkg/sgerrors"
 	"github.com/supergiant/supergiant/pkg/storage"
 )
@@ -23,6 +24,7 @@ type Interface interface {
 	Delete(ctx context.Context, name string) error
 	ListKubeResources(ctx context.Context, kname string) ([]byte, error)
 	GetKubeResources(ctx context.Context, kname, resource, ns, name string) ([]byte, error)
+	GetCerts(ctx context.Context, kname, cname string) (*Bundle, error)
 }
 
 // Service manages kubernetes clusters.
@@ -149,6 +151,36 @@ func (s *Service) GetKubeResources(ctx context.Context, kname, resource, ns, nam
 	}
 
 	return raw, nil
+}
+
+// GetCerts returns a keys bundle for provided component name.
+func (s *Service) GetCerts(ctx context.Context, kname, cname string) (*Bundle, error) {
+	kube, err := s.Get(ctx, kname)
+	if err != nil {
+		return nil, errors.Wrap(err, "storage: get")
+	}
+
+	r, err := ssh.NewRunner(nil, nil, &ssh.Config{
+		Host: kube.APIAddr,
+		Port: ssh.DefaultSSHPort,
+		User: kube.SSHUser,
+		Key:  kube.SSHKey,
+	})
+	if err != nil {
+		return nil, errors.Wrap(err, "setup runner")
+	}
+
+	certs, err := NewCerts(DefaultCertsPath, r)
+	if err != nil {
+		return nil, errors.Wrap(err, "setup certs getter")
+	}
+
+	b, err := certs.BundleFor(ctx, cname)
+	if err != nil {
+		return nil, errors.Wrap(err, "get keys bundle")
+	}
+
+	return b, nil
 }
 
 func (s *Service) resourcesGroupInfo(kube *Kube) (map[string]schema.GroupVersion, error) {

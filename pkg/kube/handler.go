@@ -27,12 +27,11 @@ func (h *Handler) Register(r *mux.Router) {
 	r.HandleFunc("/kubes", h.listKubes).Methods(http.MethodGet)
 	r.HandleFunc("/kubes/{kname}", h.getKube).Methods(http.MethodGet)
 	r.HandleFunc("/kubes/{kname}", h.deleteKube).Methods(http.MethodDelete)
+
 	r.HandleFunc("/kubes/{kname}/resources", h.listResources).Methods(http.MethodGet)
 	r.HandleFunc("/kubes/{kname}/resources/{resource}", h.getResource).Methods(http.MethodGet)
 
-	//resourceRouter := r.PathPrefix("/kubes/{kname}/resources").Subrouter()
-	//resourceRouter.HandleFunc("/", h.listResources).Methods(http.MethodGet)
-	//resourceRouter.HandleFunc("/{resource}", h.getResource).Methods(http.MethodGet)
+	r.HandleFunc("/kubes/{kname}/certs/{cname}", h.getCerts).Methods(http.MethodGet)
 }
 
 func (h *Handler) createKube(w http.ResponseWriter, r *http.Request) {
@@ -144,6 +143,27 @@ func (h *Handler) getResource(w http.ResponseWriter, r *http.Request) {
 	}
 
 	if _, err = w.Write(rawResources); err != nil {
+		message.SendUnknownError(w, err)
+	}
+}
+
+func (h *Handler) getCerts(w http.ResponseWriter, r *http.Request) {
+	vars := mux.Vars(r)
+
+	kname := vars["kname"]
+	cname := vars["cname"]
+
+	b, err := h.svc.GetCerts(r.Context(), kname, cname)
+	if err != nil {
+		if sgerrors.IsNotFound(err) {
+			message.SendNotFound(w, kname, err)
+			return
+		}
+		message.SendUnknownError(w, err)
+		return
+	}
+
+	if err = json.NewEncoder(w).Encode(b); err != nil {
 		message.SendUnknownError(w, err)
 	}
 }

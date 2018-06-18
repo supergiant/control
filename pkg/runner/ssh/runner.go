@@ -11,6 +11,10 @@ import (
 	"golang.org/x/crypto/ssh"
 )
 
+const (
+	DefaultSSHPort = 22
+)
+
 // Config is a set of params needed to create valid ssh.ClientConfig
 type Config struct {
 	Host    string
