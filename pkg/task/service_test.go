@@ -5,16 +5,10 @@ import (
 
 	"time"
 
-	"context"
-	"io/ioutil"
-	"os"
-
 	"github.com/RichardKnop/machinery/v1/config"
 	"github.com/RichardKnop/machinery/v1/tasks"
 	"github.com/sirupsen/logrus"
 	"github.com/stretchr/testify/require"
-	"github.com/supergiant/supergiant/pkg/runner/command"
-	"github.com/supergiant/supergiant/pkg/runner/ssh"
 )
 
 func TestNewManager(t *testing.T) {
@@ -22,7 +16,7 @@ func TestNewManager(t *testing.T) {
 		Broker:        "eager",
 		ResultBackend: "eager",
 	}
-	mgr, err := NewManager(cnf)
+	mgr, err := NewService(cnf)
 	require.NoError(t, err)
 
 	called := false
@@ -57,27 +51,41 @@ func TestNewManager(t *testing.T) {
 	require.True(t, ok)
 
 	require.Equal(t, "hello, world", res)
+	mgr.RegisterTask("1", RunRemoteScript)
 
-	mgr.RegisterTask("1", func() error {
-		key, err := ioutil.ReadFile("/home/yegor/.ssh/id_rsa")
-		if err != nil {
-			return err
-		}
-		runner, err := ssh.NewRunner(os.Stdout, os.Stderr, &ssh.Config{
-			User:    "root",
-			Host:    "209.97.135.160",
-			Timeout: int(1 * time.Second),
-			Port:    22,
-			Key:     key,
-		})
-		if err != nil {
-			return err
-		}
-		cmd := command.NewCommand(context.Background(), "ls", []string{" -al"}, os.Stdout, os.Stderr)
-		return runner.Run(*cmd)
-	})
-
-	mgr.SendTask(&tasks.Signature{
-		Name: "1",
-	})
+	//key, err := ioutil.ReadFile("/home/yegor/.ssh/id_rsa")
+	//require.NoError(t, err)
+	//
+	//mgr.SendTask(context.Background(), &tasks.Signature{
+	//	Name: "1",
+	//	Args: []tasks.Arg{
+	//		{
+	//			Type: "string",
+	//			Name: "script",
+	//			Value: `#!/bin/bash
+	//					uname -a`,
+	//		},
+	//		{
+	//			Type:  "string",
+	//			Name:  "user",
+	//			Value: "root",
+	//		},
+	//		{
+	//			Type:  "string",
+	//			Name:  "host",
+	//			Value: "209.97.135.160",
+	//		},
+	//		{
+	//			Type:  "string",
+	//			Name:  "cert",
+	//			Value: string(key),
+	//		},
+	//		{
+	//			Type:  "int",
+	//			Name:  "timeoutSec",
+	//			Value: 10,
+	//		},
+	//	},
+	//})
+	//time.Sleep(1 * time.Second)
 }

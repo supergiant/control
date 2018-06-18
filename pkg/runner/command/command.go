@@ -17,7 +17,7 @@ type Command struct {
 	Err io.Writer
 }
 
-func NewCommand(ctx context.Context, cmd string, args []string, out, err io.Writer) *Command {
+func NewCommand(ctx context.Context, out, err io.Writer, cmd string, args ... string) *Command {
 	return &Command{
 		ctx,
 		cmd,
