@@ -1,4 +1,5 @@
 import { Injectable } from '@angular/core';
+import { Observable } from 'rxjs/Observable';
 import { UtilService } from '../util/util.service';
 
 @Injectable()
@@ -8,8 +9,11 @@ export class Sessions {
   constructor(private util: UtilService) { }
 
   public valid(id) {
-    if (id === '') { return; }
-    return this.util.fetchNoMap(this.sessionsPath + '/' + id);
+    if (id) {
+      return this.util.fetchNoMap(this.sessionsPath + '/' + id);
+    } else {
+      return Observable.throw(null);
+    }
   }
 
   public get(id?) {

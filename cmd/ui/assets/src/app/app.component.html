@@ -1,22 +1,10 @@
-<header class="app-header">
+<header class="app-header" *ngIf="showHeader">
   <app-navigation></app-navigation>
 </header>
 
 <simple-notifications [options]="options"></simple-notifications>
 
 <div class="app-body">
-  <!--   
-  <div class="app-assist-toggles">
-    <label for="app-assist-toggle-status">
-      <i class="fa fa-magic"></i>
-    </label>
-
-    <label for="app-assist-toggle-status">
-      <i class="fa fa-question"></i>
-    </label>
-  </div>
-  -->
-  
   <router-outlet></router-outlet>
 </div>
 

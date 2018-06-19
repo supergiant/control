@@ -62,7 +62,6 @@ export class ListCloudAccountsComponent implements OnInit, OnDestroy {
     this.subscriptions.add(this.supergiant.HelmReleases.get().subscribe(
       (deployments) => {
         if (Object.keys(deployments.items).length > 0) {
-          console.log(deployments);
           this.hasApp = true;
           this.appCount = Object.keys(deployments.items).length;
         }

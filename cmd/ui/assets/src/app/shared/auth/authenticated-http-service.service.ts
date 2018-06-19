@@ -17,7 +17,7 @@ export class AuthenticatedHttpService extends Http {
     return super.request(url, options).catch((error: Response) => {
       if ((error.status === 401 || error.status === 403) && (window.location.href.match(/\?/g) || []).length < 2) {
         console.log('User session has expired... Redirect to login.');
-        this.router.navigate(['/login']);
+        this.router.navigate(['']);
         return Observable.throw(null);
       }
       return Observable.throw(error);

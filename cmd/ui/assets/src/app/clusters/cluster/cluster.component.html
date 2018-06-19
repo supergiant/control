@@ -57,8 +57,9 @@
   <div class="graph-container">
     <iframe class="full" #iframe [src]="secureSrc" (load)="onIframeLoad()" frameborder="0" width="95%" height="1000px"></iframe>
   </div> -->
-
-  <app-apps-list *ngIf="kube" [kube]="kube"></app-apps-list>
+  <section>
+    <app-apps-list *ngIf="kube" [kube]="kube"></app-apps-list>
+  </section>
 
   <section>
     <app-nodes-list *ngIf="kube" [kube]="kube"></app-nodes-list>

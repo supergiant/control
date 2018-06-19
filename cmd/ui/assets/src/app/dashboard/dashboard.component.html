@@ -20,21 +20,14 @@
           </div>
 
           <div class="row">
-            <div class="col-4 text-center">
+            <div class="col-6 text-center">
               <a [routerLink]="['/apps']" class="quickstatus">
                 <span class="quickstatus-label">Apps</span>
                 <span class="quickstatus-data">{{ appCount }}</span>
               </a>
             </div>
 
-            <div class="col-4 text-center">
-              <a [routerLink]="['/clusters']" class="quickstatus">
-                <span class="quickstatus-label">Nodes</span>
-                <span class="quickstatus-data">{{ nodeCount}}</span>
-              </a>
-            </div>
-
-            <div class="col-4 text-center">
+            <div class="col-6 text-center">
               <a [routerLink]="['/clusters']" class="quickstatus">
                 <span class="quickstatus-label">Clusters</span>
                 <span class="quickstatus-data">{{ clusterCount }}</span>

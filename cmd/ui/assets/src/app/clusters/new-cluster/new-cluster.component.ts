@@ -18,7 +18,6 @@ import { Router } from '@angular/router';
 export class NewClusterComponent implements OnInit, OnDestroy, AfterViewInit {
   subscriptions = new Subscription();
   cloudAccountsList = [];
-  providers = [];
   awsModel = new ClusterAWSModel;
   doModel = new ClusterDigitalOceanModel;
   gceModel = new ClusterGCEModel;
@@ -81,7 +80,7 @@ export class NewClusterComponent implements OnInit, OnDestroy, AfterViewInit {
 
   ngAfterViewInit() {
     this.subscriptions.add(this.supergiant.CloudAccounts.get().subscribe(
-      (data) => { this.providers = data.items; }
+      (data) => { this.cloudAccountsList = data.items; }
     ));
   }
 
