@@ -74,7 +74,7 @@ func (r *Runner) Run(c *command.Command) (err error) {
 		return errors.New("not connected")
 	}
 
-	cmd := strings.TrimSpace(c.Script)
+	cmd := strings.TrimSpace(c.FullCommand())
 	if cmd == "" {
 		return nil
 	}
