@@ -9,7 +9,7 @@ import (
 
 	"golang.org/x/crypto/ssh"
 
-	"github.com/supergiant/supergiant/pkg/runner/command"
+	"github.com/supergiant/supergiant/pkg/runner"
 )
 
 // Config is a set of params needed to create valid ssh.ClientConfig
@@ -69,7 +69,7 @@ func (r *Runner) connect() error {
 
 //TODO(stgleb): Add  more context like env variables?
 // Run executes a single command on ssh session.
-func (r *Runner) Run(c *command.Command) (err error) {
+func (r *Runner) Run(c *runner.Command) (err error) {
 	if r.client == nil {
 		return errors.New("not connected")
 	}
