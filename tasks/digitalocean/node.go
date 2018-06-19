@@ -12,7 +12,7 @@ import (
 	"github.com/supergiant/supergiant/tasks"
 )
 
-type Task struct {
+type Job struct {
 	runner runner.Runner
 
 	configTemplate *template.Template
@@ -21,14 +21,14 @@ type Task struct {
 	proxyScript    *template.Template
 }
 
-type taskConfig struct {
+type jobConfig struct {
 	MasterPrivateIP   string
 	KubernetesVersion string
 	ConfigFile        string
 	KubeletService    string
 }
 
-func NewTask(cfg *ssh.Config) (*Task, error) {
+func NewJob(cfg *ssh.Config) (*Job, error) {
 	configTemplate, err := tasks.ReadTemplate("config.json.tpl", "config")
 
 	if err != nil {
@@ -59,7 +59,7 @@ func NewTask(cfg *ssh.Config) (*Task, error) {
 		return nil, err
 	}
 
-	t := &Task{
+	t := &Job{
 		runner:         sshRunner,
 		configTemplate: configTemplate,
 		kubeletService: kubeletService,
@@ -70,9 +70,9 @@ func NewTask(cfg *ssh.Config) (*Task, error) {
 	return t, nil
 }
 
-func (t *Task) ProvisionNode(k8sVersion, masterPrivateIp string) error {
+func (t *Job) ProvisionNode(k8sVersion, masterPrivateIp string) error {
 	buffer := new(bytes.Buffer)
-	cfg := taskConfig{
+	cfg := jobConfig{
 		MasterPrivateIP:   masterPrivateIp,
 		KubernetesVersion: k8sVersion,
 	}
@@ -110,7 +110,7 @@ func (t *Task) ProvisionNode(k8sVersion, masterPrivateIp string) error {
 	return nil
 }
 
-func (t *Task) runTemplate(ctx context.Context, tpl *template.Template, cfg taskConfig) error {
+func (t *Job) runTemplate(ctx context.Context, tpl *template.Template, cfg jobConfig) error {
 	buffer := new(bytes.Buffer)
 	err := t.kubeletScript.Execute(buffer, cfg)
 
