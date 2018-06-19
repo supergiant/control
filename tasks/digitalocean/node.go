@@ -70,14 +70,14 @@ func NewJob(cfg *ssh.Config) (*Job, error) {
 	return t, nil
 }
 
-func (t *Job) ProvisionNode(k8sVersion, masterPrivateIp string) error {
+func (j *Job) ProvisionNode(k8sVersion, masterPrivateIp string) error {
 	buffer := new(bytes.Buffer)
 	cfg := jobConfig{
 		MasterPrivateIP:   masterPrivateIp,
 		KubernetesVersion: k8sVersion,
 	}
 
-	err := t.configTemplate.Execute(buffer, cfg)
+	err := j.configTemplate.Execute(buffer, cfg)
 
 	if err != nil {
 		return err
@@ -86,7 +86,7 @@ func (t *Job) ProvisionNode(k8sVersion, masterPrivateIp string) error {
 	cfg.ConfigFile = buffer.String()
 	buffer.Reset()
 
-	err = t.kubeletService.Execute(buffer, cfg)
+	err = j.kubeletService.Execute(buffer, cfg)
 
 	if err != nil {
 		return err
@@ -95,13 +95,13 @@ func (t *Job) ProvisionNode(k8sVersion, masterPrivateIp string) error {
 	cfg.KubeletService = buffer.String()
 	buffer.Reset()
 
-	err = t.runTemplate(context.Background(), t.kubeletScript, cfg)
+	err = j.runTemplate(context.Background(), j.kubeletScript, cfg)
 
 	if err != nil {
 		return err
 	}
 
-	t.runTemplate(context.Background(), t.proxyScript, cfg)
+	j.runTemplate(context.Background(), j.proxyScript, cfg)
 
 	if err != nil {
 		return err
@@ -110,9 +110,9 @@ func (t *Job) ProvisionNode(k8sVersion, masterPrivateIp string) error {
 	return nil
 }
 
-func (t *Job) runTemplate(ctx context.Context, tpl *template.Template, cfg jobConfig) error {
+func (j *Job) runTemplate(ctx context.Context, tpl *template.Template, cfg jobConfig) error {
 	buffer := new(bytes.Buffer)
-	err := t.kubeletScript.Execute(buffer, cfg)
+	err := j.kubeletScript.Execute(buffer, cfg)
 
 	if err != nil {
 		return err
@@ -127,7 +127,7 @@ func (t *Job) runTemplate(ctx context.Context, tpl *template.Template, cfg jobCo
 
 		// TODO(stgleb): pass writers for out and err from outside
 		cmd := command.NewCommand(context.Background(), c, nil, os.Stdout, os.Stderr)
-		err = t.runner.Run(cmd)
+		err = j.runner.Run(cmd)
 
 		if err != nil {
 			return err
