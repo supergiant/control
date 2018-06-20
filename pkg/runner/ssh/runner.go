@@ -2,13 +2,12 @@ package ssh
 
 import (
 	"context"
-	"errors"
 	"fmt"
-	"io"
 	"strings"
 
-	"github.com/supergiant/supergiant/pkg/runner/command"
 	"golang.org/x/crypto/ssh"
+
+	"github.com/supergiant/supergiant/pkg/runner"
 )
 
 // Config is a set of params needed to create valid ssh.ClientConfig
@@ -26,23 +25,19 @@ type Config struct {
 // Runner is implementation of runner interface for ssh
 type Runner struct {
 	*Config
-	out io.Writer
-	err io.Writer
 
 	client *ssh.Client
 }
 
 // NewRunner creates ssh runner object. It requires two io.Writer
 // to send output of ssh session and config for ssh client.
-func NewRunner(outStream, errStream io.Writer, config *Config) (*Runner, error) {
+func NewRunner(config *Config) (*Runner, error) {
 	if sshConfig, err := getSshConfig(config); err != nil {
 		config.SshClientConfig = sshConfig
 	}
 
 	r := &Runner{
 		config,
-		outStream,
-		errStream,
 		nil,
 	}
 
@@ -68,14 +63,14 @@ func (r *Runner) connect() error {
 
 //TODO(stgleb): Add  more context like env variables?
 // Run executes a single command on ssh session.
-func (r *Runner) Run(c command.Command) (err error) {
+func (r *Runner) Run(c *runner.Command) (err error) {
 	if r.client == nil {
-		return errors.New("not connected")
+		return ErrNotConnected
 	}
 
-	cmd := strings.TrimSpace(c.FullCommand())
+	cmd := strings.TrimSpace(c.Script)
 	if cmd == "" {
-		return nil
+		return ErrEmptyScript
 	}
 
 	session, err := r.client.NewSession()
@@ -85,8 +80,8 @@ func (r *Runner) Run(c command.Command) (err error) {
 
 	defer session.Close()
 
-	session.Stdout = io.MultiWriter(r.out, c.Out)
-	session.Stderr = io.MultiWriter(r.out, c.Out)
+	session.Stdout = c.Out
+	session.Stderr = c.Err
 
 	err = session.Start(cmd)
 	if err != nil {
