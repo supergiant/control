@@ -3,12 +3,15 @@ package ssh
 import (
 	"time"
 
-	"github.com/pkg/errors"
 	"golang.org/x/crypto/ssh"
+
+	"github.com/pkg/errors"
 )
 
 var (
 	ErrUserNotSpecified = errors.New("user not specified")
+	ErrNotConnected     = errors.New("runner not connected")
+	ErrEmptyScript      = errors.New("script is empty")
 )
 
 func getSshConfig(config *Config) (*ssh.ClientConfig, error) {
