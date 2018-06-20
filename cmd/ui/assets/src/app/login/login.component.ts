@@ -35,7 +35,7 @@ export class LoginComponent implements OnDestroy {
     if (this.sessionCookie) {
       this.supergiant.UtilService.sessionToken = 'SGAPI session="' + this.sessionCookie + '"';
       this.supergiant.sessionID = this.sessionCookie;
-    }
+    } else { this.supergiant.sessionID = null; }
 
     return this.supergiant.Sessions.valid(this.supergiant.sessionID);
   }
