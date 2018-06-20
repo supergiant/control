@@ -6,10 +6,10 @@ import (
 
 	"bytes"
 	"context"
+	"github.com/supergiant/supergiant/jobs"
 	"github.com/supergiant/supergiant/pkg/runner"
 	"github.com/supergiant/supergiant/pkg/runner/command"
 	"github.com/supergiant/supergiant/pkg/runner/ssh"
-	"github.com/supergiant/supergiant/jobs"
 )
 
 type Job struct {
@@ -28,26 +28,26 @@ type jobConfig struct {
 	KubeletService    string
 }
 
-func NewJob(cfg *ssh.Config) (*Job, error) {
-	configTemplate, err := jobs.ReadTemplate("config.json.tpl", "config")
+func NewJob(configFileName, kubeletConfigFileName, startKubeletFileName, startProxyFileName string, cfg *ssh.Config) (*Job, error) {
+	configTemplate, err := jobs.ReadTemplate(configFileName, "config")
 
 	if err != nil {
 		return nil, err
 	}
 
-	kubeletService, err := jobs.ReadTemplate("kubelet_service.conf", "kubelet")
+	kubeletService, err := jobs.ReadTemplate(kubeletConfigFileName, "kubelet")
 
 	if err != nil {
 		return nil, err
 	}
 
-	kubeletScript, err := jobs.ReadTemplate("start_kubelet.sh", "start_kubelet")
+	kubeletScript, err := jobs.ReadTemplate(startKubeletFileName, "start_kubelet")
 
 	if err != nil {
 		return nil, err
 	}
 
-	kubeProxyScript, err := jobs.ReadTemplate("start_kube_proxy.sh", "start_kube_proxy")
+	kubeProxyScript, err := jobs.ReadTemplate(startProxyFileName, "start_kube_proxy")
 
 	if err != nil {
 		return nil, err
