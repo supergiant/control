@@ -1,14 +1,13 @@
 package digitalocean
 
 import (
-	"os"
-	"text/template"
-
 	"bytes"
 	"context"
-	"github.com/supergiant/supergiant/jobs"
+	"io"
+	"text/template"
+
+	"github.com/supergiant/supergiant/pkg/jobsjobs"
 	"github.com/supergiant/supergiant/pkg/runner"
-	"github.com/supergiant/supergiant/pkg/runner/command"
 	"github.com/supergiant/supergiant/pkg/runner/ssh"
 )
 
@@ -19,6 +18,9 @@ type Job struct {
 	kubeletService *template.Template
 	kubeletScript  *template.Template
 	proxyScript    *template.Template
+
+	out io.Writer
+	err io.Writer
 }
 
 type jobConfig struct {
@@ -28,7 +30,8 @@ type jobConfig struct {
 	KubeletService    string
 }
 
-func NewJob(configFileName, kubeletConfigFileName, startKubeletFileName, startProxyFileName string, cfg *ssh.Config) (*Job, error) {
+func NewJob(configFileName, kubeletConfigFileName, startKubeletFileName, startProxyFileName string,
+	outStream, errStream io.Writer, cfg *ssh.Config) (*Job, error) {
 	configTemplate, err := jobs.ReadTemplate(configFileName, "config")
 
 	if err != nil {
@@ -53,7 +56,7 @@ func NewJob(configFileName, kubeletConfigFileName, startKubeletFileName, startPr
 		return nil, err
 	}
 
-	sshRunner, err := ssh.NewRunner(os.Stdout, os.Stderr, cfg)
+	sshRunner, err := ssh.NewRunner(cfg)
 
 	if err != nil {
 		return nil, err
@@ -65,6 +68,9 @@ func NewJob(configFileName, kubeletConfigFileName, startKubeletFileName, startPr
 		kubeletService: kubeletService,
 		kubeletScript:  kubeletScript,
 		proxyScript:    kubeProxyScript,
+
+		out: outStream,
+		err: errStream,
 	}
 
 	return t, nil
@@ -110,16 +116,16 @@ func (j *Job) ProvisionNode(k8sVersion, masterPrivateIp string) error {
 	return nil
 }
 
+// TODO(stgleb): maybe it can be moved to util and not to be a method of job
 func (j *Job) runTemplate(ctx context.Context, tpl *template.Template, cfg jobConfig) error {
 	buffer := new(bytes.Buffer)
-	err := j.kubeletScript.Execute(buffer, cfg)
+	err := tpl.Execute(buffer, cfg)
 
 	if err != nil {
 		return err
 	}
 
-	cmd := command.NewCommand(context.Background(), buffer.String(), nil, os.Stdout, os.Stderr)
-
+	cmd := runner.NewCommand(context.Background(), buffer.String(), j.out, j.err)
 	err = j.runner.Run(cmd)
 
 	if err != nil {
