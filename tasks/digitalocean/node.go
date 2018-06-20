@@ -118,20 +118,12 @@ func (j *Job) runTemplate(ctx context.Context, tpl *template.Template, cfg jobCo
 		return err
 	}
 
-	for {
-		c, err := buffer.ReadString('\n')
+	cmd := command.NewCommand(context.Background(), buffer.String(), nil, os.Stdout, os.Stderr)
 
-		if err != nil {
-			break
-		}
+	err = j.runner.Run(cmd)
 
-		// TODO(stgleb): pass writers for out and err from outside
-		cmd := command.NewCommand(context.Background(), c, nil, os.Stdout, os.Stderr)
-		err = j.runner.Run(cmd)
-
-		if err != nil {
-			return err
-		}
+	if err != nil {
+		return err
 	}
 
 	return nil
