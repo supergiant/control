@@ -6,6 +6,7 @@ import (
 	"io"
 	"text/template"
 
+	"github.com/pkg/errors"
 	"github.com/supergiant/supergiant/pkg/jobs"
 	"github.com/supergiant/supergiant/pkg/runner"
 	"github.com/supergiant/supergiant/pkg/runner/ssh"
@@ -24,8 +25,6 @@ type Job struct {
 type jobConfig struct {
 	MasterPrivateIP   string
 	KubernetesVersion string
-	ConfigFile        string
-	KubeletService    string
 }
 
 func NewJob(configFileName, kubeletConfigFileName, startKubeletFileName, startProxyFileName string,
@@ -33,19 +32,19 @@ func NewJob(configFileName, kubeletConfigFileName, startKubeletFileName, startPr
 	kubeletScript, err := jobs.ReadTemplate(startKubeletFileName, "start_kubelet")
 
 	if err != nil {
-		return nil, err
+		return nil, errors.Wrap(err, "error reading kubelet template")
 	}
 
 	kubeProxyScript, err := jobs.ReadTemplate(startProxyFileName, "start_kube_proxy")
 
 	if err != nil {
-		return nil, err
+		return nil, errors.Wrap(err, "error reading proxy template")
 	}
 
 	sshRunner, err := ssh.NewRunner(cfg)
 
 	if err != nil {
-		return nil, err
+		return nil, errors.Wrap(err, "error creating ssh runner")
 	}
 
 	t := &Job{
@@ -61,25 +60,21 @@ func NewJob(configFileName, kubeletConfigFileName, startKubeletFileName, startPr
 }
 
 func (j *Job) ProvisionNode(k8sVersion, masterPrivateIp string) error {
-	buffer := new(bytes.Buffer)
 	cfg := jobConfig{
 		MasterPrivateIP:   masterPrivateIp,
 		KubernetesVersion: k8sVersion,
 	}
 
-	cfg.KubeletService = buffer.String()
-	buffer.Reset()
-
 	err := j.runTemplate(context.Background(), j.kubeletScript, cfg)
 
 	if err != nil {
-		return err
+		return errors.Wrap(err, "error running  kubelet template as a command")
 	}
 
 	j.runTemplate(context.Background(), j.proxyScript, cfg)
 
 	if err != nil {
-		return err
+		return errors.Wrap(err, "error running proxy template as a command")
 	}
 
 	return nil
