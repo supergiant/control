@@ -1,4 +1,4 @@
-package digitalocean
+package node
 
 import (
 	"bytes"
@@ -14,10 +14,8 @@ import (
 type Job struct {
 	runner runner.Runner
 
-	configTemplate *template.Template
-	kubeletService *template.Template
-	kubeletScript  *template.Template
-	proxyScript    *template.Template
+	kubeletScript *template.Template
+	proxyScript   *template.Template
 
 	out io.Writer
 	err io.Writer
@@ -32,18 +30,6 @@ type jobConfig struct {
 
 func NewJob(configFileName, kubeletConfigFileName, startKubeletFileName, startProxyFileName string,
 	outStream, errStream io.Writer, cfg *ssh.Config) (*Job, error) {
-	configTemplate, err := jobs.ReadTemplate(configFileName, "config")
-
-	if err != nil {
-		return nil, err
-	}
-
-	kubeletService, err := jobs.ReadTemplate(kubeletConfigFileName, "kubelet")
-
-	if err != nil {
-		return nil, err
-	}
-
 	kubeletScript, err := jobs.ReadTemplate(startKubeletFileName, "start_kubelet")
 
 	if err != nil {
@@ -63,11 +49,9 @@ func NewJob(configFileName, kubeletConfigFileName, startKubeletFileName, startPr
 	}
 
 	t := &Job{
-		runner:         sshRunner,
-		configTemplate: configTemplate,
-		kubeletService: kubeletService,
-		kubeletScript:  kubeletScript,
-		proxyScript:    kubeProxyScript,
+		runner:        sshRunner,
+		kubeletScript: kubeletScript,
+		proxyScript:   kubeProxyScript,
 
 		out: outStream,
 		err: errStream,
@@ -83,25 +67,10 @@ func (j *Job) ProvisionNode(k8sVersion, masterPrivateIp string) error {
 		KubernetesVersion: k8sVersion,
 	}
 
-	err := j.configTemplate.Execute(buffer, cfg)
-
-	if err != nil {
-		return err
-	}
-
-	cfg.ConfigFile = buffer.String()
-	buffer.Reset()
-
-	err = j.kubeletService.Execute(buffer, cfg)
-
-	if err != nil {
-		return err
-	}
-
 	cfg.KubeletService = buffer.String()
 	buffer.Reset()
 
-	err = j.runTemplate(context.Background(), j.kubeletScript, cfg)
+	err := j.runTemplate(context.Background(), j.kubeletScript, cfg)
 
 	if err != nil {
 		return err

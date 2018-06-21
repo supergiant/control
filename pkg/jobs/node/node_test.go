@@ -1,4 +1,4 @@
-package digitalocean
+package node
 
 import (
 	"bytes"
@@ -21,27 +21,12 @@ func (f *fakeRunner) Run(command *runner.Command) error {
 func TestJob_ProvisionNode(t *testing.T) {
 	masterIp := "20.30.40.50"
 	k8sVersion := "1.8.7"
-	mustHave := []string{"config", "service", "kubeletscript", "proxy"}
 
 	var (
-		r              runner.Runner = &fakeRunner{}
-		config                       = `config {{ .MasterPrivateIP }} {{ .KubernetesVersion }} `
-		kubeletService               = `service {{ .KubernetesVersion }}`
-		kubeletScript                = `kubeletscript '{{ .KubeletService }}' > /etc/systemd/system/kubelet.service`
-		proxyScript                  = `proxy "{{ .ConfigFile }}" > /etc/kubernetes/config.json`
+		r             runner.Runner = &fakeRunner{}
+		kubeletScript               = `echo 'gcr.io/google-containers/hyperkube:v{{ .KubernetesVersion }}' > /etc/systemd/system/kubelet.service;systemctl start kubelet`
+		proxyScript                 = `sudo docker run --privileged=true --volume=/etc/ssl/cer:/usr/share/ca-certificates --volume=/etc/kubernetes/worker-kubeconfig.yaml:/etc/kubernetes/worker-kubeconfig.yaml:ro --volume=/etc/kubernetes/ssl:/etc/kubernetes/ssl gcr.io/google_containers/hyperkube:v{{ .KubernetesVersion }} /hyperkube proxy --config /etc/kubernetes/config.json --master http://{{ .MasterPrivateIP }}`
 	)
-
-	cfgTpl, err := template.New("config").Parse(config)
-
-	if err != nil {
-		t.Errorf("Error while parsing config template %v", err)
-	}
-
-	kubeletServiceTpl, err := template.New("service").Parse(kubeletService)
-
-	if err != nil {
-		t.Errorf("Error while parsing config template %v", err)
-	}
 
 	kubeletScriptTemplate, err := template.New("kubelet").Parse(kubeletScript)
 
@@ -59,9 +44,6 @@ func TestJob_ProvisionNode(t *testing.T) {
 
 	j := &Job{
 		r,
-
-		cfgTpl,
-		kubeletServiceTpl,
 		kubeletScriptTemplate,
 		proxyTemplate,
 		output,
@@ -72,12 +54,6 @@ func TestJob_ProvisionNode(t *testing.T) {
 
 	if err != nil {
 		t.Errorf("Unpexpected error while  provision node %v", err)
-	}
-
-	for _, substr := range mustHave {
-		if !strings.Contains(output.String(), substr) {
-			t.Errorf("required string %s not found in %s", substr, output.String())
-		}
 	}
 
 	if !strings.Contains(output.String(), masterIp) {
