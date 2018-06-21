@@ -7,7 +7,6 @@ import (
 	"text/template"
 
 	"github.com/pkg/errors"
-	"github.com/supergiant/supergiant/pkg/jobs"
 	"github.com/supergiant/supergiant/pkg/runner"
 	"github.com/supergiant/supergiant/pkg/runner/ssh"
 )
@@ -24,25 +23,13 @@ type Job struct {
 
 type JobConfig struct {
 	MasterPrivateIP   string
-	ProxyPort string
-	EtcdPort string
+	ProxyPort         string
+	EtcdPort          string
 	KubernetesVersion string
 }
 
-func NewJob(startKubeletFileName, startProxyFileName string,
+func NewJob(startKubeletTemplate, startProxyTemplate *template.Template,
 	outStream, errStream io.Writer, cfg *ssh.Config) (*Job, error) {
-	kubeletScript, err := jobs.ReadTemplate(startKubeletFileName, "start_kubelet")
-
-	if err != nil {
-		return nil, errors.Wrap(err, "error reading kubelet template")
-	}
-
-	kubeProxyScript, err := jobs.ReadTemplate(startProxyFileName, "start_kube_proxy")
-
-	if err != nil {
-		return nil, errors.Wrap(err, "error reading proxy template")
-	}
-
 	sshRunner, err := ssh.NewRunner(cfg)
 
 	if err != nil {
@@ -51,8 +38,8 @@ func NewJob(startKubeletFileName, startProxyFileName string,
 
 	t := &Job{
 		runner:        sshRunner,
-		kubeletScript: kubeletScript,
-		proxyScript:   kubeProxyScript,
+		kubeletScript: startKubeletTemplate,
+		proxyScript:   startProxyTemplate,
 
 		out: outStream,
 		err: errStream,
