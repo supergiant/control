@@ -6,7 +6,7 @@ import (
 	"io"
 	"text/template"
 
-	"github.com/supergiant/supergiant/pkg/jobsjobs"
+	"github.com/supergiant/supergiant/pkg/jobs"
 	"github.com/supergiant/supergiant/pkg/runner"
 	"github.com/supergiant/supergiant/pkg/runner/ssh"
 )
