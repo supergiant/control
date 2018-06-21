@@ -3,9 +3,11 @@ package fake_aws_provider
 import (
 	"github.com/aws/aws-sdk-go/aws/request"
 	"github.com/aws/aws-sdk-go/service/s3"
+	"github.com/aws/aws-sdk-go/service/s3/s3iface"
 )
 
 type S3 struct {
+	s3iface.S3API
 	AbortMultipartUploadRequestFn    func(*s3.AbortMultipartUploadInput) (*request.Request, *s3.AbortMultipartUploadOutput)
 	AbortMultipartUploadFn           func(*s3.AbortMultipartUploadInput) (*s3.AbortMultipartUploadOutput, error)
 	CompleteMultipartUploadRequestFn func(*s3.CompleteMultipartUploadInput) (*request.Request, *s3.CompleteMultipartUploadOutput)

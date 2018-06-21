@@ -3,9 +3,11 @@ package fake_aws_provider
 import (
 	"github.com/aws/aws-sdk-go/aws/request"
 	"github.com/aws/aws-sdk-go/service/efs"
+	"github.com/aws/aws-sdk-go/service/efs/efsiface"
 )
 
 type EFS struct {
+	efsiface.EFSAPI
 	CreateFileSystemfn                         func(*efs.CreateFileSystemInput) (*efs.FileSystemDescription, error)
 	CreateFileSystemRequestfn                  func(*efs.CreateFileSystemInput) (*request.Request, *efs.FileSystemDescription)
 	CreateMountTargetfn                        func(*efs.CreateMountTargetInput) (*efs.MountTargetDescription, error)

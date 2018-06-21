@@ -1,10 +1,9 @@
 package aws
 
 import (
+	"context"
 	"strings"
 	"time"
-
-	"context"
 
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/service/ec2"

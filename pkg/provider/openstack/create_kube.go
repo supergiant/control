@@ -2,13 +2,12 @@ package openstack
 
 import (
 	"bytes"
+	"context"
 	"fmt"
 	"strconv"
 	"strings"
 	"text/template"
 	"time"
-
-	"context"
 
 	"github.com/gophercloud/gophercloud"
 	"github.com/gophercloud/gophercloud/openstack"
