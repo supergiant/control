@@ -6,8 +6,8 @@ echo '{
         "logtostderr": true,
         "v": 0,
         "allow-privileged": true,
-        "master": "http://{{ .MasterPrivateIP }}:8080",
-        "etcd-servers": "http://{{ .MasterPrivateIP }}:2379"
+        "master": "http://{{ .MasterPrivateIP }}:{{ .ProxyPort }}",
+        "etcd-servers": "http://{{ .MasterPrivateIP }}:{{ .EtcdPort }}"
       }
 ' > /etc/kubernetes/config.json
 sudo docker run --privileged=true --volume=/etc/ssl/cer:/usr/share/ca-certificates --volume=/etc/kubernetes/worker-kubeconfig.yaml:/etc/kubernetes/worker-kubeconfig.yaml:ro --volume=/etc/kubernetes/ssl:/etc/kubernetes/ssl gcr.io/google_containers/hyperkube:v{{ .KubernetesVersion }} /hyperkube proxy --config /etc/kubernetes/config.json --master http://{{ .MasterPrivateIP }}
