@@ -8,6 +8,7 @@ import (
 	"text/template"
 
 	"github.com/pkg/errors"
+
 	"github.com/supergiant/supergiant/pkg/runner"
 )
 
@@ -33,7 +34,7 @@ func TestJob_ProvisionNode(t *testing.T) {
 	var (
 		r             runner.Runner = &fakeRunner{}
 		kubeletScript               = `echo 'gcr.io/google-containers/hyperkube:v{{ .KubernetesVersion }}' > /etc/systemd/system/kubelet.service;systemctl start kubelet`
-		proxyScript                 = `        "master": "http://{{ .MasterPrivateIP }}:{{ .ProxyPort }} http://{{ .MasterPrivateIP }}:{{ .EtcdPort }}";sudo docker run --privileged=true --volume=/etc/ssl/cer:/usr/share/ca-certificates --volume=/etc/kubernetes/worker-kubeconfig.yaml:/etc/kubernetes/worker-kubeconfig.yaml:ro --volume=/etc/kubernetes/ssl:/etc/kubernetes/ssl gcr.io/google_containers/hyperkube:v{{ .KubernetesVersion }} /hyperkube proxy --config /etc/kubernetes/config.json --master http://{{ .MasterPrivateIP }}`
+		proxyScript                 = `        "master": "http://{{ .MasterPrivateIP }}:{{ .ProxyPort }} http://{{ .MasterPrivateIP }}:{{ .EtcdClientPort }}";sudo docker run --privileged=true --volume=/etc/ssl/cer:/usr/share/ca-certificates --volume=/etc/kubernetes/worker-kubeconfig.yaml:/etc/kubernetes/worker-kubeconfig.yaml:ro --volume=/etc/kubernetes/ssl:/etc/kubernetes/ssl gcr.io/google_containers/hyperkube:v{{ .KubernetesVersion }} /hyperkube proxy --config /etc/kubernetes/config.json --master http://{{ .MasterPrivateIP }}`
 	)
 
 	kubeletScriptTemplate, err := template.New("kubelet").Parse(kubeletScript)
@@ -62,7 +63,7 @@ func TestJob_ProvisionNode(t *testing.T) {
 		KubernetesVersion: k8sVersion,
 		MasterPrivateIP:   masterIp,
 		ProxyPort:         proxyPort,
-		EtcdPort:          etcdPort,
+		EtcdClientPort:    etcdPort,
 	}
 
 	err = j.ProvisionNode(cfg)

@@ -7,6 +7,7 @@ import (
 	"text/template"
 
 	"github.com/pkg/errors"
+
 	"github.com/supergiant/supergiant/pkg/runner"
 	"github.com/supergiant/supergiant/pkg/runner/ssh"
 )
@@ -24,7 +25,7 @@ type Job struct {
 type JobConfig struct {
 	MasterPrivateIP   string
 	ProxyPort         string
-	EtcdPort          string
+	EtcdClientPort    string
 	KubernetesVersion string
 }
 
