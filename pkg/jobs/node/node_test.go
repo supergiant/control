@@ -21,11 +21,13 @@ func (f *fakeRunner) Run(command *runner.Command) error {
 func TestJob_ProvisionNode(t *testing.T) {
 	masterIp := "20.30.40.50"
 	k8sVersion := "1.8.7"
+	etcdPort := "2379"
+	proxyPort := "8080"
 
 	var (
 		r             runner.Runner = &fakeRunner{}
 		kubeletScript               = `echo 'gcr.io/google-containers/hyperkube:v{{ .KubernetesVersion }}' > /etc/systemd/system/kubelet.service;systemctl start kubelet`
-		proxyScript                 = `sudo docker run --privileged=true --volume=/etc/ssl/cer:/usr/share/ca-certificates --volume=/etc/kubernetes/worker-kubeconfig.yaml:/etc/kubernetes/worker-kubeconfig.yaml:ro --volume=/etc/kubernetes/ssl:/etc/kubernetes/ssl gcr.io/google_containers/hyperkube:v{{ .KubernetesVersion }} /hyperkube proxy --config /etc/kubernetes/config.json --master http://{{ .MasterPrivateIP }}`
+		proxyScript                 = `        "master": "http://{{ .MasterPrivateIP }}:{{ .ProxyPort }} http://{{ .MasterPrivateIP }}:{{ .EtcdPort }}";sudo docker run --privileged=true --volume=/etc/ssl/cer:/usr/share/ca-certificates --volume=/etc/kubernetes/worker-kubeconfig.yaml:/etc/kubernetes/worker-kubeconfig.yaml:ro --volume=/etc/kubernetes/ssl:/etc/kubernetes/ssl gcr.io/google_containers/hyperkube:v{{ .KubernetesVersion }} /hyperkube proxy --config /etc/kubernetes/config.json --master http://{{ .MasterPrivateIP }}`
 	)
 
 	kubeletScriptTemplate, err := template.New("kubelet").Parse(kubeletScript)
@@ -50,7 +52,14 @@ func TestJob_ProvisionNode(t *testing.T) {
 		output,
 	}
 
-	err = j.ProvisionNode(k8sVersion, masterIp)
+	cfg := JobConfig{
+		KubernetesVersion: k8sVersion,
+		MasterPrivateIP: masterIp,
+		ProxyPort: proxyPort,
+		EtcdPort: etcdPort,
+	}
+
+	err = j.ProvisionNode(cfg)
 
 	if err != nil {
 		t.Errorf("Unpexpected error while  provision node %v", err)

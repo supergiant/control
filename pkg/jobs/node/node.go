@@ -22,12 +22,14 @@ type Job struct {
 	err io.Writer
 }
 
-type jobConfig struct {
+type JobConfig struct {
 	MasterPrivateIP   string
+	ProxyPort string
+	EtcdPort string
 	KubernetesVersion string
 }
 
-func NewJob(configFileName, kubeletConfigFileName, startKubeletFileName, startProxyFileName string,
+func NewJob(startKubeletFileName, startProxyFileName string,
 	outStream, errStream io.Writer, cfg *ssh.Config) (*Job, error) {
 	kubeletScript, err := jobs.ReadTemplate(startKubeletFileName, "start_kubelet")
 
@@ -59,19 +61,14 @@ func NewJob(configFileName, kubeletConfigFileName, startKubeletFileName, startPr
 	return t, nil
 }
 
-func (j *Job) ProvisionNode(k8sVersion, masterPrivateIp string) error {
-	cfg := jobConfig{
-		MasterPrivateIP:   masterPrivateIp,
-		KubernetesVersion: k8sVersion,
-	}
-
-	err := j.runTemplate(context.Background(), j.kubeletScript, cfg)
+func (j *Job) ProvisionNode(config JobConfig) error {
+	err := j.runTemplate(context.Background(), j.kubeletScript, config)
 
 	if err != nil {
 		return errors.Wrap(err, "error running  kubelet template as a command")
 	}
 
-	j.runTemplate(context.Background(), j.proxyScript, cfg)
+	j.runTemplate(context.Background(), j.proxyScript, config)
 
 	if err != nil {
 		return errors.Wrap(err, "error running proxy template as a command")
@@ -81,7 +78,7 @@ func (j *Job) ProvisionNode(k8sVersion, masterPrivateIp string) error {
 }
 
 // TODO(stgleb): maybe it can be moved to util and not to be a method of job
-func (j *Job) runTemplate(ctx context.Context, tpl *template.Template, cfg jobConfig) error {
+func (j *Job) runTemplate(ctx context.Context, tpl *template.Template, cfg JobConfig) error {
 	buffer := new(bytes.Buffer)
 	err := tpl.Execute(buffer, cfg)
 
