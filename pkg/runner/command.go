@@ -12,14 +12,12 @@ type Command struct {
 	Script string
 
 	Out io.Writer
-	Err io.Writer
 }
 
-func NewCommand(ctx context.Context, script string, out, err io.Writer) *Command {
+func NewCommand(ctx context.Context, script string, out io.Writer) *Command {
 	return &Command{
 		ctx,
 		script,
 		out,
-		err,
 	}
 }

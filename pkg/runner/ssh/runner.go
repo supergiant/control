@@ -80,8 +80,9 @@ func (r *Runner) Run(c *runner.Command) (err error) {
 
 	defer session.Close()
 
+	// Grab all output from the session to single stream
 	session.Stdout = c.Out
-	session.Stderr = c.Err
+	session.Stderr = c.Out
 
 	err = session.Start(cmd)
 	if err != nil {

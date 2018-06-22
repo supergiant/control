@@ -51,11 +51,10 @@ func TestJob_ProvisionNode(t *testing.T) {
 
 	output := new(bytes.Buffer)
 
-	j := &NodeJobConfig{
+	j := &NodeJob{
 		r,
 		kubeletScriptTemplate,
 		proxyTemplate,
-		output,
 		output,
 	}
 
@@ -93,11 +92,10 @@ func TestJob_ProvisionNodeError(t *testing.T) {
 
 	output := new(bytes.Buffer)
 
-	j := &NodeJobConfig{
+	j := &NodeJob{
 		r,
 		kubeletScriptTemplate,
 		proxyTemplate,
-		output,
 		output,
 	}
 

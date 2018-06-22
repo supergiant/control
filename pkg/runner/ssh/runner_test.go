@@ -20,12 +20,12 @@ func TestRunner_Run(t *testing.T) {
 			runner: &Runner{
 				client: &ssh.Client{},
 			},
-			command:     runner.NewCommand(context.Background(), "", ioutil.Discard, ioutil.Discard),
+			command:     runner.NewCommand(context.Background(), "", ioutil.Discard),
 			expectedErr: ErrEmptyScript,
 		},
 		{
 			runner:      &Runner{},
-			command:     runner.NewCommand(context.Background(), "", ioutil.Discard, ioutil.Discard),
+			command:     runner.NewCommand(context.Background(), "", ioutil.Discard),
 			expectedErr: ErrNotConnected,
 		},
 	}

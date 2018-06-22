@@ -8,7 +8,7 @@ echo "[Unit]
 Description=Networking service
 Requires=etcd-member.service
 [Service]
-Environment=FLANNEL_IMAGE_TAG=v{{ .FlannelVersion }}
+Environment=FLANNEL_IMAGE_TAG=v{{ .Version }}
 ExecStartPre=/usr/bin/etcdctl set /coreos.com/network/config '{"Network":"{{ .Network }}", "Backend": {"Type": "{{ .NetworkType }}"}}'" > \
 /etc/systemd/system/flanneld.service
 systemctl enable flanneld.service

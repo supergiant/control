@@ -9,7 +9,7 @@ import (
 	"github.com/supergiant/supergiant/pkg/runner"
 )
 
-func runTemplate(ctx context.Context, tpl *template.Template, r runner.Runner, outStream, errStream io.Writer, cfg JobConfig) error {
+func runTemplate(ctx context.Context, tpl *template.Template, r runner.Runner, output io.Writer, cfg interface{}) error {
 	buffer := new(bytes.Buffer)
 	err := tpl.Execute(buffer, cfg)
 
@@ -17,7 +17,7 @@ func runTemplate(ctx context.Context, tpl *template.Template, r runner.Runner, o
 		return err
 	}
 
-	cmd := runner.NewCommand(ctx, buffer.String(), outStream, errStream)
+	cmd := runner.NewCommand(ctx, buffer.String(), output)
 	err = r.Run(cmd)
 
 	if err != nil {

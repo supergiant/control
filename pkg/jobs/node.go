@@ -17,8 +17,7 @@ type NodeJob struct {
 	kubeletScript *template.Template
 	proxyScript   *template.Template
 
-	out io.Writer
-	err io.Writer
+	output io.Writer
 }
 
 type JobConfig struct {
@@ -41,21 +40,20 @@ func NewJob(startKubeletTemplate, startProxyTemplate *template.Template,
 		kubeletScript: startKubeletTemplate,
 		proxyScript:   startProxyTemplate,
 
-		out: outStream,
-		err: errStream,
+		output: outStream,
 	}
 
 	return t, nil
 }
 
 func (j *NodeJob) ProvisionNode(config JobConfig) error {
-	err := runTemplate(context.Background(), j.kubeletScript, j.runner, j.out, j.err, config)
+	err := runTemplate(context.Background(), j.kubeletScript, j.runner, j.output, config)
 
 	if err != nil {
 		return errors.Wrap(err, "error running  kubelet template as a command")
 	}
 
-	err = runTemplate(context.Background(), j.proxyScript, j.runner, j.out, j.err, config)
+	err = runTemplate(context.Background(), j.proxyScript, j.runner, j.output, config)
 
 	if err != nil {
 		return errors.Wrap(err, "error running proxy template as a command")

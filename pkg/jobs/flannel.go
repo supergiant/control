@@ -1,6 +1,7 @@
 package jobs
 
 import (
+	"context"
 	"io"
 	"text/template"
 
@@ -21,11 +22,10 @@ type FlannelJob struct {
 	scriptTemplate *template.Template
 	runner         runner.Runner
 
-	out io.Writer
-	err io.Writer
+	output io.Writer
 }
 
-func NewFlannelJob(tpl *template.Template, outStream, errStream io.Writer, cfg *ssh.Config) (*FlannelJob, error) {
+func NewFlannelJob(tpl *template.Template, outStream io.Writer, cfg *ssh.Config) (*FlannelJob, error) {
 	sshRunner, err := ssh.NewRunner(cfg)
 
 	if err != nil {
@@ -35,11 +35,15 @@ func NewFlannelJob(tpl *template.Template, outStream, errStream io.Writer, cfg *
 	return &FlannelJob{
 		scriptTemplate: tpl,
 		runner:         sshRunner,
-		out:            outStream,
-		err:            errStream,
+		output:         outStream,
 	}, nil
 }
 
-func (i *FlannelJob) InstallFlannel(config FlannelJobConfig) {
+func (i *FlannelJob) InstallFlannel(config FlannelJobConfig) error {
+	err := runTemplate(context.Background(), i.scriptTemplate, i.runner, i.output, config)
+	if err != nil {
+		return errors.Wrap(err, "error running template for flannel")
+	}
 
+	return nil
 }
