@@ -1,7 +1,6 @@
-package node
+package jobs
 
 import (
-	"bytes"
 	"context"
 	"io"
 	"text/template"
@@ -12,7 +11,7 @@ import (
 	"github.com/supergiant/supergiant/pkg/runner/ssh"
 )
 
-type Job struct {
+type NodeJob struct {
 	runner runner.Runner
 
 	kubeletScript *template.Template
@@ -30,14 +29,14 @@ type JobConfig struct {
 }
 
 func NewJob(startKubeletTemplate, startProxyTemplate *template.Template,
-	outStream, errStream io.Writer, cfg *ssh.Config) (*Job, error) {
+	outStream, errStream io.Writer, cfg *ssh.Config) (*NodeJob, error) {
 	sshRunner, err := ssh.NewRunner(cfg)
 
 	if err != nil {
 		return nil, errors.Wrap(err, "error creating ssh runner")
 	}
 
-	t := &Job{
+	t := &NodeJob{
 		runner:        sshRunner,
 		kubeletScript: startKubeletTemplate,
 		proxyScript:   startProxyTemplate,
@@ -49,36 +48,17 @@ func NewJob(startKubeletTemplate, startProxyTemplate *template.Template,
 	return t, nil
 }
 
-func (j *Job) ProvisionNode(config JobConfig) error {
-	err := j.runTemplate(context.Background(), j.kubeletScript, config)
+func (j *NodeJob) ProvisionNode(config JobConfig) error {
+	err := runTemplate(context.Background(), j.kubeletScript, j.runner, j.out, j.err, config)
 
 	if err != nil {
 		return errors.Wrap(err, "error running  kubelet template as a command")
 	}
 
-	j.runTemplate(context.Background(), j.proxyScript, config)
+	err = runTemplate(context.Background(), j.proxyScript, j.runner, j.out, j.err, config)
 
 	if err != nil {
 		return errors.Wrap(err, "error running proxy template as a command")
-	}
-
-	return nil
-}
-
-// TODO(stgleb): maybe it can be moved to util and not to be a method of job
-func (j *Job) runTemplate(ctx context.Context, tpl *template.Template, cfg JobConfig) error {
-	buffer := new(bytes.Buffer)
-	err := tpl.Execute(buffer, cfg)
-
-	if err != nil {
-		return err
-	}
-
-	cmd := runner.NewCommand(ctx, buffer.String(), j.out, j.err)
-	err = j.runner.Run(cmd)
-
-	if err != nil {
-		return err
 	}
 
 	return nil
