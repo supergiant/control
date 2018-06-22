@@ -5,98 +5,85 @@ import (
 	"fmt"
 	"strings"
 
+	"github.com/pkg/errors"
+
 	"golang.org/x/crypto/ssh"
 
 	"github.com/supergiant/supergiant/pkg/runner"
 )
 
+const (
+	DefaultPort = "22"
+)
+
 // Config is a set of params needed to create valid ssh.ClientConfig
 type Config struct {
 	Host    string
-	Port    int
+	Port    string
 	User    string
 	Timeout int
-
-	Key []byte
-
-	SshClientConfig *ssh.ClientConfig
+	Key     []byte
 }
 
 // Runner is implementation of runner interface for ssh
 type Runner struct {
-	*Config
-
-	client *ssh.Client
+	host    string
+	port    string
+	sshConf *ssh.ClientConfig
 }
 
 // NewRunner creates ssh runner object. It requires two io.Writer
 // to send output of ssh session and config for ssh client.
+// TODO: Does it safe to pass Config as a pointer?
 func NewRunner(config *Config) (*Runner, error) {
-	if sshConfig, err := getSshConfig(config); err != nil {
-		config.SshClientConfig = sshConfig
+	if strings.TrimSpace(config.Host) == "" {
+		return nil, ErrHostNotSpecified
 	}
-
-	r := &Runner{
-		config,
-		nil,
-	}
-
-	err := r.connect()
-
+	sshConfig, err := getSshConfig(config)
 	if err != nil {
 		return nil, err
+	}
+
+	r := &Runner{host: config.Host, sshConf: sshConfig}
+	if config.Port == "" {
+		r.port = DefaultPort
 	}
 
 	return r, nil
 }
 
-// Connect to server with ssh
-func (r *Runner) connect() error {
-	client, err := ssh.Dial("tcp", fmt.Sprintf("%s:%d", r.Host, r.Port), r.SshClientConfig)
-	if err == nil {
-		r.client = client
+//TODO(stgleb): Add  more context like env variables?
+// Run executes a single command on ssh session.
+//
+// The returned error is nil if the command runs, has no problems
+// copying stdin, stdout, and stderr, and exits with a zero exit
+// status.
+func (r *Runner) Run(cmd *runner.Command) (err error) {
+	if cmd == nil || strings.TrimSpace(cmd.Script) == "" {
 		return nil
 	}
 
-	return err
-}
-
-//TODO(stgleb): Add  more context like env variables?
-// Run executes a single command on ssh session.
-func (r *Runner) Run(c *runner.Command) (err error) {
-	if r.client == nil {
-		return ErrNotConnected
-	}
-
-	cmd := strings.TrimSpace(c.Script)
-	if cmd == "" {
-		return ErrEmptyScript
-	}
-
-	session, err := r.client.NewSession()
+	c, err := ssh.Dial("tcp", fmt.Sprintf("%s:%s", r.host, r.port), r.sshConf)
 	if err != nil {
-		return err
+		return errors.Wrap(err, "ssh: dial")
 	}
-
+	session, err := c.NewSession()
+	if err != nil {
+		return errors.Wrap(err, "ssh: new session")
+	}
 	defer session.Close()
 
-	// Grab all output from the session to single stream
-	session.Stdout = c.Out
-	session.Stderr = c.Out
-
-	err = session.Start(cmd)
-	if err != nil {
-		return err
-	}
+	session.Stdout = cmd.Out
+	session.Stderr = cmd.Out
 
 	waitCh := make(chan error)
 	go func() {
-		waitCh <- session.Wait()
+		waitCh <- session.Run(cmd.Script)
 	}()
 
 	select {
-	case <-c.Ctx.Done():
-		if c.Ctx.Err() == context.Canceled {
+	case <-cmd.Ctx.Done():
+		if cmd.Ctx.Err() == context.Canceled {
 			session.Signal(ssh.SIGKILL)
 			session.Close()
 		}
