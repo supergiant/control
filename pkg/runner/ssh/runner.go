@@ -76,7 +76,7 @@ func (r *Runner) Run(cmd *runner.Command) (err error) {
 	session.Stdout = cmd.Out
 	session.Stderr = cmd.Err
 
-	waitCh := make(chan error, 1)
+	waitCh := make(chan error)
 	go func() {
 		waitCh <- session.Run(cmd.Script)
 	}()
