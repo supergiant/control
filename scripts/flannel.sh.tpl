@@ -1,9 +1,15 @@
 #!/bin/bash
+wget -P /usr/bin/ https://github.com/coreos/flannel/releases/download/v{{ .Version }}/flanneld-{{ .Arch }}
+mv /usr/bin/flanneld-{{ .Arch }} /usr/bin/flanneld
+chmod 755 /usr/bin/flanneld
+sed -i 's/REPLACEME/'`ifconfig|grep "10\."|grep "inet "|cut -f10 -d" "`'/g' /etc/default/flanneld
+
 echo "[Unit]
 Description=Networking service
 Requires=etcd-member.service
 [Service]
-Environment=FLANNEL_IMAGE_TAG=v0.9.0
-ExecStartPre=/usr/bin/etcdctl set /coreos.com/network/config '{"Network":"10.2.0.0/16", "Backend": {"Type": "vxlan"}}'" > \
-/etc/systemd/system/flannel.service
-systemctl start flannel
+Environment=FLANNEL_IMAGE_TAG=v{{ .FlannelVersion }}
+ExecStartPre=/usr/bin/etcdctl set /coreos.com/network/config '{"Network":"{{ .Network }}", "Backend": {"Type": "{{ .NetworkType }}"}}'" > \
+/etc/systemd/system/flanneld.service
+systemctl enable flanneld.service
+systemctl restart flanneld.service
