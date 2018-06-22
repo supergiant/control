@@ -2,33 +2,37 @@ package kube
 
 import (
 	"context"
-	"fmt"
+	"strings"
 	"testing"
 
 	"github.com/pkg/errors"
 	"github.com/stretchr/testify/require"
 
 	"github.com/supergiant/supergiant/pkg/runner"
-	"github.com/supergiant/supergiant/pkg/runner/command"
-	"github.com/supergiant/supergiant/pkg/runner/shell"
+	"github.com/supergiant/supergiant/pkg/runner/ssh"
 )
 
 var (
 	fakeErrFileNotFound = errors.New("key file not found")
+
+	fakeFile = []byte("file")
 )
 
 type fakeRunner struct {
-	path   string
-	err    error
-	cmdErr []byte
+	path string
+	err  error
 }
 
-func newFakeRunner(path string, err error, cmdErr []byte) *fakeRunner {
-	return &fakeRunner{path, err, cmdErr}
+func newFakeRunner(path string, err error) *fakeRunner {
+	return &fakeRunner{path, err}
 }
 
-func (r *fakeRunner) Run(cmd *command.Command) error {
-	if len(cmd.Args) != 1 {
+func (r *fakeRunner) Run(cmd *runner.Command) error {
+	if cmd.Script == "" {
+		return nil
+	}
+
+	if !strings.HasSuffix(cmd.Script, r.path) {
 		return nil
 	}
 
@@ -36,8 +40,8 @@ func (r *fakeRunner) Run(cmd *command.Command) error {
 		return r.err
 	}
 
-	cmd.Out.Write([]byte(cmd.Args[0]))
-	cmd.Err.Write(r.cmdErr)
+	cmd.Out.Write(fakeFile)
+
 	return nil
 }
 
@@ -61,10 +65,10 @@ func TestNewCerts(t *testing.T) {
 		// TC#3
 		{
 			path: DefaultCertsPath,
-			r:    &shell.Runner{},
+			r:    &ssh.Runner{},
 			expected: &Certs{
 				path: DefaultCertsPath,
-				r:    &shell.Runner{},
+				r:    &ssh.Runner{},
 			},
 		},
 	}
@@ -109,15 +113,15 @@ func TestCerts_BundleFor(t *testing.T) {
 		{
 			name: "kubelet",
 			expected: &Bundle{
-				Cert: []byte(certName("kubelet")),
-				Key:  []byte(keyName("kubelet")),
+				Cert: fakeFile,
+				Key:  fakeFile,
 			},
 		},
 	}
 
 	for i, tc := range tcs {
 		// setup
-		certs, err := NewCerts("", newFakeRunner(tc.runnerFile, tc.runnerErr, nil))
+		certs, err := NewCerts("", newFakeRunner(tc.runnerFile, tc.runnerErr))
 		require.Equalf(t, nil, err, "TC#%d: setup certs", i+1)
 
 		// run
@@ -132,11 +136,8 @@ func TestCerts_BundleFor(t *testing.T) {
 
 func TestCerts_getFile(t *testing.T) {
 	tcs := []struct {
-		path string
-
-		runnerErr error
-		cmdErr    []byte
-
+		path        string
+		runnerErr   error
 		expectedErr error
 	}{
 		// TC#1
@@ -149,17 +150,11 @@ func TestCerts_getFile(t *testing.T) {
 			runnerErr:   fakeErrFileNotFound,
 			expectedErr: fakeErrFileNotFound,
 		},
-		// TC#3
-		{
-			path:        "kubelet.key",
-			cmdErr:      []byte("file not found"),
-			expectedErr: fmt.Errorf("get file: file not found"),
-		},
 	}
 
 	for i, tc := range tcs {
 		// setup
-		certs, err := NewCerts("", newFakeRunner(tc.path, tc.runnerErr, tc.cmdErr))
+		certs, err := NewCerts("", newFakeRunner(tc.path, tc.runnerErr))
 		require.Equalf(t, nil, err, "TC#%d: setup certs", i+1)
 
 		// run
@@ -167,7 +162,7 @@ func TestCerts_getFile(t *testing.T) {
 		require.EqualValuesf(t, tc.expectedErr, errors.Cause(err), "TC#%d: get file", i+1)
 
 		if err == nil {
-			require.Equalf(t, []byte(tc.path), b, "TC#%d: compare results", i+1)
+			require.Equalf(t, fakeFile, b, "TC#%d: compare results", i+1)
 		}
 	}
 }

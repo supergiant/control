@@ -3,14 +3,13 @@ package kube
 import (
 	"bytes"
 	"context"
-	"fmt"
+	"io/ioutil"
 	"path/filepath"
 	"strings"
 
 	"github.com/pkg/errors"
 
 	"github.com/supergiant/supergiant/pkg/runner"
-	"github.com/supergiant/supergiant/pkg/runner/command"
 )
 
 // Certs specific errors.
@@ -72,18 +71,19 @@ func (c *Certs) BundleFor(ctx context.Context, name string) (*Bundle, error) {
 }
 
 func (c *Certs) getFile(ctx context.Context, path string) ([]byte, error) {
-	stdout, stderr := &bytes.Buffer{}, &bytes.Buffer{}
-	cmd := command.NewCommand(ctx, "cat", []string{path}, stdout, stderr)
+	stdout := &bytes.Buffer{}
+	cmd := runner.NewCommand(ctx, catCmd(path), stdout, ioutil.Discard)
 
 	err := c.r.Run(cmd)
 	if err != nil {
-		return nil, errors.Wrapf(err, "run %q", cmd.FullCommand())
-	}
-	if stderr.Len() != 0 {
-		return nil, fmt.Errorf("get file: %s", string(stderr.Bytes()))
+		return nil, errors.Wrapf(err, "run %q", cmd.Script)
 	}
 
 	return stdout.Bytes(), nil
+}
+
+func catCmd(path string) string {
+	return "/usr/bin/cat " + path
 }
 
 func keyName(name string) string {

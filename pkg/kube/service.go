@@ -157,12 +157,11 @@ func (s *Service) GetKubeResources(ctx context.Context, kname, resource, ns, nam
 func (s *Service) GetCerts(ctx context.Context, kname, cname string) (*Bundle, error) {
 	kube, err := s.Get(ctx, kname)
 	if err != nil {
-		return nil, errors.Wrap(err, "storage: get")
+		return nil, err
 	}
 
-	r, err := ssh.NewRunner(nil, nil, &ssh.Config{
+	r, err := ssh.NewRunner(&ssh.Config{
 		Host: kube.APIAddr,
-		Port: ssh.DefaultSSHPort,
 		User: kube.SSHUser,
 		Key:  kube.SSHKey,
 	})
