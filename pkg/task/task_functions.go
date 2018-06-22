@@ -15,7 +15,7 @@ func RunRemoteScript(ctx context.Context, script, user, host, cert string, timeo
 		User:    user,
 		Host:    host,
 		Timeout: timeoutSec,
-		Port:    22,
+		Port:    "22",
 		Key:     key,
 	}
 
