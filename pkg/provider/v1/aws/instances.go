@@ -26,14 +26,14 @@ var (
 	ErrNoInstancesCreated = errors.New("aws: no instances were created")
 )
 
-type provider struct {
+type Provider struct {
 	session *session.Session
 
 	ec2SvcFn func(s *session.Session, region string) ec2iface.EC2API
 }
 
-// New returns a configured aws provider.
-func New(keyID, secret string) (Interface, error) {
+// New returns a configured AWS Provider.
+func New(keyID, secret string) (*Provider, error) {
 	if strings.TrimSpace(keyID) == "" || strings.TrimSpace(secret) == "" {
 		return nil, ErrInvalidKeys
 	}
@@ -42,14 +42,14 @@ func New(keyID, secret string) (Interface, error) {
 		Credentials: credentials.NewStaticCredentials(keyID, secret, ""),
 	})
 
-	return &provider{
+	return &Provider{
 		session:  session,
 		ec2SvcFn: ec2Svc,
 	}, nil
 }
 
 // CreateInstance start a new instance due to the provided config.
-func (p *provider) CreateInstance(ctx context.Context, c InstanceConfig) error {
+func (p *Provider) CreateInstance(ctx context.Context, c InstanceConfig) error {
 	if strings.TrimSpace(c.Region) == "" {
 		return ErrNoRegionProvided
 	}
@@ -106,7 +106,7 @@ func (p *provider) CreateInstance(ctx context.Context, c InstanceConfig) error {
 }
 
 // DeleteInstance terminates an instance with provided id and region.
-func (p *provider) DeleteInstance(ctx context.Context, region, instanceID string) error {
+func (p *Provider) DeleteInstance(ctx context.Context, region, instanceID string) error {
 	if strings.TrimSpace(region) == "" {
 		return ErrNoRegionProvided
 	}

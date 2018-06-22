@@ -110,7 +110,7 @@ func TestProvider_CreateInstance(t *testing.T) {
 	ec2Mock := &mockedEC2Service{}
 	for i, tc := range tcs {
 		ec2Mock.CreateInstRes, ec2Mock.RunInstErr, ec2Mock.TagResErr = tc.ec2Res, tc.ec2RunInstErr, tc.ec2TagResErr
-		p := &provider{
+		p := &Provider{
 			ec2SvcFn: func(s *session.Session, region string) ec2iface.EC2API {
 				return ec2Mock
 			},
@@ -163,7 +163,7 @@ func TestProvider_DeleteInstance(t *testing.T) {
 	ec2Mock := &mockedEC2Service{}
 	for i, tc := range tcs {
 		ec2Mock.DelInstErr = tc.ec2DeleteInsErr
-		p := &provider{
+		p := &Provider{
 			ec2SvcFn: func(s *session.Session, region string) ec2iface.EC2API {
 				return ec2Mock
 			},
