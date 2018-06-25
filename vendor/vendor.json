@@ -16,17 +16,136 @@
 			"revisionTime": "2017-01-03T20:23:41Z"
 		},
 		{
-			"checksumSHA1": "eSakjUQKAh9oYtcQwEXGBBx+JRg=",
+			"checksumSHA1": "90RPiwXAAgOtakax6ALPEldFrWQ=",
 			"path": "github.com/RichardKnop/logging",
-			"revision": "f8c19a024686a93a10387819b36e4eb2eb510700",
-			"revisionTime": "2018-05-26T09:28:19Z"
+			"revision": "314bb050fc93e11a2a3862d188c9855bb2f105f1",
+			"revisionTime": "2018-06-21T14:26:56Z"
 		},
 		{
-			"checksumSHA1": "53tH2zVr4bVmoRdpDPaXKfnTOQE=",
-			"path": "github.com/RichardKnop/machinery",
-			"revision": "41d81167d33d6399bb54087fa64510799dca3e74",
-			"revisionTime": "2018-05-26T09:10:19Z",
-			"tree": true
+			"checksumSHA1": "WcXrxa3Yq7/8o9RSzIKC3ewEcv4=",
+			"path": "github.com/RichardKnop/machinery/v1",
+			"revision": "e7719c452484bd7e4ad1a55ce206f89f4400e92c",
+			"revisionTime": "2018-06-25T09:53:48Z"
+		},
+		{
+			"checksumSHA1": "/FZsmwE7RQ+roE7L5wBqj/MQG54=",
+			"path": "github.com/RichardKnop/machinery/v1/backends/amqp",
+			"revision": "e7719c452484bd7e4ad1a55ce206f89f4400e92c",
+			"revisionTime": "2018-06-25T09:53:48Z"
+		},
+		{
+			"checksumSHA1": "GAP4G6eVMF4eu/8wjx3j5HazZFw=",
+			"path": "github.com/RichardKnop/machinery/v1/backends/dynamodb",
+			"revision": "e7719c452484bd7e4ad1a55ce206f89f4400e92c",
+			"revisionTime": "2018-06-25T09:53:48Z"
+		},
+		{
+			"checksumSHA1": "Fd2S6LlQfMtom/ZHXkg3E5zX/cA=",
+			"path": "github.com/RichardKnop/machinery/v1/backends/eager",
+			"revision": "e7719c452484bd7e4ad1a55ce206f89f4400e92c",
+			"revisionTime": "2018-06-25T09:53:48Z"
+		},
+		{
+			"checksumSHA1": "5iVg2cVnzyepwoXcRdKlKgYYnMs=",
+			"path": "github.com/RichardKnop/machinery/v1/backends/iface",
+			"revision": "e7719c452484bd7e4ad1a55ce206f89f4400e92c",
+			"revisionTime": "2018-06-25T09:53:48Z"
+		},
+		{
+			"checksumSHA1": "asFU7aEbJ6Bb7zkGWsCFGZzG0cg=",
+			"path": "github.com/RichardKnop/machinery/v1/backends/memcache",
+			"revision": "e7719c452484bd7e4ad1a55ce206f89f4400e92c",
+			"revisionTime": "2018-06-25T09:53:48Z"
+		},
+		{
+			"checksumSHA1": "bU8LhlNlNbZXTheqKxi+ZzbRPHQ=",
+			"path": "github.com/RichardKnop/machinery/v1/backends/mongo",
+			"revision": "e7719c452484bd7e4ad1a55ce206f89f4400e92c",
+			"revisionTime": "2018-06-25T09:53:48Z"
+		},
+		{
+			"checksumSHA1": "f92kAYxKIaNCqtLKHumPEA2USis=",
+			"path": "github.com/RichardKnop/machinery/v1/backends/redis",
+			"revision": "e7719c452484bd7e4ad1a55ce206f89f4400e92c",
+			"revisionTime": "2018-06-25T09:53:48Z"
+		},
+		{
+			"checksumSHA1": "OjJiVRG0WYrVLYk+TsHXJKIntH8=",
+			"path": "github.com/RichardKnop/machinery/v1/backends/result",
+			"revision": "e7719c452484bd7e4ad1a55ce206f89f4400e92c",
+			"revisionTime": "2018-06-25T09:53:48Z"
+		},
+		{
+			"checksumSHA1": "rDqttJ+qpaAuo6FSjFnMRzaTHDQ=",
+			"path": "github.com/RichardKnop/machinery/v1/brokers/amqp",
+			"revision": "e7719c452484bd7e4ad1a55ce206f89f4400e92c",
+			"revisionTime": "2018-06-25T09:53:48Z"
+		},
+		{
+			"checksumSHA1": "revW+79sD+R+2Oxr3qo0eIpTs4o=",
+			"path": "github.com/RichardKnop/machinery/v1/brokers/eager",
+			"revision": "e7719c452484bd7e4ad1a55ce206f89f4400e92c",
+			"revisionTime": "2018-06-25T09:53:48Z"
+		},
+		{
+			"checksumSHA1": "P7vI6uUdX34MJAugByjPZQH2jG8=",
+			"path": "github.com/RichardKnop/machinery/v1/brokers/errs",
+			"revision": "e7719c452484bd7e4ad1a55ce206f89f4400e92c",
+			"revisionTime": "2018-06-25T09:53:48Z"
+		},
+		{
+			"checksumSHA1": "C4U71PmI6J3y1DFY55t47Gf5x/A=",
+			"path": "github.com/RichardKnop/machinery/v1/brokers/iface",
+			"revision": "e7719c452484bd7e4ad1a55ce206f89f4400e92c",
+			"revisionTime": "2018-06-25T09:53:48Z"
+		},
+		{
+			"checksumSHA1": "3lXe1/cpGdVrwc15QTbFl1D79D8=",
+			"path": "github.com/RichardKnop/machinery/v1/brokers/redis",
+			"revision": "e7719c452484bd7e4ad1a55ce206f89f4400e92c",
+			"revisionTime": "2018-06-25T09:53:48Z"
+		},
+		{
+			"checksumSHA1": "eE+IoWQvEQbkbR8yWOnPVDwvspw=",
+			"path": "github.com/RichardKnop/machinery/v1/brokers/sqs",
+			"revision": "e7719c452484bd7e4ad1a55ce206f89f4400e92c",
+			"revisionTime": "2018-06-25T09:53:48Z"
+		},
+		{
+			"checksumSHA1": "SKKAMsrU15Iv7CtSJreBJKc78W4=",
+			"path": "github.com/RichardKnop/machinery/v1/common",
+			"revision": "e7719c452484bd7e4ad1a55ce206f89f4400e92c",
+			"revisionTime": "2018-06-25T09:53:48Z"
+		},
+		{
+			"checksumSHA1": "rq3N5tIgLONQzprnMYRLR+6w2k0=",
+			"path": "github.com/RichardKnop/machinery/v1/config",
+			"revision": "e7719c452484bd7e4ad1a55ce206f89f4400e92c",
+			"revisionTime": "2018-06-25T09:53:48Z"
+		},
+		{
+			"checksumSHA1": "A1y1hGQN5MYLRK34wsdGcS41MxY=",
+			"path": "github.com/RichardKnop/machinery/v1/log",
+			"revision": "e7719c452484bd7e4ad1a55ce206f89f4400e92c",
+			"revisionTime": "2018-06-25T09:53:48Z"
+		},
+		{
+			"checksumSHA1": "7u2rgFHd0rIOObXERyDT6E8vUeM=",
+			"path": "github.com/RichardKnop/machinery/v1/retry",
+			"revision": "e7719c452484bd7e4ad1a55ce206f89f4400e92c",
+			"revisionTime": "2018-06-25T09:53:48Z"
+		},
+		{
+			"checksumSHA1": "r+h24ob19yULmwHD4AB7SrwFGQg=",
+			"path": "github.com/RichardKnop/machinery/v1/tasks",
+			"revision": "e7719c452484bd7e4ad1a55ce206f89f4400e92c",
+			"revisionTime": "2018-06-25T09:53:48Z"
+		},
+		{
+			"checksumSHA1": "No753udwDCxZZlcSIqKmMgO64Ig=",
+			"path": "github.com/RichardKnop/machinery/v1/tracing",
+			"revision": "e7719c452484bd7e4ad1a55ce206f89f4400e92c",
+			"revisionTime": "2018-06-25T09:53:48Z"
 		},
 		{
 			"checksumSHA1": "7kpYEA7uxPfx2JbF76yUY+EETCk=",
@@ -799,10 +918,10 @@
 			"revisionTime": "2016-01-10T10:55:54Z"
 		},
 		{
-			"checksumSHA1": "7Ck3I7G0hgz+1WD5ohzUMFJsvGg=",
+			"checksumSHA1": "eDQ6f1EsNf+frcRO/9XukSEchm8=",
 			"path": "github.com/satori/go.uuid",
-			"revision": "e673fdd4dea8a7334adbbe7f57b7e4b00bdc5502",
-			"revisionTime": "2016-02-18T23:57:46Z"
+			"revision": "36e9d2ebbde5e3f13ab2e25625fd453271d6522e",
+			"revisionTime": "2018-01-03T17:44:51Z"
 		},
 		{
 			"checksumSHA1": "ySaT8G3I3y4MmnoXOYAAX0rC+p8=",

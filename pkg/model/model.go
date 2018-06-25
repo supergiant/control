@@ -58,7 +58,8 @@ func (m *BaseModel) GetUUID() string {
 // SetUUID sets the model UUID.
 func (m *BaseModel) SetUUID() {
 	if m.UUID == "" {
-		m.UUID = uuid.NewV4().String()
+		u, _ := uuid.NewV4()
+		m.UUID = u.String()
 	}
 }
 

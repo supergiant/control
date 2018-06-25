@@ -6,7 +6,7 @@ import (
 	"github.com/pkg/errors"
 
 	"github.com/RichardKnop/machinery/v1"
-	"github.com/RichardKnop/machinery/v1/backends"
+	"github.com/RichardKnop/machinery/v1/backends/result"
 	"github.com/RichardKnop/machinery/v1/config"
 	"github.com/RichardKnop/machinery/v1/tasks"
 )
@@ -35,11 +35,11 @@ func (s *Service) RegisterTaskFunction(taskName string, fn interface{}) error {
 }
 
 // Send individual task to be executed.
-func (s *Service) Send(ctx context.Context, task *tasks.Signature) (*backends.AsyncResult, error) {
+func (s *Service) Send(ctx context.Context, task *tasks.Signature) (*result.AsyncResult, error) {
 	return s.srv.SendTaskWithContext(ctx, task)
 }
 
 // SendChain executed a chain of tasks.
-func (s *Service) SendChain(ctx context.Context, chain *tasks.Chain) (*backends.ChainAsyncResult, error) {
+func (s *Service) SendChain(ctx context.Context, chain *tasks.Chain) (*result.ChainAsyncResult, error) {
 	return s.srv.SendChainWithContext(ctx, chain)
 }
