@@ -70,7 +70,7 @@ func (s *Service) Get(ctx context.Context, accountName string) (*CloudAccount, e
 func (s *Service) Create(ctx context.Context, account *CloudAccount) error {
 	logrus.Debug("cloud_account.Service.Create start")
 
-	rawJSON, err := json	.Marshal(account)
+	rawJSON, err := json.Marshal(account)
 	if err != nil {
 		return errors.WithStack(err)
 	}

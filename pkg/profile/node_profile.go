@@ -16,5 +16,5 @@ type NodeSize struct {
 	RAM string `json:"ram"`
 
 	// Name e.g. t2.micro
-	Name string `json:"slur"`
+	Name string `json:"name"`
 }

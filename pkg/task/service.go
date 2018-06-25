@@ -16,7 +16,7 @@ type Service struct {
 	srv *machinery.Server
 }
 
-// NewService - creates the task service instance
+// NewService creates the task service instance.
 func NewService(cnf *config.Config) (*Service, error) {
 	srv, err := machinery.NewServer(cnf)
 	if err != nil {
@@ -28,18 +28,18 @@ func NewService(cnf *config.Config) (*Service, error) {
 }
 
 // RegisterTaskFunction in order to invoke task handler function it should be registered in machinery
-// the function could have an arbitrary number of arguments however it is mandatory to return an error as the last one
+// the function could have an arbitrary number of arguments however it is mandatory to return an error as the last one.
 func (s *Service) RegisterTaskFunction(taskName string, fn interface{}) error {
 	err := s.srv.RegisterTask(taskName, fn)
 	return errors.Wrap(err, "task service register")
 }
 
-// SendTask	to be executed
-func (s *Service) SendTask(ctx context.Context, task *tasks.Signature) (*backends.AsyncResult, error) {
+// Send individual task to be executed.
+func (s *Service) Send(ctx context.Context, task *tasks.Signature) (*backends.AsyncResult, error) {
 	return s.srv.SendTaskWithContext(ctx, task)
 }
 
-// SendChain of tasks to be executed
+// SendChain executed a chain of tasks.
 func (s *Service) SendChain(ctx context.Context, chain *tasks.Chain) (*backends.ChainAsyncResult, error) {
 	return s.srv.SendChainWithContext(ctx, chain)
 }
