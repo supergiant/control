@@ -44,7 +44,7 @@ func (s *NodeProfileService) Create(ctx context.Context, profile *NodeProfile) e
 		return err
 	}
 
-	return s.nodeProfileStorage.Put(ctx, s.prefix, profile.Id, profileData)
+	return s.nodeProfileStorage.Put(ctx, s.prefix, profile.ID, profileData)
 }
 
 func (s *NodeProfileService) GetAll(ctx context.Context) ([]NodeProfile, error) {
