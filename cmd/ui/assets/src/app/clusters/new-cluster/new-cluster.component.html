@@ -12,13 +12,11 @@
       <h3 *ngIf="!schema">Select a Cloud Account</h3>
 
       <div *ngIf="!schema">
-        <button mat-button color="primary" *ngFor="let provider of providers" (click)="sendChoice(provider)">{{ provider.name }}</button>
+        <button mat-button color="primary" *ngFor="let cloudAccount of cloudAccountsList" (click)="sendChoice(cloudAccount)">{{ cloudAccount.name }}</button>
       </div>
 
       <div *ngIf="schema">
         <json-schema-form framework="material-design" [schema]="schema" [data]="data" (onSubmit)="createKube(value)" (onChanges)="value=$event"></json-schema-form>
-
-        <!-- <json-schema-form framework="material-design" [schema]="schema" [layout]="layout" [data]="data" (onSubmit)="createKube(value)" (onChanges)="value=$event"></json-schema-form> -->
       </div>
     </div>
 
