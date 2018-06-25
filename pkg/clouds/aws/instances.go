@@ -34,7 +34,8 @@ type Provider struct {
 
 // New returns a configured AWS Provider.
 func New(keyID, secret string) (*Provider, error) {
-	if strings.TrimSpace(keyID) == "" || strings.TrimSpace(secret) == "" {
+	keyID, secret = strings.TrimSpace(keyID), strings.TrimSpace(secret)
+	if keyID == "" || secret == "" {
 		return nil, ErrInvalidKeys
 	}
 
@@ -50,7 +51,8 @@ func New(keyID, secret string) (*Provider, error) {
 
 // CreateInstance start a new instance due to the provided config.
 func (p *Provider) CreateInstance(ctx context.Context, c InstanceConfig) error {
-	if strings.TrimSpace(c.Region) == "" {
+	c.Region = strings.TrimSpace(c.Region)
+	if c.Region == "" {
 		return ErrNoRegionProvided
 	}
 	ec2S := p.ec2SvcFn(p.session, c.Region)
@@ -107,10 +109,11 @@ func (p *Provider) CreateInstance(ctx context.Context, c InstanceConfig) error {
 
 // DeleteInstance terminates an instance with provided id and region.
 func (p *Provider) DeleteInstance(ctx context.Context, region, instanceID string) error {
-	if strings.TrimSpace(region) == "" {
+	region, instanceID = strings.TrimSpace(region), strings.TrimSpace(instanceID)
+	if region == "" {
 		return ErrNoRegionProvided
 	}
-	if strings.TrimSpace(instanceID) == "" {
+	if instanceID == "" {
 		return ErrInstanceIDEmpty
 	}
 	ec2S := p.ec2SvcFn(p.session, region)
@@ -129,7 +132,8 @@ func ec2Svc(s *session.Session, region string) ec2iface.EC2API {
 }
 
 func tagAWSResource(ec2S ec2iface.EC2API, id string, tags map[string]string) error {
-	if strings.TrimSpace(id) == "" {
+	id = strings.TrimSpace(id)
+	if id == "" {
 		return ErrInstanceIDEmpty
 	}
 	if len(tags) == 0 {
