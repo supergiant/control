@@ -1,8 +1,9 @@
 package task
 
 import (
-	"github.com/RichardKnop/machinery/v1/tasks"
 	"fmt"
+
+	"github.com/RichardKnop/machinery/v1/tasks"
 	"github.com/satori/go.uuid"
 )
 

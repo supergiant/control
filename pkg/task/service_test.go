@@ -16,11 +16,11 @@ func TestNewManager(t *testing.T) {
 		Broker:        "eager",
 		ResultBackend: "eager",
 	}
-	mgr, err := NewService(cnf)
+	svc, err := NewService(cnf)
 	require.NoError(t, err)
 
 	called := false
-	mgr.RegisterTask("test", func(arg string) (string, error) {
+	svc.RegisterTaskFunction("test", func(arg string) (string, error) {
 		logrus.Infof("argument is %s", arg)
 		called = true
 		return "hello, world", nil
@@ -38,7 +38,7 @@ func TestNewManager(t *testing.T) {
 		RetryCount: 2,
 	}
 
-	r, err := mgr.srv.SendTask(sig)
+	r, err := svc.srv.SendTask(sig)
 	require.NoError(t, err)
 	require.True(t, called)
 
@@ -51,41 +51,5 @@ func TestNewManager(t *testing.T) {
 	require.True(t, ok)
 
 	require.Equal(t, "hello, world", res)
-	mgr.RegisterTask("1", RunRemoteScript)
-
-	//key, err := ioutil.ReadFile("/home/yegor/.ssh/id_rsa")
-	//require.NoError(t, err)
-	//
-	//mgr.SendTask(context.Background(), &tasks.Signature{
-	//	Name: "1",
-	//	Args: []tasks.Arg{
-	//		{
-	//			Type: "string",
-	//			Name: "script",
-	//			Value: `#!/bin/bash
-	//					uname -a`,
-	//		},
-	//		{
-	//			Type:  "string",
-	//			Name:  "user",
-	//			Value: "root",
-	//		},
-	//		{
-	//			Type:  "string",
-	//			Name:  "host",
-	//			Value: "209.97.135.160",
-	//		},
-	//		{
-	//			Type:  "string",
-	//			Name:  "cert",
-	//			Value: string(key),
-	//		},
-	//		{
-	//			Type:  "int",
-	//			Name:  "timeoutSec",
-	//			Value: 10,
-	//		},
-	//	},
-	//})
-	//time.Sleep(1 * time.Second)
+	svc.RegisterTaskFunction("1", RunRemoteScript)
 }
