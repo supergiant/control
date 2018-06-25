@@ -6,7 +6,6 @@ import (
 	"strings"
 
 	"github.com/pkg/errors"
-
 	"golang.org/x/crypto/ssh"
 
 	"github.com/supergiant/supergiant/pkg/runner"

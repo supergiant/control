@@ -71,6 +71,9 @@ func (m *kubeServiceMock) GetKubeResources(ctx context.Context, kname, resource,
 	}
 	return val, args.Error(1)
 }
+func (m *kubeServiceMock) GetCerts(ctx context.Context, kname, cname string) (*Bundle, error) {
+	return nil, nil
+}
 
 func TestHandler_createKube(t *testing.T) {
 	tcs := []struct {

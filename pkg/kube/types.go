@@ -8,6 +8,8 @@ type Kube struct {
 	AccountName string `json:"accountName"`
 	APIAddr     string `json:"apiAddr"`
 	Auth        Auth   `json:"auth"`
+	SSHUser     string `json:"sshUser"`
+	SSHKey      []byte `json:"sshKey"`
 }
 
 // Auth holds all possible auth parameters.

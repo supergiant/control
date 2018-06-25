@@ -4,7 +4,6 @@ import (
 	"time"
 
 	"github.com/pkg/errors"
-
 	"golang.org/x/crypto/ssh"
 )
 
