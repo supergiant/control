@@ -26,7 +26,7 @@ type Job struct {
 	output io.Writer
 }
 
-func NewFlannelJob(tpl *template.Template, outStream io.Writer, cfg *ssh.Config) (*Job, error) {
+func New(tpl *template.Template, outStream io.Writer, cfg *ssh.Config) (*Job, error) {
 	sshRunner, err := ssh.NewRunner(cfg)
 
 	if err != nil {

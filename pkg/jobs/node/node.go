@@ -28,7 +28,7 @@ type JobConfig struct {
 	KubernetesVersion string
 }
 
-func NewJob(startKubeletTemplate, startProxyTemplate *template.Template,
+func New(startKubeletTemplate, startProxyTemplate *template.Template,
 	outStream, errStream io.Writer, cfg *ssh.Config) (*Job, error) {
 	sshRunner, err := ssh.NewRunner(cfg)
 
