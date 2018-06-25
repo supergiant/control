@@ -1,4 +1,4 @@
-package jobs
+package node
 
 import (
 	"bytes"
@@ -51,7 +51,7 @@ func TestJob_ProvisionNode(t *testing.T) {
 
 	output := new(bytes.Buffer)
 
-	j := &NodeJob{
+	j := &Job{
 		r,
 		kubeletScriptTemplate,
 		proxyTemplate,
@@ -92,7 +92,7 @@ func TestJob_ProvisionNodeError(t *testing.T) {
 
 	output := new(bytes.Buffer)
 
-	j := &NodeJob{
+	j := &Job{
 		r,
 		kubeletScriptTemplate,
 		proxyTemplate,

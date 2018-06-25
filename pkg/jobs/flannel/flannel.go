@@ -1,4 +1,4 @@
-package jobs
+package flannel
 
 import (
 	"context"
@@ -9,38 +9,39 @@ import (
 
 	"github.com/supergiant/supergiant/pkg/runner"
 	"github.com/supergiant/supergiant/pkg/runner/ssh"
+	"github.com/supergiant/supergiant/pkg/jobs"
 )
 
-type FlannelJobConfig struct {
+type JobConfig struct {
 	Version     string
 	Arch        string
 	Network     string
 	NetworkType string
 }
 
-type FlannelJob struct {
+type Job struct {
 	scriptTemplate *template.Template
 	runner         runner.Runner
 
 	output io.Writer
 }
 
-func NewFlannelJob(tpl *template.Template, outStream io.Writer, cfg *ssh.Config) (*FlannelJob, error) {
+func NewFlannelJob(tpl *template.Template, outStream io.Writer, cfg *ssh.Config) (*Job, error) {
 	sshRunner, err := ssh.NewRunner(cfg)
 
 	if err != nil {
 		return nil, errors.Wrap(err, "error creating ssh runner")
 	}
 
-	return &FlannelJob{
+	return &Job{
 		scriptTemplate: tpl,
 		runner:         sshRunner,
 		output:         outStream,
 	}, nil
 }
 
-func (i *FlannelJob) InstallFlannel(config FlannelJobConfig) error {
-	err := runTemplate(context.Background(), i.scriptTemplate, i.runner, i.output, config)
+func (i *Job) InstallFlannel(config JobConfig) error {
+	err := jobs.RunTemplate(context.Background(), i.scriptTemplate, i.runner, i.output, config)
 	if err != nil {
 		return errors.Wrap(err, "error running template for flannel")
 	}

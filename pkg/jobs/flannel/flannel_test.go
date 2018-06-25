@@ -1,10 +1,11 @@
-package jobs
+package flannel
 
 import (
 	"bytes"
 	"strings"
 	"testing"
 	"text/template"
+	"github.com/supergiant/supergiant/pkg/jobs"
 )
 
 func TestFlannelJob_InstallFlannel(t *testing.T) {
@@ -54,19 +55,19 @@ systemctl restart flanneld.service
 	}
 
 	for _, testCase := range testCases {
-		r := &fakeRunner{
-			errMsg: testCase.expectedError,
+		r := &jobs.FakeRunner{
+			ErrMsg: testCase.expectedError,
 		}
 
 		buffer := &bytes.Buffer{}
 
-		job := &FlannelJob{
+		job := &Job{
 			scriptTemplate: tpl,
 			runner:         r,
 			output:         buffer,
 		}
 
-		config := FlannelJobConfig{
+		config := JobConfig{
 			testCase.version,
 			testCase.arch,
 			testCase.network,
