@@ -24,6 +24,7 @@ func RunRemoteScript(ctx context.Context, script, user, host, cert string, timeo
 		return err
 	}
 
+	// TODO(stgleb): pass io.Writer instead of using os.Stdout
 	cmd := runner.NewCommand(ctx, script, os.Stdout)
 	return run.Run(cmd)
 }
