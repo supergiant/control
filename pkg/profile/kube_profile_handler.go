@@ -6,10 +6,9 @@ import (
 
 	"github.com/gorilla/mux"
 	"github.com/sirupsen/logrus"
-	"github.com/supergiant/supergiant/pkg/sgerrors"
-
 	"gopkg.in/asaskevich/govalidator.v8"
 
+	"github.com/supergiant/supergiant/pkg/sgerrors"
 	"github.com/supergiant/supergiant/pkg/storage"
 )
 

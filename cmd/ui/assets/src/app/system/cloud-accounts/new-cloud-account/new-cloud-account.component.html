@@ -1,4 +1,4 @@
-<div class="subcontext-form">
+<div class="new-cloud-account-wrapper">
   <header>
     <button type="button" class="back-button" [routerLink]="['/system/cloud-accounts']"></button>
 
@@ -13,7 +13,15 @@
       </ng-template>
       <br>
 
-      <json-schema-form framework="bootstrap-3" [schema]="provider.data.schema" [data]="provider.data.model" (onSubmit)="create(value)" (onChanges)="value=$event"></json-schema-form>
+      <div class="form-wrapper">
+        <json-schema-form
+          [schema]="provider.data.schema"
+          [layout]="provider.data.layout"
+          [(data)]="provider.data.model"
+          (onSubmit)="create($event)"
+          (onChanges)="value=$event">
+        </json-schema-form>
+      </div>
     </mat-tab>
   </mat-tab-group>
 </div>

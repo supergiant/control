@@ -7,13 +7,13 @@ import (
 	"strings"
 	"testing"
 
+	. "github.com/smartystreets/goconvey/convey"
+
 	"github.com/supergiant/supergiant/pkg/client"
 	"github.com/supergiant/supergiant/pkg/core"
 	"github.com/supergiant/supergiant/pkg/model"
 	"github.com/supergiant/supergiant/test/fake_client"
 	"github.com/supergiant/supergiant/test/fake_core"
-
-	. "github.com/smartystreets/goconvey/convey"
 )
 
 func TestCloudAccountsList(t *testing.T) {

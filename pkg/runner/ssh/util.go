@@ -9,17 +9,16 @@ import (
 
 var (
 	ErrUserNotSpecified = errors.New("user not specified")
+	ErrHostNotSpecified = errors.New("host not specified")
 )
 
 func getSshConfig(config *Config) (*ssh.ClientConfig, error) {
-	key, err := ssh.ParsePrivateKey(config.Key)
-
-	if err != nil {
-		return nil, err
-	}
-
 	if config.User == "" {
 		return nil, ErrUserNotSpecified
+	}
+	key, err := ssh.ParsePrivateKey(config.Key)
+	if err != nil {
+		return nil, err
 	}
 
 	return &ssh.ClientConfig{

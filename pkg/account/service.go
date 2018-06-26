@@ -8,6 +8,7 @@ import (
 	"github.com/pkg/errors"
 	"github.com/sirupsen/logrus"
 
+	"github.com/supergiant/supergiant/pkg/sgerrors"
 	"github.com/supergiant/supergiant/pkg/storage"
 )
 
@@ -51,7 +52,7 @@ func (s *Service) Get(ctx context.Context, accountName string) (*CloudAccount, e
 		return nil, err
 	}
 	if res == nil {
-		return nil, nil
+		return nil, sgerrors.ErrNotFound
 	}
 
 	ca := new(CloudAccount)

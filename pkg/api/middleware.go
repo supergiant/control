@@ -2,7 +2,6 @@ package api
 
 import (
 	"net/http"
-
 	"strings"
 
 	sgjwt "github.com/supergiant/supergiant/pkg/jwt"

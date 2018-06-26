@@ -5,14 +5,14 @@ import (
 	"os"
 	"testing"
 
+	. "github.com/smartystreets/goconvey/convey"
+
 	cli_lib "github.com/urfave/cli"
 
 	"github.com/supergiant/supergiant/pkg/cli"
 	"github.com/supergiant/supergiant/pkg/client"
 	"github.com/supergiant/supergiant/pkg/model"
 	"github.com/supergiant/supergiant/test/fake_client"
-
-	. "github.com/smartystreets/goconvey/convey"
 )
 
 // TODO we could use this everywhere

@@ -69,7 +69,7 @@ func (c *Kubes) Delete(id *int64, m *model.Kube) ActionInterface {
 					return err
 				}
 			}
-			
+
 			// Get all kube nodes
 			if err := c.Core.DB.Find(&m.Nodes, "kube_name = ?", m.Name); err != nil {
 				return err

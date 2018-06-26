@@ -11,8 +11,8 @@ import (
 func TestNodeProfileEndpointCreateProfileError(t *testing.T) {
 	endpoint := &NodeProfileHandler{}
 	nodeProfile := &NodeProfile{
-		Id:           "",
-		Size:         "4gb",
+		ID:           "",
+		Size:         &NodeSize{},
 		Image:        "ubuntu-18.04",
 		Provider:     "openstack",
 		Capabilities: []string{},

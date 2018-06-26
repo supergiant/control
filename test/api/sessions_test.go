@@ -3,10 +3,10 @@ package api
 import (
 	"testing"
 
+	. "github.com/smartystreets/goconvey/convey"
+
 	"github.com/supergiant/supergiant/pkg/core"
 	"github.com/supergiant/supergiant/pkg/model"
-
-	. "github.com/smartystreets/goconvey/convey"
 )
 
 func createSession(c *core.Core, username string, password string) *model.Session {

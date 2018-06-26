@@ -7,6 +7,7 @@ import (
 
 	"github.com/json-iterator/go"
 	"github.com/stretchr/testify/require"
+
 	"github.com/supergiant/supergiant/pkg/sgerrors"
 )
 

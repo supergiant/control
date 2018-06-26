@@ -6,6 +6,7 @@ import (
 	"net/http"
 
 	"github.com/sirupsen/logrus"
+
 	"github.com/supergiant/supergiant/pkg/sgerrors"
 )
 

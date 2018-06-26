@@ -3,9 +3,9 @@ package api
 import (
 	"testing"
 
-	"github.com/supergiant/supergiant/pkg/model"
-
 	. "github.com/smartystreets/goconvey/convey"
+
+	"github.com/supergiant/supergiant/pkg/model"
 )
 
 func TestListFiltering(t *testing.T) {
