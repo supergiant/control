@@ -3,9 +3,11 @@ package fake_aws_provider
 import (
 	"github.com/aws/aws-sdk-go/aws/request"
 	"github.com/aws/aws-sdk-go/service/iam"
+	"github.com/aws/aws-sdk-go/service/iam/iamiface"
 )
 
 type IAM struct {
+	iamiface.IAMAPI
 	AddClientIDToOpenIDConnectProviderRequestFn      func(*iam.AddClientIDToOpenIDConnectProviderInput) (*request.Request, *iam.AddClientIDToOpenIDConnectProviderOutput)
 	AddClientIDToOpenIDConnectProviderFn             func(*iam.AddClientIDToOpenIDConnectProviderInput) (*iam.AddClientIDToOpenIDConnectProviderOutput, error)
 	AddRoleToInstanceProfileRequestFn                func(*iam.AddRoleToInstanceProfileInput) (*request.Request, *iam.AddRoleToInstanceProfileOutput)

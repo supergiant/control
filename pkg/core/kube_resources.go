@@ -1,11 +1,10 @@
 package core
 
 import (
+	"context"
 	"encoding/json"
 	"fmt"
 	"time"
-
-	"context"
 
 	"github.com/supergiant/supergiant/pkg/kubernetes"
 	"github.com/supergiant/supergiant/pkg/model"

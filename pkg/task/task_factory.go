@@ -15,10 +15,14 @@ func CreateTask(name string, opts ...Option) (*tasks.Signature, error) {
 		Args: []tasks.Arg{},
 	}
 
-	signatureID := uuid.NewV4()
+	u, err := uuid.NewV4()
+	if err != nil {
+		return nil, err
+	}
+	signatureID := u.String()
+
 	t.UUID = fmt.Sprintf("task_%v", signatureID)
 
-	var err error
 	for _, opt := range opts {
 		t, err = opt(t)
 		if err != nil {

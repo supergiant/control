@@ -7,11 +7,10 @@ import (
 	"net/http/httptest"
 	"testing"
 
+	"github.com/gorilla/mux"
 	"github.com/pkg/errors"
 	"github.com/stretchr/testify/mock"
 	"github.com/stretchr/testify/require"
-
-	"github.com/gorilla/mux"
 
 	"github.com/supergiant/supergiant/pkg/model/helm"
 	"github.com/supergiant/supergiant/pkg/testutils"
@@ -97,12 +96,12 @@ func TestHandler_Get(t *testing.T) {
 			expectedStatus: http.StatusNotFound,
 		},
 		{ // TC#2
-			repoName: "invalid_json",
+			repoName:       "invalid_json",
 			storageRepoRaw: []byte("{name;}"),
 			expectedStatus: http.StatusInternalServerError,
 		},
 		{ // TC#3
-			repoName: "not_found",
+			repoName:       "not_found",
 			expectedStatus: http.StatusNotFound,
 		},
 		{ // TC#4
@@ -159,7 +158,7 @@ func TestHandler_ListAll(t *testing.T) {
 		expectedStatus int
 	}{
 		{ // TC#1
-			storageError: errors.New("storage error"),
+			storageError:   errors.New("storage error"),
 			expectedStatus: http.StatusInternalServerError,
 		},
 		{ // TC#2
@@ -213,12 +212,12 @@ func TestHandler_Delete(t *testing.T) {
 		expectedStatus int
 	}{
 		{ // TC#1
-			repoName: "not_found",
-			storageError: errors.New("error"),
+			repoName:       "not_found",
+			storageError:   errors.New("error"),
 			expectedStatus: http.StatusInternalServerError,
 		},
 		{ // TC#2
-			repoName: "delete",
+			repoName:       "delete",
 			expectedStatus: http.StatusAccepted,
 		},
 	}
