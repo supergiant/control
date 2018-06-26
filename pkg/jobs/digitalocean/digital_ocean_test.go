@@ -7,6 +7,7 @@ import (
 	"github.com/digitalocean/godo"
 	"github.com/stretchr/testify/mock"
 
+	"github.com/pkg/errors"
 	"github.com/supergiant/supergiant/pkg/storage"
 	"github.com/supergiant/supergiant/pkg/testutils"
 )
@@ -57,13 +58,18 @@ func (f *fakeDropletService) Create(req *godo.DropletCreateRequest) (*godo.Dropl
 }
 
 func (f *fakeTagService) TagResources(string, *godo.TagResourcesRequest) (*godo.Response, error) {
-	return nil, nil
+	if f.counter > len(f.errs)-1 {
+		panic("tag index out of range")
+	}
+
+	return nil, f.errs[f.counter]
 }
 
 func TestJob_CreateDropletSuccess(t *testing.T) {
 	dropletId := 1
 	m := new(testutils.MockStorage)
 	m.On("Put", mock.Anything, mock.Anything, mock.Anything, mock.Anything).Return(nil)
+	errTaggingDroplet := errors.New("error tagging droplet")
 
 	testCases := []struct {
 		storage        storage.Interface
@@ -123,7 +129,7 @@ func TestJob_CreateDropletSuccess(t *testing.T) {
 			},
 			tagService: &fakeTagService{
 				0,
-				[]error{},
+				[]error{nil},
 			},
 			dropletTimeout: time.Millisecond * 30,
 			checkTimeout:   time.Millisecond * 1,
@@ -177,11 +183,39 @@ func TestJob_CreateDropletSuccess(t *testing.T) {
 			},
 			tagService: &fakeTagService{
 				0,
-				[]error{},
+				[]error{nil},
 			},
 			dropletTimeout: time.Millisecond * 2,
 			checkTimeout:   time.Millisecond * 1,
 			expectedError:  ErrTimeoutExceeded,
+		},
+		{
+			storage: m,
+			dropletService: &fakeDropletService{
+				0,
+				0,
+				[]createDropletResponse{
+					{
+						&godo.Droplet{
+							ID:     dropletId,
+							Name:   "test",
+							Status: "pending",
+						},
+						nil,
+						nil,
+					},
+				},
+				[]getDropletResponse{},
+			},
+			tagService: &fakeTagService{
+				0,
+				[]error{
+					errTaggingDroplet,
+				},
+			},
+			dropletTimeout: time.Millisecond * 2,
+			checkTimeout:   time.Millisecond * 1,
+			expectedError:  errTaggingDroplet,
 		},
 	}
 
