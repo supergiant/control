@@ -18,7 +18,7 @@ const (
 	TagRole    = "Role"
 )
 
-// AWS provider specific errors:
+// AWS client specific errors:
 var (
 	ErrInvalidKeys        = errors.New("aws: invalid keys")
 	ErrNoRegionProvided   = errors.New("aws: region should shouldn't be emplty")
@@ -26,14 +26,14 @@ var (
 	ErrNoInstancesCreated = errors.New("aws: no instances were created")
 )
 
-type Provider struct {
+type Client struct {
 	session *session.Session
 
 	ec2SvcFn func(s *session.Session, region string) ec2iface.EC2API
 }
 
-// New returns a configured AWS Provider.
-func New(keyID, secret string) (*Provider, error) {
+// New returns a configured AWS client.
+func New(keyID, secret string) (*Client, error) {
 	keyID, secret = strings.TrimSpace(keyID), strings.TrimSpace(secret)
 	if keyID == "" || secret == "" {
 		return nil, ErrInvalidKeys
@@ -43,48 +43,48 @@ func New(keyID, secret string) (*Provider, error) {
 		Credentials: credentials.NewStaticCredentials(keyID, secret, ""),
 	})
 
-	return &Provider{
+	return &Client{
 		session:  session,
 		ec2SvcFn: ec2Svc,
 	}, nil
 }
 
-// CreateInstance start a new instance due to the provided config.
-func (p *Provider) CreateInstance(ctx context.Context, c InstanceConfig) error {
-	c.Region = strings.TrimSpace(c.Region)
-	if c.Region == "" {
+// CreateInstance start a new instance due to the config.
+func (c *Client) CreateInstance(ctx context.Context, cfg InstanceConfig) error {
+	cfg.Region = strings.TrimSpace(cfg.Region)
+	if cfg.Region == "" {
 		return ErrNoRegionProvided
 	}
-	ec2S := p.ec2SvcFn(p.session, c.Region)
+	ec2S := c.ec2SvcFn(c.session, cfg.Region)
 
 	instanceInp := &ec2.RunInstancesInput{
-		ImageId:      aws.String(c.ImageID),
+		ImageId:      aws.String(cfg.ImageID),
 		InstanceType: aws.String(ec2.InstanceTypeT2Micro),
 		MinCount:     aws.Int64(1),
 		MaxCount:     aws.Int64(1),
-		KeyName:      aws.String(c.KeyName),
+		KeyName:      aws.String(cfg.KeyName),
 		IamInstanceProfile: &ec2.IamInstanceProfileSpecification{
-			Name: aws.String(c.IAMRole),
+			Name: aws.String(cfg.IAMRole),
 		},
 		BlockDeviceMappings: []*ec2.BlockDeviceMapping{
 			{
 				DeviceName: aws.String("/dev/xvda"),
 				Ebs: &ec2.EbsBlockDevice{
 					DeleteOnTermination: aws.Bool(true),
-					VolumeType:          aws.String(c.VolumeType),
-					VolumeSize:          aws.Int64(c.VolumeSize),
+					VolumeType:          aws.String(cfg.VolumeType),
+					VolumeSize:          aws.Int64(cfg.VolumeSize),
 				},
 			},
 		},
 	}
-	if c.HasPublicAddr {
+	if cfg.HasPublicAddr {
 		instanceInp.NetworkInterfaces = []*ec2.InstanceNetworkInterfaceSpecification{
 			{
 				DeviceIndex:              aws.Int64(0),
-				AssociatePublicIpAddress: aws.Bool(c.HasPublicAddr),
+				AssociatePublicIpAddress: aws.Bool(cfg.HasPublicAddr),
 				DeleteOnTermination:      aws.Bool(true),
-				Groups:                   c.SecurityGroups,
-				SubnetId:                 aws.String(c.SubnetID),
+				Groups:                   cfg.SecurityGroups,
+				SubnetId:                 aws.String(cfg.SubnetID),
 			},
 		}
 	}
@@ -98,17 +98,17 @@ func (p *Provider) CreateInstance(ctx context.Context, c InstanceConfig) error {
 	}
 
 	// add some metadata info to an instance
-	if c.Tags == nil {
-		c.Tags = make(map[string]string)
+	if cfg.Tags == nil {
+		cfg.Tags = make(map[string]string)
 	}
-	c.Tags[TagCluster] = c.ClusterName
-	c.Tags[TagRole] = c.ClusterRole
+	cfg.Tags[TagCluster] = cfg.ClusterName
+	cfg.Tags[TagRole] = cfg.ClusterRole
 
-	return tagAWSResource(ec2S, *(res.Instances[0].InstanceId), c.Tags)
+	return tagAWSResource(ec2S, *(res.Instances[0].InstanceId), cfg.Tags)
 }
 
 // DeleteInstance terminates an instance with provided id and region.
-func (p *Provider) DeleteInstance(ctx context.Context, region, instanceID string) error {
+func (c *Client) DeleteInstance(ctx context.Context, region, instanceID string) error {
 	region, instanceID = strings.TrimSpace(region), strings.TrimSpace(instanceID)
 	if region == "" {
 		return ErrNoRegionProvided
@@ -116,7 +116,7 @@ func (p *Provider) DeleteInstance(ctx context.Context, region, instanceID string
 	if instanceID == "" {
 		return ErrInstanceIDEmpty
 	}
-	ec2S := p.ec2SvcFn(p.session, region)
+	ec2S := c.ec2SvcFn(c.session, region)
 
 	_, err := ec2S.TerminateInstancesWithContext(ctx, &ec2.TerminateInstancesInput{
 		InstanceIds: []*string{

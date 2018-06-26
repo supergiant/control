@@ -32,7 +32,7 @@ func (m *mockedEC2Service) TerminateInstancesWithContext(aws.Context, *ec2.Termi
 	return nil, m.DelInstErr
 }
 
-func TestNewProvider(t *testing.T) {
+func TestNewClient(t *testing.T) {
 	tcs := []struct {
 		id, secret  string
 		expectedErr error
@@ -45,12 +45,12 @@ func TestNewProvider(t *testing.T) {
 	for i, tc := range tcs {
 		_, err := New(tc.id, tc.secret)
 		if err != tc.expectedErr {
-			t.Fatalf("TC#%d: new provider: %v", i+1, err)
+			t.Fatalf("TC#%d: new client: %v", i+1, err)
 		}
 	}
 }
 
-func TestProvider_CreateInstance(t *testing.T) {
+func TestClient_CreateInstance(t *testing.T) {
 	fakeRunInstErr := errors.New("run isntance error!")
 	fakeTagResErr := errors.New("tag resource error!")
 
@@ -110,18 +110,18 @@ func TestProvider_CreateInstance(t *testing.T) {
 	ec2Mock := &mockedEC2Service{}
 	for i, tc := range tcs {
 		ec2Mock.CreateInstRes, ec2Mock.RunInstErr, ec2Mock.TagResErr = tc.ec2Res, tc.ec2RunInstErr, tc.ec2TagResErr
-		p := &Provider{
+		c := &Client{
 			ec2SvcFn: func(s *session.Session, region string) ec2iface.EC2API {
 				return ec2Mock
 			},
 		}
 
-		err := p.CreateInstance(context.Background(), tc.config)
+		err := c.CreateInstance(context.Background(), tc.config)
 		require.Equalf(t, tc.expectedErr, errors.Cause(err), "TC#%d: %s", i+1, tc.name)
 	}
 }
 
-func TestProvider_DeleteInstance(t *testing.T) {
+func TestClient_DeleteInstance(t *testing.T) {
 	fakeDelInstErr := errors.New("delete isntance error!")
 
 	tcs := []struct {
@@ -163,13 +163,13 @@ func TestProvider_DeleteInstance(t *testing.T) {
 	ec2Mock := &mockedEC2Service{}
 	for i, tc := range tcs {
 		ec2Mock.DelInstErr = tc.ec2DeleteInsErr
-		p := &Provider{
+		c := &Client{
 			ec2SvcFn: func(s *session.Session, region string) ec2iface.EC2API {
 				return ec2Mock
 			},
 		}
 
-		err := p.DeleteInstance(context.Background(), tc.region, tc.instanceID)
+		err := c.DeleteInstance(context.Background(), tc.region, tc.instanceID)
 		require.Equalf(t, tc.expectedErr, errors.Cause(err), "TC#%d: %s", i+1, tc.name)
 	}
 }
