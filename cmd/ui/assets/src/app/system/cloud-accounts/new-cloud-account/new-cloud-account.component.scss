@@ -6,9 +6,7 @@ mat-button-toggle-group {
 	margin: 20px;
 
 	header {
-		// border-bottom: 1px solid rgba(0, 0, 0, 0.1);
 		margin-bottom: 1rem;
-		// padding-bottom: 1rem;
 	}
 }
 
@@ -16,7 +14,7 @@ mat-button-toggle-group {
 	margin: 30px auto 0px;
 	width: 50%;
 
-	.creds-wrapper {
+	.form-group-wrapper {
 		margin-top: 40px;
 
 		.legend {

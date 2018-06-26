@@ -5,6 +5,7 @@ import (
 
 	"github.com/coreos/etcd/clientv3"
 	"github.com/pkg/errors"
+
 	"github.com/supergiant/supergiant/pkg/sgerrors"
 )
 

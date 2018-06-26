@@ -5,10 +5,11 @@ import (
 	"fmt"
 	"net/http"
 
+	"gopkg.in/asaskevich/govalidator.v8"
+
 	sgjwt "github.com/supergiant/supergiant/pkg/jwt"
 	"github.com/supergiant/supergiant/pkg/message"
 	"github.com/supergiant/supergiant/pkg/sgerrors"
-	"gopkg.in/asaskevich/govalidator.v8"
 )
 
 type Handler struct {

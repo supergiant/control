@@ -9,8 +9,9 @@ import (
 
 	"github.com/coreos/etcd/clientv3"
 	"github.com/stretchr/testify/require"
-	"github.com/supergiant/supergiant/pkg/testutils/assert"
+
 	"github.com/supergiant/supergiant/pkg/storage"
+	"github.com/supergiant/supergiant/pkg/testutils/assert"
 )
 
 const (

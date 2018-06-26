@@ -2,9 +2,8 @@ package profile
 
 import (
 	"context"
-	"testing"
-
 	"encoding/json"
+	"testing"
 
 	"github.com/pkg/errors"
 

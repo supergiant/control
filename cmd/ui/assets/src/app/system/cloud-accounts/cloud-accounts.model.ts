@@ -39,11 +39,21 @@ export class CloudAccountModel {
       }
     },
     'layout': [
-      { 'key': 'name' },
+      {
+        'title': 'Cloud Account Name',
+        'type': 'div',
+        'htmlClass': 'form-group-wrapper',
+        'items': [
+          {
+            'key': 'name',
+            'title': 'Name'
+          }
+        ]
+      },
       {
         'key': 'credentials',
         'type': 'div',
-        'htmlClass': 'creds-wrapper',
+        'htmlClass': 'form-group-wrapper',
         'items': [
           { 'key': 'credentials.access_key' },
           { 'key': 'credentials.secret_key' }
@@ -89,11 +99,21 @@ export class CloudAccountModel {
       }
     },
     'layout': [
-      { 'key': 'name' },
+      {
+        'title': 'Cloud Account Name',
+        'type': 'div',
+        'htmlClass': 'form-group-wrapper',
+        'items': [
+          {
+            'key': 'name',
+            'title': 'Name'
+          }
+        ]
+      },
       {
         'key': 'credentials',
         'type': 'div',
-        'htmlClass': 'creds-wrapper',
+        'htmlClass': 'form-group-wrapper',
         'items': [
           { 'key': 'credentials.token' }
         ]
@@ -120,7 +140,7 @@ export class CloudAccountModel {
           'type': 'object',
           'properties': {
             'service_account_key': {
-              'description': 'Paste in your service account key here.',
+              'description': 'Paste in your service account key (JSON) here.',
               'type': 'string'
             }
           }
@@ -138,15 +158,26 @@ export class CloudAccountModel {
       }
     },
     'layout': [
-      { 'key': 'name' },
+      {
+        'title': 'Cloud Account Name',
+        'type': 'div',
+        'htmlClass': 'form-group-wrapper',
+        'items': [
+          {
+            'key': 'name',
+            'title': 'Name'
+          }
+        ]
+      },
       {
         'key': 'credentials',
         'type': 'div',
-        'htmlClass': 'creds-wrapper',
+        'htmlClass': 'form-group-wrapper',
         'items': [
           {
             'key': 'credentials.service_account_key',
             'type': 'textarea',
+            'title': 'Service Account Key (JSON)'
           }
         ]
       },
@@ -157,84 +188,94 @@ export class CloudAccountModel {
     ]
   };
 
-  openstack = {
-    'name' : 'OpenStack',
-    'model': {
-      'credentials': {
-        'domain_id': '',
-        'domain_name': '',
-        'identity_endpoint': '',
-        'password': '',
-        'tenant_id': '',
-        'username': ''
-      },
-      'name': '',
-      'provider': 'openstack'
-    },
-    'schema': {
-      'properties': {
-        'credentials': {
-          'type': 'object',
-          'properties': {
-            'domain_id': {
-              'description': 'Domain ID',
-              'type': 'string'
-            },
-            'domain_name': {
-              'description': 'Domain Name',
-              'type': 'string'
-            },
-            'identity_endpoint': {
-              'description': 'Identity Endpoint',
-              'type': 'string'
-            },
-            'password': {
-              'description': 'Password',
-              'type': 'string'
-            },
-            'tenant_id': {
-              'description': 'Tenant ID',
-              'type': 'string'
-            },
-            'username': {
-              'description': 'User Name',
-              'type': 'string'
-            }
-          }
-        },
-        'name': {
-          'description': 'Choose a name for this cloud account',
-          'type': 'string'
-        },
-        'provider': {
-          'default': 'openstack',
-          'description': 'OpenStack',
-          'type': 'string',
-          'widget': 'hidden'
-        }
-      }
-    },
-    'layout': [
-      { 'key': 'name' },
-      {
-        'key': 'credentials',
-        'type': 'div',
-        'htmlClass': 'creds-wrapper',
-        'items': [
-          { 'key': 'credentials.domain_id' },
-          { 'key': 'credentials.domain_name' },
-          { 'key': 'credentials.identity_endpoint' },
-          { 'key': 'credentials.password' },
-          { 'key': 'credentials.tenant_id' },
-          { 'key': 'credentials.username' }
-        ]
-      },
-      {
-        'type': 'submit',
-        'title': 'Create'
-      }
-    ]
-  };
+  // openstack = {
+  //   'name' : 'OpenStack',
+  //   'model': {
+  //     'credentials': {
+  //       'domain_id': '',
+  //       'domain_name': '',
+  //       'identity_endpoint': '',
+  //       'password': '',
+  //       'tenant_id': '',
+  //       'username': ''
+  //     },
+  //     'name': '',
+  //     'provider': 'openstack'
+  //   },
+  //   'schema': {
+  //     'properties': {
+  //       'credentials': {
+  //         'type': 'object',
+  //         'properties': {
+  //           'domain_id': {
+  //             'description': 'Domain ID',
+  //             'type': 'string'
+  //           },
+  //           'domain_name': {
+  //             'description': 'Domain Name',
+  //             'type': 'string'
+  //           },
+  //           'identity_endpoint': {
+  //             'description': 'Identity Endpoint',
+  //             'type': 'string'
+  //           },
+  //           'password': {
+  //             'description': 'Password',
+  //             'type': 'string'
+  //           },
+  //           'tenant_id': {
+  //             'description': 'Tenant ID',
+  //             'type': 'string'
+  //           },
+  //           'username': {
+  //             'description': 'User Name',
+  //             'type': 'string'
+  //           }
+  //         }
+  //       },
+  //       'name': {
+  //         'description': 'Choose a name for this cloud account',
+  //         'type': 'string'
+  //       },
+  //       'provider': {
+  //         'default': 'openstack',
+  //         'description': 'OpenStack',
+  //         'type': 'string',
+  //         'widget': 'hidden'
+  //       }
+  //     }
+  //   },
+  //   'layout': [
+  //     {
+  //       'title': 'Cloud Account Name',
+  //       'type': 'div',
+  //       'htmlClass': 'form-group-wrapper',
+  //       'items': [
+  //         {
+  //           'key': 'name',
+  //           'title': 'Name'
+  //         }
+  //       ]
+  //     },
+  //     {
+  //       'key': 'credentials',
+  //       'type': 'div',
+  //       'htmlClass': 'form-group-wrapper',
+  //       'items': [
+  //         { 'key': 'credentials.username' },
+  //         { 'key': 'credentials.password' },
+  //         { 'key': 'credentials.domain_name' },
+  //         { 'key': 'credentials.domain_id' },
+  //         { 'key': 'credentials.identity_endpoint' },
+  //         { 'key': 'credentials.tenant_id' }
+  //       ]
+  //     },
+  //     {
+  //       'type': 'submit',
+  //       'title': 'Create'
+  //     }
+  //   ]
+  // };
 
   packet = {
     'name' : 'Packet.net',
@@ -269,13 +310,23 @@ export class CloudAccountModel {
       }
     },
     'layout': [
-      { 'key': 'name' },
+      {
+        'title': 'Cloud Account Name',
+        'type': 'div',
+        'htmlClass': 'form-group-wrapper',
+        'items': [
+          {
+            'key': 'name',
+            'title': 'Name'
+          }
+        ]
+      },
       {
         'key': 'credentials',
         'type': 'div',
-        'htmlClass': 'creds-wrapper',
+        'htmlClass': 'form-group-wrapper',
         'items': [
-          { 'key': 'credentials.token' }
+          { 'key': 'credentials.api_token' }
         ]
       },
       {
@@ -298,10 +349,10 @@ export class CloudAccountModel {
       name: 'GCE - Google Compute Engine',
       data: this.gce,
     },
-    {
-      name: 'OpenStack',
-      data: this.openstack,
-    },
+    // {
+    //   name: 'OpenStack',
+    //   data: this.openstack,
+    // },
     {
       name: 'Packet.net',
       data: this.packet,

@@ -18,9 +18,9 @@ export class AppComponent {
     timeOut: 2000,
     lastOnBottom: true,
   };
-  constructor(private _router: ActivatedRoute, router: Router) {
-    this.location = _router.snapshot.url.join('');
-    router.events.subscribe((e: Event) => {
+  constructor(private _route: ActivatedRoute, router: Router) {
+    this.location = _route.snapshot.url.join('');
+    router.events.subscribe((e: Event) => { // TODO: think about implementing route guard instead
       if (e instanceof NavigationEnd) {
         if (e.urlAfterRedirects === "/" || e.urlAfterRedirects === "/#log-out") {
           this.showHeader = false;

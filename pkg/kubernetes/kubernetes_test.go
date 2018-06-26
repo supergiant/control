@@ -10,11 +10,11 @@ import (
 	"strings"
 	"testing"
 
+	. "github.com/smartystreets/goconvey/convey"
+
 	"github.com/supergiant/supergiant/pkg/kubernetes"
 	"github.com/supergiant/supergiant/pkg/model"
 	"github.com/supergiant/supergiant/test/fake_http"
-
-	. "github.com/smartystreets/goconvey/convey"
 )
 
 func TestKubernetesEnsureNamespace(t *testing.T) {

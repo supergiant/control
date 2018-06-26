@@ -33,7 +33,9 @@ type DB struct {
 }
 
 func (db *DB) Create(m model.Model) error {
-	m.SetUUID()
+	if err := m.SetUUID(); err != nil {
+		return err
+	}
 	setDefaultFields(m)
 	marshalSerializedFields(m)
 	if err := db.validateBelongsTos(m); err != nil {

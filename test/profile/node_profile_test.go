@@ -45,8 +45,8 @@ func TestNodeProfileGet(t *testing.T) {
 			return
 		}
 
-		if testCase.err == nil && p.Id != testCase.expectedId {
-			t.Errorf("Wrong profile id expected %s actual %s", testCase.expectedId, p.Id)
+		if testCase.err == nil && p.ID != testCase.expectedId {
+			t.Errorf("Wrong profile id expected %s actual %s", testCase.expectedId, p.ID)
 		}
 	}
 }
@@ -57,7 +57,7 @@ func TestNodeProfileCreate(t *testing.T) {
 	key := "key"
 
 	node := &profile.NodeProfile{
-		Id:    key,
+		ID:    key,
 		Size:  "2gb",
 		Image: "ubuntu-16.04",
 	}
@@ -72,13 +72,13 @@ func TestNodeProfileCreate(t *testing.T) {
 		t.Errorf("Unepexpected error while creating node profile %v", err)
 	}
 
-	node2, err := service.Get(ctx, node.Id)
+	node2, err := service.Get(ctx, node.ID)
 
 	if err != nil {
 		t.Errorf("Unexpected error while getting node profile %v", err)
 	}
 
-	if node.Id != key || node.Image != node2.Image || node.Size != node2.Size {
+	if node.ID != key || node.Image != node2.Image || node.Size != node2.Size {
 		t.Errorf("Wrong data in etcd")
 	}
 }
@@ -93,7 +93,7 @@ func TestNodeProfileGetAll(t *testing.T) {
 	defer cancel()
 
 	node := &profile.NodeProfile{
-		Id:    key,
+		ID:    key,
 		Size:  "2gb",
 		Image: "ubuntu-16.04",
 	}

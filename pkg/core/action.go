@@ -1,12 +1,11 @@
 package core
 
 import (
+	"context"
 	"fmt"
 	"reflect"
 	"strings"
 	"time"
-
-	"context"
 
 	"github.com/supergiant/supergiant/pkg/model"
 	"github.com/supergiant/supergiant/pkg/util"

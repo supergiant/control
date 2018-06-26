@@ -16,6 +16,7 @@ import (
 	"github.com/aws/aws-sdk-go/service/s3"
 	"github.com/aws/aws-sdk-go/service/s3/s3iface"
 	"github.com/sirupsen/logrus"
+	. "github.com/smartystreets/goconvey/convey"
 
 	"github.com/supergiant/supergiant/pkg/core"
 	"github.com/supergiant/supergiant/pkg/kubernetes"
@@ -23,8 +24,6 @@ import (
 	"github.com/supergiant/supergiant/pkg/provider/aws"
 	"github.com/supergiant/supergiant/test/fake_aws_provider"
 	"github.com/supergiant/supergiant/test/fake_core"
-
-	. "github.com/smartystreets/goconvey/convey"
 )
 
 func TestAWSProviderCreateKube(t *testing.T) {
