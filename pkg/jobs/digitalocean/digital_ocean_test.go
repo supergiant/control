@@ -65,7 +65,7 @@ func (f *fakeTagService) TagResources(string, *godo.TagResourcesRequest) (*godo.
 	return nil, f.errs[f.counter]
 }
 
-func TestJob_CreateDropletSuccess(t *testing.T) {
+func TestJob_CreateDroplet(t *testing.T) {
 	dropletId := 1
 	m := new(testutils.MockStorage)
 	m.On("Put", mock.Anything, mock.Anything, mock.Anything, mock.Anything).Return(nil)
