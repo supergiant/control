@@ -16,23 +16,198 @@
 			"revisionTime": "2017-01-03T20:23:41Z"
 		},
 		{
-			"checksumSHA1": "eSakjUQKAh9oYtcQwEXGBBx+JRg=",
+			"checksumSHA1": "urLBKDRueOlDoGhSYQA2zs8wbBU=",
+			"origin": "github.com/RichardKnop/machinery/vendor/github.com/RichardKnop/logging",
 			"path": "github.com/RichardKnop/logging",
-			"revision": "f8c19a024686a93a10387819b36e4eb2eb510700",
-			"revisionTime": "2018-05-26T09:28:19Z"
+			"revision": "480748c75ae7f13e96dda79b6ef5c2add6df5b8c",
+			"revisionTime": "2018-06-21T15:06:37Z",
+			"version": "v1.3.7",
+			"versionExact": "v1.3.7"
 		},
 		{
-			"checksumSHA1": "53tH2zVr4bVmoRdpDPaXKfnTOQE=",
-			"path": "github.com/RichardKnop/machinery",
-			"revision": "41d81167d33d6399bb54087fa64510799dca3e74",
-			"revisionTime": "2018-05-26T09:10:19Z",
-			"tree": true
+			"checksumSHA1": "WcXrxa3Yq7/8o9RSzIKC3ewEcv4=",
+			"path": "github.com/RichardKnop/machinery/v1",
+			"revision": "480748c75ae7f13e96dda79b6ef5c2add6df5b8c",
+			"revisionTime": "2018-06-21T15:06:37Z",
+			"version": "v1.3.7",
+			"versionExact": "v1.3.7"
+		},
+		{
+			"checksumSHA1": "DZ0huxayKKvubAnOPcxk9jRlzkE=",
+			"path": "github.com/RichardKnop/machinery/v1/backends",
+			"revision": "480748c75ae7f13e96dda79b6ef5c2add6df5b8c",
+			"revisionTime": "2018-06-21T15:06:37Z",
+			"version": "v1.3.7",
+			"versionExact": "v1.3.7"
+		},
+		{
+			"checksumSHA1": "/FZsmwE7RQ+roE7L5wBqj/MQG54=",
+			"path": "github.com/RichardKnop/machinery/v1/backends/amqp",
+			"revision": "480748c75ae7f13e96dda79b6ef5c2add6df5b8c",
+			"revisionTime": "2018-06-21T15:06:37Z",
+			"version": "v1.3.7",
+			"versionExact": "v1.3.7"
+		},
+		{
+			"checksumSHA1": "GAP4G6eVMF4eu/8wjx3j5HazZFw=",
+			"path": "github.com/RichardKnop/machinery/v1/backends/dynamodb",
+			"revision": "480748c75ae7f13e96dda79b6ef5c2add6df5b8c",
+			"revisionTime": "2018-06-21T15:06:37Z",
+			"version": "v1.3.7",
+			"versionExact": "v1.3.7"
+		},
+		{
+			"checksumSHA1": "Fd2S6LlQfMtom/ZHXkg3E5zX/cA=",
+			"path": "github.com/RichardKnop/machinery/v1/backends/eager",
+			"revision": "480748c75ae7f13e96dda79b6ef5c2add6df5b8c",
+			"revisionTime": "2018-06-21T15:06:37Z",
+			"version": "v1.3.7",
+			"versionExact": "v1.3.7"
+		},
+		{
+			"checksumSHA1": "5iVg2cVnzyepwoXcRdKlKgYYnMs=",
+			"path": "github.com/RichardKnop/machinery/v1/backends/iface",
+			"revision": "480748c75ae7f13e96dda79b6ef5c2add6df5b8c",
+			"revisionTime": "2018-06-21T15:06:37Z",
+			"version": "v1.3.7",
+			"versionExact": "v1.3.7"
+		},
+		{
+			"checksumSHA1": "asFU7aEbJ6Bb7zkGWsCFGZzG0cg=",
+			"path": "github.com/RichardKnop/machinery/v1/backends/memcache",
+			"revision": "480748c75ae7f13e96dda79b6ef5c2add6df5b8c",
+			"revisionTime": "2018-06-21T15:06:37Z",
+			"version": "v1.3.7",
+			"versionExact": "v1.3.7"
+		},
+		{
+			"checksumSHA1": "bU8LhlNlNbZXTheqKxi+ZzbRPHQ=",
+			"path": "github.com/RichardKnop/machinery/v1/backends/mongo",
+			"revision": "480748c75ae7f13e96dda79b6ef5c2add6df5b8c",
+			"revisionTime": "2018-06-21T15:06:37Z",
+			"version": "v1.3.7",
+			"versionExact": "v1.3.7"
+		},
+		{
+			"checksumSHA1": "f92kAYxKIaNCqtLKHumPEA2USis=",
+			"path": "github.com/RichardKnop/machinery/v1/backends/redis",
+			"revision": "480748c75ae7f13e96dda79b6ef5c2add6df5b8c",
+			"revisionTime": "2018-06-21T15:06:37Z",
+			"version": "v1.3.7",
+			"versionExact": "v1.3.7"
+		},
+		{
+			"checksumSHA1": "OjJiVRG0WYrVLYk+TsHXJKIntH8=",
+			"path": "github.com/RichardKnop/machinery/v1/backends/result",
+			"revision": "480748c75ae7f13e96dda79b6ef5c2add6df5b8c",
+			"revisionTime": "2018-06-21T15:06:37Z",
+			"version": "v1.3.7",
+			"versionExact": "v1.3.7"
+		},
+		{
+			"checksumSHA1": "rDqttJ+qpaAuo6FSjFnMRzaTHDQ=",
+			"path": "github.com/RichardKnop/machinery/v1/brokers/amqp",
+			"revision": "480748c75ae7f13e96dda79b6ef5c2add6df5b8c",
+			"revisionTime": "2018-06-21T15:06:37Z",
+			"version": "v1.3.7",
+			"versionExact": "v1.3.7"
+		},
+		{
+			"checksumSHA1": "revW+79sD+R+2Oxr3qo0eIpTs4o=",
+			"path": "github.com/RichardKnop/machinery/v1/brokers/eager",
+			"revision": "480748c75ae7f13e96dda79b6ef5c2add6df5b8c",
+			"revisionTime": "2018-06-21T15:06:37Z",
+			"version": "v1.3.7",
+			"versionExact": "v1.3.7"
+		},
+		{
+			"checksumSHA1": "P7vI6uUdX34MJAugByjPZQH2jG8=",
+			"path": "github.com/RichardKnop/machinery/v1/brokers/errs",
+			"revision": "480748c75ae7f13e96dda79b6ef5c2add6df5b8c",
+			"revisionTime": "2018-06-21T15:06:37Z",
+			"version": "v1.3.7",
+			"versionExact": "v1.3.7"
+		},
+		{
+			"checksumSHA1": "C4U71PmI6J3y1DFY55t47Gf5x/A=",
+			"path": "github.com/RichardKnop/machinery/v1/brokers/iface",
+			"revision": "480748c75ae7f13e96dda79b6ef5c2add6df5b8c",
+			"revisionTime": "2018-06-21T15:06:37Z",
+			"version": "v1.3.7",
+			"versionExact": "v1.3.7"
+		},
+		{
+			"checksumSHA1": "3lXe1/cpGdVrwc15QTbFl1D79D8=",
+			"path": "github.com/RichardKnop/machinery/v1/brokers/redis",
+			"revision": "480748c75ae7f13e96dda79b6ef5c2add6df5b8c",
+			"revisionTime": "2018-06-21T15:06:37Z",
+			"version": "v1.3.7",
+			"versionExact": "v1.3.7"
+		},
+		{
+			"checksumSHA1": "eE+IoWQvEQbkbR8yWOnPVDwvspw=",
+			"path": "github.com/RichardKnop/machinery/v1/brokers/sqs",
+			"revision": "480748c75ae7f13e96dda79b6ef5c2add6df5b8c",
+			"revisionTime": "2018-06-21T15:06:37Z",
+			"version": "v1.3.7",
+			"versionExact": "v1.3.7"
+		},
+		{
+			"checksumSHA1": "SKKAMsrU15Iv7CtSJreBJKc78W4=",
+			"path": "github.com/RichardKnop/machinery/v1/common",
+			"revision": "480748c75ae7f13e96dda79b6ef5c2add6df5b8c",
+			"revisionTime": "2018-06-21T15:06:37Z",
+			"version": "v1.3.7",
+			"versionExact": "v1.3.7"
+		},
+		{
+			"checksumSHA1": "rq3N5tIgLONQzprnMYRLR+6w2k0=",
+			"path": "github.com/RichardKnop/machinery/v1/config",
+			"revision": "480748c75ae7f13e96dda79b6ef5c2add6df5b8c",
+			"revisionTime": "2018-06-21T15:06:37Z",
+			"version": "v1.3.7",
+			"versionExact": "v1.3.7"
+		},
+		{
+			"checksumSHA1": "SLzC++Io8YdjJdH8vjMj1f1U2tA=",
+			"path": "github.com/RichardKnop/machinery/v1/log",
+			"revision": "480748c75ae7f13e96dda79b6ef5c2add6df5b8c",
+			"revisionTime": "2018-06-21T15:06:37Z",
+			"version": "v1.3.7",
+			"versionExact": "v1.3.7"
+		},
+		{
+			"checksumSHA1": "7u2rgFHd0rIOObXERyDT6E8vUeM=",
+			"path": "github.com/RichardKnop/machinery/v1/retry",
+			"revision": "480748c75ae7f13e96dda79b6ef5c2add6df5b8c",
+			"revisionTime": "2018-06-21T15:06:37Z",
+			"version": "v1.3.7",
+			"versionExact": "v1.3.7"
+		},
+		{
+			"checksumSHA1": "r+h24ob19yULmwHD4AB7SrwFGQg=",
+			"path": "github.com/RichardKnop/machinery/v1/tasks",
+			"revision": "480748c75ae7f13e96dda79b6ef5c2add6df5b8c",
+			"revisionTime": "2018-06-21T15:06:37Z",
+			"version": "v1.3.7",
+			"versionExact": "v1.3.7"
+		},
+		{
+			"checksumSHA1": "No753udwDCxZZlcSIqKmMgO64Ig=",
+			"path": "github.com/RichardKnop/machinery/v1/tracing",
+			"revision": "480748c75ae7f13e96dda79b6ef5c2add6df5b8c",
+			"revisionTime": "2018-06-21T15:06:37Z",
+			"version": "v1.3.7",
+			"versionExact": "v1.3.7"
 		},
 		{
 			"checksumSHA1": "7kpYEA7uxPfx2JbF76yUY+EETCk=",
+			"origin": "github.com/RichardKnop/machinery/vendor/github.com/RichardKnop/redsync",
 			"path": "github.com/RichardKnop/redsync",
-			"revision": "54b27db64c180751e7049321a2e109ff220ccdcc",
-			"revisionTime": "2018-03-20T15:12:46Z"
+			"revision": "480748c75ae7f13e96dda79b6ef5c2add6df5b8c",
+			"revisionTime": "2018-06-21T15:06:37Z",
+			"version": "v1.3.7",
+			"versionExact": "v1.3.7"
 		},
 		{
 			"checksumSHA1": "JV/23qugPFuOPZWfa9CCwLXPJqE=",
@@ -83,18 +258,6 @@
 			"revisionTime": "2016-02-12T00:23:28Z"
 		},
 		{
-			"checksumSHA1": "NUJUTWlc1sV8b7WjfiYc4JZbXl0=",
-			"path": "github.com/aws/aws-sdk-go/aws/credentials/endpointcreds",
-			"revision": "efab853f45fc7a963059adbd2d552f828684afd4",
-			"revisionTime": "2018-06-15T21:57:40Z"
-		},
-		{
-			"checksumSHA1": "JEYqmF83O5n5bHkupAzA6STm0no=",
-			"path": "github.com/aws/aws-sdk-go/aws/credentials/stscreds",
-			"revision": "efab853f45fc7a963059adbd2d552f828684afd4",
-			"revisionTime": "2018-06-15T21:57:40Z"
-		},
-		{
 			"checksumSHA1": "i05vDcAU9ecVbcEwBXHJUrkMjX0=",
 			"path": "github.com/aws/aws-sdk-go/aws/defaults",
 			"revision": "8041be5461786460d86b4358305fbdf32d37cfb2",
@@ -105,12 +268,6 @@
 			"path": "github.com/aws/aws-sdk-go/aws/ec2metadata",
 			"revision": "8041be5461786460d86b4358305fbdf32d37cfb2",
 			"revisionTime": "2016-02-12T00:23:28Z"
-		},
-		{
-			"checksumSHA1": "grMynvpfyTKuULQ6KFTZqQFA76M=",
-			"path": "github.com/aws/aws-sdk-go/aws/endpoints",
-			"revision": "efab853f45fc7a963059adbd2d552f828684afd4",
-			"revisionTime": "2018-06-15T21:57:40Z"
 		},
 		{
 			"checksumSHA1": "A7fD/JDMbQT/6VlMMY2eydCx0PU=",
@@ -133,18 +290,6 @@
 		{
 			"checksumSHA1": "wjxQlU1PYxrDRFoL1Vek8Wch7jk=",
 			"path": "github.com/aws/aws-sdk-go/internal/sdkio",
-			"revision": "efab853f45fc7a963059adbd2d552f828684afd4",
-			"revisionTime": "2018-06-15T21:57:40Z"
-		},
-		{
-			"checksumSHA1": "MYLldFRnsZh21TfCkgkXCT3maPU=",
-			"path": "github.com/aws/aws-sdk-go/internal/sdkrand",
-			"revision": "efab853f45fc7a963059adbd2d552f828684afd4",
-			"revisionTime": "2018-06-15T21:57:40Z"
-		},
-		{
-			"checksumSHA1": "04ypv4x12l4q0TksA1zEVsmgpvw=",
-			"path": "github.com/aws/aws-sdk-go/internal/shareddefaults",
 			"revision": "efab853f45fc7a963059adbd2d552f828684afd4",
 			"revisionTime": "2018-06-15T21:57:40Z"
 		},
@@ -313,12 +458,6 @@
 		{
 			"checksumSHA1": "AisiBB02O+XJ/CPCBl4hD6xuXMs=",
 			"path": "github.com/aws/aws-sdk-go/service/sqs/sqsiface",
-			"revision": "efab853f45fc7a963059adbd2d552f828684afd4",
-			"revisionTime": "2018-06-15T21:57:40Z"
-		},
-		{
-			"checksumSHA1": "8oXVUCBenZzaXkvkfx5H7hDEpnY=",
-			"path": "github.com/aws/aws-sdk-go/service/sts",
 			"revision": "efab853f45fc7a963059adbd2d552f828684afd4",
 			"revisionTime": "2018-06-15T21:57:40Z"
 		},
@@ -799,10 +938,12 @@
 			"revisionTime": "2016-01-10T10:55:54Z"
 		},
 		{
-			"checksumSHA1": "7Ck3I7G0hgz+1WD5ohzUMFJsvGg=",
+			"checksumSHA1": "eDQ6f1EsNf+frcRO/9XukSEchm8=",
 			"path": "github.com/satori/go.uuid",
-			"revision": "e673fdd4dea8a7334adbbe7f57b7e4b00bdc5502",
-			"revisionTime": "2016-02-18T23:57:46Z"
+			"revision": "36e9d2ebbde5e3f13ab2e25625fd453271d6522e",
+			"revisionTime": "2018-01-03T17:44:51Z",
+			"version": "master",
+			"versionExact": "master"
 		},
 		{
 			"checksumSHA1": "ySaT8G3I3y4MmnoXOYAAX0rC+p8=",
