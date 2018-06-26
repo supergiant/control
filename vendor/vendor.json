@@ -33,14 +33,6 @@
 			"versionExact": "v1.3.7"
 		},
 		{
-			"checksumSHA1": "DZ0huxayKKvubAnOPcxk9jRlzkE=",
-			"path": "github.com/RichardKnop/machinery/v1/backends",
-			"revision": "480748c75ae7f13e96dda79b6ef5c2add6df5b8c",
-			"revisionTime": "2018-06-21T15:06:37Z",
-			"version": "v1.3.7",
-			"versionExact": "v1.3.7"
-		},
-		{
 			"checksumSHA1": "/FZsmwE7RQ+roE7L5wBqj/MQG54=",
 			"path": "github.com/RichardKnop/machinery/v1/backends/amqp",
 			"revision": "480748c75ae7f13e96dda79b6ef5c2add6df5b8c",
