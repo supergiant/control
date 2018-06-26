@@ -70,7 +70,8 @@ const (
 	// ErrCodeLimitExceededException for service response error code
 	// "LimitExceededException".
 	//
-	// There is no limit to the number of daily on-demand backups that can be taken.
+	// Up to 50 CreateBackup operations are allowed per second, per account. There
+	// is no limit to the number of daily on-demand backups that can be taken.
 	//
 	// Up to 10 simultaneous table operations are allowed per account. These operations
 	// include CreateTable, UpdateTable, DeleteTable,UpdateTimeToLive, RestoreTableFromBackup,

@@ -3,9 +3,11 @@ package fake_aws_provider
 import (
 	"github.com/aws/aws-sdk-go/aws/request"
 	"github.com/aws/aws-sdk-go/service/elb"
+	"github.com/aws/aws-sdk-go/service/elb/elbiface"
 )
 
 type ELB struct {
+	elbiface.ELBAPI
 	AddTagsRequestFn                                 func(*elb.AddTagsInput) (*request.Request, *elb.AddTagsOutput)
 	AddTagsFn                                        func(*elb.AddTagsInput) (*elb.AddTagsOutput, error)
 	ApplySecurityGroupsToLoadBalancerRequestFn       func(*elb.ApplySecurityGroupsToLoadBalancerInput) (*request.Request, *elb.ApplySecurityGroupsToLoadBalancerOutput)

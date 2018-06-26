@@ -30,7 +30,8 @@ func (m *Session) GetUUID() string {
 	return ""
 }
 
-func (m *Session) SetUUID() {
+func (m *Session) SetUUID() error {
+	return nil
 }
 
 func (m *Session) SetActionStatus(status *ActionStatus) {

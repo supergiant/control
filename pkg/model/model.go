@@ -15,7 +15,7 @@ import (
 type Model interface {
 	GetID() interface{}
 	GetUUID() string
-	SetUUID()
+	SetUUID() error
 	SetActionStatus(*ActionStatus)
 	SetPassiveStatus()
 }
@@ -56,10 +56,15 @@ func (m *BaseModel) GetUUID() string {
 }
 
 // SetUUID sets the model UUID.
-func (m *BaseModel) SetUUID() {
+func (m *BaseModel) SetUUID() error {
 	if m.UUID == "" {
-		m.UUID = uuid.NewV4().String()
+		u, err := uuid.NewV4()
+		if err != nil {
+			return err
+		}
+		m.UUID = u.String()
 	}
+	return nil
 }
 
 // SetActionStatus takes an *ActionStatus and sets it on the model.

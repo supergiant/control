@@ -3,9 +3,11 @@ package fake_aws_provider
 import (
 	"github.com/aws/aws-sdk-go/aws/request"
 	"github.com/aws/aws-sdk-go/service/ec2"
+	"github.com/aws/aws-sdk-go/service/ec2/ec2iface"
 )
 
 type EC2 struct {
+	ec2iface.EC2API
 	AcceptVpcPeeringConnectionRequestFn             func(*ec2.AcceptVpcPeeringConnectionInput) (*request.Request, *ec2.AcceptVpcPeeringConnectionOutput)
 	AcceptVpcPeeringConnectionFn                    func(*ec2.AcceptVpcPeeringConnectionInput) (*ec2.AcceptVpcPeeringConnectionOutput, error)
 	AllocateAddressRequestFn                        func(*ec2.AllocateAddressInput) (*request.Request, *ec2.AllocateAddressOutput)
