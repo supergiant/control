@@ -73,7 +73,7 @@ func (r *Runner) Run(cmd *runner.Command) (err error) {
 	defer session.Close()
 
 	session.Stdout = cmd.Out
-	session.Stderr = cmd.Err
+	session.Stderr = cmd.Out
 
 	waitCh := make(chan error)
 	go func() {

@@ -24,6 +24,6 @@ func RunRemoteScript(ctx context.Context, script, user, host, cert string, timeo
 		return err
 	}
 
-	cmd := runner.NewCommand(ctx, script, os.Stdout, os.Stderr)
+	cmd := runner.NewCommand(ctx, script, os.Stdout)
 	return run.Run(cmd)
 }
