@@ -1,6 +1,7 @@
 package util
 
 import (
+	"context"
 	"encoding/json"
 	"fmt"
 	"math/rand"
@@ -8,8 +9,6 @@ import (
 	"strconv"
 	"strings"
 	"time"
-
-	"context"
 
 	"github.com/fatih/structs"
 	"github.com/pkg/errors"

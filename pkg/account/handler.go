@@ -6,9 +6,10 @@ import (
 
 	"github.com/gorilla/mux"
 	"github.com/sirupsen/logrus"
+	"gopkg.in/asaskevich/govalidator.v8"
+
 	"github.com/supergiant/supergiant/pkg/message"
 	"github.com/supergiant/supergiant/pkg/sgerrors"
-	"gopkg.in/asaskevich/govalidator.v8"
 )
 
 // Handler is a http controller for account entity

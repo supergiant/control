@@ -2,7 +2,6 @@ package task
 
 import (
 	"testing"
-
 	"time"
 
 	"github.com/RichardKnop/machinery/v1/config"

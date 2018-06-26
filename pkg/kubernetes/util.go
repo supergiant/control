@@ -2,8 +2,9 @@ package kubernetes
 
 import (
 	"github.com/pkg/errors"
-	"github.com/supergiant/supergiant/pkg/sgerrors"
 	"k8s.io/client-go/rest"
+
+	"github.com/supergiant/supergiant/pkg/sgerrors"
 )
 
 // BuildBasicAuthConfig is a helper function that builds configs for a kubernetes client

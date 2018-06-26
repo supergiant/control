@@ -5,9 +5,9 @@ import (
 	"encoding/json"
 
 	"github.com/pkg/errors"
-	"github.com/supergiant/supergiant/pkg/sgerrors"
 
 	"github.com/supergiant/supergiant/pkg/model/helm"
+	"github.com/supergiant/supergiant/pkg/sgerrors"
 	"github.com/supergiant/supergiant/pkg/storage"
 )
 

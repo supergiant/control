@@ -5,8 +5,9 @@ import (
 	"testing"
 
 	"github.com/stretchr/testify/assert"
-	"github.com/supergiant/supergiant/pkg/sgerrors"
 	"k8s.io/client-go/rest"
+
+	"github.com/supergiant/supergiant/pkg/sgerrors"
 )
 
 func TestBuildConfigFrom(t *testing.T) {

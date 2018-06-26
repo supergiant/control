@@ -1,11 +1,10 @@
 package kubernetes
 
 import (
+	"context"
 	"fmt"
 	"strings"
 	"time"
-
-	"context"
 
 	"github.com/supergiant/supergiant/pkg/core"
 	"github.com/supergiant/supergiant/pkg/kubernetes"

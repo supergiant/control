@@ -4,8 +4,8 @@ import (
 	"context"
 	"os"
 
-	"github.com/supergiant/supergiant/pkg/runner/ssh"
 	"github.com/supergiant/supergiant/pkg/runner"
+	"github.com/supergiant/supergiant/pkg/runner/ssh"
 )
 
 func RunRemoteScript(ctx context.Context, script, user, host, cert string, timeoutSec int) error {

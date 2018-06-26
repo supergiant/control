@@ -5,9 +5,10 @@ import (
 	"encoding/json"
 
 	"github.com/pkg/errors"
+	"golang.org/x/crypto/bcrypt"
+
 	"github.com/supergiant/supergiant/pkg/sgerrors"
 	"github.com/supergiant/supergiant/pkg/storage"
-	"golang.org/x/crypto/bcrypt"
 )
 
 const prefix = "/supergiant/user/"

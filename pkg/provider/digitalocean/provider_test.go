@@ -5,6 +5,7 @@ import (
 
 	"github.com/digitalocean/godo"
 	"github.com/sirupsen/logrus"
+	. "github.com/smartystreets/goconvey/convey"
 
 	"github.com/supergiant/supergiant/pkg/core"
 	"github.com/supergiant/supergiant/pkg/kubernetes"
@@ -12,8 +13,6 @@ import (
 	"github.com/supergiant/supergiant/pkg/provider/digitalocean"
 	"github.com/supergiant/supergiant/test/fake_core"
 	"github.com/supergiant/supergiant/test/fake_digitalocean_provider"
-
-	. "github.com/smartystreets/goconvey/convey"
 )
 
 func TestDigitalOceanProviderValidateAccount(t *testing.T) {

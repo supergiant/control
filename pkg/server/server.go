@@ -1,14 +1,13 @@
 package server
 
 import (
+	"context"
 	"crypto/tls"
 	"net"
 	"net/http"
 	"time"
 
 	"github.com/gorilla/handlers"
-
-	"context"
 
 	"github.com/supergiant/supergiant/pkg/api"
 	"github.com/supergiant/supergiant/pkg/core"
