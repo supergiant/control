@@ -7,9 +7,9 @@ import (
 
 	"github.com/pkg/errors"
 
+	"github.com/supergiant/supergiant/pkg/jobs"
 	"github.com/supergiant/supergiant/pkg/runner"
 	"github.com/supergiant/supergiant/pkg/runner/ssh"
-	"github.com/supergiant/supergiant/pkg/jobs"
 )
 
 type JobConfig struct {
@@ -43,7 +43,7 @@ func New(tpl *template.Template, outStream io.Writer, cfg *ssh.Config) (*Job, er
 func (i *Job) InstallFlannel(config JobConfig) error {
 	err := jobs.RunTemplate(context.Background(), i.scriptTemplate, i.runner, i.output, config)
 	if err != nil {
-		return errors.Wrap(err, "error running template for flannel")
+		return err
 	}
 
 	return nil

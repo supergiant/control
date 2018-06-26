@@ -5,7 +5,9 @@ import (
 	"strings"
 	"testing"
 	"text/template"
-	"github.com/supergiant/supergiant/pkg/jobs"
+
+	"github.com/pkg/errors"
+	"github.com/supergiant/supergiant/pkg/testutils"
 )
 
 func TestFlannelJob_InstallFlannel(t *testing.T) {
@@ -36,27 +38,27 @@ systemctl restart flanneld.service
 		arch          string
 		network       string
 		networkType   string
-		expectedError string
+		expectedError error
 	}{
 		{
 			"0.9.0",
 			"amd64",
 			"10.0.2.0/24",
 			"vxlan",
-			"",
+			nil,
 		},
 		{
 			"",
 			"",
 			"",
 			"",
-			"error has occurred",
+			errors.New("error has occurred"),
 		},
 	}
 
 	for _, testCase := range testCases {
-		r := &jobs.FakeRunner{
-			ErrMsg: testCase.expectedError,
+		r := &testutils.FakeRunner{
+			Err: testCase.expectedError,
 		}
 
 		buffer := &bytes.Buffer{}
@@ -76,32 +78,24 @@ systemctl restart flanneld.service
 
 		err := job.InstallFlannel(config)
 
-		if len(testCase.expectedError) > 0 {
-			if err == nil {
-				t.Error("error must not be nil")
-			}
-
-			if !strings.Contains(err.Error(), testCase.expectedError) {
-				t.Errorf("error message %s must contain substring %s", err.Error(), testCase.expectedError)
-			}
-
-			return
+		if testCase.expectedError != err {
+			t.Fatalf("wrong error expected %v actual %v", testCase.expectedError, err)
 		}
 
 		if !strings.Contains(buffer.String(), testCase.version) {
-			t.Errorf("Version %s not found in output %s", testCase.version, buffer.String())
+			t.Fatalf("Version %s not found in output %s", testCase.version, buffer.String())
 		}
 
 		if !strings.Contains(buffer.String(), testCase.arch) {
-			t.Errorf("architecture %s not found in output %s", testCase.arch, buffer.String())
+			t.Fatalf("architecture %s not found in output %s", testCase.arch, buffer.String())
 		}
 
 		if !strings.Contains(buffer.String(), testCase.network) {
-			t.Errorf("network %s not found in output %s", testCase.network, buffer.String())
+			t.Fatalf("network %s not found in output %s", testCase.network, buffer.String())
 		}
 
 		if !strings.Contains(buffer.String(), testCase.networkType) {
-			t.Errorf("network type %s not found in output %s", testCase.networkType, buffer.String())
+			t.Fatalf("network type %s not found in output %s", testCase.networkType, buffer.String())
 		}
 	}
 }
