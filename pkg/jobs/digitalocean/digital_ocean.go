@@ -49,8 +49,8 @@ type Config struct {
 	Fingerprints []string
 }
 
-func NewJob(credentials map[string]string, s storage.Interface, dropletTimeout, checkPeriod time.Duration) *Job {
-	c := getClient(credentials)
+func NewJob(accessToken string, s storage.Interface, dropletTimeout, checkPeriod time.Duration) *Job {
+	c := getClient(accessToken)
 
 	return &Job{
 		storage:        s,
@@ -156,9 +156,9 @@ func (t *TokenSource) Token() (*oauth2.Token, error) {
 	return token, nil
 }
 
-func getClient(credentials map[string]string) *godo.Client {
+func getClient(accessToken string) *godo.Client {
 	token := &TokenSource{
-		AccessToken: credentials["token"],
+		AccessToken: accessToken,
 	}
 	oauthClient := oauth2.NewClient(oauth2.NoContext, token)
 	return godo.NewClient(oauthClient)
