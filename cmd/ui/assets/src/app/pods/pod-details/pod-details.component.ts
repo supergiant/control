@@ -1,4 +1,4 @@
-import { Component, OnInit, OnDestroy, ViewChild } from '@angular/core';
+import { Component, OnInit, OnDestroy, ViewChild, ViewEncapsulation } from '@angular/core';
 import { Subscription } from 'rxjs/Subscription';
 import { ActivatedRoute, Router } from '@angular/router';
 import { Observable } from 'rxjs/Observable';
@@ -12,7 +12,8 @@ import { Location } from '@angular/common';
 @Component({
   selector: 'app-pod-details',
   templateUrl: './pod-details.component.html',
-  styleUrls: ['./pod-details.component.scss']
+  styleUrls: ['./pod-details.component.scss'],
+  encapsulation: ViewEncapsulation.None
 })
 export class PodDetailsComponent implements OnInit, OnDestroy {
   id: number;

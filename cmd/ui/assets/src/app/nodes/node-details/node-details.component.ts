@@ -1,4 +1,4 @@
-import { Component, OnInit, OnDestroy, ViewChild } from '@angular/core';
+import { Component, OnInit, OnDestroy, ViewChild, ViewEncapsulation } from '@angular/core';
 import { Subscription } from 'rxjs/Subscription';
 import { ActivatedRoute, Router } from '@angular/router';
 import { Observable } from 'rxjs/Observable';
@@ -12,7 +12,8 @@ import { Location } from '@angular/common';
 @Component({
   selector: 'app-node-details',
   templateUrl: './node-details.component.html',
-  styleUrls: ['./node-details.component.scss']
+  styleUrls: ['./node-details.component.scss'],
+  encapsulation: ViewEncapsulation.None
 })
 export class NodeDetailsComponent implements OnInit, OnDestroy {
   id: number;
