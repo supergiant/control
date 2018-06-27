@@ -8,6 +8,7 @@ import (
 	"github.com/stretchr/testify/mock"
 
 	"github.com/pkg/errors"
+
 	"github.com/supergiant/supergiant/pkg/storage"
 	"github.com/supergiant/supergiant/pkg/testutils"
 )
@@ -77,7 +78,7 @@ func TestJob_CreateDroplet(t *testing.T) {
 		tagService     *fakeTagService
 
 		dropletTimeout time.Duration
-		checkTimeout   time.Duration
+		checkPeriod    time.Duration
 
 		expectedError error
 	}{
@@ -132,7 +133,7 @@ func TestJob_CreateDroplet(t *testing.T) {
 				[]error{nil},
 			},
 			dropletTimeout: time.Millisecond * 30,
-			checkTimeout:   time.Millisecond * 1,
+			checkPeriod:    time.Millisecond * 1,
 			expectedError:  nil,
 		},
 		{
@@ -186,7 +187,7 @@ func TestJob_CreateDroplet(t *testing.T) {
 				[]error{nil},
 			},
 			dropletTimeout: time.Millisecond * 2,
-			checkTimeout:   time.Millisecond * 1,
+			checkPeriod:    time.Millisecond * 1,
 			expectedError:  ErrTimeoutExceeded,
 		},
 		{
@@ -214,7 +215,7 @@ func TestJob_CreateDroplet(t *testing.T) {
 				},
 			},
 			dropletTimeout: time.Millisecond * 2,
-			checkTimeout:   time.Millisecond * 1,
+			checkPeriod:    time.Millisecond * 1,
 			expectedError:  errTaggingDroplet,
 		},
 	}
@@ -224,6 +225,9 @@ func TestJob_CreateDroplet(t *testing.T) {
 			storage:        testCase.storage,
 			dropletService: testCase.dropletService,
 			tagService:     testCase.tagService,
+
+			DropletTimeout: testCase.dropletTimeout,
+			CheckPeriod:    testCase.checkPeriod,
 		}
 
 		config := Config{
@@ -234,9 +238,6 @@ func TestJob_CreateDroplet(t *testing.T) {
 			"master",
 			"ubuntu-stable",
 			[]string{"fingerprint"},
-
-			testCase.dropletTimeout,
-			testCase.checkTimeout,
 		}
 
 		err := job.CreateDroplet(config)

@@ -12,8 +12,6 @@ import (
 	"github.com/digitalocean/godo"
 	"github.com/pkg/errors"
 
-	"github.com/coreos/etcd/clientv3"
-
 	"github.com/supergiant/supergiant/pkg/storage"
 	"github.com/supergiant/supergiant/pkg/util"
 )
@@ -36,6 +34,9 @@ type Job struct {
 	storage        storage.Interface
 	dropletService DropletService
 	tagService     TagService
+
+	DropletTimeout time.Duration
+	CheckPeriod    time.Duration
 }
 
 type Config struct {
@@ -44,21 +45,20 @@ type Config struct {
 	Region       string
 	Size         string
 	Role         string // master/node
-	Image 		 string
+	Image        string
 	Fingerprints []string
-
-	DropletTimeout time.Duration
-	CheckPeriod    time.Duration
 }
 
-func NewJob(credentials map[string]string, cfg clientv3.Config) *Job {
+func NewJob(credentials map[string]string, s storage.Interface, dropletTimeout, checkPeriod time.Duration) *Job {
 	c := getClient(credentials)
-	s := storage.NewETCDRepository(cfg)
 
 	return &Job{
 		storage:        s,
 		dropletService: c.Droplets,
 		tagService:     c.Tags,
+
+		DropletTimeout: dropletTimeout,
+		CheckPeriod:    checkPeriod,
 	}
 }
 
@@ -98,8 +98,8 @@ func (j *Job) CreateDroplet(config Config) error {
 		return err
 	}
 
-	after := time.After(config.DropletTimeout)
-	ticker := time.NewTicker(config.CheckPeriod)
+	after := time.After(j.DropletTimeout)
+	ticker := time.NewTicker(j.CheckPeriod)
 
 	for {
 		select {
