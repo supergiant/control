@@ -5,7 +5,6 @@ import (
 	"encoding/json"
 	"fmt"
 	"strconv"
-	"strings"
 	"time"
 
 	"golang.org/x/oauth2"
@@ -64,7 +63,7 @@ func NewJob(accessToken string, s storage.Interface, dropletTimeout, checkPeriod
 }
 
 func (j *Job) CreateDroplet(config Config) error {
-	config.Name = config.Name + "-" + config.Role + "-" + strings.ToLower(util.RandomString(5))
+	config.Name = util.MakeNodeName(config.Name, config.Role)
 
 	var fingers []godo.DropletCreateSSHKey
 	for _, ssh := range config.Fingerprints {
