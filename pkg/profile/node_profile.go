@@ -9,6 +9,7 @@ type NodeProfile struct {
 	Provider provider.Name `json:"provider" valid:"in(aws|digitalocean|packet|gce|openstack)"`
 	// AVX256, SSE4, MMX, AES, SR-IOV etc.
 	Capabilities []string `json:"capabilities" valid:"optional"`
+	Labels       []string `json:"labels"`
 }
 
 type NodeSize struct {

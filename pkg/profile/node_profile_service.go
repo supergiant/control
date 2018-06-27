@@ -7,6 +7,8 @@ import (
 	"github.com/supergiant/supergiant/pkg/storage"
 )
 
+const DefaultNodeProfilePrefix = "/supergiant/node_profile"
+
 type NodeProfileService struct {
 	prefix             string
 	nodeProfileStorage storage.Interface

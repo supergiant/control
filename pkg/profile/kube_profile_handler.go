@@ -9,17 +9,22 @@ import (
 	"gopkg.in/asaskevich/govalidator.v8"
 
 	"github.com/supergiant/supergiant/pkg/sgerrors"
-	"github.com/supergiant/supergiant/pkg/storage"
 )
 
 type KubeProfileHandler struct {
 	service *KubeProfileService
 }
 
-func NewKubeProfileEndpoint(prefix string, storage storage.Interface) *KubeProfileHandler {
+func NewKubeProfileHandler(service *KubeProfileService) *KubeProfileHandler {
 	return &KubeProfileHandler{
-		service: NewKubeProfileService(prefix, storage),
+		service: service,
 	}
+}
+
+func (h *KubeProfileHandler) Register(r *mux.Router) {
+	r.HandleFunc("/kubeprofiles/{id}", h.GetProfile).Methods(http.MethodGet)
+	r.HandleFunc("/kubeprofiles", h.CreateProfile).Methods(http.MethodPost)
+	r.HandleFunc("/kubeprofiles", h.GetProfiles).Methods(http.MethodGet)
 }
 
 func (h *KubeProfileHandler) GetProfile(w http.ResponseWriter, r *http.Request) {

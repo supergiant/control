@@ -7,6 +7,8 @@ import (
 	"github.com/supergiant/supergiant/pkg/storage"
 )
 
+const DefaultKubeProfilePreifx = "/supergiant/kube_profile"
+
 type KubeProfileService struct {
 	prefix             string
 	kubeProfileStorage storage.Interface

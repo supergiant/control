@@ -8,12 +8,12 @@ import (
 	"github.com/supergiant/supergiant/pkg/user"
 )
 
-type middleware struct {
+type Middleware struct {
 	TokenService *sgjwt.TokenService
 	UserService  *user.Service
 }
 
-func (m *middleware) AuthMiddleware(next http.Handler) http.Handler {
+func (m *Middleware) AuthMiddleware(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		// Get rid of Bearer
 		tokenString := strings.Split(r.Header.Get("Authorization"), " ")[1]

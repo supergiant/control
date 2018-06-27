@@ -50,5 +50,4 @@ func TestNewManager(t *testing.T) {
 	require.True(t, ok)
 
 	require.Equal(t, "hello, world", res)
-	svc.RegisterTaskFunction("1", RunRemoteScript)
 }

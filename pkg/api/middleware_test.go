@@ -40,8 +40,8 @@ func TestAuthMiddleware(t *testing.T) {
 			t.Error(err)
 		}
 
-		md := middleware{
-			TokenService: &ts,
+		md := Middleware{
+			TokenService: ts,
 		}
 
 		md.AuthMiddleware(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {

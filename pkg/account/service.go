@@ -14,17 +14,25 @@ import (
 
 // Service holds all business logic related to cloud accounts
 type Service struct {
-	repository storage.Interface
+	storagePrefix string
+	repository    storage.Interface
 }
 
-const prefix = "/supergiant/cloud_account/"
+func NewService(storagePrefix string, repository storage.Interface) *Service {
+	return &Service{
+		storagePrefix: storagePrefix,
+		repository:    repository,
+	}
+}
+
+const DefaultStoragePrefix = "/supergiant/account/"
 
 // GetAll retrieves cloud accounts from underlying storage, returns empty slice if none found
 func (s *Service) GetAll(ctx context.Context) ([]CloudAccount, error) {
 	logrus.Debug("cloud_account.Service.GetAll start")
 
 	accounts := make([]CloudAccount, 0)
-	res, err := s.repository.GetAll(ctx, prefix)
+	res, err := s.repository.GetAll(ctx, s.storagePrefix)
 	if err != nil {
 		return accounts, err
 	}
@@ -47,7 +55,7 @@ func (s *Service) GetAll(ctx context.Context) ([]CloudAccount, error) {
 func (s *Service) Get(ctx context.Context, accountName string) (*CloudAccount, error) {
 	logrus.Debug("cloud_account.Service.Get start")
 
-	res, err := s.repository.Get(ctx, prefix, accountName)
+	res, err := s.repository.Get(ctx, s.storagePrefix, accountName)
 	if err != nil {
 		return nil, err
 	}
@@ -75,7 +83,7 @@ func (s *Service) Create(ctx context.Context, account *CloudAccount) error {
 		return errors.WithStack(err)
 	}
 
-	err = s.repository.Put(ctx, prefix, account.Name, rawJSON)
+	err = s.repository.Put(ctx, s.storagePrefix, account.Name, rawJSON)
 
 	logrus.Debug("cloud_account.Service.Create end")
 	return err
@@ -98,7 +106,7 @@ func (s *Service) Update(ctx context.Context, account *CloudAccount) error {
 		return errors.New("account name or provider can't be changed")
 	}
 
-	err = s.repository.Put(ctx, prefix, account.Name, rawJSON)
+	err = s.repository.Put(ctx, s.storagePrefix, account.Name, rawJSON)
 
 	logrus.Debug("cloud_account.Service.Update end")
 	return err
@@ -107,7 +115,7 @@ func (s *Service) Update(ctx context.Context, account *CloudAccount) error {
 // Delete cloud account by name
 func (s *Service) Delete(ctx context.Context, accountName string) error {
 	logrus.Debug("cloud_account.Service.Delete start")
-	err := s.repository.Delete(ctx, prefix, accountName)
+	err := s.repository.Delete(ctx, s.storagePrefix, accountName)
 	logrus.Debug("cloud_account.Service.Delete end")
 	return err
 }
