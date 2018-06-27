@@ -44,6 +44,7 @@ type Config struct {
 	Region       string
 	Size         string
 	Role         string // master/node
+	Image 		 string
 	Fingerprints []string
 
 	DropletTimeout time.Duration
@@ -78,7 +79,7 @@ func (j *Job) CreateDroplet(config Config) error {
 		PrivateNetworking: true,
 		SSHKeys:           fingers,
 		Image: godo.DropletCreateImage{
-			Slug: "ubuntu-stable",
+			Slug: config.Image,
 		},
 	}
 

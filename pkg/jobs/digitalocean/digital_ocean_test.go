@@ -232,6 +232,7 @@ func TestJob_CreateDroplet(t *testing.T) {
 			"us-west1",
 			"2GB",
 			"master",
+			"ubuntu-stable",
 			[]string{"fingerprint"},
 
 			testCase.dropletTimeout,
