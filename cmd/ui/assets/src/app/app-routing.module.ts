@@ -27,6 +27,7 @@ import { LoadBalancersListComponent } from './load-balancers/load-balancers-list
 import { ServiceDetailsComponent } from './services/service-details/service-details.component';
 import { ServicesListComponent } from './services/services-list/services-list.component';
 import { AppsListComponent } from './apps/apps-list/apps-list.component';
+import { NewKubeResourceComponent } from './kube-resources/new-kube-resource/new-kube-resource.component';
 
 // ui 2000 components
 import { SystemComponent } from './system/system.component';
@@ -157,6 +158,9 @@ const appRoutes: Routes = [
       { path: ':id', component: PodDetailsComponent }
     ]
   },
+  {
+    path: 'resource/new/:id', component: NewKubeResourceComponent, canActivate: [AuthGuard]
+  }
   // { path: 'volumes', component: VolumesComponent, canActivate: [AuthGuard] },
   // {
   //   path: 'services', component: ServicesComponent, canActivate: [AuthGuard], children: [
