@@ -6,6 +6,7 @@ import (
 	"time"
 
 	"github.com/pkg/errors"
+	"strings"
 )
 
 func TestRandomStringLen(t *testing.T) {
@@ -98,5 +99,33 @@ func TestWaitForSucceed(t *testing.T) {
 
 	if err != nil {
 		t.Errorf("Unexpected error %v", err)
+	}
+}
+
+func TestMakeNodeName(t *testing.T) {
+	testCases := []struct {
+		role     string
+		name     string
+		expected string
+	}{
+		{
+			"master",
+			"hello",
+			"hello-master",
+		},
+		{
+			"node",
+			"world",
+			"world-node",
+		},
+	}
+
+	for _, testCase := range testCases {
+		nodeName := MakeNodeName(testCase.name, testCase.role)
+
+		if !strings.EqualFold(nodeName[:len(nodeName)-6], testCase.expected) {
+			t.Errorf("Wrong node name expected %s actual %s",
+				testCase.expected, nodeName[:len(nodeName)-5])
+		}
 	}
 }
