@@ -3,7 +3,6 @@ package kube
 import (
 	"bytes"
 	"context"
-	"io/ioutil"
 	"path/filepath"
 	"strings"
 
@@ -72,7 +71,7 @@ func (c *Certs) BundleFor(ctx context.Context, name string) (*Bundle, error) {
 
 func (c *Certs) getFile(ctx context.Context, path string) ([]byte, error) {
 	stdout := &bytes.Buffer{}
-	cmd := runner.NewCommand(ctx, catCmd(path), stdout, ioutil.Discard)
+	cmd := runner.NewCommand(ctx, catCmd(path), stdout)
 
 	err := c.r.Run(cmd)
 	if err != nil {

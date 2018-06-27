@@ -74,7 +74,7 @@ func (j *Job) runTemplate(ctx context.Context, tpl *template.Template, cfg JobCo
 		return err
 	}
 
-	cmd := runner.NewCommand(ctx, buffer.String(), j.out, j.err)
+	cmd := runner.NewCommand(ctx, buffer.String(), j.out)
 	err = j.runner.Run(cmd)
 
 	if err != nil {
