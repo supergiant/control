@@ -5,6 +5,7 @@ package providers
 import (
 	"fmt"
 	"net"
+	"sync"
 
 	"github.com/sirupsen/logrus"
 
@@ -18,6 +19,10 @@ import (
 	"github.com/supergiant/supergiant/pkg/provider/openstack"
 	"github.com/supergiant/supergiant/pkg/provider/packet"
 	"github.com/supergiant/supergiant/pkg/server"
+)
+
+var (
+	m sync.Mutex
 )
 
 func getPort() (int, error) {
@@ -91,6 +96,9 @@ func newServer() (*server.Server, error) {
 
 	c.K8SProvider = &kubernetes.Provider{Core: c}
 
+	// Protect this section to avoid race condition over dialect_sqlite3.go:40
+	m.Lock()
+	defer m.Unlock()
 	if err := c.InitializeForeground(); err != nil {
 		return nil, err
 	}

@@ -56,7 +56,6 @@ func TestJob_ProvisionNode(t *testing.T) {
 		kubeletScriptTemplate,
 		proxyTemplate,
 		output,
-		output,
 	}
 
 	cfg := JobConfig{
@@ -97,7 +96,6 @@ func TestJob_ProvisionNodeError(t *testing.T) {
 		r,
 		kubeletScriptTemplate,
 		proxyTemplate,
-		output,
 		output,
 	}
 

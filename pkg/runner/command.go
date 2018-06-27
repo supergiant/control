@@ -15,6 +15,7 @@ type Command struct {
 	Err io.Writer
 }
 
+//  TODO(stgleb): Use single io.Writer for gathering command output
 func NewCommand(ctx context.Context, script string, out, err io.Writer) *Command {
 	return &Command{
 		ctx,
