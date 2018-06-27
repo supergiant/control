@@ -242,7 +242,7 @@ func TestJob_CreateDroplet(t *testing.T) {
 
 		err := job.CreateDroplet(config)
 
-		if err != testCase.expectedError {
+		if errors.Cause(err) != testCase.expectedError {
 			t.Errorf("Wrong error expected %s actual %s", testCase.expectedError.Error(), err.Error())
 		}
 	}

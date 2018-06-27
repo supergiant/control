@@ -3,6 +3,7 @@ package digitalocean
 import (
 	"context"
 	"encoding/json"
+	"fmt"
 	"strconv"
 	"strings"
 	"time"
@@ -89,13 +90,14 @@ func (j *Job) CreateDroplet(config Config) error {
 	droplet, _, err := j.dropletService.Create(dropletRequest)
 
 	if err != nil {
-		return err
+		return errors.Wrap(err, "dropletService has returned an error in CreateDroplet job")
 	}
 
 	err = j.tagDroplet(droplet.ID, tags)
 
 	if err != nil {
-		return err
+		return errors.Wrap(err,
+			fmt.Sprintf("Tagging droplet %d has failed for CreateDroplet job ", droplet.ID))
 	}
 
 	after := time.After(j.DropletTimeout)
