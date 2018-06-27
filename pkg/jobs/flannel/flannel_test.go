@@ -69,7 +69,7 @@ systemctl restart flanneld.service
 			output:         buffer,
 		}
 
-		config := JobConfig{
+		config := Config{
 			testCase.version,
 			testCase.arch,
 			testCase.network,
@@ -78,7 +78,7 @@ systemctl restart flanneld.service
 
 		err := job.InstallFlannel(config)
 
-		if testCase.expectedError != err {
+		if testCase.expectedError != errors.Cause(err) {
 			t.Fatalf("wrong error expected %v actual %v", testCase.expectedError, err)
 		}
 

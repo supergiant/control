@@ -12,7 +12,7 @@ import (
 	"github.com/supergiant/supergiant/pkg/runner/ssh"
 )
 
-type JobConfig struct {
+type Config struct {
 	Version     string
 	Arch        string
 	Network     string
@@ -40,10 +40,10 @@ func New(tpl *template.Template, outStream io.Writer, cfg *ssh.Config) (*Job, er
 	}, nil
 }
 
-func (i *Job) InstallFlannel(config JobConfig) error {
+func (i *Job) InstallFlannel(config Config) error {
 	err := jobs.RunTemplate(context.Background(), i.scriptTemplate, i.runner, i.output, config)
 	if err != nil {
-		return err
+		return errors.Wrap(err, "Run template has failed for Install flannel job")
 	}
 
 	return nil
