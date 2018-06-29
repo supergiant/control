@@ -19,9 +19,9 @@ type Handler struct {
 
 func (h *Handler) Get(w http.ResponseWriter, r *http.Request) {
 	vars := mux.Vars(r)
-	profileId := vars["id"]
+	nodeId := vars["id"]
 
-	node, err := h.service.Get(r.Context(), profileId)
+	node, err := h.service.Get(r.Context(), nodeId)
 	if err != nil {
 		if sgerrors.IsNotFound(err) {
 			http.Error(w, err.Error(), http.StatusNotFound)
@@ -37,20 +37,20 @@ func (h *Handler) Get(w http.ResponseWriter, r *http.Request) {
 }
 
 func (h *Handler) Put(w http.ResponseWriter, r *http.Request) {
-	k := &Node{}
-	err := json.NewDecoder(r.Body).Decode(k)
+	n := &Node{}
+	err := json.NewDecoder(r.Body).Decode(n)
 	if err != nil {
 		message.SendInvalidJSON(w, err)
 		return
 	}
 
-	ok, err := govalidator.ValidateStruct(k)
+	ok, err := govalidator.ValidateStruct(n)
 	if !ok {
 		message.SendValidationFailed(w, err)
 		return
 	}
 
-	if err = h.service.Create(r.Context(), k); err != nil {
+	if err = h.service.Create(r.Context(), n); err != nil {
 		message.SendUnknownError(w, err)
 		return
 	}
@@ -61,10 +61,10 @@ func (h *Handler) Put(w http.ResponseWriter, r *http.Request) {
 func (h *Handler) Delete(w http.ResponseWriter, r *http.Request) {
 	vars := mux.Vars(r)
 
-	kname := vars["id"]
-	if err := h.service.Delete(r.Context(), kname); err != nil {
+	id := vars["id"]
+	if err := h.service.Delete(r.Context(), id); err != nil {
 		if sgerrors.IsNotFound(err) {
-			message.SendNotFound(w, kname, err)
+			message.SendNotFound(w, id, err)
 			return
 		}
 		message.SendUnknownError(w, err)
@@ -75,13 +75,13 @@ func (h *Handler) Delete(w http.ResponseWriter, r *http.Request) {
 }
 
 func (h *Handler) GetAll(w http.ResponseWriter, r *http.Request) {
-	kubes, err := h.service.ListAll(r.Context())
+	nodes, err := h.service.ListAll(r.Context())
 	if err != nil {
 		message.SendUnknownError(w, err)
 		return
 	}
 
-	if err = json.NewEncoder(w).Encode(kubes); err != nil {
+	if err = json.NewEncoder(w).Encode(nodes); err != nil {
 		message.SendUnknownError(w, err)
 	}
 }
