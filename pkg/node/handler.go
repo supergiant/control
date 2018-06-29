@@ -8,6 +8,7 @@ import (
 
 	"github.com/gorilla/mux"
 	"github.com/sirupsen/logrus"
+
 	"github.com/supergiant/supergiant/pkg/message"
 	"github.com/supergiant/supergiant/pkg/sgerrors"
 )
