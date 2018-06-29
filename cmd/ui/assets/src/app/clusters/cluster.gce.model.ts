@@ -3,9 +3,9 @@ export class ClusterGCEModel {
     'data': {
       'cloud_account_name': '',
       'gce_config': {
-        'ssh_pub_key': '',
         'zone': 'us-east1-b'
       },
+      'ssh_pub_key': '',
       'master_node_size': 'n1-standard-1',
       'name': '',
       'kube_master_count': 1,
@@ -38,11 +38,6 @@ export class ClusterGCEModel {
         'gce_config': {
           'type': 'object',
           'properties': {
-            'ssh_pub_key': {
-              'type': 'string',
-              'description': 'The public key that will be used to SSH into the kube.',
-              'widget': 'textarea'
-            },
             'zone': {
               'type': 'string',
               'description': 'The GCE zone the kube will be created in.',
@@ -118,6 +113,11 @@ export class ClusterGCEModel {
           },
           'required': [ 'zone' ]
         },
+        'ssh_pub_key': {
+          'type': 'string',
+          'description': 'The public key that will be used to SSH into the kube.',
+          'widget': 'textarea'
+        },
         'master_node_size': {
           'type': 'string',
           'default': 'n1-standard-1',
@@ -156,12 +156,12 @@ export class ClusterGCEModel {
         'title': 'GCE Config',
         'items': [
           { 'key': 'gce_config.zone' },
-          { 'key': 'gce_config.ssh_pub_key' }
         ]
       },
       {
         'type': 'section',
         'items': [
+          { 'key': 'ssh_pub_key' },
           { 'key': 'master_node_size' },
           { 'key': 'kube_master_count' },
         ]
