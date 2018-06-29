@@ -18,6 +18,7 @@ export class AppComponent {
     timeOut: 2000,
     lastOnBottom: true,
   };
+
   constructor(private _route: ActivatedRoute, router: Router) {
     this.location = _route.snapshot.url.join('');
     router.events.subscribe((e: Event) => { // TODO: think about implementing route guard instead

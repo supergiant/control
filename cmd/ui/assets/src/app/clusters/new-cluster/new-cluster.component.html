@@ -5,7 +5,7 @@
       <button *ngIf="schema" type="button" class="back-button" (click)="back()"></button>
       <button *ngIf="!schema" type="button" class="back-button" [routerLink]="['/clusters']"></button>
 
-      <h2><i class="fa fa-server"></i> Create a Cluster</h2>
+      <h2><i class="fa fa-server"></i> Create a Cluster<span *ngIf="schema">: {{ data.cloud_account_name }}</span></h2>
     </header>
 
     <div *ngIf="hasCloudAccount">
@@ -15,8 +15,15 @@
         <button mat-button color="primary" *ngFor="let cloudAccount of cloudAccountsList" (click)="sendChoice(cloudAccount)">{{ cloudAccount.name }}</button>
       </div>
 
-      <div *ngIf="schema">
-        <json-schema-form framework="material-design" [schema]="schema" [data]="data" (onSubmit)="createKube(value)" (onChanges)="value=$event"></json-schema-form>
+      <div *ngIf="schema" class="form-wrapper">
+        <json-schema-form
+          framework="material-design"
+          [schema]="schema"
+          [layout]="layout"
+          [(data)]="data"
+          (onSubmit)="createKube(value)"
+          (onChanges)="value=$event">
+        </json-schema-form>
       </div>
     </div>
 

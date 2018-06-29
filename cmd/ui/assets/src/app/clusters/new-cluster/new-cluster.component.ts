@@ -125,30 +125,35 @@ export class NewClusterComponent implements OnInit, OnDestroy, AfterViewInit {
       case 'digitalocean': {
         this.data = this.doModel.digitalocean.data;
         this.schema = this.doModel.digitalocean.schema;
+        this.layout = this.doModel.digitalocean.layout;
         this.data.cloud_account_name = choice.name;
         break;
       }
       case 'packet': {
         this.data = this.packModel.packet.data;
         this.schema = this.packModel.packet.schema;
+        this.layout = this.packModel.packet.layout;
         this.data.cloud_account_name = choice.name;
         break;
       }
       case 'openstack': {
         this.data = this.osModel.openstack.data;
         this.schema = this.osModel.openstack.schema;
+        this.layout = this.osModel.openstack.layout;
         this.data.cloud_account_name = choice.name;
         break;
       }
       case 'gce': {
         this.data = this.gceModel.gce.data;
         this.schema = this.gceModel.gce.schema;
+        this.layout = this.gceModel.gce.layout;
         this.data.cloud_account_name = choice.name;
         break;
       }
       default: {
         this.data = null;
         this.schema = null;
+        this.layout = null;
         break;
       }
     }
