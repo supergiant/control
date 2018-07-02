@@ -13,7 +13,6 @@ import (
 
 	"github.com/gorilla/mux"
 	"github.com/jinzhu/gorm"
-
 	"github.com/supergiant/supergiant/pkg/core"
 	"github.com/supergiant/supergiant/pkg/model"
 )
@@ -292,4 +291,32 @@ func handleList(core *core.Core, r *http.Request, m model.Model, listPtr interfa
 		http.StatusOK,
 		listPtr,
 	}, nil
+}
+
+func listKubeNodes(core *core.Core, kname string) ([]*model.Node, error) {
+	list := new(model.NodeList)
+	if err := listKubeModels(core, kname, new(model.Node), list); err != nil {
+		return nil, err
+	}
+	return list.Items, nil
+}
+
+func listKubeReleases(core *core.Core, kname string) ([]*model.HelmRelease, error) {
+	list := new(model.HelmReleaseList)
+	if err := listKubeModels(core, kname, new(model.HelmRelease), list); err != nil {
+		return nil, err
+	}
+	return list.Items, nil
+}
+
+func listKubeModels(core *core.Core, kname string, m model.Model, listPtr interface{}) error {
+	listValue := reflect.ValueOf(listPtr).Elem()
+	slice := reflect.MakeSlice(reflect.SliceOf(reflect.TypeOf(m)), 0, 0)
+	items := listValue.FieldByName("Items")
+	items.Set(slice)
+
+	filter := fmt.Sprintf(`kube_name = '%s'`, kname)
+	scope := core.DB.Where(filter)
+
+	return scope.Find(items.Addr().Interface())
 }
