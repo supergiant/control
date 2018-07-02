@@ -173,6 +173,7 @@ import { AppsTutorialComponent } from './tutorials/apps-tutorial/apps-tutorial.c
 import { NewAppListComponent } from './apps/new-app-list/new-app-list.component';
 import { NewAppComponent } from './apps/new-app/new-app.component';
 import { LogsComponent } from './system/logs/logs.component';
+import { NewKubeResourceComponent } from './kube-resources/new-kube-resource/new-kube-resource.component';
 
 
 
@@ -255,6 +256,7 @@ import { LogsComponent } from './system/logs/logs.component';
     NewAppListComponent,
     NewAppComponent,
     LogsComponent,
+    NewKubeResourceComponent,
   ],
   imports: [
     BrowserModule,

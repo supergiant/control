@@ -1,7 +1,7 @@
 <h2>Cluster Resources</h2>
 
 <div class="subcontext-actions">
-  <div *ngIf="resouceKinds.length > 0 && selected.length === 0" class="form-group row">
+  <div *ngIf="resouceKinds.length > 0" class="form-group row">
     <mat-form-field>
       <mat-select placeholder="Resource Kind" [(ngModel)]="selectedResourceKind" (change)="get()">
         <mat-option *ngFor="let resourceKind of resouceKinds" [value]="resourceKind">
@@ -9,6 +9,7 @@
         </mat-option>
       </mat-select>
     </mat-form-field>
+    <button mat-button color="primary" [routerLink]="['/resource/new', kube.id]">Create New Resource</button>
     <button mat-button color="warn" [disabled]="selected.length === 0" (click)="delete()">Delete Selected {{ selectedResourceKind }}</button>
   </div>
 </div>
