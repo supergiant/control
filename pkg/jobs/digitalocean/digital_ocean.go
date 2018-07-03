@@ -7,10 +7,10 @@ import (
 	"strconv"
 	"time"
 
-	"golang.org/x/oauth2"
-
 	"github.com/digitalocean/godo"
+
 	"github.com/pkg/errors"
+	"golang.org/x/oauth2"
 
 	"github.com/supergiant/supergiant/pkg/storage"
 	"github.com/supergiant/supergiant/pkg/util"

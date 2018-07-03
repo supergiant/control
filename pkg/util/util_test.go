@@ -2,11 +2,11 @@ package util
 
 import (
 	"context"
+	"strings"
 	"testing"
 	"time"
 
 	"github.com/pkg/errors"
-	"strings"
 )
 
 func TestRandomStringLen(t *testing.T) {
