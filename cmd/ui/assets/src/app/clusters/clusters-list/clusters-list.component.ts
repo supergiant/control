@@ -227,7 +227,7 @@ export class ClustersListComponent implements OnInit, OnDestroy {
             version: kube.kubernetes_version,
             cloudaccount: kube.cloud_account_name,
             nodes: this.lengthOrZero(kube.nodes),
-            apps: this.lengthOrZero(kube.helmreleases),
+            apps: this.lengthOrZero(kube.helm_releases),
             status: this.titleCase.transform(this.progressOrDone(kube)),
             kube: kube,
             chartData: [
