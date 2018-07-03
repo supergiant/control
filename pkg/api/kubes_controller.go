@@ -8,7 +8,7 @@ import (
 )
 
 func ListKubes(core *core.Core, user *model.User, r *http.Request) (*Response, error) {
-	return handleList(core, r, new(model.Kube), new(model.KubeList))
+	return handleKubeList(core, r)
 }
 
 func CreateKube(core *core.Core, user *model.User, r *http.Request) (*Response, error) {
@@ -46,6 +46,19 @@ func GetKube(core *core.Core, user *model.User, r *http.Request) (*Response, err
 	if err := core.Kubes.Get(id, item); err != nil {
 		return nil, err
 	}
+
+	nodes, err := listKubeNodes(core, item.Name)
+	if err != nil {
+		return nil, err
+	}
+	item.Nodes = nodes
+
+	apps, err := listKubeReleases(core, item.Name)
+	if err != nil {
+		return nil, err
+	}
+	item.HelmReleases = apps
+
 	return itemResponse(core, item, http.StatusOK)
 }
 

@@ -8,34 +8,66 @@
     </h1>
   </section>
 </div>
-<ngb-tabset type="pills" justify="center">
-  <ngb-tab title="Info">
-    <ng-template ngbTabContent>
-      <div *ngIf="pod" class="graph-container">
-        <b>Kube Name:</b> {{ pod.kube_name }}<br />
-        <b>Name:</b> {{ pod.name }}<br />
-        <b>Namespace:</b> {{ pod.namespace }}<br />
-        <b>Status:</b> {{ pod.resource.status.phase }}<br />
-      </div>
+
+<!-- [@.disabled]="true" tells Material not to render the sliding animation for tab content. https://github.com/angular/material2/issues/2706 -->
+<mat-tab-group [@.disabled]="true">
+  <mat-tab>
+    <ng-template mat-tab-label>
+      Info
     </ng-template>
-  </ngb-tab>
-  <ngb-tab *ngIf="isDataAvailable" title="Metrics">
-    <ng-template ngbTabContent>
-      <div class="graph-container">
-        <h1 align="center">CPU (Millicores)</h1>
-        <canvas baseChart #baseChart="base-chart" [colors]="cpuChartColors" [datasets]="cpuChartData" [labels]="cpuChartLabels" [options]="cpuChartOptions" [chartType]="cpuChartType"></canvas>
-      </div>
-      <div class="graph-container">
-        <h1 align="center">RAM (GB)</h1>
-        <canvas baseChart #baseChart="base-chart" [colors]="ramChartColors" [datasets]="ramChartData" [labels]="ramChartLabels" [options]="ramChartOptions" [chartType]="ramChartType"></canvas>
-      </div>
+    <br>
+    <div *ngIf="pod" class="info-container">
+
+      <p class="pod-detail">
+        <span class="detail-label">Name:</span>
+        <span class="detail-value">{{ pod.name }}</span>
+      </p>
+
+      <p class="pod-detail">
+        <span class="detail-label">Kube Name:</span>
+        <span class="detail-value">{{ pod.kube_name }}</span>
+      </p>
+
+      <p class="pod-detail">
+        <span class="detail-label">Namespace:</span>
+        <span class="detail-value">{{ pod.namespace }}</span>
+      </p>
+
+      <p class="pod-detail">
+        <span class="detail-label">Status:</span>
+        <span class="detail-value">{{ pod.resource.status.phase }}</span>
+      </p>
+
+    </div>
+  </mat-tab>
+
+  <mat-tab  *ngIf="isDataAvailable">
+    <ng-template mat-tab-label>
+      Metrics
     </ng-template>
-  </ngb-tab>
-  <ngb-tab title="Raw Data">
-    <ng-template ngbTabContent>
+    <br>
+    <div class="graph-container">
+      <h1 align="center">CPU (Millicores)</h1>
+
+      <canvas baseChart #baseChart="base-chart" width="800" height="350" [colors]="cpuChartColors" [datasets]="cpuChartData" [labels]="cpuChartLabels" [options]="cpuChartOptions" [chartType]="cpuChartType"></canvas>
+    </div>
+
+    <div class="graph-container">
+      <h1 align="center">RAM (GB)</h1>
+
+      <canvas baseChart #baseChart="base-chart" width="800" height="350" [colors]="ramChartColors" [datasets]="ramChartData" [labels]="ramChartLabels" [options]="ramChartOptions" [chartType]="ramChartType"></canvas>
+    </div>
+  </mat-tab>
+
+  <mat-tab>
+    <ng-template mat-tab-label>
+      Raw Data
+    </ng-template>
+    <br>
+    <div class="raw-data-container">
       <textarea class="form-control" disabled>
-{{pod | json}}
+        {{pod | json}}
       </textarea>
-    </ng-template>
-  </ngb-tab>
-</ngb-tabset>
+    </div>
+  </mat-tab>
+</mat-tab-group>

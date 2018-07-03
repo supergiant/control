@@ -1,3 +1,18 @@
 button[mat-button] {
     margin: 5px;
 }
+
+.form-wrapper {
+	margin: 0 auto;
+	width: 50%;
+
+	button[type="submit"] {
+		font-size: 1.3em;
+		width: 100%;
+	}
+
+	// remove nasty box-shadow from "add" button on json schema array-type
+	section:last-of-type {
+		box-shadow: none;
+	}
+}

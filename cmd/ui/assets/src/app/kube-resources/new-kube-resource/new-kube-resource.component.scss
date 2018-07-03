@@ -1,0 +1,61 @@
+button[mat-button] {
+    margin: 5px;
+}
+
+.inputs-wrapper {
+  margin: 0 auto;
+  // don't cut off children's box shadow
+  width: 52%;
+
+  .form-wrapper {
+    margin: 0 auto;
+    width: 99%;
+
+    .hideMe {
+      display: none;
+    }
+
+    button[type="submit"] {
+      font-size: 1.3em;
+      width: 100%;
+    }
+
+    // remove nasty box-shadow from "add" button on json schema array-type
+    section:last-of-type {
+      box-shadow: none;
+    }
+
+  }
+
+  .json-wrapper {
+    margin: 0 auto;
+    width: 99%;
+
+    textarea {
+      background-color: #e9ecef;
+      border: 1px solid #ced4da;
+      border-radius: .125rem;
+      color: #495057;
+    }
+
+    .badTextarea, .badTextarea:focus {
+      box-shadow: 0 0 5px rgba(255, 0, 0, 0.5);
+      border: 1px solid rgba(255, 0, 0, 0.5);
+    }
+
+    .goodTextarea, .goodTextarea:focus {
+      box-shadow: 0 0 5px rgba(0, 255, 71, 0.5);
+      border: 1px solid rgba(0, 255, 71, 0.5);
+    }
+
+    .json-help {
+      margin-top: 10px;
+      font-style: italic;
+    }
+
+    button {
+      font-size: 1.3em;
+      width: 100%;
+    }
+  }
+}

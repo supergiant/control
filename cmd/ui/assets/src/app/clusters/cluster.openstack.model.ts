@@ -5,6 +5,7 @@ export class ClusterOpenStackModel {
       'master_node_size': 'm1.smaller',
       'name': '',
       'kube_master_count': 1,
+      'kubernetes_version': '1.8.7',
       'node_sizes': [
         'm1.smaller',
         'm1.small'
@@ -20,68 +21,109 @@ export class ClusterOpenStackModel {
     'schema': {
       'properties': {
         'name': {
-          'description': 'The desired name of the kube. Max length of 12 characters.',
           'type': 'string',
+          'description': 'The desired name of the kube. Max length of 12 characters.',
           'pattern': '^[a-z]([-a-z0-9]*[a-z0-9])?$',
           'maxLength': 12
         },
         'kubernetes_version': {
-          'default': '1.5.7',
-          'description': 'The Version of Kubernetes to be deployed.',
           'type': 'string',
+          'description': 'The Version of Kubernetes to be deployed.',
+          'default': '1.5.7',
           'enum': ['1.5.7', '1.6.7', '1.7.7', '1.8.7'] // TODO: <-- Should be dynamically populated.
         },
+        'kube_master_count': { // TODO: this was originally in openstack_config, but only in schema?
+          'type': 'number',
+          'description': 'The number of masters desired - for High Availability.',
+          'widget': 'number',
+        },
         'cloud_account_name': {
-          'description': 'The Supergiant cloud account you created for use with Openstack.',
-          'type': 'string'
+          'type': 'string',
+          'description': 'The Supergiant cloud account you created for use with Openstack.'
         },
         'openstack_config': {
+          'type': 'object',
           'properties': {
             'image_name': {
-              'default': 'CoreOS',
+              'type': 'string',
               'description': 'The image the servers created will use.',
-              'type': 'string'
+              'default': 'CoreOS'
             },
             'region': {
-              'default': 'RegionOne',
+              'type': 'string',
               'description': 'The OpenStack region the kube will be created in.',
-              'type': 'string'
+              'default': 'RegionOne'
             },
             'public_gateway_id': {
-              'description': 'The gateway ID for your OpenStack public gateway.',
-              'type': 'string'
-            },
-            'kube_master_count': {
-              'description': 'The number of masters desired--for High Availability.',
-              'type': 'number',
-              'widget': 'number',
+              'type': 'string',
+              'description': 'The gateway ID for your OpenStack public gateway.'
             },
             'ssh_key_fingerprint': {
-              'description': 'The fingerprint of the public key that you uploaded to your OpenStack account.',
-              'type': 'string'
+              'type': 'string',
+              'description': 'The fingerprint of the public key that you uploaded to your OpenStack account.'
             }
-          },
-          'type': 'object'
+          }
         },
         'ssh_pub_key': {
+          'type': 'string',
           'description': 'The public key that will be used to SSH into the kube.',
-          'type': 'string'
+          'widget': 'textarea'
         },
         'master_node_size': {
-          'default': 'm1.smaller',
+          'type': 'string',
           'description': 'The size of the server the master will live on.',
-          'type': 'string'
+          'default': 'm1.smaller'
         },
         'node_sizes': {
+          'type': 'array',
           'description': 'The sizes you want to be available to Supergiant when scaling.',
           'id': '/properties/node_sizes',
           'items': {
             'id': '/properties/node_sizes/items',
             'type': 'string'
-          },
-          'type': 'array'
+          }
         }
       }
-    }
+    },
+    'layout': [
+      {
+        'type': 'section',
+        'title': 'Cluster Details',
+        'items': [
+          { 'key': 'name' },
+          { 'key': 'kubernetes_version' },
+          { 'key': 'cloud_account_name', 'readonly': true }
+        ]
+      },
+      {
+        'type': 'section',
+        'title': 'Openstack Config',
+        'items': [
+          { 'key': 'openstack_config.image_name' },
+          { 'key': 'openstack_config.region' },
+          { 'key': 'openstack_config.public_gateway_id' },
+          { 'key': 'openstack_config.ssh_key_fingerprint' }
+        ]
+      },
+      {
+        'type': 'section',
+        'items': [
+          { 'key': 'ssh_pub_key' },
+          { 'key': 'kube_master_count' },
+          { 'key': 'master_node_size' }
+        ]
+      },
+      {
+        'key': 'node_sizes',
+        'type': 'array',
+        'items': [
+          { 'key': 'node_sizes[]' },
+        ]
+      },
+      {
+        'type': 'submit',
+        'title': 'Create'
+      }
+    ]
   };
 }

@@ -7,6 +7,7 @@ import (
 	"text/template"
 
 	"github.com/pkg/errors"
+
 	"github.com/supergiant/supergiant/pkg/testutils"
 )
 

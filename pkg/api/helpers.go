@@ -5,6 +5,7 @@ import (
 	"errors"
 	"fmt"
 	"net/http"
+	"net/url"
 	"os"
 	"reflect"
 	"regexp"
@@ -212,22 +213,104 @@ func itemResponse(core *core.Core, item model.Model, status int) (*Response, err
 	return &Response{status, item}, nil
 }
 
-const defaultListLimit = 25
+const defaultListLimit = "50"
 
 func handleList(core *core.Core, r *http.Request, m model.Model, listPtr interface{}) (resp *Response, err error) {
-	listValue := reflect.ValueOf(listPtr).Elem()
+	q := r.URL.Query()
 
+	query, limit, offset := buildQuery(q, m), q.Get("limit"), q.Get("offset")
+	if limit == "" {
+		limit = defaultListLimit
+	}
+
+	if err := listModels(core, m, listPtr, query, limit, offset); err != nil {
+		return nil, err
+	}
+
+	return &Response{
+		http.StatusOK,
+		listPtr,
+	}, nil
+}
+
+func handleKubeList(core *core.Core, r *http.Request) (resp *Response, err error) {
+	m, listPtr := new(model.Kube), new(model.KubeList)
+	q := r.URL.Query()
+
+	query, limit, offset := buildQuery(q, m), q.Get("limit"), q.Get("offset")
+	if limit == "" {
+		limit = defaultListLimit
+	}
+
+	// get kube models
+	if err := listModels(core, m, listPtr, query, limit, offset); err != nil {
+		return nil, err
+	}
+
+	// populate kube models with nodes and helm releases
+	for _, k := range listPtr.Items {
+		nodes, err := listKubeNodes(core, k.Name)
+		if err != nil {
+			return nil, err
+		}
+		k.Nodes = nodes
+
+		releases, err := listKubeReleases(core, k.Name)
+		if err != nil {
+			return nil, err
+		}
+		k.HelmReleases = releases
+	}
+
+	return &Response{
+		http.StatusOK,
+		listPtr,
+	}, nil
+}
+
+func listKubeNodes(core *core.Core, kname string) ([]*model.Node, error) {
+	var query string
+	if kname != "" {
+		query = fmt.Sprintf(`kube_name = '%s'`, kname)
+	}
+
+	list := new(model.NodeList)
+	if err := listModels(core, new(model.Node), list, query, nil, nil); err != nil {
+		return nil, err
+	}
+	return list.Items, nil
+}
+
+func listKubeReleases(core *core.Core, kname string) ([]*model.HelmRelease, error) {
+	var query string
+	if kname != "" {
+		query = fmt.Sprintf(`kube_name = '%s'`, kname)
+	}
+
+	list := new(model.HelmReleaseList)
+	if err := listModels(core, new(model.HelmRelease), list, query, nil, nil); err != nil {
+		return nil, err
+	}
+	return list.Items, nil
+}
+
+func listModels(core *core.Core, m model.Model, listPtr, filter, limit, offset interface{}) error {
+	listValue := reflect.ValueOf(listPtr).Elem()
 	slice := reflect.MakeSlice(reflect.SliceOf(reflect.TypeOf(m)), 0, 0)
 	items := listValue.FieldByName("Items")
 	items.Set(slice)
 
-	qstr := r.URL.Query()
+	scope := core.DB.Where(filter).Limit(limit).Offset(offset)
 
+	return scope.Find(items.Addr().Interface())
+}
+
+func buildQuery(q url.Values, m model.Model) string {
 	var andQueries []string
 	for _, field := range model.RootFieldJSONNames(m) {
 
 		// ?filter.name=this&filter.name=that
-		filterValues := qstr["filter."+field]
+		filterValues := q["filter."+field]
 
 		var orQueries []string
 		for _, val := range filterValues {
@@ -240,56 +323,5 @@ func handleList(core *core.Core, r *http.Request, m model.Model, listPtr interfa
 	}
 	andQuery := strings.Join(andQueries, " AND ")
 
-	baseScope := core.DB
-	if andQuery != "" {
-		baseScope = baseScope.Where(andQuery)
-	}
-
-	// BaseList
-	pagination := model.BaseList{}
-
-	if err := baseScope.Model(m).Count(&pagination.Total); err != nil {
-		return nil, err
-	}
-	offsetParam := qstr.Get("offset")
-	limitParam := qstr.Get("limit")
-
-	pagination.Limit = defaultListLimit
-	if limitParam != "" {
-		if pagination.Limit, err = strconv.ParseInt(limitParam, 10, 64); err != nil {
-			return nil, err
-		}
-	}
-
-	if offsetParam != "" {
-		if pagination.Offset, err = strconv.ParseInt(offsetParam, 10, 64); err != nil {
-			return nil, err
-		}
-	}
-
-	// TODO we may want to actually allow 0 limits here, and instead use pointers
-	// to int64, because limit 0 will still return total count.
-	scope := baseScope
-	if pagination.Limit != 0 {
-		scope = scope.Limit(pagination.Limit)
-	}
-	scope = scope.Offset(pagination.Offset)
-
-	if err := scope.Find(items.Addr().Interface()); err != nil {
-		return nil, err
-	}
-
-	for i := 0; i < items.Len(); i++ {
-		item := items.Index(i).Interface().(model.Model)
-		core.SetResourceActionStatus(item)
-		item.SetPassiveStatus()
-	}
-
-	// Yeah... kinda nasty
-	listValue.FieldByName("BaseList").Set(reflect.ValueOf(pagination))
-
-	return &Response{
-		http.StatusOK,
-		listPtr,
-	}, nil
+	return andQuery
 }

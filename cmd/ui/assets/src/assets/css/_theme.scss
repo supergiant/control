@@ -65,7 +65,7 @@
   &.no-clusters {
     background-image: url(assets/img/supergiant-cloud-autoscaling.svg);
   }
-  
+
   &.no-cloud-account {
     background-image: url(assets/img/supergiant-cloud-providers.svg);
   }
@@ -81,5 +81,9 @@
 }
 
 .app-system-container {
+  @extend ._app-container-default;
+}
+
+.app-kube-resources-container {
   @extend ._app-container-default;
 }

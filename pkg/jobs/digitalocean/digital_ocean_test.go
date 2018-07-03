@@ -5,9 +5,8 @@ import (
 	"time"
 
 	"github.com/digitalocean/godo"
-	"github.com/stretchr/testify/mock"
-
 	"github.com/pkg/errors"
+	"github.com/stretchr/testify/mock"
 
 	"github.com/supergiant/supergiant/pkg/storage"
 	"github.com/supergiant/supergiant/pkg/testutils"

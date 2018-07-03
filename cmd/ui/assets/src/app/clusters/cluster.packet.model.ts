@@ -4,6 +4,7 @@ export class ClusterPacketModel {
       'cloud_account_name': '',
       'master_node_size': 't1.small (Type 0)',
       'kube_master_count': 1,
+      'kubernetes_version': '1.8.7',
       'ssh_pub_key': '',
       'name': '',
       'node_sizes': [
@@ -25,58 +26,116 @@ export class ClusterPacketModel {
     'schema': {
       'properties': {
         'name': {
-          'description': 'The desired name of the kube. Max length of 12 characters.',
           'type': 'string',
+          'description': 'The desired name of the kube. Max length of 12 characters.',
           'pattern': '^[a-z]([-a-z0-9]*[a-z0-9])?$',
           'maxLength': 12
         },
         'kubernetes_version': {
-          'default': '1.5.7',
-          'description': 'The Version of Kubernetes to be deployed.',
           'type': 'string',
+          'description': 'The Version of Kubernetes to be deployed.',
+          'default': '1.5.7',
           'enum': ['1.5.7', '1.6.7', '1.7.7', '1.8.7'] // TODO: <-- Should be dynamically populated.
         },
         'cloud_account_name': {
-          'description': 'The Supergiant cloud account you created for use with Packet.',
-          'type': 'string'
+          'type': 'string',
+          'description': 'The Supergiant cloud account you created for use with Packet.'
         },
         'packet_config': {
+          'type': 'object',
           'properties': {
             'facility': {
-              'default': 'ewr1',
+              'type': 'string',
               'description': 'The Packet facility (region) the kube will be created in.',
-              'type': 'string'
+              'default': 'ewr1',
+              'enum': [
+                'sea1',
+                'sjc1',
+                'lax1',
+                'dfw1',
+                'ord1',
+                'yyz1',
+                'atl1',
+                'iad1',
+                'ewr1',
+                'ams1',
+                'fra1',
+                'sin1',
+                'hkg1',
+                'nrt1',
+                'syd1'
+              ]
             },
             'project': {
-              'description': 'The Packet project the kube will be created in.',
-              'type': 'string'
+              'type': 'string',
+              'description': 'The Packet project the kube will be created in.'
             }
           },
-          'type': 'object'
+          'required': [ 'facility' ]
         },
         'ssh_pub_key': {
-          'description': 'The public key that will be used to SSH into the kube.',
           'type': 'string',
+          'description': 'The public key that will be used to SSH into the kube.',
           'widget': 'textarea',
         },
         'master_node_size': {
-          'default': 't1.small (Type 0)',
+          'type': 'string',
           'description': 'The size of the server the master will live on.',
-          'type': 'string'
+          'default': 't1.small (Type 0)'
         },
         'kube_master_count': {
-          'description': 'The number of masters desired--for High Availability.',
           'type': 'number',
+          'description': 'The number of masters desired - for High Availability.',
           'widget': 'number',
+          'minimum': 1
         },
         'node_sizes': {
+          'type': 'array',
           'description': 'The sizes you want to be available to Supergiant when scaling.',
           'items': {
             'type': 'string'
-          },
-          'type': 'array'
-        },
+          }
+        }
+      },
+      'required': [ 'name' ]
+    },
+    'layout': [
+      {
+        'type': 'section',
+        'title': 'Cluster Details',
+        'items': [
+          { 'key': 'name' },
+          { 'key': 'kubernetes_version' },
+          // { 'key': 'cloud_account_name', 'readonly': true }
+        ]
+      },
+      {
+        'type': 'section',
+        'title': 'Packet Config',
+        'items': [
+          { 'key': 'packet_config.facility' },
+          { 'key': 'packet_config.project' }
+        ]
+      },
+      {
+        'type': 'section',
+        'items': [
+          { 'key': 'ssh_pub_key' },
+          { 'key': 'master_node_size' },
+          { 'key': 'kube_master_count' },
+        ]
+      },
+      {
+        'key': 'node_sizes',
+        'type': 'array',
+        'items': [
+          { 'key': 'node_sizes[]' },
+        ]
+      },
+      {
+        'type': 'submit',
+        'title': 'Create'
       }
-    }
+    ]
   };
 }
