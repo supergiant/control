@@ -5,6 +5,7 @@ import { ActivatedRoute, Router } from '@angular/router';
 import { Observable } from 'rxjs/Observable';
 import { Supergiant } from '../../shared/supergiant/supergiant.service';
 import { Notifications } from '../../shared/notifications/notifications.service';
+import { convertIsoToHumanReadable } from '../../shared/helpers/helpers';
 import { DomSanitizer, SafeResourceUrl } from '@angular/platform-browser';
 import { ChartsModule, BaseChartDirective } from 'ng2-charts';
 
@@ -192,7 +193,8 @@ export class ClusterComponent implements OnInit, OnDestroy {
             this.kube.extra_data.kube_cpu_capacity) {
             this.isDataAvailable = true;
             this.cpuChartLabels.length = 0;
-            let tempArray = this.kube.extra_data.cpu_usage_rate.map((data) => data.timestamp);
+            let tempArray = this.kube.extra_data.cpu_usage_rate.map(
+              (data) => convertIsoToHumanReadable(data.timestamp));
             for (const row of tempArray) {
               this.cpuChartLabels.push(row);
             }
@@ -208,7 +210,8 @@ export class ClusterComponent implements OnInit, OnDestroy {
               // this should be set to the length of largest array.
             ];
             this.ramChartLabels.length = 0;
-            tempArray = this.kube.extra_data.memory_usage.map((data) => data.timestamp);
+            tempArray = this.kube.extra_data.memory_usage.map(
+              (data) => convertIsoToHumanReadable(data.timestamp));
             for (const row of tempArray) {
               this.ramChartLabels.push(row);
             }
