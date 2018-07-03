@@ -141,18 +141,9 @@ type OSKubeConfig struct {
 
 // GCEKubeConfig holds do specific information about DO based KUbernetes clusters.
 type GCEKubeConfig struct {
-	Zone                string   `json:"zone" validate:"nonzero"`
-	MasterInstanceGroup string   `json:"master_instance_group" sg:"readonly"`
-	MinionInstanceGroup string   `json:"minion_instance_group" sg:"readonly"`
-	MasterNodes         []string `json:"master_nodes" sg:"readonly"`
-	MasterName          string   `json:"master_name" sg:"readonly"`
-	KubeMasterCount     int      `json:"kube_master_count"`
-
-	// Template vars
-	SSHPubKey         string `json:"ssh_pub_key" validate:"nonzero"`
-	KubernetesVersion string `json:"kubernetes_version" validate:"nonzero" sg:"default=1.5.1"`
-	ETCDDiscoveryURL  string `json:"etcd_discovery_url" sg:"readonly"`
-	MasterPrivateIP   string `json:"master_private_ip" sg:"readonly"`
+	Zone                string `json:"zone" validate:"nonzero"`
+	MasterInstanceGroup string `json:"master_instance_group" sg:"readonly"`
+	MinionInstanceGroup string `json:"minion_instance_group" sg:"readonly"`
 }
 
 type PACKKubeConfig struct {

@@ -87,12 +87,12 @@ func (p *Provider) CreateKube(m *model.Kube, action *core.Action) error {
 	// Stage items for master build.
 
 	// Default master count to 1
-	if m.GCEConfig.KubeMasterCount == 0 {
-		m.GCEConfig.KubeMasterCount = 1
+	if m.KubeMasterCount == 0 {
+		m.KubeMasterCount = 1
 	}
 
 	// provision an etcd token
-	url, err := etcdToken(strconv.Itoa(m.GCEConfig.KubeMasterCount))
+	url, err := etcdToken(strconv.Itoa(m.KubeMasterCount))
 	if err != nil {
 		return err
 	}
@@ -108,14 +108,14 @@ func (p *Provider) CreateKube(m *model.Kube, action *core.Action) error {
 	}
 
 	// save the token
-	m.GCEConfig.ETCDDiscoveryURL = url
+	m.ETCDDiscoveryURL = url
 
 	err = p.Core.DB.Save(m)
 	if err != nil {
 		return err
 	}
 
-	for i := 1; i <= m.GCEConfig.KubeMasterCount; i++ {
+	for i := 1; i <= m.KubeMasterCount; i++ {
 		// Create master(s)
 		count := strconv.Itoa(i)
 		procedure.AddStep("Creating Kubernetes Master Node "+count+"...", func() error {
@@ -123,9 +123,10 @@ func (p *Provider) CreateKube(m *model.Kube, action *core.Action) error {
 
 			// Master name
 			name := m.Name + "-master" + "-" + strings.ToLower(util.RandomString(5))
-			m.GCEConfig.MasterName = name
+			m.MasterName = name
 			// Build template
-			masterUserdataTemplate, err := bindata.Asset("config/providers/gce/master.yaml")
+			mversion := strings.Split(m.KubernetesVersion, ".")
+			masterUserdataTemplate, err := bindata.Asset("config/providers/common/" + mversion[0] + "." + mversion[1] + "/master.yaml")
 			if err != nil {
 				return err
 			}
@@ -212,9 +213,9 @@ func (p *Provider) CreateKube(m *model.Kube, action *core.Action) error {
 
 				// Save Master info when ready
 				if resp.Status == "RUNNING" {
-					m.GCEConfig.MasterNodes = append(m.GCEConfig.MasterNodes, resp.SelfLink)
+					m.MasterNodes = append(m.MasterNodes, resp.SelfLink)
 					m.MasterPublicIP = resp.NetworkInterfaces[0].AccessConfigs[0].NatIP
-					m.GCEConfig.MasterPrivateIP = resp.NetworkInterfaces[0].NetworkIP
+					m.MasterPrivateIP = resp.NetworkInterfaces[0].NetworkIP
 					if serr := p.Core.DB.Save(m); serr != nil {
 						return false, serr
 					}
@@ -224,7 +225,7 @@ func (p *Provider) CreateKube(m *model.Kube, action *core.Action) error {
 		})
 	}
 	procedure.AddStep("Adding Kubernetes master(s) to instance group...", func() error {
-		for _, masterSelfLink := range m.GCEConfig.MasterNodes {
+		for _, masterSelfLink := range m.MasterNodes {
 			_, err = client.InstanceGroups.AddInstances(
 				m.CloudAccount.Credentials["project_id"],
 				m.GCEConfig.Zone,
