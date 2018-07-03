@@ -6,6 +6,7 @@ import { Supergiant } from '../../shared/supergiant/supergiant.service';
 import { Notifications } from '../../shared/notifications/notifications.service';
 import { ChartsModule, BaseChartDirective } from 'ng2-charts';
 import { SystemModalService } from '../../shared/system-modal/system-modal.service';
+import { convertIsoToHumanReadable } from '../../shared/helpers/helpers';
 import { LoginComponent } from '../../login/login.component';
 import { Location } from '@angular/common';
 
@@ -69,7 +70,7 @@ export class NodeDetailsComponent implements OnInit, OnDestroy {
               { label: 'CPU Capacity', data: this.node.extra_data.cpu_node_capacity.map((data) => data.value) },
               // this should be set to the length of largest array.
             ];
-            this.ramChartLabels = this.node.extra_data.cpu_usage_rate.map((data) => data.timestamp);
+            this.ramChartLabels = this.node.extra_data.cpu_usage_rate.map((data) => convertIsoToHumanReadable(data.timestamp));
 
             this.ramChartData = [
               { label: 'RAM Usage', data: this.node.extra_data.memory_usage.map((data) => data.value / 1073741824) },
@@ -79,7 +80,7 @@ export class NodeDetailsComponent implements OnInit, OnDestroy {
               },
               // this should be set to the length of largest array.
             ];
-            this.cpuChartLabels = this.node.extra_data.memory_usage.map((data) => data.timestamp);
+            this.cpuChartLabels = this.node.extra_data.memory_usage.map((data) => convertIsoToHumanReadable(data.timestamp));
           }
         },
         (err) => { this.notifications.display('warn', 'Connection Issue.', err); }));

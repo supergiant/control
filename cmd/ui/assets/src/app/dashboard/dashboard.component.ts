@@ -1,6 +1,7 @@
 import { Component, OnInit, ViewEncapsulation } from '@angular/core';
 import { Subscription } from 'rxjs/Subscription';
 import { Supergiant } from '../shared/supergiant/supergiant.service';
+import { convertIsoToHumanReadable } from '../shared/helpers/helpers';
 
 @Component({
   selector: 'app-dashboard',
@@ -66,7 +67,8 @@ export class DashboardComponent implements OnInit {
           kube.extra_data.cpu_usage_rate &&
           kube.extra_data.kube_cpu_capacity) {
           this.lineChartLabels.length = 0;
-          let tempArray = kube.extra_data.cpu_usage_rate.map((data) => data.timestamp);
+          let tempArray = kube.extra_data.cpu_usage_rate.map(
+            (data) => convertIsoToHumanReadable(data.timestamp));
           for (const row of tempArray) {
             this.lineChartLabels.push(row);
           }

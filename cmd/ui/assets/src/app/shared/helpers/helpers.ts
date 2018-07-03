@@ -10,3 +10,14 @@ export function getBaseLocation() {
     return '/' + basePath;
   }
 }
+
+export function convertIsoToHumanReadable(isoString) {
+	let date = new Date(isoString);
+	let month = date.getMonth() + 1;
+	let day = date.getDay() + 1;
+	let fullYear = date.getFullYear();
+	let hours = date.getHours();
+	let minutes = date.getMinutes();
+	let seconds = date.getSeconds();
+	return `${month}-${day}-${fullYear}, ${hours}:${minutes}:${seconds}`;
+}
