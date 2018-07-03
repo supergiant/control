@@ -83,16 +83,16 @@ func (s *NodeObserver) Perform() error {
 				}
 			}
 
-			// Set ExternalIP
-			for _, addr := range knode.Status.Addresses {
-				if addr.Type == "ExternalIP" {
-					node.ExternalIP = addr.Address
-					break
+			if knode != nil {
+				// Set ExternalIP
+				for _, addr := range knode.Status.Addresses {
+					if addr.Type == "ExternalIP" {
+						node.ExternalIP = addr.Address
+						break
+					}
 				}
-			}
 
-			// Set OutOfDisk
-			if len(knode.Status.Conditions) > 0 {
+				// Set OutOfDisk
 				for _, condition := range knode.Status.Conditions {
 					if condition.Type == "OutOfDisk" {
 						node.OutOfDisk = condition.Status == "True"
