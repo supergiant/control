@@ -164,8 +164,6 @@ func (c *HelmReleases) Delete(id *int64, m *model.HelmRelease) ActionInterface {
 				if err != nil {
 					return errors.Wrapf(err, "delete %s release", m.Name)
 				}
-
-				log.Debugf("DEBUG - Delete %s release: %s", m.Name, resp.Info)
 			}
 			return c.Collection.Delete(id, m)
 		},

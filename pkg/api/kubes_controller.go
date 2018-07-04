@@ -2,6 +2,7 @@ package api
 
 import (
 	"net/http"
+	"strings"
 
 	"github.com/supergiant/supergiant/pkg/core"
 	"github.com/supergiant/supergiant/pkg/model"
@@ -68,7 +69,8 @@ func DeleteKube(core *core.Core, user *model.User, r *http.Request) (*Response, 
 	if err != nil {
 		return nil, err
 	}
-	if err := core.Kubes.Delete(id, item).Async(); err != nil {
+	force := "true" == strings.TrimSpace(r.URL.Query().Get("force"))
+	if err := core.Kubes.Delete(id, item, force).Async(); err != nil {
 		return nil, err
 	}
 	return itemResponse(core, item, http.StatusAccepted)
