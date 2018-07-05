@@ -4,6 +4,7 @@ import "strconv"
 
 type List interface {
 	QueryValues() map[string][]string
+	Set(total, limit, offset int64)
 }
 
 type BaseList struct {
@@ -27,7 +28,7 @@ type BaseList struct {
 	Total  int64 `json:"total"`
 }
 
-func (l BaseList) QueryValues() map[string][]string {
+func (l *BaseList) QueryValues() map[string][]string {
 	qv := map[string][]string{
 		"offset": {strconv.FormatInt(l.Offset, 10)},
 		"limit":  {strconv.FormatInt(l.Limit, 10)},
@@ -36,4 +37,16 @@ func (l BaseList) QueryValues() map[string][]string {
 		qv["filter."+key] = values
 	}
 	return qv
+}
+
+func (l *BaseList) Set(total, limit, offset int64) {
+	if total > 0 {
+		l.Total = total
+	}
+	if limit > 0 {
+		l.Limit = limit
+	}
+	if offset > 0 {
+		l.Offset = offset
+	}
 }

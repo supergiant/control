@@ -173,6 +173,9 @@ func respond(w http.ResponseWriter, resp *Response, err error) {
 func openHandler(c *core.Core, fn func(*core.Core, *http.Request) (*Response, error)) func(http.ResponseWriter, *http.Request) {
 	return func(w http.ResponseWriter, r *http.Request) {
 		resp, err := fn(c, r)
+		if err != nil {
+			c.Log.Errorf("openHandler: request on %s: %v", r.URL.Path, err)
+		}
 		respond(w, resp, err)
 	}
 }
@@ -184,6 +187,9 @@ func restrictedHandler(core *core.Core, fn func(*core.Core, *model.User, *http.R
 			return
 		}
 		resp, err := fn(core, user, r)
+		if err != nil {
+			core.Log.Errorf("restrictedHandler: request on %s: %v", r.URL.Path, err)
+		}
 		respond(w, resp, err)
 	}
 }
@@ -215,40 +221,34 @@ func itemResponse(core *core.Core, item model.Model, status int) (*Response, err
 
 const defaultListLimit = "50"
 
-func handleList(core *core.Core, r *http.Request, m model.Model, listPtr interface{}) (resp *Response, err error) {
+func handleList(core *core.Core, r *http.Request, m model.Model, l model.List) (resp *Response, err error) {
 	q := r.URL.Query()
 
 	query, limit, offset := buildQuery(q, m), q.Get("limit"), q.Get("offset")
-	if limit == "" {
-		limit = defaultListLimit
-	}
 
-	if err := listModels(core, m, listPtr, query, limit, offset); err != nil {
+	if err := listModels(core, m, l, query, limit, offset); err != nil {
 		return nil, err
 	}
 
 	return &Response{
 		http.StatusOK,
-		listPtr,
+		l,
 	}, nil
 }
 
 func handleKubeList(core *core.Core, r *http.Request) (resp *Response, err error) {
-	m, listPtr := new(model.Kube), new(model.KubeList)
+	m, l := new(model.Kube), new(model.KubeList)
 	q := r.URL.Query()
 
 	query, limit, offset := buildQuery(q, m), q.Get("limit"), q.Get("offset")
-	if limit == "" {
-		limit = defaultListLimit
-	}
 
 	// get kube models
-	if err := listModels(core, m, listPtr, query, limit, offset); err != nil {
+	if err := listModels(core, m, l, query, limit, offset); err != nil {
 		return nil, err
 	}
 
 	// populate kube models with nodes and helm releases
-	for _, k := range listPtr.Items {
+	for _, k := range l.Items {
 		nodes, err := listKubeNodes(core, k.Name)
 		if err != nil {
 			return nil, err
@@ -264,7 +264,7 @@ func handleKubeList(core *core.Core, r *http.Request) (resp *Response, err error
 
 	return &Response{
 		http.StatusOK,
-		listPtr,
+		l,
 	}, nil
 }
 
@@ -275,7 +275,7 @@ func listKubeNodes(core *core.Core, kname string) ([]*model.Node, error) {
 	}
 
 	list := new(model.NodeList)
-	if err := listModels(core, new(model.Node), list, query, nil, nil); err != nil {
+	if err := listModels(core, new(model.Node), list, query, "", ""); err != nil {
 		return nil, err
 	}
 	return list.Items, nil
@@ -288,21 +288,59 @@ func listKubeReleases(core *core.Core, kname string) ([]*model.HelmRelease, erro
 	}
 
 	list := new(model.HelmReleaseList)
-	if err := listModels(core, new(model.HelmRelease), list, query, nil, nil); err != nil {
+	if err := listModels(core, new(model.HelmRelease), list, query, "", ""); err != nil {
 		return nil, err
 	}
 	return list.Items, nil
 }
 
-func listModels(core *core.Core, m model.Model, listPtr, filter, limit, offset interface{}) error {
-	listValue := reflect.ValueOf(listPtr).Elem()
+func listModels(core *core.Core, m model.Model, l model.List, filter, limit, offset string) error {
+	listValue := reflect.ValueOf(l).Elem()
 	slice := reflect.MakeSlice(reflect.SliceOf(reflect.TypeOf(m)), 0, 0)
 	items := listValue.FieldByName("Items")
 	items.Set(slice)
 
-	scope := core.DB.Where(filter).Limit(limit).Offset(offset)
+	if limit == "" {
+		limit = defaultListLimit
+	}
 
-	return scope.Find(items.Addr().Interface())
+	db := core.DB
+
+	if err := setPagination(db, m, l, limit, offset); err != nil {
+		return err
+	}
+	if err := db.Where(filter).Limit(limit).Offset(offset).Find(items.Addr().Interface()); err != nil {
+		return err
+	}
+
+	for i := 0; i < items.Len(); i++ {
+		item := items.Index(i).Interface().(model.Model)
+		core.SetResourceActionStatus(item)
+	}
+
+	return nil
+}
+
+func setPagination(db core.DBInterface, m model.Model, l model.List, limitStr, offsetStr string) error {
+	var total, limit, offset int64
+	var err error
+
+	if err = db.Model(m).Count(&total); err != nil {
+		return err
+	}
+	if strings.TrimSpace(limitStr) != "" {
+		if limit, err = strconv.ParseInt(limitStr, 10, 64); err != nil {
+			return err
+		}
+	}
+	if strings.TrimSpace(offsetStr) != "" {
+		if limit, err = strconv.ParseInt(offsetStr, 10, 64); err != nil {
+			return err
+		}
+	}
+
+	l.Set(total, limit, offset)
+	return nil
 }
 
 func buildQuery(q url.Values, m model.Model) string {
