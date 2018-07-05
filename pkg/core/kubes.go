@@ -1,7 +1,10 @@
 package core
 
 import (
+	"fmt"
 	"strings"
+
+	"github.com/pkg/errors"
 
 	"github.com/supergiant/supergiant/pkg/model"
 	"github.com/supergiant/supergiant/pkg/util"
@@ -46,7 +49,7 @@ func (c *Kubes) Provision(id *int64, m *model.Kube) ActionInterface {
 	}
 }
 
-func (c *Kubes) Delete(id *int64, m *model.Kube) ActionInterface {
+func (c *Kubes) Delete(id *int64, m *model.Kube, force bool) ActionInterface {
 	return &Action{
 		Status: &model.ActionStatus{
 			Description: "deleting",
@@ -58,6 +61,24 @@ func (c *Kubes) Delete(id *int64, m *model.Kube) ActionInterface {
 		ID:             id,
 		CancelExisting: true,
 		Fn: func(a *Action) error {
+			// get all releases from the db
+			releases := make([]*model.HelmRelease, 0)
+			query := fmt.Sprintf(`kube_name = '%s'`, m.Name)
+			if err := c.Core.DB.Model(new(model.HelmRelease)).Where(query).Find(&releases); err != nil {
+				return err
+			}
+
+			if len(releases) > 0 && !force {
+				return errors.New("can't delete a cluster with running apps")
+			}
+
+			// delete helm releases (apps)
+			for _, r := range releases {
+				if err := c.Core.HelmReleases.Delete(r.ID, r).Now(); err != nil {
+					return err
+				}
+			}
+
 			// Delete Kube Resources directly (don't use provisioner Teardown)
 			for _, kubeResource := range m.KubeResources {
 				if err := c.Core.DB.Delete(kubeResource); err != nil {
@@ -94,12 +115,6 @@ func (c *Kubes) Delete(id *int64, m *model.Kube) ActionInterface {
 				return err
 			}
 
-			// Delete HelmReleases directly (NOTE we do this after because of the periodic sync of these in bg)
-			for _, release := range m.HelmReleases {
-				if err := c.Core.DB.Delete(release); err != nil {
-					return err
-				}
-			}
 			return c.Collection.Delete(id, m)
 		},
 	}
