@@ -1,8 +1,10 @@
 # Load Balancer
 
-### Examples
+## Example
 
-#### Request
+Supergiant currently supports adding load balancers via its API as in the example below:
+
+### Request
 
 ```json
 {
@@ -19,7 +21,7 @@
 }
 ```
 
-#### Response
+### Response
 
 ```json
 {

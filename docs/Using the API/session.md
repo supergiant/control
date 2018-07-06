@@ -1,10 +1,8 @@
 # Session
 
-A Session is a transient record of a [User](user.md) logged-in to the UI.
+## Example
 
-### Example
-
-#### Request
+### Request
 
 ```json
 {
@@ -15,7 +13,7 @@ A Session is a transient record of a [User](user.md) logged-in to the UI.
 }
 ```
 
-#### Response
+### Response
 
 ```json
 {
