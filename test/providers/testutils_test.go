@@ -19,6 +19,7 @@ import (
 	"github.com/supergiant/supergiant/pkg/provider/openstack"
 	"github.com/supergiant/supergiant/pkg/provider/packet"
 	"github.com/supergiant/supergiant/pkg/server"
+	"github.com/supergiant/supergiant/pkg/util"
 )
 
 var (
@@ -113,7 +114,7 @@ func newServer() (*server.Server, error) {
 
 func createCloudAccount(client *client.Client, credentials map[string]string, provider string) (*model.CloudAccount, error) {
 	cloudAccount := &model.CloudAccount{
-		Name:        "test",
+		Name:        "test" + util.RandomString(4),
 		Provider:    provider,
 		Credentials: credentials,
 	}
