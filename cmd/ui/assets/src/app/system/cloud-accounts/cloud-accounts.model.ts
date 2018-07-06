@@ -281,7 +281,7 @@ export class CloudAccountModel {
     'name' : 'Packet.net',
     'model': {
       'credentials': {
-        'token': ''
+        'api_token': ''
       },
       'name': '',
       'provider': 'packet'
@@ -291,7 +291,7 @@ export class CloudAccountModel {
         'credentials': {
           'type': 'object',
           'properties': {
-            'token': {
+            'api_token': {
               'description': 'API Token',
               'type': 'string'
             }
