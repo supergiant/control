@@ -9,7 +9,7 @@
         </mat-option>
       </mat-select>
     </mat-form-field>
-    <button mat-button color="primary" (click)="createNode()">Create New Node</button>
+    <button mat-button color="primary" [disabled]="!selectedSize" (click)="createNode()">Create New Node</button>
     <button mat-button color="warn" [disabled]="selected.length === 0" (click)="delete()">Delete Selected Node</button>
   </div>
 </div>

@@ -233,6 +233,14 @@ a.quickstatus {
     }
   }
 
+  .context-button-wrapper {
+    margin-top: 16px;
+
+    button {
+      margin-right: 16px;
+    }
+  }
+
   .context-secondary-panel {
     padding: 1rem 0;
   }
@@ -319,10 +327,10 @@ a.quickstatus {
   }
   .tutorial-step-next {
     @extend .tutorial-step-pager;
-    
+
     left: auto;
     right: -44.5%;
-    
+
     &::before {
       content: "\F105";
       left: 1rem;
@@ -424,7 +432,7 @@ a.quickstatus {
     width: 200%;
 
     transition: left 0.5s ease-in-out;
-    
+
     li {
       filter: blur(5px);
       opacity: 0.333;
@@ -485,6 +493,6 @@ a.quickstatus {
 
 textarea.monospace {
   @extend .form-control;
-  
+
   font-family: monospace;
 }
