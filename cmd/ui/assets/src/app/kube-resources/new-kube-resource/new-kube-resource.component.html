@@ -30,7 +30,7 @@
               [layout]="layout"
               [(data)]="model"
               (onSubmit)="createKubeResource($event)"
-              (onChanges)="value=$event">
+              (onChanges)="updateFromForm($event)">
             </json-schema-form>
           </div>
         </mat-tab>
@@ -41,9 +41,12 @@
           </ng-template>
           <br>
           <div class="json-wrapper">
-            <textarea rows=20 [className]="textStatus" name="json_input" (keyup)="convertToObj($event.target.value)" (keypress)="convertToObj($event.target.value)" (keydown)="convertToObj($event.target.value)">{{model | json}}
-            </textarea> {{ badString }}
-            <p class="json-help">Note: editing key names will cause submission errors</p>
+            <ace-editor [(text)]="modelString" mode="json" (textChanged)="convertToObj($event)" style="height:500px;width:100%"></ace-editor>
+            {{ badString }}
+            <div class="json-extras">
+              <p class="json-help">Note: editing key names will cause submission errors</p>
+              <button mat-raised-button class="mat-raised-button mat-accent reset-json" type="button" (click)="resetModel(selectedResourceType)">Reset</button>
+            </div>
             <button mat-raised-button class="mat-raised-button mat-primary" type="button" (click)="createKubeResource(model)">Create</button>
           </div>
         </mat-tab>

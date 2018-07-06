@@ -5,6 +5,8 @@ import { Supergiant } from '../../shared/supergiant/supergiant.service';
 import { Notifications } from '../../shared/notifications/notifications.service';
 import { KubeResourcesModel } from '../kube-resources.model';
 
+import "brace/mode/json";
+
 @Component({
   selector: 'app-new-kube-resource',
   templateUrl: './new-kube-resource.component.html',
@@ -22,9 +24,12 @@ export class NewKubeResourceComponent implements OnInit {
     ];
   private selectedResourceType: string;
   private kubeId: number;
+  private kubeName: string;
   private textStatus = 'form-control';
   private schema: any;
   private model: any;
+  private value: any;
+  private modelString: string;
   private layout: any;
   private badString: string;
   private isDisabled: boolean;
@@ -36,10 +41,19 @@ export class NewKubeResourceComponent implements OnInit {
     private router: Router,
   ) { }
 
+  updateModelKubeName() {
+    // TODO: burn this with fire and find another way
+    this.model.kube_name = this.kubeName;
+    let ms = JSON.parse(this.modelString);
+    ms.kube_name = this.kubeName;
+    this.modelString = JSON.stringify(ms, null, 2);
+  }
+
   getClusterName(kubeId) {
     this.subscriptions.add(this.supergiant.Kubes.get(kubeId).subscribe(
       (kube) => {
-        this.model.kube_name = kube.name;
+        this.kubeName = kube.name;
+        this.updateModelKubeName();
       }
     ))
   }
@@ -103,6 +117,11 @@ export class NewKubeResourceComponent implements OnInit {
     } else { return {} }
   }
 
+  updateFromForm(model) {
+    this.model = model;
+    this.modelString = JSON.stringify(model, null, 2);
+  }
+
   convertToObj(json) {
     try {
       JSON.parse(json);
@@ -116,10 +135,29 @@ export class NewKubeResourceComponent implements OnInit {
     this.badString = 'Valid JSON';
     this.isDisabled = false;
     this.model = JSON.parse(json);
+    this.modelString = JSON.stringify(this.model, null, 2);
+  }
+
+  resetModel(selectedResource) {
+    switch (selectedResource) {
+      case "Pod": {
+        this.chooseResourceType({ displayName: 'Pod', type: 'pod' });
+        break;
+      }
+      case "Service": {
+        this.chooseResourceType({ displayName: 'Service', type: 'service' });
+        break;
+      }
+      case "LoadBalancer": {
+        this.chooseResourceType({ displayName: 'LoadBalancer', type: 'loadBalancer' });
+        break;
+      }
+    }
   }
 
   reset() {
     this.model = null;
+    this.modelString = null;
     this.schema = null;
     this.layout = null;
   }
@@ -129,40 +167,12 @@ export class NewKubeResourceComponent implements OnInit {
   }
 
   chooseResourceType(resource) {
-    switch (resource.type) {
-      case 'pod': {
-        this.schema = this.kubeResourcesModel.pod.schema;
-        this.layout = this.kubeResourcesModel.pod.layout;
-        this.model = this.kubeResourcesModel.pod.model;
-        this.selectedResourceType = resource.displayName;
-        this.getClusterName(this.kubeId)
-        break;
-      }
-      case 'service': {
-        this.schema = this.kubeResourcesModel.service.schema;
-        this.layout = this.kubeResourcesModel.service.layout;
-        this.model = this.kubeResourcesModel.service.model;
-        this.selectedResourceType = resource.displayName;
-        this.getClusterName(this.kubeId)
-        break;
-      }
-      case 'loadBalancer': {
-        this.schema = this.kubeResourcesModel.loadBalancer.schema;
-        this.layout = this.kubeResourcesModel.loadBalancer.layout;
-        this.model = this.kubeResourcesModel.loadBalancer.model;
-        this.selectedResourceType = resource.displayName;
-        this.getClusterName(this.kubeId)
-        break;
-      }
-      default: {
-        this.schema = null;
-        this.layout = null;
-        this.model = null;
-        break;
-      }
-    }
-
-
+    this.schema = this.kubeResourcesModel[resource.type].schema;
+    this.layout = this.kubeResourcesModel[resource.type].layout;
+    this.model = this.kubeResourcesModel[resource.type].model;
+    this.modelString = JSON.stringify(this.model, null, 2);
+    this.selectedResourceType = resource.displayName;
+    this.getClusterName(this.kubeId);
   }
 
   ngOnInit() {

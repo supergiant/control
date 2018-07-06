@@ -48,6 +48,17 @@ button[mat-button] {
       border: 1px solid rgba(0, 255, 71, 0.5);
     }
 
+    .json-extras {
+      display: flex;
+      justify-content: space-between;
+      margin-bottom: 16px;
+
+      button {
+        font-size: 1.2em;
+        width: inherit;
+      }
+    }
+
     .json-help {
       margin-top: 10px;
       font-style: italic;

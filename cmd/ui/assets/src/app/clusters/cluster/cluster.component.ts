@@ -9,6 +9,8 @@ import { convertIsoToHumanReadable } from '../../shared/helpers/helpers';
 import { DomSanitizer, SafeResourceUrl } from '@angular/platform-browser';
 import { ChartsModule, BaseChartDirective } from 'ng2-charts';
 
+import "brace/mode/json";
+
 @Component({
   selector: 'app-cluster',
   templateUrl: './cluster.component.html',
@@ -24,6 +26,7 @@ export class ClusterComponent implements OnInit, OnDestroy {
   id: number;
   subscriptions = new Subscription();
   public kube: any;
+  public kubeString: string;
   url: string;
   public isLoading: Boolean;
   public secureSrc: SafeResourceUrl;
@@ -188,6 +191,7 @@ export class ClusterComponent implements OnInit, OnDestroy {
       .switchMap(() => this.supergiant.Kubes.get(this.id)).subscribe(
         (kube) => {
           this.kube = kube;
+          this.kubeString = JSON.stringify(this.kube, null, 2);
           if (this.kube.extra_data &&
             this.kube.extra_data.cpu_usage_rate &&
             this.kube.extra_data.kube_cpu_capacity) {

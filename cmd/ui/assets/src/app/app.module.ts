@@ -50,6 +50,7 @@ import {
   MaterialDesignFramework,
 } from 'angular2-json-schema-form';
 import { AppRoutingModule } from './app-routing.module';
+import { AceEditorModule } from 'ng2-ace-editor';
 import { ChartsModule } from 'ng2-charts';
 import { NgxPaginationModule } from 'ngx-pagination';
 import { TitleCasePipe } from '@angular/common';
@@ -309,6 +310,7 @@ import { NewKubeResourceComponent } from './kube-resources/new-kube-resource/new
     SchemaFormModule,
     ChartsModule,
     NgxPaginationModule,
+    AceEditorModule,
     BrowserModule, MaterialDesignFrameworkModule,
     {
       ngModule: JsonSchemaFormModule,

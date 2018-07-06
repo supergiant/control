@@ -10,6 +10,8 @@ import { convertIsoToHumanReadable } from '../../shared/helpers/helpers';
 import { LoginComponent } from '../../login/login.component';
 import { Location } from '@angular/common';
 
+import "brace/mode/json";
+
 @Component({
   selector: 'app-node-details',
   templateUrl: './node-details.component.html',
@@ -20,6 +22,7 @@ export class NodeDetailsComponent implements OnInit, OnDestroy {
   id: number;
   subscriptions = new Subscription();
   node: any;
+  nodeString: string;
   constructor(
     private route: ActivatedRoute,
     private router: Router,
@@ -82,6 +85,7 @@ export class NodeDetailsComponent implements OnInit, OnDestroy {
             ];
             this.cpuChartLabels = this.node.extra_data.memory_usage.map((data) => convertIsoToHumanReadable(data.timestamp));
           }
+          this.nodeString = JSON.stringify(this.node, null, 2);
         },
         (err) => { this.notifications.display('warn', 'Connection Issue.', err); }));
   }
