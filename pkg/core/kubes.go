@@ -3,6 +3,7 @@ package core
 import (
 	"fmt"
 	"strings"
+	"time"
 
 	"github.com/pkg/errors"
 
@@ -77,6 +78,12 @@ func (c *Kubes) Delete(id *int64, m *model.Kube, force bool) ActionInterface {
 				if err := c.Core.HelmReleases.Delete(r.ID, r).Now(); err != nil {
 					return err
 				}
+			}
+
+			// Give kubernetes a little time to remove cloud provider resources
+			// TODO: check all "load balancer" services are deleted
+			if len(releases) > 0 {
+				time.Sleep(time.Minute)
 			}
 
 			// Delete Kube Resources directly (don't use provisioner Teardown)
