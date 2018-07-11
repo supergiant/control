@@ -4,25 +4,19 @@ import (
 	"fmt"
 
 	"github.com/RichardKnop/machinery/v1/tasks"
-	"github.com/satori/go.uuid"
+	"github.com/pborman/uuid"
 )
 
 type Option func(signature *tasks.Signature) (*tasks.Signature, error)
 
 func CreateTask(name string, opts ...Option) (*tasks.Signature, error) {
+	var err error
 	t := &tasks.Signature{
 		Name: name,
 		Args: []tasks.Arg{},
 	}
 
-	u, err := uuid.NewV4()
-	if err != nil {
-		return nil, err
-	}
-	signatureID := u.String()
-
-	t.UUID = fmt.Sprintf("task_%v", signatureID)
-
+	t.UUID = fmt.Sprintf("task_%v", uuid.New())
 	for _, opt := range opts {
 		t, err = opt(t)
 		if err != nil {
