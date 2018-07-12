@@ -6,7 +6,13 @@ import (
 )
 
 //etcdRunning is test assert function useful in integration tests to assert that test dependencies are running
-func EtcdRunning(etcdHost string) {
+func MustRunETCD(etcdHost string) {
+	if err := CheckETCD(etcdHost); err != nil {
+		logrus.Fatal(err)
+	}
+}
+
+func CheckETCD(etcdHost string) error {
 	cl, err := clientv3.New(clientv3.Config{
 		Endpoints: []string{etcdHost},
 	})
@@ -16,6 +22,7 @@ func EtcdRunning(etcdHost string) {
 	defer cl.Close()
 	_, err = cl.Dial(etcdHost)
 	if err != nil {
-		logrus.Fatal(err)
+		return err
 	}
+	return nil
 }

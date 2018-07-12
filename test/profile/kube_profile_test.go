@@ -21,7 +21,7 @@ const (
 var defaultConfig clientv3.Config
 
 func init() {
-	assert.EtcdRunning(defaultETCDHost)
+	assert.MustRunETCD(defaultETCDHost)
 	defaultConfig = clientv3.Config{
 		Endpoints: []string{defaultETCDHost},
 	}

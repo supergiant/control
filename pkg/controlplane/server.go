@@ -1,4 +1,4 @@
-package apiserver
+package controlplane
 
 import (
 	"net/http"
@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"time"
 
+	"errors"
 	"github.com/coreos/etcd/clientv3"
 	"github.com/gorilla/handlers"
 	"github.com/gorilla/mux"
@@ -17,6 +18,7 @@ import (
 	"github.com/supergiant/supergiant/pkg/kube"
 	"github.com/supergiant/supergiant/pkg/profile"
 	"github.com/supergiant/supergiant/pkg/storage"
+	"github.com/supergiant/supergiant/pkg/testutils/assert"
 	"github.com/supergiant/supergiant/pkg/user"
 )
 
@@ -48,13 +50,17 @@ type Config struct {
 }
 
 func New(cfg *Config) (*Server, error) {
+	if err := validate(cfg); err != nil {
+		return nil, err
+	}
+
 	configureLogging(cfg)
 	r, err := configureApplication(cfg)
 	if err != nil {
 		return nil, err
 	}
 
-	// TOOD add TLS support
+	// TODO add TLS support
 	s := &Server{
 		cfg: cfg,
 		server: http.Server{
@@ -67,6 +73,22 @@ func New(cfg *Config) (*Server, error) {
 	}
 
 	return s, nil
+}
+
+func validate(cfg *Config) error {
+	if cfg.EtcdUrl == "" {
+		return errors.New("etcd url can't be empty")
+	}
+
+	if err := assert.CheckETCD(cfg.EtcdUrl); err != nil {
+		return err
+	}
+
+	if cfg.Port <= 0 {
+		return errors.New("port can't be negative")
+	}
+
+	return nil
 }
 func configureApplication(cfg *Config) (*mux.Router, error) {
 	//TODO will work for now, but we should revisit ETCD configuration later
