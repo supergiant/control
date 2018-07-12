@@ -23,7 +23,7 @@ func (p *Provider) DeleteKube(m *model.Kube, action *core.Action) error {
 	}
 	// Delete all master nodes.
 	procedure.AddStep("Destroying Kubernetes Master(s)...", func() error {
-		for _, master := range m.GCEConfig.MasterNodes {
+		for _, master := range m.MasterNodes {
 			_, err := client.Instances.Delete(m.CloudAccount.Credentials["project_id"], m.GCEConfig.Zone, convInstanceURLtoString(master)).Do()
 			if err != nil {
 				if strings.Contains(err.Error(), "notFound") {

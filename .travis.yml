@@ -61,7 +61,7 @@ script:
   - goveralls -coverprofile=tmp/profile.cov -service=travis-ci
 
   # Integration
-  - if [ "$TRAVIS_EVENT_TYPE" == "cron" ] ; then go test -v -tags=integration ./pkg/... ./test/... ; fi
+  - if [ "$TRAVIS_EVENT_TYPE" == "cron" ] ; then go test -v -tags=integration -timeout 45m ./pkg/... ./test/... ; fi
 
   # Cross compile
   - CGO_ENABLED=0 GOOS=linux GOARCH=arm64 go build -a -o dist/supergiant-api-linux-arm64 -ldflags '-extldflags "-static"' ./cmd/server

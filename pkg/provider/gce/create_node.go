@@ -51,7 +51,8 @@ func (p *Provider) CreateNode(m *model.Node, action *core.Action) error {
 
 		m.Name = m.Kube.Name + "-minion" + "-" + strings.ToLower(util.RandomString(5))
 		// Build template
-		masterUserdataTemplate, err := bindata.Asset("config/providers/gce/minion.yaml")
+		mversion := strings.Split(m.Kube.KubernetesVersion, ".")
+		masterUserdataTemplate, err := bindata.Asset("config/providers/common/" + mversion[0] + "." + mversion[1] + "/minion.yaml")
 		if err != nil {
 			return err
 		}

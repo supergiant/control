@@ -188,9 +188,7 @@ func createKubeGCE(sg *client.Client, cloudAccount *model.CloudAccount, kubeName
 
 		NodeSizes: []string{"n1-standard-1"},
 		GCEConfig: &model.GCEKubeConfig{
-			SSHPubKey:         pubKey,
-			Zone:              zone,
-			KubernetesVersion: version,
+			Zone: zone,
 		},
 	}
 
