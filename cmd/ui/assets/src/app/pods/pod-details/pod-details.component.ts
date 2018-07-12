@@ -20,6 +20,7 @@ export class PodDetailsComponent implements OnInit, OnDestroy {
   id: number;
   subscriptions = new Subscription();
   pod: any;
+  podString: string;
   constructor(
     private route: ActivatedRoute,
     private router: Router,
@@ -77,7 +78,7 @@ export class PodDetailsComponent implements OnInit, OnDestroy {
             ];
             this.cpuChartLabels = this.pod.extra_data.metrics.ram_usage.map((data) => convertIsoToHumanReadable(data.timestamp));
           }
-
+          this.podString = JSON.stringify(this.pod, null, 2);
         },
         (err) => { this.notifications.display('warn', 'Connection Issue.', err); }));
   }

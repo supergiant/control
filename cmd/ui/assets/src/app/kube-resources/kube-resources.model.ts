@@ -51,7 +51,8 @@ export class KubeResourcesModel {
         },
         'kube_name': {
           'type': 'string',
-          'description': 'The Kube this resource will be attached to.'
+          'description': 'The Kube this resource will be attached to.',
+          'readonly': true
         },
         'namespace': {
           'type': 'string',

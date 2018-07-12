@@ -74,10 +74,7 @@
 
     <div *ngIf="showRaw">
       <h2>Raw Data</h2>
-
-      <textarea class="form-control" disabled rows="120">
-        {{kube | json}}
-      </textarea>
+      <ace-editor [(text)]="kubeString" mode="json" [readOnly]="true" style="height:500px;width:100%"></ace-editor>
     </div>
   </section>
 </div>

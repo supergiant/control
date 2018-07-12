@@ -21,7 +21,9 @@
       "styles.scss"
     ],
     "scripts": [
-      "../node_modules/chart.js/dist/Chart.bundle.min.js"
+      "../node_modules/chart.js/dist/Chart.bundle.min.js",
+      "../node_modules/ace-builds/src-min/ace.js",
+      "../node_modules/ace-builds/src-min/theme-eclipse.js"
     ],
     "environmentSource": "environments/environment.ts",
     "environments": {

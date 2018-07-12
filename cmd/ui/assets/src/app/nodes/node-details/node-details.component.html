@@ -66,9 +66,7 @@
     </ng-template>
     <br>
     <div class="raw-data-container">
-      <textarea class="form-control" disabled>
-        {{node | json}}
-      </textarea>
+      <ace-editor [(text)]="nodeString" mode="json" [readOnly]="true" style="height:500px;width:100%"></ace-editor>
     </div>
   </mat-tab>
 </mat-tab-group>
