@@ -26,6 +26,6 @@ export class Kubes {
     return this.util.update(this.kubesPath + '/' + id, data);
   }
   public delete(id) {
-    return this.util.destroy(this.kubesPath + '/' + id);
+    return this.util.destroy(this.kubesPath + '/' + id + '?force=true');
   }
 }
