@@ -7,7 +7,7 @@ import (
 	"strings"
 	"time"
 
-	"github.com/satori/go.uuid"
+	"github.com/pborman/uuid"
 )
 
 // Model is an interface that defines the required behaviors of all stored
@@ -58,11 +58,7 @@ func (m *BaseModel) GetUUID() string {
 // SetUUID sets the model UUID.
 func (m *BaseModel) SetUUID() error {
 	if m.UUID == "" {
-		u, err := uuid.NewV4()
-		if err != nil {
-			return err
-		}
-		m.UUID = u.String()
+		m.UUID = uuid.New()
 	}
 	return nil
 }
