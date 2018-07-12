@@ -1,11 +1,8 @@
 # User
 
-A User is pretty straightforward. The `role` can be "admin" or "user", the
-latter being restricted from creating additional Users.
+## Example
 
-### Example
-
-#### Request
+### Request
 
 ```json
 {
@@ -15,7 +12,7 @@ latter being restricted from creating additional Users.
 }
 ```
 
-#### Response
+### Response
 
 ```json
 {

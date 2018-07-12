@@ -1,11 +1,10 @@
 # Kube Resource
 
-A Kube Resource represents any object that can be created within a
-[Kube](kube.md).
+A Kube Resource represents any Kubernetes object that can be created within a [Kube](http://supergiant.readthedocs.io/en/docs/Concepts/kube/).
 
-### Examples
+## Examples
 
-#### A basic internal Service
+### A basic internal Service
 
 ```json
 {
@@ -28,7 +27,7 @@ A Kube Resource represents any object that can be created within a
 }
 ```
 
-#### A Pod
+### A Pod
 
 ```json
 {
@@ -69,3 +68,4 @@ A Kube Resource represents any object that can be created within a
   }
 }
 ```
+

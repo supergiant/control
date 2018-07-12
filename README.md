@@ -1,7 +1,6 @@
-Supergiant: Easy container orchestration using Kubernetes
-=========================================================
+Supergiant: Kubernetes Orchestration
+=
 
----
 
 <!-- Links -->
 
@@ -42,101 +41,30 @@ Supergiant: Easy container orchestration using Kubernetes
 <!-- [Swagger API Widget]: http://online.swagger.io/validator?url=http://swagger.supergiant.io/api-docs -->
 <!-- [Swagger URL]: http://swagger.supergiant.io/docs/ -->
 
-### <img src="http://supergiant.io/img/logo_dark.svg" width="400">
+# <img src="http://supergiant.io/img/logo_dark.svg" width="400">
 
-[![GoReportCard Widget]][GoReportCard URL] [![GoDoc Widget]][GoDoc URL] [![Travis Widget]][Travis URL] [![Release Widget]][Release URL] [![Coverage Status Widget]][Coverage Status]
+[![GoReportCard Widget]][GoReportCard URL] [![GoDoc Widget]][GoDoc URL] [![Release Widget]][Release URL] [![Travis Widget]][Travis URL] [![Coverage Status Widget]][Coverage Status]
 
 ---
 
-Supergiant is an open-source container orchestration system that lets developers easily deploy and manage apps as Docker containers using Kubernetes.
+Supergiant empowers developers and administrators through its simplified deployment and management of Kubernetes, in addition to easing the configuration and deployment of Helm charts, taking advantage of Kubernetes' power, flexibility, and abstraction.
 
-Supergiant aims to automate installation and simplify management of Kubernetes across different cloud accounts by providing an easy-to-use UI that exposes Kubernetes API. The system implements simple concepts that abstract Kubernetes API for pod and services deployment, storage, load-balancing, hardware auto-scaling, and more. Supergiant uses an efficient packing algorithm to enable seamless auto-scaling of Kubernetes clusters to minimize costs and improve resilience of applications. For a more detailed overview of Supergiant top-level concepts, see  [the docs folder](docs/v0/).
+Supergiant facilitates clusters on multiple cloud providers, striving for truly agnostic and impartial infrastructure--and it does this with an autoscaling system that cares deeply about efficiency. It asserts through downscaling and resource packing that unutilized infrastructure shouldn't be paid for (and, therefore, shouldn't be running).
 
-## Features
+Supergiant implements simple practices that abstract load-balancing, application deployment, basic monitoring, node deployment or destruction, and more, on a highly usable UI. Its efficient packing algorithm enables seamless auto-scaling of Kubernetes clusters, minimizing costs while maintaining the resiliency of applications. To dive into top-level concepts, see [the documentation](https://supergiant.readthedocs.io/en/docs/About%20Supergiant/architecture/).
 
-* Fully compatible with native Kubernetes (works with existing setups)
-* UI and CLI, both built on top of an API (with importable [Go client lib](pkg/client))
-* Launch and manage multiple Kubes across multiple cloud providers from the UI
-* Works with multiple cloud providers (AWS, DigitalOcean, OpenStack, Packet.net, and
-  _actively_ adding more, in addition to on-premise hardware support)
-* Deploy / Update / Restart containers with a few clicks
-* Get instant access to apps from Helm Repositories
-* Filterable container metrics views (RAM / CPU timeseries graphs)
-* Get a comprehensive view of cluster resources with built-in monitoring and logging
-* Automatic server management (manual addition of new nodes, background server autoscaling, up/down depending on container resource needs)
-* Role-based Users, Session-based login, self-signed SSL, and API tokens for
-  security (OAuth and LDAP support soon coming)
+# Features
 
+* Fully compatible with native Kubernetes versions 1.5.7, 1.6.7, 1.7.7, and 1.8.7
+* Easy management and deployment of multiple kubes in various configurations
+* AWS, DigitalOcean, OpenStack, Packet, GCE, and on-premise kube deployment
+* Easy creation of Helm releases, Pods, Services, LoadBalancers, etc.
+* Automatic, resource-based node scaling
+* Compatibility with multiple hardware architectures
+* Role-based Users, Session-based logins, self-signed SSLs, and API tokens
+* A clean UI and CLI, both built on top of an API (with importable [Go client lib](pkg/client))
 
-## Installation
-
-1. Download the Supergiant server for your system (Windows, Mac, and Linux) and processor architecture from our  [releases](https://github.com/supergiant/supergiant/releases) page. For example, for Linux: 
-
-```sh
-curl https://github.com/supergiant/supergiant/releases/download/v0.15.6/supergiant-server-linux-amd64 -L -o /usr/bin/supergiant
-```
-
-2. Make sure to make the downloaded binary executable:
-
-```sh
-sudo chmod +x /usr/bin/supergiant
-```
-
-3. Download  [the example config file](https://github.com/supergiant/supergiant/blob/master/config/config.json.example) and customize it: 
-
-```sh
-curl https://raw.githubusercontent.com/supergiant/supergiant/master/config/config.json.example --create-dirs -o /etc/supergiant/config.json
-```
-
-In the configuration file, specify your paths to log and database locations and create corresponding directories for them.
-
-```json
-{
- ...
- "sqlite_file": "/var/lib/supergiant/development.db",
- ...
- "log_file": "/var/log/supergiant/development.log",
- ...
-}
-```
-
-4. Run the binary with a config file and save the user/password for the admin user generated the first time Supergiant runs.
-
-```json
-<supergiant-server-binary> --config-file /etc/supergiant/config.json
-```
-
-5. Access Supergiant on default 8080 port on localhost. 
-
-#### Installing on AWS
-
-![](https://supergiant.io/uploads/blog/sg_aws_step_1@2x.jpg)
-
-If you want to easily install Supergiant on Amazon Web Services EC2 with Supergiant Amazon Machine Image (AMI), follow the [Supergiant AWS Install Tutorial](https://supergiant.io/blog/how-to-install-supergiant-container-orchestration-engine-on-aws-ec2?utm_source=github).
-
-## Usage
-
-#### Deploying Kubernetes Cluster
-
- Supergiant allows deploying Kubernetes clusters (Kubes) via the easy-to-use interface with the minimal configuration required. The system manages Kubernetes installation and configuration under the hood enabling various master and nodes services and tools. 
-
-![](http://res.cloudinary.com/doj9feked/image/upload/v1523603021/kube-deploy_ibkfcd.gif)
-
-#### Deploying Apps from Helm Repositories
-
-Supergiant provides access to Kubernetes curated helm charts with a broad choice of configured containers installable in one click. 
-
-![](http://res.cloudinary.com/doj9feked/image/upload/v1523603035/app-deploy_nnsy5t.gif)
-
-#### Tracking Cluster Resources
-
-Supergiant UI gives a comprehensive view of computer resources used by the cluster, running applications, services, and attached storages to get insights and simplify cluster administration.
-
-![](http://res.cloudinary.com/doj9feked/image/upload/v1523605692/cluster-resources_ylbset.gif)
-
-
-
-## Micro-Roadmap
+# Micro-Roadmap
 
 Currently, the core team is working on the following:
 
@@ -144,16 +72,17 @@ Currently, the core team is working on the following:
 * Add support for new cloud providers
 * Add support for local installations
 
-
-## Resources
+# Resources
 
 - [Supergiant Website][Supergiant Website URL]
-- [Top-level concepts](docs/v0/)
+- [Top-level concepts](https://supergiant.readthedocs.io/en/docs/API/capacity_service/))
 - [Tutorials](https://supergiant.io/tutorials)
 - [Slack Support Channel](https://supergiant.io/slack)
-- [Install on AWS][Tutorial AWS URL]
+- [Installation](https://supergiant.readthedocs.io/en/docs/Installation/Linux/)
+~ [UI Usage](http://supergiant.readthedocs.io/en/docs/Using%20the%20UI/cloud_accounts/)
+~ [API Usage](http://supergiant.readthedocs.io/en/docs/Using%20the%20API/load_balancer/)
 
-## Community and Contributing
+# Community and Contributing
 
 We are grateful for any contribution to the Supergiant project be it in a form of a new GitHub issue, a GitHub feature Pull Request, social media engagement etc. Contributing to Supergiant projects requires familiarization with Community and our Contribution Guidelines. Please see these links to get started.
 
@@ -161,14 +90,14 @@ We are grateful for any contribution to the Supergiant project be it in a form o
 * [Contribution Guidelines][Supergiant Contribution Guidelines URL]
 
 
-## Development
+# Development
 
-#### Use Docker in development
+## Use Docker in development
 
     docker-compose build server
     docker-compose run --rm --service-ports server
 
-#### Native go on your host
+## Native go on your host
 
 If you would like to contribute changes to Supergiant, first see the pages in
 the section above, [Community and Contributing][Community and Contributing Anchor].
@@ -184,13 +113,13 @@ Supergiant dependencies:
 * [Go][Go URL] version 1.7+
 * [Govendor][Govendor URL] for vendoring Go dependencies
 
-#### Checkout the repo
+## Checkout the repo
 
 ```shell
 go get github.com/supergiant/supergiant
 ```
 
-#### Create a Config file
+## Create a Config file
 
 You can copy the [example configuration](config/config.json.example):
 
@@ -198,14 +127,14 @@ You can copy the [example configuration](config/config.json.example):
 cp config/config.json.example config/config.json
 ```
 
-#### Run Supergiant
+## Run Supergiant
 
 ```shell
 go run cmd/server/server.go --config-file config/config.json
 open localhost:8080
 ```
 
-#### Build the CLI
+## Build the CLI
 
 This will allow for calling the CLI with the `supergiant` command:
 
@@ -213,13 +142,13 @@ This will allow for calling the CLI with the `supergiant` command:
 go build -o $GOPATH/bin/supergiant cmd/cli/cli.go
 ```
 
-#### Run Tests
+## Run Tests
 
 ```shell
 govendor test +local
 ```
 
-#### Saving dependencies
+## Saving dependencies
 
 If you make a change and import a new package, run this to vendor the imports.
 
@@ -227,7 +156,7 @@ If you make a change and import a new package, run this to vendor the imports.
 govendor add +external
 ```
 
-#### Compiling Provider files, UI templates, and static assets
+## Compiling Provider files, UI templates, and static assets
 
 Supergiant uses [go-bindata](https://github.com/jteeuwen/go-bindata) to compile
 assets directly into the code. You will need to run this command if you're
@@ -237,7 +166,7 @@ making changes to the UI _or_ if you're working with Provider code:
 go-bindata -pkg bindata -o bindata/bindata.go config/providers/... ui/assets/... ui/views/...
 ```
 
-#### Enabling SSL
+## Enabling SSL
 
 Our AMI distribution automatically sets up self-signed SSL for Supergiant, but
 the default [config/config.json.example](config/config.json.example)
@@ -247,9 +176,7 @@ You can see [our AMI boot file](build/sgboot) for an example of how
 that is done if you would like to use SSL locally or on your own production
 setup.
 
----
-
-## License
+# License
 
 This software is licensed under the Apache License, version 2 ("ALv2"), quoted below.
 
@@ -259,5 +186,4 @@ Licensed under the Apache License, Version 2.0 (the "License"); you may not
 use this file except in compliance with the License. You may obtain a copy of
 the License at http://www.apache.org/licenses/LICENSE-2.0.
 
-Unless required by applicable law or agreed to in writing, software distributed under the License is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the specific language governing permissions and limitations under
-the License.
+Unless required by applicable law or agreed to in writing, software distributed under the License is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the specific language governing permissions and limitations under the License.
