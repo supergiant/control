@@ -1,4 +1,4 @@
-package provider
+package clouds
 
 type Name string
 
