@@ -14,7 +14,7 @@ import (
 	"github.com/supergiant/supergiant/pkg/storage"
 )
 
-const DefaultStoragePrefix = "/kube/"
+const DefaultStoragePrefix = "/supergiant/kube/"
 
 // Interface represents an interface for a kube service.
 type Interface interface {

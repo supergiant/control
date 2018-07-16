@@ -15,6 +15,18 @@ type NodeProfileHandler struct {
 	service *NodeProfileService
 }
 
+func NewNodeProfileHandler(svc *NodeProfileService) *NodeProfileHandler {
+	return &NodeProfileHandler{
+		service: svc,
+	}
+}
+
+func (h *NodeProfileHandler) Register(r *mux.Router) {
+	r.HandleFunc("/nodeprofiles/{id}", h.GetProfile).Methods(http.MethodGet)
+	r.HandleFunc("/nodeprofiles", h.CreateProfile).Methods(http.MethodPost)
+	r.HandleFunc("/nodeprofiles", h.GetProfiles).Methods(http.MethodGet)
+}
+
 func (h *NodeProfileHandler) GetProfile(w http.ResponseWriter, r *http.Request) {
 	vars := mux.Vars(r)
 	profileId := vars["id"]

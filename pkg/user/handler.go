@@ -13,8 +13,8 @@ import (
 )
 
 type Handler struct {
-	userService  Service
-	tokenService sgjwt.TokenService
+	userService  *Service
+	tokenService *sgjwt.TokenService
 }
 
 type authRequest struct {
@@ -22,21 +22,21 @@ type authRequest struct {
 	Password string
 }
 
-func NewEndpoint(userService Service, tokenService sgjwt.TokenService) *Handler {
+func NewHandler(userService *Service, tokenService *sgjwt.TokenService) *Handler {
 	return &Handler{
 		userService:  userService,
 		tokenService: tokenService,
 	}
 }
 
-func (e *Handler) Authenticate(w http.ResponseWriter, r *http.Request) {
+func (h *Handler) Authenticate(w http.ResponseWriter, r *http.Request) {
 	var ar authRequest
 	if err := json.NewDecoder(r.Body).Decode(&ar); err != nil {
 		http.Error(w, err.Error(), http.StatusBadRequest)
 		return
 	}
 
-	if err := e.userService.Authenticate(r.Context(), ar.UserName, ar.Password); err != nil {
+	if err := h.userService.Authenticate(r.Context(), ar.UserName, ar.Password); err != nil {
 		if sgerrors.IsInvalidCredentials(err) {
 			http.Error(w, sgerrors.ErrInvalidCredentials.Error(), http.StatusForbidden)
 		}
@@ -44,7 +44,7 @@ func (e *Handler) Authenticate(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if token, err := e.tokenService.Issue(ar.UserName); err == nil {
+	if token, err := h.tokenService.Issue(ar.UserName); err == nil {
 		w.Header().Set("Authorization", token)
 		return
 	} else {
@@ -53,7 +53,7 @@ func (e *Handler) Authenticate(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
-func (e *Handler) Create(rw http.ResponseWriter, r *http.Request) {
+func (h *Handler) Create(rw http.ResponseWriter, r *http.Request) {
 	var user User
 	if err := json.NewDecoder(r.Body).Decode(&user); err != nil {
 		http.Error(rw, err.Error(), http.StatusBadRequest)
@@ -66,7 +66,7 @@ func (e *Handler) Create(rw http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if err := e.userService.Create(r.Context(), &user); err != nil {
+	if err := h.userService.Create(r.Context(), &user); err != nil {
 		if sgerrors.IsAlreadyExists(err) {
 			msg := message.New(fmt.Sprintf("Login %s is already occupied", user.Login), "", sgerrors.EntityAlreadyExists, "")
 			message.SendMessage(rw, msg, http.StatusBadRequest)

@@ -1,4 +1,4 @@
-package repository
+package helm
 
 import (
 	"bytes"
@@ -58,7 +58,7 @@ func TestHandler_Create(t *testing.T) {
 	for i, tc := range tcs {
 		// setup handler
 		storage := new(testutils.MockStorage)
-		h := NewHandler(storage)
+		h := NewHandler(NewService(storage))
 
 		// prepare
 		if tc.rawRepo == nil {
@@ -117,7 +117,7 @@ func TestHandler_Get(t *testing.T) {
 	for i, tc := range tcs {
 		// setup handler
 		storage := new(testutils.MockStorage)
-		h := NewHandler(storage)
+		h := NewHandler(NewService(storage))
 
 		// prepare
 		req, err := http.NewRequest("", "/helm/"+tc.repoName, nil)
@@ -173,7 +173,7 @@ func TestHandler_ListAll(t *testing.T) {
 	for i, tc := range tcs {
 		// setup handler
 		storage := new(testutils.MockStorage)
-		h := NewHandler(storage)
+		h := NewHandler(NewService(storage))
 
 		// prepare
 		req, err := http.NewRequest("", "", nil)
@@ -225,7 +225,7 @@ func TestHandler_Delete(t *testing.T) {
 	for i, tc := range tcs {
 		// setup handler
 		storage := new(testutils.MockStorage)
-		h := NewHandler(storage)
+		h := NewHandler(NewService(storage))
 
 		// prepare
 		req, err := http.NewRequest("", "/helm/"+tc.repoName, nil)

@@ -13,8 +13,8 @@ type TokenService struct {
 	secretKey []byte
 }
 
-func NewTokenService(tokenTTL int64, secret []byte) TokenService {
-	return TokenService{
+func NewTokenService(tokenTTL int64, secret []byte) *TokenService {
+	return &TokenService{
 		tokenTTL:  tokenTTL,
 		secretKey: secret,
 	}

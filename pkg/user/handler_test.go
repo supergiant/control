@@ -47,10 +47,7 @@ func TestEndpoint_Authenticate(t *testing.T) {
 	}
 	storage := new(testutils.MockStorage)
 
-	userEndpoint := &Handler{
-		tokenService: ts,
-		userService:  Service{repository: storage},
-	}
+	userEndpoint := NewHandler(NewService(DefaultStoragePrefix, storage), ts)
 	handler := http.HandlerFunc(userEndpoint.Authenticate)
 
 	for _, testCase := range testCases {
@@ -100,9 +97,7 @@ func TestEndpoint_Create(t *testing.T) {
 		},
 	}
 	storage := new(testutils.MockStorage)
-	userEndpoint := &Handler{
-		userService: Service{repository: storage},
-	}
+	userEndpoint := NewHandler(NewService(DefaultStoragePrefix, storage), jwt.NewTokenService(64, []byte("secret")))
 	handler := http.HandlerFunc(userEndpoint.Create)
 
 	storage.On("Get", mock.Anything, mock.Anything, mock.Anything).Return(nil, sgerrors.ErrNotFound)

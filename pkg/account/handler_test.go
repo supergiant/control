@@ -22,7 +22,8 @@ func fixtures() (*Handler, *testutils.MockStorage) {
 	mockStorage := new(testutils.MockStorage)
 	return &Handler{
 		service: &Service{
-			repository: mockStorage,
+			storagePrefix: DefaultStoragePrefix,
+			repository:    mockStorage,
 		},
 	}, mockStorage
 }

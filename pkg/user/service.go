@@ -11,11 +11,19 @@ import (
 	"github.com/supergiant/supergiant/pkg/storage"
 )
 
-const prefix = "/supergiant/user/"
+const DefaultStoragePrefix = "/supergiant/user/"
 
 // Service contains business logic related to users
 type Service struct {
-	repository storage.Interface
+	storagePrefix string
+	repository    storage.Interface
+}
+
+func NewService(storagePrefix string, repository storage.Interface) *Service {
+	return &Service{
+		storagePrefix: storagePrefix,
+		repository:    repository,
+	}
 }
 
 func (s *Service) Create(ctx context.Context, user *User) error {
@@ -23,17 +31,17 @@ func (s *Service) Create(ctx context.Context, user *User) error {
 	if err != nil {
 		return errors.Wrap(err, "user create")
 	}
-	if _, err := s.repository.Get(ctx, prefix, user.Login); err != nil {
+	if _, err := s.repository.Get(ctx, s.storagePrefix, user.Login); err != nil {
 		if !sgerrors.IsNotFound(err) {
 			return errors.Wrap(err, "user get")
 		}
 	}
-	err = s.repository.Put(ctx, prefix, user.Login, data)
+	err = s.repository.Put(ctx, s.storagePrefix, user.Login, data)
 	return err
 }
 
 func (s *Service) Authenticate(ctx context.Context, username, password string) error {
-	rawJSON, err := s.repository.Get(ctx, prefix, username)
+	rawJSON, err := s.repository.Get(ctx, s.storagePrefix, username)
 	if err != nil {
 		//If user doesn't exists we still want Forbidden instead of Not Found
 		if sgerrors.IsNotFound(err) {

@@ -1,4 +1,4 @@
-package repository
+package helm
 
 import (
 	"encoding/json"
@@ -11,7 +11,6 @@ import (
 	"github.com/supergiant/supergiant/pkg/message"
 	"github.com/supergiant/supergiant/pkg/model/helm"
 	"github.com/supergiant/supergiant/pkg/sgerrors"
-	"github.com/supergiant/supergiant/pkg/storage"
 )
 
 // Handler is a http controller for a helm repositories.
@@ -20,10 +19,17 @@ type Handler struct {
 }
 
 // New constructs a Handler for helm repositories.
-func NewHandler(s storage.Interface) *Handler {
+func NewHandler(svc *Service) *Handler {
 	return &Handler{
-		svc: NewService(s),
+		svc: svc,
 	}
+}
+
+func (h *Handler) Register(r *mux.Router) {
+	r.HandleFunc("/helm/repositories", h.Create).Methods(http.MethodPost)
+	r.HandleFunc("/helm/repositories/{repoName}", h.Get).Methods(http.MethodGet)
+	r.HandleFunc("/helm/repositories", h.ListAll).Methods(http.MethodGet)
+	r.HandleFunc("/helm/repositories/{repoName}", h.Delete).Methods(http.MethodDelete)
 }
 
 // Create stores a new helm repository.
