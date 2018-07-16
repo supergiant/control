@@ -34,7 +34,7 @@ func (srv *Server) Start() {
 	}
 }
 
-func (srv *Server) Stop() {
+func (srv *Server) Shutdown() {
 	err := srv.server.Close()
 	if err != nil {
 		logrus.Fatal(err)
@@ -44,6 +44,7 @@ func (srv *Server) Stop() {
 // Config is the server configuration
 type Config struct {
 	Port         int
+	Addr         string
 	EtcdUrl      string
 	LogLevel     string
 	TemplatesDir string
@@ -65,7 +66,7 @@ func New(cfg *Config) (*Server, error) {
 		cfg: cfg,
 		server: http.Server{
 			Handler:      handlers.RecoveryHandler(handlers.PrintRecoveryStack(true))(r),
-			Addr:         fmt.Sprintf("0.0.0.0:%d", cfg.Port),
+			Addr:         fmt.Sprintf("%s:%d", cfg.Addr, cfg.Port),
 			ReadTimeout:  time.Second * 10,
 			WriteTimeout: time.Second * 15,
 			IdleTimeout:  time.Second * 120,
