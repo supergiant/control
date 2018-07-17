@@ -56,8 +56,8 @@ script:
   - go-bindata -pkg ui -o bindata/ui/bindata.go cmd/ui/assets/dist/...
 
   # Coverage
-  - go test -covermode=count -coverprofile=tmp/profile.cov ./pkg/...
-  - goveralls -coverprofile=tmp/profile.cov -service=travis-ci
+  - go test -covermode=count -coverprofile=profile.cov ./pkg/...
+  - goveralls -coverprofile=profile.cov -service=travis-ci
 
   # Integration
   - if [ "$TRAVIS_EVENT_TYPE" == "cron" ] ; then go test -v -tags=integration -timeout 45m ./pkg/... ./test/... ; fi
@@ -71,8 +71,8 @@ script:
   - travis_wait 60 build/travis_build.sh
 
 after_success:
-  - build/ghr.sh
-
+  #- build/ghr.sh
+   - echo Success
 
 notifications:
   slack:
