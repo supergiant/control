@@ -30,7 +30,7 @@ type TagService interface {
 	TagResources(string, *godo.TagResourcesRequest) (*godo.Response, error)
 }
 
-type Job struct {
+type Task struct {
 	storage        storage.Interface
 	dropletService DropletService
 	tagService     TagService
@@ -49,10 +49,10 @@ type Config struct {
 	Fingerprints []string
 }
 
-func NewJob(accessToken string, s storage.Interface, dropletTimeout, checkPeriod time.Duration) *Job {
+func New(accessToken string, s storage.Interface, dropletTimeout, checkPeriod time.Duration) *Task {
 	c := getClient(accessToken)
 
-	return &Job{
+	return &Task{
 		storage:        s,
 		dropletService: c.Droplets,
 		tagService:     c.Tags,
@@ -62,7 +62,7 @@ func NewJob(accessToken string, s storage.Interface, dropletTimeout, checkPeriod
 	}
 }
 
-func (j *Job) CreateDroplet(config Config) error {
+func (j *Task) CreateDroplet(config Config) error {
 	config.Name = util.MakeNodeName(config.Name, config.Role)
 
 	var fingers []godo.DropletCreateSSHKey
@@ -127,7 +127,7 @@ func (j *Job) CreateDroplet(config Config) error {
 	return nil
 }
 
-func (j *Job) tagDroplet(dropletId int, tags []string) error {
+func (j *Task) tagDroplet(dropletId int, tags []string) error {
 	// Tag droplet
 	for _, tag := range tags {
 		input := &godo.TagResourcesRequest{

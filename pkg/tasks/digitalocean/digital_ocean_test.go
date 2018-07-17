@@ -220,7 +220,7 @@ func TestJob_CreateDroplet(t *testing.T) {
 	}
 
 	for _, testCase := range testCases {
-		job := &Job{
+		job := &Task{
 			storage:        testCase.storage,
 			dropletService: testCase.dropletService,
 			tagService:     testCase.tagService,

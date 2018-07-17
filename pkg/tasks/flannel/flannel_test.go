@@ -64,7 +64,7 @@ systemctl restart flanneld.service
 
 		buffer := &bytes.Buffer{}
 
-		job := &Job{
+		job := &Task{
 			scriptTemplate: tpl,
 			runner:         r,
 			output:         buffer,

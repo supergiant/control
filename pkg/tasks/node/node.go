@@ -7,12 +7,12 @@ import (
 
 	"github.com/pkg/errors"
 
-	"github.com/supergiant/supergiant/pkg/jobs"
 	"github.com/supergiant/supergiant/pkg/runner"
 	"github.com/supergiant/supergiant/pkg/runner/ssh"
+	"github.com/supergiant/supergiant/pkg/tasks"
 )
 
-type Job struct {
+type Task struct {
 	runner runner.Runner
 
 	kubeletScript *template.Template
@@ -21,7 +21,7 @@ type Job struct {
 	output io.Writer
 }
 
-type JobConfig struct {
+type Config struct {
 	MasterPrivateIP   string
 	ProxyPort         string
 	EtcdClientPort    string
@@ -29,14 +29,14 @@ type JobConfig struct {
 }
 
 func New(startKubeletTemplate, startProxyTemplate *template.Template,
-	outStream io.Writer, cfg *ssh.Config) (*Job, error) {
+	outStream io.Writer, cfg *ssh.Config) (*Task, error) {
 	sshRunner, err := ssh.NewRunner(cfg)
 
 	if err != nil {
 		return nil, errors.Wrap(err, "error creating ssh runner")
 	}
 
-	t := &Job{
+	t := &Task{
 		runner:        sshRunner,
 		kubeletScript: startKubeletTemplate,
 		proxyScript:   startProxyTemplate,
@@ -47,14 +47,14 @@ func New(startKubeletTemplate, startProxyTemplate *template.Template,
 	return t, nil
 }
 
-func (j *Job) ProvisionNode(config JobConfig) error {
-	err := jobs.RunTemplate(context.Background(), j.kubeletScript, j.runner, j.output, config)
+func (j *Task) ProvisionNode(config Config) error {
+	err := tasks.RunTemplate(context.Background(), j.kubeletScript, j.runner, j.output, config)
 
 	if err != nil {
 		return errors.Wrap(err, "error running  kubelet template as a command")
 	}
 
-	err = jobs.RunTemplate(context.Background(), j.proxyScript, j.runner, j.output, config)
+	err = tasks.RunTemplate(context.Background(), j.proxyScript, j.runner, j.output, config)
 
 	if err != nil {
 		return errors.Wrap(err, "error running proxy template as a command")

@@ -51,14 +51,14 @@ func TestJob_ProvisionNode(t *testing.T) {
 
 	output := new(bytes.Buffer)
 
-	j := &Job{
+	j := &Task{
 		r,
 		kubeletScriptTemplate,
 		proxyTemplate,
 		output,
 	}
 
-	cfg := JobConfig{
+	cfg := Config{
 		KubernetesVersion: k8sVersion,
 		MasterPrivateIP:   masterIp,
 		ProxyPort:         proxyPort,
@@ -92,14 +92,14 @@ func TestJob_ProvisionNodeError(t *testing.T) {
 
 	output := new(bytes.Buffer)
 
-	j := &Job{
+	j := &Task{
 		r,
 		kubeletScriptTemplate,
 		proxyTemplate,
 		output,
 	}
 
-	cfg := JobConfig{}
+	cfg := Config{}
 	err = j.ProvisionNode(cfg)
 
 	if err == nil {
