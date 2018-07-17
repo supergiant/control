@@ -29,7 +29,7 @@ type JobConfig struct {
 }
 
 func New(startKubeletTemplate, startProxyTemplate *template.Template,
-	outStream, errStream io.Writer, cfg *ssh.Config) (*Job, error) {
+	outStream io.Writer, cfg *ssh.Config) (*Job, error) {
 	sshRunner, err := ssh.NewRunner(cfg)
 
 	if err != nil {
