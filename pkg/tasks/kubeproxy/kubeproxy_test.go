@@ -25,7 +25,7 @@ func (f *fakeRunner) Run(command *runner.Command) error {
 	return err
 }
 
-func TestJob_ProvisionNode(t *testing.T) {
+func TestStartKubeProxy(t *testing.T) {
 	masterIp := "20.30.40.50"
 	k8sVersion := "1.8.7"
 	etcdPort := "2379"
@@ -68,7 +68,7 @@ func TestJob_ProvisionNode(t *testing.T) {
 	}
 }
 
-func TestJob_ProvisionNodeError(t *testing.T) {
+func TestStartKubeProxyError(t *testing.T) {
 	errMsg := "error has occurred"
 
 	r := &fakeRunner{
