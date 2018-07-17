@@ -48,7 +48,6 @@ script:
   # - govendor test +local (NOTE not needed with coverage line below)
 
   # Compile assets
-  - go-bindata -pkg bindata -o bindata/bindata.go config/providers/... ui/assets/... ui/views/...
   - cd cmd/ui/assets
   - npm --version
   - npm install
@@ -57,23 +56,23 @@ script:
   - go-bindata -pkg ui -o bindata/ui/bindata.go cmd/ui/assets/dist/...
 
   # Coverage
-  - go test -covermode=count -coverprofile=tmp/profile.cov ./pkg/...
-  - goveralls -coverprofile=tmp/profile.cov -service=travis-ci
+  - go test -covermode=count -coverprofile=profile.cov ./pkg/...
+  - goveralls -coverprofile=profile.cov -service=travis-ci
 
   # Integration
   - if [ "$TRAVIS_EVENT_TYPE" == "cron" ] ; then go test -v -tags=integration -timeout 45m ./pkg/... ./test/... ; fi
 
   # Cross compile
-  - CGO_ENABLED=0 GOOS=linux GOARCH=arm64 go build -a -o dist/supergiant-api-linux-arm64 -ldflags '-extldflags "-static"' ./cmd/server
-  - CGO_ENABLED=0 GOOS=linux GOARCH=amd64 go build -a -o dist/supergiant-api-linux-amd64 -ldflags '-extldflags "-static"' ./cmd/server
+  - CGO_ENABLED=0 GOOS=linux GOARCH=arm64 go build -a -o dist/supergiant-api-linux-arm64 -ldflags '-extldflags "-static"' ./cmd/controlplane
+  - CGO_ENABLED=0 GOOS=linux GOARCH=amd64 go build -a -o dist/supergiant-api-linux-amd64 -ldflags '-extldflags "-static"' ./cmd/controlplane
   - CGO_ENABLED=0 GOOS=linux GOARCH=arm64 go build -a -o dist/supergiant-ui-linux-arm64 -ldflags '-extldflags "-static"' ./cmd/ui
   - CGO_ENABLED=0 GOOS=linux GOARCH=amd64 go build -a -o dist/supergiant-ui-linux-amd64 -ldflags '-extldflags "-static"' ./cmd/ui
 
   - travis_wait 60 build/travis_build.sh
 
 after_success:
-  - build/ghr.sh
-
+  #- build/ghr.sh
+   - echo Success
 
 notifications:
   slack:
