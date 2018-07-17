@@ -14,7 +14,7 @@ import (
 	"github.com/stretchr/testify/require"
 	"gopkg.in/asaskevich/govalidator.v8"
 
-	"github.com/supergiant/supergiant/pkg/provider"
+	"github.com/supergiant/supergiant/pkg/clouds"
 	"github.com/supergiant/supergiant/pkg/testutils"
 )
 
@@ -124,7 +124,7 @@ func TestService_Update(t *testing.T) {
 		{
 			account: &CloudAccount{
 				Name:     "OKNAME",
-				Provider: provider.AWS,
+				Provider: clouds.AWS,
 			},
 			responseStatus: http.StatusOK,
 		},
@@ -138,7 +138,7 @@ func TestService_Update(t *testing.T) {
 		{
 			account: &CloudAccount{
 				Name:     "",
-				Provider: provider.DigitalOcean,
+				Provider: clouds.DigitalOcean,
 			},
 			responseStatus: http.StatusBadRequest,
 		},
