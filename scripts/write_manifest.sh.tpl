@@ -1,4 +1,4 @@
-KUBERNETES_MANIFESTS_DIR=${KUBERNETES_CONFIG_DIR}/manifests
+KUBERNETES_MANIFESTS_DIR={{ .KubernetesConfigDir }}/manifests
 
 mkdir -p ${KUBERNETES_MANIFESTS_DIR}
     cat << EOF > ${KUBERNETES_MANIFESTS_DIR}/kube-apiserver.yaml
@@ -16,13 +16,13 @@ spec:
     - /hyperkube
     - apiserver
     - --bind-address=0.0.0.0
-    - --etcd-servers=http://127.0.0.1:2379
+    - --etcd-servers=http://{{ .EtcdHost }}:{ .EtcdPort }}
     - --allow-privileged=true
     {{if .RBACEnabled }}- --authorization-mode=Node,RBAC{{end}}
     - --service-cluster-ip-range=10.3.0.0/24
     - --secure-port=443
     - --v=2
-    - --advertise-address=${PRIVATE_IPV4}
+    - --advertise-address={{ .PrivateIpv4 }}
     - --admission-control=NamespaceLifecycle,NamespaceExists,LimitRanger,ServiceAccount,ResourceQuota,DefaultStorageClass{{if .RBACEnabled }},NodeRestriction{{end}}
     - --tls-cert-file=/etc/kubernetes/ssl/apiserver.pem
     - --tls-private-key-file=/etc/kubernetes/ssl/apiserver-key.pem
@@ -76,7 +76,7 @@ spec:
     command:
     - /hyperkube
     - controller-manager
-    - --master=http://127.0.0.1:8080
+    - --master=http://{{ .MasterHost }}:{{ .MasterPort }}
     - --service-account-private-key-file=/etc/kubernetes/ssl/apiserver-key.pem
     - --root-ca-file=/etc/kubernetes/ssl/ca.pem
     - --v=2
@@ -121,7 +121,7 @@ spec:
     - /hyperkube
     - scheduler
     - --v=2
-    - --master=http://127.0.0.1:8080
+    - --master=http://{{ .MasterHost }}:{{ .MasterPort }}
     livenessProbe:
       httpGet:
         host: 127.0.0.1
@@ -146,7 +146,7 @@ spec:
     - /hyperkube
     - proxy
     - --v=2
-    - --master=http://127.0.0.1:8080
+    - --master=http://{{ .MasterHost }}:{{ .MasterPort }}
     - --proxy-mode=iptables
     securityContext:
       privileged: true

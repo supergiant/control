@@ -1,4 +1,4 @@
-KUBERNETES_SSL_DIR=${KUBERNETES_CONFIG_DIR}/ssl
+KUBERNETES_SSL_DIR={{ .KubernetesConfigDir }}/ssl
 
 mkdir -p ${KUBERNETES_SSL_DIR}
 echo "{{ .CACert }}" > ${KUBERNETES_SSL_DIR}/'{{ .CACertName }}'

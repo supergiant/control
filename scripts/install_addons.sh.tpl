@@ -1,4 +1,4 @@
-KUBERNETES_ADDONS_DIR=${KUBERNETES_CONFIG_DIR}/addons
+KUBERNETES_ADDONS_DIR={{ .KubernetesConfDir }}/addons
 
 ADDON=${KUBERNETES_ADDONS_DIR}/'cluster-monitoring'
 mkdir -p ${ADDON}

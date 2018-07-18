@@ -1,4 +1,4 @@
-    cat << EOF > /etc/systemd/system/${KUBELET_SERVICE}
+    cat << EOF > /etc/systemd/system/{{ .KubeletsService }}
 [Unit]
 Description=Kubernetes Kubelet Server
 Documentation=https://github.com/kubernetes/kubernetes

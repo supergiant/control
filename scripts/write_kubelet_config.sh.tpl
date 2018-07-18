@@ -9,7 +9,7 @@ users:
 clusters:
 - name: local
   cluster:
-    server: http://127.0.0.1:8080
+    server: http://{{ .Host }}:{{ .Port }}
     insecure-skip-tls-verify: true
 contexts:
 - name: kubelet-local
