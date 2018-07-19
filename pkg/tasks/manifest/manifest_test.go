@@ -1,4 +1,44 @@
-KUBERNETES_MANIFESTS_DIR={{ .KubernetesConfigDir }}/manifests
+package tiller
+
+import (
+	"bytes"
+	"io"
+	"strings"
+	"testing"
+	"text/template"
+
+	"github.com/pkg/errors"
+
+	"github.com/supergiant/supergiant/pkg/runner"
+)
+
+type fakeRunner struct {
+	errMsg string
+}
+
+func (f *fakeRunner) Run(command *runner.Command) error {
+	if len(f.errMsg) > 0 {
+		return errors.New(f.errMsg)
+	}
+
+	_, err := io.Copy(command.Out, strings.NewReader(command.Script))
+	return err
+}
+
+func TestWriteManifest(t *testing.T) {
+	var (
+		kubernetesVersion   = "1.8.7"
+		kubernetesConfigDir = "/kubernetes/conf/dir"
+		RBACEnabled         = true
+		etcdHost            = "127.0.0.1"
+		etcdPort            = "2379"
+		privateIpv4         = "12.34.56.78"
+		providerString      = "aws"
+		masterHost          = "127.0.0.1"
+		masterPort          = "8080"
+
+		r                   runner.Runner = &fakeRunner{}
+		writeManifestScript               = `KUBERNETES_MANIFESTS_DIR={{ .KubernetesConfigDir }}/manifests
 
 mkdir -p ${KUBERNETES_MANIFESTS_DIR}
     cat << EOF > ${KUBERNETES_MANIFESTS_DIR}/kube-apiserver.yaml
@@ -17,7 +57,7 @@ spec:
     - apiserver
     - --bind-address=0.0.0.0
     - --etcd-servers=http://{{ .EtcdHost }}:{{ .EtcdPort }}
-    - --allow-privileged=true
+	- --allow-privileged=true
     {{if .RBACEnabled }}- --authorization-mode=Node,RBAC{{end}}
     - --service-cluster-ip-range=10.3.0.0/24
     - --secure-port=443
@@ -159,3 +199,103 @@ spec:
       path: /usr/share/ca-certificates
     name: ssl-certs-host
 EOF
+`
+	)
+
+	proxyTemplate, err := template.New("manifest").Parse(writeManifestScript)
+
+	if err != nil {
+		t.Errorf("Error while parsing kubeproxy template %v", err)
+	}
+
+	output := new(bytes.Buffer)
+
+	j := &Task{
+		r,
+		proxyTemplate,
+		output,
+	}
+
+	cfg := Config{
+		KubernetesVersion:   kubernetesVersion,
+		KubernetesConfigDir: kubernetesConfigDir,
+		RBACEnabled:         RBACEnabled,
+		EtcdHost:            etcdHost,
+		EtcdPort:            etcdPort,
+		PrivateIpv4:         privateIpv4,
+		MasterHost:          masterHost,
+		MasterPort:          masterPort,
+		ProviderString:      providerString,
+	}
+
+	err = j.WriteManifest(cfg)
+
+	if err != nil {
+		t.Errorf("Unpexpected error while  provision node %v", err)
+	}
+
+	if !strings.Contains(output.String(), kubernetesConfigDir) {
+		t.Errorf("kubernetes config dir %s not found in %s", kubernetesConfigDir, output.String())
+	}
+
+	if !strings.Contains(output.String(), kubernetesVersion) {
+		t.Errorf("kubernetes version dir %s not found in %s", kubernetesVersion, output.String())
+	}
+
+	if RBACEnabled && !strings.Contains(output.String(), "RBAC") {
+		t.Errorf("RBAC not found in %s", output.String())
+	}
+
+	if !strings.Contains(output.String(), masterHost) {
+		t.Errorf("master host %s not found in %s", masterHost, output.String())
+	}
+
+	if !strings.Contains(output.String(), masterPort) {
+		t.Errorf("master port %s not found in %s", masterPort, output.String())
+	}
+
+	if !strings.Contains(output.String(), etcdHost) {
+		t.Errorf("etcd host %s not found in %s", etcdHost, output.String())
+	}
+
+	if !strings.Contains(output.String(), etcdPort) {
+		t.Errorf("etcd port %s not found in %s", etcdPort, output.String())
+	}
+
+	if !strings.Contains(output.String(), privateIpv4) {
+		t.Errorf("private ipv4 %s not found in %s", privateIpv4, output.String())
+	}
+
+	if !strings.Contains(output.String(), providerString) {
+		t.Errorf("provider string %s not found in %s", providerString, output.String())
+	}
+}
+
+func TestWriteManifestError(t *testing.T) {
+	errMsg := "error has occurred"
+
+	r := &fakeRunner{
+		errMsg: errMsg,
+	}
+
+	proxyTemplate, err := template.New("manifest").Parse("")
+	output := new(bytes.Buffer)
+
+	j := &Task{
+		r,
+		proxyTemplate,
+		output,
+	}
+
+	cfg := Config{}
+	err = j.WriteManifest(cfg)
+
+	if err == nil {
+		t.Errorf("Error must not be nil")
+		return
+	}
+
+	if !strings.Contains(err.Error(), errMsg) {
+		t.Errorf("Error message expected to contain %s actual %s", errMsg, err.Error())
+	}
+}
