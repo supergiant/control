@@ -49,8 +49,8 @@ func TestWriteKubeletConf(t *testing.T) {
 	}
 
 	cfg := Config{
-		Host:host,
-		Port:port,
+		Host: host,
+		Port: port,
 	}
 
 	err = j.WriteKubeletConf(cfg)
