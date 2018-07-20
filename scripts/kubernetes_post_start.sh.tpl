@@ -12,8 +12,3 @@ curl -XPOST -H 'Content-type: application/json' -d'{"apiVersion":"v1","kind":"Na
 /opt/bin/kubectl create clusterrolebinding default-user-cluster-admin --clusterrole=cluster-admin --user={{ .Username }}
 /opt/bin/kubectl create clusterrolebinding default-kube-system-admin --clusterrole=cluster-admin --serviceaccount=default:default --namespace=kube-system
 {{end}}
-
-/opt/bin/kubectl create -f /etc/kubernetes/addons/kube-dns.yaml
-/opt/bin/kubectl create -f /etc/kubernetes/addons/cluster-monitoring
-/opt/bin/kubectl create -f /etc/kubernetes/addons/default-storage-class.yaml
-/opt/bin/helm init
