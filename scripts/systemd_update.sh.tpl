@@ -1,4 +1,4 @@
-    cat << EOF > /etc/systemd/system/{{ .KubeletsService }}
+    cat << EOF > /etc/systemd/system/{{ .KubeletService }}
 [Unit]
 Description=Kubernetes Kubelet Server
 Documentation=https://github.com/kubernetes/kubernetes
@@ -29,7 +29,7 @@ ExecStart=/usr/bin/docker run \
         --pod-manifest-path=/etc/kubernetes/manifests \
         --kubeconfig=/var/lib/kubelet/kubeconfig \
         --volume-plugin-dir=/etc/kubernetes/volumeplugins \
-        {{- .KubeProviderString }}
+        {{- .KubernetesProvider }}
         --register-node=false
 Restart=always
 StartLimitInterval=0
