@@ -30,15 +30,6 @@ type TagService interface {
 	TagResources(string, *godo.TagResourcesRequest) (*godo.Response, error)
 }
 
-type Task struct {
-	storage        storage.Interface
-	dropletService DropletService
-	tagService     TagService
-
-	DropletTimeout time.Duration
-	CheckPeriod    time.Duration
-}
-
 type Config struct {
 	Name         string
 	K8sVersion   string
@@ -47,10 +38,22 @@ type Config struct {
 	Role         string // master/node
 	Image        string
 	Fingerprints []string
+	AccessToken  string
 }
 
-func New(accessToken string, s storage.Interface, dropletTimeout, checkPeriod time.Duration) *Task {
-	c := getClient(accessToken)
+type Task struct {
+	storage        storage.Interface
+	dropletService DropletService
+	tagService     TagService
+
+	config Config
+
+	DropletTimeout time.Duration
+	CheckPeriod    time.Duration
+}
+
+func New(config Config, s storage.Interface, dropletTimeout, checkPeriod time.Duration) *Task {
+	c := getClient(config.AccessToken)
 
 	return &Task{
 		storage:        s,
@@ -62,50 +65,50 @@ func New(accessToken string, s storage.Interface, dropletTimeout, checkPeriod ti
 	}
 }
 
-func (j *Task) CreateDroplet(config Config) error {
-	config.Name = util.MakeNodeName(config.Name, config.Role)
+func (t *Task) Run() error {
+	t.config.Name = util.MakeNodeName(t.config.Name, t.config.Role)
 
 	var fingers []godo.DropletCreateSSHKey
-	for _, ssh := range config.Fingerprints {
+	for _, ssh := range t.config.Fingerprints {
 		fingers = append(fingers, godo.DropletCreateSSHKey{
 			Fingerprint: ssh,
 		})
 	}
 
 	dropletRequest := &godo.DropletCreateRequest{
-		Name:              config.Name,
-		Region:            config.Region,
-		Size:              config.Size,
+		Name:              t.config.Name,
+		Region:            t.config.Region,
+		Size:              t.config.Size,
 		PrivateNetworking: true,
 		SSHKeys:           fingers,
 		Image: godo.DropletCreateImage{
-			Slug: config.Image,
+			Slug: t.config.Image,
 		},
 	}
 
-	tags := []string{"Kubernetes-Cluster", config.Name}
+	tags := []string{"Kubernetes-Cluster", t.config.Name}
 
 	// Create
-	droplet, _, err := j.dropletService.Create(dropletRequest)
+	droplet, _, err := t.dropletService.Create(dropletRequest)
 
 	if err != nil {
-		return errors.Wrap(err, "dropletService has returned an error in CreateDroplet job")
+		return errors.Wrap(err, "dropletService has returned an error in Run job")
 	}
 
-	err = j.tagDroplet(droplet.ID, tags)
+	err = t.tagDroplet(droplet.ID, tags)
 
 	if err != nil {
 		return errors.Wrap(err,
-			fmt.Sprintf("Tagging droplet %d has failed for CreateDroplet job ", droplet.ID))
+			fmt.Sprintf("Tagging droplet %d has failed for Run job ", droplet.ID))
 	}
 
-	after := time.After(j.DropletTimeout)
-	ticker := time.NewTicker(j.CheckPeriod)
+	after := time.After(t.DropletTimeout)
+	ticker := time.NewTicker(t.CheckPeriod)
 
 	for {
 		select {
 		case <-ticker.C:
-			droplet, _, err = j.dropletService.Get(droplet.ID)
+			droplet, _, err = t.dropletService.Get(droplet.ID)
 
 			if err != nil {
 				return err
@@ -115,7 +118,7 @@ func (j *Task) CreateDroplet(config Config) error {
 				if data, err := json.Marshal(droplet); err != nil {
 					return err
 				} else {
-					return j.storage.Put(context.Background(), "droplet", droplet.Name, data)
+					return t.storage.Put(context.Background(), "droplet", droplet.Name, data)
 				}
 			}
 
@@ -127,7 +130,7 @@ func (j *Task) CreateDroplet(config Config) error {
 	return nil
 }
 
-func (j *Task) tagDroplet(dropletId int, tags []string) error {
+func (t *Task) tagDroplet(dropletId int, tags []string) error {
 	// Tag droplet
 	for _, tag := range tags {
 		input := &godo.TagResourcesRequest{
@@ -138,7 +141,7 @@ func (j *Task) tagDroplet(dropletId int, tags []string) error {
 				},
 			},
 		}
-		if _, err := j.tagService.TagResources(tag, input); err != nil {
+		if _, err := t.tagService.TagResources(tag, input); err != nil {
 			return err
 		}
 	}

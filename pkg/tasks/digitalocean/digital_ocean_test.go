@@ -220,15 +220,6 @@ func TestJob_CreateDroplet(t *testing.T) {
 	}
 
 	for _, testCase := range testCases {
-		job := &Task{
-			storage:        testCase.storage,
-			dropletService: testCase.dropletService,
-			tagService:     testCase.tagService,
-
-			DropletTimeout: testCase.dropletTimeout,
-			CheckPeriod:    testCase.checkPeriod,
-		}
-
 		config := Config{
 			"test",
 			"1.8.7",
@@ -237,9 +228,21 @@ func TestJob_CreateDroplet(t *testing.T) {
 			"master",
 			"ubuntu-stable",
 			[]string{"fingerprint"},
+			"accessToken",
 		}
 
-		err := job.CreateDroplet(config)
+		task := &Task{
+			storage:        testCase.storage,
+			dropletService: testCase.dropletService,
+			tagService:     testCase.tagService,
+
+			config: config,
+
+			DropletTimeout: testCase.dropletTimeout,
+			CheckPeriod:    testCase.checkPeriod,
+		}
+
+		err := task.Run()
 
 		if errors.Cause(err) != testCase.expectedError {
 			t.Errorf("Wrong error expected %s actual %s", testCase.expectedError.Error(), err.Error())

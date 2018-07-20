@@ -23,10 +23,12 @@ type Task struct {
 	scriptTemplate *template.Template
 	runner         runner.Runner
 
+	config Config
+
 	output io.Writer
 }
 
-func New(tpl *template.Template, outStream io.Writer, cfg *ssh.Config) (*Task, error) {
+func New(tpl *template.Template, config Config, outStream io.Writer, cfg *ssh.Config) (*Task, error) {
 	sshRunner, err := ssh.NewRunner(cfg)
 
 	if err != nil {
@@ -36,12 +38,13 @@ func New(tpl *template.Template, outStream io.Writer, cfg *ssh.Config) (*Task, e
 	return &Task{
 		scriptTemplate: tpl,
 		runner:         sshRunner,
+		config:         config,
 		output:         outStream,
 	}, nil
 }
 
-func (i *Task) InstallFlannel(config Config) error {
-	err := tasks.RunTemplate(context.Background(), i.scriptTemplate, i.runner, i.output, config)
+func (t *Task) Run() error {
+	err := tasks.RunTemplate(context.Background(), t.scriptTemplate, t.runner, t.output, t.config)
 	if err != nil {
 		return errors.Wrap(err, "Run template has failed for Install flannel job")
 	}

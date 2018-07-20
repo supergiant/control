@@ -35,7 +35,7 @@ func New(script *template.Template,
 	return t, nil
 }
 
-func (j *Task) InstallCNI() error {
+func (j *Task) Run() error {
 	err := tasks.RunTemplate(context.Background(), j.script, j.runner, j.output, nil)
 
 	if err != nil {

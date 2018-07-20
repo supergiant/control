@@ -43,19 +43,20 @@ func TestStartKubelet(t *testing.T) {
 
 	output := new(bytes.Buffer)
 
-	j := &Task{
-		r,
-		kubeletScriptTemplate,
-		output,
-	}
-
 	cfg := Config{
 		KubernetesVersion: k8sVersion,
 		ProxyPort:         proxyPort,
 		EtcdClientPort:    etcdPort,
 	}
 
-	err = j.StartKubelet(cfg)
+	task := &Task{
+		r,
+		cfg,
+		kubeletScriptTemplate,
+		output,
+	}
+
+	err = task.Run()
 
 	if !strings.Contains(output.String(), k8sVersion) {
 		t.Errorf("k8s version %s not found in %s", k8sVersion, output.String())
@@ -75,12 +76,12 @@ func TestStartKubeletError(t *testing.T) {
 
 	j := &Task{
 		r,
+		Config{},
 		kubeletScriptTemplate,
 		output,
 	}
 
-	cfg := Config{}
-	err = j.StartKubelet(cfg)
+	err = j.Run()
 
 	if err == nil {
 		t.Errorf("Error must not be nil")

@@ -64,12 +64,6 @@ systemctl restart flanneld.service
 
 		buffer := &bytes.Buffer{}
 
-		job := &Task{
-			scriptTemplate: tpl,
-			runner:         r,
-			output:         buffer,
-		}
-
 		config := Config{
 			testCase.version,
 			testCase.arch,
@@ -77,7 +71,14 @@ systemctl restart flanneld.service
 			testCase.networkType,
 		}
 
-		err := job.InstallFlannel(config)
+		job := &Task{
+			scriptTemplate: tpl,
+			runner:         r,
+			output:         buffer,
+			config:         config,
+		}
+
+		err := job.Run()
 
 		if testCase.expectedError != errors.Cause(err) {
 			t.Fatalf("wrong error expected %v actual %v", testCase.expectedError, err)

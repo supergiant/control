@@ -12,12 +12,6 @@ import (
 	"github.com/supergiant/supergiant/pkg/tasks"
 )
 
-type Task struct {
-	runner runner.Runner
-	script *template.Template
-	output io.Writer
-}
-
 type Config struct {
 	MasterPrivateIP   string
 	ProxyPort         string
@@ -25,7 +19,14 @@ type Config struct {
 	KubernetesVersion string
 }
 
-func New(script *template.Template,
+type Task struct {
+	runner runner.Runner
+	config Config
+	script *template.Template
+	output io.Writer
+}
+
+func New(script *template.Template, config Config,
 	outStream io.Writer, cfg *ssh.Config) (*Task, error) {
 	sshRunner, err := ssh.NewRunner(cfg)
 
@@ -35,6 +36,7 @@ func New(script *template.Template,
 
 	t := &Task{
 		runner: sshRunner,
+		config: config,
 		script: script,
 		output: outStream,
 	}
@@ -42,8 +44,8 @@ func New(script *template.Template,
 	return t, nil
 }
 
-func (j *Task) StartKubelet(config Config) error {
-	err := tasks.RunTemplate(context.Background(), j.script, j.runner, j.output, config)
+func (t *Task) Run() error {
+	err := tasks.RunTemplate(context.Background(), t.script, t.runner, t.output, t.config)
 
 	if err != nil {
 		return errors.Wrap(err, "error running  kubelet template as a command")

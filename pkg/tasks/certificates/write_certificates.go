@@ -12,12 +12,6 @@ import (
 	"github.com/supergiant/supergiant/pkg/tasks"
 )
 
-type Task struct {
-	runner runner.Runner
-	script *template.Template
-	output io.Writer
-}
-
 type Config struct {
 	KubernetesConfigDir   string
 	CACert                string
@@ -32,6 +26,13 @@ type Config struct {
 	KubeletClientCertName string
 	KubeletClientKey      string
 	KubeletClientKeyName  string
+}
+
+type Task struct {
+	runner runner.Runner
+	script *template.Template
+	output io.Writer
+	config Config
 }
 
 func New(script *template.Template,
@@ -51,8 +52,8 @@ func New(script *template.Template,
 	return t, nil
 }
 
-func (j *Task) WriteCertificates(config Config) error {
-	err := tasks.RunTemplate(context.Background(), j.script, j.runner, j.output, config)
+func (t *Task) Run() error {
+	err := tasks.RunTemplate(context.Background(), t.script, t.runner, t.output, t.config)
 
 	if err != nil {
 		return errors.Wrap(err, "error running write certificates template as a command")

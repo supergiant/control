@@ -61,12 +61,6 @@ echo "{{ .KubeletClientKey }}" > ${KUBERNETES_SSL_DIR}/'{{ .KubeletClientKeyName
 
 	output := new(bytes.Buffer)
 
-	j := &Task{
-		r,
-		proxyTemplate,
-		output,
-	}
-
 	cfg := Config{
 		kubernetesConfigDir,
 		CACert,
@@ -83,7 +77,14 @@ echo "{{ .KubeletClientKey }}" > ${KUBERNETES_SSL_DIR}/'{{ .KubeletClientKeyName
 		kubeletClientKeyName,
 	}
 
-	err = j.WriteCertificates(cfg)
+	task := &Task{
+		r,
+		proxyTemplate,
+		output,
+		cfg,
+	}
+
+	err = task.Run()
 
 	if err != nil {
 		t.Errorf("Unpexpected error while  provision node %v", err)
@@ -144,14 +145,14 @@ func TestInstallTillerError(t *testing.T) {
 	proxyTemplate, err := template.New("tiller").Parse("")
 	output := new(bytes.Buffer)
 
-	j := &Task{
+	task := &Task{
 		r,
 		proxyTemplate,
 		output,
+		Config{},
 	}
 
-	cfg := Config{}
-	err = j.WriteCertificates(cfg)
+	err = task.Run()
 
 	if err == nil {
 		t.Errorf("Error must not be nil")
