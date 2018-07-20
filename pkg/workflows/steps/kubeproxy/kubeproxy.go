@@ -9,7 +9,7 @@ import (
 
 	"github.com/supergiant/supergiant/pkg/runner"
 	"github.com/supergiant/supergiant/pkg/runner/ssh"
-	"github.com/supergiant/supergiant/pkg/tasks"
+	"github.com/supergiant/supergiant/pkg/steps"
 )
 
 type Task struct {
@@ -43,7 +43,7 @@ func New(script *template.Template,
 }
 
 func (j *Task) StartKubeProxy(config Config) error {
-	err := tasks.RunTemplate(context.Background(), j.script, j.runner, j.output, config)
+	err := steps.RunTemplate(context.Background(), j.script, j.runner, j.output, config)
 
 	if err != nil {
 		return errors.Wrap(err, "error running  kubeproxy template as a command")

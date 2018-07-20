@@ -1,4 +1,4 @@
-package kubeletconf
+package tiller
 
 import (
 	"context"
@@ -9,7 +9,7 @@ import (
 
 	"github.com/supergiant/supergiant/pkg/runner"
 	"github.com/supergiant/supergiant/pkg/runner/ssh"
-	"github.com/supergiant/supergiant/pkg/tasks"
+	"github.com/supergiant/supergiant/pkg/steps"
 )
 
 type Task struct {
@@ -19,8 +19,10 @@ type Task struct {
 }
 
 type Config struct {
-	Host string
-	Port string
+	Host        string
+	Port        string
+	Username    string
+	RBACEnabled bool
 }
 
 func New(script *template.Template,
@@ -40,11 +42,11 @@ func New(script *template.Template,
 	return t, nil
 }
 
-func (j *Task) WriteKubeletConf(config Config) error {
-	err := tasks.RunTemplate(context.Background(), j.script, j.runner, j.output, config)
+func (j *Task) PostStart(config Config) error {
+	err := steps.RunTemplate(context.Background(), j.script, j.runner, j.output, config)
 
 	if err != nil {
-		return errors.Wrap(err, "error running write kubelet conf template as a command")
+		return errors.Wrap(err, "error running post start template as a command")
 	}
 
 	return nil

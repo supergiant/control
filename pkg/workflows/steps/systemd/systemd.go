@@ -9,7 +9,7 @@ import (
 
 	"github.com/supergiant/supergiant/pkg/runner"
 	"github.com/supergiant/supergiant/pkg/runner/ssh"
-	"github.com/supergiant/supergiant/pkg/tasks"
+	"github.com/supergiant/supergiant/pkg/steps"
 )
 
 type Task struct {
@@ -19,9 +19,9 @@ type Task struct {
 }
 
 type Config struct {
-	HelmVersion     string
-	OperatingSystem string
-	Arch            string
+	KubernetesVersion  string
+	KubeletService     string
+	KubernetesProvider string
 }
 
 func New(script *template.Template,
@@ -41,11 +41,11 @@ func New(script *template.Template,
 	return t, nil
 }
 
-func (j *Task) InstallTiller(config Config) error {
-	err := tasks.RunTemplate(context.Background(), j.script, j.runner, j.output, config)
+func (j *Task) UpdateSystemd(config Config) error {
+	err := steps.RunTemplate(context.Background(), j.script, j.runner, j.output, config)
 
 	if err != nil {
-		return errors.Wrap(err, "error running tiller template as a command")
+		return errors.Wrap(err, "error running post start template as a command")
 	}
 
 	return nil

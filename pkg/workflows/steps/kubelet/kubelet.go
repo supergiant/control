@@ -1,4 +1,4 @@
-package tiller
+package kubelet
 
 import (
 	"context"
@@ -9,23 +9,24 @@ import (
 
 	"github.com/supergiant/supergiant/pkg/runner"
 	"github.com/supergiant/supergiant/pkg/runner/ssh"
-	"github.com/supergiant/supergiant/pkg/tasks"
+	"github.com/supergiant/supergiant/pkg/steps"
 )
+
+type Config struct {
+	MasterPrivateIP   string
+	ProxyPort         string
+	EtcdClientPort    string
+	KubernetesVersion string
+}
 
 type Task struct {
 	runner runner.Runner
+	config Config
 	script *template.Template
 	output io.Writer
 }
 
-type Config struct {
-	Host        string
-	Port        string
-	Username    string
-	RBACEnabled bool
-}
-
-func New(script *template.Template,
+func New(script *template.Template, config Config,
 	outStream io.Writer, cfg *ssh.Config) (*Task, error) {
 	sshRunner, err := ssh.NewRunner(cfg)
 
@@ -35,6 +36,7 @@ func New(script *template.Template,
 
 	t := &Task{
 		runner: sshRunner,
+		config: config,
 		script: script,
 		output: outStream,
 	}
@@ -42,11 +44,11 @@ func New(script *template.Template,
 	return t, nil
 }
 
-func (j *Task) PostStart(config Config) error {
-	err := tasks.RunTemplate(context.Background(), j.script, j.runner, j.output, config)
+func (t *Task) Run() error {
+	err := steps.RunTemplate(context.Background(), t.script, t.runner, t.output, t.config)
 
 	if err != nil {
-		return errors.Wrap(err, "error running post start template as a command")
+		return errors.Wrap(err, "error running  kubelet template as a command")
 	}
 
 	return nil
