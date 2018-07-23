@@ -8,6 +8,8 @@ import (
 	"github.com/pkg/errors"
 	"github.com/sirupsen/logrus"
 
+	"github.com/supergiant/supergiant/pkg/model"
+	"encoding/pem"
 	"github.com/supergiant/supergiant/pkg/sgerrors"
 	"github.com/supergiant/supergiant/pkg/storage"
 )
@@ -28,16 +30,16 @@ func NewService(storagePrefix string, repository storage.Interface) *Service {
 const DefaultStoragePrefix = "/supergiant/account/"
 
 // GetAll retrieves cloud accounts from underlying storage, returns empty slice if none found
-func (s *Service) GetAll(ctx context.Context) ([]CloudAccount, error) {
+func (s *Service) GetAll(ctx context.Context) ([]model.CloudAccount, error) {
 	logrus.Debug("cloud_account.Service.GetAll start")
 
-	accounts := make([]CloudAccount, 0)
+	accounts := make([]model.CloudAccount, 0)
 	res, err := s.repository.GetAll(ctx, s.storagePrefix)
 	if err != nil {
 		return accounts, err
 	}
 	for _, v := range res {
-		ca := new(CloudAccount)
+		ca := new(model.CloudAccount)
 		err = json.NewDecoder(bytes.NewReader(v)).Decode(ca)
 		if err != nil {
 			logrus.Warningf("failed to convert stored data to cloud account struct")
@@ -52,7 +54,7 @@ func (s *Service) GetAll(ctx context.Context) ([]CloudAccount, error) {
 }
 
 // Get retrieves a user by it's accountName, returns nil if not found
-func (s *Service) Get(ctx context.Context, accountName string) (*CloudAccount, error) {
+func (s *Service) Get(ctx context.Context, accountName string) (*model.CloudAccount, error) {
 	logrus.Debug("cloud_account.Service.Get start")
 
 	res, err := s.repository.Get(ctx, s.storagePrefix, accountName)
@@ -63,7 +65,7 @@ func (s *Service) Get(ctx context.Context, accountName string) (*CloudAccount, e
 		return nil, sgerrors.ErrNotFound
 	}
 
-	ca := new(CloudAccount)
+	ca := new(model.CloudAccount)
 	err = json.NewDecoder(bytes.NewReader(res)).Decode(ca)
 	if err != nil {
 		logrus.Warning("failed to convert stored data to cloud acccount struct")
@@ -75,7 +77,7 @@ func (s *Service) Get(ctx context.Context, accountName string) (*CloudAccount, e
 }
 
 // Create stores user in the underlying storage
-func (s *Service) Create(ctx context.Context, account *CloudAccount) error {
+func (s *Service) Create(ctx context.Context, account *model.CloudAccount) error {
 	logrus.Debug("cloud_account.Service.Create start")
 
 	rawJSON, err := json.Marshal(account)
@@ -90,7 +92,7 @@ func (s *Service) Create(ctx context.Context, account *CloudAccount) error {
 }
 
 // Update cloud account
-func (s *Service) Update(ctx context.Context, account *CloudAccount) error {
+func (s *Service) Update(ctx context.Context, account *model.CloudAccount) error {
 	logrus.Debug("cloud_account.Service.Update start")
 
 	rawJSON, err := json.Marshal(account)

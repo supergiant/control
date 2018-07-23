@@ -9,6 +9,7 @@ import (
 	"gopkg.in/asaskevich/govalidator.v8"
 
 	"github.com/supergiant/supergiant/pkg/message"
+	"github.com/supergiant/supergiant/pkg/model"
 	"github.com/supergiant/supergiant/pkg/sgerrors"
 )
 
@@ -33,7 +34,7 @@ func (h *Handler) Register(r *mux.Router) {
 
 // Create register new cloud account
 func (h *Handler) Create(rw http.ResponseWriter, r *http.Request) {
-	account := new(CloudAccount)
+	account := new(model.CloudAccount)
 	if err := json.NewDecoder(r.Body).Decode(account); err != nil {
 		message.SendInvalidJSON(rw, err)
 		return
@@ -46,7 +47,7 @@ func (h *Handler) Create(rw http.ResponseWriter, r *http.Request) {
 	}
 
 	if err = h.service.Create(r.Context(), account); err != nil {
-		logrus.Errorf("create account: %v", err)
+		logrus.Errorf("account handler: create %v", err)
 		message.SendUnknownError(rw, err)
 		return
 	}
@@ -56,12 +57,12 @@ func (h *Handler) Create(rw http.ResponseWriter, r *http.Request) {
 func (h *Handler) ListAll(rw http.ResponseWriter, r *http.Request) {
 	accounts, err := h.service.GetAll(r.Context())
 	if err != nil {
-		logrus.Errorf("accounts list all %v", err)
+		logrus.Errorf("account handler: list all %v", err)
 		message.SendUnknownError(rw, err)
 		return
 	}
 	if err := json.NewEncoder(rw).Encode(accounts); err != nil {
-		logrus.Errorf("accounts list all %v", err)
+		logrus.Errorf("account handler: list all %v", err)
 		message.SendUnknownError(rw, err)
 		return
 	}
@@ -71,7 +72,7 @@ func (h *Handler) ListAll(rw http.ResponseWriter, r *http.Request) {
 func (h *Handler) Get(rw http.ResponseWriter, r *http.Request) {
 	accountName := mux.Vars(r)["accountName"]
 	if accountName == "" {
-		msg := message.New("account name can't be blank", "", sgerrors.CantChangeID, "")
+		msg := message.New("account name can't be blank", "", sgerrors.InvalidJSON, "")
 		message.SendMessage(rw, msg, http.StatusBadRequest)
 		return
 	}
@@ -81,13 +82,13 @@ func (h *Handler) Get(rw http.ResponseWriter, r *http.Request) {
 			message.SendNotFound(rw, "account", err)
 			return
 		}
-		logrus.Errorf("account get %v", err)
+		logrus.Errorf("account handler: get %v", err)
 		message.SendUnknownError(rw, err)
 		return
 	}
 
 	if err := json.NewEncoder(rw).Encode(account); err != nil {
-		logrus.Errorf("account get %v", err)
+		logrus.Errorf("account handler: get %v", err)
 		message.SendUnknownError(rw, err)
 		return
 	}
@@ -95,7 +96,7 @@ func (h *Handler) Get(rw http.ResponseWriter, r *http.Request) {
 
 // Update saves updated state of an cloud account, account name can't be changed
 func (h *Handler) Update(rw http.ResponseWriter, r *http.Request) {
-	account := new(CloudAccount)
+	account := new(model.CloudAccount)
 	if err := json.NewDecoder(r.Body).Decode(account); err != nil {
 		message.SendInvalidJSON(rw, err)
 		return
@@ -107,7 +108,7 @@ func (h *Handler) Update(rw http.ResponseWriter, r *http.Request) {
 		return
 	}
 	if err := h.service.Update(r.Context(), account); err != nil {
-		logrus.Errorf("account update: %v", err)
+		logrus.Errorf("account handler: update: %v", err)
 		message.SendUnknownError(rw, err)
 		return
 	}
@@ -117,13 +118,13 @@ func (h *Handler) Update(rw http.ResponseWriter, r *http.Request) {
 func (h *Handler) Delete(rw http.ResponseWriter, r *http.Request) {
 	accountName := mux.Vars(r)["accountName"]
 	if accountName == "" {
-		msg := message.New("account name can't be blank", "", sgerrors.CantChangeID, "")
+		msg := message.New("account name can't be blank", "", sgerrors.InvalidJSON, "")
 		message.SendMessage(rw, msg, http.StatusBadRequest)
 		return
 	}
 
 	if err := h.service.Delete(r.Context(), accountName); err != nil {
-		logrus.Errorf("account delete %v", err)
+		logrus.Errorf("account handler: delete %v", err)
 		message.SendUnknownError(rw, err)
 		return
 	}

@@ -1,4 +1,4 @@
-package account
+package model
 
 import (
 	"github.com/supergiant/supergiant/pkg/clouds"
