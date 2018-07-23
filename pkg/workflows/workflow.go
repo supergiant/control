@@ -6,10 +6,10 @@ import (
 )
 
 type WorkFlow struct {
-	s []*steps.Step
+	s []steps.Step
 }
 
-func New(steps []*steps.Step) *WorkFlow {
+func New(steps []steps.Step) *WorkFlow {
 	return &WorkFlow{
 		s: steps,
 	}
