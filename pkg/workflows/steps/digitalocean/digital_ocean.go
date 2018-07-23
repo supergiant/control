@@ -65,7 +65,7 @@ func New(config Config, s storage.Interface, dropletTimeout, checkPeriod time.Du
 	}
 }
 
-func (t *Task) Run() error {
+func (t *Task) Run(ctx context.Context) error {
 	t.config.Name = util.MakeNodeName(t.config.Name, t.config.Role)
 
 	var fingers []godo.DropletCreateSSHKey

@@ -8,6 +8,7 @@ import (
 
 	"github.com/pkg/errors"
 
+	"context"
 	"github.com/supergiant/supergiant/pkg/testutils"
 )
 
@@ -78,7 +79,7 @@ systemctl restart flanneld.service
 			config:         config,
 		}
 
-		err := job.Run()
+		err := job.Run(context.Background())
 
 		if testCase.expectedError != errors.Cause(err) {
 			t.Fatalf("wrong error expected %v actual %v", testCase.expectedError, err)

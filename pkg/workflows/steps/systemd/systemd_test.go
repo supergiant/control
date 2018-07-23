@@ -9,6 +9,7 @@ import (
 
 	"github.com/pkg/errors"
 
+	"context"
 	"github.com/supergiant/supergiant/pkg/runner"
 )
 
@@ -86,20 +87,20 @@ systemctl start ${KUBELET_SERVICE}`
 	}
 
 	output := new(bytes.Buffer)
-
-	j := &Task{
-		r,
-		proxyTemplate,
-		output,
-	}
-
 	cfg := Config{
 		k8sVersion,
 		kubeletService,
 		k8sProvider,
 	}
 
-	err = j.UpdateSystemd(cfg)
+	j := &Task{
+		r,
+		proxyTemplate,
+		cfg,
+		output,
+	}
+
+	err = j.Run(context.Background())
 
 	if err != nil {
 		t.Errorf("Unpexpected error while  provision node %v", err)
@@ -131,11 +132,11 @@ func TestSystemdUpdateError(t *testing.T) {
 	j := &Task{
 		r,
 		proxyTemplate,
+		Config{},
 		output,
 	}
 
-	cfg := Config{}
-	err = j.UpdateSystemd(cfg)
+	err = j.Run(context.Background())
 
 	if err == nil {
 		t.Errorf("Error must not be nil")

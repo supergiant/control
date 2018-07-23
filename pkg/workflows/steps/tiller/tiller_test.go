@@ -55,7 +55,7 @@ func TestInstallTiller(t *testing.T) {
 		arch,
 	}
 
-	err = j.InstallTiller(cfg)
+	err = j.Run(cfg)
 
 	if err != nil {
 		t.Errorf("Unpexpected error while  provision node %v", err)
@@ -91,7 +91,7 @@ func TestInstallTillerError(t *testing.T) {
 	}
 
 	cfg := Config{}
-	err = j.InstallTiller(cfg)
+	err = j.Run(cfg)
 
 	if err == nil {
 		t.Errorf("Error must not be nil")

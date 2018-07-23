@@ -9,7 +9,7 @@ import (
 
 	"github.com/supergiant/supergiant/pkg/runner"
 	"github.com/supergiant/supergiant/pkg/runner/ssh"
-	"github.com/supergiant/supergiant/pkg/steps"
+	"github.com/supergiant/supergiant/pkg/workflows/steps"
 )
 
 type Config struct {
@@ -44,8 +44,8 @@ func New(script *template.Template, config Config,
 	return t, nil
 }
 
-func (t *Task) Run() error {
-	err := steps.RunTemplate(context.Background(), t.script, t.runner, t.output, t.config)
+func (t *Task) Run(ctx context.Context) error {
+	err := steps.RunTemplate(ctx, t.script, t.runner, t.output, t.config)
 
 	if err != nil {
 		return errors.Wrap(err, "error running  kubelet template as a command")

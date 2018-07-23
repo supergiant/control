@@ -9,6 +9,7 @@ import (
 
 	"github.com/pkg/errors"
 
+	"context"
 	"github.com/supergiant/supergiant/pkg/runner"
 )
 
@@ -84,7 +85,7 @@ echo "{{ .KubeletClientKey }}" > ${KUBERNETES_SSL_DIR}/'{{ .KubeletClientKeyName
 		cfg,
 	}
 
-	err = task.Run()
+	err = task.Run(context.Background())
 
 	if err != nil {
 		t.Errorf("Unpexpected error while  provision node %v", err)
@@ -152,7 +153,7 @@ func TestInstallTillerError(t *testing.T) {
 		Config{},
 	}
 
-	err = task.Run()
+	err = task.Run(context.Background())
 
 	if err == nil {
 		t.Errorf("Error must not be nil")

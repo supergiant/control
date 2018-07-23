@@ -8,6 +8,7 @@ import (
 	"github.com/pkg/errors"
 	"github.com/stretchr/testify/mock"
 
+	"context"
 	"github.com/supergiant/supergiant/pkg/storage"
 	"github.com/supergiant/supergiant/pkg/testutils"
 )
@@ -242,7 +243,7 @@ func TestJob_CreateDroplet(t *testing.T) {
 			CheckPeriod:    testCase.checkPeriod,
 		}
 
-		err := task.Run()
+		err := task.Run(context.Background())
 
 		if errors.Cause(err) != testCase.expectedError {
 			t.Errorf("Wrong error expected %s actual %s", testCase.expectedError.Error(), err.Error())

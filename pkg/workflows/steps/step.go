@@ -1,5 +1,7 @@
 package steps
 
+import "context"
+
 type Step interface {
-	Run() error
+	Run(ctx context.Context) error
 }

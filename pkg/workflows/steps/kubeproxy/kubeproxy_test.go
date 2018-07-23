@@ -9,6 +9,7 @@ import (
 
 	"github.com/pkg/errors"
 
+	"context"
 	"github.com/supergiant/supergiant/pkg/runner"
 )
 
@@ -44,12 +45,6 @@ func TestStartKubeProxy(t *testing.T) {
 
 	output := new(bytes.Buffer)
 
-	j := &Task{
-		r,
-		proxyTemplate,
-		output,
-	}
-
 	cfg := Config{
 		KubernetesVersion: k8sVersion,
 		MasterPrivateIP:   masterIp,
@@ -57,7 +52,14 @@ func TestStartKubeProxy(t *testing.T) {
 		EtcdClientPort:    etcdPort,
 	}
 
-	err = j.StartKubeProxy(cfg)
+	j := &Task{
+		r,
+		proxyTemplate,
+		cfg,
+		output,
+	}
+
+	err = j.Run(context.Background())
 
 	if err != nil {
 		t.Errorf("Unpexpected error while  provision node %v", err)
@@ -81,11 +83,11 @@ func TestStartKubeProxyError(t *testing.T) {
 	j := &Task{
 		r,
 		proxyTemplate,
+		Config{},
 		output,
 	}
 
-	cfg := Config{}
-	err = j.StartKubeProxy(cfg)
+	err = j.Run(context.Background())
 
 	if err == nil {
 		t.Errorf("Error must not be nil")

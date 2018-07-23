@@ -1,11 +1,13 @@
 package workflows
 
-import "github.com/supergiant/supergiant/pkg/workflows/steps"
+import (
+	"context"
+	"github.com/supergiant/supergiant/pkg/workflows/steps"
+)
 
 type WorkFlow struct {
 	s []*steps.Step
 }
-
 
 func New(steps []*steps.Step) *WorkFlow {
 	return &WorkFlow{
@@ -13,10 +15,9 @@ func New(steps []*steps.Step) *WorkFlow {
 	}
 }
 
-
-func (w *WorkFlow) Run() error {
+func (w *WorkFlow) Run(ctx context.Context) error {
 	for _, step := range w.s {
-		if err := step.Run(); err != nil {
+		if err := step.Run(ctx); err != nil {
 			return err
 		}
 	}

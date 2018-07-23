@@ -9,6 +9,7 @@ import (
 
 	"github.com/pkg/errors"
 
+	"context"
 	"github.com/supergiant/supergiant/pkg/runner"
 )
 
@@ -61,13 +62,6 @@ curl -XPOST -H 'Content-type: application/json' -d'{"apiVersion":"v1","kind":"Na
 	}
 
 	output := new(bytes.Buffer)
-
-	j := &Task{
-		r,
-		proxyTemplate,
-		output,
-	}
-
 	cfg := Config{
 		host,
 		port,
@@ -75,7 +69,14 @@ curl -XPOST -H 'Content-type: application/json' -d'{"apiVersion":"v1","kind":"Na
 		rbacEnabled,
 	}
 
-	err = j.PostStart(cfg)
+	j := &Task{
+		r,
+		proxyTemplate,
+		cfg,
+		output,
+	}
+
+	err = j.Run(context.Background())
 
 	if err != nil {
 		t.Errorf("Unpexpected error while  provision node %v", err)
@@ -111,7 +112,7 @@ func TestPostStartError(t *testing.T) {
 	}
 
 	cfg := Config{}
-	err = j.PostStart(cfg)
+	err = j.Run(cfg)
 
 	if err == nil {
 		t.Errorf("Error must not be nil")

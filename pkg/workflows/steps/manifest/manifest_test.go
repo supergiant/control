@@ -9,6 +9,7 @@ import (
 
 	"github.com/pkg/errors"
 
+	"context"
 	"github.com/supergiant/supergiant/pkg/runner"
 )
 
@@ -209,13 +210,6 @@ EOF
 	}
 
 	output := new(bytes.Buffer)
-
-	j := &Task{
-		r,
-		proxyTemplate,
-		output,
-	}
-
 	cfg := Config{
 		KubernetesVersion:   kubernetesVersion,
 		KubernetesConfigDir: kubernetesConfigDir,
@@ -228,7 +222,14 @@ EOF
 		ProviderString:      providerString,
 	}
 
-	err = j.WriteManifest(cfg)
+	j := &Task{
+		r,
+		proxyTemplate,
+		cfg,
+		output,
+	}
+
+	err = j.Run(context.Background())
 
 	if err != nil {
 		t.Errorf("Unpexpected error while  provision node %v", err)
@@ -284,11 +285,11 @@ func TestWriteManifestError(t *testing.T) {
 	j := &Task{
 		r,
 		proxyTemplate,
+		Config{},
 		output,
 	}
 
-	cfg := Config{}
-	err = j.WriteManifest(cfg)
+	err = j.Run(context.Background())
 
 	if err == nil {
 		t.Errorf("Error must not be nil")

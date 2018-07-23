@@ -9,7 +9,7 @@ import (
 
 	"github.com/supergiant/supergiant/pkg/runner"
 	"github.com/supergiant/supergiant/pkg/runner/ssh"
-	"github.com/supergiant/supergiant/pkg/steps"
+	"github.com/supergiant/supergiant/pkg/workflows/steps"
 )
 
 type Task struct {
@@ -35,8 +35,8 @@ func New(script *template.Template,
 	return t, nil
 }
 
-func (j *Task) Run() error {
-	err := steps.RunTemplate(context.Background(), j.script, j.runner, j.output, nil)
+func (j *Task) Run(ctx context.Context) error {
+	err := steps.RunTemplate(ctx, j.script, j.runner, j.output, nil)
 
 	if err != nil {
 		return errors.Wrap(err, "error running cni template as a command")

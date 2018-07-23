@@ -9,6 +9,7 @@ import (
 
 	"github.com/pkg/errors"
 
+	"context"
 	"github.com/supergiant/supergiant/pkg/runner"
 )
 
@@ -56,7 +57,7 @@ func TestStartKubelet(t *testing.T) {
 		output,
 	}
 
-	err = task.Run()
+	err = task.Run(context.Background())
 
 	if !strings.Contains(output.String(), k8sVersion) {
 		t.Errorf("k8s version %s not found in %s", k8sVersion, output.String())
@@ -81,7 +82,7 @@ func TestStartKubeletError(t *testing.T) {
 		output,
 	}
 
-	err = j.Run()
+	err = j.Run(context.Background())
 
 	if err == nil {
 		t.Errorf("Error must not be nil")

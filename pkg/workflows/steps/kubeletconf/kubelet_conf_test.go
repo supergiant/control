@@ -9,6 +9,7 @@ import (
 
 	"github.com/pkg/errors"
 
+	"context"
 	"github.com/supergiant/supergiant/pkg/runner"
 )
 
@@ -41,19 +42,19 @@ func TestWriteKubeletConf(t *testing.T) {
 	}
 
 	output := new(bytes.Buffer)
-
-	j := &Task{
-		r,
-		proxyTemplate,
-		output,
-	}
-
 	cfg := Config{
 		Host: host,
 		Port: port,
 	}
 
-	err = j.WriteKubeletConf(cfg)
+	j := &Task{
+		r,
+		proxyTemplate,
+		cfg,
+		output,
+	}
+
+	err = j.Run(context.Background())
 
 	if err != nil {
 		t.Errorf("Unpexpected error while  provision node %v", err)
@@ -81,11 +82,11 @@ func TestWriteKubeletConfErr(t *testing.T) {
 	j := &Task{
 		r,
 		proxyTemplate,
+		Config{},
 		output,
 	}
 
-	cfg := Config{}
-	err = j.WriteKubeletConf(cfg)
+	err = j.Run(context.Background())
 
 	if err == nil {
 		t.Errorf("Error must not be nil")
