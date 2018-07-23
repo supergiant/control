@@ -10,29 +10,14 @@ import (
 	"github.com/supergiant/supergiant/pkg/runner"
 	"github.com/supergiant/supergiant/pkg/runner/ssh"
 	"github.com/supergiant/supergiant/pkg/workflows/steps"
+	"github.com/supergiant/supergiant/pkg/workflows"
 )
 
-type Config struct {
-	KubernetesConfigDir   string
-	CACert                string
-	CACertName            string
-	CAKeyCert             string
-	CAKeyName             string
-	APIServerCert         string
-	APIServerCertName     string
-	APIServerKey          string
-	APIServerKeyName      string
-	KubeletClientCert     string
-	KubeletClientCertName string
-	KubeletClientKey      string
-	KubeletClientKeyName  string
-}
 
 type Task struct {
 	runner runner.Runner
 	script *template.Template
 	output io.Writer
-	config Config
 }
 
 func New(script *template.Template,
@@ -52,8 +37,8 @@ func New(script *template.Template,
 	return t, nil
 }
 
-func (t *Task) Run(ctx context.Context) error {
-	err := steps.RunTemplate(ctx, t.script, t.runner, t.output, t.config)
+func (t *Task) Run(ctx context.Context, config workflows.Config) error {
+	err := steps.RunTemplate(ctx, t.script, t.runner, t.output, config.CertificatesConfig)
 
 	if err != nil {
 		return errors.Wrap(err, "error running write certificates template as a command")

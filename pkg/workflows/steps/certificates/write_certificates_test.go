@@ -11,6 +11,7 @@ import (
 
 	"context"
 	"github.com/supergiant/supergiant/pkg/runner"
+	"github.com/supergiant/supergiant/pkg/workflows"
 )
 
 type fakeRunner struct {
@@ -62,30 +63,31 @@ echo "{{ .KubeletClientKey }}" > ${KUBERNETES_SSL_DIR}/'{{ .KubeletClientKeyName
 
 	output := new(bytes.Buffer)
 
-	cfg := Config{
-		kubernetesConfigDir,
-		CACert,
-		CACertName,
-		CAKeyCert,
-		CAKeyName,
-		APIServerCert,
-		APIServerCertName,
-		APIServerKey,
-		APIServerKeyName,
-		kubeletClientCert,
-		kubeletClientCertName,
-		kubeletClientKey,
-		kubeletClientKeyName,
+	cfg := workflows.Config{
+		CertificatesConfig: workflows.CertificatesConfig{
+			kubernetesConfigDir,
+			CACert,
+			CACertName,
+			CAKeyCert,
+			CAKeyName,
+			APIServerCert,
+			APIServerCertName,
+			APIServerKey,
+			APIServerKeyName,
+			kubeletClientCert,
+			kubeletClientCertName,
+			kubeletClientKey,
+			kubeletClientKeyName,
+		},
 	}
 
 	task := &Task{
 		r,
 		proxyTemplate,
 		output,
-		cfg,
 	}
 
-	err = task.Run(context.Background())
+	err = task.Run(context.Background(), cfg)
 
 	if err != nil {
 		t.Errorf("Unpexpected error while  provision node %v", err)
@@ -150,10 +152,12 @@ func TestInstallTillerError(t *testing.T) {
 		r,
 		proxyTemplate,
 		output,
-		Config{},
 	}
 
-	err = task.Run(context.Background())
+	cfg := workflows.Config{
+		CertificatesConfig:workflows.CertificatesConfig{},
+	}
+	err = task.Run(context.Background(), cfg)
 
 	if err == nil {
 		t.Errorf("Error must not be nil")
