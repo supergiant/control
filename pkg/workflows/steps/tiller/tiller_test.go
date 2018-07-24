@@ -11,7 +11,7 @@ import (
 
 	"context"
 	"github.com/supergiant/supergiant/pkg/runner"
-	"github.com/supergiant/supergiant/pkg/workflows"
+	"github.com/supergiant/supergiant/pkg/workflows/steps"
 )
 
 type fakeRunner struct {
@@ -51,8 +51,8 @@ func TestInstallTiller(t *testing.T) {
 		output,
 	}
 
-	cfg := workflows.Config{
-		TillerConfig: workflows.TillerConfig{
+	cfg := steps.Config{
+		TillerConfig: steps.TillerConfig{
 			helmVersion,
 			operatingSystem,
 			arch,
@@ -94,8 +94,8 @@ func TestInstallTillerError(t *testing.T) {
 		output,
 	}
 
-	cfg := workflows.Config{
-		TillerConfig: workflows.TillerConfig{},
+	cfg := steps.Config{
+		TillerConfig: steps.TillerConfig{},
 	}
 	err = j.Run(context.Background(), cfg)
 

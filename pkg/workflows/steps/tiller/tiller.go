@@ -9,7 +9,6 @@ import (
 
 	"github.com/supergiant/supergiant/pkg/runner"
 	"github.com/supergiant/supergiant/pkg/runner/ssh"
-	"github.com/supergiant/supergiant/pkg/workflows"
 	"github.com/supergiant/supergiant/pkg/workflows/steps"
 )
 
@@ -35,7 +34,7 @@ func New(script *template.Template, outStream io.Writer, cfg *ssh.Config) (*Task
 	return t, nil
 }
 
-func (j *Task) Run(ctx context.Context, config workflows.Config) error {
+func (j *Task) Run(ctx context.Context, config steps.Config) error {
 	err := steps.RunTemplate(context.Background(), j.script, j.runner, j.output, config.TillerConfig)
 
 	if err != nil {
