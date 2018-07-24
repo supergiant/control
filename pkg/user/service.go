@@ -27,6 +27,10 @@ func NewService(storagePrefix string, repository storage.Interface) *Service {
 }
 
 func (s *Service) Create(ctx context.Context, user *User) error {
+	err := user.encryptPassword()
+	if err != nil {
+		return err
+	}
 	data, err := json.Marshal(user)
 	if err != nil {
 		return errors.Wrap(err, "user create")
