@@ -1,4 +1,4 @@
-package node
+package kubelet
 
 import (
 	"bytes"
@@ -25,8 +25,7 @@ func (f *fakeRunner) Run(command *runner.Command) error {
 	return err
 }
 
-func TestJob_ProvisionNode(t *testing.T) {
-	masterIp := "20.30.40.50"
+func TestStartKubelet(t *testing.T) {
 	k8sVersion := "1.8.7"
 	etcdPort := "2379"
 	proxyPort := "8080"
@@ -34,7 +33,6 @@ func TestJob_ProvisionNode(t *testing.T) {
 	var (
 		r             runner.Runner = &fakeRunner{}
 		kubeletScript               = `echo 'gcr.io/google-containers/hyperkube:v{{ .KubernetesVersion }}' > /etc/systemd/system/kubelet.service;systemctl start kubelet`
-		proxyScript                 = `        "master": "http://{{ .MasterPrivateIP }}:{{ .ProxyPort }} http://{{ .MasterPrivateIP }}:{{ .EtcdClientPort }}";sudo docker run --privileged=true --volume=/etc/ssl/cer:/usr/share/ca-certificates --volume=/etc/kubernetes/worker-kubeconfig.yaml:/etc/kubernetes/worker-kubeconfig.yaml:ro --volume=/etc/kubernetes/ssl:/etc/kubernetes/ssl gcr.io/google_containers/hyperkube:v{{ .KubernetesVersion }} /hyperkube proxy --config /etc/kubernetes/config.json --master http://{{ .MasterPrivateIP }}`
 	)
 
 	kubeletScriptTemplate, err := template.New("kubelet").Parse(kubeletScript)
@@ -43,44 +41,28 @@ func TestJob_ProvisionNode(t *testing.T) {
 		t.Errorf("Error while parsing kubelet script template %v", err)
 	}
 
-	proxyTemplate, err := template.New("proxy").Parse(proxyScript)
-
-	if err != nil {
-		t.Errorf("Error while parsing kubeproxy template %v", err)
-	}
-
 	output := new(bytes.Buffer)
 
-	j := &Job{
+	j := &Task{
 		r,
 		kubeletScriptTemplate,
-		proxyTemplate,
 		output,
 	}
 
-	cfg := JobConfig{
+	cfg := Config{
 		KubernetesVersion: k8sVersion,
-		MasterPrivateIP:   masterIp,
 		ProxyPort:         proxyPort,
 		EtcdClientPort:    etcdPort,
 	}
 
-	err = j.ProvisionNode(cfg)
-
-	if err != nil {
-		t.Errorf("Unpexpected error while  provision node %v", err)
-	}
-
-	if !strings.Contains(output.String(), masterIp) {
-		t.Errorf("master ip %s not found in %s", masterIp, output.String())
-	}
+	err = j.StartKubelet(cfg)
 
 	if !strings.Contains(output.String(), k8sVersion) {
 		t.Errorf("k8s version %s not found in %s", k8sVersion, output.String())
 	}
 }
 
-func TestJob_ProvisionNodeError(t *testing.T) {
+func TestStartKubeletError(t *testing.T) {
 	errMsg := "error has occurred"
 
 	r := &fakeRunner{
@@ -88,19 +70,17 @@ func TestJob_ProvisionNodeError(t *testing.T) {
 	}
 
 	kubeletScriptTemplate, err := template.New("kubelet").Parse("")
-	proxyTemplate, err := template.New("proxy").Parse("")
 
 	output := new(bytes.Buffer)
 
-	j := &Job{
+	j := &Task{
 		r,
 		kubeletScriptTemplate,
-		proxyTemplate,
 		output,
 	}
 
-	cfg := JobConfig{}
-	err = j.ProvisionNode(cfg)
+	cfg := Config{}
+	err = j.StartKubelet(cfg)
 
 	if err == nil {
 		t.Errorf("Error must not be nil")

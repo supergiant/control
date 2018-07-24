@@ -7,9 +7,9 @@ import (
 
 	"github.com/pkg/errors"
 
-	"github.com/supergiant/supergiant/pkg/jobs"
 	"github.com/supergiant/supergiant/pkg/runner"
 	"github.com/supergiant/supergiant/pkg/runner/ssh"
+	"github.com/supergiant/supergiant/pkg/tasks"
 )
 
 type Config struct {
@@ -19,29 +19,29 @@ type Config struct {
 	NetworkType string
 }
 
-type Job struct {
+type Task struct {
 	scriptTemplate *template.Template
 	runner         runner.Runner
 
 	output io.Writer
 }
 
-func New(tpl *template.Template, outStream io.Writer, cfg *ssh.Config) (*Job, error) {
+func New(tpl *template.Template, outStream io.Writer, cfg *ssh.Config) (*Task, error) {
 	sshRunner, err := ssh.NewRunner(cfg)
 
 	if err != nil {
 		return nil, errors.Wrap(err, "error creating ssh runner")
 	}
 
-	return &Job{
+	return &Task{
 		scriptTemplate: tpl,
 		runner:         sshRunner,
 		output:         outStream,
 	}, nil
 }
 
-func (i *Job) InstallFlannel(config Config) error {
-	err := jobs.RunTemplate(context.Background(), i.scriptTemplate, i.runner, i.output, config)
+func (i *Task) InstallFlannel(config Config) error {
+	err := tasks.RunTemplate(context.Background(), i.scriptTemplate, i.runner, i.output, config)
 	if err != nil {
 		return errors.Wrap(err, "Run template has failed for Install flannel job")
 	}
