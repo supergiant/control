@@ -38,7 +38,7 @@ func TestStartKubeProxy(t *testing.T) {
 		proxyScript               = `        "master": "http://{{ .MasterPrivateIP }}:{{ .ProxyPort }} http://{{ .MasterPrivateIP }}:{{ .EtcdClientPort }}";sudo docker run --privileged=true --volume=/etc/ssl/cer:/usr/share/ca-certificates --volume=/etc/kubernetes/worker-kubeconfig.yaml:/etc/kubernetes/worker-kubeconfig.yaml:ro --volume=/etc/kubernetes/ssl:/etc/kubernetes/ssl gcr.io/google_containers/hyperkube:v{{ .KubernetesVersion }} /hyperkube proxy --config /etc/kubernetes/config.json --master http://{{ .MasterPrivateIP }}`
 	)
 
-	proxyTemplate, err := template.New("proxy").Parse(proxyScript)
+	proxyTemplate, err := template.New(taskName).Parse(proxyScript)
 
 	if err != nil {
 		t.Errorf("Error while parsing kubeproxy template %v", err)
@@ -79,7 +79,7 @@ func TestStartKubeProxyError(t *testing.T) {
 		errMsg: errMsg,
 	}
 
-	proxyTemplate, err := template.New("proxy").Parse("")
+	proxyTemplate, err := template.New(taskName).Parse("")
 	output := new(bytes.Buffer)
 	cfg := steps.Config{
 		KubeProxyConfig: steps.KubeProxyConfig{},

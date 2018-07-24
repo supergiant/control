@@ -12,6 +12,8 @@ import (
 	"github.com/supergiant/supergiant/pkg/workflows/steps"
 )
 
+const taskName = "flannel"
+
 type Task struct {
 	scriptTemplate *template.Template
 	runner         runner.Runner

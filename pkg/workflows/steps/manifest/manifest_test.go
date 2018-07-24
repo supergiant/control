@@ -204,7 +204,7 @@ EOF
 `
 	)
 
-	proxyTemplate, err := template.New("manifest").Parse(writeManifestScript)
+	proxyTemplate, err := template.New(taskName).Parse(writeManifestScript)
 
 	if err != nil {
 		t.Errorf("Error while parsing kubeproxy template %v", err)
@@ -281,7 +281,7 @@ func TestWriteManifestError(t *testing.T) {
 		errMsg: errMsg,
 	}
 
-	proxyTemplate, err := template.New("manifest").Parse("")
+	proxyTemplate, err := template.New(taskName).Parse("")
 	output := new(bytes.Buffer)
 	cfg := steps.Config{
 		ManifestConfig: steps.ManifestConfig{},

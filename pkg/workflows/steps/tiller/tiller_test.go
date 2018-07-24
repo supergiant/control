@@ -37,7 +37,7 @@ func TestInstallTiller(t *testing.T) {
 		tillerScript               = `wget http://storage.googleapis.com/kubernetes-helm/{{ .HelmVersion }}-{{ .OperatingSystem }}-{{ .Arch }}.tar.gz --directory-prefix=/tmp/`
 	)
 
-	proxyTemplate, err := template.New("tiller").Parse(tillerScript)
+	proxyTemplate, err := template.New(taskName).Parse(tillerScript)
 
 	if err != nil {
 		t.Errorf("Error while parsing kubeproxy template %v", err)
@@ -85,7 +85,7 @@ func TestInstallTillerError(t *testing.T) {
 		errMsg: errMsg,
 	}
 
-	proxyTemplate, err := template.New("tiller").Parse("")
+	proxyTemplate, err := template.New(taskName).Parse("")
 	output := new(bytes.Buffer)
 
 	j := &Task{

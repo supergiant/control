@@ -56,7 +56,7 @@ curl -XPOST -H 'Content-type: application/json' -d'{"apiVersion":"v1","kind":"Na
 /opt/bin/helm init`
 	)
 
-	proxyTemplate, err := template.New("poststart").Parse(postStartScript)
+	proxyTemplate, err := template.New(taskName).Parse(postStartScript)
 
 	if err != nil {
 		t.Errorf("Error while parsing kubeproxy template %v", err)
@@ -104,7 +104,7 @@ func TestPostStartError(t *testing.T) {
 		errMsg: errMsg,
 	}
 
-	proxyTemplate, err := template.New("poststart").Parse("")
+	proxyTemplate, err := template.New(taskName).Parse("")
 	output := new(bytes.Buffer)
 
 	j := &Task{

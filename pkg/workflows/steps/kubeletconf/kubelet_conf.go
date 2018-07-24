@@ -12,6 +12,8 @@ import (
 	"github.com/supergiant/supergiant/pkg/workflows/steps"
 )
 
+const taskName = "kubelet_conf"
+
 type Task struct {
 	runner runner.Runner
 	script *template.Template

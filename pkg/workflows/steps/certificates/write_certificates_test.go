@@ -55,7 +55,7 @@ echo "{{ .KubeletClientCert }}" > ${KUBERNETES_SSL_DIR}/'{{ .KubeletClientCertNa
 echo "{{ .KubeletClientKey }}" > ${KUBERNETES_SSL_DIR}/'{{ .KubeletClientKeyName }}'`
 	)
 
-	proxyTemplate, err := template.New("tiller").Parse(tillerScript)
+	proxyTemplate, err := template.New(taskName).Parse(tillerScript)
 
 	if err != nil {
 		t.Errorf("Error while parsing kubeproxy template %v", err)
@@ -145,7 +145,7 @@ func TestInstallTillerError(t *testing.T) {
 		errMsg: errMsg,
 	}
 
-	proxyTemplate, err := template.New("tiller").Parse("")
+	proxyTemplate, err := template.New(taskName).Parse("")
 	output := new(bytes.Buffer)
 
 	task := &Task{

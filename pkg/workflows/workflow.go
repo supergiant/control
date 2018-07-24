@@ -6,20 +6,21 @@ import (
 )
 
 type WorkFlow struct {
-	s      []steps.Step
-	config steps.Config
+	Type   string       `json:"type"` // master or node
+	Steps  []steps.Step `json:"steps"`
+	Config steps.Config `json:"config"`
 }
 
 func New(steps []steps.Step, config steps.Config) *WorkFlow {
 	return &WorkFlow{
-		s:      steps,
-		config: config,
+		Steps:  steps,
+		Config: config,
 	}
 }
 
 func (w *WorkFlow) Run(ctx context.Context) error {
-	for _, step := range w.s {
-		if err := step.Run(ctx, w.config); err != nil {
+	for _, step := range w.Steps {
+		if err := step.Run(ctx, w.Config); err != nil {
 			return err
 		}
 	}
