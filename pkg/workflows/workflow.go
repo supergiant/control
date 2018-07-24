@@ -7,10 +7,10 @@ import (
 
 type WorkFlow struct {
 	s      []steps.Step
-	config Config
+	config steps.Config
 }
 
-func New(steps []steps.Step, config Config) *WorkFlow {
+func New(steps []steps.Step, config steps.Config) *WorkFlow {
 	return &WorkFlow{
 		s:      steps,
 		config: config,
