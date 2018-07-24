@@ -22,7 +22,13 @@ func (m *Middleware) AuthMiddleware(next http.Handler) http.Handler {
 			return
 		}
 
-		tokenString := strings.Split(authHeader, " ")[1]
+		ts := strings.Split(authHeader, " ")
+		if len(ts) <= 1 {
+			http.Error(w, sgerrors.ErrInvalidCredentials.Error(), http.StatusForbidden)
+			return
+		}
+
+		tokenString := ts[1]
 		claims, err := m.TokenService.Validate(tokenString)
 
 		// TODO(stgleb): Do something with claims
