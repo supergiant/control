@@ -19,7 +19,7 @@ func TestEndpoint_Authenticate(t *testing.T) {
 	ts := jwt.NewTokenService(60, []byte("secret"))
 	testCases := []struct {
 		user         *User
-		ar           authRequest
+		ar           AuthRequest
 		expectedCode int
 	}{
 		{
@@ -27,8 +27,8 @@ func TestEndpoint_Authenticate(t *testing.T) {
 				Login:    "user1",
 				Password: "1234",
 			},
-			authRequest{
-				UserName: "user1",
+			AuthRequest{
+				Login:    "user1",
 				Password: "1234",
 			},
 			http.StatusOK,
@@ -38,8 +38,8 @@ func TestEndpoint_Authenticate(t *testing.T) {
 				Login:    "user2",
 				Password: "1234",
 			},
-			authRequest{
-				UserName: "user1",
+			AuthRequest{
+				Login:    "user1",
 				Password: "12345",
 			},
 			http.StatusForbidden,

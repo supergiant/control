@@ -27,6 +27,13 @@ func NewService(storagePrefix string, repository storage.Interface) *Service {
 }
 
 func (s *Service) Create(ctx context.Context, user *User) error {
+	if user == nil {
+		return errors.New("user create: user can't be nil")
+	}
+	err := user.encryptPassword()
+	if err != nil {
+		return err
+	}
 	data, err := json.Marshal(user)
 	if err != nil {
 		return errors.Wrap(err, "user create")
@@ -41,6 +48,10 @@ func (s *Service) Create(ctx context.Context, user *User) error {
 }
 
 func (s *Service) Authenticate(ctx context.Context, username, password string) error {
+	if username == "" || password == "" {
+		return sgerrors.ErrInvalidCredentials
+	}
+
 	rawJSON, err := s.repository.Get(ctx, s.storagePrefix, username)
 	if err != nil {
 		//If user doesn't exists we still want Forbidden instead of Not Found

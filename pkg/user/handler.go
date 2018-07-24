@@ -17,9 +17,9 @@ type Handler struct {
 	tokenService *sgjwt.TokenService
 }
 
-type authRequest struct {
-	UserName string
-	Password string
+type AuthRequest struct {
+	Login    string `json:"login"`
+	Password string `json:"password"`
 }
 
 func NewHandler(userService *Service, tokenService *sgjwt.TokenService) *Handler {
@@ -30,13 +30,13 @@ func NewHandler(userService *Service, tokenService *sgjwt.TokenService) *Handler
 }
 
 func (h *Handler) Authenticate(w http.ResponseWriter, r *http.Request) {
-	var ar authRequest
+	var ar AuthRequest
 	if err := json.NewDecoder(r.Body).Decode(&ar); err != nil {
 		http.Error(w, err.Error(), http.StatusBadRequest)
 		return
 	}
 
-	if err := h.userService.Authenticate(r.Context(), ar.UserName, ar.Password); err != nil {
+	if err := h.userService.Authenticate(r.Context(), ar.Login, ar.Password); err != nil {
 		if sgerrors.IsInvalidCredentials(err) {
 			http.Error(w, sgerrors.ErrInvalidCredentials.Error(), http.StatusForbidden)
 		}
@@ -44,7 +44,7 @@ func (h *Handler) Authenticate(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if token, err := h.tokenService.Issue(ar.UserName); err == nil {
+	if token, err := h.tokenService.Issue(ar.Login); err == nil {
 		w.Header().Set("Authorization", token)
 		return
 	} else {
