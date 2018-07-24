@@ -5,6 +5,7 @@ import (
 	"strings"
 
 	sgjwt "github.com/supergiant/supergiant/pkg/jwt"
+	"github.com/supergiant/supergiant/pkg/sgerrors"
 	"github.com/supergiant/supergiant/pkg/user"
 )
 
@@ -15,8 +16,13 @@ type Middleware struct {
 
 func (m *Middleware) AuthMiddleware(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		// Get rid of Bearer
-		tokenString := strings.Split(r.Header.Get("Authorization"), " ")[1]
+		authHeader := r.Header.Get("Authorization")
+		if authHeader == "" {
+			http.Error(w, sgerrors.ErrInvalidCredentials.Error(), http.StatusForbidden)
+			return
+		}
+
+		tokenString := strings.Split(authHeader, " ")[1]
 		claims, err := m.TokenService.Validate(tokenString)
 
 		// TODO(stgleb): Do something with claims

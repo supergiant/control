@@ -98,16 +98,16 @@ func configureApplication(cfg *Config) (*mux.Router, error) {
 	}
 	router := mux.NewRouter()
 
-	r := router.PathPrefix("/v1/api").Subrouter()
+	protectedAPI := router.PathPrefix("/v1/api").Subrouter()
 	repository := storage.NewETCDRepository(etcdCfg)
 
 	accountService := account.NewService(account.DefaultStoragePrefix, repository)
 	accountHandler := account.NewHandler(accountService)
-	accountHandler.Register(r)
+	accountHandler.Register(protectedAPI)
 
 	kubeService := kube.NewService(kube.DefaultStoragePrefix, repository)
 	kubeHandler := kube.NewHandler(kubeService)
-	kubeHandler.Register(r)
+	kubeHandler.Register(protectedAPI)
 
 	//TODO Add generation of jwt token
 	jwtService := jwt.NewTokenService(86400, []byte("test"))
@@ -115,25 +115,26 @@ func configureApplication(cfg *Config) (*mux.Router, error) {
 	userHandler := user.NewHandler(userService, jwtService)
 
 	router.HandleFunc("/auth", userHandler.Authenticate).Methods(http.MethodPost)
-	r.HandleFunc("/users", userHandler.Create).Methods(http.MethodPost)
+	//Opening it up for testing right now, will be protected after implementing initial user generation
+	router.HandleFunc("/users", userHandler.Create).Methods(http.MethodPost)
 
 	kubeProfileService := profile.NewKubeProfileService(profile.DefaultKubeProfilePreifx, repository)
 	kubeProfileHandler := profile.NewKubeProfileHandler(kubeProfileService)
-	kubeProfileHandler.Register(r)
+	kubeProfileHandler.Register(protectedAPI)
 
 	nodeProfileService := profile.NewNodeProfileService(profile.DefaultNodeProfilePrefix, repository)
 	nodeProfileHandler := profile.NewNodeProfileHandler(nodeProfileService)
-	nodeProfileHandler.Register(r)
+	nodeProfileHandler.Register(protectedAPI)
 
 	helmService := helm.NewService(repository)
 	helmHandler := helm.NewHandler(helmService)
-	helmHandler.Register(r)
+	helmHandler.Register(protectedAPI)
 
 	authMiddleware := api.Middleware{
 		TokenService: jwtService,
 		UserService:  userService,
 	}
-	r.Use(authMiddleware.AuthMiddleware)
+	protectedAPI.Use(authMiddleware.AuthMiddleware)
 
 	return router, nil
 }
