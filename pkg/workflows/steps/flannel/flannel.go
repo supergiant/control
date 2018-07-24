@@ -12,7 +12,7 @@ import (
 	"github.com/supergiant/supergiant/pkg/workflows/steps"
 )
 
-const taskName = "flannel"
+const StepName = "flannel"
 
 type Task struct {
 	scriptTemplate *template.Template

@@ -12,7 +12,7 @@ import (
 	"github.com/supergiant/supergiant/pkg/workflows/steps"
 )
 
-const taskName = "kubelet"
+const StepName = "kubelet"
 
 type Task struct {
 	runner runner.Runner

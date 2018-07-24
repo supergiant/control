@@ -12,7 +12,7 @@ import (
 	"github.com/supergiant/supergiant/pkg/workflows/steps"
 )
 
-const taskName = "write_certificates"
+const StepName = "write_certificates"
 
 type Task struct {
 	runner runner.Runner

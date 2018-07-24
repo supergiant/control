@@ -12,7 +12,7 @@ import (
 	"github.com/supergiant/supergiant/pkg/workflows/steps"
 )
 
-const taskName = "kube_proxy"
+const StepName = "kube_proxy"
 
 type Task struct {
 	runner runner.Runner

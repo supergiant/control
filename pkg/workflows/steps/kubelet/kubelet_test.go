@@ -37,7 +37,7 @@ func TestStartKubelet(t *testing.T) {
 		kubeletScript               = `echo 'gcr.io/google-containers/hyperkube:v{{ .KubernetesVersion }}' > /etc/systemd/system/kubelet.service;systemctl start kubelet`
 	)
 
-	kubeletScriptTemplate, err := template.New(taskName).Parse(kubeletScript)
+	kubeletScriptTemplate, err := template.New(StepName).Parse(kubeletScript)
 
 	if err != nil {
 		t.Errorf("Error while parsing kubelet script template %v", err)
@@ -73,7 +73,7 @@ func TestStartKubeletError(t *testing.T) {
 		errMsg: errMsg,
 	}
 
-	kubeletScriptTemplate, err := template.New(taskName).Parse("")
+	kubeletScriptTemplate, err := template.New(StepName).Parse("")
 
 	output := new(bytes.Buffer)
 	config := steps.Config{

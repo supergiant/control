@@ -29,7 +29,7 @@ systemctl enable flanneld.service
 systemctl restart flanneld.service
 `
 
-	tpl, err := template.New(taskName).Parse(script)
+	tpl, err := template.New(StepName).Parse(script)
 
 	if err != nil {
 		t.Errorf("error parsing flannel test template %s", err.Error())

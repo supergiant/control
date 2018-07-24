@@ -12,7 +12,7 @@ import (
 	"github.com/supergiant/supergiant/pkg/workflows/steps"
 )
 
-const taskName = "cni_tools"
+const StepName = "cni_tools"
 
 type Task struct {
 	runner runner.Runner

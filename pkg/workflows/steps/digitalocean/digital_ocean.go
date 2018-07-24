@@ -17,7 +17,7 @@ import (
 	"github.com/supergiant/supergiant/pkg/workflows/steps"
 )
 
-const taskName = "digital_ocean"
+const StepName = "digital_ocean"
 
 var (
 	// TODO(stgleb): We need global error for timeout exceeding

@@ -36,7 +36,7 @@ func TestWriteKubeletConf(t *testing.T) {
 		tillerScript               = `server: http://{{ .Host }}:{{ .Port }}`
 	)
 
-	proxyTemplate, err := template.New(taskName).Parse(tillerScript)
+	proxyTemplate, err := template.New(StepName).Parse(tillerScript)
 
 	if err != nil {
 		t.Errorf("Error while parsing kubeproxy template %v", err)
@@ -78,7 +78,7 @@ func TestWriteKubeletConfErr(t *testing.T) {
 		errMsg: errMsg,
 	}
 
-	proxyTemplate, err := template.New(taskName).Parse("")
+	proxyTemplate, err := template.New(StepName).Parse("")
 	output := new(bytes.Buffer)
 	cfg := steps.Config{
 		KubeletConfConfig: steps.KubeletConfConfig{},

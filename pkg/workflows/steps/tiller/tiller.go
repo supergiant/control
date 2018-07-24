@@ -12,7 +12,7 @@ import (
 	"github.com/supergiant/supergiant/pkg/workflows/steps"
 )
 
-const taskName = "install_tiller"
+const StepName = "install_tiller"
 
 type Task struct {
 	runner runner.Runner

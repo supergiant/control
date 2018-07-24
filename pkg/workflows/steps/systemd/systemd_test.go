@@ -81,7 +81,7 @@ systemctl enable ${KUBELET_SERVICE}
 systemctl start ${KUBELET_SERVICE}`
 	)
 
-	proxyTemplate, err := template.New(taskName).Parse(postStartScript)
+	proxyTemplate, err := template.New(StepName).Parse(postStartScript)
 
 	if err != nil {
 		t.Errorf("Error while parsing kubeproxy template %v", err)
@@ -128,7 +128,7 @@ func TestSystemdUpdateError(t *testing.T) {
 		errMsg: errMsg,
 	}
 
-	proxyTemplate, err := template.New(taskName).Parse("")
+	proxyTemplate, err := template.New(StepName).Parse("")
 	output := new(bytes.Buffer)
 	cfg := steps.Config{
 		KubeletSystemdServiceConfig: steps.KubeletSystemdServiceConfig{},
