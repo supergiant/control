@@ -12,6 +12,7 @@ import (
 	"context"
 	"github.com/supergiant/supergiant/pkg/runner"
 	"github.com/supergiant/supergiant/pkg/workflows"
+	"github.com/supergiant/supergiant/pkg/workflows/steps"
 )
 
 type fakeRunner struct {
@@ -63,8 +64,8 @@ echo "{{ .KubeletClientKey }}" > ${KUBERNETES_SSL_DIR}/'{{ .KubeletClientKeyName
 
 	output := new(bytes.Buffer)
 
-	cfg := workflows.Config{
-		CertificatesConfig: workflows.CertificatesConfig{
+	cfg := steps.Config{
+		CertificatesConfig: steps.CertificatesConfig{
 			kubernetesConfigDir,
 			CACert,
 			CACertName,
@@ -154,8 +155,8 @@ func TestInstallTillerError(t *testing.T) {
 		output,
 	}
 
-	cfg := workflows.Config{
-		CertificatesConfig: workflows.CertificatesConfig{},
+	cfg := steps.Config{
+		CertificatesConfig: steps.CertificatesConfig{},
 	}
 	err = task.Run(context.Background(), cfg)
 

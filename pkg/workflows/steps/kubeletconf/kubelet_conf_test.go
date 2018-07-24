@@ -12,6 +12,7 @@ import (
 	"context"
 	"github.com/supergiant/supergiant/pkg/runner"
 	"github.com/supergiant/supergiant/pkg/workflows"
+	"github.com/supergiant/supergiant/pkg/workflows/steps"
 )
 
 type fakeRunner struct {
@@ -43,8 +44,8 @@ func TestWriteKubeletConf(t *testing.T) {
 	}
 
 	output := new(bytes.Buffer)
-	cfg := workflows.Config{
-		KubeletConfConfig: workflows.KubeletConfConfig{
+	cfg := steps.Config{
+		KubeletConfConfig: steps.KubeletConfConfig{
 			Host: host,
 			Port: port,
 		},
@@ -80,8 +81,8 @@ func TestWriteKubeletConfErr(t *testing.T) {
 
 	proxyTemplate, err := template.New("tiller").Parse("")
 	output := new(bytes.Buffer)
-	cfg := workflows.Config{
-		KubeletConfConfig: workflows.KubeletConfConfig{},
+	cfg := steps.Config{
+		KubeletConfConfig: steps.KubeletConfConfig{},
 	}
 
 	j := &Task{

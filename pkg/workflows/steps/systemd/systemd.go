@@ -19,12 +19,6 @@ type Task struct {
 	output io.Writer
 }
 
-type Config struct {
-	KubernetesVersion  string
-	KubeletService     string
-	KubernetesProvider string
-}
-
 func New(script *template.Template, outStream io.Writer, cfg *ssh.Config) (*Task, error) {
 	sshRunner, err := ssh.NewRunner(cfg)
 
@@ -41,7 +35,7 @@ func New(script *template.Template, outStream io.Writer, cfg *ssh.Config) (*Task
 	return t, nil
 }
 
-func (j *Task) Run(ctx context.Context, config workflows.Config) error {
+func (j *Task) Run(ctx context.Context, config steps.Config) error {
 	err := steps.RunTemplate(context.Background(), j.script, j.runner, j.output, config.KubeletSystemdServiceConfig)
 
 	if err != nil {

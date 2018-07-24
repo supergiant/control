@@ -10,7 +10,7 @@ import (
 
 	"context"
 	"github.com/supergiant/supergiant/pkg/testutils"
-	"github.com/supergiant/supergiant/pkg/workflows"
+	"github.com/supergiant/supergiant/pkg/workflows/steps"
 )
 
 func TestFlannelJob_InstallFlannel(t *testing.T) {
@@ -66,8 +66,8 @@ systemctl restart flanneld.service
 
 		buffer := &bytes.Buffer{}
 
-		config := workflows.Config{
-			FlannelConfig: workflows.FlannelConfig{
+		config := steps.Config{
+			FlannelConfig: steps.FlannelConfig{
 				testCase.version,
 				testCase.arch,
 				testCase.network,

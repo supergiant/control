@@ -12,6 +12,7 @@ import (
 	"context"
 	"github.com/supergiant/supergiant/pkg/runner"
 	"github.com/supergiant/supergiant/pkg/workflows"
+	"github.com/supergiant/supergiant/pkg/workflows/steps"
 )
 
 type fakeRunner struct {
@@ -63,8 +64,8 @@ curl -XPOST -H 'Content-type: application/json' -d'{"apiVersion":"v1","kind":"Na
 	}
 
 	output := new(bytes.Buffer)
-	cfg := workflows.Config{
-		PostStartConfig: workflows.PostStartConfig{
+	cfg := steps.Config{
+		PostStartConfig: steps.PostStartConfig{
 			host,
 			port,
 			username,
@@ -113,8 +114,8 @@ func TestPostStartError(t *testing.T) {
 		output,
 	}
 
-	cfg := workflows.Config{
-		PostStartConfig: workflows.PostStartConfig{},
+	cfg := steps.Config{
+		PostStartConfig: steps.PostStartConfig{},
 	}
 	err = j.Run(context.Background(), cfg)
 

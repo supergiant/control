@@ -19,13 +19,6 @@ type Task struct {
 	output io.Writer
 }
 
-type Config struct {
-	MasterPrivateIP   string
-	ProxyPort         string
-	EtcdClientPort    string
-	KubernetesVersion string
-}
-
 func New(script *template.Template, outStream io.Writer, cfg *ssh.Config) (*Task, error) {
 	sshRunner, err := ssh.NewRunner(cfg)
 
@@ -42,7 +35,7 @@ func New(script *template.Template, outStream io.Writer, cfg *ssh.Config) (*Task
 	return t, nil
 }
 
-func (j *Task) Run(ctx context.Context, config workflows.Config) error {
+func (j *Task) Run(ctx context.Context, config steps.Config) error {
 	err := steps.RunTemplate(ctx, j.script, j.runner, j.output, config.KubeProxyConfig)
 
 	if err != nil {

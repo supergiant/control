@@ -12,6 +12,7 @@ import (
 	"context"
 	"github.com/supergiant/supergiant/pkg/runner"
 	"github.com/supergiant/supergiant/pkg/workflows"
+	"github.com/supergiant/supergiant/pkg/workflows/steps"
 )
 
 type fakeRunner struct {
@@ -45,8 +46,8 @@ func TestStartKubelet(t *testing.T) {
 
 	output := new(bytes.Buffer)
 
-	cfg := workflows.Config{
-		KubeletConfig: workflows.KubeletConfig{
+	cfg := steps.Config{
+		KubeletConfig: steps.KubeletConfig{
 			KubernetesVersion: k8sVersion,
 			ProxyPort:         proxyPort,
 			EtcdClientPort:    etcdPort,
@@ -76,8 +77,8 @@ func TestStartKubeletError(t *testing.T) {
 	kubeletScriptTemplate, err := template.New("kubelet").Parse("")
 
 	output := new(bytes.Buffer)
-	config := workflows.Config{
-		KubeletConfig: workflows.KubeletConfig{},
+	config := steps.Config{
+		KubeletConfig: steps.KubeletConfig{},
 	}
 
 	j := &Task{

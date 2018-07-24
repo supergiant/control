@@ -19,15 +19,7 @@ type Task struct {
 	output io.Writer
 }
 
-type Config struct {
-	Host        string
-	Port        string
-	Username    string
-	RBACEnabled bool
-}
-
-func New(script *template.Template, config Config,
-	outStream io.Writer, cfg *ssh.Config) (*Task, error) {
+func New(script *template.Template, outStream io.Writer, cfg *ssh.Config) (*Task, error) {
 	sshRunner, err := ssh.NewRunner(cfg)
 
 	if err != nil {
@@ -43,7 +35,7 @@ func New(script *template.Template, config Config,
 	return t, nil
 }
 
-func (j *Task) Run(ctx context.Context, config workflows.Config) error {
+func (j *Task) Run(ctx context.Context, config steps.Config) error {
 	err := steps.RunTemplate(context.Background(), j.script, j.runner, j.output, config.PostStartConfig)
 
 	if err != nil {

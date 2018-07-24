@@ -19,12 +19,6 @@ type Task struct {
 	output io.Writer
 }
 
-type Config struct {
-	HelmVersion     string
-	OperatingSystem string
-	Arch            string
-}
-
 func New(script *template.Template, outStream io.Writer, cfg *ssh.Config) (*Task, error) {
 	sshRunner, err := ssh.NewRunner(cfg)
 

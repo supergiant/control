@@ -9,16 +9,8 @@ import (
 
 	"github.com/supergiant/supergiant/pkg/runner"
 	"github.com/supergiant/supergiant/pkg/runner/ssh"
-	"github.com/supergiant/supergiant/pkg/workflows"
 	"github.com/supergiant/supergiant/pkg/workflows/steps"
 )
-
-type Config struct {
-	Version     string
-	Arch        string
-	Network     string
-	NetworkType string
-}
 
 type Task struct {
 	scriptTemplate *template.Template
@@ -41,7 +33,7 @@ func New(tpl *template.Template, outStream io.Writer, cfg *ssh.Config) (*Task, e
 	}, nil
 }
 
-func (t *Task) Run(ctx context.Context, config workflows.Config) error {
+func (t *Task) Run(ctx context.Context, config steps.Config) error {
 	err := steps.RunTemplate(context.Background(), t.scriptTemplate, t.runner, t.output, config.FlannelConfig)
 	if err != nil {
 		return errors.Wrap(err, "Run template has failed for Install flannel job")

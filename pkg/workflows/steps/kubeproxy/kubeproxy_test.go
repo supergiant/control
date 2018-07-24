@@ -12,6 +12,7 @@ import (
 	"context"
 	"github.com/supergiant/supergiant/pkg/runner"
 	"github.com/supergiant/supergiant/pkg/workflows"
+	"github.com/supergiant/supergiant/pkg/workflows/steps"
 )
 
 type fakeRunner struct {
@@ -46,8 +47,8 @@ func TestStartKubeProxy(t *testing.T) {
 
 	output := new(bytes.Buffer)
 
-	cfg := workflows.Config{
-		KubeProxyConfig: workflows.KubeProxyConfig{
+	cfg := steps.Config{
+		KubeProxyConfig: steps.KubeProxyConfig{
 			KubernetesVersion: k8sVersion,
 			MasterPrivateIP:   masterIp,
 			ProxyPort:         proxyPort,
@@ -81,8 +82,8 @@ func TestStartKubeProxyError(t *testing.T) {
 
 	proxyTemplate, err := template.New("proxy").Parse("")
 	output := new(bytes.Buffer)
-	cfg := workflows.Config{
-		KubeProxyConfig: workflows.KubeProxyConfig{},
+	cfg := steps.Config{
+		KubeProxyConfig: steps.KubeProxyConfig{},
 	}
 
 	j := &Task{

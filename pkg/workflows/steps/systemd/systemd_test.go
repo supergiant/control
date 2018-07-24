@@ -12,6 +12,7 @@ import (
 	"context"
 	"github.com/supergiant/supergiant/pkg/runner"
 	"github.com/supergiant/supergiant/pkg/workflows"
+	"github.com/supergiant/supergiant/pkg/workflows/steps"
 )
 
 type fakeRunner struct {
@@ -88,8 +89,8 @@ systemctl start ${KUBELET_SERVICE}`
 	}
 
 	output := new(bytes.Buffer)
-	cfg := workflows.Config{
-		KubeletSystemdServiceConfig: workflows.KubeletSystemdServiceConfig{
+	cfg := steps.Config{
+		KubeletSystemdServiceConfig: steps.KubeletSystemdServiceConfig{
 			k8sVersion,
 			kubeletService,
 			k8sProvider,
@@ -130,8 +131,8 @@ func TestSystemdUpdateError(t *testing.T) {
 
 	proxyTemplate, err := template.New("systemd").Parse("")
 	output := new(bytes.Buffer)
-	cfg := workflows.Config{
-		KubeletSystemdServiceConfig: workflows.KubeletSystemdServiceConfig{},
+	cfg := steps.Config{
+		KubeletSystemdServiceConfig: steps.KubeletSystemdServiceConfig{},
 	}
 	j := &Task{
 		r,

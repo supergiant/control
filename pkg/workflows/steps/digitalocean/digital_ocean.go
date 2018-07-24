@@ -31,17 +31,6 @@ type TagService interface {
 	TagResources(string, *godo.TagResourcesRequest) (*godo.Response, error)
 }
 
-type Config struct {
-	Name         string
-	K8sVersion   string
-	Region       string
-	Size         string
-	Role         string // master/node
-	Image        string
-	Fingerprints []string
-	AccessToken  string
-}
-
 type Task struct {
 	storage        storage.Interface
 	dropletService DropletService

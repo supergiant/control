@@ -19,20 +19,7 @@ type Task struct {
 	output io.Writer
 }
 
-type Config struct {
-	KubernetesVersion   string
-	KubernetesConfigDir string
-	RBACEnabled         bool
-	EtcdHost            string
-	EtcdPort            string
-	PrivateIpv4         string
-	ProviderString      string
-	MasterHost          string
-	MasterPort          string
-}
-
-func New(script *template.Template, config Config,
-	outStream io.Writer, cfg *ssh.Config) (*Task, error) {
+func New(script *template.Template, outStream io.Writer, cfg *ssh.Config) (*Task, error) {
 	sshRunner, err := ssh.NewRunner(cfg)
 
 	if err != nil {
@@ -48,7 +35,7 @@ func New(script *template.Template, config Config,
 	return t, nil
 }
 
-func (j *Task) Run(ctx context.Context, config workflows.Config) error {
+func (j *Task) Run(ctx context.Context, config steps.Config) error {
 	err := steps.RunTemplate(ctx, j.script, j.runner, j.output, config.ManifestConfig)
 
 	if err != nil {

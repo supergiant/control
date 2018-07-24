@@ -12,6 +12,7 @@ import (
 	"context"
 	"github.com/supergiant/supergiant/pkg/runner"
 	"github.com/supergiant/supergiant/pkg/workflows"
+	"github.com/supergiant/supergiant/pkg/workflows/steps"
 )
 
 type fakeRunner struct {
@@ -211,8 +212,8 @@ EOF
 	}
 
 	output := new(bytes.Buffer)
-	cfg := workflows.Config{
-		ManifestConfig: workflows.ManifestConfig{
+	cfg := steps.Config{
+		ManifestConfig: steps.ManifestConfig{
 			KubernetesVersion:   kubernetesVersion,
 			KubernetesConfigDir: kubernetesConfigDir,
 			RBACEnabled:         RBACEnabled,
@@ -283,8 +284,8 @@ func TestWriteManifestError(t *testing.T) {
 
 	proxyTemplate, err := template.New("manifest").Parse("")
 	output := new(bytes.Buffer)
-	cfg := workflows.Config{
-		ManifestConfig: workflows.ManifestConfig{},
+	cfg := steps.Config{
+		ManifestConfig: steps.ManifestConfig{},
 	}
 
 	j := &Task{

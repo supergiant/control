@@ -6,13 +6,13 @@ import (
 )
 
 type WorkFlow struct {
-	s []steps.Step
+	s      []steps.Step
 	config Config
 }
 
 func New(steps []steps.Step, config Config) *WorkFlow {
 	return &WorkFlow{
-		s: steps,
+		s:      steps,
 		config: config,
 	}
 }

@@ -12,6 +12,7 @@ import (
 	"github.com/supergiant/supergiant/pkg/storage"
 	"github.com/supergiant/supergiant/pkg/testutils"
 	"github.com/supergiant/supergiant/pkg/workflows"
+	"github.com/supergiant/supergiant/pkg/workflows/steps"
 )
 
 type createDropletResponse struct {
@@ -222,8 +223,8 @@ func TestJob_CreateDroplet(t *testing.T) {
 	}
 
 	for _, testCase := range testCases {
-		config := workflows.Config{
-			DOConfig: workflows.DOConfig{
+		config := steps.Config{
+			DOConfig: steps.DOConfig{
 				"test",
 				"1.8.7",
 				"us-west1",

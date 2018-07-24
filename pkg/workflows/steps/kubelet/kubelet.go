@@ -13,13 +13,6 @@ import (
 	"github.com/supergiant/supergiant/pkg/workflows/steps"
 )
 
-type Config struct {
-	MasterPrivateIP   string
-	ProxyPort         string
-	EtcdClientPort    string
-	KubernetesVersion string
-}
-
 type Task struct {
 	runner runner.Runner
 	script *template.Template
@@ -42,7 +35,7 @@ func New(script *template.Template, outStream io.Writer, cfg *ssh.Config) (*Task
 	return t, nil
 }
 
-func (t *Task) Run(ctx context.Context, config workflows.Config) error {
+func (t *Task) Run(ctx context.Context, config steps.Config) error {
 	err := steps.RunTemplate(ctx, t.script, t.runner, t.output, config.KubeletConfig)
 
 	if err != nil {
