@@ -9,13 +9,13 @@ import (
 
 	"github.com/supergiant/supergiant/pkg/runner"
 	"github.com/supergiant/supergiant/pkg/runner/ssh"
+	"github.com/supergiant/supergiant/pkg/workflows"
 	"github.com/supergiant/supergiant/pkg/workflows/steps"
 )
 
 type Task struct {
 	runner runner.Runner
 	script *template.Template
-	config Config
 	output io.Writer
 }
 
@@ -25,8 +25,7 @@ type Config struct {
 	KubernetesProvider string
 }
 
-func New(script *template.Template,
-	outStream io.Writer, cfg *ssh.Config) (*Task, error) {
+func New(script *template.Template, outStream io.Writer, cfg *ssh.Config) (*Task, error) {
 	sshRunner, err := ssh.NewRunner(cfg)
 
 	if err != nil {
@@ -42,8 +41,8 @@ func New(script *template.Template,
 	return t, nil
 }
 
-func (j *Task) Run(ctx context.Context) error {
-	err := steps.RunTemplate(context.Background(), j.script, j.runner, j.output, j.config)
+func (j *Task) Run(ctx context.Context, config workflows.Config) error {
+	err := steps.RunTemplate(context.Background(), j.script, j.runner, j.output, config.KubeletSystemdServiceConfig)
 
 	if err != nil {
 		return errors.Wrap(err, "error running post start template as a command")

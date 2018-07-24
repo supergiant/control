@@ -14,6 +14,7 @@ import (
 
 	"github.com/supergiant/supergiant/pkg/storage"
 	"github.com/supergiant/supergiant/pkg/util"
+	"github.com/supergiant/supergiant/pkg/workflows"
 )
 
 var (
@@ -46,14 +47,12 @@ type Task struct {
 	dropletService DropletService
 	tagService     TagService
 
-	config Config
-
 	DropletTimeout time.Duration
 	CheckPeriod    time.Duration
 }
 
-func New(config Config, s storage.Interface, dropletTimeout, checkPeriod time.Duration) *Task {
-	c := getClient(config.AccessToken)
+func New(accesstoken string, s storage.Interface, dropletTimeout, checkPeriod time.Duration) *Task {
+	c := getClient(accesstoken)
 
 	return &Task{
 		storage:        s,
@@ -65,28 +64,28 @@ func New(config Config, s storage.Interface, dropletTimeout, checkPeriod time.Du
 	}
 }
 
-func (t *Task) Run(ctx context.Context) error {
-	t.config.Name = util.MakeNodeName(t.config.Name, t.config.Role)
+func (t *Task) Run(ctx context.Context, config workflows.Config) error {
+	config.Name = util.MakeNodeName(config.Name, config.Role)
 
 	var fingers []godo.DropletCreateSSHKey
-	for _, ssh := range t.config.Fingerprints {
+	for _, ssh := range config.Fingerprints {
 		fingers = append(fingers, godo.DropletCreateSSHKey{
 			Fingerprint: ssh,
 		})
 	}
 
 	dropletRequest := &godo.DropletCreateRequest{
-		Name:              t.config.Name,
-		Region:            t.config.Region,
-		Size:              t.config.Size,
+		Name:              config.Name,
+		Region:            config.Region,
+		Size:              config.Size,
 		PrivateNetworking: true,
 		SSHKeys:           fingers,
 		Image: godo.DropletCreateImage{
-			Slug: t.config.Image,
+			Slug: config.Image,
 		},
 	}
 
-	tags := []string{"Kubernetes-Cluster", t.config.Name}
+	tags := []string{"Kubernetes-Cluster", config.Name}
 
 	// Create
 	droplet, _, err := t.dropletService.Create(dropletRequest)

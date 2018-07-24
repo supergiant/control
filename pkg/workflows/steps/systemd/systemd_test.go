@@ -11,6 +11,7 @@ import (
 
 	"context"
 	"github.com/supergiant/supergiant/pkg/runner"
+	"github.com/supergiant/supergiant/pkg/workflows"
 )
 
 type fakeRunner struct {
@@ -87,20 +88,21 @@ systemctl start ${KUBELET_SERVICE}`
 	}
 
 	output := new(bytes.Buffer)
-	cfg := Config{
-		k8sVersion,
-		kubeletService,
-		k8sProvider,
+	cfg := workflows.Config{
+		KubeletSystemdServiceConfig: workflows.KubeletSystemdServiceConfig{
+			k8sVersion,
+			kubeletService,
+			k8sProvider,
+		},
 	}
 
 	j := &Task{
 		r,
 		proxyTemplate,
-		cfg,
 		output,
 	}
 
-	err = j.Run(context.Background())
+	err = j.Run(context.Background(), cfg)
 
 	if err != nil {
 		t.Errorf("Unpexpected error while  provision node %v", err)
@@ -128,15 +130,16 @@ func TestSystemdUpdateError(t *testing.T) {
 
 	proxyTemplate, err := template.New("systemd").Parse("")
 	output := new(bytes.Buffer)
-
+	cfg := workflows.Config{
+		KubeletSystemdServiceConfig: workflows.KubeletSystemdServiceConfig{},
+	}
 	j := &Task{
 		r,
 		proxyTemplate,
-		Config{},
 		output,
 	}
 
-	err = j.Run(context.Background())
+	err = j.Run(context.Background(), cfg)
 
 	if err == nil {
 		t.Errorf("Error must not be nil")

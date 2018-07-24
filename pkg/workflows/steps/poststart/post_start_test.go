@@ -11,6 +11,7 @@ import (
 
 	"context"
 	"github.com/supergiant/supergiant/pkg/runner"
+	"github.com/supergiant/supergiant/pkg/workflows"
 )
 
 type fakeRunner struct {
@@ -62,21 +63,22 @@ curl -XPOST -H 'Content-type: application/json' -d'{"apiVersion":"v1","kind":"Na
 	}
 
 	output := new(bytes.Buffer)
-	cfg := Config{
-		host,
-		port,
-		username,
-		rbacEnabled,
+	cfg := workflows.Config{
+		PostStartConfig: workflows.PostStartConfig{
+			host,
+			port,
+			username,
+			rbacEnabled,
+		},
 	}
 
 	j := &Task{
 		r,
 		proxyTemplate,
-		cfg,
 		output,
 	}
 
-	err = j.Run(context.Background())
+	err = j.Run(context.Background(), cfg)
 
 	if err != nil {
 		t.Errorf("Unpexpected error while  provision node %v", err)
@@ -111,8 +113,10 @@ func TestPostStartError(t *testing.T) {
 		output,
 	}
 
-	cfg := Config{}
-	err = j.Run(cfg)
+	cfg := workflows.Config{
+		PostStartConfig: workflows.PostStartConfig{},
+	}
+	err = j.Run(context.Background(), cfg)
 
 	if err == nil {
 		t.Errorf("Error must not be nil")

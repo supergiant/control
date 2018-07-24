@@ -11,6 +11,7 @@ import (
 
 	"context"
 	"github.com/supergiant/supergiant/pkg/runner"
+	"github.com/supergiant/supergiant/pkg/workflows"
 )
 
 type fakeRunner struct {
@@ -42,19 +43,20 @@ func TestWriteKubeletConf(t *testing.T) {
 	}
 
 	output := new(bytes.Buffer)
-	cfg := Config{
-		Host: host,
-		Port: port,
+	cfg := workflows.Config{
+		KubeletConfConfig: workflows.KubeletConfConfig{
+			Host: host,
+			Port: port,
+		},
 	}
 
 	j := &Task{
 		r,
 		proxyTemplate,
-		cfg,
 		output,
 	}
 
-	err = j.Run(context.Background())
+	err = j.Run(context.Background(), cfg)
 
 	if err != nil {
 		t.Errorf("Unpexpected error while  provision node %v", err)
@@ -78,15 +80,17 @@ func TestWriteKubeletConfErr(t *testing.T) {
 
 	proxyTemplate, err := template.New("tiller").Parse("")
 	output := new(bytes.Buffer)
+	cfg := workflows.Config{
+		KubeletConfConfig: workflows.KubeletConfConfig{},
+	}
 
 	j := &Task{
 		r,
 		proxyTemplate,
-		Config{},
 		output,
 	}
 
-	err = j.Run(context.Background())
+	err = j.Run(context.Background(), cfg)
 
 	if err == nil {
 		t.Errorf("Error must not be nil")

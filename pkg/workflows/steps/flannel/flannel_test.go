@@ -10,6 +10,7 @@ import (
 
 	"context"
 	"github.com/supergiant/supergiant/pkg/testutils"
+	"github.com/supergiant/supergiant/pkg/workflows"
 )
 
 func TestFlannelJob_InstallFlannel(t *testing.T) {
@@ -65,21 +66,22 @@ systemctl restart flanneld.service
 
 		buffer := &bytes.Buffer{}
 
-		config := Config{
-			testCase.version,
-			testCase.arch,
-			testCase.network,
-			testCase.networkType,
+		config := workflows.Config{
+			FlannelConfig: workflows.FlannelConfig{
+				testCase.version,
+				testCase.arch,
+				testCase.network,
+				testCase.networkType,
+			},
 		}
 
 		job := &Task{
 			scriptTemplate: tpl,
 			runner:         r,
 			output:         buffer,
-			config:         config,
 		}
 
-		err := job.Run(context.Background())
+		err := job.Run(context.Background(), config)
 
 		if testCase.expectedError != errors.Cause(err) {
 			t.Fatalf("wrong error expected %v actual %v", testCase.expectedError, err)

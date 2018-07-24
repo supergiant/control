@@ -11,6 +11,7 @@ import (
 
 	"context"
 	"github.com/supergiant/supergiant/pkg/runner"
+	"github.com/supergiant/supergiant/pkg/workflows"
 )
 
 type fakeRunner struct {
@@ -45,21 +46,22 @@ func TestStartKubeProxy(t *testing.T) {
 
 	output := new(bytes.Buffer)
 
-	cfg := Config{
-		KubernetesVersion: k8sVersion,
-		MasterPrivateIP:   masterIp,
-		ProxyPort:         proxyPort,
-		EtcdClientPort:    etcdPort,
+	cfg := workflows.Config{
+		KubeProxyConfig: workflows.KubeProxyConfig{
+			KubernetesVersion: k8sVersion,
+			MasterPrivateIP:   masterIp,
+			ProxyPort:         proxyPort,
+			EtcdClientPort:    etcdPort,
+		},
 	}
 
 	j := &Task{
 		r,
 		proxyTemplate,
-		cfg,
 		output,
 	}
 
-	err = j.Run(context.Background())
+	err = j.Run(context.Background(), cfg)
 
 	if err != nil {
 		t.Errorf("Unpexpected error while  provision node %v", err)
@@ -79,15 +81,17 @@ func TestStartKubeProxyError(t *testing.T) {
 
 	proxyTemplate, err := template.New("proxy").Parse("")
 	output := new(bytes.Buffer)
+	cfg := workflows.Config{
+		KubeProxyConfig: workflows.KubeProxyConfig{},
+	}
 
 	j := &Task{
 		r,
 		proxyTemplate,
-		Config{},
 		output,
 	}
 
-	err = j.Run(context.Background())
+	err = j.Run(context.Background(), cfg)
 
 	if err == nil {
 		t.Errorf("Error must not be nil")

@@ -7,17 +7,19 @@ import (
 
 type WorkFlow struct {
 	s []steps.Step
+	config Config
 }
 
-func New(steps []steps.Step) *WorkFlow {
+func New(steps []steps.Step, config Config) *WorkFlow {
 	return &WorkFlow{
 		s: steps,
+		config: config,
 	}
 }
 
 func (w *WorkFlow) Run(ctx context.Context) error {
 	for _, step := range w.s {
-		if err := step.Run(ctx); err != nil {
+		if err := step.Run(ctx, w.config); err != nil {
 			return err
 		}
 	}

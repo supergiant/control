@@ -9,7 +9,9 @@ import (
 
 	"github.com/pkg/errors"
 
+	"context"
 	"github.com/supergiant/supergiant/pkg/runner"
+	"github.com/supergiant/supergiant/pkg/workflows"
 )
 
 type fakeRunner struct {
@@ -49,13 +51,15 @@ func TestInstallTiller(t *testing.T) {
 		output,
 	}
 
-	cfg := Config{
-		helmVersion,
-		operatingSystem,
-		arch,
+	cfg := workflows.Config{
+		TillerConfig: workflows.TillerConfig{
+			helmVersion,
+			operatingSystem,
+			arch,
+		},
 	}
 
-	err = j.Run(cfg)
+	err = j.Run(context.Background(), cfg)
 
 	if err != nil {
 		t.Errorf("Unpexpected error while  provision node %v", err)
@@ -90,8 +94,10 @@ func TestInstallTillerError(t *testing.T) {
 		output,
 	}
 
-	cfg := Config{}
-	err = j.Run(cfg)
+	cfg := workflows.Config{
+		TillerConfig: workflows.TillerConfig{},
+	}
+	err = j.Run(context.Background(), cfg)
 
 	if err == nil {
 		t.Errorf("Error must not be nil")

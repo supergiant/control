@@ -155,7 +155,7 @@ func TestInstallTillerError(t *testing.T) {
 	}
 
 	cfg := workflows.Config{
-		CertificatesConfig:workflows.CertificatesConfig{},
+		CertificatesConfig: workflows.CertificatesConfig{},
 	}
 	err = task.Run(context.Background(), cfg)
 

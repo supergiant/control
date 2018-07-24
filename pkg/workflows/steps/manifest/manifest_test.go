@@ -11,6 +11,7 @@ import (
 
 	"context"
 	"github.com/supergiant/supergiant/pkg/runner"
+	"github.com/supergiant/supergiant/pkg/workflows"
 )
 
 type fakeRunner struct {
@@ -210,26 +211,27 @@ EOF
 	}
 
 	output := new(bytes.Buffer)
-	cfg := Config{
-		KubernetesVersion:   kubernetesVersion,
-		KubernetesConfigDir: kubernetesConfigDir,
-		RBACEnabled:         RBACEnabled,
-		EtcdHost:            etcdHost,
-		EtcdPort:            etcdPort,
-		PrivateIpv4:         privateIpv4,
-		MasterHost:          masterHost,
-		MasterPort:          masterPort,
-		ProviderString:      providerString,
+	cfg := workflows.Config{
+		ManifestConfig: workflows.ManifestConfig{
+			KubernetesVersion:   kubernetesVersion,
+			KubernetesConfigDir: kubernetesConfigDir,
+			RBACEnabled:         RBACEnabled,
+			EtcdHost:            etcdHost,
+			EtcdPort:            etcdPort,
+			PrivateIpv4:         privateIpv4,
+			MasterHost:          masterHost,
+			MasterPort:          masterPort,
+			ProviderString:      providerString,
+		},
 	}
 
 	j := &Task{
 		r,
 		proxyTemplate,
-		cfg,
 		output,
 	}
 
-	err = j.Run(context.Background())
+	err = j.Run(context.Background(), cfg)
 
 	if err != nil {
 		t.Errorf("Unpexpected error while  provision node %v", err)
@@ -281,15 +283,17 @@ func TestWriteManifestError(t *testing.T) {
 
 	proxyTemplate, err := template.New("manifest").Parse("")
 	output := new(bytes.Buffer)
+	cfg := workflows.Config{
+		ManifestConfig: workflows.ManifestConfig{},
+	}
 
 	j := &Task{
 		r,
 		proxyTemplate,
-		Config{},
 		output,
 	}
 
-	err = j.Run(context.Background())
+	err = j.Run(context.Background(), cfg)
 
 	if err == nil {
 		t.Errorf("Error must not be nil")

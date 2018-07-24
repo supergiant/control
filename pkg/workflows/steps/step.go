@@ -1,7 +1,10 @@
 package steps
 
-import "context"
+import (
+	"context"
+	"github.com/supergiant/supergiant/pkg/workflows"
+)
 
 type Step interface {
-	Run(ctx context.Context) error
+	Run(ctx context.Context, config workflows.Config) error
 }

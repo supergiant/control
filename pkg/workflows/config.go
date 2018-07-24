@@ -41,7 +41,6 @@ type KubeletConfig struct {
 	KubernetesVersion string
 }
 
-
 type KubeletConfConfig struct {
 	Host string
 	Port string
@@ -85,7 +84,7 @@ type TillerConfig struct {
 	Arch            string
 }
 
-type Config struct{
+type Config struct {
 	CertificatesConfig
 	DOConfig
 	FlannelConfig

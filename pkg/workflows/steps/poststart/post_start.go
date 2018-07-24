@@ -9,13 +9,13 @@ import (
 
 	"github.com/supergiant/supergiant/pkg/runner"
 	"github.com/supergiant/supergiant/pkg/runner/ssh"
+	"github.com/supergiant/supergiant/pkg/workflows"
 	"github.com/supergiant/supergiant/pkg/workflows/steps"
 )
 
 type Task struct {
 	runner runner.Runner
 	script *template.Template
-	config Config
 	output io.Writer
 }
 
@@ -37,15 +37,14 @@ func New(script *template.Template, config Config,
 	t := &Task{
 		runner: sshRunner,
 		script: script,
-		config: config,
 		output: outStream,
 	}
 
 	return t, nil
 }
 
-func (j *Task) Run(ctx context.Context) error {
-	err := steps.RunTemplate(context.Background(), j.script, j.runner, j.output, j.config)
+func (j *Task) Run(ctx context.Context, config workflows.Config) error {
+	err := steps.RunTemplate(context.Background(), j.script, j.runner, j.output, config.PostStartConfig)
 
 	if err != nil {
 		return errors.Wrap(err, "error running post start template as a command")

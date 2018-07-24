@@ -11,6 +11,7 @@ import (
 
 	"context"
 	"github.com/supergiant/supergiant/pkg/runner"
+	"github.com/supergiant/supergiant/pkg/workflows"
 )
 
 type fakeRunner struct {
@@ -44,20 +45,21 @@ func TestStartKubelet(t *testing.T) {
 
 	output := new(bytes.Buffer)
 
-	cfg := Config{
-		KubernetesVersion: k8sVersion,
-		ProxyPort:         proxyPort,
-		EtcdClientPort:    etcdPort,
+	cfg := workflows.Config{
+		KubeletConfig: workflows.KubeletConfig{
+			KubernetesVersion: k8sVersion,
+			ProxyPort:         proxyPort,
+			EtcdClientPort:    etcdPort,
+		},
 	}
 
 	task := &Task{
 		r,
-		cfg,
 		kubeletScriptTemplate,
 		output,
 	}
 
-	err = task.Run(context.Background())
+	err = task.Run(context.Background(), cfg)
 
 	if !strings.Contains(output.String(), k8sVersion) {
 		t.Errorf("k8s version %s not found in %s", k8sVersion, output.String())
@@ -74,15 +76,17 @@ func TestStartKubeletError(t *testing.T) {
 	kubeletScriptTemplate, err := template.New("kubelet").Parse("")
 
 	output := new(bytes.Buffer)
+	config := workflows.Config{
+		KubeletConfig: workflows.KubeletConfig{},
+	}
 
 	j := &Task{
 		r,
-		Config{},
 		kubeletScriptTemplate,
 		output,
 	}
 
-	err = j.Run(context.Background())
+	err = j.Run(context.Background(), config)
 
 	if err == nil {
 		t.Errorf("Error must not be nil")

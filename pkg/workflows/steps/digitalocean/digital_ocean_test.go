@@ -11,6 +11,7 @@ import (
 	"context"
 	"github.com/supergiant/supergiant/pkg/storage"
 	"github.com/supergiant/supergiant/pkg/testutils"
+	"github.com/supergiant/supergiant/pkg/workflows"
 )
 
 type createDropletResponse struct {
@@ -221,15 +222,17 @@ func TestJob_CreateDroplet(t *testing.T) {
 	}
 
 	for _, testCase := range testCases {
-		config := Config{
-			"test",
-			"1.8.7",
-			"us-west1",
-			"2GB",
-			"master",
-			"ubuntu-stable",
-			[]string{"fingerprint"},
-			"accessToken",
+		config := workflows.Config{
+			DOConfig: workflows.DOConfig{
+				"test",
+				"1.8.7",
+				"us-west1",
+				"2GB",
+				"master",
+				"ubuntu-stable",
+				[]string{"fingerprint"},
+				"accessToken",
+			},
 		}
 
 		task := &Task{
@@ -237,13 +240,11 @@ func TestJob_CreateDroplet(t *testing.T) {
 			dropletService: testCase.dropletService,
 			tagService:     testCase.tagService,
 
-			config: config,
-
 			DropletTimeout: testCase.dropletTimeout,
 			CheckPeriod:    testCase.checkPeriod,
 		}
 
-		err := task.Run(context.Background())
+		err := task.Run(context.Background(), config)
 
 		if errors.Cause(err) != testCase.expectedError {
 			t.Errorf("Wrong error expected %s actual %s", testCase.expectedError.Error(), err.Error())
