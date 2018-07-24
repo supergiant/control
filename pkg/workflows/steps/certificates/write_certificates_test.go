@@ -11,7 +11,6 @@ import (
 
 	"context"
 	"github.com/supergiant/supergiant/pkg/runner"
-	"github.com/supergiant/supergiant/pkg/workflows"
 	"github.com/supergiant/supergiant/pkg/workflows/steps"
 )
 
