@@ -96,7 +96,7 @@ systemctl start ${KUBELET_SERVICE}`
 		},
 	}
 
-	j := &Task{
+	j := &Step{
 		r,
 		proxyTemplate,
 		output,
@@ -133,7 +133,7 @@ func TestSystemdUpdateError(t *testing.T) {
 	cfg := steps.Config{
 		KubeletSystemdServiceConfig: steps.KubeletSystemdServiceConfig{},
 	}
-	j := &Task{
+	j := &Step{
 		r,
 		proxyTemplate,
 		output,

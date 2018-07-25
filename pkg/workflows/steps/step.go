@@ -6,4 +6,6 @@ import (
 
 type Step interface {
 	Run(ctx context.Context, config Config) error
+	Name() string
+	Description() string
 }

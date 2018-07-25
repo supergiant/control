@@ -235,7 +235,7 @@ func TestJob_CreateDroplet(t *testing.T) {
 			},
 		}
 
-		task := &Task{
+		task := &Step{
 			storage:        testCase.storage,
 			dropletService: testCase.dropletService,
 			tagService:     testCase.tagService,

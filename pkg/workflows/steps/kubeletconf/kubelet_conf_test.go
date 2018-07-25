@@ -50,7 +50,7 @@ func TestWriteKubeletConf(t *testing.T) {
 		},
 	}
 
-	j := &Task{
+	j := &Step{
 		r,
 		proxyTemplate,
 		output,
@@ -84,7 +84,7 @@ func TestWriteKubeletConfErr(t *testing.T) {
 		KubeletConfConfig: steps.KubeletConfConfig{},
 	}
 
-	j := &Task{
+	j := &Step{
 		r,
 		proxyTemplate,
 		output,

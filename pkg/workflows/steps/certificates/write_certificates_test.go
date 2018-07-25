@@ -81,7 +81,7 @@ echo "{{ .KubeletClientKey }}" > ${KUBERNETES_SSL_DIR}/'{{ .KubeletClientKeyName
 		},
 	}
 
-	task := &Task{
+	task := &Step{
 		r,
 		proxyTemplate,
 		output,
@@ -148,7 +148,7 @@ func TestInstallTillerError(t *testing.T) {
 	proxyTemplate, err := template.New(StepName).Parse("")
 	output := new(bytes.Buffer)
 
-	task := &Task{
+	task := &Step{
 		r,
 		proxyTemplate,
 		output,

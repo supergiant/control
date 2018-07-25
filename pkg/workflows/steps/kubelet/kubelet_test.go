@@ -53,7 +53,7 @@ func TestStartKubelet(t *testing.T) {
 		},
 	}
 
-	task := &Task{
+	task := &Step{
 		r,
 		kubeletScriptTemplate,
 		output,
@@ -80,7 +80,7 @@ func TestStartKubeletError(t *testing.T) {
 		KubeletConfig: steps.KubeletConfig{},
 	}
 
-	j := &Task{
+	j := &Step{
 		r,
 		kubeletScriptTemplate,
 		output,

@@ -14,21 +14,21 @@ import (
 
 const StepName = "write_certificates"
 
-type Task struct {
+type Step struct {
 	runner runner.Runner
 	script *template.Template
 	output io.Writer
 }
 
 func New(script *template.Template,
-	outStream io.Writer, cfg *ssh.Config) (*Task, error) {
+	outStream io.Writer, cfg *ssh.Config) (*Step, error) {
 	sshRunner, err := ssh.NewRunner(cfg)
 
 	if err != nil {
 		return nil, errors.Wrap(err, "error creating ssh runner")
 	}
 
-	t := &Task{
+	t := &Step{
 		runner: sshRunner,
 		script: script,
 		output: outStream,
@@ -37,7 +37,7 @@ func New(script *template.Template,
 	return t, nil
 }
 
-func (t *Task) Run(ctx context.Context, config steps.Config) error {
+func (t *Step) Run(ctx context.Context, config steps.Config) error {
 	err := steps.RunTemplate(ctx, t.script, t.runner, t.output, config.CertificatesConfig)
 
 	if err != nil {
@@ -45,4 +45,12 @@ func (t *Task) Run(ctx context.Context, config steps.Config) error {
 	}
 
 	return nil
+}
+
+func (t *Step) Name() string {
+	return StepName
+}
+
+func (t *Step) Description() string {
+	return ""
 }

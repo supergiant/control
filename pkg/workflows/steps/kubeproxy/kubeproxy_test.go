@@ -55,7 +55,7 @@ func TestStartKubeProxy(t *testing.T) {
 		},
 	}
 
-	j := &Task{
+	j := &Step{
 		r,
 		proxyTemplate,
 		output,
@@ -85,7 +85,7 @@ func TestStartKubeProxyError(t *testing.T) {
 		KubeProxyConfig: steps.KubeProxyConfig{},
 	}
 
-	j := &Task{
+	j := &Step{
 		r,
 		proxyTemplate,
 		output,

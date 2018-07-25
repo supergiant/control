@@ -33,7 +33,7 @@ type TagService interface {
 	TagResources(string, *godo.TagResourcesRequest) (*godo.Response, error)
 }
 
-type Task struct {
+type Step struct {
 	storage        storage.Interface
 	dropletService DropletService
 	tagService     TagService
@@ -42,10 +42,10 @@ type Task struct {
 	CheckPeriod    time.Duration
 }
 
-func New(accesstoken string, s storage.Interface, dropletTimeout, checkPeriod time.Duration) *Task {
+func New(accesstoken string, s storage.Interface, dropletTimeout, checkPeriod time.Duration) *Step {
 	c := getClient(accesstoken)
 
-	return &Task{
+	return &Step{
 		storage:        s,
 		dropletService: c.Droplets,
 		tagService:     c.Tags,
@@ -55,7 +55,7 @@ func New(accesstoken string, s storage.Interface, dropletTimeout, checkPeriod ti
 	}
 }
 
-func (t *Task) Run(ctx context.Context, config steps.Config) error {
+func (t *Step) Run(ctx context.Context, config steps.Config) error {
 	config.Name = util.MakeNodeName(config.Name, config.Role)
 
 	var fingers []godo.DropletCreateSSHKey
@@ -120,7 +120,7 @@ func (t *Task) Run(ctx context.Context, config steps.Config) error {
 	return nil
 }
 
-func (t *Task) tagDroplet(dropletId int, tags []string) error {
+func (t *Step) tagDroplet(dropletId int, tags []string) error {
 	// Tag droplet
 	for _, tag := range tags {
 		input := &godo.TagResourcesRequest{
@@ -156,4 +156,12 @@ func getClient(accessToken string) *godo.Client {
 	}
 	oauthClient := oauth2.NewClient(oauth2.NoContext, token)
 	return godo.NewClient(oauthClient)
+}
+
+func (t *Step) Name() string {
+	return StepName
+}
+
+func (t *Step) Description() string {
+	return ""
 }

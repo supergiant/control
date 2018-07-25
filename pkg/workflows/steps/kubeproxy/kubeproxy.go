@@ -14,20 +14,20 @@ import (
 
 const StepName = "kube_proxy"
 
-type Task struct {
+type Step struct {
 	runner runner.Runner
 	script *template.Template
 	output io.Writer
 }
 
-func New(script *template.Template, outStream io.Writer, cfg *ssh.Config) (*Task, error) {
+func New(script *template.Template, outStream io.Writer, cfg *ssh.Config) (*Step, error) {
 	sshRunner, err := ssh.NewRunner(cfg)
 
 	if err != nil {
 		return nil, errors.Wrap(err, "error creating ssh runner")
 	}
 
-	t := &Task{
+	t := &Step{
 		runner: sshRunner,
 		script: script,
 		output: outStream,
@@ -36,7 +36,7 @@ func New(script *template.Template, outStream io.Writer, cfg *ssh.Config) (*Task
 	return t, nil
 }
 
-func (j *Task) Run(ctx context.Context, config steps.Config) error {
+func (j *Step) Run(ctx context.Context, config steps.Config) error {
 	err := steps.RunTemplate(ctx, j.script, j.runner, j.output, config.KubeProxyConfig)
 
 	if err != nil {
@@ -44,4 +44,12 @@ func (j *Task) Run(ctx context.Context, config steps.Config) error {
 	}
 
 	return nil
+}
+
+func (t *Step) Name() string {
+	return StepName
+}
+
+func (t *Step) Description() string {
+	return ""
 }

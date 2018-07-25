@@ -225,7 +225,7 @@ EOF
 		},
 	}
 
-	j := &Task{
+	j := &Step{
 		r,
 		proxyTemplate,
 		output,
@@ -287,7 +287,7 @@ func TestWriteManifestError(t *testing.T) {
 		ManifestConfig: steps.ManifestConfig{},
 	}
 
-	j := &Task{
+	j := &Step{
 		r,
 		proxyTemplate,
 		output,

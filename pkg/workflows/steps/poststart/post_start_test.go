@@ -72,7 +72,7 @@ curl -XPOST -H 'Content-type: application/json' -d'{"apiVersion":"v1","kind":"Na
 		},
 	}
 
-	j := &Task{
+	j := &Step{
 		r,
 		proxyTemplate,
 		output,
@@ -107,7 +107,7 @@ func TestPostStartError(t *testing.T) {
 	proxyTemplate, err := template.New(StepName).Parse("")
 	output := new(bytes.Buffer)
 
-	j := &Task{
+	j := &Step{
 		r,
 		proxyTemplate,
 		output,
