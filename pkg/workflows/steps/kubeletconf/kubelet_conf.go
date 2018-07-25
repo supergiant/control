@@ -35,7 +35,7 @@ func New(script *template.Template, cfg *ssh.Config) (*Step, error) {
 }
 
 func (j *Step) Run(ctx context.Context, out io.Writer, config steps.Config) error {
-	err := steps.RunTemplate(context.Background(), j.script, j.runner,out, config.KubeletConfConfig)
+	err := steps.RunTemplate(context.Background(), j.script, j.runner, out, config.KubeletConfConfig)
 
 	if err != nil {
 		return errors.Wrap(err, "error running write kubelet conf template as a command")

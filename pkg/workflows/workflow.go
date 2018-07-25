@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"errors"
 	"github.com/supergiant/supergiant/pkg/workflows/steps"
+	"io"
 )
 
 type StepStatus struct {
@@ -54,7 +55,7 @@ func New(workflowType string, config steps.Config, syncer Synchronizer) (*WorkFl
 	return nil, ErrUnknownWorkflowType
 }
 
-func (w *WorkFlow) Run(ctx context.Context) error {
+func (w *WorkFlow) Run(ctx context.Context, out io.Writer) error {
 	// Create list of statuses to track
 	for _, step := range w.workflowSteps {
 		w.StepStatuses = append(w.StepStatuses, StepStatus{
@@ -65,16 +66,17 @@ func (w *WorkFlow) Run(ctx context.Context) error {
 	}
 
 	for index, step := range w.workflowSteps {
-		if err := step.Run(ctx, w.Config); err != nil {
+		if err := step.Run(ctx, out, w.Config); err != nil {
+			// Mark step status as error
 			w.StepStatuses[index].Status = steps.StatusError
 			w.StepStatuses[index].ErrMsg = err.Error()
 			w.sync()
 
 			return err
 		} else {
-			w.sync()
-
+			// Mark step as success
 			w.StepStatuses[index].Status = steps.StatusSuccess
+			w.sync()
 		}
 	}
 

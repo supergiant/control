@@ -101,7 +101,7 @@ systemctl start ${KUBELET_SERVICE}`
 		proxyTemplate,
 	}
 
-	err = j.Run(context.Background(),output,  cfg)
+	err = j.Run(context.Background(), output, cfg)
 
 	if err != nil {
 		t.Errorf("Unpexpected error while  provision node %v", err)

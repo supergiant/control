@@ -35,21 +35,15 @@ type TagService interface {
 }
 
 type Step struct {
-	storage        storage.Interface
-	dropletService DropletService
-	tagService     TagService
+	storage storage.Interface
 
 	DropletTimeout time.Duration
 	CheckPeriod    time.Duration
 }
 
-func New(accesstoken string, s storage.Interface, dropletTimeout, checkPeriod time.Duration) *Step {
-	c := getClient(accesstoken)
-
+func New(s storage.Interface, dropletTimeout, checkPeriod time.Duration) *Step {
 	return &Step{
-		storage:        s,
-		dropletService: c.Droplets,
-		tagService:     c.Tags,
+		storage: s,
 
 		DropletTimeout: dropletTimeout,
 		CheckPeriod:    checkPeriod,
@@ -57,6 +51,8 @@ func New(accesstoken string, s storage.Interface, dropletTimeout, checkPeriod ti
 }
 
 func (t *Step) Run(ctx context.Context, output io.Writer, config steps.Config) error {
+	c := getClient(config.DOConfig.AccessToken)
+
 	config.Name = util.MakeNodeName(config.Name, config.Role)
 
 	var fingers []godo.DropletCreateSSHKey
@@ -80,13 +76,13 @@ func (t *Step) Run(ctx context.Context, output io.Writer, config steps.Config) e
 	tags := []string{"Kubernetes-Cluster", config.Name}
 
 	// Create
-	droplet, _, err := t.dropletService.Create(dropletRequest)
+	droplet, _, err := c.Droplets.Create(dropletRequest)
 
 	if err != nil {
 		return errors.Wrap(err, "dropletService has returned an error in Run job")
 	}
 
-	err = t.tagDroplet(droplet.ID, tags)
+	err = t.tagDroplet(c.Tags, droplet.ID, tags)
 
 	if err != nil {
 		return errors.Wrap(err,
@@ -99,7 +95,7 @@ func (t *Step) Run(ctx context.Context, output io.Writer, config steps.Config) e
 	for {
 		select {
 		case <-ticker.C:
-			droplet, _, err = t.dropletService.Get(droplet.ID)
+			droplet, _, err = c.Droplets.Get(droplet.ID)
 
 			if err != nil {
 				return err
@@ -121,7 +117,7 @@ func (t *Step) Run(ctx context.Context, output io.Writer, config steps.Config) e
 	return nil
 }
 
-func (t *Step) tagDroplet(dropletId int, tags []string) error {
+func (t *Step) tagDroplet(tagService godo.TagsService, dropletId int, tags []string) error {
 	// Tag droplet
 	for _, tag := range tags {
 		input := &godo.TagResourcesRequest{
@@ -132,7 +128,7 @@ func (t *Step) tagDroplet(dropletId int, tags []string) error {
 				},
 			},
 		}
-		if _, err := t.tagService.TagResources(tag, input); err != nil {
+		if _, err := tagService.TagResources(tag, input); err != nil {
 			return err
 		}
 	}

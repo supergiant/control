@@ -34,8 +34,8 @@ func New(script *template.Template, cfg *ssh.Config) (*Step, error) {
 	return t, nil
 }
 
-func (j *Step) Run(ctx context.Context,out io.Writer,  config steps.Config) error {
-	err := steps.RunTemplate(ctx, j.script, j.runner, out , nil)
+func (j *Step) Run(ctx context.Context, out io.Writer, config steps.Config) error {
+	err := steps.RunTemplate(ctx, j.script, j.runner, out, nil)
 
 	if err != nil {
 		return errors.Wrap(err, "error running cni template as a command")

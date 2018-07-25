@@ -34,7 +34,7 @@ func New(script *template.Template, cfg *ssh.Config) (*Task, error) {
 	return t, nil
 }
 
-func (j *Task) Run(ctx context.Context,out io.Writer, config steps.Config) error {
+func (j *Task) Run(ctx context.Context, out io.Writer, config steps.Config) error {
 	err := steps.RunTemplate(context.Background(), j.script, j.runner, out, config.TillerConfig)
 
 	if err != nil {
