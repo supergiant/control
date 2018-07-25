@@ -12,7 +12,7 @@ var (
 	ErrHostNotSpecified = errors.New("host not specified")
 )
 
-func getSshConfig(config *Config) (*ssh.ClientConfig, error) {
+func getSshConfig(config Config) (*ssh.ClientConfig, error) {
 	if config.User == "" {
 		return nil, ErrUserNotSpecified
 	}

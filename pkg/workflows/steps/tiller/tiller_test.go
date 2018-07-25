@@ -46,7 +46,6 @@ func TestInstallTiller(t *testing.T) {
 	output := new(bytes.Buffer)
 
 	j := &Task{
-		r,
 		proxyTemplate,
 	}
 
@@ -56,6 +55,7 @@ func TestInstallTiller(t *testing.T) {
 			operatingSystem,
 			arch,
 		},
+		Runner: r,
 	}
 
 	err = j.Run(context.Background(), output, cfg)
@@ -88,12 +88,12 @@ func TestInstallTillerError(t *testing.T) {
 	output := new(bytes.Buffer)
 
 	j := &Task{
-		r,
 		proxyTemplate,
 	}
 
 	cfg := steps.Config{
 		TillerConfig: steps.TillerConfig{},
+		Runner:       r,
 	}
 	err = j.Run(context.Background(), output, cfg)
 

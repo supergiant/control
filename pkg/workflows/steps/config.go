@@ -1,5 +1,9 @@
 package steps
 
+import (
+	"github.com/supergiant/supergiant/pkg/runner"
+)
+
 type CertificatesConfig struct {
 	KubernetesConfigDir   string
 	CACert                string
@@ -95,4 +99,6 @@ type Config struct {
 	PostStartConfig
 	KubeletSystemdServiceConfig
 	TillerConfig
+
+	runner.Runner
 }

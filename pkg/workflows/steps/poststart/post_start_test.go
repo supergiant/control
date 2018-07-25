@@ -70,10 +70,10 @@ curl -XPOST -H 'Content-type: application/json' -d'{"apiVersion":"v1","kind":"Na
 			username,
 			rbacEnabled,
 		},
+		Runner: r,
 	}
 
 	j := &Step{
-		r,
 		proxyTemplate,
 	}
 
@@ -107,12 +107,12 @@ func TestPostStartError(t *testing.T) {
 	output := new(bytes.Buffer)
 
 	j := &Step{
-		r,
 		proxyTemplate,
 	}
 
 	cfg := steps.Config{
 		PostStartConfig: steps.PostStartConfig{},
+		Runner:          r,
 	}
 	err = j.Run(context.Background(), output, cfg)
 

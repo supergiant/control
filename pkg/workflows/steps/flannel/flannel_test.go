@@ -73,11 +73,11 @@ systemctl restart flanneld.service
 				testCase.network,
 				testCase.networkType,
 			},
+			Runner: r,
 		}
 
 		task := &Step{
 			scriptTemplate: tpl,
-			runner:         r,
 		}
 
 		err := task.Run(context.Background(), output, config)

@@ -223,10 +223,10 @@ EOF
 			MasterPort:          masterPort,
 			ProviderString:      providerString,
 		},
+		Runner: r,
 	}
 
 	j := &Step{
-		r,
 		proxyTemplate,
 	}
 
@@ -284,10 +284,10 @@ func TestWriteManifestError(t *testing.T) {
 	output := new(bytes.Buffer)
 	cfg := steps.Config{
 		ManifestConfig: steps.ManifestConfig{},
+		Runner:         r,
 	}
 
 	j := &Step{
-		r,
 		proxyTemplate,
 	}
 

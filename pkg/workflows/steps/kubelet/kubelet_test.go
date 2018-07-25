@@ -51,10 +51,10 @@ func TestStartKubelet(t *testing.T) {
 			ProxyPort:         proxyPort,
 			EtcdClientPort:    etcdPort,
 		},
+		Runner: r,
 	}
 
 	task := &Step{
-		r,
 		kubeletScriptTemplate,
 	}
 
@@ -77,10 +77,10 @@ func TestStartKubeletError(t *testing.T) {
 	output := new(bytes.Buffer)
 	config := steps.Config{
 		KubeletConfig: steps.KubeletConfig{},
+		Runner:        r,
 	}
 
 	j := &Step{
-		r,
 		kubeletScriptTemplate,
 	}
 

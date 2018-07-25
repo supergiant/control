@@ -53,10 +53,10 @@ func TestStartKubeProxy(t *testing.T) {
 			ProxyPort:         proxyPort,
 			EtcdClientPort:    etcdPort,
 		},
+		Runner: r,
 	}
 
 	j := &Step{
-		r,
 		proxyTemplate,
 	}
 
@@ -82,10 +82,10 @@ func TestStartKubeProxyError(t *testing.T) {
 	output := new(bytes.Buffer)
 	cfg := steps.Config{
 		KubeProxyConfig: steps.KubeProxyConfig{},
+		Runner:          r,
 	}
 
 	j := &Step{
-		r,
 		proxyTemplate,
 	}
 

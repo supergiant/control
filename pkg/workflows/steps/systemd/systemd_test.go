@@ -94,10 +94,10 @@ systemctl start ${KUBELET_SERVICE}`
 			kubeletService,
 			k8sProvider,
 		},
+		Runner: r,
 	}
 
 	j := &Step{
-		r,
 		proxyTemplate,
 	}
 
@@ -131,9 +131,10 @@ func TestSystemdUpdateError(t *testing.T) {
 	output := new(bytes.Buffer)
 	cfg := steps.Config{
 		KubeletSystemdServiceConfig: steps.KubeletSystemdServiceConfig{},
+		Runner: r,
 	}
+
 	j := &Step{
-		r,
 		proxyTemplate,
 	}
 

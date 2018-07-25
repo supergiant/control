@@ -7,7 +7,6 @@ import (
 
 	"github.com/pkg/errors"
 
-	"github.com/supergiant/supergiant/pkg/runner"
 	"github.com/supergiant/supergiant/pkg/runner/ssh"
 	"github.com/supergiant/supergiant/pkg/workflows/steps"
 )
@@ -15,19 +14,11 @@ import (
 const StepName = "kubelet_conf"
 
 type Step struct {
-	runner runner.Runner
 	script *template.Template
 }
 
 func New(script *template.Template, cfg *ssh.Config) (*Step, error) {
-	sshRunner, err := ssh.NewRunner(cfg)
-
-	if err != nil {
-		return nil, errors.Wrap(err, "error creating ssh runner")
-	}
-
 	t := &Step{
-		runner: sshRunner,
 		script: script,
 	}
 
@@ -35,7 +26,8 @@ func New(script *template.Template, cfg *ssh.Config) (*Step, error) {
 }
 
 func (j *Step) Run(ctx context.Context, out io.Writer, config steps.Config) error {
-	err := steps.RunTemplate(context.Background(), j.script, j.runner, out, config.KubeletConfConfig)
+	err := steps.RunTemplate(context.Background(), j.script,
+		config.Runner, out, config.KubeletConfConfig)
 
 	if err != nil {
 		return errors.Wrap(err, "error running write kubelet conf template as a command")

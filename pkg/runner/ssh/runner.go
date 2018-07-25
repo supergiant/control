@@ -34,7 +34,7 @@ type Runner struct {
 // NewRunner creates ssh runner object. It requires two io.Writer
 // to send output of ssh session and config for ssh client.
 // TODO: Does it safe to pass Config as a pointer?
-func NewRunner(config *Config) (*Runner, error) {
+func NewRunner(config Config) (*Runner, error) {
 	if strings.TrimSpace(config.Host) == "" {
 		return nil, ErrHostNotSpecified
 	}

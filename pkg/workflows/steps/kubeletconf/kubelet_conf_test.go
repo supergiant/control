@@ -48,10 +48,10 @@ func TestWriteKubeletConf(t *testing.T) {
 			Host: host,
 			Port: port,
 		},
+		Runner: r,
 	}
 
 	j := &Step{
-		r,
 		proxyTemplate,
 	}
 
@@ -81,10 +81,10 @@ func TestWriteKubeletConfErr(t *testing.T) {
 	output := new(bytes.Buffer)
 	cfg := steps.Config{
 		KubeletConfConfig: steps.KubeletConfConfig{},
+		Runner:            r,
 	}
 
 	j := &Step{
-		r,
 		proxyTemplate,
 	}
 
