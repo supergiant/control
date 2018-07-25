@@ -56,10 +56,9 @@ func TestStartKubelet(t *testing.T) {
 	task := &Step{
 		r,
 		kubeletScriptTemplate,
-		output,
 	}
 
-	err = task.Run(context.Background(), cfg)
+	err = task.Run(context.Background(), output, cfg)
 
 	if !strings.Contains(output.String(), k8sVersion) {
 		t.Errorf("k8s version %s not found in %s", k8sVersion, output.String())
@@ -83,10 +82,9 @@ func TestStartKubeletError(t *testing.T) {
 	j := &Step{
 		r,
 		kubeletScriptTemplate,
-		output,
 	}
 
-	err = j.Run(context.Background(), config)
+	err = j.Run(context.Background(), output, config)
 
 	if err == nil {
 		t.Errorf("Error must not be nil")

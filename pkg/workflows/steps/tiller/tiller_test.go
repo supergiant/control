@@ -48,7 +48,6 @@ func TestInstallTiller(t *testing.T) {
 	j := &Task{
 		r,
 		proxyTemplate,
-		output,
 	}
 
 	cfg := steps.Config{
@@ -59,7 +58,7 @@ func TestInstallTiller(t *testing.T) {
 		},
 	}
 
-	err = j.Run(context.Background(), cfg)
+	err = j.Run(context.Background(), output, cfg)
 
 	if err != nil {
 		t.Errorf("Unpexpected error while  provision node %v", err)
@@ -91,13 +90,12 @@ func TestInstallTillerError(t *testing.T) {
 	j := &Task{
 		r,
 		proxyTemplate,
-		output,
 	}
 
 	cfg := steps.Config{
 		TillerConfig: steps.TillerConfig{},
 	}
-	err = j.Run(context.Background(), cfg)
+	err = j.Run(context.Background(), output, cfg)
 
 	if err == nil {
 		t.Errorf("Error must not be nil")

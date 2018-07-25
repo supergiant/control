@@ -12,6 +12,7 @@ import (
 	"github.com/supergiant/supergiant/pkg/storage"
 	"github.com/supergiant/supergiant/pkg/testutils"
 	"github.com/supergiant/supergiant/pkg/workflows/steps"
+	"io/ioutil"
 )
 
 type createDropletResponse struct {
@@ -244,7 +245,7 @@ func TestJob_CreateDroplet(t *testing.T) {
 			CheckPeriod:    testCase.checkPeriod,
 		}
 
-		err := task.Run(context.Background(), config)
+		err := task.Run(context.Background(), ioutil.Discard,  config)
 
 		if errors.Cause(err) != testCase.expectedError {
 			t.Errorf("Wrong error expected %s actual %s", testCase.expectedError.Error(), err.Error())

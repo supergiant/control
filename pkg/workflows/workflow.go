@@ -31,7 +31,7 @@ var (
 	masterSteps = []steps.Step{}
 	nodeSteps   = []steps.Step{}
 
-	ErrUnknownWorkflowType = errors.New("Unknown workflow type")
+	ErrUnknownWorkflowType = errors.New("unknown workflow type")
 )
 
 type Synchronizer interface {

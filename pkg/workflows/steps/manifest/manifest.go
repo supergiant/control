@@ -2,7 +2,6 @@ package tiller
 
 import (
 	"context"
-	"io"
 	"text/template"
 
 	"github.com/pkg/errors"
@@ -10,6 +9,7 @@ import (
 	"github.com/supergiant/supergiant/pkg/runner"
 	"github.com/supergiant/supergiant/pkg/runner/ssh"
 	"github.com/supergiant/supergiant/pkg/workflows/steps"
+	"io"
 )
 
 const StepName = "manifest"
@@ -17,10 +17,9 @@ const StepName = "manifest"
 type Step struct {
 	runner runner.Runner
 	script *template.Template
-	output io.Writer
 }
 
-func New(script *template.Template, outStream io.Writer, cfg *ssh.Config) (*Step, error) {
+func New(script *template.Template, cfg *ssh.Config) (*Step, error) {
 	sshRunner, err := ssh.NewRunner(cfg)
 
 	if err != nil {
@@ -30,14 +29,13 @@ func New(script *template.Template, outStream io.Writer, cfg *ssh.Config) (*Step
 	t := &Step{
 		runner: sshRunner,
 		script: script,
-		output: outStream,
 	}
 
 	return t, nil
 }
 
-func (j *Step) Run(ctx context.Context, config steps.Config) error {
-	err := steps.RunTemplate(ctx, j.script, j.runner, j.output, config.ManifestConfig)
+func (j *Step) Run(ctx context.Context, out io.Writer, config steps.Config) error {
+	err := steps.RunTemplate(ctx, j.script, j.runner, out, config.ManifestConfig)
 
 	if err != nil {
 		return errors.Wrap(err, "error running write certificates template as a command")

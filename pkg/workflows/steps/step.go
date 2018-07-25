@@ -2,6 +2,7 @@ package steps
 
 import (
 	"context"
+	"io"
 )
 
 type Status string
@@ -13,7 +14,7 @@ const (
 )
 
 type Step interface {
-	Run(ctx context.Context, config Config) error
+	Run(context.Context,io.Writer,Config) error
 	Name() string
 	Description() string
 }

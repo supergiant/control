@@ -17,10 +17,9 @@ const StepName = "kubelet_systemd_service"
 type Step struct {
 	runner runner.Runner
 	script *template.Template
-	output io.Writer
 }
 
-func New(script *template.Template, outStream io.Writer, cfg *ssh.Config) (*Step, error) {
+func New(script *template.Template, cfg *ssh.Config) (*Step, error) {
 	sshRunner, err := ssh.NewRunner(cfg)
 
 	if err != nil {
@@ -30,14 +29,13 @@ func New(script *template.Template, outStream io.Writer, cfg *ssh.Config) (*Step
 	t := &Step{
 		runner: sshRunner,
 		script: script,
-		output: outStream,
 	}
 
 	return t, nil
 }
 
-func (j *Step) Run(ctx context.Context, config steps.Config) error {
-	err := steps.RunTemplate(context.Background(), j.script, j.runner, j.output, config.KubeletSystemdServiceConfig)
+func (j *Step) Run(ctx context.Context, out io.Writer, config steps.Config) error {
+	err := steps.RunTemplate(context.Background(), j.script, j.runner, out, config.KubeletSystemdServiceConfig)
 
 	if err != nil {
 		return errors.Wrap(err, "error running post start template as a command")

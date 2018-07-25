@@ -53,10 +53,9 @@ func TestWriteKubeletConf(t *testing.T) {
 	j := &Step{
 		r,
 		proxyTemplate,
-		output,
 	}
 
-	err = j.Run(context.Background(), cfg)
+	err = j.Run(context.Background(), output, cfg)
 
 	if err != nil {
 		t.Errorf("Unpexpected error while  provision node %v", err)
@@ -87,10 +86,9 @@ func TestWriteKubeletConfErr(t *testing.T) {
 	j := &Step{
 		r,
 		proxyTemplate,
-		output,
 	}
 
-	err = j.Run(context.Background(), cfg)
+	err = j.Run(context.Background(), output, cfg)
 
 	if err == nil {
 		t.Errorf("Error must not be nil")

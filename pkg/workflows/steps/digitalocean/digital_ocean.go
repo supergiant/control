@@ -15,6 +15,7 @@ import (
 	"github.com/supergiant/supergiant/pkg/storage"
 	"github.com/supergiant/supergiant/pkg/util"
 	"github.com/supergiant/supergiant/pkg/workflows/steps"
+	"io"
 )
 
 const StepName = "digital_ocean"
@@ -55,7 +56,7 @@ func New(accesstoken string, s storage.Interface, dropletTimeout, checkPeriod ti
 	}
 }
 
-func (t *Step) Run(ctx context.Context, config steps.Config) error {
+func (t *Step) Run(ctx context.Context, output io.Writer, config steps.Config) error {
 	config.Name = util.MakeNodeName(config.Name, config.Role)
 
 	var fingers []godo.DropletCreateSSHKey

@@ -84,10 +84,9 @@ echo "{{ .KubeletClientKey }}" > ${KUBERNETES_SSL_DIR}/'{{ .KubeletClientKeyName
 	task := &Step{
 		r,
 		proxyTemplate,
-		output,
 	}
 
-	err = task.Run(context.Background(), cfg)
+	err = task.Run(context.Background(), output, cfg)
 
 	if err != nil {
 		t.Errorf("Unpexpected error while  provision node %v", err)
@@ -151,13 +150,12 @@ func TestInstallTillerError(t *testing.T) {
 	task := &Step{
 		r,
 		proxyTemplate,
-		output,
 	}
 
 	cfg := steps.Config{
 		CertificatesConfig: steps.CertificatesConfig{},
 	}
-	err = task.Run(context.Background(), cfg)
+	err = task.Run(context.Background(), output, cfg)
 
 	if err == nil {
 		t.Errorf("Error must not be nil")
