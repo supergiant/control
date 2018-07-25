@@ -43,7 +43,7 @@ func TestNewClient(t *testing.T) {
 	}
 
 	for i, tc := range tcs {
-		_, err := New(tc.id, tc.secret)
+		_, err := New(tc.id, tc.secret, nil)
 		if err != tc.expectedErr {
 			t.Fatalf("TC#%d: new client: %v", i+1, err)
 		}

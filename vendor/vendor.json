@@ -466,6 +466,14 @@
 			"versionExact": "v1.14.6"
 		},
 		{
+			"checksumSHA1": "wU7OxckxKwyrMi9T4idT3+fjNZM=",
+			"path": "github.com/aws/aws-sdk-go/service/pricing",
+			"revision": "92c96c4f5ad419f2a72401c2f606d51e010cc110",
+			"revisionTime": "2018-06-13T21:50:45Z",
+			"version": "v1.14.6",
+			"versionExact": "v1.14.6"
+		},
+		{
 			"checksumSHA1": "c7VBBFkctgWKeIbnwuuKmYpzocQ=",
 			"path": "github.com/aws/aws-sdk-go/service/sqs",
 			"revision": "92c96c4f5ad419f2a72401c2f606d51e010cc110",
