@@ -67,8 +67,7 @@ func New(cfg *Config) (*Server, error) {
 	s := &Server{
 		cfg: cfg,
 		server: http.Server{
-			Handler:      handlers.CORS(headersOk, methodsOk)handlers.RecoveryHandler(handlers.PrintRecoveryStack(true))(r),
-			// Handler:      handlers.CORS(headersOk, methodsOk)(r),
+			Handler:      handlers.CORS(headersOk, methodsOk)(handlers.RecoveryHandler(handlers.PrintRecoveryStack(true))(r)),
 			Addr:         fmt.Sprintf("%s:%d", cfg.Addr, cfg.Port),
 			ReadTimeout:  time.Second * 10,
 			WriteTimeout: time.Second * 15,
