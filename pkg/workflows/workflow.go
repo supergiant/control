@@ -93,6 +93,12 @@ func (w *WorkFlow) Run(ctx context.Context, out io.Writer) (string, chan error) 
 	return id, errChan
 }
 
+func Restart(ctx context.Context, id string) (chan error) {
+	errChan := make(chan error)
+	// TODO(stgleb): implement reading stuff about this particular workflow run and start from last failed step.
+	return errChan
+}
+
 func (w *WorkFlow) sync(ctx context.Context, id string) error {
 	data, err := json.Marshal(w)
 
