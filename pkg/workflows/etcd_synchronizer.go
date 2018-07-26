@@ -22,8 +22,8 @@ func NewSynchronizer(cfg clientv3.Config) (*EtcdSynchronizer, error) {
 }
 
 // TODO(stgleb): Pas context and key to synchronizer
-func (s *EtcdSynchronizer) Sync(data string) error {
-	_, err := s.client.Put(context.Background(), "workflow", data)
+func (s *EtcdSynchronizer) Sync(ctx context.Context, key, data string) error {
+	_, err := s.client.Put(ctx, key, data)
 
 	if err != nil {
 		return err
