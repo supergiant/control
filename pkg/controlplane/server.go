@@ -60,12 +60,15 @@ func New(cfg *Config) (*Server, error) {
 	if err != nil {
 		return nil, err
 	}
+	headersOk := handlers.AllowedHeaders([]string{"Access-Control-Request-Headers", "Authorization"})
+	methodsOk := handlers.AllowedMethods([]string{"GET", "HEAD", "POST", "PUT", "OPTIONS"})
 
 	// TODO add TLS support
 	s := &Server{
 		cfg: cfg,
 		server: http.Server{
-			Handler:      handlers.RecoveryHandler(handlers.PrintRecoveryStack(true))(r),
+			Handler:      handlers.CORS(headersOk, methodsOk)handlers.RecoveryHandler(handlers.PrintRecoveryStack(true))(r),
+			// Handler:      handlers.CORS(headersOk, methodsOk)(r),
 			Addr:         fmt.Sprintf("%s:%d", cfg.Addr, cfg.Port),
 			ReadTimeout:  time.Second * 10,
 			WriteTimeout: time.Second * 15,

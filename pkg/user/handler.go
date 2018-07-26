@@ -29,8 +29,17 @@ func NewHandler(userService *Service, tokenService *sgjwt.TokenService) *Handler
 	}
 }
 
+func enableCors(w *http.ResponseWriter) {
+	(*w).Header().Set("Access-Control-Allow-Origin", "*")
+}
+
 func (h *Handler) Authenticate(w http.ResponseWriter, r *http.Request) {
 	var ar AuthRequest
+
+	// not sure if this is needed after route gets protected again
+	// (when default user is created)
+	enableCors(&w)
+
 	if err := json.NewDecoder(r.Body).Decode(&ar); err != nil {
 		http.Error(w, err.Error(), http.StatusBadRequest)
 		return
@@ -46,6 +55,7 @@ func (h *Handler) Authenticate(w http.ResponseWriter, r *http.Request) {
 
 	if token, err := h.tokenService.Issue(ar.Login); err == nil {
 		w.Header().Set("Authorization", token)
+		w.Header().Set("Access-Control-Expose-Headers", "Authorization")
 		return
 	} else {
 		http.Error(w, fmt.Sprintf("Error while generating token %s", err.Error()), http.StatusInternalServerError)
@@ -55,6 +65,9 @@ func (h *Handler) Authenticate(w http.ResponseWriter, r *http.Request) {
 
 func (h *Handler) Create(rw http.ResponseWriter, r *http.Request) {
 	var user User
+
+	enableCors(&rw)
+
 	if err := json.NewDecoder(r.Body).Decode(&user); err != nil {
 		http.Error(rw, err.Error(), http.StatusBadRequest)
 		return
