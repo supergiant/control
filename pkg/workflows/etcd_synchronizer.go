@@ -1,11 +1,11 @@
 package workflows
 
 import (
-	"github.com/coreos/etcd/clientv3"
 	"context"
+	"github.com/coreos/etcd/clientv3"
 )
 
-type EtcdSynchronizer struct{
+type EtcdSynchronizer struct {
 	client *clientv3.Client
 }
 
