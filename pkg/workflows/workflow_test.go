@@ -3,9 +3,12 @@ package workflows
 import (
 	"bytes"
 	"context"
+	"encoding/json"
+	"fmt"
 	"github.com/pkg/errors"
 	"github.com/supergiant/supergiant/pkg/workflows/steps"
 	"io"
+	"strings"
 	"testing"
 )
 
@@ -26,7 +29,9 @@ type fakeStep struct {
 }
 
 func (f *fakeStep) Run(ctx context.Context, out io.Writer, config steps.Config) error {
-	out.Write([]byte(f.err.Error()))
+	if f.err != nil {
+		out.Write([]byte(f.err.Error()))
+	}
 	return f.err
 }
 
@@ -38,19 +43,93 @@ func (f *fakeStep) Description() string {
 	return f.description
 }
 
-func TestWorkFlowRun(t *testing.T) {
+func TestWorkFlowRunError(t *testing.T) {
+	errMsg := "shit happens"
+	s := &fakeSynchronizer{
+		storage: make(map[string]string),
+	}
+
 	workflow := WorkFlow{
-		synchronizer: &fakeSynchronizer{
-			storage: make(map[string]string),
-		},
+		Config:       steps.Config{},
+		synchronizer: s,
 		workflowSteps: []steps.Step{
 			&fakeStep{name: "step1", err: nil},
-			&fakeStep{name: "step2", err: errors.New("shit happens")},
+			&fakeStep{name: "step2", err: errors.New(errMsg)},
 			&fakeStep{name: "step3", err: nil}},
 	}
 
 	buffer := &bytes.Buffer{}
-	workflow.Run(context.Background(), buffer)
+	id, errChan := workflow.Run(context.Background(), buffer)
+
+	if len(id) == 0 {
+		t.Error("id must not be empty")
+	}
+
+	err := <-errChan
+
+	if err == nil {
+		t.Error("Error must not be nil")
+	}
+
+	if !strings.Contains(buffer.String(), errMsg) {
+		t.Error(fmt.Sprintf("Expected error message %s not found in output %s", errMsg, buffer.String()))
+	}
+
+	w := &WorkFlow{}
+	data := s.storage[fmt.Sprintf("workflows/%s", id)]
+
+	err = json.Unmarshal([]byte(data), w)
+
+	if err != nil {
+		t.Errorf("Unexpected error while unmarshalling data %v", err)
+	}
+
+	if w.StepStatuses[1].Status != steps.StatusError {
+		t.Errorf("Unexpected step statues expected %s actual %s",
+			steps.StatusError, w.StepStatuses[1].Status)
+	}
+}
+
+func TestWorkFlowRunSuccess(t *testing.T) {
+	s := &fakeSynchronizer{
+		storage: make(map[string]string),
+	}
+
+	workflow := WorkFlow{
+		Config:       steps.Config{},
+		synchronizer: s,
+		workflowSteps: []steps.Step{
+			&fakeStep{name: "step1", err: nil},
+			&fakeStep{name: "step2", err: nil},
+			&fakeStep{name: "step3", err: nil}},
+	}
+
+	buffer := &bytes.Buffer{}
+	id, errChan := workflow.Run(context.Background(), buffer)
+
+	if len(id) == 0 {
+		t.Error("id must not be empty")
+	}
+
+	err := <-errChan
+
+	if err != nil {
+		t.Error("Error must be nil")
+	}
+
+	w := &WorkFlow{}
+	data := s.storage[fmt.Sprintf("workflows/%s", id)]
+
+	err = json.Unmarshal([]byte(data), w)
+
+	if err != nil {
+		t.Errorf("Unexpected error while unmarshalling data %v", err)
+	}
+	for _, status := range w.StepStatuses {
+		if status.Status != steps.StatusSuccess {
+			t.Errorf("Unexpected status expectec %s actual %s", steps.StatusSuccess, status.Status)
+		}
+	}
 }
 
 func TestWorkflowRestart(t *testing.T) {
