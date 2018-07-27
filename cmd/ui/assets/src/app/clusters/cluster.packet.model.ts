@@ -35,7 +35,7 @@ export class ClusterPacketModel {
           'type': 'string',
           'description': 'The Version of Kubernetes to be deployed.',
           'default': '1.5.7',
-          'enum': ['1.5.7', '1.6.7', '1.7.7', '1.8.7'] // TODO: <-- Should be dynamically populated.
+          'enum': ['1.5.7', '1.6.7', '1.7.7', '1.8.7', '1.9.7', '1.10.6', '1.11.1'] // TODO: <-- Should be dynamically populated.
         },
         'cloud_account_name': {
           'type': 'string',
@@ -71,7 +71,7 @@ export class ClusterPacketModel {
               'description': 'The Packet project the kube will be created in.'
             }
           },
-          'required': [ 'facility' ]
+          'required': ['facility']
         },
         'ssh_pub_key': {
           'type': 'string',
@@ -97,7 +97,7 @@ export class ClusterPacketModel {
           }
         }
       },
-      'required': [ 'name' ]
+      'required': ['name']
     },
     'layout': [
       {

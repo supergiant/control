@@ -30,7 +30,7 @@ export class ClusterAWSModel {
           'type': 'string',
           'default': '1.5.7',
           'description': 'The Version of Kubernetes to be deployed.',
-          'enum': ['1.5.7', '1.6.7', '1.7.7', '1.8.7'] // TODO: <-- Should be dynamically populated.
+          'enum': ['1.5.7', '1.6.7', '1.7.7', '1.8.7', '1.9.7', '1.10.6', '1.11.1'] // TODO: <-- Should be dynamically populated.
         },
         'cloud_account_name': { // TODO: <-- Should be dynamically populated enum with any cloud accounts linked to provider
           'type': 'string',
@@ -96,7 +96,7 @@ export class ClusterAWSModel {
           }
         }
       },
-      'required': [ 'name' ]
+      'required': ['name']
     },
     'layout': [
       {
