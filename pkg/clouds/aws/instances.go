@@ -53,12 +53,7 @@ func New(keyID, secret string, tags map[string]string) (*Client, error) {
 }
 
 // AvailableInstanceTypes returns a list of valid instance types for the region.
-func (c *Client) AvailableInstanceTypes(ctx context.Context, region string) ([]*EC2TypeInfo, error) {
-	region = strings.TrimSpace(region)
-	if region == "" {
-		return nil, ErrNoRegionProvided
-	}
-
+func (c *Client) AvailableInstanceTypes(ctx context.Context) ([]*EC2TypeInfo, error) {
 	ec2Types, err := c.getEC2Types()
 	if err != nil {
 		return nil, errors.Wrap(err, "aws: get ec2 types")
