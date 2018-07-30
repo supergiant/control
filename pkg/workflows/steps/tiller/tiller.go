@@ -2,31 +2,32 @@ package tiller
 
 import (
 	"context"
+	"io"
 	"text/template"
 
 	"github.com/pkg/errors"
 
-	"io"
-
 	"github.com/supergiant/supergiant/pkg/workflows/steps"
 )
 
-const StepName = "install_tiller"
+const (
+	StepName    = "install_tiller"
+	TemplateDir = "scripts"
+)
 
-type Task struct {
+type Step struct {
 	script *template.Template
 }
 
-func New(script *template.Template) (*Task, error) {
-
-	t := &Task{
+func New(script *template.Template) *Step {
+	t := &Step{
 		script: script,
 	}
 
-	return t, nil
+	return t
 }
 
-func (j *Task) Run(ctx context.Context, out io.Writer, config steps.Config) error {
+func (j *Step) Run(ctx context.Context, out io.Writer, config steps.Config) error {
 	err := steps.RunTemplate(context.Background(), j.script, config.Runner, out, config.TillerConfig)
 
 	if err != nil {
@@ -34,4 +35,12 @@ func (j *Task) Run(ctx context.Context, out io.Writer, config steps.Config) erro
 	}
 
 	return nil
+}
+
+func (s *Step) Name() string {
+	return StepName
+}
+
+func (s *Step) Description() string {
+	return ""
 }

@@ -16,10 +16,10 @@ type Step struct {
 	scriptTemplate *template.Template
 }
 
-func New(tpl *template.Template) (*Step, error) {
+func New(tpl *template.Template) *Step {
 	return &Step{
 		scriptTemplate: tpl,
-	}, nil
+	}
 }
 
 func (t *Step) Run(ctx context.Context, out io.Writer, config steps.Config) error {

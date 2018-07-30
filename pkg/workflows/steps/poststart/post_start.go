@@ -1,4 +1,4 @@
-package tiller
+package poststart
 
 import (
 	"context"
@@ -16,7 +16,7 @@ type Step struct {
 	script *template.Template
 }
 
-func New(script *template.Template) (*Step, error) {
+func New(script *template.Template) *Step {
 	t := &Step{
 		script: script,
 	}

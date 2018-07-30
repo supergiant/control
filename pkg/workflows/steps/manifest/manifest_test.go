@@ -1,4 +1,4 @@
-package tiller
+package manifest
 
 import (
 	"bytes"

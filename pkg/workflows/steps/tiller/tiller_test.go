@@ -46,7 +46,7 @@ func TestInstallTiller(t *testing.T) {
 
 	output := new(bytes.Buffer)
 
-	j := &Task{
+	j := &Step{
 		proxyTemplate,
 	}
 
@@ -88,7 +88,7 @@ func TestInstallTillerError(t *testing.T) {
 	proxyTemplate, err := template.New(StepName).Parse("")
 	output := new(bytes.Buffer)
 
-	j := &Task{
+	j := &Step{
 		proxyTemplate,
 	}
 

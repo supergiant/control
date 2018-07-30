@@ -8,8 +8,22 @@ import (
 
 	"github.com/pborman/uuid"
 
+	"time"
+
 	"github.com/supergiant/supergiant/pkg/storage"
+	"github.com/supergiant/supergiant/pkg/template"
 	"github.com/supergiant/supergiant/pkg/workflows/steps"
+	"github.com/supergiant/supergiant/pkg/workflows/steps/certificates"
+	"github.com/supergiant/supergiant/pkg/workflows/steps/cni"
+	"github.com/supergiant/supergiant/pkg/workflows/steps/digitalocean"
+	"github.com/supergiant/supergiant/pkg/workflows/steps/flannel"
+	"github.com/supergiant/supergiant/pkg/workflows/steps/kubelet"
+	"github.com/supergiant/supergiant/pkg/workflows/steps/kubeletconf"
+	"github.com/supergiant/supergiant/pkg/workflows/steps/kubeproxy"
+	"github.com/supergiant/supergiant/pkg/workflows/steps/manifest"
+	"github.com/supergiant/supergiant/pkg/workflows/steps/poststart"
+	"github.com/supergiant/supergiant/pkg/workflows/steps/systemd"
+	"github.com/supergiant/supergiant/pkg/workflows/steps/tiller"
 )
 
 type StepStatus struct {
@@ -33,8 +47,20 @@ const (
 )
 
 var (
-	masterSteps = []steps.Step{}
-	nodeSteps   = []steps.Step{}
+	digitalOceanMaster = []steps.Step{
+		digitalocean.New(nil, time.Minute*5, time.Second*5),
+		tiller.New(template.GetTemplate(tiller.StepName)),
+		manifest.New(template.GetTemplate(manifest.StepName)),
+		systemd.New(template.GetTemplate(systemd.StepName)),
+		cni.New(template.GetTemplate(cni.StepName)),
+		certificates.New(template.GetTemplate(certificates.StepName)),
+		flannel.New(template.GetTemplate(flannel.StepName)),
+		kubeletconf.New(template.GetTemplate(kubeletconf.StepName)),
+		kubeproxy.New(template.GetTemplate(kubeproxy.StepName)),
+		kubelet.New(template.GetTemplate(kubelet.StepName)),
+		poststart.New(template.GetTemplate(poststart.StepName)),
+	}
+	digitalOceanNode = []steps.Step{}
 
 	ErrUnknownWorkflowType = errors.New("unknown workflow type")
 )
@@ -44,14 +70,14 @@ func New(workflowType string, config steps.Config, repository storage.Interface)
 		return &WorkFlow{
 			Config: config,
 
-			workflowSteps: masterSteps,
+			workflowSteps: digitalOceanMaster,
 			repository:    repository,
 		}, nil
 	} else if workflowType == NodeWorkflow {
 		return &WorkFlow{
 			Config: config,
 
-			workflowSteps: nodeSteps,
+			workflowSteps: digitalOceanNode,
 			repository:    repository,
 		}, nil
 	}

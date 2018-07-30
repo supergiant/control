@@ -1,4 +1,4 @@
-package tiller
+package systemd
 
 import (
 	"context"
@@ -16,12 +16,12 @@ type Step struct {
 	script *template.Template
 }
 
-func New(script *template.Template) (*Step, error) {
+func New(script *template.Template) *Step {
 	t := &Step{
 		script: script,
 	}
 
-	return t, nil
+	return t
 }
 
 func (s *Step) Run(ctx context.Context, out io.Writer, config steps.Config) error {
