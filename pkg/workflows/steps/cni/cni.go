@@ -7,7 +7,6 @@ import (
 
 	"github.com/pkg/errors"
 
-	"github.com/supergiant/supergiant/pkg/runner/ssh"
 	"github.com/supergiant/supergiant/pkg/workflows/steps"
 )
 
@@ -17,7 +16,7 @@ type Step struct {
 	script *template.Template
 }
 
-func New(script *template.Template, cfg *ssh.Config) (*Step, error) {
+func New(script *template.Template) (*Step, error) {
 	t := &Step{
 		script: script,
 	}
