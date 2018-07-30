@@ -6,6 +6,7 @@ import (
 	"text/template"
 
 	"github.com/pkg/errors"
+
 	"github.com/supergiant/supergiant/pkg/runner/ssh"
 	"github.com/supergiant/supergiant/pkg/workflows/steps"
 )

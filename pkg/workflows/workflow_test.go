@@ -6,10 +6,11 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
-	"github.com/supergiant/supergiant/pkg/workflows/steps"
 	"io"
 	"strings"
 	"testing"
+
+	"github.com/supergiant/supergiant/pkg/workflows/steps"
 )
 
 type fakeSynchronizer struct {
@@ -23,7 +24,7 @@ func (f *fakeSynchronizer) Put(ctx context.Context, prefix string, key string, v
 }
 
 func (f *fakeSynchronizer) Get(ctx context.Context, prefix string, key string) ([]byte, error) {
-	return f.storage[fmt.Sprint("%s/%s", prefix, key)], nil
+	return f.storage[fmt.Sprintf("%s/%s", prefix, key)], nil
 }
 
 func (f *fakeSynchronizer) GetAll(ctx context.Context, prefix string) ([][]byte, error) {
@@ -37,14 +38,24 @@ func (f *fakeSynchronizer) Delete(ctx context.Context, prefix string, key string
 type fakeStep struct {
 	name        string
 	description string
-	err         error
+	counter     int
+	errs        []error
 }
 
 func (f *fakeStep) Run(ctx context.Context, out io.Writer, config steps.Config) error {
-	if f.err != nil {
-		out.Write([]byte(f.err.Error()))
+	defer func() {
+		f.counter++
+	}()
+
+	if f.counter < len(f.errs) && f.errs[f.counter] != nil {
+		out.Write([]byte(f.errs[f.counter].Error()))
 	}
-	return f.err
+
+	if f.counter < len(f.errs) {
+		return f.errs[f.counter]
+	}
+
+	return nil
 }
 
 func (f *fakeStep) Name() string {
@@ -56,7 +67,7 @@ func (f *fakeStep) Description() string {
 }
 
 func TestWorkFlowRunError(t *testing.T) {
-	errMsg := "shit happens"
+	errMsg := "something has gone wrong"
 	s := &fakeSynchronizer{
 		storage: make(map[string][]byte),
 	}
@@ -65,9 +76,9 @@ func TestWorkFlowRunError(t *testing.T) {
 		Config:     steps.Config{},
 		repository: s,
 		workflowSteps: []steps.Step{
-			&fakeStep{name: "step1", err: nil},
-			&fakeStep{name: "step2", err: errors.New(errMsg)},
-			&fakeStep{name: "step3", err: nil}},
+			&fakeStep{name: "step1", errs: nil},
+			&fakeStep{name: "step2", errs: []error{errors.New(errMsg)}},
+			&fakeStep{name: "step3", errs: nil}},
 	}
 
 	buffer := &bytes.Buffer{}
@@ -111,9 +122,9 @@ func TestWorkFlowRunSuccess(t *testing.T) {
 		Config:     steps.Config{},
 		repository: s,
 		workflowSteps: []steps.Step{
-			&fakeStep{name: "step1", err: nil},
-			&fakeStep{name: "step2", err: nil},
-			&fakeStep{name: "step3", err: nil}},
+			&fakeStep{name: "step1", errs: nil},
+			&fakeStep{name: "step2", errs: nil},
+			&fakeStep{name: "step3", errs: nil}},
 	}
 
 	buffer := &bytes.Buffer{}
@@ -145,5 +156,55 @@ func TestWorkFlowRunSuccess(t *testing.T) {
 }
 
 func TestWorkflowRestart(t *testing.T) {
+	errMsg := "something has gone wrong"
+	s := &fakeSynchronizer{
+		storage: make(map[string][]byte),
+	}
 
+	w := &WorkFlow{
+		Config:     steps.Config{},
+		repository: s,
+		workflowSteps: []steps.Step{
+			&fakeStep{name: "step1", errs: nil},
+			&fakeStep{name: "step2", errs: []error{errors.New(errMsg), nil}},
+			&fakeStep{name: "step3", errs: nil},
+		},
+	}
+
+	buffer := &bytes.Buffer{}
+	id, errChan := w.Run(context.Background(), buffer)
+
+	if len(id) == 0 {
+		t.Error("id must not be empty")
+	}
+
+	err := <-errChan
+
+	if err == nil {
+		t.Error("Error must not be nil")
+	}
+
+	if !strings.Contains(buffer.String(), errMsg) {
+		t.Error(fmt.Sprintf("Expected error message %s not found in output %s", errMsg, buffer.String()))
+	}
+
+	data := s.storage[fmt.Sprintf("workflows/%s", id)]
+	err = json.Unmarshal([]byte(data), w)
+
+	if err != nil {
+		t.Errorf("Unexpected error while unmarshalling data %v", err)
+	}
+
+	if w.StepStatuses[1].Status != steps.StatusError {
+		t.Errorf("Unexpected step statues expected %s actual %s",
+			steps.StatusError, w.StepStatuses[1].Status)
+	}
+
+	buffer.Reset()
+	errChan = w.Restart(context.Background(), id, buffer)
+	err = <-errChan
+
+	if err != nil {
+		t.Errorf("Error must not be nil actual %v", err)
+	}
 }

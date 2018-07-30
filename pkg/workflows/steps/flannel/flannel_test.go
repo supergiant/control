@@ -9,6 +9,7 @@ import (
 	"github.com/pkg/errors"
 
 	"context"
+
 	"github.com/supergiant/supergiant/pkg/testutils"
 	"github.com/supergiant/supergiant/pkg/workflows/steps"
 )

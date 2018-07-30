@@ -12,10 +12,11 @@ import (
 	"github.com/pkg/errors"
 	"golang.org/x/oauth2"
 
+	"io"
+
 	"github.com/supergiant/supergiant/pkg/storage"
 	"github.com/supergiant/supergiant/pkg/util"
 	"github.com/supergiant/supergiant/pkg/workflows/steps"
-	"io"
 )
 
 const StepName = "digital_ocean"
