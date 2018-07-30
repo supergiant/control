@@ -13,25 +13,25 @@ import (
 	"github.com/supergiant/supergiant/pkg/workflows/steps"
 )
 
-type fakeSynchronizer struct {
+type fakeRepository struct {
 	storage map[string][]byte
 }
 
-func (f *fakeSynchronizer) Put(ctx context.Context, prefix string, key string, value []byte) error {
+func (f *fakeRepository) Put(ctx context.Context, prefix string, key string, value []byte) error {
 	f.storage[fmt.Sprintf("%s/%s", prefix, key)] = value
 
 	return nil
 }
 
-func (f *fakeSynchronizer) Get(ctx context.Context, prefix string, key string) ([]byte, error) {
+func (f *fakeRepository) Get(ctx context.Context, prefix string, key string) ([]byte, error) {
 	return f.storage[fmt.Sprintf("%s/%s", prefix, key)], nil
 }
 
-func (f *fakeSynchronizer) GetAll(ctx context.Context, prefix string) ([][]byte, error) {
+func (f *fakeRepository) GetAll(ctx context.Context, prefix string) ([][]byte, error) {
 	return nil, nil
 }
 
-func (f *fakeSynchronizer) Delete(ctx context.Context, prefix string, key string) error {
+func (f *fakeRepository) Delete(ctx context.Context, prefix string, key string) error {
 	return nil
 }
 
@@ -68,7 +68,7 @@ func (f *fakeStep) Description() string {
 
 func TestWorkFlowRunError(t *testing.T) {
 	errMsg := "something has gone wrong"
-	s := &fakeSynchronizer{
+	s := &fakeRepository{
 		storage: make(map[string][]byte),
 	}
 
@@ -114,7 +114,7 @@ func TestWorkFlowRunError(t *testing.T) {
 }
 
 func TestWorkFlowRunSuccess(t *testing.T) {
-	s := &fakeSynchronizer{
+	s := &fakeRepository{
 		storage: make(map[string][]byte),
 	}
 
@@ -157,7 +157,7 @@ func TestWorkFlowRunSuccess(t *testing.T) {
 
 func TestWorkflowRestart(t *testing.T) {
 	errMsg := "something has gone wrong"
-	s := &fakeSynchronizer{
+	s := &fakeRepository{
 		storage: make(map[string][]byte),
 	}
 
