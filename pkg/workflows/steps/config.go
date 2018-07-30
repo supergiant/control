@@ -93,6 +93,7 @@ type DockerConfig struct {
 	ReleaseVersion string
 	Arch           string
 }
+
 type Config struct {
 	DockerConfig
 	CertificatesConfig
