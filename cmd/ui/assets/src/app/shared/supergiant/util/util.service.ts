@@ -1,5 +1,6 @@
 import { Injectable } from '@angular/core';
 import { Http, Response, Headers } from '@angular/http';
+import { HttpClient } from '@angular/common/http';
 import { Observable } from 'rxjs/Observable';
 import { Location } from '@angular/common';
 
@@ -10,7 +11,7 @@ export class UtilService {
   SessionID: string;
 
   constructor(
-    private http: Http,
+    private http: HttpClient,
     private location: Location,
   ) {
     if (window.location.pathname.split('/')[2] === 'ui') {
@@ -25,34 +26,24 @@ export class UtilService {
   }
 
   fetch(path) {
-    const headers = new Headers();
-    headers.append('Authorization', this.sessionToken);
-    return this.http.get(this.serverEndpoint + path + '?limit=1000', { headers: headers }).map(response => response.json());
+    return this.http.get(this.serverEndpoint + path + '?limit=1000', { observe: "response" });
   }
 
   fetchNoMap(path) {
-    const headers = new Headers();
-    headers.append('Authorization', this.sessionToken);
-    return this.http.get(this.serverEndpoint + path, { headers: headers }).map(response => response);
+    return this.http.get(this.serverEndpoint + path, { observe: "response" });
   }
 
   post(path, data) {
     const json = JSON.stringify(data);
-    const headers = new Headers();
-    headers.append('Authorization', this.sessionToken);
-    return this.http.post(this.serverEndpoint + path, json, { headers: headers }).map(response => response.json());
+    return this.http.post(this.serverEndpoint + path, json, { observe: "response" });
   }
 
   update(path, data) {
     const json = JSON.stringify(data);
-    const headers = new Headers();
-    headers.append('Authorization', this.sessionToken);
-    return this.http.put(this.serverEndpoint + path, json, { headers: headers }).map(response => response.json());
+    return this.http.put(this.serverEndpoint + path, json, { observe: "response" });
   }
 
   destroy(path) {
-    const headers = new Headers();
-    headers.append('Authorization', this.sessionToken);
-    return this.http.delete(this.serverEndpoint + path, { headers: headers }).map(response => response.json());
+    return this.http.delete(this.serverEndpoint + path, { observe: "response" });
   }
 }

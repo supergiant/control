@@ -3,7 +3,7 @@ import { UtilService } from '../util/util.service';
 
 @Injectable()
 export class Nodes {
-  nodesPath = '/api/v0/nodes';
+  nodesPath = '/v1/api/nodes';
 
   constructor(private util: UtilService) { }
   public get(id?) {
