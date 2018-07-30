@@ -4,8 +4,8 @@ import (
 	"context"
 	"encoding/json"
 	"errors"
-	"fmt"
 	"github.com/satori/go.uuid"
+	"github.com/supergiant/supergiant/pkg/storage"
 	"github.com/supergiant/supergiant/pkg/workflows/steps"
 	"io"
 )
@@ -22,7 +22,7 @@ type WorkFlow struct {
 	StepStatuses []StepStatus `json:"steps"`
 
 	workflowSteps []steps.Step
-	synchronizer  Synchronizer
+	repository    storage.Interface
 }
 
 const (
@@ -106,5 +106,5 @@ func (w *WorkFlow) sync(ctx context.Context, id string) error {
 		return err
 	}
 
-	return w.synchronizer.Sync(ctx, fmt.Sprintf("workflows/%s", id), string(data))
+	return w.repository.Put(ctx, "workflows", id, data)
 }

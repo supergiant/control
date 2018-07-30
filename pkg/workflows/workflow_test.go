@@ -4,8 +4,8 @@ import (
 	"bytes"
 	"context"
 	"encoding/json"
+	"errors"
 	"fmt"
-	"github.com/pkg/errors"
 	"github.com/supergiant/supergiant/pkg/workflows/steps"
 	"io"
 	"strings"
@@ -13,12 +13,24 @@ import (
 )
 
 type fakeSynchronizer struct {
-	storage map[string]string
+	storage map[string][]byte
 }
 
-func (f *fakeSynchronizer) Sync(ctx context.Context, key, data string) error {
-	f.storage[key] = data
+func (f *fakeSynchronizer) Put(ctx context.Context, prefix string, key string, value []byte) error {
+	f.storage[fmt.Sprintf("%s/%s", prefix, key)] = value
 
+	return nil
+}
+
+func (f *fakeSynchronizer) Get(ctx context.Context, prefix string, key string) ([]byte, error) {
+	return f.storage[fmt.Sprint("%s/%s", prefix, key)], nil
+}
+
+func (f *fakeSynchronizer) GetAll(ctx context.Context, prefix string) ([][]byte, error) {
+	return nil, nil
+}
+
+func (f *fakeSynchronizer) Delete(ctx context.Context, prefix string, key string) error {
 	return nil
 }
 
@@ -46,12 +58,12 @@ func (f *fakeStep) Description() string {
 func TestWorkFlowRunError(t *testing.T) {
 	errMsg := "shit happens"
 	s := &fakeSynchronizer{
-		storage: make(map[string]string),
+		storage: make(map[string][]byte),
 	}
 
 	workflow := WorkFlow{
-		Config:       steps.Config{},
-		synchronizer: s,
+		Config:     steps.Config{},
+		repository: s,
 		workflowSteps: []steps.Step{
 			&fakeStep{name: "step1", err: nil},
 			&fakeStep{name: "step2", err: errors.New(errMsg)},
@@ -92,12 +104,12 @@ func TestWorkFlowRunError(t *testing.T) {
 
 func TestWorkFlowRunSuccess(t *testing.T) {
 	s := &fakeSynchronizer{
-		storage: make(map[string]string),
+		storage: make(map[string][]byte),
 	}
 
 	workflow := WorkFlow{
-		Config:       steps.Config{},
-		synchronizer: s,
+		Config:     steps.Config{},
+		repository: s,
 		workflowSteps: []steps.Step{
 			&fakeStep{name: "step1", err: nil},
 			&fakeStep{name: "step2", err: nil},
