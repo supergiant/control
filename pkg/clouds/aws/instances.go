@@ -16,7 +16,8 @@ import (
 
 // Tag keys for aws resources:
 const (
-	TagCluster = "Cluster"
+	TagName    = "Name"
+	TagCluster = "KubernetesCluster"
 	TagRole    = "Role"
 )
 
@@ -259,6 +260,7 @@ func (c *Client) addTags(cfg *InstanceConfig) {
 		cfg.Tags = make(map[string]string)
 	}
 
+	cfg.Tags[TagName] = cfg.Name
 	cfg.Tags[TagCluster] = cfg.ClusterName
 	cfg.Tags[TagRole] = cfg.ClusterRole
 
@@ -273,10 +275,10 @@ func (c *Client) buildFilter(tags map[string]string) []*ec2.Filter {
 	}
 	filters := make([]*ec2.Filter, 0)
 	for k, v := range c.tags {
-		filters = append(filters, &ec2.Filter{Name: aws.String("tag:"+k), Values: []*string{aws.String(v)}})
+		filters = append(filters, &ec2.Filter{Name: aws.String("tag:" + k), Values: []*string{aws.String(v)}})
 	}
 	for k, v := range tags {
-		filters = append(filters, &ec2.Filter{Name: aws.String("tag:"+k), Values: []*string{aws.String(v)}})
+		filters = append(filters, &ec2.Filter{Name: aws.String("tag:" + k), Values: []*string{aws.String(v)}})
 	}
 	return filters
 }
