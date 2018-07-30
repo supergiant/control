@@ -273,10 +273,10 @@ func (c *Client) buildFilter(tags map[string]string) []*ec2.Filter {
 	}
 	filters := make([]*ec2.Filter, 0)
 	for k, v := range c.tags {
-		filters = append(filters, &ec2.Filter{Name: aws.String(k), Values: []*string{aws.String(v)}})
+		filters = append(filters, &ec2.Filter{Name: aws.String("tag:"+k), Values: []*string{aws.String(v)}})
 	}
 	for k, v := range tags {
-		filters = append(filters, &ec2.Filter{Name: aws.String(k), Values: []*string{aws.String(v)}})
+		filters = append(filters, &ec2.Filter{Name: aws.String("tag:"+k), Values: []*string{aws.String(v)}})
 	}
 	return filters
 }
