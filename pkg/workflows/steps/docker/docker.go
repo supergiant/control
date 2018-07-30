@@ -1,0 +1,41 @@
+package docker
+
+import (
+	"context"
+	"io"
+	"text/template"
+
+	"github.com/pkg/errors"
+
+	"github.com/supergiant/supergiant/pkg/workflows/steps"
+)
+
+const StepName = "docker"
+
+type Step struct {
+	scriptTemplate *template.Template
+}
+
+func New(tpl *template.Template) *Step {
+	return &Step{
+		scriptTemplate: tpl,
+	}
+}
+
+func (t *Step) Run(ctx context.Context, out io.Writer, config steps.Config) error {
+	err := steps.RunTemplate(context.Background(), t.scriptTemplate,
+		config.Runner, out, config.DockerConfig)
+	if err != nil {
+		return errors.Wrap(err, "Run template has failed for install docker job")
+	}
+
+	return nil
+}
+
+func (t *Step) Name() string {
+	return StepName
+}
+
+func (t *Step) Description() string {
+	return ""
+}

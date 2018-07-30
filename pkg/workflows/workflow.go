@@ -16,6 +16,7 @@ import (
 	"github.com/supergiant/supergiant/pkg/workflows/steps/certificates"
 	"github.com/supergiant/supergiant/pkg/workflows/steps/cni"
 	"github.com/supergiant/supergiant/pkg/workflows/steps/digitalocean"
+	"github.com/supergiant/supergiant/pkg/workflows/steps/docker"
 	"github.com/supergiant/supergiant/pkg/workflows/steps/flannel"
 	"github.com/supergiant/supergiant/pkg/workflows/steps/kubelet"
 	"github.com/supergiant/supergiant/pkg/workflows/steps/kubeletconf"
@@ -49,6 +50,7 @@ const (
 var (
 	digitalOceanMaster = []steps.Step{
 		digitalocean.New(nil, time.Minute*5, time.Second*5),
+		docker.New(template.GetTemplate(docker.StepName)),
 		tiller.New(template.GetTemplate(tiller.StepName)),
 		manifest.New(template.GetTemplate(manifest.StepName)),
 		systemd.New(template.GetTemplate(systemd.StepName)),

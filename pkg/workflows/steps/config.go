@@ -88,7 +88,13 @@ type TillerConfig struct {
 	Arch            string
 }
 
+type DockerConfig struct {
+	DockerVersion  string
+	ReleaseVersion string
+	Arch           string
+}
 type Config struct {
+	DockerConfig
 	CertificatesConfig
 	DOConfig
 	FlannelConfig
