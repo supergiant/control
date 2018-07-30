@@ -6,7 +6,7 @@ import { Location } from '@angular/common';
 
 @Injectable()
 export class UtilService {
-  serverEndpoint = 'http://localhost:3000';
+  serverEndpoint = 'http://localhost:8080';
   sessionToken: string;
   SessionID: string;
 
@@ -18,7 +18,7 @@ export class UtilService {
       this.serverEndpoint = '/' + window.location.pathname.split('/')[1] + '/server';
     } else {
       if (window.location.hostname === 'localhost') {
-        this.serverEndpoint = window.location.protocol + '//' + window.location.hostname + ':3000';
+        this.serverEndpoint = window.location.protocol + '//' + window.location.hostname + ':8080';
       } else {
         this.serverEndpoint = window.location.protocol + '//' + window.location.hostname;
       }
