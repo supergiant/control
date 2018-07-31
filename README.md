@@ -43,7 +43,7 @@ Supergiant implements simple practices that abstract load-balancing, application
 - [Top-level concepts](http://supergiant.readthedocs.io/en/v1.0.0/Concepts/capacity_service/)
 - [Tutorials](https://supergiant.io/tutorials)
 - [Slack Support Channel](https://supergiant.io/slack)
-- [Installation](https://supergiant.readthedocs.io/en/v1.0.0/Installation/Linux/)
+- [Installation](http://supergiant.readthedocs.io/en/v1.0.0/Installation/Linux/)
 ~ [UI Usage](http://supergiant.readthedocs.io/en/v1.0.0/Using%20the%20UI/cloud_accounts/)
 ~ [API Usage](http://supergiant.readthedocs.io/en/v1.0.0/Using%20the%20API/load_balancer/)
 
