@@ -10,7 +10,7 @@ export class Sessions {
 
   public valid(id) {
     if (id) {
-      return this.util.fetchNoMap(this.sessionsPath + '/' + id);
+      return this.util.fetchResponse(this.sessionsPath + '/' + id);
     } else {
       return Observable.throw(null);
     }

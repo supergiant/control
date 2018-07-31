@@ -17,7 +17,7 @@ import { Router } from '@angular/router';
 })
 export class NewClusterComponent implements OnInit, OnDestroy, AfterViewInit {
   subscriptions = new Subscription();
-  cloudAccountsList = [];
+  cloudAccountsList: any;
   awsModel = new ClusterAWSModel;
   doModel = new ClusterDigitalOceanModel;
   gceModel = new ClusterGCEModel;
@@ -34,7 +34,7 @@ export class NewClusterComponent implements OnInit, OnDestroy, AfterViewInit {
   getCloudAccounts() {
     this.subscriptions.add(this.supergiant.CloudAccounts.get().subscribe(
       (cloudAccounts) => {
-        if (Object.keys(cloudAccounts.items).length > 0) {
+        if (Object.keys(cloudAccounts).length > 0) {
           this.hasCloudAccount = true;
         }
       })
@@ -44,7 +44,7 @@ export class NewClusterComponent implements OnInit, OnDestroy, AfterViewInit {
   getClusters() {
     this.subscriptions.add(this.supergiant.Kubes.get().subscribe(
       (clusters) => {
-        if (Object.keys(clusters.items).length > 0) {
+        if (Object.keys(clusters).length > 0) {
           this.hasCluster = true;
         }
       })
@@ -54,9 +54,9 @@ export class NewClusterComponent implements OnInit, OnDestroy, AfterViewInit {
   getDeployments() {
     this.subscriptions.add(this.supergiant.HelmReleases.get().subscribe(
       (deployments) => {
-        if (Object.keys(deployments.items).length > 0) {
+        if (Object.keys(deployments).length > 0) {
           this.hasApp = true;
-          this.appCount = Object.keys(deployments.items).length;
+          this.appCount = Object.keys(deployments).length;
         }
       })
     );
@@ -80,7 +80,7 @@ export class NewClusterComponent implements OnInit, OnDestroy, AfterViewInit {
 
   ngAfterViewInit() {
     this.subscriptions.add(this.supergiant.CloudAccounts.get().subscribe(
-      (data) => { this.cloudAccountsList = data.items; }
+      (data) => { this.cloudAccountsList = data; }
     ));
   }
 
