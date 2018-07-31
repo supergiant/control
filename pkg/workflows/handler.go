@@ -19,12 +19,12 @@ type WorkflowHandler struct {
 }
 
 type BuildWorkFlowRequest struct {
-	stepNames []string     `json:"step_names"`
-	config    steps.Config `json:"config"`
-	sshConfig ssh.Config   `json:"ssh_config"`
+	StepNames []string     `json:"step_names"`
+	Cfg       steps.Config `json:"Cfg"`
+	SshConfig ssh.Config   `json:"ssh_config"`
 }
 
-type BuildWorkFlowResponse struct{
+type BuildWorkFlowResponse struct {
 	Id string `json:"id"`
 }
 
@@ -48,8 +48,7 @@ func (h *WorkflowHandler) GetWorkflow(w http.ResponseWriter, r *http.Request) {
 }
 
 func (h *WorkflowHandler) BuildWorkflow(w http.ResponseWriter, r *http.Request) {
-	var req BuildWorkFlowRequest
-
+	req := &BuildWorkFlowRequest{}
 	err := json.NewDecoder(r.Body).Decode(req)
 
 	if err != nil {
@@ -57,21 +56,21 @@ func (h *WorkflowHandler) BuildWorkflow(w http.ResponseWriter, r *http.Request) 
 		return
 	}
 
-	runner, err := ssh.NewRunner(req.sshConfig)
+	runner, err := ssh.NewRunner(req.SshConfig)
 
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
 	}
 
-	req.config.Runner = runner
-	s := make([]steps.Step, 0, len(req.stepNames))
+	req.Cfg.Runner = runner
+	s := make([]steps.Step, 0, len(req.StepNames))
 
-	for _, stepName := range req.stepNames {
+	for _, stepName := range req.StepNames {
 		s = append(s, steps.GetStep(stepName))
 	}
 
-	workflow := BuildCustomWorkflow(s, req.config, h.repository)
+	workflow := BuildCustomWorkflow(s, req.Cfg, h.repository)
 	workflow.Run(context.Background(), os.Stdout)
 
 	respData, _ := json.Marshal(BuildWorkFlowResponse{workflow.Id})

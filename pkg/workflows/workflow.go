@@ -33,7 +33,7 @@ type StepStatus struct {
 type WorkFlow struct {
 	Id           string       `json:"id"`
 	Type         string       `json:"type"`
-	Config       steps.Config `json:"config"`
+	Config       steps.Config `json:"Cfg"`
 	StepStatuses []StepStatus `json:"steps"`
 
 	workflowSteps []steps.Step

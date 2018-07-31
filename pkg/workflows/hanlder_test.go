@@ -7,7 +7,11 @@ import (
 	"net/http/httptest"
 	"testing"
 
+	"bytes"
+
 	"github.com/gorilla/mux"
+
+	"github.com/supergiant/supergiant/pkg/runner/ssh"
 )
 
 func TestWorkflowHandlerGetWorkflow(t *testing.T) {
@@ -50,5 +54,40 @@ func TestWorkflowHandlerGetWorkflow(t *testing.T) {
 	if w1.Type != w2.Type {
 		t.Errorf("Wrong workflow type expected %s actual %s",
 			w1.Type, w2.Type)
+	}
+}
+
+func TestWorkflowHandlerBuildWorkflow(t *testing.T) {
+	h := WorkflowHandler{
+		repository: &fakeRepository{
+			map[string][]byte{},
+		},
+	}
+
+	reqBody := BuildWorkFlowRequest{
+		SshConfig: ssh.Config{
+			Host:    "12.34.56.67",
+			Port:    "22",
+			User:    "root",
+			Timeout: 1,
+			Key:     []byte("")},
+	}
+	body := &bytes.Buffer{}
+	err := json.NewEncoder(body).Encode(reqBody)
+	rec := httptest.NewRecorder()
+	req := httptest.NewRequest(http.MethodPost, "/", body)
+
+	h.BuildWorkflow(rec, req)
+
+	resp := &BuildWorkFlowResponse{}
+	err = json.Unmarshal(rec.Body.Bytes(), resp)
+
+	if rec.Code != http.StatusCreated {
+		t.Errorf("Wrong response code expected %d actual %d", rec.Code, http.StatusCreated)
+		return
+	}
+
+	if err != nil {
+		t.Errorf("Unexpected error while parsing response %v", err)
 	}
 }
