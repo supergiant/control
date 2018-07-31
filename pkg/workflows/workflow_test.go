@@ -71,8 +71,10 @@ func TestWorkFlowRunError(t *testing.T) {
 	s := &fakeRepository{
 		storage: make(map[string][]byte),
 	}
+	id := "abcd"
 
 	workflow := WorkFlow{
+		Id:         id,
 		Config:     steps.Config{},
 		repository: s,
 		workflowSteps: []steps.Step{
@@ -82,9 +84,9 @@ func TestWorkFlowRunError(t *testing.T) {
 	}
 
 	buffer := &bytes.Buffer{}
-	id, errChan := workflow.Run(context.Background(), buffer)
+	errChan := workflow.Run(context.Background(), buffer)
 
-	if len(id) == 0 {
+	if len(workflow.Id) == 0 {
 		t.Error("id must not be empty")
 	}
 
@@ -118,7 +120,9 @@ func TestWorkFlowRunSuccess(t *testing.T) {
 		storage: make(map[string][]byte),
 	}
 
+	id := "abcd"
 	workflow := WorkFlow{
+		Id:         id,
 		Config:     steps.Config{},
 		repository: s,
 		workflowSteps: []steps.Step{
@@ -128,7 +132,7 @@ func TestWorkFlowRunSuccess(t *testing.T) {
 	}
 
 	buffer := &bytes.Buffer{}
-	id, errChan := workflow.Run(context.Background(), buffer)
+	errChan := workflow.Run(context.Background(), buffer)
 
 	if len(id) == 0 {
 		t.Error("id must not be empty")
@@ -141,7 +145,7 @@ func TestWorkFlowRunSuccess(t *testing.T) {
 	}
 
 	w := &WorkFlow{}
-	data := s.storage[fmt.Sprintf("workflows/%s", id)]
+	data := s.storage[fmt.Sprintf("workflows/%s", workflow.Id)]
 
 	err = json.Unmarshal([]byte(data), w)
 
@@ -160,8 +164,10 @@ func TestWorkflowRestart(t *testing.T) {
 	s := &fakeRepository{
 		storage: make(map[string][]byte),
 	}
+	id := "abcd"
 
 	w := &WorkFlow{
+		Id:         id,
 		Config:     steps.Config{},
 		repository: s,
 		workflowSteps: []steps.Step{
@@ -172,7 +178,7 @@ func TestWorkflowRestart(t *testing.T) {
 	}
 
 	buffer := &bytes.Buffer{}
-	id, errChan := w.Run(context.Background(), buffer)
+	errChan := w.Run(context.Background(), buffer)
 
 	if len(id) == 0 {
 		t.Error("id must not be empty")

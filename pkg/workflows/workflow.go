@@ -8,6 +8,7 @@ import (
 
 	"github.com/pborman/uuid"
 
+	"github.com/supergiant/supergiant/pkg/clouds"
 	"github.com/supergiant/supergiant/pkg/storage"
 	"github.com/supergiant/supergiant/pkg/workflows/steps"
 	"github.com/supergiant/supergiant/pkg/workflows/steps/certificates"
@@ -30,6 +31,7 @@ type StepStatus struct {
 }
 
 type WorkFlow struct {
+	Id           string       `json:"id"`
 	Type         string       `json:"type"`
 	Config       steps.Config `json:"config"`
 	StepStatuses []StepStatus `json:"steps"`
@@ -72,31 +74,45 @@ var (
 	}
 
 	ErrUnknownWorkflowType = errors.New("unknown workflow type")
+	ErrUnknownProviderType = errors.New("unknown provider type")
 )
 
-func New(workflowType, provider string, config steps.Config, repository storage.Interface) (*WorkFlow, error) {
-	if workflowType == MasterWorkFlow {
-		return &WorkFlow{
-			Config: config,
+// TODO(stgleb): Add ability to pass arbitrary list of steps to create workflow by your own
+func New(workflowType, providerString clouds.Name, config steps.Config, repository storage.Interface) (*WorkFlow, error) {
+	id := uuid.New()
 
-			workflowSteps: digitalOceanMaster,
-			repository:    repository,
-		}, nil
-	} else if workflowType == NodeWorkflow {
-		return &WorkFlow{
-			Config: config,
+	switch providerString {
+	case clouds.DigitalOcean:
+		if workflowType == MasterWorkFlow {
+			return &WorkFlow{
+				Id:     id,
+				Config: config,
 
-			workflowSteps: digitalOceanNode,
-			repository:    repository,
-		}, nil
+				workflowSteps: digitalOceanMaster,
+				repository:    repository,
+			}, nil
+		} else if workflowType == NodeWorkflow {
+			return &WorkFlow{
+				Id:     id,
+				Config: config,
+
+				workflowSteps: digitalOceanNode,
+				repository:    repository,
+			}, nil
+		}
+
+		return nil, ErrUnknownWorkflowType
+	case clouds.AWS:
+	case clouds.GCE:
+	case clouds.Packet:
 	}
 
-	return nil, ErrUnknownWorkflowType
+	return nil, ErrUnknownProviderType
 }
 
-func (w *WorkFlow) Run(ctx context.Context, out io.Writer) (string, chan error) {
+// Run executes all steps of workflow and tracks the progress in persistent storage
+func (w *WorkFlow) Run(ctx context.Context, out io.Writer) chan error {
 	errChan := make(chan error)
-	id := uuid.New()
 
 	go func() {
 		// Create list of statuses to track
@@ -108,13 +124,14 @@ func (w *WorkFlow) Run(ctx context.Context, out io.Writer) (string, chan error) 
 			})
 		}
 		// Start from the first step
-		w.startFrom(ctx, id, out, 0, errChan)
+		w.startFrom(ctx, w.Id, out, 0, errChan)
 		close(errChan)
 	}()
 
-	return id, errChan
+	return errChan
 }
 
+// Restart executes workflow from the last failed step
 func (w *WorkFlow) Restart(ctx context.Context, id string, out io.Writer) chan error {
 	errChan := make(chan error)
 
@@ -148,6 +165,7 @@ func (w *WorkFlow) Restart(ctx context.Context, id string, out io.Writer) chan e
 	return errChan
 }
 
+// start workflow execution from particular step
 func (w *WorkFlow) startFrom(ctx context.Context, id string, out io.Writer, i int, errChan chan error) {
 	// Start workflow from the last failed step
 	for index := i; index < len(w.StepStatuses); index++ {
@@ -167,6 +185,7 @@ func (w *WorkFlow) startFrom(ctx context.Context, id string, out io.Writer, i in
 	}
 }
 
+// synchronize state of workflow to storage
 func (w *WorkFlow) sync(ctx context.Context, id string) error {
 	data, err := json.Marshal(w)
 
