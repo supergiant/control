@@ -24,6 +24,10 @@ type BuildWorkFlowRequest struct {
 	sshConfig ssh.Config   `json:"ssh_config"`
 }
 
+type BuildWorkFlowResponse struct{
+	Id string `json:"id"`
+}
+
 func (h *WorkflowHandler) GetWorkflow(w http.ResponseWriter, r *http.Request) {
 	vars := mux.Vars(r)
 	id, ok := vars["id"]
@@ -69,4 +73,9 @@ func (h *WorkflowHandler) BuildWorkflow(w http.ResponseWriter, r *http.Request) 
 
 	workflow := BuildCustomWorkflow(s, req.config, h.repository)
 	workflow.Run(context.Background(), os.Stdout)
+
+	respData, _ := json.Marshal(BuildWorkFlowResponse{workflow.Id})
+
+	w.WriteHeader(http.StatusCreated)
+	w.Write(respData)
 }
