@@ -110,6 +110,18 @@ func New(workflowType, providerString clouds.Name, config steps.Config, reposito
 	return nil, ErrUnknownProviderType
 }
 
+func BuildCustomWorkflow(steps []steps.Step, config steps.Config, repository storage.Interface) *WorkFlow {
+	id := uuid.New()
+
+	return &WorkFlow{
+		Id:     id,
+		Config: config,
+
+		workflowSteps: steps,
+		repository:    repository,
+	}
+}
+
 // Run executes all steps of workflow and tracks the progress in persistent storage
 func (w *WorkFlow) Run(ctx context.Context, out io.Writer) chan error {
 	errChan := make(chan error)
