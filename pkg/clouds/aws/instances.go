@@ -73,10 +73,10 @@ func (c *Client) AvailableInstanceTypes(ctx context.Context) ([]*EC2TypeInfo, er
 }
 
 // CreateInstance startd a new instance due to the config.
-func (c *Client) CreateInstance(ctx context.Context, cfg InstanceConfig) error {
+func (c *Client) CreateInstance(ctx context.Context, cfg InstanceConfig) (*ec2.Instance, error) {
 	cfg.Region = strings.TrimSpace(cfg.Region)
 	if cfg.Region == "" {
-		return ErrNoRegionProvided
+		return nil, ErrNoRegionProvided
 	}
 	ec2S := c.ec2SvcFn(c.session, cfg.Region)
 
@@ -102,6 +102,12 @@ func (c *Client) CreateInstance(ctx context.Context, cfg InstanceConfig) error {
 		},
 		SecurityGroupIds: cfg.SecurityGroups,
 		SubnetId:         aws.String(cfg.SubnetID),
+		TagSpecifications: []*ec2.TagSpecification{
+			{
+				ResourceType: aws.String(ec2.ResourceTypeInstance),
+				Tags:         getTags(c.tags, &cfg),
+			},
+		},
 	}
 	if cfg.UsedData != "" {
 		instanceInp.UserData = aws.String(cfg.UsedData)
@@ -120,14 +126,13 @@ func (c *Client) CreateInstance(ctx context.Context, cfg InstanceConfig) error {
 
 	res, err := ec2S.RunInstancesWithContext(ctx, instanceInp)
 	if err != nil {
-		return errors.Wrap(err, "aws: run instance")
+		return nil, errors.Wrap(err, "aws: run instance")
 	}
 	if res.Instances == nil || len(res.Instances) < 1 {
-		return ErrNoInstancesCreated
+		return nil, ErrNoInstancesCreated
 	}
 
-	// add some metadata info to an instance
-	return tagAWSResource(ec2S, *(res.Instances[0].InstanceId), getTags(c.tags, &cfg))
+	return res.Instances[0], nil
 }
 
 // ListInstances returns a list of instances available to the client.
@@ -158,23 +163,34 @@ func (c *Client) ListRegionInstances(ctx context.Context, region string, tags ma
 }
 
 // DeleteInstance terminates an instance with provided id and region.
-func (c *Client) DeleteInstance(ctx context.Context, region, instanceID string) error {
+func (c *Client) DeleteInstance(ctx context.Context, region, instanceID string) (*ec2.InstanceStateChange, error) {
 	region, instanceID = strings.TrimSpace(region), strings.TrimSpace(instanceID)
 	if region == "" {
-		return ErrNoRegionProvided
+		return nil, ErrNoRegionProvided
 	}
 	if instanceID == "" {
-		return ErrInstanceIDEmpty
+		return nil, ErrInstanceIDEmpty
 	}
 	ec2S := c.ec2SvcFn(c.session, region)
 
-	_, err := ec2S.TerminateInstancesWithContext(ctx, &ec2.TerminateInstancesInput{
+	res, err := ec2S.TerminateInstancesWithContext(ctx, &ec2.TerminateInstancesInput{
 		InstanceIds: []*string{
 			aws.String(instanceID),
 		},
 	})
+	if err != nil {
+		return nil, errors.Wrap(err, "aws: terminate instance")
+	}
 
-	return errors.Wrap(err, "aws: terminate instance")
+	if res != nil && res.TerminatingInstances != nil {
+		for _, instState := range res.TerminatingInstances {
+			if *instState.InstanceId == instanceID {
+				return instState, nil
+			}
+		}
+	}
+
+	return nil, nil
 }
 
 func (c *Client) getEC2Types() ([]string, error) {
@@ -254,7 +270,7 @@ func (c *Client) getEC2TypeInfo(instanceType string) (*EC2TypeInfo, error) {
 	return info, nil
 }
 
-func getTags(clientTags map[string]string, cfg *InstanceConfig) map[string]string {
+func getTags(clientTags map[string]string, cfg *InstanceConfig) []*ec2.Tag {
 	tags := make(map[string]string)
 
 	// default set of tags
@@ -272,7 +288,15 @@ func getTags(clientTags map[string]string, cfg *InstanceConfig) map[string]strin
 		tags[k] = v
 	}
 
-	return tags
+	awsTags := make([]*ec2.Tag, len(tags))
+	for k, v := range tags {
+		awsTags = append(awsTags, &ec2.Tag{
+			Key:   aws.String(k),
+			Value: aws.String(v),
+		})
+	}
+
+	return awsTags
 }
 
 func (c *Client) buildFilter(tags map[string]string) []*ec2.Filter {
@@ -291,28 +315,4 @@ func (c *Client) buildFilter(tags map[string]string) []*ec2.Filter {
 
 func ec2Svc(s *session.Session, region string) ec2iface.EC2API {
 	return ec2.New(s, aws.NewConfig().WithRegion(region))
-}
-
-func tagAWSResource(ec2S ec2iface.EC2API, id string, tags map[string]string) error {
-	id = strings.TrimSpace(id)
-	if id == "" {
-		return ErrInstanceIDEmpty
-	}
-	if len(tags) == 0 {
-		return nil
-	}
-
-	awsTags := make([]*ec2.Tag, len(tags))
-	for k, v := range tags {
-		awsTags = append(awsTags, &ec2.Tag{
-			Key:   aws.String(k),
-			Value: aws.String(v),
-		})
-	}
-
-	_, err := ec2S.CreateTags(&ec2.CreateTagsInput{
-		Resources: []*string{aws.String(id)},
-		Tags:      awsTags,
-	})
-	return errors.Wrap(err, "aws: tag resource")
 }
