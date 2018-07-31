@@ -3,7 +3,7 @@ import { UtilService } from '../util/util.service';
 
 @Injectable()
 export class HelmReleases {
-  helmReleasesPath = '/api/v0/helm_releases';
+  helmReleasesPath = '/v1/api/helm_releases';
 
   constructor(private util: UtilService) { }
   public get(id?) {

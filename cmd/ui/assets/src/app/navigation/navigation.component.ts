@@ -1,5 +1,6 @@
 import { Component } from '@angular/core';
-import { LoginComponent } from '../login/login.component';
+import { Router } from '@angular/router';
+import { AuthService } from '../shared/supergiant/auth/auth.service';
 
 @Component({
   selector: 'app-navigation',
@@ -9,6 +10,12 @@ import { LoginComponent } from '../login/login.component';
 export class NavigationComponent {
   public isCollapsed: boolean;
   constructor(
-    public loginComponent: LoginComponent,
+    public auth: AuthService,
+    public router: Router,
   ) { }
+
+  logout() {
+  	this.auth.logout();
+  	this.router.navigate(['']);
+  }
 }
