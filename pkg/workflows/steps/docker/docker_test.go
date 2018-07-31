@@ -35,7 +35,7 @@ rm $OUT_DIR/$(basename $URL)
 	tpl, err := template.New(StepName).Parse(script)
 
 	if err != nil {
-		t.Errorf("error parsing flannel test template %s", err.Error())
+		t.Errorf("error parsing flannel test templatemanager %s", err.Error())
 		return
 	}
 	output := &bytes.Buffer{}

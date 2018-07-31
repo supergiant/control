@@ -59,7 +59,7 @@ echo "{{ .KubeletClientKey }}" > ${KUBERNETES_SSL_DIR}/'{{ .KubeletClientKeyName
 	proxyTemplate, err := template.New(StepName).Parse(tillerScript)
 
 	if err != nil {
-		t.Errorf("Error while parsing kubeproxy template %v", err)
+		t.Errorf("Error while parsing kubeproxy templatemanager %v", err)
 	}
 
 	output := new(bytes.Buffer)

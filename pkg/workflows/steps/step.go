@@ -18,3 +18,19 @@ type Step interface {
 	Name() string
 	Description() string
 }
+
+var (
+	stepMap map[string]Step
+)
+
+func init() {
+	stepMap = make(map[string]Step)
+}
+
+func RegisterStep(stepName string, step Step) {
+	stepMap[stepName] = step
+}
+
+func GetStep(stepName string) Step {
+	return stepMap[stepName]
+}

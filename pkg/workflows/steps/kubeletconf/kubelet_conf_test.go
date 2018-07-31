@@ -40,7 +40,7 @@ func TestWriteKubeletConf(t *testing.T) {
 	proxyTemplate, err := template.New(StepName).Parse(tillerScript)
 
 	if err != nil {
-		t.Errorf("Error while parsing kubeproxy template %v", err)
+		t.Errorf("Error while parsing kubeproxy templatemanager %v", err)
 	}
 
 	output := new(bytes.Buffer)

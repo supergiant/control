@@ -41,7 +41,7 @@ func TestStartKubelet(t *testing.T) {
 	kubeletScriptTemplate, err := template.New(StepName).Parse(kubeletScript)
 
 	if err != nil {
-		t.Errorf("Error while parsing kubelet script template %v", err)
+		t.Errorf("Error while parsing kubelet script templatemanager %v", err)
 	}
 
 	output := new(bytes.Buffer)

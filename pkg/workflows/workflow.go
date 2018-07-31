@@ -8,10 +8,7 @@ import (
 
 	"github.com/pborman/uuid"
 
-	"time"
-
 	"github.com/supergiant/supergiant/pkg/storage"
-	"github.com/supergiant/supergiant/pkg/template"
 	"github.com/supergiant/supergiant/pkg/workflows/steps"
 	"github.com/supergiant/supergiant/pkg/workflows/steps/certificates"
 	"github.com/supergiant/supergiant/pkg/workflows/steps/cni"
@@ -21,7 +18,6 @@ import (
 	"github.com/supergiant/supergiant/pkg/workflows/steps/kubelet"
 	"github.com/supergiant/supergiant/pkg/workflows/steps/kubeletconf"
 	"github.com/supergiant/supergiant/pkg/workflows/steps/kubeproxy"
-	"github.com/supergiant/supergiant/pkg/workflows/steps/manifest"
 	"github.com/supergiant/supergiant/pkg/workflows/steps/poststart"
 	"github.com/supergiant/supergiant/pkg/workflows/steps/systemd"
 	"github.com/supergiant/supergiant/pkg/workflows/steps/tiller"
@@ -49,25 +45,36 @@ const (
 
 var (
 	digitalOceanMaster = []steps.Step{
-		digitalocean.New(nil, time.Minute*5, time.Second*5),
-		docker.New(template.GetTemplate(docker.StepName)),
-		tiller.New(template.GetTemplate(tiller.StepName)),
-		manifest.New(template.GetTemplate(manifest.StepName)),
-		systemd.New(template.GetTemplate(systemd.StepName)),
-		cni.New(template.GetTemplate(cni.StepName)),
-		certificates.New(template.GetTemplate(certificates.StepName)),
-		flannel.New(template.GetTemplate(flannel.StepName)),
-		kubeletconf.New(template.GetTemplate(kubeletconf.StepName)),
-		kubeproxy.New(template.GetTemplate(kubeproxy.StepName)),
-		kubelet.New(template.GetTemplate(kubelet.StepName)),
-		poststart.New(template.GetTemplate(poststart.StepName)),
+		steps.GetStep(digitalocean.StepName),
+		steps.GetStep(docker.StepName),
+		steps.GetStep(kubelet.StepName),
+		steps.GetStep(kubeletconf.StepName),
+		steps.GetStep(kubeproxy.StepName),
+		steps.GetStep(systemd.StepName),
+		steps.GetStep(flannel.StepName),
+		steps.GetStep(certificates.StepName),
+		steps.GetStep(cni.StepName),
+		steps.GetStep(tiller.StepName),
+		steps.GetStep(poststart.StepName),
 	}
-	digitalOceanNode = []steps.Step{}
+	digitalOceanNode = []steps.Step{
+		steps.GetStep(digitalocean.StepName),
+		steps.GetStep(docker.StepName),
+		steps.GetStep(kubelet.StepName),
+		steps.GetStep(kubeletconf.StepName),
+		steps.GetStep(kubeproxy.StepName),
+		steps.GetStep(systemd.StepName),
+		steps.GetStep(flannel.StepName),
+		steps.GetStep(certificates.StepName),
+		steps.GetStep(cni.StepName),
+		steps.GetStep(tiller.StepName),
+		steps.GetStep(poststart.StepName),
+	}
 
 	ErrUnknownWorkflowType = errors.New("unknown workflow type")
 )
 
-func New(workflowType string, config steps.Config, repository storage.Interface) (*WorkFlow, error) {
+func New(workflowType, provider string, config steps.Config, repository storage.Interface) (*WorkFlow, error) {
 	if workflowType == MasterWorkFlow {
 		return &WorkFlow{
 			Config: config,

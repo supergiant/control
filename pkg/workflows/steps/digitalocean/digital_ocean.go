@@ -42,6 +42,10 @@ type Step struct {
 	CheckPeriod    time.Duration
 }
 
+func init() {
+	steps.RegisterStep(StepName, New(nil, time.Minute*5, time.Second*5))
+}
+
 func New(s storage.Interface, dropletTimeout, checkPeriod time.Duration) *Step {
 	return &Step{
 		storage: s,

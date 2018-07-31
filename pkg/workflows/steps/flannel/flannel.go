@@ -7,6 +7,7 @@ import (
 
 	"github.com/pkg/errors"
 
+	tm "github.com/supergiant/supergiant/pkg/templatemanager"
 	"github.com/supergiant/supergiant/pkg/workflows/steps"
 )
 
@@ -14,6 +15,10 @@ const StepName = "flannel"
 
 type Step struct {
 	scriptTemplate *template.Template
+}
+
+func init() {
+	steps.RegisterStep(StepName, New(tm.GetTemplate(StepName)))
 }
 
 func New(tpl *template.Template) *Step {
@@ -26,7 +31,7 @@ func (t *Step) Run(ctx context.Context, out io.Writer, config steps.Config) erro
 	err := steps.RunTemplate(context.Background(), t.scriptTemplate,
 		config.Runner, out, config.FlannelConfig)
 	if err != nil {
-		return errors.Wrap(err, "Run template has failed for Install flannel job")
+		return errors.Wrap(err, "Run templatemanager has failed for Install flannel job")
 	}
 
 	return nil

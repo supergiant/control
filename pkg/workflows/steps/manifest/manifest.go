@@ -8,6 +8,7 @@ import (
 
 	"io"
 
+	tm "github.com/supergiant/supergiant/pkg/templatemanager"
 	"github.com/supergiant/supergiant/pkg/workflows/steps"
 )
 
@@ -15,6 +16,10 @@ const StepName = "manifest"
 
 type Step struct {
 	script *template.Template
+}
+
+func init() {
+	steps.RegisterStep(StepName, New(tm.GetTemplate(StepName)))
 }
 
 func New(script *template.Template) *Step {
@@ -29,7 +34,7 @@ func (j *Step) Run(ctx context.Context, out io.Writer, config steps.Config) erro
 	err := steps.RunTemplate(ctx, j.script, config.Runner, out, config.ManifestConfig)
 
 	if err != nil {
-		return errors.Wrap(err, "error running write certificates template as a command")
+		return errors.Wrap(err, "error running write certificates templatemanager as a command")
 	}
 
 	return nil
