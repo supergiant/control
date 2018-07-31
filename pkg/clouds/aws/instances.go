@@ -127,8 +127,7 @@ func (c *Client) CreateInstance(ctx context.Context, cfg InstanceConfig) error {
 	}
 
 	// add some metadata info to an instance
-	c.addTags(&cfg)
-	return tagAWSResource(ec2S, *(res.Instances[0].InstanceId), cfg.Tags)
+	return tagAWSResource(ec2S, *(res.Instances[0].InstanceId), getTags(c.tags, &cfg))
 }
 
 // ListInstances returns a list of instances available to the client.
@@ -255,18 +254,25 @@ func (c *Client) getEC2TypeInfo(instanceType string) (*EC2TypeInfo, error) {
 	return info, nil
 }
 
-func (c *Client) addTags(cfg *InstanceConfig) {
-	if cfg.Tags == nil {
-		cfg.Tags = make(map[string]string)
+func getTags(clientTags map[string]string, cfg *InstanceConfig) map[string]string {
+	tags := make(map[string]string)
+
+	// default set of tags
+	tags[TagName] = cfg.Name
+	tags[TagCluster] = cfg.ClusterName
+	tags[TagRole] = cfg.ClusterRole
+
+	// apply client tags
+	for k, v := range clientTags {
+		tags[k] = v
 	}
 
-	cfg.Tags[TagName] = cfg.Name
-	cfg.Tags[TagCluster] = cfg.ClusterName
-	cfg.Tags[TagRole] = cfg.ClusterRole
-
-	for k, v := range c.tags {
-		cfg.Tags[k] = v
+	// apply instance config tags
+	for k, v := range cfg.Tags {
+		tags[k] = v
 	}
+
+	return tags
 }
 
 func (c *Client) buildFilter(tags map[string]string) []*ec2.Filter {
