@@ -10,6 +10,7 @@ import (
 	"github.com/pkg/errors"
 
 	"context"
+
 	"github.com/supergiant/supergiant/pkg/runner"
 	"github.com/supergiant/supergiant/pkg/workflows/steps"
 )
@@ -37,10 +38,10 @@ func TestStartKubelet(t *testing.T) {
 		kubeletScript               = `echo 'gcr.io/google-containers/hyperkube:v{{ .KubernetesVersion }}' > /etc/systemd/system/kubelet.service;systemctl start kubelet`
 	)
 
-	kubeletScriptTemplate, err := template.New("kubelet").Parse(kubeletScript)
+	kubeletScriptTemplate, err := template.New(StepName).Parse(kubeletScript)
 
 	if err != nil {
-		t.Errorf("Error while parsing kubelet script template %v", err)
+		t.Errorf("Error while parsing kubelet script templatemanager %v", err)
 	}
 
 	output := new(bytes.Buffer)
@@ -51,15 +52,14 @@ func TestStartKubelet(t *testing.T) {
 			ProxyPort:         proxyPort,
 			EtcdClientPort:    etcdPort,
 		},
+		Runner: r,
 	}
 
-	task := &Task{
-		r,
+	task := &Step{
 		kubeletScriptTemplate,
-		output,
 	}
 
-	err = task.Run(context.Background(), cfg)
+	err = task.Run(context.Background(), output, cfg)
 
 	if !strings.Contains(output.String(), k8sVersion) {
 		t.Errorf("k8s version %s not found in %s", k8sVersion, output.String())
@@ -73,20 +73,19 @@ func TestStartKubeletError(t *testing.T) {
 		errMsg: errMsg,
 	}
 
-	kubeletScriptTemplate, err := template.New("kubelet").Parse("")
+	kubeletScriptTemplate, err := template.New(StepName).Parse("")
 
 	output := new(bytes.Buffer)
 	config := steps.Config{
 		KubeletConfig: steps.KubeletConfig{},
+		Runner:        r,
 	}
 
-	j := &Task{
-		r,
+	j := &Step{
 		kubeletScriptTemplate,
-		output,
 	}
 
-	err = j.Run(context.Background(), config)
+	err = j.Run(context.Background(), output, config)
 
 	if err == nil {
 		t.Errorf("Error must not be nil")

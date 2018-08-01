@@ -1,4 +1,4 @@
-package tiller
+package poststart
 
 import (
 	"bytes"
@@ -10,6 +10,7 @@ import (
 	"github.com/pkg/errors"
 
 	"context"
+
 	"github.com/supergiant/supergiant/pkg/runner"
 	"github.com/supergiant/supergiant/pkg/workflows/steps"
 )
@@ -56,10 +57,10 @@ curl -XPOST -H 'Content-type: application/json' -d'{"apiVersion":"v1","kind":"Na
 /opt/bin/helm init`
 	)
 
-	proxyTemplate, err := template.New("poststart").Parse(postStartScript)
+	proxyTemplate, err := template.New(StepName).Parse(postStartScript)
 
 	if err != nil {
-		t.Errorf("Error while parsing kubeproxy template %v", err)
+		t.Errorf("Error while parsing kubeproxy templatemanager %v", err)
 	}
 
 	output := new(bytes.Buffer)
@@ -70,15 +71,14 @@ curl -XPOST -H 'Content-type: application/json' -d'{"apiVersion":"v1","kind":"Na
 			username,
 			rbacEnabled,
 		},
+		Runner: r,
 	}
 
-	j := &Task{
-		r,
+	j := &Step{
 		proxyTemplate,
-		output,
 	}
 
-	err = j.Run(context.Background(), cfg)
+	err = j.Run(context.Background(), output, cfg)
 
 	if err != nil {
 		t.Errorf("Unpexpected error while  provision node %v", err)
@@ -104,19 +104,18 @@ func TestPostStartError(t *testing.T) {
 		errMsg: errMsg,
 	}
 
-	proxyTemplate, err := template.New("poststart").Parse("")
+	proxyTemplate, err := template.New(StepName).Parse("")
 	output := new(bytes.Buffer)
 
-	j := &Task{
-		r,
+	j := &Step{
 		proxyTemplate,
-		output,
 	}
 
 	cfg := steps.Config{
 		PostStartConfig: steps.PostStartConfig{},
+		Runner:          r,
 	}
-	err = j.Run(context.Background(), cfg)
+	err = j.Run(context.Background(), output, cfg)
 
 	if err == nil {
 		t.Errorf("Error must not be nil")

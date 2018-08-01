@@ -10,6 +10,7 @@ import (
 	"github.com/pkg/errors"
 
 	"context"
+
 	"github.com/supergiant/supergiant/pkg/runner"
 	"github.com/supergiant/supergiant/pkg/workflows/steps"
 )
@@ -38,10 +39,10 @@ func TestStartKubeProxy(t *testing.T) {
 		proxyScript               = `        "master": "http://{{ .MasterPrivateIP }}:{{ .ProxyPort }} http://{{ .MasterPrivateIP }}:{{ .EtcdClientPort }}";sudo docker run --privileged=true --volume=/etc/ssl/cer:/usr/share/ca-certificates --volume=/etc/kubernetes/worker-kubeconfig.yaml:/etc/kubernetes/worker-kubeconfig.yaml:ro --volume=/etc/kubernetes/ssl:/etc/kubernetes/ssl gcr.io/google_containers/hyperkube:v{{ .KubernetesVersion }} /hyperkube proxy --config /etc/kubernetes/config.json --master http://{{ .MasterPrivateIP }}`
 	)
 
-	proxyTemplate, err := template.New("proxy").Parse(proxyScript)
+	proxyTemplate, err := template.New(StepName).Parse(proxyScript)
 
 	if err != nil {
-		t.Errorf("Error while parsing kubeproxy template %v", err)
+		t.Errorf("Error while parsing kubeproxy templatemanager %v", err)
 	}
 
 	output := new(bytes.Buffer)
@@ -53,15 +54,14 @@ func TestStartKubeProxy(t *testing.T) {
 			ProxyPort:         proxyPort,
 			EtcdClientPort:    etcdPort,
 		},
+		Runner: r,
 	}
 
-	j := &Task{
-		r,
+	j := &Step{
 		proxyTemplate,
-		output,
 	}
 
-	err = j.Run(context.Background(), cfg)
+	err = j.Run(context.Background(), output, cfg)
 
 	if err != nil {
 		t.Errorf("Unpexpected error while  provision node %v", err)
@@ -79,19 +79,18 @@ func TestStartKubeProxyError(t *testing.T) {
 		errMsg: errMsg,
 	}
 
-	proxyTemplate, err := template.New("proxy").Parse("")
+	proxyTemplate, err := template.New(StepName).Parse("")
 	output := new(bytes.Buffer)
 	cfg := steps.Config{
 		KubeProxyConfig: steps.KubeProxyConfig{},
+		Runner:          r,
 	}
 
-	j := &Task{
-		r,
+	j := &Step{
 		proxyTemplate,
-		output,
 	}
 
-	err = j.Run(context.Background(), cfg)
+	err = j.Run(context.Background(), output, cfg)
 
 	if err == nil {
 		t.Errorf("Error must not be nil")

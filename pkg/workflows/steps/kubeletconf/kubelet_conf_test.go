@@ -10,6 +10,7 @@ import (
 	"github.com/pkg/errors"
 
 	"context"
+
 	"github.com/supergiant/supergiant/pkg/runner"
 	"github.com/supergiant/supergiant/pkg/workflows/steps"
 )
@@ -36,10 +37,10 @@ func TestWriteKubeletConf(t *testing.T) {
 		tillerScript               = `server: http://{{ .Host }}:{{ .Port }}`
 	)
 
-	proxyTemplate, err := template.New("tiller").Parse(tillerScript)
+	proxyTemplate, err := template.New(StepName).Parse(tillerScript)
 
 	if err != nil {
-		t.Errorf("Error while parsing kubeproxy template %v", err)
+		t.Errorf("Error while parsing kubeproxy templatemanager %v", err)
 	}
 
 	output := new(bytes.Buffer)
@@ -48,15 +49,14 @@ func TestWriteKubeletConf(t *testing.T) {
 			Host: host,
 			Port: port,
 		},
+		Runner: r,
 	}
 
-	j := &Task{
-		r,
+	j := &Step{
 		proxyTemplate,
-		output,
 	}
 
-	err = j.Run(context.Background(), cfg)
+	err = j.Run(context.Background(), output, cfg)
 
 	if err != nil {
 		t.Errorf("Unpexpected error while  provision node %v", err)
@@ -78,19 +78,18 @@ func TestWriteKubeletConfErr(t *testing.T) {
 		errMsg: errMsg,
 	}
 
-	proxyTemplate, err := template.New("tiller").Parse("")
+	proxyTemplate, err := template.New(StepName).Parse("")
 	output := new(bytes.Buffer)
 	cfg := steps.Config{
 		KubeletConfConfig: steps.KubeletConfConfig{},
+		Runner:            r,
 	}
 
-	j := &Task{
-		r,
+	j := &Step{
 		proxyTemplate,
-		output,
 	}
 
-	err = j.Run(context.Background(), cfg)
+	err = j.Run(context.Background(), output, cfg)
 
 	if err == nil {
 		t.Errorf("Error must not be nil")

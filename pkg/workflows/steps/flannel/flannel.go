@@ -7,37 +7,40 @@ import (
 
 	"github.com/pkg/errors"
 
-	"github.com/supergiant/supergiant/pkg/runner"
-	"github.com/supergiant/supergiant/pkg/runner/ssh"
+	tm "github.com/supergiant/supergiant/pkg/templatemanager"
 	"github.com/supergiant/supergiant/pkg/workflows/steps"
 )
 
-type Task struct {
+const StepName = "flannel"
+
+type Step struct {
 	scriptTemplate *template.Template
-	runner         runner.Runner
-
-	output io.Writer
 }
 
-func New(tpl *template.Template, outStream io.Writer, cfg *ssh.Config) (*Task, error) {
-	sshRunner, err := ssh.NewRunner(cfg)
+func init() {
+	steps.RegisterStep(StepName, New(tm.GetTemplate(StepName)))
+}
 
-	if err != nil {
-		return nil, errors.Wrap(err, "error creating ssh runner")
-	}
-
-	return &Task{
+func New(tpl *template.Template) *Step {
+	return &Step{
 		scriptTemplate: tpl,
-		runner:         sshRunner,
-		output:         outStream,
-	}, nil
+	}
 }
 
-func (t *Task) Run(ctx context.Context, config steps.Config) error {
-	err := steps.RunTemplate(context.Background(), t.scriptTemplate, t.runner, t.output, config.FlannelConfig)
+func (t *Step) Run(ctx context.Context, out io.Writer, config steps.Config) error {
+	err := steps.RunTemplate(context.Background(), t.scriptTemplate,
+		config.Runner, out, config.FlannelConfig)
 	if err != nil {
-		return errors.Wrap(err, "Run template has failed for Install flannel job")
+		return errors.Wrap(err, "Run templatemanager has failed for Install flannel job")
 	}
 
 	return nil
+}
+
+func (t *Step) Name() string {
+	return StepName
+}
+
+func (t *Step) Description() string {
+	return ""
 }

@@ -1,4 +1,4 @@
-package certificates
+package docker
 
 import (
 	"context"
@@ -11,30 +11,27 @@ import (
 	"github.com/supergiant/supergiant/pkg/workflows/steps"
 )
 
-const StepName = "writeCertificates"
+const StepName = "docker"
 
 type Step struct {
-	script *template.Template
+	scriptTemplate *template.Template
 }
 
 func init() {
 	steps.RegisterStep(StepName, New(tm.GetTemplate(StepName)))
 }
 
-func New(script *template.Template) *Step {
-	t := &Step{
-		script: script,
+func New(tpl *template.Template) *Step {
+	return &Step{
+		scriptTemplate: tpl,
 	}
-
-	return t
 }
 
 func (t *Step) Run(ctx context.Context, out io.Writer, config steps.Config) error {
-	err := steps.RunTemplate(ctx, t.script,
-		config.Runner, out, config.CertificatesConfig)
-
+	err := steps.RunTemplate(context.Background(), t.scriptTemplate,
+		config.Runner, out, config.DockerConfig)
 	if err != nil {
-		return errors.Wrap(err, "error running write certificates template as a command")
+		return errors.Wrap(err, "Run template has failed for install docker job")
 	}
 
 	return nil

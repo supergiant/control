@@ -7,40 +7,42 @@ import (
 
 	"github.com/pkg/errors"
 
-	"github.com/supergiant/supergiant/pkg/runner"
-	"github.com/supergiant/supergiant/pkg/runner/ssh"
+	tm "github.com/supergiant/supergiant/pkg/templatemanager"
 	"github.com/supergiant/supergiant/pkg/workflows/steps"
 )
 
-type Task struct {
-	runner runner.Runner
+const StepName = "cni_tools"
+
+type Step struct {
 	script *template.Template
-	output io.Writer
 }
 
-func New(script *template.Template,
-	outStream io.Writer, cfg *ssh.Config) (*Task, error) {
-	sshRunner, err := ssh.NewRunner(cfg)
+func init() {
+	steps.RegisterStep(StepName, New(tm.GetTemplate(StepName)))
+}
 
-	if err != nil {
-		return nil, errors.Wrap(err, "error creating ssh runner")
-	}
-
-	t := &Task{
-		runner: sshRunner,
+func New(script *template.Template) *Step {
+	t := &Step{
 		script: script,
-		output: outStream,
 	}
 
-	return t, nil
+	return t
 }
 
-func (j *Task) Run(ctx context.Context, config steps.Config) error {
-	err := steps.RunTemplate(ctx, j.script, j.runner, j.output, nil)
+func (j *Step) Run(ctx context.Context, out io.Writer, config steps.Config) error {
+	err := steps.RunTemplate(ctx, j.script, config.Runner, out, nil)
 
 	if err != nil {
 		return errors.Wrap(err, "error running cni template as a command")
 	}
 
 	return nil
+}
+
+func (t *Step) Name() string {
+	return StepName
+}
+
+func (t *Step) Description() string {
+	return ""
 }

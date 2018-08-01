@@ -29,7 +29,7 @@ func RunTemplate(ctx context.Context, tpl *template.Template, r runner.Runner, o
 }
 
 func NewSshRunner(user, host, key string, timeout int) (runner.Runner, error) {
-	cfg := &ssh.Config{
+	cfg := ssh.Config{
 		User:    user,
 		Host:    host,
 		Timeout: timeout,

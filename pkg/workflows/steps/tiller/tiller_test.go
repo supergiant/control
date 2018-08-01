@@ -10,6 +10,7 @@ import (
 	"github.com/pkg/errors"
 
 	"context"
+
 	"github.com/supergiant/supergiant/pkg/runner"
 	"github.com/supergiant/supergiant/pkg/workflows/steps"
 )
@@ -37,18 +38,16 @@ func TestInstallTiller(t *testing.T) {
 		tillerScript               = `wget http://storage.googleapis.com/kubernetes-helm/{{ .HelmVersion }}-{{ .OperatingSystem }}-{{ .Arch }}.tar.gz --directory-prefix=/tmp/`
 	)
 
-	proxyTemplate, err := template.New("tiller").Parse(tillerScript)
+	proxyTemplate, err := template.New(StepName).Parse(tillerScript)
 
 	if err != nil {
-		t.Errorf("Error while parsing kubeproxy template %v", err)
+		t.Errorf("Error while parsing kubeproxy templatemanager %v", err)
 	}
 
 	output := new(bytes.Buffer)
 
-	j := &Task{
-		r,
+	j := &Step{
 		proxyTemplate,
-		output,
 	}
 
 	cfg := steps.Config{
@@ -57,9 +56,10 @@ func TestInstallTiller(t *testing.T) {
 			operatingSystem,
 			arch,
 		},
+		Runner: r,
 	}
 
-	err = j.Run(context.Background(), cfg)
+	err = j.Run(context.Background(), output, cfg)
 
 	if err != nil {
 		t.Errorf("Unpexpected error while  provision node %v", err)
@@ -85,19 +85,18 @@ func TestInstallTillerError(t *testing.T) {
 		errMsg: errMsg,
 	}
 
-	proxyTemplate, err := template.New("tiller").Parse("")
+	proxyTemplate, err := template.New(StepName).Parse("")
 	output := new(bytes.Buffer)
 
-	j := &Task{
-		r,
+	j := &Step{
 		proxyTemplate,
-		output,
 	}
 
 	cfg := steps.Config{
 		TillerConfig: steps.TillerConfig{},
+		Runner:       r,
 	}
-	err = j.Run(context.Background(), cfg)
+	err = j.Run(context.Background(), output, cfg)
 
 	if err == nil {
 		t.Errorf("Error must not be nil")

@@ -1,4 +1,4 @@
-package tiller
+package systemd
 
 import (
 	"bytes"
@@ -10,6 +10,7 @@ import (
 	"github.com/pkg/errors"
 
 	"context"
+
 	"github.com/supergiant/supergiant/pkg/runner"
 	"github.com/supergiant/supergiant/pkg/workflows/steps"
 )
@@ -81,10 +82,10 @@ systemctl enable ${KUBELET_SERVICE}
 systemctl start ${KUBELET_SERVICE}`
 	)
 
-	proxyTemplate, err := template.New("systemd").Parse(postStartScript)
+	proxyTemplate, err := template.New(StepName).Parse(postStartScript)
 
 	if err != nil {
-		t.Errorf("Error while parsing kubeproxy template %v", err)
+		t.Errorf("Error while parsing kubeproxy templatemanager %v", err)
 	}
 
 	output := new(bytes.Buffer)
@@ -94,15 +95,14 @@ systemctl start ${KUBELET_SERVICE}`
 			kubeletService,
 			k8sProvider,
 		},
+		Runner: r,
 	}
 
-	j := &Task{
-		r,
+	j := &Step{
 		proxyTemplate,
-		output,
 	}
 
-	err = j.Run(context.Background(), cfg)
+	err = j.Run(context.Background(), output, cfg)
 
 	if err != nil {
 		t.Errorf("Unpexpected error while  provision node %v", err)
@@ -128,18 +128,18 @@ func TestSystemdUpdateError(t *testing.T) {
 		errMsg: errMsg,
 	}
 
-	proxyTemplate, err := template.New("systemd").Parse("")
+	proxyTemplate, err := template.New(StepName).Parse("")
 	output := new(bytes.Buffer)
 	cfg := steps.Config{
 		KubeletSystemdServiceConfig: steps.KubeletSystemdServiceConfig{},
-	}
-	j := &Task{
-		r,
-		proxyTemplate,
-		output,
+		Runner: r,
 	}
 
-	err = j.Run(context.Background(), cfg)
+	j := &Step{
+		proxyTemplate,
+	}
+
+	err = j.Run(context.Background(), output, cfg)
 
 	if err == nil {
 		t.Errorf("Error must not be nil")

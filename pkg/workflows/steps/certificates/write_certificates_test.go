@@ -1,4 +1,4 @@
-package tiller
+package certificates
 
 import (
 	"bytes"
@@ -10,6 +10,7 @@ import (
 	"github.com/pkg/errors"
 
 	"context"
+
 	"github.com/supergiant/supergiant/pkg/runner"
 	"github.com/supergiant/supergiant/pkg/workflows/steps"
 )
@@ -55,10 +56,10 @@ echo "{{ .KubeletClientCert }}" > ${KUBERNETES_SSL_DIR}/'{{ .KubeletClientCertNa
 echo "{{ .KubeletClientKey }}" > ${KUBERNETES_SSL_DIR}/'{{ .KubeletClientKeyName }}'`
 	)
 
-	proxyTemplate, err := template.New("tiller").Parse(tillerScript)
+	proxyTemplate, err := template.New(StepName).Parse(tillerScript)
 
 	if err != nil {
-		t.Errorf("Error while parsing kubeproxy template %v", err)
+		t.Errorf("Error while parsing kubeproxy templatemanager %v", err)
 	}
 
 	output := new(bytes.Buffer)
@@ -79,15 +80,14 @@ echo "{{ .KubeletClientKey }}" > ${KUBERNETES_SSL_DIR}/'{{ .KubeletClientKeyName
 			kubeletClientKey,
 			kubeletClientKeyName,
 		},
+		Runner: r,
 	}
 
-	task := &Task{
-		r,
+	task := &Step{
 		proxyTemplate,
-		output,
 	}
 
-	err = task.Run(context.Background(), cfg)
+	err = task.Run(context.Background(), output, cfg)
 
 	if err != nil {
 		t.Errorf("Unpexpected error while  provision node %v", err)
@@ -145,19 +145,18 @@ func TestInstallTillerError(t *testing.T) {
 		errMsg: errMsg,
 	}
 
-	proxyTemplate, err := template.New("tiller").Parse("")
+	proxyTemplate, err := template.New(StepName).Parse("")
 	output := new(bytes.Buffer)
 
-	task := &Task{
-		r,
+	task := &Step{
 		proxyTemplate,
-		output,
 	}
 
 	cfg := steps.Config{
 		CertificatesConfig: steps.CertificatesConfig{},
+		Runner:             r,
 	}
-	err = task.Run(context.Background(), cfg)
+	err = task.Run(context.Background(), output, cfg)
 
 	if err == nil {
 		t.Errorf("Error must not be nil")
