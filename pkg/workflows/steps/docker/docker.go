@@ -31,7 +31,7 @@ func (t *Step) Run(ctx context.Context, out io.Writer, config steps.Config) erro
 	err := steps.RunTemplate(context.Background(), t.scriptTemplate,
 		config.Runner, out, config.DockerConfig)
 	if err != nil {
-		return errors.Wrap(err, "Run template has failed for install docker job")
+		return errors.Wrap(err, "install docker step")
 	}
 
 	return nil

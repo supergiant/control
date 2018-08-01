@@ -31,7 +31,7 @@ func (t *Step) Run(ctx context.Context, out io.Writer, config steps.Config) erro
 	err := steps.RunTemplate(context.Background(), t.scriptTemplate,
 		config.Runner, out, config.FlannelConfig)
 	if err != nil {
-		return errors.Wrap(err, "Run templatemanager has failed for Install flannel job")
+		return errors.Wrap(err, "install flannel step")
 	}
 
 	return nil

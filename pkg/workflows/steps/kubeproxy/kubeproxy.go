@@ -33,7 +33,7 @@ func (j *Step) Run(ctx context.Context, out io.Writer, config steps.Config) erro
 	err := steps.RunTemplate(ctx, j.script, config.Runner, out, config.KubeProxyConfig)
 
 	if err != nil {
-		return errors.Wrap(err, "error running  kubeproxy template as a command")
+		return errors.Wrap(err, "install kube proxy step")
 	}
 
 	return nil

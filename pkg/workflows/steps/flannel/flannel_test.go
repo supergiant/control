@@ -9,7 +9,6 @@ import (
 
 	"github.com/pkg/errors"
 
-
 	"github.com/supergiant/supergiant/pkg/testutils"
 	"github.com/supergiant/supergiant/pkg/workflows/steps"
 )

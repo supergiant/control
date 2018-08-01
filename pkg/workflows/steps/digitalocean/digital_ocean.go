@@ -4,8 +4,8 @@ import (
 	"context"
 	"encoding/json"
 
-	"io"
 	"fmt"
+	"io"
 	"strconv"
 	"time"
 
@@ -13,7 +13,6 @@ import (
 
 	"github.com/pkg/errors"
 	"golang.org/x/oauth2"
-
 
 	"github.com/supergiant/supergiant/pkg/storage"
 	"github.com/supergiant/supergiant/pkg/util"
