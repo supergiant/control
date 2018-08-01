@@ -4,6 +4,7 @@ import { FormsModule, ReactiveFormsModule } from '@angular/forms';
 import { NgModule } from '@angular/core';
 import { NgbModule } from '@ng-bootstrap/ng-bootstrap';
 import { HttpModule } from '@angular/http';
+import { HttpClientModule } from '@angular/common/http';
 import { SimpleNotificationsModule } from 'angular2-notifications';
 import { BrowserAnimationsModule } from '@angular/platform-browser/animations';
 import {
@@ -141,7 +142,11 @@ import { HelmCharts } from './shared/supergiant/helm-charts/helm-charts.service'
 import { HelmReleases } from './shared/supergiant/helm-releases/helm-releases.service';
 import { Logs } from './shared/supergiant/logs/logs.service';
 import { AuthenticatedHttpService } from './shared/auth/authenticated-http-service.service';
+import { AuthService } from './shared/supergiant/auth/auth.service';
+import { AuthGuardService } from './shared/supergiant/auth/auth-guard.service';
+import { TokenInterceptor } from './shared/supergiant/auth/token.interceptor';
 import { Http } from '@angular/http';
+import { HTTP_INTERCEPTORS } from '@angular/common/http';
 
 import 'rxjs/add/operator/map';
 import 'rxjs/add/operator/switchMap';
@@ -261,6 +266,7 @@ import { NewKubeResourceComponent } from './kube-resources/new-kube-resource/new
   ],
   imports: [
     BrowserModule,
+    HttpClientModule,
     // Material:
     MatAutocompleteModule,
     MatButtonModule,
@@ -357,7 +363,14 @@ import { NewKubeResourceComponent } from './kube-resources/new-kube-resource/new
     EditModalService,
     CookieMonster,
     LoginComponent,
-    { provide: Http, useClass: AuthenticatedHttpService },
+    AuthService,
+    AuthGuardService,
+    // { provide: Http, useClass: AuthenticatedHttpService },
+    {
+      provide: HTTP_INTERCEPTORS,
+      useClass: TokenInterceptor,
+      multi: true
+    }
   ],
   bootstrap: [AppComponent]
 })

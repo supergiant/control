@@ -27,8 +27,8 @@ import (
 // of step to persistent storage.
 type StepStatus struct {
 	Status   steps.Status `json:"status"`
-	StepName string       `json:"step_name"`
-	ErrMsg   string       `json:"error_message"`
+	StepName string       `json:"stepName"`
+	ErrMsg   string       `json:"errorMessage"`
 }
 
 // Workflow is a template for doing some actions

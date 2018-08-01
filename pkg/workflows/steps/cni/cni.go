@@ -33,7 +33,7 @@ func (j *Step) Run(ctx context.Context, out io.Writer, config steps.Config) erro
 	err := steps.RunTemplate(ctx, j.script, config.Runner, out, nil)
 
 	if err != nil {
-		return errors.Wrap(err, "error running cni templatemanager as a command")
+		return errors.Wrap(err, "error running cni template as a command")
 	}
 
 	return nil

@@ -2,6 +2,7 @@ import { Injectable } from '@angular/core';
 import { Http, Response, Headers } from '@angular/http';
 import { CloudAccounts } from './cloud-accounts/cloud-accounts.service';
 import { Sessions } from './sessions/sessions.service';
+import { AuthService } from './auth/auth.service';
 import { Users } from './users/users.service';
 import { Kubes } from './kubes/kubes.service';
 import { KubeResources } from './kube-resources/kube-resources.service';
@@ -20,6 +21,7 @@ export class Supergiant {
   constructor(
     public CloudAccounts: CloudAccounts,
     public Sessions: Sessions,
+    public Auth: AuthService,
     public Users: Users,
     public Kubes: Kubes,
     public KubeResources: KubeResources,

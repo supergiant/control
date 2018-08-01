@@ -11,7 +11,7 @@ import (
 	"github.com/supergiant/supergiant/pkg/workflows/steps"
 )
 
-const StepName = "kube_proxy"
+const StepName = "kubeProxy"
 
 type Step struct {
 	script *template.Template
@@ -33,7 +33,7 @@ func (j *Step) Run(ctx context.Context, out io.Writer, config steps.Config) erro
 	err := steps.RunTemplate(ctx, j.script, config.Runner, out, config.KubeProxyConfig)
 
 	if err != nil {
-		return errors.Wrap(err, "error running  kubeproxy templatemanager as a command")
+		return errors.Wrap(err, "error running  kubeproxy template as a command")
 	}
 
 	return nil

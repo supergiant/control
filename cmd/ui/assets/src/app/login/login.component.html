@@ -10,7 +10,7 @@
       <label for="password" class="sr-only">Password</label>
       <input name="password" type="password" class="form-control" placeholder="Password" [(ngModel)]="password">
     </div>
-    <button mat-raised-button color="primary" type="submit" (click)="onSubmit()">
+    <button mat-raised-button color="primary" type="button" (click)="onSubmit()">
       Login
     </button>
     <div *ngIf="status" [class]="status"></div>

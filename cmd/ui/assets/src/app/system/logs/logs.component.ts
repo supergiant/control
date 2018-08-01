@@ -30,7 +30,7 @@ export class LogsComponent implements OnInit, OnDestroy, AfterViewInit {
     this.subscriptions.add(Observable.timer(0, 1000)
       .switchMap(() => this.supergiant.Logs.get()).subscribe(
         (data) => {
-          this.logData = data.text();
+          this.logData = data;
           this.logData = this.logData.replace(/[\x00-\x7F]\[\d+mINFO[\x00-\x7F]\[0m/g, '<span class=\'text-info\'>INFO</span> ');
           this.logData = this.logData.replace(/[\x00-\x7F]\[\d+mWARN[\x00-\x7F]\[0m/g, '<span class=\'text-warning\'>WARN</span> ');
           this.logData = this.logData.replace(/[\x00-\x7F]\[\d+mERRO[\x00-\x7F]\[0m/g, '<span class=\'text-danger\'>ERRO</span> ');

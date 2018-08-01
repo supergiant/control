@@ -11,7 +11,7 @@ import (
 	"github.com/supergiant/supergiant/pkg/workflows/steps"
 )
 
-const StepName = "write_certificates"
+const StepName = "writeCertificates"
 
 type Step struct {
 	script *template.Template
@@ -34,7 +34,7 @@ func (t *Step) Run(ctx context.Context, out io.Writer, config steps.Config) erro
 		config.Runner, out, config.CertificatesConfig)
 
 	if err != nil {
-		return errors.Wrap(err, "error running write certificates templatemanager as a command")
+		return errors.Wrap(err, "error running write certificates template as a command")
 	}
 
 	return nil

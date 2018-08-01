@@ -11,7 +11,7 @@ import (
 	"github.com/supergiant/supergiant/pkg/workflows/steps"
 )
 
-const StepName = "kubelet_conf"
+const StepName = "kubeletConf"
 
 type Step struct {
 	script *template.Template
@@ -34,7 +34,7 @@ func (j *Step) Run(ctx context.Context, out io.Writer, config steps.Config) erro
 		config.Runner, out, config.KubeletConfConfig)
 
 	if err != nil {
-		return errors.Wrap(err, "error running write kubelet conf templatemanager as a command")
+		return errors.Wrap(err, "error running write kubelet conf template as a command")
 	}
 
 	return nil
