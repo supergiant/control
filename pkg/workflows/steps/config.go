@@ -1,6 +1,8 @@
 package steps
 
 import (
+	"time"
+
 	"github.com/supergiant/supergiant/pkg/runner"
 )
 
@@ -107,5 +109,6 @@ type Config struct {
 	KubeletSystemdServiceConfig
 	TillerConfig
 
+	Timeout time.Duration `json:"timeout"`
 	runner.Runner
 }

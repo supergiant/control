@@ -9,6 +9,8 @@ import (
 	"encoding/json"
 	"os"
 
+	"time"
+
 	"github.com/supergiant/supergiant/pkg/runner"
 	"github.com/supergiant/supergiant/pkg/runner/ssh"
 	"github.com/supergiant/supergiant/pkg/storage"
@@ -22,7 +24,7 @@ type TaskHandler struct {
 
 type BuildTaskRequest struct {
 	StepNames []string     `json:"step_names"`
-	Cfg       steps.Config `json:"Cfg"`
+	Cfg       steps.Config `json:"config"`
 	SshConfig ssh.Config   `json:"ssh_config"`
 }
 
@@ -81,8 +83,9 @@ func (h *TaskHandler) BuildAndRunTask(w http.ResponseWriter, r *http.Request) {
 	}
 
 	task := New(s, req.Cfg, h.repository)
-	// TODO(stgleb): We should provide custom timeout for task execution
-	task.Run(context.Background(), os.Stdout)
+	// We ignore cancel function since we cannot get it back
+	ctx, _ := context.WithTimeout(context.Background(), req.Cfg.Timeout*time.Second)
+	task.Run(ctx, os.Stdout)
 
 	respData, _ := json.Marshal(BuildTaskResponse{task.Id})
 

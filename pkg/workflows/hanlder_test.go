@@ -11,10 +11,34 @@ import (
 
 	"github.com/gorilla/mux"
 
+	"context"
+	"io"
+	"time"
+
 	"github.com/supergiant/supergiant/pkg/runner"
 	"github.com/supergiant/supergiant/pkg/runner/ssh"
 	"github.com/supergiant/supergiant/pkg/testutils"
+	"github.com/supergiant/supergiant/pkg/workflows/steps"
 )
+
+type mockStep struct {
+	name    string
+	message string
+	err     error
+}
+
+func (m *mockStep) Run(ctx context.Context, out io.Writer, cfg steps.Config) error {
+	out.Write([]byte(m.message))
+	return m.err
+}
+
+func (m *mockStep) Name() string {
+	return m.name
+}
+
+func (m *mockStep) Description() string {
+	return ""
+}
 
 func TestWorkflowHandlerGetWorkflow(t *testing.T) {
 	id := "abcd"
@@ -69,7 +93,19 @@ func TestWorkflowHandlerBuildWorkflow(t *testing.T) {
 		},
 	}
 
+	message := "hello, world!!!"
+	step := &mockStep{
+		name:    "mock_step",
+		message: message,
+	}
+
+	steps.RegisterStep(step.Name(), step)
+
 	reqBody := BuildTaskRequest{
+		Cfg: steps.Config{
+			Timeout: time.Second * 1,
+		},
+		StepNames: []string{step.Name()},
 		SshConfig: ssh.Config{
 			Host:    "12.34.56.67",
 			Port:    "22",
@@ -77,6 +113,7 @@ func TestWorkflowHandlerBuildWorkflow(t *testing.T) {
 			Timeout: 1,
 			Key:     []byte("")},
 	}
+
 	body := &bytes.Buffer{}
 	err := json.NewEncoder(body).Encode(reqBody)
 	rec := httptest.NewRecorder()
