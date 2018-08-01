@@ -1,10 +1,10 @@
 package aws
 
 type InstanceConfig struct {
-	Name           string
+	TagName        string
 	Type           string
-	ClusterName    string
-	ClusterRole    string
+	TagClusterName string
+	TagClusterRole string
 	ID             string
 	Region         string
 	ImageID        string

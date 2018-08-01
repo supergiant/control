@@ -274,9 +274,9 @@ func getTags(clientTags map[string]string, cfg *InstanceConfig) []*ec2.Tag {
 	tags := make(map[string]string)
 
 	// default set of tags
-	tags[TagName] = cfg.Name
-	tags[TagCluster] = cfg.ClusterName
-	tags[TagRole] = cfg.ClusterRole
+	tags[TagName] = cfg.TagName
+	tags[TagCluster] = cfg.TagClusterName
+	tags[TagRole] = cfg.TagClusterRole
 
 	// apply client tags
 	for k, v := range clientTags {
