@@ -11,7 +11,9 @@ import (
 
 	"github.com/gorilla/mux"
 
+	"github.com/supergiant/supergiant/pkg/runner"
 	"github.com/supergiant/supergiant/pkg/runner/ssh"
+	"github.com/supergiant/supergiant/pkg/testutils"
 )
 
 func TestWorkflowHandlerGetWorkflow(t *testing.T) {
@@ -24,19 +26,19 @@ func TestWorkflowHandlerGetWorkflow(t *testing.T) {
 	}
 	data, _ := json.Marshal(w1)
 
-	h := WorkflowHandler{
+	h := TaskHandler{
 		repository: &fakeRepository{
 			map[string][]byte{
-				fmt.Sprintf("workflows/%s", id): data,
+				fmt.Sprintf("%s/%s", prefix, id): data,
 			},
 		},
 	}
 
 	resp := httptest.NewRecorder()
-	req := httptest.NewRequest(http.MethodGet, fmt.Sprintf("/workflows/%s", id), nil)
+	req := httptest.NewRequest(http.MethodGet, fmt.Sprintf("/%s/%s", prefix, id), nil)
 
 	router := mux.NewRouter()
-	router.HandleFunc("/workflows/{id}", h.GetWorkflow)
+	router.HandleFunc(fmt.Sprintf("/%s/{id}", prefix), h.GetTask)
 	router.ServeHTTP(resp, req)
 
 	w2 := &Task{}
@@ -58,13 +60,16 @@ func TestWorkflowHandlerGetWorkflow(t *testing.T) {
 }
 
 func TestWorkflowHandlerBuildWorkflow(t *testing.T) {
-	h := WorkflowHandler{
+	h := TaskHandler{
+		runnerFactory: func(cfg ssh.Config) (runner.Runner, error) {
+			return &testutils.FakeRunner{}, nil
+		},
 		repository: &fakeRepository{
 			map[string][]byte{},
 		},
 	}
 
-	reqBody := BuildWorkFlowRequest{
+	reqBody := BuildTaskRequest{
 		SshConfig: ssh.Config{
 			Host:    "12.34.56.67",
 			Port:    "22",
@@ -77,9 +82,9 @@ func TestWorkflowHandlerBuildWorkflow(t *testing.T) {
 	rec := httptest.NewRecorder()
 	req := httptest.NewRequest(http.MethodPost, "/", body)
 
-	h.BuildWorkflow(rec, req)
+	h.BuildAndRunTask(rec, req)
 
-	resp := &BuildWorkFlowResponse{}
+	resp := &BuildTaskResponse{}
 	err = json.Unmarshal(rec.Body.Bytes(), resp)
 
 	if rec.Code != http.StatusCreated {
