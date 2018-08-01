@@ -9,7 +9,7 @@ export class AuthService {
   constructor(private util: UtilService) { }
 
   login(data) {
-    return this.util.post(this.authPath, data)
+    return this.util.postResponse(this.authPath, data)
       .do((res) => {
         const rawJwt = res.headers.get("authorization");
         this.startSession(rawJwt);

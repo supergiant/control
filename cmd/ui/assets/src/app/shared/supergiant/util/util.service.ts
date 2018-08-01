@@ -26,24 +26,29 @@ export class UtilService {
   }
 
   fetch(path) {
-    return this.http.get(this.serverEndpoint + path + '?limit=1000', { observe: "response" });
+    return this.http.get<any>(this.serverEndpoint + path + '?limit=1000');
   }
 
-  fetchNoMap(path) {
+  fetchResponse(path) {
     return this.http.get(this.serverEndpoint + path, { observe: "response" });
   }
 
   post(path, data) {
+    const json = JSON.stringify(data);
+    return this.http.post(this.serverEndpoint + path, json);
+  }
+
+  postResponse(path, data) {
     const json = JSON.stringify(data);
     return this.http.post(this.serverEndpoint + path, json, { observe: "response" });
   }
 
   update(path, data) {
     const json = JSON.stringify(data);
-    return this.http.put(this.serverEndpoint + path, json, { observe: "response" });
+    return this.http.put(this.serverEndpoint + path, json);
   }
 
   destroy(path) {
-    return this.http.delete(this.serverEndpoint + path, { observe: "response" });
+    return this.http.delete(this.serverEndpoint + path);
   }
 }
