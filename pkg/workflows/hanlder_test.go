@@ -11,8 +11,6 @@ import (
 
 	"github.com/gorilla/mux"
 
-	"context"
-	"io"
 	"time"
 
 	"github.com/supergiant/supergiant/pkg/runner"
@@ -20,25 +18,6 @@ import (
 	"github.com/supergiant/supergiant/pkg/testutils"
 	"github.com/supergiant/supergiant/pkg/workflows/steps"
 )
-
-type mockStep struct {
-	name    string
-	message string
-	err     error
-}
-
-func (m *mockStep) Run(ctx context.Context, out io.Writer, cfg steps.Config) error {
-	out.Write([]byte(m.message))
-	return m.err
-}
-
-func (m *mockStep) Name() string {
-	return m.name
-}
-
-func (m *mockStep) Description() string {
-	return ""
-}
 
 func TestWorkflowHandlerGetWorkflow(t *testing.T) {
 	id := "abcd"
@@ -51,7 +30,7 @@ func TestWorkflowHandlerGetWorkflow(t *testing.T) {
 	data, _ := json.Marshal(w1)
 
 	h := TaskHandler{
-		repository: &fakeRepository{
+		repository: &mockRepository{
 			map[string][]byte{
 				fmt.Sprintf("%s/%s", prefix, id): data,
 			},
@@ -88,15 +67,15 @@ func TestWorkflowHandlerBuildWorkflow(t *testing.T) {
 		runnerFactory: func(cfg ssh.Config) (runner.Runner, error) {
 			return &testutils.FakeRunner{}, nil
 		},
-		repository: &fakeRepository{
+		repository: &mockRepository{
 			map[string][]byte{},
 		},
 	}
 
 	message := "hello, world!!!"
 	step := &mockStep{
-		name:    "mock_step",
-		message: message,
+		name:     "mock_step",
+		messages: []string{message},
 	}
 
 	steps.RegisterStep(step.Name(), step)
