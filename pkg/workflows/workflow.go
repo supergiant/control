@@ -65,28 +65,28 @@ func init() {
 
 	digitalOceanMaster := []steps.Step{
 		steps.GetStep(digitalocean.StepName),
+		steps.GetStep(flannel.StepName),
 		steps.GetStep(docker.StepName),
 		steps.GetStep(kubelet.StepName),
 		steps.GetStep(kubeletconf.StepName),
 		steps.GetStep(kubeproxy.StepName),
 		steps.GetStep(systemd.StepName),
-		steps.GetStep(flannel.StepName),
 		steps.GetStep(certificates.StepName),
 		steps.GetStep(cni.StepName),
+		// TODO(stgleb): Make separate cluster workflow for tasks that should be run once per cluster.
 		steps.GetStep(tiller.StepName),
 		steps.GetStep(poststart.StepName),
 	}
 	digitalOceanNode := []steps.Step{
 		steps.GetStep(digitalocean.StepName),
+		steps.GetStep(flannel.StepName),
 		steps.GetStep(docker.StepName),
 		steps.GetStep(kubelet.StepName),
 		steps.GetStep(kubeletconf.StepName),
 		steps.GetStep(kubeproxy.StepName),
 		steps.GetStep(systemd.StepName),
-		steps.GetStep(flannel.StepName),
 		steps.GetStep(certificates.StepName),
 		steps.GetStep(cni.StepName),
-		steps.GetStep(tiller.StepName),
 		steps.GetStep(poststart.StepName),
 	}
 
