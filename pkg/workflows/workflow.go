@@ -26,8 +26,8 @@ import (
 
 type StepStatus struct {
 	Status   steps.Status `json:"status"`
-	StepName string       `json:"step_name"`
-	ErrMsg   string       `json:"error_message"`
+	StepName string       `json:"stepName"`
+	ErrMsg   string       `json:"errorMessage"`
 }
 
 type WorkFlow struct {

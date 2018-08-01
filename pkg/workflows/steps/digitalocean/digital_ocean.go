@@ -3,6 +3,8 @@ package digitalocean
 import (
 	"context"
 	"encoding/json"
+
+	"io"
 	"fmt"
 	"strconv"
 	"time"
@@ -12,14 +14,13 @@ import (
 	"github.com/pkg/errors"
 	"golang.org/x/oauth2"
 
-	"io"
 
 	"github.com/supergiant/supergiant/pkg/storage"
 	"github.com/supergiant/supergiant/pkg/util"
 	"github.com/supergiant/supergiant/pkg/workflows/steps"
 )
 
-const StepName = "digital_ocean"
+const StepName = "digitalOcean"
 
 var (
 	// TODO(stgleb): We need global error for timeout exceeding

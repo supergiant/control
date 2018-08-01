@@ -11,7 +11,7 @@ import (
 	"github.com/supergiant/supergiant/pkg/workflows/steps"
 )
 
-const StepName = "post_start"
+const StepName = "postStart"
 
 type Step struct {
 	script *template.Template
@@ -33,7 +33,7 @@ func (j *Step) Run(ctx context.Context, out io.Writer, config steps.Config) erro
 	err := steps.RunTemplate(context.Background(), j.script, config.Runner, out, config.PostStartConfig)
 
 	if err != nil {
-		return errors.Wrap(err, "error running post start templatemanager as a command")
+		return errors.Wrap(err, "error running post start template as a command")
 	}
 
 	return nil
