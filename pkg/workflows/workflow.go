@@ -50,8 +50,8 @@ type Task struct {
 const (
 	prefix = "tasks"
 
-	DigitalOceanMaster = "digitalocean_master"
-	DigitalOceanNode   = "digitalocean_node"
+	DigitalOceanMaster = "digitalOceanMaster"
+	DigitalOceanNode   = "digitalOceanNode"
 )
 
 var (
