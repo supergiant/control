@@ -70,7 +70,7 @@ func (h *WorkflowHandler) BuildWorkflow(w http.ResponseWriter, r *http.Request) 
 		s = append(s, steps.GetStep(stepName))
 	}
 
-	workflow := BuildCustomWorkflow(s, req.Cfg, h.repository)
+	workflow := New(s, req.Cfg, h.repository)
 	workflow.Run(context.Background(), os.Stdout)
 
 	respData, _ := json.Marshal(BuildWorkFlowResponse{workflow.Id})

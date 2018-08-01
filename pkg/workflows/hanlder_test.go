@@ -18,7 +18,7 @@ func TestWorkflowHandlerGetWorkflow(t *testing.T) {
 	id := "abcd"
 	expectedType := "master"
 	expectedSteps := []StepStatus{{}, {}}
-	w1 := &WorkFlow{
+	w1 := &Task{
 		Type:         expectedType,
 		StepStatuses: expectedSteps,
 	}
@@ -39,7 +39,7 @@ func TestWorkflowHandlerGetWorkflow(t *testing.T) {
 	router.HandleFunc("/workflows/{id}", h.GetWorkflow)
 	router.ServeHTTP(resp, req)
 
-	w2 := &WorkFlow{}
+	w2 := &Task{}
 	err := json.Unmarshal(resp.Body.Bytes(), w2)
 
 	if err != nil {

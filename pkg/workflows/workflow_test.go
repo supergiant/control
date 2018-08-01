@@ -66,18 +66,18 @@ func (f *fakeStep) Description() string {
 	return f.description
 }
 
-func TestWorkFlowRunError(t *testing.T) {
+func TestTaskRunError(t *testing.T) {
 	errMsg := "something has gone wrong"
 	s := &fakeRepository{
 		storage: make(map[string][]byte),
 	}
 	id := "abcd"
 
-	workflow := WorkFlow{
+	workflow := Task{
 		Id:         id,
 		Config:     steps.Config{},
 		repository: s,
-		workflowSteps: []steps.Step{
+		workflow: []steps.Step{
 			&fakeStep{name: "step1", errs: nil},
 			&fakeStep{name: "step2", errs: []error{errors.New(errMsg)}},
 			&fakeStep{name: "step3", errs: nil}},
@@ -100,8 +100,8 @@ func TestWorkFlowRunError(t *testing.T) {
 		t.Error(fmt.Sprintf("Expected error message %s not found in output %s", errMsg, buffer.String()))
 	}
 
-	w := &WorkFlow{}
-	data := s.storage[fmt.Sprintf("workflows/%s", id)]
+	w := &Task{}
+	data := s.storage[fmt.Sprintf("%s/%s", prefix, id)]
 
 	err = json.Unmarshal([]byte(data), w)
 
@@ -115,17 +115,17 @@ func TestWorkFlowRunError(t *testing.T) {
 	}
 }
 
-func TestWorkFlowRunSuccess(t *testing.T) {
+func TestTaskRunSuccess(t *testing.T) {
 	s := &fakeRepository{
 		storage: make(map[string][]byte),
 	}
 
 	id := "abcd"
-	workflow := WorkFlow{
+	workflow := Task{
 		Id:         id,
 		Config:     steps.Config{},
 		repository: s,
-		workflowSteps: []steps.Step{
+		workflow: []steps.Step{
 			&fakeStep{name: "step1", errs: nil},
 			&fakeStep{name: "step2", errs: nil},
 			&fakeStep{name: "step3", errs: nil}},
@@ -144,8 +144,8 @@ func TestWorkFlowRunSuccess(t *testing.T) {
 		t.Error("Error must be nil")
 	}
 
-	w := &WorkFlow{}
-	data := s.storage[fmt.Sprintf("workflows/%s", workflow.Id)]
+	w := &Task{}
+	data := s.storage[fmt.Sprintf("%s/%s", prefix, workflow.Id)]
 
 	err = json.Unmarshal([]byte(data), w)
 
@@ -166,11 +166,11 @@ func TestWorkflowRestart(t *testing.T) {
 	}
 	id := "abcd"
 
-	w := &WorkFlow{
+	w := &Task{
 		Id:         id,
 		Config:     steps.Config{},
 		repository: s,
-		workflowSteps: []steps.Step{
+		workflow: []steps.Step{
 			&fakeStep{name: "step1", errs: nil},
 			&fakeStep{name: "step2", errs: []error{errors.New(errMsg), nil}},
 			&fakeStep{name: "step3", errs: nil},
@@ -194,7 +194,7 @@ func TestWorkflowRestart(t *testing.T) {
 		t.Error(fmt.Sprintf("Expected error message %s not found in output %s", errMsg, buffer.String()))
 	}
 
-	data := s.storage[fmt.Sprintf("workflows/%s", id)]
+	data := s.storage[fmt.Sprintf("%s/%s", prefix, id)]
 	err = json.Unmarshal([]byte(data), w)
 
 	if err != nil {
