@@ -100,7 +100,7 @@ func TestTaskHandlerRunTask(t *testing.T) {
 	h.RunTask(rec, req)
 
 	if rec.Code != http.StatusAccepted {
-		t.Errorf("Wrong response code expected %s a ctual #s")
+		t.Errorf("Wrong response code expected %d a ctual %d", http.StatusAccepted, rec.Code)
 	}
 
 	resp := &TaskResponse{}
