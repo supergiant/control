@@ -1,9 +1,23 @@
 package workflows
 
 import (
+	"context"
 	"strings"
 	"testing"
+
+	"github.com/supergiant/supergiant/pkg/account"
+	"github.com/supergiant/supergiant/pkg/clouds"
+	"github.com/supergiant/supergiant/pkg/workflows/steps"
 )
+
+type mockCloudAccountService struct {
+	cloudAccount *account.CloudAccount
+	error        error
+}
+
+func (m *mockCloudAccountService) Get(ctx context.Context, name string) (*account.CloudAccount, error) {
+	return m.cloudAccount, m.error
+}
 
 func TestBindParams(t *testing.T) {
 	obj := &struct {
@@ -27,5 +41,54 @@ func TestBindParams(t *testing.T) {
 
 	if !strings.EqualFold(obj.ParamB, params["b"]) {
 		t.Errorf("Wrong value for paramB expected %s actual %s", params["b"], obj.ParamB)
+	}
+}
+
+// TODO(stgleb): extend for other types of cloud providers
+func TestFillCloudAccountCredentials(t *testing.T) {
+	testCases := []struct {
+		cloudAccount *account.CloudAccount
+		err          error
+	}{
+		{
+			cloudAccount: &account.CloudAccount{
+				Name:     "testName",
+				Provider: clouds.DigitalOcean,
+				Credentials: map[string]string{
+					"name":         "hello_world",
+					"k8sVersion":   "",
+					"region":       "",
+					"size":         "",
+					"role":         "",
+					"image":        "",
+					"fingerprints": "fingerprint",
+					"accessToken":  "abcd",
+				},
+			},
+			err: nil,
+		},
+	}
+
+	for _, testCase := range testCases {
+		mock := &mockCloudAccountService{
+			testCase.cloudAccount,
+			testCase.err,
+		}
+
+		config := &steps.Config{
+			CloudAccountName: testCase.cloudAccount.Name,
+		}
+
+		fillCloudAccountCredentials(context.Background(), mock, config)
+
+		if !strings.EqualFold(testCase.cloudAccount.Credentials["accessToken"], config.DOConfig.AccessToken) {
+			t.Errorf("Wrong access token expected %s actual %s",
+				testCase.cloudAccount.Credentials["accessToken"], config.DOConfig.AccessToken)
+		}
+
+		if !strings.EqualFold(testCase.cloudAccount.Credentials["name"], config.DOConfig.Name) {
+			t.Errorf("Wrong cloud account name expected %s actual %s",
+				testCase.cloudAccount.Credentials["name"], config.DOConfig.Name)
+		}
 	}
 }
