@@ -67,15 +67,15 @@ func (h *TaskHandler) BuildAndRunTask(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	// Create new runner with config provided
-	runner, err := h.runnerFactory(req.SshConfig)
+	// Create new sshRunner with config provided
+	sshRunner, err := h.runnerFactory(req.SshConfig)
 
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
 	}
 
-	req.Cfg.Runner = runner
+	req.Cfg.Runner = sshRunner
 	s := make([]steps.Step, 0, len(req.StepNames))
 	// Get steps for task
 	for _, stepName := range req.StepNames {
