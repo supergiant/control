@@ -35,8 +35,10 @@ type TagService interface {
 	TagResources(string, *godo.TagResourcesRequest) (*godo.Response, error)
 }
 
-type Step struct {
-	storage storage.Interface
+type Task struct {
+	storage        storage.Interface
+	dropletService DropletService
+	tagService     TagService
 
 	DropletTimeout time.Duration
 	CheckPeriod    time.Duration
@@ -46,18 +48,20 @@ func init() {
 	steps.RegisterStep(StepName, New(nil, time.Minute*5, time.Second*5))
 }
 
-func New(s storage.Interface, dropletTimeout, checkPeriod time.Duration) *Step {
-	return &Step{
-		storage: s,
+func New(accesstoken string, s storage.Interface, dropletTimeout, checkPeriod time.Duration) *Task {
+	c := getClient(accesstoken)
+
+	return &Task{
+		storage:        s,
+		dropletService: c.Droplets,
+		tagService:     c.Tags,
 
 		DropletTimeout: dropletTimeout,
 		CheckPeriod:    checkPeriod,
 	}
 }
 
-func (t *Step) Run(ctx context.Context, output io.Writer, config steps.Config) error {
-	c := getClient(config.DOConfig.AccessToken)
-
+func (t *Task) Run(ctx context.Context, config steps.Config) error {
 	config.Name = util.MakeNodeName(config.Name, config.Role)
 
 	var fingers []godo.DropletCreateSSHKey
@@ -81,13 +85,13 @@ func (t *Step) Run(ctx context.Context, output io.Writer, config steps.Config) e
 	tags := []string{"Kubernetes-Cluster", config.Name}
 
 	// Create
-	droplet, _, err := c.Droplets.Create(dropletRequest)
+	droplet, _, err := t.dropletService.Create(dropletRequest)
 
 	if err != nil {
 		return errors.Wrap(err, "dropletService has returned an error in Run job")
 	}
 
-	err = t.tagDroplet(c.Tags, droplet.ID, tags)
+	err = t.tagDroplet(droplet.ID, tags)
 
 	if err != nil {
 		return errors.Wrap(err,
@@ -100,7 +104,7 @@ func (t *Step) Run(ctx context.Context, output io.Writer, config steps.Config) e
 	for {
 		select {
 		case <-ticker.C:
-			droplet, _, err = c.Droplets.Get(droplet.ID)
+			droplet, _, err = t.dropletService.Get(droplet.ID)
 
 			if err != nil {
 				return err
@@ -122,7 +126,7 @@ func (t *Step) Run(ctx context.Context, output io.Writer, config steps.Config) e
 	return nil
 }
 
-func (t *Step) tagDroplet(tagService godo.TagsService, dropletId int, tags []string) error {
+func (t *Task) tagDroplet(dropletId int, tags []string) error {
 	// Tag droplet
 	for _, tag := range tags {
 		input := &godo.TagResourcesRequest{
@@ -133,7 +137,7 @@ func (t *Step) tagDroplet(tagService godo.TagsService, dropletId int, tags []str
 				},
 			},
 		}
-		if _, err := tagService.TagResources(tag, input); err != nil {
+		if _, err := t.tagService.TagResources(tag, input); err != nil {
 			return err
 		}
 	}
@@ -160,10 +164,10 @@ func getClient(accessToken string) *godo.Client {
 	return godo.NewClient(oauthClient)
 }
 
-func (t *Step) Name() string {
+func (t *Task) Name() string {
 	return StepName
 }
 
-func (t *Step) Description() string {
+func (t *Task) Description() string {
 	return ""
 }

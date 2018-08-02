@@ -9,11 +9,12 @@ import (
 
 	tm "github.com/supergiant/supergiant/pkg/templatemanager"
 	"github.com/supergiant/supergiant/pkg/workflows/steps"
+	"github.com/supergiant/supergiant/pkg/runner"
 )
 
 const StepName = "flannel"
 
-type Step struct {
+type Task struct {
 	scriptTemplate *template.Template
 }
 
@@ -22,14 +23,13 @@ func init() {
 }
 
 func New(tpl *template.Template) *Step {
-	return &Step{
+	return &Task{
 		scriptTemplate: tpl,
 	}
 }
 
-func (t *Step) Run(ctx context.Context, out io.Writer, config steps.Config) error {
-	err := steps.RunTemplate(context.Background(), t.scriptTemplate,
-		config.Runner, out, config.FlannelConfig)
+func (t *Task) Run(ctx context.Context, config steps.Config) error {
+	err := steps.RunTemplate(context.Background(), t.scriptTemplate, t.runner, t.output, config.FlannelConfig)
 	if err != nil {
 		return errors.Wrap(err, "install flannel step")
 	}
@@ -37,10 +37,10 @@ func (t *Step) Run(ctx context.Context, out io.Writer, config steps.Config) erro
 	return nil
 }
 
-func (t *Step) Name() string {
+func (t *Task) Name() string {
 	return StepName
 }
 
-func (t *Step) Description() string {
+func (t *Task) Description() string {
 	return ""
 }
