@@ -44,6 +44,11 @@ func NewTaskHandler(repository storage.Interface, runnerFactory func(config ssh.
 	}
 }
 
+func (h *TaskHandler) Register(m *mux.Router) {
+	m.HandleFunc("/task", h.GetTask).Methods(http.MethodGet)
+	m.HandleFunc("/task", h.RunTask).Methods(http.MethodPost)
+}
+
 func (h *TaskHandler) GetTask(w http.ResponseWriter, r *http.Request) {
 	vars := mux.Vars(r)
 	id, ok := vars["id"]
