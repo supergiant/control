@@ -76,7 +76,7 @@ systemctl restart flanneld.service
 			Runner: r,
 		}
 
-		task := &Task{
+		task := &Step{
 			scriptTemplate: tpl,
 		}
 
