@@ -3,13 +3,13 @@ package workflows
 import (
 	"net/http"
 
-	"github.com/gorilla/mux"
-
 	"context"
 	"encoding/json"
 	"os"
 
 	"time"
+
+	"github.com/gorilla/mux"
 
 	"github.com/supergiant/supergiant/pkg/runner"
 	"github.com/supergiant/supergiant/pkg/runner/ssh"
@@ -22,13 +22,18 @@ type TaskHandler struct {
 	repository    storage.Interface
 }
 
-type BuildTaskRequest struct {
-	StepNames []string     `json:"step_names"`
-	Cfg       steps.Config `json:"config"`
-	SshConfig ssh.Config   `json:"ssh_config"`
+type RunTaskRequest struct {
+	WorkflowName string       `json:"workflowName"`
+	Cfg          steps.Config `json:"config"`
 }
 
-type BuildTaskResponse struct {
+type BuildTaskRequest struct {
+	StepNames []string     `json:"stepNames"`
+	Cfg       steps.Config `json:"config"`
+	SshConfig ssh.Config   `json:"sshConfig"`
+}
+
+type TaskResponse struct {
 	Id string `json:"id"`
 }
 
@@ -56,6 +61,31 @@ func (h *TaskHandler) GetTask(w http.ResponseWriter, r *http.Request) {
 	}
 
 	w.Write(data)
+}
+
+func (h *TaskHandler) RunTask(w http.ResponseWriter, r *http.Request) {
+	req := &RunTaskRequest{}
+	err := json.NewDecoder(r.Body).Decode(req)
+
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusBadRequest)
+		return
+	}
+
+	workflow := GetWorkflow(req.WorkflowName)
+
+	if workflow == nil {
+		http.NotFound(w, r)
+		return
+	}
+
+	task := New(workflow, req.Cfg, h.repository)
+	task.Run(context.Background(), os.Stdout)
+
+	w.WriteHeader(http.StatusAccepted)
+	json.NewEncoder(w).Encode(&TaskResponse{
+		task.Id,
+	})
 }
 
 func (h *TaskHandler) BuildAndRunTask(w http.ResponseWriter, r *http.Request) {
@@ -87,8 +117,8 @@ func (h *TaskHandler) BuildAndRunTask(w http.ResponseWriter, r *http.Request) {
 	ctx, _ := context.WithTimeout(context.Background(), req.Cfg.Timeout*time.Second)
 	task.Run(ctx, os.Stdout)
 
-	respData, _ := json.Marshal(BuildTaskResponse{task.Id})
-
 	w.WriteHeader(http.StatusCreated)
-	w.Write(respData)
+	json.NewEncoder(w).Encode(&TaskResponse{
+		task.Id,
+	})
 }

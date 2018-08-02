@@ -6,12 +6,11 @@ import (
 	"net/http"
 	"net/http/httptest"
 	"testing"
+	"time"
 
 	"bytes"
 
 	"github.com/gorilla/mux"
-
-	"time"
 
 	"github.com/supergiant/supergiant/pkg/runner"
 	"github.com/supergiant/supergiant/pkg/runner/ssh"
@@ -62,6 +61,56 @@ func TestWorkflowHandlerGetWorkflow(t *testing.T) {
 	}
 }
 
+func TestTaskHandlerRunTask(t *testing.T) {
+	h := TaskHandler{
+		runnerFactory: func(cfg ssh.Config) (runner.Runner, error) {
+			return &testutils.FakeRunner{}, nil
+		},
+		repository: &mockRepository{
+			map[string][]byte{},
+		},
+	}
+
+	workflowName := "workflow1"
+	message := "hello, world!!!"
+	step := &mockStep{
+		name:     "mock_step",
+		messages: []string{message},
+	}
+
+	workflow := []steps.Step{step}
+	RegisterWorkFlow(workflowName, workflow)
+
+	reqBody := RunTaskRequest{
+		Cfg: steps.Config{
+			Timeout: time.Second * 1,
+		},
+		WorkflowName: workflowName,
+	}
+
+	body := &bytes.Buffer{}
+	err := json.NewEncoder(body).Encode(reqBody)
+
+	if err != nil {
+		t.Errorf("Unexpected error while json encoding req body %v", err)
+	}
+
+	rec := httptest.NewRecorder()
+	req := httptest.NewRequest(http.MethodPost, "/", body)
+	h.RunTask(rec, req)
+
+	if rec.Code != http.StatusAccepted {
+		t.Errorf("Wrong response code expected %s a ctual #s")
+	}
+
+	resp := &TaskResponse{}
+	json.NewDecoder(rec.Body).Decode(resp)
+
+	if len(resp.Id) == 0 {
+		t.Error("task id in response should not be empty")
+	}
+}
+
 func TestWorkflowHandlerBuildWorkflow(t *testing.T) {
 	h := TaskHandler{
 		runnerFactory: func(cfg ssh.Config) (runner.Runner, error) {
@@ -100,7 +149,7 @@ func TestWorkflowHandlerBuildWorkflow(t *testing.T) {
 
 	h.BuildAndRunTask(rec, req)
 
-	resp := &BuildTaskResponse{}
+	resp := &TaskResponse{}
 	err = json.Unmarshal(rec.Body.Bytes(), resp)
 
 	if rec.Code != http.StatusCreated {

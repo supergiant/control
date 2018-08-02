@@ -8,6 +8,8 @@ import (
 
 	"github.com/pborman/uuid"
 
+	"sync"
+
 	"github.com/supergiant/supergiant/pkg/storage"
 	"github.com/supergiant/supergiant/pkg/workflows/steps"
 	"github.com/supergiant/supergiant/pkg/workflows/steps/certificates"
@@ -40,7 +42,7 @@ type Workflow []steps.Step
 type Task struct {
 	Id           string       `json:"id"`
 	Type         string       `json:"type"`
-	Config       steps.Config `json:"Cfg"`
+	Config       steps.Config `json:"config"`
 	StepStatuses []StepStatus `json:"steps"`
 
 	workflow   Workflow
@@ -55,6 +57,7 @@ const (
 )
 
 var (
+	m           sync.RWMutex
 	workflowMap map[string]Workflow
 
 	ErrUnknownProviderWorkflowType = errors.New("unknown provider_workflow type")
@@ -90,8 +93,22 @@ func init() {
 		steps.GetStep(poststart.StepName),
 	}
 
+	m.Lock()
+	defer m.Unlock()
 	workflowMap[DigitalOceanMaster] = digitalOceanMaster
 	workflowMap[DigitalOceanNode] = digitalOceanNode
+}
+
+func RegisterWorkFlow(workflowName string, workflow Workflow) {
+	m.Lock()
+	defer m.Unlock()
+	workflowMap[workflowName] = workflow
+}
+
+func GetWorkflow(workflowName string) Workflow {
+	m.RLock()
+	defer m.RUnlock()
+	return workflowMap[workflowName]
 }
 
 func NewTask(providerRole string, config steps.Config, repository storage.Interface) (*Task, error) {
@@ -105,14 +122,14 @@ func NewTask(providerRole string, config steps.Config, repository storage.Interf
 	return nil, ErrUnknownProviderWorkflowType
 }
 
-func New(steps []steps.Step, config steps.Config, repository storage.Interface) *Task {
+func New(workflow Workflow, config steps.Config, repository storage.Interface) *Task {
 	id := uuid.New()
 
 	return &Task{
 		Id:     id,
 		Config: config,
 
-		workflow:   steps,
+		workflow:   workflow,
 		repository: repository,
 	}
 }
