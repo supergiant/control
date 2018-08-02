@@ -110,6 +110,7 @@ type Config struct {
 	KubeletSystemdServiceConfig
 	TillerConfig
 
-	Timeout time.Duration `json:"timeout"`
+	CloudAccountName string        `json:"cloudAccountName"`
+	Timeout          time.Duration `json:"timeout"`
 	runner.Runner
 }

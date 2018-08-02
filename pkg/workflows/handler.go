@@ -11,6 +11,8 @@ import (
 
 	"github.com/gorilla/mux"
 
+	"github.com/supergiant/supergiant/pkg/account"
+	"github.com/supergiant/supergiant/pkg/clouds"
 	"github.com/supergiant/supergiant/pkg/runner"
 	"github.com/supergiant/supergiant/pkg/runner/ssh"
 	"github.com/supergiant/supergiant/pkg/storage"
@@ -18,8 +20,9 @@ import (
 )
 
 type TaskHandler struct {
-	runnerFactory func(config ssh.Config) (runner.Runner, error)
-	repository    storage.Interface
+	runnerFactory       func(config ssh.Config) (runner.Runner, error)
+	cloudAccountService account.Service
+	repository          storage.Interface
 }
 
 type RunTaskRequest struct {
@@ -126,4 +129,23 @@ func (h *TaskHandler) BuildAndRunTask(w http.ResponseWriter, r *http.Request) {
 	json.NewEncoder(w).Encode(&TaskResponse{
 		task.Id,
 	})
+}
+
+// Gets cloud account from storage and fills config object with those credentials
+func (h *TaskHandler) fillCloudAccountCredentials(ctx context.Context, config *steps.Config) error {
+	cloudAccount, err := h.cloudAccountService.Get(ctx, config.CloudAccountName)
+
+	if err != nil {
+		return nil
+	}
+
+	switch cloudAccount.Provider {
+	case clouds.AWS:
+	case clouds.GCE:
+	case clouds.DigitalOcean:
+		return bindParams(cloudAccount.Credentials, &config.DOConfig)
+	case clouds.Packet:
+	}
+
+	return nil
 }
