@@ -6,9 +6,9 @@ import (
 	"errors"
 	"io"
 
-	"github.com/pborman/uuid"
-
 	"sync"
+
+	"github.com/pborman/uuid"
 
 	"github.com/supergiant/supergiant/pkg/storage"
 	"github.com/supergiant/supergiant/pkg/workflows/steps"
