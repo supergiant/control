@@ -54,13 +54,13 @@ spec:
   hostNetwork: true
   containers:
   - name: kube-apiserver
-    image: gcr.io/google_containers/hyperkube:v{{ .KubernetesVersion }}
+    image: gcr.io/google_containers/hyperkube:v{{ .K8SVersion }}
     command:
     - /hyperkube
     - apiserver
     - --bind-address=0.0.0.0
     - --etcd-servers=http://{{ .EtcdHost }}:{{ .EtcdPort }}
-	- --allow-privileged=true
+    - --allow-privileged=true
     {{if .RBACEnabled }}- --authorization-mode=Node,RBAC{{end}}
     - --service-cluster-ip-range=10.3.0.0/24
     - --secure-port=443
@@ -115,7 +115,7 @@ spec:
   hostNetwork: true
   containers:
   - name: kube-controller-manager
-    image: gcr.io/google_containers/hyperkube:v{{ .KubernetesVersion }}
+    image: gcr.io/google_containers/hyperkube:v{{ .K8SVersion }}
     command:
     - /hyperkube
     - controller-manager
@@ -159,7 +159,7 @@ spec:
   hostNetwork: true
   containers:
   - name: kube-scheduler
-    image: gcr.io/google_containers/hyperkube:v{{ .KubernetesVersion }}
+    image: gcr.io/google_containers/hyperkube:v{{ .K8SVersion }}
     command:
     - /hyperkube
     - scheduler
@@ -184,7 +184,7 @@ spec:
   hostNetwork: true
   containers:
   - name: kube-proxy
-    image: gcr.io/google_containers/hyperkube:v{{ .KubernetesVersion }}
+    image: gcr.io/google_containers/hyperkube:v{{ .K8SVersion }}
     command:
     - /hyperkube
     - proxy
