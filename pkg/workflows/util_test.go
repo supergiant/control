@@ -81,14 +81,14 @@ func TestFillCloudAccountCredentials(t *testing.T) {
 
 		fillCloudAccountCredentials(context.Background(), mock, config)
 
-		if !strings.EqualFold(testCase.cloudAccount.Credentials["accessToken"], config.DOConfig.AccessToken) {
+		if !strings.EqualFold(testCase.cloudAccount.Credentials["accessToken"], config.DigitalOceanConfig.AccessToken) {
 			t.Errorf("Wrong access token expected %s actual %s",
-				testCase.cloudAccount.Credentials["accessToken"], config.DOConfig.AccessToken)
+				testCase.cloudAccount.Credentials["accessToken"], config.DigitalOceanConfig.AccessToken)
 		}
 
-		if !strings.EqualFold(testCase.cloudAccount.Credentials["name"], config.DOConfig.Name) {
+		if !strings.EqualFold(testCase.cloudAccount.Credentials["name"], config.DigitalOceanConfig.Name) {
 			t.Errorf("Wrong cloud account name expected %s actual %s",
-				testCase.cloudAccount.Credentials["name"], config.DOConfig.Name)
+				testCase.cloudAccount.Credentials["name"], config.DigitalOceanConfig.Name)
 		}
 	}
 }

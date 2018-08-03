@@ -214,7 +214,7 @@ EOF
 	output := new(bytes.Buffer)
 	cfg := steps.Config{
 		ManifestConfig: steps.ManifestConfig{
-			KubernetesVersion:   kubernetesVersion,
+			K8SVersion:   kubernetesVersion,
 			KubernetesConfigDir: kubernetesConfigDir,
 			RBACEnabled:         RBACEnabled,
 			EtcdHost:            etcdHost,

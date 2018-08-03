@@ -43,7 +43,7 @@ func fillCloudAccountCredentials(ctx context.Context, getter cloudAccountGetter,
 	case clouds.AWS:
 	case clouds.GCE:
 	case clouds.DigitalOcean:
-		return bindParams(cloudAccount.Credentials, &config.DOConfig)
+		return bindParams(cloudAccount.Credentials, &config.DigitalOceanConfig)
 	case clouds.Packet:
 	}
 

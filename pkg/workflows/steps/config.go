@@ -15,7 +15,7 @@ type CertificatesConfig struct {
 	APIServerCert         string `json:"apiServerCert"`
 	APIServerCertName     string `json:"apiServerCertName"`
 	APIServerKey          string `json:"apiServerKey"`
-	APIServerKeyName      string `json:"apiServerKey_Name"`
+	APIServerKeyName      string `json:"apiServerKeyName"`
 	KubeletClientCert     string `json:"kubeletClientCert"`
 	KubeletClientCertName string `json:"kubeletClientCertName"`
 	KubeletClientKey      string `json:"kubeletClientKey"`

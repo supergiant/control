@@ -56,29 +56,29 @@ func New(s storage.Interface, dropletTimeout, checkPeriod time.Duration) *Step {
 }
 
 func (t *Step) Run(ctx context.Context, output io.Writer, config steps.Config) error {
-	c := getClient(config.DOConfig.AccessToken)
+	c := getClient(config.DigitalOceanConfig.AccessToken)
 
-	config.Name = util.MakeNodeName(config.Name, config.Role)
+	config.DigitalOceanConfig.Name = util.MakeNodeName(config.DigitalOceanConfig.Name, config.DigitalOceanConfig.Role)
 
 	var fingers []godo.DropletCreateSSHKey
-	for _, ssh := range config.Fingerprints {
+	for _, ssh := range config.DigitalOceanConfig.Fingerprints {
 		fingers = append(fingers, godo.DropletCreateSSHKey{
 			Fingerprint: ssh,
 		})
 	}
 
 	dropletRequest := &godo.DropletCreateRequest{
-		Name:              config.Name,
-		Region:            config.Region,
-		Size:              config.Size,
+		Name:              config.DigitalOceanConfig.Name,
+		Region:            config.DigitalOceanConfig.Region,
+		Size:              config.DigitalOceanConfig.Size,
 		PrivateNetworking: true,
 		SSHKeys:           fingers,
 		Image: godo.DropletCreateImage{
-			Slug: config.Image,
+			Slug: config.DigitalOceanConfig.Image,
 		},
 	}
 
-	tags := []string{"Kubernetes-Cluster", config.Name}
+	tags := []string{"Kubernetes-Cluster", config.DigitalOceanConfig.Name}
 
 	// Create
 	droplet, _, err := c.Droplets.Create(dropletRequest)

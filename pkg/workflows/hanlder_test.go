@@ -17,6 +17,7 @@ import (
 	"github.com/supergiant/supergiant/pkg/runner/ssh"
 	"github.com/supergiant/supergiant/pkg/testutils"
 	"github.com/supergiant/supergiant/pkg/workflows/steps"
+	"os"
 )
 
 func TestWorkflowHandlerGetWorkflow(t *testing.T) {
@@ -36,6 +37,8 @@ func TestWorkflowHandlerGetWorkflow(t *testing.T) {
 			},
 		},
 	}
+
+	json.NewEncoder(os.Stdout).Encode(&steps.Config{})
 
 	resp := httptest.NewRecorder()
 	req := httptest.NewRequest(http.MethodGet, fmt.Sprintf("/%s/%s", prefix, id), nil)

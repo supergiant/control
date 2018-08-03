@@ -49,7 +49,7 @@ func TestStartKubeProxy(t *testing.T) {
 
 	cfg := steps.Config{
 		KubeProxyConfig: steps.KubeProxyConfig{
-			KubernetesVersion: k8sVersion,
+			K8SVersion: k8sVersion,
 			MasterPrivateIP:   masterIp,
 			ProxyPort:         proxyPort,
 			EtcdClientPort:    etcdPort,
