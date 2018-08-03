@@ -47,8 +47,8 @@ func NewTaskHandler(repository storage.Interface, runnerFactory func(config ssh.
 }
 
 func (h *TaskHandler) Register(m *mux.Router) {
-	m.HandleFunc("/task", h.GetTask).Methods(http.MethodGet)
-	m.HandleFunc("/task", h.RunTask).Methods(http.MethodPost)
+	m.HandleFunc("/tasks", h.GetTask).Methods(http.MethodGet)
+	m.HandleFunc("/tasks", h.RunTask).Methods(http.MethodPost)
 }
 
 func (h *TaskHandler) GetTask(w http.ResponseWriter, r *http.Request) {
@@ -87,7 +87,7 @@ func (h *TaskHandler) RunTask(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// Get cloud account fill appropriate config structure with cloud account credentials
-	fillCloudAccountCredentials(r.Context(), h.cloudAccGetter, &req.Cfg)
+	//fillCloudAccountCredentials(r.Context(), h.cloudAccGetter, &req.Cfg)
 
 	task := New(workflow, req.Cfg, h.repository)
 	task.Run(context.Background(), os.Stdout)

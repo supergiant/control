@@ -133,7 +133,7 @@ func configureApplication(cfg *Config) (*mux.Router, error) {
 	nodeProfileHandler.Register(protectedAPI)
 
 	taskHandler := workflows.NewTaskHandler(repository, ssh.NewRunner, accountService)
-	taskHandler.Register(protectedAPI)
+	taskHandler.Register(router)
 
 	helmService := helm.NewService(repository)
 	helmHandler := helm.NewHandler(helmService)

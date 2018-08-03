@@ -4,7 +4,6 @@ import (
 	"context"
 	"encoding/json"
 
-	"fmt"
 	"io"
 	"strconv"
 	"time"
@@ -87,12 +86,8 @@ func (t *Step) Run(ctx context.Context, output io.Writer, config steps.Config) e
 		return errors.Wrap(err, "dropletService has returned an error in Run job")
 	}
 
-	err = t.tagDroplet(c.Tags, droplet.ID, tags)
-
-	if err != nil {
-		return errors.Wrap(err,
-			fmt.Sprintf("Tagging droplet %d has failed for Run job ", droplet.ID))
-	}
+	// NOTE(stgleb): ignore droplet tagging error, it always fails
+	t.tagDroplet(c.Tags, droplet.ID, tags)
 
 	after := time.After(t.DropletTimeout)
 	ticker := time.NewTicker(t.CheckPeriod)
@@ -110,6 +105,7 @@ func (t *Step) Run(ctx context.Context, output io.Writer, config steps.Config) e
 				if data, err := json.Marshal(droplet); err != nil {
 					return err
 				} else {
+					// TODO(stgleb): In case of success data from droplet like networking should be written to config
 					return t.storage.Put(context.Background(), "droplet", droplet.Name, data)
 				}
 			}

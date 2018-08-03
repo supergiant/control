@@ -6,7 +6,7 @@
     "size":"s-1vcpu-2gb",
     "role":"master",
     "image":"ubuntu-18-04-x64",
-    "fingerprints":["AisphBB7KGlqhl4BRdqlBM4GKBuo6myQJbi/PovKxm0"],
+    "fingerprints":["8d:73:85:98:b2:dc:59:f4:bf:10:97:e1:e4:6b:d3:36"],
     "accessToken":"secret"
   },
   "dockerConfig": {
