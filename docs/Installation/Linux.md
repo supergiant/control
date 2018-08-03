@@ -19,7 +19,7 @@ sudo chmod +x /usr/bin/supergiant-api /usr/bin/supergiant-ui
 curl https://raw.githubusercontent.com/supergiant/supergiant/master/config/config.json.example --create-dirs -o /etc/supergiant/config.json
 ```
 
-4. In the configuration file, specify log and database paths (for more detailed information configuration, see [the detailed doc](http://supergiant.readthedocs.io/en/docs/Installation/Configuration/)):
+4. In the configuration file, specify log and database paths (for more detailed information configuration, see [the detailed doc](http://supergiant.readthedocs.io/en/v1.0.0/Installation/Configuration/)):
 
 ```json
 {

@@ -1,6 +1,6 @@
 # Kube Resource
 
-A Kube Resource represents any Kubernetes object that can be created within a [Kube](http://supergiant.readthedocs.io/en/docs/Concepts/kube/).
+A Kube Resource represents any Kubernetes object that can be created within a [Kube](http://supergiant.readthedocs.io/en/v1.0.0/Concepts/kube/).
 
 ## Examples
 
