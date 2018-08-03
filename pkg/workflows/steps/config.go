@@ -112,5 +112,5 @@ type Config struct {
 
 	CloudAccountName string        `json:"cloudAccountName" valid:"required, length(1|32)"`
 	Timeout          time.Duration `json:"timeout"`
-	runner.Runner
+	runner.Runner `json:"-"`
 }
