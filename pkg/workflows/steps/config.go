@@ -35,7 +35,7 @@ type DOConfig struct {
 
 type FlannelConfig struct {
 	Arch           string `json:"arch"`
-	FlannelVersion string `json:"flannelVersion"`
+	Version string 	`json:"version"`
 	Network        string `json:"network"`
 	NetworkType    string `json:"networkType"`
 }
