@@ -11,7 +11,7 @@ type CertificatesConfig struct {
 	CACert                string `json:"caCert"`
 	CACertName            string `json:"caCertName"`
 	CAKeyCert             string `json:"caKeyCert"`
-	CAKeyName             string `json:"cakeyName"`
+	CAKeyName             string `json:"caKeyName"`
 	APIServerCert         string `json:"apiServerCert"`
 	APIServerCertName     string `json:"apiServerCertName"`
 	APIServerKey          string `json:"apiServerKey"`

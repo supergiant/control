@@ -37,9 +37,9 @@ type StepStatus struct {
 // Workflow is a template for doing some actions
 type Workflow []steps.Step
 
-// Task is a workflow that runs, tracks it progress
-// workflow and task a related like binary file and process
-// in terms of operation system.
+// Task is a workflow that runs and tracks its progress.
+// A workflow is like a program, while a task is like a process,
+// in terms of an operating system.
 type Task struct {
 	Id           string       `json:"id"`
 	Type         string       `json:"type"`
