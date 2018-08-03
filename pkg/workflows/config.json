@@ -1,0 +1,50 @@
+{
+  "name":"test-node",
+  "k8sVersion":"1.11",
+  "region":"sfo2",
+  "size":"s-1vcpu-2gb",
+  "role":"master",
+  "image":"ubuntu-18-04-x64",
+  "fingerprints":["AisphBB7KGlqhl4BRdqlBM4GKBuo6myQJbi/PovKxm0"],
+  "accessToken":"secret",
+
+  "dockerVersion":"17.06.0",
+  "dockerArch": "amd64",
+  "tillerArch": "amd64",
+  "releaseVersion":"xenial",
+
+  "caCert":"",
+  "caCertName":"",
+  "caKeyCert":"",
+  "cakeyName":"",
+  "apiServerCert":"",
+  "apiServerCertName":"",
+  "apiServerKey":"",
+  "apiServerKey_Name":"",
+  "kubeletClientCert":"",
+  "kubeletClientCertName":"",
+  "kubeletClientKey":"",
+  "kubeletClientKeyName":"",
+
+  "kubeletVersion":"1.11",
+  "network":"10.0.0.1",
+  "networkType":"vxlan",
+  "etcdHost":"127.0.0.1",
+  "etcdPort":"2379",
+
+  "privateIpv4":"",
+  "providerString":"digitalocean",
+  "masterHost":"",
+  "masterPort":"",
+
+  "username":"root",
+  "kubeletService":"",
+  "kubernetesProvider":"",
+
+  "helmVersion":"helm-v2.1.1",
+  "operatingSystem": "linux",
+
+  "cloudAccountName":"digitalOceanAccountName",
+  "timeout":0,
+  "Runner":null
+}

@@ -34,17 +34,17 @@ type DOConfig struct {
 }
 
 type FlannelConfig struct {
-	Version     string `json:"version" `
-	Arch        string `json:"arch"`
-	Network     string `json:"network"`
-	NetworkType string `json:"networkType"`
+	FlannelVersion string `json:"flannelVersion"`
+	Network        string `json:"network"`
+	NetworkType    string `json:"networkType"`
 }
 
 type KubeletConfig struct {
 	MasterPrivateIP   string `json:"masterPrivateIp"`
 	ProxyPort         string `json:"proxyPort"`
 	EtcdClientPort    string `json:"etcdClientPort"`
-	KubernetesVersion string `json:"kubernetesVersion"`
+	// TODO(stgleb): resolve conflicts in variable names.
+	KubeletVersion string `json:"KubeletVersion"`
 }
 
 type KubeletConfConfig struct {
@@ -56,7 +56,8 @@ type KubeProxyConfig struct {
 	MasterPrivateIP   string `json:"masterPrivateIp"`
 	ProxyPort         string `json:"proxyPort"`
 	EtcdClientPort    string `json:"etcdClientPort"`
-	KubernetesVersion string `json:"kubernetesVersion"`
+	// TODO(stgleb): resolve conflicts in variable names.
+	KubeProxyVersion string `json:"KubeProxyVersion"`
 }
 
 type ManifestConfig struct {
@@ -87,13 +88,14 @@ type KubeletSystemdServiceConfig struct {
 type TillerConfig struct {
 	HelmVersion     string `json:"helmVersion"`
 	OperatingSystem string `json:"operatingSystem"`
-	Arch            string `json:"arch"`
+	// TODO(stgleb): resolve conflicts in variable names.
+	TillerArch            string `json:"tillerArch"`
 }
 
 type DockerConfig struct {
 	DockerVersion  string `json:"dockerVersion"`
 	ReleaseVersion string `json:"releaseVersion"`
-	Arch           string `json:"arch"`
+	DockerArch     string `json:"dockerArch"`
 }
 
 type Config struct {
@@ -112,5 +114,5 @@ type Config struct {
 
 	CloudAccountName string        `json:"cloudAccountName" valid:"required, length(1|32)"`
 	Timeout          time.Duration `json:"timeout"`
-	runner.Runner `json:"-"`
+	runner.Runner    `json:"-"`
 }
