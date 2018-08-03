@@ -29,7 +29,7 @@ func New(script *template.Template) *Step {
 	return t
 }
 
-func (s *Step) Run(ctx context.Context, out io.Writer, config steps.Config) error {
+func (s *Step) Run(ctx context.Context, out io.Writer, config *steps.Config) error {
 	err := steps.RunTemplate(context.Background(), s.script,
 		config.Runner, out, config.KubeletSystemdServiceConfig)
 

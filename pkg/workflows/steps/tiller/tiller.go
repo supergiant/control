@@ -33,7 +33,7 @@ func New(script *template.Template) *Step {
 	return t
 }
 
-func (j *Step) Run(ctx context.Context, out io.Writer, config steps.Config) error {
+func (j *Step) Run(ctx context.Context, out io.Writer, config *steps.Config) error {
 	err := steps.RunTemplate(context.Background(), j.script, config.Runner, out, config.TillerConfig)
 
 	if err != nil {

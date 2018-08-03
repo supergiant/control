@@ -16,6 +16,7 @@ import (
 	"github.com/supergiant/supergiant/pkg/storage"
 	"github.com/supergiant/supergiant/pkg/util"
 	"github.com/supergiant/supergiant/pkg/workflows/steps"
+	"net"
 )
 
 const StepName = "digitalOcean"
@@ -105,7 +106,10 @@ func (t *Step) Run(ctx context.Context, output io.Writer, config steps.Config) e
 				if data, err := json.Marshal(droplet); err != nil {
 					return err
 				} else {
-					// TODO(stgleb): In case of success data from droplet like networking should be written to config
+					// Get private ip ports from droplet networks
+					config.KubeProxyConfig.MasterPrivateIP = getPrivateIpPort(droplet.Networks.V4)
+					config.KubeletConfig.MasterPrivateIP = getPrivateIpPort(droplet.Networks.V4)
+
 					return t.storage.Put(context.Background(), "droplet", droplet.Name, data)
 				}
 			}
@@ -161,5 +165,15 @@ func (t *Step) Name() string {
 }
 
 func (t *Step) Description() string {
+	return ""
+}
+
+func getPrivateIpPort(networks []godo.NetworkV4) string {
+	for _, network := range networks {
+		if network.Type == "private" {
+			return network.IPAddress
+		}
+	}
+
 	return ""
 }
