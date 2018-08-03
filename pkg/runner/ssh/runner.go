@@ -17,11 +17,11 @@ const (
 
 // Config is a set of params needed to create valid ssh.ClientConfig
 type Config struct {
-	Host    string
-	Port    string
-	User    string
-	Timeout int
-	Key     []byte
+	Host    string `json:"host"`
+	Port    string `json:"port"`
+	User    string `json:"user"`
+	Timeout int    `json:"timeout"`
+	Key     []byte `json:"key"`
 }
 
 // Runner is implementation of runner interface for ssh
@@ -34,7 +34,7 @@ type Runner struct {
 // NewRunner creates ssh runner object. It requires two io.Writer
 // to send output of ssh session and config for ssh client.
 // TODO: Does it safe to pass Config as a pointer?
-func NewRunner(config Config) (*Runner, error) {
+func NewRunner(config Config) (runner.Runner, error) {
 	if strings.TrimSpace(config.Host) == "" {
 		return nil, ErrHostNotSpecified
 	}

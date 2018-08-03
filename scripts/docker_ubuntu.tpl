@@ -4,7 +4,7 @@
 
 DOCKER_VERSION={{ .DockerVersion }}
 UBUNTU_RELEASE={{ .ReleaseVersion }}
-ARCH={{ .Arch }}
+ARCH={{ .DockerArch }}
 OUT_DIR=/tmp
 URL="https://download.docker.com/linux/ubuntu/dists/${UBUNTU_RELEASE}/pool/stable/${ARCH}/docker-ce_${DOCKER_VERSION}~ce-0~ubuntu_${ARCH}.deb"
 

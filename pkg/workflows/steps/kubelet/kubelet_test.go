@@ -35,7 +35,7 @@ func TestStartKubelet(t *testing.T) {
 
 	var (
 		r             runner.Runner = &fakeRunner{}
-		kubeletScript               = `echo 'gcr.io/google-containers/hyperkube:v{{ .KubernetesVersion }}' > /etc/systemd/system/kubelet.service;systemctl start kubelet`
+		kubeletScript               = `echo 'gcr.io/google-containers/hyperkube:v{{ .K8SVersion }}' > /etc/systemd/system/kubelet.service;systemctl start kubelet`
 	)
 
 	kubeletScriptTemplate, err := template.New(StepName).Parse(kubeletScript)
@@ -48,7 +48,7 @@ func TestStartKubelet(t *testing.T) {
 
 	cfg := steps.Config{
 		KubeletConfig: steps.KubeletConfig{
-			KubernetesVersion: k8sVersion,
+			K8SVersion: k8sVersion,
 			ProxyPort:         proxyPort,
 			EtcdClientPort:    etcdPort,
 		},

@@ -3,6 +3,7 @@ package steps
 import (
 	"context"
 	"io"
+	"sync"
 )
 
 type Status string
@@ -20,6 +21,7 @@ type Step interface {
 }
 
 var (
+	m       sync.RWMutex
 	stepMap map[string]Step
 )
 
@@ -28,9 +30,13 @@ func init() {
 }
 
 func RegisterStep(stepName string, step Step) {
+	m.Lock()
+	defer m.Unlock()
 	stepMap[stepName] = step
 }
 
 func GetStep(stepName string) Step {
+	m.RLock()
+	defer m.RUnlock()
 	return stepMap[stepName]
 }

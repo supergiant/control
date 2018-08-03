@@ -1,0 +1,88 @@
+{
+  "digitalOceanConfig": {
+    "name":"test-node",
+    "k8sVersion":"1.11",
+    "region":"sfo2",
+    "size":"s-1vcpu-2gb",
+    "role":"master",
+    "image":"ubuntu-18-04-x64",
+    "fingerprints":["AisphBB7KGlqhl4BRdqlBM4GKBuo6myQJbi/PovKxm0"],
+    "accessToken":"secret"
+  },
+  "dockerConfig": {
+    "dockerVersion": "17.06.0",
+    "releaseVersion": "xenial",
+    "arch": "amd64"
+  },
+  "downloadK8sBinary": {
+    "k8sVersion": "1.11",
+    "arch": "amd64",
+    "operatingSystem": "linux"
+  },
+  "certificatesConfig": {
+    "kubernetesConfigDir": "",
+    "caCert": "",
+    "caCertName": "",
+    "caKeyCert": "",
+    "cakeyName": "",
+    "apiServerCert": "",
+    "apiServerCertName": "",
+    "apiServerKey": "",
+    "apiServerKeyName": "",
+    "kubeletClientCert": "",
+    "kubeletClientCertName": "",
+    "kubeletClientKey": "",
+    "kubeletClientKeyName": ""
+  },
+  "flannelConfig": {
+    "arch": "amd64",
+    "version": "1.0.0",
+    "network": "10.0.0.0",
+    "networkType": "vxlan"
+  },
+  "kubeletConfig": {
+    "masterPrivateIp": "10.0.0.1",
+    "proxyPort": "8080",
+    "etcdClientPort": "2379",
+    "k8sVersion": "1.11"
+  },
+  "kubeletConfConfig": {
+    "host": "127.0.0.1",
+    "port": "8080"
+  },
+  "kubeProxyConfig": {
+    "masterPrivateIp": "10.0.0.2",
+    "proxyPort": "8080",
+    "etcdClientPort": "2379",
+    "k8sVersion": "1.11"
+  },
+  "manifestConfig": {
+    "k8sVersion": "1.11",
+    "kubernetesConfigDir": "/etc/config",
+    "rbacEnabled": false,
+    "etcdHost": "127.0.0.1",
+    "etcdPort": "2379",
+    "privateIpv4": "10.0.0.1",
+    "providerString": "digitalocean",
+    "masterHost": "10.0.0.1",
+    "masterPort": "8080"
+  },
+  "postStartConfig": {
+    "host": "10.0.0.1",
+    "port": "8080",
+    "username": "root",
+    "rbacEnabled": false
+  },
+  "kubeletSystemdServiceConfig": {
+    "k8sVersion": "1.11",
+    "kubeletService": "kubernetes.conf",
+    "kubernetesProvider": "digitalocean"
+  },
+  "tillerConfig": {
+    "helmVersion": "2.1.1",
+    "operatingSystem": "linux",
+    "arch": "amd64"
+  },
+  "cloudAccountName": "cloudAccount1",
+  "timeout": 300
+}

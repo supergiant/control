@@ -14,7 +14,7 @@ import (
 )
 
 const (
-	StepName    = "installTiller"
+	StepName = "installTiller"
 )
 
 type Step struct {
@@ -37,7 +37,7 @@ func (j *Step) Run(ctx context.Context, out io.Writer, config steps.Config) erro
 	err := steps.RunTemplate(context.Background(), j.script, config.Runner, out, config.TillerConfig)
 
 	if err != nil {
-		return errors.Wrap(err, "error running tiller template as a command")
+		return errors.Wrap(err, "install tiller step")
 	}
 
 	return nil

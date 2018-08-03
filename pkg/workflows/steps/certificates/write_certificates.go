@@ -34,7 +34,7 @@ func (t *Step) Run(ctx context.Context, out io.Writer, config steps.Config) erro
 		config.Runner, out, config.CertificatesConfig)
 
 	if err != nil {
-		return errors.Wrap(err, "error running write certificates template as a command")
+		return errors.Wrap(err, "write certificates step")
 	}
 
 	return nil

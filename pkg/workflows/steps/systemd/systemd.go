@@ -34,7 +34,7 @@ func (s *Step) Run(ctx context.Context, out io.Writer, config steps.Config) erro
 		config.Runner, out, config.KubeletSystemdServiceConfig)
 
 	if err != nil {
-		return errors.Wrap(err, "error running post start template as a command")
+		return errors.Wrap(err, "make kubelet systemd service step")
 	}
 
 	return nil

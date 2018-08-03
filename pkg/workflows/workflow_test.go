@@ -13,42 +13,45 @@ import (
 	"github.com/supergiant/supergiant/pkg/workflows/steps"
 )
 
-type fakeRepository struct {
+type mockRepository struct {
 	storage map[string][]byte
 }
 
-func (f *fakeRepository) Put(ctx context.Context, prefix string, key string, value []byte) error {
+func (f *mockRepository) Put(ctx context.Context, prefix string, key string, value []byte) error {
 	f.storage[fmt.Sprintf("%s/%s", prefix, key)] = value
 
 	return nil
 }
 
-func (f *fakeRepository) Get(ctx context.Context, prefix string, key string) ([]byte, error) {
+func (f *mockRepository) Get(ctx context.Context, prefix string, key string) ([]byte, error) {
 	return f.storage[fmt.Sprintf("%s/%s", prefix, key)], nil
 }
 
-func (f *fakeRepository) GetAll(ctx context.Context, prefix string) ([][]byte, error) {
+func (f *mockRepository) GetAll(ctx context.Context, prefix string) ([][]byte, error) {
 	return nil, nil
 }
 
-func (f *fakeRepository) Delete(ctx context.Context, prefix string, key string) error {
+func (f *mockRepository) Delete(ctx context.Context, prefix string, key string) error {
 	return nil
 }
 
-type fakeStep struct {
+type mockStep struct {
 	name        string
 	description string
 	counter     int
+	messages    []string
 	errs        []error
 }
 
-func (f *fakeStep) Run(ctx context.Context, out io.Writer, config steps.Config) error {
+func (f *mockStep) Run(ctx context.Context, out io.Writer, config steps.Config) error {
 	defer func() {
 		f.counter++
 	}()
 
 	if f.counter < len(f.errs) && f.errs[f.counter] != nil {
 		out.Write([]byte(f.errs[f.counter].Error()))
+	} else if f.messages != nil && len(f.messages) > f.counter {
+		out.Write([]byte(f.messages[f.counter]))
 	}
 
 	if f.counter < len(f.errs) {
@@ -58,29 +61,29 @@ func (f *fakeStep) Run(ctx context.Context, out io.Writer, config steps.Config) 
 	return nil
 }
 
-func (f *fakeStep) Name() string {
+func (f *mockStep) Name() string {
 	return f.name
 }
 
-func (f *fakeStep) Description() string {
+func (f *mockStep) Description() string {
 	return f.description
 }
 
-func TestWorkFlowRunError(t *testing.T) {
+func TestTaskRunError(t *testing.T) {
 	errMsg := "something has gone wrong"
-	s := &fakeRepository{
+	s := &mockRepository{
 		storage: make(map[string][]byte),
 	}
 	id := "abcd"
 
-	workflow := WorkFlow{
+	workflow := Task{
 		Id:         id,
 		Config:     steps.Config{},
 		repository: s,
-		workflowSteps: []steps.Step{
-			&fakeStep{name: "step1", errs: nil},
-			&fakeStep{name: "step2", errs: []error{errors.New(errMsg)}},
-			&fakeStep{name: "step3", errs: nil}},
+		workflow: []steps.Step{
+			&mockStep{name: "step1", errs: nil},
+			&mockStep{name: "step2", errs: []error{errors.New(errMsg)}},
+			&mockStep{name: "step3", errs: nil}},
 	}
 
 	buffer := &bytes.Buffer{}
@@ -100,8 +103,8 @@ func TestWorkFlowRunError(t *testing.T) {
 		t.Error(fmt.Sprintf("Expected error message %s not found in output %s", errMsg, buffer.String()))
 	}
 
-	w := &WorkFlow{}
-	data := s.storage[fmt.Sprintf("workflows/%s", id)]
+	w := &Task{}
+	data := s.storage[fmt.Sprintf("%s/%s", prefix, id)]
 
 	err = json.Unmarshal([]byte(data), w)
 
@@ -115,20 +118,20 @@ func TestWorkFlowRunError(t *testing.T) {
 	}
 }
 
-func TestWorkFlowRunSuccess(t *testing.T) {
-	s := &fakeRepository{
+func TestTaskRunSuccess(t *testing.T) {
+	s := &mockRepository{
 		storage: make(map[string][]byte),
 	}
 
 	id := "abcd"
-	workflow := WorkFlow{
+	workflow := Task{
 		Id:         id,
 		Config:     steps.Config{},
 		repository: s,
-		workflowSteps: []steps.Step{
-			&fakeStep{name: "step1", errs: nil},
-			&fakeStep{name: "step2", errs: nil},
-			&fakeStep{name: "step3", errs: nil}},
+		workflow: []steps.Step{
+			&mockStep{name: "step1", errs: nil},
+			&mockStep{name: "step2", errs: nil},
+			&mockStep{name: "step3", errs: nil}},
 	}
 
 	buffer := &bytes.Buffer{}
@@ -144,8 +147,8 @@ func TestWorkFlowRunSuccess(t *testing.T) {
 		t.Error("Error must be nil")
 	}
 
-	w := &WorkFlow{}
-	data := s.storage[fmt.Sprintf("workflows/%s", workflow.Id)]
+	w := &Task{}
+	data := s.storage[fmt.Sprintf("%s/%s", prefix, workflow.Id)]
 
 	err = json.Unmarshal([]byte(data), w)
 
@@ -161,19 +164,19 @@ func TestWorkFlowRunSuccess(t *testing.T) {
 
 func TestWorkflowRestart(t *testing.T) {
 	errMsg := "something has gone wrong"
-	s := &fakeRepository{
+	s := &mockRepository{
 		storage: make(map[string][]byte),
 	}
 	id := "abcd"
 
-	w := &WorkFlow{
+	w := &Task{
 		Id:         id,
 		Config:     steps.Config{},
 		repository: s,
-		workflowSteps: []steps.Step{
-			&fakeStep{name: "step1", errs: nil},
-			&fakeStep{name: "step2", errs: []error{errors.New(errMsg), nil}},
-			&fakeStep{name: "step3", errs: nil},
+		workflow: []steps.Step{
+			&mockStep{name: "step1", errs: nil},
+			&mockStep{name: "step2", errs: []error{errors.New(errMsg), nil}},
+			&mockStep{name: "step3", errs: nil},
 		},
 	}
 
@@ -194,7 +197,7 @@ func TestWorkflowRestart(t *testing.T) {
 		t.Error(fmt.Sprintf("Expected error message %s not found in output %s", errMsg, buffer.String()))
 	}
 
-	data := s.storage[fmt.Sprintf("workflows/%s", id)]
+	data := s.storage[fmt.Sprintf("%s/%s", prefix, id)]
 	err = json.Unmarshal([]byte(data), w)
 
 	if err != nil {

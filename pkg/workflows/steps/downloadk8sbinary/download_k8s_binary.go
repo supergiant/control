@@ -1,4 +1,4 @@
-package kubeproxy
+package downloadk8sbinary
 
 import (
 	"context"
@@ -11,29 +11,27 @@ import (
 	"github.com/supergiant/supergiant/pkg/workflows/steps"
 )
 
-const StepName = "kubeProxy"
+const StepName = "downloadK8Sbinary"
 
 type Step struct {
-	script *template.Template
+	scriptTemplate *template.Template
 }
 
 func init() {
 	steps.RegisterStep(StepName, New(tm.GetTemplate(StepName)))
 }
 
-func New(script *template.Template) *Step {
-	t := &Step{
-		script: script,
+func New(tpl *template.Template) *Step {
+	return &Step{
+		scriptTemplate: tpl,
 	}
-
-	return t
 }
 
-func (j *Step) Run(ctx context.Context, out io.Writer, config steps.Config) error {
-	err := steps.RunTemplate(ctx, j.script, config.Runner, out, config.KubeProxyConfig)
-
+func (t *Step) Run(ctx context.Context, out io.Writer, config steps.Config) error {
+	err := steps.RunTemplate(context.Background(), t.scriptTemplate,
+		config.Runner, out, config.DownloadK8sBinary)
 	if err != nil {
-		return errors.Wrap(err, "install kube proxy step")
+		return errors.Wrap(err, "download k8s binary step")
 	}
 
 	return nil

@@ -1,4 +1,4 @@
-package flannel
+package downloadk8sbinary
 
 import (
 	"bytes"
@@ -15,18 +15,11 @@ import (
 
 func TestFlannelJob_InstallFlannel(t *testing.T) {
 	script := `#!/bin/bash
-wget -P /usr/bin/ https://github.com/coreos/flannel/releases/download/v{{ .Version }}/flanneld-{{ .Arch }}
-mv /usr/bin/flanneld-{{ .Arch }} /usr/bin/flanneld
-
-	echo "[Unit]
-	Description=Networking service
-	Requires=etcd-member.service
-	[Service]
-	Environment=FLANNEL_IMAGE_TAG=v{{ .Version }}
-	ExecStartPre=/usr/bin/etcdctl set /coreos.com/network/config '{"Network":"{{ .Network }}", "Backend": {"Type": "{{ .NetworkType }}"}}'" > \
-/etc/systemd/system/flanneld.service
-systemctl enable flanneld.service
-systemctl restart flanneld.service
+source /etc/environment
+mkdir -p /opt/bin
+curl -sSL -o /opt/bin/kubectl https://storage.googleapis.com/kubernetes-release/release/v{{ .K8SVersion }}/bin/{{ .OperatingSystem }}/{{ .Arch }}/kubectl
+chmod +x /opt/bin/$FILE
+chmod +x /opt/bin/kubectl
 `
 
 	tpl, err := template.New(StepName).Parse(script)
@@ -37,21 +30,18 @@ systemctl restart flanneld.service
 	}
 
 	testCases := []struct {
-		version       string
-		arch          string
-		network       string
-		networkType   string
-		expectedError error
+		version         string
+		arch            string
+		operatingSystem string
+		expectedError   error
 	}{
 		{
-			"0.9.0",
+			"1.11",
 			"amd64",
-			"10.0.2.0/24",
-			"vxlan",
+			"linux",
 			nil,
 		},
 		{
-			"",
 			"",
 			"",
 			"",
@@ -67,11 +57,10 @@ systemctl restart flanneld.service
 		output := &bytes.Buffer{}
 
 		config := steps.Config{
-			FlannelConfig: steps.FlannelConfig{
+			DownloadK8sBinary: steps.DownloadK8sBinary{
 				testCase.version,
 				testCase.arch,
-				testCase.network,
-				testCase.networkType,
+				testCase.operatingSystem,
 			},
 			Runner: r,
 		}
@@ -87,19 +76,15 @@ systemctl restart flanneld.service
 		}
 
 		if !strings.Contains(output.String(), testCase.version) {
-			t.Fatalf("Version %s not found in output %s", testCase.version, output.String())
+			t.Fatalf("k8sVersion %s not found in output %s", testCase.version, output.String())
 		}
 
 		if !strings.Contains(output.String(), testCase.arch) {
 			t.Fatalf("architecture %s not found in output %s", testCase.arch, output.String())
 		}
 
-		if !strings.Contains(output.String(), testCase.network) {
-			t.Fatalf("network %s not found in output %s", testCase.network, output.String())
-		}
-
-		if !strings.Contains(output.String(), testCase.networkType) {
-			t.Fatalf("network type %s not found in output %s", testCase.networkType, output.String())
+		if !strings.Contains(output.String(), testCase.operatingSystem) {
+			t.Fatalf("operating system type %s not found in output %s", testCase.operatingSystem, output.String())
 		}
 	}
 }

@@ -7,19 +7,23 @@ import (
 	"time"
 
 	"errors"
+
 	"github.com/coreos/etcd/clientv3"
 	"github.com/gorilla/handlers"
 	"github.com/gorilla/mux"
 	"github.com/sirupsen/logrus"
+
 	"github.com/supergiant/supergiant/pkg/account"
 	"github.com/supergiant/supergiant/pkg/api"
 	"github.com/supergiant/supergiant/pkg/helm"
 	"github.com/supergiant/supergiant/pkg/jwt"
 	"github.com/supergiant/supergiant/pkg/kube"
 	"github.com/supergiant/supergiant/pkg/profile"
+	"github.com/supergiant/supergiant/pkg/runner/ssh"
 	"github.com/supergiant/supergiant/pkg/storage"
 	"github.com/supergiant/supergiant/pkg/testutils/assert"
 	"github.com/supergiant/supergiant/pkg/user"
+	"github.com/supergiant/supergiant/pkg/workflows"
 )
 
 type Server struct {
@@ -127,6 +131,9 @@ func configureApplication(cfg *Config) (*mux.Router, error) {
 	nodeProfileService := profile.NewNodeProfileService(profile.DefaultNodeProfilePrefix, repository)
 	nodeProfileHandler := profile.NewNodeProfileHandler(nodeProfileService)
 	nodeProfileHandler.Register(protectedAPI)
+
+	taskHandler := workflows.NewTaskHandler(repository, ssh.NewRunner)
+	taskHandler.Register(protectedAPI)
 
 	helmService := helm.NewService(repository)
 	helmHandler := helm.NewHandler(helmService)
