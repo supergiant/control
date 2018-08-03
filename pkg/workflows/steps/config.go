@@ -23,18 +23,18 @@ type CertificatesConfig struct {
 }
 
 type DOConfig struct {
-	Name         string   `json:"name"`
+	Name         string   `json:"name" valid:"required"`
 	K8sVersion   string   `json:"k8sVersion"`
-	Region       string   `json:"region"`
-	Size         string   `json:"size"`
-	Role         string   `json:"role"` // master/node
-	Image        string   `json:"image"`
-	Fingerprints []string `json:"fingerprints"`
-	AccessToken  string   `json:"accessToken"`
+	Region       string   `json:"region" valid:"required"`
+	Size         string   `json:"size" valid:"required"`
+	Role         string   `json:"role" valid:"in(master|node)"` // master/node
+	Image        string   `json:"image" valid:"required"`
+	Fingerprints []string `json:"fingerprints" valid:"required"`
+	AccessToken  string   `json:"accessToken" valid:"required"`
 }
 
 type FlannelConfig struct {
-	Version     string `json:"version"`
+	Version     string `json:"version" `
 	Arch        string `json:"arch"`
 	Network     string `json:"network"`
 	NetworkType string `json:"networkType"`
@@ -48,8 +48,8 @@ type KubeletConfig struct {
 }
 
 type KubeletConfConfig struct {
-	Host string `json:"host"`
-	Port string `json:"port"`
+	Host string `json:"host" valid:"required"`
+	Port string `json:"port" valid:"required"`
 }
 
 type KubeProxyConfig struct {
@@ -110,7 +110,7 @@ type Config struct {
 	KubeletSystemdServiceConfig
 	TillerConfig
 
-	CloudAccountName string        `json:"cloudAccountName"`
+	CloudAccountName string        `json:"cloudAccountName" valid:"required, length(1|32)"`
 	Timeout          time.Duration `json:"timeout"`
 	runner.Runner
 }
