@@ -38,10 +38,11 @@ type TaskResponse struct {
 	Id string `json:"id"`
 }
 
-func NewTaskHandler(repository storage.Interface, runnerFactory func(config ssh.Config) (runner.Runner, error)) *TaskHandler {
+func NewTaskHandler(repository storage.Interface, runnerFactory func(config ssh.Config) (runner.Runner, error), getter cloudAccountGetter) *TaskHandler {
 	return &TaskHandler{
 		runnerFactory: runnerFactory,
 		repository:    repository,
+		cloudAccGetter: getter,
 	}
 }
 
