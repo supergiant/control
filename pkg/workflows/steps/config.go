@@ -34,17 +34,17 @@ type DOConfig struct {
 }
 
 type FlannelConfig struct {
+	Arch           string `json:"arch"`
 	FlannelVersion string `json:"flannelVersion"`
 	Network        string `json:"network"`
 	NetworkType    string `json:"networkType"`
 }
 
 type KubeletConfig struct {
-	MasterPrivateIP   string `json:"masterPrivateIp"`
-	ProxyPort         string `json:"proxyPort"`
-	EtcdClientPort    string `json:"etcdClientPort"`
-	// TODO(stgleb): resolve conflicts in variable names.
-	KubeletVersion string `json:"KubeletVersion"`
+	MasterPrivateIP string `json:"masterPrivateIp"`
+	ProxyPort       string `json:"proxyPort"`
+	EtcdClientPort  string `json:"etcdClientPort"`
+	K8SVersion      string `json:"k8sVersion"`
 }
 
 type KubeletConfConfig struct {
@@ -53,15 +53,14 @@ type KubeletConfConfig struct {
 }
 
 type KubeProxyConfig struct {
-	MasterPrivateIP   string `json:"masterPrivateIp"`
-	ProxyPort         string `json:"proxyPort"`
-	EtcdClientPort    string `json:"etcdClientPort"`
-	// TODO(stgleb): resolve conflicts in variable names.
-	KubeProxyVersion string `json:"KubeProxyVersion"`
+	MasterPrivateIP string `json:"masterPrivateIp"`
+	ProxyPort       string `json:"proxyPort"`
+	EtcdClientPort  string `json:"etcdClientPort"`
+	K8SVersion      string `json:"k8sVersion"`
 }
 
 type ManifestConfig struct {
-	KubernetesVersion   string `json:"kubernetesVersion"`
+	K8SVersion          string `json:"k8sVersion"`
 	KubernetesConfigDir string `json:"kubernetesConfigDir"`
 	RBACEnabled         bool   `json:"rbacEnabled"`
 	EtcdHost            string `json:"etcdHost"`
@@ -80,7 +79,7 @@ type PostStartConfig struct {
 }
 
 type KubeletSystemdServiceConfig struct {
-	KubernetesVersion  string `json:"kubernetesVersion"`
+	K8SVersion         string `json:"k8sVersion"`
 	KubeletService     string `json:"kubeletService"`
 	KubernetesProvider string `json:"kubernetesProvider"`
 }
@@ -88,29 +87,35 @@ type KubeletSystemdServiceConfig struct {
 type TillerConfig struct {
 	HelmVersion     string `json:"helmVersion"`
 	OperatingSystem string `json:"operatingSystem"`
-	// TODO(stgleb): resolve conflicts in variable names.
-	TillerArch            string `json:"tillerArch"`
+	Arch            string `json:"arch"`
 }
 
 type DockerConfig struct {
 	DockerVersion  string `json:"dockerVersion"`
 	ReleaseVersion string `json:"releaseVersion"`
-	DockerArch     string `json:"dockerArch"`
+	Arch           string `json:"arch"`
+}
+
+type DownloadK8sBinary struct {
+	K8SVersion      string `json:"k8sVersion"`
+	Arch            string `json:"arch"`
+	OperatingSystem string `json:"operatingSystem"`
 }
 
 type Config struct {
-	DOConfig
+	DigitalOceanConfig DOConfig `json:"digitalOceanConfig"`
 
-	DockerConfig
-	CertificatesConfig
-	FlannelConfig
-	KubeletConfig
-	KubeletConfConfig
-	KubeProxyConfig
-	ManifestConfig
-	PostStartConfig
-	KubeletSystemdServiceConfig
-	TillerConfig
+	DockerConfig                DockerConfig                `json:"dockerConfig"`
+	DownloadK8sBinary           DownloadK8sBinary           `json:"downloadK8sBinary"`
+	CertificatesConfig          CertificatesConfig          `json:"certificatesConfig"`
+	FlannelConfig               FlannelConfig               `json:"flannelConfig"`
+	KubeletConfig               KubeletConfig               `json:"kubeletConfig"`
+	KubeletConfConfig           KubeletConfConfig           `json:"kubeletConfConfig"`
+	KubeProxyConfig             KubeProxyConfig             `json:"kubeProxyConfig"`
+	ManifestConfig              ManifestConfig              `json:"manifestConfig"`
+	PostStartConfig             PostStartConfig             `json:"postStartConfig"`
+	KubeletSystemdServiceConfig KubeletSystemdServiceConfig `json:"kubeletSystemdServiceConfig"`
+	TillerConfig                TillerConfig                `json:"tillerConfig"`
 
 	CloudAccountName string        `json:"cloudAccountName" valid:"required, length(1|32)"`
 	Timeout          time.Duration `json:"timeout"`

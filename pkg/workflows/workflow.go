@@ -16,6 +16,7 @@ import (
 	"github.com/supergiant/supergiant/pkg/workflows/steps/cni"
 	"github.com/supergiant/supergiant/pkg/workflows/steps/digitalocean"
 	"github.com/supergiant/supergiant/pkg/workflows/steps/docker"
+	"github.com/supergiant/supergiant/pkg/workflows/steps/downloadk8sbinary"
 	"github.com/supergiant/supergiant/pkg/workflows/steps/flannel"
 	"github.com/supergiant/supergiant/pkg/workflows/steps/kubelet"
 	"github.com/supergiant/supergiant/pkg/workflows/steps/kubeletconf"
@@ -68,6 +69,7 @@ func init() {
 
 	digitalOceanMaster := []steps.Step{
 		steps.GetStep(digitalocean.StepName),
+		steps.GetStep(downloadk8sbinary.StepName),
 		steps.GetStep(flannel.StepName),
 		steps.GetStep(docker.StepName),
 		steps.GetStep(kubelet.StepName),
@@ -82,6 +84,7 @@ func init() {
 	}
 	digitalOceanNode := []steps.Step{
 		steps.GetStep(digitalocean.StepName),
+		steps.GetStep(downloadk8sbinary.StepName),
 		steps.GetStep(flannel.StepName),
 		steps.GetStep(docker.StepName),
 		steps.GetStep(kubelet.StepName),

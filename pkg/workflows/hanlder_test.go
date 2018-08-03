@@ -9,7 +9,6 @@ import (
 	"testing"
 	"time"
 
-
 	"github.com/gorilla/mux"
 
 	"github.com/supergiant/supergiant/pkg/account"
