@@ -11,7 +11,6 @@ import (
 
 	"github.com/gorilla/mux"
 
-	"github.com/supergiant/supergiant/pkg/account"
 	"github.com/supergiant/supergiant/pkg/runner"
 	"github.com/supergiant/supergiant/pkg/runner/ssh"
 	"github.com/supergiant/supergiant/pkg/storage"
@@ -19,9 +18,9 @@ import (
 )
 
 type TaskHandler struct {
-	runnerFactory       func(config ssh.Config) (runner.Runner, error)
-	cloudAccountService *account.Service
-	repository          storage.Interface
+	runnerFactory  func(config ssh.Config) (runner.Runner, error)
+	cloudAccGetter cloudAccountGetter
+	repository     storage.Interface
 }
 
 type RunTaskRequest struct {
@@ -86,9 +85,8 @@ func (h *TaskHandler) RunTask(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	// TODO(stgleb): use this function only for filling creds, not for getting cloud account.
-	// Fill appropriate config structure with cloud account credentials
-	fillCloudAccountCredentials(r.Context(), h.cloudAccountService, &req.Cfg)
+	// Get cloud account fill appropriate config structure with cloud account credentials
+	fillCloudAccountCredentials(r.Context(), h.cloudAccGetter, &req.Cfg)
 
 	task := New(workflow, req.Cfg, h.repository)
 	task.Run(context.Background(), os.Stdout)

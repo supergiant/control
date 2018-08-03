@@ -12,11 +12,11 @@ import (
 
 type mockCloudAccountService struct {
 	cloudAccount *account.CloudAccount
-	error        error
+	err          error
 }
 
 func (m *mockCloudAccountService) Get(ctx context.Context, name string) (*account.CloudAccount, error) {
-	return m.cloudAccount, m.error
+	return m.cloudAccount, m.err
 }
 
 func TestBindParams(t *testing.T) {

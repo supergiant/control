@@ -1,6 +1,7 @@
 package workflows
 
 import (
+	"bytes"
 	"encoding/json"
 	"fmt"
 	"net/http"
@@ -8,10 +9,11 @@ import (
 	"testing"
 	"time"
 
-	"bytes"
 
 	"github.com/gorilla/mux"
 
+	"github.com/supergiant/supergiant/pkg/account"
+	"github.com/supergiant/supergiant/pkg/clouds"
 	"github.com/supergiant/supergiant/pkg/runner"
 	"github.com/supergiant/supergiant/pkg/runner/ssh"
 	"github.com/supergiant/supergiant/pkg/testutils"
@@ -47,7 +49,7 @@ func TestWorkflowHandlerGetWorkflow(t *testing.T) {
 	err := json.Unmarshal(resp.Body.Bytes(), w2)
 
 	if err != nil {
-		t.Errorf("Unexpected error %v", err)
+		t.Errorf("Unexpected err %v", err)
 	}
 
 	if len(w1.StepStatuses) != len(w2.StepStatuses) {
@@ -68,6 +70,23 @@ func TestTaskHandlerRunTask(t *testing.T) {
 		},
 		repository: &mockRepository{
 			map[string][]byte{},
+		},
+		cloudAccGetter: &mockCloudAccountService{
+			cloudAccount: &account.CloudAccount{
+				Name:     "testName",
+				Provider: clouds.DigitalOcean,
+				Credentials: map[string]string{
+					"name":         "hello_world",
+					"k8sVersion":   "",
+					"region":       "",
+					"size":         "",
+					"role":         "",
+					"image":        "",
+					"fingerprints": "fingerprint",
+					"accessToken":  "abcd",
+				},
+			},
+			err: nil,
 		},
 	}
 
@@ -92,7 +111,7 @@ func TestTaskHandlerRunTask(t *testing.T) {
 	err := json.NewEncoder(body).Encode(reqBody)
 
 	if err != nil {
-		t.Errorf("Unexpected error while json encoding req body %v", err)
+		t.Errorf("Unexpected err while json encoding req body %v", err)
 	}
 
 	rec := httptest.NewRecorder()
@@ -158,6 +177,6 @@ func TestWorkflowHandlerBuildWorkflow(t *testing.T) {
 	}
 
 	if err != nil {
-		t.Errorf("Unexpected error while parsing response %v", err)
+		t.Errorf("Unexpected err while parsing response %v", err)
 	}
 }
