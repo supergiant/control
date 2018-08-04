@@ -13,6 +13,7 @@ var (
 )
 
 func Init(templateDir string) error {
+	templateMap = make(map[string]*template.Template)
 	files, err := ioutil.ReadDir(templateDir)
 	if err != nil {
 		return err
@@ -34,7 +35,9 @@ func Init(templateDir string) error {
 				return err
 			}
 
-			key := strings.Split(f.Name(), ".")[0]
+
+			lastTerm := len(strings.Split(f.Name(), "/"))
+			key := strings.Split(strings.Split(f.Name(), "/")[lastTerm - 1], ".")[0]
 			t, _ := template.New(key).Parse(string(data))
 
 			if err != nil {

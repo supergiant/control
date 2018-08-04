@@ -2,8 +2,6 @@ package digitalocean
 
 import (
 	"context"
-	"encoding/json"
-
 	"io"
 	"strconv"
 	"time"
@@ -13,9 +11,12 @@ import (
 	"github.com/pkg/errors"
 	"golang.org/x/oauth2"
 
-	"github.com/supergiant/supergiant/pkg/storage"
 	"github.com/supergiant/supergiant/pkg/util"
 	"github.com/supergiant/supergiant/pkg/workflows/steps"
+	"github.com/supergiant/supergiant/pkg/node"
+	"github.com/supergiant/supergiant/pkg/clouds"
+	"github.com/supergiant/supergiant/pkg/runner/ssh"
+	"log"
 )
 
 const StepName = "digitalOcean"
@@ -35,20 +36,16 @@ type TagService interface {
 }
 
 type Step struct {
-	storage storage.Interface
-
 	DropletTimeout time.Duration
 	CheckPeriod    time.Duration
 }
 
-func init() {
-	steps.RegisterStep(StepName, New(nil, time.Minute*5, time.Second*5))
+func Init() {
+	steps.RegisterStep(StepName, New(time.Minute*5, time.Second*5))
 }
 
-func New(s storage.Interface, dropletTimeout, checkPeriod time.Duration) *Step {
+func New(dropletTimeout, checkPeriod time.Duration) *Step {
 	return &Step{
-		storage: s,
-
 		DropletTimeout: dropletTimeout,
 		CheckPeriod:    checkPeriod,
 	}
@@ -102,15 +99,30 @@ func (t *Step) Run(ctx context.Context, output io.Writer, config *steps.Config) 
 			}
 			// Wait for droplet becomes active
 			if droplet.Status == "active" {
-				if data, err := json.Marshal(droplet); err != nil {
-					return err
-				} else {
-					// Get private ip ports from droplet networks
-					config.KubeProxyConfig.MasterPrivateIP = getPrivateIpPort(droplet.Networks.V4)
-					config.KubeletConfig.MasterPrivateIP = getPrivateIpPort(droplet.Networks.V4)
-
-					return t.storage.Put(context.Background(), "droplet", droplet.Name, data)
+				// Get private ip ports from droplet networks
+				config.KubeProxyConfig.MasterPrivateIP = getPrivateIpPort(droplet.Networks.V4)
+				config.KubeletConfig.MasterPrivateIP = getPrivateIpPort(droplet.Networks.V4)
+				config.Node = node.Node{
+					Id: string(droplet.ID),
+					CreatedAt: time.Now().Unix(),
+					Provider: clouds.DigitalOcean,
+					Region: droplet.Region.String(),
+					PublicIp: getPublicIpPort(droplet.Networks.V4),
+					PrivateIp: getPrivateIpPort(droplet.Networks.V4),
 				}
+				cfg := ssh.Config{
+					Host: getPublicIpPort(droplet.Networks.V4),
+					Port: "22",
+					User: "root",
+					Timeout: 10,
+					Key: []byte(`secret-key`),
+				}
+				config.Runner, err = ssh.NewRunner(cfg)
+
+				if err != nil {
+					log.Fatal(err)
+				}
+				return nil
 			}
 
 		case <-after:
@@ -167,9 +179,22 @@ func (t *Step) Description() string {
 	return ""
 }
 
+// Returns private ip
 func getPrivateIpPort(networks []godo.NetworkV4) string {
 	for _, network := range networks {
 		if network.Type == "private" {
+			return network.IPAddress
+		}
+	}
+
+	return ""
+}
+
+
+// Returns public ip
+func getPublicIpPort(networks []godo.NetworkV4) string {
+	for _, network := range networks {
+		if network.Type == "public" {
 			return network.IPAddress
 		}
 	}

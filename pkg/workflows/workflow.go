@@ -24,6 +24,7 @@ import (
 	"github.com/supergiant/supergiant/pkg/workflows/steps/poststart"
 	"github.com/supergiant/supergiant/pkg/workflows/steps/systemd"
 	"github.com/supergiant/supergiant/pkg/workflows/steps/tiller"
+	"github.com/supergiant/supergiant/pkg/workflows/steps/manifest"
 )
 
 // StepStatus aggregates data that is needed to track progress
@@ -64,8 +65,22 @@ var (
 	ErrUnknownProviderWorkflowType = errors.New("unknown provider_workflow type")
 )
 
-func init() {
+func Init() {
 	workflowMap = make(map[string]Workflow)
+
+	digitalocean.Init()
+	certificates.Init()
+	cni.Init()
+	docker.Init()
+	downloadk8sbinary.Init()
+	flannel.Init()
+	kubelet.Init()
+	kubeletconf.Init()
+	kubeproxy.Init()
+	manifest.Init()
+	poststart.Init()
+	systemd.Init()
+	tiller.Init()
 
 	digitalOceanMaster := []steps.Step{
 		steps.GetStep(digitalocean.StepName),

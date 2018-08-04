@@ -24,6 +24,7 @@ import (
 	"github.com/supergiant/supergiant/pkg/testutils/assert"
 	"github.com/supergiant/supergiant/pkg/user"
 	"github.com/supergiant/supergiant/pkg/workflows"
+	"github.com/supergiant/supergiant/pkg/templatemanager"
 )
 
 type Server struct {
@@ -131,6 +132,10 @@ func configureApplication(cfg *Config) (*mux.Router, error) {
 	nodeProfileService := profile.NewNodeProfileService(profile.DefaultNodeProfilePrefix, repository)
 	nodeProfileHandler := profile.NewNodeProfileHandler(nodeProfileService)
 	nodeProfileHandler.Register(protectedAPI)
+
+	// Read templates first and then initialize workflows with steps that uses these templates
+	templatemanager.Init(cfg.TemplatesDir)
+	workflows.Init()
 
 	taskHandler := workflows.NewTaskHandler(repository, ssh.NewRunner, accountService)
 	taskHandler.Register(router)

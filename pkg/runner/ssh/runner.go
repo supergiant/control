@@ -43,8 +43,8 @@ func NewRunner(config Config) (runner.Runner, error) {
 		return nil, err
 	}
 
-	r := &Runner{host: config.Host, sshConf: sshConfig}
-	if config.Port == "" {
+	r := &Runner{host: config.Host, port: config.Port, sshConf: sshConfig}
+	if r.port == "" {
 		r.port = DefaultPort
 	}
 

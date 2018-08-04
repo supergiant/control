@@ -11,13 +11,13 @@ import (
 	"github.com/supergiant/supergiant/pkg/workflows/steps"
 )
 
-const StepName = "downloadK8Sbinary"
+const StepName = "download_kubernetes_binary"
 
 type Step struct {
 	scriptTemplate *template.Template
 }
 
-func init() {
+func Init() {
 	steps.RegisterStep(StepName, New(tm.GetTemplate(StepName)))
 }
 

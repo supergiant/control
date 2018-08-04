@@ -21,7 +21,7 @@ type Step struct {
 	script *template.Template
 }
 
-func init() {
+func Init() {
 	steps.RegisterStep(StepName, New(tm.GetTemplate(StepName)))
 }
 

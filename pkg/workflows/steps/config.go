@@ -3,7 +3,9 @@ package steps
 import (
 	"time"
 
+	"github.com/supergiant/supergiant/pkg/node"
 	"github.com/supergiant/supergiant/pkg/runner"
+	"github.com/supergiant/supergiant/pkg/storage"
 )
 
 type CertificatesConfig struct {
@@ -34,10 +36,10 @@ type DOConfig struct {
 }
 
 type FlannelConfig struct {
-	Arch           string `json:"arch"`
-	Version string 	`json:"version"`
-	Network        string `json:"network"`
-	NetworkType    string `json:"networkType"`
+	Arch        string `json:"arch"`
+	Version     string `json:"version"`
+	Network     string `json:"network"`
+	NetworkType string `json:"networkType"`
 }
 
 type KubeletConfig struct {
@@ -117,7 +119,9 @@ type Config struct {
 	KubeletSystemdServiceConfig KubeletSystemdServiceConfig `json:"kubeletSystemdServiceConfig"`
 	TillerConfig                TillerConfig                `json:"tillerConfig"`
 
-	CloudAccountName string        `json:"cloudAccountName" valid:"required, length(1|32)"`
-	Timeout          time.Duration `json:"timeout"`
-	runner.Runner    `json:"-"`
+	CloudAccountName string            `json:"cloudAccountName" valid:"required, length(1|32)"`
+	Timeout          time.Duration     `json:"timeout"`
+	Node             node.Node         `json:"node"`
+	Runner           runner.Runner     `json:"-"`
+	repository       storage.Interface `json:"-"`
 }
