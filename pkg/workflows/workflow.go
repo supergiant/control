@@ -197,7 +197,7 @@ func (w *Task) startFrom(ctx context.Context, id string, out io.Writer, i int, e
 	// Start workflow from the last failed step
 	for index := i; index < len(w.StepStatuses); index++ {
 		step := w.workflow[index]
-		if err := step.Run(ctx, out, w.Config); err != nil {
+		if err := step.Run(ctx, out, &w.Config); err != nil {
 			// Mark step status as error
 			w.StepStatuses[index].Status = steps.StatusError
 			w.StepStatuses[index].ErrMsg = err.Error()
