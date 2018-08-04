@@ -16,7 +16,6 @@ import (
 	"github.com/supergiant/supergiant/pkg/storage"
 	"github.com/supergiant/supergiant/pkg/util"
 	"github.com/supergiant/supergiant/pkg/workflows/steps"
-	"net"
 )
 
 const StepName = "digitalOcean"
@@ -55,7 +54,7 @@ func New(s storage.Interface, dropletTimeout, checkPeriod time.Duration) *Step {
 	}
 }
 
-func (t *Step) Run(ctx context.Context, output io.Writer, config steps.Config) error {
+func (t *Step) Run(ctx context.Context, output io.Writer, config *steps.Config) error {
 	c := getClient(config.DigitalOceanConfig.AccessToken)
 
 	config.DigitalOceanConfig.Name = util.MakeNodeName(config.DigitalOceanConfig.Name, config.DigitalOceanConfig.Role)
