@@ -85,7 +85,6 @@ func Init() {
 	digitalOceanMaster := []steps.Step{
 		steps.GetStep(digitalocean.StepName),
 		steps.GetStep(downloadk8sbinary.StepName),
-		steps.GetStep(flannel.StepName),
 		steps.GetStep(docker.StepName),
 		steps.GetStep(kubelet.StepName),
 		steps.GetStep(kubeletconf.StepName),
@@ -93,6 +92,8 @@ func Init() {
 		steps.GetStep(systemd.StepName),
 		steps.GetStep(certificates.StepName),
 		steps.GetStep(cni.StepName),
+		// TODO(stgleb): Add install etcd step that precedes flannel
+		steps.GetStep(flannel.StepName),
 		// TODO(stgleb): Make separate cluster workflow for tasks that should be run once per cluster.
 		steps.GetStep(tiller.StepName),
 		steps.GetStep(poststart.StepName),
