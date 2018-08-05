@@ -36,7 +36,7 @@
   },
   "flannelConfig": {
     "arch": "amd64",
-    "version": "1.0.0",
+    "version": "0.10.0",
     "network": "10.0.0.0",
     "networkType": "vxlan"
   },
