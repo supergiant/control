@@ -26,7 +26,7 @@ type CertificatesConfig struct {
 
 type DOConfig struct {
 	Name         string   `json:"name" valid:"required"`
-	K8sVersion   string   `json:"k8sVersion"`
+	K8SVersion   string   `json:"k8sVersion"`
 	Region       string   `json:"region" valid:"required"`
 	Size         string   `json:"size" valid:"required"`
 	Role         string   `json:"role" valid:"in(master|node)"` // master/node
