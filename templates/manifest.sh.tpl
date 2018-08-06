@@ -1,7 +1,7 @@
 KUBERNETES_MANIFESTS_DIR={{ .KubernetesConfigDir }}/manifests
 
 mkdir -p ${KUBERNETES_MANIFESTS_DIR}
-    cat << EOF > ${KUBERNETES_MANIFESTS_DIR}/kube-apiserver.yaml
+cat << EOF > ${KUBERNETES_MANIFESTS_DIR}/kube-apiserver.yaml
 apiVersion: v1
 kind: Pod
 metadata:
