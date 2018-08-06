@@ -18,6 +18,7 @@ import (
 	"github.com/supergiant/supergiant/pkg/runner/ssh"
 	"log"
 	"github.com/sirupsen/logrus"
+	"fmt"
 )
 
 const StepName = "digitalOcean"
@@ -104,10 +105,10 @@ func (t *Step) Run(ctx context.Context, output io.Writer, config *steps.Config) 
 				config.KubeProxyConfig.MasterPrivateIP = getPrivateIpPort(droplet.Networks.V4)
 				config.KubeletConfig.MasterPrivateIP = getPrivateIpPort(droplet.Networks.V4)
 				config.Node = node.Node{
-					Id: string(droplet.ID),
+					Id: fmt.Sprintf("%d", droplet.ID),
 					CreatedAt: time.Now().Unix(),
 					Provider: clouds.DigitalOcean,
-					Region: droplet.Region.String(),
+					Region: droplet.Region.Name,
 					PublicIp: getPublicIpPort(droplet.Networks.V4),
 					PrivateIp: getPrivateIpPort(droplet.Networks.V4),
 				}

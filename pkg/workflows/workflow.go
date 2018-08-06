@@ -25,6 +25,7 @@ import (
 	"github.com/supergiant/supergiant/pkg/workflows/steps/systemd"
 	"github.com/supergiant/supergiant/pkg/workflows/steps/tiller"
 	"github.com/supergiant/supergiant/pkg/workflows/steps/manifest"
+	"github.com/sirupsen/logrus"
 )
 
 // StepStatus aggregates data that is needed to track progress
@@ -88,10 +89,11 @@ func Init() {
 		steps.GetStep(docker.StepName),
 		steps.GetStep(kubelet.StepName),
 		steps.GetStep(kubeletconf.StepName),
-		steps.GetStep(kubeproxy.StepName),
-		steps.GetStep(systemd.StepName),
-		steps.GetStep(certificates.StepName),
 		steps.GetStep(cni.StepName),
+		steps.GetStep(systemd.StepName),
+		steps.GetStep(manifest.StepName),
+		steps.GetStep(certificates.StepName),
+		steps.GetStep(kubeproxy.StepName),
 		// TODO(stgleb): Add install etcd step that precedes flannel
 		steps.GetStep(flannel.StepName),
 		// TODO(stgleb): Make separate cluster workflow for tasks that should be run once per cluster.
@@ -213,6 +215,7 @@ func (w *Task) startFrom(ctx context.Context, id string, out io.Writer, i int, e
 	// Start workflow from the last failed step
 	for index := i; index < len(w.StepStatuses); index++ {
 		step := w.workflow[index]
+		logrus.Println(step.Name())
 		if err := step.Run(ctx, out, &w.Config); err != nil {
 			// Mark step status as error
 			w.StepStatuses[index].Status = steps.StatusError

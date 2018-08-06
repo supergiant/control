@@ -46,6 +46,7 @@ type KubeletConfig struct {
 	MasterPrivateIP string `json:"masterPrivateIp"`
 	ProxyPort       string `json:"proxyPort"`
 	EtcdClientPort  string `json:"etcdClientPort"`
+	KubeProviderString string `json:"kubeProviderString"`
 	K8SVersion      string `json:"k8sVersion"`
 }
 
