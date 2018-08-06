@@ -58,7 +58,7 @@ ExecStart=/usr/bin/docker run \
         -v /var/log:/var/log:shared \
         -v /srv/kubernetes:/srv/kubernetes:ro \
         -v /etc/kubernetes:/etc/kubernetes:ro \
-        gcr.io/google-containers/hyperkube:v{{ .KubernetesVersion }} \
+        gcr.io/google-containers/hyperkube:v{{ .K8SVersion }} \
         /hyperkube kubelet --allow-privileged=true \
         --cluster-dns=10.3.0.10 \
         --cluster_domain=cluster.local \
