@@ -3,7 +3,7 @@
   "config": {
     "digitalOceanConfig": {
       "name":"test-node",
-      "k8sVersion":"1.11",
+      "k8sVersion":"1.11.1",
       "region":"sfo2",
       "size":"s-1vcpu-2gb",
       "role":"master",
@@ -17,7 +17,7 @@
       "arch": "amd64"
     },
     "downloadK8sBinary": {
-      "k8sVersion": "1.11",
+      "k8sVersion": "1.11.1",
       "arch": "amd64",
       "operatingSystem": "linux"
     },
@@ -46,7 +46,7 @@
       "masterPrivateIp": "10.0.0.1",
       "proxyPort": "8080",
       "etcdClientPort": "2379",
-      "k8sVersion": "1.11"
+      "k8sVersion": "1.11.1"
     },
     "kubeletConfConfig": {
       "host": "127.0.0.1",
@@ -56,10 +56,10 @@
       "masterPrivateIp": "10.0.0.2",
       "proxyPort": "8080",
       "etcdClientPort": "2379",
-      "k8sVersion": "1.11"
+      "k8sVersion": "1.11.1"
     },
     "manifestConfig": {
-      "k8sVersion": "1.11",
+      "k8sVersion": "1.11.1",
       "kubernetesConfigDir": "/etc/config",
       "rbacEnabled": false,
       "etcdHost": "127.0.0.1",
@@ -76,7 +76,7 @@
       "rbacEnabled": false
     },
     "kubeletSystemdServiceConfig": {
-      "k8sVersion": "1.11",
+      "k8sVersion": "1.11.1",
       "kubeletService": "kubernetes.conf",
       "kubernetesProvider": "digitalocean"
     },

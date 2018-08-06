@@ -22,7 +22,6 @@ import (
 	"github.com/supergiant/supergiant/pkg/workflows/steps/kubeletconf"
 	"github.com/supergiant/supergiant/pkg/workflows/steps/kubeproxy"
 	"github.com/supergiant/supergiant/pkg/workflows/steps/poststart"
-	"github.com/supergiant/supergiant/pkg/workflows/steps/systemd"
 	"github.com/supergiant/supergiant/pkg/workflows/steps/tiller"
 	"github.com/supergiant/supergiant/pkg/workflows/steps/manifest"
 	"github.com/sirupsen/logrus"
@@ -80,7 +79,6 @@ func Init() {
 	kubeproxy.Init()
 	manifest.Init()
 	poststart.Init()
-	systemd.Init()
 	tiller.Init()
 
 	digitalOceanMaster := []steps.Step{
@@ -90,11 +88,9 @@ func Init() {
 		steps.GetStep(kubelet.StepName),
 		steps.GetStep(kubeletconf.StepName),
 		steps.GetStep(cni.StepName),
-		steps.GetStep(manifest.StepName),
 		steps.GetStep(certificates.StepName),
-		steps.GetStep(systemd.StepName),
+		steps.GetStep(manifest.StepName),
 
-		steps.GetStep(kubeproxy.StepName),
 		// TODO(stgleb): Add install etcd step that precedes flannel
 		steps.GetStep(flannel.StepName),
 		// TODO(stgleb): Make separate cluster workflow for tasks that should be run once per cluster.
@@ -109,7 +105,6 @@ func Init() {
 		steps.GetStep(kubelet.StepName),
 		steps.GetStep(kubeletconf.StepName),
 		steps.GetStep(kubeproxy.StepName),
-		steps.GetStep(systemd.StepName),
 		steps.GetStep(certificates.StepName),
 		steps.GetStep(cni.StepName),
 		steps.GetStep(poststart.StepName),
