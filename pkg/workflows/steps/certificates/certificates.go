@@ -11,7 +11,7 @@ import (
 	"github.com/supergiant/supergiant/pkg/workflows/steps"
 )
 
-const StepName = "writeCertificates"
+const StepName = "certificates"
 
 type Step struct {
 	script *template.Template

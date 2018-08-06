@@ -231,7 +231,7 @@ EOF
 		proxyTemplate,
 	}
 
-	err = j.Run(context.Background(), output, cfg)
+	err = j.Run(context.Background(), output, &cfg)
 
 	if err != nil {
 		t.Errorf("Unpexpected error while  provision node %v", err)
@@ -292,7 +292,7 @@ func TestWriteManifestError(t *testing.T) {
 		proxyTemplate,
 	}
 
-	err = j.Run(context.Background(), output, cfg)
+	err = j.Run(context.Background(), output, &cfg)
 
 	if err == nil {
 		t.Errorf("Error must not be nil")

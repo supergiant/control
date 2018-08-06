@@ -11,7 +11,7 @@ import (
 	"github.com/supergiant/supergiant/pkg/workflows/steps"
 )
 
-const StepName = "kubeProxy"
+const StepName = "kubeproxy"
 
 type Step struct {
 	script *template.Template

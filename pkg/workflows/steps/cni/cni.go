@@ -11,7 +11,7 @@ import (
 	"github.com/supergiant/supergiant/pkg/workflows/steps"
 )
 
-const StepName = "cni_tools"
+const StepName = "cni"
 
 type Step struct {
 	script *template.Template

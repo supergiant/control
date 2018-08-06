@@ -33,11 +33,30 @@ func TestWriteKubeletConf(t *testing.T) {
 	port := "8080"
 
 	var (
-		r            runner.Runner = &fakeRunner{}
-		tillerScript               = `server: http://{{ .Host }}:{{ .Port }}`
+		r      runner.Runner = &fakeRunner{}
+		script               = `cat << EOF > /var/lib/kubelet/kubeconfig
+apiVersion: v1
+kind: Config
+users:
+- name: kubelet
+  user:
+    client-certificate: /home/unknown/.minikube/client.crt
+    client-key: /home/unknown/.minikube/client.key
+clusters:
+- name: local
+  cluster:
+    server: http://{{ .Host }}:{{ .Port }}
+    insecure-skip-tls-verify: true
+contexts:
+- name: kubelet-local
+  context:
+    cluster: local
+    user: kubelet
+current-context: kubelet-local
+EOF`
 	)
 
-	proxyTemplate, err := template.New(StepName).Parse(tillerScript)
+	proxyTemplate, err := template.New(StepName).Parse(script)
 
 	if err != nil {
 		t.Errorf("Error while parsing kubeproxy templatemanager %v", err)
@@ -56,7 +75,7 @@ func TestWriteKubeletConf(t *testing.T) {
 		proxyTemplate,
 	}
 
-	err = j.Run(context.Background(), output, cfg)
+	err = j.Run(context.Background(), output, &cfg)
 
 	if err != nil {
 		t.Errorf("Unpexpected error while  provision node %v", err)
@@ -89,7 +108,7 @@ func TestWriteKubeletConfErr(t *testing.T) {
 		proxyTemplate,
 	}
 
-	err = j.Run(context.Background(), output, cfg)
+	err = j.Run(context.Background(), output, &cfg)
 
 	if err == nil {
 		t.Errorf("Error must not be nil")

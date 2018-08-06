@@ -11,7 +11,7 @@ import (
 	"github.com/supergiant/supergiant/pkg/workflows/steps"
 )
 
-const StepName = "postStart"
+const StepName = "poststart"
 
 type Step struct {
 	script *template.Template
@@ -39,10 +39,10 @@ func (j *Step) Run(ctx context.Context, out io.Writer, config *steps.Config) err
 	return nil
 }
 
-func (t *Step) Name() string {
+func (s *Step) Name() string {
 	return StepName
 }
 
-func (t *Step) Description() string {
+func (s *Step) Description() string {
 	return ""
 }

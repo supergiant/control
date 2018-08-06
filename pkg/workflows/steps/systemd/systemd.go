@@ -11,7 +11,7 @@ import (
 	"github.com/supergiant/supergiant/pkg/workflows/steps"
 )
 
-const StepName = "kubelet_systemd_service"
+const StepName = "kubelet_systemd"
 
 type Step struct {
 	script *template.Template
