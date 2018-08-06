@@ -41,5 +41,5 @@ WantedBy=multi-user.target
 EOF
 
 systemctl daemon-reload
-systemctl enable ${KUBELET_SERVICE}
-systemctl start ${KUBELET_SERVICE}
+systemctl enable {{ .KubeletService }}
+systemctl start {{ .KubeletService }}g

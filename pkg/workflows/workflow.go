@@ -90,9 +90,10 @@ func Init() {
 		steps.GetStep(kubelet.StepName),
 		steps.GetStep(kubeletconf.StepName),
 		steps.GetStep(cni.StepName),
-		steps.GetStep(systemd.StepName),
 		steps.GetStep(manifest.StepName),
 		steps.GetStep(certificates.StepName),
+		steps.GetStep(systemd.StepName),
+
 		steps.GetStep(kubeproxy.StepName),
 		// TODO(stgleb): Add install etcd step that precedes flannel
 		steps.GetStep(flannel.StepName),
