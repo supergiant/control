@@ -42,4 +42,4 @@ EOF
 
 systemctl daemon-reload
 systemctl enable {{ .KubeletService }}
-systemctl start {{ .KubeletService }}g
+systemctl start {{ .KubeletService }}
