@@ -8,8 +8,8 @@
       "size":"s-1vcpu-2gb",
       "role":"master",
       "image":"ubuntu-18-04-x64",
-      "fingerprints":["b0:96:18:30:d6:cb:ba:73:33:79:d8:f0:32:9d:f7:23"],
-      "accessToken":"cd68ae63d3220bdb9d6eb2cf17b60d041bce8825c89d783e0fe78360161f720c"
+      "fingerprints":[""],
+      "accessToken":""
     },
     "dockerConfig": {
       "dockerVersion": "17.06.0",
