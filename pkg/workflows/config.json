@@ -3,13 +3,24 @@
   "config": {
     "digitalOceanConfig": {
       "name":"test-node",
-      "k8sVersion":"1.11.1",
-      "region":"sfo2",
+      "k8sVersion":"1.11",
+      "region":"fra1",
       "size":"s-1vcpu-2gb",
       "role":"master",
       "image":"ubuntu-18-04-x64",
       "fingerprints":[""],
       "accessToken":""
+    },
+    "etcdConfig": {
+      "name": "etcd0",
+      "version": "3.3.9",
+      "clusterToken": "token",
+      "masterPrivateIp": "",
+      "dataDir": "/etcd-data",
+      "servicePort": "2379",
+      "managementPort": "2380",
+      "startTimeout": "0",
+      "restartTimeout": "5"
     },
     "dockerConfig": {
       "dockerVersion": "17.06.0",
@@ -17,24 +28,24 @@
       "arch": "amd64"
     },
     "downloadK8sBinary": {
-      "k8sVersion": "1.11.1",
+      "k8sVersion": "1.11",
       "arch": "amd64",
       "operatingSystem": "linux"
     },
     "certificatesConfig": {
-      "kubernetesConfigDir": "",
-      "caCert": "",
-      "caCertName": "",
-      "caKeyCert": "",
-      "cakeyName": "",
-      "apiServerCert": "",
-      "apiServerCertName": "",
-      "apiServerKey": "",
-      "apiServerKeyName": "",
-      "kubeletClientCert": "",
-      "kubeletClientCertName": "",
-      "kubeletClientKey": "",
-      "kubeletClientKeyName": ""
+      "kubernetesConfigDir": "/etc/config",
+      "caCert": "cacert.pem",
+      "caCertName": "cert",
+      "caKeyCert": "cakey.pem",
+      "cakeyName": "key",
+      "apiServerCert": "apiserver.pem",
+      "apiServerCertName": "apiservercert",
+      "apiServerKey": "apiserver.pem",
+      "apiServerKeyName": "name",
+      "kubeletClientCert": "client.pem",
+      "kubeletClientCertName": "name",
+      "kubeletClientKey": "key",
+      "kubeletClientKeyName": "client"
     },
     "flannelConfig": {
       "arch": "amd64",
@@ -46,7 +57,8 @@
       "masterPrivateIp": "10.0.0.1",
       "proxyPort": "8080",
       "etcdClientPort": "2379",
-      "k8sVersion": "1.11.1"
+      "kubeProviderString": "digitalocean",
+      "k8sVersion": "1.11"
     },
     "kubeletConfConfig": {
       "host": "127.0.0.1",
@@ -56,10 +68,10 @@
       "masterPrivateIp": "10.0.0.2",
       "proxyPort": "8080",
       "etcdClientPort": "2379",
-      "k8sVersion": "1.11.1"
+      "k8sVersion": "1.11"
     },
     "manifestConfig": {
-      "k8sVersion": "1.11.1",
+      "k8sVersion": "1.11",
       "kubernetesConfigDir": "/etc/config",
       "rbacEnabled": false,
       "etcdHost": "127.0.0.1",
@@ -76,12 +88,12 @@
       "rbacEnabled": false
     },
     "kubeletSystemdServiceConfig": {
-      "k8sVersion": "1.11.1",
+      "k8sVersion": "1.11",
       "kubeletService": "kubernetes.conf",
       "kubernetesProvider": "digitalocean"
     },
     "tillerConfig": {
-      "helmVersion": "2.1.1",
+      "helmVersion": "2.8.0",
       "operatingSystem": "linux",
       "arch": "amd64"
     },

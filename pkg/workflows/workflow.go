@@ -93,9 +93,8 @@ func Init() {
 		steps.GetStep(certificates.StepName),
 		steps.GetStep(etcd.StepName),
 		steps.GetStep(manifest.StepName),
-
-		// TODO(stgleb): Add install etcd step that precedes flannel
 		steps.GetStep(flannel.StepName),
+
 		// TODO(stgleb): Make separate cluster workflow for tasks that should be run once per cluster.
 		steps.GetStep(tiller.StepName),
 		steps.GetStep(poststart.StepName),

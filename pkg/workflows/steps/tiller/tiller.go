@@ -14,7 +14,7 @@ import (
 )
 
 const (
-	StepName = "installTiller"
+	StepName = "tiller"
 )
 
 type Step struct {
