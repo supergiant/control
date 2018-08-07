@@ -2,8 +2,8 @@ cat << EOF > /etc/systemd/system/kubelet.service
 [Unit]
 Description=Kubernetes Kubelet Server
 Documentation=https://github.com/kubernetes/kubernetes
-Requires=docker.service network-online.target
-After=docker.service network-online.target
+Requires=network-online.target
+After=network-online.target
 
 [Service]
 ExecStartPre=/bin/mkdir -p /var/lib/kubelet
@@ -27,10 +27,7 @@ ExecStart=/usr/bin/docker run \
       --cluster_domain=cluster.local \
       --pod-manifest-path=/etc/kubernetes/manifests \
       --kubeconfig=/etc/kubernetes/worker-kubeconfig.yaml \
-      --volume-plugin-dir=/etc/kubernetes/volumeplugins \
-      {{- .KubeProviderString }}
-      --fail-swap-on=false \
-      --register-node=true
+      --volume-plugin-dir=/etc/kubernetes/volumeplugins --fail-swap-on=false --register-node=true
 Restart=always
 StartLimitInterval=0
 RestartSec=10

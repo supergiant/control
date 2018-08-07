@@ -1,4 +1,4 @@
-KUBERNETES_MANIFESTS_DIR={{ .KubernetesConfigDir }}/manifests
+KUBERNETES_MANIFESTS_DIR={{ .KubernetesConfigDir }}
 
 mkdir -p ${KUBERNETES_MANIFESTS_DIR}
 
@@ -9,19 +9,18 @@ kind: Config
 users:
 - name: kubelet
   user:
-    client-certificate: /home/unknown/.minikube/client.crt
-    client-key: /home/unknown/.minikube/client.key
+    token: "1234"
 clusters:
 - name: local
   cluster:
-    server: http://{{ .MasterHost }}:{{ .MasterPort }}
     insecure-skip-tls-verify: true
+    server: https://{{ .MasterHost }}
 contexts:
-- name: kubelet-local
-  context:
+- context:
     cluster: local
     user: kubelet
-current-context: kubelet-local
+  name: service-account-context
+current-context: service-account-context
 EOF
 
 # api-server

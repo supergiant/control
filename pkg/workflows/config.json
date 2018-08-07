@@ -33,7 +33,7 @@
       "operatingSystem": "linux"
     },
     "certificatesConfig": {
-      "kubernetesConfigDir": "/etc/config",
+      "kubernetesConfigDir": "/etc/kubernetes",
       "caCert": "cacert.pem",
       "caCertName": "cert",
       "caKeyCert": "cakey.pem",
@@ -58,7 +58,7 @@
       "proxyPort": "8080",
       "etcdClientPort": "2379",
       "kubeProviderString": "digitalocean",
-      "k8sVersion": "1.11"
+      "k8sVersion": "1.11.1"
     },
     "kubeletConfConfig": {
       "host": "127.0.0.1",
@@ -72,7 +72,7 @@
     },
     "manifestConfig": {
       "k8sVersion": "1.11",
-      "kubernetesConfigDir": "/etc/config",
+      "kubernetesConfigDir": "/etc/kubernetes",
       "rbacEnabled": false,
       "etcdHost": "127.0.0.1",
       "etcdPort": "2379",
