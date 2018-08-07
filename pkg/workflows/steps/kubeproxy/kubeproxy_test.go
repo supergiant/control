@@ -31,8 +31,6 @@ func (f *fakeRunner) Run(command *runner.Command) error {
 func TestStartKubeProxy(t *testing.T) {
 	masterIp := "20.30.40.50"
 	k8sVersion := "1.8.7"
-	etcdPort := "2379"
-	proxyPort := "8080"
 
 	var (
 		r           runner.Runner = &fakeRunner{}
@@ -64,8 +62,6 @@ sudo docker run --privileged=true --volume=/etc/ssl/cer:/usr/share/ca-certificat
 		KubeProxyConfig: steps.KubeProxyConfig{
 			K8SVersion:      k8sVersion,
 			MasterPrivateIP: masterIp,
-			ProxyPort:       proxyPort,
-			EtcdClientPort:  etcdPort,
 		},
 		Runner: r,
 	}
