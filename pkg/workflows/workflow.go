@@ -89,8 +89,8 @@ func Init() {
 		steps.GetStep(certificates.StepName),
 		steps.GetStep(etcd.StepName),
 		steps.GetStep(manifest.StepName),
-		steps.GetStep(kubelet.StepName),
 		steps.GetStep(flannel.StepName),
+		steps.GetStep(kubelet.StepName),
 		steps.GetStep(tiller.StepName),
 		steps.GetStep(poststart.StepName),
 	}
