@@ -63,6 +63,7 @@ func TestWorkflowHandlerGetWorkflow(t *testing.T) {
 }
 
 func TestTaskHandlerRunTask(t *testing.T) {
+	Init()
 	h := TaskHandler{
 		runnerFactory: func(cfg ssh.Config) (runner.Runner, error) {
 			return &testutils.FakeRunner{}, nil

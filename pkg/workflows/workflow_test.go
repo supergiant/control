@@ -43,7 +43,7 @@ type mockStep struct {
 	errs        []error
 }
 
-func (f *mockStep) Run(ctx context.Context, out io.Writer, config steps.Config) error {
+func (f *mockStep) Run(ctx context.Context, out io.Writer, config *steps.Config) error {
 	defer func() {
 		f.counter++
 	}()

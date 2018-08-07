@@ -11,14 +11,14 @@ import (
 	"github.com/pkg/errors"
 	"golang.org/x/oauth2"
 
+	"fmt"
+	"github.com/sirupsen/logrus"
+	"github.com/supergiant/supergiant/pkg/clouds"
+	"github.com/supergiant/supergiant/pkg/node"
+	"github.com/supergiant/supergiant/pkg/runner/ssh"
 	"github.com/supergiant/supergiant/pkg/util"
 	"github.com/supergiant/supergiant/pkg/workflows/steps"
-	"github.com/supergiant/supergiant/pkg/node"
-	"github.com/supergiant/supergiant/pkg/clouds"
-	"github.com/supergiant/supergiant/pkg/runner/ssh"
 	"log"
-	"github.com/sirupsen/logrus"
-	"fmt"
 )
 
 const StepName = "digitalOcean"
@@ -106,20 +106,20 @@ func (t *Step) Run(ctx context.Context, output io.Writer, config *steps.Config) 
 				config.EtcdConfig.MasterPrivateIP = "0.0.0.0"
 
 				config.Node = node.Node{
-					Id: fmt.Sprintf("%d", droplet.ID),
+					Id:        fmt.Sprintf("%d", droplet.ID),
 					CreatedAt: time.Now().Unix(),
-					Provider: clouds.DigitalOcean,
-					Region: droplet.Region.Name,
-					PublicIp: getPublicIpPort(droplet.Networks.V4),
+					Provider:  clouds.DigitalOcean,
+					Region:    droplet.Region.Name,
+					PublicIp:  getPublicIpPort(droplet.Networks.V4),
 					PrivateIp: getPrivateIpPort(droplet.Networks.V4),
 				}
 				logrus.Println(config.Node)
 				cfg := ssh.Config{
-					Host: getPublicIpPort(droplet.Networks.V4),
-					Port: "22",
-					User: "root",
+					Host:    getPublicIpPort(droplet.Networks.V4),
+					Port:    "22",
+					User:    "root",
 					Timeout: 10,
-					Key: []byte(``),
+					Key:     []byte(``),
 				}
 				config.Runner, err = ssh.NewRunner(cfg)
 
@@ -193,7 +193,6 @@ func getPrivateIpPort(networks []godo.NetworkV4) string {
 
 	return ""
 }
-
 
 // Returns public ip
 func getPublicIpPort(networks []godo.NetworkV4) string {

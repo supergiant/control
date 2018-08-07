@@ -40,8 +40,8 @@ type TaskResponse struct {
 
 func NewTaskHandler(repository storage.Interface, runnerFactory func(config ssh.Config) (runner.Runner, error), getter cloudAccountGetter) *TaskHandler {
 	return &TaskHandler{
-		runnerFactory: runnerFactory,
-		repository:    repository,
+		runnerFactory:  runnerFactory,
+		repository:     repository,
 		cloudAccGetter: getter,
 	}
 }

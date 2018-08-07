@@ -43,11 +43,11 @@ type FlannelConfig struct {
 }
 
 type KubeletConfig struct {
-	MasterPrivateIP string `json:"masterPrivateIp"`
-	ProxyPort       string `json:"proxyPort"`
-	EtcdClientPort  string `json:"etcdClientPort"`
+	MasterPrivateIP    string `json:"masterPrivateIp"`
+	ProxyPort          string `json:"proxyPort"`
+	EtcdClientPort     string `json:"etcdClientPort"`
 	KubeProviderString string `json:"kubeProviderString"`
-	K8SVersion      string `json:"k8sVersion"`
+	K8SVersion         string `json:"k8sVersion"`
 }
 
 type KubeletConfConfig struct {
@@ -104,16 +104,16 @@ type DownloadK8sBinary struct {
 	OperatingSystem string `json:"operatingSystem"`
 }
 
-type EtcdConfig struct{
-	Name string `json:"name"`
-	Version string `json:"version"`
-	ClusterToken string `json:"clusterToken"`
+type EtcdConfig struct {
+	Name            string `json:"name"`
+	Version         string `json:"version"`
+	ClusterToken    string `json:"clusterToken"`
 	MasterPrivateIP string `json:"masterPrivateIp"`
-	DataDir string `json:"dataDir"`
-	ServicePort string `json:"servicePort"`
-	ManagementPort string `json:"managementPort"`
-	StartTimeout string `json:"startTimeout"`
-	RestartTimeout string `json:"restartTimeout"`
+	DataDir         string `json:"dataDir"`
+	ServicePort     string `json:"servicePort"`
+	ManagementPort  string `json:"managementPort"`
+	StartTimeout    string `json:"startTimeout"`
+	RestartTimeout  string `json:"restartTimeout"`
 }
 
 type Config struct {
@@ -129,7 +129,7 @@ type Config struct {
 	PostStartConfig             PostStartConfig             `json:"postStartConfig"`
 	KubeletSystemdServiceConfig KubeletSystemdServiceConfig `json:"kubeletSystemdServiceConfig"`
 	TillerConfig                TillerConfig                `json:"tillerConfig"`
-	EtcdConfig EtcdConfig `json:"etcdConfig"`
+	EtcdConfig                  EtcdConfig                  `json:"etcdConfig"`
 
 	CloudAccountName string            `json:"cloudAccountName" valid:"required, length(1|32)"`
 	Timeout          time.Duration     `json:"timeout"`

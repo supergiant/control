@@ -35,9 +35,8 @@ func Init(templateDir string) error {
 				return err
 			}
 
-
 			lastTerm := len(strings.Split(f.Name(), "/"))
-			key := strings.Split(strings.Split(f.Name(), "/")[lastTerm - 1], ".")[0]
+			key := strings.Split(strings.Split(f.Name(), "/")[lastTerm-1], ".")[0]
 			t, _ := template.New(key).Parse(string(data))
 
 			if err != nil {

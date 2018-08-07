@@ -69,14 +69,14 @@ systemctl start etcd
 	config := steps.Config{
 		EtcdConfig: steps.EtcdConfig{
 			MasterPrivateIP: masterPrivateIp,
-			ServicePort: servicePort,
-			ManagementPort: managementPort,
-			DataDir: dataDir,
-			Version: version,
-			Name: name,
-			ClusterToken: clusterToken,
-			RestartTimeout: "5",
-			StartTimeout: "0",
+			ServicePort:     servicePort,
+			ManagementPort:  managementPort,
+			DataDir:         dataDir,
+			Version:         version,
+			Name:            name,
+			ClusterToken:    clusterToken,
+			RestartTimeout:  "5",
+			StartTimeout:    "0",
 		},
 		Runner: r,
 	}

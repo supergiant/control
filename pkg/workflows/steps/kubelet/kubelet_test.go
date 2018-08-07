@@ -48,9 +48,9 @@ func TestStartKubelet(t *testing.T) {
 
 	cfg := &steps.Config{
 		KubeletConfig: steps.KubeletConfig{
-			K8SVersion: k8sVersion,
-			ProxyPort:         proxyPort,
-			EtcdClientPort:    etcdPort,
+			K8SVersion:     k8sVersion,
+			ProxyPort:      proxyPort,
+			EtcdClientPort: etcdPort,
 		},
 		Runner: r,
 	}

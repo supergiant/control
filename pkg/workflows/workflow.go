@@ -10,6 +10,7 @@ import (
 
 	"github.com/pborman/uuid"
 
+	"github.com/sirupsen/logrus"
 	"github.com/supergiant/supergiant/pkg/storage"
 	"github.com/supergiant/supergiant/pkg/workflows/steps"
 	"github.com/supergiant/supergiant/pkg/workflows/steps/certificates"
@@ -17,14 +18,13 @@ import (
 	"github.com/supergiant/supergiant/pkg/workflows/steps/digitalocean"
 	"github.com/supergiant/supergiant/pkg/workflows/steps/docker"
 	"github.com/supergiant/supergiant/pkg/workflows/steps/downloadk8sbinary"
+	"github.com/supergiant/supergiant/pkg/workflows/steps/etcd"
 	"github.com/supergiant/supergiant/pkg/workflows/steps/flannel"
 	"github.com/supergiant/supergiant/pkg/workflows/steps/kubelet"
 	"github.com/supergiant/supergiant/pkg/workflows/steps/kubeproxy"
+	"github.com/supergiant/supergiant/pkg/workflows/steps/manifest"
 	"github.com/supergiant/supergiant/pkg/workflows/steps/poststart"
 	"github.com/supergiant/supergiant/pkg/workflows/steps/tiller"
-	"github.com/supergiant/supergiant/pkg/workflows/steps/manifest"
-	"github.com/sirupsen/logrus"
-	"github.com/supergiant/supergiant/pkg/workflows/steps/etcd"
 )
 
 // StepStatus aggregates data that is needed to track progress
