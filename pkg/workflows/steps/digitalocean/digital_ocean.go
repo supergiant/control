@@ -77,8 +77,6 @@ func (t *Step) Run(ctx context.Context, output io.Writer, config *steps.Config) 
 	}
 
 	tags := []string{"Kubernetes-Cluster", config.DigitalOceanConfig.Name}
-
-	// Create
 	droplet, _, err := c.Droplets.Create(dropletRequest)
 
 	if err != nil {
@@ -104,6 +102,9 @@ func (t *Step) Run(ctx context.Context, output io.Writer, config *steps.Config) 
 				// Get private ip ports from droplet networks
 				config.KubeProxyConfig.MasterPrivateIP = getPrivateIpPort(droplet.Networks.V4)
 				config.KubeletConfig.MasterPrivateIP = getPrivateIpPort(droplet.Networks.V4)
+				config.ManifestConfig.MasterHost = getPrivateIpPort(droplet.Networks.V4)
+				config.EtcdConfig.MasterPrivateIP = "0.0.0.0"
+
 				config.Node = node.Node{
 					Id: fmt.Sprintf("%d", droplet.ID),
 					CreatedAt: time.Now().Unix(),

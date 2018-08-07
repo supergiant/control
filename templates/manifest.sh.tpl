@@ -1,6 +1,30 @@
 KUBERNETES_MANIFESTS_DIR={{ .KubernetesConfigDir }}/manifests
 
 mkdir -p ${KUBERNETES_MANIFESTS_DIR}
+
+# worker
+cat << EOF > ${KUBERNETES_MANIFESTS_DIR}/worker-kubeconfig.yaml
+apiVersion: v1
+kind: Config
+users:
+- name: kubelet
+  user:
+    client-certificate: /home/unknown/.minikube/client.crt
+    client-key: /home/unknown/.minikube/client.key
+clusters:
+- name: local
+  cluster:
+    server: http://{{ .MasterHost }}:{{ .MasterPort }}
+    insecure-skip-tls-verify: true
+contexts:
+- name: kubelet-local
+  context:
+    cluster: local
+    user: kubelet
+current-context: kubelet-local
+EOF
+
+# api-server
 cat << EOF > ${KUBERNETES_MANIFESTS_DIR}/kube-apiserver.yaml
 apiVersion: v1
 kind: Pod
@@ -22,7 +46,7 @@ spec:
     - --service-cluster-ip-range=10.3.0.0/24
     - --secure-port=443
     - --v=2
-    - --advertise-address={{ .PrivateIpv4 }}
+    - --advertise-address={{ .MasterHost }}
     - --admission-control=NamespaceLifecycle,NamespaceExists,LimitRanger,ServiceAccount,ResourceQuota,DefaultStorageClass{{if .RBACEnabled }},NodeRestriction{{end}}
     - --tls-cert-file=/etc/kubernetes/ssl/apiserver.pem
     - --tls-private-key-file=/etc/kubernetes/ssl/apiserver-key.pem
@@ -62,7 +86,8 @@ spec:
     name: ssl-certs-host
 EOF
 
-    cat << EOF > ${KUBERNETES_MANIFESTS_DIR}/kube-controller-manager.yaml
+# kube controller manager
+cat << EOF > ${KUBERNETES_MANIFESTS_DIR}/kube-controller-manager.yaml
 apiVersion: v1
 kind: Pod
 metadata:
@@ -106,7 +131,8 @@ spec:
     name: ssl-certs-host
 EOF
 
-    cat << EOF > ${KUBERNETES_MANIFESTS_DIR}/kube-scheduler.yaml
+# scheduler
+cat << EOF > ${KUBERNETES_MANIFESTS_DIR}/kube-scheduler.yaml
 apiVersion: v1
 kind: Pod
 metadata:
@@ -131,7 +157,8 @@ spec:
       timeoutSeconds: 1
 EOF
 
-    cat << EOF > ${KUBERNETES_MANIFESTS_DIR}/kube-proxy.yaml
+# proxy
+cat << EOF > ${KUBERNETES_MANIFESTS_DIR}/kube-proxy.yaml
 apiVersion: v1
 kind: Pod
 metadata:

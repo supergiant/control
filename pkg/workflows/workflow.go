@@ -19,7 +19,6 @@ import (
 	"github.com/supergiant/supergiant/pkg/workflows/steps/downloadk8sbinary"
 	"github.com/supergiant/supergiant/pkg/workflows/steps/flannel"
 	"github.com/supergiant/supergiant/pkg/workflows/steps/kubelet"
-	"github.com/supergiant/supergiant/pkg/workflows/steps/kubeletconf"
 	"github.com/supergiant/supergiant/pkg/workflows/steps/kubeproxy"
 	"github.com/supergiant/supergiant/pkg/workflows/steps/poststart"
 	"github.com/supergiant/supergiant/pkg/workflows/steps/tiller"
@@ -76,7 +75,6 @@ func Init() {
 	downloadk8sbinary.Init()
 	flannel.Init()
 	kubelet.Init()
-	kubeletconf.Init()
 	kubeproxy.Init()
 	manifest.Init()
 	poststart.Init()
@@ -87,15 +85,12 @@ func Init() {
 		steps.GetStep(digitalocean.StepName),
 		steps.GetStep(downloadk8sbinary.StepName),
 		steps.GetStep(docker.StepName),
-		steps.GetStep(kubelet.StepName),
-		steps.GetStep(kubeletconf.StepName),
 		steps.GetStep(cni.StepName),
 		steps.GetStep(certificates.StepName),
 		steps.GetStep(etcd.StepName),
 		steps.GetStep(manifest.StepName),
+		steps.GetStep(kubelet.StepName),
 		steps.GetStep(flannel.StepName),
-
-		// TODO(stgleb): Make separate cluster workflow for tasks that should be run once per cluster.
 		steps.GetStep(tiller.StepName),
 		steps.GetStep(poststart.StepName),
 	}
@@ -105,7 +100,6 @@ func Init() {
 		steps.GetStep(flannel.StepName),
 		steps.GetStep(docker.StepName),
 		steps.GetStep(kubelet.StepName),
-		steps.GetStep(kubeletconf.StepName),
 		steps.GetStep(kubeproxy.StepName),
 		steps.GetStep(certificates.StepName),
 		steps.GetStep(cni.StepName),

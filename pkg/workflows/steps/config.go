@@ -68,7 +68,6 @@ type ManifestConfig struct {
 	RBACEnabled         bool   `json:"rbacEnabled"`
 	EtcdHost            string `json:"etcdHost"`
 	EtcdPort            string `json:"etcdPort"`
-	PrivateIpv4         string `json:"privateIpv4"`
 	ProviderString      string `json:"providerString"`
 	MasterHost          string `json:"masterHost"`
 	MasterPort          string `json:"masterPort"`
@@ -125,7 +124,6 @@ type Config struct {
 	CertificatesConfig          CertificatesConfig          `json:"certificatesConfig"`
 	FlannelConfig               FlannelConfig               `json:"flannelConfig"`
 	KubeletConfig               KubeletConfig               `json:"kubeletConfig"`
-	KubeletConfConfig           KubeletConfConfig           `json:"kubeletConfConfig"`
 	KubeProxyConfig             KubeProxyConfig             `json:"kubeProxyConfig"`
 	ManifestConfig              ManifestConfig              `json:"manifestConfig"`
 	PostStartConfig             PostStartConfig             `json:"postStartConfig"`
