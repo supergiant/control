@@ -37,4 +37,5 @@ echo '[Unit]
 
       [Install]
       WantedBy=multi-user.target' > /etc/systemd/system/kubelet.service
+      systemctl daemon-reload
 systemctl start kubelet

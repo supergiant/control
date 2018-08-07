@@ -72,7 +72,7 @@ spec:
   hostNetwork: true
   containers:
   - name: kube-controller-manager
-    image: gcr.io/google_containers/hyperkube:v{{ .KubernetesVersion }}
+    image: gcr.io/google_containers/hyperkube:v{{ .K8SVersion }}
     command:
     - /hyperkube
     - controller-manager
@@ -116,7 +116,7 @@ spec:
   hostNetwork: true
   containers:
   - name: kube-scheduler
-    image: gcr.io/google_containers/hyperkube:v{{ .KubernetesVersion }}
+    image: gcr.io/google_containers/hyperkube:v{{ .K8SVersion }}
     command:
     - /hyperkube
     - scheduler
@@ -141,7 +141,7 @@ spec:
   hostNetwork: true
   containers:
   - name: kube-proxy
-    image: gcr.io/google_containers/hyperkube:v{{ .KubernetesVersion }}
+    image: gcr.io/google_containers/hyperkube:v{{ .K8SVersion }}
     command:
     - /hyperkube
     - proxy

@@ -25,6 +25,7 @@ import (
 	"github.com/supergiant/supergiant/pkg/workflows/steps/tiller"
 	"github.com/supergiant/supergiant/pkg/workflows/steps/manifest"
 	"github.com/sirupsen/logrus"
+	"github.com/supergiant/supergiant/pkg/workflows/steps/etcd"
 )
 
 // StepStatus aggregates data that is needed to track progress
@@ -80,6 +81,7 @@ func Init() {
 	manifest.Init()
 	poststart.Init()
 	tiller.Init()
+	etcd.Init()
 
 	digitalOceanMaster := []steps.Step{
 		steps.GetStep(digitalocean.StepName),
@@ -89,6 +91,7 @@ func Init() {
 		steps.GetStep(kubeletconf.StepName),
 		steps.GetStep(cni.StepName),
 		steps.GetStep(certificates.StepName),
+		steps.GetStep(etcd.StepName),
 		steps.GetStep(manifest.StepName),
 
 		// TODO(stgleb): Add install etcd step that precedes flannel
@@ -174,7 +177,7 @@ func (w *Task) Run(ctx context.Context, out io.Writer) chan error {
 
 // Restart executes task from the last failed step
 func (w *Task) Restart(ctx context.Context, id string, out io.Writer) chan error {
-	errChan := make(chan error)
+	errChan := make(chan error, 1)
 
 	go func() {
 		defer close(errChan)
@@ -219,6 +222,7 @@ func (w *Task) startFrom(ctx context.Context, id string, out io.Writer, i int, e
 			w.sync(ctx, id)
 
 			errChan <- err
+			return
 		} else {
 			// Mark step as success
 			w.StepStatuses[index].Status = steps.StatusSuccess
