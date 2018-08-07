@@ -105,6 +105,18 @@ type DownloadK8sBinary struct {
 	OperatingSystem string `json:"operatingSystem"`
 }
 
+type EtcdConfig struct{
+	Name string `json:"name"`
+	Version string `json:"version"`
+	ClusterToken string `json:"clusterToken"`
+	MasterPrivateIP string `json:"masterPrivateIp"`
+	DataDir string `json:"dataDir"`
+	ServicePort string `json:"servicePort"`
+	ManagementPort string `json:"managementPort"`
+	StartTimeout string `json:"startTimeout"`
+	RestartTimeout string `json:"restartTimeout"`
+}
+
 type Config struct {
 	DigitalOceanConfig DOConfig `json:"digitalOceanConfig"`
 
@@ -119,6 +131,7 @@ type Config struct {
 	PostStartConfig             PostStartConfig             `json:"postStartConfig"`
 	KubeletSystemdServiceConfig KubeletSystemdServiceConfig `json:"kubeletSystemdServiceConfig"`
 	TillerConfig                TillerConfig                `json:"tillerConfig"`
+	EtcdConfig EtcdConfig `json:"etcdConfig"`
 
 	CloudAccountName string            `json:"cloudAccountName" valid:"required, length(1|32)"`
 	Timeout          time.Duration     `json:"timeout"`

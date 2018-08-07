@@ -46,7 +46,7 @@ func TestStartKubelet(t *testing.T) {
 
 	output := new(bytes.Buffer)
 
-	cfg := steps.Config{
+	cfg := &steps.Config{
 		KubeletConfig: steps.KubeletConfig{
 			K8SVersion: k8sVersion,
 			ProxyPort:         proxyPort,
@@ -76,7 +76,7 @@ func TestStartKubeletError(t *testing.T) {
 	kubeletScriptTemplate, err := template.New(StepName).Parse("")
 
 	output := new(bytes.Buffer)
-	config := steps.Config{
+	config := &steps.Config{
 		KubeletConfig: steps.KubeletConfig{},
 		Runner:        r,
 	}

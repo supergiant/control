@@ -60,7 +60,7 @@ sudo docker run --privileged=true --volume=/etc/ssl/cer:/usr/share/ca-certificat
 
 	output := new(bytes.Buffer)
 
-	cfg := steps.Config{
+	cfg := &steps.Config{
 		KubeProxyConfig: steps.KubeProxyConfig{
 			K8SVersion:      k8sVersion,
 			MasterPrivateIP: masterIp,
@@ -94,7 +94,7 @@ func TestStartKubeProxyError(t *testing.T) {
 
 	proxyTemplate, err := template.New(StepName).Parse("")
 	output := new(bytes.Buffer)
-	cfg := steps.Config{
+	cfg := &steps.Config{
 		KubeProxyConfig: steps.KubeProxyConfig{},
 		Runner:          r,
 	}

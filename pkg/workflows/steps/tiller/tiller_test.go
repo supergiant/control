@@ -50,7 +50,7 @@ func TestInstallTiller(t *testing.T) {
 		proxyTemplate,
 	}
 
-	cfg := steps.Config{
+	cfg := &steps.Config{
 		TillerConfig: steps.TillerConfig{
 			helmVersion,
 			operatingSystem,
@@ -92,7 +92,7 @@ func TestInstallTillerError(t *testing.T) {
 		proxyTemplate,
 	}
 
-	cfg := steps.Config{
+	cfg := &steps.Config{
 		TillerConfig: steps.TillerConfig{},
 		Runner:       r,
 	}

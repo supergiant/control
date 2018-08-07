@@ -64,7 +64,7 @@ curl -XPOST -H 'Content-type: application/json' -d'{"apiVersion":"v1","kind":"Na
 	}
 
 	output := new(bytes.Buffer)
-	cfg := steps.Config{
+	cfg := &steps.Config{
 		PostStartConfig: steps.PostStartConfig{
 			host,
 			port,
@@ -111,7 +111,7 @@ func TestPostStartError(t *testing.T) {
 		proxyTemplate,
 	}
 
-	cfg := steps.Config{
+	cfg := &steps.Config{
 		PostStartConfig: steps.PostStartConfig{},
 		Runner:          r,
 	}
