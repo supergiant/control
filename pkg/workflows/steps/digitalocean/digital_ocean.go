@@ -103,7 +103,11 @@ func (t *Step) Run(ctx context.Context, output io.Writer, config *steps.Config) 
 				config.KubeProxyConfig.MasterPrivateIP = getPrivateIpPort(droplet.Networks.V4)
 				config.KubeletConfig.MasterPrivateIP = getPrivateIpPort(droplet.Networks.V4)
 				config.ManifestConfig.MasterHost = getPrivateIpPort(droplet.Networks.V4)
+				config.ManifestConfig.MasterPort = "8080"
 				config.EtcdConfig.MasterPrivateIP = "0.0.0.0"
+				config.PostStartConfig.Host = "127.0.0.1"
+				config.PostStartConfig.Port = "8080"
+				config.CertificatesConfig.MasterPrivateIP = getPrivateIpPort(droplet.Networks.V4)
 
 				config.Node = node.Node{
 					Id:        fmt.Sprintf("%d", droplet.ID),
