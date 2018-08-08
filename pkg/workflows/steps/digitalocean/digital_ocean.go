@@ -123,6 +123,7 @@ func (t *Step) Run(ctx context.Context, output io.Writer, config *steps.Config) 
 				if err != nil {
 					log.Fatal(err)
 				}
+				time.Sleep(time.Minute * 1)
 				return nil
 			}
 
