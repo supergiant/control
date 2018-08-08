@@ -21,7 +21,6 @@ import (
 	"github.com/supergiant/supergiant/pkg/workflows/steps/etcd"
 	"github.com/supergiant/supergiant/pkg/workflows/steps/flannel"
 	"github.com/supergiant/supergiant/pkg/workflows/steps/kubelet"
-	"github.com/supergiant/supergiant/pkg/workflows/steps/kubeproxy"
 	"github.com/supergiant/supergiant/pkg/workflows/steps/manifest"
 	"github.com/supergiant/supergiant/pkg/workflows/steps/poststart"
 	"github.com/supergiant/supergiant/pkg/workflows/steps/tiller"
@@ -75,7 +74,6 @@ func Init() {
 	downloadk8sbinary.Init()
 	flannel.Init()
 	kubelet.Init()
-	kubeproxy.Init()
 	manifest.Init()
 	poststart.Init()
 	tiller.Init()
@@ -213,6 +211,7 @@ func (w *Task) startFrom(ctx context.Context, id string, out io.Writer, i int, e
 			w.StepStatuses[index].ErrMsg = err.Error()
 			w.sync(ctx, id)
 
+			logrus.Error(err)
 			errChan <- err
 			return
 		} else {
