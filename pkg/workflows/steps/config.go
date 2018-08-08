@@ -9,19 +9,10 @@ import (
 )
 
 type CertificatesConfig struct {
-	KubernetesConfigDir   string `json:"kubernetesConfigDir"`
-	CACert                string `json:"caCert"`
-	CACertName            string `json:"caCertName"`
-	CAKeyCert             string `json:"caKeyCert"`
-	CAKeyName             string `json:"caKeyName"`
-	APIServerCert         string `json:"apiServerCert"`
-	APIServerCertName     string `json:"apiServerCertName"`
-	APIServerKey          string `json:"apiServerKey"`
-	APIServerKeyName      string `json:"apiServerKeyName"`
-	KubeletClientCert     string `json:"kubeletClientCert"`
-	KubeletClientCertName string `json:"kubeletClientCertName"`
-	KubeletClientKey      string `json:"kubeletClientKey"`
-	KubeletClientKeyName  string `json:"kubeletClientKeyName"`
+	KubernetesConfigDir string `json:"kubernetesConfigDir"`
+	MasterPrivateIP     string `json:"masterPrivateIp"`
+	Username            string `json:"username"`
+	Password            string `json:"password"`
 }
 
 type DOConfig struct {

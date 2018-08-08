@@ -91,8 +91,8 @@ func Init() {
 		steps.GetStep(manifest.StepName),
 		steps.GetStep(flannel.StepName),
 		steps.GetStep(kubelet.StepName),
-		steps.GetStep(tiller.StepName),
 		steps.GetStep(poststart.StepName),
+		steps.GetStep(tiller.StepName),
 	}
 	digitalOceanNode := []steps.Step{
 		steps.GetStep(digitalocean.StepName),
@@ -100,7 +100,6 @@ func Init() {
 		steps.GetStep(flannel.StepName),
 		steps.GetStep(docker.StepName),
 		steps.GetStep(kubelet.StepName),
-		steps.GetStep(kubeproxy.StepName),
 		steps.GetStep(certificates.StepName),
 		steps.GetStep(cni.StepName),
 		steps.GetStep(poststart.StepName),

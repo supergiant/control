@@ -39,9 +39,8 @@ spec:
     - /hyperkube
     - apiserver
     - --bind-address=0.0.0.0
-    - --etcd-servers=http://{{ .MasterHost }}:{{ .MasterPort }}
+    - --etcd-servers=http://{{ .MasterHost }}:2379
     - --allow-privileged=true
-    {{if .RBACEnabled }}- --authorization-mode=Node,RBAC{{end}}
     - --service-cluster-ip-range=10.3.0.0/24
     - --secure-port=443
     - --v=2
@@ -55,7 +54,7 @@ spec:
     - --token-auth-file=/etc/kubernetes/ssl/known_tokens.csv
     - --kubelet-preferred-address-types=InternalIP,Hostname,ExternalIP
     - --storage-backend=etcd2
-    {{- .ProviderString }}
+    -  {{ .ProviderString }}
     ports:
     - containerPort: 443
       hostPort: 443
@@ -106,7 +105,7 @@ spec:
     - --v=2
     - --cluster-cidr=10.244.0.0/14
     - --allocate-node-cidrs=true
-    {{- .ProviderString }}
+    -  {{ .ProviderString }}
     livenessProbe:
       httpGet:
         host: 127.0.0.1
