@@ -3,7 +3,7 @@
   "config": {
     "digitalOceanConfig": {
       "name":"test-node",
-      "k8sVersion":"1.11",
+      "k8sVersion":"1.11.1",
       "region":"fra1",
       "size":"s-1vcpu-2gb",
       "role":"master",
@@ -28,7 +28,7 @@
       "arch": "amd64"
     },
     "downloadK8sBinary": {
-      "k8sVersion": "1.11",
+      "k8sVersion": "1.11.1",
       "arch": "amd64",
       "operatingSystem": "linux"
     },
@@ -74,11 +74,6 @@
       "port": "8080",
       "username": "root",
       "rbacEnabled": false
-    },
-    "kubeletSystemdServiceConfig": {
-      "k8sVersion": "1.11",
-      "kubeletService": "kubernetes.conf",
-      "kubernetesProvider": "digitalocean"
     },
     "tillerConfig": {
       "helmVersion": "2.8.0",
