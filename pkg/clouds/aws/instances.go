@@ -66,6 +66,10 @@ func (c *Client) AvailableInstanceTypes(ctx context.Context) ([]*EC2TypeInfo, er
 		if err != nil {
 			return nil, errors.Wrapf(err, "aws: get ec2 %s info", t)
 		}
+		if instGroupType(info) {
+			continue
+		}
+
 		ec2Infos = append(ec2Infos, info)
 	}
 
@@ -315,4 +319,8 @@ func (c *Client) buildFilter(tags map[string]string) []*ec2.Filter {
 
 func ec2Svc(s *session.Session, region string) ec2iface.EC2API {
 	return ec2.New(s, aws.NewConfig().WithRegion(region))
+}
+
+func instGroupType(info *EC2TypeInfo) bool {
+	return info.Attributes.Memory == "NA" || info.Attributes.VCPU == "NA"
 }
