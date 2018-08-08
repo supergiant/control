@@ -2,14 +2,14 @@ package poststart
 
 import (
 	"bytes"
+
+	"context"
 	"io"
 	"strings"
 	"testing"
 	"text/template"
 
 	"github.com/pkg/errors"
-
-	"context"
 
 	"github.com/supergiant/supergiant/pkg/runner"
 	"github.com/supergiant/supergiant/pkg/workflows/steps"

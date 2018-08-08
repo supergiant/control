@@ -2,7 +2,9 @@ package digitalocean
 
 import (
 	"context"
+	"fmt"
 	"io"
+	"log"
 	"strconv"
 	"time"
 
@@ -10,9 +12,6 @@ import (
 
 	"github.com/pkg/errors"
 	"golang.org/x/oauth2"
-
-	"fmt"
-	"log"
 
 	"github.com/sirupsen/logrus"
 
@@ -115,8 +114,8 @@ func (t *Step) Run(ctx context.Context, output io.Writer, config *steps.Config) 
 					Host:    getPublicIpPort(droplet.Networks.V4),
 					Port:    "22",
 					User:    "root",
-					Timeout: 60,
-					Key: []byte(``),
+					Timeout: 120,
+					Key:     []byte(``),
 				}
 				config.Runner, err = ssh.NewRunner(cfg)
 

@@ -2,11 +2,10 @@ package docker
 
 import (
 	"bytes"
+	"context"
 	"strings"
 	"testing"
 	"text/template"
-
-	"context"
 
 	"github.com/supergiant/supergiant/pkg/testutils"
 	"github.com/supergiant/supergiant/pkg/workflows/steps"

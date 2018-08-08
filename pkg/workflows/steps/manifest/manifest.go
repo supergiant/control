@@ -4,9 +4,9 @@ import (
 	"context"
 	"text/template"
 
-	"github.com/pkg/errors"
-
 	"io"
+
+	"github.com/pkg/errors"
 
 	tm "github.com/supergiant/supergiant/pkg/templatemanager"
 	"github.com/supergiant/supergiant/pkg/workflows/steps"
