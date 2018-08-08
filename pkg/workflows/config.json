@@ -8,8 +8,8 @@
       "size":"s-1vcpu-2gb",
       "role":"master",
       "image":"ubuntu-18-04-x64",
-      "fingerprints":["ed:79:fd:40:e6:a1:05:64:ce:84:40:94:72:eb:9c:ee"],
-      "accessToken":"40c8904eadbe7642a0511c682e912597dc1f6786eb702699dc08425743e94805"
+      "fingerprints":[""],
+      "accessToken":""
     },
     "etcdConfig": {
       "name": "etcd0",
