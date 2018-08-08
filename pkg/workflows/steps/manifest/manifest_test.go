@@ -13,6 +13,7 @@ import (
 
 	"github.com/supergiant/supergiant/pkg/runner"
 	"github.com/supergiant/supergiant/pkg/workflows/steps"
+	"github.com/supergiant/supergiant/pkg/node"
 )
 
 type fakeRunner struct {
@@ -307,12 +308,14 @@ func TestWriteManifestNode(t *testing.T) {
 
 	output := new(bytes.Buffer)
 	cfg := steps.Config{
+		Node: node.Node{
+			PrivateIp: masterHost,
+		},
 		ManifestConfig: steps.ManifestConfig{
 			IsMaster:            false,
 			K8SVersion:          kubernetesVersion,
 			KubernetesConfigDir: kubernetesConfigDir,
 			RBACEnabled:         false,
-			MasterHost:          masterHost,
 			MasterPort:          masterPort,
 			ProviderString:      providerString,
 		},
