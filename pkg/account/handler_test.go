@@ -15,6 +15,7 @@ import (
 	"gopkg.in/asaskevich/govalidator.v8"
 
 	"github.com/supergiant/supergiant/pkg/clouds"
+	"github.com/supergiant/supergiant/pkg/model"
 	"github.com/supergiant/supergiant/pkg/testutils"
 )
 
@@ -35,7 +36,7 @@ func TestEndpoint_Create(t *testing.T) {
 	e, m := fixtures()
 	m.On("Put", mock.Anything, mock.Anything, mock.Anything, mock.Anything).Return(nil)
 
-	malformedAccount, _ := json.Marshal(CloudAccount{
+	malformedAccount, _ := json.Marshal(model.CloudAccount{
 		Name:        "",
 		Provider:    "asdasd",
 		Credentials: nil,
@@ -50,7 +51,7 @@ func TestEndpoint_Create(t *testing.T) {
 
 	require.Equal(t, http.StatusBadRequest, rr.Code, rr.Body.String())
 
-	okAccount, _ := json.Marshal(CloudAccount{
+	okAccount, _ := json.Marshal(model.CloudAccount{
 		Name:        "test",
 		Provider:    "gce",
 		Credentials: nil,
@@ -77,7 +78,7 @@ func TestEndpoint_CreateError(t *testing.T) {
 	m.On("Put", mock.Anything, mock.Anything, mock.Anything, mock.Anything).Return(errors.New("error!"))
 	rr := httptest.NewRecorder()
 
-	okAccount, _ := json.Marshal(CloudAccount{
+	okAccount, _ := json.Marshal(model.CloudAccount{
 		Name:        "test",
 		Provider:    "gce",
 		Credentials: nil,
@@ -118,25 +119,25 @@ func TestService_Update(t *testing.T) {
 	e, m := fixtures()
 	m.On("Put", mock.Anything, mock.Anything, mock.Anything, mock.Anything).Return(nil)
 	tt := []struct {
-		account        *CloudAccount
+		account        *model.CloudAccount
 		responseStatus int
 	}{
 		{
-			account: &CloudAccount{
+			account: &model.CloudAccount{
 				Name:     "OKNAME",
 				Provider: clouds.AWS,
 			},
 			responseStatus: http.StatusOK,
 		},
 		{
-			account: &CloudAccount{
+			account: &model.CloudAccount{
 				Name:     "NOTOKK",
 				Provider: "AAA",
 			},
 			responseStatus: http.StatusBadRequest,
 		},
 		{
-			account: &CloudAccount{
+			account: &model.CloudAccount{
 				Name:     "",
 				Provider: clouds.DigitalOcean,
 			},

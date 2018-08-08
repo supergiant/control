@@ -11,8 +11,8 @@ import (
 
 	"github.com/gorilla/mux"
 
-	"github.com/supergiant/supergiant/pkg/account"
 	"github.com/supergiant/supergiant/pkg/clouds"
+	"github.com/supergiant/supergiant/pkg/model"
 	"github.com/supergiant/supergiant/pkg/runner"
 	"github.com/supergiant/supergiant/pkg/runner/ssh"
 	"github.com/supergiant/supergiant/pkg/testutils"
@@ -71,7 +71,7 @@ func TestTaskHandlerRunTask(t *testing.T) {
 			map[string][]byte{},
 		},
 		cloudAccGetter: &mockCloudAccountService{
-			cloudAccount: &account.CloudAccount{
+			cloudAccount: &model.CloudAccount{
 				Name:     "testName",
 				Provider: clouds.DigitalOcean,
 				Credentials: map[string]string{
