@@ -69,7 +69,7 @@ chmod +x /opt/bin/kubectl
 			scriptTemplate: tpl,
 		}
 
-		err := task.Run(context.Background(), output, config)
+		err := task.Run(context.Background(), output, &config)
 
 		if testCase.expectedError != errors.Cause(err) {
 			t.Fatalf("wrong error expected %v actual %v", testCase.expectedError, err)

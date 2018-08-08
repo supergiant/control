@@ -30,10 +30,10 @@ func (f *fakeRunner) Run(command *runner.Command) error {
 
 func TestWriteCertificates(t *testing.T) {
 	var (
-		kubernetesConfigDir   = "/etc/kubernetes"
-		masterPrivateIP = "10.20.30.40"
-		userName = "user"
-		password = "1234"
+		kubernetesConfigDir = "/etc/kubernetes"
+		masterPrivateIP     = "10.20.30.40"
+		userName            = "user"
+		password            = "1234"
 
 		r      runner.Runner = &fakeRunner{}
 		script               = `KUBERNETES_SSL_DIR={{ .KubernetesConfigDir }}/ssl

@@ -57,8 +57,7 @@
     },
     "kubeProxyConfig": {
       "masterPrivateIp": "10.0.0.2",
-      "proxyPort": "8080",
-      "etcdClientPort": "2379",
+      "masterPort": "8080",
       "k8sVersion": "1.11.1"
     },
     "manifestConfig": {

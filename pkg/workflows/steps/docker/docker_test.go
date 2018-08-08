@@ -54,7 +54,7 @@ rm $OUT_DIR/$(basename $URL)
 		scriptTemplate: tpl,
 	}
 
-	err = task.Run(context.Background(), output, config)
+	err = task.Run(context.Background(), output, &config)
 
 	if !strings.Contains(output.String(), dockerVersion) {
 		t.Fatalf("docker version %s not found in output %s", dockerVersion, output.String())
