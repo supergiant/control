@@ -51,16 +51,8 @@
       "kubeProviderString": "digitalocean",
       "k8sVersion": "1.11.1"
     },
-    "kubeletConfConfig": {
-      "host": "127.0.0.1",
-      "port": "8080"
-    },
-    "kubeProxyConfig": {
-      "masterPrivateIp": "10.0.0.2",
-      "masterPort": "8080",
-      "k8sVersion": "1.11.1"
-    },
     "manifestConfig": {
+      "isMaster": true,
       "k8sVersion": "1.11.1",
       "kubernetesConfigDir": "/etc/kubernetes",
       "rbacEnabled": false,

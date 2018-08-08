@@ -41,18 +41,8 @@ type KubeletConfig struct {
 	K8SVersion         string `json:"k8sVersion"`
 }
 
-type KubeletConfConfig struct {
-	Host string `json:"host" valid:"required"`
-	Port string `json:"port" valid:"required"`
-}
-
-type KubeProxyConfig struct {
-	MasterPrivateIP string `json:"masterPrivateIp"`
-	MasterPort      string `json:"masterPort"`
-	K8SVersion      string `json:"k8sVersion"`
-}
-
 type ManifestConfig struct {
+	IsMaster            bool   `json:"isMaster"`
 	K8SVersion          string `json:"k8sVersion"`
 	KubernetesConfigDir string `json:"kubernetesConfigDir"`
 	RBACEnabled         bool   `json:"rbacEnabled"`
@@ -112,7 +102,6 @@ type Config struct {
 	CertificatesConfig          CertificatesConfig          `json:"certificatesConfig"`
 	FlannelConfig               FlannelConfig               `json:"flannelConfig"`
 	KubeletConfig               KubeletConfig               `json:"kubeletConfig"`
-	KubeProxyConfig             KubeProxyConfig             `json:"kubeProxyConfig"`
 	ManifestConfig              ManifestConfig              `json:"manifestConfig"`
 	PostStartConfig             PostStartConfig             `json:"postStartConfig"`
 	KubeletSystemdServiceConfig KubeletSystemdServiceConfig `json:"kubeletSystemdServiceConfig"`
