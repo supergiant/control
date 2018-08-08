@@ -1,8 +1,9 @@
 package node
 
 import (
-	"github.com/supergiant/supergiant/pkg/clouds"
 	"fmt"
+
+	"github.com/supergiant/supergiant/pkg/clouds"
 )
 
 type Node struct {
@@ -13,7 +14,6 @@ type Node struct {
 	PublicIp  string      `json:"public_ip"`
 	PrivateIp string      `json:"private_ip"`
 }
-
 
 func (n Node) String() string {
 	return fmt.Sprintf("<Id: %s, CreatedAt: %d, Provider: %s, Region; %s, PublicIp: %s, PrivateIp: %s>",

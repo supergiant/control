@@ -3,10 +3,11 @@ package ssh
 import (
 	"time"
 
+	"net"
+
+	"github.com/Sirupsen/logrus"
 	"github.com/pkg/errors"
 	"golang.org/x/crypto/ssh"
-	"net"
-	"fmt"
 )
 
 var (
@@ -30,11 +31,11 @@ func getSshConfig(config Config) (*ssh.ClientConfig, error) {
 		},
 		Timeout: time.Duration(config.Timeout) * time.Second,
 		HostKeyCallback: func(hostname string, remote net.Addr, key ssh.PublicKey) error {
-			fmt.Printf("hostname %s,addr %s key %s", hostname, remote.String(), string(key.Type()))
+			logrus.Debugf("hostname %s,addr %s key %s", hostname, remote.String(), string(key.Type()))
 			return nil
 		},
 		BannerCallback: func(message string) error {
-			fmt.Println(message)
+			logrus.Debug(message)
 			return nil
 		},
 	}, nil

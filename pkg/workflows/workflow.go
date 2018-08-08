@@ -160,6 +160,7 @@ func (w *Task) Run(ctx context.Context, out io.Writer) chan error {
 		}
 		// Start from the first step
 		w.startFrom(ctx, w.Id, out, 0, errChan)
+		logrus.Infof("Task %s has finished successfully", w.Id)
 		close(errChan)
 	}()
 

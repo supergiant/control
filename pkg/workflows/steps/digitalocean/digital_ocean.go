@@ -115,8 +115,8 @@ func (t *Step) Run(ctx context.Context, output io.Writer, config *steps.Config) 
 					Host:    getPublicIpPort(droplet.Networks.V4),
 					Port:    "22",
 					User:    "root",
-					Timeout: 10,
-					Key:     []byte(``),
+					Timeout: 60,
+					Key: []byte(``),
 				}
 				config.Runner, err = ssh.NewRunner(cfg)
 
