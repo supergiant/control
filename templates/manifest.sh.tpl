@@ -1,9 +1,9 @@
-KUBERNETES_MANIFESTS_DIR={{ .KubernetesConfigDir }}
+KUBERNETES_MANIFESTS_DIR={{ .KubernetesConfigDir }}/manifests
 
 mkdir -p ${KUBERNETES_MANIFESTS_DIR}
 
 # worker
-cat << EOF > ${KUBERNETES_MANIFESTS_DIR}/worker-kubeconfig.yaml
+cat << EOF > {{ .KubernetesConfigDir }}/worker-kubeconfig.yaml
 apiVersion: v1
 kind: Config
 users:
