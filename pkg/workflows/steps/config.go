@@ -86,7 +86,7 @@ type EtcdConfig struct {
 	Name            string `json:"name"`
 	Version         string `json:"version"`
 	ClusterToken    string `json:"clusterToken"`
-	MasterPrivateIP string `json:"masterPrivateIp"`
+	Host string `json:"host"`
 	DataDir         string `json:"dataDir"`
 	ServicePort     string `json:"servicePort"`
 	ManagementPort  string `json:"managementPort"`

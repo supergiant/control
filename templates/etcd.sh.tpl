@@ -19,12 +19,12 @@ ExecStart=/usr/bin/docker run \
             /usr/local/bin/etcd \
             --name {{ .Name }} \
             --data-dir /etcd-data \
-            --listen-client-urls http://{{ .MasterPrivateIP }}:{{ .ServicePort }} \
-            --advertise-client-urls http://{{ .MasterPrivateIP }}:{{ .ServicePort }} \
-            --listen-peer-urls http://{{ .MasterPrivateIP }}:{{ .ManagementPort }} \
-            --initial-advertise-peer-urls http://{{ .MasterPrivateIP }}:{{ .ManagementPort }} \
-            --initial-cluster {{ .Name }}=http://{{ .MasterPrivateIP }}:{{ .ManagementPort }} \
-            --listen-peer-urls http://{{ .MasterPrivateIP }}:2380 --listen-client-urls http://{{ .MasterPrivateIP }}:2379
+            --listen-client-urls http://{{ .Host }}:{{ .ServicePort }} \
+            --advertise-client-urls http://{{ .Host }}:{{ .ServicePort }} \
+            --listen-peer-urls http://{{ .Host }}:{{ .ManagementPort }} \
+            --initial-advertise-peer-urls http://{{ .Host }}:{{ .ManagementPort }} \
+            --initial-cluster {{ .Name }}=http://{{ .Host }}:{{ .ManagementPort }} \
+            --listen-peer-urls http://{{ .Host }}:2380 --listen-client-urls http://{{ .Host }}:2379
 
 [Install]
 WantedBy=multi-user.target

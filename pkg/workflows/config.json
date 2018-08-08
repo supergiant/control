@@ -15,7 +15,7 @@
       "name": "etcd0",
       "version": "3.3.9",
       "clusterToken": "token",
-      "masterPrivateIp": "",
+      "host": "0.0.0.0",
       "dataDir": "/etcd-data",
       "servicePort": "2379",
       "managementPort": "2380",
@@ -51,6 +51,16 @@
       "kubeProviderString": "digitalocean",
       "k8sVersion": "1.11.1"
     },
+    "kubeletConfConfig": {
+      "host": "127.0.0.1",
+      "port": "8080"
+    },
+    "kubeProxyConfig": {
+      "masterPrivateIp": "10.0.0.2",
+      "proxyPort": "8080",
+      "etcdClientPort": "2379",
+      "k8sVersion": "1.11.1"
+    },
     "manifestConfig": {
       "isMaster": true,
       "k8sVersion": "1.11.1",
@@ -61,7 +71,7 @@
       "masterPort": "8080"
     },
     "postStartConfig": {
-      "host": "10.0.0.1",
+      "host": "localhost",
       "port": "8080",
       "username": "root",
       "rbacEnabled": false

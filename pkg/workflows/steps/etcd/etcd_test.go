@@ -12,39 +12,40 @@ import (
 )
 
 func TestInstallEtcD(t *testing.T) {
-	script := `cat > /etc/systemd/system/etcd.service <<EOF
+	script := `mkdir -p /tmp/etcd-data
+cat > /etc/systemd/system/etcd.service <<EOF
 [Unit]
 Description=etcd
 Documentation=https://github.com/coreos/etcd
 
 [Service]
-Type=notify
 Restart=always
 RestartSec={{ .RestartTimeout }}s
 LimitNOFILE=40000
 TimeoutStartSec={{ .StartTimeout }}s
 
-ExecStart=  docker run \
+ExecStart=/usr/bin/docker run \
             -p {{ .ServicePort }}:{{ .ServicePort }} \
             -p {{ .ManagementPort }}:{{ .ManagementPort }} \
-            --mount type=bind,source=/tmp/etcd-data.tmp,destination={{ .DataDir }} \
-            --name etcd-gcr-v{{ .Version }} \
+            --volume={{ .DataDir }}:/etcd-data \
+            --name {{ .Name }} \
             gcr.io/etcd-development/etcd:v{{ .Version }} \
             /usr/local/bin/etcd \
             --name {{ .Name }} \
-            --data-dir {{ .DataDir }} \
-            --listen-client-urls http://{{ .MasterPrivateIP }}:{{ .ServicePort }} \
-            --advertise-client-urls http://{{ .MasterPrivateIP }}:{{ .ServicePort }} \
-            --listen-peer-urls http://{{ .MasterPrivateIP }}:{{ .ManagementPort }} \
-            --initial-advertise-peer-urls http://{{ .MasterPrivateIP }}:{{ .ManagementPort }} \
-            --initial-cluster s1=http://{{ .MasterPrivateIP }}:{{ .ManagementPort }} \
-            --initial-cluster-token {{ .ClusterToken }} \
-            --initial-cluster-state new
+            --data-dir /etcd-data \
+            --listen-client-urls http://{{ .Host }}:{{ .ServicePort }} \
+            --advertise-client-urls http://{{ .Host }}:{{ .ServicePort }} \
+            --listen-peer-urls http://{{ .Host }}:{{ .ManagementPort }} \
+            --initial-advertise-peer-urls http://{{ .Host }}:{{ .ManagementPort }} \
+            --initial-cluster {{ .Name }}=http://{{ .Host }}:{{ .ManagementPort }} \
+            --listen-peer-urls http://{{ .Host }}:2380 --listen-client-urls http://{{ .Host }}:2379
 
 [Install]
 WantedBy=multi-user.target
 EOF
-systemctl start etcd
+systemctl daemon-reload
+systemctl enable etcd.service
+systemctl start etcd.service
 `
 	tpl, err := template.New(StepName).Parse(script)
 
@@ -53,7 +54,7 @@ systemctl start etcd
 		return
 	}
 
-	masterPrivateIp := "10.20.30.40"
+	host := "10.20.30.40"
 	servicePort := "2379"
 	managementPort := "2380"
 	dataDir := "/var/data"
@@ -68,15 +69,15 @@ systemctl start etcd
 	output := &bytes.Buffer{}
 	config := steps.Config{
 		EtcdConfig: steps.EtcdConfig{
-			MasterPrivateIP: masterPrivateIp,
-			ServicePort:     servicePort,
-			ManagementPort:  managementPort,
-			DataDir:         dataDir,
-			Version:         version,
-			Name:            name,
-			ClusterToken:    clusterToken,
-			RestartTimeout:  "5",
-			StartTimeout:    "0",
+			Host:           host,
+			ServicePort:    servicePort,
+			ManagementPort: managementPort,
+			DataDir:        dataDir,
+			Version:        version,
+			Name:           name,
+			ClusterToken:   clusterToken,
+			RestartTimeout: "5",
+			StartTimeout:   "0",
 		},
 		Runner: r,
 	}
@@ -91,8 +92,8 @@ systemctl start etcd
 		t.Errorf("Unpexpected error %s", err.Error())
 	}
 
-	if !strings.Contains(output.String(), masterPrivateIp) {
-		t.Errorf("Master private ip %s not found in %s", masterPrivateIp, output.String())
+	if !strings.Contains(output.String(), host) {
+		t.Errorf("Master private ip %s not found in %s", host, output.String())
 	}
 
 	if !strings.Contains(output.String(), servicePort) {
@@ -113,9 +114,5 @@ systemctl start etcd
 
 	if !strings.Contains(output.String(), name) {
 		t.Errorf("name %s not found in %s", name, output.String())
-	}
-
-	if !strings.Contains(output.String(), clusterToken) {
-		t.Errorf("cluster token %s not found in %s", clusterToken, output.String())
 	}
 }
