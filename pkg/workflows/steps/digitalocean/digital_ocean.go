@@ -12,13 +12,15 @@ import (
 	"golang.org/x/oauth2"
 
 	"fmt"
+	"log"
+
 	"github.com/sirupsen/logrus"
+
 	"github.com/supergiant/supergiant/pkg/clouds"
 	"github.com/supergiant/supergiant/pkg/node"
 	"github.com/supergiant/supergiant/pkg/runner/ssh"
 	"github.com/supergiant/supergiant/pkg/util"
 	"github.com/supergiant/supergiant/pkg/workflows/steps"
-	"log"
 )
 
 const StepName = "digitalOcean"
@@ -100,7 +102,6 @@ func (t *Step) Run(ctx context.Context, output io.Writer, config *steps.Config) 
 			// Wait for droplet becomes active
 			if droplet.Status == "active" {
 				// Get private ip ports from droplet networks
-				config.KubeProxyConfig.MasterPrivateIP = getPrivateIpPort(droplet.Networks.V4)
 				config.KubeletConfig.MasterPrivateIP = getPrivateIpPort(droplet.Networks.V4)
 				config.ManifestConfig.MasterHost = getPrivateIpPort(droplet.Networks.V4)
 				config.ManifestConfig.MasterPort = "8080"
