@@ -33,9 +33,6 @@ func TestWriteManifest(t *testing.T) {
 		kubernetesVersion   = "1.8.7"
 		kubernetesConfigDir = "/kubernetes/conf/dir"
 		RBACEnabled         = true
-		etcdHost            = "127.0.0.1"
-		etcdPort            = "2379"
-		privateIpv4         = "12.34.56.78"
 		providerString      = "aws"
 		masterHost          = "127.0.0.1"
 		masterPort          = "8080"
@@ -59,13 +56,13 @@ spec:
     - /hyperkube
     - apiserver
     - --bind-address=0.0.0.0
-    - --etcd-servers=http://{{ .EtcdHost }}:{{ .EtcdPort }}
+    - --etcd-servers=http://{{ .MasterHost }}:{{ .MasterPort }}
     - --allow-privileged=true
     {{if .RBACEnabled }}- --authorization-mode=Node,RBAC{{end}}
     - --service-cluster-ip-range=10.3.0.0/24
     - --secure-port=443
     - --v=2
-    - --advertise-address={{ .PrivateIpv4 }}
+    - --advertise-address={{ .MasterHost }}
     - --admission-control=NamespaceLifecycle,NamespaceExists,LimitRanger,ServiceAccount,ResourceQuota,DefaultStorageClass{{if .RBACEnabled }},NodeRestriction{{end}}
     - --tls-cert-file=/etc/kubernetes/ssl/apiserver.pem
     - --tls-private-key-file=/etc/kubernetes/ssl/apiserver-key.pem
@@ -217,9 +214,6 @@ EOF
 			K8SVersion:          kubernetesVersion,
 			KubernetesConfigDir: kubernetesConfigDir,
 			RBACEnabled:         RBACEnabled,
-			EtcdHost:            etcdHost,
-			EtcdPort:            etcdPort,
-			PrivateIpv4:         privateIpv4,
 			MasterHost:          masterHost,
 			MasterPort:          masterPort,
 			ProviderString:      providerString,
@@ -255,18 +249,6 @@ EOF
 
 	if !strings.Contains(output.String(), masterPort) {
 		t.Errorf("master port %s not found in %s", masterPort, output.String())
-	}
-
-	if !strings.Contains(output.String(), etcdHost) {
-		t.Errorf("etcd host %s not found in %s", etcdHost, output.String())
-	}
-
-	if !strings.Contains(output.String(), etcdPort) {
-		t.Errorf("etcd port %s not found in %s", etcdPort, output.String())
-	}
-
-	if !strings.Contains(output.String(), privateIpv4) {
-		t.Errorf("private ipv4 %s not found in %s", privateIpv4, output.String())
 	}
 
 	if !strings.Contains(output.String(), providerString) {

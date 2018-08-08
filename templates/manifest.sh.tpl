@@ -39,7 +39,7 @@ spec:
     - /hyperkube
     - apiserver
     - --bind-address=0.0.0.0
-    - --etcd-servers=http://{{ .EtcdHost }}:{{ .EtcdPort }}
+    - --etcd-servers=http://{{ .MasterHost }}:{{ .MasterPort }}
     - --allow-privileged=true
     {{if .RBACEnabled }}- --authorization-mode=Node,RBAC{{end}}
     - --service-cluster-ip-range=10.3.0.0/24

@@ -64,8 +64,6 @@ type ManifestConfig struct {
 	K8SVersion          string `json:"k8sVersion"`
 	KubernetesConfigDir string `json:"kubernetesConfigDir"`
 	RBACEnabled         bool   `json:"rbacEnabled"`
-	EtcdHost            string `json:"etcdHost"`
-	EtcdPort            string `json:"etcdPort"`
 	ProviderString      string `json:"providerString"`
 	MasterHost          string `json:"masterHost"`
 	MasterPort          string `json:"masterPort"`
