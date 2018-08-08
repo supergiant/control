@@ -4,13 +4,13 @@ import (
 	"context"
 	"encoding/json"
 
-	"github.com/supergiant/supergiant/pkg/account"
 	"github.com/supergiant/supergiant/pkg/clouds"
+	"github.com/supergiant/supergiant/pkg/model"
 	"github.com/supergiant/supergiant/pkg/workflows/steps"
 )
 
 type cloudAccountGetter interface {
-	Get(context.Context, string) (*account.CloudAccount, error)
+	Get(context.Context, string) (*model.CloudAccount, error)
 }
 
 // bind params uses json serializing and reflect package that is underneath

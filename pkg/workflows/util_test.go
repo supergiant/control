@@ -5,17 +5,17 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/supergiant/supergiant/pkg/account"
 	"github.com/supergiant/supergiant/pkg/clouds"
+	"github.com/supergiant/supergiant/pkg/model"
 	"github.com/supergiant/supergiant/pkg/workflows/steps"
 )
 
 type mockCloudAccountService struct {
-	cloudAccount *account.CloudAccount
+	cloudAccount *model.CloudAccount
 	err          error
 }
 
-func (m *mockCloudAccountService) Get(ctx context.Context, name string) (*account.CloudAccount, error) {
+func (m *mockCloudAccountService) Get(ctx context.Context, name string) (*model.CloudAccount, error) {
 	return m.cloudAccount, m.err
 }
 
@@ -47,11 +47,11 @@ func TestBindParams(t *testing.T) {
 // TODO(stgleb): extend for other types of cloud providers
 func TestFillCloudAccountCredentials(t *testing.T) {
 	testCases := []struct {
-		cloudAccount *account.CloudAccount
+		cloudAccount *model.CloudAccount
 		err          error
 	}{
 		{
-			cloudAccount: &account.CloudAccount{
+			cloudAccount: &model.CloudAccount{
 				Name:     "testName",
 				Provider: clouds.DigitalOcean,
 				Credentials: map[string]string{
