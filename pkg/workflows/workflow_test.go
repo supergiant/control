@@ -69,6 +69,10 @@ func (f *mockStep) Description() string {
 	return f.description
 }
 
+func (f *mockStep) Depends() []string {
+	return nil
+}
+
 func TestTaskRunError(t *testing.T) {
 	errMsg := "something has gone wrong"
 	s := &mockRepository{

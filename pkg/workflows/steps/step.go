@@ -18,6 +18,7 @@ type Step interface {
 	Run(context.Context, io.Writer, *Config) error
 	Name() string
 	Description() string
+	Depends() []string
 }
 
 var (

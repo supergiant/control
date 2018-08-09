@@ -9,6 +9,8 @@ import (
 
 	tm "github.com/supergiant/supergiant/pkg/templatemanager"
 	"github.com/supergiant/supergiant/pkg/workflows/steps"
+	"github.com/supergiant/supergiant/pkg/workflows/steps/docker"
+	"github.com/supergiant/supergiant/pkg/workflows/steps/manifest"
 )
 
 const StepName = "kubelet"
@@ -46,4 +48,8 @@ func (t *Step) Name() string {
 
 func (t *Step) Description() string {
 	return ""
+}
+
+func (s *Step) Depends() []string {
+	return []string{docker.StepName, manifest.StepName}
 }

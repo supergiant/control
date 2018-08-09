@@ -9,6 +9,7 @@ import (
 
 	tm "github.com/supergiant/supergiant/pkg/templatemanager"
 	"github.com/supergiant/supergiant/pkg/workflows/steps"
+	"github.com/supergiant/supergiant/pkg/workflows/steps/kubelet"
 )
 
 const StepName = "poststart"
@@ -45,4 +46,8 @@ func (s *Step) Name() string {
 
 func (s *Step) Description() string {
 	return ""
+}
+
+func (s *Step) Depends() []string {
+	return []string{kubelet.StepName}
 }

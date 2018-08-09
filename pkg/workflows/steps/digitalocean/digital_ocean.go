@@ -176,6 +176,10 @@ func (t *Step) Name() string {
 	return StepName
 }
 
+func (s *Step) Depends() []string {
+	return nil
+}
+
 func (t *Step) Description() string {
 	return ""
 }
@@ -201,3 +205,4 @@ func getPublicIpPort(networks []godo.NetworkV4) string {
 
 	return ""
 }
+

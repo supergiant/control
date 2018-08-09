@@ -9,6 +9,7 @@ import (
 
 	tm "github.com/supergiant/supergiant/pkg/templatemanager"
 	"github.com/supergiant/supergiant/pkg/workflows/steps"
+	"github.com/supergiant/supergiant/pkg/workflows/steps/docker"
 )
 
 const StepName = "etcd"
@@ -27,8 +28,8 @@ func New(tpl *template.Template) *Step {
 	}
 }
 
-func (t *Step) Run(ctx context.Context, out io.Writer, config *steps.Config) error {
-	err := steps.RunTemplate(context.Background(), t.scriptTemplate,
+func (s *Step) Run(ctx context.Context, out io.Writer, config *steps.Config) error {
+	err := steps.RunTemplate(context.Background(), s.scriptTemplate,
 		config.Runner, out, config.EtcdConfig)
 	if err != nil {
 		return errors.Wrap(err, "install etcd step")
@@ -37,10 +38,14 @@ func (t *Step) Run(ctx context.Context, out io.Writer, config *steps.Config) err
 	return nil
 }
 
-func (t *Step) Name() string {
+func (s *Step) Name() string {
 	return StepName
 }
 
-func (t *Step) Description() string {
+func (s *Step) Description() string {
 	return ""
+}
+
+func (s *Step) Depends() []string {
+	return []string{docker.StepName}
 }

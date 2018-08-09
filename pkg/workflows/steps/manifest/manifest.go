@@ -49,3 +49,7 @@ func (t *Step) Name() string {
 func (t *Step) Description() string {
 	return ""
 }
+
+func (s *Step) Depends() []string {
+	return nil
+}

@@ -27,8 +27,8 @@ func New(tpl *template.Template) *Step {
 	}
 }
 
-func (t *Step) Run(ctx context.Context, out io.Writer, config *steps.Config) error {
-	err := steps.RunTemplate(context.Background(), t.scriptTemplate,
+func (s *Step) Run(ctx context.Context, out io.Writer, config *steps.Config) error {
+	err := steps.RunTemplate(context.Background(), s.scriptTemplate,
 		config.Runner, out, config.DownloadK8sBinary)
 	if err != nil {
 		return errors.Wrap(err, "download k8s binary step")
@@ -37,10 +37,14 @@ func (t *Step) Run(ctx context.Context, out io.Writer, config *steps.Config) err
 	return nil
 }
 
-func (t *Step) Name() string {
+func (s *Step) Name() string {
 	return StepName
 }
 
-func (t *Step) Description() string {
+func (s *Step) Description() string {
 	return ""
+}
+
+func (s *Step) Depends() []string {
+	return nil
 }

@@ -29,10 +29,10 @@ func New(script *template.Template) *Step {
 	return t
 }
 
-func (t *Step) Run(ctx context.Context, out io.Writer, config *steps.Config) error {
+func (s *Step) Run(ctx context.Context, out io.Writer, config *steps.Config) error {
 	config.CertificatesConfig.MasterPrivateIP = config.Node.PrivateIp
 
-	err := steps.RunTemplate(ctx, t.script,
+	err := steps.RunTemplate(ctx, s.script,
 		config.Runner, out, config.CertificatesConfig)
 
 	if err != nil {
@@ -42,10 +42,14 @@ func (t *Step) Run(ctx context.Context, out io.Writer, config *steps.Config) err
 	return nil
 }
 
-func (t *Step) Name() string {
+func (s *Step) Name() string {
 	return StepName
 }
 
-func (t *Step) Description() string {
+func (s *Step) Description() string {
 	return ""
+}
+
+func (s *Step) Depends() []string {
+	return nil
 }
