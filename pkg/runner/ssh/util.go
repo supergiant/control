@@ -5,8 +5,9 @@ import (
 
 	"net"
 
-	"github.com/sirupsen/logrus"
+	"fmt"
 	"github.com/pkg/errors"
+	"github.com/sirupsen/logrus"
 	"golang.org/x/crypto/ssh"
 )
 
@@ -39,4 +40,24 @@ func getSshConfig(config Config) (*ssh.ClientConfig, error) {
 			return nil
 		},
 	}, nil
+}
+
+func connectionWithBackOff(host, port string, config *ssh.ClientConfig, timeout time.Duration, attemptCount int) (*ssh.Client, error) {
+	var (
+		counter      = 0
+		c            *ssh.Client
+		err          error
+	)
+
+	for counter < attemptCount {
+		c, err = ssh.Dial("tcp", fmt.Sprintf("%s:%s", host, port), config)
+
+		if err != nil {
+			time.Sleep(timeout)
+			timeout = timeout * 2
+		}
+		counter += 1
+	}
+
+	return c, err
 }

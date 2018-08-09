@@ -212,7 +212,9 @@ func (w *Task) startFrom(ctx context.Context, id string, out io.Writer, i int, e
 	for index := i; index < len(w.StepStatuses); index++ {
 		step := w.workflow[index]
 		logrus.Println(step.Name())
+		// Sync to storage with task in executing state
 		w.StepStatuses[index].Status = steps.StatusExecuting
+		w.sync(ctx)
 		if err := step.Run(ctx, out, &w.Config); err != nil {
 			// Mark step status as error
 			w.StepStatuses[index].Status = steps.StatusError

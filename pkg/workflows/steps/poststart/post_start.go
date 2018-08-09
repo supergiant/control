@@ -31,6 +31,7 @@ func New(script *template.Template) *Step {
 }
 
 func (j *Step) Run(ctx context.Context, out io.Writer, config *steps.Config) error {
+	// TODO(stgleb): use context.WithTimeout, since this step can actually continue infinitely
 	err := steps.RunTemplate(ctx, j.script, config.Runner, out, config.PostStartConfig)
 
 	if err != nil {

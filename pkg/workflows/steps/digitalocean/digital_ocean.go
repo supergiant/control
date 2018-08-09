@@ -4,7 +4,6 @@ import (
 	"context"
 	"fmt"
 	"io"
-	"log"
 	"strconv"
 	"time"
 
@@ -120,9 +119,9 @@ func (t *Step) Run(ctx context.Context, output io.Writer, config *steps.Config) 
 				config.Runner, err = ssh.NewRunner(cfg)
 
 				if err != nil {
-					log.Fatal(err)
+					logrus.Error(err)
+					return err
 				}
-				time.Sleep(time.Minute * 1)
 				return nil
 			}
 
