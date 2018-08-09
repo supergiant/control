@@ -32,7 +32,7 @@ func New(script *template.Template) *Step {
 }
 
 func (t *Step) Run(ctx context.Context, out io.Writer, config *steps.Config) error {
-	config.KubeletConfig.MasterPrivateIP = config.Node.PrivateIp
+	config.KubeletConfig.MasterPrivateIP = "0.0.0.0"
 	err := steps.RunTemplate(ctx, t.script, config.Runner, out, config.KubeletConfig)
 
 	if err != nil {

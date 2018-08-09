@@ -25,6 +25,7 @@ import (
 	"github.com/supergiant/supergiant/pkg/workflows/steps/manifest"
 	"github.com/supergiant/supergiant/pkg/workflows/steps/poststart"
 	"github.com/supergiant/supergiant/pkg/workflows/steps/tiller"
+	"bytes"
 )
 
 // StepStatus aggregates data that is needed to track progress
@@ -125,20 +126,21 @@ func GetWorkflow(workflowName string) Workflow {
 func NewTask(providerRole string, config steps.Config, repository storage.Interface) (*Task, error) {
 	switch providerRole {
 	case DigitalOceanMaster:
-		return New(workflowMap[DigitalOceanMaster], config, repository), nil
+		return newTask(DigitalOceanMaster, GetWorkflow(DigitalOceanMaster), config, repository), nil
 	case DigitalOceanNode:
-		return New(workflowMap[DigitalOceanNode], config, repository), nil
+		return newTask(DigitalOceanNode, GetWorkflow(DigitalOceanNode), config, repository), nil
 	}
 
 	return nil, ErrUnknownProviderWorkflowType
 }
 
-func New(workflow Workflow, config steps.Config, repository storage.Interface) *Task {
+func newTask(workflowType string, workflow Workflow, config steps.Config, repository storage.Interface) *Task {
 	id := uuid.New()
 
 	return &Task{
 		Id:     id,
 		Config: config,
+		Type:   workflowType,
 
 		workflow:   workflow,
 		repository: repository,
@@ -158,6 +160,9 @@ func (w *Task) Run(ctx context.Context, out io.Writer) chan error {
 				ErrMsg:   "",
 			})
 		}
+
+		// Save task state before first step
+		w.sync(ctx)
 		// Start from the first step
 		w.startFrom(ctx, w.Id, out, 0, errChan)
 		logrus.Infof("Task %s has finished successfully", w.Id)
@@ -207,11 +212,12 @@ func (w *Task) startFrom(ctx context.Context, id string, out io.Writer, i int, e
 	for index := i; index < len(w.StepStatuses); index++ {
 		step := w.workflow[index]
 		logrus.Println(step.Name())
+		w.StepStatuses[index].Status = steps.StatusExecuting
 		if err := step.Run(ctx, out, &w.Config); err != nil {
 			// Mark step status as error
 			w.StepStatuses[index].Status = steps.StatusError
 			w.StepStatuses[index].ErrMsg = err.Error()
-			w.sync(ctx, id)
+			w.sync(ctx)
 
 			logrus.Error(err)
 			errChan <- err
@@ -219,18 +225,25 @@ func (w *Task) startFrom(ctx context.Context, id string, out io.Writer, i int, e
 		} else {
 			// Mark step as success
 			w.StepStatuses[index].Status = steps.StatusSuccess
-			w.sync(ctx, id)
+			w.sync(ctx)
 		}
 	}
 }
 
 // synchronize state of workflow to storage
-func (w *Task) sync(ctx context.Context, id string) error {
+func (w *Task) sync(ctx context.Context) error {
 	data, err := json.Marshal(w)
+	buf := &bytes.Buffer{}
 
 	if err != nil {
 		return err
 	}
 
-	return w.repository.Put(ctx, prefix, id, data)
+	err = json.Indent(buf, data, "", "\t")
+
+	if err != nil {
+		return err
+	}
+
+	return w.repository.Put(ctx, prefix, w.Id, buf.Bytes())
 }

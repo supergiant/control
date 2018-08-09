@@ -9,9 +9,10 @@ import (
 type Status string
 
 const (
-	StatusTodo    Status = "todo"
-	StatusSuccess Status = "success"
-	StatusError   Status = "error"
+	StatusTodo      Status = "todo"
+	StatusExecuting        = "executing"
+	StatusSuccess   Status = "success"
+	StatusError     Status = "error"
 )
 
 type Step interface {
