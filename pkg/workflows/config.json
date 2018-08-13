@@ -81,6 +81,12 @@
       "operatingSystem": "linux",
       "arch": "amd64"
     },
+    "sshConfig": {
+      "user" : "root",
+      "port": "22",
+      "privateKey": "",
+      "timeout": 120
+    },
     "cloudAccountName": "cloudAccount1",
     "timeout": 300
   }
