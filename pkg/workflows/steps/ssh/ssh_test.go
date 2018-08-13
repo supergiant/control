@@ -92,13 +92,8 @@ func TestStepRunError(t *testing.T) {
 
 	err := step.Run(context.Background(), ioutil.Discard, config)
 
-	if err != nil {
-		t.Errorf("Unexpected error %v", err)
-		return
-	}
-
-	if config.Runner == nil {
-		t.Error("Runner must not be nil")
+	if err == nil {
+		t.Errorf("Error must not be nil")
 		return
 	}
 }
