@@ -2,10 +2,11 @@ package ssh
 
 import (
 	"context"
-	"github.com/supergiant/supergiant/pkg/node"
-	"github.com/supergiant/supergiant/pkg/workflows/steps"
 	"io/ioutil"
 	"testing"
+
+	"github.com/supergiant/supergiant/pkg/node"
+	"github.com/supergiant/supergiant/pkg/workflows/steps"
 )
 
 var privateKey = `-----BEGIN RSA PRIVATE KEY-----
