@@ -56,6 +56,7 @@ type PostStartConfig struct {
 	Port        string `json:"port"`
 	Username    string `json:"username"`
 	RBACEnabled bool   `json:"rbacEnabled"`
+	Timeout     int    `json:"timeout"`
 }
 
 type KubeletSystemdServiceConfig struct {

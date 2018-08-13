@@ -72,7 +72,7 @@ func deserializeTask(data []byte, repository storage.Interface) (*Task, error) {
 		User:    task.Config.SshConfig.User,
 		Timeout: task.Config.SshConfig.Timeout,
 		// TODO(stgleb): Pass ssh key id instead of key itself
-		Key:     task.Config.SshConfig.PrivateKey,
+		Key: task.Config.SshConfig.PrivateKey,
 	}
 
 	task.Config.Runner, err = ssh.NewRunner(cfg)

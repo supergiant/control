@@ -74,6 +74,7 @@
       "host": "localhost",
       "port": "8080",
       "username": "root",
+      "timeout": 600,
       "rbacEnabled": false
     },
     "tillerConfig": {

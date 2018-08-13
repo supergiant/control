@@ -6,6 +6,7 @@ import (
 	"net"
 
 	"fmt"
+
 	"github.com/pkg/errors"
 	"github.com/sirupsen/logrus"
 	"golang.org/x/crypto/ssh"
@@ -44,9 +45,9 @@ func getSshConfig(config Config) (*ssh.ClientConfig, error) {
 
 func connectionWithBackOff(host, port string, config *ssh.ClientConfig, timeout time.Duration, attemptCount int) (*ssh.Client, error) {
 	var (
-		counter      = 0
-		c            *ssh.Client
-		err          error
+		counter = 0
+		c       *ssh.Client
+		err     error
 	)
 
 	for counter < attemptCount {

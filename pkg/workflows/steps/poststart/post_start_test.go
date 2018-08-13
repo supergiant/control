@@ -11,12 +11,15 @@ import (
 
 	"github.com/pkg/errors"
 
+	"time"
+
 	"github.com/supergiant/supergiant/pkg/runner"
 	"github.com/supergiant/supergiant/pkg/workflows/steps"
 )
 
 type fakeRunner struct {
-	errMsg string
+	errMsg  string
+	timeout time.Duration
 }
 
 func (f *fakeRunner) Run(command *runner.Command) error {
@@ -25,6 +28,9 @@ func (f *fakeRunner) Run(command *runner.Command) error {
 	}
 
 	_, err := io.Copy(command.Out, strings.NewReader(command.Script))
+	// Simulate command latency
+	time.Sleep(f.timeout)
+
 	return err
 }
 
@@ -69,6 +75,7 @@ curl -XPOST -H 'Content-type: application/json' -d'{"apiVersion":"v1","kind":"Na
 			port,
 			username,
 			rbacEnabled,
+			120,
 		},
 		Runner: r,
 	}
@@ -119,5 +126,45 @@ func TestPostStartError(t *testing.T) {
 
 	if !strings.Contains(err.Error(), errMsg) {
 		t.Errorf("Error message expected to contain %s actual %s", errMsg, err.Error())
+	}
+}
+
+func TestPostStartTimeout(t *testing.T) {
+	port := "8080"
+	username := "john"
+	rbacEnabled := true
+
+	r := &fakeRunner{
+		errMsg:  "",
+		timeout: time.Second * 2,
+	}
+
+	proxyTemplate, err := template.New(StepName).Parse("")
+	output := new(bytes.Buffer)
+
+	j := &Step{
+		proxyTemplate,
+	}
+
+	cfg := &steps.Config{
+		PostStartConfig: steps.PostStartConfig{
+			"127.0.0.1",
+			port,
+			username,
+			rbacEnabled,
+			1,
+		},
+		Runner: r,
+	}
+	err = j.Run(context.Background(), output, cfg)
+
+	if err == nil {
+		t.Errorf("Error must not be nil")
+		return
+	}
+
+	if errors.Cause(err) != context.DeadlineExceeded {
+		t.Errorf("Wrong error cause expected %v actual %v", context.DeadlineExceeded,
+			err)
 	}
 }

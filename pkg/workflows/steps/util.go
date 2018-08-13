@@ -11,17 +11,31 @@ import (
 )
 
 func RunTemplate(ctx context.Context, tpl *template.Template, r runner.Runner, output io.Writer, cfg interface{}) error {
-	buffer := new(bytes.Buffer)
-	err := tpl.Execute(buffer, cfg)
+	resultChan := make(chan error)
 
-	if err != nil {
-		return err
-	}
+	go func() {
+		buffer := new(bytes.Buffer)
+		err := tpl.Execute(buffer, cfg)
 
-	cmd := runner.NewCommand(ctx, buffer.String(), output, output)
-	err = r.Run(cmd)
+		if err != nil {
+			resultChan <- err
+		}
+		cmd := runner.NewCommand(ctx, buffer.String(), output, output)
+		err = r.Run(cmd)
 
-	if err != nil {
+		if err != nil {
+			resultChan <- err
+		}
+
+		close(resultChan)
+	}()
+
+	select {
+	case <-ctx.Done():
+		if ctx.Err() != nil {
+			return ctx.Err()
+		}
+	case err := <-resultChan:
 		return err
 	}
 
