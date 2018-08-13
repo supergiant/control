@@ -88,6 +88,12 @@ func (h *TaskHandler) RunTask(w http.ResponseWriter, r *http.Request) {
 	//fillCloudAccountCredentials(r.Context(), h.cloudAccGetter, &req.Cfg)
 
 	task, err := NewTask(req.WorkflowName, req.Cfg, h.repository)
+
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+
 	task.Run(context.Background(), os.Stdout)
 
 	w.WriteHeader(http.StatusAccepted)

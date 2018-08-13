@@ -130,6 +130,12 @@ func NewTask(providerRole string, config steps.Config, repository storage.Interf
 		return newTask(DigitalOceanMaster, GetWorkflow(DigitalOceanMaster), config, repository), nil
 	case DigitalOceanNode:
 		return newTask(DigitalOceanNode, GetWorkflow(DigitalOceanNode), config, repository), nil
+	default:
+		w := GetWorkflow(providerRole)
+
+		if w != nil {
+			return newTask(providerRole, w, config, repository), nil
+		}
 	}
 
 	return nil, ErrUnknownProviderWorkflowType
