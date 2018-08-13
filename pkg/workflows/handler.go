@@ -97,7 +97,7 @@ func (h *TaskHandler) RunTask(w http.ResponseWriter, r *http.Request) {
 }
 
 func (h *TaskHandler) RestartTask(w http.ResponseWriter, r *http.Request) {
-	req  := &RestartTaskRequest{}
+	req := &RestartTaskRequest{}
 	err := json.NewDecoder(r.Body).Decode(req)
 
 	if err != nil {

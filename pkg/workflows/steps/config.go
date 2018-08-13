@@ -94,6 +94,13 @@ type EtcdConfig struct {
 	RestartTimeout string `json:"restartTimeout"`
 }
 
+type SshConfig struct {
+	User       string `json:"user"`
+	Port       string `json:"port"`
+	PrivateKey []byte `json:"privateKey"`
+	Timeout    int    `json:"timeout"`
+}
+
 type Config struct {
 	DigitalOceanConfig DOConfig `json:"digitalOceanConfig"`
 
@@ -107,6 +114,7 @@ type Config struct {
 	KubeletSystemdServiceConfig KubeletSystemdServiceConfig `json:"kubeletSystemdServiceConfig"`
 	TillerConfig                TillerConfig                `json:"tillerConfig"`
 	EtcdConfig                  EtcdConfig                  `json:"etcdConfig"`
+	SshConfig                   SshConfig                   `json:"sshConfig"`
 
 	CloudAccountName string            `json:"cloudAccountName" valid:"required, length(1|32)"`
 	Timeout          time.Duration     `json:"timeout"`

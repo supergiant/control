@@ -4,12 +4,13 @@ import (
 	"context"
 	"encoding/json"
 
+	"log"
+
 	"github.com/supergiant/supergiant/pkg/clouds"
 	"github.com/supergiant/supergiant/pkg/model"
-	"github.com/supergiant/supergiant/pkg/workflows/steps"
-	"github.com/supergiant/supergiant/pkg/storage"
 	"github.com/supergiant/supergiant/pkg/runner/ssh"
-	"log"
+	"github.com/supergiant/supergiant/pkg/storage"
+	"github.com/supergiant/supergiant/pkg/workflows/steps"
 )
 
 type cloudAccountGetter interface {
@@ -67,10 +68,11 @@ func deserializeTask(data []byte, repository storage.Interface) (*Task, error) {
 
 	cfg := ssh.Config{
 		Host:    task.Config.Node.PublicIp,
-		Port:    "22",
-		User:    "root",
-		Timeout: 120,
-		Key:     []byte(``),
+		Port:    task.Config.SshConfig.Port,
+		User:    task.Config.SshConfig.User,
+		Timeout: task.Config.SshConfig.Timeout,
+		// TODO(stgleb): Pass ssh key id instead of key itself
+		Key:     task.Config.SshConfig.PrivateKey,
 	}
 
 	task.Config.Runner, err = ssh.NewRunner(cfg)

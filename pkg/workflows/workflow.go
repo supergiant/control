@@ -12,6 +12,8 @@ import (
 
 	"github.com/sirupsen/logrus"
 
+	"bytes"
+
 	"github.com/supergiant/supergiant/pkg/storage"
 	"github.com/supergiant/supergiant/pkg/workflows/steps"
 	"github.com/supergiant/supergiant/pkg/workflows/steps/certificates"
@@ -25,7 +27,6 @@ import (
 	"github.com/supergiant/supergiant/pkg/workflows/steps/manifest"
 	"github.com/supergiant/supergiant/pkg/workflows/steps/poststart"
 	"github.com/supergiant/supergiant/pkg/workflows/steps/tiller"
-	"bytes"
 )
 
 // StepStatus aggregates data that is needed to track progress
