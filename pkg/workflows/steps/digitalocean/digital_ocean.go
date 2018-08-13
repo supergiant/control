@@ -16,7 +16,6 @@ import (
 
 	"github.com/supergiant/supergiant/pkg/clouds"
 	"github.com/supergiant/supergiant/pkg/node"
-	"github.com/supergiant/supergiant/pkg/runner/ssh"
 	"github.com/supergiant/supergiant/pkg/util"
 	"github.com/supergiant/supergiant/pkg/workflows/steps"
 )
@@ -109,22 +108,8 @@ func (t *Step) Run(ctx context.Context, output io.Writer, config *steps.Config) 
 					PrivateIp: getPrivateIpPort(droplet.Networks.V4),
 				}
 				logrus.Println(config.Node)
-				cfg := ssh.Config{
-					Host:    getPublicIpPort(droplet.Networks.V4),
-					Port:    "22",
-					User:    "root",
-					Timeout: 120,
-					Key:     []byte(``),
-				}
-				config.Runner, err = ssh.NewRunner(cfg)
-
-				if err != nil {
-					logrus.Error(err)
-					return err
-				}
 				return nil
 			}
-
 		case <-after:
 			return ErrTimeoutExceeded
 		}
@@ -204,4 +189,3 @@ func getPublicIpPort(networks []godo.NetworkV4) string {
 
 	return ""
 }
-
