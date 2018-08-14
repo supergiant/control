@@ -117,7 +117,7 @@ func TestPostStartError(t *testing.T) {
 		PostStartConfig: steps.PostStartConfig{
 			Timeout: 1,
 		},
-		Runner:          r,
+		Runner: r,
 	}
 	err = j.Run(context.Background(), output, cfg)
 

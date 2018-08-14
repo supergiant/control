@@ -34,7 +34,7 @@
     },
     "certificatesConfig": {
       "kubernetesConfigDir": "/etc/kubernetes",
-      "masterPrivateIp": "",
+      "masterPrivateIP": "",
       "username": "user",
       "password": "1234"
     },
@@ -45,7 +45,7 @@
       "networkType": "vxlan"
     },
     "kubeletConfig": {
-      "masterPrivateIp": "10.0.0.1",
+      "masterPrivateIP": "localhost",
       "proxyPort": "8080",
       "etcdClientPort": "2379",
       "kubeProviderString": "digitalocean",
@@ -54,12 +54,6 @@
     "kubeletConfConfig": {
       "host": "127.0.0.1",
       "port": "8080"
-    },
-    "kubeProxyConfig": {
-      "masterPrivateIp": "10.0.0.2",
-      "proxyPort": "8080",
-      "etcdClientPort": "2379",
-      "k8sVersion": "1.11.1"
     },
     "manifestConfig": {
       "isMaster": true,

@@ -2,7 +2,6 @@ package kubelet
 
 import (
 	"bytes"
-
 	"context"
 	"io"
 	"strings"
