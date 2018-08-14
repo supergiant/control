@@ -1,11 +1,9 @@
 package controlplane
 
 import (
-	"net/http"
-
 	"fmt"
+	"net/http"
 	"time"
-
 	"errors"
 
 	"github.com/coreos/etcd/clientv3"
@@ -134,7 +132,9 @@ func configureApplication(cfg *Config) (*mux.Router, error) {
 	nodeProfileHandler.Register(protectedAPI)
 
 	// Read templates first and then initialize workflows with steps that uses these templates
-	templatemanager.Init(cfg.TemplatesDir)
+	if err := templatemanager.Init(cfg.TemplatesDir); err != nil {
+		return nil, err
+	}
 	workflows.Init()
 
 	taskHandler := workflows.NewTaskHandler(repository, ssh.NewRunner, accountService)
