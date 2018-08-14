@@ -4,8 +4,6 @@ import (
 	"context"
 	"encoding/json"
 
-	"log"
-
 	"github.com/supergiant/supergiant/pkg/clouds"
 	"github.com/supergiant/supergiant/pkg/model"
 	"github.com/supergiant/supergiant/pkg/runner/ssh"
@@ -78,7 +76,7 @@ func deserializeTask(data []byte, repository storage.Interface) (*Task, error) {
 	task.Config.Runner, err = ssh.NewRunner(cfg)
 
 	if err != nil {
-		log.Fatal(err)
+		return nil, err
 	}
 
 	return task, nil
