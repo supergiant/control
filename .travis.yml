@@ -64,8 +64,6 @@ script:
   # Cross compile
   - CGO_ENABLED=0 GOOS=linux GOARCH=arm64 go build -a -o dist/supergiant-api-linux-arm64 -ldflags '-extldflags "-static"' ./cmd/controlplane
   - CGO_ENABLED=0 GOOS=linux GOARCH=amd64 go build -a -o dist/supergiant-api-linux-amd64 -ldflags '-extldflags "-static"' ./cmd/controlplane
-  - CGO_ENABLED=0 GOOS=linux GOARCH=arm64 go build -a -o dist/supergiant-ui-linux-arm64 -ldflags '-extldflags "-static"' ./cmd/ui
-  - CGO_ENABLED=0 GOOS=linux GOARCH=amd64 go build -a -o dist/supergiant-ui-linux-amd64 -ldflags '-extldflags "-static"' ./cmd/ui
 
   - travis_wait 60 build/travis_build.sh
 
