@@ -1,18 +1,16 @@
 package controlplane
 
 import (
+	"context"
+	"errors"
 	"fmt"
 	"net/http"
 	"time"
-	"errors"
 
 	"github.com/coreos/etcd/clientv3"
 	"github.com/gorilla/handlers"
 	"github.com/gorilla/mux"
 	"github.com/sirupsen/logrus"
-
-	"context"
-
 	"github.com/supergiant/supergiant/pkg/account"
 	"github.com/supergiant/supergiant/pkg/api"
 	"github.com/supergiant/supergiant/pkg/helm"
