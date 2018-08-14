@@ -125,7 +125,7 @@ func TestTaskHandlerRunTask(t *testing.T) {
 	resp := &TaskResponse{}
 	json.NewDecoder(rec.Body).Decode(resp)
 
-	if len(resp.Id) == 0 {
+	if len(resp.ID) == 0 {
 		t.Error("task id in response should not be empty")
 	}
 }

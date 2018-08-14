@@ -35,11 +35,11 @@ type BuildTaskRequest struct {
 }
 
 type RestartTaskRequest struct {
-	Id string `json:"id"`
+	ID string `json:"id"`
 }
 
 type TaskResponse struct {
-	Id string `json:"id"`
+	ID string `json:"id"`
 }
 
 func NewTaskHandler(repository storage.Interface, runnerFactory func(config ssh.Config) (runner.Runner, error), getter cloudAccountGetter) *TaskHandler {
@@ -111,7 +111,7 @@ func (h *TaskHandler) RestartTask(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	data, err := h.repository.Get(r.Context(), prefix, req.Id)
+	data, err := h.repository.Get(r.Context(), prefix, req.ID)
 
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
@@ -125,7 +125,7 @@ func (h *TaskHandler) RestartTask(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	task.Restart(context.Background(), req.Id, os.Stdout)
+	task.Restart(context.Background(), req.ID, os.Stdout)
 	w.WriteHeader(http.StatusAccepted)
 }
 
