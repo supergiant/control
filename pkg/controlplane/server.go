@@ -11,6 +11,8 @@ import (
 	"github.com/gorilla/mux"
 	"github.com/sirupsen/logrus"
 
+	"context"
+
 	"github.com/supergiant/supergiant/pkg/account"
 	"github.com/supergiant/supergiant/pkg/api"
 	"github.com/supergiant/supergiant/pkg/helm"
@@ -22,6 +24,7 @@ import (
 	"github.com/supergiant/supergiant/pkg/templatemanager"
 	"github.com/supergiant/supergiant/pkg/testutils/assert"
 	"github.com/supergiant/supergiant/pkg/user"
+	"github.com/supergiant/supergiant/pkg/util"
 	"github.com/supergiant/supergiant/pkg/workflows"
 )
 
@@ -77,8 +80,42 @@ func New(cfg *Config) (*Server, error) {
 			IdleTimeout:  time.Second * 120,
 		},
 	}
+	if err := generateUserIfColdStart(cfg); err != nil {
+		return nil, err
+	}
 
 	return s, nil
+}
+
+//generateUserIfColdStart checks if there are any users in the db and if not (i.e. on first launch) generates a root user
+func generateUserIfColdStart(cfg *Config) error {
+	etcdCfg := clientv3.Config{
+		Endpoints: []string{cfg.EtcdUrl},
+	}
+	repository := storage.NewETCDRepository(etcdCfg)
+	userService := user.NewService(user.DefaultStoragePrefix, repository)
+
+	ctx, cancel := context.WithTimeout(context.TODO(), 10*time.Second)
+	defer cancel()
+
+	users, err := userService.GetAll(ctx)
+	if err != nil {
+		return err
+	}
+
+	if len(users) == 0 {
+		u := &user.User{
+			Login:    "root",
+			Password: util.RandomString(13),
+		}
+		logrus.Infof("first time launch detected, use %s as login and %s as password", u.Login, u.Password)
+		err := userService.Create(ctx, u)
+		if err != nil {
+			return nil
+		}
+	}
+
+	return nil
 }
 
 func validate(cfg *Config) error {
