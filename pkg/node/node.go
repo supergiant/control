@@ -8,7 +8,7 @@ import (
 
 type Node struct {
 	Id        string      `json:"id" valid:"required"`
-	Role 	  string 	  `json:"role"`
+	Role      string      `json:"role"`
 	CreatedAt int64       `json:"created_at" valid:"required"`
 	Provider  clouds.Name `json:"provider" valid:"required"`
 	Region    string      `json:"region" valid:"required"`

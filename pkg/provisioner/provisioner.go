@@ -2,13 +2,13 @@ package provisioner
 
 import (
 	"context"
+	"os"
 
-	"github.com/supergiant/supergiant/pkg/profile"
-	"github.com/supergiant/supergiant/pkg/workflows"
 	"github.com/supergiant/supergiant/pkg/node"
+	"github.com/supergiant/supergiant/pkg/profile"
 	"github.com/supergiant/supergiant/pkg/storage"
+	"github.com/supergiant/supergiant/pkg/workflows"
 	"github.com/supergiant/supergiant/pkg/workflows/steps"
-	"io/ioutil"
 )
 
 // Provisioner gets kube profile and returns list of task ids of provision tasks
@@ -17,11 +17,10 @@ type Provisioner interface {
 	Cancel()
 }
 
-type TaskProvisioner struct{
+type TaskProvisioner struct {
 	repository storage.Interface
 
-
-	tasksIds []string
+	tasksIds    []string
 	cancelFuncs []func()
 }
 
@@ -41,14 +40,14 @@ func (r *TaskProvisioner) Provision(ctx context.Context, nodes []node.Node) ([]s
 		}
 
 		// TODO(stgleb): pass buffer here
-		t.Run(c, ioutil.Discard)
+		t.Run(c, os.Stdout)
 		r.tasksIds = append(r.tasksIds, t.Id)
 	}
 
 	return r.tasksIds, nil
 }
 
-// Cancel call cancel funcs of all context of all tasks
+// Cancel call cancel functions of all context of all tasks
 func (r *TaskProvisioner) Cancel() {
 	for _, cancel := range r.cancelFuncs {
 		cancel()
