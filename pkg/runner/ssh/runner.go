@@ -66,12 +66,12 @@ func (r *Runner) Run(cmd *runner.Command) (err error) {
 	c, err := connectionWithBackOff(r.host, r.port, r.sshConf, time.Second*10, 3)
 
 	if err != nil {
-		return errors.Wrap(err, "ssh: error establishing connection")
+		return errors.Wrap(err, "ssh: establishing connection")
 	}
 
 	session, err := c.NewSession()
 	if err != nil {
-		return errors.Wrap(err, "ssh: error creating new session")
+		return errors.Wrap(err, "ssh: creating new session")
 	}
 	defer session.Close()
 

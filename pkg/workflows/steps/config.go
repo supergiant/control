@@ -10,7 +10,7 @@ import (
 
 type CertificatesConfig struct {
 	KubernetesConfigDir string `json:"kubernetesConfigDir"`
-	MasterPrivateIP     string `json:"masterPrivateIp"`
+	MasterPrivateIP     string `json:"masterPrivateIP"`
 	Username            string `json:"username"`
 	Password            string `json:"password"`
 }
@@ -34,7 +34,7 @@ type FlannelConfig struct {
 }
 
 type KubeletConfig struct {
-	MasterPrivateIP    string `json:"masterPrivateIp"`
+	MasterPrivateIP    string `json:"masterPrivateIP"`
 	ProxyPort          string `json:"proxyPort"`
 	EtcdClientPort     string `json:"etcdClientPort"`
 	KubeProviderString string `json:"kubeProviderString"`
