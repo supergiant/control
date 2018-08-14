@@ -3,12 +3,6 @@ DOCKER_IMAGE_TAG := $(shell git describe --tags --always | tr -d v || echo 'late
 
 .PHONY: build test push release
 
-clean:
-	rm -r bindata/ || true && rm -rf tmp/ && mkdir tmp
-
-generate-bindata:
-	go-bindata -pkg bindata -o bindata/bindata.go config/providers/... ui/assets/... ui/views/...
-
 fmt: gofmt goimports
 
 gofmt:
@@ -22,7 +16,6 @@ lint:
 	@build/verify/gometalinter.sh
 
 get-tools:
-	go get -u github.com/jteeuwen/go-bindata/...
 	go get -u github.com/kardianos/govendor
 	go get -u github.com/alecthomas/gometalinter
 	gometalinter --install
