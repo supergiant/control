@@ -2,11 +2,12 @@ package ssh
 
 import (
 	"context"
-	"fmt"
 	"strings"
 
 	"github.com/pkg/errors"
 	"golang.org/x/crypto/ssh"
+
+	"time"
 
 	"github.com/supergiant/supergiant/pkg/runner"
 )
@@ -43,8 +44,8 @@ func NewRunner(config Config) (runner.Runner, error) {
 		return nil, err
 	}
 
-	r := &Runner{host: config.Host, sshConf: sshConfig}
-	if config.Port == "" {
+	r := &Runner{host: config.Host, port: config.Port, sshConf: sshConfig}
+	if r.port == "" {
 		r.port = DefaultPort
 	}
 
@@ -62,13 +63,15 @@ func (r *Runner) Run(cmd *runner.Command) (err error) {
 		return nil
 	}
 
-	c, err := ssh.Dial("tcp", fmt.Sprintf("%s:%s", r.host, r.port), r.sshConf)
+	c, err := connectionWithBackOff(r.host, r.port, r.sshConf, time.Second*10, 3)
+
 	if err != nil {
-		return errors.Wrap(err, "ssh: dial")
+		return errors.Wrap(err, "ssh: establishing connection")
 	}
+
 	session, err := c.NewSession()
 	if err != nil {
-		return errors.Wrap(err, "ssh: new session")
+		return errors.Wrap(err, "ssh: creating new session")
 	}
 	defer session.Close()
 

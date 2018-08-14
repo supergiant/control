@@ -1,88 +1,88 @@
 {
-  "digitalOceanConfig": {
-    "name":"test-node",
-    "k8sVersion":"1.11",
-    "region":"sfo2",
-    "size":"s-1vcpu-2gb",
-    "role":"master",
-    "image":"ubuntu-18-04-x64",
-    "fingerprints":["AisphBB7KGlqhl4BRdqlBM4GKBuo6myQJbi/PovKxm0"],
-    "accessToken":"secret"
-  },
-  "dockerConfig": {
-    "dockerVersion": "17.06.0",
-    "releaseVersion": "xenial",
-    "arch": "amd64"
-  },
-  "downloadK8sBinary": {
-    "k8sVersion": "1.11",
-    "arch": "amd64",
-    "operatingSystem": "linux"
-  },
-  "certificatesConfig": {
-    "kubernetesConfigDir": "",
-    "caCert": "",
-    "caCertName": "",
-    "caKeyCert": "",
-    "cakeyName": "",
-    "apiServerCert": "",
-    "apiServerCertName": "",
-    "apiServerKey": "",
-    "apiServerKeyName": "",
-    "kubeletClientCert": "",
-    "kubeletClientCertName": "",
-    "kubeletClientKey": "",
-    "kubeletClientKeyName": ""
-  },
-  "flannelConfig": {
-    "arch": "amd64",
-    "version": "1.0.0",
-    "network": "10.0.0.0",
-    "networkType": "vxlan"
-  },
-  "kubeletConfig": {
-    "masterPrivateIp": "10.0.0.1",
-    "proxyPort": "8080",
-    "etcdClientPort": "2379",
-    "k8sVersion": "1.11"
-  },
-  "kubeletConfConfig": {
-    "host": "127.0.0.1",
-    "port": "8080"
-  },
-  "kubeProxyConfig": {
-    "masterPrivateIp": "10.0.0.2",
-    "proxyPort": "8080",
-    "etcdClientPort": "2379",
-    "k8sVersion": "1.11"
-  },
-  "manifestConfig": {
-    "k8sVersion": "1.11",
-    "kubernetesConfigDir": "/etc/config",
-    "rbacEnabled": false,
-    "etcdHost": "127.0.0.1",
-    "etcdPort": "2379",
-    "privateIpv4": "10.0.0.1",
-    "providerString": "digitalocean",
-    "masterHost": "10.0.0.1",
-    "masterPort": "8080"
-  },
-  "postStartConfig": {
-    "host": "10.0.0.1",
-    "port": "8080",
-    "username": "root",
-    "rbacEnabled": false
-  },
-  "kubeletSystemdServiceConfig": {
-    "k8sVersion": "1.11",
-    "kubeletService": "kubernetes.conf",
-    "kubernetesProvider": "digitalocean"
-  },
-  "tillerConfig": {
-    "helmVersion": "2.1.1",
-    "operatingSystem": "linux",
-    "arch": "amd64"
-  },
-  "cloudAccountName": "cloudAccount1",
-  "timeout": 300
+  "workflowName" : "digitalOceanMaster",
+  "config": {
+    "digitalOceanConfig": {
+      "name":"test-node",
+      "k8sVersion":"1.11.1",
+      "region":"fra1",
+      "size":"s-1vcpu-2gb",
+      "role":"master",
+      "image":"ubuntu-18-04-x64",
+      "fingerprints":[""],
+      "accessToken":""
+    },
+    "etcdConfig": {
+      "name": "etcd0",
+      "version": "3.3.9",
+      "clusterToken": "token",
+      "host": "0.0.0.0",
+      "dataDir": "/etcd-data",
+      "servicePort": "2379",
+      "managementPort": "2380",
+      "startTimeout": "0",
+      "restartTimeout": "5"
+    },
+    "dockerConfig": {
+      "dockerVersion": "17.06.0",
+      "releaseVersion": "xenial",
+      "arch": "amd64"
+    },
+    "downloadK8sBinary": {
+      "k8sVersion": "1.11.1",
+      "arch": "amd64",
+      "operatingSystem": "linux"
+    },
+    "certificatesConfig": {
+      "kubernetesConfigDir": "/etc/kubernetes",
+      "masterPrivateIP": "",
+      "username": "user",
+      "password": "1234"
+    },
+    "flannelConfig": {
+      "arch": "amd64",
+      "version": "0.10.0",
+      "network": "10.0.0.0",
+      "networkType": "vxlan"
+    },
+    "kubeletConfig": {
+      "masterPrivateIP": "localhost",
+      "proxyPort": "8080",
+      "etcdClientPort": "2379",
+      "kubeProviderString": "digitalocean",
+      "k8sVersion": "1.11.1"
+    },
+    "kubeletConfConfig": {
+      "host": "127.0.0.1",
+      "port": "8080"
+    },
+    "manifestConfig": {
+      "isMaster": true,
+      "k8sVersion": "1.11.1",
+      "kubernetesConfigDir": "/etc/kubernetes",
+      "rbacEnabled": false,
+      "providerString": "digitalocean",
+      "masterHost": "10.0.0.1",
+      "masterPort": "8080"
+    },
+    "postStartConfig": {
+      "host": "localhost",
+      "port": "8080",
+      "username": "root",
+      "timeout": 600,
+      "rbacEnabled": false
+    },
+    "tillerConfig": {
+      "helmVersion": "2.8.0",
+      "operatingSystem": "linux",
+      "arch": "amd64"
+    },
+    "sshConfig": {
+      "user" : "root",
+      "port": "22",
+      "privateKey": "",
+      "timeout": 120
+    },
+    "cloudAccountName": "cloudAccount1",
+    "timeout": 300
+  }
 }

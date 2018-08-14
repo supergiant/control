@@ -43,7 +43,7 @@ type mockStep struct {
 	errs        []error
 }
 
-func (f *mockStep) Run(ctx context.Context, out io.Writer, config steps.Config) error {
+func (f *mockStep) Run(ctx context.Context, out io.Writer, config *steps.Config) error {
 	defer func() {
 		f.counter++
 	}()
@@ -67,6 +67,10 @@ func (f *mockStep) Name() string {
 
 func (f *mockStep) Description() string {
 	return f.description
+}
+
+func (f *mockStep) Depends() []string {
+	return nil
 }
 
 func TestTaskRunError(t *testing.T) {

@@ -11,13 +11,13 @@ import (
 	"github.com/supergiant/supergiant/pkg/workflows/steps"
 )
 
-const StepName = "writeCertificates"
+const StepName = "certificates"
 
 type Step struct {
 	script *template.Template
 }
 
-func init() {
+func Init() {
 	steps.RegisterStep(StepName, New(tm.GetTemplate(StepName)))
 }
 
@@ -29,8 +29,10 @@ func New(script *template.Template) *Step {
 	return t
 }
 
-func (t *Step) Run(ctx context.Context, out io.Writer, config steps.Config) error {
-	err := steps.RunTemplate(ctx, t.script,
+func (s *Step) Run(ctx context.Context, out io.Writer, config *steps.Config) error {
+	config.CertificatesConfig.MasterPrivateIP = config.Node.PrivateIp
+
+	err := steps.RunTemplate(ctx, s.script,
 		config.Runner, out, config.CertificatesConfig)
 
 	if err != nil {
@@ -40,10 +42,14 @@ func (t *Step) Run(ctx context.Context, out io.Writer, config steps.Config) erro
 	return nil
 }
 
-func (t *Step) Name() string {
+func (s *Step) Name() string {
 	return StepName
 }
 
-func (t *Step) Description() string {
+func (s *Step) Description() string {
 	return ""
+}
+
+func (s *Step) Depends() []string {
+	return nil
 }

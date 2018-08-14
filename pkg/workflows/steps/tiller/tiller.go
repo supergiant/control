@@ -4,24 +4,25 @@ import (
 	"context"
 	"io"
 
+	"text/template"
+
 	"github.com/pkg/errors"
 
 	"github.com/supergiant/supergiant/pkg/workflows/steps"
 
-	"text/template"
-
 	tm "github.com/supergiant/supergiant/pkg/templatemanager"
+	"github.com/supergiant/supergiant/pkg/workflows/steps/poststart"
 )
 
 const (
-	StepName = "installTiller"
+	StepName = "tiller"
 )
 
 type Step struct {
 	script *template.Template
 }
 
-func init() {
+func Init() {
 	steps.RegisterStep(StepName, New(tm.GetTemplate(StepName)))
 }
 
@@ -33,7 +34,7 @@ func New(script *template.Template) *Step {
 	return t
 }
 
-func (j *Step) Run(ctx context.Context, out io.Writer, config steps.Config) error {
+func (j *Step) Run(ctx context.Context, out io.Writer, config *steps.Config) error {
 	err := steps.RunTemplate(context.Background(), j.script, config.Runner, out, config.TillerConfig)
 
 	if err != nil {
@@ -49,4 +50,8 @@ func (s *Step) Name() string {
 
 func (s *Step) Description() string {
 	return ""
+}
+
+func (s *Step) Depends() []string {
+	return []string{poststart.StepName}
 }

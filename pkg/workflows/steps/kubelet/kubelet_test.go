@@ -2,14 +2,13 @@ package kubelet
 
 import (
 	"bytes"
+	"context"
 	"io"
 	"strings"
 	"testing"
 	"text/template"
 
 	"github.com/pkg/errors"
-
-	"context"
 
 	"github.com/supergiant/supergiant/pkg/runner"
 	"github.com/supergiant/supergiant/pkg/workflows/steps"
@@ -46,11 +45,11 @@ func TestStartKubelet(t *testing.T) {
 
 	output := new(bytes.Buffer)
 
-	cfg := steps.Config{
+	cfg := &steps.Config{
 		KubeletConfig: steps.KubeletConfig{
-			K8SVersion: k8sVersion,
-			ProxyPort:         proxyPort,
-			EtcdClientPort:    etcdPort,
+			K8SVersion:     k8sVersion,
+			ProxyPort:      proxyPort,
+			EtcdClientPort: etcdPort,
 		},
 		Runner: r,
 	}
@@ -76,7 +75,7 @@ func TestStartKubeletError(t *testing.T) {
 	kubeletScriptTemplate, err := template.New(StepName).Parse("")
 
 	output := new(bytes.Buffer)
-	config := steps.Config{
+	config := &steps.Config{
 		KubeletConfig: steps.KubeletConfig{},
 		Runner:        r,
 	}

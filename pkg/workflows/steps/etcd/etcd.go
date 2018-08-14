@@ -1,4 +1,4 @@
-package docker
+package etcd
 
 import (
 	"context"
@@ -9,9 +9,10 @@ import (
 
 	tm "github.com/supergiant/supergiant/pkg/templatemanager"
 	"github.com/supergiant/supergiant/pkg/workflows/steps"
+	"github.com/supergiant/supergiant/pkg/workflows/steps/docker"
 )
 
-const StepName = "docker"
+const StepName = "etcd"
 
 type Step struct {
 	scriptTemplate *template.Template
@@ -27,24 +28,24 @@ func New(tpl *template.Template) *Step {
 	}
 }
 
-func (t *Step) Run(ctx context.Context, out io.Writer, config *steps.Config) error {
-	err := steps.RunTemplate(context.Background(), t.scriptTemplate,
-		config.Runner, out, config.DockerConfig)
+func (s *Step) Run(ctx context.Context, out io.Writer, config *steps.Config) error {
+	err := steps.RunTemplate(context.Background(), s.scriptTemplate,
+		config.Runner, out, config.EtcdConfig)
 	if err != nil {
-		return errors.Wrap(err, "install docker step")
+		return errors.Wrap(err, "install etcd step")
 	}
 
 	return nil
 }
 
-func (t *Step) Name() string {
+func (s *Step) Name() string {
 	return StepName
 }
 
-func (t *Step) Description() string {
+func (s *Step) Description() string {
 	return ""
 }
 
 func (s *Step) Depends() []string {
-	return nil
+	return []string{docker.StepName}
 }

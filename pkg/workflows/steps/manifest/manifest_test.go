@@ -2,6 +2,8 @@ package manifest
 
 import (
 	"bytes"
+
+	"context"
 	"io"
 	"strings"
 	"testing"
@@ -9,8 +11,7 @@ import (
 
 	"github.com/pkg/errors"
 
-	"context"
-
+	"github.com/supergiant/supergiant/pkg/node"
 	"github.com/supergiant/supergiant/pkg/runner"
 	"github.com/supergiant/supergiant/pkg/workflows/steps"
 )
@@ -19,32 +20,67 @@ type fakeRunner struct {
 	errMsg string
 }
 
-func (f *fakeRunner) Run(command *runner.Command) error {
-	if len(f.errMsg) > 0 {
-		return errors.New(f.errMsg)
-	}
-
-	_, err := io.Copy(command.Out, strings.NewReader(command.Script))
-	return err
-}
-
-func TestWriteManifest(t *testing.T) {
-	var (
-		kubernetesVersion   = "1.8.7"
-		kubernetesConfigDir = "/kubernetes/conf/dir"
-		RBACEnabled         = true
-		etcdHost            = "127.0.0.1"
-		etcdPort            = "2379"
-		privateIpv4         = "12.34.56.78"
-		providerString      = "aws"
-		masterHost          = "127.0.0.1"
-		masterPort          = "8080"
-
-		r                   runner.Runner = &fakeRunner{}
-		writeManifestScript               = `KUBERNETES_MANIFESTS_DIR={{ .KubernetesConfigDir }}/manifests
+var (
+	script = `KUBERNETES_MANIFESTS_DIR={{ .KubernetesConfigDir }}/manifests
 
 mkdir -p ${KUBERNETES_MANIFESTS_DIR}
-    cat << EOF > ${KUBERNETES_MANIFESTS_DIR}/kube-apiserver.yaml
+
+# worker
+cat << EOF > {{ .KubernetesConfigDir }}/worker-kubeconfig.yaml
+apiVersion: v1
+kind: Config
+users:
+- name: kubelet
+  user:
+    token: "1234"
+clusters:
+- name: local
+  cluster:
+    insecure-skip-tls-verify: true
+    server: https://{{ .MasterHost }}
+contexts:
+- context:
+    cluster: local
+    user: kubelet
+  name: service-account-context
+current-context: service-account-context
+EOF
+
+
+# proxy
+cat << EOF > ${KUBERNETES_MANIFESTS_DIR}/kube-proxy.yaml
+apiVersion: v1
+kind: Pod
+metadata:
+  name: kube-proxy
+  namespace: kube-system
+spec:
+  hostNetwork: true
+  containers:
+  - name: kube-proxy
+    image: gcr.io/google_containers/hyperkube:v{{ .K8SVersion }}
+    command:
+    - /hyperkube
+    - proxy
+    - --v=2
+    - --master=http://{{ .MasterHost }}:{{ .MasterPort }}
+    - --proxy-mode=iptables
+    securityContext:
+      privileged: true
+    volumeMounts:
+    - mountPath: /etc/ssl/certs
+      name: ssl-certs-host
+      readOnly: true
+  volumes:
+  - hostPath:
+      path: /usr/share/ca-certificates
+    name: ssl-certs-host
+EOF
+
+
+{{ if .IsMaster }}
+# api-server
+cat << EOF > ${KUBERNETES_MANIFESTS_DIR}/kube-apiserver.yaml
 apiVersion: v1
 kind: Pod
 metadata:
@@ -59,13 +95,12 @@ spec:
     - /hyperkube
     - apiserver
     - --bind-address=0.0.0.0
-    - --etcd-servers=http://{{ .EtcdHost }}:{{ .EtcdPort }}
+    - --etcd-servers=http://{{ .MasterHost }}:2379
     - --allow-privileged=true
-    {{if .RBACEnabled }}- --authorization-mode=Node,RBAC{{end}}
     - --service-cluster-ip-range=10.3.0.0/24
     - --secure-port=443
     - --v=2
-    - --advertise-address={{ .PrivateIpv4 }}
+    - --advertise-address={{ .MasterHost }}
     - --admission-control=NamespaceLifecycle,NamespaceExists,LimitRanger,ServiceAccount,ResourceQuota,DefaultStorageClass{{if .RBACEnabled }},NodeRestriction{{end}}
     - --tls-cert-file=/etc/kubernetes/ssl/apiserver.pem
     - --tls-private-key-file=/etc/kubernetes/ssl/apiserver-key.pem
@@ -75,7 +110,7 @@ spec:
     - --token-auth-file=/etc/kubernetes/ssl/known_tokens.csv
     - --kubelet-preferred-address-types=InternalIP,Hostname,ExternalIP
     - --storage-backend=etcd2
-    {{- .ProviderString }}
+    -  {{ .ProviderString }}
     ports:
     - containerPort: 443
       hostPort: 443
@@ -105,7 +140,8 @@ spec:
     name: ssl-certs-host
 EOF
 
-    cat << EOF > ${KUBERNETES_MANIFESTS_DIR}/kube-controller-manager.yaml
+# kube controller manager
+cat << EOF > ${KUBERNETES_MANIFESTS_DIR}/kube-controller-manager.yaml
 apiVersion: v1
 kind: Pod
 metadata:
@@ -125,7 +161,7 @@ spec:
     - --v=2
     - --cluster-cidr=10.244.0.0/14
     - --allocate-node-cidrs=true
-    {{- .ProviderString }}
+    -  {{ .ProviderString }}
     livenessProbe:
       httpGet:
         host: 127.0.0.1
@@ -149,7 +185,8 @@ spec:
     name: ssl-certs-host
 EOF
 
-    cat << EOF > ${KUBERNETES_MANIFESTS_DIR}/kube-scheduler.yaml
+# scheduler
+cat << EOF > ${KUBERNETES_MANIFESTS_DIR}/kube-scheduler.yaml
 apiVersion: v1
 kind: Pod
 metadata:
@@ -173,39 +210,31 @@ spec:
       initialDelaySeconds: 15
       timeoutSeconds: 1
 EOF
-
-    cat << EOF > ${KUBERNETES_MANIFESTS_DIR}/kube-proxy.yaml
-apiVersion: v1
-kind: Pod
-metadata:
-  name: kube-proxy
-  namespace: kube-system
-spec:
-  hostNetwork: true
-  containers:
-  - name: kube-proxy
-    image: gcr.io/google_containers/hyperkube:v{{ .K8SVersion }}
-    command:
-    - /hyperkube
-    - proxy
-    - --v=2
-    - --master=http://{{ .MasterHost }}:{{ .MasterPort }}
-    - --proxy-mode=iptables
-    securityContext:
-      privileged: true
-    volumeMounts:
-    - mountPath: /etc/ssl/certs
-      name: ssl-certs-host
-      readOnly: true
-  volumes:
-  - hostPath:
-      path: /usr/share/ca-certificates
-    name: ssl-certs-host
-EOF
+{{ end }}
 `
+)
+
+func (f *fakeRunner) Run(command *runner.Command) error {
+	if len(f.errMsg) > 0 {
+		return errors.New(f.errMsg)
+	}
+
+	_, err := io.Copy(command.Out, strings.NewReader(command.Script))
+	return err
+}
+
+func TestWriteManifestMaster(t *testing.T) {
+	var (
+		kubernetesVersion   = "1.8.7"
+		kubernetesConfigDir = "/kubernetes/conf/dir"
+		providerString      = "aws"
+		masterHost          = "127.0.0.1"
+		masterPort          = "8080"
+
+		r runner.Runner = &fakeRunner{}
 	)
 
-	proxyTemplate, err := template.New(StepName).Parse(writeManifestScript)
+	proxyTemplate, err := template.New(StepName).Parse(script)
 
 	if err != nil {
 		t.Errorf("Error while parsing kubeproxy templatemanager %v", err)
@@ -214,12 +243,10 @@ EOF
 	output := new(bytes.Buffer)
 	cfg := steps.Config{
 		ManifestConfig: steps.ManifestConfig{
-			K8SVersion:   kubernetesVersion,
+			IsMaster:            true,
+			K8SVersion:          kubernetesVersion,
 			KubernetesConfigDir: kubernetesConfigDir,
-			RBACEnabled:         RBACEnabled,
-			EtcdHost:            etcdHost,
-			EtcdPort:            etcdPort,
-			PrivateIpv4:         privateIpv4,
+			RBACEnabled:         true,
 			MasterHost:          masterHost,
 			MasterPort:          masterPort,
 			ProviderString:      providerString,
@@ -231,7 +258,7 @@ EOF
 		proxyTemplate,
 	}
 
-	err = j.Run(context.Background(), output, cfg)
+	err = j.Run(context.Background(), output, &cfg)
 
 	if err != nil {
 		t.Errorf("Unpexpected error while  provision node %v", err)
@@ -245,8 +272,8 @@ EOF
 		t.Errorf("kubernetes version dir %s not found in %s", kubernetesVersion, output.String())
 	}
 
-	if RBACEnabled && !strings.Contains(output.String(), "RBAC") {
-		t.Errorf("RBAC not found in %s", output.String())
+	if !strings.Contains(output.String(), "NodeRestriction") {
+		t.Errorf("NodeRestriction not found in %s", output.String())
 	}
 
 	if !strings.Contains(output.String(), masterHost) {
@@ -257,20 +284,72 @@ EOF
 		t.Errorf("master port %s not found in %s", masterPort, output.String())
 	}
 
-	if !strings.Contains(output.String(), etcdHost) {
-		t.Errorf("etcd host %s not found in %s", etcdHost, output.String())
-	}
-
-	if !strings.Contains(output.String(), etcdPort) {
-		t.Errorf("etcd port %s not found in %s", etcdPort, output.String())
-	}
-
-	if !strings.Contains(output.String(), privateIpv4) {
-		t.Errorf("private ipv4 %s not found in %s", privateIpv4, output.String())
-	}
-
 	if !strings.Contains(output.String(), providerString) {
 		t.Errorf("provider string %s not found in %s", providerString, output.String())
+	}
+}
+
+func TestWriteManifestNode(t *testing.T) {
+	var (
+		kubernetesVersion   = "1.8.7"
+		kubernetesConfigDir = "/kubernetes/conf/dir"
+		providerString      = "aws"
+		masterHost          = "127.0.0.1"
+		masterPort          = "8080"
+
+		r runner.Runner = &fakeRunner{}
+	)
+
+	proxyTemplate, err := template.New(StepName).Parse(script)
+
+	if err != nil {
+		t.Errorf("Error while parsing kubeproxy templatemanager %v", err)
+	}
+
+	output := new(bytes.Buffer)
+	cfg := steps.Config{
+		Node: node.Node{
+			PrivateIp: masterHost,
+		},
+		ManifestConfig: steps.ManifestConfig{
+			IsMaster:            false,
+			K8SVersion:          kubernetesVersion,
+			KubernetesConfigDir: kubernetesConfigDir,
+			RBACEnabled:         false,
+			MasterPort:          masterPort,
+			ProviderString:      providerString,
+		},
+		Runner: r,
+	}
+
+	j := &Step{
+		proxyTemplate,
+	}
+
+	err = j.Run(context.Background(), output, &cfg)
+
+	if err != nil {
+		t.Errorf("Unpexpected error while  provision node %v", err)
+	}
+
+	if !strings.Contains(output.String(), kubernetesConfigDir) {
+		t.Errorf("kubernetes config dir %s not found in %s", kubernetesConfigDir, output.String())
+	}
+
+	if !strings.Contains(output.String(), kubernetesVersion) {
+		t.Errorf("kubernetes version dir %s not found in %s", kubernetesVersion, output.String())
+	}
+
+	if !strings.Contains(output.String(), masterHost) {
+		t.Errorf("master host %s not found in %s", masterHost, output.String())
+	}
+
+	if !strings.Contains(output.String(), masterPort) {
+		t.Errorf("master port %s not found in %s", masterPort, output.String())
+	}
+
+	if strings.Contains(output.String(), "kube-apiserver.yaml") {
+		t.Errorf("Unexpected section kube-apiserver.yaml in node manifest %s", output.String())
 	}
 }
 
@@ -292,7 +371,7 @@ func TestWriteManifestError(t *testing.T) {
 		proxyTemplate,
 	}
 
-	err = j.Run(context.Background(), output, cfg)
+	err = j.Run(context.Background(), output, &cfg)
 
 	if err == nil {
 		t.Errorf("Error must not be nil")

@@ -9,6 +9,7 @@ import (
 
 	tm "github.com/supergiant/supergiant/pkg/templatemanager"
 	"github.com/supergiant/supergiant/pkg/workflows/steps"
+	"github.com/supergiant/supergiant/pkg/workflows/steps/etcd"
 )
 
 const StepName = "flannel"
@@ -17,7 +18,7 @@ type Step struct {
 	scriptTemplate *template.Template
 }
 
-func init() {
+func Init() {
 	steps.RegisterStep(StepName, New(tm.GetTemplate(StepName)))
 }
 
@@ -27,7 +28,7 @@ func New(tpl *template.Template) *Step {
 	}
 }
 
-func (t *Step) Run(ctx context.Context, out io.Writer, config steps.Config) error {
+func (t *Step) Run(ctx context.Context, out io.Writer, config *steps.Config) error {
 	err := steps.RunTemplate(context.Background(), t.scriptTemplate,
 		config.Runner, out, config.FlannelConfig)
 	if err != nil {
@@ -43,4 +44,8 @@ func (t *Step) Name() string {
 
 func (t *Step) Description() string {
 	return ""
+}
+
+func (s *Step) Depends() []string {
+	return []string{etcd.StepName}
 }

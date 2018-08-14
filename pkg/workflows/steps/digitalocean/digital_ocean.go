@@ -2,8 +2,6 @@ package digitalocean
 
 import (
 	"context"
-	"encoding/json"
-
 	"fmt"
 	"io"
 	"strconv"
@@ -14,7 +12,10 @@ import (
 	"github.com/pkg/errors"
 	"golang.org/x/oauth2"
 
-	"github.com/supergiant/supergiant/pkg/storage"
+	"github.com/sirupsen/logrus"
+
+	"github.com/supergiant/supergiant/pkg/clouds"
+	"github.com/supergiant/supergiant/pkg/node"
 	"github.com/supergiant/supergiant/pkg/util"
 	"github.com/supergiant/supergiant/pkg/workflows/steps"
 )
@@ -36,26 +37,22 @@ type TagService interface {
 }
 
 type Step struct {
-	storage storage.Interface
-
 	DropletTimeout time.Duration
 	CheckPeriod    time.Duration
 }
 
-func init() {
-	steps.RegisterStep(StepName, New(nil, time.Minute*5, time.Second*5))
+func Init() {
+	steps.RegisterStep(StepName, New(time.Minute*5, time.Second*5))
 }
 
-func New(s storage.Interface, dropletTimeout, checkPeriod time.Duration) *Step {
+func New(dropletTimeout, checkPeriod time.Duration) *Step {
 	return &Step{
-		storage: s,
-
 		DropletTimeout: dropletTimeout,
 		CheckPeriod:    checkPeriod,
 	}
 }
 
-func (t *Step) Run(ctx context.Context, output io.Writer, config steps.Config) error {
+func (t *Step) Run(ctx context.Context, output io.Writer, config *steps.Config) error {
 	c := getClient(config.DigitalOceanConfig.AccessToken)
 
 	config.DigitalOceanConfig.Name = util.MakeNodeName(config.DigitalOceanConfig.Name, config.DigitalOceanConfig.Role)
@@ -79,20 +76,14 @@ func (t *Step) Run(ctx context.Context, output io.Writer, config steps.Config) e
 	}
 
 	tags := []string{"Kubernetes-Cluster", config.DigitalOceanConfig.Name}
-
-	// Create
 	droplet, _, err := c.Droplets.Create(dropletRequest)
 
 	if err != nil {
 		return errors.Wrap(err, "dropletService has returned an error in Run job")
 	}
 
-	err = t.tagDroplet(c.Tags, droplet.ID, tags)
-
-	if err != nil {
-		return errors.Wrap(err,
-			fmt.Sprintf("Tagging droplet %d has failed for Run job ", droplet.ID))
-	}
+	// NOTE(stgleb): ignore droplet tagging error, it always fails
+	t.tagDroplet(c.Tags, droplet.ID, tags)
 
 	after := time.After(t.DropletTimeout)
 	ticker := time.NewTicker(t.CheckPeriod)
@@ -107,13 +98,18 @@ func (t *Step) Run(ctx context.Context, output io.Writer, config steps.Config) e
 			}
 			// Wait for droplet becomes active
 			if droplet.Status == "active" {
-				if data, err := json.Marshal(droplet); err != nil {
-					return err
-				} else {
-					return t.storage.Put(context.Background(), "droplet", droplet.Name, data)
+				// Get private ip ports from droplet networks
+				config.Node = node.Node{
+					Id:        fmt.Sprintf("%d", droplet.ID),
+					CreatedAt: time.Now().Unix(),
+					Provider:  clouds.DigitalOcean,
+					Region:    droplet.Region.Name,
+					PublicIp:  getPublicIpPort(droplet.Networks.V4),
+					PrivateIp: getPrivateIpPort(droplet.Networks.V4),
 				}
+				logrus.Println(config.Node)
+				return nil
 			}
-
 		case <-after:
 			return ErrTimeoutExceeded
 		}
@@ -164,6 +160,32 @@ func (t *Step) Name() string {
 	return StepName
 }
 
+func (s *Step) Depends() []string {
+	return nil
+}
+
 func (t *Step) Description() string {
+	return ""
+}
+
+// Returns private ip
+func getPrivateIpPort(networks []godo.NetworkV4) string {
+	for _, network := range networks {
+		if network.Type == "private" {
+			return network.IPAddress
+		}
+	}
+
+	return ""
+}
+
+// Returns public ip
+func getPublicIpPort(networks []godo.NetworkV4) string {
+	for _, network := range networks {
+		if network.Type == "public" {
+			return network.IPAddress
+		}
+	}
+
 	return ""
 }

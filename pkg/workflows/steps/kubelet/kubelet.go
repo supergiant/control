@@ -9,6 +9,8 @@ import (
 
 	tm "github.com/supergiant/supergiant/pkg/templatemanager"
 	"github.com/supergiant/supergiant/pkg/workflows/steps"
+	"github.com/supergiant/supergiant/pkg/workflows/steps/docker"
+	"github.com/supergiant/supergiant/pkg/workflows/steps/manifest"
 )
 
 const StepName = "kubelet"
@@ -17,7 +19,7 @@ type Step struct {
 	script *template.Template
 }
 
-func init() {
+func Init() {
 	steps.RegisterStep(StepName, New(tm.GetTemplate(StepName)))
 }
 
@@ -29,7 +31,8 @@ func New(script *template.Template) *Step {
 	return t
 }
 
-func (t *Step) Run(ctx context.Context, out io.Writer, config steps.Config) error {
+func (t *Step) Run(ctx context.Context, out io.Writer, config *steps.Config) error {
+	config.KubeletConfig.MasterPrivateIP = "0.0.0.0"
 	err := steps.RunTemplate(ctx, t.script, config.Runner, out, config.KubeletConfig)
 
 	if err != nil {
@@ -45,4 +48,8 @@ func (t *Step) Name() string {
 
 func (t *Step) Description() string {
 	return ""
+}
+
+func (s *Step) Depends() []string {
+	return []string{docker.StepName, manifest.StepName}
 }

@@ -1,4 +1,4 @@
-#!/bin/bash
+echo "PostStart started"
 until $(curl --output /dev/null --silent --head --fail http://{{ .Host }}:{{ .Port }}); do printf '.'; sleep 5; done
 curl -XPOST -H 'Content-type: application/json' -d'{"apiVersion":"v1","kind":"Namespace","metadata":{"name":"kube-system"}}' http://{{ .Host }}:{{ .Port }}/api/v1/namespaces
 /opt/bin/kubectl config set-cluster default-cluster --server="{{ .Host }}:{{ .Port }}"
@@ -12,3 +12,5 @@ curl -XPOST -H 'Content-type: application/json' -d'{"apiVersion":"v1","kind":"Na
 /opt/bin/kubectl create clusterrolebinding default-user-cluster-admin --clusterrole=cluster-admin --user={{ .Username }}
 /opt/bin/kubectl create clusterrolebinding default-kube-system-admin --clusterrole=cluster-admin --serviceaccount=default:default --namespace=kube-system
 {{end}}
+
+echo "PostStart finished"

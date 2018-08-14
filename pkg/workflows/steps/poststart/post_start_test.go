@@ -2,6 +2,8 @@ package poststart
 
 import (
 	"bytes"
+
+	"context"
 	"io"
 	"strings"
 	"testing"
@@ -9,14 +11,15 @@ import (
 
 	"github.com/pkg/errors"
 
-	"context"
+	"time"
 
 	"github.com/supergiant/supergiant/pkg/runner"
 	"github.com/supergiant/supergiant/pkg/workflows/steps"
 )
 
 type fakeRunner struct {
-	errMsg string
+	errMsg  string
+	timeout time.Duration
 }
 
 func (f *fakeRunner) Run(command *runner.Command) error {
@@ -25,11 +28,13 @@ func (f *fakeRunner) Run(command *runner.Command) error {
 	}
 
 	_, err := io.Copy(command.Out, strings.NewReader(command.Script))
+	// Simulate command latency
+	time.Sleep(f.timeout)
+
 	return err
 }
 
 func TestPostStart(t *testing.T) {
-	host := "127.0.0.1"
 	port := "8080"
 	username := "john"
 	rbacEnabled := true
@@ -37,9 +42,9 @@ func TestPostStart(t *testing.T) {
 	var (
 		r               runner.Runner = &fakeRunner{}
 		postStartScript               = `#!/bin/bash
-until $(curl --output /dev/null --silent --head --fail http://{{ .Host }}:{{ .Port }}); do printf '.'; sleep 5; done
-curl -XPOST -H 'Content-type: application/json' -d'{"apiVersion":"v1","kind":"Namespace","metadata":{"name":"kube-system"}}' http://{{ .Host }}:{{ .Port }}/api/v1/namespaces
-/opt/bin/kubectl config set-cluster default-cluster --server="{{ .Host }}:{{ .Port }}"
+until $(curl --output /dev/null --silent --head --fail http://127.0.0.1:{{ .Port }}); do printf '.'; sleep 5; done
+curl -XPOST -H 'Content-type: application/json' -d'{"apiVersion":"v1","kind":"Namespace","metadata":{"name":"kube-system"}}' http://127.0.0.1:{{ .Port }}/api/v1/namespaces
+/opt/bin/kubectl config set-cluster default-cluster --server="127.0.0.1:{{ .Port }}"
 /opt/bin/kubectl config set-context default-system --cluster=default-cluster --user=default-admin
 /opt/bin/kubectl config use-context default-system
 
@@ -64,12 +69,13 @@ curl -XPOST -H 'Content-type: application/json' -d'{"apiVersion":"v1","kind":"Na
 	}
 
 	output := new(bytes.Buffer)
-	cfg := steps.Config{
+	cfg := &steps.Config{
 		PostStartConfig: steps.PostStartConfig{
-			host,
+			"127.0.0.1",
 			port,
 			username,
 			rbacEnabled,
+			120,
 		},
 		Runner: r,
 	}
@@ -82,10 +88,6 @@ curl -XPOST -H 'Content-type: application/json' -d'{"apiVersion":"v1","kind":"Na
 
 	if err != nil {
 		t.Errorf("Unpexpected error while  provision node %v", err)
-	}
-
-	if !strings.Contains(output.String(), host) {
-		t.Errorf("host %s not found in %s", host, output.String())
 	}
 
 	if !strings.Contains(output.String(), port) {
@@ -111,9 +113,11 @@ func TestPostStartError(t *testing.T) {
 		proxyTemplate,
 	}
 
-	cfg := steps.Config{
-		PostStartConfig: steps.PostStartConfig{},
-		Runner:          r,
+	cfg := &steps.Config{
+		PostStartConfig: steps.PostStartConfig{
+			Timeout: 1,
+		},
+		Runner: r,
 	}
 	err = j.Run(context.Background(), output, cfg)
 
@@ -124,5 +128,45 @@ func TestPostStartError(t *testing.T) {
 
 	if !strings.Contains(err.Error(), errMsg) {
 		t.Errorf("Error message expected to contain %s actual %s", errMsg, err.Error())
+	}
+}
+
+func TestPostStartTimeout(t *testing.T) {
+	port := "8080"
+	username := "john"
+	rbacEnabled := true
+
+	r := &fakeRunner{
+		errMsg:  "",
+		timeout: time.Second * 2,
+	}
+
+	proxyTemplate, err := template.New(StepName).Parse("")
+	output := new(bytes.Buffer)
+
+	j := &Step{
+		proxyTemplate,
+	}
+
+	cfg := &steps.Config{
+		PostStartConfig: steps.PostStartConfig{
+			"127.0.0.1",
+			port,
+			username,
+			rbacEnabled,
+			1,
+		},
+		Runner: r,
+	}
+	err = j.Run(context.Background(), output, cfg)
+
+	if err == nil {
+		t.Errorf("Error must not be nil")
+		return
+	}
+
+	if errors.Cause(err) != context.DeadlineExceeded {
+		t.Errorf("Wrong error cause expected %v actual %v", context.DeadlineExceeded,
+			err)
 	}
 }

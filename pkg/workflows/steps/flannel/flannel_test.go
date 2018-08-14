@@ -66,7 +66,7 @@ systemctl restart flanneld.service
 
 		output := &bytes.Buffer{}
 
-		config := steps.Config{
+		config := &steps.Config{
 			FlannelConfig: steps.FlannelConfig{
 				testCase.version,
 				testCase.arch,

@@ -11,13 +11,13 @@ import (
 	"github.com/supergiant/supergiant/pkg/workflows/steps"
 )
 
-const StepName = "cni_tools"
+const StepName = "cni"
 
 type Step struct {
 	script *template.Template
 }
 
-func init() {
+func Init() {
 	steps.RegisterStep(StepName, New(tm.GetTemplate(StepName)))
 }
 
@@ -29,8 +29,8 @@ func New(script *template.Template) *Step {
 	return t
 }
 
-func (j *Step) Run(ctx context.Context, out io.Writer, config steps.Config) error {
-	err := steps.RunTemplate(ctx, j.script, config.Runner, out, nil)
+func (s *Step) Run(ctx context.Context, out io.Writer, config *steps.Config) error {
+	err := steps.RunTemplate(ctx, s.script, config.Runner, out, nil)
 
 	if err != nil {
 		return errors.Wrap(err, "install cni step")
@@ -39,10 +39,14 @@ func (j *Step) Run(ctx context.Context, out io.Writer, config steps.Config) erro
 	return nil
 }
 
-func (t *Step) Name() string {
+func (s *Step) Name() string {
 	return StepName
 }
 
-func (t *Step) Description() string {
+func (s *Step) Description() string {
 	return ""
+}
+
+func (s *Step) Depends() []string {
+	return nil
 }

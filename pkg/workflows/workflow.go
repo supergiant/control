@@ -10,6 +10,10 @@ import (
 
 	"github.com/pborman/uuid"
 
+	"github.com/sirupsen/logrus"
+
+	"bytes"
+
 	"github.com/supergiant/supergiant/pkg/storage"
 	"github.com/supergiant/supergiant/pkg/workflows/steps"
 	"github.com/supergiant/supergiant/pkg/workflows/steps/certificates"
@@ -17,12 +21,11 @@ import (
 	"github.com/supergiant/supergiant/pkg/workflows/steps/digitalocean"
 	"github.com/supergiant/supergiant/pkg/workflows/steps/docker"
 	"github.com/supergiant/supergiant/pkg/workflows/steps/downloadk8sbinary"
+	"github.com/supergiant/supergiant/pkg/workflows/steps/etcd"
 	"github.com/supergiant/supergiant/pkg/workflows/steps/flannel"
 	"github.com/supergiant/supergiant/pkg/workflows/steps/kubelet"
-	"github.com/supergiant/supergiant/pkg/workflows/steps/kubeletconf"
-	"github.com/supergiant/supergiant/pkg/workflows/steps/kubeproxy"
+	"github.com/supergiant/supergiant/pkg/workflows/steps/manifest"
 	"github.com/supergiant/supergiant/pkg/workflows/steps/poststart"
-	"github.com/supergiant/supergiant/pkg/workflows/steps/systemd"
 	"github.com/supergiant/supergiant/pkg/workflows/steps/tiller"
 )
 
@@ -64,23 +67,33 @@ var (
 	ErrUnknownProviderWorkflowType = errors.New("unknown provider_workflow type")
 )
 
-func init() {
+func Init() {
 	workflowMap = make(map[string]Workflow)
+
+	digitalocean.Init()
+	certificates.Init()
+	cni.Init()
+	docker.Init()
+	downloadk8sbinary.Init()
+	flannel.Init()
+	kubelet.Init()
+	manifest.Init()
+	poststart.Init()
+	tiller.Init()
+	etcd.Init()
 
 	digitalOceanMaster := []steps.Step{
 		steps.GetStep(digitalocean.StepName),
 		steps.GetStep(downloadk8sbinary.StepName),
-		steps.GetStep(flannel.StepName),
 		steps.GetStep(docker.StepName),
-		steps.GetStep(kubelet.StepName),
-		steps.GetStep(kubeletconf.StepName),
-		steps.GetStep(kubeproxy.StepName),
-		steps.GetStep(systemd.StepName),
-		steps.GetStep(certificates.StepName),
 		steps.GetStep(cni.StepName),
-		// TODO(stgleb): Make separate cluster workflow for tasks that should be run once per cluster.
-		steps.GetStep(tiller.StepName),
+		steps.GetStep(certificates.StepName),
+		steps.GetStep(etcd.StepName),
+		steps.GetStep(manifest.StepName),
+		steps.GetStep(flannel.StepName),
+		steps.GetStep(kubelet.StepName),
 		steps.GetStep(poststart.StepName),
+		steps.GetStep(tiller.StepName),
 	}
 	digitalOceanNode := []steps.Step{
 		steps.GetStep(digitalocean.StepName),
@@ -88,9 +101,6 @@ func init() {
 		steps.GetStep(flannel.StepName),
 		steps.GetStep(docker.StepName),
 		steps.GetStep(kubelet.StepName),
-		steps.GetStep(kubeletconf.StepName),
-		steps.GetStep(kubeproxy.StepName),
-		steps.GetStep(systemd.StepName),
 		steps.GetStep(certificates.StepName),
 		steps.GetStep(cni.StepName),
 		steps.GetStep(poststart.StepName),
@@ -117,20 +127,27 @@ func GetWorkflow(workflowName string) Workflow {
 func NewTask(providerRole string, config steps.Config, repository storage.Interface) (*Task, error) {
 	switch providerRole {
 	case DigitalOceanMaster:
-		return New(workflowMap[DigitalOceanMaster], config, repository), nil
+		return newTask(DigitalOceanMaster, GetWorkflow(DigitalOceanMaster), config, repository), nil
 	case DigitalOceanNode:
-		return New(workflowMap[DigitalOceanNode], config, repository), nil
+		return newTask(DigitalOceanNode, GetWorkflow(DigitalOceanNode), config, repository), nil
+	default:
+		w := GetWorkflow(providerRole)
+
+		if w != nil {
+			return newTask(providerRole, w, config, repository), nil
+		}
 	}
 
 	return nil, ErrUnknownProviderWorkflowType
 }
 
-func New(workflow Workflow, config steps.Config, repository storage.Interface) *Task {
+func newTask(workflowType string, workflow Workflow, config steps.Config, repository storage.Interface) *Task {
 	id := uuid.New()
 
 	return &Task{
 		Id:     id,
 		Config: config,
+		Type:   workflowType,
 
 		workflow:   workflow,
 		repository: repository,
@@ -150,8 +167,12 @@ func (w *Task) Run(ctx context.Context, out io.Writer) chan error {
 				ErrMsg:   "",
 			})
 		}
+
+		// Save task state before first step
+		w.sync(ctx)
 		// Start from the first step
 		w.startFrom(ctx, w.Id, out, 0, errChan)
+		logrus.Infof("Task %s has finished successfully", w.Id)
 		close(errChan)
 	}()
 
@@ -160,7 +181,7 @@ func (w *Task) Run(ctx context.Context, out io.Writer) chan error {
 
 // Restart executes task from the last failed step
 func (w *Task) Restart(ctx context.Context, id string, out io.Writer) chan error {
-	errChan := make(chan error)
+	errChan := make(chan error, 1)
 
 	go func() {
 		defer close(errChan)
@@ -197,28 +218,41 @@ func (w *Task) startFrom(ctx context.Context, id string, out io.Writer, i int, e
 	// Start workflow from the last failed step
 	for index := i; index < len(w.StepStatuses); index++ {
 		step := w.workflow[index]
-		if err := step.Run(ctx, out, w.Config); err != nil {
+		logrus.Debug(step.Name())
+		// Sync to storage with task in executing state
+		w.StepStatuses[index].Status = steps.StatusExecuting
+		w.sync(ctx)
+		if err := step.Run(ctx, out, &w.Config); err != nil {
 			// Mark step status as error
 			w.StepStatuses[index].Status = steps.StatusError
 			w.StepStatuses[index].ErrMsg = err.Error()
-			w.sync(ctx, id)
+			w.sync(ctx)
 
+			logrus.Error(err)
 			errChan <- err
+			return
 		} else {
 			// Mark step as success
 			w.StepStatuses[index].Status = steps.StatusSuccess
-			w.sync(ctx, id)
+			w.sync(ctx)
 		}
 	}
 }
 
 // synchronize state of workflow to storage
-func (w *Task) sync(ctx context.Context, id string) error {
+func (w *Task) sync(ctx context.Context) error {
 	data, err := json.Marshal(w)
+	buf := &bytes.Buffer{}
 
 	if err != nil {
 		return err
 	}
 
-	return w.repository.Put(ctx, prefix, id, data)
+	err = json.Indent(buf, data, "", "\t")
+
+	if err != nil {
+		return err
+	}
+
+	return w.repository.Put(ctx, prefix, w.Id, buf.Bytes())
 }

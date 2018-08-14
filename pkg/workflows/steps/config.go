@@ -3,28 +3,21 @@ package steps
 import (
 	"time"
 
+	"github.com/supergiant/supergiant/pkg/node"
 	"github.com/supergiant/supergiant/pkg/runner"
+	"github.com/supergiant/supergiant/pkg/storage"
 )
 
 type CertificatesConfig struct {
-	KubernetesConfigDir   string `json:"kubernetesConfigDir"`
-	CACert                string `json:"caCert"`
-	CACertName            string `json:"caCertName"`
-	CAKeyCert             string `json:"caKeyCert"`
-	CAKeyName             string `json:"caKeyName"`
-	APIServerCert         string `json:"apiServerCert"`
-	APIServerCertName     string `json:"apiServerCertName"`
-	APIServerKey          string `json:"apiServerKey"`
-	APIServerKeyName      string `json:"apiServerKeyName"`
-	KubeletClientCert     string `json:"kubeletClientCert"`
-	KubeletClientCertName string `json:"kubeletClientCertName"`
-	KubeletClientKey      string `json:"kubeletClientKey"`
-	KubeletClientKeyName  string `json:"kubeletClientKeyName"`
+	KubernetesConfigDir string `json:"kubernetesConfigDir"`
+	MasterPrivateIP     string `json:"masterPrivateIP"`
+	Username            string `json:"username"`
+	Password            string `json:"password"`
 }
 
 type DOConfig struct {
 	Name         string   `json:"name" valid:"required"`
-	K8sVersion   string   `json:"k8sVersion"`
+	K8SVersion   string   `json:"k8sVersion"`
 	Region       string   `json:"region" valid:"required"`
 	Size         string   `json:"size" valid:"required"`
 	Role         string   `json:"role" valid:"in(master|node)"` // master/node
@@ -34,38 +27,25 @@ type DOConfig struct {
 }
 
 type FlannelConfig struct {
-	Arch           string `json:"arch"`
-	Version string 	`json:"version"`
-	Network        string `json:"network"`
-	NetworkType    string `json:"networkType"`
+	Arch        string `json:"arch"`
+	Version     string `json:"version"`
+	Network     string `json:"network"`
+	NetworkType string `json:"networkType"`
 }
 
 type KubeletConfig struct {
-	MasterPrivateIP string `json:"masterPrivateIp"`
-	ProxyPort       string `json:"proxyPort"`
-	EtcdClientPort  string `json:"etcdClientPort"`
-	K8SVersion      string `json:"k8sVersion"`
-}
-
-type KubeletConfConfig struct {
-	Host string `json:"host" valid:"required"`
-	Port string `json:"port" valid:"required"`
-}
-
-type KubeProxyConfig struct {
-	MasterPrivateIP string `json:"masterPrivateIp"`
-	ProxyPort       string `json:"proxyPort"`
-	EtcdClientPort  string `json:"etcdClientPort"`
-	K8SVersion      string `json:"k8sVersion"`
+	MasterPrivateIP    string `json:"masterPrivateIP"`
+	ProxyPort          string `json:"proxyPort"`
+	EtcdClientPort     string `json:"etcdClientPort"`
+	KubeProviderString string `json:"kubeProviderString"`
+	K8SVersion         string `json:"k8sVersion"`
 }
 
 type ManifestConfig struct {
+	IsMaster            bool   `json:"isMaster"`
 	K8SVersion          string `json:"k8sVersion"`
 	KubernetesConfigDir string `json:"kubernetesConfigDir"`
 	RBACEnabled         bool   `json:"rbacEnabled"`
-	EtcdHost            string `json:"etcdHost"`
-	EtcdPort            string `json:"etcdPort"`
-	PrivateIpv4         string `json:"privateIpv4"`
 	ProviderString      string `json:"providerString"`
 	MasterHost          string `json:"masterHost"`
 	MasterPort          string `json:"masterPort"`
@@ -76,6 +56,7 @@ type PostStartConfig struct {
 	Port        string `json:"port"`
 	Username    string `json:"username"`
 	RBACEnabled bool   `json:"rbacEnabled"`
+	Timeout     int    `json:"timeout"`
 }
 
 type KubeletSystemdServiceConfig struct {
@@ -102,6 +83,25 @@ type DownloadK8sBinary struct {
 	OperatingSystem string `json:"operatingSystem"`
 }
 
+type EtcdConfig struct {
+	Name           string `json:"name"`
+	Version        string `json:"version"`
+	ClusterToken   string `json:"clusterToken"`
+	Host           string `json:"host"`
+	DataDir        string `json:"dataDir"`
+	ServicePort    string `json:"servicePort"`
+	ManagementPort string `json:"managementPort"`
+	StartTimeout   string `json:"startTimeout"`
+	RestartTimeout string `json:"restartTimeout"`
+}
+
+type SshConfig struct {
+	User       string `json:"user"`
+	Port       string `json:"port"`
+	PrivateKey []byte `json:"privateKey"`
+	Timeout    int    `json:"timeout"`
+}
+
 type Config struct {
 	DigitalOceanConfig DOConfig `json:"digitalOceanConfig"`
 
@@ -110,14 +110,16 @@ type Config struct {
 	CertificatesConfig          CertificatesConfig          `json:"certificatesConfig"`
 	FlannelConfig               FlannelConfig               `json:"flannelConfig"`
 	KubeletConfig               KubeletConfig               `json:"kubeletConfig"`
-	KubeletConfConfig           KubeletConfConfig           `json:"kubeletConfConfig"`
-	KubeProxyConfig             KubeProxyConfig             `json:"kubeProxyConfig"`
 	ManifestConfig              ManifestConfig              `json:"manifestConfig"`
 	PostStartConfig             PostStartConfig             `json:"postStartConfig"`
 	KubeletSystemdServiceConfig KubeletSystemdServiceConfig `json:"kubeletSystemdServiceConfig"`
 	TillerConfig                TillerConfig                `json:"tillerConfig"`
+	EtcdConfig                  EtcdConfig                  `json:"etcdConfig"`
+	SshConfig                   SshConfig                   `json:"sshConfig"`
 
-	CloudAccountName string        `json:"cloudAccountName" valid:"required, length(1|32)"`
-	Timeout          time.Duration `json:"timeout"`
-	runner.Runner    `json:"-"`
+	CloudAccountName string            `json:"cloudAccountName" valid:"required, length(1|32)"`
+	Timeout          time.Duration     `json:"timeout"`
+	Node             node.Node         `json:"node"`
+	Runner           runner.Runner     `json:"-"`
+	repository       storage.Interface `json:"-"`
 }

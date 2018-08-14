@@ -34,20 +34,26 @@ type BuildTaskRequest struct {
 	SshConfig ssh.Config   `json:"sshConfig"`
 }
 
-type TaskResponse struct {
-	Id string `json:"id"`
+type RestartTaskRequest struct {
+	ID string `json:"id"`
 }
 
-func NewTaskHandler(repository storage.Interface, runnerFactory func(config ssh.Config) (runner.Runner, error)) *TaskHandler {
+type TaskResponse struct {
+	ID string `json:"id"`
+}
+
+func NewTaskHandler(repository storage.Interface, runnerFactory func(config ssh.Config) (runner.Runner, error), getter cloudAccountGetter) *TaskHandler {
 	return &TaskHandler{
-		runnerFactory: runnerFactory,
-		repository:    repository,
+		runnerFactory:  runnerFactory,
+		repository:     repository,
+		cloudAccGetter: getter,
 	}
 }
 
 func (h *TaskHandler) Register(m *mux.Router) {
-	m.HandleFunc("/task", h.GetTask).Methods(http.MethodGet)
-	m.HandleFunc("/task", h.RunTask).Methods(http.MethodPost)
+	m.HandleFunc("/tasks", h.GetTask).Methods(http.MethodGet)
+	m.HandleFunc("/tasks", h.RunTask).Methods(http.MethodPost)
+	m.HandleFunc("/tasks/restart", h.RestartTask).Methods(http.MethodPost)
 }
 
 func (h *TaskHandler) GetTask(w http.ResponseWriter, r *http.Request) {
@@ -78,23 +84,49 @@ func (h *TaskHandler) RunTask(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	workflow := GetWorkflow(req.WorkflowName)
+	// Get cloud account fill appropriate config structure with cloud account credentials
+	//fillCloudAccountCredentials(r.Context(), h.cloudAccGetter, &req.Cfg)
 
-	if workflow == nil {
-		http.NotFound(w, r)
+	task, err := NewTask(req.WorkflowName, req.Cfg, h.repository)
+
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
 	}
 
-	// Get cloud account fill appropriate config structure with cloud account credentials
-	fillCloudAccountCredentials(r.Context(), h.cloudAccGetter, &req.Cfg)
-
-	task := New(workflow, req.Cfg, h.repository)
 	task.Run(context.Background(), os.Stdout)
 
 	w.WriteHeader(http.StatusAccepted)
 	json.NewEncoder(w).Encode(&TaskResponse{
 		task.Id,
 	})
+}
+
+func (h *TaskHandler) RestartTask(w http.ResponseWriter, r *http.Request) {
+	req := &RestartTaskRequest{}
+	err := json.NewDecoder(r.Body).Decode(req)
+
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusBadRequest)
+		return
+	}
+
+	data, err := h.repository.Get(r.Context(), prefix, req.ID)
+
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+
+	task, err := deserializeTask(data, h.repository)
+
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+
+	task.Restart(context.Background(), req.ID, os.Stdout)
+	w.WriteHeader(http.StatusAccepted)
 }
 
 func (h *TaskHandler) BuildAndRunTask(w http.ResponseWriter, r *http.Request) {
@@ -106,7 +138,7 @@ func (h *TaskHandler) BuildAndRunTask(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	// Create new sshRunner with config provided
+	// Create newTask sshRunner with config provided
 	sshRunner, err := h.runnerFactory(req.SshConfig)
 
 	if err != nil {
@@ -121,7 +153,8 @@ func (h *TaskHandler) BuildAndRunTask(w http.ResponseWriter, r *http.Request) {
 		s = append(s, steps.GetStep(stepName))
 	}
 
-	task := New(s, req.Cfg, h.repository)
+	// TODO(stgleb): pass here workflow type DOMaster or DONode
+	task := newTask("", s, req.Cfg, h.repository)
 	// We ignore cancel function since we cannot get it back
 	ctx, _ := context.WithTimeout(context.Background(), req.Cfg.Timeout*time.Second)
 	task.Run(ctx, os.Stdout)

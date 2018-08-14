@@ -2,11 +2,10 @@ package docker
 
 import (
 	"bytes"
+	"context"
 	"strings"
 	"testing"
 	"text/template"
-
-	"context"
 
 	"github.com/supergiant/supergiant/pkg/testutils"
 	"github.com/supergiant/supergiant/pkg/workflows/steps"
@@ -54,7 +53,7 @@ rm $OUT_DIR/$(basename $URL)
 		scriptTemplate: tpl,
 	}
 
-	err = task.Run(context.Background(), output, config)
+	err = task.Run(context.Background(), output, &config)
 
 	if !strings.Contains(output.String(), dockerVersion) {
 		t.Fatalf("docker version %s not found in output %s", dockerVersion, output.String())

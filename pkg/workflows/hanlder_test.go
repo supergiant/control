@@ -63,6 +63,7 @@ func TestWorkflowHandlerGetWorkflow(t *testing.T) {
 }
 
 func TestTaskHandlerRunTask(t *testing.T) {
+	Init()
 	h := TaskHandler{
 		runnerFactory: func(cfg ssh.Config) (runner.Runner, error) {
 			return &testutils.FakeRunner{}, nil
@@ -124,7 +125,7 @@ func TestTaskHandlerRunTask(t *testing.T) {
 	resp := &TaskResponse{}
 	json.NewDecoder(rec.Body).Decode(resp)
 
-	if len(resp.Id) == 0 {
+	if len(resp.ID) == 0 {
 		t.Error("task id in response should not be empty")
 	}
 }

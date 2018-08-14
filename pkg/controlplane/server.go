@@ -1,11 +1,9 @@
 package controlplane
 
 import (
-	"net/http"
-
 	"fmt"
+	"net/http"
 	"time"
-
 	"errors"
 
 	"github.com/coreos/etcd/clientv3"
@@ -21,6 +19,7 @@ import (
 	"github.com/supergiant/supergiant/pkg/profile"
 	"github.com/supergiant/supergiant/pkg/runner/ssh"
 	"github.com/supergiant/supergiant/pkg/storage"
+	"github.com/supergiant/supergiant/pkg/templatemanager"
 	"github.com/supergiant/supergiant/pkg/testutils/assert"
 	"github.com/supergiant/supergiant/pkg/user"
 	"github.com/supergiant/supergiant/pkg/workflows"
@@ -132,8 +131,14 @@ func configureApplication(cfg *Config) (*mux.Router, error) {
 	nodeProfileHandler := profile.NewNodeProfileHandler(nodeProfileService)
 	nodeProfileHandler.Register(protectedAPI)
 
-	taskHandler := workflows.NewTaskHandler(repository, ssh.NewRunner)
-	taskHandler.Register(protectedAPI)
+	// Read templates first and then initialize workflows with steps that uses these templates
+	if err := templatemanager.Init(cfg.TemplatesDir); err != nil {
+		return nil, err
+	}
+	workflows.Init()
+
+	taskHandler := workflows.NewTaskHandler(repository, ssh.NewRunner, accountService)
+	taskHandler.Register(router)
 
 	helmService := helm.NewService(repository)
 	helmHandler := helm.NewHandler(helmService)

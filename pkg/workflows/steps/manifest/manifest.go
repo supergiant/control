@@ -4,9 +4,9 @@ import (
 	"context"
 	"text/template"
 
-	"github.com/pkg/errors"
-
 	"io"
+
+	"github.com/pkg/errors"
 
 	tm "github.com/supergiant/supergiant/pkg/templatemanager"
 	"github.com/supergiant/supergiant/pkg/workflows/steps"
@@ -18,7 +18,7 @@ type Step struct {
 	script *template.Template
 }
 
-func init() {
+func Init() {
 	steps.RegisterStep(StepName, New(tm.GetTemplate(StepName)))
 }
 
@@ -30,7 +30,9 @@ func New(script *template.Template) *Step {
 	return t
 }
 
-func (j *Step) Run(ctx context.Context, out io.Writer, config steps.Config) error {
+func (j *Step) Run(ctx context.Context, out io.Writer, config *steps.Config) error {
+	config.ManifestConfig.MasterHost = config.Node.PrivateIp
+
 	err := steps.RunTemplate(ctx, j.script, config.Runner, out, config.ManifestConfig)
 
 	if err != nil {
@@ -46,4 +48,8 @@ func (t *Step) Name() string {
 
 func (t *Step) Description() string {
 	return ""
+}
+
+func (s *Step) Depends() []string {
+	return nil
 }

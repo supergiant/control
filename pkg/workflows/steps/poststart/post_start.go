@@ -7,17 +7,20 @@ import (
 
 	"github.com/pkg/errors"
 
+	"time"
+
 	tm "github.com/supergiant/supergiant/pkg/templatemanager"
 	"github.com/supergiant/supergiant/pkg/workflows/steps"
+	"github.com/supergiant/supergiant/pkg/workflows/steps/kubelet"
 )
 
-const StepName = "postStart"
+const StepName = "poststart"
 
 type Step struct {
 	script *template.Template
 }
 
-func init() {
+func Init() {
 	steps.RegisterStep(StepName, New(tm.GetTemplate(StepName)))
 }
 
@@ -29,8 +32,10 @@ func New(script *template.Template) *Step {
 	return t
 }
 
-func (j *Step) Run(ctx context.Context, out io.Writer, config steps.Config) error {
-	err := steps.RunTemplate(context.Background(), j.script, config.Runner, out, config.PostStartConfig)
+func (j *Step) Run(ctx context.Context, out io.Writer, config *steps.Config) error {
+	ctx2, _ := context.WithTimeout(ctx,
+		time.Duration(config.PostStartConfig.Timeout)*time.Second)
+	err := steps.RunTemplate(ctx2, j.script, config.Runner, out, config.PostStartConfig)
 
 	if err != nil {
 		return errors.Wrap(err, "run post start script step")
@@ -39,10 +44,14 @@ func (j *Step) Run(ctx context.Context, out io.Writer, config steps.Config) erro
 	return nil
 }
 
-func (t *Step) Name() string {
+func (s *Step) Name() string {
 	return StepName
 }
 
-func (t *Step) Description() string {
+func (s *Step) Description() string {
 	return ""
+}
+
+func (s *Step) Depends() []string {
+	return []string{kubelet.StepName}
 }
