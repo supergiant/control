@@ -13,30 +13,43 @@ import (
 	"github.com/supergiant/supergiant/pkg/workflows/steps"
 )
 
-func NewTask(providerRole string, config steps.Config, repository storage.Interface) (*Task, error) {
+// Task is a workflow that runs and tracks its progress.
+// A workflow is like a program, while a task is like a process,
+// in terms of an operating system.
+type Task struct {
+	Id           string       `json:"id"`
+	Type         string       `json:"type"`
+	Config       steps.Config `json:"config"`
+	Status       steps.Status `json:"status"`
+	StepStatuses []StepStatus `json:"steps"`
+
+	workflow   Workflow
+	repository storage.Interface
+}
+
+func NewTask(providerRole string, repository storage.Interface) (*Task, error) {
 	switch providerRole {
-	case DigitalOceanMaster:
-		return newTask(DigitalOceanMaster, GetWorkflow(DigitalOceanMaster), config, repository), nil
-	case DigitalOceanNode:
-		return newTask(DigitalOceanNode, GetWorkflow(DigitalOceanNode), config, repository), nil
+	case master:
+		return newTask(master, GetWorkflow(master), repository), nil
+	case node:
+		return newTask(node, GetWorkflow(node), repository), nil
 	default:
 		w := GetWorkflow(providerRole)
 
 		if w != nil {
-			return newTask(providerRole, w, config, repository), nil
+			return newTask(providerRole, w, repository), nil
 		}
 	}
 
 	return nil, ErrUnknownProviderWorkflowType
 }
 
-func newTask(workflowType string, workflow Workflow, config steps.Config, repository storage.Interface) *Task {
+func newTask(workflowType string, workflow Workflow, repository storage.Interface) *Task {
 	id := uuid.New()
 
 	return &Task{
-		Id:     id,
-		Config: config,
-		Type:   workflowType,
+		Id:   id,
+		Type: workflowType,
 
 		workflow:   workflow,
 		repository: repository,
@@ -44,8 +57,8 @@ func newTask(workflowType string, workflow Workflow, config steps.Config, reposi
 }
 
 // Run executes all steps of workflow and tracks the progress in persistent storage
-func (w *Task) Run(ctx context.Context, out io.Writer) chan error {
-	errChan := make(chan error)
+func (w *Task) Run(ctx context.Context, config steps.Config, out io.Writer) chan error {
+	errChan := make(chan error, 1)
 
 	go func() {
 		// Create list of statuses to track
@@ -57,10 +70,17 @@ func (w *Task) Run(ctx context.Context, out io.Writer) chan error {
 			})
 		}
 
+		// Set config to the task
+		w.Config = config
 		// Save task state before first step
 		w.sync(ctx)
 		// Start from the first step
-		w.startFrom(ctx, w.Id, out, 0, errChan)
+		err := w.startFrom(ctx, w.Id, out, 0)
+
+		if err != nil {
+			errChan <- err
+		}
+
 		logrus.Infof("Task %s has finished successfully", w.Id)
 		close(errChan)
 	}()
@@ -97,13 +117,17 @@ func (w *Task) Restart(ctx context.Context, id string, out io.Writer) chan error
 			}
 		}
 		// Start from the last failed one
-		w.startFrom(ctx, id, out, i, errChan)
+		err = w.startFrom(ctx, id, out, i)
+
+		if err != nil {
+			errChan <- err
+		}
 	}()
 	return errChan
 }
 
 // start task execution from particular step
-func (w *Task) startFrom(ctx context.Context, id string, out io.Writer, i int, errChan chan error) {
+func (w *Task) startFrom(ctx context.Context, id string, out io.Writer, i int) error {
 	// Start workflow from the last failed step
 	for index := i; index < len(w.StepStatuses); index++ {
 		step := w.workflow[index]
@@ -118,14 +142,15 @@ func (w *Task) startFrom(ctx context.Context, id string, out io.Writer, i int, e
 			w.sync(ctx)
 
 			logrus.Error(err)
-			errChan <- err
-			return
+			return err
 		} else {
 			// Mark step as success
 			w.StepStatuses[index].Status = steps.StatusSuccess
 			w.sync(ctx)
 		}
 	}
+
+	return nil
 }
 
 // synchronize state of workflow to storage

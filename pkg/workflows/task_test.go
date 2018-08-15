@@ -82,7 +82,6 @@ func TestTaskRunError(t *testing.T) {
 
 	workflow := Task{
 		Id:         id,
-		Config:     steps.Config{},
 		repository: s,
 		workflow: []steps.Step{
 			&mockStep{name: "step1", errs: nil},
@@ -91,7 +90,7 @@ func TestTaskRunError(t *testing.T) {
 	}
 
 	buffer := &bytes.Buffer{}
-	errChan := workflow.Run(context.Background(), buffer)
+	errChan := workflow.Run(context.Background(), steps.Config{}, buffer)
 
 	if len(workflow.Id) == 0 {
 		t.Error("id must not be empty")
@@ -130,7 +129,6 @@ func TestTaskRunSuccess(t *testing.T) {
 	id := "abcd"
 	workflow := Task{
 		Id:         id,
-		Config:     steps.Config{},
 		repository: s,
 		workflow: []steps.Step{
 			&mockStep{name: "step1", errs: nil},
@@ -139,7 +137,7 @@ func TestTaskRunSuccess(t *testing.T) {
 	}
 
 	buffer := &bytes.Buffer{}
-	errChan := workflow.Run(context.Background(), buffer)
+	errChan := workflow.Run(context.Background(), steps.Config{}, buffer)
 
 	if len(id) == 0 {
 		t.Error("id must not be empty")
@@ -175,7 +173,6 @@ func TestWorkflowRestart(t *testing.T) {
 
 	w := &Task{
 		Id:         id,
-		Config:     steps.Config{},
 		repository: s,
 		workflow: []steps.Step{
 			&mockStep{name: "step1", errs: nil},
@@ -185,7 +182,7 @@ func TestWorkflowRestart(t *testing.T) {
 	}
 
 	buffer := &bytes.Buffer{}
-	errChan := w.Run(context.Background(), buffer)
+	errChan := w.Run(context.Background(), steps.Config{}, buffer)
 
 	if len(id) == 0 {
 		t.Error("id must not be empty")

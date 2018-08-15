@@ -87,14 +87,14 @@ func (h *TaskHandler) RunTask(w http.ResponseWriter, r *http.Request) {
 	// Get cloud account fill appropriate config structure with cloud account credentials
 	//fillCloudAccountCredentials(r.Context(), h.cloudAccGetter, &req.Cfg)
 
-	task, err := NewTask(req.WorkflowName, req.Cfg, h.repository)
+	task, err := NewTask(req.WorkflowName, h.repository)
 
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
 	}
 
-	task.Run(context.Background(), os.Stdout)
+	task.Run(context.Background(), req.Cfg, os.Stdout)
 
 	w.WriteHeader(http.StatusAccepted)
 	json.NewEncoder(w).Encode(&TaskResponse{
@@ -154,10 +154,10 @@ func (h *TaskHandler) BuildAndRunTask(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// TODO(stgleb): pass here workflow type DOMaster or DONode
-	task := newTask("", s, req.Cfg, h.repository)
+	task := newTask("", s, h.repository)
 	// We ignore cancel function since we cannot get it back
 	ctx, _ := context.WithTimeout(context.Background(), req.Cfg.Timeout*time.Second)
-	task.Run(ctx, os.Stdout)
+	task.Run(ctx, req.Cfg, os.Stdout)
 
 	w.WriteHeader(http.StatusCreated)
 	json.NewEncoder(w).Encode(&TaskResponse{

@@ -4,7 +4,6 @@ import (
 	"errors"
 	"sync"
 
-	"github.com/supergiant/supergiant/pkg/storage"
 	"github.com/supergiant/supergiant/pkg/workflows/steps"
 	"github.com/supergiant/supergiant/pkg/workflows/steps/certificates"
 	"github.com/supergiant/supergiant/pkg/workflows/steps/cni"
@@ -30,24 +29,13 @@ type StepStatus struct {
 // Workflow is a template for doing some actions
 type Workflow []steps.Step
 
-// Task is a workflow that runs and tracks its progress.
-// A workflow is like a program, while a task is like a process,
-// in terms of an operating system.
-type Task struct {
-	Id           string       `json:"id"`
-	Type         string       `json:"type"`
-	Config       steps.Config `json:"config"`
-	StepStatuses []StepStatus `json:"steps"`
-
-	workflow   Workflow
-	repository storage.Interface
-}
-
 const (
 	prefix = "tasks"
 
-	DigitalOceanMaster = "digitalOceanMaster"
-	DigitalOceanNode   = "digitalOceanNode"
+	digitalOcean = "digitalocean"
+
+	master = "master"
+	node   = "node"
 )
 
 var (
@@ -72,8 +60,11 @@ func Init() {
 	tiller.Init()
 	etcd.Init()
 
-	digitalOceanMaster := []steps.Step{
+	digitalOceanWorkflow := []steps.Step{
 		steps.GetStep(digitalocean.StepName),
+	}
+
+	masterWorkflow := []steps.Step{
 		steps.GetStep(downloadk8sbinary.StepName),
 		steps.GetStep(docker.StepName),
 		steps.GetStep(cni.StepName),
@@ -85,8 +76,7 @@ func Init() {
 		steps.GetStep(poststart.StepName),
 		steps.GetStep(tiller.StepName),
 	}
-	digitalOceanNode := []steps.Step{
-		steps.GetStep(digitalocean.StepName),
+	nodeWorkflow := []steps.Step{
 		steps.GetStep(downloadk8sbinary.StepName),
 		steps.GetStep(flannel.StepName),
 		steps.GetStep(docker.StepName),
@@ -98,8 +88,9 @@ func Init() {
 
 	m.Lock()
 	defer m.Unlock()
-	workflowMap[DigitalOceanMaster] = digitalOceanMaster
-	workflowMap[DigitalOceanNode] = digitalOceanNode
+	workflowMap[master] = masterWorkflow
+	workflowMap[node] = nodeWorkflow
+	workflowMap[digitalOcean] = digitalOceanWorkflow
 }
 
 func RegisterWorkFlow(workflowName string, workflow Workflow) {
