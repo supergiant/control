@@ -6,11 +6,13 @@ import (
 
 	"github.com/supergiant/supergiant/pkg/node"
 	"github.com/supergiant/supergiant/pkg/profile"
+	"context"
 )
 
 type ProvisionHandler struct {
 	kubeService profile.KubeProfileService
 	nodeService profile.NodeProfileService
+	provisioner Provisioner
 }
 
 type ProvisionRequest struct {
@@ -39,12 +41,18 @@ func (h *ProvisionHandler) Provision(w http.ResponseWriter, r *http.Request) {
 	}
 
 	w.WriteHeader(http.StatusAccepted)
-	nodeChan := make(chan *node.Node)
+	nodeChan := make(chan node.Node)
 	errChan := make(chan error)
 
-	for _, masterProfile := range kubeProfile.MasterProfiles {
+	profiles := append(append(make([]profile.NodeProfile, 0),
+		kubeProfile.MasterProfiles...),
+		kubeProfile.NodesProfiles...)
+	nodes := make([]node.Node, 0, len(kubeProfile.MasterProfiles) + len(kubeProfile.NodesProfiles))
+
+	// Build master nodes
+	for _, p := range profiles {
 		go func() {
-			n, err := buildNode(masterProfile)
+			n, err := buildNode(p)
 
 			if err != nil {
 				errChan <- err
@@ -54,14 +62,14 @@ func (h *ProvisionHandler) Provision(w http.ResponseWriter, r *http.Request) {
 		}()
 	}
 
-	masterNodes := make([]*node.Node, 0, len(kubeProfile.MasterProfiles))
-
-	for range kubeProfile.MasterProfiles {
+	for i := 0; i < len(profiles); i++ {
 		n := <-nodeChan
-		masterNodes = append(masterNodes, n)
+		nodes = append(nodes, n)
 	}
+
+	h.provisioner.Provision(context.Background(), nodes)
 }
 
-func buildNode(profile profile.NodeProfile) (*node.Node, error) {
-	return nil, nil
+func buildNode(profile profile.NodeProfile) (node.Node, error) {
+	return node.Node{}, nil
 }
