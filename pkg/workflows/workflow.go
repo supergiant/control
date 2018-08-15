@@ -34,8 +34,8 @@ const (
 
 	digitalOcean = "digitalocean"
 
-	master = "master"
-	node   = "node"
+	MasterTask = "master"
+	Nodetask   = "node"
 )
 
 var (
@@ -88,8 +88,8 @@ func Init() {
 
 	m.Lock()
 	defer m.Unlock()
-	workflowMap[master] = masterWorkflow
-	workflowMap[node] = nodeWorkflow
+	workflowMap[MasterTask] = masterWorkflow
+	workflowMap[Nodetask] = nodeWorkflow
 	workflowMap[digitalOcean] = digitalOceanWorkflow
 }
 

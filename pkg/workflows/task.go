@@ -17,7 +17,7 @@ import (
 // A workflow is like a program, while a task is like a process,
 // in terms of an operating system.
 type Task struct {
-	Id           string       `json:"id"`
+	ID           string       `json:"id"`
 	Type         string       `json:"type"`
 	Config       steps.Config `json:"config"`
 	Status       steps.Status `json:"status"`
@@ -27,17 +27,17 @@ type Task struct {
 	repository storage.Interface
 }
 
-func NewTask(providerRole string, repository storage.Interface) (*Task, error) {
-	switch providerRole {
-	case master:
-		return newTask(master, GetWorkflow(master), repository), nil
-	case node:
-		return newTask(node, GetWorkflow(node), repository), nil
+func NewTask(taskType string, repository storage.Interface) (*Task, error) {
+	switch taskType {
+	case MasterTask:
+		return newTask(MasterTask, GetWorkflow(MasterTask), repository), nil
+	case Nodetask:
+		return newTask(Nodetask, GetWorkflow(Nodetask), repository), nil
 	default:
-		w := GetWorkflow(providerRole)
+		w := GetWorkflow(taskType)
 
 		if w != nil {
-			return newTask(providerRole, w, repository), nil
+			return newTask(taskType, w, repository), nil
 		}
 	}
 
@@ -48,7 +48,7 @@ func newTask(workflowType string, workflow Workflow, repository storage.Interfac
 	id := uuid.New()
 
 	return &Task{
-		Id:   id,
+		ID:   id,
 		Type: workflowType,
 
 		workflow:   workflow,
@@ -75,13 +75,13 @@ func (w *Task) Run(ctx context.Context, config steps.Config, out io.Writer) chan
 		// Save task state before first step
 		w.sync(ctx)
 		// Start from the first step
-		err := w.startFrom(ctx, w.Id, out, 0)
+		err := w.startFrom(ctx, w.ID, out, 0)
 
 		if err != nil {
 			errChan <- err
 		}
 
-		logrus.Infof("Task %s has finished successfully", w.Id)
+		logrus.Infof("Task %s has finished successfully", w.ID)
 		close(errChan)
 	}()
 
@@ -168,5 +168,5 @@ func (w *Task) sync(ctx context.Context) error {
 		return err
 	}
 
-	return w.repository.Put(ctx, prefix, w.Id, buf.Bytes())
+	return w.repository.Put(ctx, prefix, w.ID, buf.Bytes())
 }

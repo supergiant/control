@@ -98,7 +98,7 @@ func (h *TaskHandler) RunTask(w http.ResponseWriter, r *http.Request) {
 
 	w.WriteHeader(http.StatusAccepted)
 	json.NewEncoder(w).Encode(&TaskResponse{
-		task.Id,
+		task.ID,
 	})
 }
 
@@ -161,6 +161,6 @@ func (h *TaskHandler) BuildAndRunTask(w http.ResponseWriter, r *http.Request) {
 
 	w.WriteHeader(http.StatusCreated)
 	json.NewEncoder(w).Encode(&TaskResponse{
-		task.Id,
+		task.ID,
 	})
 }

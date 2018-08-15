@@ -21,7 +21,7 @@ import (
 
 func TestWorkflowHandlerGetWorkflow(t *testing.T) {
 	id := "abcd"
-	expectedType := "master"
+	expectedType := "MasterTask"
 	expectedSteps := []StepStatus{{}, {}}
 	w1 := &Task{
 		Type:         expectedType,
