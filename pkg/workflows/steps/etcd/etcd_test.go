@@ -62,7 +62,7 @@ systemctl start etcd.service
 	name := "etcd0"
 	clusterToken := "tkn"
 
-	r := &testutils.FakeRunner{
+	r := &testutils.MockRunner{
 		Err: nil,
 	}
 

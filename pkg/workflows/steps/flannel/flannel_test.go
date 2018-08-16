@@ -60,7 +60,7 @@ systemctl restart flanneld.service
 	}
 
 	for _, testCase := range testCases {
-		r := &testutils.FakeRunner{
+		r := &testutils.MockRunner{
 			Err: testCase.expectedError,
 		}
 

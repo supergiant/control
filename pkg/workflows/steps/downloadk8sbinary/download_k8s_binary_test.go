@@ -50,7 +50,7 @@ chmod +x /opt/bin/kubectl
 	}
 
 	for _, testCase := range testCases {
-		r := &testutils.FakeRunner{
+		r := &testutils.MockRunner{
 			Err: testCase.expectedError,
 		}
 

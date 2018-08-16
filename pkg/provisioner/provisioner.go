@@ -40,8 +40,8 @@ func NewProvisioner(repository storage.Interface) *TaskProvisioner {
 
 // prepare creates all tasks for provisioning according to cloud provider
 func (r *TaskProvisioner) prepare(name clouds.Name, masterCount, nodeCount int) ([]*workflows.Task, []*workflows.Task) {
-	masterTasks := make([]*workflows.Task, masterCount)
-	nodeTasks := make([]*workflows.Task, nodeCount)
+	masterTasks := make([]*workflows.Task, 0, masterCount)
+	nodeTasks := make([]*workflows.Task, 0, nodeCount)
 
 	for i := 0; i < masterCount; i++ {
 		t, _ := workflows.NewTask(provisionMap[name][0], r.repository)
@@ -82,7 +82,7 @@ func (r *TaskProvisioner) Provision(ctx context.Context, kubeProfile *profile.Ku
 			errChan := masterTask.Run(ctx, config, os.Stdout)
 
 			selectCases = append(selectCases, reflect.SelectCase{
-				Dir:  reflect.SelectRecv,
+				Dir:  reflect.SelectDefault,
 				Chan: reflect.ValueOf(errChan),
 			})
 		}

@@ -7,13 +7,13 @@ import (
 	"github.com/supergiant/supergiant/pkg/runner"
 )
 
-type FakeRunner struct {
+type MockRunner struct {
 	Err error
 }
 
-func (f *FakeRunner) Run(command *runner.Command) error {
-	if f.Err != nil {
-		return f.Err
+func (m *MockRunner) Run(command *runner.Command) error {
+	if m.Err != nil {
+		return m.Err
 	}
 
 	_, err := io.Copy(command.Out, strings.NewReader(command.Script))

@@ -30,7 +30,7 @@ func TestWorkflowHandlerGetWorkflow(t *testing.T) {
 	data, _ := json.Marshal(w1)
 
 	h := TaskHandler{
-		repository: &mockRepository{
+		repository: &MockRepository{
 			map[string][]byte{
 				fmt.Sprintf("%s/%s", prefix, id): data,
 			},
@@ -66,9 +66,9 @@ func TestTaskHandlerRunTask(t *testing.T) {
 	Init()
 	h := TaskHandler{
 		runnerFactory: func(cfg ssh.Config) (runner.Runner, error) {
-			return &testutils.FakeRunner{}, nil
+			return &testutils.MockRunner{}, nil
 		},
-		repository: &mockRepository{
+		repository: &MockRepository{
 			map[string][]byte{},
 		},
 		cloudAccGetter: &mockCloudAccountService{
@@ -92,7 +92,7 @@ func TestTaskHandlerRunTask(t *testing.T) {
 
 	workflowName := "workflow1"
 	message := "hello, world!!!"
-	step := &mockStep{
+	step := &MockStep{
 		name:     "mock_step",
 		messages: []string{message},
 	}
@@ -133,15 +133,15 @@ func TestTaskHandlerRunTask(t *testing.T) {
 func TestWorkflowHandlerBuildWorkflow(t *testing.T) {
 	h := TaskHandler{
 		runnerFactory: func(cfg ssh.Config) (runner.Runner, error) {
-			return &testutils.FakeRunner{}, nil
+			return &testutils.MockRunner{}, nil
 		},
-		repository: &mockRepository{
+		repository: &MockRepository{
 			map[string][]byte{},
 		},
 	}
 
 	message := "hello, world!!!"
-	step := &mockStep{
+	step := &MockStep{
 		name:     "mock_step",
 		messages: []string{message},
 	}

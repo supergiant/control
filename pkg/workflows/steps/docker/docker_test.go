@@ -38,7 +38,7 @@ rm $OUT_DIR/$(basename $URL)
 		return
 	}
 	output := &bytes.Buffer{}
-	r := &testutils.FakeRunner{}
+	r := &testutils.MockRunner{}
 
 	config := steps.Config{
 		DockerConfig: steps.DockerConfig{

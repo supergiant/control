@@ -13,29 +13,29 @@ import (
 	"github.com/supergiant/supergiant/pkg/workflows/steps"
 )
 
-type mockRepository struct {
+type MockRepository struct {
 	storage map[string][]byte
 }
 
-func (f *mockRepository) Put(ctx context.Context, prefix string, key string, value []byte) error {
+func (f *MockRepository) Put(ctx context.Context, prefix string, key string, value []byte) error {
 	f.storage[fmt.Sprintf("%s/%s", prefix, key)] = value
 
 	return nil
 }
 
-func (f *mockRepository) Get(ctx context.Context, prefix string, key string) ([]byte, error) {
+func (f *MockRepository) Get(ctx context.Context, prefix string, key string) ([]byte, error) {
 	return f.storage[fmt.Sprintf("%s/%s", prefix, key)], nil
 }
 
-func (f *mockRepository) GetAll(ctx context.Context, prefix string) ([][]byte, error) {
+func (f *MockRepository) GetAll(ctx context.Context, prefix string) ([][]byte, error) {
 	return nil, nil
 }
 
-func (f *mockRepository) Delete(ctx context.Context, prefix string, key string) error {
+func (f *MockRepository) Delete(ctx context.Context, prefix string, key string) error {
 	return nil
 }
 
-type mockStep struct {
+type MockStep struct {
 	name        string
 	description string
 	counter     int
@@ -43,7 +43,7 @@ type mockStep struct {
 	errs        []error
 }
 
-func (f *mockStep) Run(ctx context.Context, out io.Writer, config *steps.Config) error {
+func (f *MockStep) Run(ctx context.Context, out io.Writer, config *steps.Config) error {
 	defer func() {
 		f.counter++
 	}()
@@ -61,21 +61,21 @@ func (f *mockStep) Run(ctx context.Context, out io.Writer, config *steps.Config)
 	return nil
 }
 
-func (f *mockStep) Name() string {
+func (f *MockStep) Name() string {
 	return f.name
 }
 
-func (f *mockStep) Description() string {
+func (f *MockStep) Description() string {
 	return f.description
 }
 
-func (f *mockStep) Depends() []string {
+func (f *MockStep) Depends() []string {
 	return nil
 }
 
 func TestTaskRunError(t *testing.T) {
 	errMsg := "something has gone wrong"
-	s := &mockRepository{
+	s := &MockRepository{
 		storage: make(map[string][]byte),
 	}
 	id := "abcd"
@@ -84,9 +84,9 @@ func TestTaskRunError(t *testing.T) {
 		ID:         id,
 		repository: s,
 		workflow: []steps.Step{
-			&mockStep{name: "step1", errs: nil},
-			&mockStep{name: "step2", errs: []error{errors.New(errMsg)}},
-			&mockStep{name: "step3", errs: nil}},
+			&MockStep{name: "step1", errs: nil},
+			&MockStep{name: "step2", errs: []error{errors.New(errMsg)}},
+			&MockStep{name: "step3", errs: nil}},
 	}
 
 	buffer := &bytes.Buffer{}
@@ -122,22 +122,22 @@ func TestTaskRunError(t *testing.T) {
 }
 
 func TestTaskRunSuccess(t *testing.T) {
-	s := &mockRepository{
+	s := &MockRepository{
 		storage: make(map[string][]byte),
 	}
 
 	id := "abcd"
-	workflow := Task{
+	task := Task{
 		ID:         id,
 		repository: s,
 		workflow: []steps.Step{
-			&mockStep{name: "step1", errs: nil},
-			&mockStep{name: "step2", errs: nil},
-			&mockStep{name: "step3", errs: nil}},
+			&MockStep{name: "step1", errs: nil},
+			&MockStep{name: "step2", errs: nil},
+			&MockStep{name: "step3", errs: nil}},
 	}
 
 	buffer := &bytes.Buffer{}
-	errChan := workflow.Run(context.Background(), &steps.Config{}, buffer)
+	errChan := task.Run(context.Background(), &steps.Config{}, buffer)
 
 	if len(id) == 0 {
 		t.Error("id must not be empty")
@@ -150,7 +150,7 @@ func TestTaskRunSuccess(t *testing.T) {
 	}
 
 	w := &Task{}
-	data := s.storage[fmt.Sprintf("%s/%s", prefix, workflow.ID)]
+	data := s.storage[fmt.Sprintf("%s/%s", prefix, task.ID)]
 
 	err = json.Unmarshal([]byte(data), w)
 
@@ -166,23 +166,23 @@ func TestTaskRunSuccess(t *testing.T) {
 
 func TestWorkflowRestart(t *testing.T) {
 	errMsg := "something has gone wrong"
-	s := &mockRepository{
+	s := &MockRepository{
 		storage: make(map[string][]byte),
 	}
 	id := "abcd"
 
-	w := &Task{
+	task := &Task{
 		ID:         id,
 		repository: s,
 		workflow: []steps.Step{
-			&mockStep{name: "step1", errs: nil},
-			&mockStep{name: "step2", errs: []error{errors.New(errMsg), nil}},
-			&mockStep{name: "step3", errs: nil},
+			&MockStep{name: "step1", errs: nil},
+			&MockStep{name: "step2", errs: []error{errors.New(errMsg), nil}},
+			&MockStep{name: "step3", errs: nil},
 		},
 	}
 
 	buffer := &bytes.Buffer{}
-	errChan := w.Run(context.Background(), &steps.Config{}, buffer)
+	errChan := task.Run(context.Background(), &steps.Config{}, buffer)
 
 	if len(id) == 0 {
 		t.Error("id must not be empty")
@@ -199,19 +199,19 @@ func TestWorkflowRestart(t *testing.T) {
 	}
 
 	data := s.storage[fmt.Sprintf("%s/%s", prefix, id)]
-	err = json.Unmarshal([]byte(data), w)
+	err = json.Unmarshal([]byte(data), task)
 
 	if err != nil {
 		t.Errorf("Unexpected error while unmarshalling data %v", err)
 	}
 
-	if w.StepStatuses[1].Status != steps.StatusError {
+	if task.StepStatuses[1].Status != steps.StatusError {
 		t.Errorf("Unexpected step statues expected %s actual %s",
-			steps.StatusError, w.StepStatuses[1].Status)
+			steps.StatusError, task.StepStatuses[1].Status)
 	}
 
 	buffer.Reset()
-	errChan = w.Restart(context.Background(), id, buffer)
+	errChan = task.Restart(context.Background(), id, buffer)
 	err = <-errChan
 
 	if err != nil {
