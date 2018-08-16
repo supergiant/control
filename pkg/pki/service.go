@@ -5,8 +5,8 @@ import (
 
 	"net"
 
-	"github.com/supergiant/supergiant/pkg/storage"
 	"github.com/satori/go.uuid"
+	"github.com/supergiant/supergiant/pkg/storage"
 )
 
 type Service struct {
