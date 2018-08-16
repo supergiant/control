@@ -2,10 +2,11 @@ package controlplane
 
 import (
 	"context"
-	"errors"
 	"fmt"
 	"net/http"
 	"time"
+
+	"github.com/pkg/errors"
 
 	"github.com/coreos/etcd/clientv3"
 	"github.com/gorilla/handlers"
@@ -122,7 +123,7 @@ func validate(cfg *Config) error {
 	}
 
 	if err := assert.CheckETCD(cfg.EtcdUrl); err != nil {
-		return err
+		return errors.Wrapf(err, "etcd url %s", cfg.EtcdUrl)
 	}
 
 	if cfg.Port <= 0 {
