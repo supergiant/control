@@ -1,6 +1,7 @@
 package steps
 
 import (
+	"sync"
 	"time"
 
 	"github.com/supergiant/supergiant/pkg/node"
@@ -91,6 +92,7 @@ type EtcdConfig struct {
 	DataDir        string `json:"dataDir"`
 	ServicePort    string `json:"servicePort"`
 	ManagementPort string `json:"managementPort"`
+	Token          string `json:"token"`
 	StartTimeout   string `json:"startTimeout"`
 	RestartTimeout string `json:"restartTimeout"`
 }
@@ -102,6 +104,7 @@ type SshConfig struct {
 	Timeout    int    `json:"timeout"`
 }
 
+// TODO(stgleb): rename to context and embed context.Context here
 type Config struct {
 	DigitalOceanConfig DOConfig `json:"digitalOceanConfig"`
 
@@ -117,9 +120,29 @@ type Config struct {
 	EtcdConfig                  EtcdConfig                  `json:"etcdConfig"`
 	SshConfig                   SshConfig                   `json:"sshConfig"`
 
-	CloudAccountName string            `json:"cloudAccountName" valid:"required, length(1|32)"`
-	Timeout          time.Duration     `json:"timeout"`
-	Node             node.Node         `json:"node"`
-	Runner           runner.Runner     `json:"-"`
-	repository       storage.Interface `json:"-"`
+	CloudAccountName string        `json:"cloudAccountName" valid:"required, length(1|32)"`
+	Timeout          time.Duration `json:"timeout"`
+	Runner           runner.Runner `json:"-"`
+
+	repository storage.Interface `json:"-"`
+
+	m           sync.RWMutex
+	MasterNodes []*node.Node `json:"masterNodes"`
+}
+
+func (c *Config) AddMaster(n *node.Node) {
+	c.m.Lock()
+	defer c.m.Unlock()
+	c.MasterNodes = append(c.MasterNodes, n)
+}
+
+func (c *Config) GetMaster() *node.Node {
+	c.m.RLock()
+	defer c.m.RUnlock()
+
+	if len(c.MasterNodes) == 0 {
+		return nil
+	}
+
+	return c.MasterNodes[0]
 }

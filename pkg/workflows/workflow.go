@@ -32,10 +32,8 @@ type Workflow []steps.Step
 const (
 	prefix = "tasks"
 
-	digitalOcean = "digitalocean"
-
-	MasterTask = "master"
-	Nodetask   = "node"
+	DigitalOceanMaster = "DigitalOceanMaster"
+	DigitalOceanNode   = "DigitalOceanNode"
 )
 
 var (
@@ -60,11 +58,8 @@ func Init() {
 	tiller.Init()
 	etcd.Init()
 
-	digitalOceanWorkflow := []steps.Step{
+	digitalOceanMasterWorkflow := []steps.Step{
 		steps.GetStep(digitalocean.StepName),
-	}
-
-	masterWorkflow := []steps.Step{
 		steps.GetStep(downloadk8sbinary.StepName),
 		steps.GetStep(docker.StepName),
 		steps.GetStep(cni.StepName),
@@ -76,7 +71,8 @@ func Init() {
 		steps.GetStep(poststart.StepName),
 		steps.GetStep(tiller.StepName),
 	}
-	nodeWorkflow := []steps.Step{
+	digitalOceanNodeWorkflow := []steps.Step{
+		steps.GetStep(digitalocean.StepName),
 		steps.GetStep(downloadk8sbinary.StepName),
 		steps.GetStep(flannel.StepName),
 		steps.GetStep(docker.StepName),
@@ -88,9 +84,8 @@ func Init() {
 
 	m.Lock()
 	defer m.Unlock()
-	workflowMap[MasterTask] = masterWorkflow
-	workflowMap[Nodetask] = nodeWorkflow
-	workflowMap[digitalOcean] = digitalOceanWorkflow
+	workflowMap[DigitalOceanMaster] = digitalOceanMasterWorkflow
+	workflowMap[DigitalOceanNode] = digitalOceanNodeWorkflow
 }
 
 func RegisterWorkFlow(workflowName string, workflow Workflow) {

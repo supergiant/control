@@ -17,11 +17,11 @@ import (
 // A workflow is like a program, while a task is like a process,
 // in terms of an operating system.
 type Task struct {
-	ID           string       `json:"id"`
-	Type         string       `json:"type"`
-	Config       steps.Config `json:"config"`
-	Status       steps.Status `json:"status"`
-	StepStatuses []StepStatus `json:"steps"`
+	ID           string        `json:"id"`
+	Type         string        `json:"type"`
+	Config       *steps.Config `json:"config"`
+	Status       steps.Status  `json:"status"`
+	StepStatuses []StepStatus  `json:"steps"`
 
 	workflow   Workflow
 	repository storage.Interface
@@ -29,10 +29,10 @@ type Task struct {
 
 func NewTask(taskType string, repository storage.Interface) (*Task, error) {
 	switch taskType {
-	case MasterTask:
-		return newTask(MasterTask, GetWorkflow(MasterTask), repository), nil
-	case Nodetask:
-		return newTask(Nodetask, GetWorkflow(Nodetask), repository), nil
+	case DigitalOceanMaster:
+		return newTask(DigitalOceanMaster, GetWorkflow(DigitalOceanMaster), repository), nil
+	case DigitalOceanNode:
+		return newTask(DigitalOceanNode, GetWorkflow(DigitalOceanNode), repository), nil
 	default:
 		w := GetWorkflow(taskType)
 
@@ -48,8 +48,9 @@ func newTask(workflowType string, workflow Workflow, repository storage.Interfac
 	id := uuid.New()
 
 	return &Task{
-		ID:   id,
-		Type: workflowType,
+		ID:     id,
+		Type:   workflowType,
+		Status: steps.StatusTodo,
 
 		workflow:   workflow,
 		repository: repository,
@@ -57,7 +58,7 @@ func newTask(workflowType string, workflow Workflow, repository storage.Interfac
 }
 
 // Run executes all steps of workflow and tracks the progress in persistent storage
-func (w *Task) Run(ctx context.Context, config steps.Config, out io.Writer) chan error {
+func (w *Task) Run(ctx context.Context, config *steps.Config, out io.Writer) chan error {
 	errChan := make(chan error, 1)
 
 	go func() {
@@ -135,7 +136,7 @@ func (w *Task) startFrom(ctx context.Context, id string, out io.Writer, i int) e
 		// Sync to storage with task in executing state
 		w.StepStatuses[index].Status = steps.StatusExecuting
 		w.sync(ctx)
-		if err := step.Run(ctx, out, &w.Config); err != nil {
+		if err := step.Run(ctx, out, w.Config); err != nil {
 			// Mark step status as error
 			w.StepStatuses[index].Status = steps.StatusError
 			w.StepStatuses[index].ErrMsg = err.Error()

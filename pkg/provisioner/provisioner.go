@@ -3,8 +3,12 @@ package provisioner
 import (
 	"context"
 	"os"
+	"reflect"
 
-	"github.com/supergiant/supergiant/pkg/node"
+	"github.com/pkg/errors"
+
+	"github.com/supergiant/supergiant/pkg/clouds"
+	"github.com/supergiant/supergiant/pkg/profile"
 	"github.com/supergiant/supergiant/pkg/storage"
 	"github.com/supergiant/supergiant/pkg/workflows"
 	"github.com/supergiant/supergiant/pkg/workflows/steps"
@@ -12,18 +16,20 @@ import (
 
 // Provisioner gets kube profile and returns list of task ids of provision masterTasks
 type Provisioner interface {
-	Prepare(int, int) []string
-	Provision(ctx context.Context, nodes []node.Node)
-	Cancel()
+	Provision(context.Context, *profile.KubeProfile) ([]*workflows.Task, error)
 }
 
 type TaskProvisioner struct {
 	repository storage.Interface
+	TokenGetter
+}
 
-	masterTasks []*workflows.Task
-	nodeTasks   []*workflows.Task
+var provisionMap map[clouds.Name][]string
 
-	cancelFuncs []func()
+func init() {
+	provisionMap = map[clouds.Name][]string{
+		clouds.DigitalOcean: {workflows.DigitalOceanMaster, workflows.DigitalOceanNode},
+	}
 }
 
 func NewProvisioner(repository storage.Interface) *TaskProvisioner {
@@ -32,56 +38,70 @@ func NewProvisioner(repository storage.Interface) *TaskProvisioner {
 	}
 }
 
-func (r *TaskProvisioner) Prepare(masterCount, nodeCount int) []string {
-	tasksIds := make([]string, 0, nodeCount+masterCount)
-	r.masterTasks = make([]*workflows.Task, nodeCount+masterCount)
-
-	for i := 0; i < nodeCount; i++ {
-		t, _ := workflows.NewTask(workflows.Nodetask, r.repository)
-		r.nodeTasks = append(r.nodeTasks, t)
-		tasksIds = append(tasksIds, t.ID)
-	}
+// prepare creates all tasks for provisioning according to cloud provider
+func (r *TaskProvisioner) prepare(name clouds.Name, masterCount, nodeCount int) ([]*workflows.Task, []*workflows.Task) {
+	masterTasks := make([]*workflows.Task, masterCount)
+	nodeTasks := make([]*workflows.Task, nodeCount)
 
 	for i := 0; i < masterCount; i++ {
-		t, _ := workflows.NewTask(workflows.MasterTask, r.repository)
-		r.masterTasks = append(r.masterTasks, t)
-		tasksIds = append(tasksIds, t.ID)
+		t, _ := workflows.NewTask(provisionMap[name][0], r.repository)
+		masterTasks = append(masterTasks, t)
 	}
 
-	return tasksIds
+	for i := 0; i < nodeCount; i++ {
+		t, _ := workflows.NewTask(provisionMap[name][1], r.repository)
+		nodeTasks = append(nodeTasks, t)
+	}
+
+	return masterTasks, nodeTasks
 }
 
 // Provision runs provision process among nodes that have been provided for provision
-func (r *TaskProvisioner) Provision(ctx context.Context, nodes []node.Node) error {
-	r.cancelFuncs = make([]func(), 0, len(nodes))
+func (r *TaskProvisioner) Provision(ctx context.Context, kubeProfile *profile.KubeProfile) ([]*workflows.Task, error) {
+	masterTasks, nodeTasks := r.prepare(kubeProfile.Provider, len(kubeProfile.MasterProfiles),
+		len(kubeProfile.NodesProfiles))
 
-	i, j := 0, 0
-	for _, n := range nodes {
-		c, cancel := context.WithCancel(ctx)
-		r.cancelFuncs = append(r.cancelFuncs, cancel)
-		config := steps.Config{
-			Node: n,
-		}
+	tasks := append(append(make([]*workflows.Task, 0), masterTasks...), nodeTasks...)
+	token, err := r.GetToken(len(masterTasks))
 
-		if n.Role == workflows.MasterTask {
-			t := r.masterTasks[i]
-			t.Run(c, config, os.Stdout)
-
-			i += 1
-		} else {
-			t := r.masterTasks[j]
-			t.Run(c, config, os.Stdout)
-
-			j += 1
-		}
+	if err != nil {
+		return nil, errors.Wrap(err, "etcd discovery")
 	}
 
-	return nil
-}
-
-// Cancel call cancel functions of all context of all masterTasks
-func (r *TaskProvisioner) Cancel() {
-	for _, cancel := range r.cancelFuncs {
-		cancel()
+	config := &steps.Config{
+		EtcdConfig: steps.EtcdConfig{
+			Token: token,
+		},
 	}
+
+	go func() {
+		selectCases := make([]reflect.SelectCase, len(masterTasks))
+
+		// Provision master nodes
+		for _, masterTask := range masterTasks {
+			errChan := masterTask.Run(ctx, config, os.Stdout)
+
+			selectCases = append(selectCases, reflect.SelectCase{
+				Dir:  reflect.SelectRecv,
+				Chan: reflect.ValueOf(errChan),
+			})
+		}
+
+		// Wait until at least one master become available
+		for i := 0; i < len(masterTasks); i++ {
+			reflect.Select(selectCases)
+
+			// Check that at least one master is up
+			if config.GetMaster() != nil {
+				break
+			}
+		}
+
+		// Provision nodes
+		for _, nodeTask := range nodeTasks {
+			nodeTask.Run(ctx, config, os.Stdout)
+		}
+	}()
+
+	return tasks, nil
 }

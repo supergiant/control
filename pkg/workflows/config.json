@@ -19,6 +19,7 @@
       "dataDir": "/etcd-data",
       "servicePort": "2379",
       "managementPort": "2380",
+      "token": "abcd",
       "startTimeout": "0",
       "restartTimeout": "5"
     },

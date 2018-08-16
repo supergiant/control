@@ -65,7 +65,7 @@ func deserializeTask(data []byte, repository storage.Interface) (*Task, error) {
 	task.workflow = GetWorkflow(task.Type)
 
 	cfg := ssh.Config{
-		Host:    task.Config.Node.PublicIp,
+		Host:    task.Config.GetMaster().PublicIp,
 		Port:    task.Config.SshConfig.Port,
 		User:    task.Config.SshConfig.User,
 		Timeout: task.Config.SshConfig.Timeout,
