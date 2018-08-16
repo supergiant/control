@@ -6,11 +6,10 @@ import (
 	"net/http"
 	"time"
 
-	"github.com/pkg/errors"
-
 	"github.com/coreos/etcd/clientv3"
 	"github.com/gorilla/handlers"
 	"github.com/gorilla/mux"
+	"github.com/pkg/errors"
 	"github.com/sirupsen/logrus"
 	"github.com/supergiant/supergiant/pkg/account"
 	"github.com/supergiant/supergiant/pkg/api"
@@ -89,12 +88,14 @@ func New(cfg *Config) (*Server, error) {
 //generateUserIfColdStart checks if there are any users in the db and if not (i.e. on first launch) generates a root user
 func generateUserIfColdStart(cfg *Config) error {
 	etcdCfg := clientv3.Config{
-		Endpoints: []string{cfg.EtcdUrl},
+		Endpoints:   []string{cfg.EtcdUrl},
+		DialTimeout: 10 * time.Second,
 	}
+
 	repository := storage.NewETCDRepository(etcdCfg)
 	userService := user.NewService(user.DefaultStoragePrefix, repository)
 
-	ctx, cancel := context.WithTimeout(context.TODO(), 10*time.Second)
+	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
 	defer cancel()
 
 	users, err := userService.GetAll(ctx)
@@ -157,7 +158,7 @@ func configureApplication(cfg *Config) (*mux.Router, error) {
 
 	router.HandleFunc("/auth", userHandler.Authenticate).Methods(http.MethodPost)
 	//Opening it up for testing right now, will be protected after implementing initial user generation
-	router.HandleFunc("/users", userHandler.Create).Methods(http.MethodPost)
+	protectedAPI.HandleFunc("/users", userHandler.Create).Methods(http.MethodPost)
 
 	kubeProfileService := profile.NewKubeProfileService(profile.DefaultKubeProfilePreifx, repository)
 	kubeProfileHandler := profile.NewKubeProfileHandler(kubeProfileService)
@@ -184,7 +185,7 @@ func configureApplication(cfg *Config) (*mux.Router, error) {
 		TokenService: jwtService,
 		UserService:  userService,
 	}
-	protectedAPI.Use(authMiddleware.AuthMiddleware)
+	protectedAPI.Use(authMiddleware.AuthMiddleware, api.ContentTypeJSON)
 
 	return router, nil
 }

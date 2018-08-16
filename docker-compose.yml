@@ -1,45 +1,27 @@
 version: "2"
 
 services:
-
-    server:
+    control_plane:
+        restart: on-failure
         build:
             context: .
-            dockerfile: build/Dockerfile.dev
-        command:
-            - go
-            - run
-            - cmd/server/server.go
-            - --psql-host=postgresql
-            - --psql-db=default
-            - --psql-user=admin
-            - --psql-pass=secret
-            - --publish-host=0.0.0.0
-            - --http-port=80
-            - --ui-enabled=true
-            - --log-file=/dev/stdout
-            - --log-level=debug
+            dockerfile: Dockerfile
+        command: -etcd-url=etcd:2379
         depends_on:
-            - postgresql
+            - etcd
         ports:
-            - "80:80"
-        volumes:
-            - ./cmd:/go/src/github.com/supergiant/supergiant/cmd
-            - ./pkg:/go/src/github.com/supergiant/supergiant/pkg
-            - ./test:/go/src/github.com/supergiant/supergiant/test
-            - ./vendor:/go/src/github.com/supergiant/supergiant/vendor
-            - ./data:/data
+            - "8080:8080"
+        networks:
+          - sg_net
+    etcd:
+      ports:
+        - "2379:2379"
+      image: quay.io/coreos/etcd
+      command: etcd --initial-cluster-state new --listen-client-urls http://0.0.0.0:2379 --advertise-client-urls http://127.0.0.1:2379
+      networks:
+        sg_net:
+          aliases:
+            - etcd
 
-    postgresql:
-        image: mediamoose/postgresql:9.4-2
-        ports:
-            - "5432:5432"
-        volumes:
-            - postgresql:/var/lib/postgresql
-        environment:
-            POSTGRESQL_DB_NAME: default
-            POSTGRESQL_DB_USER: admin
-            POSTGRESQL_DB_PASS: secret
-
-volumes:
-    postgresql: {}
+networks:
+  sg_net:
