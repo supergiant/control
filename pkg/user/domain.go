@@ -1,6 +1,8 @@
 package user
 
 import (
+	"encoding/json"
+
 	"golang.org/x/crypto/bcrypt"
 )
 
@@ -11,12 +13,26 @@ type User struct {
 	Password          string `json:"password" valid:"required, length(8|24), printableascii"`
 }
 
-func (m *User) encryptPassword() error {
-	hashedPassword, err := bcrypt.GenerateFromPassword([]byte(m.Password), bcrypt.DefaultCost)
+func (u *User) encryptPassword() error {
+	hashedPassword, err := bcrypt.GenerateFromPassword([]byte(u.Password), bcrypt.DefaultCost)
 	if err != nil {
 		return err
 	}
-	m.Password = ""
-	m.EncryptedPassword = hashedPassword
+	u.Password = ""
+	u.EncryptedPassword = hashedPassword
 	return nil
+}
+
+func (u *User) ToJSON() []byte {
+	js, _ := json.Marshal(u)
+	return js
+}
+
+func FromJSON(raw []byte) (*User, error) {
+	usr := new(User)
+	err := json.Unmarshal(raw, usr)
+	if err != nil {
+		return nil, err
+	}
+	return usr, nil
 }
