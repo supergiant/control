@@ -2,20 +2,19 @@ package provisioner
 
 import (
 	"context"
-	"testing"
 	"fmt"
+	"testing"
 
 	"github.com/stretchr/testify/mock"
 
-	"github.com/supergiant/supergiant/pkg/util"
-	"github.com/supergiant/supergiant/pkg/testutils"
-	"github.com/supergiant/supergiant/pkg/profile"
 	"github.com/supergiant/supergiant/pkg/clouds"
+	"github.com/supergiant/supergiant/pkg/profile"
+	"github.com/supergiant/supergiant/pkg/testutils"
+	"github.com/supergiant/supergiant/pkg/util"
 	"github.com/supergiant/supergiant/pkg/workflows"
 )
 
-
-type mockTokenGetter struct{
+type mockTokenGetter struct {
 	getToken func(int) (string, error)
 }
 
@@ -34,7 +33,7 @@ func TestTaskProvisioner(t *testing.T) {
 	repository.On("Put", context.Background(), mock.Anything, mock.Anything, nil).Return(nil)
 
 	provisioner := TaskProvisioner{
-		 repository,
+		repository,
 		tokenGetter,
 	}
 
@@ -62,10 +61,10 @@ func TestTaskProvisioner(t *testing.T) {
 		t.Errorf("Unexpected error %v while provision", err)
 	}
 
-	if len(tasks) != len(kubeProfile.MasterProfiles) + len(kubeProfile.NodesProfiles) {
+	if len(tasks) != len(kubeProfile.MasterProfiles)+len(kubeProfile.NodesProfiles) {
 		t.Errorf("Wrong task count expected %d actual %d",
-			len(kubeProfile.MasterProfiles) +
-			len(kubeProfile.NodesProfiles),
+			len(kubeProfile.MasterProfiles)+
+				len(kubeProfile.NodesProfiles),
 			len(tasks))
 	}
 }
