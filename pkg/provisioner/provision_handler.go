@@ -6,13 +6,22 @@ import (
 	"net/http"
 
 	"github.com/supergiant/supergiant/pkg/account"
+	"github.com/supergiant/supergiant/pkg/model"
 	"github.com/supergiant/supergiant/pkg/profile"
 )
 
+type ProfileGetter interface {
+	Get(context.Context, string) (*profile.KubeProfile, error)
+}
+
+type AccountGetter interface {
+	Get(context.Context, string) (*model.CloudAccount, error)
+}
+
 type ProvisionHandler struct {
-	kubeService         profile.KubeProfileService
-	cloudAccountService account.Service
-	provisioner         Provisioner
+	profileGetter ProfileGetter
+	accountGetter AccountGetter
+	provisioner   Provisioner
 }
 
 type ProvisionRequest struct {
@@ -24,11 +33,11 @@ type ProvisionResponse struct {
 	TaskIds []string `json:"taskIds"`
 }
 
-func NewHandler(kubeService profile.KubeProfileService, cloudAccountService account.Service, provisioner Provisioner) *ProvisionHandler {
+func NewHandler(kubeService *profile.KubeProfileService, cloudAccountService *account.Service, provisioner Provisioner) *ProvisionHandler {
 	return &ProvisionHandler{
-		kubeService:         kubeService,
-		cloudAccountService: cloudAccountService,
-		provisioner:         provisioner,
+		profileGetter: kubeService,
+		accountGetter: cloudAccountService,
+		provisioner:   provisioner,
 	}
 }
 
@@ -40,7 +49,7 @@ func (h *ProvisionHandler) Provision(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, err.Error(), http.StatusBadRequest)
 	}
 
-	kubeProfile, err := h.kubeService.Get(r.Context(), req.ProfileId)
+	kubeProfile, err := h.profileGetter.Get(r.Context(), req.ProfileId)
 
 	if err != nil {
 		http.NotFound(w, r)
