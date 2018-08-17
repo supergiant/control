@@ -87,7 +87,7 @@ type DownloadK8sBinary struct {
 type EtcdConfig struct {
 	Name           string `json:"name"`
 	Version        string `json:"version"`
-	ClusterToken   string `json:"clusterToken"`
+	DiscoveryUrl   string `json:"discoveryUrl"`
 	Host           string `json:"host"`
 	DataDir        string `json:"dataDir"`
 	ServicePort    string `json:"servicePort"`

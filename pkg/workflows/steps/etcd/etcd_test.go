@@ -38,6 +38,7 @@ ExecStart=/usr/bin/docker run \
             --listen-peer-urls http://{{ .Host }}:{{ .ManagementPort }} \
             --initial-advertise-peer-urls http://{{ .Host }}:{{ .ManagementPort }} \
             --initial-cluster {{ .Name }}=http://{{ .Host }}:{{ .ManagementPort }} \
+            --discovery {{ .DiscoveryUrl }} \
             --listen-peer-urls http://{{ .Host }}:2380 --listen-client-urls http://{{ .Host }}:2379
 
 [Install]
@@ -75,7 +76,7 @@ systemctl start etcd.service
 			DataDir:        dataDir,
 			Version:        version,
 			Name:           name,
-			ClusterToken:   clusterToken,
+			DiscoveryUrl:   clusterToken,
 			RestartTimeout: "5",
 			StartTimeout:   "0",
 		},
