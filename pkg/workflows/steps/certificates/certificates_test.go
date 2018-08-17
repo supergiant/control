@@ -10,6 +10,7 @@ import (
 
 	"github.com/pkg/errors"
 
+	"github.com/supergiant/supergiant/pkg/node"
 	"github.com/supergiant/supergiant/pkg/runner"
 	"github.com/supergiant/supergiant/pkg/workflows/steps"
 )
@@ -438,6 +439,11 @@ EOF`
 			userName,
 			password,
 		},
+		MasterNodes: []*node.Node{
+			{
+				PrivateIp: "10.20.30.40",
+			},
+		},
 		Runner: r,
 	}
 
@@ -480,8 +486,14 @@ func TestWriteCertificatesError(t *testing.T) {
 
 	cfg := steps.Config{
 		CertificatesConfig: steps.CertificatesConfig{},
-		Runner:             r,
+		MasterNodes: []*node.Node{
+			{
+				PrivateIp: "10.20.30.40",
+			},
+		},
+		Runner: r,
 	}
+
 	err = task.Run(context.Background(), output, &cfg)
 
 	if err == nil {

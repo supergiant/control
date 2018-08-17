@@ -2,10 +2,8 @@ package provisioner
 
 import (
 	"context"
-	"os"
-	"reflect"
-
 	"github.com/pkg/errors"
+	"os"
 
 	"github.com/supergiant/supergiant/pkg/clouds"
 	"github.com/supergiant/supergiant/pkg/profile"
@@ -75,27 +73,20 @@ func (r *TaskProvisioner) Provision(ctx context.Context, kubeProfile *profile.Ku
 	}
 
 	go func() {
-		selectCases := make([]reflect.SelectCase, len(masterTasks))
+		readyChan := make(chan struct{})
 
 		// Provision master nodes
 		for _, masterTask := range masterTasks {
-			errChan := masterTask.Run(ctx, config, os.Stdout)
+			go func() {
+				err := <-masterTask.Run(ctx, config, os.Stdout)
+				if err != nil {
+					close(readyChan)
+				}
+			}()
 
-			selectCases = append(selectCases, reflect.SelectCase{
-				Dir:  reflect.SelectDefault,
-				Chan: reflect.ValueOf(errChan),
-			})
 		}
 
-		// Wait until at least one master become available
-		for i := 0; i < len(masterTasks); i++ {
-			reflect.Select(selectCases)
-
-			// Check that at least one master is up
-			if config.GetMaster() != nil {
-				break
-			}
-		}
+		<-readyChan
 
 		// Provision nodes
 		for _, nodeTask := range nodeTasks {
