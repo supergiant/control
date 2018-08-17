@@ -67,6 +67,17 @@ func (r *TaskProvisioner) Provision(ctx context.Context, kubeProfile *profile.Ku
 	}
 
 	config := &steps.Config{
+		DigitalOceanConfig:          steps.DOConfig{},
+		DockerConfig:                steps.DockerConfig{},
+		DownloadK8sBinary:           steps.DownloadK8sBinary{},
+		CertificatesConfig:          steps.CertificatesConfig{},
+		FlannelConfig:               steps.FlannelConfig{},
+		KubeletConfig:               steps.KubeletConfig{},
+		ManifestConfig:              steps.ManifestConfig{},
+		PostStartConfig:             steps.PostStartConfig{},
+		KubeletSystemdServiceConfig: steps.KubeletSystemdServiceConfig{},
+		TillerConfig:                steps.TillerConfig{},
+		SshConfig:                   steps.SshConfig{},
 		EtcdConfig: steps.EtcdConfig{
 			Token: token,
 		},
@@ -83,7 +94,6 @@ func (r *TaskProvisioner) Provision(ctx context.Context, kubeProfile *profile.Ku
 					close(readyChan)
 				}
 			}()
-
 		}
 
 		<-readyChan
