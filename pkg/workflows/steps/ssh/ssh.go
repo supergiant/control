@@ -18,7 +18,7 @@ func (s *Step) Run(ctx context.Context, writer io.Writer, config *steps.Config) 
 	var err error
 
 	cfg := ssh.Config{
-		Host:    config.Node.PublicIp,
+		Host:    config.GetMaster().PublicIp,
 		Port:    config.SshConfig.Port,
 		User:    config.SshConfig.User,
 		Timeout: config.SshConfig.Timeout,
