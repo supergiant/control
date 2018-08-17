@@ -54,7 +54,7 @@ func TestStepRunSuccess(t *testing.T) {
 		},
 		MasterNodes: []*node.Node{
 			{
-				PrivateIp: host,
+				PublicIp: host,
 			},
 		},
 	}
