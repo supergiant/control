@@ -52,8 +52,10 @@ func TestStepRunSuccess(t *testing.T) {
 			Timeout:    timeout,
 			PrivateKey: []byte(privateKey),
 		},
-		Node: node.Node{
-			PublicIp: host,
+		MasterNodes: []*node.Node{
+			{
+				PrivateIp: host,
+			},
 		},
 	}
 
@@ -85,8 +87,10 @@ func TestStepRunError(t *testing.T) {
 			Timeout:    timeout,
 			PrivateKey: []byte(``),
 		},
-		Node: node.Node{
-			PublicIp: host,
+		MasterNodes: []*node.Node{
+			{
+				PrivateIp: host,
+			},
 		},
 	}
 

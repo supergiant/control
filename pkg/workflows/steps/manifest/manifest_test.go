@@ -308,8 +308,10 @@ func TestWriteManifestNode(t *testing.T) {
 
 	output := new(bytes.Buffer)
 	cfg := steps.Config{
-		Node: node.Node{
-			PrivateIp: masterHost,
+		MasterNodes: []*node.Node{
+			{
+				PrivateIp: masterHost,
+			},
 		},
 		ManifestConfig: steps.ManifestConfig{
 			IsMaster:            false,
