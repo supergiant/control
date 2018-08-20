@@ -9,7 +9,6 @@ import (
 	"gopkg.in/asaskevich/govalidator.v8"
 
 	"github.com/supergiant/supergiant/pkg/message"
-	"github.com/supergiant/supergiant/pkg/model"
 	"github.com/supergiant/supergiant/pkg/sgerrors"
 )
 
@@ -34,7 +33,7 @@ func (h *Handler) Register(r *mux.Router) {
 
 // Create register new cloud account
 func (h *Handler) Create(rw http.ResponseWriter, r *http.Request) {
-	account := new(model.CloudAccount)
+	account := new(CloudAccount)
 	if err := json.NewDecoder(r.Body).Decode(account); err != nil {
 		message.SendInvalidJSON(rw, err)
 		return
@@ -96,7 +95,7 @@ func (h *Handler) Get(rw http.ResponseWriter, r *http.Request) {
 
 // Update saves updated state of an cloud account, account name can't be changed
 func (h *Handler) Update(rw http.ResponseWriter, r *http.Request) {
-	account := new(model.CloudAccount)
+	account := new(CloudAccount)
 	if err := json.NewDecoder(r.Body).Decode(account); err != nil {
 		message.SendInvalidJSON(rw, err)
 		return

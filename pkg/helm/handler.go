@@ -9,7 +9,6 @@ import (
 	"gopkg.in/asaskevich/govalidator.v8"
 
 	"github.com/supergiant/supergiant/pkg/message"
-	"github.com/supergiant/supergiant/pkg/model/helm"
 	"github.com/supergiant/supergiant/pkg/sgerrors"
 )
 
@@ -34,7 +33,7 @@ func (h *Handler) Register(r *mux.Router) {
 
 // Create stores a new helm repository.
 func (h *Handler) Create(w http.ResponseWriter, r *http.Request) {
-	repo := new(helm.Repository)
+	repo := new(Repository)
 	if err := json.NewDecoder(r.Body).Decode(repo); err != nil {
 		message.SendInvalidJSON(w, err)
 		return
