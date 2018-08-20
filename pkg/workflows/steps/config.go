@@ -17,14 +17,14 @@ type CertificatesConfig struct {
 }
 
 type DOConfig struct {
-	Name         string   `json:"name" valid:"required"`
-	K8SVersion   string   `json:"k8sVersion"`
-	Region       string   `json:"region" valid:"required"`
-	Size         string   `json:"size" valid:"required"`
-	Role         string   `json:"role" valid:"in(master|node)"` // master/node
-	Image        string   `json:"image" valid:"required"`
-	Fingerprints []string `json:"fingerprints" valid:"required"`
-	AccessToken  string   `json:"accessToken" valid:"required"`
+	Name        string `json:"name" valid:"required"`
+	K8SVersion  string `json:"k8sVersion"`
+	Region      string `json:"region" valid:"required"`
+	Size        string `json:"size" valid:"required"`
+	Role        string `json:"role" valid:"in(master|node)"` // master/node
+	Image       string `json:"image" valid:"required"`
+	Fingerprint string `json:"fingerprints" valid:"required"`
+	AccessToken string `json:"accessToken" valid:"required"`
 }
 
 // TODO(stgleb): Fill struct with fields when provisioning on other providers is done

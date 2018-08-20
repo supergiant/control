@@ -76,12 +76,6 @@ func TestTaskHandlerRunTask(t *testing.T) {
 				Name:     "testName",
 				Provider: clouds.DigitalOcean,
 				Credentials: map[string]string{
-					"name":         "hello_world",
-					"k8sVersion":   "",
-					"region":       "",
-					"size":         "",
-					"role":         "",
-					"image":        "",
 					"fingerprints": "fingerprint",
 					"accessToken":  "abcd",
 				},

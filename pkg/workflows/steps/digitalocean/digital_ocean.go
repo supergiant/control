@@ -58,11 +58,9 @@ func (t *Step) Run(ctx context.Context, output io.Writer, config *steps.Config) 
 	config.DigitalOceanConfig.Name = util.MakeNodeName(config.DigitalOceanConfig.Name, config.DigitalOceanConfig.Role)
 
 	var fingers []godo.DropletCreateSSHKey
-	for _, ssh := range config.DigitalOceanConfig.Fingerprints {
-		fingers = append(fingers, godo.DropletCreateSSHKey{
-			Fingerprint: ssh,
-		})
-	}
+	fingers = append(fingers, godo.DropletCreateSSHKey{
+		Fingerprint: config.DigitalOceanConfig.Fingerprint,
+	})
 
 	dropletRequest := &godo.DropletCreateRequest{
 		Name:              config.DigitalOceanConfig.Name,

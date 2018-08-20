@@ -83,7 +83,12 @@ func (h *TaskHandler) RunTask(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// Get cloud account fill appropriate config structure with cloud account credentials
-	//FillCloudAccountCredentials(r.Context(), h.cloudAccGetter, &req.Cfg)
+	err = FillCloudAccountCredentials(r.Context(), h.cloudAccGetter, &req.Cfg)
+
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusNotFound)
+		return
+	}
 
 	task, err := NewTask(req.WorkflowName, h.repository)
 
