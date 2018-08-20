@@ -51,18 +51,6 @@ func (h *ProvisionHandler) Provision(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	acc, err := h.accountGetter.Get(r.Context(), req.CloudAccountName)
-
-	if err != nil {
-		if sgerrors.IsNotFound(err) {
-			http.NotFound(w, r)
-			return
-		} else {
-			http.Error(w, err.Error(), http.StatusInternalServerError)
-			return
-		}
-	}
-
 	kubeProfile, err := h.profileGetter.Get(r.Context(), req.ProfileId)
 
 	if err != nil {
@@ -75,7 +63,7 @@ func (h *ProvisionHandler) Provision(w http.ResponseWriter, r *http.Request) {
 		}
 	}
 
-	tasks, err := h.provisioner.Provision(context.Background(), kubeProfile, acc.Credentials)
+	tasks, err := h.provisioner.Provision(context.Background(), kubeProfile)
 
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
