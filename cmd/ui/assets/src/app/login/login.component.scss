@@ -1,73 +1,85 @@
-/*STATUS*/
 
-.status-text {
-  position: relative;
-  bottom: 6px;
-  left: 7px;
-}
+.login-container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 65px 0px 32px 0px;
 
-.status {
-  display: inline-block;
-  width: 20px;
-  height: 20px;
-  border-radius: 50%;
-  background: white;
-}
+  .logo {
+    height: 108px;
+    width: 184px;
 
-.status:after {
-  content: '';
-  display: block;
-  width: 10px;
-  height: 10px;
-  border-radius: 50%;
-  top: 4px;
-  left: 4px;
-  position: relative;
-}
-
-.status-ok {
-  border: 1px solid #19ce55;
-}
-
-.status-ok:after {
-  background: #19ce55;
-}
-
-.status-warning {
-  border: 1px solid #ffbb33;
-}
-
-.status-warning:after {
-  background: #ffbb33;
-}
-
-.status-danger {
-  border: 1px solid #CC0000;
-}
-
-.status-danger:after {
-  background: #CC0000;
-}
-
-.status-transitioning {
-  border: 1px solid white;
-  border-top-color: rgba(14, 108, 204, 1);
-  border-left-color: rgba(14, 108, 204, 1);
-  animation-name: rotate;
-  animation-duration: 1.75s;
-  animation-iteration-count: infinite;
-  animation-timing-function: linear;
-}
-
-.status-transitioning:after {
-  background: #0e6ccc;
-}
-
-@keyframes rotate {
-  from {
-    transform: rotate(0deg);
+    margin-bottom: 65px;
   }
-  to {
-    transform: rotate(360deg);
+
+  .headline {
+    margin-bottom: 30px;
+
+    span {
+      font-weight: 200;
+      font-size: 96px;
+    }
+  }
+
+  .inputs-wrapper {
+    display: flex;
+    flex-direction: column;
+    margin-bottom: 20px;
+    width: 307px;
+  }
+
+  .buttons-wrapper {
+    width: 307px;
+
+    display: flex;
+    justify-content: space-between;
+    margin-bottom: 46px;
+
+    .secondary {
+      background-color: rgba(255,255,255,0.65);
+      color: #d10088;
+    }
+  }
+
+  .footer {
+    align-items: center;
+    display: flex;
+    flex-direction: column;
+    width: 800px;
+
+    svg {
+      opacity: 0.5;
+    }
+
+    .made-by-qbox {
+      margin-bottom: 10px;
+      width: 145px;
+    }
+
+    .members {
+      display: flex;
+      justify-content: space-between;
+      margin-bottom: 10px;
+      width: 320px;
+
+      .cncf, .linux {
+        width: 145px;
+      }
+    }
+
+    .copyright {
+      font-size: 11px;
+      font-weight: 100;
+      opacity: 0.5;
+    }
+
+    .links {
+      a {
+        font-size: 11px;
+        font-weight: 100;
+        opacity: 0.5;
+        margin: 0px 10px;
+      }
+    }
   }
 }

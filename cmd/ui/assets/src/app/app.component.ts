@@ -1,4 +1,4 @@
-import { Component } from '@angular/core';
+import { Component, OnInit, AfterViewInit, ViewChild } from '@angular/core';
 import { ActivatedRoute, Router, Event, NavigationEnd } from '@angular/router';
 
 
@@ -10,7 +10,12 @@ import { ActivatedRoute, Router, Event, NavigationEnd } from '@angular/router';
   styleUrls: ['./app.component.scss']
 })
 export class AppComponent {
+
+  @ViewChild('body') body;
+
   title = 'app';
+  // TODO: generate this dynamically based on img/backgrounds count
+  public bg_count = 12
   public showHeader = true;
   public location = '';
   public options = {
@@ -30,5 +35,12 @@ export class AppComponent {
         }
       }
     })
+  }
+
+  ngAfterViewInit() {
+    // const i = Math.floor(Math.random() * this.bg_count) + 1;
+    // const body = this.body.nativeElement;
+    // // TODO: figure out resizing imgs
+    // body.style.background = "url(assets/img/backgrounds/bg-" + i.toString() + ".jpg) center top / 1366px 768px no-repeat";
   }
 }

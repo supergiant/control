@@ -12,7 +12,7 @@ import { Notifications } from '../shared/notifications/notifications.service';
   styleUrls: ['./login.component.scss']
 })
 export class LoginComponent implements OnDestroy {
-  public username: string;
+  public login: string;
   public password: string;
   private session: any;
   private id: string;
@@ -37,7 +37,7 @@ export class LoginComponent implements OnDestroy {
 
   onSubmit() {
     this.status = 'status status-transitioning';
-    const creds = { "login": this.username, "password": this.password };
+    const creds = { "login": this.login, "password": this.password };
 
     this.supergiant.Auth.login(creds).subscribe(
       res => {
