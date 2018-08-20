@@ -41,6 +41,9 @@ func FillCloudAccountCredentials(ctx context.Context, getter cloudAccountGetter,
 		return nil
 	}
 
+	config.KubeletConfig.KubeProviderString = string(cloudAccount.Provider)
+	config.ManifestConfig.ProviderString = string(cloudAccount.Provider)
+
 	switch cloudAccount.Provider {
 	case clouds.AWS:
 		bindParams(cloudAccount.Credentials, &config.AWSConfig)

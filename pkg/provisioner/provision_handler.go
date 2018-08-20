@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"net/http"
 
+	"github.com/gorilla/mux"
 	"github.com/supergiant/supergiant/pkg/account"
 	"github.com/supergiant/supergiant/pkg/model"
 	"github.com/supergiant/supergiant/pkg/profile"
@@ -41,12 +42,18 @@ type ProvisionResponse struct {
 	TaskIds []string `json:"taskIds"`
 }
 
-func NewHandler(kubeService *profile.KubeProfileService, cloudAccountService *account.Service, provisioner Provisioner) *ProvisionHandler {
+func NewHandler(kubeService *profile.KubeProfileService, cloudAccountService *account.Service,
+	tokenGetter TokenGetter, provisioner Provisioner) *ProvisionHandler {
 	return &ProvisionHandler{
 		profileGetter: kubeService,
 		accountGetter: cloudAccountService,
+		tokenGetter:   tokenGetter,
 		provisioner:   provisioner,
 	}
+}
+
+func (h *ProvisionHandler) Register(m *mux.Router) {
+	m.HandleFunc("/provision", h.Provision).Methods(http.MethodPost)
 }
 
 func (h *ProvisionHandler) Provision(w http.ResponseWriter, r *http.Request) {
@@ -84,16 +91,54 @@ func (h *ProvisionHandler) Provision(w http.ResponseWriter, r *http.Request) {
 		OSConfig:           steps.OSConfig{},
 		PacketConfig:       steps.PacketConfig{},
 
-		DockerConfig:                steps.DockerConfig{},
-		DownloadK8sBinary:           steps.DownloadK8sBinary{},
-		CertificatesConfig:          steps.CertificatesConfig{},
-		FlannelConfig:               steps.FlannelConfig{},
-		KubeletConfig:               steps.KubeletConfig{},
-		ManifestConfig:              steps.ManifestConfig{},
-		PostStartConfig:             steps.PostStartConfig{},
-		KubeletSystemdServiceConfig: steps.KubeletSystemdServiceConfig{},
-		TillerConfig:                steps.TillerConfig{},
-		SshConfig:                   steps.SshConfig{},
+		DockerConfig: steps.DockerConfig{
+			Version:        "17.06.0",
+			ReleaseVersion: "xenial",
+			Arch:           "amd64",
+		},
+		DownloadK8sBinary: steps.DownloadK8sBinary{
+			K8SVersion:      "1.11.1",
+			Arch:            "amd64",
+			OperatingSystem: "linux",
+		},
+		CertificatesConfig: steps.CertificatesConfig{
+			KubernetesConfigDir: "/etc/kubernetes",
+			Username:            "root",
+			Password:            "1234",
+		},
+		FlannelConfig: steps.FlannelConfig{
+			Arch:        "amd64",
+			Version:     "0.10.0",
+			Network:     "10.0.0.0",
+			NetworkType: "vxlan",
+		},
+		KubeletConfig: steps.KubeletConfig{
+			MasterPrivateIP:    "localhost",
+			ProxyPort:          "8080",
+			EtcdClientPort:     "2379",
+			KubeProviderString: "todo",
+			K8SVersion:         "1.11.1",
+		},
+		ManifestConfig: steps.ManifestConfig{
+			K8SVersion:          "1.11.1",
+			KubernetesConfigDir: "/etc/kubernetes",
+			RBACEnabled:         false,
+			ProviderString:      "digitalocean",
+			MasterHost:          "localhost",
+			MasterPort:          "8080",
+		},
+		PostStartConfig: steps.PostStartConfig{
+			Host:        "localhost",
+			Port:        "8080",
+			Username:    "root",
+			RBACEnabled: false,
+		},
+		TillerConfig: steps.TillerConfig{
+			HelmVersion:     "2.8.0",
+			OperatingSystem: "linux",
+			Arch:            "amd64",
+		},
+		SshConfig: steps.SshConfig{},
 		EtcdConfig: steps.EtcdConfig{
 			Token: token,
 		},

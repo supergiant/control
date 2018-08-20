@@ -69,12 +69,6 @@ type PostStartConfig struct {
 	Timeout     int    `json:"timeout"`
 }
 
-type KubeletSystemdServiceConfig struct {
-	K8SVersion         string `json:"k8sVersion"`
-	KubeletService     string `json:"kubeletService"`
-	KubernetesProvider string `json:"kubernetesProvider"`
-}
-
 type TillerConfig struct {
 	HelmVersion     string `json:"helmVersion"`
 	OperatingSystem string `json:"operatingSystem"`
@@ -82,7 +76,7 @@ type TillerConfig struct {
 }
 
 type DockerConfig struct {
-	DockerVersion  string `json:"dockerVersion"`
+	Version        string `json:"version"`
 	ReleaseVersion string `json:"releaseVersion"`
 	Arch           string `json:"arch"`
 }
@@ -121,17 +115,16 @@ type Config struct {
 	OSConfig           OSConfig     `json:"osConfig"`
 	PacketConfig       PacketConfig `json:"packetConfig"`
 
-	DockerConfig                DockerConfig                `json:"dockerConfig"`
-	DownloadK8sBinary           DownloadK8sBinary           `json:"downloadK8sBinary"`
-	CertificatesConfig          CertificatesConfig          `json:"certificatesConfig"`
-	FlannelConfig               FlannelConfig               `json:"flannelConfig"`
-	KubeletConfig               KubeletConfig               `json:"kubeletConfig"`
-	ManifestConfig              ManifestConfig              `json:"manifestConfig"`
-	PostStartConfig             PostStartConfig             `json:"postStartConfig"`
-	KubeletSystemdServiceConfig KubeletSystemdServiceConfig `json:"kubeletSystemdServiceConfig"`
-	TillerConfig                TillerConfig                `json:"tillerConfig"`
-	EtcdConfig                  EtcdConfig                  `json:"etcdConfig"`
-	SshConfig                   SshConfig                   `json:"sshConfig"`
+	DockerConfig       DockerConfig       `json:"dockerConfig"`
+	DownloadK8sBinary  DownloadK8sBinary  `json:"downloadK8sBinary"`
+	CertificatesConfig CertificatesConfig `json:"certificatesConfig"`
+	FlannelConfig      FlannelConfig      `json:"flannelConfig"`
+	KubeletConfig      KubeletConfig      `json:"kubeletConfig"`
+	ManifestConfig     ManifestConfig     `json:"manifestConfig"`
+	PostStartConfig    PostStartConfig    `json:"postStartConfig"`
+	TillerConfig       TillerConfig       `json:"tillerConfig"`
+	EtcdConfig         EtcdConfig         `json:"etcdConfig"`
+	SshConfig          SshConfig          `json:"sshConfig"`
 
 	CloudAccountName string        `json:"cloudAccountName" valid:"required, length(1|32)"`
 	Timeout          time.Duration `json:"timeout"`
