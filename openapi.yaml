@@ -1,0 +1,119 @@
+openapi: 3.0.0
+x-api-id: "supergiant"
+info: 
+  version: 1.1.0
+  title: "Supergiant"
+  description: "The SG API specification."
+  license: 
+    name: "License - Apache 2.0"
+    url: "https://github.com/supergiant/supergiant#license"
+servers: 
+  - url: 'http://localhost:8080/api/v0'
+    description: "Run the Supergiant server locally in order to contact this endpoint."
+paths:
+  /sessions:
+    get:
+      summary: "Returns a list of all active sessions."
+      operationId: ListSessions
+      security:
+        - ApiKeyOrSession: []
+      responses:
+      # /Users/clarkevennerbeck/go/src/github.com/supergiant/supergiant/pkg/api/helpers.go for more response information
+        '200':
+          description: "OK"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Sessions"
+        '400':
+          description: "Malformed or incorrectly formatted request"
+        '401':
+          description: "Unauthorized or incorrectly formatted authorization"
+    post:
+      summary: "Allows creation of new sessions."
+      security:
+        - ApiKeyOrSession: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/User"
+      responses:
+        '201':
+          description: "Resource successfully created"
+        '400':
+          description: "Malformed or incorrectly formatted request"
+        '401':
+          description: "Unauthorized or incorrectly formatted authorization"
+          
+# COMPONENTS:
+components:
+  schemas:
+    Sessions:
+      type: array
+      items:
+        $ref: "#/components/schemas/Session"
+      example: |-
+        {
+          "filters": null,
+          "offset": 0,
+          "limit": 1,
+          "total": 1,
+          "items": [
+            {
+              "id": "0L234O678CFbcYeBghGjkXKnWpqrwUJz",
+              "user_id": 1,
+              "created_at": "2018-08-15T12:35:04.702719287-05:00",
+              "user": {
+                "id": 1,
+                "uuid": "5413d505-1da4-474b-80b8-49df9757add1",
+                "created_at": "2018-07-31T11:43:48.97537957-05:00",
+                "updated_at": "2018-07-31T11:43:48.97537957-05:00",
+                "username": "admin",
+                "role": "admin",
+                "api_token": "0D2yF5JRO9KBPYeQEhXzkUMAHpSrstZv"
+              }
+            }
+          ]
+        }
+        
+    Session:
+      example: |-
+        "session": {
+          "id": "0L234O678CFbcYeBghGjkXKnWpqrwUJz",
+          "user_id": 1,
+          "created_at": "2018-08-15T12:35:04.702719287-05:00",
+          "user": {
+            "id": 1,
+            "uuid": "5413d505-1da4-474b-80b8-49df9757add1",
+            "created_at": "2018-07-31T11:43:48.97537957-05:00",
+            "updated_at": "2018-07-31T11:43:48.97537957-05:00",
+            "username": "admin",
+            "role": "admin",
+            "api_token": "0D2yF5JRO9KBPYeQEhXzkUMAHpSrstZv"
+          }
+        }
+        
+    User:
+      example: |-
+        "user": {
+          "id": 1,
+          "uuid": "5413d505-1da4-474b-80b8-49df9757add1",
+          "created_at": "2018-07-31T11:43:48.97537957-05:00",
+          "updated_at": "2018-07-31T11:43:48.97537957-05:00",
+          "username": "admin",
+          "role": "admin",
+          "api_token": "0D2yF5JRO9KBPYeQEhXzkUMAHpSrstZv"
+        }
+      
+      
+  securitySchemes:
+    ApiKeyOrSession:
+      # This authorization requires a header body containing either a session or token (api) key. Here's an example of each:
+      # SGAPI token='0D2yF5JRO9KBPYeQEhXzkUMAHpSrstZv'
+      # SGAPI session='R1234xDy8TLGJHeFVzSjElmnopXAsUuv'
+      # The whole header would be, for example, "Authorize: SGAPI session='R1234xDy8TLGJHeFVzSjElmnopXAsUuv'"
+      type: apiKey
+      in: header
+      name: "Authorization"
