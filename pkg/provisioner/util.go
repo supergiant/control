@@ -1,14 +1,11 @@
 package provisioner
 
 import (
+	"context"
 	"fmt"
 	"io/ioutil"
 	"net/http"
 )
-
-type TokenGetter interface {
-	GetToken(int) (string, error)
-}
 
 type EtcdTokenGetter struct {
 	discoveryUrl string
@@ -20,14 +17,18 @@ func NewEtcdTokenGetter() *EtcdTokenGetter {
 	}
 }
 
-func (e *EtcdTokenGetter) GetToken(num int) (string, error) {
-	resp, err := http.Get(fmt.Sprintf(e.discoveryUrl, num))
+func (e *EtcdTokenGetter) GetToken(ctx context.Context, num int) (string, error) {
+	req, err := http.NewRequest(http.MethodGet, fmt.Sprintf(e.discoveryUrl, num), nil)
+	req = req.WithContext(ctx)
+	resp, err := http.DefaultClient.Do(req)
+
 	if err != nil {
 		return "", err
 	}
-	defer resp.Body.Close()
 
 	body, err := ioutil.ReadAll(resp.Body)
+	defer resp.Body.Close()
+
 	if err != nil {
 		return "", err
 	}

@@ -34,7 +34,7 @@ func bindParams(params map[string]string, object interface{}) error {
 }
 
 // Gets cloud account from storage and fills config object with those credentials
-func fillCloudAccountCredentials(ctx context.Context, getter cloudAccountGetter, config *steps.Config) error {
+func FillCloudAccountCredentials(ctx context.Context, getter cloudAccountGetter, config *steps.Config) error {
 	cloudAccount, err := getter.Get(ctx, config.CloudAccountName)
 
 	if err != nil {
@@ -43,10 +43,17 @@ func fillCloudAccountCredentials(ctx context.Context, getter cloudAccountGetter,
 
 	switch cloudAccount.Provider {
 	case clouds.AWS:
+		bindParams(cloudAccount.Credentials, &config.AWSConfig)
 	case clouds.GCE:
+		bindParams(cloudAccount.Credentials, &config.GCEConfig)
 	case clouds.DigitalOcean:
 		return bindParams(cloudAccount.Credentials, &config.DigitalOceanConfig)
 	case clouds.Packet:
+		bindParams(cloudAccount.Credentials, &config.PacketConfig)
+	case clouds.OpenStack:
+		bindParams(cloudAccount.Credentials, &config.OSConfig)
+	default:
+		return ErrUnknownProviderType
 	}
 
 	return nil

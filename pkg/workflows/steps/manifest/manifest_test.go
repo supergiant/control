@@ -376,7 +376,7 @@ func TestWriteManifestError(t *testing.T) {
 				PrivateIp: "127.0.0.1",
 			},
 		},
-		Runner:         r,
+		Runner: r,
 	}
 
 	j := &Step{

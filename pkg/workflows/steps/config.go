@@ -27,6 +27,15 @@ type DOConfig struct {
 	AccessToken  string   `json:"accessToken" valid:"required"`
 }
 
+// TODO(stgleb): Fill struct with fields when provisioning on other providers is done
+type AWSConfig struct{}
+
+type GCEConfig struct{}
+
+type PacketConfig struct{}
+
+type OSConfig struct{}
+
 type FlannelConfig struct {
 	Arch        string `json:"arch"`
 	Version     string `json:"version"`
@@ -106,7 +115,11 @@ type SshConfig struct {
 
 // TODO(stgleb): rename to context and embed context.Context here
 type Config struct {
-	DigitalOceanConfig DOConfig `json:"digitalOceanConfig"`
+	DigitalOceanConfig DOConfig     `json:"digitalOceanConfig"`
+	AWSConfig          AWSConfig    `json:"awsConfig"`
+	GCEConfig          GCEConfig    `json:"gceConfig"`
+	OSConfig           OSConfig     `json:"osConfig"`
+	PacketConfig       PacketConfig `json:"packetConfig"`
 
 	DockerConfig                DockerConfig                `json:"dockerConfig"`
 	DownloadK8sBinary           DownloadK8sBinary           `json:"downloadK8sBinary"`

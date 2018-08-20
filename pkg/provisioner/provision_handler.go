@@ -9,6 +9,8 @@ import (
 	"github.com/supergiant/supergiant/pkg/model"
 	"github.com/supergiant/supergiant/pkg/profile"
 	"github.com/supergiant/supergiant/pkg/sgerrors"
+	"github.com/supergiant/supergiant/pkg/workflows"
+	"github.com/supergiant/supergiant/pkg/workflows/steps"
 )
 
 type ProfileGetter interface {
@@ -19,9 +21,14 @@ type AccountGetter interface {
 	Get(context.Context, string) (*model.CloudAccount, error)
 }
 
+type TokenGetter interface {
+	GetToken(context.Context, int) (string, error)
+}
+
 type ProvisionHandler struct {
 	profileGetter ProfileGetter
 	accountGetter AccountGetter
+	tokenGetter   TokenGetter
 	provisioner   Provisioner
 }
 
@@ -51,18 +58,6 @@ func (h *ProvisionHandler) Provision(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	acc, err := h.accountGetter.Get(r.Context(), req.CloudAccountName)
-
-	if err != nil {
-		if sgerrors.IsNotFound(err) {
-			http.NotFound(w, r)
-			return
-		} else {
-			http.Error(w, err.Error(), http.StatusInternalServerError)
-			return
-		}
-	}
-
 	kubeProfile, err := h.profileGetter.Get(r.Context(), req.ProfileId)
 
 	if err != nil {
@@ -75,7 +70,44 @@ func (h *ProvisionHandler) Provision(w http.ResponseWriter, r *http.Request) {
 		}
 	}
 
-	tasks, err := h.provisioner.Provision(context.Background(), kubeProfile, acc.Credentials)
+	token, err := h.tokenGetter.GetToken(r.Context(), len(kubeProfile.MasterProfiles))
+
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+
+	config := &steps.Config{
+		DigitalOceanConfig: steps.DOConfig{},
+		AWSConfig:          steps.AWSConfig{},
+		GCEConfig:          steps.GCEConfig{},
+		OSConfig:           steps.OSConfig{},
+		PacketConfig:       steps.PacketConfig{},
+
+		DockerConfig:                steps.DockerConfig{},
+		DownloadK8sBinary:           steps.DownloadK8sBinary{},
+		CertificatesConfig:          steps.CertificatesConfig{},
+		FlannelConfig:               steps.FlannelConfig{},
+		KubeletConfig:               steps.KubeletConfig{},
+		ManifestConfig:              steps.ManifestConfig{},
+		PostStartConfig:             steps.PostStartConfig{},
+		KubeletSystemdServiceConfig: steps.KubeletSystemdServiceConfig{},
+		TillerConfig:                steps.TillerConfig{},
+		SshConfig:                   steps.SshConfig{},
+		EtcdConfig: steps.EtcdConfig{
+			Token: token,
+		},
+	}
+
+	// Fill config with appropriate cloud account credentials
+	err = workflows.FillCloudAccountCredentials(r.Context(), h.accountGetter, config)
+
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusNotFound)
+		return
+	}
+
+	tasks, err := h.provisioner.Provision(context.Background(), kubeProfile, config)
 
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)

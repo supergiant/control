@@ -2,7 +2,6 @@ package provisioner
 
 import (
 	"context"
-	"github.com/pkg/errors"
 	"os"
 
 	"github.com/supergiant/supergiant/pkg/clouds"
@@ -10,17 +9,15 @@ import (
 	"github.com/supergiant/supergiant/pkg/storage"
 	"github.com/supergiant/supergiant/pkg/workflows"
 	"github.com/supergiant/supergiant/pkg/workflows/steps"
-	"github.com/supergiant/supergiant/pkg/model"
 )
 
 // Provisioner gets kube profile and returns list of task ids of provision masterTasks
 type Provisioner interface {
-	Provision(context.Context, *profile.KubeProfile, model.Credentials) ([]*workflows.Task, error)
+	Provision(context.Context, *profile.KubeProfile, *steps.Config) ([]*workflows.Task, error)
 }
 
 type TaskProvisioner struct {
 	repository storage.Interface
-	TokenGetter
 }
 
 var provisionMap map[clouds.Name][]string
@@ -56,33 +53,11 @@ func (r *TaskProvisioner) prepare(name clouds.Name, masterCount, nodeCount int) 
 }
 
 // Provision runs provision process among nodes that have been provided for provision
-func (r *TaskProvisioner) Provision(ctx context.Context, kubeProfile *profile.KubeProfile, credentials model.Credentials) ([]*workflows.Task, error) {
+func (r *TaskProvisioner) Provision(ctx context.Context, kubeProfile *profile.KubeProfile, config *steps.Config) ([]*workflows.Task, error) {
 	masterTasks, nodeTasks := r.prepare(kubeProfile.Provider, len(kubeProfile.MasterProfiles),
 		len(kubeProfile.NodesProfiles))
 
 	tasks := append(append(make([]*workflows.Task, 0), masterTasks...), nodeTasks...)
-	token, err := r.GetToken(len(masterTasks))
-
-	if err != nil {
-		return nil, errors.Wrap(err, "etcd discovery")
-	}
-
-	config := &steps.Config{
-		DigitalOceanConfig:          steps.DOConfig{},
-		DockerConfig:                steps.DockerConfig{},
-		DownloadK8sBinary:           steps.DownloadK8sBinary{},
-		CertificatesConfig:          steps.CertificatesConfig{},
-		FlannelConfig:               steps.FlannelConfig{},
-		KubeletConfig:               steps.KubeletConfig{},
-		ManifestConfig:              steps.ManifestConfig{},
-		PostStartConfig:             steps.PostStartConfig{},
-		KubeletSystemdServiceConfig: steps.KubeletSystemdServiceConfig{},
-		TillerConfig:                steps.TillerConfig{},
-		SshConfig:                   steps.SshConfig{},
-		EtcdConfig: steps.EtcdConfig{
-			Token: token,
-		},
-	}
 
 	go func() {
 		readyChan := make(chan struct{})

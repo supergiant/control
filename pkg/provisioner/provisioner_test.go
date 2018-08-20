@@ -2,7 +2,6 @@ package provisioner
 
 import (
 	"context"
-	"fmt"
 	"testing"
 
 	"github.com/stretchr/testify/mock"
@@ -10,31 +9,15 @@ import (
 	"github.com/supergiant/supergiant/pkg/clouds"
 	"github.com/supergiant/supergiant/pkg/profile"
 	"github.com/supergiant/supergiant/pkg/testutils"
-	"github.com/supergiant/supergiant/pkg/util"
 	"github.com/supergiant/supergiant/pkg/workflows"
 )
 
-type mockTokenGetter struct {
-	getToken func(int) (string, error)
-}
-
-func (t *mockTokenGetter) GetToken(num int) (string, error) {
-	return t.getToken(num)
-}
-
 func TestTaskProvisioner(t *testing.T) {
-	tokenGetter := &mockTokenGetter{
-		func(num int) (string, error) {
-			return fmt.Sprintf("%s", util.RandomString(4)), nil
-		},
-	}
-
 	repository := &testutils.MockStorage{}
 	repository.On("Put", context.Background(), mock.Anything, mock.Anything, nil).Return(nil)
 
 	provisioner := TaskProvisioner{
 		repository,
-		tokenGetter,
 	}
 
 	workflows.Init()
