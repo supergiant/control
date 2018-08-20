@@ -120,9 +120,9 @@ func logHandler(core *core.Core) func(http.ResponseWriter, *http.Request) {
 
 func loadUser(core *core.Core, w http.ResponseWriter, r *http.Request) *model.User {
 	auth := r.Header.Get("Authorization")
-	tokenMatch := regexp.MustCompile(`^SGAPI (token|session)="([A-Za-z0-9]{32})"$`).FindStringSubmatch(auth)
+	tokenMatch := regexp.MustCompile(`^SGAPI (token|session)=("|')([A-Za-z0-9]{32})("|')$`).FindStringSubmatch(auth)
 
-	if len(tokenMatch) != 3 {
+	if len(tokenMatch) != 5 {
 		respond(w, nil, errorBadAuthHeader)
 		return nil
 	}
@@ -130,7 +130,7 @@ func loadUser(core *core.Core, w http.ResponseWriter, r *http.Request) *model.Us
 	switch tokenMatch[1] {
 	case "token":
 		user := new(model.User)
-		if err := core.DB.Where("api_token = ?", tokenMatch[2]).First(user); err != nil {
+		if err := core.DB.Where("api_token = ?", tokenMatch[3]).First(user); err != nil {
 			respond(w, nil, errorUnauthorized)
 			return nil
 		}
@@ -139,7 +139,7 @@ func loadUser(core *core.Core, w http.ResponseWriter, r *http.Request) *model.Us
 
 	case "session":
 		session := new(model.Session)
-		if err := core.Sessions.Get(tokenMatch[2], session); err != nil {
+		if err := core.Sessions.Get(tokenMatch[3], session); err != nil {
 			respond(w, nil, errorUnauthorized)
 			return nil
 		}
