@@ -62,6 +62,10 @@ func (w *Task) Run(ctx context.Context, config *steps.Config, out io.Writer) cha
 	errChan := make(chan error, 1)
 
 	go func() {
+		if w == nil {
+			return
+		}
+
 		// Create list of statuses to track
 		for _, step := range w.workflow {
 			w.StepStatuses = append(w.StepStatuses, StepStatus{
