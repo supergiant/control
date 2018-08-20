@@ -55,7 +55,7 @@ func TestTaskProvisioner(t *testing.T) {
 		},
 	}
 
-	tasks, err := provisioner.Provision(context.Background(), kubeProfile)
+	tasks, err := provisioner.Provision(context.Background(), kubeProfile, nil)
 
 	if err != nil {
 		t.Errorf("Unexpected error %v while provision", err)

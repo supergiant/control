@@ -10,11 +10,12 @@ import (
 	"github.com/supergiant/supergiant/pkg/storage"
 	"github.com/supergiant/supergiant/pkg/workflows"
 	"github.com/supergiant/supergiant/pkg/workflows/steps"
+	"github.com/supergiant/supergiant/pkg/model"
 )
 
 // Provisioner gets kube profile and returns list of task ids of provision masterTasks
 type Provisioner interface {
-	Provision(context.Context, *profile.KubeProfile) ([]*workflows.Task, error)
+	Provision(context.Context, *profile.KubeProfile, model.Credentials) ([]*workflows.Task, error)
 }
 
 type TaskProvisioner struct {
@@ -55,7 +56,7 @@ func (r *TaskProvisioner) prepare(name clouds.Name, masterCount, nodeCount int) 
 }
 
 // Provision runs provision process among nodes that have been provided for provision
-func (r *TaskProvisioner) Provision(ctx context.Context, kubeProfile *profile.KubeProfile) ([]*workflows.Task, error) {
+func (r *TaskProvisioner) Provision(ctx context.Context, kubeProfile *profile.KubeProfile, credentials model.Credentials) ([]*workflows.Task, error) {
 	masterTasks, nodeTasks := r.prepare(kubeProfile.Provider, len(kubeProfile.MasterProfiles),
 		len(kubeProfile.NodesProfiles))
 

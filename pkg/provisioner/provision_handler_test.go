@@ -18,7 +18,7 @@ type mockProvisioner struct {
 	provision func(context.Context, *profile.KubeProfile) ([]*workflows.Task, error)
 }
 
-func (m *mockProvisioner) Provision(ctx context.Context, kubeProfile *profile.KubeProfile) ([]*workflows.Task, error) {
+func (m *mockProvisioner) Provision(ctx context.Context, kubeProfile *profile.KubeProfile, credentials model.Credentials) ([]*workflows.Task, error) {
 	return m.provision(ctx, kubeProfile)
 }
 
@@ -35,7 +35,7 @@ type mockAccountGetter struct {
 }
 
 func (m *mockAccountGetter) Get(ctx context.Context, id string) (*model.CloudAccount, error) {
-	return m.Get(ctx, id)
+	return m.get(ctx, id)
 }
 
 func TestProvisionHandler(t *testing.T) {
@@ -61,6 +61,9 @@ func TestProvisionHandler(t *testing.T) {
 		{
 			body:         validBody,
 			expectedCode: http.StatusNotFound,
+			getAccount: func(context.Context, string) (*model.CloudAccount, error){
+				return nil, nil
+			},
 			getProfile: func(context.Context, string) (*profile.KubeProfile, error) {
 				return nil, sgerrors.ErrNotFound
 			},
@@ -68,6 +71,9 @@ func TestProvisionHandler(t *testing.T) {
 		{
 			body:         validBody,
 			expectedCode: http.StatusInternalServerError,
+			getAccount: func(context.Context, string) (*model.CloudAccount, error){
+				return &model.CloudAccount{}, nil
+			},
 			getProfile: func(context.Context, string) (*profile.KubeProfile, error) {
 				return &profile.KubeProfile{}, nil
 			},
@@ -78,6 +84,9 @@ func TestProvisionHandler(t *testing.T) {
 		{
 			body:         validBody,
 			expectedCode: http.StatusAccepted,
+			getAccount: func(context.Context, string) (*model.CloudAccount, error){
+				return &model.CloudAccount{}, nil
+			},
 			getProfile: func(context.Context, string) (*profile.KubeProfile, error) {
 				return &profile.KubeProfile{}, nil
 			},
