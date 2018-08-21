@@ -85,7 +85,12 @@ func (h *ProvisionHandler) Provision(w http.ResponseWriter, r *http.Request) {
 	}
 
 	config := &steps.Config{
-		DigitalOceanConfig: steps.DOConfig{},
+		DigitalOceanConfig: steps.DOConfig{
+			Region: "fra1",
+			Size:   "s-1vcpu-2gb",
+			Role:   "master",
+			Image:  "ubuntu-18-04-x64",
+		},
 		AWSConfig:          steps.AWSConfig{},
 		GCEConfig:          steps.GCEConfig{},
 		OSConfig:           steps.OSConfig{},
