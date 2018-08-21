@@ -92,7 +92,7 @@ func (h *ProvisionHandler) Provision(w http.ResponseWriter, r *http.Request) {
 		PacketConfig:       steps.PacketConfig{},
 
 		DockerConfig: steps.DockerConfig{
-			Version:        kubeProfile.Dockerversion,
+			Version:        kubeProfile.DockerVersion,
 			ReleaseVersion: kubeProfile.UbuntuVersion,
 			Arch:           kubeProfile.Arch,
 		},
