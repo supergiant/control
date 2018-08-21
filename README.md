@@ -20,32 +20,23 @@ Supergiant: Kubernetes Orchestration
 
 ---
 
-Supergiant empowers developers and administrators through its simplified deployment and management of Kubernetes, in addition to easing the configuration and deployment of Helm charts, taking advantage of Kubernetes' power, flexibility, and abstraction.
-
-Supergiant facilitates clusters on multiple cloud providers, striving for truly agnostic and impartial infrastructure--and it does this with an autoscaling system that cares deeply about efficiency. It asserts through downscaling and resource compaction that unutilized infrastructure shouldn't be paid for (and, therefore, shouldn't be running).
-
-Supergiant implements simple practices that abstract load-balancing, application deployment, basic monitoring, node deployment or destruction, and more, on a highly usable UI. Its efficient compaction algorithm enables seamless auto-scaling of Kubernetes clusters, minimizing costs while maintaining the resiliency of applications. To dive into top-level concepts, see [the documentation](https://supergiant.readme.io/v1.1.0/docs).
+Empower developers and administrators through simplified deployment and management of Kubernetes. Supergiant facilitates clusters on multiple cloud providers, striving for agnostic infrastructure--with an autoscaling system that cares about efficiency. It asserts through autoscaling that every pod should have a home, but that underutilized infrastructure shouldn't be paid for (and, therefore, shouldn't be running).
 
 # Features
 
-* Fully compatible with native Kubernetes versions 1.5.7, 1.6.7, 1.7.7, and 1.8.7
-* Easy management and deployment of multiple kubes in various configurations
-* AWS, DigitalOcean, OpenStack, Packet, GCE, and on-premise kube deployment
-* Easy creation of Helm releases, Pods, Services, LoadBalancers, etc.
-* Automatic, resource-based node scaling
-* Compatibility with multiple hardware architectures
-* Role-based Users, Session-based logins, self-signed SSLs, and API tokens
-* A clean UI and CLI, both built on top of an API (with importable [Go client lib](pkg/client))
+  * Vanilla, Certified Kubernetes, with versions 1.5 to 1.11
+  * AWS, DigitalOcean, OpenStack, Packet, GCE, and on-premise kube deployment
+  * Automatic, resource-based node scaling
+  * Easy creation of Helm releases, Pods, Services, LoadBalancers, etc.
+  * An importable [Go client library](https://github.com/supergiant/supergiant/tree/release-1.0/pkg/client)
+  * Role-based Users, Session-based logins, self-signed SSLs, and API tokens
 
 # Resources
 
-- [Supergiant Website](https://supergiant.io/)
-- [Top-level concepts](https://supergiant.readme.io/v1.1.0/docs/architecture-purpose)
+- [Official Website](https://supergiant.io/)
+- [Documentation](https://supergiant.readme.io/v1.1.0/docs)
 - [Tutorials](https://supergiant.io/tutorials)
-- [Slack Support Channel](https://supergiant.io/slack)
-- [Installation](https://supergiant.readme.io/v1.1.0/docs/installation)
-~ [UI Usage](https://supergiant.readme.io/v1.1.0/docs/using-the-ui)
-~ [API Usage](https://supergiant.readme.io/v1.1.0/docs/using-the-api)
+- [Slack Channel](https://supergiant.io/slack)
 
 # Community and Contributing
 
