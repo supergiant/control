@@ -55,7 +55,8 @@ func (h *KubeProfileHandler) CreateProfile(w http.ResponseWriter, r *http.Reques
 		return
 	}
 
-	profile.Id = uuid.UUID{}.String()
+	profile.ID = uuid.NewUUID().String()
+
 	ok, err := govalidator.ValidateStruct(profile)
 	if !ok {
 		http.Error(w, err.Error(), http.StatusBadRequest)

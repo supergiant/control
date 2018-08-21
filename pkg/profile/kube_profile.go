@@ -1,9 +1,9 @@
 package profile
 
 type KubeProfile struct {
-	Id                string        `json:"id" valid:"required"`
-	MasterProfiles    []NodeProfile `json:"masterProfiles" valid:"required"`
-	NodesProfiles     []NodeProfile `json:"nodesProfiles" valid:"required"`
+	ID             string        `json:"id" valid:"required"`
+	MasterProfiles []NodeProfile `json:"masterProfiles" valid:"required"`
+	NodesProfiles  []NodeProfile `json:"nodesProfiles" valid:"required"`
 
 	// TODO(stgleb): In future releases arch will probably migrate to node profile
 	// to allow user create heterogeneous cluster of machine with different arch

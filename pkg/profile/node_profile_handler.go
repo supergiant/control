@@ -9,6 +9,7 @@ import (
 	"gopkg.in/asaskevich/govalidator.v8"
 
 	"github.com/supergiant/supergiant/pkg/sgerrors"
+	"github.com/pborman/uuid"
 )
 
 type NodeProfileHandler struct {
@@ -52,6 +53,8 @@ func (h *NodeProfileHandler) CreateProfile(w http.ResponseWriter, r *http.Reques
 		http.Error(w, err.Error(), http.StatusBadRequest)
 		return
 	}
+
+	profile.ID = uuid.NewUUID().String()
 
 	ok, err := govalidator.ValidateStruct(profile)
 	if !ok {
