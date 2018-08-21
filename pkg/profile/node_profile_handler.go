@@ -8,8 +8,8 @@ import (
 	"github.com/sirupsen/logrus"
 	"gopkg.in/asaskevich/govalidator.v8"
 
-	"github.com/supergiant/supergiant/pkg/sgerrors"
 	"github.com/pborman/uuid"
+	"github.com/supergiant/supergiant/pkg/sgerrors"
 )
 
 type NodeProfileHandler struct {

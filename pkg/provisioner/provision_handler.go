@@ -91,10 +91,10 @@ func (h *ProvisionHandler) Provision(w http.ResponseWriter, r *http.Request) {
 			Role:   "master",
 			Image:  "ubuntu-18-04-x64",
 		},
-		AWSConfig:          steps.AWSConfig{},
-		GCEConfig:          steps.GCEConfig{},
-		OSConfig:           steps.OSConfig{},
-		PacketConfig:       steps.PacketConfig{},
+		AWSConfig:    steps.AWSConfig{},
+		GCEConfig:    steps.GCEConfig{},
+		OSConfig:     steps.OSConfig{},
+		PacketConfig: steps.PacketConfig{},
 
 		DockerConfig: steps.DockerConfig{
 			Version:        kubeProfile.DockerVersion,
