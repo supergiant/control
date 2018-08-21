@@ -92,13 +92,13 @@ func (h *ProvisionHandler) Provision(w http.ResponseWriter, r *http.Request) {
 		PacketConfig:       steps.PacketConfig{},
 
 		DockerConfig: steps.DockerConfig{
-			Version:        "17.06.0",
-			ReleaseVersion: "xenial",
-			Arch:           "amd64",
+			Version:        kubeProfile.Dockerversion,
+			ReleaseVersion: kubeProfile.UbuntuVersion,
+			Arch:           kubeProfile.Arch,
 		},
 		DownloadK8sBinary: steps.DownloadK8sBinary{
-			K8SVersion:      "1.11.1",
-			Arch:            "amd64",
+			K8SVersion:      kubeProfile.K8SVersion,
+			Arch:            kubeProfile.Arch,
 			OperatingSystem: "linux",
 		},
 		CertificatesConfig: steps.CertificatesConfig{
@@ -107,23 +107,23 @@ func (h *ProvisionHandler) Provision(w http.ResponseWriter, r *http.Request) {
 			Password:            "1234",
 		},
 		FlannelConfig: steps.FlannelConfig{
-			Arch:        "amd64",
-			Version:     "0.10.0",
+			Arch:    kubeProfile.Arch,
+			Version: kubeProfile.FlannelVersion,
+			// TODO(stgleb): this shoud be configurable from user side
 			Network:     "10.0.0.0",
-			NetworkType: "vxlan",
+			NetworkType: kubeProfile.NetworkType,
 		},
 		KubeletConfig: steps.KubeletConfig{
-			MasterPrivateIP:    "localhost",
-			ProxyPort:          "8080",
-			EtcdClientPort:     "2379",
-			KubeProviderString: "todo",
-			K8SVersion:         "1.11.1",
+			MasterPrivateIP: "localhost",
+			ProxyPort:       "8080",
+			EtcdClientPort:  "2379",
+			K8SVersion:      kubeProfile.K8SVersion,
 		},
 		ManifestConfig: steps.ManifestConfig{
-			K8SVersion:          "1.11.1",
+			K8SVersion:          kubeProfile.K8SVersion,
 			KubernetesConfigDir: "/etc/kubernetes",
-			RBACEnabled:         false,
-			ProviderString:      "digitalocean",
+			RBACEnabled:         kubeProfile.RBACEnabled,
+			ProviderString:      "todo",
 			MasterHost:          "localhost",
 			MasterPort:          "8080",
 		},
@@ -134,9 +134,9 @@ func (h *ProvisionHandler) Provision(w http.ResponseWriter, r *http.Request) {
 			RBACEnabled: false,
 		},
 		TillerConfig: steps.TillerConfig{
-			HelmVersion:     "2.8.0",
+			HelmVersion:     kubeProfile.HelmVersion,
 			OperatingSystem: "linux",
-			Arch:            "amd64",
+			Arch:            kubeProfile.Arch,
 		},
 		SshConfig: steps.SshConfig{},
 		EtcdConfig: steps.EtcdConfig{

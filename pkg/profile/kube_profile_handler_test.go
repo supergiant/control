@@ -18,9 +18,7 @@ func TestKubeProfileEndpointCreateProfile(t *testing.T) {
 	endpoint := &KubeProfileHandler{}
 	kubeProfile := &KubeProfile{
 		Id:                "",
-		KubernetesVersion: "1.8.7",
-		MasterNodeCount:   3,
-		CustomFiles:       "",
+		K8SVersion: "1.11.1",
 		RBACEnabled:       false,
 	}
 

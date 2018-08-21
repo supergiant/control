@@ -44,11 +44,10 @@ type FlannelConfig struct {
 }
 
 type KubeletConfig struct {
-	MasterPrivateIP    string `json:"masterPrivateIP"`
-	ProxyPort          string `json:"proxyPort"`
-	EtcdClientPort     string `json:"etcdClientPort"`
-	KubeProviderString string `json:"kubeProviderString"`
-	K8SVersion         string `json:"k8sVersion"`
+	MasterPrivateIP string `json:"masterPrivateIP"`
+	ProxyPort       string `json:"proxyPort"`
+	EtcdClientPort  string `json:"etcdClientPort"`
+	K8SVersion      string `json:"k8sVersion"`
 }
 
 type ManifestConfig struct {
