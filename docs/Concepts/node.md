@@ -1,3 +1,0 @@
-# Node
-
-A Node is a pairing of a server (i.e., VM, an EC2 instance, a DigitalOcean droplet, etc.) from a Provider with a Kubernetes Node object. One of the main goals of Supergiant is to abstract away server management entirely. Therefore, the [Capacity Service](supergiant.readthedocs.io/en/v1.0.0/Concepts/capacity_service/) is capable of managing servers autonomously, so users can focus on allocating containers. At the same time, however, users can manually add Nodes to an existing cluster whenever they like via the Supergiant UI or CRUD API.

@@ -24,7 +24,7 @@ Supergiant empowers developers and administrators through its simplified deploym
 
 Supergiant facilitates clusters on multiple cloud providers, striving for truly agnostic and impartial infrastructure--and it does this with an autoscaling system that cares deeply about efficiency. It asserts through downscaling and resource compaction that unutilized infrastructure shouldn't be paid for (and, therefore, shouldn't be running).
 
-Supergiant implements simple practices that abstract load-balancing, application deployment, basic monitoring, node deployment or destruction, and more, on a highly usable UI. Its efficient compaction algorithm enables seamless auto-scaling of Kubernetes clusters, minimizing costs while maintaining the resiliency of applications. To dive into top-level concepts, see [the documentation](https://supergiant.readthedocs.io/en/v1.0.0/About%20Supergiant/architecture/).
+Supergiant implements simple practices that abstract load-balancing, application deployment, basic monitoring, node deployment or destruction, and more, on a highly usable UI. Its efficient compaction algorithm enables seamless auto-scaling of Kubernetes clusters, minimizing costs while maintaining the resiliency of applications. To dive into top-level concepts, see [the documentation](https://supergiant.readme.io/v1.1.0/docs).
 
 # Features
 
@@ -40,12 +40,12 @@ Supergiant implements simple practices that abstract load-balancing, application
 # Resources
 
 - [Supergiant Website](https://supergiant.io/)
-- [Top-level concepts](http://supergiant.readthedocs.io/en/v1.0.0/Concepts/capacity_service/)
+- [Top-level concepts](https://supergiant.readme.io/v1.1.0/docs/architecture-purpose)
 - [Tutorials](https://supergiant.io/tutorials)
 - [Slack Support Channel](https://supergiant.io/slack)
-- [Installation](https://supergiant.readthedocs.io/en/v1.0.0/Installation/Linux/)
-~ [UI Usage](http://supergiant.readthedocs.io/en/v1.0.0/Using%20the%20UI/cloud_accounts/)
-~ [API Usage](http://supergiant.readthedocs.io/en/v1.0.0/Using%20the%20API/load_balancer/)
+- [Installation](https://supergiant.readme.io/v1.1.0/docs/installation)
+~ [UI Usage](https://supergiant.readme.io/v1.1.0/docs/using-the-ui)
+~ [API Usage](https://supergiant.readme.io/v1.1.0/docs/using-the-api)
 
 # Community and Contributing
 
@@ -106,7 +106,7 @@ Remember to checkout a branch to work on, or create a new branch.
 
 Note: _From now on, all specified directories have a root of `$GOPATH/src/github.com/supergiant/`._
 
-Copy the [example configuration](https://github.com/supergiant/supergiant/blob/v1.0.0/config/config.json.example) from within `./supergiant/`, or [create a custom one](https://supergiant.readthedocs.io/en/v1.0.0/Installation/Configuration/) as desired:
+Copy the [example configuration](https://github.com/supergiant/supergiant/blob/v1.0.0/config/config.json.example) from within `./supergiant/`, or [create a custom one](https://supergiant.readme.io/v1.1.0/docs/configuration) as desired:
 
 ```shell
 cp config/config.json.example config/config.json
