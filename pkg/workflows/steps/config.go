@@ -7,6 +7,7 @@ import (
 	"github.com/supergiant/supergiant/pkg/node"
 	"github.com/supergiant/supergiant/pkg/runner"
 	"github.com/supergiant/supergiant/pkg/storage"
+	"github.com/supergiant/supergiant/pkg/clouds"
 )
 
 type CertificatesConfig struct {
@@ -108,6 +109,8 @@ type SshConfig struct {
 
 // TODO(stgleb): rename to context and embed context.Context here
 type Config struct {
+	Provider clouds.Name
+
 	DigitalOceanConfig DOConfig     `json:"digitalOceanConfig"`
 	AWSConfig          AWSConfig    `json:"awsConfig"`
 	GCEConfig          GCEConfig    `json:"gceConfig"`

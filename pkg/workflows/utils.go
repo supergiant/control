@@ -41,20 +41,20 @@ func FillCloudAccountCredentials(ctx context.Context, getter cloudAccountGetter,
 		return nil
 	}
 
-	config.KubeletConfig.KubeProviderString = string(cloudAccount.Provider)
 	config.ManifestConfig.ProviderString = string(cloudAccount.Provider)
+	config.Provider = cloudAccount.Provider
 
 	switch cloudAccount.Provider {
 	case clouds.AWS:
-		bindParams(cloudAccount.Credentials, &config.AWSConfig)
+		return bindParams(cloudAccount.Credentials, &config.AWSConfig)
 	case clouds.GCE:
-		bindParams(cloudAccount.Credentials, &config.GCEConfig)
+		return bindParams(cloudAccount.Credentials, &config.GCEConfig)
 	case clouds.DigitalOcean:
 		return bindParams(cloudAccount.Credentials, &config.DigitalOceanConfig)
 	case clouds.Packet:
-		bindParams(cloudAccount.Credentials, &config.PacketConfig)
+		return bindParams(cloudAccount.Credentials, &config.PacketConfig)
 	case clouds.OpenStack:
-		bindParams(cloudAccount.Credentials, &config.OSConfig)
+		return bindParams(cloudAccount.Credentials, &config.OSConfig)
 	default:
 		return ErrUnknownProviderType
 	}

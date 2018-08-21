@@ -54,7 +54,7 @@ func (r *TaskProvisioner) prepare(name clouds.Name, masterCount, nodeCount int) 
 
 // Provision runs provision process among nodes that have been provided for provision
 func (r *TaskProvisioner) Provision(ctx context.Context, kubeProfile *profile.KubeProfile, config *steps.Config) ([]*workflows.Task, error) {
-	masterTasks, nodeTasks := r.prepare(kubeProfile.Provider, len(kubeProfile.MasterProfiles),
+	masterTasks, nodeTasks := r.prepare(config.Provider, len(kubeProfile.MasterProfiles),
 		len(kubeProfile.NodesProfiles))
 
 	tasks := append(append(make([]*workflows.Task, 0), masterTasks...), nodeTasks...)

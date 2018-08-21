@@ -28,7 +28,6 @@ func TestTaskProvisioner(t *testing.T) {
 	provisionMap[clouds.DigitalOcean] = []string{"test_master", "test_node"}
 
 	kubeProfile := &profile.KubeProfile{
-		Provider: clouds.DigitalOcean,
 		MasterProfiles: []profile.NodeProfile{
 			{},
 		},
@@ -38,7 +37,7 @@ func TestTaskProvisioner(t *testing.T) {
 		},
 	}
 
-	tasks, err := provisioner.Provision(context.Background(), kubeProfile, nil)
+	tasks, err := provisioner.Provision(context.Background(), clouds.DigitalOcean, kubeProfile, nil)
 
 	if err != nil {
 		t.Errorf("Unexpected error %v while provision", err)
