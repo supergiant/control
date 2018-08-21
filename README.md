@@ -34,7 +34,7 @@ Empower developers and administrators through simplified deployment and manageme
 # Resources
 
 - [Official Website](https://supergiant.io/)
-- [Documentation](https://supergiant.readme.io/v1.1.0/docs)
+- [Documentation](https://supergiant.readme.io/)
 - [Tutorials](https://supergiant.io/tutorials)
 - [Slack Channel](https://supergiant.io/slack)
 
