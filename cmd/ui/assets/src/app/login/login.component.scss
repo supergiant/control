@@ -3,7 +3,7 @@
   display: flex;
   flex-direction: column;
   align-items: center;
-  padding: 65px 0px 32px 0px;
+  padding: 65px 0px 24px 0px;
 
   .logo {
     height: 108px;
@@ -16,8 +16,9 @@
     margin-bottom: 30px;
 
     span {
-      font-weight: 200;
-      font-size: 96px;
+      font-weight: 300;
+      font-size: 58px;
+      letter-spacing: 4px;
     }
   }
 
@@ -33,7 +34,7 @@
 
     display: flex;
     justify-content: space-between;
-    margin-bottom: 46px;
+    margin-bottom: 108px;
 
     .secondary {
       background-color: rgba(255,255,255,0.65);
@@ -45,38 +46,76 @@
     align-items: center;
     display: flex;
     flex-direction: column;
-    width: 800px;
+    width: 1238px;
 
     svg {
       opacity: 0.5;
     }
 
-    .made-by-qbox {
-      margin-bottom: 10px;
-      width: 145px;
-    }
-
-    .members {
+    .certifications {
       display: flex;
       justify-content: space-between;
-      margin-bottom: 10px;
-      width: 320px;
+      margin-bottom: 24px;
+      height: 89px;
+      width: 275px;
 
-      .cncf, .linux {
-        width: 145px;
+      .members-wrapper {
+        display: flex;
+        flex-direction: column;
+        width: 190px;
+
+        .made-by-qbox {
+          margin-bottom: 14px;
+          height: 52px;
+          width: 190px;
+        }
+
+        .members {
+          display: flex;
+          justify-content: space-between;
+          height: 23px;
+          width: 190px;
+
+          .cncf, .linux {
+            width: 87px;
+
+            svg {
+              height: 100%;
+              width: 100%;
+            }
+          }
+        }
+      }
+
+      .kube-cert {
+        height: 89px;
+        width: 54px;
+
+        svg {
+          height: 100%;
+        }
       }
     }
 
-    .copyright {
-      font-size: 11px;
-      font-weight: 100;
-      opacity: 0.5;
-    }
+    .info {
+      display: flex;
+      justify-content: center;
+      height: 18px;
+      width: 100%;
 
-    .links {
-      a {
+      .copyright {
         font-size: 11px;
         font-weight: 100;
+        opacity: 0.5;
+
+        span {
+          margin-right: 10px;
+        }
+      }
+
+      .link {
+        font-size: 11px;
+        font-weight: 400;
         opacity: 0.5;
         margin: 0px 10px;
       }
