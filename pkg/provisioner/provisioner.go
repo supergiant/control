@@ -10,6 +10,7 @@ import (
 	"github.com/supergiant/supergiant/pkg/storage"
 	"github.com/supergiant/supergiant/pkg/workflows"
 	"github.com/supergiant/supergiant/pkg/workflows/steps"
+	"sync"
 )
 
 // Provisioner gets kube profile and returns list of task ids of provision masterTasks
@@ -61,43 +62,47 @@ func (r *TaskProvisioner) Provision(ctx context.Context, kubeProfile *profile.Ku
 	tasks := append(append(make([]*workflows.Task, 0), masterTasks...), nodeTasks...)
 
 	go func() {
-		errChan := make(chan error)
-
 		config.Role = "master"
 		config.ManifestConfig.IsMaster = true
 
+		var wg sync.WaitGroup
+
+		wg.Add(len(masterTasks))
 		// Provision master nodes
 		for _, masterTask := range masterTasks {
 			go func() {
 				result := masterTask.Run(ctx, config, os.Stdout)
 				err := <-result
 
-				logrus.Infof("master-task %s has finished", masterTask.ID)
-				if err == nil {
-					close(errChan)
+				if err != nil {
+					logrus.Errorf("master task %s has finished with error %v", masterTask.ID, err)
 				} else {
-					errChan <- err
+					logrus.Infof("master-task %s has finished", masterTask.ID)
 				}
-			}()
+				wg.Done()
+				}()
 		}
 
-		err := <-errChan
-
-		if err != nil {
-			logrus.Errorf("Master provisioning has finished with error %v", err)
+		wg.Wait()
+		// If we get no master node
+		if config.GetMaster() == nil {
+			logrus.Errorf("Cluster provisioning has failed")
 			return
 		}
-
 		logrus.Info("Master provisioning has finished successfully")
 
 		config.Role = "node"
 		config.ManifestConfig.IsMaster = false
-		config.FlannelConfig.EtcdHost = config.GetMaster().PublicIp
+		// Let flannel communicate through private network
+		config.FlannelConfig.EtcdHost = config.GetMaster().PrivateIp
 
 		// Provision nodes
 		for _, nodeTask := range nodeTasks {
-			nodeTask.Run(ctx, config, os.Stdout)
+			go func() {
+				nodeTask.Run(ctx, config, os.Stdout)
+			}()
 		}
+		logrus.Infof("Cluster %s has been deployed", config.ClusterName)
 	}()
 
 	return tasks, nil
