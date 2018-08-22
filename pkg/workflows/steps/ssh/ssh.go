@@ -14,11 +14,15 @@ const StepName = "ssh"
 
 type Step struct{}
 
+func Init() {
+	steps.RegisterStep(StepName, &Step{})
+}
+
 func (s *Step) Run(ctx context.Context, writer io.Writer, config *steps.Config) error {
 	var err error
 
 	cfg := ssh.Config{
-		Host:    config.GetMaster().PublicIp,
+		Host:    config.Node.PublicIp,
 		Port:    config.SshConfig.Port,
 		User:    config.SshConfig.User,
 		Timeout: config.SshConfig.Timeout,

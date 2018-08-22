@@ -15,6 +15,7 @@ import (
 
 	"github.com/supergiant/supergiant/pkg/account"
 	"github.com/supergiant/supergiant/pkg/api"
+	"github.com/supergiant/supergiant/pkg/clouds"
 	"github.com/supergiant/supergiant/pkg/helm"
 	"github.com/supergiant/supergiant/pkg/jwt"
 	"github.com/supergiant/supergiant/pkg/kube"
@@ -27,6 +28,7 @@ import (
 	"github.com/supergiant/supergiant/pkg/user"
 	"github.com/supergiant/supergiant/pkg/util"
 	"github.com/supergiant/supergiant/pkg/workflows"
+	"github.com/supergiant/supergiant/pkg/model"
 )
 
 type Server struct {
@@ -178,10 +180,55 @@ func configureApplication(cfg *Config) (*mux.Router, error) {
 	taskHandler := workflows.NewTaskHandler(repository, ssh.NewRunner, accountService)
 	taskHandler.Register(router)
 
+	p := &profile.KubeProfile{
+		ID: "1234",
+		MasterProfiles: []profile.NodeProfile{
+			{
+				Provider: clouds.DigitalOcean,
+			},
+		},
+		NodesProfiles: []profile.NodeProfile{
+			{
+				Provider: clouds.DigitalOcean,
+			},
+		},
+
+		Arch:            "amd64",
+		OperatingSystem: "linux",
+		UbuntuVersion:   "xenial",
+		DockerVersion:   "17.06.0",
+		K8SVersion:      "1.11.1",
+		FlannelVersion:  "0.10.0",
+		NetworkType:     "vxlan",
+		HelmVersion:     "2.8.0",
+		RBACEnabled:     false,
+	}
+
+	err := kubeProfileService.Create(context.Background(), p)
+
+
+	if err != nil {
+		logrus.Fatal(err)
+	}
+
+	cloudAccount := &model.CloudAccount{
+		Name: "test",
+		Provider: clouds.DigitalOcean,
+		Credentials: map[string]string{
+			"accessToken": "",
+			"fingerprint": "",
+		},
+	}
+
+	err = accountService.Create(context.Background(), cloudAccount)
+	if err != nil {
+		logrus.Fatal(err)
+	}
+
 	taskProvisioner := provisioner.NewProvisioner(repository)
 	tokenGetter := provisioner.NewEtcdTokenGetter()
 	provisionHandler := provisioner.NewHandler(kubeProfileService, accountService, tokenGetter, taskProvisioner)
-	provisionHandler.Register(protectedAPI)
+	provisionHandler.Register(router)
 
 	helmService := helm.NewService(repository)
 	helmHandler := helm.NewHandler(helmService)

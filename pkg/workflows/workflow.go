@@ -16,6 +16,7 @@ import (
 	"github.com/supergiant/supergiant/pkg/workflows/steps/manifest"
 	"github.com/supergiant/supergiant/pkg/workflows/steps/poststart"
 	"github.com/supergiant/supergiant/pkg/workflows/steps/tiller"
+	"github.com/supergiant/supergiant/pkg/workflows/steps/ssh"
 )
 
 // StepStatus aggregates data that is needed to track progress
@@ -58,9 +59,11 @@ func Init() {
 	poststart.Init()
 	tiller.Init()
 	etcd.Init()
+	ssh.Init()
 
 	digitalOceanMasterWorkflow := []steps.Step{
 		steps.GetStep(digitalocean.StepName),
+		steps.GetStep(ssh.StepName),
 		steps.GetStep(downloadk8sbinary.StepName),
 		steps.GetStep(docker.StepName),
 		steps.GetStep(cni.StepName),
@@ -74,6 +77,7 @@ func Init() {
 	}
 	digitalOceanNodeWorkflow := []steps.Step{
 		steps.GetStep(digitalocean.StepName),
+		steps.GetStep(ssh.StepName),
 		steps.GetStep(downloadk8sbinary.StepName),
 		steps.GetStep(flannel.StepName),
 		steps.GetStep(docker.StepName),

@@ -62,6 +62,7 @@ func (r *TaskProvisioner) Provision(ctx context.Context, kubeProfile *profile.Ku
 	go func() {
 		readyChan := make(chan struct{})
 
+		config.Role = "master"
 		// Provision master nodes
 		for _, masterTask := range masterTasks {
 			go func() {
@@ -74,6 +75,7 @@ func (r *TaskProvisioner) Provision(ctx context.Context, kubeProfile *profile.Ku
 
 		<-readyChan
 
+		config.Role = "node"
 		// Provision nodes
 		for _, nodeTask := range nodeTasks {
 			nodeTask.Run(ctx, config, os.Stdout)

@@ -55,7 +55,7 @@ func New(dropletTimeout, checkPeriod time.Duration) *Step {
 func (t *Step) Run(ctx context.Context, output io.Writer, config *steps.Config) error {
 	c := getClient(config.DigitalOceanConfig.AccessToken)
 
-	config.DigitalOceanConfig.Name = util.MakeNodeName(config.DigitalOceanConfig.Name, config.DigitalOceanConfig.Role)
+	config.DigitalOceanConfig.Name = util.MakeNodeName(config.DigitalOceanConfig.Name, config.Role)
 
 	var fingers []godo.DropletCreateSSHKey
 	fingers = append(fingers, godo.DropletCreateSSHKey{
@@ -106,6 +106,8 @@ func (t *Step) Run(ctx context.Context, output io.Writer, config *steps.Config) 
 					PrivateIp: getPrivateIpPort(droplet.Networks.V4),
 				}
 				config.AddMaster(n)
+				config.Node = *n
+
 				logrus.Println(n)
 				return nil
 			}

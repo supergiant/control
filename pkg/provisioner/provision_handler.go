@@ -88,7 +88,6 @@ func (h *ProvisionHandler) Provision(w http.ResponseWriter, r *http.Request) {
 		DigitalOceanConfig: steps.DOConfig{
 			Region: "fra1",
 			Size:   "s-1vcpu-2gb",
-			Role:   "master",
 			Image:  "ubuntu-18-04-x64",
 		},
 		AWSConfig:    steps.AWSConfig{},
@@ -104,7 +103,7 @@ func (h *ProvisionHandler) Provision(w http.ResponseWriter, r *http.Request) {
 		DownloadK8sBinary: steps.DownloadK8sBinary{
 			K8SVersion:      kubeProfile.K8SVersion,
 			Arch:            kubeProfile.Arch,
-			OperatingSystem: "linux",
+			OperatingSystem: kubeProfile.OperatingSystem,
 		},
 		CertificatesConfig: steps.CertificatesConfig{
 			KubernetesConfigDir: "/etc/kubernetes",
@@ -114,7 +113,7 @@ func (h *ProvisionHandler) Provision(w http.ResponseWriter, r *http.Request) {
 		FlannelConfig: steps.FlannelConfig{
 			Arch:    kubeProfile.Arch,
 			Version: kubeProfile.FlannelVersion,
-			// TODO(stgleb): this shoud be configurable from user side
+			// TODO(stgleb): this should be configurable from user side
 			Network:     "10.0.0.0",
 			NetworkType: kubeProfile.NetworkType,
 		},
@@ -140,13 +139,20 @@ func (h *ProvisionHandler) Provision(w http.ResponseWriter, r *http.Request) {
 		},
 		TillerConfig: steps.TillerConfig{
 			HelmVersion:     kubeProfile.HelmVersion,
-			OperatingSystem: "linux",
+			OperatingSystem: kubeProfile.OperatingSystem,
 			Arch:            kubeProfile.Arch,
 		},
-		SshConfig: steps.SshConfig{},
+		SshConfig: steps.SshConfig{
+			Port: "22",
+			User: "root",
+			PrivateKey: []byte(``),
+			Timeout: 10,
+		},
 		EtcdConfig: steps.EtcdConfig{
 			Token: token,
 		},
+
+		CloudAccountName: req.CloudAccountName,
 	}
 
 	// Fill config with appropriate cloud account credentials

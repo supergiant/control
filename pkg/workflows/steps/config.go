@@ -19,12 +19,10 @@ type CertificatesConfig struct {
 
 type DOConfig struct {
 	Name        string `json:"name" valid:"required"`
-	K8SVersion  string `json:"k8sVersion"`
 	Region      string `json:"region" valid:"required"`
 	Size        string `json:"size" valid:"required"`
-	Role        string `json:"role" valid:"in(master|node)"` // master/node
 	Image       string `json:"image" valid:"required"`
-	Fingerprint string `json:"fingerprints" valid:"required"`
+	Fingerprint string `json:"fingerprint" valid:"required"`
 	AccessToken string `json:"accessToken" valid:"required"`
 }
 
@@ -109,7 +107,8 @@ type SshConfig struct {
 
 // TODO(stgleb): rename to context and embed context.Context here
 type Config struct {
-	Provider clouds.Name
+	Provider clouds.Name `json:"provider"`
+	Role     string      `json:"role"`
 
 	DigitalOceanConfig DOConfig     `json:"digitalOceanConfig"`
 	AWSConfig          AWSConfig    `json:"awsConfig"`
@@ -128,6 +127,7 @@ type Config struct {
 	EtcdConfig         EtcdConfig         `json:"etcdConfig"`
 	SshConfig          SshConfig          `json:"sshConfig"`
 
+	Node             node.Node     `json:"node"`
 	CloudAccountName string        `json:"cloudAccountName" valid:"required, length(1|32)"`
 	Timeout          time.Duration `json:"timeout"`
 	Runner           runner.Runner `json:"-"`
