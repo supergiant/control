@@ -170,7 +170,7 @@ func (h *ProvisionHandler) Provision(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	taskIds := make([]string, len(tasks))
+	taskIds := make([]string, 0, len(tasks))
 
 	for _, task := range tasks {
 		taskIds = append(taskIds, task.ID)

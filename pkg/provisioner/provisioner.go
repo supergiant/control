@@ -66,7 +66,9 @@ func (r *TaskProvisioner) Provision(ctx context.Context, kubeProfile *profile.Ku
 		// Provision master nodes
 		for _, masterTask := range masterTasks {
 			go func() {
-				err := <-masterTask.Run(ctx, config, os.Stdout)
+				errChan := masterTask.Run(ctx, config, os.Stdout)
+				err := <- errChan
+
 				if err != nil {
 					close(readyChan)
 				}
