@@ -81,12 +81,12 @@ func (h *ProvisionHandler) Provision(w http.ResponseWriter, r *http.Request) {
 
 	token, err := h.tokenGetter.GetToken(r.Context(), len(kubeProfile.MasterProfiles))
 
-	logrus.Infof("Got token %s", token)
-
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
 	}
+
+	logrus.Infof("Got token %s", token)
 
 	config := &steps.Config{
 		DigitalOceanConfig: steps.DOConfig{
@@ -118,6 +118,7 @@ func (h *ProvisionHandler) Provision(w http.ResponseWriter, r *http.Request) {
 			Arch:    kubeProfile.Arch,
 			Version: kubeProfile.FlannelVersion,
 			// TODO(stgleb): this should be configurable from user side
+			EtcdHost:    "0.0.0.0",
 			Network:     "10.0.0.0",
 			NetworkType: kubeProfile.NetworkType,
 		},
@@ -140,6 +141,7 @@ func (h *ProvisionHandler) Provision(w http.ResponseWriter, r *http.Request) {
 			Port:        "8080",
 			Username:    "root",
 			RBACEnabled: false,
+			Timeout:     60,
 		},
 		TillerConfig: steps.TillerConfig{
 			HelmVersion:     kubeProfile.HelmVersion,

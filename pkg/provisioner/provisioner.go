@@ -64,13 +64,16 @@ func (r *TaskProvisioner) Provision(ctx context.Context, kubeProfile *profile.Ku
 		errChan := make(chan error)
 
 		config.Role = "master"
+		config.ManifestConfig.IsMaster = true
+
 		// Provision master nodes
 		for _, masterTask := range masterTasks {
 			go func() {
-				errChan := masterTask.Run(ctx, config, os.Stdout)
-				err := <-errChan
+				result := masterTask.Run(ctx, config, os.Stdout)
+				err := <-result
 
-				if err != nil {
+				logrus.Infof("master-task %s has finished", masterTask.ID)
+				if err == nil {
 					close(errChan)
 				} else {
 					errChan <- err
@@ -85,9 +88,12 @@ func (r *TaskProvisioner) Provision(ctx context.Context, kubeProfile *profile.Ku
 			return
 		}
 
-		logrus.Info("Master provisioning has finished sucessfully")
+		logrus.Info("Master provisioning has finished successfully")
 
 		config.Role = "node"
+		config.ManifestConfig.IsMaster = false
+		config.FlannelConfig.EtcdHost = config.GetMaster().PublicIp
+
 		// Provision nodes
 		for _, nodeTask := range nodeTasks {
 			nodeTask.Run(ctx, config, os.Stdout)

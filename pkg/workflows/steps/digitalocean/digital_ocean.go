@@ -55,7 +55,7 @@ func New(dropletTimeout, checkPeriod time.Duration) *Step {
 func (t *Step) Run(ctx context.Context, output io.Writer, config *steps.Config) error {
 	c := getClient(config.DigitalOceanConfig.AccessToken)
 
-	config.DigitalOceanConfig.Name = util.MakeNodeName(config.DigitalOceanConfig.Name, config.Role)
+	config.DigitalOceanConfig.Name = util.MakeNodeName(config.Role)
 
 	var fingers []godo.DropletCreateSSHKey
 	fingers = append(fingers, godo.DropletCreateSSHKey{

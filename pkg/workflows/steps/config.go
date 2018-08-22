@@ -39,6 +39,7 @@ type FlannelConfig struct {
 	Arch        string `json:"arch"`
 	Version     string `json:"version"`
 	Network     string `json:"network"`
+	EtcdHost    string `json:"etcdHost"`
 	NetworkType string `json:"networkType"`
 }
 
