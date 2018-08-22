@@ -93,7 +93,6 @@ type EtcdConfig struct {
 	DataDir        string `json:"dataDir"`
 	ServicePort    string `json:"servicePort"`
 	ManagementPort string `json:"managementPort"`
-	Token          string `json:"token"`
 	StartTimeout   string `json:"startTimeout"`
 	RestartTimeout string `json:"restartTimeout"`
 }

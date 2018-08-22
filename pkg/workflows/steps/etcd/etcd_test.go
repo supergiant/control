@@ -37,7 +37,6 @@ ExecStart=/usr/bin/docker run \
             --advertise-client-urls http://{{ .Host }}:{{ .ServicePort }} \
             --listen-peer-urls http://{{ .Host }}:{{ .ManagementPort }} \
             --initial-advertise-peer-urls http://{{ .Host }}:{{ .ManagementPort }} \
-            --initial-cluster {{ .Name }}=http://{{ .Host }}:{{ .ManagementPort }} \
             --discovery {{ .DiscoveryUrl }} \
             --listen-peer-urls http://{{ .Host }}:2380 --listen-client-urls http://{{ .Host }}:2379
 

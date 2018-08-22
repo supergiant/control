@@ -4,6 +4,7 @@ import (
 	"context"
 	"os"
 
+	"github.com/sirupsen/logrus"
 	"github.com/supergiant/supergiant/pkg/clouds"
 	"github.com/supergiant/supergiant/pkg/profile"
 	"github.com/supergiant/supergiant/pkg/storage"
@@ -60,22 +61,31 @@ func (r *TaskProvisioner) Provision(ctx context.Context, kubeProfile *profile.Ku
 	tasks := append(append(make([]*workflows.Task, 0), masterTasks...), nodeTasks...)
 
 	go func() {
-		readyChan := make(chan struct{})
+		errChan := make(chan error)
 
 		config.Role = "master"
 		// Provision master nodes
 		for _, masterTask := range masterTasks {
 			go func() {
 				errChan := masterTask.Run(ctx, config, os.Stdout)
-				err := <- errChan
+				err := <-errChan
 
 				if err != nil {
-					close(readyChan)
+					close(errChan)
+				} else {
+					errChan <- err
 				}
 			}()
 		}
 
-		<-readyChan
+		err := <-errChan
+
+		if err != nil {
+			logrus.Errorf("Master provisioning has finished with error %v", err)
+			return
+		}
+
+		logrus.Info("Master provisioning has finished sucessfully")
 
 		config.Role = "node"
 		// Provision nodes

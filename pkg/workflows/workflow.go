@@ -15,8 +15,8 @@ import (
 	"github.com/supergiant/supergiant/pkg/workflows/steps/kubelet"
 	"github.com/supergiant/supergiant/pkg/workflows/steps/manifest"
 	"github.com/supergiant/supergiant/pkg/workflows/steps/poststart"
-	"github.com/supergiant/supergiant/pkg/workflows/steps/tiller"
 	"github.com/supergiant/supergiant/pkg/workflows/steps/ssh"
+	"github.com/supergiant/supergiant/pkg/workflows/steps/tiller"
 )
 
 // StepStatus aggregates data that is needed to track progress

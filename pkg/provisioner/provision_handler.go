@@ -6,12 +6,14 @@ import (
 	"net/http"
 
 	"github.com/gorilla/mux"
+	"github.com/sirupsen/logrus"
 	"github.com/supergiant/supergiant/pkg/account"
 	"github.com/supergiant/supergiant/pkg/model"
 	"github.com/supergiant/supergiant/pkg/profile"
 	"github.com/supergiant/supergiant/pkg/sgerrors"
 	"github.com/supergiant/supergiant/pkg/workflows"
 	"github.com/supergiant/supergiant/pkg/workflows/steps"
+	"time"
 )
 
 type ProfileGetter interface {
@@ -79,6 +81,8 @@ func (h *ProvisionHandler) Provision(w http.ResponseWriter, r *http.Request) {
 
 	token, err := h.tokenGetter.GetToken(r.Context(), len(kubeProfile.MasterProfiles))
 
+	logrus.Infof("Got token %s", token)
+
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
@@ -143,15 +147,25 @@ func (h *ProvisionHandler) Provision(w http.ResponseWriter, r *http.Request) {
 			Arch:            kubeProfile.Arch,
 		},
 		SshConfig: steps.SshConfig{
-			Port: "22",
-			User: "root",
+			Port:       "22",
+			User:       "root",
 			PrivateKey: []byte(``),
-			Timeout: 10,
+			Timeout:    10,
 		},
 		EtcdConfig: steps.EtcdConfig{
-			Token: token,
+			// TODO(stgleb): this field must be changed per node
+			Name:           "etcd0",
+			Version:        "3.3.9",
+			Host:           "0.0.0.0",
+			DataDir:        "/etcd-data",
+			ServicePort:    "2379",
+			ManagementPort: "2380",
+			StartTimeout:   "0",
+			RestartTimeout: "5",
+			DiscoveryUrl:   token,
 		},
 
+		Timeout:          time.Second * 300,
 		CloudAccountName: req.CloudAccountName,
 	}
 

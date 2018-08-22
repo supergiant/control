@@ -84,6 +84,7 @@ func (w *Task) Run(ctx context.Context, config *steps.Config, out io.Writer) cha
 
 		if err != nil {
 			errChan <- err
+			return
 		}
 
 		logrus.Infof("Task %s has finished successfully", w.ID)
