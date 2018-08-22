@@ -9,7 +9,6 @@ ETCD_VER=v3.3.9
 curl -L ${GITHUB_URL}/${ETCD_VER}/etcd-${ETCD_VER}-linux-amd64.tar.gz -o /tmp/etcd-${ETCD_VER}-linux-amd64.tar.gz
 tar xzvf /tmp/etcd-${ETCD_VER}-linux-amd64.tar.gz -C /usr/bin --strip-components=1
 
-// Setup etcd env variable to connect flannel to it
 ETCD_ADVERTISE_CLIENT_URLS=http://{{ .EtcdHost }}:2379
 ETCD_INITIAL_ADVERTISE_PEER_URLS=http://{{ .EtcdHost }}:2380
 ETCD_ADVERTISE_CLIENT_URLS=http://{{ .EtcdHost }}:2379
