@@ -85,7 +85,6 @@ func Init() {
 		steps.GetStep(flannel.StepName),
 		steps.GetStep(kubelet.StepName),
 		steps.GetStep(cni.StepName),
-		steps.GetStep(poststart.StepName),
 	}
 
 	m.Lock()
