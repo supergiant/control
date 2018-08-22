@@ -121,7 +121,7 @@ func (h *ProvisionHandler) Provision(w http.ResponseWriter, r *http.Request) {
 			Version: kubeProfile.FlannelVersion,
 			// TODO(stgleb): this should be configurable from user side
 			EtcdHost:    "0.0.0.0",
-			Network:     "10.0.0.0",
+			Network:     "10.0.0.0/24",
 			NetworkType: kubeProfile.NetworkType,
 		},
 		KubeletConfig: steps.KubeletConfig{
