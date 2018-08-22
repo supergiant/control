@@ -79,10 +79,11 @@ func Init() {
 		steps.GetStep(digitalocean.StepName),
 		steps.GetStep(ssh.StepName),
 		steps.GetStep(downloadk8sbinary.StepName),
-		steps.GetStep(flannel.StepName),
 		steps.GetStep(docker.StepName),
-		steps.GetStep(kubelet.StepName),
 		steps.GetStep(certificates.StepName),
+		steps.GetStep(manifest.StepName),
+		steps.GetStep(flannel.StepName),
+		steps.GetStep(kubelet.StepName),
 		steps.GetStep(cni.StepName),
 		steps.GetStep(poststart.StepName),
 	}
