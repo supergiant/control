@@ -19,6 +19,7 @@ import (
 	"github.com/supergiant/supergiant/pkg/helm"
 	"github.com/supergiant/supergiant/pkg/jwt"
 	"github.com/supergiant/supergiant/pkg/kube"
+	"github.com/supergiant/supergiant/pkg/model"
 	"github.com/supergiant/supergiant/pkg/profile"
 	"github.com/supergiant/supergiant/pkg/provisioner"
 	"github.com/supergiant/supergiant/pkg/runner/ssh"
@@ -28,7 +29,6 @@ import (
 	"github.com/supergiant/supergiant/pkg/user"
 	"github.com/supergiant/supergiant/pkg/util"
 	"github.com/supergiant/supergiant/pkg/workflows"
-	"github.com/supergiant/supergiant/pkg/model"
 )
 
 type Server struct {
@@ -191,6 +191,9 @@ func configureApplication(cfg *Config) (*mux.Router, error) {
 			{
 				Provider: clouds.DigitalOcean,
 			},
+			{
+				Provider: clouds.DigitalOcean,
+			},
 		},
 
 		Arch:            "amd64",
@@ -206,13 +209,12 @@ func configureApplication(cfg *Config) (*mux.Router, error) {
 
 	err := kubeProfileService.Create(context.Background(), p)
 
-
 	if err != nil {
 		logrus.Fatal(err)
 	}
 
 	cloudAccount := &model.CloudAccount{
-		Name: "test",
+		Name:     "test",
 		Provider: clouds.DigitalOcean,
 		Credentials: map[string]string{
 			"accessToken": "",
