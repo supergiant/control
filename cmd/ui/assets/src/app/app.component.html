@@ -5,6 +5,9 @@
 <simple-notifications [options]="options"></simple-notifications>
 
 <div #body class="app-body mat-typography">
+  <div class="app-background">
+
+  </div>
   <!-- slideshow -->
   <!-- <ul class="slideshow">
     <li><span>1</span></li>
@@ -14,5 +17,7 @@
     <li><span>5</span></li>
     <li><span>6</span></li>
   </ul> -->
-  <router-outlet></router-outlet>
+  <div class="app-content">
+    <router-outlet></router-outlet>
+  </div>
 </div>

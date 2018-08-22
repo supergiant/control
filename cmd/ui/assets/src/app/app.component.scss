@@ -1,10 +1,32 @@
 .app-body {
   height: 100%;
   width: 100%;
-
-  background: url(assets/img/backgrounds/bg-2.jpg) center top / 1366px 850px no-repeat;
   display: flex;
   flex-direction: column;
+  position: relative;
+
+  .app-background {
+    background: linear-gradient(#000, #28002F);
+    position: absolute;
+    left: 0;
+    right: 0;
+    top: 0;
+    bottom: 0;
+    height: 100%;
+    width: 100%;
+  }
+
+  .app-background:after {
+    content: '';
+    position: absolute;
+    left: 0;
+    right: 0;
+    top: 0;
+    bottom: 0;
+    background: url(assets/img/backgrounds/bg-2.jpg) center top / 1366px 850px no-repeat;
+    opacity: 0.5;
+
+  }
 
   .slideshow {
     list-style-type: none;
@@ -90,5 +112,9 @@
     100% {
       opacity: 0;
     }
+  }
+
+  .app-content {
+    position: relative;
   }
 }

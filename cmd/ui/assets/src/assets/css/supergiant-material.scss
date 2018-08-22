@@ -72,7 +72,8 @@ $sg-typography: mat-typography-config(
   $headline: mat-typography-level(32px, 48px, 100, "Montserrat, sans-serif"),
   // h3
   $subheading-2: mat-typography-level(14px, 48px, 500),
-  $body-1: mat-typography-level(16px, 24px, 400)
+  $body-1: mat-typography-level(16px, 24px, 400),
+  $input: mat-typography-level(inherit, 1.3, 300)
 );
 
 $primary: mat-palette($sg-primary, 500, 300, 900);
