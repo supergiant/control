@@ -227,6 +227,6 @@ func RecurseSchema(schema map[string]interface{}, obj interface{}) {
 	}
 }
 
-func MakeNodeName(role string) string {
-	return role + "-" + strings.ToLower(RandomString(5))
+func MakeNodeName(clusterName, role string) string {
+	return fmt.Sprintf("%s-%s-%s", clusterName, role, strings.ToLower(RandomString(5)))
 }

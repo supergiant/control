@@ -36,6 +36,7 @@ type ProvisionHandler struct {
 }
 
 type ProvisionRequest struct {
+	ClusterName      string `json:"clusterName"`
 	ProfileId        string `json:"profileId"`
 	CloudAccountName string `json:"cloudAccountName"`
 }
@@ -89,6 +90,7 @@ func (h *ProvisionHandler) Provision(w http.ResponseWriter, r *http.Request) {
 	logrus.Infof("Got token %s", token)
 
 	config := &steps.Config{
+		ClusterName: req.ClusterName,
 		DigitalOceanConfig: steps.DOConfig{
 			Region: "fra1",
 			Size:   "s-1vcpu-2gb",
