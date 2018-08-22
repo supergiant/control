@@ -35,7 +35,7 @@ Environment="ETCD_INITIAL_ADVERTISE_PEER_URLS=http://{{ .EtcdHost }}:2380"
 Environment="ETCD_LISTEN_CLIENT_URLS=http://{{ .EtcdHost }}:2379"
 Environment="ETCD_LISTEN_PEER_URLS=http://{{ .EtcdHost }}:2380"
 Environment="ETCDCTL_API=3"
-ExecStart=/usr/bin/flanneld
+ExecStart=/usr/bin/flanneld --etcd-endpoints=http://{{ .EtcdHost }}:2379
 
 [Install]
 WantedBy=multi-user.target
