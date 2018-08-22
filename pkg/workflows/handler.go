@@ -97,7 +97,7 @@ func (h *TaskHandler) RunTask(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	task.Run(context.Background(), &req.Cfg, os.Stdout)
+	task.Run(context.Background(), req.Cfg, os.Stdout)
 
 	w.WriteHeader(http.StatusAccepted)
 	json.NewEncoder(w).Encode(&TaskResponse{
@@ -160,7 +160,7 @@ func (h *TaskHandler) BuildAndRunTask(w http.ResponseWriter, r *http.Request) {
 	task := newTask("", s, h.repository)
 	// We ignore cancel function since we cannot get it back
 	ctx, _ := context.WithTimeout(context.Background(), req.Cfg.Timeout*time.Second)
-	task.Run(ctx, &req.Cfg, os.Stdout)
+	task.Run(ctx, req.Cfg, os.Stdout)
 
 	w.WriteHeader(http.StatusCreated)
 	json.NewEncoder(w).Encode(&TaskResponse{

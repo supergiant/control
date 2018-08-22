@@ -136,13 +136,13 @@ type Config struct {
 	repository storage.Interface `json:"-"`
 
 	m           sync.RWMutex
-	MasterNodes []*node.Node `json:"masterNodes"`
+	MasterNodes map[string]*node.Node `json:"masterNodes"`
 }
 
 func (c *Config) AddMaster(n *node.Node) {
 	c.m.Lock()
 	defer c.m.Unlock()
-	c.MasterNodes = append(c.MasterNodes, n)
+	c.MasterNodes[n.Id] = n
 }
 
 func (c *Config) GetMaster() *node.Node {
@@ -153,5 +153,9 @@ func (c *Config) GetMaster() *node.Node {
 		return nil
 	}
 
-	return c.MasterNodes[0]
+	for _, value := range c.MasterNodes {
+		return value
+	}
+
+	return nil
 }

@@ -58,7 +58,7 @@ func newTask(workflowType string, workflow Workflow, repository storage.Interfac
 }
 
 // Run executes all steps of workflow and tracks the progress in persistent storage
-func (w *Task) Run(ctx context.Context, config *steps.Config, out io.Writer) chan error {
+func (w *Task) Run(ctx context.Context, config steps.Config, out io.Writer) chan error {
 	errChan := make(chan error, 1)
 
 	go func() {
@@ -76,7 +76,7 @@ func (w *Task) Run(ctx context.Context, config *steps.Config, out io.Writer) cha
 		}
 
 		// Set config to the task
-		w.Config = config
+		w.Config = &config
 		// Save task state before first step
 		w.sync(ctx)
 		// Start from the first step

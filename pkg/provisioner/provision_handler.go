@@ -9,6 +9,7 @@ import (
 	"github.com/sirupsen/logrus"
 	"github.com/supergiant/supergiant/pkg/account"
 	"github.com/supergiant/supergiant/pkg/model"
+	"github.com/supergiant/supergiant/pkg/node"
 	"github.com/supergiant/supergiant/pkg/profile"
 	"github.com/supergiant/supergiant/pkg/sgerrors"
 	"github.com/supergiant/supergiant/pkg/workflows"
@@ -169,6 +170,7 @@ func (h *ProvisionHandler) Provision(w http.ResponseWriter, r *http.Request) {
 			DiscoveryUrl:   token,
 		},
 
+		MasterNodes:      make(map[string]*node.Node, len(kubeProfile.MasterProfiles)),
 		Timeout:          time.Second * 300,
 		CloudAccountName: req.CloudAccountName,
 	}

@@ -70,20 +70,16 @@ func (r *TaskProvisioner) Provision(ctx context.Context, kubeProfile *profile.Ku
 		wg.Add(len(masterTasks))
 		// Provision master nodes
 		for _, masterTask := range masterTasks {
-			go func() {
-				result := masterTask.Run(ctx, config, os.Stdout)
-				err := <-result
+			result := masterTask.Run(ctx, *config, os.Stdout)
+			err := <-result
 
-				if err != nil {
-					logrus.Errorf("master task %s has finished with error %v", masterTask.ID, err)
-				} else {
-					logrus.Infof("master-task %s has finished", masterTask.ID)
-				}
-				wg.Done()
-				}()
+			if err != nil {
+				logrus.Errorf("master task %s has finished with error %v", masterTask.ID, err)
+			} else {
+				logrus.Infof("master-task %s has finished", masterTask.ID)
+			}
 		}
 
-		wg.Wait()
 		// If we get no master node
 		if config.GetMaster() == nil {
 			logrus.Errorf("Cluster provisioning has failed")
@@ -94,15 +90,20 @@ func (r *TaskProvisioner) Provision(ctx context.Context, kubeProfile *profile.Ku
 		config.Role = "node"
 		config.ManifestConfig.IsMaster = false
 		// Let flannel communicate through private network
-		config.FlannelConfig.EtcdHost = config.GetMaster().PrivateIp
+		config.FlannelConfig.EtcdHost = config.GetMaster().PublicIp
 
 		// Provision nodes
 		for _, nodeTask := range nodeTasks {
-			go func() {
-				nodeTask.Run(ctx, config, os.Stdout)
-			}()
+			result := nodeTask.Run(ctx, *config, os.Stdout)
+			err := <-result
+
+			if err != nil {
+				logrus.Errorf("node task %s has finished with error %v", nodeTask.ID, err)
+			} else {
+				logrus.Infof("node-task %s has finished", nodeTask.ID)
+			}
 		}
-		logrus.Infof("Cluster %s has been deployed", config.ClusterName)
+		logrus.Infof("Cluster %s has been deployed successfully", config.ClusterName)
 	}()
 
 	return tasks, nil
