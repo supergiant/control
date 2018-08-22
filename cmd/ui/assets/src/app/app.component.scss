@@ -1,0 +1,120 @@
+.app-body {
+  height: 100%;
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  position: relative;
+
+  .app-background {
+    background: linear-gradient(#000, #28002F);
+    position: absolute;
+    left: 0;
+    right: 0;
+    top: 0;
+    bottom: 0;
+    height: 100%;
+    width: 100%;
+  }
+
+  .app-background:after {
+    content: '';
+    position: absolute;
+    left: 0;
+    right: 0;
+    top: 0;
+    bottom: 0;
+    background: url(assets/img/backgrounds/bg-2.jpg) center top / 1366px 850px no-repeat;
+    opacity: 0.5;
+
+  }
+
+  .slideshow {
+    list-style-type: none;
+  }
+
+  .slideshow,
+  .slideshow:after {
+    position: fixed;
+    width: 100%;
+    height: 100%;
+    top: 0px;
+    left: 0px;
+    z-index: -1;
+  }
+
+  .slideshow:after {
+    content: "";
+    background-color: rgba(0,0,0,0.5);
+  }
+
+  .slideshow li span {
+    width: 100%;
+    height: 100%;
+    position: absolute;
+    top: 0px;
+    left: 0px;
+    color: transparent;
+    background-size: cover;
+    background-position: 50% 50%;
+    background-repeat: none;
+    opacity: 0;
+    z-index: -1;
+    animation: slide 36s linear infinite 0s;
+  }
+
+  .slideshow li:nth-child(1) span {
+    background-image: url(assets/img/backgrounds/bg-1.jpg);
+  }
+
+  .slideshow li:nth-child(2) span {
+    background-image: url(assets/img/backgrounds/bg-2.jpg);
+    animation-delay: 6s;
+  }
+
+  .slideshow li:nth-child(3) span {
+    background-image: url(assets/img/backgrounds/bg-3.jpg);
+    animation-delay: 12s;
+  }
+
+  .slideshow li:nth-child(4) span {
+    background-image: url(assets/img/backgrounds/bg-4.jpg);
+    animation-delay: 18s;
+  }
+
+  .slideshow li:nth-child(5) span {
+    background-image: url(assets/img/backgrounds/bg-5.jpg);
+    animation-delay: 24s;
+  }
+
+  .slideshow li:nth-child(6) span {
+    background-image: url(assets/img/backgrounds/bg-6.jpg);
+    animation-delay: 30s;
+  }
+
+  @keyframes slide {
+    0% {
+      opacity: 0;
+      animation-timing-function: ease-in;
+    }
+    8% {
+      opacity: 1;
+      transform: scale(1.05);
+      animation-timing-function: ease-out;
+    }
+    17% {
+      opacity: 1;
+      transform: scale(1.1);
+    }
+    25% {
+      opacity: 0;
+      transform: scale(1.1);
+    }
+    100% {
+      opacity: 0;
+    }
+  }
+
+  .app-content {
+    position: relative;
+  }
+}

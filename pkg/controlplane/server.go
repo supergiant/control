@@ -1,7 +1,7 @@
 package controlplane
 
 import (
-	"errors"
+	"context"
 	"fmt"
 	"net/http"
 	"time"
@@ -9,10 +9,8 @@ import (
 	"github.com/coreos/etcd/clientv3"
 	"github.com/gorilla/handlers"
 	"github.com/gorilla/mux"
+	"github.com/pkg/errors"
 	"github.com/sirupsen/logrus"
-
-	"context"
-
 	"github.com/supergiant/supergiant/pkg/account"
 	"github.com/supergiant/supergiant/pkg/api"
 	"github.com/supergiant/supergiant/pkg/clouds"
@@ -127,7 +125,7 @@ func validate(cfg *Config) error {
 	}
 
 	if err := assert.CheckETCD(cfg.EtcdUrl); err != nil {
-		return err
+		return errors.Wrapf(err, "etcd url %s", cfg.EtcdUrl)
 	}
 
 	if cfg.Port <= 0 {
@@ -161,7 +159,7 @@ func configureApplication(cfg *Config) (*mux.Router, error) {
 
 	router.HandleFunc("/auth", userHandler.Authenticate).Methods(http.MethodPost)
 	//Opening it up for testing right now, will be protected after implementing initial user generation
-	router.HandleFunc("/users", userHandler.Create).Methods(http.MethodPost)
+	protectedAPI.HandleFunc("/users", userHandler.Create).Methods(http.MethodPost)
 
 	kubeProfileService := profile.NewKubeProfileService(profile.DefaultKubeProfilePreifx, repository)
 	kubeProfileHandler := profile.NewKubeProfileHandler(kubeProfileService)
@@ -240,7 +238,7 @@ func configureApplication(cfg *Config) (*mux.Router, error) {
 		TokenService: jwtService,
 		UserService:  userService,
 	}
-	protectedAPI.Use(authMiddleware.AuthMiddleware)
+	protectedAPI.Use(authMiddleware.AuthMiddleware, api.ContentTypeJSON)
 
 	return router, nil
 }

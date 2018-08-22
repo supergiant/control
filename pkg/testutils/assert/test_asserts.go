@@ -3,6 +3,7 @@ package assert
 import (
 	"github.com/coreos/etcd/clientv3"
 	"github.com/sirupsen/logrus"
+	"time"
 )
 
 //etcdRunning is test assert function useful in integration tests to assert that test dependencies are running
@@ -13,8 +14,10 @@ func MustRunETCD(etcdHost string) {
 }
 
 func CheckETCD(etcdHost string) error {
+	logrus.Infof("connecting to the ETCD...")
 	cl, err := clientv3.New(clientv3.Config{
-		Endpoints: []string{etcdHost},
+		Endpoints:   []string{etcdHost},
+		DialTimeout: 10 * time.Second,
 	})
 	if err != nil {
 		logrus.Fatal(err)
@@ -22,7 +25,8 @@ func CheckETCD(etcdHost string) error {
 	defer cl.Close()
 	_, err = cl.Dial(etcdHost)
 	if err != nil {
-		return err
+		logrus.Fatal(err)
 	}
+
 	return nil
 }

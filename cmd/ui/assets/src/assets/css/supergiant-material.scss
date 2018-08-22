@@ -1,188 +1,90 @@
 @import '../node_modules/@angular/material/theming';
-@include mat-core();
 
-$primary: (
-  50: #f2e2ee,
-  100: #deb7d5,
-  200: #c988b9,
-  300: #b25a9e,
-  400: #a1378b,
-  500: #90107a,
-  600: #850c75,
-  700: #75046e,
-  800: #660066,
-  900: #4c0057,
-//   A100: #000,
-//   A200: #000,
-//   A400: #000,
-//   A700: #000,
+$sg-primary: (
+  50: #f9e0f1,
+  100: #f1b3db,
+  200: #e880c4,
+  300: #df4dac,
+  400: #d8269a,
+  500: #d10088,
+  600: #cc0080,
+  700: #c60075,
+  800: #c0006b,
+  900: #b50058,
+  A100: #ffdeec,
+  A200: #ffabce,
+  A400: #ff78b1,
+  A700: #ff5ea2,
   contrast: (
-    50: $black-87-opacity,
-    100: $black-87-opacity,
-    200: $black-87-opacity,
-    300: $black-87-opacity,
-    400: $black-87-opacity,
-    500: white,
-    600: white,
-    700: white,
-    800: $white-87-opacity,
-    900: $white-87-opacity,
-    A100: $black-87-opacity,
-    A200: white,
-    A400: white,
-    A700: white,
+    50: #000000,
+    100: #000000,
+    200: #000000,
+    300: #000000,
+    400: #ffffff,
+    500: #ffffff,
+    600: #ffffff,
+    700: #ffffff,
+    800: #ffffff,
+    900: #ffffff,
+    A100: #000000,
+    A200: #000000,
+    A400: #000000,
+    A700: #000000,
   )
 );
 
-$accent: (
-  50: #fae5f2,
-  100: #f3bde0,
-  200: #ef91cb,
-  300: #ed64b6,
-  400: #ed3da2,
-  500: #f0008e,
-  600: #dd0088,
-  700: #c60680,
-  800: #af097a,
-  900: #880b6f,
-//   A100: #000,
-//   A200: #000,
-//   A400: #000,
-//   A700: #000,
+$sg-accent: (
+  50: #ede0f8,
+  100: #d1b3ed,
+  200: #b380e2,
+  300: #944dd6,
+  400: #7d26cd,
+  500: #6600c4,
+  600: #5e00be,
+  700: #5300b6,
+  800: #4900af,
+  900: #3800a2,
+  A100: #daccff,
+  A200: #b499ff,
+  A400: #8f66ff,
+  A700: #7c4dff,
   contrast: (
-    50: $black-87-opacity,
-    100: $black-87-opacity,
-    200: $black-87-opacity,
-    300: $black-87-opacity,
-    400: $black-87-opacity,
-    500: white,
-    600: white,
-    700: white,
-    800: $white-87-opacity,
-    900: $white-87-opacity,
-    A100: $black-87-opacity,
-    A200: white,
-    A400: white,
-    A700: white,
+    50: #000000,
+    100: #000000,
+    200: #000000,
+    300: #ffffff,
+    400: #ffffff,
+    500: #ffffff,
+    600: #ffffff,
+    700: #ffffff,
+    800: #ffffff,
+    900: #ffffff,
+    A100: #000000,
+    A200: #000000,
+    A400: #000000,
+    A700: #ffffff,
   )
 );
 
-$alternate: (
-    50: #f5e5f9,
-    100: #e6bef1,
-    200: #d692e9,
-    300: #c564e0,
-    400: #b83cd9,
-    500: #aa00d1,
-    600: #9a01cb,
-    700: #8301c4,
-    800: #6f00be,
-    900: #4300b5,
-  //   A100: #000,
-  //   A200: #000,
-  //   A400: #000,
-  //   A700: #000,
-    contrast: (
-      50: $black-87-opacity,
-      100: $black-87-opacity,
-      200: $black-87-opacity,
-      300: $black-87-opacity,
-      400: $black-87-opacity,
-      500: white,
-      600: white,
-      700: white,
-      800: $white-87-opacity,
-      900: $white-87-opacity,
-      A100: $black-87-opacity,
-      A200: white,
-      A400: white,
-      A700: white,
-    )
-  );
-
-$warn: (
-  50: #ffeaef,
-  100: #ffcbd4,
-  200: #f4959d,
-  300: #ec6b77,
-  400: #f84255,
-  500: #ff253b,
-  600: #ef163a,
-  700: #dd0034,
-  800: #d0002c,
-  900: #c2001f,
-//   A100: ,
-//   A200: ,
-//   A400: ,
-//   A700: ,
-  contrast: (
-    50: $black-87-opacity,
-    100: $black-87-opacity,
-    200: $black-87-opacity,
-    300: $black-87-opacity,
-    400: $black-87-opacity,
-    500: white,
-    600: white,
-    700: white,
-    800: $white-87-opacity,
-    900: $white-87-opacity,
-    A100: $black-87-opacity,
-    A200: white,
-    A400: white,
-    A700: white,
-  )
+$sg-typography: mat-typography-config(
+  $font-family: 'Roboto, monospace',
+  // h1
+  $headline: mat-typography-level(32px, 48px, 100, "Montserrat, sans-serif"),
+  // h3
+  $subheading-2: mat-typography-level(14px, 48px, 500),
+  $body-1: mat-typography-level(16px, 24px, 400),
+  $input: mat-typography-level(inherit, 1.3, 300)
 );
 
-// Generate pallete:
-$custom-theme-primary: mat-palette($primary, 800, 100, 900);
-$custom-theme-accent: mat-palette($accent, 600, 100, 800);
-// $custom-theme-accent: mat-palette($alternate, 800, 100, 900);
-$custom-theme-warn: mat-palette($warn, 700, 100, 900);
+$primary: mat-palette($sg-primary, 500, 300, 900);
 
-// Generate theme:
-$custom-theme: mat-light-theme($custom-theme-primary, $custom-theme-accent, $custom-theme-warn);
+$accent: mat-palette($sg-accent, 500, 300, 900);
+
+$warn: mat-palette($mat-red);
+
+$sg-theme: mat-dark-theme($primary, $accent, $warn);
 
 // Use theme:
-@include angular-material-theme($custom-theme);
-
-// Custom adjustments:
-button[mat-button], button[mat-raised-button] {
-  height: 2.7rem;
-}
-
-button[mat-button][color="primary"] {
-    border: solid 0.1rem #850c75;
-    // border: solid 0.1rem #af097a;
-    border-radius: 3px;
-}
-
-button[mat-button][color="accent"] {
-    border: solid 0.1rem #dd0088;
-    // border: solid 0.1rem #6f00be;
-    border-radius: 3px;
-}
-
-button[mat-button][color="warn"] {
-    border: solid 0.1rem #dd0034;
-    border-radius: 3px;
-}
-
-button[mat-button][disabled] {
-    border: solid 0.1rem #eee;
-}
-
-// .mat-button-toggle {
-//   height: 2.7rem;
-//   background-color: #fff;
-//   color: #660066;
-//   font-size: 0.9rem;
-// }
-
-// .mat-button-toggle-checked {
-//   background-color: #f2e2ee;
-// }
-
-// Tabs:
-.mat-tab-label {
-  width: 100%;
-}
+@include mat-core($sg-typography);
+@include angular-material-typography($sg-typography);
+@include angular-material-theme($sg-theme);
