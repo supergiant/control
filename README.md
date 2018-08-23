@@ -20,32 +20,23 @@ Supergiant: Kubernetes Orchestration
 
 ---
 
-Supergiant empowers developers and administrators through its simplified deployment and management of Kubernetes, in addition to easing the configuration and deployment of Helm charts, taking advantage of Kubernetes' power, flexibility, and abstraction.
-
-Supergiant facilitates clusters on multiple cloud providers, striving for truly agnostic and impartial infrastructure--and it does this with an autoscaling system that cares deeply about efficiency. It asserts through downscaling and resource compaction that unutilized infrastructure shouldn't be paid for (and, therefore, shouldn't be running).
-
-Supergiant implements simple practices that abstract load-balancing, application deployment, basic monitoring, node deployment or destruction, and more, on a highly usable UI. Its efficient compaction algorithm enables seamless auto-scaling of Kubernetes clusters, minimizing costs while maintaining the resiliency of applications. To dive into top-level concepts, see [the documentation](https://supergiant.readthedocs.io/en/v1.0.0/About%20Supergiant/architecture/).
+Empower developers and administrators through simplified deployment and management of Kubernetes. Supergiant facilitates clusters on multiple cloud providers, striving for agnostic infrastructure--with an autoscaling system that cares about efficiency. It asserts through autoscaling that every pod should have a home, but that underutilized infrastructure shouldn't be paid for (and, therefore, shouldn't be running).
 
 # Features
 
-* Fully compatible with native Kubernetes versions 1.5.7, 1.6.7, 1.7.7, and 1.8.7
-* Easy management and deployment of multiple kubes in various configurations
-* AWS, DigitalOcean, OpenStack, Packet, GCE, and on-premise kube deployment
-* Easy creation of Helm releases, Pods, Services, LoadBalancers, etc.
-* Automatic, resource-based node scaling
-* Compatibility with multiple hardware architectures
-* Role-based Users, Session-based logins, self-signed SSLs, and API tokens
-* A clean UI and CLI, both built on top of an API (with importable [Go client lib](pkg/client))
+  * Vanilla, Certified Kubernetes, with versions 1.5 to 1.11
+  * AWS, DigitalOcean, OpenStack, Packet, GCE, and on-premise kube deployment
+  * Automatic, resource-based node scaling
+  * A microservices architecture that allows users to customize their experience
+  * Easy creation of Helm releases, Pods, Services, LoadBalancers, etc.
+  * Role-based Users, Session-based logins, self-signed SSLs, and API tokens
 
 # Resources
 
-- [Supergiant Website](https://supergiant.io/)
-- [Top-level concepts](http://supergiant.readthedocs.io/en/v1.0.0/Concepts/capacity_service/)
+- [Official Website](https://supergiant.io/)
+- [Documentation](https://supergiant.readme.io/v2.0.0/)
 - [Tutorials](https://supergiant.io/tutorials)
-- [Slack Support Channel](https://supergiant.io/slack)
-- [Installation](http://supergiant.readthedocs.io/en/v1.0.0/Installation/Linux/)
-~ [UI Usage](http://supergiant.readthedocs.io/en/v1.0.0/Using%20the%20UI/cloud_accounts/)
-~ [API Usage](http://supergiant.readthedocs.io/en/v1.0.0/Using%20the%20API/load_balancer/)
+- [Slack Channel](https://supergiant.io/slack)
 
 # Community and Contributing
 
@@ -58,7 +49,7 @@ We are grateful for any contribution to the Supergiant project, be it in the for
 
 ### Setup
 
-Note: _These instructions are for setting up a local or custom environment and assume a "beginner" level of experience. For executable binaries, see the [Releases Page](https://github.com/supergiant/supergiant/releases). Before submitting a Pull Request, please see [Community and Contributing](#community-and-contributing) above._
+Note: _This process is under review, and will be updated. However, most of it should still be valid. Before submitting a Pull Request, please see [Community and Contributing](#community-and-contributing) above._
 
 #### 1. Install Dependencies:
 
@@ -106,7 +97,7 @@ Remember to checkout a branch to work on, or create a new branch.
 
 Note: _From now on, all specified directories have a root of `$GOPATH/src/github.com/supergiant/`._
 
-Copy the [example configuration](https://github.com/supergiant/supergiant/blob/v1.0.0/config/config.json.example) from within `./supergiant/`, or [create a custom one](https://supergiant.readthedocs.io/en/v1.0.0/Installation/Configuration/) as desired:
+Copy the [example configuration](https://github.com/supergiant/supergiant/blob/v1.0.0/config/config.json.example) from within `./supergiant/`, or [create a custom one](https://supergiant.readme.io/v1.1.0/docs/configuration) as desired:
 
 ```shell
 cp config/config.json.example config/config.json
