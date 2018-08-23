@@ -10,6 +10,7 @@ import (
 	tm "github.com/supergiant/supergiant/pkg/templatemanager"
 	"github.com/supergiant/supergiant/pkg/workflows/steps"
 	"github.com/supergiant/supergiant/pkg/workflows/steps/etcd"
+	"github.com/supergiant/supergiant/pkg/workflows/steps/network"
 )
 
 const StepName = "flannel"
@@ -28,7 +29,6 @@ func New(tpl *template.Template) *Step {
 	}
 }
 
-// TODO(stgleb): Split flannel installation and configuration through etcdctl
 func (t *Step) Run(ctx context.Context, out io.Writer, config *steps.Config) error {
 	err := steps.RunTemplate(context.Background(), t.scriptTemplate,
 		config.Runner, out, config.FlannelConfig)
@@ -48,5 +48,5 @@ func (t *Step) Description() string {
 }
 
 func (s *Step) Depends() []string {
-	return []string{etcd.StepName}
+	return []string{etcd.StepName, network.StepName}
 }

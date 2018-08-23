@@ -13,6 +13,7 @@ import (
 
 	"github.com/supergiant/supergiant/pkg/runner"
 	"github.com/supergiant/supergiant/pkg/workflows/steps"
+	"github.com/supergiant/supergiant/pkg/templatemanager"
 )
 
 type fakeRunner struct {
@@ -32,22 +33,24 @@ func TestInstallTiller(t *testing.T) {
 	helmVersion := "helm-v2.8.2"
 	operatingSystem := "linux"
 	arch := "amd64"
+	r := &fakeRunner{}
 
-	var (
-		r            runner.Runner = &fakeRunner{}
-		tillerScript               = `wget http://storage.googleapis.com/kubernetes-helm/{{ .HelmVersion }}-{{ .OperatingSystem }}-{{ .Arch }}.tar.gz --directory-prefix=/tmp/`
-	)
-
-	proxyTemplate, err := template.New(StepName).Parse(tillerScript)
+	err := templatemanager.Init("../../../../templates")
 
 	if err != nil {
-		t.Errorf("Error while parsing kubeproxy templatemanager %v", err)
+		t.Fatal(err)
+	}
+
+	tpl := templatemanager.GetTemplate(StepName)
+
+	if tpl == nil {
+		t.Fatal("template not found")
 	}
 
 	output := new(bytes.Buffer)
 
 	j := &Step{
-		proxyTemplate,
+		tpl,
 	}
 
 	cfg := &steps.Config{
