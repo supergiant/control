@@ -117,13 +117,22 @@ func (h *ProvisionHandler) Provision(w http.ResponseWriter, r *http.Request) {
 			Username:            "root",
 			Password:            "1234",
 		},
+		NetworkConfig: steps.NetworkConfig{
+			EtcdRepositoryUrl: "https://github.com/coreos/etcd/releases/download",
+			EtcdVersion: "3.3.9",
+			EtcdHost:    "0.0.0.0",
+
+			Arch: kubeProfile.Arch,
+			OperatingSystem: kubeProfile.OperatingSystem,
+
+			Network:     "10.0.0.0/24",
+			NetworkType: kubeProfile.NetworkType,
+		},
 		FlannelConfig: steps.FlannelConfig{
 			Arch:    kubeProfile.Arch,
 			Version: kubeProfile.FlannelVersion,
 			// TODO(stgleb): this should be configurable from user side
 			EtcdHost:    "0.0.0.0",
-			Network:     "10.0.0.0/24",
-			NetworkType: kubeProfile.NetworkType,
 		},
 		KubeletConfig: steps.KubeletConfig{
 			MasterPrivateIP: "localhost",

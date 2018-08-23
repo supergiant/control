@@ -38,8 +38,18 @@ type OSConfig struct{}
 type FlannelConfig struct {
 	Arch        string `json:"arch"`
 	Version     string `json:"version"`
-	Network     string `json:"network"`
 	EtcdHost    string `json:"etcdHost"`
+}
+
+type NetworkConfig struct{
+	EtcdRepositoryUrl string `json:"etcdRepositoryUrl"`
+	EtcdVersion string `json:"etcdVersion"`
+	EtcdHost string `json:"etcdHost"`
+
+	Arch string `json:"arch"`
+	OperatingSystem string `json:"operatingSystem"`
+
+	Network     string `json:"network"`
 	NetworkType string `json:"networkType"`
 }
 
@@ -121,6 +131,7 @@ type Config struct {
 	DownloadK8sBinary  DownloadK8sBinary  `json:"downloadK8sBinary"`
 	CertificatesConfig CertificatesConfig `json:"certificatesConfig"`
 	FlannelConfig      FlannelConfig      `json:"flannelConfig"`
+	NetworkConfig NetworkConfig `json:"networkConfig"`
 	KubeletConfig      KubeletConfig      `json:"kubeletConfig"`
 	ManifestConfig     ManifestConfig     `json:"manifestConfig"`
 	PostStartConfig    PostStartConfig    `json:"postStartConfig"`
