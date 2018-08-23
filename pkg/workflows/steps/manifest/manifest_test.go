@@ -251,8 +251,8 @@ func TestWriteManifestMaster(t *testing.T) {
 			MasterPort:          masterPort,
 			ProviderString:      providerString,
 		},
-		MasterNodes: []*node.Node{
-			{
+		MasterNodes: map[string]*node.Node{
+			"id": {
 				PrivateIp: masterHost,
 			},
 		},
@@ -313,8 +313,8 @@ func TestWriteManifestNode(t *testing.T) {
 
 	output := new(bytes.Buffer)
 	cfg := steps.Config{
-		MasterNodes: []*node.Node{
-			{
+		MasterNodes: map[string]*node.Node{
+			"id": {
 				PrivateIp: masterHost,
 			},
 		},
@@ -371,8 +371,8 @@ func TestWriteManifestError(t *testing.T) {
 	output := new(bytes.Buffer)
 	cfg := steps.Config{
 		ManifestConfig: steps.ManifestConfig{},
-		MasterNodes: []*node.Node{
-			{
+		MasterNodes: map[string]*node.Node{
+			"id": {
 				PrivateIp: "127.0.0.1",
 			},
 		},

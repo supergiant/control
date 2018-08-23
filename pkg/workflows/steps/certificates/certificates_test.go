@@ -439,8 +439,8 @@ EOF`
 			userName,
 			password,
 		},
-		MasterNodes: []*node.Node{
-			{
+		MasterNodes: map[string]*node.Node{
+			"id": {
 				PrivateIp: "10.20.30.40",
 			},
 		},
@@ -486,8 +486,8 @@ func TestWriteCertificatesError(t *testing.T) {
 
 	cfg := steps.Config{
 		CertificatesConfig: steps.CertificatesConfig{},
-		MasterNodes: []*node.Node{
-			{
+		MasterNodes: map[string]*node.Node{
+			"id": {
 				PrivateIp: "10.20.30.40",
 			},
 		},
