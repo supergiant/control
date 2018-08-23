@@ -65,9 +65,10 @@ func (r *TaskProvisioner) Provision(ctx context.Context, kubeProfile *profile.Ku
 		config.Role = "master"
 		config.ManifestConfig.IsMaster = true
 
+		// TODO(stgleb): When we have concurrent provisioning use that to sync nodes and master provisioning
 		var wg sync.WaitGroup
-
 		wg.Add(len(masterTasks))
+
 		// Provision master nodes
 		for _, masterTask := range masterTasks {
 			result := masterTask.Run(ctx, *config, os.Stdout)

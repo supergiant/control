@@ -28,6 +28,7 @@ func New(tpl *template.Template) *Step {
 	}
 }
 
+// TODO(stgleb): Split flannel installation and configuration through etcdctl
 func (t *Step) Run(ctx context.Context, out io.Writer, config *steps.Config) error {
 	err := steps.RunTemplate(context.Background(), t.scriptTemplate,
 		config.Runner, out, config.FlannelConfig)
