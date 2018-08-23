@@ -20,32 +20,23 @@ Supergiant: Kubernetes Orchestration
 
 ---
 
-Supergiant empowers developers and administrators through its simplified deployment and management of Kubernetes, in addition to easing the configuration and deployment of Helm charts, taking advantage of Kubernetes' power, flexibility, and abstraction.
-
-Supergiant facilitates clusters on multiple cloud providers, striving for truly agnostic and impartial infrastructure--and it does this with an autoscaling system that cares deeply about efficiency. It asserts through downscaling and resource packing that unutilized infrastructure shouldn't be paid for (and, therefore, shouldn't be running).
-
-Supergiant implements simple practices that abstract load-balancing, application deployment, basic monitoring, node deployment or destruction, and more, on a highly usable UI. Its efficient packing algorithm enables seamless auto-scaling of Kubernetes clusters, minimizing costs while maintaining the resiliency of applications. To dive into top-level concepts, see [the documentation](https://supergiant.readthedocs.io/en/v1.0.0/About%20Supergiant/architecture/).
+Empower developers and administrators through simplified deployment and management of Kubernetes. Supergiant facilitates clusters on multiple cloud providers, striving for agnostic infrastructure--with an autoscaling system that cares about efficiency. It asserts through autoscaling that every pod should have a home, but that underutilized infrastructure shouldn't be paid for (and, therefore, shouldn't be running).
 
 # Features
 
-* Fully compatible with native Kubernetes versions 1.5.7, 1.6.7, 1.7.7, and 1.8.7
-* Easy management and deployment of multiple kubes in various configurations
-* AWS, DigitalOcean, OpenStack, Packet, GCE, and on-premise kube deployment
-* Easy creation of Helm releases, Pods, Services, LoadBalancers, etc.
-* Automatic, resource-based node scaling
-* Compatibility with multiple hardware architectures
-* Role-based Users, Session-based logins, self-signed SSLs, and API tokens
-* A clean UI and CLI, both built on top of an API (with importable [Go client lib](pkg/client))
+  * Vanilla, Certified Kubernetes, with versions 1.5 to 1.11
+  * AWS, DigitalOcean, OpenStack, Packet, GCE, and on-premise kube deployment
+  * Automatic, resource-based node scaling
+  * Easy creation of Helm releases, Pods, Services, LoadBalancers, etc.
+  * An importable [Go client library](https://github.com/supergiant/supergiant/tree/release-1.0/pkg/client)
+  * Role-based Users, Session-based logins, self-signed SSLs, and API tokens
 
 # Resources
 
-- [Supergiant Website](https://supergiant.io/)
-- [Top-level concepts](http://supergiant.readthedocs.io/en/v1.0.0/Concepts/capacity_service/)
+- [Official Website](https://supergiant.io/)
+- [Documentation](https://supergiant.readme.io/)
 - [Tutorials](https://supergiant.io/tutorials)
-- [Slack Support Channel](https://supergiant.io/slack)
-- [Installation](http://supergiant.readthedocs.io/en/v1.0.0/Installation/Linux/)
-~ [UI Usage](http://supergiant.readthedocs.io/en/v1.0.0/Using%20the%20UI/cloud_accounts/)
-~ [API Usage](http://supergiant.readthedocs.io/en/v1.0.0/Using%20the%20API/load_balancer/)
+- [Slack Channel](https://supergiant.io/slack)
 
 # Community and Contributing
 
@@ -106,7 +97,7 @@ Remember to checkout a branch to work on, or create a new branch.
 
 Note: _From now on, all specified directories have a root of `$GOPATH/src/github.com/supergiant/`._
 
-Copy the [example configuration](https://github.com/supergiant/supergiant/blob/v1.0.0/config/config.json.example) from within `./supergiant/`, or [create a custom one](LINK TO DOCS FOR CONFIG) as desired:
+Copy the [example configuration](https://github.com/supergiant/supergiant/blob/v1.0.0/config/config.json.example) from within `./supergiant/`, or [create a custom one](https://supergiant.readme.io/v1.1.0/docs/configuration) as desired:
 
 ```shell
 cp config/config.json.example config/config.json
@@ -124,7 +115,7 @@ go-bindata -pkg bindata -o bindata/bindata.go config/providers/... ui/assets/...
 
 #### 1. Running the Backend
 
-From within `./supergiant/, run:
+From within `./supergiant/`, run:
 
 ```shell
 go run cmd/server/server.go --config-file config/config.json
@@ -138,7 +129,7 @@ INFO[0000] No Admin detected, creating new and printing credentials:
   ( ͡° ͜ʖ ͡°)  USERNAME: admin  PASSWORD: 0GYB4rIU8TaokNtJ
 ```
 
-Note: _The initial account login credentials will appear like this the first time that the server runs, and will not appear again. However, anyone with access to Supergiant's initial logs will have access to those credentials, but the credentials can be changed_
+Note: _The initial account login credentials will appear like this the first time that the server runs, and will not appear again, though anyone with access to these logs can see them. The credentials can be changed._
 
 #### 2. Running the UI
 
