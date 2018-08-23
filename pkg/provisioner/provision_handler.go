@@ -144,7 +144,7 @@ func (h *ProvisionHandler) Provision(w http.ResponseWriter, r *http.Request) {
 			Port:        "8080",
 			Username:    "root",
 			RBACEnabled: false,
-			Timeout:     60,
+			Timeout:     120,
 		},
 		TillerConfig: steps.TillerConfig{
 			HelmVersion:     kubeProfile.HelmVersion,
@@ -171,7 +171,7 @@ func (h *ProvisionHandler) Provision(w http.ResponseWriter, r *http.Request) {
 		},
 
 		MasterNodes:      make(map[string]*node.Node, len(kubeProfile.MasterProfiles)),
-		Timeout:          time.Second * 300,
+		Timeout:          time.Second * 600,
 		CloudAccountName: req.CloudAccountName,
 	}
 
@@ -183,7 +183,8 @@ func (h *ProvisionHandler) Provision(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	tasks, err := h.provisioner.Provision(context.Background(), kubeProfile, config)
+	ctx, _ := context.WithTimeout(context.Background(), config.Timeout)
+	tasks, err := h.provisioner.Provision(ctx, kubeProfile, config)
 
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
