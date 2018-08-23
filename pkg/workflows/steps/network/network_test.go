@@ -3,13 +3,13 @@ package network
 import (
 	"bytes"
 	"context"
+	"github.com/pkg/errors"
 	"strings"
 	"testing"
-	"github.com/pkg/errors"
 
+	"github.com/supergiant/supergiant/pkg/templatemanager"
 	"github.com/supergiant/supergiant/pkg/testutils"
 	"github.com/supergiant/supergiant/pkg/workflows/steps"
-	"github.com/supergiant/supergiant/pkg/templatemanager"
 )
 
 func TestNetworkConfig(t *testing.T) {
@@ -29,11 +29,11 @@ func TestNetworkConfig(t *testing.T) {
 		etcdRepositoryUrl string
 		etcdVersion       string
 		etcdHost          string
-		arch string
-		operatingSystem string
-		network       string
-		networkType   string
-		expectedError error
+		arch              string
+		operatingSystem   string
+		network           string
+		networkType       string
+		expectedError     error
 	}{
 		{
 			"https://github.com/coreos/etcd/releases/download",
@@ -66,14 +66,14 @@ func TestNetworkConfig(t *testing.T) {
 
 		config := &steps.Config{
 			NetworkConfig: steps.NetworkConfig{
-				EtcdHost: testCase.etcdHost,
-				EtcdVersion: testCase.etcdVersion,
+				EtcdHost:          testCase.etcdHost,
+				EtcdVersion:       testCase.etcdVersion,
 				EtcdRepositoryUrl: testCase.etcdRepositoryUrl,
 
-				Arch: testCase.arch,
+				Arch:            testCase.arch,
 				OperatingSystem: testCase.operatingSystem,
 
-				Network: testCase.network,
+				Network:     testCase.network,
 				NetworkType: testCase.networkType,
 			},
 			Runner: r,
@@ -108,7 +108,6 @@ func TestNetworkConfig(t *testing.T) {
 		if !strings.Contains(output.String(), testCase.networkType) {
 			t.Fatalf("network type %s not found in output %s", testCase.networkType, output.String())
 		}
-
 
 		if !strings.Contains(output.String(), testCase.arch) {
 			t.Fatalf("arch %s not found in output %s", testCase.arch, output.String())

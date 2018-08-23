@@ -3,13 +3,13 @@ package downloadk8sbinary
 import (
 	"bytes"
 	"context"
+	"github.com/pkg/errors"
 	"strings"
 	"testing"
-	"github.com/pkg/errors"
 
+	"github.com/supergiant/supergiant/pkg/templatemanager"
 	"github.com/supergiant/supergiant/pkg/testutils"
 	"github.com/supergiant/supergiant/pkg/workflows/steps"
-	"github.com/supergiant/supergiant/pkg/templatemanager"
 )
 
 func TestFlannelJob_InstallFlannel(t *testing.T) {
@@ -18,7 +18,6 @@ func TestFlannelJob_InstallFlannel(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-
 
 	tpl := templatemanager.GetTemplate(StepName)
 

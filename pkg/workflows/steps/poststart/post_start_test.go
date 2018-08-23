@@ -14,8 +14,8 @@ import (
 	"time"
 
 	"github.com/supergiant/supergiant/pkg/runner"
-	"github.com/supergiant/supergiant/pkg/workflows/steps"
 	"github.com/supergiant/supergiant/pkg/templatemanager"
+	"github.com/supergiant/supergiant/pkg/workflows/steps"
 )
 
 type fakeRunner struct {
@@ -46,7 +46,6 @@ func TestPostStart(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-
 
 	tpl := templatemanager.GetTemplate(StepName)
 

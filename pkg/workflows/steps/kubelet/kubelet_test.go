@@ -11,8 +11,8 @@ import (
 	"github.com/pkg/errors"
 
 	"github.com/supergiant/supergiant/pkg/runner"
-	"github.com/supergiant/supergiant/pkg/workflows/steps"
 	"github.com/supergiant/supergiant/pkg/templatemanager"
+	"github.com/supergiant/supergiant/pkg/workflows/steps"
 )
 
 type fakeRunner struct {
@@ -33,13 +33,12 @@ func TestStartKubelet(t *testing.T) {
 	etcdPort := "2379"
 	proxyPort := "8080"
 
-		r := &fakeRunner{}
-		err := templatemanager.Init("../../../../templates")
+	r := &fakeRunner{}
+	err := templatemanager.Init("../../../../templates")
 
 	if err != nil {
 		t.Fatal(err)
 	}
-
 
 	tpl := templatemanager.GetTemplate(StepName)
 

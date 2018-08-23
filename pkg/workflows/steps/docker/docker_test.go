@@ -3,11 +3,11 @@ package docker
 import (
 	"bytes"
 	"context"
-	"strings"
-	"testing"
+	"github.com/supergiant/supergiant/pkg/templatemanager"
 	"github.com/supergiant/supergiant/pkg/testutils"
 	"github.com/supergiant/supergiant/pkg/workflows/steps"
-	"github.com/supergiant/supergiant/pkg/templatemanager"
+	"strings"
+	"testing"
 )
 
 func TestInstallDocker(t *testing.T) {
@@ -19,7 +19,6 @@ func TestInstallDocker(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-
 
 	tpl := templatemanager.GetTemplate(StepName)
 

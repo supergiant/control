@@ -12,8 +12,8 @@ import (
 
 	"github.com/supergiant/supergiant/pkg/node"
 	"github.com/supergiant/supergiant/pkg/runner"
-	"github.com/supergiant/supergiant/pkg/workflows/steps"
 	"github.com/supergiant/supergiant/pkg/templatemanager"
+	"github.com/supergiant/supergiant/pkg/workflows/steps"
 )
 
 type fakeRunner struct {
@@ -36,7 +36,7 @@ func TestWriteCertificates(t *testing.T) {
 		userName            = "user"
 		password            = "1234"
 
-		r      runner.Runner = &fakeRunner{}
+		r runner.Runner = &fakeRunner{}
 	)
 
 	err := templatemanager.Init("../../../../templates")
