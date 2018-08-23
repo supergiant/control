@@ -54,8 +54,12 @@ func TestStepRunSuccess(t *testing.T) {
 		},
 		MasterNodes: map[string]*node.Node{
 			"id": {
+				PublicIp: host,
 				PrivateIp: host,
 			},
+		},
+		Node: node.Node{
+			PublicIp: host,
 		},
 	}
 
