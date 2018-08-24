@@ -118,7 +118,7 @@ type SshConfig struct {
 // TODO(stgleb): rename to context and embed context.Context here
 type Config struct {
 	Provider    clouds.Name `json:"provider"`
-	Role        string      `json:"role"`
+	IsMaster    bool        `json:"isMaster"`
 	ClusterName string      `json:"clusterName"`
 
 	DigitalOceanConfig DOConfig     `json:"digitalOceanConfig"`

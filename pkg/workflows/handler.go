@@ -32,10 +32,6 @@ type BuildTaskRequest struct {
 	SshConfig ssh.Config   `json:"sshConfig"`
 }
 
-type RestartTaskRequest struct {
-	ID string `json:"id"`
-}
-
 type TaskResponse struct {
 	ID string `json:"id"`
 }
@@ -49,9 +45,9 @@ func NewTaskHandler(repository storage.Interface, runnerFactory func(config ssh.
 }
 
 func (h *TaskHandler) Register(m *mux.Router) {
-	m.HandleFunc("/tasks", h.GetTask).Methods(http.MethodGet)
 	m.HandleFunc("/tasks", h.RunTask).Methods(http.MethodPost)
-	m.HandleFunc("/tasks/restart", h.RestartTask).Methods(http.MethodPost)
+	m.HandleFunc("/tasks/{id}", h.GetTask).Methods(http.MethodGet)
+	m.HandleFunc("/tasks/{id}/restart", h.RestartTask).Methods(http.MethodPost)
 }
 
 func (h *TaskHandler) GetTask(w http.ResponseWriter, r *http.Request) {
@@ -106,15 +102,15 @@ func (h *TaskHandler) RunTask(w http.ResponseWriter, r *http.Request) {
 }
 
 func (h *TaskHandler) RestartTask(w http.ResponseWriter, r *http.Request) {
-	req := &RestartTaskRequest{}
-	err := json.NewDecoder(r.Body).Decode(req)
+	vars := mux.Vars(r)
+	id, ok := vars["id"]
 
-	if err != nil {
-		http.Error(w, err.Error(), http.StatusBadRequest)
+	if !ok {
+		http.Error(w, "need id of task", http.StatusBadRequest)
 		return
 	}
 
-	data, err := h.repository.Get(r.Context(), prefix, req.ID)
+	data, err := h.repository.Get(r.Context(), prefix, id)
 
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
@@ -128,7 +124,7 @@ func (h *TaskHandler) RestartTask(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	task.Restart(context.Background(), req.ID, os.Stdout)
+	task.Restart(context.Background(), id, os.Stdout)
 	w.WriteHeader(http.StatusAccepted)
 }
 
