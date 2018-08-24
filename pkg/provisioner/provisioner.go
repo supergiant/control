@@ -62,8 +62,7 @@ func (r *TaskProvisioner) Provision(ctx context.Context, kubeProfile *profile.Ku
 	tasks := append(append(make([]*workflows.Task, 0), masterTasks...), nodeTasks...)
 
 	go func() {
-		config.Role = "master"
-		config.ManifestConfig.IsMaster = true
+		config.IsMaster = true
 
 		// TODO(stgleb): When we have concurrent provisioning use that to sync nodes and master provisioning
 		var wg sync.WaitGroup
@@ -88,10 +87,10 @@ func (r *TaskProvisioner) Provision(ctx context.Context, kubeProfile *profile.Ku
 		}
 		logrus.Info("Master provisioning has finished successfully")
 
-		config.Role = "node"
+		config.IsMaster = false
 		config.ManifestConfig.IsMaster = false
-		// Let flannel communicate through private network
-		config.FlannelConfig.EtcdHost = config.GetMaster().PublicIp
+		// Do internal communication inside private network
+		config.FlannelConfig.EtcdHost = config.GetMaster().PrivateIp
 
 		// Provision nodes
 		for _, nodeTask := range nodeTasks {
