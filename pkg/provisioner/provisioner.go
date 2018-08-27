@@ -10,7 +10,6 @@ import (
 	"github.com/supergiant/supergiant/pkg/storage"
 	"github.com/supergiant/supergiant/pkg/workflows"
 	"github.com/supergiant/supergiant/pkg/workflows/steps"
-	"sync"
 )
 
 // Provisioner gets kube profile and returns list of task ids of provision masterTasks
@@ -65,9 +64,6 @@ func (r *TaskProvisioner) Provision(ctx context.Context, kubeProfile *profile.Ku
 		config.IsMaster = true
 
 		// TODO(stgleb): When we have concurrent provisioning use that to sync nodes and master provisioning
-		var wg sync.WaitGroup
-		wg.Add(len(masterTasks))
-
 		// Provision master nodes
 		for _, masterTask := range masterTasks {
 			result := masterTask.Run(ctx, *config, os.Stdout)
@@ -85,7 +81,7 @@ func (r *TaskProvisioner) Provision(ctx context.Context, kubeProfile *profile.Ku
 			logrus.Errorf("Cluster provisioning has failed")
 			return
 		}
-		logrus.Info("Master provisioning has finished successfully")
+		logrus.Info("Master provisioning for clusetr %s has finished successfully", config.ClusterName)
 
 		config.IsMaster = false
 		config.ManifestConfig.IsMaster = false

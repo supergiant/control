@@ -138,19 +138,25 @@ func (w *Task) startFrom(ctx context.Context, id string, out io.Writer, i int) e
 		logrus.Info(step.Name())
 		// Sync to storage with task in executing state
 		w.StepStatuses[index].Status = steps.StatusExecuting
-		w.sync(ctx)
+		if err := w.sync(ctx); err != nil {
+			logrus.Errorf("sync error %v", err)
+		}
+
 		if err := step.Run(ctx, out, w.Config); err != nil {
 			// Mark step status as error
 			w.StepStatuses[index].Status = steps.StatusError
 			w.StepStatuses[index].ErrMsg = err.Error()
-			w.sync(ctx)
+			if err2 := w.sync(ctx); err2 != nil {
+				logrus.Errorf("sync error %v for step %s", err2, step.Name())
+			}
 
-			logrus.Error(err)
 			return err
 		} else {
 			// Mark step as success
 			w.StepStatuses[index].Status = steps.StatusSuccess
-			w.sync(ctx)
+			if err := w.sync(ctx); err != nil {
+				logrus.Errorf("sync error %v for step %s", err, step.Name())
+			}
 		}
 	}
 

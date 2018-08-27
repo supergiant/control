@@ -44,7 +44,7 @@ type ProvisionRequest struct {
 }
 
 type ProvisionResponse struct {
-	TaskIds []string `json:"taskIds"`
+	TaskIDs []string `json:"taskIds"`
 }
 
 func NewHandler(kubeService *profile.KubeProfileService, cloudAccountService *account.Service,
@@ -213,7 +213,7 @@ func (h *Handler) Provision(w http.ResponseWriter, r *http.Request) {
 	}
 
 	resp := ProvisionResponse{
-		TaskIds: taskIds,
+		TaskIDs: taskIds,
 	}
 
 	// Respond to client side that request has been accepted

@@ -110,8 +110,8 @@ func (t *Step) Run(ctx context.Context, output io.Writer, config *steps.Config) 
 					config.AddMaster(&n)
 				}
 				config.Node = n
+				logrus.Info(n)
 
-				logrus.Println(n)
 				return nil
 			}
 		case <-after:
