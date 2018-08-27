@@ -7,6 +7,7 @@ import (
 	"time"
 
 	"github.com/gorilla/mux"
+	"github.com/pkg/errors"
 	"github.com/sirupsen/logrus"
 	"github.com/supergiant/supergiant/pkg/account"
 	"github.com/supergiant/supergiant/pkg/model"
@@ -66,6 +67,7 @@ func (h *Handler) Provision(w http.ResponseWriter, r *http.Request) {
 
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusBadRequest)
+		logrus.Error(errors.Wrap(err, "unmarshal json"))
 		return
 	}
 
@@ -77,6 +79,7 @@ func (h *Handler) Provision(w http.ResponseWriter, r *http.Request) {
 			return
 		} else {
 			http.Error(w, err.Error(), http.StatusInternalServerError)
+			logrus.Error(errors.Wrap(err, "get profile"))
 			return
 		}
 	}
@@ -85,6 +88,7 @@ func (h *Handler) Provision(w http.ResponseWriter, r *http.Request) {
 
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
+		logrus.Error(errors.Wrap(err, "get token"))
 		return
 	}
 
@@ -189,6 +193,7 @@ func (h *Handler) Provision(w http.ResponseWriter, r *http.Request) {
 
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusNotFound)
+		logrus.Error(errors.Wrap(err, "fill cloud account"))
 		return
 	}
 
@@ -197,6 +202,7 @@ func (h *Handler) Provision(w http.ResponseWriter, r *http.Request) {
 
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
+		logrus.Error(errors.Wrap(err, "provision"))
 		return
 	}
 
@@ -217,5 +223,6 @@ func (h *Handler) Provision(w http.ResponseWriter, r *http.Request) {
 
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
+		logrus.Error(errors.Wrap(err, "marshal json"))
 	}
 }

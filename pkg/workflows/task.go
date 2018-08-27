@@ -13,9 +13,9 @@ import (
 	"github.com/supergiant/supergiant/pkg/workflows/steps"
 )
 
-// Task is a workflow that runs and tracks its progress.
-// A workflow is like a program, while a task is like a process,
-// in terms of an operating system.
+// Task is an entity that has it own state that can be tracked
+// and written to persistent storage through repository, it executes
+// particular workflow of steps.
 type Task struct {
 	ID           string        `json:"id"`
 	Type         string        `json:"type"`
@@ -45,10 +45,8 @@ func NewTask(taskType string, repository storage.Interface) (*Task, error) {
 }
 
 func newTask(workflowType string, workflow Workflow, repository storage.Interface) *Task {
-	id := uuid.New()
-
 	return &Task{
-		ID:     id,
+		ID:     uuid.New(),
 		Type:   workflowType,
 		Status: steps.StatusTodo,
 
@@ -137,7 +135,7 @@ func (w *Task) startFrom(ctx context.Context, id string, out io.Writer, i int) e
 	// Start workflow from the last failed step
 	for index := i; index < len(w.StepStatuses); index++ {
 		step := w.workflow[index]
-		logrus.Println(step.Name())
+		logrus.Info(step.Name())
 		// Sync to storage with task in executing state
 		w.StepStatuses[index].Status = steps.StatusExecuting
 		w.sync(ctx)
