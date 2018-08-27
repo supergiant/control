@@ -78,10 +78,10 @@ func (r *TaskProvisioner) Provision(ctx context.Context, kubeProfile *profile.Ku
 
 		// If we get no master node
 		if config.GetMaster() == nil {
-			logrus.Errorf("Cluster provisioning has failed")
+			logrus.Errorf("Cluster provisioning has failed, no master is up")
 			return
 		}
-		logrus.Info("Master provisioning for clusetr %s has finished successfully", config.ClusterName)
+		logrus.Info("Master provisioning for cluster %s has finished successfully", config.ClusterName)
 
 		config.IsMaster = false
 		config.ManifestConfig.IsMaster = false

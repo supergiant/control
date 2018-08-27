@@ -21,7 +21,7 @@ type Task struct {
 	Type         string        `json:"type"`
 	Config       *steps.Config `json:"config"`
 	Status       steps.Status  `json:"status"`
-	StepStatuses []StepStatus  `json:"steps"`
+	StepStatuses []StepStatus  `json:"stepsStatuses"`
 
 	workflow   Workflow
 	repository storage.Interface
@@ -69,7 +69,9 @@ func (w *Task) Run(ctx context.Context, config steps.Config, out io.Writer) chan
 		// Set config to the task
 		w.Config = &config
 		// Save task state before first step
-		w.sync(ctx)
+		if err := w.sync(ctx); err != nil {
+			logrus.Errorf("Error saving task state %v", err)
+		}
 		// Start from the first step
 		err := w.startFrom(ctx, w.ID, out, 0)
 
