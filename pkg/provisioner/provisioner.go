@@ -18,20 +18,16 @@ type Provisioner interface {
 }
 
 type TaskProvisioner struct {
-	repository storage.Interface
-}
-
-var provisionMap map[clouds.Name][]string
-
-func init() {
-	provisionMap = map[clouds.Name][]string{
-		clouds.DigitalOcean: {workflows.DigitalOceanMaster, workflows.DigitalOceanNode},
-	}
+	repository   storage.Interface
+	provisionMap map[clouds.Name][]string
 }
 
 func NewProvisioner(repository storage.Interface) *TaskProvisioner {
 	return &TaskProvisioner{
 		repository: repository,
+		provisionMap: map[clouds.Name][]string{
+			clouds.DigitalOcean: {workflows.DigitalOceanMaster, workflows.DigitalOceanNode},
+		},
 	}
 }
 
@@ -41,12 +37,12 @@ func (r *TaskProvisioner) prepare(name clouds.Name, masterCount, nodeCount int) 
 	nodeTasks := make([]*workflows.Task, 0, nodeCount)
 
 	for i := 0; i < masterCount; i++ {
-		t, _ := workflows.NewTask(provisionMap[name][0], r.repository)
+		t, _ := workflows.NewTask(r.provisionMap[name][0], r.repository)
 		masterTasks = append(masterTasks, t)
 	}
 
 	for i := 0; i < nodeCount; i++ {
-		t, _ := workflows.NewTask(provisionMap[name][1], r.repository)
+		t, _ := workflows.NewTask(r.provisionMap[name][1], r.repository)
 		nodeTasks = append(nodeTasks, t)
 	}
 

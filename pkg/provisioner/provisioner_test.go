@@ -19,14 +19,14 @@ func TestTaskProvisioner(t *testing.T) {
 
 	provisioner := TaskProvisioner{
 		repository,
+		map[clouds.Name][]string{
+			clouds.DigitalOcean: {"test_master", "test_node"},
+		},
 	}
 
 	workflows.Init()
 	workflows.RegisterWorkFlow("test_master", nil)
 	workflows.RegisterWorkFlow("test_node", nil)
-
-	// Mock digital ocean workflows with nil ones
-	provisionMap[clouds.DigitalOcean] = []string{"test_master", "test_node"}
 
 	kubeProfile := &profile.KubeProfile{
 		MasterProfiles: []profile.NodeProfile{
