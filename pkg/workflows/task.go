@@ -28,20 +28,13 @@ type Task struct {
 }
 
 func NewTask(taskType string, repository storage.Interface) (*Task, error) {
-	switch taskType {
-	case DigitalOceanMaster:
-		return newTask(DigitalOceanMaster, GetWorkflow(DigitalOceanMaster), repository), nil
-	case DigitalOceanNode:
-		return newTask(DigitalOceanNode, GetWorkflow(DigitalOceanNode), repository), nil
-	default:
-		w := GetWorkflow(taskType)
+	w := GetWorkflow(taskType)
 
-		if w != nil {
-			return newTask(taskType, w, repository), nil
-		}
+	if w == nil {
+		return nil, ErrUnknownProviderWorkflowType
 	}
 
-	return nil, ErrUnknownProviderWorkflowType
+	return newTask(taskType, w, repository), nil
 }
 
 func newTask(workflowType string, workflow Workflow, repository storage.Interface) *Task {

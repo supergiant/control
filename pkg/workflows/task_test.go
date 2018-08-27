@@ -73,6 +73,38 @@ func (f *MockStep) Depends() []string {
 	return nil
 }
 
+func TestNewTask(t *testing.T) {
+	mockRepository := &MockRepository{
+		storage: map[string][]byte{},
+	}
+
+	workflowMap = make(map[string]Workflow)
+	RegisterWorkFlow(DigitalOceanMaster, Workflow{})
+
+	testCases := []struct {
+		taskType      string
+		expectedError error
+	}{
+		{
+			DigitalOceanMaster,
+			nil,
+		},
+		{
+			"foo",
+			ErrUnknownProviderWorkflowType,
+		},
+	}
+
+	for _, testCase := range testCases {
+		_, err := NewTask(testCase.taskType, mockRepository)
+
+		if err != testCase.expectedError {
+			t.Errorf("Unexpected error %v", err)
+			return
+		}
+	}
+}
+
 func TestTaskRunError(t *testing.T) {
 	errMsg := "something has gone wrong"
 	s := &MockRepository{
