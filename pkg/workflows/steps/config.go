@@ -146,6 +146,7 @@ type Config struct {
 
 	repository storage.Interface `json:"-"`
 
+	// TODO(stgleb): make MasterNodes private, add public method for initialization.
 	m           sync.RWMutex
 	MasterNodes map[string]*node.Node `json:"masterNodes"`
 }
