@@ -54,7 +54,7 @@ func TestWriteManifestMaster(t *testing.T) {
 
 	output := new(bytes.Buffer)
 	cfg := steps.Config{
-		IsMaster:            true,
+		IsMaster: true,
 		ManifestConfig: steps.ManifestConfig{
 			K8SVersion:          kubernetesVersion,
 			KubernetesConfigDir: kubernetesConfigDir,
