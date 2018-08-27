@@ -76,6 +76,10 @@ func (r *TaskProvisioner) Provision(ctx context.Context, kubeProfile *profile.Ku
 		// TODO(stgleb): When we have concurrent provisioning use that to sync nodes and master provisioning
 		// Provision master nodes
 		for _, masterTask := range masterTasks {
+			if masterTask == nil {
+				continue
+			}
+
 			fdName := fmt.Sprintf("%s.log", masterTask.ID)
 			out, err := r.getWriter(fmt.Sprintf("%s.log", masterTask.ID))
 
@@ -108,6 +112,10 @@ func (r *TaskProvisioner) Provision(ctx context.Context, kubeProfile *profile.Ku
 
 		// Provision nodes
 		for _, nodeTask := range nodeTasks {
+			if nodeTask == nil {
+				continue
+			}
+
 			fdName := fmt.Sprintf("%s.log", nodeTask.ID)
 			out, err := r.getWriter(fmt.Sprintf("%s.log", nodeTask.ID))
 
