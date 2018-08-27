@@ -941,6 +941,12 @@
 			"revisionTime": "2018-05-24T17:21:01Z"
 		},
 		{
+			"checksumSHA1": "8Vjxiz2qAtkg3zjJgoXiDq7AI64=",
+			"path": "gopkg.in/fsnotify/fsnotify.v1",
+			"revision": "c2828203cd70a50dcccfb2761f8b1f8ceef9a8e9",
+			"revisionTime": "2018-01-10T05:33:47Z"
+		},
+		{
 			"checksumSHA1": "COfXAfInbcFT/YRsvLUQnNKHzF0=",
 			"path": "gopkg.in/inf.v0",
 			"revision": "d2d2541c53f18d2a059457998ce2876cc8e67cbf",
