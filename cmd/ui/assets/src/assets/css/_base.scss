@@ -8,16 +8,21 @@
   this element is on the page, it should look like this.
 */
 
+@import url('https://fonts.googleapis.com/css?family=Roboto:100,300,400,500,700');
+@import url('https://fonts.googleapis.com/css?family=Montserrat:100,300,700');
+
 
 html, body {
+  color: #fff;
   height: 100%;
+  font-size: 16px;
   margin: 0;
   overflow: hidden;
 }
 
 body,
 input {
-  font-family: 'Open Sans', sans-serif;
+  font-family: 'Roboto', sans-serif;
   font-size: 13px;
 }
 
@@ -35,10 +40,23 @@ h3,
 h4,
 h5,
 h6 {
-  font-family: "Montserrat", sans-serif;
-  font-weight: 400;
+  color: $sg-pink;
 }
 
-h2 {
-  font-weight: 200;
+h3 {
+  letter-spacing: 2px;
+}
+
+button[mat-raised-button], button[mat-button] {
+  border-radius: 32px;
+  padding: 0px 30px;
+
+  // https://github.com/angular/material2/issues/9416
+  .mat-button-ripple, .mat-button-focus-overlay {
+    border-radius: inherit;
+  }
+}
+
+.mat-form-field {
+  font-size: 16px;
 }
