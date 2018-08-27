@@ -42,14 +42,11 @@ import {
   MatTooltipModule } from '@angular/material';
 import { SchemaFormModule, WidgetRegistry, DefaultWidgetRegistry } from 'angular2-schema-form';
 import {
-  JsonSchemaFormModule,
   MaterialDesignFrameworkModule,
   JsonSchemaFormService,
   FrameworkLibraryService,
-  WidgetLibraryService,
-  Framework,
   MaterialDesignFramework,
-} from 'angular2-json-schema-form';
+} from 'angular6-json-schema-form';
 import { AppRoutingModule } from './app-routing.module';
 import { AceEditorModule } from 'ng2-ace-editor';
 import { ChartsModule } from 'ng2-charts';
@@ -318,15 +315,6 @@ import { NewKubeResourceComponent } from './kube-resources/new-kube-resource/new
     NgxPaginationModule,
     AceEditorModule,
     BrowserModule, MaterialDesignFrameworkModule,
-    {
-      ngModule: JsonSchemaFormModule,
-      providers: [
-        JsonSchemaFormService,
-        FrameworkLibraryService,
-        WidgetLibraryService,
-        { provide: Framework, useClass: MaterialDesignFramework, multi: true }
-      ]
-    },
     NgxDatatableModule,
   ],
   providers: [

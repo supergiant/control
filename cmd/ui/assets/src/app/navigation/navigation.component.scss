@@ -1,11 +1,14 @@
-$brand-color: rgb(102,0,102);
-$primary-color: rgb(220,0,130);
-$secondary-color: rgb(110,0,190);
+.nav-wrapper {
+  background: transparent;
+  display: flex;
+  justify-content: flex-start;
+  margin: 32px 0px;
+  position: fixed;
+  top: 0;
+  left: 0;
 
-div.app-nav-container {
-background-color: $brand-color;
-}
-
-.dropdown-item:active {
-    background-color: #660066;
+  .logo {
+    margin-left: 49px;
+    width: 180px;
+  }
 }

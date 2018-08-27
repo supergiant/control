@@ -1,27 +1,41 @@
 <div class="new-cloud-account-wrapper">
-  <header>
-    <button type="button" class="back-button" [routerLink]="['/system/cloud-accounts']"></button>
+  <button mat-raised-button color="accent" type="button" class="back-button" [routerLink]="['/system/cloud-accounts']"><-</button>
+  <h1>Create a Cloud Account</h1>
+  <div class="inputs-wrapper">
+    <mat-form-field>
+      <mat-select placeholder="Choose a Provider" [(value)]="selectedProvider">
+        <mat-option *ngFor="let p of providers" [value]="p">{{ p.display }}</mat-option>
+      </mat-select>
+    </mat-form-field>
+    <mat-form-field *ngIf=" selectedProvider ">
+      <input matInput placeholder="Cloud Account Name" type="text" [(ngModel)]="cloudAccountName">
+    </mat-form-field>
 
-    <h3><i class="fa fa-cloud"></i> Create a Cloud Account</h3>
-  </header>
-
-  <!-- [@.disabled]="true" tells Material not to render the sliding animation for tab content. https://github.com/angular/material2/issues/2706 -->
-  <mat-tab-group [@.disabled]="true">
-    <mat-tab *ngFor="let provider of providers">
-      <ng-template mat-tab-label>
-        {{ provider.name }}
-      </ng-template>
-      <br>
-
-      <div class="form-wrapper">
+    <div class="credentials-wrapper" *ngIf=" selectedProvider ">
+      <div class="provider-wrapper" *ngIf=" selectedProvider.name != 'gce' ">
         <json-schema-form
-          [schema]="provider.data.schema"
-          [layout]="provider.data.layout"
-          [(data)]="provider.data.model"
-          (onSubmit)="create($event)"
-          (onChanges)="value=$event">
+          [schema]="selectedProvider.data.schema"
+          [layout]="selectedProvider.data.layout"
+          [(data)]="selectedProvider.data.model"
+          framework="material-design"
+          (onChanges)="value=$event"
+          (onSubmit)="create($event)">
         </json-schema-form>
       </div>
-    </mat-tab>
-  </mat-tab-group>
+
+      <!-- TODO: consider making this a widget for form tool -->
+      <div class="provider-wrapper" *ngIf=" selectedProvider.name == 'gce' ">
+        <div>
+          <ace-editor
+            [(text)]="selectedProvider.data.model.credentials.service_account_key"
+            mode="json"
+            style="height:300px;width:100%"
+            (textChanged)="selectedProvider.data.model.credentials.service_account_key=$event">
+          </ace-editor>
+        </div>
+        <button class="gce-button" mat-raised-button color="primary" type="button" (click)="create(selectedProvider.data.model)">CREATE</button>
+      </div>
+
+    </div>
+  </div>
 </div>
