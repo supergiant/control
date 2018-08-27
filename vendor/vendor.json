@@ -459,10 +459,22 @@
 			"versionExact": "v1.6.2"
 		},
 		{
+			"checksumSHA1": "VKx/YhlIAbIJ9dXAxCCHOkjom4U=",
+			"path": "github.com/gorilla/websocket",
+			"revision": "66b9c49e59c6c48f0ffce28c2d8b8a5678502c6d",
+			"revisionTime": "2018-08-25T15:15:06Z"
+		},
+		{
 			"checksumSHA1": "K6exl2ouL7d8cR2i378EzZOdRVI=",
 			"path": "github.com/howeyc/gopass",
 			"revision": "bf9dde6d0d2c004a008c27aaee91170c786f6db8",
 			"revisionTime": "2017-01-09T16:22:49Z"
+		},
+		{
+			"checksumSHA1": "P5KyE9QEbAeHLeXzycSF/jS1FIc=",
+			"path": "github.com/hpcloud/tail",
+			"revision": "a1dbeea552b7c8df4b542c66073e393de198a800",
+			"revisionTime": "2018-05-14T19:44:41Z"
 		},
 		{
 			"checksumSHA1": "DiusiFOi/TekkUctoSEMJQmhNHs=",

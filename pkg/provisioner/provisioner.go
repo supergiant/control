@@ -2,6 +2,8 @@ package provisioner
 
 import (
 	"context"
+	"fmt"
+	"io"
 	"os"
 
 	"github.com/sirupsen/logrus"
@@ -10,7 +12,7 @@ import (
 	"github.com/supergiant/supergiant/pkg/storage"
 	"github.com/supergiant/supergiant/pkg/workflows"
 	"github.com/supergiant/supergiant/pkg/workflows/steps"
-	"sync"
+	"path"
 )
 
 // Provisioner gets kube profile and returns list of task ids of provision masterTasks
@@ -20,6 +22,7 @@ type Provisioner interface {
 
 type TaskProvisioner struct {
 	repository storage.Interface
+	getWriter  func(string) (io.WriteCloser, error)
 }
 
 var provisionMap map[clouds.Name][]string
@@ -33,6 +36,16 @@ func init() {
 func NewProvisioner(repository storage.Interface) *TaskProvisioner {
 	return &TaskProvisioner{
 		repository: repository,
+		getWriter: func(name string) (io.WriteCloser, error) {
+			// TODO(stgleb): Add log directory to params of supergiant
+			f, err := os.OpenFile(path.Join("/tmp", name), os.O_CREATE|os.O_WRONLY|os.O_APPEND, 0666)
+
+			if err != nil {
+				return nil, err
+			}
+
+			return f, nil
+		},
 	}
 }
 
@@ -64,14 +77,18 @@ func (r *TaskProvisioner) Provision(ctx context.Context, kubeProfile *profile.Ku
 	go func() {
 		config.IsMaster = true
 
-		// TODO(stgleb): When we have concurrent provisioning use that to sync nodes and master provisioning
-		var wg sync.WaitGroup
-		wg.Add(len(masterTasks))
-
 		// Provision master nodes
 		for _, masterTask := range masterTasks {
-			result := masterTask.Run(ctx, *config, os.Stdout)
-			err := <-result
+			fdName := fmt.Sprintf("%s.log", masterTask.ID)
+			out, err := r.getWriter(fmt.Sprintf("%s.log", masterTask.ID))
+
+			if err != nil {
+				logrus.Errorf("Error getting writer for %s", fdName)
+				return
+			}
+
+			result := masterTask.Run(ctx, *config, out)
+			err = <-result
 
 			if err != nil {
 				logrus.Errorf("master task %s has finished with error %v", masterTask.ID, err)
@@ -94,8 +111,15 @@ func (r *TaskProvisioner) Provision(ctx context.Context, kubeProfile *profile.Ku
 
 		// Provision nodes
 		for _, nodeTask := range nodeTasks {
-			result := nodeTask.Run(ctx, *config, os.Stdout)
-			err := <-result
+			fdName := fmt.Sprintf("%s.log", nodeTask.ID)
+			out, err := r.getWriter(fmt.Sprintf("%s.log", nodeTask.ID))
+
+			if err != nil {
+				logrus.Errorf("Error getting writer for %s", fdName)
+				return
+			}
+			result := nodeTask.Run(ctx, *config, out)
+			err = <-result
 
 			if err != nil {
 				logrus.Errorf("node task %s has finished with error %v", nodeTask.ID, err)

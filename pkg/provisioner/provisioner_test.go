@@ -11,6 +11,8 @@ import (
 	"github.com/supergiant/supergiant/pkg/testutils"
 	"github.com/supergiant/supergiant/pkg/workflows"
 	"github.com/supergiant/supergiant/pkg/workflows/steps"
+	"io"
+	"os"
 )
 
 func TestTaskProvisioner(t *testing.T) {
@@ -19,6 +21,9 @@ func TestTaskProvisioner(t *testing.T) {
 
 	provisioner := TaskProvisioner{
 		repository,
+		func(string) (io.WriteCloser, error) {
+			return os.Stdout, nil
+		},
 	}
 
 	workflows.Init()
