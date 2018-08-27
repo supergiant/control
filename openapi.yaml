@@ -31,22 +31,24 @@ paths:
           description: "Unauthorized or incorrectly formatted authorization"
     post:
       summary: "Allows creation of new sessions."
-      security:
-        - ApiKeyOrSession: []
       requestBody:
         required: true
         content:
           application/json:
             schema:
-              $ref: "#/components/schemas/User"
+              $ref: "#/components/schemas/UserAndPass"
       responses:
         '201':
           description: "Resource successfully created"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Session"
         '400':
           description: "Malformed or incorrectly formatted request"
         '401':
           description: "Unauthorized or incorrectly formatted authorization"
-          
+
 # COMPONENTS:
 components:
   schemas:
@@ -80,34 +82,23 @@ components:
         
     Session:
       example: |-
-        "session": {
-          "id": "0L234O678CFbcYeBghGjkXKnWpqrwUJz",
+        {
+          "id": "012DV5O7G9XbNdefghKQSUWnzpqrsJuv",
           "user_id": 1,
-          "created_at": "2018-08-15T12:35:04.702719287-05:00",
-          "user": {
-            "id": 1,
-            "uuid": "5413d505-1da4-474b-80b8-49df9757add1",
-            "created_at": "2018-07-31T11:43:48.97537957-05:00",
-            "updated_at": "2018-07-31T11:43:48.97537957-05:00",
-            "username": "admin",
-            "role": "admin",
-            "api_token": "0D2yF5JRO9KBPYeQEhXzkUMAHpSrstZv"
-          }
+          "created_at": "2018-08-27T13:45:47.669449724-05:00",
+          "user": null
         }
         
-    User:
+    UserAndPass:
       example: |-
-        "user": {
-          "id": 1,
-          "uuid": "5413d505-1da4-474b-80b8-49df9757add1",
-          "created_at": "2018-07-31T11:43:48.97537957-05:00",
-          "updated_at": "2018-07-31T11:43:48.97537957-05:00",
-          "username": "admin",
-          "role": "admin",
-          "api_token": "0D2yF5JRO9KBPYeQEhXzkUMAHpSrstZv"
+        {
+          "user": {
+            "username": "admin",
+            "password": "0KkGr5sBEyYJDAuo"
+          }
         }
-      
-      
+  
+  # SECURITY SCHEMES:
   securitySchemes:
     ApiKeyOrSession:
       # This authorization requires a header body containing either a session or token (api) key. Here's an example of each:
