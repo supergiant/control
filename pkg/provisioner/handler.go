@@ -4,6 +4,7 @@ import (
 	"context"
 	"encoding/json"
 	"net/http"
+	"time"
 
 	"github.com/gorilla/mux"
 	"github.com/sirupsen/logrus"
@@ -14,7 +15,6 @@ import (
 	"github.com/supergiant/supergiant/pkg/sgerrors"
 	"github.com/supergiant/supergiant/pkg/workflows"
 	"github.com/supergiant/supergiant/pkg/workflows/steps"
-	"time"
 )
 
 type ProfileGetter interface {
@@ -29,7 +29,7 @@ type TokenGetter interface {
 	GetToken(context.Context, int) (string, error)
 }
 
-type ProvisionHandler struct {
+type Handler struct {
 	profileGetter ProfileGetter
 	accountGetter AccountGetter
 	tokenGetter   TokenGetter
@@ -47,8 +47,8 @@ type ProvisionResponse struct {
 }
 
 func NewHandler(kubeService *profile.KubeProfileService, cloudAccountService *account.Service,
-	tokenGetter TokenGetter, provisioner Provisioner) *ProvisionHandler {
-	return &ProvisionHandler{
+	tokenGetter TokenGetter, provisioner Provisioner) *Handler {
+	return &Handler{
 		profileGetter: kubeService,
 		accountGetter: cloudAccountService,
 		tokenGetter:   tokenGetter,
@@ -56,11 +56,11 @@ func NewHandler(kubeService *profile.KubeProfileService, cloudAccountService *ac
 	}
 }
 
-func (h *ProvisionHandler) Register(m *mux.Router) {
+func (h *Handler) Register(m *mux.Router) {
 	m.HandleFunc("/provision", h.Provision).Methods(http.MethodPost)
 }
 
-func (h *ProvisionHandler) Provision(w http.ResponseWriter, r *http.Request) {
+func (h *Handler) Provision(w http.ResponseWriter, r *http.Request) {
 	req := &ProvisionRequest{}
 	err := json.NewDecoder(r.Body).Decode(req)
 

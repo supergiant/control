@@ -168,7 +168,7 @@ func TestProvisionHandler(t *testing.T) {
 		req, _ := http.NewRequest(http.MethodPost, "/", bytes.NewBuffer(testCase.body))
 		rec := httptest.NewRecorder()
 
-		handler := ProvisionHandler{
+		handler := Handler{
 			provisioner:   provisioner,
 			profileGetter: profileGetter,
 			tokenGetter:   tokenGetter,
