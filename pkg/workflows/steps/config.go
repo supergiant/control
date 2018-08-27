@@ -36,10 +36,20 @@ type PacketConfig struct{}
 type OSConfig struct{}
 
 type FlannelConfig struct {
-	Arch        string `json:"arch"`
-	Version     string `json:"version"`
+	Arch     string `json:"arch"`
+	Version  string `json:"version"`
+	EtcdHost string `json:"etcdHost"`
+}
+
+type NetworkConfig struct {
+	EtcdRepositoryUrl string `json:"etcdRepositoryUrl"`
+	EtcdVersion       string `json:"etcdVersion"`
+	EtcdHost          string `json:"etcdHost"`
+
+	Arch            string `json:"arch"`
+	OperatingSystem string `json:"operatingSystem"`
+
 	Network     string `json:"network"`
-	EtcdHost    string `json:"etcdHost"`
 	NetworkType string `json:"networkType"`
 }
 
@@ -107,8 +117,9 @@ type SshConfig struct {
 
 // TODO(stgleb): rename to context and embed context.Context here
 type Config struct {
-	Provider clouds.Name `json:"provider"`
-	Role     string      `json:"role"`
+	Provider    clouds.Name `json:"provider"`
+	IsMaster    bool        `json:"isMaster"`
+	ClusterName string      `json:"clusterName"`
 
 	DigitalOceanConfig DOConfig     `json:"digitalOceanConfig"`
 	AWSConfig          AWSConfig    `json:"awsConfig"`
@@ -120,6 +131,7 @@ type Config struct {
 	DownloadK8sBinary  DownloadK8sBinary  `json:"downloadK8sBinary"`
 	CertificatesConfig CertificatesConfig `json:"certificatesConfig"`
 	FlannelConfig      FlannelConfig      `json:"flannelConfig"`
+	NetworkConfig      NetworkConfig      `json:"networkConfig"`
 	KubeletConfig      KubeletConfig      `json:"kubeletConfig"`
 	ManifestConfig     ManifestConfig     `json:"manifestConfig"`
 	PostStartConfig    PostStartConfig    `json:"postStartConfig"`
@@ -135,13 +147,13 @@ type Config struct {
 	repository storage.Interface `json:"-"`
 
 	m           sync.RWMutex
-	MasterNodes []*node.Node `json:"masterNodes"`
+	MasterNodes map[string]*node.Node `json:"masterNodes"`
 }
 
 func (c *Config) AddMaster(n *node.Node) {
 	c.m.Lock()
 	defer c.m.Unlock()
-	c.MasterNodes = append(c.MasterNodes, n)
+	c.MasterNodes[n.Id] = n
 }
 
 func (c *Config) GetMaster() *node.Node {
@@ -152,5 +164,9 @@ func (c *Config) GetMaster() *node.Node {
 		return nil
 	}
 
-	return c.MasterNodes[0]
+	for _, value := range c.MasterNodes {
+		return value
+	}
+
+	return nil
 }

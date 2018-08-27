@@ -10,6 +10,7 @@ import (
 	"github.com/supergiant/supergiant/pkg/storage"
 	"github.com/supergiant/supergiant/pkg/workflows"
 	"github.com/supergiant/supergiant/pkg/workflows/steps"
+	"sync"
 )
 
 // Provisioner gets kube profile and returns list of task ids of provision masterTasks
@@ -61,43 +62,48 @@ func (r *TaskProvisioner) Provision(ctx context.Context, kubeProfile *profile.Ku
 	tasks := append(append(make([]*workflows.Task, 0), masterTasks...), nodeTasks...)
 
 	go func() {
-		errChan := make(chan error)
+		config.IsMaster = true
 
-		config.Role = "master"
-		config.ManifestConfig.IsMaster = true
+		// TODO(stgleb): When we have concurrent provisioning use that to sync nodes and master provisioning
+		var wg sync.WaitGroup
+		wg.Add(len(masterTasks))
 
 		// Provision master nodes
 		for _, masterTask := range masterTasks {
-			go func() {
-				result := masterTask.Run(ctx, config, os.Stdout)
-				err := <-result
+			result := masterTask.Run(ctx, *config, os.Stdout)
+			err := <-result
 
+			if err != nil {
+				logrus.Errorf("master task %s has finished with error %v", masterTask.ID, err)
+			} else {
 				logrus.Infof("master-task %s has finished", masterTask.ID)
-				if err == nil {
-					close(errChan)
-				} else {
-					errChan <- err
-				}
-			}()
+			}
 		}
 
-		err := <-errChan
-
-		if err != nil {
-			logrus.Errorf("Master provisioning has finished with error %v", err)
+		// If we get no master node
+		if config.GetMaster() == nil {
+			logrus.Errorf("Cluster provisioning has failed")
 			return
 		}
-
 		logrus.Info("Master provisioning has finished successfully")
 
-		config.Role = "node"
+		config.IsMaster = false
 		config.ManifestConfig.IsMaster = false
-		config.FlannelConfig.EtcdHost = config.GetMaster().PublicIp
+		// Do internal communication inside private network
+		config.FlannelConfig.EtcdHost = config.GetMaster().PrivateIp
 
 		// Provision nodes
 		for _, nodeTask := range nodeTasks {
-			nodeTask.Run(ctx, config, os.Stdout)
+			result := nodeTask.Run(ctx, *config, os.Stdout)
+			err := <-result
+
+			if err != nil {
+				logrus.Errorf("node task %s has finished with error %v", nodeTask.ID, err)
+			} else {
+				logrus.Infof("node-task %s has finished", nodeTask.ID)
+			}
 		}
+		logrus.Infof("Cluster %s has been deployed successfully", config.ClusterName)
 	}()
 
 	return tasks, nil

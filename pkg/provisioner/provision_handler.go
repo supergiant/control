@@ -9,6 +9,7 @@ import (
 	"github.com/sirupsen/logrus"
 	"github.com/supergiant/supergiant/pkg/account"
 	"github.com/supergiant/supergiant/pkg/model"
+	"github.com/supergiant/supergiant/pkg/node"
 	"github.com/supergiant/supergiant/pkg/profile"
 	"github.com/supergiant/supergiant/pkg/sgerrors"
 	"github.com/supergiant/supergiant/pkg/workflows"
@@ -36,6 +37,7 @@ type ProvisionHandler struct {
 }
 
 type ProvisionRequest struct {
+	ClusterName      string `json:"clusterName"`
 	ProfileId        string `json:"profileId"`
 	CloudAccountName string `json:"cloudAccountName"`
 }
@@ -89,6 +91,7 @@ func (h *ProvisionHandler) Provision(w http.ResponseWriter, r *http.Request) {
 	logrus.Infof("Got token %s", token)
 
 	config := &steps.Config{
+		ClusterName: req.ClusterName,
 		DigitalOceanConfig: steps.DOConfig{
 			Region: "fra1",
 			Size:   "s-1vcpu-2gb",
@@ -114,13 +117,22 @@ func (h *ProvisionHandler) Provision(w http.ResponseWriter, r *http.Request) {
 			Username:            "root",
 			Password:            "1234",
 		},
+		NetworkConfig: steps.NetworkConfig{
+			EtcdRepositoryUrl: "https://github.com/coreos/etcd/releases/download",
+			EtcdVersion:       "3.3.9",
+			EtcdHost:          "0.0.0.0",
+
+			Arch:            kubeProfile.Arch,
+			OperatingSystem: kubeProfile.OperatingSystem,
+
+			Network:     "10.0.0.0/24",
+			NetworkType: kubeProfile.NetworkType,
+		},
 		FlannelConfig: steps.FlannelConfig{
 			Arch:    kubeProfile.Arch,
 			Version: kubeProfile.FlannelVersion,
 			// TODO(stgleb): this should be configurable from user side
-			EtcdHost:    "0.0.0.0",
-			Network:     "10.0.0.0",
-			NetworkType: kubeProfile.NetworkType,
+			EtcdHost: "0.0.0.0",
 		},
 		KubeletConfig: steps.KubeletConfig{
 			MasterPrivateIP: "localhost",
@@ -141,7 +153,7 @@ func (h *ProvisionHandler) Provision(w http.ResponseWriter, r *http.Request) {
 			Port:        "8080",
 			Username:    "root",
 			RBACEnabled: false,
-			Timeout:     60,
+			Timeout:     300,
 		},
 		TillerConfig: steps.TillerConfig{
 			HelmVersion:     kubeProfile.HelmVersion,
@@ -167,7 +179,8 @@ func (h *ProvisionHandler) Provision(w http.ResponseWriter, r *http.Request) {
 			DiscoveryUrl:   token,
 		},
 
-		Timeout:          time.Second * 300,
+		MasterNodes:      make(map[string]*node.Node, len(kubeProfile.MasterProfiles)),
+		Timeout:          time.Second * 1200,
 		CloudAccountName: req.CloudAccountName,
 	}
 
@@ -179,7 +192,8 @@ func (h *ProvisionHandler) Provision(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	tasks, err := h.provisioner.Provision(context.Background(), kubeProfile, config)
+	ctx, _ := context.WithTimeout(context.Background(), config.Timeout)
+	tasks, err := h.provisioner.Provision(ctx, kubeProfile, config)
 
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)

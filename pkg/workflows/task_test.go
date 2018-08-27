@@ -90,7 +90,7 @@ func TestTaskRunError(t *testing.T) {
 	}
 
 	buffer := &bytes.Buffer{}
-	errChan := workflow.Run(context.Background(), &steps.Config{}, buffer)
+	errChan := workflow.Run(context.Background(), steps.Config{}, buffer)
 
 	if len(workflow.ID) == 0 {
 		t.Error("id must not be empty")
@@ -137,7 +137,7 @@ func TestTaskRunSuccess(t *testing.T) {
 	}
 
 	buffer := &bytes.Buffer{}
-	errChan := task.Run(context.Background(), &steps.Config{}, buffer)
+	errChan := task.Run(context.Background(), steps.Config{}, buffer)
 
 	if len(id) == 0 {
 		t.Error("id must not be empty")
@@ -182,7 +182,7 @@ func TestWorkflowRestart(t *testing.T) {
 	}
 
 	buffer := &bytes.Buffer{}
-	errChan := task.Run(context.Background(), &steps.Config{}, buffer)
+	errChan := task.Run(context.Background(), steps.Config{}, buffer)
 
 	if len(id) == 0 {
 		t.Error("id must not be empty")

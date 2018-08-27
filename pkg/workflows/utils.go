@@ -75,12 +75,11 @@ func deserializeTask(data []byte, repository storage.Interface) (*Task, error) {
 	task.workflow = GetWorkflow(task.Type)
 
 	cfg := ssh.Config{
-		Host:    task.Config.GetMaster().PublicIp,
+		Host:    task.Config.Node.PublicIp,
 		Port:    task.Config.SshConfig.Port,
 		User:    task.Config.SshConfig.User,
 		Timeout: task.Config.SshConfig.Timeout,
-		// TODO(stgleb): Pass ssh key id instead of key itself
-		Key: task.Config.SshConfig.PrivateKey,
+		Key:     task.Config.SshConfig.PrivateKey,
 	}
 
 	task.Config.Runner, err = ssh.NewRunner(cfg)

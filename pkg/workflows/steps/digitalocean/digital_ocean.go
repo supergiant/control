@@ -55,7 +55,7 @@ func New(dropletTimeout, checkPeriod time.Duration) *Step {
 func (t *Step) Run(ctx context.Context, output io.Writer, config *steps.Config) error {
 	c := getClient(config.DigitalOceanConfig.AccessToken)
 
-	config.DigitalOceanConfig.Name = util.MakeNodeName(config.Role)
+	config.DigitalOceanConfig.Name = util.MakeNodeName(config.ClusterName, config.IsMaster)
 
 	var fingers []godo.DropletCreateSSHKey
 	fingers = append(fingers, godo.DropletCreateSSHKey{
@@ -97,7 +97,7 @@ func (t *Step) Run(ctx context.Context, output io.Writer, config *steps.Config) 
 			// Wait for droplet becomes active
 			if droplet.Status == "active" {
 				// Get private ip ports from droplet networks
-				n := &node.Node{
+				n := node.Node{
 					Id:        fmt.Sprintf("%d", droplet.ID),
 					CreatedAt: time.Now().Unix(),
 					Provider:  clouds.DigitalOcean,
@@ -105,8 +105,11 @@ func (t *Step) Run(ctx context.Context, output io.Writer, config *steps.Config) 
 					PublicIp:  getPublicIpPort(droplet.Networks.V4),
 					PrivateIp: getPrivateIpPort(droplet.Networks.V4),
 				}
-				config.AddMaster(n)
-				config.Node = *n
+
+				if config.IsMaster {
+					config.AddMaster(&n)
+				}
+				config.Node = n
 
 				logrus.Println(n)
 				return nil

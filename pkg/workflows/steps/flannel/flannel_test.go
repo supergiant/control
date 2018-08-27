@@ -3,38 +3,29 @@ package flannel
 import (
 	"bytes"
 	"context"
+	"github.com/pkg/errors"
 	"strings"
 	"testing"
-	"text/template"
 
-	"github.com/pkg/errors"
-
+	"github.com/supergiant/supergiant/pkg/templatemanager"
 	"github.com/supergiant/supergiant/pkg/testutils"
 	"github.com/supergiant/supergiant/pkg/workflows/steps"
 )
 
 func TestFlannelJob_InstallFlannel(t *testing.T) {
-	script := `#!/bin/bash
-wget -P /usr/bin/ https://github.com/coreos/flannel/releases/download/v{{ .Version }}/flanneld-{{ .Arch }}
-mv /usr/bin/flanneld-{{ .Arch }} /usr/bin/flanneld
-
-	echo "[Unit]
-	Description=Networking service
-	Requires=etcd-member.service
-	[Service]
-	Environment=FLANNEL_IMAGE_TAG=v{{ .Version }}
-	ExecStartPre=/usr/bin/etcdctl set /coreos.com/network/config '{"Network":"{{ .Network }}", "Backend": {"Type": "{{ .NetworkType }}"}}'" > \
-/etc/systemd/system/flanneld.service
-systemctl enable flanneld.service
-systemctl restart flanneld.service
-`
-
-	tpl, err := template.New(StepName).Parse(script)
+	err := templatemanager.Init("../../../../templates")
 
 	if err != nil {
-		t.Errorf("error parsing flannel test templatemanager %s", err.Error())
-		return
+		t.Fatal(err)
 	}
+
+	tpl := templatemanager.GetTemplate(StepName)
+
+	if tpl == nil {
+		t.Fatal("template not found")
+	}
+
+	etcdHost := "127.0.0.1"
 
 	testCases := []struct {
 		version       string
@@ -70,8 +61,7 @@ systemctl restart flanneld.service
 			FlannelConfig: steps.FlannelConfig{
 				testCase.version,
 				testCase.arch,
-				testCase.network,
-				testCase.networkType,
+				etcdHost,
 			},
 			Runner: r,
 		}
@@ -94,12 +84,8 @@ systemctl restart flanneld.service
 			t.Fatalf("architecture %s not found in output %s", testCase.arch, output.String())
 		}
 
-		if !strings.Contains(output.String(), testCase.network) {
-			t.Fatalf("network %s not found in output %s", testCase.network, output.String())
-		}
-
-		if !strings.Contains(output.String(), testCase.networkType) {
-			t.Fatalf("network type %s not found in output %s", testCase.networkType, output.String())
+		if testCase.expectedError == nil && !strings.Contains(output.String(), etcdHost) {
+			t.Fatalf("etcd host %s not found in output %s", etcdHost, output.String())
 		}
 	}
 }
