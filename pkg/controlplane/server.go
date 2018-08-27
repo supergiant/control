@@ -93,7 +93,7 @@ func New(cfg *Config) (*Server, error) {
 func generateUserIfColdStart(cfg *Config) error {
 	etcdCfg := clientv3.Config{
 		DialTimeout: time.Second * 10,
-		Endpoints: []string{cfg.EtcdUrl},
+		Endpoints:   []string{cfg.EtcdUrl},
 	}
 	repository := storage.NewETCDRepository(etcdCfg)
 	userService := user.NewService(user.DefaultStoragePrefix, repository)
@@ -136,6 +136,7 @@ func validate(cfg *Config) error {
 
 	return nil
 }
+
 func configureApplication(cfg *Config) (*mux.Router, error) {
 	//TODO will work for now, but we should revisit ETCD configuration later
 	etcdCfg := clientv3.Config{
