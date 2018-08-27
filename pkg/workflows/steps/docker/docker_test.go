@@ -3,11 +3,12 @@ package docker
 import (
 	"bytes"
 	"context"
+	"strings"
+	"testing"
+
 	"github.com/supergiant/supergiant/pkg/templatemanager"
 	"github.com/supergiant/supergiant/pkg/testutils"
 	"github.com/supergiant/supergiant/pkg/workflows/steps"
-	"strings"
-	"testing"
 )
 
 func TestInstallDocker(t *testing.T) {

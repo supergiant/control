@@ -181,6 +181,7 @@ func configureApplication(cfg *Config) (*mux.Router, error) {
 	taskHandler := workflows.NewTaskHandler(repository, ssh.NewRunner, accountService)
 	taskHandler.Register(router)
 
+	// TODO(stgleb): remove it when profile usage is done
 	p := &profile.KubeProfile{
 		ID: "1234",
 		MasterProfiles: []profile.NodeProfile{
@@ -214,6 +215,7 @@ func configureApplication(cfg *Config) (*mux.Router, error) {
 		logrus.Fatal(err)
 	}
 
+	// TODO(stgleb): remove it when key management is done
 	cloudAccount := &model.CloudAccount{
 		Name:     "test",
 		Provider: clouds.DigitalOcean,

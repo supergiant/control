@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"io"
 	"os"
+	"path"
 
 	"github.com/sirupsen/logrus"
 	"github.com/supergiant/supergiant/pkg/clouds"
@@ -12,7 +13,6 @@ import (
 	"github.com/supergiant/supergiant/pkg/storage"
 	"github.com/supergiant/supergiant/pkg/workflows"
 	"github.com/supergiant/supergiant/pkg/workflows/steps"
-	"path"
 )
 
 // Provisioner gets kube profile and returns list of task ids of provision masterTasks
@@ -21,21 +21,17 @@ type Provisioner interface {
 }
 
 type TaskProvisioner struct {
-	repository storage.Interface
-	getWriter  func(string) (io.WriteCloser, error)
-}
-
-var provisionMap map[clouds.Name][]string
-
-func init() {
-	provisionMap = map[clouds.Name][]string{
-		clouds.DigitalOcean: {workflows.DigitalOceanMaster, workflows.DigitalOceanNode},
-	}
+	repository   storage.Interface
+	getWriter    func(string) (io.WriteCloser, error)
+	provisionMap map[clouds.Name][]string
 }
 
 func NewProvisioner(repository storage.Interface) *TaskProvisioner {
 	return &TaskProvisioner{
 		repository: repository,
+		provisionMap: map[clouds.Name][]string{
+			clouds.DigitalOcean: {workflows.DigitalOceanMaster, workflows.DigitalOceanNode},
+		},
 		getWriter: func(name string) (io.WriteCloser, error) {
 			// TODO(stgleb): Add log directory to params of supergiant
 			f, err := os.OpenFile(path.Join("/tmp", name), os.O_CREATE|os.O_WRONLY|os.O_APPEND, 0666)
@@ -55,12 +51,12 @@ func (r *TaskProvisioner) prepare(name clouds.Name, masterCount, nodeCount int) 
 	nodeTasks := make([]*workflows.Task, 0, nodeCount)
 
 	for i := 0; i < masterCount; i++ {
-		t, _ := workflows.NewTask(provisionMap[name][0], r.repository)
+		t, _ := workflows.NewTask(r.provisionMap[name][0], r.repository)
 		masterTasks = append(masterTasks, t)
 	}
 
 	for i := 0; i < nodeCount; i++ {
-		t, _ := workflows.NewTask(provisionMap[name][1], r.repository)
+		t, _ := workflows.NewTask(r.provisionMap[name][1], r.repository)
 		nodeTasks = append(nodeTasks, t)
 	}
 
@@ -77,6 +73,7 @@ func (r *TaskProvisioner) Provision(ctx context.Context, kubeProfile *profile.Ku
 	go func() {
 		config.IsMaster = true
 
+		// TODO(stgleb): When we have concurrent provisioning use that to sync nodes and master provisioning
 		// Provision master nodes
 		for _, masterTask := range masterTasks {
 			fdName := fmt.Sprintf("%s.log", masterTask.ID)
@@ -99,10 +96,10 @@ func (r *TaskProvisioner) Provision(ctx context.Context, kubeProfile *profile.Ku
 
 		// If we get no master node
 		if config.GetMaster() == nil {
-			logrus.Errorf("Cluster provisioning has failed")
+			logrus.Errorf("Cluster provisioning has failed, no master is up")
 			return
 		}
-		logrus.Info("Master provisioning has finished successfully")
+		logrus.Info("Master provisioning for cluster %s has finished successfully", config.ClusterName)
 
 		config.IsMaster = false
 		config.ManifestConfig.IsMaster = false

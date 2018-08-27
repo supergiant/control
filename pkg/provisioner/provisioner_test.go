@@ -2,6 +2,8 @@ package provisioner
 
 import (
 	"context"
+	"io"
+	"os"
 	"testing"
 
 	"github.com/stretchr/testify/mock"
@@ -11,8 +13,6 @@ import (
 	"github.com/supergiant/supergiant/pkg/testutils"
 	"github.com/supergiant/supergiant/pkg/workflows"
 	"github.com/supergiant/supergiant/pkg/workflows/steps"
-	"io"
-	"os"
 )
 
 func TestTaskProvisioner(t *testing.T) {
@@ -24,14 +24,14 @@ func TestTaskProvisioner(t *testing.T) {
 		func(string) (io.WriteCloser, error) {
 			return os.Stdout, nil
 		},
+		map[clouds.Name][]string{
+			clouds.DigitalOcean: {"test_master", "test_node"},
+		},
 	}
 
 	workflows.Init()
 	workflows.RegisterWorkFlow("test_master", nil)
 	workflows.RegisterWorkFlow("test_node", nil)
-
-	// Mock digital ocean workflows with nil ones
-	provisionMap[clouds.DigitalOcean] = []string{"test_master", "test_node"}
 
 	kubeProfile := &profile.KubeProfile{
 		MasterProfiles: []profile.NodeProfile{

@@ -13,42 +13,33 @@ import (
 	"github.com/supergiant/supergiant/pkg/workflows/steps"
 )
 
-// Task is a workflow that runs and tracks its progress.
-// A workflow is like a program, while a task is like a process,
-// in terms of an operating system.
+// Task is an entity that has it own state that can be tracked
+// and written to persistent storage through repository, it executes
+// particular workflow of steps.
 type Task struct {
 	ID           string        `json:"id"`
 	Type         string        `json:"type"`
 	Config       *steps.Config `json:"config"`
 	Status       steps.Status  `json:"status"`
-	StepStatuses []StepStatus  `json:"steps"`
+	StepStatuses []StepStatus  `json:"stepsStatuses"`
 
 	workflow   Workflow
 	repository storage.Interface
 }
 
 func NewTask(taskType string, repository storage.Interface) (*Task, error) {
-	switch taskType {
-	case DigitalOceanMaster:
-		return newTask(DigitalOceanMaster, GetWorkflow(DigitalOceanMaster), repository), nil
-	case DigitalOceanNode:
-		return newTask(DigitalOceanNode, GetWorkflow(DigitalOceanNode), repository), nil
-	default:
-		w := GetWorkflow(taskType)
+	w := GetWorkflow(taskType)
 
-		if w != nil {
-			return newTask(taskType, w, repository), nil
-		}
+	if w == nil {
+		return nil, ErrUnknownProviderWorkflowType
 	}
 
-	return nil, ErrUnknownProviderWorkflowType
+	return newTask(taskType, w, repository), nil
 }
 
 func newTask(workflowType string, workflow Workflow, repository storage.Interface) *Task {
-	id := uuid.New()
-
 	return &Task{
-		ID:     id,
+		ID:     uuid.New(),
 		Type:   workflowType,
 		Status: steps.StatusTodo,
 
@@ -78,7 +69,9 @@ func (w *Task) Run(ctx context.Context, config steps.Config, out io.WriteCloser)
 		// Set config to the task
 		w.Config = &config
 		// Save task state before first step
-		w.sync(ctx)
+		if err := w.sync(ctx); err != nil {
+			logrus.Errorf("Error saving task state %v", err)
+		}
 		// Start from the first step
 		err := w.startFrom(ctx, w.ID, out, 0)
 
@@ -141,22 +134,28 @@ func (w *Task) startFrom(ctx context.Context, id string, out io.Writer, i int) e
 	// Start workflow from the last failed step
 	for index := i; index < len(w.StepStatuses); index++ {
 		step := w.workflow[index]
-		logrus.Println(step.Name())
+		logrus.Info(step.Name())
 		// Sync to storage with task in executing state
 		w.StepStatuses[index].Status = steps.StatusExecuting
-		w.sync(ctx)
+		if err := w.sync(ctx); err != nil {
+			logrus.Errorf("sync error %v", err)
+		}
+
 		if err := step.Run(ctx, out, w.Config); err != nil {
 			// Mark step status as error
 			w.StepStatuses[index].Status = steps.StatusError
 			w.StepStatuses[index].ErrMsg = err.Error()
-			w.sync(ctx)
+			if err2 := w.sync(ctx); err2 != nil {
+				logrus.Errorf("sync error %v for step %s", err2, step.Name())
+			}
 
-			logrus.Error(err)
 			return err
 		} else {
 			// Mark step as success
 			w.StepStatuses[index].Status = steps.StatusSuccess
-			w.sync(ctx)
+			if err := w.sync(ctx); err != nil {
+				logrus.Errorf("sync error %v for step %s", err, step.Name())
+			}
 		}
 	}
 

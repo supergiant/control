@@ -3,14 +3,14 @@ package workflows
 import (
 	"context"
 	"encoding/json"
-	"net/http"
-	"os"
-	"time"
+	"fmt"
 	"html/template"
 	"io"
 	"io/ioutil"
+	"net/http"
+	"os"
 	"path"
-	"fmt"
+	"time"
 
 	"github.com/gorilla/mux"
 	"github.com/gorilla/websocket"
