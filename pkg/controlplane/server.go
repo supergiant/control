@@ -92,12 +92,13 @@ func New(cfg *Config) (*Server, error) {
 //generateUserIfColdStart checks if there are any users in the db and if not (i.e. on first launch) generates a root user
 func generateUserIfColdStart(cfg *Config) error {
 	etcdCfg := clientv3.Config{
+		DialTimeout: time.Second * 10,
 		Endpoints: []string{cfg.EtcdUrl},
 	}
 	repository := storage.NewETCDRepository(etcdCfg)
 	userService := user.NewService(user.DefaultStoragePrefix, repository)
 
-	ctx, cancel := context.WithTimeout(context.TODO(), 10*time.Second)
+	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
 	defer cancel()
 
 	users, err := userService.GetAll(ctx)
