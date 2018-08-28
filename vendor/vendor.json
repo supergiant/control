@@ -192,6 +192,22 @@
 			"versionExact": "v1.14.6"
 		},
 		{
+			"checksumSHA1": "yHfT5DTbeCLs4NE2Rgnqrhe15ls=",
+			"path": "github.com/aws/aws-sdk-go/private/protocol/json/jsonutil",
+			"revision": "92c96c4f5ad419f2a72401c2f606d51e010cc110",
+			"revisionTime": "2018-06-13T21:50:45Z",
+			"version": "v1.14.6",
+			"versionExact": "v1.14.6"
+		},
+		{
+			"checksumSHA1": "R00RL5jJXRYq1iiK1+PGvMfvXyM=",
+			"path": "github.com/aws/aws-sdk-go/private/protocol/jsonrpc",
+			"revision": "92c96c4f5ad419f2a72401c2f606d51e010cc110",
+			"revisionTime": "2018-06-13T21:50:45Z",
+			"version": "v1.14.6",
+			"versionExact": "v1.14.6"
+		},
+		{
 			"checksumSHA1": "SBBVYdLcocjdPzMWgDuR8vcOfDQ=",
 			"path": "github.com/aws/aws-sdk-go/private/protocol/query",
 			"revision": "92c96c4f5ad419f2a72401c2f606d51e010cc110",
@@ -224,6 +240,30 @@
 			"versionExact": "v1.14.6"
 		},
 		{
+			"checksumSHA1": "84L48NhMSrhczhlhgJWwZ/IV3R0=",
+			"path": "github.com/aws/aws-sdk-go/service/dynamodb",
+			"revision": "92c96c4f5ad419f2a72401c2f606d51e010cc110",
+			"revisionTime": "2018-06-13T21:50:45Z",
+			"version": "v1.14.6",
+			"versionExact": "v1.14.6"
+		},
+		{
+			"checksumSHA1": "dweeMPBmsx8OdMN7S8Ad/+dqge8=",
+			"path": "github.com/aws/aws-sdk-go/service/dynamodb/dynamodbattribute",
+			"revision": "92c96c4f5ad419f2a72401c2f606d51e010cc110",
+			"revisionTime": "2018-06-13T21:50:45Z",
+			"version": "v1.14.6",
+			"versionExact": "v1.14.6"
+		},
+		{
+			"checksumSHA1": "gHT9tLa4Ty9CEU/NNETRsvz8SWs=",
+			"path": "github.com/aws/aws-sdk-go/service/dynamodb/dynamodbiface",
+			"revision": "92c96c4f5ad419f2a72401c2f606d51e010cc110",
+			"revisionTime": "2018-06-13T21:50:45Z",
+			"version": "v1.14.6",
+			"versionExact": "v1.14.6"
+		},
+		{
 			"checksumSHA1": "cuffkFl2LN+J/n8KG7pi3DL4+W0=",
 			"path": "github.com/aws/aws-sdk-go/service/ec2",
 			"revision": "92c96c4f5ad419f2a72401c2f606d51e010cc110",
@@ -242,6 +282,22 @@
 		{
 			"checksumSHA1": "wU7OxckxKwyrMi9T4idT3+fjNZM=",
 			"path": "github.com/aws/aws-sdk-go/service/pricing",
+			"revision": "92c96c4f5ad419f2a72401c2f606d51e010cc110",
+			"revisionTime": "2018-06-13T21:50:45Z",
+			"version": "v1.14.6",
+			"versionExact": "v1.14.6"
+		},
+		{
+			"checksumSHA1": "c7VBBFkctgWKeIbnwuuKmYpzocQ=",
+			"path": "github.com/aws/aws-sdk-go/service/sqs",
+			"revision": "92c96c4f5ad419f2a72401c2f606d51e010cc110",
+			"revisionTime": "2018-06-13T21:50:45Z",
+			"version": "v1.14.6",
+			"versionExact": "v1.14.6"
+		},
+		{
+			"checksumSHA1": "AisiBB02O+XJ/CPCBl4hD6xuXMs=",
+			"path": "github.com/aws/aws-sdk-go/service/sqs/sqsiface",
 			"revision": "92c96c4f5ad419f2a72401c2f606d51e010cc110",
 			"revisionTime": "2018-06-13T21:50:45Z",
 			"version": "v1.14.6",
