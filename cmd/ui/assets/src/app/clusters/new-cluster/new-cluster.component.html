@@ -1,4 +1,4 @@
-<div class="app-clusters-container">
+<!-- <div class="app-clusters-container">
   <section class="app-clusters-new">
 
     <header class="app-context-header-panel">
@@ -38,4 +38,24 @@
       </p>
     </div>
   </section>
+</div> -->
+
+<div class="new-clusters-wrapper">
+  <h1>Create a Cluster</h1>
+  <div class="inputs-wrapper">
+    <mat-form-field>
+      <input matInput type="text" placeholder="Cluster Name" [(ngModel)]="clusterName">
+    </mat-form-field>
+    <mat-form-field>
+      <mat-select placeholder="Select a Cloud Account" [(value)]="selectedCloudAccount">
+        <mat-option *ngFor="let c of cloudAccounts" [value]="c">{{ c.name }}</mat-option>
+      </mat-select>
+    </mat-form-field>
+    <mat-form-field>
+      <mat-select placeholder="Kube Profile" [(value)]="selectedKubeProfile">
+        <mat-option *ngFor="let k of kubeProfiles" [value]="k">{{ k }}</mat-option>
+      </mat-select>
+    </mat-form-field>
+    <button mat-raised-button color="primary" type="button" (click)="createCluster(clusterName, selectedCloudAccount.name, selectedKubeProfile)">CREATE</button>
+  </div>
 </div>

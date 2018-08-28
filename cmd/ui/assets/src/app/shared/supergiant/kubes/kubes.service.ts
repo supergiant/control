@@ -4,6 +4,7 @@ import { UtilService } from '../util/util.service';
 @Injectable()
 export class Kubes {
   kubesPath = '/v1/api/kubes';
+  provisionPath = 'v1/api/provision';
 
   constructor(private util: UtilService) { }
   public get(id?) {
@@ -13,7 +14,7 @@ export class Kubes {
     return this.util.fetch(this.kubesPath);
   }
   public create(data) {
-    return this.util.post(this.kubesPath, data);
+    return this.util.post(this.provisionPath, data);
   }
   // adding this back so I don't have to touch apps component right now
   public schema(data?) {

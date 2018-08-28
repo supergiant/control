@@ -1,18 +1,26 @@
-button[mat-button] {
-    margin: 5px;
-}
+.new-clusters-wrapper {
+	margin-top: 78px;
 
-.form-wrapper {
-	margin: 0 auto;
-	width: 50%;
-
-	button[type="submit"] {
-		font-size: 1.3em;
-		width: 100%;
+	h1 {
+		margin-left: 48px;
+		margin-botton: 18px;
+		// remove me
+		letter-spacing: 3px;
 	}
 
-	// remove nasty box-shadow from "add" button on json schema array-type
-	section:last-of-type {
-		box-shadow: none;
+	.inputs-wrapper {
+		background-color: rgba(0,0,0,0.5);
+		border: 1px solid rgba(255,255,255,0.25);
+		display: flex;
+		flex-direction: column;
+		padding: 24px;
+		margin: 0 auto;
+		height: max-content;
+		width: 612px;
+
+		button {
+			display: block;
+			margin-left: auto;
+		}
 	}
 }

@@ -31,36 +31,11 @@ export class NewClusterComponent implements OnInit, OnDestroy, AfterViewInit {
   schema: any;
   layout: any;
 
-  getCloudAccounts() {
-    this.subscriptions.add(this.supergiant.CloudAccounts.get().subscribe(
-      (cloudAccounts) => {
-        if (Object.keys(cloudAccounts).length > 0) {
-          this.hasCloudAccount = true;
-        }
-      })
-    );
-  }
-
-  getClusters() {
-    this.subscriptions.add(this.supergiant.Kubes.get().subscribe(
-      (clusters) => {
-        if (Object.keys(clusters).length > 0) {
-          this.hasCluster = true;
-        }
-      })
-    );
-  }
-
-  getDeployments() {
-    this.subscriptions.add(this.supergiant.HelmReleases.get().subscribe(
-      (deployments) => {
-        if (Object.keys(deployments).length > 0) {
-          this.hasApp = true;
-          this.appCount = Object.keys(deployments).length;
-        }
-      })
-    );
-  }
+  clusterName: string;
+  kubeProfiles = ["1234", "7878", "1092", "4555"];
+  selectedKubeProfile: any;
+  cloudAccounts: Array<any>;
+  selectedCloudAccount: any;
 
   constructor(
     private supergiant: Supergiant,
@@ -68,25 +43,32 @@ export class NewClusterComponent implements OnInit, OnDestroy, AfterViewInit {
     private router: Router,
   ) { }
 
-  ngOnInit() {
-    this.getCloudAccounts();
-    this.getClusters();
-    this.getDeployments();
-  }
-
-  ngOnDestroy() {
-    this.subscriptions.unsubscribe();
-  }
-
-  ngAfterViewInit() {
+  getCloudAccounts() {
     this.subscriptions.add(this.supergiant.CloudAccounts.get().subscribe(
-      (data) => { this.cloudAccountsList = data; }
-    ));
+      (cloudAccounts) => {
+        this.cloudAccounts = cloudAccounts;
+      })
+    );
   }
 
   back() {
     this.data = null;
     this.schema = null;
+  }
+
+  createCluster(name, account, profile) {
+    this.subscriptions.add(this.supergiant.Kubes.create({"clusterName": name, "profileId": profile, "cloudAccountName": account})
+      .subscribe(
+        // temporary objs sent to notifications
+        (res) => {
+          console.log(res);
+          this.success({"name": name});
+          this.router.navigate(['/dashboard']);
+        },
+        (err) => {
+          console.log(err);
+          this.error({"name": name}, err);
+        }))
   }
 
   createKube(model) {
@@ -159,6 +141,20 @@ export class NewClusterComponent implements OnInit, OnDestroy, AfterViewInit {
     }
 
 
+  }
+
+  ngOnInit() {
+    this.getCloudAccounts();
+  }
+
+  ngOnDestroy() {
+    this.subscriptions.unsubscribe();
+  }
+
+  ngAfterViewInit() {
+    this.subscriptions.add(this.supergiant.CloudAccounts.get().subscribe(
+      (data) => { this.cloudAccountsList = data; }
+    ));
   }
 
 }
