@@ -5,7 +5,6 @@ import (
 	"encoding/json"
 	"fmt"
 	"html/template"
-	"io"
 	"io/ioutil"
 	"net/http"
 	"os"
@@ -258,7 +257,7 @@ func (h *TaskHandler) StreamLogs(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	go func(readCloser io.ReadCloser) {
+	go func(){
 		pingTicker := time.NewTicker(time.Second * 60)
 
 		t, err := tail.TailFile(path.Join("/tmp", fmt.Sprintf("%s.log", id)), tail.Config{Follow: true, MaxLineSize: 160})
@@ -281,5 +280,5 @@ func (h *TaskHandler) StreamLogs(w http.ResponseWriter, r *http.Request) {
 				}
 			}
 		}
-	}(fd)
+	}()
 }
