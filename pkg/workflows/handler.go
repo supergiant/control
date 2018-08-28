@@ -172,6 +172,7 @@ func (h *TaskHandler) BuildAndRunTask(w http.ResponseWriter, r *http.Request) {
 	})
 }
 
+// NOTE(stgleb): This is made for testing purposes and example, remove when UI is done.
 func (h *TaskHandler) GetLogs(w http.ResponseWriter, r *http.Request) {
 	page := `<!DOCTYPE html>
 <html lang="en">
