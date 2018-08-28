@@ -36,10 +36,6 @@ func getSshConfig(config Config) (*ssh.ClientConfig, error) {
 			logrus.Debugf("hostname %s,addr %s key %s", hostname, remote.String(), string(key.Type()))
 			return nil
 		},
-		BannerCallback: func(message string) error {
-			logrus.Debug(message)
-			return nil
-		},
 	}, nil
 }
 

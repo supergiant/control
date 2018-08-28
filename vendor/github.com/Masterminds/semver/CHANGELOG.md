@@ -1,3 +1,25 @@
+# 1.3.1 (2017-07-10)
+
+## Fixed
+- Fixed #57: number comparisons in prerelease sometimes inaccurate
+
+# 1.3.0 (2017-05-02)
+
+## Added
+- #45: Added json (un)marshaling support (thanks @mh-cbon)
+- Stability marker. See https://masterminds.github.io/stability/
+
+## Fixed
+- #51: Fix handling of single digit tilde constraint (thanks @dgodd)
+
+## Changed
+- #55: The godoc icon moved from png to svg
+
+# 1.2.3 (2017-04-03)
+
+## Fixed
+- #46: Fixed 0.x.x and 0.0.x in constraints being treated as *
+
 # Release 1.2.2 (2016-12-13)
 
 ## Fixed

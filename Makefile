@@ -16,7 +16,7 @@ lint:
 	build/gometalinter.sh
 
 get-tools:
-	go get -u github.com/kardianos/govendor
+	curl https://raw.githubusercontent.com/golang/dep/master/install.sh | sh
 	go get -u github.com/alecthomas/gometalinter
 	gometalinter --install
 
