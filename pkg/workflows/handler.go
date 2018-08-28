@@ -232,6 +232,7 @@ func (h *TaskHandler) StreamLogs(w http.ResponseWriter, r *http.Request) {
 
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
+		logrus.Errorf("Upgrade connection %v", err)
 		return
 	}
 
@@ -248,16 +249,27 @@ func (h *TaskHandler) StreamLogs(w http.ResponseWriter, r *http.Request) {
 	}
 
 	data, err := ioutil.ReadAll(fd)
-	c.SetWriteDeadline(time.Now().Add(time.Second * 10))
+
+	if err != nil {
+		logrus.Errorf("Read content from file %s: %v", fd.Name(), err)
+		return
+	}
+
+	err = c.SetWriteDeadline(time.Now().Add(time.Second * 10))
+
+	if err != nil {
+		logrus.Errorf("Set write deadline %v", err)
+		return
+	}
 
 	err = c.WriteMessage(websocket.TextMessage, data)
 
 	if err != nil {
-		logrus.Errorf("Error while write to websocket %v", err)
+		logrus.Errorf("Write content to websocket %v", err)
 		return
 	}
 
-	go func(){
+	go func() {
 		pingTicker := time.NewTicker(time.Second * 60)
 
 		t, err := tail.TailFile(path.Join("/tmp", fmt.Sprintf("%s.log", id)), tail.Config{Follow: true, MaxLineSize: 160})

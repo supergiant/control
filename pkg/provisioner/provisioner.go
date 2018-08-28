@@ -2,7 +2,6 @@ package provisioner
 
 import (
 	"context"
-	"fmt"
 	"io"
 	"os"
 	"path"
@@ -80,11 +79,11 @@ func (r *TaskProvisioner) Provision(ctx context.Context, kubeProfile *profile.Ku
 				continue
 			}
 
-			fdName := fmt.Sprintf("%s.log", masterTask.ID)
-			out, err := r.getWriter(fmt.Sprintf("%s.log", masterTask.ID))
+			fileName := makeFileName(masterTask.ID)
+			out, err := r.getWriter(fileName)
 
 			if err != nil {
-				logrus.Errorf("Error getting writer for %s", fdName)
+				logrus.Errorf("Error getting writer for %s", fileName)
 				return
 			}
 
@@ -116,11 +115,11 @@ func (r *TaskProvisioner) Provision(ctx context.Context, kubeProfile *profile.Ku
 				continue
 			}
 
-			fdName := fmt.Sprintf("%s.log", nodeTask.ID)
-			out, err := r.getWriter(fmt.Sprintf("%s.log", nodeTask.ID))
+			fileName := makeFileName(nodeTask.ID)
+			out, err := r.getWriter(fileName)
 
 			if err != nil {
-				logrus.Errorf("Error getting writer for %s", fdName)
+				logrus.Errorf("Error getting writer for %s", fileName)
 				return
 			}
 			result := nodeTask.Run(ctx, *config, out)
