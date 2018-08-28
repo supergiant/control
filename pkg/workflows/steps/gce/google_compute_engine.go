@@ -207,6 +207,8 @@ func (s *Step) Run(ctx context.Context, output io.Writer, config *steps.Config) 
 
 				config.Node = n
 			}
+
+			return nil
 		case <-after:
 			return sgerrors.ErrTimeoutExceeded
 		}
