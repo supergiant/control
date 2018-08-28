@@ -24,6 +24,7 @@ var (
 	ErrInvalidCredentials = New("invalid credentials", InvalidCredentials)
 	ErrNotFound           = New("entity not found", NotFound)
 	ErrAlreadyExists      = New("entity already exists", EntityAlreadyExists)
+	ErrTimeoutExceeded    = New("timeout exceeded", TimeoutExceeded)
 )
 
 func IsNotFound(err error) bool {
@@ -36,4 +37,8 @@ func IsInvalidCredentials(err error) bool {
 
 func IsAlreadyExists(err error) bool {
 	return errors.Cause(err) == ErrAlreadyExists
+}
+
+func IsTimeoutExceeded(err error) bool {
+	return errors.Cause(err) == ErrTimeoutExceeded
 }

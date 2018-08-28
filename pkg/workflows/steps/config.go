@@ -29,7 +29,16 @@ type DOConfig struct {
 // TODO(stgleb): Fill struct with fields when provisioning on other providers is done
 type AWSConfig struct{}
 
-type GCEConfig struct{}
+type GCEConfig struct {
+	Email         string
+	PrivateKey    string
+	ImageFamily   string
+	ProjectID     string
+	Zone          string
+	Size          string
+	InstanceGroup string
+	TokenUri      string
+}
 
 type PacketConfig struct{}
 

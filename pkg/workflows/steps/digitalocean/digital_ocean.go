@@ -16,16 +16,12 @@ import (
 
 	"github.com/supergiant/supergiant/pkg/clouds"
 	"github.com/supergiant/supergiant/pkg/node"
+	"github.com/supergiant/supergiant/pkg/sgerrors"
 	"github.com/supergiant/supergiant/pkg/util"
 	"github.com/supergiant/supergiant/pkg/workflows/steps"
 )
 
 const StepName = "digitalOcean"
-
-var (
-	// TODO(stgleb): We need global error for timeout exceeding
-	ErrTimeoutExceeded = errors.New("timeout exceeded")
-)
 
 type DropletService interface {
 	Get(int) (*godo.Droplet, *godo.Response, error)
@@ -115,7 +111,7 @@ func (t *Step) Run(ctx context.Context, output io.Writer, config *steps.Config) 
 				return nil
 			}
 		case <-after:
-			return ErrTimeoutExceeded
+			return sgerrors.ErrTimeoutExceeded
 		}
 	}
 
