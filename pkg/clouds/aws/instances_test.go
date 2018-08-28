@@ -51,7 +51,7 @@ func TestNewClient(t *testing.T) {
 }
 
 func TestClient_CreateInstance(t *testing.T) {
-	fakeRunInstErr := errors.New("run isntance error!")
+	fakeRunInstErr := errors.New("run isntance error")
 
 	tcs := []struct {
 		name   string
@@ -84,7 +84,11 @@ func TestClient_CreateInstance(t *testing.T) {
 		},
 		// TC#5
 		{
-			config: InstanceConfig{Region: "us1", HasPublicAddr: true},
+			config: InstanceConfig{
+				Region:        "us1",
+				UsedData:      "userdata",
+				HasPublicAddr: true,
+			},
 			ec2Res: &ec2.Reservation{
 				Instances: []*ec2.Instance{
 					{InstanceId: aws.String("1")},
@@ -109,7 +113,7 @@ func TestClient_CreateInstance(t *testing.T) {
 }
 
 func TestClient_DeleteInstance(t *testing.T) {
-	fakeDelInstErr := errors.New("delete isntance error!")
+	fakeDelInstErr := errors.New("delete isntance error")
 
 	tcs := []struct {
 		name       string

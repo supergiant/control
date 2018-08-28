@@ -4,7 +4,6 @@ import (
 	"context"
 
 	"github.com/RichardKnop/machinery/v1"
-
 	"github.com/RichardKnop/machinery/v1/backends/result"
 	"github.com/RichardKnop/machinery/v1/config"
 	"github.com/RichardKnop/machinery/v1/tasks"

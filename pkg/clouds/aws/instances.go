@@ -90,7 +90,7 @@ func (c *Client) CreateInstance(ctx context.Context, cfg InstanceConfig) (*ec2.I
 		MinCount:     aws.Int64(1),
 		MaxCount:     aws.Int64(1),
 		KeyName:      aws.String(cfg.KeyName),
-		EbsOptimized: aws.Bool(true),
+		EbsOptimized: cfg.EBSOptimized,
 		IamInstanceProfile: &ec2.IamInstanceProfileSpecification{
 			Name: aws.String(cfg.IAMRole),
 		},

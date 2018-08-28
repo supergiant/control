@@ -15,6 +15,7 @@ type InstanceConfig struct {
 	IAMRole        string
 	VolumeType     string
 	VolumeSize     int64
+	EBSOptimized   *bool
 	Tags           map[string]string
 	UsedData       string
 }

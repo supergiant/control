@@ -2,12 +2,12 @@ package main
 
 import (
 	"flag"
-
 	"os"
 	"os/signal"
 	"syscall"
 
 	"github.com/sirupsen/logrus"
+
 	"github.com/supergiant/supergiant/pkg/controlplane"
 )
 
