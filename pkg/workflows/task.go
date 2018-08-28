@@ -9,6 +9,7 @@ import (
 	"github.com/pborman/uuid"
 	"github.com/sirupsen/logrus"
 
+	"github.com/pkg/errors"
 	"github.com/supergiant/supergiant/pkg/storage"
 	"github.com/supergiant/supergiant/pkg/workflows/steps"
 )
@@ -59,6 +60,7 @@ func (w *Task) Run(ctx context.Context, config steps.Config, out io.Writer) chan
 				if err := w.sync(ctx); err != nil {
 					logrus.Errorf("sync error %v for task %s", err, w.ID)
 				}
+				errChan <- errors.Errorf("provisioning failed, unexpected panic: %v ", r)
 			}
 		}()
 		if w == nil {

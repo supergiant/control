@@ -281,3 +281,45 @@ func TestRollback(t *testing.T) {
 
 	require.True(t, mockStep.rollback)
 }
+
+type PanicStep struct {
+}
+
+func (PanicStep) Run(context.Context, io.Writer, *steps.Config) error {
+	panic("implement me")
+}
+
+func (PanicStep) Name() string {
+	panic("implement me")
+}
+
+func (PanicStep) Description() string {
+	panic("implement me")
+}
+
+func (PanicStep) Depends() []string {
+	panic("implement me")
+}
+
+func (PanicStep) Rollback(context.Context, io.Writer, *steps.Config) error {
+	panic("implement me")
+}
+
+func TestPanicHandler(t *testing.T) {
+	s := &MockRepository{
+		storage: make(map[string][]byte),
+	}
+
+	step := &PanicStep{}
+	task := &Task{
+		ID:         "XYZ",
+		repository: s,
+		workflow: []steps.Step{
+			step,
+		},
+	}
+	errChan := task.Run(context.Background(), steps.Config{}, &bytes.Buffer{})
+
+	err := <-errChan
+	require.Error(t, err)
+}
