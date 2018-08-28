@@ -4,7 +4,7 @@ import { UtilService } from '../util/util.service';
 @Injectable()
 export class Kubes {
   kubesPath = '/v1/api/kubes';
-  provisionPath = 'v1/api/provision';
+  provisionPath = '/provision';
 
   constructor(private util: UtilService) { }
   public get(id?) {
