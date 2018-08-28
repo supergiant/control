@@ -12,13 +12,12 @@ import (
 	"github.com/stretchr/testify/mock"
 	"github.com/stretchr/testify/require"
 
-	"github.com/supergiant/supergiant/pkg/model/helm"
 	"github.com/supergiant/supergiant/pkg/testutils"
 )
 
 func TestHandler_Create(t *testing.T) {
 	tcs := []struct {
-		repo    *helm.Repository
+		repo    *Repository
 		rawRepo []byte
 
 		storageError error
@@ -27,27 +26,27 @@ func TestHandler_Create(t *testing.T) {
 	}{
 		{ // TC#1
 			rawRepo: []byte("{name:invalid_json,,}"),
-			repo: &helm.Repository{
+			repo: &Repository{
 				Name: "invalid_json",
 			},
 			expectedStatus: http.StatusBadRequest,
 		},
 		{ // TC#2
-			repo: &helm.Repository{
+			repo: &Repository{
 				Name: "fail_validation",
 			},
 			expectedStatus: http.StatusBadRequest,
 		},
 		{ // TC#3
 			storageError: errors.New("error"),
-			repo: &helm.Repository{
+			repo: &Repository{
 				Name: "fail_to_put",
 				URL:  "test",
 			},
 			expectedStatus: http.StatusInternalServerError,
 		},
 		{ // TC#4
-			repo: &helm.Repository{
+			repo: &Repository{
 				Name: "success",
 				URL:  "test",
 			},
@@ -87,7 +86,7 @@ func TestHandler_Get(t *testing.T) {
 	tcs := []struct {
 		repoName string
 
-		storageRepo    *helm.Repository
+		storageRepo    *Repository
 		storageRepoRaw []byte
 
 		expectedStatus int
@@ -106,7 +105,7 @@ func TestHandler_Get(t *testing.T) {
 		},
 		{ // TC#4
 			repoName: "stable",
-			storageRepo: &helm.Repository{
+			storageRepo: &Repository{
 				Name: "stable",
 				URL:  "stable",
 			},
@@ -142,7 +141,7 @@ func TestHandler_Get(t *testing.T) {
 		require.Equalf(t, tc.expectedStatus, rr.Code, "TC#%d", i+1)
 
 		if tc.storageRepo != nil {
-			repo := new(helm.Repository)
+			repo := new(Repository)
 			require.Nil(t, json.NewDecoder(rr.Body).Decode(repo))
 
 			require.Equalf(t, tc.storageRepo, repo, "TC#%d", i+1)
@@ -152,7 +151,7 @@ func TestHandler_Get(t *testing.T) {
 
 func TestHandler_ListAll(t *testing.T) {
 	tcs := []struct {
-		storageRepo  *helm.Repository
+		storageRepo  *Repository
 		storageError error
 
 		expectedStatus int
@@ -162,7 +161,7 @@ func TestHandler_ListAll(t *testing.T) {
 			expectedStatus: http.StatusInternalServerError,
 		},
 		{ // TC#2
-			storageRepo: &helm.Repository{
+			storageRepo: &Repository{
 				Name: "stable",
 				URL:  "stable",
 			},
@@ -193,12 +192,12 @@ func TestHandler_ListAll(t *testing.T) {
 		require.Equalf(t, tc.expectedStatus, rr.Code, "TC#%d", i+1)
 
 		if tc.storageRepo != nil {
-			repos := make([]helm.Repository, 1)
+			repos := make([]Repository, 1)
 			if err = json.NewDecoder(rr.Body).Decode(&repos); err != nil {
 				t.Errorf("TC#%d: decode body: %v", i+1, err)
 			}
 
-			require.Equalf(t, []helm.Repository{*tc.storageRepo}, repos, "TC#%d", i+1)
+			require.Equalf(t, []Repository{*tc.storageRepo}, repos, "TC#%d", i+1)
 		}
 	}
 }

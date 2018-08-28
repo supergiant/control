@@ -6,7 +6,6 @@ import (
 
 	"github.com/pkg/errors"
 
-	"github.com/supergiant/supergiant/pkg/model/helm"
 	"github.com/supergiant/supergiant/pkg/sgerrors"
 	"github.com/supergiant/supergiant/pkg/storage"
 )
@@ -28,7 +27,7 @@ func NewService(s storage.Interface) *Service {
 }
 
 // Create stores a helm repository in the provided storage.
-func (s *Service) Create(ctx context.Context, r *helm.Repository) error {
+func (s *Service) Create(ctx context.Context, r *Repository) error {
 	if r == nil {
 		return sgerrors.ErrNotFound
 	}
@@ -47,7 +46,7 @@ func (s *Service) Create(ctx context.Context, r *helm.Repository) error {
 }
 
 // Get retrieves a helm repository from the storage by its name.
-func (s *Service) Get(ctx context.Context, repoName string) (*helm.Repository, error) {
+func (s *Service) Get(ctx context.Context, repoName string) (*Repository, error) {
 	res, err := s.storage.Get(ctx, prefix, repoName)
 	if err != nil {
 		return nil, errors.Wrap(err, "storage")
@@ -57,7 +56,7 @@ func (s *Service) Get(ctx context.Context, repoName string) (*helm.Repository, e
 		return nil, errors.Wrap(sgerrors.ErrNotFound, "repo not found")
 	}
 
-	repo := new(helm.Repository)
+	repo := new(Repository)
 	if err = json.Unmarshal(res, repo); err != nil {
 		return nil, errors.Wrap(err, "unmarshal")
 	}
@@ -66,15 +65,15 @@ func (s *Service) Get(ctx context.Context, repoName string) (*helm.Repository, e
 }
 
 // GetAll retrieves all helm repositories from the storage.
-func (s *Service) GetAll(ctx context.Context) ([]helm.Repository, error) {
+func (s *Service) GetAll(ctx context.Context) ([]Repository, error) {
 	rawRepos, err := s.storage.GetAll(ctx, prefix)
 	if err != nil {
 		return nil, errors.Wrap(err, "storage")
 	}
 
-	repos := make([]helm.Repository, len(rawRepos))
+	repos := make([]Repository, len(rawRepos))
 	for i, raw := range rawRepos {
-		repo := new(helm.Repository)
+		repo := new(Repository)
 		err = json.Unmarshal(raw, repo)
 		if err != nil {
 			return nil, errors.Wrap(err, "unmarshal")
