@@ -2,11 +2,12 @@ package ssh
 
 import (
 	"context"
-	"fmt"
 	"strings"
 
 	"github.com/pkg/errors"
 	"golang.org/x/crypto/ssh"
+
+	"time"
 
 	"github.com/supergiant/supergiant/pkg/runner"
 )
@@ -17,11 +18,11 @@ const (
 
 // Config is a set of params needed to create valid ssh.ClientConfig
 type Config struct {
-	Host    string
-	Port    string
-	User    string
-	Timeout int
-	Key     []byte
+	Host    string `json:"host"`
+	Port    string `json:"port"`
+	User    string `json:"user"`
+	Timeout int    `json:"timeout"`
+	Key     []byte `json:"key"`
 }
 
 // Runner is implementation of runner interface for ssh
@@ -34,7 +35,7 @@ type Runner struct {
 // NewRunner creates ssh runner object. It requires two io.Writer
 // to send output of ssh session and config for ssh client.
 // TODO: Does it safe to pass Config as a pointer?
-func NewRunner(config *Config) (*Runner, error) {
+func NewRunner(config Config) (runner.Runner, error) {
 	if strings.TrimSpace(config.Host) == "" {
 		return nil, ErrHostNotSpecified
 	}
@@ -43,8 +44,8 @@ func NewRunner(config *Config) (*Runner, error) {
 		return nil, err
 	}
 
-	r := &Runner{host: config.Host, sshConf: sshConfig}
-	if config.Port == "" {
+	r := &Runner{host: config.Host, port: config.Port, sshConf: sshConfig}
+	if r.port == "" {
 		r.port = DefaultPort
 	}
 
@@ -62,13 +63,15 @@ func (r *Runner) Run(cmd *runner.Command) (err error) {
 		return nil
 	}
 
-	c, err := ssh.Dial("tcp", fmt.Sprintf("%s:%s", r.host, r.port), r.sshConf)
+	c, err := connectionWithBackOff(r.host, r.port, r.sshConf, time.Second*10, 3)
+
 	if err != nil {
-		return errors.Wrap(err, "ssh: dial")
+		return errors.Wrap(err, "ssh: establishing connection")
 	}
+
 	session, err := c.NewSession()
 	if err != nil {
-		return errors.Wrap(err, "ssh: new session")
+		return errors.Wrap(err, "ssh: creating new session")
 	}
 	defer session.Close()
 

@@ -52,30 +52,11 @@ import { AppsTutorialComponent } from './tutorials/apps-tutorial/apps-tutorial.c
 import { NewAppListComponent } from './apps/new-app-list/new-app-list.component';
 import { NewAppComponent } from './apps/new-app/new-app.component';
 import { LogsComponent } from './system/logs/logs.component';
+// auth guard
+import {
+  AuthGuardService as AuthGuard
+} from './shared/supergiant/auth/auth-guard.service';
 
-@Injectable()
-export class AuthGuard implements CanActivate {
-
-  constructor(
-    private router: Router,
-    private supergiant: Supergiant,
-    private loginComponent: LoginComponent,
-  ) { }
-
-  canActivate(): Observable<boolean> | boolean {
-    return this.loginComponent.validateUser().map((res) => {
-      if (res) { return true; }
-    }).catch(() => {
-      this.router.navigate(['']);
-      return Observable.of(false);
-    });
-  }
-
-  handleError() {
-    // this.router.navigate(['/login']);
-    return Observable.of(false);
-  }
-}
 const appRoutes: Routes = [
   { path: '', component: LoginComponent },
   {

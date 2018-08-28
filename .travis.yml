@@ -31,30 +31,11 @@ before_install:
   - docker run -d -p 2379:2379 -p 2380:2380 --volume=${DATA_DIR}:/etcd-data --name etcd ${REGISTRY}:latest /usr/local/bin/etcd --data-dir=/etcd-data --name node1 --initial-advertise-peer-urls http://0.0.0.0:2380 --listen-peer-urls http://0.0.0.0:2380 --advertise-client-urls http://0.0.0.0:2379 --listen-client-urls http://0.0.0.0:2379 --initial-cluster node1=http://0.0.0.0:2380
 
 install:
-  - wget https://releases.hashicorp.com/packer/1.0.0/packer_1.0.0_linux_amd64.zip
-  - unzip packer_1.0.0_linux_amd64.zip
-  - chmod 755 ./packer
-  - go get github.com/kardianos/govendor
   - go get github.com/mattn/goveralls
-  - go get github.com/smartystreets/goconvey/convey
-  - go get github.com/tcnksm/ghr
-  - go get github.com/karalabe/xgo
-  - go get -u github.com/jteeuwen/go-bindata/...
-  - npm install -g npm@5.3.0
-  - npm install -g @angular/cli@1.3.2
 
 script:
   # Test
   # - govendor test +local (NOTE not needed with coverage line below)
-
-  # Compile assets
-  - cd cmd/ui/assets
-  - npm --version
-  - npm install
-  - ng build --env=prod
-  - cd ../../../
-  - go-bindata -pkg ui -o bindata/ui/bindata.go cmd/ui/assets/dist/...
-
   # Coverage
   - go test -covermode=count -coverprofile=profile.cov ./pkg/...
   - goveralls -coverprofile=profile.cov -service=travis-ci
@@ -62,13 +43,9 @@ script:
   # Integration
   - if [ "$TRAVIS_EVENT_TYPE" == "cron" ] ; then go test -v -tags=integration -timeout 45m ./pkg/... ./test/... ; fi
 
-  # Cross compile
-  - CGO_ENABLED=0 GOOS=linux GOARCH=arm64 go build -a -o dist/supergiant-api-linux-arm64 -ldflags '-extldflags "-static"' ./cmd/controlplane
-  - CGO_ENABLED=0 GOOS=linux GOARCH=amd64 go build -a -o dist/supergiant-api-linux-amd64 -ldflags '-extldflags "-static"' ./cmd/controlplane
-  - CGO_ENABLED=0 GOOS=linux GOARCH=arm64 go build -a -o dist/supergiant-ui-linux-arm64 -ldflags '-extldflags "-static"' ./cmd/ui
-  - CGO_ENABLED=0 GOOS=linux GOARCH=amd64 go build -a -o dist/supergiant-ui-linux-amd64 -ldflags '-extldflags "-static"' ./cmd/ui
-
-  - travis_wait 60 build/travis_build.sh
+  # Make build
+  #  - docker build . -t supergiant/controlplane
+  # - travis_wait 60 build/travis_build.sh
 
 after_success:
   #- build/ghr.sh

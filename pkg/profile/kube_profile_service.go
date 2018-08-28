@@ -46,7 +46,7 @@ func (s *KubeProfileService) Create(ctx context.Context, profile *KubeProfile) e
 		return err
 	}
 
-	return s.kubeProfileStorage.Put(ctx, s.prefix, profile.Id, profileData)
+	return s.kubeProfileStorage.Put(ctx, s.prefix, profile.ID, profileData)
 }
 
 func (s *KubeProfileService) GetAll(ctx context.Context) ([]KubeProfile, error) {

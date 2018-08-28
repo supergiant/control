@@ -45,8 +45,8 @@ func TestKubeProfileServiceGet(t *testing.T) {
 			return
 		}
 
-		if testCase.err == nil && profile.Id != testCase.expectedId {
-			t.Errorf("Wrong profile id expected %s actual %s", testCase.expectedId, profile.Id)
+		if testCase.err == nil && profile.ID != testCase.expectedId {
+			t.Errorf("Wrong profile id expected %s actual %s", testCase.expectedId, profile.ID)
 		}
 	}
 }
@@ -75,7 +75,7 @@ func TestKubeProfileServiceCreate(t *testing.T) {
 		m.On("Put",
 			context.Background(),
 			prefix,
-			testCase.kube.Id,
+			testCase.kube.ID,
 			kubeData).
 			Return(testCase.err)
 

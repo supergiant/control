@@ -50,7 +50,7 @@ func TestRunner_New(t *testing.T) {
 	}
 
 	for i, tc := range testCases {
-		_, err := NewRunner(&tc.conf)
+		_, err := NewRunner(tc.conf)
 		if tc.expectedErr != errors.Cause(err) {
 			// ssh errors are hardcoded, so check the msg too..
 			if tc.expectedErr.Error() != errors.Cause(err).Error() {

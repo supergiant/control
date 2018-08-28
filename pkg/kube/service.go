@@ -160,7 +160,7 @@ func (s *Service) GetCerts(ctx context.Context, kname, cname string) (*Bundle, e
 		return nil, err
 	}
 
-	r, err := ssh.NewRunner(&ssh.Config{
+	r, err := ssh.NewRunner(ssh.Config{
 		Host: kube.APIAddr,
 		User: kube.SSHUser,
 		Key:  kube.SSHKey,

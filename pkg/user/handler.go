@@ -17,9 +17,9 @@ type Handler struct {
 	tokenService *sgjwt.TokenService
 }
 
-type authRequest struct {
-	UserName string
-	Password string
+type AuthRequest struct {
+	Login    string `json:"login"`
+	Password string `json:"password"`
 }
 
 func NewHandler(userService *Service, tokenService *sgjwt.TokenService) *Handler {
@@ -29,14 +29,23 @@ func NewHandler(userService *Service, tokenService *sgjwt.TokenService) *Handler
 	}
 }
 
+func enableCors(w http.ResponseWriter) {
+	w.Header().Set("Access-Control-Allow-Origin", "*")
+}
+
 func (h *Handler) Authenticate(w http.ResponseWriter, r *http.Request) {
-	var ar authRequest
+	var ar AuthRequest
+
+	// not sure if this is needed after route gets protected again
+	// (when default user is created)
+	enableCors(w)
+
 	if err := json.NewDecoder(r.Body).Decode(&ar); err != nil {
 		http.Error(w, err.Error(), http.StatusBadRequest)
 		return
 	}
 
-	if err := h.userService.Authenticate(r.Context(), ar.UserName, ar.Password); err != nil {
+	if err := h.userService.Authenticate(r.Context(), ar.Login, ar.Password); err != nil {
 		if sgerrors.IsInvalidCredentials(err) {
 			http.Error(w, sgerrors.ErrInvalidCredentials.Error(), http.StatusForbidden)
 		}
@@ -44,8 +53,9 @@ func (h *Handler) Authenticate(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if token, err := h.tokenService.Issue(ar.UserName); err == nil {
+	if token, err := h.tokenService.Issue(ar.Login); err == nil {
 		w.Header().Set("Authorization", token)
+		w.Header().Set("Access-Control-Expose-Headers", "Authorization")
 		return
 	} else {
 		http.Error(w, fmt.Sprintf("Error while generating token %s", err.Error()), http.StatusInternalServerError)
@@ -55,6 +65,11 @@ func (h *Handler) Authenticate(w http.ResponseWriter, r *http.Request) {
 
 func (h *Handler) Create(rw http.ResponseWriter, r *http.Request) {
 	var user User
+
+	// not sure if this is needed after route gets protected again
+	// (when default user is created)
+	enableCors(rw)
+
 	if err := json.NewDecoder(r.Body).Decode(&user); err != nil {
 		http.Error(rw, err.Error(), http.StatusBadRequest)
 		return

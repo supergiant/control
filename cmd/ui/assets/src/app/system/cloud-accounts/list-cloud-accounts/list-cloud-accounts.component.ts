@@ -15,10 +15,6 @@ import { ContextMenuService, ContextMenuComponent } from 'ngx-contextmenu';
 export class ListCloudAccountsComponent implements OnInit, OnDestroy {
   public subscriptions = new Subscription();
   public hasCloudAccount = false;
-  public hasCluster = false;
-  public hasApp = false;
-  public appCount = 0;
-  public kubes = [];
   rows = [];
   selected = [];
   columns = [
@@ -38,42 +34,8 @@ export class ListCloudAccountsComponent implements OnInit, OnDestroy {
     private contextMenuService: ContextMenuService,
   ) { }
 
-
-  getCloudAccounts() {
-    this.subscriptions.add(this.supergiant.CloudAccounts.get().subscribe(
-      (cloudAccounts) => {
-        if (Object.keys(cloudAccounts.items).length > 0) {
-          this.hasCloudAccount = true;
-        }
-      })
-    );
-  }
-
-  getClusters() {
-    this.subscriptions.add(this.supergiant.Kubes.get().subscribe(
-      (clusters) => {
-        if (Object.keys(clusters.items).length > 0) {
-          this.hasCluster = true;
-        }
-      })
-    );
-  }
-  getDeployments() {
-    this.subscriptions.add(this.supergiant.HelmReleases.get().subscribe(
-      (deployments) => {
-        if (Object.keys(deployments.items).length > 0) {
-          this.hasApp = true;
-          this.appCount = Object.keys(deployments.items).length;
-        }
-      })
-    );
-  }
-
   ngOnInit() {
-    this.get();
     this.getCloudAccounts();
-    this.getClusters();
-    this.getDeployments();
   }
 
   ngOnDestroy() {
@@ -85,25 +47,28 @@ export class ListCloudAccountsComponent implements OnInit, OnDestroy {
     this.selected.push(...selected);
   }
 
-  get() {
+  getCloudAccounts() {
     this.subscriptions.add(Observable.timer(0, 5000)
       .switchMap(() => this.supergiant.CloudAccounts.get()).subscribe(
       (accounts) => {
-        this.rows = accounts.items.map(account => ({
-          id: account.id, name: account.name, provider: account.provider
-        }));
+        if (Object.keys(accounts).length > 0) {
+          this.hasCloudAccount = true;
+          this.rows = accounts.map(account => ({
+            name: account.name, provider: account.provider
+          }));
 
-        // Maintain selection of accounts:
-        const selected: Array<any> = [];
-        this.selected.forEach((account, index) => {
-          for (const row of this.rows) {
-            if (row.id === account.id) {
-              selected.push(row);
-              break;
+          // Maintain selection of accounts:
+          const selected: Array<any> = [];
+          this.selected.forEach((account, index) => {
+            for (const row of this.rows) {
+              if (row.name === account.name) {
+                selected.push(row);
+                break;
+              }
             }
-          }
-        });
-        this.selected = selected;
+          });
+          this.selected = selected;
+        }
       },
       (err) => { this.notifications.display('warn', 'Connection Issue.', err); }));
   }
@@ -113,7 +78,7 @@ export class ListCloudAccountsComponent implements OnInit, OnDestroy {
       this.notifications.display('warn', 'Warning:', 'No Cloud Account Selected.');
     } else {
       for (const account of this.selected) {
-        this.subscriptions.add(this.supergiant.CloudAccounts.delete(account.id).subscribe(
+        this.subscriptions.add(this.supergiant.CloudAccounts.delete(account.name).subscribe(
           (data) => {
             this.notifications.display('success', 'Cloud Account: ' + account.name, 'Deleted...');
             this.selected = [];
