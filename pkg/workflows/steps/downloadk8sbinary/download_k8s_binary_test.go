@@ -5,28 +5,24 @@ import (
 	"context"
 	"strings"
 	"testing"
-	"text/template"
 
 	"github.com/pkg/errors"
-
+	"github.com/supergiant/supergiant/pkg/templatemanager"
 	"github.com/supergiant/supergiant/pkg/testutils"
 	"github.com/supergiant/supergiant/pkg/workflows/steps"
 )
 
 func TestFlannelJob_InstallFlannel(t *testing.T) {
-	script := `#!/bin/bash
-source /etc/environment
-mkdir -p /opt/bin
-curl -sSL -o /opt/bin/kubectl https://storage.googleapis.com/kubernetes-release/release/v{{ .K8SVersion }}/bin/{{ .OperatingSystem }}/{{ .Arch }}/kubectl
-chmod +x /opt/bin/$FILE
-chmod +x /opt/bin/kubectl
-`
-
-	tpl, err := template.New(StepName).Parse(script)
+	err := templatemanager.Init("../../../../templates")
 
 	if err != nil {
-		t.Errorf("error parsing flannel test templatemanager %s", err.Error())
-		return
+		t.Fatal(err)
+	}
+
+	tpl := templatemanager.GetTemplate(StepName)
+
+	if tpl == nil {
+		t.Fatal("template not found")
 	}
 
 	testCases := []struct {
@@ -50,7 +46,7 @@ chmod +x /opt/bin/kubectl
 	}
 
 	for _, testCase := range testCases {
-		r := &testutils.FakeRunner{
+		r := &testutils.MockRunner{
 			Err: testCase.expectedError,
 		}
 

@@ -10,6 +10,7 @@ import (
 	tm "github.com/supergiant/supergiant/pkg/templatemanager"
 	"github.com/supergiant/supergiant/pkg/workflows/steps"
 	"github.com/supergiant/supergiant/pkg/workflows/steps/etcd"
+	"github.com/supergiant/supergiant/pkg/workflows/steps/network"
 )
 
 const StepName = "flannel"
@@ -47,5 +48,5 @@ func (t *Step) Description() string {
 }
 
 func (s *Step) Depends() []string {
-	return []string{etcd.StepName}
+	return []string{etcd.StepName, network.StepName}
 }

@@ -8,6 +8,7 @@ import (
 	"github.com/sirupsen/logrus"
 	"gopkg.in/asaskevich/govalidator.v8"
 
+	"github.com/pborman/uuid"
 	"github.com/supergiant/supergiant/pkg/sgerrors"
 )
 
@@ -53,6 +54,8 @@ func (h *KubeProfileHandler) CreateProfile(w http.ResponseWriter, r *http.Reques
 		http.Error(w, err.Error(), http.StatusBadRequest)
 		return
 	}
+
+	profile.ID = uuid.NewUUID().String()
 
 	ok, err := govalidator.ValidateStruct(profile)
 	if !ok {

@@ -7,11 +7,10 @@ import (
 
 	"github.com/pkg/errors"
 
-	"time"
-
 	tm "github.com/supergiant/supergiant/pkg/templatemanager"
 	"github.com/supergiant/supergiant/pkg/workflows/steps"
 	"github.com/supergiant/supergiant/pkg/workflows/steps/kubelet"
+	"time"
 )
 
 const StepName = "poststart"
@@ -33,8 +32,7 @@ func New(script *template.Template) *Step {
 }
 
 func (j *Step) Run(ctx context.Context, out io.Writer, config *steps.Config) error {
-	ctx2, _ := context.WithTimeout(ctx,
-		time.Duration(config.PostStartConfig.Timeout)*time.Second)
+	ctx2, _ := context.WithTimeout(ctx, time.Duration(config.PostStartConfig.Timeout)*time.Second)
 	err := steps.RunTemplate(ctx2, j.script, config.Runner, out, config.PostStartConfig)
 
 	if err != nil {

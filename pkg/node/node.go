@@ -8,6 +8,7 @@ import (
 
 type Node struct {
 	Id        string      `json:"id" valid:"required"`
+	Role      string      `json:"role"`
 	CreatedAt int64       `json:"created_at" valid:"required"`
 	Provider  clouds.Name `json:"provider" valid:"required"`
 	Region    string      `json:"region" valid:"required"`
@@ -16,6 +17,6 @@ type Node struct {
 }
 
 func (n Node) String() string {
-	return fmt.Sprintf("<Id: %s, CreatedAt: %d, Provider: %s, Region; %s, PublicIp: %s, PrivateIp: %s>",
+	return fmt.Sprintf("<ID: %s, CreatedAt: %d, Provider: %s, Region; %s, PublicIp: %s, PrivateIp: %s>",
 		n.Id, n.CreatedAt, n.Provider, n.Region, n.PublicIp, n.PrivateIp)
 }

@@ -11,6 +11,7 @@ import (
 	"github.com/pkg/errors"
 
 	"github.com/supergiant/supergiant/pkg/runner"
+	"github.com/supergiant/supergiant/pkg/templatemanager"
 	"github.com/supergiant/supergiant/pkg/workflows/steps"
 )
 
@@ -32,15 +33,17 @@ func TestStartKubelet(t *testing.T) {
 	etcdPort := "2379"
 	proxyPort := "8080"
 
-	var (
-		r             runner.Runner = &fakeRunner{}
-		kubeletScript               = `echo 'gcr.io/google-containers/hyperkube:v{{ .K8SVersion }}' > /etc/systemd/system/kubelet.service;systemctl start kubelet`
-	)
-
-	kubeletScriptTemplate, err := template.New(StepName).Parse(kubeletScript)
+	r := &fakeRunner{}
+	err := templatemanager.Init("../../../../templates")
 
 	if err != nil {
-		t.Errorf("Error while parsing kubelet script templatemanager %v", err)
+		t.Fatal(err)
+	}
+
+	tpl := templatemanager.GetTemplate(StepName)
+
+	if tpl == nil {
+		t.Fatal("template not found")
 	}
 
 	output := new(bytes.Buffer)
@@ -55,7 +58,7 @@ func TestStartKubelet(t *testing.T) {
 	}
 
 	task := &Step{
-		kubeletScriptTemplate,
+		tpl,
 	}
 
 	err = task.Run(context.Background(), output, cfg)
