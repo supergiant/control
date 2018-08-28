@@ -29,6 +29,7 @@ var (
 	ErrNoInstancesCreated = errors.New("aws: no instances were created")
 )
 
+// Client used for accessing AWS resources.
 type Client struct {
 	session  *session.Session
 	ec2SvcFn func(s *session.Session, region string) ec2iface.EC2API
@@ -76,7 +77,7 @@ func (c *Client) AvailableInstanceTypes(ctx context.Context) ([]*EC2TypeInfo, er
 	return ec2Infos, nil
 }
 
-// CreateInstance startd a new instance due to the config.
+// CreateInstance starts a new instance due to the config.
 func (c *Client) CreateInstance(ctx context.Context, cfg InstanceConfig) (*ec2.Instance, error) {
 	cfg.Region = strings.TrimSpace(cfg.Region)
 	if cfg.Region == "" {
@@ -139,7 +140,8 @@ func (c *Client) CreateInstance(ctx context.Context, cfg InstanceConfig) (*ec2.I
 	return res.Instances[0], nil
 }
 
-// ListInstances returns a list of instances available to the client.
+// ListInstances returns a list of instances.
+//
 func (c *Client) ListRegionInstances(ctx context.Context, region string, tags map[string]string) ([]*ec2.Instance, error) {
 	region = strings.TrimSpace(region)
 	if region == "" {
