@@ -17,6 +17,10 @@ type Step struct {
 	script *template.Template
 }
 
+func (s *Step) Rollback(context.Context, io.Writer, *steps.Config) error {
+	return nil
+}
+
 func Init() {
 	steps.RegisterStep(StepName, New(tm.GetTemplate(StepName)))
 }

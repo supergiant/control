@@ -41,6 +41,10 @@ func (s *Step) Name() string {
 	return StepName
 }
 
+func (s *Step) Rollback(context.Context, io.Writer, *steps.Config) error {
+	return nil
+}
+
 func (s *Step) Description() string {
 	return ""
 }

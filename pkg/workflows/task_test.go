@@ -10,6 +10,7 @@ import (
 	"strings"
 	"testing"
 
+	"github.com/stretchr/testify/require"
 	"github.com/supergiant/supergiant/pkg/workflows/steps"
 )
 
@@ -41,6 +42,12 @@ type MockStep struct {
 	counter     int
 	messages    []string
 	errs        []error
+	rollback    bool
+}
+
+func (f *MockStep) Rollback(context.Context, io.Writer, *steps.Config) error {
+	f.rollback = true
+	return nil
 }
 
 func (f *MockStep) Run(ctx context.Context, out io.Writer, config *steps.Config) error {
@@ -249,4 +256,28 @@ func TestWorkflowRestart(t *testing.T) {
 	if err != nil {
 		t.Errorf("Error must not be nil actual %v", err)
 	}
+}
+
+func TestRollback(t *testing.T) {
+	s := &MockRepository{
+		storage: make(map[string][]byte),
+	}
+	id := "abcd"
+
+	mockStep := &MockStep{name: "step1", errs: []error{errors.New("should happen")}}
+	task := &Task{
+		ID:         id,
+		repository: s,
+		workflow: []steps.Step{
+			mockStep,
+		},
+	}
+	require.False(t, mockStep.rollback)
+
+	buffer := &bytes.Buffer{}
+	errChan := task.Run(context.Background(), steps.Config{}, buffer)
+	err := <-errChan
+	require.Error(t, err)
+
+	require.True(t, mockStep.rollback)
 }

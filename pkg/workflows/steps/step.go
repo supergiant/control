@@ -20,6 +20,7 @@ type Step interface {
 	Name() string
 	Description() string
 	Depends() []string
+	Rollback(context.Context, io.Writer, *Config) error
 }
 
 var (
