@@ -38,6 +38,7 @@
     "angular2-json-schema-form": "^0.7.0-alpha.1",
     "angular2-notifications": "^0.9.6",
     "angular2-schema-form": "^1.2.1",
+    "angular6-json-schema-form": "^1.0.3",
     "api-check": "^7.5.5",
     "bootstrap": "^4.0.0-beta.2",
     "chart.js": "^2.6.0",
