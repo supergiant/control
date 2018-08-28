@@ -19,11 +19,12 @@
       "dataDir": "/etcd-data",
       "servicePort": "2379",
       "managementPort": "2380",
+      "token": "abcd",
       "startTimeout": "0",
       "restartTimeout": "5"
     },
     "dockerConfig": {
-      "dockerVersion": "17.06.0",
+      "version": "17.06.0",
       "releaseVersion": "xenial",
       "arch": "amd64"
     },

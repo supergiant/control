@@ -10,13 +10,17 @@ import (
 	"github.com/gorilla/handlers"
 	"github.com/gorilla/mux"
 	"github.com/pkg/errors"
+
 	"github.com/sirupsen/logrus"
 	"github.com/supergiant/supergiant/pkg/account"
 	"github.com/supergiant/supergiant/pkg/api"
+	"github.com/supergiant/supergiant/pkg/clouds"
 	"github.com/supergiant/supergiant/pkg/helm"
 	"github.com/supergiant/supergiant/pkg/jwt"
 	"github.com/supergiant/supergiant/pkg/kube"
+	"github.com/supergiant/supergiant/pkg/model"
 	"github.com/supergiant/supergiant/pkg/profile"
+	"github.com/supergiant/supergiant/pkg/provisioner"
 	"github.com/supergiant/supergiant/pkg/runner/ssh"
 	"github.com/supergiant/supergiant/pkg/storage"
 	"github.com/supergiant/supergiant/pkg/templatemanager"
@@ -88,10 +92,9 @@ func New(cfg *Config) (*Server, error) {
 //generateUserIfColdStart checks if there are any users in the db and if not (i.e. on first launch) generates a root user
 func generateUserIfColdStart(cfg *Config) error {
 	etcdCfg := clientv3.Config{
+		DialTimeout: time.Second * 10,
 		Endpoints:   []string{cfg.EtcdUrl},
-		DialTimeout: 10 * time.Second,
 	}
-
 	repository := storage.NewETCDRepository(etcdCfg)
 	userService := user.NewService(user.DefaultStoragePrefix, repository)
 
@@ -133,6 +136,7 @@ func validate(cfg *Config) error {
 
 	return nil
 }
+
 func configureApplication(cfg *Config) (*mux.Router, error) {
 	//TODO will work for now, but we should revisit ETCD configuration later
 	etcdCfg := clientv3.Config{
@@ -176,6 +180,60 @@ func configureApplication(cfg *Config) (*mux.Router, error) {
 
 	taskHandler := workflows.NewTaskHandler(repository, ssh.NewRunner, accountService)
 	taskHandler.Register(router)
+
+	// TODO(stgleb): remove it when profile usage is done
+	p := &profile.KubeProfile{
+		ID: "1234",
+		MasterProfiles: []profile.NodeProfile{
+			{
+				Provider: clouds.DigitalOcean,
+			},
+		},
+		NodesProfiles: []profile.NodeProfile{
+			{
+				Provider: clouds.DigitalOcean,
+			},
+			{
+				Provider: clouds.DigitalOcean,
+			},
+		},
+
+		Arch:            "amd64",
+		OperatingSystem: "linux",
+		UbuntuVersion:   "xenial",
+		DockerVersion:   "17.06.0",
+		K8SVersion:      "1.11.1",
+		FlannelVersion:  "0.10.0",
+		NetworkType:     "vxlan",
+		HelmVersion:     "2.8.0",
+		RBACEnabled:     false,
+	}
+
+	err := kubeProfileService.Create(context.Background(), p)
+
+	if err != nil {
+		logrus.Fatal(err)
+	}
+
+	// TODO(stgleb): remove it when key management is done
+	cloudAccount := &model.CloudAccount{
+		Name:     "test",
+		Provider: clouds.DigitalOcean,
+		Credentials: map[string]string{
+			"accessToken": "",
+			"fingerprint": "",
+		},
+	}
+
+	err = accountService.Create(context.Background(), cloudAccount)
+	if err != nil {
+		logrus.Fatal(err)
+	}
+
+	taskProvisioner := provisioner.NewProvisioner(repository)
+	tokenGetter := provisioner.NewEtcdTokenGetter()
+	provisionHandler := provisioner.NewHandler(kubeProfileService, accountService, tokenGetter, taskProvisioner)
+	provisionHandler.Register(router)
 
 	helmService := helm.NewService(repository)
 	helmHandler := helm.NewHandler(helmService)

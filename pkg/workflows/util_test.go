@@ -79,7 +79,7 @@ func TestFillCloudAccountCredentials(t *testing.T) {
 			CloudAccountName: testCase.cloudAccount.Name,
 		}
 
-		fillCloudAccountCredentials(context.Background(), mock, config)
+		FillCloudAccountCredentials(context.Background(), mock, config)
 
 		if !strings.EqualFold(testCase.cloudAccount.Credentials["accessToken"], config.DigitalOceanConfig.AccessToken) {
 			t.Errorf("Wrong access token expected %s actual %s",

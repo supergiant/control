@@ -55,14 +55,12 @@ func New(dropletTimeout, checkPeriod time.Duration) *Step {
 func (t *Step) Run(ctx context.Context, output io.Writer, config *steps.Config) error {
 	c := getClient(config.DigitalOceanConfig.AccessToken)
 
-	config.DigitalOceanConfig.Name = util.MakeNodeName(config.DigitalOceanConfig.Name, config.DigitalOceanConfig.Role)
+	config.DigitalOceanConfig.Name = util.MakeNodeName(config.ClusterName, config.IsMaster)
 
 	var fingers []godo.DropletCreateSSHKey
-	for _, ssh := range config.DigitalOceanConfig.Fingerprints {
-		fingers = append(fingers, godo.DropletCreateSSHKey{
-			Fingerprint: ssh,
-		})
-	}
+	fingers = append(fingers, godo.DropletCreateSSHKey{
+		Fingerprint: config.DigitalOceanConfig.Fingerprint,
+	})
 
 	dropletRequest := &godo.DropletCreateRequest{
 		Name:              config.DigitalOceanConfig.Name,
@@ -99,7 +97,7 @@ func (t *Step) Run(ctx context.Context, output io.Writer, config *steps.Config) 
 			// Wait for droplet becomes active
 			if droplet.Status == "active" {
 				// Get private ip ports from droplet networks
-				config.Node = node.Node{
+				n := node.Node{
 					Id:        fmt.Sprintf("%d", droplet.ID),
 					CreatedAt: time.Now().Unix(),
 					Provider:  clouds.DigitalOcean,
@@ -107,7 +105,13 @@ func (t *Step) Run(ctx context.Context, output io.Writer, config *steps.Config) 
 					PublicIp:  getPublicIpPort(droplet.Networks.V4),
 					PrivateIp: getPrivateIpPort(droplet.Networks.V4),
 				}
-				logrus.Println(config.Node)
+
+				if config.IsMaster {
+					config.AddMaster(&n)
+				}
+				config.Node = n
+				logrus.Info(n)
+
 				return nil
 			}
 		case <-after:

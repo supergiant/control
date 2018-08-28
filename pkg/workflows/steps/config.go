@@ -1,8 +1,10 @@
 package steps
 
 import (
+	"sync"
 	"time"
 
+	"github.com/supergiant/supergiant/pkg/clouds"
 	"github.com/supergiant/supergiant/pkg/node"
 	"github.com/supergiant/supergiant/pkg/runner"
 	"github.com/supergiant/supergiant/pkg/storage"
@@ -16,29 +18,46 @@ type CertificatesConfig struct {
 }
 
 type DOConfig struct {
-	Name         string   `json:"name" valid:"required"`
-	K8SVersion   string   `json:"k8sVersion"`
-	Region       string   `json:"region" valid:"required"`
-	Size         string   `json:"size" valid:"required"`
-	Role         string   `json:"role" valid:"in(master|node)"` // master/node
-	Image        string   `json:"image" valid:"required"`
-	Fingerprints []string `json:"fingerprints" valid:"required"`
-	AccessToken  string   `json:"accessToken" valid:"required"`
+	Name        string `json:"name" valid:"required"`
+	Region      string `json:"region" valid:"required"`
+	Size        string `json:"size" valid:"required"`
+	Image       string `json:"image" valid:"required"`
+	Fingerprint string `json:"fingerprint" valid:"required"`
+	AccessToken string `json:"accessToken" valid:"required"`
 }
 
+// TODO(stgleb): Fill struct with fields when provisioning on other providers is done
+type AWSConfig struct{}
+
+type GCEConfig struct{}
+
+type PacketConfig struct{}
+
+type OSConfig struct{}
+
 type FlannelConfig struct {
-	Arch        string `json:"arch"`
-	Version     string `json:"version"`
+	Arch     string `json:"arch"`
+	Version  string `json:"version"`
+	EtcdHost string `json:"etcdHost"`
+}
+
+type NetworkConfig struct {
+	EtcdRepositoryUrl string `json:"etcdRepositoryUrl"`
+	EtcdVersion       string `json:"etcdVersion"`
+	EtcdHost          string `json:"etcdHost"`
+
+	Arch            string `json:"arch"`
+	OperatingSystem string `json:"operatingSystem"`
+
 	Network     string `json:"network"`
 	NetworkType string `json:"networkType"`
 }
 
 type KubeletConfig struct {
-	MasterPrivateIP    string `json:"masterPrivateIP"`
-	ProxyPort          string `json:"proxyPort"`
-	EtcdClientPort     string `json:"etcdClientPort"`
-	KubeProviderString string `json:"kubeProviderString"`
-	K8SVersion         string `json:"k8sVersion"`
+	MasterPrivateIP string `json:"masterPrivateIP"`
+	ProxyPort       string `json:"proxyPort"`
+	EtcdClientPort  string `json:"etcdClientPort"`
+	K8SVersion      string `json:"k8sVersion"`
 }
 
 type ManifestConfig struct {
@@ -59,12 +78,6 @@ type PostStartConfig struct {
 	Timeout     int    `json:"timeout"`
 }
 
-type KubeletSystemdServiceConfig struct {
-	K8SVersion         string `json:"k8sVersion"`
-	KubeletService     string `json:"kubeletService"`
-	KubernetesProvider string `json:"kubernetesProvider"`
-}
-
 type TillerConfig struct {
 	HelmVersion     string `json:"helmVersion"`
 	OperatingSystem string `json:"operatingSystem"`
@@ -72,7 +85,7 @@ type TillerConfig struct {
 }
 
 type DockerConfig struct {
-	DockerVersion  string `json:"dockerVersion"`
+	Version        string `json:"version"`
 	ReleaseVersion string `json:"releaseVersion"`
 	Arch           string `json:"arch"`
 }
@@ -86,7 +99,7 @@ type DownloadK8sBinary struct {
 type EtcdConfig struct {
 	Name           string `json:"name"`
 	Version        string `json:"version"`
-	ClusterToken   string `json:"clusterToken"`
+	DiscoveryUrl   string `json:"discoveryUrl"`
 	Host           string `json:"host"`
 	DataDir        string `json:"dataDir"`
 	ServicePort    string `json:"servicePort"`
@@ -102,24 +115,59 @@ type SshConfig struct {
 	Timeout    int    `json:"timeout"`
 }
 
+// TODO(stgleb): rename to context and embed context.Context here
 type Config struct {
-	DigitalOceanConfig DOConfig `json:"digitalOceanConfig"`
+	Provider    clouds.Name `json:"provider"`
+	IsMaster    bool        `json:"isMaster"`
+	ClusterName string      `json:"clusterName"`
 
-	DockerConfig                DockerConfig                `json:"dockerConfig"`
-	DownloadK8sBinary           DownloadK8sBinary           `json:"downloadK8sBinary"`
-	CertificatesConfig          CertificatesConfig          `json:"certificatesConfig"`
-	FlannelConfig               FlannelConfig               `json:"flannelConfig"`
-	KubeletConfig               KubeletConfig               `json:"kubeletConfig"`
-	ManifestConfig              ManifestConfig              `json:"manifestConfig"`
-	PostStartConfig             PostStartConfig             `json:"postStartConfig"`
-	KubeletSystemdServiceConfig KubeletSystemdServiceConfig `json:"kubeletSystemdServiceConfig"`
-	TillerConfig                TillerConfig                `json:"tillerConfig"`
-	EtcdConfig                  EtcdConfig                  `json:"etcdConfig"`
-	SshConfig                   SshConfig                   `json:"sshConfig"`
+	DigitalOceanConfig DOConfig     `json:"digitalOceanConfig"`
+	AWSConfig          AWSConfig    `json:"awsConfig"`
+	GCEConfig          GCEConfig    `json:"gceConfig"`
+	OSConfig           OSConfig     `json:"osConfig"`
+	PacketConfig       PacketConfig `json:"packetConfig"`
 
-	CloudAccountName string            `json:"cloudAccountName" valid:"required, length(1|32)"`
-	Timeout          time.Duration     `json:"timeout"`
-	Node             node.Node         `json:"node"`
-	Runner           runner.Runner     `json:"-"`
-	repository       storage.Interface `json:"-"`
+	DockerConfig       DockerConfig       `json:"dockerConfig"`
+	DownloadK8sBinary  DownloadK8sBinary  `json:"downloadK8sBinary"`
+	CertificatesConfig CertificatesConfig `json:"certificatesConfig"`
+	FlannelConfig      FlannelConfig      `json:"flannelConfig"`
+	NetworkConfig      NetworkConfig      `json:"networkConfig"`
+	KubeletConfig      KubeletConfig      `json:"kubeletConfig"`
+	ManifestConfig     ManifestConfig     `json:"manifestConfig"`
+	PostStartConfig    PostStartConfig    `json:"postStartConfig"`
+	TillerConfig       TillerConfig       `json:"tillerConfig"`
+	EtcdConfig         EtcdConfig         `json:"etcdConfig"`
+	SshConfig          SshConfig          `json:"sshConfig"`
+
+	Node             node.Node     `json:"node"`
+	CloudAccountName string        `json:"cloudAccountName" valid:"required, length(1|32)"`
+	Timeout          time.Duration `json:"timeout"`
+	Runner           runner.Runner `json:"-"`
+
+	repository storage.Interface `json:"-"`
+
+	// TODO(stgleb): make MasterNodes private, add public method for initialization.
+	m           sync.RWMutex
+	MasterNodes map[string]*node.Node `json:"masterNodes"`
+}
+
+func (c *Config) AddMaster(n *node.Node) {
+	c.m.Lock()
+	defer c.m.Unlock()
+	c.MasterNodes[n.Id] = n
+}
+
+func (c *Config) GetMaster() *node.Node {
+	c.m.RLock()
+	defer c.m.RUnlock()
+
+	if len(c.MasterNodes) == 0 {
+		return nil
+	}
+
+	for _, value := range c.MasterNodes {
+		return value
+	}
+
+	return nil
 }

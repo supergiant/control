@@ -64,8 +64,8 @@ func TestKubeProfileGet(t *testing.T) {
 			return
 		}
 
-		if testCase.err == nil && p.Id != testCase.expectedId {
-			t.Errorf("Wrong profile id expected %s actual %s", testCase.expectedId, p.Id)
+		if testCase.err == nil && p.ID != testCase.expectedId {
+			t.Errorf("Wrong profile id expected %s actual %s", testCase.expectedId, p.ID)
 		}
 	}
 }
@@ -77,7 +77,7 @@ func TestKubeProfileCreate(t *testing.T) {
 	version := "1.8.7"
 
 	kube := &profile.KubeProfile{
-		Id:                key,
+		ID:                key,
 		KubernetesVersion: version,
 	}
 
@@ -91,13 +91,13 @@ func TestKubeProfileCreate(t *testing.T) {
 		t.Errorf("Unepexpected error while creating kube profile %v", err)
 	}
 
-	kube2, err := service.Get(ctx, kube.Id)
+	kube2, err := service.Get(ctx, kube.ID)
 
 	if err != nil {
 		t.Errorf("Unexpected error while getting kube profile %v", err)
 	}
 
-	if kube.Id != key || kube.KubernetesVersion != kube2.KubernetesVersion {
+	if kube.ID != key || kube.KubernetesVersion != kube2.KubernetesVersion {
 		t.Errorf("Wrong data in etcd")
 	}
 }
@@ -113,7 +113,7 @@ func TestKubeProfileGetAll(t *testing.T) {
 	defer cancel()
 
 	kube := &profile.KubeProfile{
-		Id:                key,
+		ID:                key,
 		KubernetesVersion: version,
 	}
 

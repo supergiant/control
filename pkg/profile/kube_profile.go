@@ -1,11 +1,19 @@
 package profile
 
 type KubeProfile struct {
-	Id                string      `json:"id" valid:"required"`
-	KubernetesVersion string      `json:"kubernetes_version" valid:"required"`
-	MasterProfile     NodeProfile `json:"masterProfile" valid:"required"`
-	NodesProfile      NodeProfile `json:"nodesProfile" valid:"required"`
-	MasterNodeCount   int         `json:"master_node_count" valid:"required"`
-	CustomFiles       string      `json:"customFiles" valid:"optional"`
-	RBACEnabled       bool        `json:"rbacEnabled"`
+	ID             string        `json:"id" valid:"required"`
+	MasterProfiles []NodeProfile `json:"masterProfiles" valid:"required"`
+	NodesProfiles  []NodeProfile `json:"nodesProfiles" valid:"required"`
+
+	// TODO(stgleb): In future releases arch will probably migrate to node profile
+	// to allow user create heterogeneous cluster of machine with different arch
+	Arch            string `json:"arch"`
+	OperatingSystem string `json:"operatingSystem"`
+	UbuntuVersion   string `json:"ubuntuVersion"`
+	DockerVersion   string `json:"dockerVersion"`
+	K8SVersion      string `json:"K8SVersion"`
+	FlannelVersion  string `json:"flannelVersion"`
+	NetworkType     string `json:"networkType"`
+	HelmVersion     string `json:"helmVersion"`
+	RBACEnabled     bool   `json:"rbacEnabled"`
 }

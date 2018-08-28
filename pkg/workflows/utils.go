@@ -34,19 +34,29 @@ func bindParams(params map[string]string, object interface{}) error {
 }
 
 // Gets cloud account from storage and fills config object with those credentials
-func fillCloudAccountCredentials(ctx context.Context, getter cloudAccountGetter, config *steps.Config) error {
+func FillCloudAccountCredentials(ctx context.Context, getter cloudAccountGetter, config *steps.Config) error {
 	cloudAccount, err := getter.Get(ctx, config.CloudAccountName)
 
 	if err != nil {
 		return nil
 	}
 
+	config.ManifestConfig.ProviderString = string(cloudAccount.Provider)
+	config.Provider = cloudAccount.Provider
+
 	switch cloudAccount.Provider {
 	case clouds.AWS:
+		return bindParams(cloudAccount.Credentials, &config.AWSConfig)
 	case clouds.GCE:
+		return bindParams(cloudAccount.Credentials, &config.GCEConfig)
 	case clouds.DigitalOcean:
 		return bindParams(cloudAccount.Credentials, &config.DigitalOceanConfig)
 	case clouds.Packet:
+		return bindParams(cloudAccount.Credentials, &config.PacketConfig)
+	case clouds.OpenStack:
+		return bindParams(cloudAccount.Credentials, &config.OSConfig)
+	default:
+		return ErrUnknownProviderType
 	}
 
 	return nil
@@ -69,8 +79,7 @@ func deserializeTask(data []byte, repository storage.Interface) (*Task, error) {
 		Port:    task.Config.SshConfig.Port,
 		User:    task.Config.SshConfig.User,
 		Timeout: task.Config.SshConfig.Timeout,
-		// TODO(stgleb): Pass ssh key id instead of key itself
-		Key: task.Config.SshConfig.PrivateKey,
+		Key:     task.Config.SshConfig.PrivateKey,
 	}
 
 	task.Config.Runner, err = ssh.NewRunner(cfg)

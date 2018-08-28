@@ -104,17 +104,17 @@ func TestWaitForSucceed(t *testing.T) {
 
 func TestMakeNodeName(t *testing.T) {
 	testCases := []struct {
-		role     string
+		role     bool
 		name     string
 		expected string
 	}{
 		{
-			"master",
+			true,
 			"hello",
 			"hello-master",
 		},
 		{
-			"node",
+			false,
 			"world",
 			"world-node",
 		},
