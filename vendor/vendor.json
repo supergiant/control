@@ -749,6 +749,12 @@
 			"revisionTime": "2018-08-26T00:05:28Z"
 		},
 		{
+			"checksumSHA1": "1K0JxrUfDqAB3MyRiU1LKjfHyf4=",
+			"path": "google.golang.org/api/googleapi/internal/uritemplates",
+			"revision": "7954115fcf34e0dcda6981c9ed8a81a293f0489b",
+			"revisionTime": "2018-08-26T00:05:28Z"
+		},
+		{
 			"checksumSHA1": "Ps3j6G40DujNZf3dL6e2ysx7Pk0=",
 			"path": "google.golang.org/appengine/internal",
 			"revision": "962cbd1200af94a5a35ba8d512e9f91271b4d01a",
