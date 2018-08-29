@@ -32,9 +32,9 @@ type Handler struct {
 }
 
 type ProvisionRequest struct {
-	ClusterName      string              `json:"clusterName"`
-	Profile          profile.KubeProfile `json:"profile"`
-	CloudAccountName string              `json:"cloudAccountName"`
+	ClusterName      string          `json:"clusterName"`
+	Profile          profile.Profile `json:"profile"`
+	CloudAccountName string          `json:"cloudAccountName"`
 }
 
 type ProvisionResponse struct {

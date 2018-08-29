@@ -53,15 +53,15 @@ func TestKubeProfileServiceGet(t *testing.T) {
 
 func TestKubeProfileServiceCreate(t *testing.T) {
 	testCases := []struct {
-		kube *KubeProfile
+		kube *Profile
 		err  error
 	}{
 		{
-			kube: &KubeProfile{},
+			kube: &Profile{},
 			err:  nil,
 		},
 		{
-			kube: &KubeProfile{},
+			kube: &Profile{},
 			err:  errors.New("test err"),
 		},
 	}

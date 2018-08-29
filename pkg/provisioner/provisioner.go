@@ -14,7 +14,7 @@ import (
 
 // Provisioner gets kube profile and returns list of task ids of provision masterTasks
 type Provisioner interface {
-	Provision(context.Context, *profile.KubeProfile, *steps.Config) ([]*workflows.Task, error)
+	Provision(context.Context, *profile.Profile, *steps.Config) ([]*workflows.Task, error)
 }
 
 type TaskProvisioner struct {
@@ -50,7 +50,7 @@ func (r *TaskProvisioner) prepare(name clouds.Name, masterCount, nodeCount int) 
 }
 
 // Provision runs provision process among nodes that have been provided for provision
-func (r *TaskProvisioner) Provision(ctx context.Context, kubeProfile *profile.KubeProfile, config *steps.Config) ([]*workflows.Task, error) {
+func (r *TaskProvisioner) Provision(ctx context.Context, kubeProfile *profile.Profile, config *steps.Config) ([]*workflows.Task, error) {
 	masterTasks, nodeTasks := r.prepare(config.Provider, len(kubeProfile.MasterProfiles),
 		len(kubeProfile.NodesProfiles))
 

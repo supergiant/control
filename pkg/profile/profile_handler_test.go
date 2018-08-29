@@ -16,7 +16,7 @@ func init() {
 
 func TestKubeProfileEndpointCreateProfile(t *testing.T) {
 	endpoint := &KubeProfileHandler{}
-	kubeProfile := &KubeProfile{
+	kubeProfile := &Profile{
 		ID:          "",
 		K8SVersion:  "1.11.1",
 		RBACEnabled: false,

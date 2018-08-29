@@ -48,7 +48,7 @@ func (h *KubeProfileHandler) GetProfile(w http.ResponseWriter, r *http.Request) 
 }
 
 func (h *KubeProfileHandler) CreateProfile(w http.ResponseWriter, r *http.Request) {
-	profile := &KubeProfile{}
+	profile := &Profile{}
 
 	if err := json.NewDecoder(r.Body).Decode(&profile); err != nil {
 		http.Error(w, err.Error(), http.StatusBadRequest)

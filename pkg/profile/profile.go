@@ -2,7 +2,7 @@ package profile
 
 import "github.com/supergiant/supergiant/pkg/clouds"
 
-type KubeProfile struct {
+type Profile struct {
 	ID string `json:"id" valid:"required"`
 
 	MasterProfiles []map[string]string `json:"masterProfiles" valid:"required"`

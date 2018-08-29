@@ -28,7 +28,7 @@ func TestTaskProvisioner(t *testing.T) {
 	workflows.RegisterWorkFlow("test_master", nil)
 	workflows.RegisterWorkFlow("test_node", nil)
 
-	kubeProfile := &profile.KubeProfile{
+	kubeProfile := &profile.Profile{
 		MasterProfiles: []map[string]string{
 			{
 				"size":  "s-1vcpu-2gb",

@@ -179,7 +179,7 @@ func configureApplication(cfg *Config) (*mux.Router, error) {
 	taskHandler.Register(router)
 
 	// TODO(stgleb): remove it when profile usage is done
-	p := &profile.KubeProfile{
+	p := &profile.Profile{
 		MasterProfiles: []map[string]string{
 			{
 				"size":  "s-1vcpu-2gb",

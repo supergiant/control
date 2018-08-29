@@ -76,7 +76,7 @@ func TestKubeProfileCreate(t *testing.T) {
 	key := "key"
 	version := "1.8.7"
 
-	kube := &profile.KubeProfile{
+	kube := &profile.Profile{
 		ID:                key,
 		KubernetesVersion: version,
 	}
@@ -112,7 +112,7 @@ func TestKubeProfileGetAll(t *testing.T) {
 	ctx, cancel := context.WithTimeout(context.Background(), 3*time.Second)
 	defer cancel()
 
-	kube := &profile.KubeProfile{
+	kube := &profile.Profile{
 		ID:                key,
 		KubernetesVersion: version,
 	}
