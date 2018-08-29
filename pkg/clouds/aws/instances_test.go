@@ -43,7 +43,7 @@ func TestNewClient(t *testing.T) {
 	}
 
 	for i, tc := range tcs {
-		_, err := New(tc.id, tc.secret)
+		_, err := New(tc.id, tc.secret, nil)
 		if err != tc.expectedErr {
 			t.Fatalf("TC#%d: new client: %v", i+1, err)
 		}
@@ -51,8 +51,7 @@ func TestNewClient(t *testing.T) {
 }
 
 func TestClient_CreateInstance(t *testing.T) {
-	fakeRunInstErr := errors.New("run isntance error!")
-	fakeTagResErr := errors.New("tag resource error!")
+	fakeRunInstErr := errors.New("run isntance error")
 
 	tcs := []struct {
 		name   string
@@ -83,21 +82,13 @@ func TestClient_CreateInstance(t *testing.T) {
 			ec2Res:      &ec2.Reservation{},
 			expectedErr: ErrNoInstancesCreated,
 		},
-		// TC#4
-		{
-			name:   "failed to tag instance",
-			config: InstanceConfig{Region: "us1"},
-			ec2Res: &ec2.Reservation{
-				Instances: []*ec2.Instance{
-					{InstanceId: aws.String("1")},
-				},
-			},
-			ec2TagResErr: fakeTagResErr,
-			expectedErr:  fakeTagResErr,
-		},
 		// TC#5
 		{
-			config: InstanceConfig{Region: "us1", HasPublicAddr: true},
+			config: InstanceConfig{
+				Region:        "us1",
+				UsedData:      "userdata",
+				HasPublicAddr: true,
+			},
 			ec2Res: &ec2.Reservation{
 				Instances: []*ec2.Instance{
 					{InstanceId: aws.String("1")},
@@ -116,13 +107,13 @@ func TestClient_CreateInstance(t *testing.T) {
 			},
 		}
 
-		err := c.CreateInstance(context.Background(), tc.config)
+		_, err := c.CreateInstance(context.Background(), tc.config)
 		require.Equalf(t, tc.expectedErr, errors.Cause(err), "TC#%d: %s", i+1, tc.name)
 	}
 }
 
 func TestClient_DeleteInstance(t *testing.T) {
-	fakeDelInstErr := errors.New("delete isntance error!")
+	fakeDelInstErr := errors.New("delete isntance error")
 
 	tcs := []struct {
 		name       string
@@ -169,8 +160,10 @@ func TestClient_DeleteInstance(t *testing.T) {
 			},
 		}
 
-		err := c.DeleteInstance(context.Background(), tc.region, tc.instanceID)
-		require.Equalf(t, tc.expectedErr, errors.Cause(err), "TC#%d: %s", i+1, tc.name)
+		_, err := c.DeleteInstance(context.Background(), tc.region, tc.instanceID)
+		if err != nil {
+			require.Equalf(t, tc.expectedErr, errors.Cause(err), "TC#%d: %s", i+1, tc.name)
+		}
 	}
 }
 
@@ -179,44 +172,5 @@ func TestEC2Svc(t *testing.T) {
 	_, ok := svc.(ec2iface.EC2API)
 	if !ok {
 		t.Fatal("ec2Svc func should return a EC2API interface object")
-	}
-}
-
-func TestTagAWSResource(t *testing.T) {
-	fakeTagResErr := errors.New("tag resource error!")
-
-	tcs := []struct {
-		instanceID  string
-		tags        map[string]string
-		ec2TagErr   error
-		expectedErr error
-	}{
-		// TC#1
-		{
-			expectedErr: ErrInstanceIDEmpty,
-		},
-		// TC#2
-		{
-			instanceID:  "id",
-			tags:        map[string]string{"k": "v"},
-			ec2TagErr:   fakeTagResErr,
-			expectedErr: fakeTagResErr,
-		},
-		// TC#3
-		{
-			instanceID: "id",
-		},
-		// TC#4
-		{
-			instanceID: "id",
-			tags:       map[string]string{"k": "v"},
-		},
-	}
-
-	ec2Mock := &mockedEC2Service{}
-	for i, tc := range tcs {
-		ec2Mock.TagResErr = tc.ec2TagErr
-		err := tagAWSResource(ec2Mock, tc.instanceID, tc.tags)
-		require.Equalf(t, tc.expectedErr, errors.Cause(err), "TC#%d", i+1)
 	}
 }

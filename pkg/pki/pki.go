@@ -14,7 +14,7 @@ import (
 
 // CARequest defines a request to generate or use CA if provided to setup PKI for k8s cluster
 type CARequest struct {
-	DNSDomain string   `json:"dnsDomain" valid:"requried"`
+	DNSDomain string   `json:"dnsDomain" valid:"required"`
 	IPs       []string `json:"ips" valid:"required"`
 	CA        *PairPEM `json:"ca" valid:"optional"`
 }
