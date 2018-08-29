@@ -92,6 +92,8 @@ func (r *TaskProvisioner) Provision(ctx context.Context, kubeProfile *profile.Ku
 			}
 		}
 
+		// TODO(stgleb): If master  provisioning has failed
+		// on a step after build actual node handle this case
 		// If we get no master node
 		if config.GetMaster() == nil {
 			logrus.Errorf("Cluster provisioning has failed, no master is up")
