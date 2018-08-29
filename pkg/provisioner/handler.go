@@ -167,7 +167,7 @@ func (h *Handler) Provision(w http.ResponseWriter, r *http.Request) {
 		SshConfig: steps.SshConfig{
 			Port:       "22",
 			User:       "root",
-			PrivateKey: []byte(``),
+			PrivateKey: "",
 			Timeout:    10,
 		},
 		EtcdConfig: steps.EtcdConfig{
