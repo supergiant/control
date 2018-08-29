@@ -1,38 +1,57 @@
-mat-button-toggle-group {
-    margin-bottom: 20px;
-}
-
 .new-cloud-account-wrapper {
-	margin: 20px;
+	display: flex;
+	flex-direction: column;
+	justify-content: flex-start;
+	overflow: scroll;
 
-	header {
-		margin-bottom: 1rem;
-	}
-}
-
-.form-wrapper {
-	margin: 30px auto 0px;
-	width: 50%;
-
-	.form-group-wrapper {
-		margin-top: 40px;
-
-		.legend {
-			font-size: 1.5em;
-		}
-
-		textarea {
-			background-color: #e9ecef;
-			border: 1px solid #ced4da;
-			border-radius: .125rem;
-			color: #495057;
-			height: 50vh;
-		}
+	h1 {
+		margin-left: 48px;
+		margin-botton: 18px;
+		// remove me
+		letter-spacing: 3px;
 	}
 
-	button[type="submit"] {
-		font-size: 1.3em;
-		margin-top: 50px;
-		width: 100%;
+	button {
+		width: max-content;
+	}
+
+	.inputs-wrapper {
+		background-color: rgba(0,0,0,0.5);
+		border: 1px solid rgba(255,255,255,0.25);
+		display: flex;
+		flex-direction: column;
+		padding: 24px;
+		margin: 0 auto;
+		height: max-content;
+		width: 612px;
+
+		.credentials-wrapper {
+			display: flex;
+			flex-direction: column;
+			width: 100%;
+
+			.provider-wrapper {
+				display: flex;
+				flex-direction: column;
+				// font-weight for inputs should be defined by our custom typography,
+				// but json-schema-form seems to ignore
+				font-weight: 300;
+				width: 100%;
+
+				.mat-form-field-subscript-wrapper {
+					display: none;
+				}
+
+				button[type="submit"] {
+					display: block;
+					margin-left: auto;
+				}
+
+				.gce-button {
+					margin-left: auto;
+					margin-top: 20px;
+				}
+			}
+		}
 	}
 }

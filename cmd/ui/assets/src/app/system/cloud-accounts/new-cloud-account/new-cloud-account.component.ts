@@ -18,6 +18,9 @@ export class NewCloudAccountComponent implements OnInit, OnDestroy {
   private model: any;
   public schema: any;
 
+  private selectedProvider: string;
+  private cloudAccountName: string;
+
   constructor(
     private supergiant: Supergiant,
     private notifications: Notifications,
@@ -41,6 +44,9 @@ export class NewCloudAccountComponent implements OnInit, OnDestroy {
     if (model.provider === 'gce') {
       model.credentials = JSON.parse(model.credentials.service_account_key);
     }
+    // TODO: does it make sense to keep the name around if a user switches providers?
+    // should the name be a part of the provider model?
+    model.name = this.cloudAccountName;
     this.subscriptions.add(this.supergiant.CloudAccounts.create(model).subscribe(
       (data) => {
         this.success(model);

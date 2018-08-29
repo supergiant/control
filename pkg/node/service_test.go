@@ -4,7 +4,6 @@ import (
 	"context"
 	"encoding/json"
 	"errors"
-
 	"testing"
 
 	"github.com/supergiant/supergiant/pkg/testutils"

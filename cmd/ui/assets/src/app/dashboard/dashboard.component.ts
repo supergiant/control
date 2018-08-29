@@ -3,6 +3,10 @@ import { Subscription } from 'rxjs/Subscription';
 import { Supergiant } from '../shared/supergiant/supergiant.service';
 import { convertIsoToHumanReadable } from '../shared/helpers/helpers';
 
+// TEMPORARY
+import { AuthService } from '../shared/supergiant/auth/auth.service';
+import { Router } from '@angular/router';
+
 @Component({
   selector: 'app-dashboard',
   templateUrl: './dashboard.component.html',
@@ -11,7 +15,7 @@ import { convertIsoToHumanReadable } from '../shared/helpers/helpers';
 })
 export class DashboardComponent implements OnInit {
   public subscriptions = new Subscription();
-  public hasCloudAccount = false;
+  public cloudAccounts: any;
   public hasCluster = false;
   public hasApp = false;
   public clusterCount = 0;
@@ -107,9 +111,7 @@ export class DashboardComponent implements OnInit {
   getCloudAccounts() {
     this.subscriptions.add(this.supergiant.CloudAccounts.get().subscribe(
       (cloudAccounts) => {
-        if (Object.keys(cloudAccounts.items).length > 0) {
-          this.hasCloudAccount = true;
-        }
+        this.cloudAccounts = cloudAccounts;
       }));
   }
 
@@ -138,14 +140,21 @@ export class DashboardComponent implements OnInit {
     // this.hasApp = true;
   }
 
+  logout() {
+    this.auth.logout();
+    this.router.navigate(['']);
+  }
+
   constructor(
     private supergiant: Supergiant,
+    public auth: AuthService,
+    private router: Router
   ) { }
 
   ngOnInit() {
     this.getCloudAccounts();
-    this.getClusters();
-    this.getDeployments();
+    // this.getClusters();
+    // this.getDeployments();
   }
 
 }

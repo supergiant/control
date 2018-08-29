@@ -2,7 +2,6 @@ package node
 
 import (
 	"context"
-
 	"encoding/json"
 
 	"github.com/supergiant/supergiant/pkg/storage"
