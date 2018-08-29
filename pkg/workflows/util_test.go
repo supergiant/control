@@ -7,6 +7,7 @@ import (
 
 	"github.com/supergiant/supergiant/pkg/clouds"
 	"github.com/supergiant/supergiant/pkg/model"
+	"github.com/supergiant/supergiant/pkg/util"
 	"github.com/supergiant/supergiant/pkg/workflows/steps"
 )
 
@@ -33,7 +34,7 @@ func TestBindParams(t *testing.T) {
 		"b": expectedB,
 	}
 
-	bindParams(params, obj)
+	util.BindParams(params, obj)
 
 	if !strings.EqualFold(obj.ParamA, params["a"]) {
 		t.Errorf("Wrong value for paramA expected %s actual %s", params["a"], obj.ParamA)

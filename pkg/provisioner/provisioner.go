@@ -61,7 +61,11 @@ func (r *TaskProvisioner) Provision(ctx context.Context, kubeProfile *profile.Ku
 
 		// TODO(stgleb): When we have concurrent provisioning use that to sync nodes and master provisioning
 		// Provision master nodes
-		for _, masterTask := range masterTasks {
+		for index, masterTask := range masterTasks {
+			// Fulfill task config with data about provider specific node configuration
+			p := kubeProfile.MasterProfiles[index]
+			FillNodeCloudSpecificData(kubeProfile.Provider, p, config)
+
 			result := masterTask.Run(ctx, *config, os.Stdout)
 			err := <-result
 
@@ -85,7 +89,11 @@ func (r *TaskProvisioner) Provision(ctx context.Context, kubeProfile *profile.Ku
 		config.FlannelConfig.EtcdHost = config.GetMaster().PrivateIp
 
 		// Provision nodes
-		for _, nodeTask := range nodeTasks {
+		for index, nodeTask := range nodeTasks {
+			// Fulfill task config with data about provider specific node configuration
+			p := kubeProfile.NodesProfiles[index]
+			FillNodeCloudSpecificData(kubeProfile.Provider, p, config)
+
 			result := nodeTask.Run(ctx, *config, os.Stdout)
 			err := <-result
 

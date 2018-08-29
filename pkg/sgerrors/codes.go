@@ -10,4 +10,5 @@ const (
 	InvalidJSON         ErrorCode = 1005
 	CantChangeID        ErrorCode = 1006
 	EntityAlreadyExists ErrorCode = 1007
+	UnknownProvider     ErrorCode = 1008
 )

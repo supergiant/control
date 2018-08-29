@@ -53,8 +53,8 @@ func (m *mockAccountGetter) Get(ctx context.Context, id string) (*model.CloudAcc
 func TestProvisionHandler(t *testing.T) {
 	p := &ProvisionRequest{
 		"test",
+		profile.KubeProfile{},
 		"1234",
-		"abcd",
 	}
 
 	validBody, _ := json.Marshal(p)
@@ -76,22 +76,11 @@ func TestProvisionHandler(t *testing.T) {
 			expectedCode: http.StatusBadRequest,
 		},
 		{
-			description:  "profile not found",
-			body:         validBody,
-			expectedCode: http.StatusNotFound,
-			getProfile: func(context.Context, string) (*profile.KubeProfile, error) {
-				return nil, sgerrors.ErrNotFound
-			},
-		},
-		{
 			description:  "error getting the cluster discovery url",
 			body:         validBody,
 			expectedCode: http.StatusInternalServerError,
 			getToken: func(context.Context, int) (string, error) {
 				return "", errors.New("something has happened")
-			},
-			getProfile: func(context.Context, string) (*profile.KubeProfile, error) {
-				return &profile.KubeProfile{}, nil
 			},
 		},
 		{
@@ -103,9 +92,6 @@ func TestProvisionHandler(t *testing.T) {
 			},
 			getToken: func(context.Context, int) (string, error) {
 				return "foo", nil
-			},
-			getProfile: func(context.Context, string) (*profile.KubeProfile, error) {
-				return &profile.KubeProfile{}, nil
 			},
 		},
 		{
@@ -119,9 +105,6 @@ func TestProvisionHandler(t *testing.T) {
 			},
 			getToken: func(context.Context, int) (string, error) {
 				return "foo", nil
-			},
-			getProfile: func(context.Context, string) (*profile.KubeProfile, error) {
-				return &profile.KubeProfile{}, nil
 			},
 			provision: func(context.Context, *profile.KubeProfile, *steps.Config) ([]*workflows.Task, error) {
 				return nil, sgerrors.ErrInvalidCredentials
@@ -138,9 +121,6 @@ func TestProvisionHandler(t *testing.T) {
 			getToken: func(context.Context, int) (string, error) {
 				return "foo", nil
 			},
-			getProfile: func(context.Context, string) (*profile.KubeProfile, error) {
-				return &profile.KubeProfile{}, nil
-			},
 			provision: func(context.Context, *profile.KubeProfile, *steps.Config) ([]*workflows.Task, error) {
 				return []*workflows.Task{
 					{
@@ -155,13 +135,11 @@ func TestProvisionHandler(t *testing.T) {
 	}
 
 	provisioner := &mockProvisioner{}
-	profileGetter := &mockKubeProfileGetter{}
 	accGetter := &mockAccountGetter{}
 	tokenGetter := &mockTokenGetter{}
 
 	for _, testCase := range testCases {
 		provisioner.provision = testCase.provision
-		profileGetter.get = testCase.getProfile
 		accGetter.get = testCase.getAccount
 		tokenGetter.getToken = testCase.getToken
 
@@ -170,7 +148,6 @@ func TestProvisionHandler(t *testing.T) {
 
 		handler := Handler{
 			provisioner:   provisioner,
-			profileGetter: profileGetter,
 			tokenGetter:   tokenGetter,
 			accountGetter: accGetter,
 		}

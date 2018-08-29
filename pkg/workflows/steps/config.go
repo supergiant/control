@@ -18,10 +18,13 @@ type CertificatesConfig struct {
 }
 
 type DOConfig struct {
-	Name        string `json:"name" valid:"required"`
-	Region      string `json:"region" valid:"required"`
-	Size        string `json:"size" valid:"required"`
-	Image       string `json:"image" valid:"required"`
+	Name string `json:"name" valid:"required"`
+	// These come from UI select
+	Region string `json:"region" valid:"required"`
+	Size   string `json:"size" valid:"required"`
+	Image  string `json:"image" valid:"required"`
+
+	// These come from clouda ccount
 	Fingerprint string `json:"fingerprint" valid:"required"`
 	AccessToken string `json:"accessToken" valid:"required"`
 }
