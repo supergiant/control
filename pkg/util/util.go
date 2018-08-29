@@ -234,3 +234,7 @@ func MakeNodeName(clusterName string, isMaster bool) string {
 
 	return fmt.Sprintf("%s-%s-%s", clusterName, "node", strings.ToLower(RandomString(5)))
 }
+
+func MakeFileName(taskID string) string {
+	return fmt.Sprintf("%s.log", taskID)
+}

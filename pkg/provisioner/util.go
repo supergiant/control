@@ -34,7 +34,3 @@ func (e *EtcdTokenGetter) GetToken(ctx context.Context, num int) (string, error)
 	}
 	return string(body), nil
 }
-
-func makeFileName(taskID string) string {
-	return fmt.Sprintf("%s.log", taskID)
-}

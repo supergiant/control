@@ -10,6 +10,7 @@ import (
 	"github.com/supergiant/supergiant/pkg/clouds"
 	"github.com/supergiant/supergiant/pkg/profile"
 	"github.com/supergiant/supergiant/pkg/storage"
+	"github.com/supergiant/supergiant/pkg/util"
 	"github.com/supergiant/supergiant/pkg/workflows"
 	"github.com/supergiant/supergiant/pkg/workflows/steps"
 )
@@ -35,11 +36,7 @@ func NewProvisioner(repository storage.Interface) *TaskProvisioner {
 			// TODO(stgleb): Add log directory to params of supergiant
 			f, err := os.OpenFile(path.Join("/tmp", name), os.O_CREATE|os.O_WRONLY|os.O_APPEND, 0666)
 
-			if err != nil {
-				return nil, err
-			}
-
-			return f, nil
+			return f, err
 		},
 	}
 }
@@ -79,7 +76,7 @@ func (r *TaskProvisioner) Provision(ctx context.Context, kubeProfile *profile.Ku
 				continue
 			}
 
-			fileName := makeFileName(masterTask.ID)
+			fileName := util.MakeFileName(masterTask.ID)
 			out, err := r.getWriter(fileName)
 
 			if err != nil {
@@ -102,7 +99,7 @@ func (r *TaskProvisioner) Provision(ctx context.Context, kubeProfile *profile.Ku
 			logrus.Errorf("Cluster provisioning has failed, no master is up")
 			return
 		}
-		logrus.Info("Master provisioning for cluster %s has finished successfully", config.ClusterName)
+		logrus.Infof("Master provisioning for cluster %s has finished successfully", config.ClusterName)
 
 		config.IsMaster = false
 		config.ManifestConfig.IsMaster = false
@@ -115,7 +112,7 @@ func (r *TaskProvisioner) Provision(ctx context.Context, kubeProfile *profile.Ku
 				continue
 			}
 
-			fileName := makeFileName(nodeTask.ID)
+			fileName := util.MakeFileName(nodeTask.ID)
 			out, err := r.getWriter(fileName)
 
 			if err != nil {

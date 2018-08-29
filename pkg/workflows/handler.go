@@ -3,9 +3,7 @@ package workflows
 import (
 	"context"
 	"encoding/json"
-	"fmt"
 	"html/template"
-	"io/ioutil"
 	"net/http"
 	"os"
 	"path"
@@ -18,7 +16,9 @@ import (
 	"github.com/supergiant/supergiant/pkg/runner"
 	"github.com/supergiant/supergiant/pkg/runner/ssh"
 	"github.com/supergiant/supergiant/pkg/storage"
+	"github.com/supergiant/supergiant/pkg/util"
 	"github.com/supergiant/supergiant/pkg/workflows/steps"
+	"io"
 )
 
 type TaskHandler struct {
@@ -237,43 +237,25 @@ func (h *TaskHandler) StreamLogs(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	fd, err := os.OpenFile(path.Join("/tmp", fmt.Sprintf("%s.log", id)), os.O_RDONLY, 0666)
-
-	if os.IsNotExist(err) {
-		http.NotFound(w, r)
-		return
-	}
-
-	if err != nil {
-		http.Error(w, err.Error(), http.StatusInternalServerError)
-		return
-	}
-
-	data, err := ioutil.ReadAll(fd)
+	t, err := tail.TailFile(path.Join("/tmp", util.MakeFileName(id)),
+		tail.Config{
+			Follow:    true,
+			MustExist: true,
+			Location: &tail.SeekInfo{
+				Offset: 0,
+				Whence: io.SeekStart,
+			},
+			Logger:      tail.DiscardingLogger,
+			MaxLineSize: 160,
+		})
 
 	if err != nil {
-		logrus.Errorf("Read content from file %s: %v", fd.Name(), err)
-		return
-	}
-
-	err = c.SetWriteDeadline(time.Now().Add(time.Second * 10))
-
-	if err != nil {
-		logrus.Errorf("Set write deadline %v", err)
-		return
-	}
-
-	err = c.WriteMessage(websocket.TextMessage, data)
-
-	if err != nil {
-		logrus.Errorf("Write content to websocket %v", err)
+		logrus.Errorf("Open file %s for tail %v", util.MakeFileName(id), err)
 		return
 	}
 
 	go func() {
 		pingTicker := time.NewTicker(time.Second * 60)
-
-		t, err := tail.TailFile(path.Join("/tmp", fmt.Sprintf("%s.log", id)), tail.Config{Follow: true, MaxLineSize: 160})
 
 		for {
 			select {
@@ -281,13 +263,12 @@ func (h *TaskHandler) StreamLogs(w http.ResponseWriter, r *http.Request) {
 				c.SetWriteDeadline(time.Now().Add(time.Second * 10))
 				err = c.WriteMessage(websocket.TextMessage, []byte(line.Text))
 
+				// Do not log this error, since client can simply disconnect
 				if err != nil {
-					logrus.Errorf("Error while write to websocket %v", err)
 					return
 				}
 			case <-pingTicker.C:
-				err = c.SetWriteDeadline(time.Now().Add(time.Second * 10))
-
+				c.SetWriteDeadline(time.Now().Add(time.Second * 10))
 				if err := c.WriteMessage(websocket.PingMessage, []byte{}); err != nil {
 					return
 				}
