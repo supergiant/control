@@ -67,7 +67,7 @@ func (w *Task) Run(ctx context.Context, config steps.Config, out io.Writer) chan
 			return
 		}
 
-		// Create list of*Step statuses to track
+		// Create list of statuses to track
 		for _, step := range w.workflow {
 			w.StepStatuses = append(w.StepStatuses, StepStatus{
 				Status:   steps.StatusTodo,
@@ -158,7 +158,7 @@ func (w *Task) startFrom(ctx context.Context, id string, out io.Writer, i int) e
 			}
 
 			if err3 := step.Rollback(ctx, out, w.Config); err3 != nil {
-				logrus.Errorf("rollback error %v for step %s", err3, step.Name())
+				logrus.Errorf("rollback: step %s : %v", step.Name(), err3)
 			}
 
 			return err
