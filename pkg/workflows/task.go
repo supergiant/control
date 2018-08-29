@@ -9,6 +9,7 @@ import (
 	"github.com/pborman/uuid"
 	"github.com/sirupsen/logrus"
 
+	"github.com/pkg/errors"
 	"github.com/supergiant/supergiant/pkg/storage"
 	"github.com/supergiant/supergiant/pkg/workflows/steps"
 )
@@ -53,6 +54,15 @@ func (w *Task) Run(ctx context.Context, config steps.Config, out io.WriteCloser)
 	errChan := make(chan error, 1)
 
 	go func() {
+		defer func() {
+			if r := recover(); r != nil {
+				w.Status = steps.StatusError
+				if err := w.sync(ctx); err != nil {
+					logrus.Errorf("sync error %v for task %s", err, w.ID)
+				}
+				errChan <- errors.Errorf("provisioning failed, unexpected panic: %v ", r)
+			}
+		}()
 		if w == nil {
 			return
 		}
@@ -132,8 +142,10 @@ func (w *Task) Restart(ctx context.Context, id string, out io.Writer) chan error
 // start task execution from particular step
 func (w *Task) startFrom(ctx context.Context, id string, out io.Writer, i int) error {
 	// Start workflow from the last failed step
+
 	for index := i; index < len(w.StepStatuses); index++ {
 		step := w.workflow[index]
+
 		logrus.Info(step.Name())
 		// Sync to storage with task in executing state
 		w.StepStatuses[index].Status = steps.StatusExecuting
@@ -147,6 +159,10 @@ func (w *Task) startFrom(ctx context.Context, id string, out io.Writer, i int) e
 			w.StepStatuses[index].ErrMsg = err.Error()
 			if err2 := w.sync(ctx); err2 != nil {
 				logrus.Errorf("sync error %v for step %s", err2, step.Name())
+			}
+
+			if err3 := step.Rollback(ctx, out, w.Config); err3 != nil {
+				logrus.Errorf("rollback: step %s : %v", step.Name(), err3)
 			}
 
 			return err

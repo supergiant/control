@@ -122,6 +122,10 @@ func (t *Step) Run(ctx context.Context, output io.Writer, config *steps.Config) 
 	return nil
 }
 
+func (t *Step) Rollback(context.Context, io.Writer, *steps.Config) error {
+	return nil
+}
+
 func (t *Step) tagDroplet(tagService godo.TagsService, dropletId int, tags []string) error {
 	// Tag droplet
 	for _, tag := range tags {
