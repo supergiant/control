@@ -34,9 +34,7 @@ func NewProvisioner(repository storage.Interface) *TaskProvisioner {
 		},
 		getWriter: func(name string) (io.WriteCloser, error) {
 			// TODO(stgleb): Add log directory to params of supergiant
-			f, err := os.OpenFile(path.Join("/tmp", name), os.O_CREATE|os.O_WRONLY|os.O_APPEND, 0666)
-
-			return f, err
+			return os.OpenFile(path.Join("/tmp", name), os.O_CREATE|os.O_WRONLY|os.O_APPEND, 0666)
 		},
 	}
 }
