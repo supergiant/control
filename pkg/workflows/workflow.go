@@ -43,7 +43,6 @@ var (
 	workflowMap map[string]Workflow
 
 	ErrUnknownProviderWorkflowType = errors.New("unknown provider_workflow type")
-	ErrUnknownProviderType         = errors.New("unknown provider type")
 )
 
 func Init() {

@@ -17,7 +17,7 @@ import (
 
 // Provisioner gets kube profile and returns list of task ids of provision masterTasks
 type Provisioner interface {
-	Provision(context.Context, *profile.KubeProfile, *steps.Config) ([]*workflows.Task, error)
+	Provision(context.Context, *profile.Profile, *steps.Config) ([]*workflows.Task, error)
 }
 
 type TaskProvisioner struct {
@@ -58,7 +58,7 @@ func (r *TaskProvisioner) prepare(name clouds.Name, masterCount, nodeCount int) 
 }
 
 // Provision runs provision process among nodes that have been provided for provision
-func (r *TaskProvisioner) Provision(ctx context.Context, kubeProfile *profile.KubeProfile, config *steps.Config) ([]*workflows.Task, error) {
+func (r *TaskProvisioner) Provision(ctx context.Context, kubeProfile *profile.Profile, config *steps.Config) ([]*workflows.Task, error) {
 	masterTasks, nodeTasks := r.prepare(config.Provider, len(kubeProfile.MasterProfiles),
 		len(kubeProfile.NodesProfiles))
 
@@ -69,7 +69,7 @@ func (r *TaskProvisioner) Provision(ctx context.Context, kubeProfile *profile.Ku
 
 		// TODO(stgleb): When we have concurrent provisioning use that to sync nodes and master provisioning
 		// Provision master nodes
-		for _, masterTask := range masterTasks {
+		for index, masterTask := range masterTasks {
 			if masterTask == nil {
 				continue
 			}
@@ -81,6 +81,10 @@ func (r *TaskProvisioner) Provision(ctx context.Context, kubeProfile *profile.Ku
 				logrus.Errorf("Error getting writer for %s", fileName)
 				return
 			}
+
+			// Fulfill task config with data about provider specific node configuration
+			p := kubeProfile.MasterProfiles[index]
+			FillNodeCloudSpecificData(kubeProfile.Provider, p, config)
 
 			result := masterTask.Run(ctx, *config, out)
 			err = <-result
@@ -107,7 +111,7 @@ func (r *TaskProvisioner) Provision(ctx context.Context, kubeProfile *profile.Ku
 		config.FlannelConfig.EtcdHost = config.GetMaster().PrivateIp
 
 		// Provision nodes
-		for _, nodeTask := range nodeTasks {
+		for index, nodeTask := range nodeTasks {
 			if nodeTask == nil {
 				continue
 			}
@@ -119,6 +123,11 @@ func (r *TaskProvisioner) Provision(ctx context.Context, kubeProfile *profile.Ku
 				logrus.Errorf("Error getting writer for %s", fileName)
 				return
 			}
+
+			// Fulfill task config with data about provider specific node configuration
+			p := kubeProfile.NodesProfiles[index]
+			FillNodeCloudSpecificData(kubeProfile.Provider, p, config)
+
 			result := nodeTask.Run(ctx, *config, out)
 			err = <-result
 

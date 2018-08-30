@@ -21,9 +21,9 @@ func NewKubeProfileService(prefix string, s storage.Interface) *KubeProfileServi
 	}
 }
 
-func (s *KubeProfileService) Get(ctx context.Context, profileId string) (*KubeProfile, error) {
+func (s *KubeProfileService) Get(ctx context.Context, profileId string) (*Profile, error) {
 	profileData, err := s.kubeProfileStorage.Get(ctx, s.prefix, profileId)
-	profile := &KubeProfile{}
+	profile := &Profile{}
 
 	if err != nil {
 		return nil, err
@@ -39,7 +39,7 @@ func (s *KubeProfileService) Get(ctx context.Context, profileId string) (*KubePr
 	return profile, nil
 }
 
-func (s *KubeProfileService) Create(ctx context.Context, profile *KubeProfile) error {
+func (s *KubeProfileService) Create(ctx context.Context, profile *Profile) error {
 	profileData, err := json.Marshal(profile)
 
 	if err != nil {
@@ -49,10 +49,10 @@ func (s *KubeProfileService) Create(ctx context.Context, profile *KubeProfile) e
 	return s.kubeProfileStorage.Put(ctx, s.prefix, profile.ID, profileData)
 }
 
-func (s *KubeProfileService) GetAll(ctx context.Context) ([]KubeProfile, error) {
+func (s *KubeProfileService) GetAll(ctx context.Context) ([]Profile, error) {
 	var (
-		profiles []KubeProfile
-		profile  KubeProfile
+		profiles []Profile
+		profile  Profile
 	)
 
 	profilesData, err := s.kubeProfileStorage.GetAll(ctx, s.prefix)

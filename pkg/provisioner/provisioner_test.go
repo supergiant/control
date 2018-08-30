@@ -33,13 +33,26 @@ func TestTaskProvisioner(t *testing.T) {
 	workflows.RegisterWorkFlow("test_master", nil)
 	workflows.RegisterWorkFlow("test_node", nil)
 
-	kubeProfile := &profile.KubeProfile{
-		MasterProfiles: []profile.NodeProfile{
-			{},
+	kubeProfile := &profile.Profile{
+		MasterProfiles: []map[string]string{
+			{
+				"size":  "s-1vcpu-2gb",
+				"image": "ubuntu-18-04-x64",
+			},
+			{
+				"size":  "s-1vcpu-2gb",
+				"image": "ubuntu-18-04-x64",
+			},
 		},
-		NodesProfiles: []profile.NodeProfile{
-			{},
-			{},
+		NodesProfiles: []map[string]string{
+			{
+				"size":  "s-2vcpu-4gb",
+				"image": "ubuntu-18-04-x64",
+			},
+			{
+				"size":  "s-2vcpu-4gb",
+				"image": "ubuntu-18-04-x64",
+			},
 		},
 	}
 

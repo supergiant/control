@@ -11,6 +11,7 @@ import (
 	"github.com/pkg/errors"
 
 	"github.com/supergiant/supergiant/pkg/node"
+	"github.com/supergiant/supergiant/pkg/profile"
 	"github.com/supergiant/supergiant/pkg/runner"
 	"github.com/supergiant/supergiant/pkg/templatemanager"
 	"github.com/supergiant/supergiant/pkg/workflows/steps"
@@ -53,26 +54,22 @@ func TestWriteCertificates(t *testing.T) {
 
 	output := new(bytes.Buffer)
 
-	cfg := steps.Config{
-		CertificatesConfig: steps.CertificatesConfig{
-			kubernetesConfigDir,
-			masterPrivateIP,
-			userName,
-			password,
-		},
-		MasterNodes: map[string]*node.Node{
-			"id": {
-				PrivateIp: "10.20.30.40",
-			},
-		},
-		Runner: r,
+	cfg := steps.NewConfig("", "", "", profile.Profile{})
+	cfg.CertificatesConfig = steps.CertificatesConfig{
+		kubernetesConfigDir,
+		masterPrivateIP,
+		userName,
+		password,
 	}
-
+	cfg.Runner = r
+	cfg.AddMaster(&node.Node{
+		PrivateIp: "10.20.30.40",
+	})
 	task := &Step{
 		tpl,
 	}
 
-	err = task.Run(context.Background(), output, &cfg)
+	err = task.Run(context.Background(), output, cfg)
 
 	if err != nil {
 		t.Errorf("Unpexpected error while  provision node %v", err)
@@ -105,17 +102,12 @@ func TestWriteCertificatesError(t *testing.T) {
 		proxyTemplate,
 	}
 
-	cfg := steps.Config{
-		CertificatesConfig: steps.CertificatesConfig{},
-		MasterNodes: map[string]*node.Node{
-			"id": {
-				PrivateIp: "10.20.30.40",
-			},
-		},
-		Runner: r,
-	}
-
-	err = task.Run(context.Background(), output, &cfg)
+	cfg := steps.NewConfig("", "", "", profile.Profile{})
+	cfg.Runner = r
+	cfg.AddMaster(&node.Node{
+		PrivateIp: "10.20.30.40",
+	})
+	err = task.Run(context.Background(), output, cfg)
 
 	if err == nil {
 		t.Errorf("Error must not be nil")

@@ -10,7 +10,7 @@ import (
 	"github.com/supergiant/supergiant/pkg/testutils"
 )
 
-func TestNodeProfileServiceGet(t *testing.T) {
+func TestKubeProfileServiceGet(t *testing.T) {
 	testCases := []struct {
 		expectedId string
 		data       []byte
@@ -18,7 +18,7 @@ func TestNodeProfileServiceGet(t *testing.T) {
 	}{
 		{
 			expectedId: "1234",
-			data:       []byte(`{"id": "1234", "size": { "Name":"t2.micro", "ram":"1gb", "cpu":"1" }, "image": "ubuntu"}`),
+			data:       []byte(`{"id":"1234", "nodes":[{},{}]}`),
 			err:        nil,
 		},
 		{
@@ -27,13 +27,13 @@ func TestNodeProfileServiceGet(t *testing.T) {
 		},
 	}
 
-	prefix := "/node/"
+	prefix := "/kube/"
 
 	for _, testCase := range testCases {
 		m := new(testutils.MockStorage)
 		m.On("Get", context.Background(), prefix, "fake_id").Return(testCase.data, testCase.err)
 
-		service := NodeProfileService{
+		service := KubeProfileService{
 			prefix,
 			m,
 		}
@@ -51,34 +51,40 @@ func TestNodeProfileServiceGet(t *testing.T) {
 	}
 }
 
-func TestNodeProfileServiceCreate(t *testing.T) {
+func TestKubeProfileServiceCreate(t *testing.T) {
 	testCases := []struct {
-		node *NodeProfile
+		kube *Profile
 		err  error
 	}{
 		{
-			node: &NodeProfile{},
+			kube: &Profile{},
 			err:  nil,
 		},
 		{
-			node: &NodeProfile{},
+			kube: &Profile{},
 			err:  errors.New("test err"),
 		},
 	}
 
-	prefix := "/node/"
+	prefix := "/kube/"
 
 	for _, testCase := range testCases {
 		m := new(testutils.MockStorage)
-		nodeData, _ := json.Marshal(testCase.node)
-		m.On("Put", context.Background(), prefix, "", nodeData).Return(testCase.err)
+		kubeData, _ := json.Marshal(testCase.kube)
 
-		service := NodeProfileService{
+		m.On("Put",
+			context.Background(),
+			prefix,
+			testCase.kube.ID,
+			kubeData).
+			Return(testCase.err)
+
+		service := KubeProfileService{
 			prefix,
 			m,
 		}
 
-		err := service.Create(context.Background(), testCase.node)
+		err := service.Create(context.Background(), testCase.kube)
 
 		if testCase.err != err {
 			t.Errorf("Unexpected error when create node %v", err)
@@ -86,7 +92,7 @@ func TestNodeProfileServiceCreate(t *testing.T) {
 	}
 }
 
-func TestNodeProfileServiceGetAll(t *testing.T) {
+func TestKubeProfileServiceGetAll(t *testing.T) {
 	testCases := []struct {
 		data [][]byte
 		err  error
@@ -101,13 +107,13 @@ func TestNodeProfileServiceGetAll(t *testing.T) {
 		},
 	}
 
-	prefix := "/node/"
+	prefix := "/kube/"
 
 	for _, testCase := range testCases {
 		m := new(testutils.MockStorage)
 		m.On("GetAll", context.Background(), prefix).Return(testCase.data, testCase.err)
 
-		service := NodeProfileService{
+		service := KubeProfileService{
 			prefix,
 			m,
 		}

@@ -169,10 +169,6 @@ func configureApplication(cfg *Config) (*mux.Router, error) {
 	kubeProfileHandler := profile.NewKubeProfileHandler(kubeProfileService)
 	kubeProfileHandler.Register(protectedAPI)
 
-	nodeProfileService := profile.NewNodeProfileService(profile.DefaultNodeProfilePrefix, repository)
-	nodeProfileHandler := profile.NewNodeProfileHandler(nodeProfileService)
-	nodeProfileHandler.Register(protectedAPI)
-
 	// Read templates first and then initialize workflows with steps that uses these templates
 	if err := templatemanager.Init(cfg.TemplatesDir); err != nil {
 		return nil, err
@@ -183,22 +179,26 @@ func configureApplication(cfg *Config) (*mux.Router, error) {
 	taskHandler.Register(router)
 
 	// TODO(stgleb): remove it when profile usage is done
-	p := &profile.KubeProfile{
-		ID: "1234",
-		MasterProfiles: []profile.NodeProfile{
+	p := &profile.Profile{
+		MasterProfiles: []map[string]string{
 			{
-				Provider: clouds.DigitalOcean,
+				"size":  "s-1vcpu-2gb",
+				"image": "ubuntu-18-04-x64",
 			},
 		},
-		NodesProfiles: []profile.NodeProfile{
+		NodesProfiles: []map[string]string{
 			{
-				Provider: clouds.DigitalOcean,
+				"size":  "s-2vcpu-4gb",
+				"image": "ubuntu-18-04-x64",
 			},
 			{
-				Provider: clouds.DigitalOcean,
+				"size":  "s-2vcpu-4gb",
+				"image": "ubuntu-18-04-x64",
 			},
 		},
 
+		Provider:        clouds.DigitalOcean,
+		Region:          "fra1",
 		Arch:            "amd64",
 		OperatingSystem: "linux",
 		UbuntuVersion:   "xenial",
@@ -206,6 +206,7 @@ func configureApplication(cfg *Config) (*mux.Router, error) {
 		K8SVersion:      "1.11.1",
 		FlannelVersion:  "0.10.0",
 		NetworkType:     "vxlan",
+		CIDR:            "10.0.0.0/24",
 		HelmVersion:     "2.8.0",
 		RBACEnabled:     false,
 	}
@@ -233,7 +234,7 @@ func configureApplication(cfg *Config) (*mux.Router, error) {
 
 	taskProvisioner := provisioner.NewProvisioner(repository)
 	tokenGetter := provisioner.NewEtcdTokenGetter()
-	provisionHandler := provisioner.NewHandler(kubeProfileService, accountService, tokenGetter, taskProvisioner)
+	provisionHandler := provisioner.NewHandler(accountService, tokenGetter, taskProvisioner)
 	provisionHandler.Register(router)
 
 	helmService := helm.NewService(repository)
