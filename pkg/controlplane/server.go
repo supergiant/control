@@ -185,10 +185,6 @@ func configureApplication(cfg *Config) (*mux.Router, error) {
 				"size":  "s-1vcpu-2gb",
 				"image": "ubuntu-18-04-x64",
 			},
-			{
-				"size":  "s-1vcpu-2gb",
-				"image": "ubuntu-18-04-x64",
-			},
 		},
 		NodesProfiles: []map[string]string{
 			{
