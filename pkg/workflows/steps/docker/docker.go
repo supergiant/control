@@ -37,6 +37,10 @@ func (t *Step) Run(ctx context.Context, out io.Writer, config *steps.Config) err
 	return nil
 }
 
+func (t *Step) Rollback(context.Context, io.Writer, *steps.Config) error {
+	return nil
+}
+
 func (t *Step) Name() string {
 	return StepName
 }
