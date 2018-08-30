@@ -29,6 +29,7 @@ func New(tpl *template.Template) *Step {
 }
 
 func (s *Step) Run(ctx context.Context, out io.Writer, config *steps.Config) error {
+	config.EtcdConfig.ClusterSize = config.GetMasterCount()
 	err := steps.RunTemplate(context.Background(), s.scriptTemplate,
 		config.Runner, out, config.EtcdConfig)
 	if err != nil {
