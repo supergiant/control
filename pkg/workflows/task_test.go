@@ -283,7 +283,7 @@ func TestRollback(t *testing.T) {
 	}
 	require.False(t, mockStep.rollback)
 
-	buffer := &bytes.Buffer{}
+	buffer := &bufferCloser{}
 	errChan := task.Run(context.Background(), steps.Config{}, buffer)
 	err := <-errChan
 	require.Error(t, err)
@@ -327,7 +327,7 @@ func TestPanicHandler(t *testing.T) {
 			step,
 		},
 	}
-	errChan := task.Run(context.Background(), steps.Config{}, &bytes.Buffer{})
+	errChan := task.Run(context.Background(), steps.Config{}, &bufferCloser{})
 
 	err := <-errChan
 	require.Error(t, err)
