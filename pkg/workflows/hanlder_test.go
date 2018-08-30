@@ -19,6 +19,7 @@ import (
 	"github.com/supergiant/supergiant/pkg/runner/ssh"
 	"github.com/supergiant/supergiant/pkg/testutils"
 	"github.com/supergiant/supergiant/pkg/workflows/steps"
+	"io"
 )
 
 func TestWorkflowHandlerGetWorkflow(t *testing.T) {
@@ -146,6 +147,9 @@ func TestTaskHandlerRestartTask(t *testing.T) {
 				},
 			},
 			err: nil,
+		},
+		getWriter: func(id string) (io.WriteCloser, error) {
+			return &bufferCloser{}, nil
 		},
 	}
 

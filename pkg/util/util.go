@@ -252,3 +252,7 @@ func BindParams(params map[string]string, object interface{}) error {
 
 	return nil
 }
+
+func MakeFileName(taskID string) string {
+	return fmt.Sprintf("%s.log", taskID)
+}

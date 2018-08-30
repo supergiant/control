@@ -14,6 +14,15 @@ import (
 	"github.com/supergiant/supergiant/pkg/workflows/steps"
 )
 
+type bufferCloser struct {
+	bytes.Buffer
+	err error
+}
+
+func (b *bufferCloser) Close() error {
+	return b.err
+}
+
 type MockRepository struct {
 	storage map[string][]byte
 }
@@ -128,7 +137,7 @@ func TestTaskRunError(t *testing.T) {
 			&MockStep{name: "step3", errs: nil}},
 	}
 
-	buffer := &bytes.Buffer{}
+	buffer := &bufferCloser{}
 	errChan := workflow.Run(context.Background(), steps.Config{}, buffer)
 
 	if len(workflow.ID) == 0 {
@@ -175,7 +184,7 @@ func TestTaskRunSuccess(t *testing.T) {
 			&MockStep{name: "step3", errs: nil}},
 	}
 
-	buffer := &bytes.Buffer{}
+	buffer := &bufferCloser{}
 	errChan := task.Run(context.Background(), steps.Config{}, buffer)
 
 	if len(id) == 0 {
@@ -220,7 +229,7 @@ func TestWorkflowRestart(t *testing.T) {
 		},
 	}
 
-	buffer := &bytes.Buffer{}
+	buffer := &bufferCloser{}
 	errChan := task.Run(context.Background(), steps.Config{}, buffer)
 
 	if len(id) == 0 {
@@ -274,7 +283,7 @@ func TestRollback(t *testing.T) {
 	}
 	require.False(t, mockStep.rollback)
 
-	buffer := &bytes.Buffer{}
+	buffer := &bufferCloser{}
 	errChan := task.Run(context.Background(), steps.Config{}, buffer)
 	err := <-errChan
 	require.Error(t, err)
@@ -318,7 +327,7 @@ func TestPanicHandler(t *testing.T) {
 			step,
 		},
 	}
-	errChan := task.Run(context.Background(), steps.Config{}, &bytes.Buffer{})
+	errChan := task.Run(context.Background(), steps.Config{}, &bufferCloser{})
 
 	err := <-errChan
 	require.Error(t, err)

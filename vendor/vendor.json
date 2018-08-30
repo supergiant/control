@@ -523,10 +523,40 @@
 			"versionExact": "v1.6.2"
 		},
 		{
+			"checksumSHA1": "VKx/YhlIAbIJ9dXAxCCHOkjom4U=",
+			"path": "github.com/gorilla/websocket",
+			"revision": "66b9c49e59c6c48f0ffce28c2d8b8a5678502c6d",
+			"revisionTime": "2018-08-25T15:15:06Z"
+		},
+		{
 			"checksumSHA1": "K6exl2ouL7d8cR2i378EzZOdRVI=",
 			"path": "github.com/howeyc/gopass",
 			"revision": "bf9dde6d0d2c004a008c27aaee91170c786f6db8",
 			"revisionTime": "2017-01-09T16:22:49Z"
+		},
+		{
+			"checksumSHA1": "P5KyE9QEbAeHLeXzycSF/jS1FIc=",
+			"path": "github.com/hpcloud/tail",
+			"revision": "a1dbeea552b7c8df4b542c66073e393de198a800",
+			"revisionTime": "2018-05-14T19:44:41Z"
+		},
+		{
+			"checksumSHA1": "qn3/Y771JaGG94CvdKa8pIj5hH0=",
+			"path": "github.com/hpcloud/tail/ratelimiter",
+			"revision": "a1dbeea552b7c8df4b542c66073e393de198a800",
+			"revisionTime": "2018-05-14T19:44:41Z"
+		},
+		{
+			"checksumSHA1": "0xM336Lb25URO/1W1/CtGoRygVU=",
+			"path": "github.com/hpcloud/tail/util",
+			"revision": "a1dbeea552b7c8df4b542c66073e393de198a800",
+			"revisionTime": "2018-05-14T19:44:41Z"
+		},
+		{
+			"checksumSHA1": "FiJAmivBCwCbJCC3nPSgTgqGyfU=",
+			"path": "github.com/hpcloud/tail/watch",
+			"revision": "a1dbeea552b7c8df4b542c66073e393de198a800",
+			"revisionTime": "2018-05-14T19:44:41Z"
 		},
 		{
 			"checksumSHA1": "DiusiFOi/TekkUctoSEMJQmhNHs=",
@@ -975,10 +1005,22 @@
 			"revisionTime": "2018-05-24T17:21:01Z"
 		},
 		{
+			"checksumSHA1": "8Vjxiz2qAtkg3zjJgoXiDq7AI64=",
+			"path": "gopkg.in/fsnotify/fsnotify.v1",
+			"revision": "c2828203cd70a50dcccfb2761f8b1f8ceef9a8e9",
+			"revisionTime": "2018-01-10T05:33:47Z"
+		},
+		{
 			"checksumSHA1": "COfXAfInbcFT/YRsvLUQnNKHzF0=",
 			"path": "gopkg.in/inf.v0",
 			"revision": "d2d2541c53f18d2a059457998ce2876cc8e67cbf",
 			"revisionTime": "2018-03-26T17:23:32Z"
+		},
+		{
+			"checksumSHA1": "TO8baX+t1Qs7EmOYth80MkbKzFo=",
+			"path": "gopkg.in/tomb.v1",
+			"revision": "dd632973f1e7218eb1089048e0798ec9ae7dceb8",
+			"revisionTime": "2014-10-24T13:56:13Z"
 		},
 		{
 			"checksumSHA1": "+OgOXBoiQ+X+C2dsAeiOHwBIEH0=",

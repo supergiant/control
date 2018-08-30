@@ -239,7 +239,7 @@ func NewConfig(clusterName, discoveryUrl, cloudAccountName string, profile profi
 		SshConfig: SshConfig{
 			Port:       "22",
 			User:       "root",
-			PrivateKey: []byte(``),
+			PrivateKey: "",
 			Timeout:    10,
 		},
 		EtcdConfig: EtcdConfig{

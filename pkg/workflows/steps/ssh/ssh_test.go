@@ -92,7 +92,7 @@ func TestStepRunError(t *testing.T) {
 		Port:       port,
 		User:       user,
 		Timeout:    timeout,
-		PrivateKey: []byte(``),
+		PrivateKey: "",
 	}
 
 	err := step.Run(context.Background(), ioutil.Discard, config)

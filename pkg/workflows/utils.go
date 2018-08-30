@@ -29,7 +29,7 @@ func FillCloudAccountCredentials(ctx context.Context, getter cloudAccountGetter,
 	config.Provider = cloudAccount.Provider
 
 	// Bind private key to config
-	bindParams(cloudAccount.Credentials, &config.SshConfig)
+	util.BindParams(cloudAccount.Credentials, &config.SshConfig)
 
 	switch cloudAccount.Provider {
 	case clouds.AWS:
