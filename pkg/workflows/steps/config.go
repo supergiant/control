@@ -4,6 +4,7 @@ import (
 	"sync"
 	"time"
 
+	"encoding/json"
 	"github.com/supergiant/supergiant/pkg/clouds"
 	"github.com/supergiant/supergiant/pkg/node"
 	"github.com/supergiant/supergiant/pkg/profile"
@@ -119,6 +120,18 @@ type SshConfig struct {
 	Timeout    int    `json:"timeout"`
 }
 
+type MasterMap struct {
+	internal map[string]*node.Node
+}
+
+func (m *MasterMap) UnmarshalJSON(b []byte) error {
+	return json.Unmarshal(b, &m.internal)
+}
+
+func (m *MasterMap) MarshalJSON() ([]byte, error) {
+	return json.Marshal(m.internal)
+}
+
 // TODO(stgleb): rename to context and embed context.Context here
 type Config struct {
 	Provider    clouds.Name `json:"provider"`
@@ -150,9 +163,8 @@ type Config struct {
 
 	repository storage.Interface `json:"-"`
 
-	// TODO(stgleb): make masterNodes private, add public method for initialization.
 	m           sync.RWMutex
-	masterNodes map[string]*node.Node `json:"masterNodes"`
+	MasterNodes MasterMap `json:"MasterNodes"`
 }
 
 func NewConfig(clusterName, discoveryUrl, cloudAccountName string, profile profile.Profile) *Config {
@@ -243,7 +255,9 @@ func NewConfig(clusterName, discoveryUrl, cloudAccountName string, profile profi
 			DiscoveryUrl:   discoveryUrl,
 		},
 
-		masterNodes:      make(map[string]*node.Node, len(profile.MasterProfiles)),
+		MasterNodes: MasterMap{
+			internal: make(map[string]*node.Node, len(profile.MasterProfiles)),
+		},
 		Timeout:          time.Second * 1200,
 		CloudAccountName: cloudAccountName,
 	}
@@ -252,18 +266,18 @@ func NewConfig(clusterName, discoveryUrl, cloudAccountName string, profile profi
 func (c *Config) AddMaster(n *node.Node) {
 	c.m.Lock()
 	defer c.m.Unlock()
-	c.masterNodes[n.Id] = n
+	c.MasterNodes.internal[n.Id] = n
 }
 
 func (c *Config) GetMaster() *node.Node {
 	c.m.RLock()
 	defer c.m.RUnlock()
 
-	if len(c.masterNodes) == 0 {
+	if len(c.MasterNodes.internal) == 0 {
 		return nil
 	}
 
-	for _, value := range c.masterNodes {
+	for _, value := range c.MasterNodes.internal {
 		return value
 	}
 
