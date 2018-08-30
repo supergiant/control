@@ -9,6 +9,7 @@ import (
 	"path"
 	"time"
 
+	"fmt"
 	"github.com/gorilla/mux"
 	"github.com/gorilla/websocket"
 	"github.com/hpcloud/tail"
@@ -25,6 +26,7 @@ type TaskHandler struct {
 	runnerFactory  func(config ssh.Config) (runner.Runner, error)
 	cloudAccGetter cloudAccountGetter
 	repository     storage.Interface
+	getWriter      func(string) (io.WriteCloser, error)
 }
 
 type RunTaskRequest struct {
@@ -47,6 +49,10 @@ func NewTaskHandler(repository storage.Interface, runnerFactory func(config ssh.
 		runnerFactory:  runnerFactory,
 		repository:     repository,
 		cloudAccGetter: getter,
+		getWriter: func(name string) (io.WriteCloser, error) {
+			// TODO(stgleb): Add log directory to params of supergiant
+			return os.OpenFile(path.Join("/tmp", name), os.O_CREATE|os.O_WRONLY|os.O_APPEND, 0666)
+		},
 	}
 }
 
@@ -132,7 +138,15 @@ func (h *TaskHandler) RestartTask(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	task.Restart(context.Background(), id, os.Stdout)
+	writer, err := h.getWriter(id)
+
+	if err != nil {
+		http.Error(w, fmt.Sprintf("get writer %v", err), http.StatusInternalServerError)
+		logrus.Errorf("Get writer %v", err)
+		return
+	}
+
+	task.Restart(context.Background(), id, writer)
 	w.WriteHeader(http.StatusAccepted)
 }
 

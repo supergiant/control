@@ -168,7 +168,7 @@ func (h *Handler) Provision(w http.ResponseWriter, r *http.Request) {
 			Port:       "22",
 			User:       "root",
 			PrivateKey: []byte(``),
-			Timeout:    10,
+			Timeout:    30,
 		},
 		EtcdConfig: steps.EtcdConfig{
 			// TODO(stgleb): this field must be changed per node
