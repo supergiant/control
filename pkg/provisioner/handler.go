@@ -167,8 +167,8 @@ func (h *Handler) Provision(w http.ResponseWriter, r *http.Request) {
 		SshConfig: steps.SshConfig{
 			Port:       "22",
 			User:       "root",
-			PrivateKey: []byte(``),
-			Timeout:    30,
+			PrivateKey: "",
+			Timeout:    10,
 		},
 		EtcdConfig: steps.EtcdConfig{
 			// TODO(stgleb): this field must be changed per node
