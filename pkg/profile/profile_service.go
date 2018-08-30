@@ -7,7 +7,7 @@ import (
 	"github.com/supergiant/supergiant/pkg/storage"
 )
 
-const DefaultKubeProfilePreifx = "/supergiant/kube_profile"
+const DefaultKubeProfilePreifx = "/supergiant/profile"
 
 type KubeProfileService struct {
 	prefix             string
