@@ -34,14 +34,6 @@ func (m *mockProvisioner) Provision(ctx context.Context, kubeProfile *profile.Pr
 	return m.provision(ctx, kubeProfile, config)
 }
 
-type mockKubeProfileGetter struct {
-	get func(context.Context, string) (*profile.Profile, error)
-}
-
-func (m *mockKubeProfileGetter) Get(ctx context.Context, id string) (*profile.Profile, error) {
-	return m.get(ctx, id)
-}
-
 type mockAccountGetter struct {
 	get func(context.Context, string) (*model.CloudAccount, error)
 }
