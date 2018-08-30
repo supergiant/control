@@ -4,6 +4,7 @@ import (
 	"context"
 	"encoding/json"
 	"html/template"
+	"io"
 	"net/http"
 	"os"
 	"path"
@@ -19,7 +20,6 @@ import (
 	"github.com/supergiant/supergiant/pkg/storage"
 	"github.com/supergiant/supergiant/pkg/util"
 	"github.com/supergiant/supergiant/pkg/workflows/steps"
-	"io"
 )
 
 type TaskHandler struct {
@@ -243,14 +243,6 @@ func (h *TaskHandler) StreamLogs(w http.ResponseWriter, r *http.Request) {
 		ReadBufferSize:   0,
 	}
 
-	c, err := upgrader.Upgrade(w, r, nil)
-
-	if err != nil {
-		http.Error(w, err.Error(), http.StatusInternalServerError)
-		logrus.Errorf("Upgrade connection %v", err)
-		return
-	}
-
 	t, err := tail.TailFile(path.Join("/tmp", util.MakeFileName(id)),
 		tail.Config{
 			Follow:    true,
@@ -263,8 +255,23 @@ func (h *TaskHandler) StreamLogs(w http.ResponseWriter, r *http.Request) {
 			MaxLineSize: 160,
 		})
 
+	if os.IsNotExist(err) {
+		http.NotFound(w, r)
+		logrus.Errorf("Not found %s", util.MakeFileName(id))
+		return
+	}
+
 	if err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
 		logrus.Errorf("Open file %s for tail %v", util.MakeFileName(id), err)
+		return
+	}
+
+	c, err := upgrader.Upgrade(w, r, nil)
+
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		logrus.Errorf("Upgrade connection %v", err)
 		return
 	}
 
