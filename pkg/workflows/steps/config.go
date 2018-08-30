@@ -174,5 +174,7 @@ func (c *Config) GetMaster() *node.Node {
 }
 
 func (c *Config) GetMasterCount() int {
+	c.m.RLock()
+	defer c.m.RUnlock()
 	return len(c.MasterNodes)
 }
