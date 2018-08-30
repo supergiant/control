@@ -50,7 +50,7 @@ func TestStepRunSuccess(t *testing.T) {
 			Port:       port,
 			User:       user,
 			Timeout:    timeout,
-			PrivateKey: []byte(privateKey),
+			PrivateKey: privateKey,
 		},
 		MasterNodes: map[string]*node.Node{
 			"id": {
@@ -89,7 +89,7 @@ func TestStepRunError(t *testing.T) {
 			Port:       port,
 			User:       user,
 			Timeout:    timeout,
-			PrivateKey: []byte(``),
+			PrivateKey: "",
 		},
 		MasterNodes: map[string]*node.Node{
 			"id": {

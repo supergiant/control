@@ -216,13 +216,13 @@ func configureApplication(cfg *Config) (*mux.Router, error) {
 		logrus.Fatal(err)
 	}
 
-	// TODO(stgleb): remove it when key management is done
 	cloudAccount := &model.CloudAccount{
 		Name:     "test",
 		Provider: clouds.DigitalOcean,
 		Credentials: map[string]string{
 			"accessToken": "",
 			"fingerprint": "",
+			"privateKey":  ``,
 		},
 	}
 
