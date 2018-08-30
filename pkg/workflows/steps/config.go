@@ -106,6 +106,7 @@ type EtcdConfig struct {
 	ManagementPort string `json:"managementPort"`
 	StartTimeout   string `json:"startTimeout"`
 	RestartTimeout string `json:"restartTimeout"`
+	ClusterSize    int    `json:"clusterSize"`
 }
 
 type SshConfig struct {
@@ -170,4 +171,8 @@ func (c *Config) GetMaster() *node.Node {
 	}
 
 	return nil
+}
+
+func (c *Config) GetMasterCount() int {
+	return len(c.MasterNodes)
 }
