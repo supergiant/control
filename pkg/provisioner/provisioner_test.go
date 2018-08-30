@@ -2,6 +2,8 @@ package provisioner
 
 import (
 	"context"
+	"io"
+	"os"
 	"testing"
 
 	"github.com/stretchr/testify/mock"
@@ -19,6 +21,9 @@ func TestTaskProvisioner(t *testing.T) {
 
 	provisioner := TaskProvisioner{
 		repository,
+		func(string) (io.WriteCloser, error) {
+			return os.Stdout, nil
+		},
 		map[clouds.Name][]string{
 			clouds.DigitalOcean: {"test_master", "test_node"},
 		},

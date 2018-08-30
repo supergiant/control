@@ -50,7 +50,7 @@ func newTask(workflowType string, workflow Workflow, repository storage.Interfac
 }
 
 // Run executes all steps of workflow and tracks the progress in persistent storage
-func (w *Task) Run(ctx context.Context, config steps.Config, out io.Writer) chan error {
+func (w *Task) Run(ctx context.Context, config steps.Config, out io.WriteCloser) chan error {
 	errChan := make(chan error, 1)
 
 	go func() {
@@ -91,6 +91,10 @@ func (w *Task) Run(ctx context.Context, config steps.Config, out io.Writer) chan
 		}
 
 		logrus.Infof("Task %s has finished successfully", w.ID)
+		// Notify provisioner that task output closed with error
+		if err := out.Close(); err != nil {
+			errChan <- err
+		}
 		close(errChan)
 	}()
 
