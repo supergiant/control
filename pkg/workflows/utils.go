@@ -28,6 +28,9 @@ func FillCloudAccountCredentials(ctx context.Context, getter cloudAccountGetter,
 	config.ManifestConfig.ProviderString = string(cloudAccount.Provider)
 	config.Provider = cloudAccount.Provider
 
+	// Bind private key to config
+	bindParams(cloudAccount.Credentials, &config.SshConfig)
+
 	switch cloudAccount.Provider {
 	case clouds.AWS:
 		return util.BindParams(cloudAccount.Credentials, &config.AWSConfig)
@@ -63,7 +66,7 @@ func deserializeTask(data []byte, repository storage.Interface) (*Task, error) {
 		Port:    task.Config.SshConfig.Port,
 		User:    task.Config.SshConfig.User,
 		Timeout: task.Config.SshConfig.Timeout,
-		Key:     task.Config.SshConfig.PrivateKey,
+		Key:     []byte(task.Config.SshConfig.PrivateKey),
 	}
 
 	task.Config.Runner, err = ssh.NewRunner(cfg)

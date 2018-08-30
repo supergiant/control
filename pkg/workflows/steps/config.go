@@ -116,7 +116,7 @@ type EtcdConfig struct {
 type SshConfig struct {
 	User       string `json:"user"`
 	Port       string `json:"port"`
-	PrivateKey []byte `json:"privateKey"`
+	PrivateKey string `json:"privateKey"`
 	Timeout    int    `json:"timeout"`
 }
 

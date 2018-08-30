@@ -51,7 +51,7 @@ func TestStepRunSuccess(t *testing.T) {
 		Port:       port,
 		User:       user,
 		Timeout:    timeout,
-		PrivateKey: []byte(privateKey),
+		PrivateKey: privateKey,
 	}
 
 	config.AddMaster(&node.Node{
