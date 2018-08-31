@@ -13,6 +13,7 @@ import (
 
 	"time"
 
+	"github.com/supergiant/supergiant/pkg/profile"
 	"github.com/supergiant/supergiant/pkg/runner"
 	"github.com/supergiant/supergiant/pkg/templatemanager"
 	"github.com/supergiant/supergiant/pkg/workflows/steps"
@@ -133,16 +134,17 @@ func TestPostStartTimeout(t *testing.T) {
 		proxyTemplate,
 	}
 
-	cfg := &steps.Config{
-		PostStartConfig: steps.PostStartConfig{
-			"127.0.0.1",
-			port,
-			username,
-			rbacEnabled,
-			1,
-		},
-		Runner: r,
+	cfg := steps.NewConfig("", "", "", profile.Profile{})
+	cfg.PostStartConfig = steps.PostStartConfig{
+		"127.0.0.1",
+		port,
+		username,
+		rbacEnabled,
+		1,
 	}
+	cfg.Runner = r
+	cfg.Done()
+
 	err = j.Run(context.Background(), output, cfg)
 
 	if err == nil {

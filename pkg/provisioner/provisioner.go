@@ -13,6 +13,7 @@ import (
 	"github.com/supergiant/supergiant/pkg/util"
 	"github.com/supergiant/supergiant/pkg/workflows"
 	"github.com/supergiant/supergiant/pkg/workflows/steps"
+	"sync"
 )
 
 // Provisioner gets kube profile and returns list of task ids of provision masterTasks
@@ -67,13 +68,14 @@ func (r *TaskProvisioner) Provision(ctx context.Context, kubeProfile *profile.Pr
 	go func() {
 		config.IsMaster = true
 
-		// TODO(stgleb): When we have concurrent provisioning use that to sync nodes and master provisioning
+		clusterWg := sync.WaitGroup{}
+		masterWg := sync.WaitGroup{}
+
+		clusterWg.Add(len(kubeProfile.MasterProfiles) + len(kubeProfile.NodesProfiles))
+		masterWg.Add(len(kubeProfile.MasterProfiles))
+
 		// Provision master nodes
 		for index, masterTask := range masterTasks {
-			if masterTask == nil {
-				continue
-			}
-
 			fileName := util.MakeFileName(masterTask.ID)
 			out, err := r.getWriter(fileName)
 
@@ -86,23 +88,35 @@ func (r *TaskProvisioner) Provision(ctx context.Context, kubeProfile *profile.Pr
 			p := kubeProfile.MasterProfiles[index]
 			FillNodeCloudSpecificData(kubeProfile.Provider, p, config)
 
-			result := masterTask.Run(ctx, *config, out)
-			err = <-result
+			go func(t *workflows.Task) {
+				defer clusterWg.Done()
+				defer masterWg.Done()
 
-			if err != nil {
-				logrus.Errorf("master task %s has finished with error %v", masterTask.ID, err)
-			} else {
-				logrus.Infof("master-task %s has finished", masterTask.ID)
-			}
+				result := t.Run(ctx, *config, out)
+				err = <-result
+
+				if err != nil {
+					logrus.Errorf("master task %s has finished with error %v", t.ID, err)
+				} else {
+					logrus.Infof("master-task %s has finished", t.ID)
+				}
+			}(masterTask)
 		}
 
-		// TODO(stgleb): If master  provisioning has failed
-		// on a step after build actual node handle this case
-		// If we get no master node
-		if config.GetMaster() == nil {
-			logrus.Errorf("Cluster provisioning has failed, no master is up")
+		doneChan := make(chan struct{})
+		go func() {
+			config.Wait()
+			close(doneChan)
+		}()
+
+		select {
+		case <-ctx.Done():
+			logrus.Errorf("Master cluster has not been created %v", ctx.Err())
 			return
+		case <-doneChan:
 		}
+
+		masterWg.Wait()
 		logrus.Infof("Master provisioning for cluster %s has finished successfully", config.ClusterName)
 
 		config.IsMaster = false
@@ -112,10 +126,6 @@ func (r *TaskProvisioner) Provision(ctx context.Context, kubeProfile *profile.Pr
 
 		// Provision nodes
 		for index, nodeTask := range nodeTasks {
-			if nodeTask == nil {
-				continue
-			}
-
 			fileName := util.MakeFileName(nodeTask.ID)
 			out, err := r.getWriter(fileName)
 
@@ -128,16 +138,23 @@ func (r *TaskProvisioner) Provision(ctx context.Context, kubeProfile *profile.Pr
 			p := kubeProfile.NodesProfiles[index]
 			FillNodeCloudSpecificData(kubeProfile.Provider, p, config)
 
-			result := nodeTask.Run(ctx, *config, out)
-			err = <-result
+			go func(t *workflows.Task) {
+				defer clusterWg.Done()
 
-			if err != nil {
-				logrus.Errorf("node task %s has finished with error %v", nodeTask.ID, err)
-			} else {
-				logrus.Infof("node-task %s has finished", nodeTask.ID)
-			}
+				result := t.Run(ctx, *config, out)
+				err = <-result
+
+				if err != nil {
+					logrus.Errorf("node task %s has finished with error %v", t.ID, err)
+				} else {
+					logrus.Infof("node-task %s has finished", t.ID)
+				}
+			}(nodeTask)
 		}
-		logrus.Infof("Cluster %s has been deployed successfully", config.ClusterName)
+
+		// Wait for all task to be finished
+		clusterWg.Wait()
+		logrus.Infof("Cluster %s deployment has finished", config.ClusterName)
 	}()
 
 	return tasks, nil

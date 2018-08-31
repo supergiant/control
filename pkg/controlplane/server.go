@@ -15,11 +15,9 @@ import (
 
 	"github.com/supergiant/supergiant/pkg/account"
 	"github.com/supergiant/supergiant/pkg/api"
-	"github.com/supergiant/supergiant/pkg/clouds"
 	"github.com/supergiant/supergiant/pkg/helm"
 	"github.com/supergiant/supergiant/pkg/jwt"
 	"github.com/supergiant/supergiant/pkg/kube"
-	"github.com/supergiant/supergiant/pkg/model"
 	"github.com/supergiant/supergiant/pkg/profile"
 	"github.com/supergiant/supergiant/pkg/provisioner"
 	"github.com/supergiant/supergiant/pkg/runner/ssh"
@@ -150,7 +148,7 @@ func configureApplication(cfg *Config) (*mux.Router, error) {
 
 	accountService := account.NewService(account.DefaultStoragePrefix, repository)
 	accountHandler := account.NewHandler(accountService)
-	accountHandler.Register(protectedAPI)
+	accountHandler.Register(router)
 
 	kubeService := kube.NewService(kube.DefaultStoragePrefix, repository)
 	kubeHandler := kube.NewHandler(kubeService)
@@ -165,8 +163,8 @@ func configureApplication(cfg *Config) (*mux.Router, error) {
 	//Opening it up for testing right now, will be protected after implementing initial user generation
 	protectedAPI.HandleFunc("/users", userHandler.Create).Methods(http.MethodPost)
 
-	kubeProfileService := profile.NewKubeProfileService(profile.DefaultKubeProfilePreifx, repository)
-	kubeProfileHandler := profile.NewKubeProfileHandler(kubeProfileService)
+	profileService := profile.NewKubeProfileService(profile.DefaultKubeProfilePreifx, repository)
+	kubeProfileHandler := profile.NewKubeProfileHandler(profileService)
 	kubeProfileHandler.Register(protectedAPI)
 
 	// Read templates first and then initialize workflows with steps that uses these templates
@@ -177,60 +175,6 @@ func configureApplication(cfg *Config) (*mux.Router, error) {
 
 	taskHandler := workflows.NewTaskHandler(repository, ssh.NewRunner, accountService)
 	taskHandler.Register(router)
-
-	// TODO(stgleb): remove it when profile usage is done
-	p := &profile.Profile{
-		MasterProfiles: []map[string]string{
-			{
-				"size":  "s-1vcpu-2gb",
-				"image": "ubuntu-18-04-x64",
-			},
-		},
-		NodesProfiles: []map[string]string{
-			{
-				"size":  "s-2vcpu-4gb",
-				"image": "ubuntu-18-04-x64",
-			},
-			{
-				"size":  "s-2vcpu-4gb",
-				"image": "ubuntu-18-04-x64",
-			},
-		},
-
-		Provider:        clouds.DigitalOcean,
-		Region:          "fra1",
-		Arch:            "amd64",
-		OperatingSystem: "linux",
-		UbuntuVersion:   "xenial",
-		DockerVersion:   "17.06.0",
-		K8SVersion:      "1.11.1",
-		FlannelVersion:  "0.10.0",
-		NetworkType:     "vxlan",
-		CIDR:            "10.0.0.0/24",
-		HelmVersion:     "2.8.0",
-		RBACEnabled:     false,
-	}
-
-	err := kubeProfileService.Create(context.Background(), p)
-
-	if err != nil {
-		logrus.Fatal(err)
-	}
-
-	cloudAccount := &model.CloudAccount{
-		Name:     "test",
-		Provider: clouds.DigitalOcean,
-		Credentials: map[string]string{
-			"accessToken": "",
-			"fingerprint": "",
-			"privateKey":  ``,
-		},
-	}
-
-	err = accountService.Create(context.Background(), cloudAccount)
-	if err != nil {
-		logrus.Fatal(err)
-	}
 
 	taskProvisioner := provisioner.NewProvisioner(repository)
 	tokenGetter := provisioner.NewEtcdTokenGetter()

@@ -165,9 +165,16 @@ type Config struct {
 
 	m           sync.RWMutex
 	MasterNodes MasterMap `json:"MasterNodes"`
+
+	wg *sync.WaitGroup
 }
 
+// NewConfig builds instance of config for provisioning
 func NewConfig(clusterName, discoveryUrl, cloudAccountName string, profile profile.Profile) *Config {
+	// We need at least n/2 + 1 of master nodes be up and running to continue cluster deployment
+	wg := &sync.WaitGroup{}
+	wg.Add(len(profile.MasterProfiles)/2 + 1)
+
 	return &Config{
 		ClusterName: clusterName,
 		DigitalOceanConfig: DOConfig{
@@ -258,17 +265,22 @@ func NewConfig(clusterName, discoveryUrl, cloudAccountName string, profile profi
 		MasterNodes: MasterMap{
 			internal: make(map[string]*node.Node, len(profile.MasterProfiles)),
 		},
-		Timeout:          time.Second * 1200,
+		Timeout:          time.Minute * 30,
 		CloudAccountName: cloudAccountName,
+
+		wg: wg,
 	}
 }
 
+// AddMaster to map of master, map is used because it is reference and can be shared among
+// goroutines that run multiple tasks of cluster deployment
 func (c *Config) AddMaster(n *node.Node) {
 	c.m.Lock()
 	defer c.m.Unlock()
 	c.MasterNodes.internal[n.Id] = n
 }
 
+// GetMaster returns first master in master map or nil
 func (c *Config) GetMaster() *node.Node {
 	c.m.RLock()
 	defer c.m.RUnlock()
@@ -282,4 +294,14 @@ func (c *Config) GetMaster() *node.Node {
 	}
 
 	return nil
+}
+
+// Wait while majority of nodes become up and running
+func (c *Config) Wait() {
+	c.wg.Wait()
+}
+
+// Done is called when master node has started etcd instance
+func (c *Config) Done() {
+	c.wg.Done()
 }

@@ -35,6 +35,11 @@ func (s *Step) Run(ctx context.Context, out io.Writer, config *steps.Config) err
 		return errors.Wrap(err, "install etcd step")
 	}
 
+	// Notify other task that one master is ready
+	if config.IsMaster {
+		config.Done()
+	}
+
 	return nil
 }
 

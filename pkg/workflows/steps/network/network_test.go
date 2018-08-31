@@ -7,6 +7,7 @@ import (
 	"strings"
 	"testing"
 
+	"github.com/supergiant/supergiant/pkg/profile"
 	"github.com/supergiant/supergiant/pkg/templatemanager"
 	"github.com/supergiant/supergiant/pkg/testutils"
 	"github.com/supergiant/supergiant/pkg/workflows/steps"
@@ -64,20 +65,22 @@ func TestNetworkConfig(t *testing.T) {
 
 		output := &bytes.Buffer{}
 
-		config := &steps.Config{
-			NetworkConfig: steps.NetworkConfig{
-				EtcdHost:          testCase.etcdHost,
-				EtcdVersion:       testCase.etcdVersion,
-				EtcdRepositoryUrl: testCase.etcdRepositoryUrl,
+		config := steps.NewConfig("", "", "", profile.Profile{})
+		config.NetworkConfig = steps.NetworkConfig{
+			EtcdHost:          testCase.etcdHost,
+			EtcdVersion:       testCase.etcdVersion,
+			EtcdRepositoryUrl: testCase.etcdRepositoryUrl,
 
-				Arch:            testCase.arch,
-				OperatingSystem: testCase.operatingSystem,
+			Arch:            testCase.arch,
+			OperatingSystem: testCase.operatingSystem,
 
-				Network:     testCase.network,
-				NetworkType: testCase.networkType,
-			},
-			Runner: r,
+			Network:     testCase.network,
+			NetworkType: testCase.networkType,
 		}
+		config.Runner = r
+		config.IsMaster = true
+		// Mark as done, we assume that etcd has been already deployed
+		config.Done()
 
 		task := &Step{
 			scriptTemplate: tpl,

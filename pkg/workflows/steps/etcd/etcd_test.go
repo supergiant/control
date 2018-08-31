@@ -3,6 +3,7 @@ package etcd
 import (
 	"bytes"
 	"context"
+	"github.com/supergiant/supergiant/pkg/profile"
 	"github.com/supergiant/supergiant/pkg/templatemanager"
 	"github.com/supergiant/supergiant/pkg/testutils"
 	"github.com/supergiant/supergiant/pkg/workflows/steps"
@@ -36,26 +37,26 @@ func TestInstallEtcD(t *testing.T) {
 	}
 
 	output := &bytes.Buffer{}
-	config := steps.Config{
-		EtcdConfig: steps.EtcdConfig{
-			Host:           host,
-			ServicePort:    servicePort,
-			ManagementPort: managementPort,
-			DataDir:        dataDir,
-			Version:        version,
-			Name:           name,
-			DiscoveryUrl:   clusterToken,
-			RestartTimeout: "5",
-			StartTimeout:   "0",
-		},
-		Runner: r,
+	config := steps.NewConfig("", "", "", profile.Profile{})
+	config.EtcdConfig = steps.EtcdConfig{
+		Host:           host,
+		ServicePort:    servicePort,
+		ManagementPort: managementPort,
+		DataDir:        dataDir,
+		Version:        version,
+		Name:           name,
+		DiscoveryUrl:   clusterToken,
+		RestartTimeout: "5",
+		StartTimeout:   "0",
 	}
+	config.IsMaster = true
+	config.Runner = r
 
 	task := &Step{
 		scriptTemplate: tpl,
 	}
 
-	err = task.Run(context.Background(), output, &config)
+	err = task.Run(context.Background(), output, config)
 
 	if err != nil {
 		t.Errorf("Unpexpected error %s", err.Error())
