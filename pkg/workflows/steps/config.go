@@ -47,9 +47,7 @@ type AWSConfig struct {
 	Region           string    `json:"region"`
 	AvailabilityZone string    `json:"availabilityZone"`
 
-	KeyPairName    string `json:"keyPairName"`
-	KeyFingerprint string `json:"keyFingerprint"`
-	SSHPrivateKey  string `json:"sshPrivateKey"`
+	KeyPairName string `json:"keyPairName"`
 }
 
 type EC2Config struct {

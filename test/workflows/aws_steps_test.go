@@ -15,7 +15,6 @@ import (
 	"github.com/supergiant/supergiant/pkg/clouds"
 	"github.com/supergiant/supergiant/pkg/clouds/amazonSDK"
 	"github.com/supergiant/supergiant/pkg/model"
-	"github.com/supergiant/supergiant/pkg/node"
 	"github.com/supergiant/supergiant/pkg/storage"
 	"github.com/supergiant/supergiant/pkg/testutils/assert"
 	"github.com/supergiant/supergiant/pkg/util"
@@ -82,7 +81,7 @@ func TestAWSEC2Create(t *testing.T) {
 		ClusterName:      "sgtest",
 		CloudAccountName: cloudAcc.Name,
 		IsMaster:         true,
-		MasterNodes:      map[string]*node.Node{},
+		MasterNodes:      steps.MasterMap{},
 		AWSConfig: steps.AWSConfig{
 			EC2Config: steps.EC2Config{
 				VolumeSize:   2,
@@ -125,6 +124,4 @@ func TestAWSEC2Create(t *testing.T) {
 		//log error instead of failing test to make sure everything is deleted
 		logrus.Error(err)
 	}
-
-	require.Equal(t, 3, len(cfg.MasterNodes))
 }

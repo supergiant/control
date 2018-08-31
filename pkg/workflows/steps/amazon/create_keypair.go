@@ -47,7 +47,7 @@ func (s *KeyPairStep) Run(ctx context.Context, w io.Writer, cfg *steps.Config) e
 
 	//If a user chooses to use pre-existing ec2 keypair it should be in the database already
 	if cfg.AWSConfig.KeyPairName != "" {
-		err := s.GetKeyFromAccount(cfg.AWSConfig, account, log)
+		err := s.GetKeyFromAccount(cfg, account, log)
 		if err != nil {
 			return err
 		}
@@ -58,7 +58,7 @@ func (s *KeyPairStep) Run(ctx context.Context, w io.Writer, cfg *steps.Config) e
 		out, err := s.sdk.EC2.CreateKeyPairWithContext(ctx, &ec2.CreateKeyPairInput{KeyName: &cfg.AWSConfig.KeyPairName})
 		if err != nil {
 			if strings.Contains(err.Error(), "InvalidKeyPair.Duplicate") {
-				err := s.GetKeyFromAccount(cfg.AWSConfig, account, log)
+				err := s.GetKeyFromAccount(cfg, account, log)
 				if err != nil {
 					return err
 				} else {
@@ -73,8 +73,7 @@ func (s *KeyPairStep) Run(ctx context.Context, w io.Writer, cfg *steps.Config) e
 			return errors.New("aws: faield to obtain keypair data")
 		}
 
-		account.Credentials[model.KeyPrivateKey] = *out.KeyMaterial
-		account.Credentials[model.KeyFingerprint] = *out.KeyFingerprint
+		account.Credentials["privateKey"] = *out.KeyMaterial
 
 		if err := s.accounts.Update(ctx, account); err != nil {
 			return err
@@ -88,20 +87,20 @@ func (s *KeyPairStep) Run(ctx context.Context, w io.Writer, cfg *steps.Config) e
 }
 
 func (s *KeyPairStep) Rollback(ctx context.Context, w io.Writer, cfg *steps.Config) error {
-	cfg.AWSConfig.SSHPrivateKey = ""
+	cfg.SshConfig.PrivateKey = ""
 	_, err := s.sdk.EC2.DeleteKeyPairWithContext(ctx, &ec2.DeleteKeyPairInput{
 		KeyName: aws.String(cfg.AWSConfig.KeyPairName),
 	})
 	return err
 }
 
-func (s *KeyPairStep) GetKeyFromAccount(cfg steps.AWSConfig, account *model.CloudAccount, log *logrus.Logger) error {
-	key, ok := account.Credentials[model.KeyPrivateKey]
+func (s *KeyPairStep) GetKeyFromAccount(cfg *steps.Config, account *model.CloudAccount, log *logrus.Logger) error {
+	key, ok := account.Credentials["privateKey"]
 	if !ok || key == "" {
 		log.Errorf("[%s] - no ssh key present in database, aborting", s.Name())
 		return errors.New("aws: no ssh key found")
 	}
-	cfg.SSHPrivateKey = key
+	cfg.SshConfig.PrivateKey = key
 	return nil
 }
 
