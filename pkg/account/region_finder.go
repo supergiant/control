@@ -11,7 +11,6 @@ import (
 	"github.com/supergiant/supergiant/pkg/clouds"
 	"github.com/supergiant/supergiant/pkg/clouds/digitaloceanSDK"
 	"github.com/supergiant/supergiant/pkg/model"
-	"github.com/supergiant/supergiant/pkg/profile"
 )
 
 var (
@@ -31,9 +30,9 @@ type Region struct {
 
 //RegionSizes represents aggregated information about available regions/azs and node sizes/types
 type RegionSizes struct {
-	Provider clouds.Name         `json:"provider"`
-	Regions  []*Region           `json:"regions"`
-	Sizes    []*profile.NodeSize `json:"sizes"`
+	Provider clouds.Name            `json:"provider"`
+	Regions  []*Region              `json:"regions"`
+	Sizes    map[string]interface{} `json:"sizes"`
 }
 
 //RegionFinder is used to find a list of available regions(availability zones, etc) with available vm types
@@ -93,14 +92,16 @@ func (rf *digitalOceanRegionFinder) Find(ctx context.Context) (*RegionSizes, err
 		return nil, doErr
 	}
 
-	nodeSizes := make([]*profile.NodeSize, 0)
+	nodeSizes := make(map[string]interface{})
 	for _, s := range sizes {
-		ns := &profile.NodeSize{
-			Name: s.Slug,
-			RAM:  strconv.Itoa(s.Memory),
-			CPU:  strconv.Itoa(s.Vcpus),
+		ns := struct {
+			RAM string `json:"ram"`
+			CPU string `json:"cpu"`
+		}{
+			RAM: strconv.Itoa(s.Memory),
+			CPU: strconv.Itoa(s.Vcpus),
 		}
-		nodeSizes = append(nodeSizes, ns)
+		nodeSizes[s.Slug] = ns
 	}
 
 	for _, r := range doRegions {

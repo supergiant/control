@@ -27,7 +27,7 @@ const defaultETCDHost = "http://127.0.0.1:2379"
 var defaultConfig clientv3.Config
 
 func init() {
-	assert.MustRunETCD(assert.DefaultETCDURL)
+	assert.MustRunETCD(defaultETCDHost)
 	defaultConfig = clientv3.Config{
 		Endpoints: []string{defaultETCDHost},
 	}
