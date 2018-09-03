@@ -18,6 +18,7 @@ import (
 	"github.com/supergiant/supergiant/pkg/workflows/steps/poststart"
 	"github.com/supergiant/supergiant/pkg/workflows/steps/ssh"
 	"github.com/supergiant/supergiant/pkg/workflows/steps/tiller"
+	"github.com/supergiant/supergiant/pkg/workflows/steps/clustercheck"
 )
 
 // StepStatus aggregates data that is needed to track progress
@@ -34,6 +35,7 @@ type Workflow []steps.Step
 const (
 	prefix = "tasks"
 
+	Cluster = "Cluster"
 	DigitalOceanMaster = "DigitalOceanMaster"
 	DigitalOceanNode   = "DigitalOceanNode"
 )
@@ -61,6 +63,7 @@ func Init() {
 	etcd.Init()
 	ssh.Init()
 	network.Init()
+	clustercheck.Init()
 
 	digitalOceanMasterWorkflow := []steps.Step{
 		steps.GetStep(digitalocean.StepName),
@@ -87,10 +90,18 @@ func Init() {
 		steps.GetStep(flannel.StepName),
 		steps.GetStep(kubelet.StepName),
 		steps.GetStep(cni.StepName),
+		steps.GetStep(poststart.StepName),
+	}
+
+	clusterWorkflow := []steps.Step{
+		steps.GetStep(ssh.StepName),
+		steps.GetStep(clustercheck.StepName),
 	}
 
 	m.Lock()
 	defer m.Unlock()
+
+	workflowMap[Cluster] = clusterWorkflow
 	workflowMap[DigitalOceanMaster] = digitalOceanMasterWorkflow
 	workflowMap[DigitalOceanNode] = digitalOceanNodeWorkflow
 }

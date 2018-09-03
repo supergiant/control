@@ -76,6 +76,7 @@ type ManifestConfig struct {
 }
 
 type PostStartConfig struct {
+	IsMaster    bool   `json:"isMaster"`
 	Host        string `json:"host"`
 	Port        string `json:"port"`
 	Username    string `json:"username"`
@@ -120,15 +121,19 @@ type SshConfig struct {
 	Timeout    int    `json:"timeout"`
 }
 
-type MasterMap struct {
+type ClusterCheckConfig struct {
+	MachineCount int
+}
+
+type Map struct {
 	internal map[string]*node.Node
 }
 
-func (m *MasterMap) UnmarshalJSON(b []byte) error {
+func (m *Map) UnmarshalJSON(b []byte) error {
 	return json.Unmarshal(b, &m.internal)
 }
 
-func (m *MasterMap) MarshalJSON() ([]byte, error) {
+func (m *Map) MarshalJSON() ([]byte, error) {
 	return json.Marshal(m.internal)
 }
 
@@ -156,6 +161,8 @@ type Config struct {
 	EtcdConfig         EtcdConfig         `json:"etcdConfig"`
 	SshConfig          SshConfig          `json:"sshConfig"`
 
+	ClusterCheckConfig ClusterCheckConfig `json:"clusterCheckConfig"`
+
 	Node             node.Node     `json:"node"`
 	CloudAccountName string        `json:"cloudAccountName" valid:"required, length(1|32)"`
 	Timeout          time.Duration `json:"timeout"`
@@ -163,8 +170,11 @@ type Config struct {
 
 	repository storage.Interface `json:"-"`
 
-	m           sync.RWMutex
-	MasterNodes MasterMap `json:"MasterNodes"`
+	m1      sync.RWMutex
+	Masters Map `json:"masters"`
+
+	m2    sync.RWMutex
+	Nodes Map `json:"nodes"`
 
 	wg *sync.WaitGroup
 }
@@ -236,7 +246,7 @@ func NewConfig(clusterName, discoveryUrl, cloudAccountName string, profile profi
 			Port:        "8080",
 			Username:    "root",
 			RBACEnabled: profile.RBACEnabled,
-			Timeout:     300,
+			Timeout:     600,
 		},
 		TillerConfig: TillerConfig{
 			HelmVersion:     profile.HelmVersion,
@@ -261,9 +271,15 @@ func NewConfig(clusterName, discoveryUrl, cloudAccountName string, profile profi
 			RestartTimeout: "5",
 			DiscoveryUrl:   discoveryUrl,
 		},
+		ClusterCheckConfig: ClusterCheckConfig{
+			MachineCount: len(profile.NodesProfiles) + len(profile.MasterProfiles),
+		},
 
-		MasterNodes: MasterMap{
+		Masters: Map{
 			internal: make(map[string]*node.Node, len(profile.MasterProfiles)),
+		},
+		Nodes: Map{
+			internal: make(map[string]*node.Node, len(profile.NodesProfiles)),
 		},
 		Timeout:          time.Minute * 30,
 		CloudAccountName: cloudAccountName,
@@ -275,21 +291,28 @@ func NewConfig(clusterName, discoveryUrl, cloudAccountName string, profile profi
 // AddMaster to map of master, map is used because it is reference and can be shared among
 // goroutines that run multiple tasks of cluster deployment
 func (c *Config) AddMaster(n *node.Node) {
-	c.m.Lock()
-	defer c.m.Unlock()
-	c.MasterNodes.internal[n.Id] = n
+	c.m1.Lock()
+	defer c.m1.Unlock()
+	c.Masters.internal[n.Id] = n
+}
+
+// AddNode to map of nodes in cluster
+func (c *Config) AddNode(n *node.Node) {
+	c.m2.Lock()
+	defer c.m2.Unlock()
+	c.Nodes.internal[n.Id] = n
 }
 
 // GetMaster returns first master in master map or nil
 func (c *Config) GetMaster() *node.Node {
-	c.m.RLock()
-	defer c.m.RUnlock()
+	c.m1.RLock()
+	defer c.m1.RUnlock()
 
-	if len(c.MasterNodes.internal) == 0 {
+	if len(c.Masters.internal) == 0 {
 		return nil
 	}
 
-	for _, value := range c.MasterNodes.internal {
+	for _, value := range c.Masters.internal {
 		return value
 	}
 

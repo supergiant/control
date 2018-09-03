@@ -41,7 +41,7 @@ func NewProvisioner(repository storage.Interface) *TaskProvisioner {
 }
 
 // prepare creates all tasks for provisioning according to cloud provider
-func (r *TaskProvisioner) prepare(name clouds.Name, masterCount, nodeCount int) ([]*workflows.Task, []*workflows.Task) {
+func (r *TaskProvisioner) prepare(name clouds.Name, masterCount, nodeCount int) ([]*workflows.Task, []*workflows.Task, *workflows.Task) {
 	masterTasks := make([]*workflows.Task, 0, masterCount)
 	nodeTasks := make([]*workflows.Task, 0, nodeCount)
 
@@ -55,59 +55,25 @@ func (r *TaskProvisioner) prepare(name clouds.Name, masterCount, nodeCount int) 
 		nodeTasks = append(nodeTasks, t)
 	}
 
-	return masterTasks, nodeTasks
+	clusterTask, _ := workflows.NewTask(workflows.Cluster, r.repository)
+
+	return masterTasks, nodeTasks, clusterTask
 }
 
 // Provision runs provision process among nodes that have been provided for provision
-func (r *TaskProvisioner) Provision(ctx context.Context, kubeProfile *profile.Profile, config *steps.Config) ([]*workflows.Task, error) {
-	masterTasks, nodeTasks := r.prepare(config.Provider, len(kubeProfile.MasterProfiles),
-		len(kubeProfile.NodesProfiles))
+func (r *TaskProvisioner) Provision(ctx context.Context, profile *profile.Profile, config *steps.Config) ([]*workflows.Task, error) {
+	masterTasks, nodeTasks, clusterTask := r.prepare(config.Provider, len(profile.MasterProfiles),
+		len(profile.NodesProfiles))
 
-	tasks := append(append(make([]*workflows.Task, 0), masterTasks...), nodeTasks...)
+	tasks := append(append(append(make([]*workflows.Task, 0), masterTasks...), nodeTasks...), clusterTask)
 
 	go func() {
-		config.IsMaster = true
+		// Provision masters and wait until n/2 + 1 of masters with etcd are up and running
+		doneChan, err := r.provisionMasters(ctx, profile, config, masterTasks)
 
-		clusterWg := sync.WaitGroup{}
-		masterWg := sync.WaitGroup{}
-
-		clusterWg.Add(len(kubeProfile.MasterProfiles) + len(kubeProfile.NodesProfiles))
-		masterWg.Add(len(kubeProfile.MasterProfiles))
-
-		// Provision master nodes
-		for index, masterTask := range masterTasks {
-			fileName := util.MakeFileName(masterTask.ID)
-			out, err := r.getWriter(fileName)
-
-			if err != nil {
-				logrus.Errorf("Error getting writer for %s", fileName)
-				return
-			}
-
-			// Fulfill task config with data about provider specific node configuration
-			p := kubeProfile.MasterProfiles[index]
-			FillNodeCloudSpecificData(kubeProfile.Provider, p, config)
-
-			go func(t *workflows.Task) {
-				defer clusterWg.Done()
-				defer masterWg.Done()
-
-				result := t.Run(ctx, *config, out)
-				err = <-result
-
-				if err != nil {
-					logrus.Errorf("master task %s has finished with error %v", t.ID, err)
-				} else {
-					logrus.Infof("master-task %s has finished", t.ID)
-				}
-			}(masterTask)
+		if err != nil {
+			logrus.Errorf("Provision master %v", err)
 		}
-
-		doneChan := make(chan struct{})
-		go func() {
-			config.Wait()
-			close(doneChan)
-		}()
 
 		select {
 		case <-ctx.Done():
@@ -116,46 +82,131 @@ func (r *TaskProvisioner) Provision(ctx context.Context, kubeProfile *profile.Pr
 		case <-doneChan:
 		}
 
-		masterWg.Wait()
 		logrus.Infof("Master provisioning for cluster %s has finished successfully", config.ClusterName)
 
-		config.IsMaster = false
-		config.ManifestConfig.IsMaster = false
-		// Do internal communication inside private network
-		config.FlannelConfig.EtcdHost = config.GetMaster().PrivateIp
-
 		// Provision nodes
-		for index, nodeTask := range nodeTasks {
-			fileName := util.MakeFileName(nodeTask.ID)
-			out, err := r.getWriter(fileName)
+		r.provisionNodes(ctx, profile, config, nodeTasks)
 
-			if err != nil {
-				logrus.Errorf("Error getting writer for %s", fileName)
-				return
-			}
+		// Wait for cluster checks are finished
+		r.waitCluster(ctx, clusterTask, config)
 
-			// Fulfill task config with data about provider specific node configuration
-			p := kubeProfile.NodesProfiles[index]
-			FillNodeCloudSpecificData(kubeProfile.Provider, p, config)
-
-			go func(t *workflows.Task) {
-				defer clusterWg.Done()
-
-				result := t.Run(ctx, *config, out)
-				err = <-result
-
-				if err != nil {
-					logrus.Errorf("node task %s has finished with error %v", t.ID, err)
-				} else {
-					logrus.Infof("node-task %s has finished", t.ID)
-				}
-			}(nodeTask)
-		}
-
-		// Wait for all task to be finished
-		clusterWg.Wait()
 		logrus.Infof("Cluster %s deployment has finished", config.ClusterName)
 	}()
 
 	return tasks, nil
+}
+
+func (p *TaskProvisioner) provisionMasters(ctx context.Context, profile *profile.Profile, config *steps.Config, tasks []*workflows.Task) (chan struct{}, error) {
+	config.IsMaster = true
+
+	// master wait group controls when the majority of masters with etcd are up and running
+	// so etcd is available for writes of flannel that starts on each machine
+	masterWg := sync.WaitGroup{}
+	masterWg.Add(len(profile.MasterProfiles)/2 + 1)
+
+	// Provision master nodes
+	for index, masterTask := range tasks {
+		fileName := util.MakeFileName(masterTask.ID)
+		out, err := p.getWriter(fileName)
+
+		if err != nil {
+			logrus.Errorf("Error getting writer for %s", fileName)
+			return nil, err
+		}
+
+		// Fulfill task config with data about provider specific node configuration
+		p := profile.MasterProfiles[index]
+		FillNodeCloudSpecificData(profile.Provider, p, config)
+
+		go func(t *workflows.Task) {
+			result := t.Run(ctx, *config, out)
+			err = <-result
+
+			if err != nil {
+				logrus.Errorf("master task %s has finished with error %v", t.ID, err)
+			} else {
+				// TODO(stgleb): Add another waitgroup that tracks failed master tasks and
+				// if amount of them equal to n/2 - abort entire cluster deployment
+				masterWg.Done()
+				logrus.Infof("master-task %s has finished", t.ID)
+			}
+		}(masterTask)
+	}
+
+	doneChan := make(chan struct{})
+	go func() {
+		masterWg.Wait()
+		close(doneChan)
+	}()
+
+	return doneChan, nil
+}
+
+func (p *TaskProvisioner) provisionNodes(ctx context.Context, profile *profile.Profile, config *steps.Config, tasks []*workflows.Task) {
+	config.IsMaster = false
+	config.ManifestConfig.IsMaster = false
+	// Do internal communication inside private network
+	config.FlannelConfig.EtcdHost = config.GetMaster().PrivateIp
+
+	// Provision nodes
+	for index, nodeTask := range tasks {
+		fileName := util.MakeFileName(nodeTask.ID)
+		out, err := p.getWriter(fileName)
+
+		if err != nil {
+			logrus.Errorf("Error getting writer for %s", fileName)
+			return
+		}
+
+		// Fulfill task config with data about provider specific node configuration
+		p := profile.NodesProfiles[index]
+		FillNodeCloudSpecificData(profile.Provider, p, config)
+
+		go func(t *workflows.Task) {
+			result := t.Run(ctx, *config, out)
+			err = <-result
+
+			if err != nil {
+				logrus.Errorf("node task %s has finished with error %v", t.ID, err)
+			} else {
+				logrus.Infof("node-task %s has finished", t.ID)
+			}
+		}(nodeTask)
+	}
+}
+
+func (p *TaskProvisioner) waitCluster(ctx context.Context, clusterTask *workflows.Task, config *steps.Config) {
+	// Waitgroup controls entire cluster deployment, waits until all final checks are done
+	clusterWg := sync.WaitGroup{}
+	clusterWg.Add(1)
+
+	fileName := util.MakeFileName(clusterTask.ID)
+	out, err := p.getWriter(fileName)
+
+	if err != nil {
+		logrus.Errorf("Error getting writer for %s", fileName)
+		return
+	}
+
+	go func(t *workflows.Task) {
+		defer clusterWg.Done()
+		// Run
+		cfg := *config
+
+		if master := cfg.GetMaster(); master != nil {
+			cfg.Node = *master
+		}
+
+		result := t.Run(ctx, cfg, out)
+		err = <-result
+
+		if err != nil {
+			logrus.Errorf("cluster task %s has finished with error %v", t.ID, err)
+		} else {
+			logrus.Infof("cluster-task %s has finished", t.ID)
+		}
+	}(clusterTask)
+
+	// Wait for all task to be finished
+	clusterWg.Wait()
 }

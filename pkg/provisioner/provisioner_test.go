@@ -64,7 +64,7 @@ func TestTaskProvisioner(t *testing.T) {
 		t.Errorf("Unexpected error %v while provision", err)
 	}
 
-	if len(tasks) != len(kubeProfile.MasterProfiles)+len(kubeProfile.NodesProfiles) {
+	if len(tasks) != len(kubeProfile.MasterProfiles)+len(kubeProfile.NodesProfiles) + 1 {
 		t.Errorf("Wrong task count expected %d actual %d",
 			len(kubeProfile.MasterProfiles)+
 				len(kubeProfile.NodesProfiles),
