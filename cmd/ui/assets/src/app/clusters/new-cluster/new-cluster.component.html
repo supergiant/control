@@ -15,13 +15,13 @@
       <json-schema-form *ngIf="selectedCloudAccount"
         [schema]="schema"
         [layout]="layout"
-        [(data)]="model"
+        [(data)]="data"
         framework="material-design"
         (onChanges)="value=$event"
         (onSubmit)="createCluster($event)">
       </json-schema-form>
     </div>
 
-    <button mat-raised-button color="primary" type="button" (click)="createCluster(clusterName, selectedCloudAccount.name, selectedKubeProfile)">CREATE</button>
+    <!-- <button mat-raised-button color="primary" type="button" (click)="createCluster(clusterName, selectedCloudAccount.name, selectedKubeProfile)">CREATE</button> -->
   </div>
 </div>

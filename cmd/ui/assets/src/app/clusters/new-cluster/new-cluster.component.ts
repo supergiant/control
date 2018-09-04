@@ -86,35 +86,36 @@ export class NewClusterComponent implements OnInit, OnDestroy, AfterViewInit {
         this.data = this.awsModel.aws.data;
         this.schema = this.awsModel.aws.schema;
         this.layout = this.awsModel.aws.layout;
-        this.data.cloud_account_name = cloudAccount.name;
+        this.data.cloudAccountName = cloudAccount.name;
         break;
       }
       case 'digitalocean': {
-        this.data = this.doModel.digitalocean.data;
+        console.log("do");
         this.schema = this.doModel.digitalocean.schema;
-        this.layout = this.doModel.digitalocean.layout;
-        this.data.cloud_account_name = cloudAccount.name;
+        this.data = this.doModel.digitalocean.data;
+        // this.layout = this.doModel.digitalocean.layout;
+        this.data.cloudAccountName = cloudAccount.name;
         break;
       }
       case 'packet': {
         this.data = this.packModel.packet.data;
         this.schema = this.packModel.packet.schema;
         this.layout = this.packModel.packet.layout;
-        this.data.cloud_account_name = cloudAccount.name;
+        this.data.cloudAccountName = cloudAccount.name;
         break;
       }
       case 'openstack': {
         this.data = this.osModel.openstack.data;
         this.schema = this.osModel.openstack.schema;
         this.layout = this.osModel.openstack.layout;
-        this.data.cloud_account_name = cloudAccount.name;
+        this.data.cloudAccountName = cloudAccount.name;
         break;
       }
       case 'gce': {
         this.data = this.gceModel.gce.data;
         this.schema = this.gceModel.gce.schema;
         this.layout = this.gceModel.gce.layout;
-        this.data.cloud_account_name = cloudAccount.name;
+        this.data.cloudAccountName = cloudAccount.name;
         break;
       }
       default: {
@@ -126,7 +127,7 @@ export class NewClusterComponent implements OnInit, OnDestroy, AfterViewInit {
     };
 
     this.subscriptions.add(this.supergiant.CloudAccounts.getRegions(cloudAccount.name).subscribe(
-        regionList => {console.log(regionList);this.availableRegions = regionList},
+        regionList => this.availableRegions = regionList,
         err => this.error({}, err)
     ))
   }

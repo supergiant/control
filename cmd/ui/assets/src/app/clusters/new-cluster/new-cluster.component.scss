@@ -9,6 +9,8 @@
 	}
 
 	.inputs-wrapper {
+		max-height: 426px;
+		overflow: scroll;
 
 		button {
 			display: block;

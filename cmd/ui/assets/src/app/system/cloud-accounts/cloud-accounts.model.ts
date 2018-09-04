@@ -45,9 +45,9 @@ export class CloudAccountModel {
     'model': {
       'provider': 'digitalocean',
       'credentials': {
-        'api_token': '',
+        'accessToken': '',
         'fingerprint': '',
-        'private_key': ''
+        'privateKey': ''
       }
     },
     'schema': {
@@ -61,15 +61,15 @@ export class CloudAccountModel {
         'credentials': {
           'type': 'object',
           'properties': {
-            'api_token': {
+            'accessToken': {
               'type': 'string',
-              'description': 'API Token for your DO account'
+              'description': 'Access Token for your DO account'
             },
             'fingerprint': {
               'type': 'string',
               'description': 'Your SSH fingerprint'
             },
-            'private_key': {
+            'privateKey': {
               'type': 'string',
               'description': 'Your personal private key'
             }
@@ -78,9 +78,9 @@ export class CloudAccountModel {
       }
     },
     'layout': [
-      { "key": "credentials.api_token", "placeholder": "API Token" },
+      { "key": "credentials.accessToken", "placeholder": "Access Token" },
       { "key": "credentials.fingerprint", "placeholder": "Fingerprint" },
-      { "key": "credentials.private_key", "placeholder": "Private Key" },
+      { "key": "credentials.privateKey", "placeholder": "Private Key" },
       { "type": "submit", "title": "CREATE" }
     ]
   };
