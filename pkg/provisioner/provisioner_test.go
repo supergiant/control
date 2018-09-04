@@ -33,7 +33,7 @@ func TestTaskProvisioner(t *testing.T) {
 	workflows.RegisterWorkFlow("test_master", []steps.Step{})
 	workflows.RegisterWorkFlow("test_node", []steps.Step{})
 
-	kubeProfile := &profile.Profile{
+	p := &profile.Profile{
 		MasterProfiles: []map[string]string{
 			{
 				"size":  "s-1vcpu-2gb",
@@ -52,9 +52,8 @@ func TestTaskProvisioner(t *testing.T) {
 		},
 	}
 
-	taskMap, err := provisioner.Provision(context.Background(), kubeProfile, &steps.Config{
-		Provider: clouds.DigitalOcean,
-	})
+	cfg := steps.NewConfig("", "", "", *p)
+	taskMap, err := provisioner.Provision(context.Background(), p, cfg)
 
 	if err != nil {
 		t.Errorf("Unexpected error %v while provision", err)
@@ -64,10 +63,10 @@ func TestTaskProvisioner(t *testing.T) {
 		t.Errorf("Expected task map len 3 actul %d", len(taskMap))
 	}
 
-	if len(taskMap["master"])+len(taskMap["node"]) != len(kubeProfile.MasterProfiles)+len(kubeProfile.NodesProfiles) {
+	if len(taskMap["master"])+len(taskMap["node"]) != len(p.MasterProfiles)+len(p.NodesProfiles) {
 		t.Errorf("Wrong task count expected %d actual %d",
-			len(kubeProfile.MasterProfiles)+
-				len(kubeProfile.NodesProfiles),
+			len(p.MasterProfiles)+
+				len(p.NodesProfiles),
 			len(taskMap))
 	}
 }
