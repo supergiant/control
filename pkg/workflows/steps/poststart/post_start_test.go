@@ -58,11 +58,11 @@ func TestPostStartMaster(t *testing.T) {
 	cfg := &steps.Config{
 		IsMaster: true,
 		PostStartConfig: steps.PostStartConfig{
-			Host:"127.0.0.1",
-			Port: port,
-			Username: username,
+			Host:        "127.0.0.1",
+			Port:        port,
+			Username:    username,
 			RBACEnabled: rbacEnabled,
-			Timeout: 120,
+			Timeout:     120,
 		},
 		Runner: r,
 	}
@@ -85,7 +85,6 @@ func TestPostStartMaster(t *testing.T) {
 		t.Errorf("rbac section not found in %s", output.String())
 	}
 }
-
 
 func TestPostStartNode(t *testing.T) {
 	r := &fakeRunner{}

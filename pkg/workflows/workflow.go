@@ -6,6 +6,7 @@ import (
 
 	"github.com/supergiant/supergiant/pkg/workflows/steps"
 	"github.com/supergiant/supergiant/pkg/workflows/steps/certificates"
+	"github.com/supergiant/supergiant/pkg/workflows/steps/clustercheck"
 	"github.com/supergiant/supergiant/pkg/workflows/steps/cni"
 	"github.com/supergiant/supergiant/pkg/workflows/steps/digitalocean"
 	"github.com/supergiant/supergiant/pkg/workflows/steps/docker"
@@ -18,7 +19,6 @@ import (
 	"github.com/supergiant/supergiant/pkg/workflows/steps/poststart"
 	"github.com/supergiant/supergiant/pkg/workflows/steps/ssh"
 	"github.com/supergiant/supergiant/pkg/workflows/steps/tiller"
-	"github.com/supergiant/supergiant/pkg/workflows/steps/clustercheck"
 )
 
 // StepStatus aggregates data that is needed to track progress
@@ -35,7 +35,7 @@ type Workflow []steps.Step
 const (
 	prefix = "tasks"
 
-	Cluster = "Cluster"
+	Cluster            = "Cluster"
 	DigitalOceanMaster = "DigitalOceanMaster"
 	DigitalOceanNode   = "DigitalOceanNode"
 )

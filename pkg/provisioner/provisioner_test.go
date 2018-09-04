@@ -30,15 +30,11 @@ func TestTaskProvisioner(t *testing.T) {
 	}
 
 	workflows.Init()
-	workflows.RegisterWorkFlow("test_master", nil)
-	workflows.RegisterWorkFlow("test_node", nil)
+	workflows.RegisterWorkFlow("test_master", []steps.Step{})
+	workflows.RegisterWorkFlow("test_node", []steps.Step{})
 
 	kubeProfile := &profile.Profile{
 		MasterProfiles: []map[string]string{
-			{
-				"size":  "s-1vcpu-2gb",
-				"image": "ubuntu-18-04-x64",
-			},
 			{
 				"size":  "s-1vcpu-2gb",
 				"image": "ubuntu-18-04-x64",
@@ -64,7 +60,7 @@ func TestTaskProvisioner(t *testing.T) {
 		t.Errorf("Unexpected error %v while provision", err)
 	}
 
-	if len(tasks) != len(kubeProfile.MasterProfiles)+len(kubeProfile.NodesProfiles) + 1 {
+	if len(tasks) != len(kubeProfile.MasterProfiles)+len(kubeProfile.NodesProfiles)+1 {
 		t.Errorf("Wrong task count expected %d actual %d",
 			len(kubeProfile.MasterProfiles)+
 				len(kubeProfile.NodesProfiles),

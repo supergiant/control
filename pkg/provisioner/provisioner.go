@@ -4,8 +4,8 @@ import (
 	"context"
 	"io"
 	"os"
-	"sync"
 	"path"
+	"sync"
 
 	"github.com/sirupsen/logrus"
 	"github.com/supergiant/supergiant/pkg/clouds"
@@ -46,12 +46,20 @@ func (r *TaskProvisioner) prepare(name clouds.Name, masterCount, nodeCount int) 
 	nodeTasks := make([]*workflows.Task, 0, nodeCount)
 
 	for i := 0; i < masterCount; i++ {
-		t, _ := workflows.NewTask(r.provisionMap[name][0], r.repository)
+		t, err := workflows.NewTask(r.provisionMap[name][0], r.repository)
+
+		if err != nil {
+			logrus.Errorf("Task type %s not found", r.provisionMap[name][0])
+		}
 		masterTasks = append(masterTasks, t)
 	}
 
 	for i := 0; i < nodeCount; i++ {
-		t, _ := workflows.NewTask(r.provisionMap[name][1], r.repository)
+		t, err := workflows.NewTask(r.provisionMap[name][1], r.repository)
+
+		if err != nil {
+			logrus.Errorf("Task type %s not found", r.provisionMap[name][1])
+		}
 		nodeTasks = append(nodeTasks, t)
 	}
 
@@ -109,10 +117,13 @@ func (p *TaskProvisioner) provisionMasters(ctx context.Context, profile *profile
 
 	// If we fail n /2 of master deploy jobs - all cluster deployment is failed
 	failWg := sync.WaitGroup{}
-	failWg.Add(len(profile.MasterProfiles) / 2 + 1)
+	failWg.Add(len(profile.MasterProfiles)/2 + 1)
 
 	// Provision master nodes
 	for index, masterTask := range tasks {
+		if masterTask == nil {
+			logrus.Fatal(tasks)
+		}
 		fileName := util.MakeFileName(masterTask.ID)
 		out, err := p.getWriter(fileName)
 
