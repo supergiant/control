@@ -4,16 +4,24 @@
     <mat-form-field>
       <input matInput type="text" placeholder="Cluster Name" [(ngModel)]="clusterName">
     </mat-form-field>
+
     <mat-form-field>
-      <mat-select placeholder="Select a Cloud Account" [(value)]="selectedCloudAccount">
+      <mat-select placeholder="Select a Cloud Account" [(value)]="selectedCloudAccount" (change)="selectCloudAccount($event.value)">
         <mat-option *ngFor="let c of cloudAccounts" [value]="c">{{ c.name }}</mat-option>
       </mat-select>
     </mat-form-field>
-    <mat-form-field>
-      <mat-select placeholder="Kube Profile" [(value)]="selectedKubeProfile">
-        <mat-option *ngFor="let k of kubeProfiles" [value]="k">{{ k }}</mat-option>
-      </mat-select>
-    </mat-form-field>
+
+    <div class="new-cluster-inputs-wrapper">
+      <json-schema-form *ngIf="selectedCloudAccount"
+        [schema]="schema"
+        [layout]="layout"
+        [(data)]="model"
+        framework="material-design"
+        (onChanges)="value=$event"
+        (onSubmit)="createCluster($event)">
+      </json-schema-form>
+    </div>
+
     <button mat-raised-button color="primary" type="button" (click)="createCluster(clusterName, selectedCloudAccount.name, selectedKubeProfile)">CREATE</button>
   </div>
 </div>

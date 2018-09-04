@@ -4,7 +4,6 @@ export class ClusterDigitalOceanModel {
       'cloud_account_name': '',
       'digitalocean_config': {
         'region': 'nyc1',
-        'ssh_key_fingerprint': []
       },
       'kubernetes_version': '1.8.7',
       'kube_master_count': 1,

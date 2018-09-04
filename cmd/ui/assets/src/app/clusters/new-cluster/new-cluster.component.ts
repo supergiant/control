@@ -32,9 +32,8 @@ export class NewClusterComponent implements OnInit, OnDestroy, AfterViewInit {
   layout: any;
 
   clusterName: string;
-  kubeProfiles = ["1234", "7878", "1092", "4555"];
-  selectedKubeProfile: any;
   cloudAccounts: Array<any>;
+  availableRegions: Array<any>;
   selectedCloudAccount: any;
 
   constructor(
@@ -56,22 +55,8 @@ export class NewClusterComponent implements OnInit, OnDestroy, AfterViewInit {
     this.schema = null;
   }
 
-  createCluster(name, account, profile) {
-    this.subscriptions.add(this.supergiant.Kubes.create({"clusterName": name, "profileId": profile, "cloudAccountName": account})
-      .subscribe(
-        // temporary objs sent to notifications
-        (res) => {
-          console.log(res);
-          this.success({"name": name});
-          this.router.navigate(['/dashboard']);
-        },
-        (err) => {
-          console.log(err);
-          this.error({"name": name}, err);
-        }))
-  }
 
-  createKube(model) {
+  createCluster(model) {
     this.subscriptions.add(this.supergiant.Kubes.create(model).subscribe(
       (data) => {
         this.success(model);
@@ -95,41 +80,41 @@ export class NewClusterComponent implements OnInit, OnDestroy, AfterViewInit {
       'Error:' + data.statusText);
   }
 
-  sendChoice(choice) {
-    switch (choice.provider) {
+  selectCloudAccount(cloudAccount) {
+    switch (cloudAccount.provider) {
       case 'aws': {
         this.data = this.awsModel.aws.data;
         this.schema = this.awsModel.aws.schema;
         this.layout = this.awsModel.aws.layout;
-        this.data.cloud_account_name = choice.name;
+        this.data.cloud_account_name = cloudAccount.name;
         break;
       }
       case 'digitalocean': {
         this.data = this.doModel.digitalocean.data;
         this.schema = this.doModel.digitalocean.schema;
         this.layout = this.doModel.digitalocean.layout;
-        this.data.cloud_account_name = choice.name;
+        this.data.cloud_account_name = cloudAccount.name;
         break;
       }
       case 'packet': {
         this.data = this.packModel.packet.data;
         this.schema = this.packModel.packet.schema;
         this.layout = this.packModel.packet.layout;
-        this.data.cloud_account_name = choice.name;
+        this.data.cloud_account_name = cloudAccount.name;
         break;
       }
       case 'openstack': {
         this.data = this.osModel.openstack.data;
         this.schema = this.osModel.openstack.schema;
         this.layout = this.osModel.openstack.layout;
-        this.data.cloud_account_name = choice.name;
+        this.data.cloud_account_name = cloudAccount.name;
         break;
       }
       case 'gce': {
         this.data = this.gceModel.gce.data;
         this.schema = this.gceModel.gce.schema;
         this.layout = this.gceModel.gce.layout;
-        this.data.cloud_account_name = choice.name;
+        this.data.cloud_account_name = cloudAccount.name;
         break;
       }
       default: {
@@ -138,9 +123,12 @@ export class NewClusterComponent implements OnInit, OnDestroy, AfterViewInit {
         this.layout = null;
         break;
       }
-    }
+    };
 
-
+    this.subscriptions.add(this.supergiant.CloudAccounts.getRegions(cloudAccount.name).subscribe(
+        regionList => {console.log(regionList);this.availableRegions = regionList},
+        err => this.error({}, err)
+    ))
   }
 
   ngOnInit() {

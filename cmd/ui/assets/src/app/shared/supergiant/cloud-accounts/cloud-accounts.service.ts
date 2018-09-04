@@ -12,6 +12,9 @@ export class CloudAccounts {
     }
     return this.util.fetch(this.cloudAccountsPath);
   }
+  public getRegions(id) {
+    return this.util.fetch(this.cloudAccountsPath + '/' + id + '/' + 'regions');
+  }
   public create(data) {
     return this.util.post(this.cloudAccountsPath, data);
   }
