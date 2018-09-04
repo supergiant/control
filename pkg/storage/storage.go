@@ -57,7 +57,7 @@ func (e *ETCDRepository) Delete(ctx context.Context, prefix string, key string) 
 	if err != nil {
 		return errors.Wrap(err, "failed to connect to the etcd")
 	}
-	_, err = cl.Delete(ctx, prefix, clientv3.WithPrefix())
+	_, err = cl.Delete(ctx, prefix+key, clientv3.WithPrefix())
 	return errors.Wrap(err, "failed to read from the etcd")
 }
 

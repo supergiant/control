@@ -4,8 +4,10 @@ import (
 	"sync"
 	"time"
 
+	"encoding/json"
 	"github.com/supergiant/supergiant/pkg/clouds"
 	"github.com/supergiant/supergiant/pkg/node"
+	"github.com/supergiant/supergiant/pkg/profile"
 	"github.com/supergiant/supergiant/pkg/runner"
 	"github.com/supergiant/supergiant/pkg/storage"
 )
@@ -18,10 +20,13 @@ type CertificatesConfig struct {
 }
 
 type DOConfig struct {
-	Name        string `json:"name" valid:"required"`
-	Region      string `json:"region" valid:"required"`
-	Size        string `json:"size" valid:"required"`
-	Image       string `json:"image" valid:"required"`
+	Name string `json:"name" valid:"required"`
+	// These come from UI select
+	Region string `json:"region" valid:"required"`
+	Size   string `json:"size" valid:"required"`
+	Image  string `json:"image" valid:"required"`
+
+	// These come from clouda ccount
 	Fingerprint string `json:"fingerprint" valid:"required"`
 	AccessToken string `json:"accessToken" valid:"required"`
 }
@@ -111,8 +116,20 @@ type EtcdConfig struct {
 type SshConfig struct {
 	User       string `json:"user"`
 	Port       string `json:"port"`
-	PrivateKey []byte `json:"privateKey"`
+	PrivateKey string `json:"privateKey"`
 	Timeout    int    `json:"timeout"`
+}
+
+type MasterMap struct {
+	internal map[string]*node.Node
+}
+
+func (m *MasterMap) UnmarshalJSON(b []byte) error {
+	return json.Unmarshal(b, &m.internal)
+}
+
+func (m *MasterMap) MarshalJSON() ([]byte, error) {
+	return json.Marshal(m.internal)
 }
 
 // TODO(stgleb): rename to context and embed context.Context here
@@ -146,26 +163,121 @@ type Config struct {
 
 	repository storage.Interface `json:"-"`
 
-	// TODO(stgleb): make MasterNodes private, add public method for initialization.
 	m           sync.RWMutex
-	MasterNodes map[string]*node.Node `json:"masterNodes"`
+	MasterNodes MasterMap `json:"MasterNodes"`
+}
+
+func NewConfig(clusterName, discoveryUrl, cloudAccountName string, profile profile.Profile) *Config {
+	return &Config{
+		ClusterName: clusterName,
+		DigitalOceanConfig: DOConfig{
+			Region: profile.Region,
+		},
+		AWSConfig:    AWSConfig{},
+		GCEConfig:    GCEConfig{},
+		OSConfig:     OSConfig{},
+		PacketConfig: PacketConfig{},
+
+		DockerConfig: DockerConfig{
+			Version:        profile.DockerVersion,
+			ReleaseVersion: profile.UbuntuVersion,
+			Arch:           profile.Arch,
+		},
+		DownloadK8sBinary: DownloadK8sBinary{
+			K8SVersion:      profile.K8SVersion,
+			Arch:            profile.Arch,
+			OperatingSystem: profile.OperatingSystem,
+		},
+		CertificatesConfig: CertificatesConfig{
+			KubernetesConfigDir: "/etc/kubernetes",
+			Username:            "root",
+			Password:            "1234",
+		},
+		NetworkConfig: NetworkConfig{
+			EtcdRepositoryUrl: "https://github.com/coreos/etcd/releases/download",
+			EtcdVersion:       "3.3.9",
+			EtcdHost:          "0.0.0.0",
+
+			Arch:            profile.Arch,
+			OperatingSystem: profile.OperatingSystem,
+
+			Network:     profile.CIDR,
+			NetworkType: profile.NetworkType,
+		},
+		FlannelConfig: FlannelConfig{
+			Arch:    profile.Arch,
+			Version: profile.FlannelVersion,
+			// TODO(stgleb): this should be configurable from user side
+			EtcdHost: "0.0.0.0",
+		},
+		KubeletConfig: KubeletConfig{
+			MasterPrivateIP: "localhost",
+			ProxyPort:       "8080",
+			EtcdClientPort:  "2379",
+			K8SVersion:      profile.K8SVersion,
+		},
+		ManifestConfig: ManifestConfig{
+			K8SVersion:          profile.K8SVersion,
+			KubernetesConfigDir: "/etc/kubernetes",
+			RBACEnabled:         profile.RBACEnabled,
+			ProviderString:      "todo",
+			MasterHost:          "localhost",
+			MasterPort:          "8080",
+		},
+		PostStartConfig: PostStartConfig{
+			Host:        "localhost",
+			Port:        "8080",
+			Username:    "root",
+			RBACEnabled: profile.RBACEnabled,
+			Timeout:     300,
+		},
+		TillerConfig: TillerConfig{
+			HelmVersion:     profile.HelmVersion,
+			OperatingSystem: profile.OperatingSystem,
+			Arch:            profile.Arch,
+		},
+		SshConfig: SshConfig{
+			Port:       "22",
+			User:       "root",
+			PrivateKey: "",
+			Timeout:    10,
+		},
+		EtcdConfig: EtcdConfig{
+			// TODO(stgleb): this field must be changed per node
+			Name:           "etcd0",
+			Version:        "3.3.9",
+			Host:           "0.0.0.0",
+			DataDir:        "/etcd-data",
+			ServicePort:    "2379",
+			ManagementPort: "2380",
+			StartTimeout:   "0",
+			RestartTimeout: "5",
+			DiscoveryUrl:   discoveryUrl,
+		},
+
+		MasterNodes: MasterMap{
+			internal: make(map[string]*node.Node, len(profile.MasterProfiles)),
+		},
+		Timeout:          time.Second * 1200,
+		CloudAccountName: cloudAccountName,
+	}
 }
 
 func (c *Config) AddMaster(n *node.Node) {
 	c.m.Lock()
 	defer c.m.Unlock()
-	c.MasterNodes[n.Id] = n
+	c.MasterNodes.internal[n.Id] = n
 }
 
 func (c *Config) GetMaster() *node.Node {
 	c.m.RLock()
 	defer c.m.RUnlock()
 
-	if len(c.MasterNodes) == 0 {
+	if len(c.MasterNodes.internal) == 0 {
 		return nil
 	}
 
-	for _, value := range c.MasterNodes {
+	for _, value := range c.MasterNodes.internal {
 		return value
 	}
 

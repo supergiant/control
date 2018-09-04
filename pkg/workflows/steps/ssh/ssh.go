@@ -27,7 +27,7 @@ func (s *Step) Run(ctx context.Context, writer io.Writer, config *steps.Config) 
 		User:    config.SshConfig.User,
 		Timeout: config.SshConfig.Timeout,
 		// TODO(stgleb): Pass ssh key id instead of key itself
-		Key: config.SshConfig.PrivateKey,
+		Key: []byte(config.SshConfig.PrivateKey),
 	}
 	config.Runner, err = ssh.NewRunner(cfg)
 
@@ -39,6 +39,10 @@ func (s *Step) Run(ctx context.Context, writer io.Writer, config *steps.Config) 
 
 func (s *Step) Name() string {
 	return StepName
+}
+
+func (s *Step) Rollback(context.Context, io.Writer, *steps.Config) error {
+	return nil
 }
 
 func (s *Step) Description() string {

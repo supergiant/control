@@ -6,6 +6,7 @@ import (
 	"testing"
 
 	"github.com/supergiant/supergiant/pkg/node"
+	"github.com/supergiant/supergiant/pkg/profile"
 	"github.com/supergiant/supergiant/pkg/workflows/steps"
 )
 
@@ -45,22 +46,21 @@ func TestStepRunSuccess(t *testing.T) {
 	host := "10.20.30.40"
 	timeout := 120
 
-	config := &steps.Config{
-		SshConfig: steps.SshConfig{
-			Port:       port,
-			User:       user,
-			Timeout:    timeout,
-			PrivateKey: []byte(privateKey),
-		},
-		MasterNodes: map[string]*node.Node{
-			"id": {
-				PublicIp:  host,
-				PrivateIp: host,
-			},
-		},
-		Node: node.Node{
-			PublicIp: host,
-		},
+	config := steps.NewConfig("", "", "", profile.Profile{})
+	config.SshConfig = steps.SshConfig{
+		Port:       port,
+		User:       user,
+		Timeout:    timeout,
+		PrivateKey: privateKey,
+	}
+
+	config.AddMaster(&node.Node{
+		PrivateIp: host,
+		PublicIp:  host,
+	})
+
+	config.Node = node.Node{
+		PublicIp: host,
 	}
 
 	err := step.Run(context.Background(), ioutil.Discard, config)
@@ -84,18 +84,15 @@ func TestStepRunError(t *testing.T) {
 	host := "10.20.30.40"
 	timeout := 120
 
-	config := &steps.Config{
-		SshConfig: steps.SshConfig{
-			Port:       port,
-			User:       user,
-			Timeout:    timeout,
-			PrivateKey: []byte(``),
-		},
-		MasterNodes: map[string]*node.Node{
-			"id": {
-				PrivateIp: host,
-			},
-		},
+	config := steps.NewConfig("", "", "", profile.Profile{})
+	config.AddMaster(&node.Node{
+		PrivateIp: host,
+	})
+	config.SshConfig = steps.SshConfig{
+		Port:       port,
+		User:       user,
+		Timeout:    timeout,
+		PrivateKey: "",
 	}
 
 	err := step.Run(context.Background(), ioutil.Discard, config)

@@ -1,8 +1,10 @@
 package aws
 
 type InstanceConfig struct {
-	ClusterName    string
-	ClusterRole    string
+	TagName        string
+	Type           string
+	TagClusterName string
+	TagClusterRole string
 	ID             string
 	Region         string
 	ImageID        string
@@ -13,5 +15,28 @@ type InstanceConfig struct {
 	IAMRole        string
 	VolumeType     string
 	VolumeSize     int64
+	EBSOptimized   *bool
 	Tags           map[string]string
+	UsedData       string
+}
+
+type EC2TypeInfo struct {
+	SKU           string             `json:"sku"`
+	ProductFamily string             `json:"productFamily"`
+	Attributes    *EC2TypeAttributes `json:"attributes"`
+}
+
+type EC2TypeAttributes struct {
+	ServiceCode       string `json:"servicecode"`
+	ServiceName       string `json:"servicename"`
+	InstanceFamily    string `json:"instanceFamily"`
+	InstanceType      string `json:"instanceType"`
+	OperatingSystem   string `json:"operatingSystem"`
+	Location          string `json:"location"`
+	VCPU              string `json:"vcpu"`
+	Memory            string `json:"memory"`
+	ECU               string `json:"ecu"`
+	PhysicalProcessor string `json:"physicalProcessor"`
+	Storage           string `json:"storage"`
+	CapacityStatus    string `json:"capacitystatus"`
 }

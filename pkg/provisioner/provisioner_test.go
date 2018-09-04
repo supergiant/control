@@ -2,6 +2,8 @@ package provisioner
 
 import (
 	"context"
+	"io"
+	"os"
 	"testing"
 
 	"github.com/stretchr/testify/mock"
@@ -19,6 +21,9 @@ func TestTaskProvisioner(t *testing.T) {
 
 	provisioner := TaskProvisioner{
 		repository,
+		func(string) (io.WriteCloser, error) {
+			return os.Stdout, nil
+		},
 		map[clouds.Name][]string{
 			clouds.DigitalOcean: {"test_master", "test_node"},
 		},
@@ -28,13 +33,26 @@ func TestTaskProvisioner(t *testing.T) {
 	workflows.RegisterWorkFlow("test_master", nil)
 	workflows.RegisterWorkFlow("test_node", nil)
 
-	kubeProfile := &profile.KubeProfile{
-		MasterProfiles: []profile.NodeProfile{
-			{},
+	kubeProfile := &profile.Profile{
+		MasterProfiles: []map[string]string{
+			{
+				"size":  "s-1vcpu-2gb",
+				"image": "ubuntu-18-04-x64",
+			},
+			{
+				"size":  "s-1vcpu-2gb",
+				"image": "ubuntu-18-04-x64",
+			},
 		},
-		NodesProfiles: []profile.NodeProfile{
-			{},
-			{},
+		NodesProfiles: []map[string]string{
+			{
+				"size":  "s-2vcpu-4gb",
+				"image": "ubuntu-18-04-x64",
+			},
+			{
+				"size":  "s-2vcpu-4gb",
+				"image": "ubuntu-18-04-x64",
+			},
 		},
 	}
 

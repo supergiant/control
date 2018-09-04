@@ -2,23 +2,27 @@ package provisioner
 
 import (
 	"context"
+	"io"
 	"os"
+	"path"
 
 	"github.com/sirupsen/logrus"
 	"github.com/supergiant/supergiant/pkg/clouds"
 	"github.com/supergiant/supergiant/pkg/profile"
 	"github.com/supergiant/supergiant/pkg/storage"
+	"github.com/supergiant/supergiant/pkg/util"
 	"github.com/supergiant/supergiant/pkg/workflows"
 	"github.com/supergiant/supergiant/pkg/workflows/steps"
 )
 
 // Provisioner gets kube profile and returns list of task ids of provision masterTasks
 type Provisioner interface {
-	Provision(context.Context, *profile.KubeProfile, *steps.Config) ([]*workflows.Task, error)
+	Provision(context.Context, *profile.Profile, *steps.Config) ([]*workflows.Task, error)
 }
 
 type TaskProvisioner struct {
 	repository   storage.Interface
+	getWriter    func(string) (io.WriteCloser, error)
 	provisionMap map[clouds.Name][]string
 }
 
@@ -27,6 +31,10 @@ func NewProvisioner(repository storage.Interface) *TaskProvisioner {
 		repository: repository,
 		provisionMap: map[clouds.Name][]string{
 			clouds.DigitalOcean: {workflows.DigitalOceanMaster, workflows.DigitalOceanNode},
+		},
+		getWriter: func(name string) (io.WriteCloser, error) {
+			// TODO(stgleb): Add log directory to params of supergiant
+			return os.OpenFile(path.Join("/tmp", name), os.O_CREATE|os.O_WRONLY|os.O_APPEND, 0666)
 		},
 	}
 }
@@ -50,7 +58,7 @@ func (r *TaskProvisioner) prepare(name clouds.Name, masterCount, nodeCount int) 
 }
 
 // Provision runs provision process among nodes that have been provided for provision
-func (r *TaskProvisioner) Provision(ctx context.Context, kubeProfile *profile.KubeProfile, config *steps.Config) ([]*workflows.Task, error) {
+func (r *TaskProvisioner) Provision(ctx context.Context, kubeProfile *profile.Profile, config *steps.Config) ([]*workflows.Task, error) {
 	masterTasks, nodeTasks := r.prepare(config.Provider, len(kubeProfile.MasterProfiles),
 		len(kubeProfile.NodesProfiles))
 
@@ -61,9 +69,25 @@ func (r *TaskProvisioner) Provision(ctx context.Context, kubeProfile *profile.Ku
 
 		// TODO(stgleb): When we have concurrent provisioning use that to sync nodes and master provisioning
 		// Provision master nodes
-		for _, masterTask := range masterTasks {
-			result := masterTask.Run(ctx, *config, os.Stdout)
-			err := <-result
+		for index, masterTask := range masterTasks {
+			if masterTask == nil {
+				continue
+			}
+
+			fileName := util.MakeFileName(masterTask.ID)
+			out, err := r.getWriter(fileName)
+
+			if err != nil {
+				logrus.Errorf("Error getting writer for %s", fileName)
+				return
+			}
+
+			// Fulfill task config with data about provider specific node configuration
+			p := kubeProfile.MasterProfiles[index]
+			FillNodeCloudSpecificData(kubeProfile.Provider, p, config)
+
+			result := masterTask.Run(ctx, *config, out)
+			err = <-result
 
 			if err != nil {
 				logrus.Errorf("master task %s has finished with error %v", masterTask.ID, err)
@@ -72,12 +96,14 @@ func (r *TaskProvisioner) Provision(ctx context.Context, kubeProfile *profile.Ku
 			}
 		}
 
+		// TODO(stgleb): If master  provisioning has failed
+		// on a step after build actual node handle this case
 		// If we get no master node
 		if config.GetMaster() == nil {
 			logrus.Errorf("Cluster provisioning has failed, no master is up")
 			return
 		}
-		logrus.Info("Master provisioning for cluster %s has finished successfully", config.ClusterName)
+		logrus.Infof("Master provisioning for cluster %s has finished successfully", config.ClusterName)
 
 		config.IsMaster = false
 		config.ManifestConfig.IsMaster = false
@@ -85,9 +111,25 @@ func (r *TaskProvisioner) Provision(ctx context.Context, kubeProfile *profile.Ku
 		config.FlannelConfig.EtcdHost = config.GetMaster().PrivateIp
 
 		// Provision nodes
-		for _, nodeTask := range nodeTasks {
-			result := nodeTask.Run(ctx, *config, os.Stdout)
-			err := <-result
+		for index, nodeTask := range nodeTasks {
+			if nodeTask == nil {
+				continue
+			}
+
+			fileName := util.MakeFileName(nodeTask.ID)
+			out, err := r.getWriter(fileName)
+
+			if err != nil {
+				logrus.Errorf("Error getting writer for %s", fileName)
+				return
+			}
+
+			// Fulfill task config with data about provider specific node configuration
+			p := kubeProfile.NodesProfiles[index]
+			FillNodeCloudSpecificData(kubeProfile.Provider, p, config)
+
+			result := nodeTask.Run(ctx, *config, out)
+			err = <-result
 
 			if err != nil {
 				logrus.Errorf("node task %s has finished with error %v", nodeTask.ID, err)

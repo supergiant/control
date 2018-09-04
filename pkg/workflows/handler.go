@@ -3,15 +3,22 @@ package workflows
 import (
 	"context"
 	"encoding/json"
+	"html/template"
+	"io"
 	"net/http"
 	"os"
+	"path"
 	"time"
 
+	"fmt"
 	"github.com/gorilla/mux"
-
+	"github.com/gorilla/websocket"
+	"github.com/hpcloud/tail"
+	"github.com/sirupsen/logrus"
 	"github.com/supergiant/supergiant/pkg/runner"
 	"github.com/supergiant/supergiant/pkg/runner/ssh"
 	"github.com/supergiant/supergiant/pkg/storage"
+	"github.com/supergiant/supergiant/pkg/util"
 	"github.com/supergiant/supergiant/pkg/workflows/steps"
 )
 
@@ -19,6 +26,7 @@ type TaskHandler struct {
 	runnerFactory  func(config ssh.Config) (runner.Runner, error)
 	cloudAccGetter cloudAccountGetter
 	repository     storage.Interface
+	getWriter      func(string) (io.WriteCloser, error)
 }
 
 type RunTaskRequest struct {
@@ -41,6 +49,10 @@ func NewTaskHandler(repository storage.Interface, runnerFactory func(config ssh.
 		runnerFactory:  runnerFactory,
 		repository:     repository,
 		cloudAccGetter: getter,
+		getWriter: func(name string) (io.WriteCloser, error) {
+			// TODO(stgleb): Add log directory to params of supergiant
+			return os.OpenFile(path.Join("/tmp", name), os.O_CREATE|os.O_WRONLY|os.O_APPEND, 0666)
+		},
 	}
 }
 
@@ -48,6 +60,8 @@ func (h *TaskHandler) Register(m *mux.Router) {
 	m.HandleFunc("/tasks", h.RunTask).Methods(http.MethodPost)
 	m.HandleFunc("/tasks/{id}", h.GetTask).Methods(http.MethodGet)
 	m.HandleFunc("/tasks/{id}/restart", h.RestartTask).Methods(http.MethodPost)
+	m.HandleFunc("/tasks/{id}/logs", h.StreamLogs).Methods(http.MethodGet)
+	m.HandleFunc("/tasks/{id}/logs/ws", h.GetLogs).Methods(http.MethodGet)
 }
 
 func (h *TaskHandler) GetTask(w http.ResponseWriter, r *http.Request) {
@@ -124,7 +138,15 @@ func (h *TaskHandler) RestartTask(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	task.Restart(context.Background(), id, os.Stdout)
+	writer, err := h.getWriter(id)
+
+	if err != nil {
+		http.Error(w, fmt.Sprintf("get writer %v", err), http.StatusInternalServerError)
+		logrus.Errorf("Get writer %v", err)
+		return
+	}
+
+	task.Restart(context.Background(), id, writer)
 	w.WriteHeader(http.StatusAccepted)
 }
 
@@ -162,4 +184,116 @@ func (h *TaskHandler) BuildAndRunTask(w http.ResponseWriter, r *http.Request) {
 	json.NewEncoder(w).Encode(&TaskResponse{
 		task.ID,
 	})
+}
+
+// NOTE(stgleb): This is made for testing purposes and example, remove when UI is done.
+func (h *TaskHandler) GetLogs(w http.ResponseWriter, r *http.Request) {
+	page := `<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <title>WebSocket Example</title>
+    </head>
+	<script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.3.1/jquery.js"></script>
+    
+    <body>
+        <div id="logs"></div>
+        <script type="text/javascript">
+            (function() {
+                var conn = new WebSocket("ws://{{ .Host }}/tasks/{{ .TaskId }}/logs");
+                conn.onmessage = function(evt) {
+                    console.log('file updated');
+ 					$('#logs').append("<p>" + evt.data + "</p>");
+                }
+            })();
+        </script>
+    </body>
+</html>`
+	tpl := template.Must(template.New("").Parse(page))
+	w.Header().Set("Content-Type", "text/html; charset=utf-8")
+	vars := mux.Vars(r)
+	id, ok := vars["id"]
+
+	if !ok {
+		http.Error(w, "need id of task", http.StatusBadRequest)
+		return
+	}
+
+	var v = struct {
+		Host   string
+		TaskId string
+	}{
+		r.Host,
+		id,
+	}
+	tpl.Execute(w, &v)
+}
+
+func (h *TaskHandler) StreamLogs(w http.ResponseWriter, r *http.Request) {
+	vars := mux.Vars(r)
+	id, ok := vars["id"]
+
+	if !ok {
+		http.Error(w, "need id of task", http.StatusBadRequest)
+		return
+	}
+
+	var upgrader = websocket.Upgrader{
+		HandshakeTimeout: time.Second * 10,
+		WriteBufferSize:  1024,
+		ReadBufferSize:   0,
+	}
+
+	t, err := tail.TailFile(path.Join("/tmp", util.MakeFileName(id)),
+		tail.Config{
+			Follow:    true,
+			MustExist: true,
+			Location: &tail.SeekInfo{
+				Offset: 0,
+				Whence: io.SeekStart,
+			},
+			Logger:      tail.DiscardingLogger,
+			MaxLineSize: 160,
+		})
+
+	if os.IsNotExist(err) {
+		http.NotFound(w, r)
+		logrus.Errorf("Not found %s", util.MakeFileName(id))
+		return
+	}
+
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		logrus.Errorf("Open file %s for tail %v", util.MakeFileName(id), err)
+		return
+	}
+
+	c, err := upgrader.Upgrade(w, r, nil)
+
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		logrus.Errorf("Upgrade connection %v", err)
+		return
+	}
+
+	go func() {
+		pingTicker := time.NewTicker(time.Second * 60)
+
+		for {
+			select {
+			case line := <-t.Lines:
+				c.SetWriteDeadline(time.Now().Add(time.Second * 10))
+				err = c.WriteMessage(websocket.TextMessage, []byte(line.Text))
+
+				// Do not log this error, since client can simply disconnect
+				if err != nil {
+					return
+				}
+			case <-pingTicker.C:
+				c.SetWriteDeadline(time.Now().Add(time.Second * 10))
+				if err := c.WriteMessage(websocket.PingMessage, []byte{}); err != nil {
+					return
+				}
+			}
+		}
+	}()
 }

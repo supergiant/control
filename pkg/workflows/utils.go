@@ -7,30 +7,14 @@ import (
 	"github.com/supergiant/supergiant/pkg/clouds"
 	"github.com/supergiant/supergiant/pkg/model"
 	"github.com/supergiant/supergiant/pkg/runner/ssh"
+	"github.com/supergiant/supergiant/pkg/sgerrors"
 	"github.com/supergiant/supergiant/pkg/storage"
+	"github.com/supergiant/supergiant/pkg/util"
 	"github.com/supergiant/supergiant/pkg/workflows/steps"
 )
 
 type cloudAccountGetter interface {
 	Get(context.Context, string) (*model.CloudAccount, error)
-}
-
-// bind params uses json serializing and reflect package that is underneath
-// to avoid direct access to map for getting appropriate field values.
-func bindParams(params map[string]string, object interface{}) error {
-	data, err := json.Marshal(params)
-
-	if err != nil {
-		return err
-	}
-
-	err = json.Unmarshal(data, object)
-
-	if err != nil {
-		return err
-	}
-
-	return nil
 }
 
 // Gets cloud account from storage and fills config object with those credentials
@@ -44,19 +28,22 @@ func FillCloudAccountCredentials(ctx context.Context, getter cloudAccountGetter,
 	config.ManifestConfig.ProviderString = string(cloudAccount.Provider)
 	config.Provider = cloudAccount.Provider
 
+	// Bind private key to config
+	util.BindParams(cloudAccount.Credentials, &config.SshConfig)
+
 	switch cloudAccount.Provider {
 	case clouds.AWS:
-		return bindParams(cloudAccount.Credentials, &config.AWSConfig)
+		return util.BindParams(cloudAccount.Credentials, &config.AWSConfig)
 	case clouds.GCE:
-		return bindParams(cloudAccount.Credentials, &config.GCEConfig)
+		return util.BindParams(cloudAccount.Credentials, &config.GCEConfig)
 	case clouds.DigitalOcean:
-		return bindParams(cloudAccount.Credentials, &config.DigitalOceanConfig)
+		return util.BindParams(cloudAccount.Credentials, &config.DigitalOceanConfig)
 	case clouds.Packet:
-		return bindParams(cloudAccount.Credentials, &config.PacketConfig)
+		return util.BindParams(cloudAccount.Credentials, &config.PacketConfig)
 	case clouds.OpenStack:
-		return bindParams(cloudAccount.Credentials, &config.OSConfig)
+		return util.BindParams(cloudAccount.Credentials, &config.OSConfig)
 	default:
-		return ErrUnknownProviderType
+		return sgerrors.ErrUnknownProvider
 	}
 
 	return nil
@@ -79,7 +66,7 @@ func deserializeTask(data []byte, repository storage.Interface) (*Task, error) {
 		Port:    task.Config.SshConfig.Port,
 		User:    task.Config.SshConfig.User,
 		Timeout: task.Config.SshConfig.Timeout,
-		Key:     task.Config.SshConfig.PrivateKey,
+		Key:     []byte(task.Config.SshConfig.PrivateKey),
 	}
 
 	task.Config.Runner, err = ssh.NewRunner(cfg)

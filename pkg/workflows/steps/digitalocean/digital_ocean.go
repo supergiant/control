@@ -10,11 +10,10 @@ import (
 	"github.com/digitalocean/godo"
 
 	"github.com/pkg/errors"
-	"golang.org/x/oauth2"
-
 	"github.com/sirupsen/logrus"
 
 	"github.com/supergiant/supergiant/pkg/clouds"
+	"github.com/supergiant/supergiant/pkg/clouds/digitaloceanSDK"
 	"github.com/supergiant/supergiant/pkg/node"
 	"github.com/supergiant/supergiant/pkg/util"
 	"github.com/supergiant/supergiant/pkg/workflows/steps"
@@ -53,7 +52,7 @@ func New(dropletTimeout, checkPeriod time.Duration) *Step {
 }
 
 func (t *Step) Run(ctx context.Context, output io.Writer, config *steps.Config) error {
-	c := getClient(config.DigitalOceanConfig.AccessToken)
+	c := digitaloceanSDK.New(config.DigitalOceanConfig.AccessToken).GetClient()
 
 	config.DigitalOceanConfig.Name = util.MakeNodeName(config.ClusterName, config.IsMaster)
 
@@ -74,14 +73,14 @@ func (t *Step) Run(ctx context.Context, output io.Writer, config *steps.Config) 
 	}
 
 	tags := []string{"Kubernetes-Cluster", config.DigitalOceanConfig.Name}
-	droplet, _, err := c.Droplets.Create(dropletRequest)
+	droplet, _, err := c.Droplets.Create(ctx, dropletRequest)
 
 	if err != nil {
 		return errors.Wrap(err, "dropletService has returned an error in Run job")
 	}
 
 	// NOTE(stgleb): ignore droplet tagging error, it always fails
-	t.tagDroplet(c.Tags, droplet.ID, tags)
+	t.tagDroplet(ctx, c.Tags, droplet.ID, tags)
 
 	after := time.After(t.DropletTimeout)
 	ticker := time.NewTicker(t.CheckPeriod)
@@ -89,7 +88,7 @@ func (t *Step) Run(ctx context.Context, output io.Writer, config *steps.Config) 
 	for {
 		select {
 		case <-ticker.C:
-			droplet, _, err = c.Droplets.Get(droplet.ID)
+			droplet, _, err = c.Droplets.Get(ctx, droplet.ID)
 
 			if err != nil {
 				return err
@@ -122,7 +121,11 @@ func (t *Step) Run(ctx context.Context, output io.Writer, config *steps.Config) 
 	return nil
 }
 
-func (t *Step) tagDroplet(tagService godo.TagsService, dropletId int, tags []string) error {
+func (t *Step) Rollback(context.Context, io.Writer, *steps.Config) error {
+	return nil
+}
+
+func (t *Step) tagDroplet(ctx context.Context, tagService godo.TagsService, dropletId int, tags []string) error {
 	// Tag droplet
 	for _, tag := range tags {
 		input := &godo.TagResourcesRequest{
@@ -133,31 +136,12 @@ func (t *Step) tagDroplet(tagService godo.TagsService, dropletId int, tags []str
 				},
 			},
 		}
-		if _, err := tagService.TagResources(tag, input); err != nil {
+		if _, err := tagService.TagResources(ctx, tag, input); err != nil {
 			return err
 		}
 	}
 
 	return nil
-}
-
-type TokenSource struct {
-	AccessToken string
-}
-
-func (t *TokenSource) Token() (*oauth2.Token, error) {
-	token := &oauth2.Token{
-		AccessToken: t.AccessToken,
-	}
-	return token, nil
-}
-
-func getClient(accessToken string) *godo.Client {
-	token := &TokenSource{
-		AccessToken: accessToken,
-	}
-	oauthClient := oauth2.NewClient(oauth2.NoContext, token)
-	return godo.NewClient(oauthClient)
 }
 
 func (t *Step) Name() string {

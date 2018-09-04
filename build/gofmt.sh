@@ -13,7 +13,8 @@ find_files() {
 }
 
 GOFMT="gofmt -s"
-bad_files=$(find_files | xargs $GOFMT -l)
+GOFMT_CMD="$GOFMT ${FLAGS:--l}"
+bad_files=$(find_files | xargs $GOFMT_CMD)
 if [[ -n "${bad_files}" ]]; then
   echo "!!! '$GOFMT' needs to be run on the following files: "
   echo "${bad_files}"
