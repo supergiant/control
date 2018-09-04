@@ -31,7 +31,7 @@ func (h *Handler) Register(r *mux.Router) {
 	r.HandleFunc("/accounts/{accountName}", h.Get).Methods(http.MethodGet)
 	r.HandleFunc("/accounts/{accountName}", h.Update).Methods(http.MethodPut)
 	r.HandleFunc("/accounts/{accountName}", h.Delete).Methods(http.MethodDelete)
-	r.HandleFunc("/accounts/{accountName}/regions", h.Delete).Methods(http.MethodGet)
+	r.HandleFunc("/accounts/{accountName}/regions", h.GetRegions).Methods(http.MethodGet)
 }
 
 // Create register new cloud account
