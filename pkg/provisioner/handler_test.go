@@ -27,10 +27,10 @@ func (t *mockTokenGetter) GetToken(ctx context.Context, num int) (string, error)
 }
 
 type mockProvisioner struct {
-	provision func(context.Context, *profile.Profile, *steps.Config) ([]*workflows.Task, error)
+	provision func(context.Context, *profile.Profile, *steps.Config) (map[string][]*workflows.Task, error)
 }
 
-func (m *mockProvisioner) Provision(ctx context.Context, kubeProfile *profile.Profile, config *steps.Config) ([]*workflows.Task, error) {
+func (m *mockProvisioner) Provision(ctx context.Context, kubeProfile *profile.Profile, config *steps.Config) (map[string][]*workflows.Task, error) {
 	return m.provision(ctx, kubeProfile, config)
 }
 
@@ -60,7 +60,7 @@ func TestProvisionHandler(t *testing.T) {
 		getProfile func(context.Context, string) (*profile.Profile, error)
 		getAccount func(context.Context, string) (*model.CloudAccount, error)
 		getToken   func(context.Context, int) (string, error)
-		provision  func(context.Context, *profile.Profile, *steps.Config) ([]*workflows.Task, error)
+		provision  func(context.Context, *profile.Profile, *steps.Config) (map[string][]*workflows.Task, error)
 	}{
 		{
 			description:  "malformed request body",
@@ -98,7 +98,7 @@ func TestProvisionHandler(t *testing.T) {
 			getToken: func(context.Context, int) (string, error) {
 				return "foo", nil
 			},
-			provision: func(context.Context, *profile.Profile, *steps.Config) ([]*workflows.Task, error) {
+			provision: func(context.Context, *profile.Profile, *steps.Config) (map[string][]*workflows.Task, error) {
 				return nil, sgerrors.ErrInvalidCredentials
 			},
 		},
@@ -113,13 +113,20 @@ func TestProvisionHandler(t *testing.T) {
 			getToken: func(context.Context, int) (string, error) {
 				return "foo", nil
 			},
-			provision: func(context.Context, *profile.Profile, *steps.Config) ([]*workflows.Task, error) {
-				return []*workflows.Task{
-					{
-						ID: "master-task-id-1",
+			provision: func(context.Context, *profile.Profile, *steps.Config) (map[string][]*workflows.Task, error) {
+				return map[string][]*workflows.Task{
+					"master": {
+						{
+							ID: "master-task-id-1",
+						},
 					},
-					{
-						ID: "node-task-id-2",
+					"node": {
+						{
+							ID: "node-task-id-2",
+						},
+					},
+					"cluster": {
+						{},
 					},
 				}, nil
 			},

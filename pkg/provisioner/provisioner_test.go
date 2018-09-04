@@ -52,7 +52,7 @@ func TestTaskProvisioner(t *testing.T) {
 		},
 	}
 
-	tasks, err := provisioner.Provision(context.Background(), kubeProfile, &steps.Config{
+	taskMap, err := provisioner.Provision(context.Background(), kubeProfile, &steps.Config{
 		Provider: clouds.DigitalOcean,
 	})
 
@@ -60,10 +60,14 @@ func TestTaskProvisioner(t *testing.T) {
 		t.Errorf("Unexpected error %v while provision", err)
 	}
 
-	if len(tasks) != len(kubeProfile.MasterProfiles)+len(kubeProfile.NodesProfiles)+1 {
+	if len(taskMap) != 3 {
+		t.Errorf("Expected task map len 3 actul %d", len(taskMap))
+	}
+
+	if len(taskMap["master"])+len(taskMap["node"]) != len(kubeProfile.MasterProfiles)+len(kubeProfile.NodesProfiles) {
 		t.Errorf("Wrong task count expected %d actual %d",
 			len(kubeProfile.MasterProfiles)+
 				len(kubeProfile.NodesProfiles),
-			len(tasks))
+			len(taskMap))
 	}
 }

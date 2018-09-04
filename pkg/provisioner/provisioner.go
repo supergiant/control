@@ -18,7 +18,7 @@ import (
 
 // Provisioner gets kube profile and returns list of task ids of provision masterTasks
 type Provisioner interface {
-	Provision(context.Context, *profile.Profile, *steps.Config) ([]*workflows.Task, error)
+	Provision(context.Context, *profile.Profile, *steps.Config) (map[string][]*workflows.Task, error)
 }
 
 type TaskProvisioner struct {
@@ -69,11 +69,9 @@ func (r *TaskProvisioner) prepare(name clouds.Name, masterCount, nodeCount int) 
 }
 
 // Provision runs provision process among nodes that have been provided for provision
-func (r *TaskProvisioner) Provision(ctx context.Context, profile *profile.Profile, config *steps.Config) ([]*workflows.Task, error) {
+func (r *TaskProvisioner) Provision(ctx context.Context, profile *profile.Profile, config *steps.Config) (map[string][]*workflows.Task, error) {
 	masterTasks, nodeTasks, clusterTask := r.prepare(config.Provider, len(profile.MasterProfiles),
 		len(profile.NodesProfiles))
-
-	tasks := append(append(append(make([]*workflows.Task, 0), masterTasks...), nodeTasks...), clusterTask)
 
 	go func() {
 		// Provision masters and wait until n/2 + 1 of masters with etcd are up and running
@@ -104,7 +102,11 @@ func (r *TaskProvisioner) Provision(ctx context.Context, profile *profile.Profil
 		logrus.Infof("Cluster %s deployment has finished", config.ClusterName)
 	}()
 
-	return tasks, nil
+	return map[string][]*workflows.Task{
+		"master":  masterTasks,
+		"node":    nodeTasks,
+		"cluster": {clusterTask},
+	}, nil
 }
 
 func (p *TaskProvisioner) provisionMasters(ctx context.Context, profile *profile.Profile, config *steps.Config, tasks []*workflows.Task) (chan struct{}, chan struct{}, error) {
