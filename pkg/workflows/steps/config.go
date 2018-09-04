@@ -1,10 +1,11 @@
 package steps
 
 import (
+	"encoding/json"
 	"sync"
 	"time"
 
-	"encoding/json"
+	"github.com/R358/brace/latch"
 	"github.com/supergiant/supergiant/pkg/clouds"
 	"github.com/supergiant/supergiant/pkg/node"
 	"github.com/supergiant/supergiant/pkg/profile"
@@ -106,6 +107,7 @@ type EtcdConfig struct {
 	Name           string `json:"name"`
 	Version        string `json:"version"`
 	DiscoveryUrl   string `json:"discoveryUrl"`
+	AdvertiseHost  string `json:"advertiseHost"`
 	Host           string `json:"host"`
 	DataDir        string `json:"dataDir"`
 	ServicePort    string `json:"servicePort"`
@@ -176,14 +178,14 @@ type Config struct {
 	m2    sync.RWMutex
 	Nodes Map `json:"nodes"`
 
-	wg *sync.WaitGroup
+	m3             sync.RWMutex
+	countdownLatch *latch.CountdownLatch
 }
 
 // NewConfig builds instance of config for provisioning
 func NewConfig(clusterName, discoveryUrl, cloudAccountName string, profile profile.Profile) *Config {
 	// We need at least n/2 + 1 of master nodes be up and running to continue cluster deployment
-	wg := &sync.WaitGroup{}
-	wg.Add(len(profile.MasterProfiles)/2 + 1)
+	l := latch.NewCountdownLatch(len(profile.MasterProfiles)/2 + 1)
 
 	return &Config{
 		Provider:    profile.Provider,
@@ -265,7 +267,7 @@ func NewConfig(clusterName, discoveryUrl, cloudAccountName string, profile profi
 			Name:           "etcd0",
 			Version:        "3.3.9",
 			Host:           "0.0.0.0",
-			DataDir:        "/etcd-data",
+			DataDir:        "/tmp/etcd-data",
 			ServicePort:    "2379",
 			ManagementPort: "2380",
 			StartTimeout:   "0",
@@ -285,7 +287,7 @@ func NewConfig(clusterName, discoveryUrl, cloudAccountName string, profile profi
 		Timeout:          time.Minute * 30,
 		CloudAccountName: cloudAccountName,
 
-		wg: wg,
+		countdownLatch: l,
 	}
 }
 
@@ -322,10 +324,20 @@ func (c *Config) GetMaster() *node.Node {
 
 // Wait while majority of nodes become up and running
 func (c *Config) Wait() {
-	c.wg.Wait()
+	if !c.countdownLatch.Completed() {
+		// NOTE(stgleb): Race can happens here
+		c.countdownLatch.Await()
+	}
 }
 
 // Done is called when master node has started etcd instance
 func (c *Config) Done() {
-	c.wg.Done()
+	if !c.countdownLatch.Completed() {
+		c.m3.Lock()
+		defer c.m3.Unlock()
+
+		if !c.countdownLatch.Completed() {
+			c.countdownLatch.CountDown()
+		}
+	}
 }

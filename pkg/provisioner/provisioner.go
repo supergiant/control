@@ -7,6 +7,7 @@ import (
 	"path"
 	"sync"
 
+	"github.com/R358/brace/latch"
 	"github.com/sirupsen/logrus"
 	"github.com/supergiant/supergiant/pkg/clouds"
 	"github.com/supergiant/supergiant/pkg/profile"
@@ -112,14 +113,12 @@ func (r *TaskProvisioner) Provision(ctx context.Context, profile *profile.Profil
 func (p *TaskProvisioner) provisionMasters(ctx context.Context, profile *profile.Profile, config *steps.Config, tasks []*workflows.Task) (chan struct{}, chan struct{}, error) {
 	config.IsMaster = true
 
-	// master wait group controls when the majority of masters with etcd are up and running
+	// master latch controls when the majority of masters with etcd are up and running
 	// so etcd is available for writes of flannel that starts on each machine
-	masterWg := sync.WaitGroup{}
-	masterWg.Add(len(profile.MasterProfiles)/2 + 1)
+	masterLatch := latch.NewCountdownLatch(len(profile.MasterProfiles)/2 + 1)
 
 	// If we fail n /2 of master deploy jobs - all cluster deployment is failed
-	failWg := sync.WaitGroup{}
-	failWg.Add(len(profile.MasterProfiles)/2 + 1)
+	failLatch := latch.NewCountdownLatch(len(profile.MasterProfiles)/2 + 1)
 
 	// Provision master nodes
 	for index, masterTask := range tasks {
@@ -143,11 +142,17 @@ func (p *TaskProvisioner) provisionMasters(ctx context.Context, profile *profile
 			err = <-result
 
 			if err != nil {
-				// Keep track of failed master deployment tasks
-				failWg.Done()
+				if !failLatch.Completed() {
+					// NOTE(stgleb): Between this lines race can happens
+					// Keep track of failed master deployment tasks
+					failLatch.CountDown()
+				}
 				logrus.Errorf("master task %s has finished with error %v", t.ID, err)
 			} else {
-				masterWg.Done()
+				if !masterLatch.Completed() {
+					// NOTE(stgleb): Between this lines race can happens
+					masterLatch.CountDown()
+				}
 				logrus.Infof("master-task %s has finished", t.ID)
 			}
 		}(masterTask)
@@ -157,12 +162,12 @@ func (p *TaskProvisioner) provisionMasters(ctx context.Context, profile *profile
 	failChan := make(chan struct{})
 
 	go func() {
-		masterWg.Wait()
+		masterLatch.Await()
 		close(doneChan)
 	}()
 
 	go func() {
-		failWg.Wait()
+		failLatch.Await()
 		close(failChan)
 	}()
 
@@ -207,7 +212,7 @@ func (p *TaskProvisioner) provisionNodes(ctx context.Context, profile *profile.P
 }
 
 func (p *TaskProvisioner) waitCluster(ctx context.Context, clusterTask *workflows.Task, config *steps.Config) {
-	// Waitgroup controls entire cluster deployment, waits until all final checks are done
+	// clusterWg controls entire cluster deployment, waits until all final checks are done
 	clusterWg := sync.WaitGroup{}
 	clusterWg.Add(1)
 
