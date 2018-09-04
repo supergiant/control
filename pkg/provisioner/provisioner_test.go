@@ -34,6 +34,7 @@ func TestTaskProvisioner(t *testing.T) {
 	workflows.RegisterWorkFlow("test_node", []steps.Step{})
 
 	p := &profile.Profile{
+		Provider: clouds.DigitalOcean,
 		MasterProfiles: []map[string]string{
 			{
 				"size":  "s-1vcpu-2gb",

@@ -186,6 +186,7 @@ func NewConfig(clusterName, discoveryUrl, cloudAccountName string, profile profi
 	wg.Add(len(profile.MasterProfiles)/2 + 1)
 
 	return &Config{
+		Provider:    profile.Provider,
 		ClusterName: clusterName,
 		DigitalOceanConfig: DOConfig{
 			Region: profile.Region,
