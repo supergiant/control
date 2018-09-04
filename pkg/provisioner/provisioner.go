@@ -4,6 +4,7 @@ import (
 	"context"
 	"io"
 	"os"
+	"sync"
 	"path"
 
 	"github.com/sirupsen/logrus"
@@ -13,7 +14,6 @@ import (
 	"github.com/supergiant/supergiant/pkg/util"
 	"github.com/supergiant/supergiant/pkg/workflows"
 	"github.com/supergiant/supergiant/pkg/workflows/steps"
-	"sync"
 )
 
 // Provisioner gets kube profile and returns list of task ids of provision masterTasks
@@ -109,7 +109,7 @@ func (p *TaskProvisioner) provisionMasters(ctx context.Context, profile *profile
 
 	// If we fail n /2 of master deploy jobs - all cluster deployment is failed
 	failWg := sync.WaitGroup{}
-	failWg.Add(len(profile.MasterProfiles) / 2)
+	failWg.Add(len(profile.MasterProfiles) / 2 + 1)
 
 	// Provision master nodes
 	for index, masterTask := range tasks {
