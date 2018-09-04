@@ -69,7 +69,7 @@ func (r *TaskProvisioner) Provision(ctx context.Context, profile *profile.Profil
 
 	go func() {
 		// Provision masters and wait until n/2 + 1 of masters with etcd are up and running
-		doneChan, err := r.provisionMasters(ctx, profile, config, masterTasks)
+		doneChan, failChan, err := r.provisionMasters(ctx, profile, config, masterTasks)
 
 		if err != nil {
 			logrus.Errorf("Provision master %v", err)
@@ -80,6 +80,9 @@ func (r *TaskProvisioner) Provision(ctx context.Context, profile *profile.Profil
 			logrus.Errorf("Master cluster has not been created %v", ctx.Err())
 			return
 		case <-doneChan:
+		case <-failChan:
+			logrus.Errorf("Master cluster deployment has been failed")
+			return
 		}
 
 		logrus.Infof("Master provisioning for cluster %s has finished successfully", config.ClusterName)
@@ -96,13 +99,17 @@ func (r *TaskProvisioner) Provision(ctx context.Context, profile *profile.Profil
 	return tasks, nil
 }
 
-func (p *TaskProvisioner) provisionMasters(ctx context.Context, profile *profile.Profile, config *steps.Config, tasks []*workflows.Task) (chan struct{}, error) {
+func (p *TaskProvisioner) provisionMasters(ctx context.Context, profile *profile.Profile, config *steps.Config, tasks []*workflows.Task) (chan struct{}, chan struct{}, error) {
 	config.IsMaster = true
 
 	// master wait group controls when the majority of masters with etcd are up and running
 	// so etcd is available for writes of flannel that starts on each machine
 	masterWg := sync.WaitGroup{}
 	masterWg.Add(len(profile.MasterProfiles)/2 + 1)
+
+	// If we fail n /2 of master deploy jobs - all cluster deployment is failed
+	failWg := sync.WaitGroup{}
+	failWg.Add(len(profile.MasterProfiles) / 2)
 
 	// Provision master nodes
 	for index, masterTask := range tasks {
@@ -111,7 +118,7 @@ func (p *TaskProvisioner) provisionMasters(ctx context.Context, profile *profile
 
 		if err != nil {
 			logrus.Errorf("Error getting writer for %s", fileName)
-			return nil, err
+			return nil, nil, err
 		}
 
 		// Fulfill task config with data about provider specific node configuration
@@ -123,10 +130,10 @@ func (p *TaskProvisioner) provisionMasters(ctx context.Context, profile *profile
 			err = <-result
 
 			if err != nil {
+				// Keep track of failed master deployment tasks
+				failWg.Done()
 				logrus.Errorf("master task %s has finished with error %v", t.ID, err)
 			} else {
-				// TODO(stgleb): Add another waitgroup that tracks failed master tasks and
-				// if amount of them equal to n/2 - abort entire cluster deployment
 				masterWg.Done()
 				logrus.Infof("master-task %s has finished", t.ID)
 			}
@@ -134,12 +141,19 @@ func (p *TaskProvisioner) provisionMasters(ctx context.Context, profile *profile
 	}
 
 	doneChan := make(chan struct{})
+	failChan := make(chan struct{})
+
 	go func() {
 		masterWg.Wait()
 		close(doneChan)
 	}()
 
-	return doneChan, nil
+	go func() {
+		failWg.Wait()
+		close(failChan)
+	}()
+
+	return doneChan, failChan, nil
 }
 
 func (p *TaskProvisioner) provisionNodes(ctx context.Context, profile *profile.Profile, config *steps.Config, tasks []*workflows.Task) {

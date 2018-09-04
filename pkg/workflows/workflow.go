@@ -78,7 +78,6 @@ func Init() {
 		steps.GetStep(network.StepName),
 		steps.GetStep(flannel.StepName),
 		steps.GetStep(poststart.StepName),
-		steps.GetStep(tiller.StepName),
 	}
 	digitalOceanNodeWorkflow := []steps.Step{
 		steps.GetStep(digitalocean.StepName),
@@ -96,6 +95,7 @@ func Init() {
 	clusterWorkflow := []steps.Step{
 		steps.GetStep(ssh.StepName),
 		steps.GetStep(clustercheck.StepName),
+		steps.GetStep(tiller.StepName),
 	}
 
 	m.Lock()
