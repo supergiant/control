@@ -24,7 +24,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/Sessions"
+                $ref: '#/components/schemas/Sessions'
         '400':
           description: "Malformed or incorrectly formatted request"
         '401':
@@ -37,18 +37,19 @@ paths:
         content:
           application/json:
             schema:
-              $ref: "#/components/schemas/Login"
+              $ref: '#/components/schemas/Login'
       responses:
         '201':
           description: "Resource successfully created"
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/Session"
+                $ref: '#/components/schemas/Session'
         '400':
-          description: "Malformed or incorrectly formatted request"
+          description: "Malformed or incorrectly formatted request body"
         '401':
           description: "Unauthorized or incorrectly formatted authorization"
+          
   /users/{id}:
     put:
       summary: "Replaces specified user object with new user object."
@@ -68,9 +69,23 @@ paths:
         content:
           application/json:
             schema:
-              $ref: "#/components/schemas/User"
+              $ref: '#/components/schemas/UserRequestBody'
       responses:
-        
+        '202':
+          description: "Accepted and executed request"
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/User'
+        '400':
+          description: "Malformed or incorrectly formatted request body"
+        '401':
+          description: "Unauthorized or incorrectly formatted authorization"
+        '404':
+          description: "Record not found"
+        '422':
+          description: "Could not process request with given request body"
+
     patch:
       summary: "Updates specified user object with specified changes."
       operationId: UpdateUser
@@ -85,9 +100,27 @@ paths:
             type: integer
             format: int64
       requestBody:
-        
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UserRequestBody'
       responses:
-        
+        '202':
+          description: "Accepted and executed request"
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/User'
+        '400':
+          description: "Malformed or incorrectly formatted request body"
+        '401':
+          description: "Unauthorized or incorrectly formatted authorization"
+        '404':
+          description: "Record not found"
+        '422':
+          description: "Could not process request with given request body"
+      
     delete:
       summary: "Deletes specified user object."
       operationId: DeleteUser
@@ -102,6 +135,20 @@ paths:
             type: integer
             format: int64
       responses:
+        '202':
+          description: "Accepted and executed request"
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/User'
+        '400':
+          description: "Malformed or incorrectly formatted request body"
+        '401':
+          description: "Unauthorized or incorrectly formatted authorization"
+        '404':
+          description: "Record not found"
+        '422':
+          description: "Could not process request with given request body"
         
 # COMPONENTS:
 components:
@@ -109,7 +156,7 @@ components:
     Sessions:
       type: array
       items:
-        $ref: "#/components/schemas/Session"
+        $ref: '#/components/schemas/Session'
       example: |-
         {
           "filters": null,
@@ -123,12 +170,12 @@ components:
               "created_at": "2018-08-15T12:35:04.702719287-05:00",
               "user": {
                 "id": 1,
-                "uuid": "5413d505-1da4-474b-80b8-49df9757add1",
-                "created_at": "2018-07-31T11:43:48.97537957-05:00",
-                "updated_at": "2018-07-31T11:43:48.97537957-05:00",
+                "uuid": "17c7b99e-de56-494d-a693-5d20209f2648",
+                "created_at": "2018-08-27T13:30:05.341048277-05:00",
+                "updated_at": "2018-08-27T13:30:05.341048277-05:00",
                 "username": "admin",
                 "role": "admin",
-                "api_token": "0D2yF5JRO9KBPYeQEhXzkUMAHpSrstZv"
+                "api_token": "0JzG456y89aQXdxfMTijZlPOLpqrKBCW"
               }
             }
           ]
@@ -154,22 +201,34 @@ components:
         
     User:
       example: |-
-        id: 1
-        uuid: 17c7b99e-de56-494d-a693-5d20209f2648
-        created_at: '2018-08-27T13:30:05.341048277-05:00'
-        updated_at: '2018-08-27T13:30:05.341048277-05:00'
-        username: admin
-        role: admin
-        api_token: 0JzG456y89aQXdxfMTijZlPOLpqrKBCW
+        {
+          "id": 1,
+          "uuid": "17c7b99e-de56-494d-a693-5d20209f2648",
+          "created_at": "0001-01-01T00:00:00Z",
+          "updated_at": "2018-09-04T15:00:41.93936002-05:00",
+          "username": "admin",
+          "role": "admin",
+          "api_token": "0JzG456y89aQXdxfMTijZlPOLpqrKBCW"
+        }
+
+    UserRequestBody:
+      example: |-
+        {
+          "username": "clarke",
+          "role": "user",
+          "password": "supergiant"
+        }
         
   
   # SECURITY SCHEMES:
   securitySchemes:
     TokenOrSession:
-      # This authorization requires a header body containing either a session or token (api key). Here's an example of each:
+      # This authorization requires a header body containing either a
+      # session or token (api key). Here's an example of each:
       # SGAPI token='0D2yF5JRO9KBPYeQEhXzkUMAHpSrstZv'
       # SGAPI session='R1234xDy8TLGJHeFVzSjElmnopXAsUuv'
-      # The whole header would be, for example, "Authorize: SGAPI session='R1234xDy8TLGJHeFVzSjElmnopXAsUuv'"
+      # The whole header would be, for example:
+      # "Authorize: SGAPI session='R1234xDy8TLGJHeFVzSjElmnopXAsUuv'"
       type: apiKey
       in: header
       name: "Authorization"

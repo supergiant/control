@@ -2,10 +2,10 @@
 // ##################################################################
 // ################################################################## /users
 
-// curl -XGET localhost:8080/api/v0/users -H "Authorization: SGAPI token='0JzG456y89aQXdxfMTijZlPOLpqrKBCW'"
+// curl -v -XGET localhost:8080/api/v0/users -H "Authorization: SGAPI token='0JzG456y89aQXdxfMTijZlPOLpqrKBCW'"
 // No request body
 
-// Response Body Example:
+// Response Example:
 {
     "filters": null,
     "offset": 0,
@@ -24,14 +24,15 @@
     ]
 }
 
-// curl -XPOST localhost:8080/api/v0/users -H "Authorization: SGAPI token='0JzG456y89aQXdxfMTijZlPOLpqrKBCW'" -d \
+// curl -v -XPOST localhost:8080/api/v0/users -H "Authorization: SGAPI token='0JzG456y89aQXdxfMTijZlPOLpqrKBCW'" -d \
 '{
     "username": "test1",
     "role": "admin",
     "password": "password"
 }'
 
-// ### Response Body Example:
+// ### Response Example:
+// 201
 {
     "id": 2,
     "uuid": "55242de7-2b24-4a17-9405-83dacb3ceb41",
@@ -46,14 +47,15 @@
 // ##################################################################
 // ################################################################## /users/{id}
 
-// curl -XPUT localhost:8080/api/v0/users/2 -H "Authorization: SGAPI token='0JzG456y89aQXdxfMTijZlPOLpqrKBCW'" -d \
+// curl -v -XPUT localhost:8080/api/v0/users/2 -H "Authorization: SGAPI token='0JzG456y89aQXdxfMTijZlPOLpqrKBCW'" -d \
 '{
     "username": "clarke",
     "role": "admin",
     "password": "supergiant"
 }'
 
-// ### Response Body Example:
+// ### Response Example:
+// 202
 {
     "id": 2,
     "uuid": "55242de7-2b24-4a17-9405-83dacb3ceb41",
@@ -61,5 +63,38 @@
     "updated_at": "2018-09-04T15:22:54.358901885-05:00",
     "username": "clarke",
     "role": "admin",
+    "api_token": "GAM34567F9VIcERKghijklmnopBQyPXH"
+}
+
+// curl -v -XPATCH localhost:8080/api/v0/users/3 -H "Authorization: SGAPI token='0JzG456y89aQXdxfMTijZlPOLpqrKBCW'" -d \
+'{
+    "username": "clarke",
+    "role": "user",
+    "password": "supergiant"
+}'
+
+// ### Response Example:
+// 202
+{
+    "id": 2,
+    "uuid": "55242de7-2b24-4a17-9405-83dacb3ceb41",
+    "created_at": "0001-01-01T00:00:00Z",
+    "updated_at": "2018-09-04T16:01:42.580122209-05:00",
+    "username": "clarke",
+    "role": "user",
+    "api_token": "GAM34567F9VIcERKghijklmnopBQyPXH"
+}
+
+// curl -v -XDELETE localhost:8080/api/v0/users/2 -H "Authorization: SGAPI token='0JzG456y89aQXdxfMTijZlPOLpqrKBCW'"
+
+// ### Response Example:
+// 202
+{
+    "id": 2,
+    "uuid": "36444250-2323-4c3b-8de4-a222676c60fb",
+    "created_at": "0001-01-01T00:00:00Z",
+    "updated_at": "2018-09-04T16:04:54.713892709-05:00",
+    "username": "clarke",
+    "role": "user",
     "api_token": "GAM34567F9VIcERKghijklmnopBQyPXH"
 }
