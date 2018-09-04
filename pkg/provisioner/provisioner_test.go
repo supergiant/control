@@ -17,7 +17,7 @@ import (
 
 func TestTaskProvisioner(t *testing.T) {
 	repository := &testutils.MockStorage{}
-	repository.On("Put", context.Background(), mock.Anything, mock.Anything, nil).Return(nil)
+	repository.On("Put", context.Background(), mock.Anything, mock.Anything, mock.Anything).Return(nil)
 
 	provisioner := TaskProvisioner{
 		repository,
