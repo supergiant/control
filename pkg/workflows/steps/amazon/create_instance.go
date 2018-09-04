@@ -10,39 +10,39 @@ import (
 	"github.com/pkg/errors"
 	"github.com/sirupsen/logrus"
 	"github.com/supergiant/supergiant/pkg/clouds"
-	"github.com/supergiant/supergiant/pkg/clouds/amazonSDK"
 	"github.com/supergiant/supergiant/pkg/node"
 	"github.com/supergiant/supergiant/pkg/util"
 	"github.com/supergiant/supergiant/pkg/workflows/steps"
 )
 
-const StepName = "aws_create_instance"
+const StepNameCreateEC2Instance = "aws_create_instance"
 const (
 	IPAttempts             = 12
 	SleepSecondsPerAttempt = 6
 )
 
 type StepCreateInstance struct {
-	//InstanceID could be used in Rollback to delete node
-	instanceID string
-	sdk        *amazonSDK.SDK
 }
 
-func (s StepCreateInstance) GetInstanceID() string {
-	return s.instanceID
+//InitStepCreateInstance adds the step to the registry
+func InitStepCreateInstance() {
+	steps.RegisterStep(StepNameCreateEC2Instance, NewCreateInstance())
 }
 
-func NewCreateInstance(awsSDK *amazonSDK.SDK) *StepCreateInstance {
-	return &StepCreateInstance{
-		sdk: awsSDK,
-	}
+func NewCreateInstance() *StepCreateInstance {
+	return &StepCreateInstance{}
 }
 
 func (s *StepCreateInstance) Run(ctx context.Context, w io.Writer, cfg *steps.Config) error {
 	log := util.GetLogger(w)
-	log.Infof("[%s] - started", StepName)
+	log.Infof("[%s] - started", StepNameCreateEC2Instance)
 
 	ec2Cfg := cfg.AWSConfig.EC2Config
+
+	sdk, err := GetSDK(cfg.AWSConfig)
+	if err != nil {
+		return errors.New("aws: authorization")
+	}
 
 	//If subnetID is nil, the default would be used
 	var subnetID *string
@@ -113,18 +113,15 @@ func (s *StepCreateInstance) Run(ctx context.Context, w io.Writer, cfg *steps.Co
 		//TODO ADD GPU SUPPORT FOR AWS
 	}
 
-	res, err := s.sdk.EC2.RunInstances(runInstanceInput)
+	res, err := sdk.EC2.RunInstances(runInstanceInput)
 	if err != nil {
-		log.Errorf("[%s] - failed to create ec2 instance: %v", StepName, err)
+		log.Errorf("[%s] - failed to create ec2 instance: %v", StepNameCreateEC2Instance, err)
 		return errors.Wrap(err, "aws: failed to connect")
 	}
 	if len(res.Instances) == 0 {
 		return errors.Wrap(err, "aws: no instances created")
 	}
 	instance := res.Instances[0]
-
-	//saving instance ID for rollback
-	s.instanceID = *instance.InstanceId
 
 	n := &node.Node{
 		Region:    cfg.AWSConfig.Region,
@@ -134,7 +131,7 @@ func (s *StepCreateInstance) Run(ctx context.Context, w io.Writer, cfg *steps.Co
 	}
 
 	if ec2Cfg.HasPublicAddr {
-		log.Infof("[%s] - waiting to obtain public IP", StepName)
+		log.Infof("[%s] - waiting to obtain public IP", StepNameCreateEC2Instance)
 
 		//Waiting for AWS to assign public IP requires us to poll an describe ec2 endpoint several times
 		for i := 0; i < IPAttempts; i++ {
@@ -150,14 +147,14 @@ func (s *StepCreateInstance) Run(ctx context.Context, w io.Writer, cfg *steps.Co
 					},
 				},
 			}
-			out, err := s.sdk.EC2.DescribeInstancesWithContext(ctx, lookup)
+			out, err := sdk.EC2.DescribeInstancesWithContext(ctx, lookup)
 			if err != nil {
-				log.Errorf("[%s] - failed to obtain public IP for node %s: %v", StepName, nodeName, err)
+				log.Errorf("[%s] - failed to obtain public IP for node %s: %v", StepNameCreateEC2Instance, nodeName, err)
 				return errors.Wrap(err, "aws: failed to obtain public IP")
 			}
 
 			if l := len(out.Reservations); l == 0 {
-				log.Infof("[%s] - found 0 ec2 instances, attempt %d", StepName, i)
+				log.Infof("[%s] - found 0 ec2 instances, attempt %d", StepNameCreateEC2Instance, i)
 				time.Sleep(time.Duration(SleepSecondsPerAttempt) * time.Second)
 				continue
 			}
@@ -168,16 +165,15 @@ func (s *StepCreateInstance) Run(ctx context.Context, w io.Writer, cfg *steps.Co
 						n.PublicIp = *i.PublicIpAddress
 						n.PrivateIp = *i.PrivateIpAddress
 
-						log.Info("[%s] - found public ip - %s for node %s", StepName, n.PublicIp, nodeName)
+						log.Info("[%s] - found public ip - %s for node %s", StepNameCreateEC2Instance, n.PublicIp, nodeName)
 						goto writeResult
 					}
 				}
 			}
-			log.Errorf("[%s] - failed to find public IP address after %d attempts", StepName, i)
+			log.Errorf("[%s] - failed to find public IP address after %d attempts", StepNameCreateEC2Instance, i)
 			return errors.New("aws: failed to obtain public IP")
 		}
 	}
-
 writeResult:
 	if cfg.IsMaster {
 		cfg.AddMaster(n)
@@ -185,7 +181,7 @@ writeResult:
 		cfg.Node = *n
 	}
 	log.Infof("[%s] - success! Created node %s with instanceID %s",
-		StepName, nodeName, n.Id)
+		StepNameCreateEC2Instance, nodeName, n.Id)
 	logrus.Debugf("%v", *instance)
 
 	return nil
@@ -193,25 +189,30 @@ writeResult:
 
 func (s *StepCreateInstance) Rollback(ctx context.Context, w io.Writer, cfg *steps.Config) error {
 	log := util.GetLogger(w)
-
 	log.Infof("[%s] - rollback initiated", s.Name())
-	if s.instanceID != "" {
-		_, err := s.sdk.EC2.TerminateInstancesWithContext(ctx, &ec2.TerminateInstancesInput{
+
+	sdk, err := GetSDK(cfg.AWSConfig)
+	if err != nil {
+		return errors.New("aws: authorization")
+	}
+
+	if cfg.Node.Id != "" {
+		_, err := sdk.EC2.TerminateInstancesWithContext(ctx, &ec2.TerminateInstancesInput{
 			InstanceIds: []*string{
-				aws.String(s.instanceID),
+				aws.String(cfg.Node.Id),
 			},
 		})
 		if err != nil {
 			return err
 		}
-		log.Infof("[%s] - deleted ec2 instance %s", s.Name(), s.instanceID)
+		log.Infof("[%s] - deleted ec2 instance %s", s.Name(), cfg.Node.Id)
 		return nil
 	}
 	return nil
 }
 
 func (*StepCreateInstance) Name() string {
-	return StepName
+	return StepNameCreateEC2Instance
 }
 
 func (*StepCreateInstance) Description() string {

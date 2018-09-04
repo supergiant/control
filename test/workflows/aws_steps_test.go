@@ -13,7 +13,7 @@ import (
 	"github.com/stretchr/testify/require"
 	"github.com/supergiant/supergiant/pkg/account"
 	"github.com/supergiant/supergiant/pkg/clouds"
-	"github.com/supergiant/supergiant/pkg/clouds/amazonSDK"
+	"github.com/supergiant/supergiant/pkg/clouds/awssdk"
 	"github.com/supergiant/supergiant/pkg/model"
 	"github.com/supergiant/supergiant/pkg/storage"
 	"github.com/supergiant/supergiant/pkg/testutils/assert"
@@ -48,7 +48,12 @@ func TestAWSEC2Create(t *testing.T) {
 	}
 	err := accounts.Create(ctx, cloudAcc)
 	require.NoError(t, err)
-	sdk, err := amazonSDK.NewSDK("eu-west-1", os.Getenv("AWS_ACCESS_KEY_ID"), os.Getenv("AWS_SECRET_KEY"), "")
+
+	key := os.Getenv("AWS_ACCESS_KEY_ID")
+	secret := os.Getenv("AWS_SECRET_KEY")
+	region := "eu-west-1"
+
+	sdk, err := awssdk.New(region, key, secret, "")
 	require.NoError(t, err)
 
 	out, err := sdk.EC2.DescribeImagesWithContext(ctx, &ec2.DescribeImagesInput{
@@ -90,9 +95,12 @@ func TestAWSEC2Create(t *testing.T) {
 				InstanceType: "m4.large",
 				ImageID:      *latestImage.ImageId,
 			},
+			Secret: secret,
+			KeyID:  key,
+			Region: region,
 		},
 	}
-	createKeyPair := amazon.NewKeyPairStep(accounts, sdk)
+	createKeyPair := amazon.NewKeyPairStep(accounts)
 
 	err = createKeyPair.Run(ctx, os.Stdout, cfg)
 	if err != nil {
@@ -104,7 +112,7 @@ func TestAWSEC2Create(t *testing.T) {
 	ec2Steps := make([]*amazon.StepCreateInstance, 0)
 
 	for i := 0; i < 3; i++ {
-		createEC2Step := amazon.NewCreateInstance(sdk)
+		createEC2Step := amazon.NewCreateInstance()
 		ec2Steps = append(ec2Steps, createEC2Step)
 
 		err = createEC2Step.Run(ctx, os.Stdout, cfg)

@@ -1,4 +1,4 @@
-package amazonSDK
+package awssdk
 
 import "github.com/pkg/errors"
 

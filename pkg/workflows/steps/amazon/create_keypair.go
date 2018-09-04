@@ -9,7 +9,6 @@ import (
 	"github.com/aws/aws-sdk-go/service/ec2"
 	"github.com/pkg/errors"
 	"github.com/sirupsen/logrus"
-	"github.com/supergiant/supergiant/pkg/clouds/amazonSDK"
 	"github.com/supergiant/supergiant/pkg/model"
 	"github.com/supergiant/supergiant/pkg/util"
 	"github.com/supergiant/supergiant/pkg/workflows/steps"
@@ -18,18 +17,21 @@ import (
 //KeyPairStep represents creation of keypair in aws
 //since there is hard cap on keypairs per account supergiant will create one per clster
 type KeyPairStep struct {
-	sdk      *amazonSDK.SDK
 	accounts accountWrapper
 }
 
-func NewKeyPairStep(wrapper accountWrapper, sdk *amazonSDK.SDK) *KeyPairStep {
+func NewKeyPairStep(wrapper accountWrapper) *KeyPairStep {
 	return &KeyPairStep{
-		sdk:      sdk,
 		accounts: wrapper,
 	}
 }
 
-const KeyPairStepName = "keypairstep"
+//InitCreateKeyPair add the step to the registry
+func InitCreateKeyPair(wrapper accountWrapper) {
+	steps.RegisterStep(StepNameKeyPair, NewKeyPairStep(wrapper))
+}
+
+const StepNameKeyPair = "keypairstep"
 
 type accountWrapper interface {
 	Get(context.Context, string) (*model.CloudAccount, error)
@@ -45,6 +47,11 @@ func (s *KeyPairStep) Run(ctx context.Context, w io.Writer, cfg *steps.Config) e
 		return errors.Wrap(err, "aws: no cloud account found")
 	}
 
+	sdk, err := GetSDK(cfg.AWSConfig)
+	if err != nil {
+		return errors.New("aws: authorization")
+	}
+
 	//If a user chooses to use pre-existing ec2 keypair it should be in the database already
 	if cfg.AWSConfig.KeyPairName != "" {
 		err := s.GetKeyFromAccount(cfg, account, log)
@@ -55,7 +62,7 @@ func (s *KeyPairStep) Run(ctx context.Context, w io.Writer, cfg *steps.Config) e
 		//create new keypair with the same name as cloud account
 		cfg.AWSConfig.KeyPairName = cfg.CloudAccountName
 
-		out, err := s.sdk.EC2.CreateKeyPairWithContext(ctx, &ec2.CreateKeyPairInput{KeyName: &cfg.AWSConfig.KeyPairName})
+		out, err := sdk.EC2.CreateKeyPairWithContext(ctx, &ec2.CreateKeyPairInput{KeyName: &cfg.AWSConfig.KeyPairName})
 		if err != nil {
 			if strings.Contains(err.Error(), "InvalidKeyPair.Duplicate") {
 				err := s.GetKeyFromAccount(cfg, account, log)
@@ -79,7 +86,7 @@ func (s *KeyPairStep) Run(ctx context.Context, w io.Writer, cfg *steps.Config) e
 			return err
 		}
 
-		log.Debugf("[%s] created new RSA key for keypair %s", KeyPairStepName, cfg.AWSConfig.KeyPairName)
+		log.Debugf("[%s] created new RSA key for keypair %s", StepNameKeyPair, cfg.AWSConfig.KeyPairName)
 		log.Debugln(*out.KeyMaterial)
 	}
 	log.Infof("[%s] - success!", s.Name())
@@ -87,8 +94,14 @@ func (s *KeyPairStep) Run(ctx context.Context, w io.Writer, cfg *steps.Config) e
 }
 
 func (s *KeyPairStep) Rollback(ctx context.Context, w io.Writer, cfg *steps.Config) error {
+	sdk, err := GetSDK(cfg.AWSConfig)
+	if err != nil {
+		return errors.New("aws: authorization")
+	}
+
 	cfg.SshConfig.PrivateKey = ""
-	_, err := s.sdk.EC2.DeleteKeyPairWithContext(ctx, &ec2.DeleteKeyPairInput{
+
+	_, err = sdk.EC2.DeleteKeyPairWithContext(ctx, &ec2.DeleteKeyPairInput{
 		KeyName: aws.String(cfg.AWSConfig.KeyPairName),
 	})
 	return err
@@ -105,7 +118,7 @@ func (s *KeyPairStep) GetKeyFromAccount(cfg *steps.Config, account *model.CloudA
 }
 
 func (*KeyPairStep) Name() string {
-	return KeyPairStepName
+	return StepNameKeyPair
 }
 
 func (*KeyPairStep) Description() string {

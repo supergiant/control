@@ -1,4 +1,4 @@
-package amazonSDK
+package awssdk
 
 import (
 	"github.com/aws/aws-sdk-go/aws"
@@ -13,8 +13,8 @@ type SDK struct {
 	EC2 *ec2.EC2
 }
 
-//NewSDK creates SDK using keyID/secret and optionally token if temporary credentials auth method is used
-func NewSDK(region string, keyID, secret, token string) (*SDK, error) {
+//New creates SDK using keyID/secret and optionally token if temporary credentials auth method is used
+func New(region string, keyID, secret, token string) (*SDK, error) {
 	if keyID == "" || secret == "" {
 		return nil, ErrInvalidCreds
 	}

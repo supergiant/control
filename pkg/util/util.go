@@ -11,9 +11,9 @@ import (
 	"strings"
 	"time"
 
-	"github.com/sirupsen/logrus"
 	"github.com/fatih/structs"
 	"github.com/pkg/errors"
+	"github.com/sirupsen/logrus"
 )
 
 const letterBytes = "0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ"
@@ -259,7 +259,7 @@ func MakeRole(isMaster bool) string {
 	if isMaster {
 		return "master"
 	} else {
-		return "minion"
+		return "node"
 	}
 }
 
