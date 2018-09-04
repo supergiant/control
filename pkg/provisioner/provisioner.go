@@ -173,7 +173,11 @@ func (p *TaskProvisioner) provisionNodes(ctx context.Context, profile *profile.P
 	config.IsMaster = false
 	config.ManifestConfig.IsMaster = false
 	// Do internal communication inside private network
-	config.FlannelConfig.EtcdHost = config.GetMaster().PrivateIp
+	if master := config.GetMaster(); master != nil {
+		config.FlannelConfig.EtcdHost = master.PrivateIp
+	} else {
+		return
+	}
 
 	// Provision nodes
 	for index, nodeTask := range tasks {
@@ -222,6 +226,9 @@ func (p *TaskProvisioner) waitCluster(ctx context.Context, clusterTask *workflow
 
 		if master := cfg.GetMaster(); master != nil {
 			cfg.Node = *master
+		} else {
+			logrus.Errorf("No master found, cluster deployment failed")
+			return
 		}
 
 		result := t.Run(ctx, cfg, out)
