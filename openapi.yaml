@@ -16,9 +16,9 @@ paths:
       summary: "Returns a list of all active sessions."
       operationId: ListSessions
       security:
-        - ApiKeyOrSession: []
+        - TokenOrSession: []
       responses:
-      # /Users/clarkevennerbeck/go/src/github.com/supergiant/supergiant/pkg/api/helpers.go for more response information
+      # TODO: /Users/clarkevennerbeck/go/src/github.com/supergiant/supergiant/pkg/api/helpers.go for more response information
         '200':
           description: "OK"
           content:
@@ -31,12 +31,13 @@ paths:
           description: "Unauthorized or incorrectly formatted authorization"
     post:
       summary: "Allows creation of new sessions."
+      operationId: CreateSession
       requestBody:
         required: true
         content:
           application/json:
             schema:
-              $ref: "#/components/schemas/UserAndPass"
+              $ref: "#/components/schemas/Login"
       responses:
         '201':
           description: "Resource successfully created"
@@ -48,7 +49,60 @@ paths:
           description: "Malformed or incorrectly formatted request"
         '401':
           description: "Unauthorized or incorrectly formatted authorization"
-
+  /users/{id}:
+    put:
+      summary: "Replaces specified user object with new user object."
+      operationId: UpdateUser
+      security:
+        - TokenOrSession: []
+      parameters: 
+        - name: id
+          in: path
+          description: "The numerical ID of the desired user."
+          required: true
+          schema:
+            type: integer
+            format: int64
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/User"
+      responses:
+        
+    patch:
+      summary: "Updates specified user object with specified changes."
+      operationId: UpdateUser
+      security:
+        - TokenOrSession: []
+      parameters: 
+        - name: id
+          in: path
+          description: "The numerical ID of the desired user."
+          required: true
+          schema:
+            type: integer
+            format: int64
+      requestBody:
+        
+      responses:
+        
+    delete:
+      summary: "Deletes specified user object."
+      operationId: DeleteUser
+      security:
+        - TokenOrSession: []
+      parameters: 
+        - name: id
+          in: path
+          description: "The numerical ID of the desired user."
+          required: true
+          schema:
+            type: integer
+            format: int64
+      responses:
+        
 # COMPONENTS:
 components:
   schemas:
@@ -89,7 +143,7 @@ components:
           "user": null
         }
         
-    UserAndPass:
+    Login:
       example: |-
         {
           "user": {
@@ -97,11 +151,22 @@ components:
             "password": "0KkGr5sBEyYJDAuo"
           }
         }
+        
+    User:
+      example: |-
+        id: 1
+        uuid: 17c7b99e-de56-494d-a693-5d20209f2648
+        created_at: '2018-08-27T13:30:05.341048277-05:00'
+        updated_at: '2018-08-27T13:30:05.341048277-05:00'
+        username: admin
+        role: admin
+        api_token: 0JzG456y89aQXdxfMTijZlPOLpqrKBCW
+        
   
   # SECURITY SCHEMES:
   securitySchemes:
-    ApiKeyOrSession:
-      # This authorization requires a header body containing either a session or token (api) key. Here's an example of each:
+    TokenOrSession:
+      # This authorization requires a header body containing either a session or token (api key). Here's an example of each:
       # SGAPI token='0D2yF5JRO9KBPYeQEhXzkUMAHpSrstZv'
       # SGAPI session='R1234xDy8TLGJHeFVzSjElmnopXAsUuv'
       # The whole header would be, for example, "Authorize: SGAPI session='R1234xDy8TLGJHeFVzSjElmnopXAsUuv'"

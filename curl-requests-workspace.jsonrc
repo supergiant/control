@@ -1,0 +1,65 @@
+// ##################################################################
+// ##################################################################
+// ################################################################## /users
+
+// curl -XGET localhost:8080/api/v0/users -H "Authorization: SGAPI token='0JzG456y89aQXdxfMTijZlPOLpqrKBCW'"
+// No request body
+
+// Response Body Example:
+{
+    "filters": null,
+    "offset": 0,
+    "limit": 50,
+    "total": 1,
+    "items": [
+        {
+            "id": 1,
+            "uuid": "17c7b99e-de56-494d-a693-5d20209f2648",
+            "created_at": "0001-01-01T00:00:00Z",
+            "updated_at": "2018-09-04T15:00:41.93936002-05:00",
+            "username": "admin",
+            "role": "admin",
+            "api_token": "0JzG456y89aQXdxfMTijZlPOLpqrKBCW"
+        }
+    ]
+}
+
+// curl -XPOST localhost:8080/api/v0/users -H "Authorization: SGAPI token='0JzG456y89aQXdxfMTijZlPOLpqrKBCW'" -d \
+'{
+    "username": "test1",
+    "role": "admin",
+    "password": "password"
+}'
+
+// ### Response Body Example:
+{
+    "id": 2,
+    "uuid": "55242de7-2b24-4a17-9405-83dacb3ceb41",
+    "created_at": "2018-09-04T15:18:14.120227503-05:00",
+    "updated_at": "2018-09-04T15:18:14.120227503-05:00",
+    "username": "test1",
+    "role": "admin",
+    "api_token": "GAM34567F9VIcERKghijklmnopBQyPXH"
+}
+
+// ##################################################################
+// ##################################################################
+// ################################################################## /users/{id}
+
+// curl -XPUT localhost:8080/api/v0/users/2 -H "Authorization: SGAPI token='0JzG456y89aQXdxfMTijZlPOLpqrKBCW'" -d \
+'{
+    "username": "clarke",
+    "role": "admin",
+    "password": "supergiant"
+}'
+
+// ### Response Body Example:
+{
+    "id": 2,
+    "uuid": "55242de7-2b24-4a17-9405-83dacb3ceb41",
+    "created_at": "0001-01-01T00:00:00Z",
+    "updated_at": "2018-09-04T15:22:54.358901885-05:00",
+    "username": "clarke",
+    "role": "admin",
+    "api_token": "GAM34567F9VIcERKghijklmnopBQyPXH"
+}
