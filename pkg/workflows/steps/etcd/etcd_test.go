@@ -81,8 +81,4 @@ func TestInstallEtcD(t *testing.T) {
 	if !strings.Contains(output.String(), version) {
 		t.Errorf("version %s not found in %s", version, output.String())
 	}
-
-	if !strings.Contains(output.String(), name) {
-		t.Errorf("name %s not found in %s", name, output.String())
-	}
 }
