@@ -5,12 +5,13 @@ import (
 	"sync"
 	"time"
 
-	"github.com/R358/brace/latch"
 	"github.com/supergiant/supergiant/pkg/clouds"
 	"github.com/supergiant/supergiant/pkg/node"
 	"github.com/supergiant/supergiant/pkg/profile"
 	"github.com/supergiant/supergiant/pkg/runner"
 	"github.com/supergiant/supergiant/pkg/storage"
+	"github.com/supergiant/supergiant/pkg/util"
+	"context"
 )
 
 type CertificatesConfig struct {
@@ -180,13 +181,13 @@ type Config struct {
 	Nodes Map `json:"nodes"`
 
 	m3             sync.RWMutex
-	countdownLatch *latch.CountdownLatch
+	countdownLatch *util.CountdownLatch
 }
 
 // NewConfig builds instance of config for provisioning
 func NewConfig(clusterName, discoveryUrl, cloudAccountName string, profile profile.Profile) *Config {
 	// We need at least n/2 + 1 of master nodes be up and running to continue cluster deployment
-	l := latch.NewCountdownLatch(len(profile.MasterProfiles)/2 + 1)
+	l := util.NewCountdownLatch(context.Background(), len(profile.MasterProfiles)/2 + 1)
 
 	return &Config{
 		Provider:    profile.Provider,
@@ -326,20 +327,10 @@ func (c *Config) GetMaster() *node.Node {
 
 // Wait while majority of nodes become up and running
 func (c *Config) Wait() {
-	if !c.countdownLatch.Completed() {
-		// NOTE(stgleb): Race can happens here
-		c.countdownLatch.Await()
-	}
+	c.countdownLatch.Wait()
 }
 
 // Done is called when master node has started etcd instance
 func (c *Config) Done() {
-	if !c.countdownLatch.Completed() {
-		c.m3.Lock()
-		defer c.m3.Unlock()
-
-		if !c.countdownLatch.Completed() {
-			c.countdownLatch.CountDown()
-		}
-	}
+	c.countdownLatch.CountDown()
 }
