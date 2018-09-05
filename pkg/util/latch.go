@@ -1,20 +1,23 @@
 package util
 
 import (
+	"context"
 	"sync"
 )
 
 type CountdownLatch struct {
 	zeroChan chan bool
 
+	ctx   context.Context
 	once  sync.Once
 	m     sync.Mutex
 	count int32
 }
 
-func NewCountdownLatch(count int) *CountdownLatch {
+func NewCountdownLatch(ctx context.Context, count int) *CountdownLatch {
 	return &CountdownLatch{
 		make(chan bool, 1),
+		ctx,
 		sync.Once{},
 		sync.Mutex{},
 		int32(count),
@@ -35,7 +38,10 @@ func (c *CountdownLatch) CountDown() {
 	}
 }
 
-// Wait until count down to zero
+// Wait until count down to zero or if context is done
 func (c *CountdownLatch) Wait() {
-	<-c.zeroChan
+	select {
+	case <-c.zeroChan:
+	case <-c.ctx.Done():
+	}
 }

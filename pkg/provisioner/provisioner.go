@@ -114,10 +114,10 @@ func (p *TaskProvisioner) provisionMasters(ctx context.Context, profile *profile
 
 	// master latch controls when the majority of masters with etcd are up and running
 	// so etcd is available for writes of flannel that starts on each machine
-	masterLatch := util.NewCountdownLatch(len(profile.MasterProfiles)/2 + 1)
+	masterLatch := util.NewCountdownLatch(ctx, len(profile.MasterProfiles)/2+1)
 
 	// If we fail n /2 of master deploy jobs - all cluster deployment is failed
-	failLatch := util.NewCountdownLatch(len(profile.MasterProfiles)/2 + 1)
+	failLatch := util.NewCountdownLatch(ctx, len(profile.MasterProfiles)/2+1)
 
 	// Provision master nodes
 	for index, masterTask := range tasks {
