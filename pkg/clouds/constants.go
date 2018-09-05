@@ -9,3 +9,7 @@ const (
 	GCE          Name = "gce"
 	OpenStack    Name = "openstack"
 )
+
+const (
+	CredsPrivateKey = "privateKey"
+)

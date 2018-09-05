@@ -5,6 +5,8 @@ import (
 	"io"
 	"strings"
 
+	"github.com/supergiant/supergiant/pkg/clouds"
+
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/service/ec2"
 	"github.com/pkg/errors"
@@ -80,7 +82,7 @@ func (s *KeyPairStep) Run(ctx context.Context, w io.Writer, cfg *steps.Config) e
 			return errors.New("aws: faield to obtain keypair data")
 		}
 
-		account.Credentials["privateKey"] = *out.KeyMaterial
+		account.Credentials[clouds.CredsPrivateKey] = *out.KeyMaterial
 
 		if err := s.accounts.Update(ctx, account); err != nil {
 			return err

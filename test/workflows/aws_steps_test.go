@@ -3,8 +3,12 @@ package workflows
 import (
 	"context"
 	"os"
+	"reflect"
 	"testing"
 	"time"
+	"unsafe"
+
+	"github.com/supergiant/supergiant/pkg/node"
 
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/service/ec2"
@@ -86,7 +90,7 @@ func TestAWSEC2Create(t *testing.T) {
 		ClusterName:      "sgtest",
 		CloudAccountName: cloudAcc.Name,
 		IsMaster:         true,
-		MasterNodes:      steps.MasterMap{},
+		MasterNodes:      steps.NewMasterMap(),
 		AWSConfig: steps.AWSConfig{
 			EC2Config: steps.EC2Config{
 				VolumeSize:   2,
@@ -100,6 +104,7 @@ func TestAWSEC2Create(t *testing.T) {
 			Region: region,
 		},
 	}
+
 	createKeyPair := amazon.NewKeyPairStep(accounts)
 
 	err = createKeyPair.Run(ctx, os.Stdout, cfg)
@@ -109,27 +114,48 @@ func TestAWSEC2Create(t *testing.T) {
 		require.NoError(t, err)
 	}
 
-	ec2Steps := make([]*amazon.StepCreateInstance, 0)
+	fail := false
 
 	for i := 0; i < 3; i++ {
 		createEC2Step := amazon.NewCreateInstance()
-		ec2Steps = append(ec2Steps, createEC2Step)
 
 		err = createEC2Step.Run(ctx, os.Stdout, cfg)
-		if err != nil {
-			break
-		}
 		require.NoError(t, err)
 
 		acc, err := accounts.Get(ctx, cfg.CloudAccountName)
-		require.NoError(t, err)
-		require.NotEmpty(t, acc.Credentials)
-		require.NotEqual(t, "", acc.Credentials[model.KeyPrivateKey])
+		if err != nil {
+			fail = true
+			break
+		}
+
+		if "" == acc.Credentials[clouds.CredsPrivateKey] {
+			fail = true
+			break
+		}
 	}
 
-	for _, v := range ec2Steps {
-		err := v.Rollback(ctx, os.Stdout, cfg)
-		//log error instead of failing test to make sure everything is deleted
-		logrus.Error(err)
+	instances := make([]string, 0)
+
+	//Temporary HACK to access unexported map of masters
+	rs := reflect.ValueOf(&cfg.MasterNodes).Elem()
+	rf := rs.FieldByName("internal")
+	rf = reflect.NewAt(rf.Type(), unsafe.Pointer(rf.UnsafeAddr())).Elem()
+	instanceMap, ok := rf.Interface().(map[string]*node.Node)
+	if !ok {
+		t.Error("failed to read master map")
+	}
+
+	for k := range instanceMap {
+		instances = append(instances, k)
+	}
+
+	//We should delete nodes anyway
+	_, err = sdk.EC2.TerminateInstancesWithContext(ctx, &ec2.TerminateInstancesInput{
+		InstanceIds: aws.StringSlice(instances),
+	})
+	require.NoError(t, err)
+
+	if fail == true {
+		t.Error("failed to create ec2 instances")
 	}
 }

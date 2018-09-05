@@ -51,7 +51,6 @@ func (s *StepCreateInstance) Run(ctx context.Context, w io.Writer, cfg *steps.Co
 	}
 
 	nodeName := util.MakeNodeName(cfg.ClusterName, cfg.IsMaster)
-
 	runInstanceInput := &ec2.RunInstancesInput{
 		BlockDeviceMappings: []*ec2.BlockDeviceMapping{
 			{
@@ -125,7 +124,7 @@ func (s *StepCreateInstance) Run(ctx context.Context, w io.Writer, cfg *steps.Co
 
 	n := &node.Node{
 		Region:    cfg.AWSConfig.Region,
-		CreatedAt: time.Now().Unix(),
+		CreatedAt: instance.LaunchTime.Unix(),
 		Provider:  clouds.AWS,
 		Id:        *instance.InstanceId,
 	}
@@ -133,6 +132,7 @@ func (s *StepCreateInstance) Run(ctx context.Context, w io.Writer, cfg *steps.Co
 	if ec2Cfg.HasPublicAddr {
 		log.Infof("[%s] - waiting to obtain public IP", StepNameCreateEC2Instance)
 
+		found := false
 		//Waiting for AWS to assign public IP requires us to poll an describe ec2 endpoint several times
 		for i := 0; i < IPAttempts; i++ {
 			lookup := &ec2.DescribeInstancesInput{
@@ -159,22 +159,20 @@ func (s *StepCreateInstance) Run(ctx context.Context, w io.Writer, cfg *steps.Co
 				continue
 			}
 
-			for _, r := range out.Reservations {
-				for _, i := range r.Instances {
-					if i.PublicIpAddress != nil {
-						n.PublicIp = *i.PublicIpAddress
-						n.PrivateIp = *i.PrivateIpAddress
-
-						log.Info("[%s] - found public ip - %s for node %s", StepNameCreateEC2Instance, n.PublicIp, nodeName)
-						goto writeResult
-					}
-				}
+			if i := findInstanceWithPublicAddr(out.Reservations); i != nil {
+				n.PublicIp = *i.PublicIpAddress
+				n.PrivateIp = *i.PrivateIpAddress
+				log.Info("[%s] - found public ip - %s for node %s", StepNameCreateEC2Instance, n.PublicIp, nodeName)
+				found = true
+				break
 			}
-			log.Errorf("[%s] - failed to find public IP address after %d attempts", StepNameCreateEC2Instance, i)
+		}
+		if !found {
+			log.Errorf("[%s] - failed to find public IP address after %d attempts", StepNameCreateEC2Instance,
+				IPAttempts)
 			return errors.New("aws: failed to obtain public IP")
 		}
 	}
-writeResult:
 	if cfg.IsMaster {
 		cfg.AddMaster(n)
 	} else {
@@ -207,6 +205,17 @@ func (s *StepCreateInstance) Rollback(ctx context.Context, w io.Writer, cfg *ste
 		}
 		log.Infof("[%s] - deleted ec2 instance %s", s.Name(), cfg.Node.Id)
 		return nil
+	}
+	return nil
+}
+
+func findInstanceWithPublicAddr(reservations []*ec2.Reservation) *ec2.Instance {
+	for _, r := range reservations {
+		for _, i := range r.Instances {
+			if i.PublicIpAddress != nil {
+				return i
+			}
+		}
 	}
 	return nil
 }

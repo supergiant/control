@@ -4,11 +4,6 @@ import (
 	"github.com/supergiant/supergiant/pkg/clouds"
 )
 
-const (
-	KeyFingerprint = "fingerprint"
-	KeyPrivateKey  = "privatekey"
-)
-
 // CloudAccount is settings of account in public or private cloud (e.g. AWS, vCenter)
 // Name should be unique.
 type CloudAccount struct {

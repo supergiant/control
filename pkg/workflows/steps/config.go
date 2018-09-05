@@ -1,10 +1,10 @@
 package steps
 
 import (
+	"encoding/json"
 	"sync"
 	"time"
 
-	"encoding/json"
 	"github.com/supergiant/supergiant/pkg/clouds"
 	"github.com/supergiant/supergiant/pkg/node"
 	"github.com/supergiant/supergiant/pkg/profile"
@@ -142,6 +142,12 @@ type SshConfig struct {
 
 type MasterMap struct {
 	internal map[string]*node.Node
+}
+
+func NewMasterMap() MasterMap {
+	return MasterMap{
+		internal: make(map[string]*node.Node, 0),
+	}
 }
 
 func (m *MasterMap) UnmarshalJSON(b []byte) error {
