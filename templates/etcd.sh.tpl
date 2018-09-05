@@ -30,4 +30,5 @@ EOF
 systemctl daemon-reload
 systemctl enable etcd.service
 systemctl start etcd.service
-until $([ $(systemctl status etcd.service|grep active|wc -l) -eq 1 ]); do printf '.'; sleep 5; done
+
+while [[ "$(curl -s -o /dev/null -w ''%{http_code}'' http://{{ .Host }}:{{ .ServicePort }}/health)" != "200" ]]; do printf 'wait for etcd\n';sleep 5; done

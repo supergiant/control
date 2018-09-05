@@ -1,6 +1,7 @@
 package steps
 
 import (
+	"context"
 	"encoding/json"
 	"sync"
 	"time"
@@ -11,7 +12,6 @@ import (
 	"github.com/supergiant/supergiant/pkg/runner"
 	"github.com/supergiant/supergiant/pkg/storage"
 	"github.com/supergiant/supergiant/pkg/util"
-	"context"
 )
 
 type CertificatesConfig struct {
@@ -28,7 +28,7 @@ type DOConfig struct {
 	Size   string `json:"size" valid:"required"`
 	Image  string `json:"image" valid:"required"`
 
-	// These come from clouda ccount
+	// These come from cloud account
 	Fingerprint string `json:"fingerprint" valid:"required"`
 	AccessToken string `json:"accessToken" valid:"required"`
 }
@@ -143,6 +143,7 @@ func (m *Map) MarshalJSON() ([]byte, error) {
 
 // TODO(stgleb): rename to context and embed context.Context here
 type Config struct {
+	Context    context.Context
 	Provider    clouds.Name `json:"provider"`
 	IsMaster    bool        `json:"isMaster"`
 	ClusterName string      `json:"clusterName"`
@@ -186,10 +187,14 @@ type Config struct {
 
 // NewConfig builds instance of config for provisioning
 func NewConfig(clusterName, discoveryUrl, cloudAccountName string, profile profile.Profile) *Config {
+	timeout := time.Minute * 30
+	ctx, _ := context.WithTimeout(context.Background(), timeout)
+
 	// We need at least n/2 + 1 of master nodes be up and running to continue cluster deployment
-	l := util.NewCountdownLatch(context.Background(), len(profile.MasterProfiles)/2 + 1)
+	l := util.NewCountdownLatch(ctx, len(profile.MasterProfiles)/2 + 1)
 
 	return &Config{
+		Context: ctx,
 		Provider:    profile.Provider,
 		ClusterName: clusterName,
 		DigitalOceanConfig: DOConfig{
@@ -272,7 +277,7 @@ func NewConfig(clusterName, discoveryUrl, cloudAccountName string, profile profi
 			DataDir:        "/tmp/etcd-data",
 			ServicePort:    "2379",
 			ManagementPort: "2380",
-			Timeout:        time.Minute * 3,
+			Timeout:        time.Minute * 10,
 			StartTimeout:   "0",
 			RestartTimeout: "5",
 			DiscoveryUrl:   discoveryUrl,
@@ -287,7 +292,7 @@ func NewConfig(clusterName, discoveryUrl, cloudAccountName string, profile profi
 		Nodes: Map{
 			internal: make(map[string]*node.Node, len(profile.NodesProfiles)),
 		},
-		Timeout:          time.Minute * 30,
+		Timeout:          timeout,
 		CloudAccountName: cloudAccountName,
 
 		countdownLatch: l,
