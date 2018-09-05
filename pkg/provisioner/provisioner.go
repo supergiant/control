@@ -50,6 +50,7 @@ func (r *TaskProvisioner) prepare(name clouds.Name, masterCount, nodeCount int) 
 
 		if err != nil {
 			logrus.Errorf("Task type %s not found", r.provisionMap[name][0])
+			continue
 		}
 		masterTasks = append(masterTasks, t)
 	}
@@ -59,6 +60,7 @@ func (r *TaskProvisioner) prepare(name clouds.Name, masterCount, nodeCount int) 
 
 		if err != nil {
 			logrus.Errorf("Task type %s not found", r.provisionMap[name][1])
+			continue
 		}
 		nodeTasks = append(nodeTasks, t)
 	}
