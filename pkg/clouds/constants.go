@@ -34,3 +34,7 @@ const (
 	KeyDigitalOceanAccessToken = "key_digitalocean_access_token"
 	EnvDigitalOceanAccessToken = "DIGITALOCEAN_TOKEN"
 )
+
+const (
+	CredsPrivateKey = "privateKey"
+)

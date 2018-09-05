@@ -6,6 +6,11 @@ import (
 	"time"
 )
 
+const (
+	//DefaultETCDURL used in integration tests
+	DefaultETCDURL = "http://127.0.0.1:2379"
+)
+
 //etcdRunning is test assert function useful in integration tests to assert that test dependencies are running
 func MustRunETCD(etcdHost string) {
 	if err := CheckETCD(etcdHost); err != nil {
