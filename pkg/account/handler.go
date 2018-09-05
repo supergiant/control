@@ -8,6 +8,7 @@ import (
 	"github.com/sirupsen/logrus"
 	"gopkg.in/asaskevich/govalidator.v8"
 
+	"github.com/pkg/errors"
 	"github.com/supergiant/supergiant/pkg/message"
 	"github.com/supergiant/supergiant/pkg/model"
 	"github.com/supergiant/supergiant/pkg/sgerrors"
@@ -30,6 +31,7 @@ func (h *Handler) Register(r *mux.Router) {
 	r.HandleFunc("/accounts/{accountName}", h.Get).Methods(http.MethodGet)
 	r.HandleFunc("/accounts/{accountName}", h.Update).Methods(http.MethodPut)
 	r.HandleFunc("/accounts/{accountName}", h.Delete).Methods(http.MethodDelete)
+	r.HandleFunc("/accounts/{accountName}/regions", h.GetRegions).Methods(http.MethodGet)
 }
 
 // Create register new cloud account
@@ -126,6 +128,45 @@ func (h *Handler) Delete(rw http.ResponseWriter, r *http.Request) {
 	if err := h.service.Delete(r.Context(), accountName); err != nil {
 		logrus.Errorf("account handler: delete %v", err)
 		message.SendUnknownError(rw, err)
+		return
+	}
+}
+
+func (h *Handler) GetRegions(w http.ResponseWriter, r *http.Request) {
+	accountName, ok := mux.Vars(r)["accountName"]
+	if !ok || accountName == "" {
+		message.SendValidationFailed(w, errors.New("clouds: preconditions failed"))
+		return
+	}
+
+	acc, err := h.service.Get(r.Context(), accountName)
+	if err != nil {
+		if sgerrors.IsNotFound(err) {
+			message.SendNotFound(w, "account", err)
+			return
+		}
+		logrus.Errorf("clouds: get regions %v", err)
+		message.SendUnknownError(w, err)
+		return
+	}
+
+	finder, err := GetRegionFinder(acc)
+	if err != nil {
+		logrus.Errorf("clouds: get regions %v", err)
+		message.SendUnknownError(w, err)
+		return
+	}
+
+	aggregate, err := finder.Find(r.Context())
+	if err != nil {
+		logrus.Errorf("clouds: get regions %v", err)
+		message.SendUnknownError(w, err)
+		return
+	}
+
+	if err := json.NewEncoder(w).Encode(aggregate); err != nil {
+		logrus.Errorf("clouds: get regions %v", err)
+		message.SendUnknownError(w, err)
 		return
 	}
 }

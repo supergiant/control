@@ -50,21 +50,6 @@ var (
 func Init() {
 	workflowMap = make(map[string]Workflow)
 
-	digitalocean.Init()
-	certificates.Init()
-	cni.Init()
-	docker.Init()
-	downloadk8sbinary.Init()
-	flannel.Init()
-	kubelet.Init()
-	manifest.Init()
-	poststart.Init()
-	tiller.Init()
-	etcd.Init()
-	ssh.Init()
-	network.Init()
-	clustercheck.Init()
-
 	digitalOceanMasterWorkflow := []steps.Step{
 		steps.GetStep(digitalocean.StepName),
 		steps.GetStep(ssh.StepName),

@@ -34,13 +34,33 @@ type DOConfig struct {
 }
 
 // TODO(stgleb): Fill struct with fields when provisioning on other providers is done
-type AWSConfig struct{}
 
 type GCEConfig struct{}
 
 type PacketConfig struct{}
 
 type OSConfig struct{}
+
+type AWSConfig struct {
+	KeyID  string `json:"keyID"`
+	Secret string `json:"secret"`
+
+	EC2Config        EC2Config `json:"ec2config"`
+	Region           string    `json:"region"`
+	AvailabilityZone string    `json:"availabilityZone"`
+
+	KeyPairName string `json:"keyPairName"`
+}
+
+type EC2Config struct {
+	VolumeSize    int    `json:"volumeSize"`
+	EbsOptimized  bool   `json:"ebsOptimized"`
+	GPU           bool   `json:"gpu"`
+	ImageID       string `json:"imageId"`
+	InstanceType  string `json:"instanceType"`
+	SubnetID      string `json:"subnetID"`
+	HasPublicAddr bool   `json:"hasPublicAddr"`
+}
 
 type FlannelConfig struct {
 	Arch     string `json:"arch"`
@@ -168,6 +188,8 @@ type Config struct {
 
 	ClusterCheckConfig ClusterCheckConfig `json:"clusterCheckConfig"`
 
+	//TODO @stgleb @yegor Add possiblity to not preserve ssh keys after provisioning
+	DeleteSSHKeys    bool          `json:"deleteSSHKeys"`
 	Node             node.Node     `json:"node"`
 	CloudAccountName string        `json:"cloudAccountName" valid:"required, length(1|32)"`
 	Timeout          time.Duration `json:"timeout"`

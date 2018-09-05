@@ -3,6 +3,7 @@ package controlplane
 import (
 	"context"
 	"fmt"
+	"github.com/supergiant/supergiant/pkg/workflows/steps/amazon"
 	"net/http"
 	"time"
 
@@ -10,9 +11,7 @@ import (
 	"github.com/gorilla/handlers"
 	"github.com/gorilla/mux"
 	"github.com/pkg/errors"
-
 	"github.com/sirupsen/logrus"
-
 	"github.com/supergiant/supergiant/pkg/account"
 	"github.com/supergiant/supergiant/pkg/api"
 	"github.com/supergiant/supergiant/pkg/helm"
@@ -20,13 +19,26 @@ import (
 	"github.com/supergiant/supergiant/pkg/kube"
 	"github.com/supergiant/supergiant/pkg/profile"
 	"github.com/supergiant/supergiant/pkg/provisioner"
-	"github.com/supergiant/supergiant/pkg/runner/ssh"
+	sshRunner "github.com/supergiant/supergiant/pkg/runner/ssh"
 	"github.com/supergiant/supergiant/pkg/storage"
 	"github.com/supergiant/supergiant/pkg/templatemanager"
 	"github.com/supergiant/supergiant/pkg/testutils/assert"
 	"github.com/supergiant/supergiant/pkg/user"
 	"github.com/supergiant/supergiant/pkg/util"
 	"github.com/supergiant/supergiant/pkg/workflows"
+	"github.com/supergiant/supergiant/pkg/workflows/steps/certificates"
+	"github.com/supergiant/supergiant/pkg/workflows/steps/cni"
+	"github.com/supergiant/supergiant/pkg/workflows/steps/digitalocean"
+	"github.com/supergiant/supergiant/pkg/workflows/steps/docker"
+	"github.com/supergiant/supergiant/pkg/workflows/steps/downloadk8sbinary"
+	"github.com/supergiant/supergiant/pkg/workflows/steps/etcd"
+	"github.com/supergiant/supergiant/pkg/workflows/steps/flannel"
+	"github.com/supergiant/supergiant/pkg/workflows/steps/kubelet"
+	"github.com/supergiant/supergiant/pkg/workflows/steps/manifest"
+	"github.com/supergiant/supergiant/pkg/workflows/steps/network"
+	"github.com/supergiant/supergiant/pkg/workflows/steps/poststart"
+	"github.com/supergiant/supergiant/pkg/workflows/steps/ssh"
+	"github.com/supergiant/supergiant/pkg/workflows/steps/tiller"
 )
 
 type Server struct {
@@ -173,7 +185,23 @@ func configureApplication(cfg *Config) (*mux.Router, error) {
 	}
 	workflows.Init()
 
-	taskHandler := workflows.NewTaskHandler(repository, ssh.NewRunner, accountService)
+	digitalocean.Init()
+	certificates.Init()
+	cni.Init()
+	docker.Init()
+	downloadk8sbinary.Init()
+	flannel.Init()
+	kubelet.Init()
+	manifest.Init()
+	poststart.Init()
+	tiller.Init()
+	etcd.Init()
+	ssh.Init()
+	network.Init()
+	amazon.InitCreateKeyPair(accountService)
+	amazon.InitStepCreateInstance()
+
+	taskHandler := workflows.NewTaskHandler(repository, sshRunner.NewRunner, accountService)
 	taskHandler.Register(router)
 
 	taskProvisioner := provisioner.NewProvisioner(repository)
