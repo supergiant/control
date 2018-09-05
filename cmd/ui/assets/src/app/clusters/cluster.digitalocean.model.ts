@@ -1,8 +1,8 @@
 export class ClusterDigitalOceanModel {
   digitalocean = {
     'data': {
-      "clusterName": "",
       "cloudAccountName": "",
+      "clusterName": "",
       "profile": {
           "masterProfiles": [{
               "image": "ubuntu-16-04-x64",

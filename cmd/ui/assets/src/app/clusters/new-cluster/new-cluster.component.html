@@ -1,9 +1,6 @@
 <div class="new-clusters-wrapper">
   <h1>Create a Cluster</h1>
   <div class="inputs-wrapper">
-    <mat-form-field>
-      <input matInput type="text" placeholder="Cluster Name" [(ngModel)]="clusterName">
-    </mat-form-field>
 
     <mat-form-field>
       <mat-select placeholder="Select a Cloud Account" [(value)]="selectedCloudAccount" (change)="selectCloudAccount($event.value)">
@@ -21,7 +18,5 @@
         (onSubmit)="createCluster($event)">
       </json-schema-form>
     </div>
-
-    <!-- <button mat-raised-button color="primary" type="button" (click)="createCluster(clusterName, selectedCloudAccount.name, selectedKubeProfile)">CREATE</button> -->
   </div>
 </div>
