@@ -9,6 +9,7 @@ import (
 	"github.com/supergiant/supergiant/pkg/workflows/steps"
 	"strings"
 	"testing"
+	"time"
 )
 
 func TestInstallEtcD(t *testing.T) {
@@ -46,6 +47,7 @@ func TestInstallEtcD(t *testing.T) {
 		Version:        version,
 		Name:           name,
 		DiscoveryUrl:   clusterToken,
+		Timeout:        time.Second * 10,
 		RestartTimeout: "5",
 		StartTimeout:   "0",
 	}
@@ -80,5 +82,45 @@ func TestInstallEtcD(t *testing.T) {
 
 	if !strings.Contains(output.String(), version) {
 		t.Errorf("version %s not found in %s", version, output.String())
+	}
+}
+
+func TestInstallEtcdTimeout(t *testing.T) {
+	err := templatemanager.Init("../../../../templates")
+
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	tpl := templatemanager.GetTemplate(StepName)
+
+	if tpl == nil {
+		t.Fatal("template not found")
+	}
+
+	r := &testutils.MockRunner{
+		Err: nil,
+	}
+
+	output := &bytes.Buffer{}
+	config := steps.NewConfig("", "", "", profile.Profile{})
+	config.EtcdConfig = steps.EtcdConfig{
+		Timeout: time.Second * 0,
+	}
+	config.IsMaster = true
+	config.Runner = r
+
+	task := &Step{
+		scriptTemplate: tpl,
+	}
+
+	err = task.Run(context.Background(), output, config)
+
+	if err == nil {
+		t.Error("Error must not be nil")
+	}
+
+	if !strings.Contains(err.Error(), "deadline") {
+		t.Errorf("deadline not found in error message %s", err.Error())
 	}
 }

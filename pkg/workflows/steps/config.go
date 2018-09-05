@@ -104,16 +104,17 @@ type DownloadK8sBinary struct {
 }
 
 type EtcdConfig struct {
-	Name           string `json:"name"`
-	Version        string `json:"version"`
-	DiscoveryUrl   string `json:"discoveryUrl"`
-	AdvertiseHost  string `json:"advertiseHost"`
-	Host           string `json:"host"`
-	DataDir        string `json:"dataDir"`
-	ServicePort    string `json:"servicePort"`
-	ManagementPort string `json:"managementPort"`
-	StartTimeout   string `json:"startTimeout"`
-	RestartTimeout string `json:"restartTimeout"`
+	Name           string        `json:"name"`
+	Version        string        `json:"version"`
+	DiscoveryUrl   string        `json:"discoveryUrl"`
+	AdvertiseHost  string        `json:"advertiseHost"`
+	Host           string        `json:"host"`
+	DataDir        string        `json:"dataDir"`
+	ServicePort    string        `json:"servicePort"`
+	ManagementPort string        `json:"managementPort"`
+	Timeout        time.Duration `json:"timeout"`
+	StartTimeout   string        `json:"startTimeout"`
+	RestartTimeout string        `json:"restartTimeout"`
 }
 
 type SshConfig struct {
@@ -270,6 +271,7 @@ func NewConfig(clusterName, discoveryUrl, cloudAccountName string, profile profi
 			DataDir:        "/tmp/etcd-data",
 			ServicePort:    "2379",
 			ManagementPort: "2380",
+			Timeout:        time.Minute * 3,
 			StartTimeout:   "0",
 			RestartTimeout: "5",
 			DiscoveryUrl:   discoveryUrl,

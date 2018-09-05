@@ -148,7 +148,7 @@ func configureApplication(cfg *Config) (*mux.Router, error) {
 
 	accountService := account.NewService(account.DefaultStoragePrefix, repository)
 	accountHandler := account.NewHandler(accountService)
-	accountHandler.Register(router)
+	accountHandler.Register(protectedAPI)
 
 	kubeService := kube.NewService(kube.DefaultStoragePrefix, repository)
 	kubeHandler := kube.NewHandler(kubeService)

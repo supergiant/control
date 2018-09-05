@@ -7,7 +7,6 @@ import (
 	"path"
 	"sync"
 
-	"github.com/R358/brace/latch"
 	"github.com/sirupsen/logrus"
 	"github.com/supergiant/supergiant/pkg/clouds"
 	"github.com/supergiant/supergiant/pkg/profile"
@@ -115,10 +114,10 @@ func (p *TaskProvisioner) provisionMasters(ctx context.Context, profile *profile
 
 	// master latch controls when the majority of masters with etcd are up and running
 	// so etcd is available for writes of flannel that starts on each machine
-	masterLatch := latch.NewCountdownLatch(len(profile.MasterProfiles)/2 + 1)
+	masterLatch := util.NewCountdownLatch(len(profile.MasterProfiles)/2 + 1)
 
 	// If we fail n /2 of master deploy jobs - all cluster deployment is failed
-	failLatch := latch.NewCountdownLatch(len(profile.MasterProfiles)/2 + 1)
+	failLatch := util.NewCountdownLatch(len(profile.MasterProfiles)/2 + 1)
 
 	// Provision master nodes
 	for index, masterTask := range tasks {
@@ -142,17 +141,10 @@ func (p *TaskProvisioner) provisionMasters(ctx context.Context, profile *profile
 			err = <-result
 
 			if err != nil {
-				if !failLatch.Completed() {
-					// NOTE(stgleb): Between this lines race can happens
-					// Keep track of failed master deployment tasks
-					failLatch.CountDown()
-				}
+				failLatch.CountDown()
 				logrus.Errorf("master task %s has finished with error %v", t.ID, err)
 			} else {
-				if !masterLatch.Completed() {
-					// NOTE(stgleb): Between this lines race can happens
-					masterLatch.CountDown()
-				}
+				masterLatch.CountDown()
 				logrus.Infof("master-task %s has finished", t.ID)
 			}
 		}(masterTask)
@@ -162,12 +154,12 @@ func (p *TaskProvisioner) provisionMasters(ctx context.Context, profile *profile
 	failChan := make(chan struct{})
 
 	go func() {
-		masterLatch.Await()
+		masterLatch.Wait()
 		close(doneChan)
 	}()
 
 	go func() {
-		failLatch.Await()
+		failLatch.Wait()
 		close(failChan)
 	}()
 

@@ -10,7 +10,6 @@ import (
 	tm "github.com/supergiant/supergiant/pkg/templatemanager"
 	"github.com/supergiant/supergiant/pkg/workflows/steps"
 	"github.com/supergiant/supergiant/pkg/workflows/steps/docker"
-	"time"
 )
 
 const StepName = "etcd"
@@ -32,8 +31,8 @@ func New(tpl *template.Template) *Step {
 func (s *Step) Run(ctx context.Context, out io.Writer, config *steps.Config) error {
 	config.EtcdConfig.Name = config.Node.Id
 	config.EtcdConfig.AdvertiseHost = config.Node.PrivateIp
+	ctx2, _ := context.WithTimeout(ctx, config.EtcdConfig.Timeout)
 
-	ctx2, _ := context.WithTimeout(ctx, time.Second*60)
 	err := steps.RunTemplate(ctx2, s.scriptTemplate,
 		config.Runner, out, config.EtcdConfig)
 	if err != nil {

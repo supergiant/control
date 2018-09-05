@@ -16,12 +16,6 @@
 			"revisionTime": "2017-01-03T20:23:41Z"
 		},
 		{
-			"checksumSHA1": "S1V3YDnXLvAKIXi+jlRhRpOMyZE=",
-			"path": "github.com/R358/brace/latch",
-			"revision": "bc9f8af7308e52e7d417d48c1c270e891d6a289d",
-			"revisionTime": "2014-04-29T07:12:54Z"
-		},
-		{
 			"checksumSHA1": "IjK0rSBVoTA/Zj/e27oQnFKGErU=",
 			"path": "github.com/aws/aws-sdk-go/aws",
 			"revision": "92c96c4f5ad419f2a72401c2f606d51e010cc110",
