@@ -27,6 +27,7 @@ import (
 	"github.com/supergiant/supergiant/pkg/util"
 	"github.com/supergiant/supergiant/pkg/workflows"
 	"github.com/supergiant/supergiant/pkg/workflows/steps/certificates"
+	"github.com/supergiant/supergiant/pkg/workflows/steps/clustercheck"
 	"github.com/supergiant/supergiant/pkg/workflows/steps/cni"
 	"github.com/supergiant/supergiant/pkg/workflows/steps/digitalocean"
 	"github.com/supergiant/supergiant/pkg/workflows/steps/docker"
@@ -183,8 +184,6 @@ func configureApplication(cfg *Config) (*mux.Router, error) {
 	if err := templatemanager.Init(cfg.TemplatesDir); err != nil {
 		return nil, err
 	}
-	workflows.Init()
-
 	digitalocean.Init()
 	certificates.Init()
 	cni.Init()
@@ -198,8 +197,10 @@ func configureApplication(cfg *Config) (*mux.Router, error) {
 	etcd.Init()
 	ssh.Init()
 	network.Init()
+	clustercheck.Init()
 	amazon.InitCreateKeyPair(accountService)
 	amazon.InitStepCreateInstance()
+	workflows.Init()
 
 	taskHandler := workflows.NewTaskHandler(repository, sshRunner.NewRunner, accountService)
 	taskHandler.Register(router)
