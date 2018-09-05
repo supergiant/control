@@ -153,7 +153,7 @@ func (s *StepCreateInstance) Run(ctx context.Context, w io.Writer, cfg *steps.Co
 				return errors.Wrap(err, "aws: failed to obtain public IP")
 			}
 
-			if l := len(out.Reservations); l == 0 {
+			if len(out.Reservations) == 0 {
 				log.Infof("[%s] - found 0 ec2 instances, attempt %d", StepNameCreateEC2Instance, i)
 				time.Sleep(time.Duration(SleepSecondsPerAttempt) * time.Second)
 				continue
