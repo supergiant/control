@@ -90,18 +90,18 @@ func (h *Handler) Provision(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	taskIdMap := make(map[string][]string, len(taskMap))
+	roleTaskIdMap := make(map[string][]string, len(taskMap))
 
 	for role, taskSet := range taskMap {
-		taskIdMap[role] = make([]string, 0, len(taskSet))
+		roleTaskIdMap[role] = make([]string, 0, len(taskSet))
 
 		for _, task := range taskSet {
-			taskIdMap[role] = append(taskIdMap[role], task.ID)
+			roleTaskIdMap[role] = append(roleTaskIdMap[role], task.ID)
 		}
 	}
 
 	resp := ProvisionResponse{
-		Tasks: taskIdMap,
+		Tasks: roleTaskIdMap,
 	}
 
 	// Respond to client side that request has been accepted
