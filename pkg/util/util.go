@@ -4,6 +4,7 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+	"io"
 	"math/rand"
 	"reflect"
 	"strconv"
@@ -12,6 +13,7 @@ import (
 
 	"github.com/fatih/structs"
 	"github.com/pkg/errors"
+	"github.com/sirupsen/logrus"
 )
 
 const letterBytes = "0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ"
@@ -21,7 +23,7 @@ var src = rand.NewSource(time.Now().UnixNano())
 // RandomString generates random string with reservoir sampling algorithm https://en.wikipedia.org/wiki/Reservoir_sampling
 func RandomString(n int) string {
 	buffer := make([]byte, n)
-	copy(buffer, letterBytes[:n])
+	copy(buffer, letterBytes)
 
 	for i := n; i < len(letterBytes); i++ {
 		rndIndex := src.Int63() % int64(i)
@@ -251,6 +253,21 @@ func BindParams(params map[string]string, object interface{}) error {
 	}
 
 	return nil
+}
+
+func MakeRole(isMaster bool) string {
+	if isMaster {
+		return "master"
+	} else {
+		return "node"
+	}
+}
+
+func GetLogger(w io.Writer) (log *logrus.Logger) {
+	log = logrus.New()
+	log.Out = w
+	log.SetLevel(logrus.StandardLogger().Level)
+	return
 }
 
 func MakeFileName(taskID string) string {
