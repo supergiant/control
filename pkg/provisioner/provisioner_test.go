@@ -17,7 +17,7 @@ import (
 
 func TestTaskProvisioner(t *testing.T) {
 	repository := &testutils.MockStorage{}
-	repository.On("Put", context.Background(), mock.Anything, mock.Anything, nil).Return(nil)
+	repository.On("Put", context.Background(), mock.Anything, mock.Anything, mock.Anything).Return(nil)
 
 	provisioner := TaskProvisioner{
 		repository,
@@ -30,15 +30,12 @@ func TestTaskProvisioner(t *testing.T) {
 	}
 
 	workflows.Init()
-	workflows.RegisterWorkFlow("test_master", nil)
-	workflows.RegisterWorkFlow("test_node", nil)
+	workflows.RegisterWorkFlow("test_master", []steps.Step{})
+	workflows.RegisterWorkFlow("test_node", []steps.Step{})
 
-	kubeProfile := &profile.Profile{
+	p := &profile.Profile{
+		Provider: clouds.DigitalOcean,
 		MasterProfiles: []map[string]string{
-			{
-				"size":  "s-1vcpu-2gb",
-				"image": "ubuntu-18-04-x64",
-			},
 			{
 				"size":  "s-1vcpu-2gb",
 				"image": "ubuntu-18-04-x64",
@@ -56,18 +53,21 @@ func TestTaskProvisioner(t *testing.T) {
 		},
 	}
 
-	tasks, err := provisioner.Provision(context.Background(), kubeProfile, &steps.Config{
-		Provider: clouds.DigitalOcean,
-	})
+	cfg := steps.NewConfig("", "", "", *p)
+	taskMap, err := provisioner.Provision(context.Background(), p, cfg)
 
 	if err != nil {
 		t.Errorf("Unexpected error %v while provision", err)
 	}
 
-	if len(tasks) != len(kubeProfile.MasterProfiles)+len(kubeProfile.NodesProfiles) {
+	if len(taskMap) != 3 {
+		t.Errorf("Expected task map len 3 actul %d", len(taskMap))
+	}
+
+	if len(taskMap["master"])+len(taskMap["node"]) != len(p.MasterProfiles)+len(p.NodesProfiles) {
 		t.Errorf("Wrong task count expected %d actual %d",
-			len(kubeProfile.MasterProfiles)+
-				len(kubeProfile.NodesProfiles),
-			len(tasks))
+			len(p.MasterProfiles)+
+				len(p.NodesProfiles),
+			len(taskMap))
 	}
 }

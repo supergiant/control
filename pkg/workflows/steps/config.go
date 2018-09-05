@@ -1,6 +1,7 @@
 package steps
 
 import (
+	"context"
 	"encoding/json"
 	"sync"
 	"time"
@@ -10,6 +11,7 @@ import (
 	"github.com/supergiant/supergiant/pkg/profile"
 	"github.com/supergiant/supergiant/pkg/runner"
 	"github.com/supergiant/supergiant/pkg/storage"
+	"github.com/supergiant/supergiant/pkg/util"
 )
 
 type CertificatesConfig struct {
@@ -26,7 +28,7 @@ type DOConfig struct {
 	Size   string `json:"size" valid:"required"`
 	Image  string `json:"image" valid:"required"`
 
-	// These come from clouda ccount
+	// These come from cloud account
 	Fingerprint string `json:"fingerprint" valid:"required"`
 	AccessToken string `json:"accessToken" valid:"required"`
 }
@@ -96,6 +98,7 @@ type ManifestConfig struct {
 }
 
 type PostStartConfig struct {
+	IsMaster    bool   `json:"isMaster"`
 	Host        string `json:"host"`
 	Port        string `json:"port"`
 	Username    string `json:"username"`
@@ -122,15 +125,17 @@ type DownloadK8sBinary struct {
 }
 
 type EtcdConfig struct {
-	Name           string `json:"name"`
-	Version        string `json:"version"`
-	DiscoveryUrl   string `json:"discoveryUrl"`
-	Host           string `json:"host"`
-	DataDir        string `json:"dataDir"`
-	ServicePort    string `json:"servicePort"`
-	ManagementPort string `json:"managementPort"`
-	StartTimeout   string `json:"startTimeout"`
-	RestartTimeout string `json:"restartTimeout"`
+	Name           string        `json:"name"`
+	Version        string        `json:"version"`
+	DiscoveryUrl   string        `json:"discoveryUrl"`
+	AdvertiseHost  string        `json:"advertiseHost"`
+	Host           string        `json:"host"`
+	DataDir        string        `json:"dataDir"`
+	ServicePort    string        `json:"servicePort"`
+	ManagementPort string        `json:"managementPort"`
+	Timeout        time.Duration `json:"timeout"`
+	StartTimeout   string        `json:"startTimeout"`
+	RestartTimeout string        `json:"restartTimeout"`
 }
 
 type SshConfig struct {
@@ -140,26 +145,25 @@ type SshConfig struct {
 	Timeout    int    `json:"timeout"`
 }
 
-type MasterMap struct {
+type ClusterCheckConfig struct {
+	MachineCount int
+}
+
+type Map struct {
 	internal map[string]*node.Node
 }
 
-func NewMasterMap() MasterMap {
-	return MasterMap{
-		internal: make(map[string]*node.Node, 0),
-	}
-}
-
-func (m *MasterMap) UnmarshalJSON(b []byte) error {
+func (m *Map) UnmarshalJSON(b []byte) error {
 	return json.Unmarshal(b, &m.internal)
 }
 
-func (m *MasterMap) MarshalJSON() ([]byte, error) {
+func (m *Map) MarshalJSON() ([]byte, error) {
 	return json.Marshal(m.internal)
 }
 
 // TODO(stgleb): rename to context and embed context.Context here
 type Config struct {
+	Context    context.Context
 	Provider    clouds.Name `json:"provider"`
 	IsMaster    bool        `json:"isMaster"`
 	ClusterName string      `json:"clusterName"`
@@ -182,6 +186,8 @@ type Config struct {
 	EtcdConfig         EtcdConfig         `json:"etcdConfig"`
 	SshConfig          SshConfig          `json:"sshConfig"`
 
+	ClusterCheckConfig ClusterCheckConfig `json:"clusterCheckConfig"`
+
 	//TODO @stgleb @yegor Add possiblity to not preserve ssh keys after provisioning
 	DeleteSSHKeys    bool          `json:"deleteSSHKeys"`
 	Node             node.Node     `json:"node"`
@@ -191,12 +197,27 @@ type Config struct {
 
 	repository storage.Interface `json:"-"`
 
-	m           sync.RWMutex
-	MasterNodes MasterMap `json:"MasterNodes"`
+	m1      sync.RWMutex
+	Masters Map `json:"masters"`
+
+	m2    sync.RWMutex
+	Nodes Map `json:"nodes"`
+
+	m3             sync.RWMutex
+	countdownLatch *util.CountdownLatch
 }
 
+// NewConfig builds instance of config for provisioning
 func NewConfig(clusterName, discoveryUrl, cloudAccountName string, profile profile.Profile) *Config {
+	timeout := time.Minute * 30
+	ctx, _ := context.WithTimeout(context.Background(), timeout)
+
+	// We need at least n/2 + 1 of master nodes be up and running to continue cluster deployment
+	l := util.NewCountdownLatch(ctx, len(profile.MasterProfiles)/2 + 1)
+
 	return &Config{
+		Context: ctx,
+		Provider:    profile.Provider,
 		ClusterName: clusterName,
 		DigitalOceanConfig: DOConfig{
 			Region: profile.Region,
@@ -257,7 +278,7 @@ func NewConfig(clusterName, discoveryUrl, cloudAccountName string, profile profi
 			Port:        "8080",
 			Username:    "root",
 			RBACEnabled: profile.RBACEnabled,
-			Timeout:     300,
+			Timeout:     600,
 		},
 		TillerConfig: TillerConfig{
 			HelmVersion:     profile.HelmVersion,
@@ -275,39 +296,68 @@ func NewConfig(clusterName, discoveryUrl, cloudAccountName string, profile profi
 			Name:           "etcd0",
 			Version:        "3.3.9",
 			Host:           "0.0.0.0",
-			DataDir:        "/etcd-data",
+			DataDir:        "/tmp/etcd-data",
 			ServicePort:    "2379",
 			ManagementPort: "2380",
+			Timeout:        time.Minute * 10,
 			StartTimeout:   "0",
 			RestartTimeout: "5",
 			DiscoveryUrl:   discoveryUrl,
 		},
+		ClusterCheckConfig: ClusterCheckConfig{
+			MachineCount: len(profile.NodesProfiles) + len(profile.MasterProfiles),
+		},
 
-		MasterNodes: MasterMap{
+		Masters: Map{
 			internal: make(map[string]*node.Node, len(profile.MasterProfiles)),
 		},
-		Timeout:          time.Second * 1200,
+		Nodes: Map{
+			internal: make(map[string]*node.Node, len(profile.NodesProfiles)),
+		},
+		Timeout:          timeout,
 		CloudAccountName: cloudAccountName,
+
+		countdownLatch: l,
 	}
 }
 
+// AddMaster to map of master, map is used because it is reference and can be shared among
+// goroutines that run multiple tasks of cluster deployment
 func (c *Config) AddMaster(n *node.Node) {
-	c.m.Lock()
-	defer c.m.Unlock()
-	c.MasterNodes.internal[n.Id] = n
+	c.m1.Lock()
+	defer c.m1.Unlock()
+	c.Masters.internal[n.Id] = n
 }
 
-func (c *Config) GetMaster() *node.Node {
-	c.m.RLock()
-	defer c.m.RUnlock()
+// AddNode to map of nodes in cluster
+func (c *Config) AddNode(n *node.Node) {
+	c.m2.Lock()
+	defer c.m2.Unlock()
+	c.Nodes.internal[n.Id] = n
+}
 
-	if len(c.MasterNodes.internal) == 0 {
+// GetMaster returns first master in master map or nil
+func (c *Config) GetMaster() *node.Node {
+	c.m1.RLock()
+	defer c.m1.RUnlock()
+
+	if len(c.Masters.internal) == 0 {
 		return nil
 	}
 
-	for _, value := range c.MasterNodes.internal {
+	for _, value := range c.Masters.internal {
 		return value
 	}
 
 	return nil
+}
+
+// Wait while majority of nodes become up and running
+func (c *Config) Wait() {
+	c.countdownLatch.Wait()
+}
+
+// Done is called when master node has started etcd instance
+func (c *Config) Done() {
+	c.countdownLatch.CountDown()
 }
