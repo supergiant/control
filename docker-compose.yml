@@ -1,4 +1,4 @@
-version: "2"
+version: "3.2"
 
 services:
     control_plane:
@@ -9,6 +9,8 @@ services:
         command: -etcd-url=etcd:2379
         depends_on:
             - etcd
+        volumes:
+          - /tmp:/tmp
         ports:
             - "8080:8080"
         networks:
