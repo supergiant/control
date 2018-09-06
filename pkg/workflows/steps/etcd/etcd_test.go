@@ -3,6 +3,7 @@ package etcd
 import (
 	"bytes"
 	"context"
+	"github.com/supergiant/supergiant/pkg/node"
 	"github.com/supergiant/supergiant/pkg/profile"
 	"github.com/supergiant/supergiant/pkg/templatemanager"
 	"github.com/supergiant/supergiant/pkg/testutils"
@@ -53,6 +54,9 @@ func TestInstallEtcD(t *testing.T) {
 	}
 	config.IsMaster = true
 	config.Runner = r
+	config.Node = node.Node{
+		PrivateIp: "10.20.30.40",
+	}
 
 	task := &Step{
 		scriptTemplate: tpl,
@@ -109,6 +113,9 @@ func TestInstallEtcdTimeout(t *testing.T) {
 	}
 	config.IsMaster = true
 	config.Runner = r
+	config.Node = node.Node{
+		PrivateIp: "10.20.30.40",
+	}
 
 	task := &Step{
 		scriptTemplate: tpl,

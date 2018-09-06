@@ -337,10 +337,10 @@ func (c *Config) GetMaster() *node.Node {
 		return nil
 	}
 
-	for _, value := range c.Masters.internal {
+	for key := range c.Masters.internal {
 		// Skip inactive nodes for selecting
-		if value.Active {
-			return value
+		if c.Masters.internal[key] != nil && c.Masters.internal[key].Active {
+			return c.Masters.internal[key]
 		}
 	}
 
