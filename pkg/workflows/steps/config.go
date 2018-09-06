@@ -163,7 +163,7 @@ func (m *Map) MarshalJSON() ([]byte, error) {
 
 // TODO(stgleb): rename to context and embed context.Context here
 type Config struct {
-	Context    context.Context
+	Context     context.Context
 	Provider    clouds.Name `json:"provider"`
 	IsMaster    bool        `json:"isMaster"`
 	ClusterName string      `json:"clusterName"`
@@ -213,10 +213,10 @@ func NewConfig(clusterName, discoveryUrl, cloudAccountName string, profile profi
 	ctx, _ := context.WithTimeout(context.Background(), timeout)
 
 	// We need at least n/2 + 1 of master nodes be up and running to continue cluster deployment
-	l := util.NewCountdownLatch(ctx, len(profile.MasterProfiles)/2 + 1)
+	l := util.NewCountdownLatch(ctx, len(profile.MasterProfiles)/2+1)
 
 	return &Config{
-		Context: ctx,
+		Context:     ctx,
 		Provider:    profile.Provider,
 		ClusterName: clusterName,
 		DigitalOceanConfig: DOConfig{
@@ -360,4 +360,24 @@ func (c *Config) Wait() {
 // Done is called when master node has started etcd instance
 func (c *Config) Done() {
 	c.countdownLatch.CountDown()
+}
+
+func (c *Config) GetMasters() []*node.Node {
+	m := make([]*node.Node, 0, len(c.Masters.internal))
+
+	for key := range c.Masters.internal {
+		m = append(m, c.Masters.internal[key])
+	}
+
+	return m
+}
+
+func (c *Config) GetNodes() []*node.Node {
+	m := make([]*node.Node, 0, len(c.Nodes.internal))
+
+	for key := range c.Nodes.internal {
+		m = append(m, c.Nodes.internal[key])
+	}
+
+	return m
 }

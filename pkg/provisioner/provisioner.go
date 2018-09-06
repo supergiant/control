@@ -9,6 +9,7 @@ import (
 
 	"github.com/sirupsen/logrus"
 	"github.com/supergiant/supergiant/pkg/clouds"
+	"github.com/supergiant/supergiant/pkg/kube"
 	"github.com/supergiant/supergiant/pkg/profile"
 	"github.com/supergiant/supergiant/pkg/storage"
 	"github.com/supergiant/supergiant/pkg/util"
@@ -22,14 +23,16 @@ type Provisioner interface {
 }
 
 type TaskProvisioner struct {
+	kubeService  kube.Interface
 	repository   storage.Interface
 	getWriter    func(string) (io.WriteCloser, error)
 	provisionMap map[clouds.Name][]string
 }
 
-func NewProvisioner(repository storage.Interface) *TaskProvisioner {
+func NewProvisioner(repository storage.Interface, kubeService kube.Interface) *TaskProvisioner {
 	return &TaskProvisioner{
-		repository: repository,
+		kubeService: kubeService,
+		repository:  repository,
 		provisionMap: map[clouds.Name][]string{
 			clouds.DigitalOcean: {workflows.DigitalOceanMaster, workflows.DigitalOceanNode},
 		},
@@ -101,6 +104,9 @@ func (r *TaskProvisioner) Provision(ctx context.Context, profile *profile.Profil
 		// Wait for cluster checks are finished
 		r.waitCluster(ctx, clusterTask, config)
 
+		logrus.Info("Save cluster")
+		// Save cluster
+		r.saveCluster(ctx, profile, config)
 		logrus.Infof("Cluster %s deployment has finished", config.ClusterName)
 	}()
 
@@ -242,4 +248,37 @@ func (p *TaskProvisioner) waitCluster(ctx context.Context, clusterTask *workflow
 
 	// Wait for all task to be finished
 	clusterWg.Wait()
+}
+
+func (p *TaskProvisioner) saveCluster(ctx context.Context, profile *profile.Profile, config *steps.Config) error {
+	masters := config.GetMasters()
+	nodes := config.GetNodes()
+
+	cluster := &kube.Kube{
+		Name:        config.ClusterName,
+		AccountName: config.CloudAccountName,
+		RBACEnabled: profile.RBACEnabled,
+
+		SSHUser: config.SshConfig.User,
+		SSHKey:  []byte(config.SshConfig.PrivateKey),
+
+		Auth: kube.Auth{},
+
+		Arch:                   profile.Arch,
+		OperatingSystem:        profile.OperatingSystem,
+		OperatingSystemVersion: profile.UbuntuVersion,
+		K8SVersion:             profile.K8SVersion,
+		DockerVersion:          profile.DockerVersion,
+		HelmVersion:            profile.HelmVersion,
+		Networking: kube.Networking{
+			Manager: profile.FlannelVersion,
+			Version: profile.FlannelVersion,
+			Type:    profile.NetworkType,
+			CIDR:    profile.CIDR,
+		},
+		Masters: masters,
+		Nodes:   nodes,
+	}
+
+	return p.kubeService.Create(ctx, cluster)
 }
