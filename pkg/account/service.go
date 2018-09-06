@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"context"
 	"encoding/json"
+	"github.com/supergiant/supergiant/pkg/clouds"
 
 	"github.com/pkg/errors"
 	"github.com/sirupsen/logrus"
@@ -77,6 +78,19 @@ func (s *Service) Get(ctx context.Context, accountName string) (*model.CloudAcco
 
 // Create stores user in the underlying storage
 func (s *Service) Create(ctx context.Context, account *model.CloudAccount) error {
+	switch account.Provider {
+	case clouds.DigitalOcean:
+		if account.Credentials[clouds.DigitalOceanAccessToken] == "" {
+			return errors.Wrap(sgerrors.ErrInvalidCredentials, "no digital ocean's access token provided")
+		}
+	case clouds.AWS:
+		if account.Credentials[clouds.AWSAccessKeyID] == "" ||
+			account.Credentials[clouds.AWSSecretKey] == "" {
+			return errors.Wrap(sgerrors.ErrInvalidCredentials, "both aws access key and key id should be provided")
+		}
+	default:
+		return sgerrors.ErrUnsupportedProvider
+	}
 
 	rawJSON, err := json.Marshal(account)
 	if err != nil {

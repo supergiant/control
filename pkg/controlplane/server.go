@@ -208,6 +208,59 @@ func configureApplication(cfg *Config) (*mux.Router, error) {
 	taskHandler := workflows.NewTaskHandler(repository, sshRunner.NewRunner, accountService)
 	taskHandler.Register(router)
 
+	// TODO(stgleb): remove it when profile usage is done
+	p := &profile.Profile{
+		MasterProfiles: []map[string]string{
+			{
+				"size":  "s-1vcpu-2gb",
+				"image": "ubuntu-18-04-x64",
+			},
+		},
+		NodesProfiles: []map[string]string{
+			{
+				"size":  "s-2vcpu-4gb",
+				"image": "ubuntu-18-04-x64",
+			},
+			{
+				"size":  "s-2vcpu-4gb",
+				"image": "ubuntu-18-04-x64",
+			},
+		},
+
+		Provider:        clouds.DigitalOcean,
+		Region:          "fra1",
+		Arch:            "amd64",
+		OperatingSystem: "linux",
+		UbuntuVersion:   "xenial",
+		DockerVersion:   "17.06.0",
+		K8SVersion:      "1.11.1",
+		FlannelVersion:  "0.10.0",
+		NetworkType:     "vxlan",
+		CIDR:            "10.0.0.0/24",
+		HelmVersion:     "2.8.0",
+		RBACEnabled:     false,
+	}
+
+	err := kubeProfileService.Create(context.Background(), p)
+
+	if err != nil {
+		logrus.Fatal(err)
+	}
+
+	cloudAccount := &model.CloudAccount{
+		Name:     "test",
+		Provider: clouds.DigitalOcean,
+		Credentials: map[string]string{
+			clouds.DigitalOceanAccessToken: "test",
+			"privateKey":                   ``,
+		},
+	}
+
+	err = accountService.Create(context.Background(), cloudAccount)
+	if err != nil {
+		logrus.Fatal(err)
+	}
+
 	taskProvisioner := provisioner.NewProvisioner(repository)
 	tokenGetter := provisioner.NewEtcdTokenGetter()
 	provisionHandler := provisioner.NewHandler(accountService, tokenGetter, taskProvisioner)

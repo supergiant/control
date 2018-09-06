@@ -2,6 +2,7 @@ package account
 
 import (
 	"encoding/json"
+	"fmt"
 	"net/http"
 
 	"github.com/gorilla/mux"
@@ -49,6 +50,12 @@ func (h *Handler) Create(rw http.ResponseWriter, r *http.Request) {
 	}
 
 	if err = h.service.Create(r.Context(), account); err != nil {
+		if sgerrors.IsUnsupportedProvider(err) {
+			message.SendMessage(rw, message.New(fmt.Sprintf("Unsupported provider %s", account.Provider),
+				err.Error(), sgerrors.UnsupportedProvider, ""), http.StatusBadRequest)
+			return
+		}
+
 		logrus.Errorf("account handler: create %v", err)
 		message.SendUnknownError(rw, err)
 		return
