@@ -121,8 +121,7 @@ func (s *StepCreateInstance) Run(ctx context.Context, w io.Writer, cfg *steps.Co
 		return errors.Wrap(err, "aws: no instances created")
 	}
 	instance := res.Instances[0]
-
-	n := &node.Node{
+	cfg.Node = node.Node{
 		Region:    cfg.AWSConfig.Region,
 		CreatedAt: instance.LaunchTime.Unix(),
 		Provider:  clouds.AWS,
@@ -160,9 +159,9 @@ func (s *StepCreateInstance) Run(ctx context.Context, w io.Writer, cfg *steps.Co
 			}
 
 			if i := findInstanceWithPublicAddr(out.Reservations); i != nil {
-				n.PublicIp = *i.PublicIpAddress
-				n.PrivateIp = *i.PrivateIpAddress
-				log.Infof("[%s] - found public ip - %s for node %s", StepNameCreateEC2Instance, n.PublicIp, nodeName)
+				cfg.Node.PublicIp = *i.PublicIpAddress
+				cfg.Node.PrivateIp = *i.PrivateIpAddress
+				log.Infof("[%s] - found public ip - %s for node %s", StepNameCreateEC2Instance, cfg.Node.PublicIp, nodeName)
 				found = true
 				break
 			}
@@ -173,13 +172,13 @@ func (s *StepCreateInstance) Run(ctx context.Context, w io.Writer, cfg *steps.Co
 			return errors.New("aws: failed to obtain public IP")
 		}
 	}
+
 	if cfg.IsMaster {
-		cfg.AddMaster(n)
-	} else {
-		cfg.Node = *n
+		cfg.AddMaster(&cfg.Node)
 	}
+
 	log.Infof("[%s] - success! Created node %s with instanceID %s",
-		StepNameCreateEC2Instance, nodeName, n.Id)
+		StepNameCreateEC2Instance, nodeName, cfg.Node.Id)
 	logrus.Debugf("%v", *instance)
 
 	return nil
