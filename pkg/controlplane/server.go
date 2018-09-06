@@ -3,7 +3,6 @@ package controlplane
 import (
 	"context"
 	"fmt"
-	"github.com/supergiant/supergiant/pkg/workflows/steps/amazon"
 	"net/http"
 	"time"
 
@@ -14,9 +13,11 @@ import (
 	"github.com/sirupsen/logrus"
 	"github.com/supergiant/supergiant/pkg/account"
 	"github.com/supergiant/supergiant/pkg/api"
+	"github.com/supergiant/supergiant/pkg/clouds"
 	"github.com/supergiant/supergiant/pkg/helm"
 	"github.com/supergiant/supergiant/pkg/jwt"
 	"github.com/supergiant/supergiant/pkg/kube"
+	"github.com/supergiant/supergiant/pkg/model"
 	"github.com/supergiant/supergiant/pkg/profile"
 	"github.com/supergiant/supergiant/pkg/provisioner"
 	sshRunner "github.com/supergiant/supergiant/pkg/runner/ssh"
@@ -26,6 +27,7 @@ import (
 	"github.com/supergiant/supergiant/pkg/user"
 	"github.com/supergiant/supergiant/pkg/util"
 	"github.com/supergiant/supergiant/pkg/workflows"
+	"github.com/supergiant/supergiant/pkg/workflows/steps/amazon"
 	"github.com/supergiant/supergiant/pkg/workflows/steps/certificates"
 	"github.com/supergiant/supergiant/pkg/workflows/steps/clustercheck"
 	"github.com/supergiant/supergiant/pkg/workflows/steps/cni"
@@ -55,7 +57,7 @@ func (srv *Server) Start() {
 }
 
 func (srv *Server) Shutdown() {
-	ctx, cancel := context.WithTimeout(context.Background(), time.Minute * 1)
+	ctx, cancel := context.WithTimeout(context.Background(), time.Minute*1)
 	defer cancel()
 	err := srv.server.Shutdown(ctx)
 
@@ -241,7 +243,7 @@ func configureApplication(cfg *Config) (*mux.Router, error) {
 		RBACEnabled:     false,
 	}
 
-	err := kubeProfileService.Create(context.Background(), p)
+	err := profileService.Create(context.Background(), p)
 
 	if err != nil {
 		logrus.Fatal(err)
