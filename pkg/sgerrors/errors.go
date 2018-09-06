@@ -21,10 +21,11 @@ func New(msg string, code ErrorCode) error {
 }
 
 var (
-	ErrInvalidCredentials = New("invalid credentials", InvalidCredentials)
-	ErrNotFound           = New("entity not found", NotFound)
-	ErrAlreadyExists      = New("entity already exists", EntityAlreadyExists)
-	ErrUnknownProvider    = New("unknown provider type", UnknownProvider)
+	ErrInvalidCredentials  = New("invalid credentials", InvalidCredentials)
+	ErrNotFound            = New("entity not found", NotFound)
+	ErrAlreadyExists       = New("entity already exists", EntityAlreadyExists)
+	ErrUnknownProvider     = New("unknown provider type", UnknownProvider)
+	ErrUnsupportedProvider = New("unsupported provider", UnsupportedProvider)
 )
 
 func IsNotFound(err error) bool {
@@ -41,4 +42,8 @@ func IsAlreadyExists(err error) bool {
 
 func IsUnknownProvider(err error) bool {
 	return errors.Cause(err) == ErrUnknownProvider
+}
+
+func IsUnsupportedProvider(err error) bool {
+	return errors.Cause(err) == ErrUnsupportedProvider
 }

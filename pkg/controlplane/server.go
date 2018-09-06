@@ -55,7 +55,10 @@ func (srv *Server) Start() {
 }
 
 func (srv *Server) Shutdown() {
-	err := srv.server.Close()
+	ctx, cancel := context.WithTimeout(context.Background(), time.Minute * 1)
+	defer cancel()
+	err := srv.server.Shutdown(ctx)
+
 	if err != nil {
 		logrus.Fatal(err)
 	}
