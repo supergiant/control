@@ -5,12 +5,11 @@ import (
 	"io"
 	"strings"
 
-	"github.com/supergiant/supergiant/pkg/clouds"
-
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/service/ec2"
 	"github.com/pkg/errors"
 	"github.com/sirupsen/logrus"
+	"github.com/supergiant/supergiant/pkg/clouds"
 	"github.com/supergiant/supergiant/pkg/model"
 	"github.com/supergiant/supergiant/pkg/util"
 	"github.com/supergiant/supergiant/pkg/workflows/steps"
@@ -110,7 +109,7 @@ func (s *KeyPairStep) Rollback(ctx context.Context, w io.Writer, cfg *steps.Conf
 }
 
 func (s *KeyPairStep) GetKeyFromAccount(cfg *steps.Config, account *model.CloudAccount, log *logrus.Logger) error {
-	key, ok := account.Credentials["privateKey"]
+	key, ok := account.Credentials[clouds.CredsPrivateKey]
 	if !ok || key == "" {
 		log.Errorf("[%s] - no ssh key present in database, aborting", s.Name())
 		return errors.New("aws: no ssh key found")

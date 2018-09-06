@@ -162,7 +162,7 @@ func (s *StepCreateInstance) Run(ctx context.Context, w io.Writer, cfg *steps.Co
 			if i := findInstanceWithPublicAddr(out.Reservations); i != nil {
 				n.PublicIp = *i.PublicIpAddress
 				n.PrivateIp = *i.PrivateIpAddress
-				log.Info("[%s] - found public ip - %s for node %s", StepNameCreateEC2Instance, n.PublicIp, nodeName)
+				log.Infof("[%s] - found public ip - %s for node %s", StepNameCreateEC2Instance, n.PublicIp, nodeName)
 				found = true
 				break
 			}

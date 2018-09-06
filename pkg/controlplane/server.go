@@ -55,7 +55,10 @@ func (srv *Server) Start() {
 }
 
 func (srv *Server) Shutdown() {
-	err := srv.server.Close()
+	ctx, cancel := context.WithTimeout(context.Background(), time.Minute*1)
+	defer cancel()
+	err := srv.server.Shutdown(ctx)
+
 	if err != nil {
 		logrus.Fatal(err)
 	}
@@ -208,7 +211,7 @@ func configureApplication(cfg *Config) (*mux.Router, error) {
 	taskProvisioner := provisioner.NewProvisioner(repository)
 	tokenGetter := provisioner.NewEtcdTokenGetter()
 	provisionHandler := provisioner.NewHandler(accountService, tokenGetter, taskProvisioner)
-	provisionHandler.Register(router)
+	provisionHandler.Register(protectedAPI)
 
 	helmService := helm.NewService(repository)
 	helmHandler := helm.NewHandler(helmService)

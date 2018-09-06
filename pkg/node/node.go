@@ -14,6 +14,7 @@ type Node struct {
 	Region    string      `json:"region" valid:"required"`
 	PublicIp  string      `json:"public_ip"`
 	PrivateIp string      `json:"private_ip"`
+	Active    bool        `json:"active"`
 }
 
 func (n Node) String() string {

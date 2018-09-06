@@ -47,7 +47,7 @@ func TestFindDigitalOceanRegions(t *testing.T) {
 		Name:     accName,
 		Provider: clouds.DigitalOcean,
 		Credentials: map[string]string{
-			clouds.KeyDigitalOceanAccessToken: doToken,
+			clouds.DigitalOceanAccessToken: doToken,
 		},
 	})
 	require.NoError(t, err)
