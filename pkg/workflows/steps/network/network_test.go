@@ -80,7 +80,6 @@ func TestNetworkConfig(t *testing.T) {
 		config.Runner = r
 		config.IsMaster = true
 		// Mark as done, we assume that etcd has been already deployed
-		config.Done()
 
 		task := &Step{
 			scriptTemplate: tpl,

@@ -59,9 +59,9 @@ func TestWriteManifestMaster(t *testing.T) {
 		RBACEnabled: true,
 	}
 	cfg := steps.NewConfig("", "", "", p)
-	cfg.AddMaster(&node.Node{
+	cfg.Node = node.Node{
 		PrivateIp: masterHost,
-	})
+	}
 
 	cfg.IsMaster = true
 	cfg.ManifestConfig.MasterPort = masterPort
@@ -134,6 +134,7 @@ func TestWriteManifestNode(t *testing.T) {
 	}
 	cfg := steps.NewConfig("", "", "", p)
 	cfg.AddMaster(&node.Node{
+		Active:    true,
 		PrivateIp: masterHost,
 	})
 	cfg.Runner = r
@@ -184,6 +185,7 @@ func TestWriteManifestError(t *testing.T) {
 	output := new(bytes.Buffer)
 	cfg := steps.NewConfig("", "", "", profile.Profile{})
 	cfg.AddMaster(&node.Node{
+		Active:    true,
 		PrivateIp: "127.0.0.1",
 	})
 	cfg.Runner = r

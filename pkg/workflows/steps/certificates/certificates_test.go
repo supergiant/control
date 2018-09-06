@@ -63,6 +63,7 @@ func TestWriteCertificates(t *testing.T) {
 	}
 	cfg.Runner = r
 	cfg.AddMaster(&node.Node{
+		Active:    true,
 		PrivateIp: "10.20.30.40",
 	})
 	task := &Step{
@@ -105,6 +106,7 @@ func TestWriteCertificatesError(t *testing.T) {
 	cfg := steps.NewConfig("", "", "", profile.Profile{})
 	cfg.Runner = r
 	cfg.AddMaster(&node.Node{
+		Active:    true,
 		PrivateIp: "10.20.30.40",
 	})
 	err = task.Run(context.Background(), output, cfg)

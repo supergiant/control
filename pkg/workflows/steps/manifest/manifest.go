@@ -33,7 +33,12 @@ func New(script *template.Template) *Step {
 func (j *Step) Run(ctx context.Context, out io.Writer, config *steps.Config) error {
 	// NOTE(stgleb): This is needed for master node to put advertise address for kube api server.
 	config.ManifestConfig.IsMaster = config.IsMaster
-	config.ManifestConfig.MasterHost = config.GetMaster().PrivateIp
+
+	if !config.IsMaster {
+		config.ManifestConfig.MasterHost = config.GetMaster().PrivateIp
+	} else {
+		config.ManifestConfig.MasterPort = config.Node.PrivateIp
+	}
 
 	err := steps.RunTemplate(ctx, j.script, config.Runner, out, config.ManifestConfig)
 
