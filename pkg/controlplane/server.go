@@ -55,7 +55,7 @@ func (srv *Server) Start() {
 }
 
 func (srv *Server) Shutdown() {
-	ctx, cancel := context.WithTimeout(context.Background(), time.Minute * 1)
+	ctx, cancel := context.WithTimeout(context.Background(), time.Minute*1)
 	defer cancel()
 	err := srv.server.Shutdown(ctx)
 
