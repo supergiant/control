@@ -8,10 +8,22 @@ import (
 	"k8s.io/client-go/rest"
 	"k8s.io/client-go/tools/clientcmd"
 	clientcmddapi "k8s.io/client-go/tools/clientcmd/api"
+
+	"github.com/pkg/errors"
+	"github.com/supergiant/supergiant/pkg/node"
+	"github.com/supergiant/supergiant/pkg/sgerrors"
 )
 
 func restClientForGroupVersion(k *Kube, gv schema.GroupVersion) (rest.Interface, error) {
-	cfg, err := buildConfig(k.APIAddr, k.Auth)
+	var n *node.Node
+
+	if len(k.Masters) > 0 {
+		n = k.Masters[0]
+	} else {
+		return nil, errors.Wrap(sgerrors.ErrNotFound, "master node")
+	}
+
+	cfg, err := buildConfig(n.PublicIp, k.Auth)
 	if err != nil {
 		return nil, err
 	}
@@ -21,7 +33,15 @@ func restClientForGroupVersion(k *Kube, gv schema.GroupVersion) (rest.Interface,
 }
 
 func discoveryClient(k *Kube) (*discovery.DiscoveryClient, error) {
-	cfg, err := buildConfig(k.APIAddr, k.Auth)
+	var n *node.Node
+
+	if len(k.Masters) > 0 {
+		n = k.Masters[0]
+	} else {
+		return nil, errors.Wrap(sgerrors.ErrNotFound, "master node")
+	}
+
+	cfg, err := buildConfig(n.PublicIp, k.Auth)
 	if err != nil {
 		return nil, err
 	}

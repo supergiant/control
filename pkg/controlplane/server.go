@@ -208,7 +208,7 @@ func configureApplication(cfg *Config) (*mux.Router, error) {
 	taskHandler := workflows.NewTaskHandler(repository, sshRunner.NewRunner, accountService)
 	taskHandler.Register(router)
 
-	taskProvisioner := provisioner.NewProvisioner(repository)
+	taskProvisioner := provisioner.NewProvisioner(repository, kubeService)
 	tokenGetter := provisioner.NewEtcdTokenGetter()
 	provisionHandler := provisioner.NewHandler(accountService, tokenGetter, taskProvisioner)
 	provisionHandler.Register(protectedAPI)

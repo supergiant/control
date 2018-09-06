@@ -9,6 +9,7 @@ import (
 	"github.com/stretchr/testify/mock"
 
 	"github.com/supergiant/supergiant/pkg/clouds"
+	"github.com/supergiant/supergiant/pkg/kube"
 	"github.com/supergiant/supergiant/pkg/profile"
 	"github.com/supergiant/supergiant/pkg/testutils"
 	"github.com/supergiant/supergiant/pkg/workflows"
@@ -19,7 +20,9 @@ func TestTaskProvisioner(t *testing.T) {
 	repository := &testutils.MockStorage{}
 	repository.On("Put", context.Background(), mock.Anything, mock.Anything, mock.Anything).Return(nil)
 
+	kubeService := kube.NewService("/kube", repository)
 	provisioner := TaskProvisioner{
+		kubeService,
 		repository,
 		func(string) (io.WriteCloser, error) {
 			return os.Stdout, nil
