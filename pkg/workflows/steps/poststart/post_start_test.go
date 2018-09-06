@@ -183,7 +183,6 @@ func TestPostStartTimeout(t *testing.T) {
 		1,
 	}
 	cfg.Runner = r
-	cfg.Done()
 
 	err = j.Run(context.Background(), output, cfg)
 
