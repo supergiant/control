@@ -54,8 +54,13 @@ func connectionWithBackOff(host, port string, config *ssh.ClientConfig, timeout 
 		c, err = ssh.Dial("tcp", fmt.Sprintf("%s:%s", host, port), config)
 
 		if err != nil {
+			logrus.Warnf("connect to %s failed, try again in %v seconds",
+				fmt.Sprintf("%s:%s", host, port),
+				timeout)
 			time.Sleep(timeout)
 			timeout = timeout * 2
+		} else {
+			break
 		}
 		counter += 1
 	}

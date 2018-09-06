@@ -6,6 +6,7 @@ import (
 
 	"github.com/supergiant/supergiant/pkg/workflows/steps"
 	"github.com/supergiant/supergiant/pkg/workflows/steps/certificates"
+	"github.com/supergiant/supergiant/pkg/workflows/steps/clustercheck"
 	"github.com/supergiant/supergiant/pkg/workflows/steps/cni"
 	"github.com/supergiant/supergiant/pkg/workflows/steps/digitalocean"
 	"github.com/supergiant/supergiant/pkg/workflows/steps/docker"
@@ -34,6 +35,7 @@ type Workflow []steps.Step
 const (
 	prefix = "tasks"
 
+	Cluster            = "Cluster"
 	DigitalOceanMaster = "DigitalOceanMaster"
 	DigitalOceanNode   = "DigitalOceanNode"
 )
@@ -57,11 +59,10 @@ func Init() {
 		steps.GetStep(certificates.StepName),
 		steps.GetStep(etcd.StepName),
 		steps.GetStep(manifest.StepName),
+		steps.GetStep(kubelet.StepName),
 		steps.GetStep(network.StepName),
 		steps.GetStep(flannel.StepName),
-		steps.GetStep(kubelet.StepName),
 		steps.GetStep(poststart.StepName),
-		steps.GetStep(tiller.StepName),
 	}
 	digitalOceanNodeWorkflow := []steps.Step{
 		steps.GetStep(digitalocean.StepName),
@@ -73,10 +74,19 @@ func Init() {
 		steps.GetStep(flannel.StepName),
 		steps.GetStep(kubelet.StepName),
 		steps.GetStep(cni.StepName),
+		steps.GetStep(poststart.StepName),
+	}
+
+	clusterWorkflow := []steps.Step{
+		steps.GetStep(ssh.StepName),
+		steps.GetStep(clustercheck.StepName),
+		steps.GetStep(tiller.StepName),
 	}
 
 	m.Lock()
 	defer m.Unlock()
+
+	workflowMap[Cluster] = clusterWorkflow
 	workflowMap[DigitalOceanMaster] = digitalOceanMasterWorkflow
 	workflowMap[DigitalOceanNode] = digitalOceanNodeWorkflow
 }

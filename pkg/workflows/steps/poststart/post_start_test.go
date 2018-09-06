@@ -13,6 +13,7 @@ import (
 
 	"time"
 
+	"github.com/supergiant/supergiant/pkg/profile"
 	"github.com/supergiant/supergiant/pkg/runner"
 	"github.com/supergiant/supergiant/pkg/templatemanager"
 	"github.com/supergiant/supergiant/pkg/workflows/steps"
@@ -35,7 +36,7 @@ func (f *fakeRunner) Run(command *runner.Command) error {
 	return err
 }
 
-func TestPostStart(t *testing.T) {
+func TestPostStartMaster(t *testing.T) {
 	port := "8080"
 	username := "john"
 	rbacEnabled := true
@@ -55,12 +56,55 @@ func TestPostStart(t *testing.T) {
 
 	output := new(bytes.Buffer)
 	cfg := &steps.Config{
+		IsMaster: true,
 		PostStartConfig: steps.PostStartConfig{
-			"127.0.0.1",
-			port,
-			username,
-			rbacEnabled,
-			120,
+			Host:        "127.0.0.1",
+			Port:        port,
+			Username:    username,
+			RBACEnabled: rbacEnabled,
+			Timeout:     120,
+		},
+		Runner: r,
+	}
+
+	j := &Step{
+		tpl,
+	}
+
+	err = j.Run(context.Background(), output, cfg)
+
+	if err != nil {
+		t.Errorf("Unpexpected error while master node %v", err)
+	}
+
+	if !strings.Contains(output.String(), port) {
+		t.Errorf("port %s not found in %s", port, output.String())
+	}
+
+	if !strings.Contains(output.String(), username) && rbacEnabled {
+		t.Errorf("rbac section not found in %s", output.String())
+	}
+}
+
+func TestPostStartNode(t *testing.T) {
+	r := &fakeRunner{}
+
+	err := templatemanager.Init("../../../../templates")
+
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	tpl := templatemanager.GetTemplate(StepName)
+
+	if tpl == nil {
+		t.Fatal("template not found")
+	}
+
+	output := new(bytes.Buffer)
+	cfg := &steps.Config{
+		PostStartConfig: steps.PostStartConfig{
+			Timeout: 120,
 		},
 		Runner: r,
 	}
@@ -75,12 +119,8 @@ func TestPostStart(t *testing.T) {
 		t.Errorf("Unpexpected error while  provision node %v", err)
 	}
 
-	if !strings.Contains(output.String(), port) {
-		t.Errorf("port %s not found in %s", port, output.String())
-	}
-
-	if !strings.Contains(output.String(), username) && rbacEnabled {
-		t.Errorf("rbac section not found in %s", output.String())
+	if !strings.Contains(output.String(), "docker ps") {
+		t.Errorf("docker ps command  not found in %s", output.String())
 	}
 }
 
@@ -133,16 +173,18 @@ func TestPostStartTimeout(t *testing.T) {
 		proxyTemplate,
 	}
 
-	cfg := &steps.Config{
-		PostStartConfig: steps.PostStartConfig{
-			"127.0.0.1",
-			port,
-			username,
-			rbacEnabled,
-			1,
-		},
-		Runner: r,
+	cfg := steps.NewConfig("", "", "", profile.Profile{})
+	cfg.PostStartConfig = steps.PostStartConfig{
+		true,
+		"127.0.0.1",
+		port,
+		username,
+		rbacEnabled,
+		1,
 	}
+	cfg.Runner = r
+	cfg.Done()
+
 	err = j.Run(context.Background(), output, cfg)
 
 	if err == nil {

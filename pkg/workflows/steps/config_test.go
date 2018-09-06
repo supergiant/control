@@ -15,7 +15,7 @@ func TestMarshalConfig(t *testing.T) {
 	}
 
 	cfg := &Config{
-		MasterNodes: MasterMap{
+		Masters: Map{
 			internal: masterMap,
 		},
 	}
@@ -33,10 +33,10 @@ func TestMarshalConfig(t *testing.T) {
 	}
 
 	for _, n := range nodes {
-		_, ok := cfg2.MasterNodes.internal[n.Id]
+		_, ok := cfg2.Masters.internal[n.Id]
 
 		if !ok {
-			t.Errorf("Node id %s not found in master map %v", n.Id, cfg2.MasterNodes.internal)
+			t.Errorf("Node id %s not found in master map %v", n.Id, cfg2.Masters.internal)
 			return
 		}
 	}

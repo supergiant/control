@@ -29,10 +29,19 @@ func New(tpl *template.Template) *Step {
 }
 
 func (s *Step) Run(ctx context.Context, out io.Writer, config *steps.Config) error {
-	err := steps.RunTemplate(context.Background(), s.scriptTemplate,
+	config.EtcdConfig.Name = config.Node.Id
+	config.EtcdConfig.AdvertiseHost = config.Node.PrivateIp
+	ctx2, _ := context.WithTimeout(ctx, config.EtcdConfig.Timeout)
+
+	err := steps.RunTemplate(ctx2, s.scriptTemplate,
 		config.Runner, out, config.EtcdConfig)
 	if err != nil {
 		return errors.Wrap(err, "install etcd step")
+	}
+
+	// Notify other task that one master is ready
+	if config.IsMaster {
+		config.Done()
 	}
 
 	return nil

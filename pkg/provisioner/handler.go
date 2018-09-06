@@ -36,7 +36,7 @@ type ProvisionRequest struct {
 }
 
 type ProvisionResponse struct {
-	TaskIDs []string `json:"taskIds"`
+	Tasks map[string][]string `json:"tasks"`
 }
 
 func NewHandler(cloudAccountService *account.Service, tokenGetter TokenGetter, provisioner Provisioner) *Handler {
@@ -82,7 +82,7 @@ func (h *Handler) Provision(w http.ResponseWriter, r *http.Request) {
 	}
 
 	ctx, _ := context.WithTimeout(context.Background(), config.Timeout)
-	tasks, err := h.provisioner.Provision(ctx, &req.Profile, config)
+	taskMap, err := h.provisioner.Provision(ctx, &req.Profile, config)
 
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
@@ -90,14 +90,18 @@ func (h *Handler) Provision(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	taskIds := make([]string, 0, len(tasks))
+	roleTaskIdMap := make(map[string][]string, len(taskMap))
 
-	for _, task := range tasks {
-		taskIds = append(taskIds, task.ID)
+	for role, taskSet := range taskMap {
+		roleTaskIdMap[role] = make([]string, 0, len(taskSet))
+
+		for _, task := range taskSet {
+			roleTaskIdMap[role] = append(roleTaskIdMap[role], task.ID)
+		}
 	}
 
 	resp := ProvisionResponse{
-		TaskIDs: taskIds,
+		Tasks: roleTaskIdMap,
 	}
 
 	// Respond to client side that request has been accepted

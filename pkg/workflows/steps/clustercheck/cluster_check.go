@@ -1,4 +1,4 @@
-package poststart
+package clustercheck
 
 import (
 	"context"
@@ -10,10 +10,9 @@ import (
 	tm "github.com/supergiant/supergiant/pkg/templatemanager"
 	"github.com/supergiant/supergiant/pkg/workflows/steps"
 	"github.com/supergiant/supergiant/pkg/workflows/steps/kubelet"
-	"time"
 )
 
-const StepName = "poststart"
+const StepName = "clustercheck"
 
 type Step struct {
 	script *template.Template
@@ -32,13 +31,10 @@ func New(script *template.Template) *Step {
 }
 
 func (s *Step) Run(ctx context.Context, out io.Writer, config *steps.Config) error {
-	ctx2, _ := context.WithTimeout(ctx, time.Duration(config.PostStartConfig.Timeout)*time.Second)
-	config.PostStartConfig.IsMaster = config.IsMaster
-
-	err := steps.RunTemplate(ctx2, s.script, config.Runner, out, config.PostStartConfig)
+	err := steps.RunTemplate(ctx, s.script, config.Runner, out, config.ClusterCheckConfig)
 
 	if err != nil {
-		return errors.Wrap(err, "run post start script step")
+		return errors.Wrap(err, "cluster check step")
 	}
 
 	return nil
