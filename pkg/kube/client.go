@@ -11,6 +11,7 @@ import (
 
 	"github.com/supergiant/supergiant/pkg/node"
 	"github.com/supergiant/supergiant/pkg/sgerrors"
+	"github.com/pkg/errors"
 )
 
 func restClientForGroupVersion(k *Kube, gv schema.GroupVersion) (rest.Interface, error) {
@@ -19,7 +20,7 @@ func restClientForGroupVersion(k *Kube, gv schema.GroupVersion) (rest.Interface,
 	if len(k.Masters) > 0 {
 		n = k.Masters[0]
 	} else {
-		return nil, sgerrors.ErrNotFound
+		return nil, errors.Wrap(sgerrors.ErrNotFound, "master node")
 	}
 
 	cfg, err := buildConfig(n.PublicIp, k.Auth)
@@ -37,7 +38,7 @@ func discoveryClient(k *Kube) (*discovery.DiscoveryClient, error) {
 	if len(k.Masters) > 0 {
 		n = k.Masters[0]
 	} else {
-		return nil, sgerrors.ErrNotFound
+		return nil, errors.Wrap(sgerrors.ErrNotFound, "master node")
 	}
 
 	cfg, err := buildConfig(n.PublicIp, k.Auth)

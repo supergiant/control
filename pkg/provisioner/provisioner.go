@@ -104,7 +104,7 @@ func (r *TaskProvisioner) Provision(ctx context.Context, profile *profile.Profil
 		// Wait for cluster checks are finished
 		r.waitCluster(ctx, clusterTask, config)
 
-		logrus.Info("Save cluster")
+		logrus.Info("Save cluster %s", config.ClusterName)
 		// Save cluster
 		r.saveCluster(ctx, profile, config)
 		logrus.Infof("Cluster %s deployment has finished", config.ClusterName)

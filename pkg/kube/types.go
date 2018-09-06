@@ -35,8 +35,8 @@ type Auth struct {
 }
 
 type Networking struct {
-	Manager string `json:"networkManager"`
-	Version string `json:"flannelVersion"`
-	Type    string `json:"networkType"`
+	Manager string `json:"manager"`
+	Version string `json:"version"`
+	Type    string `json:"type"`
 	CIDR    string `json:"cidr"`
 }
