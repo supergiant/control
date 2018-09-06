@@ -9,12 +9,77 @@
 	}
 
 	.inputs-wrapper {
-		max-height: 426px;
-		overflow: scroll;
+		flex-direction: row;
+		justify-content: space-between;
+		height: max-content;
+
+		&.large {
+			overflow: scroll;
+			width: 1270px;
+		}
 
 		button {
 			display: block;
 			margin-left: auto;
+		}
+
+		.input-group {
+			display: flex;
+			flex-direction: column;
+			width: 564px;
+
+			.machine {
+				display: flex;
+				justify-content: space-between;
+
+				.type {
+					width: 240px;
+				}
+
+				.role {
+					width: 123px;
+				}
+
+				.quantity {
+					width: 30px;
+				}
+
+				.delete {
+					cursor: pointer;
+					display: inline-block;
+					fill: #fff;
+					margin: auto 0;
+					height: 25px;
+					width: 25px;
+
+					&:active {
+						transform: scale(0.95, 0.95);
+					}
+				}
+			}
+
+			.add-machines {
+				cursor: pointer;
+				display: flex;
+				width: max-content;
+
+				&:active {
+					transform: scale(0.95, 0.95);
+				}
+
+				.plus {
+					fill: #fff;
+					margin: auto 0;
+					height: 20px;
+					width: 20px;
+				}
+
+				.add-label {
+					font-size: 14px;
+					font-weight: 300;
+					padding-left: 12px;
+				}
+			}
 		}
 	}
 }

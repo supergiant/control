@@ -15,7 +15,7 @@ import { Router } from '@angular/router';
   styleUrls: ['./new-cluster.component.scss'],
   encapsulation: ViewEncapsulation.None
 })
-export class NewClusterComponent implements OnInit, OnDestroy, AfterViewInit {
+export class NewClusterComponent implements OnInit, OnDestroy {
   subscriptions = new Subscription();
   cloudAccountsList: any;
   awsModel = new ClusterAWSModel;
@@ -32,9 +32,22 @@ export class NewClusterComponent implements OnInit, OnDestroy, AfterViewInit {
   layout: any;
 
   clusterName: string;
-  cloudAccounts: Array<any>;
-  availableRegions: Array<any>;
+  availableCloudAccounts: Array<any>;
   selectedCloudAccount: any;
+  availableRegions: Array<any>;
+  selectedRegion: any;
+  availableMachineTypes: Array<any>;
+  machines = [{
+    machineType: null,
+    role: "Master",
+    qty: 1
+  }];
+  blankMachine = {
+    machineType: null,
+    role: null,
+    qty: 1
+  };
+
 
   constructor(
     private supergiant: Supergiant,
@@ -45,7 +58,7 @@ export class NewClusterComponent implements OnInit, OnDestroy, AfterViewInit {
   getCloudAccounts() {
     this.subscriptions.add(this.supergiant.CloudAccounts.get().subscribe(
       (cloudAccounts) => {
-        this.cloudAccounts = cloudAccounts;
+        this.availableCloudAccounts = cloudAccounts;
       })
     );
   }
@@ -80,6 +93,21 @@ export class NewClusterComponent implements OnInit, OnDestroy, AfterViewInit {
       'Error:' + data.statusText);
   }
 
+  selectRegion(region) {
+    this.availableMachineTypes = region.AvailableSizes;
+    if (this.machines.length === 0) {
+      this.machines.push(this.blankMachine);
+    }
+  }
+
+  addBlankMachine() {
+    this.machines.push(this.blankMachine);
+  }
+
+  deleteMachine(e) {
+    console.log(e);
+  }
+
   selectCloudAccount(cloudAccount) {
     switch (cloudAccount.provider) {
       case 'aws': {
@@ -90,7 +118,6 @@ export class NewClusterComponent implements OnInit, OnDestroy, AfterViewInit {
         break;
       }
       case 'digitalocean': {
-        console.log("do");
         this.schema = this.doModel.digitalocean.schema;
         this.data = this.doModel.digitalocean.data;
         // this.layout = this.doModel.digitalocean.layout;
@@ -138,12 +165,6 @@ export class NewClusterComponent implements OnInit, OnDestroy, AfterViewInit {
 
   ngOnDestroy() {
     this.subscriptions.unsubscribe();
-  }
-
-  ngAfterViewInit() {
-    this.subscriptions.add(this.supergiant.CloudAccounts.get().subscribe(
-      (data) => { this.cloudAccountsList = data; }
-    ));
   }
 
 }
