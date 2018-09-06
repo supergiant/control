@@ -31,7 +31,7 @@ func ToProvider(name string) (Name, error) {
 }
 
 const (
-	DigitalOceanAccessToken    = "key_digitalocean_access_token"
+	DigitalOceanAccessToken    = "accessToken"
 	EnvDigitalOceanAccessToken = "DIGITALOCEAN_TOKEN"
 	CredsPrivateKey            = "privateKey"
 	AWSAccessKeyID             = "AWS_ACCESS_KEY_ID"
