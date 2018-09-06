@@ -34,11 +34,7 @@ func New(script *template.Template) *Step {
 }
 
 func (s *Step) Run(ctx context.Context, out io.Writer, config *steps.Config) error {
-	if !config.IsMaster {
-		config.CertificatesConfig.MasterPrivateIP = config.GetMaster().PrivateIp
-	} else {
-		config.CertificatesConfig.MasterPrivateIP = config.Node.PrivateIp
-	}
+	config.CertificatesConfig.MasterPrivateIP = config.GetMaster().PrivateIp
 
 	err := steps.RunTemplate(ctx, s.script,
 		config.Runner, out, config.CertificatesConfig)

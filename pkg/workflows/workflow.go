@@ -58,6 +58,7 @@ func Init() {
 		steps.GetStep(cni.StepName),
 		steps.GetStep(certificates.StepName),
 		steps.GetStep(etcd.StepName),
+		steps.GetStep(flannel.StepName),
 		steps.GetStep(manifest.StepName),
 		steps.GetStep(kubelet.StepName),
 		steps.GetStep(network.StepName),

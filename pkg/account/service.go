@@ -83,6 +83,10 @@ func (s *Service) Create(ctx context.Context, account *model.CloudAccount) error
 		if account.Credentials[clouds.DigitalOceanAccessToken] == "" {
 			return errors.Wrap(sgerrors.ErrInvalidCredentials, "no digital ocean's access token provided")
 		}
+
+		if account.Credentials[clouds.DigitalOceanFingerPrint] == "" {
+			return errors.Wrap(sgerrors.ErrInvalidCredentials, "no ssh key fingerprint provided")
+		}
 	case clouds.AWS:
 		if account.Credentials[clouds.AWSAccessKeyID] == "" ||
 			account.Credentials[clouds.AWSSecretKey] == "" {
