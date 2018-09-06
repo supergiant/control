@@ -341,3 +341,23 @@ func (c *Config) GetMaster() *node.Node {
 
 	return nil
 }
+
+func (c *Config) GetMasters() []*node.Node {
+	m := make([]*node.Node, 0, len(c.Masters.internal))
+
+	for key := range c.Masters.internal {
+		m = append(m, c.Masters.internal[key])
+	}
+
+	return m
+}
+
+func (c *Config) GetNodes() []*node.Node {
+	m := make([]*node.Node, 0, len(c.Nodes.internal))
+
+	for key := range c.Nodes.internal {
+		m = append(m, c.Nodes.internal[key])
+	}
+
+	return m
+}
