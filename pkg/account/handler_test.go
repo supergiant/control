@@ -56,6 +56,7 @@ func TestEndpoint_Create(t *testing.T) {
 		Provider: clouds.DigitalOcean,
 		Credentials: map[string]string{
 			clouds.DigitalOceanAccessToken: "test",
+			clouds.DigitalOceanFingerPrint: "fingerprint",
 		},
 	})
 	req, _ = http.NewRequest(http.MethodPost, "/cloud_accounts", bytes.NewReader(okAccount))
