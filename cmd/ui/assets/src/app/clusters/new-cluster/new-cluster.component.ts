@@ -12,8 +12,8 @@ import { Router } from '@angular/router';
 @Component({
   selector: 'app-new-cluster',
   templateUrl: './new-cluster.component.html',
-  styleUrls: ['./new-cluster.component.scss'],
-  encapsulation: ViewEncapsulation.None
+  styleUrls: ['./new-cluster.component.scss']
+  // encapsulation: ViewEncapsulation.None
 })
 export class NewClusterComponent implements OnInit, OnDestroy {
   subscriptions = new Subscription();
@@ -31,6 +31,8 @@ export class NewClusterComponent implements OnInit, OnDestroy {
   schema: any;
   layout: any;
 
+
+  // temp for demo
   clusterName: string;
   availableCloudAccounts: Array<any>;
   selectedCloudAccount: any;
@@ -48,6 +50,39 @@ export class NewClusterComponent implements OnInit, OnDestroy {
     qty: 1
   };
 
+  profileOptions = {
+    archs: ["amd64"],
+    flannelVersions: ["0.10.0"],
+    operatingSystems: ["linux"],
+    networkTypes: ["vxlan"],
+    ubuntuVersions: ["xenial"],
+    helmVersions: ["2.8.0"],
+    dockerVersions: ["17.06.0"],
+    K8SVersions: ["1.11.1"],
+    rbacEnabled: [true, false]
+  }
+
+  newDigitalOceanCluster = {
+    cloudAccountName: this.selectedCloudAccount,
+    clusterName: this.clusterName,
+    profile: {
+      masterProfiles: [],
+      nodesProfiles: [],
+      provider: "digitalocean",
+      // will have to set this on submit for now UGH
+      // region: this.selectedRegion.id,
+      arch: "amd64",
+      operatingSystem: "linux",
+      ubuntuVersion: "xenial",
+      dockerVersion: "17.06.0",
+      K8SVersion: "1.11.1",
+      flannelVersion: "0.10.0",
+      networkType: "vxlan",
+      cidr: "10.0.0.0/24",
+      helmVersion: "2.8.0",
+      rbacEnabled: false
+    }
+  }
 
   constructor(
     private supergiant: Supergiant,
@@ -104,8 +139,9 @@ export class NewClusterComponent implements OnInit, OnDestroy {
     this.machines.push(this.blankMachine);
   }
 
-  deleteMachine(e) {
-    console.log(e);
+  deleteMachine(idx) {
+    console.log(idx);
+    this.machines.splice(idx, 1);
   }
 
   selectCloudAccount(cloudAccount) {

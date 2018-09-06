@@ -45,9 +45,11 @@
 				}
 
 				.delete {
+					background: url(/assets/img/delete.svg) no-repeat;
+					background-size: 100% 100%;
+					background-position: center;
 					cursor: pointer;
 					display: inline-block;
-					fill: #fff;
 					margin: auto 0;
 					height: 25px;
 					width: 25px;
@@ -68,7 +70,9 @@
 				}
 
 				.plus {
-					fill: #fff;
+					background: url(/assets/img/plus.svg) no-repeat;
+					background-size: 100% 100%;
+					background-position: center;
 					margin: auto 0;
 					height: 20px;
 					width: 20px;
@@ -78,6 +82,27 @@
 					font-size: 14px;
 					font-weight: 300;
 					padding-left: 12px;
+				}
+			}
+
+			.profile-row {
+				display: flex;
+				justify-content: space-between;
+
+				mat-form-field {
+					width: 270px;
+				}
+			}
+
+			.action-buttons-wrapper {
+				display: flex;
+				justify-content: space-between;
+				margin-left: auto;
+				width: 452px;
+
+				.secondary {
+					border: 2px solid #fff;
+					background-color: transparent;
 				}
 			}
 		}
