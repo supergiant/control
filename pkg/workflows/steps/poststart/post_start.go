@@ -41,6 +41,8 @@ func (s *Step) Run(ctx context.Context, out io.Writer, config *steps.Config) err
 		return errors.Wrap(err, "run post start script step")
 	}
 
+	// Mark current node as active to allow cluster check task select it for cluster wide task
+	config.Node.Active = true
 	return nil
 }
 

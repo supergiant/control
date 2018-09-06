@@ -29,9 +29,6 @@ func New(tpl *template.Template) *Step {
 }
 
 func (t *Step) Run(ctx context.Context, out io.Writer, config *steps.Config) error {
-	// Wait until the majority of master is up so we can write to etcd without an error
-	config.Wait()
-
 	err := steps.RunTemplate(context.Background(), t.scriptTemplate,
 		config.Runner, out, config.NetworkConfig)
 	if err != nil {

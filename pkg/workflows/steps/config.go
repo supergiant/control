@@ -11,7 +11,6 @@ import (
 	"github.com/supergiant/supergiant/pkg/profile"
 	"github.com/supergiant/supergiant/pkg/runner"
 	"github.com/supergiant/supergiant/pkg/storage"
-	"github.com/supergiant/supergiant/pkg/util"
 )
 
 type CertificatesConfig struct {
@@ -202,21 +201,11 @@ type Config struct {
 
 	m2    sync.RWMutex
 	Nodes Map `json:"nodes"`
-
-	m3             sync.RWMutex
-	countdownLatch *util.CountdownLatch
 }
 
 // NewConfig builds instance of config for provisioning
 func NewConfig(clusterName, discoveryUrl, cloudAccountName string, profile profile.Profile) *Config {
-	timeout := time.Minute * 30
-	ctx, _ := context.WithTimeout(context.Background(), timeout)
-
-	// We need at least n/2 + 1 of master nodes be up and running to continue cluster deployment
-	l := util.NewCountdownLatch(ctx, len(profile.MasterProfiles)/2+1)
-
 	return &Config{
-		Context:     ctx,
 		Provider:    profile.Provider,
 		ClusterName: clusterName,
 		DigitalOceanConfig: DOConfig{
@@ -314,10 +303,8 @@ func NewConfig(clusterName, discoveryUrl, cloudAccountName string, profile profi
 		Nodes: Map{
 			internal: make(map[string]*node.Node, len(profile.NodesProfiles)),
 		},
-		Timeout:          timeout,
+		Timeout:          time.Minute * 30,
 		CloudAccountName: cloudAccountName,
-
-		countdownLatch: l,
 	}
 }
 
@@ -346,20 +333,13 @@ func (c *Config) GetMaster() *node.Node {
 	}
 
 	for _, value := range c.Masters.internal {
-		return value
+		// Skip inactive nodes for selecting
+		if value.Active {
+			return value
+		}
 	}
 
 	return nil
-}
-
-// Wait while majority of nodes become up and running
-func (c *Config) Wait() {
-	c.countdownLatch.Wait()
-}
-
-// Done is called when master node has started etcd instance
-func (c *Config) Done() {
-	c.countdownLatch.CountDown()
 }
 
 func (c *Config) GetMasters() []*node.Node {

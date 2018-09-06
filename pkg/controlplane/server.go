@@ -211,7 +211,7 @@ func configureApplication(cfg *Config) (*mux.Router, error) {
 	taskProvisioner := provisioner.NewProvisioner(repository, kubeService)
 	tokenGetter := provisioner.NewEtcdTokenGetter()
 	provisionHandler := provisioner.NewHandler(accountService, tokenGetter, taskProvisioner)
-	provisionHandler.Register(router)
+	provisionHandler.Register(protectedAPI)
 
 	helmService := helm.NewService(repository)
 	helmHandler := helm.NewHandler(helmService)
