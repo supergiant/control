@@ -37,9 +37,9 @@ func TestEndpoint_Create(t *testing.T) {
 	m.On("Put", mock.Anything, mock.Anything, mock.Anything, mock.Anything).Return(nil)
 
 	malformedAccount, _ := json.Marshal(model.CloudAccount{
-		Name:        "",
-		Provider:    "asdasd",
-		Credentials: nil,
+		Name:        "ff",
+		Provider:    clouds.DigitalOcean,
+		Credentials: map[string]string{},
 	})
 
 	req, _ := http.NewRequest(http.MethodPost, "/cloud_accounts", bytes.NewReader(malformedAccount))
@@ -49,12 +49,14 @@ func TestEndpoint_Create(t *testing.T) {
 	rr := httptest.NewRecorder()
 	handler.ServeHTTP(rr, req)
 
-	require.Equal(t, http.StatusBadRequest, rr.Code, rr.Body.String())
+	require.Equal(t, http.StatusInternalServerError, rr.Code, rr.Body.String())
 
 	okAccount, _ := json.Marshal(model.CloudAccount{
-		Name:        "test",
-		Provider:    "gce",
-		Credentials: nil,
+		Name:     "test",
+		Provider: clouds.DigitalOcean,
+		Credentials: map[string]string{
+			clouds.DigitalOceanAccessToken: "test",
+		},
 	})
 	req, _ = http.NewRequest(http.MethodPost, "/cloud_accounts", bytes.NewReader(okAccount))
 
@@ -81,14 +83,14 @@ func TestEndpoint_CreateError(t *testing.T) {
 	okAccount, _ := json.Marshal(model.CloudAccount{
 		Name:        "test",
 		Provider:    "gce",
-		Credentials: nil,
+		Credentials: map[string]string{},
 	})
 	req, _ := http.NewRequest(http.MethodPost, "/cloud_accounts", bytes.NewReader(okAccount))
 
 	handler := http.HandlerFunc(e.Create)
 	handler.ServeHTTP(rr, req)
 
-	require.Equal(t, http.StatusInternalServerError, rr.Code, rr.Body.String())
+	require.Equal(t, http.StatusBadRequest, rr.Code, rr.Body.String())
 }
 
 func TestEndpoint_Delete(t *testing.T) {

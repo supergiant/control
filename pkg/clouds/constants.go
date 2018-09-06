@@ -31,10 +31,9 @@ func ToProvider(name string) (Name, error) {
 }
 
 const (
-	KeyDigitalOceanAccessToken = "key_digitalocean_access_token"
+	DigitalOceanAccessToken    = "key_digitalocean_access_token"
 	EnvDigitalOceanAccessToken = "DIGITALOCEAN_TOKEN"
-)
-
-const (
-	CredsPrivateKey = "privateKey"
+	CredsPrivateKey            = "privateKey"
+	AWSAccessKeyID             = "AWS_ACCESS_KEY_ID"
+	AWSSecretKey               = "AWS_SECRET_KEY"
 )

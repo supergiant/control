@@ -37,7 +37,7 @@ func New(accessToken string) *SDK {
 
 //NewFromAccount extracts credentials from accounts and returns SDK ready to be used
 func NewFromAccount(account *model.CloudAccount) (*SDK, error) {
-	token, ok := account.Credentials[clouds.KeyDigitalOceanAccessToken]
+	token, ok := account.Credentials[clouds.DigitalOceanAccessToken]
 	if !ok {
 		return nil, ErrNoCredentials
 	}
