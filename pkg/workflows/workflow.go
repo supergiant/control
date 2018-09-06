@@ -61,7 +61,6 @@ func Init() {
 		steps.GetStep(manifest.StepName),
 		steps.GetStep(kubelet.StepName),
 		steps.GetStep(network.StepName),
-		steps.GetStep(flannel.StepName),
 		steps.GetStep(poststart.StepName),
 	}
 	digitalOceanNodeWorkflow := []steps.Step{
