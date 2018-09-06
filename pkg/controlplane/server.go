@@ -3,6 +3,8 @@ package controlplane
 import (
 	"context"
 	"fmt"
+	"github.com/supergiant/supergiant/pkg/clouds"
+	"github.com/supergiant/supergiant/pkg/model"
 	"github.com/supergiant/supergiant/pkg/workflows/steps/amazon"
 	"net/http"
 	"time"
@@ -55,7 +57,7 @@ func (srv *Server) Start() {
 }
 
 func (srv *Server) Shutdown() {
-	ctx, cancel := context.WithTimeout(context.Background(), time.Minute * 1)
+	ctx, cancel := context.WithTimeout(context.Background(), time.Minute*1)
 	defer cancel()
 	err := srv.server.Shutdown(ctx)
 
@@ -241,7 +243,7 @@ func configureApplication(cfg *Config) (*mux.Router, error) {
 		RBACEnabled:     false,
 	}
 
-	err := kubeProfileService.Create(context.Background(), p)
+	err := profileService.Create(context.Background(), p)
 
 	if err != nil {
 		logrus.Fatal(err)
