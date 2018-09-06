@@ -9,9 +9,9 @@ import (
 	"k8s.io/client-go/tools/clientcmd"
 	clientcmddapi "k8s.io/client-go/tools/clientcmd/api"
 
+	"github.com/pkg/errors"
 	"github.com/supergiant/supergiant/pkg/node"
 	"github.com/supergiant/supergiant/pkg/sgerrors"
-	"github.com/pkg/errors"
 )
 
 func restClientForGroupVersion(k *Kube, gv schema.GroupVersion) (rest.Interface, error) {
