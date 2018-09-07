@@ -1,0 +1,14 @@
+<mat-toolbar>
+  <span class="item"><a href="#" (click)="false">DASHBOARD</a></span>
+  <span class="item active">
+    <a class="link" href="#" (click)="false">CLASTERS</a>
+    <i class="fa fa-angle-down"></i>
+  </span>
+  <mat-menu #menu="matMenu" yPosition="above">
+    <button mat-menu-item>Item 1</button>
+    <button mat-menu-item>Item 2</button>
+  </mat-menu>
+
+  <span class="item"><a href="#" (click)="false">APPS</a></span>
+  <span class="item"><a href="#" (click)="false">SERVICES</a></span>
+</mat-toolbar>

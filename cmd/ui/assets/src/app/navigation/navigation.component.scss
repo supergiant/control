@@ -1,8 +1,9 @@
 .nav-wrapper {
-  background: transparent;
   display: flex;
-  justify-content: flex-start;
-  margin: 32px 0px;
+  justify-content: space-between;
+  margin: 32px 0;
+  width: 100%;
+
   position: fixed;
   top: 0;
   left: 0;
