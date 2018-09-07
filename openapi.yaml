@@ -49,6 +49,8 @@ paths:
           description: "Malformed or incorrectly formatted request body"
         '401':
           description: "Unauthorized or incorrectly formatted authorization"
+        '422':
+          description: "Could not process request with given request body"
           
   /users/{id}:
     put:
