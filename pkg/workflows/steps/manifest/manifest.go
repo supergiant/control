@@ -10,7 +10,6 @@ import (
 
 	tm "github.com/supergiant/supergiant/pkg/templatemanager"
 	"github.com/supergiant/supergiant/pkg/workflows/steps"
-	"github.com/sirupsen/logrus"
 )
 
 const StepName = "manifest"
@@ -34,9 +33,7 @@ func New(script *template.Template) *Step {
 func (j *Step) Run(ctx context.Context, out io.Writer, config *steps.Config) error {
 	// NOTE(stgleb): This is needed for master node to put advertise address for kube api server.
 	config.ManifestConfig.IsMaster = config.IsMaster
-	logrus.Info("manifest step master host before %s", config.ManifestConfig.MasterHost)
 	config.ManifestConfig.MasterHost = config.GetMaster().PrivateIp
-	logrus.Info("manifest step master host before %s", config.ManifestConfig.MasterHost)
 
 	err := steps.RunTemplate(ctx, j.script, config.Runner, out, config.ManifestConfig)
 

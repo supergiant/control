@@ -97,9 +97,16 @@ func (t *Step) Run(ctx context.Context, output io.Writer, config *steps.Config) 
 			if droplet.Status == "active" {
 				// Get private ip ports from droplet networks
 
+				role := "master"
+
+				if !config.IsMaster {
+					role = "node"
+				}
+
 				config.Node = node.Node{
 					Id:        fmt.Sprintf("%d", droplet.ID),
 					CreatedAt: time.Now().Unix(),
+					Role:      role,
 					Provider:  clouds.DigitalOcean,
 					Region:    droplet.Region.Name,
 					PublicIp:  getPublicIpPort(droplet.Networks.V4),
