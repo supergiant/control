@@ -1,80 +1,22 @@
-<div class="app-clusters-container">
-  <section class="app-context-header-panel">
-    <button type="button" class="back-button" (click)="goBack()"></button>
+<div class="cluster-details-wrapper">
+  <div class="usage-chart">
 
-    <h1>
-      <i class="fa fa-server"></i> {{ kube?.name }}
-    </h1>
-
-    <div class="context-secondary-panel">
-      <table class="table">
-        <thead>
-          <tr>
-            <th scope="col">Name</th>
-            <th scope="col">Cloud Account</th>
-            <th scope="col">
-              Master Node<span *ngIf="kube?.kube_master_count > 1">s</span>
-            </th>
-            <th scope="col">Master Public IP</th>
-          </tr>
-        </thead>
-        <tbody>
-          <tr>
-            <td>{{ kube?.name }}</td>
-            <td>{{ kube?.cloud_account_name }}</td>
-            <td>{{ kube?.master_node_size }} x{{ kube?.kube_master_count }}</td>
-            <td>{{ kube?.master_public_ip }}</td>
-          </tr>
-        </tbody>
-      </table>
-    </div>
-  </section>
-
-  <section>
-    <div style="width: 50%; float: left;">
-      <h2 align="center">CPU (Millicores)</h2>
-
-      <canvas baseChart width="600" height="300" [datasets]="cpuChartData" [labels]="cpuChartLabels" [legend]="cpuChartLegend" [options]="cpuChartOptions" [colors]="cpuChartColors" [chartType]="cpuChartType">
-      </canvas>
+    <div class="cpu">
+      <svg class="cpu-label" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 239.777 109.285"><defs><style>.a{fill:#ff00a6;font-size:62px;font-family:Montserrat-Light, Montserrat;font-weight:300;letter-spacing:-0.05em;}.b{fill:none;stroke:#ff00a6;stroke-width:0.5px;}</style></defs><g transform="translate(-108.436 -80.719)"><text class="a" transform="translate(210.413 140.72)"><tspan x="-65.751" y="0">CPU</tspan></text><path class="b" d="M262.276,228.627H467.26l34.615,34.61" transform="translate(-153.841 -73.409)"/></g></svg>
+      <span class="cpu-metric">12% usage</span>
     </div>
 
-    <div style="width: 50%; float: left;">
-      <h2 align="center">RAM (GB)</h2>
-
-      <canvas baseChart width="600" height="300" [colors]="ramChartColors" [datasets]="ramChartData" [labels]="ramChartLabels" [options]="ramChartOptions" [chartType]="ramChartType">
-      </canvas>
+    <div class="orb-chart">
+      <div class="left-chart"></div>
+      <div class="orb">
+        <span class="cluster-name">{{ kube?.name }}</span>
+      </div>
+      <div class="right-chart"></div>
     </div>
 
-    <div style="clear: both; height: 1px; width: 100%;"></div>
-  </section>
-  <!-- <b>Planets: ( Have your kube username and password handy from the "Raw Data tab")</b>
-    <ul class="nav flex-column nav-pills">
-      <li *ngFor="let planet of planets" class="nav-item">
-        <button class="btn btn-sm btn-outline-primary" (click)="planetName=planet.name; getIframeURL(planet.name)">{{ planet?.name }}</button>
-      </li>
-    </ul>
-
-  <div class="graph-container">
-    <iframe class="full" #iframe [src]="secureSrc" (load)="onIframeLoad()" frameborder="0" width="95%" height="1000px"></iframe>
-  </div> -->
-  <section>
-    <app-apps-list *ngIf="kube" [kube]="kube"></app-apps-list>
-  </section>
-
-  <section>
-    <app-nodes-list *ngIf="kube" [kube]="kube"></app-nodes-list>
-  </section>
-
-  <section>
-    <app-pods-list *ngIf="kube" [kube]="kube"></app-pods-list>
-  </section>
-
-  <section class="details-showmore">
-    <button mat-button color="primary" (click)="showRaw = !showRaw">Show/hide raw data</button>
-
-    <div *ngIf="showRaw">
-      <h2>Raw Data</h2>
-      <ace-editor [(text)]="kubeString" mode="json" [readOnly]="true" style="height:500px;width:100%"></ace-editor>
+    <div class="ram">
+      <svg class="ram-label" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 239.771 76"><defs><style>.c{fill:#40c4ff;font-size:62px;font-family:Montserrat-Light, Montserrat;font-weight:300;}.d{fill:none;stroke:#40c4ff;stroke-width:0.5px;}</style></defs><g transform="translate(-817.346 -244.719)"><text class="c" transform="translate(957.413 304.72)"><tspan x="-73.811" y="0">RAM</tspan></text><path class="d" d="M501.872,263.242H296.89l-34.615-34.615" transform="translate(555.247 55.722)"/></g></svg>
+      <span class="cpu-metric">12% usage</span>
     </div>
-  </section>
+  </div>
 </div>

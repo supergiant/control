@@ -1,12 +1,67 @@
-button {
-    width: 100%;
-}
+.cluster-details-wrapper {
+  margin-top: 78px;
 
-textarea {
-    height: 79vh;
-    padding: 10px;
-}
+  .usage-chart {
+    display: flex;
+    margin: 0 auto;
+    height: 532px;
+    width: 1102px;
 
-section.details-showmore>div {
-    padding: 30px;
+    .cpu {
+      width: 240px;
+    }
+
+    .orb-chart {
+      background: url(/assets/img/cluster-details/nums_marks.svg) no-repeat;
+      background-size: 100% 100%;
+      background-position: center;
+      width: 566px;
+      position: relative;
+
+      .orb {
+        align-items: center;
+        background: url(/assets/img/cluster-details/circle_center.svg) no-repeat;
+        background-size: 100% 100%;
+        background-position: center;
+        display: flex;
+        justify-content: center;
+        position: absolute;
+        top: -6px;
+        left: 0;
+        height: 100%;
+        width: 100%;
+
+        .cluster-name {
+          font-size: 32px;
+          font-weight: 200;
+        }
+      }
+
+      .left-chart {
+        background: url(/assets/img/cluster-details/left_metric_base.svg) no-repeat;
+        background-size: 100% 100%;
+        background-position: center;
+        position: absolute;
+        top: 38px;
+        left: 62px;
+        height: 448px;
+        width: 223px;
+      }
+
+      .right-chart {
+        background: url(/assets/img/cluster-details/right_metric_base.svg) no-repeat;
+        background-size: 100% 100%;
+        background-position: center;
+        position: absolute;
+        top: 78px;
+        right: 98px;
+        height: 368px;
+        width: 184px;
+      }
+    }
+
+    .ram {
+      width: 240px;
+    }
+  }
 }
