@@ -179,6 +179,7 @@ import { LogsComponent } from './system/logs/logs.component';
 import { NewKubeResourceComponent } from './kube-resources/new-kube-resource/new-kube-resource.component';
 import { ToolbarComponent } from './navigation/toolbar/toolbar.component';
 import { UserMenuComponent } from './navigation/user-menu/user-menu.component';
+import { FooterComponent } from './shared/footer/footer.component';
 
 
 
@@ -264,6 +265,7 @@ import { UserMenuComponent } from './navigation/user-menu/user-menu.component';
     NewKubeResourceComponent,
     ToolbarComponent,
     UserMenuComponent,
+    FooterComponent,
   ],
   imports: [
     BrowserModule,
