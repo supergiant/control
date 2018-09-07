@@ -96,8 +96,8 @@
   .machines-list {
     background-color: rgba(0, 0, 0, 0.5);
     border: 1px solid rgba(255, 255, 255, 0.25);
-    margin: 0 auto;
-    padding: 21px 24px 5px 24px;
+    margin: 48px auto;
+    padding: 21px 24px 24px 24px;
     height: min-content;
     width: 1270px;
 
@@ -131,10 +131,10 @@
           padding: 12px 0px;
         }
       }
+    }
 
-      .mat-paginator {
-        background-color: rgba(255, 255, 255, 0.1);
-      }
+    .mat-paginator {
+      background-color: rgba(255, 255, 255, 0.1);
     }
   }
 }
