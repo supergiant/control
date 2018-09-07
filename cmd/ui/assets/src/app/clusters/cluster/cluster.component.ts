@@ -8,6 +8,7 @@ import { Notifications } from '../../shared/notifications/notifications.service'
 import { convertIsoToHumanReadable } from '../../shared/helpers/helpers';
 import { DomSanitizer, SafeResourceUrl } from '@angular/platform-browser';
 import { ChartsModule, BaseChartDirective } from 'ng2-charts';
+import { MatTableDataSource, MatSort, MatPaginator } from '@angular/material';
 
 import "brace/mode/json";
 
@@ -62,6 +63,9 @@ export class ClusterComponent implements OnInit, OnDestroy {
       pointHoverBorderColor: 'rgba(148,159,177,0.8)'
     }
   ];
+
+  @ViewChild(MatSort) sort: MatSort;
+  @ViewChild(MatPaginator) paginator: MatPaginator;
 
 
   // linter is angry about the boolean typing but without it charts
@@ -163,8 +167,12 @@ export class ClusterComponent implements OnInit, OnDestroy {
   public ramChartLabels: Array<any> = [];
   public ramChartType = 'line';
 
-
   isDataAvailable = false;
+
+  // machine list vars
+  machines: any;
+  machineListColumns = ["role", "id", "region", "public_ip", "active"];
+
   ngOnInit() {
     this.id = this.route.snapshot.params.id;
     this.getKube();
@@ -284,7 +292,12 @@ export class ClusterComponent implements OnInit, OnDestroy {
   getKube() {
     this.subscriptions.add(Observable.timer(0, 20000)
       .switchMap(() => this.supergiant.Kubes.get(this.id)).subscribe(
-        kube => {this.kube = kube;console.log(kube);},
+        kube => {
+          this.kube = kube;
+          this.machines = new MatTableDataSource(kube.masters.concat(kube.nodes));
+          this.machines.sort = this.sort;
+          this.machines.paginator = this.paginator;
+          console.log(kube);},
         err => console.log(err)
       ))
   }
