@@ -33,7 +33,7 @@ type StepStatus struct {
 type Workflow []steps.Step
 
 const (
-	prefix = "tasks"
+	Prefix = "tasks"
 
 	Cluster            = "Cluster"
 	DigitalOceanMaster = "DigitalOceanMaster"
