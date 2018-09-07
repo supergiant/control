@@ -80,7 +80,7 @@ export class CloudAccountModel {
     'layout': [
       { "key": "credentials.accessToken", "placeholder": "Access Token" },
       { "key": "credentials.fingerprint", "placeholder": "Fingerprint" },
-      { "key": "credentials.privateKey", "placeholder": "Private Key" },
+      { "type": "textarea", "key": "credentials.privateKey", "placeholder": "Private Key" },
       { "type": "submit", "title": "CREATE" }
     ]
   };
