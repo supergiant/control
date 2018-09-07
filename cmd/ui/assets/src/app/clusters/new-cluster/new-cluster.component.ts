@@ -39,11 +39,14 @@ export class NewClusterComponent implements OnInit, OnDestroy {
   availableRegions: Array<any>;
   selectedRegion: any;
   availableMachineTypes: Array<any>;
+  machineSizes: any;
+
   machines = [{
     machineType: null,
     role: "Master",
     qty: 1
   }];
+
   blankMachine = {
     machineType: null,
     role: null,
@@ -63,8 +66,6 @@ export class NewClusterComponent implements OnInit, OnDestroy {
   }
 
   newDigitalOceanCluster = {
-    cloudAccountName: this.selectedCloudAccount,
-    clusterName: this.clusterName,
     profile: {
       masterProfiles: [],
       nodesProfiles: [],
@@ -103,8 +104,29 @@ export class NewClusterComponent implements OnInit, OnDestroy {
     this.schema = null;
   }
 
+  compileProfiles(machines, role) {
+    const filteredMachines = machines.filter(m => m.role == role);
+    const compiledProfiles = [];
+
+    filteredMachines.forEach(m => {
+      for (var i = 0; i < m.qty; i++) {
+        compiledProfiles.push({ image: "ubuntu-16-04-x64", size: m.machineType })
+      }
+    })
+
+    return compiledProfiles;
+  }
 
   createCluster(model) {
+    // temp for demo
+    model.cloudAccountName = this.selectedCloudAccount.name;
+    model.clusterName = this.clusterName;
+    model.profile.region = this.selectedRegion.id
+    model.profile.masterProfiles = this.compileProfiles(this.machines, "Master");
+    model.profile.nodesProfiles = this.compileProfiles(this.machines, "Node");
+
+    console.log(model);
+
     this.subscriptions.add(this.supergiant.Kubes.create(model).subscribe(
       (data) => {
         this.success(model);
@@ -122,6 +144,8 @@ export class NewClusterComponent implements OnInit, OnDestroy {
   }
 
   error(model, data) {
+    console.log("model:", model);
+    console.log("data:", data);
     this.notifications.display(
       'error',
       'Kube: ' + model.name,
@@ -190,7 +214,10 @@ export class NewClusterComponent implements OnInit, OnDestroy {
     };
 
     this.subscriptions.add(this.supergiant.CloudAccounts.getRegions(cloudAccount.name).subscribe(
-        regionList => this.availableRegions = regionList,
+        regionList => {
+          this.availableRegions = regionList;
+          this.machineSizes = regionList.sizes;
+        },
         err => this.error({}, err)
     ))
   }

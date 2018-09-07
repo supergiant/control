@@ -20,11 +20,12 @@
         </mat-select>
       </mat-form-field>
 
-      <ng-container *ngIf="selectedCloudAccount">
+      <div *ngIf="selectedCloudAccount" [ngClass]="{ disable: !selectedRegion }">
+      <!-- <ng-container *ngIf="selectedRegion"> -->
         <div class="machine" *ngFor="let m of machines; let idx = index">
           <mat-form-field class="type">
             <mat-select placeholder="Machine Type (size)" [(value)]="m.machineType">
-              <mat-option *ngFor="let type of availableMachineTypes" value="type">{{ type }}</mat-option>
+              <mat-option *ngFor="let type of availableMachineTypes" [value]="type">{{ type }}</mat-option>
             </mat-select>
           </mat-form-field>
 
@@ -36,16 +37,17 @@
           </mat-form-field>
 
           <mat-form-field class="quantity">
-            <input matInput type="number" placeholder="Q-ty" [value]="m.qty">
+            <input matInput type="number" placeholder="Q-ty" [(ngModel)]="m.qty">
           </mat-form-field>
 
           <div class="delete" (click)="deleteMachine(idx)"></div>
         </div>
-      </ng-container>
 
-      <div class="add-machines" *ngIf="selectedCloudAccount" (click)="addBlankMachine()">
-        <div class="plus"></div>
-        <span class="add-label">Add more machines</span>
+        <div class="add-machines" *ngIf="selectedCloudAccount" (click)="addBlankMachine()">
+          <div class="plus"></div>
+          <span class="add-label">Add more machines</span>
+        </div>
+      <!-- </ng-container> -->
       </div>
     </div>
 
@@ -87,7 +89,7 @@
         </mat-form-field>
 
         <mat-form-field>
-          <input matInput type="text" name="" [(value)]="newDigitalOceanCluster.profile.cidr">
+          <input matInput placeholder="cidr" type="text" name="" [(value)]="newDigitalOceanCluster.profile.cidr">
         </mat-form-field>
       </div>
 
@@ -122,7 +124,7 @@
       <div class="action-buttons-wrapper">
         <button mat-raised-button class="secondary">LOAD CONF.</button>
         <button mat-raised-button class="secondary">SAVE CONF.</button>
-        <button mat-raised-button color="primary" (click)="createCluster()">CREATE</button>
+        <button mat-raised-button color="primary" (click)="createCluster(newDigitalOceanCluster)">CREATE</button>
       </div>
 
     </div>
