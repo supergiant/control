@@ -78,6 +78,9 @@ func (r *TaskProvisioner) Provision(ctx context.Context, profile *profile.Profil
 	masterTasks, nodeTasks, clusterTask := r.prepare(config.Provider, len(profile.MasterProfiles),
 		len(profile.NodesProfiles))
 
+	// Save cluster before provisioning
+	r.saveCluster(ctx, profile, config)
+
 	go func() {
 		// Provision masters and wait until n/2 + 1 of masters with etcd are up and running
 		doneChan, failChan, err := r.provisionMasters(ctx, profile, config, masterTasks)
