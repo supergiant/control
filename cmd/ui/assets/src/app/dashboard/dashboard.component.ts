@@ -18,7 +18,6 @@ export class DashboardComponent implements OnInit {
   public cloudAccounts: any;
   public hasCluster = false;
   public hasApp = false;
-  public clusterCount = 0;
   public appCount = 0;
   public events: Array<any> = ['No Cluster Events (disabled in beta currently)'];
   public newses: Array<any> = ['No Recent News (disabled in beta currently)'];
@@ -63,6 +62,8 @@ export class DashboardComponent implements OnInit {
   ];
   public lineChartLegend: boolean = true;
   public lineChartType: string = 'line';
+
+  public clusters: Array<any>;
 
   getKube(id) {
     this.subscriptions.add(this.supergiant.Kubes.get(id).subscribe(
@@ -118,15 +119,7 @@ export class DashboardComponent implements OnInit {
   getClusters() {
     this.subscriptions.add(this.supergiant.Kubes.get().subscribe(
       (clusters) => {
-        if (Object.keys(clusters.items).length > 0) {
-          this.hasCluster = true;
-          this.lineChartData[0]['data'].length = 0;
-          this.lineChartData[0]['data'].length = 0;
-          for (const cluster of clusters.items) {
-            this.getKube(cluster.id);
-          }
-          this.clusterCount = Object.keys(clusters.items).length;
-        }
+        this.clusters = clusters;
       }));
   }
   getDeployments() {
@@ -153,7 +146,7 @@ export class DashboardComponent implements OnInit {
 
   ngOnInit() {
     this.getCloudAccounts();
-    // this.getClusters();
+    this.getClusters();
     // this.getDeployments();
   }
 

@@ -61,12 +61,12 @@ const appRoutes: Routes = [
   { path: '', component: LoginComponent },
   {
     path: 'dashboard', component: DashboardComponent, canActivate: [AuthGuard], children: [
-      { path: '', component: DashboardTutorialComponent, outlet: 'tutorial' },
+      { path: '', component: DashboardTutorialComponent },
     ]
   },
   {
     path: 'apps', component: AppsComponent, canActivate: [AuthGuard], children: [
-      { path: '', component: AppsTutorialComponent, outlet: 'tutorial' },
+      { path: '', component: AppsTutorialComponent },
       { path: '', component: AppsListComponent },
       { path: 'new', component: NewAppListComponent },
       { path: 'new/:id', component: NewAppComponent },
@@ -76,7 +76,7 @@ const appRoutes: Routes = [
   },
   {
     path: 'clusters', component: ClustersComponent, canActivate: [AuthGuard], children: [
-      { path: '', component: ClustersTutorialComponent, outlet: 'tutorial' },
+      { path: '', component: ClustersTutorialComponent },
       { path: '', component: ClustersListComponent },
       { path: 'new', component: NewClusterComponent },
       { path: ':id', component: ClusterComponent }
@@ -84,7 +84,7 @@ const appRoutes: Routes = [
   },
   {
     path: 'system', component: SystemComponent, canActivate: [AuthGuard], children: [
-      { path: '', component: SystemTutorialComponent, outlet: 'tutorial' },
+      { path: '', component: SystemTutorialComponent },
       {
         path: 'logs', component: LogsComponent, children: [
           { path: '', component: LogsComponent },
