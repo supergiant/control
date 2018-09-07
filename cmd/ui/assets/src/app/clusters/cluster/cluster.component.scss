@@ -66,6 +66,11 @@
         width: 223px;
       }
 
+      .cpu-actual {
+        position: relative;
+        top: 1px;
+      }
+
       .right-chart {
         background: url(/assets/img/cluster-details/right_metric_base.svg) no-repeat;
         background-size: 100% 100%;
@@ -75,6 +80,11 @@
         right: 98px;
         height: 368px;
         width: 184px;
+      }
+
+      .ram-actual {
+        position: relative;
+        top: 1px;
       }
     }
 
