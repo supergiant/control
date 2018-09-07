@@ -109,7 +109,7 @@ func (w *Task) Restart(ctx context.Context, id string, out io.Writer) chan error
 	wsLog.Infof("Restarting task %s", id)
 	go func() {
 		defer close(errChan)
-		data, err := w.repository.Get(ctx, prefix, id)
+		data, err := w.repository.Get(ctx, Prefix, id)
 
 		if err != nil {
 			errChan <- err
@@ -200,5 +200,5 @@ func (w *Task) sync(ctx context.Context) error {
 		return err
 	}
 
-	return w.repository.Put(ctx, prefix, w.ID, buf.Bytes())
+	return w.repository.Put(ctx, Prefix, w.ID, buf.Bytes())
 }
