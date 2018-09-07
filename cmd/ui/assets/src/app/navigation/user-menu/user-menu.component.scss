@@ -1,0 +1,22 @@
+:host {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  width: 209px;
+
+  .circle {
+    width: 32px;
+    height: 32px;
+    line-height: 23px;
+    border-radius: 50%;
+    text-align: center;
+    font-size: 16px;
+    border: 2px solid #666;
+    background-image: linear-gradient(to bottom right, #8721FF, #FF457E);
+    margin: 0 10px;
+  }
+
+  .surname {
+    color: #808080;
+  }
+}

@@ -1,15 +1,18 @@
 .nav-wrapper {
   display: flex;
   justify-content: space-between;
+  align-items: center;
   margin: 32px 0;
   width: 100%;
+
+  // TODO: this has to be declared as global variable in app level
+  padding: 0 49px;
 
   position: fixed;
   top: 0;
   left: 0;
 
   .logo {
-    margin-left: 49px;
     width: 180px;
   }
 }
