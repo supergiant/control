@@ -76,7 +76,6 @@ func Init() {
 		steps.GetStep(cni.StepName),
 		steps.GetStep(poststart.StepName),
 	}
-
 	clusterWorkflow := []steps.Step{
 		steps.GetStep(ssh.StepName),
 		steps.GetStep(clustercheck.StepName),

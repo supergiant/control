@@ -36,7 +36,7 @@ func TestWriteManifestMaster(t *testing.T) {
 		kubernetesVersion   = "1.8.7"
 		kubernetesConfigDir = "/kubernetes/conf/dir"
 		providerString      = "aws"
-		masterHost          = "127.0.0.1"
+		masterHost          = "10.20.30.40"
 		masterPort          = "8080"
 
 		r runner.Runner = &fakeRunner{}
