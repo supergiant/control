@@ -13,6 +13,7 @@ import (
 
 	"time"
 
+	"github.com/supergiant/supergiant/pkg/node"
 	"github.com/supergiant/supergiant/pkg/profile"
 	"github.com/supergiant/supergiant/pkg/runner"
 	"github.com/supergiant/supergiant/pkg/templatemanager"
@@ -64,6 +65,9 @@ func TestPostStartMaster(t *testing.T) {
 			RBACEnabled: rbacEnabled,
 			Timeout:     120,
 		},
+		Node: node.Node{
+			PrivateIp: "10.20.30.40",
+		},
 		Runner: r,
 	}
 
@@ -106,6 +110,7 @@ func TestPostStartNode(t *testing.T) {
 		PostStartConfig: steps.PostStartConfig{
 			Timeout: 120,
 		},
+		Node:   node.Node{},
 		Runner: r,
 	}
 

@@ -35,7 +35,7 @@ type Client struct {
 	ec2SvcFn func(s *session.Session, region string) ec2iface.EC2API
 
 	// TODO: review tags usage (restricts resources pool of the client)
-	tags     map[string]string
+	tags map[string]string
 }
 
 // New returns a configured AWS client.

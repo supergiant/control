@@ -21,7 +21,7 @@
     }
   }
 
-  .inputs-wrapper {
+  .login-inputs-wrapper {
     display: flex;
     flex-direction: column;
     margin-bottom: 20px;
@@ -41,83 +41,4 @@
     }
   }
 
-  .footer {
-    align-items: center;
-    display: flex;
-    flex-direction: column;
-    width: 1238px;
-
-    svg {
-      opacity: 0.5;
-    }
-
-    .certifications {
-      display: flex;
-      justify-content: space-between;
-      margin-bottom: 24px;
-      height: 89px;
-      width: 275px;
-
-      .members-wrapper {
-        display: flex;
-        flex-direction: column;
-        width: 190px;
-
-        .made-by-qbox {
-          margin-bottom: 14px;
-          height: 52px;
-          width: 190px;
-        }
-
-        .members {
-          display: flex;
-          justify-content: space-between;
-          height: 23px;
-          width: 190px;
-
-          .cncf, .linux {
-            width: 87px;
-
-            svg {
-              height: 100%;
-              width: 100%;
-            }
-          }
-        }
-      }
-
-      .kube-cert {
-        height: 89px;
-        width: 54px;
-
-        svg {
-          height: 100%;
-        }
-      }
-    }
-
-    .info {
-      display: flex;
-      justify-content: center;
-      height: 18px;
-      width: 100%;
-
-      .copyright {
-        font-size: 11px;
-        font-weight: 100;
-        opacity: 0.5;
-
-        span {
-          margin-right: 10px;
-        }
-      }
-
-      .link {
-        font-size: 11px;
-        font-weight: 400;
-        opacity: 0.5;
-        margin: 0px 10px;
-      }
-    }
-  }
 }

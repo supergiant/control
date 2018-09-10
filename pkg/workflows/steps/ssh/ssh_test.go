@@ -85,9 +85,9 @@ func TestStepRunError(t *testing.T) {
 	timeout := 120
 
 	config := steps.NewConfig("", "", "", profile.Profile{})
-	config.AddMaster(&node.Node{
+	config.Node = node.Node{
 		PrivateIp: host,
-	})
+	}
 	config.SshConfig = steps.SshConfig{
 		Port:       port,
 		User:       user,

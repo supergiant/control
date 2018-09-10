@@ -1,18 +1,118 @@
-button[mat-button] {
-    margin: 5px;
-}
+.new-clusters-wrapper {
+	margin-top: 78px;
 
-.form-wrapper {
-	margin: 0 auto;
-	width: 50%;
-
-	button[type="submit"] {
-		font-size: 1.3em;
-		width: 100%;
+	h1 {
+		margin-left: 48px;
+		margin-botton: 18px;
+		// remove me
+		letter-spacing: 3px;
 	}
 
-	// remove nasty box-shadow from "add" button on json schema array-type
-	section:last-of-type {
-		box-shadow: none;
+	.inputs-wrapper {
+		flex-direction: row;
+		justify-content: space-between;
+		height: max-content;
+
+		&.large {
+			overflow: scroll;
+			width: 1270px;
+		}
+
+		button {
+			display: block;
+			margin-left: auto;
+		}
+
+		.input-group {
+			display: flex;
+			flex-direction: column;
+			width: 564px;
+
+			.disable {
+				// background-color: grey;
+				// border-radius: 2px;
+				cursor: not-allowed;
+				opacity: 0.5;
+				// padding: 10px;
+			}
+
+			.machine {
+				display: flex;
+				justify-content: space-between;
+
+				.type {
+					width: 240px;
+				}
+
+				.role {
+					width: 123px;
+				}
+
+				.quantity {
+					width: 30px;
+				}
+
+				.delete {
+					background: url(/assets/img/delete.svg) no-repeat;
+					background-size: 100% 100%;
+					background-position: center;
+					cursor: pointer;
+					display: inline-block;
+					margin: auto 0;
+					height: 25px;
+					width: 25px;
+
+					&:active {
+						transform: scale(0.95, 0.95);
+					}
+				}
+			}
+
+			.add-machines {
+				cursor: pointer;
+				display: flex;
+				width: max-content;
+
+				&:active {
+					transform: scale(0.95, 0.95);
+				}
+
+				.plus {
+					background: url(/assets/img/plus.svg) no-repeat;
+					background-size: 100% 100%;
+					background-position: center;
+					margin: auto 0;
+					height: 20px;
+					width: 20px;
+				}
+
+				.add-label {
+					font-size: 14px;
+					font-weight: 300;
+					padding-left: 12px;
+				}
+			}
+
+			.profile-row {
+				display: flex;
+				justify-content: space-between;
+
+				mat-form-field {
+					width: 270px;
+				}
+			}
+
+			.action-buttons-wrapper {
+				display: flex;
+				justify-content: space-between;
+				margin-left: auto;
+				width: 452px;
+
+				.secondary {
+					border: 2px solid #fff;
+					background-color: transparent;
+				}
+			}
+		}
 	}
 }

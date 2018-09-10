@@ -96,9 +96,17 @@ func (t *Step) Run(ctx context.Context, output io.Writer, config *steps.Config) 
 			// Wait for droplet becomes active
 			if droplet.Status == "active" {
 				// Get private ip ports from droplet networks
-				n := node.Node{
+
+				role := "master"
+
+				if !config.IsMaster {
+					role = "node"
+				}
+
+				config.Node = node.Node{
 					Id:        fmt.Sprintf("%d", droplet.ID),
 					CreatedAt: time.Now().Unix(),
+					Role:      role,
 					Provider:  clouds.DigitalOcean,
 					Region:    droplet.Region.Name,
 					PublicIp:  getPublicIpPort(droplet.Networks.V4),
@@ -106,10 +114,10 @@ func (t *Step) Run(ctx context.Context, output io.Writer, config *steps.Config) 
 				}
 
 				if config.IsMaster {
-					config.AddMaster(&n)
+					config.AddMaster(&config.Node)
 				}
-				config.Node = n
-				logrus.Info(n)
+
+				logrus.Infof("Node has been created %v", config.Node)
 
 				return nil
 			}

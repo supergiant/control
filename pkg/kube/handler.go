@@ -2,6 +2,10 @@ package kube
 
 import (
 	"encoding/json"
+	"github.com/pkg/errors"
+	"github.com/sirupsen/logrus"
+	"github.com/supergiant/supergiant/pkg/storage"
+	"github.com/supergiant/supergiant/pkg/workflows"
 	"net/http"
 
 	"github.com/gorilla/mux"
@@ -13,12 +17,16 @@ import (
 
 // Handler is a http controller for a kube entity.
 type Handler struct {
-	svc Interface
+	svc  Interface
+	repo storage.Interface
 }
 
 // NewHandler constructs a Handler for kubes.
-func NewHandler(svc Interface) *Handler {
-	return &Handler{svc}
+func NewHandler(svc Interface, repo storage.Interface) *Handler {
+	return &Handler{
+		svc:  svc,
+		repo: repo,
+	}
 }
 
 // Register adds kube handlers to a router.
@@ -32,6 +40,39 @@ func (h *Handler) Register(r *mux.Router) {
 	r.HandleFunc("/kubes/{kname}/resources/{resource}", h.getResource).Methods(http.MethodGet)
 
 	r.HandleFunc("/kubes/{kname}/certs/{cname}", h.getCerts).Methods(http.MethodGet)
+	r.HandleFunc("/kubes/{kname}/tasks", h.getTasks).Methods(http.MethodGet)
+}
+
+func (h *Handler) getTasks(w http.ResponseWriter, r *http.Request) {
+	vars := mux.Vars(r)
+	id, ok := vars["kname"]
+
+	if !ok {
+		http.Error(w, "need name of a cluster", http.StatusBadRequest)
+		return
+	}
+
+	data, err := h.repo.GetAll(r.Context(), workflows.Prefix)
+	if err != nil {
+		http.Error(w, errors.Wrap(err, "failed to read tasks").Error(), http.StatusBadRequest)
+		return
+	}
+
+	tasks := make([]*workflows.Task, 0)
+	for _, v := range data {
+		task, err := workflows.DeserializeTask(v, h.repo)
+		if err != nil {
+			logrus.Error(err)
+			continue
+		}
+		if task.Config.ClusterName == id {
+			tasks = append(tasks, task)
+		}
+	}
+
+	if err := json.NewEncoder(w).Encode(tasks); err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+	}
 }
 
 func (h *Handler) createKube(w http.ResponseWriter, r *http.Request) {

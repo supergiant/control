@@ -325,6 +325,11 @@ func (c *Config) AddNode(n *node.Node) {
 
 // GetMaster returns first master in master map or nil
 func (c *Config) GetMaster() *node.Node {
+	// non-blocking fast path for master nodes
+	if c.IsMaster {
+		return &c.Node
+	}
+
 	c.m1.RLock()
 	defer c.m1.RUnlock()
 
@@ -332,10 +337,10 @@ func (c *Config) GetMaster() *node.Node {
 		return nil
 	}
 
-	for _, value := range c.Masters.internal {
+	for key := range c.Masters.internal {
 		// Skip inactive nodes for selecting
-		if value.Active {
-			return value
+		if c.Masters.internal[key] != nil && c.Masters.internal[key].Active {
+			return c.Masters.internal[key]
 		}
 	}
 

@@ -50,7 +50,7 @@ export class LoginComponent implements OnDestroy {
         this.status = 'status status-danger';
         this.error('Invalid Login');
       }
-    )
+    );
   }
 
   ngOnDestroy() {

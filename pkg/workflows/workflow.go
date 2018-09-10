@@ -33,7 +33,7 @@ type StepStatus struct {
 type Workflow []steps.Step
 
 const (
-	prefix = "tasks"
+	Prefix = "tasks"
 
 	Cluster            = "Cluster"
 	DigitalOceanMaster = "DigitalOceanMaster"
@@ -58,10 +58,10 @@ func Init() {
 		steps.GetStep(cni.StepName),
 		steps.GetStep(certificates.StepName),
 		steps.GetStep(etcd.StepName),
+		steps.GetStep(flannel.StepName),
 		steps.GetStep(manifest.StepName),
 		steps.GetStep(kubelet.StepName),
 		steps.GetStep(network.StepName),
-		steps.GetStep(flannel.StepName),
 		steps.GetStep(poststart.StepName),
 	}
 	digitalOceanNodeWorkflow := []steps.Step{
@@ -76,7 +76,6 @@ func Init() {
 		steps.GetStep(cni.StepName),
 		steps.GetStep(poststart.StepName),
 	}
-
 	clusterWorkflow := []steps.Step{
 		steps.GetStep(ssh.StepName),
 		steps.GetStep(clustercheck.StepName),
