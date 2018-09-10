@@ -5,6 +5,8 @@ import (
 	"crypto/tls"
 	"fmt"
 	"github.com/supergiant/supergiant/pkg/clouds"
+	"github.com/supergiant/supergiant/pkg/node"
+	"github.com/supergiant/supergiant/pkg/profile"
 	"github.com/supergiant/supergiant/pkg/sgerrors"
 	"github.com/supergiant/supergiant/pkg/util"
 	"github.com/supergiant/supergiant/pkg/workflows/steps"
@@ -66,4 +68,19 @@ func FillNodeCloudSpecificData(provider clouds.Name, nodeProfile map[string]stri
 	}
 
 	return nil
+}
+
+func nodeFromProfile(profile *profile.Profile) ([]*node.Node, []*node.Node) {
+	masters := make([]*node.Node, 0, len(profile.MasterProfiles))
+	nodes := make([]*node.Node, 0, len(profile.NodesProfiles))
+
+	for i := 0; i < cap(masters); i++ {
+		masters = append(masters, &node.Node{})
+	}
+
+	for i := 0; i < cap(nodes); i++ {
+		nodes = append(nodes, &node.Node{})
+	}
+
+	return masters, nodes
 }
