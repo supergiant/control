@@ -6,7 +6,7 @@ import (
 	"github.com/supergiant/supergiant/pkg/clouds"
 )
 
-// TODO(stgleb): Accomodate terminology and rename Node to Machine
+// TODO(stgleb): Accommodate terminology and rename Node to Machine
 type Node struct {
 	Id        string      `json:"id" valid:"required"`
 	Role      string      `json:"role"`
