@@ -17,10 +17,8 @@ a:hover {
 
   &.active {
     color: $rose;
-
-    a {
-      border-bottom: 1px solid $rose;
-      padding-bottom: 10px;
-    }
+    outline: none;
+    border-bottom: 1px solid $rose;
+    padding-bottom: 10px;
   }
 }
