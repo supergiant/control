@@ -171,7 +171,7 @@ export class ClusterComponent implements OnInit, OnDestroy {
 
   // machine list vars
   machines: any;
-  machineListColumns = ["role", "id", "region", "public_ip", "active"];
+  machineListColumns = ["role", "name", "id", "region", "public_ip"];
 
   ngOnInit() {
     this.id = this.route.snapshot.params.id;

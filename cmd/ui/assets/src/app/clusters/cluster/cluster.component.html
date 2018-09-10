@@ -57,6 +57,23 @@
     <h3>MACHINES</h3>
 
     <mat-table [dataSource]="machines" matSort matSortActive="role" matSortDirection="asc">
+      <!-- <ng-container matColumnDef="state">
+        <mat-header-cell *matHeaderCellDef>State</mat-header-cell>
+        <ng-container *ngIf="machine?.active">
+          <mat-cell *matCellDef="let machine">Done</mat-cell>
+        </ng-container>
+        <ng-container *ngIf="!machine?.active">
+          <mat-cell class="spinner" *matCellDef="let machine">
+            <mat-spinner></mat-spinner>
+          </mat-cell>
+        </ng-container>
+      </ng-container> -->
+
+      <ng-container matColumnDef="name">
+        <mat-header-cell mat-sort-header *matHeaderCellDef>Name</mat-header-cell>
+        <mat-cell *matCellDef="let machine">{{ machine.name }}</mat-cell>
+      </ng-container>
+
       <ng-container matColumnDef="role">
         <mat-header-cell mat-sort-header *matHeaderCellDef>Role</mat-header-cell>
         <mat-cell *matCellDef="let machine">{{ machine.role | titlecase }}</mat-cell>
@@ -74,11 +91,6 @@
       <ng-container matColumnDef="public_ip">
         <mat-header-cell mat-sort-header *matHeaderCellDef >Public IP</mat-header-cell>
         <mat-cell *matCellDef="let machine">{{ machine.public_ip }}</mat-cell>
-      </ng-container>
-
-      <ng-container matColumnDef="active">
-        <mat-header-cell *matHeaderCellDef>Active?</mat-header-cell>
-        <mat-cell *matCellDef="let machine">{{ machine.active }}</mat-cell>
       </ng-container>
 
       <mat-header-row *matHeaderRowDef="machineListColumns"></mat-header-row>
