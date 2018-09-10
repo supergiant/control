@@ -19,7 +19,10 @@ import (
 	"github.com/supergiant/supergiant/pkg/workflows/steps"
 )
 
-const StepName = "digitalOcean"
+const (
+	StepName = "digitalOcean"
+	keySize  = 4096
+)
 
 var (
 	// TODO(stgleb): We need global error for timeout exceeding
@@ -57,7 +60,7 @@ func (t *Step) Run(ctx context.Context, output io.Writer, config *steps.Config) 
 	config.DigitalOceanConfig.Name = util.MakeNodeName(config.ClusterName, config.IsMaster)
 
 	var fingers []godo.DropletCreateSSHKey
-	privateKey, publicKey, err := generateKeyPair(4096)
+	privateKey, publicKey, err := generateKeyPair(keySize)
 
 	if err != nil {
 		return err
