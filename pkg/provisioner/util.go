@@ -75,11 +75,17 @@ func nodeFromProfile(profile *profile.Profile) ([]*node.Node, []*node.Node) {
 	nodes := make([]*node.Node, 0, len(profile.NodesProfiles))
 
 	for i := 0; i < cap(masters); i++ {
-		masters = append(masters, &node.Node{})
+		masters = append(masters, &node.Node{
+			Provider: profile.Provider,
+			Region:   profile.Region,
+		})
 	}
 
 	for i := 0; i < cap(nodes); i++ {
-		nodes = append(nodes, &node.Node{})
+		nodes = append(nodes, &node.Node{
+			Provider: profile.Provider,
+			Region:   profile.Region,
+		})
 	}
 
 	return masters, nodes
