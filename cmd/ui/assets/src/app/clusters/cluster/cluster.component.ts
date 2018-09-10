@@ -8,6 +8,7 @@ import { Notifications } from '../../shared/notifications/notifications.service'
 import { convertIsoToHumanReadable } from '../../shared/helpers/helpers';
 import { DomSanitizer, SafeResourceUrl } from '@angular/platform-browser';
 import { ChartsModule, BaseChartDirective } from 'ng2-charts';
+import { MatTableDataSource, MatSort, MatPaginator } from '@angular/material';
 
 import "brace/mode/json";
 
@@ -62,6 +63,9 @@ export class ClusterComponent implements OnInit, OnDestroy {
       pointHoverBorderColor: 'rgba(148,159,177,0.8)'
     }
   ];
+
+  @ViewChild(MatSort) sort: MatSort;
+  @ViewChild(MatPaginator) paginator: MatPaginator;
 
 
   // linter is angry about the boolean typing but without it charts
@@ -163,8 +167,12 @@ export class ClusterComponent implements OnInit, OnDestroy {
   public ramChartLabels: Array<any> = [];
   public ramChartType = 'line';
 
-
   isDataAvailable = false;
+
+  // machine list vars
+  machines: any;
+  machineListColumns = ["role", "name", "id", "region", "public_ip"];
+
   ngOnInit() {
     this.id = this.route.snapshot.params.id;
     this.getKube();
@@ -186,99 +194,112 @@ export class ClusterComponent implements OnInit, OnDestroy {
     }
   }
 
+  // getKube() {
+  //   this.subscriptions.add(Observable.timer(0, 20000)
+  //     .switchMap(() => this.supergiant.Kubes.get(this.id)).subscribe(
+  //       (kube) => {
+  //         this.kube = kube;
+  //         this.kubeString = JSON.stringify(this.kube, null, 2);
+  //         if (this.kube.extra_data &&
+  //           this.kube.extra_data.cpu_usage_rate &&
+  //           this.kube.extra_data.kube_cpu_capacity) {
+  //           this.isDataAvailable = true;
+  //           this.cpuChartLabels.length = 0;
+  //           let tempArray = this.kube.extra_data.cpu_usage_rate.map(
+  //             (data) => convertIsoToHumanReadable(data.timestamp));
+  //           for (const row of tempArray) {
+  //             this.cpuChartLabels.push(row);
+  //           }
+  //           this.cpuChartData = [
+  //             {
+  //               label: 'CPU Usage',
+  //               data: this.kube.extra_data.cpu_usage_rate.map((data) => data.value)
+  //             },
+  //             {
+  //               label: 'CPU Capacity',
+  //               data: this.kube.extra_data.kube_cpu_capacity.map((data) => data.value)
+  //             },
+  //             // this should be set to the length of largest array.
+  //           ];
+  //           this.ramChartLabels.length = 0;
+  //           tempArray = this.kube.extra_data.memory_usage.map(
+  //             (data) => convertIsoToHumanReadable(data.timestamp));
+  //           for (const row of tempArray) {
+  //             this.ramChartLabels.push(row);
+  //           }
+  //           this.ramChartData = [
+  //             {
+  //               label: 'RAM Usage',
+  //               data: this.kube.extra_data.memory_usage.map((data) => data.value / 1073741824)
+  //             },
+  //             {
+  //               label: 'RAM Capacity',
+  //               data: this.kube.extra_data.kube_memory_capacity.map((data) => data.value / 1073741824)
+  //             },
+  //             // this should be set to the length of largest array.
+  //           ];
+  //         }
+
+  //         this.hasApps = false;
+  //         if (kube.helm_releases) {
+  //           this.hasApps = true;
+  //           this.approws = kube.helm_releases.map(app => ({
+  //             id: app.id,
+  //             name: app.name,
+  //             version: app.revision,
+  //             appname: app.chart_name,
+  //             appversion: app.chart_version,
+  //             statusvalue: app.status_value,
+  //           }));
+  //         }
+
+  //         // // FAKEDATA
+  //         // this.hasApps = true;
+  //         // this.approws.push({id: '12345', name: 'fake-app', version: '1.2.3', appname: 'fake-wordpress',
+  //         //   appversion: '3.4.5', statusvalue: 'A OK'});
+
+  //         this.hasLB = false;
+  //         if (kube.load_balancers) {
+  //           this.hasLB = true;
+  //           this.lbrows = kube.load_balancers.map(lb => ({
+  //             id: lb.id,
+  //             name: lb.name,
+  //             ip: lb.ip,
+  //           }));
+  //         }
+
+  //         // // FAKEDATA
+  //         // this.hasLB = true;
+  //         // this.lbrows.push({id: '12345', name: 'fake-lb', ip: '1.2.3.4'});
+  //       },
+  //       (err) => { this.notifications.display('warn', 'Connection Issue.', err); }));
+
+  //   // Get any planets
+  //   this.subscriptions.add(Observable.timer(0, 20000)
+  //     .switchMap(() => this.supergiant.KubeResources.get()).subscribe(
+  //       (services) => {
+  //         this.planets = services.items.filter(
+  //           planet => {
+  //             if (planet.resource.metadata.labels) {
+  //               return planet.resource.metadata.labels['kubernetes.io/cluster-service'] === 'true';
+  //             }
+  //           }
+  //         );
+  //       },
+  //       (err) => { this.notifications.display('warn', 'Connection Issue.', err); }));
+  // }
+
   getKube() {
     this.subscriptions.add(Observable.timer(0, 20000)
       .switchMap(() => this.supergiant.Kubes.get(this.id)).subscribe(
-        (kube) => {
+        kube => {
           this.kube = kube;
-          this.kubeString = JSON.stringify(this.kube, null, 2);
-          if (this.kube.extra_data &&
-            this.kube.extra_data.cpu_usage_rate &&
-            this.kube.extra_data.kube_cpu_capacity) {
-            this.isDataAvailable = true;
-            this.cpuChartLabels.length = 0;
-            let tempArray = this.kube.extra_data.cpu_usage_rate.map(
-              (data) => convertIsoToHumanReadable(data.timestamp));
-            for (const row of tempArray) {
-              this.cpuChartLabels.push(row);
-            }
-            this.cpuChartData = [
-              {
-                label: 'CPU Usage',
-                data: this.kube.extra_data.cpu_usage_rate.map((data) => data.value)
-              },
-              {
-                label: 'CPU Capacity',
-                data: this.kube.extra_data.kube_cpu_capacity.map((data) => data.value)
-              },
-              // this should be set to the length of largest array.
-            ];
-            this.ramChartLabels.length = 0;
-            tempArray = this.kube.extra_data.memory_usage.map(
-              (data) => convertIsoToHumanReadable(data.timestamp));
-            for (const row of tempArray) {
-              this.ramChartLabels.push(row);
-            }
-            this.ramChartData = [
-              {
-                label: 'RAM Usage',
-                data: this.kube.extra_data.memory_usage.map((data) => data.value / 1073741824)
-              },
-              {
-                label: 'RAM Capacity',
-                data: this.kube.extra_data.kube_memory_capacity.map((data) => data.value / 1073741824)
-              },
-              // this should be set to the length of largest array.
-            ];
-          }
-
-          this.hasApps = false;
-          if (kube.helm_releases) {
-            this.hasApps = true;
-            this.approws = kube.helm_releases.map(app => ({
-              id: app.id,
-              name: app.name,
-              version: app.revision,
-              appname: app.chart_name,
-              appversion: app.chart_version,
-              statusvalue: app.status_value,
-            }));
-          }
-
-          // // FAKEDATA
-          // this.hasApps = true;
-          // this.approws.push({id: '12345', name: 'fake-app', version: '1.2.3', appname: 'fake-wordpress',
-          //   appversion: '3.4.5', statusvalue: 'A OK'});
-
-          this.hasLB = false;
-          if (kube.load_balancers) {
-            this.hasLB = true;
-            this.lbrows = kube.load_balancers.map(lb => ({
-              id: lb.id,
-              name: lb.name,
-              ip: lb.ip,
-            }));
-          }
-
-          // // FAKEDATA
-          // this.hasLB = true;
-          // this.lbrows.push({id: '12345', name: 'fake-lb', ip: '1.2.3.4'});
-        },
-        (err) => { this.notifications.display('warn', 'Connection Issue.', err); }));
-
-    // Get any planets
-    this.subscriptions.add(Observable.timer(0, 20000)
-      .switchMap(() => this.supergiant.KubeResources.get()).subscribe(
-        (services) => {
-          this.planets = services.items.filter(
-            planet => {
-              if (planet.resource.metadata.labels) {
-                return planet.resource.metadata.labels['kubernetes.io/cluster-service'] === 'true';
-              }
-            }
-          );
-        },
-        (err) => { this.notifications.display('warn', 'Connection Issue.', err); }));
+          this.machines = new MatTableDataSource(kube.masters.concat(kube.nodes));
+          this.machines.sort = this.sort;
+          this.machines.paginator = this.paginator;
+          console.log(kube);},
+        err => console.log(err)
+      ))
   }
 
   padArrayWithDefault(arr: any, n: number) {
@@ -299,43 +320,12 @@ export class ClusterComponent implements OnInit, OnDestroy {
     return tmpArr;
   }
 
-  // resetTabs(tab) {
-  //   if (tab.nextId !== 'planetTab') {
-  //     this.planetName = '';
-  //   }
-  // }
-
-  // getIframeURL(name) {
-  //   this.planetName = name;
-  //   const service = '/api/v1/proxy/namespaces/kube-system/services/' + name;
-  //   const basicAuth = this.kube.username + ':' + this.kube.password; // Can we send this somehow??
-  //   this.url = 'https://' + this.kube.master_public_ip + service;
-  //   this.secureSrc = this.sanitizer.bypassSecurityTrustResourceUrl(this.url);
-  //   //this.ngbTabSet.select('planetTab');
-  // }
-  //
-  // onIframeLoad() {
-  //   if (this.kube) {
-  //   const basicAuth = 'Basic ' + btoa(this.kube.username + ':' + this.kube.password);
-  //   if (typeof this.iframe !== 'undefined') {
-  //     this.iframe
-  //       .nativeElement
-  //       .contentWindow
-  //       .postMessage('Authorization:', basicAuth);
-  //
-  //     this.isLoading = false;
-  //   }
-  // }
-  // }
 
   goBack() {
     this.location.back();
   }
   ngOnDestroy() {
     this.subscriptions.unsubscribe();
-  }
-
-  contextNodeDelete($event) {
   }
 
 }
