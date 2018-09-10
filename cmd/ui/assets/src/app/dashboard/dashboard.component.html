@@ -11,69 +11,72 @@
   </div>
 
   <div *ngIf="clusters?.length != 0 && cloudAccounts?.length != 0" class="clusters-wrapper">
-    <div class="cluster" *ngFor="let c of clusters">
-      <div class="usage">
-        <div class="cpu-usage"></div>
+    <h1>Your Clusters</h1>
+    <div *ngFor="let c of clusters">
+      <a [routerLink]="['/clusters', c.name]" class="cluster" title="">
+        <div class="usage">
+          <div class="cpu-usage"></div>
 
-        <div class="name">
-          {{ c.name }}
+          <div class="name">
+            {{ c.name }}
+          </div>
+
+          <div class="ram-usage"></div>
         </div>
 
-        <div class="ram-usage"></div>
-      </div>
 
+        <div class="cluster-info">
+          <mat-table [dataSource]="c.dataSource">
+            <ng-container matColumnDef="accountName">
+              <mat-header-cell *matHeaderCellDef>Account</mat-header-cell>
+              <mat-cell *matCellDef="let c">{{ c.accountName }}</mat-cell>
+            </ng-container>
 
-      <div class="cluster-info">
-        <mat-table [dataSource]="c.dataSource">
-          <ng-container matColumnDef="accountName">
-            <mat-header-cell *matHeaderCellDef>Account</mat-header-cell>
-            <mat-cell *matCellDef="let c">{{ c.accountName }}</mat-cell>
-          </ng-container>
+            <ng-container matColumnDef="k8sversion">
+              <mat-header-cell *matHeaderCellDef>K8S Version</mat-header-cell>
+              <mat-cell *matCellDef="let c">{{ c.K8SVersion }}</mat-cell>
+            </ng-container>
 
-          <ng-container matColumnDef="k8sversion">
-            <mat-header-cell *matHeaderCellDef>K8S Version</mat-header-cell>
-            <mat-cell *matCellDef="let c">{{ c.K8SVersion }}</mat-cell>
-          </ng-container>
+            <ng-container matColumnDef="arch">
+              <mat-header-cell *matHeaderCellDef>Arch</mat-header-cell>
+              <mat-cell *matCellDef="let c">{{ c.arch }}</mat-cell>
+            </ng-container>
 
-          <ng-container matColumnDef="arch">
-            <mat-header-cell *matHeaderCellDef>Arch</mat-header-cell>
-            <mat-cell *matCellDef="let c">{{ c.arch }}</mat-cell>
-          </ng-container>
+            <ng-container matColumnDef="mastersCount">
+              <mat-header-cell *matHeaderCellDef>Masters</mat-header-cell>
+              <mat-cell *matCellDef="let c">{{ c.masters.length }}</mat-cell>
+            </ng-container>
 
-          <ng-container matColumnDef="mastersCount">
-            <mat-header-cell *matHeaderCellDef>Masters</mat-header-cell>
-            <mat-cell *matCellDef="let c">{{ c.masters.length }}</mat-cell>
-          </ng-container>
+            <ng-container matColumnDef="nodesCount">
+              <mat-header-cell *matHeaderCellDef>Nodes</mat-header-cell>
+              <mat-cell *matCellDef="let c">{{ c.nodes.length }}</mat-cell>
+            </ng-container>
 
-          <ng-container matColumnDef="nodesCount">
-            <mat-header-cell *matHeaderCellDef>Nodes</mat-header-cell>
-            <mat-cell *matCellDef="let c">{{ c.nodes.length }}</mat-cell>
-          </ng-container>
+            <ng-container matColumnDef="operatingSystem">
+              <mat-header-cell *matHeaderCellDef>OS</mat-header-cell>
+              <mat-cell *matCellDef="let c">{{ c.operatingSystem }}</mat-cell>
+            </ng-container>
 
-          <ng-container matColumnDef="operatingSystem">
-            <mat-header-cell *matHeaderCellDef>OS</mat-header-cell>
-            <mat-cell *matCellDef="let c">{{ c.operatingSystem }}</mat-cell>
-          </ng-container>
+            <ng-container matColumnDef="dockerVersion">
+              <mat-header-cell *matHeaderCellDef>Docker Ver.</mat-header-cell>
+              <mat-cell *matCellDef="let c">{{ c.dockerVersion }}</mat-cell>
+            </ng-container>
 
-          <ng-container matColumnDef="dockerVersion">
-            <mat-header-cell *matHeaderCellDef>Docker Ver.</mat-header-cell>
-            <mat-cell *matCellDef="let c">{{ c.dockerVersion }}</mat-cell>
-          </ng-container>
+            <ng-container matColumnDef="helmVersion">
+              <mat-header-cell *matHeaderCellDef>Helm Ver.</mat-header-cell>
+              <mat-cell *matCellDef="let c">{{ c.helmVersion }}</mat-cell>
+            </ng-container>
 
-          <ng-container matColumnDef="helmVersion">
-            <mat-header-cell *matHeaderCellDef>Helm Ver.</mat-header-cell>
-            <mat-cell *matCellDef="let c">{{ c.helmVersion }}</mat-cell>
-          </ng-container>
+            <ng-container matColumnDef="rbacEnabled">
+              <mat-header-cell *matHeaderCellDef>RBAC?</mat-header-cell>
+              <mat-cell *matCellDef="let c">{{ c.rbacEnabled }}</mat-cell>
+            </ng-container>
 
-          <ng-container matColumnDef="rbacEnabled">
-            <mat-header-cell *matHeaderCellDef>RBAC?</mat-header-cell>
-            <mat-cell *matCellDef="let c">{{ c.rbacEnabled }}</mat-cell>
-          </ng-container>
-
-          <mat-header-row *matHeaderRowDef="clusterColumns"></mat-header-row>
-          <mat-row *matRowDef="let row; columns: clusterColumns"></mat-row>
-        </mat-table>
-      </div>
+            <mat-header-row *matHeaderRowDef="clusterColumns"></mat-header-row>
+            <mat-row *matRowDef="let row; columns: clusterColumns"></mat-row>
+          </mat-table>
+        </div>
+      </a>
     </div>
   </div>
   <!-- TEMPORARY -->
