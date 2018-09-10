@@ -109,7 +109,7 @@ func TestHandler_createKube(t *testing.T) {
 	for i, tc := range tcs {
 		// setup handler
 		svc := new(kubeServiceMock)
-		h := NewHandler(svc)
+		h := NewHandler(svc, nil)
 
 		req, err := http.NewRequest(http.MethodPost, "/kubes", bytes.NewReader(tc.rawKube))
 		require.Equalf(t, nil, err, "TC#%d: create request: %v", i+1, err)
@@ -174,7 +174,7 @@ func TestHandler_getKube(t *testing.T) {
 	for i, tc := range tcs {
 		// setup handler
 		svc := new(kubeServiceMock)
-		h := NewHandler(svc)
+		h := NewHandler(svc, nil)
 
 		// prepare
 		req, err := http.NewRequest(http.MethodGet, "/kubes/"+tc.kubeName, nil)
@@ -236,7 +236,7 @@ func TestHandler_listKubes(t *testing.T) {
 	for i, tc := range tcs {
 		// setup handler
 		svc := new(kubeServiceMock)
-		h := NewHandler(svc)
+		h := NewHandler(svc, nil)
 
 		// prepare
 		req, err := http.NewRequest(http.MethodGet, "/kubes", nil)
@@ -306,7 +306,7 @@ func TestHandler_deleteKube(t *testing.T) {
 	for i, tc := range tcs {
 		// setup handler
 		svc := new(kubeServiceMock)
-		h := NewHandler(svc)
+		h := NewHandler(svc, nil)
 
 		// prepare
 		req, err := http.NewRequest(http.MethodDelete, "/kubes/"+tc.kubeName, nil)
@@ -369,7 +369,7 @@ func TestHandler_listResources(t *testing.T) {
 	for i, tc := range tcs {
 		// setup handler
 		svc := new(kubeServiceMock)
-		h := NewHandler(svc)
+		h := NewHandler(svc, nil)
 
 		// prepare
 		req, err := http.NewRequest(http.MethodGet, fmt.Sprintf("/kubes/%s/resources", tc.kubeName), nil)
@@ -436,7 +436,7 @@ func TestHandler_getResources(t *testing.T) {
 	for i, tc := range tcs {
 		// setup handler
 		svc := new(kubeServiceMock)
-		h := NewHandler(svc)
+		h := NewHandler(svc, nil)
 
 		// prepare
 		req, err := http.NewRequest(http.MethodGet, fmt.Sprintf("/kubes/%s/resources/%s", tc.kubeName, tc.resourceName), nil)

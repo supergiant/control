@@ -73,7 +73,7 @@ func (h *TaskHandler) GetTask(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	data, err := h.repository.Get(r.Context(), prefix, id)
+	data, err := h.repository.Get(r.Context(), Prefix, id)
 
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
@@ -124,14 +124,14 @@ func (h *TaskHandler) RestartTask(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	data, err := h.repository.Get(r.Context(), prefix, id)
+	data, err := h.repository.Get(r.Context(), Prefix, id)
 
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
 	}
 
-	task, err := deserializeTask(data, h.repository)
+	task, err := DeserializeTask(data, h.repository)
 
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)

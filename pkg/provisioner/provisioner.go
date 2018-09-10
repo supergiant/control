@@ -10,6 +10,7 @@ import (
 	"github.com/sirupsen/logrus"
 	"github.com/supergiant/supergiant/pkg/clouds"
 	"github.com/supergiant/supergiant/pkg/kube"
+	"github.com/supergiant/supergiant/pkg/node"
 	"github.com/supergiant/supergiant/pkg/profile"
 	"github.com/supergiant/supergiant/pkg/storage"
 	"github.com/supergiant/supergiant/pkg/util"
@@ -78,6 +79,10 @@ func (r *TaskProvisioner) Provision(ctx context.Context, profile *profile.Profil
 	masterTasks, nodeTasks, clusterTask := r.prepare(config.Provider, len(profile.MasterProfiles),
 		len(profile.NodesProfiles))
 
+	masters, nodes := nodesFromProfile(profile)
+	// Save cluster before provisioning
+	r.saveCluster(ctx, profile, masters, nodes, config)
+
 	go func() {
 		// Provision masters and wait until n/2 + 1 of masters with etcd are up and running
 		doneChan, failChan, err := r.provisionMasters(ctx, profile, config, masterTasks)
@@ -106,7 +111,7 @@ func (r *TaskProvisioner) Provision(ctx context.Context, profile *profile.Profil
 
 		logrus.Infof("Save cluster %s", config.ClusterName)
 		// Save cluster
-		r.saveCluster(ctx, profile, config)
+		r.saveCluster(ctx, profile, config.GetMasters(), config.GetNodes(), config)
 		logrus.Infof("Cluster %s deployment has finished", config.ClusterName)
 	}()
 
@@ -249,9 +254,7 @@ func (p *TaskProvisioner) waitCluster(ctx context.Context, clusterTask *workflow
 	clusterWg.Wait()
 }
 
-func (p *TaskProvisioner) saveCluster(ctx context.Context, profile *profile.Profile, config *steps.Config) error {
-	masters := config.GetMasters()
-	nodes := config.GetNodes()
+func (p *TaskProvisioner) saveCluster(ctx context.Context, profile *profile.Profile, masters, nodes []*node.Node, config *steps.Config) error {
 
 	cluster := &kube.Kube{
 		Name:        config.ClusterName,

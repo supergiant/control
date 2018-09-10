@@ -155,7 +155,7 @@ func TestTaskRunError(t *testing.T) {
 	}
 
 	w := &Task{}
-	data := s.storage[fmt.Sprintf("%s/%s", prefix, id)]
+	data := s.storage[fmt.Sprintf("%s/%s", Prefix, id)]
 
 	err = json.Unmarshal([]byte(data), w)
 
@@ -198,7 +198,7 @@ func TestTaskRunSuccess(t *testing.T) {
 	}
 
 	w := &Task{}
-	data := s.storage[fmt.Sprintf("%s/%s", prefix, task.ID)]
+	data := s.storage[fmt.Sprintf("%s/%s", Prefix, task.ID)]
 
 	err = json.Unmarshal([]byte(data), w)
 
@@ -246,7 +246,7 @@ func TestWorkflowRestart(t *testing.T) {
 		t.Error(fmt.Sprintf("Expected error message %s not found in output %s", errMsg, buffer.String()))
 	}
 
-	data := s.storage[fmt.Sprintf("%s/%s", prefix, id)]
+	data := s.storage[fmt.Sprintf("%s/%s", Prefix, id)]
 	err = json.Unmarshal([]byte(data), task)
 
 	if err != nil {

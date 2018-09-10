@@ -121,9 +121,17 @@ func (s *StepCreateInstance) Run(ctx context.Context, w io.Writer, cfg *steps.Co
 		return errors.Wrap(err, "aws: no instances created")
 	}
 	instance := res.Instances[0]
+
+	role := "master"
+
+	if !cfg.IsMaster {
+		role = "node"
+	}
+
 	cfg.Node = node.Node{
 		Region:    cfg.AWSConfig.Region,
 		CreatedAt: instance.LaunchTime.Unix(),
+		Role:      role,
 		Provider:  clouds.AWS,
 		Id:        *instance.InstanceId,
 	}

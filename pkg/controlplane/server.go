@@ -167,7 +167,7 @@ func configureApplication(cfg *Config) (*mux.Router, error) {
 	accountHandler.Register(protectedAPI)
 
 	kubeService := kube.NewService(kube.DefaultStoragePrefix, repository)
-	kubeHandler := kube.NewHandler(kubeService)
+	kubeHandler := kube.NewHandler(kubeService, repository)
 	kubeHandler.Register(protectedAPI)
 
 	//TODO Add generation of jwt token
