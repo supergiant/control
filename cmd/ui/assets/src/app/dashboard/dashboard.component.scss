@@ -1,10 +1,10 @@
 .dashboard-wrapper {
-  margin-top: 115px;
+  margin-bottom: 55px;
 
   .empty-cloud-accounts, .no-clusters {
     background-color: rgba(0,0,0,0.5);
     border: 1px solid rgba(255,255,255,0.25);
-    margin: 0 auto 48px;
+    margin: 48px auto;
     padding: 24px;
     width: max-content;
 
@@ -32,8 +32,23 @@
     display: flex;
     flex-direction: column;
     justify-content: space-around;
-    margin: 0 auto;
+    margin: 0 auto 50px;
     width: 1270px;
+
+    .has-clusters-headline {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 16px;
+
+      h1 {
+        margin: 0;
+      }
+
+      a {
+        margin-left: 48px;
+      }
+    }
 
     .cluster {
       display: flex;

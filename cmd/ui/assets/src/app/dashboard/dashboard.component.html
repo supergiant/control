@@ -16,7 +16,10 @@
   </div>
 
   <div *ngIf="clusters?.length != 0 && cloudAccounts?.length != 0" class="clusters-wrapper">
-    <h1>Your Clusters</h1>
+    <div class="has-clusters-headline">
+      <h1 class="your-clusters">Your Clusters</h1>
+      <a [routerLink]="['/clusters/new']" title=""><button mat-raised-button color="primary" type="button">New Cluster</button></a>
+    </div>
     <div *ngFor="let c of clusters">
       <a [routerLink]="['/clusters', c.name]" class="cluster" title="">
         <div class="usage">
@@ -84,6 +87,7 @@
       </a>
     </div>
   </div>
+
   <!-- TEMPORARY -->
   <!-- <button mat-raised-button color="primary" type="button" (click)="logout()">Logout</button> -->
 </div>
