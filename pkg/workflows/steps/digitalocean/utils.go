@@ -12,6 +12,9 @@ import (
 	"golang.org/x/crypto/ssh"
 
 	"github.com/digitalocean/godo"
+	"strings"
+	"encoding/base64"
+	"github.com/pkg/errors"
 )
 
 // Returns private ip
@@ -84,8 +87,15 @@ func generatePublicKey(privateKey *rsa.PrivateKey) ([]byte, error) {
 	return pubKeyBytes, nil
 }
 
-func fingerprint(key string) string {
-	fp := md5.Sum([]byte(key))
+func fingerprint(key string) (string, error) {
+	parts := strings.Fields(string(key))
+
+	k, err := base64.StdEncoding.DecodeString(parts[1])
+	if err != nil {
+		return "", errors.Wrap(err, "fingerprint decode string")
+	}
+
+	fp := md5.Sum(k)
 	buffer := &bytes.Buffer{}
 
 	for i, b := range fp {
@@ -96,5 +106,5 @@ func fingerprint(key string) string {
 		}
 	}
 
-	return buffer.String()
+	return buffer.String(), nil
 }

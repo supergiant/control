@@ -63,10 +63,22 @@ func (t *Step) Run(ctx context.Context, output io.Writer, config *steps.Config) 
 		return err
 	}
 
+	userFingerPrint, err := fingerprint(config.SshConfig.PublicKey)
+
+	if err != nil {
+		return errors.Wrap(err, "user key")
+	}
+
+	provisionFingerPrint, err := fingerprint(publicKey)
+
+	if err != nil {
+		return errors.Wrap(err, "provision key")
+	}
+
 	fingers = append(append(fingers, godo.DropletCreateSSHKey{
-		Fingerprint: fingerprint(config.SshConfig.PublicKey),
+		Fingerprint: userFingerPrint,
 	}), godo.DropletCreateSSHKey{
-		Fingerprint: fingerprint(publicKey),
+		Fingerprint: provisionFingerPrint,
 	})
 
 	config.SshConfig.PrivateKey = privateKey
