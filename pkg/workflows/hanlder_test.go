@@ -35,16 +35,16 @@ func TestWorkflowHandlerGetWorkflow(t *testing.T) {
 	h := TaskHandler{
 		repository: &MockRepository{
 			map[string][]byte{
-				fmt.Sprintf("%s/%s", prefix, id): data,
+				fmt.Sprintf("%s/%s", Prefix, id): data,
 			},
 		},
 	}
 
 	resp := httptest.NewRecorder()
-	req := httptest.NewRequest(http.MethodGet, fmt.Sprintf("/%s/%s", prefix, id), nil)
+	req := httptest.NewRequest(http.MethodGet, fmt.Sprintf("/%s/%s", Prefix, id), nil)
 
 	router := mux.NewRouter()
-	router.HandleFunc(fmt.Sprintf("/%s/{id}", prefix), h.GetTask)
+	router.HandleFunc(fmt.Sprintf("/%s/{id}", Prefix), h.GetTask)
 	router.ServeHTTP(resp, req)
 
 	w2 := &Task{}
@@ -212,13 +212,13 @@ dZM6MSCYh9kcT0pi2FPmY9iXba9kx4XAnf+0YB5xCz9QSMk4W5xSTBs=
 	}
 
 	data, _ := json.Marshal(task)
-	repository.Put(context.Background(), prefix, task.ID, data)
+	repository.Put(context.Background(), Prefix, task.ID, data)
 
 	rec := httptest.NewRecorder()
-	req := httptest.NewRequest(http.MethodGet, fmt.Sprintf("/%s/%s/restart", prefix, taskId), nil)
+	req := httptest.NewRequest(http.MethodGet, fmt.Sprintf("/%s/%s/restart", Prefix, taskId), nil)
 
 	router := mux.NewRouter()
-	router.HandleFunc(fmt.Sprintf("/%s/{id}/restart", prefix), h.RestartTask)
+	router.HandleFunc(fmt.Sprintf("/%s/{id}/restart", Prefix), h.RestartTask)
 	router.ServeHTTP(rec, req)
 
 	if rec.Code != http.StatusAccepted {

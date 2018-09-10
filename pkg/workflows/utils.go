@@ -49,7 +49,7 @@ func FillCloudAccountCredentials(ctx context.Context, getter cloudAccountGetter,
 	return nil
 }
 
-func deserializeTask(data []byte, repository storage.Interface) (*Task, error) {
+func DeserializeTask(data []byte, repository storage.Interface) (*Task, error) {
 	task := &Task{}
 	err := json.Unmarshal(data, task)
 

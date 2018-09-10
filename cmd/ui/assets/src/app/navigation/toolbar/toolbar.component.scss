@@ -1,0 +1,26 @@
+// TODO: make global theme used variables
+$rose: #D10088;
+
+a:hover {
+  text-decoration: none;
+}
+
+.mat-toolbar {
+  position: relative;
+  background: transparent;
+}
+
+.item {
+  letter-spacing: 2px;
+  font-size: 14px;
+  margin: 64px;
+
+  &.active {
+    color: $rose;
+
+    a {
+      border-bottom: 1px solid $rose;
+      padding-bottom: 10px;
+    }
+  }
+}
