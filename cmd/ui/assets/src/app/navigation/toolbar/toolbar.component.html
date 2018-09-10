@@ -1,7 +1,13 @@
 <mat-toolbar>
-  <span class="item"><a href="#" (click)="false">DASHBOARD</a></span>
-  <span class="item active">
-    <a class="link" href="#" (click)="false">CLUSTERS</a>
+  <span class="item"
+        routerLink="/dashboard"
+        routerLinkActive="active">
+    <span>DASHBOARD</span>
+  </span>
+  <span class="item"
+        routerLink="/clusters"
+        routerLinkActive="active">
+    <span>CLUSTERS</span>
     <i class="fa fa-angle-down"></i>
   </span>
   <mat-menu #menu="matMenu" yPosition="above">
@@ -9,6 +15,12 @@
     <button mat-menu-item>Item 2</button>
   </mat-menu>
 
-  <span class="item"><a href="#" (click)="false">APPS</a></span>
-  <span class="item"><a href="#" (click)="false">SERVICES</a></span>
+  <span class="item"
+        routerLink="/apps"
+        routerLinkActive="active">
+    <span>APPS</span>
+  </span>
+  <span class="item"
+        routerLink="/services"
+        routerLinkActive="active"><span>SERVICES</span></span>
 </mat-toolbar>

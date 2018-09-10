@@ -4,4 +4,9 @@
   width: 100%;
   display: flex;
   flex-direction: column;
+
+  .content {
+    margin-top: 100px;
+    min-height: 69%;
+  }
 }
