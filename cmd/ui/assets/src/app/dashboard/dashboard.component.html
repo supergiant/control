@@ -1,13 +1,18 @@
 <div class="dashboard-wrapper">
-
-  <div *ngIf="clusters?.length == 0 && cloudAccounts?.length != 0">
-    <h1>You have no clusters yet.</h1>
-    <a [routerLink]="['/clusters/new']" title=""><button mat-raised-button color="primary" type="button">Spin up!</button></a>
+  <div class="no-clusters" *ngIf="clusters?.length == 0 && cloudAccounts?.length != 0">
+    <span class="headline">You have no clusters yet.</span>
+     <span class="communication">Spin up a cluster on your choice of cloud provider</span>
+    <div class="link-wrapper">
+      <a [routerLink]="['/clusters/new']" title=""><button mat-raised-button color="primary" type="button">Spin up!</button></a>
+    </div>
   </div>
 
   <div class="empty-cloud-accounts" *ngIf="cloudAccounts?.length == 0">
-     <h1>You have no cloud accounts linked to Supergiant.</h1>
-     <a [routerLink]="['/system/cloud-accounts/new']" title=""><button mat-raised-button color="primary" type="button">Link a cloud account</button></a>
+     <span class="headline">You have no cloud accounts linked to Supergiant.</span>
+     <span class="communication">Link an AWS, Digital Ocean, Packet.net, or GCE cloud account and have a Supergiant cluster up in minutes</span>
+     <div class="link-wrapper">
+      <a [routerLink]="['/system/cloud-accounts/new']" title=""><button mat-raised-button color="primary" type="button">Link a cloud account</button></a>
+    </div>
   </div>
 
   <div *ngIf="clusters?.length != 0 && cloudAccounts?.length != 0" class="clusters-wrapper">

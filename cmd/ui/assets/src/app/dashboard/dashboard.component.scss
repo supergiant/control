@@ -1,5 +1,32 @@
 .dashboard-wrapper {
-  margin-top: 97px;
+  margin-top: 115px;
+
+  .empty-cloud-accounts, .no-clusters {
+    background-color: rgba(0,0,0,0.5);
+    border: 1px solid rgba(255,255,255,0.25);
+    margin: 0 auto 48px;
+    padding: 24px;
+    width: max-content;
+
+    .headline {
+      color: #d10088;
+      display: block;
+      font-family: "Montserrat", sans-serif;
+      font-size: 30px;
+    }
+
+    .communication {
+      display: block;
+      font-weight: 200;
+      margin: 24px auto;
+      text-align: center;
+      width: 60%;
+    }
+
+    .link-wrapper {
+      text-align: center;
+    }
+  }
 
   .clusters-wrapper {
     display: flex;

@@ -115,6 +115,7 @@ export class DashboardComponent implements OnInit {
     this.subscriptions.add(this.supergiant.CloudAccounts.get().subscribe(
       (cloudAccounts) => {
         this.cloudAccounts = cloudAccounts;
+        // this.cloudAccounts = [];
       }));
   }
 
@@ -136,8 +137,10 @@ export class DashboardComponent implements OnInit {
             arch: c.arch
           }]));
         this.clusters = clusters;
+        // this.clusters = [];
       }));
   }
+
   getDeployments() {
     this.subscriptions.add(this.supergiant.HelmReleases.get().subscribe(
       (deployments) => {
