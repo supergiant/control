@@ -1,3 +1,102 @@
 .dashboard-wrapper {
-  margin-top: 78px;
+  margin-top: 97px;
+
+  .clusters-wrapper {
+    display: flex;
+    flex-direction: column;
+    justify-content: space-around;
+    margin: 0 auto;
+    width: 1270px;
+
+    .cluster {
+      display: flex;
+      background-color: rgba(0,0,0,0.5);
+      border: 1px solid rgba(255,255,255,0.25);
+      margin: 12px 0;
+      padding: 24px;
+      width: 100%;
+
+      .usage {
+        margin-right: 24px;
+        position: relative;
+        height: 200px;
+        width: 200px;
+
+        .cpu-usage {
+          background: url(/assets/img/cluster-details/left_metric_base.svg) no-repeat;
+          background-size: 100% 100%;
+          background-position: center;
+          position: absolute;
+          top: 0;
+          left: 0;
+          height: 100%;
+          width: 50%;
+        }
+
+        .name {
+          align-items: center;
+          border-radius: 50%;
+          background-image: linear-gradient(315deg, #8721ff, #8b22fb 18%, #ff457e);
+          display: flex;
+          font-size: 1.3em;
+          font-family: "Montserrat", sans-serif;
+          justify-content: center;
+          position: absolute;
+          top: 50px;
+          left: 50px;
+          height: 100px;
+          width: 100px;
+        }
+
+        .ram-usage {
+          background: url(/assets/img/cluster-details/right_metric_base.svg) no-repeat;
+          background-size: 100% 100%;
+          background-position: center;
+          position: absolute;
+          top: 18px;
+          right: 8px;
+          height: 82%;
+          width: 50%;
+        }
+      }
+
+      .cluster-info {
+        background-color: rgba(0, 0, 0, 0.5);
+        margin: auto 0;
+        width: 1000px;
+
+        .mat-table {
+          background-color: rgba(0,0,0,0);
+
+          .mat-header-row {
+            background-color: rgba(255, 0, 166, 0.25);
+            border: none;
+            min-height: 45px;
+
+            .mat-header-cell {
+              color: #fff;
+              font-family: "Roboto", sans-serif;
+              font-weight: 300;
+              font-size: 14px;
+            }
+          }
+
+          .mat-row {
+            background-color: rgba(255, 255, 255, 0.1);
+            border: none;
+            margin: 2px 0px;
+
+            .mat-cell {
+              color: #fff;
+              font-family: "Roboto", sans-serif;
+              font-weight: 300;
+              font-size: 12px;
+              overflow: unset;
+              padding: 12px 0px;
+            }
+          }
+        }
+      }
+    }
+  }
 }
