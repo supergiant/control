@@ -57,9 +57,19 @@ func (t *Step) Run(ctx context.Context, output io.Writer, config *steps.Config) 
 	config.DigitalOceanConfig.Name = util.MakeNodeName(config.ClusterName, config.IsMaster)
 
 	var fingers []godo.DropletCreateSSHKey
-	fingers = append(fingers, godo.DropletCreateSSHKey{
-		Fingerprint: config.DigitalOceanConfig.Fingerprint,
+	privateKey, publicKey, err := generateKeyPair(4096)
+
+	if err != nil {
+		return err
+	}
+
+	fingers = append(append(fingers, godo.DropletCreateSSHKey{
+		Fingerprint: fingerprint(config.SshConfig.PublicKey),
+	}), godo.DropletCreateSSHKey{
+		Fingerprint: fingerprint(publicKey),
 	})
+
+	config.SshConfig.PrivateKey = privateKey
 
 	dropletRequest := &godo.DropletCreateRequest{
 		Name:              config.DigitalOceanConfig.Name,
@@ -163,27 +173,5 @@ func (s *Step) Depends() []string {
 }
 
 func (t *Step) Description() string {
-	return ""
-}
-
-// Returns private ip
-func getPrivateIpPort(networks []godo.NetworkV4) string {
-	for _, network := range networks {
-		if network.Type == "private" {
-			return network.IPAddress
-		}
-	}
-
-	return ""
-}
-
-// Returns public ip
-func getPublicIpPort(networks []godo.NetworkV4) string {
-	for _, network := range networks {
-		if network.Type == "public" {
-			return network.IPAddress
-		}
-	}
-
 	return ""
 }

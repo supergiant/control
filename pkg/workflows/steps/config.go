@@ -141,6 +141,7 @@ type SshConfig struct {
 	User       string `json:"user"`
 	Port       string `json:"port"`
 	PrivateKey string `json:"privateKey"`
+	PublicKey  string `json:"publicKey"`
 	Timeout    int    `json:"timeout"`
 }
 
