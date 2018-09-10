@@ -47,7 +47,7 @@ func generateKeyPair(size int) (string, string, error) {
 	}
 
 	privateKeyPem := encodePrivateKeyToPEM(privateKey)
-	publicKey, err := generatePublicKey(privateKey)
+	publicKey, err := generatePublicKey(&privateKey.PublicKey)
 
 	if err != nil {
 		return "", "", err
@@ -74,10 +74,9 @@ func encodePrivateKeyToPEM(privateKey *rsa.PrivateKey) []byte {
 	return privatePEM
 }
 
-func generatePublicKey(privateKey *rsa.PrivateKey) ([]byte, error) {
-	publicRsaKey, err := ssh.NewPublicKey(privateKey)
+func generatePublicKey(publicKey *rsa.PublicKey) ([]byte, error) {
+	publicRsaKey, err := ssh.NewPublicKey(publicKey)
 
-	privateKey.Public()
 	if err != nil {
 		return nil, err
 	}
