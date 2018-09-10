@@ -17,7 +17,6 @@ type Node struct {
 	PublicIp  string      `json:"public_ip"`
 	PrivateIp string      `json:"private_ip"`
 	Active    bool        `json:"active"`
-	ClusterName string      `json:"clusterName"`
 }
 
 func (n Node) String() string {

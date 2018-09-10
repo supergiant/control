@@ -104,14 +104,13 @@ func (t *Step) Run(ctx context.Context, output io.Writer, config *steps.Config) 
 				}
 
 				config.Node = node.Node{
-					Id:          fmt.Sprintf("%d", droplet.ID),
-					CreatedAt:   time.Now().Unix(),
-					Role:        role,
-					Provider:    clouds.DigitalOcean,
-					Region:      droplet.Region.Name,
-					PublicIp:    getPublicIpPort(droplet.Networks.V4),
-					PrivateIp:   getPrivateIpPort(droplet.Networks.V4),
-					ClusterName: config.ClusterName,
+					Id:        fmt.Sprintf("%d", droplet.ID),
+					CreatedAt: time.Now().Unix(),
+					Role:      role,
+					Provider:  clouds.DigitalOcean,
+					Region:    droplet.Region.Name,
+					PublicIp:  getPublicIpPort(droplet.Networks.V4),
+					PrivateIp: getPrivateIpPort(droplet.Networks.V4),
 				}
 
 				if config.IsMaster {
