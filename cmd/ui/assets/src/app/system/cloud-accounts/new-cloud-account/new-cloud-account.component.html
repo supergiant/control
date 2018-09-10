@@ -1,6 +1,7 @@
 <div class="new-cloud-account-wrapper">
-  <button mat-raised-button color="accent" type="button" class="back-button" [routerLink]="['/system/cloud-accounts']"><-</button>
+
   <h1>Create a Cloud Account</h1>
+
   <div class="inputs-wrapper">
     <mat-form-field>
       <mat-select placeholder="Choose a Provider" [(value)]="selectedProvider">
@@ -33,7 +34,9 @@
             (textChanged)="selectedProvider.data.model.credentials.service_account_key=$event">
           </ace-editor>
         </div>
-        <button class="gce-button" mat-raised-button color="primary" type="button" (click)="create(selectedProvider.data.model)">CREATE</button>
+        <button class="gce-button" mat-raised-button color="primary" type="button"
+                (click)="create(selectedProvider.data.model)">CREATE
+        </button>
       </div>
 
     </div>
