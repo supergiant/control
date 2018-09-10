@@ -12,8 +12,8 @@ import { Router } from '@angular/router';
 @Component({
   selector: 'app-new-cluster',
   templateUrl: './new-cluster.component.html',
-  styleUrls: ['./new-cluster.component.scss']
-  // encapsulation: ViewEncapsulation.None
+  styleUrls: ['./new-cluster.component.scss'],
+  encapsulation: ViewEncapsulation.None
 })
 export class NewClusterComponent implements OnInit, OnDestroy {
   subscriptions = new Subscription();
@@ -130,7 +130,7 @@ export class NewClusterComponent implements OnInit, OnDestroy {
     this.subscriptions.add(this.supergiant.Kubes.create(model).subscribe(
       (data) => {
         this.success(model);
-        this.router.navigate(['/clusters']);
+        this.router.navigate(['/clusters/', this.clusterName]);
       },
       (err) => { this.error(model, err); }));
   }
