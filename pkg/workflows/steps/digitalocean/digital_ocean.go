@@ -72,7 +72,8 @@ func (t *Step) Run(ctx context.Context, output io.Writer, config *steps.Config) 
 		},
 	}
 
-	tags := []string{"Kubernetes-Cluster", config.DigitalOceanConfig.Name}
+	tags := []string{fmt.Sprintf("Kubernetes-Cluster-%s", config.ClusterName),
+		config.DigitalOceanConfig.Name}
 	droplet, _, err := c.Droplets.Create(ctx, dropletRequest)
 
 	if err != nil {
@@ -98,7 +99,6 @@ func (t *Step) Run(ctx context.Context, output io.Writer, config *steps.Config) 
 				// Get private ip ports from droplet networks
 
 				role := "master"
-
 				if !config.IsMaster {
 					role = "node"
 				}
@@ -115,6 +115,8 @@ func (t *Step) Run(ctx context.Context, output io.Writer, config *steps.Config) 
 
 				if config.IsMaster {
 					config.AddMaster(&config.Node)
+				} else {
+					config.AddNode(&config.Node)
 				}
 
 				logrus.Infof("Node has been created %v", config.Node)
