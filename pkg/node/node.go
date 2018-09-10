@@ -13,6 +13,7 @@ type Node struct {
 	CreatedAt int64       `json:"created_at" valid:"required"`
 	Provider  clouds.Name `json:"provider" valid:"required"`
 	Region    string      `json:"region" valid:"required"`
+	Size      string      `json:"size"`
 	PublicIp  string      `json:"public_ip"`
 	PrivateIp string      `json:"private_ip"`
 	Active    bool        `json:"active"`

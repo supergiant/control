@@ -70,22 +70,28 @@ func FillNodeCloudSpecificData(provider clouds.Name, nodeProfile map[string]stri
 	return nil
 }
 
-func nodeFromProfile(profile *profile.Profile) ([]*node.Node, []*node.Node) {
+func nodesFromProfile(profile *profile.Profile) ([]*node.Node, []*node.Node) {
 	masters := make([]*node.Node, 0, len(profile.MasterProfiles))
 	nodes := make([]*node.Node, 0, len(profile.NodesProfiles))
 
-	for i := 0; i < cap(masters); i++ {
-		masters = append(masters, &node.Node{
+	for _, p := range profile.MasterProfiles {
+		n := &node.Node{
 			Provider: profile.Provider,
 			Region:   profile.Region,
-		})
+		}
+
+		util.BindParams(p, n)
+		masters = append(masters, n)
 	}
 
-	for i := 0; i < cap(nodes); i++ {
-		nodes = append(nodes, &node.Node{
+	for _, p := range profile.NodesProfiles {
+		n := &node.Node{
 			Provider: profile.Provider,
 			Region:   profile.Region,
-		})
+		}
+
+		util.BindParams(p, n)
+		nodes = append(nodes, n)
 	}
 
 	return masters, nodes

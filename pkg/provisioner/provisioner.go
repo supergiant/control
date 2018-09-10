@@ -10,12 +10,12 @@ import (
 	"github.com/sirupsen/logrus"
 	"github.com/supergiant/supergiant/pkg/clouds"
 	"github.com/supergiant/supergiant/pkg/kube"
+	"github.com/supergiant/supergiant/pkg/node"
 	"github.com/supergiant/supergiant/pkg/profile"
 	"github.com/supergiant/supergiant/pkg/storage"
 	"github.com/supergiant/supergiant/pkg/util"
 	"github.com/supergiant/supergiant/pkg/workflows"
 	"github.com/supergiant/supergiant/pkg/workflows/steps"
-	"github.com/supergiant/supergiant/pkg/node"
 )
 
 // Provisioner gets kube profile and returns list of task ids of provision masterTasks
@@ -79,7 +79,7 @@ func (r *TaskProvisioner) Provision(ctx context.Context, profile *profile.Profil
 	masterTasks, nodeTasks, clusterTask := r.prepare(config.Provider, len(profile.MasterProfiles),
 		len(profile.NodesProfiles))
 
-	masters, nodes := nodeFromProfile(profile)
+	masters, nodes := nodesFromProfile(profile)
 	// Save cluster before provisioning
 	r.saveCluster(ctx, profile, masters, nodes, config)
 
