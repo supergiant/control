@@ -8,6 +8,11 @@
 
   .content {
     margin-top: 100px;
-    min-height: 69%;
+    // min-height: 69%;
+  }
+
+  // TODO: find a better way
+  app-footer {
+    margin-top: auto;
   }
 }
