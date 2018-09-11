@@ -77,6 +77,8 @@ spec:
     - --service-cluster-ip-range=10.3.0.0/24
     - --secure-port=443
     - --v=2
+    - --insecure-port=8080
+    - --insecure-bind-address=0.0.0.0
     - --advertise-address={{ .MasterHost }}
     - --admission-control=NamespaceLifecycle,NamespaceExists,LimitRanger,ServiceAccount,ResourceQuota,DefaultStorageClass{{if .RBACEnabled }},NodeRestriction{{end}}
     - --tls-cert-file=/etc/kubernetes/ssl/apiserver.pem
