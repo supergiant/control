@@ -15,7 +15,7 @@ import (
 
 type CertificatesConfig struct {
 	KubernetesConfigDir string `json:"kubernetesConfigDir"`
-	MasterPrivateIP     string `json:"masterPrivateIP"`
+	MasterHost          string `json:"masterHost"`
 	Username            string `json:"username"`
 	Password            string `json:"password"`
 }
