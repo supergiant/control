@@ -8,7 +8,6 @@ import (
 	"time"
 
 	"github.com/digitalocean/godo"
-
 	"github.com/pkg/errors"
 	"github.com/sirupsen/logrus"
 
