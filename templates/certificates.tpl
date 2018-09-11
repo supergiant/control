@@ -2,7 +2,7 @@ KUBERNETES_SSL_DIR={{ .KubernetesConfigDir }}/ssl
 
 mkdir -p ${KUBERNETES_SSL_DIR}
 
-cat > /etc/kubernetes/ssl/openssl.cnf <<EOF
+cat > /etc/kubernetes/ssl/openssl.cnf.template <<EOF
 [req]
 req_extensions = v3_req
 distinguished_name = req_distinguished_name
