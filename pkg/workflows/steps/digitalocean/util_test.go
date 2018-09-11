@@ -3,10 +3,10 @@ package digitalocean
 import (
 	"crypto/rsa"
 	"github.com/dgrijalva/jwt-go"
+	"github.com/digitalocean/godo"
 	"golang.org/x/crypto/ssh"
 	"strings"
 	"testing"
-	"github.com/digitalocean/godo"
 )
 
 var (
@@ -88,7 +88,7 @@ func TestGenerateKeyPair(t *testing.T) {
 }
 
 func TestGetPublicIpAddr(t *testing.T) {
-	testCases := []struct{
+	testCases := []struct {
 		networks []godo.NetworkV4
 		expected string
 	}{
@@ -99,7 +99,7 @@ func TestGetPublicIpAddr(t *testing.T) {
 				},
 				{
 					IPAddress: "103.208.177.11",
-					Type: "public",
+					Type:      "public",
 				},
 			},
 			expected: "103.208.177.11",
@@ -122,6 +122,39 @@ func TestGetPublicIpAddr(t *testing.T) {
 
 		if !strings.EqualFold(ipAddr, testCase.expected) {
 			t.Errorf("Wrong public ip address expected %s actual %s", testCase.expected, ipAddr)
+		}
+	}
+}
+
+func TestGetPrivateIpAddr(t *testing.T) {
+	testCases := []struct {
+		networks []godo.NetworkV4
+		expected string
+	}{
+		{
+			networks: []godo.NetworkV4{
+				{
+					IPAddress: "10.0.0.2",
+					Type:      "private",
+				},
+				{
+					IPAddress: "103.208.177.11",
+					Type:      "public",
+				},
+			},
+			expected: "10.0.0.2",
+		},
+		{
+			networks: []godo.NetworkV4{},
+			expected: "",
+		},
+	}
+
+	for _, testCase := range testCases {
+		ipAddr := getPrivateIpPort(testCase.networks)
+
+		if !strings.EqualFold(ipAddr, testCase.expected) {
+			t.Errorf("Wrong private ip address expected %s actual %s", testCase.expected, ipAddr)
 		}
 	}
 }
