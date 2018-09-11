@@ -6,6 +6,7 @@ import (
 	"golang.org/x/crypto/ssh"
 	"strings"
 	"testing"
+	"github.com/digitalocean/godo"
 )
 
 var (
@@ -84,4 +85,43 @@ func TestGenerateKeyPair(t *testing.T) {
 	}
 
 	privateKeyRSA.Validate()
+}
+
+func TestGetPublicIpAddr(t *testing.T) {
+	testCases := []struct{
+		networks []godo.NetworkV4
+		expected string
+	}{
+		{
+			networks: []godo.NetworkV4{
+				{
+					IPAddress: "10.0.0.2",
+				},
+				{
+					IPAddress: "103.208.177.11",
+					Type: "public",
+				},
+			},
+			expected: "103.208.177.11",
+		},
+		{
+			networks: []godo.NetworkV4{
+				{
+					IPAddress: "10.0.0.2",
+				},
+				{
+					IPAddress: "172.16.0.5",
+				},
+			},
+			expected: "",
+		},
+	}
+
+	for _, testCase := range testCases {
+		ipAddr := getPublicIpPort(testCase.networks)
+
+		if !strings.EqualFold(ipAddr, testCase.expected) {
+			t.Errorf("Wrong public ip address expected %s actual %s", testCase.expected, ipAddr)
+		}
+	}
 }
