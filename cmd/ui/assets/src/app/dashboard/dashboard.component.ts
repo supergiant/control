@@ -121,7 +121,6 @@ export class DashboardComponent implements OnInit {
   getClusters() {
     this.subscriptions.add(this.supergiant.Kubes.get().subscribe(
       (clusters) => {
-        console.log(clusters);
         // TODO: this is terrible, fix after demo
         clusters.map(c => c.dataSource = new MatTableDataSource([
           {

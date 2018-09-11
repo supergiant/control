@@ -20,11 +20,11 @@
         </mat-select>
       </mat-form-field>
 
-      <div *ngIf="selectedCloudAccount" [ngClass]="{ disable: !selectedRegion }">
+      <div class="machine-list" *ngIf="selectedCloudAccount" [ngClass]="{ disable: !selectedRegion }">
       <!-- <ng-container *ngIf="selectedRegion"> -->
         <div class="machine" *ngFor="let m of machines; let idx = index">
           <mat-form-field class="type">
-            <mat-select placeholder="Machine Type (size)" [(value)]="m.machineType">
+            <mat-select placeholder="Machine Type (size)" id="m.machineType" [(value)]="m.machineType">
               <mat-option *ngFor="let type of availableMachineTypes" [value]="type">{{ type }}</mat-option>
             </mat-select>
           </mat-form-field>
@@ -37,7 +37,7 @@
           </mat-form-field>
 
           <mat-form-field class="quantity">
-            <input matInput type="number" placeholder="Q-ty" [(ngModel)]="m.qty">
+            <input matInput type="number" min="1" placeholder="Q-ty" [(ngModel)]="m.qty">
           </mat-form-field>
 
           <div class="delete" (click)="deleteMachine(idx)"></div>

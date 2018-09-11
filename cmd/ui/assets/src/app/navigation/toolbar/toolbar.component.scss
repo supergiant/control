@@ -13,7 +13,11 @@ a:hover {
 .item {
   letter-spacing: 2px;
   font-size: 14px;
-  margin: 64px;
+  margin-right: 64px;
+
+  &:last-child {
+    margin-right: 0;
+  }
 
   &.active {
     color: $rose;

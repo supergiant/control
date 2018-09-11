@@ -47,12 +47,6 @@ export class NewClusterComponent implements OnInit, OnDestroy {
     qty: 1
   }];
 
-  blankMachine = {
-    machineType: null,
-    role: null,
-    qty: 1
-  };
-
   profileOptions = {
     archs: ["amd64"],
     flannelVersions: ["0.10.0"],
@@ -155,16 +149,23 @@ export class NewClusterComponent implements OnInit, OnDestroy {
   selectRegion(region) {
     this.availableMachineTypes = region.AvailableSizes;
     if (this.machines.length === 0) {
-      this.machines.push(this.blankMachine);
+      this.machines.push({
+        machineType: null,
+        role: null,
+        qty: 1
+      });
     }
   }
 
   addBlankMachine() {
-    this.machines.push(this.blankMachine);
+    this.machines.push({
+      machineType: null,
+      role: null,
+      qty: 1
+    })
   }
 
   deleteMachine(idx) {
-    console.log(idx);
     this.machines.splice(idx, 1);
   }
 
