@@ -26,7 +26,7 @@ func (s *Step) Run(ctx context.Context, writer io.Writer, config *steps.Config) 
 		Port:    config.SshConfig.Port,
 		User:    config.SshConfig.User,
 		Timeout: config.SshConfig.Timeout,
-		// TODO(stgleb): Pass ssh key id instead of key itself
+		// TODO(stgleb): Use secure storage for private keys instead carrying them in plain text
 		Key: []byte(config.SshConfig.PrivateKey),
 	}
 	config.Runner, err = ssh.NewRunner(cfg)

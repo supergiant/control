@@ -38,6 +38,10 @@ type TagService interface {
 	TagResources(string, *godo.TagResourcesRequest) (*godo.Response, error)
 }
 
+type KeyService interface {
+	Create(context.Context, *godo.KeyCreateRequest) (*godo.Key, *godo.Response, error)
+}
+
 type Step struct {
 	DropletTimeout time.Duration
 	CheckPeriod    time.Duration
@@ -54,37 +58,15 @@ func New(dropletTimeout, checkPeriod time.Duration) *Step {
 	}
 }
 
-func (t *Step) Run(ctx context.Context, output io.Writer, config *steps.Config) error {
+func (s *Step) Run(ctx context.Context, output io.Writer, config *steps.Config) error {
 	c := digitaloceanSDK.New(config.DigitalOceanConfig.AccessToken).GetClient()
-
 	config.DigitalOceanConfig.Name = util.MakeNodeName(config.ClusterName, config.IsMaster)
 
-	var fingers []godo.DropletCreateSSHKey
-	privateKey, publicKey, err := generateKeyPair(keySize)
+	fingers, err := s.createKeys(ctx, c.Keys, config)
 
 	if err != nil {
 		return err
 	}
-
-	userFingerPrint, err := fingerprint(config.SshConfig.PublicKey)
-
-	if err != nil {
-		return errors.Wrap(err, "user key")
-	}
-
-	provisionFingerPrint, err := fingerprint(publicKey)
-
-	if err != nil {
-		return errors.Wrap(err, "provision key")
-	}
-
-	fingers = append(append(fingers, godo.DropletCreateSSHKey{
-		Fingerprint: userFingerPrint,
-	}), godo.DropletCreateSSHKey{
-		Fingerprint: provisionFingerPrint,
-	})
-
-	config.SshConfig.PrivateKey = privateKey
 
 	dropletRequest := &godo.DropletCreateRequest{
 		Name:              config.DigitalOceanConfig.Name,
@@ -106,10 +88,10 @@ func (t *Step) Run(ctx context.Context, output io.Writer, config *steps.Config) 
 	}
 
 	// NOTE(stgleb): ignore droplet tagging error, it always fails
-	t.tagDroplet(ctx, c.Tags, droplet.ID, tags)
+	s.tagDroplet(ctx, c.Tags, droplet.ID, tags)
 
-	after := time.After(t.DropletTimeout)
-	ticker := time.NewTicker(t.CheckPeriod)
+	after := time.After(s.DropletTimeout)
+	ticker := time.NewTicker(s.CheckPeriod)
 
 	for {
 		select {
@@ -156,11 +138,11 @@ func (t *Step) Run(ctx context.Context, output io.Writer, config *steps.Config) 
 	return nil
 }
 
-func (t *Step) Rollback(context.Context, io.Writer, *steps.Config) error {
+func (s *Step) Rollback(context.Context, io.Writer, *steps.Config) error {
 	return nil
 }
 
-func (t *Step) tagDroplet(ctx context.Context, tagService godo.TagsService, dropletId int, tags []string) error {
+func (s *Step) tagDroplet(ctx context.Context, tagService godo.TagsService, dropletId int, tags []string) error {
 	// Tag droplet
 	for _, tag := range tags {
 		input := &godo.TagResourcesRequest{
@@ -179,7 +161,7 @@ func (t *Step) tagDroplet(ctx context.Context, tagService godo.TagsService, drop
 	return nil
 }
 
-func (t *Step) Name() string {
+func (s *Step) Name() string {
 	return StepName
 }
 
@@ -187,6 +169,61 @@ func (s *Step) Depends() []string {
 	return nil
 }
 
-func (t *Step) Description() string {
+func (s *Step) Description() string {
 	return ""
+}
+
+func (s *Step) createKey(ctx context.Context, keyService KeyService, name, publicKey string) (*godo.Key, error) {
+	req := &godo.KeyCreateRequest{
+		Name:      name,
+		PublicKey: publicKey,
+	}
+
+	key, _, err := keyService.Create(ctx, req)
+
+	if err != nil {
+		return nil, err
+	}
+
+	return key, err
+}
+
+func (s *Step) createKeys(ctx context.Context, keyService KeyService, config *steps.Config) ([]godo.DropletCreateSSHKey, error) {
+	var fingers []godo.DropletCreateSSHKey
+	privateKey, publicKey, err := generateKeyPair(keySize)
+
+	if err != nil {
+		return nil, err
+	}
+
+	// Create key for provisioning
+	key, err := s.createKey(ctx, keyService, fmt.Sprintf("%s-provision", config.DigitalOceanConfig.Name), publicKey)
+
+	if err != nil {
+		return nil, errors.Wrap(err, "create provision key")
+	}
+
+	config.SshConfig.PrivateKey = privateKey
+
+	fingers = append(fingers, godo.DropletCreateSSHKey{
+		Fingerprint: key.Fingerprint,
+	})
+
+	// Create user provided key
+	key, _ = s.createKey(ctx, keyService, fmt.Sprintf("%s-user", config.DigitalOceanConfig.Name), config.SshConfig.PublicKey)
+
+	// NOTE(stgleb): In case if this key is already used by user of this account
+	// just compute fingerprint and pass it
+	if key == nil {
+		fg, _  := fingerprint(config.SshConfig.PublicKey)
+		fingers = append(fingers, godo.DropletCreateSSHKey{
+			Fingerprint: fg,
+		})
+	} else {
+		fingers = append(fingers, godo.DropletCreateSSHKey{
+			Fingerprint: key.Fingerprint,
+		})
+	}
+
+	return fingers, nil
 }
