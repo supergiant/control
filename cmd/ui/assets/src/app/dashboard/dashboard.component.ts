@@ -2,6 +2,7 @@ import { Component, OnInit, ViewEncapsulation } from '@angular/core';
 import { Subscription } from 'rxjs/Subscription';
 import { Supergiant } from '../shared/supergiant/supergiant.service';
 import { convertIsoToHumanReadable } from '../shared/helpers/helpers';
+import { MatTableDataSource } from '@angular/material';
 
 // TEMPORARY
 import { AuthService } from '../shared/supergiant/auth/auth.service';
@@ -64,6 +65,7 @@ export class DashboardComponent implements OnInit {
   public lineChartType: string = 'line';
 
   public clusters: Array<any>;
+  public clusterColumns = ["accountName", "k8sversion", "mastersCount", "nodesCount", "operatingSystem", "dockerVersion", "helmVersion", "rbacEnabled", "arch"];
 
   getKube(id) {
     this.subscriptions.add(this.supergiant.Kubes.get(id).subscribe(
@@ -119,9 +121,23 @@ export class DashboardComponent implements OnInit {
   getClusters() {
     this.subscriptions.add(this.supergiant.Kubes.get().subscribe(
       (clusters) => {
+        // TODO: this is terrible, fix after demo
+        clusters.map(c => c.dataSource = new MatTableDataSource([
+          {
+            accountName: c.accountName,
+            K8SVersion: c.K8SVersion,
+            masters: c.masters,
+            nodes: c.nodes,
+            operatingSystem: c.operatingSystem,
+            dockerVersion: c.dockerVersion,
+            helmVersion: c.helmVersion,
+            rbacEnabled: c.rbacEnabled,
+            arch: c.arch
+          }]));
         this.clusters = clusters;
       }));
   }
+
   getDeployments() {
     this.subscriptions.add(this.supergiant.HelmReleases.get().subscribe(
       (deployments) => {

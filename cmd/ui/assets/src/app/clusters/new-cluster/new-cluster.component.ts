@@ -12,8 +12,8 @@ import { Router } from '@angular/router';
 @Component({
   selector: 'app-new-cluster',
   templateUrl: './new-cluster.component.html',
-  styleUrls: ['./new-cluster.component.scss']
-  // encapsulation: ViewEncapsulation.None
+  styleUrls: ['./new-cluster.component.scss'],
+  encapsulation: ViewEncapsulation.None
 })
 export class NewClusterComponent implements OnInit, OnDestroy {
   subscriptions = new Subscription();
@@ -46,12 +46,6 @@ export class NewClusterComponent implements OnInit, OnDestroy {
     role: "Master",
     qty: 1
   }];
-
-  blankMachine = {
-    machineType: null,
-    role: null,
-    qty: 1
-  };
 
   profileOptions = {
     archs: ["amd64"],
@@ -130,7 +124,7 @@ export class NewClusterComponent implements OnInit, OnDestroy {
     this.subscriptions.add(this.supergiant.Kubes.create(model).subscribe(
       (data) => {
         this.success(model);
-        this.router.navigate(['/clusters']);
+        this.router.navigate(['/clusters/', this.clusterName]);
       },
       (err) => { this.error(model, err); }));
   }
@@ -155,16 +149,23 @@ export class NewClusterComponent implements OnInit, OnDestroy {
   selectRegion(region) {
     this.availableMachineTypes = region.AvailableSizes;
     if (this.machines.length === 0) {
-      this.machines.push(this.blankMachine);
+      this.machines.push({
+        machineType: null,
+        role: null,
+        qty: 1
+      });
     }
   }
 
   addBlankMachine() {
-    this.machines.push(this.blankMachine);
+    this.machines.push({
+      machineType: null,
+      role: null,
+      qty: 1
+    })
   }
 
   deleteMachine(idx) {
-    console.log(idx);
     this.machines.splice(idx, 1);
   }
 

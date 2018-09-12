@@ -141,14 +141,14 @@ const appRoutes: Routes = [
   },
   {
     path: 'resource/new/:id', component: NewKubeResourceComponent, canActivate: [AuthGuard]
-  }
+  },
   // { path: 'volumes', component: VolumesComponent, canActivate: [AuthGuard] },
-  // {
-  //   path: 'services', component: ServicesComponent, canActivate: [AuthGuard], children: [
-  //     { path: '', component: ServicesListComponent },
-  //     { path: ':id', component: ServiceDetailsComponent }
-  //   ]
-  // },
+  {
+    path: 'services', component: ServicesComponent, canActivate: [AuthGuard], children: [
+      { path: '', component: ServicesListComponent },
+      { path: ':id', component: ServiceDetailsComponent }
+    ]
+  },
   // {
   //   path: 'sessions', component: SessionsComponent, canActivate: [AuthGuard], children: [
   //     { path: '', component: SessionsListComponent },

@@ -1,12 +1,93 @@
 <div class="dashboard-wrapper">
-  <div *ngIf=" clusters?.length == 0 ">
-    <h1>You have no clusters yet.</h1>
-    <a [routerLink]="['/clusters/new']" title=""><button mat-raised-button color="primary" type="button">Spin up!</button></a>
+  <div class="no-clusters" *ngIf="clusters?.length == 0 && cloudAccounts?.length != 0">
+    <span class="headline">You have no clusters yet.</span>
+     <span class="communication">Spin up a cluster on your choice of cloud provider</span>
+    <div class="link-wrapper">
+      <a [routerLink]="['/clusters/new']" title=""><button mat-raised-button color="primary" type="button">Spin up!</button></a>
+    </div>
   </div>
-  <div class="empty-cloud-accounts" *ngIf=" cloudAccounts?.length == 0 ">
-     <h1>You have no cloud accounts linked to Supergiant.</h1>
-     <a [routerLink]="['/system/cloud-accounts/new']" title=""><button mat-raised-button color="primary" type="button">Link a cloud account</button></a>
+
+  <div class="empty-cloud-accounts" *ngIf="cloudAccounts?.length == 0">
+     <span class="headline">You have no cloud accounts linked to Supergiant.</span>
+     <span class="communication">Link an AWS, Digital Ocean, Packet.net, or GCE cloud account and have a Supergiant cluster up in minutes</span>
+     <div class="link-wrapper">
+      <a [routerLink]="['/system/cloud-accounts/new']" title=""><button mat-raised-button color="primary" type="button">Link a cloud account</button></a>
+    </div>
   </div>
+
+  <div *ngIf="clusters?.length != 0 && cloudAccounts?.length != 0" class="clusters-wrapper">
+    <div class="has-clusters-headline">
+      <h1 class="your-clusters">Your Clusters</h1>
+      <a [routerLink]="['/clusters/new']" title=""><button mat-raised-button color="primary" type="button">New Cluster</button></a>
+    </div>
+    <div *ngFor="let c of clusters">
+      <a [routerLink]="['/clusters', c.name]" class="cluster" title="">
+        <div class="usage">
+          <div class="cpu-usage"></div>
+
+          <div class="name">
+            {{ c.name }}
+          </div>
+
+          <div class="ram-usage"></div>
+        </div>
+
+
+        <div class="cluster-info">
+          <mat-table [dataSource]="c.dataSource">
+            <ng-container matColumnDef="accountName">
+              <mat-header-cell *matHeaderCellDef>Account</mat-header-cell>
+              <mat-cell *matCellDef="let c">{{ c.accountName }}</mat-cell>
+            </ng-container>
+
+            <ng-container matColumnDef="k8sversion">
+              <mat-header-cell *matHeaderCellDef>K8S Version</mat-header-cell>
+              <mat-cell *matCellDef="let c">{{ c.K8SVersion }}</mat-cell>
+            </ng-container>
+
+            <ng-container matColumnDef="arch">
+              <mat-header-cell *matHeaderCellDef>Arch</mat-header-cell>
+              <mat-cell *matCellDef="let c">{{ c.arch }}</mat-cell>
+            </ng-container>
+
+            <ng-container matColumnDef="mastersCount">
+              <mat-header-cell *matHeaderCellDef>Masters</mat-header-cell>
+              <mat-cell *matCellDef="let c">{{ c.masters.length }}</mat-cell>
+            </ng-container>
+
+            <ng-container matColumnDef="nodesCount">
+              <mat-header-cell *matHeaderCellDef>Nodes</mat-header-cell>
+              <mat-cell *matCellDef="let c">{{ c.nodes.length }}</mat-cell>
+            </ng-container>
+
+            <ng-container matColumnDef="operatingSystem">
+              <mat-header-cell *matHeaderCellDef>OS</mat-header-cell>
+              <mat-cell *matCellDef="let c">{{ c.operatingSystem }}</mat-cell>
+            </ng-container>
+
+            <ng-container matColumnDef="dockerVersion">
+              <mat-header-cell *matHeaderCellDef>Docker Ver.</mat-header-cell>
+              <mat-cell *matCellDef="let c">{{ c.dockerVersion }}</mat-cell>
+            </ng-container>
+
+            <ng-container matColumnDef="helmVersion">
+              <mat-header-cell *matHeaderCellDef>Helm Ver.</mat-header-cell>
+              <mat-cell *matCellDef="let c">{{ c.helmVersion }}</mat-cell>
+            </ng-container>
+
+            <ng-container matColumnDef="rbacEnabled">
+              <mat-header-cell *matHeaderCellDef>RBAC?</mat-header-cell>
+              <mat-cell *matCellDef="let c">{{ c.rbacEnabled }}</mat-cell>
+            </ng-container>
+
+            <mat-header-row *matHeaderRowDef="clusterColumns"></mat-header-row>
+            <mat-row *matRowDef="let row; columns: clusterColumns"></mat-row>
+          </mat-table>
+        </div>
+      </a>
+    </div>
+  </div>
+
   <!-- TEMPORARY -->
-  <button mat-raised-button color="primary" type="button" (click)="logout()">Logout</button>
+  <!-- <button mat-raised-button color="primary" type="button" (click)="logout()">Logout</button> -->
 </div>

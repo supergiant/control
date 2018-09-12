@@ -1,3 +1,151 @@
 .dashboard-wrapper {
-  margin-top: 78px;
+  margin-bottom: 55px;
+
+  .empty-cloud-accounts, .no-clusters {
+    background-color: rgba(0,0,0,0.5);
+    border: 1px solid rgba(255,255,255,0.25);
+    margin: 48px auto;
+    padding: 24px;
+    width: max-content;
+
+    .headline {
+      color: #d10088;
+      display: block;
+      font-family: "Montserrat", sans-serif;
+      font-size: 30px;
+    }
+
+    .communication {
+      display: block;
+      font-weight: 200;
+      margin: 24px auto;
+      text-align: center;
+      width: 60%;
+    }
+
+    .link-wrapper {
+      text-align: center;
+    }
+  }
+
+  .clusters-wrapper {
+    display: flex;
+    flex-direction: column;
+    justify-content: space-around;
+    margin: 0 auto 50px;
+    width: 1270px;
+
+    .has-clusters-headline {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 16px;
+
+      h1 {
+        margin: 0;
+      }
+
+      a {
+        margin-left: 48px;
+      }
+    }
+
+    .cluster {
+      border: 1px solid rgba(0,0,0,0);
+      display: flex;
+      margin: 12px 0;
+      padding: 24px;
+      width: 100%;
+      transition: all 0.1s linear;
+
+      &:hover {
+        text-decoration: none;
+        background-color: rgba(0,0,0,0.5);
+        border: 1px solid rgba(255,255,255,0.25);
+      }
+
+      .usage {
+        margin-right: 24px;
+        position: relative;
+        height: 200px;
+        width: 200px;
+
+        .cpu-usage {
+          background: url(/assets/img/cluster-details/left_metric_base.svg) no-repeat;
+          background-size: 100% 100%;
+          background-position: center;
+          position: absolute;
+          top: 0;
+          left: 0;
+          height: 100%;
+          width: 50%;
+        }
+
+        .name {
+          align-items: center;
+          background-image: linear-gradient(315deg, #8721ff, #8b22fb 18%, #ff457e);
+          border-radius: 50%;
+          box-shadow: 0 0 150px 0 #e63d98;
+          display: flex;
+          font-size: 1.3em;
+          font-family: "Montserrat", sans-serif;
+          justify-content: center;
+          position: absolute;
+          top: 50px;
+          left: 50px;
+          height: 100px;
+          width: 100px;
+        }
+
+        .ram-usage {
+          background: url(/assets/img/cluster-details/right_metric_base.svg) no-repeat;
+          background-size: 100% 100%;
+          background-position: center;
+          position: absolute;
+          top: 18px;
+          right: 8px;
+          height: 82%;
+          width: 50%;
+        }
+      }
+
+      .cluster-info {
+        background-color: rgba(0, 0, 0, 0.5);
+        margin: auto 0;
+        width: 1000px;
+
+        .mat-table {
+          background-color: rgba(0,0,0,0);
+
+          .mat-header-row {
+            background-color: rgba(255, 0, 166, 0.25);
+            border: none;
+            min-height: 45px;
+
+            .mat-header-cell {
+              color: #fff;
+              font-family: "Roboto", sans-serif;
+              font-weight: 300;
+              font-size: 14px;
+            }
+          }
+
+          .mat-row {
+            background-color: rgba(255, 255, 255, 0.1);
+            border: none;
+            margin: 2px 0px;
+
+            .mat-cell {
+              color: #fff;
+              font-family: "Roboto", sans-serif;
+              font-weight: 300;
+              font-size: 12px;
+              overflow: unset;
+              padding: 12px 0px;
+            }
+          }
+        }
+      }
+    }
+  }
 }

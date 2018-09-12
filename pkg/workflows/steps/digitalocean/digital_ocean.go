@@ -117,6 +117,7 @@ func (s *Step) Run(ctx context.Context, output io.Writer, config *steps.Config) 
 					Region:    droplet.Region.Name,
 					PublicIp:  getPublicIpPort(droplet.Networks.V4),
 					PrivateIp: getPrivateIpPort(droplet.Networks.V4),
+					Name:      droplet.Name,
 				}
 
 				if config.IsMaster {
