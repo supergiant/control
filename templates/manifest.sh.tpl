@@ -134,7 +134,7 @@ spec:
     command:
     - /hyperkube
     - controller-manager
-    - --master=http://{{ .MasterHost }}:{{ .MasterPort }}
+    - --master=https://{{ .MasterHost }}:443
     - --service-account-private-key-file=/etc/kubernetes/ssl/apiserver-key.pem
     - --root-ca-file=/etc/kubernetes/ssl/ca.pem
     - --v=2
@@ -180,7 +180,7 @@ spec:
     - /hyperkube
     - scheduler
     - --v=2
-    - --master=http://{{ .MasterHost }}:{{ .MasterPort }}
+    - --master=https://{{ .MasterHost }}:443
     livenessProbe:
       httpGet:
         host: 127.0.0.1
