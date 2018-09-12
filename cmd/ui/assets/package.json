@@ -51,7 +51,6 @@
     "ngx-schema-form": "^2.1.0-beta.1",
     "popper.js": "^1.14.4",
     "rxjs": "^6.3.2",
-    "rxjs-compat": "^6.3.2",
     "typescript-json-schema": "^0.32.0",
     "typescript": "~2.9.2",
     "z-schema": "^3.23.0",
