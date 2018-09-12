@@ -3,6 +3,7 @@
     "node_modules/codelyzer",
     "node_modules/rxjs-tslint"
   ],
+  "extends": [ "codelyzer" ],
   "rules": {
     "rxjs-collapse-imports": true,
     "rxjs-pipeable-operators-only": true,
@@ -143,6 +144,8 @@
     "directive-class-suffix": true,
     "no-access-missing-member": true,
     "templates-use-public": true,
-    "invoke-injectable": true
+    "invoke-injectable": true,
+
+    "import-blacklist": [true, "rxjs"]
   }
 }

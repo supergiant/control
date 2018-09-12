@@ -172,7 +172,7 @@ export class ClusterComponent implements OnInit, OnDestroy {
 
   // machine list vars
   machines: any;
-  machineListColumns = ["role", "name", "id", "region", "public_ip"];
+  machineListColumns = ['role', 'name', 'id', 'region', 'public_ip'];
 
   ngOnInit() {
     this.id = this.route.snapshot.params.id;
@@ -298,9 +298,9 @@ export class ClusterComponent implements OnInit, OnDestroy {
           this.machines = new MatTableDataSource(kube.masters.concat(kube.nodes));
           this.machines.sort = this.sort;
           this.machines.paginator = this.paginator;
-          console.log(kube);},
+          console.log(kube); },
         err => console.log(err)
-      ))
+      ));
   }
 
   padArrayWithDefault(arr: any, n: number) {

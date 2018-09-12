@@ -36,11 +36,11 @@ export class LoginComponent implements OnDestroy {
 
   onSubmit() {
     this.status = 'status status-transitioning';
-    const creds = { "login": this.login, "password": this.password };
+    const creds = { 'login': this.login, 'password': this.password };
 
     this.supergiant.Auth.login(creds).subscribe(
       res => {
-        if (res["status"] === 200) {
+        if (res['status'] === 200) {
           this.supergiant.loginSuccess = true;
           this.router.navigate(['/dashboard']);
         }
