@@ -88,7 +88,7 @@ spec:
     - --basic-auth-file=/etc/kubernetes/ssl/basic_auth.csv
     - --token-auth-file=/etc/kubernetes/ssl/known_tokens.csv
     - --kubelet-preferred-address-types=InternalIP,Hostname,ExternalIP
-    - --storage-backend=etcd2
+    - --storage-backend=etcd3
     -  {{ .ProviderString }}
     ports:
     - containerPort: 443
