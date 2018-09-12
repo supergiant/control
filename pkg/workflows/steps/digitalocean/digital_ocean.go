@@ -173,21 +173,6 @@ func (s *Step) Description() string {
 	return ""
 }
 
-func (s *Step) createKey(ctx context.Context, keyService KeyService, name, publicKey string) (*godo.Key, error) {
-	req := &godo.KeyCreateRequest{
-		Name:      name,
-		PublicKey: publicKey,
-	}
-
-	key, _, err := keyService.Create(ctx, req)
-
-	if err != nil {
-		return nil, err
-	}
-
-	return key, err
-}
-
 func (s *Step) createKeys(ctx context.Context, keyService KeyService, config *steps.Config) ([]godo.DropletCreateSSHKey, error) {
 	var fingers []godo.DropletCreateSSHKey
 	privateKey, publicKey, err := generateKeyPair(keySize)
@@ -197,7 +182,7 @@ func (s *Step) createKeys(ctx context.Context, keyService KeyService, config *st
 	}
 
 	// Create key for provisioning
-	key, err := s.createKey(ctx, keyService, fmt.Sprintf("%s-provision", config.DigitalOceanConfig.Name), publicKey)
+	key, err := createKey(ctx, keyService, fmt.Sprintf("%s-provision", config.DigitalOceanConfig.Name), publicKey)
 
 	if err != nil {
 		return nil, errors.Wrap(err, "create provision key")
@@ -210,12 +195,14 @@ func (s *Step) createKeys(ctx context.Context, keyService KeyService, config *st
 	})
 
 	// Create user provided key
-	key, _ = s.createKey(ctx, keyService, fmt.Sprintf("%s-user", config.DigitalOceanConfig.Name), config.SshConfig.PublicKey)
+	key, _ = createKey(ctx, keyService,
+		fmt.Sprintf("%s-user", config.DigitalOceanConfig.Name),
+		config.SshConfig.PublicKey)
 
 	// NOTE(stgleb): In case if this key is already used by user of this account
 	// just compute fingerprint and pass it
 	if key == nil {
-		fg, _  := fingerprint(config.SshConfig.PublicKey)
+		fg, _ := fingerprint(config.SshConfig.PublicKey)
 		fingers = append(fingers, godo.DropletCreateSSHKey{
 			Fingerprint: fg,
 		})

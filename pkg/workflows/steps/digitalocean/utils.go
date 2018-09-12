@@ -15,6 +15,7 @@ import (
 	"strings"
 	"encoding/base64"
 	"github.com/pkg/errors"
+	"context"
 )
 
 // Returns private ip
@@ -106,4 +107,19 @@ func fingerprint(key string) (string, error) {
 	}
 
 	return buffer.String(), nil
+}
+
+func createKey(ctx context.Context, keyService KeyService, name, publicKey string) (*godo.Key, error) {
+	req := &godo.KeyCreateRequest{
+		Name:      name,
+		PublicKey: publicKey,
+	}
+
+	key, _, err := keyService.Create(ctx, req)
+
+	if err != nil {
+		return nil, err
+	}
+
+	return key, err
 }

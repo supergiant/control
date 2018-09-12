@@ -158,3 +158,7 @@ func TestGetPrivateIpAddr(t *testing.T) {
 		}
 	}
 }
+
+func TestCreatekey(t *testing.T) {
+
+}
