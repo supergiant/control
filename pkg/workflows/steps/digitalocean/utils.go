@@ -11,11 +11,11 @@ import (
 
 	"golang.org/x/crypto/ssh"
 
-	"github.com/digitalocean/godo"
-	"strings"
-	"encoding/base64"
-	"github.com/pkg/errors"
 	"context"
+	"encoding/base64"
+	"github.com/digitalocean/godo"
+	"github.com/pkg/errors"
+	"strings"
 )
 
 // Returns private ip

@@ -61,11 +61,16 @@ func (s *Step) Run(ctx context.Context, output io.Writer, config *steps.Config) 
 	c := digitaloceanSDK.New(config.DigitalOceanConfig.AccessToken).GetClient()
 	config.DigitalOceanConfig.Name = util.MakeNodeName(config.ClusterName, config.IsMaster)
 
+	// TODO(stgleb): Move keys creation for provisioning to provisioner to be able to get
+	// this key on cluster check phase.
 	fingers, err := s.createKeys(ctx, c.Keys, config)
 
 	if err != nil {
 		return err
 	}
+
+	// Delete provision key from cloud account
+	defer c.Keys.DeleteByFingerprint(context.Background(), fingers[0].Fingerprint)
 
 	dropletRequest := &godo.DropletCreateRequest{
 		Name:              config.DigitalOceanConfig.Name,
