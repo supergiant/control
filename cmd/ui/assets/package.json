@@ -48,9 +48,12 @@
     "ngx-bootstrap": "^3.0.1",
     "ngx-contextmenu": "^5.0.3",
     "ngx-pagination": "^3.2.0",
+    "ngx-schema-form": "^2.1.0-beta.1",
     "popper.js": "^1.14.4",
     "rxjs": "^6.3.2",
+    "rxjs-compat": "^6.3.2",
     "typescript-json-schema": "^0.32.0",
+    "z-schema": "^3.23.0",
     "zone.js": "^0.8.26"
   },
   "devDependencies": {
