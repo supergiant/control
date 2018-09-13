@@ -11,6 +11,7 @@ import (
 	"github.com/supergiant/supergiant/pkg/storage"
 	"github.com/supergiant/supergiant/pkg/util"
 	"github.com/supergiant/supergiant/pkg/workflows/steps"
+	"fmt"
 )
 
 type cloudAccountGetter interface {
@@ -66,7 +67,7 @@ func DeserializeTask(data []byte, repository storage.Interface) (*Task, error) {
 		Port:    task.Config.SshConfig.Port,
 		User:    task.Config.SshConfig.User,
 		Timeout: task.Config.SshConfig.Timeout,
-		Key:     []byte(task.Config.SshConfig.PrivateKey),
+		Key:     []byte(task.Config.SshConfig.BootstrapPrivateKey),
 	}
 
 	task.Config.Runner, err = ssh.NewRunner(cfg)
@@ -76,4 +77,12 @@ func DeserializeTask(data []byte, repository storage.Interface) (*Task, error) {
 	}
 
 	return task, nil
+}
+
+func MakeKeyName(name string, isUser bool) string {
+	if isUser {
+		return fmt.Sprintf("%s-user", name)
+	}
+
+	return fmt.Sprintf("%s-provision", name)
 }
