@@ -40,7 +40,7 @@ spec:
     - /hyperkube
     - proxy
     - --v=2
-    - --master=http://{{ .MasterHost }}:{{ .MasterPort }}
+    - --master=https://{{ .MasterHost }}
     - --proxy-mode=iptables
     securityContext:
       privileged: true
@@ -50,7 +50,7 @@ spec:
       readOnly: true
   volumes:
   - hostPath:
-      path: /usr/share/ca-certificates
+      path: /etc/ssl/certs
     name: ssl-certs-host
 EOF
 
@@ -115,7 +115,7 @@ spec:
       path: /etc/kubernetes/addons
     name: api-addons-kubernetes
   - hostPath:
-      path: /usr/share/ca-certificates
+      path: /etc/ssl/certs
     name: ssl-certs-host
 EOF
 
@@ -134,9 +134,11 @@ spec:
     command:
     - /hyperkube
     - controller-manager
-    - --master=http://{{ .MasterHost }}:{{ .MasterPort }}
+    - --master=https://{{ .MasterHost }}
     - --service-account-private-key-file=/etc/kubernetes/ssl/apiserver-key.pem
     - --root-ca-file=/etc/kubernetes/ssl/ca.pem
+    - --cluster-signing-cert-file=/etc/kubernetes/ssl/ca.pem \
+    - --cluster-signing-key-file=/etc/kubernetes/ssl/ca-key.pem \
     - --v=2
     - --cluster-cidr=10.244.0.0/14
     - --allocate-node-cidrs=true
@@ -160,7 +162,7 @@ spec:
       path: /etc/kubernetes/ssl
     name: ssl-certs-kubernetes
   - hostPath:
-      path: /usr/share/ca-certificates
+      path: /etc/ssl/certs
     name: ssl-certs-host
 EOF
 
@@ -180,7 +182,7 @@ spec:
     - /hyperkube
     - scheduler
     - --v=2
-    - --master=http://{{ .MasterHost }}:{{ .MasterPort }}
+    - --master=https://{{ .MasterHost }}
     livenessProbe:
       httpGet:
         host: 127.0.0.1
@@ -188,5 +190,15 @@ spec:
         port: 10251
       initialDelaySeconds: 15
       timeoutSeconds: 1
+  volumes:
+  - hostPath:
+      path: /etc/kubernetes/ssl
+    name: ssl-certs-kubernetes
+  - hostPath:
+      path: /etc/kubernetes/addons
+    name: api-addons-kubernetes
+  - hostPath:
+      path: /etc/ssl/certs
+    name: ssl-certs-host
 EOF
 {{ end }}
