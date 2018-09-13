@@ -20,7 +20,6 @@ import (
 
 const (
 	StepName = "digitalOcean"
-	keySize  = 4096
 )
 
 var (
@@ -180,20 +179,16 @@ func (s *Step) Description() string {
 
 func (s *Step) createKeys(ctx context.Context, keyService KeyService, config *steps.Config) ([]godo.DropletCreateSSHKey, error) {
 	var fingers []godo.DropletCreateSSHKey
-	privateKey, publicKey, err := generateKeyPair(keySize)
-
-	if err != nil {
-		return nil, err
-	}
 
 	// Create key for provisioning
-	key, err := createKey(ctx, keyService, fmt.Sprintf("%s-provision", config.DigitalOceanConfig.Name), publicKey)
+	key, err := createKey(ctx, keyService,
+		fmt.Sprintf("%s-provision",
+			config.DigitalOceanConfig.Name),
+		config.SshConfig.BootstrapPublicKey)
 
 	if err != nil {
 		return nil, errors.Wrap(err, "create provision key")
 	}
-
-	config.SshConfig.PrivateKey = privateKey
 
 	fingers = append(fingers, godo.DropletCreateSSHKey{
 		Fingerprint: key.Fingerprint,

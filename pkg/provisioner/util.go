@@ -2,7 +2,11 @@ package provisioner
 
 import (
 	"context"
+	"crypto/rand"
+	"crypto/rsa"
 	"crypto/tls"
+	"crypto/x509"
+	"encoding/pem"
 	"fmt"
 	"github.com/supergiant/supergiant/pkg/clouds"
 	"github.com/supergiant/supergiant/pkg/node"
@@ -10,6 +14,7 @@ import (
 	"github.com/supergiant/supergiant/pkg/sgerrors"
 	"github.com/supergiant/supergiant/pkg/util"
 	"github.com/supergiant/supergiant/pkg/workflows/steps"
+	"golang.org/x/crypto/ssh"
 	"io/ioutil"
 	"net/http"
 )
@@ -95,4 +100,51 @@ func nodesFromProfile(profile *profile.Profile) ([]*node.Node, []*node.Node) {
 	}
 
 	return masters, nodes
+}
+
+func generateKeyPair(size int) (string, string, error) {
+	privateKey, err := rsa.GenerateKey(rand.Reader, size)
+
+	if err != nil {
+		return "", "", err
+	}
+
+	privateKeyPem := encodePrivateKeyToPEM(privateKey)
+	publicKey, err := generatePublicKey(&privateKey.PublicKey)
+
+	if err != nil {
+		return "", "", err
+	}
+
+	return string(privateKeyPem), string(publicKey), nil
+}
+
+// encodePrivateKeyToPEM encodes Private Key from RSA to PEM format
+func encodePrivateKeyToPEM(privateKey *rsa.PrivateKey) []byte {
+	// Get ASN.1 DER format
+	privDER := x509.MarshalPKCS1PrivateKey(privateKey)
+
+	// pem.Block
+	privBlock := pem.Block{
+		Type:    "RSA PRIVATE KEY",
+		Headers: nil,
+		Bytes:   privDER,
+	}
+
+	// Private key in PEM format
+	privatePEM := pem.EncodeToMemory(&privBlock)
+
+	return privatePEM
+}
+
+func generatePublicKey(publicKey *rsa.PublicKey) ([]byte, error) {
+	publicRsaKey, err := ssh.NewPublicKey(publicKey)
+
+	if err != nil {
+		return nil, err
+	}
+
+	pubKeyBytes := ssh.MarshalAuthorizedKey(publicRsaKey)
+
+	return pubKeyBytes, nil
 }

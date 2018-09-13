@@ -173,7 +173,7 @@ func TestTaskHandlerRestartTask(t *testing.T) {
 			SshConfig: steps.SshConfig{
 				User: "root",
 				Port: "22",
-				PrivateKey: `-----BEGIN RSA PRIVATE KEY-----
+				BootstrapPrivateKey: `-----BEGIN RSA PRIVATE KEY-----
 MIIEpQIBAAKCAQEAtArxGzmUffkRNy4bpITg0oicUA6itrh2RumMoydra2QqRL8i
 sA6xBaPHbBAOJO/gY/h/qvr8Hnb38GFJcQQy2eENb83i2u8BVnnN2IFkgyCyYCN7
 DE54bQejH0xD4qMhXdyEUOyKaOBzHHBliyIR4HmobiddJho4G0Ku3onLDm+++XNG
