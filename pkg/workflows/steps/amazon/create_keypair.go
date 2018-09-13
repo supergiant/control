@@ -2,7 +2,6 @@ package amazon
 
 import (
 	"context"
-	"fmt"
 	"io"
 
 	"github.com/pkg/errors"
@@ -10,6 +9,7 @@ import (
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/service/ec2"
 	"github.com/supergiant/supergiant/pkg/util"
+	"github.com/supergiant/supergiant/pkg/workflows"
 	"github.com/supergiant/supergiant/pkg/workflows/steps"
 )
 
@@ -39,17 +39,20 @@ func (s *KeyPairStep) Run(ctx context.Context, w io.Writer, cfg *steps.Config) e
 	}
 
 	// Create key for user
-	userKeyPairName := fmt.Sprintf("%s-user", cfg.AWSConfig.KeyPairName)
+	userKeyPairName := workflows.MakeKeyName(cfg.AWSConfig.KeyPairName, true)
 
 	req := &ec2.ImportKeyPairInput{
 		KeyName:           &userKeyPairName,
 		PublicKeyMaterial: []byte(cfg.SshConfig.PublicKey),
 	}
 
-	output, _ := sdk.EC2.ImportKeyPairWithContext(ctx, req)
+	output, err := sdk.EC2.ImportKeyPairWithContext(ctx, req)
 
-	//If a user chooses to use pre-existing ec2 keypair it should be in the database already
-	keyPairName := fmt.Sprintf("%s-provision", cfg.AWSConfig.KeyPairName)
+	keyPairName := workflows.MakeKeyName(cfg.AWSConfig.KeyPairName, false)
+
+	if err != nil {
+		cfg.AWSConfig.KeyPairName = *output.KeyName
+	}
 
 	req = &ec2.ImportKeyPairInput{
 		KeyName:           &keyPairName,
@@ -61,8 +64,6 @@ func (s *KeyPairStep) Run(ctx context.Context, w io.Writer, cfg *steps.Config) e
 	if err != nil {
 		return errors.Wrap(err, "create provision key pair")
 	}
-
-	cfg.AWSConfig.KeyPairName = *output.KeyName
 
 	log.Infof("[%s] - success!", s.Name())
 	return nil

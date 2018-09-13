@@ -8,15 +8,17 @@ import (
 	"crypto/x509"
 	"encoding/pem"
 	"fmt"
+	"io/ioutil"
+	"net/http"
+
+	"golang.org/x/crypto/ssh"
+
 	"github.com/supergiant/supergiant/pkg/clouds"
 	"github.com/supergiant/supergiant/pkg/node"
 	"github.com/supergiant/supergiant/pkg/profile"
 	"github.com/supergiant/supergiant/pkg/sgerrors"
 	"github.com/supergiant/supergiant/pkg/util"
 	"github.com/supergiant/supergiant/pkg/workflows/steps"
-	"golang.org/x/crypto/ssh"
-	"io/ioutil"
-	"net/http"
 )
 
 type EtcdTokenGetter struct {

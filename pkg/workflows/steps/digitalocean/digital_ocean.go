@@ -16,6 +16,7 @@ import (
 	"github.com/supergiant/supergiant/pkg/node"
 	"github.com/supergiant/supergiant/pkg/util"
 	"github.com/supergiant/supergiant/pkg/workflows/steps"
+	"github.com/supergiant/supergiant/pkg/workflows"
 )
 
 const (
@@ -181,7 +182,7 @@ func (s *Step) createKeys(ctx context.Context, keyService KeyService, config *st
 
 	// Create key for provisioning
 	key, err := createKey(ctx, keyService,
-		makeKeyName(config.DigitalOceanConfig.Name, false),
+		workflows.MakeKeyName(config.DigitalOceanConfig.Name, false),
 		config.SshConfig.BootstrapPublicKey)
 
 	if err != nil {
@@ -194,7 +195,7 @@ func (s *Step) createKeys(ctx context.Context, keyService KeyService, config *st
 
 	// Create user provided key
 	key, _ = createKey(ctx, keyService,
-		makeKeyName(config.DigitalOceanConfig.Name, true),
+		workflows.MakeKeyName(config.DigitalOceanConfig.Name, true),
 		config.SshConfig.PublicKey)
 
 	// NOTE(stgleb): In case if this key is already used by user of this account

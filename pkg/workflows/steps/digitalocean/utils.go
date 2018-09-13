@@ -4,12 +4,12 @@ import (
 	"bytes"
 	"crypto/md5"
 	"fmt"
-
+	"strings"
 	"context"
 	"encoding/base64"
+
 	"github.com/digitalocean/godo"
 	"github.com/pkg/errors"
-	"strings"
 )
 
 // Returns private ip
@@ -69,12 +69,4 @@ func createKey(ctx context.Context, keyService KeyService, name, publicKey strin
 	}
 
 	return key, err
-}
-
-func makeKeyName(name string, isUser bool) string {
-	if isUser {
-		return fmt.Sprintf("%s-user", name)
-	}
-
-	return fmt.Sprintf("%s-provision", name)
 }
