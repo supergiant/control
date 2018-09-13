@@ -1,11 +1,9 @@
-
-import {timer as observableTimer,  Subscription ,  Observable } from 'rxjs';
-
-import {switchMap} from 'rxjs/operators';
 import { Component, OnDestroy, OnInit } from '@angular/core';
 import { SessionsService } from '../sessions.service';
+import { Subscription } from 'rxjs/Subscription';
 import { Supergiant } from '../../shared/supergiant/supergiant.service';
 import { Notifications } from '../../shared/notifications/notifications.service';
+import { Observable } from 'rxjs/Observable';
 
 @Component({
   selector: 'app-sessions-list',
@@ -30,8 +28,8 @@ export class SessionsListComponent implements OnInit, OnDestroy {
   }
 
   getSessions() {
-    this.subscriptions.add(observableTimer(0, 10000).pipe(
-      switchMap(() => this.supergiant.Sessions.get())).subscribe(
+    this.subscriptions.add(Observable.timer(0, 10000)
+      .switchMap(() => this.supergiant.Sessions.get()).subscribe(
       (sessions) => { this.sessions = sessions.items.filter(resource => !!resource.user); },
       (err) => { this.notifications.display('warn', 'Connection Issue.', err); }));
   }

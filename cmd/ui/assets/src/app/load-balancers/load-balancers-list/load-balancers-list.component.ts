@@ -1,11 +1,9 @@
-
-import {timer as observableTimer,  Subscription ,  Observable } from 'rxjs';
-
-import {switchMap} from 'rxjs/operators';
 import { Component, OnDestroy, OnInit } from '@angular/core';
 import { LoadBalancersService } from '../load-balancers.service';
+import { Subscription } from 'rxjs/Subscription';
 import { Supergiant } from '../../shared/supergiant/supergiant.service';
 import { Notifications } from '../../shared/notifications/notifications.service';
+import { Observable } from 'rxjs/Observable';
 
 @Component({
   selector: 'app-load-balancers-list',
@@ -30,8 +28,8 @@ export class LoadBalancersListComponent implements OnInit, OnDestroy {
   }
 
   getLoadBalancers() {
-    this.subscriptions.add(observableTimer(0, 5000).pipe(
-      switchMap(() => this.supergiant.KubeResources.get())).subscribe(
+    this.subscriptions.add(Observable.timer(0, 5000)
+      .switchMap(() => this.supergiant.KubeResources.get()).subscribe(
       (resources) => {
         this.loadBalancers = resources.items.filter(
           service => service.resource.spec.type === 'LoadBalancer'
