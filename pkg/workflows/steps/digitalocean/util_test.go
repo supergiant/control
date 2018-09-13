@@ -1,10 +1,21 @@
 package digitalocean
 
 import (
+	"context"
 	"github.com/digitalocean/godo"
+	"github.com/pkg/errors"
 	"strings"
 	"testing"
 )
+
+type mockKeyService struct {
+	key *godo.Key
+	err error
+}
+
+func (m *mockKeyService) Create(context.Context, *godo.KeyCreateRequest) (*godo.Key, *godo.Response, error) {
+	return m.key, nil, m.err
+}
 
 func TestGetPublicIpAddr(t *testing.T) {
 	testCases := []struct {
@@ -90,5 +101,38 @@ func TestFingerPrint(t *testing.T) {
 
 	if !strings.EqualFold(fg, expected) {
 		t.Errorf("Wrong fingerprint expected %s actual %s", expected, fg)
+	}
+}
+
+func TestCreateKey(t *testing.T) {
+	testCases := []struct {
+		key *godo.Key
+		err error
+	}{
+		{
+			key: &godo.Key{
+				1,
+				"name",
+				"fingerprint",
+				"",
+			},
+			err: nil,
+		},
+		{
+			&godo.Key{},
+			errors.New("error create key"),
+		},
+	}
+
+	for _, testCase := range testCases {
+		keyService := &mockKeyService{
+			key: testCase.key,
+			err: testCase.err,
+		}
+		_, err := createKey(context.Background(), keyService, testCase.key.Name, testCase.key.PublicKey)
+
+		if err != testCase.err {
+			t.Errorf("Unexpected err value expected %v actual %v", testCase.err, err)
+		}
 	}
 }
