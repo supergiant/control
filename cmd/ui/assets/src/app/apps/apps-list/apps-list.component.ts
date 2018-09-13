@@ -1,11 +1,10 @@
+import { switchMap } from 'rxjs/operators';
 import { Component, OnInit, OnDestroy, Pipe, PipeTransform, TemplateRef, ViewChild, Input } from '@angular/core';
 // import { Observable } from 'rxjs/Observable';
-import { timer } from 'rxjs/observable/timer';
-import { Subscription } from 'rxjs/Subscription';
+import { timer ,  Subscription } from 'rxjs';
 import { Supergiant } from '../../shared/supergiant/supergiant.service';
-import { AppsService } from '../apps.service';
 import { Notifications } from '../../shared/notifications/notifications.service';
-import { ContextMenuService, ContextMenuComponent } from 'ngx-contextmenu';
+import { ContextMenuComponent, ContextMenuService } from 'ngx-contextmenu';
 
 @Component({
   selector: 'app-apps-list',
@@ -19,17 +18,19 @@ export class AppsListComponent implements OnInit, OnDestroy {
   public rows: Array<any> = [];
   public columns: Array<any> = [];
   public displayCheck: boolean;
-  private subscriptions = new Subscription();
   public unfilteredRows: Array<any> = [];
   public filterText = '';
-  private rawEvent: any;
   contextmenuRow: any;
   contextmenuColumn: any;
+  private subscriptions = new Subscription();
+  private rawEvent: any;
+
   constructor(
     private supergiant: Supergiant,
     private notifications: Notifications,
     private contextMenuService: ContextMenuService,
-  ) { }
+  ) {
+  }
 
   ngOnInit() {
     this.getApps();
@@ -44,19 +45,19 @@ export class AppsListComponent implements OnInit, OnDestroy {
 
   getApps() {
 
-    this.subscriptions.add(timer(0, 10000)
-      .switchMap(() => this.supergiant.HelmReleases.get()).subscribe(
-        (deployments) => {
-          if (this.kube) {
-            this.rows = deployments.items.filter(
-              deployment =>
-                deployment.kube_name === this.kube.name
-            );
-          } else {
-            this.rows = deployments.items;
-          }
+    this.subscriptions.add(timer(0, 10000).pipe(
+      switchMap(() => this.supergiant.HelmReleases.get())).subscribe(
+      (deployments) => {
+        if (this.kube) {
+          this.rows = deployments.items.filter(
+            deployment =>
+              deployment.kube_name === this.kube.name
+          );
+        } else {
+          this.rows = deployments.items;
+        }
 
-          this.rows.map(deployment => ({
+        this.rows.map(deployment => ({
             id: deployment.id,
             name: deployment.name,
             kube_name: deployment.kube_name,
@@ -66,20 +67,21 @@ export class AppsListComponent implements OnInit, OnDestroy {
             updated_value: deployment.updated_value,
             status_value: deployment.status_value
           })
-          );
+        );
 
-          const selected: Array<any> = [];
-          this.selected.forEach((kube, index) => {
-            for (const row of this.rows) {
-              if (row.id === kube.id) {
-                selected.push(row);
-                break;
-              }
+        const selected: Array<any> = [];
+        this.selected.forEach((kube, index) => {
+          for (const row of this.rows) {
+            if (row.id === kube.id) {
+              selected.push(row);
+              break;
             }
-          });
-          this.selected = selected;
-        },
-        () => { }));
+          }
+        });
+        this.selected = selected;
+      },
+      () => {
+      }));
   }
 
   deleteApp() {
@@ -158,7 +160,7 @@ export class AppsListComponent implements OnInit, OnDestroy {
     }
   }
 
-  onSelect({ selected }) {
+  onSelect({selected}) {
     this.selected.splice(0, this.selected.length);
     this.selected.push(...selected);
   }

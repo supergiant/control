@@ -1,9 +1,11 @@
+
+import {timer as observableTimer,  Subscription ,  Observable } from 'rxjs';
+
+import {switchMap} from 'rxjs/operators';
 import { Component, OnDestroy, OnInit } from '@angular/core';
 import { VolumesService } from './volumes.service';
-import { Subscription } from 'rxjs/Subscription';
 import { Supergiant } from '../shared/supergiant/supergiant.service';
 import { Notifications } from '../shared/notifications/notifications.service';
-import { Observable } from 'rxjs/Observable';
 
 
 @Component({
@@ -29,8 +31,8 @@ export class VolumesComponent implements OnInit, OnDestroy {
   }
 
   getVolumes() {
-    this.subscriptions.add(Observable.timer(0, 5000)
-      .switchMap(() => this.supergiant.KubeResources.get()).subscribe(
+    this.subscriptions.add(observableTimer(0, 5000).pipe(
+      switchMap(() => this.supergiant.KubeResources.get())).subscribe(
       (volumes) => { this.volumes = volumes.items.filter(resource => resource.kind === 'Volume'); },
       (err) => { this.notifications.display('warn', 'Connection Issue.', err); }));
   }
