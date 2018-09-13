@@ -273,3 +273,12 @@ func GetLogger(w io.Writer) (log *logrus.Logger) {
 func MakeFileName(taskID string) string {
 	return fmt.Sprintf("%s.log", taskID)
 }
+
+
+func MakeKeyName(name string, isUser bool) string {
+	if isUser {
+		return fmt.Sprintf("%s-user", name)
+	}
+
+	return fmt.Sprintf("%s-provision", name)
+}
