@@ -70,3 +70,11 @@ func createKey(ctx context.Context, keyService KeyService, name, publicKey strin
 
 	return key, err
 }
+
+func makeKeyName(name string, isUser bool) string {
+	if isUser {
+		return fmt.Sprintf("%s-user", name)
+	}
+
+	return fmt.Sprintf("%s-provision", name)
+}

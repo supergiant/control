@@ -71,6 +71,9 @@ func (s *Step) Run(ctx context.Context, output io.Writer, config *steps.Config) 
 	// Delete provision key from cloud account
 	defer c.Keys.DeleteByFingerprint(context.Background(), fingers[0].Fingerprint)
 
+	tags := []string{fmt.Sprintf("Kubernetes-Cluster-%s", config.ClusterName),
+		config.DigitalOceanConfig.Name}
+
 	dropletRequest := &godo.DropletCreateRequest{
 		Name:              config.DigitalOceanConfig.Name,
 		Region:            config.DigitalOceanConfig.Region,
@@ -80,18 +83,14 @@ func (s *Step) Run(ctx context.Context, output io.Writer, config *steps.Config) 
 		Image: godo.DropletCreateImage{
 			Slug: config.DigitalOceanConfig.Image,
 		},
+		Tags: tags,
 	}
 
-	tags := []string{fmt.Sprintf("Kubernetes-Cluster-%s", config.ClusterName),
-		config.DigitalOceanConfig.Name}
 	droplet, _, err := c.Droplets.Create(ctx, dropletRequest)
 
 	if err != nil {
 		return errors.Wrap(err, "dropletService has returned an error in Run job")
 	}
-
-	// NOTE(stgleb): ignore droplet tagging error, it always fails
-	s.tagDroplet(ctx, c.Tags, droplet.ID, tags)
 
 	after := time.After(s.DropletTimeout)
 	ticker := time.NewTicker(s.CheckPeriod)
@@ -182,8 +181,7 @@ func (s *Step) createKeys(ctx context.Context, keyService KeyService, config *st
 
 	// Create key for provisioning
 	key, err := createKey(ctx, keyService,
-		fmt.Sprintf("%s-provision",
-			config.DigitalOceanConfig.Name),
+		makeKeyName(config.DigitalOceanConfig.Name, false),
 		config.SshConfig.BootstrapPublicKey)
 
 	if err != nil {
@@ -196,7 +194,7 @@ func (s *Step) createKeys(ctx context.Context, keyService KeyService, config *st
 
 	// Create user provided key
 	key, _ = createKey(ctx, keyService,
-		fmt.Sprintf("%s-user", config.DigitalOceanConfig.Name),
+		makeKeyName(config.DigitalOceanConfig.Name, true),
 		config.SshConfig.PublicKey)
 
 	// NOTE(stgleb): In case if this key is already used by user of this account

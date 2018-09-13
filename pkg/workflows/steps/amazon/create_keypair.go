@@ -42,7 +42,7 @@ func (s *KeyPairStep) Run(ctx context.Context, w io.Writer, cfg *steps.Config) e
 	userKeyPairName := fmt.Sprintf("%s-user", cfg.AWSConfig.KeyPairName)
 
 	req := &ec2.ImportKeyPairInput{
-		KeyName: &userKeyPairName,
+		KeyName:           &userKeyPairName,
 		PublicKeyMaterial: []byte(cfg.SshConfig.PublicKey),
 	}
 
@@ -52,7 +52,7 @@ func (s *KeyPairStep) Run(ctx context.Context, w io.Writer, cfg *steps.Config) e
 	keyPairName := fmt.Sprintf("%s-provision", cfg.AWSConfig.KeyPairName)
 
 	req = &ec2.ImportKeyPairInput{
-		KeyName: &keyPairName,
+		KeyName:           &keyPairName,
 		PublicKeyMaterial: []byte(cfg.SshConfig.BootstrapPublicKey),
 	}
 

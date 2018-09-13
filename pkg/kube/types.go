@@ -6,12 +6,12 @@ import (
 
 // Kube represents a kubernetes cluster.
 type Kube struct {
-	Name        string `json:"name" valid:"required"`
-	RBACEnabled bool   `json:"rbacEnabled"`
-	AccountName string `json:"accountName"`
-	Auth        Auth   `json:"auth"`
-	SSHUser     string `json:"sshUser"`
-	SSHKey      []byte `json:"sshKey"`
+	Name         string `json:"name" valid:"required"`
+	RBACEnabled  bool   `json:"rbacEnabled"`
+	AccountName  string `json:"accountName"`
+	Auth         Auth   `json:"auth"`
+	SshUser      string `json:"sshUser"`
+	SshPublicKey []byte `json:"sshKey"`
 
 	Arch                   string     `json:"arch"`
 	OperatingSystem        string     `json:"operatingSystem"`

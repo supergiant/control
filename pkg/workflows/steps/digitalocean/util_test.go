@@ -2,10 +2,11 @@ package digitalocean
 
 import (
 	"context"
-	"github.com/digitalocean/godo"
-	"github.com/pkg/errors"
 	"strings"
 	"testing"
+
+	"github.com/digitalocean/godo"
+	"github.com/pkg/errors"
 )
 
 type mockKeyService struct {

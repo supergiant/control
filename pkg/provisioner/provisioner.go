@@ -264,8 +264,8 @@ func (p *TaskProvisioner) saveCluster(ctx context.Context, profile *profile.Prof
 		AccountName: config.CloudAccountName,
 		RBACEnabled: profile.RBACEnabled,
 
-		SSHUser: config.SshConfig.User,
-		SSHKey:  []byte(config.SshConfig.PublicKey),
+		SshUser:      config.SshConfig.User,
+		SshPublicKey: []byte(config.SshConfig.PublicKey),
 
 		Auth: kube.Auth{},
 
