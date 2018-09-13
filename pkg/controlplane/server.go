@@ -201,7 +201,7 @@ func configureApplication(cfg *Config) (*mux.Router, error) {
 	ssh.Init()
 	network.Init()
 	clustercheck.Init()
-	amazon.InitCreateKeyPair(accountService)
+	amazon.InitCreateKeyPair()
 	amazon.InitStepCreateInstance()
 	workflows.Init()
 
