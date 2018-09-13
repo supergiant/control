@@ -1,10 +1,12 @@
-.footer {
+:host {
+  padding: 32px 0 24px 0;
+
   align-items: center;
   display: flex;
   flex-direction: column;
 
   svg {
-    opacity: 0.5;
+    opacity: .25;
   }
 
   .certifications {

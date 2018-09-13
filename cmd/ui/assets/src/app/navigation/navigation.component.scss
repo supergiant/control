@@ -5,7 +5,6 @@
   margin: 32px 0;
   width: 100%;
 
-  // TODO: this has to be declared as global variable in app level
   padding: 0 49px;
 
   position: fixed;
@@ -13,6 +12,6 @@
   left: 0;
 
   .logo {
-    width: 180px;
+    min-width: 180px;
   }
 }
