@@ -336,19 +336,21 @@ func (h *Handler) addNode(w http.ResponseWriter, r *http.Request) {
 		logrus.Error(errors.Wrap(err, "marshal json"))
 	}
 
-	err = <-errChan
+	go func() {
+		err = <-errChan
 
-	if err != nil {
-		logrus.Errorf("add node to cluster %s caused an error %v", k.Name, err)
-	}
+		if err != nil {
+			logrus.Errorf("add node to cluster %s caused an error %v", k.Name, err)
+		}
 
-	if n := config.GetNode(); n != nil {
-		k.Nodes = append(k.Nodes, n)
-		// TODO(stgleb): Use some other method like update or Patch instead of recreate
-		h.svc.Create(context.Background(), k)
-	} else {
-		logrus.Errorf("Add node to cluster %s node was not added", k.Name)
-	}
+		if n := config.GetNode(); n != nil {
+			k.Nodes = append(k.Nodes, n)
+			// TODO(stgleb): Use some other method like update or Patch instead of recreate
+			h.svc.Create(context.Background(), k)
+		} else {
+			logrus.Errorf("Add node to cluster %s node was not added", k.Name)
+		}
+	}()
 }
 
 func getWriter(name string) (io.WriteCloser, error) {
