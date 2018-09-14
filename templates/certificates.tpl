@@ -35,10 +35,9 @@ openssl genrsa -out /etc/kubernetes/ssl/admin-key.pem 2048
 openssl req -new -key /etc/kubernetes/ssl/admin-key.pem -out /etc/kubernetes/ssl/admin.csr -subj "/CN=kube-admin"
 openssl x509 -req -in /etc/kubernetes/ssl/admin.csr -CA /etc/kubernetes/ssl/ca.pem -CAkey /etc/kubernetes/ssl/ca-key.pem -CAcreateserial -out /etc/kubernetes/ssl/admin.pem -days 365
 
-mkdir -p /etc/kubernetes/ssl/certs
-mkdir -p /etc/kubernetes/ssl/private
-
-cp /etc/kubernetes/ssl/ca.pem /etc/ssl/certs/
+cp /etc/kubernetes/ssl/ca.pem /usr/share/ca-certificates/ca.crt
+echo "ca.crt" >> /etc/ca-certificates.conf
+update-ca-certificates
 
 chmod 600 /etc/kubernetes/ssl/*-key.pem
 chown root:root /etc/kubernetes/ssl/*-key.pem

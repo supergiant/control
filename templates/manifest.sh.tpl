@@ -50,7 +50,7 @@ spec:
       readOnly: true
   volumes:
   - hostPath:
-      path: /etc/ssl/certs
+      path: /usr/share/ca-certificates
     name: ssl-certs-host
 EOF
 
@@ -115,7 +115,7 @@ spec:
       path: /etc/kubernetes/addons
     name: api-addons-kubernetes
   - hostPath:
-      path: /etc/ssl/certs
+      path: /usr/share/ca-certificates
     name: ssl-certs-host
 EOF
 
@@ -137,8 +137,6 @@ spec:
     - --master=https://{{ .MasterHost }}
     - --service-account-private-key-file=/etc/kubernetes/ssl/apiserver-key.pem
     - --root-ca-file=/etc/kubernetes/ssl/ca.pem
-    - --cluster-signing-cert-file=/etc/kubernetes/ssl/ca.pem \
-    - --cluster-signing-key-file=/etc/kubernetes/ssl/ca-key.pem \
     - --v=2
     - --cluster-cidr=10.244.0.0/14
     - --allocate-node-cidrs=true
@@ -162,7 +160,7 @@ spec:
       path: /etc/kubernetes/ssl
     name: ssl-certs-kubernetes
   - hostPath:
-      path: /etc/ssl/certs
+      path: /usr/share/ca-certificates
     name: ssl-certs-host
 EOF
 
@@ -190,6 +188,13 @@ spec:
         port: 10251
       initialDelaySeconds: 15
       timeoutSeconds: 1
+    volumeMounts:
+    - mountPath: /etc/kubernetes/ssl
+      name: ssl-certs-kubernetes
+      readOnly: true
+    - mountPath: /etc/ssl/certs
+      name: ssl-certs-host
+      readOnly: true
   volumes:
   - hostPath:
       path: /etc/kubernetes/ssl
@@ -198,7 +203,7 @@ spec:
       path: /etc/kubernetes/addons
     name: api-addons-kubernetes
   - hostPath:
-      path: /etc/ssl/certs
+      path: /usr/share/ca-certificates
     name: ssl-certs-host
 EOF
 {{ end }}
