@@ -9,20 +9,30 @@ import (
 	"github.com/stretchr/testify/mock"
 
 	"github.com/supergiant/supergiant/pkg/clouds"
-	"github.com/supergiant/supergiant/pkg/kube"
+
+	"github.com/supergiant/supergiant/pkg/model"
 	"github.com/supergiant/supergiant/pkg/profile"
 	"github.com/supergiant/supergiant/pkg/testutils"
 	"github.com/supergiant/supergiant/pkg/workflows"
 	"github.com/supergiant/supergiant/pkg/workflows/steps"
 )
 
+type mockKubeCreater struct {
+	data map[string]string
+}
+
+func (m *mockKubeCreater) Create(ctx context.Context, k *model.Kube) error {
+	return nil
+}
+
 func TestTaskProvisioner(t *testing.T) {
 	repository := &testutils.MockStorage{}
 	repository.On("Put", context.Background(), mock.Anything, mock.Anything, mock.Anything).Return(nil)
 
-	kubeService := kube.NewService("/kube", repository)
 	provisioner := TaskProvisioner{
-		kubeService,
+		&mockKubeCreater{
+			data: make(map[string]string),
+		},
 		repository,
 		func(string) (io.WriteCloser, error) {
 			return os.Stdout, nil

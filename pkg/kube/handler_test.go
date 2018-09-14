@@ -370,7 +370,7 @@ func TestHandler_listResources(t *testing.T) {
 	for i, tc := range tcs {
 		// setup handler
 		svc := new(kubeServiceMock)
-		h := NewHandler(svc, nil, nil, nil, nil)
+		h := NewHandler(svc, nil, nil, nil)
 
 		// prepare
 		req, err := http.NewRequest(http.MethodGet, fmt.Sprintf("/kubes/%s/resources", tc.kubeName), nil)
