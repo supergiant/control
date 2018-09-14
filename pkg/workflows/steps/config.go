@@ -138,10 +138,12 @@ type EtcdConfig struct {
 }
 
 type SshConfig struct {
-	User       string `json:"user"`
-	Port       string `json:"port"`
-	PrivateKey string `json:"privateKey"`
-	Timeout    int    `json:"timeout"`
+	User                string `json:"user"`
+	Port                string `json:"port"`
+	BootstrapPrivateKey string `json:"bootstrapPrivateKey"`
+	BootstrapPublicKey  string `json:"bootstrapPublicKey"`
+	PublicKey           string `json:"publicKey"`
+	Timeout             int    `json:"timeout"`
 }
 
 type ClusterCheckConfig struct {
@@ -275,10 +277,9 @@ func NewConfig(clusterName, discoveryUrl, cloudAccountName string, profile profi
 			Arch:            profile.Arch,
 		},
 		SshConfig: SshConfig{
-			Port:       "22",
-			User:       "root",
-			PrivateKey: "",
-			Timeout:    10,
+			Port:    "22",
+			User:    "root",
+			Timeout: 10,
 		},
 		EtcdConfig: EtcdConfig{
 			// TODO(stgleb): this field must be changed per node
