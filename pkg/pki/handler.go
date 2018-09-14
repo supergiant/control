@@ -2,13 +2,15 @@ package pki
 
 import (
 	"encoding/json"
+	"net"
+	"net/http"
+
 	"github.com/gorilla/mux"
 	"github.com/pkg/errors"
 	"github.com/sirupsen/logrus"
+
 	"github.com/supergiant/supergiant/pkg/message"
 	"github.com/supergiant/supergiant/pkg/sgerrors"
-	"net"
-	"net/http"
 )
 
 type Handler struct {

@@ -1,6 +1,7 @@
 package kube
 
 import (
+	"github.com/pkg/errors"
 	"k8s.io/apimachinery/pkg/runtime/schema"
 	"k8s.io/apimachinery/pkg/runtime/serializer"
 	"k8s.io/client-go/discovery"
@@ -9,7 +10,6 @@ import (
 	"k8s.io/client-go/tools/clientcmd"
 	clientcmddapi "k8s.io/client-go/tools/clientcmd/api"
 
-	"github.com/pkg/errors"
 	"github.com/supergiant/supergiant/pkg/node"
 	"github.com/supergiant/supergiant/pkg/sgerrors"
 )

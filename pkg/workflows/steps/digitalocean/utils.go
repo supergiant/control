@@ -2,11 +2,11 @@ package digitalocean
 
 import (
 	"bytes"
+	"context"
 	"crypto/md5"
+	"encoding/base64"
 	"fmt"
 	"strings"
-	"context"
-	"encoding/base64"
 
 	"github.com/digitalocean/godo"
 	"github.com/pkg/errors"

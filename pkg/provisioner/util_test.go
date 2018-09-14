@@ -2,12 +2,14 @@ package provisioner
 
 import (
 	"crypto/rsa"
-	"github.com/dgrijalva/jwt-go"
-	"github.com/supergiant/supergiant/pkg/clouds"
-	"github.com/supergiant/supergiant/pkg/profile"
-	"golang.org/x/crypto/ssh"
 	"strings"
 	"testing"
+
+	"github.com/dgrijalva/jwt-go"
+	"golang.org/x/crypto/ssh"
+
+	"github.com/supergiant/supergiant/pkg/clouds"
+	"github.com/supergiant/supergiant/pkg/profile"
 )
 
 var (

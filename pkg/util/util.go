@@ -274,7 +274,6 @@ func MakeFileName(taskID string) string {
 	return fmt.Sprintf("%s.log", taskID)
 }
 
-
 func MakeKeyName(name string, isUser bool) string {
 	if isUser {
 		return fmt.Sprintf("%s-user", name)
