@@ -3,9 +3,10 @@ package flannel
 import (
 	"bytes"
 	"context"
-	"github.com/pkg/errors"
 	"strings"
 	"testing"
+
+	"github.com/pkg/errors"
 
 	"github.com/supergiant/supergiant/pkg/templatemanager"
 	"github.com/supergiant/supergiant/pkg/testutils"

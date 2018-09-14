@@ -1,5 +1,7 @@
 package helm
 
+import "k8s.io/helm/pkg/repo"
+
 // Chart is representation of a helm chart.
 type Chart struct {
 	Name string `json:"name"`
@@ -8,7 +10,6 @@ type Chart struct {
 
 // Repository is representation of a helm repository.
 type Repository struct {
-	Name   string  `json:"name" valid:"required"`
-	URL    string  `json:"url" valid:"required"`
-	Charts []Chart `json:"charts"`
+	Config repo.Entry     `json:"config"`
+	Index  repo.IndexFile `json:"index"`
 }

@@ -6,10 +6,9 @@ import (
 
 	"github.com/gorilla/mux"
 	"github.com/sirupsen/logrus"
-	"gopkg.in/asaskevich/govalidator.v8"
+	"k8s.io/helm/pkg/repo"
 
 	"github.com/supergiant/supergiant/pkg/message"
-	"github.com/supergiant/supergiant/pkg/model/helm"
 	"github.com/supergiant/supergiant/pkg/sgerrors"
 )
 
@@ -39,19 +38,15 @@ func (h *Handler) Register(r *mux.Router) {
 }
 
 func (h *Handler) createRepo(w http.ResponseWriter, r *http.Request) {
-	repo := new(helm.Repository)
-	if err := json.NewDecoder(r.Body).Decode(repo); err != nil {
+	repoConf := &repo.Entry{}
+	if err := json.NewDecoder(r.Body).Decode(repoConf); err != nil {
+		logrus.Errorf("helm: decode repo entry: %v", err)
 		message.SendInvalidJSON(w, err)
 		return
 	}
 
-	ok, err := govalidator.ValidateStruct(repo)
-	if !ok {
-		message.SendValidationFailed(w, err)
-		return
-	}
-
-	if err = h.svc.Create(r.Context(), repo); err != nil {
+	if err := h.svc.Create(r.Context(), repoConf); err != nil {
+		logrus.Errorf("helm: store %s repo: %v", repoConf.Name, err)
 		message.SendUnknownError(w, err)
 		return
 	}

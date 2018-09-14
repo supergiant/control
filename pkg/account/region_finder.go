@@ -2,12 +2,12 @@ package account
 
 import (
 	"context"
-
 	"strconv"
 	"sync"
 
 	"github.com/digitalocean/godo"
 	"github.com/pkg/errors"
+
 	"github.com/supergiant/supergiant/pkg/clouds"
 	"github.com/supergiant/supergiant/pkg/clouds/digitaloceanSDK"
 	"github.com/supergiant/supergiant/pkg/model"
