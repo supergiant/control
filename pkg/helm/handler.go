@@ -18,22 +18,27 @@ type Handler struct {
 	svc *Service
 }
 
-// New constructs a Handler for helm repositories.
+// NewHandler constructs a Handler for helm repositories.
 func NewHandler(svc *Service) *Handler {
 	return &Handler{
 		svc: svc,
 	}
 }
 
+// Register adds helm specific api to the main handler.
 func (h *Handler) Register(r *mux.Router) {
-	r.HandleFunc("/helm/repositories", h.Create).Methods(http.MethodPost)
-	r.HandleFunc("/helm/repositories/{repoName}", h.Get).Methods(http.MethodGet)
-	r.HandleFunc("/helm/repositories", h.ListAll).Methods(http.MethodGet)
-	r.HandleFunc("/helm/repositories/{repoName}", h.Delete).Methods(http.MethodDelete)
+	r.HandleFunc("/helm/repositories", h.createRepo).Methods(http.MethodPost)
+	r.HandleFunc("/helm/repositories/{repoName}", h.getRepo).Methods(http.MethodGet)
+	r.HandleFunc("/helm/repositories", h.listAllRepos).Methods(http.MethodGet)
+	r.HandleFunc("/helm/repositories/{repoName}", h.deleteRepo).Methods(http.MethodDelete)
+
+	//r.HandleFunc("/helm/releases", h.createRelease).Methods(http.MethodPost)
+	//r.HandleFunc("/helm/releases/{relName}", h.getRelease).Methods(http.MethodGet)
+	//r.HandleFunc("/helm/releases", h.listAllReleases).Methods(http.MethodGet)
+	//r.HandleFunc("/helm/releases/{relName}", h.deleteRelease).Methods(http.MethodDelete)
 }
 
-// Create stores a new helm repository.
-func (h *Handler) Create(w http.ResponseWriter, r *http.Request) {
+func (h *Handler) createRepo(w http.ResponseWriter, r *http.Request) {
 	repo := new(helm.Repository)
 	if err := json.NewDecoder(r.Body).Decode(repo); err != nil {
 		message.SendInvalidJSON(w, err)
@@ -54,8 +59,7 @@ func (h *Handler) Create(w http.ResponseWriter, r *http.Request) {
 	w.WriteHeader(http.StatusAccepted)
 }
 
-// Get retrieves a helm repository.
-func (h *Handler) Get(w http.ResponseWriter, r *http.Request) {
+func (h *Handler) getRepo(w http.ResponseWriter, r *http.Request) {
 	repoName := mux.Vars(r)["repoName"]
 
 	repo, err := h.svc.Get(r.Context(), repoName)
@@ -74,8 +78,7 @@ func (h *Handler) Get(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
-// ListAll retrieves all helm repositories.
-func (h *Handler) ListAll(w http.ResponseWriter, r *http.Request) {
+func (h *Handler) listAllRepos(w http.ResponseWriter, r *http.Request) {
 	repos, err := h.svc.GetAll(r.Context())
 	if err != nil {
 		logrus.Error(err)
@@ -88,8 +91,7 @@ func (h *Handler) ListAll(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
-// Delete removes a helm repository from the storage.
-func (h *Handler) Delete(w http.ResponseWriter, r *http.Request) {
+func (h *Handler) deleteRepo(w http.ResponseWriter, r *http.Request) {
 	repoName := mux.Vars(r)["repoName"]
 
 	if err := h.svc.Delete(r.Context(), repoName); err != nil {
