@@ -9,7 +9,7 @@ import (
 
 	"github.com/sirupsen/logrus"
 	"github.com/supergiant/supergiant/pkg/clouds"
-	"github.com/supergiant/supergiant/pkg/kube"
+	"github.com/supergiant/supergiant/pkg/model"
 	"github.com/supergiant/supergiant/pkg/node"
 	"github.com/supergiant/supergiant/pkg/profile"
 	"github.com/supergiant/supergiant/pkg/storage"
@@ -25,16 +25,20 @@ type Provisioner interface {
 	Provision(context.Context, *profile.Profile, *steps.Config) (map[string][]*workflows.Task, error)
 }
 
+type KubeCreater interface {
+	Create(ctx context.Context, k *model.Kube) error
+}
+
 type TaskProvisioner struct {
-	kubeService  kube.Interface
+	kubeCreater  KubeCreater
 	repository   storage.Interface
 	getWriter    func(string) (io.WriteCloser, error)
 	provisionMap map[clouds.Name][]string
 }
 
-func NewProvisioner(repository storage.Interface, kubeService kube.Interface) *TaskProvisioner {
+func NewProvisioner(repository storage.Interface, kubeService KubeCreater) *TaskProvisioner {
 	return &TaskProvisioner{
-		kubeService: kubeService,
+		kubeCreater: kubeService,
 		repository:  repository,
 		provisionMap: map[clouds.Name][]string{
 			clouds.DigitalOcean: {workflows.DigitalOceanMaster, workflows.DigitalOceanNode},
@@ -56,7 +60,7 @@ func (r *TaskProvisioner) Provision(ctx context.Context, profile *profile.Profil
 	r.saveCluster(ctx, profile, masters, nodes, config)
 
 	go func() {
-		bootstrapKeys(config)
+		BootstrapKeys(config)
 
 		// Provision masters and wait until n/2 + 1 of masters with etcd are up and running
 		doneChan, failChan, err := r.provisionMasters(ctx, profile, config, masterTasks)
@@ -128,7 +132,13 @@ func (r *TaskProvisioner) prepare(name clouds.Name, masterCount, nodeCount int) 
 
 func (p *TaskProvisioner) provisionMasters(ctx context.Context, profile *profile.Profile, config *steps.Config, tasks []*workflows.Task) (chan struct{}, chan struct{}, error) {
 	config.IsMaster = true
+	doneChan := make(chan struct{})
+	failChan := make(chan struct{})
 
+	if len(profile.MasterProfiles) == 0 {
+		close(doneChan)
+		return doneChan, failChan, nil
+	}
 	// master latch controls when the majority of masters with etcd are up and running
 	// so etcd is available for writes of flannel that starts on each machine
 	masterLatch := util.NewCountdownLatch(ctx, len(profile.MasterProfiles)/2+1)
@@ -166,9 +176,6 @@ func (p *TaskProvisioner) provisionMasters(ctx context.Context, profile *profile
 			}
 		}(masterTask)
 	}
-
-	doneChan := make(chan struct{})
-	failChan := make(chan struct{})
 
 	go func() {
 		masterLatch.Wait()
@@ -259,15 +266,15 @@ func (p *TaskProvisioner) waitCluster(ctx context.Context, clusterTask *workflow
 }
 
 func (p *TaskProvisioner) saveCluster(ctx context.Context, profile *profile.Profile, masters, nodes []*node.Node, config *steps.Config) error {
-	cluster := &kube.Kube{
-		Name:        config.ClusterName,
-		AccountName: config.CloudAccountName,
-		RBACEnabled: profile.RBACEnabled,
-
+	cluster := &model.Kube{
+		Name:         config.ClusterName,
+		AccountName:  config.CloudAccountName,
+		RBACEnabled:  profile.RBACEnabled,
+		Region:       profile.Region,
 		SshUser:      config.SshConfig.User,
 		SshPublicKey: []byte(config.SshConfig.PublicKey),
 
-		Auth: kube.Auth{},
+		Auth: model.Auth{},
 
 		Arch:                   profile.Arch,
 		OperatingSystem:        profile.OperatingSystem,
@@ -275,7 +282,7 @@ func (p *TaskProvisioner) saveCluster(ctx context.Context, profile *profile.Prof
 		K8SVersion:             profile.K8SVersion,
 		DockerVersion:          profile.DockerVersion,
 		HelmVersion:            profile.HelmVersion,
-		Networking: kube.Networking{
+		Networking: model.Networking{
 			Manager: profile.FlannelVersion,
 			Version: profile.FlannelVersion,
 			Type:    profile.NetworkType,
@@ -285,11 +292,11 @@ func (p *TaskProvisioner) saveCluster(ctx context.Context, profile *profile.Prof
 		Nodes:   nodes,
 	}
 
-	return p.kubeService.Create(ctx, cluster)
+	return p.kubeCreater.Create(ctx, cluster)
 }
 
 // Create bootstrap key pair and save to config ssh section
-func bootstrapKeys(config *steps.Config) error {
+func BootstrapKeys(config *steps.Config) error {
 	private, public, err := generateKeyPair(keySize)
 
 	if err != nil {

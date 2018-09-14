@@ -1,31 +1,46 @@
 package kube
 
 import (
+	"context"
 	"encoding/json"
+	"io"
+	"net/http"
+	"os"
+	"path"
+
+	"github.com/gorilla/mux"
 	"github.com/pkg/errors"
 	"github.com/sirupsen/logrus"
 	"github.com/supergiant/supergiant/pkg/storage"
 	"github.com/supergiant/supergiant/pkg/workflows"
-	"net/http"
 
-	"github.com/gorilla/mux"
 	"gopkg.in/asaskevich/govalidator.v8"
 
+	"github.com/supergiant/supergiant/pkg/account"
 	"github.com/supergiant/supergiant/pkg/message"
+	"github.com/supergiant/supergiant/pkg/model"
+	"github.com/supergiant/supergiant/pkg/profile"
+	"github.com/supergiant/supergiant/pkg/provisioner"
 	"github.com/supergiant/supergiant/pkg/sgerrors"
+	"github.com/supergiant/supergiant/pkg/util"
+	"github.com/supergiant/supergiant/pkg/workflows/steps"
 )
 
 // Handler is a http controller for a kube entity.
 type Handler struct {
-	svc  Interface
-	repo storage.Interface
+	svc            Interface
+	accountService *account.Service
+	provisioner    provisioner.Provisioner
+	repo           storage.Interface
 }
 
 // NewHandler constructs a Handler for kubes.
-func NewHandler(svc Interface, repo storage.Interface) *Handler {
+func NewHandler(svc Interface, accountService *account.Service, provisioner provisioner.Provisioner, repo storage.Interface) *Handler {
 	return &Handler{
-		svc:  svc,
-		repo: repo,
+		svc:            svc,
+		accountService: accountService,
+		provisioner:    provisioner,
+		repo:           repo,
 	}
 }
 
@@ -41,6 +56,8 @@ func (h *Handler) Register(r *mux.Router) {
 
 	r.HandleFunc("/kubes/{kname}/certs/{cname}", h.getCerts).Methods(http.MethodGet)
 	r.HandleFunc("/kubes/{kname}/tasks", h.getTasks).Methods(http.MethodGet)
+	// TODO(stgleb): Add get method for getting kube nodes
+	r.HandleFunc("/kubes/{kname}/nodes", h.addNode).Methods(http.MethodPost)
 }
 
 func (h *Handler) getTasks(w http.ResponseWriter, r *http.Request) {
@@ -76,7 +93,7 @@ func (h *Handler) getTasks(w http.ResponseWriter, r *http.Request) {
 }
 
 func (h *Handler) createKube(w http.ResponseWriter, r *http.Request) {
-	k := &Kube{}
+	k := &model.Kube{}
 	err := json.NewDecoder(r.Body).Decode(k)
 	if err != nil {
 		message.SendInvalidJSON(w, err)
@@ -207,4 +224,134 @@ func (h *Handler) getCerts(w http.ResponseWriter, r *http.Request) {
 	if err = json.NewEncoder(w).Encode(b); err != nil {
 		message.SendUnknownError(w, err)
 	}
+}
+
+// Add node to working kube
+func (h *Handler) addNode(w http.ResponseWriter, r *http.Request) {
+	vars := mux.Vars(r)
+	kname := vars["kname"]
+	k, err := h.svc.Get(r.Context(), kname)
+
+	// TODO(stgleb): This method contatins a lot of specific stuff, implement provision node
+	// method for provisioner to do all things related to provisioning and saving cluster state
+	if sgerrors.IsNotFound(err) {
+		http.NotFound(w, r)
+		return
+	}
+
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+
+	nodeProfile := make(map[string]string)
+	err = json.NewDecoder(r.Body).Decode(&nodeProfile)
+
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusBadRequest)
+		return
+	}
+
+	acc, err := h.accountService.Get(r.Context(), k.AccountName)
+
+	if sgerrors.IsNotFound(err) {
+		http.NotFound(w, r)
+		return
+	}
+
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+
+	p := profile.Profile{
+		Provider:        acc.Provider,
+		Region:          k.Region,
+		Arch:            k.Arch,
+		OperatingSystem: k.OperatingSystem,
+		UbuntuVersion:   k.OperatingSystemVersion,
+		DockerVersion:   k.DockerVersion,
+		K8SVersion:      k.K8SVersion,
+		HelmVersion:     k.HelmVersion,
+
+		NetworkType:    k.Networking.Type,
+		CIDR:           k.Networking.CIDR,
+		FlannelVersion: k.Networking.Version,
+
+		NodesProfiles: []map[string]string{
+			nodeProfile,
+		},
+
+		RBACEnabled: k.RBACEnabled,
+	}
+
+	config := steps.NewConfig(k.Name, "", k.AccountName, p)
+
+	if len(k.Masters) != 0 {
+		config.AddMaster(k.Masters[0])
+	} else {
+		http.Error(w, "no master found", http.StatusNotFound)
+		return
+	}
+
+	provisioner.BootstrapKeys(config)
+
+	// Get cloud account fill appropriate config structure with cloud account credentials
+	err = util.FillCloudAccountCredentials(r.Context(), h.accountService, config)
+
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+
+	err = provisioner.FillNodeCloudSpecificData(acc.Provider, nodeProfile, config)
+
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+
+	t, err := workflows.NewTask(workflows.DigitalOceanNode, h.repo)
+
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusNotFound)
+	}
+
+	writer, err := getWriter(t.ID)
+
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+
+	errChan := t.Run(context.Background(), *config, writer)
+	// Respond to client side that request has been accepted
+	w.WriteHeader(http.StatusAccepted)
+	err = json.NewEncoder(w).Encode(&workflows.TaskResponse{
+		ID: t.ID,
+	})
+
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		logrus.Error(errors.Wrap(err, "marshal json"))
+	}
+
+	err = <-errChan
+
+	if err != nil {
+		logrus.Errorf("add node to cluster %s caused an error %v", k.Name, err)
+	}
+
+	if n := config.GetNode(); n != nil {
+		k.Nodes = append(k.Nodes, n)
+		// TODO(stgleb): Use some other method like update or Patch instead of recreate
+		h.svc.Create(context.Background(), k)
+	} else {
+		logrus.Errorf("Add node to cluster %s node was not added", k.Name)
+	}
+}
+
+func getWriter(name string) (io.WriteCloser, error) {
+	// TODO(stgleb): Add log directory to params of supergiant
+	return os.OpenFile(path.Join("/tmp", name), os.O_CREATE|os.O_WRONLY|os.O_APPEND, 0666)
 }

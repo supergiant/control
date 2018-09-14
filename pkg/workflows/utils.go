@@ -1,53 +1,11 @@
 package workflows
 
 import (
-	"context"
 	"encoding/json"
 
-	"github.com/supergiant/supergiant/pkg/clouds"
-	"github.com/supergiant/supergiant/pkg/model"
 	"github.com/supergiant/supergiant/pkg/runner/ssh"
-	"github.com/supergiant/supergiant/pkg/sgerrors"
 	"github.com/supergiant/supergiant/pkg/storage"
-	"github.com/supergiant/supergiant/pkg/util"
-	"github.com/supergiant/supergiant/pkg/workflows/steps"
 )
-
-type cloudAccountGetter interface {
-	Get(context.Context, string) (*model.CloudAccount, error)
-}
-
-// Gets cloud account from storage and fills config object with those credentials
-func FillCloudAccountCredentials(ctx context.Context, getter cloudAccountGetter, config *steps.Config) error {
-	cloudAccount, err := getter.Get(ctx, config.CloudAccountName)
-
-	if err != nil {
-		return nil
-	}
-
-	config.ManifestConfig.ProviderString = string(cloudAccount.Provider)
-	config.Provider = cloudAccount.Provider
-
-	// Bind private key to config
-	util.BindParams(cloudAccount.Credentials, &config.SshConfig)
-
-	switch cloudAccount.Provider {
-	case clouds.AWS:
-		return util.BindParams(cloudAccount.Credentials, &config.AWSConfig)
-	case clouds.GCE:
-		return util.BindParams(cloudAccount.Credentials, &config.GCEConfig)
-	case clouds.DigitalOcean:
-		return util.BindParams(cloudAccount.Credentials, &config.DigitalOceanConfig)
-	case clouds.Packet:
-		return util.BindParams(cloudAccount.Credentials, &config.PacketConfig)
-	case clouds.OpenStack:
-		return util.BindParams(cloudAccount.Credentials, &config.OSConfig)
-	default:
-		return sgerrors.ErrUnknownProvider
-	}
-
-	return nil
-}
 
 func DeserializeTask(data []byte, repository storage.Interface) (*Task, error) {
 	task := &Task{}

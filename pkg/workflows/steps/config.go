@@ -349,6 +349,9 @@ func (c *Config) GetMaster() *node.Node {
 }
 
 func (c *Config) GetMasters() []*node.Node {
+	c.m1.RLock()
+	defer c.m1.RUnlock()
+
 	m := make([]*node.Node, 0, len(c.Masters.internal))
 
 	for key := range c.Masters.internal {
@@ -359,6 +362,9 @@ func (c *Config) GetMasters() []*node.Node {
 }
 
 func (c *Config) GetNodes() []*node.Node {
+	c.m2.RLock()
+	defer c.m2.RUnlock()
+
 	m := make([]*node.Node, 0, len(c.Nodes.internal))
 
 	for key := range c.Nodes.internal {
@@ -366,4 +372,23 @@ func (c *Config) GetNodes() []*node.Node {
 	}
 
 	return m
+}
+
+// GetMaster returns first master in master map or nil
+func (c *Config) GetNode() *node.Node {
+	c.m2.RLock()
+	defer c.m2.RUnlock()
+
+	if len(c.Nodes.internal) == 0 {
+		return nil
+	}
+
+	for key := range c.Nodes.internal {
+		// Skip inactive nodes for selecting
+		if c.Nodes.internal[key] != nil && c.Nodes.internal[key].Active {
+			return c.Nodes.internal[key]
+		}
+	}
+
+	return nil
 }

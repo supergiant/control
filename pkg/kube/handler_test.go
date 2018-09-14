@@ -15,6 +15,7 @@ import (
 	"github.com/stretchr/testify/require"
 
 	"github.com/supergiant/supergiant/pkg/message"
+	"github.com/supergiant/supergiant/pkg/model"
 	"github.com/supergiant/supergiant/pkg/sgerrors"
 )
 
@@ -31,21 +32,21 @@ const (
 	serviceGetKubeResources  = "GetKubeResources"
 )
 
-func (m *kubeServiceMock) Create(ctx context.Context, k *Kube) error {
+func (m *kubeServiceMock) Create(ctx context.Context, k *model.Kube) error {
 	args := m.Called(ctx, k)
 	return args.Error(0)
 }
-func (m *kubeServiceMock) Get(ctx context.Context, name string) (*Kube, error) {
+func (m *kubeServiceMock) Get(ctx context.Context, name string) (*model.Kube, error) {
 	args := m.Called(ctx, name)
-	val, ok := args.Get(0).(*Kube)
+	val, ok := args.Get(0).(*model.Kube)
 	if !ok {
 		return nil, args.Error(1)
 	}
 	return val, args.Error(1)
 }
-func (m *kubeServiceMock) ListAll(ctx context.Context) ([]Kube, error) {
+func (m *kubeServiceMock) ListAll(ctx context.Context) ([]model.Kube, error) {
 	args := m.Called(ctx)
-	val, ok := args.Get(0).([]Kube)
+	val, ok := args.Get(0).([]model.Kube)
 	if !ok {
 		return nil, args.Error(1)
 	}
@@ -109,7 +110,7 @@ func TestHandler_createKube(t *testing.T) {
 	for i, tc := range tcs {
 		// setup handler
 		svc := new(kubeServiceMock)
-		h := NewHandler(svc, nil)
+		h := NewHandler(svc, nil, nil, nil)
 
 		req, err := http.NewRequest(http.MethodPost, "/kubes", bytes.NewReader(tc.rawKube))
 		require.Equalf(t, nil, err, "TC#%d: create request: %v", i+1, err)
@@ -140,7 +141,7 @@ func TestHandler_getKube(t *testing.T) {
 	tcs := []struct {
 		kubeName string
 
-		serviceKube  *Kube
+		serviceKube  *model.Kube
 		serviceError error
 
 		expectedStatus  int
@@ -164,7 +165,7 @@ func TestHandler_getKube(t *testing.T) {
 		},
 		{ // TC#4
 			kubeName: "success",
-			serviceKube: &Kube{
+			serviceKube: &model.Kube{
 				Name: "success",
 			},
 			expectedStatus: http.StatusOK,
@@ -174,7 +175,7 @@ func TestHandler_getKube(t *testing.T) {
 	for i, tc := range tcs {
 		// setup handler
 		svc := new(kubeServiceMock)
-		h := NewHandler(svc, nil)
+		h := NewHandler(svc, nil, nil, nil)
 
 		// prepare
 		req, err := http.NewRequest(http.MethodGet, "/kubes/"+tc.kubeName, nil)
@@ -201,7 +202,7 @@ func TestHandler_getKube(t *testing.T) {
 		}
 
 		if tc.serviceKube != nil {
-			k := new(Kube)
+			k := new(model.Kube)
 			err = json.NewDecoder(rr.Body).Decode(k)
 			require.Equalf(t, nil, err, "TC#%d", i+1)
 
@@ -212,7 +213,7 @@ func TestHandler_getKube(t *testing.T) {
 
 func TestHandler_listKubes(t *testing.T) {
 	tcs := []struct {
-		serviceKubes []Kube
+		serviceKubes []model.Kube
 		serviceError error
 
 		expectedStatus  int
@@ -225,7 +226,7 @@ func TestHandler_listKubes(t *testing.T) {
 		},
 		{ // TC#2
 			expectedStatus: http.StatusOK,
-			serviceKubes: []Kube{
+			serviceKubes: []model.Kube{
 				{
 					Name: "success",
 				},
@@ -236,7 +237,7 @@ func TestHandler_listKubes(t *testing.T) {
 	for i, tc := range tcs {
 		// setup handler
 		svc := new(kubeServiceMock)
-		h := NewHandler(svc, nil)
+		h := NewHandler(svc, nil, nil, nil)
 
 		// prepare
 		req, err := http.NewRequest(http.MethodGet, "/kubes", nil)
@@ -263,7 +264,7 @@ func TestHandler_listKubes(t *testing.T) {
 		}
 
 		if tc.serviceKubes != nil {
-			kubes := new([]Kube)
+			kubes := new([]model.Kube)
 			err = json.NewDecoder(rr.Body).Decode(kubes)
 			require.Equalf(t, nil, err, "TC#%d", i+1)
 
@@ -306,7 +307,7 @@ func TestHandler_deleteKube(t *testing.T) {
 	for i, tc := range tcs {
 		// setup handler
 		svc := new(kubeServiceMock)
-		h := NewHandler(svc, nil)
+		h := NewHandler(svc, nil, nil, nil)
 
 		// prepare
 		req, err := http.NewRequest(http.MethodDelete, "/kubes/"+tc.kubeName, nil)
@@ -369,7 +370,7 @@ func TestHandler_listResources(t *testing.T) {
 	for i, tc := range tcs {
 		// setup handler
 		svc := new(kubeServiceMock)
-		h := NewHandler(svc, nil)
+		h := NewHandler(svc, nil, nil, nil, nil)
 
 		// prepare
 		req, err := http.NewRequest(http.MethodGet, fmt.Sprintf("/kubes/%s/resources", tc.kubeName), nil)
@@ -436,7 +437,7 @@ func TestHandler_getResources(t *testing.T) {
 	for i, tc := range tcs {
 		// setup handler
 		svc := new(kubeServiceMock)
-		h := NewHandler(svc, nil)
+		h := NewHandler(svc, nil, nil, nil)
 
 		// prepare
 		req, err := http.NewRequest(http.MethodGet, fmt.Sprintf("/kubes/%s/resources/%s", tc.kubeName, tc.resourceName), nil)

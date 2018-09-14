@@ -11,7 +11,7 @@ import (
 	"github.com/supergiant/supergiant/pkg/account"
 	"github.com/supergiant/supergiant/pkg/model"
 	"github.com/supergiant/supergiant/pkg/profile"
-	"github.com/supergiant/supergiant/pkg/workflows"
+	"github.com/supergiant/supergiant/pkg/util"
 	"github.com/supergiant/supergiant/pkg/workflows/steps"
 )
 
@@ -73,7 +73,7 @@ func (h *Handler) Provision(w http.ResponseWriter, r *http.Request) {
 
 	config := steps.NewConfig(req.ClusterName, discoveryUrl, req.CloudAccountName, req.Profile)
 	// Fill config with appropriate cloud account credentials
-	err = workflows.FillCloudAccountCredentials(r.Context(), h.accountGetter, config)
+	err = util.FillCloudAccountCredentials(r.Context(), h.accountGetter, config)
 
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusNotFound)
