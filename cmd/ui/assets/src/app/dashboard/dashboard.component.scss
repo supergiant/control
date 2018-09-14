@@ -51,15 +51,17 @@
     }
 
     .cluster {
+      border: 1px solid rgba(0,0,0,0);
       display: flex;
-      background-color: rgba(0,0,0,0.5);
-      border: 1px solid rgba(255,255,255,0.25);
       margin: 12px 0;
       padding: 24px;
       width: 100%;
+      transition: all 0.1s linear;
 
       &:hover {
         text-decoration: none;
+        background-color: rgba(0,0,0,0.5);
+        border: 1px solid rgba(255,255,255,0.25);
       }
 
       .usage {

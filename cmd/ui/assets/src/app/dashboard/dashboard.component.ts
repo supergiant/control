@@ -1,5 +1,5 @@
 import { Component, OnInit, ViewEncapsulation } from '@angular/core';
-import { Subscription } from 'rxjs/Subscription';
+import { Subscription } from 'rxjs';
 import { Supergiant } from '../shared/supergiant/supergiant.service';
 import { convertIsoToHumanReadable } from '../shared/helpers/helpers';
 import { MatTableDataSource } from '@angular/material';
@@ -61,11 +61,11 @@ export class DashboardComponent implements OnInit {
       pointHoverBorderColor: 'rgba(148,159,177,0.8)'
     }
   ];
-  public lineChartLegend: boolean = true;
-  public lineChartType: string = 'line';
+  public lineChartLegend = true;
+  public lineChartType = 'line';
 
   public clusters: Array<any>;
-  public clusterColumns = ["accountName", "k8sversion", "mastersCount", "nodesCount", "operatingSystem", "dockerVersion", "helmVersion", "rbacEnabled", "arch"];
+  public clusterColumns = ['accountName', 'k8sversion', 'mastersCount', 'nodesCount', 'operatingSystem', 'dockerVersion', 'helmVersion', 'rbacEnabled', 'arch'];
 
   getKube(id) {
     this.subscriptions.add(this.supergiant.Kubes.get(id).subscribe(
@@ -91,7 +91,7 @@ export class DashboardComponent implements OnInit {
             },
             // this should be set to the length of largest array.
           ];
-          //linter is angry but it works, can change it later
+          // linter is angry but it works, can change it later
           this.lineChartData[0]['label'] = 'CPU Usage';
           for (const i in tempArray[0]['data']) {
             const previous = Number(this.lineChartData[0]['data'][i]) || 0;
@@ -108,7 +108,7 @@ export class DashboardComponent implements OnInit {
           ];
         }
       }
-    ))
+    ));
   }
 
   getCloudAccounts() {
@@ -121,7 +121,6 @@ export class DashboardComponent implements OnInit {
   getClusters() {
     this.subscriptions.add(this.supergiant.Kubes.get().subscribe(
       (clusters) => {
-        console.log(clusters);
         // TODO: this is terrible, fix after demo
         clusters.map(c => c.dataSource = new MatTableDataSource([
           {

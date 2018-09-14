@@ -12,6 +12,7 @@
 		flex-direction: row;
 		justify-content: space-between;
 		height: max-content;
+		margin-bottom: 24px;
 
 		&.large {
 			overflow: scroll;
@@ -27,6 +28,11 @@
 			display: flex;
 			flex-direction: column;
 			width: 564px;
+
+			.machine-list {
+				max-height: 295px;
+				overflow: scroll;
+			}
 
 			.disable {
 				// background-color: grey;

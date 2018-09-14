@@ -11,7 +11,6 @@ import { LoginComponent } from './login/login.component';
 import { VolumesComponent } from './volumes/volumes.component';
 import { LoadBalancersComponent } from './load-balancers/load-balancers.component';
 import { Supergiant } from './shared/supergiant/supergiant.service';
-import { Observable } from 'rxjs/Observable';
 import { NodeDetailsComponent } from './nodes/node-details/node-details.component';
 import { NodesListComponent } from './nodes/nodes-list/nodes-list.component';
 import { PodDetailsComponent } from './pods/pod-details/pod-details.component';
