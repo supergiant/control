@@ -47,7 +47,7 @@ func NewService(prefix string, s storage.Interface) Interface {
 	}
 }
 
-// Create stores a kube in the provided storage.
+// Create and stores a kube in the provided storage.
 func (s *Service) Create(ctx context.Context, k *model.Kube) error {
 	raw, err := json.Marshal(k)
 	if err != nil {
