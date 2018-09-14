@@ -18,6 +18,8 @@ import (
 	"github.com/supergiant/supergiant/pkg/workflows/steps"
 )
 
+const keySize = 4096
+
 // Provisioner gets kube profile and returns list of task ids of provision masterTasks
 type Provisioner interface {
 	Provision(context.Context, *profile.Profile, *steps.Config) (map[string][]*workflows.Task, error)
@@ -44,36 +46,6 @@ func NewProvisioner(repository storage.Interface, kubeService kube.Interface) *T
 	}
 }
 
-// prepare creates all tasks for provisioning according to cloud provider
-func (r *TaskProvisioner) prepare(name clouds.Name, masterCount, nodeCount int) ([]*workflows.Task, []*workflows.Task, *workflows.Task) {
-	masterTasks := make([]*workflows.Task, 0, masterCount)
-	nodeTasks := make([]*workflows.Task, 0, nodeCount)
-
-	for i := 0; i < masterCount; i++ {
-		t, err := workflows.NewTask(r.provisionMap[name][0], r.repository)
-
-		if err != nil {
-			logrus.Errorf("Task type %s not found", r.provisionMap[name][0])
-			continue
-		}
-		masterTasks = append(masterTasks, t)
-	}
-
-	for i := 0; i < nodeCount; i++ {
-		t, err := workflows.NewTask(r.provisionMap[name][1], r.repository)
-
-		if err != nil {
-			logrus.Errorf("Task type %s not found", r.provisionMap[name][1])
-			continue
-		}
-		nodeTasks = append(nodeTasks, t)
-	}
-
-	clusterTask, _ := workflows.NewTask(workflows.Cluster, r.repository)
-
-	return masterTasks, nodeTasks, clusterTask
-}
-
 // Provision runs provision process among nodes that have been provided for provision
 func (r *TaskProvisioner) Provision(ctx context.Context, profile *profile.Profile, config *steps.Config) (map[string][]*workflows.Task, error) {
 	masterTasks, nodeTasks, clusterTask := r.prepare(config.Provider, len(profile.MasterProfiles),
@@ -84,6 +56,8 @@ func (r *TaskProvisioner) Provision(ctx context.Context, profile *profile.Profil
 	r.saveCluster(ctx, profile, masters, nodes, config)
 
 	go func() {
+		bootstrapKeys(config)
+
 		// Provision masters and wait until n/2 + 1 of masters with etcd are up and running
 		doneChan, failChan, err := r.provisionMasters(ctx, profile, config, masterTasks)
 
@@ -120,6 +94,36 @@ func (r *TaskProvisioner) Provision(ctx context.Context, profile *profile.Profil
 		"node":    nodeTasks,
 		"cluster": {clusterTask},
 	}, nil
+}
+
+// prepare creates all tasks for provisioning according to cloud provider
+func (r *TaskProvisioner) prepare(name clouds.Name, masterCount, nodeCount int) ([]*workflows.Task, []*workflows.Task, *workflows.Task) {
+	masterTasks := make([]*workflows.Task, 0, masterCount)
+	nodeTasks := make([]*workflows.Task, 0, nodeCount)
+
+	for i := 0; i < masterCount; i++ {
+		t, err := workflows.NewTask(r.provisionMap[name][0], r.repository)
+
+		if err != nil {
+			logrus.Errorf("Task type %s not found", r.provisionMap[name][0])
+			continue
+		}
+		masterTasks = append(masterTasks, t)
+	}
+
+	for i := 0; i < nodeCount; i++ {
+		t, err := workflows.NewTask(r.provisionMap[name][1], r.repository)
+
+		if err != nil {
+			logrus.Errorf("Task type %s not found", r.provisionMap[name][1])
+			continue
+		}
+		nodeTasks = append(nodeTasks, t)
+	}
+
+	clusterTask, _ := workflows.NewTask(workflows.Cluster, r.repository)
+
+	return masterTasks, nodeTasks, clusterTask
 }
 
 func (p *TaskProvisioner) provisionMasters(ctx context.Context, profile *profile.Profile, config *steps.Config, tasks []*workflows.Task) (chan struct{}, chan struct{}, error) {
@@ -255,14 +259,13 @@ func (p *TaskProvisioner) waitCluster(ctx context.Context, clusterTask *workflow
 }
 
 func (p *TaskProvisioner) saveCluster(ctx context.Context, profile *profile.Profile, masters, nodes []*node.Node, config *steps.Config) error {
-
 	cluster := &kube.Kube{
 		Name:        config.ClusterName,
 		AccountName: config.CloudAccountName,
 		RBACEnabled: profile.RBACEnabled,
 
-		SSHUser: config.SshConfig.User,
-		SSHKey:  []byte(config.SshConfig.PrivateKey),
+		SshUser:      config.SshConfig.User,
+		SshPublicKey: []byte(config.SshConfig.PublicKey),
 
 		Auth: kube.Auth{},
 
@@ -283,4 +286,18 @@ func (p *TaskProvisioner) saveCluster(ctx context.Context, profile *profile.Prof
 	}
 
 	return p.kubeService.Create(ctx, cluster)
+}
+
+// Create bootstrap key pair and save to config ssh section
+func bootstrapKeys(config *steps.Config) error {
+	private, public, err := generateKeyPair(keySize)
+
+	if err != nil {
+		return err
+	}
+
+	config.SshConfig.BootstrapPrivateKey = private
+	config.SshConfig.BootstrapPublicKey = public
+
+	return nil
 }

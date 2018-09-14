@@ -8,7 +8,6 @@ import (
 	"time"
 
 	"github.com/digitalocean/godo"
-
 	"github.com/pkg/errors"
 	"github.com/sirupsen/logrus"
 
@@ -19,7 +18,9 @@ import (
 	"github.com/supergiant/supergiant/pkg/workflows/steps"
 )
 
-const StepName = "digitalOcean"
+const (
+	StepName = "digitalOcean"
+)
 
 var (
 	// TODO(stgleb): We need global error for timeout exceeding
@@ -33,6 +34,10 @@ type DropletService interface {
 
 type TagService interface {
 	TagResources(string, *godo.TagResourcesRequest) (*godo.Response, error)
+}
+
+type KeyService interface {
+	Create(context.Context, *godo.KeyCreateRequest) (*godo.Key, *godo.Response, error)
 }
 
 type Step struct {
@@ -51,15 +56,23 @@ func New(dropletTimeout, checkPeriod time.Duration) *Step {
 	}
 }
 
-func (t *Step) Run(ctx context.Context, output io.Writer, config *steps.Config) error {
+func (s *Step) Run(ctx context.Context, output io.Writer, config *steps.Config) error {
 	c := digitaloceanSDK.New(config.DigitalOceanConfig.AccessToken).GetClient()
-
 	config.DigitalOceanConfig.Name = util.MakeNodeName(config.ClusterName, config.IsMaster)
 
-	var fingers []godo.DropletCreateSSHKey
-	fingers = append(fingers, godo.DropletCreateSSHKey{
-		Fingerprint: config.DigitalOceanConfig.Fingerprint,
-	})
+	// TODO(stgleb): Move keys creation for provisioning to provisioner to be able to get
+	// this key on cluster check phase.
+	fingers, err := s.createKeys(ctx, c.Keys, config)
+
+	if err != nil {
+		return err
+	}
+
+	// Delete provision key from cloud account
+	defer c.Keys.DeleteByFingerprint(context.Background(), fingers[0].Fingerprint)
+
+	tags := []string{fmt.Sprintf("Kubernetes-Cluster-%s", config.ClusterName),
+		config.DigitalOceanConfig.Name}
 
 	dropletRequest := &godo.DropletCreateRequest{
 		Name:              config.DigitalOceanConfig.Name,
@@ -70,21 +83,17 @@ func (t *Step) Run(ctx context.Context, output io.Writer, config *steps.Config) 
 		Image: godo.DropletCreateImage{
 			Slug: config.DigitalOceanConfig.Image,
 		},
+		Tags: tags,
 	}
 
-	tags := []string{fmt.Sprintf("Kubernetes-Cluster-%s", config.ClusterName),
-		config.DigitalOceanConfig.Name}
 	droplet, _, err := c.Droplets.Create(ctx, dropletRequest)
 
 	if err != nil {
 		return errors.Wrap(err, "dropletService has returned an error in Run job")
 	}
 
-	// NOTE(stgleb): ignore droplet tagging error, it always fails
-	t.tagDroplet(ctx, c.Tags, droplet.ID, tags)
-
-	after := time.After(t.DropletTimeout)
-	ticker := time.NewTicker(t.CheckPeriod)
+	after := time.After(s.DropletTimeout)
+	ticker := time.NewTicker(s.CheckPeriod)
 
 	for {
 		select {
@@ -132,11 +141,11 @@ func (t *Step) Run(ctx context.Context, output io.Writer, config *steps.Config) 
 	return nil
 }
 
-func (t *Step) Rollback(context.Context, io.Writer, *steps.Config) error {
+func (s *Step) Rollback(context.Context, io.Writer, *steps.Config) error {
 	return nil
 }
 
-func (t *Step) tagDroplet(ctx context.Context, tagService godo.TagsService, dropletId int, tags []string) error {
+func (s *Step) tagDroplet(ctx context.Context, tagService godo.TagsService, dropletId int, tags []string) error {
 	// Tag droplet
 	for _, tag := range tags {
 		input := &godo.TagResourcesRequest{
@@ -155,7 +164,7 @@ func (t *Step) tagDroplet(ctx context.Context, tagService godo.TagsService, drop
 	return nil
 }
 
-func (t *Step) Name() string {
+func (s *Step) Name() string {
 	return StepName
 }
 
@@ -163,28 +172,43 @@ func (s *Step) Depends() []string {
 	return nil
 }
 
-func (t *Step) Description() string {
+func (s *Step) Description() string {
 	return ""
 }
 
-// Returns private ip
-func getPrivateIpPort(networks []godo.NetworkV4) string {
-	for _, network := range networks {
-		if network.Type == "private" {
-			return network.IPAddress
-		}
+func (s *Step) createKeys(ctx context.Context, keyService KeyService, config *steps.Config) ([]godo.DropletCreateSSHKey, error) {
+	var fingers []godo.DropletCreateSSHKey
+
+	// Create key for provisioning
+	key, err := createKey(ctx, keyService,
+		util.MakeKeyName(config.DigitalOceanConfig.Name, false),
+		config.SshConfig.BootstrapPublicKey)
+
+	if err != nil {
+		return nil, errors.Wrap(err, "create provision key")
 	}
 
-	return ""
-}
+	fingers = append(fingers, godo.DropletCreateSSHKey{
+		Fingerprint: key.Fingerprint,
+	})
 
-// Returns public ip
-func getPublicIpPort(networks []godo.NetworkV4) string {
-	for _, network := range networks {
-		if network.Type == "public" {
-			return network.IPAddress
-		}
+	// Create user provided key
+	key, _ = createKey(ctx, keyService,
+		util.MakeKeyName(config.DigitalOceanConfig.Name, true),
+		config.SshConfig.PublicKey)
+
+	// NOTE(stgleb): In case if this key is already used by user of this account
+	// just compute fingerprint and pass it
+	if key == nil {
+		fg, _ := fingerprint(config.SshConfig.PublicKey)
+		fingers = append(fingers, godo.DropletCreateSSHKey{
+			Fingerprint: fg,
+		})
+	} else {
+		fingers = append(fingers, godo.DropletCreateSSHKey{
+			Fingerprint: key.Fingerprint,
+		})
 	}
 
-	return ""
+	return fingers, nil
 }
