@@ -70,9 +70,11 @@ func (r *TaskProvisioner) ProvisionCluster(ctx context.Context, profile *profile
 	// Save cluster before provisioning
 	r.saveCluster(ctx, profile, masters, nodes, config)
 
-	go func() {
-		bootstrapKeys(config)
+	if err := bootstrapKeys(config); err != nil {
+		return nil, errors.Wrap(err, "bootstrap keys")
+	}
 
+	go func() {
 		// ProvisionCluster masters and wait until n/2 + 1 of masters with etcd are up and running
 		doneChan, failChan, err := r.provisionMasters(ctx, profile, config, masterTasks)
 
@@ -118,7 +120,9 @@ func (p *TaskProvisioner) ProvisionNode(ctx context.Context, nodeProfile profile
 		return nil, errors.Wrap(sgerrors.ErrNotFound, "master node")
 	}
 
-	bootstrapKeys(config)
+	if err := bootstrapKeys(config); err != nil {
+		return nil, errors.Wrap(err, "bootstrap keys")
+	}
 
 	providerWorkflowSet, ok := p.provisionMap[config.Provider]
 
