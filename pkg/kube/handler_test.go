@@ -20,7 +20,6 @@ import (
 	"github.com/supergiant/supergiant/pkg/node"
 	"github.com/supergiant/supergiant/pkg/profile"
 	"github.com/supergiant/supergiant/pkg/sgerrors"
-	"github.com/supergiant/supergiant/pkg/workflows"
 	"github.com/supergiant/supergiant/pkg/workflows/steps"
 )
 
@@ -45,9 +44,9 @@ const (
 	serviceGetKubeResources  = "GetKubeResources"
 )
 
-func (m *mockNodeProvisioner) ProvisionNode(ctx context.Context, nodeProfile profile.NodeProfile, kube *model.Kube, config *steps.Config) (*workflows.Task, error) {
+func (m *mockNodeProvisioner) ProvisionNodes(ctx context.Context, nodeProfile []profile.NodeProfile, kube *model.Kube, config *steps.Config) ([]string, error) {
 	args := m.Called(ctx, nodeProfile, kube, config)
-	val, ok := args.Get(0).(*workflows.Task)
+	val, ok := args.Get(0).([]string)
 	if !ok {
 		return nil, args.Error(1)
 	}
@@ -509,8 +508,7 @@ func TestAddNodeToKube(t *testing.T) {
 		account     *model.CloudAccount
 		accountErr  error
 
-		provisionTask *workflows.Task
-		provisionErr  error
+		provisionErr error
 
 		expectedCode int
 	}{
@@ -520,7 +518,6 @@ func TestAddNodeToKube(t *testing.T) {
 			nil,
 			sgerrors.ErrNotFound,
 			"",
-			nil,
 			nil,
 			nil,
 			nil,
@@ -537,7 +534,6 @@ func TestAddNodeToKube(t *testing.T) {
 			nil,
 			sgerrors.ErrNotFound,
 			nil,
-			nil,
 			http.StatusNotFound,
 		},
 		{
@@ -552,7 +548,6 @@ func TestAddNodeToKube(t *testing.T) {
 				Name:     "test",
 				Provider: clouds.DigitalOcean,
 			},
-			nil,
 			nil,
 			sgerrors.ErrNotFound,
 			http.StatusNotFound,
@@ -571,17 +566,16 @@ func TestAddNodeToKube(t *testing.T) {
 				Provider: clouds.DigitalOcean,
 			},
 			nil,
-			&workflows.Task{
-				ID: "1234",
-			},
 			nil,
 			http.StatusAccepted,
 		},
 	}
 
-	nodeProfile := profile.NodeProfile{
-		"size":  "s-2vcpu-4gb",
-		"image": "ubuntu-18-04-x64",
+	nodeProfile := []profile.NodeProfile{
+		{
+			"size":  "s-2vcpu-4gb",
+			"image": "ubuntu-18-04-x64",
+		},
 	}
 
 	for _, testCase := range testCases {
@@ -595,9 +589,9 @@ func TestAddNodeToKube(t *testing.T) {
 			Return(testCase.account, testCase.accountErr)
 
 		mockProvisioner := new(mockNodeProvisioner)
-		mockProvisioner.On("ProvisionNode",
+		mockProvisioner.On("ProvisionNodes",
 			mock.Anything, nodeProfile, testCase.kube, mock.Anything).
-			Return(testCase.provisionTask, testCase.provisionErr)
+			Return(mock.Anything, testCase.provisionErr)
 
 		h := NewHandler(svc, accService, mockProvisioner, nil)
 

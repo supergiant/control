@@ -12,6 +12,7 @@ import (
 	"github.com/supergiant/supergiant/pkg/model"
 	"github.com/supergiant/supergiant/pkg/profile"
 	"github.com/supergiant/supergiant/pkg/util"
+	"github.com/supergiant/supergiant/pkg/workflows"
 	"github.com/supergiant/supergiant/pkg/workflows/steps"
 )
 
@@ -26,7 +27,7 @@ type TokenGetter interface {
 type Handler struct {
 	accountGetter AccountGetter
 	tokenGetter   TokenGetter
-	provisioner   Provisioner
+	provisioner   ClusterProvisioner
 }
 
 type ProvisionRequest struct {
@@ -39,7 +40,11 @@ type ProvisionResponse struct {
 	Tasks map[string][]string `json:"tasks"`
 }
 
-func NewHandler(cloudAccountService *account.Service, tokenGetter TokenGetter, provisioner Provisioner) *Handler {
+type ClusterProvisioner interface {
+	ProvisionCluster(context.Context, *profile.Profile, *steps.Config) (map[string][]*workflows.Task, error)
+}
+
+func NewHandler(cloudAccountService *account.Service, tokenGetter TokenGetter, provisioner ClusterProvisioner) *Handler {
 	return &Handler{
 		accountGetter: cloudAccountService,
 		tokenGetter:   tokenGetter,

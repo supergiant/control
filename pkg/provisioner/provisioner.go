@@ -22,12 +22,6 @@ import (
 
 const keySize = 4096
 
-// Provisioner gets kube profile and returns list of task ids of provisionCluster masterTasks
-type Provisioner interface {
-	ProvisionCluster(context.Context, *profile.Profile, *steps.Config) (map[string][]*workflows.Task, error)
-	ProvisionNode(context.Context, profile.NodeProfile, *model.Kube, *steps.Config) (*workflows.Task, error)
-}
-
 type KubeCreater interface {
 	Create(ctx context.Context, k *model.Kube) error
 }
@@ -113,7 +107,7 @@ func (r *TaskProvisioner) ProvisionCluster(ctx context.Context, profile *profile
 	}, nil
 }
 
-func (p *TaskProvisioner) ProvisionNode(ctx context.Context, nodeProfile profile.NodeProfile, kube *model.Kube, config *steps.Config) (*workflows.Task, error) {
+func (p *TaskProvisioner) ProvisionNodes(ctx context.Context, nodeProfiles []profile.NodeProfile, kube *model.Kube, config *steps.Config) ([]string, error) {
 	if len(kube.Masters) != 0 {
 		config.AddMaster(kube.Masters[0])
 	} else {
@@ -130,39 +124,50 @@ func (p *TaskProvisioner) ProvisionNode(ctx context.Context, nodeProfile profile
 		return nil, errors.Wrap(sgerrors.ErrNotFound, "provider workflow")
 	}
 
-	// Take node workflow for the provider
-	t, err := workflows.NewTask(providerWorkflowSet.node, p.repository)
+	tasks := make([]string, 0, len(nodeProfiles))
 
-	if err != nil {
-		return nil, errors.Wrap(sgerrors.ErrNotFound, "workflow")
-	}
-
-	writer, err := p.getWriter(t.ID)
-
-	if err != nil {
-		return nil, errors.Wrap(err, "get writer")
-	}
-
-	errChan := t.Run(ctx, *config, writer)
-
-	go func() {
-		err = <-errChan
+	for _, nodeProfile := range nodeProfiles {
+		// Take node workflow for the provider
+		t, err := workflows.NewTask(providerWorkflowSet.node, p.repository)
+		tasks = append(tasks, t.ID)
 
 		if err != nil {
-			logrus.Errorf("add node to cluster %s caused an error %v", kube.Name, err)
-			return
+			return nil, errors.Wrap(sgerrors.ErrNotFound, "workflow")
 		}
 
-		if n := config.GetNode(); n != nil {
-			kube.Nodes = append(kube.Nodes, n)
-			// TODO(stgleb): Use some other method like update or Patch instead of recreate
-			p.kubeCreater.Create(context.Background(), kube)
-		} else {
-			logrus.Errorf("Add node to cluster %s node was not added", kube.Name)
-		}
-	}()
+		writer, err := p.getWriter(t.ID)
 
-	return t, nil
+		if err != nil {
+			return nil, errors.Wrap(err, "get writer")
+		}
+
+		err = FillNodeCloudSpecificData(config.Provider, nodeProfile, config)
+
+		if err != nil {
+			return nil, errors.Wrap(err, "fill node profile data to config")
+		}
+
+		errChan := t.Run(ctx, *config, writer)
+
+		go func(cfg *steps.Config, errChan chan error) {
+			err = <-errChan
+
+			if err != nil {
+				logrus.Errorf("add node to cluster %s caused an error %v", kube.Name, err)
+				return
+			}
+
+			if n := cfg.GetNode(); n != nil {
+				kube.Nodes = append(kube.Nodes, n)
+				// TODO(stgleb): Use some other method like update or Patch instead of recreate
+				p.kubeCreater.Create(context.Background(), kube)
+			} else {
+				logrus.Errorf("Add node to cluster %s node was not added", kube.Name)
+			}
+		}(config, errChan)
+	}
+
+	return tasks, nil
 }
 
 // prepare creates all tasks for provisioning according to cloud provider

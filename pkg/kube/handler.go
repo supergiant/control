@@ -15,7 +15,6 @@ import (
 	"github.com/supergiant/supergiant/pkg/message"
 	"github.com/supergiant/supergiant/pkg/model"
 	"github.com/supergiant/supergiant/pkg/profile"
-	"github.com/supergiant/supergiant/pkg/provisioner"
 	"github.com/supergiant/supergiant/pkg/sgerrors"
 	"github.com/supergiant/supergiant/pkg/util"
 	"github.com/supergiant/supergiant/pkg/workflows/steps"
@@ -27,7 +26,7 @@ type accountGetter interface {
 }
 
 type nodeProvisioner interface {
-	ProvisionNode(context.Context, profile.NodeProfile, *model.Kube, *steps.Config) (*workflows.Task, error)
+	ProvisionNodes(context.Context, []profile.NodeProfile, *model.Kube, *steps.Config) ([]string, error)
 }
 
 // Handler is a http controller for a kube entity.
@@ -248,8 +247,8 @@ func (h *Handler) addNode(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	nodeProfile := make(map[string]string)
-	err = json.NewDecoder(r.Body).Decode(&nodeProfile)
+	nodeProfiles := make([]profile.NodeProfile, 0)
+	err = json.NewDecoder(r.Body).Decode(&nodeProfiles)
 
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusBadRequest)
@@ -283,7 +282,7 @@ func (h *Handler) addNode(w http.ResponseWriter, r *http.Request) {
 		FlannelVersion: k.Networking.Version,
 
 		NodesProfiles: []profile.NodeProfile{
-			nodeProfile,
+			{},
 		},
 
 		RBACEnabled: k.RBACEnabled,
@@ -306,15 +305,8 @@ func (h *Handler) addNode(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	err = provisioner.FillNodeCloudSpecificData(acc.Provider, nodeProfile, config)
-
-	if err != nil {
-		http.Error(w, err.Error(), http.StatusInternalServerError)
-		return
-	}
-
 	ctx, _ := context.WithTimeout(context.Background(), time.Minute*10)
-	t, err := h.nodeProvisioner.ProvisionNode(ctx, nodeProfile, k, config)
+	tasks, err := h.nodeProvisioner.ProvisionNodes(ctx, nodeProfiles, k, config)
 
 	if err != nil && sgerrors.IsNotFound(err) {
 		http.Error(w, err.Error(), http.StatusNotFound)
@@ -328,9 +320,7 @@ func (h *Handler) addNode(w http.ResponseWriter, r *http.Request) {
 
 	// Respond to client side that request has been accepted
 	w.WriteHeader(http.StatusAccepted)
-	err = json.NewEncoder(w).Encode(&workflows.TaskResponse{
-		ID: t.ID,
-	})
+	err = json.NewEncoder(w).Encode(tasks)
 
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)

@@ -145,7 +145,7 @@ func TestProvisionNode(t *testing.T) {
 	}
 
 	config := steps.NewConfig(k.Name, "", k.AccountName, kubeProfile)
-	_, err := provisioner.ProvisionNode(context.Background(), nodeProfile, k, config)
+	_, err := provisioner.ProvisionNodes(context.Background(), []profile.NodeProfile{nodeProfile}, k, config)
 
 	if err != nil {
 		t.Errorf("Unexpected error %v while provisionCluster", err)
