@@ -14,12 +14,25 @@ import (
 	"github.com/stretchr/testify/mock"
 	"github.com/stretchr/testify/require"
 
+	"github.com/supergiant/supergiant/pkg/clouds"
 	"github.com/supergiant/supergiant/pkg/message"
 	"github.com/supergiant/supergiant/pkg/model"
+	"github.com/supergiant/supergiant/pkg/node"
+	"github.com/supergiant/supergiant/pkg/profile"
 	"github.com/supergiant/supergiant/pkg/sgerrors"
+	"github.com/supergiant/supergiant/pkg/workflows"
+	"github.com/supergiant/supergiant/pkg/workflows/steps"
 )
 
 type kubeServiceMock struct {
+	mock.Mock
+}
+
+type accServiceMock struct {
+	mock.Mock
+}
+
+type mockNodeProvisioner struct {
 	mock.Mock
 }
 
@@ -31,6 +44,15 @@ const (
 	serviceListKubeResources = "ListKubeResources"
 	serviceGetKubeResources  = "GetKubeResources"
 )
+
+func (m *mockNodeProvisioner) ProvisionNode(ctx context.Context, nodeProfile profile.NodeProfile, kube *model.Kube, config *steps.Config) (*workflows.Task, error) {
+	args := m.Called(ctx, nodeProfile, kube, config)
+	val, ok := args.Get(0).(*workflows.Task)
+	if !ok {
+		return nil, args.Error(1)
+	}
+	return val, args.Error(1)
+}
 
 func (m *kubeServiceMock) Create(ctx context.Context, k *model.Kube) error {
 	args := m.Called(ctx, k)
@@ -74,6 +96,16 @@ func (m *kubeServiceMock) GetKubeResources(ctx context.Context, kname, resource,
 }
 func (m *kubeServiceMock) GetCerts(ctx context.Context, kname, cname string) (*Bundle, error) {
 	return nil, nil
+}
+
+func (a *accServiceMock) Get(ctx context.Context, name string) (*model.CloudAccount, error) {
+	args := a.Called(ctx, name)
+
+	val, ok := args.Get(0).(*model.CloudAccount)
+	if !ok {
+		return nil, args.Error(1)
+	}
+	return val, args.Error(1)
 }
 
 func TestHandler_createKube(t *testing.T) {
@@ -462,6 +494,128 @@ func TestHandler_getResources(t *testing.T) {
 			require.Equalf(t, nil, err, "TC#%d", i+1)
 
 			require.Equalf(t, tc.expectedErrCode, m.ErrorCode, "TC#%d", i+1)
+		}
+	}
+}
+
+func TestAddNodeToKube(t *testing.T) {
+	testCases := []struct {
+		testName       string
+		kubeName       string
+		kube           *model.Kube
+		kubeServiceErr error
+
+		accountName string
+		account     *model.CloudAccount
+		accountErr  error
+
+		provisionTask *workflows.Task
+		provisionErr  error
+
+		expectedCode int
+	}{
+		{
+			"kube not found",
+			"test",
+			nil,
+			sgerrors.ErrNotFound,
+			"",
+			nil,
+			nil,
+			nil,
+			nil,
+			http.StatusNotFound,
+		},
+		{
+			"account not found",
+			"test",
+			&model.Kube{
+				AccountName: "test",
+			},
+			nil,
+			"test",
+			nil,
+			sgerrors.ErrNotFound,
+			nil,
+			nil,
+			http.StatusNotFound,
+		},
+		{
+			"provision not found",
+			"test",
+			&model.Kube{
+				AccountName: "test",
+			},
+			nil,
+			"test",
+			&model.CloudAccount{
+				Name:     "test",
+				Provider: clouds.DigitalOcean,
+			},
+			nil,
+			nil,
+			sgerrors.ErrNotFound,
+			http.StatusNotFound,
+		},
+		{
+			"provision success",
+			"test",
+			&model.Kube{
+				AccountName: "test",
+				Masters:     []*node.Node{{}},
+			},
+			nil,
+			"test",
+			&model.CloudAccount{
+				Name:     "test",
+				Provider: clouds.DigitalOcean,
+			},
+			nil,
+			&workflows.Task{
+				ID: "1234",
+			},
+			nil,
+			http.StatusAccepted,
+		},
+	}
+
+	nodeProfile := profile.NodeProfile{
+		"size":  "s-2vcpu-4gb",
+		"image": "ubuntu-18-04-x64",
+	}
+
+	for _, testCase := range testCases {
+		t.Log(testCase.testName)
+		svc := new(kubeServiceMock)
+		svc.On(serviceGet, mock.Anything, testCase.kubeName).
+			Return(testCase.kube, testCase.kubeServiceErr)
+
+		accService := new(accServiceMock)
+		accService.On("Get", mock.Anything, testCase.accountName).
+			Return(testCase.account, testCase.accountErr)
+
+		mockProvisioner := new(mockNodeProvisioner)
+		mockProvisioner.On("ProvisionNode",
+			mock.Anything, nodeProfile, testCase.kube, mock.Anything).
+			Return(testCase.provisionTask, testCase.provisionErr)
+
+		h := NewHandler(svc, accService, mockProvisioner, nil)
+
+		data, _ := json.Marshal(nodeProfile)
+		b := bytes.NewBuffer(data)
+
+		req, _ := http.NewRequest(http.MethodPost,
+			fmt.Sprintf("/kubes/%s/nodes", testCase.kubeName),
+			b)
+		rec := httptest.NewRecorder()
+		router := mux.NewRouter()
+
+		router.HandleFunc("/kubes/{kname}/nodes", h.addNode)
+		router.ServeHTTP(rec, req)
+
+		if rec.Code != testCase.expectedCode {
+			t.Errorf("Wrong error code expected %d actual %d",
+				testCase.expectedCode, rec.Code)
 		}
 	}
 }

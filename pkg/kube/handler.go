@@ -12,7 +12,6 @@ import (
 
 	"gopkg.in/asaskevich/govalidator.v8"
 
-	"github.com/supergiant/supergiant/pkg/account"
 	"github.com/supergiant/supergiant/pkg/message"
 	"github.com/supergiant/supergiant/pkg/model"
 	"github.com/supergiant/supergiant/pkg/profile"
@@ -23,21 +22,29 @@ import (
 	"time"
 )
 
+type accountGetter interface {
+	Get(context.Context, string) (*model.CloudAccount, error)
+}
+
+type nodeProvisioner interface {
+	ProvisionNode(context.Context, profile.NodeProfile, *model.Kube, *steps.Config) (*workflows.Task, error)
+}
+
 // Handler is a http controller for a kube entity.
 type Handler struct {
-	svc            Interface
-	accountService *account.Service
-	provisioner    provisioner.Provisioner
-	repo           storage.Interface
+	svc             Interface
+	accountService  accountGetter
+	nodeProvisioner nodeProvisioner
+	repo            storage.Interface
 }
 
 // NewHandler constructs a Handler for kubes.
-func NewHandler(svc Interface, accountService *account.Service, provisioner provisioner.Provisioner, repo storage.Interface) *Handler {
+func NewHandler(svc Interface, accountService accountGetter, provisioner nodeProvisioner, repo storage.Interface) *Handler {
 	return &Handler{
-		svc:            svc,
-		accountService: accountService,
-		provisioner:    provisioner,
-		repo:           repo,
+		svc:             svc,
+		accountService:  accountService,
+		nodeProvisioner: provisioner,
+		repo:            repo,
 	}
 }
 
@@ -230,7 +237,7 @@ func (h *Handler) addNode(w http.ResponseWriter, r *http.Request) {
 	k, err := h.svc.Get(r.Context(), kname)
 
 	// TODO(stgleb): This method contains a lot of specific stuff, implement provision node
-	// method for provisioner to do all things related to provisioning and saving cluster state
+	// method for nodeProvisioner to do all things related to provisioning and saving cluster state
 	if sgerrors.IsNotFound(err) {
 		http.NotFound(w, r)
 		return
@@ -307,7 +314,7 @@ func (h *Handler) addNode(w http.ResponseWriter, r *http.Request) {
 	}
 
 	ctx, _ := context.WithTimeout(context.Background(), time.Minute*10)
-	t, err := h.provisioner.ProvisionNode(ctx, nodeProfile, k, config)
+	t, err := h.nodeProvisioner.ProvisionNode(ctx, nodeProfile, k, config)
 
 	if err != nil && sgerrors.IsNotFound(err) {
 		http.Error(w, err.Error(), http.StatusNotFound)
