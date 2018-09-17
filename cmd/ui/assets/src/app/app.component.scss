@@ -1,18 +1,11 @@
 :host {
-  background: url(assets/img/sg2-bg-grad.jpg) center top / cover no-repeat;
   display: flex;
   flex-direction: column;
-  overflow: scroll;
-  height: 100%;
   width: 100%;
+  padding: 0 49px;
 
   .content {
+    min-height: calc(100vh - 275px);
     margin-top: 100px;
-    // min-height: 69%;
-  }
-
-  // TODO: find a better way
-  app-footer {
-    margin-top: auto;
   }
 }

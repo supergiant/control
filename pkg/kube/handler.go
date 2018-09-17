@@ -3,9 +3,9 @@ package kube
 import (
 	"encoding/json"
 	"github.com/pkg/errors"
-	"github.com/sirupsen/logrus"
 	"github.com/supergiant/supergiant/pkg/storage"
 	"github.com/supergiant/supergiant/pkg/workflows"
+	"github.com/supergiant/supergiant/pkg/workflows/steps"
 	"net/http"
 
 	"github.com/gorilla/mux"
@@ -60,17 +60,38 @@ func (h *Handler) getTasks(w http.ResponseWriter, r *http.Request) {
 
 	tasks := make([]*workflows.Task, 0)
 	for _, v := range data {
-		task, err := workflows.DeserializeTask(v, h.repo)
+		task := &workflows.Task{}
+		err := json.Unmarshal(v, task)
 		if err != nil {
-			logrus.Error(err)
-			continue
+			//TODO make whole handler send messages
+			http.Error(w, err.Error(), http.StatusInternalServerError)
+			return
 		}
 		if task.Config.ClusterName == id {
 			tasks = append(tasks, task)
 		}
 	}
 
-	if err := json.NewEncoder(w).Encode(tasks); err != nil {
+	if len(tasks) == 0 {
+		http.Error(w, "", http.StatusNotFound)
+		return
+	}
+
+	cfg := tasks[0].Config
+
+	for _, t := range tasks {
+		t.Config = nil
+	}
+
+	res := &struct {
+		Config *steps.Config     `json:"config"`
+		Tasks  []*workflows.Task `json:"tasks"`
+	}{
+		Config: cfg,
+		Tasks:  tasks,
+	}
+
+	if err := json.NewEncoder(w).Encode(res); err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 	}
 }
