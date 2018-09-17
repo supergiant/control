@@ -9,7 +9,6 @@ import (
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/service/ec2"
 	"github.com/supergiant/supergiant/pkg/util"
-	"github.com/supergiant/supergiant/pkg/workflows"
 	"github.com/supergiant/supergiant/pkg/workflows/steps"
 )
 
@@ -39,7 +38,7 @@ func (s *KeyPairStep) Run(ctx context.Context, w io.Writer, cfg *steps.Config) e
 	}
 
 	// Create key for user
-	userKeyPairName := workflows.MakeKeyName(cfg.AWSConfig.KeyPairName, true)
+	userKeyPairName := util.MakeKeyName(cfg.AWSConfig.KeyPairName, true)
 
 	req := &ec2.ImportKeyPairInput{
 		KeyName:           &userKeyPairName,
@@ -48,7 +47,7 @@ func (s *KeyPairStep) Run(ctx context.Context, w io.Writer, cfg *steps.Config) e
 
 	output, err := sdk.EC2.ImportKeyPairWithContext(ctx, req)
 
-	keyPairName := workflows.MakeKeyName(cfg.AWSConfig.KeyPairName, false)
+	keyPairName := util.MakeKeyName(cfg.AWSConfig.KeyPairName, false)
 
 	if err != nil {
 		cfg.AWSConfig.KeyPairName = *output.KeyName
