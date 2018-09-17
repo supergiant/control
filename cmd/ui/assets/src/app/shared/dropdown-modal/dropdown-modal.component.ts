@@ -1,6 +1,6 @@
 import { Component, AfterViewInit, OnDestroy, ViewChild, ElementRef } from '@angular/core';
 import { NgbModal, ModalDismissReasons, NgbModalOptions, NgbModalRef } from '@ng-bootstrap/ng-bootstrap';
-import { Subscription } from 'rxjs';
+import { Subscription } from 'rxjs/Subscription';
 import { DropdownModalService } from './dropdown-modal.service';
 import { Notifications } from '../../shared/notifications/notifications.service';
 

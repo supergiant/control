@@ -1,11 +1,9 @@
-
-import {timer as observableTimer,  Subscription ,  Observable } from 'rxjs';
-
-import {switchMap} from 'rxjs/operators';
 import { Component, OnDestroy, OnInit } from '@angular/core';
 import { UsersService } from '../users.service';
+import { Subscription } from 'rxjs/Subscription';
 import { Supergiant } from '../../shared/supergiant/supergiant.service';
 import { Notifications } from '../../shared/notifications/notifications.service';
+import { Observable } from 'rxjs/Observable';
 
 @Component({
   selector: 'app-users-list',
@@ -30,8 +28,8 @@ export class UsersListComponent implements OnInit, OnDestroy {
   }
 
   getUsers() {
-    this.subscriptions.add(observableTimer(0, 5000).pipe(
-      switchMap(() => this.supergiant.Users.get())).subscribe(
+    this.subscriptions.add(Observable.timer(0, 5000)
+      .switchMap(() => this.supergiant.Users.get()).subscribe(
       (users) => { this.users = users.items.filter(user => user.username !== 'support'); },
       (err) => { this.notifications.display('warn', 'Connection Issue.', err); }));
   }

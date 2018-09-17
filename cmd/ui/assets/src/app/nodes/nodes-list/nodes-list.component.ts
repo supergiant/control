@@ -1,11 +1,9 @@
-
-import {timer as observableTimer,  Subscription ,  Observable } from 'rxjs';
-
-import {switchMap} from 'rxjs/operators';
 import { Component, OnInit, Input, OnDestroy, ViewChild } from '@angular/core';
 import { ActivatedRoute, Router } from '@angular/router';
+import { Subscription } from 'rxjs/Subscription';
 import { Supergiant } from '../../shared/supergiant/supergiant.service';
 import { Notifications } from '../../shared/notifications/notifications.service';
+import { Observable } from 'rxjs/Observable';
 import { ChartsModule, BaseChartDirective } from 'ng2-charts';
 import { ContextMenuService, ContextMenuComponent } from 'ngx-contextmenu';
 import { NodesModel } from './nodes.model';
@@ -110,8 +108,8 @@ export class NodesListComponent implements OnInit, OnDestroy {
   }
 
   getNodes() {
-    this.subscriptions.add(observableTimer(0, 5000).pipe(
-      switchMap(() => this.supergiant.Nodes.get())).subscribe(
+    this.subscriptions.add(Observable.timer(0, 5000)
+      .switchMap(() => this.supergiant.Nodes.get()).subscribe(
         (nodes) => {
           this.nodes = nodes.items.filter(
             node => node.kube_name === this.kube.name

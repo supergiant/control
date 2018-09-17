@@ -1,9 +1,7 @@
-
-import {timer as observableTimer,  Subscription ,  Observable } from 'rxjs';
-
-import {switchMap} from 'rxjs/operators';
 import { Component, OnInit, OnDestroy, ViewChild } from '@angular/core';
+import { Subscription } from 'rxjs/Subscription';
 import { ActivatedRoute, Router } from '@angular/router';
+import { Observable } from 'rxjs/Observable';
 import { Supergiant } from '../../shared/supergiant/supergiant.service';
 import { Notifications } from '../../shared/notifications/notifications.service';
 import { SystemModalService } from '../../shared/system-modal/system-modal.service';
@@ -37,8 +35,8 @@ export class SessionDetailsComponent implements OnInit, OnDestroy {
   }
 
   getSession() {
-    this.subscriptions.add(observableTimer(0, 5000).pipe(
-      switchMap(() => this.supergiant.Sessions.get(this.id))).subscribe(
+    this.subscriptions.add(Observable.timer(0, 5000)
+      .switchMap(() => this.supergiant.Sessions.get(this.id)).subscribe(
       (session) => { this.session = session; },
       (err) => { this.notifications.display('warn', 'Connection Issue.', err); }));
   }

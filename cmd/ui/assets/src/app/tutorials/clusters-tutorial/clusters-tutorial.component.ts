@@ -10,7 +10,7 @@ export class ClustersTutorialComponent implements OnInit {
   constructor() { }
 
   ngOnInit() {
-    console.log('Loading Tutorial Component');
+    console.log("Loading Tutorial Component");
   }
 
 }

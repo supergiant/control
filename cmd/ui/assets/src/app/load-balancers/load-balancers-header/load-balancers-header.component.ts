@@ -1,7 +1,7 @@
 import { Component, OnDestroy, AfterViewInit } from '@angular/core';
 import { LoadBalancersService } from '../load-balancers.service';
 import { Supergiant } from '../../shared/supergiant/supergiant.service';
-import { Subscription } from 'rxjs';
+import { Subscription } from 'rxjs/Subscription';
 import { Notifications } from '../../shared/notifications/notifications.service';
 import { SystemModalService } from '../../shared/system-modal/system-modal.service';
 import { DropdownModalService } from '../../shared/dropdown-modal/dropdown-modal.service';
