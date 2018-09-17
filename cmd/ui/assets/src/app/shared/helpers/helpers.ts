@@ -12,12 +12,12 @@ export function getBaseLocation() {
 }
 
 export function convertIsoToHumanReadable(isoString) {
-	const date = new Date(isoString);
-	const month = date.getMonth() + 1;
-	const day = date.getDay() + 1;
-	const fullYear = date.getFullYear();
-	const hours = date.getHours();
-	const minutes = date.getMinutes();
-	const seconds = date.getSeconds();
+	let date = new Date(isoString);
+	let month = date.getMonth() + 1;
+	let day = date.getDay() + 1;
+	let fullYear = date.getFullYear();
+	let hours = date.getHours();
+	let minutes = date.getMinutes();
+	let seconds = date.getSeconds();
 	return `${month}-${day}-${fullYear}, ${hours}:${minutes}:${seconds}`;
 }

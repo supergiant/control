@@ -1,8 +1,6 @@
-
-import {timer as observableTimer,  Subscription ,  Observable } from 'rxjs';
-
-import {switchMap} from 'rxjs/operators';
 import { Component, OnInit, OnDestroy, ViewEncapsulation, ViewChild } from '@angular/core';
+import { Subscription } from 'rxjs/Subscription';
+import { Observable } from 'rxjs/Observable';
 import { Supergiant } from '../../../shared/supergiant/supergiant.service';
 import { Notifications } from '../../../shared/notifications/notifications.service';
 import { ChartsModule, BaseChartDirective } from 'ng2-charts';
@@ -50,8 +48,8 @@ export class ListCloudAccountsComponent implements OnInit, OnDestroy {
   }
 
   getCloudAccounts() {
-    this.subscriptions.add(observableTimer(0, 5000).pipe(
-      switchMap(() => this.supergiant.CloudAccounts.get())).subscribe(
+    this.subscriptions.add(Observable.timer(0, 5000)
+      .switchMap(() => this.supergiant.CloudAccounts.get()).subscribe(
       (accounts) => {
         if (Object.keys(accounts).length > 0) {
           this.hasCloudAccount = true;

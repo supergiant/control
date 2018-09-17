@@ -1,6 +1,6 @@
 import { Component, OnInit, ViewEncapsulation, OnDestroy } from '@angular/core';
 import { CloudAccountModel } from '../cloud-accounts.model';
-import { Subscription } from 'rxjs';
+import { Subscription } from 'rxjs/Subscription';
 import { Supergiant } from '../../../shared/supergiant/supergiant.service';
 import { Notifications } from '../../../shared/notifications/notifications.service';
 import { Router } from '@angular/router';

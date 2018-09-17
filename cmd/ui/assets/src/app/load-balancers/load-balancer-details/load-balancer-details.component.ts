@@ -1,9 +1,7 @@
-
-import {timer as observableTimer,  Subscription ,  Observable } from 'rxjs';
-
-import {switchMap} from 'rxjs/operators';
 import { Component, OnInit, OnDestroy, ViewChild } from '@angular/core';
+import { Subscription } from 'rxjs/Subscription';
 import { ActivatedRoute, Router } from '@angular/router';
+import { Observable } from 'rxjs/Observable';
 import { Supergiant } from '../../shared/supergiant/supergiant.service';
 import { Notifications } from '../../shared/notifications/notifications.service';
 import { SystemModalService } from '../../shared/system-modal/system-modal.service';
@@ -33,13 +31,13 @@ export class LoadBalancerDetailsComponent implements OnInit, OnDestroy {
   }
 
   getLoadBalancer() {
-    this.subscriptions.add(observableTimer(0, 5000).pipe(
-      switchMap(() => this.supergiant.LoadBalancers.get(this.id))).subscribe(
+    this.subscriptions.add(Observable.timer(0, 5000)
+      .switchMap(() => this.supergiant.LoadBalancers.get(this.id)).subscribe(
       (loadBalancer) => { this.loadBalancer = loadBalancer; },
       (err) => { }));
 
-    this.subscriptions.add(observableTimer(0, 5000).pipe(
-      switchMap(() => this.supergiant.KubeResources.get(this.id))).subscribe(
+    this.subscriptions.add(Observable.timer(0, 5000)
+      .switchMap(() => this.supergiant.KubeResources.get(this.id)).subscribe(
       (resource) => { this.loadBalancer = resource; },
       (err) => { }));
   }
