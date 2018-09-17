@@ -15,15 +15,15 @@ subjectAltName = @alt_names
 DNS.1 = kubernetes
 DNS.2 = kubernetes.default
 IP.1 = 10.3.0.1
-IP.2 = ${MASTER_HOST}
-IP.3 = ${PRIVATE_HOST}
+IP.2 = {MASTER_HOST}
+IP.3 = {PRIVATE_HOST}
 EOF
 
 openssl genrsa -out /etc/kubernetes/ssl/ca-key.pem 2048
 openssl req -x509 -new -nodes -key /etc/kubernetes/ssl/ca-key.pem -days 10000 -out /etc/kubernetes/ssl/ca.pem -subj "/CN=kube-ca"
 
-sed -e "s/\${MASTER_HOST}/`curl ipinfo.io/ip`/" < /etc/kubernetes/ssl/openssl.cnf.template > /etc/kubernetes/ssl/openssl.cnf.public
-sed -e "s/\${PRIVATE_HOST}/{{ .MasterHost }}/" < /etc/kubernetes/ssl/openssl.cnf.public > /etc/kubernetes/ssl/openssl.cnf
+sed -e "s/{MASTER_HOST}/`curl ipinfo.io/ip`/" < /etc/kubernetes/ssl/openssl.cnf.template > /etc/kubernetes/ssl/openssl.cnf.public
+sed -e "s/{PRIVATE_HOST}/{{ .MasterHost }}/" < /etc/kubernetes/ssl/openssl.cnf.public > /etc/kubernetes/ssl/openssl.cnf
 
 openssl genrsa -out /etc/kubernetes/ssl/apiserver-key.pem 2048
 openssl req -new -key /etc/kubernetes/ssl/apiserver-key.pem -out /etc/kubernetes/ssl/apiserver.csr -subj "/CN=kube-apiserver" -config /etc/kubernetes/ssl/openssl.cnf
@@ -34,6 +34,11 @@ openssl x509 -req -in /etc/kubernetes/ssl/worker.csr -CA /etc/kubernetes/ssl/ca.
 openssl genrsa -out /etc/kubernetes/ssl/admin-key.pem 2048
 openssl req -new -key /etc/kubernetes/ssl/admin-key.pem -out /etc/kubernetes/ssl/admin.csr -subj "/CN=kube-admin"
 openssl x509 -req -in /etc/kubernetes/ssl/admin.csr -CA /etc/kubernetes/ssl/ca.pem -CAkey /etc/kubernetes/ssl/ca-key.pem -CAcreateserial -out /etc/kubernetes/ssl/admin.pem -days 365
+
+cp /etc/kubernetes/ssl/ca.pem /usr/share/ca-certificates/ca.crt
+echo "ca.crt" >> /etc/ca-certificates.conf
+update-ca-certificates
+
 chmod 600 /etc/kubernetes/ssl/*-key.pem
 chown root:root /etc/kubernetes/ssl/*-key.pem
 

@@ -40,7 +40,7 @@ spec:
     - /hyperkube
     - proxy
     - --v=2
-    - --master=http://{{ .MasterHost }}:{{ .MasterPort }}
+    - --master=https://{{ .MasterHost }}
     - --proxy-mode=iptables
     securityContext:
       privileged: true
@@ -88,7 +88,7 @@ spec:
     - --basic-auth-file=/etc/kubernetes/ssl/basic_auth.csv
     - --token-auth-file=/etc/kubernetes/ssl/known_tokens.csv
     - --kubelet-preferred-address-types=InternalIP,Hostname,ExternalIP
-    - --storage-backend=etcd2
+    - --storage-backend=etcd3
     -  {{ .ProviderString }}
     ports:
     - containerPort: 443
@@ -134,7 +134,7 @@ spec:
     command:
     - /hyperkube
     - controller-manager
-    - --master=http://{{ .MasterHost }}:{{ .MasterPort }}
+    - --master=https://{{ .MasterHost }}
     - --service-account-private-key-file=/etc/kubernetes/ssl/apiserver-key.pem
     - --root-ca-file=/etc/kubernetes/ssl/ca.pem
     - --v=2
@@ -180,7 +180,7 @@ spec:
     - /hyperkube
     - scheduler
     - --v=2
-    - --master=http://{{ .MasterHost }}:{{ .MasterPort }}
+    - --master=https://{{ .MasterHost }}
     livenessProbe:
       httpGet:
         host: 127.0.0.1
@@ -188,5 +188,22 @@ spec:
         port: 10251
       initialDelaySeconds: 15
       timeoutSeconds: 1
+    volumeMounts:
+    - mountPath: /etc/kubernetes/ssl
+      name: ssl-certs-kubernetes
+      readOnly: true
+    - mountPath: /etc/ssl/certs
+      name: ssl-certs-host
+      readOnly: true
+  volumes:
+  - hostPath:
+      path: /etc/kubernetes/ssl
+    name: ssl-certs-kubernetes
+  - hostPath:
+      path: /etc/kubernetes/addons
+    name: api-addons-kubernetes
+  - hostPath:
+      path: /usr/share/ca-certificates
+    name: ssl-certs-host
 EOF
 {{ end }}
