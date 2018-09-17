@@ -1,9 +1,9 @@
 package provisioner
 
 import (
+	"bytes"
 	"context"
 	"io"
-	"os"
 	"testing"
 
 	"github.com/stretchr/testify/mock"
@@ -18,6 +18,15 @@ import (
 	"github.com/supergiant/supergiant/pkg/workflows/steps"
 )
 
+type bufferCloser struct {
+	bytes.Buffer
+	err error
+}
+
+func (b *bufferCloser) Close() error {
+	return b.err
+}
+
 type mockKubeCreater struct {
 	data map[string]string
 }
@@ -30,13 +39,18 @@ func TestProvisionCluster(t *testing.T) {
 	repository := &testutils.MockStorage{}
 	repository.On("Put", context.Background(), mock.Anything, mock.Anything, mock.Anything).Return(nil)
 
+	bc := &bufferCloser{
+		bytes.Buffer{},
+		nil,
+	}
+
 	provisioner := TaskProvisioner{
 		&mockKubeCreater{
 			data: make(map[string]string),
 		},
 		repository,
 		func(string) (io.WriteCloser, error) {
-			return os.Stdout, nil
+			return bc, nil
 		},
 		map[clouds.Name]workflowSet{
 			clouds.DigitalOcean: {"test_master", "test_node"},
@@ -86,9 +100,15 @@ func TestProvisionCluster(t *testing.T) {
 	}
 }
 
-func TestProvisionNode(t *testing.T) {
+func TestProvisionNodes(t *testing.T) {
 	repository := &testutils.MockStorage{}
-	repository.On("Put", context.Background(), mock.Anything, mock.Anything, mock.Anything).Return(nil)
+	repository.On("Put", context.Background(),
+		mock.Anything, mock.Anything, mock.Anything).
+		Return(nil)
+	bc := &bufferCloser{
+		bytes.Buffer{},
+		nil,
+	}
 
 	provisioner := TaskProvisioner{
 		&mockKubeCreater{
@@ -96,7 +116,7 @@ func TestProvisionNode(t *testing.T) {
 		},
 		repository,
 		func(string) (io.WriteCloser, error) {
-			return os.Stdout, nil
+			return bc, nil
 		},
 		map[clouds.Name]workflowSet{
 			clouds.DigitalOcean: {"test_master", "test_node"},
@@ -112,8 +132,9 @@ func TestProvisionNode(t *testing.T) {
 	}
 
 	k := &model.Kube{
-		Masters: []*node.Node{
-			{
+		Masters: map[string]*node.Node{
+			"1": {
+				Id:        "1",
 				PrivateIp: "10.0.0.1",
 				PublicIp:  "10.20.30.40",
 				Active:    true,

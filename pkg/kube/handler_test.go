@@ -557,7 +557,9 @@ func TestAddNodeToKube(t *testing.T) {
 			"test",
 			&model.Kube{
 				AccountName: "test",
-				Masters:     []*node.Node{{}},
+				Masters: map[string]*node.Node{
+					"": {},
+				},
 			},
 			nil,
 			"test",

@@ -60,7 +60,7 @@ func (r *TaskProvisioner) ProvisionCluster(ctx context.Context, profile *profile
 	masterTasks, nodeTasks, clusterTask := r.prepare(config.Provider, len(profile.MasterProfiles),
 		len(profile.NodesProfiles))
 
-	masters, nodes := nodesFromProfile(profile)
+	masters, nodes := nodesFromProfile(config, profile)
 	// Save cluster before provisioning
 	r.saveCluster(ctx, profile, masters, nodes, config)
 
@@ -109,7 +109,9 @@ func (r *TaskProvisioner) ProvisionCluster(ctx context.Context, profile *profile
 
 func (p *TaskProvisioner) ProvisionNodes(ctx context.Context, nodeProfiles []profile.NodeProfile, kube *model.Kube, config *steps.Config) ([]string, error) {
 	if len(kube.Masters) != 0 {
-		config.AddMaster(kube.Masters[0])
+		for key := range kube.Masters {
+			config.AddMaster(kube.Masters[key])
+		}
 	} else {
 		return nil, errors.Wrap(sgerrors.ErrNotFound, "master node")
 	}
@@ -158,7 +160,7 @@ func (p *TaskProvisioner) ProvisionNodes(ctx context.Context, nodeProfiles []pro
 			}
 
 			if n := cfg.GetNode(); n != nil {
-				kube.Nodes = append(kube.Nodes, n)
+				kube.Nodes[n.Id] = n
 				// TODO(stgleb): Use some other method like update or Patch instead of recreate
 				p.kubeCreater.Create(context.Background(), kube)
 			} else {
@@ -335,7 +337,7 @@ func (p *TaskProvisioner) waitCluster(ctx context.Context, clusterTask *workflow
 	clusterWg.Wait()
 }
 
-func (p *TaskProvisioner) saveCluster(ctx context.Context, profile *profile.Profile, masters, nodes []*node.Node, config *steps.Config) error {
+func (p *TaskProvisioner) saveCluster(ctx context.Context, profile *profile.Profile, masters, nodes map[string]*node.Node, config *steps.Config) error {
 	cluster := &model.Kube{
 		Name:         config.ClusterName,
 		AccountName:  config.CloudAccountName,

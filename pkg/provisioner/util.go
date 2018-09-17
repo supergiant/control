@@ -77,28 +77,30 @@ func FillNodeCloudSpecificData(provider clouds.Name, nodeProfile profile.NodePro
 	return nil
 }
 
-func nodesFromProfile(profile *profile.Profile) ([]*node.Node, []*node.Node) {
-	masters := make([]*node.Node, 0, len(profile.MasterProfiles))
-	nodes := make([]*node.Node, 0, len(profile.NodesProfiles))
+func nodesFromProfile(config *steps.Config, profile *profile.Profile) (map[string]*node.Node, map[string]*node.Node) {
+	masters := make(map[string]*node.Node)
+	nodes := make(map[string]*node.Node)
 
 	for _, p := range profile.MasterProfiles {
 		n := &node.Node{
+			Id: util.MakeNodeName(config.ClusterName, true),
 			Provider: profile.Provider,
 			Region:   profile.Region,
 		}
 
 		util.BindParams(p, n)
-		masters = append(masters, n)
+		masters[n.Id] = n
 	}
 
 	for _, p := range profile.NodesProfiles {
 		n := &node.Node{
+			Id: util.MakeNodeName(config.ClusterName, false),
 			Provider: profile.Provider,
 			Region:   profile.Region,
 		}
 
 		util.BindParams(p, n)
-		nodes = append(nodes, n)
+		nodes[n.Id] = n
 	}
 
 	return masters, nodes

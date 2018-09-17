@@ -18,6 +18,7 @@ import (
 	"github.com/supergiant/supergiant/pkg/model"
 	"github.com/supergiant/supergiant/pkg/sgerrors"
 	"github.com/supergiant/supergiant/pkg/workflows/steps"
+	"github.com/supergiant/supergiant/pkg/node"
 )
 
 const letterBytes = "0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ"
@@ -317,6 +318,15 @@ func FillCloudAccountCredentials(ctx context.Context, getter cloudAccountGetter,
 		return BindParams(cloudAccount.Credentials, &config.OSConfig)
 	default:
 		return sgerrors.ErrUnknownProvider
+	}
+
+	return nil
+}
+
+
+func GetAnyNode(nodeMap map[string]*node.Node) *node.Node {
+	for key := range nodeMap {
+		return nodeMap[key]
 	}
 
 	return nil

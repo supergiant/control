@@ -8,6 +8,7 @@ import (
 	"golang.org/x/crypto/ssh"
 	"strings"
 	"testing"
+	"github.com/supergiant/supergiant/pkg/workflows/steps"
 )
 
 var (
@@ -60,11 +61,16 @@ func TestNodesFromProfile(t *testing.T) {
 			},
 			{
 				"image": "ubuntu-16-04-x64",
+				"size":  "s-2vcpu-4gb",
 			},
 		},
 	}
 
-	masters, nodes := nodesFromProfile(p)
+	cfg := &steps.Config{
+		ClusterName: "test",
+	}
+
+	masters, nodes := nodesFromProfile(cfg, p)
 
 	if len(masters) != len(p.MasterProfiles) {
 		t.Errorf("Wrong master node count expected %d actual %d",
@@ -72,14 +78,8 @@ func TestNodesFromProfile(t *testing.T) {
 	}
 
 	if len(nodes) != len(p.NodesProfiles) {
-		t.Errorf("Wrong master node count expected %d actual %d",
+		t.Errorf("Wrong node count expected %d actual %d",
 			len(p.NodesProfiles), len(nodes))
-	}
-
-	if masters[0].Size != p.MasterProfiles[0]["size"] {
-		t.Errorf("Wrong master node size expected %s actual %s",
-			masters[0].Size,
-			p.MasterProfiles[0]["size"])
 	}
 }
 
