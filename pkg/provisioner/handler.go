@@ -48,7 +48,7 @@ func NewHandler(cloudAccountService *account.Service, tokenGetter TokenGetter, p
 }
 
 func (h *Handler) Register(m *mux.Router) {
-	m.HandleFunc("/provision", h.Provision).Methods(http.MethodPost)
+	m.HandleFunc("/provisionCluster", h.Provision).Methods(http.MethodPost)
 }
 
 func (h *Handler) Provision(w http.ResponseWriter, r *http.Request) {
@@ -82,11 +82,11 @@ func (h *Handler) Provision(w http.ResponseWriter, r *http.Request) {
 	}
 
 	ctx, _ := context.WithTimeout(context.Background(), config.Timeout)
-	taskMap, err := h.provisioner.Provision(ctx, &req.Profile, config)
+	taskMap, err := h.provisioner.ProvisionCluster(ctx, &req.Profile, config)
 
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
-		logrus.Error(errors.Wrap(err, "provision"))
+		logrus.Error(errors.Wrap(err, "provisionCluster"))
 		return
 	}
 

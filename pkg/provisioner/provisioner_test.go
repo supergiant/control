@@ -37,7 +37,7 @@ func TestTaskProvisioner(t *testing.T) {
 		func(string) (io.WriteCloser, error) {
 			return os.Stdout, nil
 		},
-		map[clouds.Name][]string{
+		map[clouds.Name]workflowSet{
 			clouds.DigitalOcean: {"test_master", "test_node"},
 		},
 	}
@@ -48,13 +48,13 @@ func TestTaskProvisioner(t *testing.T) {
 
 	p := &profile.Profile{
 		Provider: clouds.DigitalOcean,
-		MasterProfiles: []map[string]string{
+		MasterProfiles: []profile.NodeProfile{
 			{
 				"size":  "s-1vcpu-2gb",
 				"image": "ubuntu-18-04-x64",
 			},
 		},
-		NodesProfiles: []map[string]string{
+		NodesProfiles: []profile.NodeProfile{
 			{
 				"size":  "s-2vcpu-4gb",
 				"image": "ubuntu-18-04-x64",
@@ -67,10 +67,10 @@ func TestTaskProvisioner(t *testing.T) {
 	}
 
 	cfg := steps.NewConfig("", "", "", *p)
-	taskMap, err := provisioner.Provision(context.Background(), p, cfg)
+	taskMap, err := provisioner.ProvisionCluster(context.Background(), p, cfg)
 
 	if err != nil {
-		t.Errorf("Unexpected error %v while provision", err)
+		t.Errorf("Unexpected error %v while provisionCluster", err)
 	}
 
 	if len(taskMap) != 3 {

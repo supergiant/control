@@ -7,11 +7,13 @@ import (
 	"path"
 	"sync"
 
+	"github.com/pkg/errors"
 	"github.com/sirupsen/logrus"
 	"github.com/supergiant/supergiant/pkg/clouds"
 	"github.com/supergiant/supergiant/pkg/model"
 	"github.com/supergiant/supergiant/pkg/node"
 	"github.com/supergiant/supergiant/pkg/profile"
+	"github.com/supergiant/supergiant/pkg/sgerrors"
 	"github.com/supergiant/supergiant/pkg/storage"
 	"github.com/supergiant/supergiant/pkg/util"
 	"github.com/supergiant/supergiant/pkg/workflows"
@@ -20,28 +22,37 @@ import (
 
 const keySize = 4096
 
-// Provisioner gets kube profile and returns list of task ids of provision masterTasks
+// Provisioner gets kube profile and returns list of task ids of provisionCluster masterTasks
 type Provisioner interface {
-	Provision(context.Context, *profile.Profile, *steps.Config) (map[string][]*workflows.Task, error)
+	ProvisionCluster(context.Context, *profile.Profile, *steps.Config) (map[string][]*workflows.Task, error)
+	ProvisionNode(context.Context, profile.NodeProfile, *model.Kube, *steps.Config) (*workflows.Task, error)
 }
 
 type KubeCreater interface {
 	Create(ctx context.Context, k *model.Kube) error
 }
 
+type workflowSet struct {
+	master string
+	node   string
+}
+
 type TaskProvisioner struct {
 	kubeCreater  KubeCreater
 	repository   storage.Interface
 	getWriter    func(string) (io.WriteCloser, error)
-	provisionMap map[clouds.Name][]string
+	provisionMap map[clouds.Name]workflowSet
 }
 
 func NewProvisioner(repository storage.Interface, kubeService KubeCreater) *TaskProvisioner {
 	return &TaskProvisioner{
 		kubeCreater: kubeService,
 		repository:  repository,
-		provisionMap: map[clouds.Name][]string{
-			clouds.DigitalOcean: {workflows.DigitalOceanMaster, workflows.DigitalOceanNode},
+		provisionMap: map[clouds.Name]workflowSet{
+			clouds.DigitalOcean: {
+				master: workflows.DigitalOceanMaster,
+				node:   workflows.DigitalOceanNode,
+			},
 		},
 		getWriter: func(name string) (io.WriteCloser, error) {
 			// TODO(stgleb): Add log directory to params of supergiant
@@ -50,8 +61,8 @@ func NewProvisioner(repository storage.Interface, kubeService KubeCreater) *Task
 	}
 }
 
-// Provision runs provision process among nodes that have been provided for provision
-func (r *TaskProvisioner) Provision(ctx context.Context, profile *profile.Profile, config *steps.Config) (map[string][]*workflows.Task, error) {
+// ProvisionCluster runs provisionCluster process among nodes that have been provided for provisionCluster
+func (r *TaskProvisioner) ProvisionCluster(ctx context.Context, profile *profile.Profile, config *steps.Config) (map[string][]*workflows.Task, error) {
 	masterTasks, nodeTasks, clusterTask := r.prepare(config.Provider, len(profile.MasterProfiles),
 		len(profile.NodesProfiles))
 
@@ -60,13 +71,13 @@ func (r *TaskProvisioner) Provision(ctx context.Context, profile *profile.Profil
 	r.saveCluster(ctx, profile, masters, nodes, config)
 
 	go func() {
-		BootstrapKeys(config)
+		bootstrapKeys(config)
 
-		// Provision masters and wait until n/2 + 1 of masters with etcd are up and running
+		// ProvisionCluster masters and wait until n/2 + 1 of masters with etcd are up and running
 		doneChan, failChan, err := r.provisionMasters(ctx, profile, config, masterTasks)
 
 		if err != nil {
-			logrus.Errorf("Provision master %v", err)
+			logrus.Errorf("ProvisionCluster master %v", err)
 		}
 
 		select {
@@ -81,7 +92,7 @@ func (r *TaskProvisioner) Provision(ctx context.Context, profile *profile.Profil
 
 		logrus.Infof("Master provisioning for cluster %s has finished successfully", config.ClusterName)
 
-		// Provision nodes
+		// ProvisionCluster nodes
 		r.provisionNodes(ctx, profile, config, nodeTasks)
 
 		// Wait for cluster checks are finished
@@ -100,26 +111,76 @@ func (r *TaskProvisioner) Provision(ctx context.Context, profile *profile.Profil
 	}, nil
 }
 
+func (p *TaskProvisioner) ProvisionNode(ctx context.Context, nodeProfile profile.NodeProfile, kube *model.Kube, config *steps.Config) (*workflows.Task, error) {
+	if len(kube.Masters) != 0 {
+		config.AddMaster(kube.Masters[0])
+	} else {
+		return nil, errors.Wrap(sgerrors.ErrNotFound, "master node")
+	}
+
+	bootstrapKeys(config)
+
+	providerWorkflowSet, ok := p.provisionMap[config.Provider]
+
+	if !ok {
+		return nil, errors.Wrap(sgerrors.ErrNotFound, "provider workflow")
+	}
+
+	// Take node workflow for the provider
+	t, err := workflows.NewTask(providerWorkflowSet.node, p.repository)
+
+	if err != nil {
+		return nil, errors.Wrap(sgerrors.ErrNotFound, "workflow")
+	}
+
+	writer, err := p.getWriter(t.ID)
+
+	if err != nil {
+		return nil, errors.Wrap(err, "get writer")
+	}
+
+	errChan := t.Run(ctx, *config, writer)
+
+	go func() {
+		err = <-errChan
+
+		if err != nil {
+			logrus.Errorf("add node to cluster %s caused an error %v", kube.Name, err)
+			return
+		}
+
+		if n := config.GetNode(); n != nil {
+			kube.Nodes = append(kube.Nodes, n)
+			// TODO(stgleb): Use some other method like update or Patch instead of recreate
+			p.kubeCreater.Create(context.Background(), kube)
+		} else {
+			logrus.Errorf("Add node to cluster %s node was not added", kube.Name)
+		}
+	}()
+
+	return t, nil
+}
+
 // prepare creates all tasks for provisioning according to cloud provider
 func (r *TaskProvisioner) prepare(name clouds.Name, masterCount, nodeCount int) ([]*workflows.Task, []*workflows.Task, *workflows.Task) {
 	masterTasks := make([]*workflows.Task, 0, masterCount)
 	nodeTasks := make([]*workflows.Task, 0, nodeCount)
 
 	for i := 0; i < masterCount; i++ {
-		t, err := workflows.NewTask(r.provisionMap[name][0], r.repository)
+		t, err := workflows.NewTask(r.provisionMap[name].master, r.repository)
 
 		if err != nil {
-			logrus.Errorf("Task type %s not found", r.provisionMap[name][0])
+			logrus.Errorf("Task type %s not found", r.provisionMap[name].master)
 			continue
 		}
 		masterTasks = append(masterTasks, t)
 	}
 
 	for i := 0; i < nodeCount; i++ {
-		t, err := workflows.NewTask(r.provisionMap[name][1], r.repository)
+		t, err := workflows.NewTask(r.provisionMap[name].node, r.repository)
 
 		if err != nil {
-			logrus.Errorf("Task type %s not found", r.provisionMap[name][1])
+			logrus.Errorf("Task type %s not found", r.provisionMap[name].node)
 			continue
 		}
 		nodeTasks = append(nodeTasks, t)
@@ -146,7 +207,7 @@ func (p *TaskProvisioner) provisionMasters(ctx context.Context, profile *profile
 	// If we fail n /2 of master deploy jobs - all cluster deployment is failed
 	failLatch := util.NewCountdownLatch(ctx, len(profile.MasterProfiles)/2+1)
 
-	// Provision master nodes
+	// ProvisionCluster master nodes
 	for index, masterTask := range tasks {
 		if masterTask == nil {
 			logrus.Fatal(tasks)
@@ -200,7 +261,7 @@ func (p *TaskProvisioner) provisionNodes(ctx context.Context, profile *profile.P
 		return
 	}
 
-	// Provision nodes
+	// ProvisionCluster nodes
 	for index, nodeTask := range tasks {
 		fileName := util.MakeFileName(nodeTask.ID)
 		out, err := p.getWriter(fileName)
@@ -296,7 +357,7 @@ func (p *TaskProvisioner) saveCluster(ctx context.Context, profile *profile.Prof
 }
 
 // Create bootstrap key pair and save to config ssh section
-func BootstrapKeys(config *steps.Config) error {
+func bootstrapKeys(config *steps.Config) error {
 	private, public, err := generateKeyPair(keySize)
 
 	if err != nil {

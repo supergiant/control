@@ -47,13 +47,13 @@ func TestNodesFromProfile(t *testing.T) {
 	p := &profile.Profile{
 		Provider: clouds.DigitalOcean,
 		Region:   region,
-		MasterProfiles: []map[string]string{
+		MasterProfiles: []profile.NodeProfile{
 			{
 				"image": "ubuntu-16-04-x64",
 				"size":  "s-1vcpu-2gb",
 			},
 		},
-		NodesProfiles: []map[string]string{
+		NodesProfiles: []profile.NodeProfile{
 			{
 				"image": "ubuntu-16-04-x64",
 				"size":  "s-2vcpu-4gb",

@@ -3,16 +3,12 @@ package kube
 import (
 	"context"
 	"encoding/json"
-	"io"
-	"net/http"
-	"os"
-	"path"
-
 	"github.com/gorilla/mux"
 	"github.com/pkg/errors"
 	"github.com/sirupsen/logrus"
 	"github.com/supergiant/supergiant/pkg/storage"
 	"github.com/supergiant/supergiant/pkg/workflows"
+	"net/http"
 
 	"gopkg.in/asaskevich/govalidator.v8"
 
@@ -24,6 +20,7 @@ import (
 	"github.com/supergiant/supergiant/pkg/sgerrors"
 	"github.com/supergiant/supergiant/pkg/util"
 	"github.com/supergiant/supergiant/pkg/workflows/steps"
+	"time"
 )
 
 // Handler is a http controller for a kube entity.
@@ -232,7 +229,7 @@ func (h *Handler) addNode(w http.ResponseWriter, r *http.Request) {
 	kname := vars["kname"]
 	k, err := h.svc.Get(r.Context(), kname)
 
-	// TODO(stgleb): This method contatins a lot of specific stuff, implement provision node
+	// TODO(stgleb): This method contains a lot of specific stuff, implement provision node
 	// method for provisioner to do all things related to provisioning and saving cluster state
 	if sgerrors.IsNotFound(err) {
 		http.NotFound(w, r)
@@ -264,7 +261,7 @@ func (h *Handler) addNode(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	p := profile.Profile{
+	kubeProfile := profile.Profile{
 		Provider:        acc.Provider,
 		Region:          k.Region,
 		Arch:            k.Arch,
@@ -278,14 +275,14 @@ func (h *Handler) addNode(w http.ResponseWriter, r *http.Request) {
 		CIDR:           k.Networking.CIDR,
 		FlannelVersion: k.Networking.Version,
 
-		NodesProfiles: []map[string]string{
+		NodesProfiles: []profile.NodeProfile{
 			nodeProfile,
 		},
 
 		RBACEnabled: k.RBACEnabled,
 	}
 
-	config := steps.NewConfig(k.Name, "", k.AccountName, p)
+	config := steps.NewConfig(k.Name, "", k.AccountName, kubeProfile)
 
 	if len(k.Masters) != 0 {
 		config.AddMaster(k.Masters[0])
@@ -293,8 +290,6 @@ func (h *Handler) addNode(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, "no master found", http.StatusNotFound)
 		return
 	}
-
-	provisioner.BootstrapKeys(config)
 
 	// Get cloud account fill appropriate config structure with cloud account credentials
 	err = util.FillCloudAccountCredentials(r.Context(), h.accountService, config)
@@ -311,20 +306,19 @@ func (h *Handler) addNode(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	t, err := workflows.NewTask(workflows.DigitalOceanNode, h.repo)
+	ctx, _ := context.WithTimeout(context.Background(), time.Minute*10)
+	t, err := h.provisioner.ProvisionNode(ctx, nodeProfile, k, config)
 
-	if err != nil {
+	if err != nil && sgerrors.IsNotFound(err) {
 		http.Error(w, err.Error(), http.StatusNotFound)
+		return
 	}
-
-	writer, err := getWriter(t.ID)
 
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
 	}
 
-	errChan := t.Run(context.Background(), *config, writer)
 	// Respond to client side that request has been accepted
 	w.WriteHeader(http.StatusAccepted)
 	err = json.NewEncoder(w).Encode(&workflows.TaskResponse{
@@ -335,25 +329,4 @@ func (h *Handler) addNode(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		logrus.Error(errors.Wrap(err, "marshal json"))
 	}
-
-	go func() {
-		err = <-errChan
-
-		if err != nil {
-			logrus.Errorf("add node to cluster %s caused an error %v", k.Name, err)
-		}
-
-		if n := config.GetNode(); n != nil {
-			k.Nodes = append(k.Nodes, n)
-			// TODO(stgleb): Use some other method like update or Patch instead of recreate
-			h.svc.Create(context.Background(), k)
-		} else {
-			logrus.Errorf("Add node to cluster %s node was not added", k.Name)
-		}
-	}()
-}
-
-func getWriter(name string) (io.WriteCloser, error) {
-	// TODO(stgleb): Add log directory to params of supergiant
-	return os.OpenFile(path.Join("/tmp", name), os.O_CREATE|os.O_WRONLY|os.O_APPEND, 0666)
 }
