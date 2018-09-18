@@ -86,6 +86,8 @@ func (r *TaskProvisioner) ProvisionCluster(ctx context.Context, profile *profile
 			return
 		}
 
+		// Save cluster state when masters are provisioned
+		r.saveCluster(ctx, profile, config.GetMasters(), config.GetNodes(), config)
 		logrus.Infof("Master provisioning for cluster %s has finished successfully", config.ClusterName)
 
 		// ProvisionCluster nodes
@@ -94,8 +96,8 @@ func (r *TaskProvisioner) ProvisionCluster(ctx context.Context, profile *profile
 		// Wait for cluster checks are finished
 		r.waitCluster(ctx, clusterTask, config)
 
-		logrus.Infof("Save cluster %s", config.ClusterName)
 		// Save cluster
+		logrus.Infof("Save cluster %s", config.ClusterName)
 		r.saveCluster(ctx, profile, config.GetMasters(), config.GetNodes(), config)
 		logrus.Infof("Cluster %s deployment has finished", config.ClusterName)
 	}()

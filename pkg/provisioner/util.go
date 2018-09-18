@@ -83,7 +83,7 @@ func nodesFromProfile(config *steps.Config, profile *profile.Profile) (map[strin
 
 	for _, p := range profile.MasterProfiles {
 		n := &node.Node{
-			Id:       util.MakeNodeName(config.ClusterName, true),
+			Id:       util.MakeNodeName("todo-", true),
 			Provider: profile.Provider,
 			Region:   profile.Region,
 		}
@@ -94,7 +94,7 @@ func nodesFromProfile(config *steps.Config, profile *profile.Profile) (map[strin
 
 	for _, p := range profile.NodesProfiles {
 		n := &node.Node{
-			Id:       util.MakeNodeName(config.ClusterName, false),
+			Id:       util.MakeNodeName(util.MakeNodeName("todo-", true), false),
 			Provider: profile.Provider,
 			Region:   profile.Region,
 		}

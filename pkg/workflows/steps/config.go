@@ -355,7 +355,7 @@ func (c *Config) GetMasters() map[string]*node.Node {
 	m := make(map[string]*node.Node, len(c.Masters.internal))
 
 	for key := range c.Masters.internal {
-		m[c.Masters.internal[key].Id] = c.Masters.internal[key]
+		m[c.Masters.internal[key].Name] = c.Masters.internal[key]
 	}
 
 	return m
@@ -368,7 +368,7 @@ func (c *Config) GetNodes() map[string]*node.Node {
 	m := make(map[string]*node.Node, len(c.Nodes.internal))
 
 	for key := range c.Nodes.internal {
-		m[c.Nodes.internal[key].Id] = c.Nodes.internal[key]
+		m[c.Nodes.internal[key].Name] = c.Nodes.internal[key]
 	}
 
 	return m

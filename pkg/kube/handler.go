@@ -158,9 +158,13 @@ func (h *Handler) getKube(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if err = json.NewEncoder(w).Encode(k); err != nil {
+	data, err := json.MarshalIndent(k, "", "\t")
+
+	if err != nil {
 		message.SendUnknownError(w, err)
 	}
+
+	w.Write(data)
 }
 
 func (h *Handler) listKubes(w http.ResponseWriter, r *http.Request) {
