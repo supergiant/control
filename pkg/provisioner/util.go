@@ -58,7 +58,7 @@ func (e *EtcdTokenGetter) GetToken(ctx context.Context, num int) (string, error)
 }
 
 // Fill cloud account specific data gets data from the map and puts to particular cloud provider config
-func FillNodeCloudSpecificData(provider clouds.Name, nodeProfile map[string]string, config *steps.Config) error {
+func FillNodeCloudSpecificData(provider clouds.Name, nodeProfile profile.NodeProfile, config *steps.Config) error {
 	switch provider {
 	case clouds.AWS:
 		return util.BindParams(nodeProfile, &config.AWSConfig)

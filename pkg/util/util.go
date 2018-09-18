@@ -14,11 +14,19 @@ import (
 	"github.com/fatih/structs"
 	"github.com/pkg/errors"
 	"github.com/sirupsen/logrus"
+	"github.com/supergiant/supergiant/pkg/clouds"
+	"github.com/supergiant/supergiant/pkg/model"
+	"github.com/supergiant/supergiant/pkg/sgerrors"
+	"github.com/supergiant/supergiant/pkg/workflows/steps"
 )
 
 const letterBytes = "0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ"
 
 var src = rand.NewSource(time.Now().UnixNano())
+
+type cloudAccountGetter interface {
+	Get(context.Context, string) (*model.CloudAccount, error)
+}
 
 // RandomString generates random string with reservoir sampling algorithm https://en.wikipedia.org/wiki/Reservoir_sampling
 func RandomString(n int) string {
@@ -274,11 +282,42 @@ func MakeFileName(taskID string) string {
 	return fmt.Sprintf("%s.log", taskID)
 }
 
-
 func MakeKeyName(name string, isUser bool) string {
 	if isUser {
 		return fmt.Sprintf("%s-user", name)
 	}
 
 	return fmt.Sprintf("%s-provision", name)
+}
+
+// Gets cloud account from storage and fills config object with those credentials
+func FillCloudAccountCredentials(ctx context.Context, getter cloudAccountGetter, config *steps.Config) error {
+	cloudAccount, err := getter.Get(ctx, config.CloudAccountName)
+
+	if err != nil {
+		return nil
+	}
+
+	config.ManifestConfig.ProviderString = string(cloudAccount.Provider)
+	config.Provider = cloudAccount.Provider
+
+	// Bind private key to config
+	BindParams(cloudAccount.Credentials, &config.SshConfig)
+
+	switch cloudAccount.Provider {
+	case clouds.AWS:
+		return BindParams(cloudAccount.Credentials, &config.AWSConfig)
+	case clouds.GCE:
+		return BindParams(cloudAccount.Credentials, &config.GCEConfig)
+	case clouds.DigitalOcean:
+		return BindParams(cloudAccount.Credentials, &config.DigitalOceanConfig)
+	case clouds.Packet:
+		return BindParams(cloudAccount.Credentials, &config.PacketConfig)
+	case clouds.OpenStack:
+		return BindParams(cloudAccount.Credentials, &config.OSConfig)
+	default:
+		return sgerrors.ErrUnknownProvider
+	}
+
+	return nil
 }

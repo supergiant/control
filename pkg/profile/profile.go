@@ -5,8 +5,8 @@ import "github.com/supergiant/supergiant/pkg/clouds"
 type Profile struct {
 	ID string `json:"id" valid:"required"`
 
-	MasterProfiles []map[string]string `json:"masterProfiles" valid:"required"`
-	NodesProfiles  []map[string]string `json:"nodesProfiles" valid:"required"`
+	MasterProfiles []NodeProfile `json:"masterProfiles" valid:"required"`
+	NodesProfiles  []NodeProfile `json:"nodesProfiles" valid:"required"`
 
 	// TODO(stgleb): In future releases arch will probably migrate to node profile
 	// to allow user create heterogeneous cluster of machine with different arch
@@ -23,3 +23,5 @@ type Profile struct {
 	HelmVersion     string      `json:"helmVersion"`
 	RBACEnabled     bool        `json:"rbacEnabled"`
 }
+
+type NodeProfile map[string]string
