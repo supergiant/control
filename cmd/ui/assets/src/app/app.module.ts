@@ -3,7 +3,6 @@ import { BrowserModule } from '@angular/platform-browser';
 import { FormsModule, ReactiveFormsModule } from '@angular/forms';
 import { NgModule } from '@angular/core';
 import { NgbModule } from '@ng-bootstrap/ng-bootstrap';
-import { HttpModule } from '@angular/http';
 import { HttpClientModule } from '@angular/common/http';
 import { SimpleNotificationsModule } from 'angular2-notifications/dist';
 import { BrowserAnimationsModule } from '@angular/platform-browser/animations';
@@ -40,7 +39,7 @@ import {
   MatTabsModule,
   MatToolbarModule,
   MatTooltipModule } from '@angular/material';
-import { SchemaFormModule, WidgetRegistry, DefaultWidgetRegistry } from 'angular2-schema-form';
+import { SchemaFormModule, WidgetRegistry, DefaultWidgetRegistry } from 'ngx-schema-form';
 import {
   MaterialDesignFrameworkModule,
   JsonSchemaFormService,
@@ -311,7 +310,6 @@ import { FooterComponent } from './shared/footer/footer.component';
     // }),
     NgbModule.forRoot(),
     AppRoutingModule,
-    HttpModule,
     FormsModule,
     BrowserAnimationsModule,
     SimpleNotificationsModule.forRoot(),
