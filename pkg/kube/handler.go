@@ -353,6 +353,7 @@ func (h *Handler) addNode(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
+// TODO(stgleb): cover with unit tests
 func (h *Handler) deleteNode(w http.ResponseWriter, r *http.Request) {
 	vars := mux.Vars(r)
 
