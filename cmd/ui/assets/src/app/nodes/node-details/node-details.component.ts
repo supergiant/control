@@ -12,7 +12,6 @@ import { convertIsoToHumanReadable } from '../../shared/helpers/helpers';
 import { LoginComponent } from '../../login/login.component';
 import { Location } from '@angular/common';
 
-import "brace/mode/json";
 
 @Component({
   selector: 'app-node-details',

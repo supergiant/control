@@ -12,7 +12,6 @@ import { DomSanitizer, SafeResourceUrl } from '@angular/platform-browser';
 import { ChartsModule, BaseChartDirective } from 'ng2-charts';
 import { MatTableDataSource, MatSort, MatPaginator } from '@angular/material';
 
-import "brace/mode/json";
 
 @Component({
   selector: 'app-cluster',
