@@ -19,6 +19,8 @@ import (
 	"github.com/supergiant/supergiant/pkg/node"
 	"github.com/supergiant/supergiant/pkg/sgerrors"
 	"github.com/supergiant/supergiant/pkg/workflows/steps"
+	"os"
+	"path"
 )
 
 const letterBytes = "0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ"
@@ -329,4 +331,8 @@ func GetAnyNode(nodeMap map[string]*node.Node) *node.Node {
 	}
 
 	return nil
+}
+
+func GetWriter(name string) (io.WriteCloser, error) {
+	return os.OpenFile(path.Join("/tmp", name), os.O_CREATE|os.O_WRONLY|os.O_APPEND, 0666)
 }

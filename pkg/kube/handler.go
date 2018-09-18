@@ -21,7 +21,6 @@ import (
 	"github.com/supergiant/supergiant/pkg/util"
 	"github.com/supergiant/supergiant/pkg/workflows"
 	"github.com/supergiant/supergiant/pkg/workflows/steps"
-	"os"
 )
 
 type accountGetter interface {
@@ -396,6 +395,32 @@ func (h *Handler) deleteNode(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	t.Run(context.Background(), *config, os.Stdout)
+	writer, err := util.GetWriter(t.ID)
+
+	if err != nil {
+		message.SendUnknownError(w, err)
+		return
+	}
+
+	errChan := t.Run(context.Background(), *config, writer)
+
+	// Update cluster state when deletion completes
+	go func() {
+		err := <-errChan
+
+		if err != nil {
+			logrus.Errorf("delete node %s from cluster %s caused %v", nodeName, kname, err)
+		}
+
+		// Delete node from cluster object
+		delete(k.Nodes, nodeName)
+		// Save cluster object to etcd
+		logrus.Infof("delete node %s from cluster %s", nodeName, kname)
+		err = h.svc.Create(context.Background(), k)
+
+		if err != nil {
+			logrus.Errorf("update cluster %s caused %v", nodeName, kname, err)
+		}
+	}()
 	w.WriteHeader(http.StatusAccepted)
 }

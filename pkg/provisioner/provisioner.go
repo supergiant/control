@@ -3,8 +3,6 @@ package provisioner
 import (
 	"context"
 	"io"
-	"os"
-	"path"
 	"sync"
 
 	"github.com/pkg/errors"
@@ -48,10 +46,7 @@ func NewProvisioner(repository storage.Interface, kubeService KubeCreater) *Task
 				node:   workflows.DigitalOceanNode,
 			},
 		},
-		getWriter: func(name string) (io.WriteCloser, error) {
-			// TODO(stgleb): Add log directory to params of supergiant
-			return os.OpenFile(path.Join("/tmp", name), os.O_CREATE|os.O_WRONLY|os.O_APPEND, 0666)
-		},
+		getWriter: util.GetWriter,
 	}
 }
 
