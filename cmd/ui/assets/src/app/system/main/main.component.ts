@@ -1,6 +1,8 @@
+
+import {timer as observableTimer,  Subscription ,  Observable } from 'rxjs';
+
+import {switchMap} from 'rxjs/operators';
 import { Component, OnInit, OnDestroy, ViewEncapsulation, ViewChild } from '@angular/core';
-import { Subscription } from 'rxjs/Subscription';
-import { Observable } from 'rxjs/Observable';
 import { Supergiant } from '../../shared/supergiant/supergiant.service';
 import { Notifications } from '../../shared/notifications/notifications.service';
 import { ChartsModule, BaseChartDirective } from 'ng2-charts';
@@ -59,8 +61,8 @@ export class MainComponent implements OnInit, OnDestroy {
   }
 
   get() {
-    this.subscriptions.add(Observable.timer(0, 5000)
-      .switchMap(() => this.supergiant.HelmRepos.get()).subscribe(
+    this.subscriptions.add(observableTimer(0, 5000).pipe(
+      switchMap(() => this.supergiant.HelmRepos.get())).subscribe(
       (repos) => {
         this.rows = repos.items.map(repo => ({
           id: repo.id, name: repo.name, url: repo.url

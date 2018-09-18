@@ -1,7 +1,9 @@
+
+import {timer as observableTimer,  Subscription ,  Observable } from 'rxjs';
+
+import {switchMap} from 'rxjs/operators';
 import { Component, OnInit, OnDestroy, ViewChild, ViewEncapsulation } from '@angular/core';
-import { Subscription } from 'rxjs/Subscription';
 import { ActivatedRoute, Router } from '@angular/router';
-import { Observable } from 'rxjs/Observable';
 import { Supergiant } from '../../shared/supergiant/supergiant.service';
 import { Notifications } from '../../shared/notifications/notifications.service';
 import { ChartsModule, BaseChartDirective } from 'ng2-charts';
@@ -62,8 +64,8 @@ export class NodeDetailsComponent implements OnInit, OnDestroy {
   }
 
   getNode() {
-    this.subscriptions.add(Observable.timer(0, 5000)
-      .switchMap(() => this.supergiant.Nodes.get(this.id)).subscribe(
+    this.subscriptions.add(observableTimer(0, 5000).pipe(
+      switchMap(() => this.supergiant.Nodes.get(this.id))).subscribe(
         (node) => {
           this.node = node;
           if (this.node.extra_data && this.node.extra_data.cpu_usage_rate && this.node.extra_data.cpu_node_capacity) {
