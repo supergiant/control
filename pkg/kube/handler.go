@@ -14,12 +14,14 @@ import (
 	"github.com/sirupsen/logrus"
 	"github.com/supergiant/supergiant/pkg/message"
 	"github.com/supergiant/supergiant/pkg/model"
+	"github.com/supergiant/supergiant/pkg/node"
 	"github.com/supergiant/supergiant/pkg/profile"
 	"github.com/supergiant/supergiant/pkg/sgerrors"
 	"github.com/supergiant/supergiant/pkg/storage"
 	"github.com/supergiant/supergiant/pkg/util"
 	"github.com/supergiant/supergiant/pkg/workflows"
 	"github.com/supergiant/supergiant/pkg/workflows/steps"
+	"os"
 )
 
 type accountGetter interface {
@@ -62,6 +64,8 @@ func (h *Handler) Register(r *mux.Router) {
 	r.HandleFunc("/kubes/{kname}/tasks", h.getTasks).Methods(http.MethodGet)
 	// TODO(stgleb): Add get method for getting kube nodes
 	r.HandleFunc("/kubes/{kname}/nodes", h.addNode).Methods(http.MethodPost)
+	r.HandleFunc("/kubes/{kname}/nodes/{nodename}", h.deleteNode).Methods(http.MethodDelete)
+	r.HandleFunc("/kubes/{kname}/nodes/{nodename}", h.deleteNode).Methods(http.MethodDelete)
 }
 
 func (h *Handler) getTasks(w http.ResponseWriter, r *http.Request) {
@@ -348,4 +352,50 @@ func (h *Handler) addNode(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		logrus.Error(errors.Wrap(err, "marshal json"))
 	}
+}
+
+func (h *Handler) deleteNode(w http.ResponseWriter, r *http.Request) {
+	vars := mux.Vars(r)
+
+	kname := vars["kname"]
+	nodeName := vars["nodename"]
+
+	k, err := h.svc.Get(r.Context(), kname)
+	if err != nil {
+		if sgerrors.IsNotFound(err) {
+			message.SendNotFound(w, kname, err)
+			return
+		}
+		message.SendUnknownError(w, err)
+		return
+	}
+
+	t, err := workflows.NewTask(workflows.DigitalOceanDelete, h.repo)
+
+	if err != nil {
+		message.SendUnknownError(w, err)
+		return
+	}
+
+	config := &steps.Config{
+		ClusterName:      k.Name,
+		CloudAccountName: k.AccountName,
+		Node: node.Node{
+			Name: nodeName,
+		},
+	}
+
+	err = util.FillCloudAccountCredentials(r.Context(), h.accountService, config)
+
+	if err != nil {
+		if sgerrors.IsNotFound(err) {
+			http.NotFound(w, r)
+			return
+		}
+		message.SendUnknownError(w, err)
+		return
+	}
+
+	t.Run(context.Background(), *config, os.Stdout)
+	w.WriteHeader(http.StatusAccepted)
 }

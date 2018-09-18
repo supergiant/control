@@ -16,9 +16,9 @@ import (
 	"github.com/sirupsen/logrus"
 	"github.com/supergiant/supergiant/pkg/clouds"
 	"github.com/supergiant/supergiant/pkg/model"
+	"github.com/supergiant/supergiant/pkg/node"
 	"github.com/supergiant/supergiant/pkg/sgerrors"
 	"github.com/supergiant/supergiant/pkg/workflows/steps"
-	"github.com/supergiant/supergiant/pkg/node"
 )
 
 const letterBytes = "0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ"
@@ -322,7 +322,6 @@ func FillCloudAccountCredentials(ctx context.Context, getter cloudAccountGetter,
 
 	return nil
 }
-
 
 func GetAnyNode(nodeMap map[string]*node.Node) *node.Node {
 	for key := range nodeMap {

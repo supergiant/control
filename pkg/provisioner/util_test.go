@@ -5,10 +5,10 @@ import (
 	"github.com/dgrijalva/jwt-go"
 	"github.com/supergiant/supergiant/pkg/clouds"
 	"github.com/supergiant/supergiant/pkg/profile"
+	"github.com/supergiant/supergiant/pkg/workflows/steps"
 	"golang.org/x/crypto/ssh"
 	"strings"
 	"testing"
-	"github.com/supergiant/supergiant/pkg/workflows/steps"
 )
 
 var (

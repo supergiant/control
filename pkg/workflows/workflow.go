@@ -1,7 +1,6 @@
 package workflows
 
 import (
-	"errors"
 	"sync"
 
 	"github.com/supergiant/supergiant/pkg/workflows/steps"
@@ -35,7 +34,8 @@ type Workflow []steps.Step
 const (
 	Prefix = "tasks"
 
-	Cluster            = "Cluster"
+	Cluster = "Cluster"
+
 	DigitalOceanMaster = "DigitalOceanMaster"
 	DigitalOceanNode   = "DigitalOceanNode"
 	DigitalOceanDelete = "DigitalOceanDelete"
@@ -44,8 +44,6 @@ const (
 var (
 	m           sync.RWMutex
 	workflowMap map[string]Workflow
-
-	ErrUnknownProviderWorkflowType = errors.New("unknown provider_workflow type")
 )
 
 func Init() {
