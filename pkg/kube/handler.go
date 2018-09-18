@@ -420,7 +420,7 @@ func (h *Handler) deleteNode(w http.ResponseWriter, r *http.Request) {
 		err = h.svc.Create(context.Background(), k)
 
 		if err != nil {
-			logrus.Errorf("update cluster %s caused %v", nodeName, kname, err)
+			logrus.Errorf("update cluster %s caused %v", kname, err)
 		}
 	}()
 	w.WriteHeader(http.StatusAccepted)

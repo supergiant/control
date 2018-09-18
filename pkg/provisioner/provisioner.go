@@ -55,6 +55,7 @@ func (r *TaskProvisioner) ProvisionCluster(ctx context.Context, profile *profile
 	masterTasks, nodeTasks, clusterTask := r.prepare(config.Provider, len(profile.MasterProfiles),
 		len(profile.NodesProfiles))
 
+	// TODO(stgleb): Make node names from task id before provisioning starts
 	masters, nodes := nodesFromProfile(config, profile)
 	// Save cluster before provisioning
 	r.saveCluster(ctx, profile, masters, nodes, config)
