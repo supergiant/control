@@ -18,45 +18,20 @@ import (
 	"github.com/supergiant/supergiant/pkg/workflows/steps"
 )
 
-const (
-	StepName = "digitalOcean"
-)
-
-var (
-	// TODO(stgleb): We need global error for timeout exceeding
-	ErrTimeoutExceeded = errors.New("timeout exceeded")
-)
-
-type DropletService interface {
-	Get(int) (*godo.Droplet, *godo.Response, error)
-	Create(*godo.DropletCreateRequest) (*godo.Droplet, *godo.Response, error)
-}
-
-type TagService interface {
-	TagResources(string, *godo.TagResourcesRequest) (*godo.Response, error)
-}
-
-type KeyService interface {
-	Create(context.Context, *godo.KeyCreateRequest) (*godo.Key, *godo.Response, error)
-}
-
-type Step struct {
+type CreateInstanceStep struct {
 	DropletTimeout time.Duration
 	CheckPeriod    time.Duration
 }
 
-func Init() {
-	steps.RegisterStep(StepName, New(time.Minute*5, time.Second*5))
-}
-
-func New(dropletTimeout, checkPeriod time.Duration) *Step {
-	return &Step{
+func NewCreateInstanceStep(dropletTimeout, checkPeriod time.Duration) *CreateInstanceStep {
+	return &CreateInstanceStep{
 		DropletTimeout: dropletTimeout,
 		CheckPeriod:    checkPeriod,
 	}
 }
 
-func (s *Step) Run(ctx context.Context, output io.Writer, config *steps.Config) error {
+func (s *CreateInstanceStep) Run(ctx context.Context, output io.Writer, config *steps.Config) error {
+	// TODO(stgleb): Extrack getting digital ocean sdk to function that will allow it to be mocked.
 	c := digitaloceanSDK.New(config.DigitalOceanConfig.AccessToken).GetClient()
 	config.DigitalOceanConfig.Name = util.MakeNodeName(config.ClusterName, config.IsMaster)
 
@@ -141,11 +116,11 @@ func (s *Step) Run(ctx context.Context, output io.Writer, config *steps.Config) 
 	return nil
 }
 
-func (s *Step) Rollback(context.Context, io.Writer, *steps.Config) error {
+func (s *CreateInstanceStep) Rollback(context.Context, io.Writer, *steps.Config) error {
 	return nil
 }
 
-func (s *Step) tagDroplet(ctx context.Context, tagService godo.TagsService, dropletId int, tags []string) error {
+func (s *CreateInstanceStep) tagDroplet(ctx context.Context, tagService godo.TagsService, dropletId int, tags []string) error {
 	// Tag droplet
 	for _, tag := range tags {
 		input := &godo.TagResourcesRequest{
@@ -164,19 +139,19 @@ func (s *Step) tagDroplet(ctx context.Context, tagService godo.TagsService, drop
 	return nil
 }
 
-func (s *Step) Name() string {
-	return StepName
+func (s *CreateInstanceStep) Name() string {
+	return CreateInstanceStepName
 }
 
-func (s *Step) Depends() []string {
+func (s *CreateInstanceStep) Depends() []string {
 	return nil
 }
 
-func (s *Step) Description() string {
+func (s *CreateInstanceStep) Description() string {
 	return ""
 }
 
-func (s *Step) createKeys(ctx context.Context, keyService KeyService, config *steps.Config) ([]godo.DropletCreateSSHKey, error) {
+func (s *CreateInstanceStep) createKeys(ctx context.Context, keyService KeyService, config *steps.Config) ([]godo.DropletCreateSSHKey, error) {
 	var fingers []godo.DropletCreateSSHKey
 
 	// Create key for provisioning

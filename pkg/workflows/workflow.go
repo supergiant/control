@@ -38,6 +38,7 @@ const (
 	Cluster            = "Cluster"
 	DigitalOceanMaster = "DigitalOceanMaster"
 	DigitalOceanNode   = "DigitalOceanNode"
+	DigitalOceanDelete = "DigitalOceanDelete"
 )
 
 var (
@@ -51,7 +52,7 @@ func Init() {
 	workflowMap = make(map[string]Workflow)
 
 	digitalOceanMasterWorkflow := []steps.Step{
-		steps.GetStep(digitalocean.StepName),
+		steps.GetStep(digitalocean.CreateInstanceStepName),
 		steps.GetStep(ssh.StepName),
 		steps.GetStep(downloadk8sbinary.StepName),
 		steps.GetStep(docker.StepName),
@@ -65,7 +66,7 @@ func Init() {
 		steps.GetStep(poststart.StepName),
 	}
 	digitalOceanNodeWorkflow := []steps.Step{
-		steps.GetStep(digitalocean.StepName),
+		steps.GetStep(digitalocean.CreateInstanceStepName),
 		steps.GetStep(ssh.StepName),
 		steps.GetStep(downloadk8sbinary.StepName),
 		steps.GetStep(docker.StepName),
@@ -82,9 +83,14 @@ func Init() {
 		steps.GetStep(tiller.StepName),
 	}
 
+	digitalOceanDeleteWorkflow := []steps.Step{
+		steps.GetStep(digitalocean.DeleteInstanceStepName),
+	}
+
 	m.Lock()
 	defer m.Unlock()
 
+	workflowMap[DigitalOceanDelete] = digitalOceanDeleteWorkflow
 	workflowMap[Cluster] = clusterWorkflow
 	workflowMap[DigitalOceanMaster] = digitalOceanMasterWorkflow
 	workflowMap[DigitalOceanNode] = digitalOceanNodeWorkflow
