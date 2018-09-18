@@ -27,11 +27,16 @@ func (t *mockTokenGetter) GetToken(ctx context.Context, num int) (string, error)
 }
 
 type mockProvisioner struct {
-	provision func(context.Context, *profile.Profile, *steps.Config) (map[string][]*workflows.Task, error)
+	provisionCluster func(context.Context, *profile.Profile, *steps.Config) (map[string][]*workflows.Task, error)
+	provisionNode    func(context.Context, profile.NodeProfile, *model.Kube, *steps.Config) (*workflows.Task, error)
 }
 
-func (m *mockProvisioner) Provision(ctx context.Context, kubeProfile *profile.Profile, config *steps.Config) (map[string][]*workflows.Task, error) {
-	return m.provision(ctx, kubeProfile, config)
+func (m *mockProvisioner) ProvisionCluster(ctx context.Context, kubeProfile *profile.Profile, config *steps.Config) (map[string][]*workflows.Task, error) {
+	return m.provisionCluster(ctx, kubeProfile, config)
+}
+
+func (m *mockProvisioner) ProvisionNode(ctx context.Context, nodeProfile profile.NodeProfile, kube *model.Kube, config *steps.Config) (*workflows.Task, error) {
+	return m.provisionNode(ctx, nodeProfile, kube, config)
 }
 
 type mockAccountGetter struct {
@@ -87,7 +92,7 @@ func TestProvisionHandler(t *testing.T) {
 			},
 		},
 		{
-			description:  "invalid credentials when provision",
+			description:  "invalid credentials when provisionCluster",
 			body:         validBody,
 			expectedCode: http.StatusInternalServerError,
 			getAccount: func(context.Context, string) (*model.CloudAccount, error) {
@@ -138,7 +143,7 @@ func TestProvisionHandler(t *testing.T) {
 	tokenGetter := &mockTokenGetter{}
 
 	for _, testCase := range testCases {
-		provisioner.provision = testCase.provision
+		provisioner.provisionCluster = testCase.provision
 		accGetter.get = testCase.getAccount
 		tokenGetter.getToken = testCase.getToken
 

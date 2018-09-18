@@ -1,4 +1,4 @@
-package kube
+package model
 
 import (
 	"github.com/supergiant/supergiant/pkg/node"
@@ -9,6 +9,7 @@ type Kube struct {
 	Name         string `json:"name" valid:"required"`
 	RBACEnabled  bool   `json:"rbacEnabled"`
 	AccountName  string `json:"accountName"`
+	Region       string `json:"region"`
 	Auth         Auth   `json:"auth"`
 	SshUser      string `json:"sshUser"`
 	SshPublicKey []byte `json:"sshKey"`

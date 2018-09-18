@@ -11,6 +11,7 @@ import (
 	"github.com/supergiant/supergiant/pkg/account"
 	"github.com/supergiant/supergiant/pkg/model"
 	"github.com/supergiant/supergiant/pkg/profile"
+	"github.com/supergiant/supergiant/pkg/util"
 	"github.com/supergiant/supergiant/pkg/workflows"
 	"github.com/supergiant/supergiant/pkg/workflows/steps"
 )
@@ -26,7 +27,7 @@ type TokenGetter interface {
 type Handler struct {
 	accountGetter AccountGetter
 	tokenGetter   TokenGetter
-	provisioner   Provisioner
+	provisioner   ClusterProvisioner
 }
 
 type ProvisionRequest struct {
@@ -39,7 +40,11 @@ type ProvisionResponse struct {
 	Tasks map[string][]string `json:"tasks"`
 }
 
-func NewHandler(cloudAccountService *account.Service, tokenGetter TokenGetter, provisioner Provisioner) *Handler {
+type ClusterProvisioner interface {
+	ProvisionCluster(context.Context, *profile.Profile, *steps.Config) (map[string][]*workflows.Task, error)
+}
+
+func NewHandler(cloudAccountService *account.Service, tokenGetter TokenGetter, provisioner ClusterProvisioner) *Handler {
 	return &Handler{
 		accountGetter: cloudAccountService,
 		tokenGetter:   tokenGetter,
@@ -73,7 +78,7 @@ func (h *Handler) Provision(w http.ResponseWriter, r *http.Request) {
 
 	config := steps.NewConfig(req.ClusterName, discoveryUrl, req.CloudAccountName, req.Profile)
 	// Fill config with appropriate cloud account credentials
-	err = workflows.FillCloudAccountCredentials(r.Context(), h.accountGetter, config)
+	err = util.FillCloudAccountCredentials(r.Context(), h.accountGetter, config)
 
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusNotFound)
@@ -82,11 +87,11 @@ func (h *Handler) Provision(w http.ResponseWriter, r *http.Request) {
 	}
 
 	ctx, _ := context.WithTimeout(context.Background(), config.Timeout)
-	taskMap, err := h.provisioner.Provision(ctx, &req.Profile, config)
+	taskMap, err := h.provisioner.ProvisionCluster(ctx, &req.Profile, config)
 
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
-		logrus.Error(errors.Wrap(err, "provision"))
+		logrus.Error(errors.Wrap(err, "provisionCluster"))
 		return
 	}
 
