@@ -1,11 +1,9 @@
-
-import {timer as observableTimer,  Subscription ,  Observable } from 'rxjs';
-
-import {switchMap} from 'rxjs/operators';
 import { Component, OnInit, Input, OnDestroy, ViewChild } from '@angular/core';
 import { ActivatedRoute, Router } from '@angular/router';
+import { Subscription } from 'rxjs/Subscription';
 import { Supergiant } from '../../shared/supergiant/supergiant.service';
 import { Notifications } from '../../shared/notifications/notifications.service';
+import { Observable } from 'rxjs/Observable';
 import { ChartsModule, BaseChartDirective } from 'ng2-charts';
 import { ContextMenuService, ContextMenuComponent } from 'ngx-contextmenu';
 import { PodsModel } from '../pods.model';
@@ -70,8 +68,8 @@ export class PodsListComponent implements OnInit, OnDestroy {
   }
 
   get() {
-    this.subscriptions.add(observableTimer(0, 5000).pipe(
-      switchMap(() => this.supergiant.KubeResources.get())).subscribe(
+    this.subscriptions.add(Observable.timer(0, 5000)
+      .switchMap(() => this.supergiant.KubeResources.get()).subscribe(
         (pods) => {
 
           // Filter by kube if it is passed, else no filter.

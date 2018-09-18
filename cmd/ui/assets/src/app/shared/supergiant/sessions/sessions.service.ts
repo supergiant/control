@@ -1,6 +1,5 @@
-
-import {throwError as observableThrowError,  Observable } from 'rxjs';
 import { Injectable } from '@angular/core';
+import { Observable } from 'rxjs/Observable';
 import { UtilService } from '../util/util.service';
 
 @Injectable()
@@ -13,7 +12,7 @@ export class Sessions {
     if (id) {
       return this.util.fetchResponse(this.sessionsPath + '/' + id);
     } else {
-      return observableThrowError(null);
+      return Observable.throw(null);
     }
   }
 

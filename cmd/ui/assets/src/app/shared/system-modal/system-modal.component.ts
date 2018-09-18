@@ -1,12 +1,10 @@
-
-import {timer as observableTimer,  Subscription ,  Observable } from 'rxjs';
-
-import {switchMap} from 'rxjs/operators';
 import { Component, OnDestroy, ViewChild, ElementRef, ViewEncapsulation, AfterViewInit } from '@angular/core';
 import { NgbModal, NgbModalOptions } from '@ng-bootstrap/ng-bootstrap';
+import { Subscription } from 'rxjs/Subscription';
 import { Supergiant } from '../../shared/supergiant/supergiant.service';
 import { SystemModalService } from './system-modal.service';
 import { Notifications } from '../notifications/notifications.service';
+import { Observable } from 'rxjs/Observable';
 import { Http } from '@angular/http';
 
 @Component({
@@ -44,8 +42,8 @@ export class SystemModalComponent implements AfterViewInit, OnDestroy {
   }
 
   open(content) {
-    this.subscriptions.add(observableTimer(0, 1000).pipe(
-      switchMap(() => this.supergiant.Logs.get())).subscribe(
+    this.subscriptions.add(Observable.timer(0, 1000)
+      .switchMap(() => this.supergiant.Logs.get()).subscribe(
       (data) => {
         this.logData = data;
         this.logData = this.logData.replace(/[\x00-\x7F]\[\d+mINFO[\x00-\x7F]\[0m/g, '<span class=\'text-info\'>INFO</span> ');

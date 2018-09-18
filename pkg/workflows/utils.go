@@ -11,6 +11,7 @@ import (
 	"github.com/supergiant/supergiant/pkg/storage"
 	"github.com/supergiant/supergiant/pkg/util"
 	"github.com/supergiant/supergiant/pkg/workflows/steps"
+	"fmt"
 )
 
 type cloudAccountGetter interface {
@@ -76,4 +77,12 @@ func DeserializeTask(data []byte, repository storage.Interface) (*Task, error) {
 	}
 
 	return task, nil
+}
+
+func MakeKeyName(name string, isUser bool) string {
+	if isUser {
+		return fmt.Sprintf("%s-user", name)
+	}
+
+	return fmt.Sprintf("%s-provision", name)
 }

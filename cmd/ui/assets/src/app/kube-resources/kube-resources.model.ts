@@ -323,5 +323,5 @@ export class KubeResourcesModel {
     pod: this.pod,
     service: this.service,
     loadBalancer: this.loadBalancer
-  };
+  }
 }
