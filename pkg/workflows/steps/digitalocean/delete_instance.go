@@ -47,7 +47,7 @@ func (s *DeleteInstaceStep) Rollback(context.Context, io.Writer, *steps.Config) 
 }
 
 func (s *DeleteInstaceStep) Name() string {
-	return DeleteInstanceStepName
+	return DeleteMachineStepName
 }
 
 func (s *DeleteInstaceStep) Depends() []string {

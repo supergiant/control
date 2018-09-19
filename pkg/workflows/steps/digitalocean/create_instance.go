@@ -140,7 +140,7 @@ func (s *CreateInstanceStep) tagDroplet(ctx context.Context, tagService godo.Tag
 }
 
 func (s *CreateInstanceStep) Name() string {
-	return CreateInstanceStepName
+	return CreateMachineStepName
 }
 
 func (s *CreateInstanceStep) Depends() []string {

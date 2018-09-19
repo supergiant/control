@@ -50,7 +50,7 @@ func Init() {
 	workflowMap = make(map[string]Workflow)
 
 	digitalOceanMasterWorkflow := []steps.Step{
-		steps.GetStep(digitalocean.CreateInstanceStepName),
+		steps.GetStep(digitalocean.CreateMachineStepName),
 		steps.GetStep(ssh.StepName),
 		steps.GetStep(downloadk8sbinary.StepName),
 		steps.GetStep(docker.StepName),
@@ -64,7 +64,7 @@ func Init() {
 		steps.GetStep(poststart.StepName),
 	}
 	digitalOceanNodeWorkflow := []steps.Step{
-		steps.GetStep(digitalocean.CreateInstanceStepName),
+		steps.GetStep(digitalocean.CreateMachineStepName),
 		steps.GetStep(ssh.StepName),
 		steps.GetStep(downloadk8sbinary.StepName),
 		steps.GetStep(docker.StepName),
@@ -82,7 +82,7 @@ func Init() {
 	}
 
 	digitalOceanDeleteWorkflow := []steps.Step{
-		steps.GetStep(digitalocean.DeleteInstanceStepName),
+		steps.GetStep(digitalocean.DeleteMachineStepName),
 	}
 
 	m.Lock()

@@ -378,6 +378,7 @@ func (h *Handler) deleteNode(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	// TODO(stgleb): check whether we will have quorum of master nodes if node is deleted.
 	if _, ok := k.Masters[nodeName]; ok {
 		http.Error(w, "delete master node not allowed", http.StatusMethodNotAllowed)
 		return
