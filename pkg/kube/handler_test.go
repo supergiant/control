@@ -87,7 +87,11 @@ func (m *mockNodeProvisioner) ProvisionNodes(ctx context.Context, nodeProfile []
 
 func (m *kubeServiceMock) Create(ctx context.Context, k *model.Kube) error {
 	args := m.Called(ctx, k)
-	return args.Error(0)
+	val, ok := args.Get(0).(error)
+	if !ok {
+		return nil
+	}
+	return val
 }
 func (m *kubeServiceMock) Get(ctx context.Context, name string) (*model.Kube, error) {
 	args := m.Called(ctx, name)
