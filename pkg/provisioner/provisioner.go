@@ -50,6 +50,9 @@ func NewProvisioner(repository storage.Interface, kubeService KubeCreater) *Task
 	}
 }
 
+// TODO(stgleb): Add method watchClusterState that gets all updates about kube state e.g node becomes active
+// node created and keep track of this in etcd. This is needed because from time to time some of last deployed
+// nodes in cluster doesn't update their status to active.
 // ProvisionCluster runs provisionCluster process among nodes that have been provided for provisionCluster
 func (r *TaskProvisioner) ProvisionCluster(ctx context.Context, profile *profile.Profile, config *steps.Config) (map[string][]*workflows.Task, error) {
 	masterTasks, nodeTasks, clusterTask := r.prepare(config.Provider, len(profile.MasterProfiles),
