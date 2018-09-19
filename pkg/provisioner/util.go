@@ -18,6 +18,7 @@ import (
 	"github.com/supergiant/supergiant/pkg/profile"
 	"github.com/supergiant/supergiant/pkg/sgerrors"
 	"github.com/supergiant/supergiant/pkg/util"
+	"github.com/supergiant/supergiant/pkg/workflows"
 	"github.com/supergiant/supergiant/pkg/workflows/steps"
 )
 
@@ -77,30 +78,34 @@ func FillNodeCloudSpecificData(provider clouds.Name, nodeProfile profile.NodePro
 	return nil
 }
 
-func nodesFromProfile(config *steps.Config, profile *profile.Profile) (map[string]*node.Node, map[string]*node.Node) {
+func nodesFromProfile(clusterName string, masterTasks, nodeTasks []*workflows.Task, profile *profile.Profile) (map[string]*node.Node, map[string]*node.Node) {
 	masters := make(map[string]*node.Node)
 	nodes := make(map[string]*node.Node)
 
-	for _, p := range profile.MasterProfiles {
+	for index, p := range profile.MasterProfiles {
+		taskId := masterTasks[index].ID
+
 		n := &node.Node{
-			Id:       util.MakeNodeName("todo-", true),
+			Name:     util.MakeNodeName(clusterName, taskId, true),
 			Provider: profile.Provider,
 			Region:   profile.Region,
 		}
 
 		util.BindParams(p, n)
-		masters[n.Id] = n
+		masters[n.Name] = n
 	}
 
-	for _, p := range profile.NodesProfiles {
+	for index, p := range profile.NodesProfiles {
+		taskId := nodeTasks[index].ID
+
 		n := &node.Node{
-			Id:       util.MakeNodeName(util.MakeNodeName("todo-", true), false),
+			Name:     util.MakeNodeName(clusterName, taskId[:4], false),
 			Provider: profile.Provider,
 			Region:   profile.Region,
 		}
 
 		util.BindParams(p, n)
-		nodes[n.Id] = n
+		nodes[n.Name] = n
 	}
 
 	return masters, nodes

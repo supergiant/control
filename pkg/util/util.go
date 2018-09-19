@@ -240,12 +240,12 @@ func RecurseSchema(schema map[string]interface{}, obj interface{}) {
 	}
 }
 
-func MakeNodeName(clusterName string, isMaster bool) string {
+func MakeNodeName(clusterName string, nodeId string, isMaster bool) string {
 	if isMaster {
-		return fmt.Sprintf("%s-%s-%s", clusterName, "master", strings.ToLower(RandomString(5)))
+		return fmt.Sprintf("%s-%s-%s", clusterName, "master", nodeId[:4])
 	}
 
-	return fmt.Sprintf("%s-%s-%s", clusterName, "node", strings.ToLower(RandomString(5)))
+	return fmt.Sprintf("%s-%s-%s", clusterName, "node", nodeId[:4])
 }
 
 // bind params uses json serializing and reflect package that is underneath

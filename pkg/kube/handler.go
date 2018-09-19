@@ -370,7 +370,8 @@ func (h *Handler) deleteNode(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	t, err := workflows.NewTask(workflows.DigitalOceanDelete, h.repo)
+	// TODO(stgleb): figure out from cloud account which workflow to use
+	t, err := workflows.NewTask(workflows.DigitalOceanDeleteNode, h.repo)
 
 	if err != nil {
 		message.SendUnknownError(w, err)

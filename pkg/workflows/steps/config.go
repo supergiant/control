@@ -165,6 +165,7 @@ func (m *Map) MarshalJSON() ([]byte, error) {
 // TODO(stgleb): rename to context and embed context.Context here
 type Config struct {
 	Context     context.Context
+	TaskId      string
 	Provider    clouds.Name `json:"provider"`
 	IsMaster    bool        `json:"isMaster"`
 	ClusterName string      `json:"clusterName"`

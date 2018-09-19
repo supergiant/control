@@ -31,9 +31,9 @@ func NewCreateInstanceStep(dropletTimeout, checkPeriod time.Duration) *CreateIns
 }
 
 func (s *CreateInstanceStep) Run(ctx context.Context, output io.Writer, config *steps.Config) error {
-	// TODO(stgleb): Extrack getting digital ocean sdk to function that will allow it to be mocked.
+	// TODO(stgleb): Extract getting digital ocean sdk to function that will allow it to be mocked.
 	c := digitaloceanSDK.New(config.DigitalOceanConfig.AccessToken).GetClient()
-	config.DigitalOceanConfig.Name = util.MakeNodeName(config.ClusterName, config.IsMaster)
+	config.DigitalOceanConfig.Name = util.MakeNodeName(config.ClusterName, config.TaskId, config.IsMaster)
 
 	// TODO(stgleb): Move keys creation for provisioning to provisioner to be able to get
 	// this key on cluster check phase.

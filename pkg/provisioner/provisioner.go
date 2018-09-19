@@ -56,7 +56,7 @@ func (r *TaskProvisioner) ProvisionCluster(ctx context.Context, profile *profile
 		len(profile.NodesProfiles))
 
 	// TODO(stgleb): Make node names from task id before provisioning starts
-	masters, nodes := nodesFromProfile(config, profile)
+	masters, nodes := nodesFromProfile(config.ClusterName, masterTasks, nodeTasks, profile)
 	// Save cluster before provisioning
 	r.saveCluster(ctx, profile, masters, nodes, config)
 
@@ -146,6 +146,8 @@ func (p *TaskProvisioner) ProvisionNodes(ctx context.Context, nodeProfiles []pro
 			return nil, errors.Wrap(err, "fill node profile data to config")
 		}
 
+		// Put task id to config so that create instance step can use this id when generate node name
+		config.TaskId = t.ID
 		errChan := t.Run(ctx, *config, writer)
 
 		go func(cfg *steps.Config, errChan chan error) {
@@ -233,6 +235,8 @@ func (p *TaskProvisioner) provisionMasters(ctx context.Context, profile *profile
 		FillNodeCloudSpecificData(profile.Provider, p, config)
 
 		go func(t *workflows.Task) {
+			// Put task id to config so that create instance step can use this id when generate node name
+			config.TaskId = t.ID
 			result := t.Run(ctx, *config, out)
 			err = <-result
 
@@ -284,6 +288,8 @@ func (p *TaskProvisioner) provisionNodes(ctx context.Context, profile *profile.P
 		FillNodeCloudSpecificData(profile.Provider, p, config)
 
 		go func(t *workflows.Task) {
+			// Put task id to config so that create instance step can use this id when generate node name
+			config.TaskId = t.ID
 			result := t.Run(ctx, *config, out)
 			err = <-result
 

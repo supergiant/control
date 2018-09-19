@@ -36,9 +36,9 @@ const (
 
 	Cluster = "Cluster"
 
-	DigitalOceanMaster = "DigitalOceanMaster"
-	DigitalOceanNode   = "DigitalOceanNode"
-	DigitalOceanDelete = "DigitalOceanDelete"
+	DigitalOceanMaster     = "DigitalOceanMaster"
+	DigitalOceanNode       = "DigitalOceanNode"
+	DigitalOceanDeleteNode = "DigitalOceanDeleteNode"
 )
 
 var (
@@ -88,7 +88,7 @@ func Init() {
 	m.Lock()
 	defer m.Unlock()
 
-	workflowMap[DigitalOceanDelete] = digitalOceanDeleteWorkflow
+	workflowMap[DigitalOceanDeleteNode] = digitalOceanDeleteWorkflow
 	workflowMap[Cluster] = clusterWorkflow
 	workflowMap[DigitalOceanMaster] = digitalOceanMasterWorkflow
 	workflowMap[DigitalOceanNode] = digitalOceanNodeWorkflow
