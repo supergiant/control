@@ -37,6 +37,10 @@ type mockNodeProvisioner struct {
 	mock.Mock
 }
 
+type mockRepository struct {
+	mock.Mock
+}
+
 type bufferCloser struct {
 	bytes.Buffer
 	err error
@@ -54,6 +58,15 @@ const (
 	serviceListKubeResources = "ListKubeResources"
 	serviceGetKubeResources  = "GetKubeResources"
 )
+
+func (m *mockRepository) Create(ctx context.Context, data []byte) error {
+	args := m.Called(ctx, data)
+	val, ok := args.Get(0).(error)
+	if !ok {
+		return args.Error(1)
+	}
+	return val
+}
 
 func (m *mockNodeProvisioner) ProvisionNodes(ctx context.Context, nodeProfile []profile.NodeProfile, kube *model.Kube, config *steps.Config) ([]string, error) {
 	args := m.Called(ctx, nodeProfile, kube, config)
@@ -753,6 +766,8 @@ func TestDeleteNodeFromKube(t *testing.T) {
 		accService.On("Get", mock.Anything, testCase.accountName).
 			Return(testCase.account, testCase.accountErr)
 
+		mockRepo := new(mockRepository)
+		mockRepo.On("Create", mock.Anything, mock.Anything).Return(mock.Anything)
 		handler := Handler{
 			svc:            svc,
 			accountService: accService,
