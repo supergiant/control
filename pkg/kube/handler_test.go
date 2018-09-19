@@ -59,13 +59,25 @@ const (
 	serviceGetKubeResources  = "GetKubeResources"
 )
 
-func (m *mockRepository) Create(ctx context.Context, data []byte) error {
-	args := m.Called(ctx, data)
+func (m *mockRepository) Put(ctx context.Context, prefix, key string, value []byte) error {
+	args := m.Called(ctx, prefix, key, value)
 	val, ok := args.Get(0).(error)
 	if !ok {
 		return args.Error(1)
 	}
 	return val
+}
+
+func (m *mockRepository) GetAll(ctx context.Context, prefix string) ([][]byte, error) {
+	return nil, nil
+}
+
+func (m *mockRepository) Get(ctx context.Context, prefix string, key string) ([]byte, error) {
+	return nil, nil
+}
+
+func (m *mockRepository) Delete(ctx context.Context, prefix string, key string) error {
+	return nil
 }
 
 func (m *mockNodeProvisioner) ProvisionNodes(ctx context.Context, nodeProfile []profile.NodeProfile, kube *model.Kube, config *steps.Config) ([]string, error) {
@@ -768,6 +780,7 @@ func TestDeleteNodeFromKube(t *testing.T) {
 
 		mockRepo := new(mockRepository)
 		mockRepo.On("Create", mock.Anything, mock.Anything).Return(mock.Anything)
+
 		handler := Handler{
 			svc:            svc,
 			accountService: accService,
@@ -775,6 +788,7 @@ func TestDeleteNodeFromKube(t *testing.T) {
 				clouds.DigitalOcean: workflows.DigitalOceanDeleteNode,
 			},
 			getWriter: testCase.getWriter,
+			repo:      mockRepo,
 		}
 
 		router := mux.NewRouter()
