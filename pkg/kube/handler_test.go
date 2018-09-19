@@ -779,7 +779,8 @@ func TestDeleteNodeFromKube(t *testing.T) {
 			Return(testCase.account, testCase.accountErr)
 
 		mockRepo := new(mockRepository)
-		mockRepo.On("Put", mock.Anything, mock.Anything, mock.Anything).Return(mock.Anything)
+		mockRepo.On("Put", mock.Anything, mock.Anything,
+			mock.Anything, mock.Anything).Return(mock.Anything)
 
 		handler := Handler{
 			svc:            svc,
