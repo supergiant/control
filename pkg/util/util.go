@@ -324,7 +324,7 @@ func FillCloudAccountCredentials(ctx context.Context, cloudAccount *model.CloudA
 	return nil
 }
 
-func GetAnyNode(nodeMap map[string]*node.Node) *node.Node {
+func GetRandomNode(nodeMap map[string]*node.Node) *node.Node {
 	for key := range nodeMap {
 		return nodeMap[key]
 	}

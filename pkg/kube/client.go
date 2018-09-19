@@ -20,7 +20,7 @@ func restClientForGroupVersion(k *model.Kube, gv schema.GroupVersion) (rest.Inte
 	var n *node.Node
 
 	if len(k.Masters) > 0 {
-		n = util.GetAnyNode(k.Masters)
+		n = util.GetRandomNode(k.Masters)
 	} else {
 		return nil, errors.Wrap(sgerrors.ErrNotFound, "master node")
 	}
@@ -38,7 +38,7 @@ func discoveryClient(k *model.Kube) (*discovery.DiscoveryClient, error) {
 	var n *node.Node
 
 	if len(k.Masters) > 0 {
-		n = util.GetAnyNode(k.Masters)
+		n = util.GetRandomNode(k.Masters)
 	} else {
 		return nil, errors.Wrap(sgerrors.ErrNotFound, "master node")
 	}

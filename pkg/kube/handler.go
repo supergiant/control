@@ -324,7 +324,7 @@ func (h *Handler) addNode(w http.ResponseWriter, r *http.Request) {
 	config := steps.NewConfig(k.Name, "", k.AccountName, kubeProfile)
 
 	if len(k.Masters) != 0 {
-		config.AddMaster(util.GetAnyNode(k.Masters))
+		config.AddMaster(util.GetRandomNode(k.Masters))
 	} else {
 		http.Error(w, "no master found", http.StatusNotFound)
 		return
