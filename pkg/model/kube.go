@@ -4,6 +4,7 @@ import (
 	"github.com/supergiant/supergiant/pkg/node"
 )
 
+// TODO(stgleb): Add cloud provider for kube
 // Kube represents a kubernetes cluster.
 type Kube struct {
 	Name         string `json:"name" valid:"required"`

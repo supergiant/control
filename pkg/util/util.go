@@ -293,19 +293,18 @@ func MakeKeyName(name string, isUser bool) string {
 	return fmt.Sprintf("%s-provision", name)
 }
 
+// TODO(stgleb): move getting cloud account outside of this function
 // Gets cloud account from storage and fills config object with those credentials
-func FillCloudAccountCredentials(ctx context.Context, getter cloudAccountGetter, config *steps.Config) error {
-	cloudAccount, err := getter.Get(ctx, config.CloudAccountName)
-
-	if err != nil {
-		return nil
-	}
-
+func FillCloudAccountCredentials(ctx context.Context, cloudAccount *model.CloudAccount, config *steps.Config) error {
 	config.ManifestConfig.ProviderString = string(cloudAccount.Provider)
 	config.Provider = cloudAccount.Provider
 
 	// Bind private key to config
-	BindParams(cloudAccount.Credentials, &config.SshConfig)
+	err := BindParams(cloudAccount.Credentials, &config.SshConfig)
+
+	if err != nil {
+		return err
+	}
 
 	switch cloudAccount.Provider {
 	case clouds.AWS:

@@ -9,8 +9,10 @@ import (
 	"github.com/pkg/errors"
 	"github.com/sirupsen/logrus"
 	"github.com/supergiant/supergiant/pkg/account"
+	"github.com/supergiant/supergiant/pkg/message"
 	"github.com/supergiant/supergiant/pkg/model"
 	"github.com/supergiant/supergiant/pkg/profile"
+	"github.com/supergiant/supergiant/pkg/sgerrors"
 	"github.com/supergiant/supergiant/pkg/util"
 	"github.com/supergiant/supergiant/pkg/workflows"
 	"github.com/supergiant/supergiant/pkg/workflows/steps"
@@ -77,8 +79,21 @@ func (h *Handler) Provision(w http.ResponseWriter, r *http.Request) {
 	logrus.Infof("Got discoveryUrl %s", discoveryUrl)
 
 	config := steps.NewConfig(req.ClusterName, discoveryUrl, req.CloudAccountName, req.Profile)
+
+	acc, err := h.accountGetter.Get(r.Context(), req.CloudAccountName)
+
+	if err != nil {
+		if sgerrors.IsNotFound(err) {
+			http.NotFound(w, r)
+			return
+		}
+
+		message.SendUnknownError(w, err)
+		return
+	}
+
 	// Fill config with appropriate cloud account credentials
-	err = util.FillCloudAccountCredentials(r.Context(), h.accountGetter, config)
+	err = util.FillCloudAccountCredentials(r.Context(), acc, config)
 
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusNotFound)

@@ -12,6 +12,7 @@ import (
 	"github.com/pkg/errors"
 
 	"github.com/sirupsen/logrus"
+	"github.com/supergiant/supergiant/pkg/clouds"
 	"github.com/supergiant/supergiant/pkg/message"
 	"github.com/supergiant/supergiant/pkg/model"
 	"github.com/supergiant/supergiant/pkg/node"
@@ -21,6 +22,7 @@ import (
 	"github.com/supergiant/supergiant/pkg/util"
 	"github.com/supergiant/supergiant/pkg/workflows"
 	"github.com/supergiant/supergiant/pkg/workflows/steps"
+	"io"
 )
 
 type accountGetter interface {
@@ -36,7 +38,9 @@ type Handler struct {
 	svc             Interface
 	accountService  accountGetter
 	nodeProvisioner nodeProvisioner
+	workflowMap     map[clouds.Name]string
 	repo            storage.Interface
+	getWriter       func(string) (io.WriteCloser, error)
 }
 
 // NewHandler constructs a Handler for kubes.
@@ -45,7 +49,11 @@ func NewHandler(svc Interface, accountService accountGetter, provisioner nodePro
 		svc:             svc,
 		accountService:  accountService,
 		nodeProvisioner: provisioner,
-		repo:            repo,
+		workflowMap: map[clouds.Name]string{
+			clouds.DigitalOcean: workflows.DigitalOceanDeleteNode,
+		},
+		repo:      repo,
+		getWriter: util.GetWriter,
 	}
 }
 
@@ -323,7 +331,7 @@ func (h *Handler) addNode(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// Get cloud account fill appropriate config structure with cloud account credentials
-	err = util.FillCloudAccountCredentials(r.Context(), h.accountService, config)
+	err = util.FillCloudAccountCredentials(r.Context(), acc, config)
 
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
@@ -370,10 +378,38 @@ func (h *Handler) deleteNode(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	// TODO(stgleb): figure out from cloud account which workflow to use
-	t, err := workflows.NewTask(workflows.DigitalOceanDeleteNode, h.repo)
+	if _, ok := k.Masters[nodeName]; ok {
+		http.Error(w, "delete master node not allowed", http.StatusMethodNotAllowed)
+		return
+	}
+
+	if _, ok := k.Nodes[nodeName]; !ok {
+		http.NotFound(w, r)
+		return
+	}
+
+	acc, err := h.accountService.Get(r.Context(), k.AccountName)
 
 	if err != nil {
+		if sgerrors.IsNotFound(err) {
+			http.NotFound(w, r)
+			return
+		}
+
+		message.SendUnknownError(w, err)
+		return
+
+	}
+
+	// TODO(stgleb): figure out from cloud account which workflow to use
+	t, err := workflows.NewTask(h.workflowMap[acc.Provider], h.repo)
+
+	if err != nil {
+		if sgerrors.IsNotFound(err) {
+			http.NotFound(w, r)
+			return
+		}
+
 		message.SendUnknownError(w, err)
 		return
 	}
@@ -386,7 +422,7 @@ func (h *Handler) deleteNode(w http.ResponseWriter, r *http.Request) {
 		},
 	}
 
-	err = util.FillCloudAccountCredentials(r.Context(), h.accountService, config)
+	err = util.FillCloudAccountCredentials(r.Context(), acc, config)
 
 	if err != nil {
 		if sgerrors.IsNotFound(err) {
@@ -397,7 +433,7 @@ func (h *Handler) deleteNode(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	writer, err := util.GetWriter(t.ID)
+	writer, err := h.getWriter(t.ID)
 
 	if err != nil {
 		message.SendUnknownError(w, err)
