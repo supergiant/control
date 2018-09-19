@@ -768,7 +768,7 @@ func TestDeleteNodeFromKube(t *testing.T) {
 		svc := new(kubeServiceMock)
 		svc.On(serviceGet, mock.Anything, testCase.kubeName).
 			Return(testCase.kube, testCase.kubeServiceErr)
-		svc.On(serviceCreate, testCase.kubeName, mock.Anything).Return(mock.Anything)
+		svc.On(serviceCreate, mock.Anything, testCase.kube).Return(mock.Anything)
 
 		accService := new(accServiceMock)
 		accService.On("Get", mock.Anything, testCase.accountName).
