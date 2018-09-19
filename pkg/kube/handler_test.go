@@ -60,12 +60,8 @@ const (
 )
 
 func (m *mockRepository) Put(ctx context.Context, prefix, key string, value []byte) error {
-	args := m.Called(ctx, prefix, key, value)
-	val, ok := args.Get(0).(error)
-	if !ok {
-		return args.Error(1)
-	}
-	return val
+	m.Called(ctx, prefix, key, value)
+	return nil
 }
 
 func (m *mockRepository) GetAll(ctx context.Context, prefix string) ([][]byte, error) {
