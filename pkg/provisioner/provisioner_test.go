@@ -16,6 +16,7 @@ import (
 	"github.com/supergiant/supergiant/pkg/testutils"
 	"github.com/supergiant/supergiant/pkg/workflows"
 	"github.com/supergiant/supergiant/pkg/workflows/steps"
+	"time"
 )
 
 type bufferCloser struct {
@@ -29,7 +30,6 @@ func (b *bufferCloser) Close() error {
 
 type mockKubeService struct {
 	getError  error
-	kube      *model.Kube
 	createErr error
 	data      map[string]*model.Kube
 }
@@ -178,5 +178,132 @@ func TestProvisionNodes(t *testing.T) {
 
 	if err != nil {
 		t.Errorf("Unexpected error %v while provisionCluster", err)
+	}
+}
+
+func TestMonitorCluster(t *testing.T) {
+	testCases := []struct {
+		nodes                []node.Node
+		states               []model.KubeState
+		kube                 *model.Kube
+		expectedNodeCount    int
+		expectedClusterState model.KubeState
+	}{
+		{
+			nodes: []node.Node{
+				{
+					Name:  "test",
+					Role:  node.RoleMaster,
+					State: node.StatePlanned,
+				},
+				{
+					Name:  "test",
+					Role:  node.RoleMaster,
+					State: node.StateBuilding,
+				},
+				{
+					Name:  "test",
+					Role:  node.RoleMaster,
+					State: node.StateProvisioning,
+				},
+				{
+					Name:  "test",
+					Role:  node.RoleMaster,
+					State: node.StateActive,
+				},
+			},
+			states: []model.KubeState{
+				model.StateProvisioning,
+				model.StateOperational,
+			},
+			kube: &model.Kube{
+				Name:    "test",
+				Masters: make(map[string]*node.Node),
+				Nodes:   make(map[string]*node.Node),
+			},
+			expectedNodeCount:    1,
+			expectedClusterState: model.StateOperational,
+		},
+		{
+			nodes: []node.Node{
+				{
+					Name:  "test1",
+					Role:  node.RoleMaster,
+					State: node.StateProvisioning,
+				},
+				{
+					Name:  "test2",
+					Role:  node.RoleMaster,
+					State: node.StateError,
+				},
+				{
+					Name:  "test1",
+					Role:  node.RoleMaster,
+					State: node.StateProvisioning,
+				},
+				{
+					Name:  "test2",
+					Role:  node.RoleMaster,
+					State: node.StateActive,
+				},
+			},
+			states: []model.KubeState{
+				model.StateProvisioning,
+				model.StateFailed,
+			},
+			kube: &model.Kube{
+				Name:    "test",
+				Masters: make(map[string]*node.Node),
+				Nodes:   make(map[string]*node.Node),
+			},
+			expectedNodeCount:    2,
+			expectedClusterState: model.StateFailed,
+		},
+		{
+			kube: &model.Kube{
+				Name:  "test",
+				State: model.StateProvisioning,
+			},
+			expectedNodeCount:    0,
+			expectedClusterState: model.StateProvisioning,
+		},
+	}
+
+	for _, testCase := range testCases {
+		svc := &mockKubeService{
+			data: map[string]*model.Kube{
+				testCase.kube.Name: testCase.kube,
+			},
+		}
+
+		p := &TaskProvisioner{
+			kubeService: svc,
+		}
+		cfg := steps.NewConfig("test",
+			"",
+			"test",
+			profile.Profile{})
+
+		ctx, cancel := context.WithCancel(context.Background())
+		go p.monitorClusterState(ctx, cfg)
+
+		for _, n := range testCase.nodes {
+			cfg.NodeChan() <- n
+		}
+
+		for _, state := range testCase.states {
+			cfg.KubeStateChan() <- state
+		}
+
+		time.Sleep(time.Millisecond * 1)
+		cancel()
+
+		if len(testCase.kube.Masters)+len(testCase.kube.Nodes) != testCase.expectedNodeCount {
+			t.Errorf("Wrong node count in the end of provisioning")
+		}
+
+		if testCase.kube.State != testCase.expectedClusterState {
+			t.Errorf("Wrong cluster state in the end of provisioning")
+		}
 	}
 }
