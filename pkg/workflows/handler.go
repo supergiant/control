@@ -15,9 +15,11 @@ import (
 	"github.com/gorilla/websocket"
 	"github.com/hpcloud/tail"
 	"github.com/sirupsen/logrus"
+	"github.com/supergiant/supergiant/pkg/message"
 	"github.com/supergiant/supergiant/pkg/model"
 	"github.com/supergiant/supergiant/pkg/runner"
 	"github.com/supergiant/supergiant/pkg/runner/ssh"
+	"github.com/supergiant/supergiant/pkg/sgerrors"
 	"github.com/supergiant/supergiant/pkg/storage"
 	"github.com/supergiant/supergiant/pkg/util"
 	"github.com/supergiant/supergiant/pkg/workflows/steps"
@@ -97,8 +99,20 @@ func (h *TaskHandler) RunTask(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	acc, err := h.cloudAccGetter.Get(r.Context(), req.Cfg.CloudAccountName)
+
+	if err != nil {
+		if sgerrors.IsNotFound(err) {
+			http.NotFound(w, r)
+			return
+		}
+
+		message.SendUnknownError(w, err)
+		return
+	}
+
 	// Get cloud account fill appropriate config structure with cloud account credentials
-	err = util.FillCloudAccountCredentials(r.Context(), h.cloudAccGetter, &req.Cfg)
+	err = util.FillCloudAccountCredentials(r.Context(), acc, &req.Cfg)
 
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusNotFound)

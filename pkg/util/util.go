@@ -16,8 +16,11 @@ import (
 	"github.com/sirupsen/logrus"
 	"github.com/supergiant/supergiant/pkg/clouds"
 	"github.com/supergiant/supergiant/pkg/model"
+	"github.com/supergiant/supergiant/pkg/node"
 	"github.com/supergiant/supergiant/pkg/sgerrors"
 	"github.com/supergiant/supergiant/pkg/workflows/steps"
+	"os"
+	"path"
 )
 
 const letterBytes = "0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ"
@@ -237,12 +240,12 @@ func RecurseSchema(schema map[string]interface{}, obj interface{}) {
 	}
 }
 
-func MakeNodeName(clusterName string, isMaster bool) string {
+func MakeNodeName(clusterName string, nodeId string, isMaster bool) string {
 	if isMaster {
-		return fmt.Sprintf("%s-%s-%s", clusterName, "master", strings.ToLower(RandomString(5)))
+		return fmt.Sprintf("%s-%s-%s", clusterName, "master", nodeId[:4])
 	}
 
-	return fmt.Sprintf("%s-%s-%s", clusterName, "node", strings.ToLower(RandomString(5)))
+	return fmt.Sprintf("%s-%s-%s", clusterName, "node", nodeId[:4])
 }
 
 // bind params uses json serializing and reflect package that is underneath
@@ -290,19 +293,18 @@ func MakeKeyName(name string, isUser bool) string {
 	return fmt.Sprintf("%s-provision", name)
 }
 
+// TODO(stgleb): move getting cloud account outside of this function
 // Gets cloud account from storage and fills config object with those credentials
-func FillCloudAccountCredentials(ctx context.Context, getter cloudAccountGetter, config *steps.Config) error {
-	cloudAccount, err := getter.Get(ctx, config.CloudAccountName)
-
-	if err != nil {
-		return nil
-	}
-
+func FillCloudAccountCredentials(ctx context.Context, cloudAccount *model.CloudAccount, config *steps.Config) error {
 	config.ManifestConfig.ProviderString = string(cloudAccount.Provider)
 	config.Provider = cloudAccount.Provider
 
 	// Bind private key to config
-	BindParams(cloudAccount.Credentials, &config.SshConfig)
+	err := BindParams(cloudAccount.Credentials, &config.SshConfig)
+
+	if err != nil {
+		return err
+	}
 
 	switch cloudAccount.Provider {
 	case clouds.AWS:
@@ -320,4 +322,16 @@ func FillCloudAccountCredentials(ctx context.Context, getter cloudAccountGetter,
 	}
 
 	return nil
+}
+
+func GetRandomNode(nodeMap map[string]*node.Node) *node.Node {
+	for key := range nodeMap {
+		return nodeMap[key]
+	}
+
+	return nil
+}
+
+func GetWriter(name string) (io.WriteCloser, error) {
+	return os.OpenFile(path.Join("/tmp", name), os.O_CREATE|os.O_WRONLY|os.O_APPEND, 0666)
 }

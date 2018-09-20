@@ -12,14 +12,17 @@ import (
 	"github.com/pkg/errors"
 
 	"github.com/sirupsen/logrus"
+	"github.com/supergiant/supergiant/pkg/clouds"
 	"github.com/supergiant/supergiant/pkg/message"
 	"github.com/supergiant/supergiant/pkg/model"
+	"github.com/supergiant/supergiant/pkg/node"
 	"github.com/supergiant/supergiant/pkg/profile"
 	"github.com/supergiant/supergiant/pkg/sgerrors"
 	"github.com/supergiant/supergiant/pkg/storage"
 	"github.com/supergiant/supergiant/pkg/util"
 	"github.com/supergiant/supergiant/pkg/workflows"
 	"github.com/supergiant/supergiant/pkg/workflows/steps"
+	"io"
 )
 
 type accountGetter interface {
@@ -35,7 +38,9 @@ type Handler struct {
 	svc             Interface
 	accountService  accountGetter
 	nodeProvisioner nodeProvisioner
+	workflowMap     map[clouds.Name]string
 	repo            storage.Interface
+	getWriter       func(string) (io.WriteCloser, error)
 }
 
 // NewHandler constructs a Handler for kubes.
@@ -44,7 +49,11 @@ func NewHandler(svc Interface, accountService accountGetter, provisioner nodePro
 		svc:             svc,
 		accountService:  accountService,
 		nodeProvisioner: provisioner,
-		repo:            repo,
+		workflowMap: map[clouds.Name]string{
+			clouds.DigitalOcean: workflows.DigitalOceanDeleteNode,
+		},
+		repo:      repo,
+		getWriter: util.GetWriter,
 	}
 }
 
@@ -62,6 +71,8 @@ func (h *Handler) Register(r *mux.Router) {
 	r.HandleFunc("/kubes/{kname}/tasks", h.getTasks).Methods(http.MethodGet)
 	// TODO(stgleb): Add get method for getting kube nodes
 	r.HandleFunc("/kubes/{kname}/nodes", h.addNode).Methods(http.MethodPost)
+	r.HandleFunc("/kubes/{kname}/nodes/{nodename}", h.deleteNode).Methods(http.MethodDelete)
+	r.HandleFunc("/kubes/{kname}/nodes/{nodename}", h.deleteNode).Methods(http.MethodDelete)
 }
 
 func (h *Handler) getTasks(w http.ResponseWriter, r *http.Request) {
@@ -313,14 +324,14 @@ func (h *Handler) addNode(w http.ResponseWriter, r *http.Request) {
 	config := steps.NewConfig(k.Name, "", k.AccountName, kubeProfile)
 
 	if len(k.Masters) != 0 {
-		config.AddMaster(k.Masters[0])
+		config.AddMaster(util.GetRandomNode(k.Masters))
 	} else {
 		http.Error(w, "no master found", http.StatusNotFound)
 		return
 	}
 
 	// Get cloud account fill appropriate config structure with cloud account credentials
-	err = util.FillCloudAccountCredentials(r.Context(), h.accountService, config)
+	err = util.FillCloudAccountCredentials(r.Context(), acc, config)
 
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
@@ -348,4 +359,107 @@ func (h *Handler) addNode(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		logrus.Error(errors.Wrap(err, "marshal json"))
 	}
+}
+
+// TODO(stgleb): cover with unit tests
+func (h *Handler) deleteNode(w http.ResponseWriter, r *http.Request) {
+	vars := mux.Vars(r)
+
+	kname := vars["kname"]
+	nodeName := vars["nodename"]
+
+	k, err := h.svc.Get(r.Context(), kname)
+	if err != nil {
+		if sgerrors.IsNotFound(err) {
+			message.SendNotFound(w, kname, err)
+			return
+		}
+		message.SendUnknownError(w, err)
+		return
+	}
+
+	// TODO(stgleb): check whether we will have quorum of master nodes if node is deleted.
+	if _, ok := k.Masters[nodeName]; ok {
+		http.Error(w, "delete master node not allowed", http.StatusMethodNotAllowed)
+		return
+	}
+
+	if _, ok := k.Nodes[nodeName]; !ok {
+		http.NotFound(w, r)
+		return
+	}
+
+	acc, err := h.accountService.Get(r.Context(), k.AccountName)
+
+	if err != nil {
+		if sgerrors.IsNotFound(err) {
+			http.NotFound(w, r)
+			return
+		}
+
+		message.SendUnknownError(w, err)
+		return
+
+	}
+
+	// TODO(stgleb): figure out from cloud account which workflow to use
+	t, err := workflows.NewTask(h.workflowMap[acc.Provider], h.repo)
+
+	if err != nil {
+		if sgerrors.IsNotFound(err) {
+			http.NotFound(w, r)
+			return
+		}
+
+		message.SendUnknownError(w, err)
+		return
+	}
+
+	config := &steps.Config{
+		ClusterName:      k.Name,
+		CloudAccountName: k.AccountName,
+		Node: node.Node{
+			Name: nodeName,
+		},
+	}
+
+	err = util.FillCloudAccountCredentials(r.Context(), acc, config)
+
+	if err != nil {
+		if sgerrors.IsNotFound(err) {
+			http.NotFound(w, r)
+			return
+		}
+		message.SendUnknownError(w, err)
+		return
+	}
+
+	writer, err := h.getWriter(t.ID)
+
+	if err != nil {
+		message.SendUnknownError(w, err)
+		return
+	}
+
+	errChan := t.Run(context.Background(), *config, writer)
+
+	// Update cluster state when deletion completes
+	go func() {
+		err := <-errChan
+
+		if err != nil {
+			logrus.Errorf("delete node %s from cluster %s caused %v", nodeName, kname, err)
+		}
+
+		// Delete node from cluster object
+		delete(k.Nodes, nodeName)
+		// Save cluster object to etcd
+		logrus.Infof("delete node %s from cluster %s", nodeName, kname)
+		err = h.svc.Create(context.Background(), k)
+
+		if err != nil {
+			logrus.Errorf("update cluster %s caused %v", kname, err)
+		}
+	}()
+	w.WriteHeader(http.StatusAccepted)
 }

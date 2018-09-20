@@ -13,13 +13,14 @@ import (
 	"github.com/supergiant/supergiant/pkg/model"
 	"github.com/supergiant/supergiant/pkg/node"
 	"github.com/supergiant/supergiant/pkg/sgerrors"
+	"github.com/supergiant/supergiant/pkg/util"
 )
 
 func restClientForGroupVersion(k *model.Kube, gv schema.GroupVersion) (rest.Interface, error) {
 	var n *node.Node
 
 	if len(k.Masters) > 0 {
-		n = k.Masters[0]
+		n = util.GetRandomNode(k.Masters)
 	} else {
 		return nil, errors.Wrap(sgerrors.ErrNotFound, "master node")
 	}
@@ -37,7 +38,7 @@ func discoveryClient(k *model.Kube) (*discovery.DiscoveryClient, error) {
 	var n *node.Node
 
 	if len(k.Masters) > 0 {
-		n = k.Masters[0]
+		n = util.GetRandomNode(k.Masters)
 	} else {
 		return nil, errors.Wrap(sgerrors.ErrNotFound, "master node")
 	}
