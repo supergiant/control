@@ -20,6 +20,7 @@ import (
 	"github.com/supergiant/supergiant/pkg/node"
 	"github.com/supergiant/supergiant/pkg/profile"
 	"github.com/supergiant/supergiant/pkg/sgerrors"
+	"github.com/supergiant/supergiant/pkg/testutils"
 	"github.com/supergiant/supergiant/pkg/workflows"
 	"github.com/supergiant/supergiant/pkg/workflows/steps"
 	"io"
@@ -34,10 +35,6 @@ type accServiceMock struct {
 }
 
 type mockNodeProvisioner struct {
-	mock.Mock
-}
-
-type mockRepository struct {
 	mock.Mock
 }
 
@@ -58,23 +55,6 @@ const (
 	serviceListKubeResources = "ListKubeResources"
 	serviceGetKubeResources  = "GetKubeResources"
 )
-
-func (m *mockRepository) Put(ctx context.Context, prefix, key string, value []byte) error {
-	m.Called(ctx, prefix, key, value)
-	return nil
-}
-
-func (m *mockRepository) GetAll(ctx context.Context, prefix string) ([][]byte, error) {
-	return nil, nil
-}
-
-func (m *mockRepository) Get(ctx context.Context, prefix string, key string) ([]byte, error) {
-	return nil, nil
-}
-
-func (m *mockRepository) Delete(ctx context.Context, prefix string, key string) error {
-	return nil
-}
 
 func (m *mockNodeProvisioner) ProvisionNodes(ctx context.Context, nodeProfile []profile.NodeProfile, kube *model.Kube, config *steps.Config) ([]string, error) {
 	args := m.Called(ctx, nodeProfile, kube, config)
@@ -778,9 +758,7 @@ func TestDeleteNodeFromKube(t *testing.T) {
 		accService.On("Get", mock.Anything, testCase.accountName).
 			Return(testCase.account, testCase.accountErr)
 
-		mockRepo := new(mockRepository)
-		mockRepo.On("Put", mock.Anything, mock.Anything,
-			mock.Anything, mock.Anything).Return(mock.Anything)
+		mockRepo := new(testutils.MockStorage)
 
 		handler := Handler{
 			svc:            svc,
