@@ -12,6 +12,7 @@ const (
 	StateOperational  KubeState = "operational"
 )
 
+// TODO(stgleb): Add cloud provider for kube
 // Kube represents a kubernetes cluster.
 type Kube struct {
 	State        KubeState `json:"state"`
@@ -31,8 +32,8 @@ type Kube struct {
 	HelmVersion            string     `json:"helmVersion"`
 	Networking             Networking `json:"networking"`
 
-	Masters []*node.Node `json:"masters"`
-	Nodes   []*node.Node `json:"nodes"`
+	Masters map[string]*node.Node `json:"masters"`
+	Nodes   map[string]*node.Node `json:"nodes"`
 }
 
 // Auth holds all possible auth parameters.

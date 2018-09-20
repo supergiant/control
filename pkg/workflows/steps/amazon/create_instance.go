@@ -50,7 +50,7 @@ func (s *StepCreateInstance) Run(ctx context.Context, w io.Writer, cfg *steps.Co
 		subnetID = &ec2Cfg.SubnetID
 	}
 
-	nodeName := util.MakeNodeName(cfg.ClusterName, cfg.IsMaster)
+	nodeName := util.MakeNodeName(cfg.ClusterName, cfg.TaskId, cfg.IsMaster)
 	runInstanceInput := &ec2.RunInstancesInput{
 		BlockDeviceMappings: []*ec2.BlockDeviceMapping{
 			{
