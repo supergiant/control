@@ -18,12 +18,20 @@ import (
 	"github.com/supergiant/supergiant/pkg/workflows/steps"
 )
 
-type mockKubeCreater struct {
-	data map[string]string
+type mockKubeService struct {
+	getError  error
+	kube      *model.Kube
+	createErr error
+	data      map[string]*model.Kube
 }
 
-func (m *mockKubeCreater) Create(ctx context.Context, k *model.Kube) error {
-	return nil
+func (m *mockKubeService) Create(ctx context.Context, k *model.Kube) error {
+	m.data[k.Name] = k
+	return m.createErr
+}
+
+func (m *mockKubeService) Get(ctx context.Context, kname string) (*model.Kube, error) {
+	return m.data[kname], m.getError
 }
 
 func TestProvisionCluster(t *testing.T) {
@@ -31,8 +39,8 @@ func TestProvisionCluster(t *testing.T) {
 	repository.On("Put", context.Background(), mock.Anything, mock.Anything, mock.Anything).Return(nil)
 
 	provisioner := TaskProvisioner{
-		&mockKubeCreater{
-			data: make(map[string]string),
+		&mockKubeService{
+			data: make(map[string]*model.Kube),
 		},
 		repository,
 		func(string) (io.WriteCloser, error) {
@@ -91,8 +99,8 @@ func TestProvisionNode(t *testing.T) {
 	repository.On("Put", context.Background(), mock.Anything, mock.Anything, mock.Anything).Return(nil)
 
 	provisioner := TaskProvisioner{
-		&mockKubeCreater{
-			data: make(map[string]string),
+		&mockKubeService{
+			data: make(map[string]*model.Kube),
 		},
 		repository,
 		func(string) (io.WriteCloser, error) {
@@ -116,7 +124,7 @@ func TestProvisionNode(t *testing.T) {
 			{
 				PrivateIp: "10.0.0.1",
 				PublicIp:  "10.20.30.40",
-				Active:    true,
+				State:     node.StateActive,
 				Region:    "fra1",
 				Size:      "s-2vcpu-4gb",
 			},

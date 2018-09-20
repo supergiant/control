@@ -86,9 +86,27 @@ func (s *Step) Run(ctx context.Context, output io.Writer, config *steps.Config) 
 		Tags: tags,
 	}
 
+	role := node.RoleMaster
+	if !config.IsMaster {
+		role = node.RoleNode
+	}
+
+	config.Node = node.Node{
+		Role:     role,
+		Provider: clouds.DigitalOcean,
+		Size:     config.DigitalOceanConfig.Size,
+		Region:   config.DigitalOceanConfig.Region,
+		State:    node.StateBuilding,
+		Name:     config.DigitalOceanConfig.Name,
+	}
+
+	// Update node state in cluster
+	config.NodeChan() <- config.Node
 	droplet, _, err := c.Droplets.Create(ctx, dropletRequest)
 
 	if err != nil {
+		config.Node.State = node.StateError
+		config.NodeChan() <- config.Node
 		return errors.Wrap(err, "dropletService has returned an error in Run job")
 	}
 
@@ -107,21 +125,16 @@ func (s *Step) Run(ctx context.Context, output io.Writer, config *steps.Config) 
 			if droplet.Status == "active" {
 				// Get private ip ports from droplet networks
 
-				role := "master"
-				if !config.IsMaster {
-					role = "node"
-				}
+				createdAt, _ := strconv.Atoi(droplet.Created)
 
-				config.Node = node.Node{
-					Id:        fmt.Sprintf("%d", droplet.ID),
-					CreatedAt: time.Now().Unix(),
-					Role:      role,
-					Provider:  clouds.DigitalOcean,
-					Region:    droplet.Region.Name,
-					PublicIp:  getPublicIpPort(droplet.Networks.V4),
-					PrivateIp: getPrivateIpPort(droplet.Networks.V4),
-					Name:      droplet.Name,
-				}
+				config.Node.Id = fmt.Sprintf("%d", droplet.ID)
+				config.Node.CreatedAt = int64(createdAt)
+				config.Node.PublicIp = getPublicIpPort(droplet.Networks.V4)
+				config.Node.PrivateIp = getPrivateIpPort(droplet.Networks.V4)
+				config.Node.State = node.StateProvisioning
+
+				// Update node state in cluster
+				config.NodeChan() <- config.Node
 
 				if config.IsMaster {
 					config.AddMaster(&config.Node)

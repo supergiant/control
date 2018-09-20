@@ -85,6 +85,7 @@ func nodesFromProfile(profile *profile.Profile) ([]*node.Node, []*node.Node) {
 		n := &node.Node{
 			Provider: profile.Provider,
 			Region:   profile.Region,
+			State:    node.StatePlanned,
 		}
 
 		util.BindParams(p, n)
@@ -95,6 +96,7 @@ func nodesFromProfile(profile *profile.Profile) ([]*node.Node, []*node.Node) {
 		n := &node.Node{
 			Provider: profile.Provider,
 			Region:   profile.Region,
+			State:    node.StatePlanned,
 		}
 
 		util.BindParams(p, n)
