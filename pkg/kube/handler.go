@@ -38,7 +38,7 @@ type Handler struct {
 	svc             Interface
 	accountService  accountGetter
 	nodeProvisioner nodeProvisioner
-	workflowMap     map[clouds.Name]string
+	workflowMap     map[clouds.Name]workflows.WorkflowSet
 	repo            storage.Interface
 	getWriter       func(string) (io.WriteCloser, error)
 }
@@ -49,8 +49,11 @@ func NewHandler(svc Interface, accountService accountGetter, provisioner nodePro
 		svc:             svc,
 		accountService:  accountService,
 		nodeProvisioner: provisioner,
-		workflowMap: map[clouds.Name]string{
-			clouds.DigitalOcean: workflows.DigitalOceanDeleteNode,
+		workflowMap: map[clouds.Name]workflows.WorkflowSet{
+			clouds.DigitalOcean: {
+				DeleteCluster: workflows.DigitalOceanDeleteCluster,
+				DeleteNode:    workflows.DigitalOceanDeleteNode,
+			},
 		},
 		repo:      repo,
 		getWriter: util.GetWriter,
@@ -186,7 +189,8 @@ func (h *Handler) deleteKube(w http.ResponseWriter, r *http.Request) {
 	vars := mux.Vars(r)
 
 	kname := vars["kname"]
-	if err := h.svc.Delete(r.Context(), kname); err != nil {
+	k, err := h.svc.Get(r.Context(), kname)
+	if err != nil {
 		if sgerrors.IsNotFound(err) {
 			message.SendNotFound(w, kname, err)
 			return
@@ -194,6 +198,74 @@ func (h *Handler) deleteKube(w http.ResponseWriter, r *http.Request) {
 		message.SendUnknownError(w, err)
 		return
 	}
+
+	acc, err := h.accountService.Get(r.Context(), k.AccountName)
+
+	if err != nil {
+		if sgerrors.IsNotFound(err) {
+			http.NotFound(w, r)
+			return
+		}
+
+		message.SendUnknownError(w, err)
+		return
+
+	}
+
+	// TODO(stgleb): figure out from cloud account which workflow to use
+	t, err := workflows.NewTask(h.workflowMap[acc.Provider], h.repo)
+
+	if err != nil {
+		if sgerrors.IsNotFound(err) {
+			http.NotFound(w, r)
+			return
+		}
+
+		message.SendUnknownError(w, err)
+		return
+	}
+
+	config := &steps.Config{
+		ClusterName:      k.Name,
+		CloudAccountName: k.AccountName,
+	}
+
+	err = util.FillCloudAccountCredentials(r.Context(), acc, config)
+
+	if err != nil {
+		if sgerrors.IsNotFound(err) {
+			http.NotFound(w, r)
+			return
+		}
+		message.SendUnknownError(w, err)
+		return
+	}
+
+	writer, err := h.getWriter(t.ID)
+
+	if err != nil {
+		message.SendUnknownError(w, err)
+		return
+	}
+
+	errChan := t.Run(context.Background(), *config, writer)
+
+	go func(t *workflows.Task) {
+		err := <-errChan
+		if err != nil {
+			return
+		}
+
+		// Finally delete cluster record from etcd
+		if err := h.svc.Delete(r.Context(), kname); err != nil {
+			if sgerrors.IsNotFound(err) {
+				message.SendNotFound(w, kname, err)
+				return
+			}
+			message.SendUnknownError(w, err)
+			return
+		}
+	}(t)
 
 	w.WriteHeader(http.StatusAccepted)
 }

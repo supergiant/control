@@ -36,10 +36,18 @@ const (
 
 	Cluster = "Cluster"
 
-	DigitalOceanMaster     = "DigitalOceanMaster"
-	DigitalOceanNode       = "DigitalOceanNode"
-	DigitalOceanDeleteNode = "DigitalOceanDeleteNode"
+	DigitalOceanMaster        = "DigitalOceanMaster"
+	DigitalOceanNode          = "DigitalOceanNode"
+	DigitalOceanDeleteNode    = "DigitalOceanDeleteNode"
+	DigitalOceanDeleteCluster = "DigitalOceanDeleteCluster"
 )
+
+type WorkflowSet struct {
+	ProvisionMaster string
+	ProvisionNode   string
+	DeleteNode      string
+	DeleteCluster   string
+}
 
 var (
 	m           sync.RWMutex
