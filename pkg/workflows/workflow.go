@@ -93,6 +93,10 @@ func Init() {
 		steps.GetStep(digitalocean.DeleteMachineStepName),
 	}
 
+	digitalOceanDeleteClusterWorkflow := []steps.Step{
+		steps.GetStep(digitalocean.DeleteClusterStepName),
+	}
+
 	m.Lock()
 	defer m.Unlock()
 
@@ -100,6 +104,7 @@ func Init() {
 	workflowMap[Cluster] = clusterWorkflow
 	workflowMap[DigitalOceanMaster] = digitalOceanMasterWorkflow
 	workflowMap[DigitalOceanNode] = digitalOceanNodeWorkflow
+	workflowMap[DigitalOceanDeleteCluster] = digitalOceanDeleteClusterWorkflow
 }
 
 func RegisterWorkFlow(workflowName string, workflow Workflow) {

@@ -46,8 +46,10 @@ func (s *CreateInstanceStep) Run(ctx context.Context, output io.Writer, config *
 	// Delete provision key from cloud account
 	defer c.Keys.DeleteByFingerprint(context.Background(), fingers[0].Fingerprint)
 
-	tags := []string{fmt.Sprintf("Kubernetes-Cluster-%s", config.ClusterName),
-		config.DigitalOceanConfig.Name}
+	tags := []string{
+		config.ClusterName,
+		config.DigitalOceanConfig.Name,
+	}
 
 	dropletRequest := &godo.DropletCreateRequest{
 		Name:              config.DigitalOceanConfig.Name,

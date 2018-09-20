@@ -212,8 +212,7 @@ func (h *Handler) deleteKube(w http.ResponseWriter, r *http.Request) {
 
 	}
 
-	// TODO(stgleb): figure out from cloud account which workflow to use
-	t, err := workflows.NewTask(h.workflowMap[acc.Provider], h.repo)
+	t, err := workflows.NewTask(h.workflowMap[acc.Provider].DeleteCluster, h.repo)
 
 	if err != nil {
 		if sgerrors.IsNotFound(err) {
@@ -474,8 +473,7 @@ func (h *Handler) deleteNode(w http.ResponseWriter, r *http.Request) {
 
 	}
 
-	// TODO(stgleb): figure out from cloud account which workflow to use
-	t, err := workflows.NewTask(h.workflowMap[acc.Provider], h.repo)
+	t, err := workflows.NewTask(h.workflowMap[acc.Provider].DeleteNode, h.repo)
 
 	if err != nil {
 		if sgerrors.IsNotFound(err) {

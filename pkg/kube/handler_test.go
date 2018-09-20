@@ -324,7 +324,12 @@ func TestHandler_deleteKube(t *testing.T) {
 	tcs := []struct {
 		kubeName string
 
-		serviceError error
+		getAccountError error
+		account *model.CloudAccount
+
+		kube *model.Kube
+		getKubeError error
+		deleteKubeError error
 
 		expectedStatus  int
 		expectedErrCode sgerrors.ErrorCode
@@ -335,13 +340,20 @@ func TestHandler_deleteKube(t *testing.T) {
 		},
 		{ // TC#2
 			kubeName:        "service_error",
-			serviceError:    errors.New("get error"),
+
+			getAccountError: nil,
+			account: &model.CloudAccount{},
+
+			kube: &model.Kube{},
+			getKubeError: nil,
+
+			deleteKubeError:    errors.New("get error"),
 			expectedStatus:  http.StatusInternalServerError,
 			expectedErrCode: sgerrors.UnknownError,
 		},
 		{ // TC#3
 			kubeName:        "not_found",
-			serviceError:    sgerrors.ErrNotFound,
+			deleteKubeError:    sgerrors.ErrNotFound,
 			expectedStatus:  http.StatusNotFound,
 			expectedErrCode: sgerrors.NotFound,
 		},
@@ -763,8 +775,9 @@ func TestDeleteNodeFromKube(t *testing.T) {
 		handler := Handler{
 			svc:            svc,
 			accountService: accService,
-			workflowMap: map[clouds.Name]string{
-				clouds.DigitalOcean: workflows.DigitalOceanDeleteNode,
+			workflowMap: map[clouds.Name]workflows.WorkflowSet{
+				clouds.DigitalOcean: {
+					DeleteNode: workflows.DigitalOceanDeleteNode},
 			},
 			getWriter: testCase.getWriter,
 			repo:      mockRepo,
