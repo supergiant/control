@@ -165,6 +165,7 @@ func (m *Map) MarshalJSON() ([]byte, error) {
 // TODO(stgleb): rename to context and embed context.Context here
 type Config struct {
 	Context     context.Context
+	TaskId      string
 	Provider    clouds.Name `json:"provider"`
 	IsMaster    bool        `json:"isMaster"`
 	ClusterName string      `json:"clusterName"`
@@ -348,27 +349,27 @@ func (c *Config) GetMaster() *node.Node {
 	return nil
 }
 
-func (c *Config) GetMasters() []*node.Node {
+func (c *Config) GetMasters() map[string]*node.Node {
 	c.m1.RLock()
 	defer c.m1.RUnlock()
 
-	m := make([]*node.Node, 0, len(c.Masters.internal))
+	m := make(map[string]*node.Node, len(c.Masters.internal))
 
 	for key := range c.Masters.internal {
-		m = append(m, c.Masters.internal[key])
+		m[c.Masters.internal[key].Name] = c.Masters.internal[key]
 	}
 
 	return m
 }
 
-func (c *Config) GetNodes() []*node.Node {
+func (c *Config) GetNodes() map[string]*node.Node {
 	c.m2.RLock()
 	defer c.m2.RUnlock()
 
-	m := make([]*node.Node, 0, len(c.Nodes.internal))
+	m := make(map[string]*node.Node, len(c.Nodes.internal))
 
 	for key := range c.Nodes.internal {
-		m = append(m, c.Nodes.internal[key])
+		m[c.Nodes.internal[key].Name] = c.Nodes.internal[key]
 	}
 
 	return m

@@ -20,7 +20,10 @@ import (
 	"github.com/supergiant/supergiant/pkg/node"
 	"github.com/supergiant/supergiant/pkg/profile"
 	"github.com/supergiant/supergiant/pkg/sgerrors"
+	"github.com/supergiant/supergiant/pkg/testutils"
+	"github.com/supergiant/supergiant/pkg/workflows"
 	"github.com/supergiant/supergiant/pkg/workflows/steps"
+	"io"
 )
 
 type kubeServiceMock struct {
@@ -33,6 +36,15 @@ type accServiceMock struct {
 
 type mockNodeProvisioner struct {
 	mock.Mock
+}
+
+type bufferCloser struct {
+	bytes.Buffer
+	err error
+}
+
+func (b *bufferCloser) Close() error {
+	return b.err
 }
 
 const (
@@ -55,7 +67,11 @@ func (m *mockNodeProvisioner) ProvisionNodes(ctx context.Context, nodeProfile []
 
 func (m *kubeServiceMock) Create(ctx context.Context, k *model.Kube) error {
 	args := m.Called(ctx, k)
-	return args.Error(0)
+	val, ok := args.Get(0).(error)
+	if !ok {
+		return nil
+	}
+	return val
 }
 func (m *kubeServiceMock) Get(ctx context.Context, name string) (*model.Kube, error) {
 	args := m.Called(ctx, name)
@@ -557,7 +573,9 @@ func TestAddNodeToKube(t *testing.T) {
 			"test",
 			&model.Kube{
 				AccountName: "test",
-				Masters:     []*node.Node{{}},
+				Masters: map[string]*node.Node{
+					"": {},
+				},
 			},
 			nil,
 			"test",
@@ -610,6 +628,158 @@ func TestAddNodeToKube(t *testing.T) {
 		if rec.Code != testCase.expectedCode {
 			t.Errorf("Wrong error code expected %d actual %d",
 				testCase.expectedCode, rec.Code)
+		}
+	}
+}
+
+func TestDeleteNodeFromKube(t *testing.T) {
+	testCases := []struct {
+		testName string
+
+		nodeName       string
+		kubeName       string
+		kube           *model.Kube
+		kubeServiceErr error
+
+		accountName string
+		account     *model.CloudAccount
+		accountErr  error
+
+		getWriter    func(string) (io.WriteCloser, error)
+		expectedCode int
+	}{
+		{
+			"kube not found",
+			"test",
+			"test",
+			nil,
+			sgerrors.ErrNotFound,
+			"",
+			nil,
+			nil,
+			nil,
+			http.StatusNotFound,
+		},
+		{
+			"method not allowed",
+			"test",
+			"test",
+			&model.Kube{
+				Masters: map[string]*node.Node{
+					"test": {
+						Name: "test",
+					},
+				},
+			},
+			nil,
+			"",
+			nil,
+			nil,
+			nil,
+			http.StatusMethodNotAllowed,
+		},
+		{
+			"node not found",
+			"test",
+			"test",
+			&model.Kube{
+				Nodes: map[string]*node.Node{
+					"test2": {
+						Name: "test2",
+					},
+				},
+			},
+			nil,
+			"",
+			nil,
+			nil,
+			nil,
+			http.StatusNotFound,
+		},
+		{
+			"account not found",
+			"test",
+			"test",
+			&model.Kube{
+				AccountName: "test",
+				Nodes: map[string]*node.Node{
+					"test": {
+						Name: "test",
+					},
+				},
+			},
+			nil,
+			"test",
+			nil,
+			sgerrors.ErrNotFound,
+			nil,
+			http.StatusNotFound,
+		},
+		{
+			"success",
+			"test",
+			"test",
+			&model.Kube{
+				AccountName: "test",
+				Nodes: map[string]*node.Node{
+					"test": {
+						Name: "test",
+					},
+				},
+			},
+			nil,
+			"test",
+			&model.CloudAccount{
+				Name:     "test",
+				Provider: clouds.DigitalOcean,
+				Credentials: map[string]string{
+					"publicKey": "publicKey",
+				},
+			},
+			nil,
+			func(string) (io.WriteCloser, error) {
+				return &bufferCloser{}, nil
+			},
+			http.StatusAccepted,
+		},
+	}
+
+	workflows.Init()
+	workflows.RegisterWorkFlow(workflows.DigitalOceanDeleteNode, []steps.Step{})
+
+	for _, testCase := range testCases {
+		t.Log(testCase.testName)
+		svc := new(kubeServiceMock)
+		svc.On(serviceGet, mock.Anything, testCase.kubeName).
+			Return(testCase.kube, testCase.kubeServiceErr)
+		svc.On(serviceCreate, mock.Anything, testCase.kube).Return(mock.Anything)
+
+		accService := new(accServiceMock)
+		accService.On("Get", mock.Anything, testCase.accountName).
+			Return(testCase.account, testCase.accountErr)
+
+		mockRepo := new(testutils.MockStorage)
+
+		handler := Handler{
+			svc:            svc,
+			accountService: accService,
+			workflowMap: map[clouds.Name]string{
+				clouds.DigitalOcean: workflows.DigitalOceanDeleteNode,
+			},
+			getWriter: testCase.getWriter,
+			repo:      mockRepo,
+		}
+
+		router := mux.NewRouter()
+		router.HandleFunc("/{kname}/nodes/{nodename}", handler.deleteNode).Methods(http.MethodDelete)
+
+		req, _ := http.NewRequest(http.MethodDelete, fmt.Sprintf("/%s/nodes/%s", testCase.kubeName, testCase.nodeName), nil)
+		rec := httptest.NewRecorder()
+
+		router.ServeHTTP(rec, req)
+
+		if rec.Code != testCase.expectedCode {
+			t.Errorf("Wrong response code expected %d actual %d", testCase.expectedCode, rec.Code)
 		}
 	}
 }

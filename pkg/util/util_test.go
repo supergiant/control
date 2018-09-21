@@ -116,27 +116,30 @@ func TestWaitForSucceed(t *testing.T) {
 
 func TestMakeNodeName(t *testing.T) {
 	testCases := []struct {
-		role     bool
-		name     string
-		expected string
+		role        bool
+		clusterName string
+		taskId      string
+		expected    string
 	}{
 		{
 			true,
 			"hello",
-			"hello-master",
+			"5678",
+			"hello-master-5678",
 		},
 		{
 			false,
 			"world",
-			"world-node",
+			"1234",
+			"world-node-1234",
 		},
 	}
 
 	for _, testCase := range testCases {
-		nodeName := MakeNodeName(testCase.name, testCase.role)
+		nodeName := MakeNodeName(testCase.clusterName, testCase.taskId, testCase.role)
 
-		if !strings.EqualFold(nodeName[:len(nodeName)-6], testCase.expected) {
-			t.Errorf("Wrong node name expected %s actual %s",
+		if !strings.EqualFold(nodeName, testCase.expected) {
+			t.Errorf("Wrong node clusterName expected %s actual %s",
 				testCase.expected, nodeName[:len(nodeName)-5])
 		}
 	}
@@ -153,14 +156,7 @@ func TestFillCloudAccountCredentials(t *testing.T) {
 				Name:     "testName",
 				Provider: clouds.DigitalOcean,
 				Credentials: map[string]string{
-					"name":         "hello_world",
-					"k8sVersion":   "",
-					"region":       "",
-					"size":         "",
-					"role":         "",
-					"image":        "",
-					"fingerprints": "fingerprint",
-					"accessToken":  "abcd",
+					"accessToken": "abcd",
 				},
 			},
 			err: nil,
@@ -168,25 +164,15 @@ func TestFillCloudAccountCredentials(t *testing.T) {
 	}
 
 	for _, testCase := range testCases {
-		mock := &mockCloudAccountService{
-			testCase.cloudAccount,
-			testCase.err,
-		}
-
 		config := &steps.Config{
 			CloudAccountName: testCase.cloudAccount.Name,
 		}
 
-		FillCloudAccountCredentials(context.Background(), mock, config)
+		FillCloudAccountCredentials(context.Background(), testCase.cloudAccount, config)
 
 		if !strings.EqualFold(testCase.cloudAccount.Credentials["accessToken"], config.DigitalOceanConfig.AccessToken) {
 			t.Errorf("Wrong access token expected %s actual %s",
 				testCase.cloudAccount.Credentials["accessToken"], config.DigitalOceanConfig.AccessToken)
-		}
-
-		if !strings.EqualFold(testCase.cloudAccount.Credentials["name"], config.DigitalOceanConfig.Name) {
-			t.Errorf("Wrong cloud account name expected %s actual %s",
-				testCase.cloudAccount.Credentials["name"], config.DigitalOceanConfig.Name)
 		}
 	}
 }
