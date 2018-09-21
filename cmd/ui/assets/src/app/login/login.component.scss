@@ -1,8 +1,7 @@
-.login-container {
+:host {
   display: flex;
   flex-direction: column;
   align-items: center;
-  padding: 65px 0px 24px 0px;
 
   .logo {
     height: 108px;

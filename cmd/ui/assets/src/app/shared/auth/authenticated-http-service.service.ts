@@ -1,8 +1,12 @@
+
+import {throwError as observableThrowError,  Observable } from 'rxjs';
+
+import {catchError} from 'rxjs/operators';
 import { Injectable } from '@angular/core';
+// REFACTOR: remove deprecated modules
 import { Request, XHRBackend, RequestOptions, Response, Http, RequestOptionsArgs, Headers } from '@angular/http';
-import { Observable } from 'rxjs/Observable';
-import 'rxjs/add/operator/catch';
-import 'rxjs/add/observable/throw';
+
+
 import { Router } from '@angular/router';
 
 
@@ -13,14 +17,15 @@ export class AuthenticatedHttpService extends Http {
     super(backend, defaultOptions);
   }
 
+  // REFACTOR: remove deprecated method
   request(url: string | Request, options?: RequestOptionsArgs): Observable<Response> {
-    return super.request(url, options).catch((error: Response) => {
+    return super.request(url, options).pipe(catchError((error: Response) => {
       if ((error.status === 401 || error.status === 403) && (window.location.href.match(/\?/g) || []).length < 2) {
         console.log('User session has expired... Redirect to login.');
         this.router.navigate(['']);
-        return Observable.throw(null);
+        return observableThrowError(null);
       }
-      return Observable.throw(error);
-    });
+      return observableThrowError(error);
+    }));
   }
 }

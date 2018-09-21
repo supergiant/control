@@ -48,10 +48,10 @@ func TestStepRunSuccess(t *testing.T) {
 
 	config := steps.NewConfig("", "", "", profile.Profile{})
 	config.SshConfig = steps.SshConfig{
-		Port:       port,
-		User:       user,
-		Timeout:    timeout,
-		PrivateKey: privateKey,
+		Port:                port,
+		User:                user,
+		Timeout:             timeout,
+		BootstrapPrivateKey: privateKey,
 	}
 
 	config.AddMaster(&node.Node{
@@ -89,10 +89,10 @@ func TestStepRunError(t *testing.T) {
 		PrivateIp: host,
 	}
 	config.SshConfig = steps.SshConfig{
-		Port:       port,
-		User:       user,
-		Timeout:    timeout,
-		PrivateKey: "",
+		Port:                port,
+		User:                user,
+		Timeout:             timeout,
+		BootstrapPrivateKey: "",
 	}
 
 	err := step.Run(context.Background(), ioutil.Discard, config)

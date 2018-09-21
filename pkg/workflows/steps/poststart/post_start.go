@@ -4,13 +4,13 @@ import (
 	"context"
 	"io"
 	"text/template"
+	"time"
 
 	"github.com/pkg/errors"
 
 	tm "github.com/supergiant/supergiant/pkg/templatemanager"
 	"github.com/supergiant/supergiant/pkg/workflows/steps"
 	"github.com/supergiant/supergiant/pkg/workflows/steps/kubelet"
-	"time"
 )
 
 const StepName = "poststart"

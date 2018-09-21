@@ -2,16 +2,14 @@ package poststart
 
 import (
 	"bytes"
-
 	"context"
 	"io"
 	"strings"
 	"testing"
 	"text/template"
+	"time"
 
 	"github.com/pkg/errors"
-
-	"time"
 
 	"github.com/supergiant/supergiant/pkg/node"
 	"github.com/supergiant/supergiant/pkg/profile"

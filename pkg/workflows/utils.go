@@ -66,7 +66,7 @@ func DeserializeTask(data []byte, repository storage.Interface) (*Task, error) {
 		Port:    task.Config.SshConfig.Port,
 		User:    task.Config.SshConfig.User,
 		Timeout: task.Config.SshConfig.Timeout,
-		Key:     []byte(task.Config.SshConfig.PrivateKey),
+		Key:     []byte(task.Config.SshConfig.BootstrapPrivateKey),
 	}
 
 	task.Config.Runner, err = ssh.NewRunner(cfg)
