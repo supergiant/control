@@ -20,4 +20,3 @@ config/config.json
 .idea
 *.iml
 etcd-data
-cmd/default.etcd
