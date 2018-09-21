@@ -31,13 +31,13 @@ func (s *DeleteClusterStep) Run(ctx context.Context, output io.Writer, config *s
 	var (
 		err     error
 		resp    *godo.Response
-		timeout time.Duration = s.timeout
+		timeout  = s.timeout
 	)
 
 	for i := 0; i < 3; i++ {
 		resp, err = deleteService.DeleteByTag(ctx, config.ClusterName)
 
-		if resp.StatusCode == http.StatusNoContent {
+		if resp != nil && resp.StatusCode == http.StatusNoContent {
 			return err
 		}
 

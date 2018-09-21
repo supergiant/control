@@ -36,7 +36,13 @@ func TestDeleteClusterRun(t *testing.T) {
 		responses     []*godo.Response
 	}{
 		{
-			description:   "",
+			description: "empty tag",
+			clusterName: "",
+			dropletErrors: []error{errors.New(""), errors.New(""), errors.New("")},
+			responses: []*godo.Response{nil, nil, nil},
+		},
+		{
+			description:   "retry exceeded",
 			clusterName:   "fail",
 			dropletErrors: []error{errors.New(""), errors.New(""), errors.New("")},
 			responses: []*godo.Response{
@@ -58,7 +64,7 @@ func TestDeleteClusterRun(t *testing.T) {
 			},
 		},
 		{
-			description:   "",
+			description:   "success",
 			clusterName:   "success",
 			dropletErrors: []error{errors.New(""), errors.New(""), nil},
 			responses: []*godo.Response{

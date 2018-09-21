@@ -36,7 +36,7 @@ func (s *DeleteMachineStep) Run(ctx context.Context, output io.Writer, config *s
 	for i := 0; i < 3; i++ {
 		resp, err = deleteService.DeleteByTag(ctx, config.Node.Name)
 
-		if resp.StatusCode == http.StatusNoContent {
+		if resp != nil && resp.StatusCode == http.StatusNoContent {
 			return err
 		}
 
