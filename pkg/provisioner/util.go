@@ -18,6 +18,7 @@ import (
 	"github.com/supergiant/supergiant/pkg/profile"
 	"github.com/supergiant/supergiant/pkg/sgerrors"
 	"github.com/supergiant/supergiant/pkg/util"
+	"github.com/supergiant/supergiant/pkg/workflows"
 	"github.com/supergiant/supergiant/pkg/workflows/steps"
 )
 
@@ -58,7 +59,7 @@ func (e *EtcdTokenGetter) GetToken(ctx context.Context, num int) (string, error)
 }
 
 // Fill cloud account specific data gets data from the map and puts to particular cloud provider config
-func FillNodeCloudSpecificData(provider clouds.Name, nodeProfile map[string]string, config *steps.Config) error {
+func FillNodeCloudSpecificData(provider clouds.Name, nodeProfile profile.NodeProfile, config *steps.Config) error {
 	switch provider {
 	case clouds.AWS:
 		return util.BindParams(nodeProfile, &config.AWSConfig)
@@ -77,28 +78,34 @@ func FillNodeCloudSpecificData(provider clouds.Name, nodeProfile map[string]stri
 	return nil
 }
 
-func nodesFromProfile(profile *profile.Profile) ([]*node.Node, []*node.Node) {
-	masters := make([]*node.Node, 0, len(profile.MasterProfiles))
-	nodes := make([]*node.Node, 0, len(profile.NodesProfiles))
+func nodesFromProfile(clusterName string, masterTasks, nodeTasks []*workflows.Task, profile *profile.Profile) (map[string]*node.Node, map[string]*node.Node) {
+	masters := make(map[string]*node.Node)
+	nodes := make(map[string]*node.Node)
 
-	for _, p := range profile.MasterProfiles {
+	for index, p := range profile.MasterProfiles {
+		taskId := masterTasks[index].ID
+
 		n := &node.Node{
+			Name:     util.MakeNodeName(clusterName, taskId, true),
 			Provider: profile.Provider,
 			Region:   profile.Region,
 		}
 
 		util.BindParams(p, n)
-		masters = append(masters, n)
+		masters[n.Name] = n
 	}
 
-	for _, p := range profile.NodesProfiles {
+	for index, p := range profile.NodesProfiles {
+		taskId := nodeTasks[index].ID
+
 		n := &node.Node{
+			Name:     util.MakeNodeName(clusterName, taskId[:4], false),
 			Provider: profile.Provider,
 			Region:   profile.Region,
 		}
 
 		util.BindParams(p, n)
-		nodes = append(nodes, n)
+		nodes[n.Name] = n
 	}
 
 	return masters, nodes
