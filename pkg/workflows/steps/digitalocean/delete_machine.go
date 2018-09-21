@@ -16,7 +16,7 @@ type DeleteMachineStep struct {
 	timeout          time.Duration
 }
 
-func NewDeleteInstanceStep(timeout time.Duration) *DeleteMachineStep {
+func NewDeleteMachineStep(timeout time.Duration) *DeleteMachineStep {
 	return &DeleteMachineStep{
 		timeout: timeout,
 		getDeleteService: func(accessToken string) DeleteService {
