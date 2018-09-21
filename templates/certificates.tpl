@@ -17,8 +17,10 @@ O = Qbox.inc
 OU = supegiant
 CN = {PRIVATE_HOST}
 [ v3_req ]
+authorityKeyIdentifier=keyid,issuer:always
 basicConstraints = CA:FALSE
 keyUsage = nonRepudiation, digitalSignature, keyEncipherment
+extendedKeyUsage=serverAuth,clientAuth
 subjectAltName = @alt_names
 [alt_names]
 DNS.1 = kubernetes
