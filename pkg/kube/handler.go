@@ -209,7 +209,6 @@ func (h *Handler) deleteKube(w http.ResponseWriter, r *http.Request) {
 
 		message.SendUnknownError(w, err)
 		return
-
 	}
 
 	t, err := workflows.NewTask(h.workflowMap[acc.Provider].DeleteCluster, h.repo)
