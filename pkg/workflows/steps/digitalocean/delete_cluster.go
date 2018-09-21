@@ -6,6 +6,7 @@ import (
 	"net/http"
 	"time"
 
+	"github.com/digitalocean/godo"
 	"github.com/supergiant/supergiant/pkg/clouds/digitaloceanSDK"
 	"github.com/supergiant/supergiant/pkg/workflows/steps"
 )
@@ -26,10 +27,15 @@ func NewDeleteClusterStep(timeout time.Duration) *DeleteClusterStep {
 
 func (s *DeleteClusterStep) Run(ctx context.Context, output io.Writer, config *steps.Config) error {
 	deleteService := s.getDeleteService(config.DigitalOceanConfig.AccessToken)
-	timeout := s.timeout
+
+	var (
+		err     error
+		resp    *godo.Response
+		timeout time.Duration = s.timeout
+	)
 
 	for i := 0; i < 3; i++ {
-		resp, err := deleteService.DeleteByTag(ctx, config.ClusterName)
+		resp, err = deleteService.DeleteByTag(ctx, config.ClusterName)
 
 		if resp.StatusCode == http.StatusNoContent {
 			return err
@@ -39,7 +45,7 @@ func (s *DeleteClusterStep) Run(ctx context.Context, output io.Writer, config *s
 		timeout = timeout * 2
 	}
 
-	return ErrTimeoutExceeded
+	return err
 }
 
 func (s *DeleteClusterStep) Rollback(context.Context, io.Writer, *steps.Config) error {
