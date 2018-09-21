@@ -75,7 +75,6 @@ func (h *Handler) Register(r *mux.Router) {
 	// TODO(stgleb): Add get method for getting kube nodes
 	r.HandleFunc("/kubes/{kname}/nodes", h.addNode).Methods(http.MethodPost)
 	r.HandleFunc("/kubes/{kname}/nodes/{nodename}", h.deleteNode).Methods(http.MethodDelete)
-	r.HandleFunc("/kubes/{kname}/nodes/{nodename}", h.deleteNode).Methods(http.MethodDelete)
 }
 
 func (h *Handler) getTasks(w http.ResponseWriter, r *http.Request) {
