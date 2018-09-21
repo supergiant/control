@@ -256,11 +256,7 @@ func (h *Handler) deleteKube(w http.ResponseWriter, r *http.Request) {
 
 		// Finally delete cluster record from etcd
 		if err := h.svc.Delete(r.Context(), kname); err != nil {
-			if sgerrors.IsNotFound(err) {
-				message.SendNotFound(w, kname, err)
-				return
-			}
-			message.SendUnknownError(w, err)
+			logrus.Errorf("delete kube %s caused %v", kname, err)
 			return
 		}
 	}(t)
