@@ -34,9 +34,9 @@ export class CloudAccountModel {
       }
     },
     'layout': [
-      { 'key': 'credentials.access_key', 'placeholder': 'Access Key' },
-      { 'key': 'credentials.secret_key', 'placeholder': 'Secret Key' },
-      { 'type': 'submit', 'title': 'CREATE' }
+      { "key": "credentials.access_key", "placeholder": "Access Key" },
+      { "key": "credentials.secret_key", "placeholder": "Secret Key" },
+      { "type": "submit", "title": "CREATE" }
     ]
   };
 
@@ -46,8 +46,7 @@ export class CloudAccountModel {
       'provider': 'digitalocean',
       'credentials': {
         'accessToken': '',
-        'fingerprint': '',
-        'privateKey': ''
+        'publicKey': ''
       }
     },
     'schema': {
@@ -65,11 +64,7 @@ export class CloudAccountModel {
               'type': 'string',
               'description': 'Access Token for your DO account'
             },
-            'fingerprint': {
-              'type': 'string',
-              'description': 'Your SSH fingerprint'
-            },
-            'privateKey': {
+            'publicKey': {
               'type': 'string',
               'description': 'Your personal private key'
             }
@@ -78,10 +73,9 @@ export class CloudAccountModel {
       }
     },
     'layout': [
-      { 'key': 'credentials.accessToken', 'placeholder': 'Access Token' },
-      { 'key': 'credentials.fingerprint', 'placeholder': 'Fingerprint' },
-      { 'type': 'textarea', 'key': 'credentials.privateKey', 'placeholder': 'Private Key' },
-      { 'type': 'submit', 'title': 'CREATE' }
+      { "key": "credentials.accessToken", "placeholder": "Access Token" },
+      { "type": "textarea", "key": "credentials.publicKey", "placeholder": "Public Key" },
+      { "type": "submit", "title": "CREATE" }
     ]
   };
 
@@ -123,31 +117,31 @@ export class CloudAccountModel {
       }
     },
     'layout': [
-      { 'key': 'credentials.api_token', 'placeholder': 'API Token' },
-      { 'type': 'submit', 'title': 'CREATE' }
+      { "key": "credentials.api_token", "placeholder": "API Token" },
+      { "type": "submit", "title": "CREATE" }
     ]
   };
 
   public providers = [
     {
-      display: 'AWS - Amazon Web Services',
-      name: 'aws',
+      display: "AWS - Amazon Web Services",
+      name: "aws",
       data: this.aws
     },
     {
-      display: 'Digital Ocean',
-      name: 'digitalocean',
+      display: "Digital Ocean",
+      name: "digitalocean",
       data: this.digitalocean
     },
     {
-      display: 'GCE - Google Compute Engine',
-      name: 'gce',
+      display: "GCE - Google Compute Engine",
+      name: "gce",
       data: this.gce
     },
     {
-      display: 'Packet.net',
-      name: 'packet',
+      display: "Packet.net",
+      name: "packet",
       data: this.packet
     }
-  ];
+  ]
 }

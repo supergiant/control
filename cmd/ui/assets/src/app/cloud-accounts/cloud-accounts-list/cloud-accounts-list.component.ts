@@ -1,11 +1,9 @@
-
-import {timer as observableTimer,  Subscription ,  Observable } from 'rxjs';
-
-import {switchMap} from 'rxjs/operators';
 import { Component, OnDestroy, OnInit } from '@angular/core';
 import { CloudAccountsService } from '../cloud-accounts.service';
+import { Subscription } from 'rxjs/Subscription';
 import { Supergiant } from '../../shared/supergiant/supergiant.service';
 import { Notifications } from '../../shared/notifications/notifications.service';
+import { Observable } from 'rxjs/Observable';
 
 @Component({
   selector: 'app-cloud-accounts-list',
@@ -31,8 +29,8 @@ export class CloudAccountsListComponent implements OnInit, OnDestroy {
   }
 
   getAccounts() {
-    this.subscriptions.add(observableTimer(0, 5000).pipe(
-      switchMap(() => this.supergiant.CloudAccounts.get())).subscribe(
+    this.subscriptions.add(Observable.timer(0, 5000)
+      .switchMap(() => this.supergiant.CloudAccounts.get()).subscribe(
       (cloudAccounts) => { this.cloudAccounts = cloudAccounts.items; },
       (err) => { this.notifications.display('warn', 'Connection Issue.', err); }));
   }

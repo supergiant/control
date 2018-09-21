@@ -1,5 +1,5 @@
 import { Injectable } from '@angular/core';
-import { NotificationsService } from 'angular2-notifications';
+import { NotificationsService } from 'angular2-notifications/dist';
 import { SystemModalService } from '../system-modal/system-modal.service';
 
 
