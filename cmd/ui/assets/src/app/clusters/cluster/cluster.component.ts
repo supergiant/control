@@ -293,8 +293,22 @@ export class ClusterComponent implements OnInit, OnDestroy {
     this.subscriptions.add(Observable.timer(0, 20000)
       .switchMap(() => this.supergiant.Kubes.get(this.id)).subscribe(
         kube => {
+
           this.kube = kube;
-          this.machines = new MatTableDataSource(kube.masters.concat(kube.nodes));
+
+          let masters = kube.masters;
+          let nodes = kube.nodes;
+
+          const mastersArr = Object
+            .keys(masters)
+            .map(name => Object.assign({}, {name}, masters[name]));
+
+          const nodesArr = Object
+            .keys(nodes)
+            .map(name => Object.assign({}, {name}, nodes[name]));
+
+
+          this.machines = new MatTableDataSource(mastersArr.concat(nodesArr));
           this.machines.sort = this.sort;
           this.machines.paginator = this.paginator;
           console.log(kube);},
