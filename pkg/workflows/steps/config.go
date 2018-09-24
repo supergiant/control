@@ -80,7 +80,7 @@ type NetworkConfig struct {
 }
 
 type KubeletConfig struct {
-	MasterPrivateIP string `json:"masterPrivateIP"`
+	IsMaster 		bool `json:"isMaster"`
 	ProxyPort       string `json:"proxyPort"`
 	EtcdClientPort  string `json:"etcdClientPort"`
 	K8SVersion      string `json:"k8sVersion"`
@@ -252,7 +252,6 @@ func NewConfig(clusterName, discoveryUrl, cloudAccountName string, profile profi
 			EtcdHost: "0.0.0.0",
 		},
 		KubeletConfig: KubeletConfig{
-			MasterPrivateIP: "localhost",
 			ProxyPort:       "8080",
 			EtcdClientPort:  "2379",
 			K8SVersion:      profile.K8SVersion,

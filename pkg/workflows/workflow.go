@@ -11,7 +11,6 @@ import (
 	"github.com/supergiant/supergiant/pkg/workflows/steps/docker"
 	"github.com/supergiant/supergiant/pkg/workflows/steps/downloadk8sbinary"
 	"github.com/supergiant/supergiant/pkg/workflows/steps/etcd"
-	"github.com/supergiant/supergiant/pkg/workflows/steps/flannel"
 	"github.com/supergiant/supergiant/pkg/workflows/steps/kubelet"
 	"github.com/supergiant/supergiant/pkg/workflows/steps/manifest"
 	"github.com/supergiant/supergiant/pkg/workflows/steps/network"
@@ -57,7 +56,6 @@ func Init() {
 		steps.GetStep(cni.StepName),
 		steps.GetStep(certificates.StepName),
 		steps.GetStep(etcd.StepName),
-		steps.GetStep(flannel.StepName),
 		steps.GetStep(manifest.StepName),
 		steps.GetStep(kubelet.StepName),
 		steps.GetStep(network.StepName),
@@ -70,7 +68,6 @@ func Init() {
 		steps.GetStep(docker.StepName),
 		steps.GetStep(certificates.StepName),
 		steps.GetStep(manifest.StepName),
-		steps.GetStep(flannel.StepName),
 		steps.GetStep(kubelet.StepName),
 		steps.GetStep(cni.StepName),
 		steps.GetStep(poststart.StepName),

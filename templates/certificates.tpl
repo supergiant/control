@@ -51,7 +51,7 @@ EOF
 
 cat > /etc/kubernetes/ssl/known_tokens.csv <<EOF
 {{ .Password }},kubelet,kubelet
-{{ .Password }},kubelet-bootstrap,system:node_bootstrapper
+41f7e4ba8b7be874fcff18bf5cf41a7c,kubelet-bootstrap,system:node_bootstrapper
 {{ .Password }},kube_proxy,kube_proxy
 {{ .Password }},system:scheduler,system:scheduler
 {{ .Password }},system:controller_manager,system:controller_manager
