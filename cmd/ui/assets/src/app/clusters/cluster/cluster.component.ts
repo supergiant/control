@@ -1,8 +1,15 @@
+import { timer as observableTimer, Subscription, Observable } from 'rxjs';
 
-import {timer as observableTimer,  Subscription ,  Observable } from 'rxjs';
-
-import {switchMap} from 'rxjs/operators';
-import { Component, OnInit, OnDestroy, ViewChild, ElementRef, ViewContainerRef, ViewEncapsulation } from '@angular/core';
+import { switchMap } from 'rxjs/operators';
+import {
+  Component,
+  OnInit,
+  OnDestroy,
+  ViewChild,
+  ElementRef,
+  ViewContainerRef,
+  ViewEncapsulation,
+} from '@angular/core';
 import { Location } from '@angular/common';
 import { ActivatedRoute, Router } from '@angular/router';
 import { Supergiant } from '../../shared/supergiant/supergiant.service';
@@ -10,13 +17,13 @@ import { Notifications } from '../../shared/notifications/notifications.service'
 import { convertIsoToHumanReadable } from '../../shared/helpers/helpers';
 import { DomSanitizer, SafeResourceUrl } from '@angular/platform-browser';
 import { ChartsModule, BaseChartDirective } from 'ng2-charts';
-import { MatTableDataSource, MatSort, MatPaginator } from '@angular/material';
+import { MatTableDataSource, MatSort, MatPaginator, MatDialog } from '@angular/material';
 
 
 @Component({
   selector: 'app-cluster',
   templateUrl: './cluster.component.html',
-  styleUrls: ['./cluster.component.scss'],
+  styleUrls: [ './cluster.component.scss' ],
   // encapsulation: ViewEncapsulation.None
 })
 export class ClusterComponent implements OnInit, OnDestroy {
@@ -45,7 +52,7 @@ export class ClusterComponent implements OnInit, OnDestroy {
       pointBackgroundColor: 'rgba(148,159,177,1)',
       pointBorderColor: '#fff',
       pointHoverBackgroundColor: '#fff',
-      pointHoverBorderColor: 'rgba(148,159,177,0.8)'
+      pointHoverBorderColor: 'rgba(148,159,177,0.8)',
     },
     { // dark grey
       backgroundColor: 'rgba(77,83,96,0.2)',
@@ -53,7 +60,7 @@ export class ClusterComponent implements OnInit, OnDestroy {
       pointBackgroundColor: 'rgba(77,83,96,1)',
       pointBorderColor: '#fff',
       pointHoverBackgroundColor: '#fff',
-      pointHoverBorderColor: 'rgba(77,83,96,1)'
+      pointHoverBorderColor: 'rgba(77,83,96,1)',
     },
     { // grey
       backgroundColor: 'rgba(148,159,177,0.2)',
@@ -61,8 +68,8 @@ export class ClusterComponent implements OnInit, OnDestroy {
       pointBackgroundColor: 'rgba(148,159,177,1)',
       pointBorderColor: '#fff',
       pointHoverBackgroundColor: '#fff',
-      pointHoverBorderColor: 'rgba(148,159,177,0.8)'
-    }
+      pointHoverBorderColor: 'rgba(148,159,177,0.8)',
+    },
   ];
 
   @ViewChild(MatSort) sort: MatSort;
@@ -76,9 +83,9 @@ export class ClusterComponent implements OnInit, OnDestroy {
     private location: Location,
     private router: Router,
     private supergiant: Supergiant,
-    private notifications: Notifications,
-    private sanitizer: DomSanitizer,
-  ) { }
+    public dialog: MatDialog
+  ) {
+  }
 
   public cpuChartColors: Array<any> = [
     { // grey
@@ -87,7 +94,7 @@ export class ClusterComponent implements OnInit, OnDestroy {
       pointBackgroundColor: 'rgba(148,159,177,1)',
       pointBorderColor: '#fff',
       pointHoverBackgroundColor: '#fff',
-      pointHoverBorderColor: 'rgba(148,159,177,0.8)'
+      pointHoverBorderColor: 'rgba(148,159,177,0.8)',
     },
     { // dark grey
       backgroundColor: 'rgba(77,83,96,0.2)',
@@ -95,7 +102,7 @@ export class ClusterComponent implements OnInit, OnDestroy {
       pointBackgroundColor: 'rgba(77,83,96,1)',
       pointBorderColor: '#fff',
       pointHoverBackgroundColor: '#fff',
-      pointHoverBorderColor: 'rgba(77,83,96,1)'
+      pointHoverBorderColor: 'rgba(77,83,96,1)',
     },
     { // grey
       backgroundColor: 'rgba(148,159,177,0.2)',
@@ -103,8 +110,8 @@ export class ClusterComponent implements OnInit, OnDestroy {
       pointBackgroundColor: 'rgba(148,159,177,1)',
       pointBorderColor: '#fff',
       pointHoverBackgroundColor: '#fff',
-      pointHoverBorderColor: 'rgba(148,159,177,0.8)'
-    }
+      pointHoverBorderColor: 'rgba(148,159,177,0.8)',
+    },
   ];
 
   public ramChartColors: Array<any> = [
@@ -114,7 +121,7 @@ export class ClusterComponent implements OnInit, OnDestroy {
       pointBackgroundColor: 'rgba(148,159,177,1)',
       pointBorderColor: '#fff',
       pointHoverBackgroundColor: '#fff',
-      pointHoverBorderColor: 'rgba(148,159,177,0.8)'
+      pointHoverBorderColor: 'rgba(148,159,177,0.8)',
     },
     { // dark grey
       backgroundColor: 'rgba(77,83,96,0.2)',
@@ -122,7 +129,7 @@ export class ClusterComponent implements OnInit, OnDestroy {
       pointBackgroundColor: 'rgba(77,83,96,1)',
       pointBorderColor: '#fff',
       pointHoverBackgroundColor: '#fff',
-      pointHoverBorderColor: 'rgba(77,83,96,1)'
+      pointHoverBorderColor: 'rgba(77,83,96,1)',
     },
     { // grey
       backgroundColor: 'rgba(148,159,177,0.2)',
@@ -130,40 +137,40 @@ export class ClusterComponent implements OnInit, OnDestroy {
       pointBackgroundColor: 'rgba(148,159,177,1)',
       pointBorderColor: '#fff',
       pointHoverBackgroundColor: '#fff',
-      pointHoverBorderColor: 'rgba(148,159,177,0.8)'
-    }
+      pointHoverBorderColor: 'rgba(148,159,177,0.8)',
+    },
   ];
 
   // CPU Usage
   // I can't get this to update with push, so it has to have the same struct as eventual data.
-  public cpuChartData: Array<any> = [{ data: [] }, { data: [] }];
+  public cpuChartData: Array<any> = [ { data: [] }, { data: [] } ];
   public cpuChartOptions: any = {
     responsive: true,
     maintainAspectRatio: true,
     scales: {
-      yAxes: [{
+      yAxes: [ {
         ticks: {
           beginAtZero: true,
-        }
-      }]
-    }
+        },
+      } ],
+    },
   };
   public cpuChartLabels: Array<any> = [];
   public cpuChartType = 'line';
   public cpuChartLegend = true;
 
   // RAM Usage
-  public ramChartData: Array<any> = [{ data: [] }, { data: [] }];
+  public ramChartData: Array<any> = [ { data: [] }, { data: [] } ];
   public ramChartOptions: any = {
     responsive: true,
     maintainAspectRatio: true,
     scales: {
-      yAxes: [{
+      yAxes: [ {
         ticks: {
           beginAtZero: true,
-        }
-      }]
-    }
+        },
+      } ],
+    },
   };
   public ramChartLabels: Array<any> = [];
   public ramChartType = 'line';
@@ -172,7 +179,7 @@ export class ClusterComponent implements OnInit, OnDestroy {
 
   // machine list vars
   machines: any;
-  machineListColumns = ["role", "name", "id", "region", "public_ip"];
+  machineListColumns = [ 'role', 'name', 'id', 'region', 'public_ip' ];
 
   ngOnInit() {
     this.id = this.route.snapshot.params.id;
@@ -181,7 +188,7 @@ export class ClusterComponent implements OnInit, OnDestroy {
 
   usageOrZeroCPU(usage) {
     if (usage == null) {
-      return ([0, 0, 0, 0, 0, 0, 0, 0, 0, 0]);
+      return ( [ 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 ] );
     } else {
       return usage.cpu_usage_rate.map((data) => data.value);
     }
@@ -191,7 +198,7 @@ export class ClusterComponent implements OnInit, OnDestroy {
   onAppActivate(activated) {
     console.log(activated);
     if (activated.type === 'click' && activated.column.name !== 'checkbox') {
-      this.router.navigate(['/clusters', activated.row.id]);
+      this.router.navigate([ '/clusters', activated.row.id ]);
     }
   }
 
@@ -291,30 +298,31 @@ export class ClusterComponent implements OnInit, OnDestroy {
   // }
 
   getKube() {
-    this.subscriptions.add(observableTimer(0, 20000).pipe(
+    this.subscriptions.add(observableTimer(0, 900000).pipe(
       switchMap(() => this.supergiant.Kubes.get(this.id))).subscribe(
-        kube => {
+      kube => {
 
-          this.kube = kube;
+        this.kube = kube;
 
-          let masters = kube.masters;
-          let nodes = kube.nodes;
+        let masters = kube.masters;
+        let nodes = kube.nodes;
 
-          const mastersArr = Object
-            .keys(masters)
-            .map(name => Object.assign({}, {name}, masters[name]));
+        const mastersArr = Object
+          .keys(masters)
+          .map(name => Object.assign({}, { name }, masters[ name ]));
 
-          const nodesArr = Object
-            .keys(nodes)
-            .map(name => Object.assign({}, {name}, nodes[name]));
+        const nodesArr = Object
+          .keys(nodes)
+          .map(name => Object.assign({}, { name }, nodes[ name ]));
 
 
-          this.machines = new MatTableDataSource(mastersArr.concat(nodesArr));
-          this.machines.sort = this.sort;
-          this.machines.paginator = this.paginator;
-          console.log(kube);},
-        err => console.log(err)
-      ))
+        this.machines = new MatTableDataSource(mastersArr.concat(nodesArr));
+        this.machines.sort = this.sort;
+        this.machines.paginator = this.paginator;
+        console.log(kube);
+      },
+      err => console.log(err),
+    ));
   }
 
   padArrayWithDefault(arr: any, n: number) {
@@ -325,7 +333,7 @@ export class ClusterComponent implements OnInit, OnDestroy {
       arr = tmpArr.slice(0);
       arr.reduce((previous, current, index) => {
         if (previous && tmpArr.length < n) {
-          const average = (current + previous) / 2;
+          const average = ( current + previous ) / 2;
           tmpArr.splice(index + count, 0, average);
           count += 1;
         }
@@ -339,8 +347,21 @@ export class ClusterComponent implements OnInit, OnDestroy {
   goBack() {
     this.location.back();
   }
+
   ngOnDestroy() {
     this.subscriptions.unsubscribe();
+  }
+
+  removeNode(nodeName: string) {
+    const dialogRef = this.dialog.open(DialogOverviewExampleDialog, {
+      width: '250px',
+    });
+
+    dialogRef.afterClosed().subscribe(result => {
+      console.log('The dialog was closed');
+      this.animal = result;
+    });
+    this.supergiant.Nodes.delete(nodeName);
   }
 
 }

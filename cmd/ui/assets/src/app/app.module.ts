@@ -40,12 +40,7 @@ import {
   MatToolbarModule,
   MatTooltipModule } from '@angular/material';
 import { SchemaFormModule, WidgetRegistry, DefaultWidgetRegistry } from 'ngx-schema-form';
-import {
-  MaterialDesignFrameworkModule,
-  JsonSchemaFormService,
-  FrameworkLibraryService,
-  MaterialDesignFramework,
-} from 'angular6-json-schema-form';
+import { MaterialDesignFrameworkModule } from 'angular6-json-schema-form';
 import { AppRoutingModule } from './app-routing.module';
 import { AceEditorModule } from 'ng2-ace-editor';
 import { ChartsModule } from 'ng2-charts';
