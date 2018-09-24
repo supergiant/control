@@ -3,7 +3,7 @@
 <div class="subcontext-actions">
   <div *ngIf="resouceKinds.length > 0" class="form-group row">
     <mat-form-field>
-      <mat-select placeholder="Resource Kind" [(ngModel)]="selectedResourceKind" (change)="get()">
+      <mat-select placeholder="Resource Kind" [(ngModel)]="selectedResourceKind" (selectionChange)="get()">
         <mat-option *ngFor="let resourceKind of resouceKinds" [value]="resourceKind">
           {{ resourceKind }}
         </mat-option>

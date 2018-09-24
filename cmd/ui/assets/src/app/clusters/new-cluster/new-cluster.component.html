@@ -5,7 +5,7 @@
     <!-- left -->
     <div class="input-group">
       <mat-form-field>
-        <mat-select placeholder="Select a Cloud Account" [(value)]="selectedCloudAccount" (change)="selectCloudAccount($event.value)">
+        <mat-select placeholder="Select a Cloud Account" [(value)]="selectedCloudAccount" (selectionChange)="selectCloudAccount($event.value)">
           <mat-option *ngFor="let c of availableCloudAccounts" [value]="c">{{ c.name }}</mat-option>
         </mat-select>
       </mat-form-field>
@@ -15,7 +15,7 @@
       </mat-form-field>
 
       <mat-form-field *ngIf="selectedCloudAccount">
-        <mat-select placeholder="Select a Region" [(value)]="selectedRegion" (change)="selectRegion($event.value)">
+        <mat-select placeholder="Select a Region" [(value)]="selectedRegion" (selectionChange)="selectRegion($event.value)">
           <mat-option *ngFor="let r of availableRegions?.regions" [value]="r">{{ r.name }}</mat-option>
         </mat-select>
       </mat-form-field>
