@@ -1,5 +1,5 @@
 import { Component, Input } from '@angular/core';
-import { Subscription } from 'rxjs';
+import { Subscription } from 'rxjs/Subscription';
 import { Supergiant } from '../../shared/supergiant/supergiant.service';
 import { CloudAccountsService } from '../cloud-accounts.service';
 

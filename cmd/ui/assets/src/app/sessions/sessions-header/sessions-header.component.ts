@@ -1,7 +1,7 @@
 import { Component, OnDestroy } from '@angular/core';
 import { SessionsService } from '../sessions.service';
 import { Supergiant } from '../../shared/supergiant/supergiant.service';
-import { Subscription } from 'rxjs';
+import { Subscription } from 'rxjs/Subscription';
 import { Notifications } from '../../shared/notifications/notifications.service';
 import { LoginComponent } from '../../login/login.component';
 import { SystemModalService } from '../../shared/system-modal/system-modal.service';

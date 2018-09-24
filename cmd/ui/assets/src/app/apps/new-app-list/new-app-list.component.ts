@@ -1,9 +1,7 @@
-
-import {timer as observableTimer,  Observable ,  Subscription } from 'rxjs';
-
-import {switchMap} from 'rxjs/operators';
 import { Component, OnInit, OnDestroy, Pipe, PipeTransform } from '@angular/core';
+import { Observable } from 'rxjs/Observable';
 import { Router } from '@angular/router';
+import { Subscription } from 'rxjs/Subscription';
 import { Supergiant } from '../../shared/supergiant/supergiant.service';
 import { Location } from '@angular/common';
 
@@ -36,8 +34,8 @@ export class NewAppListComponent implements OnInit, OnDestroy {
   }
 
   getCharts() {
-    this.subscriptions.add(observableTimer(0, 30000).pipe(
-      switchMap(() => this.supergiant.HelmCharts.get())).subscribe(
+    this.subscriptions.add(Observable.timer(0, 30000)
+      .switchMap(() => this.supergiant.HelmCharts.get()).subscribe(
         (apps) => {
           this.unfilteredRows = apps.items;
           this.rows = this.filterRows(apps.items, this.filterText);

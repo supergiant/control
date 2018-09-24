@@ -7,7 +7,19 @@ import (
 	"time"
 
 	"github.com/pkg/errors"
+	"github.com/supergiant/supergiant/pkg/clouds"
+	"github.com/supergiant/supergiant/pkg/model"
+	"github.com/supergiant/supergiant/pkg/workflows/steps"
 )
+
+type mockCloudAccountService struct {
+	cloudAccount *model.CloudAccount
+	err          error
+}
+
+func (m *mockCloudAccountService) Get(ctx context.Context, name string) (*model.CloudAccount, error) {
+	return m.cloudAccount, m.err
+}
 
 func TestRandomStringLen(t *testing.T) {
 	testCases := []int{4, 8, 16}
@@ -104,28 +116,63 @@ func TestWaitForSucceed(t *testing.T) {
 
 func TestMakeNodeName(t *testing.T) {
 	testCases := []struct {
-		role     bool
-		name     string
-		expected string
+		role        bool
+		clusterName string
+		taskId      string
+		expected    string
 	}{
 		{
 			true,
 			"hello",
-			"hello-master",
+			"5678",
+			"hello-master-5678",
 		},
 		{
 			false,
 			"world",
-			"world-node",
+			"1234",
+			"world-node-1234",
 		},
 	}
 
 	for _, testCase := range testCases {
-		nodeName := MakeNodeName(testCase.name, testCase.role)
+		nodeName := MakeNodeName(testCase.clusterName, testCase.taskId, testCase.role)
 
-		if !strings.EqualFold(nodeName[:len(nodeName)-6], testCase.expected) {
-			t.Errorf("Wrong node name expected %s actual %s",
+		if !strings.EqualFold(nodeName, testCase.expected) {
+			t.Errorf("Wrong node clusterName expected %s actual %s",
 				testCase.expected, nodeName[:len(nodeName)-5])
+		}
+	}
+}
+
+// TODO(stgleb): extend for other types of cloud providers
+func TestFillCloudAccountCredentials(t *testing.T) {
+	testCases := []struct {
+		cloudAccount *model.CloudAccount
+		err          error
+	}{
+		{
+			cloudAccount: &model.CloudAccount{
+				Name:     "testName",
+				Provider: clouds.DigitalOcean,
+				Credentials: map[string]string{
+					"accessToken": "abcd",
+				},
+			},
+			err: nil,
+		},
+	}
+
+	for _, testCase := range testCases {
+		config := &steps.Config{
+			CloudAccountName: testCase.cloudAccount.Name,
+		}
+
+		FillCloudAccountCredentials(context.Background(), testCase.cloudAccount, config)
+
+		if !strings.EqualFold(testCase.cloudAccount.Credentials["accessToken"], config.DigitalOceanConfig.AccessToken) {
+			t.Errorf("Wrong access token expected %s actual %s",
+				testCase.cloudAccount.Credentials["accessToken"], config.DigitalOceanConfig.AccessToken)
 		}
 	}
 }

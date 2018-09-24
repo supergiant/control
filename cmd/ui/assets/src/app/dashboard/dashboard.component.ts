@@ -1,5 +1,5 @@
 import { Component, OnInit, ViewEncapsulation } from '@angular/core';
-import { Subscription } from 'rxjs';
+import { Subscription } from 'rxjs/Subscription';
 import { Supergiant } from '../shared/supergiant/supergiant.service';
 import { convertIsoToHumanReadable } from '../shared/helpers/helpers';
 import { MatTableDataSource } from '@angular/material';

@@ -1,5 +1,5 @@
 import { Component, OnInit, OnDestroy, AfterViewInit, ViewEncapsulation } from '@angular/core';
-import { Subscription } from 'rxjs';
+import { Subscription } from 'rxjs/Subscription';
 import { Supergiant } from '../../shared/supergiant/supergiant.service';
 import { ClusterAWSModel } from '../cluster.aws.model';
 import { ClusterDigitalOceanModel } from '../cluster.digitalocean.model';

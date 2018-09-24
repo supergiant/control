@@ -39,7 +39,7 @@ import {
   MatTabsModule,
   MatToolbarModule,
   MatTooltipModule } from '@angular/material';
-import { SchemaFormModule, WidgetRegistry, DefaultWidgetRegistry } from 'ngx-schema-form';
+import { SchemaFormModule, WidgetRegistry, DefaultWidgetRegistry } from 'angular2-schema-form';
 import {
   MaterialDesignFrameworkModule,
   JsonSchemaFormService,
@@ -144,12 +144,12 @@ import { TokenInterceptor } from './shared/supergiant/auth/token.interceptor';
 import { Http } from '@angular/http';
 import { HTTP_INTERCEPTORS } from '@angular/common/http';
 
-
-
-
-
-
-
+import 'rxjs/add/operator/map';
+import 'rxjs/add/operator/switchMap';
+import 'rxjs/add/observable/of';
+import 'rxjs/add/observable/timer';
+import 'rxjs/add/observable/interval';
+import 'rxjs/add/operator/take';
 
 // ui2000
 import { SystemComponent } from './system/system.component';

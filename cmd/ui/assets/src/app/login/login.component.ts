@@ -2,7 +2,8 @@ import { Component, OnDestroy } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Supergiant } from '../shared/supergiant/supergiant.service';
 import { Router } from '@angular/router';
-import { Observable ,  Subscription } from 'rxjs';
+import { Observable } from 'rxjs/Observable';
+import { Subscription } from 'rxjs/Subscription';
 import { Notifications } from '../shared/notifications/notifications.service';
 
 @Component({

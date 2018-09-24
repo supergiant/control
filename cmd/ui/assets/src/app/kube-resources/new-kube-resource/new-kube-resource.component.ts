@@ -1,10 +1,11 @@
 import { Component, OnInit, ViewEncapsulation } from '@angular/core';
 import { ActivatedRoute, Router } from '@angular/router';
-import { Subscription } from 'rxjs';
+import { Subscription } from 'rxjs/Subscription';
 import { Supergiant } from '../../shared/supergiant/supergiant.service';
 import { Notifications } from '../../shared/notifications/notifications.service';
 import { KubeResourcesModel } from '../kube-resources.model';
 
+import "brace/mode/json";
 
 @Component({
   selector: 'app-new-kube-resource',
