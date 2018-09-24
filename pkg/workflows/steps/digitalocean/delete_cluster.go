@@ -31,7 +31,7 @@ func (s *DeleteClusterStep) Run(ctx context.Context, output io.Writer, config *s
 	var (
 		err     error
 		resp    *godo.Response
-		timeout  = s.timeout
+		timeout = s.timeout
 	)
 
 	for i := 0; i < 3; i++ {

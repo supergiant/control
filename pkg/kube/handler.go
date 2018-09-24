@@ -11,6 +11,7 @@ import (
 	"github.com/gorilla/mux"
 	"github.com/pkg/errors"
 
+	"fmt"
 	"github.com/sirupsen/logrus"
 	"github.com/supergiant/supergiant/pkg/clouds"
 	"github.com/supergiant/supergiant/pkg/message"
@@ -86,24 +87,15 @@ func (h *Handler) getTasks(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	data, err := h.repo.GetAll(r.Context(), workflows.Prefix)
-	if err != nil {
-		http.Error(w, errors.Wrap(err, "failed to read tasks").Error(), http.StatusBadRequest)
-		return
-	}
+	tasks, err := h.getKubeTasks(r.Context(), id)
 
-	tasks := make([]*workflows.Task, 0)
-	for _, v := range data {
-		task := &workflows.Task{}
-		err := json.Unmarshal(v, task)
-		if err != nil {
-			//TODO make whole handler send messages
-			http.Error(w, err.Error(), http.StatusInternalServerError)
+	if err != nil {
+		if sgerrors.IsNotFound(err) {
+			message.SendNotFound(w, id, err)
 			return
 		}
-		if task.Config.ClusterName == id {
-			tasks = append(tasks, task)
-		}
+
+		message.SendUnknownError(w, err)
 	}
 
 	if len(tasks) == 0 {
@@ -254,10 +246,12 @@ func (h *Handler) deleteKube(w http.ResponseWriter, r *http.Request) {
 		}
 
 		// Finally delete cluster record from etcd
-		if err := h.svc.Delete(r.Context(), kname); err != nil {
+		if err := h.svc.Delete(context.Background(), kname); err != nil {
 			logrus.Errorf("delete kube %s caused %v", kname, err)
 			return
 		}
+
+		h.deleteClusterTasks(context.Background(), kname)
 	}(t)
 
 	w.WriteHeader(http.StatusAccepted)
@@ -526,4 +520,44 @@ func (h *Handler) deleteNode(w http.ResponseWriter, r *http.Request) {
 		}
 	}()
 	w.WriteHeader(http.StatusAccepted)
+}
+
+// TODO(stgleb): Create separte task service to manage task object lifecycle
+func (h *Handler) getKubeTasks(ctx context.Context, kubeName string) ([]*workflows.Task, error) {
+	data, err := h.repo.GetAll(ctx, workflows.Prefix)
+
+	if err != nil {
+		return nil, errors.Wrap(err, "get cluster tasks")
+	}
+
+	tasks := make([]*workflows.Task, 0)
+	for _, v := range data {
+		task := &workflows.Task{}
+		err := json.Unmarshal(v, task)
+		if err != nil {
+			return nil, errors.Wrap(err, "unmarshal task data")
+		}
+
+		if task != nil && task.Config != nil && task.Config.ClusterName == kubeName {
+			tasks = append(tasks, task)
+		}
+	}
+
+	return tasks, nil
+}
+
+func (h *Handler) deleteClusterTasks(ctx context.Context, clusterName string) error {
+	tasks, err := h.getKubeTasks(ctx, clusterName)
+
+	if err != nil {
+		return errors.Wrap(err, fmt.Sprintf("delete cluster %s tasks", clusterName))
+	}
+
+	for _, task := range tasks {
+		if err := h.repo.Delete(ctx, workflows.Prefix, task.ID); err != nil {
+			logrus.Warnf("delete task %s: %v", task.ID, err)
+		}
+	}
+
+	return nil
 }

@@ -22,9 +22,9 @@ func TestDeleteMachineRun(t *testing.T) {
 		responses     []*godo.Response
 	}{
 		{
-			description: "empty tag error",
+			description:   "empty tag error",
 			dropletErrors: []error{errors.New(""), errors.New(""), errors.New("")},
-			responses: []*godo.Response{nil, nil, nil},
+			responses:     []*godo.Response{nil, nil, nil},
 		},
 		{
 			description:   "",

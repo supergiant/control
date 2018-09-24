@@ -808,6 +808,9 @@ func TestDeleteNodeFromKube(t *testing.T) {
 		mockRepo.On("Put", mock.Anything, mock.Anything, mock.Anything, mock.Anything).
 			Return(mock.Anything)
 
+		mockRepo.On("Delete", mock.Anything, mock.Anything, mock.Anything).
+			Return(mock.Anything)
+
 		handler := Handler{
 			svc:            svc,
 			accountService: accService,
