@@ -7,6 +7,7 @@ import (
 
 	"github.com/pkg/errors"
 
+	"github.com/supergiant/supergiant/pkg/model"
 	"github.com/supergiant/supergiant/pkg/testutils"
 )
 
@@ -50,15 +51,15 @@ func TestKubeServiceGet(t *testing.T) {
 
 func TestKubeServiceCreate(t *testing.T) {
 	testCases := []struct {
-		kube *Kube
+		kube *model.Kube
 		err  error
 	}{
 		{
-			kube: &Kube{},
+			kube: &model.Kube{},
 			err:  nil,
 		},
 		{
-			kube: &Kube{},
+			kube: &model.Kube{},
 			err:  errors.New("test err"),
 		},
 	}

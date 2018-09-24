@@ -1,14 +1,16 @@
-package kube
+package model
 
 import (
 	"github.com/supergiant/supergiant/pkg/node"
 )
 
+// TODO(stgleb): Add cloud provider for kube
 // Kube represents a kubernetes cluster.
 type Kube struct {
 	Name         string `json:"name" valid:"required"`
 	RBACEnabled  bool   `json:"rbacEnabled"`
 	AccountName  string `json:"accountName"`
+	Region       string `json:"region"`
 	Auth         Auth   `json:"auth"`
 	SshUser      string `json:"sshUser"`
 	SshPublicKey []byte `json:"sshKey"`
@@ -21,8 +23,8 @@ type Kube struct {
 	HelmVersion            string     `json:"helmVersion"`
 	Networking             Networking `json:"networking"`
 
-	Masters []*node.Node `json:"masters"`
-	Nodes   []*node.Node `json:"nodes"`
+	Masters map[string]*node.Node `json:"masters"`
+	Nodes   map[string]*node.Node `json:"nodes"`
 }
 
 // Auth holds all possible auth parameters.
