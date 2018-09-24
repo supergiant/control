@@ -1,5 +1,6 @@
 import { Injectable } from '@angular/core';
 import { UtilService } from '../util/util.service';
+import {tap} from "rxjs/operators";
 
 @Injectable()
 export class AuthService {
@@ -8,11 +9,11 @@ export class AuthService {
   constructor(private util: UtilService) { }
 
   login(data) {
-    return this.util.postResponse(this.authPath, data)
-      .do((res) => {
+    return this.util.postResponse(this.authPath, data).pipe(
+      tap((res) => {
         const rawJwt = res.headers.get("authorization");
         this.startSession(rawJwt);
-      });
+      }));
   }
 
   private startSession(rawJwt) {

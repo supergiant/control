@@ -1,7 +1,8 @@
+
+import {switchMap} from 'rxjs/operators';
 import { Component, OnInit, OnDestroy, Pipe, PipeTransform, TemplateRef, ViewChild, Input } from '@angular/core';
 // import { Observable } from 'rxjs/Observable';
-import { timer } from 'rxjs/observable/timer';
-import { Subscription } from 'rxjs/Subscription';
+import { timer ,  Subscription } from 'rxjs';
 import { Supergiant } from '../../shared/supergiant/supergiant.service';
 import { AppsService } from '../apps.service';
 import { Notifications } from '../../shared/notifications/notifications.service';
@@ -44,8 +45,8 @@ export class AppsListComponent implements OnInit, OnDestroy {
 
   getApps() {
 
-    this.subscriptions.add(timer(0, 10000)
-      .switchMap(() => this.supergiant.HelmReleases.get()).subscribe(
+    this.subscriptions.add(timer(0, 10000).pipe(
+      switchMap(() => this.supergiant.HelmReleases.get())).subscribe(
         (deployments) => {
           if (this.kube) {
             this.rows = deployments.items.filter(
