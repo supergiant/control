@@ -4,30 +4,18 @@ mkdir -p ${KUBERNETES_SSL_DIR}
 
 cat > /etc/kubernetes/ssl/openssl.cnf.template <<EOF
 [req]
-default_bits = 2048
-prompt = no
-default_md = sha256
 req_extensions = v3_req
 distinguished_name = req_distinguished_name
 [req_distinguished_name]
-C = USA
-ST = Arkansas
-L = Fayetteville
-O = Qbox.inc
-OU = supegiant
-CN = {PRIVATE_HOST}
 [ v3_req ]
-authorityKeyIdentifier=keyid,issuer:always
 basicConstraints = CA:FALSE
 keyUsage = nonRepudiation, digitalSignature, keyEncipherment
-extendedKeyUsage=serverAuth,clientAuth
 subjectAltName = @alt_names
 [alt_names]
 DNS.1 = kubernetes
 DNS.2 = kubernetes.default
 DNS.3 = kubernetes.default.svc
 DNS.4 = kubernetes.default.svc.cluster
-DNS.5 = kubernetes.default.svc.cluster.local
 IP.1 = 10.3.0.1
 IP.2 = {MASTER_HOST}
 IP.3 = {PRIVATE_HOST}

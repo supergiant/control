@@ -137,6 +137,8 @@ spec:
     - --master=https://{{ .MasterHost }}
     - --service-account-private-key-file=/etc/kubernetes/ssl/apiserver-key.pem
     - --root-ca-file=/etc/kubernetes/ssl/ca.pem
+    - --tls-cert-file=/etc/kubernetes/ssl/apiserver.pem
+    - --tls-private-key-file=/etc/kubernetes/ssl/apiserver-key.pem
     - --v=2
     - --cluster-cidr=10.244.0.0/14
     - --allocate-node-cidrs=true
