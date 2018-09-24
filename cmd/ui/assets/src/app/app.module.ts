@@ -303,11 +303,7 @@ import { FooterComponent } from './shared/footer/footer.component';
     MatToolbarModule,
     MatTooltipModule,
     CommonModule,
-    ContextMenuModule,
-    // ContextMenuModule.forRoot({
-    //   autoFocus: true,
-    //   useBootstrap4: true,
-    // }),
+    ContextMenuModule.forRoot(),
     NgbModule.forRoot(),
     AppRoutingModule,
     FormsModule,
