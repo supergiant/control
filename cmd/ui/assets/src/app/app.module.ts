@@ -3,7 +3,6 @@ import { BrowserModule } from '@angular/platform-browser';
 import { FormsModule, ReactiveFormsModule } from '@angular/forms';
 import { NgModule } from '@angular/core';
 import { NgbModule } from '@ng-bootstrap/ng-bootstrap';
-import { HttpModule } from '@angular/http';
 import { HttpClientModule } from '@angular/common/http';
 import { SimpleNotificationsModule } from 'angular2-notifications/dist';
 import { BrowserAnimationsModule } from '@angular/platform-browser/animations';
@@ -40,7 +39,7 @@ import {
   MatTabsModule,
   MatToolbarModule,
   MatTooltipModule } from '@angular/material';
-import { SchemaFormModule, WidgetRegistry, DefaultWidgetRegistry } from 'angular2-schema-form';
+import { SchemaFormModule, WidgetRegistry, DefaultWidgetRegistry } from 'ngx-schema-form';
 import {
   MaterialDesignFrameworkModule,
   JsonSchemaFormService,
@@ -145,12 +144,12 @@ import { TokenInterceptor } from './shared/supergiant/auth/token.interceptor';
 import { Http } from '@angular/http';
 import { HTTP_INTERCEPTORS } from '@angular/common/http';
 
-import 'rxjs/add/operator/map';
-import 'rxjs/add/operator/switchMap';
-import 'rxjs/add/observable/of';
-import 'rxjs/add/observable/timer';
-import 'rxjs/add/observable/interval';
-import 'rxjs/add/operator/take';
+
+
+
+
+
+
 
 // ui2000
 import { SystemComponent } from './system/system.component';
@@ -304,14 +303,9 @@ import { FooterComponent } from './shared/footer/footer.component';
     MatToolbarModule,
     MatTooltipModule,
     CommonModule,
-    ContextMenuModule,
-    // ContextMenuModule.forRoot({
-    //   autoFocus: true,
-    //   useBootstrap4: true,
-    // }),
+    ContextMenuModule.forRoot(),
     NgbModule.forRoot(),
     AppRoutingModule,
-    HttpModule,
     FormsModule,
     BrowserAnimationsModule,
     SimpleNotificationsModule.forRoot(),
