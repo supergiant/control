@@ -88,6 +88,11 @@ func (s *Service) Create(ctx context.Context, e *repo.Entry) (*helm.Repository, 
 		return nil, sgerrors.ErrNotFound
 	}
 
+	r, err := s.Get(ctx, e.Name)
+	if err == nil && r != nil {
+		return nil, sgerrors.ErrAlreadyExists
+	}
+
 	e.Cache = helmHome().CacheIndex(e.Name)
 	cr, err := repo.NewChartRepository(e, getter.All(environment.EnvSettings{}))
 	if err != nil {
@@ -101,13 +106,8 @@ func (s *Service) Create(ctx context.Context, e *repo.Entry) (*helm.Repository, 
 		return nil, errors.Wrap(err, "load index file")
 	}
 
-	r, err := toRepo(e, *ind)
-	if err != nil {
-		return nil, err
-	}
-
 	// store the index file
-	rawJSON, err := json.Marshal(r)
+	rawJSON, err := json.Marshal(toRepo(*e, *ind))
 	if err != nil {
 		return nil, errors.Wrap(err, "marshal index file")
 	}
@@ -162,13 +162,9 @@ func (s *Service) Delete(ctx context.Context, repoName string) error {
 	return s.storage.Delete(ctx, repoPrefix, repoName)
 }
 
-func toRepo(e *repo.Entry, index repo.IndexFile) (*helm.Repository, error) {
-	if e == nil {
-		return nil, ErrInvalidRepoConfig
-	}
-
+func toRepo(e repo.Entry, index repo.IndexFile) *helm.Repository {
 	r := &helm.Repository{
-		Config: *e,
+		Config: e,
 		Charts: make([]helm.Chart, 0, len(index.Entries)),
 	}
 	for name, entry := range index.Entries {
@@ -193,7 +189,7 @@ func toRepo(e *repo.Entry, index repo.IndexFile) (*helm.Repository, error) {
 			ChartVersions: toChartVersions(entry),
 		})
 	}
-	return r, nil
+	return r
 }
 
 func toChartVersions(cvs repo.ChartVersions) []helm.ChartVersion {
