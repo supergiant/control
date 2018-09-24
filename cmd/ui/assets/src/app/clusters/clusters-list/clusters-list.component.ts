@@ -1,8 +1,10 @@
+
+import {timer as observableTimer,  Subscription ,  Observable } from 'rxjs';
+
+import {switchMap} from 'rxjs/operators';
 import { Component, OnInit, OnDestroy, TemplateRef, ViewChild } from '@angular/core';
 import { Router } from '@angular/router';
 import { TitleCasePipe } from '@angular/common';
-import { Subscription } from 'rxjs/Subscription';
-import { Observable } from 'rxjs/Observable';
 import { Supergiant } from '../../shared/supergiant/supergiant.service';
 import { Notifications } from '../../shared/notifications/notifications.service';
 
@@ -217,8 +219,8 @@ export class ClustersListComponent implements OnInit, OnDestroy {
   }
 
   getKubes() {
-    this.subscriptions.add(Observable.timer(0, 5000)
-      .switchMap(() => this.supergiant.Kubes.get()).subscribe(
+    this.subscriptions.add(observableTimer(0, 5000).pipe(
+      switchMap(() => this.supergiant.Kubes.get())).subscribe(
         (kubes) => {
 
           const rows = kubes.items.map(kube => ({
