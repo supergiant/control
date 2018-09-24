@@ -103,21 +103,24 @@ func (h *Handler) getTasks(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	cfg := tasks[0].Config
-
-	for _, t := range tasks {
-		t.Config = nil
+	type taskDTO struct {
+		ID           string                 `json:"id"`
+		Type         string                 `json:"type"`
+		Status       steps.Status           `json:"status"`
+		StepStatuses []workflows.StepStatus `json:"stepsStatuses"`
 	}
 
-	res := &struct {
-		Config *steps.Config     `json:"config"`
-		Tasks  []*workflows.Task `json:"tasks"`
-	}{
-		Config: cfg,
-		Tasks:  tasks,
-	}
+	resp := make([]taskDTO, 0, len(tasks))
 
-	if err := json.NewEncoder(w).Encode(res); err != nil {
+	for _, task := range tasks {
+		resp = append(resp, taskDTO{
+			ID:           task.ID,
+			Type:         task.Type,
+			Status:       task.Status,
+			StepStatuses: task.StepStatuses,
+		})
+	}
+	if err := json.NewEncoder(w).Encode(resp); err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 	}
 }
