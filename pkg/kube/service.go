@@ -9,6 +9,7 @@ import (
 	"k8s.io/client-go/discovery"
 	"k8s.io/client-go/rest"
 
+	"github.com/supergiant/supergiant/pkg/model"
 	"github.com/supergiant/supergiant/pkg/runner/ssh"
 	"github.com/supergiant/supergiant/pkg/sgerrors"
 	"github.com/supergiant/supergiant/pkg/storage"
@@ -18,9 +19,9 @@ const DefaultStoragePrefix = "/supergiant/kube/"
 
 // Interface represents an interface for a kube service.
 type Interface interface {
-	Create(ctx context.Context, k *Kube) error
-	Get(ctx context.Context, name string) (*Kube, error)
-	ListAll(ctx context.Context) ([]Kube, error)
+	Create(ctx context.Context, k *model.Kube) error
+	Get(ctx context.Context, name string) (*model.Kube, error)
+	ListAll(ctx context.Context) ([]model.Kube, error)
 	Delete(ctx context.Context, name string) error
 	ListKubeResources(ctx context.Context, kname string) ([]byte, error)
 	GetKubeResources(ctx context.Context, kname, resource, ns, name string) ([]byte, error)
@@ -29,8 +30,8 @@ type Interface interface {
 
 // Service manages kubernetes clusters.
 type Service struct {
-	discoveryClientFn func(k *Kube) (*discovery.DiscoveryClient, error)
-	clientForGroupFn  func(k *Kube, gv schema.GroupVersion) (rest.Interface, error)
+	discoveryClientFn func(k *model.Kube) (*discovery.DiscoveryClient, error)
+	clientForGroupFn  func(k *model.Kube, gv schema.GroupVersion) (rest.Interface, error)
 
 	prefix  string
 	storage storage.Interface
@@ -46,8 +47,8 @@ func NewService(prefix string, s storage.Interface) Interface {
 	}
 }
 
-// Create stores a kube in the provided storage.
-func (s *Service) Create(ctx context.Context, k *Kube) error {
+// Create and stores a kube in the provided storage.
+func (s *Service) Create(ctx context.Context, k *model.Kube) error {
 	raw, err := json.Marshal(k)
 	if err != nil {
 		return errors.Wrap(err, "marshal")
@@ -62,7 +63,7 @@ func (s *Service) Create(ctx context.Context, k *Kube) error {
 }
 
 // Get returns a kube with a specified name.
-func (s *Service) Get(ctx context.Context, name string) (*Kube, error) {
+func (s *Service) Get(ctx context.Context, name string) (*model.Kube, error) {
 	raw, err := s.storage.Get(ctx, s.prefix, name)
 	if err != nil {
 		return nil, errors.Wrap(err, "storage: get")
@@ -71,7 +72,7 @@ func (s *Service) Get(ctx context.Context, name string) (*Kube, error) {
 		return nil, sgerrors.ErrNotFound
 	}
 
-	k := &Kube{}
+	k := &model.Kube{}
 	if err = json.Unmarshal(raw, k); err != nil {
 		return nil, errors.Wrap(err, "unmarshal")
 	}
@@ -80,15 +81,15 @@ func (s *Service) Get(ctx context.Context, name string) (*Kube, error) {
 }
 
 // ListAll returns all kubes.
-func (s *Service) ListAll(ctx context.Context) ([]Kube, error) {
+func (s *Service) ListAll(ctx context.Context) ([]model.Kube, error) {
 	rawKubes, err := s.storage.GetAll(ctx, s.prefix)
 	if err != nil {
 		return nil, errors.Wrap(err, "storage: getAll")
 	}
 
-	kubes := make([]Kube, len(rawKubes))
+	kubes := make([]model.Kube, len(rawKubes))
 	for i, v := range rawKubes {
-		k := Kube{}
+		k := model.Kube{}
 		if err = json.Unmarshal(v, &k); err != nil {
 			return nil, errors.Wrap(err, "unmarshal")
 		}
@@ -181,7 +182,7 @@ func (s *Service) GetCerts(ctx context.Context, kname, cname string) (*Bundle, e
 	return b, nil
 }
 
-func (s *Service) resourcesGroupInfo(kube *Kube) (map[string]schema.GroupVersion, error) {
+func (s *Service) resourcesGroupInfo(kube *model.Kube) (map[string]schema.GroupVersion, error) {
 	client, err := s.discoveryClientFn(kube)
 	if err != nil {
 		return nil, errors.Wrap(err, "get discovery client")

@@ -14,11 +14,22 @@ import (
 	"github.com/fatih/structs"
 	"github.com/pkg/errors"
 	"github.com/sirupsen/logrus"
+	"github.com/supergiant/supergiant/pkg/clouds"
+	"github.com/supergiant/supergiant/pkg/model"
+	"github.com/supergiant/supergiant/pkg/node"
+	"github.com/supergiant/supergiant/pkg/sgerrors"
+	"github.com/supergiant/supergiant/pkg/workflows/steps"
+	"os"
+	"path"
 )
 
 const letterBytes = "0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ"
 
 var src = rand.NewSource(time.Now().UnixNano())
+
+type cloudAccountGetter interface {
+	Get(context.Context, string) (*model.CloudAccount, error)
+}
 
 // RandomString generates random string with reservoir sampling algorithm https://en.wikipedia.org/wiki/Reservoir_sampling
 func RandomString(n int) string {
@@ -229,12 +240,12 @@ func RecurseSchema(schema map[string]interface{}, obj interface{}) {
 	}
 }
 
-func MakeNodeName(clusterName string, isMaster bool) string {
+func MakeNodeName(clusterName string, nodeId string, isMaster bool) string {
 	if isMaster {
-		return fmt.Sprintf("%s-%s-%s", clusterName, "master", strings.ToLower(RandomString(5)))
+		return fmt.Sprintf("%s-%s-%s", clusterName, "master", nodeId[:4])
 	}
 
-	return fmt.Sprintf("%s-%s-%s", clusterName, "node", strings.ToLower(RandomString(5)))
+	return fmt.Sprintf("%s-%s-%s", clusterName, "node", nodeId[:4])
 }
 
 // bind params uses json serializing and reflect package that is underneath
@@ -274,11 +285,53 @@ func MakeFileName(taskID string) string {
 	return fmt.Sprintf("%s.log", taskID)
 }
 
-
 func MakeKeyName(name string, isUser bool) string {
 	if isUser {
 		return fmt.Sprintf("%s-user", name)
 	}
 
 	return fmt.Sprintf("%s-provision", name)
+}
+
+// TODO(stgleb): move getting cloud account outside of this function
+// Gets cloud account from storage and fills config object with those credentials
+func FillCloudAccountCredentials(ctx context.Context, cloudAccount *model.CloudAccount, config *steps.Config) error {
+	config.ManifestConfig.ProviderString = string(cloudAccount.Provider)
+	config.Provider = cloudAccount.Provider
+
+	// Bind private key to config
+	err := BindParams(cloudAccount.Credentials, &config.SshConfig)
+
+	if err != nil {
+		return err
+	}
+
+	switch cloudAccount.Provider {
+	case clouds.AWS:
+		return BindParams(cloudAccount.Credentials, &config.AWSConfig)
+	case clouds.GCE:
+		return BindParams(cloudAccount.Credentials, &config.GCEConfig)
+	case clouds.DigitalOcean:
+		return BindParams(cloudAccount.Credentials, &config.DigitalOceanConfig)
+	case clouds.Packet:
+		return BindParams(cloudAccount.Credentials, &config.PacketConfig)
+	case clouds.OpenStack:
+		return BindParams(cloudAccount.Credentials, &config.OSConfig)
+	default:
+		return sgerrors.ErrUnknownProvider
+	}
+
+	return nil
+}
+
+func GetRandomNode(nodeMap map[string]*node.Node) *node.Node {
+	for key := range nodeMap {
+		return nodeMap[key]
+	}
+
+	return nil
+}
+
+func GetWriter(name string) (io.WriteCloser, error) {
+	return os.OpenFile(path.Join("/tmp", name), os.O_CREATE|os.O_WRONLY|os.O_APPEND, 0666)
 }
