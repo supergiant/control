@@ -13,6 +13,8 @@ import (
 	"github.com/supergiant/supergiant/pkg/model/helm"
 	"github.com/supergiant/supergiant/pkg/sgerrors"
 	"github.com/supergiant/supergiant/pkg/storage"
+	"k8s.io/helm/pkg/proto/hapi/chart"
+	"sort"
 )
 
 const (
@@ -40,8 +42,12 @@ func (s *Service) Create(ctx context.Context, e *repo.Entry) error {
 		return sgerrors.ErrNotFound
 	}
 
-	// TODO: this stores the whole repo to filesystem
-	e.Cache = cacheDir
+	r, err := s.Get(ctx, e.Name)
+	if err == nil && r != nil {
+		return sgerrors.ErrAlreadyExists
+	}
+
+	//e.Cache = helmHome().CacheIndex(e.Name)
 	cr, err := repo.NewChartRepository(e, getter.All(environment.EnvSettings{}))
 	if err != nil {
 		return errors.Wrap(err, "build chart repository")
@@ -109,6 +115,57 @@ func (s *Service) Delete(ctx context.Context, repoName string) error {
 	return s.storage.Delete(ctx, repoPrefix, repoName)
 }
 
-func getChartPrefix(repoName string) string {
-	return fmt.Sprintf(chrtPrefixFormat, repoName)
+func toRepo(e repo.Entry, index repo.IndexFile) *helm.Repository {
+	r := &helm.Repository{
+		Config: e,
+		Charts: make([]helm.Chart, 0, len(index.Entries)),
+	}
+	for name, entry := range index.Entries {
+		if len(entry) == 0 {
+			continue
+		}
+
+		sort.Sort(entry)
+		if entry[0].Deprecated {
+			continue
+		}
+
+		r.Charts = append(r.Charts, helm.Chart{
+			Name:          name,
+			Repo:          e.Name,
+			Description:   entry[0].Description,
+			Home:          entry[0].Home,
+			Keywords:      entry[0].Keywords,
+			Maintainers:   toMaintainers(entry[0].Maintainers),
+			Sources:       entry[0].Sources,
+			Icon:          entry[0].Icon,
+			ChartVersions: toChartVersions(entry),
+		})
+	}
+	return r
+}
+
+func toChartVersions(cvs repo.ChartVersions) []helm.ChartVersion {
+	chartVersions := make([]helm.ChartVersion, 0, len(cvs))
+	for _, cv := range cvs {
+		chartVersions = append(chartVersions, helm.ChartVersion{
+			Version:    cv.Version,
+			AppVersion: cv.AppVersion,
+			Created:    cv.Created,
+			Digest:     cv.Digest,
+			URLs:       cv.URLs,
+		})
+	}
+	return chartVersions
+}
+
+func toMaintainers(maintainers []*chart.Maintainer) []helm.Maintainer {
+	list := make([]helm.Maintainer, 0, len(maintainers))
+	for _, m := range maintainers {
+		list = append(list, helm.Maintainer{
+			Name:  m.Name,
+			Email: m.Email,
+		})
+	}
+	return list
 }
