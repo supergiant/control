@@ -7,6 +7,7 @@ import (
 
 	"github.com/pkg/errors"
 
+	"github.com/supergiant/supergiant/pkg/node"
 	tm "github.com/supergiant/supergiant/pkg/templatemanager"
 	"github.com/supergiant/supergiant/pkg/workflows/steps"
 	"github.com/supergiant/supergiant/pkg/workflows/steps/kubelet"
@@ -42,7 +43,8 @@ func (s *Step) Run(ctx context.Context, out io.Writer, config *steps.Config) err
 	}
 
 	// Mark current node as active to allow cluster check task select it for cluster wide task
-	config.Node.Active = true
+	config.Node.State = node.StateActive
+	config.NodeChan() <- config.Node
 	config.SshConfig.BootstrapPrivateKey = ""
 
 	return nil

@@ -89,6 +89,7 @@ func nodesFromProfile(clusterName string, masterTasks, nodeTasks []*workflows.Ta
 			Name:     util.MakeNodeName(clusterName, taskId, true),
 			Provider: profile.Provider,
 			Region:   profile.Region,
+			State:    node.StatePlanned,
 		}
 
 		util.BindParams(p, n)
@@ -102,6 +103,7 @@ func nodesFromProfile(clusterName string, masterTasks, nodeTasks []*workflows.Ta
 			Name:     util.MakeNodeName(clusterName, taskId[:4], false),
 			Provider: profile.Provider,
 			Region:   profile.Region,
+			State:    node.StatePlanned,
 		}
 
 		util.BindParams(p, n)
