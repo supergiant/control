@@ -17,7 +17,7 @@ clusters:
 - name: local
   cluster:
     insecure-skip-tls-verify: true
-    server: https://{{ .MasterHost }}
+    server: http://localhost:{{ .MasterPort }}
 contexts:
 - context:
     cluster: local
@@ -42,7 +42,7 @@ spec:
     - /hyperkube
     - proxy
     - --v=2
-    - --master=https://{{ .MasterHost }}
+    - --master=http://localhost:{{ .MasterPort }}
     - --proxy-mode=iptables
     securityContext:
       privileged: true
@@ -78,7 +78,7 @@ spec:
     - --secure-port=443
     - --v=2
     - --insecure-port=8080
-    - --insecure-bind-address=0.0.0.0
+    - --insecure-bind-address=127.0.0.1
     - --advertise-address={{ .MasterHost }}
     - --admission-control=NamespaceLifecycle,NamespaceExists,LimitRanger,ServiceAccount,ResourceQuota,DefaultStorageClass{{if .RBACEnabled }},NodeRestriction{{end}}
     - --tls-cert-file=/etc/kubernetes/ssl/apiserver.pem
@@ -137,7 +137,7 @@ spec:
     command:
     - /hyperkube
     - controller-manager
-    - --master=https://{{ .MasterHost }}
+    - --master=http://localhost:{{ .MasterPort }}
     - --service-account-private-key-file=/etc/kubernetes/ssl/apiserver-key.pem
     - --root-ca-file=/etc/kubernetes/ssl/ca.pem
     - --tls-cert-file=/etc/kubernetes/ssl/apiserver.pem
@@ -187,7 +187,7 @@ spec:
     - /hyperkube
     - scheduler
     - --v=2
-    - --master=https://{{ .MasterHost }}
+    - --master=http://localhost:{{ .MasterPort }}
     livenessProbe:
       httpGet:
         host: 127.0.0.1
