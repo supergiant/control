@@ -322,46 +322,98 @@ func TestHandler_listKubes(t *testing.T) {
 
 func TestHandler_deleteKube(t *testing.T) {
 	tcs := []struct {
-		kubeName string
+		description string
+		kubeName    string
 
-		serviceError error
+		accountName     string
+		getAccountError error
+		account         *model.CloudAccount
 
-		expectedStatus  int
-		expectedErrCode sgerrors.ErrorCode
+		kube            *model.Kube
+		getKubeError    error
+		deleteKubeError error
+
+		expectedStatus int
 	}{
-		{ // TC#1
-			kubeName:       "",
+		{
+			description:    "kube not found",
+			kubeName:       "test",
+			getKubeError:   sgerrors.ErrNotFound,
 			expectedStatus: http.StatusNotFound,
 		},
-		{ // TC#2
-			kubeName:        "service_error",
-			serviceError:    errors.New("get error"),
-			expectedStatus:  http.StatusInternalServerError,
-			expectedErrCode: sgerrors.UnknownError,
+		{
+			description: "account not found",
+			kubeName:    "service_error",
+
+			accountName:     "test",
+			getAccountError: sgerrors.ErrNotFound,
+			account:         nil,
+			kube: &model.Kube{
+				Name:        "test",
+				AccountName: "test",
+			},
+
+			expectedStatus: http.StatusNotFound,
 		},
-		{ // TC#3
-			kubeName:        "not_found",
-			serviceError:    sgerrors.ErrNotFound,
-			expectedStatus:  http.StatusNotFound,
-			expectedErrCode: sgerrors.NotFound,
+		{
+			kubeName:        "delete kube error",
+			getAccountError: nil,
+			accountName:     "test",
+			account: &model.CloudAccount{
+				Name:     "test",
+				Provider: clouds.DigitalOcean,
+			},
+			getKubeError: nil,
+			kube: &model.Kube{
+				Name:        "test",
+				AccountName: "test",
+			},
+			deleteKubeError: sgerrors.ErrNotFound,
+			expectedStatus:  http.StatusAccepted,
 		},
-		{ // TC#3
-			kubeName:       "delete",
-			expectedStatus: http.StatusAccepted,
+		{
+			description:     "success",
+			kubeName:        "delete kube error",
+			getAccountError: nil,
+			accountName:     "test",
+			account: &model.CloudAccount{
+				Name:     "test",
+				Provider: clouds.DigitalOcean,
+			},
+			getKubeError: nil,
+			kube: &model.Kube{
+				Name:        "test",
+				AccountName: "test",
+			},
+			deleteKubeError: nil,
+			expectedStatus:  http.StatusAccepted,
 		},
 	}
 
 	for i, tc := range tcs {
+		t.Log(tc.description)
 		// setup handler
 		svc := new(kubeServiceMock)
-		h := NewHandler(svc, nil, nil, nil)
+		accSvc := new(accServiceMock)
 
 		// prepare
 		req, err := http.NewRequest(http.MethodDelete, "/kubes/"+tc.kubeName, nil)
 		require.Equalf(t, nil, err, "TC#%d: create request: %v", i+1, err)
 
-		svc.On(serviceDelete, mock.Anything, tc.kubeName).Return(tc.serviceError)
+		svc.On(serviceGet, mock.Anything, tc.kubeName).Return(tc.kube, tc.getKubeError)
+		svc.On(serviceDelete, mock.Anything, tc.kubeName).Return(tc.deleteKubeError)
+
+		accSvc.On(serviceGet, mock.Anything, tc.accountName).Return(tc.account, tc.getAccountError)
+		mockRepo := new(testutils.MockStorage)
+		mockRepo.On("Put", mock.Anything, mock.Anything,
+			mock.Anything, mock.Anything).Return(mock.Anything)
+
+		workflows.Init()
+		workflows.RegisterWorkFlow(workflows.DigitalOceanDeleteCluster, []steps.Step{})
+
 		rr := httptest.NewRecorder()
+
+		h := NewHandler(svc, accSvc, nil, mockRepo)
 
 		router := mux.NewRouter().SkipClean(true)
 		h.Register(router)
@@ -369,15 +421,9 @@ func TestHandler_deleteKube(t *testing.T) {
 		// run
 		router.ServeHTTP(rr, req)
 
-		// check
-		require.Equalf(t, tc.expectedStatus, rr.Code, "TC#%d", i+1)
-
-		if tc.expectedErrCode != sgerrors.ErrorCode(0) {
-			m := new(message.Message)
-			err = json.NewDecoder(rr.Body).Decode(m)
-			require.Equalf(t, nil, err, "TC#%d", i+1)
-
-			require.Equalf(t, tc.expectedErrCode, m.ErrorCode, "TC#%d", i+1)
+		if tc.expectedStatus != rr.Code {
+			t.Errorf("Wrong response code expected %d actual %d",
+				tc.expectedStatus, rr.Code)
 		}
 	}
 }
@@ -759,12 +805,18 @@ func TestDeleteNodeFromKube(t *testing.T) {
 			Return(testCase.account, testCase.accountErr)
 
 		mockRepo := new(testutils.MockStorage)
+		mockRepo.On("Put", mock.Anything, mock.Anything, mock.Anything, mock.Anything).
+			Return(mock.Anything)
+
+		mockRepo.On("Delete", mock.Anything, mock.Anything, mock.Anything).
+			Return(mock.Anything)
 
 		handler := Handler{
 			svc:            svc,
 			accountService: accService,
-			workflowMap: map[clouds.Name]string{
-				clouds.DigitalOcean: workflows.DigitalOceanDeleteNode,
+			workflowMap: map[clouds.Name]workflows.WorkflowSet{
+				clouds.DigitalOcean: {
+					DeleteNode: workflows.DigitalOceanDeleteNode},
 			},
 			getWriter: testCase.getWriter,
 			repo:      mockRepo,

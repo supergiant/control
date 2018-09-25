@@ -1,7 +1,6 @@
 package steps
 
 import (
-	"context"
 	"encoding/json"
 	"sync"
 	"time"
@@ -162,9 +161,7 @@ func (m *Map) MarshalJSON() ([]byte, error) {
 	return json.Marshal(m.internal)
 }
 
-// TODO(stgleb): rename to context and embed context.Context here
 type Config struct {
-	Context     context.Context
 	TaskId      string
 	Provider    clouds.Name `json:"provider"`
 	IsMaster    bool        `json:"isMaster"`
@@ -190,8 +187,6 @@ type Config struct {
 
 	ClusterCheckConfig ClusterCheckConfig `json:"clusterCheckConfig"`
 
-	//TODO @stgleb @yegor Add possiblity to not preserve ssh keys after provisioning
-	DeleteSSHKeys    bool          `json:"deleteSSHKeys"`
 	Node             node.Node     `json:"node"`
 	CloudAccountName string        `json:"cloudAccountName" valid:"required, length(1|32)"`
 	Timeout          time.Duration `json:"timeout"`

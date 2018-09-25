@@ -24,26 +24,21 @@ type KubeCreater interface {
 	Create(ctx context.Context, k *model.Kube) error
 }
 
-type workflowSet struct {
-	master string
-	node   string
-}
-
 type TaskProvisioner struct {
 	kubeCreater  KubeCreater
 	repository   storage.Interface
 	getWriter    func(string) (io.WriteCloser, error)
-	provisionMap map[clouds.Name]workflowSet
+	provisionMap map[clouds.Name]workflows.WorkflowSet
 }
 
 func NewProvisioner(repository storage.Interface, kubeService KubeCreater) *TaskProvisioner {
 	return &TaskProvisioner{
 		kubeCreater: kubeService,
 		repository:  repository,
-		provisionMap: map[clouds.Name]workflowSet{
+		provisionMap: map[clouds.Name]workflows.WorkflowSet{
 			clouds.DigitalOcean: {
-				master: workflows.DigitalOceanMaster,
-				node:   workflows.DigitalOceanNode,
+				ProvisionMaster: workflows.DigitalOceanMaster,
+				ProvisionNode:   workflows.DigitalOceanNode,
 			},
 		},
 		getWriter: util.GetWriter,
@@ -130,7 +125,7 @@ func (p *TaskProvisioner) ProvisionNodes(ctx context.Context, nodeProfiles []pro
 
 	for _, nodeProfile := range nodeProfiles {
 		// Take node workflow for the provider
-		t, err := workflows.NewTask(providerWorkflowSet.node, p.repository)
+		t, err := workflows.NewTask(providerWorkflowSet.ProvisionNode, p.repository)
 		tasks = append(tasks, t.ID)
 
 		if err != nil {
@@ -180,20 +175,20 @@ func (r *TaskProvisioner) prepare(name clouds.Name, masterCount, nodeCount int) 
 	nodeTasks := make([]*workflows.Task, 0, nodeCount)
 
 	for i := 0; i < masterCount; i++ {
-		t, err := workflows.NewTask(r.provisionMap[name].master, r.repository)
+		t, err := workflows.NewTask(r.provisionMap[name].ProvisionMaster, r.repository)
 
 		if err != nil {
-			logrus.Errorf("Task type %s not found", r.provisionMap[name].master)
+			logrus.Errorf("Task type %s not found", r.provisionMap[name].ProvisionMaster)
 			continue
 		}
 		masterTasks = append(masterTasks, t)
 	}
 
 	for i := 0; i < nodeCount; i++ {
-		t, err := workflows.NewTask(r.provisionMap[name].node, r.repository)
+		t, err := workflows.NewTask(r.provisionMap[name].ProvisionNode, r.repository)
 
 		if err != nil {
-			logrus.Errorf("Task type %s not found", r.provisionMap[name].node)
+			logrus.Errorf("Task type %s not found", r.provisionMap[name].ProvisionNode)
 			continue
 		}
 		nodeTasks = append(nodeTasks, t)
