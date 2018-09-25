@@ -371,23 +371,23 @@ func TestHandler_deleteKube(t *testing.T) {
 			deleteKubeError: sgerrors.ErrNotFound,
 			expectedStatus:  http.StatusAccepted,
 		},
-		//{
-		//	description:     "success",
-		//	kubeName:        "delete kube error",
-		//	getAccountError: nil,
-		//	accountName:     "test",
-		//	account: &model.CloudAccount{
-		//		Name:     "test",
-		//		Provider: clouds.DigitalOcean,
-		//	},
-		//	getKubeError: nil,
-		//	kube: &model.Kube{
-		//		Name:        "test",
-		//		AccountName: "test",
-		//	},
-		//	deleteKubeError: nil,
-		//	expectedStatus:  http.StatusAccepted,
-		//},
+		{
+			description:     "success",
+			kubeName:        "delete kube error",
+			getAccountError: nil,
+			accountName:     "test",
+			account: &model.CloudAccount{
+				Name:     "test",
+				Provider: clouds.DigitalOcean,
+			},
+			getKubeError: nil,
+			kube: &model.Kube{
+				Name:        "test",
+				AccountName: "test",
+			},
+			deleteKubeError: nil,
+			expectedStatus:  http.StatusAccepted,
+		},
 	}
 
 	for i, tc := range tcs {
@@ -409,6 +409,8 @@ func TestHandler_deleteKube(t *testing.T) {
 			mock.Anything, mock.Anything).Return(nil)
 		mockRepo.On("Delete", mock.Anything,
 			mock.Anything, mock.Anything).Return(nil)
+		mockRepo.On("GetAll", mock.Anything,
+			mock.Anything).Return([][]byte{}, nil)
 
 		workflows.Init()
 		workflows.RegisterWorkFlow(workflows.DigitalOceanDeleteCluster, []steps.Step{})
