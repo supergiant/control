@@ -1,15 +1,17 @@
-.nav-wrapper {
+:host {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  margin: 32px 0;
   width: 100%;
 
-  padding: 0 49px;
+  padding: 32px 49px;
 
   position: fixed;
   top: 0;
   left: 0;
+
+  background-image: linear-gradient(black, black, transparent);
+  z-index: 1000;
 
   .logo {
     min-width: 180px;
