@@ -174,6 +174,7 @@ import { NewKubeResourceComponent } from './kube-resources/new-kube-resource/new
 import { ToolbarComponent } from './navigation/toolbar/toolbar.component';
 import { UserMenuComponent } from './navigation/user-menu/user-menu.component';
 import { FooterComponent } from './shared/footer/footer.component';
+import { ConfirmModalComponent } from './shared/modals/confirm-modal/confirm-modal.component';
 
 
 
@@ -260,6 +261,7 @@ import { FooterComponent } from './shared/footer/footer.component';
     ToolbarComponent,
     UserMenuComponent,
     FooterComponent,
+    ConfirmModalComponent,
   ],
   imports: [
     BrowserModule,
@@ -355,6 +357,7 @@ import { FooterComponent } from './shared/footer/footer.component';
       multi: true
     }
   ],
+  entryComponents: [ConfirmModalComponent],
   bootstrap: [AppComponent]
 })
 

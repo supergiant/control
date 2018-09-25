@@ -1,6 +1,6 @@
 import { timer as observableTimer, Subscription, Observable } from 'rxjs';
 
-import { switchMap } from 'rxjs/operators';
+import { filter, map, switchMap } from 'rxjs/operators';
 import {
   Component,
   OnInit,
@@ -18,6 +18,7 @@ import { convertIsoToHumanReadable } from '../../shared/helpers/helpers';
 import { DomSanitizer, SafeResourceUrl } from '@angular/platform-browser';
 import { ChartsModule, BaseChartDirective } from 'ng2-charts';
 import { MatTableDataSource, MatSort, MatPaginator, MatDialog } from '@angular/material';
+import { ConfirmModalComponent } from '../../shared/modals/confirm-modal/confirm-modal.component';
 
 
 @Component({
@@ -83,7 +84,7 @@ export class ClusterComponent implements OnInit, OnDestroy {
     private location: Location,
     private router: Router,
     private supergiant: Supergiant,
-    public dialog: MatDialog
+    public dialog: MatDialog,
   ) {
   }
 
@@ -352,16 +353,22 @@ export class ClusterComponent implements OnInit, OnDestroy {
     this.subscriptions.unsubscribe();
   }
 
-  removeNode(nodeName: string) {
-    const dialogRef = this.dialog.open(DialogOverviewExampleDialog, {
+  removeNode(nodeName: string, target) {
+    const dialogRef = this.dialog.open(ConfirmModalComponent, {
       width: '250px',
     });
+    console.log(target);
+    dialogRef.updatePosition({ top: `${target.clientY}px` });
 
-    dialogRef.afterClosed().subscribe(result => {
-      console.log('The dialog was closed');
-      this.animal = result;
-    });
-    this.supergiant.Nodes.delete(nodeName);
+    dialogRef
+      .afterClosed()
+      // .subscribe(result => console.log(result));
+      .pipe(
+        // switchMap(result => result),
+        filter(isConfirmed => isConfirmed),
+        switchMap(() => this.supergiant.Nodes.delete(nodeName)),
+        map(response => response)
+      ).subscribe(res => console.log(res));
   }
 
 }

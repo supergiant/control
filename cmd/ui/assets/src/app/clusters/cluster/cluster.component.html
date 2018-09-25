@@ -114,7 +114,7 @@
       <mat-cell *matCellDef="let machine">
         {{ machine.public_ip }}
         <div></div>
-        <button (click)="removeNode(machine.name)" mat-button>
+        <button (click)="removeNode(machine.name, $event)" mat-button>
           <i class="fa fa-trash" aria-hidden="true"></i>
         </button>
 
