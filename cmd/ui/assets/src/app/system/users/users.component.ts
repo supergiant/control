@@ -1,6 +1,8 @@
+
+import {timer as observableTimer,  Subscription ,  Observable } from 'rxjs';
+
+import {switchMap} from 'rxjs/operators';
 import { Component, OnInit, OnDestroy, ViewEncapsulation, ViewChild } from '@angular/core';
-import { Subscription } from 'rxjs/Subscription';
-import { Observable } from 'rxjs/Observable';
 import { Supergiant } from '../../shared/supergiant/supergiant.service';
 import { Notifications } from '../../shared/notifications/notifications.service';
 import { UsersModel } from './users.model';
@@ -55,8 +57,8 @@ export class Users2000Component implements OnInit, OnDestroy {
   }
 
   get() {
-    this.subscriptions.add(Observable.timer(0, 5000)
-      .switchMap(() => this.supergiant.Users.get()).subscribe(
+    this.subscriptions.add(observableTimer(0, 5000).pipe(
+      switchMap(() => this.supergiant.Users.get())).subscribe(
         (users) => {
           this.rows = users.items.map(user => ({
             id: user.id, username: user.username, role: user.role, token: user.api_token

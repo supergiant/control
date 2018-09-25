@@ -60,8 +60,11 @@ func TestProvisionCluster(t *testing.T) {
 		func(string) (io.WriteCloser, error) {
 			return bc, nil
 		},
-		map[clouds.Name]workflowSet{
-			clouds.DigitalOcean: {"test_master", "test_node"},
+		map[clouds.Name]workflows.WorkflowSet{
+			clouds.DigitalOcean: {
+				ProvisionMaster: "test_master",
+				ProvisionNode:   "test_node",
+			},
 		},
 	}
 
@@ -126,8 +129,10 @@ func TestProvisionNodes(t *testing.T) {
 		func(string) (io.WriteCloser, error) {
 			return bc, nil
 		},
-		map[clouds.Name]workflowSet{
-			clouds.DigitalOcean: {"test_master", "test_node"},
+		map[clouds.Name]workflows.WorkflowSet{
+			clouds.DigitalOcean: {
+				ProvisionMaster: "test_master",
+				ProvisionNode:   "test_node"},
 		},
 	}
 

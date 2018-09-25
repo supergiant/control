@@ -1,8 +1,10 @@
+
+import {timer as observableTimer,  Subscription ,  Observable } from 'rxjs';
+
+import {switchMap} from 'rxjs/operators';
 import { Component, OnInit, OnDestroy, ViewChild, ElementRef, ViewContainerRef, ViewEncapsulation } from '@angular/core';
-import { Subscription } from 'rxjs/Subscription';
 import { Location } from '@angular/common';
 import { ActivatedRoute, Router } from '@angular/router';
-import { Observable } from 'rxjs/Observable';
 import { Supergiant } from '../../shared/supergiant/supergiant.service';
 import { Notifications } from '../../shared/notifications/notifications.service';
 import { convertIsoToHumanReadable } from '../../shared/helpers/helpers';
@@ -10,7 +12,6 @@ import { DomSanitizer, SafeResourceUrl } from '@angular/platform-browser';
 import { ChartsModule, BaseChartDirective } from 'ng2-charts';
 import { MatTableDataSource, MatSort, MatPaginator } from '@angular/material';
 
-import "brace/mode/json";
 
 @Component({
   selector: 'app-cluster',
@@ -290,8 +291,8 @@ export class ClusterComponent implements OnInit, OnDestroy {
   // }
 
   getKube() {
-    this.subscriptions.add(Observable.timer(0, 20000)
-      .switchMap(() => this.supergiant.Kubes.get(this.id)).subscribe(
+    this.subscriptions.add(observableTimer(0, 20000).pipe(
+      switchMap(() => this.supergiant.Kubes.get(this.id))).subscribe(
         kube => {
           this.kube = kube;
           this.machines = new MatTableDataSource(kube.masters.concat(kube.nodes));
