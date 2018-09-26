@@ -204,11 +204,10 @@ func TestConfigGetMasters(t *testing.T) {
 				Masters: Map{
 					internal: map[string]*node.Node{
 						"node-1": {},
-						"node-2": {},
 					},
 				},
 			},
-			expectedCount: 2,
+			expectedCount: 1,
 		},
 		{
 			cfg: &Config{
