@@ -88,7 +88,7 @@ func New(cfg *Config) (*Server, error) {
 		return nil, err
 	}
 
-	s := newServer(r, cfg)
+	s := NewServer(r, cfg)
 	if err := generateUserIfColdStart(cfg); err != nil {
 		return nil, err
 	}
@@ -96,7 +96,7 @@ func New(cfg *Config) (*Server, error) {
 	return s, nil
 }
 
-func newServer(router *mux.Router, cfg *Config) *Server {
+func NewServer(router *mux.Router, cfg *Config) *Server {
 	headersOk := handlers.AllowedHeaders([]string{
 		"Access-Control-Request-Headers",
 		"Authorization",
