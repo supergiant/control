@@ -356,11 +356,15 @@ export class ClusterComponent implements OnInit, OnDestroy {
   }
 
   removeNode(nodeName: string, target) {
+    const popupWidth = 250;
     const dialogRef = this.dialog.open(ConfirmModalComponent, {
-      width: '250px',
+      width: `${popupWidth}px`,
     });
     console.log(target);
-    dialogRef.updatePosition({ top: `${target.clientY}px` });
+    dialogRef.updatePosition({
+      top: `${target.clientY}px`,
+      left: `${target.clientX - popupWidth}px`
+    });
 
     dialogRef
       .afterClosed()
