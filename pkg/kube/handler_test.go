@@ -406,7 +406,11 @@ func TestHandler_deleteKube(t *testing.T) {
 		accSvc.On(serviceGet, mock.Anything, tc.accountName).Return(tc.account, tc.getAccountError)
 		mockRepo := new(testutils.MockStorage)
 		mockRepo.On("Put", mock.Anything, mock.Anything,
-			mock.Anything, mock.Anything).Return(mock.Anything)
+			mock.Anything, mock.Anything).Return(nil)
+		mockRepo.On("Delete", mock.Anything,
+			mock.Anything, mock.Anything).Return(nil)
+		mockRepo.On("GetAll", mock.Anything,
+			mock.Anything).Return([][]byte{}, nil)
 
 		workflows.Init()
 		workflows.RegisterWorkFlow(workflows.DigitalOceanDeleteCluster, []steps.Step{})
@@ -806,10 +810,10 @@ func TestDeleteNodeFromKube(t *testing.T) {
 
 		mockRepo := new(testutils.MockStorage)
 		mockRepo.On("Put", mock.Anything, mock.Anything, mock.Anything, mock.Anything).
-			Return(mock.Anything)
+			Return(nil)
 
 		mockRepo.On("Delete", mock.Anything, mock.Anything, mock.Anything).
-			Return(mock.Anything)
+			Return(nil)
 
 		handler := Handler{
 			svc:            svc,
