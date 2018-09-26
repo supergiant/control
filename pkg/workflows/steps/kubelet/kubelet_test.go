@@ -101,7 +101,6 @@ func TestStartKubeletError(t *testing.T) {
 	}
 }
 
-
 func TestStepName(t *testing.T) {
 	s := Step{}
 

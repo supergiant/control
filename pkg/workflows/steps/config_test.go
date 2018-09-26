@@ -3,6 +3,7 @@ package steps
 import (
 	"encoding/json"
 	"github.com/supergiant/supergiant/pkg/node"
+	"github.com/supergiant/supergiant/pkg/profile"
 	"testing"
 )
 
@@ -40,4 +41,111 @@ func TestMarshalConfig(t *testing.T) {
 			return
 		}
 	}
+}
+
+func TestNewConfig(t *testing.T) {
+	clusterName := "testCluster"
+	cloudAccountName := "cloudAccountName"
+	discoveryUrl := "https://etcd.io"
+	expectedMasterCount := 3
+	expectedNodeCount := 5
+
+	p := profile.Profile{
+		MasterProfiles: make([]profile.NodeProfile, expectedMasterCount),
+		NodesProfiles:  make([]profile.NodeProfile, expectedNodeCount),
+	}
+
+	cfg := NewConfig(clusterName, discoveryUrl, cloudAccountName, p)
+
+	if cfg.ClusterName != clusterName {
+		t.Errorf("Wrong cluster name expected %s actual %s", clusterName, cfg.ClusterName)
+	}
+
+	if cfg.CloudAccountName != cloudAccountName {
+		t.Errorf("Wrong cloud account name expected %s actual %s",
+			cloudAccountName, cfg.CloudAccountName)
+	}
+
+	if cap(cfg.nodeChan) != expectedNodeCount+expectedMasterCount {
+		t.Errorf("Wrong node chan capacity expected %d actual %d",
+			expectedNodeCount+expectedMasterCount, len(cfg.Nodes.internal)+len(cfg.Masters.internal))
+	}
+}
+
+func TestAddMaster(t *testing.T) {
+	n := &node.Node{
+		Role: node.RoleMaster,
+	}
+
+	cfg := &Config{
+		Masters: Map{
+			internal: make(map[string]*node.Node),
+		},
+	}
+
+	cfg.AddMaster(n)
+
+	if len(cfg.Masters.internal) != 1 {
+		t.Errorf("Wrong masters count expected %d actual %d",
+			1, len(cfg.Masters.internal))
+	}
+}
+
+func TestAddNode(t *testing.T) {
+	n := &node.Node{
+		Role: node.RoleNode,
+	}
+
+	cfg := &Config{
+		Nodes: Map{
+			internal: make(map[string]*node.Node),
+		},
+	}
+
+	cfg.AddNode(n)
+
+	if len(cfg.Nodes.internal) != 1 {
+		t.Errorf("Wrong node count expected %d actual %d",
+			1, len(cfg.Nodes.internal))
+	}
+}
+
+func TestConfigGetMaster(t *testing.T) {
+	n := &node.Node{
+		Name:  "master-1",
+		State: node.StateActive,
+		Role:  node.RoleMaster,
+	}
+
+	testCases := []struct {
+		cfg          *Config
+		expectedNode *node.Node
+	}{
+		{
+			cfg: &Config{
+				Masters: Map{
+					internal: map[string]*node.Node{
+						n.Name: n,
+					},
+				},
+			},
+			expectedNode: n,
+		},
+		{
+			cfg:          &Config{},
+			expectedNode: nil,
+		},
+	}
+
+	for _, testCase := range testCases {
+		actual := testCase.cfg.GetMaster()
+
+		if actual != testCase.expectedNode {
+			t.Errorf("Wrong master node expected %v actual %v", testCase.expectedNode, actual)
+		}
+	}
+}
+
+func TestConfigGetNode(t *testing.T) {
+
 }

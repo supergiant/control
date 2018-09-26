@@ -107,3 +107,19 @@ func TestDeleteClusterRun(t *testing.T) {
 		}
 	}
 }
+
+func TestDeleteClusterStepName(t *testing.T) {
+	s := DeleteClusterStep{}
+
+	if s.Name() != DeleteClusterStepName {
+		t.Errorf("Unexpected step name expected %s actual %s", DeleteClusterStepName, s.Name())
+	}
+}
+
+func TestDeleteClusterDepends(t *testing.T) {
+	s := DeleteClusterStep{}
+
+	if len(s.Depends()) != 0 {
+		t.Errorf("Wrong dependency list %v expected %v", s.Depends(), []string{})
+	}
+}
