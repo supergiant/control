@@ -83,8 +83,18 @@ func New(cfg *Config) (*Server, error) {
 	if err != nil {
 		return nil, err
 	}
-	headersOk := handlers.AllowedHeaders([]string{"Access-Control-Request-Headers", "Authorization"})
-	methodsOk := handlers.AllowedMethods([]string{"GET", "HEAD", "POST", "PUT", "OPTIONS"})
+	headersOk := handlers.AllowedHeaders([]string{
+		"Access-Control-Request-Headers",
+		"Authorization",
+	})
+	methodsOk := handlers.AllowedMethods([]string{
+		http.MethodGet,
+		http.MethodHead,
+		http.MethodPost,
+		http.MethodPut,
+		http.MethodOptions,
+		http.MethodDelete,
+	})
 
 	// TODO add TLS support
 	s := &Server{
