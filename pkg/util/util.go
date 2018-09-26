@@ -104,22 +104,15 @@ func FillCloudAccountCredentials(ctx context.Context, cloudAccount *model.CloudA
 		return err
 	}
 
+	// TODO(stgleb):  Add support for other cloud providers
 	switch cloudAccount.Provider {
 	case clouds.AWS:
 		return BindParams(cloudAccount.Credentials, &config.AWSConfig)
-	case clouds.GCE:
-		return BindParams(cloudAccount.Credentials, &config.GCEConfig)
 	case clouds.DigitalOcean:
 		return BindParams(cloudAccount.Credentials, &config.DigitalOceanConfig)
-	case clouds.Packet:
-		return BindParams(cloudAccount.Credentials, &config.PacketConfig)
-	case clouds.OpenStack:
-		return BindParams(cloudAccount.Credentials, &config.OSConfig)
 	default:
 		return sgerrors.ErrUnknownProvider
 	}
-
-	return nil
 }
 
 func GetRandomNode(nodeMap map[string]*node.Node) *node.Node {
