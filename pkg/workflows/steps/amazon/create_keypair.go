@@ -7,7 +7,6 @@ import (
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/service/ec2"
 	"github.com/pkg/errors"
-
 	"github.com/supergiant/supergiant/pkg/util"
 	"github.com/supergiant/supergiant/pkg/workflows/steps"
 )
@@ -30,7 +29,6 @@ func InitCreateKeyPair() {
 
 func (s *KeyPairStep) Run(ctx context.Context, w io.Writer, cfg *steps.Config) error {
 	log := util.GetLogger(w)
-	log.Infof("[%s] - started!", s.Name())
 
 	sdk, err := GetSDK(cfg.AWSConfig)
 	if err != nil {

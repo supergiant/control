@@ -5,6 +5,7 @@ import (
 	"github.com/aws/aws-sdk-go/aws/credentials"
 	"github.com/aws/aws-sdk-go/aws/session"
 	"github.com/aws/aws-sdk-go/service/ec2"
+	"github.com/supergiant/supergiant/pkg/model"
 )
 
 //SDK is a wrapper around aws client library handling concerns like authentication
@@ -34,4 +35,8 @@ func New(region string, keyID, secret, token string) (*SDK, error) {
 
 	sdk.EC2 = ec2.New(sess)
 	return sdk, nil
+}
+
+func NewFromAccount(account *model.CloudAccount) (*SDK, error) {
+	return nil, nil
 }
