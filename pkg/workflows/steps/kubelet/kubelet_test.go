@@ -13,6 +13,8 @@ import (
 	"github.com/supergiant/supergiant/pkg/runner"
 	"github.com/supergiant/supergiant/pkg/templatemanager"
 	"github.com/supergiant/supergiant/pkg/workflows/steps"
+	"github.com/supergiant/supergiant/pkg/workflows/steps/docker"
+	"github.com/supergiant/supergiant/pkg/workflows/steps/manifest"
 )
 
 type fakeRunner struct {
@@ -96,5 +98,22 @@ func TestStartKubeletError(t *testing.T) {
 
 	if !strings.Contains(err.Error(), errMsg) {
 		t.Errorf("Error message expected to contain %s actual %s", errMsg, err.Error())
+	}
+}
+
+
+func TestStepName(t *testing.T) {
+	s := Step{}
+
+	if s.Name() != StepName {
+		t.Errorf("Unexpected step name expected %s actual %s", StepName, s.Name())
+	}
+}
+
+func TestDepends(t *testing.T) {
+	s := Step{}
+
+	if len(s.Depends()) != 1 && s.Depends()[0] != docker.StepName && s.Depends()[1] != manifest.StepName {
+		t.Errorf("Wrong dependency list %v expected %v", s.Depends(), []string{docker.StepName, manifest.StepName})
 	}
 }

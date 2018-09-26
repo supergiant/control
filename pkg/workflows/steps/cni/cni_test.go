@@ -1,20 +1,20 @@
-package docker
+package cni
 
 import (
 	"bytes"
 	"context"
-	"errors"
 	"io"
 	"strings"
 	"testing"
 	"text/template"
 
-	"github.com/supergiant/supergiant/pkg/profile"
-	"github.com/supergiant/supergiant/pkg/templatemanager"
-	"github.com/supergiant/supergiant/pkg/testutils"
-	"github.com/supergiant/supergiant/pkg/workflows/steps"
+	"github.com/pkg/errors"
 
+	"github.com/supergiant/supergiant/pkg/node"
+	"github.com/supergiant/supergiant/pkg/profile"
 	"github.com/supergiant/supergiant/pkg/runner"
+	"github.com/supergiant/supergiant/pkg/templatemanager"
+	"github.com/supergiant/supergiant/pkg/workflows/steps"
 )
 
 type fakeRunner struct {
@@ -30,10 +30,12 @@ func (f *fakeRunner) Run(command *runner.Command) error {
 	return err
 }
 
-func TestInstallDocker(t *testing.T) {
-	dockerVersion := "17.05"
-	releaseVersion := "1.29"
-	arch := "amd64"
+func TestCNI(t *testing.T) {
+	var (
+		expected               = "cni.tar.gz"
+		r        runner.Runner = &fakeRunner{}
+	)
+
 	err := templatemanager.Init("../../../../templates")
 
 	if err != nil {
@@ -46,34 +48,26 @@ func TestInstallDocker(t *testing.T) {
 		t.Fatal("template not found")
 	}
 
-	output := &bytes.Buffer{}
-	r := &testutils.MockRunner{}
+	output := new(bytes.Buffer)
 
-	config := steps.Config{
-		DockerConfig: steps.DockerConfig{
-			Version:        dockerVersion,
-			ReleaseVersion: releaseVersion,
-			Arch:           arch,
-		},
-		Runner: r,
-	}
-
+	cfg := steps.NewConfig("", "", "", profile.Profile{})
+	cfg.Runner = r
 	task := &Step{
-		scriptTemplate: tpl,
+		tpl,
 	}
 
-	err = task.Run(context.Background(), output, &config)
+	err = task.Run(context.Background(), output, cfg)
 
-	if !strings.Contains(output.String(), dockerVersion) {
-		t.Fatalf("docker version %s not found in output %s", dockerVersion, output.String())
+	if err != nil {
+		t.Errorf("Unpexpected error while  provision node %v", err)
 	}
 
-	if !strings.Contains(output.String(), dockerVersion) {
-		t.Fatalf("docker version %s not found in output %s", dockerVersion, output.String())
+	if !strings.Contains(output.String(), expected) {
+		t.Errorf("not found %s in %s", expected, output.String())
 	}
 }
 
-func TestDockerError(t *testing.T) {
+func TestCNIErrors(t *testing.T) {
 	errMsg := "error has occurred"
 
 	r := &fakeRunner{
@@ -89,6 +83,10 @@ func TestDockerError(t *testing.T) {
 
 	cfg := steps.NewConfig("", "", "", profile.Profile{})
 	cfg.Runner = r
+	cfg.AddMaster(&node.Node{
+		State:     node.StateActive,
+		PrivateIp: "10.20.30.40",
+	})
 	err = task.Run(context.Background(), output, cfg)
 
 	if err == nil {
