@@ -71,6 +71,10 @@ type Config struct {
 	EtcdUrl      string
 	LogLevel     string
 	TemplatesDir string
+
+	ReadTimeout  time.Duration
+	WriteTimeout time.Duration
+	IdleTimeout  time.Duration
 }
 
 func New(cfg *Config) (*Server, error) {
@@ -83,6 +87,16 @@ func New(cfg *Config) (*Server, error) {
 	if err != nil {
 		return nil, err
 	}
+
+	s := newServer(r, cfg)
+	if err := generateUserIfColdStart(cfg); err != nil {
+		return nil, err
+	}
+
+	return s, nil
+}
+
+func newServer(router *mux.Router, cfg *Config) *Server {
 	headersOk := handlers.AllowedHeaders([]string{
 		"Access-Control-Request-Headers",
 		"Authorization",
@@ -100,18 +114,15 @@ func New(cfg *Config) (*Server, error) {
 	s := &Server{
 		cfg: cfg,
 		server: http.Server{
-			Handler:      handlers.CORS(headersOk, methodsOk)(handlers.RecoveryHandler(handlers.PrintRecoveryStack(true))(r)),
+			Handler:      handlers.CORS(headersOk, methodsOk)(handlers.RecoveryHandler(handlers.PrintRecoveryStack(true))(router)),
 			Addr:         fmt.Sprintf("%s:%d", cfg.Addr, cfg.Port),
-			ReadTimeout:  time.Second * 10,
-			WriteTimeout: time.Second * 15,
-			IdleTimeout:  time.Second * 120,
+			ReadTimeout:  cfg.ReadTimeout,
+			WriteTimeout: cfg.WriteTimeout,
+			IdleTimeout:  cfg.IdleTimeout,
 		},
 	}
-	if err := generateUserIfColdStart(cfg); err != nil {
-		return nil, err
-	}
 
-	return s, nil
+	return s
 }
 
 //generateUserIfColdStart checks if there are any users in the db and if not (i.e. on first launch) generates a root user
