@@ -120,3 +120,19 @@ func TestWriteCertificatesError(t *testing.T) {
 		t.Errorf("Error message expected to contain %s actual %s", errMsg, err.Error())
 	}
 }
+
+func TestStepName(t *testing.T) {
+	s := Step{}
+
+	if s.Name() != StepName {
+		t.Errorf("Unexpected step name expected %s actual %s", StepName, s.Name())
+	}
+}
+
+func TestDepends(t *testing.T) {
+	s := Step{}
+
+	if len(s.Depends()) != 0 {
+		t.Errorf("Wrong dependency list %v expected %v", s.Depends(), []string{})
+	}
+}

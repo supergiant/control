@@ -1,4 +1,4 @@
-package kubelet
+package clustercheck
 
 import (
 	"bytes"
@@ -10,11 +10,13 @@ import (
 
 	"github.com/pkg/errors"
 
+	"github.com/supergiant/supergiant/pkg/node"
+	"github.com/supergiant/supergiant/pkg/profile"
 	"github.com/supergiant/supergiant/pkg/runner"
 	"github.com/supergiant/supergiant/pkg/templatemanager"
 	"github.com/supergiant/supergiant/pkg/workflows/steps"
-	"github.com/supergiant/supergiant/pkg/workflows/steps/docker"
-	"github.com/supergiant/supergiant/pkg/workflows/steps/manifest"
+	"github.com/supergiant/supergiant/pkg/workflows/steps/kubelet"
+	"strconv"
 )
 
 type fakeRunner struct {
@@ -30,12 +32,12 @@ func (f *fakeRunner) Run(command *runner.Command) error {
 	return err
 }
 
-func TestStartKubelet(t *testing.T) {
-	k8sVersion := "1.8.7"
-	etcdPort := "2379"
-	proxyPort := "8080"
+func TestClusterCheck(t *testing.T) {
+	var (
+		machineCount               = 7
+		r            runner.Runner = &fakeRunner{}
+	)
 
-	r := &fakeRunner{}
 	err := templatemanager.Init("../../../../templates")
 
 	if err != nil {
@@ -50,46 +52,51 @@ func TestStartKubelet(t *testing.T) {
 
 	output := new(bytes.Buffer)
 
-	cfg := &steps.Config{
-		KubeletConfig: steps.KubeletConfig{
-			K8SVersion:     k8sVersion,
-			ProxyPort:      proxyPort,
-			EtcdClientPort: etcdPort,
-		},
-		Runner: r,
+	cfg := steps.NewConfig("", "", "", profile.Profile{})
+	cfg.ClusterCheckConfig = steps.ClusterCheckConfig{
+		MachineCount: machineCount,
 	}
-
+	cfg.Runner = r
+	cfg.AddMaster(&node.Node{
+		State:     node.StateActive,
+		PrivateIp: "10.20.30.40",
+	})
 	task := &Step{
 		tpl,
 	}
 
 	err = task.Run(context.Background(), output, cfg)
 
-	if !strings.Contains(output.String(), k8sVersion) {
-		t.Errorf("k8s version %s not found in %s", k8sVersion, output.String())
+	if err != nil {
+		t.Errorf("Unpexpected error while  provision node %v", err)
+	}
+
+	if !strings.Contains(output.String(), strconv.Itoa(machineCount)) {
+		t.Errorf("cluster check expected machine count %d not found in %s", machineCount, output.String())
 	}
 }
 
-func TestStartKubeletError(t *testing.T) {
+func TestClusterCheckErrors(t *testing.T) {
 	errMsg := "error has occurred"
 
 	r := &fakeRunner{
 		errMsg: errMsg,
 	}
 
-	kubeletScriptTemplate, err := template.New(StepName).Parse("")
-
+	proxyTemplate, err := template.New(StepName).Parse("")
 	output := new(bytes.Buffer)
-	config := &steps.Config{
-		KubeletConfig: steps.KubeletConfig{},
-		Runner:        r,
+
+	task := &Step{
+		proxyTemplate,
 	}
 
-	j := &Step{
-		kubeletScriptTemplate,
-	}
-
-	err = j.Run(context.Background(), output, config)
+	cfg := steps.NewConfig("", "", "", profile.Profile{})
+	cfg.Runner = r
+	cfg.AddMaster(&node.Node{
+		State:     node.StateActive,
+		PrivateIp: "10.20.30.40",
+	})
+	err = task.Run(context.Background(), output, cfg)
 
 	if err == nil {
 		t.Errorf("Error must not be nil")
@@ -112,7 +119,7 @@ func TestStepName(t *testing.T) {
 func TestDepends(t *testing.T) {
 	s := Step{}
 
-	if len(s.Depends()) != 1 && s.Depends()[0] != docker.StepName && s.Depends()[1] != manifest.StepName {
-		t.Errorf("Wrong dependency list %v expected %v", s.Depends(), []string{docker.StepName, manifest.StepName})
+	if len(s.Depends()) != 1 && s.Depends()[0] != kubelet.StepName {
+		t.Errorf("Wrong dependency list %v expected %v", s.Depends(), []string{kubelet.StepName})
 	}
 }

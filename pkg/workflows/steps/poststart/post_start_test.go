@@ -18,6 +18,7 @@ import (
 	"github.com/supergiant/supergiant/pkg/runner"
 	"github.com/supergiant/supergiant/pkg/templatemanager"
 	"github.com/supergiant/supergiant/pkg/workflows/steps"
+	"github.com/supergiant/supergiant/pkg/workflows/steps/kubelet"
 )
 
 type fakeRunner struct {
@@ -204,5 +205,21 @@ func TestPostStartTimeout(t *testing.T) {
 	if errors.Cause(err) != context.DeadlineExceeded {
 		t.Errorf("Wrong error cause expected %v actual %v", context.DeadlineExceeded,
 			err)
+	}
+}
+
+func TestStepName(t *testing.T) {
+	s := Step{}
+
+	if s.Name() != StepName {
+		t.Errorf("Unexpected step name expected %s actual %s", StepName, s.Name())
+	}
+}
+
+func TestDepends(t *testing.T) {
+	s := Step{}
+
+	if len(s.Depends()) != 1 && s.Depends()[0] != kubelet.StepName {
+		t.Errorf("Wrong dependency list %v expected %v", s.Depends(), []string{kubelet.StepName})
 	}
 }

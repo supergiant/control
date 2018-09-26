@@ -94,3 +94,19 @@ func TestDeleteMachineRun(t *testing.T) {
 		}
 	}
 }
+
+func TestStepDeleteMachineName(t *testing.T) {
+	s := DeleteMachineStep{}
+
+	if s.Name() != DeleteMachineStepName {
+		t.Errorf("Unexpected step name expected %s actual %s", DeleteMachineStepName, s.Name())
+	}
+}
+
+func TestDeleteMachineDepends(t *testing.T) {
+	s := DeleteMachineStep{}
+
+	if len(s.Depends()) != 0 {
+		t.Errorf("Wrong dependency list %v expected %v", s.Depends(), []string{})
+	}
+}

@@ -15,10 +15,10 @@ import (
 	"github.com/supergiant/supergiant/pkg/workflows/steps"
 )
 
-const StepNameCreateEC2Instance = "aws_create_instance"
 const (
-	IPAttempts             = 12
-	SleepSecondsPerAttempt = 6
+	StepNameCreateEC2Instance = "aws_create_instance"
+	IPAttempts                = 12
+	SleepSecondsPerAttempt    = 6
 )
 
 type StepCreateInstance struct {
