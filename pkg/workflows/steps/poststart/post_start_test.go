@@ -56,20 +56,21 @@ func TestPostStartMaster(t *testing.T) {
 	}
 
 	output := new(bytes.Buffer)
-	cfg := &steps.Config{
-		IsMaster: true,
-		PostStartConfig: steps.PostStartConfig{
-			Host:        "127.0.0.1",
-			Port:        port,
-			Username:    username,
-			RBACEnabled: rbacEnabled,
-			Timeout:     120,
-		},
-		Node: node.Node{
-			PrivateIp: "10.20.30.40",
-		},
-		Runner: r,
+	cfg := steps.NewConfig("test", "", "test", profile.Profile{
+		MasterProfiles: []profile.NodeProfile{{}},
+	})
+	cfg.IsMaster = true
+	cfg.PostStartConfig = steps.PostStartConfig{
+		Host:        "127.0.0.1",
+		Port:        port,
+		Username:    username,
+		RBACEnabled: rbacEnabled,
+		Timeout:     120,
 	}
+	cfg.Node = node.Node{
+		PrivateIp: "10.20.30.40",
+	}
+	cfg.Runner = r
 
 	j := &Step{
 		tpl,
@@ -106,13 +107,17 @@ func TestPostStartNode(t *testing.T) {
 	}
 
 	output := new(bytes.Buffer)
-	cfg := &steps.Config{
-		PostStartConfig: steps.PostStartConfig{
-			Timeout: 120,
-		},
-		Node:   node.Node{},
-		Runner: r,
+	cfg := steps.NewConfig("test", "", "test", profile.Profile{
+		MasterProfiles: []profile.NodeProfile{{}},
+	})
+	cfg.PostStartConfig = steps.PostStartConfig{
+		Host:    "127.0.0.1",
+		Timeout: 120,
 	}
+	cfg.Node = node.Node{
+		PrivateIp: "10.20.30.40",
+	}
+	cfg.Runner = r
 
 	j := &Step{
 		tpl,
