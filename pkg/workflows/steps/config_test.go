@@ -147,5 +147,49 @@ func TestConfigGetMaster(t *testing.T) {
 }
 
 func TestConfigGetNode(t *testing.T) {
+	n1, n2 := &node.Node{
+		Name:  "node-1",
+		State: node.StateError,
+		Role:  node.RoleNode,
+	}, &node.Node{
+		Name:  "node-2",
+		State: node.StateActive,
+		Role:  node.RoleNode,
+	}
 
+	testCases := []struct {
+		cfg          *Config
+		expectedNode *node.Node
+	}{
+		{
+			cfg: &Config{
+				Nodes: Map{
+					internal: map[string]*node.Node{
+						n1.Name: n1,
+						n2.Name: n2,
+					},
+				},
+			},
+			expectedNode: n2,
+		},
+		{
+			cfg: &Config{
+				Nodes: Map{
+					internal: map[string]*node.Node{
+						n1.Name: n1,
+					},
+				},
+			},
+			expectedNode: nil,
+		},
+	}
+
+	for _, testCase := range testCases {
+		actual := testCase.cfg.GetNode()
+
+		if actual != testCase.expectedNode {
+			t.Errorf("Wrong node expected %v actual %v",
+				testCase.expectedNode, actual)
+		}
+	}
 }
