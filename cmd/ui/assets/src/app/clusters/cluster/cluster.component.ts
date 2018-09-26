@@ -363,7 +363,7 @@ export class ClusterComponent implements OnInit, OnDestroy {
     console.log(target);
     dialogRef.updatePosition({
       top: `${target.clientY}px`,
-      left: `${target.clientX - popupWidth}px`
+      left: `${target.clientX - popupWidth - 10}px`
     });
 
     dialogRef

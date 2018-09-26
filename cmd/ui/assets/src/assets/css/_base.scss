@@ -71,7 +71,10 @@ button[mat-raised-button], button[mat-button] {
 }
 
 .mat-dialog-container {
-  padding: 20px 20px 33px !important;
+  padding: 24px 24px 35px!important;
+
+  background: #000000!important;
+  opacity: .8!important;
 }
 
 button {
