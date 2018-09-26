@@ -5,6 +5,7 @@ import (
 	"os"
 	"os/signal"
 	"syscall"
+	"time"
 
 	"github.com/sirupsen/logrus"
 
@@ -28,6 +29,9 @@ func main() {
 		EtcdUrl:      *etcdURL,
 		TemplatesDir: *templatesDir,
 		LogLevel:     *logLevel,
+		ReadTimeout:  time.Second * 20,
+		WriteTimeout: time.Second * 10,
+		IdleTimeout:  time.Second * 120,
 	}
 
 	server, err := controlplane.New(cfg)
