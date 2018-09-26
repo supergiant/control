@@ -193,3 +193,74 @@ func TestConfigGetNode(t *testing.T) {
 		}
 	}
 }
+
+func TestConfigGetMasters(t *testing.T) {
+	testCases := []struct {
+		cfg           *Config
+		expectedCount int
+	}{
+		{
+			cfg: &Config{
+				Masters: Map{
+					internal: map[string]*node.Node{
+						"node-1": {},
+						"node-2": {},
+					},
+				},
+			},
+			expectedCount: 2,
+		},
+		{
+			cfg: &Config{
+				Masters: Map{
+					internal: map[string]*node.Node{},
+				},
+			},
+			expectedCount: 0,
+		},
+	}
+
+	for _, testCase := range testCases {
+		masters := testCase.cfg.GetMasters()
+
+		if len(masters) != testCase.expectedCount {
+			t.Errorf("Wrong amount of masters expected %d actual %d",
+				testCase.expectedCount, len(masters))
+		}
+	}
+}
+
+func TestConfigGetNodes(t *testing.T) {
+	testCases := []struct {
+		cfg           *Config
+		expectedCount int
+	}{
+		{
+			cfg: &Config{
+				Nodes: Map{
+					internal: map[string]*node.Node{
+						"node-1": {},
+					},
+				},
+			},
+			expectedCount: 1,
+		},
+		{
+			cfg: &Config{
+				Nodes: Map{
+					internal: map[string]*node.Node{},
+				},
+			},
+			expectedCount: 0,
+		},
+	}
+
+	for _, testCase := range testCases {
+		nodes := testCase.cfg.GetNodes()
+
+		if len(nodes) != testCase.expectedCount {
+			t.Errorf("Wrong amount of nodes expected %d actual %d",
+				testCase.expectedCount, len(nodes))
+		}
+	}
+}
