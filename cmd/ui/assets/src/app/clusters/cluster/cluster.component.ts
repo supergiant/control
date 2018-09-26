@@ -1,6 +1,6 @@
-import { timer as observableTimer, Subscription, Observable, of } from 'rxjs';
+import { timer as observableTimer, Subscription, of } from 'rxjs';
 
-import { catchError, filter, map, switchMap } from 'rxjs/operators';
+import { catchError, filter, switchMap } from 'rxjs/operators';
 import {
   Component,
   OnInit,
@@ -368,12 +368,9 @@ export class ClusterComponent implements OnInit, OnDestroy {
 
     dialogRef
       .afterClosed()
-      // .subscribe(result => console.log(result));
       .pipe(
-        // switchMap(result => result),
         filter(isConfirmed => isConfirmed),
         switchMap(() => this.supergiant.Nodes.delete(this.id, nodeName)),
-        map(response => response),
         catchError((error) => of(error)),
       ).subscribe(res => console.log(res));
   }
