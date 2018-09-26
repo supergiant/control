@@ -3,11 +3,11 @@ package provisioner
 import (
 	"context"
 	"io"
+	"os"
 	"sync"
 
 	"github.com/pkg/errors"
 	"github.com/sirupsen/logrus"
-
 	"github.com/supergiant/supergiant/pkg/clouds"
 	"github.com/supergiant/supergiant/pkg/model"
 	"github.com/supergiant/supergiant/pkg/node"
@@ -43,6 +43,10 @@ func NewProvisioner(repository storage.Interface, kubeService KubeService) *Task
 				ProvisionMaster: workflows.DigitalOceanMaster,
 				ProvisionNode:   workflows.DigitalOceanNode,
 			},
+			clouds.AWS: {
+				ProvisionMaster: workflows.AWSMaster,
+				ProvisionNode:   workflows.AWSNode,
+			},
 		},
 		getWriter: util.GetWriter,
 	}
@@ -70,6 +74,10 @@ func (tp *TaskProvisioner) ProvisionCluster(ctx context.Context, profile *profil
 	}
 
 	go func() {
+		if err := tp.preprovision(ctx, config); err != nil {
+			logrus.Errorf("Pre provisioning cluster %v", err)
+		}
+
 		// ProvisionCluster masters and wait until n/2 + 1 of masters with etcd are up and running
 		doneChan, failChan, err := tp.provisionMasters(ctx, profile, config, masterTasks)
 
@@ -84,19 +92,19 @@ func (tp *TaskProvisioner) ProvisionCluster(ctx context.Context, profile *profil
 		case <-doneChan:
 		case <-failChan:
 			config.KubeStateChan() <- model.StateFailed
-			logrus.Errorf("Master cluster deployment has been failed")
+			logrus.Errorf("master cluster deployment has been failed")
 			return
 		}
 
 		// Save cluster state when masters are provisioned
-		logrus.Infof("Master provisioning for cluster %s has finished successfully", config.ClusterName)
+		logrus.Infof("master provisioning for cluster %s has finished successfully", config.ClusterName)
 
 		// ProvisionCluster nodes
 		tp.provisionNodes(ctx, profile, config, nodeTasks)
 
 		// Wait for cluster checks are finished
 		tp.waitCluster(ctx, clusterTask, config)
-		logrus.Infof("Cluster %s deployment has finished", config.ClusterName)
+		logrus.Infof("cluster %s deployment has finished", config.ClusterName)
 	}()
 
 	return map[string][]*workflows.Task{
@@ -165,7 +173,7 @@ func (tp *TaskProvisioner) ProvisionNodes(ctx context.Context, nodeProfiles []pr
 				// TODO(stgleb): Use some other method like update or Patch instead of recreate
 				tp.kubeService.Create(context.Background(), kube)
 			} else {
-				logrus.Errorf("Add node to cluster %s node was not added", kube.Name)
+				logrus.Errorf("add node to cluster %s: node was not added", kube.Name)
 			}
 		}(config, errChan)
 	}
@@ -201,6 +209,23 @@ func (tp *TaskProvisioner) prepare(name clouds.Name, masterCount, nodeCount int)
 	clusterTask, _ := workflows.NewTask(workflows.Cluster, tp.repository)
 
 	return masterTasks, nodeTasks, clusterTask
+}
+
+func (p *TaskProvisioner) preprovision(ctx context.Context, config *steps.Config) error {
+	//some clouds (e.g. AWS) requires running tasks before provisioning nodes (creating a VPC, Subnets, SecGroups, etc)
+	switch config.Provider {
+	case clouds.AWS:
+		wf := workflows.GetWorkflow(workflows.AWSPreProvision)
+		for _, t := range wf {
+			if err := t.Run(ctx, os.Stdout, config); err != nil {
+				return errors.Wrap(err, "cluster pre provisioning setup failed")
+			}
+		}
+		//on aws default user name on ubuntu images are not root but ubuntu
+		//https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/AccessingInstancesLinux.html
+		config.SshConfig.User = "ubuntu"
+	}
+	return nil
 }
 
 func (tp *TaskProvisioner) provisionMasters(ctx context.Context, profile *profile.Profile, config *steps.Config, tasks []*workflows.Task) (chan struct{}, chan struct{}, error) {

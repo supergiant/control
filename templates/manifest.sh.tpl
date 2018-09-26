@@ -62,16 +62,16 @@ spec:
       dnsPolicy: Default
 EOF
 
-mkdir -p ${KUBERNETES_MANIFESTS_DIR}
+sudo mkdir -p ${KUBERNETES_MANIFESTS_DIR}
 
 # worker
-cat << EOF > {{ .KubernetesConfigDir }}/worker-kubeconfig.yaml
+sudo bash -c "cat << EOF > {{ .KubernetesConfigDir }}/worker-kubeconfig.yaml
 apiVersion: v1
 kind: Config
 users:
 - name: kubelet
   user:
-    token: "1234"
+    token: '1234'
 clusters:
 - name: local
   cluster:
@@ -83,11 +83,11 @@ contexts:
     user: kubelet
   name: service-account-context
 current-context: service-account-context
-EOF
+EOF"
 
 
 # proxy
-cat << EOF > ${KUBERNETES_MANIFESTS_DIR}/kube-proxy.yaml
+sudo bash -c "cat << EOF > ${KUBERNETES_MANIFESTS_DIR}/kube-proxy.yaml
 apiVersion: v1
 kind: Pod
 metadata:
@@ -114,12 +114,12 @@ spec:
   - hostPath:
       path: /usr/share/ca-certificates
     name: ssl-certs-host
-EOF
+EOF"
 
 
 {{ if .IsMaster }}
 # api-server
-cat << EOF > ${KUBERNETES_MANIFESTS_DIR}/kube-apiserver.yaml
+sudo bash -c "cat << EOF > ${KUBERNETES_MANIFESTS_DIR}/kube-apiserver.yaml
 apiVersion: v1
 kind: Pod
 metadata:
@@ -182,10 +182,10 @@ spec:
   - hostPath:
       path: /usr/share/ca-certificates
     name: ssl-certs-host
-EOF
+EOF"
 
 # kube controller manager
-cat << EOF > ${KUBERNETES_MANIFESTS_DIR}/kube-controller-manager.yaml
+sudo bash -c "cat << EOF > ${KUBERNETES_MANIFESTS_DIR}/kube-controller-manager.yaml
 apiVersion: v1
 kind: Pod
 metadata:
@@ -227,10 +227,10 @@ spec:
   - hostPath:
       path: /usr/share/ca-certificates
     name: ssl-certs-host
-EOF
+EOF"
 
 # scheduler
-cat << EOF > ${KUBERNETES_MANIFESTS_DIR}/kube-scheduler.yaml
+sudo bash -c "cat << EOF > ${KUBERNETES_MANIFESTS_DIR}/kube-scheduler.yaml
 apiVersion: v1
 kind: Pod
 metadata:
@@ -253,5 +253,5 @@ spec:
         port: 10251
       initialDelaySeconds: 15
       timeoutSeconds: 1
-EOF
+EOF"
 {{ end }}
