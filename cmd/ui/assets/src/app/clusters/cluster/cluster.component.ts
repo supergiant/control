@@ -1,6 +1,6 @@
-import { timer as observableTimer, Subscription, Observable } from 'rxjs';
+import { timer as observableTimer, Subscription, Observable, of } from 'rxjs';
 
-import { filter, map, switchMap } from 'rxjs/operators';
+import { catchError, filter, map, switchMap } from 'rxjs/operators';
 import {
   Component,
   OnInit,
@@ -19,6 +19,7 @@ import { DomSanitizer, SafeResourceUrl } from '@angular/platform-browser';
 import { ChartsModule, BaseChartDirective } from 'ng2-charts';
 import { MatTableDataSource, MatSort, MatPaginator, MatDialog } from '@angular/material';
 import { ConfirmModalComponent } from '../../shared/modals/confirm-modal/confirm-modal.component';
+import { HttpClient } from '@angular/common/http';
 
 
 @Component({
@@ -85,6 +86,7 @@ export class ClusterComponent implements OnInit, OnDestroy {
     private router: Router,
     private supergiant: Supergiant,
     public dialog: MatDialog,
+    public http: HttpClient,
   ) {
   }
 
@@ -366,8 +368,9 @@ export class ClusterComponent implements OnInit, OnDestroy {
       .pipe(
         // switchMap(result => result),
         filter(isConfirmed => isConfirmed),
-        switchMap(() => this.supergiant.Nodes.delete(nodeName)),
-        map(response => response)
+        switchMap(() => this.supergiant.Nodes.delete(this.id, nodeName)),
+        map(response => response),
+        catchError((error) => of(error)),
       ).subscribe(res => console.log(res));
   }
 
