@@ -5,11 +5,11 @@ import (
 	"os"
 	"os/signal"
 	"syscall"
+	"time"
 
 	"github.com/sirupsen/logrus"
 
 	"github.com/supergiant/supergiant/pkg/controlplane"
-	"time"
 )
 
 var (
