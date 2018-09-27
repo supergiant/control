@@ -15,6 +15,10 @@ type SDK struct {
 
 //New creates SDK using keyID/secret and optionally token if temporary credentials auth method is used
 func New(region string, keyID, secret, token string) (*SDK, error) {
+	if region == "" {
+		return nil, ErrEmptyRegion
+	}
+
 	if keyID == "" || secret == "" {
 		return nil, ErrInvalidCreds
 	}

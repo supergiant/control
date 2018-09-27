@@ -2,15 +2,12 @@ package digitaloceanSDK
 
 import (
 	"github.com/digitalocean/godo"
-	"github.com/pkg/errors"
 	"github.com/supergiant/supergiant/pkg/clouds"
 	"github.com/supergiant/supergiant/pkg/model"
 	"golang.org/x/oauth2"
+	"github.com/supergiant/supergiant/pkg/sgerrors"
 )
 
-var (
-	ErrNoCredentials = errors.New("no credentials provided")
-)
 
 type TokenSource struct {
 	AccessToken string
@@ -39,7 +36,7 @@ func New(accessToken string) *SDK {
 func NewFromAccount(account *model.CloudAccount) (*SDK, error) {
 	token, ok := account.Credentials[clouds.DigitalOceanAccessToken]
 	if !ok {
-		return nil, ErrNoCredentials
+		return nil, sgerrors.ErrInvalidCredentials
 	}
 	return New(token), nil
 }
