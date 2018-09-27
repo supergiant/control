@@ -14,11 +14,11 @@ import (
 	"github.com/stretchr/testify/require"
 	"gopkg.in/asaskevich/govalidator.v8"
 
+	"fmt"
 	"github.com/supergiant/supergiant/pkg/clouds"
 	"github.com/supergiant/supergiant/pkg/model"
-	"github.com/supergiant/supergiant/pkg/testutils"
 	"github.com/supergiant/supergiant/pkg/sgerrors"
-	"fmt"
+	"github.com/supergiant/supergiant/pkg/testutils"
 )
 
 func fixtures() (*Handler, *testutils.MockStorage) {
@@ -168,7 +168,6 @@ func TestService_Update(t *testing.T) {
 	}
 }
 
-
 func TestHandler_Register(t *testing.T) {
 	r := mux.NewRouter()
 	h := Handler{}
@@ -203,26 +202,26 @@ func TestNewHandler(t *testing.T) {
 }
 
 func TestHandler_ListAll(t *testing.T) {
-	testCases := []struct{
-		mockResp [][]byte
+	testCases := []struct {
+		mockResp             [][]byte
 		serviceErr           error
 		expectedAccountCount int
 		expectedCode         int
 	}{
 		{
-			mockResp: [][]byte{},
+			mockResp:             [][]byte{},
 			serviceErr:           errors.New("weird error"),
 			expectedAccountCount: 1,
 			expectedCode:         http.StatusInternalServerError,
 		},
 		{
-			mockResp: nil,
+			mockResp:             nil,
 			serviceErr:           sgerrors.ErrNotFound,
 			expectedAccountCount: 1,
 			expectedCode:         http.StatusNotFound,
 		},
 		{
-			mockResp: [][]byte{[]byte(`{}`)},
+			mockResp:             [][]byte{[]byte(`{}`)},
 			serviceErr:           nil,
 			expectedAccountCount: 1,
 			expectedCode:         http.StatusOK,
@@ -251,30 +250,30 @@ func TestHandler_ListAll(t *testing.T) {
 }
 
 func TestHandler_Get(t *testing.T) {
-	testCases := []struct{
-		accountName string
-		mockResp []byte
+	testCases := []struct {
+		accountName          string
+		mockResp             []byte
 		serviceErr           error
 		expectedAccountCount int
 		expectedCode         int
 	}{
 		{
-			accountName: "test",
-			mockResp: []byte{},
+			accountName:          "test",
+			mockResp:             []byte{},
 			serviceErr:           errors.New("weird error"),
 			expectedAccountCount: 1,
 			expectedCode:         http.StatusInternalServerError,
 		},
 		{
-			accountName: "test",
-			mockResp: nil,
+			accountName:          "test",
+			mockResp:             nil,
 			serviceErr:           sgerrors.ErrNotFound,
 			expectedAccountCount: 1,
 			expectedCode:         http.StatusNotFound,
 		},
 		{
-			accountName: "test",
-			mockResp: []byte(`{}`),
+			accountName:          "test",
+			mockResp:             []byte(`{}`),
 			serviceErr:           nil,
 			expectedAccountCount: 1,
 			expectedCode:         http.StatusOK,
@@ -303,39 +302,38 @@ func TestHandler_Get(t *testing.T) {
 	}
 }
 
-
 func TestHandler_GetRegions(t *testing.T) {
-	testCases := []struct{
-		accountName string
-		mockResp []byte
+	testCases := []struct {
+		accountName          string
+		mockResp             []byte
 		serviceErr           error
 		expectedAccountCount int
 		expectedCode         int
 	}{
 		{
-			accountName: "test",
-			mockResp: []byte{},
+			accountName:          "test",
+			mockResp:             []byte{},
 			serviceErr:           errors.New("weird error"),
 			expectedAccountCount: 1,
 			expectedCode:         http.StatusInternalServerError,
 		},
 		{
-			accountName: "test",
-			mockResp: nil,
+			accountName:          "test",
+			mockResp:             nil,
 			serviceErr:           sgerrors.ErrNotFound,
 			expectedAccountCount: 1,
 			expectedCode:         http.StatusNotFound,
 		},
 		{
-			accountName: "test",
-			mockResp: []byte(`{"provider":"unknowncloud"}`),
+			accountName:          "test",
+			mockResp:             []byte(`{"provider":"unknowncloud"}`),
 			serviceErr:           nil,
 			expectedAccountCount: 1,
 			expectedCode:         http.StatusInternalServerError,
 		},
 		{
-			accountName: "test",
-			mockResp: []byte(`{"provider":"digitalocean"}`),
+			accountName:          "test",
+			mockResp:             []byte(`{"provider":"digitalocean"}`),
 			serviceErr:           nil,
 			expectedAccountCount: 1,
 			expectedCode:         http.StatusInternalServerError,
