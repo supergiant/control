@@ -6,23 +6,23 @@ import (
 	"github.com/digitalocean/godo"
 	"github.com/stretchr/testify/mock"
 
-	"github.com/supergiant/supergiant/pkg/model"
-	"github.com/supergiant/supergiant/pkg/clouds"
-	"github.com/supergiant/supergiant/pkg/clouds/digitaloceanSDK"
 	"context"
 	"github.com/pkg/errors"
+	"github.com/supergiant/supergiant/pkg/clouds"
+	"github.com/supergiant/supergiant/pkg/clouds/digitaloceanSDK"
+	"github.com/supergiant/supergiant/pkg/model"
+	"strconv"
 )
 
-type mockSizeService struct{
+type mockSizeService struct {
 	mock.Mock
 }
 
-
-type mockRegionService struct{
+type mockRegionService struct {
 	mock.Mock
 }
 
-func (m *mockSizeService) List(ctx context.Context,options *godo.ListOptions) ([]godo.Size,
+func (m *mockSizeService) List(ctx context.Context, options *godo.ListOptions) ([]godo.Size,
 	*godo.Response, error) {
 	args := m.Called(ctx, options)
 	val, ok := args.Get(0).([]godo.Size)
@@ -33,7 +33,7 @@ func (m *mockSizeService) List(ctx context.Context,options *godo.ListOptions) ([
 }
 
 func (m *mockRegionService) List(ctx context.Context, options *godo.ListOptions) ([]godo.Region,
-	*godo.Response,error) {
+	*godo.Response, error) {
 	args := m.Called(ctx, options)
 	val, ok := args.Get(0).([]godo.Region)
 	if !ok {
@@ -43,13 +43,13 @@ func (m *mockRegionService) List(ctx context.Context, options *godo.ListOptions)
 }
 
 func TestGetRegionFinder(t *testing.T) {
-	testCases := []struct{
+	testCases := []struct {
 		account *model.CloudAccount
-		err error
+		err     error
 	}{
 		{
 			account: nil,
-			err: ErrNilAccount,
+			err:     ErrNilAccount,
 		},
 		{
 			account: &model.CloudAccount{
@@ -93,35 +93,35 @@ func TestFind(t *testing.T) {
 	errRegion := errors.New("region")
 	errSize := errors.New("sizes")
 
-	testCases := []struct{
+	testCases := []struct {
 		regions []godo.Region
 		sizes   []godo.Size
 
-		sizeErr error
+		sizeErr   error
 		regionErr error
 
-		expectedErr error
+		expectedErr    error
 		expectedOutput *RegionSizes
 	}{
 		{
-			sizeErr: errSize,
+			sizeErr:     errSize,
 			expectedErr: errSize,
 		},
 		{
-			regionErr: errRegion,
+			regionErr:   errRegion,
 			expectedErr: errRegion,
 		},
 		{
-			sizes: []godo.Size{},
-			regions:[]godo.Region{},
+			sizes:   []godo.Size{},
+			regions: []godo.Region{},
 
 			regionErr: nil,
-			sizeErr: nil,
+			sizeErr:   nil,
 
 			expectedErr: nil,
 			expectedOutput: &RegionSizes{
 				Regions: []*Region{},
-				Sizes: map[string]interface{}{},
+				Sizes:   map[string]interface{}{},
 			},
 		},
 	}
@@ -167,5 +167,63 @@ func TestFind(t *testing.T) {
 					len(testCase.sizes), len(regionSizes.Sizes))
 			}
 		}
+	}
+}
+
+func TestConvertSize(t *testing.T) {
+	memory := 16
+	vcpus := 4
+
+	size := godo.Size{
+		Slug:   "test",
+		Memory: memory,
+		Vcpus:  vcpus,
+	}
+
+	nodeSizes := map[string]interface{}{}
+	convertSize(size, nodeSizes)
+
+	if _, ok := nodeSizes[size.Slug]; !ok {
+		t.Errorf("size with slug %s not found in %v",
+			size.Slug, nodeSizes)
+		return
+	}
+
+	s, ok := nodeSizes[size.Slug].(Size)
+
+	if !ok {
+		t.Errorf("Wrong type of value %v expected Size", nodeSizes[size.Slug])
+		return
+	}
+
+	if s.CPU != strconv.Itoa(size.Vcpus) {
+		t.Errorf("wrong vcpu count expected %d actual %s", size.Vcpus, s.CPU)
+	}
+
+	if s.RAM != strconv.Itoa(size.Memory) {
+		t.Errorf("wrong memory count expected %d actual %s", size.Memory, s.RAM)
+	}
+}
+
+func TestConvertRegions(t *testing.T) {
+	region := godo.Region{
+		Slug:  "fra1",
+		Name:  "Frankfurt1",
+		Sizes: []string{"size-1", "size-2"},
+	}
+
+	r := convertRegion(region)
+
+	if r.Name != region.Name {
+		t.Errorf("Wrong name of region expected %s actual %s", region.Name, r.Name)
+	}
+
+	if r.ID != region.Slug {
+		t.Errorf("Wrong ID of region expected %s actual %s", region.Slug, r.ID)
+	}
+
+	if len(r.AvailableSizes) != len(region.Sizes) {
+		t.Errorf("Wrong count of sizes expected %d actual %d",
+			len(region.Sizes), len(r.AvailableSizes))
 	}
 }

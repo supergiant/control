@@ -23,7 +23,7 @@ func getSshConfig(config Config) (*ssh.ClientConfig, error) {
 	}
 
 	if config.Host == "" {
-		return  nil, ErrHostNotSpecified
+		return nil, ErrHostNotSpecified
 	}
 
 	key, err := ssh.ParsePrivateKey(config.Key)

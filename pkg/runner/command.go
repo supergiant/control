@@ -2,13 +2,13 @@ package runner
 
 import (
 	"context"
-	"io"
 	"github.com/pkg/errors"
+	"io"
 )
 
 var (
-	ErrNilContext =  errors.New("nil context")
-	ErrNilWriter = errors.New("writer is nil")
+	ErrNilContext = errors.New("nil context")
+	ErrNilWriter  = errors.New("writer is nil")
 )
 
 // Command is an action that can be run and cancelled on different environments ssh, shell, docker etc.

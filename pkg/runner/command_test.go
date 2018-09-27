@@ -1,37 +1,37 @@
 package runner
 
 import (
-	"testing"
-	"context"
 	"bytes"
+	"context"
 	"io"
+	"testing"
 )
 
 func TestNewCommand(t *testing.T) {
-	testCases := []struct{
-		ctx context.Context
-		w1 io.Writer
-		w2 io.Writer
+	testCases := []struct {
+		ctx    context.Context
+		w1     io.Writer
+		w2     io.Writer
 		script string
-		err error
+		err    error
 	}{
 		{
-			ctx: context.Background(),
-			w1: &bytes.Buffer{},
-			w2: &bytes.Buffer{},
+			ctx:    context.Background(),
+			w1:     &bytes.Buffer{},
+			w2:     &bytes.Buffer{},
 			script: "echo 'hello, world'",
-			err: nil,
+			err:    nil,
 		},
 		{
-			ctx: context.Background(),
-			w1: &bytes.Buffer{},
-			w2: nil,
+			ctx:    context.Background(),
+			w1:     &bytes.Buffer{},
+			w2:     nil,
 			script: "echo 'hello, world'",
-			err: ErrNilWriter,
+			err:    ErrNilWriter,
 		},
 		{
 			ctx: nil,
-			err:ErrNilContext,
+			err: ErrNilContext,
 		},
 	}
 

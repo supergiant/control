@@ -1,18 +1,17 @@
 package util
 
 import (
+	"bytes"
 	"context"
-	"strings"
-	"testing"
+	"fmt"
 	"github.com/supergiant/supergiant/pkg/clouds"
 	"github.com/supergiant/supergiant/pkg/model"
-	"github.com/supergiant/supergiant/pkg/workflows/steps"
-	"bytes"
-	"fmt"
-	"github.com/supergiant/supergiant/pkg/sgerrors"
 	"github.com/supergiant/supergiant/pkg/node"
+	"github.com/supergiant/supergiant/pkg/sgerrors"
+	"github.com/supergiant/supergiant/pkg/workflows/steps"
+	"strings"
+	"testing"
 )
-
 
 func TestRandomStringLen(t *testing.T) {
 	testCases := []int{4, 8, 16}
@@ -84,7 +83,7 @@ func TestFillCloudAccountCredentials(t *testing.T) {
 				Provider: clouds.DigitalOcean,
 				Credentials: map[string]string{
 					"accessToken": "abcd",
-					"publicKey": "test-public-key",
+					"publicKey":   "test-public-key",
 				},
 			},
 			err: nil,
@@ -94,10 +93,10 @@ func TestFillCloudAccountCredentials(t *testing.T) {
 				Name:     "testName",
 				Provider: clouds.AWS,
 				Credentials: map[string]string{
-					"keyID": "1",
-					"secret": "secret-key",
+					"keyID":       "1",
+					"secret":      "secret-key",
 					"keyPairName": "my-key-pair",
-					"publicKey": "test-public-key",
+					"publicKey":   "test-public-key",
 				},
 			},
 			err: nil,
@@ -173,19 +172,19 @@ func TestMakeFileName(t *testing.T) {
 }
 
 func TestMakeKeyName(t *testing.T) {
-	testCases := []struct{
-		keyName string
-		isUser bool
+	testCases := []struct {
+		keyName        string
+		isUser         bool
 		expectedResult string
 	}{
 		{
-			keyName: "test",
-			isUser: true,
+			keyName:        "test",
+			isUser:         true,
 			expectedResult: fmt.Sprintf("%s-user", "test"),
 		},
 		{
-			keyName: "test",
-			isUser: false,
+			keyName:        "test",
+			isUser:         false,
 			expectedResult: fmt.Sprintf("%s-provision", "test"),
 		},
 	}
@@ -203,7 +202,7 @@ func TestMakeKeyName(t *testing.T) {
 func TestMakeRole(t *testing.T) {
 	testCases := []bool{true, false}
 
-	for _, testCase :=  range testCases {
+	for _, testCase := range testCases {
 		role := MakeRole(testCase)
 
 		if testCase && !strings.EqualFold(role, string(node.RoleMaster)) {
@@ -217,8 +216,8 @@ func TestMakeRole(t *testing.T) {
 }
 
 func TestBindParams(t *testing.T) {
-	testCases := []struct{
-		input map[string]string
+	testCases := []struct {
+		input  map[string]string
 		output interface{}
 		errMsg string
 	}{
@@ -236,8 +235,8 @@ func TestBindParams(t *testing.T) {
 		},
 		{
 			nil,
-			&struct{
-				Key string`json:"key"`
+			&struct {
+				Key string `json:"key"`
 			}{},
 			"",
 		},
@@ -245,8 +244,8 @@ func TestBindParams(t *testing.T) {
 			map[string]string{
 				"key": "value",
 			},
-			&struct{
-				Key string`json:"key"`
+			&struct {
+				Key string `json:"key"`
 			}{},
 			"",
 		},
@@ -268,8 +267,8 @@ func TestBindParams(t *testing.T) {
 func TestGetRandomNode(t *testing.T) {
 	n := &node.Node{}
 
-	testCases := []struct{
-		nodeMap map[string]*node.Node
+	testCases := []struct {
+		nodeMap      map[string]*node.Node
 		expectedNode *node.Node
 	}{
 		{
@@ -279,11 +278,11 @@ func TestGetRandomNode(t *testing.T) {
 			expectedNode: n,
 		},
 		{
-			nodeMap: map[string]*node.Node{},
+			nodeMap:      map[string]*node.Node{},
 			expectedNode: nil,
 		},
 	}
-	
+
 	for _, testCase := range testCases {
 		actual := GetRandomNode(testCase.nodeMap)
 

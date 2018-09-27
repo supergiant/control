@@ -6,9 +6,9 @@ import (
 	"fmt"
 	"io"
 	"math/rand"
-	"time"
 	"os"
 	"path"
+	"time"
 
 	"github.com/sirupsen/logrus"
 	"github.com/supergiant/supergiant/pkg/clouds"

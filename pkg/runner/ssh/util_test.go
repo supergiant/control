@@ -6,12 +6,12 @@ import (
 )
 
 func TestGetSshConfig(t *testing.T) {
-	testCases := []struct{
-		cfg Config
+	testCases := []struct {
+		cfg         Config
 		expectedErr error
 	}{
 		{
-			cfg: Config{},
+			cfg:         Config{},
 			expectedErr: ErrUserNotSpecified,
 		},
 		{
@@ -51,7 +51,7 @@ dVUN1U8CgYEAw5N6ScysYb9Jsaurcykij4mn1tvXzpDcap/Lqu/QXSUJZU1D7Cac
 OOJSve1MuYQbV1LEIc15yMPsWTTik2Z98r9IL+3xdofh9yFaG1nxzi9OkN6aVMAz
 dZM6MSCYh9kcT0pi2FPmY9iXba9kx4XAnf+0YB5xCz9QSMk4W5xSTBs=
 -----END RSA PRIVATE KEY-----`),
-				Host: "127.0.0.1",
+				Host:    "127.0.0.1",
 				Timeout: 10,
 			},
 			expectedErr: nil,
@@ -75,9 +75,9 @@ dZM6MSCYh9kcT0pi2FPmY9iXba9kx4XAnf+0YB5xCz9QSMk4W5xSTBs=
 			t.Errorf("wrong user expected %s actual %s", testCase.cfg.User, cfg.User)
 		}
 
-		if cfg.Timeout != time.Duration(testCase.cfg.Timeout) *time.Second {
+		if cfg.Timeout != time.Duration(testCase.cfg.Timeout)*time.Second {
 			t.Errorf("wrong timeout expected %v actual %v",
-				time.Duration(testCase.cfg.Timeout) *time.Second, cfg.User)
+				time.Duration(testCase.cfg.Timeout)*time.Second, cfg.User)
 		}
 
 		if cfg.User != testCase.cfg.User {

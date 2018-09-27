@@ -29,6 +29,11 @@ type Region struct {
 	AvailableSizes []string
 }
 
+type Size struct {
+	RAM string `json:"ram"`
+	CPU string `json:"cpu"`
+}
+
 //RegionSizes represents aggregated information about available regions/azs and node sizes/types
 type RegionSizes struct {
 	Provider clouds.Name            `json:"provider"`
@@ -73,7 +78,6 @@ type digitalOceanRegionFinder struct {
 
 func (rf *digitalOceanRegionFinder) Find(ctx context.Context) (*RegionSizes, error) {
 	sizeService, regionService := rf.getServices()
-	regions := make([]*Region, 0)
 
 	var wg sync.WaitGroup
 	var sizes []godo.Size
@@ -102,24 +106,14 @@ func (rf *digitalOceanRegionFinder) Find(ctx context.Context) (*RegionSizes, err
 	}
 
 	nodeSizes := make(map[string]interface{})
+	regions := make([]*Region, 0, len(doRegions))
+
 	for _, s := range sizes {
-		ns := struct {
-			RAM string `json:"ram"`
-			CPU string `json:"cpu"`
-		}{
-			RAM: strconv.Itoa(s.Memory),
-			CPU: strconv.Itoa(s.Vcpus),
-		}
-		nodeSizes[s.Slug] = ns
+		convertSize(s, nodeSizes)
 	}
 
 	for _, r := range doRegions {
-		region := &Region{
-			ID:             r.Slug,
-			Name:           r.Name,
-			AvailableSizes: r.Sizes,
-		}
-		regions = append(regions, region)
+		regions = append(regions, convertRegion(r))
 	}
 
 	rs := &RegionSizes{
@@ -129,4 +123,22 @@ func (rf *digitalOceanRegionFinder) Find(ctx context.Context) (*RegionSizes, err
 	}
 
 	return rs, nil
+}
+
+func convertSize(s godo.Size, nodeSizes map[string]interface{}) {
+	ns := Size{
+		RAM: strconv.Itoa(s.Memory),
+		CPU: strconv.Itoa(s.Vcpus),
+	}
+	nodeSizes[s.Slug] = ns
+}
+
+func convertRegion(r godo.Region) *Region {
+	region := &Region{
+		ID:             r.Slug,
+		Name:           r.Name,
+		AvailableSizes: r.Sizes,
+	}
+
+	return region
 }
