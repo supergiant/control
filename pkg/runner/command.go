@@ -3,6 +3,12 @@ package runner
 import (
 	"context"
 	"io"
+	"github.com/pkg/errors"
+)
+
+var (
+	ErrNilContext =  errors.New("nil context")
+	ErrNilWriter = errors.New("writer is nil")
 )
 
 // Command is an action that can be run and cancelled on different environments ssh, shell, docker etc.
@@ -16,11 +22,19 @@ type Command struct {
 }
 
 //  TODO(stgleb): Use single io.Writer for gathering command output
-func NewCommand(ctx context.Context, script string, out, err io.Writer) *Command {
+func NewCommand(ctx context.Context, script string, out, err io.Writer) (*Command, error) {
+	if ctx == nil {
+		return nil, ErrNilContext
+	}
+
+	if out == nil || err == nil {
+		return nil, ErrNilWriter
+	}
+
 	return &Command{
 		ctx,
 		script,
 		out,
 		err,
-	}
+	}, nil
 }
