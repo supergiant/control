@@ -21,6 +21,11 @@ func getSshConfig(config Config) (*ssh.ClientConfig, error) {
 	if config.User == "" {
 		return nil, ErrUserNotSpecified
 	}
+
+	if config.Host == "" {
+		return  nil, ErrHostNotSpecified
+	}
+
 	key, err := ssh.ParsePrivateKey(config.Key)
 	if err != nil {
 		return nil, err
