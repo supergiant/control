@@ -34,7 +34,7 @@ func TestNewCommand(t *testing.T) {
 			err:ErrNilContext,
 		},
 	}
-	
+
 	for _, testCase := range testCases {
 		cmd, err := NewCommand(testCase.ctx, testCase.script, testCase.w1, testCase.w2)
 

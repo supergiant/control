@@ -19,7 +19,12 @@ func RunTemplate(ctx context.Context, tpl *template.Template, r runner.Runner, o
 		if err != nil {
 			resultChan <- err
 		}
-		cmd := runner.NewCommand(ctx, buffer.String(), output, output)
+		cmd, err := runner.NewCommand(ctx, buffer.String(), output, output)
+
+		if err != nil {
+			resultChan <- err
+		}
+
 		err = r.Run(cmd)
 
 		if err != nil {
