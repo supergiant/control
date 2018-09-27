@@ -14,6 +14,7 @@ import (
 )
 
 var (
+	ErrNilAccount          = errors.New("nil account")
 	ErrUnsupportedProvider = errors.New("unsupported provider")
 )
 
@@ -24,7 +25,7 @@ type Region struct {
 	//API specific ID, e.g. t2.micro
 	ID string `json:"id"`
 
-	//API specific IDs for a node size/type
+	//API specific IDs for a node sizes/type
 	AvailableSizes []string
 }
 
@@ -45,6 +46,10 @@ type RegionFinder interface {
 
 //GetRegionFinder returns finder attached to corresponding account as it has all credentials for a cloud provider
 func GetRegionFinder(account *model.CloudAccount) (RegionFinder, error) {
+	if account == nil {
+		return nil, ErrNilAccount
+	}
+
 	switch account.Provider {
 	case clouds.DigitalOcean:
 		sdk, err := digitaloceanSDK.NewFromAccount(account)
@@ -52,18 +57,22 @@ func GetRegionFinder(account *model.CloudAccount) (RegionFinder, error) {
 			return nil, err
 		}
 		return &digitalOceanRegionFinder{
-			sdk: sdk,
+			getServices: func() (godo.SizesService, godo.RegionsService) {
+				client := sdk.GetClient()
+				return client.Sizes, client.Regions
+			},
 		}, nil
 	}
 	return nil, ErrUnsupportedProvider
 }
 
 type digitalOceanRegionFinder struct {
-	sdk *digitaloceanSDK.SDK
+	sdk         *digitaloceanSDK.SDK
+	getServices func() (godo.SizesService, godo.RegionsService)
 }
 
 func (rf *digitalOceanRegionFinder) Find(ctx context.Context) (*RegionSizes, error) {
-	cl := rf.sdk.GetClient()
+	sizeService, regionService := rf.getServices()
 	regions := make([]*Region, 0)
 
 	var wg sync.WaitGroup
@@ -71,16 +80,16 @@ func (rf *digitalOceanRegionFinder) Find(ctx context.Context) (*RegionSizes, err
 	var sizeErr error
 
 	var doRegions []godo.Region
-	var doErr error
+	var regionErr error
 
 	wg.Add(2)
 	go func() {
 		defer wg.Done()
-		sizes, _, sizeErr = cl.Sizes.List(ctx, nil)
+		sizes, _, sizeErr = sizeService.List(ctx, nil)
 	}()
 	go func() {
 		defer wg.Done()
-		doRegions, _, doErr = cl.Regions.List(ctx, nil)
+		doRegions, _, regionErr = regionService.List(ctx, nil)
 	}()
 	//assignment will work fine because of the memory barrier
 	wg.Wait()
@@ -88,8 +97,8 @@ func (rf *digitalOceanRegionFinder) Find(ctx context.Context) (*RegionSizes, err
 	if sizeErr != nil {
 		return nil, sizeErr
 	}
-	if doErr != nil {
-		return nil, doErr
+	if regionErr != nil {
+		return nil, regionErr
 	}
 
 	nodeSizes := make(map[string]interface{})
