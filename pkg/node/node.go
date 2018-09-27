@@ -36,6 +36,6 @@ type Node struct {
 }
 
 func (n Node) String() string {
-	return fmt.Sprintf("<ID: %s, Active: %v, Size: %s, CreatedAt: %d, Provider: %s, Region; %s, PublicIp: %s, PrivateIp: %s>",
-		n.Id, n.State, n.Size, n.CreatedAt, n.Provider, n.Region, n.PublicIp, n.PrivateIp)
+	return fmt.Sprintf("<ID: %s, Name: %s, Active: %v, Size: %s, CreatedAt: %d, Provider: %s, Region; %s, PublicIp: %s, PrivateIp: %s>",
+		n.Id, n.Name, n.State, n.Size, n.CreatedAt, n.Provider, n.Region, n.PublicIp, n.PrivateIp)
 }
