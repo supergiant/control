@@ -53,7 +53,6 @@ func (s *Service) GetAll(ctx context.Context) ([]model.CloudAccount, error) {
 
 // Get retrieves a user by it's accountName, returns nil if not found
 func (s *Service) Get(ctx context.Context, accountName string) (*model.CloudAccount, error) {
-
 	res, err := s.repository.Get(ctx, s.storagePrefix, accountName)
 	if err != nil {
 		return nil, err

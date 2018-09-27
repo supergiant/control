@@ -89,10 +89,12 @@ func (m *kubeServiceMock) ListAll(ctx context.Context) ([]model.Kube, error) {
 	}
 	return val, args.Error(1)
 }
+
 func (m *kubeServiceMock) Delete(ctx context.Context, name string) error {
 	args := m.Called(ctx, name)
 	return args.Error(0)
 }
+
 func (m *kubeServiceMock) ListKubeResources(ctx context.Context, kname string) ([]byte, error) {
 	args := m.Called(ctx, kname)
 	val, ok := args.Get(0).([]byte)
@@ -101,6 +103,7 @@ func (m *kubeServiceMock) ListKubeResources(ctx context.Context, kname string) (
 	}
 	return val, args.Error(1)
 }
+
 func (m *kubeServiceMock) GetKubeResources(ctx context.Context, kname, resource, ns, name string) ([]byte, error) {
 	args := m.Called(ctx, kname, resource, ns, name)
 	val, ok := args.Get(0).([]byte)

@@ -15,6 +15,8 @@ import (
 	"github.com/supergiant/supergiant/pkg/sgerrors"
 )
 
+var SupportedMethods = [3]string{http.MethodGet, http.MethodPost, http.MethodDelete}
+
 // Handler is a http controller for account entity
 type Handler struct {
 	service *Service
@@ -66,6 +68,11 @@ func (h *Handler) Create(rw http.ResponseWriter, r *http.Request) {
 func (h *Handler) ListAll(rw http.ResponseWriter, r *http.Request) {
 	accounts, err := h.service.GetAll(r.Context())
 	if err != nil {
+		if sgerrors.IsNotFound(err) {
+			message.SendNotFound(rw, "accounts", err)
+			return
+		}
+
 		logrus.Errorf("account handler: list all %v", err)
 		message.SendUnknownError(rw, err)
 		return
@@ -80,11 +87,6 @@ func (h *Handler) ListAll(rw http.ResponseWriter, r *http.Request) {
 // Get retrieves individual account by name
 func (h *Handler) Get(rw http.ResponseWriter, r *http.Request) {
 	accountName := mux.Vars(r)["accountName"]
-	if accountName == "" {
-		msg := message.New("account name can't be blank", "", sgerrors.InvalidJSON, "")
-		message.SendMessage(rw, msg, http.StatusBadRequest)
-		return
-	}
 	account, err := h.service.Get(r.Context(), accountName)
 	if err != nil {
 		if sgerrors.IsNotFound(err) {
