@@ -1,8 +1,8 @@
 package node
 
 import (
-	"testing"
 	"strings"
+	"testing"
 )
 
 func TestNode_String(t *testing.T) {
@@ -11,10 +11,9 @@ func TestNode_String(t *testing.T) {
 	size := "node-size"
 
 	n := &Node{
-		Id:id,
+		Id:   id,
 		Name: name,
 		Size: size,
-
 	}
 
 	s := n.String()
@@ -26,7 +25,7 @@ func TestNode_String(t *testing.T) {
 	if !strings.Contains(s, size) {
 		t.Errorf("size %s not found in %s", size, n.String())
 	}
-	
+
 	if !strings.Contains(s, id) {
 		t.Errorf("id %s not found in %s", id, n.String())
 	}

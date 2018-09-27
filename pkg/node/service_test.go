@@ -6,8 +6,8 @@ import (
 	"errors"
 	"testing"
 
-	"github.com/supergiant/supergiant/pkg/testutils"
 	"github.com/stretchr/testify/mock"
+	"github.com/supergiant/supergiant/pkg/testutils"
 )
 
 func TestNewService(t *testing.T) {
@@ -147,16 +147,16 @@ func TestNodeListAll(t *testing.T) {
 }
 
 func TestService_Delete(t *testing.T) {
-	testCases := []struct{
-		nodeId string
+	testCases := []struct {
+		nodeId      string
 		expectedErr error
 	}{
 		{
-			nodeId: "node-id",
+			nodeId:      "node-id",
 			expectedErr: errors.New("test"),
 		},
 		{
-			nodeId: "node-id",
+			nodeId:      "node-id",
 			expectedErr: nil,
 		},
 	}
@@ -171,9 +171,9 @@ func TestService_Delete(t *testing.T) {
 
 		svc := Service{
 			repository: mockRepo,
-			prefix: prefix,
+			prefix:     prefix,
 		}
-		
+
 		svc.Delete(context.Background(),
 			testCase.nodeId)
 	}

@@ -3,31 +3,31 @@ package awssdk
 import "testing"
 
 func TestNew(t *testing.T) {
-	testCases := []struct{
-		region string
-		key string
-		token string
-		secret string
+	testCases := []struct {
+		region        string
+		key           string
+		token         string
+		secret        string
 		expectedError error
 	}{
 		{
-			region: "",
-			expectedError:ErrEmptyRegion,
+			region:        "",
+			expectedError: ErrEmptyRegion,
 		},
 		{
-			region: "us-west-1",
-			key: "key",
+			region:        "us-west-1",
+			key:           "key",
 			expectedError: ErrInvalidCreds,
 		},
 		{
-			region: "us-west-1",
-			secret: "key",
+			region:        "us-west-1",
+			secret:        "key",
 			expectedError: ErrInvalidCreds,
 		},
 		{
-			region: "us-west-1",
-			key: "key",
-			secret: "key",
+			region:        "us-west-1",
+			key:           "key",
+			secret:        "key",
 			expectedError: nil,
 		},
 	}

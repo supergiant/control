@@ -1,17 +1,17 @@
 package account
 
 import (
+	"context"
+	"strconv"
 	"testing"
 
 	"github.com/digitalocean/godo"
 	"github.com/stretchr/testify/mock"
 
-	"context"
 	"github.com/pkg/errors"
 	"github.com/supergiant/supergiant/pkg/clouds"
-	"github.com/supergiant/supergiant/pkg/clouds/digitaloceanSDK"
 	"github.com/supergiant/supergiant/pkg/model"
-	"strconv"
+	"github.com/supergiant/supergiant/pkg/sgerrors"
 )
 
 type mockSizeService struct {
@@ -64,7 +64,7 @@ func TestGetRegionFinder(t *testing.T) {
 					"dumb": "1234",
 				},
 			},
-			err: digitaloceanSDK.ErrNoCredentials,
+			err: sgerrors.ErrInvalidCredentials,
 		},
 		{
 			account: &model.CloudAccount{
