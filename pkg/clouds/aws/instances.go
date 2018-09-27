@@ -145,6 +145,14 @@ func (c *Client) CreateInstance(ctx context.Context, cfg InstanceConfig) (*ec2.I
 
 // GetInstance retrieves an instance by instanceID.
 func (c *Client) GetInstance(ctx context.Context, region, id string) (*ec2.Instance, error) {
+	region, id = strings.TrimSpace(region), strings.TrimSpace(id)
+	if region == "" {
+		return nil, ErrNoRegionProvided
+	}
+	if id == "" {
+		return nil, ErrInstanceIDEmpty
+	}
+
 	out, err := c.ec2SvcFn(c.session, region).DescribeInstancesWithContext(ctx,
 		&ec2.DescribeInstancesInput{InstanceIds: []*string{aws.String(id)}})
 	if err != nil {
@@ -177,8 +185,10 @@ func (c *Client) ListRegionInstances(ctx context.Context, region string, tags ma
 		if err != nil {
 			return nil, err
 		}
-		for _, reservation := range out.Reservations {
-			instList = append(instList, reservation.Instances...)
+		if out.Reservations != nil {
+			for _, reservation := range out.Reservations {
+				instList = append(instList, reservation.Instances...)
+			}
 		}
 		if out.NextToken == nil {
 			break
