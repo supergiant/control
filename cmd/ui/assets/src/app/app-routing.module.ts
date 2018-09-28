@@ -1,10 +1,7 @@
-import { NgModule, Injectable } from '@angular/core';
-import { Routes, Router, RouterModule, CanActivate } from '@angular/router';
-import { UsersComponent } from './users/users.component';
-import { CloudAccountsComponent } from './cloud-accounts/cloud-accounts.component';
+import { NgModule } from '@angular/core';
+import { Routes, RouterModule } from '@angular/router';
 import { NodesComponent } from './nodes/nodes.component';
 import { ServicesComponent } from './services/services.component';
-import { SessionsComponent } from './sessions/sessions.component';
 import { AppsComponent } from './apps/apps.component';
 import { LoginComponent } from './login/login.component';
 import { LoadBalancersComponent } from './load-balancers/load-balancers.component';
