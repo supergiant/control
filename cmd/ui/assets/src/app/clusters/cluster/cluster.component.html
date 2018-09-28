@@ -1,7 +1,9 @@
 <div class="usage-chart">
   <div class="cpu">
     <!-- TODO: move this to background -->
-    <svg class="cpu-label" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 239.777 109.285">
+    <svg class="cpu-label"
+         xmlns="http://www.w3.org/2000/svg"
+         viewBox="0 0 239.777 109.285">
       <defs>
         <style>.a {
           fill: #ff00a6;
@@ -18,10 +20,15 @@
         }</style>
       </defs>
       <g transform="translate(-108.436 -80.719)">
-        <text class="a" transform="translate(210.413 140.72)">
-          <tspan x="-65.751" y="0">CPU</tspan>
+        <text class="a"
+              transform="translate(210.413 140.72)">
+          <tspan x="-65.751"
+                 y="0">CPU
+          </tspan>
         </text>
-        <path class="b" d="M262.276,228.627H467.26l34.615,34.61" transform="translate(-153.841 -73.409)"/>
+        <path class="b"
+              d="M262.276,228.627H467.26l34.615,34.61"
+              transform="translate(-153.841 -73.409)"/>
       </g>
     </svg>
     <span class="cpu-metric metric">0% usage</span>
@@ -57,7 +64,9 @@
 
   <div class="ram">
     <!-- TODO: move this to background -->
-    <svg class="ram-label" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 239.771 76">
+    <svg class="ram-label"
+         xmlns="http://www.w3.org/2000/svg"
+         viewBox="0 0 239.771 76">
       <defs>
         <style>
           .c {
@@ -75,10 +84,15 @@
         </style>
       </defs>
       <g transform="translate(-817.346 -244.719)">
-        <text class="c" transform="translate(957.413 304.72)">
-          <tspan x="-73.811" y="0">RAM</tspan>
+        <text class="c"
+              transform="translate(957.413 304.72)">
+          <tspan x="-73.811"
+                 y="0">RAM
+          </tspan>
         </text>
-        <path class="d" d="M501.872,263.242H296.89l-34.615-34.615" transform="translate(555.247 55.722)"/>
+        <path class="d"
+              d="M501.872,263.242H296.89l-34.615-34.615"
+              transform="translate(555.247 55.722)"/>
       </g>
     </svg>
     <span class="ram-metric metric">0% usage</span>
@@ -88,34 +102,49 @@
 <div class="machines-list">
   <h3>MACHINES</h3>
 
-  <mat-table [dataSource]="machines" matSort matSortActive="role" matSortDirection="asc">
+  <mat-table [dataSource]="machines"
+             matSort
+             matSortActive="role"
+             matSortDirection="asc">
 
     <ng-container matColumnDef="name">
-      <mat-header-cell mat-sort-header *matHeaderCellDef>Name</mat-header-cell>
+      <mat-header-cell mat-sort-header
+                       *matHeaderCellDef>Name
+      </mat-header-cell>
       <mat-cell *matCellDef="let machine">{{ machine.name }}</mat-cell>
     </ng-container>
 
     <ng-container matColumnDef="role">
-      <mat-header-cell mat-sort-header *matHeaderCellDef>Role</mat-header-cell>
+      <mat-header-cell mat-sort-header
+                       *matHeaderCellDef>Role
+      </mat-header-cell>
       <mat-cell *matCellDef="let machine">{{ machine.role | titlecase }}</mat-cell>
     </ng-container>
 
     <ng-container matColumnDef="id">
-      <mat-header-cell mat-sort-header *matHeaderCellDef>ID</mat-header-cell>
+      <mat-header-cell mat-sort-header
+                       *matHeaderCellDef>ID
+      </mat-header-cell>
       <mat-cell *matCellDef="let machine">{{ machine.id }}</mat-cell>
     </ng-container>
     <ng-container matColumnDef="region">
-      <mat-header-cell mat-sort-header *matHeaderCellDef>Region</mat-header-cell>
+      <mat-header-cell mat-sort-header
+                       *matHeaderCellDef>Region
+      </mat-header-cell>
       <mat-cell *matCellDef="let machine">{{ machine.region }}</mat-cell>
     </ng-container>
 
     <ng-container matColumnDef="public_ip">
-      <mat-header-cell mat-sort-header *matHeaderCellDef>Public IP</mat-header-cell>
+      <mat-header-cell mat-sort-header
+                       *matHeaderCellDef>Public IP
+      </mat-header-cell>
       <mat-cell *matCellDef="let machine">
         {{ machine.public_ip }}
         <div></div>
-        <button (click)="removeNode(machine.name, $event)" mat-button>
-          <i class="fa fa-trash" aria-hidden="true"></i>
+        <button (click)="removeNode(machine.name, $event)"
+                mat-button>
+          <i class="fa fa-trash"
+             aria-hidden="true"></i>
         </button>
 
       </mat-cell>
@@ -126,5 +155,6 @@
     <mat-row *matRowDef="let row; columns: machineListColumns"></mat-row>
 
   </mat-table>
-  <mat-paginator [pageSizeOptions]="[5, 10, 25, 100]" color="primary"></mat-paginator>
+  <mat-paginator [pageSizeOptions]="[5, 10, 25, 100]"
+                 color="primary"></mat-paginator>
 </div>
