@@ -5,15 +5,12 @@ import { CloudAccountsComponent } from './cloud-accounts/cloud-accounts.componen
 import { NodesComponent } from './nodes/nodes.component';
 import { ServicesComponent } from './services/services.component';
 import { SessionsComponent } from './sessions/sessions.component';
-import { PodsComponent } from './pods/pods.component';
 import { AppsComponent } from './apps/apps.component';
 import { LoginComponent } from './login/login.component';
 import { LoadBalancersComponent } from './load-balancers/load-balancers.component';
 import { Supergiant } from './shared/supergiant/supergiant.service';
 import { Observable } from 'rxjs';
 import { NodeDetailsComponent } from './nodes/node-details/node-details.component';
-import { PodDetailsComponent } from './pods/pod-details/pod-details.component';
-import { PodsListComponent } from './pods/pods-list/pods-list.component';
 import { SessionDetailsComponent } from './sessions/session-details/session-details.component';
 import { SessionsListComponent } from './sessions/sessions-list/sessions-list.component';
 import { UserDetailsComponent } from './users/user-details/user-details.component';
@@ -127,12 +124,6 @@ const appRoutes: Routes = [
   {
     path: 'nodes', component: NodesComponent, canActivate: [AuthGuard], children: [
       { path: ':id', component: NodeDetailsComponent }
-    ]
-  },
-  {
-    path: 'pods', component: PodsComponent, canActivate: [AuthGuard], children: [
-      { path: '', component: PodsListComponent },
-      { path: ':id', component: PodDetailsComponent }
     ]
   },
   {
