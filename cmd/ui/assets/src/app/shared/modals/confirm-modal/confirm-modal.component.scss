@@ -1,0 +1,13 @@
+@mixin font-weignt {
+  font-weight: 300;
+}
+
+:host {
+  @include font-weignt;
+
+  button {
+    @include font-weignt;
+    outline: none;
+  }
+
+}

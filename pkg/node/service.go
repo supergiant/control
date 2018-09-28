@@ -28,7 +28,7 @@ func (s *Service) Create(ctx context.Context, node *Node) error {
 		return err
 	}
 
-	return s.repository.Put(ctx, s.prefix, node.Id, profileData)
+	return s.repository.Put(ctx, s.prefix, node.ID, profileData)
 }
 
 func (s *Service) Get(ctx context.Context, nodeId string) (*Node, error) {

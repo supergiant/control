@@ -1,7 +1,9 @@
+
+import {timer as observableTimer,  Subscription ,  Observable } from 'rxjs';
+
+import {switchMap} from 'rxjs/operators';
 import { Component, OnInit, OnDestroy, ViewChild, ViewEncapsulation } from '@angular/core';
-import { Subscription } from 'rxjs/Subscription';
 import { ActivatedRoute, Router } from '@angular/router';
-import { Observable } from 'rxjs/Observable';
 import { Supergiant } from '../../shared/supergiant/supergiant.service';
 import { Notifications } from '../../shared/notifications/notifications.service';
 import { ChartsModule, BaseChartDirective } from 'ng2-charts';
@@ -60,8 +62,8 @@ export class PodDetailsComponent implements OnInit, OnDestroy {
   }
 
   getPod() {
-    this.subscriptions.add(Observable.timer(0, 5000)
-      .switchMap(() => this.supergiant.KubeResources.get(this.id)).subscribe(
+    this.subscriptions.add(observableTimer(0, 5000).pipe(
+      switchMap(() => this.supergiant.KubeResources.get(this.id))).subscribe(
         (pod) => {
           this.pod = pod;
           if (this.pod.extra_data && this.pod.extra_data.metrics.cpu_usage) {

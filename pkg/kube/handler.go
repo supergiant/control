@@ -11,6 +11,7 @@ import (
 	"github.com/gorilla/mux"
 	"github.com/pkg/errors"
 
+	"fmt"
 	"github.com/sirupsen/logrus"
 	"github.com/supergiant/supergiant/pkg/clouds"
 	"github.com/supergiant/supergiant/pkg/message"
@@ -38,7 +39,7 @@ type Handler struct {
 	svc             Interface
 	accountService  accountGetter
 	nodeProvisioner nodeProvisioner
-	workflowMap     map[clouds.Name]string
+	workflowMap     map[clouds.Name]workflows.WorkflowSet
 	repo            storage.Interface
 	getWriter       func(string) (io.WriteCloser, error)
 }
@@ -49,8 +50,11 @@ func NewHandler(svc Interface, accountService accountGetter, provisioner nodePro
 		svc:             svc,
 		accountService:  accountService,
 		nodeProvisioner: provisioner,
-		workflowMap: map[clouds.Name]string{
-			clouds.DigitalOcean: workflows.DigitalOceanDeleteNode,
+		workflowMap: map[clouds.Name]workflows.WorkflowSet{
+			clouds.DigitalOcean: {
+				DeleteCluster: workflows.DigitalOceanDeleteCluster,
+				DeleteNode:    workflows.DigitalOceanDeleteNode,
+			},
 		},
 		repo:      repo,
 		getWriter: util.GetWriter,
@@ -69,9 +73,8 @@ func (h *Handler) Register(r *mux.Router) {
 
 	r.HandleFunc("/kubes/{kname}/certs/{cname}", h.getCerts).Methods(http.MethodGet)
 	r.HandleFunc("/kubes/{kname}/tasks", h.getTasks).Methods(http.MethodGet)
-	// TODO(stgleb): Add get method for getting kube nodes
+
 	r.HandleFunc("/kubes/{kname}/nodes", h.addNode).Methods(http.MethodPost)
-	r.HandleFunc("/kubes/{kname}/nodes/{nodename}", h.deleteNode).Methods(http.MethodDelete)
 	r.HandleFunc("/kubes/{kname}/nodes/{nodename}", h.deleteNode).Methods(http.MethodDelete)
 }
 
@@ -84,24 +87,15 @@ func (h *Handler) getTasks(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	data, err := h.repo.GetAll(r.Context(), workflows.Prefix)
-	if err != nil {
-		http.Error(w, errors.Wrap(err, "failed to read tasks").Error(), http.StatusBadRequest)
-		return
-	}
+	tasks, err := h.getKubeTasks(r.Context(), id)
 
-	tasks := make([]*workflows.Task, 0)
-	for _, v := range data {
-		task := &workflows.Task{}
-		err := json.Unmarshal(v, task)
-		if err != nil {
-			//TODO make whole handler send messages
-			http.Error(w, err.Error(), http.StatusInternalServerError)
+	if err != nil {
+		if sgerrors.IsNotFound(err) {
+			message.SendNotFound(w, id, err)
 			return
 		}
-		if task.Config.ClusterName == id {
-			tasks = append(tasks, task)
-		}
+
+		message.SendUnknownError(w, err)
 	}
 
 	if len(tasks) == 0 {
@@ -109,21 +103,24 @@ func (h *Handler) getTasks(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	cfg := tasks[0].Config
-
-	for _, t := range tasks {
-		t.Config = nil
+	type taskDTO struct {
+		ID           string                 `json:"id"`
+		Type         string                 `json:"type"`
+		Status       steps.Status           `json:"status"`
+		StepStatuses []workflows.StepStatus `json:"stepsStatuses"`
 	}
 
-	res := &struct {
-		Config *steps.Config     `json:"config"`
-		Tasks  []*workflows.Task `json:"tasks"`
-	}{
-		Config: cfg,
-		Tasks:  tasks,
-	}
+	resp := make([]taskDTO, 0, len(tasks))
 
-	if err := json.NewEncoder(w).Encode(res); err != nil {
+	for _, task := range tasks {
+		resp = append(resp, taskDTO{
+			ID:           task.ID,
+			Type:         task.Type,
+			Status:       task.Status,
+			StepStatuses: task.StepStatuses,
+		})
+	}
+	if err := json.NewEncoder(w).Encode(resp); err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 	}
 }
@@ -186,7 +183,8 @@ func (h *Handler) deleteKube(w http.ResponseWriter, r *http.Request) {
 	vars := mux.Vars(r)
 
 	kname := vars["kname"]
-	if err := h.svc.Delete(r.Context(), kname); err != nil {
+	k, err := h.svc.Get(r.Context(), kname)
+	if err != nil {
 		if sgerrors.IsNotFound(err) {
 			message.SendNotFound(w, kname, err)
 			return
@@ -194,6 +192,70 @@ func (h *Handler) deleteKube(w http.ResponseWriter, r *http.Request) {
 		message.SendUnknownError(w, err)
 		return
 	}
+
+	acc, err := h.accountService.Get(r.Context(), k.AccountName)
+
+	if err != nil {
+		if sgerrors.IsNotFound(err) {
+			http.NotFound(w, r)
+			return
+		}
+
+		message.SendUnknownError(w, err)
+		return
+	}
+
+	t, err := workflows.NewTask(h.workflowMap[acc.Provider].DeleteCluster, h.repo)
+
+	if err != nil {
+		if sgerrors.IsNotFound(err) {
+			http.NotFound(w, r)
+			return
+		}
+
+		message.SendUnknownError(w, err)
+		return
+	}
+
+	config := &steps.Config{
+		ClusterName:      k.Name,
+		CloudAccountName: k.AccountName,
+	}
+
+	err = util.FillCloudAccountCredentials(r.Context(), acc, config)
+
+	if err != nil {
+		if sgerrors.IsNotFound(err) {
+			http.NotFound(w, r)
+			return
+		}
+		message.SendUnknownError(w, err)
+		return
+	}
+
+	writer, err := h.getWriter(t.ID)
+
+	if err != nil {
+		message.SendUnknownError(w, err)
+		return
+	}
+
+	errChan := t.Run(context.Background(), *config, writer)
+
+	go func(t *workflows.Task) {
+		err := <-errChan
+		if err != nil {
+			return
+		}
+
+		// Finally delete cluster record from etcd
+		if err := h.svc.Delete(context.Background(), kname); err != nil {
+			logrus.Errorf("delete kube %s caused %v", kname, err)
+			return
+		}
+
+		h.deleteClusterTasks(context.Background(), kname)
+	}(t)
 
 	w.WriteHeader(http.StatusAccepted)
 }
@@ -402,8 +464,7 @@ func (h *Handler) deleteNode(w http.ResponseWriter, r *http.Request) {
 
 	}
 
-	// TODO(stgleb): figure out from cloud account which workflow to use
-	t, err := workflows.NewTask(h.workflowMap[acc.Provider], h.repo)
+	t, err := workflows.NewTask(h.workflowMap[acc.Provider].DeleteNode, h.repo)
 
 	if err != nil {
 		if sgerrors.IsNotFound(err) {
@@ -462,4 +523,44 @@ func (h *Handler) deleteNode(w http.ResponseWriter, r *http.Request) {
 		}
 	}()
 	w.WriteHeader(http.StatusAccepted)
+}
+
+// TODO(stgleb): Create separte task service to manage task object lifecycle
+func (h *Handler) getKubeTasks(ctx context.Context, kubeName string) ([]*workflows.Task, error) {
+	data, err := h.repo.GetAll(ctx, workflows.Prefix)
+
+	if err != nil {
+		return nil, errors.Wrap(err, "get cluster tasks")
+	}
+
+	tasks := make([]*workflows.Task, 0)
+	for _, v := range data {
+		task := &workflows.Task{}
+		err := json.Unmarshal(v, task)
+		if err != nil {
+			return nil, errors.Wrap(err, "unmarshal task data")
+		}
+
+		if task != nil && task.Config != nil && task.Config.ClusterName == kubeName {
+			tasks = append(tasks, task)
+		}
+	}
+
+	return tasks, nil
+}
+
+func (h *Handler) deleteClusterTasks(ctx context.Context, clusterName string) error {
+	tasks, err := h.getKubeTasks(ctx, clusterName)
+
+	if err != nil {
+		return errors.Wrap(err, fmt.Sprintf("delete cluster %s tasks", clusterName))
+	}
+
+	for _, task := range tasks {
+		if err := h.repo.Delete(ctx, workflows.Prefix, task.ID); err != nil {
+			logrus.Warnf("delete task %s: %v", task.ID, err)
+		}
+	}
+
+	return nil
 }

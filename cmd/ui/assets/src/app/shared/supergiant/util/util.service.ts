@@ -1,7 +1,7 @@
 import { Injectable } from '@angular/core';
 import { Http, Response, Headers } from '@angular/http';
 import { HttpClient } from '@angular/common/http';
-import { Observable } from 'rxjs/Observable';
+import { Observable } from 'rxjs';
 import { Location } from '@angular/common';
 
 @Injectable()
@@ -49,6 +49,6 @@ export class UtilService {
   }
 
   destroy(path) {
-    return this.http.delete(this.serverEndpoint + path);
+    return this.http.delete(this.serverEndpoint + path, {headers: {}});
   }
 }
