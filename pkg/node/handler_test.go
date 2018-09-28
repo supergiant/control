@@ -12,7 +12,7 @@ import (
 func TestNodeCreateError(t *testing.T) {
 	endpoint := &Handler{}
 	nodeProfile := &Node{
-		Id:        "",
+		ID:        "",
 		CreatedAt: time.Now().Unix(),
 		Provider:  "aws",
 		Region:    "us-west1",

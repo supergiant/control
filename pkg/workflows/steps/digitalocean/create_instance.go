@@ -33,7 +33,7 @@ func NewCreateInstanceStep(dropletTimeout, checkPeriod time.Duration) *CreateIns
 func (s *CreateInstanceStep) Run(ctx context.Context, output io.Writer, config *steps.Config) error {
 	// TODO(stgleb): Extract getting digital ocean sdk to function that will allow it to be mocked.
 	c := digitaloceanSDK.New(config.DigitalOceanConfig.AccessToken).GetClient()
-	config.DigitalOceanConfig.Name = util.MakeNodeName(config.ClusterName, config.TaskId, config.IsMaster)
+	config.DigitalOceanConfig.Name = util.MakeNodeName(config.ClusterName, config.TaskID, config.IsMaster)
 
 	// TODO(stgleb): Move keys creation for provisioning to provisioner to be able to get
 	// this key on cluster check phase.
@@ -69,8 +69,8 @@ func (s *CreateInstanceStep) Run(ctx context.Context, output io.Writer, config *
 	}
 
 	config.Node = node.Node{
+		TaskID: config.TaskID,
 		Role:     role,
-		TaskId:   config.TaskId,
 		Provider: clouds.DigitalOcean,
 		Size:     config.DigitalOceanConfig.Size,
 		Region:   config.DigitalOceanConfig.Region,
@@ -105,7 +105,7 @@ func (s *CreateInstanceStep) Run(ctx context.Context, output io.Writer, config *
 
 				createdAt, _ := strconv.Atoi(droplet.Created)
 
-				config.Node.Id = fmt.Sprintf("%d", droplet.ID)
+				config.Node.ID = fmt.Sprintf("%d", droplet.ID)
 				config.Node.CreatedAt = int64(createdAt)
 				config.Node.PublicIp = getPublicIpPort(droplet.Networks.V4)
 				config.Node.PrivateIp = getPrivateIpPort(droplet.Networks.V4)
