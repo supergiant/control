@@ -181,7 +181,7 @@ export class ClusterComponent implements OnInit, OnDestroy {
     this.subscriptions.add(observableTimer(0, 20000).pipe(
       switchMap(() => this.supergiant.Kubes.get(this.id))).subscribe(
       this.renderKube.bind(this),
-      err => console.log(err),
+      err => console.error(err),
     ));
   }
 
@@ -205,7 +205,6 @@ export class ClusterComponent implements OnInit, OnDestroy {
     this.machines = new MatTableDataSource(mastersArr.concat(nodesArr));
     this.machines.sort = this.sort;
     this.machines.paginator = this.paginator;
-    console.log(kube);
   }
 
   goBack() {
