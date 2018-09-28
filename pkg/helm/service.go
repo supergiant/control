@@ -3,76 +3,68 @@ package helm
 import (
 	"context"
 	"encoding/json"
-	"fmt"
+	"os"
+	"path/filepath"
+	"sort"
 
 	"github.com/pkg/errors"
-	"k8s.io/helm/pkg/getter"
-	"k8s.io/helm/pkg/helm/environment"
+	"k8s.io/helm/pkg/proto/hapi/chart"
 	"k8s.io/helm/pkg/repo"
 
+	"github.com/supergiant/supergiant/pkg/helm/repos"
 	"github.com/supergiant/supergiant/pkg/model/helm"
 	"github.com/supergiant/supergiant/pkg/sgerrors"
 	"github.com/supergiant/supergiant/pkg/storage"
-	"k8s.io/helm/pkg/proto/hapi/chart"
-	"sort"
 )
 
 const (
-	repoPrefix       = "/helm/repositories/"
-	chrtPrefixFormat = repoPrefix + "%s/charts/"
-
-	cacheDir = "/tmp/helm/index.yaml"
+	repoPrefix = "/helm/repositories/"
 )
 
 // Service manages helm repositories.
 type Service struct {
 	storage storage.Interface
+	repos   *repos.Manager
 }
 
 // NewService constructs a Service for helm repository.
 func NewService(s storage.Interface) *Service {
 	return &Service{
 		storage: s,
+		repos:   repos.New(filepath.Join(os.TempDir(), ".helm")),
 	}
 }
 
 // Create stores a helm repository in the provided storage.
-func (s *Service) Create(ctx context.Context, e *repo.Entry) error {
+func (s Service) Create(ctx context.Context, e *repo.Entry) (*helm.Repository, error) {
 	if e == nil {
-		return sgerrors.ErrNotFound
+		return nil, sgerrors.ErrNotFound
 	}
 
 	r, err := s.Get(ctx, e.Name)
 	if err == nil && r != nil {
-		return sgerrors.ErrAlreadyExists
+		return nil, sgerrors.ErrAlreadyExists
 	}
 
-	//e.Cache = helmHome().CacheIndex(e.Name)
-	cr, err := repo.NewChartRepository(e, getter.All(environment.EnvSettings{}))
+	ind, err := s.repos.GetIndexFile(e)
 	if err != nil {
-		return errors.Wrap(err, "build chart repository")
-	}
-	if err = cr.DownloadIndexFile(""); err != nil {
-		return errors.Wrap(err, "download index file")
-	}
-	if err = cr.Load(); err != nil {
-		return errors.Wrap(err, "load charts")
+		return nil, errors.Wrap(err, "get repository index")
 	}
 
 	// store the index file
-	rawJSON, err := json.Marshal(helm.Repository{Config: *e, Index: *cr.IndexFile})
+	rawJSON, err := json.Marshal(toRepo(*e, *ind))
 	if err != nil {
-		return errors.Wrap(err, "marshal index file")
+		return nil, errors.Wrap(err, "marshal index file")
 	}
 	if err = s.storage.Put(ctx, repoPrefix, e.Name, rawJSON); err != nil {
-		return errors.Wrap(err, "storage")
+		return nil, errors.Wrap(err, "storage")
 	}
 
-	return nil
+	return r, nil
 }
 
 // Get retrieves the repository index file for provided nam.
-func (s *Service) Get(ctx context.Context, repoName string) (*helm.Repository, error) {
+func (s Service) Get(ctx context.Context, repoName string) (*helm.Repository, error) {
 	res, err := s.storage.Get(ctx, repoPrefix, repoName)
 	if err != nil {
 		return nil, errors.Wrap(err, "storage")
@@ -82,16 +74,16 @@ func (s *Service) Get(ctx context.Context, repoName string) (*helm.Repository, e
 		return nil, errors.Wrap(sgerrors.ErrNotFound, "repo not found")
 	}
 
-	repo := &helm.Repository{}
-	if err = json.Unmarshal(res, repo); err != nil {
+	r := &helm.Repository{}
+	if err = json.Unmarshal(res, r); err != nil {
 		return nil, errors.Wrap(err, "unmarshal")
 	}
 
-	return repo, nil
+	return r, nil
 }
 
 // GetAll retrieves all helm repositories from the storage.
-func (s *Service) GetAll(ctx context.Context) ([]helm.Repository, error) {
+func (s Service) GetAll(ctx context.Context) ([]helm.Repository, error) {
 	rawRepos, err := s.storage.GetAll(ctx, repoPrefix)
 	if err != nil {
 		return nil, errors.Wrap(err, "storage")
@@ -99,19 +91,19 @@ func (s *Service) GetAll(ctx context.Context) ([]helm.Repository, error) {
 
 	repos := make([]helm.Repository, len(rawRepos))
 	for i, raw := range rawRepos {
-		repo := &helm.Repository{}
-		err = json.Unmarshal(raw, repo)
+		r := &helm.Repository{}
+		err = json.Unmarshal(raw, r)
 		if err != nil {
 			return nil, errors.Wrap(err, "unmarshal")
 		}
-		repos[i] = *repo
+		repos[i] = *r
 	}
 
 	return repos, nil
 }
 
 // Delete removes a helm repository from the storage by its name.
-func (s *Service) Delete(ctx context.Context, repoName string) error {
+func (s Service) Delete(ctx context.Context, repoName string) error {
 	return s.storage.Delete(ctx, repoPrefix, repoName)
 }
 
