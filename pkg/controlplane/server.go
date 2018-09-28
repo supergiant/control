@@ -220,7 +220,6 @@ func configureApplication(cfg *Config) (*mux.Router, error) {
 
 	authMiddleware := api.Middleware{
 		TokenService: jwtService,
-		UserService:  userService,
 	}
 	protectedAPI.Use(authMiddleware.AuthMiddleware, api.ContentTypeJSON)
 

@@ -4,14 +4,16 @@ import (
 	"net/http"
 	"strings"
 
-	sgjwt "github.com/supergiant/supergiant/pkg/jwt"
 	"github.com/supergiant/supergiant/pkg/sgerrors"
-	"github.com/supergiant/supergiant/pkg/user"
+	"github.com/dgrijalva/jwt-go"
 )
 
+type TokenValidater interface {
+	Validate(string) (jwt.MapClaims, error)
+}
+
 type Middleware struct {
-	TokenService *sgjwt.TokenService
-	UserService  *user.Service
+	TokenService TokenValidater
 }
 
 func (m *Middleware) AuthMiddleware(next http.Handler) http.Handler {
@@ -31,6 +33,11 @@ func (m *Middleware) AuthMiddleware(next http.Handler) http.Handler {
 		tokenString := ts[1]
 		claims, err := m.TokenService.Validate(tokenString)
 
+		if err != nil {
+			http.Error(w, err.Error(), http.StatusForbidden)
+			return
+		}
+
 		// TODO(stgleb): Do something with claims
 		userId, ok := claims["user_id"].(string)
 		if !ok {
@@ -40,11 +47,6 @@ func (m *Middleware) AuthMiddleware(next http.Handler) http.Handler {
 
 		if len(userId) == 0 {
 			http.Error(w, "unknown user", http.StatusForbidden)
-			return
-		}
-
-		if err != nil {
-			http.Error(w, err.Error(), http.StatusForbidden)
 			return
 		}
 
