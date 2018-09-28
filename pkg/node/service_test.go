@@ -44,8 +44,8 @@ func TestNodeServiceGet(t *testing.T) {
 			return
 		}
 
-		if testCase.err == nil && node.Id != testCase.expectedId {
-			t.Errorf("Wrong node id expected %s actual %s", testCase.expectedId, node.Id)
+		if testCase.err == nil && node.ID != testCase.expectedId {
+			t.Errorf("Wrong node id expected %s actual %s", testCase.expectedId, node.ID)
 		}
 	}
 }
@@ -74,7 +74,7 @@ func TestNodeCreate(t *testing.T) {
 		m.On("Put",
 			context.Background(),
 			prefix,
-			testCase.node.Id,
+			testCase.node.ID,
 			kubeData).
 			Return(testCase.err)
 

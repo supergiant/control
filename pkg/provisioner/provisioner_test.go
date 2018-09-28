@@ -147,7 +147,7 @@ func TestProvisionNodes(t *testing.T) {
 	k := &model.Kube{
 		Masters: map[string]*node.Node{
 			"1": {
-				Id:        "1",
+				ID:        "1",
 				PrivateIp: "10.0.0.1",
 				PublicIp:  "10.20.30.40",
 				State:     node.StateActive,

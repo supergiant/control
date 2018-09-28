@@ -6,9 +6,9 @@ import (
 	"fmt"
 	"io"
 	"math/rand"
-	"time"
 	"os"
 	"path"
+	"time"
 
 	"github.com/sirupsen/logrus"
 	"github.com/supergiant/supergiant/pkg/clouds"
@@ -21,7 +21,6 @@ import (
 const letterBytes = "0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ"
 
 var src = rand.NewSource(time.Now().UnixNano())
-
 
 // RandomString generates random string with reservoir sampling algorithm https://en.wikipedia.org/wiki/Reservoir_sampling
 func RandomString(n int) string {
