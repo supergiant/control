@@ -171,6 +171,7 @@ import { ToolbarComponent } from './navigation/toolbar/toolbar.component';
 import { UserMenuComponent } from './navigation/user-menu/user-menu.component';
 import { FooterComponent } from './shared/footer/footer.component';
 import { ConfirmModalComponent } from './shared/modals/confirm-modal/confirm-modal.component';
+import { UsageChartComponent } from './clusters/cluster/usage-chart/usage-chart.component';
 
 
 
@@ -256,6 +257,7 @@ import { ConfirmModalComponent } from './shared/modals/confirm-modal/confirm-mod
     UserMenuComponent,
     FooterComponent,
     ConfirmModalComponent,
+    UsageChartComponent,
   ],
   imports: [
     BrowserModule,
