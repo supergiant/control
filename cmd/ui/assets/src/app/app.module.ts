@@ -40,12 +40,7 @@ import {
   MatToolbarModule,
   MatTooltipModule } from '@angular/material';
 import { SchemaFormModule, WidgetRegistry, DefaultWidgetRegistry } from 'ngx-schema-form';
-import {
-  MaterialDesignFrameworkModule,
-  JsonSchemaFormService,
-  FrameworkLibraryService,
-  MaterialDesignFramework,
-} from 'angular6-json-schema-form';
+import { MaterialDesignFrameworkModule } from 'angular6-json-schema-form';
 import { AppRoutingModule } from './app-routing.module';
 import { AceEditorModule } from 'ng2-ace-editor';
 import { ChartsModule } from 'ng2-charts';
@@ -69,7 +64,6 @@ import { ServicesComponent } from './services/services.component';
 import { SessionsHeaderComponent } from './sessions/sessions-header/sessions-header.component';
 import { ServicesHeaderComponent } from './services/services-header/services-header.component';
 import { PodsHeaderComponent } from './pods/pods-header/pods-header.component';
-import { NodesHeaderComponent } from './nodes/nodes-header/nodes-header.component';
 import { LoadBalancersHeaderComponent } from './load-balancers/load-balancers-header/load-balancers-header.component';
 import { CloudAccountsHeaderComponent } from './cloud-accounts/cloud-accounts-header/cloud-accounts-header.component';
 import { CloudAccountComponent } from './cloud-accounts/cloud-account/cloud-account.component';
@@ -92,7 +86,6 @@ import { AppsComponent } from './apps/apps.component';
 import { Search } from './shared/search-pipe/search-pipe';
 import { HelmAppComponent } from './apps/app/helm-app.component';
 import { NodeDetailsComponent } from './nodes/node-details/node-details.component';
-import { NodesListComponent } from './nodes/nodes-list/nodes-list.component';
 import { PodDetailsComponent } from './pods/pod-details/pod-details.component';
 import { PodsListComponent } from './pods/pods-list/pods-list.component';
 import { SessionDetailsComponent } from './sessions/session-details/session-details.component';
@@ -137,11 +130,9 @@ import { HelmRepos } from './shared/supergiant/helm-repos/helm-repos.service';
 import { HelmCharts } from './shared/supergiant/helm-charts/helm-charts.service';
 import { HelmReleases } from './shared/supergiant/helm-releases/helm-releases.service';
 import { Logs } from './shared/supergiant/logs/logs.service';
-import { AuthenticatedHttpService } from './shared/auth/authenticated-http-service.service';
 import { AuthService } from './shared/supergiant/auth/auth.service';
 import { AuthGuardService } from './shared/supergiant/auth/auth-guard.service';
 import { TokenInterceptor } from './shared/supergiant/auth/token.interceptor';
-import { Http } from '@angular/http';
 import { HTTP_INTERCEPTORS } from '@angular/common/http';
 
 
@@ -179,6 +170,8 @@ import { NewKubeResourceComponent } from './kube-resources/new-kube-resource/new
 import { ToolbarComponent } from './navigation/toolbar/toolbar.component';
 import { UserMenuComponent } from './navigation/user-menu/user-menu.component';
 import { FooterComponent } from './shared/footer/footer.component';
+import { ConfirmModalComponent } from './shared/modals/confirm-modal/confirm-modal.component';
+import { UsageChartComponent } from './clusters/cluster/usage-chart/usage-chart.component';
 
 
 
@@ -203,7 +196,6 @@ import { FooterComponent } from './shared/footer/footer.component';
     SessionsHeaderComponent,
     ServicesHeaderComponent,
     PodsHeaderComponent,
-    NodesHeaderComponent,
     LoadBalancersHeaderComponent,
     CloudAccountsHeaderComponent,
     CloudAccountComponent,
@@ -223,7 +215,6 @@ import { FooterComponent } from './shared/footer/footer.component';
     AppsComponent,
     HelmAppComponent,
     NodeDetailsComponent,
-    NodesListComponent,
     PodDetailsComponent,
     PodsListComponent,
     SessionDetailsComponent,
@@ -265,6 +256,8 @@ import { FooterComponent } from './shared/footer/footer.component';
     ToolbarComponent,
     UserMenuComponent,
     FooterComponent,
+    ConfirmModalComponent,
+    UsageChartComponent,
   ],
   imports: [
     BrowserModule,
@@ -360,6 +353,7 @@ import { FooterComponent } from './shared/footer/footer.component';
       multi: true
     }
   ],
+  entryComponents: [ConfirmModalComponent],
   bootstrap: [AppComponent]
 })
 

@@ -28,6 +28,7 @@
     "@jaspero/ng-alerts": "^0.1.1",
     "@ng-bootstrap/ng-bootstrap": "^1.0.4",
     "@swimlane/ngx-datatable": "^13.1.0",
+    "@types/node": "^6.0.92",
     "ajv": "^6.4.0",
     "angular": "^1.6.5",
     "angular2-json-schema-form": "^0.7.0-alpha.1",

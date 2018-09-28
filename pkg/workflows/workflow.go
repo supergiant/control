@@ -36,10 +36,18 @@ const (
 
 	Cluster = "Cluster"
 
-	DigitalOceanMaster     = "DigitalOceanMaster"
-	DigitalOceanNode       = "DigitalOceanNode"
-	DigitalOceanDeleteNode = "DigitalOceanDeleteNode"
+	DigitalOceanMaster        = "DigitalOceanMaster"
+	DigitalOceanNode          = "DigitalOceanNode"
+	DigitalOceanDeleteNode    = "DigitalOceanDeleteNode"
+	DigitalOceanDeleteCluster = "DigitalOceanDeleteCluster"
 )
+
+type WorkflowSet struct {
+	ProvisionMaster string
+	ProvisionNode   string
+	DeleteNode      string
+	DeleteCluster   string
+}
 
 var (
 	m           sync.RWMutex
@@ -85,6 +93,10 @@ func Init() {
 		steps.GetStep(digitalocean.DeleteMachineStepName),
 	}
 
+	digitalOceanDeleteClusterWorkflow := []steps.Step{
+		steps.GetStep(digitalocean.DeleteClusterStepName),
+	}
+
 	m.Lock()
 	defer m.Unlock()
 
@@ -92,6 +104,7 @@ func Init() {
 	workflowMap[Cluster] = clusterWorkflow
 	workflowMap[DigitalOceanMaster] = digitalOceanMasterWorkflow
 	workflowMap[DigitalOceanNode] = digitalOceanNodeWorkflow
+	workflowMap[DigitalOceanDeleteCluster] = digitalOceanDeleteClusterWorkflow
 }
 
 func RegisterWorkFlow(workflowName string, workflow Workflow) {

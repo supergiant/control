@@ -33,7 +33,7 @@ func NewCreateInstanceStep(dropletTimeout, checkPeriod time.Duration) *CreateIns
 func (s *CreateInstanceStep) Run(ctx context.Context, output io.Writer, config *steps.Config) error {
 	// TODO(stgleb): Extract getting digital ocean sdk to function that will allow it to be mocked.
 	c := digitaloceanSDK.New(config.DigitalOceanConfig.AccessToken).GetClient()
-	config.DigitalOceanConfig.Name = util.MakeNodeName(config.ClusterName, config.TaskId, config.IsMaster)
+	config.DigitalOceanConfig.Name = util.MakeNodeName(config.ClusterName, config.TaskID, config.IsMaster)
 
 	// TODO(stgleb): Move keys creation for provisioning to provisioner to be able to get
 	// this key on cluster check phase.
@@ -46,8 +46,10 @@ func (s *CreateInstanceStep) Run(ctx context.Context, output io.Writer, config *
 	// Delete provision key from cloud account
 	defer c.Keys.DeleteByFingerprint(context.Background(), fingers[0].Fingerprint)
 
-	tags := []string{fmt.Sprintf("Kubernetes-Cluster-%s", config.ClusterName),
-		config.DigitalOceanConfig.Name}
+	tags := []string{
+		config.ClusterName,
+		config.DigitalOceanConfig.Name,
+	}
 
 	dropletRequest := &godo.DropletCreateRequest{
 		Name:              config.DigitalOceanConfig.Name,
@@ -61,9 +63,28 @@ func (s *CreateInstanceStep) Run(ctx context.Context, output io.Writer, config *
 		Tags: tags,
 	}
 
+	role := node.RoleMaster
+	if !config.IsMaster {
+		role = node.RoleNode
+	}
+
+	config.Node = node.Node{
+		TaskID: config.TaskID,
+		Role:     role,
+		Provider: clouds.DigitalOcean,
+		Size:     config.DigitalOceanConfig.Size,
+		Region:   config.DigitalOceanConfig.Region,
+		State:    node.StateBuilding,
+		Name:     config.DigitalOceanConfig.Name,
+	}
+
+	// Update node state in cluster
+	config.NodeChan() <- config.Node
 	droplet, _, err := c.Droplets.Create(ctx, dropletRequest)
 
 	if err != nil {
+		config.Node.State = node.StateError
+		config.NodeChan() <- config.Node
 		return errors.Wrap(err, "dropletService has returned an error in Run job")
 	}
 
@@ -82,21 +103,16 @@ func (s *CreateInstanceStep) Run(ctx context.Context, output io.Writer, config *
 			if droplet.Status == "active" {
 				// Get private ip ports from droplet networks
 
-				role := "master"
-				if !config.IsMaster {
-					role = "node"
-				}
+				createdAt, _ := strconv.Atoi(droplet.Created)
 
-				config.Node = node.Node{
-					Id:        fmt.Sprintf("%d", droplet.ID),
-					CreatedAt: time.Now().Unix(),
-					Role:      role,
-					Provider:  clouds.DigitalOcean,
-					Region:    droplet.Region.Name,
-					PublicIp:  getPublicIpPort(droplet.Networks.V4),
-					PrivateIp: getPrivateIpPort(droplet.Networks.V4),
-					Name:      droplet.Name,
-				}
+				config.Node.ID = fmt.Sprintf("%d", droplet.ID)
+				config.Node.CreatedAt = int64(createdAt)
+				config.Node.PublicIp = getPublicIpPort(droplet.Networks.V4)
+				config.Node.PrivateIp = getPrivateIpPort(droplet.Networks.V4)
+				config.Node.State = node.StateProvisioning
+
+				// Update node state in cluster
+				config.NodeChan() <- config.Node
 
 				if config.IsMaster {
 					config.AddMaster(&config.Node)
