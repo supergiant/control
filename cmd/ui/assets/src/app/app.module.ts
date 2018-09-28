@@ -64,7 +64,6 @@ import { ServicesComponent } from './services/services.component';
 import { SessionsHeaderComponent } from './sessions/sessions-header/sessions-header.component';
 import { ServicesHeaderComponent } from './services/services-header/services-header.component';
 import { PodsHeaderComponent } from './pods/pods-header/pods-header.component';
-import { NodesHeaderComponent } from './nodes/nodes-header/nodes-header.component';
 import { LoadBalancersHeaderComponent } from './load-balancers/load-balancers-header/load-balancers-header.component';
 import { CloudAccountsHeaderComponent } from './cloud-accounts/cloud-accounts-header/cloud-accounts-header.component';
 import { CloudAccountComponent } from './cloud-accounts/cloud-account/cloud-account.component';
@@ -87,7 +86,6 @@ import { AppsComponent } from './apps/apps.component';
 import { Search } from './shared/search-pipe/search-pipe';
 import { HelmAppComponent } from './apps/app/helm-app.component';
 import { NodeDetailsComponent } from './nodes/node-details/node-details.component';
-import { NodesListComponent } from './nodes/nodes-list/nodes-list.component';
 import { PodDetailsComponent } from './pods/pod-details/pod-details.component';
 import { PodsListComponent } from './pods/pods-list/pods-list.component';
 import { SessionDetailsComponent } from './sessions/session-details/session-details.component';
@@ -132,11 +130,9 @@ import { HelmRepos } from './shared/supergiant/helm-repos/helm-repos.service';
 import { HelmCharts } from './shared/supergiant/helm-charts/helm-charts.service';
 import { HelmReleases } from './shared/supergiant/helm-releases/helm-releases.service';
 import { Logs } from './shared/supergiant/logs/logs.service';
-import { AuthenticatedHttpService } from './shared/auth/authenticated-http-service.service';
 import { AuthService } from './shared/supergiant/auth/auth.service';
 import { AuthGuardService } from './shared/supergiant/auth/auth-guard.service';
 import { TokenInterceptor } from './shared/supergiant/auth/token.interceptor';
-import { Http } from '@angular/http';
 import { HTTP_INTERCEPTORS } from '@angular/common/http';
 
 
@@ -199,7 +195,6 @@ import { ConfirmModalComponent } from './shared/modals/confirm-modal/confirm-mod
     SessionsHeaderComponent,
     ServicesHeaderComponent,
     PodsHeaderComponent,
-    NodesHeaderComponent,
     LoadBalancersHeaderComponent,
     CloudAccountsHeaderComponent,
     CloudAccountComponent,
@@ -219,7 +214,6 @@ import { ConfirmModalComponent } from './shared/modals/confirm-modal/confirm-mod
     AppsComponent,
     HelmAppComponent,
     NodeDetailsComponent,
-    NodesListComponent,
     PodDetailsComponent,
     PodsListComponent,
     SessionDetailsComponent,
