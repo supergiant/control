@@ -1,4 +1,4 @@
-package digitaloceanSDK
+package digitaloceansdk
 
 import (
 	"github.com/digitalocean/godo"
@@ -13,6 +13,9 @@ type TokenSource struct {
 }
 
 func (t *TokenSource) Token() (*oauth2.Token, error) {
+	if t.AccessToken == "" {
+		return nil, sgerrors.ErrInvalidCredentials
+	}
 	token := &oauth2.Token{
 		AccessToken: t.AccessToken,
 	}

@@ -15,6 +15,7 @@ import (
 	"github.com/supergiant/supergiant/pkg/workflows/steps"
 	"github.com/supergiant/supergiant/pkg/workflows/steps/etcd"
 	"text/template"
+	"io/ioutil"
 )
 
 type fakeRunner struct {
@@ -149,5 +150,15 @@ func TestDepends(t *testing.T) {
 
 	if len(s.Depends()) != 1 && s.Depends()[0] != etcd.StepName {
 		t.Errorf("Wrong dependency list %v expected %v", s.Depends(), []string{etcd.StepName})
+	}
+}
+
+
+func TestStep_Rollback(t *testing.T) {
+	s := Step{}
+	err  := s.Rollback(context.Background(), ioutil.Discard, &steps.Config{})
+
+	if err != nil {
+		t.Errorf("unexpected error while rollback %v", err)
 	}
 }

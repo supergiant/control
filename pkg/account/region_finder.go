@@ -9,7 +9,7 @@ import (
 	"github.com/digitalocean/godo"
 	"github.com/pkg/errors"
 	"github.com/supergiant/supergiant/pkg/clouds"
-	"github.com/supergiant/supergiant/pkg/clouds/digitaloceanSDK"
+	"github.com/supergiant/supergiant/pkg/clouds/digitaloceansdk"
 	"github.com/supergiant/supergiant/pkg/model"
 )
 
@@ -57,7 +57,7 @@ func GetRegionFinder(account *model.CloudAccount) (RegionFinder, error) {
 
 	switch account.Provider {
 	case clouds.DigitalOcean:
-		sdk, err := digitaloceanSDK.NewFromAccount(account)
+		sdk, err := digitaloceansdk.NewFromAccount(account)
 		if err != nil {
 			return nil, err
 		}
@@ -72,7 +72,7 @@ func GetRegionFinder(account *model.CloudAccount) (RegionFinder, error) {
 }
 
 type digitalOceanRegionFinder struct {
-	sdk         *digitaloceanSDK.SDK
+	sdk         *digitaloceansdk.SDK
 	getServices func() (godo.SizesService, godo.RegionsService)
 }
 

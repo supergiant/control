@@ -7,7 +7,7 @@ import (
 	"time"
 
 	"github.com/digitalocean/godo"
-	"github.com/supergiant/supergiant/pkg/clouds/digitaloceanSDK"
+	"github.com/supergiant/supergiant/pkg/clouds/digitaloceansdk"
 	"github.com/supergiant/supergiant/pkg/workflows/steps"
 )
 
@@ -20,7 +20,7 @@ func NewDeleteMachineStep(timeout time.Duration) *DeleteMachineStep {
 	return &DeleteMachineStep{
 		timeout: timeout,
 		getDeleteService: func(accessToken string) DeleteService {
-			return digitaloceanSDK.New(accessToken).GetClient().Droplets
+			return digitaloceansdk.New(accessToken).GetClient().Droplets
 		},
 	}
 }
