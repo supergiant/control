@@ -16,6 +16,8 @@ import (
 	"github.com/supergiant/supergiant/pkg/sgerrors"
 	"github.com/supergiant/supergiant/pkg/workflows"
 	"github.com/supergiant/supergiant/pkg/workflows/steps"
+	"github.com/supergiant/supergiant/pkg/account"
+	"github.com/gorilla/mux"
 )
 
 type mockTokenGetter struct {
@@ -78,6 +80,17 @@ func TestProvisionHandler(t *testing.T) {
 			expectedCode: http.StatusInternalServerError,
 			getToken: func(context.Context, int) (string, error) {
 				return "", errors.New("something has happened")
+			},
+		},
+		{
+			description:  "account not found",
+			body:         validBody,
+			expectedCode: http.StatusNotFound,
+			getAccount: func(context.Context, string) (*model.CloudAccount, error) {
+				return nil, sgerrors.ErrNotFound
+			},
+			getToken: func(context.Context, int) (string, error) {
+				return "foo", nil
 			},
 		},
 		{
@@ -172,5 +185,49 @@ func TestProvisionHandler(t *testing.T) {
 				t.Errorf("Unepxpected error while decoding response %v", err)
 			}
 		}
+	}
+}
+
+
+func TestNewHandler(t *testing.T) {
+	svc := &account.Service{}
+	tg := &mockTokenGetter{}
+	p := &TaskProvisioner{}
+	h := NewHandler(svc, tg, p)
+
+	if h.accountGetter == nil {
+		t.Errorf("account getter must not be nil")
+	}
+
+	if h.provisioner != p {
+		t.Errorf("expected provisioner %v actual %v", p, h.provisioner)
+	}
+
+	if h.tokenGetter != tg {
+		t.Errorf("Wrong token getter exppected %v actual %v", tg, h.tokenGetter)
+	}
+}
+
+func TestHandler_Register(t *testing.T) {
+	h := Handler{}
+	r := mux.NewRouter()
+	h.Register(r)
+
+	expectedRouteCount := 1
+	actualRouteCount := 0
+	err := r.Walk(func(route *mux.Route, router *mux.Router, ancestors []*mux.Route) error {
+		if router != r {
+			return errors.New("wrong router")
+		}
+		actualRouteCount += 1
+		return nil
+	})
+
+	if err != nil {
+		t.Errorf("Unexpected error from walk router %v", err)
+	}
+
+	if expectedRouteCount != actualRouteCount {
+		t.Errorf("Wrong route count expected %d actual %d", expectedRouteCount, actualRouteCount)
 	}
 }
