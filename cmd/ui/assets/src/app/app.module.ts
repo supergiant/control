@@ -70,9 +70,6 @@ import { CloudAccountComponent } from './cloud-accounts/cloud-account/cloud-acco
 import { LoadBalancerComponent } from './load-balancers/load-balancer/load-balancer.component';
 import { NodeComponent } from './nodes/node/node.component';
 import { PodComponent } from './pods/pods/pod.component';
-import { VolumesComponent } from './volumes/volumes.component';
-import { VolumeComponent } from './volumes/volume/volume.component';
-import { VolumesHeaderComponent } from './volumes/volumes-header/volumes-header.component';
 import { ServiceComponent } from './services/service/service.component';
 import { SessionComponent } from './sessions/session/session.component';
 import { UserComponent } from './users/user/user.component';
@@ -107,7 +104,6 @@ import { UsersService } from './users/users.service';
 import { NodesService } from './nodes/nodes.service';
 import { PodsService } from './pods/pods.service';
 import { AppsService } from './apps/apps.service';
-import { VolumesService } from './volumes/volumes.service';
 import { ServicesService } from './services/services.service';
 import { LoadBalancersService } from './load-balancers/load-balancers.service';
 import { Notifications } from './shared/notifications/notifications.service';
@@ -182,9 +178,6 @@ import { UsageChartComponent } from './clusters/cluster/usage-chart/usage-chart.
 @NgModule({
   declarations: [
     AppComponent,
-    VolumesComponent,
-    VolumeComponent,
-    VolumesHeaderComponent,
     NavigationComponent,
     UsersComponent,
     SessionsComponent,
@@ -320,7 +313,6 @@ import { UsageChartComponent } from './clusters/cluster/usage-chart/usage-chart.
     LoadBalancersService,
     PodsService,
     ServicesService,
-    VolumesService,
     AppsService,
     // Supergiant API Services
     Supergiant,

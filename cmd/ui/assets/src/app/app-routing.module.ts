@@ -8,7 +8,6 @@ import { SessionsComponent } from './sessions/sessions.component';
 import { PodsComponent } from './pods/pods.component';
 import { AppsComponent } from './apps/apps.component';
 import { LoginComponent } from './login/login.component';
-import { VolumesComponent } from './volumes/volumes.component';
 import { LoadBalancersComponent } from './load-balancers/load-balancers.component';
 import { Supergiant } from './shared/supergiant/supergiant.service';
 import { Observable } from 'rxjs';
@@ -139,7 +138,6 @@ const appRoutes: Routes = [
   {
     path: 'resource/new/:id', component: NewKubeResourceComponent, canActivate: [AuthGuard]
   },
-  // { path: 'volumes', component: VolumesComponent, canActivate: [AuthGuard] },
   {
     path: 'services', component: ServicesComponent, canActivate: [AuthGuard], children: [
       { path: '', component: ServicesListComponent },
