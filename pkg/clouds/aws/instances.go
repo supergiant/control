@@ -27,6 +27,7 @@ var (
 	ErrNoRegionProvided   = errors.New("aws: region should shouldn't be emplty")
 	ErrInstanceIDEmpty    = errors.New("aws: instance id shouldn't be emplty")
 	ErrNoInstancesCreated = errors.New("aws: no instances were created")
+	ErrInstanceNotFound   = errors.New("aws: instance: not found")
 )
 
 // Client used for accessing AWS resources.
@@ -142,8 +143,34 @@ func (c *Client) CreateInstance(ctx context.Context, cfg InstanceConfig) (*ec2.I
 	return res.Instances[0], nil
 }
 
+// GetInstance retrieves an instance by instanceID.
+func (c *Client) GetInstance(ctx context.Context, region, id string) (*ec2.Instance, error) {
+	region, id = strings.TrimSpace(region), strings.TrimSpace(id)
+	if region == "" {
+		return nil, ErrNoRegionProvided
+	}
+	if id == "" {
+		return nil, ErrInstanceIDEmpty
+	}
+
+	out, err := c.ec2SvcFn(c.session, region).DescribeInstancesWithContext(ctx,
+		&ec2.DescribeInstancesInput{InstanceIds: []*string{aws.String(id)}})
+	if err != nil {
+		return nil, err
+	}
+
+	for _, r := range out.Reservations {
+		for _, inst := range r.Instances {
+			if *inst.InstanceId == id {
+				return inst, nil
+			}
+		}
+	}
+
+	return nil, ErrInstanceNotFound
+}
+
 // ListInstances returns a list of instances.
-//
 func (c *Client) ListRegionInstances(ctx context.Context, region string, tags map[string]string) ([]*ec2.Instance, error) {
 	region = strings.TrimSpace(region)
 	if region == "" {
@@ -158,8 +185,10 @@ func (c *Client) ListRegionInstances(ctx context.Context, region string, tags ma
 		if err != nil {
 			return nil, err
 		}
-		for _, reservation := range out.Reservations {
-			instList = append(instList, reservation.Instances...)
+		if out.Reservations != nil {
+			for _, reservation := range out.Reservations {
+				instList = append(instList, reservation.Instances...)
+			}
 		}
 		if out.NextToken == nil {
 			break
