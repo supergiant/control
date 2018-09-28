@@ -119,6 +119,7 @@ func (s *StepCreateInstance) Run(ctx context.Context, w io.Writer, cfg *steps.Co
 
 	cfg.Node = node.Node{
 		Region:   cfg.AWSConfig.Region,
+		TaskId:   cfg.TaskId,
 		Role:     role,
 		Provider: clouds.AWS,
 		State:    node.StateBuilding,

@@ -70,6 +70,7 @@ func (s *CreateInstanceStep) Run(ctx context.Context, output io.Writer, config *
 
 	config.Node = node.Node{
 		Role:     role,
+		TaskId:   config.TaskId,
 		Provider: clouds.DigitalOcean,
 		Size:     config.DigitalOceanConfig.Size,
 		Region:   config.DigitalOceanConfig.Region,

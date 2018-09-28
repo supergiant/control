@@ -24,6 +24,7 @@ const (
 // TODO(stgleb): Accommodate terminology and rename Node to Machine
 type Node struct {
 	Id        string      `json:"id" valid:"required"`
+	TaskId    string      `json:"taskId"`
 	Role      Role        `json:"role"`
 	CreatedAt int64       `json:"createdAt" valid:"required"`
 	Provider  clouds.Name `json:"provider" valid:"required"`
