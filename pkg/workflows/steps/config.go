@@ -163,7 +163,7 @@ func (m *Map) MarshalJSON() ([]byte, error) {
 }
 
 type Config struct {
-	TaskId      string
+	TaskID      string
 	Provider    clouds.Name `json:"provider"`
 	IsMaster    bool        `json:"isMaster"`
 	ClusterName string      `json:"clusterName"`
@@ -317,14 +317,14 @@ func NewConfig(clusterName, discoveryUrl, cloudAccountName string, profile profi
 func (c *Config) AddMaster(n *node.Node) {
 	c.m1.Lock()
 	defer c.m1.Unlock()
-	c.Masters.internal[n.Id] = n
+	c.Masters.internal[n.ID] = n
 }
 
 // AddNode to map of nodes in cluster
 func (c *Config) AddNode(n *node.Node) {
 	c.m2.Lock()
 	defer c.m2.Unlock()
-	c.Nodes.internal[n.Id] = n
+	c.Nodes.internal[n.ID] = n
 }
 
 // GetMaster returns first master in master map or nil
