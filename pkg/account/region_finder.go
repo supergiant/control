@@ -5,13 +5,10 @@ import (
 	"strconv"
 	"sync"
 
-	"github.com/aws/aws-sdk-go/aws"
-	"github.com/aws/aws-sdk-go/service/ec2"
 	"github.com/digitalocean/godo"
 	"github.com/pkg/errors"
 
 	"github.com/supergiant/supergiant/pkg/clouds"
-	"github.com/supergiant/supergiant/pkg/clouds/awssdk"
 	"github.com/supergiant/supergiant/pkg/clouds/digitaloceanSDK"
 	"github.com/supergiant/supergiant/pkg/model"
 )
@@ -55,14 +52,6 @@ func GetRegionFinder(account *model.CloudAccount) (RegionFinder, error) {
 			return nil, err
 		}
 		return &digitalOceanRegionFinder{
-			sdk: sdk,
-		}, nil
-	case clouds.AWS:
-		sdk, err := awssdk.NewFromAccount(account)
-		if err != nil {
-			return nil, err
-		}
-		return &awsRegionFinder{
 			sdk: sdk,
 		}, nil
 	}
@@ -131,28 +120,4 @@ func (rf *digitalOceanRegionFinder) Find(ctx context.Context) (*RegionSizes, err
 	}
 
 	return rs, nil
-}
-
-type awsRegionFinder struct {
-	sdk *awssdk.SDK
-}
-
-func (rf *awsRegionFinder) Find(ctx context.Context) (*RegionSizes, error) {
-	regionsOut, err := rf.sdk.EC2.DescribeRegionsWithContext(ctx, &ec2.DescribeRegionsInput{})
-	if err != nil {
-		return nil, err
-	}
-
-	rf.sdk.EC2.DescribeReservedInstancesOfferingsWithContext(ctx,
-		&ec2.DescribeReservedInstancesOfferingsInput{
-			Filters: []*ec2.Filter{
-				{
-					Name: aws.String(""),
-					Values: aws.StringSlice(
-						[]string{},
-					),
-				},
-			},
-		})
-	return nil, nil
 }
