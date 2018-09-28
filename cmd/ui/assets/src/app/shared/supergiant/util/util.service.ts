@@ -49,6 +49,6 @@ export class UtilService {
   }
 
   destroy(path) {
-    return this.http.delete(this.serverEndpoint + path);
+    return this.http.delete(this.serverEndpoint + path, {headers: {}});
   }
 }
