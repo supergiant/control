@@ -17,6 +17,18 @@ ExecStart=/usr/bin/flanneld --etcd-endpoints=http://{{ .EtcdHost }}:2379
 [Install]
 WantedBy=multi-user.target
 EOF
+
+cat << EOF > /etc/cni/net.d
+{
+  "cniVersion": "0.4.0",
+  "name": "mynet",
+	"type": "flannel",
+	"delegate": {
+        "isDefaultGateway": true
+	}
+}
+EOF
+
 systemctl daemon-reload
 systemctl enable flanneld.service
 systemctl start flanneld.service

@@ -27,7 +27,8 @@ ExecStart=/usr/bin/docker run \
       --cluster_domain=cluster.local \
       --pod-manifest-path=/etc/kubernetes/manifests \
       --kubeconfig=/etc/kubernetes/worker-kubeconfig.yaml \
-      --volume-plugin-dir=/etc/kubernetes/volumeplugins --fail-swap-on=false --register-node=true
+      --volume-plugin-dir=/etc/kubernetes/volumeplugins --fail-swap-on=false --register-node=true \
+      -v=6
 Restart=always
 StartLimitInterval=0
 RestartSec=10
