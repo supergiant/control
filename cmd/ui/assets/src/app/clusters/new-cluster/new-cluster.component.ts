@@ -43,41 +43,41 @@ export class NewClusterComponent implements OnInit, OnDestroy {
 
   machines = [{
     machineType: null,
-    role: 'Master',
+    role: "Master",
     qty: 1
   }];
 
   profileOptions = {
-    archs: ['amd64'],
-    flannelVersions: ['0.10.0'],
-    operatingSystems: ['linux'],
-    networkTypes: ['vxlan'],
-    ubuntuVersions: ['xenial'],
-    helmVersions: ['2.8.0'],
-    dockerVersions: ['17.06.0'],
-    K8SVersions: ['1.11.1'],
+    archs: ["amd64"],
+    flannelVersions: ["0.10.0"],
+    operatingSystems: ["linux"],
+    networkTypes: ["vxlan"],
+    ubuntuVersions: ["xenial"],
+    helmVersions: ["2.8.0"],
+    dockerVersions: ["17.06.0"],
+    K8SVersions: ["1.11.1"],
     rbacEnabled: [true, false]
-  };
+  }
 
   newDigitalOceanCluster = {
     profile: {
       masterProfiles: [],
       nodesProfiles: [],
-      provider: 'digitalocean',
+      provider: "digitalocean",
       // will have to set this on submit for now UGH
       // region: this.selectedRegion.id,
-      arch: 'amd64',
-      operatingSystem: 'linux',
-      ubuntuVersion: 'xenial',
-      dockerVersion: '17.06.0',
-      K8SVersion: '1.11.1',
-      flannelVersion: '0.10.0',
-      networkType: 'vxlan',
-      cidr: '10.0.0.0/24',
-      helmVersion: '2.8.0',
+      arch: "amd64",
+      operatingSystem: "linux",
+      ubuntuVersion: "xenial",
+      dockerVersion: "17.06.0",
+      K8SVersion: "1.11.1",
+      flannelVersion: "0.10.0",
+      networkType: "vxlan",
+      cidr: "10.0.0.0/24",
+      helmVersion: "2.8.0",
       rbacEnabled: false
     }
-  };
+  }
 
   constructor(
     private supergiant: Supergiant,
@@ -103,10 +103,10 @@ export class NewClusterComponent implements OnInit, OnDestroy {
     const compiledProfiles = [];
 
     filteredMachines.forEach(m => {
-      for (let i = 0; i < m.qty; i++) {
-        compiledProfiles.push({ image: 'ubuntu-16-04-x64', size: m.machineType });
+      for (var i = 0; i < m.qty; i++) {
+        compiledProfiles.push({ image: "ubuntu-16-04-x64", size: m.machineType })
       }
-    });
+    })
 
     return compiledProfiles;
   }
@@ -115,9 +115,9 @@ export class NewClusterComponent implements OnInit, OnDestroy {
     // temp for demo
     model.cloudAccountName = this.selectedCloudAccount.name;
     model.clusterName = this.clusterName;
-    model.profile.region = this.selectedRegion.id;
-    model.profile.masterProfiles = this.compileProfiles(this.machines, 'Master');
-    model.profile.nodesProfiles = this.compileProfiles(this.machines, 'Node');
+    model.profile.region = this.selectedRegion.id
+    model.profile.masterProfiles = this.compileProfiles(this.machines, "Master");
+    model.profile.nodesProfiles = this.compileProfiles(this.machines, "Node");
 
     console.log(model);
 
@@ -138,8 +138,8 @@ export class NewClusterComponent implements OnInit, OnDestroy {
   }
 
   error(model, data) {
-    console.log('model:', model);
-    console.log('data:', data);
+    console.log("model:", model);
+    console.log("data:", data);
     this.notifications.display(
       'error',
       'Kube: ' + model.name,
@@ -162,7 +162,7 @@ export class NewClusterComponent implements OnInit, OnDestroy {
       machineType: null,
       role: null,
       qty: 1
-    });
+    })
   }
 
   deleteMachine(idx) {
@@ -212,7 +212,7 @@ export class NewClusterComponent implements OnInit, OnDestroy {
         this.layout = null;
         break;
       }
-    }
+    };
 
     this.subscriptions.add(this.supergiant.CloudAccounts.getRegions(cloudAccount.name).subscribe(
         regionList => {
@@ -220,7 +220,7 @@ export class NewClusterComponent implements OnInit, OnDestroy {
           this.machineSizes = regionList.sizes;
         },
         err => this.error({}, err)
-    ));
+    ))
   }
 
   ngOnInit() {

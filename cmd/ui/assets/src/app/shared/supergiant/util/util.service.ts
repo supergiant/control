@@ -30,7 +30,7 @@ export class UtilService {
   }
 
   fetchResponse(path) {
-    return this.http.get(this.serverEndpoint + path, { observe: 'response' });
+    return this.http.get(this.serverEndpoint + path, { observe: "response" });
   }
 
   post(path, data) {
@@ -40,7 +40,7 @@ export class UtilService {
 
   postResponse(path, data) {
     const json = JSON.stringify(data);
-    return this.http.post(this.serverEndpoint + path, json, { observe: 'response' });
+    return this.http.post(this.serverEndpoint + path, json, { observe: "response" });
   }
 
   update(path, data) {

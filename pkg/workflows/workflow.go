@@ -1,7 +1,6 @@
 package workflows
 
 import (
-	"errors"
 	"sync"
 
 	"github.com/supergiant/supergiant/pkg/workflows/steps"
@@ -35,23 +34,31 @@ type Workflow []steps.Step
 const (
 	Prefix = "tasks"
 
-	Cluster            = "Cluster"
-	DigitalOceanMaster = "DigitalOceanMaster"
-	DigitalOceanNode   = "DigitalOceanNode"
+	Cluster = "Cluster"
+
+	DigitalOceanMaster        = "DigitalOceanMaster"
+	DigitalOceanNode          = "DigitalOceanNode"
+	DigitalOceanDeleteNode    = "DigitalOceanDeleteNode"
+	DigitalOceanDeleteCluster = "DigitalOceanDeleteCluster"
 )
+
+type WorkflowSet struct {
+	ProvisionMaster string
+	ProvisionNode   string
+	DeleteNode      string
+	DeleteCluster   string
+}
 
 var (
 	m           sync.RWMutex
 	workflowMap map[string]Workflow
-
-	ErrUnknownProviderWorkflowType = errors.New("unknown provider_workflow type")
 )
 
 func Init() {
 	workflowMap = make(map[string]Workflow)
 
 	digitalOceanMasterWorkflow := []steps.Step{
-		steps.GetStep(digitalocean.StepName),
+		steps.GetStep(digitalocean.CreateMachineStepName),
 		steps.GetStep(ssh.StepName),
 		steps.GetStep(downloadk8sbinary.StepName),
 		steps.GetStep(docker.StepName),
@@ -65,7 +72,7 @@ func Init() {
 		steps.GetStep(poststart.StepName),
 	}
 	digitalOceanNodeWorkflow := []steps.Step{
-		steps.GetStep(digitalocean.StepName),
+		steps.GetStep(digitalocean.CreateMachineStepName),
 		steps.GetStep(ssh.StepName),
 		steps.GetStep(downloadk8sbinary.StepName),
 		steps.GetStep(docker.StepName),
@@ -82,12 +89,22 @@ func Init() {
 		steps.GetStep(tiller.StepName),
 	}
 
+	digitalOceanDeleteWorkflow := []steps.Step{
+		steps.GetStep(digitalocean.DeleteMachineStepName),
+	}
+
+	digitalOceanDeleteClusterWorkflow := []steps.Step{
+		steps.GetStep(digitalocean.DeleteClusterStepName),
+	}
+
 	m.Lock()
 	defer m.Unlock()
 
+	workflowMap[DigitalOceanDeleteNode] = digitalOceanDeleteWorkflow
 	workflowMap[Cluster] = clusterWorkflow
 	workflowMap[DigitalOceanMaster] = digitalOceanMasterWorkflow
 	workflowMap[DigitalOceanNode] = digitalOceanNodeWorkflow
+	workflowMap[DigitalOceanDeleteCluster] = digitalOceanDeleteClusterWorkflow
 }
 
 func RegisterWorkFlow(workflowName string, workflow Workflow) {

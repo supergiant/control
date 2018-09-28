@@ -2,6 +2,7 @@ package digitalocean
 
 import (
 	"context"
+	"net/http"
 	"strings"
 	"testing"
 
@@ -10,12 +11,17 @@ import (
 )
 
 type mockKeyService struct {
-	key *godo.Key
-	err error
+	key  *godo.Key
+	resp *godo.Response
+	err  error
 }
 
+var (
+	expectedPublicKey = `ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABAQDB2ckfv5rVySSq7p9ziEt+waU28aFGo9VNGr9gottC7dew2N+ggLj7DzUUAEI2809qPBxNFN9C/rC2aP+brS8jcvInbcMxOHK/QzxzOSDjQQOfq5tQ451HshkCqRFtz5cIRgrn/yLaPZ+4dr+gspsgu8qvTGZIb8zCyjVPZsfhg70Z8Ql+1kn+1KTljOlvQ6jlxZvZX3o68kMb8wRvkFc8ps4xTyeCfHaCqz6OHWnV9DCtvQYmMmADzezJKOvwAeR6Uf1A1Lwe+B8eUvxtfaeYUZ5pWtHFFfOykmd03Xk0pRYAwtSC9ZWeje6WooyTMf56ErpIUK4qgXmJzG2oHHjD`
+)
+
 func (m *mockKeyService) Create(context.Context, *godo.KeyCreateRequest) (*godo.Key, *godo.Response, error) {
-	return m.key, nil, m.err
+	return m.key, m.resp, m.err
 }
 
 func TestGetPublicIpAddr(t *testing.T) {
@@ -107,8 +113,9 @@ func TestFingerPrint(t *testing.T) {
 
 func TestCreateKey(t *testing.T) {
 	testCases := []struct {
-		key *godo.Key
-		err error
+		key  *godo.Key
+		resp *godo.Response
+		err  error
 	}{
 		{
 			key: &godo.Key{
@@ -117,20 +124,42 @@ func TestCreateKey(t *testing.T) {
 				"fingerprint",
 				"",
 			},
+			resp: &godo.Response{
+				Response: &http.Response{
+					StatusCode: http.StatusCreated,
+				},
+			},
 			err: nil,
 		},
 		{
 			&godo.Key{},
+			&godo.Response{
+				Response: &http.Response{
+					StatusCode: http.StatusInternalServerError,
+				},
+			},
 			errors.New("error create key"),
+		},
+		{
+			&godo.Key{
+				Fingerprint: expectedPublicKey,
+			},
+			&godo.Response{
+				Response: &http.Response{
+					StatusCode: http.StatusUnprocessableEntity,
+				},
+			},
+			nil,
 		},
 	}
 
 	for _, testCase := range testCases {
 		keyService := &mockKeyService{
-			key: testCase.key,
-			err: testCase.err,
+			key:  testCase.key,
+			resp: testCase.resp,
+			err:  testCase.err,
 		}
-		_, err := createKey(context.Background(), keyService, testCase.key.Name, testCase.key.PublicKey)
+		_, err := createKey(context.Background(), keyService, testCase.key.Name, expectedPublicKey)
 
 		if err != testCase.err {
 			t.Errorf("Unexpected err value expected %v actual %v", testCase.err, err)

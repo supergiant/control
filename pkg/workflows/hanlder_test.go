@@ -22,6 +22,15 @@ import (
 	"github.com/supergiant/supergiant/pkg/workflows/steps"
 )
 
+type mockCloudAccountService struct {
+	cloudAccount *model.CloudAccount
+	err          error
+}
+
+func (m *mockCloudAccountService) Get(ctx context.Context, name string) (*model.CloudAccount, error) {
+	return m.cloudAccount, m.err
+}
+
 func TestWorkflowHandlerGetWorkflow(t *testing.T) {
 	id := "abcd"
 	expectedType := "MasterTask"

@@ -12,6 +12,7 @@ import (
 
 	"github.com/stretchr/testify/require"
 
+	"github.com/supergiant/supergiant/pkg/sgerrors"
 	"github.com/supergiant/supergiant/pkg/workflows/steps"
 )
 
@@ -108,7 +109,7 @@ func TestNewTask(t *testing.T) {
 		},
 		{
 			"foo",
-			ErrUnknownProviderWorkflowType,
+			sgerrors.ErrNotFound,
 		},
 	}
 

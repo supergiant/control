@@ -10,6 +10,8 @@ import (
 
 	"github.com/supergiant/supergiant/pkg/clouds"
 	"github.com/supergiant/supergiant/pkg/profile"
+	"github.com/supergiant/supergiant/pkg/workflows"
+	"github.com/supergiant/supergiant/pkg/workflows/steps"
 )
 
 var (
@@ -49,24 +51,30 @@ func TestNodesFromProfile(t *testing.T) {
 	p := &profile.Profile{
 		Provider: clouds.DigitalOcean,
 		Region:   region,
-		MasterProfiles: []map[string]string{
+		MasterProfiles: []profile.NodeProfile{
 			{
 				"image": "ubuntu-16-04-x64",
 				"size":  "s-1vcpu-2gb",
 			},
 		},
-		NodesProfiles: []map[string]string{
+		NodesProfiles: []profile.NodeProfile{
 			{
 				"image": "ubuntu-16-04-x64",
 				"size":  "s-2vcpu-4gb",
 			},
 			{
 				"image": "ubuntu-16-04-x64",
+				"size":  "s-2vcpu-4gb",
 			},
 		},
 	}
 
-	masters, nodes := nodesFromProfile(p)
+	cfg := &steps.Config{
+		ClusterName: "test",
+	}
+
+	masterTasks, nodeTasks := []*workflows.Task{{ID: "1234"}}, []*workflows.Task{{ID: "5678"}, {ID: "4321"}}
+	masters, nodes := nodesFromProfile(cfg.ClusterName, masterTasks, nodeTasks, p)
 
 	if len(masters) != len(p.MasterProfiles) {
 		t.Errorf("Wrong master node count expected %d actual %d",
@@ -74,14 +82,8 @@ func TestNodesFromProfile(t *testing.T) {
 	}
 
 	if len(nodes) != len(p.NodesProfiles) {
-		t.Errorf("Wrong master node count expected %d actual %d",
+		t.Errorf("Wrong node count expected %d actual %d",
 			len(p.NodesProfiles), len(nodes))
-	}
-
-	if masters[0].Size != p.MasterProfiles[0]["size"] {
-		t.Errorf("Wrong master node size expected %s actual %s",
-			masters[0].Size,
-			p.MasterProfiles[0]["size"])
 	}
 }
 

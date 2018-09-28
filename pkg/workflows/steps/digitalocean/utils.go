@@ -6,6 +6,7 @@ import (
 	"crypto/md5"
 	"encoding/base64"
 	"fmt"
+	"net/http"
 	"strings"
 
 	"github.com/digitalocean/godo"
@@ -62,7 +63,20 @@ func createKey(ctx context.Context, keyService KeyService, name, publicKey strin
 		PublicKey: publicKey,
 	}
 
-	key, _, err := keyService.Create(ctx, req)
+	key, resp, err := keyService.Create(ctx, req)
+
+	// If key is already registered - skip it
+	if resp.StatusCode == http.StatusUnprocessableEntity {
+		fg, err := fingerprint(publicKey)
+
+		if err != nil {
+			return nil, err
+		}
+
+		return &godo.Key{
+			Fingerprint: fg,
+		}, nil
+	}
 
 	if err != nil {
 		return nil, err

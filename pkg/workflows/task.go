@@ -5,11 +5,13 @@ import (
 	"context"
 	"encoding/json"
 	"io"
+	"runtime/debug"
 
 	"github.com/pborman/uuid"
 	"github.com/pkg/errors"
 	"github.com/sirupsen/logrus"
 
+	"github.com/supergiant/supergiant/pkg/sgerrors"
 	"github.com/supergiant/supergiant/pkg/storage"
 	"github.com/supergiant/supergiant/pkg/util"
 	"github.com/supergiant/supergiant/pkg/workflows/steps"
@@ -33,7 +35,7 @@ func NewTask(taskType string, repository storage.Interface) (*Task, error) {
 	w := GetWorkflow(taskType)
 
 	if w == nil {
-		return nil, ErrUnknownProviderWorkflowType
+		return nil, sgerrors.ErrNotFound
 	}
 
 	return newTask(taskType, w, repository), nil
@@ -61,6 +63,7 @@ func (w *Task) Run(ctx context.Context, config steps.Config, out io.WriteCloser)
 				if err := w.sync(ctx); err != nil {
 					logrus.Errorf("sync error %v for task %s", err, w.ID)
 				}
+				debug.PrintStack()
 				errChan <- errors.Errorf("provisioning failed, unexpected panic: %v ", r)
 			}
 		}()

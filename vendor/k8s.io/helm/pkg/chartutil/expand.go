@@ -1,5 +1,5 @@
 /*
-Copyright 2016 The Kubernetes Authors All rights reserved.
+Copyright The Helm Authors.
 
 Licensed under the Apache License, Version 2.0 (the "License");
 you may not use this file except in compliance with the License.
@@ -63,11 +63,12 @@ func Expand(dir string, r io.Reader) error {
 		if err != nil {
 			return err
 		}
-		defer file.Close()
 		_, err = io.Copy(file, tr)
 		if err != nil {
+			file.Close()
 			return err
 		}
+		file.Close()
 	}
 	return nil
 }

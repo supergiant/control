@@ -3,9 +3,8 @@ import { BrowserModule } from '@angular/platform-browser';
 import { FormsModule, ReactiveFormsModule } from '@angular/forms';
 import { NgModule } from '@angular/core';
 import { NgbModule } from '@ng-bootstrap/ng-bootstrap';
-import { HttpModule } from '@angular/http';
 import { HttpClientModule } from '@angular/common/http';
-import { SimpleNotificationsModule } from 'angular2-notifications';
+import { SimpleNotificationsModule } from 'angular2-notifications/dist';
 import { BrowserAnimationsModule } from '@angular/platform-browser/animations';
 import {
   MatAutocompleteModule,
@@ -43,6 +42,7 @@ import {
 import { SchemaFormModule, WidgetRegistry, DefaultWidgetRegistry } from 'ngx-schema-form';
 import {
   MaterialDesignFrameworkModule,
+  JsonSchemaFormService,
   FrameworkLibraryService,
   MaterialDesignFramework,
 } from 'angular6-json-schema-form';
@@ -303,14 +303,9 @@ import { FooterComponent } from './shared/footer/footer.component';
     MatToolbarModule,
     MatTooltipModule,
     CommonModule,
-    ContextMenuModule,
-    // ContextMenuModule.forRoot({
-    //   autoFocus: true,
-    //   useBootstrap4: true,
-    // }),
+    ContextMenuModule.forRoot(),
     NgbModule.forRoot(),
     AppRoutingModule,
-    HttpModule,
     FormsModule,
     BrowserAnimationsModule,
     SimpleNotificationsModule.forRoot(),

@@ -31,7 +31,7 @@ export class CloudAccountComponent {
 
   ngOnInit() {
     this.getCloudAccounts();
-    console.log('Get Cloud');
+    console.log("Get Cloud");
 
     console.log(this.hasCloudAccount);
   }

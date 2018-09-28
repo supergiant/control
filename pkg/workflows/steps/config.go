@@ -1,12 +1,12 @@
 package steps
 
 import (
-	"context"
 	"encoding/json"
 	"sync"
 	"time"
 
 	"github.com/supergiant/supergiant/pkg/clouds"
+	"github.com/supergiant/supergiant/pkg/model"
 	"github.com/supergiant/supergiant/pkg/node"
 	"github.com/supergiant/supergiant/pkg/profile"
 	"github.com/supergiant/supergiant/pkg/runner"
@@ -162,9 +162,8 @@ func (m *Map) MarshalJSON() ([]byte, error) {
 	return json.Marshal(m.internal)
 }
 
-// TODO(stgleb): rename to context and embed context.Context here
 type Config struct {
-	Context     context.Context
+	TaskId      string
 	Provider    clouds.Name `json:"provider"`
 	IsMaster    bool        `json:"isMaster"`
 	ClusterName string      `json:"clusterName"`
@@ -189,8 +188,6 @@ type Config struct {
 
 	ClusterCheckConfig ClusterCheckConfig `json:"clusterCheckConfig"`
 
-	//TODO @stgleb @yegor Add possiblity to not preserve ssh keys after provisioning
-	DeleteSSHKeys    bool          `json:"deleteSSHKeys"`
 	Node             node.Node     `json:"node"`
 	CloudAccountName string        `json:"cloudAccountName" valid:"required, length(1|32)"`
 	Timeout          time.Duration `json:"timeout"`
@@ -203,6 +200,9 @@ type Config struct {
 
 	m2    sync.RWMutex
 	Nodes Map `json:"nodes"`
+
+	nodeChan      chan node.Node
+	kubeStateChan chan model.KubeState
 }
 
 // NewConfig builds instance of config for provisioning
@@ -306,6 +306,9 @@ func NewConfig(clusterName, discoveryUrl, cloudAccountName string, profile profi
 		},
 		Timeout:          time.Minute * 30,
 		CloudAccountName: cloudAccountName,
+
+		nodeChan:      make(chan node.Node, len(profile.MasterProfiles)+len(profile.NodesProfiles)),
+		kubeStateChan: make(chan model.KubeState, 2),
 	}
 }
 
@@ -340,7 +343,7 @@ func (c *Config) GetMaster() *node.Node {
 
 	for key := range c.Masters.internal {
 		// Skip inactive nodes for selecting
-		if c.Masters.internal[key] != nil && c.Masters.internal[key].Active {
+		if c.Masters.internal[key] != nil && c.Masters.internal[key].State == node.StateActive {
 			return c.Masters.internal[key]
 		}
 	}
@@ -348,22 +351,55 @@ func (c *Config) GetMaster() *node.Node {
 	return nil
 }
 
-func (c *Config) GetMasters() []*node.Node {
-	m := make([]*node.Node, 0, len(c.Masters.internal))
+func (c *Config) GetMasters() map[string]*node.Node {
+	c.m1.RLock()
+	defer c.m1.RUnlock()
+
+	m := make(map[string]*node.Node, len(c.Masters.internal))
 
 	for key := range c.Masters.internal {
-		m = append(m, c.Masters.internal[key])
+		m[c.Masters.internal[key].Name] = c.Masters.internal[key]
 	}
 
 	return m
 }
 
-func (c *Config) GetNodes() []*node.Node {
-	m := make([]*node.Node, 0, len(c.Nodes.internal))
+func (c *Config) GetNodes() map[string]*node.Node {
+	c.m2.RLock()
+	defer c.m2.RUnlock()
+
+	m := make(map[string]*node.Node, len(c.Nodes.internal))
 
 	for key := range c.Nodes.internal {
-		m = append(m, c.Nodes.internal[key])
+		m[c.Nodes.internal[key].Name] = c.Nodes.internal[key]
 	}
 
 	return m
+}
+
+// GetMaster returns first master in master map or nil
+func (c *Config) GetNode() *node.Node {
+	c.m2.RLock()
+	defer c.m2.RUnlock()
+
+	if len(c.Nodes.internal) == 0 {
+		return nil
+	}
+
+	for key := range c.Nodes.internal {
+		// Skip inactive nodes for selecting
+		if c.Nodes.internal[key] != nil && c.Nodes.internal[key].State == node.StateActive {
+			return c.Nodes.internal[key]
+		}
+	}
+
+	return nil
+}
+
+func (c *Config) NodeChan() chan node.Node {
+	return c.nodeChan
+}
+
+func (c *Config) KubeStateChan() chan model.KubeState {
+	return c.kubeStateChan
 }

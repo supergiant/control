@@ -51,7 +51,7 @@ func (s *StepCreateInstance) Run(ctx context.Context, w io.Writer, cfg *steps.Co
 		subnetID = &ec2Cfg.SubnetID
 	}
 
-	nodeName := util.MakeNodeName(cfg.ClusterName, cfg.IsMaster)
+	nodeName := util.MakeNodeName(cfg.ClusterName, cfg.TaskId, cfg.IsMaster)
 	runInstanceInput := &ec2.RunInstancesInput{
 		BlockDeviceMappings: []*ec2.BlockDeviceMapping{
 			{
@@ -113,29 +113,43 @@ func (s *StepCreateInstance) Run(ctx context.Context, w io.Writer, cfg *steps.Co
 		//TODO ADD GPU SUPPORT FOR AWS
 	}
 
+	role := node.RoleMaster
+	if !cfg.IsMaster {
+		role = node.RoleNode
+	}
+
+	cfg.Node = node.Node{
+		Region:   cfg.AWSConfig.Region,
+		Role:     role,
+		Provider: clouds.AWS,
+		State:    node.StateBuilding,
+	}
+
+	// Update node state in cluster
+	cfg.NodeChan() <- cfg.Node
+
 	res, err := sdk.EC2.RunInstances(runInstanceInput)
 	if err != nil {
+		cfg.Node.State = node.StateError
+		cfg.NodeChan() <- cfg.Node
+
 		log.Errorf("[%s] - failed to create ec2 instance: %v", StepNameCreateEC2Instance, err)
 		return errors.Wrap(err, "aws: failed to connect")
 	}
 	if len(res.Instances) == 0 {
+		cfg.Node.State = node.StateError
+		cfg.NodeChan() <- cfg.Node
+
 		return errors.Wrap(err, "aws: no instances created")
 	}
 	instance := res.Instances[0]
 
-	role := "master"
+	cfg.Node.Region = cfg.AWSConfig.Region
+	cfg.Node.CreatedAt = instance.LaunchTime.Unix()
+	cfg.Node.Id = *instance.InstanceId
 
-	if !cfg.IsMaster {
-		role = "node"
-	}
-
-	cfg.Node = node.Node{
-		Region:    cfg.AWSConfig.Region,
-		CreatedAt: instance.LaunchTime.Unix(),
-		Role:      role,
-		Provider:  clouds.AWS,
-		Id:        *instance.InstanceId,
-	}
+	// Update node state in cluster
+	cfg.NodeChan() <- cfg.Node
 
 	if ec2Cfg.HasPublicAddr {
 		log.Infof("[%s] - waiting to obtain public IP", StepNameCreateEC2Instance)
@@ -157,6 +171,8 @@ func (s *StepCreateInstance) Run(ctx context.Context, w io.Writer, cfg *steps.Co
 			}
 			out, err := sdk.EC2.DescribeInstancesWithContext(ctx, lookup)
 			if err != nil {
+				cfg.Node.State = node.StateError
+				cfg.NodeChan() <- cfg.Node
 				log.Errorf("[%s] - failed to obtain public IP for node %s: %v", StepNameCreateEC2Instance, nodeName, err)
 				return errors.Wrap(err, "aws: failed to obtain public IP")
 			}
@@ -176,6 +192,8 @@ func (s *StepCreateInstance) Run(ctx context.Context, w io.Writer, cfg *steps.Co
 			}
 		}
 		if !found {
+			cfg.Node.State = node.StateError
+			cfg.NodeChan() <- cfg.Node
 			log.Errorf("[%s] - failed to find public IP address after %d attempts", StepNameCreateEC2Instance,
 				IPAttempts)
 			return errors.New("aws: failed to obtain public IP")
@@ -185,6 +203,8 @@ func (s *StepCreateInstance) Run(ctx context.Context, w io.Writer, cfg *steps.Co
 	if cfg.IsMaster {
 		cfg.AddMaster(&cfg.Node)
 	}
+	cfg.Node.State = node.StateProvisioning
+	cfg.NodeChan() <- cfg.Node
 
 	log.Infof("[%s] - success! Created node %s with instanceID %s",
 		StepNameCreateEC2Instance, nodeName, cfg.Node.Id)

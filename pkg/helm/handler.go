@@ -30,11 +30,6 @@ func (h *Handler) Register(r *mux.Router) {
 	r.HandleFunc("/helm/repositories/{repoName}", h.getRepo).Methods(http.MethodGet)
 	r.HandleFunc("/helm/repositories", h.listAllRepos).Methods(http.MethodGet)
 	r.HandleFunc("/helm/repositories/{repoName}", h.deleteRepo).Methods(http.MethodDelete)
-
-	//r.HandleFunc("/helm/releases", h.createRelease).Methods(http.MethodPost)
-	//r.HandleFunc("/helm/releases/{relName}", h.getRelease).Methods(http.MethodGet)
-	//r.HandleFunc("/helm/releases", h.listAllReleases).Methods(http.MethodGet)
-	//r.HandleFunc("/helm/releases/{relName}", h.deleteRelease).Methods(http.MethodDelete)
 }
 
 func (h *Handler) createRepo(w http.ResponseWriter, r *http.Request) {
@@ -45,24 +40,26 @@ func (h *Handler) createRepo(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	hr, err := h.svc.Create(r.Context(), repoConf)
+	hrepo, err := h.svc.Create(r.Context(), repoConf)
 	if err != nil {
 		logrus.Errorf("helm: store %s repo: %v", repoConf.Name, err)
 		message.SendUnknownError(w, err)
 		return
 	}
 
-	if err := json.NewEncoder(w).Encode(hr); err != nil {
-		logrus.Errorf("helm: write resp for the %s repo: %v", repoConf.Name, err)
+	if err := json.NewEncoder(w).Encode(hrepo); err != nil {
+		logrus.Errorf("helm: %s repo: write resp: %v", repoConf.Name, err)
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
 	}
+
+	w.WriteHeader(http.StatusAccepted)
 }
 
 func (h *Handler) getRepo(w http.ResponseWriter, r *http.Request) {
 	repoName := mux.Vars(r)["repoName"]
 
-	hr, err := h.svc.Get(r.Context(), repoName)
+	hrepo, err := h.svc.Get(r.Context(), repoName)
 	if err != nil {
 		if sgerrors.IsNotFound(err) {
 			message.SendNotFound(w, "helm repository", err)
@@ -73,9 +70,8 @@ func (h *Handler) getRepo(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if err := json.NewEncoder(w).Encode(hr); err != nil {
+	if err := json.NewEncoder(w).Encode(hrepo); err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
-		return
 	}
 }
 

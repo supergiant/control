@@ -43,7 +43,7 @@ export class NewKubeResourceComponent implements OnInit {
   updateModelKubeName() {
     // TODO: burn this with fire and find another way
     this.model.kube_name = this.kubeName;
-    const ms = JSON.parse(this.modelString);
+    let ms = JSON.parse(this.modelString);
     ms.kube_name = this.kubeName;
     this.modelString = JSON.stringify(ms, null, 2);
   }
@@ -54,7 +54,7 @@ export class NewKubeResourceComponent implements OnInit {
         this.kubeName = kube.name;
         this.updateModelKubeName();
       }
-    ));
+    ))
   }
 
   createKubeResource(model) {
@@ -106,14 +106,14 @@ export class NewKubeResourceComponent implements OnInit {
 
   parseArrToObj(arr) {
     if (arr) {
-      const returnObj = arr.reduce(
+      let returnObj = arr.reduce(
         (obj, label) => {
           obj[label['key']] = label['value'];
           return obj;
         },
         {});
       return returnObj;
-    } else { return {}; }
+    } else { return {} }
   }
 
   updateFromForm(model) {
@@ -139,15 +139,15 @@ export class NewKubeResourceComponent implements OnInit {
 
   resetModel(selectedResource) {
     switch (selectedResource) {
-      case 'Pod': {
+      case "Pod": {
         this.chooseResourceType({ displayName: 'Pod', type: 'pod' });
         break;
       }
-      case 'Service': {
+      case "Service": {
         this.chooseResourceType({ displayName: 'Service', type: 'service' });
         break;
       }
-      case 'LoadBalancer': {
+      case "LoadBalancer": {
         this.chooseResourceType({ displayName: 'LoadBalancer', type: 'loadBalancer' });
         break;
       }

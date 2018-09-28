@@ -133,7 +133,7 @@ func TestWriteManifestNode(t *testing.T) {
 	}
 	cfg := steps.NewConfig("", "", "", p)
 	cfg.AddMaster(&node.Node{
-		Active:    true,
+		State:     node.StateActive,
 		PrivateIp: masterHost,
 	})
 	cfg.Runner = r
@@ -184,7 +184,7 @@ func TestWriteManifestError(t *testing.T) {
 	output := new(bytes.Buffer)
 	cfg := steps.NewConfig("", "", "", profile.Profile{})
 	cfg.AddMaster(&node.Node{
-		Active:    true,
+		State:     node.StateActive,
 		PrivateIp: "127.0.0.1",
 	})
 	cfg.Runner = r
