@@ -16,6 +16,20 @@
 			"revisionTime": "2017-01-03T20:23:41Z"
 		},
 		{
+			"checksumSHA1": "cULNu89EKumcxuNj+bhpowzZwcA=",
+			"path": "github.com/Masterminds/sprig",
+			"revision": "15f9564e7e9cf0da02a48e0d25f12a7b83559aa6",
+			"revisionTime": "2018-09-14T00:13:42Z",
+			"version": "v2.16.0",
+			"versionExact": "v2.16.0"
+		},
+		{
+			"checksumSHA1": "X0xGt0e0IkZeviF+pFRlpHP+xkE=",
+			"path": "github.com/aokoli/goutils",
+			"revision": "3391d3790d23d03408670993e957e8f408993c34",
+			"revisionTime": "2017-05-31T11:00:25Z"
+		},
+		{
 			"checksumSHA1": "IjK0rSBVoTA/Zj/e27oQnFKGErU=",
 			"path": "github.com/aws/aws-sdk-go/aws",
 			"revision": "92c96c4f5ad419f2a72401c2f606d51e010cc110",
@@ -493,6 +507,12 @@
 			"revisionTime": "2017-06-12T17:47:53Z"
 		},
 		{
+			"checksumSHA1": "yNyE9MrpDJQAxOxSipSIBgBhuNQ=",
+			"path": "github.com/google/uuid",
+			"revision": "9b3b1e0f5f99ae461456d768e7d301a7acdaa2d8",
+			"revisionTime": "2018-09-17T14:00:05Z"
+		},
+		{
 			"checksumSHA1": "i6R3Q69CCaGbRnEGOnVkE/rrZ4E=",
 			"path": "github.com/googleapis/gnostic/OpenAPIv2",
 			"revision": "664776a3b48a89d0b750396afd90a7012657a293",
@@ -577,6 +597,12 @@
 			"path": "github.com/hpcloud/tail/watch",
 			"revision": "a1dbeea552b7c8df4b542c66073e393de198a800",
 			"revisionTime": "2018-05-14T19:44:41Z"
+		},
+		{
+			"checksumSHA1": "GgSlQYD/MBe2lqMqF6BP51d+67o=",
+			"path": "github.com/huandu/xstrings",
+			"revision": "8bbcf2f9ccb55755e748b7644164cd4bdce94c1d",
+			"revisionTime": "2018-09-06T15:17:51Z"
 		},
 		{
 			"checksumSHA1": "DiusiFOi/TekkUctoSEMJQmhNHs=",
@@ -716,10 +742,22 @@
 			"revisionTime": "2018-06-07T13:59:11Z"
 		},
 		{
+			"checksumSHA1": "1MGpGDQqnUoRpv7VEcQrXOBydXE=",
+			"path": "golang.org/x/crypto/pbkdf2",
+			"revision": "5295e8364332db77d75fce11f1d19c053919a9c9",
+			"revisionTime": "2018-06-14T21:10:25Z"
+		},
+		{
 			"checksumSHA1": "vKbPb9fpjCdzuoOvajOJnYfHG2g=",
 			"path": "golang.org/x/crypto/poly1305",
 			"revision": "8ac0e0d97ce45cd83d1d7243c060cb8461dda5e9",
 			"revisionTime": "2018-06-07T13:59:11Z"
+		},
+		{
+			"checksumSHA1": "sx1nQShs40UKtcJZNJuvYtGesaI=",
+			"path": "golang.org/x/crypto/scrypt",
+			"revision": "5295e8364332db77d75fce11f1d19c053919a9c9",
+			"revisionTime": "2018-06-14T21:10:25Z"
 		},
 		{
 			"checksumSHA1": "5UDaK1KsPOI7P/Q1b17FnNno36o=",
@@ -2024,76 +2062,116 @@
 			"versionExact": "v8.0.0"
 		},
 		{
-			"checksumSHA1": "2TgVbIXLZum8vFusrVxq+347t8A=",
+			"checksumSHA1": "dwFe9aaX6DEICaeMIhVfD4CyquE=",
 			"path": "k8s.io/helm/pkg/chartutil",
-			"revision": "a80231648a1473929271764b920a8e346f6de844",
-			"revisionTime": "2018-03-09T20:44:06Z",
-			"version": "v2.8.2",
-			"versionExact": "v2.8.2"
+			"revision": "2e55dbe1fdb5fdb96b75ff144a339489417b146b",
+			"revisionTime": "2018-09-19T18:20:32Z",
+			"version": "v2.11.0",
+			"versionExact": "v2.11.0"
 		},
 		{
-			"checksumSHA1": "IAXC2Ufj1ZXkdYk8pZdC9ptwOzA=",
+			"checksumSHA1": "5dq0hxJlLpoZ2znZMWqSh4Jxlwo=",
+			"path": "k8s.io/helm/pkg/engine",
+			"revision": "2e55dbe1fdb5fdb96b75ff144a339489417b146b",
+			"revisionTime": "2018-09-19T18:20:32Z",
+			"version": "v2.11.0",
+			"versionExact": "v2.11.0"
+		},
+		{
+			"checksumSHA1": "eaMTWSB3+g6YqgyAjCdnbyi6WR8=",
 			"path": "k8s.io/helm/pkg/helm",
-			"revision": "a80231648a1473929271764b920a8e346f6de844",
-			"revisionTime": "2018-03-09T20:44:06Z",
-			"version": "v2.8.2",
-			"versionExact": "v2.8.2"
+			"revision": "2e55dbe1fdb5fdb96b75ff144a339489417b146b",
+			"revisionTime": "2018-09-19T18:20:32Z",
+			"version": "v2.11.0",
+			"versionExact": "v2.11.0"
 		},
 		{
-			"checksumSHA1": "Yo75lpM/UpQrhUmHMKz3gdyvOjs=",
+			"checksumSHA1": "Bvy3ZqtYoG4dbxYRwHaeQ5iXOwI=",
 			"path": "k8s.io/helm/pkg/ignore",
-			"revision": "a80231648a1473929271764b920a8e346f6de844",
-			"revisionTime": "2018-03-09T20:44:06Z",
-			"version": "v2.8.2",
-			"versionExact": "v2.8.2"
+			"revision": "2e55dbe1fdb5fdb96b75ff144a339489417b146b",
+			"revisionTime": "2018-09-19T18:20:32Z",
+			"version": "v2.11.0",
+			"versionExact": "v2.11.0"
+		},
+		{
+			"checksumSHA1": "GxLLpzcnPsGvm2A8ilwHNXVnqKw=",
+			"path": "k8s.io/helm/pkg/manifest",
+			"revision": "2e55dbe1fdb5fdb96b75ff144a339489417b146b",
+			"revisionTime": "2018-09-19T18:20:32Z",
+			"version": "v2.11.0",
+			"versionExact": "v2.11.0"
 		},
 		{
 			"checksumSHA1": "P1J6J5ceZ51D1ElVfd4anjY4k5I=",
 			"path": "k8s.io/helm/pkg/proto/hapi/chart",
-			"revision": "a80231648a1473929271764b920a8e346f6de844",
-			"revisionTime": "2018-03-09T20:44:06Z",
-			"version": "v2.8.2",
-			"versionExact": "v2.8.2"
+			"revision": "2e55dbe1fdb5fdb96b75ff144a339489417b146b",
+			"revisionTime": "2018-09-19T18:20:32Z",
+			"version": "v2.11.0",
+			"versionExact": "v2.11.0"
 		},
 		{
-			"checksumSHA1": "Xv4dCw8wwUuh8F5lWsb+lI1Xh14=",
+			"checksumSHA1": "b0Id9dEPu6hYiLWja8+lbwULh1A=",
 			"path": "k8s.io/helm/pkg/proto/hapi/release",
-			"revision": "a80231648a1473929271764b920a8e346f6de844",
-			"revisionTime": "2018-03-09T20:44:06Z",
-			"version": "v2.8.2",
-			"versionExact": "v2.8.2"
+			"revision": "2e55dbe1fdb5fdb96b75ff144a339489417b146b",
+			"revisionTime": "2018-09-19T18:20:32Z",
+			"version": "v2.11.0",
+			"versionExact": "v2.11.0"
 		},
 		{
-			"checksumSHA1": "yYZYkBo5tOHRrnlcUsIiJny/K1Q=",
+			"checksumSHA1": "DozTBpNoQCrJRIapQLNKSOfFdGk=",
 			"path": "k8s.io/helm/pkg/proto/hapi/services",
-			"revision": "a80231648a1473929271764b920a8e346f6de844",
-			"revisionTime": "2018-03-09T20:44:06Z",
-			"version": "v2.8.2",
-			"versionExact": "v2.8.2"
+			"revision": "2e55dbe1fdb5fdb96b75ff144a339489417b146b",
+			"revisionTime": "2018-09-19T18:20:32Z",
+			"version": "v2.11.0",
+			"versionExact": "v2.11.0"
 		},
 		{
 			"checksumSHA1": "DRRbjNBG1IUbDmMnAd+D+Q7xs3A=",
 			"path": "k8s.io/helm/pkg/proto/hapi/version",
-			"revision": "a80231648a1473929271764b920a8e346f6de844",
-			"revisionTime": "2018-03-09T20:44:06Z",
-			"version": "v2.8.2",
-			"versionExact": "v2.8.2"
+			"revision": "2e55dbe1fdb5fdb96b75ff144a339489417b146b",
+			"revisionTime": "2018-09-19T18:20:32Z",
+			"version": "v2.11.0",
+			"versionExact": "v2.11.0"
 		},
 		{
-			"checksumSHA1": "pm3ovbT3vJSb+l3v27aOe4Wosy8=",
+			"checksumSHA1": "RiB0vvGWR9+P8BzarGpWWvLD3F0=",
+			"path": "k8s.io/helm/pkg/releaseutil",
+			"revision": "2e55dbe1fdb5fdb96b75ff144a339489417b146b",
+			"revisionTime": "2018-09-19T18:20:32Z",
+			"version": "v2.11.0",
+			"versionExact": "v2.11.0"
+		},
+		{
+			"checksumSHA1": "5AMvIdWmjKsnqkAhpw1KoRRFGcQ=",
+			"path": "k8s.io/helm/pkg/renderutil",
+			"revision": "2e55dbe1fdb5fdb96b75ff144a339489417b146b",
+			"revisionTime": "2018-09-19T18:20:32Z",
+			"version": "v2.11.0",
+			"versionExact": "v2.11.0"
+		},
+		{
+			"checksumSHA1": "2e/GW1nSNmDD5TPW7OaIZ5cTEOs=",
+			"path": "k8s.io/helm/pkg/storage/errors",
+			"revision": "2e55dbe1fdb5fdb96b75ff144a339489417b146b",
+			"revisionTime": "2018-09-19T18:20:32Z",
+			"version": "v2.11.0",
+			"versionExact": "v2.11.0"
+		},
+		{
+			"checksumSHA1": "P8eekvlGNeX4CmYI8rSLuRhUZZw=",
 			"path": "k8s.io/helm/pkg/sympath",
-			"revision": "a80231648a1473929271764b920a8e346f6de844",
-			"revisionTime": "2018-03-09T20:44:06Z",
-			"version": "v2.8.2",
-			"versionExact": "v2.8.2"
+			"revision": "2e55dbe1fdb5fdb96b75ff144a339489417b146b",
+			"revisionTime": "2018-09-19T18:20:32Z",
+			"version": "v2.11.0",
+			"versionExact": "v2.11.0"
 		},
 		{
-			"checksumSHA1": "Qw2ZspUcrMioe3mOKW8U8FZdRdI=",
+			"checksumSHA1": "CntDXq1JhJiId1QvPswxlJcFoRU=",
 			"path": "k8s.io/helm/pkg/version",
-			"revision": "a80231648a1473929271764b920a8e346f6de844",
-			"revisionTime": "2018-03-09T20:44:06Z",
-			"version": "v2.8.2",
-			"versionExact": "v2.8.2"
+			"revision": "2e55dbe1fdb5fdb96b75ff144a339489417b146b",
+			"revisionTime": "2018-09-19T18:20:32Z",
+			"version": "v2.11.0",
+			"versionExact": "v2.11.0"
 		}
 	],
 	"rootPath": "github.com/supergiant/supergiant"
