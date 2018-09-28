@@ -56,14 +56,14 @@ func buildKubeConfig(addr string, auth model.Auth) clientcmddapi.Config {
 	return clientcmddapi.Config{
 		AuthInfos: map[string]*clientcmddapi.AuthInfo{
 			auth.Username: {
-				Token: auth.Token,
+				Token:                 auth.Token,
 				ClientCertificateData: []byte(auth.Cert),
 				ClientKeyData:         []byte(auth.Key),
 			},
 		},
 		Clusters: map[string]*clientcmddapi.Cluster{
 			auth.Username: {
-				Server: addr,
+				Server:                   addr,
 				CertificateAuthorityData: []byte(auth.CA),
 			},
 		},

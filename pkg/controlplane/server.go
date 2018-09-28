@@ -71,6 +71,10 @@ type Config struct {
 	EtcdUrl      string
 	LogLevel     string
 	TemplatesDir string
+
+	ReadTimeout  time.Duration
+	WriteTimeout time.Duration
+	IdleTimeout  time.Duration
 }
 
 func New(cfg *Config) (*Server, error) {
@@ -83,25 +87,42 @@ func New(cfg *Config) (*Server, error) {
 	if err != nil {
 		return nil, err
 	}
-	headersOk := handlers.AllowedHeaders([]string{"Access-Control-Request-Headers", "Authorization"})
-	methodsOk := handlers.AllowedMethods([]string{"GET", "HEAD", "POST", "PUT", "OPTIONS"})
 
-	// TODO add TLS support
-	s := &Server{
-		cfg: cfg,
-		server: http.Server{
-			Handler:      handlers.CORS(headersOk, methodsOk)(handlers.RecoveryHandler(handlers.PrintRecoveryStack(true))(r)),
-			Addr:         fmt.Sprintf("%s:%d", cfg.Addr, cfg.Port),
-			ReadTimeout:  time.Second * 10,
-			WriteTimeout: time.Second * 15,
-			IdleTimeout:  time.Second * 120,
-		},
-	}
+	s := NewServer(r, cfg)
 	if err := generateUserIfColdStart(cfg); err != nil {
 		return nil, err
 	}
 
 	return s, nil
+}
+
+func NewServer(router *mux.Router, cfg *Config) *Server {
+	headersOk := handlers.AllowedHeaders([]string{
+		"Access-Control-Request-Headers",
+		"Authorization",
+	})
+	methodsOk := handlers.AllowedMethods([]string{
+		http.MethodGet,
+		http.MethodHead,
+		http.MethodPost,
+		http.MethodPut,
+		http.MethodOptions,
+		http.MethodDelete,
+	})
+
+	// TODO add TLS support
+	s := &Server{
+		cfg: cfg,
+		server: http.Server{
+			Handler:      handlers.CORS(headersOk, methodsOk)(handlers.RecoveryHandler(handlers.PrintRecoveryStack(true))(router)),
+			Addr:         fmt.Sprintf("%s:%d", cfg.Addr, cfg.Port),
+			ReadTimeout:  cfg.ReadTimeout,
+			WriteTimeout: cfg.WriteTimeout,
+			IdleTimeout:  cfg.IdleTimeout,
+		},
+	}
+
+	return s
 }
 
 //generateUserIfColdStart checks if there are any users in the db and if not (i.e. on first launch) generates a root user

@@ -86,6 +86,7 @@ func nodesFromProfile(clusterName string, masterTasks, nodeTasks []*workflows.Ta
 		taskId := masterTasks[index].ID
 
 		n := &node.Node{
+			TaskID:   taskId,
 			Name:     util.MakeNodeName(clusterName, taskId, true),
 			Provider: profile.Provider,
 			Region:   profile.Region,
@@ -100,6 +101,7 @@ func nodesFromProfile(clusterName string, masterTasks, nodeTasks []*workflows.Ta
 		taskId := nodeTasks[index].ID
 
 		n := &node.Node{
+			TaskID:   taskId,
 			Name:     util.MakeNodeName(clusterName, taskId[:4], false),
 			Provider: profile.Provider,
 			Region:   profile.Region,

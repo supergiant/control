@@ -218,7 +218,7 @@ func (h *TaskHandler) GetLogs(w http.ResponseWriter, r *http.Request) {
         <div id="logs"></div>
         <script type="text/javascript">
             (function() {
-                var conn = new WebSocket("ws://{{ .Host }}/tasks/{{ .TaskId }}/logs");
+                var conn = new WebSocket("ws://{{ .Host }}/tasks/{{ .TaskID }}/logs");
                 conn.onmessage = function(evt) {
                     console.log('file updated');
  					$('#logs').append("<p>" + evt.data + "</p>");
