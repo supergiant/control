@@ -4,8 +4,8 @@ import (
 	"net/http"
 	"strings"
 
-	"github.com/supergiant/supergiant/pkg/sgerrors"
 	"github.com/dgrijalva/jwt-go"
+	"github.com/supergiant/supergiant/pkg/sgerrors"
 )
 
 type TokenValidater interface {

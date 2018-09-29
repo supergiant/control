@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"context"
 	"io"
+	"io/ioutil"
 	"strings"
 	"testing"
 	"text/template"
@@ -114,5 +115,14 @@ func TestDepends(t *testing.T) {
 
 	if len(s.Depends()) != 1 && s.Depends()[0] != docker.StepName && s.Depends()[1] != manifest.StepName {
 		t.Errorf("Wrong dependency list %v expected %v", s.Depends(), []string{docker.StepName, manifest.StepName})
+	}
+}
+
+func TestStep_Rollback(t *testing.T) {
+	s := Step{}
+	err := s.Rollback(context.Background(), ioutil.Discard, &steps.Config{})
+
+	if err != nil {
+		t.Errorf("unexpected error while rollback %v", err)
 	}
 }

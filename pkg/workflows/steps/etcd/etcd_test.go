@@ -5,8 +5,10 @@ import (
 	"context"
 	"errors"
 	"io"
+	"io/ioutil"
 	"strings"
 	"testing"
+	"text/template"
 	"time"
 
 	"github.com/supergiant/supergiant/pkg/node"
@@ -16,7 +18,6 @@ import (
 	"github.com/supergiant/supergiant/pkg/testutils"
 	"github.com/supergiant/supergiant/pkg/workflows/steps"
 	"github.com/supergiant/supergiant/pkg/workflows/steps/docker"
-	"text/template"
 )
 
 type fakeRunner struct {
@@ -192,5 +193,14 @@ func TestDepends(t *testing.T) {
 
 	if len(s.Depends()) != 1 && s.Depends()[0] != docker.StepName {
 		t.Errorf("Wrong dependency list %v expected %v", s.Depends(), []string{docker.StepName})
+	}
+}
+
+func TestStep_Rollback(t *testing.T) {
+	s := Step{}
+	err := s.Rollback(context.Background(), ioutil.Discard, &steps.Config{})
+
+	if err != nil {
+		t.Errorf("unexpected error while rollback %v", err)
 	}
 }

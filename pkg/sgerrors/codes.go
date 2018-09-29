@@ -12,4 +12,5 @@ const (
 	EntityAlreadyExists ErrorCode = 1007
 	UnknownProvider     ErrorCode = 1008
 	UnsupportedProvider ErrorCode = 1009
+	NilValue            ErrorCode = 1010
 )

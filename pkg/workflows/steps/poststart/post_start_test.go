@@ -5,13 +5,13 @@ import (
 
 	"context"
 	"io"
+	"io/ioutil"
 	"strings"
 	"testing"
 	"text/template"
+	"time"
 
 	"github.com/pkg/errors"
-
-	"time"
 
 	"github.com/supergiant/supergiant/pkg/node"
 	"github.com/supergiant/supergiant/pkg/profile"
@@ -221,5 +221,14 @@ func TestDepends(t *testing.T) {
 
 	if len(s.Depends()) != 1 && s.Depends()[0] != kubelet.StepName {
 		t.Errorf("Wrong dependency list %v expected %v", s.Depends(), []string{kubelet.StepName})
+	}
+}
+
+func TestStep_Rollback(t *testing.T) {
+	s := Step{}
+	err := s.Rollback(context.Background(), ioutil.Discard, &steps.Config{})
+
+	if err != nil {
+		t.Errorf("unexpected error while rollback %v", err)
 	}
 }

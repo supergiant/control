@@ -1,17 +1,18 @@
 package digitalocean
 
 import (
-	"net/http"
-	"testing"
-
 	"bytes"
 	"context"
+	"io/ioutil"
+	"net/http"
+	"testing"
+	"time"
+
 	"github.com/digitalocean/godo"
 	"github.com/pkg/errors"
 	"github.com/stretchr/testify/mock"
 	"github.com/supergiant/supergiant/pkg/node"
 	"github.com/supergiant/supergiant/pkg/workflows/steps"
-	"time"
 )
 
 func TestDeleteMachineRun(t *testing.T) {
@@ -108,5 +109,14 @@ func TestDeleteMachineDepends(t *testing.T) {
 
 	if len(s.Depends()) != 0 {
 		t.Errorf("Wrong dependency list %v expected %v", s.Depends(), []string{})
+	}
+}
+
+func TestStep_Rollback(t *testing.T) {
+	s := DeleteMachineStep{}
+	err := s.Rollback(context.Background(), ioutil.Discard, &steps.Config{})
+
+	if err != nil {
+		t.Errorf("unexpected error while rollback %v", err)
 	}
 }

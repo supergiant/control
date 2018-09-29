@@ -3,7 +3,6 @@ package user
 import (
 	"context"
 
-	"github.com/pkg/errors"
 	"golang.org/x/crypto/bcrypt"
 
 	"github.com/supergiant/supergiant/pkg/sgerrors"
@@ -29,7 +28,7 @@ func NewService(storagePrefix string, repository storage.Interface) *Service {
 // Create is used to register new user
 func (s *Service) Create(ctx context.Context, user *User) error {
 	if user == nil {
-		return errors.New("user create: user can't be nil")
+		return sgerrors.ErrNilValue
 	}
 	err := user.encryptPassword()
 	if err != nil {
@@ -38,7 +37,7 @@ func (s *Service) Create(ctx context.Context, user *User) error {
 
 	if _, err := s.repository.Get(ctx, s.storagePrefix, user.Login); err != nil {
 		if !sgerrors.IsNotFound(err) {
-			return errors.Wrap(err, "user get")
+			return sgerrors.ErrAlreadyExists
 		}
 	}
 	err = s.repository.Put(ctx, s.storagePrefix, user.Login, user.ToJSON())
@@ -55,13 +54,13 @@ func (s *Service) Authenticate(ctx context.Context, username, password string) e
 	if err != nil {
 		//If user doesn't exists we still want Forbidden instead of Not Found
 		if sgerrors.IsNotFound(err) {
-			return sgerrors.ErrInvalidCredentials
+			return sgerrors.ErrNotFound
 		}
 		return err
 	}
 	user, err := FromJSON(rawJSON)
 	if err != nil {
-		return errors.Wrap(err, "user authenticate: unmarshall user")
+		return sgerrors.ErrInvalidJson
 	}
 
 	if err := bcrypt.CompareHashAndPassword(user.EncryptedPassword, []byte(password)); err != nil {

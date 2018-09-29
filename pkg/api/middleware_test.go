@@ -7,10 +7,10 @@ import (
 	"testing"
 
 	"github.com/dgrijalva/jwt-go"
-	sgjwt "github.com/supergiant/supergiant/pkg/jwt"
-	"time"
 	"github.com/gorilla/mux"
+	sgjwt "github.com/supergiant/supergiant/pkg/jwt"
 	"strings"
+	"time"
 )
 
 func TestAuthMiddleware(t *testing.T) {
@@ -152,11 +152,11 @@ func TestAuthMiddleware(t *testing.T) {
 
 func TestContentTypeJSON(t *testing.T) {
 	router := mux.NewRouter()
-	router.HandleFunc("/", func(w  http.ResponseWriter,r *http.Request){})
+	router.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {})
 	handler := ContentTypeJSON(router)
 
-	rec  := httptest.NewRecorder()
-	req, _ := http.NewRequest(http.MethodGet,"/", nil)
+	rec := httptest.NewRecorder()
+	req, _ := http.NewRequest(http.MethodGet, "/", nil)
 	handler.ServeHTTP(rec, req)
 
 	if h := rec.Header().Get("Content-Type"); !strings.EqualFold(h, "application/json") {

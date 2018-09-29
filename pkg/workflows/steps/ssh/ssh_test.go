@@ -118,3 +118,12 @@ func TestDepends(t *testing.T) {
 		t.Errorf("Wrong dependency list %v expected %v", s.Depends(), []string{"node"})
 	}
 }
+
+func TestStep_Rollback(t *testing.T) {
+	s := Step{}
+	err := s.Rollback(context.Background(), ioutil.Discard, &steps.Config{})
+
+	if err != nil {
+		t.Errorf("unexpected error while rollback %v", err)
+	}
+}

@@ -1,10 +1,10 @@
 package digitaloceansdk
 
 import (
-	"testing"
-	"github.com/supergiant/supergiant/pkg/sgerrors"
-	"github.com/supergiant/supergiant/pkg/model"
 	"github.com/supergiant/supergiant/pkg/clouds"
+	"github.com/supergiant/supergiant/pkg/model"
+	"github.com/supergiant/supergiant/pkg/sgerrors"
+	"testing"
 )
 
 func TestNew(t *testing.T) {
@@ -21,8 +21,8 @@ func TestNew(t *testing.T) {
 }
 
 func TestTokenSource_Token(t *testing.T) {
-	testCases := []struct{
-		ts *TokenSource
+	testCases := []struct {
+		ts          *TokenSource
 		expectedErr error
 	}{
 		{
@@ -54,8 +54,8 @@ func TestTokenSource_Token(t *testing.T) {
 }
 
 func TestNewFromAccount(t *testing.T) {
-	testCases := []struct{
-		account *model.CloudAccount
+	testCases := []struct {
+		account     *model.CloudAccount
 		expectedErr error
 	}{
 		{

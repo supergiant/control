@@ -1,6 +1,8 @@
 package amazon
 
-import "testing"
+import (
+	"testing"
+)
 
 func TestCreateInstanceStepName(t *testing.T) {
 	s := StepCreateInstance{}

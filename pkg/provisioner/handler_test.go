@@ -10,14 +10,14 @@ import (
 
 	"github.com/pkg/errors"
 
+	"github.com/gorilla/mux"
+	"github.com/supergiant/supergiant/pkg/account"
 	"github.com/supergiant/supergiant/pkg/clouds"
 	"github.com/supergiant/supergiant/pkg/model"
 	"github.com/supergiant/supergiant/pkg/profile"
 	"github.com/supergiant/supergiant/pkg/sgerrors"
 	"github.com/supergiant/supergiant/pkg/workflows"
 	"github.com/supergiant/supergiant/pkg/workflows/steps"
-	"github.com/supergiant/supergiant/pkg/account"
-	"github.com/gorilla/mux"
 )
 
 type mockTokenGetter struct {
@@ -187,7 +187,6 @@ func TestProvisionHandler(t *testing.T) {
 		}
 	}
 }
-
 
 func TestNewHandler(t *testing.T) {
 	svc := &account.Service{}

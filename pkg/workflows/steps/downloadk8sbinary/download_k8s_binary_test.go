@@ -3,6 +3,7 @@ package downloadk8sbinary
 import (
 	"bytes"
 	"context"
+	"io/ioutil"
 	"strings"
 	"testing"
 
@@ -98,5 +99,14 @@ func TestDepends(t *testing.T) {
 
 	if len(s.Depends()) != 0 {
 		t.Errorf("Wrong dependency list %v expected %v", s.Depends(), []string{})
+	}
+}
+
+func TestStep_Rollback(t *testing.T) {
+	s := Step{}
+	err := s.Rollback(context.Background(), ioutil.Discard, &steps.Config{})
+
+	if err != nil {
+		t.Errorf("unexpected error while rollback %v", err)
 	}
 }

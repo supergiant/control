@@ -1,6 +1,8 @@
 package amazon
 
-import "testing"
+import (
+	"testing"
+)
 
 func TestCreateKeyPairStepName(t *testing.T) {
 	s := KeyPairStep{}
