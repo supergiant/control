@@ -12,30 +12,36 @@ import (
 	"github.com/supergiant/supergiant/pkg/sgerrors"
 )
 
-type KubeProfileHandler struct {
-	service *KubeProfileService
+type Handler struct {
+	service *Service
 }
 
-func NewKubeProfileHandler(service *KubeProfileService) *KubeProfileHandler {
-	return &KubeProfileHandler{
+func NewHandler(service *Service) *Handler {
+	return &Handler{
 		service: service,
 	}
 }
 
-func (h *KubeProfileHandler) Register(r *mux.Router) {
+func (h *Handler) Register(r *mux.Router) {
 	r.HandleFunc("/kubeprofiles/{id}", h.GetProfile).Methods(http.MethodGet)
 	r.HandleFunc("/kubeprofiles", h.CreateProfile).Methods(http.MethodPost)
 	r.HandleFunc("/kubeprofiles", h.GetProfiles).Methods(http.MethodGet)
 }
 
-func (h *KubeProfileHandler) GetProfile(w http.ResponseWriter, r *http.Request) {
+func (h *Handler) GetProfile(w http.ResponseWriter, r *http.Request) {
 	vars := mux.Vars(r)
 	profileId := vars["id"]
+
+	if profileId == "" {
+		http.NotFound(w, r)
+		return
+	}
 
 	kubeProfile, err := h.service.Get(r.Context(), profileId)
 	if err != nil {
 		if sgerrors.IsNotFound(err) {
 			http.Error(w, err.Error(), http.StatusNotFound)
+			return
 		}
 		logrus.Error(err)
 		http.Error(w, err.Error(), http.StatusInternalServerError)
@@ -47,7 +53,7 @@ func (h *KubeProfileHandler) GetProfile(w http.ResponseWriter, r *http.Request) 
 	}
 }
 
-func (h *KubeProfileHandler) CreateProfile(w http.ResponseWriter, r *http.Request) {
+func (h *Handler) CreateProfile(w http.ResponseWriter, r *http.Request) {
 	profile := &Profile{}
 
 	if err := json.NewDecoder(r.Body).Decode(&profile); err != nil {
@@ -72,7 +78,7 @@ func (h *KubeProfileHandler) CreateProfile(w http.ResponseWriter, r *http.Reques
 	w.WriteHeader(http.StatusCreated)
 }
 
-func (h *KubeProfileHandler) GetProfiles(w http.ResponseWriter, r *http.Request) {
+func (h *Handler) GetProfiles(w http.ResponseWriter, r *http.Request) {
 	profiles, err := h.service.GetAll(r.Context())
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)

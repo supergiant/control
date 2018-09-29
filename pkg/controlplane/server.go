@@ -196,8 +196,8 @@ func configureApplication(cfg *Config) (*mux.Router, error) {
 	//Opening it up for testing right now, will be protected after implementing initial user generation
 	protectedAPI.HandleFunc("/users", userHandler.Create).Methods(http.MethodPost)
 
-	profileService := profile.NewKubeProfileService(profile.DefaultKubeProfilePreifx, repository)
-	kubeProfileHandler := profile.NewKubeProfileHandler(profileService)
+	profileService := profile.NewService(profile.DefaultKubeProfilePreifx, repository)
+	kubeProfileHandler := profile.NewHandler(profileService)
 	kubeProfileHandler.Register(protectedAPI)
 
 	// Read templates first and then initialize workflows with steps that uses these templates
