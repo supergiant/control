@@ -28,6 +28,7 @@ var (
 	ErrUnsupportedProvider = New("unsupported provider", UnsupportedProvider)
 	ErrInvalidJson         = New("invalid json", InvalidJSON)
 	ErrNilValue            = New("nil value", NilValue)
+	ErrTokenExpired        = New("token has been expire", TokenExpired)
 )
 
 func IsNotFound(err error) bool {
