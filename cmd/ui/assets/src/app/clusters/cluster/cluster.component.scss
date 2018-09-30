@@ -1,107 +1,5 @@
-.cluster-details-wrapper {
+:host {
   margin-top: 15px;
-
-  .usage-chart {
-    display: flex;
-    justify-content: space-between;
-    margin: 0 auto;
-    height: 532px;
-    width: 1102px;
-
-    .metric {
-      font-family: "Montserrat", sans-serif;
-      font-size: 30px;
-      font-weight: 100;
-    }
-
-    .cpu {
-      color: #FF00A6;
-      display: flex;
-      flex-direction: column;
-      justify-content: center;
-      width: 240px;
-
-      .cpu-metric {
-        position: relative;
-        top: -20px;
-        left: 29px;
-      }
-    }
-
-    .orb-chart {
-      background: url(/assets/img/cluster-details/nums_marks.svg) no-repeat;
-      background-size: 100% 100%;
-      background-position: center;
-      width: 566px;
-      position: relative;
-
-      .orb {
-        align-items: center;
-        background: url(/assets/img/cluster-details/circle_center.svg) no-repeat;
-        background-size: 100% 100%;
-        background-position: center;
-        display: flex;
-        justify-content: center;
-        position: absolute;
-        top: -6px;
-        left: 0;
-        height: 100%;
-        width: 100%;
-
-        .cluster-name {
-          font-family: "Montserrat", sans-serif;
-          font-size: 32px;
-          font-weight: 200;
-        }
-      }
-
-      .left-chart {
-        background: url(/assets/img/cluster-details/left_metric_base.svg) no-repeat;
-        background-size: 100% 100%;
-        background-position: center;
-        position: absolute;
-        top: 41px;
-        left: 62px;
-        height: 448px;
-        width: 223px;
-      }
-
-      .cpu-actual {
-        position: relative;
-        top: 1px;
-      }
-
-      .right-chart {
-        background: url(/assets/img/cluster-details/right_metric_base.svg) no-repeat;
-        background-size: 100% 100%;
-        background-position: center;
-        position: absolute;
-        top: 81px;
-        right: 98px;
-        height: 368px;
-        width: 184px;
-      }
-
-      .ram-actual {
-        position: relative;
-        top: 1px;
-      }
-    }
-
-    .ram {
-      color: #40C4FF;
-      display: flex;
-      flex-direction: column;
-      justify-content: center;
-      width: 240px;
-
-      .ram-metric {
-        position: relative;
-        top: 12px;
-        left: 65px;
-      }
-    }
-  }
 
   .machines-list {
     background-color: rgba(0, 0, 0, 0.5);
@@ -138,7 +36,7 @@
           font-weight: 300;
           font-size: 12px;
           overflow: unset;
-          padding: 12px 0px;
+          justify-content: space-between;
         }
       }
     }

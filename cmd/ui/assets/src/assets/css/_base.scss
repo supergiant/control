@@ -60,8 +60,23 @@ button[mat-raised-button], button[mat-button] {
   .mat-button-ripple, .mat-button-focus-overlay {
     border-radius: inherit;
   }
+
+  &:focus {
+    outline: none;
+  }
 }
 
 .mat-form-field {
   font-size: 16px;
+}
+
+.mat-dialog-container {
+  padding: 24px 24px 35px!important;
+
+  background: #000000!important;
+  opacity: .8!important;
+}
+
+button {
+  outline: none;
 }

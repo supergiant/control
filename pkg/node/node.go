@@ -23,8 +23,8 @@ const (
 
 // TODO(stgleb): Accommodate terminology and rename Node to Machine
 type Node struct {
-	Id        string      `json:"id" valid:"required"`
-	TaskId    string      `json:"taskId"`
+	ID        string      `json:"id" valid:"required"`
+	TaskID    string      `json:"taskId"`
 	Role      Role        `json:"role"`
 	CreatedAt int64       `json:"createdAt" valid:"required"`
 	Provider  clouds.Name `json:"provider" valid:"required"`
@@ -37,6 +37,6 @@ type Node struct {
 }
 
 func (n Node) String() string {
-	return fmt.Sprintf("<ID: %s, Name: %s, Active: %v, Size: %s, CreatedAt: %d, Provider: %s, Region; %s, PublicIp: %s, PrivateIp: %s>",
-		n.Id, n.Name, n.State, n.Size, n.CreatedAt, n.Provider, n.Region, n.PublicIp, n.PrivateIp)
+	return fmt.Sprintf("<ID: %s, Name: %s Active: %v, Size: %s, CreatedAt: %d, Provider: %s, Region; %s, PublicIp: %s, PrivateIp: %s>",
+		n.ID, n.Name, n.State, n.Size, n.CreatedAt, n.Provider, n.Region, n.PublicIp, n.PrivateIp)
 }

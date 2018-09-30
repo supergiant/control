@@ -11,7 +11,7 @@ func TestNode_String(t *testing.T) {
 	size := "node-size"
 
 	n := &Node{
-		Id:   id,
+		ID:   id,
 		Name: name,
 		Size: size,
 	}

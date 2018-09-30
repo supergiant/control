@@ -50,7 +50,7 @@ func (s *StepCreateInstance) Run(ctx context.Context, w io.Writer, cfg *steps.Co
 		subnetID = &ec2Cfg.SubnetID
 	}
 
-	nodeName := util.MakeNodeName(cfg.ClusterName, cfg.TaskId, cfg.IsMaster)
+	nodeName := util.MakeNodeName(cfg.ClusterName, cfg.TaskID, cfg.IsMaster)
 	runInstanceInput := &ec2.RunInstancesInput{
 		BlockDeviceMappings: []*ec2.BlockDeviceMapping{
 			{
@@ -118,6 +118,7 @@ func (s *StepCreateInstance) Run(ctx context.Context, w io.Writer, cfg *steps.Co
 	}
 
 	cfg.Node = node.Node{
+		TaskID: cfg.TaskID,
 		Region:   cfg.AWSConfig.Region,
 		Role:     role,
 		Provider: clouds.AWS,
@@ -145,7 +146,7 @@ func (s *StepCreateInstance) Run(ctx context.Context, w io.Writer, cfg *steps.Co
 
 	cfg.Node.Region = cfg.AWSConfig.Region
 	cfg.Node.CreatedAt = instance.LaunchTime.Unix()
-	cfg.Node.Id = *instance.InstanceId
+	cfg.Node.ID = *instance.InstanceId
 
 	// Update node state in cluster
 	cfg.NodeChan() <- cfg.Node
@@ -206,7 +207,7 @@ func (s *StepCreateInstance) Run(ctx context.Context, w io.Writer, cfg *steps.Co
 	cfg.NodeChan() <- cfg.Node
 
 	log.Infof("[%s] - success! Created node %s with instanceID %s",
-		StepNameCreateEC2Instance, nodeName, cfg.Node.Id)
+		StepNameCreateEC2Instance, nodeName, cfg.Node.ID)
 	logrus.Debugf("%v", *instance)
 
 	return nil
@@ -221,16 +222,16 @@ func (s *StepCreateInstance) Rollback(ctx context.Context, w io.Writer, cfg *ste
 		return errors.New("aws: authorization")
 	}
 
-	if cfg.Node.Id != "" {
+	if cfg.Node.ID != "" {
 		_, err := sdk.EC2.TerminateInstancesWithContext(ctx, &ec2.TerminateInstancesInput{
 			InstanceIds: []*string{
-				aws.String(cfg.Node.Id),
+				aws.String(cfg.Node.ID),
 			},
 		})
 		if err != nil {
 			return err
 		}
-		log.Infof("[%s] - deleted ec2 instance %s", s.Name(), cfg.Node.Id)
+		log.Infof("[%s] - deleted ec2 instance %s", s.Name(), cfg.Node.ID)
 		return nil
 	}
 	return nil

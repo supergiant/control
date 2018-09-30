@@ -143,7 +143,7 @@ func (p *TaskProvisioner) ProvisionNodes(ctx context.Context, nodeProfiles []pro
 		}
 
 		// Put task id to config so that create instance step can use this id when generate node name
-		config.TaskId = t.ID
+		config.TaskID = t.ID
 		errChan := t.Run(ctx, *config, writer)
 
 		go func(cfg *steps.Config, errChan chan error) {
@@ -155,7 +155,7 @@ func (p *TaskProvisioner) ProvisionNodes(ctx context.Context, nodeProfiles []pro
 			}
 
 			if n := cfg.GetNode(); n != nil {
-				kube.Nodes[n.Id] = n
+				kube.Nodes[n.ID] = n
 				// TODO(stgleb): Use some other method like update or Patch instead of recreate
 				p.kubeService.Create(context.Background(), kube)
 			} else {
@@ -232,7 +232,7 @@ func (p *TaskProvisioner) provisionMasters(ctx context.Context, profile *profile
 
 		go func(t *workflows.Task) {
 			// Put task id to config so that create instance step can use this id when generate node name
-			config.TaskId = t.ID
+			config.TaskID = t.ID
 			result := t.Run(ctx, *config, out)
 			err = <-result
 
@@ -285,7 +285,7 @@ func (p *TaskProvisioner) provisionNodes(ctx context.Context, profile *profile.P
 
 		go func(t *workflows.Task) {
 			// Put task id to config so that create instance step can use this id when generate node name
-			config.TaskId = t.ID
+			config.TaskID = t.ID
 			result := t.Run(ctx, *config, out)
 			err = <-result
 

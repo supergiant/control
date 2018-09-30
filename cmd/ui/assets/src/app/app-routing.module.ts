@@ -13,7 +13,6 @@ import { LoadBalancersComponent } from './load-balancers/load-balancers.componen
 import { Supergiant } from './shared/supergiant/supergiant.service';
 import { Observable } from 'rxjs';
 import { NodeDetailsComponent } from './nodes/node-details/node-details.component';
-import { NodesListComponent } from './nodes/nodes-list/nodes-list.component';
 import { PodDetailsComponent } from './pods/pod-details/pod-details.component';
 import { PodsListComponent } from './pods/pods-list/pods-list.component';
 import { SessionDetailsComponent } from './sessions/session-details/session-details.component';
@@ -76,7 +75,6 @@ const appRoutes: Routes = [
   },
   {
     path: 'clusters', component: ClustersComponent, canActivate: [AuthGuard], children: [
-      { path: '', component: ClustersTutorialComponent },
       { path: '', component: ClustersListComponent },
       { path: 'new', component: NewClusterComponent },
       { path: ':id', component: ClusterComponent }
@@ -129,7 +127,6 @@ const appRoutes: Routes = [
   // },
   {
     path: 'nodes', component: NodesComponent, canActivate: [AuthGuard], children: [
-      { path: '', component: NodesListComponent },
       { path: ':id', component: NodeDetailsComponent }
     ]
   },

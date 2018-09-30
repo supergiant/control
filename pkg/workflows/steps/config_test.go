@@ -8,11 +8,11 @@ import (
 )
 
 func TestMarshalConfig(t *testing.T) {
-	nodes := []*node.Node{{Id: "1"}, {Id: "2"}}
+	nodes := []*node.Node{{ID: "1"}, {ID: "2"}}
 	masterMap := make(map[string]*node.Node)
 
 	for _, n := range nodes {
-		masterMap[n.Id] = n
+		masterMap[n.ID] = n
 	}
 
 	cfg := &Config{
@@ -34,10 +34,10 @@ func TestMarshalConfig(t *testing.T) {
 	}
 
 	for _, n := range nodes {
-		_, ok := cfg2.Masters.internal[n.Id]
+		_, ok := cfg2.Masters.internal[n.ID]
 
 		if !ok {
-			t.Errorf("Node id %s not found in master map %v", n.Id, cfg2.Masters.internal)
+			t.Errorf("Node id %s not found in master map %v", n.ID, cfg2.Masters.internal)
 			return
 		}
 	}
