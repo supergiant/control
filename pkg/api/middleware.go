@@ -24,33 +24,33 @@ func (m *Middleware) AuthMiddleware(next http.Handler) http.Handler {
 			return
 		}
 
-		ts := strings.Split(authHeader, " ")
-		if len(ts) <= 1 {
+		if ts := strings.Split(authHeader, " ");len(ts) <= 1 {
 			http.Error(w, sgerrors.ErrInvalidCredentials.Error(), http.StatusForbidden)
 			return
+		} else {
+
+			tokenString := ts[1]
+			claims, err := m.TokenService.Validate(tokenString)
+
+			if err != nil {
+				http.Error(w, err.Error(), http.StatusForbidden)
+				return
+			}
+
+			// TODO(stgleb): Do something with claims
+			userId, ok := claims["user_id"].(string)
+			if !ok {
+				http.Error(w, err.Error(), http.StatusForbidden)
+				return
+			}
+
+			if len(userId) == 0 {
+				http.Error(w, "unknown user", http.StatusForbidden)
+				return
+			}
+
+			next.ServeHTTP(w, r)
 		}
-
-		tokenString := ts[1]
-		claims, err := m.TokenService.Validate(tokenString)
-
-		if err != nil {
-			http.Error(w, err.Error(), http.StatusForbidden)
-			return
-		}
-
-		// TODO(stgleb): Do something with claims
-		userId, ok := claims["user_id"].(string)
-		if !ok {
-			http.Error(w, err.Error(), http.StatusForbidden)
-			return
-		}
-
-		if len(userId) == 0 {
-			http.Error(w, "unknown user", http.StatusForbidden)
-			return
-		}
-
-		next.ServeHTTP(w, r)
 	})
 }
 
