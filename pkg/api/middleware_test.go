@@ -150,16 +150,28 @@ func TestAuthMiddleware(t *testing.T) {
 	}
 }
 
+type testHandler struct{
+	called bool
+}
+
+func (h *testHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
+	h.called = true
+}
+
 func TestContentTypeJSON(t *testing.T) {
 	router := mux.NewRouter()
-	router.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {})
-	handler := ContentTypeJSON(router)
+	h := &testHandler{}
+	router.Handle("/", ContentTypeJSON(h))
 
 	rec := httptest.NewRecorder()
 	req, _ := http.NewRequest(http.MethodGet, "/", nil)
-	handler.ServeHTTP(rec, req)
+	router.ServeHTTP(rec, req)
 
 	if h := rec.Header().Get("Content-Type"); !strings.EqualFold(h, "application/json") {
 		t.Errorf("Wrong content type value expected %s actual %s", "application/json", h)
+	}
+
+	if h.called != true {
+		t.Error("json middleware was not called")
 	}
 }
