@@ -11,7 +11,7 @@ import (
 	"k8s.io/helm/pkg/proto/hapi/chart"
 	"k8s.io/helm/pkg/repo"
 
-	"github.com/supergiant/supergiant/pkg/helm/repos"
+	"github.com/supergiant/supergiant/pkg/helm/repositories"
 	"github.com/supergiant/supergiant/pkg/model/helm"
 	"github.com/supergiant/supergiant/pkg/sgerrors"
 	"github.com/supergiant/supergiant/pkg/storage"
@@ -24,24 +24,24 @@ const (
 // Service manages helm repositories.
 type Service struct {
 	storage storage.Interface
-	repos   *repos.Manager
+	repos   *repositories.Manager
 }
 
 // NewService constructs a Service for helm repository.
 func NewService(s storage.Interface) *Service {
 	return &Service{
 		storage: s,
-		repos:   repos.New(filepath.Join(os.TempDir(), ".helm")),
+		repos:   repositories.New(filepath.Join(os.TempDir(), ".helm")),
 	}
 }
 
-// Create stores a helm repository in the provided storage.
-func (s Service) Create(ctx context.Context, e *repo.Entry) (*helm.Repository, error) {
+// CreateRepo stores a helm repository in the provided storage.
+func (s Service) CreateRepo(ctx context.Context, e *repo.Entry) (*helm.Repository, error) {
 	if e == nil {
 		return nil, sgerrors.ErrNotFound
 	}
 
-	r, err := s.Get(ctx, e.Name)
+	r, err := s.GetRepo(ctx, e.Name)
 	if err == nil && r != nil {
 		return nil, sgerrors.ErrAlreadyExists
 	}
@@ -52,7 +52,8 @@ func (s Service) Create(ctx context.Context, e *repo.Entry) (*helm.Repository, e
 	}
 
 	// store the index file
-	rawJSON, err := json.Marshal(toRepo(*e, *ind))
+	r = toRepo(*e, *ind)
+	rawJSON, err := json.Marshal(r)
 	if err != nil {
 		return nil, errors.Wrap(err, "marshal index file")
 	}
@@ -63,8 +64,8 @@ func (s Service) Create(ctx context.Context, e *repo.Entry) (*helm.Repository, e
 	return r, nil
 }
 
-// Get retrieves the repository index file for provided nam.
-func (s Service) Get(ctx context.Context, repoName string) (*helm.Repository, error) {
+// GetRepo retrieves the repository index file for provided nam.
+func (s Service) GetRepo(ctx context.Context, repoName string) (*helm.Repository, error) {
 	res, err := s.storage.Get(ctx, repoPrefix, repoName)
 	if err != nil {
 		return nil, errors.Wrap(err, "storage")
@@ -82,8 +83,8 @@ func (s Service) Get(ctx context.Context, repoName string) (*helm.Repository, er
 	return r, nil
 }
 
-// GetAll retrieves all helm repositories from the storage.
-func (s Service) GetAll(ctx context.Context) ([]helm.Repository, error) {
+// GetAllRepos retrieves all helm repositories from the storage.
+func (s Service) GetAllRepos(ctx context.Context) ([]helm.Repository, error) {
 	rawRepos, err := s.storage.GetAll(ctx, repoPrefix)
 	if err != nil {
 		return nil, errors.Wrap(err, "storage")
@@ -102,9 +103,79 @@ func (s Service) GetAll(ctx context.Context) ([]helm.Repository, error) {
 	return repos, nil
 }
 
-// Delete removes a helm repository from the storage by its name.
-func (s Service) Delete(ctx context.Context, repoName string) error {
+// DeleteRepo removes a helm repository from the storage by its name.
+func (s Service) DeleteRepo(ctx context.Context, repoName string) error {
 	return s.storage.Delete(ctx, repoPrefix, repoName)
+}
+
+func (s Service) GetChart(ctx context.Context, repoName, chartName string) (*helm.Chart, error) {
+	charts, err := s.ListCharts(ctx, repoName)
+	if err != nil {
+		return nil, err
+	}
+
+	for _, chrt := range charts {
+		if chrt.Name == chartName {
+			return &chrt, nil
+		}
+	}
+
+	return nil, sgerrors.ErrNotFound
+}
+
+func (s Service) ListCharts(ctx context.Context, repoName string) ([]helm.Chart, error) {
+	hrepo, err := s.GetRepo(ctx, repoName)
+	if err != nil {
+		return nil, errors.Wrapf(err, "get %s repository info", repoName)
+	}
+
+	return hrepo.Charts, nil
+}
+
+func (s Service) GetChartFiles(ctx context.Context, repoName, chartName, chartVersion string) (*chart.Chart, error) {
+	hrepo, err := s.GetRepo(ctx, repoName)
+	if err != nil {
+		return nil, errors.Wrapf(err, "get %s repository info", repoName)
+	}
+	ref, err := findChartURL(hrepo.Charts, chartName, chartVersion)
+	if err != nil {
+		return nil, errors.Wrapf(err, "get %s(%s) chart", chartName, chartVersion)
+	}
+
+	chrt, err := s.repos.GetChart(hrepo.Config, ref)
+	if err != nil {
+		return nil, errors.Wrapf(err, "get %s chart", ref)
+	}
+
+	return chrt, nil
+}
+
+func findChartURL(charts []helm.Chart, chartName, chartVersion string) (string, error) {
+	for _, chrt := range charts {
+		if chrt.Name != chartName {
+			continue
+		}
+		if len(chrt.Versions) == 0 {
+			break
+		}
+		chrtVer := findChartVersion(chrt.Versions, chartVersion)
+		if len(chrtVer.URLs) != 0 {
+			return chrtVer.URLs[0], nil
+		}
+	}
+	return "", sgerrors.ErrNotFound
+}
+
+func findChartVersion(chrtVers []helm.ChartVersion, version string) helm.ChartVersion {
+	if len(chrtVers) > 0 && version == helm.VersionLatest {
+		return chrtVers[len(chrtVers)-1]
+	}
+	for _, v := range chrtVers {
+		if v.Version == version {
+			return v
+		}
+	}
+	return helm.ChartVersion{}
 }
 
 func toRepo(e repo.Entry, index repo.IndexFile) *helm.Repository {
@@ -123,15 +194,15 @@ func toRepo(e repo.Entry, index repo.IndexFile) *helm.Repository {
 		}
 
 		r.Charts = append(r.Charts, helm.Chart{
-			Name:          name,
-			Repo:          e.Name,
-			Description:   entry[0].Description,
-			Home:          entry[0].Home,
-			Keywords:      entry[0].Keywords,
-			Maintainers:   toMaintainers(entry[0].Maintainers),
-			Sources:       entry[0].Sources,
-			Icon:          entry[0].Icon,
-			ChartVersions: toChartVersions(entry),
+			Name:        name,
+			Repo:        e.Name,
+			Description: entry[0].Description,
+			Home:        entry[0].Home,
+			Keywords:    entry[0].Keywords,
+			Maintainers: toMaintainers(entry[0].Maintainers),
+			Sources:     entry[0].Sources,
+			Icon:        entry[0].Icon,
+			Versions:    toChartVersions(entry),
 		})
 	}
 	return r

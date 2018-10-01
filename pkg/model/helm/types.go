@@ -6,25 +6,29 @@ import (
 	"k8s.io/helm/pkg/repo"
 )
 
+const (
+	VersionLatest = "latest"
+)
+
 // Chart is representation of a helm chart.
 type Chart struct {
-	Name          string         `json:"name"`
-	Repo          string         `json:"repo"`
-	Description   string         `json:"description"`
-	Home          string         `json:"home"`
-	Keywords      []string       `json:"keywords"`
-	Maintainers   []Maintainer   `json:"maintainers"`
-	Sources       []string       `json:"sources"`
-	Icon          string         `json:"icon"`
-	ChartVersions []ChartVersion `json:"chartVersions"`
+	Name        string         `json:"name"`
+	Repo        string         `json:"repo"`
+	Description string         `json:"description"`
+	Home        string         `json:"home"`
+	Keywords    []string       `json:"keywords"`
+	Maintainers []Maintainer   `json:"maintainers"`
+	Sources     []string       `json:"sources"`
+	Icon        string         `json:"icon"`
+	Versions    []ChartVersion `json:"versions"`
 }
 
 type ChartVersion struct {
-	Version    string
-	AppVersion string
-	Created    time.Time
-	Digest     string
-	URLs       []string
+	Version    string    `json:"version"`
+	AppVersion string    `json:"appVersion"`
+	Created    time.Time `json:"created"`
+	Digest     string    `json:"digest"`
+	URLs       []string  `json:"urls"`
 }
 
 type Maintainer struct {
