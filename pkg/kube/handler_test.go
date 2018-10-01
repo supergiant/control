@@ -24,6 +24,7 @@ import (
 	"github.com/supergiant/supergiant/pkg/workflows"
 	"github.com/supergiant/supergiant/pkg/workflows/steps"
 	"io"
+	"strings"
 )
 
 type kubeServiceMock struct {
@@ -54,6 +55,7 @@ const (
 	serviceDelete            = "Delete"
 	serviceListKubeResources = "ListKubeResources"
 	serviceGetKubeResources  = "GetKubeResources"
+	serviceGetCerts          = "GetCerts"
 )
 
 func (m *mockNodeProvisioner) ProvisionNodes(ctx context.Context, nodeProfile []profile.NodeProfile, kube *model.Kube, config *steps.Config) ([]string, error) {
@@ -112,8 +114,14 @@ func (m *kubeServiceMock) GetKubeResources(ctx context.Context, kname, resource,
 	}
 	return val, args.Error(1)
 }
+
 func (m *kubeServiceMock) GetCerts(ctx context.Context, kname, cname string) (*Bundle, error) {
-	return nil, nil
+	args := m.Called(ctx, kname, cname)
+	val, ok := args.Get(0).(*Bundle)
+	if !ok {
+		return nil, args.Error(1)
+	}
+	return val, args.Error(1)
 }
 
 func (a *accServiceMock) Get(ctx context.Context, name string) (*model.CloudAccount, error) {
@@ -714,6 +722,18 @@ func TestDeleteNodeFromKube(t *testing.T) {
 			http.StatusNotFound,
 		},
 		{
+			"get kube unknown error",
+			"test",
+			"test",
+			nil,
+			errors.New("unknown"),
+			"",
+			nil,
+			nil,
+			nil,
+			http.StatusInternalServerError,
+		},
+		{
 			"method not allowed",
 			"test",
 			"test",
@@ -767,6 +787,25 @@ func TestDeleteNodeFromKube(t *testing.T) {
 			sgerrors.ErrNotFound,
 			nil,
 			http.StatusNotFound,
+		},
+		{
+			"account unkown error",
+			"test",
+			"test",
+			&model.Kube{
+				AccountName: "test",
+				Nodes: map[string]*node.Node{
+					"test": {
+						Name: "test",
+					},
+				},
+			},
+			nil,
+			"test",
+			nil,
+			errors.New("account unknown error"),
+			nil,
+			http.StatusInternalServerError,
 		},
 		{
 			"success",
@@ -839,6 +878,220 @@ func TestDeleteNodeFromKube(t *testing.T) {
 
 		if rec.Code != testCase.expectedCode {
 			t.Errorf("Wrong response code expected %d actual %d", testCase.expectedCode, rec.Code)
+		}
+	}
+}
+
+func TestKubeTasks(t *testing.T) {
+	testCases := []struct {
+		repoData [][]byte
+		repoErr  error
+
+		errText   string
+		taskCount int
+	}{
+		{
+			nil,
+			sgerrors.ErrNotFound,
+			"not found",
+			0,
+		},
+		{
+			[][]byte{[]byte(`{`)},
+			nil,
+			"unmarshal",
+			0,
+		},
+		{
+			[][]byte{
+				[]byte(`{"config": {"clusterName":"test"}}`),
+				[]byte(`{"config": {"clusterName":"test2"}}`),
+				[]byte(`{"config": {"clusterName":"test"}}`),
+			},
+			nil,
+			"",
+			2,
+		},
+	}
+
+	for _, testCase := range testCases {
+		repo := &testutils.MockStorage{}
+		repo.On("GetAll", mock.Anything, mock.Anything).
+			Return(testCase.repoData, testCase.repoErr)
+		h := Handler{
+			repo: repo,
+		}
+
+		tasks, err := h.getKubeTasks(context.Background(), "test")
+
+		if err != nil && !strings.Contains(err.Error(), testCase.errText) {
+			t.Errorf("Wrong error error message expected to have %s actual %s",
+				testCase.errText, err.Error())
+		}
+
+		if len(tasks) != testCase.taskCount {
+			t.Errorf("Wrong task count expected %d actual %d",
+				testCase.taskCount, len(tasks))
+		}
+	}
+}
+
+func TestDeleteKubeTasks(t *testing.T) {
+	testCases := []struct {
+		repoData  [][]byte
+		getAllErr error
+
+		deleteErr error
+	}{
+		{
+			nil,
+			sgerrors.ErrNotFound,
+			sgerrors.ErrNotFound,
+		},
+		{
+			[][]byte{
+				[]byte(`{"config": {"clusterName":"test"}}`),
+				[]byte(`{"config": {"clusterName":"test2"}}`),
+				[]byte(`{"config": {"clusterName":"test"}}`),
+			},
+			nil,
+			nil,
+		},
+	}
+
+	for _, testCase := range testCases {
+		repo := &testutils.MockStorage{}
+		repo.On("GetAll", mock.Anything, mock.Anything).
+			Return(testCase.repoData, testCase.getAllErr)
+		repo.On("Delete", mock.Anything, mock.Anything, mock.Anything).
+			Return(testCase.deleteErr)
+		h := Handler{
+			repo: repo,
+		}
+
+		err := h.deleteClusterTasks(context.Background(), "test")
+
+		if errors.Cause(err) != testCase.deleteErr {
+			t.Errorf("Wrong error expected %v actual %v",
+				testCase.deleteErr, err)
+		}
+	}
+}
+
+func TestServiceGetCerts(t *testing.T) {
+	testCases := []struct {
+		kname string
+		cname string
+
+		serviceResp  *Bundle
+		serviceErr   error
+		expectedCode int
+	}{
+		{
+			kname:        "test",
+			cname:        "test",
+			serviceResp:  nil,
+			serviceErr:   sgerrors.ErrNotFound,
+			expectedCode: http.StatusNotFound,
+		},
+		{
+			kname:        "test",
+			cname:        "test",
+			serviceResp:  nil,
+			serviceErr:   errors.New("unknown"),
+			expectedCode: http.StatusInternalServerError,
+		},
+
+		{
+			kname: "test",
+			cname: "test",
+			serviceResp: &Bundle{
+				Cert: []byte(`cert`),
+				Key:  []byte(`key`),
+			},
+			serviceErr:   nil,
+			expectedCode: http.StatusOK,
+		},
+	}
+
+	for _, testCase := range testCases {
+		svc := new(kubeServiceMock)
+		svc.On(serviceGetCerts, mock.Anything, mock.Anything, mock.Anything).
+			Return(testCase.serviceResp, testCase.serviceErr)
+
+		h := Handler{
+			svc: svc,
+		}
+
+		req, _ := http.NewRequest(http.MethodGet,
+			fmt.Sprintf("/kubes/%s/certs/%s", testCase.kname, testCase.cname),
+			nil)
+		rec := httptest.NewRecorder()
+
+		router := mux.NewRouter()
+		router.HandleFunc("/kubes/{kname}/certs/{cname}", h.getCerts)
+		router.ServeHTTP(rec, req)
+
+		if testCase.expectedCode != rec.Code {
+			t.Errorf("Wrong response code expected %d actual %d",
+				testCase.expectedCode, rec.Code)
+		}
+	}
+}
+
+func TestGetTasks(t *testing.T) {
+	testCases := []struct {
+		kname    string
+		repoData [][]byte
+		repoErr  error
+
+		expectedCode int
+	}{
+		{
+			kname:        "",
+			expectedCode: http.StatusMovedPermanently,
+		},
+		{
+			kname:        "test",
+			repoErr:      sgerrors.ErrNotFound,
+			expectedCode: http.StatusNotFound,
+		},
+		{
+			kname:        "test",
+			repoData:     [][]byte{[]byte(`{`)},
+			expectedCode: http.StatusInternalServerError,
+		},
+		{
+			kname: "test",
+			repoData: [][]byte{
+				[]byte(`{"config": {"clusterName":"test"}}`),
+				[]byte(`{"config": {"clusterName":"test2"}}`),
+				[]byte(`{"config": {"clusterName":"test"}}`),
+			},
+			expectedCode: http.StatusOK,
+		},
+	}
+
+	for _, testCase := range testCases {
+		repo := &testutils.MockStorage{}
+		repo.On("GetAll", mock.Anything, mock.Anything).
+			Return(testCase.repoData, testCase.repoErr)
+		h := Handler{
+			repo: repo,
+		}
+
+		rec := httptest.NewRecorder()
+		req, _ := http.NewRequest(http.MethodGet,
+			fmt.Sprintf("/kubes/%s/tasks", testCase.kname),
+			nil)
+
+		router := mux.NewRouter()
+		router.HandleFunc("/kubes/{kname}/tasks", h.getTasks)
+		router.ServeHTTP(rec, req)
+
+		if testCase.expectedCode != rec.Code {
+			t.Errorf("Wrong response code expected %d actual %d",
+				testCase.expectedCode, rec.Code)
 		}
 	}
 }

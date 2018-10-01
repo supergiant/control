@@ -34,7 +34,7 @@ func restClientForGroupVersion(k *model.Kube, gv schema.GroupVersion) (rest.Inte
 	return rest.RESTClientFor(cfg)
 }
 
-func discoveryClient(k *model.Kube) (*discovery.DiscoveryClient, error) {
+func discoveryClient(k *model.Kube) (ServerResourceGetter, error) {
 	var n *node.Node
 
 	if len(k.Masters) > 0 {

@@ -24,7 +24,7 @@ func (m *Middleware) AuthMiddleware(next http.Handler) http.Handler {
 			return
 		}
 
-		if ts := strings.Split(authHeader, " ");len(ts) <= 1 {
+		if ts := strings.Split(authHeader, " "); len(ts) <= 1 {
 			http.Error(w, sgerrors.ErrInvalidCredentials.Error(), http.StatusForbidden)
 			return
 		} else {

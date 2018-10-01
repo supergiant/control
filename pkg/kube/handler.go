@@ -559,6 +559,7 @@ func (h *Handler) deleteClusterTasks(ctx context.Context, clusterName string) er
 	for _, task := range tasks {
 		if err := h.repo.Delete(ctx, workflows.Prefix, task.ID); err != nil {
 			logrus.Warnf("delete task %s: %v", task.ID, err)
+			return err
 		}
 	}
 

@@ -150,7 +150,7 @@ func TestAuthMiddleware(t *testing.T) {
 	}
 }
 
-type testHandler struct{
+type testHandler struct {
 	called bool
 }
 

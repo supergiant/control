@@ -5,8 +5,8 @@ import (
 	"encoding/json"
 
 	"github.com/pkg/errors"
+	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/runtime/schema"
-	"k8s.io/client-go/discovery"
 	"k8s.io/client-go/rest"
 
 	"github.com/supergiant/supergiant/pkg/model"
@@ -28,9 +28,13 @@ type Interface interface {
 	GetCerts(ctx context.Context, kname, cname string) (*Bundle, error)
 }
 
+type ServerResourceGetter interface {
+	ServerResources() ([]*metav1.APIResourceList, error)
+}
+
 // Service manages kubernetes clusters.
 type Service struct {
-	discoveryClientFn func(k *model.Kube) (*discovery.DiscoveryClient, error)
+	discoveryClientFn func(k *model.Kube) (ServerResourceGetter, error)
 	clientForGroupFn  func(k *model.Kube, gv schema.GroupVersion) (rest.Interface, error)
 
 	prefix  string
@@ -161,6 +165,7 @@ func (s *Service) GetCerts(ctx context.Context, kname, cname string) (*Bundle, e
 		return nil, err
 	}
 
+	// TODO(stgleb): pass host info here
 	r, err := ssh.NewRunner(ssh.Config{
 		User: kube.SshUser,
 		Key:  kube.SshPublicKey,
