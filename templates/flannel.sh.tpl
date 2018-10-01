@@ -18,13 +18,14 @@ ExecStart=/usr/bin/flanneld --etcd-endpoints=http://{{ .EtcdHost }}:2379
 WantedBy=multi-user.target
 EOF
 
+mkdir -p /etc/cni/
 cat << EOF > /etc/cni/net.d
 {
-  "cniVersion": "0.4.0",
-  "name": "mynet",
+	"name": "mynet",
 	"type": "flannel",
 	"delegate": {
-        "isDefaultGateway": true
+		"type": "ipvlan",
+		"master": "eth0"
 	}
 }
 EOF
