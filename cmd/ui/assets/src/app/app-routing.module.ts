@@ -2,12 +2,10 @@ import { NgModule } from '@angular/core';
 import { Routes, RouterModule } from '@angular/router';
 import { NodesComponent } from './nodes/nodes.component';
 import { ServicesComponent } from './services/services.component';
-import { AppsComponent } from './apps/apps.component';
 import { LoginComponent } from './login/login.component';
 import { NodeDetailsComponent } from './nodes/node-details/node-details.component';
 import { ServiceDetailsComponent } from './services/service-details/service-details.component';
 import { ServicesListComponent } from './services/services-list/services-list.component';
-import { AppsListComponent } from './apps/apps-list/apps-list.component';
 import { NewKubeResourceComponent } from './kube-resources/new-kube-resource/new-kube-resource.component';
 
 // ui 2000 components
@@ -27,9 +25,6 @@ import { ClusterComponent } from './clusters/cluster/cluster.component';
 import { ClustersListComponent } from './clusters/clusters-list/clusters-list.component';
 import { DashboardTutorialComponent } from './tutorials/dashboard-tutorial/dashboard-tutorial.component';
 import { SystemTutorialComponent } from './tutorials/system-tutorial/system-tutorial.component';
-import { AppsTutorialComponent } from './tutorials/apps-tutorial/apps-tutorial.component';
-import { NewAppListComponent } from './apps/new-app-list/new-app-list.component';
-import { NewAppComponent } from './apps/new-app/new-app.component';
 import { LogsComponent } from './system/logs/logs.component';
 // auth guard
 import {
@@ -41,14 +36,6 @@ const appRoutes: Routes = [
   {
     path: 'dashboard', component: DashboardComponent, canActivate: [AuthGuard], children: [
       { path: '', component: DashboardTutorialComponent },
-    ]
-  },
-  {
-    path: 'apps', component: AppsComponent, canActivate: [AuthGuard], children: [
-      { path: '', component: AppsTutorialComponent },
-      { path: '', component: AppsListComponent },
-      { path: 'new', component: NewAppListComponent },
-      { path: 'new/:id', component: NewAppComponent },
     ]
   },
   {

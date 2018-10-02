@@ -76,9 +76,7 @@ import { DropdownModalComponent } from './shared/dropdown-modal/dropdown-modal.c
 import { EditModalComponent } from './shared/edit-modal/edit-modal.component';
 import { LoginComponent } from './login/login.component';
 import { CookiesComponent } from './shared/cookies/cookies.component';
-import { AppsComponent } from './apps/apps.component';
 import { Search } from './shared/search-pipe/search-pipe';
-import { HelmAppComponent } from './apps/app/helm-app.component';
 import { NodeDetailsComponent } from './nodes/node-details/node-details.component';
 import { SessionDetailsComponent } from './sessions/session-details/session-details.component';
 import { SessionsListComponent } from './sessions/sessions-list/sessions-list.component';
@@ -91,13 +89,11 @@ import { LoadBalancersListComponent } from './load-balancers/load-balancers-list
 import { ServiceDetailsComponent } from './services/service-details/service-details.component';
 import { ServicesListComponent } from './services/services-list/services-list.component';
 import { SupergiantComponent } from './shared/supergiant/supergiant.component';
-import { AppsListComponent } from './apps/apps-list/apps-list.component';
 // Component Services
 import { SessionsService } from './sessions/sessions.service';
 import { CloudAccountsService } from './cloud-accounts/cloud-accounts.service';
 import { UsersService } from './users/users.service';
 import { NodesService } from './nodes/nodes.service';
-import { AppsService } from './apps/apps.service';
 import { ServicesService } from './services/services.service';
 import { LoadBalancersService } from './load-balancers/load-balancers.service';
 import { Notifications } from './shared/notifications/notifications.service';
@@ -153,8 +149,6 @@ import { DashboardTutorialComponent } from './tutorials/dashboard-tutorial/dashb
 import { ClustersTutorialComponent } from './tutorials/clusters-tutorial/clusters-tutorial.component';
 import { SystemTutorialComponent } from './tutorials/system-tutorial/system-tutorial.component';
 import { AppsTutorialComponent } from './tutorials/apps-tutorial/apps-tutorial.component';
-import { NewAppListComponent } from './apps/new-app-list/new-app-list.component';
-import { NewAppComponent } from './apps/new-app/new-app.component';
 import { LogsComponent } from './system/logs/logs.component';
 import { NewKubeResourceComponent } from './kube-resources/new-kube-resource/new-kube-resource.component';
 import { ToolbarComponent } from './navigation/toolbar/toolbar.component';
@@ -190,8 +184,6 @@ import { UsageChartComponent } from './clusters/cluster/usage-chart/usage-chart.
     EditModalComponent,
     LoginComponent,
     CookiesComponent,
-    AppsComponent,
-    HelmAppComponent,
     NodeDetailsComponent,
     SessionDetailsComponent,
     SessionsListComponent,
@@ -205,7 +197,6 @@ import { UsageChartComponent } from './clusters/cluster/usage-chart/usage-chart.
     ServicesListComponent,
     Search,
     SupergiantComponent,
-    AppsListComponent,
     DashboardComponent,
     ClustersComponent,
     NewCloudAccountComponent,
@@ -225,8 +216,6 @@ import { UsageChartComponent } from './clusters/cluster/usage-chart/usage-chart.
     ClustersTutorialComponent,
     SystemTutorialComponent,
     AppsTutorialComponent,
-    NewAppListComponent,
-    NewAppComponent,
     LogsComponent,
     NewKubeResourceComponent,
     ToolbarComponent,
@@ -295,7 +284,6 @@ import { UsageChartComponent } from './clusters/cluster/usage-chart/usage-chart.
     NodesService,
     LoadBalancersService,
     ServicesService,
-    AppsService,
     // Supergiant API Services
     Supergiant,
     UtilService,
