@@ -39,6 +39,10 @@ const appRoutes: Routes = [
     ]
   },
   {
+    path: 'apps',
+    loadChildren: 'app/features/app-store/app-store.module#AppStoreModule'
+  },
+  {
     path: 'clusters', component: ClustersComponent, canActivate: [AuthGuard], children: [
       { path: '', component: ClustersListComponent },
       { path: 'new', component: NewClusterComponent },
