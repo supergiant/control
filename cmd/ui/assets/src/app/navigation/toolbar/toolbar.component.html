@@ -2,26 +2,17 @@
   <span class="item"
         routerLink="/dashboard"
         routerLinkActive="active">
-    <span>DASHBOARD</span>
+    <span>HOME</span>
   </span>
   <span class="item"
         routerLink="/clusters"
         routerLinkActive="active">
-    <span  [matMenuTriggerFor]="menu">CLUSTERS
-    <i class="fa fa-angle-down"></i></span>
-
+    <span>CLUSTERS</span>
   </span>
-  <mat-menu #menu="matMenu" yPosition="below">
-    <button mat-menu-item>Item 1</button>
-    <button mat-menu-item>Item 2</button>
-  </mat-menu>
 
   <span class="item"
         routerLink="/apps"
         routerLinkActive="active">
     <span>APPS</span>
   </span>
-  <span class="item"
-        routerLink="/services"
-        routerLinkActive="active"><span>SERVICES</span></span>
 </mat-toolbar>

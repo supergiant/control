@@ -13,16 +13,16 @@ a:hover {
 .item {
   letter-spacing: 2px;
   font-size: 14px;
-  margin-right: 64px;
+  margin-right: 48px;
+  cursor: pointer;
 
   &:last-child {
     margin-right: 0;
   }
 
-  &.active {
+  &.active, &:active {
     color: $rose;
     outline: none;
-    border-bottom: 1px solid $rose;
-    padding-bottom: 10px;
+    border-bottom: 2px solid $rose;
   }
 }
