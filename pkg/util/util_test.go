@@ -10,7 +10,6 @@ import (
 	"github.com/supergiant/supergiant/pkg/workflows/steps"
 )
 
-
 func TestRandomStringLen(t *testing.T) {
 	testCases := []int{4, 8, 16}
 
