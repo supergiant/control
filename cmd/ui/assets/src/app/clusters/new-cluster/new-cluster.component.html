@@ -1,8 +1,83 @@
 <div class="new-clusters-wrapper">
   <h1>Create Kubernetes Cluster</h1>
-  <div class="inputs-wrapper" [ngClass]="{ large: selectedCloudAccount }">
 
-    <!-- left -->
+  <form>
+    <mat-horizontal-stepper [linear]="isLinear" #stepper>
+
+      <mat-step label="Choose cloud account">
+        <mat-form-field>
+          <mat-select placeholder="Choose a cloud account" [(value)]="selectedCloudAccount" (selectionChange)="selectCloudAccount($event.value)">
+            <mat-option *ngFor="let account of availableCloudAccounts" [value]="account">{{ account.name }}</mat-option>
+          </mat-select>
+        </mat-form-field>
+      </mat-step>
+
+      <mat-step label="Cluster Configuration" [stepControl]="clusterConfig">
+        <form [formGroup]="clusterConfig">
+          <mat-form-field>
+            <input matInput type="text" placeholder="Specify Name" formControlName="name">
+          </mat-form-field>
+
+          <mat-form-field>
+            <mat-select placeholder="K8s Version" formControlName="k8sVersion">
+              <mat-option *ngFor="let k of clusterOptions.k8sVersions" [value]="k">{{ k }}</mat-option>
+            </mat-select>
+          </mat-form-field>
+
+          <mat-form-field>
+            <mat-select placeholder="Flannel Version" formControlName="flannelVersion">
+              <mat-option *ngFor="let f of clusterOptions.flannelVersions" [value]="f">{{ f }}</mat-option>
+            </mat-select>
+          </mat-form-field>
+
+          <mat-form-field>
+            <mat-select placeholder="Helm Version" formControlName="helmVersion">
+              <mat-option *ngFor="let h of clusterOptions.helmVersions" [value]="h">{{ h }}</mat-option>
+            </mat-select>
+          </mat-form-field>
+
+          <mat-form-field>
+            <mat-select placeholder="Docker Version" formControlName="dockerVersion">
+              <mat-option *ngFor="let d of clusterOptions.dockerVersions" [value]="d">{{ d }}</mat-option>
+            </mat-select>
+          </mat-form-field>
+
+          <mat-form-field>
+            <mat-select placeholder="Ubuntu Version" formControlName="ubuntuVersion">
+              <mat-option *ngFor="let u of clusterOptions.ubuntuVersions" [value]="u">{{ u }}</mat-option>
+            </mat-select>
+          </mat-form-field>
+
+          <mat-form-field>
+            <mat-select placeholder="Network Type" formControlName="networkType">
+              <mat-option *ngFor="let n of clusterOptions.networkTypes" [value]="n">{{ n }}</mat-option>
+            </mat-select>
+          </mat-form-field>
+
+          <mat-form-field>
+            <input matInput placeholder="cidr" type="text" formControlName="cidr">
+          </mat-form-field>
+
+          <mat-form-field>
+            <mat-select placeholder="Operating System" formControlName="operatingSystem">
+              <mat-option *ngFor="let os of clusterOptions.operatingSystems" [value]="os">{{ os }}</mat-option>
+            </mat-select>
+          </mat-form-field>
+
+          <mat-form-field>
+            <mat-select placeholder="Arch" formControlName="arch">
+              <mat-option *ngFor="let a of clusterOptions.archs" [value]="a">{{ a }}</mat-option>
+            </mat-select>
+          </mat-form-field>
+
+        </form>
+      </mat-step>
+
+    </mat-horizontal-stepper>
+  </form>
+
+  <!-- <div class="inputs-wrapper" [ngClass]="{ large: selectedCloudAccount }">
+
     <div class="input-group">
       <mat-form-field>
         <mat-select placeholder="Select a Cloud Account" [(value)]="selectedCloudAccount" (selectionChange)="selectCloudAccount($event.value)">
@@ -21,7 +96,6 @@
       </mat-form-field>
 
       <div class="machine-list" *ngIf="selectedCloudAccount" [ngClass]="{ disable: !selectedRegion }">
-      <!-- <ng-container *ngIf="selectedRegion"> -->
         <div class="machine" *ngFor="let m of machines; let idx = index">
           <mat-form-field class="type">
             <mat-select placeholder="Machine Type (size)" id="m.machineType" [(value)]="m.machineType">
@@ -48,10 +122,8 @@
           <span class="add-label">Add more machines</span>
         </div>
       </div>
-      <!-- </ng-container> -->
     </div>
 
-    <!-- right -->
     <div class="input-group" *ngIf="selectedCloudAccount">
       <div class="profile-row">
         <mat-form-field>
@@ -126,8 +198,6 @@
         <button mat-raised-button class="secondary">SAVE CONF.</button>
         <button mat-raised-button color="primary" (click)="createCluster(newDigitalOceanCluster)">CREATE</button>
       </div>
+  </div> -->
 
-    </div>
-
-  </div>
 </div>

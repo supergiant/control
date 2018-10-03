@@ -1,13 +1,9 @@
 import { Component, OnInit, OnDestroy, AfterViewInit, ViewEncapsulation } from '@angular/core';
 import { Subscription } from 'rxjs';
 import { Supergiant } from '../../shared/supergiant/supergiant.service';
-import { ClusterAWSModel } from '../cluster.aws.model';
-import { ClusterDigitalOceanModel } from '../cluster.digitalocean.model';
-import { ClusterGCEModel } from '../cluster.gce.model';
-import { ClusterOpenStackModel } from '../cluster.openstack.model';
-import { ClusterPacketModel } from '../cluster.packet.model';
 import { Notifications } from '../../shared/notifications/notifications.service';
 import { Router } from '@angular/router';
+import { FormBuilder, FormGroup, Validators } from '@angular/forms';
 
 @Component({
   selector: 'app-new-cluster',
@@ -18,13 +14,6 @@ import { Router } from '@angular/router';
 export class NewClusterComponent implements OnInit, OnDestroy {
   subscriptions = new Subscription();
   cloudAccountsList: any;
-  awsModel = new ClusterAWSModel;
-  doModel = new ClusterDigitalOceanModel;
-  gceModel = new ClusterGCEModel;
-  osModel = new ClusterOpenStackModel;
-  packModel = new ClusterPacketModel;
-  hasCluster = false;
-  hasCloudAccount = false;
   hasApp = false;
   appCount = 0;
   data: any;
@@ -47,7 +36,7 @@ export class NewClusterComponent implements OnInit, OnDestroy {
     qty: 1
   }];
 
-  profileOptions = {
+  clusterOptions = {
     archs: ["amd64"],
     flannelVersions: ["0.10.0"],
     operatingSystems: ["linux"],
@@ -55,7 +44,7 @@ export class NewClusterComponent implements OnInit, OnDestroy {
     ubuntuVersions: ["xenial"],
     helmVersions: ["2.8.0"],
     dockerVersions: ["17.06.0"],
-    K8SVersions: ["1.11.1"],
+    k8sVersions: ["1.11.1", "1.8"],
     rbacEnabled: [true, false]
   }
 
@@ -83,12 +72,19 @@ export class NewClusterComponent implements OnInit, OnDestroy {
     private supergiant: Supergiant,
     private notifications: Notifications,
     private router: Router,
+    private formBuilder: FormBuilder
   ) { }
+
+  isLinear = false;
+  clusterConfig: FormGroup;
+  providerConfig: FormGroup;
+  machinesConfig: FormGroup;
 
   getCloudAccounts() {
     this.subscriptions.add(this.supergiant.CloudAccounts.get().subscribe(
       (cloudAccounts) => {
         this.availableCloudAccounts = cloudAccounts;
+        // set this.providerConfig here
       })
     );
   }
@@ -121,12 +117,12 @@ export class NewClusterComponent implements OnInit, OnDestroy {
 
     console.log(model);
 
-    this.subscriptions.add(this.supergiant.Kubes.create(model).subscribe(
-      (data) => {
-        this.success(model);
-        this.router.navigate(['/clusters/', this.clusterName]);
-      },
-      (err) => { this.error(model, err); }));
+    // this.subscriptions.add(this.supergiant.Kubes.create(model).subscribe(
+    //   (data) => {
+    //     this.success(model);
+    //     this.router.navigate(['/clusters/', this.clusterName]);
+    //   },
+    //   (err) => { this.error(model, err); }));
   }
 
   success(model) {
@@ -170,49 +166,7 @@ export class NewClusterComponent implements OnInit, OnDestroy {
   }
 
   selectCloudAccount(cloudAccount) {
-    switch (cloudAccount.provider) {
-      case 'aws': {
-        this.data = this.awsModel.aws.data;
-        this.schema = this.awsModel.aws.schema;
-        this.layout = this.awsModel.aws.layout;
-        this.data.cloudAccountName = cloudAccount.name;
-        break;
-      }
-      case 'digitalocean': {
-        this.schema = this.doModel.digitalocean.schema;
-        this.data = this.doModel.digitalocean.data;
-        // this.layout = this.doModel.digitalocean.layout;
-        this.data.cloudAccountName = cloudAccount.name;
-        break;
-      }
-      case 'packet': {
-        this.data = this.packModel.packet.data;
-        this.schema = this.packModel.packet.schema;
-        this.layout = this.packModel.packet.layout;
-        this.data.cloudAccountName = cloudAccount.name;
-        break;
-      }
-      case 'openstack': {
-        this.data = this.osModel.openstack.data;
-        this.schema = this.osModel.openstack.schema;
-        this.layout = this.osModel.openstack.layout;
-        this.data.cloudAccountName = cloudAccount.name;
-        break;
-      }
-      case 'gce': {
-        this.data = this.gceModel.gce.data;
-        this.schema = this.gceModel.gce.schema;
-        this.layout = this.gceModel.gce.layout;
-        this.data.cloudAccountName = cloudAccount.name;
-        break;
-      }
-      default: {
-        this.data = null;
-        this.schema = null;
-        this.layout = null;
-        break;
-      }
-    };
+    this.selectedCloudAccount = cloudAccount
 
     this.subscriptions.add(this.supergiant.CloudAccounts.getRegions(cloudAccount.name).subscribe(
         regionList => {
@@ -224,6 +178,22 @@ export class NewClusterComponent implements OnInit, OnDestroy {
   }
 
   ngOnInit() {
+    // build 4 form groups
+    // leave providerConfig empty
+    this.clusterConfig = this.formBuilder.group({
+      name: [""],
+      k8sVersion: [""],
+      flannelVersion: [""],
+      helmVersion: [""],
+      dockerVersion: [""],
+      ubuntuVersion: [""],
+      networkType: [""],
+      cidr: [""],
+      operatingSystem: [""],
+      arch: [""]
+    });
+
+    // get cloud accounts
     this.getCloudAccounts();
   }
 
