@@ -1,5 +1,23 @@
-<p>
-  app-store works!
-</p>
-<nav><a routerLink="list">App list</a></nav>
+<section class="header">
+  <h1>
+    Apps Store
+  </h1>
+
+  <input class="search-input"
+         type="text"
+         placeholder="Filter apps by name">
+
+  <nav class="apps-nav">
+    <a routerLinkActive="active"
+       [routerLink]="['supergiant']"><span>Supergiant</span>
+      <hr></a>
+    <a routerLinkActive="active"
+       [routerLink]="['verified']">Verified</a>
+    <a routerLinkActive="active"
+       [routerLink]="['others']">Others</a>
+    <a routerLinkActive="active"
+       [routerLink]="['add']"><i class="fa fa-plus-circle"></i></a>
+  </nav>
+</section>
+
 <router-outlet></router-outlet>
