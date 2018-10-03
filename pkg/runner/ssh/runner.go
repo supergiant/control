@@ -3,11 +3,10 @@ package ssh
 import (
 	"context"
 	"strings"
+	"time"
 
 	"github.com/pkg/errors"
 	"golang.org/x/crypto/ssh"
-
-	"time"
 
 	"github.com/supergiant/supergiant/pkg/runner"
 )

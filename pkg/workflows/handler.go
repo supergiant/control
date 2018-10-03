@@ -15,6 +15,7 @@ import (
 	"github.com/gorilla/websocket"
 	"github.com/hpcloud/tail"
 	"github.com/sirupsen/logrus"
+
 	"github.com/supergiant/supergiant/pkg/message"
 	"github.com/supergiant/supergiant/pkg/model"
 	"github.com/supergiant/supergiant/pkg/runner"
