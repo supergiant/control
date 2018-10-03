@@ -2,12 +2,12 @@ package amazon
 
 import (
 	"context"
-	"errors"
 	"fmt"
 	"io"
 
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/service/ec2"
+	"github.com/pkg/errors"
 	"github.com/supergiant/supergiant/pkg/util"
 	"github.com/supergiant/supergiant/pkg/workflows/steps"
 )
@@ -18,28 +18,34 @@ type CreateSecurityGroupsStep struct {
 	GetEC2 GetEC2Fn
 }
 
+func NewCreateSecurityGroupsStep(fn GetEC2Fn) *CreateSecurityGroupsStep {
+	return &CreateSecurityGroupsStep{
+		GetEC2: fn,
+	}
+}
+
 func (s *CreateSecurityGroupsStep) Run(ctx context.Context, w io.Writer, cfg *steps.Config) error {
 	log := util.GetLogger(w)
 	EC2, err := s.GetEC2(cfg.AWSConfig)
 	if err != nil {
-		return errors.New("aws: authorization")
+		return ErrAuthorization
 	}
 
 	if cfg.AWSConfig.VPCID == "" {
-		err := errors.New("aws: no vpc id provided for security groups")
-		log.Errorf("[%s] %v", s.Name(), err)
-		return err
+		err := errors.New("no vpc id provided for security groups creation")
+		log.Errorf("[%s] - %v", s.Name(), err)
+		return errors.Wrap(ErrAuthorization, err.Error())
 	}
 
 	if cfg.AWSConfig.MastersSecurityGroup == "" {
-		log.Infof("[%s] - masters security groups not specified, will create a new one...")
+		log.Infof("[%s] - masters security groups not specified, will create a new one...", s.Name())
 		out, err := EC2.CreateSecurityGroupWithContext(ctx, &ec2.CreateSecurityGroupInput{
 			Description: aws.String("Security group for Kubernetes masters for cluster " + cfg.ClusterName),
 			VpcId:       aws.String(cfg.AWSConfig.VPCID),
 			GroupName:   aws.String(fmt.Sprintf("%s-masters-secgroup", cfg.ClusterName)),
 		})
 		if err != nil {
-			log.Error(err)
+			log.Errorf("[%s] - create security groups for k8s masters: %v", s.Name(), err)
 			return err
 		}
 		cfg.AWSConfig.MastersSecurityGroup = *out.GroupId
@@ -53,7 +59,7 @@ func (s *CreateSecurityGroupsStep) Run(ctx context.Context, w io.Writer, cfg *st
 			GroupName:   aws.String(fmt.Sprintf("%s-nodes-secgroup", cfg.ClusterName)),
 		})
 		if err != nil {
-			log.Error(err)
+			log.Errorf("[%s] - create security groups for k8s nodes: %v", s.Name(), err)
 			return err
 		}
 		cfg.AWSConfig.NodesSecurityGroup = *out.GroupId
