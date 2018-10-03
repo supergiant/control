@@ -219,8 +219,8 @@ func configureApplication(cfg *Config) (*mux.Router, error) {
 	ssh.Init()
 	network.Init()
 	clustercheck.Init()
-	amazon.InitCreateKeyPair()
-	amazon.InitStepCreateInstance()
+	amazon.InitCreateKeyPair(amazon.GetEC2)
+	amazon.InitStepCreateInstance(amazon.GetEC2)
 	workflows.Init()
 
 	taskHandler := workflows.NewTaskHandler(repository, sshRunner.NewRunner, accountService)

@@ -15,11 +15,12 @@ import (
 const CreateSecurityGroupsStepName = "create_security_groups_step"
 
 type CreateSecurityGroupsStep struct {
+	GetEC2 GetEC2Fn
 }
 
 func (s *CreateSecurityGroupsStep) Run(ctx context.Context, w io.Writer, cfg *steps.Config) error {
 	log := util.GetLogger(w)
-	sdk, err := GetSDK(cfg.AWSConfig)
+	EC2, err := s.GetEC2(cfg.AWSConfig)
 	if err != nil {
 		return errors.New("aws: authorization")
 	}
@@ -32,7 +33,7 @@ func (s *CreateSecurityGroupsStep) Run(ctx context.Context, w io.Writer, cfg *st
 
 	if cfg.AWSConfig.MastersSecurityGroup == "" {
 		log.Infof("[%s] - masters security groups not specified, will create a new one...")
-		out, err := sdk.EC2.CreateSecurityGroupWithContext(ctx, &ec2.CreateSecurityGroupInput{
+		out, err := EC2.CreateSecurityGroupWithContext(ctx, &ec2.CreateSecurityGroupInput{
 			Description: aws.String("Security group for Kubernetes masters for cluster " + cfg.ClusterName),
 			VpcId:       aws.String(cfg.AWSConfig.VPCID),
 			GroupName:   aws.String(fmt.Sprintf("%s-masters-secgroup", cfg.ClusterName)),
@@ -46,7 +47,7 @@ func (s *CreateSecurityGroupsStep) Run(ctx context.Context, w io.Writer, cfg *st
 	//If there is no security group, create it
 	if cfg.AWSConfig.NodesSecurityGroup == "" {
 		log.Infof("[%s] - node security groups not specified, will create a new one...")
-		out, err := sdk.EC2.CreateSecurityGroupWithContext(ctx, &ec2.CreateSecurityGroupInput{
+		out, err := EC2.CreateSecurityGroupWithContext(ctx, &ec2.CreateSecurityGroupInput{
 			Description: aws.String("Security group for Kubernetes nodes for cluster " + cfg.ClusterName),
 			VpcId:       aws.String(cfg.AWSConfig.VPCID),
 			GroupName:   aws.String(fmt.Sprintf("%s-nodes-secgroup", cfg.ClusterName)),
@@ -58,10 +59,6 @@ func (s *CreateSecurityGroupsStep) Run(ctx context.Context, w io.Writer, cfg *st
 		cfg.AWSConfig.NodesSecurityGroup = *out.GroupId
 	}
 	return nil
-}
-
-func createSecurityGroup() {
-
 }
 
 func (*CreateSecurityGroupsStep) Name() string {

@@ -7,6 +7,7 @@ import (
 
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/service/ec2"
+	"github.com/aws/aws-sdk-go/service/ec2/ec2iface"
 	"github.com/pkg/errors"
 	"github.com/sirupsen/logrus"
 
@@ -23,24 +24,27 @@ const (
 )
 
 type StepCreateInstance struct {
+	GetEC2 GetEC2Fn
 }
 
 //InitStepCreateInstance adds the step to the registry
-func InitStepCreateInstance() {
-	steps.RegisterStep(StepNameCreateEC2Instance, NewCreateInstance())
+func InitStepCreateInstance(fn func(steps.AWSConfig) (ec2iface.EC2API, error)) {
+	steps.RegisterStep(StepNameCreateEC2Instance, NewCreateInstance(fn))
 }
 
-func NewCreateInstance() *StepCreateInstance {
-	return &StepCreateInstance{}
+func NewCreateInstance(fn GetEC2Fn) *StepCreateInstance {
+	return &StepCreateInstance{
+		GetEC2: fn,
+	}
 }
 
 func (s *StepCreateInstance) Run(ctx context.Context, w io.Writer, cfg *steps.Config) error {
 	log := util.GetLogger(w)
 	log.Infof("[%s] - started", StepNameCreateEC2Instance)
-	//TODO ADD VALIDATION
 
 	var secGroupID *string
 
+	//Determining a sec group in AWS for EC2 instance to be spawned.
 	if cfg.IsMaster {
 		if cfg.AWSConfig.MastersSecurityGroup == "default" {
 			secGroupID = nil
@@ -57,7 +61,7 @@ func (s *StepCreateInstance) Run(ctx context.Context, w io.Writer, cfg *steps.Co
 
 	ec2Cfg := cfg.AWSConfig.EC2Config
 
-	sdk, err := GetSDK(cfg.AWSConfig)
+	EC2, err := s.GetEC2(cfg.AWSConfig)
 	if err != nil {
 		logrus.Errorf("[%s] - failed to authorize in AWS: %v", s.Name(), err)
 		return errors.Wrap(err, "aws: authorization")
@@ -122,7 +126,7 @@ func (s *StepCreateInstance) Run(ctx context.Context, w io.Writer, cfg *steps.Co
 	}
 
 	cfg.Node = node.Node{
-		TaskID: cfg.TaskID,
+		TaskID:   cfg.TaskID,
 		Region:   cfg.AWSConfig.Region,
 		Role:     role,
 		Provider: clouds.AWS,
@@ -132,7 +136,7 @@ func (s *StepCreateInstance) Run(ctx context.Context, w io.Writer, cfg *steps.Co
 	// Update node state in cluster
 	cfg.NodeChan() <- cfg.Node
 
-	res, err := sdk.EC2.RunInstancesWithContext(ctx, runInstanceInput)
+	res, err := EC2.RunInstancesWithContext(ctx, runInstanceInput)
 	if err != nil {
 		cfg.Node.State = node.StateError
 		cfg.NodeChan() <- cfg.Node
@@ -175,7 +179,7 @@ func (s *StepCreateInstance) Run(ctx context.Context, w io.Writer, cfg *steps.Co
 					},
 				},
 			}
-			out, err := sdk.EC2.DescribeInstancesWithContext(ctx, lookup)
+			out, err := EC2.DescribeInstancesWithContext(ctx, lookup)
 			if err != nil {
 				cfg.Node.State = node.StateError
 				cfg.NodeChan() <- cfg.Node
@@ -221,13 +225,13 @@ func (s *StepCreateInstance) Rollback(ctx context.Context, w io.Writer, cfg *ste
 	log := util.GetLogger(w)
 	log.Infof("[%s] - rollback initiated", s.Name())
 
-	sdk, err := GetSDK(cfg.AWSConfig)
+	EC2, err := s.GetEC2(cfg.AWSConfig)
 	if err != nil {
 		return errors.New("aws: authorization")
 	}
 
 	if cfg.Node.ID != "" {
-		_, err := sdk.EC2.TerminateInstancesWithContext(ctx, &ec2.TerminateInstancesInput{
+		_, err := EC2.TerminateInstancesWithContext(ctx, &ec2.TerminateInstancesInput{
 			InstanceIds: []*string{
 				aws.String(cfg.Node.ID),
 			},

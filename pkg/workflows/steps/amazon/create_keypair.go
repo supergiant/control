@@ -16,21 +16,24 @@ const StepName = "awskeypairstep"
 //KeyPairStep represents creation of keypair in aws
 //since there is hard cap on keypairs per account supergiant will create one per clster
 type KeyPairStep struct {
+	GetEC2 GetEC2Fn
 }
 
-func NewKeyPairStep() *KeyPairStep {
-	return &KeyPairStep{}
+func NewKeyPairStep(fn GetEC2Fn) *KeyPairStep {
+	return &KeyPairStep{
+		GetEC2: fn,
+	}
 }
 
 //InitCreateKeyPair add the step to the registry
-func InitCreateKeyPair() {
-	steps.RegisterStep(StepName, NewKeyPairStep())
+func InitCreateKeyPair(fn GetEC2Fn) {
+	steps.RegisterStep(StepName, NewKeyPairStep(fn))
 }
 
 func (s *KeyPairStep) Run(ctx context.Context, w io.Writer, cfg *steps.Config) error {
 	log := util.GetLogger(w)
 
-	sdk, err := GetSDK(cfg.AWSConfig)
+	EC2, err := s.GetEC2(cfg.AWSConfig)
 	if err != nil {
 		return errors.New("aws: authorization")
 	}
@@ -43,7 +46,7 @@ func (s *KeyPairStep) Run(ctx context.Context, w io.Writer, cfg *steps.Config) e
 		PublicKeyMaterial: []byte(cfg.SshConfig.PublicKey),
 	}
 
-	output, err := sdk.EC2.ImportKeyPairWithContext(ctx, req)
+	output, err := EC2.ImportKeyPairWithContext(ctx, req)
 
 	keyPairName := util.MakeKeyName(cfg.AWSConfig.KeyPairName, false)
 
@@ -56,7 +59,7 @@ func (s *KeyPairStep) Run(ctx context.Context, w io.Writer, cfg *steps.Config) e
 		PublicKeyMaterial: []byte(cfg.SshConfig.BootstrapPublicKey),
 	}
 
-	output, err = sdk.EC2.ImportKeyPairWithContext(ctx, req)
+	output, err = EC2.ImportKeyPairWithContext(ctx, req)
 
 	if err != nil {
 		return errors.Wrap(err, "create provision key pair")
@@ -67,12 +70,12 @@ func (s *KeyPairStep) Run(ctx context.Context, w io.Writer, cfg *steps.Config) e
 }
 
 func (s *KeyPairStep) Rollback(ctx context.Context, w io.Writer, cfg *steps.Config) error {
-	sdk, err := GetSDK(cfg.AWSConfig)
+	EC2, err := s.GetEC2(cfg.AWSConfig)
 	if err != nil {
 		return errors.New("aws: authorization")
 	}
 
-	_, err = sdk.EC2.DeleteKeyPairWithContext(ctx, &ec2.DeleteKeyPairInput{
+	_, err = EC2.DeleteKeyPairWithContext(ctx, &ec2.DeleteKeyPairInput{
 		KeyName: aws.String(cfg.AWSConfig.KeyPairName),
 	})
 	return err

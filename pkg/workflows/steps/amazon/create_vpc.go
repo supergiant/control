@@ -13,13 +13,19 @@ import (
 
 //CreateVPCStep represents creation of an virtual private cloud in AWS
 type CreateVPCStep struct {
+	GetEC2 GetEC2Fn
 }
 
-//TODO add tags
+func NewCreateVPCStep(fn GetEC2Fn) *CreateVPCStep {
+	return &CreateVPCStep{
+		GetEC2: fn,
+	}
+}
+
 func (c *CreateVPCStep) Run(ctx context.Context, w io.Writer, cfg *steps.Config) error {
 	log := util.GetLogger(w)
 
-	sdk, err := GetSDK(cfg.AWSConfig)
+	EC2, err := GetEC2(cfg.AWSConfig)
 	if err != nil {
 		return errors.Wrap(err, "aws: authorization")
 	}
@@ -32,7 +38,7 @@ func (c *CreateVPCStep) Run(ctx context.Context, w io.Writer, cfg *steps.Config)
 		input := &ec2.CreateVpcInput{
 			CidrBlock: &cfg.AWSConfig.VPCCIDR,
 		}
-		out, err := sdk.EC2.CreateVpcWithContext(ctx, input)
+		out, err := EC2.CreateVpcWithContext(ctx, input)
 		if err != nil {
 			return errors.Wrap(err, "aws: create vpc")
 		}
@@ -45,7 +51,7 @@ func (c *CreateVPCStep) Run(ctx context.Context, w io.Writer, cfg *steps.Config)
 	} else {
 		if cfg.AWSConfig.VPCID != "default" {
 			//if a user specified that there is a vpc already exists it should be verified
-			out, err := sdk.EC2.DescribeVpcsWithContext(ctx, &ec2.DescribeVpcsInput{
+			out, err := EC2.DescribeVpcsWithContext(ctx, &ec2.DescribeVpcsInput{
 				VpcIds: aws.StringSlice([]string{cfg.AWSConfig.VPCID}),
 			})
 			if err != nil {
@@ -55,6 +61,38 @@ func (c *CreateVPCStep) Run(ctx context.Context, w io.Writer, cfg *steps.Config)
 			if len(out.Vpcs) == 0 {
 				return errors.Wrap(err, "aws: read vpc")
 			}
+		} else {
+			out, err := EC2.DescribeVpcsWithContext(ctx, &ec2.DescribeVpcsInput{
+				Filters: []*ec2.Filter{
+					{
+						Name: aws.String("isDefault"),
+						Values: aws.StringSlice([]string{
+							"true",
+						}),
+					},
+				},
+			})
+			if err != nil {
+				log.Errorf("[%s] - failed to read VPC data", c.Name())
+				return errors.Wrap(err, "aws: read vpc")
+			}
+			if len(out.Vpcs) == 0 {
+				return errors.Wrap(err, "aws: read vpc")
+			}
+
+			var defaultVPCID string
+			for _, vpc := range out.Vpcs {
+				if *vpc.IsDefault {
+					defaultVPCID = *vpc.VpcId
+					break
+				}
+			}
+
+			if defaultVPCID == "" {
+				return errors.Wrap(err, "aws: read vpc")
+			}
+
+			cfg.AWSConfig.VPCID = defaultVPCID
 		}
 	}
 
