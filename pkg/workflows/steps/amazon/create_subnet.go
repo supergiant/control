@@ -17,12 +17,18 @@ type CreateSubnetStep struct {
 	GetEC2 GetEC2Fn
 }
 
+func NewCreateSubnetStep(fn GetEC2Fn) *CreateSubnetStep {
+	return &CreateSubnetStep{
+		GetEC2: fn,
+	}
+}
+
 func (s *CreateSubnetStep) Run(ctx context.Context, w io.Writer, cfg *steps.Config) error {
 	log := util.GetLogger(w)
 
 	EC2, err := s.GetEC2(cfg.AWSConfig)
 	if err != nil {
-		return errors.Wrap(err, "aws: authorization")
+		return errors.Wrap(ErrAuthorization, err.Error())
 	}
 	if cfg.AWSConfig.SubnetID == "" {
 		input := &ec2.CreateSubnetInput{
@@ -31,7 +37,7 @@ func (s *CreateSubnetStep) Run(ctx context.Context, w io.Writer, cfg *steps.Conf
 		}
 		out, err := EC2.CreateSubnetWithContext(ctx, input)
 		if err != nil {
-			return errors.Wrap(err, "aws: create subnet")
+			return errors.Wrap(ErrCreateSubnet, err.Error())
 		}
 		cfg.AWSConfig.SubnetID = *out.Subnet.SubnetId
 	} else {
