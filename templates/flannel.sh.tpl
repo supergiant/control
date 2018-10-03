@@ -18,17 +18,23 @@ ExecStart=/usr/bin/flanneld --etcd-endpoints=http://{{ .EtcdHost }}:2379
 WantedBy=multi-user.target
 EOF
 
-cat << EOF > /etc/cni/net.d
-{
-  "cniVersion": "0.4.0",
-  "name": "mynet",
-	"type": "flannel",
-	"delegate": {
-        "isDefaultGateway": true
-	}
-}
-EOF
-
 systemctl daemon-reload
 systemctl enable flanneld.service
 systemctl start flanneld.service
+
+while [ ! -f /run/flannel/subnet.env ]; do   sleep 2; printf '.'; done
+source /run/flannel/subnet.env
+
+cat << EOF > /etc/systemd/system/docker.service
+[Unit]
+Requires=flanneld.service
+After=flanneld.service
+
+[Service]
+Restart=always
+ExecStart=/usr/bin/dockerd  --bip=${FLANNEL_SUBNET} --mtu=${FLANNEL_MTU}
+EOF
+
+systemctl stop docker.service
+systemctl daemon-reload
+systemctl restart docker.service

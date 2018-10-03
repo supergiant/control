@@ -5,6 +5,7 @@ Description=etcd
 Documentation=https://github.com/coreos/etcd
 
 [Service]
+Restart=always
 RestartSec={{ .RestartTimeout }}s
 LimitNOFILE=40000
 TimeoutStartSec={{ .StartTimeout }}s
