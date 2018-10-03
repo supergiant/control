@@ -64,7 +64,7 @@ func (s *StepCreateInstance) Run(ctx context.Context, w io.Writer, cfg *steps.Co
 	EC2, err := s.GetEC2(cfg.AWSConfig)
 	if err != nil {
 		logrus.Errorf("[%s] - failed to authorize in AWS: %v", s.Name(), err)
-		return errors.Wrap(err, "aws: authorization")
+		return errors.Wrap(ErrAuthorization, err.Error())
 	}
 
 	nodeName := util.MakeNodeName(cfg.ClusterName, cfg.TaskID, cfg.IsMaster)
@@ -142,14 +142,14 @@ func (s *StepCreateInstance) Run(ctx context.Context, w io.Writer, cfg *steps.Co
 		cfg.NodeChan() <- cfg.Node
 
 		log.Errorf("[%s] - failed to create ec2 instance: %v", StepNameCreateEC2Instance, err)
-		return errors.Wrap(err, "aws: failed to connect")
+		return errors.Wrap(ErrCreateInstance, err.Error())
 	}
 
 	if len(res.Instances) == 0 {
 		cfg.Node.State = node.StateError
 		cfg.NodeChan() <- cfg.Node
 
-		return errors.Wrap(err, "aws: no instances created")
+		return errors.Wrap(ErrCreateInstance, "no instances created")
 	}
 
 	instance := res.Instances[0]
@@ -162,7 +162,7 @@ func (s *StepCreateInstance) Run(ctx context.Context, w io.Writer, cfg *steps.Co
 	cfg.NodeChan() <- cfg.Node
 
 	if ec2Cfg.HasPublicAddr {
-		log.Infof("[%s] - waiting to obtain public IP", s.Name())
+		log.Infof("[%s] - waiting to obtain public IP...", s.Name())
 
 		//Waiting for AWS to assign public IP requires to poll an describe ec2 endpoint several times
 		found := false
@@ -184,7 +184,7 @@ func (s *StepCreateInstance) Run(ctx context.Context, w io.Writer, cfg *steps.Co
 				cfg.Node.State = node.StateError
 				cfg.NodeChan() <- cfg.Node
 				log.Errorf("[%s] - failed to obtain public IP for node %s: %v", s.Name(), nodeName, err)
-				return errors.Wrap(err, "aws: failed to obtain public IP")
+				return errors.Wrap(ErrNoPublicIP, err.Error())
 			}
 
 			if len(out.Reservations) == 0 {
@@ -205,7 +205,7 @@ func (s *StepCreateInstance) Run(ctx context.Context, w io.Writer, cfg *steps.Co
 			log.Errorf("[%s] - failed to find public IP address after %d attempts", s.Name(), IPAttempts)
 			cfg.Node.State = node.StateError
 			cfg.NodeChan() <- cfg.Node
-			return errors.New("aws: failed to obtain public IP")
+			return ErrNoPublicIP
 		}
 	}
 
