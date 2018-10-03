@@ -8,6 +8,8 @@ import (
 	"encoding/pem"
 
 	"github.com/pkg/errors"
+	"encoding/hex"
+	"github.com/sirupsen/logrus"
 )
 
 // CARequest defines a request to generate or use CA if provided to setup PKI for k8s cluster
@@ -88,6 +90,24 @@ func Decode(p *PairPEM) (*Pair, error) {
 func NewPKI(caPEM *PairPEM) (*PKI, error) {
 	if caPEM == nil {
 		p, k, err := generateCACert()
+		if err != nil {
+			return nil, err
+		}
+
+		cert := make([]byte, len(p))
+		p = bytes.Replace(p, []byte{13}, []byte{}, -1)
+		p = bytes.Replace(p, []byte{10}, []byte{}, -1)
+
+		logrus.Println(string(p))
+		_, err = hex.Decode(cert, p)
+		if err != nil {
+			return nil, err
+		}
+
+		key  := make([]byte, len(k))
+		k = bytes.Replace(k, []byte{13}, []byte{}, -1)
+		_, err = hex.Decode(key, k)
+
 		if err != nil {
 			return nil, err
 		}

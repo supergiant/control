@@ -16,6 +16,7 @@ import (
 	"github.com/supergiant/supergiant/pkg/util"
 	"github.com/supergiant/supergiant/pkg/workflows"
 	"github.com/supergiant/supergiant/pkg/workflows/steps"
+	"github.com/supergiant/supergiant/pkg/pki"
 )
 
 const keySize = 4096
@@ -382,6 +383,10 @@ func bootstrapKeys(config *steps.Config) error {
 	config.SshConfig.BootstrapPublicKey = public
 
 	return nil
+}
+
+func bootstrapCA(config *steps.Config) error {
+	pki.NewPKI()
 }
 
 // All cluster state changes during provisioning are made in this function
