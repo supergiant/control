@@ -20,7 +20,7 @@ type CreateSubnetStep struct {
 func (s *CreateSubnetStep) Run(ctx context.Context, w io.Writer, cfg *steps.Config) error {
 	log := util.GetLogger(w)
 
-	EC2, err := GetEC2(cfg.AWSConfig)
+	EC2, err := s.GetEC2(cfg.AWSConfig)
 	if err != nil {
 		return errors.Wrap(err, "aws: authorization")
 	}

@@ -25,9 +25,9 @@ func NewCreateVPCStep(fn GetEC2Fn) *CreateVPCStep {
 func (c *CreateVPCStep) Run(ctx context.Context, w io.Writer, cfg *steps.Config) error {
 	log := util.GetLogger(w)
 
-	EC2, err := GetEC2(cfg.AWSConfig)
+	EC2, err := c.GetEC2(cfg.AWSConfig)
 	if err != nil {
-		return errors.Wrap(err, "aws: authorization")
+		return errors.Wrap(ErrAuthorization, err.Error())
 	}
 
 	//A user doesn't specified that she wants to use preexisting VPC
@@ -40,14 +40,11 @@ func (c *CreateVPCStep) Run(ctx context.Context, w io.Writer, cfg *steps.Config)
 		}
 		out, err := EC2.CreateVpcWithContext(ctx, input)
 		if err != nil {
-			return errors.Wrap(err, "aws: create vpc")
+			return errors.Wrap(ErrCreateVPC, err.Error())
 		}
 		cfg.AWSConfig.VPCID = *out.Vpc.VpcId
 
-		log.Infof("[%s] - created a VPC with ID %s and CIDR %s",
-			c.Name(),
-			cfg.AWSConfig.VPCID,
-			cfg.AWSConfig.VPCCIDR)
+		log.Infof("[%s] - created a VPC with ID %s and CIDR %s", c.Name(), cfg.AWSConfig.VPCID, cfg.AWSConfig.VPCCIDR)
 	} else {
 		if cfg.AWSConfig.VPCID != "default" {
 			//if a user specified that there is a vpc already exists it should be verified
@@ -56,10 +53,10 @@ func (c *CreateVPCStep) Run(ctx context.Context, w io.Writer, cfg *steps.Config)
 			})
 			if err != nil {
 				log.Errorf("[%s] - failed to read VPC data", c.Name())
-				return errors.Wrap(err, "aws: read vpc")
+				return errors.Wrap(ErrReadVPC, err.Error())
 			}
 			if len(out.Vpcs) == 0 {
-				return errors.Wrap(err, "aws: read vpc")
+				return errors.Wrap(ErrReadVPC, err.Error())
 			}
 		} else {
 			out, err := EC2.DescribeVpcsWithContext(ctx, &ec2.DescribeVpcsInput{
@@ -74,10 +71,10 @@ func (c *CreateVPCStep) Run(ctx context.Context, w io.Writer, cfg *steps.Config)
 			})
 			if err != nil {
 				log.Errorf("[%s] - failed to read VPC data", c.Name())
-				return errors.Wrap(err, "aws: read vpc")
+				return errors.Wrap(ErrReadVPC, err.Error())
 			}
 			if len(out.Vpcs) == 0 {
-				return errors.Wrap(err, "aws: read vpc")
+				return ErrReadVPC
 			}
 
 			var defaultVPCID string
@@ -88,8 +85,10 @@ func (c *CreateVPCStep) Run(ctx context.Context, w io.Writer, cfg *steps.Config)
 				}
 			}
 
+			//Case when a user has deleted a default VPC
 			if defaultVPCID == "" {
-				return errors.Wrap(err, "aws: read vpc")
+				log.Errorf("[%s] - default vpc not found, no custom vpc provided...", c.Name())
+				return errors.Wrap(ErrReadVPC, "VPC with default ID not found!")
 			}
 
 			cfg.AWSConfig.VPCID = defaultVPCID
