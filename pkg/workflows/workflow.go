@@ -14,10 +14,10 @@ import (
 	"github.com/supergiant/supergiant/pkg/workflows/steps/flannel"
 	"github.com/supergiant/supergiant/pkg/workflows/steps/kubelet"
 	"github.com/supergiant/supergiant/pkg/workflows/steps/manifest"
-	"github.com/supergiant/supergiant/pkg/workflows/steps/network"
 	"github.com/supergiant/supergiant/pkg/workflows/steps/poststart"
 	"github.com/supergiant/supergiant/pkg/workflows/steps/ssh"
 	"github.com/supergiant/supergiant/pkg/workflows/steps/tiller"
+	"github.com/supergiant/supergiant/pkg/workflows/steps/network"
 )
 
 // StepStatus aggregates data that is needed to track progress
@@ -65,10 +65,10 @@ func Init() {
 		steps.GetStep(cni.StepName),
 		steps.GetStep(certificates.StepName),
 		steps.GetStep(etcd.StepName),
+		steps.GetStep(network.StepName),
 		steps.GetStep(flannel.StepName),
 		steps.GetStep(manifest.StepName),
 		steps.GetStep(kubelet.StepName),
-		steps.GetStep(network.StepName),
 		steps.GetStep(poststart.StepName),
 	}
 	digitalOceanNodeWorkflow := []steps.Step{
