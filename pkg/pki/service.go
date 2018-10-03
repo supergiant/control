@@ -5,6 +5,7 @@ import (
 
 	"net"
 
+	"encoding/json"
 	"github.com/satori/go.uuid"
 	"github.com/supergiant/supergiant/pkg/storage"
 )
@@ -29,7 +30,8 @@ func (s *Service) GetAll(ctx context.Context) ([]*PKI, error) {
 
 	pkis := make([]*PKI, len(rawData))
 	for _, v := range rawData {
-		pki, err := Unmarshall(v)
+		pki := &PKI{}
+		json.Unmarshal(v, pki)
 		if err != nil {
 			return nil, err
 		}
@@ -45,15 +47,18 @@ func (s *Service) Get(ctx context.Context, ID string) (*PKI, error) {
 	if err != nil {
 		return nil, err
 	}
-	return Unmarshall(rawData)
+	pki := &PKI{}
+	err = json.Unmarshal(rawData, pki)
+
+	return pki, err
 }
 
 func (s *Service) Delete(ctx context.Context, ID string) error {
 	return s.repository.Delete(ctx, s.storagePrefix, ID)
 }
 
-func (s *Service) GenerateFromCA(ctx context.Context, CA *PairPEM, dnsDomain string, masterIPs []net.IP) (*PKI, error) {
-	p, err := NewPKI(CA, dnsDomain, masterIPs)
+func (s *Service) GenerateFromCA(ctx context.Context, CA *PairPEM) (*PKI, error) {
+	p, err := NewPKI(CA)
 	if err != nil {
 		return nil, err
 	}
@@ -69,7 +74,7 @@ func (s *Service) GenerateFromCA(ctx context.Context, CA *PairPEM, dnsDomain str
 }
 
 func (s *Service) GenerateSelfSigned(ctx context.Context, dnsDomain string, masterIPs []net.IP) (*PKI, error) {
-	p, err := NewPKI(nil, dnsDomain, masterIPs)
+	p, err := NewPKI(nil)
 	if err != nil {
 		return nil, err
 	}
