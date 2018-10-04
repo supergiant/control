@@ -396,8 +396,8 @@ func bootstrapCA(config *steps.Config) error {
 		return errors.Wrap(err, "bootstrap CA for provisioning")
 	}
 
-	config.CertificatesConfig.CACert = pkiBundle.CA.Cert
-	config.CertificatesConfig.CAKey = pkiBundle.CA.Key
+	config.CertificatesConfig.CACert = string(pkiBundle.CA.Cert)
+	config.CertificatesConfig.CAKey = string(pkiBundle.CA.Key)
 
 	return nil
 }

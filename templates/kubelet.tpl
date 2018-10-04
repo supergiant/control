@@ -26,7 +26,11 @@ ExecStart=/usr/bin/docker run \
       --cluster-dns=10.3.0.10 \
       --cluster_domain=cluster.local \
       --pod-manifest-path=/etc/kubernetes/manifests \
+      {{ if .IsMaster }}
       --kubeconfig=/etc/kubernetes/worker-kubeconfig.yaml \
+      {{ else }}
+      --bootstrap-kubeconfig=/etc/kubernetes/bootstrap.kubeconfig.yaml
+      {{ end}}
       --volume-plugin-dir=/etc/kubernetes/volumeplugins --fail-swap-on=false --register-node=true
 Restart=always
 StartLimitInterval=0

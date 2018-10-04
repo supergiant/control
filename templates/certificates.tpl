@@ -41,6 +41,11 @@ openssl x509 -req -in /etc/kubernetes/ssl/worker.csr -CA /etc/kubernetes/ssl/ca.
 openssl genrsa -out /etc/kubernetes/ssl/admin-key.pem 2048
 openssl req -new -key /etc/kubernetes/ssl/admin-key.pem -out /etc/kubernetes/ssl/admin.csr -subj "/CN=kube-admin"
 openssl x509 -req -in /etc/kubernetes/ssl/admin.csr -CA /etc/kubernetes/ssl/ca.pem -CAkey /etc/kubernetes/ssl/ca-key.pem -CAcreateserial -out /etc/kubernetes/ssl/admin.pem -days 365
+
+cp /etc/kubernetes/ssl/ca.pem /usr/share/ca-certificates/ca.crt
+echo "ca.crt" >> /etc/ca-certificates.conf
+update-ca-certificates
+
 chmod 600 /etc/kubernetes/ssl/*-key.pem
 chown root:root /etc/kubernetes/ssl/*-key.pem
 
@@ -50,6 +55,7 @@ EOF
 
 cat > /etc/kubernetes/ssl/known_tokens.csv <<EOF
 {{ .Password }},kubelet,kubelet
+41f7e4ba8b7be874fcff18bf5cf41a7c,kubelet-bootstrap,system:node_bootstrapper
 {{ .Password }},kube_proxy,kube_proxy
 {{ .Password }},system:scheduler,system:scheduler
 {{ .Password }},system:controller_manager,system:controller_manager

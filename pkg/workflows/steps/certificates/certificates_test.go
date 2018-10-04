@@ -11,6 +11,7 @@ import (
 	"github.com/pkg/errors"
 
 	"github.com/supergiant/supergiant/pkg/node"
+	"github.com/supergiant/supergiant/pkg/pki"
 	"github.com/supergiant/supergiant/pkg/profile"
 	"github.com/supergiant/supergiant/pkg/runner"
 	"github.com/supergiant/supergiant/pkg/templatemanager"
@@ -54,12 +55,20 @@ func TestWriteCertificates(t *testing.T) {
 
 	output := new(bytes.Buffer)
 
+	PKIBundle, err := pki.NewPKI(nil)
+
+	if err != nil {
+		t.Errorf("unexpected error creating PKI bundle %v", err)
+	}
+
 	cfg := steps.NewConfig("", "", "", profile.Profile{})
 	cfg.CertificatesConfig = steps.CertificatesConfig{
-		kubernetesConfigDir,
-		masterPrivateIP,
-		userName,
-		password,
+		KubernetesConfigDir: kubernetesConfigDir,
+		MasterHost:          masterPrivateIP,
+		Username:            userName,
+		Password:            password,
+		CAKey:               string(PKIBundle.CA.Key),
+		CACert:              string(PKIBundle.CA.Cert),
 	}
 	cfg.Runner = r
 	cfg.AddMaster(&node.Node{

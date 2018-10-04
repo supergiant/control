@@ -110,7 +110,6 @@ func TestWriteManifestNode(t *testing.T) {
 		kubernetesConfigDir = "/kubernetes/conf/dir"
 		providerString      = "aws"
 		masterHost          = "127.0.0.1"
-		masterPort          = "8080"
 
 		r runner.Runner = &fakeRunner{}
 	)
@@ -138,7 +137,6 @@ func TestWriteManifestNode(t *testing.T) {
 		PrivateIp: masterHost,
 	})
 	cfg.Runner = r
-	cfg.ManifestConfig.MasterPort = masterPort
 	cfg.ManifestConfig.KubernetesConfigDir = kubernetesConfigDir
 	cfg.ManifestConfig.ProviderString = providerString
 	cfg.ManifestConfig.IsMaster = false
@@ -163,10 +161,6 @@ func TestWriteManifestNode(t *testing.T) {
 
 	if !strings.Contains(output.String(), masterHost) {
 		t.Errorf("master host %s not found in %s", masterHost, output.String())
-	}
-
-	if !strings.Contains(output.String(), masterPort) {
-		t.Errorf("master port %s not found in %s", masterPort, output.String())
 	}
 
 	if strings.Contains(output.String(), "kube-apiserver.yaml") {

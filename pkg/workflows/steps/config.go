@@ -15,14 +15,14 @@ import (
 
 type CertificatesConfig struct {
 	KubernetesConfigDir string `json:"kubernetesConfigDir"`
-	MasterPrivateIP     string `json:"masterPrivateIP"`
+	MasterHost          string `json:"masterHost"`
 
 	Username string `json:"username"`
 	Password string `json:"password"`
 
 	ParenCert []byte `json:"parenCert"`
-	CACert    []byte `json:"caCert"`
-	CAKey     []byte `json:"caKey"`
+	CACert    string `json:"caCert"`
+	CAKey     string `json:"caKey"`
 }
 
 type DOConfig struct {
@@ -85,10 +85,10 @@ type NetworkConfig struct {
 }
 
 type KubeletConfig struct {
-	MasterPrivateIP string `json:"masterPrivateIP"`
-	ProxyPort       string `json:"proxyPort"`
-	EtcdClientPort  string `json:"etcdClientPort"`
-	K8SVersion      string `json:"k8sVersion"`
+	IsMaster       bool   `json:"isMaster"`
+	ProxyPort      string `json:"proxyPort"`
+	EtcdClientPort string `json:"etcdClientPort"`
+	K8SVersion     string `json:"k8sVersion"`
 }
 
 type ManifestConfig struct {
@@ -256,10 +256,9 @@ func NewConfig(clusterName, discoveryUrl, cloudAccountName string, profile profi
 			EtcdHost: "0.0.0.0",
 		},
 		KubeletConfig: KubeletConfig{
-			MasterPrivateIP: "localhost",
-			ProxyPort:       "8080",
-			EtcdClientPort:  "2379",
-			K8SVersion:      profile.K8SVersion,
+			ProxyPort:      "8080",
+			EtcdClientPort: "2379",
+			K8SVersion:     profile.K8SVersion,
 		},
 		ManifestConfig: ManifestConfig{
 			K8SVersion:          profile.K8SVersion,
