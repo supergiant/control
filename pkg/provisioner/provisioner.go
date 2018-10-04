@@ -64,6 +64,10 @@ func (r *TaskProvisioner) ProvisionCluster(ctx context.Context, profile *profile
 		return nil, errors.Wrap(err, "bootstrap keys")
 	}
 
+	if err := bootstrapCA(config); err != nil {
+		return nil, errors.Wrap(err, "bootstrap CA")
+	}
+
 	go func() {
 		// ProvisionCluster masters and wait until n/2 + 1 of masters with etcd are up and running
 		doneChan, failChan, err := r.provisionMasters(ctx, profile, config, masterTasks)
@@ -112,10 +116,6 @@ func (p *TaskProvisioner) ProvisionNodes(ctx context.Context, nodeProfiles []pro
 
 	if err := bootstrapKeys(config); err != nil {
 		return nil, errors.Wrap(err, "bootstrap keys")
-	}
-
-	if err := bootstrapCA(config); err != nil {
-		return nil, errors.Wrap(err, "bootstrap CA")
 	}
 
 	providerWorkflowSet, ok := p.provisionMap[config.Provider]
