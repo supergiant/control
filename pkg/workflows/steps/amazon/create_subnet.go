@@ -23,6 +23,10 @@ func NewCreateSubnetStep(fn GetEC2Fn) *CreateSubnetStep {
 	}
 }
 
+func InitCreateSubnet(fn GetEC2Fn) {
+	steps.RegisterStep(CreateSubnetStepName, NewCreateSubnetStep(fn))
+}
+
 func (s *CreateSubnetStep) Run(ctx context.Context, w io.Writer, cfg *steps.Config) error {
 	log := util.GetLogger(w)
 

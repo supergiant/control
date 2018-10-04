@@ -11,6 +11,8 @@ import (
 	"github.com/supergiant/supergiant/pkg/workflows/steps"
 )
 
+const CreateVPCStepName = "aws_create_vpc"
+
 //CreateVPCStep represents creation of an virtual private cloud in AWS
 type CreateVPCStep struct {
 	GetEC2 GetEC2Fn
@@ -20,6 +22,10 @@ func NewCreateVPCStep(fn GetEC2Fn) *CreateVPCStep {
 	return &CreateVPCStep{
 		GetEC2: fn,
 	}
+}
+
+func InitCreateVPC(fn GetEC2Fn) {
+	steps.RegisterStep(CreateVPCStepName, NewCreateVPCStep(fn))
 }
 
 func (c *CreateVPCStep) Run(ctx context.Context, w io.Writer, cfg *steps.Config) error {
@@ -99,7 +105,7 @@ func (c *CreateVPCStep) Run(ctx context.Context, w io.Writer, cfg *steps.Config)
 }
 
 func (*CreateVPCStep) Name() string {
-	return "aws_create_vpc"
+	return CreateVPCStepName
 }
 
 func (*CreateVPCStep) Description() string {

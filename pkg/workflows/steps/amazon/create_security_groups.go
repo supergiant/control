@@ -24,6 +24,10 @@ func NewCreateSecurityGroupsStep(fn GetEC2Fn) *CreateSecurityGroupsStep {
 	}
 }
 
+func InitCreateSecurityGroups(fn GetEC2Fn) {
+	steps.RegisterStep(CreateSecurityGroupsStepName, NewCreateSecurityGroupsStep(fn))
+}
+
 func (s *CreateSecurityGroupsStep) Run(ctx context.Context, w io.Writer, cfg *steps.Config) error {
 	log := util.GetLogger(w)
 	EC2, err := s.GetEC2(cfg.AWSConfig)

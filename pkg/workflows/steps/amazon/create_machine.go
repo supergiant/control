@@ -27,8 +27,8 @@ type StepCreateInstance struct {
 	GetEC2 GetEC2Fn
 }
 
-//InitStepCreateInstance adds the step to the registry
-func InitStepCreateInstance(fn func(steps.AWSConfig) (ec2iface.EC2API, error)) {
+//InitCreateMachine adds the step to the registry
+func InitCreateMachine(fn func(steps.AWSConfig) (ec2iface.EC2API, error)) {
 	steps.RegisterStep(StepNameCreateEC2Instance, NewCreateInstance(fn))
 }
 

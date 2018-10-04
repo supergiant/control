@@ -205,6 +205,7 @@ func configureApplication(cfg *Config) (*mux.Router, error) {
 	if err := templatemanager.Init(cfg.TemplatesDir); err != nil {
 		return nil, err
 	}
+
 	digitalocean.Init()
 	certificates.Init()
 	cni.Init()
@@ -220,7 +221,11 @@ func configureApplication(cfg *Config) (*mux.Router, error) {
 	network.Init()
 	clustercheck.Init()
 	amazon.InitImportKeyPair(amazon.GetEC2)
-	amazon.InitStepCreateInstance(amazon.GetEC2)
+	amazon.InitCreateMachine(amazon.GetEC2)
+	amazon.InitCreateSecurityGroups(amazon.GetEC2)
+	amazon.InitCreateVPC(amazon.GetEC2)
+	amazon.InitCreateSubnet(amazon.GetEC2)
+
 	workflows.Init()
 
 	taskHandler := workflows.NewTaskHandler(repository, sshRunner.NewRunner, accountService)

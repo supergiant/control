@@ -10,7 +10,7 @@ import (
 	"github.com/supergiant/supergiant/pkg/workflows/steps"
 )
 
-const StepName = "awskeypairstep"
+const ImportKeyPairStepName = "awskeypairstep"
 
 //KeyPairStep represents creation of keypair in aws
 //since there is hard cap on keypairs per account supergiant will create one per clster
@@ -26,7 +26,7 @@ func NewImportKeyPairStep(fn GetEC2Fn) *KeyPairStep {
 
 //InitImportKeyPair add the step to the registry
 func InitImportKeyPair(fn GetEC2Fn) {
-	steps.RegisterStep(StepName, NewImportKeyPairStep(fn))
+	steps.RegisterStep(ImportKeyPairStepName, NewImportKeyPairStep(fn))
 }
 
 func (s *KeyPairStep) Run(ctx context.Context, w io.Writer, cfg *steps.Config) error {
@@ -70,7 +70,7 @@ func (s *KeyPairStep) Rollback(ctx context.Context, w io.Writer, cfg *steps.Conf
 }
 
 func (*KeyPairStep) Name() string {
-	return StepName
+	return ImportKeyPairStepName
 }
 
 func (*KeyPairStep) Description() string {
