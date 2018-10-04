@@ -137,7 +137,7 @@ spec:
     command:
     - /hyperkube
     - controller-manager
-    - --master=http://localhost:{{ .MasterPort }}
+    - --master=http://{{ .MasterHost }}:{{ .MasterPort }}
     - --service-account-private-key-file=/etc/kubernetes/ssl/apiserver-key.pem
     - --root-ca-file=/etc/kubernetes/ssl/ca.pem
     - --tls-cert-file=/etc/kubernetes/ssl/apiserver.pem
