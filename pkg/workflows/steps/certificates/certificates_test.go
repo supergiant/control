@@ -96,6 +96,14 @@ func TestWriteCertificates(t *testing.T) {
 	if !strings.Contains(output.String(), password) {
 		t.Errorf("password %s not found in %s", password, output.String())
 	}
+
+	if !strings.Contains(output.String(), string(PKIBundle.CA.Key)) {
+		t.Errorf("CA key not found in %s", output.String())
+	}
+
+	if !strings.Contains(output.String(), string(PKIBundle.CA.Cert)) {
+		t.Errorf("CA cert not found in %s", output.String())
+	}
 }
 
 func TestWriteCertificatesError(t *testing.T) {

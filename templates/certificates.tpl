@@ -22,12 +22,10 @@ IP.3 = {PRIVATE_HOST}
 EOF
 
 cat > /etc/kubernetes/ssl/ca.pem <<EOF
-{{ .CACert }}
-EOF
+{{ .CACert }}EOF
 
 cat > /etc/kubernetes/ssl/ca-key.pem <<EOF
-{{ .CAKey }}
-EOF
+{{ .CAKey }}EOF
 
 sed -e "s/{MASTER_HOST}/`curl ipinfo.io/ip`/" < /etc/kubernetes/ssl/openssl.cnf.template > /etc/kubernetes/ssl/openssl.cnf.public
 sed -e "s/{PRIVATE_HOST}/{{ .MasterHost }}/" < /etc/kubernetes/ssl/openssl.cnf.public > /etc/kubernetes/ssl/openssl.cnf
