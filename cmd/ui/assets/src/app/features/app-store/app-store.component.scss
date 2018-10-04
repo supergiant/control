@@ -24,3 +24,21 @@
     }
   }
 }
+
+:host {
+  &::ng-deep {
+    .mat-card {
+      max-width: 295px;
+      min-height: 263px;
+      display: flex;
+      flex-direction: column;
+
+      h2 {
+        font-size: 32px;
+      }
+      .mat-card-actions {
+        margin-top: auto!important;
+      }
+    }
+  }
+}

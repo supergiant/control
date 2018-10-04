@@ -80,3 +80,18 @@ button[mat-raised-button], button[mat-button] {
 button {
   outline: none;
 }
+
+.mat-card-actions {
+  margin: 0!important;
+}
+
+.mat-card-header-text {
+  margin: 0!important;
+}
+
+.mat-card {
+  background: rgba(0, 0, 0, 0.7) !important;
+  border-width: 1px;
+  border-style: solid;
+  border-color: rgba(white, .2);
+}
