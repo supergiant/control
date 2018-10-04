@@ -12,7 +12,6 @@ import (
 	"math/big"
 	"time"
 
-	"github.com/supergiant/supergiant/pkg/sgerrors"
 	certutil "k8s.io/client-go/util/cert"
 )
 
@@ -20,7 +19,7 @@ import (
 type CARequest struct {
 	DNSDomain string   `json:"dnsDomain" valid:"required"`
 	IPs       []string `json:"ips" valid:"required"`
-	CA        *PairPEM `json:"ca" valid:"optional"`
+	CA        []byte   `json:"ca" valid:"optional"`
 }
 
 // Pair defines a certificate and a private key.
@@ -97,8 +96,10 @@ func Decode(p *PairPEM) (*Pair, error) {
 
 // NewPKI creates certificates and key for a kubernetes cluster.
 // If no CA cert/key is provided, it creates self-signed ones.
-func NewPKI(caPEM *PairPEM) (*PKI, error) {
-	if caPEM == nil {
+func NewPKI(parentBytes []byte) (*PKI, error) {
+	var caPem *PairPEM
+
+	if parentBytes == nil || len(parentBytes) == 0 {
 		p, k, err := generateCACert()
 		if err != nil {
 			return nil, err
@@ -111,32 +112,40 @@ func NewPKI(caPEM *PairPEM) (*PKI, error) {
 		if err != nil {
 			return nil, err
 		}
-		caPEM = &PairPEM{Cert: p, Key: k}
+		caPem = &PairPEM{Cert: p, Key: k}
 	} else {
-		ca, err := Decode(caPEM)
-		if err != nil {
-			return nil, errors.Wrap(err, "decode parent pem")
+		pemBlock, rest := pem.Decode(parentBytes)
+
+		if len(rest) > 0 {
+			return nil, errors.New("error decode parent cert")
 		}
 
-		cert, key, err := generateCertFromParent(ca.Cert)
+		cert, err := x509.ParseCertificate(pemBlock.Bytes)
+
+		if err != nil {
+			return nil, errors.Wrap(err, "parse parent cert bytes")
+		}
+
+		certBytes, keyBytes, err := generateCertFromParent(cert)
 
 		if err != nil {
 			return nil, errors.Wrap(err, "create cert from parent")
 		}
-		caPEM = &PairPEM{Cert: cert, Key: key}
+		caPem = &PairPEM{Cert: certBytes, Key: keyBytes}
 	}
 
-	ca, err := Decode(caPEM)
+	ca, err := Decode(caPem)
 	if err != nil {
 		return nil, errors.Wrap(err, "decode a CA pair")
 	}
 
+	// Check that cert generates is CA cert
 	if !ca.Cert.IsCA {
 		return nil, ErrInvalidCA
 	}
 
 	return &PKI{
-		CA: caPEM,
+		CA: caPem,
 	}, nil
 }
 
@@ -154,10 +163,6 @@ func generateCACert() ([]byte, []byte, error) {
 }
 
 func generateCertFromParent(parent *x509.Certificate) ([]byte, []byte, error) {
-	if parent == nil {
-		return nil, nil, sgerrors.ErrInvalidCredentials
-	}
-
 	// Generate a key.
 	key, err := certutil.NewPrivateKey()
 	if err != nil {

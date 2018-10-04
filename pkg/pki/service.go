@@ -57,8 +57,8 @@ func (s *Service) Delete(ctx context.Context, ID string) error {
 	return s.repository.Delete(ctx, s.storagePrefix, ID)
 }
 
-func (s *Service) GenerateFromCA(ctx context.Context, CA *PairPEM) (*PKI, error) {
-	p, err := NewPKI(CA)
+func (s *Service) GenerateFromCA(ctx context.Context, parentBytes []byte) (*PKI, error) {
+	p, err := NewPKI(parentBytes)
 	if err != nil {
 		return nil, err
 	}

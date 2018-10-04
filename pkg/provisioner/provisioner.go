@@ -114,6 +114,10 @@ func (p *TaskProvisioner) ProvisionNodes(ctx context.Context, nodeProfiles []pro
 		return nil, errors.Wrap(err, "bootstrap keys")
 	}
 
+	if err := bootstrapCA(config); err != nil {
+		return nil, errors.Wrap(err, "bootstrap CA")
+	}
+
 	providerWorkflowSet, ok := p.provisionMap[config.Provider]
 
 	if !ok {
@@ -386,7 +390,16 @@ func bootstrapKeys(config *steps.Config) error {
 }
 
 func bootstrapCA(config *steps.Config) error {
-	pki.NewPKI()
+	pkiBundle, err := pki.NewPKI(config.CertificatesConfig.ParenCert)
+
+	if err != nil {
+		return errors.Wrap(err, "bootstrap CA for provisioning")
+	}
+
+	config.CertificatesConfig.CACert = pkiBundle.CA.Cert
+	config.CertificatesConfig.CAKey = pkiBundle.CA.Key
+
+	return nil
 }
 
 // All cluster state changes during provisioning are made in this function

@@ -174,7 +174,7 @@ func TestNewPKI(t *testing.T) {
 	testCases := []struct {
 		description string
 		expectedErr error
-		CA          *PairPEM
+		CA          []byte
 	}{
 		{
 			description: "success self signed",
@@ -184,18 +184,12 @@ func TestNewPKI(t *testing.T) {
 		{
 			description: "success provided",
 			expectedErr: nil,
-			CA: &PairPEM{
-				testCACert,
-				testCAKey,
-			},
+			CA:          testCACert,
 		},
 		{
 			description: "error provided",
 			expectedErr: ErrInvalidCA,
-			CA: &PairPEM{
-				testNonCACert,
-				testNonCAKey,
-			},
+			CA:          testNonCACert,
 		},
 	}
 

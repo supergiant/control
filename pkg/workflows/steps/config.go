@@ -17,11 +17,12 @@ type CertificatesConfig struct {
 	KubernetesConfigDir string `json:"kubernetesConfigDir"`
 	MasterPrivateIP     string `json:"masterPrivateIP"`
 
-	RootCert []byte
-	CACert   string `json:"caCert"`
-	CAKey    string `json:"caKey"`
 	Username string `json:"username"`
 	Password string `json:"password"`
+
+	ParenCert []byte `json:"parenCert"`
+	CACert    []byte `json:"caCert"`
+	CAKey     []byte `json:"caKey"`
 }
 
 type DOConfig struct {
