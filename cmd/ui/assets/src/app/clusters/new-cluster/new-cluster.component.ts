@@ -82,6 +82,8 @@ export class NewClusterComponent implements OnInit, OnDestroy {
     // TODO: delete is very slow, find a different way (is this the best place for 'name?')
     delete newClusterData.profile.name;
     newClusterData.profile.region = this.providerConfig.value.region.id;
+    newClusterData.profile.provider = this.selectedCloudAccount.provider;
+    newClusterData.profile.rbacEnabled = false;
     newClusterData.profile.masterProfiles = this.compileProfiles(this.machines, "Master");
     newClusterData.profile.nodesProfiles = this.compileProfiles(this.machines, "Node");
 
