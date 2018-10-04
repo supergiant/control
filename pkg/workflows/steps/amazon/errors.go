@@ -8,5 +8,6 @@ var (
 	ErrAuthorization  = errors.New("aws: authorization")
 	ErrCreateSubnet   = errors.New("aws: create subnet")
 	ErrCreateInstance = errors.New("aws: create instance")
+	ErrImportKeyPair  = errors.New("aws: import keypair")
 	ErrNoPublicIP     = errors.New("aws: no public IP assigned")
 )

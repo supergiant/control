@@ -219,7 +219,7 @@ func configureApplication(cfg *Config) (*mux.Router, error) {
 	ssh.Init()
 	network.Init()
 	clustercheck.Init()
-	amazon.InitCreateKeyPair(amazon.GetEC2)
+	amazon.InitImportKeyPair(amazon.GetEC2)
 	amazon.InitStepCreateInstance(amazon.GetEC2)
 	workflows.Init()
 
