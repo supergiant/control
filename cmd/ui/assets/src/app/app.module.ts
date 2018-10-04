@@ -156,6 +156,12 @@ import { UserMenuComponent } from './navigation/user-menu/user-menu.component';
 import { FooterComponent } from './shared/footer/footer.component';
 import { ConfirmModalComponent } from './shared/modals/confirm-modal/confirm-modal.component';
 import { UsageChartComponent } from './clusters/cluster/usage-chart/usage-chart.component';
+import { StoreModule } from '@ngrx/store';
+import { reducers, metaReducers } from './reducers';
+import { StoreDevtoolsModule } from '@ngrx/store-devtools';
+import { environment } from '../environments/environment';
+import { EffectsModule } from '@ngrx/effects';
+import { AppEffects } from './app.effects';
 
 @NgModule({
   declarations: [
@@ -274,6 +280,9 @@ import { UsageChartComponent } from './clusters/cluster/usage-chart/usage-chart.
     AceEditorModule,
     BrowserModule, MaterialDesignFrameworkModule,
     NgxDatatableModule,
+    StoreModule.forRoot(reducers, { metaReducers }),
+    !environment.production ? StoreDevtoolsModule.instrument() : [],
+    EffectsModule.forRoot([AppEffects]),
   ],
   providers: [
     TitleCasePipe,
