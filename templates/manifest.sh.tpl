@@ -17,7 +17,7 @@ clusters:
 - name: local
   cluster:
     insecure-skip-tls-verify: true
-    server: http://localhost:{{ .MasterPort }}
+    server: http://{{ .MasterHost }}:{{ .MasterPort }}
 contexts:
 - context:
     cluster: local
@@ -42,7 +42,7 @@ spec:
     - /hyperkube
     - proxy
     - --v=2
-    - --master=http://localhost:{{ .MasterPort }}
+    - --master=http://{{ .MasterHost }}:{{ .MasterPort }}
     - --proxy-mode=iptables
     securityContext:
       privileged: true
@@ -78,7 +78,7 @@ spec:
     - --secure-port=443
     - --v=2
     - --insecure-port=8080
-    - --insecure-bind-address=127.0.0.1
+    - --insecure-bind-address=0.0.0.0
     - --advertise-address={{ .MasterHost }}
     - --admission-control=NamespaceLifecycle,NamespaceExists,LimitRanger,ServiceAccount,ResourceQuota,DefaultStorageClass{{if .RBACEnabled }},NodeRestriction{{end}}
     - --tls-cert-file=/etc/kubernetes/ssl/apiserver.pem
@@ -187,7 +187,7 @@ spec:
     - /hyperkube
     - scheduler
     - --v=2
-    - --master=http://localhost:{{ .MasterPort }}
+    - --master=http://{{ .MasterHost }}:{{ .MasterPort }}
     livenessProbe:
       httpGet:
         host: 127.0.0.1
@@ -226,7 +226,7 @@ clusters:
 - name: local
   cluster:
     insecure-skip-tls-verify: true
-    server: https://{{ .MasterHost }}
+    server: http://{{ .MasterHost }}:{{ .MasterPort }}
 contexts:
 - context:
     cluster: local
@@ -258,7 +258,7 @@ spec:
     - /hyperkube
     - proxy
     - --v=2
-    - --master=https://{{ .MasterHost }}
+    - --master=http://{{ .MasterHost }}:{{ .MasterPort }}
     - --proxy-mode=iptables
     securityContext:
       privileged: true
@@ -271,5 +271,4 @@ spec:
       path: /usr/share/ca-certificates
     name: ssl-certs-host
 EOF
-
 {{ end }}
