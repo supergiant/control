@@ -10,13 +10,13 @@ import (
 	"github.com/supergiant/supergiant/pkg/clouds"
 	"github.com/supergiant/supergiant/pkg/model"
 	"github.com/supergiant/supergiant/pkg/node"
+	"github.com/supergiant/supergiant/pkg/pki"
 	"github.com/supergiant/supergiant/pkg/profile"
 	"github.com/supergiant/supergiant/pkg/sgerrors"
 	"github.com/supergiant/supergiant/pkg/storage"
 	"github.com/supergiant/supergiant/pkg/util"
 	"github.com/supergiant/supergiant/pkg/workflows"
 	"github.com/supergiant/supergiant/pkg/workflows/steps"
-	"github.com/supergiant/supergiant/pkg/pki"
 )
 
 const keySize = 4096

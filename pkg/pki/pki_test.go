@@ -102,6 +102,7 @@ ZelwQz0negCFYA3fAhXBCy/UpNlhwEnVg0ghGo5bGI5+6PEE6Z6f3FOZJzcmwEHQ
 xUIn/rpHJeyLQdx+1S5dVrxzkg==
 -----END CERTIFICATE-----`)
 )
+
 func TestGenerateSelfSignedCAKey(t *testing.T) {
 	pki, err := NewPKI(nil)
 	require.NoError(t, err)
@@ -170,15 +171,18 @@ func TestUnmarshal(t *testing.T) {
 }
 
 func TestNewPKI(t *testing.T) {
-	testCases := []struct{
+	testCases := []struct {
+		description string
 		expectedErr error
-		CA *PairPEM
+		CA          *PairPEM
 	}{
 		{
-			CA: nil,
+			description: "success self signed",
+			CA:          nil,
 			expectedErr: nil,
 		},
 		{
+			description: "success provided",
 			expectedErr: nil,
 			CA: &PairPEM{
 				testCACert,
@@ -186,6 +190,7 @@ func TestNewPKI(t *testing.T) {
 			},
 		},
 		{
+			description: "error provided",
 			expectedErr: ErrInvalidCA,
 			CA: &PairPEM{
 				testNonCACert,
@@ -195,6 +200,7 @@ func TestNewPKI(t *testing.T) {
 	}
 
 	for _, testCase := range testCases {
+		t.Log(testCase.description)
 		p, err := NewPKI(testCase.CA)
 
 		if err != testCase.expectedErr {

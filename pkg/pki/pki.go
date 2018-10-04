@@ -75,7 +75,13 @@ func Decode(p *PairPEM) (*Pair, error) {
 		return nil, errors.Wrap(err, "parse a raw certificate")
 	}
 
-	key, err := x509.ParsePKCS1PrivateKey(p.Key)
+	pemBytes, rest = pem.Decode(p.Key)
+
+	if len(rest) > 0 {
+		return nil, errors.New("decode pem")
+	}
+
+	key, err := x509.ParsePKCS1PrivateKey(pemBytes.Bytes)
 	if err != nil {
 		return nil, errors.Wrap(err, "parse a raw private key")
 	}
@@ -123,6 +129,7 @@ func generateCACert() ([]byte, []byte, error) {
 	}
 	pmCrt := pem.EncodeToMemory(&pem.Block{Type: "CERTIFICATE",
 		Bytes: crt.Raw})
+	keyBytes := pem.EncodeToMemory(&pem.Block{Type: "RSA PRIVATE KEY", Bytes: x509.MarshalPKCS1PrivateKey(key)})
 
-	return pmCrt, x509.MarshalPKCS1PrivateKey(key), nil
+	return pmCrt, keyBytes, nil
 }
