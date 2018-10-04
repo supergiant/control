@@ -19,12 +19,12 @@
       <form [formGroup]="clusterConfig" class="cluster-config-form">
         <div class="input-group">
           <mat-form-field>
-            <input matInput type="text" placeholder="Specify Name" formControlName="name">
+            <input matInput type="text" placeholder="Cluster Name" formControlName="name" autofocus>
           </mat-form-field>
 
           <mat-form-field>
-            <mat-select placeholder="K8s Version" formControlName="k8sVersion">
-              <mat-option *ngFor="let k of clusterOptions.k8sVersions" [value]="k">{{ k }}</mat-option>
+            <mat-select placeholder="K8s Version" formControlName="K8sVersion">
+              <mat-option *ngFor="let k of clusterOptions.K8sVersions" [value]="k">{{ k }}</mat-option>
             </mat-select>
           </mat-form-field>
 
@@ -161,7 +161,7 @@
 
         <div class="action-buttons-wrapper">
           <button mat-raised-button class="secondary">SAVE PROFILE</button>
-          <button mat-raised-button color="primary" (click)="createCluster(newDigitalOceanCluster)">CREATE</button>
+          <button mat-raised-button color="primary" (click)="createCluster()">CREATE</button>
         </div>
       </div>
     </mat-step>

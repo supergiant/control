@@ -13,16 +13,7 @@ import { FormBuilder, FormGroup, Validators } from '@angular/forms';
 })
 export class NewClusterComponent implements OnInit, OnDestroy {
   subscriptions = new Subscription();
-  cloudAccountsList: any;
-  hasApp = false;
-  appCount = 0;
-  data: any;
-  schema: any;
-  layout: any;
 
-
-  // temp for demo
-  clusterName: string;
   availableCloudAccounts: Array<any>;
   selectedCloudAccount: any;
   availableRegions: Array<any>;
@@ -44,29 +35,13 @@ export class NewClusterComponent implements OnInit, OnDestroy {
     ubuntuVersions: ["xenial"],
     helmVersions: ["2.8.0"],
     dockerVersions: ["17.06.0"],
-    k8sVersions: ["1.11.1", "1.8"],
+    K8sVersions: ["1.11.1", "1.8"],
     rbacEnabled: [true, false]
-  }
+  };
 
-  // newDigitalOceanCluster = {
-  //   profile: {
-  //     masterProfiles: [],
-  //     nodesProfiles: [],
-  //     provider: "digitalocean",
-  //     // will have to set this on submit for now UGH
-  //     // region: this.selectedRegion.id,
-  //     arch: "amd64",
-  //     operatingSystem: "linux",
-  //     ubuntuVersion: "xenial",
-  //     dockerVersion: "17.06.0",
-  //     K8SVersion: "1.11.1",
-  //     flannelVersion: "0.10.0",
-  //     networkType: "vxlan",
-  //     cidr: "10.0.0.0/24",
-  //     helmVersion: "2.8.0",
-  //     rbacEnabled: false
-  //   }
-  // }
+  isLinear = false;
+  clusterConfig: FormGroup;
+  providerConfig: FormGroup;
 
   constructor(
     private supergiant: Supergiant,
@@ -75,10 +50,6 @@ export class NewClusterComponent implements OnInit, OnDestroy {
     private formBuilder: FormBuilder
   ) { }
 
-  isLinear = false;
-  clusterConfig: FormGroup;
-  providerConfig: FormGroup;
-  machinesConfig: FormGroup;
 
   getCloudAccounts() {
     this.subscriptions.add(this.supergiant.CloudAccounts.get().subscribe(
@@ -86,11 +57,6 @@ export class NewClusterComponent implements OnInit, OnDestroy {
         this.availableCloudAccounts = cloudAccounts;
       })
     );
-  }
-
-  back() {
-    this.data = null;
-    this.schema = null;
   }
 
   compileProfiles(machines, role) {
@@ -106,28 +72,33 @@ export class NewClusterComponent implements OnInit, OnDestroy {
     return compiledProfiles;
   }
 
-  createCluster(model) {
-    // temp for demo
-    model.cloudAccountName = this.selectedCloudAccount.name;
-    model.clusterName = this.clusterName;
-    model.profile.region = this.selectedRegion.id
-    model.profile.masterProfiles = this.compileProfiles(this.machines, "Master");
-    model.profile.nodesProfiles = this.compileProfiles(this.machines, "Node");
+  createCluster() {
+    // compile frontend new-cluster model into api format
+    const newClusterData:any = {};
+    newClusterData.profile = this.clusterConfig.value;
 
-    console.log(model);
+    newClusterData.cloudAccountName = this.selectedCloudAccount.name;
+    newClusterData.clusterName = this.clusterConfig.value.name;
+    // TODO: delete is very slow, find a different way (is this the best place for 'name?')
+    delete newClusterData.profile.name;
+    newClusterData.profile.region = this.providerConfig.value.region.id;
+    newClusterData.profile.masterProfiles = this.compileProfiles(this.machines, "Master");
+    newClusterData.profile.nodesProfiles = this.compileProfiles(this.machines, "Node");
 
-    // this.subscriptions.add(this.supergiant.Kubes.create(model).subscribe(
-    //   (data) => {
-    //     this.success(model);
-    //     this.router.navigate(['/clusters/', this.clusterName]);
-    //   },
-    //   (err) => { this.error(model, err); }));
+    console.log(newClusterData);
+
+    this.subscriptions.add(this.supergiant.Kubes.create(newClusterData).subscribe(
+      (data) => {
+        this.success(newClusterData);
+        this.router.navigate(['/clusters/', newClusterData.clusterName]);
+      },
+      (err) => { this.error(newClusterData, err); }));
   }
 
   success(model) {
     this.notifications.display(
       'success',
-      'Kube: ' + this.data.name,
+      'Kube: ' + model.clusterName,
       'Created...',
     );
   }
@@ -188,15 +159,15 @@ export class NewClusterComponent implements OnInit, OnDestroy {
     // build cluster config
     this.clusterConfig = this.formBuilder.group({
       name: [""],
-      k8sVersion: [""],
-      flannelVersion: [""],
-      helmVersion: [""],
-      dockerVersion: [""],
-      ubuntuVersion: [""],
-      networkType: [""],
-      cidr: [""],
-      operatingSystem: [""],
-      arch: [""]
+      K8sVersion: ["1.11.1"],
+      flannelVersion: ["0.10.0"],
+      helmVersion: ["2.8.0"],
+      dockerVersion: ["17.06.0"],
+      ubuntuVersion: ["xenial"],
+      networkType: ["vxlan"],
+      cidr: ["10.0.0.0/24"],
+      operatingSystem: ["linux"],
+      arch: ["amd64"]
     });
 
     // get cloud accounts
