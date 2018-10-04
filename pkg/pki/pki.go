@@ -12,6 +12,7 @@ import (
 	"math/big"
 	"time"
 
+	"github.com/supergiant/supergiant/pkg/sgerrors"
 	certutil "k8s.io/client-go/util/cert"
 )
 
@@ -153,6 +154,10 @@ func generateCACert() ([]byte, []byte, error) {
 }
 
 func generateCertFromParent(parent *x509.Certificate) ([]byte, []byte, error) {
+	if parent == nil {
+		return nil, nil, sgerrors.ErrInvalidCredentials
+	}
+
 	// Generate a key.
 	key, err := certutil.NewPrivateKey()
 	if err != nil {
@@ -169,8 +174,10 @@ func generateCertFromParent(parent *x509.Certificate) ([]byte, []byte, error) {
 		BasicConstraintsValid: true,
 	}
 
-	template.IsCA = true
-	template.KeyUsage |= x509.KeyUsageCertSign
+	if parent.IsCA {
+		template.IsCA = true
+		template.KeyUsage |= x509.KeyUsageCertSign
+	}
 
 	if parent == nil {
 		parent = &template
