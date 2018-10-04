@@ -8,6 +8,102 @@
 		letter-spacing: 3px;
 	}
 
+	.mat-stepper-horizontal {
+		background-color: rgba(0,0,0,0.5);
+		border: 1px solid rgba(255,255,255,0.25);
+
+		.cluster-config-form {
+			display: flex;
+			justify-content: space-around;
+
+			.input-group {
+				display: flex;
+				flex-direction: column;
+				width: 400px;
+			}
+		}
+
+		.machine-config-step {
+			display: flex;
+			flex-direction: column;
+			width: 500px;
+
+			.machine {
+				display: flex;
+				justify-content: space-between;
+
+				.type {
+					width: 240px;
+				}
+
+				.role {
+					width: 123px;
+				}
+
+				.quantity {
+					width: 30px;
+				}
+
+				.delete {
+					background: url(/assets/img/delete.svg) no-repeat;
+					background-size: 100% 100%;
+					background-position: center;
+					cursor: pointer;
+					display: inline-block;
+					margin: auto 0;
+					height: 25px;
+					width: 25px;
+
+					&:active {
+						transform: scale(0.95, 0.95);
+					}
+				}
+			}
+
+			.add-machines {
+				cursor: pointer;
+				display: flex;
+				width: max-content;
+
+				&:active {
+					transform: scale(0.95, 0.95);
+				}
+
+				.plus {
+					background: url(/assets/img/plus.svg) no-repeat;
+					background-size: 100% 100%;
+					background-position: center;
+					margin: auto 0;
+					height: 20px;
+					width: 20px;
+				}
+
+				.add-label {
+					font-size: 14px;
+					font-weight: 300;
+					padding-left: 12px;
+				}
+			}
+		}
+
+		.review-wrapper {
+
+			.action-buttons-wrapper {
+				display: flex;
+				justify-content: space-between;
+				margin-left: auto;
+				width: 452px;
+
+				// .secondary {
+				// 	border: 2px solid #fff;
+				// 	background-color: transparent;
+				// }
+			}
+		}
+	}
+
+	// ^ new stuff ^
+
 	.inputs-wrapper {
 		flex-direction: row;
 		justify-content: space-between;
@@ -105,18 +201,6 @@
 
 				mat-form-field {
 					width: 270px;
-				}
-			}
-
-			.action-buttons-wrapper {
-				display: flex;
-				justify-content: space-between;
-				margin-left: auto;
-				width: 452px;
-
-				.secondary {
-					border: 2px solid #fff;
-					background-color: transparent;
 				}
 			}
 		}

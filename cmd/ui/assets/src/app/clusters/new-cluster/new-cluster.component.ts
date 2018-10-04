@@ -48,25 +48,25 @@ export class NewClusterComponent implements OnInit, OnDestroy {
     rbacEnabled: [true, false]
   }
 
-  newDigitalOceanCluster = {
-    profile: {
-      masterProfiles: [],
-      nodesProfiles: [],
-      provider: "digitalocean",
-      // will have to set this on submit for now UGH
-      // region: this.selectedRegion.id,
-      arch: "amd64",
-      operatingSystem: "linux",
-      ubuntuVersion: "xenial",
-      dockerVersion: "17.06.0",
-      K8SVersion: "1.11.1",
-      flannelVersion: "0.10.0",
-      networkType: "vxlan",
-      cidr: "10.0.0.0/24",
-      helmVersion: "2.8.0",
-      rbacEnabled: false
-    }
-  }
+  // newDigitalOceanCluster = {
+  //   profile: {
+  //     masterProfiles: [],
+  //     nodesProfiles: [],
+  //     provider: "digitalocean",
+  //     // will have to set this on submit for now UGH
+  //     // region: this.selectedRegion.id,
+  //     arch: "amd64",
+  //     operatingSystem: "linux",
+  //     ubuntuVersion: "xenial",
+  //     dockerVersion: "17.06.0",
+  //     K8SVersion: "1.11.1",
+  //     flannelVersion: "0.10.0",
+  //     networkType: "vxlan",
+  //     cidr: "10.0.0.0/24",
+  //     helmVersion: "2.8.0",
+  //     rbacEnabled: false
+  //   }
+  // }
 
   constructor(
     private supergiant: Supergiant,
@@ -84,7 +84,6 @@ export class NewClusterComponent implements OnInit, OnDestroy {
     this.subscriptions.add(this.supergiant.CloudAccounts.get().subscribe(
       (cloudAccounts) => {
         this.availableCloudAccounts = cloudAccounts;
-        // set this.providerConfig here
       })
     );
   }
@@ -168,6 +167,14 @@ export class NewClusterComponent implements OnInit, OnDestroy {
   selectCloudAccount(cloudAccount) {
     this.selectedCloudAccount = cloudAccount
 
+    switch (this.selectedCloudAccount.provider) {
+      case "digitalocean": {
+        this.providerConfig = this.formBuilder.group({
+          region: [""]
+        });
+      }
+    }
+
     this.subscriptions.add(this.supergiant.CloudAccounts.getRegions(cloudAccount.name).subscribe(
         regionList => {
           this.availableRegions = regionList;
@@ -178,8 +185,7 @@ export class NewClusterComponent implements OnInit, OnDestroy {
   }
 
   ngOnInit() {
-    // build 4 form groups
-    // leave providerConfig empty
+    // build cluster config
     this.clusterConfig = this.formBuilder.group({
       name: [""],
       k8sVersion: [""],
