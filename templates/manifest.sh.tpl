@@ -14,7 +14,7 @@ clusters:
 - name: local
   cluster:
     insecure-skip-tls-verify: true
-    server: http://{{ .MasterHost }}:{{ .MasterPort }}
+    server: https://{{ .MasterHost }}
 contexts:
 - context:
     cluster: local
@@ -88,7 +88,7 @@ spec:
     - --basic-auth-file=/etc/kubernetes/ssl/basic_auth.csv
     - --token-auth-file=/etc/kubernetes/ssl/known_tokens.csv
     - --kubelet-preferred-address-types=InternalIP,Hostname,ExternalIP
-    - --storage-backend=etcd2
+    - --storage-backend=etcd3
     -  {{ .ProviderString }}
     ports:
     - containerPort: 443

@@ -36,6 +36,14 @@ func (s *Step) Run(ctx context.Context, out io.Writer, config *steps.Config) err
 	ctx2, _ := context.WithTimeout(ctx, time.Duration(config.PostStartConfig.Timeout)*time.Second)
 	config.PostStartConfig.IsMaster = config.IsMaster
 
+	if config.IsMaster {
+		config.PostStartConfig.Host = config.Node.PrivateIp
+	} else {
+		if masterNode := config.GetMaster(); masterNode != nil {
+			config.PostStartConfig.Host = masterNode.PrivateIp
+		}
+	}
+
 	err := steps.RunTemplate(ctx2, s.script, config.Runner, out, config.PostStartConfig)
 
 	if err != nil {
