@@ -53,7 +53,10 @@ export function reducer(state = initialState, action: AppsActions): AppStoreStat
       return state;
 
     case AppsActionTypes.SetCharts:
-      return {...state, charts: action.payload};
+      return {
+        ...state,
+        charts: action.payload
+      };
 
     default:
       return state;

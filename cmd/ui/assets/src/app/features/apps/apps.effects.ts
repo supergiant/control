@@ -13,7 +13,7 @@ export class AppsEffects {
   loadFoos$: Observable<Action> = this.actions$.pipe(
     ofType(AppsActionTypes.LoadAppss),
     switchMap(() => this.http.get('/v1/api/helm/repositories/supergiant/charts')),
-    map(charts => new SetCharts({charts})),
+    map(charts => new SetCharts(charts)),
   );
 
   constructor(
