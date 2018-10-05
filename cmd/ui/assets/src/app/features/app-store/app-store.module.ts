@@ -8,12 +8,18 @@ import { AppsVerifiedComponent } from './apps-verified/apps-verified.component';
 import { AppsOtherComponent } from './apps-other/apps-other.component';
 import { AppsAddComponent } from './apps-add/apps-add.component';
 import { MatCardModule } from '@angular/material';
+import { StoreModule } from '@ngrx/store';
+import * as fromApps from '../apps/apps.reducer';
+import { EffectsModule } from '@ngrx/effects';
+import { AppsEffects } from '../apps/apps.effects';
 
 @NgModule({
   imports: [
     CommonModule,
     AppStoreRoutingModule,
-    MatCardModule
+    MatCardModule,
+    StoreModule.forFeature('apps', fromApps.reducer),
+    EffectsModule.forFeature([AppsEffects])
   ],
   declarations: [AppStoreComponent, AppsSupergiantComponent, AppsVerifiedComponent, AppsOtherComponent, AppsAddComponent]
 })
