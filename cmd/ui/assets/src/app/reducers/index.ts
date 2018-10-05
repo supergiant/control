@@ -10,7 +10,7 @@ import * as fromApps from '../features/apps/apps.reducer';
 
 export interface State {
 
-  apps: fromApps.State;
+  apps: fromApps.AppStoreState;
 }
 
 export const reducers: ActionReducerMap<State> = {
@@ -18,5 +18,13 @@ export const reducers: ActionReducerMap<State> = {
   apps: fromApps.reducer,
 };
 
+export function debug(reducer: ActionReducer<any>): ActionReducer<any> {
+  return function(state, action) {
+    console.log('state', state);
+    console.log('action', action);
 
-export const metaReducers: MetaReducer<State>[] = !environment.production ? [] : [];
+    return reducer(state, action);
+  };
+}
+
+export const metaReducers: MetaReducer<State>[] = !environment.production ? [debug] : [];

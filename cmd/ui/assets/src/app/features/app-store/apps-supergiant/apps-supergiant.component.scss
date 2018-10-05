@@ -1,3 +1,11 @@
+:host {
+  display: flex;
+
+  .mat-card {
+    margin-right: 30px;
+  }
+}
+
 button {
   font-size: 14px;
   color: #D10088;

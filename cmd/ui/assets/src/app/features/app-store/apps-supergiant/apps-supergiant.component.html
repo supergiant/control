@@ -1,9 +1,13 @@
-<mat-card class="example-card">
+<mat-card *ngFor="let chart of charts$ | async" class="example-card">
   <mat-card-header>
-    <mat-card-title><h2>Elastic Search</h2></mat-card-title>
+    <mat-card-title>
+      <h2>{{ chart.name }}</h2>
+    </mat-card-title>
   </mat-card-header>
   <mat-card-content>
-    <p>A Helm chart for elasticsearch</p>
+    <p>
+      {{ chart.description }}
+    </p>
   </mat-card-content>
   <mat-card-actions>
     <button mat-raised-button class="secondary">VIEW</button>
