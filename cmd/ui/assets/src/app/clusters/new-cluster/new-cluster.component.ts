@@ -35,11 +35,11 @@ export class NewClusterComponent implements OnInit, OnDestroy {
     ubuntuVersions: ["xenial"],
     helmVersions: ["2.8.0"],
     dockerVersions: ["17.06.0"],
-    K8sVersions: ["1.11.1", "1.8"],
+    K8sVersions: ["1.11.1"],
     rbacEnabled: [true, false]
   };
 
-  isLinear = false;
+  provisioning = false;
   clusterConfig: FormGroup;
   providerConfig: FormGroup;
 
