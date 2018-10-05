@@ -14,12 +14,12 @@ import { FormBuilder, FormGroup, Validators } from '@angular/forms';
 export class NewClusterComponent implements OnInit, OnDestroy {
   subscriptions = new Subscription();
 
+  clusterName: string;
   availableCloudAccounts: Array<any>;
   selectedCloudAccount: any;
   availableRegions: Array<any>;
   selectedRegion: any;
   availableMachineTypes: Array<any>;
-  machineSizes: any;
 
   machines = [{
     machineType: null,
@@ -36,7 +36,7 @@ export class NewClusterComponent implements OnInit, OnDestroy {
     helmVersions: ["2.8.0"],
     dockerVersions: ["17.06.0"],
     K8sVersions: ["1.11.1"],
-    rbacEnabled: [true, false]
+    rbacEnabled: [false]
   };
 
   provisioning = false;
@@ -78,12 +78,9 @@ export class NewClusterComponent implements OnInit, OnDestroy {
     newClusterData.profile = this.clusterConfig.value;
 
     newClusterData.cloudAccountName = this.selectedCloudAccount.name;
-    newClusterData.clusterName = this.clusterConfig.value.name;
-    // TODO: delete is very slow, find a different way (is this the best place for 'name?')
-    delete newClusterData.profile.name;
+    newClusterData.clusterName = this.clusterName;
     newClusterData.profile.region = this.providerConfig.value.region.id;
     newClusterData.profile.provider = this.selectedCloudAccount.provider;
-    newClusterData.profile.rbacEnabled = false;
     newClusterData.profile.masterProfiles = this.compileProfiles(this.machines, "Master");
     newClusterData.profile.nodesProfiles = this.compileProfiles(this.machines, "Node");
 
@@ -94,7 +91,8 @@ export class NewClusterComponent implements OnInit, OnDestroy {
         this.success(newClusterData);
         this.router.navigate(['/clusters/', newClusterData.clusterName]);
       },
-      (err) => { this.error(newClusterData, err); }));
+      (err) => { this.error(newClusterData, err); }
+    ));
   }
 
   success(model) {
@@ -151,7 +149,6 @@ export class NewClusterComponent implements OnInit, OnDestroy {
     this.subscriptions.add(this.supergiant.CloudAccounts.getRegions(cloudAccount.name).subscribe(
         regionList => {
           this.availableRegions = regionList;
-          this.machineSizes = regionList.sizes;
         },
         err => this.error({}, err)
     ))
@@ -160,7 +157,6 @@ export class NewClusterComponent implements OnInit, OnDestroy {
   ngOnInit() {
     // build cluster config
     this.clusterConfig = this.formBuilder.group({
-      name: [""],
       K8sVersion: ["1.11.1"],
       flannelVersion: ["0.10.0"],
       helmVersion: ["2.8.0"],
@@ -169,7 +165,8 @@ export class NewClusterComponent implements OnInit, OnDestroy {
       networkType: ["vxlan"],
       cidr: ["10.0.0.0/24"],
       operatingSystem: ["linux"],
-      arch: ["amd64"]
+      arch: ["amd64"],
+      rbacEnabled: [false]
     });
 
     // get cloud accounts

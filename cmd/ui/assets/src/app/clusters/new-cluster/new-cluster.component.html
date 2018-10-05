@@ -5,10 +5,15 @@
 
     <mat-step label="Cloud Account">
       <mat-form-field>
+        <input matInput type="text" [(ngModel)]="clusterName" placeholder="Cluster name" autofocus="">
+      </mat-form-field>
+
+      <mat-form-field>
         <mat-select placeholder="Choose a cloud account" [(value)]="selectedCloudAccount" (selectionChange)="selectCloudAccount($event.value)">
           <mat-option *ngFor="let account of availableCloudAccounts" [value]="account">{{ account.name }}</mat-option>
         </mat-select>
       </mat-form-field>
+
       <div>
         <button mat-raised-button class="secondary">LOAD PROFILE</button>
         <button mat-raised-button matStepperNext>Next</button>
@@ -18,9 +23,6 @@
     <mat-step label="Cluster Configuration" [stepControl]="clusterConfig">
       <form [formGroup]="clusterConfig" class="cluster-config-form">
         <div class="input-group">
-          <mat-form-field>
-            <input matInput type="text" placeholder="Cluster Name" formControlName="name" autofocus>
-          </mat-form-field>
 
           <mat-form-field>
             <mat-select placeholder="K8s Version" formControlName="K8sVersion">
@@ -45,15 +47,15 @@
               <mat-option *ngFor="let d of clusterOptions.dockerVersions" [value]="d">{{ d }}</mat-option>
             </mat-select>
           </mat-form-field>
-        </div>
 
-        <div class="input-group">
           <mat-form-field>
             <mat-select placeholder="Ubuntu Version" formControlName="ubuntuVersion">
               <mat-option *ngFor="let u of clusterOptions.ubuntuVersions" [value]="u">{{ u }}</mat-option>
             </mat-select>
           </mat-form-field>
+        </div>
 
+        <div class="input-group">
           <mat-form-field>
             <mat-select placeholder="Network Type" formControlName="networkType">
               <mat-option *ngFor="let n of clusterOptions.networkTypes" [value]="n">{{ n }}</mat-option>
@@ -73,6 +75,12 @@
           <mat-form-field>
             <mat-select placeholder="Arch" formControlName="arch">
               <mat-option *ngFor="let a of clusterOptions.archs" [value]="a">{{ a }}</mat-option>
+            </mat-select>
+          </mat-form-field>
+
+          <mat-form-field>
+            <mat-select placeholder="RBAC Enabled" formControlName="rbacEnabled">
+              <mat-option *ngFor="let b of clusterOptions.rbacEnabled" [value]="b">{{ b }}</mat-option>
             </mat-select>
           </mat-form-field>
         </div>
@@ -142,7 +150,7 @@
 
     <mat-step label="Review">
       <div class="review-wrapper">
-        <h1>{{ clusterConfig.value.name }}</h1>
+        <h1>{{ clusterName }}</h1>
         <div class="cloud-account">
           <h3>CLOUD ACCOUNT</h3>
           <p>{{ selectedCloudAccount?.name }}</p>
