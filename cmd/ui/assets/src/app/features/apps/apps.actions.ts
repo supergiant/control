@@ -1,18 +1,21 @@
 import { Action } from '@ngrx/store';
 
-export enum AppsActionTypes {
-  LoadAppss = '[Apps] Load Appss',
-  SetCharts = '[Apps] Set charts'
+export enum AppStoreActionTypes {
+  LoadSupergiantCharts        = '[Apps] Load SG charts',
+  LoadSupergiantChartsSuccess = '[Apps] Load SG charts success'
 }
 
-export class LoadAppss implements Action {
-  readonly type = AppsActionTypes.LoadAppss;
+export class LoadSupergiantCharts implements Action {
+  readonly type = AppStoreActionTypes.LoadSupergiantCharts;
 }
 
-export class SetCharts implements Action {
-  readonly type = AppsActionTypes.SetCharts;
+export class LoadSupergiantChartsSuccess implements Action {
+  readonly type = AppStoreActionTypes.LoadSupergiantChartsSuccess;
 
+  // TODO: add payload interface
   constructor(public payload: any){}
 }
 
-export type AppsActions = LoadAppss | SetCharts;
+export type AppsActions =
+  LoadSupergiantCharts |
+  LoadSupergiantChartsSuccess;

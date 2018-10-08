@@ -1,6 +1,6 @@
-import { createSelector } from '@ngrx/store';
-import { AppsActions, AppsActionTypes } from './apps.actions';
-import { State } from '../../reducers';
+import { createSelector }                   from '@ngrx/store';
+import { AppsActions, AppStoreActionTypes } from './apps.actions';
+import { State }                            from '../../reducers';
 
 export interface Chart {
   name: string;
@@ -49,10 +49,10 @@ export const initialState: AppStoreState = {
 export function reducer(state = initialState, action: AppsActions): AppStoreState {
   switch (action.type) {
 
-    case AppsActionTypes.LoadAppss:
+    case AppStoreActionTypes.LoadSupergiantCharts:
       return state;
 
-    case AppsActionTypes.SetCharts:
+    case AppStoreActionTypes.LoadSupergiantChartsSuccess:
       return {
         ...state,
         charts: action.payload
