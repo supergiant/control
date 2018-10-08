@@ -16,6 +16,6 @@ export class LoadSupergiantChartsSuccess implements Action {
   constructor(public payload: any){}
 }
 
-export type AppsActions =
+export type SupergiantAppActions =
   LoadSupergiantCharts |
   LoadSupergiantChartsSuccess;

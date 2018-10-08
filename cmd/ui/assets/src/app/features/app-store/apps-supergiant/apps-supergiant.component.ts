@@ -3,6 +3,7 @@ import { Chart, selectSupergiantCharts } from '../../apps/apps.reducer';
 import { select, Store }                 from '@ngrx/store';
 import { Observable }                    from 'rxjs';
 import { State }                         from '../../../reducers';
+import { LoadSupergiantCharts }          from "../../apps/actions/supergiant-app-actions";
 
 @Component({
   selector: 'app-apps-supergiant',
@@ -14,10 +15,10 @@ export class AppsSupergiantComponent implements OnInit {
   public charts$: Observable<Chart[]>;
 
   constructor(private store: Store<State>) {
-    this.charts$ = this.store.pipe(select(selectSupergiantCharts))
+    this.store.dispatch(new LoadSupergiantCharts());
   }
 
   ngOnInit() {
-    this.charts$.subscribe(charts => console.log(charts))
+    this.charts$ = this.store.pipe(select(selectSupergiantCharts))
   }
 }

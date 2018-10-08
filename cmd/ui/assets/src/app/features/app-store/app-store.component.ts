@@ -1,7 +1,4 @@
 import { Component, OnInit }    from '@angular/core';
-import { State }                from '../../reducers';
-import { Store }                from '@ngrx/store';
-import { LoadSupergiantCharts } from '../apps/apps.actions';
 
 @Component({
   selector: 'app-app-store',
@@ -10,10 +7,9 @@ import { LoadSupergiantCharts } from '../apps/apps.actions';
 })
 export class AppStoreComponent implements OnInit {
 
-  constructor(private store: Store<State>) { }
+  constructor() { }
 
   ngOnInit() {
-    this.store.dispatch(new LoadSupergiantCharts())
   }
 
 }
