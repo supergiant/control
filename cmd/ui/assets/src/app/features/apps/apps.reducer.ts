@@ -9,41 +9,25 @@ export interface Chart {
 }
 
 export interface AppStoreState {
-  charts: Chart[]
+  charts: {
+    supergiant: Chart[]
+    verified: Chart[]
+  }
 }
 
+const mockCharts = [
+  {
+    'name': '',
+    'repo': '',
+    'description': '',
+  },
+];
+
 export const initialState: AppStoreState = {
-  charts: [
-    {
-      'name': 'elasticsearch',
-      'repo': 'supergiant',
-      'description': 'A Helm chart for elasticsearch',
-      // 'home': '',
-      // 'keywords': null,
-      // 'maintainers': [],
-      // 'sources': null,
-      // 'icon': '',
-      // 'versions': [ {
-      //   'version': '0.1.0',
-      //   'appVersion': '',
-      //   'created': '2018-02-21T11:37:37.422696-06:00',
-      //   'digest': 'fba23e9ebd5c260653998f06cbd20cb85a10e0475a40d200ec33d9cebe58a962',
-      //   'urls': [ 'https://supergiant.github.io/charts/elasticsearch-0.1.0.tgz' ],
-      // } ],
-    },
-    {
-      'name': 'elasticsearch',
-      'repo': 'supergiant',
-      'description': 'A Helm chart for elasticsearch',
-    },
-    {
-      'name': 'elasticsearch',
-      'repo': 'supergiant',
-      'description': 'A Helm chart for elasticsearch',
-    }
-
-  ],
-
+  charts: {
+    supergiant: mockCharts,
+    verified: mockCharts,
+  },
 };
 
 export function reducer(state = initialState, action: AppsActions): AppStoreState {
@@ -55,7 +39,10 @@ export function reducer(state = initialState, action: AppsActions): AppStoreStat
     case AppStoreActionTypes.LoadSupergiantChartsSuccess:
       return {
         ...state,
-        charts: action.payload
+        charts: {
+          ...state.charts,
+          supergiant: action.payload
+        }
       };
 
     default:
@@ -69,5 +56,5 @@ export const selectApps = createSelector(
 );
 export const selectCharts = createSelector(
   selectApps,
-  (state: AppStoreState) => state.charts,
+  (state: AppStoreState) => state.charts.supergiant,
 );
