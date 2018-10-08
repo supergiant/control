@@ -5,15 +5,22 @@ import { map, switchMap }                                   from 'rxjs/operators
 import { HttpClient }                                       from '@angular/common/http';
 import { Action }                                           from '@ngrx/store';
 import { Observable }                                       from 'rxjs';
+import * as appsActions                                     from './actions'
 
 @Injectable()
 export class AppsEffects {
 
   @Effect()
-  loadFoos$: Observable<Action> = this.actions$.pipe(
+  loadSupergiantCharts: Observable<Action> = this.actions$.pipe(
     ofType(AppStoreActionTypes.LoadSupergiantCharts),
     switchMap(() => this.http.get('/v1/api/helm/repositories/supergiant/charts')),
     map(charts => new LoadSupergiantChartsSuccess(charts)),
+  );
+
+  loadVerifiedCharts: Observable<Action> = this.actions$.pipe(
+    ofType(appsActions.VerifiedAppActionTypes.LoadVerifiedApps),
+    switchMap(() => this.http.get('/v1/api/helm/repositories/supergiant/charts')),
+    map(charts => new appsActions.LoadVerifiedAppsSuccess(charts)),
   );
 
   constructor(

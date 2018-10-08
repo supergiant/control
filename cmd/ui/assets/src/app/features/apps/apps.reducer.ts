@@ -1,6 +1,7 @@
-import { createSelector }                   from '@ngrx/store';
-import { AppsActions, AppStoreActionTypes } from './apps.actions';
-import { State }                            from '../../reducers';
+import { Action, createSelector }                     from '@ngrx/store';
+import { AppsActions, AppStoreActionTypes }           from './apps.actions';
+import { State }                                      from '../../reducers';
+import { VerifiedAppActions, VerifiedAppActionTypes } from "./actions";
 
 export interface Chart {
   name: string;
@@ -30,7 +31,10 @@ export const initialState: AppStoreState = {
   },
 };
 
-export function reducer(state = initialState, action: AppsActions): AppStoreState {
+export function reducer(
+  state = initialState,
+  action: AppsActions | VerifiedAppActions
+): AppStoreState {
   switch (action.type) {
 
     case AppStoreActionTypes.LoadSupergiantCharts:
@@ -44,6 +48,18 @@ export function reducer(state = initialState, action: AppsActions): AppStoreStat
           supergiant: action.payload
         }
       };
+      break;
+
+    case VerifiedAppActionTypes.LoadVerifiedAppsSuccess:
+      return {
+        ...state,
+        charts: {
+          ...state.charts,
+          verified: action.payload
+        }
+      };
+
+
 
     default:
       return state;
