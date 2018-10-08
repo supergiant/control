@@ -70,7 +70,12 @@ export function reducer(
 export const selectApps = createSelector(
   (state: State) => state.apps,
 );
-export const selectCharts = createSelector(
+export const selectSupergiantCharts = createSelector(
+  selectApps,
+  (state: AppStoreState) => state.charts.supergiant,
+);
+
+export const selectVerifiedCharts = createSelector(
   selectApps,
   (state: AppStoreState) => state.charts.supergiant,
 );
