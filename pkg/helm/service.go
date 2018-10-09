@@ -6,6 +6,7 @@ import (
 	"os"
 	"path/filepath"
 	"sort"
+	"strings"
 
 	"github.com/pkg/errors"
 	"k8s.io/helm/pkg/proto/hapi/chart"
@@ -37,7 +38,7 @@ type Servicer interface {
 // Service manages helm repositories.
 type Service struct {
 	storage storage.Interface
-	repos   *repositories.Manager
+	repos   repositories.Interface
 }
 
 // NewService constructs a Service for helm repository.
@@ -70,7 +71,7 @@ func (s Service) CreateRepo(ctx context.Context, e *repo.Entry) (*helm.Repositor
 	}
 
 	// store the index file
-	r = toRepo(*e, *ind)
+	r = toRepo(e, ind)
 	rawJSON, err := json.Marshal(r)
 	if err != nil {
 		return nil, errors.Wrap(err, "marshal index file")
@@ -189,7 +190,8 @@ func findChartURL(charts []helm.Chart, chartName, chartVersion string) (string, 
 }
 
 func findChartVersion(chrtVers []helm.ChartVersion, version string) helm.ChartVersion {
-	if len(chrtVers) > 0 && version == helm.VersionLatest {
+	version = strings.TrimSpace(version)
+	if len(chrtVers) > 0 && version == "" {
 		return chrtVers[len(chrtVers)-1]
 	}
 	for _, v := range chrtVers {
@@ -200,11 +202,19 @@ func findChartVersion(chrtVers []helm.ChartVersion, version string) helm.ChartVe
 	return helm.ChartVersion{}
 }
 
-func toRepo(e repo.Entry, index repo.IndexFile) *helm.Repository {
-	r := &helm.Repository{
-		Config: e,
-		Charts: make([]helm.Chart, 0, len(index.Entries)),
+func toRepo(e *repo.Entry, index *repo.IndexFile) *helm.Repository {
+	if e == nil {
+		return nil
 	}
+
+	r := &helm.Repository{
+		Config: *e,
+	}
+	if index == nil {
+		return r
+	}
+
+	r.Charts =  make([]helm.Chart, 0, len(index.Entries))
 	for name, entry := range index.Entries {
 		if len(entry) == 0 {
 			continue
