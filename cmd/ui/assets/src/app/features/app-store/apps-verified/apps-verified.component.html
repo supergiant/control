@@ -1,15 +1,1 @@
-<mat-card *ngFor="let chart of charts$ | async" class="example-card">
-  <mat-card-header>
-    <mat-card-title>
-      <h2>{{ chart.name }}</h2>
-    </mat-card-title>
-  </mat-card-header>
-  <mat-card-content>
-    <p>
-    {{ chart.description }}
-    </p>
-  </mat-card-content>
-  <mat-card-actions>
-    <button mat-raised-button class="secondary">VIEW</button>
-  </mat-card-actions>
-</mat-card>
+<apps-list [charts]="charts$ | async"></apps-list>
