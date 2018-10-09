@@ -34,7 +34,7 @@ const routes: Routes = [
         component: AppsAddComponent,
       },
       {
-        path: ':repo/details',
+        path: ':repo/details/:chart',
         component: AppDetailsComponent
       }
     ]
