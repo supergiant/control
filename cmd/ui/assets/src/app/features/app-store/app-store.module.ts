@@ -13,6 +13,7 @@ import * as fromApps               from '../apps/apps.reducer';
 import { EffectsModule }           from '@ngrx/effects';
 import { AppsEffects }             from '../apps/apps.effects';
 import { AppsListComponent }       from './apps-list/apps-list.component';
+import { AppDetailsComponent } from './app-details/app-details.component';
 
 @NgModule({
   imports: [
@@ -28,7 +29,8 @@ import { AppsListComponent }       from './apps-list/apps-list.component';
     AppsVerifiedComponent,
     AppsOtherComponent,
     AppsAddComponent,
-    AppsListComponent
+    AppsListComponent,
+    AppDetailsComponent
   ]
 })
 export class AppStoreModule {

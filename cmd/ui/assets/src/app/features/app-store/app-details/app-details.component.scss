@@ -1,0 +1,9 @@
+:host {
+  .mat-card {
+    display: flex;
+
+    article {
+      flex-basis: 80%;
+    }
+  }
+}
