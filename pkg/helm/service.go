@@ -21,6 +21,19 @@ const (
 	repoPrefix = "/helm/repositories/"
 )
 
+var _ Servicer = &Service{}
+
+// Servicer is an interface for the helm service.
+type Servicer interface {
+	CreateRepo(ctx context.Context, e *repo.Entry) (*helm.Repository, error)
+	GetRepo(ctx context.Context, repoName string) (*helm.Repository, error)
+	ListRepos(ctx context.Context) ([]helm.Repository, error)
+	DeleteRepo(ctx context.Context, repoName string) (*helm.Repository, error)
+	GetChart(ctx context.Context, repoName, chartName string) (*helm.Chart, error)
+	ListCharts(ctx context.Context, repoName string) ([]helm.Chart, error)
+	GetChartFiles(ctx context.Context, repoName, chartName, chartVersion string) (*chart.Chart, error)
+}
+
 // Service manages helm repositories.
 type Service struct {
 	storage storage.Interface
@@ -28,11 +41,16 @@ type Service struct {
 }
 
 // NewService constructs a Service for helm repository.
-func NewService(s storage.Interface) *Service {
+func NewService(s storage.Interface) (*Service, error) {
+	repos, err := repositories.New(filepath.Join(os.TempDir(), ".helm"))
+	if err != nil {
+		return nil, errors.Wrap(err, "setup repositories manager")
+	}
+
 	return &Service{
 		storage: s,
-		repos:   repositories.New(filepath.Join(os.TempDir(), ".helm")),
-	}
+		repos:   repos,
+	}, nil
 }
 
 // CreateRepo stores a helm repository in the provided storage.
@@ -83,8 +101,8 @@ func (s Service) GetRepo(ctx context.Context, repoName string) (*helm.Repository
 	return r, nil
 }
 
-// GetAllRepos retrieves all helm repositories from the storage.
-func (s Service) GetAllRepos(ctx context.Context) ([]helm.Repository, error) {
+// ListRepos retrieves all helm repositories from the storage.
+func (s Service) ListRepos(ctx context.Context) ([]helm.Repository, error) {
 	rawRepos, err := s.storage.GetAll(ctx, repoPrefix)
 	if err != nil {
 		return nil, errors.Wrap(err, "storage")
@@ -104,8 +122,12 @@ func (s Service) GetAllRepos(ctx context.Context) ([]helm.Repository, error) {
 }
 
 // DeleteRepo removes a helm repository from the storage by its name.
-func (s Service) DeleteRepo(ctx context.Context, repoName string) error {
-	return s.storage.Delete(ctx, repoPrefix, repoName)
+func (s Service) DeleteRepo(ctx context.Context, repoName string) (*helm.Repository, error) {
+	hrepo, err := s.GetRepo(ctx, repoName)
+	if err != nil {
+		return nil, errors.Wrap(err, "storage")
+	}
+	return hrepo, s.storage.Delete(ctx, repoPrefix, repoName)
 }
 
 func (s Service) GetChart(ctx context.Context, repoName, chartName string) (*helm.Chart, error) {

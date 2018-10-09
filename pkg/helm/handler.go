@@ -14,7 +14,7 @@ import (
 
 // Handler is a http controller for a helm repositories.
 type Handler struct {
-	svc *Service
+	svc Servicer
 }
 
 // NewHandler constructs a Handler for helm repositories.
@@ -28,7 +28,7 @@ func NewHandler(svc *Service) *Handler {
 func (h *Handler) Register(r *mux.Router) {
 	r.HandleFunc("/helm/repositories", h.createRepo).Methods(http.MethodPost)
 	r.HandleFunc("/helm/repositories/{repoName}", h.getRepo).Methods(http.MethodGet)
-	r.HandleFunc("/helm/repositories", h.listAllRepos).Methods(http.MethodGet)
+	r.HandleFunc("/helm/repositories", h.listRepos).Methods(http.MethodGet)
 	r.HandleFunc("/helm/repositories/{repoName}", h.deleteRepo).Methods(http.MethodDelete)
 
 	r.HandleFunc("/helm/repositories/{repoName}/charts", h.listCharts).Methods(http.MethodGet)
@@ -55,7 +55,7 @@ func (h *Handler) createRepo(w http.ResponseWriter, r *http.Request) {
 	}
 
 	if err := json.NewEncoder(w).Encode(hrepo); err != nil {
-		log.Errorf("helm: create repository: %s: encode: %s", repoConf.Name, err)
+		log.Errorf("helm: create repository: %s: write resp: %s", repoConf.Name, err)
 		message.SendUnknownError(w, err)
 		return
 	}
@@ -82,8 +82,8 @@ func (h *Handler) getRepo(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
-func (h *Handler) listAllRepos(w http.ResponseWriter, r *http.Request) {
-	repos, err := h.svc.GetAllRepos(r.Context())
+func (h *Handler) listRepos(w http.ResponseWriter, r *http.Request) {
+	repos, err := h.svc.ListRepos(r.Context())
 	if err != nil {
 		log.Errorf("helm: list repositories: %s", err)
 		message.SendUnknownError(w, err)
@@ -100,12 +100,19 @@ func (h *Handler) listAllRepos(w http.ResponseWriter, r *http.Request) {
 func (h *Handler) deleteRepo(w http.ResponseWriter, r *http.Request) {
 	repoName := mux.Vars(r)["repoName"]
 
-	if err := h.svc.DeleteRepo(r.Context(), repoName); err != nil {
-		if sgerrors.IsAlreadyExists(err) {
-			message.SendAlreadyExists(w, repoName, err)
+	hrepo, err := h.svc.DeleteRepo(r.Context(), repoName)
+	if err != nil {
+		if sgerrors.IsNotFound(err) {
+			message.SendNotFound(w, repoName, err)
 			return
 		}
 		log.Errorf("helm: delete repository: %s: %s", repoName, err)
+		message.SendUnknownError(w, err)
+		return
+	}
+
+	if err := json.NewEncoder(w).Encode(hrepo); err != nil {
+		log.Errorf("helm: delete repository: %s: encode: %s", hrepo.Config.Name, err)
 		message.SendUnknownError(w, err)
 		return
 	}
@@ -121,7 +128,7 @@ func (h *Handler) getChart(w http.ResponseWriter, r *http.Request) {
 			message.SendNotFound(w, repoName+"/"+chartName, err)
 			return
 		}
-		log.Errorf("helm: get chart: %s/%s: %s", repoName, chartName, err)
+		log.Errorf("helm: get %s/%s chart: %s", repoName, chartName, err)
 		message.SendUnknownError(w, err)
 		return
 	}
@@ -138,10 +145,6 @@ func (h *Handler) listCharts(w http.ResponseWriter, r *http.Request) {
 
 	chrtList, err := h.svc.ListCharts(r.Context(), repoName)
 	if err != nil {
-		if sgerrors.IsNotFound(err) {
-			message.SendNotFound(w, repoName, err)
-			return
-		}
 		log.Errorf("helm: list charts: %s: %s", repoName, err)
 		message.SendUnknownError(w, err)
 		return

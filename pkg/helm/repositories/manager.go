@@ -20,10 +20,14 @@ type Manager struct {
 	helmHome helmpath.Home
 }
 
-func New(homePath string) *Manager {
-	return &Manager{
+func New(homePath string) (*Manager, error) {
+	m := &Manager{
 		helmHome: helmpath.Home(homePath),
 	}
+	if err := m.init(); err != nil {
+		return nil, err
+	}
+	return m, nil
 }
 
 func (m Manager) GetIndexFile(e *repo.Entry) (*repo.IndexFile, error) {
