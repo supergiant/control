@@ -1,13 +1,22 @@
-:host {
-  .mat-card {
-    display: flex;
+.mat-card {
+  display: flex;
 
-    article {
-      flex-basis: 80%;
-    }
+  article {
+    flex-basis: 80%;
   }
 }
 
 .info {
   width: 100%;
+  td {
+    &:first-child {
+      color: rgba(#fff, .5);
+    }
+  }
+}
+
+button {
+  &.configure {
+    margin-right: 16px;
+  }
 }

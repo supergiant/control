@@ -88,6 +88,22 @@ button[mat-raised-button], button[mat-button] {
 
 button {
   outline: none;
+
+  &[mat-button] {
+    padding: 8px 32px;
+
+    &[color='secondary'] {
+      color: #fff;
+      border: 1px solid #fff!important;
+      background-color: transparent!important;
+    }
+
+    &[color='primary'] {
+      color: #fff;
+      border: none;
+      background-color: #D10088!important;
+    }
+  }
 }
 
 
