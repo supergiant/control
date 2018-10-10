@@ -48,8 +48,17 @@ h1 {
   letter-spacing: 3px;
 }
 
+h2 {
+  font-size: 32px!important;
+}
+
 h3 {
   letter-spacing: 2px;
+  font-size: 26px!important;
+}
+
+h2, h3{
+  font-weight: 200!important;
 }
 
 button[mat-raised-button], button[mat-button] {

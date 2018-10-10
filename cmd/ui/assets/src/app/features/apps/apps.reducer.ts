@@ -1,13 +1,17 @@
-import { createSelector }                             from '@ngrx/store';
-import { AppStoreActionTypes, SupergiantAppActions }  from './actions/supergiant-app-actions';
-import { State }                                      from '../../reducers';
-import { VerifiedAppActions, VerifiedAppActionTypes } from "./actions";
-import { OtherAppActions, OtherAppActionTypes }       from "./actions/other-app.actions";
+import { createSelector }                                                                     from '@ngrx/store';
+import { AppStoreActionTypes, SupergiantAppActions }                                          from './actions/supergiant-app-actions';
+import { State }                                                                              from '../../reducers';
+import { AppDetailActions, AppDetailActionTypes, VerifiedAppActions, VerifiedAppActionTypes } from "./actions";
+import { OtherAppActions, OtherAppActionTypes }                                               from "./actions/other-app.actions";
 
 export interface Chart {
   name: string;
   repo: string;
   description: string;
+}
+
+export interface ChartDetails extends Chart {
+  instructions?: string
 }
 
 export interface AppStoreState {
@@ -16,26 +20,26 @@ export interface AppStoreState {
     verified: Chart[]
     other: Chart[]
   }
+  currentChart: ChartDetails
 }
 
-const mockCharts = [
-  {
-    'name': '',
-    'repo': '',
-    'description': '',
-  },
-];
-
+const mockChart = {
+  'name': '',
+  'repo': '',
+  'description': '',
+};
 export const initialState: AppStoreState = {
   charts: {
-    supergiant: mockCharts,
-    verified: mockCharts,
-    other: mockCharts,
+    supergiant: [ mockChart, ],
+    verified: [ mockChart, ],
+    other: [ mockChart, ],
   },
+  currentChart: mockChart
 };
 
 // TODO: make separate reducers
 type AppsActions =
+  AppDetailActions |
   SupergiantAppActions |
   OtherAppActions |
   VerifiedAppActions;
@@ -71,12 +75,18 @@ export function reducer(
 
     case OtherAppActionTypes.LoadOtherAppsSuccess:
       return {
-      ...state,
-      charts: {
-        ...state.charts,
-        other: action.payload
-      }
-    };
+        ...state,
+        charts: {
+          ...state.charts,
+          other: action.payload
+        }
+      };
+
+    case AppDetailActionTypes.LoadAppDetailsSuccess:
+      return {
+        ...state,
+        currentChart: action.payload
+      };
 
     default:
       return state;
@@ -87,6 +97,7 @@ export function reducer(
 export const selectApps = createSelector(
   (state: State) => state.apps,
 );
+
 export const selectSupergiantCharts = createSelector(
   selectApps,
   (state: AppStoreState) => state.charts.supergiant,
@@ -100,4 +111,9 @@ export const selectVerifiedCharts = createSelector(
 export const selectOtherCharts = createSelector(
   selectApps,
   (state: AppStoreState) => state.charts.other,
+);
+
+export const selectAppDetails = createSelector(
+  selectApps,
+  (state: AppStoreState) => state.currentChart,
 );

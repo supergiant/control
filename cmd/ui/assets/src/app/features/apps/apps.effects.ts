@@ -7,7 +7,14 @@ import { Action }                                           from '@ngrx/store';
 import { Observable }                                       from 'rxjs';
 import { LoadOtherAppsSuccess, OtherAppActionTypes }        from "./actions/other-app.actions";
 import { Chart }                                            from "./apps.reducer";
-import { LoadVerifiedAppsSuccess, VerifiedAppActionTypes }  from "./actions";
+import {
+  AppDetailActions,
+  AppDetailActionTypes, LoadAppDetails,
+  LoadAppDetailsSuccess,
+  LoadVerifiedAppsSuccess,
+  VerifiedAppActionTypes
+}                                                           from "./actions";
+
 
 @Injectable()
 export class AppsEffects {
@@ -32,6 +39,15 @@ export class AppsEffects {
     switchMap(() => this.http.get('/v1/api/helm/repositories/supergiant/charts')),
     map((charts: Chart[]) => new LoadOtherAppsSuccess(charts)),
   );
+
+  @Effect()
+  loadChartDetails: Observable<LoadAppDetailsSuccess> = this.actions$.pipe(
+    ofType(AppDetailActionTypes.LoadAppDetails),
+    map((action: LoadAppDetails) => action.payload),
+    switchMap(({ repo, chart }) => this.http.get(`/v1/api/helm/repositories/${repo}/charts/${chart}`)),
+    map((chart: Chart) => new LoadAppDetailsSuccess(chart)),
+  );
+
 
   constructor(
     private actions$: Actions,

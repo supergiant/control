@@ -1,34 +1,45 @@
+<section *ngIf="chartDetails$ | async as chartDetails">
 <mat-card>
   <article class="left">
     <mat-card-header>
       <mat-card-title>
-        <h2>Test asdf</h2>
+        <h2>{{ chartDetails.name }}</h2>
       </mat-card-title>
     </mat-card-header>
     <mat-card-content>
-      <p>
-        Lorem ipsum dolor sit amet, consectetur adipisicing elit. Autem, cumque dolor earum exercitationem illum,
-        incidunt inventore iure laborum numquam, obcaecati perferendis porro quae quaerat quas quos sapiente unde vel
-        voluptatum.
-      </p>
+      <section class="description">
+      {{ chartDetails.description }}
+      </section>
+
       <h3>Instructions</h3>
-      <p>Lorem ipsum dolor sit amet, consectetur adipisicing elit. Beatae, consequatur culpa dolorum error facere, fugit
-        hic
-        ipsa ipsam ipsum itaque laboriosam nam non nostrum porro recusandae soluta tempore, temporibus velit!</p>
-      <p>Lorem ipsum dolor sit amet, consectetur adipisicing elit. Beatae, consequatur culpa dolorum error facere, fugit
-        hic
-        ipsa ipsam ipsum itaque laboriosam nam non nostrum porro recusandae soluta tempore, temporibus velit!</p>
-      <p>Lorem ipsum dolor sit amet, consectetur adipisicing elit. Beatae, consequatur culpa dolorum error facere, fugit
-        hic
-        ipsa ipsam ipsum itaque laboriosam nam non nostrum porro recusandae soluta tempore, temporibus velit!</p>
+      <section *ngIf="chartDetails.instruction; else noInstructions"
+               class="instructions">
+      {{ chartDetails.instruction }}
+      </section>
+      <ng-template #noInstructions>
+        This chart is not provided with the instructions.
+      </ng-template>
     </mat-card-content>
   </article>
-  <aside>
-    <h3>Info</h3>
-    <p>version</p>
-    <p>Repo:</p>
-    <h2>Actions</h2>
-    <button>CONFIGURE</button>
-    <button>DEPLOY</button>
-  </aside>
+<aside>
+  <h3>Info</h3>
+
+    <table class="info">
+      <tr>
+        <td>Version:</td>
+        <td *ngIf="chartDetails.versions">
+          {{ chartDetails.versions[0].version }}
+        </td>
+      </tr>
+      <tr>
+        <td>Repo:</td>
+        <td>{{ chartDetails.repo }}</td>
+      </tr>
+    </table>
+
+  <h3>Actions</h3>
+  <button>CONFIGURE</button>
+  <button>DEPLOY</button>
+</aside>
 </mat-card>
+</section>
