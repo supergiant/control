@@ -1,3 +1,46 @@
+// EXAMPLE APP STATE
+
+// {
+//   cloudAccount: {},
+//   clusterConfig: {
+//     name: "...",
+//     k8sVersion: "...",
+//     flannelVersion: "...",
+//     helmVersion: "...",
+//     dockerVersion: "...",
+//     ubuntuVersion: "...",
+//     networkType: "...",
+//     cidr: "...",
+//     operatingSystem: "...",
+//     arch: "..."
+//   },
+//   providerConfig: {
+//     digitalOcean: {
+//       region: "..."
+//     },
+//     aws: {
+//       region: "...",
+//       vpc: "...",
+//       mastersSubnet: "...",
+//       nodesSubnet: "...",
+//       mastersSecurityGroup: "...",
+//       nodessSecurityGroup: "..."
+//     }
+//   },
+//   machinesConfig: [
+//     {
+//       role: "...",
+//       type: "...",
+//       qty: "..."
+//     },
+//     {
+//       role: "...",
+//       type: "...",
+//       qty: "..."
+//     }
+//   ]
+// }
+
 import { Component, OnInit, OnDestroy, AfterViewInit, ViewEncapsulation } from '@angular/core';
 import { Subscription } from 'rxjs';
 import { Supergiant } from '../../shared/supergiant/supergiant.service';
@@ -155,7 +198,7 @@ export class NewClusterComponent implements OnInit, OnDestroy {
   }
 
   ngOnInit() {
-    // build cluster config
+    // build cluster config w/ defaults
     this.clusterConfig = this.formBuilder.group({
       K8sVersion: ["1.11.1"],
       flannelVersion: ["0.10.0"],
