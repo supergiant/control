@@ -214,7 +214,7 @@ func toRepo(e *repo.Entry, index *repo.IndexFile) *helm.Repository {
 		return r
 	}
 
-	r.Charts =  make([]helm.Chart, 0, len(index.Entries))
+	r.Charts = make([]helm.Chart, 0, len(index.Entries))
 	for name, entry := range index.Entries {
 		if len(entry) == 0 {
 			continue

@@ -1,23 +1,26 @@
 package helm
 
 import (
+	"context"
+	"io/ioutil"
+	"testing"
+
+	"github.com/pkg/errors"
+	"github.com/sirupsen/logrus"
+	"github.com/stretchr/testify/require"
 	"k8s.io/helm/pkg/proto/hapi/chart"
 	"k8s.io/helm/pkg/repo"
-	"testing"
-	"github.com/sirupsen/logrus"
-	"io/ioutil"
-	"context"
-	"github.com/stretchr/testify/require"
+
 	"github.com/supergiant/supergiant/pkg/model/helm"
 	"github.com/supergiant/supergiant/pkg/sgerrors"
-	"github.com/pkg/errors"
 )
 
 type fakeRepoManager struct {
 	index *repo.IndexFile
-	chrt *chart.Chart
-	err error
+	chrt  *chart.Chart
+	err   error
 }
+
 func (m fakeRepoManager) GetIndexFile(e *repo.Entry) (*repo.IndexFile, error) {
 	return m.index, m.err
 }
@@ -26,13 +29,14 @@ func (m fakeRepoManager) GetChart(conf repo.Entry, ref string) (*chart.Chart, er
 }
 
 type fakeStorage struct {
-	item []byte
-	items [][]byte
-	putErr error
-	getErr error
-	listErr error
+	item      []byte
+	items     [][]byte
+	putErr    error
+	getErr    error
+	listErr   error
 	deleteErr error
 }
+
 func (s fakeStorage) Put(ctx context.Context, prefix string, key string, value []byte) error {
 	return s.putErr
 }
@@ -54,17 +58,17 @@ func TestService_CreateRepo(t *testing.T) {
 	logrus.SetOutput(ioutil.Discard)
 	defer logrus.SetOutput(loggerWriter)
 
-	tcs := []struct{
+	tcs := []struct {
 		repoConf *repo.Entry
 
-		storage     fakeStorage
-		repos fakeRepoManager
+		storage fakeStorage
+		repos   fakeRepoManager
 
 		expectedRepo *helm.Repository
-		expectedErr error
+		expectedErr  error
 	}{
 		{ // TC#1
-			repoConf: nil,
+			repoConf:    nil,
 			expectedErr: sgerrors.ErrNotFound,
 		},
 		{ // TC#2
@@ -110,7 +114,7 @@ func TestService_CreateRepo(t *testing.T) {
 	for i, tc := range tcs {
 		svc := Service{
 			storage: &tc.storage,
-			repos: &tc.repos,
+			repos:   &tc.repos,
 		}
 
 		hrepo, err := svc.CreateRepo(context.Background(), tc.repoConf)
@@ -127,12 +131,12 @@ func TestService_GetRepo(t *testing.T) {
 	logrus.SetOutput(ioutil.Discard)
 	defer logrus.SetOutput(loggerWriter)
 
-	tcs := []struct{
+	tcs := []struct {
 		repoName string
-		storage     fakeStorage
+		storage  fakeStorage
 
 		expectedRepo *helm.Repository
-		expectedErr error
+		expectedErr  error
 	}{
 		{ // TC#1
 			repoName: "getError",
@@ -142,7 +146,7 @@ func TestService_GetRepo(t *testing.T) {
 			expectedErr: fakeErr,
 		},
 		{ // TC#2
-			repoName: "notFound",
+			repoName:    "notFound",
 			expectedErr: sgerrors.ErrNotFound,
 		},
 		{ // TC#3
@@ -173,7 +177,7 @@ func TestService_GetRepo(t *testing.T) {
 		if tc.expectedErr != nil {
 			require.Equalf(t, tc.expectedErr, errors.Cause(err), "TC#%d: check errors", i+1)
 		} else {
-			require.Nilf(t, tc.expectedErr,"TC#%d: no errors", i+1)
+			require.Nilf(t, tc.expectedErr, "TC#%d: no errors", i+1)
 		}
 
 		if err == nil {
@@ -187,11 +191,11 @@ func TestService_ListRepo(t *testing.T) {
 	logrus.SetOutput(ioutil.Discard)
 	defer logrus.SetOutput(loggerWriter)
 
-	tcs := []struct{
-		storage     fakeStorage
+	tcs := []struct {
+		storage fakeStorage
 
 		expectedRepos []helm.Repository
-		expectedErr error
+		expectedErr   error
 	}{
 		{ // TC#1
 			storage: fakeStorage{
@@ -227,7 +231,7 @@ func TestService_ListRepo(t *testing.T) {
 		if tc.expectedErr != nil {
 			require.Equalf(t, tc.expectedErr, errors.Cause(err), "TC#%d: check errors", i+1)
 		} else {
-			require.Nilf(t, tc.expectedErr,"TC#%d: no errors", i+1)
+			require.Nilf(t, tc.expectedErr, "TC#%d: no errors", i+1)
 		}
 
 		if err == nil {
@@ -241,12 +245,12 @@ func TestService_DeleteRepo(t *testing.T) {
 	logrus.SetOutput(ioutil.Discard)
 	defer logrus.SetOutput(loggerWriter)
 
-	tcs := []struct{
+	tcs := []struct {
 		repoName string
-		storage     fakeStorage
+		storage  fakeStorage
 
 		expectedRepo *helm.Repository
-		expectedErr error
+		expectedErr  error
 	}{
 		{ // TC#1
 			repoName: "getError",
@@ -258,7 +262,7 @@ func TestService_DeleteRepo(t *testing.T) {
 		{ // TC#2
 			repoName: "deleteError",
 			storage: fakeStorage{
-				item: []byte(`{"config":{"name":"success"}}`),
+				item:      []byte(`{"config":{"name":"success"}}`),
 				deleteErr: fakeErr,
 			},
 			expectedErr: fakeErr,
@@ -285,7 +289,7 @@ func TestService_DeleteRepo(t *testing.T) {
 		if tc.expectedErr != nil {
 			require.Equalf(t, tc.expectedErr, errors.Cause(err), "TC#%d: check errors", i+1)
 		} else {
-			require.Nilf(t, tc.expectedErr,"TC#%d: no errors", i+1)
+			require.Nilf(t, tc.expectedErr, "TC#%d: no errors", i+1)
 		}
 
 		if err == nil {
