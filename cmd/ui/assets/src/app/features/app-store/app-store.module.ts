@@ -14,6 +14,7 @@ import { EffectsModule }           from '@ngrx/effects';
 import { AppsEffects }             from '../apps/apps.effects';
 import { AppsListComponent }       from './apps-list/apps-list.component';
 import { AppDetailsComponent } from './app-details/app-details.component';
+import { BreadcrumbsComponent } from './breadcrumbs/breadcrumbs.component';
 
 @NgModule({
   imports: [
@@ -30,7 +31,8 @@ import { AppDetailsComponent } from './app-details/app-details.component';
     AppsOtherComponent,
     AppsAddComponent,
     AppsListComponent,
-    AppDetailsComponent
+    AppDetailsComponent,
+    BreadcrumbsComponent
   ]
 })
 export class AppStoreModule {
