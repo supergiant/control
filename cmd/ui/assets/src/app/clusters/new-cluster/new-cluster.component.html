@@ -3,6 +3,13 @@
 
   <mat-horizontal-stepper [linear]="true" #stepper>
 
+    <!--
+    TODO:
+      - material considers a step "done" when all fields are completed and *NOT* editable;
+        if complete and editable it shows "edit" icon
+      - we should consider manually overriding the icons to remove the non-editable requirement for "done" state
+      - https://github.com/angular/material2/issues/8997
+    -->
     <mat-step label="Name and Cloud Account">
       <div class="name-and-cloud-account">
         <mat-form-field>
