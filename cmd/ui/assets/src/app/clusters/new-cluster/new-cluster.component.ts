@@ -116,32 +116,29 @@ export class NewClusterComponent implements OnInit, OnDestroy {
   }
 
   createCluster() {
-    this.provisioning = !this.provisioning;
     // compile frontend new-cluster model into api format
-    // const newClusterData:any = {};
-    // newClusterData.profile = this.clusterConfig.value;
+    const newClusterData:any = {};
+    newClusterData.profile = this.clusterConfig.value;
 
-    // newClusterData.cloudAccountName = this.selectedCloudAccount.name;
-    // newClusterData.clusterName = this.clusterName;
-    // newClusterData.profile.region = this.providerConfig.value.region.id;
-    // newClusterData.profile.provider = this.selectedCloudAccount.provider;
-    // newClusterData.profile.masterProfiles = this.compileProfiles(this.machines, "Master");
-    // newClusterData.profile.nodesProfiles = this.compileProfiles(this.machines, "Node");
+    newClusterData.cloudAccountName = this.selectedCloudAccount.name;
+    newClusterData.clusterName = this.clusterName;
+    newClusterData.profile.region = this.providerConfig.value.region.id;
+    newClusterData.profile.provider = this.selectedCloudAccount.provider;
+    newClusterData.profile.masterProfiles = this.compileProfiles(this.machines, "Master");
+    newClusterData.profile.nodesProfiles = this.compileProfiles(this.machines, "Node");
 
-    // console.log(newClusterData);
-
-    // this.provisioning = true;
-    // this.subscriptions.add(this.supergiant.Kubes.create(newClusterData).subscribe(
-    //   (data) => {
-    //     this.success(newClusterData);
-    //     this.router.navigate(['/clusters/', newClusterData.clusterName]);
-    //     this.provisioning = false;
-    //   },
-    //   (err) => {
-    //     this.error(newClusterData, err);
-    //     this.provisioning = false;
-    //   }
-    // ));
+    this.provisioning = true;
+    this.subscriptions.add(this.supergiant.Kubes.create(newClusterData).subscribe(
+      (data) => {
+        this.success(newClusterData);
+        this.router.navigate(['/clusters/', newClusterData.clusterName]);
+        this.provisioning = false;
+      },
+      (err) => {
+        this.error(newClusterData, err);
+        this.provisioning = false;
+      }
+    ));
   }
 
   success(model) {
