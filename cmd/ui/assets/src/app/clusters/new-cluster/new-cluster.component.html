@@ -1,7 +1,7 @@
 <div class="new-clusters-wrapper">
   <h1>Create Kubernetes Cluster</h1>
 
-  <mat-horizontal-stepper [linear]="true" #stepper>
+  <mat-horizontal-stepper [linear]="false" #stepper>
 
     <!--
     TODO:
@@ -23,7 +23,7 @@
         </mat-form-field>
 
         <div class="step-actions">
-          <button mat-raised-button class="secondary">LOAD PROFILE</button>
+          <!-- <button mat-raised-button class="secondary">LOAD PROFILE</button> -->
           <button mat-raised-button class="secondary" matStepperNext>NEXT</button>
         </div>
       </div>
@@ -160,45 +160,47 @@
     <mat-step label="Review">
       <div class="review-wrapper">
         <h1>{{ clusterName }}</h1>
-        <div class="cloud-account">
-          <h3>CLOUD ACCOUNT</h3>
-          <p>{{ selectedCloudAccount?.name }} ({{ selectedCloudAccount?.provider }})</p>
-        </div>
-
-        <div class="cluster">
-          <h3>CLUSTER DETAILS</h3>
-          <div>
-            <p>K8s VERSION: {{ clusterConfig.value.K8sVersion }}</p>
-            <p>FLANNEL VERSION: {{ clusterConfig.value.flannelVersion }}</p>
-            <p>HELM VERSION: {{ clusterConfig.value.helmVersion }}</p>
-            <p>DOCKER VERSION: {{ clusterConfig.value.dockerVersion }}</p>
-            <p>UBUNTU VERSION: {{ clusterConfig.value.ubuntuVersion }}</p>
-            <p>NETWORK TYPE: {{ clusterConfig.value.networkType }}</p>
-            <p>CIDR: {{ clusterConfig.value.cidr }}</p>
-            <p>OPERATING SYSTEM: {{ clusterConfig.value.operatingSystem }}</p>
-            <p>ARCH: {{ clusterConfig.value.arch }}</p>
+        <div class="steps">
+          <div class="cloud-account">
+            <h3>CLOUD ACCOUNT</h3>
+            <p>{{ selectedCloudAccount?.name }} ({{ selectedCloudAccount?.provider }})</p>
           </div>
-        </div>
 
-        <div class="provider">
-          <h3>PROVIDER CONFIGURATION</h3>
-          <div *ngIf="selectedCloudAccount?.provider == 'digitalocean'">
-            <p>REGION: {{ providerConfig.value.region.name }}</p>
+          <div class="cluster">
+            <h3>CLUSTER DETAILS</h3>
+            <div>
+              <p><span class="label">K8s VERSION:</span> {{ clusterConfig.value.K8sVersion }}</p>
+              <p><span class="label">FLANNEL VERSION:</span> {{ clusterConfig.value.flannelVersion }}</p>
+              <p><span class="label">HELM VERSION:</span> {{ clusterConfig.value.helmVersion }}</p>
+              <p><span class="label">DOCKER VERSION:</span> {{ clusterConfig.value.dockerVersion }}</p>
+              <p><span class="label">UBUNTU VERSION:</span> {{ clusterConfig.value.ubuntuVersion }}</p>
+              <p><span class="label">NETWORK TYPE:</span> {{ clusterConfig.value.networkType }}</p>
+              <p><span class="label">CIDR:</span> {{ clusterConfig.value.cidr }}</p>
+              <p><span class="label">OPERATING SYSTEM:</span> {{ clusterConfig.value.operatingSystem }}</p>
+              <p><span class="label">ARCH:</span> {{ clusterConfig.value.arch }}</p>
+            </div>
           </div>
-        </div>
 
-        <div class="machines">
-          <h3>MACHINES</h3>
-          <div>
-            <div *ngFor="let m of machines">
-              <p>{{ m.qty }} x {{ m.machineType }} ({{ m.role }})</p>
+          <div class="provider">
+            <h3>PROVIDER CONFIGURATION</h3>
+            <div *ngIf="selectedCloudAccount?.provider == 'digitalocean'">
+              <p><span class="label">REGION:</span> {{ providerConfig.value.region.name }}</p>
+            </div>
+          </div>
+
+          <div class="machines">
+            <h3>MACHINES</h3>
+            <div>
+              <div *ngFor="let m of machines">
+                <p>{{ m.qty }} x {{ m.machineType }} ({{ m.role }})</p>
+              </div>
             </div>
           </div>
         </div>
 
         <div class="action-buttons-wrapper">
           <button mat-raised-button class="secondary" matStepperPrevious>BACK</button>
-          <button mat-raised-button class="secondary">SAVE PROFILE</button>
+          <!-- <button mat-raised-button class="secondary">SAVE PROFILE</button> -->
           <button mat-raised-button class="create" color="primary" (click)="createCluster()">
             <ng-container *ngIf="!provisioning">CREATE</ng-container>
             <ng-container *ngIf="provisioning">

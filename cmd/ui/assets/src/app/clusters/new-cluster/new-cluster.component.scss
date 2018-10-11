@@ -1,11 +1,8 @@
 .new-clusters-wrapper {
-	margin-top: 5px;
+	margin-top: 7px;
 
 	h1 {
-		// margin-left: 48px;
 		margin-bottom: 18px;
-		// remove me
-		letter-spacing: 3px;
 	}
 
 	.mat-stepper-horizontal {
@@ -111,6 +108,17 @@
 		}
 
 		.review-wrapper {
+
+			.steps {
+				display: flex;
+				justify-content: space-around;
+
+				.label {
+					color: #d10088;
+					font-family: "Montserrat", sans-serif;
+					font-size: 14px;
+				}
+			}
 
 			.action-buttons-wrapper {
 				display: flex;
