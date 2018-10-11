@@ -7,6 +7,7 @@ import (
 	"time"
 
 	"github.com/digitalocean/godo"
+
 	"github.com/supergiant/supergiant/pkg/clouds/digitaloceanSDK"
 	"github.com/supergiant/supergiant/pkg/workflows/steps"
 )

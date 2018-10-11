@@ -3,14 +3,12 @@ package tiller
 import (
 	"context"
 	"io"
-
 	"text/template"
 
 	"github.com/pkg/errors"
 
-	"github.com/supergiant/supergiant/pkg/workflows/steps"
-
 	tm "github.com/supergiant/supergiant/pkg/templatemanager"
+	"github.com/supergiant/supergiant/pkg/workflows/steps"
 	"github.com/supergiant/supergiant/pkg/workflows/steps/poststart"
 )
 
