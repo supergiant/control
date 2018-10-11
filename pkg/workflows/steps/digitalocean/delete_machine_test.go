@@ -1,17 +1,18 @@
 package digitalocean
 
 import (
-	"net/http"
-	"testing"
-
 	"bytes"
 	"context"
+	"net/http"
+	"testing"
+	"time"
+
 	"github.com/digitalocean/godo"
 	"github.com/pkg/errors"
 	"github.com/stretchr/testify/mock"
+
 	"github.com/supergiant/supergiant/pkg/node"
 	"github.com/supergiant/supergiant/pkg/workflows/steps"
-	"time"
 )
 
 func TestDeleteMachineRun(t *testing.T) {

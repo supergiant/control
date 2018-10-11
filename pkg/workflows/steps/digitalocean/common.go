@@ -1,11 +1,12 @@
 package digitalocean
 
 import (
-	"time"
-
 	"context"
 	"errors"
+	"time"
+
 	"github.com/digitalocean/godo"
+
 	"github.com/supergiant/supergiant/pkg/workflows/steps"
 )
 

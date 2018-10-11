@@ -3,14 +3,15 @@ package etcd
 import (
 	"bytes"
 	"context"
+	"strings"
+	"testing"
+	"time"
+
 	"github.com/supergiant/supergiant/pkg/node"
 	"github.com/supergiant/supergiant/pkg/profile"
 	"github.com/supergiant/supergiant/pkg/templatemanager"
 	"github.com/supergiant/supergiant/pkg/testutils"
 	"github.com/supergiant/supergiant/pkg/workflows/steps"
-	"strings"
-	"testing"
-	"time"
 )
 
 func TestInstallEtcD(t *testing.T) {

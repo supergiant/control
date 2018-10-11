@@ -2,7 +2,6 @@ package manifest
 
 import (
 	"bytes"
-
 	"context"
 	"io"
 	"strings"
