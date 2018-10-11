@@ -22,7 +22,7 @@
 
     .active {
       color: red;
-      text-decoration: black ;
+      text-decoration: black;
     }
 
     &.add-repo {
@@ -32,6 +32,7 @@
 }
 
 :host {
+  position: relative;
   &::ng-deep {
     .app-card {
       max-width: 295px;
@@ -43,7 +44,7 @@
         font-size: 32px;
       }
       .mat-card-actions {
-        margin-top: auto!important;
+        margin-top: auto !important;
       }
     }
   }

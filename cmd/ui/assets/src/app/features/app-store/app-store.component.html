@@ -1,24 +1,36 @@
 <section class="header">
-  <h1>
-    Apps Store
-  </h1>
+  <ng-container *ngIf="showBreadcrumbs; else defaultHeader">
 
-  <input class="search-input"
-         type="text"
-         placeholder="Filter apps by name">
+    <breadcrumbs [repoName]="(breadcrumbsData$ | async)?.repo"
+                 [chartName]="(breadcrumbsData$ | async)?.name"></breadcrumbs>
+  </ng-container>
+
+  <ng-template #defaultHeader>
+    <h1>
+      Apps Store
+    </h1>
+
+    <input class="search-input"
+           type="text"
+           placeholder="Filter apps by name">
+  </ng-template>
 
   <nav class="apps-nav">
     <a routerLinkActive="active"
        [routerLink]="['supergiant']"><span>Supergiant</span>
-      <hr></a>
+      <hr>
+    </a>
     <a routerLinkActive="active"
        [routerLink]="['verified']">Verified</a>
     <a routerLinkActive="active"
        [routerLink]="['others']">Others</a>
-    <a routerLinkActive="active"
-       [routerLink]="['add']" class="add-repo"><i class="fa fa-plus-circle"></i></a>
+    <a routerLinkActive
+       [routerLink]="['add']"
+       class="add-repo"><i class="fa fa-plus-circle"></i></a>
   </nav>
 </section>
 
 
-<router-outlet></router-outlet>
+<section class="contant-wrapper">
+  <router-outlet></router-outlet>
+</section>
