@@ -123,108 +123,19 @@
 						margin-right: 0px;
 					}
 				}
+
+				.create {
+					min-width: 112px;
+				}
+
+				.mat-spinner {
+          margin: 6px auto;
+
+          circle {
+            stroke: #fff;
+          }
+        }
 			}
 		}
 	}
-
-	// ^ new stuff ^
-
-	// .inputs-wrapper {
-	// 	flex-direction: row;
-	// 	justify-content: space-between;
-	// 	height: max-content;
-	// 	margin-bottom: 24px;
-
-	// 	&.large {
-	// 		overflow: scroll;
-	// 		width: 1270px;
-	// 	}
-
-	// 	button {
-	// 		display: block;
-	// 		margin-left: auto;
-	// 	}
-
-	// 	.input-group {
-	// 		display: flex;
-	// 		flex-direction: column;
-	// 		width: 564px;
-
-	// 		.machine-list {
-	// 			max-height: 295px;
-	// 			overflow: scroll;
-	// 		}
-
-	// 		.disable {
-	// 			cursor: not-allowed;
-	// 			opacity: 0.5;
-	// 		}
-
-	// 		.machine {
-	// 			display: flex;
-	// 			justify-content: space-between;
-
-	// 			.type {
-	// 				width: 240px;
-	// 			}
-
-	// 			.role {
-	// 				width: 123px;
-	// 			}
-
-	// 			.quantity {
-	// 				width: 30px;
-	// 			}
-
-	// 			.delete {
-	// 				background: url(/assets/img/delete.svg) no-repeat;
-	// 				background-size: 100% 100%;
-	// 				background-position: center;
-	// 				cursor: pointer;
-	// 				display: inline-block;
-	// 				margin: auto 0;
-	// 				height: 25px;
-	// 				width: 25px;
-
-	// 				&:active {
-	// 					transform: scale(0.95, 0.95);
-	// 				}
-	// 			}
-	// 		}
-
-	// 		.add-machines {
-	// 			cursor: pointer;
-	// 			display: flex;
-	// 			width: max-content;
-
-	// 			&:active {
-	// 				transform: scale(0.95, 0.95);
-	// 			}
-
-	// 			.plus {
-	// 				background: url(/assets/img/plus.svg) no-repeat;
-	// 				background-size: 100% 100%;
-	// 				background-position: center;
-	// 				margin: auto 0;
-	// 				height: 20px;
-	// 				width: 20px;
-	// 			}
-
-	// 			.add-label {
-	// 				font-size: 14px;
-	// 				font-weight: 300;
-	// 				padding-left: 12px;
-	// 			}
-	// 		}
-
-	// 		.profile-row {
-	// 			display: flex;
-	// 			justify-content: space-between;
-
-	// 			mat-form-field {
-	// 				width: 270px;
-	// 			}
-	// 		}
-	// 	}
-	// }
 }

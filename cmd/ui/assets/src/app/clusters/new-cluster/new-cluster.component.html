@@ -199,7 +199,12 @@
         <div class="action-buttons-wrapper">
           <button mat-raised-button class="secondary" matStepperPrevious>BACK</button>
           <button mat-raised-button class="secondary">SAVE PROFILE</button>
-          <button mat-raised-button color="primary" (click)="createCluster()">CREATE</button>
+          <button mat-raised-button class="create" color="primary" (click)="createCluster()">
+            <ng-container *ngIf="!provisioning">CREATE</ng-container>
+            <ng-container *ngIf="provisioning">
+              <mat-spinner [diameter]="24"></mat-spinner>
+            </ng-container>
+          </button>
         </div>
       </div>
     </mat-step>
