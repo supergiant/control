@@ -47,13 +47,11 @@ func (s *StepCreateInstance) Run(ctx context.Context, w io.Writer, cfg *steps.Co
 	//Determining a sec group in AWS for EC2 instance to be spawned.
 	if cfg.IsMaster {
 		if cfg.AWSConfig.MastersSecurityGroup == "default" {
-			secGroupID = nil
 			log.Infof("[%s] - using default security group for masters", s.Name())
 		}
 		secGroupID = &cfg.AWSConfig.MastersSecurityGroup
 	} else {
 		if cfg.AWSConfig.NodesSecurityGroup == "default" {
-			secGroupID = nil
 			log.Infof("[%s] - using default security group for nodes", s.Name())
 		}
 		secGroupID = &cfg.AWSConfig.NodesSecurityGroup

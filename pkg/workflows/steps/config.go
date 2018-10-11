@@ -52,7 +52,7 @@ type AWSConfig struct {
 	VPCID                string `json:"vpcid"`
 	VPCCIDR              string `json:"vpccidr"`
 	SubnetID             string `json:"subnetID"`
-	NodesSecurityGroup   string `json:"securityGroup"`
+	NodesSecurityGroup   string `json:"nodesSecurityGroup"`
 	MastersSecurityGroup string `json:"mastersSecurityGroup"`
 }
 
