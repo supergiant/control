@@ -1,6 +1,7 @@
 package kube
 
 import (
+	"github.com/pkg/errors"
 	"k8s.io/apimachinery/pkg/runtime/schema"
 	"k8s.io/apimachinery/pkg/runtime/serializer"
 	"k8s.io/client-go/discovery"
@@ -9,7 +10,6 @@ import (
 	"k8s.io/client-go/tools/clientcmd"
 	clientcmddapi "k8s.io/client-go/tools/clientcmd/api"
 
-	"github.com/pkg/errors"
 	"github.com/supergiant/supergiant/pkg/model"
 	"github.com/supergiant/supergiant/pkg/node"
 	"github.com/supergiant/supergiant/pkg/sgerrors"
@@ -56,14 +56,14 @@ func buildKubeConfig(addr string, auth model.Auth) clientcmddapi.Config {
 	return clientcmddapi.Config{
 		AuthInfos: map[string]*clientcmddapi.AuthInfo{
 			auth.Username: {
-				Token:                 auth.Token,
+				Token: auth.Token,
 				ClientCertificateData: []byte(auth.Cert),
 				ClientKeyData:         []byte(auth.Key),
 			},
 		},
 		Clusters: map[string]*clientcmddapi.Cluster{
 			auth.Username: {
-				Server:                   addr,
+				Server: addr,
 				CertificateAuthorityData: []byte(auth.CA),
 			},
 		},

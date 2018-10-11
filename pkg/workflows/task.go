@@ -5,15 +5,16 @@ import (
 	"context"
 	"encoding/json"
 	"io"
+	"runtime/debug"
 
 	"github.com/pborman/uuid"
 	"github.com/pkg/errors"
 	"github.com/sirupsen/logrus"
+
 	"github.com/supergiant/supergiant/pkg/sgerrors"
 	"github.com/supergiant/supergiant/pkg/storage"
 	"github.com/supergiant/supergiant/pkg/util"
 	"github.com/supergiant/supergiant/pkg/workflows/steps"
-	"runtime/debug"
 )
 
 // Task is an entity that has it own state that can be tracked

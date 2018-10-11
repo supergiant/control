@@ -3,18 +3,19 @@
 package pki
 
 import (
-	"net/http"
-	"testing"
-
 	"bytes"
 	"encoding/json"
 	"fmt"
+	"net/http"
+	"net/http/httptest"
+	"testing"
+
 	"github.com/coreos/etcd/clientv3"
 	"github.com/stretchr/testify/require"
+
 	"github.com/supergiant/supergiant/pkg/pki"
 	"github.com/supergiant/supergiant/pkg/storage"
 	"github.com/supergiant/supergiant/pkg/testutils/assert"
-	"net/http/httptest"
 )
 
 const (

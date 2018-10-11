@@ -1,11 +1,12 @@
 package controlplane
 
 import (
-	"github.com/gorilla/handlers"
-	"github.com/gorilla/mux"
 	"net/http"
 	"net/http/httptest"
 	"testing"
+
+	"github.com/gorilla/handlers"
+	"github.com/gorilla/mux"
 )
 
 func TestNewServer(t *testing.T) {

@@ -2,10 +2,10 @@ package pki
 
 import (
 	"context"
-
 	"net"
 
 	"github.com/satori/go.uuid"
+
 	"github.com/supergiant/supergiant/pkg/storage"
 )
 
