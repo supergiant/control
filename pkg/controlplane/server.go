@@ -236,7 +236,10 @@ func configureApplication(cfg *Config) (*mux.Router, error) {
 	kubeHandler := kube.NewHandler(kubeService, accountService, taskProvisioner, repository)
 	kubeHandler.Register(protectedAPI)
 
-	helmService := helm.NewService(repository)
+	helmService, err := helm.NewService(repository)
+	if err != nil {
+		return nil, errors.Wrap(err, "new helm service")
+	}
 	helmHandler := helm.NewHandler(helmService)
 	helmHandler.Register(protectedAPI)
 

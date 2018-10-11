@@ -6,10 +6,6 @@ import (
 	"k8s.io/helm/pkg/repo"
 )
 
-const (
-	VersionLatest = "latest"
-)
-
 // Chart is representation of a helm chart.
 type Chart struct {
 	Name        string         `json:"name"`

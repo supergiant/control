@@ -6,6 +6,7 @@ import (
 	"os"
 	"path/filepath"
 	"sort"
+	"strings"
 
 	"github.com/pkg/errors"
 	"k8s.io/helm/pkg/proto/hapi/chart"
@@ -21,18 +22,36 @@ const (
 	repoPrefix = "/helm/repositories/"
 )
 
+var _ Servicer = &Service{}
+
+// Servicer is an interface for the helm service.
+type Servicer interface {
+	CreateRepo(ctx context.Context, e *repo.Entry) (*helm.Repository, error)
+	GetRepo(ctx context.Context, repoName string) (*helm.Repository, error)
+	ListRepos(ctx context.Context) ([]helm.Repository, error)
+	DeleteRepo(ctx context.Context, repoName string) (*helm.Repository, error)
+	GetChart(ctx context.Context, repoName, chartName string) (*helm.Chart, error)
+	ListCharts(ctx context.Context, repoName string) ([]helm.Chart, error)
+	GetChartFiles(ctx context.Context, repoName, chartName, chartVersion string) (*chart.Chart, error)
+}
+
 // Service manages helm repositories.
 type Service struct {
 	storage storage.Interface
-	repos   *repositories.Manager
+	repos   repositories.Interface
 }
 
 // NewService constructs a Service for helm repository.
-func NewService(s storage.Interface) *Service {
+func NewService(s storage.Interface) (*Service, error) {
+	repos, err := repositories.New(filepath.Join(os.TempDir(), ".helm"))
+	if err != nil {
+		return nil, errors.Wrap(err, "setup repositories manager")
+	}
+
 	return &Service{
 		storage: s,
-		repos:   repositories.New(filepath.Join(os.TempDir(), ".helm")),
-	}
+		repos:   repos,
+	}, nil
 }
 
 // CreateRepo stores a helm repository in the provided storage.
@@ -52,7 +71,7 @@ func (s Service) CreateRepo(ctx context.Context, e *repo.Entry) (*helm.Repositor
 	}
 
 	// store the index file
-	r = toRepo(*e, *ind)
+	r = toRepo(e, ind)
 	rawJSON, err := json.Marshal(r)
 	if err != nil {
 		return nil, errors.Wrap(err, "marshal index file")
@@ -83,8 +102,8 @@ func (s Service) GetRepo(ctx context.Context, repoName string) (*helm.Repository
 	return r, nil
 }
 
-// GetAllRepos retrieves all helm repositories from the storage.
-func (s Service) GetAllRepos(ctx context.Context) ([]helm.Repository, error) {
+// ListRepos retrieves all helm repositories from the storage.
+func (s Service) ListRepos(ctx context.Context) ([]helm.Repository, error) {
 	rawRepos, err := s.storage.GetAll(ctx, repoPrefix)
 	if err != nil {
 		return nil, errors.Wrap(err, "storage")
@@ -104,8 +123,12 @@ func (s Service) GetAllRepos(ctx context.Context) ([]helm.Repository, error) {
 }
 
 // DeleteRepo removes a helm repository from the storage by its name.
-func (s Service) DeleteRepo(ctx context.Context, repoName string) error {
-	return s.storage.Delete(ctx, repoPrefix, repoName)
+func (s Service) DeleteRepo(ctx context.Context, repoName string) (*helm.Repository, error) {
+	hrepo, err := s.GetRepo(ctx, repoName)
+	if err != nil {
+		return nil, errors.Wrap(err, "storage")
+	}
+	return hrepo, s.storage.Delete(ctx, repoPrefix, repoName)
 }
 
 func (s Service) GetChart(ctx context.Context, repoName, chartName string) (*helm.Chart, error) {
@@ -167,7 +190,8 @@ func findChartURL(charts []helm.Chart, chartName, chartVersion string) (string, 
 }
 
 func findChartVersion(chrtVers []helm.ChartVersion, version string) helm.ChartVersion {
-	if len(chrtVers) > 0 && version == helm.VersionLatest {
+	version = strings.TrimSpace(version)
+	if len(chrtVers) > 0 && version == "" {
 		return chrtVers[len(chrtVers)-1]
 	}
 	for _, v := range chrtVers {
@@ -178,11 +202,19 @@ func findChartVersion(chrtVers []helm.ChartVersion, version string) helm.ChartVe
 	return helm.ChartVersion{}
 }
 
-func toRepo(e repo.Entry, index repo.IndexFile) *helm.Repository {
-	r := &helm.Repository{
-		Config: e,
-		Charts: make([]helm.Chart, 0, len(index.Entries)),
+func toRepo(e *repo.Entry, index *repo.IndexFile) *helm.Repository {
+	if e == nil {
+		return nil
 	}
+
+	r := &helm.Repository{
+		Config: *e,
+	}
+	if index == nil {
+		return r
+	}
+
+	r.Charts = make([]helm.Chart, 0, len(index.Entries))
 	for name, entry := range index.Entries {
 		if len(entry) == 0 {
 			continue
