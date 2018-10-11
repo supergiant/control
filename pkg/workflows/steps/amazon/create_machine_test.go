@@ -4,7 +4,6 @@ import (
 	"context"
 	"os"
 	"testing"
-
 	"time"
 
 	"github.com/aws/aws-sdk-go/aws"
