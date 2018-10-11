@@ -35,12 +35,12 @@
       <mat-cell *matCellDef="let machine">{{ machine.region }}</mat-cell>
     </ng-container>
 
-    <ng-container matColumnDef="public_ip">
+    <ng-container matColumnDef="publicIp">
       <mat-header-cell mat-sort-header
                        *matHeaderCellDef>Public IP
       </mat-header-cell>
       <mat-cell *matCellDef="let machine">
-        {{ machine.public_ip }}
+        {{ machine.publicIp }}
         <div></div>
         <button (click)="removeNode(machine.name, $event)"
                 mat-button>
