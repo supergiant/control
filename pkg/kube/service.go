@@ -3,19 +3,31 @@ package kube
 import (
 	"context"
 	"encoding/json"
+	"strings"
 
 	"github.com/pkg/errors"
+	"github.com/technosophos/moniker"
 	"k8s.io/apimachinery/pkg/runtime/schema"
 	"k8s.io/client-go/discovery"
+	corev1 "k8s.io/client-go/kubernetes/typed/core/v1"
 	"k8s.io/client-go/rest"
+	"k8s.io/helm/pkg/helm"
+	"k8s.io/helm/pkg/proto/hapi/release"
+	"k8s.io/helm/pkg/timeconv"
 
 	"github.com/supergiant/supergiant/pkg/model"
 	"github.com/supergiant/supergiant/pkg/runner/ssh"
 	"github.com/supergiant/supergiant/pkg/sgerrors"
+	"github.com/supergiant/supergiant/pkg/sghelm"
+	"github.com/supergiant/supergiant/pkg/sghelm/proxy"
 	"github.com/supergiant/supergiant/pkg/storage"
 )
 
-const DefaultStoragePrefix = "/supergiant/kube/"
+const (
+	DefaultStoragePrefix = "/supergiant/kube/"
+
+	releaseInstallTimeout = 300
+)
 
 // Interface represents an interface for a kube service.
 type Interface interface {
@@ -35,13 +47,16 @@ type Service struct {
 
 	prefix  string
 	storage storage.Interface
+
+	helmRepos sghelm.Servicer
 }
 
 // NewService constructs a Service.
-func NewService(prefix string, s storage.Interface) Interface {
+func NewService(prefix string, s storage.Interface, helmSvc sghelm.Servicer) *Service {
 	return &Service{
 		clientForGroupFn:  restClientForGroupVersion,
 		discoveryClientFn: discoveryClient,
+		helmRepos:         helmSvc,
 		prefix:            prefix,
 		storage:           s,
 	}
@@ -182,6 +197,43 @@ func (s *Service) GetCerts(ctx context.Context, kname, cname string) (*Bundle, e
 	return b, nil
 }
 
+func (s *Service) InstallChart(ctx context.Context, kname string, rls *ReleaseInput) (*model.ReleaseInfo, error) {
+	kube, err := s.Get(ctx, kname)
+	if err != nil {
+		return nil, err
+	}
+
+	chrt, err := s.helmRepos.GetChart(ctx, rls.RepoName, rls.ChartName, rls.ChartVersion)
+	if err != nil {
+		return nil, err
+	}
+
+	restConf, err := NewConfigFor(kube)
+	if err != nil {
+		return nil, err
+	}
+	coreV1Client, err := corev1.NewForConfig(restConf)
+	if err != nil {
+		return nil, err
+	}
+
+	kprx, err := proxy.New(coreV1Client, restConf, "")
+	if err != nil {
+		return nil, err
+	}
+
+	rr, err := kprx.InstallReleaseFromChart(
+		chrt,
+		rls.Namespace,
+		helm.ReleaseName(ensureReleaseName(rls.Name)),
+		helm.ValueOverrides(rls.Values),
+		helm.InstallWait(false),
+		helm.InstallTimeout(releaseInstallTimeout),
+	)
+
+	return toReleaseInfo(rr.Release), err
+}
+
 func (s *Service) resourcesGroupInfo(kube *model.Kube) (map[string]schema.GroupVersion, error) {
 	client, err := s.discoveryClientFn(kube)
 	if err != nil {
@@ -208,4 +260,27 @@ func (s *Service) resourcesGroupInfo(kube *model.Kube) (map[string]schema.GroupV
 	}
 
 	return resourcesGroupInfo, nil
+}
+
+func ensureReleaseName(name string) string {
+	if strings.TrimSpace(name) == "" {
+		return moniker.New().NameSep("-")
+	}
+	return name
+}
+
+func toReleaseInfo(rls *release.Release) *model.ReleaseInfo {
+	if rls == nil {
+		return nil
+	}
+	return &model.ReleaseInfo{
+		Name:         rls.GetName(),
+		Namespace:    rls.GetNamespace(),
+		Version:      rls.GetVersion(),
+		CreatedAt:    timeconv.String(rls.GetInfo().GetFirstDeployed()),
+		LastDeployed: timeconv.String(rls.GetInfo().GetLastDeployed()),
+		Chart:        rls.GetChart().Metadata.Name,
+		ChartVersion: rls.GetChart().Metadata.Version,
+		Status:       rls.GetInfo().Status.String(),
+	}
 }

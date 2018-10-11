@@ -1,6 +1,8 @@
 package kube
 
 import (
+	"fmt"
+
 	"github.com/pkg/errors"
 	"k8s.io/apimachinery/pkg/runtime/schema"
 	"k8s.io/apimachinery/pkg/runtime/serializer"
@@ -11,21 +13,29 @@ import (
 	clientcmddapi "k8s.io/client-go/tools/clientcmd/api"
 
 	"github.com/supergiant/supergiant/pkg/model"
-	"github.com/supergiant/supergiant/pkg/node"
 	"github.com/supergiant/supergiant/pkg/sgerrors"
 	"github.com/supergiant/supergiant/pkg/util"
 )
 
-func restClientForGroupVersion(k *model.Kube, gv schema.GroupVersion) (rest.Interface, error) {
-	var n *node.Node
-
-	if len(k.Masters) > 0 {
-		n = util.GetRandomNode(k.Masters)
-	} else {
-		return nil, errors.Wrap(sgerrors.ErrNotFound, "master node")
+func NewConfigFor(k *model.Kube) (*rest.Config, error) {
+	if len(k.Masters) == 0 {
+		return nil, errors.Wrap(sgerrors.ErrNotFound, "master nodes")
 	}
+	m := util.GetRandomNode(k.Masters)
 
-	cfg, err := buildConfig(n.PublicIp, k.Auth)
+	// TODO: there is no Scheme/MasterPort config parameters
+	apiAdrr := fmt.Sprintf("%s", m.PublicIp)
+
+	return clientcmd.NewNonInteractiveClientConfig(
+		buildKubeConfig(apiAdrr, k.Auth),
+		"",
+		&clientcmd.ConfigOverrides{},
+		nil,
+	).ClientConfig()
+}
+
+func restClientForGroupVersion(k *model.Kube, gv schema.GroupVersion) (rest.Interface, error) {
+	cfg, err := NewConfigFor(k)
 	if err != nil {
 		return nil, err
 	}
@@ -35,24 +45,15 @@ func restClientForGroupVersion(k *model.Kube, gv schema.GroupVersion) (rest.Inte
 }
 
 func discoveryClient(k *model.Kube) (*discovery.DiscoveryClient, error) {
-	var n *node.Node
-
-	if len(k.Masters) > 0 {
-		n = util.GetRandomNode(k.Masters)
-	} else {
-		return nil, errors.Wrap(sgerrors.ErrNotFound, "master node")
-	}
-
-	cfg, err := buildConfig(n.PublicIp, k.Auth)
+	cfg, err := NewConfigFor(k)
 	if err != nil {
 		return nil, err
 	}
-
 	return discovery.NewDiscoveryClientForConfig(cfg)
 }
 
 // buildKubeConfig returns a kube config for provided options.
-func buildKubeConfig(addr string, auth model.Auth) clientcmddapi.Config {
+func buildKubeConfig(endpoint string, auth model.Auth) clientcmddapi.Config {
 	return clientcmddapi.Config{
 		AuthInfos: map[string]*clientcmddapi.AuthInfo{
 			auth.Username: {
@@ -63,7 +64,7 @@ func buildKubeConfig(addr string, auth model.Auth) clientcmddapi.Config {
 		},
 		Clusters: map[string]*clientcmddapi.Cluster{
 			auth.Username: {
-				Server:                   addr,
+				Server:                   endpoint,
 				CertificateAuthorityData: []byte(auth.CA),
 			},
 		},
@@ -75,15 +76,6 @@ func buildKubeConfig(addr string, auth model.Auth) clientcmddapi.Config {
 		},
 		CurrentContext: auth.Username,
 	}
-}
-
-func buildConfig(addr string, auth model.Auth) (*rest.Config, error) {
-	return clientcmd.NewNonInteractiveClientConfig(
-		buildKubeConfig(addr, auth),
-		"",
-		&clientcmd.ConfigOverrides{},
-		nil,
-	).ClientConfig()
 }
 
 func setGroupDefaults(config *rest.Config, gv schema.GroupVersion) {

@@ -34,7 +34,7 @@ func TestKubeServiceGet(t *testing.T) {
 		m := new(testutils.MockStorage)
 		m.On("Get", context.Background(), prefix, "fake_id").Return(testCase.data, testCase.err)
 
-		service := NewService(prefix, m)
+		service := NewService(prefix, m, nil)
 
 		kube, err := service.Get(context.Background(), "fake_id")
 
@@ -77,7 +77,7 @@ func TestKubeServiceCreate(t *testing.T) {
 			kubeData).
 			Return(testCase.err)
 
-		service := NewService(prefix, m)
+		service := NewService(prefix, m, nil)
 
 		err := service.Create(context.Background(), testCase.kube)
 
@@ -108,7 +108,7 @@ func TestKubeServiceGetAll(t *testing.T) {
 		m := new(testutils.MockStorage)
 		m.On("GetAll", context.Background(), prefix).Return(testCase.data, testCase.err)
 
-		service := NewService(prefix, m)
+		service := NewService(prefix, m, nil)
 
 		kubes, err := service.ListAll(context.Background())
 

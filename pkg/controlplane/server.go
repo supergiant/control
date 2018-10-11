@@ -15,13 +15,16 @@ import (
 
 	"github.com/supergiant/supergiant/pkg/account"
 	"github.com/supergiant/supergiant/pkg/api"
-	"github.com/supergiant/supergiant/pkg/helm"
 	"github.com/supergiant/supergiant/pkg/jwt"
 	"github.com/supergiant/supergiant/pkg/kube"
 	"github.com/supergiant/supergiant/pkg/profile"
 	"github.com/supergiant/supergiant/pkg/provisioner"
 	sshRunner "github.com/supergiant/supergiant/pkg/runner/ssh"
+<<<<<<< HEAD
 	"github.com/supergiant/supergiant/pkg/sgerrors"
+=======
+	"github.com/supergiant/supergiant/pkg/sghelm"
+>>>>>>> Add the InstallChart method
 	"github.com/supergiant/supergiant/pkg/storage"
 	"github.com/supergiant/supergiant/pkg/templatemanager"
 	"github.com/supergiant/supergiant/pkg/testutils/assert"
@@ -233,7 +236,14 @@ func configureApplication(cfg *Config) (*mux.Router, error) {
 	taskHandler := workflows.NewTaskHandler(repository, sshRunner.NewRunner, accountService)
 	taskHandler.Register(router)
 
-	kubeService := kube.NewService(kube.DefaultStoragePrefix, repository)
+	helmService, err := sghelm.NewService(repository)
+	if err != nil {
+		return nil, errors.Wrap(err, "new helm service")
+	}
+	helmHandler := sghelm.NewHandler(helmService)
+	helmHandler.Register(protectedAPI)
+
+	kubeService := kube.NewService(kube.DefaultStoragePrefix, repository, helmService)
 
 	taskProvisioner := provisioner.NewProvisioner(repository, kubeService)
 	tokenGetter := provisioner.NewEtcdTokenGetter()
