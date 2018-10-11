@@ -156,7 +156,7 @@ export class ClusterComponent implements OnInit, OnDestroy {
   isDataAvailable = false;
   // machine list vars
   machines: any;
-  machineListColumns = [ 'role', 'name', 'id', 'region', 'public_ip' ];
+  machineListColumns = [ 'role', 'name', 'id', 'region', 'publicIp' ];
 
   constructor(
     private route: ActivatedRoute,
