@@ -7,6 +7,7 @@ import (
 
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/service/ec2"
+	"github.com/aws/aws-sdk-go/service/ec2/ec2iface"
 	"github.com/pkg/errors"
 	"github.com/sirupsen/logrus"
 
@@ -23,32 +24,45 @@ const (
 )
 
 type StepCreateInstance struct {
+	GetEC2 GetEC2Fn
 }
 
-//InitStepCreateInstance adds the step to the registry
-func InitStepCreateInstance() {
-	steps.RegisterStep(StepNameCreateEC2Instance, NewCreateInstance())
+//InitCreateMachine adds the step to the registry
+func InitCreateMachine(fn func(steps.AWSConfig) (ec2iface.EC2API, error)) {
+	steps.RegisterStep(StepNameCreateEC2Instance, NewCreateInstance(fn))
 }
 
-func NewCreateInstance() *StepCreateInstance {
-	return &StepCreateInstance{}
+func NewCreateInstance(fn GetEC2Fn) *StepCreateInstance {
+	return &StepCreateInstance{
+		GetEC2: fn,
+	}
 }
 
 func (s *StepCreateInstance) Run(ctx context.Context, w io.Writer, cfg *steps.Config) error {
 	log := util.GetLogger(w)
 	log.Infof("[%s] - started", StepNameCreateEC2Instance)
 
-	ec2Cfg := cfg.AWSConfig.EC2Config
+	var secGroupID *string
 
-	sdk, err := GetSDK(cfg.AWSConfig)
-	if err != nil {
-		return errors.New("aws: authorization")
+	//Determining a sec group in AWS for EC2 instance to be spawned.
+	if cfg.IsMaster {
+		if cfg.AWSConfig.MastersSecurityGroup == "default" {
+			log.Infof("[%s] - using default security group for masters", s.Name())
+		}
+		secGroupID = &cfg.AWSConfig.MastersSecurityGroup
+	} else {
+		if cfg.AWSConfig.NodesSecurityGroup == "default" {
+			log.Infof("[%s] - using default security group for nodes", s.Name())
+		}
+		secGroupID = &cfg.AWSConfig.NodesSecurityGroup
 	}
 
-	//If subnetID is nil, the default would be used
-	var subnetID *string
-	if ec2Cfg.SubnetID != "" {
-		subnetID = &ec2Cfg.SubnetID
+	ec2Cfg := cfg.AWSConfig.EC2Config
+
+	EC2, err := s.GetEC2(cfg.AWSConfig)
+	if err != nil {
+		logrus.Errorf("[%s] - failed to authorize in AWS: %v", s.Name(), err)
+		return errors.Wrap(ErrAuthorization, err.Error())
 	}
 
 	nodeName := util.MakeNodeName(cfg.ClusterName, cfg.TaskID, cfg.IsMaster)
@@ -63,17 +77,14 @@ func (s *StepCreateInstance) Run(ctx context.Context, w io.Writer, cfg *steps.Co
 				},
 			},
 		},
-		EbsOptimized: &ec2Cfg.EbsOptimized,
-		ImageId:      &ec2Cfg.ImageID,
-		InstanceType: &ec2Cfg.InstanceType,
-		KeyName:      &cfg.AWSConfig.KeyPairName,
-		MaxCount:     aws.Int64(1),
-		MinCount:     aws.Int64(1),
-		//PrivateIpAddress:        nil,
-		//TODO security groups
-		SecurityGroupIds: nil,
-		SecurityGroups:   nil,
-		SubnetId:         subnetID,
+		EbsOptimized:     &ec2Cfg.EbsOptimized,
+		ImageId:          &ec2Cfg.ImageID,
+		InstanceType:     &ec2Cfg.InstanceType,
+		KeyName:          &cfg.AWSConfig.KeyPairName,
+		MaxCount:         aws.Int64(1),
+		MinCount:         aws.Int64(1),
+		SecurityGroupIds: []*string{secGroupID},
+		SubnetId:         aws.String(cfg.AWSConfig.SubnetID),
 
 		//TODO add custom TAGS
 		TagSpecifications: []*ec2.TagSpecification{
@@ -102,15 +113,9 @@ func (s *StepCreateInstance) Run(ctx context.Context, w io.Writer, cfg *steps.Co
 				DeviceIndex:              aws.Int64(0),
 				AssociatePublicIpAddress: aws.Bool(ec2Cfg.HasPublicAddr),
 				DeleteOnTermination:      aws.Bool(true),
-
-				//TODO security groups
-				SubnetId: subnetID,
+				SubnetId:                 aws.String(cfg.AWSConfig.SubnetID),
 			},
 		}
-	}
-
-	if cfg.AWSConfig.EC2Config.GPU {
-		//TODO ADD GPU SUPPORT FOR AWS
 	}
 
 	role := node.RoleMaster
@@ -119,7 +124,7 @@ func (s *StepCreateInstance) Run(ctx context.Context, w io.Writer, cfg *steps.Co
 	}
 
 	cfg.Node = node.Node{
-		TaskID: cfg.TaskID,
+		TaskID:   cfg.TaskID,
 		Region:   cfg.AWSConfig.Region,
 		Role:     role,
 		Provider: clouds.AWS,
@@ -129,20 +134,22 @@ func (s *StepCreateInstance) Run(ctx context.Context, w io.Writer, cfg *steps.Co
 	// Update node state in cluster
 	cfg.NodeChan() <- cfg.Node
 
-	res, err := sdk.EC2.RunInstances(runInstanceInput)
+	res, err := EC2.RunInstancesWithContext(ctx, runInstanceInput)
 	if err != nil {
 		cfg.Node.State = node.StateError
 		cfg.NodeChan() <- cfg.Node
 
 		log.Errorf("[%s] - failed to create ec2 instance: %v", StepNameCreateEC2Instance, err)
-		return errors.Wrap(err, "aws: failed to connect")
+		return errors.Wrap(ErrCreateInstance, err.Error())
 	}
+
 	if len(res.Instances) == 0 {
 		cfg.Node.State = node.StateError
 		cfg.NodeChan() <- cfg.Node
 
-		return errors.Wrap(err, "aws: no instances created")
+		return errors.Wrap(ErrCreateInstance, "no instances created")
 	}
+
 	instance := res.Instances[0]
 
 	cfg.Node.Region = cfg.AWSConfig.Region
@@ -153,10 +160,10 @@ func (s *StepCreateInstance) Run(ctx context.Context, w io.Writer, cfg *steps.Co
 	cfg.NodeChan() <- cfg.Node
 
 	if ec2Cfg.HasPublicAddr {
-		log.Infof("[%s] - waiting to obtain public IP", StepNameCreateEC2Instance)
+		log.Infof("[%s] - waiting to obtain public IP...", s.Name())
 
+		//Waiting for AWS to assign public IP requires to poll an describe ec2 endpoint several times
 		found := false
-		//Waiting for AWS to assign public IP requires us to poll an describe ec2 endpoint several times
 		for i := 0; i < IPAttempts; i++ {
 			lookup := &ec2.DescribeInstancesInput{
 				Filters: []*ec2.Filter{
@@ -170,16 +177,16 @@ func (s *StepCreateInstance) Run(ctx context.Context, w io.Writer, cfg *steps.Co
 					},
 				},
 			}
-			out, err := sdk.EC2.DescribeInstancesWithContext(ctx, lookup)
+			out, err := EC2.DescribeInstancesWithContext(ctx, lookup)
 			if err != nil {
 				cfg.Node.State = node.StateError
 				cfg.NodeChan() <- cfg.Node
-				log.Errorf("[%s] - failed to obtain public IP for node %s: %v", StepNameCreateEC2Instance, nodeName, err)
-				return errors.Wrap(err, "aws: failed to obtain public IP")
+				log.Errorf("[%s] - failed to obtain public IP for node %s: %v", s.Name(), nodeName, err)
+				return errors.Wrap(ErrNoPublicIP, err.Error())
 			}
 
 			if len(out.Reservations) == 0 {
-				log.Infof("[%s] - found 0 ec2 instances, attempt %d", StepNameCreateEC2Instance, i)
+				log.Infof("[%s] - found 0 ec2 instances, attempt %d", s.Name(), i)
 				time.Sleep(time.Duration(SleepSecondsPerAttempt) * time.Second)
 				continue
 			}
@@ -187,17 +194,16 @@ func (s *StepCreateInstance) Run(ctx context.Context, w io.Writer, cfg *steps.Co
 			if i := findInstanceWithPublicAddr(out.Reservations); i != nil {
 				cfg.Node.PublicIp = *i.PublicIpAddress
 				cfg.Node.PrivateIp = *i.PrivateIpAddress
-				log.Infof("[%s] - found public ip - %s for node %s", StepNameCreateEC2Instance, cfg.Node.PublicIp, nodeName)
+				log.Infof("[%s] - found public ip - %s for node %s", s.Name(), cfg.Node.PublicIp, nodeName)
 				found = true
 				break
 			}
 		}
 		if !found {
+			log.Errorf("[%s] - failed to find public IP address after %d attempts", s.Name(), IPAttempts)
 			cfg.Node.State = node.StateError
 			cfg.NodeChan() <- cfg.Node
-			log.Errorf("[%s] - failed to find public IP address after %d attempts", StepNameCreateEC2Instance,
-				IPAttempts)
-			return errors.New("aws: failed to obtain public IP")
+			return ErrNoPublicIP
 		}
 	}
 
@@ -207,8 +213,7 @@ func (s *StepCreateInstance) Run(ctx context.Context, w io.Writer, cfg *steps.Co
 	cfg.Node.State = node.StateProvisioning
 	cfg.NodeChan() <- cfg.Node
 
-	log.Infof("[%s] - success! Created node %s with instanceID %s",
-		StepNameCreateEC2Instance, nodeName, cfg.Node.ID)
+	log.Infof("[%s] - success! Created node %s with instanceID %s", s.Name(), nodeName, cfg.Node.ID)
 	logrus.Debugf("%v", *instance)
 
 	return nil
@@ -218,13 +223,13 @@ func (s *StepCreateInstance) Rollback(ctx context.Context, w io.Writer, cfg *ste
 	log := util.GetLogger(w)
 	log.Infof("[%s] - rollback initiated", s.Name())
 
-	sdk, err := GetSDK(cfg.AWSConfig)
+	EC2, err := s.GetEC2(cfg.AWSConfig)
 	if err != nil {
 		return errors.New("aws: authorization")
 	}
 
 	if cfg.Node.ID != "" {
-		_, err := sdk.EC2.TerminateInstancesWithContext(ctx, &ec2.TerminateInstancesInput{
+		_, err := EC2.TerminateInstancesWithContext(ctx, &ec2.TerminateInstancesInput{
 			InstanceIds: []*string{
 				aws.String(cfg.Node.ID),
 			},

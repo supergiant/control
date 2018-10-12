@@ -22,9 +22,9 @@
     margin-left: 32px;
     cursor: pointer;
 
-    .active {
-      color: red;
-      text-decoration: black;
+    &.active {
+      color: $sg-pink;
+      text-decoration: 1px solid $sg-pink;
     }
 
     &.add-repo {
