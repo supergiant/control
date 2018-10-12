@@ -31,7 +31,6 @@ const (
 
 var _ Interface = &Service{}
 
-
 // Interface represents an interface for a kube service.
 type Interface interface {
 	Create(ctx context.Context, k *model.Kube) error

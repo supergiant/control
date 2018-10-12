@@ -1972,7 +1972,6 @@
 		{
 			"checksumSHA1": "2e/GW1nSNmDD5TPW7OaIZ5cTEOs=",
 			"path": "k8s.io/helm/pkg/storage/errors",
-<<<<<<< HEAD
 			"revision": "2e55dbe1fdb5fdb96b75ff144a339489417b146b",
 			"revisionTime": "2018-09-19T18:20:32Z",
 			"version": "v2.11.0",
@@ -1981,8 +1980,6 @@
 		{
 			"checksumSHA1": "P8eekvlGNeX4CmYI8rSLuRhUZZw=",
 			"path": "k8s.io/helm/pkg/sympath",
-=======
->>>>>>> Add handlers for install/list charts
 			"revision": "2e55dbe1fdb5fdb96b75ff144a339489417b146b",
 			"revisionTime": "2018-09-19T18:20:32Z",
 			"version": "v2.11.0",
