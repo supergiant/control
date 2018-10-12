@@ -1,7 +1,13 @@
 import { createSelector }                                                                     from '@ngrx/store';
 import { AppStoreActionTypes, SupergiantAppActions }                                          from './actions/supergiant-app-actions';
 import { State }                                                                              from '../../reducers';
-import { AppDetailActions, AppDetailActionTypes, VerifiedAppActions, VerifiedAppActionTypes } from "./actions";
+import {
+  AppCommonActions, AppCommonActionTypes,
+  AppDetailActions,
+  AppDetailActionTypes,
+  VerifiedAppActions,
+  VerifiedAppActionTypes
+} from "./actions";
 import { OtherAppActions, OtherAppActionTypes }                                               from "./actions/other-app.actions";
 
 export interface Chart {
@@ -21,6 +27,7 @@ export interface AppStoreState {
     other: Chart[]
   }
   currentChart: ChartDetails
+  filter: string,
 }
 
 const mockChart = {
@@ -34,7 +41,8 @@ export const initialState: AppStoreState = {
     verified: [ mockChart, ],
     other: [ mockChart, ],
   },
-  currentChart: mockChart
+  currentChart: mockChart,
+  filter: '',
 };
 
 // TODO: make separate reducers
@@ -42,6 +50,7 @@ type AppsActions =
   AppDetailActions |
   SupergiantAppActions |
   OtherAppActions |
+  AppCommonActions |
   VerifiedAppActions;
 
 export function reducer(
@@ -87,6 +96,11 @@ export function reducer(
         ...state,
         currentChart: action.payload
       };
+    case AppCommonActionTypes.AppFilter:
+      return {
+        ...state,
+        filter: action.payload
+      };
 
     default:
       return state;
@@ -116,4 +130,9 @@ export const selectOtherCharts = createSelector(
 export const selectAppDetails = createSelector(
   selectApps,
   (state: AppStoreState) => state.currentChart,
+);
+
+export const selectFilterApps = createSelector(
+  selectApps,
+  state => state.filter
 );

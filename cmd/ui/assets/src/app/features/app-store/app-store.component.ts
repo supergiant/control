@@ -4,6 +4,7 @@ import { State }                from "../../reducers";
 import { select, Store }        from "@ngrx/store";
 import { selectAppDetails }     from "../apps/apps.reducer";
 import { Observable }           from "rxjs";
+import { AppFilter }            from "../apps/actions";
 
 @Component({
   selector: 'app-app-store',
@@ -22,10 +23,22 @@ export class AppStoreComponent {
     this.router.events.subscribe(() => {
       const detailPageRegexp = /\/apps\/[a-z]+\/details\/[a-z]/;
       this.showBreadcrumbs = Boolean(this.router.url.match(detailPageRegexp));
+      this.store.dispatch(new AppFilter(''))
     });
 
     this.breadcrumbsData$ = this.store.pipe(
       select(selectAppDetails)
     );
+  }
+
+  // TODO create separate component
+  filterApps(e){
+    this.store.dispatch(new AppFilter(e.target.value))
+  }
+
+  filterClear(e) {
+    e.stopPropagation();
+    e.stopImmediatePropagation();
+    e.target.value = '';
   }
 }

@@ -10,8 +10,10 @@
       Apps Store
     </h1>
 
-    <input class="search-input"
-           type="text"
+    <input (keyup)="filterApps($event)"
+           (blur)="filterClear($event)"
+           class="search-input"
+           type="search"
            placeholder="Filter apps by name">
   </ng-template>
 
