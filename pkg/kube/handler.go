@@ -23,6 +23,7 @@ import (
 	"github.com/supergiant/supergiant/pkg/util"
 	"github.com/supergiant/supergiant/pkg/workflows"
 	"github.com/supergiant/supergiant/pkg/workflows/steps"
+	"strconv"
 )
 
 type accountGetter interface {
@@ -70,8 +71,9 @@ func (h *Handler) Register(r *mux.Router) {
 	r.HandleFunc("/kubes/{kname}/resources", h.listResources).Methods(http.MethodGet)
 	r.HandleFunc("/kubes/{kname}/resources/{resource}", h.getResource).Methods(http.MethodGet)
 
-	r.HandleFunc("/kubes/{kname}/releases", h.installChart).Methods(http.MethodPost)
+	r.HandleFunc("/kubes/{kname}/releases", h.installRelease).Methods(http.MethodPost)
 	r.HandleFunc("/kubes/{kname}/releases", h.listReleases).Methods(http.MethodGet)
+	r.HandleFunc("/kubes/{kname}/releases/{releaseName}", h.deleteReleases).Methods(http.MethodDelete)
 
 	r.HandleFunc("/kubes/{kname}/certs/{cname}", h.getCerts).Methods(http.MethodGet)
 	r.HandleFunc("/kubes/{kname}/tasks", h.getTasks).Methods(http.MethodGet)
@@ -266,7 +268,6 @@ func (h *Handler) listResources(w http.ResponseWriter, r *http.Request) {
 	vars := mux.Vars(r)
 
 	kname := vars["kname"]
-
 	rawResources, err := h.svc.ListKubeResources(r.Context(), kname)
 	if err != nil {
 		if sgerrors.IsNotFound(err) {
@@ -567,17 +568,19 @@ func (h *Handler) deleteClusterTasks(ctx context.Context, clusterName string) er
 	return nil
 }
 
-func (h *Handler) installChart(w http.ResponseWriter, r *http.Request) {
+func (h *Handler) installRelease(w http.ResponseWriter, r *http.Request) {
 	vars := mux.Vars(r)
 
 	inp := &ReleaseInput{}
 	err := json.NewDecoder(r.Body).Decode(inp)
 	if err != nil {
+		logrus.Errorf("helm: install release: decode: %s", err)
 		message.SendInvalidJSON(w, err)
 		return
 	}
 	ok, err := govalidator.ValidateStruct(inp)
 	if !ok {
+		logrus.Errorf("helm: install release: validation: %s", err)
 		message.SendValidationFailed(w, err)
 		return
 	}
@@ -585,11 +588,14 @@ func (h *Handler) installChart(w http.ResponseWriter, r *http.Request) {
 	kname := vars["kname"]
 	rls, err := h.svc.InstallChart(r.Context(), kname, inp)
 	if err != nil {
+		logrus.Errorf("helm: install release: %s cluster: %s (%+v)", kname, err, inp)
 		message.SendUnknownError(w, err)
 		return
 	}
 
 	if err = json.NewEncoder(w).Encode(rls); err != nil {
+		logrus.Errorf("helm: install release: %s cluster: %s/%s: write response: %s",
+			kname, inp.RepoName, inp.ChartName, err)
 		message.SendUnknownError(w, err)
 	}
 }
@@ -600,11 +606,33 @@ func (h *Handler) listReleases(w http.ResponseWriter, r *http.Request) {
 	kname := vars["kname"]
 	rlsList, err := h.svc.ListReleases(r.Context(), kname)
 	if err != nil {
+		logrus.Errorf("helm: list releases: %s cluster: %s", kname, err)
 		message.SendUnknownError(w, err)
 		return
 	}
 
 	if err = json.NewEncoder(w).Encode(rlsList); err != nil {
+		logrus.Errorf("helm: list releases: %s cluster: write response: %s", kname, err)
+		message.SendUnknownError(w, err)
+	}
+}
+
+func (h *Handler) deleteReleases(w http.ResponseWriter, r *http.Request) {
+	vars := mux.Vars(r)
+
+	kname := vars["kname"]
+	rlsName := vars["releaseName"]
+	purge, _ := strconv.ParseBool(r.URL.Query().Get("purge"))
+
+	rls, err := h.svc.DeleteRelease(r.Context(), kname, rlsName, purge)
+	if err != nil {
+		logrus.Errorf("helm: delete release: %s cluster: %s: %s", kname, rlsName, err)
+		message.SendUnknownError(w, err)
+		return
+	}
+
+	if err = json.NewEncoder(w).Encode(rls); err != nil {
+		logrus.Errorf("helm: delete release: %s cluster: write response: %s", kname, err)
 		message.SendUnknownError(w, err)
 	}
 }

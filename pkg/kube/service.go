@@ -42,6 +42,7 @@ type Interface interface {
 	GetCerts(ctx context.Context, kname, cname string) (*Bundle, error)
 	InstallChart(ctx context.Context, kname string, rls *ReleaseInput) (*release.Release, error)
 	ListReleases(ctx context.Context, kname string) ([]*model.ReleaseInfo, error)
+	DeleteRelease(ctx context.Context, kname, rlsName string, purge bool) (*model.ReleaseInfo, error)
 }
 
 // Service manages kubernetes clusters.
@@ -246,6 +247,20 @@ func (s *Service) ListReleases(ctx context.Context, kname string) ([]*model.Rele
 	}
 
 	return out, nil
+}
+
+func (s *Service) DeleteRelease(ctx context.Context, kname, rlsName string, purge bool) (*model.ReleaseInfo, error) {
+	kprx, err := s.getHelmProxy(ctx, kname)
+	if err != nil {
+		return nil, errors.Wrap(err, "build helm proxy")
+	}
+
+	res, err := kprx.DeleteRelease(rlsName, helm.DeletePurge(purge))
+	if err != nil {
+		return nil, errors.Wrap(err, "delete releases")
+	}
+
+	return toReleaseInfo(res.GetRelease()), nil
 }
 
 func (s *Service) getHelmProxy(ctx context.Context, kname string) (*proxy.Proxy, error) {
