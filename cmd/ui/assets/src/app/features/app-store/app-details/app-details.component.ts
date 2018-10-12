@@ -5,6 +5,8 @@ import { State }                          from "../../../reducers";
 import { select, Store }                  from "@ngrx/store";
 import { ChartDetails, selectAppDetails } from "../../apps/apps.reducer";
 import { Observable }                     from "rxjs";
+import { MatDialog }                      from "@angular/material";
+import { DeployComponent }                from "./deploy/deploy.component";
 
 @Component({
   selector: 'app-details',
@@ -17,6 +19,7 @@ export class AppDetailsComponent implements OnInit {
   constructor(
     private route: ActivatedRoute,
     private store: Store<State>,
+    public dialog: MatDialog,
   ) {
 
     let repo = this.route.snapshot.paramMap.get('repo');
@@ -29,4 +32,11 @@ export class AppDetailsComponent implements OnInit {
     this.chartDetails$ = this.store.pipe(select(selectAppDetails));
   }
 
+  public initDialog() {
+    this.dialog.open(DeployComponent, {
+      data: {
+        chartDetails$: this.chartDetails$,
+      }
+    });
+  }
 }

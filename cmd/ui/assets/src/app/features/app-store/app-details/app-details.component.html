@@ -1,4 +1,3 @@
-
 <section *ngIf="chartDetails$ | async as chartDetails">
 
 <mat-card>
@@ -44,7 +43,8 @@
           color="secondary"
           class="configure">CONFIGURE
   </button>
-  <button mat-button
+  <button (click)="initDialog()"
+          mat-button
           color="primary">DEPLOY
   </button>
 </aside>
