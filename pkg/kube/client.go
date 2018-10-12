@@ -24,7 +24,7 @@ func NewConfigFor(k *model.Kube) (*rest.Config, error) {
 	m := util.GetRandomNode(k.Masters)
 
 	// TODO: there is no Scheme/MasterPort config parameters
-	apiAdrr := fmt.Sprintf("%s", m.PublicIp)
+	apiAdrr := fmt.Sprintf("http://%s:8080", m.PublicIp)
 
 	return clientcmd.NewNonInteractiveClientConfig(
 		buildKubeConfig(apiAdrr, k.Auth),

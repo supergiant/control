@@ -70,6 +70,9 @@ func (h *Handler) Register(r *mux.Router) {
 	r.HandleFunc("/kubes/{kname}/resources", h.listResources).Methods(http.MethodGet)
 	r.HandleFunc("/kubes/{kname}/resources/{resource}", h.getResource).Methods(http.MethodGet)
 
+	r.HandleFunc("/kubes/{kname}/releases", h.installChart).Methods(http.MethodPost)
+	r.HandleFunc("/kubes/{kname}/releases", h.listReleases).Methods(http.MethodGet)
+
 	r.HandleFunc("/kubes/{kname}/certs/{cname}", h.getCerts).Methods(http.MethodGet)
 	r.HandleFunc("/kubes/{kname}/tasks", h.getTasks).Methods(http.MethodGet)
 
@@ -285,7 +288,7 @@ func (h *Handler) getResource(w http.ResponseWriter, r *http.Request) {
 	kname := vars["kname"]
 	rs := vars["resource"]
 	ns := r.URL.Query().Get("namespace")
-	name := r.URL.Query().Get("resourceName")
+	name := r.URL.Query().Get("name")
 
 	rawResources, err := h.svc.GetKubeResources(r.Context(), kname, rs, ns, name)
 	if err != nil {
@@ -562,4 +565,46 @@ func (h *Handler) deleteClusterTasks(ctx context.Context, clusterName string) er
 	}
 
 	return nil
+}
+
+func (h *Handler) installChart(w http.ResponseWriter, r *http.Request) {
+	vars := mux.Vars(r)
+
+	inp := &ReleaseInput{}
+	err := json.NewDecoder(r.Body).Decode(inp)
+	if err != nil {
+		message.SendInvalidJSON(w, err)
+		return
+	}
+	ok, err := govalidator.ValidateStruct(inp)
+	if !ok {
+		message.SendValidationFailed(w, err)
+		return
+	}
+
+	kname := vars["kname"]
+	rls, err := h.svc.InstallChart(r.Context(), kname, inp)
+	if err != nil {
+		message.SendUnknownError(w, err)
+		return
+	}
+
+	if err = json.NewEncoder(w).Encode(rls); err != nil {
+		message.SendUnknownError(w, err)
+	}
+}
+
+func (h *Handler) listReleases(w http.ResponseWriter, r *http.Request) {
+	vars := mux.Vars(r)
+
+	kname := vars["kname"]
+	rlsList, err := h.svc.ListReleases(r.Context(), kname)
+	if err != nil {
+		message.SendUnknownError(w, err)
+		return
+	}
+
+	if err = json.NewEncoder(w).Encode(rlsList); err != nil {
+		message.SendUnknownError(w, err)
+	}
 }

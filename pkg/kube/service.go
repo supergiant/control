@@ -29,6 +29,8 @@ const (
 	releaseInstallTimeout = 300
 )
 
+var _ Interface = &Service{}
+
 // Interface represents an interface for a kube service.
 type Interface interface {
 	Create(ctx context.Context, k *model.Kube) error
@@ -38,6 +40,8 @@ type Interface interface {
 	ListKubeResources(ctx context.Context, kname string) ([]byte, error)
 	GetKubeResources(ctx context.Context, kname, resource, ns, name string) ([]byte, error)
 	GetCerts(ctx context.Context, kname, cname string) (*Bundle, error)
+	InstallChart(ctx context.Context, kname string, rls *ReleaseInput) (*release.Release, error)
+	ListReleases(ctx context.Context, kname string) ([]*model.ReleaseInfo, error)
 }
 
 // Service manages kubernetes clusters.
@@ -161,7 +165,11 @@ func (s *Service) GetKubeResources(ctx context.Context, kname, resource, ns, nam
 		return nil, errors.Wrap(err, "get kube client")
 	}
 
-	raw, err := client.Get().Resource(resource).Namespace(ns).Name(name).DoRaw()
+	req := client.Get().Resource(resource).Namespace(ns)
+	if name != "" {
+		req.Name(name)
+	}
+	raw, err := req.DoRaw()
 	if err != nil {
 		return nil, errors.Wrap(err, "get resources")
 	}
@@ -197,13 +205,51 @@ func (s *Service) GetCerts(ctx context.Context, kname, cname string) (*Bundle, e
 	return b, nil
 }
 
-func (s *Service) InstallChart(ctx context.Context, kname string, rls *ReleaseInput) (*model.ReleaseInfo, error) {
-	kube, err := s.Get(ctx, kname)
+func (s *Service) InstallChart(ctx context.Context, kname string, rls *ReleaseInput) (*release.Release, error) {
+	chrt, err := s.helmRepos.GetChart(ctx, rls.RepoName, rls.ChartName, rls.ChartVersion)
 	if err != nil {
-		return nil, err
+		return nil, errors.Wrap(err, "get chart")
 	}
 
-	chrt, err := s.helmRepos.GetChart(ctx, rls.RepoName, rls.ChartName, rls.ChartVersion)
+	kprx, err := s.getHelmProxy(ctx, kname)
+	if err != nil {
+		return nil, errors.Wrap(err, "build helm proxy")
+	}
+
+	rr, err := kprx.InstallReleaseFromChart(
+		chrt,
+		rls.Namespace,
+		helm.ReleaseName(ensureReleaseName(rls.Name)),
+		helm.ValueOverrides(rls.Values),
+		helm.InstallWait(false),
+		helm.InstallTimeout(releaseInstallTimeout),
+	)
+
+	return rr.GetRelease(), err
+}
+
+func (s *Service) ListReleases(ctx context.Context, kname string) ([]*model.ReleaseInfo, error) {
+	kprx, err := s.getHelmProxy(ctx, kname)
+	if err != nil {
+		return nil, errors.Wrap(err, "build helm proxy")
+	}
+
+	res, err := kprx.ListReleases()
+	if err != nil {
+		return nil, errors.Wrap(err, "list releases")
+	}
+	out := make([]*model.ReleaseInfo, 0, len(res.GetReleases()))
+	for _, rls := range res.GetReleases() {
+		if rls != nil {
+			out = append(out, toReleaseInfo(rls))
+		}
+	}
+
+	return out, nil
+}
+
+func (s *Service) getHelmProxy(ctx context.Context, kname string) (*proxy.Proxy, error) {
+	kube, err := s.Get(ctx, kname)
 	if err != nil {
 		return nil, err
 	}
@@ -217,21 +263,7 @@ func (s *Service) InstallChart(ctx context.Context, kname string, rls *ReleaseIn
 		return nil, err
 	}
 
-	kprx, err := proxy.New(coreV1Client, restConf, "")
-	if err != nil {
-		return nil, err
-	}
-
-	rr, err := kprx.InstallReleaseFromChart(
-		chrt,
-		rls.Namespace,
-		helm.ReleaseName(ensureReleaseName(rls.Name)),
-		helm.ValueOverrides(rls.Values),
-		helm.InstallWait(false),
-		helm.InstallTimeout(releaseInstallTimeout),
-	)
-
-	return toReleaseInfo(rr.Release), err
+	return proxy.New(coreV1Client, restConf, "")
 }
 
 func (s *Service) resourcesGroupInfo(kube *model.Kube) (map[string]schema.GroupVersion, error) {

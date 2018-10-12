@@ -14,6 +14,7 @@ import (
 	"github.com/pkg/errors"
 	"github.com/stretchr/testify/mock"
 	"github.com/stretchr/testify/require"
+	"k8s.io/helm/pkg/proto/hapi/release"
 
 	"github.com/supergiant/supergiant/pkg/clouds"
 	"github.com/supergiant/supergiant/pkg/message"
@@ -111,6 +112,22 @@ func (m *kubeServiceMock) GetKubeResources(ctx context.Context, kname, resource,
 }
 func (m *kubeServiceMock) GetCerts(ctx context.Context, kname, cname string) (*Bundle, error) {
 	return nil, nil
+}
+func (m *kubeServiceMock) InstallChart(ctx context.Context, kname string, rls *ReleaseInput) (*release.Release, error) {
+	args := m.Called(ctx, kname, rls)
+	val, ok := args.Get(0).(*release.Release)
+	if !ok {
+		return nil, args.Error(1)
+	}
+	return val, args.Error(1)
+}
+func (m *kubeServiceMock) ListReleases(ctx context.Context, kname string) ([]*model.ReleaseInfo, error) {
+	args := m.Called(ctx, kname)
+	val, ok := args.Get(0).([]*model.ReleaseInfo)
+	if !ok {
+		return nil, args.Error(1)
+	}
+	return val, args.Error(1)
 }
 
 func (a *accServiceMock) Get(ctx context.Context, name string) (*model.CloudAccount, error) {
