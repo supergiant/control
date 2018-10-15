@@ -1,0 +1,28 @@
+@import "src/assets/css/variables";
+
+ul {
+  display: flex;
+  padding: 0;
+
+  li {
+    font-size: 16px;
+    margin-right: 10px;
+    list-style: none;
+    padding: 0 20px;
+
+    &:first-child {
+      padding-left: 0;
+    }
+
+    &.active {
+      color: $sg-pink;
+    }
+  }
+
+  i {
+    display: inline-block;
+    line-height: 24px;
+    font-size: 12px;
+    width: 10px;
+  }
+}
