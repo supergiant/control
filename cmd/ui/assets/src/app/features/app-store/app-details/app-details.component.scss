@@ -1,0 +1,23 @@
+.mat-card {
+  display: flex;
+
+  article {
+    flex-basis: 70%;
+  }
+}
+
+.info {
+  width: 100%;
+
+  td {
+    &:first-child {
+      color: rgba(#fff, .5);
+    }
+  }
+}
+
+button {
+  &.configure {
+    margin-right: 16px;
+  }
+}
