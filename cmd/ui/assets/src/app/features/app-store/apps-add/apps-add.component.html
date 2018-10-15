@@ -1,6 +1,6 @@
 <h2 mat-dialog-title>Add repository</h2>
 <mat-dialog-content>
-  <form [formGroup]="addRepository">
+  <form [formGroup]="addRepositoryForm">
     <mat-form-field>
       <input matInput
              type="text"
@@ -18,7 +18,7 @@
 <mat-dialog-actions>
   <button mat-button
           color="primary"
-          (click)="submitForm()">CONFIRM
+          (click)="addRepository()">CONFIRM
   </button>
   <button mat-button
           mat-dialog-close>Cancel
