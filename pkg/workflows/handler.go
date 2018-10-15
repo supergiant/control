@@ -15,7 +15,6 @@ import (
 	"github.com/gorilla/websocket"
 	"github.com/hpcloud/tail"
 	"github.com/sirupsen/logrus"
-
 	"github.com/supergiant/supergiant/pkg/message"
 	"github.com/supergiant/supergiant/pkg/model"
 	"github.com/supergiant/supergiant/pkg/runner"
@@ -240,7 +239,7 @@ func (h *TaskHandler) GetLogs(w http.ResponseWriter, r *http.Request) {
 
 	var v = struct {
 		Host   string
-		TaskId string
+		TaskID string
 	}{
 		r.Host,
 		id,
