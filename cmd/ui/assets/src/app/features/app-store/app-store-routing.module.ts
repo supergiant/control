@@ -4,7 +4,6 @@ import { AppStoreComponent }       from './app-store.component';
 import { AppsSupergiantComponent } from './apps-supergiant/apps-supergiant.component';
 import { AppsVerifiedComponent }   from './apps-verified/apps-verified.component';
 import { AppsOtherComponent }      from './apps-other/apps-other.component';
-import { AppsAddComponent }        from './apps-add/apps-add.component';
 import { AppDetailsComponent }     from "./app-details/app-details.component";
 
 const routes: Routes = [
@@ -28,10 +27,6 @@ const routes: Routes = [
       {
         path: 'others',
         component: AppsOtherComponent,
-      },
-      {
-        path: 'add',
-        component: AppsAddComponent,
       },
       {
         path: ':repo/details/:chart',

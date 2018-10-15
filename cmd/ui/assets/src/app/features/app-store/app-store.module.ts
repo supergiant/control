@@ -1,19 +1,19 @@
-import { NgModule }                from '@angular/core';
-import { CommonModule }            from '@angular/common';
-import { AppStoreRoutingModule }   from './app-store-routing.module';
-import { AppStoreComponent }       from './app-store.component';
-import { AppsSupergiantComponent } from './apps-supergiant/apps-supergiant.component';
-import { AppsVerifiedComponent }   from './apps-verified/apps-verified.component';
-import { AppsOtherComponent }      from './apps-other/apps-other.component';
-import { AppsAddComponent }        from './apps-add/apps-add.component';
+import { NgModule }                         from '@angular/core';
+import { CommonModule }                     from '@angular/common';
+import { AppStoreRoutingModule }            from './app-store-routing.module';
+import { AppStoreComponent }                from './app-store.component';
+import { AppsSupergiantComponent }          from './apps-supergiant/apps-supergiant.component';
+import { AppsVerifiedComponent }            from './apps-verified/apps-verified.component';
+import { AppsOtherComponent }               from './apps-other/apps-other.component';
+import { AppsAddComponent }                 from './apps-add/apps-add.component';
 import {
   MatCardModule, MatDialogModule,
   MatFormFieldModule,
   MatInputModule,
   MatOptionModule,
   MatSelectModule
-} from '@angular/material';
-import { StoreModule }             from '@ngrx/store';
+}                                           from '@angular/material';
+import { StoreModule }                      from '@ngrx/store';
 import * as fromApps
                                             from '../apps/apps.reducer';
 import { EffectsModule }                    from '@ngrx/effects';
@@ -50,7 +50,10 @@ import { FormsModule, ReactiveFormsModule } from "@angular/forms";
     BreadcrumbsComponent,
     DeployComponent,
   ],
-  entryComponents: [ DeployComponent ]
+  entryComponents: [
+    DeployComponent,
+    AppsAddComponent
+  ],
 })
 export class AppStoreModule {
 }

@@ -26,9 +26,7 @@
        [routerLink]="['verified']">Verified</a>
     <a routerLinkActive="active"
        [routerLink]="['others']">Others</a>
-    <a routerLinkActive
-       [routerLink]="['add']"
-       class="add-repo"><i class="fa fa-plus-circle"></i></a>
+    <a (click)="addRepo()" class="add-repo"><i class="fa fa-plus-circle"></i></a>
   </nav>
 </section>
 

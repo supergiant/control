@@ -1,10 +1,12 @@
 import { Component } from '@angular/core';
-import { Router }               from "@angular/router";
-import { State }                from "../../reducers";
-import { select, Store }        from "@ngrx/store";
-import { selectAppDetails }     from "../apps/apps.reducer";
-import { Observable }           from "rxjs";
-import { AppFilter }            from "../apps/actions";
+import { Router }            from "@angular/router";
+import { State }             from "../../reducers";
+import { select, Store }     from "@ngrx/store";
+import { selectAppDetails }  from "../apps/apps.reducer";
+import { Observable }        from "rxjs";
+import { AppFilter }         from "../apps/actions";
+import { MatDialog }         from "@angular/material";
+import { AppsAddComponent }  from "./apps-add/apps-add.component";
 
 @Component({
   selector: 'app-app-store',
@@ -17,7 +19,8 @@ export class AppStoreComponent {
 
   constructor(
     public router: Router,
-    private store: Store<State>
+    private store: Store<State>,
+    private dialog: MatDialog,
   ) {
 
     this.router.events.subscribe(() => {
@@ -32,7 +35,7 @@ export class AppStoreComponent {
   }
 
   // TODO create separate component
-  filterApps(e){
+  filterApps(e) {
     this.store.dispatch(new AppFilter(e.target.value))
   }
 
@@ -40,5 +43,9 @@ export class AppStoreComponent {
     e.stopPropagation();
     e.stopImmediatePropagation();
     e.target.value = '';
+  }
+
+  addRepo() {
+    this.dialog.open(AppsAddComponent)
   }
 }
