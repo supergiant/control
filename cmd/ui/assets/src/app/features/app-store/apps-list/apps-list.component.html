@@ -1,4 +1,4 @@
-<mat-card *ngFor="let chart of charts"
+<mat-card *ngFor="let chart of (charts | async ) "
           class="app-card">
   <mat-card-header>
     <mat-card-title>

@@ -35,6 +35,7 @@ const mockChart = {
   'repo': '',
   'description': '',
 };
+
 export const initialState: AppStoreState = {
   charts: {
     supergiant: [ mockChart, ],
@@ -44,6 +45,14 @@ export const initialState: AppStoreState = {
   currentChart: mockChart,
   filter: '',
 };
+
+
+export interface Repository {
+  config: {
+    url: string;
+    name: string;
+  }
+}
 
 // TODO: make separate reducers
 type AppsActions =
