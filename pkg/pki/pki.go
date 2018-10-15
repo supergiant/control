@@ -4,10 +4,9 @@ import (
 	"bytes"
 	"crypto/rsa"
 	"crypto/x509"
+	"encoding/json"
 	"encoding/pem"
 	"net"
-
-	"encoding/json"
 
 	"github.com/pkg/errors"
 )

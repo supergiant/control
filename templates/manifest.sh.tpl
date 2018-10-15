@@ -14,7 +14,7 @@ clusters:
 - name: local
   cluster:
     insecure-skip-tls-verify: true
-    server: https://{{ .MasterHost }}
+    server: http://{{ .MasterHost }}:{{ .MasterPort }}
 contexts:
 - context:
     cluster: local

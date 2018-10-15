@@ -59,20 +59,14 @@ import { SessionsComponent } from './sessions/sessions.component';
 import { CloudAccountsComponent } from './cloud-accounts/cloud-accounts.component';
 import { LoadBalancersComponent } from './load-balancers/load-balancers.component';
 import { NodesComponent } from './nodes/nodes.component';
-import { PodsComponent } from './pods/pods.component';
 import { ServicesComponent } from './services/services.component';
 import { SessionsHeaderComponent } from './sessions/sessions-header/sessions-header.component';
 import { ServicesHeaderComponent } from './services/services-header/services-header.component';
-import { PodsHeaderComponent } from './pods/pods-header/pods-header.component';
 import { LoadBalancersHeaderComponent } from './load-balancers/load-balancers-header/load-balancers-header.component';
 import { CloudAccountsHeaderComponent } from './cloud-accounts/cloud-accounts-header/cloud-accounts-header.component';
 import { CloudAccountComponent } from './cloud-accounts/cloud-account/cloud-account.component';
 import { LoadBalancerComponent } from './load-balancers/load-balancer/load-balancer.component';
 import { NodeComponent } from './nodes/node/node.component';
-import { PodComponent } from './pods/pods/pod.component';
-import { VolumesComponent } from './volumes/volumes.component';
-import { VolumeComponent } from './volumes/volume/volume.component';
-import { VolumesHeaderComponent } from './volumes/volumes-header/volumes-header.component';
 import { ServiceComponent } from './services/service/service.component';
 import { SessionComponent } from './sessions/session/session.component';
 import { UserComponent } from './users/user/user.component';
@@ -82,12 +76,8 @@ import { DropdownModalComponent } from './shared/dropdown-modal/dropdown-modal.c
 import { EditModalComponent } from './shared/edit-modal/edit-modal.component';
 import { LoginComponent } from './login/login.component';
 import { CookiesComponent } from './shared/cookies/cookies.component';
-import { AppsComponent } from './apps/apps.component';
 import { Search } from './shared/search-pipe/search-pipe';
-import { HelmAppComponent } from './apps/app/helm-app.component';
 import { NodeDetailsComponent } from './nodes/node-details/node-details.component';
-import { PodDetailsComponent } from './pods/pod-details/pod-details.component';
-import { PodsListComponent } from './pods/pods-list/pods-list.component';
 import { SessionDetailsComponent } from './sessions/session-details/session-details.component';
 import { SessionsListComponent } from './sessions/sessions-list/sessions-list.component';
 import { UserDetailsComponent } from './users/user-details/user-details.component';
@@ -99,15 +89,11 @@ import { LoadBalancersListComponent } from './load-balancers/load-balancers-list
 import { ServiceDetailsComponent } from './services/service-details/service-details.component';
 import { ServicesListComponent } from './services/services-list/services-list.component';
 import { SupergiantComponent } from './shared/supergiant/supergiant.component';
-import { AppsListComponent } from './apps/apps-list/apps-list.component';
 // Component Services
 import { SessionsService } from './sessions/sessions.service';
 import { CloudAccountsService } from './cloud-accounts/cloud-accounts.service';
 import { UsersService } from './users/users.service';
 import { NodesService } from './nodes/nodes.service';
-import { PodsService } from './pods/pods.service';
-import { AppsService } from './apps/apps.service';
-import { VolumesService } from './volumes/volumes.service';
 import { ServicesService } from './services/services.service';
 import { LoadBalancersService } from './load-balancers/load-balancers.service';
 import { Notifications } from './shared/notifications/notifications.service';
@@ -163,8 +149,6 @@ import { DashboardTutorialComponent } from './tutorials/dashboard-tutorial/dashb
 import { ClustersTutorialComponent } from './tutorials/clusters-tutorial/clusters-tutorial.component';
 import { SystemTutorialComponent } from './tutorials/system-tutorial/system-tutorial.component';
 import { AppsTutorialComponent } from './tutorials/apps-tutorial/apps-tutorial.component';
-import { NewAppListComponent } from './apps/new-app-list/new-app-list.component';
-import { NewAppComponent } from './apps/new-app/new-app.component';
 import { LogsComponent } from './system/logs/logs.component';
 import { NewKubeResourceComponent } from './kube-resources/new-kube-resource/new-kube-resource.component';
 import { ToolbarComponent } from './navigation/toolbar/toolbar.component';
@@ -172,36 +156,30 @@ import { UserMenuComponent } from './navigation/user-menu/user-menu.component';
 import { FooterComponent } from './shared/footer/footer.component';
 import { ConfirmModalComponent } from './shared/modals/confirm-modal/confirm-modal.component';
 import { UsageChartComponent } from './clusters/cluster/usage-chart/usage-chart.component';
-
-
-
-
-
-
+import { StoreModule } from '@ngrx/store';
+import { reducers, metaReducers } from './reducers';
+import { StoreDevtoolsModule } from '@ngrx/store-devtools';
+import { environment } from '../environments/environment';
+import { EffectsModule } from '@ngrx/effects';
+import { AppEffects } from './app.effects';
 
 @NgModule({
   declarations: [
     AppComponent,
-    VolumesComponent,
-    VolumeComponent,
-    VolumesHeaderComponent,
     NavigationComponent,
     UsersComponent,
     SessionsComponent,
     CloudAccountsComponent,
     LoadBalancersComponent,
     NodesComponent,
-    PodsComponent,
     ServicesComponent,
     SessionsHeaderComponent,
     ServicesHeaderComponent,
-    PodsHeaderComponent,
     LoadBalancersHeaderComponent,
     CloudAccountsHeaderComponent,
     CloudAccountComponent,
     LoadBalancerComponent,
     NodeComponent,
-    PodComponent,
     ServiceComponent,
     SessionComponent,
     UserComponent,
@@ -212,11 +190,7 @@ import { UsageChartComponent } from './clusters/cluster/usage-chart/usage-chart.
     EditModalComponent,
     LoginComponent,
     CookiesComponent,
-    AppsComponent,
-    HelmAppComponent,
     NodeDetailsComponent,
-    PodDetailsComponent,
-    PodsListComponent,
     SessionDetailsComponent,
     SessionsListComponent,
     UserDetailsComponent,
@@ -229,7 +203,6 @@ import { UsageChartComponent } from './clusters/cluster/usage-chart/usage-chart.
     ServicesListComponent,
     Search,
     SupergiantComponent,
-    AppsListComponent,
     DashboardComponent,
     ClustersComponent,
     NewCloudAccountComponent,
@@ -249,8 +222,6 @@ import { UsageChartComponent } from './clusters/cluster/usage-chart/usage-chart.
     ClustersTutorialComponent,
     SystemTutorialComponent,
     AppsTutorialComponent,
-    NewAppListComponent,
-    NewAppComponent,
     LogsComponent,
     NewKubeResourceComponent,
     ToolbarComponent,
@@ -309,6 +280,9 @@ import { UsageChartComponent } from './clusters/cluster/usage-chart/usage-chart.
     AceEditorModule,
     BrowserModule, MaterialDesignFrameworkModule,
     NgxDatatableModule,
+    StoreModule.forRoot(reducers, { metaReducers }),
+    !environment.production ? StoreDevtoolsModule.instrument() : [],
+    EffectsModule.forRoot([AppEffects]),
   ],
   providers: [
     TitleCasePipe,
@@ -318,10 +292,7 @@ import { UsageChartComponent } from './clusters/cluster/usage-chart/usage-chart.
     UsersService,
     NodesService,
     LoadBalancersService,
-    PodsService,
     ServicesService,
-    VolumesService,
-    AppsService,
     // Supergiant API Services
     Supergiant,
     UtilService,

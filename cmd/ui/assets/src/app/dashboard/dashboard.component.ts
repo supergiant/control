@@ -126,8 +126,8 @@ export class DashboardComponent implements OnInit {
           {
             accountName: c.accountName,
             K8SVersion: c.K8SVersion,
-            masters: c.masters,
-            nodes: c.nodes,
+            masters: Object.keys(c.masters),
+            nodes: Object.keys(c.nodes),
             operatingSystem: c.operatingSystem,
             dockerVersion: c.dockerVersion,
             helmVersion: c.helmVersion,

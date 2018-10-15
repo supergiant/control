@@ -1,15 +1,27 @@
 package amazon
 
 import (
-	"github.com/pkg/errors"
-	"github.com/supergiant/supergiant/pkg/clouds/awssdk"
+	"github.com/aws/aws-sdk-go/aws"
+	"github.com/aws/aws-sdk-go/aws/credentials"
+	"github.com/aws/aws-sdk-go/aws/session"
+	"github.com/aws/aws-sdk-go/service/ec2"
+	"github.com/aws/aws-sdk-go/service/ec2/ec2iface"
+
 	"github.com/supergiant/supergiant/pkg/workflows/steps"
 )
 
-func GetSDK(cfg steps.AWSConfig) (*awssdk.SDK, error) {
-	sdk, err := awssdk.New(cfg.Region, cfg.KeyID, cfg.Secret, "")
+type GetEC2Fn func(steps.AWSConfig) (ec2iface.EC2API, error)
+
+func GetEC2(cfg steps.AWSConfig) (ec2iface.EC2API, error) {
+	sess, err := session.NewSessionWithOptions(session.Options{
+		Config: aws.Config{
+			Region:      aws.String(cfg.Region),
+			Credentials: credentials.NewStaticCredentials(cfg.KeyID, cfg.Secret, ""),
+		},
+	})
+
 	if err != nil {
-		return nil, errors.Wrap(err, "aws: failed to authorize")
+		return nil, err
 	}
-	return sdk, nil
+	return ec2.New(sess), nil
 }
