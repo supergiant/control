@@ -18,17 +18,11 @@
   </ng-template>
 
   <nav class="apps-nav">
-    <a routerLinkActive="active"
-       [routerLink]="['supergiant']"><span>Supergiant</span>
-      <hr>
-    </a>
-    <a routerLinkActive="active"
-       [routerLink]="['verified']">Verified</a>
-    <a routerLinkActive="active"
-       [routerLink]="['others']">Others</a>
-    <a routerLinkActive
-       [routerLink]="['add']"
-       class="add-repo"><i class="fa fa-plus-circle"></i></a>
+    <span *ngFor="let repo of (reposList$ | async) ">
+      <a routerLinkActive="active"
+         [routerLink]="[repo.name]">{{ repo.name }}</a>
+    </span>
+    <a (click)="addRepo()" class="add-repo"><i class="fa fa-plus-circle"></i></a>
   </nav>
 </section>
 

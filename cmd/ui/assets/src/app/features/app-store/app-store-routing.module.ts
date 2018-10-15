@@ -4,8 +4,8 @@ import { AppStoreComponent }       from './app-store.component';
 import { AppsSupergiantComponent } from './apps-supergiant/apps-supergiant.component';
 import { AppsVerifiedComponent }   from './apps-verified/apps-verified.component';
 import { AppsOtherComponent }      from './apps-other/apps-other.component';
-import { AppsAddComponent }        from './apps-add/apps-add.component';
 import { AppDetailsComponent }     from "./app-details/app-details.component";
+import { AppsListComponent }       from "./apps-list/apps-list.component";
 
 const routes: Routes = [
   {
@@ -18,10 +18,6 @@ const routes: Routes = [
         redirectTo: 'supergiant'
       },
       {
-        path: 'supergiant',
-        component: AppsSupergiantComponent,
-      },
-      {
         path: 'verified',
         component: AppsVerifiedComponent,
       },
@@ -30,15 +26,14 @@ const routes: Routes = [
         component: AppsOtherComponent,
       },
       {
-        path: 'add',
-        component: AppsAddComponent,
+        path: ':repo',
+        component: AppsListComponent,
       },
       {
         path: ':repo/details/:chart',
         component: AppDetailsComponent
       }
     ]
-
   },
 
 ];
