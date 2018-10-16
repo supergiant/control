@@ -11,6 +11,7 @@ import (
 	"github.com/supergiant/supergiant/pkg/clouds"
 	"github.com/supergiant/supergiant/pkg/model"
 	"github.com/supergiant/supergiant/pkg/node"
+	"github.com/supergiant/supergiant/pkg/pki"
 	"github.com/supergiant/supergiant/pkg/profile"
 	"github.com/supergiant/supergiant/pkg/sgerrors"
 	"github.com/supergiant/supergiant/pkg/storage"
@@ -62,6 +63,10 @@ func (tp *TaskProvisioner) ProvisionCluster(ctx context.Context, profile *profil
 
 	if err := bootstrapKeys(config); err != nil {
 		return nil, errors.Wrap(err, "bootstrap keys")
+	}
+
+	if err := bootstrapCA(config); err != nil {
+		return nil, errors.Wrap(err, "bootstrap CA")
 	}
 
 	go func() {
@@ -381,6 +386,19 @@ func bootstrapKeys(config *steps.Config) error {
 
 	config.SshConfig.BootstrapPrivateKey = private
 	config.SshConfig.BootstrapPublicKey = public
+
+	return nil
+}
+
+func bootstrapCA(config *steps.Config) error {
+	pkiBundle, err := pki.NewCAPair(config.CertificatesConfig.ParenCert)
+
+	if err != nil {
+		return errors.Wrap(err, "bootstrap CA for provisioning")
+	}
+
+	config.CertificatesConfig.CACert = string(pkiBundle.CA.Cert)
+	config.CertificatesConfig.CAKey = string(pkiBundle.CA.Key)
 
 	return nil
 }

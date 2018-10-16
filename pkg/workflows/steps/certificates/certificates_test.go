@@ -11,6 +11,7 @@ import (
 	"github.com/pkg/errors"
 
 	"github.com/supergiant/supergiant/pkg/node"
+	"github.com/supergiant/supergiant/pkg/pki"
 	"github.com/supergiant/supergiant/pkg/profile"
 	"github.com/supergiant/supergiant/pkg/runner"
 	"github.com/supergiant/supergiant/pkg/templatemanager"
@@ -54,12 +55,20 @@ func TestWriteCertificates(t *testing.T) {
 
 	output := new(bytes.Buffer)
 
+	caPair, err := pki.NewCAPair(nil)
+
+	if err != nil {
+		t.Errorf("unexpected error creating PKI bundle %v", err)
+	}
+
 	cfg := steps.NewConfig("", "", "", profile.Profile{})
 	cfg.CertificatesConfig = steps.CertificatesConfig{
-		kubernetesConfigDir,
-		masterPrivateIP,
-		userName,
-		password,
+		KubernetesConfigDir: kubernetesConfigDir,
+		MasterHost:          masterPrivateIP,
+		Username:            userName,
+		Password:            password,
+		CAKey:               string(caPair.CA.Key),
+		CACert:              string(caPair.CA.Cert),
 	}
 	cfg.Runner = r
 	cfg.AddMaster(&node.Node{
@@ -86,6 +95,14 @@ func TestWriteCertificates(t *testing.T) {
 
 	if !strings.Contains(output.String(), password) {
 		t.Errorf("password %s not found in %s", password, output.String())
+	}
+
+	if !strings.Contains(output.String(), string(caPair.CA.Key)) {
+		t.Errorf("CA key not found in %s", output.String())
+	}
+
+	if !strings.Contains(output.String(), string(caPair.CA.Cert)) {
+		t.Errorf("CA cert not found in %s", output.String())
 	}
 }
 

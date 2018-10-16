@@ -83,7 +83,7 @@ func (h *Handler) Generate(w http.ResponseWriter, r *http.Request) {
 	}
 
 	if caReq.CA != nil {
-		pi, err := h.svc.GenerateFromCA(r.Context(), caReq.CA, caReq.DNSDomain, ips)
+		pi, err := h.svc.GenerateFromCA(r.Context(), caReq.CA)
 		if err != nil {
 			logrus.Errorf("pki: %v", err)
 			message.SendUnknownError(w, err)

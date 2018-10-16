@@ -27,6 +27,9 @@ ExecStart=/usr/bin/docker run \
       --cluster_domain=cluster.local \
       --pod-manifest-path=/etc/kubernetes/manifests \
       --kubeconfig=/etc/kubernetes/worker-kubeconfig.yaml \
+      --client-ca-file=/etc/kubernetes/ssl/ca.pem \
+      --tls-cert-file=/etc/kubernetes/ssl/worker.pem \
+      --tls-private-key-file=/etc/kubernetes/ssl/worker-key.pem \
       --volume-plugin-dir=/etc/kubernetes/volumeplugins --fail-swap-on=false --register-node=true
 Restart=always
 StartLimitInterval=0
