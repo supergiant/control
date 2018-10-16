@@ -10,7 +10,6 @@ import (
 	"github.com/pborman/uuid"
 	"github.com/pkg/errors"
 	"github.com/sirupsen/logrus"
-
 	"github.com/supergiant/supergiant/pkg/sgerrors"
 	"github.com/supergiant/supergiant/pkg/storage"
 	"github.com/supergiant/supergiant/pkg/util"
@@ -90,6 +89,10 @@ func (w *Task) Run(ctx context.Context, config steps.Config, out io.WriteCloser)
 		err := w.startFrom(ctx, w.ID, out, 0)
 
 		if err != nil {
+			w.Status = steps.StatusError
+			if err := w.sync(ctx); err != nil {
+				logrus.Errorf("failed to sync task %s to db: %v", w.ID, err)
+			}
 			errChan <- err
 			return
 		}
@@ -139,6 +142,10 @@ func (w *Task) Restart(ctx context.Context, id string, out io.Writer) chan error
 		err = w.startFrom(ctx, id, out, i)
 
 		if err != nil {
+			w.Status = steps.StatusError
+			if err := w.sync(ctx); err != nil {
+				logrus.Errorf("failed to sync task %s to db: %v", w.ID, err)
+			}
 			errChan <- err
 		}
 	}()
@@ -155,7 +162,7 @@ func (w *Task) startFrom(ctx context.Context, id string, out io.Writer, i int) e
 		wsLog.Infof("[%s] - started", step.Name())
 		logrus.Info(step.Name())
 
-		// Sync to storage with task in executing state
+		// sync to storage with task in executing state
 		w.StepStatuses[index].Status = steps.StatusExecuting
 		if err := w.sync(ctx); err != nil {
 			logrus.Errorf("sync error %v", err)
@@ -165,6 +172,7 @@ func (w *Task) startFrom(ctx context.Context, id string, out io.Writer, i int) e
 			// Mark step status as error
 			w.StepStatuses[index].Status = steps.StatusError
 			w.StepStatuses[index].ErrMsg = err.Error()
+			w.sync(ctx)
 
 			wsLog.Infof("[%s] - failed: %s", step.Name(), err.Error())
 			if err2 := w.sync(ctx); err2 != nil {
