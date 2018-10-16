@@ -29,7 +29,12 @@ export class AppsListComponent implements OnInit {
 
       this.charts = this.http.get(`/v1/api/helm/repositories/${this.repo}/charts`);
     });
+  }
 
+  removeRepo() {
+    this.http.delete(`/v1/api/helm/repositories/${this.repo}/charts`).subscribe(() =>
+      this.router.navigate(['apps'])
+    );
   }
 
 }
