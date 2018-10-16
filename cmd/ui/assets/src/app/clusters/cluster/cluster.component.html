@@ -74,6 +74,10 @@
             <div class="ready-icon" *ngIf="task?.status == 'complete'"></div>
             <div class="failed-icon" *ngIf="task?.status == 'failed'"></div>
             <span style="padding-left: 12px;">{{ task.status | titlecase }}</span>
+            <button mat-raised-button *ngIf="task?.status == 'failed'" class="secondary restart-task" (click)="restartTask(task.id)">
+              <span *ngIf="!task?.restarting">RESTART</span>
+              <mat-spinner class="restart-spinner" color="primary" *ngIf="task?.restarting" [diameter]="20"></mat-spinner>
+            </button>
           </mat-cell>
         </ng-container>
 

@@ -9,6 +9,7 @@ import (
 
 	tm "github.com/supergiant/supergiant/pkg/templatemanager"
 	"github.com/supergiant/supergiant/pkg/workflows/steps"
+	"github.com/supergiant/supergiant/pkg/workflows/steps/certificates"
 )
 
 const StepName = "manifest"
@@ -56,5 +57,5 @@ func (t *Step) Description() string {
 }
 
 func (s *Step) Depends() []string {
-	return nil
+	return []string{certificates.StepName}
 }

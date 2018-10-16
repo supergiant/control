@@ -514,6 +514,21 @@
             height: 30px;
             width: 48px;
           }
+
+          .restart-task {
+            font-size: 12px;
+            line-height: 24px;
+            margin-left: 24px;
+            padding: 0px 16px;
+
+            .restart-spinner {
+              margin: 3px auto;
+
+              circle {
+                stroke: #fff;
+              }
+            }
+          }
         }
 
         .steps-toggle {
