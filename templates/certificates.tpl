@@ -16,7 +16,7 @@ DNS.1 = kubernetes
 DNS.2 = kubernetes.default
 DNS.3 = kubernetes.default.svc
 DNS.4 = kubernetes.default.svc.cluster
-IP.1 = 10.3.0.1
+IP.1 = {}
 IP.2 = {MASTER_HOST}
 IP.3 = {PRIVATE_HOST}
 EOF
