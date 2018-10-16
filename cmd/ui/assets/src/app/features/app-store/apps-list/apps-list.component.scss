@@ -11,9 +11,18 @@
 }
 
 button {
+  cursor: pointer;
   font-size: 14px;
   color: #D10088;
   border: 2px solid #D10088;
   background: transparent;
   padding: 8px 32px;
+
+  &.btn-remove {
+    border: none;
+
+    .text {
+      color: white;
+    }
+  }
 }

@@ -6,12 +6,27 @@
   align-items: center;
 }
 
+.header-wrapper {
+  position: fixed;
+  top: 110px;
+  left: 0;
+  padding: 0 52px;
+  z-index: 1000;
+  width: 100%;
+  background-image: linear-gradient(black, transparent);
+}
+
+.content-wrapper {
+  margin-top: 79px;
+}
+
 .search-input {
   background: transparent;
   border: none;
   outline: none;
   color: #ffffff;
 }
+
 button {
   &.clear {
     border: none;
@@ -19,6 +34,7 @@ button {
     color: grey;
   }
 }
+
 .apps-nav {
   display: flex;
   justify-content: flex-end;
