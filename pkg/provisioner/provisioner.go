@@ -391,7 +391,7 @@ func bootstrapKeys(config *steps.Config) error {
 }
 
 func bootstrapCA(config *steps.Config) error {
-	pkiBundle, err := pki.NewPKI(config.CertificatesConfig.ParenCert)
+	pkiBundle, err := pki.NewCAPair(config.CertificatesConfig.ParenCert)
 
 	if err != nil {
 		return errors.Wrap(err, "bootstrap CA for provisioning")

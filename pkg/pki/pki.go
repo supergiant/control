@@ -95,9 +95,9 @@ func Decode(p *PairPEM) (*Pair, error) {
 	return &Pair{cert, key}, nil
 }
 
-// NewPKI creates certificates and key for a kubernetes cluster.
+// NewCAPair creates certificates and key for a kubernetes cluster.
 // If no CA cert/key is provided, it creates self-signed ones.
-func NewPKI(parentBytes []byte) (*PKI, error) {
+func NewCAPair(parentBytes []byte) (*PKI, error) {
 	var caPem *PairPEM
 
 	if parentBytes == nil || len(parentBytes) == 0 {

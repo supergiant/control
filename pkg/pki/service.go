@@ -58,7 +58,7 @@ func (s *Service) Delete(ctx context.Context, ID string) error {
 }
 
 func (s *Service) GenerateFromCA(ctx context.Context, parentBytes []byte) (*PKI, error) {
-	p, err := NewPKI(parentBytes)
+	p, err := NewCAPair(parentBytes)
 	if err != nil {
 		return nil, err
 	}
@@ -74,7 +74,7 @@ func (s *Service) GenerateFromCA(ctx context.Context, parentBytes []byte) (*PKI,
 }
 
 func (s *Service) GenerateSelfSigned(ctx context.Context, dnsDomain string, masterIPs []net.IP) (*PKI, error) {
-	p, err := NewPKI(nil)
+	p, err := NewCAPair(nil)
 	if err != nil {
 		return nil, err
 	}

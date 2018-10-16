@@ -104,7 +104,7 @@ xUIn/rpHJeyLQdx+1S5dVrxzkg==
 )
 
 func TestGenerateSelfSignedCAKey(t *testing.T) {
-	pki, err := NewPKI(nil)
+	pki, err := NewCAPair(nil)
 	require.NoError(t, err)
 
 	require.NotNil(t, pki.CA)
@@ -195,7 +195,7 @@ func TestNewPKI(t *testing.T) {
 
 	for _, testCase := range testCases {
 		t.Log(testCase.description)
-		p, err := NewPKI(testCase.CA)
+		p, err := NewCAPair(testCase.CA)
 
 		if err != testCase.expectedErr {
 			t.Errorf("Wrong error expected %v actual %v",

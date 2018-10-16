@@ -55,7 +55,7 @@ func TestWriteCertificates(t *testing.T) {
 
 	output := new(bytes.Buffer)
 
-	PKIBundle, err := pki.NewPKI(nil)
+	caPair, err := pki.NewCAPair(nil)
 
 	if err != nil {
 		t.Errorf("unexpected error creating PKI bundle %v", err)
@@ -67,8 +67,8 @@ func TestWriteCertificates(t *testing.T) {
 		MasterHost:          masterPrivateIP,
 		Username:            userName,
 		Password:            password,
-		CAKey:               string(PKIBundle.CA.Key),
-		CACert:              string(PKIBundle.CA.Cert),
+		CAKey:               string(caPair.CA.Key),
+		CACert:              string(caPair.CA.Cert),
 	}
 	cfg.Runner = r
 	cfg.AddMaster(&node.Node{
@@ -97,11 +97,11 @@ func TestWriteCertificates(t *testing.T) {
 		t.Errorf("password %s not found in %s", password, output.String())
 	}
 
-	if !strings.Contains(output.String(), string(PKIBundle.CA.Key)) {
+	if !strings.Contains(output.String(), string(caPair.CA.Key)) {
 		t.Errorf("CA key not found in %s", output.String())
 	}
 
-	if !strings.Contains(output.String(), string(PKIBundle.CA.Cert)) {
+	if !strings.Contains(output.String(), string(caPair.CA.Cert)) {
 		t.Errorf("CA cert not found in %s", output.String())
 	}
 }
