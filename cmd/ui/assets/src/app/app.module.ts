@@ -325,7 +325,7 @@ import { AppEffects } from './app.effects';
     }
   ],
   entryComponents: [ConfirmModalComponent],
-  bootstrap: [AppComponent]
+  bootstrap: [AppComponent],
 })
 
 export class AppModule { }
