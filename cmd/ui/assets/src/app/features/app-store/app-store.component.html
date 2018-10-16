@@ -10,11 +10,15 @@
       Apps Store
     </h1>
 
-    <input (keyup)="filterApps($event)"
-           (blur)="filterClear($event)"
-           class="search-input"
-           type="search"
-           placeholder="Filter apps by name">
+    <div><input (keyup)="filterApps($event)"
+                class="search-input"
+                type="search"
+                placeholder="Filter apps by name"
+                #filterInput>
+      <button class="clear"
+              [hidden]="!filterInput.value"
+              (click)="filterClear(filterInput)"><i class="fa fa-remove"></i></button>
+    </div>
   </ng-template>
 
   <nav class="apps-nav">
@@ -22,7 +26,8 @@
       <a routerLinkActive="active"
          [routerLink]="[repo.name]">{{ repo.name }}</a>
     </span>
-    <a (click)="addRepo()" class="add-repo"><i class="fa fa-plus-circle"></i></a>
+    <a (click)="addRepo()"
+       class="add-repo"><i class="fa fa-plus-circle"></i></a>
   </nav>
 </section>
 

@@ -32,7 +32,8 @@ export class AppsAddComponent implements OnInit {
       '/v1/api/helm/repositories',
       this.addRepositoryForm.getRawValue()
     ).subscribe(res => {
-      console.log(res);
+      // TODO
+      window.location.reload();
     })
   }
 }

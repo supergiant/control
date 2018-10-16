@@ -12,7 +12,13 @@
   outline: none;
   color: #ffffff;
 }
-
+button {
+  &.clear {
+    border: none;
+    background: transparent;
+    color: grey;
+  }
+}
 .apps-nav {
   display: flex;
   justify-content: flex-end;
