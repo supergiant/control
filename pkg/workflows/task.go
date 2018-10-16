@@ -61,7 +61,7 @@ func (w *Task) Run(ctx context.Context, config steps.Config, out io.WriteCloser)
 			if r := recover(); r != nil {
 				w.Status = steps.StatusError
 				if err := w.Sync(ctx); err != nil {
-					logrus.Errorf("Sync error %v for task %s", err, w.ID)
+					logrus.Errorf("sync error %v for task %s", err, w.ID)
 				}
 				debug.PrintStack()
 				errChan <- errors.Errorf("provisioning failed, unexpected panic: %v ", r)
@@ -166,7 +166,7 @@ func (w *Task) startFrom(ctx context.Context, id string, out io.Writer, i int) e
 		// Sync to storage with task in executing state
 		w.StepStatuses[index].Status = steps.StatusExecuting
 		if err := w.Sync(ctx); err != nil {
-			logrus.Errorf("Sync error %v", err)
+			logrus.Errorf("sync error %v", err)
 		}
 
 		if err := step.Run(ctx, out, w.Config); err != nil {
@@ -177,7 +177,7 @@ func (w *Task) startFrom(ctx context.Context, id string, out io.Writer, i int) e
 
 			wsLog.Infof("[%s] - failed: %s", step.Name(), err.Error())
 			if err2 := w.Sync(ctx); err2 != nil {
-				logrus.Errorf("Sync error %v for step %s", err2, step.Name())
+				logrus.Errorf("sync error %v for step %s", err2, step.Name())
 			}
 
 			if err3 := step.Rollback(ctx, out, w.Config); err3 != nil {
@@ -190,7 +190,7 @@ func (w *Task) startFrom(ctx context.Context, id string, out io.Writer, i int) e
 			// Mark step as success
 			w.StepStatuses[index].Status = steps.StatusSuccess
 			if err := w.Sync(ctx); err != nil {
-				logrus.Errorf("Sync error %v for step %s", err, step.Name())
+				logrus.Errorf("sync error %v for step %s", err, step.Name())
 			}
 		}
 	}
