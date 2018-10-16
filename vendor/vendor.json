@@ -254,30 +254,6 @@
 			"versionExact": "v1.14.6"
 		},
 		{
-			"checksumSHA1": "84L48NhMSrhczhlhgJWwZ/IV3R0=",
-			"path": "github.com/aws/aws-sdk-go/service/dynamodb",
-			"revision": "92c96c4f5ad419f2a72401c2f606d51e010cc110",
-			"revisionTime": "2018-06-13T21:50:45Z",
-			"version": "v1.14.6",
-			"versionExact": "v1.14.6"
-		},
-		{
-			"checksumSHA1": "dweeMPBmsx8OdMN7S8Ad/+dqge8=",
-			"path": "github.com/aws/aws-sdk-go/service/dynamodb/dynamodbattribute",
-			"revision": "92c96c4f5ad419f2a72401c2f606d51e010cc110",
-			"revisionTime": "2018-06-13T21:50:45Z",
-			"version": "v1.14.6",
-			"versionExact": "v1.14.6"
-		},
-		{
-			"checksumSHA1": "gHT9tLa4Ty9CEU/NNETRsvz8SWs=",
-			"path": "github.com/aws/aws-sdk-go/service/dynamodb/dynamodbiface",
-			"revision": "92c96c4f5ad419f2a72401c2f606d51e010cc110",
-			"revisionTime": "2018-06-13T21:50:45Z",
-			"version": "v1.14.6",
-			"versionExact": "v1.14.6"
-		},
-		{
 			"checksumSHA1": "cuffkFl2LN+J/n8KG7pi3DL4+W0=",
 			"path": "github.com/aws/aws-sdk-go/service/ec2",
 			"revision": "92c96c4f5ad419f2a72401c2f606d51e010cc110",
@@ -296,22 +272,6 @@
 		{
 			"checksumSHA1": "wU7OxckxKwyrMi9T4idT3+fjNZM=",
 			"path": "github.com/aws/aws-sdk-go/service/pricing",
-			"revision": "92c96c4f5ad419f2a72401c2f606d51e010cc110",
-			"revisionTime": "2018-06-13T21:50:45Z",
-			"version": "v1.14.6",
-			"versionExact": "v1.14.6"
-		},
-		{
-			"checksumSHA1": "c7VBBFkctgWKeIbnwuuKmYpzocQ=",
-			"path": "github.com/aws/aws-sdk-go/service/sqs",
-			"revision": "92c96c4f5ad419f2a72401c2f606d51e010cc110",
-			"revisionTime": "2018-06-13T21:50:45Z",
-			"version": "v1.14.6",
-			"versionExact": "v1.14.6"
-		},
-		{
-			"checksumSHA1": "AisiBB02O+XJ/CPCBl4hD6xuXMs=",
-			"path": "github.com/aws/aws-sdk-go/service/sqs/sqsiface",
 			"revision": "92c96c4f5ad419f2a72401c2f606d51e010cc110",
 			"revisionTime": "2018-06-13T21:50:45Z",
 			"version": "v1.14.6",
@@ -362,12 +322,6 @@
 			"path": "github.com/docker/spdystream/spdy",
 			"revision": "bc6354cbbc295e925e4c611ffe90c1f287ee54db",
 			"revisionTime": "2017-09-12T18:36:27Z"
-		},
-		{
-			"checksumSHA1": "40Ns85VYa4smQPcewZ7SOdfLnKU=",
-			"path": "github.com/fatih/structs",
-			"revision": "7e5a8eef611ee84dd359503f3969f80df4c50723",
-			"revisionTime": "2017-06-12T12:55:44Z"
 		},
 		{
 			"checksumSHA1": "nQqAEaB3gBG9PSKYZTbQ5IiN3jo=",
@@ -569,12 +523,6 @@
 			"revisionTime": "2018-03-05T23:10:24Z"
 		},
 		{
-			"checksumSHA1": "K6exl2ouL7d8cR2i378EzZOdRVI=",
-			"path": "github.com/howeyc/gopass",
-			"revision": "bf9dde6d0d2c004a008c27aaee91170c786f6db8",
-			"revisionTime": "2017-01-09T16:22:49Z"
-		},
-		{
 			"checksumSHA1": "P5KyE9QEbAeHLeXzycSF/jS1FIc=",
 			"path": "github.com/hpcloud/tail",
 			"revision": "a1dbeea552b7c8df4b542c66073e393de198a800",
@@ -718,6 +666,12 @@
 			"revisionTime": "2016-08-31T06:05:48Z"
 		},
 		{
+			"checksumSHA1": "TT1rac6kpQp2vz24m5yDGUNQ/QQ=",
+			"path": "golang.org/x/crypto/cast5",
+			"revision": "5295e8364332db77d75fce11f1d19c053919a9c9",
+			"revisionTime": "2018-06-14T21:10:25Z"
+		},
+		{
 			"checksumSHA1": "IQkUIOnvlf0tYloFx9mLaXSvXWQ=",
 			"path": "golang.org/x/crypto/curve25519",
 			"revision": "8ac0e0d97ce45cd83d1d7243c060cb8461dda5e9",
@@ -740,6 +694,48 @@
 			"path": "golang.org/x/crypto/internal/chacha20",
 			"revision": "8ac0e0d97ce45cd83d1d7243c060cb8461dda5e9",
 			"revisionTime": "2018-06-07T13:59:11Z"
+		},
+		{
+			"checksumSHA1": "Rw6FOnM59nIEq9Hey2g82MkQ4Vc=",
+			"path": "golang.org/x/crypto/openpgp",
+			"revision": "5295e8364332db77d75fce11f1d19c053919a9c9",
+			"revisionTime": "2018-06-14T21:10:25Z"
+		},
+		{
+			"checksumSHA1": "olOKkhrdkYQHZ0lf1orrFQPQrv4=",
+			"path": "golang.org/x/crypto/openpgp/armor",
+			"revision": "5295e8364332db77d75fce11f1d19c053919a9c9",
+			"revisionTime": "2018-06-14T21:10:25Z"
+		},
+		{
+			"checksumSHA1": "MJ3DiU+XBpCmHCvB57CJ7dqdbu8=",
+			"path": "golang.org/x/crypto/openpgp/clearsign",
+			"revision": "5295e8364332db77d75fce11f1d19c053919a9c9",
+			"revisionTime": "2018-06-14T21:10:25Z"
+		},
+		{
+			"checksumSHA1": "eo/KtdjieJQXH7Qy+faXFcF70ME=",
+			"path": "golang.org/x/crypto/openpgp/elgamal",
+			"revision": "5295e8364332db77d75fce11f1d19c053919a9c9",
+			"revisionTime": "2018-06-14T21:10:25Z"
+		},
+		{
+			"checksumSHA1": "rlxVSaGgqdAgwblsErxTxIfuGfg=",
+			"path": "golang.org/x/crypto/openpgp/errors",
+			"revision": "5295e8364332db77d75fce11f1d19c053919a9c9",
+			"revisionTime": "2018-06-14T21:10:25Z"
+		},
+		{
+			"checksumSHA1": "djKW9IdTOrvFMK5VtIYjcsySer8=",
+			"path": "golang.org/x/crypto/openpgp/packet",
+			"revision": "5295e8364332db77d75fce11f1d19c053919a9c9",
+			"revisionTime": "2018-06-14T21:10:25Z"
+		},
+		{
+			"checksumSHA1": "s2qT4UwvzBSkzXuiuMkowif1Olw=",
+			"path": "golang.org/x/crypto/openpgp/s2k",
+			"revision": "5295e8364332db77d75fce11f1d19c053919a9c9",
+			"revisionTime": "2018-06-14T21:10:25Z"
 		},
 		{
 			"checksumSHA1": "1MGpGDQqnUoRpv7VEcQrXOBydXE=",
@@ -2070,6 +2066,14 @@
 			"versionExact": "v2.11.0"
 		},
 		{
+			"checksumSHA1": "3/aTdMjA4fYwssYqhSHDKFhe0PA=",
+			"path": "k8s.io/helm/pkg/downloader",
+			"revision": "2e55dbe1fdb5fdb96b75ff144a339489417b146b",
+			"revisionTime": "2018-09-19T18:20:32Z",
+			"version": "v2.11.0",
+			"versionExact": "v2.11.0"
+		},
+		{
 			"checksumSHA1": "5dq0hxJlLpoZ2znZMWqSh4Jxlwo=",
 			"path": "k8s.io/helm/pkg/engine",
 			"revision": "2e55dbe1fdb5fdb96b75ff144a339489417b146b",
@@ -2078,8 +2082,32 @@
 			"versionExact": "v2.11.0"
 		},
 		{
+			"checksumSHA1": "okS5jMaJ/Hi/Y9dq+b4IVCRHl3M=",
+			"path": "k8s.io/helm/pkg/getter",
+			"revision": "2e55dbe1fdb5fdb96b75ff144a339489417b146b",
+			"revisionTime": "2018-09-19T18:20:32Z",
+			"version": "v2.11.0",
+			"versionExact": "v2.11.0"
+		},
+		{
 			"checksumSHA1": "eaMTWSB3+g6YqgyAjCdnbyi6WR8=",
 			"path": "k8s.io/helm/pkg/helm",
+			"revision": "2e55dbe1fdb5fdb96b75ff144a339489417b146b",
+			"revisionTime": "2018-09-19T18:20:32Z",
+			"version": "v2.11.0",
+			"versionExact": "v2.11.0"
+		},
+		{
+			"checksumSHA1": "JqJf7YfqbwMZOvNSnCbYLac6pAY=",
+			"path": "k8s.io/helm/pkg/helm/environment",
+			"revision": "2e55dbe1fdb5fdb96b75ff144a339489417b146b",
+			"revisionTime": "2018-09-19T18:20:32Z",
+			"version": "v2.11.0",
+			"versionExact": "v2.11.0"
+		},
+		{
+			"checksumSHA1": "iIz3gQF9QNRVht6gSNbVRKB9Z9Y=",
+			"path": "k8s.io/helm/pkg/helm/helmpath",
 			"revision": "2e55dbe1fdb5fdb96b75ff144a339489417b146b",
 			"revisionTime": "2018-09-19T18:20:32Z",
 			"version": "v2.11.0",
@@ -2096,6 +2124,14 @@
 		{
 			"checksumSHA1": "GxLLpzcnPsGvm2A8ilwHNXVnqKw=",
 			"path": "k8s.io/helm/pkg/manifest",
+			"revision": "2e55dbe1fdb5fdb96b75ff144a339489417b146b",
+			"revisionTime": "2018-09-19T18:20:32Z",
+			"version": "v2.11.0",
+			"versionExact": "v2.11.0"
+		},
+		{
+			"checksumSHA1": "4NyWMJ9m7C7ybO3JXxHvvln1bUM=",
+			"path": "k8s.io/helm/pkg/plugin",
 			"revision": "2e55dbe1fdb5fdb96b75ff144a339489417b146b",
 			"revisionTime": "2018-09-19T18:20:32Z",
 			"version": "v2.11.0",
@@ -2134,6 +2170,14 @@
 			"versionExact": "v2.11.0"
 		},
 		{
+			"checksumSHA1": "9nMGj6YAuxW+keSyhFmV/vJM+3w=",
+			"path": "k8s.io/helm/pkg/provenance",
+			"revision": "2e55dbe1fdb5fdb96b75ff144a339489417b146b",
+			"revisionTime": "2018-09-19T18:20:32Z",
+			"version": "v2.11.0",
+			"versionExact": "v2.11.0"
+		},
+		{
 			"checksumSHA1": "RiB0vvGWR9+P8BzarGpWWvLD3F0=",
 			"path": "k8s.io/helm/pkg/releaseutil",
 			"revision": "2e55dbe1fdb5fdb96b75ff144a339489417b146b",
@@ -2150,6 +2194,22 @@
 			"versionExact": "v2.11.0"
 		},
 		{
+			"checksumSHA1": "gVCS+rWevOvz04Z58K3sXrImrLM=",
+			"path": "k8s.io/helm/pkg/repo",
+			"revision": "2e55dbe1fdb5fdb96b75ff144a339489417b146b",
+			"revisionTime": "2018-09-19T18:20:32Z",
+			"version": "v2.11.0",
+			"versionExact": "v2.11.0"
+		},
+		{
+			"checksumSHA1": "dZuo+aW1bHzsbfdal1RgxIAXhW4=",
+			"path": "k8s.io/helm/pkg/resolver",
+			"revision": "2e55dbe1fdb5fdb96b75ff144a339489417b146b",
+			"revisionTime": "2018-09-19T18:20:32Z",
+			"version": "v2.11.0",
+			"versionExact": "v2.11.0"
+		},
+		{
 			"checksumSHA1": "2e/GW1nSNmDD5TPW7OaIZ5cTEOs=",
 			"path": "k8s.io/helm/pkg/storage/errors",
 			"revision": "2e55dbe1fdb5fdb96b75ff144a339489417b146b",
@@ -2160,6 +2220,22 @@
 		{
 			"checksumSHA1": "P8eekvlGNeX4CmYI8rSLuRhUZZw=",
 			"path": "k8s.io/helm/pkg/sympath",
+			"revision": "2e55dbe1fdb5fdb96b75ff144a339489417b146b",
+			"revisionTime": "2018-09-19T18:20:32Z",
+			"version": "v2.11.0",
+			"versionExact": "v2.11.0"
+		},
+		{
+			"checksumSHA1": "CZSLsqHNqnFjtxawhTTxmlQQfQg=",
+			"path": "k8s.io/helm/pkg/tlsutil",
+			"revision": "2e55dbe1fdb5fdb96b75ff144a339489417b146b",
+			"revisionTime": "2018-09-19T18:20:32Z",
+			"version": "v2.11.0",
+			"versionExact": "v2.11.0"
+		},
+		{
+			"checksumSHA1": "VXlZQHqdx8gVboSPnPAMZHC8dlk=",
+			"path": "k8s.io/helm/pkg/urlutil",
 			"revision": "2e55dbe1fdb5fdb96b75ff144a339489417b146b",
 			"revisionTime": "2018-09-19T18:20:32Z",
 			"version": "v2.11.0",

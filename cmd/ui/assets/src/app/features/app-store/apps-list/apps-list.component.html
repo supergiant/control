@@ -1,0 +1,25 @@
+<section class="charts-wrapepr">
+  <mat-card *ngFor="let chart of (charts | async)"
+            class="app-card">
+    <mat-card-header>
+      <mat-card-title>
+        <h2>{{ chart.name }}</h2>
+      </mat-card-title>
+    </mat-card-header>
+    <mat-card-content>
+      <p>
+      {{ chart.description }}
+      </p>
+    </mat-card-content>
+    <mat-card-actions>
+      <a [routerLink]="['details', chart.name]">
+        <button mat-raised-button
+                class="secondary">VIEW
+        </button>
+      </a>
+    </mat-card-actions>
+  </mat-card>
+</section>
+
+<button class="btn-remove" (click)="removeRepo()">Remove repo</button>
+

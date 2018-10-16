@@ -2,11 +2,11 @@ package pki
 
 import (
 	"context"
-
 	"net"
 
 	"encoding/json"
 	"github.com/satori/go.uuid"
+
 	"github.com/supergiant/supergiant/pkg/storage"
 )
 

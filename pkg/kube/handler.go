@@ -3,16 +3,16 @@ package kube
 import (
 	"context"
 	"encoding/json"
+	"fmt"
+	"io"
 	"net/http"
 	"time"
 
-	"gopkg.in/asaskevich/govalidator.v8"
-
 	"github.com/gorilla/mux"
 	"github.com/pkg/errors"
-
-	"fmt"
 	"github.com/sirupsen/logrus"
+	"gopkg.in/asaskevich/govalidator.v8"
+
 	"github.com/supergiant/supergiant/pkg/clouds"
 	"github.com/supergiant/supergiant/pkg/message"
 	"github.com/supergiant/supergiant/pkg/model"
@@ -23,7 +23,6 @@ import (
 	"github.com/supergiant/supergiant/pkg/util"
 	"github.com/supergiant/supergiant/pkg/workflows"
 	"github.com/supergiant/supergiant/pkg/workflows/steps"
-	"io"
 )
 
 type accountGetter interface {

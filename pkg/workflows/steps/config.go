@@ -53,7 +53,12 @@ type AWSConfig struct {
 	Region           string    `json:"region"`
 	AvailabilityZone string    `json:"availabilityZone"`
 
-	KeyPairName string `json:"keyPairName"`
+	KeyPairName          string `json:"keyPairName"`
+	VPCID                string `json:"vpcid"`
+	VPCCIDR              string `json:"vpccidr"`
+	SubnetID             string `json:"subnetID"`
+	NodesSecurityGroup   string `json:"nodesSecurityGroup"`
+	MastersSecurityGroup string `json:"mastersSecurityGroup"`
 }
 
 type EC2Config struct {
@@ -62,7 +67,6 @@ type EC2Config struct {
 	GPU           bool   `json:"gpu"`
 	ImageID       string `json:"imageId"`
 	InstanceType  string `json:"instanceType"`
-	SubnetID      string `json:"subnetID"`
 	HasPublicAddr bool   `json:"hasPublicAddr"`
 }
 

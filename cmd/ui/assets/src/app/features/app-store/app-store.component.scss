@@ -1,0 +1,53 @@
+@import "src/assets/css/variables";
+
+.header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.search-input {
+  background: transparent;
+  border: none;
+  outline: none;
+  color: #ffffff;
+}
+
+.apps-nav {
+  display: flex;
+  justify-content: flex-end;
+
+  a {
+    display: flex;
+    margin-left: 32px;
+    cursor: pointer;
+
+    &.active {
+      color: $sg-pink;
+      text-decoration: 1px solid $sg-pink;
+    }
+
+    &.add-repo {
+      color: $sg-pink;
+    }
+  }
+}
+
+:host {
+  position: relative;
+  &::ng-deep {
+    .app-card {
+      max-width: 295px;
+      min-height: 263px;
+      display: flex;
+      flex-direction: column;
+
+      h2 {
+        font-size: 32px;
+      }
+      .mat-card-actions {
+        margin-top: auto !important;
+      }
+    }
+  }
+}

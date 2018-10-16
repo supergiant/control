@@ -1,9 +1,10 @@
 package assert
 
 import (
+	"time"
+
 	"github.com/coreos/etcd/clientv3"
 	"github.com/sirupsen/logrus"
-	"time"
 )
 
 const (

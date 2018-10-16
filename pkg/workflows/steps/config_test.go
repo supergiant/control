@@ -2,8 +2,9 @@ package steps
 
 import (
 	"encoding/json"
-	"github.com/supergiant/supergiant/pkg/node"
 	"testing"
+
+	"github.com/supergiant/supergiant/pkg/node"
 )
 
 func TestMarshalConfig(t *testing.T) {

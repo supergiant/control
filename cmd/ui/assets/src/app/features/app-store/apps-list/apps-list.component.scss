@@ -1,0 +1,19 @@
+.charts-wrapepr {
+  display: flex;
+  flex-wrap: wrap;
+  margin-bottom: 20px;
+
+  .app-card {
+    margin-right: 30px;
+    margin-bottom: 30px;
+    width: 300px;
+  }
+}
+
+button {
+  font-size: 14px;
+  color: #D10088;
+  border: 2px solid #D10088;
+  background: transparent;
+  padding: 8px 32px;
+}

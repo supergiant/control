@@ -1,11 +1,9 @@
 package ssh
 
 import (
-	"time"
-
-	"net"
-
 	"fmt"
+	"net"
+	"time"
 
 	"github.com/pkg/errors"
 	"github.com/sirupsen/logrus"

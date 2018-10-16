@@ -2,9 +2,8 @@ package manifest
 
 import (
 	"context"
-	"text/template"
-
 	"io"
+	"text/template"
 
 	"github.com/pkg/errors"
 

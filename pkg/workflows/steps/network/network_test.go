@@ -3,9 +3,10 @@ package network
 import (
 	"bytes"
 	"context"
-	"github.com/pkg/errors"
 	"strings"
 	"testing"
+
+	"github.com/pkg/errors"
 
 	"github.com/supergiant/supergiant/pkg/profile"
 	"github.com/supergiant/supergiant/pkg/templatemanager"

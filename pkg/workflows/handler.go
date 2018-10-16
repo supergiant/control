@@ -239,7 +239,7 @@ func (h *TaskHandler) GetLogs(w http.ResponseWriter, r *http.Request) {
 
 	var v = struct {
 		Host   string
-		TaskId string
+		TaskID string
 	}{
 		r.Host,
 		id,
