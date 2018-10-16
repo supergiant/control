@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"io"
 	"net/http"
+	"strconv"
 	"time"
 
 	"github.com/gorilla/mux"
@@ -23,7 +24,6 @@ import (
 	"github.com/supergiant/supergiant/pkg/util"
 	"github.com/supergiant/supergiant/pkg/workflows"
 	"github.com/supergiant/supergiant/pkg/workflows/steps"
-	"strconv"
 )
 
 type accountGetter interface {
@@ -586,7 +586,7 @@ func (h *Handler) installRelease(w http.ResponseWriter, r *http.Request) {
 	}
 
 	kname := vars["kname"]
-	rls, err := h.svc.InstallChart(r.Context(), kname, inp)
+	rls, err := h.svc.InstallRelease(r.Context(), kname, inp)
 	if err != nil {
 		logrus.Errorf("helm: install release: %s cluster: %s (%+v)", kname, err, inp)
 		message.SendUnknownError(w, err)
@@ -604,7 +604,8 @@ func (h *Handler) listReleases(w http.ResponseWriter, r *http.Request) {
 	vars := mux.Vars(r)
 
 	kname := vars["kname"]
-	rlsList, err := h.svc.ListReleases(r.Context(), kname)
+	// TODO: use a struct for input parameters
+	rlsList, err := h.svc.ListReleases(r.Context(), kname, "", "", 0)
 	if err != nil {
 		logrus.Errorf("helm: list releases: %s cluster: %s", kname, err)
 		message.SendUnknownError(w, err)

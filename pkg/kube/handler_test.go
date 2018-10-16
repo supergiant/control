@@ -8,12 +8,14 @@ import (
 	"io"
 	"net/http"
 	"net/http/httptest"
+	"strings"
 	"testing"
 
 	"github.com/gorilla/mux"
 	"github.com/pkg/errors"
 	"github.com/stretchr/testify/mock"
 	"github.com/stretchr/testify/require"
+	"k8s.io/helm/pkg/proto/hapi/chart"
 	"k8s.io/helm/pkg/proto/hapi/release"
 
 	"github.com/supergiant/supergiant/pkg/clouds"
@@ -25,8 +27,6 @@ import (
 	"github.com/supergiant/supergiant/pkg/testutils"
 	"github.com/supergiant/supergiant/pkg/workflows"
 	"github.com/supergiant/supergiant/pkg/workflows/steps"
-	"strings"
-	"k8s.io/helm/pkg/proto/hapi/chart"
 )
 
 var (
@@ -34,7 +34,7 @@ var (
 
 	deployedReleaseInput = `{"chartName":"nginx","namespace":"default","repoName":"fake"}`
 	deployedRelease      = &release.Release{
-		Name: "fakeDeployed",
+		Name:      "fakeDeployed",
 		Namespace: "default",
 		Chart: &chart.Chart{
 			Metadata: &chart.Metadata{
@@ -48,27 +48,27 @@ var (
 		},
 	}
 	deployedReleaseInfo = &model.ReleaseInfo{
-		Name: "fakeDeleted",
+		Name:      "fakeDeleted",
 		Namespace: "default",
-		Chart: "nginx",
-		Status: release.Status_Code_name[int32(release.Status_DEPLOYED)],
+		Chart:     "nginx",
+		Status:    release.Status_Code_name[int32(release.Status_DEPLOYED)],
 	}
 
 	deletedReleaseInput = `{"chartName":"esync","namespace":"kube-system","repoName":"fake"}`
-	deletedReleaseInfo = &model.ReleaseInfo{
-		Name: "fakeDeleted",
+	deletedReleaseInfo  = &model.ReleaseInfo{
+		Name:      "fakeDeleted",
 		Namespace: "kube-system",
-		Chart: "esync",
-		Status: release.Status_Code_name[int32(release.Status_DELETED)],
+		Chart:     "esync",
+		Status:    release.Status_Code_name[int32(release.Status_DELETED)],
 	}
 )
 
 type kubeServiceMock struct {
 	mock.Mock
-	rls *release.Release
-	rlsInfo *model.ReleaseInfo
+	rls         *release.Release
+	rlsInfo     *model.ReleaseInfo
 	rlsInfoList []*model.ReleaseInfo
-	rlsErr error
+	rlsErr      error
 }
 
 type accServiceMock struct {
@@ -153,10 +153,10 @@ func (m *kubeServiceMock) GetKubeResources(ctx context.Context, kname, resource,
 func (m *kubeServiceMock) GetCerts(ctx context.Context, kname, cname string) (*Bundle, error) {
 	return nil, nil
 }
-func (m *kubeServiceMock) InstallChart(ctx context.Context, kname string, rls *ReleaseInput) (*release.Release, error) {
+func (m *kubeServiceMock) InstallRelease(ctx context.Context, kname string, rls *ReleaseInput) (*release.Release, error) {
 	return m.rls, m.rlsErr
 }
-func (m *kubeServiceMock) ListReleases(ctx context.Context, kname string) ([]*model.ReleaseInfo, error) {
+func (m *kubeServiceMock) ListReleases(ctx context.Context, kname, ns, offset string, limit int) ([]*model.ReleaseInfo, error) {
 	return m.rlsInfoList, m.rlsErr
 }
 func (m *kubeServiceMock) DeleteRelease(ctx context.Context, kname, rlsName string, purge bool) (*model.ReleaseInfo, error) {
@@ -891,13 +891,13 @@ func TestDeleteNodeFromKube(t *testing.T) {
 }
 
 func TestHander_installRelease(t *testing.T) {
-	tcs := []struct{
+	tcs := []struct {
 		rlsInp string
 
 		kubeSvc *kubeServiceMock
 
-		expectedRls *release.Release
-		expectedStatus int
+		expectedRls     *release.Release
+		expectedStatus  int
 		expectedErrCode sgerrors.ErrorCode
 	}{
 		{
@@ -905,24 +905,24 @@ func TestHander_installRelease(t *testing.T) {
 			kubeSvc: &kubeServiceMock{
 				rlsErr: fakeErr,
 			},
-			expectedStatus: http.StatusBadRequest,
-			expectedErrCode:sgerrors.InvalidJSON,
+			expectedStatus:  http.StatusBadRequest,
+			expectedErrCode: sgerrors.InvalidJSON,
 		},
 		{
 			rlsInp: "{}",
 			kubeSvc: &kubeServiceMock{
 				rlsErr: fakeErr,
 			},
-			expectedStatus: http.StatusBadRequest,
-			expectedErrCode:sgerrors.ValidationFailed,
+			expectedStatus:  http.StatusBadRequest,
+			expectedErrCode: sgerrors.ValidationFailed,
 		},
 		{
 			rlsInp: deployedReleaseInput,
 			kubeSvc: &kubeServiceMock{
 				rlsErr: fakeErr,
 			},
-			expectedStatus: http.StatusInternalServerError,
-			expectedErrCode:sgerrors.UnknownError,
+			expectedStatus:  http.StatusInternalServerError,
+			expectedErrCode: sgerrors.UnknownError,
 		},
 		{
 			rlsInp: deployedReleaseInput,
@@ -930,7 +930,7 @@ func TestHander_installRelease(t *testing.T) {
 				rls: deployedRelease,
 			},
 			expectedStatus: http.StatusOK,
-			expectedRls: deployedRelease,
+			expectedRls:    deployedRelease,
 		},
 	}
 
@@ -971,25 +971,25 @@ func TestHander_installRelease(t *testing.T) {
 }
 
 func TestHander_listReleases(t *testing.T) {
-	tcs := []struct{
+	tcs := []struct {
 		kubeSvc *kubeServiceMock
 
 		expectedRlsInfoList []*model.ReleaseInfo
-		expectedStatus int
-		expectedErrCode sgerrors.ErrorCode
+		expectedStatus      int
+		expectedErrCode     sgerrors.ErrorCode
 	}{
 		{
 			kubeSvc: &kubeServiceMock{
 				rlsErr: fakeErr,
 			},
-			expectedStatus: http.StatusInternalServerError,
-			expectedErrCode:sgerrors.UnknownError,
+			expectedStatus:  http.StatusInternalServerError,
+			expectedErrCode: sgerrors.UnknownError,
 		},
 		{
 			kubeSvc: &kubeServiceMock{
 				rlsInfoList: []*model.ReleaseInfo{deployedReleaseInfo},
 			},
-			expectedStatus: http.StatusOK,
+			expectedStatus:      http.StatusOK,
 			expectedRlsInfoList: []*model.ReleaseInfo{deployedReleaseInfo},
 		},
 	}
@@ -1031,25 +1031,25 @@ func TestHander_listReleases(t *testing.T) {
 }
 
 func TestHander_deleteRelease(t *testing.T) {
-	tcs := []struct{
+	tcs := []struct {
 		kubeSvc *kubeServiceMock
 
 		expectedRlsInfo *model.ReleaseInfo
-		expectedStatus int
+		expectedStatus  int
 		expectedErrCode sgerrors.ErrorCode
 	}{
 		{
 			kubeSvc: &kubeServiceMock{
 				rlsErr: fakeErr,
 			},
-			expectedStatus: http.StatusInternalServerError,
-			expectedErrCode:sgerrors.UnknownError,
+			expectedStatus:  http.StatusInternalServerError,
+			expectedErrCode: sgerrors.UnknownError,
 		},
 		{
 			kubeSvc: &kubeServiceMock{
 				rlsInfo: deletedReleaseInfo,
 			},
-			expectedStatus: http.StatusOK,
+			expectedStatus:  http.StatusOK,
 			expectedRlsInfo: deletedReleaseInfo,
 		},
 	}

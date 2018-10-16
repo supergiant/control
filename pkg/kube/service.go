@@ -9,22 +9,21 @@ import (
 	"github.com/technosophos/moniker"
 	"k8s.io/apimachinery/pkg/runtime/schema"
 	"k8s.io/client-go/discovery"
-	corev1 "k8s.io/client-go/kubernetes/typed/core/v1"
 	"k8s.io/client-go/rest"
 	"k8s.io/helm/pkg/helm"
+	"k8s.io/helm/pkg/proto/hapi/chart"
 	"k8s.io/helm/pkg/proto/hapi/release"
 	"k8s.io/helm/pkg/timeconv"
 
 	"github.com/supergiant/supergiant/pkg/model"
 	"github.com/supergiant/supergiant/pkg/runner/ssh"
 	"github.com/supergiant/supergiant/pkg/sgerrors"
-	"github.com/supergiant/supergiant/pkg/sghelm"
 	"github.com/supergiant/supergiant/pkg/sghelm/proxy"
 	"github.com/supergiant/supergiant/pkg/storage"
 )
 
 const (
-	DefaultStoragePrefix = "/supergiant/kube/"
+	storagePrefix = "/supergiant/kubes/"
 
 	releaseInstallTimeout = 300
 )
@@ -40,9 +39,14 @@ type Interface interface {
 	ListKubeResources(ctx context.Context, kname string) ([]byte, error)
 	GetKubeResources(ctx context.Context, kname, resource, ns, name string) ([]byte, error)
 	GetCerts(ctx context.Context, kname, cname string) (*Bundle, error)
-	InstallChart(ctx context.Context, kname string, rls *ReleaseInput) (*release.Release, error)
-	ListReleases(ctx context.Context, kname string) ([]*model.ReleaseInfo, error)
+	InstallRelease(ctx context.Context, kname string, rls *ReleaseInput) (*release.Release, error)
+	ListReleases(ctx context.Context, kname, ns, offset string, limit int) ([]*model.ReleaseInfo, error)
 	DeleteRelease(ctx context.Context, kname, rlsName string, purge bool) (*model.ReleaseInfo, error)
+}
+
+// ChartGetter interface is a wrapper for GetChart function.
+type ChartGetter interface {
+	GetChart(ctx context.Context, repoName, chartName, chartVersion string) (*chart.Chart, error)
 }
 
 // Service manages kubernetes clusters.
@@ -53,15 +57,17 @@ type Service struct {
 	prefix  string
 	storage storage.Interface
 
-	helmRepos sghelm.Servicer
+	newHelmProxyFn func(kube *model.Kube) (proxy.Interface, error)
+	chrtGetter     ChartGetter
 }
 
 // NewService constructs a Service.
-func NewService(prefix string, s storage.Interface, helmSvc sghelm.Servicer) *Service {
+func NewService(prefix string, s storage.Interface, chrtGetter ChartGetter) *Service {
 	return &Service{
 		clientForGroupFn:  restClientForGroupVersion,
 		discoveryClientFn: discoveryClient,
-		helmRepos:         helmSvc,
+		newHelmProxyFn:    helmProxyFrom,
+		chrtGetter:        chrtGetter,
 		prefix:            prefix,
 		storage:           s,
 	}
@@ -128,7 +134,7 @@ func (s *Service) Delete(ctx context.Context, name string) error {
 func (s *Service) ListKubeResources(ctx context.Context, kname string) ([]byte, error) {
 	kube, err := s.Get(ctx, kname)
 	if err != nil {
-		return nil, errors.Wrap(err, "storage: get")
+		return nil, errors.Wrap(err, "get kube")
 	}
 
 	resourcesInfo, err := s.resourcesGroupInfo(kube)
@@ -148,7 +154,7 @@ func (s *Service) ListKubeResources(ctx context.Context, kname string) ([]byte, 
 func (s *Service) GetKubeResources(ctx context.Context, kname, resource, ns, name string) ([]byte, error) {
 	kube, err := s.Get(ctx, kname)
 	if err != nil {
-		return nil, errors.Wrap(err, "storage: get")
+		return nil, errors.Wrap(err, "get kube")
 	}
 
 	resourcesInfo, err := s.resourcesGroupInfo(kube)
@@ -206,13 +212,21 @@ func (s *Service) GetCerts(ctx context.Context, kname, cname string) (*Bundle, e
 	return b, nil
 }
 
-func (s *Service) InstallChart(ctx context.Context, kname string, rls *ReleaseInput) (*release.Release, error) {
-	chrt, err := s.helmRepos.GetChart(ctx, rls.RepoName, rls.ChartName, rls.ChartVersion)
+func (s *Service) InstallRelease(ctx context.Context, kname string, rls *ReleaseInput) (*release.Release, error) {
+	if rls == nil {
+		return nil, errors.Wrap(sgerrors.ErrNilEntity, "release input")
+	}
+
+	chrt, err := s.chrtGetter.GetChart(ctx, rls.RepoName, rls.ChartName, rls.ChartVersion)
 	if err != nil {
 		return nil, errors.Wrap(err, "get chart")
 	}
 
-	kprx, err := s.getHelmProxy(ctx, kname)
+	kube, err := s.Get(ctx, kname)
+	if err != nil {
+		return nil, errors.Wrap(err, "get kube")
+	}
+	kprx, err := s.newHelmProxyFn(kube)
 	if err != nil {
 		return nil, errors.Wrap(err, "build helm proxy")
 	}
@@ -229,13 +243,21 @@ func (s *Service) InstallChart(ctx context.Context, kname string, rls *ReleaseIn
 	return rr.GetRelease(), err
 }
 
-func (s *Service) ListReleases(ctx context.Context, kname string) ([]*model.ReleaseInfo, error) {
-	kprx, err := s.getHelmProxy(ctx, kname)
+func (s *Service) ListReleases(ctx context.Context, kname, namespace, offset string, limit int) ([]*model.ReleaseInfo, error) {
+	kube, err := s.Get(ctx, kname)
+	if err != nil {
+		return nil, errors.Wrap(err, "get kube")
+	}
+	kprx, err := s.newHelmProxyFn(kube)
 	if err != nil {
 		return nil, errors.Wrap(err, "build helm proxy")
 	}
 
-	res, err := kprx.ListReleases()
+	res, err := kprx.ListReleases(
+		helm.ReleaseListNamespace(namespace),
+		helm.ReleaseListOffset(offset),
+		helm.ReleaseListLimit(limit),
+	)
 	if err != nil {
 		return nil, errors.Wrap(err, "list releases")
 	}
@@ -250,7 +272,11 @@ func (s *Service) ListReleases(ctx context.Context, kname string) ([]*model.Rele
 }
 
 func (s *Service) DeleteRelease(ctx context.Context, kname, rlsName string, purge bool) (*model.ReleaseInfo, error) {
-	kprx, err := s.getHelmProxy(ctx, kname)
+	kube, err := s.Get(ctx, kname)
+	if err != nil {
+		return nil, errors.Wrap(err, "get kube")
+	}
+	kprx, err := s.newHelmProxyFn(kube)
 	if err != nil {
 		return nil, errors.Wrap(err, "build helm proxy")
 	}
@@ -261,24 +287,6 @@ func (s *Service) DeleteRelease(ctx context.Context, kname, rlsName string, purg
 	}
 
 	return toReleaseInfo(res.GetRelease()), nil
-}
-
-func (s *Service) getHelmProxy(ctx context.Context, kname string) (*proxy.Proxy, error) {
-	kube, err := s.Get(ctx, kname)
-	if err != nil {
-		return nil, err
-	}
-
-	restConf, err := NewConfigFor(kube)
-	if err != nil {
-		return nil, err
-	}
-	coreV1Client, err := corev1.NewForConfig(restConf)
-	if err != nil {
-		return nil, err
-	}
-
-	return proxy.New(coreV1Client, restConf, "")
 }
 
 func (s *Service) resourcesGroupInfo(kube *model.Kube) (map[string]schema.GroupVersion, error) {
