@@ -260,6 +260,9 @@ func (h *TaskHandler) StreamLogs(w http.ResponseWriter, r *http.Request) {
 		HandshakeTimeout: time.Second * 10,
 		WriteBufferSize:  1024,
 		ReadBufferSize:   0,
+		CheckOrigin: func(r *http.Request) bool {
+			return true
+		},
 	}
 
 	t, err := tail.TailFile(path.Join("/tmp", util.MakeFileName(id)),
