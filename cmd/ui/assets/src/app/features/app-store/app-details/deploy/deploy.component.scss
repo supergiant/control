@@ -2,3 +2,29 @@ form {
   display: flex;
   flex-direction: column;
 }
+
+.btn-deploy {
+  color: #fff;
+  border: none;
+  background-color: #D10088 !important;
+}
+
+button {
+  outline: none;
+
+  &.configure {
+    margin-right: 16px;
+  }
+
+
+  &[mat-button] {
+    padding: 8px 32px;
+
+    &[color='secondary'] {
+      color: #fff;
+      border: 1px solid #fff !important;
+      background-color: transparent !important;
+    }
+
+  }
+}
