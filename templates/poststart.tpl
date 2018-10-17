@@ -7,6 +7,8 @@ echo "PostStart started"
     kubectl config set-context default-system --cluster=default-cluster --user=default-admin
     kubectl config use-context default-system
 
+    kubectl create -f /etc/kubernetes/addons/kube-dns/kube-dns.yaml
+
     {{if .RBACEnabled }}
     kubectl create clusterrolebinding kubelet-binding --clusterrole=system:node --user=kubelet
     kubectl create clusterrolebinding system:dns-admin-binding --clusterrole=cluster-admin --user=system:dns
