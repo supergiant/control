@@ -14,7 +14,7 @@ clusters:
 - name: local
   cluster:
     insecure-skip-tls-verify: true
-    server: http://{{ .MasterHost }}:{{ .MasterPort }}
+    server: https://{{ .MasterHost }}
 contexts:
 - context:
     cluster: local
@@ -83,12 +83,15 @@ spec:
     - --admission-control=NamespaceLifecycle,NamespaceExists,LimitRanger,ServiceAccount,ResourceQuota,DefaultStorageClass{{if .RBACEnabled }},NodeRestriction{{end}}
     - --tls-cert-file=/etc/kubernetes/ssl/apiserver.pem
     - --tls-private-key-file=/etc/kubernetes/ssl/apiserver-key.pem
+    - --kubelet-certificate-authority=/etc/kubernetes/ssl/ca.pem
+    - --kubelet-client-certificate=/etc/kubernetes/ssl/apiserver.pem
+    - --kubelet-client-key=/etc/kubernetes/ssl/apiserver-key.pem
     - --client-ca-file=/etc/kubernetes/ssl/ca.pem
     - --service-account-key-file=/etc/kubernetes/ssl/apiserver-key.pem
     - --basic-auth-file=/etc/kubernetes/ssl/basic_auth.csv
     - --token-auth-file=/etc/kubernetes/ssl/known_tokens.csv
     - --kubelet-preferred-address-types=InternalIP,Hostname,ExternalIP
-    - --storage-backend=etcd2
+    - --storage-backend=etcd3
     -  {{ .ProviderString }}
     ports:
     - containerPort: 443

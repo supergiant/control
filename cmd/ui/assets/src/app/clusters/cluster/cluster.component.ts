@@ -111,6 +111,19 @@ export class ClusterComponent implements OnInit, OnDestroy {
     return task.stepsStatuses.every((s) => s.status == "success");
   }
 
+  restartTask(taskId) {
+    this.tasks.data.map(t => {
+      if (t.id == taskId) {
+        t.restarting = true;
+      }}
+    );
+
+    this.util.post("/tasks/" + taskId +"/restart", {}).subscribe(
+      res => console.log(res),
+      err => console.error(err)
+    );
+  }
+
   setProvisioningStep(tasks) {
     const masterPatt = /master/g;
     const masterTasks = tasks.filter(t => {
@@ -132,7 +145,8 @@ export class ClusterComponent implements OnInit, OnDestroy {
         this.nodesStatus = "complete";
         this.readyStatus = "executing";
 
-        setTimeout(() => { this.readyStatus = "complete"; console.log("ready") }, 2000);
+        // TODO: what is technically "ready?"
+        setTimeout(() => { this.readyStatus = "complete"; console.log("ready") }, 5000);
       } else {
         // masters complete, nodes executing
         this.nodesStatus = "executing"
@@ -141,14 +155,11 @@ export class ClusterComponent implements OnInit, OnDestroy {
       // masters executing
       this.mastersStatus = "executing";
     }
-
-    console.log("masters: ", masterTasks);
-    console.log("nodes: ", nodeTasks);
   }
 
   getKube() {
     // TODO: shameful how smart this ENTIRE component has become.
-    this.subscriptions.add(observableTimer(0, 60000).pipe(
+    this.subscriptions.add(observableTimer(0, 10000).pipe(
       switchMap(() => this.supergiant.Kubes.get(this.id))).subscribe(
         k => {
           this.kube = k;
@@ -166,7 +177,6 @@ export class ClusterComponent implements OnInit, OnDestroy {
                   // for demo:
                   // do some task overview checking here
                   // e.g. are we on masters? nodes? set vars accordingly
-                  console.log("TASKS: ", tasks);
                   this.setProvisioningStep(tasks);
 
                   const rows = [];
@@ -191,7 +201,6 @@ export class ClusterComponent implements OnInit, OnDestroy {
               // duped from 'provisioning' case for demo
               this.getKubeStatus(this.id).subscribe(
                 tasks => {
-                  console.log("TASKS: ", tasks);
 
                   const rows = [];
                   tasks.forEach(t => {
