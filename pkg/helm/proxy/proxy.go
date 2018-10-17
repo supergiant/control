@@ -7,7 +7,6 @@ import (
 	apiv1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/labels"
-	"k8s.io/client-go/kubernetes"
 	corev1 "k8s.io/client-go/kubernetes/typed/core/v1"
 	"k8s.io/client-go/rest"
 	"k8s.io/helm/pkg/helm"
@@ -48,15 +47,15 @@ type Interface interface {
 
 // Proxy is a wrapper for tiller client for accessing it through kubernetes api.
 type Proxy struct {
-	kclient         kubernetes.Interface
+	coreClient      corev1.CoreV1Interface
 	restConf        *rest.Config
 	tillerNamespace string
 }
 
 // New creates a new helm client.
-func New(kclient kubernetes.Interface, restConf *rest.Config, tillerNamespace string) (*Proxy, error) {
+func New(client corev1.CoreV1Interface, restConf *rest.Config, tillerNamespace string) (*Proxy, error) {
 	return &Proxy{
-		kclient:         kclient,
+		coreClient:      client,
 		restConf:        restConf,
 		tillerNamespace: tillerNamespace,
 	}, nil
@@ -176,12 +175,12 @@ func (p *Proxy) helmClient(port int) helm.Interface {
 
 // createTunnel creates a tunnel to tiller (like 'kubectl proxy').
 func (p *Proxy) createTunnel() (*tunnel, error) {
-	tillerPodName, err := getTillerPodName(p.kclient.CoreV1().Pods(p.tillerNamespace))
+	podMeta, err := getTillerPodName(p.coreClient.Pods(p.tillerNamespace))
 	if err != nil {
 		return nil, errors.Wrap(err, "get tiller pod")
 	}
 
-	tun := newTunnel(p.kclient.CoreV1().RESTClient(), p.restConf, p.tillerNamespace, tillerPodName, TillerPort)
+	tun := newTunnel(p.coreClient.RESTClient(), p.restConf, podMeta.Namespace, podMeta.Name, TillerPort)
 	if err := tun.forwardPort(); err != nil {
 		return nil, errors.Wrap(err, "setup port forwarding")
 	}
@@ -189,13 +188,13 @@ func (p *Proxy) createTunnel() (*tunnel, error) {
 	return tun, nil
 }
 
-func getTillerPodName(podsClient corev1.PodInterface) (string, error) {
+func getTillerPodName(podsClient corev1.PodInterface) (metav1.ObjectMeta, error) {
 	pod, err := getFirstRunningPod(podsClient, tillerPodLabels.AsSelector())
 	if err != nil {
-		return "", err
+		return metav1.ObjectMeta{}, err
 	}
 
-	return pod.ObjectMeta.GetName(), nil
+	return pod.ObjectMeta, nil
 }
 
 func getFirstRunningPod(podsClient corev1.PodInterface, selector labels.Selector) (*apiv1.Pod, error) {
