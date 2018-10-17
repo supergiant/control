@@ -1,15 +1,77 @@
 KUBERNETES_MANIFESTS_DIR={{ .KubernetesConfigDir }}/manifests
+KUBERNETES_ADDONS_DIR={{ .KubernetesConfigDir }}/addons
 
-mkdir -p ${KUBERNETES_MANIFESTS_DIR}
+ADDON=${KUBERNETES_ADDONS_DIR}/'kube-dns'
+sudo mkdir -p ${ADDON}
+sudo bash -c "cat << EOF > ${ADDON}/kube-dns.yaml
+apiVersion: v1
+kind: Service
+metadata:
+  name: kube-dns
+  namespace: kube-system
+  labels:
+    k8s-app: kube-dns
+    kubernetes.io/cluster-service: 'true'
+    kubernetes.io/name: 'KubeDNS'
+spec:
+  selector:
+    k8s-app: kube-dns
+  clusterIP: 10.3.0.10
+  ports:
+  - name: dns
+    port: 53
+    protocol: UDP
+  - name: dns-tcp
+    port: 53
+    protocol: TCP
+---
+apiVersion: v1
+kind: ReplicationController
+metadata:
+  name: kube-dns-v11
+  namespace: kube-system
+  labels:
+    k8s-app: kube-dns
+    version: v11
+    kubernetes.io/cluster-service: 'true'
+spec:
+  replicas: 1
+  selector:
+    k8s-app: kube-dns
+    version: v11
+  template:
+    metadata:
+      labels:
+        k8s-app: kube-dns
+        version: v11
+        kubernetes.io/cluster-service: 'true'
+    spec:
+      containers:
+      - name: healthz
+        image: gcr.io/google_containers/exechealthz:1.0
+        resources:
+          limits:
+            cpu: 10m
+            memory: 20Mi
+        args:
+        - -cmd=nslookup kubernetes.default.svc.cluster.local localhost >/dev/null
+        - -port=8080
+        ports:
+        - containerPort: 8080
+          protocol: TCP
+      dnsPolicy: Default
+EOF"
+
+sudo mkdir -p ${KUBERNETES_MANIFESTS_DIR}
 
 # worker
-cat << EOF > {{ .KubernetesConfigDir }}/worker-kubeconfig.yaml
+sudo bash -c "cat << EOF > {{ .KubernetesConfigDir }}/worker-kubeconfig.yaml
 apiVersion: v1
 kind: Config
 users:
 - name: kubelet
   user:
-    token: "1234"
+    token: '1234'
 clusters:
 - name: local
   cluster:
@@ -21,11 +83,11 @@ contexts:
     user: kubelet
   name: service-account-context
 current-context: service-account-context
-EOF
+EOF"
 
 
 # proxy
-cat << EOF > ${KUBERNETES_MANIFESTS_DIR}/kube-proxy.yaml
+sudo bash -c "cat << EOF > ${KUBERNETES_MANIFESTS_DIR}/kube-proxy.yaml
 apiVersion: v1
 kind: Pod
 metadata:
@@ -52,12 +114,12 @@ spec:
   - hostPath:
       path: /usr/share/ca-certificates
     name: ssl-certs-host
-EOF
+EOF"
 
 
 {{ if .IsMaster }}
 # api-server
-cat << EOF > ${KUBERNETES_MANIFESTS_DIR}/kube-apiserver.yaml
+sudo bash -c "cat << EOF > ${KUBERNETES_MANIFESTS_DIR}/kube-apiserver.yaml
 apiVersion: v1
 kind: Pod
 metadata:
@@ -120,10 +182,10 @@ spec:
   - hostPath:
       path: /usr/share/ca-certificates
     name: ssl-certs-host
-EOF
+EOF"
 
 # kube controller manager
-cat << EOF > ${KUBERNETES_MANIFESTS_DIR}/kube-controller-manager.yaml
+sudo bash -c "cat << EOF > ${KUBERNETES_MANIFESTS_DIR}/kube-controller-manager.yaml
 apiVersion: v1
 kind: Pod
 metadata:
@@ -165,10 +227,10 @@ spec:
   - hostPath:
       path: /usr/share/ca-certificates
     name: ssl-certs-host
-EOF
+EOF"
 
 # scheduler
-cat << EOF > ${KUBERNETES_MANIFESTS_DIR}/kube-scheduler.yaml
+sudo bash -c "cat << EOF > ${KUBERNETES_MANIFESTS_DIR}/kube-scheduler.yaml
 apiVersion: v1
 kind: Pod
 metadata:
@@ -191,5 +253,5 @@ spec:
         port: 10251
       initialDelaySeconds: 15
       timeoutSeconds: 1
-EOF
+EOF"
 {{ end }}

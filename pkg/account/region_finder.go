@@ -5,6 +5,10 @@ import (
 	"strconv"
 	"sync"
 
+	"github.com/aws/aws-sdk-go/aws"
+	"github.com/aws/aws-sdk-go/aws/credentials"
+	"github.com/aws/aws-sdk-go/aws/session"
+	"github.com/aws/aws-sdk-go/service/ec2"
 	"github.com/digitalocean/godo"
 	"github.com/pkg/errors"
 
@@ -54,6 +58,8 @@ func GetRegionFinder(account *model.CloudAccount) (RegionFinder, error) {
 		return &digitalOceanRegionFinder{
 			sdk: sdk,
 		}, nil
+	case clouds.AWS:
+		return NewAWSFinder(account)
 	}
 	return nil, ErrUnsupportedProvider
 }
@@ -120,4 +126,136 @@ func (rf *digitalOceanRegionFinder) Find(ctx context.Context) (*RegionSizes, err
 	}
 
 	return rs, nil
+}
+
+type AWSFinder struct {
+	accessKey string
+	secret    string
+}
+
+func (af *AWSFinder) Find(ctx context.Context) (*RegionSizes, error) {
+	sess, err := session.NewSessionWithOptions(session.Options{
+		Config: aws.Config{
+			Region:      aws.String("us-west-1"),
+			Credentials: credentials.NewStaticCredentials(af.accessKey, af.secret, ""),
+		},
+	})
+
+	if err != nil {
+		return nil, errors.Wrap(err, "aws authentication: ")
+	}
+
+	EC2 := ec2.New(sess)
+
+	regionsOut, err := EC2.DescribeRegionsWithContext(ctx, &ec2.DescribeRegionsInput{})
+
+	if err != nil {
+		return nil, errors.Wrap(err, "failed to read aws regions")
+	}
+
+	regions := make([]*Region, 0)
+	for _, r := range regionsOut.Regions {
+		regions = append(regions, &Region{
+			ID:   *r.RegionName,
+			Name: *r.RegionName,
+		})
+	}
+
+	rs := &RegionSizes{
+		Provider: clouds.AWS,
+		Regions:  regions,
+	}
+
+	return rs, nil
+}
+
+func (af *AWSFinder) GetAZ(ctx context.Context, region string) ([]string, error) {
+	sess, err := session.NewSessionWithOptions(session.Options{
+		Config: aws.Config{
+			Region:      aws.String(region),
+			Credentials: credentials.NewStaticCredentials(af.accessKey, af.secret, ""),
+		},
+	})
+	if err != nil {
+		return nil, errors.Wrap(err, "aws authentication: ")
+	}
+
+	EC2 := ec2.New(sess)
+	azsOut, err := EC2.DescribeAvailabilityZonesWithContext(ctx, &ec2.DescribeAvailabilityZonesInput{
+		Filters: []*ec2.Filter{
+			{
+				Name: aws.String("region-name"),
+				Values: []*string{
+					aws.String(region),
+				},
+			},
+		},
+	})
+	if err != nil {
+		return nil, err
+	}
+
+	zones := make([]string, 0)
+	for _, az := range azsOut.AvailabilityZones {
+		zones = append(zones, *az.ZoneName)
+	}
+
+	return zones, nil
+}
+
+func (af *AWSFinder) GetTypes(ctx context.Context, region, az string) ([]string, error) {
+	sess, err := session.NewSessionWithOptions(session.Options{
+		Config: aws.Config{
+			Region:      aws.String(region),
+			Credentials: credentials.NewStaticCredentials(af.accessKey, af.secret, ""),
+		},
+	})
+	if err != nil {
+		return nil, errors.Wrap(err, "aws authentication: ")
+	}
+	EC2 := ec2.New(sess)
+
+	out, err := EC2.DescribeReservedInstancesOfferingsWithContext(ctx, &ec2.DescribeReservedInstancesOfferingsInput{
+		Filters: []*ec2.Filter{
+			{
+				Name: aws.String("availability-zone"),
+				Values: []*string{
+					aws.String(az),
+				},
+			},
+		},
+	})
+
+	if err != nil {
+		return nil, errors.Wrap(err, "failed to read aws types")
+	}
+
+	instances := make([]string, 0)
+	for _, of := range out.ReservedInstancesOfferings {
+		instances = append(instances, *of.InstanceType)
+	}
+
+	return instances, nil
+}
+
+func NewAWSFinder(acc *model.CloudAccount) (*AWSFinder, error) {
+	if acc.Provider != clouds.AWS {
+		return nil, ErrUnsupportedProvider
+	}
+
+	accessKey := acc.Credentials[clouds.AWSAccessKeyID]
+	secret := acc.Credentials[clouds.AWSSecretKey]
+
+	if accessKey == "" {
+		return nil, errors.New("no access key id provided for AWS account")
+	}
+
+	if secret == "" {
+		return nil, errors.New("no secret key provided for AWS account")
+	}
+
+	return &AWSFinder{
+		accessKey: accessKey,
+		secret:    secret,
+	}, nil
 }

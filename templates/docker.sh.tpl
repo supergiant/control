@@ -1,5 +1,4 @@
 #!/bin/sh
-
 # https://download.docker.com/linux/ubuntu/dists/xenial/pool/stable/amd64/docker-ce_17.06.0~ce-0~ubuntu_amd64.deb
 
 DOCKER_VERSION={{ .Version }}
@@ -10,4 +9,4 @@ URL="https://download.docker.com/linux/ubuntu/dists/${UBUNTU_RELEASE}/pool/stabl
 
 wget -O $OUT_DIR/$(basename $URL) $URL
 sudo apt install -y $OUT_DIR/$(basename $URL)
-rm $OUT_DIR/$(basename $URL)
+sudo rm $OUT_DIR/$(basename $URL)
