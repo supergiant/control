@@ -49,17 +49,8 @@ h1 {
   letter-spacing: 3px;
 }
 
-h2 {
-  font-size: 32px !important;
-}
-
 h3 {
   letter-spacing: 2px;
-  font-size: 26px !important;
-}
-
-h2, h3 {
-  font-weight: 200 !important;
 }
 
 button[mat-raised-button], button[mat-button] {
@@ -89,22 +80,6 @@ button[mat-raised-button], button[mat-button] {
 
 button {
   outline: none;
-
-  &[mat-button] {
-    padding: 8px 32px;
-
-    &[color='secondary'] {
-      color: #fff;
-      border: 1px solid #fff !important;
-      background-color: transparent !important;
-    }
-
-    &[color='primary'] {
-      color: #fff;
-      border: none;
-      background-color: #D10088 !important;
-    }
-  }
 }
 
 .mat-card-actions {

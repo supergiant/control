@@ -48,6 +48,8 @@ export class AppsAddComponent implements OnInit {
     ).subscribe(res => {
       this.isProcessing = false;
       this.addRepositoryForm.enable();
+      // TODO
+      window.location.reload();
     });
   }
 }
