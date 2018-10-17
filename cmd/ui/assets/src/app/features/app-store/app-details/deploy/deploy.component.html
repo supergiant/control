@@ -55,7 +55,8 @@
   </form>
 </mat-dialog-content>
 <mat-dialog-actions>
-  <button [disabled]="!deployForm.valid || !deployForm.controls['clusterName'].value"
+  <button class="btn-deploy"
+          [disabled]="!deployForm.valid || !deployForm.controls['clusterName'].value"
           mat-button
           color="primary"
           (click)="submitForm()">CONFIRM
