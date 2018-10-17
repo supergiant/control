@@ -4,6 +4,7 @@ import (
 	"sync"
 
 	"github.com/supergiant/supergiant/pkg/workflows/steps"
+	"github.com/supergiant/supergiant/pkg/workflows/steps/amazon"
 	"github.com/supergiant/supergiant/pkg/workflows/steps/certificates"
 	"github.com/supergiant/supergiant/pkg/workflows/steps/clustercheck"
 	"github.com/supergiant/supergiant/pkg/workflows/steps/cni"
@@ -40,6 +41,9 @@ const (
 	DigitalOceanNode          = "DigitalOceanNode"
 	DigitalOceanDeleteNode    = "DigitalOceanDeleteNode"
 	DigitalOceanDeleteCluster = "DigitalOceanDeleteCluster"
+	AWSMaster                 = "AWSMaster"
+	AWSNode                   = "AWSNode"
+	AWSPreProvision           = "AWSPreProvisionCluster"
 )
 
 type WorkflowSet struct {
@@ -83,7 +87,43 @@ func Init() {
 		steps.GetStep(cni.StepName),
 		steps.GetStep(poststart.StepName),
 	}
-	clusterWorkflow := []steps.Step{
+
+	awsPreProvision := []steps.Step{
+		steps.GetStep(amazon.StepCreateVPC),
+		steps.GetStep(amazon.StepCreateSecurityGroups),
+		steps.GetStep(amazon.StepCreateSubnet),
+		steps.GetStep(amazon.StepImportKeyPair),
+	}
+
+	awsMasterWorkflow := []steps.Step{
+		steps.GetStep(amazon.StepCreateMachine),
+		steps.GetStep(ssh.StepName),
+		steps.GetStep(downloadk8sbinary.StepName),
+		steps.GetStep(docker.StepName),
+		steps.GetStep(cni.StepName),
+		steps.GetStep(certificates.StepName),
+		steps.GetStep(etcd.StepName),
+		steps.GetStep(flannel.StepName),
+		steps.GetStep(manifest.StepName),
+		steps.GetStep(kubelet.StepName),
+		steps.GetStep(network.StepName),
+		steps.GetStep(poststart.StepName),
+	}
+
+	awsNodeWorkflow := []steps.Step{
+		steps.GetStep(amazon.StepCreateMachine),
+		steps.GetStep(ssh.StepName),
+		steps.GetStep(downloadk8sbinary.StepName),
+		steps.GetStep(docker.StepName),
+		steps.GetStep(certificates.StepName),
+		steps.GetStep(manifest.StepName),
+		steps.GetStep(flannel.StepName),
+		steps.GetStep(kubelet.StepName),
+		steps.GetStep(cni.StepName),
+		steps.GetStep(poststart.StepName),
+	}
+
+	commonWorkflow := []steps.Step{
 		steps.GetStep(ssh.StepName),
 		steps.GetStep(clustercheck.StepName),
 		steps.GetStep(tiller.StepName),
@@ -101,10 +141,13 @@ func Init() {
 	defer m.Unlock()
 
 	workflowMap[DigitalOceanDeleteNode] = digitalOceanDeleteWorkflow
-	workflowMap[Cluster] = clusterWorkflow
+	workflowMap[Cluster] = commonWorkflow
 	workflowMap[DigitalOceanMaster] = digitalOceanMasterWorkflow
 	workflowMap[DigitalOceanNode] = digitalOceanNodeWorkflow
 	workflowMap[DigitalOceanDeleteCluster] = digitalOceanDeleteClusterWorkflow
+	workflowMap[AWSMaster] = awsMasterWorkflow
+	workflowMap[AWSNode] = awsNodeWorkflow
+	workflowMap[AWSPreProvision] = awsPreProvision
 }
 
 func RegisterWorkFlow(workflowName string, workflow Workflow) {

@@ -18,12 +18,21 @@ import (
 
 type FakeEC2SecurityGroups struct {
 	ec2iface.EC2API
-	output *ec2.CreateSecurityGroupOutput
-	err    error
+	createOutput   *ec2.CreateSecurityGroupOutput
+	describeOutput *ec2.DescribeSecurityGroupsOutput
+	err            error
 }
 
 func (f *FakeEC2SecurityGroups) CreateSecurityGroupWithContext(aws.Context, *ec2.CreateSecurityGroupInput, ...request.Option) (*ec2.CreateSecurityGroupOutput, error) {
-	return f.output, f.err
+	return f.createOutput, f.err
+}
+
+func (f *FakeEC2SecurityGroups) AuthorizeSecurityGroupIngressWithContext(aws.Context, *ec2.AuthorizeSecurityGroupIngressInput, ...request.Option) (*ec2.AuthorizeSecurityGroupIngressOutput, error) {
+	return nil, nil
+}
+
+func (f *FakeEC2SecurityGroups) DescribeSecurityGroupsWithContext(aws.Context, *ec2.DescribeSecurityGroupsInput, ...request.Option) (*ec2.DescribeSecurityGroupsOutput, error) {
+	return f.describeOutput, f.err
 }
 
 func TestCreateSecurityGroupsStep_Run(t *testing.T) {
@@ -36,6 +45,7 @@ func TestCreateSecurityGroupsStep_Run(t *testing.T) {
 			fn: func(config steps.AWSConfig) (ec2iface.EC2API, error) {
 				return nil, nil
 			},
+
 			err: ErrAuthorization,
 			cfg: steps.AWSConfig{
 				VPCID: "",
@@ -44,15 +54,23 @@ func TestCreateSecurityGroupsStep_Run(t *testing.T) {
 		{
 			fn: func(config steps.AWSConfig) (ec2iface.EC2API, error) {
 				return &FakeEC2SecurityGroups{
-					output: &ec2.CreateSecurityGroupOutput{
+					createOutput: &ec2.CreateSecurityGroupOutput{
 						GroupId: aws.String("MYID"),
+					},
+					describeOutput: &ec2.DescribeSecurityGroupsOutput{
+						SecurityGroups: []*ec2.SecurityGroup{
+							{
+								GroupId:   aws.String("MYID"),
+								GroupName: aws.String("GROUPNAME"),
+							},
+						},
 					},
 				}, nil
 			},
 			cfg: steps.AWSConfig{
-				VPCID:                "ID",
-				NodesSecurityGroup:   "",
-				MastersSecurityGroup: "",
+				VPCID:                  "ID",
+				NodesSecurityGroupID:   "",
+				MastersSecurityGroupID: "",
 			},
 		},
 	}

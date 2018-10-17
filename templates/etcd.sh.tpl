@@ -1,5 +1,5 @@
-mkdir -p {{ .DataDir }}
-cat > /etc/systemd/system/etcd.service <<EOF
+sudo mkdir -p {{ .DataDir }}
+sudo bash -c "cat > /etc/systemd/system/etcd.service <<EOF
 [Unit]
 Description=etcd
 Documentation=https://github.com/coreos/etcd
@@ -27,9 +27,9 @@ ExecStart=/usr/bin/docker run \
 
 [Install]
 WantedBy=multi-user.target
-EOF
-systemctl daemon-reload
-systemctl enable etcd.service
-systemctl start etcd.service
+EOF"
+sudo systemctl daemon-reload
+sudo systemctl enable etcd.service
+sudo systemctl start etcd.service
 
 while [[ "$(curl -s -o /dev/null -w ''%{http_code}'' http://{{ .Host }}:{{ .ServicePort }}/health)" != "200" ]]; do printf 'wait for etcd\n';sleep 5; done

@@ -85,6 +85,10 @@ func MakeFileName(taskID string) string {
 }
 
 func MakeKeyName(name string, isUser bool) string {
+	if name == "" {
+		name = RandomString(12)
+	}
+
 	if isUser {
 		return fmt.Sprintf("%s-user", name)
 	}

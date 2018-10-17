@@ -29,6 +29,7 @@ func (s *Step) Run(ctx context.Context, writer io.Writer, config *steps.Config) 
 		// TODO(stgleb): Use secure storage for private keys instead carrying them in plain text
 		Key: []byte(config.SshConfig.BootstrapPrivateKey),
 	}
+
 	config.Runner, err = ssh.NewRunner(cfg)
 
 	if err != nil {
