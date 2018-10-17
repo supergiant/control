@@ -1,4 +1,88 @@
 KUBERNETES_MANIFESTS_DIR={{ .KubernetesConfigDir }}/manifests
+KUBERNETES_ADDONS_DIR={{ .KubernetesConfigDir }}/addons
+
+ADDON=${KUBERNETES_ADDONS_DIR}/'kube-dns'
+mkdir -p ${ADDON}
+cat << EOF > ${ADDON}/kube-dns.yaml
+apiVersion: v1
+kind: Service
+metadata:
+  name: kube-dns
+  namespace: kube-system
+  labels:
+    k8s-app: kube-dns
+    kubernetes.io/cluster-service: "true"
+    kubernetes.io/name: "KubeDNS"
+spec:
+  selector:
+    k8s-app: kube-dns
+  clusterIP: 10.3.0.10
+  ports:
+  - name: dns
+    port: 53
+    protocol: UDP
+  - name: dns-tcp
+    port: 53
+    protocol: TCP
+---
+apiVersion: v1
+kind: ReplicationController
+metadata:
+  name: kube-dns-v11
+  namespace: kube-system
+  labels:
+    k8s-app: kube-dns
+    version: v11
+    kubernetes.io/cluster-service: "true"
+spec:
+  replicas: 1
+  selector:
+    k8s-app: kube-dns
+    version: v11
+  template:
+    metadata:
+      labels:
+        k8s-app: kube-dns
+        version: v11
+        kubernetes.io/cluster-service: "true"
+    spec:
+      containers:
+      - name: etcd
+        image: gcr.io/etcd-development/etcd:v3.3.9
+        resources:
+          limits:
+            cpu: 100m
+            memory: 50Mi
+        command:
+        - /usr/local/bin/etcd
+        - -data-dir
+        - /var/etcd/data
+        - -listen-client-urls
+        - http://127.0.0.1:2379,http://127.0.0.1:2380
+        - -advertise-client-urls
+        - http://127.0.0.1:2379,http://127.0.0.1:2380
+        - -initial-cluster-token
+        - skydns-etcd
+        volumeMounts:
+        - name: etcd-storage
+          mountPath: /var/etcd/data
+      - name: healthz
+        image: gcr.io/google_containers/exechealthz:1.0
+        resources:
+          limits:
+            cpu: 10m
+            memory: 20Mi
+        args:
+        - -cmd=nslookup kubernetes.default.svc.cluster.local localhost >/dev/null
+        - -port=8080
+        ports:
+        - containerPort: 8080
+          protocol: TCP
+      volumes:
+      - name: etcd-storage
+        emptyDir: {}
+      dnsPolicy: Default
+EOF
 
 mkdir -p ${KUBERNETES_MANIFESTS_DIR}
 
