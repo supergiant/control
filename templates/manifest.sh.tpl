@@ -2,8 +2,8 @@ KUBERNETES_MANIFESTS_DIR={{ .KubernetesConfigDir }}/manifests
 KUBERNETES_ADDONS_DIR={{ .KubernetesConfigDir }}/addons
 
 ADDON=${KUBERNETES_ADDONS_DIR}/'kube-dns'
-mkdir -p ${ADDON}
-cat << EOF > ${ADDON}/kube-dns.yaml
+sudo mkdir -p ${ADDON}
+sudo bash -c "cat << EOF > ${ADDON}/kube-dns.yaml
 apiVersion: v1
 kind: Service
 metadata:
@@ -11,8 +11,8 @@ metadata:
   namespace: kube-system
   labels:
     k8s-app: kube-dns
-    kubernetes.io/cluster-service: "true"
-    kubernetes.io/name: "KubeDNS"
+    kubernetes.io/cluster-service: 'true'
+    kubernetes.io/name: 'KubeDNS'
 spec:
   selector:
     k8s-app: kube-dns
@@ -33,7 +33,7 @@ metadata:
   labels:
     k8s-app: kube-dns
     version: v11
-    kubernetes.io/cluster-service: "true"
+    kubernetes.io/cluster-service: 'true'
 spec:
   replicas: 1
   selector:
@@ -44,7 +44,7 @@ spec:
       labels:
         k8s-app: kube-dns
         version: v11
-        kubernetes.io/cluster-service: "true"
+        kubernetes.io/cluster-service: 'true'
     spec:
       containers:
       - name: healthz
@@ -60,7 +60,7 @@ spec:
         - containerPort: 8080
           protocol: TCP
       dnsPolicy: Default
-EOF
+EOF"
 
 sudo mkdir -p ${KUBERNETES_MANIFESTS_DIR}
 
