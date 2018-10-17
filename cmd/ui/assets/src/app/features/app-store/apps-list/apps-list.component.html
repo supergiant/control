@@ -3,7 +3,7 @@
             class="app-card">
     <mat-card-header>
       <mat-card-title>
-        <h2>{{ chart.name }}</h2>
+        <h2>{{ chart.name | titlecase }}</h2>
       </mat-card-title>
     </mat-card-header>
     <mat-card-content>
@@ -21,5 +21,8 @@
   </mat-card>
 </section>
 
-<button class="btn-remove" (click)="removeRepo()">Remove repo</button>
+<button class="btn-remove"
+        (click)="removeRepo()"><i class="fa fa-minus-circle"></i>
+  <span class="text">&nbsp; Remove repo</span>
+</button>
 

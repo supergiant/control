@@ -1,14 +1,14 @@
-import { createSelector }                                                                     from '@ngrx/store';
-import { AppStoreActionTypes, SupergiantAppActions }                                          from './actions/supergiant-app-actions';
-import { State }                                                                              from '../../reducers';
+import { createSelector }                            from '@ngrx/store';
+import { AppStoreActionTypes, SupergiantAppActions } from './actions/supergiant-app-actions';
+import { State }                                     from '../../reducers';
 import {
   AppCommonActions, AppCommonActionTypes,
   AppDetailActions,
   AppDetailActionTypes,
   VerifiedAppActions,
   VerifiedAppActionTypes
-} from "./actions";
-import { OtherAppActions, OtherAppActionTypes }                                               from "./actions/other-app.actions";
+}                                                    from "./actions";
+import { OtherAppActions, OtherAppActionTypes }      from "./actions/other-app.actions";
 
 export interface Chart {
   name: string;
@@ -22,9 +22,7 @@ export interface ChartDetails extends Chart {
 
 export interface AppStoreState {
   charts: {
-    supergiant: Chart[]
-    verified: Chart[]
-    other: Chart[]
+    [ key: string ]: Chart[]
   }
   currentChart: ChartDetails
   filter: string,
@@ -105,10 +103,21 @@ export function reducer(
         ...state,
         currentChart: action.payload
       };
+
+
     case AppCommonActionTypes.AppFilter:
       return {
         ...state,
         filter: action.payload
+      };
+
+    case AppCommonActionTypes.LoadChartsSuccess:
+      return {
+        ...state,
+        charts: {
+          [action.payload.repo]: action.payload.charts
+        }
+
       };
 
     default:
@@ -119,6 +128,11 @@ export function reducer(
 
 export const selectApps = createSelector(
   (state: State) => state.apps,
+);
+
+export const selectCharts = createSelector(
+  selectApps,
+  (state: AppStoreState, props:{repo}) => state.charts[props.repo],
 );
 
 export const selectSupergiantCharts = createSelector(
