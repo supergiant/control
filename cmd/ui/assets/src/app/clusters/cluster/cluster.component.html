@@ -72,9 +72,9 @@
             <!-- what are the actual values for tasks? -->
             <mat-spinner *ngIf="task?.status == 'todo'" [diameter]="24"></mat-spinner>
             <div class="ready-icon" *ngIf="task?.status == 'complete'"></div>
-            <div class="failed-icon" *ngIf="task?.status == 'failed'"></div>
+            <div class="failed-icon" *ngIf="task?.status == 'error'"></div>
             <span style="padding-left: 12px;">{{ task.status | titlecase }}</span>
-            <button mat-raised-button *ngIf="task?.status == 'failed'" class="secondary restart-task" (click)="restartTask(task.id)">
+            <button mat-raised-button *ngIf="task?.status == 'error'" class="secondary restart-task" (click)="restartTask(task.id)">
               <span *ngIf="!task?.restarting">RESTART</span>
               <mat-spinner class="restart-spinner" color="primary" *ngIf="task?.restarting" [diameter]="20"></mat-spinner>
             </button>
@@ -112,7 +112,7 @@
           <mat-cell
             class="small-cell"
             *matCellDef="let task"
-            (click)="openLogs(task.id)">
+            (click)="viewTaskLog(task.id)">
             <div class="open-logs"></div>
           </mat-cell>
         </ng-container>
@@ -135,8 +135,8 @@
         </ng-container>
 
         <mat-header-row *matHeaderRowDef="taskListColumns"></mat-header-row>
-        <mat-row *matRowDef="let row; columns: taskListColumns"></mat-row>
-        <mat-row *matRowDef="let row; columns: ['expandedDetail']; when: expandRow"
+        <mat-row *matRowDef="let row; columns: taskListColumns" [ngClass]="{ 'viewingSteps': row.showSteps }"></mat-row>
+        <mat-row class="detail-row" *matRowDef="let row; columns: ['expandedDetail']; when: expandRow"
           [@detailExpand]="row.t.id == expandedTaskId ? 'expanded' : 'collapsed'"></mat-row>
 
       </mat-table>

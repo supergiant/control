@@ -29,8 +29,9 @@ sudo bash -c "cat > /etc/kubernetes/ssl/ca.pem <<EOF
 sudo bash -c "cat > /etc/kubernetes/ssl/ca-key.pem <<EOF
 {{ .CAKey }}EOF"
 
-sudo sed -e "s/{MASTER_HOST}/`curl ipinfo.io/ip`/" < /etc/kubernetes/ssl/openssl.cnf.template > /etc/kubernetes/ssl/openssl.cnf.1
-sudo sed -e "s/{PRIVATE_HOST}/{{ .MasterHost }}/" < /etc/kubernetes/ssl/openssl.cnf.1 > /etc/kubernetes/ssl/openssl.cnf.2
+sudo bash -c "sed -e \"s/{MASTER_HOST}/`curl ipinfo.io/ip`/\" < /etc/kubernetes/ssl/openssl.cnf.template > /etc/kubernetes/ssl/openssl.cnf.1"
+sudo bash -c "sed -e \"s/{PRIVATE_HOST}/{{ .MasterHost }}/\" < /etc/kubernetes/ssl/openssl.cnf.1 > /etc/kubernetes/ssl/openssl.cnf"
+
 #sudo sed -e "s/{FLANNELIP}/$FLANNELIP/" < /etc/kubernetes/ssl/openssl.cnf.2 > /etc/kubernetes/ssl/openssl.cnf
 
 sudo openssl genrsa -out /etc/kubernetes/ssl/apiserver-key.pem 2048
@@ -44,7 +45,7 @@ sudo openssl req -new -key /etc/kubernetes/ssl/admin-key.pem -out /etc/kubernete
 sudo openssl x509 -req -in /etc/kubernetes/ssl/admin.csr -CA /etc/kubernetes/ssl/ca.pem -CAkey /etc/kubernetes/ssl/ca-key.pem -CAcreateserial -out /etc/kubernetes/ssl/admin.pem -days 365 -extensions v3_req -extfile /etc/kubernetes/ssl/openssl.cnf
 
 sudo cp /etc/kubernetes/ssl/ca.pem /usr/share/ca-certificates/ca.crt
-sudo echo "ca.crt" >> /etc/ca-certificates.conf
+sudo bash -c "echo \"ca.crt\" >> /etc/ca-certificates.conf"
 sudo update-ca-certificates
 
 sudo chmod 600 /etc/kubernetes/ssl/*-key.pem
