@@ -47,25 +47,6 @@ spec:
         kubernetes.io/cluster-service: "true"
     spec:
       containers:
-      - name: etcd
-        image: gcr.io/etcd-development/etcd:v3.3.9
-        resources:
-          limits:
-            cpu: 100m
-            memory: 50Mi
-        command:
-        - /usr/local/bin/etcd
-        - -data-dir
-        - /var/etcd/data
-        - -listen-client-urls
-        - http://127.0.0.1:2379,http://127.0.0.1:2380
-        - -advertise-client-urls
-        - http://127.0.0.1:2379,http://127.0.0.1:2380
-        - -initial-cluster-token
-        - skydns-etcd
-        volumeMounts:
-        - name: etcd-storage
-          mountPath: /var/etcd/data
       - name: healthz
         image: gcr.io/google_containers/exechealthz:1.0
         resources:
@@ -78,9 +59,6 @@ spec:
         ports:
         - containerPort: 8080
           protocol: TCP
-      volumes:
-      - name: etcd-storage
-        emptyDir: {}
       dnsPolicy: Default
 EOF
 
