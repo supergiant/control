@@ -1,67 +1,70 @@
-<h2 mat-dialog-title>Deploy App</h2>
-<mat-dialog-content>
+<section class="wrapper">
+  <h2 mat-dialog-title>Deploy App</h2>
+  <mat-dialog-content>
 
-  <form [formGroup]="deployForm">
-    <mat-form-field>
-      <mat-select matInput
-                  placeholder="Claster name"
-                  formControlName="clusterName">
-        <div *ngFor="let cluster of (clusters$ | async)">
-          <mat-option [value]="cluster.accountName">{{ cluster.accountName }}</mat-option>
-        </div>
-      </mat-select>
-    </mat-form-field>
-    <mat-form-field>
-      <input matInput
-             type="text"
-             formControlName="name"
-             placeholder="Release name">
-    </mat-form-field>
-    <mat-form-field>
-      <input matInput
-             type="text"
-             formControlName="namespace"
-             placeholder="Namespace">
-    </mat-form-field>
-    <mat-form-field>
-      <input matInput
-             type="text"
-             formControlName="chartName"
-             placeholder="Chart Name"
-             [value]="(data.chartDetails$ | async).name">
-    </mat-form-field>
-    <mat-form-field>
-      <mat-select matInput
-                  formControlName="chartVersion"
-                  placeholder="Version">
-        <div *ngFor="let version of (data.chartDetails$ | async).versions">
-          <mat-option [value]="version.version">{{ version.version }}</mat-option>
-        </div>
-      </mat-select>
-    </mat-form-field>
-    <mat-form-field>
-      <input matInput
-             type="text"
-             formControlName="repoName"
-             placeholder="Repository"
-             [value]="(data.chartDetails$ | async).repo">
-    </mat-form-field>
-    <mat-form-field>
-      <input matInput
-             type="text"
-             formControlName="values"
-             placeholder="Values">
-    </mat-form-field>
-  </form>
-</mat-dialog-content>
-<mat-dialog-actions>
-  <button [disabled]="!deployForm.valid || !deployForm.controls['clusterName'].value"
-          mat-button
-          color="primary"
-          (click)="submitForm()">CONFIRM
-  </button>
-  <button mat-button
-          mat-dialog-close>Cancel
-  </button>
+    <form [formGroup]="deployForm">
+      <mat-form-field>
+        <mat-select matInput
+                    placeholder="Claster name"
+                    formControlName="clusterName">
+          <div *ngFor="let cluster of (clusters$ | async)">
+            <mat-option [value]="cluster.accountName">{{ cluster.accountName }}</mat-option>
+          </div>
+        </mat-select>
+      </mat-form-field>
+      <mat-form-field>
+        <input matInput
+               type="text"
+               formControlName="name"
+               placeholder="Release name">
+      </mat-form-field>
+      <mat-form-field>
+        <input matInput
+               type="text"
+               formControlName="namespace"
+               placeholder="Namespace">
+      </mat-form-field>
+      <mat-form-field>
+        <input matInput
+               type="text"
+               formControlName="chartName"
+               placeholder="Chart Name"
+               [value]="(data.chartDetails$ | async).name">
+      </mat-form-field>
+      <mat-form-field>
+        <mat-select matInput
+                    formControlName="chartVersion"
+                    placeholder="Version">
+          <div *ngFor="let version of (data.chartDetails$ | async).versions">
+            <mat-option [value]="version.version">{{ version.version }}</mat-option>
+          </div>
+        </mat-select>
+      </mat-form-field>
+      <mat-form-field>
+        <input matInput
+               type="text"
+               formControlName="repoName"
+               placeholder="Repository"
+               [value]="(data.chartDetails$ | async).repo">
+      </mat-form-field>
+      <mat-form-field>
+        <input matInput
+               type="text"
+               formControlName="values"
+               placeholder="Values">
+      </mat-form-field>
+    </form>
+  </mat-dialog-content>
+  <mat-dialog-actions>
+    <button mat-button
+    mat-dialog-close>Cancel
+    </button>
+    <button [disabled]="!deployForm.valid || !deployForm.controls['clusterName'].value"
+            mat-button
+            color="primary"
+            (click)="submitForm()">CONFIRM
+    </button>
 
-</mat-dialog-actions>
+  </mat-dialog-actions>
+
+</section>

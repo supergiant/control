@@ -117,9 +117,28 @@ button {
   margin: 0!important;
 }
 
-.mat-card {
-  background: rgba(0, 0, 0, 0.7) !important;
+@mixin container-border {
   border-width: 1px;
   border-style: solid;
   border-color: rgba(white, .2);
+}
+
+.mat-card {
+  @include container-border;
+  background: rgba(0, 0, 0, 0.7) !important;
+}
+
+.mat-dialog-container {
+  @include container-border;
+
+  min-width: 480px !important;
+
+  .mat-dialog-actions {
+    display: flex;
+    justify-content: flex-end;
+
+    button {
+      margin-left: 16px;
+    }
+  }
 }
