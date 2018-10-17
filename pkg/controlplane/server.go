@@ -11,6 +11,7 @@ import (
 	"github.com/gorilla/mux"
 	"github.com/pkg/errors"
 	"github.com/sirupsen/logrus"
+	"k8s.io/helm/pkg/repo"
 
 	"github.com/supergiant/supergiant/pkg/account"
 	"github.com/supergiant/supergiant/pkg/api"
@@ -20,6 +21,7 @@ import (
 	"github.com/supergiant/supergiant/pkg/profile"
 	"github.com/supergiant/supergiant/pkg/provisioner"
 	sshRunner "github.com/supergiant/supergiant/pkg/runner/ssh"
+	"github.com/supergiant/supergiant/pkg/sgerrors"
 	"github.com/supergiant/supergiant/pkg/storage"
 	"github.com/supergiant/supergiant/pkg/templatemanager"
 	"github.com/supergiant/supergiant/pkg/testutils/assert"
@@ -241,7 +243,11 @@ func configureApplication(cfg *Config) (*mux.Router, error) {
 	kubeHandler := kube.NewHandler(kubeService, accountService, taskProvisioner, repository)
 	kubeHandler.Register(protectedAPI)
 
-	helmService, _ := helm.NewService(repository)
+	helmService, err := helm.NewService(repository)
+	if err != nil {
+		return nil, errors.Wrap(err, "new helm service")
+	}
+	go ensureHelmRepositories(helmService)
 
 	helmHandler := helm.NewHandler(helmService)
 	helmHandler.Register(protectedAPI)
@@ -263,4 +269,28 @@ func configureLogging(cfg *Config) {
 		return
 	}
 	logrus.SetLevel(l)
+}
+
+func ensureHelmRepositories(svc helm.Servicer) {
+	if svc == nil {
+		return
+	}
+
+	entries := []repo.Entry{
+		{
+			Name: "stable",
+			URL:  "https://kubernetes-charts.storage.googleapis.com",
+		},
+	}
+
+	for _, entry := range entries {
+		_, err := svc.CreateRepo(context.Background(), &entry)
+		if err != nil {
+			if !sgerrors.IsAlreadyExists(err) {
+				logrus.Errorf("failed to add %q helm repository: %v", entry.Name)
+			}
+			continue
+		}
+		logrus.Infof("helm repository has been added: %s", entry.Name)
+	}
 }
