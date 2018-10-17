@@ -23,7 +23,7 @@ import (
 )
 
 const (
-	storagePrefix = "/supergiant/kubes/"
+	DefaultStoragePrefix = "/supergiant/kubes/"
 
 	releaseInstallTimeout = 300
 )

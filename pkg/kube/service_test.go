@@ -82,7 +82,7 @@ func TestKubeServiceGet(t *testing.T) {
 		},
 	}
 
-	prefix := storagePrefix
+	prefix := DefaultStoragePrefix
 
 	for _, testCase := range testCases {
 		m := new(testutils.MockStorage)
@@ -118,7 +118,7 @@ func TestKubeServiceCreate(t *testing.T) {
 		},
 	}
 
-	prefix := storagePrefix
+	prefix := DefaultStoragePrefix
 
 	for _, testCase := range testCases {
 		m := new(testutils.MockStorage)
@@ -156,7 +156,7 @@ func TestKubeServiceGetAll(t *testing.T) {
 		},
 	}
 
-	prefix := storagePrefix
+	prefix := DefaultStoragePrefix
 
 	for _, testCase := range testCases {
 		m := new(testutils.MockStorage)
