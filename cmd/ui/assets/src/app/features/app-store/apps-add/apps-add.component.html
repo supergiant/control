@@ -21,7 +21,15 @@
   </button>
   <button mat-button
           color="primary"
-          (click)="addRepository()">CONFIRM
+          [disabled]="isProcessing"
+          (click)="addRepository()">
+
+    <span [hidden]="isProcessing">CONFIRM</span>
+
+    <mat-progress-spinner [diameter]="15"
+                          [mode]="'indeterminate'"
+                          [color]="warn"
+                          [hidden]="!isProcessing"></mat-progress-spinner>
   </button>
 
 </mat-dialog-actions>

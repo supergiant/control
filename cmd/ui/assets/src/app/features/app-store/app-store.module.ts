@@ -11,7 +11,9 @@ import {
   MatFormFieldModule,
   MatInputModule,
   MatOptionModule,
-  MatSelectModule, MatTabsModule
+  MatProgressSpinnerModule,
+  MatSelectModule,
+  MatTabsModule
 }                                           from '@angular/material';
 import { StoreModule }                      from '@ngrx/store';
 import * as fromApps
@@ -39,6 +41,7 @@ import { FormsModule, ReactiveFormsModule } from "@angular/forms";
     MatDialogModule,
     FormsModule,
     MatTabsModule,
+    MatProgressSpinnerModule
   ],
   declarations: [
     AppStoreComponent,

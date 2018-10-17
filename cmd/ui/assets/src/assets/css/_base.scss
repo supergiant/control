@@ -7,7 +7,6 @@
   selectors or sibling selectors. Essentially, a base style says that wherever
   this element is on the page, it should look like this.
 */
-
 @import url('https://fonts.googleapis.com/css?family=Roboto:100,300,400,500,700');
 @import url('https://fonts.googleapis.com/css?family=Montserrat:100,200,300,700');
 
@@ -45,21 +44,22 @@ h5,
 h6 {
   color: $sg-pink;
 }
+
 h1 {
   letter-spacing: 3px;
 }
 
 h2 {
-  font-size: 32px!important;
+  font-size: 32px !important;
 }
 
 h3 {
   letter-spacing: 2px;
-  font-size: 26px!important;
+  font-size: 26px !important;
 }
 
-h2, h3{
-  font-weight: 200!important;
+h2, h3 {
+  font-weight: 200 !important;
 }
 
 button[mat-raised-button], button[mat-button] {
@@ -81,10 +81,10 @@ button[mat-raised-button], button[mat-button] {
 }
 
 .mat-dialog-container {
-  padding: 24px 24px 35px!important;
+  padding: 24px 24px 35px !important;
 
-  background: #000000!important;
-  opacity: .8!important;
+  background: #000000 !important;
+  opacity: .8 !important;
 }
 
 button {
@@ -95,26 +95,24 @@ button {
 
     &[color='secondary'] {
       color: #fff;
-      border: 1px solid #fff!important;
-      background-color: transparent!important;
+      border: 1px solid #fff !important;
+      background-color: transparent !important;
     }
 
     &[color='primary'] {
       color: #fff;
       border: none;
-      background-color: #D10088!important;
+      background-color: #D10088 !important;
     }
   }
 }
 
-
-
 .mat-card-actions {
-  margin: 0!important;
+  margin: 0 !important;
 }
 
 .mat-card-header-text {
-  margin: 0!important;
+  margin: 0 !important;
 }
 
 @mixin container-border {
@@ -140,5 +138,12 @@ button {
     button {
       margin-left: 16px;
     }
+  }
+}
+
+button {
+  .mat-progress-spinner circle,
+  .mat-spinner circle {
+    stroke: #ffffff !important;
   }
 }
