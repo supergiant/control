@@ -291,7 +291,7 @@ func ensureHelmRepositories(svc helm.Servicer) {
 		_, err := svc.CreateRepo(context.Background(), &entry)
 		if err != nil {
 			if !sgerrors.IsAlreadyExists(err) {
-				logrus.Errorf("failed to add %q helm repository: %v", entry.Name)
+				logrus.Errorf("failed to add %q helm repository: %v", entry.Name, err)
 			}
 			continue
 		}
