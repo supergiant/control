@@ -44,6 +44,22 @@
 			}
 		}
 
+		.aws-config {
+			display: flex;
+			justify-content: flex-start;
+
+			.input-group {
+				display: flex;
+				flex-direction: column;
+				margin-left: 100px;
+				width: 400px;
+
+				&:nth-of-type(1) {
+					margin-left: 0px;
+				}
+			}
+		}
+
 		.machine-config-step {
 			display: flex;
 			flex-direction: column;
