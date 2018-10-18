@@ -64,6 +64,9 @@ export class NewClusterComponent implements OnInit, OnDestroy {
   selectedRegion: any;
   availableMachineTypes: Array<any>;
 
+  // aws vars
+  availabilityZones: Array<any>;
+
   machines = [{
     machineType: null,
     role: "Master",
@@ -106,11 +109,24 @@ export class NewClusterComponent implements OnInit, OnDestroy {
     const filteredMachines = machines.filter(m => m.role == role);
     const compiledProfiles = [];
 
-    filteredMachines.forEach(m => {
-      for (var i = 0; i < m.qty; i++) {
-        compiledProfiles.push({ image: "ubuntu-16-04-x64", size: m.machineType })
+    switch (this.selectedCloudAccount.provider) {
+      case "digitalocean": {
+        filteredMachines.forEach(m => {
+          for (var i = 0; i < m.qty; i++) {
+            compiledProfiles.push({ image: "ubuntu-16-04-x64", size: m.machineType })
+          }
+        })
       }
-    })
+      case "aws": {
+        filteredMachines.forEach(m => {
+          for (var i = 0; i < m.qty; i++) {
+            compiledProfiles.push({ volumeSize: "80", size: m.machineType, ebsOptimized: "true", hasPublicAddr: "true" })
+          }
+        })
+      }
+    }
+
+
 
     return compiledProfiles;
   }
@@ -126,6 +142,20 @@ export class NewClusterComponent implements OnInit, OnDestroy {
     newClusterData.profile.provider = this.selectedCloudAccount.provider;
     newClusterData.profile.masterProfiles = this.compileProfiles(this.machines, "Master");
     newClusterData.profile.nodesProfiles = this.compileProfiles(this.machines, "Node");
+
+    switch (newClusterData.profile.provider) {
+      case "aws": {
+        newClusterData.profile.cloudSpecificSettings = {
+          aws_az: this.providerConfig.value.availabilityZone,
+          aws_vpc_cidr: this.providerConfig.value.vpcCidr,
+          aws_vpc_id: this.providerConfig.value.vpcId,
+          aws_keypair_name: this.providerConfig.value.keypairName,
+          aws_subnet_id: this.providerConfig.value.subnetId,
+          aws_masters_secgroup_id: this.providerConfig.value.mastersSecurityGroupId,
+          aws_nodes_secgroup_id: this.providerConfig.value.nodesSecurityGroupId
+        }
+      }
+    }
 
     this.provisioning = true;
     this.subscriptions.add(this.supergiant.Kubes.create(newClusterData).subscribe(
@@ -158,14 +188,41 @@ export class NewClusterComponent implements OnInit, OnDestroy {
       'Error:' + data.statusText);
   }
 
+  getAwsAvailabilityZones(region) {
+    const accountName = this.selectedCloudAccount.name;
+
+    return this.supergiant.CloudAccounts.getAwsAvailabilityZones(accountName, region.name);
+  }
+
+  selectAz(zone) {
+    const accountName = this.selectedCloudAccount.name;
+    const region = this.providerConfig.value.region.name;
+
+    this.supergiant.CloudAccounts.getAwsMachineTypes(accountName, region, zone).subscribe(
+      types => this.availableMachineTypes = types,
+      err => console.error(err)
+    )
+  }
+
   selectRegion(region) {
-    this.availableMachineTypes = region.AvailableSizes;
-    if (this.machines.length === 0) {
-      this.machines.push({
-        machineType: null,
-        role: null,
-        qty: 1
-      });
+    switch (this.selectedCloudAccount.provider) {
+      case "digitalocean": {
+        this.availableMachineTypes = region.AvailableSizes;
+        if (this.machines.length === 0) {
+          this.machines.push({
+            machineType: null,
+            role: null,
+            qty: 1
+          });
+        }
+      }
+
+      case "aws": {
+        this.getAwsAvailabilityZones(region).subscribe(
+          azList => this.availabilityZones = azList,
+          err => console.error(err)
+        )
+      }
     }
   }
 
@@ -189,6 +246,19 @@ export class NewClusterComponent implements OnInit, OnDestroy {
         this.providerConfig = this.formBuilder.group({
           region: [""]
         });
+      }
+
+      case "aws": {
+        this.providerConfig = this.formBuilder.group({
+          region: [""],
+          availabilityZone: [""],
+          vpcId: ["default"],
+          vpcCidr: ["10.2.0.0/16"],
+          keypairName: [""],
+          subnetId: ["default"],
+          mastersSecurityGroupId: [""],
+          nodesSecurityGroupId: [""]
+        })
       }
     }
 
