@@ -126,7 +126,7 @@ func (s Service) ListRepos(ctx context.Context) ([]helm.Repository, error) {
 func (s Service) DeleteRepo(ctx context.Context, repoName string) (*helm.Repository, error) {
 	hrepo, err := s.GetRepo(ctx, repoName)
 	if err != nil {
-		return nil, errors.Wrap(err, "storage")
+		return nil, errors.Wrap(err, "get repository")
 	}
 	return hrepo, s.storage.Delete(ctx, repoPrefix, repoName)
 }

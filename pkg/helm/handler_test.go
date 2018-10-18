@@ -72,26 +72,34 @@ func TestHandler_createRepo(t *testing.T) {
 		{ // TC#1
 			inpRepo:         []byte("{name:invalidJSON,,}"),
 			expectedStatus:  http.StatusBadRequest,
-			expectedErrCode: sgerrors.InvalidJSON,
+			expectedErrCode: sgerrors.ValidationFailed,
 		},
 		{ // TC#2
-			inpRepo: []byte(`{"name":"alreadyExists"}`),
+			inpRepo: []byte(`{"name":"validationFailed"}`),
+			svc: &fakeService{
+				err: sgerrors.ErrAlreadyExists,
+			},
+			expectedStatus:  http.StatusBadRequest,
+			expectedErrCode: sgerrors.ValidationFailed,
+		},
+		{ // TC#3
+			inpRepo: []byte(`{"name":"alreadyExists","url":"url"}`),
 			svc: &fakeService{
 				err: sgerrors.ErrAlreadyExists,
 			},
 			expectedStatus:  http.StatusConflict,
 			expectedErrCode: sgerrors.AlreadyExists,
 		},
-		{ // TC#3
-			inpRepo: []byte(`{"name":"createError"}`),
+		{ // TC#4
+			inpRepo: []byte(`{"name":"createError","url":"url"}`),
 			svc: &fakeService{
 				err: fakeErr,
 			},
 			expectedStatus:  http.StatusInternalServerError,
 			expectedErrCode: sgerrors.UnknownError,
 		},
-		{ // TC#4
-			inpRepo: []byte(`{"name":"sgRepo"}`),
+		{ // TC#5
+			inpRepo: []byte(`{"name":"sgRepo","url":"url"}`),
 			svc: &fakeService{
 				repo: &helm.Repository{
 					Config: repo.Entry{
