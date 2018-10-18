@@ -1,4 +1,5 @@
-cat << EOF > /etc/systemd/system/kubelet.service
+
+sudo bash -c "cat << EOF > /etc/systemd/system/kubelet.service
 [Unit]
 Description=Kubernetes Kubelet Server
 Documentation=https://github.com/kubernetes/kubernetes
@@ -38,6 +39,6 @@ KillMode=process
 
 [Install]
 WantedBy=multi-user.target
-EOF
-systemctl daemon-reload
-systemctl start kubelet
+EOF"
+sudo systemctl daemon-reload
+sudo systemctl start kubelet

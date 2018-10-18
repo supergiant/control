@@ -12,6 +12,7 @@ import { Supergiant } from '../../shared/supergiant/supergiant.service';
 import { UtilService } from '../../shared/supergiant/util/util.service';
 import { Notifications } from '../../shared/notifications/notifications.service';
 import { ConfirmModalComponent } from '../../shared/modals/confirm-modal/confirm-modal.component';
+import { TaskLogsComponent } from './task-logs/task-logs.component';
 
 
 @Component({
@@ -65,7 +66,6 @@ export class ClusterComponent implements OnInit, OnDestroy {
 
   ngOnInit() {
     this.id = this.route.snapshot.params.id;
-    // this.getKube(this.id);
     this.getKube();
   }
 
@@ -93,10 +93,6 @@ export class ClusterComponent implements OnInit, OnDestroy {
     return this.util.fetch("/v1/api/kubes/" + id + "/tasks");
   }
 
-  openLogs(taskId) {
-    window.open("localhost:8080/tasks/" + taskId + "/logs/ws");
-  }
-
   toggleSteps(task) {
 
     task.showSteps = !task.showSteps;
@@ -118,10 +114,17 @@ export class ClusterComponent implements OnInit, OnDestroy {
       }}
     );
 
-    this.util.post("/tasks/" + taskId +"/restart", {}).subscribe(
+    this.util.post("/tasks/" + taskId + "/restart", {}).subscribe(
       res => console.log(res),
       err => console.error(err)
     );
+  }
+
+  viewTaskLog(taskId) {
+    const modal = this.dialog.open(TaskLogsComponent, {
+      width: "1080px",
+      data: { taskId: taskId }
+    })
   }
 
   setProvisioningStep(tasks) {

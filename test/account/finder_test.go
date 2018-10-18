@@ -35,7 +35,9 @@ func init() {
 
 func TestFindDigitalOceanRegions(t *testing.T) {
 	doToken := os.Getenv(clouds.EnvDigitalOceanAccessToken)
-	require.NotEmpty(t, doToken)
+	if doToken == "" {
+		t.SkipNow()
+	}
 
 	logrus.SetLevel(logrus.DebugLevel)
 

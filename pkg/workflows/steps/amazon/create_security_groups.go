@@ -6,14 +6,16 @@ import (
 	"io"
 
 	"github.com/aws/aws-sdk-go/aws"
+	"github.com/aws/aws-sdk-go/aws/awserr"
 	"github.com/aws/aws-sdk-go/service/ec2"
+	"github.com/aws/aws-sdk-go/service/ec2/ec2iface"
 	"github.com/pkg/errors"
 
 	"github.com/supergiant/supergiant/pkg/util"
 	"github.com/supergiant/supergiant/pkg/workflows/steps"
 )
 
-const CreateSecurityGroupsStepName = "create_security_groups_step"
+const StepCreateSecurityGroups = "create_security_groups_step"
 
 type CreateSecurityGroupsStep struct {
 	GetEC2 GetEC2Fn
@@ -26,7 +28,7 @@ func NewCreateSecurityGroupsStep(fn GetEC2Fn) *CreateSecurityGroupsStep {
 }
 
 func InitCreateSecurityGroups(fn GetEC2Fn) {
-	steps.RegisterStep(CreateSecurityGroupsStepName, NewCreateSecurityGroupsStep(fn))
+	steps.RegisterStep(StepCreateSecurityGroups, NewCreateSecurityGroupsStep(fn))
 }
 
 func (s *CreateSecurityGroupsStep) Run(ctx context.Context, w io.Writer, cfg *steps.Config) error {
@@ -42,38 +44,171 @@ func (s *CreateSecurityGroupsStep) Run(ctx context.Context, w io.Writer, cfg *st
 		return errors.Wrap(ErrAuthorization, err.Error())
 	}
 
-	if cfg.AWSConfig.MastersSecurityGroup == "" {
+	if cfg.AWSConfig.MastersSecurityGroupID == "" {
+		groupName := fmt.Sprintf("%s-masters-secgroup", cfg.ClusterName)
+
 		log.Infof("[%s] - masters security groups not specified, will create a new one...", s.Name())
 		out, err := EC2.CreateSecurityGroupWithContext(ctx, &ec2.CreateSecurityGroupInput{
 			Description: aws.String("Security group for Kubernetes masters for cluster " + cfg.ClusterName),
 			VpcId:       aws.String(cfg.AWSConfig.VPCID),
-			GroupName:   aws.String(fmt.Sprintf("%s-masters-secgroup", cfg.ClusterName)),
+			GroupName:   aws.String(groupName),
 		})
 		if err != nil {
-			log.Errorf("[%s] - create security groups for k8s masters: %v", s.Name(), err)
-			return err
+			duplicateErr := false
+			if err, ok := err.(awserr.Error); ok {
+				if err.Code() == "InvalidGroup.Duplicate" {
+					duplicateErr = true
+				}
+			}
+			if !duplicateErr {
+				log.Errorf("[%s] - create security groups for k8s masters: %v", s.Name(), err)
+				return err
+			}
+
+			groupID, err := s.getSecurityGroupByName(ctx, EC2, cfg.AWSConfig.VPCID, groupName)
+			if err != nil {
+				return err
+			}
+
+			cfg.AWSConfig.MastersSecurityGroupID = groupID
+		} else {
+			cfg.AWSConfig.MastersSecurityGroupID = *out.GroupId
 		}
-		cfg.AWSConfig.MastersSecurityGroup = *out.GroupId
 	}
 	//If there is no security group, create it
-	if cfg.AWSConfig.NodesSecurityGroup == "" {
-		log.Infof("[%s] - node security groups not specified, will create a new one...")
+	if cfg.AWSConfig.NodesSecurityGroupID == "" {
+		groupName := fmt.Sprintf("%s-nodes-secgroup", cfg.ClusterName)
+
+		log.Infof("[%s] - node security groups not specified, will create a new one...", s.Name())
 		out, err := EC2.CreateSecurityGroupWithContext(ctx, &ec2.CreateSecurityGroupInput{
 			Description: aws.String("Security group for Kubernetes nodes for cluster " + cfg.ClusterName),
 			VpcId:       aws.String(cfg.AWSConfig.VPCID),
-			GroupName:   aws.String(fmt.Sprintf("%s-nodes-secgroup", cfg.ClusterName)),
+			GroupName:   aws.String(groupName),
 		})
 		if err != nil {
-			log.Errorf("[%s] - create security groups for k8s nodes: %v", s.Name(), err)
-			return err
+			duplicateErr := false
+			if err, ok := err.(awserr.Error); ok {
+				if err.Code() == "InvalidGroup.Duplicate" {
+					duplicateErr = true
+				}
+			}
+			if !duplicateErr {
+				log.Errorf("[%s] - create security groups for k8s nodes: %v", s.Name(), err)
+				return err
+			}
+
+			groupID, err := s.getSecurityGroupByName(ctx, EC2, cfg.AWSConfig.VPCID, groupName)
+			if err != nil {
+				return err
+			}
+
+			cfg.AWSConfig.NodesSecurityGroupID = groupID
+		} else {
+			cfg.AWSConfig.NodesSecurityGroupID = *out.GroupId
 		}
-		cfg.AWSConfig.NodesSecurityGroup = *out.GroupId
 	}
+
+	//In order to deploy the kubernetes cluster supergiant needs to open port 22
+	if err := s.authorizeSSH(ctx, EC2, cfg.AWSConfig.MastersSecurityGroupID); err != nil {
+		return err
+	}
+	if err := s.authorizeSSH(ctx, EC2, cfg.AWSConfig.NodesSecurityGroupID); err != nil {
+		return err
+	}
+
+	masterGroup, err := s.getSecurityGroupById(ctx, EC2, cfg.AWSConfig.VPCID, cfg.AWSConfig.MastersSecurityGroupID)
+	if err != nil {
+		return err
+	}
+	nodesGroup, err := s.getSecurityGroupById(ctx, EC2, cfg.AWSConfig.VPCID, cfg.AWSConfig.NodesSecurityGroupID)
+	if err != nil {
+		return err
+	}
+
+	//Open ports between master <-> node security groups
+	if err := s.allowAllTraffic(ctx, EC2, cfg.AWSConfig.MastersSecurityGroupID, *nodesGroup.GroupName); err != nil {
+		return err
+	}
+
+	if err := s.allowAllTraffic(ctx, EC2, cfg.AWSConfig.NodesSecurityGroupID, *masterGroup.GroupName); err != nil {
+		return err
+	}
+
 	return nil
 }
 
+func (s *CreateSecurityGroupsStep) getSecurityGroupByName(ctx context.Context, EC2 ec2iface.EC2API, vpcID, groupName string) (string, error) {
+	out, err := EC2.DescribeSecurityGroupsWithContext(ctx, &ec2.DescribeSecurityGroupsInput{
+		GroupNames: aws.StringSlice([]string{groupName}),
+		Filters: []*ec2.Filter{
+			{
+				Name:   aws.String("vpc-id"),
+				Values: aws.StringSlice([]string{vpcID}),
+			},
+		},
+	})
+
+	if err != nil {
+		return "", err
+	}
+	if len(out.SecurityGroups) == 0 {
+		return "", errors.Errorf("no security group %s found in aws", groupName)
+	}
+	return *out.SecurityGroups[0].GroupId, nil
+}
+
+func (s *CreateSecurityGroupsStep) getSecurityGroupById(ctx context.Context, EC2 ec2iface.EC2API, vpcID, groupID string) (*ec2.SecurityGroup, error) {
+	out, err := EC2.DescribeSecurityGroupsWithContext(ctx, &ec2.DescribeSecurityGroupsInput{
+		GroupIds: aws.StringSlice([]string{groupID}),
+		Filters: []*ec2.Filter{
+			{
+				Name:   aws.String("vpc-id"),
+				Values: aws.StringSlice([]string{vpcID}),
+			},
+		},
+	})
+	if err != nil {
+		return nil, err
+	}
+
+	if len(out.SecurityGroups) == 0 {
+		return nil, errors.Errorf("no security group with ID %s found in aws", groupID)
+	}
+	return out.SecurityGroups[0], nil
+}
+
+func (s *CreateSecurityGroupsStep) authorizeSSH(ctx context.Context, EC2 ec2iface.EC2API, groupID string) error {
+	_, err := EC2.AuthorizeSecurityGroupIngressWithContext(ctx, &ec2.AuthorizeSecurityGroupIngressInput{
+		GroupId:    aws.String(groupID),
+		FromPort:   aws.Int64(22),
+		ToPort:     aws.Int64(22),
+		CidrIp:     aws.String("0.0.0.0/0"),
+		IpProtocol: aws.String("tcp"),
+	})
+	if err, ok := err.(awserr.Error); ok {
+		if err.Code() == "InvalidPermission.Duplicate" {
+			return nil
+		}
+	}
+	return err
+}
+
+func (s *CreateSecurityGroupsStep) allowAllTraffic(ctx context.Context, EC2 ec2iface.EC2API, targetGroupID, sourceGroupName string) error {
+	_, err := EC2.AuthorizeSecurityGroupIngressWithContext(ctx, &ec2.AuthorizeSecurityGroupIngressInput{
+		GroupId:                 aws.String(targetGroupID),
+		SourceSecurityGroupName: aws.String(sourceGroupName),
+	})
+
+	if err, ok := err.(awserr.Error); ok {
+		if err.Code() == "InvalidPermission.Duplicate" {
+			return nil
+		}
+	}
+	return err
+}
+
 func (*CreateSecurityGroupsStep) Name() string {
-	return CreateSecurityGroupsStepName
+	return StepCreateSecurityGroups
 }
 
 func (*CreateSecurityGroupsStep) Description() string {
