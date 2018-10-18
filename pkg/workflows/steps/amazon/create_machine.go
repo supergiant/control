@@ -130,6 +130,7 @@ func (s *StepCreateInstance) Run(ctx context.Context, w io.Writer, cfg *steps.Co
 	}
 
 	cfg.Node = node.Node{
+		Name:     nodeName,
 		TaskID:   cfg.TaskID,
 		Region:   cfg.AWSConfig.Region,
 		Role:     role,
@@ -157,13 +158,6 @@ func (s *StepCreateInstance) Run(ctx context.Context, w io.Writer, cfg *steps.Co
 	}
 
 	instance := res.Instances[0]
-
-	cfg.Node.Region = cfg.AWSConfig.Region
-	cfg.Node.CreatedAt = instance.LaunchTime.Unix()
-	cfg.Node.ID = *instance.InstanceId
-
-	// Update node state in cluster
-	cfg.NodeChan() <- cfg.Node
 
 	if hasPublicAddress {
 		log.Infof("[%s] - waiting to obtain public IP...", s.Name())
@@ -214,11 +208,17 @@ func (s *StepCreateInstance) Run(ctx context.Context, w io.Writer, cfg *steps.Co
 		}
 	}
 
+	cfg.Node.Region = cfg.AWSConfig.Region
+	cfg.Node.CreatedAt = instance.LaunchTime.Unix()
+	cfg.Node.ID = *instance.InstanceId
+	cfg.Node.State = node.StateProvisioning
+
+	cfg.NodeChan() <- cfg.Node
 	if cfg.IsMaster {
 		cfg.AddMaster(&cfg.Node)
+	} else {
+		cfg.AddNode(&cfg.Node)
 	}
-	cfg.Node.State = node.StateProvisioning
-	cfg.NodeChan() <- cfg.Node
 
 	log.Infof("[%s] - success! Created node %s with instanceID %s", s.Name(), nodeName, cfg.Node.ID)
 	logrus.Debugf("%v", *instance)
