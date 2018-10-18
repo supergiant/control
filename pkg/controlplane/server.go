@@ -278,6 +278,10 @@ func ensureHelmRepositories(svc helm.Servicer) {
 
 	entries := []repo.Entry{
 		{
+			Name: "supergiant",
+			URL:  "https://supergiant.github.io/charts",
+		},
+		{
 			Name: "stable",
 			URL:  "https://kubernetes-charts.storage.googleapis.com",
 		},
