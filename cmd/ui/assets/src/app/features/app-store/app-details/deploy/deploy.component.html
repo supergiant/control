@@ -57,12 +57,17 @@
   </mat-dialog-content>
   <mat-dialog-actions>
     <button mat-button
-    mat-dialog-close>Cancel
+            mat-dialog-close>Cancel
     </button>
     <button [disabled]="!deployForm.valid || !deployForm.controls['clusterName'].value"
             mat-button
             color="primary"
-            (click)="submitForm()">CONFIRM
+            (click)="submitForm()">
+      <span [hidden]="isProcessing">CONFIRM</span>
+      <mat-progress-spinner [diameter]="15"
+                            [mode]="'indeterminate'"
+                            [color]="warn"
+                            [hidden]="!isProcessing"></mat-progress-spinner>
     </button>
 
   </mat-dialog-actions>
