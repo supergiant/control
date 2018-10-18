@@ -18,20 +18,19 @@ import (
 )
 
 func NewConfigFor(k *model.Kube) (*rest.Config, error) {
-	if len(k.Masters) == 0 {
-		return nil, errors.Wrap(sgerrors.ErrNotFound, "master nodes")
+	kubeConf, err := kubeConfigFrom(k)
+	if err != nil {
+		return nil, errors.Wrap(err, "build kubeconfig")
 	}
-	m := util.GetRandomNode(k.Masters)
 
-	// TODO: there is no Scheme/MasterPort config parameters
-	apiAdrr := fmt.Sprintf("http://%s:8080", m.PublicIp)
-
-	return clientcmd.NewNonInteractiveClientConfig(
-		buildKubeConfig(apiAdrr, k.Auth),
-		"",
+	restConf, err := clientcmd.NewNonInteractiveClientConfig(
+		kubeConf,
+		kubeConf.CurrentContext,
 		&clientcmd.ConfigOverrides{},
 		nil,
 	).ClientConfig()
+
+	return restConf, errors.Wrap(err, "build rest config")
 }
 
 func restClientForGroupVersion(k *model.Kube, gv schema.GroupVersion) (rest.Interface, error) {
@@ -52,30 +51,44 @@ func discoveryClient(k *model.Kube) (*discovery.DiscoveryClient, error) {
 	return discovery.NewDiscoveryClientForConfig(cfg)
 }
 
-// buildKubeConfig returns a kube config for provided options.
-func buildKubeConfig(endpoint string, auth model.Auth) clientcmddapi.Config {
+// kubeConfigFrom returns a kube config for provided cluster.
+func kubeConfigFrom(k *model.Kube) (clientcmddapi.Config, error) {
+	if len(k.Masters) == 0 {
+		// TODO: use another base error, not ErrNotFound
+		return clientcmddapi.Config{}, errors.Wrap(sgerrors.ErrNotFound, "master nodes")
+	}
+	m := util.GetRandomNode(k.Masters)
+
+	var apiAddr string
+	if k.APIPort != "" {
+		apiAddr = fmt.Sprintf("https://%s:%s", m.PublicIp, k.APIPort)
+	} else {
+		// TODO: apiPort has been hardcoded in provisioner, use it if no apiPort has been provided
+		apiAddr = fmt.Sprintf("http://%s:8080", m.PublicIp)
+	}
+
 	return clientcmddapi.Config{
 		AuthInfos: map[string]*clientcmddapi.AuthInfo{
-			auth.Username: {
-				Token:                 auth.Token,
-				ClientCertificateData: []byte(auth.Cert),
-				ClientKeyData:         []byte(auth.Key),
+			k.Auth.Username: {
+				Token:                 k.Auth.Token,
+				ClientCertificateData: []byte(k.Auth.Cert),
+				ClientKeyData:         []byte(k.Auth.Key),
 			},
 		},
 		Clusters: map[string]*clientcmddapi.Cluster{
-			auth.Username: {
-				Server:                   endpoint,
-				CertificateAuthorityData: []byte(auth.CA),
+			k.Auth.Username: {
+				Server:                   apiAddr,
+				CertificateAuthorityData: []byte(k.Auth.CA),
 			},
 		},
 		Contexts: map[string]*clientcmddapi.Context{
-			auth.Username: {
-				AuthInfo: auth.Username,
-				Cluster:  auth.Username,
+			k.Auth.Username: {
+				AuthInfo: k.Auth.Username,
+				Cluster:  k.Auth.Username,
 			},
 		},
-		CurrentContext: auth.Username,
-	}
+		CurrentContext: k.Auth.Username,
+	}, nil
 }
 
 func setGroupDefaults(config *rest.Config, gv schema.GroupVersion) {

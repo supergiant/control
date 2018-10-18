@@ -337,7 +337,7 @@ func TestService_ListReleases(t *testing.T) {
 					LastDeployed: timeconv.String(fakeRls.GetInfo().GetLastDeployed()),
 					Chart:        fakeRls.GetChart().Metadata.Name,
 					ChartVersion: fakeRls.GetChart().Metadata.Version,
-					Status:       fakeRls.GetInfo().Status.String(),
+					Status:       fakeRls.GetInfo().Status.Code.String(),
 				},
 			},
 		},
@@ -413,7 +413,7 @@ func TestService_DeleteRelease(t *testing.T) {
 				LastDeployed: timeconv.String(fakeRls.GetInfo().GetLastDeployed()),
 				Chart:        fakeRls.GetChart().Metadata.Name,
 				ChartVersion: fakeRls.GetChart().Metadata.Version,
-				Status:       fakeRls.GetInfo().Status.String(),
+				Status:       fakeRls.GetInfo().Status.Code.String(),
 			},
 		},
 	}

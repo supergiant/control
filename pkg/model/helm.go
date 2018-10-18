@@ -39,12 +39,12 @@ type Repository struct {
 }
 
 type ReleaseInfo struct {
-	Name         string
-	Namespace    string
-	Version      int32
-	CreatedAt    string
-	LastDeployed string
-	Chart        string
-	ChartVersion string
-	Status       string
+	Name         string `json:"name"`
+	Namespace    string `json:"namespace"`
+	Version      int32  `json:"version"`
+	CreatedAt    string `json:"createdAt"`
+	LastDeployed string `json:"lastDeployed"`
+	Chart        string `json:"chart"`
+	ChartVersion string `json:"chartVersion"`
+	Status       string `json:"status"`
 }

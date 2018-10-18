@@ -20,11 +20,8 @@ import (
 	"github.com/supergiant/supergiant/pkg/profile"
 	"github.com/supergiant/supergiant/pkg/provisioner"
 	sshRunner "github.com/supergiant/supergiant/pkg/runner/ssh"
-<<<<<<< HEAD
 	"github.com/supergiant/supergiant/pkg/sgerrors"
-=======
 	"github.com/supergiant/supergiant/pkg/sghelm"
->>>>>>> Add the InstallChart method
 	"github.com/supergiant/supergiant/pkg/storage"
 	"github.com/supergiant/supergiant/pkg/templatemanager"
 	"github.com/supergiant/supergiant/pkg/testutils/assert"
@@ -240,6 +237,8 @@ func configureApplication(cfg *Config) (*mux.Router, error) {
 	if err != nil {
 		return nil, errors.Wrap(err, "new helm service")
 	}
+	go ensureHelmRepositories(helmService)
+
 	helmHandler := sghelm.NewHandler(helmService)
 	helmHandler.Register(protectedAPI)
 
@@ -252,15 +251,6 @@ func configureApplication(cfg *Config) (*mux.Router, error) {
 
 	kubeHandler := kube.NewHandler(kubeService, accountService, taskProvisioner, repository)
 	kubeHandler.Register(protectedAPI)
-
-	helmService, err := helm.NewService(repository)
-	if err != nil {
-		return nil, errors.Wrap(err, "new helm service")
-	}
-	go ensureHelmRepositories(helmService)
-
-	helmHandler := helm.NewHandler(helmService)
-	helmHandler.Register(protectedAPI)
 
 	authMiddleware := api.Middleware{
 		TokenService: jwtService,
@@ -281,7 +271,7 @@ func configureLogging(cfg *Config) {
 	logrus.SetLevel(l)
 }
 
-func ensureHelmRepositories(svc helm.Servicer) {
+func ensureHelmRepositories(svc sghelm.Servicer) {
 	if svc == nil {
 		return
 	}

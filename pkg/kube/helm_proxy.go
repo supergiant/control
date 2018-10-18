@@ -18,6 +18,7 @@ func helmProxyFrom(kube *model.Kube) (proxy.Interface, error) {
 	if err != nil {
 		return nil, err
 	}
+
 	coreV1Client, err := corev1.NewForConfig(restConf)
 	if err != nil {
 		return nil, err

@@ -257,6 +257,7 @@ func (s *Service) ListReleases(ctx context.Context, kname, namespace, offset str
 		helm.ReleaseListNamespace(namespace),
 		helm.ReleaseListOffset(offset),
 		helm.ReleaseListLimit(limit),
+		helm.ReleaseListStatuses(releaseStatuses()),
 	)
 	if err != nil {
 		return nil, errors.Wrap(err, "list releases")
@@ -281,7 +282,10 @@ func (s *Service) DeleteRelease(ctx context.Context, kname, rlsName string, purg
 		return nil, errors.Wrap(err, "build helm proxy")
 	}
 
-	res, err := kprx.DeleteRelease(rlsName, helm.DeletePurge(purge))
+	res, err := kprx.DeleteRelease(
+		rlsName,
+		helm.DeletePurge(purge),
+	)
 	if err != nil {
 		return nil, errors.Wrap(err, "delete releases")
 	}
@@ -336,6 +340,20 @@ func toReleaseInfo(rls *release.Release) *model.ReleaseInfo {
 		LastDeployed: timeconv.String(rls.GetInfo().GetLastDeployed()),
 		Chart:        rls.GetChart().Metadata.Name,
 		ChartVersion: rls.GetChart().Metadata.Version,
-		Status:       rls.GetInfo().Status.String(),
+		Status:       rls.GetInfo().Status.Code.String(),
+	}
+}
+
+func releaseStatuses() []release.Status_Code {
+	// TODO: filter releases by statuses on the UI side?
+	return []release.Status_Code{
+		release.Status_UNKNOWN,
+		release.Status_DEPLOYED,
+		release.Status_DELETED,
+		release.Status_DELETING,
+		release.Status_FAILED,
+		release.Status_PENDING_INSTALL,
+		release.Status_PENDING_UPGRADE,
+		release.Status_PENDING_ROLLBACK,
 	}
 }

@@ -627,7 +627,7 @@ func (h *Handler) deleteReleases(w http.ResponseWriter, r *http.Request) {
 
 	rls, err := h.svc.DeleteRelease(r.Context(), kname, rlsName, purge)
 	if err != nil {
-		logrus.Errorf("helm: delete release: %s cluster: %s: %s", kname, rlsName, err)
+		logrus.Errorf("helm: delete release: cluster %s: release %s: %s", kname, rlsName, err)
 		message.SendUnknownError(w, err)
 		return
 	}
