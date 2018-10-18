@@ -3,8 +3,10 @@ package helm
 import (
 	"encoding/json"
 	"net/http"
+	"strings"
 
 	"github.com/gorilla/mux"
+	"github.com/pkg/errors"
 	log "github.com/sirupsen/logrus"
 	"k8s.io/helm/pkg/repo"
 
@@ -39,7 +41,15 @@ func (h *Handler) createRepo(w http.ResponseWriter, r *http.Request) {
 	repoConf := &repo.Entry{}
 	if err := json.NewDecoder(r.Body).Decode(repoConf); err != nil {
 		log.Errorf("helm: create repository: decode: %s", err)
-		message.SendInvalidJSON(w, err)
+		message.SendValidationFailed(w, err)
+		return
+	}
+
+	// TODO: use a custom struct instead of repo.Entry
+	repoConf.Name, repoConf.URL = strings.TrimSpace(repoConf.Name), strings.TrimSpace(repoConf.URL)
+	if repoConf.Name == "" || repoConf.URL == "" {
+		log.Errorf("helm: create repository: validation failed: %+v", repoConf)
+		message.SendValidationFailed(w, errors.New("helm repository: name and url should be provided"))
 		return
 	}
 
