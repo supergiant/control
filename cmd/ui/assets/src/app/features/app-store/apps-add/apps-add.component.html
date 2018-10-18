@@ -1,0 +1,27 @@
+<h2 mat-dialog-title>Add repository</h2>
+<mat-dialog-content>
+  <form [formGroup]="addRepositoryForm">
+    <mat-form-field>
+      <input matInput
+             type="text"
+             formControlName="name"
+             placeholder="Name">
+    </mat-form-field>
+    <mat-form-field>
+      <input matInput
+             type="text"
+             formControlName="url"
+             placeholder="Repository url">
+    </mat-form-field>
+  </form>
+</mat-dialog-content>
+<mat-dialog-actions>
+  <button mat-button
+          color="primary"
+          (click)="addRepository()">CONFIRM
+  </button>
+  <button mat-button
+          mat-dialog-close>Cancel
+  </button>
+
+</mat-dialog-actions>

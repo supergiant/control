@@ -11,6 +11,7 @@ import (
 	"time"
 
 	"github.com/sirupsen/logrus"
+
 	"github.com/supergiant/supergiant/pkg/clouds"
 	"github.com/supergiant/supergiant/pkg/model"
 	"github.com/supergiant/supergiant/pkg/node"
@@ -84,6 +85,10 @@ func MakeFileName(taskID string) string {
 }
 
 func MakeKeyName(name string, isUser bool) string {
+	if name == "" {
+		name = RandomString(12)
+	}
+
 	if isUser {
 		return fmt.Sprintf("%s-user", name)
 	}

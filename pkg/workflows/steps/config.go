@@ -15,9 +15,14 @@ import (
 
 type CertificatesConfig struct {
 	KubernetesConfigDir string `json:"kubernetesConfigDir"`
-	MasterPrivateIP     string `json:"masterPrivateIP"`
-	Username            string `json:"username"`
-	Password            string `json:"password"`
+	MasterHost          string `json:"masterHost"`
+
+	Username string `json:"username"`
+	Password string `json:"password"`
+
+	ParenCert []byte `json:"parenCert"`
+	CACert    string `json:"caCert"`
+	CAKey     string `json:"caKey"`
 }
 
 type DOConfig struct {
@@ -41,24 +46,21 @@ type PacketConfig struct{}
 type OSConfig struct{}
 
 type AWSConfig struct {
-	KeyID  string `json:"keyID"`
-	Secret string `json:"secret"`
-
-	EC2Config        EC2Config `json:"ec2config"`
-	Region           string    `json:"region"`
-	AvailabilityZone string    `json:"availabilityZone"`
-
-	KeyPairName string `json:"keyPairName"`
-}
-
-type EC2Config struct {
-	VolumeSize    int    `json:"volumeSize"`
-	EbsOptimized  bool   `json:"ebsOptimized"`
-	GPU           bool   `json:"gpu"`
-	ImageID       string `json:"imageId"`
-	InstanceType  string `json:"instanceType"`
-	SubnetID      string `json:"subnetID"`
-	HasPublicAddr bool   `json:"hasPublicAddr"`
+	KeyID                  string `json:"access_key"`
+	Secret                 string `json:"secret_key"`
+	Region                 string `json:"region"`
+	AvailabilityZone       string `json:"availabilityZone"`
+	KeyPairName            string `json:"keyPairName"`
+	VPCID                  string `json:"vpcid"`
+	VPCCIDR                string `json:"vpccidr"`
+	SubnetID               string `json:"subnetID"`
+	NodesSecurityGroupID   string `json:"nodesSecurityGroupID"`
+	MastersSecurityGroupID string `json:"mastersSecurityGroupID"`
+	VolumeSize             string `json:"volumeSize"`
+	EbsOptimized           string `json:"ebsOptimized"`
+	ImageID                string `json:"image"`
+	InstanceType           string `json:"size"`
+	HasPublicAddr          string `json:"hasPublicAddr"`
 }
 
 type FlannelConfig struct {
@@ -80,10 +82,9 @@ type NetworkConfig struct {
 }
 
 type KubeletConfig struct {
-	MasterPrivateIP string `json:"masterPrivateIP"`
-	ProxyPort       string `json:"proxyPort"`
-	EtcdClientPort  string `json:"etcdClientPort"`
-	K8SVersion      string `json:"k8sVersion"`
+	IsMaster   bool   `json:"isMaster"`
+	ProxyPort  string `json:"proxyPort"`
+	K8SVersion string `json:"k8sVersion"`
 }
 
 type ManifestConfig struct {
@@ -207,13 +208,24 @@ type Config struct {
 
 // NewConfig builds instance of config for provisioning
 func NewConfig(clusterName, discoveryUrl, cloudAccountName string, profile profile.Profile) *Config {
-	return &Config{
+	cfg := &Config{
 		Provider:    profile.Provider,
 		ClusterName: clusterName,
 		DigitalOceanConfig: DOConfig{
 			Region: profile.Region,
 		},
-		AWSConfig:    AWSConfig{},
+		AWSConfig: AWSConfig{
+			Region: profile.Region,
+
+			//TODO MOVE TO CONSTANTS
+			AvailabilityZone:       profile.CloudSpecificSettings["aws_az"],
+			VPCCIDR:                profile.CloudSpecificSettings["aws_vpc_cidr"],
+			VPCID:                  profile.CloudSpecificSettings["aws_vpc_id"],
+			KeyPairName:            profile.CloudSpecificSettings["aws_keypair_name"],
+			SubnetID:               profile.CloudSpecificSettings["aws_subnet_id"],
+			MastersSecurityGroupID: profile.CloudSpecificSettings["aws_masters_secgroup_id"],
+			NodesSecurityGroupID:   profile.CloudSpecificSettings["aws_nodes_secgroup_id"],
+		},
 		GCEConfig:    GCEConfig{},
 		OSConfig:     OSConfig{},
 		PacketConfig: PacketConfig{},
@@ -251,10 +263,8 @@ func NewConfig(clusterName, discoveryUrl, cloudAccountName string, profile profi
 			EtcdHost: "0.0.0.0",
 		},
 		KubeletConfig: KubeletConfig{
-			MasterPrivateIP: "localhost",
-			ProxyPort:       "8080",
-			EtcdClientPort:  "2379",
-			K8SVersion:      profile.K8SVersion,
+			ProxyPort:  "8080",
+			K8SVersion: profile.K8SVersion,
 		},
 		ManifestConfig: ManifestConfig{
 			K8SVersion:          profile.K8SVersion,
@@ -310,6 +320,7 @@ func NewConfig(clusterName, discoveryUrl, cloudAccountName string, profile profi
 		nodeChan:      make(chan node.Node, len(profile.MasterProfiles)+len(profile.NodesProfiles)),
 		kubeStateChan: make(chan model.KubeState, 2),
 	}
+	return cfg
 }
 
 // AddMaster to map of master, map is used because it is reference and can be shared among

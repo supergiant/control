@@ -1,20 +1,20 @@
 package account
 
 import (
-	"os"
-	"testing"
-
 	"context"
 	"encoding/json"
 	"io/ioutil"
 	"net/http"
 	"net/http/httptest"
+	"os"
+	"testing"
 
 	"github.com/coreos/etcd/clientv3"
 	"github.com/gorilla/mux"
 	"github.com/pborman/uuid"
 	"github.com/sirupsen/logrus"
 	"github.com/stretchr/testify/require"
+
 	"github.com/supergiant/supergiant/pkg/account"
 	"github.com/supergiant/supergiant/pkg/clouds"
 	"github.com/supergiant/supergiant/pkg/model"
@@ -35,7 +35,9 @@ func init() {
 
 func TestFindDigitalOceanRegions(t *testing.T) {
 	doToken := os.Getenv(clouds.EnvDigitalOceanAccessToken)
-	require.NotEmpty(t, doToken)
+	if doToken == "" {
+		t.SkipNow()
+	}
 
 	logrus.SetLevel(logrus.DebugLevel)
 

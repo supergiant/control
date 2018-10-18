@@ -102,3 +102,18 @@ func SendNotFound(w http.ResponseWriter, entityName string, err error) {
 	w.WriteHeader(http.StatusNotFound)
 	w.Write(data)
 }
+
+func SendAlreadyExists(w http.ResponseWriter, entityName string, err error) {
+	msg := New(fmt.Sprintf("%s already exists", entityName), err.Error(), sgerrors.AlreadyExists, "")
+
+	data, err := json.Marshal(msg)
+	if err != nil {
+		logrus.Errorf("failed to marshall message: %v", err)
+		http.Error(w, "", http.StatusInternalServerError)
+		return
+	}
+
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(http.StatusConflict)
+	w.Write(data)
+}

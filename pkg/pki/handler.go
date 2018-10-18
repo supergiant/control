@@ -2,13 +2,15 @@ package pki
 
 import (
 	"encoding/json"
+	"net"
+	"net/http"
+
 	"github.com/gorilla/mux"
 	"github.com/pkg/errors"
 	"github.com/sirupsen/logrus"
+
 	"github.com/supergiant/supergiant/pkg/message"
 	"github.com/supergiant/supergiant/pkg/sgerrors"
-	"net"
-	"net/http"
 )
 
 type Handler struct {
@@ -81,7 +83,7 @@ func (h *Handler) Generate(w http.ResponseWriter, r *http.Request) {
 	}
 
 	if caReq.CA != nil {
-		pi, err := h.svc.GenerateFromCA(r.Context(), caReq.CA, caReq.DNSDomain, ips)
+		pi, err := h.svc.GenerateFromCA(r.Context(), caReq.CA)
 		if err != nil {
 			logrus.Errorf("pki: %v", err)
 			message.SendUnknownError(w, err)

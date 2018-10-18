@@ -1,0 +1,39 @@
+<section class="header-wrapper">
+  <section class="header">
+    <ng-container *ngIf="showBreadcrumbs; else defaultHeader">
+
+      <breadcrumbs [repoName]="(breadcrumbsData$ | async)?.repo"
+                   [chartName]="(breadcrumbsData$ | async)?.name"></breadcrumbs>
+    </ng-container>
+
+    <ng-template #defaultHeader>
+      <h1>
+        Apps Store
+      </h1>
+
+      <div><input (keyup)="filterApps($event)"
+                  class="search-input"
+                  type="search"
+                  placeholder="Filter apps by name"
+                  #filterInput>
+        <button class="clear"
+                [hidden]="!filterInput.value"
+                (click)="filterClear(filterInput)"><i class="fa fa-remove"></i></button>
+      </div>
+    </ng-template>
+
+    <nav class="apps-nav">
+    <span *ngFor="let repo of (reposList$ | async)?.slice().reverse() ">
+      <a routerLinkActive="active"
+         [routerLink]="[repo.name]">{{ repo.name | titlecase }}</a>
+    </span>
+      <a (click)="addRepo()"
+         class="add-repo"><i class="fa fa-plus-circle"></i></a>
+    </nav>
+  </section>
+</section>
+
+
+<section class="content-wrapper">
+  <router-outlet></router-outlet>
+</section>

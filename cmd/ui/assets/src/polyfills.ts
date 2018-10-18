@@ -71,3 +71,11 @@ import 'hammerjs/hammer';
  * Need to import at least one locale-data with intl.
  */
 // import 'intl/locale-data/jsonp/en';
+
+
+
+
+
+
+// https://github.com/fxmontigny/ng2-ace-editor/issues/87
+(window as any).global = window;

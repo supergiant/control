@@ -6,11 +6,11 @@ import (
 	"crypto/md5"
 	"encoding/base64"
 	"fmt"
+	"net/http"
 	"strings"
 
 	"github.com/digitalocean/godo"
 	"github.com/pkg/errors"
-	"net/http"
 )
 
 // Returns private ip

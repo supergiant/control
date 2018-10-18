@@ -36,6 +36,6 @@ const (
 	EnvDigitalOceanAccessToken = "DIGITALOCEAN_TOKEN"
 	CredsPrivateKey            = "privateKey"
 	CredsPublicKey             = "publicKey"
-	AWSAccessKeyID             = "AWS_ACCESS_KEY_ID"
-	AWSSecretKey               = "AWS_SECRET_KEY"
+	AWSAccessKeyID             = "access_key"
+	AWSSecretKey               = "secret_key"
 )

@@ -239,12 +239,15 @@ func (h *TaskHandler) GetLogs(w http.ResponseWriter, r *http.Request) {
 
 	var v = struct {
 		Host   string
-		TaskId string
+		TaskID string
 	}{
 		r.Host,
 		id,
 	}
-	tpl.Execute(w, &v)
+	err := tpl.Execute(w, &v)
+	if err != nil {
+		logrus.Error(err)
+	}
 }
 
 func (h *TaskHandler) StreamLogs(w http.ResponseWriter, r *http.Request) {
@@ -260,6 +263,10 @@ func (h *TaskHandler) StreamLogs(w http.ResponseWriter, r *http.Request) {
 		HandshakeTimeout: time.Second * 10,
 		WriteBufferSize:  1024,
 		ReadBufferSize:   0,
+		// TODO(stgleb): Do something more safe in future
+		CheckOrigin: func(r *http.Request) bool {
+			return true
+		},
 	}
 
 	t, err := tail.TailFile(path.Join("/tmp", util.MakeFileName(id)),

@@ -4,6 +4,7 @@ import (
 	"context"
 	"io"
 	"text/template"
+	"time"
 
 	"github.com/pkg/errors"
 
@@ -11,7 +12,6 @@ import (
 	tm "github.com/supergiant/supergiant/pkg/templatemanager"
 	"github.com/supergiant/supergiant/pkg/workflows/steps"
 	"github.com/supergiant/supergiant/pkg/workflows/steps/kubelet"
-	"time"
 )
 
 const StepName = "poststart"
@@ -35,6 +35,14 @@ func New(script *template.Template) *Step {
 func (s *Step) Run(ctx context.Context, out io.Writer, config *steps.Config) error {
 	ctx2, _ := context.WithTimeout(ctx, time.Duration(config.PostStartConfig.Timeout)*time.Second)
 	config.PostStartConfig.IsMaster = config.IsMaster
+
+	if config.IsMaster {
+		config.PostStartConfig.Host = config.Node.PrivateIp
+	} else {
+		if masterNode := config.GetMaster(); masterNode != nil {
+			config.PostStartConfig.Host = masterNode.PrivateIp
+		}
+	}
 
 	err := steps.RunTemplate(ctx2, s.script, config.Runner, out, config.PostStartConfig)
 
