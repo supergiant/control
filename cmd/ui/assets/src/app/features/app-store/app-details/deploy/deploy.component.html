@@ -7,7 +7,7 @@
                   placeholder="Claster name"
                   formControlName="clusterName">
         <div *ngFor="let cluster of (clusters$ | async)">
-          <mat-option [value]="cluster.accountName">{{ cluster.accountName }}</mat-option>
+          <mat-option [value]="cluster.name">{{ cluster.name }}</mat-option>
         </div>
       </mat-select>
     </mat-form-field>
