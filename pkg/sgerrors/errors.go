@@ -29,6 +29,7 @@ var (
 	ErrInvalidJson         = New("invalid json", InvalidJSON)
 	ErrNilValue            = New("nil value", NilValue)
 	ErrTokenExpired        = New("token has been expire", TokenExpired)
+	ErrNilEntity           = New("nil entity", NilEntity)
 )
 
 func IsNotFound(err error) bool {

@@ -1,4 +1,4 @@
-package helm
+package sghelm
 
 import (
 	"context"
@@ -11,7 +11,7 @@ import (
 	"k8s.io/helm/pkg/proto/hapi/chart"
 	"k8s.io/helm/pkg/repo"
 
-	"github.com/supergiant/supergiant/pkg/model/helm"
+	"github.com/supergiant/supergiant/pkg/model"
 	"github.com/supergiant/supergiant/pkg/sgerrors"
 )
 
@@ -64,7 +64,7 @@ func TestService_CreateRepo(t *testing.T) {
 		storage fakeStorage
 		repos   fakeRepoManager
 
-		expectedRepo *helm.Repository
+		expectedRepo *model.Repository
 		expectedErr  error
 	}{
 		{ // TC#1
@@ -85,25 +85,25 @@ func TestService_CreateRepo(t *testing.T) {
 				Name: "getIndexFileError",
 			},
 			repos: fakeRepoManager{
-				err: fakeErr,
+				err: errFake,
 			},
-			expectedErr: fakeErr,
+			expectedErr: errFake,
 		},
 		{ // TC#4
 			repoConf: &repo.Entry{
 				Name: "putError",
 			},
 			storage: fakeStorage{
-				putErr: fakeErr,
+				putErr: errFake,
 			},
-			expectedErr: fakeErr,
+			expectedErr: errFake,
 		},
 		{ // TC#5
 			repoConf: &repo.Entry{
 				Name: "success",
 			},
 			repos: fakeRepoManager{},
-			expectedRepo: &helm.Repository{
+			expectedRepo: &model.Repository{
 				Config: repo.Entry{
 					Name: "success",
 				},
@@ -135,15 +135,15 @@ func TestService_GetRepo(t *testing.T) {
 		repoName string
 		storage  fakeStorage
 
-		expectedRepo *helm.Repository
+		expectedRepo *model.Repository
 		expectedErr  error
 	}{
 		{ // TC#1
 			repoName: "getError",
 			storage: fakeStorage{
-				getErr: fakeErr,
+				getErr: errFake,
 			},
-			expectedErr: fakeErr,
+			expectedErr: errFake,
 		},
 		{ // TC#2
 			repoName:    "notFound",
@@ -160,7 +160,7 @@ func TestService_GetRepo(t *testing.T) {
 			storage: fakeStorage{
 				item: []byte(`{"config":{"name":"success"}}`),
 			},
-			expectedRepo: &helm.Repository{
+			expectedRepo: &model.Repository{
 				Config: repo.Entry{
 					Name: "success",
 				},
@@ -194,14 +194,14 @@ func TestService_ListRepo(t *testing.T) {
 	tcs := []struct {
 		storage fakeStorage
 
-		expectedRepos []helm.Repository
+		expectedRepos []model.Repository
 		expectedErr   error
 	}{
 		{ // TC#1
 			storage: fakeStorage{
-				listErr: fakeErr,
+				listErr: errFake,
 			},
-			expectedErr: fakeErr,
+			expectedErr: errFake,
 		},
 		{ // TC#2: unmarshal error
 			storage: fakeStorage{
@@ -212,7 +212,7 @@ func TestService_ListRepo(t *testing.T) {
 			storage: fakeStorage{
 				items: [][]byte{[]byte(`{"config":{"name":"success"}}`)},
 			},
-			expectedRepos: []helm.Repository{
+			expectedRepos: []model.Repository{
 				{
 					Config: repo.Entry{
 						Name: "success",
@@ -249,30 +249,30 @@ func TestService_DeleteRepo(t *testing.T) {
 		repoName string
 		storage  fakeStorage
 
-		expectedRepo *helm.Repository
+		expectedRepo *model.Repository
 		expectedErr  error
 	}{
 		{ // TC#1
 			repoName: "getError",
 			storage: fakeStorage{
-				getErr: fakeErr,
+				getErr: errFake,
 			},
-			expectedErr: fakeErr,
+			expectedErr: errFake,
 		},
 		{ // TC#2
 			repoName: "deleteError",
 			storage: fakeStorage{
 				item:      []byte(`{"config":{"name":"success"}}`),
-				deleteErr: fakeErr,
+				deleteErr: errFake,
 			},
-			expectedErr: fakeErr,
+			expectedErr: errFake,
 		},
 		{ // TC#4
 			repoName: "success",
 			storage: fakeStorage{
 				item: []byte(`{"config":{"name":"success"}}`),
 			},
-			expectedRepo: &helm.Repository{
+			expectedRepo: &model.Repository{
 				Config: repo.Entry{
 					Name: "success",
 				},

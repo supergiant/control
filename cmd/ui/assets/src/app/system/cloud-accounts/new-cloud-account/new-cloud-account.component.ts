@@ -50,7 +50,7 @@ export class NewCloudAccountComponent implements OnInit, OnDestroy {
     this.subscriptions.add(this.supergiant.CloudAccounts.create(model).subscribe(
       (data) => {
         this.success(model);
-        this.router.navigate(['/system/cloud-accounts']);
+        this.router.navigate(['/clusters/new']);
       },
       (err) => { this.error(model, err); }));
   }

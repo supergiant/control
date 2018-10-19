@@ -5,6 +5,7 @@ import (
 	"io/ioutil"
 	"os"
 	"path"
+	"path/filepath"
 
 	"github.com/pkg/errors"
 	log "github.com/sirupsen/logrus"
@@ -14,6 +15,10 @@ import (
 	"k8s.io/helm/pkg/helm/helmpath"
 	"k8s.io/helm/pkg/proto/hapi/chart"
 	"k8s.io/helm/pkg/repo"
+)
+
+var (
+	DefaultHome = filepath.Join(os.TempDir(), ".helm")
 )
 
 var _ Interface = &Manager{}
