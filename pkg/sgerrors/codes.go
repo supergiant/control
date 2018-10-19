@@ -13,4 +13,5 @@ const (
 	UnknownProvider     ErrorCode = 1008
 	UnsupportedProvider ErrorCode = 1009
 	AlreadyExists       ErrorCode = 1010
+	NilEntity           ErrorCode = 1011
 )

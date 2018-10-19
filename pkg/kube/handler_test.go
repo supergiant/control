@@ -8,12 +8,15 @@ import (
 	"io"
 	"net/http"
 	"net/http/httptest"
+	"strings"
 	"testing"
 
 	"github.com/gorilla/mux"
 	"github.com/pkg/errors"
 	"github.com/stretchr/testify/mock"
 	"github.com/stretchr/testify/require"
+	"k8s.io/helm/pkg/proto/hapi/chart"
+	"k8s.io/helm/pkg/proto/hapi/release"
 
 	"github.com/supergiant/supergiant/pkg/clouds"
 	"github.com/supergiant/supergiant/pkg/message"
@@ -26,8 +29,46 @@ import (
 	"github.com/supergiant/supergiant/pkg/workflows/steps"
 )
 
+var (
+	errFake = errors.New("fake error")
+
+	deployedReleaseInput = `{"chartName":"nginx","namespace":"default","repoName":"fake"}`
+	deployedRelease      = &release.Release{
+		Name:      "fakeDeployed",
+		Namespace: "default",
+		Chart: &chart.Chart{
+			Metadata: &chart.Metadata{
+				Name: "nginx",
+			},
+		},
+		Info: &release.Info{
+			Status: &release.Status{
+				Code: release.Status_DEPLOYED,
+			},
+		},
+	}
+	deployedReleaseInfo = &model.ReleaseInfo{
+		Name:      "fakeDeleted",
+		Namespace: "default",
+		Chart:     "nginx",
+		Status:    release.Status_Code_name[int32(release.Status_DEPLOYED)],
+	}
+
+	deletedReleaseInput = `{"chartName":"esync","namespace":"kube-system","repoName":"fake"}`
+	deletedReleaseInfo  = &model.ReleaseInfo{
+		Name:      "fakeDeleted",
+		Namespace: "kube-system",
+		Chart:     "esync",
+		Status:    release.Status_Code_name[int32(release.Status_DELETED)],
+	}
+)
+
 type kubeServiceMock struct {
 	mock.Mock
+	rls         *release.Release
+	rlsInfo     *model.ReleaseInfo
+	rlsInfoList []*model.ReleaseInfo
+	rlsErr      error
 }
 
 type accServiceMock struct {
@@ -111,6 +152,15 @@ func (m *kubeServiceMock) GetKubeResources(ctx context.Context, kname, resource,
 }
 func (m *kubeServiceMock) GetCerts(ctx context.Context, kname, cname string) (*Bundle, error) {
 	return nil, nil
+}
+func (m *kubeServiceMock) InstallRelease(ctx context.Context, kname string, rls *ReleaseInput) (*release.Release, error) {
+	return m.rls, m.rlsErr
+}
+func (m *kubeServiceMock) ListReleases(ctx context.Context, kname, ns, offset string, limit int) ([]*model.ReleaseInfo, error) {
+	return m.rlsInfoList, m.rlsErr
+}
+func (m *kubeServiceMock) DeleteRelease(ctx context.Context, kname, rlsName string, purge bool) (*model.ReleaseInfo, error) {
+	return m.rlsInfo, m.rlsErr
 }
 
 func (a *accServiceMock) Get(ctx context.Context, name string) (*model.CloudAccount, error) {
@@ -836,6 +886,206 @@ func TestDeleteNodeFromKube(t *testing.T) {
 
 		if rec.Code != testCase.expectedCode {
 			t.Errorf("Wrong response code expected %d actual %d", testCase.expectedCode, rec.Code)
+		}
+	}
+}
+
+func TestHander_installRelease(t *testing.T) {
+	tcs := []struct {
+		rlsInp string
+
+		kubeSvc *kubeServiceMock
+
+		expectedRls     *release.Release
+		expectedStatus  int
+		expectedErrCode sgerrors.ErrorCode
+	}{
+		{
+			rlsInp: "{{}",
+			kubeSvc: &kubeServiceMock{
+				rlsErr: errFake,
+			},
+			expectedStatus:  http.StatusBadRequest,
+			expectedErrCode: sgerrors.InvalidJSON,
+		},
+		{
+			rlsInp: "{}",
+			kubeSvc: &kubeServiceMock{
+				rlsErr: errFake,
+			},
+			expectedStatus:  http.StatusBadRequest,
+			expectedErrCode: sgerrors.ValidationFailed,
+		},
+		{
+			rlsInp: deployedReleaseInput,
+			kubeSvc: &kubeServiceMock{
+				rlsErr: errFake,
+			},
+			expectedStatus:  http.StatusInternalServerError,
+			expectedErrCode: sgerrors.UnknownError,
+		},
+		{
+			rlsInp: deployedReleaseInput,
+			kubeSvc: &kubeServiceMock{
+				rls: deployedRelease,
+			},
+			expectedStatus: http.StatusOK,
+			expectedRls:    deployedRelease,
+		},
+	}
+
+	for i, tc := range tcs {
+		// setup handler
+		h := &Handler{svc: tc.kubeSvc}
+
+		router := mux.NewRouter()
+		h.Register(router)
+
+		// prepare
+		req, err := http.NewRequest(
+			http.MethodPost,
+			"/kubes/fake/releases",
+			strings.NewReader(tc.rlsInp))
+		require.Equalf(t, nil, err, "TC#%d: create request: %v", i+1, err)
+
+		w := httptest.NewRecorder()
+
+		// run
+		router.ServeHTTP(w, req)
+
+		// check
+		require.Equalf(t, tc.expectedStatus, w.Code, "TC#%d: check status code", i+1)
+
+		if w.Code == http.StatusOK {
+			rlsInfo := &release.Release{}
+			require.Nilf(t, json.NewDecoder(w.Body).Decode(rlsInfo), "TC#%d: decode chart", i+1)
+
+			require.Equalf(t, tc.expectedRls, rlsInfo, "TC#%d: check release", i+1)
+		} else {
+			apiErr := &message.Message{}
+			require.Nilf(t, json.NewDecoder(w.Body).Decode(apiErr), "TC#%d: decode message", i+1)
+
+			require.Equalf(t, tc.expectedErrCode, apiErr.ErrorCode, "TC#%d: check error code", i+1)
+		}
+	}
+}
+
+func TestHander_listReleases(t *testing.T) {
+	tcs := []struct {
+		kubeSvc *kubeServiceMock
+
+		expectedRlsInfoList []*model.ReleaseInfo
+		expectedStatus      int
+		expectedErrCode     sgerrors.ErrorCode
+	}{
+		{
+			kubeSvc: &kubeServiceMock{
+				rlsErr: errFake,
+			},
+			expectedStatus:  http.StatusInternalServerError,
+			expectedErrCode: sgerrors.UnknownError,
+		},
+		{
+			kubeSvc: &kubeServiceMock{
+				rlsInfoList: []*model.ReleaseInfo{deployedReleaseInfo},
+			},
+			expectedStatus:      http.StatusOK,
+			expectedRlsInfoList: []*model.ReleaseInfo{deployedReleaseInfo},
+		},
+	}
+
+	for i, tc := range tcs {
+		// setup handler
+		h := &Handler{svc: tc.kubeSvc}
+
+		router := mux.NewRouter()
+		h.Register(router)
+
+		// prepare
+		req, err := http.NewRequest(
+			http.MethodGet,
+			"/kubes/fake/releases",
+			nil)
+		require.Equalf(t, nil, err, "TC#%d: create request: %v", i+1, err)
+
+		w := httptest.NewRecorder()
+
+		// run
+		router.ServeHTTP(w, req)
+
+		// check
+		require.Equalf(t, tc.expectedStatus, w.Code, "TC#%d: check status code", i+1)
+
+		if w.Code == http.StatusOK {
+			rlsInfoList := []*model.ReleaseInfo{}
+			require.Nilf(t, json.NewDecoder(w.Body).Decode(&rlsInfoList), "TC#%d: decode release list", i+1)
+
+			require.Equalf(t, tc.expectedRlsInfoList, rlsInfoList, "TC#%d: check release", i+1)
+		} else {
+			apiErr := &message.Message{}
+			require.Nilf(t, json.NewDecoder(w.Body).Decode(apiErr), "TC#%d: decode message", i+1)
+
+			require.Equalf(t, tc.expectedErrCode, apiErr.ErrorCode, "TC#%d: check error code", i+1)
+		}
+	}
+}
+
+func TestHander_deleteRelease(t *testing.T) {
+	tcs := []struct {
+		kubeSvc *kubeServiceMock
+
+		expectedRlsInfo *model.ReleaseInfo
+		expectedStatus  int
+		expectedErrCode sgerrors.ErrorCode
+	}{
+		{
+			kubeSvc: &kubeServiceMock{
+				rlsErr: errFake,
+			},
+			expectedStatus:  http.StatusInternalServerError,
+			expectedErrCode: sgerrors.UnknownError,
+		},
+		{
+			kubeSvc: &kubeServiceMock{
+				rlsInfo: deletedReleaseInfo,
+			},
+			expectedStatus:  http.StatusOK,
+			expectedRlsInfo: deletedReleaseInfo,
+		},
+	}
+
+	for i, tc := range tcs {
+		// setup handler
+		h := &Handler{svc: tc.kubeSvc}
+
+		router := mux.NewRouter()
+		h.Register(router)
+
+		// prepare
+		req, err := http.NewRequest(
+			http.MethodDelete,
+			"/kubes/fake/releases/releaseName",
+			nil)
+		require.Equalf(t, nil, err, "TC#%d: create request: %v", i+1, err)
+
+		w := httptest.NewRecorder()
+
+		// run
+		router.ServeHTTP(w, req)
+
+		// check
+		require.Equalf(t, tc.expectedStatus, w.Code, "TC#%d: check status code", i+1)
+
+		if w.Code == http.StatusOK {
+			rlsInfoList := &model.ReleaseInfo{}
+			require.Nilf(t, json.NewDecoder(w.Body).Decode(rlsInfoList), "TC#%d: decode release info", i+1)
+
+			require.Equalf(t, tc.expectedRlsInfo, rlsInfoList, "TC#%d: check release", i+1)
+		} else {
+			apiErr := &message.Message{}
+			require.Nilf(t, json.NewDecoder(w.Body).Decode(apiErr), "TC#%d: decode message", i+1)
+
+			require.Equalf(t, tc.expectedErrCode, apiErr.ErrorCode, "TC#%d: check error code", i+1)
 		}
 	}
 }
