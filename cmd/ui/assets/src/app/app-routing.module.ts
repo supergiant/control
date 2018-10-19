@@ -30,9 +30,13 @@ import { LogsComponent } from './system/logs/logs.component';
 import {
   AuthGuardService as AuthGuard
 } from './shared/supergiant/auth/auth-guard.service';
+import {LoginGuardService} from "./shared/supergiant/auth/login-guard.service";
 
 const appRoutes: Routes = [
-  { path: '', component: LoginComponent },
+  {
+    path: '', component: LoginComponent,
+    canActivate: [LoginGuardService]
+  },
   {
     path: 'dashboard', component: DashboardComponent, canActivate: [AuthGuard], children: [
       { path: '', component: DashboardTutorialComponent },
