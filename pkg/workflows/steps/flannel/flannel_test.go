@@ -3,10 +3,13 @@ package flannel
 import (
 	"bytes"
 	"context"
-	"github.com/pkg/errors"
 	"io"
 	"strings"
 	"testing"
+	"io/ioutil"
+	"text/template"
+
+	"github.com/pkg/errors"
 
 	"github.com/supergiant/supergiant/pkg/profile"
 	"github.com/supergiant/supergiant/pkg/runner"
@@ -14,8 +17,6 @@ import (
 	"github.com/supergiant/supergiant/pkg/testutils"
 	"github.com/supergiant/supergiant/pkg/workflows/steps"
 	"github.com/supergiant/supergiant/pkg/workflows/steps/etcd"
-	"io/ioutil"
-	"text/template"
 )
 
 type fakeRunner struct {

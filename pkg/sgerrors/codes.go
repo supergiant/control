@@ -14,4 +14,5 @@ const (
 	UnsupportedProvider ErrorCode = 1009
 	NilValue            ErrorCode = 1010
 	TokenExpired        ErrorCode = 1011
+	AlreadyExists       ErrorCode = 1010
 )

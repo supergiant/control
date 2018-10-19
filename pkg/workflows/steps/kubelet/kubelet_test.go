@@ -33,7 +33,6 @@ func (f *fakeRunner) Run(command *runner.Command) error {
 
 func TestStartKubelet(t *testing.T) {
 	k8sVersion := "1.8.7"
-	etcdPort := "2379"
 	proxyPort := "8080"
 
 	r := &fakeRunner{}
@@ -53,9 +52,8 @@ func TestStartKubelet(t *testing.T) {
 
 	cfg := &steps.Config{
 		KubeletConfig: steps.KubeletConfig{
-			K8SVersion:     k8sVersion,
-			ProxyPort:      proxyPort,
-			EtcdClientPort: etcdPort,
+			K8SVersion: k8sVersion,
+			ProxyPort:  proxyPort,
 		},
 		Runner: r,
 	}

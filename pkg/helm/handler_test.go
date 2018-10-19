@@ -2,246 +2,530 @@ package helm
 
 import (
 	"bytes"
+	"context"
 	"encoding/json"
+	"io/ioutil"
 	"net/http"
 	"net/http/httptest"
 	"testing"
 
 	"github.com/gorilla/mux"
 	"github.com/pkg/errors"
-	"github.com/stretchr/testify/mock"
+	"github.com/sirupsen/logrus"
 	"github.com/stretchr/testify/require"
+	"k8s.io/helm/pkg/proto/hapi/chart"
+	"k8s.io/helm/pkg/repo"
 
+	"github.com/supergiant/supergiant/pkg/message"
 	"github.com/supergiant/supergiant/pkg/model/helm"
-	"github.com/supergiant/supergiant/pkg/testutils"
+	"github.com/supergiant/supergiant/pkg/sgerrors"
 )
 
-func TestHandler_Create(t *testing.T) {
+var (
+	fakeErr = errors.New("fake error")
+)
+
+type fakeService struct {
+	repo      *helm.Repository
+	repoList  []helm.Repository
+	chrt      *helm.Chart
+	chrtList  []helm.Chart
+	chrtFiles *chart.Chart
+	err       error
+}
+
+func (fs fakeService) CreateRepo(ctx context.Context, e *repo.Entry) (*helm.Repository, error) {
+	return fs.repo, fs.err
+}
+func (fs fakeService) GetRepo(ctx context.Context, repoName string) (*helm.Repository, error) {
+	return fs.repo, fs.err
+}
+func (fs fakeService) ListRepos(ctx context.Context) ([]helm.Repository, error) {
+	return fs.repoList, fs.err
+}
+func (fs fakeService) DeleteRepo(ctx context.Context, repoName string) (*helm.Repository, error) {
+	return fs.repo, fs.err
+}
+func (fs fakeService) GetChart(ctx context.Context, repoName, chartName string) (*helm.Chart, error) {
+	return fs.chrt, fs.err
+}
+func (fs fakeService) ListCharts(ctx context.Context, repoName string) ([]helm.Chart, error) {
+	return fs.chrtList, fs.err
+}
+func (fs fakeService) GetChartFiles(ctx context.Context, repoName, chartName, chartVersion string) (*chart.Chart, error) {
+	return fs.chrtFiles, fs.err
+}
+
+func TestHandler_createRepo(t *testing.T) {
+	loggerWriter := logrus.StandardLogger().Out
+	logrus.SetOutput(ioutil.Discard)
+	defer logrus.SetOutput(loggerWriter)
+
 	tcs := []struct {
-		repo    *helm.Repository
-		rawRepo []byte
+		svc     *fakeService
+		inpRepo []byte
 
-		storageError error
-
-		expectedStatus int
+		expectedStatus  int
+		expectedRepo    *helm.Repository
+		expectedErrCode sgerrors.ErrorCode
 	}{
 		{ // TC#1
-			rawRepo: []byte("{name:invalid_json,,}"),
-			repo: &helm.Repository{
-				Name: "invalid_json",
-			},
-			expectedStatus: http.StatusBadRequest,
+			inpRepo:         []byte("{name:invalidJSON,,}"),
+			expectedStatus:  http.StatusBadRequest,
+			expectedErrCode: sgerrors.ValidationFailed,
 		},
 		{ // TC#2
-			repo: &helm.Repository{
-				Name: "fail_validation",
+			inpRepo: []byte(`{"name":"validationFailed"}`),
+			svc: &fakeService{
+				err: sgerrors.ErrAlreadyExists,
 			},
-			expectedStatus: http.StatusBadRequest,
+			expectedStatus:  http.StatusBadRequest,
+			expectedErrCode: sgerrors.ValidationFailed,
 		},
 		{ // TC#3
-			storageError: errors.New("error"),
-			repo: &helm.Repository{
-				Name: "fail_to_put",
-				URL:  "test",
+			inpRepo: []byte(`{"name":"alreadyExists","url":"url"}`),
+			svc: &fakeService{
+				err: sgerrors.ErrAlreadyExists,
 			},
-			expectedStatus: http.StatusInternalServerError,
+			expectedStatus:  http.StatusConflict,
+			expectedErrCode: sgerrors.AlreadyExists,
 		},
 		{ // TC#4
-			repo: &helm.Repository{
-				Name: "success",
-				URL:  "test",
+			inpRepo: []byte(`{"name":"createError","url":"url"}`),
+			svc: &fakeService{
+				err: fakeErr,
 			},
-			expectedStatus: http.StatusAccepted,
+			expectedStatus:  http.StatusInternalServerError,
+			expectedErrCode: sgerrors.UnknownError,
+		},
+		{ // TC#5
+			inpRepo: []byte(`{"name":"sgRepo","url":"url"}`),
+			svc: &fakeService{
+				repo: &helm.Repository{
+					Config: repo.Entry{
+						Name: "sgRepo",
+					},
+				},
+			},
+			expectedStatus: http.StatusOK,
+			expectedRepo: &helm.Repository{
+				Config: repo.Entry{
+					Name: "sgRepo",
+				},
+			},
 		},
 	}
 
 	for i, tc := range tcs {
 		// setup handler
-		storage := new(testutils.MockStorage)
-		h := NewHandler(NewService(storage))
+		h := &Handler{svc: tc.svc}
 
 		// prepare
-		if tc.rawRepo == nil {
-			raw, err := json.Marshal(tc.repo)
-			require.Equalf(t, nil, err, "TC#%d: %v", i+1, err)
-			tc.rawRepo = raw
-		}
-
-		req, err := http.NewRequest("", "", bytes.NewReader(tc.rawRepo))
+		req, err := http.NewRequest("", "", bytes.NewReader(tc.inpRepo))
 		require.Equalf(t, nil, err, "TC#%d: create request: %v", i+1, err)
 
-		storage.On(testutils.StoragePut, mock.Anything, mock.Anything, tc.repo.Name, mock.Anything).Return(tc.storageError)
-		rr := httptest.NewRecorder()
+		w := httptest.NewRecorder()
 
 		// run
-		http.HandlerFunc(h.Create).ServeHTTP(rr, req)
+		http.HandlerFunc(h.createRepo).ServeHTTP(w, req)
 
 		// check
-		require.Equalf(t, tc.expectedStatus, rr.Code, "TC#%d", i+1)
+		require.Equalf(t, tc.expectedStatus, w.Code, "TC#%d: check status code", i+1)
 
-		// TODO: check error message
+		if w.Code == http.StatusOK {
+			hrepo := &helm.Repository{}
+			require.Nilf(t, json.NewDecoder(w.Body).Decode(hrepo), "TC#%d: decode repo", i+1)
+
+			require.Equalf(t, tc.expectedRepo, hrepo, "TC#%d: check repo", i+1)
+		} else {
+			apiErr := &message.Message{}
+			require.Nilf(t, json.NewDecoder(w.Body).Decode(apiErr), "TC#%d: decode message", i+1)
+
+			require.Equalf(t, tc.expectedErrCode, apiErr.ErrorCode, "TC#%d: check error code", i+1)
+		}
 	}
 }
 
-func TestHandler_Get(t *testing.T) {
+func TestHandler_getRepo(t *testing.T) {
+	loggerWriter := logrus.StandardLogger().Out
+	logrus.SetOutput(ioutil.Discard)
+	defer logrus.SetOutput(loggerWriter)
+
 	tcs := []struct {
+		svc      *fakeService
 		repoName string
 
-		storageRepo    *helm.Repository
-		storageRepoRaw []byte
-
-		expectedStatus int
+		expectedStatus  int
+		expectedRepo    *helm.Repository
+		expectedErrCode sgerrors.ErrorCode
 	}{
 		{ // TC#1
-			expectedStatus: http.StatusNotFound,
+			repoName: "notFound",
+			svc: &fakeService{
+				err: sgerrors.ErrNotFound,
+			},
+			expectedStatus:  http.StatusNotFound,
+			expectedErrCode: sgerrors.NotFound,
 		},
 		{ // TC#2
-			repoName:       "invalid_json",
-			storageRepoRaw: []byte("{name;}"),
-			expectedStatus: http.StatusInternalServerError,
+			repoName: "getError",
+			svc: &fakeService{
+				err: fakeErr,
+			},
+			expectedStatus:  http.StatusInternalServerError,
+			expectedErrCode: sgerrors.UnknownError,
 		},
 		{ // TC#3
-			repoName:       "not_found",
-			expectedStatus: http.StatusNotFound,
-		},
-		{ // TC#4
-			repoName: "stable",
-			storageRepo: &helm.Repository{
-				Name: "stable",
-				URL:  "stable",
+			repoName: "sgRepo",
+			svc: &fakeService{
+				repo: &helm.Repository{
+					Config: repo.Entry{
+						Name: "sgRepo",
+					},
+				},
 			},
 			expectedStatus: http.StatusOK,
+			expectedRepo: &helm.Repository{
+				Config: repo.Entry{
+					Name: "sgRepo",
+				},
+			},
 		},
 	}
 
 	for i, tc := range tcs {
 		// setup handler
-		storage := new(testutils.MockStorage)
-		h := NewHandler(NewService(storage))
+		h := &Handler{svc: tc.svc}
 
 		// prepare
 		req, err := http.NewRequest("", "/helm/"+tc.repoName, nil)
 		require.Equalf(t, nil, err, "TC#%d: create request: %v", i+1, err)
 
-		if tc.storageRepo != nil {
-			raw, err := json.Marshal(tc.storageRepo)
-			require.Equalf(t, nil, err, "TC#%d: %v", i+1, err)
-			tc.storageRepoRaw = raw
-		}
-		storage.On(testutils.StorageGet, mock.Anything, mock.Anything, tc.repoName).Return(tc.storageRepoRaw, nil)
-		rr := httptest.NewRecorder()
-
 		router := mux.NewRouter()
-		router.HandleFunc("/helm/{repoName}", h.Get)
+		router.HandleFunc("/helm/{repoName}", h.getRepo)
+
+		w := httptest.NewRecorder()
 
 		// run
-		router.ServeHTTP(rr, req)
+		router.ServeHTTP(w, req)
 
 		// check
-		// TODO: check error message
-		require.Equalf(t, tc.expectedStatus, rr.Code, "TC#%d", i+1)
+		require.Equalf(t, tc.expectedStatus, w.Code, "TC#%d: check status code", i+1)
 
-		if tc.storageRepo != nil {
-			repo := new(helm.Repository)
-			require.Nil(t, json.NewDecoder(rr.Body).Decode(repo))
+		if w.Code == http.StatusOK {
+			hrepo := &helm.Repository{}
+			require.Nilf(t, json.NewDecoder(w.Body).Decode(hrepo), "TC#%d: decode repo", i+1)
 
-			require.Equalf(t, tc.storageRepo, repo, "TC#%d", i+1)
+			require.Equalf(t, tc.expectedRepo, hrepo, "TC#%d: check repo", i+1)
+		} else {
+			apiErr := &message.Message{}
+			require.Nilf(t, json.NewDecoder(w.Body).Decode(apiErr), "TC#%d: decode message", i+1)
+
+			require.Equalf(t, tc.expectedErrCode, apiErr.ErrorCode, "TC#%d: check error code", i+1)
 		}
 	}
 }
 
-func TestHandler_ListAll(t *testing.T) {
-	tcs := []struct {
-		storageRepo  *helm.Repository
-		storageError error
+func TestHandler_listRepos(t *testing.T) {
+	loggerWriter := logrus.StandardLogger().Out
+	logrus.SetOutput(ioutil.Discard)
+	defer logrus.SetOutput(loggerWriter)
 
-		expectedStatus int
+	tcs := []struct {
+		svc *fakeService
+
+		expectedStatus  int
+		expectedRepos   []helm.Repository
+		expectedErrCode sgerrors.ErrorCode
 	}{
 		{ // TC#1
-			storageError:   errors.New("storage error"),
-			expectedStatus: http.StatusInternalServerError,
+			svc: &fakeService{
+				err: fakeErr,
+			},
+			expectedStatus:  http.StatusInternalServerError,
+			expectedErrCode: sgerrors.UnknownError,
 		},
 		{ // TC#2
-			storageRepo: &helm.Repository{
-				Name: "stable",
-				URL:  "stable",
+			svc: &fakeService{
+				repoList: []helm.Repository{
+					{
+						Config: repo.Entry{
+							Name: "sgRepo",
+						},
+					},
+				},
 			},
 			expectedStatus: http.StatusOK,
+			expectedRepos: []helm.Repository{
+				{
+					Config: repo.Entry{
+						Name: "sgRepo",
+					},
+				},
+			},
 		},
 	}
 
 	for i, tc := range tcs {
 		// setup handler
-		storage := new(testutils.MockStorage)
-		h := NewHandler(NewService(storage))
+		h := &Handler{svc: tc.svc}
 
 		// prepare
 		req, err := http.NewRequest("", "", nil)
 		require.Equalf(t, nil, err, "TC#%d: create request: %v", i+1, err)
 
-		raw, err := json.Marshal(tc.storageRepo)
-		require.Nil(t, err)
-
-		storage.On(testutils.StorageGetAll, mock.Anything, mock.Anything).Return([][]byte{raw}, tc.storageError)
-		rr := httptest.NewRecorder()
+		w := httptest.NewRecorder()
 
 		// run
-		http.HandlerFunc(h.ListAll).ServeHTTP(rr, req)
+		http.HandlerFunc(h.listRepos).ServeHTTP(w, req)
 
 		// check
 		// TODO: check error message
-		require.Equalf(t, tc.expectedStatus, rr.Code, "TC#%d", i+1)
+		require.Equalf(t, tc.expectedStatus, w.Code, "TC#%d", i+1)
 
-		if tc.storageRepo != nil {
-			repos := make([]helm.Repository, 1)
-			if err = json.NewDecoder(rr.Body).Decode(&repos); err != nil {
-				t.Errorf("TC#%d: decode body: %v", i+1, err)
-			}
+		if w.Code == http.StatusOK {
+			hrepos := []helm.Repository{}
+			require.Nilf(t, json.NewDecoder(w.Body).Decode(&hrepos), "TC#%d: decode repos", i+1)
 
-			require.Equalf(t, []helm.Repository{*tc.storageRepo}, repos, "TC#%d", i+1)
+			require.Equalf(t, tc.expectedRepos, hrepos, "TC#%d: check repos", i+1)
+		} else {
+			apiErr := &message.Message{}
+			require.Nilf(t, json.NewDecoder(w.Body).Decode(apiErr), "TC#%d: decode message", i+1)
+
+			require.Equalf(t, tc.expectedErrCode, apiErr.ErrorCode, "TC#%d: check error code", i+1)
 		}
 	}
 }
 
-func TestHandler_Delete(t *testing.T) {
+func TestHandler_deleteRepo(t *testing.T) {
+	loggerWriter := logrus.StandardLogger().Out
+	logrus.SetOutput(ioutil.Discard)
+	defer logrus.SetOutput(loggerWriter)
+
 	tcs := []struct {
+		svc      *fakeService
 		repoName string
 
-		storageError error
-
-		expectedStatus int
+		expectedStatus  int
+		expectedRepo    *helm.Repository
+		expectedErrCode sgerrors.ErrorCode
 	}{
 		{ // TC#1
-			repoName:       "not_found",
-			storageError:   errors.New("error"),
-			expectedStatus: http.StatusInternalServerError,
+			repoName: "notFound",
+			svc: &fakeService{
+				err: sgerrors.ErrNotFound,
+			},
+			expectedStatus:  http.StatusNotFound,
+			expectedErrCode: sgerrors.NotFound,
 		},
 		{ // TC#2
-			repoName:       "delete",
-			expectedStatus: http.StatusAccepted,
+			repoName: "deleteError",
+			svc: &fakeService{
+				err: fakeErr,
+			},
+			expectedStatus:  http.StatusInternalServerError,
+			expectedErrCode: sgerrors.UnknownError,
+		},
+		{ // TC#3
+			repoName: "sgRepo",
+			svc: &fakeService{
+				repo: &helm.Repository{
+					Config: repo.Entry{
+						Name: "sgRepo",
+					},
+				},
+			},
+			expectedStatus: http.StatusOK,
+			expectedRepo: &helm.Repository{
+				Config: repo.Entry{
+					Name: "sgRepo",
+				},
+			},
 		},
 	}
 
 	for i, tc := range tcs {
 		// setup handler
-		storage := new(testutils.MockStorage)
-		h := NewHandler(NewService(storage))
+		h := &Handler{svc: tc.svc}
 
 		// prepare
 		req, err := http.NewRequest("", "/helm/"+tc.repoName, nil)
 		require.Equalf(t, nil, err, "TC#%d: create request: %v", i+1, err)
 
-		storage.On(testutils.StorageDelete, mock.Anything, mock.Anything, mock.Anything).Return(tc.storageError)
-		rr := httptest.NewRecorder()
-
 		router := mux.NewRouter()
-		router.HandleFunc("/helm/{repoName}", h.Delete)
+		router.HandleFunc("/helm/{repoName}", h.deleteRepo)
+
+		w := httptest.NewRecorder()
 
 		// run
-		router.ServeHTTP(rr, req)
+		router.ServeHTTP(w, req)
 
 		// check
-		// TODO: check error message
-		require.Equalf(t, tc.expectedStatus, rr.Code, "TC#%d", i+1)
+		require.Equalf(t, tc.expectedStatus, w.Code, "TC#%d: check status code", i+1)
+
+		if w.Code == http.StatusOK {
+			hrepo := &helm.Repository{}
+			require.Nilf(t, json.NewDecoder(w.Body).Decode(hrepo), "TC#%d: decode repo", i+1)
+
+			require.Equalf(t, tc.expectedRepo, hrepo, "TC#%d: check repo", i+1)
+		} else {
+			apiErr := &message.Message{}
+			require.Nilf(t, json.NewDecoder(w.Body).Decode(apiErr), "TC#%d: decode message", i+1)
+
+			require.Equalf(t, tc.expectedErrCode, apiErr.ErrorCode, "TC#%d: check error code", i+1)
+		}
+	}
+}
+
+func TestHandler_getChart(t *testing.T) {
+	loggerWriter := logrus.StandardLogger().Out
+	logrus.SetOutput(ioutil.Discard)
+	defer logrus.SetOutput(loggerWriter)
+
+	tcs := []struct {
+		svc      *fakeService
+		repoName string
+		chrtName string
+
+		expectedStatus  int
+		expectedChart   *helm.Chart
+		expectedErrCode sgerrors.ErrorCode
+	}{
+		{ // TC#1
+			repoName: "sgRepo",
+			chrtName: "notFound",
+			svc: &fakeService{
+				err: sgerrors.ErrNotFound,
+			},
+			expectedStatus:  http.StatusNotFound,
+			expectedErrCode: sgerrors.NotFound,
+		},
+		{ // TC#2
+			repoName: "sgRepo",
+			chrtName: "getChartError",
+			svc: &fakeService{
+				err: fakeErr,
+			},
+			expectedStatus:  http.StatusInternalServerError,
+			expectedErrCode: sgerrors.UnknownError,
+		},
+		{ // TC#3
+			repoName: "sgRepo",
+			chrtName: "sgChart",
+			svc: &fakeService{
+				chrt: &helm.Chart{
+					Name: "sgChart",
+					Repo: "sgRepo",
+				},
+			},
+			expectedStatus: http.StatusOK,
+			expectedChart: &helm.Chart{
+				Name: "sgChart",
+				Repo: "sgRepo",
+			},
+		},
+	}
+
+	for i, tc := range tcs {
+		// setup handler
+		h := &Handler{svc: tc.svc}
+
+		router := mux.NewRouter()
+		h.Register(router)
+
+		// prepare
+		req, err := http.NewRequest("", "/helm/repositories/"+tc.repoName+"/charts/"+tc.chrtName, nil)
+		require.Equalf(t, nil, err, "TC#%d: create request: %v", i+1, err)
+
+		w := httptest.NewRecorder()
+
+		// run
+		router.ServeHTTP(w, req)
+
+		// check
+		require.Equalf(t, tc.expectedStatus, w.Code, "TC#%d: check status code", i+1)
+
+		if w.Code == http.StatusOK {
+			chrt := &helm.Chart{}
+			require.Nilf(t, json.NewDecoder(w.Body).Decode(chrt), "TC#%d: decode repo", i+1)
+
+			require.Equalf(t, tc.expectedChart, chrt, "TC#%d: check repo", i+1)
+		} else {
+			apiErr := &message.Message{}
+			require.Nilf(t, json.NewDecoder(w.Body).Decode(apiErr), "TC#%d: decode message", i+1)
+
+			require.Equalf(t, tc.expectedErrCode, apiErr.ErrorCode, "TC#%d: check error code", i+1)
+		}
+	}
+}
+
+func TestHandler_listCharts(t *testing.T) {
+	loggerWriter := logrus.StandardLogger().Out
+	logrus.SetOutput(ioutil.Discard)
+	defer logrus.SetOutput(loggerWriter)
+
+	tcs := []struct {
+		svc      *fakeService
+		repoName string
+
+		expectedStatus  int
+		expectedCharts  []helm.Chart
+		expectedErrCode sgerrors.ErrorCode
+	}{
+		{ // TC#1
+			repoName: "listChartError",
+			svc: &fakeService{
+				err: fakeErr,
+			},
+			expectedStatus:  http.StatusInternalServerError,
+			expectedErrCode: sgerrors.UnknownError,
+		},
+		{ // TC#2
+			repoName: "sgRepo",
+			svc: &fakeService{
+				chrtList: []helm.Chart{
+					{
+						Name: "sgChart",
+						Repo: "sgRepo",
+					},
+				},
+			},
+			expectedStatus: http.StatusOK,
+			expectedCharts: []helm.Chart{
+				{
+					Name: "sgChart",
+					Repo: "sgRepo",
+				},
+			},
+		},
+	}
+
+	for i, tc := range tcs {
+		// setup handler
+		h := &Handler{svc: tc.svc}
+
+		// prepare
+		req, err := http.NewRequest("", "", nil)
+		require.Equalf(t, nil, err, "TC#%d: create request: %v", i+1, err)
+
+		w := httptest.NewRecorder()
+
+		// run
+		http.HandlerFunc(h.listCharts).ServeHTTP(w, req)
+
+		// check
+		require.Equalf(t, tc.expectedStatus, w.Code, "TC#%d", i+1)
+
+		if w.Code == http.StatusOK {
+			charts := []helm.Chart{}
+			require.Nilf(t, json.NewDecoder(w.Body).Decode(&charts), "TC#%d: decode repos", i+1)
+
+			require.Equalf(t, tc.expectedCharts, charts, "TC#%d: check repos", i+1)
+		} else {
+			apiErr := &message.Message{}
+			require.Nilf(t, json.NewDecoder(w.Body).Decode(apiErr), "TC#%d: decode message", i+1)
+
+			require.Equalf(t, tc.expectedErrCode, apiErr.ErrorCode, "TC#%d: check error code", i+1)
+		}
 	}
 }

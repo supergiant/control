@@ -29,6 +29,7 @@ input {
 }
 
 a {
+  cursor: pointer;
   &,
   &:visited {
     color: inherit;

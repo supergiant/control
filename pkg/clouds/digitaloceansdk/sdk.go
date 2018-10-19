@@ -2,10 +2,12 @@ package digitaloceansdk
 
 import (
 	"github.com/digitalocean/godo"
+	"github.com/pkg/errors"
+	"golang.org/x/oauth2"
+
 	"github.com/supergiant/supergiant/pkg/clouds"
 	"github.com/supergiant/supergiant/pkg/model"
 	"github.com/supergiant/supergiant/pkg/sgerrors"
-	"golang.org/x/oauth2"
 )
 
 type TokenSource struct {

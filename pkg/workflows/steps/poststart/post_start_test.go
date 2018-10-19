@@ -2,7 +2,6 @@ package poststart
 
 import (
 	"bytes"
-
 	"context"
 	"io"
 	"io/ioutil"

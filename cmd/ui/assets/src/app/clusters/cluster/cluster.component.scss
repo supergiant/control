@@ -1,7 +1,404 @@
-:host {
+.cluster-details-wrapper {
   margin-top: 15px;
 
-  .machines-list {
+  .task-overview {
+    display: flex;
+    justify-content: space-between;
+    margin: 48px auto 0px;
+    height: 204px;
+    width: 934px;
+
+    .task-group {
+      display: flex;
+      flex-direction: column;
+      height: 204px;
+
+      h1 {
+        font-size: 32px;
+        margin: 0 auto;
+      }
+
+      .icon {
+        margin: 0 auto;
+        height: 148px;
+        width: 148px;
+      }
+
+      .masters-icon {
+
+        .executing {
+          height: 100%;
+          width: 100%;
+          position: relative;
+
+          .spinner-outline {
+            background: url(/assets/img/cluster-details/steps/unfilled_empty.svg) no-repeat center;
+            position: relative;
+            top: 0;
+            left: 0;
+            height: 100%;
+            width: 100%;
+          }
+
+          .mat-spinner {
+            position: absolute;
+            top: 0;
+            left: 0;
+
+            circle {
+              stroke: rgba(255, 0, 166, 0.5);
+            }
+          }
+
+          .status {
+            background: url(/assets/img/cluster-details/steps/number_1.svg) no-repeat center;
+            position: absolute;
+            top: -112px;
+            left: -110px;
+            height: 250%;
+            width: 250%;
+          }
+        }
+
+        .complete {
+          height: 100%;
+          width: 100%;
+          position: relative;
+
+          .spinner-outline {
+            background: url(/assets/img/cluster-details/steps/filled_pink.svg) no-repeat center;
+            position: relative;
+            top: 0;
+            left: 0;
+            height: 100%;
+            width: 100%;
+          }
+
+          .mat-spinner {
+            display: none;
+          }
+
+          .status {
+            background: url(/assets/img/cluster-details/steps/checked_pink.svg) no-repeat center;
+            position: absolute;
+            top: -112px;
+            left: -110px;
+            height: 250%;
+            width: 250%;
+          }
+        }
+
+        .failed {
+          height: 100%;
+          width: 100%;
+          position: relative;
+
+          .spinner-outline {
+            background: url(/assets/img/cluster-details/steps/unfilled_empty.svg) no-repeat center;
+            position: relative;
+            top: 0;
+            left: 0;
+            height: 100%;
+            width: 100%;
+          }
+
+          .mat-spinner {
+            display: none;
+          }
+
+          .status {
+            background: url(/assets/img/cluster-details/steps/number_1_trans.svg) no-repeat center;
+            position: absolute;
+            top: -112px;
+            left: -110px;
+            height: 250%;
+            width: 250%;
+          }
+        }
+      }
+
+      .nodes-icon {
+
+        .queued {
+          height: 100%;
+          width: 100%;
+          position: relative;
+
+          .spinner-outline {
+            background: url(/assets/img/cluster-details/steps/unfilled_empty.svg) no-repeat center;
+            position: relative;
+            top: 0;
+            left: 0;
+            height: 100%;
+            width: 100%;
+          }
+
+          .mat-spinner {
+            display: none;
+          }
+
+          .status {
+            background: url(/assets/img/cluster-details/steps/number_2_trans.svg) no-repeat center;
+            position: absolute;
+            top: -112px;
+            left: -110px;
+            height: 250%;
+            width: 250%;
+          }
+        }
+
+        .executing {
+          height: 100%;
+          width: 100%;
+          position: relative;
+
+          .spinner-outline {
+            background: url(/assets/img/cluster-details/steps/unfilled_empty.svg) no-repeat center;
+            position: relative;
+            top: 0;
+            left: 0;
+            height: 100%;
+            width: 100%;
+          }
+
+          .mat-spinner {
+            position: absolute;
+            top: 0;
+            left: 0;
+
+            circle {
+              stroke: rgba(64, 196, 255, 0.5);
+            }
+          }
+
+          .status {
+            background: url(/assets/img/cluster-details/steps/number_2.svg) no-repeat center;
+            position: absolute;
+            top: -112px;
+            left: -110px;
+            height: 250%;
+            width: 250%;
+          }
+        }
+
+        .complete {
+          height: 100%;
+          width: 100%;
+          position: relative;
+
+          .spinner-outline {
+            background: url(/assets/img/cluster-details/steps/filled_blue.svg) no-repeat center;
+            position: relative;
+            top: 0;
+            left: 0;
+            height: 100%;
+            width: 100%;
+          }
+
+          .mat-spinner {
+            display: none;
+          }
+
+          .status {
+            background: url(/assets/img/cluster-details/steps/checked_blue.svg) no-repeat center;
+            position: absolute;
+            top: -112px;
+            left: -110px;
+            height: 250%;
+            width: 250%;
+          }
+        }
+
+        .failed {
+          height: 100%;
+          width: 100%;
+          position: relative;
+
+          .spinner-outline {
+            background: url(/assets/img/cluster-details/steps/unfilled_empty.svg) no-repeat center;
+            position: relative;
+            top: 0;
+            left: 0;
+            height: 100%;
+            width: 100%;
+          }
+
+          .mat-spinner {
+            display: none;
+          }
+
+          .status {
+            background: url(/assets/img/cluster-details/steps/number_2_trans.svg) no-repeat center;
+            position: absolute;
+            top: -112px;
+            left: -110px;
+            height: 250%;
+            width: 250%;
+          }
+        }
+      }
+
+      .ready-icon {
+
+        .queued {
+          height: 100%;
+          width: 100%;
+          position: relative;
+
+          .spinner-outline {
+            background: url(/assets/img/cluster-details/steps/unfilled_empty.svg) no-repeat center;
+            position: relative;
+            top: 0;
+            left: 0;
+            height: 100%;
+            width: 100%;
+          }
+
+          .mat-spinner {
+            display: none;
+          }
+
+          .status {
+            background: url(/assets/img/cluster-details/steps/number_3_trans.svg) no-repeat center;
+            position: absolute;
+            top: -112px;
+            left: -110px;
+            height: 250%;
+            width: 250%;
+          }
+        }
+
+        .executing {
+          height: 100%;
+          width: 100%;
+          position: relative;
+
+          .spinner-outline {
+            background: url(/assets/img/cluster-details/steps/unfilled_empty.svg) no-repeat center;
+            position: relative;
+            top: 0;
+            left: 0;
+            height: 100%;
+            width: 100%;
+          }
+
+          .mat-spinner {
+            position: absolute;
+            top: 0;
+            left: 0;
+
+            circle {
+              stroke: rgba(0, 217, 59, 0.5);
+            }
+          }
+
+          .status {
+            background: url(/assets/img/cluster-details/steps/number_3.svg) no-repeat center;
+            position: absolute;
+            top: -112px;
+            left: -110px;
+            height: 250%;
+            width: 250%;
+          }
+        }
+
+        .complete {
+          height: 100%;
+          width: 100%;
+          position: relative;
+
+          .spinner-outline {
+            background: url(/assets/img/cluster-details/steps/filled_green.svg) no-repeat center;
+            position: relative;
+            top: 0;
+            left: 0;
+            height: 100%;
+            width: 100%;
+          }
+
+          .mat-spinner {
+            display: none;
+          }
+
+          .status {
+            background: url(/assets/img/cluster-details/steps/checked_green.svg) no-repeat center;
+            position: absolute;
+            top: -112px;
+            left: -110px;
+            height: 250%;
+            width: 250%;
+          }
+        }
+
+        .failed {
+          height: 100%;
+          width: 100%;
+          position: relative;
+
+          .spinner-outline {
+            background: url(/assets/img/cluster-details/steps/unfilled_empty.svg) no-repeat center;
+            position: relative;
+            top: 0;
+            left: 0;
+            height: 100%;
+            width: 100%;
+          }
+
+          .mat-spinner {
+            display: none;
+          }
+
+          .status {
+            background: url(/assets/img/cluster-details/steps/number_3_trans.svg) no-repeat center;
+            position: absolute;
+            top: -112px;
+            left: -110px;
+            height: 250%;
+            width: 250%;
+          }
+        }
+      }
+    }
+
+    .masters h1 {
+
+      &.queued, &.failed {
+        opacity: 0.25;
+      }
+    }
+
+    .nodes h1 {
+      color: #009BE0;
+
+      &.queued, &.failed {
+        opacity: 0.25;
+      }
+    }
+
+    .ready h1 {
+      color: #009829;
+
+      &.queued, &.failed {
+        opacity: 0.25;
+      }
+    }
+  }
+
+  .failed-message {
+    background-color: rgba(0, 0, 0, 0.5);
+    border: 1px solid rgba(255, 255, 255, 0.25);
+    margin: 48px auto;
+    padding: 21px 24px 24px 24px;
+
+    .communication {
+      color: red;
+      font-size: 24px;
+      font-weight: 300;
+      text-align: center;
+    }
+  }
+
+  .sg-table {
     background-color: rgba(0, 0, 0, 0.5);
     border: 1px solid rgba(255, 255, 255, 0.25);
     margin: 48px auto;
@@ -38,6 +435,135 @@
           overflow: unset;
           justify-content: space-between;
         }
+
+        .expanded-tasks {
+          align-items: flex-start;
+          display: flex;
+          flex-direction: column;
+          font-family: courier;
+          background-color: rgba(255,255,255,0.1);
+          padding: 10px 0px 0px 0px;
+          margin: 0px 20px;
+
+          p {
+            margin-left: 20px;
+
+            @keyframes blink {
+
+              0% {
+                opacity: .2;
+              }
+
+              20% {
+                opacity: 1;
+              }
+
+              100% {
+                opacity: .2;
+              }
+            }
+
+            .saving span {
+              animation-name: blink;
+              animation-duration: 1.4s;
+              animation-iteration-count: infinite;
+              animation-fill-mode: both;
+            }
+
+            .saving span:nth-child(2) {
+              animation-delay: .2s;
+            }
+
+            .saving span:nth-child(3) {
+              animation-delay: .4s;
+            }
+
+            .success {
+              color: #00D93B;
+            }
+
+            .executing {
+              color: yellow;
+            }
+
+            .error {
+              color: red;
+            }
+
+            .step-error-message {
+              color: red;
+              display: block;
+              font-style: italic;
+            }
+          }
+        }
+
+        .task-status {
+          justify-content: flex-start;
+
+          .ready-icon {
+            background: url(/assets/img/cluster-details/steps/icon_ready.svg) no-repeat center;
+            // why?
+            background-size: 685%;
+            height: 48px;
+            width: 48px;
+          }
+
+          .failed-icon {
+            background: url(/assets/img/cluster-details/steps/icon_failed.svg) no-repeat center;
+            height: 30px;
+            width: 48px;
+          }
+
+          .restart-task {
+            font-size: 12px;
+            line-height: 24px;
+            margin-left: 24px;
+            padding: 0px 16px;
+
+            .restart-spinner {
+              margin: 3px auto;
+
+              circle {
+                stroke: #fff;
+              }
+            }
+          }
+        }
+
+        .steps-toggle {
+          background: url(/assets/img/cluster-details/steps/icon_steps.svg) no-repeat center;
+          cursor: pointer;
+          height: 50px;
+          width: 50%;
+          margin: 0 auto
+        }
+
+        .open-logs {
+          background: url(/assets/img/cluster-details/steps/icon_terminal.svg) no-repeat center;
+          cursor: pointer;
+          height: 50px;
+          width: 75%;
+          margin: 0 auto
+        }
+
+        .show-steps {
+          background-color: rgba(255,255,255,0.1);
+        }
+      }
+
+      .viewingSteps {
+        margin-bottom: 0px;
+      }
+
+      .detail-row {
+        margin: 0px;
+      }
+
+      .small-cell {
+        max-width: 60px;
+        margin-right: 20px;
+        justify-content: center;
       }
     }
 

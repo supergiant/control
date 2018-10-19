@@ -3,12 +3,13 @@ package network
 import (
 	"bytes"
 	"context"
-	"github.com/pkg/errors"
 	"io"
 	"io/ioutil"
 	"strings"
 	"testing"
 	"text/template"
+
+	"github.com/pkg/errors"
 
 	"github.com/supergiant/supergiant/pkg/profile"
 	"github.com/supergiant/supergiant/pkg/runner"

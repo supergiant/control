@@ -1,4 +1,5 @@
-cat << EOF > /etc/systemd/system/kubelet.service
+
+sudo bash -c "cat << EOF > /etc/systemd/system/kubelet.service
 [Unit]
 Description=Kubernetes Kubelet Server
 Documentation=https://github.com/kubernetes/kubernetes
@@ -27,6 +28,9 @@ ExecStart=/usr/bin/docker run \
       --cluster_domain=cluster.local \
       --pod-manifest-path=/etc/kubernetes/manifests \
       --kubeconfig=/etc/kubernetes/worker-kubeconfig.yaml \
+      --client-ca-file=/etc/kubernetes/ssl/ca.pem \
+      --tls-cert-file=/etc/kubernetes/ssl/worker.pem \
+      --tls-private-key-file=/etc/kubernetes/ssl/worker-key.pem \
       --volume-plugin-dir=/etc/kubernetes/volumeplugins --fail-swap-on=false --register-node=true
 Restart=always
 StartLimitInterval=0
@@ -35,6 +39,6 @@ KillMode=process
 
 [Install]
 WantedBy=multi-user.target
-EOF
-systemctl daemon-reload
-systemctl start kubelet
+EOF"
+sudo systemctl daemon-reload
+sudo systemctl start kubelet

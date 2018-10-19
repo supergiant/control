@@ -1,13 +1,52 @@
+// EXAMPLE APP STATE
+
+// {
+//   cloudAccount: {},
+//   clusterConfig: {
+//     name: "...",
+//     k8sVersion: "...",
+//     flannelVersion: "...",
+//     helmVersion: "...",
+//     dockerVersion: "...",
+//     ubuntuVersion: "...",
+//     networkType: "...",
+//     cidr: "...",
+//     operatingSystem: "...",
+//     arch: "..."
+//   },
+//   providerConfig: {
+//     digitalOcean: {
+//       region: "..."
+//     },
+//     aws: {
+//       region: "...",
+//       vpc: "...",
+//       mastersSubnet: "...",
+//       nodesSubnet: "...",
+//       mastersSecurityGroup: "...",
+//       nodessSecurityGroup: "..."
+//     }
+//   },
+//   machinesConfig: [
+//     {
+//       role: "...",
+//       type: "...",
+//       qty: "..."
+//     },
+//     {
+//       role: "...",
+//       type: "...",
+//       qty: "..."
+//     }
+//   ]
+// }
+
 import { Component, OnInit, OnDestroy, AfterViewInit, ViewEncapsulation } from '@angular/core';
 import { Subscription } from 'rxjs';
 import { Supergiant } from '../../shared/supergiant/supergiant.service';
-import { ClusterAWSModel } from '../cluster.aws.model';
-import { ClusterDigitalOceanModel } from '../cluster.digitalocean.model';
-import { ClusterGCEModel } from '../cluster.gce.model';
-import { ClusterOpenStackModel } from '../cluster.openstack.model';
-import { ClusterPacketModel } from '../cluster.packet.model';
 import { Notifications } from '../../shared/notifications/notifications.service';
 import { Router } from '@angular/router';
+import { FormBuilder, FormGroup, Validators } from '@angular/forms';
 
 @Component({
   selector: 'app-new-cluster',
@@ -17,29 +56,16 @@ import { Router } from '@angular/router';
 })
 export class NewClusterComponent implements OnInit, OnDestroy {
   subscriptions = new Subscription();
-  cloudAccountsList: any;
-  awsModel = new ClusterAWSModel;
-  doModel = new ClusterDigitalOceanModel;
-  gceModel = new ClusterGCEModel;
-  osModel = new ClusterOpenStackModel;
-  packModel = new ClusterPacketModel;
-  hasCluster = false;
-  hasCloudAccount = false;
-  hasApp = false;
-  appCount = 0;
-  data: any;
-  schema: any;
-  layout: any;
 
-
-  // temp for demo
   clusterName: string;
   availableCloudAccounts: Array<any>;
   selectedCloudAccount: any;
   availableRegions: Array<any>;
   selectedRegion: any;
   availableMachineTypes: Array<any>;
-  machineSizes: any;
+
+  // aws vars
+  availabilityZones: Array<any>;
 
   machines = [{
     machineType: null,
@@ -47,7 +73,7 @@ export class NewClusterComponent implements OnInit, OnDestroy {
     qty: 1
   }];
 
-  profileOptions = {
+  clusterOptions = {
     archs: ["amd64"],
     flannelVersions: ["0.10.0"],
     operatingSystems: ["linux"],
@@ -55,35 +81,21 @@ export class NewClusterComponent implements OnInit, OnDestroy {
     ubuntuVersions: ["xenial"],
     helmVersions: ["2.8.0"],
     dockerVersions: ["17.06.0"],
-    K8SVersions: ["1.11.1"],
-    rbacEnabled: [true, false]
-  }
+    K8sVersions: ["1.11.1"],
+    rbacEnabled: [false]
+  };
 
-  newDigitalOceanCluster = {
-    profile: {
-      masterProfiles: [],
-      nodesProfiles: [],
-      provider: "digitalocean",
-      // will have to set this on submit for now UGH
-      // region: this.selectedRegion.id,
-      arch: "amd64",
-      operatingSystem: "linux",
-      ubuntuVersion: "xenial",
-      dockerVersion: "17.06.0",
-      K8SVersion: "1.11.1",
-      flannelVersion: "0.10.0",
-      networkType: "vxlan",
-      cidr: "10.0.0.0/24",
-      helmVersion: "2.8.0",
-      rbacEnabled: false
-    }
-  }
+  provisioning = false;
+  clusterConfig: FormGroup;
+  providerConfig: FormGroup;
 
   constructor(
     private supergiant: Supergiant,
     private notifications: Notifications,
     private router: Router,
+    private formBuilder: FormBuilder
   ) { }
+
 
   getCloudAccounts() {
     this.subscriptions.add(this.supergiant.CloudAccounts.get().subscribe(
@@ -93,46 +105,76 @@ export class NewClusterComponent implements OnInit, OnDestroy {
     );
   }
 
-  back() {
-    this.data = null;
-    this.schema = null;
-  }
-
   compileProfiles(machines, role) {
     const filteredMachines = machines.filter(m => m.role == role);
     const compiledProfiles = [];
 
-    filteredMachines.forEach(m => {
-      for (var i = 0; i < m.qty; i++) {
-        compiledProfiles.push({ image: "ubuntu-16-04-x64", size: m.machineType })
+    switch (this.selectedCloudAccount.provider) {
+      case "digitalocean": {
+        filteredMachines.forEach(m => {
+          for (var i = 0; i < m.qty; i++) {
+            compiledProfiles.push({ image: "ubuntu-16-04-x64", size: m.machineType })
+          }
+        })
       }
-    })
+      case "aws": {
+        filteredMachines.forEach(m => {
+          for (var i = 0; i < m.qty; i++) {
+            compiledProfiles.push({ volumeSize: "80", size: m.machineType, ebsOptimized: "true", hasPublicAddr: "true" })
+          }
+        })
+      }
+    }
+
+
 
     return compiledProfiles;
   }
 
-  createCluster(model) {
-    // temp for demo
-    model.cloudAccountName = this.selectedCloudAccount.name;
-    model.clusterName = this.clusterName;
-    model.profile.region = this.selectedRegion.id
-    model.profile.masterProfiles = this.compileProfiles(this.machines, "Master");
-    model.profile.nodesProfiles = this.compileProfiles(this.machines, "Node");
+  createCluster() {
+    // compile frontend new-cluster model into api format
+    const newClusterData:any = {};
+    newClusterData.profile = this.clusterConfig.value;
 
-    console.log(model);
+    newClusterData.cloudAccountName = this.selectedCloudAccount.name;
+    newClusterData.clusterName = this.clusterName;
+    newClusterData.profile.region = this.providerConfig.value.region.id;
+    newClusterData.profile.provider = this.selectedCloudAccount.provider;
+    newClusterData.profile.masterProfiles = this.compileProfiles(this.machines, "Master");
+    newClusterData.profile.nodesProfiles = this.compileProfiles(this.machines, "Node");
 
-    this.subscriptions.add(this.supergiant.Kubes.create(model).subscribe(
+    switch (newClusterData.profile.provider) {
+      case "aws": {
+        newClusterData.profile.cloudSpecificSettings = {
+          aws_az: this.providerConfig.value.availabilityZone,
+          aws_vpc_cidr: this.providerConfig.value.vpcCidr,
+          aws_vpc_id: this.providerConfig.value.vpcId,
+          aws_keypair_name: this.providerConfig.value.keypairName,
+          aws_subnet_id: this.providerConfig.value.subnetId,
+          aws_masters_secgroup_id: this.providerConfig.value.mastersSecurityGroupId,
+          aws_nodes_secgroup_id: this.providerConfig.value.nodesSecurityGroupId
+        }
+      }
+    }
+
+    this.provisioning = true;
+    this.subscriptions.add(this.supergiant.Kubes.create(newClusterData).subscribe(
       (data) => {
-        this.success(model);
-        this.router.navigate(['/clusters/', this.clusterName]);
+        this.success(newClusterData);
+        this.router.navigate(['/clusters/', newClusterData.clusterName]);
+        this.provisioning = false;
       },
-      (err) => { this.error(model, err); }));
+      (err) => {
+        this.error(newClusterData, err);
+        this.provisioning = false;
+      }
+    ));
   }
 
   success(model) {
     this.notifications.display(
       'success',
-      'Kube: ' + this.data.name,
+      'Kube: ' + model.clusterName,
       'Created...',
     );
   }
@@ -146,14 +188,41 @@ export class NewClusterComponent implements OnInit, OnDestroy {
       'Error:' + data.statusText);
   }
 
+  getAwsAvailabilityZones(region) {
+    const accountName = this.selectedCloudAccount.name;
+
+    return this.supergiant.CloudAccounts.getAwsAvailabilityZones(accountName, region.name);
+  }
+
+  selectAz(zone) {
+    const accountName = this.selectedCloudAccount.name;
+    const region = this.providerConfig.value.region.name;
+
+    this.supergiant.CloudAccounts.getAwsMachineTypes(accountName, region, zone).subscribe(
+      types => this.availableMachineTypes = types,
+      err => console.error(err)
+    )
+  }
+
   selectRegion(region) {
-    this.availableMachineTypes = region.AvailableSizes;
-    if (this.machines.length === 0) {
-      this.machines.push({
-        machineType: null,
-        role: null,
-        qty: 1
-      });
+    switch (this.selectedCloudAccount.provider) {
+      case "digitalocean": {
+        this.availableMachineTypes = region.AvailableSizes;
+        if (this.machines.length === 0) {
+          this.machines.push({
+            machineType: null,
+            role: null,
+            qty: 1
+          });
+        }
+      }
+
+      case "aws": {
+        this.getAwsAvailabilityZones(region).subscribe(
+          azList => this.availabilityZones = azList,
+          err => console.error(err)
+        )
+      }
     }
   }
 
@@ -170,60 +239,53 @@ export class NewClusterComponent implements OnInit, OnDestroy {
   }
 
   selectCloudAccount(cloudAccount) {
-    switch (cloudAccount.provider) {
-      case 'aws': {
-        this.data = this.awsModel.aws.data;
-        this.schema = this.awsModel.aws.schema;
-        this.layout = this.awsModel.aws.layout;
-        this.data.cloudAccountName = cloudAccount.name;
-        break;
+    this.selectedCloudAccount = cloudAccount
+
+    switch (this.selectedCloudAccount.provider) {
+      case "digitalocean": {
+        this.providerConfig = this.formBuilder.group({
+          region: [""]
+        });
       }
-      case 'digitalocean': {
-        this.schema = this.doModel.digitalocean.schema;
-        this.data = this.doModel.digitalocean.data;
-        // this.layout = this.doModel.digitalocean.layout;
-        this.data.cloudAccountName = cloudAccount.name;
-        break;
+
+      case "aws": {
+        this.providerConfig = this.formBuilder.group({
+          region: [""],
+          availabilityZone: [""],
+          vpcId: ["default"],
+          vpcCidr: ["10.2.0.0/16"],
+          keypairName: [""],
+          subnetId: ["default"],
+          mastersSecurityGroupId: [""],
+          nodesSecurityGroupId: [""]
+        })
       }
-      case 'packet': {
-        this.data = this.packModel.packet.data;
-        this.schema = this.packModel.packet.schema;
-        this.layout = this.packModel.packet.layout;
-        this.data.cloudAccountName = cloudAccount.name;
-        break;
-      }
-      case 'openstack': {
-        this.data = this.osModel.openstack.data;
-        this.schema = this.osModel.openstack.schema;
-        this.layout = this.osModel.openstack.layout;
-        this.data.cloudAccountName = cloudAccount.name;
-        break;
-      }
-      case 'gce': {
-        this.data = this.gceModel.gce.data;
-        this.schema = this.gceModel.gce.schema;
-        this.layout = this.gceModel.gce.layout;
-        this.data.cloudAccountName = cloudAccount.name;
-        break;
-      }
-      default: {
-        this.data = null;
-        this.schema = null;
-        this.layout = null;
-        break;
-      }
-    };
+    }
 
     this.subscriptions.add(this.supergiant.CloudAccounts.getRegions(cloudAccount.name).subscribe(
         regionList => {
           this.availableRegions = regionList;
-          this.machineSizes = regionList.sizes;
         },
         err => this.error({}, err)
     ))
   }
 
   ngOnInit() {
+    // build cluster config w/ defaults
+    this.clusterConfig = this.formBuilder.group({
+      K8sVersion: ["1.11.1"],
+      flannelVersion: ["0.10.0"],
+      helmVersion: ["2.8.0"],
+      dockerVersion: ["17.06.0"],
+      ubuntuVersion: ["xenial"],
+      networkType: ["vxlan"],
+      cidr: ["10.0.0.0/24"],
+      operatingSystem: ["linux"],
+      arch: ["amd64"],
+      rbacEnabled: [false]
+    });
+
+    // get cloud accounts
     this.getCloudAccounts();
   }
 

@@ -5,10 +5,10 @@ import (
 	"net/http"
 
 	"github.com/gorilla/mux"
+	"github.com/pborman/uuid"
 	"github.com/sirupsen/logrus"
 	"gopkg.in/asaskevich/govalidator.v8"
 
-	"github.com/pborman/uuid"
 	"github.com/supergiant/supergiant/pkg/sgerrors"
 )
 

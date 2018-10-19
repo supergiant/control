@@ -3,7 +3,6 @@ package controlplane
 import (
 	"context"
 	"fmt"
-	"github.com/supergiant/supergiant/pkg/workflows/steps/amazon"
 	"net/http"
 	"time"
 
@@ -12,6 +11,8 @@ import (
 	"github.com/gorilla/mux"
 	"github.com/pkg/errors"
 	"github.com/sirupsen/logrus"
+	"k8s.io/helm/pkg/repo"
+
 	"github.com/supergiant/supergiant/pkg/account"
 	"github.com/supergiant/supergiant/pkg/api"
 	"github.com/supergiant/supergiant/pkg/helm"
@@ -20,12 +21,14 @@ import (
 	"github.com/supergiant/supergiant/pkg/profile"
 	"github.com/supergiant/supergiant/pkg/provisioner"
 	sshRunner "github.com/supergiant/supergiant/pkg/runner/ssh"
+	"github.com/supergiant/supergiant/pkg/sgerrors"
 	"github.com/supergiant/supergiant/pkg/storage"
 	"github.com/supergiant/supergiant/pkg/templatemanager"
 	"github.com/supergiant/supergiant/pkg/testutils/assert"
 	"github.com/supergiant/supergiant/pkg/user"
 	"github.com/supergiant/supergiant/pkg/util"
 	"github.com/supergiant/supergiant/pkg/workflows"
+	"github.com/supergiant/supergiant/pkg/workflows/steps/amazon"
 	"github.com/supergiant/supergiant/pkg/workflows/steps/certificates"
 	"github.com/supergiant/supergiant/pkg/workflows/steps/clustercheck"
 	"github.com/supergiant/supergiant/pkg/workflows/steps/cni"
@@ -204,6 +207,7 @@ func configureApplication(cfg *Config) (*mux.Router, error) {
 	if err := templatemanager.Init(cfg.TemplatesDir); err != nil {
 		return nil, err
 	}
+
 	digitalocean.Init()
 	certificates.Init()
 	cni.Init()
@@ -218,8 +222,12 @@ func configureApplication(cfg *Config) (*mux.Router, error) {
 	ssh.Init()
 	network.Init()
 	clustercheck.Init()
-	amazon.InitCreateKeyPair()
-	amazon.InitStepCreateInstance()
+	amazon.InitImportKeyPair(amazon.GetEC2)
+	amazon.InitCreateMachine(amazon.GetEC2)
+	amazon.InitCreateSecurityGroups(amazon.GetEC2)
+	amazon.InitCreateVPC(amazon.GetEC2)
+	amazon.InitCreateSubnet(amazon.GetEC2)
+
 	workflows.Init()
 
 	taskHandler := workflows.NewTaskHandler(repository, sshRunner.NewRunner, accountService)
@@ -235,7 +243,12 @@ func configureApplication(cfg *Config) (*mux.Router, error) {
 	kubeHandler := kube.NewHandler(kubeService, accountService, taskProvisioner, repository)
 	kubeHandler.Register(protectedAPI)
 
-	helmService := helm.NewService(repository)
+	helmService, err := helm.NewService(repository)
+	if err != nil {
+		return nil, errors.Wrap(err, "new helm service")
+	}
+	go ensureHelmRepositories(helmService)
+
 	helmHandler := helm.NewHandler(helmService)
 	helmHandler.Register(protectedAPI)
 
@@ -255,4 +268,32 @@ func configureLogging(cfg *Config) {
 		return
 	}
 	logrus.SetLevel(l)
+}
+
+func ensureHelmRepositories(svc helm.Servicer) {
+	if svc == nil {
+		return
+	}
+
+	entries := []repo.Entry{
+		{
+			Name: "supergiant",
+			URL:  "https://supergiant.github.io/charts",
+		},
+		{
+			Name: "stable",
+			URL:  "https://kubernetes-charts.storage.googleapis.com",
+		},
+	}
+
+	for _, entry := range entries {
+		_, err := svc.CreateRepo(context.Background(), &entry)
+		if err != nil {
+			if !sgerrors.IsAlreadyExists(err) {
+				logrus.Errorf("failed to add %q helm repository: %v", entry.Name, err)
+			}
+			continue
+		}
+		logrus.Infof("helm repository has been added: %s", entry.Name)
+	}
 }

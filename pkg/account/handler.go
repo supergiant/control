@@ -6,10 +6,10 @@ import (
 	"net/http"
 
 	"github.com/gorilla/mux"
+	"github.com/pkg/errors"
 	"github.com/sirupsen/logrus"
 	"gopkg.in/asaskevich/govalidator.v8"
 
-	"github.com/pkg/errors"
 	"github.com/supergiant/supergiant/pkg/message"
 	"github.com/supergiant/supergiant/pkg/model"
 	"github.com/supergiant/supergiant/pkg/sgerrors"
@@ -35,6 +35,8 @@ func (h *Handler) Register(r *mux.Router) {
 	r.HandleFunc("/accounts/{accountName}", h.Update).Methods(http.MethodPut)
 	r.HandleFunc("/accounts/{accountName}", h.Delete).Methods(http.MethodDelete)
 	r.HandleFunc("/accounts/{accountName}/regions", h.GetRegions).Methods(http.MethodGet)
+	r.HandleFunc("/accounts/{accountName}/regions/{region}/az", h.GetAZs).Methods(http.MethodGet)
+	r.HandleFunc("/accounts/{accountName}/regions/{region}/az/{az}/types", h.GetTypes).Methods(http.MethodGet)
 }
 
 // Create register new cloud account
@@ -175,6 +177,104 @@ func (h *Handler) GetRegions(w http.ResponseWriter, r *http.Request) {
 
 	if err := json.NewEncoder(w).Encode(aggregate); err != nil {
 		logrus.Errorf("clouds: get regions %v", err)
+		message.SendUnknownError(w, err)
+		return
+	}
+}
+
+func (h *Handler) GetAZs(w http.ResponseWriter, r *http.Request) {
+	accountName, ok := mux.Vars(r)["accountName"]
+	if !ok || accountName == "" {
+		message.SendValidationFailed(w, errors.New("clouds: preconditions failed"))
+		return
+	}
+
+	region, ok := mux.Vars(r)["region"]
+	if region == "" {
+		message.SendValidationFailed(w, errors.New("clouds: preconditions failed"))
+		return
+	}
+
+	acc, err := h.service.Get(r.Context(), accountName)
+	if err != nil {
+		if sgerrors.IsNotFound(err) {
+			message.SendNotFound(w, "account", err)
+			return
+		}
+
+		logrus.Errorf("clouds: get aws availability zones %v", err)
+		message.SendUnknownError(w, err)
+		return
+	}
+
+	finder, err := NewAWSFinder(acc)
+	if err != nil {
+		logrus.Errorf("clouds: get aws availability zones %v", err)
+		message.SendUnknownError(w, err)
+		return
+	}
+
+	azs, err := finder.GetAZ(r.Context(), region)
+	if err != nil {
+		logrus.Errorf("clouds: get aws availability zones %v", err)
+		message.SendUnknownError(w, err)
+		return
+	}
+
+	if err := json.NewEncoder(w).Encode(azs); err != nil {
+		logrus.Errorf("clouds: get aws availability zones %v", err)
+		message.SendUnknownError(w, err)
+		return
+	}
+}
+
+func (h *Handler) GetTypes(w http.ResponseWriter, r *http.Request) {
+	accountName, ok := mux.Vars(r)["accountName"]
+	if !ok || accountName == "" {
+		message.SendValidationFailed(w, errors.New("clouds: preconditions failed"))
+		return
+	}
+
+	region, ok := mux.Vars(r)["region"]
+	if region == "" {
+		message.SendValidationFailed(w, errors.New("clouds: preconditions failed"))
+		return
+	}
+
+	az, ok := mux.Vars(r)["az"]
+	if az == "" {
+		message.SendValidationFailed(w, errors.New("clouds: preconditions failed"))
+		return
+	}
+
+	acc, err := h.service.Get(r.Context(), accountName)
+	if err != nil {
+		if sgerrors.IsNotFound(err) {
+			message.SendNotFound(w, "account", err)
+			return
+		}
+
+		logrus.Errorf("clouds: get aws types%v", err)
+		message.SendUnknownError(w, err)
+		return
+	}
+
+	finder, err := NewAWSFinder(acc)
+	if err != nil {
+		logrus.Errorf("clouds: get aws types %v", err)
+		message.SendUnknownError(w, err)
+		return
+	}
+
+	types, err := finder.GetTypes(r.Context(), region, az)
+	if err != nil {
+		logrus.Errorf("clouds: get aws types %v", err)
+		message.SendUnknownError(w, err)
+		return
+	}
+
+	if err := json.NewEncoder(w).Encode(types); err != nil {
+		logrus.Errorf("clouds: get aws aws types %v", err)
 		message.SendUnknownError(w, err)
 		return
 	}

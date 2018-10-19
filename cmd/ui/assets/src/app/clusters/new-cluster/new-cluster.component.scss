@@ -1,46 +1,69 @@
 .new-clusters-wrapper {
-	// margin-top: 78px;
+	margin-top: 7px;
 
 	h1 {
-		margin-left: 48px;
-		margin-botton: 18px;
-		// remove me
-		letter-spacing: 3px;
+		margin-bottom: 18px;
 	}
 
-	.inputs-wrapper {
-		flex-direction: row;
-		justify-content: space-between;
-		height: max-content;
-		margin-bottom: 24px;
+	.mat-stepper-horizontal {
+		background-color: rgba(0,0,0,0.5);
+		border: 1px solid rgba(255,255,255,0.25);
 
-		&.large {
-			overflow: scroll;
-			width: 1270px;
+		.step-actions {
+			display: flex;
+			margin-top: 30px;
+
+			button {
+				margin-left: 24px;
+
+				&:nth-of-type(1) {
+					margin-left: 0px;
+				}
+			}
 		}
 
-		button {
-			display: block;
-			margin-left: auto;
-		}
-
-		.input-group {
+		.name-and-cloud-account {
 			display: flex;
 			flex-direction: column;
-			width: 564px;
+			width: 400px;
+		}
 
-			.machine-list {
-				max-height: 295px;
-				overflow: scroll;
-			}
+		.cluster-config-form {
+			display: flex;
+			justify-content: flex-start;
 
-			.disable {
-				// background-color: grey;
-				// border-radius: 2px;
-				cursor: not-allowed;
-				opacity: 0.5;
-				// padding: 10px;
+			.input-group {
+				display: flex;
+				flex-direction: column;
+				margin-left: 100px;
+				width: 400px;
+
+				&:nth-of-type(1) {
+					margin-left: 0px;
+				}
 			}
+		}
+
+		.aws-config {
+			display: flex;
+			justify-content: flex-start;
+
+			.input-group {
+				display: flex;
+				flex-direction: column;
+				margin-left: 100px;
+				width: 400px;
+
+				&:nth-of-type(1) {
+					margin-left: 0px;
+				}
+			}
+		}
+
+		.machine-config-step {
+			display: flex;
+			flex-direction: column;
+			width: 500px;
 
 			.machine {
 				display: flex;
@@ -98,26 +121,44 @@
 					padding-left: 12px;
 				}
 			}
+		}
 
-			.profile-row {
+		.review-wrapper {
+
+			.steps {
 				display: flex;
-				justify-content: space-between;
+				justify-content: space-around;
 
-				mat-form-field {
-					width: 270px;
+				.label {
+					color: #d10088;
+					font-family: "Montserrat", sans-serif;
+					font-size: 14px;
 				}
 			}
 
 			.action-buttons-wrapper {
 				display: flex;
-				justify-content: space-between;
-				margin-left: auto;
-				width: 452px;
+				justify-content: flex-end;
 
-				.secondary {
-					border: 2px solid #fff;
-					background-color: transparent;
+				button {
+					margin-right: 24px;
+
+					&:last-of-type {
+						margin-right: 0px;
+					}
 				}
+
+				.create {
+					min-width: 112px;
+				}
+
+				.mat-spinner {
+          margin: 6px auto;
+
+          circle {
+            stroke: #fff;
+          }
+        }
 			}
 		}
 	}
