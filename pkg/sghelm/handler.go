@@ -1,4 +1,4 @@
-package helm
+package sghelm
 
 import (
 	"encoding/json"
@@ -132,7 +132,7 @@ func (h *Handler) getChart(w http.ResponseWriter, r *http.Request) {
 	repoName := mux.Vars(r)["repoName"]
 	chartName := mux.Vars(r)["chartName"]
 
-	chrt, err := h.svc.GetChart(r.Context(), repoName, chartName)
+	chrt, err := h.svc.GetChartInfo(r.Context(), repoName, chartName)
 	if err != nil {
 		if sgerrors.IsNotFound(err) {
 			message.SendNotFound(w, repoName+"/"+chartName, err)
@@ -153,7 +153,7 @@ func (h *Handler) getChart(w http.ResponseWriter, r *http.Request) {
 func (h *Handler) listCharts(w http.ResponseWriter, r *http.Request) {
 	repoName := mux.Vars(r)["repoName"]
 
-	chrtList, err := h.svc.ListCharts(r.Context(), repoName)
+	chrtList, err := h.svc.ListChartInfos(r.Context(), repoName)
 	if err != nil {
 		log.Errorf("helm: list charts: %s: %s", repoName, err)
 		message.SendUnknownError(w, err)

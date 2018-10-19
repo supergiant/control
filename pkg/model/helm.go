@@ -1,4 +1,4 @@
-package helm
+package model
 
 import (
 	"time"
@@ -36,4 +36,15 @@ type Maintainer struct {
 type Repository struct {
 	Config repo.Entry `json:"config"`
 	Charts []Chart    `json:"charts"`
+}
+
+type ReleaseInfo struct {
+	Name         string `json:"name"`
+	Namespace    string `json:"namespace"`
+	Version      int32  `json:"version"`
+	CreatedAt    string `json:"createdAt"`
+	LastDeployed string `json:"lastDeployed"`
+	Chart        string `json:"chart"`
+	ChartVersion string `json:"chartVersion"`
+	Status       string `json:"status"`
 }

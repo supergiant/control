@@ -26,6 +26,7 @@ var (
 	ErrAlreadyExists       = New("entity already exists", EntityAlreadyExists)
 	ErrUnknownProvider     = New("unknown provider type", UnknownProvider)
 	ErrUnsupportedProvider = New("unsupported provider", UnsupportedProvider)
+	ErrNilEntity           = New("nil entity", NilEntity)
 )
 
 func IsNotFound(err error) bool {
