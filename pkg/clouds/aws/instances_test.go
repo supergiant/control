@@ -14,7 +14,7 @@ import (
 )
 
 var (
-	errFake q = errors.New("aws fake error")
+	errFake = errors.New("aws fake error")
 
 	awsTagName = "aws:name"
 	awsTagKey  = "aws:key"
