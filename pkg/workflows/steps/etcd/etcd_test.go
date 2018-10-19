@@ -79,7 +79,7 @@ func TestInstallEtcD(t *testing.T) {
 	}
 
 	task := &Step{
-		scriptTemplate: tpl,
+		script: tpl,
 	}
 
 	err = task.Run(context.Background(), output, config)
@@ -138,7 +138,7 @@ func TestInstallEtcdTimeout(t *testing.T) {
 	}
 
 	task := &Step{
-		scriptTemplate: tpl,
+		script: tpl,
 	}
 
 	err = task.Run(context.Background(), output, config)

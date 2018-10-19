@@ -16,6 +16,7 @@ import (
 	"github.com/supergiant/supergiant/pkg/runner"
 	"github.com/supergiant/supergiant/pkg/templatemanager"
 	"github.com/supergiant/supergiant/pkg/workflows/steps"
+	"github.com/supergiant/supergiant/pkg/workflows/steps/certificates"
 )
 
 type fakeRunner struct {
@@ -211,8 +212,8 @@ func TestStepName(t *testing.T) {
 func TestDepends(t *testing.T) {
 	s := Step{}
 
-	if len(s.Depends()) != 0 {
-		t.Errorf("Wrong dependency list %v expected %v", s.Depends(), []string{})
+	if len(s.Depends()) != 1 {
+		t.Errorf("Wrong dependency list %v expected %v", s.Depends(), []string{certificates.StepName})
 	}
 }
 
@@ -222,5 +223,24 @@ func TestStep_Rollback(t *testing.T) {
 
 	if err != nil {
 		t.Errorf("unexpected error while rollback %v", err)
+	}
+}
+
+func TestNew(t *testing.T) {
+	tpl := template.New("test")
+	s := New(tpl)
+
+	if s.script != tpl {
+		t.Errorf("Wrong template expected %v actual %v", tpl, s.script)
+	}
+}
+
+func TestInit(t *testing.T) {
+	Init()
+
+	s := steps.GetStep(StepName)
+
+	if s == nil {
+		t.Error("Step not found")
 	}
 }

@@ -12,6 +12,7 @@ import (
 	"github.com/supergiant/supergiant/pkg/templatemanager"
 	"github.com/supergiant/supergiant/pkg/testutils"
 	"github.com/supergiant/supergiant/pkg/workflows/steps"
+	"text/template"
 )
 
 func TestFlannelJob_InstallFlannel(t *testing.T) {
@@ -64,7 +65,7 @@ func TestFlannelJob_InstallFlannel(t *testing.T) {
 		}
 
 		task := &Step{
-			scriptTemplate: tpl,
+			script: tpl,
 		}
 
 		err := task.Run(context.Background(), output, &config)
@@ -109,5 +110,24 @@ func TestStep_Rollback(t *testing.T) {
 
 	if err != nil {
 		t.Errorf("unexpected error while rollback %v", err)
+	}
+}
+
+func TestNew(t *testing.T) {
+	tpl := template.New("test")
+	s := New(tpl)
+
+	if s.script != tpl {
+		t.Errorf("Wrong template expected %v actual %v", tpl, s.script)
+	}
+}
+
+func TestInit(t *testing.T) {
+	Init()
+
+	s := steps.GetStep(StepName)
+
+	if s == nil {
+		t.Error("Step not found")
 	}
 }

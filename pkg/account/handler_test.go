@@ -172,7 +172,7 @@ func TestHandler_Register(t *testing.T) {
 	r := mux.NewRouter()
 	h := Handler{}
 	h.Register(r)
-	expectedRouteCount := 6
+	expectedRouteCount := 8
 	routes := []*mux.Route{}
 
 	walkFn := func(route *mux.Route, router *mux.Router, ancestors []*mux.Route) error {

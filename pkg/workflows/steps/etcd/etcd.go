@@ -15,7 +15,7 @@ import (
 const StepName = "etcd"
 
 type Step struct {
-	scriptTemplate *template.Template
+	script *template.Template
 }
 
 func Init() {
@@ -24,7 +24,7 @@ func Init() {
 
 func New(tpl *template.Template) *Step {
 	return &Step{
-		scriptTemplate: tpl,
+		script: tpl,
 	}
 }
 
@@ -33,7 +33,7 @@ func (s *Step) Run(ctx context.Context, out io.Writer, config *steps.Config) err
 	config.EtcdConfig.AdvertiseHost = config.Node.PrivateIp
 	ctx2, _ := context.WithTimeout(ctx, config.EtcdConfig.Timeout)
 
-	err := steps.RunTemplate(ctx2, s.scriptTemplate,
+	err := steps.RunTemplate(ctx2, s.script,
 		config.Runner, out, config.EtcdConfig)
 	if err != nil {
 		return errors.Wrap(err, "install etcd step")

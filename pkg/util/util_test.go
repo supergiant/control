@@ -75,10 +75,12 @@ func TestMakeNodeName(t *testing.T) {
 // TODO(stgleb): extend for other types of cloud providers
 func TestFillCloudAccountCredentials(t *testing.T) {
 	testCases := []struct {
+		testName     string
 		cloudAccount *model.CloudAccount
 		err          error
 	}{
 		{
+			testName: "digital ocean",
 			cloudAccount: &model.CloudAccount{
 				Name:     "testName",
 				Provider: clouds.DigitalOcean,
@@ -90,12 +92,13 @@ func TestFillCloudAccountCredentials(t *testing.T) {
 			err: nil,
 		},
 		{
+			testName: "aws",
 			cloudAccount: &model.CloudAccount{
 				Name:     "testName",
 				Provider: clouds.AWS,
 				Credentials: map[string]string{
-					"keyID":       "1",
-					"secret":      "secret-key",
+					"access_key":  "1",
+					"secret_key":  "secret-key",
 					"keyPairName": "my-key-pair",
 					"publicKey":   "test-public-key",
 				},
@@ -103,6 +106,7 @@ func TestFillCloudAccountCredentials(t *testing.T) {
 			err: nil,
 		},
 		{
+			testName: "unknown provider",
 			cloudAccount: &model.CloudAccount{
 				Name:     "testName",
 				Provider: "unknown",
@@ -112,6 +116,7 @@ func TestFillCloudAccountCredentials(t *testing.T) {
 	}
 
 	for _, testCase := range testCases {
+		t.Log(testCase.testName)
 		config := &steps.Config{
 			CloudAccountName: testCase.cloudAccount.Name,
 		}
@@ -126,14 +131,14 @@ func TestFillCloudAccountCredentials(t *testing.T) {
 		}
 
 		if testCase.cloudAccount.Provider == clouds.AWS {
-			if !strings.EqualFold(testCase.cloudAccount.Credentials["keyID"], config.AWSConfig.KeyID) {
+			if !strings.EqualFold(testCase.cloudAccount.Credentials["access_key"], config.AWSConfig.KeyID) {
 				t.Errorf("Wrong key id expected %s actual %s",
-					testCase.cloudAccount.Credentials["keyID"], config.AWSConfig.KeyID)
+					testCase.cloudAccount.Credentials["access_key"], config.AWSConfig.KeyID)
 			}
 
-			if !strings.EqualFold(testCase.cloudAccount.Credentials["secret"], config.AWSConfig.Secret) {
+			if !strings.EqualFold(testCase.cloudAccount.Credentials["secret_key"], config.AWSConfig.Secret) {
 				t.Errorf("Wrong secret expected %s actual %s",
-					testCase.cloudAccount.Credentials["secret"], config.AWSConfig.Secret)
+					testCase.cloudAccount.Credentials["secret_key"], config.AWSConfig.Secret)
 			}
 
 			if !strings.EqualFold(testCase.cloudAccount.Credentials["keyPairName"], config.AWSConfig.KeyPairName) {

@@ -41,7 +41,7 @@ func TestKubeProfileEndpointCreateProfileErr(t *testing.T) {
 	}
 }
 
-func TestKubeProfileEndpointCreateProfileErrInternal(t *testing.T) {
+func TestKubeProfileEndpointCreateProfileSuccess(t *testing.T) {
 	kubeProfile := &Profile{
 		ID: "key",
 
@@ -53,18 +53,19 @@ func TestKubeProfileEndpointCreateProfileErrInternal(t *testing.T) {
 			{"hello2": "world2"},
 		},
 
-		K8SVersion:      "1.11.1",
-		Provider:        clouds.AWS,
-		Region:          "fra1",
-		Arch:            "amd64",
-		OperatingSystem: "linux",
-		UbuntuVersion:   "xenial",
-		DockerVersion:   "1.18.1",
-		FlannelVersion:  "0.9.0",
-		NetworkType:     "vxlan",
-		CIDR:            "10.0.0.1/24",
-		HelmVersion:     "0.11.1",
-		RBACEnabled:     false,
+		K8SVersion:            "1.11.1",
+		Provider:              clouds.AWS,
+		Region:                "fra1",
+		Arch:                  "amd64",
+		OperatingSystem:       "linux",
+		UbuntuVersion:         "xenial",
+		DockerVersion:         "1.18.1",
+		FlannelVersion:        "0.9.0",
+		NetworkType:           "vxlan",
+		CIDR:                  "10.0.0.1/24",
+		HelmVersion:           "0.11.1",
+		RBACEnabled:           false,
+		CloudSpecificSettings: map[string]string{},
 	}
 
 	mockRepo := &testutils.MockStorage{}
@@ -112,7 +113,7 @@ func TestKubeProfileEndpointCreateProfileErrJson(t *testing.T) {
 	}
 }
 
-func TestKubeProfileEndpointCreateProfile(t *testing.T) {
+func TestKubeProfileEndpointCreateProfileInternalError(t *testing.T) {
 	kubeProfile := &Profile{
 		ID: "key",
 

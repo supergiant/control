@@ -10,19 +10,19 @@ type Profile struct {
 
 	// TODO(stgleb): In future releases arch will probably migrate to node profile
 	// to allow user create heterogeneous cluster of machine with different arch
-	Provider              clouds.Name           `json:"provider" valid:"in(aws|digitalocean|packet|gce|openstack)"`
-	Region                string                `json:"region"`
-	Arch                  string                `json:"arch"`
-	OperatingSystem       string                `json:"operatingSystem"`
-	UbuntuVersion         string                `json:"ubuntuVersion"`
-	DockerVersion         string                `json:"dockerVersion"`
-	K8SVersion            string                `json:"K8SVersion"`
-	FlannelVersion        string                `json:"flannelVersion"`
-	NetworkType           string                `json:"networkType"`
-	CIDR                  string                `json:"cidr"`
-	HelmVersion           string                `json:"helmVersion"`
-	RBACEnabled           bool                  `json:"rbacEnabled"`
-	CloudSpecificSettings CloudSpecificSettings `json:"cloudSpecificSettings"`
+	Provider              clouds.Name           `json:"provider" valid:"in(aws|digitalocean|packet|gce|openstack)" valid:"-"`
+	Region                string                `json:"region" valid:"-"`
+	Arch                  string                `json:"arch" valid:"-"`
+	OperatingSystem       string                `json:"operatingSystem" valid:"-"`
+	UbuntuVersion         string                `json:"ubuntuVersion" valid:"-"`
+	DockerVersion         string                `json:"dockerVersion" valid:"-"`
+	K8SVersion            string                `json:"K8SVersion" valid:"-"`
+	FlannelVersion        string                `json:"flannelVersion" valid:"-"`
+	NetworkType           string                `json:"networkType" valid:"-"`
+	CIDR                  string                `json:"cidr" valid:"-"`
+	HelmVersion           string                `json:"helmVersion" valid:"-"`
+	RBACEnabled           bool                  `json:"rbacEnabled" valid:"-"`
+	CloudSpecificSettings CloudSpecificSettings `json:"cloudSpecificSettings" valid:"-"`
 }
 
 type NodeProfile map[string]string

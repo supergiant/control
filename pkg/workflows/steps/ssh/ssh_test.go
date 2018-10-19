@@ -127,3 +127,13 @@ func TestStep_Rollback(t *testing.T) {
 		t.Errorf("unexpected error while rollback %v", err)
 	}
 }
+
+func TestInit(t *testing.T) {
+	Init()
+
+	s := steps.GetStep(StepName)
+
+	if s == nil {
+		t.Error("Step not found")
+	}
+}
