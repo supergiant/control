@@ -15,8 +15,6 @@ import (
 	"github.com/supergiant/supergiant/pkg/sgerrors"
 )
 
-var SupportedMethods = [3]string{http.MethodGet, http.MethodPost, http.MethodDelete}
-
 // Handler is a http controller for account entity
 type Handler struct {
 	service *Service
