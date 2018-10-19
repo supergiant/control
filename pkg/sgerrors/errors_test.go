@@ -122,15 +122,14 @@ func TestIsUnsupportedProvider(t *testing.T) {
 	}
 }
 
-
 func TestError_Error(t *testing.T) {
 	var (
-		code ErrorCode = 1
-		message = "message"
+		code    ErrorCode = 1
+		message           = "message"
 	)
 
 	err := Error{
-		msg: message,
+		msg:  message,
 		Code: code,
 	}
 

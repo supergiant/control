@@ -8,13 +8,15 @@ import (
 	"testing"
 
 	"fmt"
+
 	"github.com/gorilla/mux"
 	"github.com/pkg/errors"
 	"github.com/stretchr/testify/mock"
+	"gopkg.in/asaskevich/govalidator.v8"
+
 	"github.com/supergiant/supergiant/pkg/clouds"
 	"github.com/supergiant/supergiant/pkg/sgerrors"
 	"github.com/supergiant/supergiant/pkg/testutils"
-	"gopkg.in/asaskevich/govalidator.v8"
 )
 
 func init() {

@@ -2,10 +2,12 @@ package jwt
 
 import (
 	"bytes"
-	"github.com/dgrijalva/jwt-go"
-	"github.com/supergiant/supergiant/pkg/sgerrors"
 	"testing"
 	"time"
+
+	"github.com/dgrijalva/jwt-go"
+
+	"github.com/supergiant/supergiant/pkg/sgerrors"
 )
 
 func TestNewTokenService(t *testing.T) {

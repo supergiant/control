@@ -2,8 +2,9 @@ package runner
 
 import (
 	"context"
-	"github.com/pkg/errors"
 	"io"
+
+	"github.com/pkg/errors"
 )
 
 var (

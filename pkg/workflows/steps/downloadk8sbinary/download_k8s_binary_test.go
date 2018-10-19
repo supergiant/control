@@ -9,10 +9,11 @@ import (
 
 	"github.com/pkg/errors"
 
+	"text/template"
+
 	"github.com/supergiant/supergiant/pkg/templatemanager"
 	"github.com/supergiant/supergiant/pkg/testutils"
 	"github.com/supergiant/supergiant/pkg/workflows/steps"
-	"text/template"
 )
 
 func TestFlannelJob_InstallFlannel(t *testing.T) {

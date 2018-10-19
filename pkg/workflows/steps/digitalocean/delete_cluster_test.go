@@ -11,6 +11,7 @@ import (
 	"github.com/digitalocean/godo"
 	"github.com/pkg/errors"
 	"github.com/stretchr/testify/mock"
+
 	"github.com/supergiant/supergiant/pkg/workflows/steps"
 )
 

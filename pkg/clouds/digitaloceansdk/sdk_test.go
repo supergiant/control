@@ -1,10 +1,11 @@
 package digitaloceansdk
 
 import (
+	"testing"
+
 	"github.com/supergiant/supergiant/pkg/clouds"
 	"github.com/supergiant/supergiant/pkg/model"
 	"github.com/supergiant/supergiant/pkg/sgerrors"
-	"testing"
 )
 
 func TestNew(t *testing.T) {

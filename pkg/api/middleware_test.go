@@ -6,11 +6,13 @@ import (
 	"net/http/httptest"
 	"testing"
 
-	"github.com/dgrijalva/jwt-go"
-	"github.com/gorilla/mux"
-	sgjwt "github.com/supergiant/supergiant/pkg/jwt"
 	"strings"
 	"time"
+
+	"github.com/dgrijalva/jwt-go"
+	"github.com/gorilla/mux"
+
+	sgjwt "github.com/supergiant/supergiant/pkg/jwt"
 )
 
 func TestAuthMiddleware(t *testing.T) {

@@ -1,8 +1,9 @@
 package kube
 
 import (
-	"github.com/pkg/errors"
 	"testing"
+
+	"github.com/pkg/errors"
 
 	"k8s.io/apimachinery/pkg/runtime/schema"
 

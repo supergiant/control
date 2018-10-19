@@ -7,6 +7,7 @@ import (
 	"testing"
 
 	"github.com/stretchr/testify/mock"
+
 	"github.com/supergiant/supergiant/pkg/testutils"
 )
 

@@ -1,8 +1,9 @@
 package proxy
 
 import (
-	"k8s.io/client-go/rest"
 	"testing"
+
+	"k8s.io/client-go/rest"
 )
 
 func TestNewTunnel(t *testing.T) {

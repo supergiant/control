@@ -2,12 +2,14 @@ package account
 
 import (
 	"context"
+	"testing"
+
 	"github.com/pkg/errors"
+
 	"github.com/supergiant/supergiant/pkg/clouds"
 	"github.com/supergiant/supergiant/pkg/model"
 	"github.com/supergiant/supergiant/pkg/sgerrors"
 	"github.com/supergiant/supergiant/pkg/testutils"
-	"testing"
 )
 
 func TestNewService(t *testing.T) {

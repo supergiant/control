@@ -10,8 +10,9 @@ import (
 
 	json "encoding/json"
 	"fmt"
-	"github.com/supergiant/supergiant/pkg/sgerrors"
 	"net/http"
+
+	"github.com/supergiant/supergiant/pkg/sgerrors"
 )
 
 func TestSendUnknownError(t *testing.T) {

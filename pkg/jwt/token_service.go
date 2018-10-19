@@ -6,6 +6,7 @@ import (
 
 	"github.com/dgrijalva/jwt-go"
 	"github.com/pkg/errors"
+
 	"github.com/supergiant/supergiant/pkg/sgerrors"
 )
 
