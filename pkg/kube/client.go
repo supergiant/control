@@ -18,7 +18,7 @@ import (
 )
 
 func NewConfigFor(k *model.Kube) (*rest.Config, error) {
-	kubeConf, err := kubeConfigFrom(k)
+	kubeConf, err := kubeConfigFor(k)
 	if err != nil {
 		return nil, errors.Wrap(err, "build kubeconfig")
 	}
@@ -51,8 +51,8 @@ func discoveryClient(k *model.Kube) (*discovery.DiscoveryClient, error) {
 	return discovery.NewDiscoveryClientForConfig(cfg)
 }
 
-// kubeConfigFrom returns a kube config for provided cluster.
-func kubeConfigFrom(k *model.Kube) (clientcmddapi.Config, error) {
+// kubeConfigFor returns a kube config for provided cluster.
+func kubeConfigFor(k *model.Kube) (clientcmddapi.Config, error) {
 	if len(k.Masters) == 0 {
 		// TODO: use another base error, not ErrNotFound
 		return clientcmddapi.Config{}, errors.Wrap(sgerrors.ErrNotFound, "master nodes")

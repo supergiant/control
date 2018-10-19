@@ -30,7 +30,7 @@ import (
 )
 
 var (
-	fakeErr = errors.New("fake error")
+	errFake = errors.New("fake error")
 
 	deployedReleaseInput = `{"chartName":"nginx","namespace":"default","repoName":"fake"}`
 	deployedRelease      = &release.Release{
@@ -903,7 +903,7 @@ func TestHander_installRelease(t *testing.T) {
 		{
 			rlsInp: "{{}",
 			kubeSvc: &kubeServiceMock{
-				rlsErr: fakeErr,
+				rlsErr: errFake,
 			},
 			expectedStatus:  http.StatusBadRequest,
 			expectedErrCode: sgerrors.InvalidJSON,
@@ -911,7 +911,7 @@ func TestHander_installRelease(t *testing.T) {
 		{
 			rlsInp: "{}",
 			kubeSvc: &kubeServiceMock{
-				rlsErr: fakeErr,
+				rlsErr: errFake,
 			},
 			expectedStatus:  http.StatusBadRequest,
 			expectedErrCode: sgerrors.ValidationFailed,
@@ -919,7 +919,7 @@ func TestHander_installRelease(t *testing.T) {
 		{
 			rlsInp: deployedReleaseInput,
 			kubeSvc: &kubeServiceMock{
-				rlsErr: fakeErr,
+				rlsErr: errFake,
 			},
 			expectedStatus:  http.StatusInternalServerError,
 			expectedErrCode: sgerrors.UnknownError,
@@ -980,7 +980,7 @@ func TestHander_listReleases(t *testing.T) {
 	}{
 		{
 			kubeSvc: &kubeServiceMock{
-				rlsErr: fakeErr,
+				rlsErr: errFake,
 			},
 			expectedStatus:  http.StatusInternalServerError,
 			expectedErrCode: sgerrors.UnknownError,
@@ -1040,7 +1040,7 @@ func TestHander_deleteRelease(t *testing.T) {
 	}{
 		{
 			kubeSvc: &kubeServiceMock{
-				rlsErr: fakeErr,
+				rlsErr: errFake,
 			},
 			expectedStatus:  http.StatusInternalServerError,
 			expectedErrCode: sgerrors.UnknownError,

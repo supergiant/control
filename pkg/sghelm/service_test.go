@@ -85,18 +85,18 @@ func TestService_CreateRepo(t *testing.T) {
 				Name: "getIndexFileError",
 			},
 			repos: fakeRepoManager{
-				err: fakeErr,
+				err: errFake,
 			},
-			expectedErr: fakeErr,
+			expectedErr: errFake,
 		},
 		{ // TC#4
 			repoConf: &repo.Entry{
 				Name: "putError",
 			},
 			storage: fakeStorage{
-				putErr: fakeErr,
+				putErr: errFake,
 			},
-			expectedErr: fakeErr,
+			expectedErr: errFake,
 		},
 		{ // TC#5
 			repoConf: &repo.Entry{
@@ -141,9 +141,9 @@ func TestService_GetRepo(t *testing.T) {
 		{ // TC#1
 			repoName: "getError",
 			storage: fakeStorage{
-				getErr: fakeErr,
+				getErr: errFake,
 			},
-			expectedErr: fakeErr,
+			expectedErr: errFake,
 		},
 		{ // TC#2
 			repoName:    "notFound",
@@ -199,9 +199,9 @@ func TestService_ListRepo(t *testing.T) {
 	}{
 		{ // TC#1
 			storage: fakeStorage{
-				listErr: fakeErr,
+				listErr: errFake,
 			},
-			expectedErr: fakeErr,
+			expectedErr: errFake,
 		},
 		{ // TC#2: unmarshal error
 			storage: fakeStorage{
@@ -255,17 +255,17 @@ func TestService_DeleteRepo(t *testing.T) {
 		{ // TC#1
 			repoName: "getError",
 			storage: fakeStorage{
-				getErr: fakeErr,
+				getErr: errFake,
 			},
-			expectedErr: fakeErr,
+			expectedErr: errFake,
 		},
 		{ // TC#2
 			repoName: "deleteError",
 			storage: fakeStorage{
 				item:      []byte(`{"config":{"name":"success"}}`),
-				deleteErr: fakeErr,
+				deleteErr: errFake,
 			},
-			expectedErr: fakeErr,
+			expectedErr: errFake,
 		},
 		{ // TC#4
 			repoName: "success",

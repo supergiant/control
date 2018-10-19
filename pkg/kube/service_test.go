@@ -196,10 +196,10 @@ func TestService_InstallRelease(t *testing.T) {
 			},
 			svc: Service{
 				chrtGetter: fakeChartGetter{
-					err: fakeErr,
+					err: errFake,
 				},
 			},
-			expectedErr: fakeErr,
+			expectedErr: errFake,
 		},
 		{ // TC#3
 			rlsInput: &ReleaseInput{
@@ -208,10 +208,10 @@ func TestService_InstallRelease(t *testing.T) {
 			svc: Service{
 				chrtGetter: &fakeChartGetter{},
 				storage: &storage.Fake{
-					GetErr: fakeErr,
+					GetErr: errFake,
 				},
 			},
-			expectedErr: fakeErr,
+			expectedErr: errFake,
 		},
 		{ // TC#4
 			rlsInput: &ReleaseInput{
@@ -223,10 +223,10 @@ func TestService_InstallRelease(t *testing.T) {
 					Item: []byte("{}"),
 				},
 				newHelmProxyFn: func(kube *model.Kube) (proxy.Interface, error) {
-					return nil, fakeErr
+					return nil, errFake
 				},
 			},
-			expectedErr: fakeErr,
+			expectedErr: errFake,
 		},
 		{ // TC#5
 			rlsInput: &ReleaseInput{
@@ -239,11 +239,11 @@ func TestService_InstallRelease(t *testing.T) {
 				},
 				newHelmProxyFn: func(kube *model.Kube) (proxy.Interface, error) {
 					return &fakeHelmProxy{
-						err: fakeErr,
+						err: errFake,
 					}, nil
 				},
 			},
-			expectedErr: fakeErr,
+			expectedErr: errFake,
 		},
 		{ // TC#6
 			rlsInput: &ReleaseInput{
@@ -286,10 +286,10 @@ func TestService_ListReleases(t *testing.T) {
 		{ // TC#1
 			svc: Service{
 				storage: &storage.Fake{
-					GetErr: fakeErr,
+					GetErr: errFake,
 				},
 			},
-			expectedErr: fakeErr,
+			expectedErr: errFake,
 		},
 		{ // TC#2
 			svc: Service{
@@ -297,10 +297,10 @@ func TestService_ListReleases(t *testing.T) {
 					Item: []byte("{}"),
 				},
 				newHelmProxyFn: func(kube *model.Kube) (proxy.Interface, error) {
-					return nil, fakeErr
+					return nil, errFake
 				},
 			},
-			expectedErr: fakeErr,
+			expectedErr: errFake,
 		},
 		{ // TC#3
 			svc: Service{
@@ -309,11 +309,11 @@ func TestService_ListReleases(t *testing.T) {
 				},
 				newHelmProxyFn: func(kube *model.Kube) (proxy.Interface, error) {
 					return &fakeHelmProxy{
-						err: fakeErr,
+						err: errFake,
 					}, nil
 				},
 			},
-			expectedErr: fakeErr,
+			expectedErr: errFake,
 		},
 		{ // TC#4
 			svc: Service{
@@ -363,10 +363,10 @@ func TestService_DeleteRelease(t *testing.T) {
 		{ // TC#1
 			svc: Service{
 				storage: &storage.Fake{
-					GetErr: fakeErr,
+					GetErr: errFake,
 				},
 			},
-			expectedErr: fakeErr,
+			expectedErr: errFake,
 		},
 		{ // TC#2
 			svc: Service{
@@ -374,10 +374,10 @@ func TestService_DeleteRelease(t *testing.T) {
 					Item: []byte("{}"),
 				},
 				newHelmProxyFn: func(kube *model.Kube) (proxy.Interface, error) {
-					return nil, fakeErr
+					return nil, errFake
 				},
 			},
-			expectedErr: fakeErr,
+			expectedErr: errFake,
 		},
 		{ // TC#3
 			svc: Service{
@@ -386,11 +386,11 @@ func TestService_DeleteRelease(t *testing.T) {
 				},
 				newHelmProxyFn: func(kube *model.Kube) (proxy.Interface, error) {
 					return &fakeHelmProxy{
-						err: fakeErr,
+						err: errFake,
 					}, nil
 				},
 			},
-			expectedErr: fakeErr,
+			expectedErr: errFake,
 		},
 		{ // TC#4
 			svc: Service{

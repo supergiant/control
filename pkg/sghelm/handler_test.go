@@ -22,7 +22,7 @@ import (
 )
 
 var (
-	fakeErr = errors.New("fake error")
+	errFake = errors.New("fake error")
 )
 
 var _ Servicer = &fakeService{}
@@ -95,7 +95,7 @@ func TestHandler_createRepo(t *testing.T) {
 		{ // TC#4
 			inpRepo: []byte(`{"name":"createError","url":"url"}`),
 			svc: &fakeService{
-				err: fakeErr,
+				err: errFake,
 			},
 			expectedStatus:  http.StatusInternalServerError,
 			expectedErrCode: sgerrors.UnknownError,
@@ -172,7 +172,7 @@ func TestHandler_getRepo(t *testing.T) {
 		{ // TC#2
 			repoName: "getError",
 			svc: &fakeService{
-				err: fakeErr,
+				err: errFake,
 			},
 			expectedStatus:  http.StatusInternalServerError,
 			expectedErrCode: sgerrors.UnknownError,
@@ -242,7 +242,7 @@ func TestHandler_listRepos(t *testing.T) {
 	}{
 		{ // TC#1
 			svc: &fakeService{
-				err: fakeErr,
+				err: errFake,
 			},
 			expectedStatus:  http.StatusInternalServerError,
 			expectedErrCode: sgerrors.UnknownError,
@@ -323,7 +323,7 @@ func TestHandler_deleteRepo(t *testing.T) {
 		{ // TC#2
 			repoName: "deleteError",
 			svc: &fakeService{
-				err: fakeErr,
+				err: errFake,
 			},
 			expectedStatus:  http.StatusInternalServerError,
 			expectedErrCode: sgerrors.UnknownError,
@@ -406,7 +406,7 @@ func TestHandler_getChart(t *testing.T) {
 			repoName: "sgRepo",
 			chrtName: "getChartError",
 			svc: &fakeService{
-				err: fakeErr,
+				err: errFake,
 			},
 			expectedStatus:  http.StatusInternalServerError,
 			expectedErrCode: sgerrors.UnknownError,
@@ -477,7 +477,7 @@ func TestHandler_listCharts(t *testing.T) {
 		{ // TC#1
 			repoName: "listChartError",
 			svc: &fakeService{
-				err: fakeErr,
+				err: errFake,
 			},
 			expectedStatus:  http.StatusInternalServerError,
 			expectedErrCode: sgerrors.UnknownError,
