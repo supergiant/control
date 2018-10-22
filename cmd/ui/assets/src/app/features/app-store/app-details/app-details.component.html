@@ -13,9 +13,9 @@
       </section>
 
       <h3>Instructions</h3>
-      <section *ngIf="chartDetails.instruction; else noInstructions"
+      <section *ngIf="chartDetails.readme; else noInstructions"
                class="instructions">
-      {{ chartDetails.instruction }}
+      <markdown>{{ chartDetails.readme }}</markdown>
       </section>
       <ng-template #noInstructions>
         This chart is not provided with the instructions.
@@ -28,13 +28,13 @@
 <table class="info">
 <tr>
   <td>Version:</td>
-<td *ngIf="chartDetails.versions">
-{{ chartDetails.versions[0].version }}
+<td *ngIf="chartDetails.metadata?.version as version">
+ {{ version }}
 </td>
 </tr>
 <tr>
   <td>Repo:</td>
-<td>{{ chartDetails.repo }}</td>
+<td>{{ chartDetails.metadata?.name }}</td>
 </tr>
 </table>
 

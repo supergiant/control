@@ -23,6 +23,7 @@ import { BreadcrumbsComponent }             from './breadcrumbs/breadcrumbs.comp
 import { DeployComponent }                  from './app-details/deploy/deploy.component';
 import { FormsModule, ReactiveFormsModule } from "@angular/forms";
 import { ConfigureComponent } from './app-details/confure/configure.component';
+import {MarkdownModule} from "ngx-markdown";
 
 @NgModule({
   imports: [
@@ -39,7 +40,8 @@ import { ConfigureComponent } from './app-details/confure/configure.component';
     MatDialogModule,
     FormsModule,
     MatTabsModule,
-    MatProgressSpinnerModule
+    MatProgressSpinnerModule,
+    MarkdownModule.forRoot()
   ],
   declarations: [
     AppStoreComponent,
