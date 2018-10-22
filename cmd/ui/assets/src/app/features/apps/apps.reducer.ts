@@ -1,14 +1,11 @@
-import { createSelector }                            from '@ngrx/store';
-import { AppStoreActionTypes, SupergiantAppActions } from './actions/supergiant-app-actions';
-import { State }                                     from '../../reducers';
+import { createSelector } from '@ngrx/store';
+import { State }          from '../../reducers';
 import {
-  AppCommonActions, AppCommonActionTypes,
+  AppCommonActions,
+  AppCommonActionTypes,
   AppDetailActions,
   AppDetailActionTypes,
-  VerifiedAppActions,
-  VerifiedAppActionTypes
-}                                                    from "./actions";
-import { OtherAppActions, OtherAppActionTypes }      from "./actions/other-app.actions";
+}                         from "./actions";
 
 export interface Chart {
   name: string;
@@ -55,48 +52,13 @@ export interface Repository {
 // TODO: make separate reducers
 type AppsActions =
   AppDetailActions |
-  SupergiantAppActions |
-  OtherAppActions |
-  AppCommonActions |
-  VerifiedAppActions;
+  AppCommonActions ;
 
 export function reducer(
   state = initialState,
   action: AppsActions
 ): AppStoreState {
   switch (action.type) {
-
-    case AppStoreActionTypes.LoadSupergiantCharts:
-      return state;
-
-    case AppStoreActionTypes.LoadSupergiantChartsSuccess:
-      return {
-        ...state,
-        charts: {
-          ...state.charts,
-          supergiant: action.payload
-        }
-      };
-      break;
-
-    case VerifiedAppActionTypes.LoadVerifiedAppsSuccess:
-      return {
-        ...state,
-        charts: {
-          ...state.charts,
-          verified: action.payload
-        }
-      };
-      break;
-
-    case OtherAppActionTypes.LoadOtherAppsSuccess:
-      return {
-        ...state,
-        charts: {
-          ...state.charts,
-          other: action.payload
-        }
-      };
 
     case AppDetailActionTypes.LoadAppDetailsSuccess:
       return {
@@ -115,7 +77,7 @@ export function reducer(
       return {
         ...state,
         charts: {
-          [action.payload.repo]: action.payload.charts
+          [ action.payload.repo ]: action.payload.charts
         }
 
       };
@@ -132,22 +94,7 @@ export const selectApps = createSelector(
 
 export const selectCharts = createSelector(
   selectApps,
-  (state: AppStoreState, props:{repo}) => state.charts[props.repo],
-);
-
-export const selectSupergiantCharts = createSelector(
-  selectApps,
-  (state: AppStoreState) => state.charts.supergiant,
-);
-
-export const selectVerifiedCharts = createSelector(
-  selectApps,
-  (state: AppStoreState) => state.charts.verified,
-);
-
-export const selectOtherCharts = createSelector(
-  selectApps,
-  (state: AppStoreState) => state.charts.other,
+  (state: AppStoreState, props: { repo }) => state.charts[ props.repo ],
 );
 
 export const selectAppDetails = createSelector(
