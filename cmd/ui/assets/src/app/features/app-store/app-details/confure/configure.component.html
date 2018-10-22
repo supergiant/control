@@ -1,7 +1,15 @@
 <h2 mat-dialog-title>Configure App</h2>
 <mat-dialog-content>
-
-  <textarea name="" id="" cols="30" rows="10"></textarea>
+  <div ace-editor
+       [(text)]="text"
+       [mode]="'sql'"
+       [theme]="'eclipse'"
+       [options]="options"
+       [readOnly]="false"
+       [autoUpdateContent]="true"
+       [durationBeforeCallback]="1000"
+       (textChanged)="onChange($event)"
+       style="min-height: 200px; width:100%; overflow: auto;"></div>
 </mat-dialog-content>
 <mat-dialog-actions>
   <button class="btn-deploy"

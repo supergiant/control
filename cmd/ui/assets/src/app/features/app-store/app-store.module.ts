@@ -24,6 +24,7 @@ import { DeployComponent }                  from './app-details/deploy/deploy.co
 import { FormsModule, ReactiveFormsModule } from "@angular/forms";
 import { ConfigureComponent } from './app-details/confure/configure.component';
 import {MarkdownModule} from "ngx-markdown";
+import {AceEditorModule} from "ng2-ace-editor";
 
 @NgModule({
   imports: [
@@ -41,7 +42,8 @@ import {MarkdownModule} from "ngx-markdown";
     FormsModule,
     MatTabsModule,
     MatProgressSpinnerModule,
-    MarkdownModule.forRoot()
+    MarkdownModule.forRoot(),
+    AceEditorModule,
   ],
   declarations: [
     AppStoreComponent,
