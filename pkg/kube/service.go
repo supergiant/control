@@ -7,8 +7,8 @@ import (
 
 	"github.com/pkg/errors"
 	"github.com/technosophos/moniker"
+	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/runtime/schema"
-	"k8s.io/client-go/discovery"
 	"k8s.io/client-go/rest"
 	"k8s.io/helm/pkg/helm"
 	"k8s.io/helm/pkg/proto/hapi/chart"
@@ -49,9 +49,13 @@ type ChartGetter interface {
 	GetChart(ctx context.Context, repoName, chartName, chartVersion string) (*chart.Chart, error)
 }
 
+type ServerResourceGetter interface {
+	ServerResources() ([]*metav1.APIResourceList, error)
+}
+
 // Service manages kubernetes clusters.
 type Service struct {
-	discoveryClientFn func(k *model.Kube) (*discovery.DiscoveryClient, error)
+	discoveryClientFn func(k *model.Kube) (ServerResourceGetter, error)
 	clientForGroupFn  func(k *model.Kube, gv schema.GroupVersion) (rest.Interface, error)
 
 	prefix  string
@@ -64,12 +68,10 @@ type Service struct {
 // NewService constructs a Service.
 func NewService(prefix string, s storage.Interface, chrtGetter ChartGetter) *Service {
 	return &Service{
-		clientForGroupFn:  restClientForGroupVersion,
-		discoveryClientFn: discoveryClient,
-		newHelmProxyFn:    helmProxyFrom,
-		chrtGetter:        chrtGetter,
-		prefix:            prefix,
-		storage:           s,
+		clientForGroupFn: restClientForGroupVersion, newHelmProxyFn: helmProxyFrom,
+		chrtGetter: chrtGetter,
+		prefix:     prefix,
+		storage:    s,
 	}
 }
 
@@ -191,6 +193,7 @@ func (s *Service) GetCerts(ctx context.Context, kname, cname string) (*Bundle, e
 		return nil, err
 	}
 
+	// TODO(stgleb): pass host info here
 	r, err := ssh.NewRunner(ssh.Config{
 		User: kube.SshUser,
 		Key:  kube.SshPublicKey,

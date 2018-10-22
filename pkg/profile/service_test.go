@@ -33,7 +33,7 @@ func TestKubeProfileServiceGet(t *testing.T) {
 		m := new(testutils.MockStorage)
 		m.On("Get", context.Background(), prefix, "fake_id").Return(testCase.data, testCase.err)
 
-		service := KubeProfileService{
+		service := Service{
 			prefix,
 			m,
 		}
@@ -79,7 +79,7 @@ func TestKubeProfileServiceCreate(t *testing.T) {
 			kubeData).
 			Return(testCase.err)
 
-		service := KubeProfileService{
+		service := Service{
 			prefix,
 			m,
 		}
@@ -113,7 +113,7 @@ func TestKubeProfileServiceGetAll(t *testing.T) {
 		m := new(testutils.MockStorage)
 		m.On("GetAll", context.Background(), prefix).Return(testCase.data, testCase.err)
 
-		service := KubeProfileService{
+		service := Service{
 			prefix,
 			m,
 		}
@@ -128,5 +128,24 @@ func TestKubeProfileServiceGetAll(t *testing.T) {
 		if testCase.err == nil && len(profiles) != 2 {
 			t.Errorf("Wrong len of profiles expected 2 actual %d", len(profiles))
 		}
+	}
+}
+
+func TestNewKubeProfileService(t *testing.T) {
+	prefix := "prefix"
+	repo := &testutils.MockStorage{}
+
+	svc := NewService(prefix, repo)
+
+	if svc == nil {
+		t.Error("service must not be nil")
+	}
+
+	if svc.prefix != prefix {
+		t.Errorf("Wrong prefix expected %s actual %s", prefix, svc.prefix)
+	}
+
+	if svc.kubeProfileStorage != repo {
+		t.Errorf("Wrong repo expected %v actual %v", repo, svc.kubeProfileStorage)
 	}
 }

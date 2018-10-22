@@ -9,19 +9,19 @@ import (
 
 const DefaultKubeProfilePreifx = "/supergiant/profile"
 
-type KubeProfileService struct {
+type Service struct {
 	prefix             string
 	kubeProfileStorage storage.Interface
 }
 
-func NewKubeProfileService(prefix string, s storage.Interface) *KubeProfileService {
-	return &KubeProfileService{
+func NewService(prefix string, s storage.Interface) *Service {
+	return &Service{
 		prefix:             prefix,
 		kubeProfileStorage: s,
 	}
 }
 
-func (s *KubeProfileService) Get(ctx context.Context, profileId string) (*Profile, error) {
+func (s *Service) Get(ctx context.Context, profileId string) (*Profile, error) {
 	profileData, err := s.kubeProfileStorage.Get(ctx, s.prefix, profileId)
 	profile := &Profile{}
 
@@ -39,7 +39,7 @@ func (s *KubeProfileService) Get(ctx context.Context, profileId string) (*Profil
 	return profile, nil
 }
 
-func (s *KubeProfileService) Create(ctx context.Context, profile *Profile) error {
+func (s *Service) Create(ctx context.Context, profile *Profile) error {
 	profileData, err := json.Marshal(profile)
 
 	if err != nil {
@@ -49,7 +49,7 @@ func (s *KubeProfileService) Create(ctx context.Context, profile *Profile) error
 	return s.kubeProfileStorage.Put(ctx, s.prefix, profile.ID, profileData)
 }
 
-func (s *KubeProfileService) GetAll(ctx context.Context) ([]Profile, error) {
+func (s *Service) GetAll(ctx context.Context) ([]Profile, error) {
 	var (
 		profiles []Profile
 		profile  Profile
