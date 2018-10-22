@@ -22,6 +22,7 @@ import { AppDetailsComponent }              from './app-details/app-details.comp
 import { BreadcrumbsComponent }             from './breadcrumbs/breadcrumbs.component';
 import { DeployComponent }                  from './app-details/deploy/deploy.component';
 import { FormsModule, ReactiveFormsModule } from "@angular/forms";
+import { ConfigureComponent } from './app-details/confure/configure.component';
 
 @NgModule({
   imports: [
@@ -47,10 +48,12 @@ import { FormsModule, ReactiveFormsModule } from "@angular/forms";
     AppDetailsComponent,
     BreadcrumbsComponent,
     DeployComponent,
+    ConfigureComponent,
   ],
   entryComponents: [
     DeployComponent,
-    AppsAddComponent
+    AppsAddComponent,
+    ConfigureComponent
   ],
 })
 export class AppStoreModule {

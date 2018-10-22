@@ -7,6 +7,7 @@ import { ChartDetails, selectAppDetails } from "../../apps/apps.reducer";
 import { Observable }                     from "rxjs";
 import { MatDialog }                      from "@angular/material";
 import { DeployComponent }                from "./deploy/deploy.component";
+import {ConfigureComponent} from "./confure/configure.component";
 
 @Component({
   selector: 'app-details',
@@ -32,11 +33,20 @@ export class AppDetailsComponent implements OnInit {
     this.chartDetails$ = this.store.pipe(select(selectAppDetails));
   }
 
-  public initDialog() {
+  openDeployDialog() {
     this.dialog.open(DeployComponent, {
       data: {
         chartDetails$: this.chartDetails$,
       }
     });
+  }
+
+  openConfigureDialog() {
+    this.dialog.open(ConfigureComponent, {
+      data: {
+        chartDetails$: this.chartDetails$,
+      }
+    });
+
   }
 }
