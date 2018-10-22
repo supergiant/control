@@ -3,6 +3,7 @@ package digitalocean
 import (
 	"bytes"
 	"context"
+	"io/ioutil"
 	"net/http"
 	"testing"
 	"time"
@@ -106,5 +107,30 @@ func TestDeleteClusterRun(t *testing.T) {
 				t.Errorf("Wrong error expected %v actual %v", testCase.dropletErrors[i], err)
 			}
 		}
+	}
+}
+
+func TestDeleteClusterStepName(t *testing.T) {
+	s := DeleteClusterStep{}
+
+	if s.Name() != DeleteClusterStepName {
+		t.Errorf("Unexpected step name expected %s actual %s", DeleteClusterStepName, s.Name())
+	}
+}
+
+func TestDeleteClusterDepends(t *testing.T) {
+	s := DeleteClusterStep{}
+
+	if len(s.Depends()) != 0 {
+		t.Errorf("Wrong dependency list %v expected %v", s.Depends(), []string{})
+	}
+}
+
+func TestStepDeleteCluster_Rollback(t *testing.T) {
+	s := DeleteClusterStep{}
+	err := s.Rollback(context.Background(), ioutil.Discard, &steps.Config{})
+
+	if err != nil {
+		t.Errorf("unexpected error while rollback %v", err)
 	}
 }

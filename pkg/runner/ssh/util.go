@@ -19,6 +19,11 @@ func getSshConfig(config Config) (*ssh.ClientConfig, error) {
 	if config.User == "" {
 		return nil, ErrUserNotSpecified
 	}
+
+	if config.Host == "" {
+		return nil, ErrHostNotSpecified
+	}
+
 	key, err := ssh.ParsePrivateKey(config.Key)
 	if err != nil {
 		return nil, err
@@ -52,9 +57,9 @@ func connectionWithBackOff(host, port string, config *ssh.ClientConfig, timeout 
 		c, err = ssh.Dial("tcp", fmt.Sprintf("%s:%s", host, port), config)
 
 		if err != nil {
-			logrus.Warnf("connect to %s failed, try again in %v seconds",
+			logrus.Warnf("connect to %s failed, try again in %v seconds, reason: %v",
 				fmt.Sprintf("%s:%s", host, port),
-				timeout)
+				timeout, err)
 			time.Sleep(timeout)
 			timeout = timeout * 2
 		} else {

@@ -1,10 +1,10 @@
 package pki
 
 import (
-	"testing"
-
 	"bytes"
 	"encoding/json"
+	"testing"
+
 	"github.com/stretchr/testify/require"
 )
 

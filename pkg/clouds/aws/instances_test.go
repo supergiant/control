@@ -14,7 +14,7 @@ import (
 )
 
 var (
-	awsErr = errors.New("aws fake error")
+	errFake = errors.New("aws fake error")
 
 	awsTagName = "aws:name"
 	awsTagKey  = "aws:key"
@@ -105,8 +105,8 @@ func TestClient_CreateInstance(t *testing.T) {
 		{
 			name:        "failed to run instance",
 			config:      InstanceConfig{Region: "us1"},
-			ec2Err:      awsErr,
-			expectedErr: awsErr,
+			ec2Err:      errFake,
+			expectedErr: errFake,
 		},
 		// TC#3
 		{
@@ -171,8 +171,8 @@ func TestClient_DeleteInstance(t *testing.T) {
 			name:            "failed to delete instance",
 			region:          "us1",
 			instanceID:      "123",
-			ec2DeleteInsErr: awsErr,
-			expectedErr:     awsErr,
+			ec2DeleteInsErr: errFake,
+			expectedErr:     errFake,
 		},
 		// TC#4
 		{
@@ -216,8 +216,8 @@ func TestClient_GetInstance(t *testing.T) {
 		{ // TC#3
 			region:      "us1",
 			instanceID:  "123",
-			ec2Err:      awsErr,
-			expectedErr: awsErr,
+			ec2Err:      errFake,
+			expectedErr: errFake,
 		},
 		{ // TC#4
 			region:      "us1",
@@ -265,8 +265,8 @@ func TestClient_ListRegionInstances(t *testing.T) {
 		},
 		{ // TC#2
 			region:      "us1",
-			ec2Err:      awsErr,
-			expectedErr: awsErr,
+			ec2Err:      errFake,
+			expectedErr: errFake,
 		},
 		{ // TC#3
 			region:      "us1",

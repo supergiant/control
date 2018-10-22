@@ -15,6 +15,7 @@ import (
 	"github.com/gorilla/websocket"
 	"github.com/hpcloud/tail"
 	"github.com/sirupsen/logrus"
+
 	"github.com/supergiant/supergiant/pkg/message"
 	"github.com/supergiant/supergiant/pkg/model"
 	"github.com/supergiant/supergiant/pkg/runner"
@@ -244,7 +245,10 @@ func (h *TaskHandler) GetLogs(w http.ResponseWriter, r *http.Request) {
 		r.Host,
 		id,
 	}
-	tpl.Execute(w, &v)
+	err := tpl.Execute(w, &v)
+	if err != nil {
+		logrus.Error(err)
+	}
 }
 
 func (h *TaskHandler) StreamLogs(w http.ResponseWriter, r *http.Request) {

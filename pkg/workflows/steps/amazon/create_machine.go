@@ -2,7 +2,10 @@ package amazon
 
 import (
 	"context"
+	"fmt"
 	"io"
+	"strconv"
+	"strings"
 	"time"
 
 	"github.com/aws/aws-sdk-go/aws"
@@ -17,10 +20,10 @@ import (
 	"github.com/supergiant/supergiant/pkg/workflows/steps"
 )
 
-const StepNameCreateEC2Instance = "aws_create_instance"
 const (
-	IPAttempts             = 12
-	SleepSecondsPerAttempt = 6
+	StepNameCreateEC2Instance = "aws_create_instance"
+	IPAttempts                = 12
+	SleepSecondsPerAttempt    = 6
 )
 
 type StepCreateInstance struct {
@@ -46,24 +49,26 @@ func (s *StepCreateInstance) Run(ctx context.Context, w io.Writer, cfg *steps.Co
 
 	//Determining a sec group in AWS for EC2 instance to be spawned.
 	if cfg.IsMaster {
-		if cfg.AWSConfig.MastersSecurityGroup == "default" {
-			log.Infof("[%s] - using default security group for masters", s.Name())
-		}
-		secGroupID = &cfg.AWSConfig.MastersSecurityGroup
+		secGroupID = &cfg.AWSConfig.MastersSecurityGroupID
 	} else {
-		if cfg.AWSConfig.NodesSecurityGroup == "default" {
-			log.Infof("[%s] - using default security group for nodes", s.Name())
-		}
-		secGroupID = &cfg.AWSConfig.NodesSecurityGroup
+		secGroupID = &cfg.AWSConfig.NodesSecurityGroupID
 	}
-
-	ec2Cfg := cfg.AWSConfig.EC2Config
 
 	EC2, err := s.GetEC2(cfg.AWSConfig)
 	if err != nil {
 		logrus.Errorf("[%s] - failed to authorize in AWS: %v", s.Name(), err)
 		return errors.Wrap(ErrAuthorization, err.Error())
 	}
+
+	amiID, err := s.FindAMI(ctx, w, EC2)
+	if err != nil {
+		logrus.Errorf("[%s] - failed to find AMI for Ubuntu: %v", s.Name(), err)
+		return errors.Wrap(err, "failed to find AMI")
+	}
+
+	isEbs, err := strconv.ParseBool(cfg.AWSConfig.EbsOptimized)
+	volumeSize, err := strconv.Atoi(cfg.AWSConfig.VolumeSize)
+	hasPublicAddress, err := strconv.ParseBool(cfg.AWSConfig.HasPublicAddr)
 
 	nodeName := util.MakeNodeName(cfg.ClusterName, cfg.TaskID, cfg.IsMaster)
 	runInstanceInput := &ec2.RunInstancesInput{
@@ -73,18 +78,18 @@ func (s *StepCreateInstance) Run(ctx context.Context, w io.Writer, cfg *steps.Co
 				Ebs: &ec2.EbsBlockDevice{
 					DeleteOnTermination: aws.Bool(true),
 					VolumeType:          aws.String("gp2"),
-					VolumeSize:          aws.Int64(int64(ec2Cfg.VolumeSize)),
+					VolumeSize:          aws.Int64(int64(volumeSize)),
 				},
 			},
 		},
-		EbsOptimized:     &ec2Cfg.EbsOptimized,
-		ImageId:          &ec2Cfg.ImageID,
-		InstanceType:     &ec2Cfg.InstanceType,
-		KeyName:          &cfg.AWSConfig.KeyPairName,
-		MaxCount:         aws.Int64(1),
-		MinCount:         aws.Int64(1),
-		SecurityGroupIds: []*string{secGroupID},
-		SubnetId:         aws.String(cfg.AWSConfig.SubnetID),
+		EbsOptimized: &isEbs,
+		ImageId:      &amiID,
+		InstanceType: &cfg.AWSConfig.InstanceType,
+		KeyName:      &cfg.AWSConfig.KeyPairName,
+		MaxCount:     aws.Int64(1),
+		MinCount:     aws.Int64(1),
+		//	SecurityGroupIds: []*string{secGroupID},
+		//SubnetId: aws.String(cfg.AWSConfig.SubnetID),
 
 		//TODO add custom TAGS
 		TagSpecifications: []*ec2.TagSpecification{
@@ -107,13 +112,14 @@ func (s *StepCreateInstance) Run(ctx context.Context, w io.Writer, cfg *steps.Co
 			},
 		},
 	}
-	if ec2Cfg.HasPublicAddr {
+	if hasPublicAddress {
 		runInstanceInput.NetworkInterfaces = []*ec2.InstanceNetworkInterfaceSpecification{
 			{
 				DeviceIndex:              aws.Int64(0),
-				AssociatePublicIpAddress: aws.Bool(ec2Cfg.HasPublicAddr),
+				AssociatePublicIpAddress: aws.Bool(true),
 				DeleteOnTermination:      aws.Bool(true),
 				SubnetId:                 aws.String(cfg.AWSConfig.SubnetID),
+				Groups:                   []*string{secGroupID},
 			},
 		}
 	}
@@ -124,6 +130,7 @@ func (s *StepCreateInstance) Run(ctx context.Context, w io.Writer, cfg *steps.Co
 	}
 
 	cfg.Node = node.Node{
+		Name:     nodeName,
 		TaskID:   cfg.TaskID,
 		Region:   cfg.AWSConfig.Region,
 		Role:     role,
@@ -152,14 +159,7 @@ func (s *StepCreateInstance) Run(ctx context.Context, w io.Writer, cfg *steps.Co
 
 	instance := res.Instances[0]
 
-	cfg.Node.Region = cfg.AWSConfig.Region
-	cfg.Node.CreatedAt = instance.LaunchTime.Unix()
-	cfg.Node.ID = *instance.InstanceId
-
-	// Update node state in cluster
-	cfg.NodeChan() <- cfg.Node
-
-	if ec2Cfg.HasPublicAddr {
+	if hasPublicAddress {
 		log.Infof("[%s] - waiting to obtain public IP...", s.Name())
 
 		//Waiting for AWS to assign public IP requires to poll an describe ec2 endpoint several times
@@ -198,6 +198,7 @@ func (s *StepCreateInstance) Run(ctx context.Context, w io.Writer, cfg *steps.Co
 				found = true
 				break
 			}
+			time.Sleep(2 * time.Second)
 		}
 		if !found {
 			log.Errorf("[%s] - failed to find public IP address after %d attempts", s.Name(), IPAttempts)
@@ -207,16 +208,84 @@ func (s *StepCreateInstance) Run(ctx context.Context, w io.Writer, cfg *steps.Co
 		}
 	}
 
+	cfg.Node.Region = cfg.AWSConfig.Region
+	cfg.Node.CreatedAt = instance.LaunchTime.Unix()
+	cfg.Node.ID = *instance.InstanceId
+	cfg.Node.State = node.StateProvisioning
+
+	cfg.NodeChan() <- cfg.Node
 	if cfg.IsMaster {
 		cfg.AddMaster(&cfg.Node)
+	} else {
+		cfg.AddNode(&cfg.Node)
 	}
-	cfg.Node.State = node.StateProvisioning
-	cfg.NodeChan() <- cfg.Node
 
 	log.Infof("[%s] - success! Created node %s with instanceID %s", s.Name(), nodeName, cfg.Node.ID)
 	logrus.Debugf("%v", *instance)
 
 	return nil
+}
+
+func (s *StepCreateInstance) FindAMI(ctx context.Context, w io.Writer, EC2 ec2iface.EC2API) (string, error) {
+	out, err := EC2.DescribeImagesWithContext(ctx, &ec2.DescribeImagesInput{
+		Filters: []*ec2.Filter{
+			{
+				Name: aws.String("architecture"),
+				Values: []*string{
+					aws.String("x86_64"),
+				},
+			},
+			{
+				Name: aws.String("virtualization-type"),
+				Values: []*string{
+					aws.String("hvm"),
+				},
+			},
+			{
+				Name: aws.String("root-device-type"),
+				Values: []*string{
+					aws.String("ebs"),
+				},
+			},
+			//Owner should be Canonical
+			{
+				Name: aws.String("owner-id"),
+				Values: []*string{
+					aws.String("099720109477"),
+				},
+			},
+			{
+				Name: aws.String("description"),
+				Values: []*string{
+					aws.String("Canonical, Ubuntu, 17.10*"),
+				},
+			},
+		},
+	})
+	if err != nil {
+		return "", err
+	}
+	amiID := ""
+
+	log := util.GetLogger(w)
+
+	for _, img := range out.Images {
+		if img.Description == nil {
+			continue
+		}
+		if strings.Contains(*img.Description, "UNSUPPORTED") {
+			continue
+		}
+		amiID = *img.ImageId
+
+		logMessage := fmt.Sprintf("[%s] - using AMI (ID: %s) %s", s.Name(), amiID, *img.Description)
+		log.Info(logMessage)
+		logrus.Info(logMessage)
+
+		break
+	}
+
+	return amiID, nil
 }
 
 func (s *StepCreateInstance) Rollback(ctx context.Context, w io.Writer, cfg *steps.Config) error {

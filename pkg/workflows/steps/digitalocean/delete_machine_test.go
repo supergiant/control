@@ -3,6 +3,7 @@ package digitalocean
 import (
 	"bytes"
 	"context"
+	"io/ioutil"
 	"net/http"
 	"testing"
 	"time"
@@ -93,5 +94,30 @@ func TestDeleteMachineRun(t *testing.T) {
 				t.Errorf("Wrong error expected %v actual %v", testCase.dropletErrors[i], err)
 			}
 		}
+	}
+}
+
+func TestStepDeleteMachineName(t *testing.T) {
+	s := DeleteMachineStep{}
+
+	if s.Name() != DeleteMachineStepName {
+		t.Errorf("Unexpected step name expected %s actual %s", DeleteMachineStepName, s.Name())
+	}
+}
+
+func TestDeleteMachineDepends(t *testing.T) {
+	s := DeleteMachineStep{}
+
+	if len(s.Depends()) != 0 {
+		t.Errorf("Wrong dependency list %v expected %v", s.Depends(), []string{})
+	}
+}
+
+func TestStep_Rollback(t *testing.T) {
+	s := DeleteMachineStep{}
+	err := s.Rollback(context.Background(), ioutil.Discard, &steps.Config{})
+
+	if err != nil {
+		t.Errorf("unexpected error while rollback %v", err)
 	}
 }
