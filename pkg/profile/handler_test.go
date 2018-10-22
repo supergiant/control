@@ -3,11 +3,10 @@ package profile
 import (
 	"bytes"
 	"encoding/json"
+	"fmt"
 	"net/http"
 	"net/http/httptest"
 	"testing"
-
-	"fmt"
 
 	"github.com/gorilla/mux"
 	"github.com/pkg/errors"

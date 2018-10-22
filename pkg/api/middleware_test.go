@@ -4,9 +4,8 @@ import (
 	"fmt"
 	"net/http"
 	"net/http/httptest"
-	"testing"
-
 	"strings"
+	"testing"
 	"time"
 
 	"github.com/dgrijalva/jwt-go"

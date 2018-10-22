@@ -4,7 +4,6 @@ import (
 	"testing"
 
 	"github.com/pkg/errors"
-
 	"k8s.io/apimachinery/pkg/runtime/schema"
 
 	"github.com/supergiant/supergiant/pkg/model"
