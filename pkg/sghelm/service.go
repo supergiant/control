@@ -241,12 +241,22 @@ func toRepo(e *repo.Entry, index *repo.IndexFile) *model.RepositoryInfo {
 		}
 
 		r.Charts = append(r.Charts, model.ChartInfo{
-			Name:     name,
-			Repo:     e.Name,
-			Versions: toChartVersions(entry),
+			Name:        name,
+			Repo:        e.Name,
+			Description: descriptionFrom(entry),
+			Versions:    toChartVersions(entry),
 		})
 	}
 	return r
+}
+
+func descriptionFrom(cvs repo.ChartVersions) string {
+	for _, cv := range cvs {
+		if cv.Description != "" {
+			return cv.Description
+		}
+	}
+	return ""
 }
 
 func toChartVersions(cvs repo.ChartVersions) []model.ChartVersion {

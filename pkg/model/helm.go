@@ -16,9 +16,10 @@ type ChartData struct {
 
 // ChartInfo is a list of the charts metadata.
 type ChartInfo struct {
-	Name     string         `json:"name"`
-	Repo     string         `json:"repo"`
-	Versions []ChartVersion `json:"versions"`
+	Name        string         `json:"name"`
+	Repo        string         `json:"repo"`
+	Description string         `json:"description"`
+	Versions    []ChartVersion `json:"versions"`
 }
 
 type ChartVersion struct {
