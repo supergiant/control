@@ -4,12 +4,12 @@
   <article class="left">
     <mat-card-header>
       <mat-card-title>
-        <h2>{{ chartDetails.name | titlecase }}</h2>
+        <h2>{{ chartDetails.metadata?.name | titlecase }}</h2>
       </mat-card-title>
     </mat-card-header>
     <mat-card-content>
       <section class="description">
-      {{ chartDetails.description }}
+      {{ chartDetails.metadata?.description }}
       </section>
 
       <h3>Instructions</h3>
@@ -39,11 +39,11 @@
 </table>
 
   <h3>Actions</h3>
-  <button mat-button
+  <button (click)="openConfigureDialog()" mat-button
           color="secondary"
           class="configure">CONFIGURE
   </button>
-  <button (click)="initDialog()"
+  <button (click)="openDeployDialog()"
           mat-button
           color="primary">DEPLOY
   </button>
