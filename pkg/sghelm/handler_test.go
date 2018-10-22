@@ -32,7 +32,7 @@ type fakeService struct {
 	repoList []model.RepositoryInfo
 	chrt     *chart.Chart
 	chrtData *model.ChartData
-	chrtList []model.ChartVersions
+	chrtList []model.ChartInfo
 	err      error
 }
 
@@ -51,7 +51,7 @@ func (fs fakeService) DeleteRepo(ctx context.Context, repoName string) (*model.R
 func (fs fakeService) GetChartData(ctx context.Context, repoName, chartName, chartVersion string) (*model.ChartData, error) {
 	return fs.chrtData, fs.err
 }
-func (fs fakeService) ListCharts(ctx context.Context, repoName string) ([]model.ChartVersions, error) {
+func (fs fakeService) ListCharts(ctx context.Context, repoName string) ([]model.ChartInfo, error) {
 	return fs.chrtList, fs.err
 }
 func (fs fakeService) GetChart(ctx context.Context, repoName, chartName, chartVersion string) (*chart.Chart, error) {
@@ -416,7 +416,6 @@ func TestHandler_getChartData(t *testing.T) {
 			chrtName: "sgChart",
 			svc: &fakeService{
 				chrtData: &model.ChartData{
-					Repo: "sgRepo",
 					Metadata: &chart.Metadata{
 						Name: "sgChart",
 					},
@@ -424,7 +423,6 @@ func TestHandler_getChartData(t *testing.T) {
 			},
 			expectedStatus: http.StatusOK,
 			expectedChart: &model.ChartData{
-				Repo: "sgRepo",
 				Metadata: &chart.Metadata{
 					Name: "sgChart",
 				},
@@ -475,7 +473,7 @@ func TestHandler_listCharts(t *testing.T) {
 		repoName string
 
 		expectedStatus  int
-		expectedCharts  []model.ChartVersions
+		expectedCharts  []model.ChartInfo
 		expectedErrCode sgerrors.ErrorCode
 	}{
 		{ // TC#1
@@ -489,7 +487,7 @@ func TestHandler_listCharts(t *testing.T) {
 		{ // TC#2
 			repoName: "sgRepo",
 			svc: &fakeService{
-				chrtList: []model.ChartVersions{
+				chrtList: []model.ChartInfo{
 					{
 						Name: "sgChart",
 						Repo: "sgRepo",
@@ -497,7 +495,7 @@ func TestHandler_listCharts(t *testing.T) {
 				},
 			},
 			expectedStatus: http.StatusOK,
-			expectedCharts: []model.ChartVersions{
+			expectedCharts: []model.ChartInfo{
 				{
 					Name: "sgChart",
 					Repo: "sgRepo",
@@ -523,7 +521,7 @@ func TestHandler_listCharts(t *testing.T) {
 		require.Equalf(t, tc.expectedStatus, w.Code, "TC#%d", i+1)
 
 		if w.Code == http.StatusOK {
-			charts := []model.ChartVersions{}
+			charts := []model.ChartInfo{}
 			require.Nilf(t, json.NewDecoder(w.Body).Decode(&charts), "TC#%d: decode repos", i+1)
 
 			require.Equalf(t, tc.expectedCharts, charts, "TC#%d: check repos", i+1)
