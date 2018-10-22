@@ -8,9 +8,8 @@ import (
 	"net/http/httptest"
 	"testing"
 
-	"github.com/pkg/errors"
-
 	"github.com/gorilla/mux"
+	"github.com/pkg/errors"
 
 	"github.com/supergiant/supergiant/pkg/account"
 	"github.com/supergiant/supergiant/pkg/clouds"

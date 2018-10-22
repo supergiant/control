@@ -6,10 +6,9 @@ import (
 	"io/ioutil"
 	"strings"
 	"testing"
+	"text/template"
 
 	"github.com/pkg/errors"
-
-	"text/template"
 
 	"github.com/supergiant/supergiant/pkg/templatemanager"
 	"github.com/supergiant/supergiant/pkg/testutils"

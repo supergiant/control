@@ -7,10 +7,9 @@ import (
 	"net/http/httptest"
 	"testing"
 
+	"github.com/pkg/errors"
 	"github.com/stretchr/testify/mock"
 	"github.com/stretchr/testify/require"
-
-	"github.com/pkg/errors"
 
 	"github.com/supergiant/supergiant/pkg/jwt"
 	"github.com/supergiant/supergiant/pkg/sgerrors"

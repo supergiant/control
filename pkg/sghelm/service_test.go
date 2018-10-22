@@ -64,7 +64,7 @@ func TestService_CreateRepo(t *testing.T) {
 		storage fakeStorage
 		repos   fakeRepoManager
 
-		expectedRepo *model.Repository
+		expectedRepo *model.RepositoryInfo
 		expectedErr  error
 	}{
 		{ // TC#1
@@ -103,7 +103,7 @@ func TestService_CreateRepo(t *testing.T) {
 				Name: "success",
 			},
 			repos: fakeRepoManager{},
-			expectedRepo: &model.Repository{
+			expectedRepo: &model.RepositoryInfo{
 				Config: repo.Entry{
 					Name: "success",
 				},
@@ -135,7 +135,7 @@ func TestService_GetRepo(t *testing.T) {
 		repoName string
 		storage  fakeStorage
 
-		expectedRepo *model.Repository
+		expectedRepo *model.RepositoryInfo
 		expectedErr  error
 	}{
 		{ // TC#1
@@ -160,7 +160,7 @@ func TestService_GetRepo(t *testing.T) {
 			storage: fakeStorage{
 				item: []byte(`{"config":{"name":"success"}}`),
 			},
-			expectedRepo: &model.Repository{
+			expectedRepo: &model.RepositoryInfo{
 				Config: repo.Entry{
 					Name: "success",
 				},
@@ -194,7 +194,7 @@ func TestService_ListRepo(t *testing.T) {
 	tcs := []struct {
 		storage fakeStorage
 
-		expectedRepos []model.Repository
+		expectedRepos []model.RepositoryInfo
 		expectedErr   error
 	}{
 		{ // TC#1
@@ -212,7 +212,7 @@ func TestService_ListRepo(t *testing.T) {
 			storage: fakeStorage{
 				items: [][]byte{[]byte(`{"config":{"name":"success"}}`)},
 			},
-			expectedRepos: []model.Repository{
+			expectedRepos: []model.RepositoryInfo{
 				{
 					Config: repo.Entry{
 						Name: "success",
@@ -249,7 +249,7 @@ func TestService_DeleteRepo(t *testing.T) {
 		repoName string
 		storage  fakeStorage
 
-		expectedRepo *model.Repository
+		expectedRepo *model.RepositoryInfo
 		expectedErr  error
 	}{
 		{ // TC#1
@@ -272,7 +272,7 @@ func TestService_DeleteRepo(t *testing.T) {
 			storage: fakeStorage{
 				item: []byte(`{"config":{"name":"success"}}`),
 			},
-			expectedRepo: &model.Repository{
+			expectedRepo: &model.RepositoryInfo{
 				Config: repo.Entry{
 					Name: "success",
 				},

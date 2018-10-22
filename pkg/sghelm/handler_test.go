@@ -28,34 +28,34 @@ var (
 var _ Servicer = &fakeService{}
 
 type fakeService struct {
-	repo      *model.Repository
-	repoList  []model.Repository
-	chrt      *model.Chart
-	chrtList  []model.Chart
-	chrtFiles *chart.Chart
-	err       error
+	repo     *model.RepositoryInfo
+	repoList []model.RepositoryInfo
+	chrt     *chart.Chart
+	chrtData *model.ChartData
+	chrtList []model.ChartVersions
+	err      error
 }
 
-func (fs fakeService) CreateRepo(ctx context.Context, e *repo.Entry) (*model.Repository, error) {
+func (fs fakeService) CreateRepo(ctx context.Context, e *repo.Entry) (*model.RepositoryInfo, error) {
 	return fs.repo, fs.err
 }
-func (fs fakeService) GetRepo(ctx context.Context, repoName string) (*model.Repository, error) {
+func (fs fakeService) GetRepo(ctx context.Context, repoName string) (*model.RepositoryInfo, error) {
 	return fs.repo, fs.err
 }
-func (fs fakeService) ListRepos(ctx context.Context) ([]model.Repository, error) {
+func (fs fakeService) ListRepos(ctx context.Context) ([]model.RepositoryInfo, error) {
 	return fs.repoList, fs.err
 }
-func (fs fakeService) DeleteRepo(ctx context.Context, repoName string) (*model.Repository, error) {
+func (fs fakeService) DeleteRepo(ctx context.Context, repoName string) (*model.RepositoryInfo, error) {
 	return fs.repo, fs.err
 }
-func (fs fakeService) GetChartInfo(ctx context.Context, repoName, chartName string) (*model.Chart, error) {
-	return fs.chrt, fs.err
+func (fs fakeService) GetChartData(ctx context.Context, repoName, chartName, chartVersion string) (*model.ChartData, error) {
+	return fs.chrtData, fs.err
 }
-func (fs fakeService) ListChartInfos(ctx context.Context, repoName string) ([]model.Chart, error) {
+func (fs fakeService) ListCharts(ctx context.Context, repoName string) ([]model.ChartVersions, error) {
 	return fs.chrtList, fs.err
 }
 func (fs fakeService) GetChart(ctx context.Context, repoName, chartName, chartVersion string) (*chart.Chart, error) {
-	return fs.chrtFiles, fs.err
+	return fs.chrt, fs.err
 }
 
 func TestHandler_createRepo(t *testing.T) {
@@ -68,7 +68,7 @@ func TestHandler_createRepo(t *testing.T) {
 		inpRepo []byte
 
 		expectedStatus  int
-		expectedRepo    *model.Repository
+		expectedRepo    *model.RepositoryInfo
 		expectedErrCode sgerrors.ErrorCode
 	}{
 		{ // TC#1
@@ -103,14 +103,14 @@ func TestHandler_createRepo(t *testing.T) {
 		{ // TC#5
 			inpRepo: []byte(`{"name":"sgRepo","url":"url"}`),
 			svc: &fakeService{
-				repo: &model.Repository{
+				repo: &model.RepositoryInfo{
 					Config: repo.Entry{
 						Name: "sgRepo",
 					},
 				},
 			},
 			expectedStatus: http.StatusOK,
-			expectedRepo: &model.Repository{
+			expectedRepo: &model.RepositoryInfo{
 				Config: repo.Entry{
 					Name: "sgRepo",
 				},
@@ -135,7 +135,7 @@ func TestHandler_createRepo(t *testing.T) {
 		require.Equalf(t, tc.expectedStatus, w.Code, "TC#%d: check status code", i+1)
 
 		if w.Code == http.StatusOK {
-			hrepo := &model.Repository{}
+			hrepo := &model.RepositoryInfo{}
 			require.Nilf(t, json.NewDecoder(w.Body).Decode(hrepo), "TC#%d: decode repo", i+1)
 
 			require.Equalf(t, tc.expectedRepo, hrepo, "TC#%d: check repo", i+1)
@@ -158,7 +158,7 @@ func TestHandler_getRepo(t *testing.T) {
 		repoName string
 
 		expectedStatus  int
-		expectedRepo    *model.Repository
+		expectedRepo    *model.RepositoryInfo
 		expectedErrCode sgerrors.ErrorCode
 	}{
 		{ // TC#1
@@ -180,14 +180,14 @@ func TestHandler_getRepo(t *testing.T) {
 		{ // TC#3
 			repoName: "sgRepo",
 			svc: &fakeService{
-				repo: &model.Repository{
+				repo: &model.RepositoryInfo{
 					Config: repo.Entry{
 						Name: "sgRepo",
 					},
 				},
 			},
 			expectedStatus: http.StatusOK,
-			expectedRepo: &model.Repository{
+			expectedRepo: &model.RepositoryInfo{
 				Config: repo.Entry{
 					Name: "sgRepo",
 				},
@@ -215,7 +215,7 @@ func TestHandler_getRepo(t *testing.T) {
 		require.Equalf(t, tc.expectedStatus, w.Code, "TC#%d: check status code", i+1)
 
 		if w.Code == http.StatusOK {
-			hrepo := &model.Repository{}
+			hrepo := &model.RepositoryInfo{}
 			require.Nilf(t, json.NewDecoder(w.Body).Decode(hrepo), "TC#%d: decode repo", i+1)
 
 			require.Equalf(t, tc.expectedRepo, hrepo, "TC#%d: check repo", i+1)
@@ -237,7 +237,7 @@ func TestHandler_listRepos(t *testing.T) {
 		svc *fakeService
 
 		expectedStatus  int
-		expectedRepos   []model.Repository
+		expectedRepos   []model.RepositoryInfo
 		expectedErrCode sgerrors.ErrorCode
 	}{
 		{ // TC#1
@@ -249,7 +249,7 @@ func TestHandler_listRepos(t *testing.T) {
 		},
 		{ // TC#2
 			svc: &fakeService{
-				repoList: []model.Repository{
+				repoList: []model.RepositoryInfo{
 					{
 						Config: repo.Entry{
 							Name: "sgRepo",
@@ -258,7 +258,7 @@ func TestHandler_listRepos(t *testing.T) {
 				},
 			},
 			expectedStatus: http.StatusOK,
-			expectedRepos: []model.Repository{
+			expectedRepos: []model.RepositoryInfo{
 				{
 					Config: repo.Entry{
 						Name: "sgRepo",
@@ -286,7 +286,7 @@ func TestHandler_listRepos(t *testing.T) {
 		require.Equalf(t, tc.expectedStatus, w.Code, "TC#%d", i+1)
 
 		if w.Code == http.StatusOK {
-			hrepos := []model.Repository{}
+			hrepos := []model.RepositoryInfo{}
 			require.Nilf(t, json.NewDecoder(w.Body).Decode(&hrepos), "TC#%d: decode repos", i+1)
 
 			require.Equalf(t, tc.expectedRepos, hrepos, "TC#%d: check repos", i+1)
@@ -309,7 +309,7 @@ func TestHandler_deleteRepo(t *testing.T) {
 		repoName string
 
 		expectedStatus  int
-		expectedRepo    *model.Repository
+		expectedRepo    *model.RepositoryInfo
 		expectedErrCode sgerrors.ErrorCode
 	}{
 		{ // TC#1
@@ -331,14 +331,14 @@ func TestHandler_deleteRepo(t *testing.T) {
 		{ // TC#3
 			repoName: "sgRepo",
 			svc: &fakeService{
-				repo: &model.Repository{
+				repo: &model.RepositoryInfo{
 					Config: repo.Entry{
 						Name: "sgRepo",
 					},
 				},
 			},
 			expectedStatus: http.StatusOK,
-			expectedRepo: &model.Repository{
+			expectedRepo: &model.RepositoryInfo{
 				Config: repo.Entry{
 					Name: "sgRepo",
 				},
@@ -366,7 +366,7 @@ func TestHandler_deleteRepo(t *testing.T) {
 		require.Equalf(t, tc.expectedStatus, w.Code, "TC#%d: check status code", i+1)
 
 		if w.Code == http.StatusOK {
-			hrepo := &model.Repository{}
+			hrepo := &model.RepositoryInfo{}
 			require.Nilf(t, json.NewDecoder(w.Body).Decode(hrepo), "TC#%d: decode repo", i+1)
 
 			require.Equalf(t, tc.expectedRepo, hrepo, "TC#%d: check repo", i+1)
@@ -379,7 +379,7 @@ func TestHandler_deleteRepo(t *testing.T) {
 	}
 }
 
-func TestHandler_getChart(t *testing.T) {
+func TestHandler_getChartData(t *testing.T) {
 	loggerWriter := logrus.StandardLogger().Out
 	logrus.SetOutput(ioutil.Discard)
 	defer logrus.SetOutput(loggerWriter)
@@ -390,7 +390,7 @@ func TestHandler_getChart(t *testing.T) {
 		chrtName string
 
 		expectedStatus  int
-		expectedChart   *model.Chart
+		expectedChart   *model.ChartData
 		expectedErrCode sgerrors.ErrorCode
 	}{
 		{ // TC#1
@@ -415,15 +415,19 @@ func TestHandler_getChart(t *testing.T) {
 			repoName: "sgRepo",
 			chrtName: "sgChart",
 			svc: &fakeService{
-				chrt: &model.Chart{
-					Name: "sgChart",
+				chrtData: &model.ChartData{
 					Repo: "sgRepo",
+					Metadata: &chart.Metadata{
+						Name: "sgChart",
+					},
 				},
 			},
 			expectedStatus: http.StatusOK,
-			expectedChart: &model.Chart{
-				Name: "sgChart",
+			expectedChart: &model.ChartData{
 				Repo: "sgRepo",
+				Metadata: &chart.Metadata{
+					Name: "sgChart",
+				},
 			},
 		},
 	}
@@ -448,7 +452,7 @@ func TestHandler_getChart(t *testing.T) {
 		require.Equalf(t, tc.expectedStatus, w.Code, "TC#%d: check status code", i+1)
 
 		if w.Code == http.StatusOK {
-			chrt := &model.Chart{}
+			chrt := &model.ChartData{}
 			require.Nilf(t, json.NewDecoder(w.Body).Decode(chrt), "TC#%d: decode repo", i+1)
 
 			require.Equalf(t, tc.expectedChart, chrt, "TC#%d: check repo", i+1)
@@ -471,7 +475,7 @@ func TestHandler_listCharts(t *testing.T) {
 		repoName string
 
 		expectedStatus  int
-		expectedCharts  []model.Chart
+		expectedCharts  []model.ChartVersions
 		expectedErrCode sgerrors.ErrorCode
 	}{
 		{ // TC#1
@@ -485,7 +489,7 @@ func TestHandler_listCharts(t *testing.T) {
 		{ // TC#2
 			repoName: "sgRepo",
 			svc: &fakeService{
-				chrtList: []model.Chart{
+				chrtList: []model.ChartVersions{
 					{
 						Name: "sgChart",
 						Repo: "sgRepo",
@@ -493,7 +497,7 @@ func TestHandler_listCharts(t *testing.T) {
 				},
 			},
 			expectedStatus: http.StatusOK,
-			expectedCharts: []model.Chart{
+			expectedCharts: []model.ChartVersions{
 				{
 					Name: "sgChart",
 					Repo: "sgRepo",
@@ -519,7 +523,7 @@ func TestHandler_listCharts(t *testing.T) {
 		require.Equalf(t, tc.expectedStatus, w.Code, "TC#%d", i+1)
 
 		if w.Code == http.StatusOK {
-			charts := []model.Chart{}
+			charts := []model.ChartVersions{}
 			require.Nilf(t, json.NewDecoder(w.Body).Decode(&charts), "TC#%d: decode repos", i+1)
 
 			require.Equalf(t, tc.expectedCharts, charts, "TC#%d: check repos", i+1)
