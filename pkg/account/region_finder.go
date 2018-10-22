@@ -13,11 +13,12 @@ import (
 	"github.com/pkg/errors"
 
 	"github.com/supergiant/supergiant/pkg/clouds"
-	"github.com/supergiant/supergiant/pkg/clouds/digitaloceanSDK"
+	"github.com/supergiant/supergiant/pkg/clouds/digitaloceansdk"
 	"github.com/supergiant/supergiant/pkg/model"
 )
 
 var (
+	ErrNilAccount          = errors.New("nil account")
 	ErrUnsupportedProvider = errors.New("unsupported provider")
 )
 
@@ -28,8 +29,13 @@ type Region struct {
 	//API specific ID, e.g. t2.micro
 	ID string `json:"id"`
 
-	//API specific IDs for a node size/type
+	//API specific IDs for a node sizes/type
 	AvailableSizes []string
+}
+
+type Size struct {
+	RAM string `json:"ram"`
+	CPU string `json:"cpu"`
 }
 
 //RegionSizes represents aggregated information about available regions/azs and node sizes/types
@@ -49,14 +55,21 @@ type RegionFinder interface {
 
 //GetRegionFinder returns finder attached to corresponding account as it has all credentials for a cloud provider
 func GetRegionFinder(account *model.CloudAccount) (RegionFinder, error) {
+	if account == nil {
+		return nil, ErrNilAccount
+	}
+
 	switch account.Provider {
 	case clouds.DigitalOcean:
-		sdk, err := digitaloceanSDK.NewFromAccount(account)
+		sdk, err := digitaloceansdk.NewFromAccount(account)
 		if err != nil {
 			return nil, err
 		}
 		return &digitalOceanRegionFinder{
-			sdk: sdk,
+			getServices: func() (godo.SizesService, godo.RegionsService) {
+				client := sdk.GetClient()
+				return client.Sizes, client.Regions
+			},
 		}, nil
 	case clouds.AWS:
 		return NewAWSFinder(account)
@@ -65,28 +78,28 @@ func GetRegionFinder(account *model.CloudAccount) (RegionFinder, error) {
 }
 
 type digitalOceanRegionFinder struct {
-	sdk *digitaloceanSDK.SDK
+	sdk         *digitaloceansdk.SDK
+	getServices func() (godo.SizesService, godo.RegionsService)
 }
 
 func (rf *digitalOceanRegionFinder) Find(ctx context.Context) (*RegionSizes, error) {
-	cl := rf.sdk.GetClient()
-	regions := make([]*Region, 0)
+	sizeService, regionService := rf.getServices()
 
 	var wg sync.WaitGroup
 	var sizes []godo.Size
 	var sizeErr error
 
 	var doRegions []godo.Region
-	var doErr error
+	var regionErr error
 
 	wg.Add(2)
 	go func() {
 		defer wg.Done()
-		sizes, _, sizeErr = cl.Sizes.List(ctx, nil)
+		sizes, _, sizeErr = sizeService.List(ctx, nil)
 	}()
 	go func() {
 		defer wg.Done()
-		doRegions, _, doErr = cl.Regions.List(ctx, nil)
+		doRegions, _, regionErr = regionService.List(ctx, nil)
 	}()
 	//assignment will work fine because of the memory barrier
 	wg.Wait()
@@ -94,29 +107,19 @@ func (rf *digitalOceanRegionFinder) Find(ctx context.Context) (*RegionSizes, err
 	if sizeErr != nil {
 		return nil, sizeErr
 	}
-	if doErr != nil {
-		return nil, doErr
+	if regionErr != nil {
+		return nil, regionErr
 	}
 
 	nodeSizes := make(map[string]interface{})
+	regions := make([]*Region, 0, len(doRegions))
+
 	for _, s := range sizes {
-		ns := struct {
-			RAM string `json:"ram"`
-			CPU string `json:"cpu"`
-		}{
-			RAM: strconv.Itoa(s.Memory),
-			CPU: strconv.Itoa(s.Vcpus),
-		}
-		nodeSizes[s.Slug] = ns
+		convertSize(s, nodeSizes)
 	}
 
 	for _, r := range doRegions {
-		region := &Region{
-			ID:             r.Slug,
-			Name:           r.Name,
-			AvailableSizes: r.Sizes,
-		}
-		regions = append(regions, region)
+		regions = append(regions, convertRegion(r))
 	}
 
 	rs := &RegionSizes{
@@ -126,6 +129,24 @@ func (rf *digitalOceanRegionFinder) Find(ctx context.Context) (*RegionSizes, err
 	}
 
 	return rs, nil
+}
+
+func convertSize(s godo.Size, nodeSizes map[string]interface{}) {
+	ns := Size{
+		RAM: strconv.Itoa(s.Memory),
+		CPU: strconv.Itoa(s.Vcpus),
+	}
+	nodeSizes[s.Slug] = ns
+}
+
+func convertRegion(r godo.Region) *Region {
+	region := &Region{
+		ID:             r.Slug,
+		Name:           r.Name,
+		AvailableSizes: r.Sizes,
+	}
+
+	return region
 }
 
 type AWSFinder struct {

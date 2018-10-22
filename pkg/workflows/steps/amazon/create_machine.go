@@ -20,10 +20,10 @@ import (
 	"github.com/supergiant/supergiant/pkg/workflows/steps"
 )
 
-const StepCreateMachine = "aws_create_instance"
 const (
-	IPAttempts             = 12
-	SleepSecondsPerAttempt = 6
+	StepNameCreateEC2Instance = "aws_create_instance"
+	IPAttempts                = 12
+	SleepSecondsPerAttempt    = 6
 )
 
 type StepCreateInstance struct {
@@ -32,7 +32,7 @@ type StepCreateInstance struct {
 
 //InitCreateMachine adds the step to the registry
 func InitCreateMachine(fn func(steps.AWSConfig) (ec2iface.EC2API, error)) {
-	steps.RegisterStep(StepCreateMachine, NewCreateInstance(fn))
+	steps.RegisterStep(StepNameCreateEC2Instance, NewCreateInstance(fn))
 }
 
 func NewCreateInstance(fn GetEC2Fn) *StepCreateInstance {
@@ -43,7 +43,7 @@ func NewCreateInstance(fn GetEC2Fn) *StepCreateInstance {
 
 func (s *StepCreateInstance) Run(ctx context.Context, w io.Writer, cfg *steps.Config) error {
 	log := util.GetLogger(w)
-	log.Infof("[%s] - started", StepCreateMachine)
+	log.Infof("[%s] - started", StepNameCreateEC2Instance)
 
 	var secGroupID *string
 
@@ -146,7 +146,7 @@ func (s *StepCreateInstance) Run(ctx context.Context, w io.Writer, cfg *steps.Co
 		cfg.Node.State = node.StateError
 		cfg.NodeChan() <- cfg.Node
 
-		log.Errorf("[%s] - failed to create ec2 instance: %v", StepCreateMachine, err)
+		log.Errorf("[%s] - failed to create ec2 instance: %v", StepNameCreateEC2Instance, err)
 		return errors.Wrap(ErrCreateInstance, err.Error())
 	}
 
@@ -324,7 +324,7 @@ func findInstanceWithPublicAddr(reservations []*ec2.Reservation) *ec2.Instance {
 }
 
 func (*StepCreateInstance) Name() string {
-	return StepCreateMachine
+	return StepNameCreateEC2Instance
 }
 
 func (*StepCreateInstance) Description() string {
