@@ -17,6 +17,8 @@ import (
 )
 
 const (
+	readmeFileName = "readme.md"
+
 	repoPrefix = "/helm/repositories/"
 )
 
@@ -29,7 +31,7 @@ type Servicer interface {
 	ListRepos(ctx context.Context) ([]model.RepositoryInfo, error)
 	DeleteRepo(ctx context.Context, repoName string) (*model.RepositoryInfo, error)
 	GetChartData(ctx context.Context, repoName, chartName, chartVersion string) (*model.ChartData, error)
-	ListCharts(ctx context.Context, repoName string) ([]model.ChartVersions, error)
+	ListCharts(ctx context.Context, repoName string) ([]model.ChartInfo, error)
 	GetChart(ctx context.Context, repoName, chartName, chartVersion string) (*chart.Chart, error)
 }
 
@@ -134,11 +136,10 @@ func (s Service) GetChartData(ctx context.Context, repoName, chartName, chartVer
 	if err != nil {
 		return nil, err
 	}
-
-	return toChartData(repoName, chrt), sgerrors.ErrNotFound
+	return toChartData(chrt), nil
 }
 
-func (s Service) ListCharts(ctx context.Context, repoName string) ([]model.ChartVersions, error) {
+func (s Service) ListCharts(ctx context.Context, repoName string) ([]model.ChartInfo, error) {
 	hrepo, err := s.GetRepo(ctx, repoName)
 	if err != nil {
 		return nil, errors.Wrapf(err, "get %s repository info", repoName)
@@ -165,22 +166,28 @@ func (s Service) GetChart(ctx context.Context, repoName, chartName, chartVersion
 	return chrt, nil
 }
 
-func toChartData(repo string, chrt *chart.Chart) *model.ChartData {
+func toChartData(chrt *chart.Chart) *model.ChartData {
 	if chrt == nil {
 		return nil
 	}
 
 	out := &model.ChartData{
 		Metadata: chrt.Metadata,
-		Repo:     repo,
 	}
 	if chrt.Values != nil {
 		out.Values = chrt.Values.Raw
 	}
+	if chrt.Files != nil {
+		for _, f := range chrt.Files {
+			if f != nil && strings.ToLower(f.TypeUrl) == readmeFileName {
+				out.Readme = string(f.Value)
+			}
+		}
+	}
 	return out
 }
 
-func findChartURL(charts []model.ChartVersions, chartName, chartVersion string) (string, error) {
+func findChartURL(charts []model.ChartInfo, chartName, chartVersion string) (string, error) {
 	for _, chrt := range charts {
 		if chrt.Name != chartName {
 			continue
@@ -197,7 +204,7 @@ func findChartURL(charts []model.ChartVersions, chartName, chartVersion string) 
 	return "", sgerrors.ErrNotFound
 }
 
-func findChartVersion(chrtVers []repo.ChartVersion, version string) repo.ChartVersion {
+func findChartVersion(chrtVers []model.ChartVersion, version string) model.ChartVersion {
 	version = strings.TrimSpace(version)
 	if len(chrtVers) > 0 && version == "" {
 		return chrtVers[len(chrtVers)-1]
@@ -207,7 +214,7 @@ func findChartVersion(chrtVers []repo.ChartVersion, version string) repo.ChartVe
 			return v
 		}
 	}
-	return repo.ChartVersion{}
+	return model.ChartVersion{}
 }
 
 func toRepo(e *repo.Entry, index *repo.IndexFile) *model.RepositoryInfo {
@@ -222,7 +229,7 @@ func toRepo(e *repo.Entry, index *repo.IndexFile) *model.RepositoryInfo {
 		return r
 	}
 
-	r.Charts = make([]model.ChartVersions, 0, len(index.Entries))
+	r.Charts = make([]model.ChartInfo, 0, len(index.Entries))
 	for name, entry := range index.Entries {
 		if len(entry) == 0 {
 			continue
@@ -233,21 +240,38 @@ func toRepo(e *repo.Entry, index *repo.IndexFile) *model.RepositoryInfo {
 			continue
 		}
 
-		r.Charts = append(r.Charts, model.ChartVersions{
-			Name:     name,
-			Repo:     e.Name,
-			Versions: toChartVersions(entry),
+		r.Charts = append(r.Charts, model.ChartInfo{
+			Name:        name,
+			Repo:        e.Name,
+			Description: descriptionFrom(entry),
+			Versions:    toChartVersions(entry),
 		})
 	}
 	return r
 }
 
-func toChartVersions(cvs repo.ChartVersions) []repo.ChartVersion {
-	chartVersions := make([]repo.ChartVersion, 0, len(cvs))
+func descriptionFrom(cvs repo.ChartVersions) string {
 	for _, cv := range cvs {
-		if cv != nil {
-			chartVersions = append(chartVersions, *cv)
+		if cv.Description != "" {
+			return cv.Description
 		}
+	}
+	return ""
+}
+
+func toChartVersions(cvs repo.ChartVersions) []model.ChartVersion {
+	if cvs == nil {
+		return nil
+	}
+	chartVersions := make([]model.ChartVersion, 0, len(cvs))
+	for _, cv := range cvs {
+		chartVersions = append(chartVersions, model.ChartVersion{
+			Version:    cv.Version,
+			AppVersion: cv.AppVersion,
+			Created:    cv.Created,
+			Digest:     cv.Digest,
+			URLs:       cv.URLs,
+		})
 	}
 	return chartVersions
 }
