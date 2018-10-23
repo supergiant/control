@@ -1,20 +1,15 @@
 import { Injectable }                                             from '@angular/core';
 import { Actions, Effect, ofType }                                from '@ngrx/effects';
-import { AppStoreActionTypes, LoadSupergiantChartsSuccess }       from './actions/supergiant-app-actions';
-import { distinctUntilChanged, filter, map, mergeMap, switchMap } from 'rxjs/operators';
+import { distinctUntilChanged, map, mergeMap, switchMap } from 'rxjs/operators';
 import { HttpClient }                                             from '@angular/common/http';
 import { Action }                                                 from '@ngrx/store';
 import { Observable }                                             from 'rxjs';
-import { LoadOtherAppsSuccess, OtherAppActionTypes }              from "./actions/other-app.actions";
 import { Chart }                                                  from "./apps.reducer";
 import {
   AppCommonActions,
   AppCommonActionTypes,
-  AppDetailActions,
   AppDetailActionTypes, LoadAppDetails,
-  LoadAppDetailsSuccess, LoadCharts, LoadChartsSuccess,
-  LoadVerifiedAppsSuccess,
-  VerifiedAppActionTypes
+  LoadAppDetailsSuccess, LoadChartsSuccess,
 }                                                                 from "./actions";
 
 

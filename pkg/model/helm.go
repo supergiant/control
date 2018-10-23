@@ -3,19 +3,22 @@ package model
 import (
 	"time"
 
+	"k8s.io/helm/pkg/proto/hapi/chart"
 	"k8s.io/helm/pkg/repo"
 )
 
-// Chart is representation of a helm chart.
-type Chart struct {
+// ChartData is a simplified representation of the helm chart.
+type ChartData struct {
+	Metadata *chart.Metadata `json:"metadata"`
+	Readme   string          `json:"readme"`
+	Values   string          `json:"values"`
+}
+
+// ChartInfo is a list of the charts metadata.
+type ChartInfo struct {
 	Name        string         `json:"name"`
 	Repo        string         `json:"repo"`
 	Description string         `json:"description"`
-	Home        string         `json:"home"`
-	Keywords    []string       `json:"keywords"`
-	Maintainers []Maintainer   `json:"maintainers"`
-	Sources     []string       `json:"sources"`
-	Icon        string         `json:"icon"`
 	Versions    []ChartVersion `json:"versions"`
 }
 
@@ -27,17 +30,13 @@ type ChartVersion struct {
 	URLs       []string  `json:"urls"`
 }
 
-type Maintainer struct {
-	Name  string `json:"name"`
-	Email string `json:"email"`
+// RepositoryInfo holds authorization details and shortened charts info.
+type RepositoryInfo struct {
+	Config repo.Entry  `json:"config"`
+	Charts []ChartInfo `json:"charts"`
 }
 
-// Repository is representation of a helm repository.
-type Repository struct {
-	Config repo.Entry `json:"config"`
-	Charts []Chart    `json:"charts"`
-}
-
+// ReleaseInfo is a simplified representations of the helm release.
 type ReleaseInfo struct {
 	Name         string `json:"name"`
 	Namespace    string `json:"namespace"`

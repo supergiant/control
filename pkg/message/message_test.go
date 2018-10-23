@@ -1,16 +1,15 @@
 package message
 
 import (
+	json "encoding/json"
 	"errors"
+	"fmt"
+	"net/http"
 	"net/http/httptest"
 	"testing"
 
 	"github.com/json-iterator/go"
 	"github.com/stretchr/testify/require"
-
-	json "encoding/json"
-	"fmt"
-	"net/http"
 
 	"github.com/supergiant/supergiant/pkg/sgerrors"
 )
