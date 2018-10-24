@@ -1,9 +1,7 @@
 <h2 mat-dialog-title>Configure App</h2>
 <mat-dialog-content>
   <div ace-editor
-       [(text)]="text"
-       [mode]="'sql'"
-       [theme]="'eclipse'"
+       [(text)]="values"
        [options]="options"
        [readOnly]="false"
        [autoUpdateContent]="true"
@@ -12,9 +10,9 @@
        style="min-height: 200px; width:100%; overflow: auto;"></div>
 </mat-dialog-content>
 <mat-dialog-actions>
-  <button class="btn-deploy"
+  <button (click)="save()" class="btn-deploy"
           mat-button
-          color="primary">CONFIRM
+          color="primary">Save
   </button>
   <button mat-button
           mat-dialog-close>Cancel

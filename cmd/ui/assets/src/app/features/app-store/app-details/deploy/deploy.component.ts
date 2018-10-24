@@ -17,7 +17,6 @@ export class DeployComponent implements OnInit {
   deployForm: FormGroup;
   currentChart$: Observable<Chart>;
   clusters$: Observable<any>;
-  selecteCluster: string;
 
   constructor(
     private formBuilder: FormBuilder,

@@ -1,4 +1,5 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, Inject, OnInit }     from '@angular/core';
+import { MAT_DIALOG_DATA, MatDialogRef } from "@angular/material";
 
 @Component({
   selector: 'configure',
@@ -6,10 +7,25 @@ import { Component, OnInit } from '@angular/core';
   styleUrls: ['./configure.component.scss']
 })
 export class ConfigureComponent implements OnInit {
-  text = 'Lorem ipsum dolor sit amet, consectetur adipisicing elit. Animi aut debitis dolores et, eveniet exercitationem fugiat nisi nobis omnis perspiciatis quasi quidem repellendus, ullam. Ipsum, laborum, sed! Nisi, pariatur qui.';
-  constructor() { }
+  values: string;
+
+  constructor(
+    private dialogRef: MatDialogRef<ConfigureComponent>,
+    @Inject(MAT_DIALOG_DATA) public dialogData
+  ) {
+  }
 
   ngOnInit() {
+    this.dialogData.values
+      .subscribe(values => this.values = values);
+  }
+
+  onChange(e) {
+    console.log(e);
+  }
+
+  save() {
+    this.dialogRef.close(this.values);
   }
 
 }

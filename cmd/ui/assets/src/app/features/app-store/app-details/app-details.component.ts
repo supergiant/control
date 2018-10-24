@@ -1,21 +1,22 @@
-import { Component, OnInit }              from '@angular/core';
-import { ActivatedRoute }                 from "@angular/router";
-import { LoadAppDetails }                 from "../../apps/actions";
-import { State }                          from "../../../reducers";
-import { select, Store }                  from "@ngrx/store";
-import { ChartDetails, selectAppDetails } from "../../apps/apps.reducer";
-import { Observable }                     from "rxjs";
-import { MatDialog }                      from "@angular/material";
-import { DeployComponent }                from "./deploy/deploy.component";
-import {ConfigureComponent} from "./confure/configure.component";
+import { Component, OnInit }       from '@angular/core';
+import { ActivatedRoute }          from "@angular/router";
+import { LoadAppDetails }          from "../../apps/actions";
+import { State }                   from "../../../reducers";
+import { select, Store }           from "@ngrx/store";
+import { Chart, selectAppDetails } from "../../apps/apps.reducer";
+import { Observable }              from "rxjs";
+import { MatDialog }               from "@angular/material";
+import { DeployComponent }         from "./deploy/deploy.component";
+import { ConfigureComponent }      from "./confure/configure.component";
+import { map }                     from "rxjs/operators";
 
 @Component({
   selector: 'app-details',
   templateUrl: './app-details.component.html',
-  styleUrls: [ './app-details.component.scss' ]
+  styleUrls: ['./app-details.component.scss']
 })
 export class AppDetailsComponent implements OnInit {
-  chartDetails$: Observable<ChartDetails>;
+  chartDetails$: Observable<Chart>;
 
   constructor(
     private route: ActivatedRoute,
@@ -35,17 +36,31 @@ export class AppDetailsComponent implements OnInit {
 
   openDeployDialog() {
     this.dialog.open(DeployComponent, {
-      data: {
-        chartDetails$: this.chartDetails$,
-      }
+      data: { chart$: this.chartDetails$ }
     });
   }
 
   openConfigureDialog() {
     this.dialog.open(ConfigureComponent, {
       data: {
-        chartDetails$: this.chartDetails$,
+        values: this.chartDetails$.pipe(
+          map(chart => chart.values)
+        ),
       }
+    }).afterClosed()
+      .pipe(
+        map(
+          values => this.chartDetails$.pipe(
+            map(chart => chart.values = values)
+          )
+        ),
+        // switchMap((res) => res),
+        // map(res => {
+        //   return { ...res[0], values: res[1], readme: ''};
+        // }),
+        // map(updatedValues => this.store.dispatch(new SetAppDetails(updatedValues)))
+      ).subscribe(val => {
+      console.log('res1', val);
     });
 
   }

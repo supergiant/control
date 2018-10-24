@@ -2,7 +2,7 @@
   <h2 mat-dialog-title>Deploy App</h2>
   <mat-dialog-content>
 
-    <form [formGroup]="deployForm">
+    <form *ngIf="(data.chart$ | async) as currentChart" [formGroup]="deployForm">
       <mat-form-field>
         <mat-select matInput
                     placeholder="Claster name"
@@ -29,35 +29,22 @@
                type="text"
                formControlName="chartName"
                placeholder="Chart Name"
-               [value]="(data.chartDetails$ | async).name">
+               [value]="currentChart.name">
       </mat-form-field>
       <mat-form-field>
         <mat-select matInput
                     formControlName="chartVersion"
                     placeholder="Version">
-          <div *ngFor="let version of (data.chartDetails$ | async).versions">
+          <div *ngFor="let version of currentChart.versions">
             <mat-option [value]="version.version">{{ version.version }}</mat-option>
           </div>
         </mat-select>
-      </mat-form-field>
-      <mat-form-field>
-        <input matInput
-               type="text"
-               formControlName="repoName"
-               placeholder="Repository"
-               [value]="(data.chartDetails$ | async).repo">
-      </mat-form-field>
-      <mat-form-field>
-        <input matInput
-               type="text"
-               formControlName="values"
-               placeholder="Values">
       </mat-form-field>
     </form>
   </mat-dialog-content>
   <mat-dialog-actions>
     <button mat-button
-    mat-dialog-close>Cancel
+            mat-dialog-close>Cancel
     </button>
     <button [disabled]="!deployForm.valid || !deployForm.controls['clusterName'].value"
             mat-button

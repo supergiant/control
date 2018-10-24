@@ -11,17 +11,15 @@ export interface Chart {
   name: string;
   repo: string;
   description: string;
+  values: string;
 }
 
-export interface ChartDetails extends Chart {
-  instructions?: string
-}
 
 export interface AppStoreState {
   charts: {
     [ key: string ]: Chart[]
   }
-  currentChart: ChartDetails
+  currentChart: Chart
   filter: string,
 }
 
@@ -29,6 +27,7 @@ const mockChart = {
   'name': '',
   'repo': '',
   'description': '',
+  'values': ''
 };
 
 export const initialState: AppStoreState = {
@@ -60,7 +59,7 @@ export function reducer(
 ): AppStoreState {
   switch (action.type) {
 
-    case AppDetailActionTypes.LoadAppDetailsSuccess:
+    case AppDetailActionTypes.SetAppDetails:
       return {
         ...state,
         currentChart: action.payload
