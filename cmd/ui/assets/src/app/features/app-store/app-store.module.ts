@@ -2,16 +2,15 @@ import { NgModule }                         from '@angular/core';
 import { CommonModule }                     from '@angular/common';
 import { AppStoreRoutingModule }            from './app-store-routing.module';
 import { AppStoreComponent }                from './app-store.component';
-import { AppsSupergiantComponent }          from './apps-supergiant/apps-supergiant.component';
-import { AppsVerifiedComponent }            from './apps-verified/apps-verified.component';
-import { AppsOtherComponent }               from './apps-other/apps-other.component';
 import { AppsAddComponent }                 from './apps-add/apps-add.component';
 import {
   MatCardModule, MatDialogModule,
   MatFormFieldModule,
   MatInputModule,
   MatOptionModule,
-  MatSelectModule, MatTabsModule
+  MatProgressSpinnerModule,
+  MatSelectModule,
+  MatTabsModule
 }                                           from '@angular/material';
 import { StoreModule }                      from '@ngrx/store';
 import * as fromApps
@@ -39,12 +38,10 @@ import { FormsModule, ReactiveFormsModule } from "@angular/forms";
     MatDialogModule,
     FormsModule,
     MatTabsModule,
+    MatProgressSpinnerModule
   ],
   declarations: [
     AppStoreComponent,
-    AppsSupergiantComponent,
-    AppsVerifiedComponent,
-    AppsOtherComponent,
     AppsAddComponent,
     AppsListComponent,
     AppDetailsComponent,

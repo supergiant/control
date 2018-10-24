@@ -7,14 +7,17 @@ import (
 
 	"gopkg.in/asaskevich/govalidator.v8"
 
-	sgjwt "github.com/supergiant/supergiant/pkg/jwt"
 	"github.com/supergiant/supergiant/pkg/message"
 	"github.com/supergiant/supergiant/pkg/sgerrors"
 )
 
+type TokenIssuer interface {
+	Issue(string) (string, error)
+}
+
 type Handler struct {
 	userService  *Service
-	tokenService *sgjwt.TokenService
+	tokenService TokenIssuer
 }
 
 type AuthRequest struct {
@@ -22,7 +25,7 @@ type AuthRequest struct {
 	Password string `json:"password"`
 }
 
-func NewHandler(userService *Service, tokenService *sgjwt.TokenService) *Handler {
+func NewHandler(userService *Service, tokenService TokenIssuer) *Handler {
 	return &Handler{
 		userService:  userService,
 		tokenService: tokenService,

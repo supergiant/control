@@ -14,7 +14,7 @@ import (
 const StepName = "docker"
 
 type Step struct {
-	scriptTemplate *template.Template
+	script *template.Template
 }
 
 func Init() {
@@ -23,12 +23,12 @@ func Init() {
 
 func New(tpl *template.Template) *Step {
 	return &Step{
-		scriptTemplate: tpl,
+		script: tpl,
 	}
 }
 
 func (t *Step) Run(ctx context.Context, out io.Writer, config *steps.Config) error {
-	err := steps.RunTemplate(context.Background(), t.scriptTemplate,
+	err := steps.RunTemplate(context.Background(), t.script,
 		config.Runner, out, config.DockerConfig)
 	if err != nil {
 		return errors.Wrap(err, "install docker step")

@@ -3,8 +3,10 @@ package downloadk8sbinary
 import (
 	"bytes"
 	"context"
+	"io/ioutil"
 	"strings"
 	"testing"
+	"text/template"
 
 	"github.com/pkg/errors"
 
@@ -63,7 +65,7 @@ func TestFlannelJob_InstallFlannel(t *testing.T) {
 		}
 
 		task := &Step{
-			scriptTemplate: tpl,
+			script: tpl,
 		}
 
 		err := task.Run(context.Background(), output, &config)
@@ -83,5 +85,49 @@ func TestFlannelJob_InstallFlannel(t *testing.T) {
 		if !strings.Contains(output.String(), testCase.operatingSystem) {
 			t.Fatalf("operating system type %s not found in output %s", testCase.operatingSystem, output.String())
 		}
+	}
+}
+
+func TestStepName(t *testing.T) {
+	s := Step{}
+
+	if s.Name() != StepName {
+		t.Errorf("Unexpected step name expected %s actual %s", StepName, s.Name())
+	}
+}
+
+func TestDepends(t *testing.T) {
+	s := Step{}
+
+	if len(s.Depends()) != 0 {
+		t.Errorf("Wrong dependency list %v expected %v", s.Depends(), []string{})
+	}
+}
+
+func TestStep_Rollback(t *testing.T) {
+	s := Step{}
+	err := s.Rollback(context.Background(), ioutil.Discard, &steps.Config{})
+
+	if err != nil {
+		t.Errorf("unexpected error while rollback %v", err)
+	}
+}
+
+func TestNew(t *testing.T) {
+	tpl := template.New("test")
+	s := New(tpl)
+
+	if s.script != tpl {
+		t.Errorf("Wrong template expected %v actual %v", tpl, s.script)
+	}
+}
+
+func TestInit(t *testing.T) {
+	Init()
+
+	s := steps.GetStep(StepName)
+
+	if s == nil {
+		t.Error("Step not found")
 	}
 }
