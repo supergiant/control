@@ -1,4 +1,5 @@
-import { Component, Input, OnInit } from '@angular/core';
+import { Component, OnInit }               from '@angular/core';
+import { ActivatedRoute } from "@angular/router";
 
 @Component({
   selector: 'breadcrumbs',
@@ -6,12 +7,17 @@ import { Component, Input, OnInit } from '@angular/core';
   styleUrls: ['./breadcrumbs.component.scss']
 })
 export class BreadcrumbsComponent implements OnInit {
-  @Input() repoName;
-  @Input() chartName;
+  repoName;
+  chartName;
 
-  constructor() { }
-
-  ngOnInit() {
+  constructor(
+    private route: ActivatedRoute,
+  ) {
   }
 
+  ngOnInit() {
+    const { repo, chart } = this.route.children[0].snapshot.params;
+    this.repoName = repo;
+    this.chartName = chart;
+  }
 }
