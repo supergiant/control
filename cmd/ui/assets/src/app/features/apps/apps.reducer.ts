@@ -8,20 +8,26 @@ import {
 }                         from "./actions";
 
 export interface Chart {
-  values: string;
-  metadata: {
-    name: string;
-    repo: string;
-    description: string;
-    version: string;
-  };
-  readme: string;
+  metadata: ChartMetadata
+  values?: string;
+  readme?: string;
 }
 
+export interface ChartMetadata {
+  name: string;
+  repo: string;
+  description: string;
+  version: string;
+};
+
+export interface ChartList {
+  name?: string;
+  description?: string;
+}
 
 export interface AppStoreState {
   charts: {
-    [ key: string ]: Chart[]
+    [ key: string ]: ChartMetadata[]
   }
   currentChart: Chart
   filter: string,
@@ -34,11 +40,10 @@ const mockChart = {
   'values': ''
 };
 
-export const initialState: AppStoreState = {
+
+export const initialState: any = { // FIXME
   charts: {
     supergiant: [ mockChart, ],
-    verified: [ mockChart, ],
-    other: [ mockChart, ],
   },
   currentChart: mockChart,
   filter: '',
