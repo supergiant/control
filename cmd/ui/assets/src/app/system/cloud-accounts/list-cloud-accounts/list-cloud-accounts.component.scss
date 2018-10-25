@@ -1,0 +1,71 @@
+.list-cloud-accounts-wrapper {
+  margin-top: 10px;
+
+  .sg-table {
+    background-color: rgba(0, 0, 0, 0.5);
+    border: 1px solid rgba(255, 255, 255, 0.25);
+    margin: 48px auto;
+    padding: 21px 24px 24px 24px;
+    height: min-content;
+    width: 612px;
+
+    .mat-table {
+      background-color: rgba(0,0,0,0);
+
+      .mat-header-row {
+        background-color: rgba(255, 0, 166, 0.25);
+        border: none;
+        min-height: 45px;
+
+        .mat-header-cell {
+          color: #fff;
+          font-family: "Roboto", sans-serif;
+          font-weight: 300;
+          font-size: 14px;
+        }
+      }
+
+      .mat-row {
+        background-color: rgba(255, 255, 255, 0.1);
+        border: none;
+        margin: 2px 0px;
+
+        .mat-cell {
+          color: #fff;
+          font-family: "Roboto", sans-serif;
+          font-weight: 300;
+          font-size: 12px;
+          overflow: unset;
+          justify-content: space-between;
+        }
+
+        .edit {
+          background: url(/assets/img/edit.svg) no-repeat center;
+        }
+
+        .delete {
+          background: url(/assets/img/delete-pink.svg) no-repeat center;
+        }
+
+        .edit:hover, .delete:hover {
+          cursor: pointer;
+        }
+      }
+
+      .small-cell {
+        max-width: 60px;
+        justify-content: center;
+      }
+    }
+
+    .mat-paginator {
+      background-color: rgba(255, 255, 255, 0.1);
+    }
+
+    .actions {
+      display: flex;
+      justify-content: flex-end;
+      margin-top: 24px;
+    }
+  }
+}
