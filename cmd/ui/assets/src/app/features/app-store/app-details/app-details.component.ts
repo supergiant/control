@@ -15,6 +15,7 @@ import { DeployComponent }                from "./deploy/deploy.component";
 })
 export class AppDetailsComponent implements OnInit {
   chartDetails$: Observable<ChartDetails>;
+  deploymentDialogRef;
 
   constructor(
     private route: ActivatedRoute,
@@ -33,7 +34,7 @@ export class AppDetailsComponent implements OnInit {
   }
 
   public initDialog() {
-    this.dialog.open(DeployComponent, {
+    this.deploymentDialogRef = this.dialog.open(DeployComponent, {
       data: {
         chartDetails$: this.chartDetails$,
       }
