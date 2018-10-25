@@ -2,15 +2,33 @@
   <h2 mat-dialog-title>Deploy App</h2>
   <mat-dialog-content>
 
-    <form *ngIf="(data.chart$ | async) as currentChart" [formGroup]="deployForm">
+    <form *ngIf="(currentChart$ | async) as currentChart"
+          [formGroup]="deployForm">
+
+      <mat-form-field>
+        <input matInput
+               type="text"
+               formControlName="chartName"
+               placeholder="Chart Name"
+               [value]="currentChart.metadata?.name">
+      </mat-form-field>
+
+      <mat-form-field>
+        <input matInput
+               type="text"
+               formControlName="chartVersion"
+               placeholder="Chart version"
+               [value]="currentChart.metadata?.version">
+      </mat-form-field>
+
       <mat-form-field>
         <mat-select matInput
-                  placeholder="Cluster name"
-                  formControlName="clusterName">
-        <div *ngFor="let cluster of (clusters$ | async)">
-          <mat-option [value]="cluster.name">{{ cluster.name }}</mat-option>
-        </div>
-      </mat-select>
+                    placeholder="Cluster name"
+                    formControlName="clusterName">
+          <div *ngFor="let cluster of (clusters$ | async)">
+            <mat-option [value]="cluster.name">{{ cluster.name }}</mat-option>
+          </div>
+        </mat-select>
       </mat-form-field>
       <mat-form-field>
         <input matInput
@@ -22,23 +40,8 @@
         <input matInput
                type="text"
                formControlName="namespace"
-               placeholder="Namespace">
-      </mat-form-field>
-      <mat-form-field>
-        <input matInput
-               type="text"
-               formControlName="chartName"
-               placeholder="Chart Name"
-               [value]="currentChart.name">
-      </mat-form-field>
-      <mat-form-field>
-        <mat-select matInput
-                    formControlName="chartVersion"
-                    placeholder="Version">
-          <div *ngFor="let version of currentChart.versions">
-            <mat-option [value]="version.version">{{ version.version }}</mat-option>
-          </div>
-        </mat-select>
+               placeholder="Namespace"
+               [value]="'default'">
       </mat-form-field>
     </form>
   </mat-dialog-content>

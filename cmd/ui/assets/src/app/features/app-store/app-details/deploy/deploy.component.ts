@@ -14,7 +14,7 @@ import { Router }                             from "@angular/router";
 @Component({
   selector: 'deploy',
   templateUrl: './deploy.component.html',
-  styleUrls: [ './deploy.component.scss' ]
+  styleUrls: ['./deploy.component.scss']
 })
 export class DeployComponent implements OnInit {
 
@@ -36,14 +36,17 @@ export class DeployComponent implements OnInit {
 
   ngOnInit() {
     this.deployForm = this.formBuilder.group({
-      clusterName: [ '', { disabled: true }, Validators.required ],
-      name: [ '' ],
-      namespace: [ '' ],
-      chartName: [ '' ],
-      chartVersion: [ '' ],
-      repoName: [ '' ],
-      values: [ '' ]
+      clusterName: ['', { disabled: true }, Validators.required],
+      name: [''],
+      namespace: [''],
+      chartName: [''],
+      chartVersion: [''],
+      repoName: [''],
     });
+
+    this.deployForm.controls.chartName.disable();
+    this.deployForm.controls.chartVersion.disable();
+
 
     this.currentChart$ = this.store.pipe(select(selectAppDetails));
     this.clusters$ = this.http.get('/v1/api/kubes');
@@ -67,7 +70,7 @@ export class DeployComponent implements OnInit {
       if (result instanceof ErrorEvent) {
         return;
       }
-      this.router.navigate([ 'apps' ]);
+      this.router.navigate(['apps']);
       this.notifications.display('success', 'Success', 'App is being deployed!');
 
       this.dialogRef.close()
