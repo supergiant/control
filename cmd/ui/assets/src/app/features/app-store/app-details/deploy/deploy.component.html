@@ -5,12 +5,12 @@
     <form *ngIf="(data.chart$ | async) as currentChart" [formGroup]="deployForm">
       <mat-form-field>
         <mat-select matInput
-                    placeholder="Claster name"
-                    formControlName="clusterName">
-          <div *ngFor="let cluster of (clusters$ | async)">
-            <mat-option [value]="cluster.accountName">{{ cluster.accountName }}</mat-option>
-          </div>
-        </mat-select>
+                  placeholder="Cluster name"
+                  formControlName="clusterName">
+        <div *ngFor="let cluster of (clusters$ | async)">
+          <mat-option [value]="cluster.name">{{ cluster.name }}</mat-option>
+        </div>
+      </mat-select>
       </mat-form-field>
       <mat-form-field>
         <input matInput
