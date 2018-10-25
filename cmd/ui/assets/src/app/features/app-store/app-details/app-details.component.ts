@@ -36,14 +36,18 @@ export class AppDetailsComponent implements OnInit {
 
   openDeployDialog() {
     this.dialog.open(DeployComponent, {
-      data: { chart$: this.chartDetails$ }
+      data: {
+        chart$: this.chartDetails$,
+        routeParams: this.route.snapshot.params,
+      },
+
     });
   }
 
   openConfigureDialog() {
     this.dialog.open(ConfigureComponent, {
       data: {
-        chart$: this.chartDetails$
+        chart$: this.chartDetails$,
       }
     }).afterClosed()
       .pipe(

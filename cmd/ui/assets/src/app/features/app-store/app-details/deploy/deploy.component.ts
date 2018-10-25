@@ -8,7 +8,7 @@ import { HttpClient }                         from "@angular/common/http";
 import { MAT_DIALOG_DATA, MatDialogRef }      from "@angular/material";
 import { catchError }                         from "rxjs/operators";
 import { Notifications }                      from "app/shared/notifications/notifications.service";
-import { Router }                             from "@angular/router";
+import { ActivatedRoute, Router }             from "@angular/router";
 
 
 @Component({
@@ -29,6 +29,7 @@ export class DeployComponent implements OnInit {
     private http: HttpClient,
     @Inject(MAT_DIALOG_DATA) public data: any,
     private notifications: Notifications,
+    private route: ActivatedRoute,
     public router: Router,
     private dialogRef: MatDialogRef<DeployComponent>,
   ) {
@@ -38,15 +39,12 @@ export class DeployComponent implements OnInit {
     this.deployForm = this.formBuilder.group({
       clusterName: ['', { disabled: true }, Validators.required],
       name: [''],
-      namespace: [''],
+      namespace: ['default'],
       chartName: [''],
       chartVersion: [''],
       repoName: [''],
+      values: [''],
     });
-
-    this.deployForm.controls.chartName.disable();
-    this.deployForm.controls.chartVersion.disable();
-
 
     this.currentChart$ = this.store.pipe(select(selectAppDetails));
     this.clusters$ = this.http.get('/v1/api/kubes');
@@ -58,7 +56,8 @@ export class DeployComponent implements OnInit {
     this.deployForm.disable();
     this.isProcessing = true;
 
-    this.http.post(`/v1/api/${formValue.clusterName}/releases`, formValue).pipe(
+
+    this.http.post(`/v1/api/kubes/${formValue.clusterName}/releases`, formValue).pipe(
       catchError(error => {
         this.notifications.display('error', 'Error', error.statusText);
         return of(new ErrorEvent(error));
@@ -66,6 +65,7 @@ export class DeployComponent implements OnInit {
     ).subscribe(result => {
       this.isProcessing = false;
       this.deployForm.enable();
+      this.disableUnusedFields();
 
       if (result instanceof ErrorEvent) {
         return;
@@ -79,11 +79,19 @@ export class DeployComponent implements OnInit {
 
   private setDefaultFormValues() {
     this.currentChart$.subscribe(currentChart => {
+      const repoName = this.data.routeParams.repo;
+      const chartName = currentChart.metadata.name;
+
       this.deployForm.patchValue({
-        chartName: currentChart.name,
-        repoName: currentChart.repo,
+        chartName, repoName, values: currentChart.values
       });
-    })
+    });
+
+    this.disableUnusedFields();
   }
 
+  private disableUnusedFields() {
+    this.deployForm.controls.chartName.disable();
+    this.deployForm.controls.chartVersion.disable();
+  }
 }

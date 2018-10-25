@@ -8,10 +8,14 @@ import {
 }                         from "./actions";
 
 export interface Chart {
-  name: string;
-  repo: string;
-  description: string;
   values: string;
+  metadata: {
+    name: string;
+    repo: string;
+    description: string;
+    version: string;
+  };
+  readme: string;
 }
 
 
