@@ -164,6 +164,7 @@ import { EffectsModule } from '@ngrx/effects';
 import { AppEffects } from './app.effects';
 import { TaskLogsComponent } from './clusters/cluster/task-logs/task-logs.component';
 import {LoginGuardService} from "./shared/supergiant/auth/login-guard.service";
+import { MenuModalComponent } from './navigation/user-menu/menu-modal/menu-modal.component';
 
 @NgModule({
   declarations: [
@@ -232,6 +233,7 @@ import {LoginGuardService} from "./shared/supergiant/auth/login-guard.service";
     ConfirmModalComponent,
     UsageChartComponent,
     TaskLogsComponent,
+    MenuModalComponent,
   ],
   imports: [
     BrowserModule,
@@ -330,7 +332,8 @@ import {LoginGuardService} from "./shared/supergiant/auth/login-guard.service";
   ],
   entryComponents: [
     ConfirmModalComponent,
-    TaskLogsComponent
+    TaskLogsComponent,
+    MenuModalComponent
   ],
   bootstrap: [AppComponent]
 })
