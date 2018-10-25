@@ -19,6 +19,11 @@ button {
 
   &[mat-button] {
     padding: 8px 32px;
+    &[color='primary'] {
+      color: #fff;
+      border: none;
+      background-color: #D10088!important;
+    }
 
     &[color='secondary'] {
       color: #fff;
