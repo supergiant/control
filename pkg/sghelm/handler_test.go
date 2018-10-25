@@ -1,4 +1,4 @@
-package helm
+package sghelm
 
 import (
 	"bytes"
@@ -17,43 +17,45 @@ import (
 	"k8s.io/helm/pkg/repo"
 
 	"github.com/supergiant/supergiant/pkg/message"
-	"github.com/supergiant/supergiant/pkg/model/helm"
+	"github.com/supergiant/supergiant/pkg/model"
 	"github.com/supergiant/supergiant/pkg/sgerrors"
 )
 
 var (
-	fakeErr = errors.New("fake error")
+	errFake = errors.New("fake error")
 )
 
+var _ Servicer = &fakeService{}
+
 type fakeService struct {
-	repo      *helm.Repository
-	repoList  []helm.Repository
-	chrt      *helm.Chart
-	chrtList  []helm.Chart
-	chrtFiles *chart.Chart
-	err       error
+	repo     *model.RepositoryInfo
+	repoList []model.RepositoryInfo
+	chrt     *chart.Chart
+	chrtData *model.ChartData
+	chrtList []model.ChartInfo
+	err      error
 }
 
-func (fs fakeService) CreateRepo(ctx context.Context, e *repo.Entry) (*helm.Repository, error) {
+func (fs fakeService) CreateRepo(ctx context.Context, e *repo.Entry) (*model.RepositoryInfo, error) {
 	return fs.repo, fs.err
 }
-func (fs fakeService) GetRepo(ctx context.Context, repoName string) (*helm.Repository, error) {
+func (fs fakeService) GetRepo(ctx context.Context, repoName string) (*model.RepositoryInfo, error) {
 	return fs.repo, fs.err
 }
-func (fs fakeService) ListRepos(ctx context.Context) ([]helm.Repository, error) {
+func (fs fakeService) ListRepos(ctx context.Context) ([]model.RepositoryInfo, error) {
 	return fs.repoList, fs.err
 }
-func (fs fakeService) DeleteRepo(ctx context.Context, repoName string) (*helm.Repository, error) {
+func (fs fakeService) DeleteRepo(ctx context.Context, repoName string) (*model.RepositoryInfo, error) {
 	return fs.repo, fs.err
 }
-func (fs fakeService) GetChart(ctx context.Context, repoName, chartName string) (*helm.Chart, error) {
-	return fs.chrt, fs.err
+func (fs fakeService) GetChartData(ctx context.Context, repoName, chartName, chartVersion string) (*model.ChartData, error) {
+	return fs.chrtData, fs.err
 }
-func (fs fakeService) ListCharts(ctx context.Context, repoName string) ([]helm.Chart, error) {
+func (fs fakeService) ListCharts(ctx context.Context, repoName string) ([]model.ChartInfo, error) {
 	return fs.chrtList, fs.err
 }
-func (fs fakeService) GetChartFiles(ctx context.Context, repoName, chartName, chartVersion string) (*chart.Chart, error) {
-	return fs.chrtFiles, fs.err
+func (fs fakeService) GetChart(ctx context.Context, repoName, chartName, chartVersion string) (*chart.Chart, error) {
+	return fs.chrt, fs.err
 }
 
 func TestHandler_createRepo(t *testing.T) {
@@ -66,7 +68,7 @@ func TestHandler_createRepo(t *testing.T) {
 		inpRepo []byte
 
 		expectedStatus  int
-		expectedRepo    *helm.Repository
+		expectedRepo    *model.RepositoryInfo
 		expectedErrCode sgerrors.ErrorCode
 	}{
 		{ // TC#1
@@ -93,7 +95,7 @@ func TestHandler_createRepo(t *testing.T) {
 		{ // TC#4
 			inpRepo: []byte(`{"name":"createError","url":"url"}`),
 			svc: &fakeService{
-				err: fakeErr,
+				err: errFake,
 			},
 			expectedStatus:  http.StatusInternalServerError,
 			expectedErrCode: sgerrors.UnknownError,
@@ -101,14 +103,14 @@ func TestHandler_createRepo(t *testing.T) {
 		{ // TC#5
 			inpRepo: []byte(`{"name":"sgRepo","url":"url"}`),
 			svc: &fakeService{
-				repo: &helm.Repository{
+				repo: &model.RepositoryInfo{
 					Config: repo.Entry{
 						Name: "sgRepo",
 					},
 				},
 			},
 			expectedStatus: http.StatusOK,
-			expectedRepo: &helm.Repository{
+			expectedRepo: &model.RepositoryInfo{
 				Config: repo.Entry{
 					Name: "sgRepo",
 				},
@@ -133,7 +135,7 @@ func TestHandler_createRepo(t *testing.T) {
 		require.Equalf(t, tc.expectedStatus, w.Code, "TC#%d: check status code", i+1)
 
 		if w.Code == http.StatusOK {
-			hrepo := &helm.Repository{}
+			hrepo := &model.RepositoryInfo{}
 			require.Nilf(t, json.NewDecoder(w.Body).Decode(hrepo), "TC#%d: decode repo", i+1)
 
 			require.Equalf(t, tc.expectedRepo, hrepo, "TC#%d: check repo", i+1)
@@ -156,7 +158,7 @@ func TestHandler_getRepo(t *testing.T) {
 		repoName string
 
 		expectedStatus  int
-		expectedRepo    *helm.Repository
+		expectedRepo    *model.RepositoryInfo
 		expectedErrCode sgerrors.ErrorCode
 	}{
 		{ // TC#1
@@ -170,7 +172,7 @@ func TestHandler_getRepo(t *testing.T) {
 		{ // TC#2
 			repoName: "getError",
 			svc: &fakeService{
-				err: fakeErr,
+				err: errFake,
 			},
 			expectedStatus:  http.StatusInternalServerError,
 			expectedErrCode: sgerrors.UnknownError,
@@ -178,14 +180,14 @@ func TestHandler_getRepo(t *testing.T) {
 		{ // TC#3
 			repoName: "sgRepo",
 			svc: &fakeService{
-				repo: &helm.Repository{
+				repo: &model.RepositoryInfo{
 					Config: repo.Entry{
 						Name: "sgRepo",
 					},
 				},
 			},
 			expectedStatus: http.StatusOK,
-			expectedRepo: &helm.Repository{
+			expectedRepo: &model.RepositoryInfo{
 				Config: repo.Entry{
 					Name: "sgRepo",
 				},
@@ -213,7 +215,7 @@ func TestHandler_getRepo(t *testing.T) {
 		require.Equalf(t, tc.expectedStatus, w.Code, "TC#%d: check status code", i+1)
 
 		if w.Code == http.StatusOK {
-			hrepo := &helm.Repository{}
+			hrepo := &model.RepositoryInfo{}
 			require.Nilf(t, json.NewDecoder(w.Body).Decode(hrepo), "TC#%d: decode repo", i+1)
 
 			require.Equalf(t, tc.expectedRepo, hrepo, "TC#%d: check repo", i+1)
@@ -235,19 +237,19 @@ func TestHandler_listRepos(t *testing.T) {
 		svc *fakeService
 
 		expectedStatus  int
-		expectedRepos   []helm.Repository
+		expectedRepos   []model.RepositoryInfo
 		expectedErrCode sgerrors.ErrorCode
 	}{
 		{ // TC#1
 			svc: &fakeService{
-				err: fakeErr,
+				err: errFake,
 			},
 			expectedStatus:  http.StatusInternalServerError,
 			expectedErrCode: sgerrors.UnknownError,
 		},
 		{ // TC#2
 			svc: &fakeService{
-				repoList: []helm.Repository{
+				repoList: []model.RepositoryInfo{
 					{
 						Config: repo.Entry{
 							Name: "sgRepo",
@@ -256,7 +258,7 @@ func TestHandler_listRepos(t *testing.T) {
 				},
 			},
 			expectedStatus: http.StatusOK,
-			expectedRepos: []helm.Repository{
+			expectedRepos: []model.RepositoryInfo{
 				{
 					Config: repo.Entry{
 						Name: "sgRepo",
@@ -284,7 +286,7 @@ func TestHandler_listRepos(t *testing.T) {
 		require.Equalf(t, tc.expectedStatus, w.Code, "TC#%d", i+1)
 
 		if w.Code == http.StatusOK {
-			hrepos := []helm.Repository{}
+			hrepos := []model.RepositoryInfo{}
 			require.Nilf(t, json.NewDecoder(w.Body).Decode(&hrepos), "TC#%d: decode repos", i+1)
 
 			require.Equalf(t, tc.expectedRepos, hrepos, "TC#%d: check repos", i+1)
@@ -307,7 +309,7 @@ func TestHandler_deleteRepo(t *testing.T) {
 		repoName string
 
 		expectedStatus  int
-		expectedRepo    *helm.Repository
+		expectedRepo    *model.RepositoryInfo
 		expectedErrCode sgerrors.ErrorCode
 	}{
 		{ // TC#1
@@ -321,7 +323,7 @@ func TestHandler_deleteRepo(t *testing.T) {
 		{ // TC#2
 			repoName: "deleteError",
 			svc: &fakeService{
-				err: fakeErr,
+				err: errFake,
 			},
 			expectedStatus:  http.StatusInternalServerError,
 			expectedErrCode: sgerrors.UnknownError,
@@ -329,14 +331,14 @@ func TestHandler_deleteRepo(t *testing.T) {
 		{ // TC#3
 			repoName: "sgRepo",
 			svc: &fakeService{
-				repo: &helm.Repository{
+				repo: &model.RepositoryInfo{
 					Config: repo.Entry{
 						Name: "sgRepo",
 					},
 				},
 			},
 			expectedStatus: http.StatusOK,
-			expectedRepo: &helm.Repository{
+			expectedRepo: &model.RepositoryInfo{
 				Config: repo.Entry{
 					Name: "sgRepo",
 				},
@@ -364,7 +366,7 @@ func TestHandler_deleteRepo(t *testing.T) {
 		require.Equalf(t, tc.expectedStatus, w.Code, "TC#%d: check status code", i+1)
 
 		if w.Code == http.StatusOK {
-			hrepo := &helm.Repository{}
+			hrepo := &model.RepositoryInfo{}
 			require.Nilf(t, json.NewDecoder(w.Body).Decode(hrepo), "TC#%d: decode repo", i+1)
 
 			require.Equalf(t, tc.expectedRepo, hrepo, "TC#%d: check repo", i+1)
@@ -377,7 +379,7 @@ func TestHandler_deleteRepo(t *testing.T) {
 	}
 }
 
-func TestHandler_getChart(t *testing.T) {
+func TestHandler_getChartData(t *testing.T) {
 	loggerWriter := logrus.StandardLogger().Out
 	logrus.SetOutput(ioutil.Discard)
 	defer logrus.SetOutput(loggerWriter)
@@ -388,7 +390,7 @@ func TestHandler_getChart(t *testing.T) {
 		chrtName string
 
 		expectedStatus  int
-		expectedChart   *helm.Chart
+		expectedChart   *model.ChartData
 		expectedErrCode sgerrors.ErrorCode
 	}{
 		{ // TC#1
@@ -404,7 +406,7 @@ func TestHandler_getChart(t *testing.T) {
 			repoName: "sgRepo",
 			chrtName: "getChartError",
 			svc: &fakeService{
-				err: fakeErr,
+				err: errFake,
 			},
 			expectedStatus:  http.StatusInternalServerError,
 			expectedErrCode: sgerrors.UnknownError,
@@ -413,15 +415,17 @@ func TestHandler_getChart(t *testing.T) {
 			repoName: "sgRepo",
 			chrtName: "sgChart",
 			svc: &fakeService{
-				chrt: &helm.Chart{
-					Name: "sgChart",
-					Repo: "sgRepo",
+				chrtData: &model.ChartData{
+					Metadata: &chart.Metadata{
+						Name: "sgChart",
+					},
 				},
 			},
 			expectedStatus: http.StatusOK,
-			expectedChart: &helm.Chart{
-				Name: "sgChart",
-				Repo: "sgRepo",
+			expectedChart: &model.ChartData{
+				Metadata: &chart.Metadata{
+					Name: "sgChart",
+				},
 			},
 		},
 	}
@@ -446,7 +450,7 @@ func TestHandler_getChart(t *testing.T) {
 		require.Equalf(t, tc.expectedStatus, w.Code, "TC#%d: check status code", i+1)
 
 		if w.Code == http.StatusOK {
-			chrt := &helm.Chart{}
+			chrt := &model.ChartData{}
 			require.Nilf(t, json.NewDecoder(w.Body).Decode(chrt), "TC#%d: decode repo", i+1)
 
 			require.Equalf(t, tc.expectedChart, chrt, "TC#%d: check repo", i+1)
@@ -469,13 +473,13 @@ func TestHandler_listCharts(t *testing.T) {
 		repoName string
 
 		expectedStatus  int
-		expectedCharts  []helm.Chart
+		expectedCharts  []model.ChartInfo
 		expectedErrCode sgerrors.ErrorCode
 	}{
 		{ // TC#1
 			repoName: "listChartError",
 			svc: &fakeService{
-				err: fakeErr,
+				err: errFake,
 			},
 			expectedStatus:  http.StatusInternalServerError,
 			expectedErrCode: sgerrors.UnknownError,
@@ -483,7 +487,7 @@ func TestHandler_listCharts(t *testing.T) {
 		{ // TC#2
 			repoName: "sgRepo",
 			svc: &fakeService{
-				chrtList: []helm.Chart{
+				chrtList: []model.ChartInfo{
 					{
 						Name: "sgChart",
 						Repo: "sgRepo",
@@ -491,7 +495,7 @@ func TestHandler_listCharts(t *testing.T) {
 				},
 			},
 			expectedStatus: http.StatusOK,
-			expectedCharts: []helm.Chart{
+			expectedCharts: []model.ChartInfo{
 				{
 					Name: "sgChart",
 					Repo: "sgRepo",
@@ -517,7 +521,7 @@ func TestHandler_listCharts(t *testing.T) {
 		require.Equalf(t, tc.expectedStatus, w.Code, "TC#%d", i+1)
 
 		if w.Code == http.StatusOK {
-			charts := []helm.Chart{}
+			charts := []model.ChartInfo{}
 			require.Nilf(t, json.NewDecoder(w.Body).Decode(&charts), "TC#%d: decode repos", i+1)
 
 			require.Equalf(t, tc.expectedCharts, charts, "TC#%d: check repos", i+1)

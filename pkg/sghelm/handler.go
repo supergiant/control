@@ -1,4 +1,4 @@
-package helm
+package sghelm
 
 import (
 	"encoding/json"
@@ -34,7 +34,7 @@ func (h *Handler) Register(r *mux.Router) {
 	r.HandleFunc("/helm/repositories/{repoName}", h.deleteRepo).Methods(http.MethodDelete)
 
 	r.HandleFunc("/helm/repositories/{repoName}/charts", h.listCharts).Methods(http.MethodGet)
-	r.HandleFunc("/helm/repositories/{repoName}/charts/{chartName}", h.getChart).Methods(http.MethodGet)
+	r.HandleFunc("/helm/repositories/{repoName}/charts/{chartName}", h.getChartData).Methods(http.MethodGet)
 }
 
 func (h *Handler) createRepo(w http.ResponseWriter, r *http.Request) {
@@ -128,11 +128,12 @@ func (h *Handler) deleteRepo(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
-func (h *Handler) getChart(w http.ResponseWriter, r *http.Request) {
+func (h *Handler) getChartData(w http.ResponseWriter, r *http.Request) {
 	repoName := mux.Vars(r)["repoName"]
 	chartName := mux.Vars(r)["chartName"]
 
-	chrt, err := h.svc.GetChart(r.Context(), repoName, chartName)
+	version := r.URL.Query().Get("version")
+	chrt, err := h.svc.GetChartData(r.Context(), repoName, chartName, version)
 	if err != nil {
 		if sgerrors.IsNotFound(err) {
 			message.SendNotFound(w, repoName+"/"+chartName, err)

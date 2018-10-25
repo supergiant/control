@@ -6,6 +6,8 @@ import (
 
 	"github.com/dgrijalva/jwt-go"
 	"github.com/pkg/errors"
+
+	"github.com/supergiant/supergiant/pkg/sgerrors"
 )
 
 type TokenService struct {
@@ -52,14 +54,15 @@ func (ts TokenService) Validate(tokenString string) (jwt.MapClaims, error) {
 
 	if claims, ok := token.Claims.(jwt.MapClaims); ok && token.Valid {
 		e, ok := claims["expires_at"].(float64)
-		expiresAt := int64(e)
 
 		if !ok {
-			return nil, errors.New("Token malformed")
+			return nil, sgerrors.ErrInvalidCredentials
 		}
 
+		expiresAt := int64(e)
+
 		if int64(expiresAt) < time.Now().Unix() {
-			return nil, errors.New("Token has been expired")
+			return nil, sgerrors.ErrTokenExpired
 		}
 
 		return claims, nil
