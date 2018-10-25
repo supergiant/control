@@ -1,0 +1,17 @@
+.edit-cloud-account-wrapper {
+  margin-top: 10px;
+
+  .actions {
+    display: flex;
+    justify-content: flex-end;
+    margin-top: 24px;
+
+    .mat-button {
+      margin-right: 16px;
+    }
+
+    .mat-spinner {
+      margin: 0px 5px;
+    }
+  }
+}
