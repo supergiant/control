@@ -333,9 +333,6 @@ import {LoginGuardService} from "./shared/supergiant/auth/login-guard.service";
     TaskLogsComponent
   ],
   bootstrap: [AppComponent],
-  exports: [
-    AceEditorModule,
-  ]
 })
 
 export class AppModule { }

@@ -5,8 +5,8 @@ import { HttpClient }                                                      from 
 import { Observable, Subscription }                                        from "rxjs";
 import { select, Store }                                                   from "@ngrx/store";
 import { State }                                                           from "../../../reducers";
-import { LoadCharts }                                           from "../../apps/actions";
-import { filter, map, switchMap }                               from "rxjs/operators";
+import { LoadCharts }                                                      from "../../apps/actions";
+import { filter, map, switchMap }                                          from "rxjs/operators";
 
 @Component({
   selector: 'apps-list',
