@@ -143,6 +143,11 @@ func (h *Handler) createKube(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	if kube2, _ := h.svc.Get(r.Context(), k.Name); kube2 != nil {
+		message.SendAlreadyExists(w, kube2.Name, sgerrors.ErrAlreadyExists)
+		return
+	}
+
 	if err = h.svc.Create(r.Context(), k); err != nil {
 		message.SendUnknownError(w, err)
 		return
