@@ -1,14 +1,14 @@
-import { Component, OnInit }       from '@angular/core';
-import { ActivatedRoute }          from "@angular/router";
-import { LoadAppDetails }          from "../../apps/actions";
-import { State }                   from "../../../reducers";
-import { select, Store }           from "@ngrx/store";
-import { Chart, selectAppDetails } from "../../apps/apps.reducer";
-import { Observable }              from "rxjs";
-import { MatDialog }               from "@angular/material";
-import { DeployComponent }         from "./deploy/deploy.component";
-import { ConfigureComponent }      from "./confure/configure.component";
-import { map }                     from "rxjs/operators";
+import { Component, OnInit }             from '@angular/core';
+import { ActivatedRoute }                from "@angular/router";
+import { LoadAppDetails, SetAppDetails } from "../../apps/actions";
+import { State }                         from "../../../reducers";
+import { select, Store }                 from "@ngrx/store";
+import { Chart, selectAppDetails }       from "../../apps/apps.reducer";
+import { Observable }                    from "rxjs";
+import { MatDialog }                     from "@angular/material";
+import { DeployComponent }               from "./deploy/deploy.component";
+import { ConfigureComponent }            from "./confure/configure.component";
+import { map, switchMap, tap }           from "rxjs/operators";
 
 @Component({
   selector: 'app-details',
@@ -43,22 +43,22 @@ export class AppDetailsComponent implements OnInit {
   openConfigureDialog() {
     this.dialog.open(ConfigureComponent, {
       data: {
-        values: this.chartDetails$.pipe(
-          map(chart => chart.values)
-        ),
+        chart$: this.chartDetails$
       }
     }).afterClosed()
       .pipe(
         map(
           values => this.chartDetails$.pipe(
-            map(chart => chart.values = values)
+            map(chart => {
+              chart.values = values;
+              return chart;
+            })
           )
         ),
-        // switchMap((res) => res),
-        // map(res => {
-        //   return { ...res[0], values: res[1], readme: ''};
-        // }),
-        // map(updatedValues => this.store.dispatch(new SetAppDetails(updatedValues)))
+        switchMap(res => res),
+        tap((updatedValues) => {
+          this.store.dispatch(new SetAppDetails(updatedValues));
+        })
       ).subscribe(val => {
       console.log('res1', val);
     });

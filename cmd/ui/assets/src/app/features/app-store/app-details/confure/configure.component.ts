@@ -16,12 +16,12 @@ export class ConfigureComponent implements OnInit {
   }
 
   ngOnInit() {
-    this.dialogData.values
-      .subscribe(values => this.values = values);
+    this.dialogData.chart$
+      .subscribe(chart => this.values = chart.values);
   }
 
-  onChange(e) {
-    console.log(e);
+  onChange(values) {
+    this.values = values;
   }
 
   save() {
