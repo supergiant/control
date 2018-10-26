@@ -130,25 +130,25 @@ func (h *Handler) getTasks(w http.ResponseWriter, r *http.Request) {
 }
 
 func (h *Handler) createKube(w http.ResponseWriter, r *http.Request) {
-	k := &model.Kube{}
-	err := json.NewDecoder(r.Body).Decode(k)
+	newKube := &model.Kube{}
+	err := json.NewDecoder(r.Body).Decode(newKube)
 	if err != nil {
 		message.SendInvalidJSON(w, err)
 		return
 	}
 
-	ok, err := govalidator.ValidateStruct(k)
+	ok, err := govalidator.ValidateStruct(newKube)
 	if !ok {
 		message.SendValidationFailed(w, err)
 		return
 	}
 
-	if kube2, _ := h.svc.Get(r.Context(), k.Name); kube2 != nil {
-		message.SendAlreadyExists(w, kube2.Name, sgerrors.ErrAlreadyExists)
+	if existingKube, _ := h.svc.Get(r.Context(), newKube.Name); existingKube != nil {
+		message.SendAlreadyExists(w, existingKube.Name, sgerrors.ErrAlreadyExists)
 		return
 	}
 
-	if err = h.svc.Create(r.Context(), k); err != nil {
+	if err = h.svc.Create(r.Context(), newKube); err != nil {
 		message.SendUnknownError(w, err)
 		return
 	}
