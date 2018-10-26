@@ -1,0 +1,14 @@
+.menu-item {
+  cursor: pointer;
+  font-size: 14px;
+  font-weight: 100;
+  letter-spacing: 2px;
+}
+
+.menu-item:last-of-type {
+  margin-bottom: 0px;
+}
+
+.backdrop {
+  background-color: transparent;
+}
