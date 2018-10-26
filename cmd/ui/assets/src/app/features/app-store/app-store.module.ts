@@ -22,6 +22,9 @@ import { AppDetailsComponent }              from './app-details/app-details.comp
 import { BreadcrumbsComponent }             from './breadcrumbs/breadcrumbs.component';
 import { DeployComponent }                  from './app-details/deploy/deploy.component';
 import { FormsModule, ReactiveFormsModule } from "@angular/forms";
+import { ConfigureComponent }               from './app-details/confure/configure.component';
+import { MarkdownModule }                   from "ngx-markdown";
+import { AceEditorModule }                  from "ng2-ace-editor";
 
 @NgModule({
   imports: [
@@ -29,7 +32,7 @@ import { FormsModule, ReactiveFormsModule } from "@angular/forms";
     AppStoreRoutingModule,
     MatCardModule,
     StoreModule.forFeature('apps', fromApps.reducer),
-    EffectsModule.forFeature([ AppsEffects ]),
+    EffectsModule.forFeature([AppsEffects]),
     ReactiveFormsModule,
     MatFormFieldModule,
     MatInputModule,
@@ -38,7 +41,9 @@ import { FormsModule, ReactiveFormsModule } from "@angular/forms";
     MatDialogModule,
     FormsModule,
     MatTabsModule,
-    MatProgressSpinnerModule
+    MatProgressSpinnerModule,
+    MarkdownModule.forRoot(),
+    AceEditorModule,
   ],
   declarations: [
     AppStoreComponent,
@@ -47,10 +52,12 @@ import { FormsModule, ReactiveFormsModule } from "@angular/forms";
     AppDetailsComponent,
     BreadcrumbsComponent,
     DeployComponent,
+    ConfigureComponent,
   ],
   entryComponents: [
     DeployComponent,
-    AppsAddComponent
+    AppsAddComponent,
+    ConfigureComponent
   ],
 })
 export class AppStoreModule {
