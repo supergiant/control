@@ -187,7 +187,9 @@ func TestHandler_createKube(t *testing.T) {
 	tcs := []struct {
 		rawKube []byte
 
-		serviceError error
+		serviceCreateError error
+		serviceGetResp     *model.Kube
+		serviceGetError    error
 
 		expectedStatus  int
 		expectedErrCode sgerrors.ErrorCode
@@ -197,16 +199,24 @@ func TestHandler_createKube(t *testing.T) {
 			expectedStatus:  http.StatusBadRequest,
 			expectedErrCode: sgerrors.InvalidJSON,
 		},
+		{
+			rawKube: []byte(`{"name":"newKube"}`),
+			serviceGetResp: &model.Kube{
+				Name: "alreadyExists",
+			},
+			expectedStatus:  http.StatusConflict,
+			expectedErrCode: sgerrors.AlreadyExists,
+		},
 		{ // TC#2
 			rawKube:         []byte(`{"name":""}`),
 			expectedStatus:  http.StatusBadRequest,
 			expectedErrCode: sgerrors.ValidationFailed,
 		},
 		{ // TC#3
-			rawKube:         []byte(`{"name":"fail_to_put"}`),
-			serviceError:    errors.New("error"),
-			expectedStatus:  http.StatusInternalServerError,
-			expectedErrCode: sgerrors.UnknownError,
+			rawKube:            []byte(`{"name":"fail_to_put"}`),
+			serviceCreateError: errors.New("error"),
+			expectedStatus:     http.StatusInternalServerError,
+			expectedErrCode:    sgerrors.UnknownError,
 		},
 		{ // TC#4
 			rawKube:        []byte(`{"name":"success"}`),
@@ -219,10 +229,16 @@ func TestHandler_createKube(t *testing.T) {
 		svc := new(kubeServiceMock)
 		h := NewHandler(svc, nil, nil, nil)
 
-		req, err := http.NewRequest(http.MethodPost, "/kubes", bytes.NewReader(tc.rawKube))
-		require.Equalf(t, nil, err, "TC#%d: create request: %v", i+1, err)
+		req, err := http.NewRequest(http.MethodPost, "/kubes",
+			bytes.NewReader(tc.rawKube))
+		require.Equalf(t, nil, err,
+			"TC#%d: create request: %v", i+1, err)
 
-		svc.On(serviceCreate, mock.Anything, mock.Anything).Return(tc.serviceError)
+		svc.On(serviceCreate, mock.Anything, mock.Anything).
+			Return(tc.serviceCreateError)
+		svc.On(serviceGet, mock.Anything, mock.Anything).
+			Return(tc.serviceGetResp, tc.serviceGetError)
+
 		rr := httptest.NewRecorder()
 
 		router := mux.NewRouter().SkipClean(true)
