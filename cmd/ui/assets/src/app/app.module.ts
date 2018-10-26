@@ -332,7 +332,7 @@ import {LoginGuardService} from "./shared/supergiant/auth/login-guard.service";
     ConfirmModalComponent,
     TaskLogsComponent
   ],
-  bootstrap: [AppComponent]
+  bootstrap: [AppComponent],
 })
 
 export class AppModule { }

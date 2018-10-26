@@ -1,0 +1,21 @@
+<h2 mat-dialog-title>Configure App</h2>
+<mat-dialog-content>
+  <div ace-editor
+       [(text)]="values"
+       [options]="options"
+       [readOnly]="false"
+       [autoUpdateContent]="true"
+       [durationBeforeCallback]="1000"
+       (textChanged)="onChange($event)"
+       style="min-height: 200px; width:100%; overflow: auto;"></div>
+</mat-dialog-content>
+<mat-dialog-actions>
+  <button (click)="save()" class="btn-deploy"
+          mat-button
+          color="primary">Save
+  </button>
+  <button mat-button
+          mat-dialog-close>Cancel
+  </button>
+
+</mat-dialog-actions>
