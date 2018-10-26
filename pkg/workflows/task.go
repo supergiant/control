@@ -46,7 +46,7 @@ func newTask(workflowType string, workflow Workflow, repository storage.Interfac
 	return &Task{
 		ID:     uuid.New(),
 		Type:   workflowType,
-		Status: statuses.StatusTodo,
+		Status: statuses.Todo,
 
 		workflow:   workflow,
 		repository: repository,
@@ -60,7 +60,7 @@ func (w *Task) Run(ctx context.Context, config steps.Config, out io.WriteCloser)
 	go func() {
 		defer func() {
 			if r := recover(); r != nil {
-				w.Status = statuses.StatusError
+				w.Status = statuses.Error
 				if err := w.sync(ctx); err != nil {
 					logrus.Errorf("sync error %v for task %s", err, w.ID)
 				}
@@ -75,7 +75,7 @@ func (w *Task) Run(ctx context.Context, config steps.Config, out io.WriteCloser)
 		// Create list of statuses to track
 		for _, step := range w.workflow {
 			w.StepStatuses = append(w.StepStatuses, StepStatus{
-				Status:   statuses.StatusTodo,
+				Status:   statuses.Todo,
 				StepName: step.Name(),
 				ErrMsg:   "",
 			})
@@ -83,7 +83,7 @@ func (w *Task) Run(ctx context.Context, config steps.Config, out io.WriteCloser)
 
 		// Set config to the task
 		w.Config = &config
-		w.Status = statuses.StatusTodo
+		w.Status = statuses.Todo
 
 		// Save task state before first step
 		if err := w.sync(ctx); err != nil {
@@ -93,7 +93,7 @@ func (w *Task) Run(ctx context.Context, config steps.Config, out io.WriteCloser)
 		err := w.startFrom(ctx, w.ID, out, 0)
 
 		if err != nil {
-			w.Status = statuses.StatusError
+			w.Status = statuses.Error
 			if err := w.sync(ctx); err != nil {
 				logrus.Errorf("failed to sync task %s to db: %v", w.ID, err)
 			}
@@ -137,7 +137,7 @@ func (w *Task) Restart(ctx context.Context, id string, out io.Writer) chan error
 		i := 0
 		// Skip successfully finished steps
 		for index, stepStatus := range w.StepStatuses {
-			if stepStatus.Status == statuses.StatusError {
+			if stepStatus.Status == statuses.Error {
 				i = index
 				break
 			}
@@ -146,7 +146,7 @@ func (w *Task) Restart(ctx context.Context, id string, out io.Writer) chan error
 		err = w.startFrom(ctx, id, out, i)
 
 		if err != nil {
-			w.Status = statuses.StatusError
+			w.Status = statuses.Error
 			if err := w.sync(ctx); err != nil {
 				logrus.Errorf("failed to sync task %s to db: %v", w.ID, err)
 			}
@@ -167,8 +167,8 @@ func (w *Task) startFrom(ctx context.Context, id string, out io.Writer, i int) e
 		logrus.Info(step.Name())
 
 		// sync to storage with task in executing state
-		w.Status = statuses.StatusExecuting
-		w.StepStatuses[index].Status = statuses.StatusExecuting
+		w.Status = statuses.Executing
+		w.StepStatuses[index].Status = statuses.Executing
 
 		if err := w.sync(ctx); err != nil {
 			logrus.Errorf("sync error %v", err)
@@ -176,8 +176,8 @@ func (w *Task) startFrom(ctx context.Context, id string, out io.Writer, i int) e
 
 		if err := step.Run(ctx, out, w.Config); err != nil {
 			// Mark step status as error
-			w.StepStatuses[index].Status = statuses.StatusError
-			w.Status = statuses.StatusError
+			w.StepStatuses[index].Status = statuses.Error
+			w.Status = statuses.Error
 			w.StepStatuses[index].ErrMsg = err.Error()
 			w.sync(ctx)
 
@@ -194,8 +194,8 @@ func (w *Task) startFrom(ctx context.Context, id string, out io.Writer, i int) e
 		} else {
 			wsLog.Infof("[%s] - success", step.Name())
 			// Mark step as success
-			w.StepStatuses[index].Status = statuses.StatusSuccess
-			w.Status = statuses.StatusSuccess
+			w.StepStatuses[index].Status = statuses.Success
+			w.Status = statuses.Success
 
 			if err := w.sync(ctx); err != nil {
 				logrus.Errorf("sync error %v for step %s", err, step.Name())
