@@ -13,6 +13,7 @@ import (
 	"github.com/stretchr/testify/require"
 
 	"github.com/supergiant/supergiant/pkg/sgerrors"
+	"github.com/supergiant/supergiant/pkg/workflows/statuses"
 	"github.com/supergiant/supergiant/pkg/workflows/steps"
 )
 
@@ -165,9 +166,14 @@ func TestTaskRunError(t *testing.T) {
 		t.Errorf("Unexpected error while unmarshalling data %v", err)
 	}
 
-	if w.StepStatuses[1].Status != steps.StatusError {
+	if w.Status != statuses.Error {
+		t.Errorf("Unexpected task status expected %s actual %s",
+			statuses.Error, w.Status)
+	}
+
+	if w.StepStatuses[1].Status != statuses.Error {
 		t.Errorf("Unexpected step statues expected %s actual %s",
-			steps.StatusError, w.StepStatuses[1].Status)
+			statuses.Error, w.StepStatuses[1].Status)
 	}
 }
 
@@ -207,9 +213,13 @@ func TestTaskRunSuccess(t *testing.T) {
 	if err != nil {
 		t.Errorf("Unexpected error while unmarshalling data %v", err)
 	}
+
+	if w.Status != statuses.Success {
+		t.Errorf("Unexpected task status expected %s actual %s", statuses.Success, w.Status)
+	}
 	for _, status := range w.StepStatuses {
-		if status.Status != steps.StatusSuccess {
-			t.Errorf("Unexpected status expectec %s actual %s", steps.StatusSuccess, status.Status)
+		if status.Status != statuses.Success {
+			t.Errorf("Unexpected status expectec %s actual %s", statuses.Success, status.Status)
 		}
 	}
 }
@@ -255,9 +265,9 @@ func TestWorkflowRestart(t *testing.T) {
 		t.Errorf("Unexpected error while unmarshalling data %v", err)
 	}
 
-	if task.StepStatuses[1].Status != steps.StatusError {
+	if task.StepStatuses[1].Status != statuses.Error {
 		t.Errorf("Unexpected step statues expected %s actual %s",
-			steps.StatusError, task.StepStatuses[1].Status)
+			statuses.Error, task.StepStatuses[1].Status)
 	}
 
 	buffer.Reset()

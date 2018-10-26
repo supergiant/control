@@ -3,6 +3,7 @@ package workflows
 import (
 	"sync"
 
+	"github.com/supergiant/supergiant/pkg/workflows/statuses"
 	"github.com/supergiant/supergiant/pkg/workflows/steps"
 	"github.com/supergiant/supergiant/pkg/workflows/steps/amazon"
 	"github.com/supergiant/supergiant/pkg/workflows/steps/certificates"
@@ -24,9 +25,9 @@ import (
 // StepStatus aggregates data that is needed to track progress
 // of step to persistent storage.
 type StepStatus struct {
-	Status   steps.Status `json:"status"`
-	StepName string       `json:"stepName"`
-	ErrMsg   string       `json:"errorMessage"`
+	Status   statuses.Status `json:"status"`
+	StepName string          `json:"stepName"`
+	ErrMsg   string          `json:"errorMessage"`
 }
 
 // Workflow is a template for doing some actions
