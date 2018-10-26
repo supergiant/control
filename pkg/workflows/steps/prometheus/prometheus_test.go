@@ -1,4 +1,4 @@
-package cni
+package prometheus
 
 import (
 	"bytes"
@@ -31,9 +31,9 @@ func (f *fakeRunner) Run(command *runner.Command) error {
 	return err
 }
 
-func TestCNI(t *testing.T) {
+func TestPrometheus(t *testing.T) {
 	var (
-		expected               = "cni.tar.gz"
+		hosts = []string{"10.20.30.40", "56.67.78.89"}
 		r        runner.Runner = &fakeRunner{}
 	)
 
@@ -51,8 +51,13 @@ func TestCNI(t *testing.T) {
 
 	output := new(bytes.Buffer)
 
-	cfg := steps.NewConfig("", "", "", profile.Profile{})
+	cfg := steps.NewConfig("", "",
+		"", profile.Profile{})
 	cfg.Runner = r
+	cfg.PrometheusConfig = steps.PrometheusConfig{
+		Hosts: hosts,
+	}
+
 	task := &Step{
 		tpl,
 	}
@@ -63,12 +68,14 @@ func TestCNI(t *testing.T) {
 		t.Errorf("Unpexpected error while  provision node %v", err)
 	}
 
-	if !strings.Contains(output.String(), expected) {
-		t.Errorf("not found %s in %s", expected, output.String())
+	for _, host := range hosts {
+		if !strings.Contains(output.String(), host) {
+			t.Errorf("not found %s in %s", host, output.String())
+		}
 	}
 }
 
-func TestCNIErrors(t *testing.T) {
+func TestPrometheusErr(t *testing.T) {
 	errMsg := "error has occurred"
 
 	r := &fakeRunner{

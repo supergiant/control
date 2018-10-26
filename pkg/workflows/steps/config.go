@@ -151,6 +151,10 @@ type ClusterCheckConfig struct {
 	MachineCount int
 }
 
+type PrometheusConfig struct {
+	Hosts []string
+}
+
 type Map struct {
 	internal map[string]*node.Node
 }
@@ -186,6 +190,7 @@ type Config struct {
 	TillerConfig       TillerConfig       `json:"tillerConfig"`
 	EtcdConfig         EtcdConfig         `json:"etcdConfig"`
 	SshConfig          SshConfig          `json:"sshConfig"`
+	PrometheusConfig   PrometheusConfig   `json:"prometheusConfig"`
 
 	ClusterCheckConfig ClusterCheckConfig `json:"clusterCheckConfig"`
 
