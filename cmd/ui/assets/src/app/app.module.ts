@@ -165,6 +165,7 @@ import { AppEffects } from './app.effects';
 import { TaskLogsComponent } from './clusters/cluster/task-logs/task-logs.component';
 import {LoginGuardService} from "./shared/supergiant/auth/login-guard.service";
 import { MenuModalComponent } from './navigation/user-menu/menu-modal/menu-modal.component';
+import { ClusterListModalComponent } from './navigation/toolbar/cluster-list-modal/cluster-list-modal.component';
 
 @NgModule({
   declarations: [
@@ -234,6 +235,7 @@ import { MenuModalComponent } from './navigation/user-menu/menu-modal/menu-modal
     UsageChartComponent,
     TaskLogsComponent,
     MenuModalComponent,
+    ClusterListModalComponent,
   ],
   imports: [
     BrowserModule,
@@ -333,7 +335,8 @@ import { MenuModalComponent } from './navigation/user-menu/menu-modal/menu-modal
   entryComponents: [
     ConfirmModalComponent,
     TaskLogsComponent,
-    MenuModalComponent
+    MenuModalComponent,
+    ClusterListModalComponent
   ],
   bootstrap: [AppComponent],
 })
