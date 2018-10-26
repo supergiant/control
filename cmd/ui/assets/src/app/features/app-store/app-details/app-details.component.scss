@@ -1,8 +1,21 @@
 .mat-card {
   display: flex;
 
-  article {
-    flex-basis: 70%;
+  .left {
+    width: 70%;
+  }
+}
+
+::ng-deep {
+  .instructions {
+    h1 {
+      font-size: 24px;
+    }
+
+    code {
+      background: grey;
+      color: white;
+    }
   }
 }
 

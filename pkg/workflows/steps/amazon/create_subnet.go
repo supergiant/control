@@ -12,7 +12,7 @@ import (
 	"github.com/supergiant/supergiant/pkg/workflows/steps"
 )
 
-const CreateSubnetStepName = "create_subnet_step"
+const StepCreateSubnet = "create_subnet_step"
 
 type CreateSubnetStep struct {
 	GetEC2 GetEC2Fn
@@ -25,7 +25,7 @@ func NewCreateSubnetStep(fn GetEC2Fn) *CreateSubnetStep {
 }
 
 func InitCreateSubnet(fn GetEC2Fn) {
-	steps.RegisterStep(CreateSubnetStepName, NewCreateSubnetStep(fn))
+	steps.RegisterStep(StepCreateSubnet, NewCreateSubnetStep(fn))
 }
 
 func (s *CreateSubnetStep) Run(ctx context.Context, w io.Writer, cfg *steps.Config) error {
@@ -45,6 +45,27 @@ func (s *CreateSubnetStep) Run(ctx context.Context, w io.Writer, cfg *steps.Conf
 			return errors.Wrap(ErrCreateSubnet, err.Error())
 		}
 		cfg.AWSConfig.SubnetID = *out.Subnet.SubnetId
+	} else if cfg.AWSConfig.SubnetID == "default" {
+		input := &ec2.DescribeSubnetsInput{
+			Filters: []*ec2.Filter{
+				{
+					Name:   aws.String("vpc-id"),
+					Values: aws.StringSlice([]string{cfg.AWSConfig.VPCID}),
+				},
+				{
+					Name:   aws.String("default-for-az"),
+					Values: aws.StringSlice([]string{"true"}),
+				},
+			},
+		}
+		out, err := EC2.DescribeSubnetsWithContext(ctx, input)
+		if err != nil {
+			return errors.Wrap(ErrCreateSubnet, err.Error())
+		}
+		if len(out.Subnets) == 0 {
+			return errors.Wrap(ErrCreateSubnet, "no default subnet found")
+		}
+		cfg.AWSConfig.SubnetID = *out.Subnets[0].SubnetId
 	} else {
 		log.Infof("[%s] - using subnet %s", s.Name(), cfg.AWSConfig.SubnetID)
 	}
@@ -52,7 +73,7 @@ func (s *CreateSubnetStep) Run(ctx context.Context, w io.Writer, cfg *steps.Conf
 }
 
 func (*CreateSubnetStep) Name() string {
-	return CreateSubnetStepName
+	return StepCreateSubnet
 }
 
 func (*CreateSubnetStep) Description() string {

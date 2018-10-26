@@ -113,6 +113,52 @@
         </form>
       </ng-container>
 
+      <!-- aws -->
+      <ng-container *ngIf="selectedCloudAccount?.provider == 'aws'">
+        <form [formGroup]="providerConfig" class="aws-config">
+          <div class="input-group">
+            <mat-form-field>
+              <mat-select placeholder="Select a Region" formControlName="region" (selectionChange)="selectRegion($event.value)">
+                <mat-option *ngFor="let r of availableRegions?.regions" [value]="r">{{ r.name }}</mat-option>
+              </mat-select>
+            </mat-form-field>
+
+            <mat-form-field>
+              <mat-select [disabled]="!availabilityZones" placeholder="Select an Availability Zone" formControlName="availabilityZone" (selectionChange)="selectAz($event.value)">
+                <mat-option *ngFor="let a of availabilityZones" [value]="a">{{ a }}</mat-option>
+              </mat-select>
+            </mat-form-field>
+
+            <mat-form-field>
+              <input matInput type="text" formControlName="vpcId" placeholder="VPC ID">
+            </mat-form-field>
+
+            <mat-form-field>
+              <input matInput type="text" formControlName="vpcCidr" placeholder="VPC CIDR">
+            </mat-form-field>
+          </div>
+
+          <div class="input-group">
+            <mat-form-field>
+              <input matInput type="text" formControlName="keypairName" placeholder="Keypair Name">
+            </mat-form-field>
+
+            <mat-form-field>
+              <input matInput type="text" formControlName="subnetId" placeholder="Subnet ID">
+            </mat-form-field>
+
+            <mat-form-field>
+              <input matInput type="text" formControlName="mastersSecurityGroupId" placeholder="Master's Security Group ID">
+            </mat-form-field>
+
+            <mat-form-field>
+              <input matInput type="text" formControlName="nodesSecurityGroupId" placeholder="Node's Security Group ID">
+            </mat-form-field>
+          </div>
+
+        </form>
+      </ng-container>
+
       <div class="step-actions">
         <button mat-raised-button class="secondary" matStepperPrevious>BACK</button>
         <button mat-raised-button class="secondary" matStepperNext>NEXT</button>
@@ -123,6 +169,35 @@
       <div class="machine-config-step">
         <!-- digital ocean machines -->
         <ng-container *ngIf="selectedCloudAccount?.provider == 'digitalocean'" >
+          <div class="machine" *ngFor="let m of machines; let idx = index">
+            <mat-form-field class="type">
+              <mat-select placeholder="Machine Type (size)" id="m.machineType" [(value)]="m.machineType">
+                <mat-option *ngFor="let type of availableMachineTypes" [value]="type">{{ type }}</mat-option>
+              </mat-select>
+            </mat-form-field>
+
+            <mat-form-field class="role">
+              <mat-select placeholder="Role" [(value)]="m.role" >
+                <mat-option value="Master">Master</mat-option>
+                <mat-option value="Node">Node</mat-option>
+              </mat-select>
+            </mat-form-field>
+
+            <mat-form-field class="quantity">
+              <input matInput type="number" min="1" placeholder="Q-ty" [(ngModel)]="m.qty">
+            </mat-form-field>
+
+            <div class="delete" (click)="deleteMachine(idx)"></div>
+          </div>
+
+          <div class="add-machines" (click)="addBlankMachine()">
+            <div class="plus"></div>
+            <span class="add-label">Add more machines</span>
+          </div>
+        </ng-container>
+
+        <!-- aws -->
+        <ng-container *ngIf="selectedCloudAccount?.provider == 'aws'" >
           <div class="machine" *ngFor="let m of machines; let idx = index">
             <mat-form-field class="type">
               <mat-select placeholder="Machine Type (size)" id="m.machineType" [(value)]="m.machineType">
@@ -183,8 +258,21 @@
 
           <div class="provider">
             <h3>PROVIDER CONFIGURATION</h3>
+            <!-- digital ocean -->
             <div *ngIf="selectedCloudAccount?.provider == 'digitalocean'">
               <p><span class="label">REGION:</span> {{ providerConfig.value.region.name }}</p>
+            </div>
+
+            <!-- aws -->
+            <div *ngIf="selectedCloudAccount?.provider == 'aws'">
+              <p><span class="label">REGION:</span> {{ providerConfig.value.region.name }}</p>
+              <p><span class="label">AVAIL. ZONE:</span> {{ providerConfig.value.availabilityZone }}</p>
+              <p><span class="label">VPC ID:</span> {{ providerConfig.value.vpcId }}</p>
+              <p><span class="label">VPC CIDR:</span> {{ providerConfig.value.vpcCidr }}</p>
+              <p><span class="label">KEYPAIR NAME:</span> {{ providerConfig.value.keypairName }}</p>
+              <p><span class="label">SUBNET ID:</span> {{ providerConfig.value.subnetId }}</p>
+              <p><span class="label">MASTERS SEC. GROUP ID:</span> {{ providerConfig.value.mastersSecurityGroupId }}</p>
+              <p><span class="label">NODES SEC. GROUP ID:</span> {{ providerConfig.value.nodesSecurityGroupId }}</p>
             </div>
           </div>
 

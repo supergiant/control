@@ -54,7 +54,7 @@ func TestProfileGet(t *testing.T) {
 			kv.Put(context.Background(), prefix, testCase.expectedId, testCase.data)
 		}
 
-		service := profile.NewKubeProfileService(prefix, kv)
+		service := profile.NewService(prefix, kv)
 		ctx, cancel := context.WithTimeout(context.Background(), 3*time.Second)
 		defer cancel()
 
@@ -82,7 +82,7 @@ func TestKubeProfileCreate(t *testing.T) {
 		K8SVersion: version,
 	}
 
-	service := profile.NewKubeProfileService(prefix, kv)
+	service := profile.NewService(prefix, kv)
 	ctx, cancel := context.WithTimeout(context.Background(), 3*time.Second)
 	defer cancel()
 
@@ -109,7 +109,7 @@ func TestKubeProfileGetAll(t *testing.T) {
 	key := "key"
 	version := "1.8.7"
 
-	service := profile.NewKubeProfileService(prefix, kv)
+	service := profile.NewService(prefix, kv)
 	ctx, cancel := context.WithTimeout(context.Background(), 3*time.Second)
 	defer cancel()
 

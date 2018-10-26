@@ -1,5 +1,5 @@
 import { Component }                    from '@angular/core';
-import { Router }                       from "@angular/router";
+import { NavigationEnd, Router }        from "@angular/router";
 import { State }                        from "../../reducers";
 import { select, Store }                from "@ngrx/store";
 import { Repository, selectAppDetails } from "../apps/apps.reducer";
@@ -8,7 +8,7 @@ import { AppFilter }                    from "../apps/actions";
 import { MatDialog }                    from "@angular/material";
 import { AppsAddComponent }             from "./apps-add/apps-add.component";
 import { HttpClient }                   from "@angular/common/http";
-import { map }                          from "rxjs/operators";
+import { filter, map }                  from "rxjs/operators";
 
 @Component({
   selector: 'app-app-store',
@@ -27,7 +27,9 @@ export class AppStoreComponent {
     private http: HttpClient,
   ) {
 
-    this.router.events.subscribe(() => {
+    this.router.events.pipe(
+      filter(event => event instanceof NavigationEnd)
+    ).subscribe(() => {
       const detailPageRegexp = /\/apps\/[a-z]+\/details\/[a-z]/;
       this.showBreadcrumbs = Boolean(this.router.url.match(detailPageRegexp));
       this.store.dispatch(new AppFilter(''))
@@ -53,10 +55,9 @@ export class AppStoreComponent {
     this.store.dispatch(new AppFilter(e.target.value))
   }
 
-  filterClear(e) {
-    e.stopPropagation();
-    e.stopImmediatePropagation();
-    e.target.value = '';
+  filterClear(filterInput) {
+    filterInput.value = '';
+    this.store.dispatch(new AppFilter(''))
   }
 
   addRepo() {

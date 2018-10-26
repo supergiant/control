@@ -1,5 +1,5 @@
 .dashboard-wrapper {
-  margin: 90px 0px 55px;
+  margin: 10px 0px 55px;
 
   .empty-cloud-accounts, .no-clusters {
     display: flex;
@@ -159,6 +159,10 @@
               font-weight: 300;
               font-size: 12px;
               overflow: unset;
+            }
+
+            &:last-child {
+              margin-bottom: 0px;
             }
           }
         }

@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"context"
 	"io"
+	"io/ioutil"
 	"strings"
 	"testing"
 	"text/template"
@@ -135,5 +136,49 @@ func TestWriteCertificatesError(t *testing.T) {
 
 	if !strings.Contains(err.Error(), errMsg) {
 		t.Errorf("Error message expected to contain %s actual %s", errMsg, err.Error())
+	}
+}
+
+func TestStepName(t *testing.T) {
+	s := Step{}
+
+	if s.Name() != StepName {
+		t.Errorf("Unexpected step name expected %s actual %s", StepName, s.Name())
+	}
+}
+
+func TestDepends(t *testing.T) {
+	s := Step{}
+
+	if len(s.Depends()) != 0 {
+		t.Errorf("Wrong dependency list %v expected %v", s.Depends(), []string{})
+	}
+}
+
+func TestStep_Rollback(t *testing.T) {
+	s := Step{}
+	err := s.Rollback(context.Background(), ioutil.Discard, &steps.Config{})
+
+	if err != nil {
+		t.Errorf("unexpected error while rollback %v", err)
+	}
+}
+
+func TestNew(t *testing.T) {
+	tpl := template.New("test")
+	s := New(tpl)
+
+	if s.script != tpl {
+		t.Errorf("Wrong template expected %v actual %v", tpl, s.script)
+	}
+}
+
+func TestInit(t *testing.T) {
+	Init()
+
+	s := steps.GetStep(StepName)
+
+	if s == nil {
+		t.Error("Step not found")
 	}
 }

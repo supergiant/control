@@ -3,6 +3,7 @@ package account
 import (
 	"bytes"
 	"encoding/json"
+	"fmt"
 	"net/http"
 	"net/http/httptest"
 	"strings"
@@ -16,6 +17,7 @@ import (
 
 	"github.com/supergiant/supergiant/pkg/clouds"
 	"github.com/supergiant/supergiant/pkg/model"
+	"github.com/supergiant/supergiant/pkg/sgerrors"
 	"github.com/supergiant/supergiant/pkg/testutils"
 )
 
@@ -28,6 +30,7 @@ func fixtures() (*Handler, *testutils.MockStorage) {
 		},
 	}, mockStorage
 }
+
 func init() {
 	govalidator.SetFieldsRequiredByDefault(true)
 }
@@ -162,5 +165,199 @@ func TestService_Update(t *testing.T) {
 		router.ServeHTTP(rr, req)
 
 		require.Equal(t, td.responseStatus, rr.Code)
+	}
+}
+
+func TestHandler_Register(t *testing.T) {
+	r := mux.NewRouter()
+	h := Handler{}
+	h.Register(r)
+	expectedRouteCount := 8
+	routes := []*mux.Route{}
+
+	walkFn := func(route *mux.Route, router *mux.Router, ancestors []*mux.Route) error {
+		routes = append(routes, route)
+		return nil
+	}
+
+	err := r.Walk(walkFn)
+
+	if err != nil {
+		t.Errorf("unexpected walk error %v", err)
+	}
+
+	if len(routes) != expectedRouteCount {
+		t.Errorf("Wrong routes clount expected %d actual %d",
+			expectedRouteCount, len(routes))
+	}
+}
+
+func TestNewHandler(t *testing.T) {
+	svc := &Service{}
+	handler := NewHandler(svc)
+
+	if handler.service != svc {
+		t.Errorf("Wrong service expected %v actual %v", svc, handler.service)
+	}
+}
+
+func TestHandler_ListAll(t *testing.T) {
+	testCases := []struct {
+		mockResp             [][]byte
+		serviceErr           error
+		expectedAccountCount int
+		expectedCode         int
+	}{
+		{
+			mockResp:             [][]byte{},
+			serviceErr:           errors.New("weird error"),
+			expectedAccountCount: 1,
+			expectedCode:         http.StatusInternalServerError,
+		},
+		{
+			mockResp:             nil,
+			serviceErr:           sgerrors.ErrNotFound,
+			expectedAccountCount: 1,
+			expectedCode:         http.StatusNotFound,
+		},
+		{
+			mockResp:             [][]byte{[]byte(`{}`)},
+			serviceErr:           nil,
+			expectedAccountCount: 1,
+			expectedCode:         http.StatusOK,
+		},
+	}
+
+	for _, testCase := range testCases {
+		e, m := fixtures()
+		m.On("GetAll", mock.Anything,
+			mock.Anything, mock.Anything, mock.Anything).
+			Return(testCase.mockResp, testCase.serviceErr)
+
+		router := mux.NewRouter()
+		e.Register(router)
+		rec := httptest.NewRecorder()
+		req, _ := http.NewRequest(http.MethodGet, "/accounts", nil)
+
+		router.ServeHTTP(rec, req)
+
+		if rec.Code != testCase.expectedCode {
+			t.Errorf("Wrong response code expected %d actual %d",
+				testCase.expectedCode, rec.Code)
+			continue
+		}
+	}
+}
+
+func TestHandler_Get(t *testing.T) {
+	testCases := []struct {
+		accountName          string
+		mockResp             []byte
+		serviceErr           error
+		expectedAccountCount int
+		expectedCode         int
+	}{
+		{
+			accountName:          "test",
+			mockResp:             []byte{},
+			serviceErr:           errors.New("weird error"),
+			expectedAccountCount: 1,
+			expectedCode:         http.StatusInternalServerError,
+		},
+		{
+			accountName:          "test",
+			mockResp:             nil,
+			serviceErr:           sgerrors.ErrNotFound,
+			expectedAccountCount: 1,
+			expectedCode:         http.StatusNotFound,
+		},
+		{
+			accountName:          "test",
+			mockResp:             []byte(`{}`),
+			serviceErr:           nil,
+			expectedAccountCount: 1,
+			expectedCode:         http.StatusOK,
+		},
+	}
+
+	for _, testCase := range testCases {
+		e, m := fixtures()
+		m.On("Get", mock.Anything,
+			mock.Anything, mock.Anything, mock.Anything).
+			Return(testCase.mockResp, testCase.serviceErr)
+
+		router := mux.NewRouter()
+		e.Register(router)
+		rec := httptest.NewRecorder()
+		req, _ := http.NewRequest(http.MethodGet,
+			fmt.Sprintf("/accounts/%s", testCase.accountName), nil)
+
+		router.ServeHTTP(rec, req)
+
+		if rec.Code != testCase.expectedCode {
+			t.Errorf("Wrong response code expected %d actual %d",
+				testCase.expectedCode, rec.Code)
+			continue
+		}
+	}
+}
+
+func TestHandler_GetRegions(t *testing.T) {
+	testCases := []struct {
+		accountName          string
+		mockResp             []byte
+		serviceErr           error
+		expectedAccountCount int
+		expectedCode         int
+	}{
+		{
+			accountName:          "test",
+			mockResp:             []byte{},
+			serviceErr:           errors.New("weird error"),
+			expectedAccountCount: 1,
+			expectedCode:         http.StatusInternalServerError,
+		},
+		{
+			accountName:          "test",
+			mockResp:             nil,
+			serviceErr:           sgerrors.ErrNotFound,
+			expectedAccountCount: 1,
+			expectedCode:         http.StatusNotFound,
+		},
+		{
+			accountName:          "test",
+			mockResp:             []byte(`{"provider":"unknowncloud"}`),
+			serviceErr:           nil,
+			expectedAccountCount: 1,
+			expectedCode:         http.StatusInternalServerError,
+		},
+		{
+			accountName:          "test",
+			mockResp:             []byte(`{"provider":"digitalocean"}`),
+			serviceErr:           nil,
+			expectedAccountCount: 1,
+			expectedCode:         http.StatusInternalServerError,
+		},
+	}
+
+	for _, testCase := range testCases {
+		e, m := fixtures()
+		m.On("Get", mock.Anything,
+			mock.Anything, mock.Anything, mock.Anything).
+			Return(testCase.mockResp, testCase.serviceErr)
+
+		router := mux.NewRouter()
+		e.Register(router)
+		rec := httptest.NewRecorder()
+		req, _ := http.NewRequest(http.MethodGet,
+			fmt.Sprintf("/accounts/%s/regions", testCase.accountName), nil)
+
+		router.ServeHTTP(rec, req)
+
+		if rec.Code != testCase.expectedCode {
+			t.Errorf("Wrong response code expected %d actual %d",
+				testCase.expectedCode, rec.Code)
+			continue
+		}
 	}
 }

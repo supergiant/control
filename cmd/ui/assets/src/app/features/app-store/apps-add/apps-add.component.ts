@@ -42,12 +42,15 @@ export class AppsAddComponent implements OnInit {
     ).pipe(
       catchError(error => {
         this.notifications.display('error', '', error.statusText);
-        console.error(error);
-        return of(error);
+        return of(new ErrorEvent(error));
       })
-    ).subscribe(res => {
+    ).subscribe(result => {
       this.isProcessing = false;
       this.addRepositoryForm.enable();
+      // TODO
+      if(!(result instanceof ErrorEvent)) {
+        window.location.reload();
+      }
     });
   }
 }

@@ -2,9 +2,6 @@ import { NgModule }                         from '@angular/core';
 import { CommonModule }                     from '@angular/common';
 import { AppStoreRoutingModule }            from './app-store-routing.module';
 import { AppStoreComponent }                from './app-store.component';
-import { AppsSupergiantComponent }          from './apps-supergiant/apps-supergiant.component';
-import { AppsVerifiedComponent }            from './apps-verified/apps-verified.component';
-import { AppsOtherComponent }               from './apps-other/apps-other.component';
 import { AppsAddComponent }                 from './apps-add/apps-add.component';
 import {
   MatCardModule, MatDialogModule,
@@ -25,6 +22,9 @@ import { AppDetailsComponent }              from './app-details/app-details.comp
 import { BreadcrumbsComponent }             from './breadcrumbs/breadcrumbs.component';
 import { DeployComponent }                  from './app-details/deploy/deploy.component';
 import { FormsModule, ReactiveFormsModule } from "@angular/forms";
+import { ConfigureComponent }               from './app-details/confure/configure.component';
+import { MarkdownModule }                   from "ngx-markdown";
+import { AceEditorModule }                  from "ng2-ace-editor";
 
 @NgModule({
   imports: [
@@ -32,7 +32,7 @@ import { FormsModule, ReactiveFormsModule } from "@angular/forms";
     AppStoreRoutingModule,
     MatCardModule,
     StoreModule.forFeature('apps', fromApps.reducer),
-    EffectsModule.forFeature([ AppsEffects ]),
+    EffectsModule.forFeature([AppsEffects]),
     ReactiveFormsModule,
     MatFormFieldModule,
     MatInputModule,
@@ -41,22 +41,23 @@ import { FormsModule, ReactiveFormsModule } from "@angular/forms";
     MatDialogModule,
     FormsModule,
     MatTabsModule,
-    MatProgressSpinnerModule
+    MatProgressSpinnerModule,
+    MarkdownModule.forRoot(),
+    AceEditorModule,
   ],
   declarations: [
     AppStoreComponent,
-    AppsSupergiantComponent,
-    AppsVerifiedComponent,
-    AppsOtherComponent,
     AppsAddComponent,
     AppsListComponent,
     AppDetailsComponent,
     BreadcrumbsComponent,
     DeployComponent,
+    ConfigureComponent,
   ],
   entryComponents: [
     DeployComponent,
-    AppsAddComponent
+    AppsAddComponent,
+    ConfigureComponent
   ],
 })
 export class AppStoreModule {
