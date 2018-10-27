@@ -21,7 +21,6 @@ DNS.3 = kubernetes.default.svc
 DNS.4 = kubernetes.default.svc.cluster
 IP.1 = {MASTER_HOST}
 IP.2 = {PRIVATE_HOST}
-// TODO(stgleb): Get this ip dynamically
 IP.3 = 10.3.0.1
 EOF"
 
