@@ -69,7 +69,7 @@ func TestService_CreateRepo(t *testing.T) {
 	}{
 		{ // TC#1
 			repoConf:    nil,
-			expectedErr: sgerrors.ErrNotFound,
+			expectedErr: sgerrors.ErrNilEntity,
 		},
 		{ // TC#2
 			repoConf: &repo.Entry{
@@ -100,12 +100,91 @@ func TestService_CreateRepo(t *testing.T) {
 		},
 		{ // TC#5
 			repoConf: &repo.Entry{
+				Name: "emptyIndex",
+			},
+			repos: fakeRepoManager{
+				index: &repo.IndexFile{},
+			},
+			expectedRepo: &model.RepositoryInfo{
+				Config: repo.Entry{
+					Name: "emptyIndex",
+				},
+			},
+		},
+		{ // TC#6
+			repoConf: &repo.Entry{
 				Name: "success",
 			},
-			repos: fakeRepoManager{},
+			repos: fakeRepoManager{
+				index: &repo.IndexFile{
+					Entries: map[string]repo.ChartVersions{
+						"chartDeprecated": {
+							&repo.ChartVersion{
+								Metadata: &chart.Metadata{
+									Deprecated: true,
+								},
+							},
+						},
+						"chartNoMetadata": nil,
+						"chartVersions": {
+							&repo.ChartVersion{
+								Metadata: &chart.Metadata{
+									Name:        "chartVersions",
+									Icon:        "chartVersions icon url",
+									Description: "chartVersions description",
+									Version:     "0.2.0",
+								},
+							},
+							&repo.ChartVersion{
+								Metadata: &chart.Metadata{
+									Name:    "chartVersions",
+									Version: "1.1.0",
+								},
+							},
+						},
+						"chartFake": {
+							&repo.ChartVersion{
+								Metadata: &chart.Metadata{
+									Name:        "chartFake",
+									Icon:        "chartFake icon url",
+									Description: "chartFake description",
+									Version:     "1.0.0",
+									AppVersion:  "1.0.1",
+								},
+							},
+						},
+					},
+				},
+			},
 			expectedRepo: &model.RepositoryInfo{
 				Config: repo.Entry{
 					Name: "success",
+				},
+				Charts: []model.ChartInfo{
+					{
+						Name: "chartVersions",
+						Repo: "success",
+						Versions: []model.ChartVersion{
+							{
+								Version: "1.1.0",
+							},
+							{
+								Version: "0.2.0",
+							},
+						},
+					},
+					{
+						Name:        "chartFake",
+						Repo:        "success",
+						Icon:        "chartFake icon url",
+						Description: "chartFake description",
+						Versions: []model.ChartVersion{
+							{
+								Version:    "1.0.0",
+								AppVersion: "1.0.1",
+							},
+						},
+					},
 				},
 			},
 		},
@@ -295,5 +374,85 @@ func TestService_DeleteRepo(t *testing.T) {
 		if err == nil {
 			require.Equalf(t, tc.expectedRepo, hrepo, "TC#%d: check results", i+1)
 		}
+	}
+}
+
+func Test_iconFrom(t *testing.T) {
+	tcs := []struct {
+		in       repo.ChartVersions
+		expected string
+	}{
+		{},
+		{
+			in: repo.ChartVersions{
+				&repo.ChartVersion{
+					Metadata: &chart.Metadata{
+						Icon: "icon ref",
+					},
+				},
+			},
+			expected: "icon ref",
+		},
+	}
+
+	for i, tc := range tcs {
+		res := iconFrom(tc.in)
+		require.Equalf(t, tc.expected, res, "TC#%d: check results", i+1)
+	}
+}
+
+func Test_descriptionFrom(t *testing.T) {
+	tcs := []struct {
+		in       repo.ChartVersions
+		expected string
+	}{
+		{},
+		{
+			in: repo.ChartVersions{
+				&repo.ChartVersion{
+					Metadata: &chart.Metadata{
+						Description: "description",
+					},
+				},
+			},
+			expected: "description",
+		},
+	}
+
+	for i, tc := range tcs {
+		res := descriptionFrom(tc.in)
+		require.Equalf(t, tc.expected, res, "TC#%d: check results", i+1)
+	}
+}
+
+func Test_toChartVersions(t *testing.T) {
+	tcs := []struct {
+		in       repo.ChartVersions
+		expected []model.ChartVersion
+	}{
+		{},
+		{
+			in: repo.ChartVersions{},
+		},
+		{
+			in: repo.ChartVersions{
+				&repo.ChartVersion{
+					Metadata: &chart.Metadata{
+						Version:     "0.0.1",
+						Description: "description",
+					},
+				},
+			},
+			expected: []model.ChartVersion{
+				{
+					Version: "0.0.1",
+				},
+			},
+		},
+	}
+
+	for i, tc := range tcs {
+		res := toChartVersions(tc.in)
+		require.Equalf(t, tc.expected, res, "TC#%d: check results", i+1)
 	}
 }

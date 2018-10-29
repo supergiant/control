@@ -57,7 +57,7 @@ func NewService(s storage.Interface) (*Service, error) {
 // CreateRepo stores a helm repository in the provided storage.
 func (s Service) CreateRepo(ctx context.Context, e *repo.Entry) (*model.RepositoryInfo, error) {
 	if e == nil {
-		return nil, sgerrors.ErrNotFound
+		return nil, sgerrors.ErrNilEntity
 	}
 
 	r, err := s.GetRepo(ctx, e.Name)
@@ -197,7 +197,7 @@ func findChartURL(charts []model.ChartInfo, chartName, chartVersion string) (str
 		}
 		chrtVer := findChartVersion(chrt.Versions, chartVersion)
 		if len(chrtVer.URLs) != 0 {
-			// charts are sorted
+			// charts are sorted in descending order
 			return chrtVer.URLs[0], nil
 		}
 	}
@@ -218,14 +218,10 @@ func findChartVersion(chrtVers []model.ChartVersion, version string) model.Chart
 }
 
 func toRepoInfo(e *repo.Entry, index *repo.IndexFile) *model.RepositoryInfo {
-	if e == nil {
-		return nil
-	}
-
 	r := &model.RepositoryInfo{
 		Config: *e,
 	}
-	if index == nil {
+	if index == nil || len(index.Entries) == 0 {
 		return r
 	}
 
@@ -235,7 +231,11 @@ func toRepoInfo(e *repo.Entry, index *repo.IndexFile) *model.RepositoryInfo {
 			continue
 		}
 
-		sort.Sort(entry)
+		// ensure charts are sorted in descending order
+		sort.SliceStable(entry, func(i, j int) bool {
+			return entry[i].Version > entry[j].Version
+		})
+
 		if entry[0].Deprecated {
 			continue
 		}
@@ -268,7 +268,7 @@ func descriptionFrom(cvs repo.ChartVersions) string {
 }
 
 func toChartVersions(cvs repo.ChartVersions) []model.ChartVersion {
-	if cvs == nil {
+	if len(cvs) == 0 {
 		return nil
 	}
 	chartVersions := make([]model.ChartVersion, 0, len(cvs))
