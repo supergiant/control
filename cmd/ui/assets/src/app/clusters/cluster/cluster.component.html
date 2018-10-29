@@ -215,6 +215,10 @@
         <mat-row *matRowDef="let row; columns: machineListColumns"></mat-row>
 
       </mat-table>
+      <a routerLink="add-node">
+        <button>add node</button>
+      </a>
+
       <mat-paginator [pageSizeOptions]="[5, 10, 25, 100]"
                      color="primary"></mat-paginator>
     </div>

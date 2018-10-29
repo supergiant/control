@@ -4,9 +4,8 @@ import { ChangeDetectionStrategy, Component, OnDestroy, OnInit, ViewChild, ViewE
 import { Location } from '@angular/common';
 import { ActivatedRoute, Router } from '@angular/router';
 import { HttpClient } from '@angular/common/http';
-import { SafeResourceUrl } from '@angular/platform-browser';
 import { MatDialog, MatPaginator, MatSort, MatTableDataSource } from '@angular/material';
-import {animate, state, style, transition, trigger} from '@angular/animations';
+import { animate, state, style, transition, trigger } from '@angular/animations';
 
 import { Supergiant } from '../../shared/supergiant/supergiant.service';
 import { UtilService } from '../../shared/supergiant/util/util.service';
