@@ -231,7 +231,7 @@ func toRepoInfo(e *repo.Entry, index *repo.IndexFile) *model.RepositoryInfo {
 			continue
 		}
 
-		// ensure charts are sorted in descending order
+		// ensure chart versions are sorted in descending order
 		sort.SliceStable(entry, func(i, j int) bool {
 			return entry[i].Version > entry[j].Version
 		})
@@ -248,6 +248,13 @@ func toRepoInfo(e *repo.Entry, index *repo.IndexFile) *model.RepositoryInfo {
 			Versions:    toChartVersions(entry),
 		})
 	}
+
+	// chartVersins received from the helm is a map
+	// sort the results by name to ensure ordering
+	sort.SliceStable(r.Charts, func(i, j int) bool {
+		return r.Charts[i].Name < r.Charts[j].Name
+	})
+
 	return r
 }
 

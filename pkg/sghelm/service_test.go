@@ -162,18 +162,6 @@ func TestService_CreateRepo(t *testing.T) {
 				},
 				Charts: []model.ChartInfo{
 					{
-						Name: "chartVersions",
-						Repo: "success",
-						Versions: []model.ChartVersion{
-							{
-								Version: "1.1.0",
-							},
-							{
-								Version: "0.2.0",
-							},
-						},
-					},
-					{
 						Name:        "chartFake",
 						Repo:        "success",
 						Icon:        "chartFake icon url",
@@ -182,6 +170,18 @@ func TestService_CreateRepo(t *testing.T) {
 							{
 								Version:    "1.0.0",
 								AppVersion: "1.0.1",
+							},
+						},
+					},
+					{
+						Name: "chartVersions",
+						Repo: "success",
+						Versions: []model.ChartVersion{
+							{
+								Version: "1.1.0",
+							},
+							{
+								Version: "0.2.0",
 							},
 						},
 					},
