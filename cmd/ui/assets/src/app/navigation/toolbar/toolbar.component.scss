@@ -26,3 +26,14 @@ a:hover {
     border-bottom: 2px solid $rose;
   }
 }
+
+.cluster-list {
+
+  &:active {
+    border-bottom: none;
+  }
+
+  .open-list {
+    margin-left: 6px;
+  }
+}
