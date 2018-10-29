@@ -71,7 +71,7 @@ func (s Service) CreateRepo(ctx context.Context, e *repo.Entry) (*model.Reposito
 	}
 
 	// store the index file
-	r = toRepo(e, ind)
+	r = toRepoInfo(e, ind)
 	rawJSON, err := json.Marshal(r)
 	if err != nil {
 		return nil, errors.Wrap(err, "marshal index file")
@@ -217,7 +217,7 @@ func findChartVersion(chrtVers []model.ChartVersion, version string) model.Chart
 	return model.ChartVersion{}
 }
 
-func toRepo(e *repo.Entry, index *repo.IndexFile) *model.RepositoryInfo {
+func toRepoInfo(e *repo.Entry, index *repo.IndexFile) *model.RepositoryInfo {
 	if e == nil {
 		return nil
 	}
@@ -243,6 +243,7 @@ func toRepo(e *repo.Entry, index *repo.IndexFile) *model.RepositoryInfo {
 		r.Charts = append(r.Charts, model.ChartInfo{
 			Name:        name,
 			Repo:        e.Name,
+			Icon:        iconFrom(entry),
 			Description: descriptionFrom(entry),
 			Versions:    toChartVersions(entry),
 		})
@@ -250,11 +251,18 @@ func toRepo(e *repo.Entry, index *repo.IndexFile) *model.RepositoryInfo {
 	return r
 }
 
+func iconFrom(cvs repo.ChartVersions) string {
+	// chartVersions are sorted, use the latest one
+	if len(cvs) > 0 {
+		return cvs[0].Icon
+	}
+	return ""
+}
+
 func descriptionFrom(cvs repo.ChartVersions) string {
-	for _, cv := range cvs {
-		if cv.Description != "" {
-			return cv.Description
-		}
+	// chartVersions are sorted, use the latest one
+	if len(cvs) > 0 {
+		return cvs[0].Description
 	}
 	return ""
 }
