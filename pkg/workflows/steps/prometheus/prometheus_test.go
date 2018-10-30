@@ -33,7 +33,6 @@ func (f *fakeRunner) Run(command *runner.Command) error {
 
 func TestPrometheus(t *testing.T) {
 	var (
-		hosts = []string{"10.20.30.40", "56.67.78.89"}
 		r        runner.Runner = &fakeRunner{}
 	)
 
@@ -54,9 +53,7 @@ func TestPrometheus(t *testing.T) {
 	cfg := steps.NewConfig("", "",
 		"", profile.Profile{})
 	cfg.Runner = r
-	cfg.PrometheusConfig = steps.PrometheusConfig{
-		Hosts: hosts,
-	}
+	cfg.PrometheusConfig = steps.PrometheusConfig{}
 
 	task := &Step{
 		tpl,
@@ -68,10 +65,8 @@ func TestPrometheus(t *testing.T) {
 		t.Errorf("Unpexpected error while  provision node %v", err)
 	}
 
-	for _, host := range hosts {
-		if !strings.Contains(output.String(), host) {
-			t.Errorf("not found %s in %s", host, output.String())
-		}
+	if !strings.Contains(output.String(), "prometheus-operator") {
+		t.Errorf("not found %s in %s", "prometheus-operator", output.String())
 	}
 }
 

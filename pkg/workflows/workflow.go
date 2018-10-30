@@ -20,6 +20,7 @@ import (
 	"github.com/supergiant/supergiant/pkg/workflows/steps/poststart"
 	"github.com/supergiant/supergiant/pkg/workflows/steps/ssh"
 	"github.com/supergiant/supergiant/pkg/workflows/steps/tiller"
+	"github.com/supergiant/supergiant/pkg/workflows/steps/prometheus"
 )
 
 // StepStatus aggregates data that is needed to track progress
@@ -128,6 +129,7 @@ func Init() {
 		steps.GetStep(ssh.StepName),
 		steps.GetStep(clustercheck.StepName),
 		steps.GetStep(tiller.StepName),
+		steps.GetStep(prometheus.StepName),
 	}
 
 	digitalOceanDeleteWorkflow := []steps.Step{
