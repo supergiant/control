@@ -58,7 +58,12 @@ export class ClusterComponent implements OnInit, OnDestroy {
     private notifications: Notifications,
     public dialog: MatDialog,
     public http: HttpClient,
-  ) { }
+  ) {
+      route.params.subscribe(params => {
+        this.id = params.id;
+        this.getKube();
+      })
+    }
 
   @ViewChild(MatSort) sort: MatSort;
   @ViewChild(MatPaginator) paginator: MatPaginator;
@@ -186,8 +191,6 @@ export class ClusterComponent implements OnInit, OnDestroy {
                     if (t.id == this.expandedTaskId) {
                       t.showSteps = true;
                     };
-                    // t.status = "complete";
-                    // t.status = "failed";
                     rows.push(t, { detailRow: true, t })
                   });
                   this.tasks = new MatTableDataSource(rows);
@@ -199,8 +202,6 @@ export class ClusterComponent implements OnInit, OnDestroy {
               break;
             }
             case "failed": {
-              console.log("deployment has failed")
-              // duped from 'provisioning' case for demo
               this.getKubeStatus(this.id).subscribe(
                 tasks => {
 
