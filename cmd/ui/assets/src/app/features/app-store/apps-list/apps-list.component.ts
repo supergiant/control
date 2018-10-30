@@ -1,21 +1,21 @@
-import { Component, Input, OnInit }              from '@angular/core';
-import { Chart, selectCharts, selectFilterApps } from "../../apps/apps.reducer";
-import { ActivatedRoute, NavigationEnd, Router } from "@angular/router";
-import { HttpClient }                            from "@angular/common/http";
-import { Observable, Subscription }              from "rxjs";
-import { select, Store }                         from "@ngrx/store";
-import { State }                                 from "../../../reducers";
-import { LoadCharts }                            from "../../apps/actions";
-import { filter, map, switchMap }                from "rxjs/operators";
+import { Component, Input, OnInit }                                        from '@angular/core';
+import { Chart, ChartList, ChartMetadata, selectCharts, selectFilterApps } from "../../apps/apps.reducer";
+import { ActivatedRoute, NavigationEnd, Router }                           from "@angular/router";
+import { HttpClient }                                                      from "@angular/common/http";
+import { Observable, Subscription }                                        from "rxjs";
+import { select, Store }                                                   from "@ngrx/store";
+import { State }                                                           from "../../../reducers";
+import { LoadCharts }                                                      from "../../apps/actions";
+import { filter, map, switchMap }                                          from "rxjs/operators";
 
 @Component({
   selector: 'apps-list',
   templateUrl: './apps-list.component.html',
-  styleUrls: [ './apps-list.component.scss' ]
+  styleUrls: ['./apps-list.component.scss']
 })
 export class AppsListComponent implements OnInit {
 
-  @Input() charts: Chart[] | Observable<any>;
+  @Input() charts: ChartMetadata[] | Observable<any>;
   repo: string;
   private subscription: Subscription;
 
@@ -34,7 +34,7 @@ export class AppsListComponent implements OnInit {
     this.store.dispatch(new LoadCharts(this.repo));
     this.charts = this.store.pipe(
       select(selectCharts, { repo: this.repo }),
-      filter((charts: Chart[]) => Boolean(charts)),
+      filter((charts: ChartList[]) => Boolean(charts)),
       switchMap((charts) => this.store.pipe(
         // filter apps if any
 
@@ -48,7 +48,7 @@ export class AppsListComponent implements OnInit {
         })
         )
       )
-    )
+    );
   }
 
   ngOnInit() {
@@ -66,7 +66,7 @@ export class AppsListComponent implements OnInit {
   removeRepo() {
     this.http.delete(`/v1/api/helm/repositories/${this.repo}`).subscribe(() => {
         // TODO: progress spinner
-        this.router.navigate([ 'apps' ]);
+        this.router.navigate(['apps']);
         window.location.reload();
       }
     );

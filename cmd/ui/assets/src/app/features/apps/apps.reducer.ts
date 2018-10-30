@@ -8,20 +8,28 @@ import {
 }                         from "./actions";
 
 export interface Chart {
+  metadata: ChartMetadata
+  values?: string;
+  readme?: string;
+}
+
+export interface ChartMetadata {
   name: string;
   repo: string;
   description: string;
-}
+  version: string;
+};
 
-export interface ChartDetails extends Chart {
-  instructions?: string
+export interface ChartList {
+  name?: string;
+  description?: string;
 }
 
 export interface AppStoreState {
   charts: {
-    [ key: string ]: Chart[]
+    [ key: string ]: ChartMetadata[]
   }
-  currentChart: ChartDetails
+  currentChart: Chart
   filter: string,
 }
 
@@ -29,13 +37,13 @@ const mockChart = {
   'name': '',
   'repo': '',
   'description': '',
+  'values': ''
 };
 
-export const initialState: AppStoreState = {
+
+export const initialState: any = { // FIXME
   charts: {
     supergiant: [ mockChart, ],
-    verified: [ mockChart, ],
-    other: [ mockChart, ],
   },
   currentChart: mockChart,
   filter: '',
@@ -60,7 +68,7 @@ export function reducer(
 ): AppStoreState {
   switch (action.type) {
 
-    case AppDetailActionTypes.LoadAppDetailsSuccess:
+    case AppDetailActionTypes.SetAppDetails:
       return {
         ...state,
         currentChart: action.payload

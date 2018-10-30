@@ -2,8 +2,7 @@
   <section class="header">
     <ng-container *ngIf="showBreadcrumbs; else defaultHeader">
 
-      <breadcrumbs [repoName]="(breadcrumbsData$ | async)?.repo"
-                   [chartName]="(breadcrumbsData$ | async)?.name"></breadcrumbs>
+      <breadcrumbs></breadcrumbs>
     </ng-container>
 
     <ng-template #defaultHeader>

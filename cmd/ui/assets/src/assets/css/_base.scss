@@ -104,7 +104,7 @@ button {
 .mat-dialog-container {
   @include container-border;
 
-  min-width: 480px !important;
+  // min-width: 480px !important;
 
   .mat-dialog-actions {
     display: flex;

@@ -52,6 +52,7 @@
     "ng2-charts": "^1.6.0",
     "ngx-bootstrap": "^2.0.0-beta.8",
     "ngx-contextmenu": "^5.0.3",
+    "ngx-markdown": "^7.0.0",
     "ngx-pagination": "^3.0.1",
     "ngx-schema-form": "^2.2.0-beta.1",
     "popper.js": "^1.13.0",

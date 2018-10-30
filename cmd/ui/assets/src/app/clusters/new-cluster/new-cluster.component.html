@@ -1,7 +1,7 @@
 <div class="new-clusters-wrapper">
   <h1>Create Kubernetes Cluster</h1>
 
-  <mat-horizontal-stepper [linear]="false" #stepper>
+  <mat-horizontal-stepper [linear]="true" #stepper>
 
     <!--
     TODO:
@@ -13,7 +13,7 @@
     <mat-step label="Name and Cloud Account">
       <div class="name-and-cloud-account">
         <mat-form-field>
-          <input matInput type="text" [(ngModel)]="clusterName" placeholder="Cluster name" autofocus="">
+          <input matInput type="text" [(ngModel)]="clusterName" placeholder="Cluster name" autofocus="true">
         </mat-form-field>
 
         <mat-form-field>
