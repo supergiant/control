@@ -1,0 +1,12 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24">
+  <defs>
+    <style>.a,.b{fill:none;}.b{opacity:0.87;}.c{fill:#d10088;}</style>
+  </defs>
+  <g transform="translate(-1294 -101)">
+    <g transform="translate(1294 101)">
+      <path class="a" d="M0,0H24V24H0Z"/>
+      <path class="b" d="M0,0H24V24H0Z"/>
+    </g>
+    <path class="c" d="M4,13H20V11H4Zm0,5H20V16H4ZM4,6V8H20V6Zm0,7H20V11H4Zm0,5H20V16H4ZM4,6V8H20V6Z" transform="translate(1294 101)"/>
+  </g>
+</svg>

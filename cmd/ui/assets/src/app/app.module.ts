@@ -166,6 +166,8 @@ import { TaskLogsComponent } from './clusters/cluster/task-logs/task-logs.compon
 import {LoginGuardService} from "./shared/supergiant/auth/login-guard.service";
 import { MenuModalComponent } from './navigation/user-menu/menu-modal/menu-modal.component';
 import { ClusterListModalComponent } from './navigation/toolbar/cluster-list-modal/cluster-list-modal.component';
+import { UsageOrbComponent } from './dashboard/usage-orb/usage-orb.component';
+import { ClusterTableComponent } from './dashboard/cluster-table/cluster-table.component';
 
 @NgModule({
   declarations: [
@@ -236,6 +238,8 @@ import { ClusterListModalComponent } from './navigation/toolbar/cluster-list-mod
     TaskLogsComponent,
     MenuModalComponent,
     ClusterListModalComponent,
+    UsageOrbComponent,
+    ClusterTableComponent,
   ],
   imports: [
     BrowserModule,
