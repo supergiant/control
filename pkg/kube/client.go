@@ -70,14 +70,14 @@ func kubeConfigFor(k *model.Kube) (clientcmddapi.Config, error) {
 	return clientcmddapi.Config{
 		AuthInfos: map[string]*clientcmddapi.AuthInfo{
 			k.Auth.Username: {
-				Token: k.Auth.Token,
+				Token:                 k.Auth.Token,
 				ClientCertificateData: []byte(k.Auth.Cert),
 				ClientKeyData:         []byte(k.Auth.Key),
 			},
 		},
 		Clusters: map[string]*clientcmddapi.Cluster{
 			k.Auth.Username: {
-				Server: apiAddr,
+				Server:                   apiAddr,
 				CertificateAuthorityData: []byte(k.Auth.CA),
 			},
 		},
