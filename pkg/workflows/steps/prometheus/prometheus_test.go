@@ -33,7 +33,8 @@ func (f *fakeRunner) Run(command *runner.Command) error {
 
 func TestPrometheus(t *testing.T) {
 	var (
-		r        runner.Runner = &fakeRunner{}
+		rbacEnabled               = false
+		r           runner.Runner = &fakeRunner{}
 	)
 
 	err := templatemanager.Init("../../../../templates")
@@ -53,7 +54,9 @@ func TestPrometheus(t *testing.T) {
 	cfg := steps.NewConfig("", "",
 		"", profile.Profile{})
 	cfg.Runner = r
-	cfg.PrometheusConfig = steps.PrometheusConfig{}
+	cfg.PrometheusConfig = steps.PrometheusConfig{
+		RBACEnabled: rbacEnabled,
+	}
 
 	task := &Step{
 		tpl,
@@ -67,6 +70,10 @@ func TestPrometheus(t *testing.T) {
 
 	if !strings.Contains(output.String(), "prometheus-operator") {
 		t.Errorf("not found %s in %s", "prometheus-operator", output.String())
+	}
+
+	if !rbacEnabled && !strings.Contains(output.String(), "sudo kubectl apply -f cluster-roles.yaml --validate=false") {
+		t.Errorf("command for creating roles not found in %s", output.String())
 	}
 }
 

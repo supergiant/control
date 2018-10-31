@@ -1,0 +1,1382 @@
+{
+  "kind": "PodList",
+  "apiVersion": "v1",
+  "metadata": {
+    "selfLink": "/api/v1/pods",
+    "resourceVersion": "484810"
+  },
+  "items": [
+    {
+      "metadata": {
+        "name": "measly-ibex-mariadb-master-0",
+        "generateName": "measly-ibex-mariadb-master-",
+        "namespace": "default",
+        "selfLink": "/api/v1/namespaces/default/pods/measly-ibex-mariadb-master-0",
+        "uid": "a9a1e186-d384-11e8-ae22-4a05fc193b78",
+        "resourceVersion": "704",
+        "creationTimestamp": "2018-10-19T09:52:16Z",
+        "labels": {
+          "app": "mariadb",
+          "chart": "mariadb-5.2.1",
+          "component": "master",
+          "controller-revision-hash": "measly-ibex-mariadb-master-6f4c75846c",
+          "release": "measly-ibex",
+          "statefulset.kubernetes.io/pod-name": "measly-ibex-mariadb-master-0"
+        },
+        "ownerReferences": [
+          {
+            "apiVersion": "apps/v1",
+            "kind": "StatefulSet",
+            "name": "measly-ibex-mariadb-master",
+            "uid": "a9967f11-d384-11e8-ae22-4a05fc193b78",
+            "controller": true,
+            "blockOwnerDeletion": true
+          }
+        ]
+      },
+      "spec": {
+        "volumes": [
+          {
+            "name": "data",
+            "persistentVolumeClaim": {
+              "claimName": "data-measly-ibex-mariadb-master-0"
+            }
+          },
+          {
+            "name": "config",
+            "configMap": {
+              "name": "measly-ibex-mariadb-master",
+              "defaultMode": 420
+            }
+          },
+          {
+            "name": "default-token-qj6tt",
+            "secret": {
+              "secretName": "default-token-qj6tt",
+              "defaultMode": 420
+            }
+          }
+        ],
+        "containers": [
+          {
+            "name": "mariadb",
+            "image": "docker.io/bitnami/mariadb:10.1.36",
+            "ports": [
+              {
+                "name": "mysql",
+                "containerPort": 3306,
+                "protocol": "TCP"
+              }
+            ],
+            "env": [
+              {
+                "name": "MARIADB_ROOT_PASSWORD",
+                "valueFrom": {
+                  "secretKeyRef": {
+                    "name": "measly-ibex-mariadb",
+                    "key": "mariadb-root-password"
+                  }
+                }
+              },
+              {
+                "name": "MARIADB_DATABASE",
+                "value": "my_database"
+              },
+              {
+                "name": "MARIADB_REPLICATION_MODE",
+                "value": "master"
+              },
+              {
+                "name": "MARIADB_REPLICATION_USER",
+                "value": "replicator"
+              },
+              {
+                "name": "MARIADB_REPLICATION_PASSWORD",
+                "valueFrom": {
+                  "secretKeyRef": {
+                    "name": "measly-ibex-mariadb",
+                    "key": "mariadb-replication-password"
+                  }
+                }
+              }
+            ],
+            "resources": {
+
+            },
+            "volumeMounts": [
+              {
+                "name": "data",
+                "mountPath": "/bitnami/mariadb"
+              },
+              {
+                "name": "config",
+                "mountPath": "/opt/bitnami/mariadb/conf/my.cnf",
+                "subPath": "my.cnf"
+              },
+              {
+                "name": "default-token-qj6tt",
+                "readOnly": true,
+                "mountPath": "/var/run/secrets/kubernetes.io/serviceaccount"
+              }
+            ],
+            "livenessProbe": {
+              "exec": {
+                "command": [
+                  "sh",
+                  "-c",
+                  "exec mysqladmin status -uroot -p$MARIADB_ROOT_PASSWORD"
+                ]
+              },
+              "initialDelaySeconds": 120,
+              "timeoutSeconds": 1,
+              "periodSeconds": 10,
+              "successThreshold": 1,
+              "failureThreshold": 3
+            },
+            "readinessProbe": {
+              "exec": {
+                "command": [
+                  "sh",
+                  "-c",
+                  "exec mysqladmin status -uroot -p$MARIADB_ROOT_PASSWORD"
+                ]
+              },
+              "initialDelaySeconds": 30,
+              "timeoutSeconds": 1,
+              "periodSeconds": 10,
+              "successThreshold": 1,
+              "failureThreshold": 3
+            },
+            "terminationMessagePath": "/dev/termination-log",
+            "terminationMessagePolicy": "File",
+            "imagePullPolicy": "IfNotPresent"
+          }
+        ],
+        "restartPolicy": "Always",
+        "terminationGracePeriodSeconds": 30,
+        "dnsPolicy": "ClusterFirst",
+        "serviceAccountName": "default",
+        "serviceAccount": "default",
+        "securityContext": {
+          "runAsUser": 1001,
+          "fsGroup": 1001
+        },
+        "hostname": "measly-ibex-mariadb-master-0",
+        "subdomain": "measly-ibex-mariadb-master",
+        "affinity": {
+          "podAntiAffinity": {
+            "preferredDuringSchedulingIgnoredDuringExecution": [
+              {
+                "weight": 1,
+                "podAffinityTerm": {
+                  "labelSelector": {
+                    "matchLabels": {
+                      "app": "mariadb",
+                      "release": "measly-ibex"
+                    }
+                  },
+                  "topologyKey": "kubernetes.io/hostname"
+                }
+              }
+            ]
+          }
+        },
+        "schedulerName": "default-scheduler"
+      },
+      "status": {
+        "phase": "Pending",
+        "conditions": [
+          {
+            "type": "PodScheduled",
+            "status": "False",
+            "lastProbeTime": null,
+            "lastTransitionTime": "2018-10-19T09:52:17Z",
+            "reason": "Unschedulable",
+            "message": "pod has unbound PersistentVolumeClaims (repeated 2 times)"
+          }
+        ],
+        "qosClass": "BestEffort"
+      }
+    },
+    {
+      "metadata": {
+        "name": "measly-ibex-mariadb-slave-0",
+        "generateName": "measly-ibex-mariadb-slave-",
+        "namespace": "default",
+        "selfLink": "/api/v1/namespaces/default/pods/measly-ibex-mariadb-slave-0",
+        "uid": "a9b10ccd-d384-11e8-ae22-4a05fc193b78",
+        "resourceVersion": "718",
+        "creationTimestamp": "2018-10-19T09:52:17Z",
+        "labels": {
+          "app": "mariadb",
+          "chart": "mariadb-5.2.1",
+          "component": "slave",
+          "controller-revision-hash": "measly-ibex-mariadb-slave-7f5fd98cc7",
+          "release": "measly-ibex",
+          "statefulset.kubernetes.io/pod-name": "measly-ibex-mariadb-slave-0"
+        },
+        "ownerReferences": [
+          {
+            "apiVersion": "apps/v1",
+            "kind": "StatefulSet",
+            "name": "measly-ibex-mariadb-slave",
+            "uid": "a9990def-d384-11e8-ae22-4a05fc193b78",
+            "controller": true,
+            "blockOwnerDeletion": true
+          }
+        ]
+      },
+      "spec": {
+        "volumes": [
+          {
+            "name": "data",
+            "persistentVolumeClaim": {
+              "claimName": "data-measly-ibex-mariadb-slave-0"
+            }
+          },
+          {
+            "name": "config",
+            "configMap": {
+              "name": "measly-ibex-mariadb-slave",
+              "defaultMode": 420
+            }
+          },
+          {
+            "name": "default-token-qj6tt",
+            "secret": {
+              "secretName": "default-token-qj6tt",
+              "defaultMode": 420
+            }
+          }
+        ],
+        "containers": [
+          {
+            "name": "mariadb",
+            "image": "docker.io/bitnami/mariadb:10.1.36",
+            "ports": [
+              {
+                "name": "mysql",
+                "containerPort": 3306,
+                "protocol": "TCP"
+              }
+            ],
+            "env": [
+              {
+                "name": "MARIADB_REPLICATION_MODE",
+                "value": "slave"
+              },
+              {
+                "name": "MARIADB_MASTER_HOST",
+                "value": "measly-ibex-mariadb"
+              },
+              {
+                "name": "MARIADB_MASTER_PORT_NUMBER",
+                "value": "3306"
+              },
+              {
+                "name": "MARIADB_MASTER_ROOT_USER",
+                "value": "root"
+              },
+              {
+                "name": "MARIADB_MASTER_ROOT_PASSWORD",
+                "valueFrom": {
+                  "secretKeyRef": {
+                    "name": "measly-ibex-mariadb",
+                    "key": "mariadb-root-password"
+                  }
+                }
+              },
+              {
+                "name": "MARIADB_REPLICATION_USER",
+                "value": "replicator"
+              },
+              {
+                "name": "MARIADB_REPLICATION_PASSWORD",
+                "valueFrom": {
+                  "secretKeyRef": {
+                    "name": "measly-ibex-mariadb",
+                    "key": "mariadb-replication-password"
+                  }
+                }
+              }
+            ],
+            "resources": {
+
+            },
+            "volumeMounts": [
+              {
+                "name": "data",
+                "mountPath": "/bitnami/mariadb"
+              },
+              {
+                "name": "config",
+                "mountPath": "/opt/bitnami/mariadb/conf/my.cnf",
+                "subPath": "my.cnf"
+              },
+              {
+                "name": "default-token-qj6tt",
+                "readOnly": true,
+                "mountPath": "/var/run/secrets/kubernetes.io/serviceaccount"
+              }
+            ],
+            "livenessProbe": {
+              "exec": {
+                "command": [
+                  "sh",
+                  "-c",
+                  "exec mysqladmin status -uroot -p$MARIADB_MASTER_ROOT_PASSWORD"
+                ]
+              },
+              "initialDelaySeconds": 120,
+              "timeoutSeconds": 1,
+              "periodSeconds": 10,
+              "successThreshold": 1,
+              "failureThreshold": 3
+            },
+            "readinessProbe": {
+              "exec": {
+                "command": [
+                  "sh",
+                  "-c",
+                  "exec mysqladmin status -uroot -p$MARIADB_MASTER_ROOT_PASSWORD"
+                ]
+              },
+              "initialDelaySeconds": 45,
+              "timeoutSeconds": 1,
+              "periodSeconds": 10,
+              "successThreshold": 1,
+              "failureThreshold": 3
+            },
+            "terminationMessagePath": "/dev/termination-log",
+            "terminationMessagePolicy": "File",
+            "imagePullPolicy": "IfNotPresent"
+          }
+        ],
+        "restartPolicy": "Always",
+        "terminationGracePeriodSeconds": 30,
+        "dnsPolicy": "ClusterFirst",
+        "serviceAccountName": "default",
+        "serviceAccount": "default",
+        "securityContext": {
+          "runAsUser": 1001,
+          "fsGroup": 1001
+        },
+        "hostname": "measly-ibex-mariadb-slave-0",
+        "subdomain": "measly-ibex-mariadb-slave",
+        "affinity": {
+          "podAntiAffinity": {
+            "preferredDuringSchedulingIgnoredDuringExecution": [
+              {
+                "weight": 1,
+                "podAffinityTerm": {
+                  "labelSelector": {
+                    "matchLabels": {
+                      "app": "mariadb",
+                      "release": "measly-ibex"
+                    }
+                  },
+                  "topologyKey": "kubernetes.io/hostname"
+                }
+              }
+            ]
+          }
+        },
+        "schedulerName": "default-scheduler"
+      },
+      "status": {
+        "phase": "Pending",
+        "conditions": [
+          {
+            "type": "PodScheduled",
+            "status": "False",
+            "lastProbeTime": null,
+            "lastTransitionTime": "2018-10-19T09:52:17Z",
+            "reason": "Unschedulable",
+            "message": "pod has unbound PersistentVolumeClaims (repeated 2 times)"
+          }
+        ],
+        "qosClass": "BestEffort"
+      }
+    },
+    {
+      "metadata": {
+        "name": "kube-apiserver-gleb-master-6311",
+        "namespace": "kube-system",
+        "selfLink": "/api/v1/namespaces/kube-system/pods/kube-apiserver-gleb-master-6311",
+        "uid": "e3e2f6f5-d383-11e8-ae22-4a05fc193b78",
+        "resourceVersion": "217",
+        "creationTimestamp": "2018-10-19T09:46:45Z",
+        "annotations": {
+          "kubernetes.io/config.hash": "ff84bf3b6223a2234c90e70c4db8becc",
+          "kubernetes.io/config.mirror": "ff84bf3b6223a2234c90e70c4db8becc",
+          "kubernetes.io/config.seen": "2018-10-19T09:45:13.151436509Z",
+          "kubernetes.io/config.source": "file"
+        }
+      },
+      "spec": {
+        "volumes": [
+          {
+            "name": "ssl-certs-kubernetes",
+            "hostPath": {
+              "path": "/etc/kubernetes/ssl",
+              "type": ""
+            }
+          },
+          {
+            "name": "api-addons-kubernetes",
+            "hostPath": {
+              "path": "/etc/kubernetes/addons",
+              "type": ""
+            }
+          },
+          {
+            "name": "ssl-certs-host",
+            "hostPath": {
+              "path": "/usr/share/ca-certificates",
+              "type": ""
+            }
+          }
+        ],
+        "containers": [
+          {
+            "name": "kube-apiserver",
+            "image": "gcr.io/google_containers/hyperkube:v1.11.1",
+            "command": [
+              "/hyperkube",
+              "apiserver",
+              "--bind-address=0.0.0.0",
+              "--etcd-servers=http://10.135.101.239:2379",
+              "--allow-privileged=true",
+              "--service-cluster-ip-range=10.3.0.0/24",
+              "--secure-port=443",
+              "--v=2",
+              "--insecure-port=8080",
+              "--insecure-bind-address=0.0.0.0",
+              "--advertise-address=10.135.101.239",
+              "--admission-control=NamespaceLifecycle,NamespaceExists,LimitRanger,ServiceAccount,ResourceQuota,DefaultStorageClass",
+              "--tls-cert-file=/etc/kubernetes/ssl/apiserver.pem",
+              "--tls-private-key-file=/etc/kubernetes/ssl/apiserver-key.pem",
+              "--kubelet-certificate-authority=/etc/kubernetes/ssl/ca.pem",
+              "--kubelet-client-certificate=/etc/kubernetes/ssl/apiserver.pem",
+              "--kubelet-client-key=/etc/kubernetes/ssl/apiserver-key.pem",
+              "--client-ca-file=/etc/kubernetes/ssl/ca.pem",
+              "--service-account-key-file=/etc/kubernetes/ssl/apiserver-key.pem",
+              "--basic-auth-file=/etc/kubernetes/ssl/basic_auth.csv",
+              "--token-auth-file=/etc/kubernetes/ssl/known_tokens.csv",
+              "--kubelet-preferred-address-types=InternalIP,Hostname,ExternalIP",
+              "--storage-backend=etcd3",
+              "digitalocean"
+            ],
+            "ports": [
+              {
+                "name": "https",
+                "hostPort": 443,
+                "containerPort": 443,
+                "protocol": "TCP"
+              },
+              {
+                "name": "local",
+                "hostPort": 8080,
+                "containerPort": 8080,
+                "protocol": "TCP"
+              }
+            ],
+            "resources": {
+
+            },
+            "volumeMounts": [
+              {
+                "name": "ssl-certs-kubernetes",
+                "readOnly": true,
+                "mountPath": "/etc/kubernetes/ssl"
+              },
+              {
+                "name": "api-addons-kubernetes",
+                "readOnly": true,
+                "mountPath": "/etc/kubernetes/addons"
+              },
+              {
+                "name": "ssl-certs-host",
+                "readOnly": true,
+                "mountPath": "/etc/ssl/certs"
+              }
+            ],
+            "terminationMessagePath": "/dev/termination-log",
+            "terminationMessagePolicy": "File",
+            "imagePullPolicy": "IfNotPresent"
+          }
+        ],
+        "restartPolicy": "Always",
+        "terminationGracePeriodSeconds": 30,
+        "dnsPolicy": "ClusterFirst",
+        "nodeName": "gleb-master-6311",
+        "hostNetwork": true,
+        "securityContext": {
+
+        },
+        "schedulerName": "default-scheduler",
+        "tolerations": [
+          {
+            "operator": "Exists",
+            "effect": "NoExecute"
+          }
+        ]
+      },
+      "status": {
+        "phase": "Running",
+        "conditions": [
+          {
+            "type": "Initialized",
+            "status": "True",
+            "lastProbeTime": null,
+            "lastTransitionTime": "2018-10-19T09:45:13Z"
+          },
+          {
+            "type": "Ready",
+            "status": "True",
+            "lastProbeTime": null,
+            "lastTransitionTime": "2018-10-19T09:45:16Z"
+          },
+          {
+            "type": "ContainersReady",
+            "status": "True",
+            "lastProbeTime": null,
+            "lastTransitionTime": null
+          },
+          {
+            "type": "PodScheduled",
+            "status": "True",
+            "lastProbeTime": null,
+            "lastTransitionTime": "2018-10-19T09:45:13Z"
+          }
+        ],
+        "hostIP": "104.248.134.244",
+        "podIP": "104.248.134.244",
+        "startTime": "2018-10-19T09:45:13Z",
+        "containerStatuses": [
+          {
+            "name": "kube-apiserver",
+            "state": {
+              "running": {
+                "startedAt": "2018-10-19T09:45:15Z"
+              }
+            },
+            "lastState": {
+
+            },
+            "ready": true,
+            "restartCount": 0,
+            "image": "gcr.io/google-containers/hyperkube:v1.11.1",
+            "imageID": "docker-pullable://gcr.io/google-containers/hyperkube@sha256:f500aefa0ae532538052751314148185c0304a55d635ac375e56c14358756ae4",
+            "containerID": "docker://e21d86db37e4f00202b4f2ebb6c601316c6969abd76405054a443e83d0f33062"
+          }
+        ],
+        "qosClass": "BestEffort"
+      }
+    },
+    {
+      "metadata": {
+        "name": "kube-controller-manager-gleb-master-6311",
+        "namespace": "kube-system",
+        "selfLink": "/api/v1/namespaces/kube-system/pods/kube-controller-manager-gleb-master-6311",
+        "uid": "df1e5faa-d383-11e8-ae22-4a05fc193b78",
+        "resourceVersion": "203",
+        "creationTimestamp": "2018-10-19T09:46:37Z",
+        "annotations": {
+          "kubernetes.io/config.hash": "86f9f539b013b38bd9f762f4c58e1737",
+          "kubernetes.io/config.mirror": "86f9f539b013b38bd9f762f4c58e1737",
+          "kubernetes.io/config.seen": "2018-10-19T09:45:13.151444998Z",
+          "kubernetes.io/config.source": "file"
+        }
+      },
+      "spec": {
+        "volumes": [
+          {
+            "name": "ssl-certs-kubernetes",
+            "hostPath": {
+              "path": "/etc/kubernetes/ssl",
+              "type": ""
+            }
+          },
+          {
+            "name": "ssl-certs-host",
+            "hostPath": {
+              "path": "/usr/share/ca-certificates",
+              "type": ""
+            }
+          }
+        ],
+        "containers": [
+          {
+            "name": "kube-controller-manager",
+            "image": "gcr.io/google_containers/hyperkube:v1.11.1",
+            "command": [
+              "/hyperkube",
+              "controller-manager",
+              "--master=http://10.135.101.239:8080",
+              "--service-account-private-key-file=/etc/kubernetes/ssl/apiserver-key.pem",
+              "--root-ca-file=/etc/kubernetes/ssl/ca.pem",
+              "--v=2",
+              "--cluster-cidr=10.244.0.0/14",
+              "--allocate-node-cidrs=true",
+              "digitalocean"
+            ],
+            "resources": {
+
+            },
+            "volumeMounts": [
+              {
+                "name": "ssl-certs-kubernetes",
+                "readOnly": true,
+                "mountPath": "/etc/kubernetes/ssl"
+              },
+              {
+                "name": "ssl-certs-host",
+                "readOnly": true,
+                "mountPath": "/etc/ssl/certs"
+              }
+            ],
+            "livenessProbe": {
+              "httpGet": {
+                "path": "/healthz",
+                "port": 10252,
+                "host": "127.0.0.1",
+                "scheme": "HTTP"
+              },
+              "initialDelaySeconds": 15,
+              "timeoutSeconds": 1,
+              "periodSeconds": 10,
+              "successThreshold": 1,
+              "failureThreshold": 3
+            },
+            "terminationMessagePath": "/dev/termination-log",
+            "terminationMessagePolicy": "File",
+            "imagePullPolicy": "IfNotPresent"
+          }
+        ],
+        "restartPolicy": "Always",
+        "terminationGracePeriodSeconds": 30,
+        "dnsPolicy": "ClusterFirst",
+        "nodeName": "gleb-master-6311",
+        "hostNetwork": true,
+        "securityContext": {
+
+        },
+        "schedulerName": "default-scheduler",
+        "tolerations": [
+          {
+            "operator": "Exists",
+            "effect": "NoExecute"
+          }
+        ]
+      },
+      "status": {
+        "phase": "Running",
+        "conditions": [
+          {
+            "type": "Initialized",
+            "status": "True",
+            "lastProbeTime": null,
+            "lastTransitionTime": "2018-10-19T09:45:13Z"
+          },
+          {
+            "type": "Ready",
+            "status": "True",
+            "lastProbeTime": null,
+            "lastTransitionTime": "2018-10-19T09:45:17Z"
+          },
+          {
+            "type": "ContainersReady",
+            "status": "True",
+            "lastProbeTime": null,
+            "lastTransitionTime": null
+          },
+          {
+            "type": "PodScheduled",
+            "status": "True",
+            "lastProbeTime": null,
+            "lastTransitionTime": "2018-10-19T09:45:13Z"
+          }
+        ],
+        "hostIP": "104.248.134.244",
+        "podIP": "104.248.134.244",
+        "startTime": "2018-10-19T09:45:13Z",
+        "containerStatuses": [
+          {
+            "name": "kube-controller-manager",
+            "state": {
+              "running": {
+                "startedAt": "2018-10-19T09:45:17Z"
+              }
+            },
+            "lastState": {
+
+            },
+            "ready": true,
+            "restartCount": 0,
+            "image": "gcr.io/google-containers/hyperkube:v1.11.1",
+            "imageID": "docker-pullable://gcr.io/google-containers/hyperkube@sha256:f500aefa0ae532538052751314148185c0304a55d635ac375e56c14358756ae4",
+            "containerID": "docker://5c04482589c44541b82d9e66dd39e375f5c335e5140aac3401d7e456d2093357"
+          }
+        ],
+        "qosClass": "BestEffort"
+      }
+    },
+    {
+      "metadata": {
+        "name": "kube-dns-v11-gvlb2",
+        "generateName": "kube-dns-v11-",
+        "namespace": "kube-system",
+        "selfLink": "/api/v1/namespaces/kube-system/pods/kube-dns-v11-gvlb2",
+        "uid": "beeae879-d383-11e8-ae22-4a05fc193b78",
+        "resourceVersion": "130",
+        "creationTimestamp": "2018-10-19T09:45:43Z",
+        "labels": {
+          "k8s-app": "kube-dns",
+          "kubernetes.io/cluster-service": "true",
+          "version": "v11"
+        },
+        "ownerReferences": [
+          {
+            "apiVersion": "v1",
+            "kind": "ReplicationController",
+            "name": "kube-dns-v11",
+            "uid": "b8ed976a-d383-11e8-ae22-4a05fc193b78",
+            "controller": true,
+            "blockOwnerDeletion": true
+          }
+        ]
+      },
+      "spec": {
+        "volumes": [
+          {
+            "name": "default-token-mxg2b",
+            "secret": {
+              "secretName": "default-token-mxg2b",
+              "defaultMode": 420
+            }
+          }
+        ],
+        "containers": [
+          {
+            "name": "healthz",
+            "image": "gcr.io/google_containers/exechealthz:1.0",
+            "args": [
+              "-cmd=nslookup kubernetes.default.svc.cluster.local localhost \u003e/dev/null",
+              "-port=8080"
+            ],
+            "ports": [
+              {
+                "containerPort": 8080,
+                "protocol": "TCP"
+              }
+            ],
+            "resources": {
+              "limits": {
+                "cpu": "10m",
+                "memory": "20Mi"
+              },
+              "requests": {
+                "cpu": "10m",
+                "memory": "20Mi"
+              }
+            },
+            "volumeMounts": [
+              {
+                "name": "default-token-mxg2b",
+                "readOnly": true,
+                "mountPath": "/var/run/secrets/kubernetes.io/serviceaccount"
+              }
+            ],
+            "terminationMessagePath": "/dev/termination-log",
+            "terminationMessagePolicy": "File",
+            "imagePullPolicy": "IfNotPresent"
+          }
+        ],
+        "restartPolicy": "Always",
+        "terminationGracePeriodSeconds": 30,
+        "dnsPolicy": "Default",
+        "serviceAccountName": "default",
+        "serviceAccount": "default",
+        "nodeName": "gleb-master-6311",
+        "securityContext": {
+
+        },
+        "schedulerName": "default-scheduler"
+      },
+      "status": {
+        "phase": "Running",
+        "conditions": [
+          {
+            "type": "Initialized",
+            "status": "True",
+            "lastProbeTime": null,
+            "lastTransitionTime": "2018-10-19T09:45:43Z"
+          },
+          {
+            "type": "Ready",
+            "status": "True",
+            "lastProbeTime": null,
+            "lastTransitionTime": "2018-10-19T09:45:48Z"
+          },
+          {
+            "type": "ContainersReady",
+            "status": "True",
+            "lastProbeTime": null,
+            "lastTransitionTime": null
+          },
+          {
+            "type": "PodScheduled",
+            "status": "True",
+            "lastProbeTime": null,
+            "lastTransitionTime": "2018-10-19T09:45:43Z"
+          }
+        ],
+        "hostIP": "104.248.134.244",
+        "podIP": "172.17.0.3",
+        "startTime": "2018-10-19T09:45:43Z",
+        "containerStatuses": [
+          {
+            "name": "healthz",
+            "state": {
+              "running": {
+                "startedAt": "2018-10-19T09:45:47Z"
+              }
+            },
+            "lastState": {
+
+            },
+            "ready": true,
+            "restartCount": 0,
+            "image": "gcr.io/google_containers/exechealthz:1.0",
+            "imageID": "docker-pullable://gcr.io/google_containers/exechealthz@sha256:ad5b6a74cc08db2b9ac0dffd3d49001e8ebd792797141165fbe939d9fededa9e",
+            "containerID": "docker://08b6915f801a957ad0ac186982e445248171319fa723321027532f605dbb2d57"
+          }
+        ],
+        "qosClass": "Guaranteed"
+      }
+    },
+    {
+      "metadata": {
+        "name": "kube-proxy-gleb-master-6311",
+        "namespace": "kube-system",
+        "selfLink": "/api/v1/namespaces/kube-system/pods/kube-proxy-gleb-master-6311",
+        "uid": "e21887d4-d383-11e8-ae22-4a05fc193b78",
+        "resourceVersion": "202",
+        "creationTimestamp": "2018-10-19T09:46:42Z",
+        "annotations": {
+          "kubernetes.io/config.hash": "55eda2f8eb0c14f9b611f2863364d3f6",
+          "kubernetes.io/config.mirror": "55eda2f8eb0c14f9b611f2863364d3f6",
+          "kubernetes.io/config.seen": "2018-10-19T09:45:13.15144752Z",
+          "kubernetes.io/config.source": "file"
+        }
+      },
+      "spec": {
+        "volumes": [
+          {
+            "name": "ssl-certs-host",
+            "hostPath": {
+              "path": "/usr/share/ca-certificates",
+              "type": ""
+            }
+          }
+        ],
+        "containers": [
+          {
+            "name": "kube-proxy",
+            "image": "gcr.io/google_containers/hyperkube:v1.11.1",
+            "command": [
+              "/hyperkube",
+              "proxy",
+              "--v=2",
+              "--master=http://10.135.101.239:8080",
+              "--proxy-mode=iptables"
+            ],
+            "resources": {
+
+            },
+            "volumeMounts": [
+              {
+                "name": "ssl-certs-host",
+                "readOnly": true,
+                "mountPath": "/etc/ssl/certs"
+              }
+            ],
+            "terminationMessagePath": "/dev/termination-log",
+            "terminationMessagePolicy": "File",
+            "imagePullPolicy": "IfNotPresent",
+            "securityContext": {
+              "privileged": true
+            }
+          }
+        ],
+        "restartPolicy": "Always",
+        "terminationGracePeriodSeconds": 30,
+        "dnsPolicy": "ClusterFirst",
+        "nodeName": "gleb-master-6311",
+        "hostNetwork": true,
+        "securityContext": {
+
+        },
+        "schedulerName": "default-scheduler",
+        "tolerations": [
+          {
+            "operator": "Exists",
+            "effect": "NoExecute"
+          }
+        ]
+      },
+      "status": {
+        "phase": "Running",
+        "conditions": [
+          {
+            "type": "Initialized",
+            "status": "True",
+            "lastProbeTime": null,
+            "lastTransitionTime": "2018-10-19T09:45:13Z"
+          },
+          {
+            "type": "Ready",
+            "status": "True",
+            "lastProbeTime": null,
+            "lastTransitionTime": "2018-10-19T09:45:17Z"
+          },
+          {
+            "type": "ContainersReady",
+            "status": "True",
+            "lastProbeTime": null,
+            "lastTransitionTime": null
+          },
+          {
+            "type": "PodScheduled",
+            "status": "True",
+            "lastProbeTime": null,
+            "lastTransitionTime": "2018-10-19T09:45:13Z"
+          }
+        ],
+        "hostIP": "104.248.134.244",
+        "podIP": "104.248.134.244",
+        "startTime": "2018-10-19T09:45:13Z",
+        "containerStatuses": [
+          {
+            "name": "kube-proxy",
+            "state": {
+              "running": {
+                "startedAt": "2018-10-19T09:45:16Z"
+              }
+            },
+            "lastState": {
+
+            },
+            "ready": true,
+            "restartCount": 0,
+            "image": "gcr.io/google-containers/hyperkube:v1.11.1",
+            "imageID": "docker-pullable://gcr.io/google-containers/hyperkube@sha256:f500aefa0ae532538052751314148185c0304a55d635ac375e56c14358756ae4",
+            "containerID": "docker://27264807df34c07cf37a727b21926c608f8ab254c84d8103dd0bc6eb8bc45414"
+          }
+        ],
+        "qosClass": "BestEffort"
+      }
+    },
+    {
+      "metadata": {
+        "name": "kube-proxy-gleb-node-d91a",
+        "namespace": "kube-system",
+        "selfLink": "/api/v1/namespaces/kube-system/pods/kube-proxy-gleb-node-d91a",
+        "uid": "f589e458-d383-11e8-ae22-4a05fc193b78",
+        "resourceVersion": "292",
+        "creationTimestamp": "2018-10-19T09:47:14Z",
+        "annotations": {
+          "kubernetes.io/config.hash": "55eda2f8eb0c14f9b611f2863364d3f6",
+          "kubernetes.io/config.mirror": "55eda2f8eb0c14f9b611f2863364d3f6",
+          "kubernetes.io/config.seen": "2018-10-19T09:47:14.834477895Z",
+          "kubernetes.io/config.source": "file"
+        }
+      },
+      "spec": {
+        "volumes": [
+          {
+            "name": "ssl-certs-host",
+            "hostPath": {
+              "path": "/usr/share/ca-certificates",
+              "type": ""
+            }
+          }
+        ],
+        "containers": [
+          {
+            "name": "kube-proxy",
+            "image": "gcr.io/google_containers/hyperkube:v1.11.1",
+            "command": [
+              "/hyperkube",
+              "proxy",
+              "--v=2",
+              "--master=http://10.135.101.239:8080",
+              "--proxy-mode=iptables"
+            ],
+            "resources": {
+
+            },
+            "volumeMounts": [
+              {
+                "name": "ssl-certs-host",
+                "readOnly": true,
+                "mountPath": "/etc/ssl/certs"
+              }
+            ],
+            "terminationMessagePath": "/dev/termination-log",
+            "terminationMessagePolicy": "File",
+            "imagePullPolicy": "IfNotPresent",
+            "securityContext": {
+              "privileged": true
+            }
+          }
+        ],
+        "restartPolicy": "Always",
+        "terminationGracePeriodSeconds": 30,
+        "dnsPolicy": "ClusterFirst",
+        "nodeName": "gleb-node-d91a",
+        "hostNetwork": true,
+        "securityContext": {
+
+        },
+        "schedulerName": "default-scheduler",
+        "tolerations": [
+          {
+            "operator": "Exists",
+            "effect": "NoExecute"
+          }
+        ]
+      },
+      "status": {
+        "phase": "Running",
+        "conditions": [
+          {
+            "type": "Initialized",
+            "status": "True",
+            "lastProbeTime": null,
+            "lastTransitionTime": "2018-10-19T09:47:14Z"
+          },
+          {
+            "type": "Ready",
+            "status": "True",
+            "lastProbeTime": null,
+            "lastTransitionTime": "2018-10-19T09:47:17Z"
+          },
+          {
+            "type": "ContainersReady",
+            "status": "True",
+            "lastProbeTime": null,
+            "lastTransitionTime": null
+          },
+          {
+            "type": "PodScheduled",
+            "status": "True",
+            "lastProbeTime": null,
+            "lastTransitionTime": "2018-10-19T09:47:14Z"
+          }
+        ],
+        "hostIP": "142.93.97.93",
+        "podIP": "142.93.97.93",
+        "startTime": "2018-10-19T09:47:14Z",
+        "containerStatuses": [
+          {
+            "name": "kube-proxy",
+            "state": {
+              "running": {
+                "startedAt": "2018-10-19T09:47:16Z"
+              }
+            },
+            "lastState": {
+
+            },
+            "ready": true,
+            "restartCount": 0,
+            "image": "gcr.io/google-containers/hyperkube:v1.11.1",
+            "imageID": "docker-pullable://gcr.io/google-containers/hyperkube@sha256:f500aefa0ae532538052751314148185c0304a55d635ac375e56c14358756ae4",
+            "containerID": "docker://34da09899d1a64361da4861b18f023757db0f6ab5cb1c71a2f8f7ea001a09c1a"
+          }
+        ],
+        "qosClass": "BestEffort"
+      }
+    },
+    {
+      "metadata": {
+        "name": "kube-scheduler-gleb-master-6311",
+        "namespace": "kube-system",
+        "selfLink": "/api/v1/namespaces/kube-system/pods/kube-scheduler-gleb-master-6311",
+        "uid": "da59b693-d383-11e8-ae22-4a05fc193b78",
+        "resourceVersion": "187",
+        "creationTimestamp": "2018-10-19T09:46:29Z",
+        "annotations": {
+          "kubernetes.io/config.hash": "88b18e71c1d1150b83cd9dfdf4539a18",
+          "kubernetes.io/config.mirror": "88b18e71c1d1150b83cd9dfdf4539a18",
+          "kubernetes.io/config.seen": "2018-10-19T09:45:13.151449809Z",
+          "kubernetes.io/config.source": "file"
+        }
+      },
+      "spec": {
+        "containers": [
+          {
+            "name": "kube-scheduler",
+            "image": "gcr.io/google_containers/hyperkube:v1.11.1",
+            "command": [
+              "/hyperkube",
+              "scheduler",
+              "--v=2",
+              "--master=http://10.135.101.239:8080"
+            ],
+            "resources": {
+
+            },
+            "livenessProbe": {
+              "httpGet": {
+                "path": "/healthz",
+                "port": 10251,
+                "host": "127.0.0.1",
+                "scheme": "HTTP"
+              },
+              "initialDelaySeconds": 15,
+              "timeoutSeconds": 1,
+              "periodSeconds": 10,
+              "successThreshold": 1,
+              "failureThreshold": 3
+            },
+            "terminationMessagePath": "/dev/termination-log",
+            "terminationMessagePolicy": "File",
+            "imagePullPolicy": "IfNotPresent"
+          }
+        ],
+        "restartPolicy": "Always",
+        "terminationGracePeriodSeconds": 30,
+        "dnsPolicy": "ClusterFirst",
+        "nodeName": "gleb-master-6311",
+        "hostNetwork": true,
+        "securityContext": {
+
+        },
+        "schedulerName": "default-scheduler",
+        "tolerations": [
+          {
+            "operator": "Exists",
+            "effect": "NoExecute"
+          }
+        ]
+      },
+      "status": {
+        "phase": "Running",
+        "conditions": [
+          {
+            "type": "Initialized",
+            "status": "True",
+            "lastProbeTime": null,
+            "lastTransitionTime": "2018-10-19T09:45:13Z"
+          },
+          {
+            "type": "Ready",
+            "status": "True",
+            "lastProbeTime": null,
+            "lastTransitionTime": "2018-10-19T09:45:16Z"
+          },
+          {
+            "type": "ContainersReady",
+            "status": "True",
+            "lastProbeTime": null,
+            "lastTransitionTime": null
+          },
+          {
+            "type": "PodScheduled",
+            "status": "True",
+            "lastProbeTime": null,
+            "lastTransitionTime": "2018-10-19T09:45:13Z"
+          }
+        ],
+        "hostIP": "104.248.134.244",
+        "podIP": "104.248.134.244",
+        "startTime": "2018-10-19T09:45:13Z",
+        "containerStatuses": [
+          {
+            "name": "kube-scheduler",
+            "state": {
+              "running": {
+                "startedAt": "2018-10-19T09:45:16Z"
+              }
+            },
+            "lastState": {
+
+            },
+            "ready": true,
+            "restartCount": 0,
+            "image": "gcr.io/google-containers/hyperkube:v1.11.1",
+            "imageID": "docker-pullable://gcr.io/google-containers/hyperkube@sha256:f500aefa0ae532538052751314148185c0304a55d635ac375e56c14358756ae4",
+            "containerID": "docker://2023cbdd9630f00430b0f5ea03936901abe02e2c0bd31815267e39b03f0bf168"
+          }
+        ],
+        "qosClass": "BestEffort"
+      }
+    },
+    {
+      "metadata": {
+        "name": "tiller-deploy-6745fc647f-54dx2",
+        "generateName": "tiller-deploy-6745fc647f-",
+        "namespace": "kube-system",
+        "selfLink": "/api/v1/namespaces/kube-system/pods/tiller-deploy-6745fc647f-54dx2",
+        "uid": "ecd99d53-d383-11e8-ae22-4a05fc193b78",
+        "resourceVersion": "273",
+        "creationTimestamp": "2018-10-19T09:47:00Z",
+        "labels": {
+          "app": "helm",
+          "name": "tiller",
+          "pod-template-hash": "2301972039"
+        },
+        "ownerReferences": [
+          {
+            "apiVersion": "apps/v1",
+            "kind": "ReplicaSet",
+            "name": "tiller-deploy-6745fc647f",
+            "uid": "ecd54d12-d383-11e8-ae22-4a05fc193b78",
+            "controller": true,
+            "blockOwnerDeletion": true
+          }
+        ]
+      },
+      "spec": {
+        "volumes": [
+          {
+            "name": "default-token-mxg2b",
+            "secret": {
+              "secretName": "default-token-mxg2b",
+              "defaultMode": 420
+            }
+          }
+        ],
+        "containers": [
+          {
+            "name": "tiller",
+            "image": "gcr.io/kubernetes-helm/tiller:v2.8.0",
+            "ports": [
+              {
+                "name": "tiller",
+                "containerPort": 44134,
+                "protocol": "TCP"
+              },
+              {
+                "name": "http",
+                "containerPort": 44135,
+                "protocol": "TCP"
+              }
+            ],
+            "env": [
+              {
+                "name": "TILLER_NAMESPACE",
+                "value": "kube-system"
+              },
+              {
+                "name": "TILLER_HISTORY_MAX",
+                "value": "0"
+              }
+            ],
+            "resources": {
+
+            },
+            "volumeMounts": [
+              {
+                "name": "default-token-mxg2b",
+                "readOnly": true,
+                "mountPath": "/var/run/secrets/kubernetes.io/serviceaccount"
+              }
+            ],
+            "livenessProbe": {
+              "httpGet": {
+                "path": "/liveness",
+                "port": 44135,
+                "scheme": "HTTP"
+              },
+              "initialDelaySeconds": 1,
+              "timeoutSeconds": 1,
+              "periodSeconds": 10,
+              "successThreshold": 1,
+              "failureThreshold": 3
+            },
+            "readinessProbe": {
+              "httpGet": {
+                "path": "/readiness",
+                "port": 44135,
+                "scheme": "HTTP"
+              },
+              "initialDelaySeconds": 1,
+              "timeoutSeconds": 1,
+              "periodSeconds": 10,
+              "successThreshold": 1,
+              "failureThreshold": 3
+            },
+            "terminationMessagePath": "/dev/termination-log",
+            "terminationMessagePolicy": "File",
+            "imagePullPolicy": "IfNotPresent"
+          }
+        ],
+        "restartPolicy": "Always",
+        "terminationGracePeriodSeconds": 30,
+        "dnsPolicy": "ClusterFirst",
+        "serviceAccountName": "default",
+        "serviceAccount": "default",
+        "nodeName": "gleb-master-6311",
+        "securityContext": {
+
+        },
+        "schedulerName": "default-scheduler"
+      },
+      "status": {
+        "phase": "Running",
+        "conditions": [
+          {
+            "type": "Initialized",
+            "status": "True",
+            "lastProbeTime": null,
+            "lastTransitionTime": "2018-10-19T09:47:00Z"
+          },
+          {
+            "type": "Ready",
+            "status": "True",
+            "lastProbeTime": null,
+            "lastTransitionTime": "2018-10-19T09:47:11Z"
+          },
+          {
+            "type": "ContainersReady",
+            "status": "True",
+            "lastProbeTime": null,
+            "lastTransitionTime": null
+          },
+          {
+            "type": "PodScheduled",
+            "status": "True",
+            "lastProbeTime": null,
+            "lastTransitionTime": "2018-10-19T09:47:00Z"
+          }
+        ],
+        "hostIP": "104.248.134.244",
+        "podIP": "172.17.0.4",
+        "startTime": "2018-10-19T09:47:00Z",
+        "containerStatuses": [
+          {
+            "name": "tiller",
+            "state": {
+              "running": {
+                "startedAt": "2018-10-19T09:47:04Z"
+              }
+            },
+            "lastState": {
+
+            },
+            "ready": true,
+            "restartCount": 0,
+            "image": "gcr.io/kubernetes-helm/tiller:v2.8.0",
+            "imageID": "docker-pullable://gcr.io/kubernetes-helm/tiller@sha256:e91493edada1dd43a345b62f4f1987afc994198ace2989b612510894f2d4d063",
+            "containerID": "docker://e76378c7949997059b9628dab8efce3ddb6dea2ebfce3c50dbf9d20cdd6e0049"
+          }
+        ],
+        "qosClass": "BestEffort"
+      }
+    }
+  ]
+}
