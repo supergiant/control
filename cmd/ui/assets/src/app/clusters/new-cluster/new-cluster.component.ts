@@ -175,7 +175,7 @@ export class NewClusterComponent implements OnInit, OnDestroy {
   }
 
   selectCloudAccount(cloudAccount) {
-    this.selectedCloudAccount = cloudAccount
+    this.selectedCloudAccount = cloudAccount;
 
     switch (this.selectedCloudAccount.provider) {
       case "digitalocean":
@@ -194,7 +194,7 @@ export class NewClusterComponent implements OnInit, OnDestroy {
           subnetId: ["default"],
           mastersSecurityGroupId: [""],
           nodesSecurityGroupId: [""]
-        })
+        });
         break;
     }
 

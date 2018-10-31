@@ -1,0 +1,62 @@
+<mat-card>
+  <mat-card-header>
+    <h1>Add node</h1>
+  </mat-card-header>
+  <mat-card-content>
+
+    <section class="column">
+      <div class="machine" *ngFor="let m of machines; let idx = index">
+        <mat-form-field class="type">
+          <mat-select placeholder="Machine Type (size)" [(value)]="m.machineType"
+                      (selectionChange)="machineSizeChange($event)">
+            <mat-option *ngFor="let type of (machineSizes$ | async)" [value]="type">{{ type }}</mat-option>
+          </mat-select>
+        </mat-form-field>
+
+        <mat-form-field class="role">
+          <mat-select placeholder="Role" [(value)]="m.role">
+            <mat-option value="Node">Node</mat-option>
+          </mat-select>
+        </mat-form-field>
+
+        <mat-form-field class="quantity">
+          <input matInput type="number" min="1" placeholder="Q-ty" [(ngModel)]="m.qty">
+        </mat-form-field>
+
+        <div class="delete" (click)="deleteMachine(idx)"></div>
+      </div>
+    </section>
+
+    <section class="column">
+      <mat-form-field>
+        <mat-select placeholder="Arch" [value]="clusterOptions.archs[0]">
+          <mat-option *ngFor="let a of clusterOptions.archs" [value]="a">{{ a }}</mat-option>
+        </mat-select>
+      </mat-form-field>
+
+      <mat-form-field>
+        <mat-select placeholder="Operating System" [value]="clusterOptions.operatingSystems[0]">
+          <mat-option *ngFor="let os of clusterOptions.operatingSystems" [value]="os">{{ os }}</mat-option>
+        </mat-select>
+      </mat-form-field>
+
+      <br>
+
+      <mat-form-field>
+        <mat-select placeholder="Ubuntu Version" [value]="clusterOptions.ubuntuVersions[0]">
+          <mat-option *ngFor="let u of clusterOptions.ubuntuVersions" [value]="u">{{ u }}</mat-option>
+        </mat-select>
+      </mat-form-field>
+    </section>
+  </mat-card-content>
+  <mat-card-actions>
+    <div class="add-machines" (click)="addBlankMachine()">
+      <div class="plus"></div>
+      <span class="add-label">Add more machines</span>
+    </div>
+
+    <div>
+      <button mat-button color="primary" (click)="finish()">Finish</button>
+    </div>
+  </mat-card-actions>
+</mat-card>

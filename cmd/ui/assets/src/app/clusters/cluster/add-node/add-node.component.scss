@@ -1,0 +1,19 @@
+:host {
+  .mat-card-content {
+    display: flex;
+    justify-content: space-between;
+  }
+
+  .mat-card-actions {
+    display: flex;
+    justify-content: space-between;
+  }
+
+  .column {
+    min-width: 567px;
+
+    mat-form-field {
+      margin-right: 24px;
+    }
+  }
+}
