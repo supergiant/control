@@ -501,6 +501,10 @@
         .task-status {
           justify-content: flex-start;
 
+          .executing-spinner {
+            margin-left: 13px;
+          }
+
           .ready-icon {
             background: url(/assets/img/cluster-details/steps/icon_ready.svg) no-repeat center;
             // why?
