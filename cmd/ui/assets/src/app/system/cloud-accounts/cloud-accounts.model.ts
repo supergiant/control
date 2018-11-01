@@ -5,6 +5,7 @@ export class CloudAccountModel {
     'name' : 'AWS - Amazon Web Services',
     'model': {
       'provider': 'aws',
+      'name': '',
       'credentials': {
         'access_key': '',
         'secret_key': ''
@@ -18,6 +19,9 @@ export class CloudAccountModel {
           'type': 'string',
           'widget': 'hidden'
         },
+        'name': {
+          'type': 'string'
+        },
         'credentials': {
           'type': 'object',
           'properties': {
@@ -29,14 +33,18 @@ export class CloudAccountModel {
               'type': 'string',
               'description': 'IAM user secret access key'
             }
-          }
+          },
+          "required": [ "access_key", "secret_key" ]
         }
-      }
+      },
+      "required": [ "name", "credentials" ]
     },
     'layout': [
+      { "key": "name", "title": "Cloud Account Name", "placeholder": "Cloud Account Name" },
       { "key": "credentials.access_key", "placeholder": "Access Key" },
       { "key": "credentials.secret_key", "placeholder": "Secret Key" },
-      { "type": "submit", "title": "CREATE" }
+      // TODO: json-schema-form doesn't check for invalid forms when using custom submit buttons
+      // { "type": "submit", "title": "CREATE" }
     ]
   };
 
@@ -44,6 +52,7 @@ export class CloudAccountModel {
     'name' : 'Digital Ocean',
     'model': {
       'provider': 'digitalocean',
+      'name': '',
       'credentials': {
         'accessToken': '',
         'publicKey': ''
@@ -57,6 +66,9 @@ export class CloudAccountModel {
           'type': 'string',
           'widget': 'hidden'
         },
+        'name': {
+          'type': 'string'
+        },
         'credentials': {
           'type': 'object',
           'properties': {
@@ -68,14 +80,18 @@ export class CloudAccountModel {
               'type': 'string',
               'description': 'Your personal private key'
             }
-          }
+          },
+          "required": [ "accessToken", "publicKey" ]
         }
-      }
+      },
+      "required": [ "name", "credentials" ]
     },
     'layout': [
+      { "key": "name", "title": "Cloud Account Name", "placeholder": "Cloud Account Name" },
       { "key": "credentials.accessToken", "placeholder": "Access Token" },
       { "type": "textarea", "key": "credentials.publicKey", "placeholder": "Public Key" },
-      { "type": "submit", "title": "CREATE" }
+      // TODO: json-schema-form doesn't check for invalid forms when using custom submit buttons
+      // { "type": "submit", "title": "CREATE" }
     ]
   };
 
@@ -83,6 +99,7 @@ export class CloudAccountModel {
     'name' : 'GCE - Google Compute Engine',
     'model': {
       'provider': 'gce',
+      'name': '',
       'credentials': {
         'service_account_key': 'Paste your Service Account Key here...'
       }
@@ -105,6 +122,9 @@ export class CloudAccountModel {
           'type': 'string',
           'widget': 'hidden'
         },
+        'name': {
+          'type': 'string'
+        },
         'credentials': {
           'type': 'object',
           'properties': {
@@ -112,13 +132,16 @@ export class CloudAccountModel {
               'type': 'string',
               'description': 'API Token for your Packet account'
             }
-          }
+          },
+          "required": [ "api_token" ]
         }
-      }
+      },
+      "required": [ "name", "credentials" ]
     },
     'layout': [
-      { "key": "credentials.api_token", "placeholder": "API Token" },
-      { "type": "submit", "title": "CREATE" }
+      { "key": "name", "title": "Cloud Account Name", "placeholder": "Cloud Account Name" },
+      { "key": "credentials.api_token", "title": "API Token", "placeholder": "API Token" },
+      // { "type": "submit", "title": "CREATE" }
     ]
   };
 
