@@ -75,6 +75,11 @@
       font-weight: 400;
       opacity: 0.5;
       margin: 0px 10px;
+
+      &:hover {
+        color: #fff;
+        text-decoration: none;
+      }
     }
   }
 }
