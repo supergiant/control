@@ -70,8 +70,8 @@
           <mat-header-cell *matHeaderCellDef>Status</mat-header-cell>
           <mat-cell class="task-status" *matCellDef="let task">
             <!-- what are the actual values for tasks? -->
-            <mat-spinner *ngIf="task?.status == 'todo'" [diameter]="24"></mat-spinner>
-            <div class="ready-icon" *ngIf="task?.status == 'complete'"></div>
+            <mat-spinner class="executing-spinner" *ngIf="task?.status == 'executing'" [diameter]="24"></mat-spinner>
+            <div class="ready-icon" *ngIf="task?.status == 'success'"></div>
             <div class="failed-icon" *ngIf="task?.status == 'error'"></div>
             <span style="padding-left: 12px;">{{ task.status | titlecase }}</span>
             <button mat-raised-button *ngIf="task?.status == 'error'" class="secondary restart-task" (click)="restartTask(task.id)">

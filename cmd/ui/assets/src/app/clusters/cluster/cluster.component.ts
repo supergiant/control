@@ -107,7 +107,6 @@ export class ClusterComponent implements OnInit, OnDestroy {
   }
 
   taskComplete(task) {
-    // return task.status == "complete";
     return task.stepsStatuses.every((s) => s.status == "success");
   }
 

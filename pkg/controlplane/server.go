@@ -41,6 +41,7 @@ import (
 	"github.com/supergiant/supergiant/pkg/workflows/steps/manifest"
 	"github.com/supergiant/supergiant/pkg/workflows/steps/network"
 	"github.com/supergiant/supergiant/pkg/workflows/steps/poststart"
+	"github.com/supergiant/supergiant/pkg/workflows/steps/prometheus"
 	"github.com/supergiant/supergiant/pkg/workflows/steps/ssh"
 	"github.com/supergiant/supergiant/pkg/workflows/steps/tiller"
 )
@@ -222,6 +223,8 @@ func configureApplication(cfg *Config) (*mux.Router, error) {
 	ssh.Init()
 	network.Init()
 	clustercheck.Init()
+	prometheus.Init()
+
 	amazon.InitImportKeyPair(amazon.GetEC2)
 	amazon.InitCreateMachine(amazon.GetEC2)
 	amazon.InitCreateSecurityGroups(amazon.GetEC2)
