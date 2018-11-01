@@ -46,7 +46,7 @@ spec:
         version: v11
         kubernetes.io/cluster-service: 'true'
     spec:
-replicas: 1
+        replicas: 1
         selector:
           k8s-app: kube-dns
           version: v11
