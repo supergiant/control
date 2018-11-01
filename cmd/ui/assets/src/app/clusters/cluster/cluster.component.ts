@@ -134,12 +134,12 @@ export class ClusterComponent implements OnInit, OnDestroy {
     const masterPatt = /master/g;
     const masterTasks = tasks.filter(t => {
       return masterPatt.test(t.type.toLowerCase());
-    })
+    });
 
     const nodePatt = /node/g;
     const nodeTasks = tasks.filter(t => {
       return nodePatt.test(t.type.toLowerCase());
-    })
+    });
 
     // oh my god I'm so sorry
     if (masterTasks.every(this.taskComplete)) {
