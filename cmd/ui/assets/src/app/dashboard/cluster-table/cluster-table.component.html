@@ -1,0 +1,57 @@
+<a class="cluster-info cluster-hover" [routerLink]="['/clusters', cluster.name]">
+  <div class="cluster-name">
+    <span>{{ cluster.name }}</span>
+  </div>
+
+  <div class="cluster-data">
+    <mat-table [dataSource]="cluster.dataSource">
+      <ng-container matColumnDef="state">
+        <mat-header-cell *matHeaderCellDef>State</mat-header-cell>
+        <mat-cell *matCellDef="let cluster">{{ cluster.state | titlecase }}</mat-cell>
+      </ng-container>
+
+      <ng-container matColumnDef="accountName">
+        <mat-header-cell *matHeaderCellDef>Account</mat-header-cell>
+        <mat-cell *matCellDef="let cluster">{{ cluster.accountName }}</mat-cell>
+      </ng-container>
+
+      <ng-container matColumnDef="k8sversion">
+        <mat-header-cell *matHeaderCellDef>K8S Version</mat-header-cell>
+        <mat-cell *matCellDef="let cluster">{{ cluster.K8SVersion }}</mat-cell>
+      </ng-container>
+
+      <ng-container matColumnDef="region">
+        <mat-header-cell *matHeaderCellDef>Region</mat-header-cell>
+        <mat-cell *matCellDef="let cluster">{{ cluster.region }}</mat-cell>
+      </ng-container>
+
+      <ng-container matColumnDef="mastersCount">
+        <mat-header-cell *matHeaderCellDef>Masters</mat-header-cell>
+        <mat-cell *matCellDef="let cluster">{{ cluster.masters.length }}</mat-cell>
+      </ng-container>
+
+      <ng-container matColumnDef="nodesCount">
+        <mat-header-cell *matHeaderCellDef>Nodes</mat-header-cell>
+        <mat-cell *matCellDef="let cluster">{{ cluster.nodes.length }}</mat-cell>
+      </ng-container>
+
+      <ng-container matColumnDef="operatingSystem">
+        <mat-header-cell *matHeaderCellDef>OS</mat-header-cell>
+        <mat-cell *matCellDef="let cluster">{{ cluster.operatingSystem }}</mat-cell>
+      </ng-container>
+
+      <ng-container matColumnDef="dockerVersion">
+        <mat-header-cell *matHeaderCellDef>Docker Ver.</mat-header-cell>
+        <mat-cell *matCellDef="let cluster">{{ cluster.dockerVersion }}</mat-cell>
+      </ng-container>
+
+      <ng-container matColumnDef="helmVersion">
+        <mat-header-cell *matHeaderCellDef>Helm Ver.</mat-header-cell>
+        <mat-cell *matCellDef="let cluster">{{ cluster.helmVersion }}</mat-cell>
+      </ng-container>
+
+      <mat-header-row *matHeaderRowDef="clusterColumns"></mat-header-row>
+      <mat-row *matRowDef="let row; columns: clusterColumns"></mat-row>
+    </mat-table>
+  </div>
+</a>

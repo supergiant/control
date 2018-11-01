@@ -64,8 +64,19 @@ export class DashboardComponent implements OnInit {
   public lineChartLegend: boolean = true;
   public lineChartType: string = 'line';
 
-  public clusters: Array<any>;
-  public clusterColumns = ["accountName", "k8sversion", "mastersCount", "nodesCount", "operatingSystem", "dockerVersion", "helmVersion", "rbacEnabled", "arch"];
+  public clusters: any;
+
+  public clusterListView: string;
+
+  constructor(
+    private supergiant: Supergiant,
+    public auth: AuthService,
+    private router: Router
+  ) { }
+
+  setClusterListView(view) {
+    this.clusterListView = view;
+  }
 
   getKube(id) {
     this.subscriptions.add(this.supergiant.Kubes.get(id).subscribe(
@@ -120,10 +131,12 @@ export class DashboardComponent implements OnInit {
 
   getClusters() {
     this.subscriptions.add(this.supergiant.Kubes.get().subscribe(
-      (clusters) => {
+      clusters => {
         // TODO: this is terrible, fix after demo
         clusters.map(c => c.dataSource = new MatTableDataSource([
           {
+            state: c.state,
+            region: c.region,
             accountName: c.accountName,
             K8SVersion: c.K8SVersion,
             masters: Object.keys(c.masters),
@@ -135,7 +148,14 @@ export class DashboardComponent implements OnInit {
             arch: c.arch
           }]));
         this.clusters = clusters;
-      }));
+        if (clusters.length > 5) {
+          this.clusterListView = "list"
+        } else {
+          this.clusterListView = "orb"
+        }
+     },
+    err => console.error(err)
+   ));
   }
 
   getDeployments() {
@@ -153,12 +173,6 @@ export class DashboardComponent implements OnInit {
     this.auth.logout();
     this.router.navigate(['']);
   }
-
-  constructor(
-    private supergiant: Supergiant,
-    public auth: AuthService,
-    private router: Router
-  ) { }
 
   ngOnInit() {
     this.getCloudAccounts();
