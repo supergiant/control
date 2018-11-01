@@ -46,17 +46,6 @@ spec:
         version: v11
         kubernetes.io/cluster-service: 'true'
     spec:
-        replicas: 1
-        selector:
-          k8s-app: kube-dns
-          version: v11
-        template:
-          metadata:
-            labels:
-              k8s-app: kube-dns
-              version: v11
-              kubernetes.io/cluster-service: "true"
-          spec:
             containers:
             - name: etcd
               image: gcr.io/google_containers/etcd:2.0.9
