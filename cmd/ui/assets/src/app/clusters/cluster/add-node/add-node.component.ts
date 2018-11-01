@@ -1,10 +1,21 @@
-import { HttpClient }                                                      from "@angular/common/http";
-import { Component, OnDestroy, OnInit }                                    from '@angular/core';
-import { ActivatedRoute }                                                  from "@angular/router";
-import { combineLatest, from, Observable, of, Subject, Subscription }      from "rxjs";
-import { distinctUntilChanged, filter, first, map, pluck, switchMap, tap } from "rxjs/operators";
-import { Supergiant }                                                      from "../../../shared/supergiant/supergiant.service";
-import { NodeProfileService }                                              from "../../node-profile.service";
+import { HttpClient }                                                                      from "@angular/common/http";
+import { Component, OnDestroy, OnInit }                                                    from '@angular/core';
+import { ActivatedRoute }                                                                  from "@angular/router";
+import { combineLatest, from, Observable, of, Subject, Subscription, zip }                 from "rxjs";
+import {
+  catchError,
+  distinctUntilChanged,
+  filter,
+  first,
+  map,
+  mergeMap,
+  pluck,
+  switchMap,
+  take,
+  tap
+} from "rxjs/operators";
+import { Supergiant }                                                                      from "../../../shared/supergiant/supergiant.service";
+import { NodeProfileService }                                                              from "../../node-profile.service";
 
 @Component({
   selector: 'add-node',
@@ -24,7 +35,6 @@ export class AddNodeComponent implements OnInit, OnDestroy {
   provider$: Observable<any>;
   provider: string;
   providerSubj: Subject<any>;
-  awsAvalableZones$: Observable<any>;
 
   clusterOptions = {
     archs: ["amd64"],
@@ -56,8 +66,11 @@ export class AddNodeComponent implements OnInit, OnDestroy {
     const cluster$ = this.supergiant.Kubes.get(this.clusterName);
 
     const region$ = cluster$.pipe(
-      distinctUntilChanged(),
+      tap(p => {
+        console.log('prov', p);
+      }),
       pluck('region'),
+      distinctUntilChanged()
     );
 
 
@@ -66,24 +79,18 @@ export class AddNodeComponent implements OnInit, OnDestroy {
     );
 
     const firstNode$ = cluster$.pipe(
-      pluck('nodes'),
+      pluck('masters'),
       switchMap(nodes => from(Object.values(nodes))),
       first()
     );
 
     this.provider$ = firstNode$.pipe(
-      distinctUntilChanged(),
       pluck('provider'),
+      distinctUntilChanged(),
       tap(provider => {
         this.providerSubj.next(provider);
       })
     );
-
-    this.subscriptions.add(
-      this.provider$
-        .subscribe(provider => this.provider = provider)
-    );
-
 
     // Digital Ocean machine sizes
     const DOmachineSizes$ = cloudAccountName$.pipe(
@@ -92,17 +99,22 @@ export class AddNodeComponent implements OnInit, OnDestroy {
       map(sizes => Object.keys(sizes)),
     );
 
-    const awsMachineSizes$ = combineLatest(this.provider$, region$).pipe(
+
+    const awsMachineSizes$ = zip(this.provider$, region$).pipe(
+      take(1),
       switchMap(([name, region]) =>
         combineLatest(
-          of(name), of(region), this.supergiant.CloudAccounts.getAwsAvailabilityZones(name, region)
+          of(name),
+          of(region),
+          this.supergiant.CloudAccounts.getAwsAvailabilityZones(name, region).pipe(
+            // TODO: error handling
+            catchError(e => of(e))
+          )
         )
       ),
-      switchMap(([name, region, awsZones]) =>
+      mergeMap(([name, region, awsZones]) =>
         this.supergiant.CloudAccounts.getAwsMachineTypes(name, region, awsZones[0])
       ),
-      pluck('sizes'),
-      map(sizes => Object.keys(sizes)),
     );
 
 
@@ -116,8 +128,14 @@ export class AddNodeComponent implements OnInit, OnDestroy {
     this.subscriptions.add(
       this.providerSubj.pipe(
         filter(provider => provider === 'aws'),
-        switchMap(_ => awsMachineSizes$),
+        first(),
+        switchMap(_ => awsMachineSizes$)
       ).subscribe(sizes => this.machineSizes$ = of(sizes))
+    );
+
+    this.subscriptions.add(
+      this.provider$
+        .subscribe(provider => this.provider = provider)
     );
 
   }
