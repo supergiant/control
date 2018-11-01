@@ -1,0 +1,13 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24">
+  <defs>
+    <style>.a,.b{fill:none;}.b{opacity:0.87;}.c{fill:#d10088;}</style>
+  </defs>
+  <g transform="translate(-1254 -101)">
+    <g transform="translate(1254 101)">
+      <path class="a" d="M0,0H24V24H0Z"/>
+      <path class="b" d="M0,0H24V24H0Z"/>
+    </g>
+    <path class="c" d="M2,18H7V13H2Zm0-7H7V6H2Zm0,7H7V13H2Zm0-7H7V6H2Z" transform="translate(1266 101)"/>
+    <path class="c" d="M2,18H7V13H2Zm0-7H7V6H2Zm0,7H7V13H2Zm0-7H7V6H2Z" transform="translate(1257 101)"/>
+  </g>
+</svg>
