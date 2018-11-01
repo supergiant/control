@@ -1,0 +1,60 @@
+<section class="wrapper">
+  <h2 mat-dialog-title>Deploy App</h2>
+  <mat-dialog-content>
+
+    <form *ngIf="(currentChart$ | async) as currentChart"
+          [formGroup]="deployForm">
+
+      <mat-form-field>
+        <input matInput
+               type="text"
+               formControlName="chartName"
+               placeholder="Chart Name"
+               [value]="currentChart.metadata?.name">
+      </mat-form-field>
+
+      <mat-form-field>
+        <input matInput
+               type="text"
+               formControlName="chartVersion"
+               placeholder="Chart version"
+               [value]="currentChart.metadata?.version">
+      </mat-form-field>
+
+      <mat-form-field>
+        <mat-select matInput
+                    placeholder="Cluster name"
+                    formControlName="clusterName">
+          <div *ngFor="let cluster of (clusters$ | async)">
+            <mat-option [value]="cluster.name">{{ cluster.name }}</mat-option>
+          </div>
+        </mat-select>
+      </mat-form-field>
+      <mat-form-field>
+        <input matInput
+               type="text"
+               formControlName="name"
+               placeholder="Release name">
+      </mat-form-field>
+      <mat-form-field>
+        <input matInput
+               type="text"
+               formControlName="namespace"
+               placeholder="Namespace"
+               [value]="'default'">
+      </mat-form-field>
+    </form>
+  </mat-dialog-content>
+  <mat-dialog-actions>
+    <button mat-button
+            mat-dialog-close>Cancel
+    </button>
+    <button [disabled]="!deployForm.valid || !deployForm.controls['clusterName'].value"
+            mat-button
+            color="primary"
+            (click)="submitForm()">CONFIRM
+    </button>
+
+  </mat-dialog-actions>
+
+</section>

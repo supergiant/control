@@ -1,6 +1,6 @@
 import { Component, OnInit, ViewEncapsulation, OnDestroy } from '@angular/core';
 import { CloudAccountModel } from '../cloud-accounts.model';
-import { Subscription } from 'rxjs/Subscription';
+import { Subscription } from 'rxjs';
 import { Supergiant } from '../../../shared/supergiant/supergiant.service';
 import { Notifications } from '../../../shared/notifications/notifications.service';
 import { Router } from '@angular/router';
@@ -17,6 +17,9 @@ export class NewCloudAccountComponent implements OnInit, OnDestroy {
   private providers = this.providersObj.providers;
   private model: any;
   public schema: any;
+
+  private selectedProvider: string;
+  private cloudAccountName: string;
 
   constructor(
     private supergiant: Supergiant,
@@ -41,10 +44,13 @@ export class NewCloudAccountComponent implements OnInit, OnDestroy {
     if (model.provider === 'gce') {
       model.credentials = JSON.parse(model.credentials.service_account_key);
     }
+    // TODO: does it make sense to keep the name around if a user switches providers?
+    // should the name be a part of the provider model?
+    model.name = this.cloudAccountName;
     this.subscriptions.add(this.supergiant.CloudAccounts.create(model).subscribe(
       (data) => {
         this.success(model);
-        this.router.navigate(['/system/cloud-accounts']);
+        this.router.navigate(['/clusters/new']);
       },
       (err) => { this.error(model, err); }));
   }

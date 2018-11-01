@@ -13,23 +13,59 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
+var (
+	errFake = errors.New("aws fake error")
+
+	awsTagName = "aws:name"
+	awsTagKey  = "aws:key"
+	awsTagVal  = "aws:val"
+
+	ec2t2MicroID   = "m4.micro.id"
+	ec2t2MicroName = "m4.micro.name"
+	ec2t2MicroInst = &ec2.Instance{
+		InstanceId: aws.String(ec2t2MicroID),
+		Tags: []*ec2.Tag{
+			{Key: aws.String(awsTagName), Value: aws.String(ec2t2MicroName)},
+			{Key: aws.String(awsTagKey), Value: aws.String(awsTagVal)},
+		},
+	}
+
+	ec2m4LargeID   = "m4.large.id"
+	ec2m4LargeName = "m4.large.name"
+	ec2m4LargeInst = &ec2.Instance{
+		InstanceId: aws.String(ec2m4LargeID),
+		Tags: []*ec2.Tag{
+			{Key: aws.String(awsTagName), Value: aws.String(ec2m4LargeName)},
+			{Key: aws.String(awsTagKey), Value: aws.String(awsTagVal)},
+		},
+	}
+
+	ec2Reservation = &ec2.Reservation{
+		Instances: []*ec2.Instance{ec2t2MicroInst, ec2m4LargeInst},
+	}
+)
+
 // https://aws.amazon.com/blogs/developer/mocking-out-then-aws-sdk-for-go-for-unit-testing/
-type mockedEC2Service struct {
+type fakeEC2Service struct {
 	ec2iface.EC2API
-	CreateInstRes *ec2.Reservation
-	RunInstErr    error
-	DelInstErr    error
-	TagResErr     error
+	ec2Reservation *ec2.Reservation
+	err            error
 }
 
-func (m *mockedEC2Service) RunInstancesWithContext(ctx aws.Context, input *ec2.RunInstancesInput, opts ...request.Option) (*ec2.Reservation, error) {
-	return m.CreateInstRes, m.RunInstErr
+func (m *fakeEC2Service) RunInstancesWithContext(ctx aws.Context, input *ec2.RunInstancesInput, opts ...request.Option) (*ec2.Reservation, error) {
+	return m.ec2Reservation, m.err
 }
-func (m *mockedEC2Service) CreateTags(tags *ec2.CreateTagsInput) (*ec2.CreateTagsOutput, error) {
-	return nil, m.TagResErr
+func (m *fakeEC2Service) CreateTags(tags *ec2.CreateTagsInput) (*ec2.CreateTagsOutput, error) {
+	return nil, m.err
 }
-func (m *mockedEC2Service) TerminateInstancesWithContext(aws.Context, *ec2.TerminateInstancesInput, ...request.Option) (*ec2.TerminateInstancesOutput, error) {
-	return nil, m.DelInstErr
+func (m *fakeEC2Service) TerminateInstancesWithContext(aws.Context, *ec2.TerminateInstancesInput, ...request.Option) (*ec2.TerminateInstancesOutput, error) {
+	return nil, m.err
+}
+func (m *fakeEC2Service) DescribeInstancesWithContext(aws.Context, *ec2.DescribeInstancesInput, ...request.Option) (*ec2.DescribeInstancesOutput, error) {
+	if m.ec2Reservation == nil {
+		return &ec2.DescribeInstancesOutput{}, m.err
+	}
+	return &ec2.DescribeInstancesOutput{Reservations: []*ec2.Reservation{m.ec2Reservation}}, m.err
 }
 
 func TestNewClient(t *testing.T) {
@@ -43,7 +79,7 @@ func TestNewClient(t *testing.T) {
 	}
 
 	for i, tc := range tcs {
-		_, err := New(tc.id, tc.secret)
+		_, err := New(tc.id, tc.secret, nil)
 		if err != tc.expectedErr {
 			t.Fatalf("TC#%d: new client: %v", i+1, err)
 		}
@@ -51,16 +87,12 @@ func TestNewClient(t *testing.T) {
 }
 
 func TestClient_CreateInstance(t *testing.T) {
-	fakeRunInstErr := errors.New("run isntance error!")
-	fakeTagResErr := errors.New("tag resource error!")
-
 	tcs := []struct {
 		name   string
 		config InstanceConfig
 
-		ec2Res        *ec2.Reservation
-		ec2RunInstErr error
-		ec2TagResErr  error
+		ec2Res *ec2.Reservation
+		ec2Err error
 
 		expectedErr error
 	}{
@@ -71,10 +103,10 @@ func TestClient_CreateInstance(t *testing.T) {
 		},
 		// TC#2
 		{
-			name:          "failed to run instance",
-			config:        InstanceConfig{Region: "us1"},
-			ec2RunInstErr: fakeRunInstErr,
-			expectedErr:   fakeRunInstErr,
+			name:        "failed to run instance",
+			config:      InstanceConfig{Region: "us1"},
+			ec2Err:      errFake,
+			expectedErr: errFake,
 		},
 		// TC#3
 		{
@@ -83,21 +115,13 @@ func TestClient_CreateInstance(t *testing.T) {
 			ec2Res:      &ec2.Reservation{},
 			expectedErr: ErrNoInstancesCreated,
 		},
-		// TC#4
-		{
-			name:   "failed to tag instance",
-			config: InstanceConfig{Region: "us1"},
-			ec2Res: &ec2.Reservation{
-				Instances: []*ec2.Instance{
-					{InstanceId: aws.String("1")},
-				},
-			},
-			ec2TagResErr: fakeTagResErr,
-			expectedErr:  fakeTagResErr,
-		},
 		// TC#5
 		{
-			config: InstanceConfig{Region: "us1", HasPublicAddr: true},
+			config: InstanceConfig{
+				Region:        "us1",
+				UsedData:      "userdata",
+				HasPublicAddr: true,
+			},
 			ec2Res: &ec2.Reservation{
 				Instances: []*ec2.Instance{
 					{InstanceId: aws.String("1")},
@@ -107,23 +131,21 @@ func TestClient_CreateInstance(t *testing.T) {
 		},
 	}
 
-	ec2Mock := &mockedEC2Service{}
+	ec2Fake := &fakeEC2Service{}
 	for i, tc := range tcs {
-		ec2Mock.CreateInstRes, ec2Mock.RunInstErr, ec2Mock.TagResErr = tc.ec2Res, tc.ec2RunInstErr, tc.ec2TagResErr
+		ec2Fake.ec2Reservation, ec2Fake.err = tc.ec2Res, tc.ec2Err
 		c := &Client{
 			ec2SvcFn: func(s *session.Session, region string) ec2iface.EC2API {
-				return ec2Mock
+				return ec2Fake
 			},
 		}
 
-		err := c.CreateInstance(context.Background(), tc.config)
+		_, err := c.CreateInstance(context.Background(), tc.config)
 		require.Equalf(t, tc.expectedErr, errors.Cause(err), "TC#%d: %s", i+1, tc.name)
 	}
 }
 
 func TestClient_DeleteInstance(t *testing.T) {
-	fakeDelInstErr := errors.New("delete isntance error!")
-
 	tcs := []struct {
 		name       string
 		instanceID string
@@ -149,8 +171,8 @@ func TestClient_DeleteInstance(t *testing.T) {
 			name:            "failed to delete instance",
 			region:          "us1",
 			instanceID:      "123",
-			ec2DeleteInsErr: fakeDelInstErr,
-			expectedErr:     fakeDelInstErr,
+			ec2DeleteInsErr: errFake,
+			expectedErr:     errFake,
 		},
 		// TC#4
 		{
@@ -160,17 +182,119 @@ func TestClient_DeleteInstance(t *testing.T) {
 		},
 	}
 
-	ec2Mock := &mockedEC2Service{}
+	ec2Fake := &fakeEC2Service{}
 	for i, tc := range tcs {
-		ec2Mock.DelInstErr = tc.ec2DeleteInsErr
+		ec2Fake.err = tc.ec2DeleteInsErr
 		c := &Client{
 			ec2SvcFn: func(s *session.Session, region string) ec2iface.EC2API {
-				return ec2Mock
+				return ec2Fake
 			},
 		}
 
-		err := c.DeleteInstance(context.Background(), tc.region, tc.instanceID)
-		require.Equalf(t, tc.expectedErr, errors.Cause(err), "TC#%d: %s", i+1, tc.name)
+		_, err := c.DeleteInstance(context.Background(), tc.region, tc.instanceID)
+		if err != nil {
+			require.Equalf(t, tc.expectedErr, errors.Cause(err), "TC#%d: %s", i+1, tc.name)
+		}
+	}
+}
+
+func TestClient_GetInstance(t *testing.T) {
+	tcs := []struct {
+		region      string
+		instanceID  string
+		expectedRes *ec2.Instance
+		ec2Err      error
+		expectedErr error
+	}{
+		{ // TC#1
+			expectedErr: ErrNoRegionProvided,
+		},
+		{ // TC#2
+			region:      "us1",
+			expectedErr: ErrInstanceIDEmpty,
+		},
+		{ // TC#3
+			region:      "us1",
+			instanceID:  "123",
+			ec2Err:      errFake,
+			expectedErr: errFake,
+		},
+		{ // TC#4
+			region:      "us1",
+			instanceID:  "123",
+			expectedErr: ErrInstanceNotFound,
+		},
+		{ // TC#5
+			region:      "us1",
+			instanceID:  ec2t2MicroID,
+			expectedRes: ec2t2MicroInst,
+		},
+	}
+
+	ec2Fake := &fakeEC2Service{
+		ec2Reservation: ec2Reservation,
+	}
+	for i, tc := range tcs {
+		ec2Fake.err = tc.ec2Err
+		c := &Client{
+			ec2SvcFn: func(s *session.Session, region string) ec2iface.EC2API {
+				return ec2Fake
+			},
+		}
+
+		res, err := c.GetInstance(context.Background(), tc.region, tc.instanceID)
+		if err != nil {
+			require.Equalf(t, tc.expectedErr, errors.Cause(err), "TC#%d", i+1)
+		}
+		if res != nil {
+			require.Equalf(t, tc.expectedRes, res, "TC#%d", i+1)
+		}
+	}
+}
+
+func TestClient_ListRegionInstances(t *testing.T) {
+	tcs := []struct {
+		region      string
+		reservation *ec2.Reservation
+		expectedRes []*ec2.Instance
+		ec2Err      error
+		expectedErr error
+	}{
+		{ // TC#1
+			expectedErr: ErrNoRegionProvided,
+		},
+		{ // TC#2
+			region:      "us1",
+			ec2Err:      errFake,
+			expectedErr: errFake,
+		},
+		{ // TC#3
+			region:      "us1",
+			expectedRes: []*ec2.Instance{},
+		},
+		{ // TC#4
+			region:      "us1",
+			reservation: ec2Reservation,
+			expectedRes: []*ec2.Instance{ec2t2MicroInst, ec2m4LargeInst},
+		},
+	}
+
+	ec2Fake := &fakeEC2Service{}
+	for i, tc := range tcs {
+		ec2Fake.ec2Reservation, ec2Fake.err = tc.reservation, tc.ec2Err
+		c := &Client{
+			ec2SvcFn: func(s *session.Session, region string) ec2iface.EC2API {
+				return ec2Fake
+			},
+		}
+
+		res, err := c.ListRegionInstances(context.Background(), tc.region, nil)
+		if err != nil {
+			require.Equalf(t, tc.expectedErr, errors.Cause(err), "TC#%d", i+1)
+		}
+		if res != nil {
+			require.Equalf(t, tc.expectedRes, res, "TC#%d", i+1)
+		}
 	}
 }
 
@@ -179,44 +303,5 @@ func TestEC2Svc(t *testing.T) {
 	_, ok := svc.(ec2iface.EC2API)
 	if !ok {
 		t.Fatal("ec2Svc func should return a EC2API interface object")
-	}
-}
-
-func TestTagAWSResource(t *testing.T) {
-	fakeTagResErr := errors.New("tag resource error!")
-
-	tcs := []struct {
-		instanceID  string
-		tags        map[string]string
-		ec2TagErr   error
-		expectedErr error
-	}{
-		// TC#1
-		{
-			expectedErr: ErrInstanceIDEmpty,
-		},
-		// TC#2
-		{
-			instanceID:  "id",
-			tags:        map[string]string{"k": "v"},
-			ec2TagErr:   fakeTagResErr,
-			expectedErr: fakeTagResErr,
-		},
-		// TC#3
-		{
-			instanceID: "id",
-		},
-		// TC#4
-		{
-			instanceID: "id",
-			tags:       map[string]string{"k": "v"},
-		},
-	}
-
-	ec2Mock := &mockedEC2Service{}
-	for i, tc := range tcs {
-		ec2Mock.TagResErr = tc.ec2TagErr
-		err := tagAWSResource(ec2Mock, tc.instanceID, tc.tags)
-		require.Equalf(t, tc.expectedErr, errors.Cause(err), "TC#%d", i+1)
 	}
 }

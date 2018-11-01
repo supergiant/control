@@ -4,11 +4,27 @@ import (
 	"context"
 	"encoding/json"
 	"errors"
-
 	"testing"
+
+	"github.com/stretchr/testify/mock"
 
 	"github.com/supergiant/supergiant/pkg/testutils"
 )
+
+func TestNewService(t *testing.T) {
+	repo := &testutils.MockStorage{}
+	prefix := "prefix"
+
+	s := NewService(prefix, repo)
+
+	if s.prefix != prefix {
+		t.Errorf("expected prefix %s actuall %s", prefix, s.prefix)
+	}
+
+	if s.repository != repo {
+		t.Errorf("expected repo %v actual %v", repo, s.repository)
+	}
+}
 
 func TestNodeServiceGet(t *testing.T) {
 	testCases := []struct {
@@ -45,8 +61,8 @@ func TestNodeServiceGet(t *testing.T) {
 			return
 		}
 
-		if testCase.err == nil && node.Id != testCase.expectedId {
-			t.Errorf("Wrong node id expected %s actual %s", testCase.expectedId, node.Id)
+		if testCase.err == nil && node.ID != testCase.expectedId {
+			t.Errorf("Wrong node id expected %s actual %s", testCase.expectedId, node.ID)
 		}
 	}
 }
@@ -75,7 +91,7 @@ func TestNodeCreate(t *testing.T) {
 		m.On("Put",
 			context.Background(),
 			prefix,
-			testCase.node.Id,
+			testCase.node.ID,
 			kubeData).
 			Return(testCase.err)
 
@@ -128,5 +144,38 @@ func TestNodeListAll(t *testing.T) {
 		if testCase.err == nil && len(nodes) != 2 {
 			t.Errorf("Wrong len of nodes expected 2 actual %d", len(nodes))
 		}
+	}
+}
+
+func TestService_Delete(t *testing.T) {
+	testCases := []struct {
+		nodeId      string
+		expectedErr error
+	}{
+		{
+			nodeId:      "node-id",
+			expectedErr: errors.New("test"),
+		},
+		{
+			nodeId:      "node-id",
+			expectedErr: nil,
+		},
+	}
+
+	prefix := "prefix"
+
+	for _, testCase := range testCases {
+		mockRepo := &testutils.MockStorage{}
+		mockRepo.On("Delete", mock.Anything,
+			prefix, mock.Anything).
+			Return(testCase.expectedErr)
+
+		svc := Service{
+			repository: mockRepo,
+			prefix:     prefix,
+		}
+
+		svc.Delete(context.Background(),
+			testCase.nodeId)
 	}
 }

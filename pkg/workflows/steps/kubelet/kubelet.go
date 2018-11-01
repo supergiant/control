@@ -32,13 +32,17 @@ func New(script *template.Template) *Step {
 }
 
 func (t *Step) Run(ctx context.Context, out io.Writer, config *steps.Config) error {
-	config.KubeletConfig.MasterPrivateIP = "0.0.0.0"
+	config.KubeletConfig.IsMaster = config.IsMaster
 	err := steps.RunTemplate(ctx, t.script, config.Runner, out, config.KubeletConfig)
 
 	if err != nil {
 		return errors.Wrap(err, "install kubelet step")
 	}
 
+	return nil
+}
+
+func (s *Step) Rollback(context.Context, io.Writer, *steps.Config) error {
 	return nil
 }
 

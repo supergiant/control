@@ -1,13 +1,111 @@
-a[mat-raised-button] {
-    padding-top: 0.2rem;
-    height: 2.7rem;
-    font-size: 1rem;
-}
+  .dashboard-wrapper {
+  margin: 10px 0px 55px;
 
-.app-dashboard-tutorial > input[type="radio"]:checked {
-    background-color: #af097a;
-}
+  .empty-cloud-accounts, .no-clusters {
+    display: flex;
+    justify-content: space-between;
+    margin: 48px auto;
+    height: 296px;
+    width: 1080px;
 
-.more-headline {
-	margin-top: 16px;
+    .providers {
+      background: url('/assets/img/illustr_cloud_accounts.svg') center no-repeat;
+      height: 100%;
+      width: 470px;
+    }
+
+    .communication {
+      display: flex;
+      flex-direction: column;
+      align-items: flex-start;
+      width: 541px;
+
+      .headline {
+        color: #d10088;
+        display: block;
+        font-family: "Montserrat", sans-serif;
+        // font-size: 36px;
+        font-weight: 200;
+        line-height: 55px;
+      }
+
+      .description {
+        font-size: 18px;
+        font-weight: 200;
+        margin-top: 20px;
+      }
+
+      button {
+        background-image: linear-gradient(315deg, #8721ff, #8b22fb 18%, #ff457e);
+        box-shadow: 0px 0px 30px rgba(255, 0, 235, 0.64);
+        margin-top: 40px;
+      }
+    }
+
+    .link-wrapper {
+      text-align: center;
+    }
+  }
+
+  .clusters-wrapper {
+    display: flex;
+    flex-direction: column;
+    justify-content: space-around;
+    margin: 0 auto 50px;
+    width: 1270px;
+
+    .cluster-list-views {
+      display: flex;
+      align-items: center;
+      justify-content: flex-end;
+      margin-bottom: 16px;
+      height: 24px;
+      width: 100%;
+
+      svg {
+        height: 100%;
+        margin-right: 10px;
+
+        &:last-of-type {
+          margin-right: 0px;
+        }
+
+        &:hover {
+          cursor: pointer;
+        }
+
+        &:active {
+          transform: scale(0.95, 0.95);
+        }
+      }
+    }
+
+    .cluster-list-wrapper {
+
+      .orbs-wrapper {
+        display: flex;
+        flex-flow: row wrap;
+        justify-content: space-around;
+      }
+
+      .list-wrapper {
+        background-color: rgba(0,0,0,0.2);
+        box-shadow: 1px 1px 50px rgba(0,0,0,0.2);
+        display: flex;
+        flex-direction: column;
+      }
+    }
+  }
+
+  .home-actions {
+    display: flex;
+    justify-content: space-between;
+    margin: 0 auto;
+    width: 600px;
+
+    button {
+      background-image: linear-gradient(315deg, #8721ff, #8b22fb 18%, #ff457e);
+      box-shadow: 0px 0px 30px rgba(255, 0, 235, 0.64);
+    }
+  }
 }

@@ -12,6 +12,15 @@ export class CloudAccounts {
     }
     return this.util.fetch(this.cloudAccountsPath);
   }
+  public getRegions(id) {
+    return this.util.fetch(this.cloudAccountsPath + '/' + id + '/' + 'regions');
+  }
+  public getAwsAvailabilityZones(id, region) {
+    return this.util.fetch(this.cloudAccountsPath + '/' + id + '/' + 'regions' + '/' + region + '/az');
+  }
+  public getAwsMachineTypes(id, region, az) {
+    return this.util.fetch(this.cloudAccountsPath + '/' + id + '/' + 'regions' + '/' + region + '/az/' + az + '/types');
+  }
   public create(data) {
     return this.util.post(this.cloudAccountsPath, data);
   }

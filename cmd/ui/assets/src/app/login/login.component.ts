@@ -2,8 +2,7 @@ import { Component, OnDestroy } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Supergiant } from '../shared/supergiant/supergiant.service';
 import { Router } from '@angular/router';
-import { Observable } from 'rxjs/Observable';
-import { Subscription } from 'rxjs/Subscription';
+import { Observable ,  Subscription } from 'rxjs';
 import { Notifications } from '../shared/notifications/notifications.service';
 
 @Component({
@@ -50,7 +49,7 @@ export class LoginComponent implements OnDestroy {
         this.status = 'status status-danger';
         this.error('Invalid Login');
       }
-    )
+    );
   }
 
   ngOnDestroy() {

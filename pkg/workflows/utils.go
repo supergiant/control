@@ -1,68 +1,13 @@
 package workflows
 
 import (
-	"context"
 	"encoding/json"
 
-	"github.com/supergiant/supergiant/pkg/clouds"
-	"github.com/supergiant/supergiant/pkg/model"
 	"github.com/supergiant/supergiant/pkg/runner/ssh"
 	"github.com/supergiant/supergiant/pkg/storage"
-	"github.com/supergiant/supergiant/pkg/workflows/steps"
 )
 
-type cloudAccountGetter interface {
-	Get(context.Context, string) (*model.CloudAccount, error)
-}
-
-// bind params uses json serializing and reflect package that is underneath
-// to avoid direct access to map for getting appropriate field values.
-func bindParams(params map[string]string, object interface{}) error {
-	data, err := json.Marshal(params)
-
-	if err != nil {
-		return err
-	}
-
-	err = json.Unmarshal(data, object)
-
-	if err != nil {
-		return err
-	}
-
-	return nil
-}
-
-// Gets cloud account from storage and fills config object with those credentials
-func FillCloudAccountCredentials(ctx context.Context, getter cloudAccountGetter, config *steps.Config) error {
-	cloudAccount, err := getter.Get(ctx, config.CloudAccountName)
-
-	if err != nil {
-		return nil
-	}
-
-	config.ManifestConfig.ProviderString = string(cloudAccount.Provider)
-	config.Provider = cloudAccount.Provider
-
-	switch cloudAccount.Provider {
-	case clouds.AWS:
-		return bindParams(cloudAccount.Credentials, &config.AWSConfig)
-	case clouds.GCE:
-		return bindParams(cloudAccount.Credentials, &config.GCEConfig)
-	case clouds.DigitalOcean:
-		return bindParams(cloudAccount.Credentials, &config.DigitalOceanConfig)
-	case clouds.Packet:
-		return bindParams(cloudAccount.Credentials, &config.PacketConfig)
-	case clouds.OpenStack:
-		return bindParams(cloudAccount.Credentials, &config.OSConfig)
-	default:
-		return ErrUnknownProviderType
-	}
-
-	return nil
-}
-
-func deserializeTask(data []byte, repository storage.Interface) (*Task, error) {
+func DeserializeTask(data []byte, repository storage.Interface) (*Task, error) {
 	task := &Task{}
 	err := json.Unmarshal(data, task)
 
@@ -79,7 +24,7 @@ func deserializeTask(data []byte, repository storage.Interface) (*Task, error) {
 		Port:    task.Config.SshConfig.Port,
 		User:    task.Config.SshConfig.User,
 		Timeout: task.Config.SshConfig.Timeout,
-		Key:     task.Config.SshConfig.PrivateKey,
+		Key:     []byte(task.Config.SshConfig.BootstrapPrivateKey),
 	}
 
 	task.Config.Runner, err = ssh.NewRunner(cfg)

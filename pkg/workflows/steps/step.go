@@ -6,20 +6,12 @@ import (
 	"sync"
 )
 
-type Status string
-
-const (
-	StatusTodo      Status = "todo"
-	StatusExecuting        = "executing"
-	StatusSuccess   Status = "success"
-	StatusError     Status = "error"
-)
-
 type Step interface {
 	Run(context.Context, io.Writer, *Config) error
 	Name() string
 	Description() string
 	Depends() []string
+	Rollback(context.Context, io.Writer, *Config) error
 }
 
 var (

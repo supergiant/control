@@ -2,20 +2,22 @@ package poststart
 
 import (
 	"bytes"
-
 	"context"
 	"io"
+	"io/ioutil"
 	"strings"
 	"testing"
 	"text/template"
+	"time"
 
 	"github.com/pkg/errors"
 
-	"time"
-
+	"github.com/supergiant/supergiant/pkg/node"
+	"github.com/supergiant/supergiant/pkg/profile"
 	"github.com/supergiant/supergiant/pkg/runner"
 	"github.com/supergiant/supergiant/pkg/templatemanager"
 	"github.com/supergiant/supergiant/pkg/workflows/steps"
+	"github.com/supergiant/supergiant/pkg/workflows/steps/kubelet"
 )
 
 type fakeRunner struct {
@@ -35,7 +37,7 @@ func (f *fakeRunner) Run(command *runner.Command) error {
 	return err
 }
 
-func TestPostStart(t *testing.T) {
+func TestPostStartMaster(t *testing.T) {
 	port := "8080"
 	username := "john"
 	rbacEnabled := true
@@ -54,16 +56,68 @@ func TestPostStart(t *testing.T) {
 	}
 
 	output := new(bytes.Buffer)
-	cfg := &steps.Config{
-		PostStartConfig: steps.PostStartConfig{
-			"127.0.0.1",
-			port,
-			username,
-			rbacEnabled,
-			120,
-		},
-		Runner: r,
+	cfg := steps.NewConfig("test", "", "test", profile.Profile{
+		MasterProfiles: []profile.NodeProfile{{}},
+	})
+	cfg.IsMaster = true
+	cfg.PostStartConfig = steps.PostStartConfig{
+		Host:        "127.0.0.1",
+		Port:        port,
+		Username:    username,
+		RBACEnabled: rbacEnabled,
+		Timeout:     120,
 	}
+	cfg.Node = node.Node{
+		PrivateIp: "10.20.30.40",
+	}
+	cfg.Runner = r
+
+	j := &Step{
+		tpl,
+	}
+
+	err = j.Run(context.Background(), output, cfg)
+
+	if err != nil {
+		t.Errorf("Unpexpected error while master node %v", err)
+	}
+
+	if !strings.Contains(output.String(), port) {
+		t.Errorf("port %s not found in %s", port, output.String())
+	}
+
+	if !strings.Contains(output.String(), username) && rbacEnabled {
+		t.Errorf("rbac section not found in %s", output.String())
+	}
+}
+
+func TestPostStartNode(t *testing.T) {
+	r := &fakeRunner{}
+
+	err := templatemanager.Init("../../../../templates")
+
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	tpl := templatemanager.GetTemplate(StepName)
+
+	if tpl == nil {
+		t.Fatal("template not found")
+	}
+
+	output := new(bytes.Buffer)
+	cfg := steps.NewConfig("test", "", "test", profile.Profile{
+		MasterProfiles: []profile.NodeProfile{{}},
+	})
+	cfg.PostStartConfig = steps.PostStartConfig{
+		Host:    "127.0.0.1",
+		Timeout: 120,
+	}
+	cfg.Node = node.Node{
+		PrivateIp: "10.20.30.40",
+	}
+	cfg.Runner = r
 
 	j := &Step{
 		tpl,
@@ -75,12 +129,8 @@ func TestPostStart(t *testing.T) {
 		t.Errorf("Unpexpected error while  provision node %v", err)
 	}
 
-	if !strings.Contains(output.String(), port) {
-		t.Errorf("port %s not found in %s", port, output.String())
-	}
-
-	if !strings.Contains(output.String(), username) && rbacEnabled {
-		t.Errorf("rbac section not found in %s", output.String())
+	if !strings.Contains(output.String(), "docker ps") {
+		t.Errorf("docker ps command  not found in %s", output.String())
 	}
 }
 
@@ -133,16 +183,17 @@ func TestPostStartTimeout(t *testing.T) {
 		proxyTemplate,
 	}
 
-	cfg := &steps.Config{
-		PostStartConfig: steps.PostStartConfig{
-			"127.0.0.1",
-			port,
-			username,
-			rbacEnabled,
-			1,
-		},
-		Runner: r,
+	cfg := steps.NewConfig("", "", "", profile.Profile{})
+	cfg.PostStartConfig = steps.PostStartConfig{
+		true,
+		"127.0.0.1",
+		port,
+		username,
+		rbacEnabled,
+		1,
 	}
+	cfg.Runner = r
+
 	err = j.Run(context.Background(), output, cfg)
 
 	if err == nil {
@@ -153,5 +204,49 @@ func TestPostStartTimeout(t *testing.T) {
 	if errors.Cause(err) != context.DeadlineExceeded {
 		t.Errorf("Wrong error cause expected %v actual %v", context.DeadlineExceeded,
 			err)
+	}
+}
+
+func TestStepName(t *testing.T) {
+	s := Step{}
+
+	if s.Name() != StepName {
+		t.Errorf("Unexpected step name expected %s actual %s", StepName, s.Name())
+	}
+}
+
+func TestDepends(t *testing.T) {
+	s := Step{}
+
+	if len(s.Depends()) != 1 && s.Depends()[0] != kubelet.StepName {
+		t.Errorf("Wrong dependency list %v expected %v", s.Depends(), []string{kubelet.StepName})
+	}
+}
+
+func TestStep_Rollback(t *testing.T) {
+	s := Step{}
+	err := s.Rollback(context.Background(), ioutil.Discard, &steps.Config{})
+
+	if err != nil {
+		t.Errorf("unexpected error while rollback %v", err)
+	}
+}
+
+func TestNew(t *testing.T) {
+	tpl := template.New("test")
+	s := New(tpl)
+
+	if s.script != tpl {
+		t.Errorf("Wrong template expected %v actual %v", tpl, s.script)
+	}
+}
+
+func TestInit(t *testing.T) {
+	Init()
+
+	s := steps.GetStep(StepName)
+
+	if s == nil {
+		t.Error("Step not found")
 	}
 }

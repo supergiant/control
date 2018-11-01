@@ -1,0 +1,35 @@
+<h2 mat-dialog-title>Add repository</h2>
+<mat-dialog-content>
+  <form [formGroup]="addRepositoryForm">
+    <mat-form-field>
+      <input matInput
+             type="text"
+             formControlName="name"
+             placeholder="Name">
+    </mat-form-field>
+    <mat-form-field>
+      <input matInput
+             type="text"
+             formControlName="url"
+             placeholder="Repository url">
+    </mat-form-field>
+  </form>
+</mat-dialog-content>
+<mat-dialog-actions>
+  <button mat-button
+          mat-dialog-close>Cancel
+  </button>
+  <button mat-button
+          color="primary"
+          [disabled]="isProcessing"
+          (click)="addRepository()">
+
+    <span [hidden]="isProcessing">CONFIRM</span>
+
+    <mat-progress-spinner [diameter]="15"
+                          [mode]="'indeterminate'"
+                          [color]="warn"
+                          [hidden]="!isProcessing"></mat-progress-spinner>
+  </button>
+
+</mat-dialog-actions>

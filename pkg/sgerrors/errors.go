@@ -21,9 +21,15 @@ func New(msg string, code ErrorCode) error {
 }
 
 var (
-	ErrInvalidCredentials = New("invalid credentials", InvalidCredentials)
-	ErrNotFound           = New("entity not found", NotFound)
-	ErrAlreadyExists      = New("entity already exists", EntityAlreadyExists)
+	ErrInvalidCredentials  = New("invalid credentials", InvalidCredentials)
+	ErrNotFound            = New("entity not found", NotFound)
+	ErrAlreadyExists       = New("entity already exists", EntityAlreadyExists)
+	ErrUnknownProvider     = New("unknown provider type", UnknownProvider)
+	ErrUnsupportedProvider = New("unsupported provider", UnsupportedProvider)
+	ErrInvalidJson         = New("invalid json", InvalidJSON)
+	ErrNilValue            = New("nil value", NilValue)
+	ErrTokenExpired        = New("token has been expire", TokenExpired)
+	ErrNilEntity           = New("nil entity", NilEntity)
 	ErrTimeoutExceeded    = New("timeout exceeded", TimeoutExceeded)
 )
 
@@ -41,4 +47,12 @@ func IsAlreadyExists(err error) bool {
 
 func IsTimeoutExceeded(err error) bool {
 	return errors.Cause(err) == ErrTimeoutExceeded
+}
+
+func IsUnknownProvider(err error) bool {
+	return errors.Cause(err) == ErrUnknownProvider
+}
+
+func IsUnsupportedProvider(err error) bool {
+	return errors.Cause(err) == ErrUnsupportedProvider
 }

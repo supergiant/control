@@ -10,24 +10,40 @@ import (
 	"github.com/gorilla/handlers"
 	"github.com/gorilla/mux"
 	"github.com/pkg/errors"
-
 	"github.com/sirupsen/logrus"
+	"k8s.io/helm/pkg/repo"
+
 	"github.com/supergiant/supergiant/pkg/account"
 	"github.com/supergiant/supergiant/pkg/api"
-	"github.com/supergiant/supergiant/pkg/clouds"
-	"github.com/supergiant/supergiant/pkg/helm"
 	"github.com/supergiant/supergiant/pkg/jwt"
 	"github.com/supergiant/supergiant/pkg/kube"
-	"github.com/supergiant/supergiant/pkg/model"
 	"github.com/supergiant/supergiant/pkg/profile"
 	"github.com/supergiant/supergiant/pkg/provisioner"
-	"github.com/supergiant/supergiant/pkg/runner/ssh"
+	sshRunner "github.com/supergiant/supergiant/pkg/runner/ssh"
+	"github.com/supergiant/supergiant/pkg/sgerrors"
+	"github.com/supergiant/supergiant/pkg/sghelm"
 	"github.com/supergiant/supergiant/pkg/storage"
 	"github.com/supergiant/supergiant/pkg/templatemanager"
 	"github.com/supergiant/supergiant/pkg/testutils/assert"
 	"github.com/supergiant/supergiant/pkg/user"
 	"github.com/supergiant/supergiant/pkg/util"
 	"github.com/supergiant/supergiant/pkg/workflows"
+	"github.com/supergiant/supergiant/pkg/workflows/steps/amazon"
+	"github.com/supergiant/supergiant/pkg/workflows/steps/certificates"
+	"github.com/supergiant/supergiant/pkg/workflows/steps/clustercheck"
+	"github.com/supergiant/supergiant/pkg/workflows/steps/cni"
+	"github.com/supergiant/supergiant/pkg/workflows/steps/digitalocean"
+	"github.com/supergiant/supergiant/pkg/workflows/steps/docker"
+	"github.com/supergiant/supergiant/pkg/workflows/steps/downloadk8sbinary"
+	"github.com/supergiant/supergiant/pkg/workflows/steps/etcd"
+	"github.com/supergiant/supergiant/pkg/workflows/steps/flannel"
+	"github.com/supergiant/supergiant/pkg/workflows/steps/kubelet"
+	"github.com/supergiant/supergiant/pkg/workflows/steps/manifest"
+	"github.com/supergiant/supergiant/pkg/workflows/steps/network"
+	"github.com/supergiant/supergiant/pkg/workflows/steps/poststart"
+	"github.com/supergiant/supergiant/pkg/workflows/steps/prometheus"
+	"github.com/supergiant/supergiant/pkg/workflows/steps/ssh"
+	"github.com/supergiant/supergiant/pkg/workflows/steps/tiller"
 )
 
 type Server struct {
@@ -43,7 +59,10 @@ func (srv *Server) Start() {
 }
 
 func (srv *Server) Shutdown() {
-	err := srv.server.Close()
+	ctx, cancel := context.WithTimeout(context.Background(), time.Minute*1)
+	defer cancel()
+	err := srv.server.Shutdown(ctx)
+
 	if err != nil {
 		logrus.Fatal(err)
 	}
@@ -56,6 +75,10 @@ type Config struct {
 	EtcdUrl      string
 	LogLevel     string
 	TemplatesDir string
+
+	ReadTimeout  time.Duration
+	WriteTimeout time.Duration
+	IdleTimeout  time.Duration
 }
 
 func New(cfg *Config) (*Server, error) {
@@ -68,25 +91,42 @@ func New(cfg *Config) (*Server, error) {
 	if err != nil {
 		return nil, err
 	}
-	headersOk := handlers.AllowedHeaders([]string{"Access-Control-Request-Headers", "Authorization"})
-	methodsOk := handlers.AllowedMethods([]string{"GET", "HEAD", "POST", "PUT", "OPTIONS"})
 
-	// TODO add TLS support
-	s := &Server{
-		cfg: cfg,
-		server: http.Server{
-			Handler:      handlers.CORS(headersOk, methodsOk)(handlers.RecoveryHandler(handlers.PrintRecoveryStack(true))(r)),
-			Addr:         fmt.Sprintf("%s:%d", cfg.Addr, cfg.Port),
-			ReadTimeout:  time.Second * 10,
-			WriteTimeout: time.Second * 15,
-			IdleTimeout:  time.Second * 120,
-		},
-	}
+	s := NewServer(r, cfg)
 	if err := generateUserIfColdStart(cfg); err != nil {
 		return nil, err
 	}
 
 	return s, nil
+}
+
+func NewServer(router *mux.Router, cfg *Config) *Server {
+	headersOk := handlers.AllowedHeaders([]string{
+		"Access-Control-Request-Headers",
+		"Authorization",
+	})
+	methodsOk := handlers.AllowedMethods([]string{
+		http.MethodGet,
+		http.MethodHead,
+		http.MethodPost,
+		http.MethodPut,
+		http.MethodOptions,
+		http.MethodDelete,
+	})
+
+	// TODO add TLS support
+	s := &Server{
+		cfg: cfg,
+		server: http.Server{
+			Handler:      handlers.CORS(headersOk, methodsOk)(handlers.RecoveryHandler(handlers.PrintRecoveryStack(true))(router)),
+			Addr:         fmt.Sprintf("%s:%d", cfg.Addr, cfg.Port),
+			ReadTimeout:  cfg.ReadTimeout,
+			WriteTimeout: cfg.WriteTimeout,
+			IdleTimeout:  cfg.IdleTimeout,
+		},
+	}
+
+	return s
 }
 
 //generateUserIfColdStart checks if there are any users in the db and if not (i.e. on first launch) generates a root user
@@ -151,10 +191,6 @@ func configureApplication(cfg *Config) (*mux.Router, error) {
 	accountHandler := account.NewHandler(accountService)
 	accountHandler.Register(protectedAPI)
 
-	kubeService := kube.NewService(kube.DefaultStoragePrefix, repository)
-	kubeHandler := kube.NewHandler(kubeService)
-	kubeHandler.Register(protectedAPI)
-
 	//TODO Add generation of jwt token
 	jwtService := jwt.NewTokenService(86400, []byte("test"))
 	userService := user.NewService(user.DefaultStoragePrefix, repository)
@@ -164,84 +200,63 @@ func configureApplication(cfg *Config) (*mux.Router, error) {
 	//Opening it up for testing right now, will be protected after implementing initial user generation
 	protectedAPI.HandleFunc("/users", userHandler.Create).Methods(http.MethodPost)
 
-	kubeProfileService := profile.NewKubeProfileService(profile.DefaultKubeProfilePreifx, repository)
-	kubeProfileHandler := profile.NewKubeProfileHandler(kubeProfileService)
+	profileService := profile.NewService(profile.DefaultKubeProfilePreifx, repository)
+	kubeProfileHandler := profile.NewHandler(profileService)
 	kubeProfileHandler.Register(protectedAPI)
-
-	nodeProfileService := profile.NewNodeProfileService(profile.DefaultNodeProfilePrefix, repository)
-	nodeProfileHandler := profile.NewNodeProfileHandler(nodeProfileService)
-	nodeProfileHandler.Register(protectedAPI)
 
 	// Read templates first and then initialize workflows with steps that uses these templates
 	if err := templatemanager.Init(cfg.TemplatesDir); err != nil {
 		return nil, err
 	}
+
+	digitalocean.Init()
+	certificates.Init()
+	cni.Init()
+	docker.Init()
+	downloadk8sbinary.Init()
+	flannel.Init()
+	kubelet.Init()
+	manifest.Init()
+	poststart.Init()
+	tiller.Init()
+	etcd.Init()
+	ssh.Init()
+	network.Init()
+	clustercheck.Init()
+	prometheus.Init()
+
+	amazon.InitImportKeyPair(amazon.GetEC2)
+	amazon.InitCreateMachine(amazon.GetEC2)
+	amazon.InitCreateSecurityGroups(amazon.GetEC2)
+	amazon.InitCreateVPC(amazon.GetEC2)
+	amazon.InitCreateSubnet(amazon.GetEC2)
+
 	workflows.Init()
 
-	taskHandler := workflows.NewTaskHandler(repository, ssh.NewRunner, accountService)
+	taskHandler := workflows.NewTaskHandler(repository, sshRunner.NewRunner, accountService)
 	taskHandler.Register(router)
 
-	// TODO(stgleb): remove it when profile usage is done
-	p := &profile.KubeProfile{
-		ID: "1234",
-		MasterProfiles: []profile.NodeProfile{
-			{
-				Provider: clouds.DigitalOcean,
-			},
-		},
-		NodesProfiles: []profile.NodeProfile{
-			{
-				Provider: clouds.DigitalOcean,
-			},
-			{
-				Provider: clouds.DigitalOcean,
-			},
-		},
-
-		Arch:            "amd64",
-		OperatingSystem: "linux",
-		UbuntuVersion:   "xenial",
-		DockerVersion:   "17.06.0",
-		K8SVersion:      "1.11.1",
-		FlannelVersion:  "0.10.0",
-		NetworkType:     "vxlan",
-		HelmVersion:     "2.8.0",
-		RBACEnabled:     false,
-	}
-
-	err := kubeProfileService.Create(context.Background(), p)
-
+	helmService, err := sghelm.NewService(repository)
 	if err != nil {
-		logrus.Fatal(err)
+		return nil, errors.Wrap(err, "new helm service")
 	}
+	go ensureHelmRepositories(helmService)
 
-	// TODO(stgleb): remove it when key management is done
-	cloudAccount := &model.CloudAccount{
-		Name:     "test",
-		Provider: clouds.DigitalOcean,
-		Credentials: map[string]string{
-			"accessToken": "",
-			"fingerprint": "",
-		},
-	}
-
-	err = accountService.Create(context.Background(), cloudAccount)
-	if err != nil {
-		logrus.Fatal(err)
-	}
-
-	taskProvisioner := provisioner.NewProvisioner(repository)
-	tokenGetter := provisioner.NewEtcdTokenGetter()
-	provisionHandler := provisioner.NewHandler(kubeProfileService, accountService, tokenGetter, taskProvisioner)
-	provisionHandler.Register(router)
-
-	helmService := helm.NewService(repository)
-	helmHandler := helm.NewHandler(helmService)
+	helmHandler := sghelm.NewHandler(helmService)
 	helmHandler.Register(protectedAPI)
+
+	kubeService := kube.NewService(kube.DefaultStoragePrefix, repository, helmService)
+
+	taskProvisioner := provisioner.NewProvisioner(repository, kubeService)
+	tokenGetter := provisioner.NewEtcdTokenGetter()
+	provisionHandler := provisioner.NewHandler(accountService, tokenGetter, taskProvisioner)
+	provisionHandler.Register(protectedAPI)
+
+	kubeHandler := kube.NewHandler(kubeService, accountService, taskProvisioner, repository)
+	kubeHandler.Register(protectedAPI)
 
 	authMiddleware := api.Middleware{
 		TokenService: jwtService,
-		UserService:  userService,
 	}
 	protectedAPI.Use(authMiddleware.AuthMiddleware, api.ContentTypeJSON)
 
@@ -256,4 +271,32 @@ func configureLogging(cfg *Config) {
 		return
 	}
 	logrus.SetLevel(l)
+}
+
+func ensureHelmRepositories(svc sghelm.Servicer) {
+	if svc == nil {
+		return
+	}
+
+	entries := []repo.Entry{
+		{
+			Name: "supergiant",
+			URL:  "https://supergiant.github.io/charts",
+		},
+		{
+			Name: "stable",
+			URL:  "https://kubernetes-charts.storage.googleapis.com",
+		},
+	}
+
+	for _, entry := range entries {
+		_, err := svc.CreateRepo(context.Background(), &entry)
+		if err != nil {
+			if !sgerrors.IsAlreadyExists(err) {
+				logrus.Errorf("failed to add %q helm repository: %v", entry.Name, err)
+			}
+			continue
+		}
+		logrus.Infof("helm repository has been added: %s", entry.Name)
+	}
 }

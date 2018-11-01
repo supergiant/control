@@ -1,80 +1,222 @@
-<div class="app-clusters-container">
-  <section class="app-context-header-panel">
-    <button type="button" class="back-button" (click)="goBack()"></button>
+<div class="cluster-details-wrapper">
 
-    <h1>
-      <i class="fa fa-server"></i> {{ kube?.name }}
-    </h1>
+  <ng-container *ngIf="kube?.state == 'provisioning' || kube?.state == 'failed'">
+    <h1>Creating "{{id}}"</h1>
+    <div class="task-overview">
+      <div class="masters task-group">
+        <div class="icon masters-icon">
 
-    <div class="context-secondary-panel">
-      <table class="table">
-        <thead>
-          <tr>
-            <th scope="col">Name</th>
-            <th scope="col">Cloud Account</th>
-            <th scope="col">
-              Master Node<span *ngIf="kube?.kube_master_count > 1">s</span>
-            </th>
-            <th scope="col">Master Public IP</th>
-          </tr>
-        </thead>
-        <tbody>
-          <tr>
-            <td>{{ kube?.name }}</td>
-            <td>{{ kube?.cloud_account_name }}</td>
-            <td>{{ kube?.master_node_size }} x{{ kube?.kube_master_count }}</td>
-            <td>{{ kube?.master_public_ip }}</td>
-          </tr>
-        </tbody>
-      </table>
+          <div [ngClass]="{
+            'complete': mastersStatus == 'complete',
+            'executing': mastersStatus == 'executing',
+            'failed': mastersStatus == 'failed' }">
+            <div class="spinner-outline"></div>
+            <mat-spinner [diameter]="148"></mat-spinner>
+            <div class="status"></div>
+          </div>
+
+        </div>
+        <h1 [ngClass]="{ 'failed': mastersStatus == 'failed' }">Master Nodes</h1>
+      </div>
+
+      <div class="nodes task-group">
+        <div class="icon nodes-icon">
+
+          <div [ngClass]="{
+            'complete': nodesStatus == 'complete',
+            'executing': nodesStatus == 'executing',
+            'queued': nodesStatus == 'queued',
+            'failed': nodesStatus == 'failed'}">
+            <div class="spinner-outline"></div>
+            <mat-spinner [diameter]="148"></mat-spinner>
+            <div class="status"></div>
+          </div>
+
+        </div>
+        <h1 [ngClass]="{
+          'queued': nodesStatus == 'queued',
+          'failed': nodesStatus == 'failed' }">Nodes</h1>
+      </div>
+
+      <div class="ready task-group">
+        <div class="icon ready-icon">
+
+          <div [ngClass]="{
+            'complete': readyStatus == 'complete',
+            'executing': readyStatus == 'executing',
+            'queued': readyStatus == 'queued',
+            'failed': readyStatus == 'failed'}">
+            <div class="spinner-outline"></div>
+            <mat-spinner [diameter]="148"></mat-spinner>
+            <div class="status"></div>
+          </div>
+
+        </div>
+        <h1 [ngClass]="{
+          'queued': readyStatus == 'queued',
+          'failed': readyStatus == 'failed'}">Ready</h1>
+      </div>
     </div>
-  </section>
 
-  <section>
-    <div style="width: 50%; float: left;">
-      <h2 align="center">CPU (Millicores)</h2>
-
-      <canvas baseChart width="600" height="300" [datasets]="cpuChartData" [labels]="cpuChartLabels" [legend]="cpuChartLegend" [options]="cpuChartOptions" [colors]="cpuChartColors" [chartType]="cpuChartType">
-      </canvas>
+    <div class="failed-message" *ngIf=" kube?.state == 'failed' ">
+      <p class="communication">Cluster provisioning has failed. Please check the table below and restart any failed tasks.</p>
     </div>
 
-    <div style="width: 50%; float: left;">
-      <h2 align="center">RAM (GB)</h2>
+    <div class="sg-table">
+      <h3>TASKS</h3>
 
-      <canvas baseChart width="600" height="300" [colors]="ramChartColors" [datasets]="ramChartData" [labels]="ramChartLabels" [options]="ramChartOptions" [chartType]="ramChartType">
-      </canvas>
+      <mat-table [dataSource]="tasks">
+        <ng-container matColumnDef="status">
+          <mat-header-cell *matHeaderCellDef>Status</mat-header-cell>
+          <mat-cell class="task-status" *matCellDef="let task">
+            <!-- what are the actual values for tasks? -->
+            <mat-spinner class="executing-spinner" *ngIf="task?.status == 'executing'" [diameter]="24"></mat-spinner>
+            <div class="ready-icon" *ngIf="task?.status == 'success'"></div>
+            <div class="failed-icon" *ngIf="task?.status == 'error'"></div>
+            <span style="padding-left: 12px;">{{ task.status | titlecase }}</span>
+            <button mat-raised-button *ngIf="task?.status == 'error'" class="secondary restart-task" (click)="restartTask(task.id)">
+              <span *ngIf="!task?.restarting">RESTART</span>
+              <mat-spinner class="restart-spinner" color="primary" *ngIf="task?.restarting" [diameter]="20"></mat-spinner>
+            </button>
+          </mat-cell>
+        </ng-container>
+
+        <ng-container matColumnDef="name">
+          <mat-header-cell *matHeaderCellDef>Name</mat-header-cell>
+          <mat-cell *matCellDef="let task">{{ task.name }}</mat-cell>
+        </ng-container>
+
+        <ng-container matColumnDef="type">
+          <mat-header-cell *matHeaderCellDef>Type</mat-header-cell>
+          <mat-cell *matCellDef="let task">{{ task.type }}</mat-cell>
+        </ng-container>
+
+        <ng-container matColumnDef="id">
+          <mat-header-cell *matHeaderCellDef>ID</mat-header-cell>
+          <mat-cell *matCellDef="let task">{{ task.id }}</mat-cell>
+        </ng-container>
+
+        <ng-container matColumnDef="steps">
+          <mat-header-cell class="small-cell" *matHeaderCellDef></mat-header-cell>
+          <mat-cell
+            class="small-cell"
+            *matCellDef="let task"
+            (click)="toggleSteps(task)"
+            [ngClass]="{ 'show-steps': task.id == expandedTaskId }">
+            <div class="steps-toggle"></div>
+          </mat-cell>
+        </ng-container>
+
+        <ng-container matColumnDef="logs">
+          <mat-header-cell class="small-cell" *matHeaderCellDef></mat-header-cell>
+          <mat-cell
+            class="small-cell"
+            *matCellDef="let task"
+            (click)="viewTaskLog(task.id)">
+            <div class="open-logs"></div>
+          </mat-cell>
+        </ng-container>
+
+        <ng-container matColumnDef="expandedDetail">
+          <mat-cell class="expanded-tasks" *matCellDef="let detail">
+            <p *ngFor="let step of detail.t.stepsStatuses">
+              {{ step.stepName }}
+              <span *ngIf=" step.status == 'executing' " class="saving"><span>.</span><span>.</span><span>.</span></span>
+              <span *ngIf=" step.status != 'executing' "> ...</span>
+              <span [ngClass]="{
+                'success': step.status == 'success',
+                'error': step.status == 'error',
+                'executing': step.status == 'executing' }">
+                {{ step.status }}
+              </span>
+              <span class="step-error-message" *ngIf=" step.status == 'error' ">{{ step.errorMessage }}</span>
+            </p>
+          </mat-cell>
+        </ng-container>
+
+        <mat-header-row *matHeaderRowDef="taskListColumns"></mat-header-row>
+        <mat-row *matRowDef="let row; columns: taskListColumns" [ngClass]="{ 'viewingSteps': row.showSteps }"></mat-row>
+        <mat-row class="detail-row" *matRowDef="let row; columns: ['expandedDetail']; when: expandRow"
+          [@detailExpand]="row.t.id == expandedTaskId ? 'expanded' : 'collapsed'"></mat-row>
+
+      </mat-table>
+      <!--
+        TODO need to figure out how to handle "hidden" expandable rows;
+        they are currently included in mat-paginator length count
+
+        https://github.com/angular/material2/issues/9052
+      -->
+      <mat-paginator [pageSizeOptions]="[5, 10, 25, 100]" [pageSize]="100" color="primary"></mat-paginator>
     </div>
+  </ng-container>
 
-    <div style="clear: both; height: 1px; width: 100%;"></div>
-  </section>
-  <!-- <b>Planets: ( Have your kube username and password handy from the "Raw Data tab")</b>
-    <ul class="nav flex-column nav-pills">
-      <li *ngFor="let planet of planets" class="nav-item">
-        <button class="btn btn-sm btn-outline-primary" (click)="planetName=planet.name; getIframeURL(planet.name)">{{ planet?.name }}</button>
-      </li>
-    </ul>
+  <ng-container *ngIf="kube?.state == 'operational'">
+    <app-usage-chart [name]="kube?.name"></app-usage-chart>
 
-  <div class="graph-container">
-    <iframe class="full" #iframe [src]="secureSrc" (load)="onIframeLoad()" frameborder="0" width="95%" height="1000px"></iframe>
-  </div> -->
-  <section>
-    <app-apps-list *ngIf="kube" [kube]="kube"></app-apps-list>
-  </section>
+    <div class="sg-table">
+      <h3>MACHINES</h3>
 
-  <section>
-    <app-nodes-list *ngIf="kube" [kube]="kube"></app-nodes-list>
-  </section>
+      <mat-table [dataSource]="machines"
+                 matSort
+                 matSortActive="role"
+                 matSortDirection="asc">
 
-  <section>
-    <app-pods-list *ngIf="kube" [kube]="kube"></app-pods-list>
-  </section>
+        <ng-container matColumnDef="state">
+          <mat-header-cell *matHeaderCellDef>State</mat-header-cell>
+          <mat-cell *matCellDef="let machine">
+            {{ machine.state | titlecase }}
+          </mat-cell>
+        </ng-container>
 
-  <section class="details-showmore">
-    <button mat-button color="primary" (click)="showRaw = !showRaw">Show/hide raw data</button>
+        <ng-container matColumnDef="name">
+          <mat-header-cell mat-sort-header
+                           *matHeaderCellDef>Name
+          </mat-header-cell>
+          <mat-cell *matCellDef="let machine">{{ machine.name }}</mat-cell>
+        </ng-container>
 
-    <div *ngIf="showRaw">
-      <h2>Raw Data</h2>
-      <ace-editor [(text)]="kubeString" mode="json" [readOnly]="true" style="height:500px;width:100%"></ace-editor>
+        <ng-container matColumnDef="role">
+          <mat-header-cell mat-sort-header
+                           *matHeaderCellDef>Role
+          </mat-header-cell>
+          <mat-cell *matCellDef="let machine">{{ machine.role | titlecase }}</mat-cell>
+        </ng-container>
+
+        <ng-container matColumnDef="id">
+          <mat-header-cell mat-sort-header
+                           *matHeaderCellDef>ID
+          </mat-header-cell>
+          <mat-cell *matCellDef="let machine">{{ machine.id }}</mat-cell>
+        </ng-container>
+
+        <ng-container matColumnDef="region">
+          <mat-header-cell mat-sort-header
+                           *matHeaderCellDef>Region
+          </mat-header-cell>
+          <mat-cell *matCellDef="let machine">{{ machine.region }}</mat-cell>
+        </ng-container>
+
+        <ng-container matColumnDef="publicIp">
+          <mat-header-cell mat-sort-header
+                           *matHeaderCellDef>Public IP
+          </mat-header-cell>
+          <mat-cell *matCellDef="let machine">
+            {{ machine.publicIp }}
+            <div></div>
+            <button (click)="removeNode(machine.name, $event)"
+                    mat-button>
+              <i class="fa fa-trash"
+                 aria-hidden="true"></i>
+            </button>
+          </mat-cell>
+        </ng-container>
+
+        <mat-header-row *matHeaderRowDef="machineListColumns"></mat-header-row>
+        <mat-row *matRowDef="let row; columns: machineListColumns"></mat-row>
+
+      </mat-table>
+      <mat-paginator [pageSizeOptions]="[5, 10, 25, 100]"
+                     color="primary"></mat-paginator>
     </div>
-  </section>
+  </ng-container>
 </div>

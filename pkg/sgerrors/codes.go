@@ -10,5 +10,11 @@ const (
 	InvalidJSON         ErrorCode = 1005
 	CantChangeID        ErrorCode = 1006
 	EntityAlreadyExists ErrorCode = 1007
-	TimeoutExceeded     ErrorCode = 1008
+	UnknownProvider     ErrorCode = 1008
+	UnsupportedProvider ErrorCode = 1009
+	NilValue            ErrorCode = 1010
+	TokenExpired        ErrorCode = 1011
+	AlreadyExists       ErrorCode = 1010
+	NilEntity           ErrorCode = 1011
+	TimeoutExceeded     ErrorCode = 1012
 )

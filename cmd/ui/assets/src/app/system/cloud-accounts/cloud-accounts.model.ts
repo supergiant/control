@@ -1,17 +1,23 @@
 // This is the only model that is pre-populated with providers given that the possibilities are known in advance
+// TODO: SO much duplicated data
 export class CloudAccountModel {
   aws = {
     'name' : 'AWS - Amazon Web Services',
     'model': {
+      'provider': 'aws',
       'credentials': {
         'access_key': '',
         'secret_key': ''
-      },
-      'name': '',
-      'provider': 'aws'
+      }
     },
     'schema': {
       'properties': {
+        'provider': {
+          'default': 'aws',
+          'description': 'AWS - Amazon Web Services',
+          'type': 'string',
+          'widget': 'hidden'
+        },
         'credentials': {
           'type': 'object',
           'properties': {
@@ -24,338 +30,118 @@ export class CloudAccountModel {
               'description': 'IAM user secret access key'
             }
           }
-        },
-        'name': {
-          'type': 'string',
-          'description': 'Choose a name for this cloud account'
-        },
-
-        'provider': {
-          'default': 'aws',
-          'description': 'AWS - Amazon Web Services',
-          'type': 'string',
-          'widget': 'hidden'
         }
       }
     },
     'layout': [
-      {
-        'title': 'Cloud Account Name',
-        'type': 'div',
-        'htmlClass': 'form-group-wrapper',
-        'items': [
-          {
-            'key': 'name',
-            'title': 'Name'
-          }
-        ]
-      },
-      {
-        'key': 'credentials',
-        'type': 'div',
-        'htmlClass': 'form-group-wrapper',
-        'items': [
-          { 'key': 'credentials.access_key' },
-          { 'key': 'credentials.secret_key' }
-        ]
-      },
-      {
-        'type': 'submit',
-        'title': 'Create'
-      }
+      { "key": "credentials.access_key", "placeholder": "Access Key" },
+      { "key": "credentials.secret_key", "placeholder": "Secret Key" },
+      { "type": "submit", "title": "CREATE" }
     ]
   };
 
   digitalocean = {
     'name' : 'Digital Ocean',
     'model': {
+      'provider': 'digitalocean',
       'credentials': {
-        'token': ''
-      },
-      'name': '',
-      'provider': 'digitalocean'
+        'accessToken': '',
+        'publicKey': ''
+      }
     },
     'schema': {
       'properties': {
-        'credentials': {
-          'type': 'object',
-          'properties': {
-            'token': {
-              'description': 'API Token',
-              'type': 'string'
-            }
-          }
-        },
-        'name': {
-          'description': 'Choose a name for this cloud account',
-          'type': 'string'
-        },
         'provider': {
           'default': 'digitalocean',
           'description': 'Digital Ocean',
           'type': 'string',
           'widget': 'hidden'
+        },
+        'credentials': {
+          'type': 'object',
+          'properties': {
+            'accessToken': {
+              'type': 'string',
+              'description': 'Access Token for your DO account'
+            },
+            'publicKey': {
+              'type': 'string',
+              'description': 'Your personal private key'
+            }
+          }
         }
       }
     },
     'layout': [
-      {
-        'title': 'Cloud Account Name',
-        'type': 'div',
-        'htmlClass': 'form-group-wrapper',
-        'items': [
-          {
-            'key': 'name',
-            'title': 'Name'
-          }
-        ]
-      },
-      {
-        'key': 'credentials',
-        'type': 'div',
-        'htmlClass': 'form-group-wrapper',
-        'items': [
-          { 'key': 'credentials.token' }
-        ]
-      },
-      {
-        'type': 'submit',
-        'title': 'Create'
-      }
+      { "key": "credentials.accessToken", "placeholder": "Access Token" },
+      { "type": "textarea", "key": "credentials.publicKey", "placeholder": "Public Key" },
+      { "type": "submit", "title": "CREATE" }
     ]
   };
 
   gce = {
     'name' : 'GCE - Google Compute Engine',
     'model': {
+      'provider': 'gce',
       'credentials': {
-        'service_account_key': ''
-      },
-      'name': '',
-      'provider': 'gce'
-    },
-    'schema': {
-      'properties': {
-        'credentials': {
-          'type': 'object',
-          'properties': {
-            'service_account_key': {
-              'description': 'Paste in your service account key (JSON) here.',
-              'type': 'string'
-            }
-          }
-        },
-        'name': {
-          'description': 'Choose a name for this cloud account',
-          'type': 'string'
-        },
-        'provider': {
-          'default': 'gce',
-          'description': 'GCE - Google Compute Engine',
-          'type': 'string',
-          'widget': 'hidden'
-        }
+        'service_account_key': 'Paste your Service Account Key here...'
       }
-    },
-    'layout': [
-      {
-        'title': 'Cloud Account Name',
-        'type': 'div',
-        'htmlClass': 'form-group-wrapper',
-        'items': [
-          {
-            'key': 'name',
-            'title': 'Name'
-          }
-        ]
-      },
-      {
-        'key': 'credentials',
-        'type': 'div',
-        'htmlClass': 'form-group-wrapper',
-        'items': [
-          {
-            'key': 'credentials.service_account_key',
-            'type': 'textarea',
-            'title': 'Service Account Key (JSON)'
-          }
-        ]
-      },
-      {
-        'type': 'submit',
-        'title': 'Create'
-      }
-    ]
+    }
   };
-
-  // openstack = {
-  //   'name' : 'OpenStack',
-  //   'model': {
-  //     'credentials': {
-  //       'domain_id': '',
-  //       'domain_name': '',
-  //       'identity_endpoint': '',
-  //       'password': '',
-  //       'tenant_id': '',
-  //       'username': ''
-  //     },
-  //     'name': '',
-  //     'provider': 'openstack'
-  //   },
-  //   'schema': {
-  //     'properties': {
-  //       'credentials': {
-  //         'type': 'object',
-  //         'properties': {
-  //           'domain_id': {
-  //             'description': 'Domain ID',
-  //             'type': 'string'
-  //           },
-  //           'domain_name': {
-  //             'description': 'Domain Name',
-  //             'type': 'string'
-  //           },
-  //           'identity_endpoint': {
-  //             'description': 'Identity Endpoint',
-  //             'type': 'string'
-  //           },
-  //           'password': {
-  //             'description': 'Password',
-  //             'type': 'string'
-  //           },
-  //           'tenant_id': {
-  //             'description': 'Tenant ID',
-  //             'type': 'string'
-  //           },
-  //           'username': {
-  //             'description': 'User Name',
-  //             'type': 'string'
-  //           }
-  //         }
-  //       },
-  //       'name': {
-  //         'description': 'Choose a name for this cloud account',
-  //         'type': 'string'
-  //       },
-  //       'provider': {
-  //         'default': 'openstack',
-  //         'description': 'OpenStack',
-  //         'type': 'string',
-  //         'widget': 'hidden'
-  //       }
-  //     }
-  //   },
-  //   'layout': [
-  //     {
-  //       'title': 'Cloud Account Name',
-  //       'type': 'div',
-  //       'htmlClass': 'form-group-wrapper',
-  //       'items': [
-  //         {
-  //           'key': 'name',
-  //           'title': 'Name'
-  //         }
-  //       ]
-  //     },
-  //     {
-  //       'key': 'credentials',
-  //       'type': 'div',
-  //       'htmlClass': 'form-group-wrapper',
-  //       'items': [
-  //         { 'key': 'credentials.username' },
-  //         { 'key': 'credentials.password' },
-  //         { 'key': 'credentials.domain_name' },
-  //         { 'key': 'credentials.domain_id' },
-  //         { 'key': 'credentials.identity_endpoint' },
-  //         { 'key': 'credentials.tenant_id' }
-  //       ]
-  //     },
-  //     {
-  //       'type': 'submit',
-  //       'title': 'Create'
-  //     }
-  //   ]
-  // };
 
   packet = {
     'name' : 'Packet.net',
     'model': {
+      'provider': 'packet',
       'credentials': {
         'api_token': ''
-      },
-      'name': '',
-      'provider': 'packet'
+      }
     },
     'schema': {
       'properties': {
-        'credentials': {
-          'type': 'object',
-          'properties': {
-            'api_token': {
-              'description': 'API Token',
-              'type': 'string'
-            }
-          }
-        },
-        'name': {
-          'description': 'Choose a name for this cloud account',
-          'type': 'string'
-        },
         'provider': {
           'default': 'packet',
           'description': 'Packet.net',
           'type': 'string',
           'widget': 'hidden'
+        },
+        'credentials': {
+          'type': 'object',
+          'properties': {
+            'api_token': {
+              'type': 'string',
+              'description': 'API Token for your Packet account'
+            }
+          }
         }
       }
     },
     'layout': [
-      {
-        'title': 'Cloud Account Name',
-        'type': 'div',
-        'htmlClass': 'form-group-wrapper',
-        'items': [
-          {
-            'key': 'name',
-            'title': 'Name'
-          }
-        ]
-      },
-      {
-        'key': 'credentials',
-        'type': 'div',
-        'htmlClass': 'form-group-wrapper',
-        'items': [
-          { 'key': 'credentials.api_token' }
-        ]
-      },
-      {
-        'type': 'submit',
-        'title': 'Create'
-      }
+      { "key": "credentials.api_token", "placeholder": "API Token" },
+      { "type": "submit", "title": "CREATE" }
     ]
   };
 
   public providers = [
     {
-      name: 'AWS - Amazon Web Services',
-      data: this.aws,
+      display: "AWS - Amazon Web Services",
+      name: "aws",
+      data: this.aws
     },
     {
-      name: 'Digital Ocean',
-      data: this.digitalocean,
+      display: "Digital Ocean",
+      name: "digitalocean",
+      data: this.digitalocean
     },
     {
-      name: 'GCE - Google Compute Engine',
-      data: this.gce,
+      display: "GCE - Google Compute Engine",
+      name: "gce",
+      data: this.gce
     },
-    // {
-    //   name: 'OpenStack',
-    //   data: this.openstack,
-    // },
     {
-      name: 'Packet.net',
-      data: this.packet,
-    },
-  ];
+      display: "Packet.net",
+      name: "packet",
+      data: this.packet
+    }
+  ]
 }

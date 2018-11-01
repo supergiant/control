@@ -1,7 +1,12 @@
 import { Component, OnInit, ViewEncapsulation } from '@angular/core';
-import { Subscription } from 'rxjs/Subscription';
+import { Subscription } from 'rxjs';
 import { Supergiant } from '../shared/supergiant/supergiant.service';
 import { convertIsoToHumanReadable } from '../shared/helpers/helpers';
+import { MatTableDataSource } from '@angular/material';
+
+// TEMPORARY
+import { AuthService } from '../shared/supergiant/auth/auth.service';
+import { Router } from '@angular/router';
 
 @Component({
   selector: 'app-dashboard',
@@ -11,10 +16,9 @@ import { convertIsoToHumanReadable } from '../shared/helpers/helpers';
 })
 export class DashboardComponent implements OnInit {
   public subscriptions = new Subscription();
-  public hasCloudAccount = false;
+  public cloudAccounts: any;
   public hasCluster = false;
   public hasApp = false;
-  public clusterCount = 0;
   public appCount = 0;
   public events: Array<any> = ['No Cluster Events (disabled in beta currently)'];
   public newses: Array<any> = ['No Recent News (disabled in beta currently)'];
@@ -59,6 +63,20 @@ export class DashboardComponent implements OnInit {
   ];
   public lineChartLegend: boolean = true;
   public lineChartType: string = 'line';
+
+  public clusters: any;
+
+  public clusterListView: string;
+
+  constructor(
+    private supergiant: Supergiant,
+    public auth: AuthService,
+    private router: Router
+  ) { }
+
+  setClusterListView(view) {
+    this.clusterListView = view;
+  }
 
   getKube(id) {
     this.subscriptions.add(this.supergiant.Kubes.get(id).subscribe(
@@ -107,26 +125,39 @@ export class DashboardComponent implements OnInit {
   getCloudAccounts() {
     this.subscriptions.add(this.supergiant.CloudAccounts.get().subscribe(
       (cloudAccounts) => {
-        if (Object.keys(cloudAccounts.items).length > 0) {
-          this.hasCloudAccount = true;
-        }
+        this.cloudAccounts = cloudAccounts;
       }));
   }
 
   getClusters() {
     this.subscriptions.add(this.supergiant.Kubes.get().subscribe(
-      (clusters) => {
-        if (Object.keys(clusters.items).length > 0) {
-          this.hasCluster = true;
-          this.lineChartData[0]['data'].length = 0;
-          this.lineChartData[0]['data'].length = 0;
-          for (const cluster of clusters.items) {
-            this.getKube(cluster.id);
-          }
-          this.clusterCount = Object.keys(clusters.items).length;
+      clusters => {
+        // TODO: this is terrible, fix after demo
+        clusters.map(c => c.dataSource = new MatTableDataSource([
+          {
+            state: c.state,
+            region: c.region,
+            accountName: c.accountName,
+            K8SVersion: c.K8SVersion,
+            masters: Object.keys(c.masters),
+            nodes: Object.keys(c.nodes),
+            operatingSystem: c.operatingSystem,
+            dockerVersion: c.dockerVersion,
+            helmVersion: c.helmVersion,
+            rbacEnabled: c.rbacEnabled,
+            arch: c.arch
+          }]));
+        this.clusters = clusters;
+        if (clusters.length > 5) {
+          this.clusterListView = "list"
+        } else {
+          this.clusterListView = "orb"
         }
-      }));
+     },
+    err => console.error(err)
+   ));
   }
+
   getDeployments() {
     this.subscriptions.add(this.supergiant.HelmReleases.get().subscribe(
       (deployments) => {
@@ -138,14 +169,15 @@ export class DashboardComponent implements OnInit {
     // this.hasApp = true;
   }
 
-  constructor(
-    private supergiant: Supergiant,
-  ) { }
+  logout() {
+    this.auth.logout();
+    this.router.navigate(['']);
+  }
 
   ngOnInit() {
     this.getCloudAccounts();
     this.getClusters();
-    this.getDeployments();
+    // this.getDeployments();
   }
 
 }

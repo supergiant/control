@@ -15,7 +15,7 @@ import (
 const StepName = "network"
 
 type Step struct {
-	scriptTemplate *template.Template
+	script *template.Template
 }
 
 func Init() {
@@ -24,12 +24,12 @@ func Init() {
 
 func New(tpl *template.Template) *Step {
 	return &Step{
-		scriptTemplate: tpl,
+		script: tpl,
 	}
 }
 
 func (t *Step) Run(ctx context.Context, out io.Writer, config *steps.Config) error {
-	err := steps.RunTemplate(context.Background(), t.scriptTemplate,
+	err := steps.RunTemplate(context.Background(), t.script,
 		config.Runner, out, config.NetworkConfig)
 	if err != nil {
 		return errors.Wrap(err, "configure network step")
@@ -40,6 +40,10 @@ func (t *Step) Run(ctx context.Context, out io.Writer, config *steps.Config) err
 
 func (t *Step) Name() string {
 	return StepName
+}
+
+func (s *Step) Rollback(context.Context, io.Writer, *steps.Config) error {
+	return nil
 }
 
 func (t *Step) Description() string {

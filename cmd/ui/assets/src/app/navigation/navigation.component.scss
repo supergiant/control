@@ -1,11 +1,19 @@
-$brand-color: rgb(102,0,102);
-$primary-color: rgb(220,0,130);
-$secondary-color: rgb(110,0,190);
+:host {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  width: 100%;
 
-div.app-nav-container {
-background-color: $brand-color;
-}
+  padding: 32px 49px;
 
-.dropdown-item:active {
-    background-color: #660066;
+  position: fixed;
+  top: 0;
+  left: 0;
+
+  background: rgba(0, 0, 0, 1);
+  z-index: 1000;
+
+  .logo {
+    width: 180px;
+  }
 }

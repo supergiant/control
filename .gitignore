@@ -19,3 +19,4 @@ config/config.json
 .vscode/
 .idea
 *.iml
+etcd-data

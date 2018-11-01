@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"context"
 	"io"
+	"io/ioutil"
 	"strings"
 	"testing"
 	"text/template"
@@ -11,6 +12,8 @@ import (
 	"github.com/pkg/errors"
 
 	"github.com/supergiant/supergiant/pkg/node"
+	"github.com/supergiant/supergiant/pkg/pki"
+	"github.com/supergiant/supergiant/pkg/profile"
 	"github.com/supergiant/supergiant/pkg/runner"
 	"github.com/supergiant/supergiant/pkg/templatemanager"
 	"github.com/supergiant/supergiant/pkg/workflows/steps"
@@ -53,26 +56,31 @@ func TestWriteCertificates(t *testing.T) {
 
 	output := new(bytes.Buffer)
 
-	cfg := steps.Config{
-		CertificatesConfig: steps.CertificatesConfig{
-			kubernetesConfigDir,
-			masterPrivateIP,
-			userName,
-			password,
-		},
-		MasterNodes: map[string]*node.Node{
-			"id": {
-				PrivateIp: "10.20.30.40",
-			},
-		},
-		Runner: r,
+	caPair, err := pki.NewCAPair(nil)
+
+	if err != nil {
+		t.Errorf("unexpected error creating PKI bundle %v", err)
 	}
 
+	cfg := steps.NewConfig("", "", "", profile.Profile{})
+	cfg.CertificatesConfig = steps.CertificatesConfig{
+		KubernetesConfigDir: kubernetesConfigDir,
+		MasterHost:          masterPrivateIP,
+		Username:            userName,
+		Password:            password,
+		CAKey:               string(caPair.CA.Key),
+		CACert:              string(caPair.CA.Cert),
+	}
+	cfg.Runner = r
+	cfg.AddMaster(&node.Node{
+		State:     node.StateActive,
+		PrivateIp: "10.20.30.40",
+	})
 	task := &Step{
 		tpl,
 	}
 
-	err = task.Run(context.Background(), output, &cfg)
+	err = task.Run(context.Background(), output, cfg)
 
 	if err != nil {
 		t.Errorf("Unpexpected error while  provision node %v", err)
@@ -88,6 +96,14 @@ func TestWriteCertificates(t *testing.T) {
 
 	if !strings.Contains(output.String(), password) {
 		t.Errorf("password %s not found in %s", password, output.String())
+	}
+
+	if !strings.Contains(output.String(), string(caPair.CA.Key)) {
+		t.Errorf("CA key not found in %s", output.String())
+	}
+
+	if !strings.Contains(output.String(), string(caPair.CA.Cert)) {
+		t.Errorf("CA cert not found in %s", output.String())
 	}
 }
 
@@ -105,17 +121,13 @@ func TestWriteCertificatesError(t *testing.T) {
 		proxyTemplate,
 	}
 
-	cfg := steps.Config{
-		CertificatesConfig: steps.CertificatesConfig{},
-		MasterNodes: map[string]*node.Node{
-			"id": {
-				PrivateIp: "10.20.30.40",
-			},
-		},
-		Runner: r,
-	}
-
-	err = task.Run(context.Background(), output, &cfg)
+	cfg := steps.NewConfig("", "", "", profile.Profile{})
+	cfg.Runner = r
+	cfg.AddMaster(&node.Node{
+		State:     node.StateActive,
+		PrivateIp: "10.20.30.40",
+	})
+	err = task.Run(context.Background(), output, cfg)
 
 	if err == nil {
 		t.Errorf("Error must not be nil")
@@ -124,5 +136,49 @@ func TestWriteCertificatesError(t *testing.T) {
 
 	if !strings.Contains(err.Error(), errMsg) {
 		t.Errorf("Error message expected to contain %s actual %s", errMsg, err.Error())
+	}
+}
+
+func TestStepName(t *testing.T) {
+	s := Step{}
+
+	if s.Name() != StepName {
+		t.Errorf("Unexpected step name expected %s actual %s", StepName, s.Name())
+	}
+}
+
+func TestDepends(t *testing.T) {
+	s := Step{}
+
+	if len(s.Depends()) != 0 {
+		t.Errorf("Wrong dependency list %v expected %v", s.Depends(), []string{})
+	}
+}
+
+func TestStep_Rollback(t *testing.T) {
+	s := Step{}
+	err := s.Rollback(context.Background(), ioutil.Discard, &steps.Config{})
+
+	if err != nil {
+		t.Errorf("unexpected error while rollback %v", err)
+	}
+}
+
+func TestNew(t *testing.T) {
+	tpl := template.New("test")
+	s := New(tpl)
+
+	if s.script != tpl {
+		t.Errorf("Wrong template expected %v actual %v", tpl, s.script)
+	}
+}
+
+func TestInit(t *testing.T) {
+	Init()
+
+	s := steps.GetStep(StepName)
+
+	if s == nil {
+		t.Error("Step not found")
 	}
 }

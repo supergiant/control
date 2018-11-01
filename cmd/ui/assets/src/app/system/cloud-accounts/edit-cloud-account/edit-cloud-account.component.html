@@ -1,3 +1,43 @@
-<p>
-  edit-cloud-account works!
-</p>
+<div class="edit-cloud-account-wrapper">
+
+  <h1>Edit "{{ accountName }}"</h1>
+
+  <div class="inputs-wrapper">
+    <ng-container *ngIf=" account?.provider == 'aws' ">
+    <h3>AMAZON WEB SERVICES (AWS)</h3>
+      <mat-form-field>
+        <input matInput type="text" placeholder="Access Key" [(ngModel)]="account.credentials.access_key">
+        <mat-hint align="end">Access Key for {{ accountName }}</mat-hint>
+      </mat-form-field>
+
+      <mat-form-field>
+        <input matInput type="text" placeholder="Secret Key" [(ngModel)]="account.credentials.secret_key">
+        <mat-hint align="end">Secret Key for {{ accountName }}</mat-hint>
+      </mat-form-field>
+    </ng-container>
+
+    <ng-container *ngIf=" account?.provider == 'digitalocean' ">
+    <h3>DIGITAL OCEAN</h3>
+      <mat-form-field>
+        <input matInput type="text" placeholder="Access Token" [(ngModel)]="account.credentials.accessToken">
+        <mat-hint align="end">Access Token for {{ accountName }}</mat-hint>
+      </mat-form-field>
+
+      <mat-form-field>
+        <textarea matInput rows="14" placeholder="Public Key" [(ngModel)]="account.credentials.publicKey"></textarea>
+        <mat-hint align="end">Public Key for {{ accountName }}</mat-hint>
+      </mat-form-field>
+    </ng-container>
+
+
+    <div class="actions">
+      <button mat-button class="secondary" (click)="cancel()">CANCEL</button>
+      <button mat-raised-button color="primary" (click)="editAccount(account)">
+        <ng-container *ngIf="!saving">SAVE</ng-container>
+        <ng-container *ngIf="saving">
+          <mat-spinner [diameter]="24"></mat-spinner>
+        </ng-container>
+      </button>
+    </div>
+  </div>
+</div>

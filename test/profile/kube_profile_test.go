@@ -10,6 +10,7 @@ import (
 	"github.com/coreos/etcd/clientv3"
 
 	"github.com/supergiant/supergiant/pkg/profile"
+	"github.com/supergiant/supergiant/pkg/sgerrors"
 	"github.com/supergiant/supergiant/pkg/storage"
 	"github.com/supergiant/supergiant/pkg/testutils/assert"
 )
@@ -27,7 +28,7 @@ func init() {
 	}
 }
 
-func TestKubeProfileGet(t *testing.T) {
+func TestProfileGet(t *testing.T) {
 	kv := storage.NewETCDRepository(defaultConfig)
 
 	testCases := []struct {
@@ -42,7 +43,7 @@ func TestKubeProfileGet(t *testing.T) {
 		},
 		{
 			data: nil,
-			err:  storage.ErrKeyNotFound,
+			err:  sgerrors.ErrNotFound,
 		},
 	}
 
@@ -53,7 +54,7 @@ func TestKubeProfileGet(t *testing.T) {
 			kv.Put(context.Background(), prefix, testCase.expectedId, testCase.data)
 		}
 
-		service := profile.NewKubeProfileService(prefix, kv)
+		service := profile.NewService(prefix, kv)
 		ctx, cancel := context.WithTimeout(context.Background(), 3*time.Second)
 		defer cancel()
 
@@ -72,16 +73,16 @@ func TestKubeProfileGet(t *testing.T) {
 
 func TestKubeProfileCreate(t *testing.T) {
 	kv := storage.NewETCDRepository(defaultConfig)
-	prefix := "/kube/"
+	prefix := "/profile/"
 	key := "key"
 	version := "1.8.7"
 
-	kube := &profile.KubeProfile{
-		ID:                key,
-		KubernetesVersion: version,
+	kube := &profile.Profile{
+		ID:         key,
+		K8SVersion: version,
 	}
 
-	service := profile.NewKubeProfileService(prefix, kv)
+	service := profile.NewService(prefix, kv)
 	ctx, cancel := context.WithTimeout(context.Background(), 3*time.Second)
 	defer cancel()
 
@@ -97,24 +98,24 @@ func TestKubeProfileCreate(t *testing.T) {
 		t.Errorf("Unexpected error while getting kube profile %v", err)
 	}
 
-	if kube.ID != key || kube.KubernetesVersion != kube2.KubernetesVersion {
+	if kube.ID != key || kube.K8SVersion != kube2.K8SVersion {
 		t.Errorf("Wrong data in etcd")
 	}
 }
 
 func TestKubeProfileGetAll(t *testing.T) {
 	kv := storage.NewETCDRepository(defaultConfig)
-	prefix := "/kube/"
+	prefix := "/profile/"
 	key := "key"
 	version := "1.8.7"
 
-	service := profile.NewKubeProfileService(prefix, kv)
+	service := profile.NewService(prefix, kv)
 	ctx, cancel := context.WithTimeout(context.Background(), 3*time.Second)
 	defer cancel()
 
-	kube := &profile.KubeProfile{
-		ID:                key,
-		KubernetesVersion: version,
+	kube := &profile.Profile{
+		ID:         key,
+		K8SVersion: version,
 	}
 
 	err := service.Create(ctx, kube)

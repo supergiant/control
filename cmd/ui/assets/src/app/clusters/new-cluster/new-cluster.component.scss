@@ -1,18 +1,190 @@
-button[mat-button] {
-    margin: 5px;
-}
+.new-clusters-wrapper {
+	margin-top: 7px;
 
-.form-wrapper {
-	margin: 0 auto;
-	width: 50%;
-
-	button[type="submit"] {
-		font-size: 1.3em;
-		width: 100%;
+	h1 {
+		margin-bottom: 18px;
 	}
 
-	// remove nasty box-shadow from "add" button on json schema array-type
-	section:last-of-type {
-		box-shadow: none;
+	.mat-stepper-horizontal {
+		background-color: rgba(0,0,0,0.5);
+		border: 1px solid rgba(255,255,255,0.25);
+
+		.step-actions {
+			display: flex;
+			margin-top: 30px;
+
+			button {
+				margin-left: 24px;
+
+				&:nth-of-type(1) {
+					margin-left: 0px;
+				}
+			}
+		}
+
+		.name-and-cloud-account {
+			display: flex;
+			flex-direction: column;
+			width: 320px;
+		}
+
+		.cluster-config-form {
+			display: flex;
+			justify-content: flex-start;
+
+			.input-group {
+				display: flex;
+				flex-direction: column;
+				margin-left: 100px;
+				width: 400px;
+
+				&:nth-of-type(1) {
+					margin-left: 0px;
+				}
+			}
+		}
+
+		.aws-config {
+			display: flex;
+			justify-content: flex-start;
+
+			.input-group {
+				display: flex;
+				flex-direction: column;
+				margin-left: 100px;
+				width: 400px;
+
+				&:nth-of-type(1) {
+					margin-left: 0px;
+				}
+			}
+		}
+
+		.machine-config-step {
+			display: flex;
+			flex-direction: column;
+			width: 500px;
+
+			.machine {
+				display: flex;
+				justify-content: space-between;
+
+				.type {
+					width: 240px;
+				}
+
+				.role {
+					width: 123px;
+				}
+
+				.quantity {
+					width: 30px;
+				}
+
+				.delete {
+					background: url(/assets/img/delete.svg) no-repeat;
+					background-size: 100% 100%;
+					background-position: center;
+					cursor: pointer;
+					display: inline-block;
+					margin: auto 0;
+					height: 25px;
+					width: 25px;
+
+					&:active {
+						transform: scale(0.95, 0.95);
+					}
+				}
+			}
+
+			.add-machines {
+				cursor: pointer;
+				display: flex;
+				width: max-content;
+
+				&:active {
+					transform: scale(0.95, 0.95);
+				}
+
+				.plus {
+					background: url(/assets/img/plus.svg) no-repeat;
+					background-size: 100% 100%;
+					background-position: center;
+					margin: auto 0;
+					height: 20px;
+					width: 20px;
+				}
+
+				.add-label {
+					font-size: 14px;
+					font-weight: 300;
+					padding-left: 12px;
+				}
+			}
+		}
+
+		.review-wrapper {
+
+			.steps {
+				display: flex;
+				justify-content: space-around;
+
+				.label {
+					color: #d10088;
+					font-family: "Montserrat", sans-serif;
+					font-size: 14px;
+				}
+			}
+
+			.action-buttons-wrapper {
+				display: flex;
+				justify-content: flex-end;
+
+				button {
+					margin-right: 24px;
+
+					&:last-of-type {
+						margin-right: 0px;
+					}
+				}
+
+				.create {
+					min-width: 112px;
+				}
+
+				.mat-spinner {
+          margin: 6px auto;
+
+          circle {
+            stroke: #fff;
+          }
+        }
+			}
+		}
+	}
+
+	.no-cloud-accounts {
+	  align-items: center;
+	  background-color: rgba(0, 0, 0, 0.5);
+	  border: 1px solid rgba(255, 255, 255, 0.25);
+	  display: flex;
+	  flex-direction: column;
+	  margin: 24px auto 0;
+	  padding: 24px 0px;
+	  width: 956px;
+
+	  h2 {
+	    font-family: "Montserrat", sans-serif;
+	    font-size: 32px;
+	    font-weight: 200;
+	    margin-bottom: 24px;
+	  }
+
+	  p {
+	    font-size: 18px;
+	    font-weight: 200;
+	    margin-bottom: 24px;
+	  }
+
 	}
 }

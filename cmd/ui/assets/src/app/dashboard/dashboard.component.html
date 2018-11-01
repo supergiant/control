@@ -1,184 +1,69 @@
-<div class="app-main">
-  <main class="app-context">
-    <div class="app-context-content" *ngIf="hasCluster && hasCloudAccount && hasApp">
-      <!-- <router-outlet name="primary"></router-outlet> -->
-      <div class="app-dashboard-container">
-        <section class="app-dashboard-primary">
-          <div class="row">
-            <div class="col-12">
-              <div class="app-context-header-panel">
-                <h2>Cluster Status History</h2>
-              </div>
-            </div>
-          </div>
+<div class="dashboard-wrapper">
+  <div class="no-clusters" *ngIf="clusters?.length == 0 && cloudAccounts?.length != 0">
+    <div class="providers"></div>
 
-          <div class="row">
-            <div class="col-12">
-              <canvas baseChart width="800" height="200" [datasets]="lineChartData" [labels]="lineChartLabels" [options]="lineChartOptions" [colors]="lineChartColors" [legend]="lineChartLegend" [chartType]="lineChartType">
-              </canvas>
-            </div>
-          </div>
+    <div class="communication">
+      <h1 class="headline">Welcome to Supergiant.</h1>
+      <p class="description">You're minutes away from your very own highly configurable Kubernetes cluster. What are you waiting for?</p>
+      <button mat-raised-button [routerLink]="['/clusters/new']" type="button">SPIN UP</button>
+    </div>
+  </div>
 
-          <div class="row">
-            <div class="col-6 text-center">
-              <a [routerLink]="['/apps']" class="quickstatus">
-                <span class="quickstatus-label">Apps</span>
-                <span class="quickstatus-data">{{ appCount }}</span>
-              </a>
-            </div>
+  <div class="empty-cloud-accounts" *ngIf="cloudAccounts?.length == 0">
+    <div class="providers"></div>
 
-            <div class="col-6 text-center">
-              <a [routerLink]="['/clusters']" class="quickstatus">
-                <span class="quickstatus-label">Clusters</span>
-                <span class="quickstatus-data">{{ clusterCount }}</span>
-              </a>
-            </div>
-          </div>
-        </section>
+    <div class="communication">
+      <h1 class="headline">Welcome to Supergiant.</h1>
+      <p class="description">Link an AWS, Digital Ocean, Openstack or Google Cloud account and have a Supergiant cluster up in minutes</p>
+      <button mat-raised-button [routerLink]="['/system/cloud-accounts/new']" type="button">LINK AN ACCOUNT</button>
+    </div>
+  </div>
+
+  <div *ngIf="clusters?.length != 0 && cloudAccounts?.length != 0" class="clusters-wrapper">
+    <div class="cluster-list-views">
+      <!-- orb view -->
+      <svg (click)="setClusterListView('orb')" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24">
+        <defs>
+          <style>.a,.b{fill:none;}.b{opacity:0.87;}.c{fill:#d10088;}.d{fill:#fff;}</style>
+        </defs>
+        <g transform="translate(-1254 -101)">
+          <g transform="translate(1254 101)">
+            <path class="a" d="M0,0H24V24H0Z"/>
+            <path class="b" d="M0,0H24V24H0Z"/>
+          </g>
+          <path [ngClass]="{ 'c': clusterListView == 'orb', 'd': clusterListView == 'list' }" d="M2,18H7V13H2Zm0-7H7V6H2Zm0,7H7V13H2Zm0-7H7V6H2Z" transform="translate(1266 101)"/>
+          <path [ngClass]="{ 'c': clusterListView == 'orb', 'd': clusterListView == 'list' }" d="M2,18H7V13H2Zm0-7H7V6H2Zm0,7H7V13H2Zm0-7H7V6H2Z" transform="translate(1257 101)"/>
+        </g>
+      </svg>
+      <!-- list view icon -->
+      <svg (click)="setClusterListView('list')" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24">
+        <defs>
+          <style>.a,.b{fill:none;}.b{opacity:0.87;}.c{fill:#d10088;}.d{fill:#fff;}</style>
+        </defs>
+        <g transform="translate(-1294 -101)">
+          <g transform="translate(1294 101)">
+            <path class="a" d="M0,0H24V24H0Z"/>
+            <path class="b" d="M0,0H24V24H0Z"/>
+          </g>
+          <path [ngClass]="{ 'c': clusterListView == 'list', 'd': clusterListView == 'orb' }" d="M4,13H20V11H4Zm0,5H20V16H4ZM4,6V8H20V6Zm0,7H20V11H4Zm0,5H20V16H4ZM4,6V8H20V6Z" transform="translate(1294 101)"/>
+        </g>
+      </svg>
+    </div>
+
+    <div class="cluster-list-wrapper">
+      <div class="orbs-wrapper" *ngIf="clusterListView == 'orb'">
+        <usage-orb *ngFor="let c of clusters" [cluster]="c"></usage-orb>
+      </div>
+
+      <div class="list-wrapper" *ngIf="clusterListView == 'list'">
+        <cluster-table *ngFor="let c of clusters" [cluster]="c"></cluster-table>
       </div>
     </div>
-  </main>
+  </div>
 
-  <input class="app-assist-toggle-status" id="app-assist-toggle-status" type="checkbox" autocomplete="off">
-
-  <aside class="app-assist">
-    <div class="app-assist-content">
-      <router-outlet name="tutorial"></router-outlet>
-    </div>
-  </aside>
+  <div *ngIf="clusters?.length != 0 && cloudAccounts?.length != 0" class="home-actions">
+    <button mat-raised-button [routerLink]="['/system/cloud-accounts/new']" type="button">LINK AN ACCOUNT</button>
+    <button mat-raised-button [routerLink]="['/clusters/new']" type="button">SPIN UP A CLUSTER</button>
+    <button mat-raised-button [routerLink]="['/apps/supergiant']" type="button">DEPLOY AN APP</button>
+  </div>
 </div>
-
-<aside *ngIf="!hasApp" class="app-dashboard-tutorial">
-  <input name="tutorial-steps" type="radio" value="cloudaccount" id="tutorial-steps-cloudaccount" [checked]="!hasCloudAccount">
-  <input name="tutorial-steps" type="radio" value="cluster" id="tutorial-steps-cluster" [checked]="hasCloudAccount && !hasCluster">
-  <input name="tutorial-steps" type="radio" value="app" id="tutorial-steps-app" [checked]="hasCloudAccount && hasCluster && !hasApp">
-
-  <style type="text/css">
-    #tutorial-steps-cloudaccount:checked~.tutorial-primary ul {
-      left: 0;
-    }
-
-    #tutorial-steps-cloudaccount:checked~.tutorial-primary li.tutorial-step-cloudaccount {
-      opacity: 1;
-      filter: none;
-      pointer-events: all;
-    }
-
-    #tutorial-steps-cloudaccount:checked~.tutorial-primary li.tutorial-step-cloudaccount label {
-      display: block;
-    }
-
-    #tutorial-steps-cluster:checked~.tutorial-primary ul {
-      left: -59.333%;
-    }
-
-    #tutorial-steps-cluster:checked~.tutorial-primary li.tutorial-step-cluster {
-      opacity: 1;
-      filter: none;
-      pointer-events: all;
-    }
-
-    #tutorial-steps-cluster:checked~.tutorial-primary li.tutorial-step-cluster label {
-      display: block;
-    }
-
-    #tutorial-steps-app:checked~.tutorial-primary ul {
-      left: -118.666%;
-    }
-
-    #tutorial-steps-app:checked~.tutorial-primary li.tutorial-step-app {
-      opacity: 1;
-      filter: none;
-      pointer-events: all;
-    }
-
-    #tutorial-steps-app:checked~.tutorial-primary li.tutorial-step-app label {
-      display: block;
-    }
-  </style>
-
-  <header class="tutorial-primary">
-    <h2>Welcome to Your Dashboard</h2>
-
-    <ul class="tutorial-primary-steps">
-      <li class="tutorial-step-cloudaccount">
-        <p class="lead">First step: add a <b>Cloud Account</b></p>
-          <a mat-raised-button color="primary" [routerLink]="['/system/cloud-accounts']">
-            <p>Take me to <b>Cloud Accounts</b></p>
-          </a>
-        <label class="tutorial-step-previous" for="tutorial-steps-app">Previous</label>
-        <label class="tutorial-step-next" for="tutorial-steps-cluster">>Next</label>
-      </li>
-
-      <li class="tutorial-step-cluster">
-        <p class="lead">Next step: launch a <b>Cluster</b></p>
-          <a mat-raised-button color="primary" [routerLink]="['/clusters']">
-            <p>Take me to <b>Clusters</b></p>
-          </a>
-        <label class="tutorial-step-previous" for="tutorial-steps-cloudaccount">Previous</label>
-        <label class="tutorial-step-next" for="tutorial-steps-app">Next</label>
-      </li>
-
-      <li class="tutorial-step-app">
-        <p class="lead">Next step: launch an <b>App</b></p>
-          <a mat-raised-button color="primary" [routerLink]="['/apps']">
-            <p>Take me to <b>Apps</b></p>
-          </a>
-        <label class="tutorial-step-previous" for="tutorial-steps-cluster">Previous</label>
-        <label class="tutorial-step-next" for="tutorial-steps-cloudaccount">Next</label>
-      </li>
-    </ul>
-  </header>
-
-  <footer class="tutorial-secondary">
-    <section>
-      <h4>Quick Start</h4>
-
-      <ul class="tutorial-secondary-steps">
-        <li>
-          <a [routerLink]="['/system/cloud-accounts/new']">
-            Add a<br>
-            <b>Cloud Account</b><br>
-            <i class="fa fa-cloud fa-3x"></i>
-          </a>
-        </li>
-
-        <li>
-          <a [routerLink]="['/clusters/new']">
-            Launch a<br>
-            <b>Cluster</b><br>
-            <i class="fa fa-server fa-3x"></i>
-          </a>
-        </li>
-
-        <li>
-          <a [routerLink]="['/apps']">
-            Launch an<br>
-            <b>App</b><br>
-            <i class="fa fa-puzzle-piece fa-3x"></i>
-          </a>
-        </li>
-      </ul>
-    </section>
-
-    <section>
-      <h4 class="more-headline">More</h4>
-
-      <ul class="tutorial-secondary-steps">
-        <li>
-          <a [routerLink]="['/system/users']">
-            <i class="fa fa-key"></i>
-            Manage Users &amp; Keys
-          </a>
-        </li>
-
-        <li>
-          <a [routerLink]="['/system/main']">
-            <i class="fa fa-link"></i>
-            Add an App or Helm Repo
-          </a>
-        </li>
-      </ul>
-    </section>
-  </footer>
-</aside>

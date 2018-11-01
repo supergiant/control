@@ -3,14 +3,12 @@ package tiller
 import (
 	"context"
 	"io"
-
 	"text/template"
 
 	"github.com/pkg/errors"
 
-	"github.com/supergiant/supergiant/pkg/workflows/steps"
-
 	tm "github.com/supergiant/supergiant/pkg/templatemanager"
+	"github.com/supergiant/supergiant/pkg/workflows/steps"
 	"github.com/supergiant/supergiant/pkg/workflows/steps/poststart"
 )
 
@@ -46,6 +44,10 @@ func (j *Step) Run(ctx context.Context, out io.Writer, config *steps.Config) err
 
 func (s *Step) Name() string {
 	return StepName
+}
+
+func (s *Step) Rollback(context.Context, io.Writer, *steps.Config) error {
+	return nil
 }
 
 func (s *Step) Description() string {

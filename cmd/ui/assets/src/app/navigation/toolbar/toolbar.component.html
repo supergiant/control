@@ -1,0 +1,18 @@
+<mat-toolbar>
+  <span class="item"
+        routerLink="/dashboard"
+        routerLinkActive="active">
+    <span>HOME</span>
+  </span>
+  <span class="item cluster-list"
+        (click)="openClusterList($event)">
+    <span>CLUSTERS</span>
+    <i class="fa fa-angle-down open-list"></i>
+  </span>
+
+  <span class="item"
+        routerLink="/apps"
+        routerLinkActive="active">
+    <span>APPS</span>
+  </span>
+</mat-toolbar>

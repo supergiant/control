@@ -14,7 +14,7 @@ import (
 const StepName = "download_kubernetes_binary"
 
 type Step struct {
-	scriptTemplate *template.Template
+	script *template.Template
 }
 
 func Init() {
@@ -23,17 +23,21 @@ func Init() {
 
 func New(tpl *template.Template) *Step {
 	return &Step{
-		scriptTemplate: tpl,
+		script: tpl,
 	}
 }
 
 func (s *Step) Run(ctx context.Context, out io.Writer, config *steps.Config) error {
-	err := steps.RunTemplate(context.Background(), s.scriptTemplate,
+	err := steps.RunTemplate(context.Background(), s.script,
 		config.Runner, out, config.DownloadK8sBinary)
 	if err != nil {
 		return errors.Wrap(err, "download k8s binary step")
 	}
 
+	return nil
+}
+
+func (s *Step) Rollback(context.Context, io.Writer, *steps.Config) error {
 	return nil
 }
 

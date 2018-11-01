@@ -1,41 +1,313 @@
-<div class="app-clusters-container">
-  <section class="app-clusters-new">
+<div class="new-clusters-wrapper">
+  <h1>Create Kubernetes Cluster</h1>
 
-    <header class="app-context-header-panel">
-      <button *ngIf="schema" type="button" class="back-button" (click)="back()"></button>
-      <button *ngIf="!schema" type="button" class="back-button" [routerLink]="['/clusters']"></button>
+  <mat-horizontal-stepper *ngIf="availableCloudAccounts?.length > 0" [linear]="true" #stepper>
 
-      <h2><i class="fa fa-server"></i> Create a Cluster<span *ngIf="schema">: {{ data.cloud_account_name }}</span></h2>
-    </header>
+    <!--
+    TODO:
+      - material considers a step "done" when all fields are completed and *NOT* editable;
+        if complete and editable it shows "edit" icon
+      - we should consider manually overriding the icons to remove the non-editable requirement for "done" state
+      - https://github.com/angular/material2/issues/8997
+    -->
+    <mat-step label="Name and Cloud Account">
+      <div class="name-and-cloud-account">
+        <mat-form-field>
+          <input matInput type="text" [(ngModel)]="clusterName" placeholder="Cluster name" autofocus="true">
+        </mat-form-field>
 
-    <div *ngIf="hasCloudAccount">
-      <h3 *ngIf="!schema">Select a Cloud Account</h3>
+        <mat-form-field>
+          <mat-select placeholder="Choose a cloud account" [(value)]="selectedCloudAccount" (selectionChange)="selectCloudAccount($event.value)">
+            <mat-option *ngFor="let account of availableCloudAccounts" [value]="account">{{ account.name }}</mat-option>
+          </mat-select>
+        </mat-form-field>
 
-      <div *ngIf="!schema">
-        <button mat-button color="primary" *ngFor="let cloudAccount of cloudAccountsList" (click)="sendChoice(cloudAccount)">{{ cloudAccount.name }}</button>
+        <div class="step-actions">
+          <!-- <button mat-raised-button class="secondary">LOAD PROFILE</button> -->
+          <button mat-raised-button class="secondary" matStepperNext>NEXT</button>
+        </div>
+      </div>
+    </mat-step>
+
+    <mat-step label="Cluster Configuration" [stepControl]="clusterConfig">
+      <form [formGroup]="clusterConfig" class="cluster-config-form">
+        <div class="input-group">
+
+          <mat-form-field>
+            <mat-select placeholder="K8s Version" formControlName="K8sVersion">
+              <mat-option *ngFor="let k of clusterOptions.K8sVersions" [value]="k">{{ k }}</mat-option>
+            </mat-select>
+          </mat-form-field>
+
+          <mat-form-field>
+            <mat-select placeholder="Flannel Version" formControlName="flannelVersion">
+              <mat-option *ngFor="let f of clusterOptions.flannelVersions" [value]="f">{{ f }}</mat-option>
+            </mat-select>
+          </mat-form-field>
+
+          <mat-form-field>
+            <mat-select placeholder="Helm Version" formControlName="helmVersion">
+              <mat-option *ngFor="let h of clusterOptions.helmVersions" [value]="h">{{ h }}</mat-option>
+            </mat-select>
+          </mat-form-field>
+
+          <mat-form-field>
+            <mat-select placeholder="Docker Version" formControlName="dockerVersion">
+              <mat-option *ngFor="let d of clusterOptions.dockerVersions" [value]="d">{{ d }}</mat-option>
+            </mat-select>
+          </mat-form-field>
+
+          <mat-form-field>
+            <mat-select placeholder="Ubuntu Version" formControlName="ubuntuVersion">
+              <mat-option *ngFor="let u of clusterOptions.ubuntuVersions" [value]="u">{{ u }}</mat-option>
+            </mat-select>
+          </mat-form-field>
+        </div>
+
+        <div class="input-group">
+          <mat-form-field>
+            <mat-select placeholder="Network Type" formControlName="networkType">
+              <mat-option *ngFor="let n of clusterOptions.networkTypes" [value]="n">{{ n }}</mat-option>
+            </mat-select>
+          </mat-form-field>
+
+          <mat-form-field>
+            <input matInput placeholder="cidr" type="text" formControlName="cidr">
+          </mat-form-field>
+
+          <mat-form-field>
+            <mat-select placeholder="Operating System" formControlName="operatingSystem">
+              <mat-option *ngFor="let os of clusterOptions.operatingSystems" [value]="os">{{ os }}</mat-option>
+            </mat-select>
+          </mat-form-field>
+
+          <mat-form-field>
+            <mat-select placeholder="Arch" formControlName="arch">
+              <mat-option *ngFor="let a of clusterOptions.archs" [value]="a">{{ a }}</mat-option>
+            </mat-select>
+          </mat-form-field>
+
+          <mat-form-field>
+            <mat-select placeholder="RBAC Enabled" formControlName="rbacEnabled">
+              <mat-option *ngFor="let b of clusterOptions.rbacEnabled" [value]="b">{{ b }}</mat-option>
+            </mat-select>
+          </mat-form-field>
+        </div>
+      </form>
+
+      <div class="step-actions">
+        <button mat-raised-button class="secondary" matStepperPrevious>BACK</button>
+        <button mat-raised-button class="secondary" matStepperNext>NEXT</button>
+      </div>
+    </mat-step>
+
+    <mat-step label="Provider Configuration" [stepControl]="providerConfig">
+      <!-- digital ocean -->
+      <ng-container *ngIf="selectedCloudAccount?.provider == 'digitalocean'">
+        <form [formGroup]="providerConfig">
+          <mat-form-field>
+            <mat-select placeholder="Select a Region" formControlName="region" (selectionChange)="selectRegion($event.value)">
+              <mat-option *ngFor="let r of availableRegions?.regions" [value]="r">{{ r.name }}</mat-option>
+            </mat-select>
+          </mat-form-field>
+        </form>
+      </ng-container>
+
+      <!-- aws -->
+      <ng-container *ngIf="selectedCloudAccount?.provider == 'aws'">
+        <form [formGroup]="providerConfig" class="aws-config">
+          <div class="input-group">
+            <mat-form-field>
+              <mat-select placeholder="Select a Region" formControlName="region" (selectionChange)="selectRegion($event.value)">
+                <mat-option *ngFor="let r of availableRegions?.regions" [value]="r">{{ r.name }}</mat-option>
+              </mat-select>
+            </mat-form-field>
+
+            <mat-form-field>
+              <mat-select [disabled]="!availabilityZones" placeholder="Select an Availability Zone" formControlName="availabilityZone" (selectionChange)="selectAz($event.value)">
+                <mat-option *ngFor="let a of availabilityZones" [value]="a">{{ a }}</mat-option>
+              </mat-select>
+            </mat-form-field>
+
+            <mat-form-field>
+              <input matInput type="text" formControlName="vpcId" placeholder="VPC ID">
+            </mat-form-field>
+
+            <mat-form-field>
+              <input matInput type="text" formControlName="vpcCidr" placeholder="VPC CIDR">
+            </mat-form-field>
+          </div>
+
+          <div class="input-group">
+            <mat-form-field>
+              <input matInput type="text" formControlName="keypairName" placeholder="Keypair Name">
+            </mat-form-field>
+
+            <mat-form-field>
+              <input matInput type="text" formControlName="subnetId" placeholder="Subnet ID">
+            </mat-form-field>
+
+            <mat-form-field>
+              <input matInput type="text" formControlName="mastersSecurityGroupId" placeholder="Master's Security Group ID">
+            </mat-form-field>
+
+            <mat-form-field>
+              <input matInput type="text" formControlName="nodesSecurityGroupId" placeholder="Node's Security Group ID">
+            </mat-form-field>
+          </div>
+
+        </form>
+      </ng-container>
+
+      <div class="step-actions">
+        <button mat-raised-button class="secondary" matStepperPrevious>BACK</button>
+        <button mat-raised-button class="secondary" matStepperNext>NEXT</button>
+      </div>
+    </mat-step>
+
+    <mat-step label="Machine Configuration" [stepControl]="machineConfig">
+      <div class="machine-config-step">
+        <!-- digital ocean machines -->
+        <ng-container *ngIf="selectedCloudAccount?.provider == 'digitalocean'" >
+          <div class="machine" *ngFor="let m of machines; let idx = index">
+            <mat-form-field class="type">
+              <mat-select placeholder="Machine Type (size)" id="m.machineType" [(value)]="m.machineType">
+                <mat-option *ngFor="let type of availableMachineTypes" [value]="type">{{ type }}</mat-option>
+              </mat-select>
+            </mat-form-field>
+
+            <mat-form-field class="role">
+              <mat-select placeholder="Role" [(value)]="m.role" >
+                <mat-option value="Master">Master</mat-option>
+                <mat-option value="Node">Node</mat-option>
+              </mat-select>
+            </mat-form-field>
+
+            <mat-form-field class="quantity">
+              <input matInput type="number" min="1" placeholder="Q-ty" [(ngModel)]="m.qty">
+            </mat-form-field>
+
+            <div class="delete" (click)="deleteMachine(idx)"></div>
+          </div>
+
+          <div class="add-machines" (click)="addBlankMachine()">
+            <div class="plus"></div>
+            <span class="add-label">Add more machines</span>
+          </div>
+        </ng-container>
+
+        <!-- aws -->
+        <ng-container *ngIf="selectedCloudAccount?.provider == 'aws'" >
+          <div class="machine" *ngFor="let m of machines; let idx = index">
+            <mat-form-field class="type">
+              <mat-select placeholder="Machine Type (size)" id="m.machineType" [(value)]="m.machineType">
+                <mat-option *ngFor="let type of availableMachineTypes" [value]="type">{{ type }}</mat-option>
+              </mat-select>
+            </mat-form-field>
+
+            <mat-form-field class="role">
+              <mat-select placeholder="Role" [(value)]="m.role" >
+                <mat-option value="Master">Master</mat-option>
+                <mat-option value="Node">Node</mat-option>
+              </mat-select>
+            </mat-form-field>
+
+            <mat-form-field class="quantity">
+              <input matInput type="number" min="1" placeholder="Q-ty" [(ngModel)]="m.qty">
+            </mat-form-field>
+
+            <div class="delete" (click)="deleteMachine(idx)"></div>
+          </div>
+
+          <div class="add-machines" (click)="addBlankMachine()">
+            <div class="plus"></div>
+            <span class="add-label">Add more machines</span>
+          </div>
+        </ng-container>
       </div>
 
-      <div *ngIf="schema" class="form-wrapper">
-        <json-schema-form
-          framework="material-design"
-          [schema]="schema"
-          [layout]="layout"
-          [(data)]="data"
-          (onSubmit)="createKube(value)"
-          (onChanges)="value=$event">
-        </json-schema-form>
+      <div class="step-actions">
+        <button mat-raised-button class="secondary" matStepperPrevious>BACK</button>
+        <button mat-raised-button class="secondary" matStepperNext>NEXT</button>
+      </div>
+    </mat-step>
+
+    <mat-step label="Review">
+      <div class="review-wrapper">
+        <h1>{{ clusterName }}</h1>
+        <div class="steps">
+          <div class="cloud-account">
+            <h3>CLOUD ACCOUNT</h3>
+            <p>{{ selectedCloudAccount?.name }} ({{ selectedCloudAccount?.provider }})</p>
+          </div>
+
+          <div class="cluster">
+            <h3>CLUSTER DETAILS</h3>
+            <div>
+              <p><span class="label">K8s VERSION:</span> {{ clusterConfig.value.K8sVersion }}</p>
+              <p><span class="label">FLANNEL VERSION:</span> {{ clusterConfig.value.flannelVersion }}</p>
+              <p><span class="label">HELM VERSION:</span> {{ clusterConfig.value.helmVersion }}</p>
+              <p><span class="label">DOCKER VERSION:</span> {{ clusterConfig.value.dockerVersion }}</p>
+              <p><span class="label">UBUNTU VERSION:</span> {{ clusterConfig.value.ubuntuVersion }}</p>
+              <p><span class="label">NETWORK TYPE:</span> {{ clusterConfig.value.networkType }}</p>
+              <p><span class="label">CIDR:</span> {{ clusterConfig.value.cidr }}</p>
+              <p><span class="label">OPERATING SYSTEM:</span> {{ clusterConfig.value.operatingSystem }}</p>
+              <p><span class="label">ARCH:</span> {{ clusterConfig.value.arch }}</p>
+            </div>
+          </div>
+
+          <div class="provider">
+            <h3>PROVIDER CONFIGURATION</h3>
+            <!-- digital ocean -->
+            <div *ngIf="selectedCloudAccount?.provider == 'digitalocean'">
+              <p><span class="label">REGION:</span> {{ providerConfig.value.region.name }}</p>
+            </div>
+
+            <!-- aws -->
+            <div *ngIf="selectedCloudAccount?.provider == 'aws'">
+              <p><span class="label">REGION:</span> {{ providerConfig.value.region.name }}</p>
+              <p><span class="label">AVAIL. ZONE:</span> {{ providerConfig.value.availabilityZone }}</p>
+              <p><span class="label">VPC ID:</span> {{ providerConfig.value.vpcId }}</p>
+              <p><span class="label">VPC CIDR:</span> {{ providerConfig.value.vpcCidr }}</p>
+              <p><span class="label">KEYPAIR NAME:</span> {{ providerConfig.value.keypairName }}</p>
+              <p><span class="label">SUBNET ID:</span> {{ providerConfig.value.subnetId }}</p>
+              <p><span class="label">MASTERS SEC. GROUP ID:</span> {{ providerConfig.value.mastersSecurityGroupId }}</p>
+              <p><span class="label">NODES SEC. GROUP ID:</span> {{ providerConfig.value.nodesSecurityGroupId }}</p>
+            </div>
+          </div>
+
+          <div class="machines">
+            <h3>MACHINES</h3>
+            <div>
+              <div *ngFor="let m of machines">
+                <p>{{ m.qty }} x {{ m.machineType }} ({{ m.role }})</p>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="action-buttons-wrapper">
+          <button mat-raised-button class="secondary" matStepperPrevious>BACK</button>
+          <!-- <button mat-raised-button class="secondary">SAVE PROFILE</button> -->
+          <button mat-raised-button class="create" color="primary" (click)="createCluster()">
+            <ng-container *ngIf="!provisioning">CREATE</ng-container>
+            <ng-container *ngIf="provisioning">
+              <mat-spinner [diameter]="24"></mat-spinner>
+            </ng-container>
+          </button>
+        </div>
+      </div>
+    </mat-step>
+  </mat-horizontal-stepper>
+
+  <div *ngIf="availableCloudAccounts?.length == 0">
+    <div class="no-cloud-accounts">
+      <h2>You have no cloud accounts linked to Supergiant</h2>
+      <p>Link an AWS, Digital Ocean, or Openstack cloud account and have a Supergiant cluster up in minutes</p>
+      <div>
+        <button mat-raised-button color="primary" [routerLink]="['/system/cloud-accounts/new']">LINK ACCOUNT</button>
       </div>
     </div>
+  </div>
 
-    <div *ngIf="!hasCloudAccount" class="clusters-index-empty no-cloud-account">
-      <p>
-        A
-        <a [routerLink]="['/system/cloud-accounts']">Cloud Account</a> is missing.
-      </p>
-
-      <p>
-        <button mat-raised-button color="primary" [routerLink]="['/system/cloud-accounts/new']">Add Your First Cloud Account</button>
-      </p>
-    </div>
-  </section>
 </div>

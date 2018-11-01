@@ -2,9 +2,9 @@ package tiller
 
 import (
 	"bytes"
-
 	"context"
 	"io"
+	"io/ioutil"
 	"strings"
 	"testing"
 	"text/template"
@@ -14,6 +14,7 @@ import (
 	"github.com/supergiant/supergiant/pkg/runner"
 	"github.com/supergiant/supergiant/pkg/templatemanager"
 	"github.com/supergiant/supergiant/pkg/workflows/steps"
+	"github.com/supergiant/supergiant/pkg/workflows/steps/poststart"
 )
 
 type fakeRunner struct {
@@ -108,5 +109,49 @@ func TestInstallTillerError(t *testing.T) {
 
 	if !strings.Contains(err.Error(), errMsg) {
 		t.Errorf("Error message expected to contain %s actual %s", errMsg, err.Error())
+	}
+}
+
+func TestStepName(t *testing.T) {
+	s := Step{}
+
+	if s.Name() != StepName {
+		t.Errorf("Unexpected step name expected %s actual %s", StepName, s.Name())
+	}
+}
+
+func TestDepends(t *testing.T) {
+	s := Step{}
+
+	if len(s.Depends()) != 1 && s.Depends()[0] != poststart.StepName {
+		t.Errorf("Wrong dependency list %v expected %v", s.Depends(), []string{poststart.StepName})
+	}
+}
+
+func TestStep_Rollback(t *testing.T) {
+	s := Step{}
+	err := s.Rollback(context.Background(), ioutil.Discard, &steps.Config{})
+
+	if err != nil {
+		t.Errorf("unexpected error while rollback %v", err)
+	}
+}
+
+func TestNew(t *testing.T) {
+	tpl := template.New("test")
+	s := New(tpl)
+
+	if s.script != tpl {
+		t.Errorf("Wrong template expected %v actual %v", tpl, s.script)
+	}
+}
+
+func TestInit(t *testing.T) {
+	Init()
+
+	s := steps.GetStep(StepName)
+
+	if s == nil {
+		t.Error("Step not found")
 	}
 }

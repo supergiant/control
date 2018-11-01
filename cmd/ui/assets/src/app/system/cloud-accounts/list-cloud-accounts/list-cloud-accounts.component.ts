@@ -1,10 +1,12 @@
+import { MatDialog, MatPaginator, MatSort, MatTableDataSource } from '@angular/material';
 import { Component, OnInit, OnDestroy, ViewEncapsulation, ViewChild } from '@angular/core';
-import { Subscription } from 'rxjs/Subscription';
-import { Observable } from 'rxjs/Observable';
+import { ActivatedRoute, Router } from '@angular/router';
+import { switchMap } from 'rxjs/operators';
+import { timer as observableTimer,  Subscription } from 'rxjs';
+
 import { Supergiant } from '../../../shared/supergiant/supergiant.service';
 import { Notifications } from '../../../shared/notifications/notifications.service';
-import { ChartsModule, BaseChartDirective } from 'ng2-charts';
-import { ContextMenuService, ContextMenuComponent } from 'ngx-contextmenu';
+import { ConfirmModalComponent } from '../../../shared/modals/confirm-modal/confirm-modal.component';
 
 @Component({
   selector: 'app-list-cloud-accounts',
@@ -14,25 +16,67 @@ import { ContextMenuService, ContextMenuComponent } from 'ngx-contextmenu';
 })
 export class ListCloudAccountsComponent implements OnInit, OnDestroy {
   public subscriptions = new Subscription();
-  public hasCloudAccount = false;
-  rows = [];
-  selected = [];
-  columns = [
-    { prop: 'name' },
-    { prop: 'provider' },
-  ];
-  public displayCheck: boolean;
-
-  private rawEvent: any;
-  private contextmenuRow: any;
-  private contextmenuColumn: any;
-  @ViewChild(ContextMenuComponent) public basicMenu: ContextMenuComponent;
+  public accounts: any;
+  public accountColumns = ["provider", "name", "edit", "delete"];
+  public deletingAccount: string;
 
   constructor(
     private supergiant: Supergiant,
     private notifications: Notifications,
-    private contextMenuService: ContextMenuService,
+    private router: Router,
+    private route: ActivatedRoute,
+    public dialog: MatDialog,
   ) { }
+
+  @ViewChild(MatSort) sort: MatSort;
+  @ViewChild(MatPaginator) paginator: MatPaginator;
+
+  getCloudAccounts() {
+    // TODO: do we really need to poll this page?
+    this.subscriptions.add(observableTimer(0, 5000).pipe(
+      switchMap(() => this.supergiant.CloudAccounts.get())).subscribe(
+        accounts => {
+          this.accounts = new MatTableDataSource(accounts);
+          this.accounts.sort = this.sort;
+          this.accounts.paginator = this.paginator;
+        },
+        err => this.notifications.display('warn', 'Connection Issue.', err)
+      ));
+  }
+
+  initDialog(event) {
+    const popupWidth = 250;
+    const dialogRef = this.dialog.open(ConfirmModalComponent, {
+      width: `${popupWidth}px`,
+    });
+    dialogRef.updatePosition({
+      top: `${event.clientY}px`,
+      left: `${event.clientX - popupWidth - 10}px`,
+    });
+    return dialogRef;
+  }
+
+  delete(name, event) {
+    const modal = this.initDialog(event)
+
+    modal.afterClosed().subscribe(res => {
+      if (res) {
+        this.supergiant.CloudAccounts.delete(name).subscribe(
+          res => {
+            const refreshedAccounts = this.accounts.data.filter(account => { return account.name != name })
+            this.accounts = new MatTableDataSource(refreshedAccounts)
+            this.accounts.sort = this.sort;
+            this.accounts.paginator = this.paginator;
+          },
+          err => this.notifications.display('warn', 'Error deleting account:', err)
+        )
+      }
+    })
+  }
+
+  edit(name) {
+    this.router.navigate(['../edit', name], { relativeTo: this.route });
+  }
 
   ngOnInit() {
     this.getCloudAccounts();
@@ -40,83 +84,6 @@ export class ListCloudAccountsComponent implements OnInit, OnDestroy {
 
   ngOnDestroy() {
     this.subscriptions.unsubscribe();
-  }
-
-  onSelect({ selected }) {
-    this.selected.splice(0, this.selected.length);
-    this.selected.push(...selected);
-  }
-
-  getCloudAccounts() {
-    this.subscriptions.add(Observable.timer(0, 5000)
-      .switchMap(() => this.supergiant.CloudAccounts.get()).subscribe(
-      (accounts) => {
-        if (Object.keys(accounts).length > 0) {
-          this.hasCloudAccount = true;
-          this.rows = accounts.map(account => ({
-            name: account.name, provider: account.provider
-          }));
-
-          // Maintain selection of accounts:
-          const selected: Array<any> = [];
-          this.selected.forEach((account, index) => {
-            for (const row of this.rows) {
-              if (row.name === account.name) {
-                selected.push(row);
-                break;
-              }
-            }
-          });
-          this.selected = selected;
-        }
-      },
-      (err) => { this.notifications.display('warn', 'Connection Issue.', err); }));
-  }
-
-  delete() {
-    if (this.selected.length === 0) {
-      this.notifications.display('warn', 'Warning:', 'No Cloud Account Selected.');
-    } else {
-      for (const account of this.selected) {
-        this.subscriptions.add(this.supergiant.CloudAccounts.delete(account.name).subscribe(
-          (data) => {
-            this.notifications.display('success', 'Cloud Account: ' + account.name, 'Deleted...');
-            this.selected = [];
-          },
-          (err) => {
-            this.notifications.display('error', 'Cloud Account: ' + account.name, 'Error:' + err);
-          },
-        ));
-      }
-    }
-  }
-
-  onTableContextMenu(contextMenuEvent) {
-    this.rawEvent = contextMenuEvent.event;
-    if (contextMenuEvent.type === 'body') {
-      this.contextmenuColumn = undefined;
-      this.contextMenuService.show.next({
-        contextMenu: this.basicMenu,
-        item: contextMenuEvent.content,
-        event: contextMenuEvent.event,
-      });
-    } else {
-      this.contextmenuColumn = contextMenuEvent.content;
-      this.contextmenuRow = undefined;
-    }
-
-    contextMenuEvent.event.preventDefault();
-    contextMenuEvent.event.stopPropagation();
-  }
-
-  contextDelete(item) {
-    for (const row of this.rows) {
-      if (row.id === item.id) {
-        this.selected.push(row);
-        this.delete();
-        break;
-      }
-    }
   }
 
 }

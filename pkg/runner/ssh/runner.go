@@ -3,11 +3,10 @@ package ssh
 import (
 	"context"
 	"strings"
+	"time"
 
 	"github.com/pkg/errors"
 	"golang.org/x/crypto/ssh"
-
-	"time"
 
 	"github.com/supergiant/supergiant/pkg/runner"
 )
@@ -63,7 +62,7 @@ func (r *Runner) Run(cmd *runner.Command) (err error) {
 		return nil
 	}
 
-	c, err := connectionWithBackOff(r.host, r.port, r.sshConf, time.Second*10, 3)
+	c, err := connectionWithBackOff(r.host, r.port, r.sshConf, time.Second*10, 5)
 
 	if err != nil {
 		return errors.Wrap(err, "ssh: establishing connection")

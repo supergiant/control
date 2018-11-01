@@ -18,7 +18,8 @@ export class Nodes {
   public update(id, data) {
     return this.util.update(this.nodesPath + '/' + id, data);
   }
-  public delete(id) {
-    return this.util.destroy(this.nodesPath + '/' + id);
+  public delete(kubeId, nodeId) {
+    // FIXME remove kube id from backand requests, it's redundant
+    return this.util.destroy(`/v1/api/kubes/${kubeId}/nodes/${nodeId}`);
   }
 }

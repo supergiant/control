@@ -2,14 +2,14 @@ package manifest
 
 import (
 	"context"
-	"text/template"
-
 	"io"
+	"text/template"
 
 	"github.com/pkg/errors"
 
 	tm "github.com/supergiant/supergiant/pkg/templatemanager"
 	"github.com/supergiant/supergiant/pkg/workflows/steps"
+	"github.com/supergiant/supergiant/pkg/workflows/steps/certificates"
 )
 
 const StepName = "manifest"
@@ -44,6 +44,10 @@ func (j *Step) Run(ctx context.Context, out io.Writer, config *steps.Config) err
 	return nil
 }
 
+func (s *Step) Rollback(context.Context, io.Writer, *steps.Config) error {
+	return nil
+}
+
 func (t *Step) Name() string {
 	return StepName
 }
@@ -53,5 +57,5 @@ func (t *Step) Description() string {
 }
 
 func (s *Step) Depends() []string {
-	return nil
+	return []string{certificates.StepName}
 }

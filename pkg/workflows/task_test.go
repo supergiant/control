@@ -10,8 +10,21 @@ import (
 	"strings"
 	"testing"
 
+	"github.com/stretchr/testify/require"
+
+	"github.com/supergiant/supergiant/pkg/sgerrors"
+	"github.com/supergiant/supergiant/pkg/workflows/statuses"
 	"github.com/supergiant/supergiant/pkg/workflows/steps"
 )
+
+type bufferCloser struct {
+	bytes.Buffer
+	err error
+}
+
+func (b *bufferCloser) Close() error {
+	return b.err
+}
 
 type MockRepository struct {
 	storage map[string][]byte
@@ -41,6 +54,12 @@ type MockStep struct {
 	counter     int
 	messages    []string
 	errs        []error
+	rollback    bool
+}
+
+func (f *MockStep) Rollback(context.Context, io.Writer, *steps.Config) error {
+	f.rollback = true
+	return nil
 }
 
 func (f *MockStep) Run(ctx context.Context, out io.Writer, config *steps.Config) error {
@@ -91,7 +110,7 @@ func TestNewTask(t *testing.T) {
 		},
 		{
 			"foo",
-			ErrUnknownProviderWorkflowType,
+			sgerrors.ErrNotFound,
 		},
 	}
 
@@ -121,7 +140,7 @@ func TestTaskRunError(t *testing.T) {
 			&MockStep{name: "step3", errs: nil}},
 	}
 
-	buffer := &bytes.Buffer{}
+	buffer := &bufferCloser{}
 	errChan := workflow.Run(context.Background(), steps.Config{}, buffer)
 
 	if len(workflow.ID) == 0 {
@@ -139,7 +158,7 @@ func TestTaskRunError(t *testing.T) {
 	}
 
 	w := &Task{}
-	data := s.storage[fmt.Sprintf("%s/%s", prefix, id)]
+	data := s.storage[fmt.Sprintf("%s/%s", Prefix, id)]
 
 	err = json.Unmarshal([]byte(data), w)
 
@@ -147,9 +166,14 @@ func TestTaskRunError(t *testing.T) {
 		t.Errorf("Unexpected error while unmarshalling data %v", err)
 	}
 
-	if w.StepStatuses[1].Status != steps.StatusError {
+	if w.Status != statuses.Error {
+		t.Errorf("Unexpected task status expected %s actual %s",
+			statuses.Error, w.Status)
+	}
+
+	if w.StepStatuses[1].Status != statuses.Error {
 		t.Errorf("Unexpected step statues expected %s actual %s",
-			steps.StatusError, w.StepStatuses[1].Status)
+			statuses.Error, w.StepStatuses[1].Status)
 	}
 }
 
@@ -168,7 +192,7 @@ func TestTaskRunSuccess(t *testing.T) {
 			&MockStep{name: "step3", errs: nil}},
 	}
 
-	buffer := &bytes.Buffer{}
+	buffer := &bufferCloser{}
 	errChan := task.Run(context.Background(), steps.Config{}, buffer)
 
 	if len(id) == 0 {
@@ -182,16 +206,20 @@ func TestTaskRunSuccess(t *testing.T) {
 	}
 
 	w := &Task{}
-	data := s.storage[fmt.Sprintf("%s/%s", prefix, task.ID)]
+	data := s.storage[fmt.Sprintf("%s/%s", Prefix, task.ID)]
 
 	err = json.Unmarshal([]byte(data), w)
 
 	if err != nil {
 		t.Errorf("Unexpected error while unmarshalling data %v", err)
 	}
+
+	if w.Status != statuses.Success {
+		t.Errorf("Unexpected task status expected %s actual %s", statuses.Success, w.Status)
+	}
 	for _, status := range w.StepStatuses {
-		if status.Status != steps.StatusSuccess {
-			t.Errorf("Unexpected status expectec %s actual %s", steps.StatusSuccess, status.Status)
+		if status.Status != statuses.Success {
+			t.Errorf("Unexpected status expectec %s actual %s", statuses.Success, status.Status)
 		}
 	}
 }
@@ -213,7 +241,7 @@ func TestWorkflowRestart(t *testing.T) {
 		},
 	}
 
-	buffer := &bytes.Buffer{}
+	buffer := &bufferCloser{}
 	errChan := task.Run(context.Background(), steps.Config{}, buffer)
 
 	if len(id) == 0 {
@@ -230,16 +258,16 @@ func TestWorkflowRestart(t *testing.T) {
 		t.Error(fmt.Sprintf("Expected error message %s not found in output %s", errMsg, buffer.String()))
 	}
 
-	data := s.storage[fmt.Sprintf("%s/%s", prefix, id)]
+	data := s.storage[fmt.Sprintf("%s/%s", Prefix, id)]
 	err = json.Unmarshal([]byte(data), task)
 
 	if err != nil {
 		t.Errorf("Unexpected error while unmarshalling data %v", err)
 	}
 
-	if task.StepStatuses[1].Status != steps.StatusError {
+	if task.StepStatuses[1].Status != statuses.Error {
 		t.Errorf("Unexpected step statues expected %s actual %s",
-			steps.StatusError, task.StepStatuses[1].Status)
+			statuses.Error, task.StepStatuses[1].Status)
 	}
 
 	buffer.Reset()
@@ -249,4 +277,70 @@ func TestWorkflowRestart(t *testing.T) {
 	if err != nil {
 		t.Errorf("Error must not be nil actual %v", err)
 	}
+}
+
+func TestRollback(t *testing.T) {
+	s := &MockRepository{
+		storage: make(map[string][]byte),
+	}
+	id := "abcd"
+
+	mockStep := &MockStep{name: "step1", errs: []error{errors.New("should happen")}}
+	task := &Task{
+		ID:         id,
+		repository: s,
+		workflow: []steps.Step{
+			mockStep,
+		},
+	}
+	require.False(t, mockStep.rollback)
+
+	buffer := &bufferCloser{}
+	errChan := task.Run(context.Background(), steps.Config{}, buffer)
+	err := <-errChan
+	require.Error(t, err)
+
+	require.True(t, mockStep.rollback)
+}
+
+type PanicStep struct {
+}
+
+func (PanicStep) Run(context.Context, io.Writer, *steps.Config) error {
+	panic("implement me")
+}
+
+func (PanicStep) Name() string {
+	panic("implement me")
+}
+
+func (PanicStep) Description() string {
+	panic("implement me")
+}
+
+func (PanicStep) Depends() []string {
+	panic("implement me")
+}
+
+func (PanicStep) Rollback(context.Context, io.Writer, *steps.Config) error {
+	panic("implement me")
+}
+
+func TestPanicHandler(t *testing.T) {
+	s := &MockRepository{
+		storage: make(map[string][]byte),
+	}
+
+	step := &PanicStep{}
+	task := &Task{
+		ID:         "XYZ",
+		repository: s,
+		workflow: []steps.Step{
+			step,
+		},
+	}
+	errChan := task.Run(context.Background(), steps.Config{}, &bufferCloser{})
+
+	err := <-errChan
+	require.Error(t, err)
 }
