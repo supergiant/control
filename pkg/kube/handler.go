@@ -700,6 +700,7 @@ func (h *Handler) getClusterMetrics(w http.ResponseWriter, r *http.Request) {
 			return
 		}
 
+		// TODO(stgleb): Get rid off basic auth
 		req.SetBasicAuth("root", "1234")
 		tr := &http.Transport{
 			TLSClientConfig: &tls.Config{InsecureSkipVerify: true},
@@ -776,6 +777,7 @@ func (h *Handler) getNodeMetrics(w http.ResponseWriter, r *http.Request) {
 			return
 		}
 
+		// TODO(stgleb): Get rid off basic auth
 		req.SetBasicAuth("root", "1234")
 		tr := &http.Transport{
 			TLSClientConfig: &tls.Config{InsecureSkipVerify: true},
