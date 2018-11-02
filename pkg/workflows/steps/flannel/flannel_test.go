@@ -132,6 +132,11 @@ func TestFlannelErrors(t *testing.T) {
 
 	cfg := steps.NewConfig("", "", "", profile.Profile{})
 	cfg.Runner = r
+	cfg.AddMaster(&node.Node{
+		State:     node.StateActive,
+		PrivateIp: "127.0.0.1",
+	})
+
 	err = task.Run(context.Background(), output, cfg)
 
 	if err == nil {
