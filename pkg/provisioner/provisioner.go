@@ -134,6 +134,8 @@ func (tp *TaskProvisioner) ProvisionNodes(ctx context.Context, nodeProfiles []pr
 		return nil, errors.Wrap(sgerrors.ErrNotFound, "provider workflow")
 	}
 
+	// monitor cluster state in separate goroutine
+	go tp.monitorClusterState(ctx, config)
 	tasks := make([]string, 0, len(nodeProfiles))
 
 	for _, nodeProfile := range nodeProfiles {
