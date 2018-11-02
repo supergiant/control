@@ -59,7 +59,8 @@
     </div>
 
     <div class="failed-message" *ngIf=" kube?.state == 'failed' ">
-      <p class="communication">Cluster provisioning has failed. Please check the table below and restart any failed tasks.</p>
+      <p class="communication">Cluster provisioning has failed. Please check the table below and restart any failed
+        tasks.</p>
     </div>
 
     <div class="sg-table">
@@ -74,9 +75,11 @@
             <div class="ready-icon" *ngIf="task?.status == 'success'"></div>
             <div class="failed-icon" *ngIf="task?.status == 'error'"></div>
             <span style="padding-left: 12px;">{{ task.status | titlecase }}</span>
-            <button mat-raised-button *ngIf="task?.status == 'error'" class="secondary restart-task" (click)="restartTask(task.id)">
+            <button mat-raised-button *ngIf="task?.status == 'error'" class="secondary restart-task"
+                    (click)="restartTask(task.id)">
               <span *ngIf="!task?.restarting">RESTART</span>
-              <mat-spinner class="restart-spinner" color="primary" *ngIf="task?.restarting" [diameter]="20"></mat-spinner>
+              <mat-spinner class="restart-spinner" color="primary" *ngIf="task?.restarting"
+                           [diameter]="20"></mat-spinner>
             </button>
           </mat-cell>
         </ng-container>
@@ -120,14 +123,15 @@
         <ng-container matColumnDef="expandedDetail">
           <mat-cell class="expanded-tasks" *matCellDef="let detail">
             <p *ngFor="let step of detail.t.stepsStatuses">
-              {{ step.stepName }}
-              <span *ngIf=" step.status == 'executing' " class="saving"><span>.</span><span>.</span><span>.</span></span>
+            {{ step.stepName }}
+              <span *ngIf=" step.status == 'executing' "
+                    class="saving"><span>.</span><span>.</span><span>.</span></span>
               <span *ngIf=" step.status != 'executing' "> ...</span>
               <span [ngClass]="{
                 'success': step.status == 'success',
                 'error': step.status == 'error',
                 'executing': step.status == 'executing' }">
-                {{ step.status }}
+              {{ step.status }}
               </span>
               <span class="step-error-message" *ngIf=" step.status == 'error' ">{{ step.errorMessage }}</span>
             </p>
@@ -137,7 +141,7 @@
         <mat-header-row *matHeaderRowDef="taskListColumns"></mat-header-row>
         <mat-row *matRowDef="let row; columns: taskListColumns" [ngClass]="{ 'viewingSteps': row.showSteps }"></mat-row>
         <mat-row class="detail-row" *matRowDef="let row; columns: ['expandedDetail']; when: expandRow"
-          [@detailExpand]="row.t.id == expandedTaskId ? 'expanded' : 'collapsed'"></mat-row>
+                 [@detailExpand]="row.t.id == expandedTaskId ? 'expanded' : 'collapsed'"></mat-row>
 
       </mat-table>
       <!--
@@ -164,7 +168,7 @@
         <ng-container matColumnDef="state">
           <mat-header-cell *matHeaderCellDef>State</mat-header-cell>
           <mat-cell *matCellDef="let machine">
-            {{ machine.state | titlecase }}
+          {{ machine.state | titlecase }}
           </mat-cell>
         </ng-container>
 
@@ -201,7 +205,7 @@
                            *matHeaderCellDef>Public IP
           </mat-header-cell>
           <mat-cell *matCellDef="let machine">
-            {{ machine.publicIp }}
+          {{ machine.publicIp }}
             <div></div>
             <button (click)="removeNode(machine.name, $event)"
                     mat-button>
@@ -215,12 +219,12 @@
         <mat-row *matRowDef="let row; columns: machineListColumns"></mat-row>
 
       </mat-table>
-      <a routerLink="add-node">
-        <button>add node</button>
-      </a>
 
       <mat-paginator [pageSizeOptions]="[5, 10, 25, 100]"
                      color="primary"></mat-paginator>
+      <a routerLink="add-node" class="add-node">
+        <button mat-button color="primary">Add node</button>
+      </a>
     </div>
   </ng-container>
 </div>

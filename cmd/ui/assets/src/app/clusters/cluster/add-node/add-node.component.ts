@@ -1,7 +1,11 @@
-import { HttpClient }                                                                      from "@angular/common/http";
-import { Component, OnDestroy, OnInit }                                                    from '@angular/core';
-import { ActivatedRoute }                                                                  from "@angular/router";
-import { combineLatest, from, Observable, of, Subject, Subscription, zip }                 from "rxjs";
+import { HttpClient }                                                      from "@angular/common/http";
+import {
+  Component,
+  OnDestroy,
+  OnInit
+}                                                                          from '@angular/core';
+import { ActivatedRoute, Router }                                          from "@angular/router";
+import { combineLatest, from, Observable, of, Subject, Subscription, zip } from "rxjs";
 import {
   catchError,
   distinctUntilChanged,
@@ -13,9 +17,10 @@ import {
   switchMap,
   take,
   tap
-} from "rxjs/operators";
-import { Supergiant }                                                                      from "../../../shared/supergiant/supergiant.service";
-import { NodeProfileService }                                                              from "../../node-profile.service";
+}                                                                          from "rxjs/operators";
+import { Notifications }                                                   from "../../../shared/notifications/notifications.service";
+import { Supergiant }                                                      from "../../../shared/supergiant/supergiant.service";
+import { NodeProfileService }                                              from "../../node-profile.service";
 
 @Component({
   selector: 'add-node',
@@ -49,12 +54,16 @@ export class AddNodeComponent implements OnInit, OnDestroy {
   };
 
   subscriptions: Subscription;
+  isProcessing: boolean;
 
   constructor(
     private supergiant: Supergiant,
     private route: ActivatedRoute,
     private http: HttpClient,
     private nodesService: NodeProfileService,
+    private notifications: Notifications,
+    private router: Router,
+
   ) {
     this.providerSubj = new Subject<string>();
     this.subscriptions = new Subscription();
@@ -157,12 +166,38 @@ export class AddNodeComponent implements OnInit, OnDestroy {
     })
   }
 
-  finish() {
-    const nodes = this.nodesService.compileProfiles(this.provider, this.machines, "Node");
+  deleteMachine(idx) {
+    if(this.machines.length === 1) return;
 
+    this.machines.splice(idx, 1);
+  }
+
+
+  finish() {
+    this.isProcessing = true;
+
+    const nodes = this.nodesService.compileProfiles(this.provider, this.machines, "Node");
     // TODO  move to service
     const url = `/v1/api/kubes/${this.clusterName}/nodes`;
-    this.http.post(url, nodes)
-      .subscribe(console.log);
+
+    this.http.post(url, nodes).pipe(
+      catchError(error => {
+        this.notifications.display('error', 'Error', error.statusText);
+        return of(new ErrorEvent(error));
+      })
+
+    )
+      .subscribe(result => {
+        this.isProcessing = false;
+
+        if (result instanceof ErrorEvent) return;
+
+        this.notifications.display(
+          'success',
+          'Success!',
+          'Your request is being processed'
+        );
+        this.router.navigate([`clusters/${this.clusterName}`]);
+      });
   }
 }
