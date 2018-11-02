@@ -37,8 +37,8 @@ export class CloudAccountDetailsComponent implements OnInit, OnDestroy {
     this.systemModalService.openSystemModal(message);
   }
 
-  getAccount() {    this.subscriptions.add(observableTimer(0, 5000).pipe(
-
+  getAccount() {
+    this.subscriptions.add(observableTimer(0, 5000).pipe(
       switchMap(() => this.supergiant.CloudAccounts.get(this.id))).subscribe(
       (cloudAccount) => { this.cloudAccount = cloudAccount; },
       (err) => { this.notifications.display('warn', 'Connection Issue.', err); }));
