@@ -396,6 +396,7 @@ func (h *Handler) addNode(w http.ResponseWriter, r *http.Request) {
 		RBACEnabled: k.RBACEnabled,
 	}
 
+	// TODO(stgleb): Load config of previous cluster deployment and get CA certs from that config
 	config := steps.NewConfig(k.Name, "", k.AccountName, kubeProfile)
 
 	if len(k.Masters) != 0 {
