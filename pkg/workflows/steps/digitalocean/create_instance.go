@@ -110,6 +110,7 @@ func (s *CreateInstanceStep) Run(ctx context.Context, output io.Writer, config *
 				config.Node.PublicIp = getPublicIpPort(droplet.Networks.V4)
 				config.Node.PrivateIp = getPrivateIpPort(droplet.Networks.V4)
 				config.Node.State = node.StateProvisioning
+				config.Node.Name = config.DigitalOceanConfig.Name
 
 				// Update node state in cluster
 				config.NodeChan() <- config.Node

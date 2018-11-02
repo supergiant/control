@@ -398,6 +398,8 @@ func (h *Handler) addNode(w http.ResponseWriter, r *http.Request) {
 
 	// TODO(stgleb): Load config of previous cluster deployment and get CA certs from that config
 	config := steps.NewConfig(k.Name, "", k.AccountName, kubeProfile)
+	config.CertificatesConfig.CAKey = k.CAKey
+	config.CertificatesConfig.CACert = k.CACert
 
 	if len(k.Masters) != 0 {
 		config.AddMaster(util.GetRandomNode(k.Masters))

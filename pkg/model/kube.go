@@ -32,6 +32,8 @@ type Kube struct {
 	K8SVersion             string     `json:"K8SVersion"`
 	HelmVersion            string     `json:"helmVersion"`
 	Networking             Networking `json:"networking"`
+	CAKey                  string     `json:"caKey"`
+	CACert                 string     `json:"caCert"`
 
 	Masters map[string]*node.Node `json:"masters"`
 	Nodes   map[string]*node.Node `json:"nodes"`

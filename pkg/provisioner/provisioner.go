@@ -60,11 +60,6 @@ func (tp *TaskProvisioner) ProvisionCluster(ctx context.Context, profile *profil
 
 	// TODO(stgleb): Make node names from task id before provisioning starts
 	masters, nodes := nodesFromProfile(config.ClusterName, masterTasks, nodeTasks, profile)
-	// Save cluster before provisioning
-	tp.buildInitialCluster(ctx, profile, masters, nodes, config)
-
-	// monitor cluster state in separate goroutine
-	go tp.monitorClusterState(ctx, config)
 
 	if err := bootstrapKeys(config); err != nil {
 		return nil, errors.Wrap(err, "bootstrap keys")
@@ -73,6 +68,12 @@ func (tp *TaskProvisioner) ProvisionCluster(ctx context.Context, profile *profil
 	if err := bootstrapCA(config); err != nil {
 		return nil, errors.Wrap(err, "bootstrap CA")
 	}
+
+	// Save cluster before provisioning
+	tp.buildInitialCluster(ctx, profile, masters, nodes, config)
+
+	// monitor cluster state in separate goroutine
+	go tp.monitorClusterState(ctx, config)
 
 	go func() {
 		if err := tp.preprovision(ctx, config); err != nil {
@@ -397,6 +398,9 @@ func (tp *TaskProvisioner) buildInitialCluster(ctx context.Context, profile *pro
 			Type:    profile.NetworkType,
 			CIDR:    profile.CIDR,
 		},
+		CAKey:  config.CertificatesConfig.CAKey,
+		CACert: config.CertificatesConfig.CACert,
+
 		Masters: masters,
 		Nodes:   nodes,
 	}
