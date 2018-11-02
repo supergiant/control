@@ -152,7 +152,8 @@ type ClusterCheckConfig struct {
 }
 
 type PrometheusConfig struct {
-	RBACEnabled bool `json:"rbacEnabled"`
+	Port        string `json:"port"`
+	RBACEnabled bool   `json:"rbacEnabled"`
 }
 
 type Map struct {
@@ -313,6 +314,7 @@ func NewConfig(clusterName, discoveryUrl, cloudAccountName string, profile profi
 			MachineCount: len(profile.NodesProfiles) + len(profile.MasterProfiles),
 		},
 		PrometheusConfig: PrometheusConfig{
+			Port:        "30900",
 			RBACEnabled: profile.RBACEnabled,
 		},
 

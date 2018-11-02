@@ -31,9 +31,61 @@ func (f *fakeRunner) Run(command *runner.Command) error {
 	return err
 }
 
-func TestPrometheus(t *testing.T) {
+func TestPrometheusRBACDisbled(t *testing.T) {
 	var (
-		rbacEnabled               = false
+		promPort               = "30900"
+		r        runner.Runner = &fakeRunner{}
+	)
+
+	err := templatemanager.Init("../../../../templates")
+
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	tpl := templatemanager.GetTemplate(StepName)
+
+	if tpl == nil {
+		t.Fatal("template not found")
+	}
+
+	output := new(bytes.Buffer)
+
+	cfg := steps.NewConfig("", "",
+		"", profile.Profile{})
+	cfg.Runner = r
+	cfg.PrometheusConfig = steps.PrometheusConfig{
+		Port:        promPort,
+		RBACEnabled: false,
+	}
+
+	task := &Step{
+		tpl,
+	}
+
+	err = task.Run(context.Background(), output, cfg)
+
+	if err != nil {
+		t.Errorf("Unpexpected error while  provision node %v", err)
+	}
+
+	if !strings.Contains(output.String(), "prometheus-operator") {
+		t.Errorf("not found %s in %s", "prometheus-operator", output.String())
+	}
+
+	if !strings.Contains(output.String(), "sudo kubectl apply -f cluster-roles.yaml --validate=false") {
+		t.Errorf("command for creating roles not found in %s", output.String())
+	}
+
+	if !strings.Contains(output.String(), promPort) {
+		t.Errorf("Prometheus port %s not found in %s", promPort, output.String())
+	}
+}
+
+func TestPrometheusRBACEnabled(t *testing.T) {
+	var (
+		rbacEnabled               = true
+		promPort                  = "30900"
 		r           runner.Runner = &fakeRunner{}
 	)
 
@@ -55,6 +107,7 @@ func TestPrometheus(t *testing.T) {
 		"", profile.Profile{})
 	cfg.Runner = r
 	cfg.PrometheusConfig = steps.PrometheusConfig{
+		Port:        promPort,
 		RBACEnabled: rbacEnabled,
 	}
 
@@ -72,8 +125,8 @@ func TestPrometheus(t *testing.T) {
 		t.Errorf("not found %s in %s", "prometheus-operator", output.String())
 	}
 
-	if !rbacEnabled && !strings.Contains(output.String(), "sudo kubectl apply -f cluster-roles.yaml --validate=false") {
-		t.Errorf("command for creating roles not found in %s", output.String())
+	if !strings.Contains(output.String(), promPort) {
+		t.Errorf("Prometheus port %s not found in %s", promPort, output.String())
 	}
 }
 
