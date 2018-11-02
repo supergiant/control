@@ -1,22 +1,27 @@
-import { Component, OnInit, Inject } from '@angular/core';
+import { Component, OnInit, OnDestroy } from '@angular/core';
 import { Router, ActivatedRoute } from '@angular/router';
-import { MatDialogRef, MAT_DIALOG_DATA } from '@angular/material';
+import { MatDialogRef } from '@angular/material';
+import { Subscription, timer as observableTimer } from 'rxjs';
+import { switchMap } from 'rxjs/operators';
+
+import { Supergiant } from '../../../shared/supergiant/supergiant.service';
 
 @Component({
   selector: 'cluster-list-modal',
   templateUrl: './cluster-list-modal.component.html',
   styleUrls: ['./cluster-list-modal.component.scss'],
 })
-export class ClusterListModalComponent implements OnInit {
+export class ClusterListModalComponent implements OnInit, OnDestroy {
 
   constructor(
     private dialogRef: MatDialogRef<ClusterListModalComponent>,
     private router: Router,
     private route: ActivatedRoute,
-    @Inject(MAT_DIALOG_DATA) private data: any
-  ) { this.clusters = this.data.clusters }
+    private supergiant: Supergiant
+  ) {  }
 
   public clusters: Array<any>;
+  private subscriptions = new Subscription();
 
   navigate(name) {
     this.router.navigate(['/clusters/', name]);
@@ -28,7 +33,19 @@ export class ClusterListModalComponent implements OnInit {
     this.dialogRef.close();
   }
 
-  ngOnInit() {
+  getClusters() {
+    this.subscriptions.add(observableTimer(0, 5000).pipe(
+    switchMap(() => this.supergiant.Kubes.get())).subscribe(
+      clusters => this.clusters = clusters,
+      err => console.error(err)
+    ));
   }
 
+  ngOnInit() {
+    this.getClusters();
+  }
+
+  ngOnDestroy() {
+    this.subscriptions.unsubscribe();
+  }
 }
