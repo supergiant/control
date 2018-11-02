@@ -16,7 +16,6 @@ export class ClusterTableComponent implements OnInit {
   @Input() cluster: any
 
   ngOnInit() {
-    console.log(this.cluster);
   }
 
 }
