@@ -36,7 +36,7 @@ export class NewClusterComponent implements OnInit, OnDestroy {
     operatingSystems: ["linux"],
     networkTypes: ["vxlan"],
     ubuntuVersions: ["xenial"],
-    helmVersions: ["2.8.0"],
+    helmVersions: ["2.11.0"],
     dockerVersions: ["17.06.0"],
     K8sVersions: ["1.11.1"],
     rbacEnabled: [false]
@@ -211,7 +211,7 @@ export class NewClusterComponent implements OnInit, OnDestroy {
     this.clusterConfig = this.formBuilder.group({
       K8sVersion: ["1.11.1"],
       flannelVersion: ["0.10.0"],
-      helmVersion: ["2.8.0"],
+      helmVersion: ["2.11.0"],
       dockerVersion: ["17.06.0"],
       ubuntuVersion: ["xenial"],
       networkType: ["vxlan"],

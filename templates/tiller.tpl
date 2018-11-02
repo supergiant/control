@@ -10,8 +10,8 @@ sudo /opt/bin/helm init --service-account tiller
 
 until $([ $(sudo kubectl get pods --namespace=kube-system|grep tiller|grep Running|wc -l) -eq 1 ]); do printf '.'; sleep 5; done
 TILLER_PORT=44135
-TILLER_POD=$(kubectl get pods --namespace=kube-system|grep tiller|awk '{print $1}')
-TILLER_IP=$(kubectl describe pod $TILLER_POD -n kube-system|grep IP| awk '{print $2}')
+TILLER_POD=$(sudo kubectl get pods --namespace=kube-system|grep tiller|awk '{print $1}')
+TILLER_IP=$(sudo kubectl describe pod $TILLER_POD -n kube-system|grep IP| awk '{print $2}')
 until $(curl --output /dev/null --silent --head --fail http://$TILLER_IP:$TILLER_PORT/readiness); do
     printf '.'
     sleep 5

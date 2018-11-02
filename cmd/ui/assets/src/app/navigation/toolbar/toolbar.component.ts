@@ -1,4 +1,4 @@
-import { Component, OnInit, OnDestroy } from '@angular/core';
+import { Component, OnInit } from '@angular/core';
 import { MatDialog } from '@angular/material';
 import { Subscription, timer as observableTimer } from 'rxjs';
 import { switchMap } from 'rxjs/operators';
@@ -38,19 +38,6 @@ export class ToolbarComponent implements OnInit {
     return dialogRef;
   }
 
-  getClusters() {
-    this.subscriptions.add(observableTimer(0, 5000).pipe(
-    switchMap(() => this.supergiant.Kubes.get())).subscribe(
-      clusters => this.clusters = clusters,
-      err => console.error(err)
-    ));
-  }
-
   ngOnInit() {
-    this.getClusters();
-  }
-
-  ngOnDestroy() {
-    this.subscriptions.unsubscribe();
   }
 }
