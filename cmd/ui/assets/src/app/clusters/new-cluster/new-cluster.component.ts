@@ -1,10 +1,11 @@
-import { Component, OnInit, OnDestroy, AfterViewInit, ViewEncapsulation } from '@angular/core';
-import { Subscription }                                                   from 'rxjs';
-import { Supergiant }                                                     from '../../shared/supergiant/supergiant.service';
-import { Notifications }                                                  from '../../shared/notifications/notifications.service';
-import { Router }                                                         from '@angular/router';
-import { FormBuilder, FormGroup, Validators }                             from '@angular/forms';
-import { NodeProfileService }                                             from "../node-profile.service";
+import { Component, OnDestroy, OnInit, ViewEncapsulation } from '@angular/core';
+import { FormBuilder, FormGroup } from '@angular/forms';
+import { Router }                 from '@angular/router';
+import { Subscription }           from 'rxjs';
+import { Notifications }          from '../../shared/notifications/notifications.service';
+import { Supergiant }             from '../../shared/supergiant/supergiant.service';
+import { NodeProfileService }     from "../node-profile.service";
+import { CLUSTER_OPTIONS }        from "./cluster-options.config";
 
 @Component({
   selector: 'app-new-cluster',
@@ -30,17 +31,7 @@ export class NewClusterComponent implements OnInit, OnDestroy {
     qty: 1
   }];
 
-  clusterOptions = {
-    archs: ["amd64"],
-    flannelVersions: ["0.10.0"],
-    operatingSystems: ["linux"],
-    networkTypes: ["vxlan"],
-    ubuntuVersions: ["xenial"],
-    helmVersions: ["2.11.0"],
-    dockerVersions: ["17.06.0"],
-    K8sVersions: ["1.11.1"],
-    rbacEnabled: [false]
-  };
+  clusterOptions = CLUSTER_OPTIONS;
 
   provisioning = false;
   clusterConfig: FormGroup;

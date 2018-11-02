@@ -4,7 +4,10 @@ import {
   OnDestroy,
   OnInit
 }                                                                          from '@angular/core';
-import { ActivatedRoute, Router }                                          from "@angular/router";
+import {
+  ActivatedRoute,
+  Router,
+}                                                                          from "@angular/router";
 import { combineLatest, from, Observable, of, Subject, Subscription, zip } from "rxjs";
 import {
   catchError,
@@ -20,6 +23,7 @@ import {
 }                                                                          from "rxjs/operators";
 import { Notifications }                                                   from "../../../shared/notifications/notifications.service";
 import { Supergiant }                                                      from "../../../shared/supergiant/supergiant.service";
+import { CLUSTER_OPTIONS }                                                 from "../../new-cluster/cluster-options.config";
 import { NodeProfileService }                                              from "../../node-profile.service";
 
 @Component({
@@ -41,17 +45,7 @@ export class AddNodeComponent implements OnInit, OnDestroy {
   provider: string;
   providerSubj: Subject<any>;
 
-  clusterOptions = {
-    archs: ["amd64"],
-    flannelVersions: ["0.10.0"],
-    operatingSystems: ["linux"],
-    networkTypes: ["vxlan"],
-    ubuntuVersions: ["xenial"],
-    helmVersions: ["2.8.0"],
-    dockerVersions: ["17.06.0"],
-    K8sVersions: ["1.11.1"],
-    rbacEnabled: [false]
-  };
+  clusterOptions = CLUSTER_OPTIONS;
 
   subscriptions: Subscription;
   isProcessing: boolean;
@@ -63,7 +57,6 @@ export class AddNodeComponent implements OnInit, OnDestroy {
     private nodesService: NodeProfileService,
     private notifications: Notifications,
     private router: Router,
-
   ) {
     this.providerSubj = new Subject<string>();
     this.subscriptions = new Subscription();
@@ -167,7 +160,7 @@ export class AddNodeComponent implements OnInit, OnDestroy {
   }
 
   deleteMachine(idx) {
-    if(this.machines.length === 1) return;
+    if (this.machines.length === 1) return;
 
     this.machines.splice(idx, 1);
   }
@@ -185,7 +178,6 @@ export class AddNodeComponent implements OnInit, OnDestroy {
         this.notifications.display('error', 'Error', error.statusText);
         return of(new ErrorEvent(error));
       })
-
     )
       .subscribe(result => {
         this.isProcessing = false;
