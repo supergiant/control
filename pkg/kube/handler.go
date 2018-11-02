@@ -722,7 +722,9 @@ func (h *Handler) getClusterMetrics(w http.ResponseWriter, r *http.Request) {
 			return
 		}
 
-		response[metricType] = metricResponse.Data.Result[0].Value[1]
+		if len(metricResponse.Data.Result) > 0 && len(metricResponse.Data.Result[0].Value) > 1 {
+			response[metricType] = metricResponse.Data.Result[0].Value[1]
+		}
 	}
 
 	err = json.NewEncoder(w).Encode(response)
