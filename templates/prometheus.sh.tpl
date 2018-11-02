@@ -4,22 +4,3 @@ sudo kubectl apply -f cluster-roles.yaml --validate=false
 {{end}}
 sleep 60
 sudo /opt/bin/helm install stable/prometheus-operator
-
-sudo bash -c "cat << EOF > prometheus.yaml
-apiVersion: v1
-kind: Service
-metadata:
-  name: prometheus
-spec:
-  type: NodePort
-  ports:
-  - name: web
-    nodePort: {{ .Port }}
-    port: 9090
-    protocol: TCP
-    targetPort: web
-  selector:
-    app: prometheus
-EOF"
-
-sudo kubectl create -f prometheus.yaml
