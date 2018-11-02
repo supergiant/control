@@ -59,7 +59,8 @@
     </div>
 
     <div>
-      <button mat-button color="primary" (click)="finish()">Finish
+      <button mat-button color="primary" (click)="finish()">
+        <span [hidden]="isProcessing">Finish</span>
         <mat-progress-spinner [diameter]="15"
                               [mode]="'indeterminate'"
                               [color]="warn"
