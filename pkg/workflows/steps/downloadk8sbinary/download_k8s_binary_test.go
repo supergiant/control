@@ -15,7 +15,7 @@ import (
 	"github.com/supergiant/supergiant/pkg/workflows/steps"
 )
 
-func TestFlannelJob_InstallFlannel(t *testing.T) {
+func TestDownloadK8SBinary(t *testing.T) {
 	err := templatemanager.Init("../../../../templates")
 
 	if err != nil {
