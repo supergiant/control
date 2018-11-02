@@ -1,9 +1,11 @@
-import { Component, OnInit, OnDestroy, AfterViewInit, ViewEncapsulation } from '@angular/core';
-import { Subscription } from 'rxjs';
-import { Supergiant } from '../../shared/supergiant/supergiant.service';
-import { Notifications } from '../../shared/notifications/notifications.service';
-import { Router } from '@angular/router';
-import { FormBuilder, FormGroup, Validators } from '@angular/forms';
+import { Component, OnDestroy, OnInit, ViewEncapsulation } from '@angular/core';
+import { FormBuilder, FormGroup } from '@angular/forms';
+import { Router }                 from '@angular/router';
+import { Subscription }           from 'rxjs';
+import { Notifications }          from '../../shared/notifications/notifications.service';
+import { Supergiant }             from '../../shared/supergiant/supergiant.service';
+import { NodeProfileService }     from "../node-profile.service";
+import { CLUSTER_OPTIONS }        from "./cluster-options.config";
 
 @Component({
   selector: 'app-new-cluster',
@@ -18,7 +20,6 @@ export class NewClusterComponent implements OnInit, OnDestroy {
   availableCloudAccounts: Array<any>;
   selectedCloudAccount: any;
   availableRegions: Array<any>;
-  selectedRegion: any;
   availableMachineTypes: Array<any>;
 
   // aws vars
@@ -30,17 +31,7 @@ export class NewClusterComponent implements OnInit, OnDestroy {
     qty: 1
   }];
 
-  clusterOptions = {
-    archs: ["amd64"],
-    flannelVersions: ["0.10.0"],
-    operatingSystems: ["linux"],
-    networkTypes: ["vxlan"],
-    ubuntuVersions: ["xenial"],
-    helmVersions: ["2.11.0"],
-    dockerVersions: ["17.06.0"],
-    K8sVersions: ["1.11.1"],
-    rbacEnabled: [false]
-  };
+  clusterOptions = CLUSTER_OPTIONS;
 
   provisioning = false;
   clusterConfig: FormGroup;
@@ -50,8 +41,10 @@ export class NewClusterComponent implements OnInit, OnDestroy {
     private supergiant: Supergiant,
     private notifications: Notifications,
     private router: Router,
-    private formBuilder: FormBuilder
-  ) { }
+    private formBuilder: FormBuilder,
+    private nodesService: NodeProfileService,
+  ) {
+  }
 
 
   getCloudAccounts() {
@@ -62,44 +55,19 @@ export class NewClusterComponent implements OnInit, OnDestroy {
     );
   }
 
-  compileProfiles(machines, role) {
-    const filteredMachines = machines.filter(m => m.role == role);
-    const compiledProfiles = [];
-
-    switch (this.selectedCloudAccount.provider) {
-      case "digitalocean":
-        filteredMachines.forEach(m => {
-          for (var i = 0; i < m.qty; i++) {
-            compiledProfiles.push({ image: "ubuntu-16-04-x64", size: m.machineType })
-          }
-        })
-        break;
-      case "aws":
-        filteredMachines.forEach(m => {
-          for (var i = 0; i < m.qty; i++) {
-            compiledProfiles.push({ volumeSize: "80", size: m.machineType, ebsOptimized: "true", hasPublicAddr: "true" })
-          }
-        })
-        break;
-    }
-
-
-
-    return compiledProfiles;
-  }
 
   createCluster() {
     if (!this.provisioning) {
       // compile frontend new-cluster model into api format
-      const newClusterData:any = {};
+      const newClusterData: any = {};
       newClusterData.profile = this.clusterConfig.value;
 
       newClusterData.cloudAccountName = this.selectedCloudAccount.name;
       newClusterData.clusterName = this.clusterName;
       newClusterData.profile.region = this.providerConfig.value.region.id;
       newClusterData.profile.provider = this.selectedCloudAccount.provider;
-      newClusterData.profile.masterProfiles = this.compileProfiles(this.machines, "Master");
-      newClusterData.profile.nodesProfiles = this.compileProfiles(this.machines, "Node");
+      newClusterData.profile.masterProfiles = this.nodesService.compileProfiles(this.selectedCloudAccount.provider, this.machines, "Master");
+      newClusterData.profile.nodesProfiles = this.nodesService.compileProfiles(this.selectedCloudAccount.provider, this.machines, "Node");
 
       switch (newClusterData.profile.provider) {
         case "aws": {
@@ -180,7 +148,7 @@ export class NewClusterComponent implements OnInit, OnDestroy {
         this.getAwsAvailabilityZones(region).subscribe(
           azList => this.availabilityZones = azList,
           err => console.error(err)
-        )
+        );
         break;
     }
   }
@@ -198,7 +166,7 @@ export class NewClusterComponent implements OnInit, OnDestroy {
   }
 
   selectCloudAccount(cloudAccount) {
-    this.selectedCloudAccount = cloudAccount
+    this.selectedCloudAccount = cloudAccount;
 
     switch (this.selectedCloudAccount.provider) {
       case "digitalocean":
@@ -217,15 +185,15 @@ export class NewClusterComponent implements OnInit, OnDestroy {
           subnetId: ["default"],
           mastersSecurityGroupId: [""],
           nodesSecurityGroupId: [""]
-        })
+        });
         break;
     }
 
     this.subscriptions.add(this.supergiant.CloudAccounts.getRegions(cloudAccount.name).subscribe(
-        regionList => {
-          this.availableRegions = regionList;
-        },
-        err => this.error({}, err)
+      regionList => {
+        this.availableRegions = regionList;
+      },
+      err => this.error({}, err)
     ))
   }
 
