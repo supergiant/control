@@ -21,6 +21,7 @@ import (
 	"github.com/supergiant/supergiant/pkg/workflows/steps/prometheus"
 	"github.com/supergiant/supergiant/pkg/workflows/steps/ssh"
 	"github.com/supergiant/supergiant/pkg/workflows/steps/tiller"
+	"github.com/supergiant/supergiant/pkg/workflows/steps/gce"
 )
 
 // StepStatus aggregates data that is needed to track progress
@@ -46,6 +47,8 @@ const (
 	AWSMaster                 = "AWSMaster"
 	AWSNode                   = "AWSNode"
 	AWSPreProvision           = "AWSPreProvisionCluster"
+	GCEMaster = "GCEmaster"
+	GCENode = "GCENode"
 )
 
 type WorkflowSet struct {
@@ -140,6 +143,14 @@ func Init() {
 		steps.GetStep(digitalocean.DeleteClusterStepName),
 	}
 
+	gceNodeWorkflow := []steps.Step{
+		steps.GetStep(gce.StepName),
+	}
+
+	gceMasterWorkflow := []steps.Step{
+		steps.GetStep(gce.StepName),
+	}
+
 	m.Lock()
 	defer m.Unlock()
 
@@ -151,6 +162,8 @@ func Init() {
 	workflowMap[AWSMaster] = awsMasterWorkflow
 	workflowMap[AWSNode] = awsNodeWorkflow
 	workflowMap[AWSPreProvision] = awsPreProvision
+	workflowMap[GCENode] = gceNodeWorkflow
+	workflowMap[GCEMaster] = gceMasterWorkflow
 }
 
 func RegisterWorkFlow(workflowName string, workflow Workflow) {

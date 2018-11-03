@@ -6,7 +6,7 @@ import (
 	"time"
 
 	"golang.org/x/oauth2/jwt"
-	"google.golang.org/api/compute/v1"
+	compute "google.golang.org/api/compute/v1"
 
 	"github.com/supergiant/supergiant/pkg/clouds"
 	"github.com/supergiant/supergiant/pkg/node"
@@ -97,7 +97,7 @@ func (s *Step) Run(ctx context.Context, output io.Writer, config *steps.Config) 
 	config.GCEConfig.InstanceGroup = group.SelfLink
 
 	role := "master"
-	name := util.MakeNodeName(config.ClusterName, config.IsMaster)
+	name := util.MakeNodeName(config.ClusterName, config.TaskID, config.IsMaster)
 
 	instance := &compute.Instance{
 		Name:         name,
@@ -175,7 +175,7 @@ func (s *Step) Run(ctx context.Context, output io.Writer, config *steps.Config) 
 			// Save Master info when ready
 			if resp.Status == "RUNNING" {
 				n := node.Node{
-					Id:        string(resp.Id),
+					ID:        string(resp.Id),
 					CreatedAt: time.Now().Unix(),
 					Provider:  clouds.GCE,
 					Region:    resp.Zone,
@@ -227,4 +227,8 @@ func (s *Step) Depends() []string {
 
 func (s *Step) Description() string {
 	return "Google compute engine step for creating instance"
+}
+
+func (s *Step ) Rollback(context.Context, io.Writer, *steps.Config) error {
+	return nil
 }
