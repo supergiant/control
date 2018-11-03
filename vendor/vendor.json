@@ -825,10 +825,10 @@
 			"revisionTime": "2018-05-18T17:41:52Z"
 		},
 		{
-			"checksumSHA1": "XH7CgbL5Z8COUc+MKrYqS3FFosY=",
+			"checksumSHA1": "oK4ttXhEP1Kg+dQY/dObk89Hzrs=",
 			"path": "golang.org/x/oauth2",
-			"revision": "3c3a985cb79f52a3190fbc056984415ca6763d01",
-			"revisionTime": "2016-08-26T23:14:08Z"
+			"revision": "232e45548389bd9357411a6922a07c5fd4068bda",
+			"revisionTime": "2018-11-01T16:53:39Z"
 		},
 		{
 			"checksumSHA1": "D3v/aqfB9swlaZcSksCoF+lbOqo=",
