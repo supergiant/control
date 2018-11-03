@@ -47,7 +47,7 @@ const (
 	AWSMaster                 = "AWSMaster"
 	AWSNode                   = "AWSNode"
 	AWSPreProvision           = "AWSPreProvisionCluster"
-	GCEMaster = "GCEmaster"
+	GCEMaster = "GCEMaster"
 	GCENode = "GCENode"
 )
 

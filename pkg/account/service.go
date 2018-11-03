@@ -87,6 +87,7 @@ func (s *Service) Create(ctx context.Context, account *model.CloudAccount) error
 			account.Credentials[clouds.AWSSecretKey] == "" {
 			return errors.Wrap(sgerrors.ErrInvalidCredentials, "both aws access key and key id should be provided")
 		}
+	case clouds.GCE:
 	default:
 		return sgerrors.ErrUnsupportedProvider
 	}

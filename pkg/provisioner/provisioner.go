@@ -48,6 +48,10 @@ func NewProvisioner(repository storage.Interface, kubeService KubeService) *Task
 				ProvisionMaster: workflows.AWSMaster,
 				ProvisionNode:   workflows.AWSNode,
 			},
+			clouds.GCE: {
+				ProvisionMaster: workflows.GCEMaster,
+				ProvisionNode: workflows.GCENode,
+			},
 		},
 		getWriter: util.GetWriter,
 	}

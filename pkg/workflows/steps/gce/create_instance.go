@@ -88,7 +88,8 @@ func (s *Step) Run(ctx context.Context, output io.Writer, config *steps.Config) 
 		}
 	}
 
-	group, serr := client.InstanceGroups.Insert(config.GCEConfig.ProjectID, config.GCEConfig.Zone, instanceGroup).Do()
+	group, serr := client.InstanceGroups.Insert(config.GCEConfig.ProjectID,
+		config.GCEConfig.Zone, instanceGroup).Do()
 
 	if serr != nil {
 		return serr

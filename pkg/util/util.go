@@ -115,6 +115,8 @@ func FillCloudAccountCredentials(ctx context.Context, cloudAccount *model.CloudA
 		return BindParams(cloudAccount.Credentials, &config.AWSConfig)
 	case clouds.DigitalOcean:
 		return BindParams(cloudAccount.Credentials, &config.DigitalOceanConfig)
+	case  clouds.GCE:
+		return BindParams(cloudAccount.Credentials, &config.GCEConfig)
 	default:
 		return sgerrors.ErrUnknownProvider
 	}

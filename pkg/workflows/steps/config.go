@@ -40,14 +40,14 @@ type DOConfig struct {
 // TODO(stgleb): Fill struct with fields when provisioning on other providers is done
 
 type GCEConfig struct {
-	Email         string
-	PrivateKey    string
-	ImageFamily   string
-	ProjectID     string
-	Zone          string
-	Size          string
-	InstanceGroup string
-	TokenUri      string
+	Email         string `json:"email"`
+	PrivateKey    string `json:"privateKey"`
+	ImageFamily   string `json:"imageFamily"`
+	ProjectID     string `json:"projectId"`
+	Zone          string `json:"zone"`
+	Size          string `json:"size"`
+	InstanceGroup string `json:"instanceGroup"`
+	TokenUri      string `json:"token_uri"`
 }
 
 type PacketConfig struct{}
@@ -232,6 +232,7 @@ func NewConfig(clusterName, discoveryUrl, cloudAccountName string, profile profi
 		AWSConfig: AWSConfig{
 			Region: profile.Region,
 
+			// TODO(stgleb): rename constants to camelCase
 			//TODO MOVE TO CONSTANTS
 			AvailabilityZone:       profile.CloudSpecificSettings["aws_az"],
 			VPCCIDR:                profile.CloudSpecificSettings["aws_vpc_cidr"],
@@ -241,7 +242,16 @@ func NewConfig(clusterName, discoveryUrl, cloudAccountName string, profile profi
 			MastersSecurityGroupID: profile.CloudSpecificSettings["aws_masters_secgroup_id"],
 			NodesSecurityGroupID:   profile.CloudSpecificSettings["aws_nodes_secgroup_id"],
 		},
-		GCEConfig:    GCEConfig{},
+		GCEConfig:    GCEConfig{
+			Email: profile.CloudSpecificSettings["gceEmail"],
+			PrivateKey: profile.CloudSpecificSettings["gcePrivateKey"],
+			ImageFamily: profile.CloudSpecificSettings["gceImageFamily"],
+			ProjectID: profile.CloudSpecificSettings["gceProjectID"],
+			Zone: profile.CloudSpecificSettings["gceZone"],
+			Size: profile.CloudSpecificSettings["gceSize"],
+			InstanceGroup: profile.CloudSpecificSettings["gceInstanceGroup"],
+			TokenUri: profile.CloudSpecificSettings["gceTokenUri"],
+		},
 		OSConfig:     OSConfig{},
 		PacketConfig: PacketConfig{},
 
