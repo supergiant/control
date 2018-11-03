@@ -1,0 +1,75 @@
+@import "src/assets/css/variables";
+
+:host {
+
+  i {
+    color: $sg-pink;
+  }
+  mat-form-field {
+    margin-right: 24px;
+  }
+
+  .mat-card-content, .mat-card-actions {
+    display: flex;
+    justify-content: space-between;
+  }
+
+
+  .column {
+    display: flex;
+    align-items: baseline;
+
+    &.machines-list {
+      flex-direction: column;
+    }
+
+    .delete-machine {
+      padding-top: 25px;
+      cursor: pointer;
+    }
+
+    .machine {
+      display: flex;
+
+      .type {
+        width: 341px;
+      }
+
+      .role {
+        width: 123px;
+      }
+
+      .quantity {
+        width: 30px;
+      }
+    }
+
+    .architecture {
+      display: flex;
+      flex-wrap: wrap;
+      width: 600px;
+
+      mat-form-field {
+        width: 270px;
+      }
+    }
+  }
+
+  .add-machines {
+    cursor: pointer;
+  }
+
+  button {
+    outline: none;
+
+    &[mat-button] {
+      padding: 8px 32px;
+
+      &[color='primary'] {
+        color: #fff;
+        border: none;
+        background-color: #D10088 !important;
+      }
+    }
+  }
+}
