@@ -11,6 +11,7 @@ import { Supergiant } from '../../shared/supergiant/supergiant.service';
 import { UtilService } from '../../shared/supergiant/util/util.service';
 import { Notifications } from '../../shared/notifications/notifications.service';
 import { ConfirmModalComponent } from '../../shared/modals/confirm-modal/confirm-modal.component';
+import { DeleteClusterModalComponent } from './delete-cluster-modal/delete-cluster-modal.component';
 import { TaskLogsComponent } from './task-logs/task-logs.component';
 
 
@@ -257,7 +258,31 @@ export class ClusterComponent implements OnInit, OnDestroy {
         catchError((error) => of(error)),
       ).subscribe(
         k => this.renderKube(k),
-        err => console.error(err),
+        err => {
+          console.error(err);
+          this.error(this.id, err)
+        },
+     );
+  }
+
+  deleteCluster() {
+    const dialogRef = this.initDeleteCluster();
+
+    dialogRef
+      .afterClosed()
+      .pipe(
+        filter(isConfirmed => isConfirmed),
+        switchMap(() => this.supergiant.Kubes.delete(this.id)),
+        catchError((error) => of(error)),
+      ).subscribe(
+        res => {
+          this.success(this.id);
+          this.router.navigate([""]);
+        },
+        err => {
+          console.error(err);
+          this.error(this.id, err)
+        },
      );
   }
 
@@ -273,5 +298,27 @@ export class ClusterComponent implements OnInit, OnDestroy {
     return dialogRef;
   }
 
+  private initDeleteCluster() {
+    const dialogRef = this.dialog.open(DeleteClusterModalComponent, {
+      width: "500px",
+    });
+    return dialogRef;
+  }
+
   expandRow = (_, row) => row.hasOwnProperty('detailRow');
+
+  success(name) {
+    this.notifications.display(
+      'success',
+      'Kube: ' + name,
+      'Deleted...',
+    );
+  }
+
+  error(name, error) {
+    this.notifications.display(
+      'error',
+      'Kube: ' + name,
+      'Error:' + error.statusText);
+  }
 }
