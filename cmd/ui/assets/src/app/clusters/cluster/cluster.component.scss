@@ -595,4 +595,16 @@
       }
     }
   }
+
+  .action-buttons {
+    text-align: center;
+
+    .delete-cluster {
+      background-color: rgba(244,67,54,0.3);
+      border: 1px solid rgba(244,67,54,0.8);
+      width: 1270px;
+    }
+  }
+
+
 }
