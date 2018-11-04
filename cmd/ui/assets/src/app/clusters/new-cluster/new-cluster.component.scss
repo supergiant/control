@@ -19,6 +19,10 @@
 				&:nth-of-type(1) {
 					margin-left: 0px;
 				}
+
+				&:focus {
+					outline: -webkit-focus-ring-color auto 5px;
+				}
 			}
 		}
 
@@ -26,6 +30,16 @@
 			display: flex;
 			flex-direction: column;
 			width: 320px;
+
+			.mat-form-field {
+				width: 100%;
+			}
+
+			.unique-name-warning {
+				color: #f44336;
+				font-weight: 300;
+				margin: 4px 0 0 0;
+			}
 		}
 
 		.cluster-config-form {
@@ -63,11 +77,11 @@
 		.machine-config-step {
 			display: flex;
 			flex-direction: column;
-			width: 500px;
 
 			.machine {
 				display: flex;
 				justify-content: space-between;
+				width: 500px;
 
 				.type {
 					width: 240px;
@@ -121,6 +135,12 @@
 					padding-left: 12px;
 				}
 			}
+
+			.machine-config-warning {
+				color: #f44336;
+				font-weight: 300;
+				margin: 24px 0 0 0;
+			}
 		}
 
 		.review-wrapper {
@@ -145,6 +165,10 @@
 
 					&:last-of-type {
 						margin-right: 0px;
+					}
+
+					&:focus {
+						outline: -webkit-focus-ring-color auto 5px;
 					}
 				}
 
