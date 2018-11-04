@@ -1,4 +1,5 @@
-import { Injectable } from '@angular/core';
+import { Injectable }  from '@angular/core';
+import { Observable }  from "rxjs";
 import { UtilService } from '../util/util.service';
 
 @Injectable()
@@ -7,7 +8,7 @@ export class Kubes {
   provisionPath = '/v1/api/provision';
 
   constructor(private util: UtilService) { }
-  public get(id?) {
+  public get(id?): Observable<any> {
     if (id) {
       return this.util.fetch(this.kubesPath + '/' + id);
     }

@@ -166,6 +166,7 @@ import { TaskLogsComponent } from './clusters/cluster/task-logs/task-logs.compon
 import {LoginGuardService} from "./shared/supergiant/auth/login-guard.service";
 import { MenuModalComponent } from './navigation/user-menu/menu-modal/menu-modal.component';
 import { ClusterListModalComponent } from './navigation/toolbar/cluster-list-modal/cluster-list-modal.component';
+import { AddNodeComponent } from './clusters/cluster/add-node/add-node.component';
 import { UsageOrbComponent } from './dashboard/usage-orb/usage-orb.component';
 import { ClusterTableComponent } from './dashboard/cluster-table/cluster-table.component';
 
@@ -238,6 +239,7 @@ import { ClusterTableComponent } from './dashboard/cluster-table/cluster-table.c
     TaskLogsComponent,
     MenuModalComponent,
     ClusterListModalComponent,
+    AddNodeComponent,
     UsageOrbComponent,
     ClusterTableComponent,
   ],

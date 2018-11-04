@@ -14,6 +14,7 @@ import (
 	"github.com/sirupsen/logrus"
 	"gopkg.in/asaskevich/govalidator.v8"
 
+	"crypto/tls"
 	"github.com/supergiant/supergiant/pkg/clouds"
 	"github.com/supergiant/supergiant/pkg/message"
 	"github.com/supergiant/supergiant/pkg/model"
@@ -25,6 +26,7 @@ import (
 	"github.com/supergiant/supergiant/pkg/workflows"
 	"github.com/supergiant/supergiant/pkg/workflows/statuses"
 	"github.com/supergiant/supergiant/pkg/workflows/steps"
+	"strings"
 )
 
 type accountGetter interface {
@@ -81,6 +83,8 @@ func (h *Handler) Register(r *mux.Router) {
 
 	r.HandleFunc("/kubes/{kname}/nodes", h.addNode).Methods(http.MethodPost)
 	r.HandleFunc("/kubes/{kname}/nodes/{nodename}", h.deleteNode).Methods(http.MethodDelete)
+	r.HandleFunc("/kubes/{kname}/metrics", h.getClusterMetrics).Methods(http.MethodGet)
+	r.HandleFunc("/kubes/{kname}/{nodename}/metrics", h.getNodeMetrics).Methods(http.MethodGet)
 }
 
 func (h *Handler) getTasks(w http.ResponseWriter, r *http.Request) {
@@ -642,5 +646,171 @@ func (h *Handler) deleteReleases(w http.ResponseWriter, r *http.Request) {
 	if err = json.NewEncoder(w).Encode(rls); err != nil {
 		logrus.Errorf("helm: delete release: %s cluster: write response: %s", kname, err)
 		message.SendUnknownError(w, err)
+	}
+}
+
+type MetricResponse struct {
+	Status string `json:"status"`
+	Data   struct {
+		ResultType string `json:"resultType"`
+		Result     []struct {
+			Metric map[string]string `json:"metric"`
+			Value  []interface{}     `json:"value"`
+		} `json:"result"`
+	} `json:"data"`
+}
+
+func (h *Handler) getClusterMetrics(w http.ResponseWriter, r *http.Request) {
+	var (
+		relativeUrls = map[string]string{
+			"cpu":    "api/v1/query?query=:node_cpu_utilisation:avg1m",
+			"memory": "api/v1/query?query=:node_memory_utilisation:",
+		}
+		masterNode     *node.Node
+		metricResponse = &MetricResponse{}
+		response       = map[string]interface{}{}
+		baseUrl        = "api/v1/namespaces/default/services/prometheus-operated:9090/proxy"
+	)
+
+	vars := mux.Vars(r)
+	kname := vars["kname"]
+
+	k, err := h.svc.Get(r.Context(), kname)
+	if err != nil {
+		if sgerrors.IsNotFound(err) {
+			message.SendNotFound(w, kname, err)
+			return
+		}
+		message.SendUnknownError(w, err)
+		return
+	}
+
+	for key := range k.Masters {
+		if k.Masters[key] != nil {
+			masterNode = k.Masters[key]
+		}
+	}
+
+	for metricType, relUrl := range relativeUrls {
+		url := fmt.Sprintf("https://%s/%s/%s", masterNode.PublicIp, baseUrl, relUrl)
+		req, err := http.NewRequest(http.MethodGet, url, nil)
+
+		if err != nil {
+			message.SendUnknownError(w, err)
+			return
+		}
+
+		// TODO(stgleb): Get rid off basic auth
+		req.SetBasicAuth("root", "1234")
+		tr := &http.Transport{
+			TLSClientConfig: &tls.Config{InsecureSkipVerify: true},
+		}
+		client := &http.Client{
+			Transport: tr,
+		}
+		resp, err := client.Do(req)
+
+		if err != nil {
+			message.SendUnknownError(w, err)
+			return
+		}
+
+		err = json.NewDecoder(resp.Body).Decode(metricResponse)
+
+		if err != nil {
+			logrus.Error(err)
+			message.SendInvalidJSON(w, err)
+			return
+		}
+
+		if len(metricResponse.Data.Result) > 0 && len(metricResponse.Data.Result[0].Value) > 1 {
+			response[metricType] = metricResponse.Data.Result[0].Value[1]
+		}
+	}
+
+	err = json.NewEncoder(w).Encode(response)
+
+	if err != nil {
+		message.SendUnknownError(w, err)
+		return
+	}
+}
+
+func (h *Handler) getNodeMetrics(w http.ResponseWriter, r *http.Request) {
+	var (
+		relativeUrls = map[string]string{
+			"cpu":    "api/v1/query?query=node:node_cpu_utilisation:avg1m",
+			"memory": "api/v1/query?query=node:node_memory_utilisation:",
+		}
+		masterNode     *node.Node
+		metricResponse = &MetricResponse{}
+		response       = map[string]interface{}{}
+		baseUrl        = "api/v1/namespaces/default/services/prometheus-operated:9090/proxy"
+	)
+
+	vars := mux.Vars(r)
+	kname := vars["kname"]
+	nodeName := vars["nodename"]
+
+	k, err := h.svc.Get(r.Context(), kname)
+	if err != nil {
+		if sgerrors.IsNotFound(err) {
+			message.SendNotFound(w, kname, err)
+			return
+		}
+		message.SendUnknownError(w, err)
+		return
+	}
+
+	for key := range k.Masters {
+		if k.Masters[key] != nil {
+			masterNode = k.Masters[key]
+		}
+	}
+
+	for metricType, relUrl := range relativeUrls {
+		url := fmt.Sprintf("https://%s/%s/%s", masterNode.PublicIp, baseUrl, relUrl)
+		req, err := http.NewRequest(http.MethodGet, url, nil)
+
+		if err != nil {
+			message.SendUnknownError(w, err)
+			return
+		}
+
+		// TODO(stgleb): Get rid off basic auth
+		req.SetBasicAuth("root", "1234")
+		tr := &http.Transport{
+			TLSClientConfig: &tls.Config{InsecureSkipVerify: true},
+		}
+		client := &http.Client{
+			Transport: tr,
+		}
+		resp, err := client.Do(req)
+
+		if err != nil {
+			message.SendUnknownError(w, err)
+			return
+		}
+
+		err = json.NewDecoder(resp.Body).Decode(metricResponse)
+
+		if err != nil {
+			logrus.Error(err)
+			message.SendInvalidJSON(w, err)
+			return
+		}
+
+		for _, result := range metricResponse.Data.Result {
+			if strings.EqualFold(result.Metric["node"], nodeName) {
+				response[metricType] = result.Value[1]
+			}
+		}
+	}
+
+	err = json.NewEncoder(w).Encode(response)
+
+	if err != nil {
+		message.SendUnknownError(w, err)
+		return
 	}
 }
