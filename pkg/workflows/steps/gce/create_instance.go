@@ -15,7 +15,7 @@ import (
 	"github.com/supergiant/supergiant/pkg/workflows/steps"
 )
 
-const StepName = "google_compute_engine"
+const StepName = "gce"
 
 type Step struct {
 	// Client creates the client for the provider.
@@ -48,6 +48,11 @@ func New() (steps.Step, error) {
 			return computeService, nil
 		},
 	}, nil
+}
+
+func Init() {
+	s, _ := New()
+	steps.RegisterStep(StepName, s)
 }
 
 func (s *Step) Run(ctx context.Context, output io.Writer, config *steps.Config) error {
