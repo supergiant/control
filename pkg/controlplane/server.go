@@ -44,6 +44,7 @@ import (
 	"github.com/supergiant/supergiant/pkg/workflows/steps/prometheus"
 	"github.com/supergiant/supergiant/pkg/workflows/steps/ssh"
 	"github.com/supergiant/supergiant/pkg/workflows/steps/tiller"
+	"github.com/supergiant/supergiant/pkg/workflows/steps/gce"
 )
 
 type Server struct {
@@ -224,6 +225,7 @@ func configureApplication(cfg *Config) (*mux.Router, error) {
 	network.Init()
 	clustercheck.Init()
 	prometheus.Init()
+	gce.Init()
 
 	amazon.InitImportKeyPair(amazon.GetEC2)
 	amazon.InitCreateMachine(amazon.GetEC2)
