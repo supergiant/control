@@ -7,26 +7,26 @@
         <div class="icon masters-icon">
 
           <div [ngClass]="{
-            'complete': mastersStatus == 'complete',
-            'executing': mastersStatus == 'executing',
-            'failed': mastersStatus == 'failed' }">
+            'complete': masterTasksStatus == 'complete',
+            'executing': masterTasksStatus == 'executing',
+            'failed': masterTasksStatus == 'failed' }">
             <div class="spinner-outline"></div>
             <mat-spinner [diameter]="148"></mat-spinner>
             <div class="status"></div>
           </div>
 
         </div>
-        <h1 [ngClass]="{ 'failed': mastersStatus == 'failed' }">Master Nodes</h1>
+        <h1 [ngClass]="{ 'failed': masterTasksStatus == 'failed' }">Master Nodes</h1>
       </div>
 
       <div class="nodes task-group">
         <div class="icon nodes-icon">
 
           <div [ngClass]="{
-            'complete': nodesStatus == 'complete',
-            'executing': nodesStatus == 'executing',
-            'queued': nodesStatus == 'queued',
-            'failed': nodesStatus == 'failed'}">
+            'complete': nodeTasksStatus == 'complete',
+            'executing': nodeTasksStatus == 'executing',
+            'queued': nodeTasksStatus == 'queued',
+            'failed': nodeTasksStatus == 'failed'}">
             <div class="spinner-outline"></div>
             <mat-spinner [diameter]="148"></mat-spinner>
             <div class="status"></div>
@@ -34,18 +34,18 @@
 
         </div>
         <h1 [ngClass]="{
-          'queued': nodesStatus == 'queued',
-          'failed': nodesStatus == 'failed' }">Nodes</h1>
+          'queued': nodeTasksStatus == 'queued',
+          'failed': nodeTasksStatus == 'failed' }">Nodes</h1>
       </div>
 
       <div class="ready task-group">
         <div class="icon ready-icon">
 
           <div [ngClass]="{
-            'complete': readyStatus == 'complete',
-            'executing': readyStatus == 'executing',
-            'queued': readyStatus == 'queued',
-            'failed': readyStatus == 'failed'}">
+            'complete': clusterTasksStatus == 'complete',
+            'executing': clusterTasksStatus == 'executing',
+            'queued': clusterTasksStatus == 'queued',
+            'failed': clusterTasksStatus == 'failed'}">
             <div class="spinner-outline"></div>
             <mat-spinner [diameter]="148"></mat-spinner>
             <div class="status"></div>
@@ -53,8 +53,8 @@
 
         </div>
         <h1 [ngClass]="{
-          'queued': readyStatus == 'queued',
-          'failed': readyStatus == 'failed'}">Ready</h1>
+          'queued': clusterTasksStatus == 'queued',
+          'failed': clusterTasksStatus == 'failed'}">Cluster</h1>
       </div>
     </div>
 
