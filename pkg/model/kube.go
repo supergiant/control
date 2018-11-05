@@ -41,7 +41,8 @@ type Kube struct {
 type Auth struct {
 	Username string `json:"username"`
 	Token    string `json:"token"`
-	CA       string `json:"ca"`
+	CAKey    string `json:"caKey"`
+	CACert   string `json:"caCert"`
 	Cert     string `json:"cert"`
 	Key      string `json:"key"`
 }

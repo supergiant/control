@@ -397,6 +397,8 @@ func (h *Handler) addNode(w http.ResponseWriter, r *http.Request) {
 	}
 
 	config := steps.NewConfig(k.Name, "", k.AccountName, kubeProfile)
+	config.CertificatesConfig.CAKey = k.Auth.CAKey
+	config.CertificatesConfig.CACert = k.Auth.CACert
 
 	if len(k.Masters) != 0 {
 		config.AddMaster(util.GetRandomNode(k.Masters))
