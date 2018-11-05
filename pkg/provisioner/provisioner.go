@@ -384,7 +384,10 @@ func (tp *TaskProvisioner) buildInitialCluster(ctx context.Context, profile *pro
 		SshUser:      config.SshConfig.User,
 		SshPublicKey: []byte(config.SshConfig.PublicKey),
 
-		Auth: model.Auth{},
+		Auth: model.Auth{
+			CAKey:  config.CertificatesConfig.CAKey,
+			CACert: config.CertificatesConfig.CACert,
+		},
 
 		Arch:                   profile.Arch,
 		OperatingSystem:        profile.OperatingSystem,
@@ -398,8 +401,6 @@ func (tp *TaskProvisioner) buildInitialCluster(ctx context.Context, profile *pro
 			Type:    profile.NetworkType,
 			CIDR:    profile.CIDR,
 		},
-		CAKey:  config.CertificatesConfig.CAKey,
-		CACert: config.CertificatesConfig.CACert,
 
 		Masters: masters,
 		Nodes:   nodes,
