@@ -103,6 +103,10 @@ func TestWriteManifestMaster(t *testing.T) {
 	if !strings.Contains(output.String(), providerString) {
 		t.Errorf("provider string %s not found in %s", providerString, output.String())
 	}
+
+	if !strings.Contains(output.String(), "RBAC") {
+		t.Errorf("RBAC not found in %s", output.String())
+	}
 }
 
 func TestWriteManifestNode(t *testing.T) {

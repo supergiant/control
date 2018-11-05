@@ -7,26 +7,26 @@
         <div class="icon masters-icon">
 
           <div [ngClass]="{
-            'complete': mastersStatus == 'complete',
-            'executing': mastersStatus == 'executing',
-            'failed': mastersStatus == 'failed' }">
+            'complete': masterTasksStatus == 'complete',
+            'executing': masterTasksStatus == 'executing',
+            'failed': masterTasksStatus == 'failed' }">
             <div class="spinner-outline"></div>
             <mat-spinner [diameter]="148"></mat-spinner>
             <div class="status"></div>
           </div>
 
         </div>
-        <h1 [ngClass]="{ 'failed': mastersStatus == 'failed' }">Master Nodes</h1>
+        <h1 [ngClass]="{ 'failed': masterTasksStatus == 'failed' }">Master Nodes</h1>
       </div>
 
       <div class="nodes task-group">
         <div class="icon nodes-icon">
 
           <div [ngClass]="{
-            'complete': nodesStatus == 'complete',
-            'executing': nodesStatus == 'executing',
-            'queued': nodesStatus == 'queued',
-            'failed': nodesStatus == 'failed'}">
+            'complete': nodeTasksStatus == 'complete',
+            'executing': nodeTasksStatus == 'executing',
+            'queued': nodeTasksStatus == 'queued',
+            'failed': nodeTasksStatus == 'failed'}">
             <div class="spinner-outline"></div>
             <mat-spinner [diameter]="148"></mat-spinner>
             <div class="status"></div>
@@ -34,18 +34,18 @@
 
         </div>
         <h1 [ngClass]="{
-          'queued': nodesStatus == 'queued',
-          'failed': nodesStatus == 'failed' }">Nodes</h1>
+          'queued': nodeTasksStatus == 'queued',
+          'failed': nodeTasksStatus == 'failed' }">Nodes</h1>
       </div>
 
       <div class="ready task-group">
         <div class="icon ready-icon">
 
           <div [ngClass]="{
-            'complete': readyStatus == 'complete',
-            'executing': readyStatus == 'executing',
-            'queued': readyStatus == 'queued',
-            'failed': readyStatus == 'failed'}">
+            'complete': clusterTasksStatus == 'complete',
+            'executing': clusterTasksStatus == 'executing',
+            'queued': clusterTasksStatus == 'queued',
+            'failed': clusterTasksStatus == 'failed'}">
             <div class="spinner-outline"></div>
             <mat-spinner [diameter]="148"></mat-spinner>
             <div class="status"></div>
@@ -53,13 +53,14 @@
 
         </div>
         <h1 [ngClass]="{
-          'queued': readyStatus == 'queued',
-          'failed': readyStatus == 'failed'}">Ready</h1>
+          'queued': clusterTasksStatus == 'queued',
+          'failed': clusterTasksStatus == 'failed'}">Cluster</h1>
       </div>
     </div>
 
     <div class="failed-message" *ngIf=" kube?.state == 'failed' ">
-      <p class="communication">Cluster provisioning has failed. Please check the table below and restart any failed tasks.</p>
+      <p class="communication">Cluster provisioning has failed. Please check the table below and restart any failed
+        tasks.</p>
     </div>
 
     <div class="sg-table">
@@ -70,13 +71,15 @@
           <mat-header-cell *matHeaderCellDef>Status</mat-header-cell>
           <mat-cell class="task-status" *matCellDef="let task">
             <!-- what are the actual values for tasks? -->
-            <mat-spinner *ngIf="task?.status == 'todo'" [diameter]="24"></mat-spinner>
-            <div class="ready-icon" *ngIf="task?.status == 'complete'"></div>
+            <mat-spinner class="executing-spinner" *ngIf="task?.status == 'executing'" [diameter]="24"></mat-spinner>
+            <div class="ready-icon" *ngIf="task?.status == 'success'"></div>
             <div class="failed-icon" *ngIf="task?.status == 'error'"></div>
             <span style="padding-left: 12px;">{{ task.status | titlecase }}</span>
-            <button mat-raised-button *ngIf="task?.status == 'error'" class="secondary restart-task" (click)="restartTask(task.id)">
+            <button mat-raised-button *ngIf="task?.status == 'error'" class="secondary restart-task"
+                    (click)="restartTask(task.id)">
               <span *ngIf="!task?.restarting">RESTART</span>
-              <mat-spinner class="restart-spinner" color="primary" *ngIf="task?.restarting" [diameter]="20"></mat-spinner>
+              <mat-spinner class="restart-spinner" color="primary" *ngIf="task?.restarting"
+                           [diameter]="20"></mat-spinner>
             </button>
           </mat-cell>
         </ng-container>
@@ -120,14 +123,15 @@
         <ng-container matColumnDef="expandedDetail">
           <mat-cell class="expanded-tasks" *matCellDef="let detail">
             <p *ngFor="let step of detail.t.stepsStatuses">
-              {{ step.stepName }}
-              <span *ngIf=" step.status == 'executing' " class="saving"><span>.</span><span>.</span><span>.</span></span>
+            {{ step.stepName }}
+              <span *ngIf=" step.status == 'executing' "
+                    class="saving"><span>.</span><span>.</span><span>.</span></span>
               <span *ngIf=" step.status != 'executing' "> ...</span>
               <span [ngClass]="{
                 'success': step.status == 'success',
                 'error': step.status == 'error',
                 'executing': step.status == 'executing' }">
-                {{ step.status }}
+              {{ step.status }}
               </span>
               <span class="step-error-message" *ngIf=" step.status == 'error' ">{{ step.errorMessage }}</span>
             </p>
@@ -137,7 +141,7 @@
         <mat-header-row *matHeaderRowDef="taskListColumns"></mat-header-row>
         <mat-row *matRowDef="let row; columns: taskListColumns" [ngClass]="{ 'viewingSteps': row.showSteps }"></mat-row>
         <mat-row class="detail-row" *matRowDef="let row; columns: ['expandedDetail']; when: expandRow"
-          [@detailExpand]="row.t.id == expandedTaskId ? 'expanded' : 'collapsed'"></mat-row>
+                 [@detailExpand]="row.t.id == expandedTaskId ? 'expanded' : 'collapsed'"></mat-row>
 
       </mat-table>
       <!--
@@ -164,7 +168,7 @@
         <ng-container matColumnDef="state">
           <mat-header-cell *matHeaderCellDef>State</mat-header-cell>
           <mat-cell *matCellDef="let machine">
-            {{ machine.state | titlecase }}
+          {{ machine.state | titlecase }}
           </mat-cell>
         </ng-container>
 
@@ -201,7 +205,7 @@
                            *matHeaderCellDef>Public IP
           </mat-header-cell>
           <mat-cell *matCellDef="let machine">
-            {{ machine.publicIp }}
+          {{ machine.publicIp }}
             <div></div>
             <button (click)="removeNode(machine.name, $event)"
                     mat-button>
@@ -215,8 +219,16 @@
         <mat-row *matRowDef="let row; columns: machineListColumns"></mat-row>
 
       </mat-table>
+
       <mat-paginator [pageSizeOptions]="[5, 10, 25, 100]"
                      color="primary"></mat-paginator>
+      <a routerLink="add-node" class="add-node">
+        <button mat-button color="primary">Add node</button>
+      </a>
+    </div>
+
+    <div class="action-buttons">
+      <button mat-raised-button class="secondary delete-cluster" type="button" (click)="deleteCluster()">DELETE CLUSTER</button>
     </div>
   </ng-container>
 </div>

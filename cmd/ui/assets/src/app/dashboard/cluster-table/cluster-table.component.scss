@@ -1,0 +1,73 @@
+.cluster-info {
+  display: flex;
+  background-color: rgba(0, 0, 0, 0);
+  justify-content: flex-start;
+  width: 100%;
+
+  .cluster-name {
+    background-color: rgba(255, 0, 166, 0.25);
+    padding: 20px 24px;
+    margin-right: 2px;
+    height: 95px;
+    width: 210px;
+
+    span {
+      font-size: 18px;
+      font-weight: 100;
+    }
+  }
+
+  .cluster-data {
+    margin: auto 0;
+    width: 1000px;
+
+    .mat-table {
+      background-color: rgba(0,0,0,0);
+
+      .mat-header-row {
+        background-color: rgba(255, 0, 166, 0.25);
+        border: none;
+        min-height: 45px;
+
+        .mat-header-cell {
+          color: #fff;
+          font-family: "Roboto", sans-serif;
+          font-weight: 300;
+          font-size: 14px;
+        }
+      }
+
+      .mat-row {
+        background-color: rgba(255, 255, 255, 0.1);
+        border: none;
+        margin: 2px 0px;
+
+        .mat-cell {
+          color: #fff;
+          font-family: "Roboto", sans-serif;
+          font-weight: 300;
+          font-size: 12px;
+          overflow: unset;
+        }
+
+        &:last-child {
+          margin-bottom: 0px;
+        }
+      }
+    }
+  }
+}
+
+.cluster-hover {
+  border: 1px solid rgba(0,0,0,0);
+  margin: 12px 0;
+  padding: 24px;
+  transition: all 0.1s linear;
+
+  &:hover {
+    text-decoration: none;
+    background-color: rgba(0,0,0,0.5);
+    border: 1px solid rgba(255,255,255,0.25);
+    cursor: pointer;
+  }
+}

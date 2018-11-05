@@ -11,6 +11,7 @@ import (
 
 	"github.com/pkg/errors"
 
+	"github.com/supergiant/supergiant/pkg/node"
 	"github.com/supergiant/supergiant/pkg/profile"
 	"github.com/supergiant/supergiant/pkg/runner"
 	"github.com/supergiant/supergiant/pkg/templatemanager"
@@ -77,14 +78,19 @@ func TestFlannelJob_InstallFlannel(t *testing.T) {
 
 		output := &bytes.Buffer{}
 
-		config := &steps.Config{
-			FlannelConfig: steps.FlannelConfig{
-				testCase.version,
-				testCase.arch,
-				etcdHost,
-			},
-			Runner: r,
+		config := steps.NewConfig("", "", "", profile.Profile{})
+		config.FlannelConfig = steps.FlannelConfig{
+			testCase.version,
+			testCase.arch,
+			etcdHost,
 		}
+		config.IsMaster = false
+		config.Runner = r
+
+		config.AddMaster(&node.Node{
+			State:     node.StateActive,
+			PrivateIp: "127.0.0.1",
+		})
 
 		task := &Step{
 			script: tpl,
@@ -126,6 +132,11 @@ func TestFlannelErrors(t *testing.T) {
 
 	cfg := steps.NewConfig("", "", "", profile.Profile{})
 	cfg.Runner = r
+	cfg.AddMaster(&node.Node{
+		State:     node.StateActive,
+		PrivateIp: "127.0.0.1",
+	})
+
 	err = task.Run(context.Background(), output, cfg)
 
 	if err == nil {

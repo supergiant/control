@@ -1,4 +1,5 @@
 .cluster-details-wrapper {
+
   margin-top: 15px;
 
   .task-overview {
@@ -501,6 +502,10 @@
         .task-status {
           justify-content: flex-start;
 
+          .executing-spinner {
+            margin-left: 13px;
+          }
+
           .ready-icon {
             background: url(/assets/img/cluster-details/steps/icon_ready.svg) no-repeat center;
             // why?
@@ -571,4 +576,35 @@
       background-color: rgba(255, 255, 255, 0.1);
     }
   }
+
+  .add-node {
+    position: relative;
+    bottom: 44px;
+    left: 20px;
+  }
+
+  button {
+    outline: none;
+
+    &[mat-button] {
+
+      &[color='primary'] {
+        color: #fff;
+        border: none;
+        background-color: #D10088 !important;
+      }
+    }
+  }
+
+  .action-buttons {
+    text-align: center;
+
+    .delete-cluster {
+      background-color: rgba(244,67,54,0.3);
+      border: 1px solid rgba(244,67,54,0.8);
+      width: 1270px;
+    }
+  }
+
+
 }

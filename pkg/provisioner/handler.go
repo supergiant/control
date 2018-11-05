@@ -78,7 +78,6 @@ func (h *Handler) Provision(w http.ResponseWriter, r *http.Request) {
 	}
 
 	logrus.Infof("Got discoveryUrl %s", discoveryUrl)
-
 	config := steps.NewConfig(req.ClusterName, discoveryUrl, req.CloudAccountName, req.Profile)
 
 	acc, err := h.accountGetter.Get(r.Context(), req.CloudAccountName)
