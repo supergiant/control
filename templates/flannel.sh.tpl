@@ -22,10 +22,10 @@ sudo systemctl daemon-reload
 sudo systemctl enable flanneld.service
 sudo systemctl start flanneld.service
 
-while [ ! -f /run/flannel/subnet.env ]; do   sleep 2; printf '.'; done
+sudo bash -c "while [ ! -f /run/flannel/subnet.env ]; do   sleep 2; printf '.'; done"
 sudo source /run/flannel/subnet.env
 
-sudo cat << EOF > /etc/systemd/system/docker.service
+sudo bash -c "cat << EOF > /etc/systemd/system/docker.service
 [Unit]
 Requires=flanneld.service
 After=flanneld.service
@@ -33,7 +33,7 @@ After=flanneld.service
 [Service]
 Restart=always
 ExecStart=/usr/bin/dockerd  --bip=${FLANNEL_SUBNET} --mtu=${FLANNEL_MTU}
-EOF
+EOF"
 
 sudo systemctl stop docker.service
 sudo systemctl daemon-reload
