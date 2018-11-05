@@ -255,7 +255,6 @@ export class NewClusterComponent implements OnInit, OnDestroy {
     if (this.machines.every(this.validMachine)) {
       this.machinesConfigValid = true;
       this.displayMachinesConfigWarning = false;
-      this.stepper.next();
     } else {
       this.machinesConfigValid = false;
     }
