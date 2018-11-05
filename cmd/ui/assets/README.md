@@ -18,13 +18,10 @@ Install system dependencies
 To run the development server, from the console:
 
 ```bash
-ng serve -o
+npm start
 ```
 
-Angular will compile libraries and listen for changes. Use of the `-o` flag will open a new browser window to `http://localhost:4200/` when compiling is complete.
-
-When changes are made to the library source files, the app will automatically reload for you.
-
+##### NOTE:  `ng serve -o` is _DEPRECATED_
 
 ## Creating new Features
 
