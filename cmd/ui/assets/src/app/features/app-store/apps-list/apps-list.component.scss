@@ -1,3 +1,8 @@
+mat-card-actions {
+  display: flex;
+  justify-content: space-between;
+}
+
 .charts-wrapepr {
   display: flex;
   flex-wrap: wrap;
@@ -25,4 +30,8 @@ button {
       color: white;
     }
   }
+}
+
+.app-image {
+  width: 45px;
 }
