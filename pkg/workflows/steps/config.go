@@ -112,12 +112,6 @@ type TillerConfig struct {
 	Arch            string `json:"arch"`
 }
 
-type DockerConfig struct {
-	Version        string `json:"version"`
-	ReleaseVersion string `json:"releaseVersion"`
-	Arch           string `json:"arch"`
-}
-
 type DownloadK8sBinary struct {
 	K8SVersion      string `json:"k8sVersion"`
 	Arch            string `json:"arch"`
@@ -180,7 +174,6 @@ type Config struct {
 	OSConfig           OSConfig     `json:"osConfig"`
 	PacketConfig       PacketConfig `json:"packetConfig"`
 
-	DockerConfig       DockerConfig       `json:"dockerConfig"`
 	DownloadK8sBinary  DownloadK8sBinary  `json:"downloadK8sBinary"`
 	CertificatesConfig CertificatesConfig `json:"certificatesConfig"`
 	FlannelConfig      FlannelConfig      `json:"flannelConfig"`
@@ -236,11 +229,6 @@ func NewConfig(clusterName, discoveryUrl, cloudAccountName string, profile profi
 		OSConfig:     OSConfig{},
 		PacketConfig: PacketConfig{},
 
-		DockerConfig: DockerConfig{
-			Version:        profile.DockerVersion,
-			ReleaseVersion: profile.UbuntuVersion,
-			Arch:           profile.Arch,
-		},
 		DownloadK8sBinary: DownloadK8sBinary{
 			K8SVersion:      profile.K8SVersion,
 			Arch:            profile.Arch,

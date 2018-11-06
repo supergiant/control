@@ -54,6 +54,7 @@ type Server struct {
 func (srv *Server) Start() {
 	err := srv.server.ListenAndServe()
 	if err != nil {
+		// TODO(stgleb): Change to less severe log level
 		logrus.Fatal(err)
 	}
 }
@@ -64,6 +65,7 @@ func (srv *Server) Shutdown() {
 	err := srv.server.Shutdown(ctx)
 
 	if err != nil {
+		// TODO(stgleb): Change to less severe log level
 		logrus.Fatal(err)
 	}
 }
