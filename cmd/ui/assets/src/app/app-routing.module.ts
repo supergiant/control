@@ -23,7 +23,6 @@ import { EditCloudAccountComponent } from './system/cloud-accounts/edit-cloud-ac
 import { MainComponent } from './system/main/main.component';
 import { NewClusterComponent } from './clusters/new-cluster/new-cluster.component';
 import { ClusterComponent } from './clusters/cluster/cluster.component';
-import { ClustersListComponent } from './clusters/clusters-list/clusters-list.component';
 import { DashboardTutorialComponent } from './tutorials/dashboard-tutorial/dashboard-tutorial.component';
 import { SystemTutorialComponent } from './tutorials/system-tutorial/system-tutorial.component';
 import { LogsComponent } from './system/logs/logs.component';
@@ -49,7 +48,6 @@ const appRoutes: Routes = [
   },
   {
     path: 'clusters', component: ClustersComponent, canActivate: [AuthGuard], children: [
-      { path: '', component: ClustersListComponent },
       { path: 'new', component: NewClusterComponent },
       { path: ':id', component: ClusterComponent },
       { path: ':id/add-node', component: AddNodeComponent },
