@@ -303,7 +303,7 @@ export class NewClusterComponent implements OnInit, OnDestroy {
       dockerVersion: ["17.06.0", Validators.required],
       ubuntuVersion: ["xenial", Validators.required],
       networkType: ["vxlan", Validators.required],
-      cidr: ["10.0.0.0/24", [Validators.required, this.validCidr()]],
+      cidr: ["10.0.0.0/16", [Validators.required, this.validCidr()]],
       operatingSystem: ["linux", Validators.required],
       arch: ["amd64", Validators.required],
       rbacEnabled: [false, Validators.required]
