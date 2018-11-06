@@ -1,14 +1,14 @@
 import { Component, OnInit }             from '@angular/core';
 import { ActivatedRoute }                from "@angular/router";
-import { LoadAppDetails, SetAppDetails }         from "../../apps/actions";
-import { State }                                 from "../../../reducers";
-import { select, Store }                         from "@ngrx/store";
-import { Chart, selectAppDetails }               from "../../apps/apps.reducer";
-import { Observable }                            from "rxjs";
-import { MatDialog }                             from "@angular/material";
-import { DeployComponent }                       from "./deploy/deploy.component";
-import { ConfigureComponent }                    from "./confure/configure.component";
-import { map, switchMap, tap, filter, distinct } from "rxjs/operators";
+import { LoadAppDetails, SetAppDetails } from "../../apps/actions";
+import { State }                         from "../../../reducers";
+import { select, Store }                 from "@ngrx/store";
+import { Chart, selectAppDetails }       from "../../apps/apps.reducer";
+import { Observable }                    from "rxjs";
+import { MatDialog }                     from "@angular/material";
+import { DeployComponent }               from "./deploy/deploy.component";
+import { ConfigureComponent }            from "./confure/configure.component";
+import { map, switchMap, tap, distinct } from "rxjs/operators";
 
 @Component({
   selector: 'app-details',
