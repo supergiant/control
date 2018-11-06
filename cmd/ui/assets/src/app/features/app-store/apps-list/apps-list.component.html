@@ -1,5 +1,5 @@
 <section class="charts-wrapepr">
-  <mat-card *ngFor="let chart of (charts | async)"
+  <mat-card *ngFor="let chart of (charts$ | async)"
             class="app-card">
     <mat-card-header>
       <mat-card-title>
@@ -27,8 +27,13 @@
   </mat-card>
 </section>
 
+<mat-paginator #paginator
+               [length]="itemsCount"
+               [pageSize]="10"
+               [pageSizeOptions]="[10, 20, 60, 100]">
+</mat-paginator>
+
 <button class="btn-remove"
         (click)="removeRepo()"><i class="fa fa-minus-circle"></i>
   <span class="text">&nbsp; Remove repo</span>
 </button>
-
