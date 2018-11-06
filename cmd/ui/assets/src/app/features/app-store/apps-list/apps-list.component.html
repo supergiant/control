@@ -17,6 +17,12 @@
                 class="secondary">VIEW
         </button>
       </a>
+
+      <div class="app-logo-wrapper">
+        <img class="app-image"
+             [src]="chart.icon"
+             onError="this.src=''">
+      </div>
     </mat-card-actions>
   </mat-card>
 </section>
