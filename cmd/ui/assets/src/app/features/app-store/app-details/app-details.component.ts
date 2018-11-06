@@ -46,6 +46,7 @@ export class AppDetailsComponent implements OnInit {
 
   openConfigureDialog() {
     this.dialog.open(ConfigureComponent, {
+      width: `1024px`,
       data: {
         chart$: this.chartDetails$,
       }
