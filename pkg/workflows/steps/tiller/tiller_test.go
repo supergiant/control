@@ -32,6 +32,7 @@ func (f *fakeRunner) Run(command *runner.Command) error {
 
 func TestInstallTiller(t *testing.T) {
 	helmVersion := "helm-v2.8.2"
+	rbacEnabled := false
 	operatingSystem := "linux"
 	arch := "amd64"
 	r := &fakeRunner{}
@@ -56,9 +57,10 @@ func TestInstallTiller(t *testing.T) {
 
 	cfg := &steps.Config{
 		TillerConfig: steps.TillerConfig{
-			helmVersion,
-			operatingSystem,
-			arch,
+			HelmVersion:     helmVersion,
+			RBACEnabled:     rbacEnabled,
+			OperatingSystem: operatingSystem,
+			Arch:            arch,
 		},
 		Runner: r,
 	}
@@ -66,7 +68,7 @@ func TestInstallTiller(t *testing.T) {
 	err = j.Run(context.Background(), output, cfg)
 
 	if err != nil {
-		t.Errorf("Unpexpected error while  provision node %v", err)
+		t.Errorf("Unpexpected error while  provision node: %v", err)
 	}
 
 	if !strings.Contains(output.String(), helmVersion) {

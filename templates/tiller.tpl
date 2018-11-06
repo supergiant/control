@@ -5,14 +5,9 @@ sudo cp /tmp/linux-amd64/helm /opt/bin/helm
 sudo chmod +x /opt/bin/helm
 
 sudo kubectl create serviceaccount -n kube-system tiller
+{{if .RBACEnabled }}
 sudo kubectl create clusterrolebinding tiller-binding --clusterrole=cluster-admin --serviceaccount kube-system:tiller
-sudo /opt/bin/helm init --service-account tiller
+{{ end }}
 
-until $([ $(sudo kubectl get pods --namespace=kube-system|grep tiller|grep Running|wc -l) -eq 1 ]); do printf '.'; sleep 5; done
-TILLER_PORT=44135
-TILLER_POD=$(sudo kubectl get pods --namespace=kube-system|grep tiller|awk '{print $1}')
-TILLER_IP=$(sudo kubectl describe pod $TILLER_POD -n kube-system|grep IP| awk '{print $2}')
-until $(curl --output /dev/null --silent --head --fail http://$TILLER_IP:$TILLER_PORT/readiness); do
-    printf '.'
-    sleep 5
-done
+echo "Install tiller and wait for it to be ready"
+sudo /opt/bin/helm init --service-account tiller --wait

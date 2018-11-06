@@ -1,0 +1,19 @@
+button {
+  outline: none;
+
+  &[mat-button] {
+    padding: 8px 32px;
+
+    &[color='secondary'] {
+      color: #fff;
+      border: 1px solid #fff;
+      background-color: transparent;
+    }
+
+    &[color='primary'] {
+      color: #fff;
+      border: none;
+      background-color: #D10088;
+    }
+  }
+}
