@@ -238,7 +238,7 @@ func (s *Service) InstallRelease(ctx context.Context, kname string, rls *Release
 		chrt,
 		rls.Namespace,
 		helm.ReleaseName(ensureReleaseName(rls.Name)),
-		helm.ValueOverrides(rls.Values),
+		helm.ValueOverrides([]byte(rls.Values)),
 		helm.InstallWait(false),
 		helm.InstallTimeout(releaseInstallTimeout),
 	)
