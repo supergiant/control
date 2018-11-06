@@ -20,6 +20,8 @@ button {
 
   &.btn-remove {
     border: none;
+    position: relative;
+    bottom: 46px;
 
     .text {
       color: white;
