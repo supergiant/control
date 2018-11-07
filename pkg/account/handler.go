@@ -51,8 +51,15 @@ func (h *Handler) Create(rw http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if existingAccount, _ := h.service.Get(r.Context(), account.Name); existingAccount != nil {
+	existingAccount, err := h.service.Get(r.Context(), account.Name)
+
+	if existingAccount != nil {
 		message.SendAlreadyExists(rw, account.Name, sgerrors.ErrAlreadyExists)
+		return
+	}
+
+	if err != nil && !sgerrors.IsNotFound(err) {
+		message.SendUnknownError(rw, err)
 		return
 	}
 
