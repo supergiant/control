@@ -8,6 +8,7 @@ import { MAT_DIALOG_DATA, MatDialogRef } from "@angular/material";
 })
 export class ConfigureComponent implements OnInit {
   values: string;
+  valuesBackup: string;
 
   constructor(
     private dialogRef: MatDialogRef<ConfigureComponent>,
@@ -17,7 +18,10 @@ export class ConfigureComponent implements OnInit {
 
   ngOnInit() {
     this.dialogData.chart$
-      .subscribe(chart => this.values = chart.values);
+      .subscribe(chart => {
+        this.valuesBackup = chart.values;
+        this.values = chart.values;
+      });
   }
 
   onChange(values) {

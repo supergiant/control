@@ -8,7 +8,7 @@ import { Observable }                    from "rxjs";
 import { MatDialog }                     from "@angular/material";
 import { DeployComponent }               from "./deploy/deploy.component";
 import { ConfigureComponent }            from "./confure/configure.component";
-import { map, switchMap, tap }           from "rxjs/operators";
+import { map, switchMap, tap, distinct } from "rxjs/operators";
 
 @Component({
   selector: 'app-details',
@@ -46,11 +46,13 @@ export class AppDetailsComponent implements OnInit {
 
   openConfigureDialog() {
     this.dialog.open(ConfigureComponent, {
+      width: `1024px`,
       data: {
         chart$: this.chartDetails$,
       }
     }).afterClosed()
       .pipe(
+        distinct(),
         map(
           values => this.chartDetails$.pipe(
             map(chart => {
@@ -59,7 +61,7 @@ export class AppDetailsComponent implements OnInit {
             })
           )
         ),
-        switchMap(res => res),
+        switchMap(values => values),
         tap((updatedValues) => {
           this.store.dispatch(new SetAppDetails(updatedValues));
         })
