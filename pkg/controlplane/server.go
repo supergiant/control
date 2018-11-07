@@ -278,6 +278,17 @@ func ensureHelmRepositories(svc sghelm.Servicer) {
 		return
 	}
 
+	repos, err := svc.ListRepos(context.Background())
+	if err != nil {
+		logrus.Errorf("failed to read repositories from database, please check if the database is running")
+		return
+	}
+
+	if len(repos) != 0 {
+		logrus.Infof("skipping adding default repositories")
+		return
+	}
+
 	entries := []repo.Entry{
 		{
 			Name: "supergiant",
