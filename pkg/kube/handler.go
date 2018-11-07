@@ -148,8 +148,14 @@ func (h *Handler) createKube(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if existingKube, _ := h.svc.Get(r.Context(), newKube.Name); existingKube != nil {
+	existingKube, err := h.svc.Get(r.Context(), newKube.Name)
+	if  existingKube != nil {
 		message.SendAlreadyExists(w, existingKube.Name, sgerrors.ErrAlreadyExists)
+		return
+	}
+	
+	if err != nil {
+		message.SendUnknownError(w, err)
 		return
 	}
 
