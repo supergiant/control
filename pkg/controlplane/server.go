@@ -54,7 +54,7 @@ type Server struct {
 func (srv *Server) Start() {
 	err := srv.server.ListenAndServe()
 	if err != nil {
-		logrus.Fatal(err)
+		logrus.Error(err)
 	}
 }
 
@@ -64,7 +64,7 @@ func (srv *Server) Shutdown() {
 	err := srv.server.Shutdown(ctx)
 
 	if err != nil {
-		logrus.Fatal(err)
+		logrus.Error(err)
 	}
 }
 
