@@ -23,6 +23,10 @@ type AccountGetter interface {
 	Get(context.Context, string) (*model.CloudAccount, error)
 }
 
+type KubeGetter interface {
+	Get(ctx context.Context, name string) (*model.Kube, error)
+}
+
 type TokenGetter interface {
 	GetToken(context.Context, int) (string, error)
 }
@@ -30,6 +34,7 @@ type TokenGetter interface {
 type Handler struct {
 	accountGetter AccountGetter
 	tokenGetter   TokenGetter
+	kubeGetter    KubeGetter
 	provisioner   ClusterProvisioner
 }
 
@@ -47,8 +52,9 @@ type ClusterProvisioner interface {
 	ProvisionCluster(context.Context, *profile.Profile, *steps.Config) (map[string][]*workflows.Task, error)
 }
 
-func NewHandler(cloudAccountService *account.Service, tokenGetter TokenGetter, provisioner ClusterProvisioner) *Handler {
+func NewHandler(kubeService KubeGetter, cloudAccountService *account.Service, tokenGetter TokenGetter, provisioner ClusterProvisioner) *Handler {
 	return &Handler{
+		kubeGetter:    kubeService,
 		accountGetter: cloudAccountService,
 		tokenGetter:   tokenGetter,
 		provisioner:   provisioner,
@@ -66,6 +72,11 @@ func (h *Handler) Provision(w http.ResponseWriter, r *http.Request) {
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusBadRequest)
 		logrus.Error(errors.Wrap(err, "unmarshal json"))
+		return
+	}
+
+	if existingKube, _ := h.kubeGetter.Get(r.Context(), req.ClusterName); existingKube != nil {
+		message.SendAlreadyExists(w, existingKube.Name, sgerrors.ErrAlreadyExists)
 		return
 	}
 

@@ -245,14 +245,17 @@ func configureApplication(cfg *Config) (*mux.Router, error) {
 	helmHandler := sghelm.NewHandler(helmService)
 	helmHandler.Register(protectedAPI)
 
-	kubeService := kube.NewService(kube.DefaultStoragePrefix, repository, helmService)
+	kubeService := kube.NewService(kube.DefaultStoragePrefix,
+		repository, helmService)
 
 	taskProvisioner := provisioner.NewProvisioner(repository, kubeService)
 	tokenGetter := provisioner.NewEtcdTokenGetter()
-	provisionHandler := provisioner.NewHandler(accountService, tokenGetter, taskProvisioner)
+	provisionHandler := provisioner.NewHandler(kubeService, accountService,
+		tokenGetter, taskProvisioner)
 	provisionHandler.Register(protectedAPI)
 
-	kubeHandler := kube.NewHandler(kubeService, accountService, taskProvisioner, repository)
+	kubeHandler := kube.NewHandler(kubeService, accountService,
+		taskProvisioner, repository)
 	kubeHandler.Register(protectedAPI)
 
 	authMiddleware := api.Middleware{
