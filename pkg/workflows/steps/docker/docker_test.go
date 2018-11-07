@@ -31,9 +31,6 @@ func (f *fakeRunner) Run(command *runner.Command) error {
 }
 
 func TestInstallDocker(t *testing.T) {
-	dockerVersion := "17.05"
-	releaseVersion := "1.29"
-	arch := "amd64"
 	err := templatemanager.Init("../../../../templates")
 
 	if err != nil {
@@ -50,11 +47,6 @@ func TestInstallDocker(t *testing.T) {
 	r := &testutils.MockRunner{}
 
 	config := steps.Config{
-		DockerConfig: steps.DockerConfig{
-			Version:        dockerVersion,
-			ReleaseVersion: releaseVersion,
-			Arch:           arch,
-		},
 		Runner: r,
 	}
 
@@ -64,12 +56,8 @@ func TestInstallDocker(t *testing.T) {
 
 	err = task.Run(context.Background(), output, &config)
 
-	if !strings.Contains(output.String(), dockerVersion) {
-		t.Fatalf("docker version %s not found in output %s", dockerVersion, output.String())
-	}
-
-	if !strings.Contains(output.String(), dockerVersion) {
-		t.Fatalf("docker version %s not found in output %s", dockerVersion, output.String())
+	if !strings.Contains(output.String(), "sudo apt-get install -qy docker.io") {
+		t.Fatalf("sudo apt-get install -qy docker.io not found in output %s", output.String())
 	}
 }
 
