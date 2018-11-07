@@ -35,9 +35,12 @@ func init() {
 	govalidator.SetFieldsRequiredByDefault(true)
 }
 
-func TestEndpoint_Create(t *testing.T) {
+func TestEndpoint_CreateSuccess(t *testing.T) {
 	e, m := fixtures()
-	m.On("Put", mock.Anything, mock.Anything, mock.Anything, mock.Anything).Return(nil)
+	m.On("Put", mock.Anything, mock.Anything, mock.Anything,
+		mock.Anything).Return(nil)
+	m.On("Get", mock.Anything,
+		mock.Anything, mock.Anything).Return(nil, nil)
 
 	malformedAccount, _ := json.Marshal(model.CloudAccount{
 		Name:        "ff",
@@ -79,10 +82,39 @@ func TestEndpoint_Create(t *testing.T) {
 	m.AssertNumberOfCalls(t, "Put", 1)
 }
 
+func TestEndpoint_CreateAlreadyExists(t *testing.T) {
+	accName := "test"
+	e, m := fixtures()
+	data, _ := json.Marshal(&model.Kube{
+		Name: accName,
+	})
+	m.On("Get", mock.Anything,
+		mock.Anything, mock.Anything).Return(data, nil)
+
+	acc, _ := json.Marshal(model.CloudAccount{
+		Name:     accName,
+		Provider: clouds.DigitalOcean,
+		Credentials: map[string]string{
+			clouds.DigitalOceanAccessToken: "test",
+			clouds.DigitalOceanFingerPrint: "fingerprint",
+		},
+	})
+	req, _ := http.NewRequest(http.MethodPost, "/accounts", bytes.NewReader(acc))
+	rr := httptest.NewRecorder()
+
+	e.Create(rr, req)
+
+	require.Equal(t, http.StatusConflict, rr.Code, rr.Body.String())
+
+	m.AssertNumberOfCalls(t, "Get", 1)
+}
+
 func TestEndpoint_CreateError(t *testing.T) {
 	e, m := fixtures()
 	m.On("Put", mock.Anything, mock.Anything, mock.Anything, mock.Anything).Return(errors.New("error!"))
 	rr := httptest.NewRecorder()
+	m.On("Get", mock.Anything,
+		mock.Anything, mock.Anything).Return(nil, nil)
 
 	okAccount, _ := json.Marshal(model.CloudAccount{
 		Name:        "test",
