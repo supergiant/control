@@ -11,7 +11,7 @@
 </mat-dialog-content>
 <mat-dialog-actions>
   <button mat-button
-          mat-dialog-close>CANCEL
+          [mat-dialog-close]="valuesBackup">CANCEL
   </button>
   <button (click)="save()"
           color="primary"
