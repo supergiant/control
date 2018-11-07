@@ -16,6 +16,7 @@ const (
 	StateProvisioning NodeState = "provisioning"
 	StateError        NodeState = "error"
 	StateActive       NodeState = "active"
+	StateDeleting     NodeState = "deleting"
 
 	RoleMaster Role = "master"
 	RoleNode   Role = "node"
