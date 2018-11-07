@@ -75,8 +75,19 @@ func (h *Handler) Provision(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if existingKube, _ := h.kubeGetter.Get(r.Context(), req.ClusterName); existingKube != nil {
+	// NOTE(stgleb): This code is a read-modify-update scenario,
+	// so if someone else make a request to create kube with the same name
+	// between read and create - this will be the case for lost update.
+	// We need to handle that situation using lock or channel synchronization.
+	existingKube, err := h.kubeGetter.Get(r.Context(), req.ClusterName)
+
+	if existingKube != nil {
 		message.SendAlreadyExists(w, existingKube.Name, sgerrors.ErrAlreadyExists)
+		return
+	}
+
+	if err != nil && !sgerrors.IsNotFound(err) {
+		message.SendUnknownError(w, err)
 		return
 	}
 

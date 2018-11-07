@@ -49,7 +49,7 @@ func (m *mockAccountGetter) Get(ctx context.Context, id string) (*model.CloudAcc
 	return m.get(ctx, id)
 }
 
-type mockKubeGetter struct{
+type mockKubeGetter struct {
 	get func(context.Context, string) (*model.Kube, error)
 }
 
@@ -87,7 +87,7 @@ func TestProvisionHandler(t *testing.T) {
 			description:  "kube name duplicate",
 			body:         validBody,
 			expectedCode: http.StatusConflict,
-			kubeGetter: func(ctx context.Context,name string) (*model.Kube, error) {
+			kubeGetter: func(ctx context.Context, name string) (*model.Kube, error) {
 				return &model.Kube{
 					Name: name,
 				}, nil
@@ -97,7 +97,7 @@ func TestProvisionHandler(t *testing.T) {
 			description:  "error getting the cluster discovery url",
 			body:         validBody,
 			expectedCode: http.StatusInternalServerError,
-			kubeGetter: func(context.Context,string) (*model.Kube, error) {
+			kubeGetter: func(context.Context, string) (*model.Kube, error) {
 				return nil, nil
 			},
 			getToken: func(context.Context, int) (string, error) {
@@ -111,7 +111,7 @@ func TestProvisionHandler(t *testing.T) {
 			getAccount: func(context.Context, string) (*model.CloudAccount, error) {
 				return nil, sgerrors.ErrNotFound
 			},
-			kubeGetter: func(context.Context,string) (*model.Kube, error) {
+			kubeGetter: func(context.Context, string) (*model.Kube, error) {
 				return nil, nil
 			},
 			getToken: func(context.Context, int) (string, error) {
@@ -125,7 +125,7 @@ func TestProvisionHandler(t *testing.T) {
 			getAccount: func(context.Context, string) (*model.CloudAccount, error) {
 				return &model.CloudAccount{}, nil
 			},
-			kubeGetter: func(context.Context,string) (*model.Kube, error) {
+			kubeGetter: func(context.Context, string) (*model.Kube, error) {
 				return nil, nil
 			},
 			getToken: func(context.Context, int) (string, error) {
@@ -144,7 +144,7 @@ func TestProvisionHandler(t *testing.T) {
 			getToken: func(context.Context, int) (string, error) {
 				return "foo", nil
 			},
-			kubeGetter: func(context.Context,string) (*model.Kube, error) {
+			kubeGetter: func(context.Context, string) (*model.Kube, error) {
 				return nil, nil
 			},
 			provision: func(context.Context, *profile.Profile, *steps.Config) (map[string][]*workflows.Task, error) {
@@ -162,7 +162,7 @@ func TestProvisionHandler(t *testing.T) {
 			getToken: func(context.Context, int) (string, error) {
 				return "foo", nil
 			},
-			kubeGetter: func(context.Context,string) (*model.Kube, error) {
+			kubeGetter: func(context.Context, string) (*model.Kube, error) {
 				return nil, nil
 			},
 			provision: func(context.Context, *profile.Profile, *steps.Config) (map[string][]*workflows.Task, error) {
