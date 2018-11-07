@@ -61,7 +61,10 @@ func (s Service) CreateRepo(ctx context.Context, e *repo.Entry) (*model.Reposito
 	}
 
 	r, err := s.GetRepo(ctx, e.Name)
-	if err == nil && r != nil {
+	if err != nil && !sgerrors.IsNotFound(err) {
+		return nil, err
+	}
+	if r != nil && r.Config.Name == e.Name {
 		return nil, sgerrors.ErrAlreadyExists
 	}
 
