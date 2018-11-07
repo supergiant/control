@@ -2,17 +2,20 @@ package util
 
 import (
 	"context"
+
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/aws/credentials"
 	"github.com/aws/aws-sdk-go/aws/session"
 	"github.com/aws/aws-sdk-go/service/ec2"
+
 	"github.com/digitalocean/godo"
+	"golang.org/x/oauth2"
+
 	"github.com/supergiant/supergiant/pkg/clouds"
 	"github.com/supergiant/supergiant/pkg/clouds/digitaloceansdk"
 	"github.com/supergiant/supergiant/pkg/model"
 	"github.com/supergiant/supergiant/pkg/sgerrors"
 	"github.com/supergiant/supergiant/pkg/workflows/steps"
-	"golang.org/x/oauth2"
 )
 
 type CloudAccountValidator interface {

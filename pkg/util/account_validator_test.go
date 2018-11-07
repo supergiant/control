@@ -1,10 +1,11 @@
 package util
 
 import (
+	"testing"
+
 	"github.com/supergiant/supergiant/pkg/clouds"
 	"github.com/supergiant/supergiant/pkg/model"
 	"github.com/supergiant/supergiant/pkg/sgerrors"
-	"testing"
 )
 
 func TestValidateCredentials(t *testing.T) {
