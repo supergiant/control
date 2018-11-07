@@ -50,6 +50,9 @@ export class ClusterComponent implements OnInit, OnDestroy {
   nodeTasksStatus = "queued";
   clusterTasksStatus = "queued";
 
+  releases: any;
+  releaseListColumns = ["status", "name", "chart", "chartVersion", "version", "lastDeployed"];
+
   constructor(
     private route: ActivatedRoute,
     private location: Location,
@@ -174,6 +177,7 @@ export class ClusterComponent implements OnInit, OnDestroy {
           switch (k.state) {
             case "operational": {
               this.renderKube(this.kube);
+              this.getReleases()
               break;
             }
             case "provisioning": {
@@ -235,6 +239,15 @@ export class ClusterComponent implements OnInit, OnDestroy {
     this.machines = new MatTableDataSource(this.combineAndFlatten(masters, nodes));
     this.machines.sort = this.sort;
     this.machines.paginator = this.paginator;
+  }
+
+  getReleases() {
+    this.supergiant.HelmReleases.get(this.id).subscribe(
+      res => {
+        this.releases = new MatTableDataSource(res);
+      },
+      err => console.error(err)
+    )
   }
 
   goBack() {

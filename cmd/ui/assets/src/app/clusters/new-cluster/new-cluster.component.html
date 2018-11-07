@@ -194,10 +194,10 @@
               <input matInput type="number" min="1" placeholder="Q-ty" [(ngModel)]="m.qty" (ngModelChange)="checkForValidMachinesConfig()">
             </mat-form-field>
 
-            <div class="delete" (click)="deleteMachine(idx)"></div>
+            <div class="delete" (click)="deleteMachine(idx)" (keyup)="deleteMachine(idx, $event)" tabindex="0"></div>
           </div>
 
-          <div class="add-machines" (click)="addBlankMachine()">
+          <div class="add-machines" (click)="addBlankMachine()" (keyup)="addBlankMachine($event)" tabindex="0">
             <div class="plus"></div>
             <span class="add-label">Add more machines</span>
           </div>
@@ -223,10 +223,10 @@
               <input matInput type="number" min="1" placeholder="Q-ty" [(ngModel)]="m.qty" (ngModelChange)="checkForValidMachinesConfig()">
             </mat-form-field>
 
-            <div class="delete" (click)="deleteMachine(idx)"></div>
+            <div class="delete" (click)="deleteMachine(idx)" (keyup)="deleteMachine(idx, $event)" tabindex="0"></div>
           </div>
 
-          <div class="add-machines" (click)="addBlankMachine()">
+          <div class="add-machines" (click)="addBlankMachine()" (keyup)="addBlankMachine($event)" tabindex="0">
             <div class="plus"></div>
             <span class="add-label">Add more machines</span>
           </div>
