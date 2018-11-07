@@ -117,3 +117,19 @@ func SendAlreadyExists(w http.ResponseWriter, entityName string, err error) {
 	w.WriteHeader(http.StatusConflict)
 	w.Write(data)
 }
+
+func SendInvalidCredentials(w http.ResponseWriter, err error) {
+	msg := New("Credentials are bad for cloud provider",
+		err.Error(), sgerrors.InvalidCredentials, "")
+
+	data, err := json.Marshal(msg)
+	if err != nil {
+		logrus.Errorf("failed to marshall message: %v", err)
+		http.Error(w, "", http.StatusInternalServerError)
+		return
+	}
+
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(http.StatusBadRequest)
+	w.Write(data)
+}
