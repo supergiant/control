@@ -57,6 +57,28 @@ func (m *mockKubeGetter) Get(ctx context.Context, name string) (*model.Kube, err
 	return m.get(ctx, name)
 }
 
+func TestProvisionBadClusterName(t *testing.T) {
+	testCases := []string{"non_Valid`", "_@badClusterName"}
+
+	for _, clusterName := range testCases {
+		provisionRequest := ProvisionRequest{
+			ClusterName: clusterName,
+		}
+
+		bodyBytes, _ := json.Marshal(&provisionRequest)
+		req, _ := http.NewRequest(http.MethodPost, "/", bytes.NewBuffer(bodyBytes))
+		rec := httptest.NewRecorder()
+
+		handler := Handler{}
+		handler.Provision(rec, req)
+
+		if rec.Code != http.StatusBadRequest {
+			t.Errorf("Wrong status code expected %d actual %d", http.StatusBadRequest, rec.Code)
+			return
+		}
+	}
+}
+
 func TestProvisionHandler(t *testing.T) {
 	p := &ProvisionRequest{
 		"test",
