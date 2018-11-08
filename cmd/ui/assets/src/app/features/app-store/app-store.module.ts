@@ -12,8 +12,9 @@ import {
   MatPaginatorModule,
   MatProgressSpinnerModule,
   MatSelectModule,
-  MatTabsModule
-}                                           from '@angular/material';
+  MatTabsModule,
+  MatTooltipModule,
+} from '@angular/material';
 import { StoreModule }                      from '@ngrx/store';
 import * as fromApps                        from '../apps/apps.reducer';
 import { EffectsModule }                    from '@ngrx/effects';
@@ -46,6 +47,7 @@ import { AceEditorModule }                  from "ng2-ace-editor";
     MarkdownModule.forRoot(),
     AceEditorModule,
     MatPaginatorModule,
+    MatTooltipModule,
   ],
   declarations: [
     AppStoreComponent,
