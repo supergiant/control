@@ -38,20 +38,24 @@ export class ClusterComponent implements OnInit, OnDestroy {
 
   // machine list vars
   machines: any;
-  machineListColumns = ["state", "role", "name", "id", "region", "publicIp"];
+  machineListColumns = ["state", "role", "name", "cpu", "ram", "region", "publicIp"];
+  // machineListColumns = ["state", "role", "name", "region", "publicIp"];
 
   // task list vars
   tasks: any;
   taskListColumns = ["status", "type", "id", "steps", "logs"];
   expandedTaskId: any;
 
-  // temp for demo, remove ASAP
+  releases: any;
+  releaseListColumns = ["status", "name", "chart", "chartVersion", "version", "lastDeployed"];
+
   masterTasksStatus = "executing";
   nodeTasksStatus = "queued";
   clusterTasksStatus = "queued";
 
-  releases: any;
-  releaseListColumns = ["status", "name", "chart", "chartVersion", "version", "lastDeployed"];
+  cpuUsage: number;
+  ramUsage: number;
+  machineMetrics = {};
 
   constructor(
     private route: ActivatedRoute,
@@ -174,10 +178,12 @@ export class ClusterComponent implements OnInit, OnDestroy {
           // for dev-ing
           // this.kube.state = "provisioning";
 
-          switch (k.state) {
+          switch (this.kube.state) {
             case "operational": {
               this.renderKube(this.kube);
-              this.getReleases()
+              this.getReleases();
+              this.getClusterMetrics();
+              this.getMachineMetrics();
               break;
             }
             case "provisioning": {
@@ -232,11 +238,23 @@ export class ClusterComponent implements OnInit, OnDestroy {
   }
 
   renderKube(kube) {
+    const machineMetrics = {};
+    const masterNames = Object.keys(kube.masters);
+    const nodeNames = Object.keys(kube.nodes);
 
-    let masters = kube.masters;
-    let nodes = kube.nodes;
+    masterNames.forEach(name => {
+      if (this.machineMetrics[name]) {
+        kube.masters[name].metrics = this.machineMetrics[name];
+      }
+    })
 
-    this.machines = new MatTableDataSource(this.combineAndFlatten(masters, nodes));
+    nodeNames.forEach(name => {
+      if (this.machineMetrics[name]) {
+        kube.nodes[name].metrics = this.machineMetrics[name];
+      }
+    })
+
+    this.machines = new MatTableDataSource(this.combineAndFlatten(kube.masters, kube.nodes));
     this.machines.sort = this.sort;
     this.machines.paginator = this.paginator;
   }
@@ -246,6 +264,23 @@ export class ClusterComponent implements OnInit, OnDestroy {
       res => {
         this.releases = new MatTableDataSource(res);
       },
+      err => console.error(err)
+    )
+  }
+
+  getClusterMetrics() {
+    this.supergiant.Kubes.getClusterMetrics(this.kube.name).subscribe(
+      res => {
+        this.cpuUsage = res.cpu;
+        this.ramUsage = res.memory;
+      },
+      err => console.error(err)
+    )
+  }
+
+  getMachineMetrics() {
+    this.supergiant.Kubes.getMachineMetrics(this.kube.name).subscribe(
+      res => this.machineMetrics = res,
       err => console.error(err)
     )
   }

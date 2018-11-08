@@ -28,6 +28,15 @@
     width: 50%;
   }
 
+  .cpu-actual-icon {
+    height: 198px;
+    position: relative;
+    top: 2px;
+    left: 1px;
+
+    .cpu-usage {}
+  }
+
   .name {
     align-items: center;
     background-image: linear-gradient(315deg, #8721ff, #8b22fb 18%, #ff457e);
@@ -53,5 +62,14 @@
     right: 8px;
     height: 82%;
     width: 50%;
+  }
+
+  .ram-actual-icon {
+    height: 163px;
+    position: relative;
+    top: 1px;
+    left: 2px;
+
+    .ram-usage {}
   }
 }
