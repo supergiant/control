@@ -575,13 +575,42 @@
     .mat-paginator {
       background-color: rgba(255, 255, 255, 0.1);
     }
+
+    .new-link {
+      align-items: center;
+      display: flex;
+      margin-left: auto;
+      margin-top: 15px;
+      width: max-content;
+
+      &:visited {
+        color: #fff;
+      }
+
+      &:hover {
+        color: #fff;
+        text-decoration: none;
+      }
+
+      &:active {
+        transform: scale(0.95, 0.95);
+      }
+
+      .add {
+        display: inline-block;
+        background-image: url(/assets/img/plus.svg);
+        margin-right: 7px;
+        height: 24px;
+        width: 24px;
+      }
+
+      .action {
+        font-size: 14px;
+        font-weight: 200;
+      }
+    }
   }
 
-  .add-node {
-    position: relative;
-    bottom: 44px;
-    left: 20px;
-  }
 
   button {
     outline: none;

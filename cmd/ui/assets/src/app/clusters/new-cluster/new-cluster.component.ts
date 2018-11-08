@@ -184,19 +184,36 @@ export class NewClusterComponent implements OnInit, OnDestroy {
     }
   }
 
-  addBlankMachine() {
-    this.machines.push({
-      machineType: null,
-      role: null,
-      qty: 1
-    })
+  addBlankMachine(e?) {
+    if (e) {
+      if (e.keyCode === 13) {
+        this.machines.push({
+          machineType: null,
+          role: null,
+          qty: 1
+        })
+      }
+    } else {
+      this.machines.push({
+        machineType: null,
+        role: null,
+        qty: 1
+      })
+    }
   }
 
-  deleteMachine(idx) {
+  deleteMachine(idx, e?) {
     if(this.machines.length === 1) return;
 
-    this.machines.splice(idx, 1);
-    this.checkForValidMachinesConfig();
+    if (e) {
+      if(e.keyCode === 13) {
+        this.machines.splice(idx, 1);
+        this.checkForValidMachinesConfig();
+      }
+    } else {
+      this.machines.splice(idx, 1);
+      this.checkForValidMachinesConfig();
+    }
   }
 
   selectCloudAccount(cloudAccount) {
@@ -303,12 +320,11 @@ export class NewClusterComponent implements OnInit, OnDestroy {
       dockerVersion: ["17.06.0", Validators.required],
       ubuntuVersion: ["xenial", Validators.required],
       networkType: ["vxlan", Validators.required],
-      cidr: ["10.0.0.0/24", [Validators.required, this.validCidr()]],
+      cidr: ["10.0.0.0/16", [Validators.required, this.validCidr()]],
       operatingSystem: ["linux", Validators.required],
       arch: ["amd64", Validators.required],
       rbacEnabled: [false, Validators.required]
     });
-
   }
 
   ngOnDestroy() {

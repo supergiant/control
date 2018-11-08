@@ -158,17 +158,6 @@ export class DashboardComponent implements OnInit {
    ));
   }
 
-  getDeployments() {
-    this.subscriptions.add(this.supergiant.HelmReleases.get().subscribe(
-      (deployments) => {
-        if (Object.keys(deployments.items).length > 0) {
-          this.hasApp = true;
-          this.appCount = Object.keys(deployments.items).length;
-        }
-      }));
-    // this.hasApp = true;
-  }
-
   logout() {
     this.auth.logout();
     this.router.navigate(['']);
@@ -177,7 +166,6 @@ export class DashboardComponent implements OnInit {
   ngOnInit() {
     this.getCloudAccounts();
     this.getClusters();
-    // this.getDeployments();
   }
 
 }

@@ -143,7 +143,6 @@ import { MainComponent } from './system/main/main.component';
 import { HelmReposComponent } from './system/main/helm-repos/helm-repos.component';
 import { NewClusterComponent } from './clusters/new-cluster/new-cluster.component';
 import { ClusterComponent } from './clusters/cluster/cluster.component';
-import { ClustersListComponent } from './clusters/clusters-list/clusters-list.component';
 import { ListCloudAccountsComponent } from './system/cloud-accounts/list-cloud-accounts/list-cloud-accounts.component';
 import { DashboardTutorialComponent } from './tutorials/dashboard-tutorial/dashboard-tutorial.component';
 import { ClustersTutorialComponent } from './tutorials/clusters-tutorial/clusters-tutorial.component';
@@ -224,7 +223,6 @@ import { DeleteClusterModalComponent } from './clusters/cluster/delete-cluster-m
     SystemComponent,
     HelmReposComponent,
     Users2000Component,
-    ClustersListComponent,
     ListCloudAccountsComponent,
     DashboardTutorialComponent,
     ClustersTutorialComponent,

@@ -3,14 +3,12 @@ import { UtilService } from '../util/util.service';
 
 @Injectable()
 export class HelmReleases {
-  helmReleasesPath = '/v1/api/helm_releases';
+  // TODO: everything about these paths need rethinking
+  helmReleasesPath = '/v1/api';
 
   constructor(private util: UtilService) { }
-  public get(id?) {
-    if (id) {
-      return this.util.fetch(this.helmReleasesPath + '/' + id);
-    }
-    return this.util.fetch(this.helmReleasesPath);
+  public get(id, releaseId?) {
+    return this.util.fetch(this.helmReleasesPath + '/kubes/' + id + '/releases');
   }
   public create(data) {
     return this.util.post(this.helmReleasesPath, data);

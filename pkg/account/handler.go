@@ -13,16 +13,19 @@ import (
 	"github.com/supergiant/supergiant/pkg/message"
 	"github.com/supergiant/supergiant/pkg/model"
 	"github.com/supergiant/supergiant/pkg/sgerrors"
+	"github.com/supergiant/supergiant/pkg/util"
 )
 
 // Handler is a http controller for account entity
 type Handler struct {
-	service *Service
+	validator util.CloudAccountValidator
+	service   *Service
 }
 
 func NewHandler(service *Service) *Handler {
 	return &Handler{
-		service: service,
+		validator: util.NewCloudAccountValidator(),
+		service:   service,
 	}
 }
 
@@ -51,10 +54,21 @@ func (h *Handler) Create(rw http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	// Check account data for validity
+	if err := h.validator.ValidateCredentials(account); err != nil {
+		message.SendInvalidCredentials(rw, err)
+		return
+	}
+
 	if err = h.service.Create(r.Context(), account); err != nil {
 		if sgerrors.IsUnsupportedProvider(err) {
 			message.SendMessage(rw, message.New(fmt.Sprintf("Unsupported provider %s", account.Provider),
 				err.Error(), sgerrors.UnsupportedProvider, ""), http.StatusBadRequest)
+			return
+		}
+
+		if sgerrors.IsAlreadyExists(err) {
+			message.SendAlreadyExists(rw, account.Name, sgerrors.ErrAlreadyExists)
 			return
 		}
 
@@ -105,6 +119,7 @@ func (h *Handler) Get(rw http.ResponseWriter, r *http.Request) {
 	}
 }
 
+// TODO(stgleb): Use patch for updating
 // Update saves updated state of an cloud account, account name can't be changed
 func (h *Handler) Update(rw http.ResponseWriter, r *http.Request) {
 	account := new(model.CloudAccount)

@@ -222,10 +222,70 @@
 
       <mat-paginator [pageSizeOptions]="[5, 10, 25, 100]"
                      color="primary"></mat-paginator>
-      <a routerLink="add-node" class="add-node">
-        <button mat-button color="primary">Add node</button>
+
+      <a class="new-link" routerLink="add-node">
+        <div class="add"></div>
+        <span class="action">Add node</span>
       </a>
     </div>
+
+    <ng-container *ngIf="releases?.length != 0">
+      <div class="sg-table">
+        <h3>APPS</h3>
+
+        <mat-table [dataSource]="releases" matSort>
+          <ng-container matColumnDef="status">
+            <mat-header-cell mat-sort-header
+                             *matHeaderCellDef>Status
+            </mat-header-cell>
+            <mat-cell *matCellDef="let release">{{ release.status }}</mat-cell>
+          </ng-container>
+
+          <ng-container matColumnDef="name">
+            <mat-header-cell mat-sort-header
+                             *matHeaderCellDef>Name
+            </mat-header-cell>
+            <mat-cell *matCellDef="let release">{{ release.name }}</mat-cell>
+          </ng-container>
+
+          <ng-container matColumnDef="chart">
+            <mat-header-cell mat-sort-header
+                             *matHeaderCellDef>Chart
+            </mat-header-cell>
+            <mat-cell *matCellDef="let release">{{ release.chart }}</mat-cell>
+          </ng-container>
+
+          <ng-container matColumnDef="chartVersion">
+            <mat-header-cell mat-sort-header
+                             *matHeaderCellDef>Chart Version
+            </mat-header-cell>
+            <mat-cell *matCellDef="let release">{{ release.chartVersion }}</mat-cell>
+          </ng-container>
+
+          <ng-container matColumnDef="version">
+            <mat-header-cell mat-sort-header
+                             *matHeaderCellDef>Version
+            </mat-header-cell>
+            <mat-cell *matCellDef="let release">{{ release.version }}</mat-cell>
+          </ng-container>
+
+          <ng-container matColumnDef="lastDeployed">
+            <mat-header-cell mat-sort-header
+                             *matHeaderCellDef>Last Deployed
+            </mat-header-cell>
+            <mat-cell *matCellDef="let release">{{ release.lastDeployed }}</mat-cell>
+          </ng-container>
+
+          <mat-header-row *matHeaderRowDef="releaseListColumns"></mat-header-row>
+          <mat-row *matRowDef="let row; columns: releaseListColumns"></mat-row>
+        </mat-table>
+
+        <a class="new-link" routerLink="/apps">
+          <div class="add"></div>
+          <span class="action">Add app</span>
+        </a>
+      </div>
+    </ng-container>
   </ng-container>
 
   <div class="action-buttons">
