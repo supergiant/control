@@ -27,7 +27,7 @@
           <div *ngIf="name.invalid">
             <p *ngIf="name.errors.nonUniqueName" class="warning">Cluster name must be unique</p>
             <p *ngIf="name.errors.maxlength" class="warning">Cluster name must less than 12 characters</p>
-            <p *ngIf="name.errors.pattern" class="warning">Cluster name can only contain a-z, 0-9, and - characters</p>
+            <p *ngIf="name.errors.pattern" class="warning">Cluster name can only contain a-z, A-Z, 0-9, and - characters</p>
           </div>
         </form>
 
