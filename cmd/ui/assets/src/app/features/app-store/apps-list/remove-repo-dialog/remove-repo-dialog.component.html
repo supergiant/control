@@ -1,0 +1,13 @@
+<section class="wrapper">
+  <h2 mat-dialog-title>Are you sure?</h2>
+  <mat-dialog-actions>
+    <button mat-button
+            [mat-dialog-close]="false">Cancel
+    </button>
+    <button class="btn-deploy"
+            mat-button
+            color="primary"
+            (click)="confirm()">CONFIRM
+    </button>
+  </mat-dialog-actions>
+</section>
