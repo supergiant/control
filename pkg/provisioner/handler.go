@@ -17,6 +17,7 @@ import (
 	"github.com/supergiant/supergiant/pkg/util"
 	"github.com/supergiant/supergiant/pkg/workflows"
 	"github.com/supergiant/supergiant/pkg/workflows/steps"
+	"gopkg.in/asaskevich/govalidator.v8"
 )
 
 type AccountGetter interface {
@@ -39,9 +40,9 @@ type Handler struct {
 }
 
 type ProvisionRequest struct {
-	ClusterName      string          `json:"clusterName"`
-	Profile          profile.Profile `json:"profile"`
-	CloudAccountName string          `json:"cloudAccountName"`
+	ClusterName      string          `json:"clusterName" valid:"matches(^[A-Za-z0-9-]+$)"`
+	Profile          profile.Profile `json:"profile" valid:"-"`
+	CloudAccountName string          `json:"cloudAccountName" valid:"-"`
 }
 
 type ProvisionResponse struct {
@@ -72,6 +73,13 @@ func (h *Handler) Provision(w http.ResponseWriter, r *http.Request) {
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusBadRequest)
 		logrus.Error(errors.Wrap(err, "unmarshal json"))
+		return
+	}
+
+	ok, err := govalidator.ValidateStruct(req)
+	if !ok {
+		logrus.Errorf("Validation error %v", err.Error())
+		message.SendValidationFailed(w, err)
 		return
 	}
 
