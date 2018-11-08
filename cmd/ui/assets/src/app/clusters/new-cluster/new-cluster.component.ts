@@ -239,7 +239,7 @@ export class NewClusterComponent implements OnInit, OnDestroy {
           region: ["", Validators.required],
           availabilityZone: ["", Validators.required],
           vpcId: ["default", Validators.required],
-          vpcCidr: ["10.2.0.0/16", Validators.required],
+          vpcCidr: ["10.2.0.0/16", [Validators.required, this.validCidr()]],
           keypairName: [""],
           subnetId: ["default", Validators.required],
           mastersSecurityGroupId: [""],
@@ -302,6 +302,12 @@ export class NewClusterComponent implements OnInit, OnDestroy {
   get name() { return this.nameAndCloudAccountConfig.get('name'); }
 
   get cidr() { return this.clusterConfig.get('cidr'); }
+
+  get vpcCidr() {
+    if (this.selectedCloudAccount && this.selectedCloudAccount.provider == "aws") {
+      return this.providerConfig.get('vpcCidr');
+    } else {return true}
+  }
 
   ngOnInit() {
     this.getClusters();
