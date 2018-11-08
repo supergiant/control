@@ -13,16 +13,19 @@ import (
 	"github.com/supergiant/supergiant/pkg/message"
 	"github.com/supergiant/supergiant/pkg/model"
 	"github.com/supergiant/supergiant/pkg/sgerrors"
+	"github.com/supergiant/supergiant/pkg/util"
 )
 
 // Handler is a http controller for account entity
 type Handler struct {
-	service *Service
+	validator util.CloudAccountValidator
+	service   *Service
 }
 
 func NewHandler(service *Service) *Handler {
 	return &Handler{
-		service: service,
+		validator: util.NewCloudAccountValidator(),
+		service:   service,
 	}
 }
 
@@ -51,6 +54,7 @@ func (h *Handler) Create(rw http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	// Check if account with that name already exists
 	existingAccount, err := h.service.Get(r.Context(), account.Name)
 
 	if existingAccount != nil {
@@ -60,6 +64,13 @@ func (h *Handler) Create(rw http.ResponseWriter, r *http.Request) {
 
 	if err != nil && !sgerrors.IsNotFound(err) {
 		message.SendUnknownError(rw, err)
+		return
+	}
+
+
+	// Check account data for validity
+	if err := h.validator.ValidateCredentials(account); err != nil {
+		message.SendInvalidCredentials(rw, err)
 		return
 	}
 

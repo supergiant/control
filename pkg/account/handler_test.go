@@ -21,6 +21,14 @@ import (
 	"github.com/supergiant/supergiant/pkg/testutils"
 )
 
+type MockValidator struct {
+	validate func(map[string]string) error
+}
+
+func (m *MockValidator) ValidateCredentials(cloudAccount *model.CloudAccount) error {
+	return m.validate(cloudAccount.Credentials)
+}
+
 func fixtures() (*Handler, *testutils.MockStorage) {
 	mockStorage := new(testutils.MockStorage)
 	return &Handler{
@@ -50,6 +58,11 @@ func TestEndpoint_CreateSuccess(t *testing.T) {
 
 	req, _ := http.NewRequest(http.MethodPost, "/cloud_accounts", bytes.NewReader(malformedAccount))
 
+	e.validator = &MockValidator{
+		validate: func(map[string]string) error {
+			return nil
+		},
+	}
 	handler := http.HandlerFunc(e.Create)
 
 	rr := httptest.NewRecorder()
@@ -111,6 +124,12 @@ func TestEndpoint_CreateAlreadyExists(t *testing.T) {
 
 func TestEndpoint_CreateError(t *testing.T) {
 	e, m := fixtures()
+	e.validator = &MockValidator{
+		validate: func(map[string]string) error {
+			return nil
+		},
+	}
+
 	m.On("Put", mock.Anything, mock.Anything, mock.Anything, mock.Anything).Return(errors.New("error!"))
 	rr := httptest.NewRecorder()
 	m.On("Get", mock.Anything,
@@ -124,6 +143,30 @@ func TestEndpoint_CreateError(t *testing.T) {
 	req, _ := http.NewRequest(http.MethodPost, "/cloud_accounts", bytes.NewReader(okAccount))
 
 	handler := http.HandlerFunc(e.Create)
+	handler.ServeHTTP(rr, req)
+
+	require.Equal(t, http.StatusBadRequest, rr.Code, rr.Body.String())
+}
+
+func TestEndpoint_InvalidAccount(t *testing.T) {
+	e, _ := fixtures()
+
+	malformedAccount, _ := json.Marshal(model.CloudAccount{
+		Name:        "ff",
+		Provider:    clouds.DigitalOcean,
+		Credentials: map[string]string{},
+	})
+
+	req, _ := http.NewRequest(http.MethodPost, "/cloud_accounts", bytes.NewReader(malformedAccount))
+
+	e.validator = &MockValidator{
+		validate: func(map[string]string) error {
+			return errors.New("something went wrong")
+		},
+	}
+	handler := http.HandlerFunc(e.Create)
+
+	rr := httptest.NewRecorder()
 	handler.ServeHTTP(rr, req)
 
 	require.Equal(t, http.StatusBadRequest, rr.Code, rr.Body.String())
