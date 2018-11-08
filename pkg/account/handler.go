@@ -54,6 +54,7 @@ func (h *Handler) Create(rw http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	// Check account data for validity
 	if err := h.validator.ValidateCredentials(account); err != nil {
 		message.SendInvalidCredentials(rw, err)
 		return
@@ -63,6 +64,11 @@ func (h *Handler) Create(rw http.ResponseWriter, r *http.Request) {
 		if sgerrors.IsUnsupportedProvider(err) {
 			message.SendMessage(rw, message.New(fmt.Sprintf("Unsupported provider %s", account.Provider),
 				err.Error(), sgerrors.UnsupportedProvider, ""), http.StatusBadRequest)
+			return
+		}
+
+		if sgerrors.IsAlreadyExists(err) {
+			message.SendAlreadyExists(rw, account.Name, sgerrors.ErrAlreadyExists)
 			return
 		}
 
@@ -113,6 +119,7 @@ func (h *Handler) Get(rw http.ResponseWriter, r *http.Request) {
 	}
 }
 
+// TODO(stgleb): Use patch for updating
 // Update saves updated state of an cloud account, account name can't be changed
 func (h *Handler) Update(rw http.ResponseWriter, r *http.Request) {
 	account := new(model.CloudAccount)

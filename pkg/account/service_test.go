@@ -6,6 +6,7 @@ import (
 
 	"github.com/pkg/errors"
 
+	"github.com/stretchr/testify/mock"
 	"github.com/supergiant/supergiant/pkg/clouds"
 	"github.com/supergiant/supergiant/pkg/model"
 	"github.com/supergiant/supergiant/pkg/sgerrors"
@@ -33,24 +34,44 @@ func TestNewService(t *testing.T) {
 
 func TestServiceCreate(t *testing.T) {
 	testCases := []struct {
+		getResponse []byte
+		getError    error
 		account     *model.CloudAccount
 		expectedErr error
 	}{
 		{
+			getResponse: []byte(`{}`),
+			getError:    sgerrors.ErrAlreadyExists,
+			expectedErr: sgerrors.ErrAlreadyExists,
 			account: &model.CloudAccount{
+				Name:     "test",
+				Provider: "nonameprovider",
+			},
+		},
+		{
+			getResponse: nil,
+			getError:    sgerrors.ErrNotFound,
+			account: &model.CloudAccount{
+				Name:     "test",
 				Provider: "nonameprovider",
 			},
 			expectedErr: ErrUnsupportedProvider,
 		},
 		{
+			getResponse: nil,
+			getError:    sgerrors.ErrNotFound,
 			account: &model.CloudAccount{
+				Name:        "test",
 				Provider:    clouds.DigitalOcean,
 				Credentials: map[string]string{},
 			},
 			expectedErr: sgerrors.ErrInvalidCredentials,
 		},
 		{
+			getResponse: nil,
+			getError:    sgerrors.ErrNotFound,
 			account: &model.CloudAccount{
+				Name:        "test",
 				Provider:    clouds.AWS,
 				Credentials: map[string]string{},
 			},
@@ -59,7 +80,14 @@ func TestServiceCreate(t *testing.T) {
 	}
 
 	for _, testCase := range testCases {
-		svc := &Service{}
+		mockRepo := &testutils.MockStorage{}
+		mockRepo.On("Get", mock.Anything,
+			mock.Anything, mock.Anything).
+			Return(testCase.getResponse, testCase.getError)
+
+		svc := &Service{
+			repository: mockRepo,
+		}
 		err := svc.Create(context.Background(), testCase.account)
 
 		if err != nil {
