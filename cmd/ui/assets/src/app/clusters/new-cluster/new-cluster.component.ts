@@ -55,8 +55,7 @@ export class NewClusterComponent implements OnInit, OnDestroy {
     private router: Router,
     private formBuilder: FormBuilder,
     private nodesService: NodeProfileService,
-  ) {
-  }
+  ) { }
 
 
   getCloudAccounts() {
@@ -309,7 +308,11 @@ export class NewClusterComponent implements OnInit, OnDestroy {
     this.getCloudAccounts();
 
     this.nameAndCloudAccountConfig = this.formBuilder.group({
-      name: ["", [Validators.required, this.uniqueClusterName(this.unavailableClusterNames)]],
+      name: ["", [
+        Validators.required,
+        this.uniqueClusterName(this.unavailableClusterNames),
+        Validators.maxLength(12),
+        Validators.pattern('([-A-Za-z0-9\-]*[A-Za-z0-9\-])?$')]],
       cloudAccount: ["", Validators.required]
     })
 
