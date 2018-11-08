@@ -526,7 +526,22 @@ func (h *Handler) deleteNode(w http.ResponseWriter, r *http.Request) {
 
 	// Update cluster state when deletion completes
 	go func() {
-		err := <-errChan
+		// Set node to deleting state
+		nodeToDelete, ok := k.Nodes[nodeName]
+
+		if !ok {
+			logrus.Errorf("Node %s not found", nodeName)
+			return
+		}
+		nodeToDelete.State = node.StateDeleting
+		k.Nodes[nodeName] = nodeToDelete
+		err := h.svc.Create(context.Background(), k)
+
+		if err != nil {
+			logrus.Errorf("update cluster %s caused %v", kname, err)
+		}
+
+		err = <-errChan
 
 		if err != nil {
 			logrus.Errorf("delete node %s from cluster %s caused %v", nodeName, kname, err)

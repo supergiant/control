@@ -9,6 +9,8 @@ import (
 	"github.com/pkg/errors"
 	"github.com/sirupsen/logrus"
 
+	"gopkg.in/asaskevich/govalidator.v8"
+	
 	"github.com/supergiant/supergiant/pkg/account"
 	"github.com/supergiant/supergiant/pkg/message"
 	"github.com/supergiant/supergiant/pkg/model"
@@ -39,9 +41,9 @@ type Handler struct {
 }
 
 type ProvisionRequest struct {
-	ClusterName      string          `json:"clusterName"`
-	Profile          profile.Profile `json:"profile"`
-	CloudAccountName string          `json:"cloudAccountName"`
+	ClusterName      string          `json:"clusterName" valid:"matches(^[A-Za-z0-9-]+$)"`
+	Profile          profile.Profile `json:"profile" valid:"-"`
+	CloudAccountName string          `json:"cloudAccountName" valid:"-"`
 }
 
 type ProvisionResponse struct {
@@ -72,6 +74,13 @@ func (h *Handler) Provision(w http.ResponseWriter, r *http.Request) {
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusBadRequest)
 		logrus.Error(errors.Wrap(err, "unmarshal json"))
+		return
+	}
+
+	ok, err := govalidator.ValidateStruct(req)
+	if !ok {
+		logrus.Errorf("Validation error %v", err.Error())
+		message.SendValidationFailed(w, err)
 		return
 	}
 

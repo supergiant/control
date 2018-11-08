@@ -17,6 +17,13 @@ export class Kubes {
   public create(data) {
     return this.util.post(this.provisionPath, data);
   }
+  public getClusterMetrics(id) {
+    return this.util.fetch(this.kubesPath + '/' + id + '/metrics')
+  }
+
+  public getMachineMetrics(id, name) {
+    return this.util.fetch(this.kubesPath + '/' + id + '/nodes/metrics')
+  }
   // adding this back so I don't have to touch apps component right now
   public schema(data?) {
     return this.util.post(this.kubesPath, data);
