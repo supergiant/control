@@ -47,7 +47,7 @@ type GCEConfig struct {
 	Zone          string `json:"zone"`
 	Size          string `json:"size"`
 	InstanceGroup string `json:"instanceGroup"`
-	TokenUri      string `json:"token_uri"`
+	TokenURI      string `json:"token_uri"`
 }
 
 type PacketConfig struct{}
@@ -243,15 +243,15 @@ func NewConfig(clusterName, discoveryUrl, cloudAccountName string, profile profi
 			MastersSecurityGroupID: profile.CloudSpecificSettings["aws_masters_secgroup_id"],
 			NodesSecurityGroupID:   profile.CloudSpecificSettings["aws_nodes_secgroup_id"],
 		},
-		GCEConfig:    GCEConfig{
-			Email: profile.CloudSpecificSettings["gceEmail"],
-			PrivateKey: profile.CloudSpecificSettings["gcePrivateKey"],
-			ImageFamily: profile.CloudSpecificSettings["gceImageFamily"],
-			ProjectID: profile.CloudSpecificSettings["gceProjectID"],
-			Zone: profile.CloudSpecificSettings["gceZone"],
-			Size: profile.CloudSpecificSettings["gceSize"],
+		GCEConfig: GCEConfig{
+			Email:         profile.CloudSpecificSettings["gceEmail"],
+			PrivateKey:    profile.CloudSpecificSettings["gcePrivateKey"],
+			ImageFamily:   profile.CloudSpecificSettings["gceImageFamily"],
+			ProjectID:     profile.CloudSpecificSettings["gceProjectID"],
+			Zone:          profile.CloudSpecificSettings["gceZone"],
+			Size:          profile.CloudSpecificSettings["gceSize"],
 			InstanceGroup: profile.CloudSpecificSettings["gceInstanceGroup"],
-			TokenUri: profile.CloudSpecificSettings["gceTokenUri"],
+			TokenURI:      profile.CloudSpecificSettings["gceTokenUri"],
 		},
 		OSConfig:     OSConfig{},
 		PacketConfig: PacketConfig{},

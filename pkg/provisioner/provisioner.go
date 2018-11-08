@@ -50,7 +50,7 @@ func NewProvisioner(repository storage.Interface, kubeService KubeService) *Task
 			},
 			clouds.GCE: {
 				ProvisionMaster: workflows.GCEMaster,
-				ProvisionNode: workflows.GCENode,
+				ProvisionNode:   workflows.GCENode,
 			},
 		},
 		getWriter: util.GetWriter,

@@ -13,6 +13,7 @@ import (
 	"github.com/supergiant/supergiant/pkg/sgerrors"
 	"github.com/supergiant/supergiant/pkg/util"
 	"github.com/supergiant/supergiant/pkg/workflows/steps"
+	"google.golang.org/api/dns/v1"
 )
 
 const StepName = "gce"
@@ -26,10 +27,10 @@ func New() (steps.Step, error) {
 	return &Step{
 		getClient: func(ctx context.Context, email, privateKey, tokenUri string) (*compute.Service, error) {
 			clientScopes := []string{
-				"https://www.googleapis.com/auth/compute",
-				"https://www.googleapis.com/auth/cloud-platform",
-				"https://www.googleapis.com/auth/ndev.clouddns.readwrite",
-				"https://www.googleapis.com/auth/devstorage.full_control",
+				compute.ComputeScope,
+				compute.CloudPlatformScope,
+				dns.NdevClouddnsReadwriteScope,
+				compute.DevstorageFullControlScope,
 			}
 
 			conf := jwt.Config{
@@ -57,19 +58,22 @@ func Init() {
 
 func (s *Step) Run(ctx context.Context, output io.Writer, config *steps.Config) error {
 	// fetch client.
-	client, err := s.getClient(ctx, config.GCEConfig.Email, config.GCEConfig.PrivateKey, config.GCEConfig.TokenUri)
+	client, err := s.getClient(ctx, config.GCEConfig.Email,
+		config.GCEConfig.PrivateKey, config.GCEConfig.TokenURI)
 	if err != nil {
 		return err
 	}
 
 	// TODO(stgleb): probably we want to switch between projects in future
-	image, err := client.Images.GetFromFamily("ubuntu-os-cloud", config.GCEConfig.ImageFamily).Do()
+	image, err := client.Images.GetFromFamily("ubuntu-os-cloud",
+		config.GCEConfig.ImageFamily).Do()
 	if err != nil {
 		return err
 	}
 
 	// get master machine type.
-	instType, err := client.MachineTypes.Get(config.GCEConfig.ProjectID, config.GCEConfig.Zone, config.GCEConfig.Size).Do()
+	instType, err := client.MachineTypes.Get(config.GCEConfig.ProjectID,
+		config.GCEConfig.Zone, config.GCEConfig.Size).Do()
 	if err != nil {
 		return err
 	}
@@ -88,7 +92,7 @@ func (s *Step) Run(ctx context.Context, output io.Writer, config *steps.Config) 
 	} else {
 		// Create Minion Instance group
 		instanceGroup = &compute.InstanceGroup{
-			Name:        config.ClusterName + "-kubernetes-minions",
+			Name:        config.ClusterName + "-kubernetes-workers",
 			Description: "Kubernetes minion group for cluster:" + config.ClusterName,
 		}
 	}
@@ -235,6 +239,6 @@ func (s *Step) Description() string {
 	return "Google compute engine step for creating instance"
 }
 
-func (s *Step ) Rollback(context.Context, io.Writer, *steps.Config) error {
+func (s *Step) Rollback(context.Context, io.Writer, *steps.Config) error {
 	return nil
 }

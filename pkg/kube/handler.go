@@ -837,7 +837,6 @@ func (h *Handler) getNodesMetrics(w http.ResponseWriter, r *http.Request) {
 		}
 	}
 
-
 	err = json.NewEncoder(w).Encode(response)
 
 	if err != nil {
