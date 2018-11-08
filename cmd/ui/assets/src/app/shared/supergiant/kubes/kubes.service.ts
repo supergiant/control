@@ -21,7 +21,7 @@ export class Kubes {
     return this.util.fetch(this.kubesPath + '/' + id + '/metrics')
   }
 
-  public getMachineMetrics(id, name) {
+  public getMachineMetrics(id) {
     return this.util.fetch(this.kubesPath + '/' + id + '/nodes/metrics')
   }
   // adding this back so I don't have to touch apps component right now
