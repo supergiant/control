@@ -29,7 +29,7 @@ func New(tpl *template.Template) *Step {
 
 func (t *Step) Run(ctx context.Context, out io.Writer, config *steps.Config) error {
 	err := steps.RunTemplate(context.Background(), t.script,
-		config.Runner, out, nil)
+		config.Runner, out, config.DockerConfig)
 	if err != nil {
 		return errors.Wrap(err, "install docker step")
 	}
