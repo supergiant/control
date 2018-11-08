@@ -26,6 +26,7 @@ import { FormsModule, ReactiveFormsModule } from "@angular/forms";
 import { ConfigureComponent }               from './app-details/confure/configure.component';
 import { MarkdownModule }                   from "ngx-markdown";
 import { AceEditorModule }                  from "ng2-ace-editor";
+import { RemoveRepoDialogComponent }        from './apps-list/remove-repo-dialog/remove-repo-dialog.component';
 
 @NgModule({
   imports: [
@@ -55,11 +56,13 @@ import { AceEditorModule }                  from "ng2-ace-editor";
     BreadcrumbsComponent,
     DeployComponent,
     ConfigureComponent,
+    RemoveRepoDialogComponent,
   ],
   entryComponents: [
     DeployComponent,
     AppsAddComponent,
-    ConfigureComponent
+    ConfigureComponent,
+    RemoveRepoDialogComponent,
   ],
 })
 export class AppStoreModule {
