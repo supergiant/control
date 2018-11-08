@@ -77,6 +77,17 @@ func (s *Service) Get(ctx context.Context, accountName string) (*model.CloudAcco
 
 // Create stores user in the underlying storage
 func (s *Service) Create(ctx context.Context, account *model.CloudAccount) error {
+	// Check if account with that name already exists
+	existingAccount, err := s.Get(ctx, account.Name)
+
+	if err != nil && !sgerrors.IsNotFound(err) {
+		return err
+	}
+
+	if existingAccount != nil {
+		return sgerrors.ErrAlreadyExists
+	}
+
 	switch account.Provider {
 	case clouds.DigitalOcean:
 		if account.Credentials[clouds.DigitalOceanAccessToken] == "" {

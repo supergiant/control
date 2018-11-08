@@ -98,6 +98,11 @@ func TestEndpoint_CreateSuccess(t *testing.T) {
 func TestEndpoint_CreateAlreadyExists(t *testing.T) {
 	accName := "test"
 	e, m := fixtures()
+	e.validator = &MockValidator{
+		validate: func(map[string]string) error {
+			return nil
+		},
+	}
 	data, _ := json.Marshal(&model.Kube{
 		Name: accName,
 	})

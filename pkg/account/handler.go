@@ -54,20 +54,6 @@ func (h *Handler) Create(rw http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	// Check if account with that name already exists
-	existingAccount, err := h.service.Get(r.Context(), account.Name)
-
-	if existingAccount != nil {
-		message.SendAlreadyExists(rw, account.Name, sgerrors.ErrAlreadyExists)
-		return
-	}
-
-	if err != nil && !sgerrors.IsNotFound(err) {
-		message.SendUnknownError(rw, err)
-		return
-	}
-
-
 	// Check account data for validity
 	if err := h.validator.ValidateCredentials(account); err != nil {
 		message.SendInvalidCredentials(rw, err)
@@ -78,6 +64,11 @@ func (h *Handler) Create(rw http.ResponseWriter, r *http.Request) {
 		if sgerrors.IsUnsupportedProvider(err) {
 			message.SendMessage(rw, message.New(fmt.Sprintf("Unsupported provider %s", account.Provider),
 				err.Error(), sgerrors.UnsupportedProvider, ""), http.StatusBadRequest)
+			return
+		}
+
+		if sgerrors.IsAlreadyExists(err) {
+			message.SendAlreadyExists(rw, account.Name, sgerrors.ErrAlreadyExists)
 			return
 		}
 
