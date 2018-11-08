@@ -27,6 +27,7 @@
          [routerLink]="[repo.name]">{{ repo.name | titlecase }}</a>
     </span>
       <a (click)="addRepo()"
+         matTooltip="Add new helm repository"
          class="add-repo"><i class="fa fa-plus-circle"></i></a>
     </nav>
   </section>
