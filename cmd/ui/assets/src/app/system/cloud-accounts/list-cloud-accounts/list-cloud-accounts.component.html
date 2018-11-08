@@ -2,7 +2,7 @@
   <h1>Cloud Accounts</h1>
   <div *ngIf="accounts?.data.length > 0">
     <div class="sg-table">
-      <mat-table [dataSource]="accounts" matSort>
+      <mat-table [dataSource]="accounts" matSort matSortActive="name" matSortDirection="asc">
 
         <ng-container matColumnDef="name">
           <mat-header-cell mat-sort-header *matHeaderCellDef>Name</mat-header-cell>
@@ -41,8 +41,6 @@
         <mat-row *matRowDef="let row; columns: accountColumns"></mat-row>
 
       </mat-table>
-
-      <mat-paginator [pageSizeOptions]="[5, 10, 25, 100]" color="primary"></mat-paginator>
 
       <div class="actions">
         <a [routerLink]="['new']"><button mat-raised-button color="primary" type="button">ADD</button></a>
