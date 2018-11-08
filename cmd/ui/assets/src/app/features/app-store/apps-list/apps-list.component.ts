@@ -1,6 +1,6 @@
 import { HttpClient }                                  from "@angular/common/http";
 import { Component, OnInit, ViewChild }                from '@angular/core';
-import { MatPaginator }                                from "@angular/material";
+import { MatPaginator, MatDialog }                     from "@angular/material";
 import { ActivatedRoute, NavigationEnd, Router }       from "@angular/router";
 import { select, Store }                               from "@ngrx/store";
 import { combineLatest, Observable, of, Subscription } from "rxjs";
@@ -8,6 +8,7 @@ import { filter, map, startWith, switchMap, tap }      from "rxjs/operators";
 import { State }                                       from "../../../reducers";
 import { LoadCharts }                                  from "../../apps/actions";
 import { ChartList, selectCharts, selectFilterApps }   from "../../apps/apps.reducer";
+import { RemoveRepoDialogComponent }                   from "app/features/app-store/apps-list/remove-repo-dialog/remove-repo-dialog.component";
 
 @Component({
   selector: 'apps-list',
@@ -33,6 +34,7 @@ export class AppsListComponent implements OnInit {
     private http: HttpClient,
     private store: Store<State>,
     public router: Router,
+    public dialog: MatDialog,
   ) {
     this.updateCharts();
   }
@@ -59,8 +61,22 @@ export class AppsListComponent implements OnInit {
   }
 
   removeRepo() {
-    this.http.delete(`/v1/api/helm/repositories/${this.repo}`).subscribe(() => {
+
+    const dialogRef = this.dialog.open(RemoveRepoDialogComponent, {
+      width: '300px',
+    });
+
+    const deleteReqest$ = this.http.delete(`/v1/api/helm/repositories/${this.repo}`);
+
+    dialogRef
+      .afterClosed()
+      .pipe(
+        filter(confirm => confirm),
+        map(_ => deleteReqest$),
+        switchMap(result => result)
+      ).subscribe((result) => {
         // TODO: progress spinner
+        // TODO: handle error
         this.router.navigate(['apps']);
         window.location.reload();
       }
