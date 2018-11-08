@@ -15,6 +15,30 @@
         <mat-cell *matCellDef="let cluster">{{ cluster.accountName }}</mat-cell>
       </ng-container>
 
+      <ng-container matColumnDef="cpu">
+        <mat-header-cell *matHeaderCellDef>CPU</mat-header-cell>
+        <mat-cell *matCellDef="let cluster">
+          <ng-container *ngIf="cpuUsage != NaN">
+            {{ cpuUsage }}%
+          </ng-container>
+          <ng-container *ngIf="cpuUsage == NaN">
+            --
+          </ng-container>
+        </mat-cell>
+      </ng-container>
+
+      <ng-container matColumnDef="ram">
+        <mat-header-cell *matHeaderCellDef>RAM</mat-header-cell>
+        <mat-cell *matCellDef="let cluster">
+            <ng-container *ngIf="ramUsage != NaN">
+              {{ ramUsage }}%
+            </ng-container>
+            <ng-container *ngIf="ramUsage == NaN">
+              --
+            </ng-container>
+          </mat-cell>
+      </ng-container>
+
       <ng-container matColumnDef="k8sversion">
         <mat-header-cell *matHeaderCellDef>K8S Version</mat-header-cell>
         <mat-cell *matCellDef="let cluster">{{ cluster.K8SVersion }}</mat-cell>

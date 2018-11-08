@@ -64,11 +64,6 @@ func (tp *TaskProvisioner) ProvisionCluster(ctx context.Context, profile *profil
 
 	// TODO(stgleb): Make node names from task id before provisioning starts
 	masters, nodes := nodesFromProfile(config.ClusterName, masterTasks, nodeTasks, profile)
-	// Save cluster before provisioning
-	tp.buildInitialCluster(ctx, profile, masters, nodes, config)
-
-	// monitor cluster state in separate goroutine
-	go tp.monitorClusterState(ctx, config)
 
 	if err := bootstrapKeys(config); err != nil {
 		return nil, errors.Wrap(err, "bootstrap keys")
@@ -77,6 +72,12 @@ func (tp *TaskProvisioner) ProvisionCluster(ctx context.Context, profile *profil
 	if err := bootstrapCA(config); err != nil {
 		return nil, errors.Wrap(err, "bootstrap CA")
 	}
+
+	// Save cluster before provisioning
+	tp.buildInitialCluster(ctx, profile, masters, nodes, config)
+
+	// monitor cluster state in separate goroutine
+	go tp.monitorClusterState(ctx, config)
 
 	go func() {
 		if err := tp.preprovision(ctx, config); err != nil {
@@ -138,6 +139,8 @@ func (tp *TaskProvisioner) ProvisionNodes(ctx context.Context, nodeProfiles []pr
 		return nil, errors.Wrap(sgerrors.ErrNotFound, "provider workflow")
 	}
 
+	// monitor cluster state in separate goroutine
+	go tp.monitorClusterState(ctx, config)
 	tasks := make([]string, 0, len(nodeProfiles))
 
 	for _, nodeProfile := range nodeProfiles {
@@ -385,7 +388,10 @@ func (tp *TaskProvisioner) buildInitialCluster(ctx context.Context, profile *pro
 		SshUser:      config.SshConfig.User,
 		SshPublicKey: []byte(config.SshConfig.PublicKey),
 
-		Auth: model.Auth{},
+		Auth: model.Auth{
+			CAKey:  config.CertificatesConfig.CAKey,
+			CACert: config.CertificatesConfig.CACert,
+		},
 
 		Arch:                   profile.Arch,
 		OperatingSystem:        profile.OperatingSystem,
@@ -399,6 +405,7 @@ func (tp *TaskProvisioner) buildInitialCluster(ctx context.Context, profile *pro
 			Type:    profile.NetworkType,
 			CIDR:    profile.CIDR,
 		},
+
 		Masters: masters,
 		Nodes:   nodes,
 	}

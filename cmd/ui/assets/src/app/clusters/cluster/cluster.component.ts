@@ -38,17 +38,24 @@ export class ClusterComponent implements OnInit, OnDestroy {
 
   // machine list vars
   machines: any;
-  machineListColumns = ["state", "role", "name", "id", "region", "publicIp"];
+  machineListColumns = ["state", "role", "name", "cpu", "ram", "region", "publicIp"];
+  // machineListColumns = ["state", "role", "name", "region", "publicIp"];
 
   // task list vars
   tasks: any;
   taskListColumns = ["status", "type", "id", "steps", "logs"];
   expandedTaskId: any;
 
-  // temp for demo, remove ASAP
-  mastersStatus = "executing";
-  nodesStatus = "queued";
-  readyStatus = "queued";
+  releases: any;
+  releaseListColumns = ["status", "name", "chart", "chartVersion", "version", "lastDeployed"];
+
+  masterTasksStatus = "executing";
+  nodeTasksStatus = "queued";
+  clusterTasksStatus = "queued";
+
+  cpuUsage: number;
+  ramUsage: number;
+  machineMetrics = {};
 
   constructor(
     private route: ActivatedRoute,
@@ -145,22 +152,20 @@ export class ClusterComponent implements OnInit, OnDestroy {
     // oh my god I'm so sorry
     if (masterTasks.every(this.taskComplete)) {
       // masters complete
-      this.mastersStatus = "complete";
+      this.masterTasksStatus = "complete";
 
       if (nodeTasks.every(this.taskComplete)) {
         // masters AND nodes complete
-        this.nodesStatus = "complete";
-        this.readyStatus = "executing";
+        this.nodeTasksStatus = "complete";
+        this.clusterTasksStatus = "executing";
 
-        // TODO: what is technically "ready?"
-        setTimeout(() => { this.readyStatus = "complete"; console.log("ready") }, 5000);
       } else {
         // masters complete, nodes executing
-        this.nodesStatus = "executing"
+        this.nodeTasksStatus = "executing"
       }
     } else {
       // masters executing
-      this.mastersStatus = "executing";
+      this.masterTasksStatus = "executing";
     }
   }
 
@@ -173,17 +178,17 @@ export class ClusterComponent implements OnInit, OnDestroy {
           // for dev-ing
           // this.kube.state = "provisioning";
 
-          switch (k.state) {
+          switch (this.kube.state) {
             case "operational": {
               this.renderKube(this.kube);
+              this.getReleases();
+              this.getClusterMetrics();
+              this.getMachineMetrics();
               break;
             }
             case "provisioning": {
               this.getKubeStatus(this.id).subscribe(
                 tasks => {
-                  // for demo:
-                  // do some task overview checking here
-                  // e.g. are we on masters? nodes? set vars accordingly
                   this.setProvisioningStep(tasks);
 
                   const rows = [];
@@ -218,9 +223,9 @@ export class ClusterComponent implements OnInit, OnDestroy {
                 },
                 err => console.log(err)
               );
-              this.mastersStatus = "failed";
-              this.nodesStatus = "failed";
-              this.readyStatus = "failed";
+              this.masterTasksStatus = "failed";
+              this.nodeTasksStatus = "failed";
+              this.clusterTasksStatus = "failed";
               break;
             }
             default: {
@@ -233,13 +238,51 @@ export class ClusterComponent implements OnInit, OnDestroy {
   }
 
   renderKube(kube) {
+    const machineMetrics = {};
+    const masterNames = Object.keys(kube.masters);
+    const nodeNames = Object.keys(kube.nodes);
 
-    let masters = kube.masters;
-    let nodes = kube.nodes;
+    masterNames.forEach(name => {
+      if (this.machineMetrics[name]) {
+        kube.masters[name].metrics = this.machineMetrics[name];
+      }
+    })
 
-    this.machines = new MatTableDataSource(this.combineAndFlatten(masters, nodes));
+    nodeNames.forEach(name => {
+      if (this.machineMetrics[name]) {
+        kube.nodes[name].metrics = this.machineMetrics[name];
+      }
+    })
+
+    this.machines = new MatTableDataSource(this.combineAndFlatten(kube.masters, kube.nodes));
     this.machines.sort = this.sort;
     this.machines.paginator = this.paginator;
+  }
+
+  getReleases() {
+    this.supergiant.HelmReleases.get(this.id).subscribe(
+      res => {
+        this.releases = new MatTableDataSource(res);
+      },
+      err => console.error(err)
+    )
+  }
+
+  getClusterMetrics() {
+    this.supergiant.Kubes.getClusterMetrics(this.kube.name).subscribe(
+      res => {
+        this.cpuUsage = res.cpu;
+        this.ramUsage = res.memory;
+      },
+      err => console.error(err)
+    )
+  }
+
+  getMachineMetrics() {
+    this.supergiant.Kubes.getMachineMetrics(this.kube.name).subscribe(
+      res => this.machineMetrics = res,
+      err => console.error(err)
+    )
   }
 
   goBack() {

@@ -4,17 +4,19 @@ import { AppStoreRoutingModule }            from './app-store-routing.module';
 import { AppStoreComponent }                from './app-store.component';
 import { AppsAddComponent }                 from './apps-add/apps-add.component';
 import {
-  MatCardModule, MatDialogModule,
+  MatCardModule,
+  MatDialogModule,
   MatFormFieldModule,
   MatInputModule,
   MatOptionModule,
+  MatPaginatorModule,
   MatProgressSpinnerModule,
   MatSelectModule,
-  MatTabsModule
-}                                           from '@angular/material';
+  MatTabsModule,
+  MatTooltipModule,
+} from '@angular/material';
 import { StoreModule }                      from '@ngrx/store';
-import * as fromApps
-                                            from '../apps/apps.reducer';
+import * as fromApps                        from '../apps/apps.reducer';
 import { EffectsModule }                    from '@ngrx/effects';
 import { AppsEffects }                      from '../apps/apps.effects';
 import { AppsListComponent }                from './apps-list/apps-list.component';
@@ -25,6 +27,7 @@ import { FormsModule, ReactiveFormsModule } from "@angular/forms";
 import { ConfigureComponent }               from './app-details/confure/configure.component';
 import { MarkdownModule }                   from "ngx-markdown";
 import { AceEditorModule }                  from "ng2-ace-editor";
+import { RemoveRepoDialogComponent }        from './apps-list/remove-repo-dialog/remove-repo-dialog.component';
 
 @NgModule({
   imports: [
@@ -44,6 +47,8 @@ import { AceEditorModule }                  from "ng2-ace-editor";
     MatProgressSpinnerModule,
     MarkdownModule.forRoot(),
     AceEditorModule,
+    MatPaginatorModule,
+    MatTooltipModule,
   ],
   declarations: [
     AppStoreComponent,
@@ -53,11 +58,13 @@ import { AceEditorModule }                  from "ng2-ace-editor";
     BreadcrumbsComponent,
     DeployComponent,
     ConfigureComponent,
+    RemoveRepoDialogComponent,
   ],
   entryComponents: [
     DeployComponent,
     AppsAddComponent,
-    ConfigureComponent
+    ConfigureComponent,
+    RemoveRepoDialogComponent,
   ],
 })
 export class AppStoreModule {

@@ -63,9 +63,11 @@
       width: 223px;
     }
 
-    .cpu-actual {
+    .cpu-actual-icon {
       position: relative;
-      top: 1px;
+      top: 2px;
+
+      .cpu-usage {}
     }
 
     .right-chart {
@@ -79,9 +81,11 @@
       width: 184px;
     }
 
-    .ram-actual {
+    .ram-actual-icon {
       position: relative;
       top: 1px;
+
+      .ram-usage {}
     }
   }
 

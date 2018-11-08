@@ -31,34 +31,57 @@
             transform="translate(-153.841 -73.409)"/>
     </g>
   </svg>
-  <span class="cpu-metric metric">0% usage</span>
+  <span *ngIf="cpuUsage" class="cpu-metric metric">{{ (cpuUsage * 100).toFixed(1) }}% usage</span>
 </div>
 
 <div class="orb-chart">
   <div class="left-chart">
-    <!-- <svg class="cpu-actual" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 224.953 448.908">
+    <svg class="cpu-actual-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 224 447">
       <defs>
         <style>
-          .a2{fill:rgba(255,0,166,0.5);stroke:#ff00a6;stroke-linecap:round;}
+          .cpu-usage {
+            fill: none;
+            stroke: #ff00a6;
+            stroke-miterlimit: 10;
+            stroke-opacity: 0.5;
+            stroke-width:40px;
+            stroke-dasharray: 640.1873779296875;
+            stroke-dashoffset: 640.1873779296875;
+            transition: stroke-dashoffset 850ms ease-in-out;
+          }
         </style>
       </defs>
-      <path class="a2" d="M0,0V39.405A182.667,182.667,0,0,1,71.849,53.92,184.089,184.089,0,0,1,130.5,93.457,183.739,183.739,0,0,1,170.034,152.1a185.092,185.092,0,0,1,0,143.7A183.019,183.019,0,0,1,130.5,354.452a183.739,183.739,0,0,1-58.648,39.537A182.667,182.667,0,0,1,0,408.5v39.405c123.667,0,223.954-100.287,223.954-223.954S123.667,0,0,0H0"
-      transform="translate(224.453 448.408) rotate(180)"
-      />
-    </svg> -->
+      <g id="Layer_2" data-name="Layer 2">
+        <g id="Layer_1-2" data-name="Layer 1">
+          <path #cpu_usage_path class="cpu-usage" d="M224,427C111.34,427,20,335.89,20,223.5S111.34,20,224,20"/>
+        </g>
+      </g>
+    </svg>
   </div>
   <div class="orb">
     <span class="cluster-name">{{ name }}</span>
   </div>
   <div class="right-chart">
-    <!-- <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 184.973 368.945">
+    <svg class="ram-actual-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 183 364">
       <defs>
         <style>
-          .a3{fill:rgba(64,196,255,0.5);stroke:#40c4ff;stroke-linecap:round;}
+          .ram-usage {
+            fill: none;
+            stroke: #40c4ff;
+            stroke-opacity: 0.5;
+            stroke-width: 32px;
+            stroke-dasharray: 523.1494750976562;
+            stroke-dashoffset: 523.1494750976562;
+            transition: stroke-dashoffset 850ms ease-in-out;
+          }
         </style>
       </defs>
-      <path class="a3" d="M0,0V32.37A150.056,150.056,0,0,1,59.022,44.294,151.224,151.224,0,0,1,107.2,76.772a150.936,150.936,0,0,1,32.478,48.178,152.048,152.048,0,0,1,0,118.044A150.346,150.346,0,0,1,107.2,291.173a150.937,150.937,0,0,1-48.178,32.478A150.055,150.055,0,0,1,0,335.574v32.371c101.589,0,183.972-82.383,183.972-183.972S101.589,0,0,0H0" transform="translate(0.5 0.5)"/>
-    </svg> -->
+      <g id="Layer_2" data-name="Layer 2">
+        <g id="Layer_1-2" data-name="Layer 1">
+          <path #ram_usage_path class="ram-usage" d="M0,16c92.23,0,167,74.32,167,166S92.23,348,0,348"/>
+        </g>
+      </g>
+    </svg>
   </div>
 </div>
 
@@ -95,5 +118,5 @@
             transform="translate(555.247 55.722)"/>
     </g>
   </svg>
-  <span class="ram-metric metric">0% usage</span>
+  <span *ngIf="ramUsage" class="ram-metric metric">{{ (ramUsage * 100).toFixed(1) }}% usage</span>
 </div>

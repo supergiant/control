@@ -73,14 +73,23 @@ func TestService_CreateRepo(t *testing.T) {
 		},
 		{ // TC#2
 			repoConf: &repo.Entry{
+				Name: "storageError",
+			},
+			storage: fakeStorage{
+				getErr: errFake,
+			},
+			expectedErr: errFake,
+		},
+		{ // TC#3
+			repoConf: &repo.Entry{
 				Name: "alreadyExists",
 			},
 			storage: fakeStorage{
-				item: []byte(`{"name":"alreadyExists"}`),
+				item: []byte(`{"config":{"name":"alreadyExists"}}`),
 			},
 			expectedErr: sgerrors.ErrAlreadyExists,
 		},
-		{ // TC#3
+		{ // TC#4
 			repoConf: &repo.Entry{
 				Name: "getIndexFileError",
 			},
@@ -89,7 +98,7 @@ func TestService_CreateRepo(t *testing.T) {
 			},
 			expectedErr: errFake,
 		},
-		{ // TC#4
+		{ // TC#5
 			repoConf: &repo.Entry{
 				Name: "putError",
 			},
@@ -98,7 +107,7 @@ func TestService_CreateRepo(t *testing.T) {
 			},
 			expectedErr: errFake,
 		},
-		{ // TC#5
+		{ // TC#6
 			repoConf: &repo.Entry{
 				Name: "emptyIndex",
 			},
@@ -111,7 +120,7 @@ func TestService_CreateRepo(t *testing.T) {
 				},
 			},
 		},
-		{ // TC#6
+		{ // TC#7
 			repoConf: &repo.Entry{
 				Name: "success",
 			},

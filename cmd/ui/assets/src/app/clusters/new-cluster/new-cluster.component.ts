@@ -55,14 +55,13 @@ export class NewClusterComponent implements OnInit, OnDestroy {
     private router: Router,
     private formBuilder: FormBuilder,
     private nodesService: NodeProfileService,
-  ) {
-  }
+  ) { }
 
 
   getCloudAccounts() {
     this.subscriptions.add(this.supergiant.CloudAccounts.get().subscribe(
       (cloudAccounts) => {
-        this.availableCloudAccounts = cloudAccounts;
+        this.availableCloudAccounts = cloudAccounts.sort();
       })
     );
   }
@@ -184,19 +183,36 @@ export class NewClusterComponent implements OnInit, OnDestroy {
     }
   }
 
-  addBlankMachine() {
-    this.machines.push({
-      machineType: null,
-      role: null,
-      qty: 1
-    })
+  addBlankMachine(e?) {
+    if (e) {
+      if (e.keyCode === 13) {
+        this.machines.push({
+          machineType: null,
+          role: null,
+          qty: 1
+        })
+      }
+    } else {
+      this.machines.push({
+        machineType: null,
+        role: null,
+        qty: 1
+      })
+    }
   }
 
-  deleteMachine(idx) {
+  deleteMachine(idx, e?) {
     if(this.machines.length === 1) return;
 
-    this.machines.splice(idx, 1);
-    this.checkForValidMachinesConfig();
+    if (e) {
+      if(e.keyCode === 13) {
+        this.machines.splice(idx, 1);
+        this.checkForValidMachinesConfig();
+      }
+    } else {
+      this.machines.splice(idx, 1);
+      this.checkForValidMachinesConfig();
+    }
   }
 
   selectCloudAccount(cloudAccount) {
@@ -255,7 +271,6 @@ export class NewClusterComponent implements OnInit, OnDestroy {
     if (this.machines.every(this.validMachine)) {
       this.machinesConfigValid = true;
       this.displayMachinesConfigWarning = false;
-      this.stepper.next();
     } else {
       this.machinesConfigValid = false;
     }
@@ -293,7 +308,11 @@ export class NewClusterComponent implements OnInit, OnDestroy {
     this.getCloudAccounts();
 
     this.nameAndCloudAccountConfig = this.formBuilder.group({
-      name: ["", [Validators.required, this.uniqueClusterName(this.unavailableClusterNames)]],
+      name: ["", [
+        Validators.required,
+        this.uniqueClusterName(this.unavailableClusterNames),
+        Validators.maxLength(12),
+        Validators.pattern('([-A-Za-z0-9\-]*[A-Za-z0-9\-])?$')]],
       cloudAccount: ["", Validators.required]
     })
 
@@ -304,12 +323,11 @@ export class NewClusterComponent implements OnInit, OnDestroy {
       dockerVersion: ["17.06.0", Validators.required],
       ubuntuVersion: ["xenial", Validators.required],
       networkType: ["vxlan", Validators.required],
-      cidr: ["10.0.0.0/24", [Validators.required, this.validCidr()]],
+      cidr: ["10.0.0.0/16", [Validators.required, this.validCidr()]],
       operatingSystem: ["linux", Validators.required],
       arch: ["amd64", Validators.required],
       rbacEnabled: [false, Validators.required]
     });
-
   }
 
   ngOnDestroy() {

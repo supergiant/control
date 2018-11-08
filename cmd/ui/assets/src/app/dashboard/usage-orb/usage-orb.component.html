@@ -1,11 +1,52 @@
 <a [routerLink]="['/clusters', cluster.name]" class="cluster-hover">
   <div class="usage">
     <div class="cpu-usage"></div>
+    <svg class="cpu-actual-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 224 447">
+      <defs>
+        <style>
+          .cpu-usage {
+            fill: none;
+            stroke: #ff00a6;
+            stroke-miterlimit: 10;
+            stroke-opacity: 0.5;
+            stroke-width:40px;
+            stroke-dasharray: 640.1873779296875;
+            stroke-dashoffset: 640.1873779296875;
+            transition: stroke-dashoffset 850ms ease-in-out;
+          }
+        </style>
+      </defs>
+      <g id="Layer_2" data-name="Layer 2">
+        <g id="Layer_1-2" data-name="Layer 1">
+          <path #cpu_usage_path class="cpu-usage" d="M224,427C111.34,427,20,335.89,20,223.5S111.34,20,224,20"/>
+        </g>
+      </g>
+    </svg>
 
     <div class="name">
       {{ cluster.name }}
     </div>
 
     <div class="ram-usage"></div>
+    <svg class="ram-actual-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 183 364">
+      <defs>
+        <style>
+          .ram-usage {
+            fill: none;
+            stroke: #40c4ff;
+            stroke-opacity: 0.5;
+            stroke-width: 32px;
+            stroke-dasharray: 523.1494750976562;
+            stroke-dashoffset: 523.1494750976562;
+            transition: stroke-dashoffset 850ms ease-in-out;
+          }
+        </style>
+      </defs>
+      <g id="Layer_2" data-name="Layer 2">
+        <g id="Layer_1-2" data-name="Layer 1">
+          <path #ram_usage_path class="ram-usage" d="M0,16c92.23,0,167,74.32,167,166S92.23,348,0,348"/>
+        </g>
+      </g>
+    </svg>
   </div>
 </a>

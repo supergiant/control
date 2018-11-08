@@ -7,26 +7,26 @@
         <div class="icon masters-icon">
 
           <div [ngClass]="{
-            'complete': mastersStatus == 'complete',
-            'executing': mastersStatus == 'executing',
-            'failed': mastersStatus == 'failed' }">
+            'complete': masterTasksStatus == 'complete',
+            'executing': masterTasksStatus == 'executing',
+            'failed': masterTasksStatus == 'failed' }">
             <div class="spinner-outline"></div>
             <mat-spinner [diameter]="148"></mat-spinner>
             <div class="status"></div>
           </div>
 
         </div>
-        <h1 [ngClass]="{ 'failed': mastersStatus == 'failed' }">Master Nodes</h1>
+        <h1 [ngClass]="{ 'failed': masterTasksStatus == 'failed' }">Master Nodes</h1>
       </div>
 
       <div class="nodes task-group">
         <div class="icon nodes-icon">
 
           <div [ngClass]="{
-            'complete': nodesStatus == 'complete',
-            'executing': nodesStatus == 'executing',
-            'queued': nodesStatus == 'queued',
-            'failed': nodesStatus == 'failed'}">
+            'complete': nodeTasksStatus == 'complete',
+            'executing': nodeTasksStatus == 'executing',
+            'queued': nodeTasksStatus == 'queued',
+            'failed': nodeTasksStatus == 'failed'}">
             <div class="spinner-outline"></div>
             <mat-spinner [diameter]="148"></mat-spinner>
             <div class="status"></div>
@@ -34,18 +34,18 @@
 
         </div>
         <h1 [ngClass]="{
-          'queued': nodesStatus == 'queued',
-          'failed': nodesStatus == 'failed' }">Nodes</h1>
+          'queued': nodeTasksStatus == 'queued',
+          'failed': nodeTasksStatus == 'failed' }">Nodes</h1>
       </div>
 
       <div class="ready task-group">
         <div class="icon ready-icon">
 
           <div [ngClass]="{
-            'complete': readyStatus == 'complete',
-            'executing': readyStatus == 'executing',
-            'queued': readyStatus == 'queued',
-            'failed': readyStatus == 'failed'}">
+            'complete': clusterTasksStatus == 'complete',
+            'executing': clusterTasksStatus == 'executing',
+            'queued': clusterTasksStatus == 'queued',
+            'failed': clusterTasksStatus == 'failed'}">
             <div class="spinner-outline"></div>
             <mat-spinner [diameter]="148"></mat-spinner>
             <div class="status"></div>
@@ -53,8 +53,8 @@
 
         </div>
         <h1 [ngClass]="{
-          'queued': readyStatus == 'queued',
-          'failed': readyStatus == 'failed'}">Ready</h1>
+          'queued': clusterTasksStatus == 'queued',
+          'failed': clusterTasksStatus == 'failed'}">Cluster</h1>
       </div>
     </div>
 
@@ -70,7 +70,6 @@
         <ng-container matColumnDef="status">
           <mat-header-cell *matHeaderCellDef>Status</mat-header-cell>
           <mat-cell class="task-status" *matCellDef="let task">
-            <!-- what are the actual values for tasks? -->
             <mat-spinner class="executing-spinner" *ngIf="task?.status == 'executing'" [diameter]="24"></mat-spinner>
             <div class="ready-icon" *ngIf="task?.status == 'success'"></div>
             <div class="failed-icon" *ngIf="task?.status == 'error'"></div>
@@ -155,7 +154,14 @@
   </ng-container>
 
   <ng-container *ngIf="kube?.state == 'operational'">
-    <app-usage-chart [name]="kube?.name"></app-usage-chart>
+    <ng-container *ngIf="cpuUsage == NaN || ramUsage == NaN">
+      <div class="no-usage-data">
+        <h1>Gathering usage data<span>.</span><span>.</span><span>.</span></h1>
+        <h2>This may take a few minutes</h2>
+      </div>
+    </ng-container>
+
+    <app-usage-chart *ngIf="cpuUsage != NaN && ramUsage != NaN" [name]="kube?.name" [cpuUsage]="cpuUsage" [ramUsage]="ramUsage"></app-usage-chart>
 
     <div class="sg-table">
       <h3>MACHINES</h3>
@@ -186,11 +192,32 @@
           <mat-cell *matCellDef="let machine">{{ machine.role | titlecase }}</mat-cell>
         </ng-container>
 
-        <ng-container matColumnDef="id">
+        <ng-container matColumnDef="cpu">
           <mat-header-cell mat-sort-header
-                           *matHeaderCellDef>ID
+                           *matHeaderCellDef>CPU
           </mat-header-cell>
-          <mat-cell *matCellDef="let machine">{{ machine.id }}</mat-cell>
+          <mat-cell *matCellDef="let machine">
+            <ng-container *ngIf="(machine.metrics?.cpu * 100).toFixed(1) != 'NaN'">
+              {{ (machine.metrics?.cpu * 100).toFixed(1) }}%
+            </ng-container>
+            <ng-container *ngIf="(machine.metrics?.cpu * 100).toFixed(1) == 'NaN'">
+              --
+            </ng-container>
+          </mat-cell>
+        </ng-container>
+
+        <ng-container matColumnDef="ram">
+          <mat-header-cell mat-sort-header
+                           *matHeaderCellDef>RAM
+          </mat-header-cell>
+          <mat-cell *matCellDef="let machine">
+            <ng-container *ngIf="(machine.metrics?.memory * 100).toFixed(1) != 'NaN'">
+              {{ (machine.metrics?.memory * 100).toFixed(1) }}%
+            </ng-container>
+            <ng-container *ngIf="(machine.metrics?.memory * 100).toFixed(1) == 'NaN'">
+              --
+            </ng-container>
+          </mat-cell>
         </ng-container>
 
         <ng-container matColumnDef="region">
@@ -222,13 +249,73 @@
 
       <mat-paginator [pageSizeOptions]="[5, 10, 25, 100]"
                      color="primary"></mat-paginator>
-      <a routerLink="add-node" class="add-node">
-        <button mat-button color="primary">Add node</button>
+
+      <a class="new-link" routerLink="add-node">
+        <div class="add"></div>
+        <span class="action">Add node</span>
       </a>
     </div>
 
-    <div class="action-buttons">
-      <button mat-raised-button class="secondary delete-cluster" type="button" (click)="deleteCluster()">DELETE CLUSTER</button>
-    </div>
+    <ng-container *ngIf="releases?.length != 0">
+      <div class="sg-table">
+        <h3>APPS</h3>
+
+        <mat-table [dataSource]="releases" matSort>
+          <ng-container matColumnDef="status">
+            <mat-header-cell mat-sort-header
+                             *matHeaderCellDef>Status
+            </mat-header-cell>
+            <mat-cell *matCellDef="let release">{{ release.status }}</mat-cell>
+          </ng-container>
+
+          <ng-container matColumnDef="name">
+            <mat-header-cell mat-sort-header
+                             *matHeaderCellDef>Name
+            </mat-header-cell>
+            <mat-cell *matCellDef="let release">{{ release.name }}</mat-cell>
+          </ng-container>
+
+          <ng-container matColumnDef="chart">
+            <mat-header-cell mat-sort-header
+                             *matHeaderCellDef>Chart
+            </mat-header-cell>
+            <mat-cell *matCellDef="let release">{{ release.chart }}</mat-cell>
+          </ng-container>
+
+          <ng-container matColumnDef="chartVersion">
+            <mat-header-cell mat-sort-header
+                             *matHeaderCellDef>Chart Version
+            </mat-header-cell>
+            <mat-cell *matCellDef="let release">{{ release.chartVersion }}</mat-cell>
+          </ng-container>
+
+          <ng-container matColumnDef="version">
+            <mat-header-cell mat-sort-header
+                             *matHeaderCellDef>Version
+            </mat-header-cell>
+            <mat-cell *matCellDef="let release">{{ release.version }}</mat-cell>
+          </ng-container>
+
+          <ng-container matColumnDef="lastDeployed">
+            <mat-header-cell mat-sort-header
+                             *matHeaderCellDef>Last Deployed
+            </mat-header-cell>
+            <mat-cell *matCellDef="let release">{{ release.lastDeployed }}</mat-cell>
+          </ng-container>
+
+          <mat-header-row *matHeaderRowDef="releaseListColumns"></mat-header-row>
+          <mat-row *matRowDef="let row; columns: releaseListColumns"></mat-row>
+        </mat-table>
+
+        <a class="new-link" routerLink="/apps">
+          <div class="add"></div>
+          <span class="action">Add app</span>
+        </a>
+      </div>
+    </ng-container>
   </ng-container>
+
+  <div class="action-buttons">
+    <button mat-raised-button class="secondary delete-cluster" type="button" (click)="deleteCluster()">DELETE CLUSTER</button>
+  </div>
 </div>

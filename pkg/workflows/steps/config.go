@@ -117,6 +117,7 @@ type PostStartConfig struct {
 
 type TillerConfig struct {
 	HelmVersion     string `json:"helmVersion"`
+	RBACEnabled     bool   `json:"rbacEnabled"`
 	OperatingSystem string `json:"operatingSystem"`
 	Arch            string `json:"arch"`
 }

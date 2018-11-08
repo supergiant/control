@@ -2,6 +2,7 @@ package kube
 
 import (
 	"context"
+	"crypto/tls"
 	"encoding/json"
 	"fmt"
 	"io"
@@ -14,7 +15,6 @@ import (
 	"github.com/sirupsen/logrus"
 	"gopkg.in/asaskevich/govalidator.v8"
 
-	"crypto/tls"
 	"github.com/supergiant/supergiant/pkg/clouds"
 	"github.com/supergiant/supergiant/pkg/message"
 	"github.com/supergiant/supergiant/pkg/model"
@@ -26,7 +26,6 @@ import (
 	"github.com/supergiant/supergiant/pkg/workflows"
 	"github.com/supergiant/supergiant/pkg/workflows/statuses"
 	"github.com/supergiant/supergiant/pkg/workflows/steps"
-	"strings"
 )
 
 type accountGetter interface {
@@ -84,7 +83,7 @@ func (h *Handler) Register(r *mux.Router) {
 	r.HandleFunc("/kubes/{kname}/nodes", h.addNode).Methods(http.MethodPost)
 	r.HandleFunc("/kubes/{kname}/nodes/{nodename}", h.deleteNode).Methods(http.MethodDelete)
 	r.HandleFunc("/kubes/{kname}/metrics", h.getClusterMetrics).Methods(http.MethodGet)
-	r.HandleFunc("/kubes/{kname}/{nodename}/metrics", h.getNodeMetrics).Methods(http.MethodGet)
+	r.HandleFunc("/kubes/{kname}/nodes/metrics", h.getNodesMetrics).Methods(http.MethodGet)
 }
 
 func (h *Handler) getTasks(w http.ResponseWriter, r *http.Request) {
@@ -148,8 +147,14 @@ func (h *Handler) createKube(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if existingKube, _ := h.svc.Get(r.Context(), newKube.Name); existingKube != nil {
+	existingKube, err := h.svc.Get(r.Context(), newKube.Name)
+	if existingKube != nil {
 		message.SendAlreadyExists(w, existingKube.Name, sgerrors.ErrAlreadyExists)
+		return
+	}
+
+	if err != nil && !sgerrors.IsNotFound(err) {
+		message.SendUnknownError(w, err)
 		return
 	}
 
@@ -397,6 +402,8 @@ func (h *Handler) addNode(w http.ResponseWriter, r *http.Request) {
 	}
 
 	config := steps.NewConfig(k.Name, "", k.AccountName, kubeProfile)
+	config.CertificatesConfig.CAKey = k.Auth.CAKey
+	config.CertificatesConfig.CACert = k.Auth.CACert
 
 	if len(k.Masters) != 0 {
 		config.AddMaster(util.GetRandomNode(k.Masters))
@@ -519,7 +526,22 @@ func (h *Handler) deleteNode(w http.ResponseWriter, r *http.Request) {
 
 	// Update cluster state when deletion completes
 	go func() {
-		err := <-errChan
+		// Set node to deleting state
+		nodeToDelete, ok := k.Nodes[nodeName]
+
+		if !ok {
+			logrus.Errorf("Node %s not found", nodeName)
+			return
+		}
+		nodeToDelete.State = node.StateDeleting
+		k.Nodes[nodeName] = nodeToDelete
+		err := h.svc.Create(context.Background(), k)
+
+		if err != nil {
+			logrus.Errorf("update cluster %s caused %v", kname, err)
+		}
+
+		err = <-errChan
 
 		if err != nil {
 			logrus.Errorf("delete node %s from cluster %s caused %v", nodeName, kname, err)
@@ -736,7 +758,7 @@ func (h *Handler) getClusterMetrics(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
-func (h *Handler) getNodeMetrics(w http.ResponseWriter, r *http.Request) {
+func (h *Handler) getNodesMetrics(w http.ResponseWriter, r *http.Request) {
 	var (
 		relativeUrls = map[string]string{
 			"cpu":    "api/v1/query?query=node:node_cpu_utilisation:avg1m",
@@ -744,13 +766,12 @@ func (h *Handler) getNodeMetrics(w http.ResponseWriter, r *http.Request) {
 		}
 		masterNode     *node.Node
 		metricResponse = &MetricResponse{}
-		response       = map[string]interface{}{}
+		response       = map[string]map[string]interface{}{}
 		baseUrl        = "api/v1/namespaces/default/services/prometheus-operated:9090/proxy"
 	)
 
 	vars := mux.Vars(r)
 	kname := vars["kname"]
-	nodeName := vars["nodename"]
 
 	k, err := h.svc.Get(r.Context(), kname)
 	if err != nil {
@@ -801,11 +822,21 @@ func (h *Handler) getNodeMetrics(w http.ResponseWriter, r *http.Request) {
 		}
 
 		for _, result := range metricResponse.Data.Result {
-			if strings.EqualFold(result.Metric["node"], nodeName) {
-				response[metricType] = result.Value[1]
+			// Get node name of the metric
+			nodeName, ok := result.Metric["node"]
+
+			if !ok {
+				continue
 			}
+			// If dict for this node is empty - fill it with empty map
+			if response[nodeName] == nil {
+				response[nodeName] = map[string]interface{}{}
+			}
+
+			response[nodeName][metricType] = result.Value[1]
 		}
 	}
+
 
 	err = json.NewEncoder(w).Encode(response)
 

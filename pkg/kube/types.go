@@ -6,5 +6,5 @@ type ReleaseInput struct {
 	ChartName    string `json:"chartName" valid:"required"`
 	ChartVersion string `json:"chartVersion"`
 	RepoName     string `json:"repoName" valid:"required"`
-	Values       []byte `json:"values"`
+	Values       string `json:"values"`
 }
