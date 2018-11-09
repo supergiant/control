@@ -20,10 +20,10 @@ import (
 	"github.com/supergiant/supergiant/pkg/workflows/steps"
 )
 
-const StepCreateMachine = "aws_create_instance"
 const (
-	IPAttempts             = 12
-	SleepSecondsPerAttempt = 6
+	StepNameCreateEC2Instance = "aws_create_instance"
+	IPAttempts                = 12
+	SleepSecondsPerAttempt    = 6
 )
 
 type StepCreateInstance struct {
@@ -32,7 +32,7 @@ type StepCreateInstance struct {
 
 //InitCreateMachine adds the step to the registry
 func InitCreateMachine(fn func(steps.AWSConfig) (ec2iface.EC2API, error)) {
-	steps.RegisterStep(StepCreateMachine, NewCreateInstance(fn))
+	steps.RegisterStep(StepNameCreateEC2Instance, NewCreateInstance(fn))
 }
 
 func NewCreateInstance(fn GetEC2Fn) *StepCreateInstance {
@@ -43,7 +43,7 @@ func NewCreateInstance(fn GetEC2Fn) *StepCreateInstance {
 
 func (s *StepCreateInstance) Run(ctx context.Context, w io.Writer, cfg *steps.Config) error {
 	log := util.GetLogger(w)
-	log.Infof("[%s] - started", StepCreateMachine)
+	log.Infof("[%s] - started", StepNameCreateEC2Instance)
 
 	var secGroupID *string
 
@@ -130,6 +130,7 @@ func (s *StepCreateInstance) Run(ctx context.Context, w io.Writer, cfg *steps.Co
 	}
 
 	cfg.Node = node.Node{
+		Name:     nodeName,
 		TaskID:   cfg.TaskID,
 		Region:   cfg.AWSConfig.Region,
 		Role:     role,
@@ -145,7 +146,7 @@ func (s *StepCreateInstance) Run(ctx context.Context, w io.Writer, cfg *steps.Co
 		cfg.Node.State = node.StateError
 		cfg.NodeChan() <- cfg.Node
 
-		log.Errorf("[%s] - failed to create ec2 instance: %v", StepCreateMachine, err)
+		log.Errorf("[%s] - failed to create ec2 instance: %v", StepNameCreateEC2Instance, err)
 		return errors.Wrap(ErrCreateInstance, err.Error())
 	}
 
@@ -157,13 +158,6 @@ func (s *StepCreateInstance) Run(ctx context.Context, w io.Writer, cfg *steps.Co
 	}
 
 	instance := res.Instances[0]
-
-	cfg.Node.Region = cfg.AWSConfig.Region
-	cfg.Node.CreatedAt = instance.LaunchTime.Unix()
-	cfg.Node.ID = *instance.InstanceId
-
-	// Update node state in cluster
-	cfg.NodeChan() <- cfg.Node
 
 	if hasPublicAddress {
 		log.Infof("[%s] - waiting to obtain public IP...", s.Name())
@@ -214,11 +208,17 @@ func (s *StepCreateInstance) Run(ctx context.Context, w io.Writer, cfg *steps.Co
 		}
 	}
 
+	cfg.Node.Region = cfg.AWSConfig.Region
+	cfg.Node.CreatedAt = instance.LaunchTime.Unix()
+	cfg.Node.ID = *instance.InstanceId
+	cfg.Node.State = node.StateProvisioning
+
+	cfg.NodeChan() <- cfg.Node
 	if cfg.IsMaster {
 		cfg.AddMaster(&cfg.Node)
+	} else {
+		cfg.AddNode(&cfg.Node)
 	}
-	cfg.Node.State = node.StateProvisioning
-	cfg.NodeChan() <- cfg.Node
 
 	log.Infof("[%s] - success! Created node %s with instanceID %s", s.Name(), nodeName, cfg.Node.ID)
 	logrus.Debugf("%v", *instance)
@@ -324,7 +324,7 @@ func findInstanceWithPublicAddr(reservations []*ec2.Reservation) *ec2.Instance {
 }
 
 func (*StepCreateInstance) Name() string {
-	return StepCreateMachine
+	return StepNameCreateEC2Instance
 }
 
 func (*StepCreateInstance) Description() string {

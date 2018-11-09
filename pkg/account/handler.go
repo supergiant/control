@@ -13,16 +13,19 @@ import (
 	"github.com/supergiant/supergiant/pkg/message"
 	"github.com/supergiant/supergiant/pkg/model"
 	"github.com/supergiant/supergiant/pkg/sgerrors"
+	"github.com/supergiant/supergiant/pkg/util"
 )
 
 // Handler is a http controller for account entity
 type Handler struct {
-	service *Service
+	validator util.CloudAccountValidator
+	service   *Service
 }
 
 func NewHandler(service *Service) *Handler {
 	return &Handler{
-		service: service,
+		validator: util.NewCloudAccountValidator(),
+		service:   service,
 	}
 }
 
@@ -51,10 +54,21 @@ func (h *Handler) Create(rw http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	// Check account data for validity
+	if err := h.validator.ValidateCredentials(account); err != nil {
+		message.SendInvalidCredentials(rw, err)
+		return
+	}
+
 	if err = h.service.Create(r.Context(), account); err != nil {
 		if sgerrors.IsUnsupportedProvider(err) {
 			message.SendMessage(rw, message.New(fmt.Sprintf("Unsupported provider %s", account.Provider),
 				err.Error(), sgerrors.UnsupportedProvider, ""), http.StatusBadRequest)
+			return
+		}
+
+		if sgerrors.IsAlreadyExists(err) {
+			message.SendAlreadyExists(rw, account.Name, sgerrors.ErrAlreadyExists)
 			return
 		}
 
@@ -68,6 +82,11 @@ func (h *Handler) Create(rw http.ResponseWriter, r *http.Request) {
 func (h *Handler) ListAll(rw http.ResponseWriter, r *http.Request) {
 	accounts, err := h.service.GetAll(r.Context())
 	if err != nil {
+		if sgerrors.IsNotFound(err) {
+			message.SendNotFound(rw, "accounts", err)
+			return
+		}
+
 		logrus.Errorf("account handler: list all %v", err)
 		message.SendUnknownError(rw, err)
 		return
@@ -82,11 +101,6 @@ func (h *Handler) ListAll(rw http.ResponseWriter, r *http.Request) {
 // Get retrieves individual account by name
 func (h *Handler) Get(rw http.ResponseWriter, r *http.Request) {
 	accountName := mux.Vars(r)["accountName"]
-	if accountName == "" {
-		msg := message.New("account name can't be blank", "", sgerrors.InvalidJSON, "")
-		message.SendMessage(rw, msg, http.StatusBadRequest)
-		return
-	}
 	account, err := h.service.Get(r.Context(), accountName)
 	if err != nil {
 		if sgerrors.IsNotFound(err) {
@@ -105,6 +119,7 @@ func (h *Handler) Get(rw http.ResponseWriter, r *http.Request) {
 	}
 }
 
+// TODO(stgleb): Use patch for updating
 // Update saves updated state of an cloud account, account name can't be changed
 func (h *Handler) Update(rw http.ResponseWriter, r *http.Request) {
 	account := new(model.CloudAccount)

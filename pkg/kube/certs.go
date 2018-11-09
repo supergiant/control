@@ -72,9 +72,13 @@ func (c *Certs) BundleFor(ctx context.Context, name string) (*Bundle, error) {
 
 func (c *Certs) getFile(ctx context.Context, path string) ([]byte, error) {
 	stdout := &bytes.Buffer{}
-	cmd := runner.NewCommand(ctx, catCmd(path), stdout, ioutil.Discard)
+	cmd, err := runner.NewCommand(ctx, catCmd(path), stdout, ioutil.Discard)
 
-	err := c.r.Run(cmd)
+	if err != nil {
+		return nil, errors.Wrapf(err, "new command")
+	}
+
+	err = c.r.Run(cmd)
 	if err != nil {
 		return nil, errors.Wrapf(err, "run %q", cmd.Script)
 	}

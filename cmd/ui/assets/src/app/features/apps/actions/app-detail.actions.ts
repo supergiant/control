@@ -2,7 +2,7 @@ import { Action } from '@ngrx/store';
 
 export enum AppDetailActionTypes {
   LoadAppDetails = '[AppDetail] Load AppDetails',
-  LoadAppDetailsSuccess = '[AppDetail] Load AppDetails Success'
+  SetAppDetails = '[AppDetail] Load AppDetails Success'
 }
 
 export class LoadAppDetails implements Action {
@@ -12,8 +12,8 @@ export class LoadAppDetails implements Action {
 
 }
 
-export class LoadAppDetailsSuccess implements Action {
-  readonly type = AppDetailActionTypes.LoadAppDetailsSuccess;
+export class SetAppDetails implements Action {
+  readonly type = AppDetailActionTypes.SetAppDetails;
 
   // TODO add `chartDetails` type
   constructor(public payload: any) {}
@@ -21,4 +21,4 @@ export class LoadAppDetailsSuccess implements Action {
 
 export type AppDetailActions =
   LoadAppDetails |
-  LoadAppDetailsSuccess;
+  SetAppDetails;

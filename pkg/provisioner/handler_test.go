@@ -8,8 +8,10 @@ import (
 	"net/http/httptest"
 	"testing"
 
+	"github.com/gorilla/mux"
 	"github.com/pkg/errors"
 
+	"github.com/supergiant/supergiant/pkg/account"
 	"github.com/supergiant/supergiant/pkg/clouds"
 	"github.com/supergiant/supergiant/pkg/model"
 	"github.com/supergiant/supergiant/pkg/profile"
@@ -47,6 +49,36 @@ func (m *mockAccountGetter) Get(ctx context.Context, id string) (*model.CloudAcc
 	return m.get(ctx, id)
 }
 
+type mockKubeGetter struct {
+	get func(context.Context, string) (*model.Kube, error)
+}
+
+func (m *mockKubeGetter) Get(ctx context.Context, name string) (*model.Kube, error) {
+	return m.get(ctx, name)
+}
+
+func TestProvisionBadClusterName(t *testing.T) {
+	testCases := []string{"non_Valid`", "_@badClusterName"}
+
+	for _, clusterName := range testCases {
+		provisionRequest := ProvisionRequest{
+			ClusterName: clusterName,
+		}
+
+		bodyBytes, _ := json.Marshal(&provisionRequest)
+		req, _ := http.NewRequest(http.MethodPost, "/", bytes.NewBuffer(bodyBytes))
+		rec := httptest.NewRecorder()
+
+		handler := Handler{}
+		handler.Provision(rec, req)
+
+		if rec.Code != http.StatusBadRequest {
+			t.Errorf("Wrong status code expected %d actual %d", http.StatusBadRequest, rec.Code)
+			return
+		}
+	}
+}
+
 func TestProvisionHandler(t *testing.T) {
 	p := &ProvisionRequest{
 		"test",
@@ -63,6 +95,7 @@ func TestProvisionHandler(t *testing.T) {
 
 		body       []byte
 		getProfile func(context.Context, string) (*profile.Profile, error)
+		kubeGetter func(context.Context, string) (*model.Kube, error)
 		getAccount func(context.Context, string) (*model.CloudAccount, error)
 		getToken   func(context.Context, int) (string, error)
 		provision  func(context.Context, *profile.Profile, *steps.Config) (map[string][]*workflows.Task, error)
@@ -73,11 +106,38 @@ func TestProvisionHandler(t *testing.T) {
 			expectedCode: http.StatusBadRequest,
 		},
 		{
+			description:  "kube name duplicate",
+			body:         validBody,
+			expectedCode: http.StatusConflict,
+			kubeGetter: func(ctx context.Context, name string) (*model.Kube, error) {
+				return &model.Kube{
+					Name: name,
+				}, nil
+			},
+		},
+		{
 			description:  "error getting the cluster discovery url",
 			body:         validBody,
 			expectedCode: http.StatusInternalServerError,
+			kubeGetter: func(context.Context, string) (*model.Kube, error) {
+				return nil, nil
+			},
 			getToken: func(context.Context, int) (string, error) {
 				return "", errors.New("something has happened")
+			},
+		},
+		{
+			description:  "account not found",
+			body:         validBody,
+			expectedCode: http.StatusNotFound,
+			getAccount: func(context.Context, string) (*model.CloudAccount, error) {
+				return nil, sgerrors.ErrNotFound
+			},
+			kubeGetter: func(context.Context, string) (*model.Kube, error) {
+				return nil, nil
+			},
+			getToken: func(context.Context, int) (string, error) {
+				return "foo", nil
 			},
 		},
 		{
@@ -86,6 +146,9 @@ func TestProvisionHandler(t *testing.T) {
 			expectedCode: http.StatusNotFound,
 			getAccount: func(context.Context, string) (*model.CloudAccount, error) {
 				return &model.CloudAccount{}, nil
+			},
+			kubeGetter: func(context.Context, string) (*model.Kube, error) {
+				return nil, nil
 			},
 			getToken: func(context.Context, int) (string, error) {
 				return "foo", nil
@@ -103,6 +166,9 @@ func TestProvisionHandler(t *testing.T) {
 			getToken: func(context.Context, int) (string, error) {
 				return "foo", nil
 			},
+			kubeGetter: func(context.Context, string) (*model.Kube, error) {
+				return nil, nil
+			},
 			provision: func(context.Context, *profile.Profile, *steps.Config) (map[string][]*workflows.Task, error) {
 				return nil, sgerrors.ErrInvalidCredentials
 			},
@@ -117,6 +183,9 @@ func TestProvisionHandler(t *testing.T) {
 			},
 			getToken: func(context.Context, int) (string, error) {
 				return "foo", nil
+			},
+			kubeGetter: func(context.Context, string) (*model.Kube, error) {
+				return nil, nil
 			},
 			provision: func(context.Context, *profile.Profile, *steps.Config) (map[string][]*workflows.Task, error) {
 				return map[string][]*workflows.Task{
@@ -139,18 +208,21 @@ func TestProvisionHandler(t *testing.T) {
 	}
 
 	provisioner := &mockProvisioner{}
+	kubeGetter := &mockKubeGetter{}
 	accGetter := &mockAccountGetter{}
 	tokenGetter := &mockTokenGetter{}
 
 	for _, testCase := range testCases {
 		provisioner.provisionCluster = testCase.provision
 		accGetter.get = testCase.getAccount
+		kubeGetter.get = testCase.kubeGetter
 		tokenGetter.getToken = testCase.getToken
 
 		req, _ := http.NewRequest(http.MethodPost, "/", bytes.NewBuffer(testCase.body))
 		rec := httptest.NewRecorder()
 
 		handler := Handler{
+			kubeGetter:    kubeGetter,
 			provisioner:   provisioner,
 			tokenGetter:   tokenGetter,
 			accountGetter: accGetter,
@@ -172,5 +244,49 @@ func TestProvisionHandler(t *testing.T) {
 				t.Errorf("Unepxpected error while decoding response %v", err)
 			}
 		}
+	}
+}
+
+func TestNewHandler(t *testing.T) {
+	accSvc := &account.Service{}
+	kubeSvc := &mockKubeService{}
+	tg := &mockTokenGetter{}
+	p := &TaskProvisioner{}
+	h := NewHandler(kubeSvc, accSvc, tg, p)
+
+	if h.accountGetter == nil {
+		t.Errorf("account getter must not be nil")
+	}
+
+	if h.provisioner != p {
+		t.Errorf("expected provisioner %v actual %v", p, h.provisioner)
+	}
+
+	if h.tokenGetter != tg {
+		t.Errorf("Wrong token getter exppected %v actual %v", tg, h.tokenGetter)
+	}
+}
+
+func TestHandler_Register(t *testing.T) {
+	h := Handler{}
+	r := mux.NewRouter()
+	h.Register(r)
+
+	expectedRouteCount := 1
+	actualRouteCount := 0
+	err := r.Walk(func(route *mux.Route, router *mux.Router, ancestors []*mux.Route) error {
+		if router != r {
+			return errors.New("wrong router")
+		}
+		actualRouteCount += 1
+		return nil
+	})
+
+	if err != nil {
+		t.Errorf("Unexpected error from walk router %v", err)
+	}
+
+	if expectedRouteCount != actualRouteCount {
+		t.Errorf("Wrong route count expected %d actual %d", expectedRouteCount, actualRouteCount)
 	}
 }

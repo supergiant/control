@@ -20,6 +20,7 @@ type Kube struct {
 	RBACEnabled  bool      `json:"rbacEnabled"`
 	AccountName  string    `json:"accountName"`
 	Region       string    `json:"region"`
+	APIPort      string    `json:"apiPort"`
 	Auth         Auth      `json:"auth"`
 	SshUser      string    `json:"sshUser"`
 	SshPublicKey []byte    `json:"sshKey"`
@@ -40,7 +41,8 @@ type Kube struct {
 type Auth struct {
 	Username string `json:"username"`
 	Token    string `json:"token"`
-	CA       string `json:"ca"`
+	CAKey    string `json:"caKey"`
+	CACert   string `json:"caCert"`
 	Cert     string `json:"cert"`
 	Key      string `json:"key"`
 }

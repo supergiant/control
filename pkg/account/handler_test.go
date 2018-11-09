@@ -3,6 +3,7 @@ package account
 import (
 	"bytes"
 	"encoding/json"
+	"fmt"
 	"net/http"
 	"net/http/httptest"
 	"strings"
@@ -16,8 +17,17 @@ import (
 
 	"github.com/supergiant/supergiant/pkg/clouds"
 	"github.com/supergiant/supergiant/pkg/model"
+	"github.com/supergiant/supergiant/pkg/sgerrors"
 	"github.com/supergiant/supergiant/pkg/testutils"
 )
+
+type MockValidator struct {
+	validate func(map[string]string) error
+}
+
+func (m *MockValidator) ValidateCredentials(cloudAccount *model.CloudAccount) error {
+	return m.validate(cloudAccount.Credentials)
+}
 
 func fixtures() (*Handler, *testutils.MockStorage) {
 	mockStorage := new(testutils.MockStorage)
@@ -28,13 +38,17 @@ func fixtures() (*Handler, *testutils.MockStorage) {
 		},
 	}, mockStorage
 }
+
 func init() {
 	govalidator.SetFieldsRequiredByDefault(true)
 }
 
-func TestEndpoint_Create(t *testing.T) {
+func TestEndpoint_CreateSuccess(t *testing.T) {
 	e, m := fixtures()
-	m.On("Put", mock.Anything, mock.Anything, mock.Anything, mock.Anything).Return(nil)
+	m.On("Put", mock.Anything, mock.Anything, mock.Anything,
+		mock.Anything).Return(nil)
+	m.On("Get", mock.Anything,
+		mock.Anything, mock.Anything).Return(nil, nil)
 
 	malformedAccount, _ := json.Marshal(model.CloudAccount{
 		Name:        "ff",
@@ -44,6 +58,11 @@ func TestEndpoint_Create(t *testing.T) {
 
 	req, _ := http.NewRequest(http.MethodPost, "/cloud_accounts", bytes.NewReader(malformedAccount))
 
+	e.validator = &MockValidator{
+		validate: func(map[string]string) error {
+			return nil
+		},
+	}
 	handler := http.HandlerFunc(e.Create)
 
 	rr := httptest.NewRecorder()
@@ -76,10 +95,50 @@ func TestEndpoint_Create(t *testing.T) {
 	m.AssertNumberOfCalls(t, "Put", 1)
 }
 
+func TestEndpoint_CreateAlreadyExists(t *testing.T) {
+	accName := "test"
+	e, m := fixtures()
+	e.validator = &MockValidator{
+		validate: func(map[string]string) error {
+			return nil
+		},
+	}
+	data, _ := json.Marshal(&model.Kube{
+		Name: accName,
+	})
+	m.On("Get", mock.Anything,
+		mock.Anything, mock.Anything).Return(data, nil)
+
+	acc, _ := json.Marshal(model.CloudAccount{
+		Name:     accName,
+		Provider: clouds.DigitalOcean,
+		Credentials: map[string]string{
+			clouds.DigitalOceanAccessToken: "test",
+			clouds.DigitalOceanFingerPrint: "fingerprint",
+		},
+	})
+	req, _ := http.NewRequest(http.MethodPost, "/accounts", bytes.NewReader(acc))
+	rr := httptest.NewRecorder()
+
+	e.Create(rr, req)
+
+	require.Equal(t, http.StatusConflict, rr.Code, rr.Body.String())
+
+	m.AssertNumberOfCalls(t, "Get", 1)
+}
+
 func TestEndpoint_CreateError(t *testing.T) {
 	e, m := fixtures()
+	e.validator = &MockValidator{
+		validate: func(map[string]string) error {
+			return nil
+		},
+	}
+
 	m.On("Put", mock.Anything, mock.Anything, mock.Anything, mock.Anything).Return(errors.New("error!"))
 	rr := httptest.NewRecorder()
+	m.On("Get", mock.Anything,
+		mock.Anything, mock.Anything).Return(nil, nil)
 
 	okAccount, _ := json.Marshal(model.CloudAccount{
 		Name:        "test",
@@ -89,6 +148,30 @@ func TestEndpoint_CreateError(t *testing.T) {
 	req, _ := http.NewRequest(http.MethodPost, "/cloud_accounts", bytes.NewReader(okAccount))
 
 	handler := http.HandlerFunc(e.Create)
+	handler.ServeHTTP(rr, req)
+
+	require.Equal(t, http.StatusBadRequest, rr.Code, rr.Body.String())
+}
+
+func TestEndpoint_InvalidAccount(t *testing.T) {
+	e, _ := fixtures()
+
+	malformedAccount, _ := json.Marshal(model.CloudAccount{
+		Name:        "ff",
+		Provider:    clouds.DigitalOcean,
+		Credentials: map[string]string{},
+	})
+
+	req, _ := http.NewRequest(http.MethodPost, "/cloud_accounts", bytes.NewReader(malformedAccount))
+
+	e.validator = &MockValidator{
+		validate: func(map[string]string) error {
+			return errors.New("something went wrong")
+		},
+	}
+	handler := http.HandlerFunc(e.Create)
+
+	rr := httptest.NewRecorder()
 	handler.ServeHTTP(rr, req)
 
 	require.Equal(t, http.StatusBadRequest, rr.Code, rr.Body.String())
@@ -162,5 +245,199 @@ func TestService_Update(t *testing.T) {
 		router.ServeHTTP(rr, req)
 
 		require.Equal(t, td.responseStatus, rr.Code)
+	}
+}
+
+func TestHandler_Register(t *testing.T) {
+	r := mux.NewRouter()
+	h := Handler{}
+	h.Register(r)
+	expectedRouteCount := 8
+	routes := []*mux.Route{}
+
+	walkFn := func(route *mux.Route, router *mux.Router, ancestors []*mux.Route) error {
+		routes = append(routes, route)
+		return nil
+	}
+
+	err := r.Walk(walkFn)
+
+	if err != nil {
+		t.Errorf("unexpected walk error %v", err)
+	}
+
+	if len(routes) != expectedRouteCount {
+		t.Errorf("Wrong routes clount expected %d actual %d",
+			expectedRouteCount, len(routes))
+	}
+}
+
+func TestNewHandler(t *testing.T) {
+	svc := &Service{}
+	handler := NewHandler(svc)
+
+	if handler.service != svc {
+		t.Errorf("Wrong service expected %v actual %v", svc, handler.service)
+	}
+}
+
+func TestHandler_ListAll(t *testing.T) {
+	testCases := []struct {
+		mockResp             [][]byte
+		serviceErr           error
+		expectedAccountCount int
+		expectedCode         int
+	}{
+		{
+			mockResp:             [][]byte{},
+			serviceErr:           errors.New("weird error"),
+			expectedAccountCount: 1,
+			expectedCode:         http.StatusInternalServerError,
+		},
+		{
+			mockResp:             nil,
+			serviceErr:           sgerrors.ErrNotFound,
+			expectedAccountCount: 1,
+			expectedCode:         http.StatusNotFound,
+		},
+		{
+			mockResp:             [][]byte{[]byte(`{}`)},
+			serviceErr:           nil,
+			expectedAccountCount: 1,
+			expectedCode:         http.StatusOK,
+		},
+	}
+
+	for _, testCase := range testCases {
+		e, m := fixtures()
+		m.On("GetAll", mock.Anything,
+			mock.Anything, mock.Anything, mock.Anything).
+			Return(testCase.mockResp, testCase.serviceErr)
+
+		router := mux.NewRouter()
+		e.Register(router)
+		rec := httptest.NewRecorder()
+		req, _ := http.NewRequest(http.MethodGet, "/accounts", nil)
+
+		router.ServeHTTP(rec, req)
+
+		if rec.Code != testCase.expectedCode {
+			t.Errorf("Wrong response code expected %d actual %d",
+				testCase.expectedCode, rec.Code)
+			continue
+		}
+	}
+}
+
+func TestHandler_Get(t *testing.T) {
+	testCases := []struct {
+		accountName          string
+		mockResp             []byte
+		serviceErr           error
+		expectedAccountCount int
+		expectedCode         int
+	}{
+		{
+			accountName:          "test",
+			mockResp:             []byte{},
+			serviceErr:           errors.New("weird error"),
+			expectedAccountCount: 1,
+			expectedCode:         http.StatusInternalServerError,
+		},
+		{
+			accountName:          "test",
+			mockResp:             nil,
+			serviceErr:           sgerrors.ErrNotFound,
+			expectedAccountCount: 1,
+			expectedCode:         http.StatusNotFound,
+		},
+		{
+			accountName:          "test",
+			mockResp:             []byte(`{}`),
+			serviceErr:           nil,
+			expectedAccountCount: 1,
+			expectedCode:         http.StatusOK,
+		},
+	}
+
+	for _, testCase := range testCases {
+		e, m := fixtures()
+		m.On("Get", mock.Anything,
+			mock.Anything, mock.Anything, mock.Anything).
+			Return(testCase.mockResp, testCase.serviceErr)
+
+		router := mux.NewRouter()
+		e.Register(router)
+		rec := httptest.NewRecorder()
+		req, _ := http.NewRequest(http.MethodGet,
+			fmt.Sprintf("/accounts/%s", testCase.accountName), nil)
+
+		router.ServeHTTP(rec, req)
+
+		if rec.Code != testCase.expectedCode {
+			t.Errorf("Wrong response code expected %d actual %d",
+				testCase.expectedCode, rec.Code)
+			continue
+		}
+	}
+}
+
+func TestHandler_GetRegions(t *testing.T) {
+	testCases := []struct {
+		accountName          string
+		mockResp             []byte
+		serviceErr           error
+		expectedAccountCount int
+		expectedCode         int
+	}{
+		{
+			accountName:          "test",
+			mockResp:             []byte{},
+			serviceErr:           errors.New("weird error"),
+			expectedAccountCount: 1,
+			expectedCode:         http.StatusInternalServerError,
+		},
+		{
+			accountName:          "test",
+			mockResp:             nil,
+			serviceErr:           sgerrors.ErrNotFound,
+			expectedAccountCount: 1,
+			expectedCode:         http.StatusNotFound,
+		},
+		{
+			accountName:          "test",
+			mockResp:             []byte(`{"provider":"unknowncloud"}`),
+			serviceErr:           nil,
+			expectedAccountCount: 1,
+			expectedCode:         http.StatusInternalServerError,
+		},
+		{
+			accountName:          "test",
+			mockResp:             []byte(`{"provider":"digitalocean"}`),
+			serviceErr:           nil,
+			expectedAccountCount: 1,
+			expectedCode:         http.StatusInternalServerError,
+		},
+	}
+
+	for _, testCase := range testCases {
+		e, m := fixtures()
+		m.On("Get", mock.Anything,
+			mock.Anything, mock.Anything, mock.Anything).
+			Return(testCase.mockResp, testCase.serviceErr)
+
+		router := mux.NewRouter()
+		e.Register(router)
+		rec := httptest.NewRecorder()
+		req, _ := http.NewRequest(http.MethodGet,
+			fmt.Sprintf("/accounts/%s/regions", testCase.accountName), nil)
+
+		router.ServeHTTP(rec, req)
+
+		if rec.Code != testCase.expectedCode {
+			t.Errorf("Wrong response code expected %d actual %d",
+				testCase.expectedCode, rec.Code)
+			continue
+		}
 	}
 }

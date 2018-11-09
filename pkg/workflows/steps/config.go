@@ -108,6 +108,7 @@ type PostStartConfig struct {
 
 type TillerConfig struct {
 	HelmVersion     string `json:"helmVersion"`
+	RBACEnabled     bool   `json:"rbacEnabled"`
 	OperatingSystem string `json:"operatingSystem"`
 	Arch            string `json:"arch"`
 }
@@ -151,6 +152,11 @@ type ClusterCheckConfig struct {
 	MachineCount int
 }
 
+type PrometheusConfig struct {
+	Port        string `json:"port"`
+	RBACEnabled bool   `json:"rbacEnabled"`
+}
+
 type Map struct {
 	internal map[string]*node.Node
 }
@@ -186,6 +192,7 @@ type Config struct {
 	TillerConfig       TillerConfig       `json:"tillerConfig"`
 	EtcdConfig         EtcdConfig         `json:"etcdConfig"`
 	SshConfig          SshConfig          `json:"sshConfig"`
+	PrometheusConfig   PrometheusConfig   `json:"prometheusConfig"`
 
 	ClusterCheckConfig ClusterCheckConfig `json:"clusterCheckConfig"`
 
@@ -306,6 +313,10 @@ func NewConfig(clusterName, discoveryUrl, cloudAccountName string, profile profi
 		},
 		ClusterCheckConfig: ClusterCheckConfig{
 			MachineCount: len(profile.NodesProfiles) + len(profile.MasterProfiles),
+		},
+		PrometheusConfig: PrometheusConfig{
+			Port:        "30900",
+			RBACEnabled: profile.RBACEnabled,
 		},
 
 		Masters: Map{

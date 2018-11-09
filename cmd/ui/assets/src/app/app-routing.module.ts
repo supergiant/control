@@ -1,11 +1,12 @@
-import { NgModule } from '@angular/core';
-import { Routes, RouterModule } from '@angular/router';
-import { NodesComponent } from './nodes/nodes.component';
-import { ServicesComponent } from './services/services.component';
-import { LoginComponent } from './login/login.component';
-import { NodeDetailsComponent } from './nodes/node-details/node-details.component';
-import { ServiceDetailsComponent } from './services/service-details/service-details.component';
-import { ServicesListComponent } from './services/services-list/services-list.component';
+import { NgModule }                 from '@angular/core';
+import { Routes, RouterModule }     from '@angular/router';
+import { AddNodeComponent }         from "./clusters/cluster/add-node/add-node.component";
+import { NodesComponent }           from './nodes/nodes.component';
+import { ServicesComponent }        from './services/services.component';
+import { LoginComponent }           from './login/login.component';
+import { NodeDetailsComponent }     from './nodes/node-details/node-details.component';
+import { ServiceDetailsComponent }  from './services/service-details/service-details.component';
+import { ServicesListComponent }    from './services/services-list/services-list.component';
 import { NewKubeResourceComponent } from './kube-resources/new-kube-resource/new-kube-resource.component';
 
 // ui 2000 components
@@ -22,7 +23,6 @@ import { EditCloudAccountComponent } from './system/cloud-accounts/edit-cloud-ac
 import { MainComponent } from './system/main/main.component';
 import { NewClusterComponent } from './clusters/new-cluster/new-cluster.component';
 import { ClusterComponent } from './clusters/cluster/cluster.component';
-import { ClustersListComponent } from './clusters/clusters-list/clusters-list.component';
 import { DashboardTutorialComponent } from './tutorials/dashboard-tutorial/dashboard-tutorial.component';
 import { SystemTutorialComponent } from './tutorials/system-tutorial/system-tutorial.component';
 import { LogsComponent } from './system/logs/logs.component';
@@ -30,9 +30,13 @@ import { LogsComponent } from './system/logs/logs.component';
 import {
   AuthGuardService as AuthGuard
 } from './shared/supergiant/auth/auth-guard.service';
+import {LoginGuardService} from "./shared/supergiant/auth/login-guard.service";
 
 const appRoutes: Routes = [
-  { path: '', component: LoginComponent },
+  {
+    path: '', component: LoginComponent,
+    canActivate: [LoginGuardService]
+  },
   {
     path: 'dashboard', component: DashboardComponent, canActivate: [AuthGuard], children: [
       { path: '', component: DashboardTutorialComponent },
@@ -44,9 +48,9 @@ const appRoutes: Routes = [
   },
   {
     path: 'clusters', component: ClustersComponent, canActivate: [AuthGuard], children: [
-      { path: '', component: ClustersListComponent },
       { path: 'new', component: NewClusterComponent },
-      { path: ':id', component: ClusterComponent }
+      { path: ':id', component: ClusterComponent },
+      { path: ':id/add-node', component: AddNodeComponent },
     ]
   },
   {
@@ -93,7 +97,7 @@ const appRoutes: Routes = [
 ];
 
 @NgModule({
-  imports: [RouterModule.forRoot(appRoutes)],
+  imports: [RouterModule.forRoot(appRoutes, { scrollPositionRestoration: 'enabled' })],
   exports: [RouterModule],
   providers: [AuthGuard]
 })

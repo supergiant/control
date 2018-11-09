@@ -7,7 +7,6 @@
   selectors or sibling selectors. Essentially, a base style says that wherever
   this element is on the page, it should look like this.
 */
-
 @import url('https://fonts.googleapis.com/css?family=Roboto:100,300,400,500,700');
 @import url('https://fonts.googleapis.com/css?family=Montserrat:100,200,300,700');
 
@@ -45,6 +44,7 @@ h5,
 h6 {
   color: $sg-pink;
 }
+
 h1 {
   letter-spacing: 3px;
 }
@@ -72,12 +72,58 @@ button[mat-raised-button], button[mat-button] {
 }
 
 .mat-dialog-container {
-  padding: 24px 24px 35px!important;
+  padding: 24px 24px 35px !important;
 
-  background: #000000!important;
-  opacity: .8!important;
+  background: #000000 !important;
+  opacity: 1 !important;
 }
 
 button {
   outline: none;
+}
+
+.mat-card-actions {
+  margin: 0 !important;
+}
+
+.mat-card-header-text {
+  margin: 0 !important;
+}
+
+@mixin container-border {
+  border-width: 1px;
+  border-style: solid;
+  border-color: rgba(white, .2);
+}
+
+.mat-card {
+  @include container-border;
+  background: rgba(0, 0, 0, 0.7) !important;
+}
+
+.mat-dialog-container {
+  @include container-border;
+
+  // min-width: 480px !important;
+
+  .mat-dialog-actions {
+    display: flex;
+    justify-content: flex-end;
+
+    button {
+      margin-left: 16px;
+    }
+  }
+}
+
+button {
+  .mat-progress-spinner circle,
+  .mat-spinner circle {
+    stroke: #ffffff !important;
+  }
+}
+
+
+.mat-paginator {
+  background-color: rgba(255, 255, 255, 0.1)!important;
 }

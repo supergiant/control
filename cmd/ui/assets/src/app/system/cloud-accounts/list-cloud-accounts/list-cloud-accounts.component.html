@@ -1,32 +1,60 @@
-<div *ngIf="hasCloudAccount" class="subcontext">
-  <div class="subcontext-actions">
-    <button mat-button color="primary" [routerLink]="['/system/cloud-accounts/new']">Create New Cloud Account</button>
-    <button mat-button color="warn" [disabled]="selected.length === 0" (click)="delete()">Delete Selected Cloud Account</button>
+<div class="list-cloud-accounts-wrapper">
+  <h1>Cloud Accounts</h1>
+  <div *ngIf="accounts?.data.length > 0">
+    <div class="sg-table">
+      <mat-table [dataSource]="accounts" matSort matSortActive="name" matSortDirection="asc">
+
+        <ng-container matColumnDef="name">
+          <mat-header-cell mat-sort-header *matHeaderCellDef>Name</mat-header-cell>
+          <mat-cell *matCellDef="let account">{{ account.name }}</mat-cell>
+        </ng-container>
+
+        <ng-container matColumnDef="provider">
+          <mat-header-cell mat-sort-header *matHeaderCellDef>Provider</mat-header-cell>
+
+            <mat-cell *matCellDef="let account">
+              <ng-container *ngIf="account.provider == 'aws'">
+                Amazon Web Services (AWS)
+              </ng-container>
+
+              <ng-container *ngIf="account.provider == 'digitalocean'">
+                Digital Ocean
+              </ng-container>
+
+              <ng-container *ngIf="account.provider == 'openstack'">
+                Openstack
+              </ng-container>
+            </mat-cell>
+        </ng-container>
+
+        <ng-container matColumnDef="edit">
+          <mat-header-cell *matHeaderCellDef class="small-cell"></mat-header-cell>
+          <mat-cell *matCellDef="let account" class="small-cell edit" (click)="edit(account.name)"></mat-cell>
+        </ng-container>
+
+        <ng-container matColumnDef="delete">
+          <mat-header-cell *matHeaderCellDef class="small-cell"></mat-header-cell>
+          <mat-cell *matCellDef="let account" class="small-cell delete" (click)="delete(account.name, $event)"></mat-cell>
+        </ng-container>
+
+        <mat-header-row *matHeaderRowDef="accountColumns"></mat-header-row>
+        <mat-row *matRowDef="let row; columns: accountColumns"></mat-row>
+
+      </mat-table>
+
+      <div class="actions">
+        <a [routerLink]="['new']"><button mat-raised-button color="primary" type="button">ADD</button></a>
+      </div>
+    </div>
   </div>
 
-  <ngx-datatable class="material expandable" [rows]="rows" [columnMode]="'force'" [columns]="columns" [headerHeight]="50" [footerHeight]="50" [rowHeight]="'auto'" [limit]="20" [selected]="selected" [selectionType]="'checkbox'" [selectAllRowsOnPage]="false" [displayCheck]="displayCheck" (select)='onSelect($event)' (tableContextmenu)="onTableContextMenu($event)">
-    <ngx-datatable-column name="checkbox" [width]="30" [sortable]="false" [canAutoResize]="false" [draggable]="false" [resizeable]="false" [headerCheckboxable]="true" [checkboxable]="true">
-    </ngx-datatable-column>
-    <ngx-datatable-column name="Name" prop="name"></ngx-datatable-column>
-    <ngx-datatable-column name="Provider" prop="provider">
-    </ngx-datatable-column>
-  </ngx-datatable>
-</div>
-
-<context-menu #basicMenu>
-  <ng-template contextMenuItem let-item (execute)="contextDelete($event.item)">
-    Delete <i>&quot;{{item?.name}}&quot;</i>
-  </ng-template>
-</context-menu>
-
-<div *ngIf="!hasCloudAccount" class="subcontext">
-  <div class="clusters-index-empty no-cloud-account">
-    <p>
-      There doesn't seem to be anything here.
-    </p>
-  
-    <p>
-      <button mat-raised-button color="primary" [routerLink]="['/system/cloud-accounts/new']">Add Your First Cloud Account</button>
-    </p>
+  <div *ngIf="accounts?.data.length == 0">
+    <div class="no-cloud-accounts">
+      <h2>You have no cloud accounts linked to Supergiant</h2>
+      <p>Link an AWS, Digital Ocean, or Openstack cloud account and have a Supergiant cluster up in minutes</p>
+      <div>
+        <button mat-raised-button color="primary" [routerLink]="['/system/cloud-accounts/new']">LINK ACCOUNT</button>
+      </div>
+    </div>
   </div>
 </div>

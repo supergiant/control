@@ -17,6 +17,8 @@ export class NewCloudAccountComponent implements OnInit, OnDestroy {
   private providers = this.providersObj.providers;
   private model: any;
   public schema: any;
+  public nameIsBlank: boolean;
+  public gceServiceAccountKeyIsBlank: boolean;
 
   private selectedProvider: string;
   private cloudAccountName: string;
@@ -39,34 +41,54 @@ export class NewCloudAccountComponent implements OnInit, OnDestroy {
     this.schema = null;
   }
 
+  checkForBlankName(name) {
+    console.log("name: ", name);
+    console.log("type: ", typeof(name) === "string");
+    if (name) {
+      console.log('true');
+      this.nameIsBlank = false;
+    } else {
+      console.log('false');
+      this.nameIsBlank = true;
+    }
+  }
+
   create(model) {
     // TODO: find a better way to do this...
     if (model.provider === 'gce') {
-      model.credentials = JSON.parse(model.credentials.service_account_key);
+      const serviceAccountKey = model.credentials.service_account_key;
+
+      if (serviceAccountKey == "") {
+        this.gceServiceAccountKeyIsBlank = true;
+      } else {
+        this.gceServiceAccountKeyIsBlank = false;
+        model.credentials = JSON.parse(model.credentials.service_account_key);
+      }
     }
-    // TODO: does it make sense to keep the name around if a user switches providers?
-    // should the name be a part of the provider model?
-    model.name = this.cloudAccountName;
+
     this.subscriptions.add(this.supergiant.CloudAccounts.create(model).subscribe(
-      (data) => {
+      data => {
         this.success(model);
-        this.router.navigate(['/system/cloud-accounts']);
+        this.router.navigate(['/clusters/new']);
       },
-      (err) => { this.error(model, err); }));
+      err => this.error(model, err)
+    ));
   }
 
   success(model) {
     this.notifications.display(
       'success',
-      'Kube: ' + model.name,
-      'Created...',
+      'Account: ' + model.name,
+      'Created',
     );
   }
 
-  error(model, data) {
+  error(model, err) {
+    console.log(err.error.devMessage);
     this.notifications.display(
       'error',
-      'Kube: ' + model.name,
-      'Error:' + data.statusText);
+      'Account: ' + model.name,
+      'Error: ' + err.error.userMessage
+    );
   }
 }

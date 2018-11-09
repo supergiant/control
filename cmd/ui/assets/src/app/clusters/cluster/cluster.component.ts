@@ -4,14 +4,14 @@ import { ChangeDetectionStrategy, Component, OnDestroy, OnInit, ViewChild, ViewE
 import { Location } from '@angular/common';
 import { ActivatedRoute, Router } from '@angular/router';
 import { HttpClient } from '@angular/common/http';
-import { SafeResourceUrl } from '@angular/platform-browser';
 import { MatDialog, MatPaginator, MatSort, MatTableDataSource } from '@angular/material';
-import {animate, state, style, transition, trigger} from '@angular/animations';
+import { animate, state, style, transition, trigger } from '@angular/animations';
 
 import { Supergiant } from '../../shared/supergiant/supergiant.service';
 import { UtilService } from '../../shared/supergiant/util/util.service';
 import { Notifications } from '../../shared/notifications/notifications.service';
 import { ConfirmModalComponent } from '../../shared/modals/confirm-modal/confirm-modal.component';
+import { DeleteClusterModalComponent } from './delete-cluster-modal/delete-cluster-modal.component';
 import { TaskLogsComponent } from './task-logs/task-logs.component';
 
 
@@ -38,17 +38,24 @@ export class ClusterComponent implements OnInit, OnDestroy {
 
   // machine list vars
   machines: any;
-  machineListColumns = ["state", "role", "name", "id", "region", "publicIp"];
+  machineListColumns = ["state", "role", "name", "cpu", "ram", "region", "publicIp"];
+  // machineListColumns = ["state", "role", "name", "region", "publicIp"];
 
   // task list vars
   tasks: any;
   taskListColumns = ["status", "type", "id", "steps", "logs"];
   expandedTaskId: any;
 
-  // temp for demo, remove ASAP
-  mastersStatus = "executing";
-  nodesStatus = "queued";
-  readyStatus = "queued";
+  releases: any;
+  releaseListColumns = ["status", "name", "chart", "chartVersion", "version", "lastDeployed"];
+
+  masterTasksStatus = "executing";
+  nodeTasksStatus = "queued";
+  clusterTasksStatus = "queued";
+
+  cpuUsage: number;
+  ramUsage: number;
+  machineMetrics = {};
 
   constructor(
     private route: ActivatedRoute,
@@ -59,7 +66,12 @@ export class ClusterComponent implements OnInit, OnDestroy {
     private notifications: Notifications,
     public dialog: MatDialog,
     public http: HttpClient,
-  ) { }
+  ) {
+      route.params.subscribe(params => {
+        this.id = params.id;
+        this.getKube();
+      })
+    }
 
   @ViewChild(MatSort) sort: MatSort;
   @ViewChild(MatPaginator) paginator: MatPaginator;
@@ -103,7 +115,6 @@ export class ClusterComponent implements OnInit, OnDestroy {
   }
 
   taskComplete(task) {
-    // return task.status == "complete";
     return task.stepsStatuses.every((s) => s.status == "success");
   }
 
@@ -131,32 +142,30 @@ export class ClusterComponent implements OnInit, OnDestroy {
     const masterPatt = /master/g;
     const masterTasks = tasks.filter(t => {
       return masterPatt.test(t.type.toLowerCase());
-    })
+    });
 
     const nodePatt = /node/g;
     const nodeTasks = tasks.filter(t => {
       return nodePatt.test(t.type.toLowerCase());
-    })
+    });
 
     // oh my god I'm so sorry
     if (masterTasks.every(this.taskComplete)) {
       // masters complete
-      this.mastersStatus = "complete";
+      this.masterTasksStatus = "complete";
 
       if (nodeTasks.every(this.taskComplete)) {
         // masters AND nodes complete
-        this.nodesStatus = "complete";
-        this.readyStatus = "executing";
+        this.nodeTasksStatus = "complete";
+        this.clusterTasksStatus = "executing";
 
-        // TODO: what is technically "ready?"
-        setTimeout(() => { this.readyStatus = "complete"; console.log("ready") }, 5000);
       } else {
         // masters complete, nodes executing
-        this.nodesStatus = "executing"
+        this.nodeTasksStatus = "executing"
       }
     } else {
       // masters executing
-      this.mastersStatus = "executing";
+      this.masterTasksStatus = "executing";
     }
   }
 
@@ -169,17 +178,17 @@ export class ClusterComponent implements OnInit, OnDestroy {
           // for dev-ing
           // this.kube.state = "provisioning";
 
-          switch (k.state) {
+          switch (this.kube.state) {
             case "operational": {
               this.renderKube(this.kube);
+              this.getReleases();
+              this.getClusterMetrics();
+              this.getMachineMetrics();
               break;
             }
             case "provisioning": {
               this.getKubeStatus(this.id).subscribe(
                 tasks => {
-                  // for demo:
-                  // do some task overview checking here
-                  // e.g. are we on masters? nodes? set vars accordingly
                   this.setProvisioningStep(tasks);
 
                   const rows = [];
@@ -187,8 +196,6 @@ export class ClusterComponent implements OnInit, OnDestroy {
                     if (t.id == this.expandedTaskId) {
                       t.showSteps = true;
                     };
-                    // t.status = "complete";
-                    // t.status = "failed";
                     rows.push(t, { detailRow: true, t })
                   });
                   this.tasks = new MatTableDataSource(rows);
@@ -200,8 +207,6 @@ export class ClusterComponent implements OnInit, OnDestroy {
               break;
             }
             case "failed": {
-              console.log("deployment has failed")
-              // duped from 'provisioning' case for demo
               this.getKubeStatus(this.id).subscribe(
                 tasks => {
 
@@ -218,9 +223,9 @@ export class ClusterComponent implements OnInit, OnDestroy {
                 },
                 err => console.log(err)
               );
-              this.mastersStatus = "failed";
-              this.nodesStatus = "failed";
-              this.readyStatus = "failed";
+              this.masterTasksStatus = "failed";
+              this.nodeTasksStatus = "failed";
+              this.clusterTasksStatus = "failed";
               break;
             }
             default: {
@@ -233,13 +238,51 @@ export class ClusterComponent implements OnInit, OnDestroy {
   }
 
   renderKube(kube) {
+    const machineMetrics = {};
+    const masterNames = Object.keys(kube.masters);
+    const nodeNames = Object.keys(kube.nodes);
 
-    let masters = kube.masters;
-    let nodes = kube.nodes;
+    masterNames.forEach(name => {
+      if (this.machineMetrics[name]) {
+        kube.masters[name].metrics = this.machineMetrics[name];
+      }
+    })
 
-    this.machines = new MatTableDataSource(this.combineAndFlatten(masters, nodes));
+    nodeNames.forEach(name => {
+      if (this.machineMetrics[name]) {
+        kube.nodes[name].metrics = this.machineMetrics[name];
+      }
+    })
+
+    this.machines = new MatTableDataSource(this.combineAndFlatten(kube.masters, kube.nodes));
     this.machines.sort = this.sort;
     this.machines.paginator = this.paginator;
+  }
+
+  getReleases() {
+    this.supergiant.HelmReleases.get(this.id).subscribe(
+      res => {
+        this.releases = new MatTableDataSource(res);
+      },
+      err => console.error(err)
+    )
+  }
+
+  getClusterMetrics() {
+    this.supergiant.Kubes.getClusterMetrics(this.kube.name).subscribe(
+      res => {
+        this.cpuUsage = res.cpu;
+        this.ramUsage = res.memory;
+      },
+      err => console.error(err)
+    )
+  }
+
+  getMachineMetrics() {
+    this.supergiant.Kubes.getMachineMetrics(this.kube.name).subscribe(
+      res => this.machineMetrics = res,
+      err => console.error(err)
+    )
   }
 
   goBack() {
@@ -258,7 +301,31 @@ export class ClusterComponent implements OnInit, OnDestroy {
         catchError((error) => of(error)),
       ).subscribe(
         k => this.renderKube(k),
-        err => console.error(err),
+        err => {
+          console.error(err);
+          this.error(this.id, err)
+        },
+     );
+  }
+
+  deleteCluster() {
+    const dialogRef = this.initDeleteCluster();
+
+    dialogRef
+      .afterClosed()
+      .pipe(
+        filter(isConfirmed => isConfirmed),
+        switchMap(() => this.supergiant.Kubes.delete(this.id)),
+        catchError((error) => of(error)),
+      ).subscribe(
+        res => {
+          this.success(this.id);
+          this.router.navigate([""]);
+        },
+        err => {
+          console.error(err);
+          this.error(this.id, err)
+        },
      );
   }
 
@@ -274,5 +341,27 @@ export class ClusterComponent implements OnInit, OnDestroy {
     return dialogRef;
   }
 
+  private initDeleteCluster() {
+    const dialogRef = this.dialog.open(DeleteClusterModalComponent, {
+      width: "500px",
+    });
+    return dialogRef;
+  }
+
   expandRow = (_, row) => row.hasOwnProperty('detailRow');
+
+  success(name) {
+    this.notifications.display(
+      'success',
+      'Kube: ' + name,
+      'Deleted...',
+    );
+  }
+
+  error(name, error) {
+    this.notifications.display(
+      'error',
+      'Kube: ' + name,
+      'Error:' + error.statusText);
+  }
 }

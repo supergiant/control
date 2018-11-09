@@ -1,10 +1,10 @@
-import { Component, OnInit, ViewEncapsulation } from '@angular/core';
-import { Subscription } from 'rxjs';
-import { Supergiant } from '../shared/supergiant/supergiant.service';
+import { Component, OnInit, OnDestroy, ViewEncapsulation } from '@angular/core';
+import { of, Subscription, timer as observableTimer } from 'rxjs';
+import { switchMap } from 'rxjs/operators';
 import { convertIsoToHumanReadable } from '../shared/helpers/helpers';
 import { MatTableDataSource } from '@angular/material';
 
-// TEMPORARY
+import { Supergiant } from '../shared/supergiant/supergiant.service';
 import { AuthService } from '../shared/supergiant/auth/auth.service';
 import { Router } from '@angular/router';
 
@@ -14,7 +14,7 @@ import { Router } from '@angular/router';
   styleUrls: ['./dashboard.component.scss'],
   encapsulation: ViewEncapsulation.None
 })
-export class DashboardComponent implements OnInit {
+export class DashboardComponent implements OnInit, OnDestroy {
   public subscriptions = new Subscription();
   public cloudAccounts: any;
   public hasCluster = false;
@@ -64,8 +64,23 @@ export class DashboardComponent implements OnInit {
   public lineChartLegend: boolean = true;
   public lineChartType: string = 'line';
 
-  public clusters: Array<any>;
-  public clusterColumns = ["accountName", "k8sversion", "mastersCount", "nodesCount", "operatingSystem", "dockerVersion", "helmVersion", "rbacEnabled", "arch"];
+  public clusters: any;
+
+  public clusterListView: string;
+  public userChangedView = false;
+
+  constructor(
+    private supergiant: Supergiant,
+    public auth: AuthService,
+    private router: Router
+  ) { }
+
+  setClusterListView(view, e?) {
+    if (e) {
+      this.userChangedView = true;
+      this.clusterListView = view;
+    }
+  }
 
   getKube(id) {
     this.subscriptions.add(this.supergiant.Kubes.get(id).subscribe(
@@ -119,34 +134,48 @@ export class DashboardComponent implements OnInit {
   }
 
   getClusters() {
-    this.subscriptions.add(this.supergiant.Kubes.get().subscribe(
-      (clusters) => {
-        // TODO: this is terrible, fix after demo
-        clusters.map(c => c.dataSource = new MatTableDataSource([
-          {
-            accountName: c.accountName,
-            K8SVersion: c.K8SVersion,
-            masters: Object.keys(c.masters),
-            nodes: Object.keys(c.nodes),
-            operatingSystem: c.operatingSystem,
-            dockerVersion: c.dockerVersion,
-            helmVersion: c.helmVersion,
-            rbacEnabled: c.rbacEnabled,
-            arch: c.arch
-          }]));
-        this.clusters = clusters;
-      }));
+    this.subscriptions.add(observableTimer(0, 10000).pipe(
+      switchMap(() => this.supergiant.Kubes.get())).subscribe(
+        clusters => {
+          // TODO: this is terrible
+          clusters.map(c => {
+            this.supergiant.Kubes.getClusterMetrics(c.name).subscribe(
+              res => c.metrics = res,
+              err => console.error(err)
+            )
+
+            c.dataSource = new MatTableDataSource([
+            {
+              state: c.state,
+              region: c.region,
+              accountName: c.accountName,
+              K8SVersion: c.K8SVersion,
+              masters: Object.keys(c.masters),
+              nodes: Object.keys(c.nodes),
+              operatingSystem: c.operatingSystem,
+              dockerVersion: c.dockerVersion,
+              helmVersion: c.helmVersion,
+              rbacEnabled: c.rbacEnabled,
+              arch: c.arch
+            }])
+          });
+
+          this.clusters = clusters;
+
+          if (!this.userChangedView) {
+            if (clusters.length > 5) {
+              this.clusterListView = "list"
+            } else {
+              this.clusterListView = "orb"
+            }
+          }
+      },
+      err => console.error(err)
+    ));
   }
 
-  getDeployments() {
-    this.subscriptions.add(this.supergiant.HelmReleases.get().subscribe(
-      (deployments) => {
-        if (Object.keys(deployments.items).length > 0) {
-          this.hasApp = true;
-          this.appCount = Object.keys(deployments.items).length;
-        }
-      }));
-    // this.hasApp = true;
+  trackByFn(index, item) {
+    return index;
   }
 
   logout() {
@@ -154,16 +183,13 @@ export class DashboardComponent implements OnInit {
     this.router.navigate(['']);
   }
 
-  constructor(
-    private supergiant: Supergiant,
-    public auth: AuthService,
-    private router: Router
-  ) { }
-
   ngOnInit() {
     this.getCloudAccounts();
     this.getClusters();
-    // this.getDeployments();
+  }
+
+  ngOnDestroy() {
+    this.subscriptions.unsubscribe();
   }
 
 }

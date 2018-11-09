@@ -1,0 +1,75 @@
+.cluster-hover {
+  border: 1px solid rgba(0,0,0,0);
+  display: inline-block;
+  margin: 12px 0;
+  padding: 24px;
+  transition: all 0.1s linear;
+
+  &:hover {
+    text-decoration: none;
+    background-color: rgba(0,0,0,0.5);
+    border: 1px solid rgba(255,255,255,0.25);
+  }
+}
+
+.usage {
+  position: relative;
+  height: 200px;
+  width: 200px;
+
+  .cpu-usage {
+    background: url(/assets/img/cluster-details/left_metric_base.svg) no-repeat;
+    background-size: 100% 100%;
+    background-position: center;
+    position: absolute;
+    top: 0;
+    left: 0;
+    height: 100%;
+    width: 50%;
+  }
+
+  .cpu-actual-icon {
+    height: 198px;
+    position: relative;
+    top: 2px;
+    left: 1px;
+
+    .cpu-usage {}
+  }
+
+  .name {
+    align-items: center;
+    background-image: linear-gradient(315deg, #8721ff, #8b22fb 18%, #ff457e);
+    border-radius: 50%;
+    box-shadow: 0 0 150px 0 #e63d98;
+    display: flex;
+    font-size: 1.3em;
+    font-family: "Montserrat", sans-serif;
+    justify-content: center;
+    position: absolute;
+    top: 50px;
+    left: 50px;
+    height: 100px;
+    width: 100px;
+  }
+
+  .ram-usage {
+    background: url(/assets/img/cluster-details/right_metric_base.svg) no-repeat;
+    background-size: 100% 100%;
+    background-position: center;
+    position: absolute;
+    top: 18px;
+    right: 8px;
+    height: 82%;
+    width: 50%;
+  }
+
+  .ram-actual-icon {
+    height: 163px;
+    position: relative;
+    top: 1px;
+    left: 2px;
+
+    .ram-usage {}
+  }
+}

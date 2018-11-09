@@ -1,4 +1,5 @@
-import { Injectable } from '@angular/core';
+import { Injectable }  from '@angular/core';
+import { Observable }  from "rxjs";
 import { UtilService } from '../util/util.service';
 
 @Injectable()
@@ -7,7 +8,7 @@ export class Kubes {
   provisionPath = '/v1/api/provision';
 
   constructor(private util: UtilService) { }
-  public get(id?) {
+  public get(id?): Observable<any> {
     if (id) {
       return this.util.fetch(this.kubesPath + '/' + id);
     }
@@ -15,6 +16,13 @@ export class Kubes {
   }
   public create(data) {
     return this.util.post(this.provisionPath, data);
+  }
+  public getClusterMetrics(id) {
+    return this.util.fetch(this.kubesPath + '/' + id + '/metrics')
+  }
+
+  public getMachineMetrics(id) {
+    return this.util.fetch(this.kubesPath + '/' + id + '/nodes/metrics')
   }
   // adding this back so I don't have to touch apps component right now
   public schema(data?) {

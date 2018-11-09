@@ -16,7 +16,7 @@ import (
 const StepName = "flannel"
 
 type Step struct {
-	scriptTemplate *template.Template
+	script *template.Template
 }
 
 func Init() {
@@ -25,12 +25,16 @@ func Init() {
 
 func New(tpl *template.Template) *Step {
 	return &Step{
-		scriptTemplate: tpl,
+		script: tpl,
 	}
 }
 
 func (t *Step) Run(ctx context.Context, out io.Writer, config *steps.Config) error {
-	err := steps.RunTemplate(context.Background(), t.scriptTemplate,
+	if !config.IsMaster {
+		config.FlannelConfig.EtcdHost = config.GetMaster().PrivateIp
+	}
+
+	err := steps.RunTemplate(context.Background(), t.script,
 		config.Runner, out, config.FlannelConfig)
 	if err != nil {
 		return errors.Wrap(err, "install flannel step")

@@ -12,7 +12,6 @@ import (
 	"time"
 
 	"github.com/pkg/errors"
-
 	certutil "k8s.io/client-go/util/cert"
 )
 

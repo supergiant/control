@@ -1,52 +1,16 @@
-// EXAMPLE APP STATE
+import { Component, OnDestroy, OnInit, ViewEncapsulation, ViewChild } from '@angular/core';
+import { FormBuilder, FormGroup, Validators, ValidatorFn, AbstractControl } from '@angular/forms';
+import { Router }                 from '@angular/router';
+import { MatHorizontalStepper }   from '@angular/material';
+import { Subscription }           from 'rxjs';
+import { Notifications }          from '../../shared/notifications/notifications.service';
+import { Supergiant }             from '../../shared/supergiant/supergiant.service';
+import { NodeProfileService }     from "../node-profile.service";
+import { CLUSTER_OPTIONS }        from "./cluster-options.config";
 
-// {
-//   cloudAccount: {},
-//   clusterConfig: {
-//     name: "...",
-//     k8sVersion: "...",
-//     flannelVersion: "...",
-//     helmVersion: "...",
-//     dockerVersion: "...",
-//     ubuntuVersion: "...",
-//     networkType: "...",
-//     cidr: "...",
-//     operatingSystem: "...",
-//     arch: "..."
-//   },
-//   providerConfig: {
-//     digitalOcean: {
-//       region: "..."
-//     },
-//     aws: {
-//       region: "...",
-//       vpc: "...",
-//       mastersSubnet: "...",
-//       nodesSubnet: "...",
-//       mastersSecurityGroup: "...",
-//       nodessSecurityGroup: "..."
-//     }
-//   },
-//   machinesConfig: [
-//     {
-//       role: "...",
-//       type: "...",
-//       qty: "..."
-//     },
-//     {
-//       role: "...",
-//       type: "...",
-//       qty: "..."
-//     }
-//   ]
-// }
-
-import { Component, OnInit, OnDestroy, AfterViewInit, ViewEncapsulation } from '@angular/core';
-import { Subscription } from 'rxjs';
-import { Supergiant } from '../../shared/supergiant/supergiant.service';
-import { Notifications } from '../../shared/notifications/notifications.service';
-import { Router } from '@angular/router';
-import { FormBuilder, FormGroup, Validators } from '@angular/forms';
+// compiler hack
+declare var require: any;
+const cidrRegex = require('cidr-regex');
 
 @Component({
   selector: 'app-new-cluster',
@@ -60,9 +24,12 @@ export class NewClusterComponent implements OnInit, OnDestroy {
   clusterName: string;
   availableCloudAccounts: Array<any>;
   selectedCloudAccount: any;
-  availableRegions: Array<any>;
+  availableRegions: any;
   selectedRegion: any;
   availableMachineTypes: Array<any>;
+
+  // aws vars
+  availabilityZones: Array<any>;
 
   machines = [{
     machineType: null,
@@ -70,75 +37,95 @@ export class NewClusterComponent implements OnInit, OnDestroy {
     qty: 1
   }];
 
-  clusterOptions = {
-    archs: ["amd64"],
-    flannelVersions: ["0.10.0"],
-    operatingSystems: ["linux"],
-    networkTypes: ["vxlan"],
-    ubuntuVersions: ["xenial"],
-    helmVersions: ["2.8.0"],
-    dockerVersions: ["17.06.0"],
-    K8sVersions: ["1.11.1"],
-    rbacEnabled: [false]
-  };
+  clusterOptions = CLUSTER_OPTIONS;
 
+  machinesConfigValid: boolean;
+  displayMachinesConfigWarning: boolean;
   provisioning = false;
+  nameAndCloudAccountConfig: FormGroup;
   clusterConfig: FormGroup;
   providerConfig: FormGroup;
+  unavailableClusterNames = new Set();
+
+  @ViewChild(MatHorizontalStepper) stepper: MatHorizontalStepper;
 
   constructor(
     private supergiant: Supergiant,
     private notifications: Notifications,
     private router: Router,
-    private formBuilder: FormBuilder
+    private formBuilder: FormBuilder,
+    private nodesService: NodeProfileService,
   ) { }
 
 
   getCloudAccounts() {
     this.subscriptions.add(this.supergiant.CloudAccounts.get().subscribe(
       (cloudAccounts) => {
-        this.availableCloudAccounts = cloudAccounts;
+        this.availableCloudAccounts = cloudAccounts.sort();
       })
     );
   }
 
-  compileProfiles(machines, role) {
-    const filteredMachines = machines.filter(m => m.role == role);
-    const compiledProfiles = [];
+  getClusters() {
+    this.supergiant.Kubes.get().subscribe(
+      clusters => clusters.map(c => this.unavailableClusterNames.add(c.name)),
+      err => console.error(err)
+    )
+  }
 
-    filteredMachines.forEach(m => {
-      for (var i = 0; i < m.qty; i++) {
-        compiledProfiles.push({ image: "ubuntu-16-04-x64", size: m.machineType })
-      }
-    })
+  sortRegionsByName(reg1, reg2) {
+    const regionName1 = reg1.name.toLowerCase();
+    const regionName2 = reg2.name.toLowerCase();
 
-    return compiledProfiles;
+    let comparison = 0;
+    if (regionName1 > regionName2) {
+      comparison = 1;
+    } else if (regionName1 < regionName2) {
+      comparison = -1;
+    }
+    return comparison;
   }
 
   createCluster() {
-    // compile frontend new-cluster model into api format
-    const newClusterData:any = {};
-    newClusterData.profile = this.clusterConfig.value;
+    if (!this.provisioning) {
+      // compile frontend new-cluster model into api format
+      const newClusterData: any = {};
+      newClusterData.profile = this.clusterConfig.value;
 
-    newClusterData.cloudAccountName = this.selectedCloudAccount.name;
-    newClusterData.clusterName = this.clusterName;
-    newClusterData.profile.region = this.providerConfig.value.region.id;
-    newClusterData.profile.provider = this.selectedCloudAccount.provider;
-    newClusterData.profile.masterProfiles = this.compileProfiles(this.machines, "Master");
-    newClusterData.profile.nodesProfiles = this.compileProfiles(this.machines, "Node");
+      newClusterData.cloudAccountName = this.selectedCloudAccount.name;
+      newClusterData.clusterName = this.clusterName;
+      newClusterData.profile.region = this.providerConfig.value.region.id;
+      newClusterData.profile.provider = this.selectedCloudAccount.provider;
+      newClusterData.profile.masterProfiles = this.nodesService.compileProfiles(this.selectedCloudAccount.provider, this.machines, "Master");
+      newClusterData.profile.nodesProfiles = this.nodesService.compileProfiles(this.selectedCloudAccount.provider, this.machines, "Node");
 
-    this.provisioning = true;
-    this.subscriptions.add(this.supergiant.Kubes.create(newClusterData).subscribe(
-      (data) => {
-        this.success(newClusterData);
-        this.router.navigate(['/clusters/', newClusterData.clusterName]);
-        this.provisioning = false;
-      },
-      (err) => {
-        this.error(newClusterData, err);
-        this.provisioning = false;
+      switch (newClusterData.profile.provider) {
+        case "aws": {
+          newClusterData.profile.cloudSpecificSettings = {
+            aws_az: this.providerConfig.value.availabilityZone,
+            aws_vpc_cidr: this.providerConfig.value.vpcCidr,
+            aws_vpc_id: this.providerConfig.value.vpcId,
+            aws_keypair_name: this.providerConfig.value.keypairName,
+            aws_subnet_id: this.providerConfig.value.subnetId,
+            aws_masters_secgroup_id: this.providerConfig.value.mastersSecurityGroupId,
+            aws_nodes_secgroup_id: this.providerConfig.value.nodesSecurityGroupId
+          }
+        }
       }
-    ));
+
+      this.provisioning = true;
+      this.subscriptions.add(this.supergiant.Kubes.create(newClusterData).subscribe(
+        (data) => {
+          this.success(newClusterData);
+          this.router.navigate(['/clusters/', newClusterData.clusterName]);
+          this.provisioning = false;
+        },
+        (err) => {
+          this.error(newClusterData, err);
+          this.provisioning = false;
+        }
+      ));
+    }
   }
 
   success(model) {
@@ -158,65 +145,195 @@ export class NewClusterComponent implements OnInit, OnDestroy {
       'Error:' + data.statusText);
   }
 
+  getAwsAvailabilityZones(region) {
+    const accountName = this.selectedCloudAccount.name;
+
+    return this.supergiant.CloudAccounts.getAwsAvailabilityZones(accountName, region.name);
+  }
+
+  selectAz(zone) {
+    const accountName = this.selectedCloudAccount.name;
+    const region = this.providerConfig.value.region.name;
+
+    this.supergiant.CloudAccounts.getAwsMachineTypes(accountName, region, zone).subscribe(
+      types => this.availableMachineTypes = types.sort(),
+      err => console.error(err)
+    )
+  }
+
   selectRegion(region) {
-    this.availableMachineTypes = region.AvailableSizes;
-    if (this.machines.length === 0) {
+    switch (this.selectedCloudAccount.provider) {
+      case "digitalocean":
+        this.availableMachineTypes = region.AvailableSizes.sort();
+        if (this.machines.length === 0) {
+          this.machines.push({
+            machineType: null,
+            role: null,
+            qty: 1
+          });
+        }
+        break;
+
+      case "aws":
+        this.getAwsAvailabilityZones(region).subscribe(
+          azList => this.availabilityZones = azList.sort(),
+          err => console.error(err)
+        );
+        break;
+    }
+  }
+
+  addBlankMachine(e?) {
+    if (e) {
+      if (e.keyCode === 13) {
+        this.machines.push({
+          machineType: null,
+          role: null,
+          qty: 1
+        })
+      }
+    } else {
       this.machines.push({
         machineType: null,
         role: null,
         qty: 1
-      });
+      })
     }
   }
 
-  addBlankMachine() {
-    this.machines.push({
-      machineType: null,
-      role: null,
-      qty: 1
-    })
-  }
+  deleteMachine(idx, e?) {
+    if(this.machines.length === 1) return;
 
-  deleteMachine(idx) {
-    this.machines.splice(idx, 1);
+    if (e) {
+      if(e.keyCode === 13) {
+        this.machines.splice(idx, 1);
+        this.checkForValidMachinesConfig();
+      }
+    } else {
+      this.machines.splice(idx, 1);
+      this.checkForValidMachinesConfig();
+    }
   }
 
   selectCloudAccount(cloudAccount) {
-    this.selectedCloudAccount = cloudAccount
+    this.selectedCloudAccount = cloudAccount;
+
+    this.availableRegions = null;
+    this.availabilityZones = null;
+    this.availableMachineTypes = null;
+    this.machines = [{
+      machineType: null,
+      role: "Master",
+      qty: 1
+    }];
 
     switch (this.selectedCloudAccount.provider) {
-      case "digitalocean": {
+      case "digitalocean":
         this.providerConfig = this.formBuilder.group({
-          region: [""]
+          region: ["", Validators.required]
         });
-      }
+        break;
+
+      case "aws":
+        this.providerConfig = this.formBuilder.group({
+          region: ["", Validators.required],
+          availabilityZone: ["", Validators.required],
+          vpcId: ["default", Validators.required],
+          vpcCidr: ["10.2.0.0/16", [Validators.required, this.validCidr()]],
+          keypairName: [""],
+          subnetId: ["default", Validators.required],
+          mastersSecurityGroupId: [""],
+          nodesSecurityGroupId: [""]
+        });
+        break;
     }
 
     this.subscriptions.add(this.supergiant.CloudAccounts.getRegions(cloudAccount.name).subscribe(
-        regionList => {
-          this.availableRegions = regionList;
-        },
-        err => this.error({}, err)
+      regionList => {
+        this.availableRegions = regionList;
+        this.availableRegions.regions.sort(this.sortRegionsByName);
+      },
+      err => this.error({}, err)
     ))
   }
 
-  ngOnInit() {
-    // build cluster config w/ defaults
-    this.clusterConfig = this.formBuilder.group({
-      K8sVersion: ["1.11.1"],
-      flannelVersion: ["0.10.0"],
-      helmVersion: ["2.8.0"],
-      dockerVersion: ["17.06.0"],
-      ubuntuVersion: ["xenial"],
-      networkType: ["vxlan"],
-      cidr: ["10.0.0.0/24"],
-      operatingSystem: ["linux"],
-      arch: ["amd64"],
-      rbacEnabled: [false]
-    });
+  validMachine(machine) {
+    if (
+        machine.machineType != null &&
+        machine.role != null &&
+        typeof(machine.qty) == "number"
+      ) {
+      return true
+   } else { return false }
+  }
 
-    // get cloud accounts
+  checkForValidMachinesConfig() {
+    if (this.machines.every(this.validMachine)) {
+      this.machinesConfigValid = true;
+      this.displayMachinesConfigWarning = false;
+    } else {
+      this.machinesConfigValid = false;
+    }
+  }
+
+  machinesNext() {
+    this.checkForValidMachinesConfig();
+
+    if (this.machinesConfigValid) {
+      this.stepper.next();
+    } else {
+      this.displayMachinesConfigWarning = true;
+    }
+  }
+
+  uniqueClusterName(unavailableNames): ValidatorFn {
+    return (name: AbstractControl): {[key: string]: any} | null => {
+      return unavailableNames.has(name.value) ? {'nonUniqueName': {value: name.value}} : null;
+    }
+  }
+
+  validCidr(): ValidatorFn {
+    return (userCidr: AbstractControl): {[key: string]: any} | null => {
+      const validCidr = cidrRegex({exact: true}).test(userCidr.value);
+      return validCidr ? null : {"invalidCidr": {value: userCidr.value}};
+    }
+  }
+
+  get name() { return this.nameAndCloudAccountConfig.get('name'); }
+
+  get cidr() { return this.clusterConfig.get('cidr'); }
+
+  get vpcCidr() {
+    if (this.selectedCloudAccount && this.selectedCloudAccount.provider == "aws") {
+      return this.providerConfig.get('vpcCidr');
+    } else {return true}
+  }
+
+  ngOnInit() {
+    this.getClusters();
     this.getCloudAccounts();
+
+    this.nameAndCloudAccountConfig = this.formBuilder.group({
+      name: ["", [
+        Validators.required,
+        this.uniqueClusterName(this.unavailableClusterNames),
+        Validators.maxLength(12),
+        Validators.pattern('([-A-Za-z0-9\-]*[A-Za-z0-9\-])?$')]],
+      cloudAccount: ["", Validators.required]
+    })
+
+    this.clusterConfig = this.formBuilder.group({
+      K8sVersion: ["1.11.1", Validators.required],
+      flannelVersion: ["0.10.0", Validators.required],
+      helmVersion: ["2.11.0", Validators.required],
+      dockerVersion: ["17.06.0", Validators.required],
+      ubuntuVersion: ["xenial", Validators.required],
+      networkType: ["vxlan", Validators.required],
+      cidr: ["10.0.0.0/16", [Validators.required, this.validCidr()]],
+      operatingSystem: ["linux", Validators.required],
+      arch: ["amd64", Validators.required],
+      rbacEnabled: [false, Validators.required]
+    });
   }
 
   ngOnDestroy() {

@@ -1,4 +1,5 @@
 .cluster-details-wrapper {
+
   margin-top: 15px;
 
   .task-overview {
@@ -398,6 +399,49 @@
     }
   }
 
+  .no-usage-data {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+
+    h1 {
+      @keyframes blink {
+
+        0% {
+          opacity: .2;
+        }
+
+        20% {
+          opacity: 1;
+        }
+
+        100% {
+          opacity: .2;
+        }
+      }
+
+      span {
+        animation-name: blink;
+        animation-duration: 1.4s;
+        animation-iteration-count: infinite;
+        animation-fill-mode: both;
+      }
+
+      span:nth-child(2) {
+        animation-delay: .2s;
+      }
+
+      span:nth-child(3) {
+        animation-delay: .4s;
+      }
+    }
+
+    h2 {
+      font-weight: 300;
+      letter-spacing: 1px;
+    }
+  }
+
   .sg-table {
     background-color: rgba(0, 0, 0, 0.5);
     border: 1px solid rgba(255, 255, 255, 0.25);
@@ -501,6 +545,10 @@
         .task-status {
           justify-content: flex-start;
 
+          .executing-spinner {
+            margin-left: 13px;
+          }
+
           .ready-icon {
             background: url(/assets/img/cluster-details/steps/icon_ready.svg) no-repeat center;
             // why?
@@ -570,5 +618,65 @@
     .mat-paginator {
       background-color: rgba(255, 255, 255, 0.1);
     }
+
+    .new-link {
+      align-items: center;
+      display: flex;
+      margin-left: auto;
+      margin-top: 15px;
+      width: max-content;
+
+      &:visited {
+        color: #fff;
+      }
+
+      &:hover {
+        color: #fff;
+        text-decoration: none;
+      }
+
+      &:active {
+        transform: scale(0.95, 0.95);
+      }
+
+      .add {
+        display: inline-block;
+        background-image: url(/assets/img/plus.svg);
+        margin-right: 7px;
+        height: 24px;
+        width: 24px;
+      }
+
+      .action {
+        font-size: 14px;
+        font-weight: 200;
+      }
+    }
   }
+
+
+  button {
+    outline: none;
+
+    &[mat-button] {
+
+      &[color='primary'] {
+        color: #fff;
+        border: none;
+        background-color: #D10088 !important;
+      }
+    }
+  }
+
+  .action-buttons {
+    text-align: center;
+
+    .delete-cluster {
+      background-color: rgba(244,67,54,0.3);
+      border: 1px solid rgba(244,67,54,0.8);
+      width: 1270px;
+    }
+  }
+
+
 }

@@ -3,6 +3,7 @@ package workflows
 import (
 	"sync"
 
+	"github.com/supergiant/supergiant/pkg/workflows/statuses"
 	"github.com/supergiant/supergiant/pkg/workflows/steps"
 	"github.com/supergiant/supergiant/pkg/workflows/steps/amazon"
 	"github.com/supergiant/supergiant/pkg/workflows/steps/certificates"
@@ -17,6 +18,7 @@ import (
 	"github.com/supergiant/supergiant/pkg/workflows/steps/manifest"
 	"github.com/supergiant/supergiant/pkg/workflows/steps/network"
 	"github.com/supergiant/supergiant/pkg/workflows/steps/poststart"
+	"github.com/supergiant/supergiant/pkg/workflows/steps/prometheus"
 	"github.com/supergiant/supergiant/pkg/workflows/steps/ssh"
 	"github.com/supergiant/supergiant/pkg/workflows/steps/tiller"
 )
@@ -24,9 +26,9 @@ import (
 // StepStatus aggregates data that is needed to track progress
 // of step to persistent storage.
 type StepStatus struct {
-	Status   steps.Status `json:"status"`
-	StepName string       `json:"stepName"`
-	ErrMsg   string       `json:"errorMessage"`
+	Status   statuses.Status `json:"status"`
+	StepName string          `json:"stepName"`
+	ErrMsg   string          `json:"errorMessage"`
 }
 
 // Workflow is a template for doing some actions
@@ -96,22 +98,22 @@ func Init() {
 	}
 
 	awsMasterWorkflow := []steps.Step{
-		steps.GetStep(amazon.StepCreateMachine),
+		steps.GetStep(amazon.StepNameCreateEC2Instance),
 		steps.GetStep(ssh.StepName),
 		steps.GetStep(downloadk8sbinary.StepName),
 		steps.GetStep(docker.StepName),
 		steps.GetStep(cni.StepName),
-		steps.GetStep(certificates.StepName),
 		steps.GetStep(etcd.StepName),
+		steps.GetStep(network.StepName),
 		steps.GetStep(flannel.StepName),
+		steps.GetStep(certificates.StepName),
 		steps.GetStep(manifest.StepName),
 		steps.GetStep(kubelet.StepName),
-		steps.GetStep(network.StepName),
 		steps.GetStep(poststart.StepName),
 	}
 
 	awsNodeWorkflow := []steps.Step{
-		steps.GetStep(amazon.StepCreateMachine),
+		steps.GetStep(amazon.StepNameCreateEC2Instance),
 		steps.GetStep(ssh.StepName),
 		steps.GetStep(downloadk8sbinary.StepName),
 		steps.GetStep(docker.StepName),
@@ -127,6 +129,7 @@ func Init() {
 		steps.GetStep(ssh.StepName),
 		steps.GetStep(clustercheck.StepName),
 		steps.GetStep(tiller.StepName),
+		steps.GetStep(prometheus.StepName),
 	}
 
 	digitalOceanDeleteWorkflow := []steps.Step{

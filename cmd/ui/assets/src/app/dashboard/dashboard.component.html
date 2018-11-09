@@ -14,86 +14,56 @@
 
     <div class="communication">
       <h1 class="headline">Welcome to Supergiant.</h1>
-      <p class="description">Link an AWS, Digital Ocean, Openstack or Google Cloud account and have a Supergiant cluster up in minutes</p>
+      <p class="description">Link an AWS, Digital Ocean, or Openstack account and have a Supergiant cluster up in minutes</p>
       <button mat-raised-button [routerLink]="['/system/cloud-accounts/new']" type="button">LINK AN ACCOUNT</button>
     </div>
   </div>
 
-
-
   <div *ngIf="clusters?.length != 0 && cloudAccounts?.length != 0" class="clusters-wrapper">
-    <div class="has-clusters-headline">
-      <h1 class="your-clusters">Your Clusters</h1>
-      <a [routerLink]="['/clusters/new']" title=""><button mat-raised-button color="primary" type="button">New Cluster</button></a>
+    <div class="cluster-list-views">
+      <!-- orb view -->
+      <svg (click)="setClusterListView('orb', $event)" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24">
+        <defs>
+          <style>.a,.b{fill:none;}.b{opacity:0.87;}.c{fill:#d10088;}.d{fill:#fff;}</style>
+        </defs>
+        <g transform="translate(-1254 -101)">
+          <g transform="translate(1254 101)">
+            <path class="a" d="M0,0H24V24H0Z"/>
+            <path class="b" d="M0,0H24V24H0Z"/>
+          </g>
+          <path [ngClass]="{ 'c': clusterListView == 'orb', 'd': clusterListView == 'list' }" d="M2,18H7V13H2Zm0-7H7V6H2Zm0,7H7V13H2Zm0-7H7V6H2Z" transform="translate(1266 101)"/>
+          <path [ngClass]="{ 'c': clusterListView == 'orb', 'd': clusterListView == 'list' }" d="M2,18H7V13H2Zm0-7H7V6H2Zm0,7H7V13H2Zm0-7H7V6H2Z" transform="translate(1257 101)"/>
+        </g>
+      </svg>
+      <!-- list view icon -->
+      <svg (click)="setClusterListView('list', $event)" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24">
+        <defs>
+          <style>.a,.b{fill:none;}.b{opacity:0.87;}.c{fill:#d10088;}.d{fill:#fff;}</style>
+        </defs>
+        <g transform="translate(-1294 -101)">
+          <g transform="translate(1294 101)">
+            <path class="a" d="M0,0H24V24H0Z"/>
+            <path class="b" d="M0,0H24V24H0Z"/>
+          </g>
+          <path [ngClass]="{ 'c': clusterListView == 'list', 'd': clusterListView == 'orb' }" d="M4,13H20V11H4Zm0,5H20V16H4ZM4,6V8H20V6Zm0,7H20V11H4Zm0,5H20V16H4ZM4,6V8H20V6Z" transform="translate(1294 101)"/>
+        </g>
+      </svg>
     </div>
-    <div *ngFor="let c of clusters">
-      <a [routerLink]="['/clusters', c.name]" class="cluster" title="">
-        <div class="usage">
-          <div class="cpu-usage"></div>
 
-          <div class="name">
-            {{ c.name }}
-          </div>
+    <div class="cluster-list-wrapper">
+      <div class="orbs-wrapper" *ngIf="clusterListView == 'orb'">
+        <usage-orb *ngFor="let c of clusters; trackBy: trackByFn" [cluster]="c"></usage-orb>
+      </div>
 
-          <div class="ram-usage"></div>
-        </div>
-
-
-        <div class="cluster-info">
-          <mat-table [dataSource]="c.dataSource">
-            <ng-container matColumnDef="accountName">
-              <mat-header-cell *matHeaderCellDef>Account</mat-header-cell>
-              <mat-cell *matCellDef="let c">{{ c.accountName }}</mat-cell>
-            </ng-container>
-
-            <ng-container matColumnDef="k8sversion">
-              <mat-header-cell *matHeaderCellDef>K8S Version</mat-header-cell>
-              <mat-cell *matCellDef="let c">{{ c.K8SVersion }}</mat-cell>
-            </ng-container>
-
-            <ng-container matColumnDef="arch">
-              <mat-header-cell *matHeaderCellDef>Arch</mat-header-cell>
-              <mat-cell *matCellDef="let c">{{ c.arch }}</mat-cell>
-            </ng-container>
-
-            <ng-container matColumnDef="mastersCount">
-              <mat-header-cell *matHeaderCellDef>Masters</mat-header-cell>
-              <mat-cell *matCellDef="let c">{{ c.masters.length }}</mat-cell>
-            </ng-container>
-
-            <ng-container matColumnDef="nodesCount">
-              <mat-header-cell *matHeaderCellDef>Nodes</mat-header-cell>
-              <mat-cell *matCellDef="let c">{{ c.nodes.length }}</mat-cell>
-            </ng-container>
-
-            <ng-container matColumnDef="operatingSystem">
-              <mat-header-cell *matHeaderCellDef>OS</mat-header-cell>
-              <mat-cell *matCellDef="let c">{{ c.operatingSystem }}</mat-cell>
-            </ng-container>
-
-            <ng-container matColumnDef="dockerVersion">
-              <mat-header-cell *matHeaderCellDef>Docker Ver.</mat-header-cell>
-              <mat-cell *matCellDef="let c">{{ c.dockerVersion }}</mat-cell>
-            </ng-container>
-
-            <ng-container matColumnDef="helmVersion">
-              <mat-header-cell *matHeaderCellDef>Helm Ver.</mat-header-cell>
-              <mat-cell *matCellDef="let c">{{ c.helmVersion }}</mat-cell>
-            </ng-container>
-
-            <ng-container matColumnDef="rbacEnabled">
-              <mat-header-cell *matHeaderCellDef>RBAC?</mat-header-cell>
-              <mat-cell *matCellDef="let c">{{ c.rbacEnabled }}</mat-cell>
-            </ng-container>
-
-            <mat-header-row *matHeaderRowDef="clusterColumns"></mat-header-row>
-            <mat-row *matRowDef="let row; columns: clusterColumns"></mat-row>
-          </mat-table>
-        </div>
-      </a>
+      <div class="list-wrapper" *ngIf="clusterListView == 'list'">
+        <cluster-table *ngFor="let c of clusters; trackBy: trackByFn" [cluster]="c"></cluster-table>
+      </div>
     </div>
   </div>
 
-  <!-- TEMPORARY -->
-  <!-- <button mat-raised-button color="primary" type="button" (click)="logout()">Logout</button> -->
+  <div *ngIf="clusters?.length != 0 && cloudAccounts?.length != 0" class="home-actions">
+    <button mat-raised-button [routerLink]="['/system/cloud-accounts/new']" type="button">LINK AN ACCOUNT</button>
+    <button mat-raised-button [routerLink]="['/clusters/new']" type="button">SPIN UP A CLUSTER</button>
+    <button mat-raised-button [routerLink]="['/apps/supergiant']" type="button">DEPLOY AN APP</button>
+  </div>
 </div>

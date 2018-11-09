@@ -9,6 +9,8 @@ import (
 	"github.com/pkg/errors"
 	"github.com/sirupsen/logrus"
 
+	"gopkg.in/asaskevich/govalidator.v8"
+	
 	"github.com/supergiant/supergiant/pkg/account"
 	"github.com/supergiant/supergiant/pkg/message"
 	"github.com/supergiant/supergiant/pkg/model"
@@ -23,6 +25,10 @@ type AccountGetter interface {
 	Get(context.Context, string) (*model.CloudAccount, error)
 }
 
+type KubeGetter interface {
+	Get(ctx context.Context, name string) (*model.Kube, error)
+}
+
 type TokenGetter interface {
 	GetToken(context.Context, int) (string, error)
 }
@@ -30,13 +36,14 @@ type TokenGetter interface {
 type Handler struct {
 	accountGetter AccountGetter
 	tokenGetter   TokenGetter
+	kubeGetter    KubeGetter
 	provisioner   ClusterProvisioner
 }
 
 type ProvisionRequest struct {
-	ClusterName      string          `json:"clusterName"`
-	Profile          profile.Profile `json:"profile"`
-	CloudAccountName string          `json:"cloudAccountName"`
+	ClusterName      string          `json:"clusterName" valid:"matches(^[A-Za-z0-9-]+$)"`
+	Profile          profile.Profile `json:"profile" valid:"-"`
+	CloudAccountName string          `json:"cloudAccountName" valid:"-"`
 }
 
 type ProvisionResponse struct {
@@ -47,8 +54,9 @@ type ClusterProvisioner interface {
 	ProvisionCluster(context.Context, *profile.Profile, *steps.Config) (map[string][]*workflows.Task, error)
 }
 
-func NewHandler(cloudAccountService *account.Service, tokenGetter TokenGetter, provisioner ClusterProvisioner) *Handler {
+func NewHandler(kubeService KubeGetter, cloudAccountService *account.Service, tokenGetter TokenGetter, provisioner ClusterProvisioner) *Handler {
 	return &Handler{
+		kubeGetter:    kubeService,
 		accountGetter: cloudAccountService,
 		tokenGetter:   tokenGetter,
 		provisioner:   provisioner,
@@ -69,6 +77,29 @@ func (h *Handler) Provision(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	ok, err := govalidator.ValidateStruct(req)
+	if !ok {
+		logrus.Errorf("Validation error %v", err.Error())
+		message.SendValidationFailed(w, err)
+		return
+	}
+
+	// NOTE(stgleb): This code is a read-modify-update scenario,
+	// so if someone else make a request to create kube with the same name
+	// between read and create - this will be the case for lost update.
+	// We need to handle that situation using lock or channel synchronization.
+	existingKube, err := h.kubeGetter.Get(r.Context(), req.ClusterName)
+
+	if existingKube != nil {
+		message.SendAlreadyExists(w, existingKube.Name, sgerrors.ErrAlreadyExists)
+		return
+	}
+
+	if err != nil && !sgerrors.IsNotFound(err) {
+		message.SendUnknownError(w, err)
+		return
+	}
+
 	discoveryUrl, err := h.tokenGetter.GetToken(r.Context(), len(req.Profile.MasterProfiles))
 
 	if err != nil {
@@ -78,7 +109,6 @@ func (h *Handler) Provision(w http.ResponseWriter, r *http.Request) {
 	}
 
 	logrus.Infof("Got discoveryUrl %s", discoveryUrl)
-
 	config := steps.NewConfig(req.ClusterName, discoveryUrl, req.CloudAccountName, req.Profile)
 
 	acc, err := h.accountGetter.Get(r.Context(), req.CloudAccountName)

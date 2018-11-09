@@ -11,15 +11,17 @@ import (
 	"github.com/gorilla/mux"
 	"github.com/pkg/errors"
 	"github.com/sirupsen/logrus"
+	"k8s.io/helm/pkg/repo"
 
 	"github.com/supergiant/supergiant/pkg/account"
 	"github.com/supergiant/supergiant/pkg/api"
-	"github.com/supergiant/supergiant/pkg/helm"
 	"github.com/supergiant/supergiant/pkg/jwt"
 	"github.com/supergiant/supergiant/pkg/kube"
 	"github.com/supergiant/supergiant/pkg/profile"
 	"github.com/supergiant/supergiant/pkg/provisioner"
 	sshRunner "github.com/supergiant/supergiant/pkg/runner/ssh"
+	"github.com/supergiant/supergiant/pkg/sgerrors"
+	"github.com/supergiant/supergiant/pkg/sghelm"
 	"github.com/supergiant/supergiant/pkg/storage"
 	"github.com/supergiant/supergiant/pkg/templatemanager"
 	"github.com/supergiant/supergiant/pkg/testutils/assert"
@@ -39,6 +41,7 @@ import (
 	"github.com/supergiant/supergiant/pkg/workflows/steps/manifest"
 	"github.com/supergiant/supergiant/pkg/workflows/steps/network"
 	"github.com/supergiant/supergiant/pkg/workflows/steps/poststart"
+	"github.com/supergiant/supergiant/pkg/workflows/steps/prometheus"
 	"github.com/supergiant/supergiant/pkg/workflows/steps/ssh"
 	"github.com/supergiant/supergiant/pkg/workflows/steps/tiller"
 )
@@ -51,7 +54,7 @@ type Server struct {
 func (srv *Server) Start() {
 	err := srv.server.ListenAndServe()
 	if err != nil {
-		logrus.Fatal(err)
+		logrus.Error(err)
 	}
 }
 
@@ -61,7 +64,7 @@ func (srv *Server) Shutdown() {
 	err := srv.server.Shutdown(ctx)
 
 	if err != nil {
-		logrus.Fatal(err)
+		logrus.Error(err)
 	}
 }
 
@@ -197,8 +200,8 @@ func configureApplication(cfg *Config) (*mux.Router, error) {
 	//Opening it up for testing right now, will be protected after implementing initial user generation
 	protectedAPI.HandleFunc("/users", userHandler.Create).Methods(http.MethodPost)
 
-	profileService := profile.NewKubeProfileService(profile.DefaultKubeProfilePreifx, repository)
-	kubeProfileHandler := profile.NewKubeProfileHandler(profileService)
+	profileService := profile.NewService(profile.DefaultKubeProfilePreifx, repository)
+	kubeProfileHandler := profile.NewHandler(profileService)
 	kubeProfileHandler.Register(protectedAPI)
 
 	// Read templates first and then initialize workflows with steps that uses these templates
@@ -220,6 +223,8 @@ func configureApplication(cfg *Config) (*mux.Router, error) {
 	ssh.Init()
 	network.Init()
 	clustercheck.Init()
+	prometheus.Init()
+
 	amazon.InitImportKeyPair(amazon.GetEC2)
 	amazon.InitCreateMachine(amazon.GetEC2)
 	amazon.InitCreateSecurityGroups(amazon.GetEC2)
@@ -231,24 +236,30 @@ func configureApplication(cfg *Config) (*mux.Router, error) {
 	taskHandler := workflows.NewTaskHandler(repository, sshRunner.NewRunner, accountService)
 	taskHandler.Register(router)
 
-	kubeService := kube.NewService(kube.DefaultStoragePrefix, repository)
+	helmService, err := sghelm.NewService(repository)
+	if err != nil {
+		return nil, errors.Wrap(err, "new helm service")
+	}
+	go ensureHelmRepositories(helmService)
+
+	helmHandler := sghelm.NewHandler(helmService)
+	helmHandler.Register(protectedAPI)
+
+	kubeService := kube.NewService(kube.DefaultStoragePrefix,
+		repository, helmService)
 
 	taskProvisioner := provisioner.NewProvisioner(repository, kubeService)
 	tokenGetter := provisioner.NewEtcdTokenGetter()
-	provisionHandler := provisioner.NewHandler(accountService, tokenGetter, taskProvisioner)
+	provisionHandler := provisioner.NewHandler(kubeService, accountService,
+		tokenGetter, taskProvisioner)
 	provisionHandler.Register(protectedAPI)
 
-	kubeHandler := kube.NewHandler(kubeService, accountService, taskProvisioner, repository)
+	kubeHandler := kube.NewHandler(kubeService, accountService,
+		taskProvisioner, repository)
 	kubeHandler.Register(protectedAPI)
-
-	helmService, _ := helm.NewService(repository)
-
-	helmHandler := helm.NewHandler(helmService)
-	helmHandler.Register(protectedAPI)
 
 	authMiddleware := api.Middleware{
 		TokenService: jwtService,
-		UserService:  userService,
 	}
 	protectedAPI.Use(authMiddleware.AuthMiddleware, api.ContentTypeJSON)
 
@@ -263,4 +274,32 @@ func configureLogging(cfg *Config) {
 		return
 	}
 	logrus.SetLevel(l)
+}
+
+func ensureHelmRepositories(svc sghelm.Servicer) {
+	if svc == nil {
+		return
+	}
+
+	entries := []repo.Entry{
+		{
+			Name: "supergiant",
+			URL:  "https://supergiant.github.io/charts",
+		},
+		{
+			Name: "stable",
+			URL:  "https://kubernetes-charts.storage.googleapis.com",
+		},
+	}
+
+	for _, entry := range entries {
+		_, err := svc.CreateRepo(context.Background(), &entry)
+		if err != nil {
+			if !sgerrors.IsAlreadyExists(err) {
+				logrus.Errorf("failed to add %q helm repository: %v", entry.Name, err)
+			}
+			continue
+		}
+		logrus.Infof("helm repository has been added: %s", entry.Name)
+	}
 }

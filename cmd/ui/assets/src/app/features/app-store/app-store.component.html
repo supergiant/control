@@ -2,8 +2,7 @@
   <section class="header">
     <ng-container *ngIf="showBreadcrumbs; else defaultHeader">
 
-      <breadcrumbs [repoName]="(breadcrumbsData$ | async)?.repo"
-                   [chartName]="(breadcrumbsData$ | async)?.name"></breadcrumbs>
+      <breadcrumbs></breadcrumbs>
     </ng-container>
 
     <ng-template #defaultHeader>
@@ -28,6 +27,7 @@
          [routerLink]="[repo.name]">{{ repo.name | titlecase }}</a>
     </span>
       <a (click)="addRepo()"
+         matTooltip="Add new helm repository"
          class="add-repo"><i class="fa fa-plus-circle"></i></a>
     </nav>
   </section>

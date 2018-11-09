@@ -5,6 +5,12 @@
 		margin-bottom: 18px;
 	}
 
+	.warning {
+		color: #f44336;
+		font-weight: 300;
+		margin: 4px 0 0 0;
+	}
+
 	.mat-stepper-horizontal {
 		background-color: rgba(0,0,0,0.5);
 		border: 1px solid rgba(255,255,255,0.25);
@@ -19,13 +25,21 @@
 				&:nth-of-type(1) {
 					margin-left: 0px;
 				}
+
+				&:focus {
+					outline: -webkit-focus-ring-color auto 5px;
+				}
 			}
 		}
 
 		.name-and-cloud-account {
 			display: flex;
 			flex-direction: column;
-			width: 400px;
+			width: 320px;
+
+			.mat-form-field {
+				width: 100%;
+			}
 		}
 
 		.cluster-config-form {
@@ -44,14 +58,30 @@
 			}
 		}
 
+		.aws-config {
+			display: flex;
+			justify-content: flex-start;
+
+			.input-group {
+				display: flex;
+				flex-direction: column;
+				margin-left: 100px;
+				width: 400px;
+
+				&:nth-of-type(1) {
+					margin-left: 0px;
+				}
+			}
+		}
+
 		.machine-config-step {
 			display: flex;
 			flex-direction: column;
-			width: 500px;
 
 			.machine {
 				display: flex;
 				justify-content: space-between;
+				width: 500px;
 
 				.type {
 					width: 240px;
@@ -105,6 +135,12 @@
 					padding-left: 12px;
 				}
 			}
+
+			.machine-config-warning {
+				color: #f44336;
+				font-weight: 300;
+				margin: 24px 0 0 0;
+			}
 		}
 
 		.review-wrapper {
@@ -130,6 +166,10 @@
 					&:last-of-type {
 						margin-right: 0px;
 					}
+
+					&:focus {
+						outline: -webkit-focus-ring-color auto 5px;
+					}
 				}
 
 				.create {
@@ -145,5 +185,30 @@
         }
 			}
 		}
+	}
+
+	.no-cloud-accounts {
+	  align-items: center;
+	  background-color: rgba(0, 0, 0, 0.5);
+	  border: 1px solid rgba(255, 255, 255, 0.25);
+	  display: flex;
+	  flex-direction: column;
+	  margin: 24px auto 0;
+	  padding: 24px 0px;
+	  width: 956px;
+
+	  h2 {
+	    font-family: "Montserrat", sans-serif;
+	    font-size: 32px;
+	    font-weight: 200;
+	    margin-bottom: 24px;
+	  }
+
+	  p {
+	    font-size: 18px;
+	    font-weight: 200;
+	    margin-bottom: 24px;
+	  }
+
 	}
 }

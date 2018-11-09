@@ -17,11 +17,19 @@
 </mat-dialog-content>
 <mat-dialog-actions>
   <button mat-button
-          color="primary"
-          (click)="addRepository()">CONFIRM
+          mat-dialog-close>Cancel
   </button>
   <button mat-button
-          mat-dialog-close>Cancel
+          color="primary"
+          [disabled]="isProcessing"
+          (click)="addRepository()">
+
+    <span [hidden]="isProcessing">CONFIRM</span>
+
+    <mat-progress-spinner [diameter]="15"
+                          [mode]="'indeterminate'"
+                          [color]="warn"
+                          [hidden]="!isProcessing"></mat-progress-spinner>
   </button>
 
 </mat-dialog-actions>

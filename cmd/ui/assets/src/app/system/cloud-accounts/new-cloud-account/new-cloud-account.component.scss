@@ -9,6 +9,10 @@
 
 	.inputs-wrapper {
 
+		.value-is-blank {
+			color: #f44336;
+		}
+
 		.credentials-wrapper {
 			display: flex;
 			flex-direction: column;

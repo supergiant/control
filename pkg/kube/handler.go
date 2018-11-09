@@ -2,10 +2,12 @@ package kube
 
 import (
 	"context"
+	"crypto/tls"
 	"encoding/json"
 	"fmt"
 	"io"
 	"net/http"
+	"strconv"
 	"time"
 
 	"github.com/gorilla/mux"
@@ -22,6 +24,7 @@ import (
 	"github.com/supergiant/supergiant/pkg/storage"
 	"github.com/supergiant/supergiant/pkg/util"
 	"github.com/supergiant/supergiant/pkg/workflows"
+	"github.com/supergiant/supergiant/pkg/workflows/statuses"
 	"github.com/supergiant/supergiant/pkg/workflows/steps"
 )
 
@@ -70,11 +73,17 @@ func (h *Handler) Register(r *mux.Router) {
 	r.HandleFunc("/kubes/{kname}/resources", h.listResources).Methods(http.MethodGet)
 	r.HandleFunc("/kubes/{kname}/resources/{resource}", h.getResource).Methods(http.MethodGet)
 
+	r.HandleFunc("/kubes/{kname}/releases", h.installRelease).Methods(http.MethodPost)
+	r.HandleFunc("/kubes/{kname}/releases", h.listReleases).Methods(http.MethodGet)
+	r.HandleFunc("/kubes/{kname}/releases/{releaseName}", h.deleteReleases).Methods(http.MethodDelete)
+
 	r.HandleFunc("/kubes/{kname}/certs/{cname}", h.getCerts).Methods(http.MethodGet)
 	r.HandleFunc("/kubes/{kname}/tasks", h.getTasks).Methods(http.MethodGet)
 
 	r.HandleFunc("/kubes/{kname}/nodes", h.addNode).Methods(http.MethodPost)
 	r.HandleFunc("/kubes/{kname}/nodes/{nodename}", h.deleteNode).Methods(http.MethodDelete)
+	r.HandleFunc("/kubes/{kname}/metrics", h.getClusterMetrics).Methods(http.MethodGet)
+	r.HandleFunc("/kubes/{kname}/nodes/metrics", h.getNodesMetrics).Methods(http.MethodGet)
 }
 
 func (h *Handler) getTasks(w http.ResponseWriter, r *http.Request) {
@@ -105,7 +114,7 @@ func (h *Handler) getTasks(w http.ResponseWriter, r *http.Request) {
 	type taskDTO struct {
 		ID           string                 `json:"id"`
 		Type         string                 `json:"type"`
-		Status       steps.Status           `json:"status"`
+		Status       statuses.Status        `json:"status"`
 		StepStatuses []workflows.StepStatus `json:"stepsStatuses"`
 	}
 
@@ -125,20 +134,31 @@ func (h *Handler) getTasks(w http.ResponseWriter, r *http.Request) {
 }
 
 func (h *Handler) createKube(w http.ResponseWriter, r *http.Request) {
-	k := &model.Kube{}
-	err := json.NewDecoder(r.Body).Decode(k)
+	newKube := &model.Kube{}
+	err := json.NewDecoder(r.Body).Decode(newKube)
 	if err != nil {
 		message.SendInvalidJSON(w, err)
 		return
 	}
 
-	ok, err := govalidator.ValidateStruct(k)
+	ok, err := govalidator.ValidateStruct(newKube)
 	if !ok {
 		message.SendValidationFailed(w, err)
 		return
 	}
 
-	if err = h.svc.Create(r.Context(), k); err != nil {
+	existingKube, err := h.svc.Get(r.Context(), newKube.Name)
+	if existingKube != nil {
+		message.SendAlreadyExists(w, existingKube.Name, sgerrors.ErrAlreadyExists)
+		return
+	}
+
+	if err != nil && !sgerrors.IsNotFound(err) {
+		message.SendUnknownError(w, err)
+		return
+	}
+
+	if err = h.svc.Create(r.Context(), newKube); err != nil {
 		message.SendUnknownError(w, err)
 		return
 	}
@@ -263,7 +283,6 @@ func (h *Handler) listResources(w http.ResponseWriter, r *http.Request) {
 	vars := mux.Vars(r)
 
 	kname := vars["kname"]
-
 	rawResources, err := h.svc.ListKubeResources(r.Context(), kname)
 	if err != nil {
 		if sgerrors.IsNotFound(err) {
@@ -285,7 +304,7 @@ func (h *Handler) getResource(w http.ResponseWriter, r *http.Request) {
 	kname := vars["kname"]
 	rs := vars["resource"]
 	ns := r.URL.Query().Get("namespace")
-	name := r.URL.Query().Get("resourceName")
+	name := r.URL.Query().Get("name")
 
 	rawResources, err := h.svc.GetKubeResources(r.Context(), kname, rs, ns, name)
 	if err != nil {
@@ -383,6 +402,8 @@ func (h *Handler) addNode(w http.ResponseWriter, r *http.Request) {
 	}
 
 	config := steps.NewConfig(k.Name, "", k.AccountName, kubeProfile)
+	config.CertificatesConfig.CAKey = k.Auth.CAKey
+	config.CertificatesConfig.CACert = k.Auth.CACert
 
 	if len(k.Masters) != 0 {
 		config.AddMaster(util.GetRandomNode(k.Masters))
@@ -505,7 +526,22 @@ func (h *Handler) deleteNode(w http.ResponseWriter, r *http.Request) {
 
 	// Update cluster state when deletion completes
 	go func() {
-		err := <-errChan
+		// Set node to deleting state
+		nodeToDelete, ok := k.Nodes[nodeName]
+
+		if !ok {
+			logrus.Errorf("Node %s not found", nodeName)
+			return
+		}
+		nodeToDelete.State = node.StateDeleting
+		k.Nodes[nodeName] = nodeToDelete
+		err := h.svc.Create(context.Background(), k)
+
+		if err != nil {
+			logrus.Errorf("update cluster %s caused %v", kname, err)
+		}
+
+		err = <-errChan
 
 		if err != nil {
 			logrus.Errorf("delete node %s from cluster %s caused %v", nodeName, kname, err)
@@ -558,8 +594,254 @@ func (h *Handler) deleteClusterTasks(ctx context.Context, clusterName string) er
 	for _, task := range tasks {
 		if err := h.repo.Delete(ctx, workflows.Prefix, task.ID); err != nil {
 			logrus.Warnf("delete task %s: %v", task.ID, err)
+			return err
 		}
 	}
 
 	return nil
+}
+
+func (h *Handler) installRelease(w http.ResponseWriter, r *http.Request) {
+	vars := mux.Vars(r)
+
+	inp := &ReleaseInput{}
+	err := json.NewDecoder(r.Body).Decode(inp)
+	if err != nil {
+		logrus.Errorf("helm: install release: decode: %s", err)
+		message.SendInvalidJSON(w, err)
+		return
+	}
+	ok, err := govalidator.ValidateStruct(inp)
+	if !ok {
+		logrus.Errorf("helm: install release: validation: %s", err)
+		message.SendValidationFailed(w, err)
+		return
+	}
+
+	kname := vars["kname"]
+	rls, err := h.svc.InstallRelease(r.Context(), kname, inp)
+	if err != nil {
+		logrus.Errorf("helm: install release: %s cluster: %s (%+v)", kname, err, inp)
+		message.SendUnknownError(w, err)
+		return
+	}
+
+	if err = json.NewEncoder(w).Encode(rls); err != nil {
+		logrus.Errorf("helm: install release: %s cluster: %s/%s: write response: %s",
+			kname, inp.RepoName, inp.ChartName, err)
+		message.SendUnknownError(w, err)
+	}
+}
+
+func (h *Handler) listReleases(w http.ResponseWriter, r *http.Request) {
+	vars := mux.Vars(r)
+
+	kname := vars["kname"]
+	// TODO: use a struct for input parameters
+	rlsList, err := h.svc.ListReleases(r.Context(), kname, "", "", 0)
+	if err != nil {
+		logrus.Errorf("helm: list releases: %s cluster: %s", kname, err)
+		message.SendUnknownError(w, err)
+		return
+	}
+
+	if err = json.NewEncoder(w).Encode(rlsList); err != nil {
+		logrus.Errorf("helm: list releases: %s cluster: write response: %s", kname, err)
+		message.SendUnknownError(w, err)
+	}
+}
+
+func (h *Handler) deleteReleases(w http.ResponseWriter, r *http.Request) {
+	vars := mux.Vars(r)
+
+	kname := vars["kname"]
+	rlsName := vars["releaseName"]
+	purge, _ := strconv.ParseBool(r.URL.Query().Get("purge"))
+
+	rls, err := h.svc.DeleteRelease(r.Context(), kname, rlsName, purge)
+	if err != nil {
+		logrus.Errorf("helm: delete release: cluster %s: release %s: %s", kname, rlsName, err)
+		message.SendUnknownError(w, err)
+		return
+	}
+
+	if err = json.NewEncoder(w).Encode(rls); err != nil {
+		logrus.Errorf("helm: delete release: %s cluster: write response: %s", kname, err)
+		message.SendUnknownError(w, err)
+	}
+}
+
+type MetricResponse struct {
+	Status string `json:"status"`
+	Data   struct {
+		ResultType string `json:"resultType"`
+		Result     []struct {
+			Metric map[string]string `json:"metric"`
+			Value  []interface{}     `json:"value"`
+		} `json:"result"`
+	} `json:"data"`
+}
+
+func (h *Handler) getClusterMetrics(w http.ResponseWriter, r *http.Request) {
+	var (
+		relativeUrls = map[string]string{
+			"cpu":    "api/v1/query?query=:node_cpu_utilisation:avg1m",
+			"memory": "api/v1/query?query=:node_memory_utilisation:",
+		}
+		masterNode     *node.Node
+		metricResponse = &MetricResponse{}
+		response       = map[string]interface{}{}
+		baseUrl        = "api/v1/namespaces/default/services/prometheus-operated:9090/proxy"
+	)
+
+	vars := mux.Vars(r)
+	kname := vars["kname"]
+
+	k, err := h.svc.Get(r.Context(), kname)
+	if err != nil {
+		if sgerrors.IsNotFound(err) {
+			message.SendNotFound(w, kname, err)
+			return
+		}
+		message.SendUnknownError(w, err)
+		return
+	}
+
+	for key := range k.Masters {
+		if k.Masters[key] != nil {
+			masterNode = k.Masters[key]
+		}
+	}
+
+	for metricType, relUrl := range relativeUrls {
+		url := fmt.Sprintf("https://%s/%s/%s", masterNode.PublicIp, baseUrl, relUrl)
+		req, err := http.NewRequest(http.MethodGet, url, nil)
+
+		if err != nil {
+			message.SendUnknownError(w, err)
+			return
+		}
+
+		// TODO(stgleb): Get rid off basic auth
+		req.SetBasicAuth("root", "1234")
+		tr := &http.Transport{
+			TLSClientConfig: &tls.Config{InsecureSkipVerify: true},
+		}
+		client := &http.Client{
+			Transport: tr,
+		}
+		resp, err := client.Do(req)
+
+		if err != nil {
+			message.SendUnknownError(w, err)
+			return
+		}
+
+		err = json.NewDecoder(resp.Body).Decode(metricResponse)
+
+		if err != nil {
+			logrus.Error(err)
+			message.SendInvalidJSON(w, err)
+			return
+		}
+
+		if len(metricResponse.Data.Result) > 0 && len(metricResponse.Data.Result[0].Value) > 1 {
+			response[metricType] = metricResponse.Data.Result[0].Value[1]
+		}
+	}
+
+	err = json.NewEncoder(w).Encode(response)
+
+	if err != nil {
+		message.SendUnknownError(w, err)
+		return
+	}
+}
+
+func (h *Handler) getNodesMetrics(w http.ResponseWriter, r *http.Request) {
+	var (
+		relativeUrls = map[string]string{
+			"cpu":    "api/v1/query?query=node:node_cpu_utilisation:avg1m",
+			"memory": "api/v1/query?query=node:node_memory_utilisation:",
+		}
+		masterNode     *node.Node
+		metricResponse = &MetricResponse{}
+		response       = map[string]map[string]interface{}{}
+		baseUrl        = "api/v1/namespaces/default/services/prometheus-operated:9090/proxy"
+	)
+
+	vars := mux.Vars(r)
+	kname := vars["kname"]
+
+	k, err := h.svc.Get(r.Context(), kname)
+	if err != nil {
+		if sgerrors.IsNotFound(err) {
+			message.SendNotFound(w, kname, err)
+			return
+		}
+		message.SendUnknownError(w, err)
+		return
+	}
+
+	for key := range k.Masters {
+		if k.Masters[key] != nil {
+			masterNode = k.Masters[key]
+		}
+	}
+
+	for metricType, relUrl := range relativeUrls {
+		url := fmt.Sprintf("https://%s/%s/%s", masterNode.PublicIp, baseUrl, relUrl)
+		req, err := http.NewRequest(http.MethodGet, url, nil)
+
+		if err != nil {
+			message.SendUnknownError(w, err)
+			return
+		}
+
+		// TODO(stgleb): Get rid off basic auth
+		req.SetBasicAuth("root", "1234")
+		tr := &http.Transport{
+			TLSClientConfig: &tls.Config{InsecureSkipVerify: true},
+		}
+		client := &http.Client{
+			Transport: tr,
+		}
+		resp, err := client.Do(req)
+
+		if err != nil {
+			message.SendUnknownError(w, err)
+			return
+		}
+
+		err = json.NewDecoder(resp.Body).Decode(metricResponse)
+
+		if err != nil {
+			logrus.Error(err)
+			message.SendInvalidJSON(w, err)
+			return
+		}
+
+		for _, result := range metricResponse.Data.Result {
+			// Get node name of the metric
+			nodeName, ok := result.Metric["node"]
+
+			if !ok {
+				continue
+			}
+			// If dict for this node is empty - fill it with empty map
+			if response[nodeName] == nil {
+				response[nodeName] = map[string]interface{}{}
+			}
+
+			response[nodeName][metricType] = result.Value[1]
+		}
+	}
+
+
+	err = json.NewEncoder(w).Encode(response)
+
+	if err != nil {
+		message.SendUnknownError(w, err)
+		return
+	}
 }

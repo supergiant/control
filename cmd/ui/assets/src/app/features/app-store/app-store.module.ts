@@ -2,20 +2,21 @@ import { NgModule }                         from '@angular/core';
 import { CommonModule }                     from '@angular/common';
 import { AppStoreRoutingModule }            from './app-store-routing.module';
 import { AppStoreComponent }                from './app-store.component';
-import { AppsSupergiantComponent }          from './apps-supergiant/apps-supergiant.component';
-import { AppsVerifiedComponent }            from './apps-verified/apps-verified.component';
-import { AppsOtherComponent }               from './apps-other/apps-other.component';
 import { AppsAddComponent }                 from './apps-add/apps-add.component';
 import {
-  MatCardModule, MatDialogModule,
+  MatCardModule,
+  MatDialogModule,
   MatFormFieldModule,
   MatInputModule,
   MatOptionModule,
-  MatSelectModule, MatTabsModule
-}                                           from '@angular/material';
+  MatPaginatorModule,
+  MatProgressSpinnerModule,
+  MatSelectModule,
+  MatTabsModule,
+  MatTooltipModule,
+} from '@angular/material';
 import { StoreModule }                      from '@ngrx/store';
-import * as fromApps
-                                            from '../apps/apps.reducer';
+import * as fromApps                        from '../apps/apps.reducer';
 import { EffectsModule }                    from '@ngrx/effects';
 import { AppsEffects }                      from '../apps/apps.effects';
 import { AppsListComponent }                from './apps-list/apps-list.component';
@@ -23,6 +24,10 @@ import { AppDetailsComponent }              from './app-details/app-details.comp
 import { BreadcrumbsComponent }             from './breadcrumbs/breadcrumbs.component';
 import { DeployComponent }                  from './app-details/deploy/deploy.component';
 import { FormsModule, ReactiveFormsModule } from "@angular/forms";
+import { ConfigureComponent }               from './app-details/confure/configure.component';
+import { MarkdownModule }                   from "ngx-markdown";
+import { AceEditorModule }                  from "ng2-ace-editor";
+import { RemoveRepoDialogComponent }        from './apps-list/remove-repo-dialog/remove-repo-dialog.component';
 
 @NgModule({
   imports: [
@@ -30,7 +35,7 @@ import { FormsModule, ReactiveFormsModule } from "@angular/forms";
     AppStoreRoutingModule,
     MatCardModule,
     StoreModule.forFeature('apps', fromApps.reducer),
-    EffectsModule.forFeature([ AppsEffects ]),
+    EffectsModule.forFeature([AppsEffects]),
     ReactiveFormsModule,
     MatFormFieldModule,
     MatInputModule,
@@ -39,21 +44,27 @@ import { FormsModule, ReactiveFormsModule } from "@angular/forms";
     MatDialogModule,
     FormsModule,
     MatTabsModule,
+    MatProgressSpinnerModule,
+    MarkdownModule.forRoot(),
+    AceEditorModule,
+    MatPaginatorModule,
+    MatTooltipModule,
   ],
   declarations: [
     AppStoreComponent,
-    AppsSupergiantComponent,
-    AppsVerifiedComponent,
-    AppsOtherComponent,
     AppsAddComponent,
     AppsListComponent,
     AppDetailsComponent,
     BreadcrumbsComponent,
     DeployComponent,
+    ConfigureComponent,
+    RemoveRepoDialogComponent,
   ],
   entryComponents: [
     DeployComponent,
-    AppsAddComponent
+    AppsAddComponent,
+    ConfigureComponent,
+    RemoveRepoDialogComponent,
   ],
 })
 export class AppStoreModule {

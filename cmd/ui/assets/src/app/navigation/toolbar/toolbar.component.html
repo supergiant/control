@@ -4,10 +4,10 @@
         routerLinkActive="active">
     <span>HOME</span>
   </span>
-  <span class="item"
-        routerLink="/clusters"
-        routerLinkActive="active">
+  <span class="item cluster-list"
+        (click)="openClusterList($event)">
     <span>CLUSTERS</span>
+    <i class="fa fa-angle-down open-list"></i>
   </span>
 
   <span class="item"

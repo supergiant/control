@@ -1,20 +1,22 @@
-import { Component, OnInit }              from '@angular/core';
-import { ActivatedRoute }                 from "@angular/router";
-import { LoadAppDetails }                 from "../../apps/actions";
-import { State }                          from "../../../reducers";
-import { select, Store }                  from "@ngrx/store";
-import { ChartDetails, selectAppDetails } from "../../apps/apps.reducer";
-import { Observable }                     from "rxjs";
-import { MatDialog }                      from "@angular/material";
-import { DeployComponent }                from "./deploy/deploy.component";
+import { Component, OnInit }             from '@angular/core';
+import { ActivatedRoute }                from "@angular/router";
+import { LoadAppDetails, SetAppDetails } from "../../apps/actions";
+import { State }                         from "../../../reducers";
+import { select, Store }                 from "@ngrx/store";
+import { Chart, selectAppDetails }       from "../../apps/apps.reducer";
+import { Observable }                    from "rxjs";
+import { MatDialog }                     from "@angular/material";
+import { DeployComponent }               from "./deploy/deploy.component";
+import { ConfigureComponent }            from "./confure/configure.component";
+import { map, switchMap, tap, distinct } from "rxjs/operators";
 
 @Component({
   selector: 'app-details',
   templateUrl: './app-details.component.html',
-  styleUrls: [ './app-details.component.scss' ]
+  styleUrls: ['./app-details.component.scss']
 })
 export class AppDetailsComponent implements OnInit {
-  chartDetails$: Observable<ChartDetails>;
+  chartDetails$: Observable<Chart>;
 
   constructor(
     private route: ActivatedRoute,
@@ -32,11 +34,40 @@ export class AppDetailsComponent implements OnInit {
     this.chartDetails$ = this.store.pipe(select(selectAppDetails));
   }
 
-  public initDialog() {
+  openDeployDialog() {
     this.dialog.open(DeployComponent, {
       data: {
-        chartDetails$: this.chartDetails$,
-      }
+        chart$: this.chartDetails$,
+        routeParams: this.route.snapshot.params,
+      },
+
     });
+  }
+
+  openConfigureDialog() {
+    this.dialog.open(ConfigureComponent, {
+      width: `1024px`,
+      data: {
+        chart$: this.chartDetails$,
+      }
+    }).afterClosed()
+      .pipe(
+        distinct(),
+        map(
+          values => this.chartDetails$.pipe(
+            map(chart => {
+              chart.values = values;
+              return chart;
+            })
+          )
+        ),
+        switchMap(values => values),
+        tap((updatedValues) => {
+          this.store.dispatch(new SetAppDetails(updatedValues));
+        })
+      ).subscribe(val => {
+      console.log('res1', val);
+    });
+
   }
 }

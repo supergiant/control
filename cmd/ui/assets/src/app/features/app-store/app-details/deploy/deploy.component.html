@@ -1,13 +1,14 @@
-<h2 mat-dialog-title>Deploy App</h2>
-<mat-dialog-content>
+<section class="wrapper">
+  <h2 mat-dialog-title>Deploy App</h2>
+  <mat-dialog-content>
 
   <form [formGroup]="deployForm">
     <mat-form-field>
       <mat-select matInput
-                  placeholder="Claster name"
+                  placeholder="Cluster name"
                   formControlName="clusterName">
         <div *ngFor="let cluster of (clusters$ | async)">
-          <mat-option [value]="cluster.accountName">{{ cluster.accountName }}</mat-option>
+          <mat-option [value]="cluster.name">{{ cluster.name }}</mat-option>
         </div>
       </mat-select>
     </mat-form-field>
@@ -65,4 +66,6 @@
           mat-dialog-close>Cancel
   </button>
 
-</mat-dialog-actions>
+  </mat-dialog-actions>
+
+</section>

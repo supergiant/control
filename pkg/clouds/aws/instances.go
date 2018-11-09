@@ -46,12 +46,12 @@ func New(keyID, secret string, tags map[string]string) (*Client, error) {
 		return nil, ErrInvalidKeys
 	}
 
-	session := session.New(&aws.Config{
+	awsSession := session.New(&aws.Config{
 		Credentials: credentials.NewStaticCredentials(keyID, secret, ""),
 	})
 
 	return &Client{
-		session:  session,
+		session:  awsSession,
 		ec2SvcFn: ec2Svc,
 		tags:     tags,
 	}, nil

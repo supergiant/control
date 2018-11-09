@@ -1,0 +1,72 @@
+<mat-card>
+  <mat-card-header>
+    <h1>Adding node to "{{ clusterName }}"</h1>
+  </mat-card-header>
+  <mat-card-content>
+
+    <section class="column machines-list">
+      <div class="machine" *ngFor="let m of machines; let idx = index">
+        <mat-form-field class="type">
+          <mat-select placeholder="Machine Type (size)" [(value)]="m.machineType"
+                      (selectionChange)="machineSizeChange($event)">
+            <mat-option *ngFor="let type of (machineSizes$ | async)" [value]="type">{{ type }}</mat-option>
+          </mat-select>
+        </mat-form-field>
+
+        <mat-form-field class="role">
+          <mat-select placeholder="Role" [(value)]="m.role">
+            <mat-option value="Node">Node</mat-option>
+          </mat-select>
+        </mat-form-field>
+
+        <mat-form-field class="quantity">
+          <input matInput type="number" min="1" placeholder="Q-ty" [(ngModel)]="m.qty">
+        </mat-form-field>
+        <div class="delete-machine"
+             [hidden]="machines.length === 1"
+             (click)="deleteMachine(idx)">
+          <i class="fa fa-trash" aria-hidden="true"></i>
+        </div>
+
+      </div>
+    </section>
+
+    <section class="column">
+      <section class="architecture">
+        <mat-form-field>
+          <mat-select placeholder="Arch" [value]="clusterOptions.archs[0]">
+            <mat-option *ngFor="let a of clusterOptions.archs" [value]="a">{{ a }}</mat-option>
+          </mat-select>
+        </mat-form-field>
+
+        <mat-form-field>
+          <mat-select placeholder="Operating System" [value]="clusterOptions.operatingSystems[0]">
+            <mat-option *ngFor="let os of clusterOptions.operatingSystems" [value]="os">{{ os }}</mat-option>
+          </mat-select>
+        </mat-form-field>
+
+        <mat-form-field>
+          <mat-select placeholder="Ubuntu Version" [value]="clusterOptions.ubuntuVersions[0]">
+            <mat-option *ngFor="let u of clusterOptions.ubuntuVersions" [value]="u">{{ u }}</mat-option>
+          </mat-select>
+        </mat-form-field>
+      </section>
+    </section>
+  </mat-card-content>
+  <mat-card-actions>
+    <div class="add-machines" (click)="addBlankMachine()">
+      <i class="fa fa-plus-circle"></i> Add more machines
+    </div>
+
+    <div>
+      <button mat-button color="primary" (click)="finish()">
+        <span [hidden]="isProcessing">Finish</span>
+        <mat-progress-spinner [diameter]="15"
+                              [mode]="'indeterminate'"
+                              [color]="warn"
+                              [hidden]="!isProcessing"></mat-progress-spinner>
+      </button>
+    </div>
+  </mat-card-actions>
+</mat-card>
+

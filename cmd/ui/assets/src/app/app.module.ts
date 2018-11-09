@@ -143,7 +143,6 @@ import { MainComponent } from './system/main/main.component';
 import { HelmReposComponent } from './system/main/helm-repos/helm-repos.component';
 import { NewClusterComponent } from './clusters/new-cluster/new-cluster.component';
 import { ClusterComponent } from './clusters/cluster/cluster.component';
-import { ClustersListComponent } from './clusters/clusters-list/clusters-list.component';
 import { ListCloudAccountsComponent } from './system/cloud-accounts/list-cloud-accounts/list-cloud-accounts.component';
 import { DashboardTutorialComponent } from './tutorials/dashboard-tutorial/dashboard-tutorial.component';
 import { ClustersTutorialComponent } from './tutorials/clusters-tutorial/clusters-tutorial.component';
@@ -163,6 +162,13 @@ import { environment } from '../environments/environment';
 import { EffectsModule } from '@ngrx/effects';
 import { AppEffects } from './app.effects';
 import { TaskLogsComponent } from './clusters/cluster/task-logs/task-logs.component';
+import {LoginGuardService} from "./shared/supergiant/auth/login-guard.service";
+import { MenuModalComponent } from './navigation/user-menu/menu-modal/menu-modal.component';
+import { ClusterListModalComponent } from './navigation/toolbar/cluster-list-modal/cluster-list-modal.component';
+import { AddNodeComponent } from './clusters/cluster/add-node/add-node.component';
+import { UsageOrbComponent } from './dashboard/usage-orb/usage-orb.component';
+import { ClusterTableComponent } from './dashboard/cluster-table/cluster-table.component';
+import { DeleteClusterModalComponent } from './clusters/cluster/delete-cluster-modal/delete-cluster-modal.component';
 
 @NgModule({
   declarations: [
@@ -217,7 +223,6 @@ import { TaskLogsComponent } from './clusters/cluster/task-logs/task-logs.compon
     SystemComponent,
     HelmReposComponent,
     Users2000Component,
-    ClustersListComponent,
     ListCloudAccountsComponent,
     DashboardTutorialComponent,
     ClustersTutorialComponent,
@@ -231,6 +236,12 @@ import { TaskLogsComponent } from './clusters/cluster/task-logs/task-logs.compon
     ConfirmModalComponent,
     UsageChartComponent,
     TaskLogsComponent,
+    MenuModalComponent,
+    ClusterListModalComponent,
+    AddNodeComponent,
+    UsageOrbComponent,
+    ClusterTableComponent,
+    DeleteClusterModalComponent,
   ],
   imports: [
     BrowserModule,
@@ -319,6 +330,7 @@ import { TaskLogsComponent } from './clusters/cluster/task-logs/task-logs.compon
     LoginComponent,
     AuthService,
     AuthGuardService,
+    LoginGuardService,
     // { provide: Http, useClass: AuthenticatedHttpService },
     {
       provide: HTTP_INTERCEPTORS,
@@ -328,9 +340,12 @@ import { TaskLogsComponent } from './clusters/cluster/task-logs/task-logs.compon
   ],
   entryComponents: [
     ConfirmModalComponent,
-    TaskLogsComponent
+    TaskLogsComponent,
+    MenuModalComponent,
+    ClusterListModalComponent,
+    DeleteClusterModalComponent
   ],
-  bootstrap: [AppComponent]
+  bootstrap: [AppComponent],
 })
 
 export class AppModule { }
