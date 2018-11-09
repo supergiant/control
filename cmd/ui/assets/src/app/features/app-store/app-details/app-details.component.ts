@@ -8,7 +8,7 @@ import { Observable }                    from "rxjs";
 import { MatDialog }                     from "@angular/material";
 import { DeployComponent }               from "./deploy/deploy.component";
 import { ConfigureComponent }            from "./confure/configure.component";
-import { map, switchMap, tap, distinct } from "rxjs/operators";
+import { map, switchMap, tap, filter }   from "rxjs/operators";
 
 @Component({
   selector: 'app-details',
@@ -52,7 +52,7 @@ export class AppDetailsComponent implements OnInit {
       }
     }).afterClosed()
       .pipe(
-        distinct(),
+        filter(values => values !== undefined),
         map(
           values => this.chartDetails$.pipe(
             map(chart => {
