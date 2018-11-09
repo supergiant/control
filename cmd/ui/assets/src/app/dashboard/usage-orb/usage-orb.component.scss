@@ -10,6 +10,37 @@
     background-color: rgba(0,0,0,0.5);
     border: 1px solid rgba(255,255,255,0.25);
   }
+
+  .warn {
+    width: 100%;
+    text-align: center;
+
+    p {
+      color: #f44336;
+      font-family: "Montserrat", sans-serif;
+      font-size: 24px;
+      margin: 10px auto 0px;
+    }
+  }
+}
+
+.deleting {
+  animation: pulse 2.5s infinite;
+  pointer-events: none;
+}
+
+@keyframes pulse {
+  0% {
+    opacity: 0.5;
+  }
+
+  50% {
+    opacity: 1;
+  }
+
+  100% {
+    opacity: 0.5;
+  }
 }
 
 .usage {
