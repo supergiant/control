@@ -236,7 +236,16 @@ func (af *AWSFinder) GetTypes(ctx context.Context, region, az string) ([]string,
 	}
 	EC2 := ec2.New(sess)
 
-	out, err := EC2.DescribeReservedInstancesOfferingsWithContext(ctx, &ec2.DescribeReservedInstancesOfferingsInput{})
+	out, err := EC2.DescribeReservedInstancesOfferingsWithContext(ctx, &ec2.DescribeReservedInstancesOfferingsInput{
+		Filters: []*ec2.Filter{
+			{
+				Name: aws.String("availability-zone"),
+				Values: []*string{
+					aws.String(az),
+				},
+			},
+		},
+	})
 
 	if err != nil {
 		return nil, errors.Wrap(err, "failed to read aws types")

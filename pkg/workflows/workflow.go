@@ -6,7 +6,6 @@ import (
 	"github.com/supergiant/supergiant/pkg/workflows/statuses"
 	"github.com/supergiant/supergiant/pkg/workflows/steps"
 	"github.com/supergiant/supergiant/pkg/workflows/steps/amazon"
-	"github.com/supergiant/supergiant/pkg/workflows/steps/authorizedKeys"
 	"github.com/supergiant/supergiant/pkg/workflows/steps/certificates"
 	"github.com/supergiant/supergiant/pkg/workflows/steps/clustercheck"
 	"github.com/supergiant/supergiant/pkg/workflows/steps/cni"
@@ -101,7 +100,6 @@ func Init() {
 	awsMasterWorkflow := []steps.Step{
 		steps.GetStep(amazon.StepNameCreateEC2Instance),
 		steps.GetStep(ssh.StepName),
-		steps.GetStep(authorizedKeys.AddAuthorizedKeyStepName),
 		steps.GetStep(downloadk8sbinary.StepName),
 		steps.GetStep(docker.StepName),
 		steps.GetStep(cni.StepName),
@@ -117,7 +115,6 @@ func Init() {
 	awsNodeWorkflow := []steps.Step{
 		steps.GetStep(amazon.StepNameCreateEC2Instance),
 		steps.GetStep(ssh.StepName),
-		steps.GetStep(authorizedKeys.AddAuthorizedKeyStepName),
 		steps.GetStep(downloadk8sbinary.StepName),
 		steps.GetStep(docker.StepName),
 		steps.GetStep(certificates.StepName),
