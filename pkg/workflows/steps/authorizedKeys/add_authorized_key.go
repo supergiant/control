@@ -1,4 +1,4 @@
-package certificates
+package authorizedKeys
 
 import (
 	"context"
@@ -11,23 +11,23 @@ import (
 	"github.com/supergiant/supergiant/pkg/workflows/steps"
 )
 
-type AddAuthorizedKeyStep struct {
+type Step struct {
 	script *template.Template
 }
 
 const AddAuthorizedKeyStepName = "add_authorized_keys"
 
-func InitAddAuthorizedKeys() {
+func Init() {
 	steps.RegisterStep(AddAuthorizedKeyStepName, NewAddAuthorizedKeys(templatemanager.GetTemplate(AddAuthorizedKeyStepName)))
 }
 
-func NewAddAuthorizedKeys(script *template.Template) *AddAuthorizedKeyStep {
-	return &AddAuthorizedKeyStep{
+func NewAddAuthorizedKeys(script *template.Template) *Step {
+	return &Step{
 		script: script,
 	}
 }
 
-func (s *AddAuthorizedKeyStep) Run(ctx context.Context, w io.Writer, cfg *steps.Config) error {
+func (s *Step) Run(ctx context.Context, w io.Writer, cfg *steps.Config) error {
 	log := util.GetLogger(w)
 
 	log.Infof("[%s] - adding user's public key to the node", s.Name())
@@ -43,18 +43,18 @@ func (s *AddAuthorizedKeyStep) Run(ctx context.Context, w io.Writer, cfg *steps.
 	return nil
 }
 
-func (*AddAuthorizedKeyStep) Name() string {
+func (*Step) Name() string {
 	return AddAuthorizedKeyStepName
 }
 
-func (*AddAuthorizedKeyStep) Description() string {
+func (*Step) Description() string {
 	return "adds ssh public key to the authorized keys file"
 }
 
-func (*AddAuthorizedKeyStep) Depends() []string {
+func (*Step) Depends() []string {
 	return nil
 }
 
-func (*AddAuthorizedKeyStep) Rollback(context.Context, io.Writer, *steps.Config) error {
+func (*Step) Rollback(context.Context, io.Writer, *steps.Config) error {
 	return nil
 }
