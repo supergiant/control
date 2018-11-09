@@ -36,6 +36,51 @@ type nodeProvisioner interface {
 	ProvisionNodes(context.Context, []profile.NodeProfile, *model.Kube, *steps.Config) ([]string, error)
 }
 
+type K8SServices struct {
+	Kind       string `json:"kind"`
+	APIVersion string `json:"apiVersion"`
+	Metadata   struct {
+		SelfLink        string `json:"selfLink"`
+		ResourceVersion string `json:"resourceVersion"`
+	} `json:"metadata"`
+	Items []struct {
+		Metadata struct {
+			Name              string    `json:"name"`
+			Namespace         string    `json:"namespace"`
+			SelfLink          string    `json:"selfLink"`
+			UID               string    `json:"uid"`
+			ResourceVersion   string    `json:"resourceVersion"`
+			CreationTimestamp time.Time `json:"creationTimestamp"`
+			Labels            struct {
+				OperatedAlertmanager string `json:"operated-alertmanager"`
+			} `json:"labels"`
+		} `json:"metadata"`
+		Spec struct {
+			Ports []struct {
+				Name       string `json:"name"`
+				Protocol   string `json:"protocol"`
+				Port       int    `json:"port"`
+			} `json:"ports"`
+			Selector struct {
+				App string `json:"app"`
+			} `json:"selector"`
+			ClusterIP       string `json:"clusterIP"`
+			Type            string `json:"type"`
+			SessionAffinity string `json:"sessionAffinity"`
+		} `json:"spec"`
+		Status struct {
+			LoadBalancer struct {
+			} `json:"loadBalancer"`
+		} `json:"status"`
+	} `json:"items"`
+}
+
+type ServiceProxy struct{
+	Name string `json:"name"`
+	Type string `json:"type"`
+	SelfLink string `json:"selfLink"`
+}
+
 // Handler is a http controller for a kube entity.
 type Handler struct {
 	svc             Interface
@@ -84,6 +129,8 @@ func (h *Handler) Register(r *mux.Router) {
 	r.HandleFunc("/kubes/{kname}/nodes/{nodename}", h.deleteNode).Methods(http.MethodDelete)
 	r.HandleFunc("/kubes/{kname}/metrics", h.getClusterMetrics).Methods(http.MethodGet)
 	r.HandleFunc("/kubes/{kname}/nodes/metrics", h.getNodesMetrics).Methods(http.MethodGet)
+	r.HandleFunc("/kubes/{kname}/services", h.getServices).Methods(http.MethodGet)
+	r.HandleFunc("/kubes/{kname}/services/proxy", h.proxyService).Methods(http.MethodPost)
 }
 
 func (h *Handler) getTasks(w http.ResponseWriter, r *http.Request) {
@@ -837,8 +884,118 @@ func (h *Handler) getNodesMetrics(w http.ResponseWriter, r *http.Request) {
 		}
 	}
 
-
 	err = json.NewEncoder(w).Encode(response)
+
+	if err != nil {
+		message.SendUnknownError(w, err)
+		return
+	}
+}
+
+func (h *Handler) getServices(w http.ResponseWriter, r *http.Request) {
+	var (
+		servicesUrl = "api/v1/services"
+		kname string
+		masterNode *node.Node
+		k8sServices  = &K8SServices{}
+	)
+	vars := mux.Vars(r)
+	kname = vars["kname"]
+
+	k, err := h.svc.Get(r.Context(), kname)
+	if err != nil {
+		if sgerrors.IsNotFound(err) {
+			message.SendNotFound(w, kname, err)
+			return
+		}
+		message.SendUnknownError(w, err)
+		return
+	}
+
+	for key := range k.Masters {
+		if k.Masters[key] != nil {
+			masterNode = k.Masters[key]
+		}
+	}
+
+	url := fmt.Sprintf("https://%s/%s", masterNode.PublicIp, servicesUrl)
+	req, err := http.NewRequest(http.MethodGet, url, nil)
+	req.SetBasicAuth("root", "1234")
+
+	tr := &http.Transport{
+		TLSClientConfig: &tls.Config{InsecureSkipVerify: true},
+	}
+	client := &http.Client{
+		Transport: tr,
+	}
+	resp, err := client.Do(req)
+
+	if err != nil {
+		message.SendUnknownError(w, err)
+		return
+	}
+
+	err = json.NewDecoder(resp.Body).Decode(k8sServices)
+
+	if err != nil {
+		logrus.Error(err)
+		message.SendInvalidJSON(w, err)
+		return
+	}
+
+	webPorts := map[string]struct{}{
+		"web": {},
+		"http": {},
+		"https": {},
+		"service": {},
+	}
+
+	 services := make([]ServiceProxy, 0)
+
+	for _, service := range k8sServices.Items {
+		for _, port := range service.Spec.Ports {
+			if port.Protocol == "TCP" {
+				if _, ok := webPorts[port.Name]; ok {
+					service := ServiceProxy{
+						Name: service.Metadata.Name,
+						Type: service.Spec.Type,
+						SelfLink: fmt.Sprintf("https://%s%s:%d/proxy",
+							masterNode.PublicIp, service.Metadata.SelfLink, port.Port),
+					}
+					services = append(services, service)
+				}
+			}
+		}
+	}
+
+	err = json.NewEncoder(w).Encode(services)
+
+	if err != nil {
+		message.SendUnknownError(w, err)
+	}
+}
+
+func (h *Handler) proxyService(w http.ResponseWriter, r *http.Request) {
+	serviceProxy := &ServiceProxy{}
+	err := json.NewDecoder(r.Body).Decode(serviceProxy)
+
+	req, err := http.NewRequest(http.MethodGet, serviceProxy.SelfLink, nil)
+	req.SetBasicAuth("root", "1234")
+
+	tr := &http.Transport{
+		TLSClientConfig: &tls.Config{InsecureSkipVerify: true},
+	}
+	client := &http.Client{
+		Transport: tr,
+	}
+	resp, err := client.Do(req)
+
+	if err != nil {
+		message.SendUnknownError(w, err)
+		return
+	}
+
+	_, err = io.Copy(w, resp.Body)
 
 	if err != nil {
 		message.SendUnknownError(w, err)
