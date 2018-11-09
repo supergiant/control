@@ -21,6 +21,7 @@
     margin: auto 0;
     width: 1000px;
 
+
     .mat-table {
       background-color: rgba(0,0,0,0);
 
@@ -53,8 +54,31 @@
         &:last-child {
           margin-bottom: 0px;
         }
+
+        .warn {
+          color: #f44336;
+        }
       }
     }
+  }
+}
+
+.deleting {
+  animation: pulse 2.5s infinite;
+  pointer-events: none;
+}
+
+@keyframes pulse {
+  0% {
+    opacity: 0.5;
+  }
+
+  50% {
+    opacity: 1;
+  }
+
+  100% {
+    opacity: 0.5;
   }
 }
 
