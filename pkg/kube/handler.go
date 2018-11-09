@@ -935,6 +935,7 @@ func (h *Handler) getServices(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	// TODO(stgleb): Figure out which ports are worth to be proxy
 	webPorts := map[string]struct{}{
 		"web": {},
 		"http": {},
