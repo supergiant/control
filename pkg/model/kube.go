@@ -10,6 +10,7 @@ const (
 	StateProvisioning KubeState = "provisioning"
 	StateFailed       KubeState = "failed"
 	StateOperational  KubeState = "operational"
+	StateDeleting     KubeState = "deleting"
 )
 
 // TODO(stgleb): Add cloud provider for kube

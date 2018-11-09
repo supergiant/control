@@ -262,7 +262,15 @@ func (h *Handler) deleteKube(w http.ResponseWriter, r *http.Request) {
 	errChan := t.Run(context.Background(), *config, writer)
 
 	go func(t *workflows.Task) {
-		err := <-errChan
+		// Update kube with deleting state
+		k.State = model.StateDeleting
+		err = h.svc.Create(context.Background(), k)
+
+		if err != nil {
+			logrus.Errorf("update cluster %s caused %v", kname, err)
+		}
+
+		err = <-errChan
 		if err != nil {
 			return
 		}
