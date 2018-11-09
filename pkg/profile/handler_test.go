@@ -159,6 +159,7 @@ func TestKubeProfileEndpointCreateProfileInternalError(t *testing.T) {
 	if rr.Code != http.StatusInternalServerError {
 		t.Errorf("Wrong response code, expected %d actual %d",
 			http.StatusInternalServerError, rr.Code)
+		t.Log(rr.Body)
 	}
 }
 
