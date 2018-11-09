@@ -43,7 +43,6 @@ func NewCreateInstance(fn GetEC2Fn) *StepCreateInstance {
 
 func (s *StepCreateInstance) Run(ctx context.Context, w io.Writer, cfg *steps.Config) error {
 	log := util.GetLogger(w)
-	log.Infof("[%s] - started", StepNameCreateEC2Instance)
 
 	var secGroupID *string
 
@@ -81,6 +80,9 @@ func (s *StepCreateInstance) Run(ctx context.Context, w io.Writer, cfg *steps.Co
 					VolumeSize:          aws.Int64(int64(volumeSize)),
 				},
 			},
+		},
+		Placement: &ec2.Placement{
+			AvailabilityZone: aws.String(cfg.AWSConfig.AvailabilityZone),
 		},
 		EbsOptimized: &isEbs,
 		ImageId:      &amiID,
@@ -220,7 +222,7 @@ func (s *StepCreateInstance) Run(ctx context.Context, w io.Writer, cfg *steps.Co
 		cfg.AddNode(&cfg.Node)
 	}
 
-	log.Infof("[%s] - success! Created node %s with instanceID %s", s.Name(), nodeName, cfg.Node.ID)
+	log.Infof("[%s] - success! Created node %s with instanceID %s ", s.Name(), nodeName, cfg.Node.ID)
 	logrus.Debugf("%v", *instance)
 
 	return nil

@@ -100,6 +100,7 @@ func Init() {
 	awsMasterWorkflow := []steps.Step{
 		steps.GetStep(amazon.StepNameCreateEC2Instance),
 		steps.GetStep(ssh.StepName),
+		steps.GetStep(certificates.AddAuthorizedKeyStepName),
 		steps.GetStep(downloadk8sbinary.StepName),
 		steps.GetStep(docker.StepName),
 		steps.GetStep(cni.StepName),
@@ -109,13 +110,13 @@ func Init() {
 		steps.GetStep(certificates.StepName),
 		steps.GetStep(manifest.StepName),
 		steps.GetStep(kubelet.StepName),
-		steps.GetStep(certificates.AddAuthorizedKeyStepName),
 		steps.GetStep(poststart.StepName),
 	}
 
 	awsNodeWorkflow := []steps.Step{
 		steps.GetStep(amazon.StepNameCreateEC2Instance),
 		steps.GetStep(ssh.StepName),
+		steps.GetStep(certificates.AddAuthorizedKeyStepName),
 		steps.GetStep(downloadk8sbinary.StepName),
 		steps.GetStep(docker.StepName),
 		steps.GetStep(certificates.StepName),

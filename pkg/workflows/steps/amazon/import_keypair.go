@@ -48,7 +48,7 @@ func (s *KeyPairStep) Run(ctx context.Context, w io.Writer, cfg *steps.Config) e
 		PublicKeyMaterial: []byte(cfg.SshConfig.BootstrapPublicKey),
 	}
 
-	if cfg.AWSConfig.LogPrivateKey {
+	if cfg.LogBootstrapPrivateKey {
 		key := strings.Replace(cfg.SshConfig.BootstrapPrivateKey, "\\n", "\n", -1)
 		log.Infof("[%s] - bootstrap private key", s.Name())
 		fmt.Fprintf(w, key)
