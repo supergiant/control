@@ -7,6 +7,6 @@ ARCH={{ .Arch }}
 OUT_DIR=/tmp
 URL="https://download.docker.com/linux/ubuntu/dists/${UBUNTU_RELEASE}/pool/stable/${ARCH}/docker-ce_${DOCKER_VERSION}~ce-0~ubuntu_${ARCH}.deb"
 
-sudo wget -O $OUT_DIR/$(basename $URL) $URL
+wget -O $OUT_DIR/$(basename $URL) $URL
 sudo apt install -y $OUT_DIR/$(basename $URL)
 sudo rm $OUT_DIR/$(basename $URL)
