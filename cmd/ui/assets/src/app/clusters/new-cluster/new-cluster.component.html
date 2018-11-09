@@ -104,6 +104,10 @@
         </div>
       </form>
 
+      <div *ngIf="cidr.invalid">
+        <p *ngIf="cidr.errors.invalidCidr" class="warning">{{ cidr.errors.invalidCidr.value }} is not valid CIDR notation</p>
+      </div>
+
       <div class="step-actions">
         <button mat-raised-button class="secondary" matStepperPrevious>BACK</button>
         <button mat-raised-button class="secondary" matStepperNext>NEXT</button>
@@ -167,6 +171,10 @@
 
         </form>
       </ng-container>
+
+      <div *ngIf="vpcCidr.invalid">
+        <p *ngIf="vpcCidr.errors.invalidCidr" class="warning">{{ vpcCidr.errors.invalidCidr.value }} is not valid CIDR notation</p>
+      </div>
 
       <div class="step-actions">
         <button mat-raised-button class="secondary" matStepperPrevious>BACK</button>
