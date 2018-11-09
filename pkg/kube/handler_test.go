@@ -478,6 +478,7 @@ func TestHandler_deleteKube(t *testing.T) {
 
 		svc.On(serviceGet, mock.Anything, tc.kubeName).Return(tc.kube, tc.getKubeError)
 		svc.On(serviceDelete, mock.Anything, tc.kubeName).Return(tc.deleteKubeError)
+		svc.On(serviceCreate, mock.Anything, mock.Anything).Return(nil)
 
 		accSvc.On(serviceGet, mock.Anything, tc.accountName).Return(tc.account, tc.getAccountError)
 		mockRepo := new(testutils.MockStorage)
