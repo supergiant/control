@@ -81,6 +81,18 @@ type ServiceProxy struct{
 	SelfLink string `json:"selfLink"`
 }
 
+
+type MetricResponse struct {
+	Status string `json:"status"`
+	Data   struct {
+		ResultType string `json:"resultType"`
+		Result     []struct {
+			Metric map[string]string `json:"metric"`
+			Value  []interface{}     `json:"value"`
+		} `json:"result"`
+	} `json:"data"`
+}
+
 // Handler is a http controller for a kube entity.
 type Handler struct {
 	svc             Interface
@@ -89,6 +101,7 @@ type Handler struct {
 	workflowMap     map[clouds.Name]workflows.WorkflowSet
 	repo            storage.Interface
 	getWriter       func(string) (io.WriteCloser, error)
+	getMetrics 		func(string) (*MetricResponse, error)
 }
 
 // NewHandler constructs a Handler for kubes.
@@ -105,6 +118,36 @@ func NewHandler(svc Interface, accountService accountGetter, provisioner nodePro
 		},
 		repo:      repo,
 		getWriter: util.GetWriter,
+		getMetrics: func(metricURI string) (*MetricResponse, error) {
+			metricResponse := &MetricResponse{}
+			req, err := http.NewRequest(http.MethodGet, metricURI, nil)
+
+			if err != nil {
+				return nil, err
+			}
+
+			// TODO(stgleb): Get rid off basic auth
+			req.SetBasicAuth("root", "1234")
+			tr := &http.Transport{
+				TLSClientConfig: &tls.Config{InsecureSkipVerify: true},
+			}
+			client := &http.Client{
+				Transport: tr,
+			}
+			resp, err := client.Do(req)
+
+			if err != nil {
+				return nil, err
+			}
+
+			err = json.NewDecoder(resp.Body).Decode(metricResponse)
+
+			if err != nil {
+				return nil, err
+			}
+
+			return metricResponse, nil
+		},
 	}
 }
 
@@ -309,7 +352,15 @@ func (h *Handler) deleteKube(w http.ResponseWriter, r *http.Request) {
 	errChan := t.Run(context.Background(), *config, writer)
 
 	go func(t *workflows.Task) {
-		err := <-errChan
+		// Update kube with deleting state
+		k.State = model.StateDeleting
+		err = h.svc.Create(context.Background(), k)
+
+		if err != nil {
+			logrus.Errorf("update cluster %s caused %v", kname, err)
+		}
+
+		err = <-errChan
 		if err != nil {
 			return
 		}
@@ -718,25 +769,13 @@ func (h *Handler) deleteReleases(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
-type MetricResponse struct {
-	Status string `json:"status"`
-	Data   struct {
-		ResultType string `json:"resultType"`
-		Result     []struct {
-			Metric map[string]string `json:"metric"`
-			Value  []interface{}     `json:"value"`
-		} `json:"result"`
-	} `json:"data"`
-}
-
 func (h *Handler) getClusterMetrics(w http.ResponseWriter, r *http.Request) {
 	var (
-		relativeUrls = map[string]string{
+		metricsRelUrls = map[string]string{
 			"cpu":    "api/v1/query?query=:node_cpu_utilisation:avg1m",
 			"memory": "api/v1/query?query=:node_memory_utilisation:",
 		}
 		masterNode     *node.Node
-		metricResponse = &MetricResponse{}
 		response       = map[string]interface{}{}
 		baseUrl        = "api/v1/namespaces/default/services/prometheus-operated:9090/proxy"
 	)
@@ -760,35 +799,12 @@ func (h *Handler) getClusterMetrics(w http.ResponseWriter, r *http.Request) {
 		}
 	}
 
-	for metricType, relUrl := range relativeUrls {
+	for metricType, relUrl := range metricsRelUrls {
 		url := fmt.Sprintf("https://%s/%s/%s", masterNode.PublicIp, baseUrl, relUrl)
-		req, err := http.NewRequest(http.MethodGet, url, nil)
+		metricResponse, err := h.getMetrics(url)
 
 		if err != nil {
 			message.SendUnknownError(w, err)
-			return
-		}
-
-		// TODO(stgleb): Get rid off basic auth
-		req.SetBasicAuth("root", "1234")
-		tr := &http.Transport{
-			TLSClientConfig: &tls.Config{InsecureSkipVerify: true},
-		}
-		client := &http.Client{
-			Transport: tr,
-		}
-		resp, err := client.Do(req)
-
-		if err != nil {
-			message.SendUnknownError(w, err)
-			return
-		}
-
-		err = json.NewDecoder(resp.Body).Decode(metricResponse)
-
-		if err != nil {
-			logrus.Error(err)
-			message.SendInvalidJSON(w, err)
 			return
 		}
 
@@ -807,12 +823,11 @@ func (h *Handler) getClusterMetrics(w http.ResponseWriter, r *http.Request) {
 
 func (h *Handler) getNodesMetrics(w http.ResponseWriter, r *http.Request) {
 	var (
-		relativeUrls = map[string]string{
+		metricsRelUrls = map[string]string{
 			"cpu":    "api/v1/query?query=node:node_cpu_utilisation:avg1m",
 			"memory": "api/v1/query?query=node:node_memory_utilisation:",
 		}
 		masterNode     *node.Node
-		metricResponse = &MetricResponse{}
 		response       = map[string]map[string]interface{}{}
 		baseUrl        = "api/v1/namespaces/default/services/prometheus-operated:9090/proxy"
 	)
@@ -836,35 +851,12 @@ func (h *Handler) getNodesMetrics(w http.ResponseWriter, r *http.Request) {
 		}
 	}
 
-	for metricType, relUrl := range relativeUrls {
+	for metricType, relUrl := range metricsRelUrls {
 		url := fmt.Sprintf("https://%s/%s/%s", masterNode.PublicIp, baseUrl, relUrl)
-		req, err := http.NewRequest(http.MethodGet, url, nil)
+		metricResponse, err := h.getMetrics(url)
 
 		if err != nil {
 			message.SendUnknownError(w, err)
-			return
-		}
-
-		// TODO(stgleb): Get rid off basic auth
-		req.SetBasicAuth("root", "1234")
-		tr := &http.Transport{
-			TLSClientConfig: &tls.Config{InsecureSkipVerify: true},
-		}
-		client := &http.Client{
-			Transport: tr,
-		}
-		resp, err := client.Do(req)
-
-		if err != nil {
-			message.SendUnknownError(w, err)
-			return
-		}
-
-		err = json.NewDecoder(resp.Body).Decode(metricResponse)
-
-		if err != nil {
-			logrus.Error(err)
-			message.SendInvalidJSON(w, err)
 			return
 		}
 

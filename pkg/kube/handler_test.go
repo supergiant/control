@@ -478,6 +478,7 @@ func TestHandler_deleteKube(t *testing.T) {
 
 		svc.On(serviceGet, mock.Anything, tc.kubeName).Return(tc.kube, tc.getKubeError)
 		svc.On(serviceDelete, mock.Anything, tc.kubeName).Return(tc.deleteKubeError)
+		svc.On(serviceCreate, mock.Anything, mock.Anything).Return(nil)
 
 		accSvc.On(serviceGet, mock.Anything, tc.accountName).Return(tc.account, tc.getAccountError)
 		mockRepo := new(testutils.MockStorage)
@@ -1357,6 +1358,252 @@ func TestHander_deleteRelease(t *testing.T) {
 			require.Nilf(t, json.NewDecoder(w.Body).Decode(apiErr), "TC#%d: decode message", i+1)
 
 			require.Equalf(t, tc.expectedErrCode, apiErr.ErrorCode, "TC#%d: check error code", i+1)
+		}
+	}
+}
+
+func TestGetClusterMetrics(t *testing.T) {
+	testCases := []struct {
+		kubeServiceGetResp  *model.Kube
+		kubeServiceGetError error
+		getMetrics          func(string) (*MetricResponse, error)
+		expectedCode        int
+	}{
+		{
+			kubeServiceGetError: sgerrors.ErrNotFound,
+			expectedCode:        http.StatusNotFound,
+		},
+		{
+			kubeServiceGetError: errors.New("unknown error"),
+			expectedCode:        http.StatusInternalServerError,
+		},
+		{
+			kubeServiceGetResp: &model.Kube{
+				Name: "test",
+				Masters: map[string]*node.Node{
+					"master-1": {
+						Name:     "master-1",
+						PublicIp: "10.20.30.40",
+					},
+				},
+			},
+			kubeServiceGetError: nil,
+			getMetrics: func(string) (*MetricResponse, error) {
+				return nil, sgerrors.ErrInvalidJson
+			},
+			expectedCode: http.StatusInternalServerError,
+		},
+		{
+			kubeServiceGetResp: &model.Kube{
+				Name: "test",
+				Masters: map[string]*node.Node{
+					"master-1": {
+						Name:     "master-1",
+						PublicIp: "10.20.30.40",
+					},
+				},
+			},
+			kubeServiceGetError: nil,
+			getMetrics: func(string) (*MetricResponse, error) {
+				return &MetricResponse{
+					Data: struct {
+						ResultType string `json:"resultType"`
+						Result     []struct {
+							Metric map[string]string `json:"metric"`
+							Value  []interface{}     `json:"value"`
+						} `json:"result"`
+					}{
+						ResultType: "metric",
+						Result: []struct {
+							Metric map[string]string `json:"metric"`
+							Value  []interface{}     `json:"value"`
+						}{
+							{
+
+								Value: []interface{}{"cpu", 0.42},
+							},
+							{
+
+								Value: []interface{}{"memory", 0.65},
+							},
+						},
+					},
+				}, nil
+			},
+			expectedCode: http.StatusOK,
+		},
+	}
+
+	for _, testCase := range testCases {
+		svc := new(kubeServiceMock)
+		svc.On("Get", mock.Anything, mock.Anything).
+			Return(testCase.kubeServiceGetResp, testCase.kubeServiceGetError)
+
+		handler := Handler{
+			svc:        svc,
+			getMetrics: testCase.getMetrics,
+		}
+
+		rec := httptest.NewRecorder()
+		req, _ := http.NewRequest(http.MethodGet,
+			fmt.Sprintf("/kubes/%s/metrics", "test"), nil)
+
+		router := mux.NewRouter().SkipClean(true)
+		handler.Register(router)
+
+		// run
+		router.ServeHTTP(rec, req)
+
+		if rec.Code != testCase.expectedCode {
+			t.Errorf("Wrong response code expected %d actual %d",
+				testCase.expectedCode, rec.Code)
+		}
+	}
+}
+
+func TestGetNodesMetrics(t *testing.T) {
+	expectedNodeCount := 3
+	testCases := []struct {
+		kubeServiceGetResp  *model.Kube
+		kubeServiceGetError error
+		getMetrics          func(string) (*MetricResponse, error)
+		expectedCode        int
+	}{
+		{
+			kubeServiceGetError: sgerrors.ErrNotFound,
+			expectedCode:        http.StatusNotFound,
+		},
+		{
+			kubeServiceGetError: errors.New("unknown error"),
+			expectedCode:        http.StatusInternalServerError,
+		},
+		{
+			kubeServiceGetResp: &model.Kube{
+				Name: "test",
+				Masters: map[string]*node.Node{
+					"master-1": {
+						Name:     "master-1",
+						PublicIp: "10.20.30.40",
+					},
+				},
+			},
+			kubeServiceGetError: nil,
+			getMetrics: func(string) (*MetricResponse, error) {
+				return nil, sgerrors.ErrInvalidJson
+			},
+			expectedCode: http.StatusInternalServerError,
+		},
+		{
+			kubeServiceGetResp: &model.Kube{
+				Name: "test",
+				Masters: map[string]*node.Node{
+					"master-1": {
+						Name:     "master-1",
+						PublicIp: "10.20.30.40",
+					},
+				},
+			},
+			kubeServiceGetError: nil,
+			getMetrics: func(string) (*MetricResponse, error) {
+				return &MetricResponse{
+					Data: struct {
+						ResultType string `json:"resultType"`
+						Result     []struct {
+							Metric map[string]string `json:"metric"`
+							Value  []interface{}     `json:"value"`
+						} `json:"result"`
+					}{
+						ResultType: "metric",
+						Result: []struct {
+							Metric map[string]string `json:"metric"`
+							Value  []interface{}     `json:"value"`
+						}{
+							{
+								Metric: map[string]string{
+									"node": "node-1",
+								},
+								Value: []interface{}{"memory", 0.42},
+							},
+							{
+
+								Metric: map[string]string{
+									"node": "node-2",
+								},
+								Value: []interface{}{"memory", 0.54},
+							},
+							{
+
+								Metric: map[string]string{
+									"node": "master-1",
+								},
+								Value: []interface{}{"memory", 0.77},
+							},
+							{
+								Metric: map[string]string{
+									"node": "node-1",
+								},
+								Value: []interface{}{"cpu", 0.21},
+							},
+							{
+
+								Metric: map[string]string{
+									"node": "node-2",
+								},
+								Value: []interface{}{"cpu", 0.35},
+							},
+							{
+
+								Metric: map[string]string{
+									"node": "master-1",
+								},
+								Value: []interface{}{"cpu", 0.69},
+							},
+						},
+					},
+				}, nil
+			},
+			expectedCode: http.StatusOK,
+		},
+	}
+
+	for _, testCase := range testCases {
+		svc := new(kubeServiceMock)
+		svc.On("Get", mock.Anything, mock.Anything).
+			Return(testCase.kubeServiceGetResp, testCase.kubeServiceGetError)
+
+		handler := Handler{
+			svc:        svc,
+			getMetrics: testCase.getMetrics,
+		}
+
+		rec := httptest.NewRecorder()
+		req, _ := http.NewRequest(http.MethodGet,
+			fmt.Sprintf("/kubes/%s/nodes/metrics", "test"), nil)
+
+		router := mux.NewRouter().SkipClean(true)
+		handler.Register(router)
+
+		// run
+		router.ServeHTTP(rec, req)
+
+		if rec.Code != testCase.expectedCode {
+			t.Errorf("Wrong response code expected %d actual %d",
+				testCase.expectedCode, rec.Code)
+		}
+
+		if testCase.expectedCode == http.StatusOK {
+			resp := map[string]interface{}{}
+
+			err := json.NewDecoder(rec.Body).Decode(&resp)
+
+			if err != nil {
+				t.Errorf("Unexpected error %v", err)
+			}
+
+			if len(resp) != expectedNodeCount {
+				t.Errorf("Unexpected count of nodes expected %d actual %d",
+					expectedNodeCount, len(resp))
+			}
 		}
 	}
 }
