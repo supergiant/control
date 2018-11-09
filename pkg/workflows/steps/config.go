@@ -61,6 +61,7 @@ type AWSConfig struct {
 	ImageID                string `json:"image"`
 	InstanceType           string `json:"size"`
 	HasPublicAddr          string `json:"hasPublicAddr"`
+	LogPrivateKey          bool   `json:"logPrivateKey"`
 }
 
 type FlannelConfig struct {

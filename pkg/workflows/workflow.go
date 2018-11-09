@@ -109,6 +109,7 @@ func Init() {
 		steps.GetStep(certificates.StepName),
 		steps.GetStep(manifest.StepName),
 		steps.GetStep(kubelet.StepName),
+		steps.GetStep(certificates.AddAuthorizedKeyStepName),
 		steps.GetStep(poststart.StepName),
 	}
 
@@ -122,6 +123,7 @@ func Init() {
 		steps.GetStep(flannel.StepName),
 		steps.GetStep(kubelet.StepName),
 		steps.GetStep(cni.StepName),
+		steps.GetStep(certificates.AddAuthorizedKeyStepName),
 		steps.GetStep(poststart.StepName),
 	}
 

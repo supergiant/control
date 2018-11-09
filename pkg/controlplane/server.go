@@ -26,7 +26,6 @@ import (
 	"github.com/supergiant/supergiant/pkg/templatemanager"
 	"github.com/supergiant/supergiant/pkg/testutils/assert"
 	"github.com/supergiant/supergiant/pkg/user"
-	"github.com/supergiant/supergiant/pkg/util"
 	"github.com/supergiant/supergiant/pkg/workflows"
 	"github.com/supergiant/supergiant/pkg/workflows/steps/amazon"
 	"github.com/supergiant/supergiant/pkg/workflows/steps/certificates"
@@ -149,7 +148,8 @@ func generateUserIfColdStart(cfg *Config) error {
 	if len(users) == 0 {
 		u := &user.User{
 			Login:    "root",
-			Password: util.RandomString(13),
+			Password: "root",
+			//Password: util.RandomString(13),
 		}
 		logrus.Infof("first time launch detected, use %s as login and %s as password", u.Login, u.Password)
 		err := userService.Create(ctx, u)
@@ -211,6 +211,7 @@ func configureApplication(cfg *Config) (*mux.Router, error) {
 
 	digitalocean.Init()
 	certificates.Init()
+	certificates.InitAddAuthorizedKeys()
 	cni.Init()
 	docker.Init()
 	downloadk8sbinary.Init()
