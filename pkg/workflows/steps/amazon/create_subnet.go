@@ -53,6 +53,10 @@ func (s *CreateSubnetStep) Run(ctx context.Context, w io.Writer, cfg *steps.Conf
 					Values: aws.StringSlice([]string{cfg.AWSConfig.VPCID}),
 				},
 				{
+					Name:   aws.String("availabilityZone"),
+					Values: aws.StringSlice([]string{cfg.AWSConfig.AvailabilityZone}),
+				},
+				{
 					Name:   aws.String("default-for-az"),
 					Values: aws.StringSlice([]string{"true"}),
 				},
