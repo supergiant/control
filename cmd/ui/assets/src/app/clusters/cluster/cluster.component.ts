@@ -309,7 +309,7 @@ export class ClusterComponent implements OnInit, OnDestroy {
   }
 
   deleteCluster() {
-    const dialogRef = this.initDeleteCluster();
+    const dialogRef = this.initDeleteCluster(this.kube.state);
 
     dialogRef
       .afterClosed()
@@ -341,9 +341,10 @@ export class ClusterComponent implements OnInit, OnDestroy {
     return dialogRef;
   }
 
-  private initDeleteCluster() {
+  private initDeleteCluster(clusterState) {
     const dialogRef = this.dialog.open(DeleteClusterModalComponent, {
       width: "500px",
+      data: { state: clusterState }
     });
     return dialogRef;
   }
