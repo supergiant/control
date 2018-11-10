@@ -1,8 +1,29 @@
 <div class="delete-cluster-modal-wrapper">
   <p class="headline">WARNING</p>
-  <p class="communication">Deleting this cluster will remove all resources attached to it, and may lead to data loss. Are you sure you want to delete it?</p>
+  <p class="communication">
+    <ng-container *ngIf="data.state == 'operational' || data.state == 'failed'">
+      Deleting this cluster will remove all resources attached to it, and may lead to data loss. Are you sure you want to delete it?
+    </ng-container>
+    <ng-container *ngIf="data.state == 'provisioning'">
+      Provisioning will be stopped and all infrastructure will be destroyed. Are you sure you want to proceed?
+    </ng-container>
+  </p>
   <div class="action-buttons">
-    <button mat-raised-button class="secondary" type="button"[mat-dialog-close]>CANCEL</button>
-    <button mat-raised-button class="delete" type="button" [mat-dialog-close]="true">DELETE</button>
+    <button mat-raised-button class="secondary" type="button"[mat-dialog-close]>
+      <ng-container *ngIf="data.state == 'operational' || data.state == 'failed'">
+        CANCEL
+      </ng-container>
+      <ng-container *ngIf="data.state == 'provisioning'">
+        GO BACK
+      </ng-container>
+    </button>
+    <button mat-raised-button class="delete" type="button" [mat-dialog-close]="true">
+      <ng-container *ngIf="data.state == 'operational' || data.state == 'failed'">
+        DELETE
+      </ng-container>
+      <ng-container *ngIf="data.state == 'provisioning'">
+        STOP AND DESTROY
+      </ng-container>
+    </button>
   </div>
 </div>
