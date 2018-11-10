@@ -40,14 +40,15 @@ type DOConfig struct {
 // TODO(stgleb): Fill struct with fields when provisioning on other providers is done
 
 type GCEConfig struct {
-	Email         string `json:"email"`
 	PrivateKey    string `json:"privateKey"`
 	ImageFamily   string `json:"imageFamily"`
 	ProjectID     string `json:"projectId"`
 	Zone          string `json:"zone"`
 	Size          string `json:"size"`
 	InstanceGroup string `json:"instanceGroup"`
-	TokenURI      string `json:"token_uri"`
+	ClientEmail   string `json:"clientEmail"`
+	TokenURI      string `json:"tokenURI"`
+	AuthURI       string `json:"authURI"`
 }
 
 type PacketConfig struct{}
@@ -244,14 +245,8 @@ func NewConfig(clusterName, discoveryUrl, cloudAccountName string, profile profi
 			NodesSecurityGroupID:   profile.CloudSpecificSettings["aws_nodes_secgroup_id"],
 		},
 		GCEConfig: GCEConfig{
-			Email:         profile.CloudSpecificSettings["gceEmail"],
-			PrivateKey:    profile.CloudSpecificSettings["gcePrivateKey"],
-			ImageFamily:   profile.CloudSpecificSettings["gceImageFamily"],
-			ProjectID:     profile.CloudSpecificSettings["gceProjectID"],
 			Zone:          profile.CloudSpecificSettings["gceZone"],
-			Size:          profile.CloudSpecificSettings["gceSize"],
 			InstanceGroup: profile.CloudSpecificSettings["gceInstanceGroup"],
-			TokenURI:      profile.CloudSpecificSettings["gceTokenUri"],
 		},
 		OSConfig:     OSConfig{},
 		PacketConfig: PacketConfig{},

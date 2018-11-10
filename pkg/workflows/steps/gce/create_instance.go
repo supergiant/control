@@ -6,8 +6,9 @@ import (
 	"time"
 
 	"golang.org/x/oauth2/jwt"
-	compute "google.golang.org/api/compute/v1"
+	"google.golang.org/api/compute/v1"
 
+	"github.com/Sirupsen/logrus"
 	"github.com/supergiant/supergiant/pkg/clouds"
 	"github.com/supergiant/supergiant/pkg/node"
 	"github.com/supergiant/supergiant/pkg/sgerrors"
@@ -58,7 +59,7 @@ func Init() {
 
 func (s *Step) Run(ctx context.Context, output io.Writer, config *steps.Config) error {
 	// fetch client.
-	client, err := s.getClient(ctx, config.GCEConfig.Email,
+	client, err := s.getClient(ctx, config.GCEConfig.ClientEmail,
 		config.GCEConfig.PrivateKey, config.GCEConfig.TokenURI)
 	if err != nil {
 		return err
@@ -84,13 +85,13 @@ func (s *Step) Run(ctx context.Context, output io.Writer, config *steps.Config) 
 
 	if config.IsMaster {
 
-		// Create Master Instance group.
+		// Create master instance group.
 		instanceGroup = &compute.InstanceGroup{
 			Name:        config.ClusterName + "-kubernetes-masters",
 			Description: "Kubernetes master group for cluster:" + config.ClusterName,
 		}
 	} else {
-		// Create Minion Instance group
+		// Create worker instance group
 		instanceGroup = &compute.InstanceGroup{
 			Name:        config.ClusterName + "-kubernetes-workers",
 			Description: "Kubernetes minion group for cluster:" + config.ClusterName,
@@ -153,7 +154,7 @@ func (s *Step) Run(ctx context.Context, output io.Writer, config *steps.Config) 
 		},
 		ServiceAccounts: []*compute.ServiceAccount{
 			{
-				Email: config.GCEConfig.Email,
+				Email: config.GCEConfig.ClientEmail,
 				Scopes: []string{
 					compute.DevstorageFullControlScope,
 					compute.ComputeScope,
@@ -161,6 +162,10 @@ func (s *Step) Run(ctx context.Context, output io.Writer, config *steps.Config) 
 			},
 		},
 	}
+
+	// Copy service account to use it for provisioning, because gce client do not allow
+	// to pass user provided key
+	config.SshConfig.BootstrapPrivateKey = config.GCEConfig.PrivateKey
 
 	// create the instance.
 	_, serr = client.Instances.Insert(config.GCEConfig.ProjectID,
@@ -186,9 +191,11 @@ func (s *Step) Run(ctx context.Context, output io.Writer, config *steps.Config) 
 			if resp.Status == "RUNNING" {
 				n := node.Node{
 					ID:        string(resp.Id),
+					Name:      util.MakeNodeName(config.ClusterName, config.TaskID, config.IsMaster),
 					CreatedAt: time.Now().Unix(),
 					Provider:  clouds.GCE,
-					Region:    resp.Zone,
+					Size:      config.GCEConfig.Size,
+					Region:    config.GCEConfig.Zone,
 					PublicIp:  resp.NetworkInterfaces[0].AccessConfigs[0].NatIP,
 					PrivateIp: resp.NetworkInterfaces[0].NetworkIP,
 				}
@@ -200,11 +207,11 @@ func (s *Step) Run(ctx context.Context, output io.Writer, config *steps.Config) 
 					_, err = client.InstanceGroups.AddInstances(
 						config.GCEConfig.ProjectID,
 						config.GCEConfig.Zone,
-						config.ClusterName+"-kubernetes-masters",
+						instanceGroup.Name,
 						&compute.InstanceGroupsAddInstancesRequest{
 							Instances: []*compute.InstanceReference{
 								{
-									Instance: instance.SelfLink,
+									Instance: resp.SelfLink,
 								},
 							},
 						},
@@ -216,9 +223,8 @@ func (s *Step) Run(ctx context.Context, output io.Writer, config *steps.Config) 
 				}
 
 				config.Node = n
+				return nil
 			}
-
-			return nil
 		case <-after:
 			return sgerrors.ErrTimeoutExceeded
 		}

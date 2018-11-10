@@ -145,10 +145,30 @@ func Init() {
 
 	gceNodeWorkflow := []steps.Step{
 		steps.GetStep(gce.StepName),
+		steps.GetStep(ssh.StepName),
+		steps.GetStep(downloadk8sbinary.StepName),
+		steps.GetStep(docker.StepName),
+		steps.GetStep(manifest.StepName),
+		steps.GetStep(flannel.StepName),
+		steps.GetStep(certificates.StepName),
+		steps.GetStep(kubelet.StepName),
+		steps.GetStep(cni.StepName),
+		steps.GetStep(poststart.StepName),
 	}
 
 	gceMasterWorkflow := []steps.Step{
 		steps.GetStep(gce.StepName),
+		steps.GetStep(ssh.StepName),
+		steps.GetStep(downloadk8sbinary.StepName),
+		steps.GetStep(docker.StepName),
+		steps.GetStep(cni.StepName),
+		steps.GetStep(etcd.StepName),
+		steps.GetStep(network.StepName),
+		steps.GetStep(flannel.StepName),
+		steps.GetStep(certificates.StepName),
+		steps.GetStep(manifest.StepName),
+		steps.GetStep(kubelet.StepName),
+		steps.GetStep(poststart.StepName),
 	}
 
 	m.Lock()
