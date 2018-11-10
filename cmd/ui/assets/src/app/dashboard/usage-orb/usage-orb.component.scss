@@ -25,11 +25,11 @@
 }
 
 .deleting {
-  animation: pulse 2.5s infinite;
+  animation: deleting 2.5s infinite;
   pointer-events: none;
 }
 
-@keyframes pulse {
+@keyframes deleting {
   0% {
     opacity: 0.5;
   }
@@ -43,10 +43,33 @@
   }
 }
 
+.failed {
+  opacity: 0.8;
+}
+
+.provisioning-orb {
+  animation: provisioning-orb 2.5s infinite;
+}
+
+@keyframes provisioning-orb {
+  0% {
+    box-shadow: 0 0 20px 0 #e63d98;
+  }
+
+  50% {
+    box-shadow: 0 0 200px 0 #e63d98;
+  }
+
+  100% {
+    box-shadow: 0 0 20px 0 #e63d98;
+  }
+}
+
 .usage {
   position: relative;
   height: 200px;
   width: 200px;
+  border-radius: 50%;
 
   .cpu-usage {
     background: url(/assets/img/cluster-details/left_metric_base.svg) no-repeat;
