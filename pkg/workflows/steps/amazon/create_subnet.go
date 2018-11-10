@@ -7,6 +7,7 @@ import (
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/service/ec2"
 	"github.com/pkg/errors"
+
 	"github.com/supergiant/supergiant/pkg/util"
 	"github.com/supergiant/supergiant/pkg/workflows/steps"
 )
@@ -50,10 +51,6 @@ func (s *CreateSubnetStep) Run(ctx context.Context, w io.Writer, cfg *steps.Conf
 				{
 					Name:   aws.String("vpc-id"),
 					Values: aws.StringSlice([]string{cfg.AWSConfig.VPCID}),
-				},
-				{
-					Name:   aws.String("availabilityZone"),
-					Values: aws.StringSlice([]string{cfg.AWSConfig.AvailabilityZone}),
 				},
 				{
 					Name:   aws.String("default-for-az"),

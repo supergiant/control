@@ -170,16 +170,16 @@ func (m *Map) MarshalJSON() ([]byte, error) {
 }
 
 type Config struct {
-	TaskID                 string
-	Provider               clouds.Name  `json:"provider"`
-	IsMaster               bool         `json:"isMaster"`
-	ClusterName            string       `json:"clusterName"`
-	LogBootstrapPrivateKey bool         `json:"logBootstrapPrivateKey"`
-	DigitalOceanConfig     DOConfig     `json:"digitalOceanConfig"`
-	AWSConfig              AWSConfig    `json:"awsConfig"`
-	GCEConfig              GCEConfig    `json:"gceConfig"`
-	OSConfig               OSConfig     `json:"osConfig"`
-	PacketConfig           PacketConfig `json:"packetConfig"`
+	TaskID      string
+	Provider    clouds.Name `json:"provider"`
+	IsMaster    bool        `json:"isMaster"`
+	ClusterName string      `json:"clusterName"`
+
+	DigitalOceanConfig DOConfig     `json:"digitalOceanConfig"`
+	AWSConfig          AWSConfig    `json:"awsConfig"`
+	GCEConfig          GCEConfig    `json:"gceConfig"`
+	OSConfig           OSConfig     `json:"osConfig"`
+	PacketConfig       PacketConfig `json:"packetConfig"`
 
 	DockerConfig       DockerConfig       `json:"dockerConfig"`
 	DownloadK8sBinary  DownloadK8sBinary  `json:"downloadK8sBinary"`
@@ -221,7 +221,6 @@ func NewConfig(clusterName, discoveryUrl, cloudAccountName string, profile profi
 		DigitalOceanConfig: DOConfig{
 			Region: profile.Region,
 		},
-		LogBootstrapPrivateKey: profile.LogBootstrapPrivateKey,
 		AWSConfig: AWSConfig{
 			Region: profile.Region,
 
@@ -295,10 +294,9 @@ func NewConfig(clusterName, discoveryUrl, cloudAccountName string, profile profi
 			Arch:            profile.Arch,
 		},
 		SshConfig: SshConfig{
-			Port:      "22",
-			User:      "root",
-			Timeout:   10,
-			PublicKey: profile.PublicKey,
+			Port:    "22",
+			User:    "root",
+			Timeout: 10,
 		},
 		EtcdConfig: EtcdConfig{
 			// TODO(stgleb): this field must be changed per node
@@ -333,7 +331,6 @@ func NewConfig(clusterName, discoveryUrl, cloudAccountName string, profile profi
 		nodeChan:      make(chan node.Node, len(profile.MasterProfiles)+len(profile.NodesProfiles)),
 		kubeStateChan: make(chan model.KubeState, 2),
 	}
-
 	return cfg
 }
 
