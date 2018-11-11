@@ -5,6 +5,12 @@
 		margin-bottom: 18px;
 	}
 
+	.warning {
+		color: #f44336;
+		font-weight: 300;
+		margin: 4px 0 0 0;
+	}
+
 	.mat-stepper-horizontal {
 		background-color: rgba(0,0,0,0.5);
 		border: 1px solid rgba(255,255,255,0.25);
@@ -33,12 +39,6 @@
 
 			.mat-form-field {
 				width: 100%;
-			}
-
-			.warning {
-				color: #f44336;
-				font-weight: 300;
-				margin: 4px 0 0 0;
 			}
 		}
 

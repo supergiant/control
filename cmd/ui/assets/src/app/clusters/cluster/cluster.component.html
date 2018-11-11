@@ -104,7 +104,7 @@
             class="small-cell"
             *matCellDef="let task"
             (click)="toggleSteps(task)"
-            [ngClass]="{ 'show-steps': task.id == expandedTaskId }">
+            [ngClass]="{ 'show-steps': expandedTaskIds.has(task.id) }">
             <div class="steps-toggle"></div>
           </mat-cell>
         </ng-container>
@@ -124,7 +124,7 @@
             <p *ngFor="let step of detail.t.stepsStatuses">
             {{ step.stepName }}
               <span *ngIf=" step.status == 'executing' "
-                    class="saving"><span>.</span><span>.</span><span>.</span></span>
+                    class="current-step"><span>.</span><span>.</span><span>.</span></span>
               <span *ngIf=" step.status != 'executing' "> ...</span>
               <span [ngClass]="{
                 'success': step.status == 'success',
@@ -140,7 +140,7 @@
         <mat-header-row *matHeaderRowDef="taskListColumns"></mat-header-row>
         <mat-row *matRowDef="let row; columns: taskListColumns" [ngClass]="{ 'viewingSteps': row.showSteps }"></mat-row>
         <mat-row class="detail-row" *matRowDef="let row; columns: ['expandedDetail']; when: expandRow"
-                 [@detailExpand]="row.t.id == expandedTaskId ? 'expanded' : 'collapsed'"></mat-row>
+                 [@detailExpand]="expandedTaskIds.has(row.t.id) ? 'expanded' : 'collapsed'"></mat-row>
 
       </mat-table>
       <!--
@@ -316,6 +316,9 @@
   </ng-container>
 
   <div class="action-buttons">
-    <button mat-raised-button class="secondary delete-cluster" type="button" (click)="deleteCluster()">DELETE CLUSTER</button>
+    <button mat-raised-button class="secondary delete-cluster" type="button" (click)="deleteCluster()">
+      <ng-container *ngIf="kube?.state == 'operational' || kube?.state == 'failed'">DELETE CLUSTER</ng-container>
+      <ng-container *ngIf="kube?.state == 'provisioning'">CANCEL</ng-container>
+    </button>
   </div>
 </div>

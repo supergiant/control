@@ -104,6 +104,10 @@
         </div>
       </form>
 
+      <div *ngIf="cidr.invalid">
+        <p *ngIf="cidr.errors.invalidCidr" class="warning">{{ cidr.errors.invalidCidr.value }} is not valid CIDR notation</p>
+      </div>
+
       <div class="step-actions">
         <button mat-raised-button class="secondary" matStepperPrevious>BACK</button>
         <button mat-raised-button class="secondary" matStepperNext>NEXT</button>
@@ -167,6 +171,10 @@
 
         </form>
       </ng-container>
+
+      <div *ngIf="vpcCidr.invalid">
+        <p *ngIf="vpcCidr.errors.invalidCidr" class="warning">{{ vpcCidr.errors.invalidCidr.value }} is not valid CIDR notation</p>
+      </div>
 
       <div class="step-actions">
         <button mat-raised-button class="secondary" matStepperPrevious>BACK</button>
@@ -314,7 +322,7 @@
   <div *ngIf="availableCloudAccounts?.length == 0">
     <div class="no-cloud-accounts">
       <h2>You have no cloud accounts linked to Supergiant</h2>
-      <p>Link an AWS, Digital Ocean, or Openstack cloud account and have a Supergiant cluster up in minutes</p>
+      <p>Link an AWS or Digital Ocean cloud account and have a Supergiant cluster up in minutes</p>
       <div>
         <button mat-raised-button color="primary" [routerLink]="['/system/cloud-accounts/new']">LINK ACCOUNT</button>
       </div>

@@ -1,4 +1,7 @@
-<a [routerLink]="['/clusters', cluster.name]" class="cluster-hover">
+<a [routerLink]="['/clusters', cluster.name]" class="cluster-hover"
+  [ngClass]="{
+    'deleting': cluster.state == 'deleting',
+    'failed': cluster.state == 'failed'}">
   <div class="usage">
     <div class="cpu-usage"></div>
     <svg class="cpu-actual-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 224 447">
@@ -23,7 +26,7 @@
       </g>
     </svg>
 
-    <div class="name">
+    <div class="name" [ngClass]="{'provisioning-orb': cluster.state == 'provisioning'}">
       {{ cluster.name }}
     </div>
 
@@ -48,5 +51,13 @@
         </g>
       </g>
     </svg>
+  </div>
+
+  <div class="warn" *ngIf="cluster.state == 'deleting'">
+    <p>DELETING</p>
+  </div>
+
+  <div class="warn" *ngIf="cluster.state == 'failed'">
+    <p>FAILED</p>
   </div>
 </a>

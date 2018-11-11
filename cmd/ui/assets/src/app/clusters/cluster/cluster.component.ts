@@ -44,7 +44,7 @@ export class ClusterComponent implements OnInit, OnDestroy {
   // task list vars
   tasks: any;
   taskListColumns = ["status", "type", "id", "steps", "logs"];
-  expandedTaskId: any;
+  expandedTaskIds = new Set();
 
   releases: any;
   releaseListColumns = ["status", "name", "chart", "chartVersion", "version", "lastDeployed"];
@@ -109,9 +109,9 @@ export class ClusterComponent implements OnInit, OnDestroy {
 
     task.showSteps = !task.showSteps;
 
-    if (task.id != this.expandedTaskId) {
-      this.expandedTaskId = task.id;
-    } else { this.expandedTaskId = undefined; }
+    if (this.expandedTaskIds.has(task.id)) {
+      this.expandedTaskIds.delete(task.id);
+    } else { this.expandedTaskIds.add(task.id); }
   }
 
   taskComplete(task) {
@@ -193,7 +193,7 @@ export class ClusterComponent implements OnInit, OnDestroy {
 
                   const rows = [];
                   tasks.forEach(t => {
-                    if (t.id == this.expandedTaskId) {
+                    if (this.expandedTaskIds.has(t.id)) {
                       t.showSteps = true;
                     };
                     rows.push(t, { detailRow: true, t })
@@ -212,7 +212,7 @@ export class ClusterComponent implements OnInit, OnDestroy {
 
                   const rows = [];
                   tasks.forEach(t => {
-                    if (t.id == this.expandedTaskId) {
+                    if (this.expandedTaskIds.has(t.id)) {
                       t.showSteps = true;
                     };
                     rows.push(t, { detailRow: true, t })
@@ -309,7 +309,7 @@ export class ClusterComponent implements OnInit, OnDestroy {
   }
 
   deleteCluster() {
-    const dialogRef = this.initDeleteCluster();
+    const dialogRef = this.initDeleteCluster(this.kube.state);
 
     dialogRef
       .afterClosed()
@@ -341,9 +341,10 @@ export class ClusterComponent implements OnInit, OnDestroy {
     return dialogRef;
   }
 
-  private initDeleteCluster() {
+  private initDeleteCluster(clusterState) {
     const dialogRef = this.dialog.open(DeleteClusterModalComponent, {
       width: "500px",
+      data: { state: clusterState }
     });
     return dialogRef;
   }

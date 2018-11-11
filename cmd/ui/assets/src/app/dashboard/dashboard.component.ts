@@ -139,10 +139,12 @@ export class DashboardComponent implements OnInit, OnDestroy {
         clusters => {
           // TODO: this is terrible
           clusters.map(c => {
-            this.supergiant.Kubes.getClusterMetrics(c.name).subscribe(
-              res => c.metrics = res,
-              err => console.error(err)
-            )
+            if (c.state != "deleting" || c.state != "failed") {
+              this.supergiant.Kubes.getClusterMetrics(c.name).subscribe(
+                res => c.metrics = res,
+                err => console.error(err)
+              )
+            }
 
             c.dataSource = new MatTableDataSource([
             {
