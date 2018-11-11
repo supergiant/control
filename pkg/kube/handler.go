@@ -289,6 +289,11 @@ func (h *Handler) deleteKube(w http.ResponseWriter, r *http.Request) {
 		CloudAccountName: k.AccountName,
 	}
 
+	//HACK TO PROVIDE REGION TO AWS DELETE CLUSTER
+	if acc.Provider == clouds.AWS {
+		config.AWSConfig.Region = k.Region
+	}
+
 	err = util.FillCloudAccountCredentials(r.Context(), acc, config)
 
 	if err != nil {

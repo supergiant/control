@@ -25,6 +25,7 @@ func InitDeleteCluster() {
 
 func (s *DeleteClusterStep) Run(ctx context.Context, w io.Writer, cfg *steps.Config) error {
 	log := util.GetLogger(w)
+	logrus.Infof("[%s] - deleting cluster %s", s.Name(), cfg.ClusterName)
 
 	EC2, err := GetEC2(cfg.AWSConfig)
 	if err != nil {
@@ -49,22 +50,23 @@ func (s *DeleteClusterStep) Run(ctx context.Context, w io.Writer, cfg *steps.Con
 			instanceIDS = append(instanceIDS, *instance.InstanceId)
 		}
 	}
+	if len(instanceIDS) == 0 {
+		logrus.Infof("[%s] - no nodes in k8s cluster %s", s.Name(), cfg.ClusterName)
+		return nil
+	}
 
 	output, err := EC2.TerminateInstancesWithContext(ctx, &ec2.TerminateInstancesInput{
 		InstanceIds: aws.StringSlice(instanceIDS),
 	})
 
 	if err != nil {
+		logrus.Error(ErrDeleteCluster, err.Error())
 		return errors.Wrap(ErrDeleteCluster, err.Error())
 	}
 
 	terminatedInstances := make([]string, 0)
 	for _, instance := range output.TerminatingInstances {
 		terminatedInstances = append(terminatedInstances, *instance.InstanceId)
-	}
-
-	if err != nil {
-		return errors.Wrap(ErrDeleteCluster, err.Error())
 	}
 
 	msg := fmt.Sprintf("terminated instances %s", strings.Join(terminatedInstances, " , "))
