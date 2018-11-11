@@ -71,6 +71,10 @@ func NewHandler(svc Interface, accountService accountGetter, provisioner nodePro
 				DeleteCluster: workflows.DigitalOceanDeleteCluster,
 				DeleteNode:    workflows.DigitalOceanDeleteNode,
 			},
+			clouds.AWS: {
+				DeleteCluster: workflows.AWSDeleteCluster,
+				DeleteNode:    workflows.AWSDeleteNode,
+			},
 		},
 		repo:      repo,
 		getWriter: util.GetWriter,
