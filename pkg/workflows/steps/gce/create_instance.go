@@ -8,7 +8,7 @@ import (
 	"golang.org/x/oauth2/jwt"
 	"google.golang.org/api/compute/v1"
 
-	"github.com/Sirupsen/logrus"
+	"fmt"
 	"github.com/supergiant/supergiant/pkg/clouds"
 	"github.com/supergiant/supergiant/pkg/node"
 	"github.com/supergiant/supergiant/pkg/sgerrors"
@@ -81,34 +81,24 @@ func (s *Step) Run(ctx context.Context, output io.Writer, config *steps.Config) 
 
 	prefix := "https://www.googleapis.com/compute/v1/projects/" + config.GCEConfig.ProjectID
 
-	var instanceGroup *compute.InstanceGroup
-
-	if config.IsMaster {
-
-		// Create master instance group.
-		instanceGroup = &compute.InstanceGroup{
-			Name:        config.ClusterName + "-kubernetes-masters",
-			Description: "Kubernetes master group for cluster:" + config.ClusterName,
-		}
-	} else {
-		// Create worker instance group
-		instanceGroup = &compute.InstanceGroup{
-			Name:        config.ClusterName + "-kubernetes-workers",
-			Description: "Kubernetes minion group for cluster:" + config.ClusterName,
-		}
-	}
-
-	group, serr := client.InstanceGroups.Insert(config.GCEConfig.ProjectID,
-		config.GCEConfig.Zone, instanceGroup).Do()
-
-	if serr != nil {
-		return serr
-	}
-
-	config.GCEConfig.InstanceGroup = group.SelfLink
-
 	role := "master"
+
+	if !config.IsMaster {
+		role = "node"
+	}
 	name := util.MakeNodeName(config.ClusterName, config.TaskID, config.IsMaster)
+
+	publicKey := fmt.Sprintf("%s:%s",
+		config.SshConfig.User, config.SshConfig.BootstrapPublicKey)
+	// Put bootstrap key to instance metadata that allows ssh connection to the node
+	metadata := &compute.Metadata{
+		Items: []*compute.MetadataItems{
+			{
+				Key:   "ssh-keys",
+				Value: &publicKey,
+			},
+		},
+	}
 
 	instance := &compute.Instance{
 		Name:         name,
@@ -163,12 +153,8 @@ func (s *Step) Run(ctx context.Context, output io.Writer, config *steps.Config) 
 		},
 	}
 
-	// Copy service account to use it for provisioning, because gce client do not allow
-	// to pass user provided key
-	config.SshConfig.BootstrapPrivateKey = config.GCEConfig.PrivateKey
-
 	// create the instance.
-	_, serr = client.Instances.Insert(config.GCEConfig.ProjectID,
+	_, serr := client.Instances.Insert(config.GCEConfig.ProjectID,
 		config.GCEConfig.Zone,
 		instance).Do()
 
@@ -176,53 +162,67 @@ func (s *Step) Run(ctx context.Context, output io.Writer, config *steps.Config) 
 		return serr
 	}
 
+	resp, err := client.Instances.Get(config.GCEConfig.ProjectID,
+		config.GCEConfig.Zone, instance.Name).Do()
+	if serr != nil {
+		return err
+	}
+
+	metadata.Fingerprint = resp.Metadata.Fingerprint
+	_, err = client.Instances.SetMetadata(config.GCEConfig.ProjectID,
+		config.GCEConfig.Zone, name, metadata).Do()
+
+	if err != nil {
+		return err
+	}
+
+	nodeRole := node.RoleMaster
+
+	if !config.IsMaster {
+		nodeRole = node.RoleNode
+	}
+
+	config.Node = node.Node{
+		ID:        string(resp.Id),
+		Name:      name,
+		CreatedAt: time.Now().Unix(),
+		State:     node.StateBuilding,
+		Role:      nodeRole,
+		Provider:  clouds.GCE,
+		Size:      config.GCEConfig.Size,
+		Region:    config.GCEConfig.Zone,
+	}
+
+	// Update node state in cluster
+	config.NodeChan() <- config.Node
+
 	ticker := time.NewTicker(time.Second * 10)
 	after := time.After(time.Minute * 5)
 
 	for {
 		select {
 		case <-ticker.C:
-			resp, serr := client.Instances.Get(config.GCEConfig.ProjectID, config.GCEConfig.Zone, instance.Name).Do()
+			resp, serr := client.Instances.Get(config.GCEConfig.ProjectID,
+				config.GCEConfig.Zone, instance.Name).Do()
 			if serr != nil {
 				continue
 			}
 
 			// Save Master info when ready
 			if resp.Status == "RUNNING" {
-				n := node.Node{
-					ID:        string(resp.Id),
-					Name:      util.MakeNodeName(config.ClusterName, config.TaskID, config.IsMaster),
-					CreatedAt: time.Now().Unix(),
-					Provider:  clouds.GCE,
-					Size:      config.GCEConfig.Size,
-					Region:    config.GCEConfig.Zone,
-					PublicIp:  resp.NetworkInterfaces[0].AccessConfigs[0].NatIP,
-					PrivateIp: resp.NetworkInterfaces[0].NetworkIP,
-				}
+				config.Node.PublicIp = resp.NetworkInterfaces[0].AccessConfigs[0].NatIP
+				config.Node.PrivateIp = resp.NetworkInterfaces[0].NetworkIP
+				config.Node.State = node.StateActive
+
+				// Update node state in cluster
+				config.NodeChan() <- config.Node
 
 				if config.IsMaster {
-					config.AddMaster(&n)
-
-					// Add master to instance group
-					_, err = client.InstanceGroups.AddInstances(
-						config.GCEConfig.ProjectID,
-						config.GCEConfig.Zone,
-						instanceGroup.Name,
-						&compute.InstanceGroupsAddInstancesRequest{
-							Instances: []*compute.InstanceReference{
-								{
-									Instance: resp.SelfLink,
-								},
-							},
-						},
-					).Do()
-
-					if err != nil {
-						return err
-					}
+					config.AddMaster(&config.Node)
+				} else {
+					config.AddNode(&config.Node)
 				}
 
-				config.Node = n
 				return nil
 			}
 		case <-after:
