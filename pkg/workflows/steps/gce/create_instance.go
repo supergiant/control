@@ -88,6 +88,7 @@ func (s *Step) Run(ctx context.Context, output io.Writer, config *steps.Config) 
 	}
 	name := util.MakeNodeName(config.ClusterName, config.TaskID, config.IsMaster)
 
+	// TODO(stgleb): also user provided ssh key
 	publicKey := fmt.Sprintf("%s:%s",
 		config.SshConfig.User, config.SshConfig.BootstrapPublicKey)
 	// Put bootstrap key to instance metadata that allows ssh connection to the node
