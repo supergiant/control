@@ -152,9 +152,7 @@
           </div>
 
           <div class="input-group">
-            <mat-form-field>
-              <input matInput type="text" formControlName="keypairName" placeholder="Keypair Name">
-            </mat-form-field>
+
 
             <mat-form-field>
               <input matInput type="text" formControlName="subnetId" placeholder="Subnet ID" required>
@@ -162,10 +160,16 @@
 
             <mat-form-field>
               <input matInput type="text" formControlName="mastersSecurityGroupId" placeholder="Master's Security Group ID">
+              <mat-hint align="end">Leaving this blank will create a new one</mat-hint>
             </mat-form-field>
 
             <mat-form-field>
               <input matInput type="text" formControlName="nodesSecurityGroupId" placeholder="Node's Security Group ID">
+              <mat-hint align="end">Leaving this blank will create a new one</mat-hint>
+            </mat-form-field>
+
+            <mat-form-field>
+              <textarea rows="1" matInput formControlName="publicKey" placeholder="Public Key" required></textarea>
             </mat-form-field>
           </div>
 
@@ -288,7 +292,6 @@
               <p><span class="label">AVAIL. ZONE:</span> {{ providerConfig.value.availabilityZone }}</p>
               <p><span class="label">VPC ID:</span> {{ providerConfig.value.vpcId }}</p>
               <p><span class="label">VPC CIDR:</span> {{ providerConfig.value.vpcCidr }}</p>
-              <p><span class="label">KEYPAIR NAME:</span> {{ providerConfig.value.keypairName }}</p>
               <p><span class="label">SUBNET ID:</span> {{ providerConfig.value.subnetId }}</p>
               <p><span class="label">MASTERS SEC. GROUP ID:</span> {{ providerConfig.value.mastersSecurityGroupId }}</p>
               <p><span class="label">NODES SEC. GROUP ID:</span> {{ providerConfig.value.nodesSecurityGroupId }}</p>
