@@ -41,7 +41,7 @@ type Kube struct {
 // Auth holds all possible auth parameters.
 type Auth struct {
 	Username string `json:"username"`
-	Token    string `json:"tokserveren"`
+	Token    string `json:"token"`
 	CAKey    string `json:"caKey"`
 	CACert   string `json:"caCert"`
 	Cert     string `json:"cert"`

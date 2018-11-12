@@ -17,10 +17,13 @@ import (
 const DeleteClusterStepName = "aws_delete_cluster"
 
 type DeleteClusterStep struct {
+	fn GetEC2Fn
 }
 
-func InitDeleteCluster() {
-	steps.RegisterStep(DeleteClusterStepName, &DeleteClusterStep{})
+func InitDeleteCluster(fn GetEC2Fn) {
+	steps.RegisterStep(DeleteClusterStepName, &DeleteClusterStep{
+		fn: fn,
+	})
 }
 
 func (s *DeleteClusterStep) Run(ctx context.Context, w io.Writer, cfg *steps.Config) error {

@@ -5,5 +5,4 @@ sudo /opt/bin/helm install stable/prometheus-operator \
     --set global.rbac.create={{ .RBACEnabled }} \
     --set grafana.rbac.create={{ .RBACEnabled }} \
     --set kube-state-metrics.rbac.create={{ .RBACEnabled }} \
-    --set prometheus-node-exporter.rbac.create={{ .RBACEnabled }} \
-    --set prometheus.io/insecure_skip_verify=true
+    --set prometheus-node-exporter.rbac.create={{ .RBACEnabled }}
