@@ -109,7 +109,9 @@ export class NewClusterComponent implements OnInit, OnDestroy {
             aws_subnet_id: this.providerConfig.value.subnetId,
             aws_masters_secgroup_id: this.providerConfig.value.mastersSecurityGroupId,
             aws_nodes_secgroup_id: this.providerConfig.value.nodesSecurityGroupId
-          }
+          };
+
+          newClusterData.profile.publicKey = this.providerConfig.value.publicKey;
         }
       }
 
@@ -243,7 +245,8 @@ export class NewClusterComponent implements OnInit, OnDestroy {
           keypairName: [""],
           subnetId: ["default", Validators.required],
           mastersSecurityGroupId: [""],
-          nodesSecurityGroupId: [""]
+          nodesSecurityGroupId: [""],
+          publicKey: ["", Validators.required]
         });
         break;
     }
