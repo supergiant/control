@@ -3,7 +3,7 @@ KUBERNETES_SSL_DIR={{ .KubernetesConfigDir }}/ssl
 sudo mkdir -p ${KUBERNETES_SSL_DIR}
 
 #sleep 10
-#FLANNELIP=$(ifconfig flannel.1|grep 'inet addr'| awk '{print substr($2,6,12)}')
+FLANNELIP=$(ifconfig flannel.1|grep 'inet addr'| awk '{print substr($2,6,12)}')
 
 sudo bash -c "cat > /etc/kubernetes/ssl/openssl.cnf.template <<EOF
 [req]
@@ -19,9 +19,10 @@ DNS.1 = kubernetes
 DNS.2 = kubernetes.default
 DNS.3 = kubernetes.default.svc
 DNS.4 = kubernetes.default.svc.cluster
-IP.1 = {MASTER_HOST}
-IP.2 = {PRIVATE_HOST}
-IP.3 = 10.3.0.1
+IP.1 = {FLANNELIP}
+IP.2 = {MASTER_HOST}
+IP.3 = {PRIVATE_HOST}
+IP.4 = 10.3.0.1
 EOF"
 
 sudo bash -c "cat > /etc/kubernetes/ssl/ca.pem <<EOF
@@ -30,10 +31,10 @@ sudo bash -c "cat > /etc/kubernetes/ssl/ca.pem <<EOF
 sudo bash -c "cat > /etc/kubernetes/ssl/ca-key.pem <<EOF
 {{ .CAKey }}EOF"
 
-sudo bash -c "sed -e \"s/{MASTER_HOST}/`curl ipinfo.io/ip`/\" < /etc/kubernetes/ssl/openssl.cnf.template > /etc/kubernetes/ssl/openssl.cnf.1"
-sudo bash -c "sed -e \"s/{PRIVATE_HOST}/{{ .MasterHost }}/\" < /etc/kubernetes/ssl/openssl.cnf.1 > /etc/kubernetes/ssl/openssl.cnf"
+sudo bash -c "sed -e \"s/{MASTER_HOST}/{{ .PublicIP }}/\" < /etc/kubernetes/ssl/openssl.cnf.template > /etc/kubernetes/ssl/openssl.cnf.1"
+sudo bash -c "sed -e \"s/{PRIVATE_HOST}/{{ .PrivateIP }}/\" < /etc/kubernetes/ssl/openssl.cnf.1 > /etc/kubernetes/ssl/openssl.cnf"
 
-#sudo sed -e "s/{FLANNELIP}/$FLANNELIP/" < /etc/kubernetes/ssl/openssl.cnf.2 > /etc/kubernetes/ssl/openssl.cnf
+sudo sed -e "s/{FLANNELIP}/$FLANNELIP/" < /etc/kubernetes/ssl/openssl.cnf.2 > /etc/kubernetes/ssl/openssl.cnf
 
 sudo openssl genrsa -out /etc/kubernetes/ssl/apiserver-key.pem 2048
 sudo openssl req -new -key /etc/kubernetes/ssl/apiserver-key.pem -out /etc/kubernetes/ssl/apiserver.csr -subj "/CN=kube-apiserver" -config /etc/kubernetes/ssl/openssl.cnf
