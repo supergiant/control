@@ -31,10 +31,9 @@ sudo bash -c "cat > /etc/kubernetes/ssl/ca.pem <<EOF
 sudo bash -c "cat > /etc/kubernetes/ssl/ca-key.pem <<EOF
 {{ .CAKey }}EOF"
 
-sudo bash -c "sed -e \"s/{MASTER_HOST}/{{ .PublicIP }}/\" < /etc/kubernetes/ssl/openssl.cnf.template > /etc/kubernetes/ssl/openssl.cnf.1"
-sudo bash -c "sed -e \"s/{PRIVATE_HOST}/{{ .PrivateIP }}/\" < /etc/kubernetes/ssl/openssl.cnf.1 > /etc/kubernetes/ssl/openssl.cnf"
-
-sudo sed -e "s/{FLANNELIP}/$FLANNELIP/" < /etc/kubernetes/ssl/openssl.cnf.2 > /etc/kubernetes/ssl/openssl.cnf
+sudo sed -e "s/{FLANNELIP}/$FLANNELIP/" < /etc/kubernetes/ssl/openssl.cnf.template > /etc/kubernetes/ssl/openssl.cnf.1
+sudo bash -c "sed -e \"s/{MASTER_HOST}/{{ .PublicIP }}/\" < /etc/kubernetes/ssl/openssl.cnf.1 > /etc/kubernetes/ssl/openssl.cnf.2"
+sudo bash -c "sed -e \"s/{PRIVATE_HOST}/{{ .PrivateIP }}/\" < /etc/kubernetes/ssl/openssl.cnf.2 > /etc/kubernetes/ssl/openssl.cnf"
 
 sudo openssl genrsa -out /etc/kubernetes/ssl/apiserver-key.pem 2048
 sudo openssl req -new -key /etc/kubernetes/ssl/apiserver-key.pem -out /etc/kubernetes/ssl/apiserver.csr -subj "/CN=kube-apiserver" -config /etc/kubernetes/ssl/openssl.cnf
