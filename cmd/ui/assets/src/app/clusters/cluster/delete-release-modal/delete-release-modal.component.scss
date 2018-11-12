@@ -1,0 +1,37 @@
+.delete-release-modal-wrapper {
+
+  .headline {
+    color: rgba(244,67,54,1);
+    font-family: "Montserrat", sans-serif;
+    font-size: 32px;
+    font-weight: 300;
+    letter-spacing: 2px;
+    text-align: center;
+  }
+
+  .communication {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    font-weight: 300;
+    margin: 0 auto 24px;
+    width: 80%;
+  }
+
+  .action-buttons {
+    display: flex;
+    justify-content: flex-end;
+
+    .delete {
+      background-color: rgba(244,67,54,0.8);
+    }
+
+    button {
+      margin-right: 12px;
+
+      &:last-of-type {
+        margin-right: 0px;
+      }
+    }
+  }
+}

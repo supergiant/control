@@ -46,7 +46,9 @@ export class UsageOrbComponent implements OnInit, OnDestroy {
   }
 
   ngOnInit() {
-    this.getMetrics();
+    if (this.cluster.state == "operational") {
+      this.getMetrics();
+    }
   }
 
   ngOnDestroy() {
