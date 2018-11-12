@@ -117,8 +117,8 @@
     <mat-step label="Provider Configuration" [stepControl]="providerConfig">
       <!-- digital ocean -->
       <ng-container *ngIf="selectedCloudAccount?.provider == 'digitalocean'">
-        <form [formGroup]="providerConfig">
-          <mat-form-field>
+        <form [formGroup]="providerConfig" class="do-config">
+          <mat-form-field [ngClass]="{ 'regionsLoading': regionsLoading }">
             <mat-select placeholder="Select a Region" formControlName="region" (selectionChange)="selectRegion($event.value)" required>
               <mat-option *ngFor="let r of availableRegions?.regions" [value]="r">{{ r.name }}</mat-option>
             </mat-select>
@@ -130,13 +130,13 @@
       <ng-container *ngIf="selectedCloudAccount?.provider == 'aws'">
         <form [formGroup]="providerConfig" class="aws-config">
           <div class="input-group">
-            <mat-form-field>
+            <mat-form-field [ngClass]="{ 'regionsLoading': regionsLoading }">
               <mat-select placeholder="Select a Region" formControlName="region" (selectionChange)="selectRegion($event.value)" required>
                 <mat-option *ngFor="let r of availableRegions?.regions" [value]="r">{{ r.name }}</mat-option>
               </mat-select>
             </mat-form-field>
 
-            <mat-form-field>
+            <mat-form-field [ngClass]="{ 'azsLoading': azsLoading }">
               <mat-select [disabled]="!availabilityZones" placeholder="Select an Availability Zone" formControlName="availabilityZone" (selectionChange)="selectAz($event.value)" required>
                 <mat-option *ngFor="let a of availabilityZones" [value]="a">{{ a }}</mat-option>
               </mat-select>
@@ -220,7 +220,7 @@
         <!-- aws -->
         <ng-container *ngIf="selectedCloudAccount?.provider == 'aws'" >
           <div class="machine" *ngFor="let m of machines; let idx = index">
-            <mat-form-field class="type">
+            <mat-form-field class="type" [ngClass]="{ 'machinesLoading': machinesLoading }">
               <mat-select placeholder="Machine Type (size)" id="m.machineType" [(value)]="m.machineType" (selectionChange)="checkForValidMachinesConfig()">
                 <mat-option *ngFor="let type of availableMachineTypes" [value]="type">{{ type }}</mat-option>
               </mat-select>
