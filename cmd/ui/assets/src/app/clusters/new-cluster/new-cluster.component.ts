@@ -27,9 +27,12 @@ export class NewClusterComponent implements OnInit, OnDestroy {
   availableRegions: any;
   selectedRegion: any;
   availableMachineTypes: Array<any>;
+  regionsLoading = false;
+  machinesLoading = false;
 
   // aws vars
   availabilityZones: Array<any>;
+  azsLoading = false;
 
   machines = [{
     machineType: null,
@@ -157,9 +160,16 @@ export class NewClusterComponent implements OnInit, OnDestroy {
     const accountName = this.selectedCloudAccount.name;
     const region = this.providerConfig.value.region.name;
 
+    this.machinesLoading = true;
     this.supergiant.CloudAccounts.getAwsMachineTypes(accountName, region, zone).subscribe(
-      types => this.availableMachineTypes = types.sort(),
-      err => console.error(err)
+      types => {
+        this.availableMachineTypes = types.sort();
+        this.machinesLoading = false;
+      },
+      err => {
+        console.error(err);
+        this.machinesLoading = false;
+      }
     )
   }
 
@@ -177,9 +187,16 @@ export class NewClusterComponent implements OnInit, OnDestroy {
         break;
 
       case "aws":
+        this.azsLoading = true;
         this.getAwsAvailabilityZones(region).subscribe(
-          azList => this.availabilityZones = azList.sort(),
-          err => console.error(err)
+          azList => {
+            this.availabilityZones = azList.sort();
+            this.azsLoading = false
+          },
+          err => {
+            console.error(err);
+            this.azsLoading = false
+          }
         );
         break;
     }
@@ -251,12 +268,17 @@ export class NewClusterComponent implements OnInit, OnDestroy {
         break;
     }
 
+    this.regionsLoading = true;
     this.subscriptions.add(this.supergiant.CloudAccounts.getRegions(cloudAccount.name).subscribe(
       regionList => {
         this.availableRegions = regionList;
         this.availableRegions.regions.sort(this.sortRegionsByName);
+        this.regionsLoading = false;
       },
-      err => this.error({}, err)
+      err => {
+        this.error({}, err);
+        this.regionsLoading = false;
+      }
     ))
   }
 
