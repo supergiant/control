@@ -169,6 +169,7 @@ import { AddNodeComponent } from './clusters/cluster/add-node/add-node.component
 import { UsageOrbComponent } from './dashboard/usage-orb/usage-orb.component';
 import { ClusterTableComponent } from './dashboard/cluster-table/cluster-table.component';
 import { DeleteClusterModalComponent } from './clusters/cluster/delete-cluster-modal/delete-cluster-modal.component';
+import { DeleteReleaseModalComponent } from './clusters/cluster/delete-release-modal/delete-release-modal.component';
 
 @NgModule({
   declarations: [
@@ -242,6 +243,7 @@ import { DeleteClusterModalComponent } from './clusters/cluster/delete-cluster-m
     UsageOrbComponent,
     ClusterTableComponent,
     DeleteClusterModalComponent,
+    DeleteReleaseModalComponent,
   ],
   imports: [
     BrowserModule,
@@ -343,7 +345,8 @@ import { DeleteClusterModalComponent } from './clusters/cluster/delete-cluster-m
     TaskLogsComponent,
     MenuModalComponent,
     ClusterListModalComponent,
-    DeleteClusterModalComponent
+    DeleteClusterModalComponent,
+    DeleteReleaseModalComponent
   ],
   bootstrap: [AppComponent],
 })

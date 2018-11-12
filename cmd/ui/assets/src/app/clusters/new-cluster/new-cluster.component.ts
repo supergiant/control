@@ -142,8 +142,6 @@ export class NewClusterComponent implements OnInit, OnDestroy {
   }
 
   error(model, data) {
-    console.log("model:", model);
-    console.log("data:", data);
     this.notifications.display(
       'error',
       'Kube: ' + model.name,
