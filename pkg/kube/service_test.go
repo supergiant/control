@@ -2,7 +2,6 @@ package kube
 
 import (
 	"context"
-	"encoding/json"
 	"testing"
 
 	"github.com/golang/protobuf/ptypes/timestamp"
@@ -135,17 +134,15 @@ func TestKubeServiceCreate(t *testing.T) {
 
 	for _, testCase := range testCases {
 		m := new(testutils.MockStorage)
-		kubeData, _ := json.Marshal(testCase.kube)
 
 		m.On("Put",
 			context.Background(),
 			prefix,
-			testCase.kube.Name,
-			kubeData).
+			mock.Anything,
+			mock.Anything).
 			Return(testCase.err)
 
 		service := NewService(prefix, m, nil)
-
 		err := service.Create(context.Background(), testCase.kube)
 
 		if testCase.err != errors.Cause(err) {
@@ -160,7 +157,7 @@ func TestKubeServiceGetAll(t *testing.T) {
 		err  error
 	}{
 		{
-			data: [][]byte{[]byte(`{"name":"kube-name-1234"}`), []byte(`{"id":"56kube-name-5678"}`)},
+			data: [][]byte{[]byte(`{"id":"kube-name-1234"}`), []byte(`{"id":"56kube-name-5678"}`)},
 			err:  nil,
 		},
 		{
@@ -194,8 +191,8 @@ func TestService_InstallRelease(t *testing.T) {
 	tcs := []struct {
 		svc Service
 
-		clusterName string
-		rlsInput    *ReleaseInput
+		clusterID string
+		rlsInput  *ReleaseInput
 
 		expectedRes *release.Release
 		expectedErr error
@@ -280,7 +277,7 @@ func TestService_InstallRelease(t *testing.T) {
 	}
 
 	for i, tc := range tcs {
-		rls, err := tc.svc.InstallRelease(context.Background(), tc.clusterName, tc.rlsInput)
+		rls, err := tc.svc.InstallRelease(context.Background(), tc.clusterID, tc.rlsInput)
 		require.Equalf(t, tc.expectedErr, errors.Cause(err), "TC#%d: check errors", i+1)
 
 		if err == nil {

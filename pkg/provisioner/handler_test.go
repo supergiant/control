@@ -106,16 +106,6 @@ func TestProvisionHandler(t *testing.T) {
 			expectedCode: http.StatusBadRequest,
 		},
 		{
-			description:  "kube name duplicate",
-			body:         validBody,
-			expectedCode: http.StatusConflict,
-			kubeGetter: func(ctx context.Context, name string) (*model.Kube, error) {
-				return &model.Kube{
-					Name: name,
-				}, nil
-			},
-		},
-		{
 			description:  "error getting the cluster discovery url",
 			body:         validBody,
 			expectedCode: http.StatusInternalServerError,
