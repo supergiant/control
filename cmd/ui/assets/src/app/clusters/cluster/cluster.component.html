@@ -1,7 +1,7 @@
 <div class="cluster-details-wrapper">
 
   <ng-container *ngIf="kube?.state == 'provisioning' || kube?.state == 'failed'">
-    <h1>Creating "{{id}}"</h1>
+    <h1>Creating "{{ kube.name }}"</h1>
     <div class="task-overview">
       <div class="masters task-group">
         <div class="icon masters-icon">
@@ -300,7 +300,15 @@
             <mat-header-cell mat-sort-header
                              *matHeaderCellDef>Last Deployed
             </mat-header-cell>
-            <mat-cell *matCellDef="let release">{{ release.lastDeployed }}</mat-cell>
+            <mat-cell *matCellDef="let release">
+              {{ release.lastDeployed }}
+              <div></div>
+              <button (click)="deleteRelease(release.name, $event)"
+                      mat-button>
+                <i class="fa fa-trash"
+                   aria-hidden="true"></i>
+              </button>
+            </mat-cell>
           </ng-container>
 
           <mat-header-row *matHeaderRowDef="releaseListColumns"></mat-header-row>
@@ -316,6 +324,9 @@
   </ng-container>
 
   <div class="action-buttons">
-    <button mat-raised-button class="secondary delete-cluster" type="button" (click)="deleteCluster()">DELETE CLUSTER</button>
+    <button mat-raised-button class="secondary delete-cluster" type="button" (click)="deleteCluster()">
+      <ng-container *ngIf="kube?.state == 'operational' || kube?.state == 'failed'">DELETE CLUSTER</ng-container>
+      <ng-container *ngIf="kube?.state == 'provisioning'">CANCEL</ng-container>
+    </button>
   </div>
 </div>

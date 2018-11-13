@@ -33,19 +33,19 @@ func (m *mockDeleteService) DeleteByTag(ctx context.Context, tag string) (*godo.
 func TestDeleteClusterRun(t *testing.T) {
 	testCases := []struct {
 		description   string
-		clusterName   string
+		clusterID     string
 		dropletErrors []error
 		responses     []*godo.Response
 	}{
 		{
 			description:   "empty tag",
-			clusterName:   "",
+			clusterID:     "",
 			dropletErrors: []error{errors.New(""), errors.New(""), errors.New("")},
 			responses:     []*godo.Response{nil, nil, nil},
 		},
 		{
 			description:   "retry exceeded",
-			clusterName:   "fail",
+			clusterID:     "fail",
 			dropletErrors: []error{errors.New(""), errors.New(""), errors.New("")},
 			responses: []*godo.Response{
 				{
@@ -67,7 +67,7 @@ func TestDeleteClusterRun(t *testing.T) {
 		},
 		{
 			description:   "success",
-			clusterName:   "success",
+			clusterID:     "success",
 			dropletErrors: []error{errors.New(""), errors.New(""), nil},
 			responses: []*godo.Response{
 				{
@@ -100,7 +100,7 @@ func TestDeleteClusterRun(t *testing.T) {
 				return svc
 			}
 			err := step.Run(context.Background(), &bytes.Buffer{}, &steps.Config{
-				ClusterName: testCase.clusterName,
+				ClusterID: testCase.clusterID,
 			})
 
 			if err != testCase.dropletErrors[i] {

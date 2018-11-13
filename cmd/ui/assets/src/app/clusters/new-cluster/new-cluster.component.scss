@@ -58,6 +58,12 @@
 			}
 		}
 
+		.do-config {
+			.regionsLoading {
+				animation: loading 1s infinite;
+			}
+		}
+
 		.aws-config {
 			display: flex;
 			justify-content: flex-start;
@@ -70,6 +76,14 @@
 
 				&:nth-of-type(1) {
 					margin-left: 0px;
+				}
+
+				.regionsLoading {
+					animation: loading 1s infinite;
+				}
+
+				.azsLoading {
+					animation: loading 1s infinite;
 				}
 			}
 		}
@@ -85,6 +99,10 @@
 
 				.type {
 					width: 240px;
+				}
+
+				.machinesLoading {
+					animation: loading 1s infinite;
 				}
 
 				.role {
@@ -184,6 +202,20 @@
           }
         }
 			}
+		}
+
+		@keyframes loading {
+		  0% {
+		    opacity: 0.5;
+		  }
+
+		  50% {
+		    opacity: 1;
+		  }
+
+		  100% {
+		    opacity: 0.5;
+		  }
 		}
 	}
 

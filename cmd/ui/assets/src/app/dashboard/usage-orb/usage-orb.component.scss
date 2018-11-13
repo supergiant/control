@@ -10,12 +10,66 @@
     background-color: rgba(0,0,0,0.5);
     border: 1px solid rgba(255,255,255,0.25);
   }
+
+  .warn {
+    width: 100%;
+    text-align: center;
+
+    p {
+      color: #f44336;
+      font-family: "Montserrat", sans-serif;
+      font-size: 24px;
+      margin: 10px auto 0px;
+    }
+  }
+}
+
+.deleting {
+  animation: deleting 2.5s infinite;
+  pointer-events: none;
+}
+
+@keyframes deleting {
+  0% {
+    opacity: 0.5;
+  }
+
+  50% {
+    opacity: 1;
+  }
+
+  100% {
+    opacity: 0.5;
+  }
+}
+
+.failed {
+  opacity: 0.8;
+}
+
+.provisioning-orb {
+  animation: provisioning-orb 2.5s infinite;
+}
+
+@keyframes provisioning-orb {
+  0% {
+    box-shadow: 0 0 20px 0 #e63d98;
+  }
+
+  50% {
+    box-shadow: 0 0 200px 0 #e63d98;
+  }
+
+  100% {
+    box-shadow: 0 0 20px 0 #e63d98;
+  }
 }
 
 .usage {
   position: relative;
   height: 200px;
   width: 200px;
+  border-radius: 50%;
 
   .cpu-usage {
     background: url(/assets/img/cluster-details/left_metric_base.svg) no-repeat;
@@ -37,13 +91,13 @@
     .cpu-usage {}
   }
 
-  .name {
+  .index {
     align-items: center;
     background-image: linear-gradient(315deg, #8721ff, #8b22fb 18%, #ff457e);
     border-radius: 50%;
     box-shadow: 0 0 150px 0 #e63d98;
     display: flex;
-    font-size: 1.3em;
+    font-size: 55px;
     font-family: "Montserrat", sans-serif;
     justify-content: center;
     position: absolute;
@@ -71,5 +125,16 @@
     left: 2px;
 
     .ram-usage {}
+  }
+}
+
+.name {
+  font-size: 16px;
+  font-weight: 700;
+  text-align: center;
+  margin-top: 10px;
+  font-family: "Montserrat", sans-serif;
+
+  span {
   }
 }

@@ -101,7 +101,7 @@ type Handler struct {
 	workflowMap     map[clouds.Name]workflows.WorkflowSet
 	repo            storage.Interface
 	getWriter       func(string) (io.WriteCloser, error)
-	getMetrics 		func(string) (*MetricResponse, error)
+	getMetrics      func(string) (*MetricResponse, error)
 }
 
 // NewHandler constructs a Handler for kubes.
@@ -114,6 +114,10 @@ func NewHandler(svc Interface, accountService accountGetter, provisioner nodePro
 			clouds.DigitalOcean: {
 				DeleteCluster: workflows.DigitalOceanDeleteCluster,
 				DeleteNode:    workflows.DigitalOceanDeleteNode,
+			},
+			clouds.AWS: {
+				DeleteCluster: workflows.AWSDeleteCluster,
+				DeleteNode:    workflows.AWSDeleteNode,
 			},
 		},
 		repo:      repo,
@@ -155,30 +159,30 @@ func NewHandler(svc Interface, accountService accountGetter, provisioner nodePro
 func (h *Handler) Register(r *mux.Router) {
 	r.HandleFunc("/kubes", h.createKube).Methods(http.MethodPost)
 	r.HandleFunc("/kubes", h.listKubes).Methods(http.MethodGet)
-	r.HandleFunc("/kubes/{kname}", h.getKube).Methods(http.MethodGet)
-	r.HandleFunc("/kubes/{kname}", h.deleteKube).Methods(http.MethodDelete)
+	r.HandleFunc("/kubes/{kubeID}", h.getKube).Methods(http.MethodGet)
+	r.HandleFunc("/kubes/{kubeID}", h.deleteKube).Methods(http.MethodDelete)
 
-	r.HandleFunc("/kubes/{kname}/resources", h.listResources).Methods(http.MethodGet)
-	r.HandleFunc("/kubes/{kname}/resources/{resource}", h.getResource).Methods(http.MethodGet)
+	r.HandleFunc("/kubes/{kubeID}/resources", h.listResources).Methods(http.MethodGet)
+	r.HandleFunc("/kubes/{kubeID}/resources/{resource}", h.getResource).Methods(http.MethodGet)
 
-	r.HandleFunc("/kubes/{kname}/releases", h.installRelease).Methods(http.MethodPost)
-	r.HandleFunc("/kubes/{kname}/releases", h.listReleases).Methods(http.MethodGet)
-	r.HandleFunc("/kubes/{kname}/releases/{releaseName}", h.deleteReleases).Methods(http.MethodDelete)
+	r.HandleFunc("/kubes/{kubeID}/releases", h.installRelease).Methods(http.MethodPost)
+	r.HandleFunc("/kubes/{kubeID}/releases", h.listReleases).Methods(http.MethodGet)
+	r.HandleFunc("/kubes/{kubeID}/releases/{releaseName}", h.deleteReleases).Methods(http.MethodDelete)
 
-	r.HandleFunc("/kubes/{kname}/certs/{cname}", h.getCerts).Methods(http.MethodGet)
-	r.HandleFunc("/kubes/{kname}/tasks", h.getTasks).Methods(http.MethodGet)
+	r.HandleFunc("/kubes/{kubeID}/certs/{cname}", h.getCerts).Methods(http.MethodGet)
+	r.HandleFunc("/kubes/{kubeID}/tasks", h.getTasks).Methods(http.MethodGet)
 
-	r.HandleFunc("/kubes/{kname}/nodes", h.addNode).Methods(http.MethodPost)
-	r.HandleFunc("/kubes/{kname}/nodes/{nodename}", h.deleteNode).Methods(http.MethodDelete)
-	r.HandleFunc("/kubes/{kname}/metrics", h.getClusterMetrics).Methods(http.MethodGet)
-	r.HandleFunc("/kubes/{kname}/nodes/metrics", h.getNodesMetrics).Methods(http.MethodGet)
-	r.HandleFunc("/kubes/{kname}/services", h.getServices).Methods(http.MethodGet)
-	r.HandleFunc("/kubes/{kname}/services/proxy", h.proxyService).Methods(http.MethodPost)
+	r.HandleFunc("/kubes/{kubeID}/nodes", h.addNode).Methods(http.MethodPost)
+	r.HandleFunc("/kubes/{kubeID}/nodes/{nodename}", h.deleteNode).Methods(http.MethodDelete)
+	r.HandleFunc("/kubes/{kubeID}/metrics", h.getClusterMetrics).Methods(http.MethodGet)
+	r.HandleFunc("/kubes/{kubeID}/nodes/metrics", h.getNodesMetrics).Methods(http.MethodGet)
+	r.HandleFunc("/kubes/{kubeID}/services", h.getServices).Methods(http.MethodGet)
+	r.HandleFunc("/kubes/{kubeID}/services/proxy", h.proxyService).Methods(http.MethodPost)
 }
 
 func (h *Handler) getTasks(w http.ResponseWriter, r *http.Request) {
 	vars := mux.Vars(r)
-	id, ok := vars["kname"]
+	id, ok := vars["kubeID"]
 
 	if !ok {
 		http.Error(w, "need name of a cluster", http.StatusBadRequest)
@@ -237,9 +241,9 @@ func (h *Handler) createKube(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	existingKube, err := h.svc.Get(r.Context(), newKube.Name)
+	existingKube, err := h.svc.Get(r.Context(), newKube.ID)
 	if existingKube != nil {
-		message.SendAlreadyExists(w, existingKube.Name, sgerrors.ErrAlreadyExists)
+		message.SendAlreadyExists(w, existingKube.ID, sgerrors.ErrAlreadyExists)
 		return
 	}
 
@@ -253,18 +257,19 @@ func (h *Handler) createKube(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	// TODO(stgleb): Reply with kube ID
 	w.WriteHeader(http.StatusAccepted)
 }
 
 func (h *Handler) getKube(w http.ResponseWriter, r *http.Request) {
 	vars := mux.Vars(r)
 
-	kname := vars["kname"]
+	kubeID := vars["kubeID"]
 
-	k, err := h.svc.Get(r.Context(), kname)
+	k, err := h.svc.Get(r.Context(), kubeID)
 	if err != nil {
 		if sgerrors.IsNotFound(err) {
-			message.SendNotFound(w, kname, err)
+			message.SendNotFound(w, kubeID, err)
 			return
 		}
 		message.SendUnknownError(w, err)
@@ -291,11 +296,11 @@ func (h *Handler) listKubes(w http.ResponseWriter, r *http.Request) {
 func (h *Handler) deleteKube(w http.ResponseWriter, r *http.Request) {
 	vars := mux.Vars(r)
 
-	kname := vars["kname"]
-	k, err := h.svc.Get(r.Context(), kname)
+	kubeID := vars["kubeID"]
+	k, err := h.svc.Get(r.Context(), kubeID)
 	if err != nil {
 		if sgerrors.IsNotFound(err) {
-			message.SendNotFound(w, kname, err)
+			message.SendNotFound(w, kubeID, err)
 			return
 		}
 		message.SendUnknownError(w, err)
@@ -327,8 +332,14 @@ func (h *Handler) deleteKube(w http.ResponseWriter, r *http.Request) {
 	}
 
 	config := &steps.Config{
+		ClusterID:        k.ID,
 		ClusterName:      k.Name,
 		CloudAccountName: k.AccountName,
+	}
+
+	//HACK TO PROVIDE REGION TO AWS DELETE CLUSTER
+	if acc.Provider == clouds.AWS {
+		config.AWSConfig.Region = k.Region
 	}
 
 	err = util.FillCloudAccountCredentials(r.Context(), acc, config)
@@ -357,7 +368,7 @@ func (h *Handler) deleteKube(w http.ResponseWriter, r *http.Request) {
 		err = h.svc.Create(context.Background(), k)
 
 		if err != nil {
-			logrus.Errorf("update cluster %s caused %v", kname, err)
+			logrus.Errorf("update cluster %s caused %v", kubeID, err)
 		}
 
 		err = <-errChan
@@ -366,12 +377,12 @@ func (h *Handler) deleteKube(w http.ResponseWriter, r *http.Request) {
 		}
 
 		// Finally delete cluster record from etcd
-		if err := h.svc.Delete(context.Background(), kname); err != nil {
-			logrus.Errorf("delete kube %s caused %v", kname, err)
+		if err := h.svc.Delete(context.Background(), kubeID); err != nil {
+			logrus.Errorf("delete kube %s caused %v", kubeID, err)
 			return
 		}
 
-		h.deleteClusterTasks(context.Background(), kname)
+		h.deleteClusterTasks(context.Background(), kubeID)
 	}(t)
 
 	w.WriteHeader(http.StatusAccepted)
@@ -380,11 +391,11 @@ func (h *Handler) deleteKube(w http.ResponseWriter, r *http.Request) {
 func (h *Handler) listResources(w http.ResponseWriter, r *http.Request) {
 	vars := mux.Vars(r)
 
-	kname := vars["kname"]
-	rawResources, err := h.svc.ListKubeResources(r.Context(), kname)
+	kubeID := vars["kubeID"]
+	rawResources, err := h.svc.ListKubeResources(r.Context(), kubeID)
 	if err != nil {
 		if sgerrors.IsNotFound(err) {
-			message.SendNotFound(w, kname, err)
+			message.SendNotFound(w, kubeID, err)
 			return
 		}
 		message.SendUnknownError(w, err)
@@ -399,15 +410,15 @@ func (h *Handler) listResources(w http.ResponseWriter, r *http.Request) {
 func (h *Handler) getResource(w http.ResponseWriter, r *http.Request) {
 	vars := mux.Vars(r)
 
-	kname := vars["kname"]
+	kubeID := vars["kubeID"]
 	rs := vars["resource"]
 	ns := r.URL.Query().Get("namespace")
 	name := r.URL.Query().Get("name")
 
-	rawResources, err := h.svc.GetKubeResources(r.Context(), kname, rs, ns, name)
+	rawResources, err := h.svc.GetKubeResources(r.Context(), kubeID, rs, ns, name)
 	if err != nil {
 		if sgerrors.IsNotFound(err) {
-			message.SendNotFound(w, kname, err)
+			message.SendNotFound(w, kubeID, err)
 			return
 		}
 		message.SendUnknownError(w, err)
@@ -422,13 +433,13 @@ func (h *Handler) getResource(w http.ResponseWriter, r *http.Request) {
 func (h *Handler) getCerts(w http.ResponseWriter, r *http.Request) {
 	vars := mux.Vars(r)
 
-	kname := vars["kname"]
+	kubeID := vars["kubeID"]
 	cname := vars["cname"]
 
-	b, err := h.svc.GetCerts(r.Context(), kname, cname)
+	b, err := h.svc.GetCerts(r.Context(), kubeID, cname)
 	if err != nil {
 		if sgerrors.IsNotFound(err) {
-			message.SendNotFound(w, kname, err)
+			message.SendNotFound(w, kubeID, err)
 			return
 		}
 		message.SendUnknownError(w, err)
@@ -443,8 +454,8 @@ func (h *Handler) getCerts(w http.ResponseWriter, r *http.Request) {
 // Add node to working kube
 func (h *Handler) addNode(w http.ResponseWriter, r *http.Request) {
 	vars := mux.Vars(r)
-	kname := vars["kname"]
-	k, err := h.svc.Get(r.Context(), kname)
+	kubeID := vars["kubeID"]
+	k, err := h.svc.Get(r.Context(), kubeID)
 
 	// TODO(stgleb): This method contains a lot of specific stuff, implement provision node
 	// method for nodeProvisioner to do all things related to provisioning and saving cluster state
@@ -545,13 +556,13 @@ func (h *Handler) addNode(w http.ResponseWriter, r *http.Request) {
 func (h *Handler) deleteNode(w http.ResponseWriter, r *http.Request) {
 	vars := mux.Vars(r)
 
-	kname := vars["kname"]
+	kubeID := vars["kubeID"]
 	nodeName := vars["nodename"]
 
-	k, err := h.svc.Get(r.Context(), kname)
+	k, err := h.svc.Get(r.Context(), kubeID)
 	if err != nil {
 		if sgerrors.IsNotFound(err) {
-			message.SendNotFound(w, kname, err)
+			message.SendNotFound(w, kubeID, err)
 			return
 		}
 		message.SendUnknownError(w, err)
@@ -595,6 +606,7 @@ func (h *Handler) deleteNode(w http.ResponseWriter, r *http.Request) {
 	}
 
 	config := &steps.Config{
+		ClusterID:        k.ID,
 		ClusterName:      k.Name,
 		CloudAccountName: k.AccountName,
 		Node: node.Node{
@@ -636,30 +648,30 @@ func (h *Handler) deleteNode(w http.ResponseWriter, r *http.Request) {
 		err := h.svc.Create(context.Background(), k)
 
 		if err != nil {
-			logrus.Errorf("update cluster %s caused %v", kname, err)
+			logrus.Errorf("update cluster %s caused %v", kubeID, err)
 		}
 
 		err = <-errChan
 
 		if err != nil {
-			logrus.Errorf("delete node %s from cluster %s caused %v", nodeName, kname, err)
+			logrus.Errorf("delete node %s from cluster %s caused %v", nodeName, kubeID, err)
 		}
 
 		// Delete node from cluster object
 		delete(k.Nodes, nodeName)
 		// Save cluster object to etcd
-		logrus.Infof("delete node %s from cluster %s", nodeName, kname)
+		logrus.Infof("delete node %s from cluster %s", nodeName, kubeID)
 		err = h.svc.Create(context.Background(), k)
 
 		if err != nil {
-			logrus.Errorf("update cluster %s caused %v", kname, err)
+			logrus.Errorf("update cluster %s caused %v", kubeID, err)
 		}
 	}()
 	w.WriteHeader(http.StatusAccepted)
 }
 
 // TODO(stgleb): Create separte task service to manage task object lifecycle
-func (h *Handler) getKubeTasks(ctx context.Context, kubeName string) ([]*workflows.Task, error) {
+func (h *Handler) getKubeTasks(ctx context.Context, kubeID string) ([]*workflows.Task, error) {
 	data, err := h.repo.GetAll(ctx, workflows.Prefix)
 
 	if err != nil {
@@ -674,7 +686,7 @@ func (h *Handler) getKubeTasks(ctx context.Context, kubeName string) ([]*workflo
 			return nil, errors.Wrap(err, "unmarshal task data")
 		}
 
-		if task != nil && task.Config != nil && task.Config.ClusterName == kubeName {
+		if task != nil && task.Config != nil && task.Config.ClusterID == kubeID {
 			tasks = append(tasks, task)
 		}
 	}
@@ -682,11 +694,11 @@ func (h *Handler) getKubeTasks(ctx context.Context, kubeName string) ([]*workflo
 	return tasks, nil
 }
 
-func (h *Handler) deleteClusterTasks(ctx context.Context, clusterName string) error {
-	tasks, err := h.getKubeTasks(ctx, clusterName)
+func (h *Handler) deleteClusterTasks(ctx context.Context, kubeID string) error {
+	tasks, err := h.getKubeTasks(ctx, kubeID)
 
 	if err != nil {
-		return errors.Wrap(err, fmt.Sprintf("delete cluster %s tasks", clusterName))
+		return errors.Wrap(err, fmt.Sprintf("delete cluster %s tasks", kubeID))
 	}
 
 	for _, task := range tasks {
@@ -716,17 +728,17 @@ func (h *Handler) installRelease(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	kname := vars["kname"]
-	rls, err := h.svc.InstallRelease(r.Context(), kname, inp)
+	kubeID := vars["kubeID"]
+	rls, err := h.svc.InstallRelease(r.Context(), kubeID, inp)
 	if err != nil {
-		logrus.Errorf("helm: install release: %s cluster: %s (%+v)", kname, err, inp)
+		logrus.Errorf("helm: install release: %s cluster: %s (%+v)", kubeID, err, inp)
 		message.SendUnknownError(w, err)
 		return
 	}
 
 	if err = json.NewEncoder(w).Encode(rls); err != nil {
 		logrus.Errorf("helm: install release: %s cluster: %s/%s: write response: %s",
-			kname, inp.RepoName, inp.ChartName, err)
+			kubeID, inp.RepoName, inp.ChartName, err)
 		message.SendUnknownError(w, err)
 	}
 }
@@ -734,17 +746,17 @@ func (h *Handler) installRelease(w http.ResponseWriter, r *http.Request) {
 func (h *Handler) listReleases(w http.ResponseWriter, r *http.Request) {
 	vars := mux.Vars(r)
 
-	kname := vars["kname"]
+	kubeID := vars["kubeID"]
 	// TODO: use a struct for input parameters
-	rlsList, err := h.svc.ListReleases(r.Context(), kname, "", "", 0)
+	rlsList, err := h.svc.ListReleases(r.Context(), kubeID, "", "", 0)
 	if err != nil {
-		logrus.Errorf("helm: list releases: %s cluster: %s", kname, err)
+		logrus.Errorf("helm: list releases: %s cluster: %s", kubeID, err)
 		message.SendUnknownError(w, err)
 		return
 	}
 
 	if err = json.NewEncoder(w).Encode(rlsList); err != nil {
-		logrus.Errorf("helm: list releases: %s cluster: write response: %s", kname, err)
+		logrus.Errorf("helm: list releases: %s cluster: write response: %s", kubeID, err)
 		message.SendUnknownError(w, err)
 	}
 }
@@ -752,19 +764,19 @@ func (h *Handler) listReleases(w http.ResponseWriter, r *http.Request) {
 func (h *Handler) deleteReleases(w http.ResponseWriter, r *http.Request) {
 	vars := mux.Vars(r)
 
-	kname := vars["kname"]
+	kubeID := vars["kubeID"]
 	rlsName := vars["releaseName"]
 	purge, _ := strconv.ParseBool(r.URL.Query().Get("purge"))
 
-	rls, err := h.svc.DeleteRelease(r.Context(), kname, rlsName, purge)
+	rls, err := h.svc.DeleteRelease(r.Context(), kubeID, rlsName, purge)
 	if err != nil {
-		logrus.Errorf("helm: delete release: cluster %s: release %s: %s", kname, rlsName, err)
+		logrus.Errorf("helm: delete release: cluster %s: release %s: %s", kubeID, rlsName, err)
 		message.SendUnknownError(w, err)
 		return
 	}
 
 	if err = json.NewEncoder(w).Encode(rls); err != nil {
-		logrus.Errorf("helm: delete release: %s cluster: write response: %s", kname, err)
+		logrus.Errorf("helm: delete release: %s cluster: write response: %s", kubeID, err)
 		message.SendUnknownError(w, err)
 	}
 }
@@ -775,18 +787,18 @@ func (h *Handler) getClusterMetrics(w http.ResponseWriter, r *http.Request) {
 			"cpu":    "api/v1/query?query=:node_cpu_utilisation:avg1m",
 			"memory": "api/v1/query?query=:node_memory_utilisation:",
 		}
-		masterNode     *node.Node
-		response       = map[string]interface{}{}
-		baseUrl        = "api/v1/namespaces/default/services/prometheus-operated:9090/proxy"
+		masterNode *node.Node
+		response   = map[string]interface{}{}
+		baseUrl    = "api/v1/namespaces/default/services/prometheus-operated:9090/proxy"
 	)
 
 	vars := mux.Vars(r)
-	kname := vars["kname"]
+	kubeID := vars["kubeID"]
 
-	k, err := h.svc.Get(r.Context(), kname)
+	k, err := h.svc.Get(r.Context(), kubeID)
 	if err != nil {
 		if sgerrors.IsNotFound(err) {
-			message.SendNotFound(w, kname, err)
+			message.SendNotFound(w, kubeID, err)
 			return
 		}
 		message.SendUnknownError(w, err)
@@ -827,18 +839,18 @@ func (h *Handler) getNodesMetrics(w http.ResponseWriter, r *http.Request) {
 			"cpu":    "api/v1/query?query=node:node_cpu_utilisation:avg1m",
 			"memory": "api/v1/query?query=node:node_memory_utilisation:",
 		}
-		masterNode     *node.Node
-		response       = map[string]map[string]interface{}{}
-		baseUrl        = "api/v1/namespaces/default/services/prometheus-operated:9090/proxy"
+		masterNode *node.Node
+		response   = map[string]map[string]interface{}{}
+		baseUrl    = "api/v1/namespaces/default/services/prometheus-operated:9090/proxy"
 	)
 
 	vars := mux.Vars(r)
-	kname := vars["kname"]
+	kubeID := vars["kubeID"]
 
-	k, err := h.svc.Get(r.Context(), kname)
+	k, err := h.svc.Get(r.Context(), kubeID)
 	if err != nil {
 		if sgerrors.IsNotFound(err) {
-			message.SendNotFound(w, kname, err)
+			message.SendNotFound(w, kubeID, err)
 			return
 		}
 		message.SendUnknownError(w, err)
@@ -886,18 +898,18 @@ func (h *Handler) getNodesMetrics(w http.ResponseWriter, r *http.Request) {
 
 func (h *Handler) getServices(w http.ResponseWriter, r *http.Request) {
 	var (
-		servicesUrl = "api/v1/services"
-		kname string
-		masterNode *node.Node
-		k8sServices  = &K8SServices{}
+		servicesUrl  = "api/v1/services"
+		kubeID      string
+		masterNode  *node.Node
+		k8sServices   = &K8SServices{}
 	)
 	vars := mux.Vars(r)
-	kname = vars["kname"]
+	kubeID = vars["kubeID"]
 
-	k, err := h.svc.Get(r.Context(), kname)
+	k, err := h.svc.Get(r.Context(), kubeID)
 	if err != nil {
 		if sgerrors.IsNotFound(err) {
-			message.SendNotFound(w, kname, err)
+			message.SendNotFound(w, kubeID, err)
 			return
 		}
 		message.SendUnknownError(w, err)

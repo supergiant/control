@@ -32,7 +32,7 @@ export class ClusterTableComponent implements OnInit, OnDestroy {
 
   getMetrics() {
     this.subscriptions.add(observableTimer(0, 10000).pipe(
-      switchMap(() => this.supergiant.Kubes.getClusterMetrics(this.cluster.name))).subscribe(
+      switchMap(() => this.supergiant.Kubes.getClusterMetrics(this.cluster.id))).subscribe(
         res => this.updateMetrics(res),
         err => console.error(err)
       )
@@ -40,7 +40,9 @@ export class ClusterTableComponent implements OnInit, OnDestroy {
   }
 
   ngOnInit() {
-    this.getMetrics();
+    if (this.cluster.state == "operational") {
+      this.getMetrics();
+    }
   }
 
   ngOnDestroy() {

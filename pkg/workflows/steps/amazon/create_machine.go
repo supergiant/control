@@ -99,7 +99,7 @@ func (s *StepCreateInstance) Run(ctx context.Context, w io.Writer, cfg *steps.Co
 				Tags: []*ec2.Tag{
 					{
 						Key:   aws.String("KubernetesCluster"),
-						Value: aws.String(cfg.ClusterName),
+						Value: aws.String(cfg.ClusterID),
 					},
 					{
 						Key:   aws.String("Name"),
@@ -174,7 +174,7 @@ func (s *StepCreateInstance) Run(ctx context.Context, w io.Writer, cfg *steps.Co
 					},
 					{
 						Name:   aws.String("tag:KubernetesCluster"),
-						Values: []*string{aws.String(cfg.ClusterName)},
+						Values: []*string{aws.String(cfg.ClusterID)},
 					},
 				},
 			}
@@ -258,7 +258,7 @@ func (s *StepCreateInstance) FindAMI(ctx context.Context, w io.Writer, EC2 ec2if
 			{
 				Name: aws.String("description"),
 				Values: []*string{
-					aws.String("Canonical, Ubuntu, 17.10*"),
+					aws.String("Canonical, Ubuntu, 16.04*"),
 				},
 			},
 		},

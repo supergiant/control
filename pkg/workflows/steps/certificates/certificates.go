@@ -9,6 +9,7 @@ import (
 
 	tm "github.com/supergiant/supergiant/pkg/templatemanager"
 	"github.com/supergiant/supergiant/pkg/workflows/steps"
+	"github.com/supergiant/supergiant/pkg/sgerrors"
 )
 
 const StepName = "certificates"
@@ -34,8 +35,12 @@ func New(script *template.Template) *Step {
 }
 
 func (s *Step) Run(ctx context.Context, out io.Writer, config *steps.Config) error {
-	config.CertificatesConfig.MasterHost = config.GetMaster().PrivateIp
-
+	if master := config.GetMaster(); master != nil {
+		config.CertificatesConfig.PrivateIP = master.PrivateIp
+		config.CertificatesConfig.PublicIP = master.PublicIp
+	} else {
+		return sgerrors.ErrNotFound
+	}
 	err := steps.RunTemplate(ctx, s.script,
 		config.Runner, out, config.CertificatesConfig)
 

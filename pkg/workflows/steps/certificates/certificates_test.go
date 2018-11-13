@@ -36,6 +36,7 @@ func TestWriteCertificates(t *testing.T) {
 	var (
 		kubernetesConfigDir = "/etc/kubernetes"
 		masterPrivateIP     = "10.20.30.40"
+		masterPublicIP = "22.33.44.55"
 		userName            = "user"
 		password            = "1234"
 
@@ -65,16 +66,18 @@ func TestWriteCertificates(t *testing.T) {
 	cfg := steps.NewConfig("", "", "", profile.Profile{})
 	cfg.CertificatesConfig = steps.CertificatesConfig{
 		KubernetesConfigDir: kubernetesConfigDir,
-		MasterHost:          masterPrivateIP,
+		PrivateIP:           masterPrivateIP,
 		Username:            userName,
 		Password:            password,
 		CAKey:               string(caPair.CA.Key),
 		CACert:              string(caPair.CA.Cert),
 	}
+
 	cfg.Runner = r
 	cfg.AddMaster(&node.Node{
 		State:     node.StateActive,
-		PrivateIp: "10.20.30.40",
+		PrivateIp: masterPrivateIP,
+		PublicIp: masterPublicIP,
 	})
 	task := &Step{
 		tpl,
@@ -104,6 +107,16 @@ func TestWriteCertificates(t *testing.T) {
 
 	if !strings.Contains(output.String(), string(caPair.CA.Cert)) {
 		t.Errorf("CA cert not found in %s", output.String())
+	}
+
+	if !strings.Contains(output.String(), masterPrivateIP) {
+		t.Errorf("Master private ip %s not found in %s",
+			masterPrivateIP, output.String())
+	}
+
+	if !strings.Contains(output.String(), masterPublicIP) {
+		t.Errorf("Master public ip %s not found in %s",
+			masterPublicIP, output.String())
 	}
 }
 
