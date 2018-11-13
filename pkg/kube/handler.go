@@ -71,6 +71,10 @@ func NewHandler(svc Interface, accountService accountGetter, provisioner nodePro
 				DeleteCluster: workflows.DigitalOceanDeleteCluster,
 				DeleteNode:    workflows.DigitalOceanDeleteNode,
 			},
+			clouds.AWS: {
+				DeleteCluster: workflows.AWSDeleteCluster,
+				DeleteNode:    workflows.AWSDeleteNode,
+			},
 		},
 		repo:      repo,
 		getWriter: util.GetWriter,
@@ -283,6 +287,11 @@ func (h *Handler) deleteKube(w http.ResponseWriter, r *http.Request) {
 	config := &steps.Config{
 		ClusterName:      k.Name,
 		CloudAccountName: k.AccountName,
+	}
+
+	//HACK TO PROVIDE REGION TO AWS DELETE CLUSTER
+	if acc.Provider == clouds.AWS {
+		config.AWSConfig.Region = k.Region
 	}
 
 	err = util.FillCloudAccountCredentials(r.Context(), acc, config)
