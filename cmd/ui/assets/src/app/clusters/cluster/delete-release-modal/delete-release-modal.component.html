@@ -1,0 +1,22 @@
+<div class="delete-release-modal-wrapper">
+  <p class="headline">DELETE {{ data.name }}?</p>
+    <div class="communication">
+      <ng-container *ngIf="data.name == 'prometheus-operator'">
+        <p>Supergiant depends on Prometheus for various metrics and reporting services. Removing it may cause sub-optimal performance. Are you sure you want to delete this app?</p>
+      </ng-container>
+      <ng-container *ngIf="data.name != 'prometheus-operator'">
+        <p>Are you sure you want to delete this app?</p>
+      </ng-container>
+      <!-- <mat-checkbox *ngIf="false" #keepConfig color="primary">Keep configs</mat-checkbox> -->
+    </div>
+  <div class="action-buttons">
+    <button mat-raised-button class="secondary" type="button" [mat-dialog-close]>
+      CANCEL
+    </button>
+    <!-- <button mat-raised-button color="primary" type="button" [mat-dialog-close]="{ deleteRelease: true, deleteConfigs: config.checked }"> -->
+    <button mat-raised-button color="primary" type="button" [mat-dialog-close]="{ deleteRelease: true, deleteConfigs: false }">
+      DELETE
+    </button>
+  </div>
+</div>
+

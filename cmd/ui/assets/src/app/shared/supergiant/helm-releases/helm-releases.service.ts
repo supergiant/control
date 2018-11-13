@@ -16,7 +16,7 @@ export class HelmReleases {
   public update(id, data) {
     return this.util.update(this.helmReleasesPath + '/' + id, data);
   }
-  public delete(id) {
-    return this.util.destroy(this.helmReleasesPath + '/' + id);
+  public delete(releaseName, kubeName, purge) {
+    return this.util.destroy(this.helmReleasesPath + '/kubes/' + kubeName + "/releases/" + releaseName + "?purge=" + purge);
   }
 }

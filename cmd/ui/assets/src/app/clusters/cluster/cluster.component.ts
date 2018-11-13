@@ -12,6 +12,7 @@ import { UtilService } from '../../shared/supergiant/util/util.service';
 import { Notifications } from '../../shared/notifications/notifications.service';
 import { ConfirmModalComponent } from '../../shared/modals/confirm-modal/confirm-modal.component';
 import { DeleteClusterModalComponent } from './delete-cluster-modal/delete-cluster-modal.component';
+import { DeleteReleaseModalComponent } from './delete-release-modal/delete-release-modal.component';
 import { TaskLogsComponent } from './task-logs/task-logs.component';
 
 
@@ -39,7 +40,6 @@ export class ClusterComponent implements OnInit, OnDestroy {
   // machine list vars
   machines: any;
   machineListColumns = ["state", "role", "name", "cpu", "ram", "region", "publicIp"];
-  // machineListColumns = ["state", "role", "name", "region", "publicIp"];
 
   // task list vars
   tasks: any;
@@ -262,7 +262,8 @@ export class ClusterComponent implements OnInit, OnDestroy {
   getReleases() {
     this.supergiant.HelmReleases.get(this.id).subscribe(
       res => {
-        this.releases = new MatTableDataSource(res);
+        const releases = res.filter(r => r.status != "DELETED")
+        this.releases = new MatTableDataSource(releases);
       },
       err => console.error(err)
     )
@@ -329,6 +330,21 @@ export class ClusterComponent implements OnInit, OnDestroy {
      );
   }
 
+  deleteRelease(releaseName, event) {
+    const dialogRef = this.initDeleteRelease(releaseName)
+
+    dialogRef
+      .afterClosed()
+      .pipe(
+        filter(res => res.deleteRelease),
+        switchMap(res => this.supergiant.HelmReleases.delete(releaseName, this.kube.name, !res.deleteConfigs)),
+        catchError(err => of(err))
+      ).subscribe(
+        res => this.getReleases(),
+        err => console.error(err)
+      )
+  }
+
   private initDialog(target) {
     const popupWidth = 250;
     const dialogRef = this.dialog.open(ConfirmModalComponent, {
@@ -346,6 +362,14 @@ export class ClusterComponent implements OnInit, OnDestroy {
       width: "500px",
       data: { state: clusterState }
     });
+    return dialogRef;
+  }
+
+  private initDeleteRelease(name) {
+    const dialogRef = this.dialog.open(DeleteReleaseModalComponent, {
+      width: "max-content",
+      data: { name: name }
+    })
     return dialogRef;
   }
 
