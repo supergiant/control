@@ -17,12 +17,12 @@ import (
 const DeleteClusterStepName = "aws_delete_cluster"
 
 type DeleteClusterStep struct {
-	fn GetEC2Fn
+	GetEC2 GetEC2Fn
 }
 
 func InitDeleteCluster(fn GetEC2Fn) {
 	steps.RegisterStep(DeleteClusterStepName, &DeleteClusterStep{
-		fn: fn,
+		GetEC2: fn,
 	})
 }
 
@@ -30,7 +30,7 @@ func (s *DeleteClusterStep) Run(ctx context.Context, w io.Writer, cfg *steps.Con
 	log := util.GetLogger(w)
 	logrus.Infof("[%s] - deleting cluster %s", s.Name(), cfg.ClusterName)
 
-	EC2, err := GetEC2(cfg.AWSConfig)
+	EC2, err := s.GetEC2(cfg.AWSConfig)
 	if err != nil {
 		return errors.Wrap(ErrAuthorization, err.Error())
 	}

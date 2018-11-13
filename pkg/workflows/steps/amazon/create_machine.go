@@ -258,7 +258,7 @@ func (s *StepCreateInstance) FindAMI(ctx context.Context, w io.Writer, EC2 ec2if
 			{
 				Name: aws.String("description"),
 				Values: []*string{
-					aws.String("Canonical, Ubuntu, 17.10*"),
+					aws.String("Canonical, Ubuntu, 16.04*"),
 				},
 			},
 		},
