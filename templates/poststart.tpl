@@ -8,11 +8,24 @@ echo "PostStart started"
     sudo kubectl config use-context default-system
 
     {{if .RBACEnabled }}
-    sudo kubectl create clusterrolebinding kubelet-binding --clusterrole=system:node --user=kubelet
-    sudo kubectl create clusterrolebinding system:dns-admin-binding --clusterrole=cluster-admin --user=system:dns
-    sudo kubectl create clusterrolebinding add-ons-cluster-admin --clusterrole=cluster-admin --serviceaccount=kube-system:default
-    sudo kubectl create clusterrolebinding default-user-cluster-admin --clusterrole=cluster-admin --user={{ .Username }}
-    sudo kubectl create clusterrolebinding default-kube-system-admin --clusterrole=cluster-admin --serviceaccount=default:default --namespace=kube-system
+    sudo kubectl create clusterrolebinding kubelet-binding \
+    --clusterrole=system:node --user=kubelet
+    sudo kubectl create clusterrolebinding system:dns-admin-binding \
+        --clusterrole=cluster-admin --user=system:dns
+    sudo kubectl create clusterrolebinding add-ons-cluster-admin \
+        --clusterrole=cluster-admin --serviceaccount=kube-system:default
+    sudo kubectl create clusterrolebinding default-user-cluster-admin \
+        --clusterrole=cluster-admin --user={{ .Username }}
+    sudo kubectl create clusterrolebinding default-kube-system-admin \
+        --clusterrole=cluster-admin --serviceaccount=default:default --namespace=kube-system
+    sudo kubectl create clusterrolebinding kubelet-bootstrap \
+        --clusterrole=system:node-bootstrapper --user=kubelet-bootstrap
+    sudo kubectl create clusterrolebinding node-client-auto-approve-csr \
+        --clusterrole=system:certificates.k8s.io:certificatesigningrequests:nodeclient \
+            --group=system:node-bootstrapper
+    sudo kubectl create clusterrolebinding node-client-auto-renew-crt \
+        --clusterrole=system:certificates.k8s.io:certificatesigningrequests:selfnodeclient \
+            --group=system:nodes
     {{end}}
 
     sudo kubectl create -f /etc/kubernetes/addons/kube-dns/kube-dns.yaml

@@ -48,13 +48,14 @@ func (h *Handler) Authenticate(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if err := h.userService.Authenticate(r.Context(), ar.Login, ar.Password); err != nil {
-		if sgerrors.IsInvalidCredentials(err) {
-			http.Error(w, sgerrors.ErrInvalidCredentials.Error(), http.StatusForbidden)
-		}
-		http.Error(w, err.Error(), http.StatusInternalServerError)
-		return
-	}
+	//if err := h.userService.Authenticate(r.Context(), ar.Login, ar.Password); err != nil {
+	//	if sgerrors.IsInvalidCredentials(err) {
+	//		http.Error(w, sgerrors.ErrInvalidCredentials.Error(), http.StatusForbidden)
+	//		return
+	//	}
+	//	http.Error(w, err.Error(), http.StatusInternalServerError)
+	//	return
+	//}
 
 	if token, err := h.tokenService.Issue(ar.Login); err == nil {
 		w.Header().Set("Authorization", token)

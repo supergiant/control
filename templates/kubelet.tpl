@@ -28,6 +28,7 @@ ExecStart=/usr/bin/docker run \
       --cluster-domain=cluster.local \
       --pod-manifest-path=/etc/kubernetes/manifests \
       --kubeconfig=/etc/kubernetes/worker-kubeconfig.yaml \
+      --bootstrap-kubeconfig=/etc/kubernetes/bootstrap-config.yaml \
       --client-ca-file=/etc/kubernetes/ssl/ca.pem \
       --tls-cert-file=/etc/kubernetes/ssl/worker.pem \
       --tls-private-key-file=/etc/kubernetes/ssl/worker-key.pem \

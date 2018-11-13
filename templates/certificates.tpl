@@ -57,6 +57,7 @@ sudo bash -c "cat > /etc/kubernetes/ssl/basic_auth.csv <<EOF
 EOF"
 
 sudo bash -c "cat > /etc/kubernetes/ssl/known_tokens.csv <<EOF
+{{ .Password }},kubelet-bootstrap,10001,"system:node-bootstrapper"
 {{ .Password }},kubelet,kubelet
 {{ .Password }},kube_proxy,kube_proxy
 {{ .Password }},system:scheduler,system:scheduler

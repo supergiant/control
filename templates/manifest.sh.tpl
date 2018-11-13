@@ -214,6 +214,25 @@ contexts:
 current-context: service-account-context
 EOF"
 
+sudo bash -c "cat << EOF > {{ .KubernetesConfigDir }}/bootstrap-config.yaml
+apiVersion: v1
+kind: Config
+users:
+- name: kubelet-bootstrap
+  user:
+    token: '1234'
+clusters:
+    - cluster:
+        certificate-authority: {{ .CAKey }}
+        server: https://{{ .MasterHost }}
+      name: local
+contexts:
+- context:
+    cluster: local
+    user: kubelet-bootstrap
+  name: default-context
+current-context: default-context
+EOF"
 
 # proxy
 sudo bash -c "cat << EOF > ${KUBERNETES_MANIFESTS_DIR}/kube-proxy.yaml
@@ -332,6 +351,8 @@ spec:
     - --master=http://{{ .MasterHost }}:{{ .MasterPort }}
     - --service-account-private-key-file=/etc/kubernetes/ssl/apiserver-key.pem
     - --root-ca-file=/etc/kubernetes/ssl/ca.pem
+    - --cluster-signing-cert-file=/etc/kubernetes/ssl/ca.pem
+    - --cluster-signing-key-file=/etc/kubernetes/ssl/ca-key.pem
     - --v=2
     - --cluster-cidr=10.244.0.0/14
     - --allocate-node-cidrs=true

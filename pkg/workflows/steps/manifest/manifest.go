@@ -34,6 +34,8 @@ func (j *Step) Run(ctx context.Context, out io.Writer, config *steps.Config) err
 	// NOTE(stgleb): This is needed for master node to put advertise address for kube api server.
 	config.ManifestConfig.IsMaster = config.IsMaster
 	config.ManifestConfig.MasterHost = config.GetMaster().PrivateIp
+	config.ManifestConfig.CACert = config.CertificatesConfig.CACert
+	config.ManifestConfig.CAKey = config.CertificatesConfig.CAKey
 
 	err := steps.RunTemplate(ctx, j.script, config.Runner, out, config.ManifestConfig)
 
