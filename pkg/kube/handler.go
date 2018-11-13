@@ -280,7 +280,8 @@ func (h *Handler) deleteKube(w http.ResponseWriter, r *http.Request) {
 	}
 
 	config := &steps.Config{
-		ClusterID:        k.Name,
+		ClusterID:        k.ID,
+		ClusterName:      k.Name,
 		CloudAccountName: k.AccountName,
 	}
 

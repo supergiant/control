@@ -60,10 +60,11 @@ func (tp *TaskProvisioner) ProvisionCluster(ctx context.Context,
 	masterTasks, nodeTasks, clusterTask := tp.prepare(config.Provider, len(profile.MasterProfiles),
 		len(profile.NodesProfiles))
 
-	// Use clusterID the same as cluster task
-	config.ClusterID = clusterTask.ID
+	// Get clusterID from taskID
+	config.ClusterID = clusterTask.ID[:8]
 	// TODO(stgleb): Make node names from task id before provisioning starts
-	masters, nodes := nodesFromProfile(config.ClusterName, masterTasks, nodeTasks, profile)
+	masters, nodes := nodesFromProfile(config.ClusterName,
+		masterTasks, nodeTasks, profile)
 
 	if err := bootstrapKeys(config); err != nil {
 		return nil, errors.Wrap(err, "bootstrap keys")
@@ -388,7 +389,7 @@ func (tp *TaskProvisioner) buildInitialCluster(ctx context.Context,
 	cluster := &model.Kube{
 		ID:           config.ClusterID,
 		State:        model.StateProvisioning,
-		Name:         config.ClusterID,
+		Name:         config.ClusterName,
 		AccountName:  config.CloudAccountName,
 		RBACEnabled:  profile.RBACEnabled,
 		Region:       profile.Region,

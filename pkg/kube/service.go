@@ -78,7 +78,9 @@ func NewService(prefix string, s storage.Interface, chrtGetter ChartGetter) *Ser
 
 // Create and stores a kube in the provided storage.
 func (s *Service) Create(ctx context.Context, k *model.Kube) error {
-	k.ID = uuid.New()
+	if k.ID == "" {
+		k.ID = uuid.New()[:8]
+	}
 
 	raw, err := json.Marshal(k)
 	if err != nil {

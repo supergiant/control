@@ -85,7 +85,7 @@ func (h *Handler) Provision(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	discoveryUrl, err := h.tokenGetter.GetToken(r.Context(), 
+	discoveryUrl, err := h.tokenGetter.GetToken(r.Context(),
 		len(req.Profile.MasterProfiles))
 
 	if err != nil {
@@ -95,7 +95,7 @@ func (h *Handler) Provision(w http.ResponseWriter, r *http.Request) {
 	}
 
 	logrus.Infof("Got discoveryUrl %s", discoveryUrl)
-	config := steps.NewConfig(req.ClusterName, discoveryUrl, 
+	config := steps.NewConfig(req.ClusterName, discoveryUrl,
 		req.CloudAccountName, req.Profile)
 
 	acc, err := h.accountGetter.Get(r.Context(), req.CloudAccountName)

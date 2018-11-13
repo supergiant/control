@@ -198,7 +198,7 @@ type Config struct {
 	ClusterCheckConfig ClusterCheckConfig `json:"clusterCheckConfig"`
 
 	Node             node.Node     `json:"node"`
-	CloudAccountID   string `json:"cloudAccountId" valid:"required, length(1|32)"`
+	CloudAccountID   string        `json:"cloudAccountId" valid:"required, length(1|32)"`
 	CloudAccountName string        `json:"cloudAccountName" valid:"required, length(1|32)"`
 	Timeout          time.Duration `json:"timeout"`
 	Runner           runner.Runner `json:"-"`
@@ -218,8 +218,8 @@ type Config struct {
 // NewConfig builds instance of config for provisioning
 func NewConfig(clusterName, discoveryUrl, cloudAccountName string, profile profile.Profile) *Config {
 	cfg := &Config{
-		Provider:  profile.Provider,
-		ClusterID: clusterName,
+		Provider:    profile.Provider,
+		ClusterName: clusterName,
 		DigitalOceanConfig: DOConfig{
 			Region: profile.Region,
 		},
