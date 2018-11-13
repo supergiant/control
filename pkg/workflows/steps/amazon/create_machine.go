@@ -99,7 +99,7 @@ func (s *StepCreateInstance) Run(ctx context.Context, w io.Writer, cfg *steps.Co
 				Tags: []*ec2.Tag{
 					{
 						Key:   aws.String("KubernetesCluster"),
-						Value: aws.String(cfg.ClusterName),
+						Value: aws.String(cfg.ClusterID),
 					},
 					{
 						Key:   aws.String("Name"),
@@ -174,7 +174,7 @@ func (s *StepCreateInstance) Run(ctx context.Context, w io.Writer, cfg *steps.Co
 					},
 					{
 						Name:   aws.String("tag:KubernetesCluster"),
-						Values: []*string{aws.String(cfg.ClusterName)},
+						Values: []*string{aws.String(cfg.ClusterID)},
 					},
 				},
 			}

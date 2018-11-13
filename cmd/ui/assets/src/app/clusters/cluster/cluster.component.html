@@ -1,7 +1,7 @@
 <div class="cluster-details-wrapper">
 
   <ng-container *ngIf="kube?.state == 'provisioning' || kube?.state == 'failed'">
-    <h1>Creating "{{id}}"</h1>
+    <h1>Creating "{{ kube.name }}"</h1>
     <div class="task-overview">
       <div class="masters task-group">
         <div class="icon masters-icon">

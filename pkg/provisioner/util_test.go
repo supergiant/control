@@ -70,11 +70,11 @@ func TestNodesFromProfile(t *testing.T) {
 	}
 
 	cfg := &steps.Config{
-		ClusterName: "test",
+		ClusterID: "test",
 	}
 
 	masterTasks, nodeTasks := []*workflows.Task{{ID: "1234"}}, []*workflows.Task{{ID: "5678"}, {ID: "4321"}}
-	masters, nodes := nodesFromProfile(cfg.ClusterName, masterTasks, nodeTasks, p)
+	masters, nodes := nodesFromProfile(cfg.ClusterID, masterTasks, nodeTasks, p)
 
 	if len(masters) != len(p.MasterProfiles) {
 		t.Errorf("Wrong master node count expected %d actual %d",
