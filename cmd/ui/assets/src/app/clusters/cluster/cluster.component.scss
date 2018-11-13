@@ -507,18 +507,18 @@
               }
             }
 
-            .saving span {
+            .current-step span {
               animation-name: blink;
               animation-duration: 1.4s;
               animation-iteration-count: infinite;
               animation-fill-mode: both;
             }
 
-            .saving span:nth-child(2) {
+            .current-step span:nth-child(2) {
               animation-delay: .2s;
             }
 
-            .saving span:nth-child(3) {
+            .current-step span:nth-child(3) {
               animation-delay: .4s;
             }
 

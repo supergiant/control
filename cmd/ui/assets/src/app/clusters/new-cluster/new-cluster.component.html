@@ -117,8 +117,8 @@
     <mat-step label="Provider Configuration" [stepControl]="providerConfig">
       <!-- digital ocean -->
       <ng-container *ngIf="selectedCloudAccount?.provider == 'digitalocean'">
-        <form [formGroup]="providerConfig">
-          <mat-form-field>
+        <form [formGroup]="providerConfig" class="do-config">
+          <mat-form-field [ngClass]="{ 'regionsLoading': regionsLoading }">
             <mat-select placeholder="Select a Region" formControlName="region" (selectionChange)="selectRegion($event.value)" required>
               <mat-option *ngFor="let r of availableRegions?.regions" [value]="r">{{ r.name }}</mat-option>
             </mat-select>
@@ -130,13 +130,13 @@
       <ng-container *ngIf="selectedCloudAccount?.provider == 'aws'">
         <form [formGroup]="providerConfig" class="aws-config">
           <div class="input-group">
-            <mat-form-field>
+            <mat-form-field [ngClass]="{ 'regionsLoading': regionsLoading }">
               <mat-select placeholder="Select a Region" formControlName="region" (selectionChange)="selectRegion($event.value)" required>
                 <mat-option *ngFor="let r of availableRegions?.regions" [value]="r">{{ r.name }}</mat-option>
               </mat-select>
             </mat-form-field>
 
-            <mat-form-field>
+            <mat-form-field [ngClass]="{ 'azsLoading': azsLoading }">
               <mat-select [disabled]="!availabilityZones" placeholder="Select an Availability Zone" formControlName="availabilityZone" (selectionChange)="selectAz($event.value)" required>
                 <mat-option *ngFor="let a of availabilityZones" [value]="a">{{ a }}</mat-option>
               </mat-select>
@@ -152,9 +152,7 @@
           </div>
 
           <div class="input-group">
-            <mat-form-field>
-              <input matInput type="text" formControlName="keypairName" placeholder="Keypair Name">
-            </mat-form-field>
+
 
             <mat-form-field>
               <input matInput type="text" formControlName="subnetId" placeholder="Subnet ID" required>
@@ -162,10 +160,16 @@
 
             <mat-form-field>
               <input matInput type="text" formControlName="mastersSecurityGroupId" placeholder="Master's Security Group ID">
+              <mat-hint align="end">Leaving this blank will create a new one</mat-hint>
             </mat-form-field>
 
             <mat-form-field>
               <input matInput type="text" formControlName="nodesSecurityGroupId" placeholder="Node's Security Group ID">
+              <mat-hint align="end">Leaving this blank will create a new one</mat-hint>
+            </mat-form-field>
+
+            <mat-form-field>
+              <textarea rows="1" matInput formControlName="publicKey" placeholder="Public Key" required></textarea>
             </mat-form-field>
           </div>
 
@@ -216,7 +220,7 @@
         <!-- aws -->
         <ng-container *ngIf="selectedCloudAccount?.provider == 'aws'" >
           <div class="machine" *ngFor="let m of machines; let idx = index">
-            <mat-form-field class="type">
+            <mat-form-field class="type" [ngClass]="{ 'machinesLoading': machinesLoading }">
               <mat-select placeholder="Machine Type (size)" id="m.machineType" [(value)]="m.machineType" (selectionChange)="checkForValidMachinesConfig()">
                 <mat-option *ngFor="let type of availableMachineTypes" [value]="type">{{ type }}</mat-option>
               </mat-select>
@@ -288,7 +292,6 @@
               <p><span class="label">AVAIL. ZONE:</span> {{ providerConfig.value.availabilityZone }}</p>
               <p><span class="label">VPC ID:</span> {{ providerConfig.value.vpcId }}</p>
               <p><span class="label">VPC CIDR:</span> {{ providerConfig.value.vpcCidr }}</p>
-              <p><span class="label">KEYPAIR NAME:</span> {{ providerConfig.value.keypairName }}</p>
               <p><span class="label">SUBNET ID:</span> {{ providerConfig.value.subnetId }}</p>
               <p><span class="label">MASTERS SEC. GROUP ID:</span> {{ providerConfig.value.mastersSecurityGroupId }}</p>
               <p><span class="label">NODES SEC. GROUP ID:</span> {{ providerConfig.value.nodesSecurityGroupId }}</p>
@@ -322,7 +325,7 @@
   <div *ngIf="availableCloudAccounts?.length == 0">
     <div class="no-cloud-accounts">
       <h2>You have no cloud accounts linked to Supergiant</h2>
-      <p>Link an AWS, Digital Ocean, or Openstack cloud account and have a Supergiant cluster up in minutes</p>
+      <p>Link an AWS or Digital Ocean cloud account and have a Supergiant cluster up in minutes</p>
       <div>
         <button mat-raised-button color="primary" [routerLink]="['/system/cloud-accounts/new']">LINK ACCOUNT</button>
       </div>

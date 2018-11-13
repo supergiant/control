@@ -155,16 +155,6 @@ export class CloudAccountModel {
       display: "Digital Ocean",
       name: "digitalocean",
       data: this.digitalocean
-    },
-    {
-      display: "GCE - Google Compute Engine",
-      name: "gce",
-      data: this.gce
-    },
-    {
-      display: "Packet.net",
-      name: "packet",
-      data: this.packet
     }
   ]
 }

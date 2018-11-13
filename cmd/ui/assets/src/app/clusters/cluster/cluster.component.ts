@@ -12,6 +12,7 @@ import { UtilService } from '../../shared/supergiant/util/util.service';
 import { Notifications } from '../../shared/notifications/notifications.service';
 import { ConfirmModalComponent } from '../../shared/modals/confirm-modal/confirm-modal.component';
 import { DeleteClusterModalComponent } from './delete-cluster-modal/delete-cluster-modal.component';
+import { DeleteReleaseModalComponent } from './delete-release-modal/delete-release-modal.component';
 import { TaskLogsComponent } from './task-logs/task-logs.component';
 
 
@@ -39,12 +40,11 @@ export class ClusterComponent implements OnInit, OnDestroy {
   // machine list vars
   machines: any;
   machineListColumns = ["state", "role", "name", "cpu", "ram", "region", "publicIp"];
-  // machineListColumns = ["state", "role", "name", "region", "publicIp"];
 
   // task list vars
   tasks: any;
   taskListColumns = ["status", "type", "id", "steps", "logs"];
-  expandedTaskId: any;
+  expandedTaskIds = new Set();
 
   releases: any;
   releaseListColumns = ["status", "name", "chart", "chartVersion", "version", "lastDeployed"];
@@ -109,9 +109,9 @@ export class ClusterComponent implements OnInit, OnDestroy {
 
     task.showSteps = !task.showSteps;
 
-    if (task.id != this.expandedTaskId) {
-      this.expandedTaskId = task.id;
-    } else { this.expandedTaskId = undefined; }
+    if (this.expandedTaskIds.has(task.id)) {
+      this.expandedTaskIds.delete(task.id);
+    } else { this.expandedTaskIds.add(task.id); }
   }
 
   taskComplete(task) {
@@ -193,7 +193,7 @@ export class ClusterComponent implements OnInit, OnDestroy {
 
                   const rows = [];
                   tasks.forEach(t => {
-                    if (t.id == this.expandedTaskId) {
+                    if (this.expandedTaskIds.has(t.id)) {
                       t.showSteps = true;
                     };
                     rows.push(t, { detailRow: true, t })
@@ -212,7 +212,7 @@ export class ClusterComponent implements OnInit, OnDestroy {
 
                   const rows = [];
                   tasks.forEach(t => {
-                    if (t.id == this.expandedTaskId) {
+                    if (this.expandedTaskIds.has(t.id)) {
                       t.showSteps = true;
                     };
                     rows.push(t, { detailRow: true, t })
@@ -262,7 +262,8 @@ export class ClusterComponent implements OnInit, OnDestroy {
   getReleases() {
     this.supergiant.HelmReleases.get(this.id).subscribe(
       res => {
-        this.releases = new MatTableDataSource(res);
+        const releases = res.filter(r => r.status != "DELETED")
+        this.releases = new MatTableDataSource(releases);
       },
       err => console.error(err)
     )
@@ -309,7 +310,7 @@ export class ClusterComponent implements OnInit, OnDestroy {
   }
 
   deleteCluster() {
-    const dialogRef = this.initDeleteCluster();
+    const dialogRef = this.initDeleteCluster(this.kube.state);
 
     dialogRef
       .afterClosed()
@@ -329,6 +330,21 @@ export class ClusterComponent implements OnInit, OnDestroy {
      );
   }
 
+  deleteRelease(releaseName, event) {
+    const dialogRef = this.initDeleteRelease(releaseName)
+
+    dialogRef
+      .afterClosed()
+      .pipe(
+        filter(res => res.deleteRelease),
+        switchMap(res => this.supergiant.HelmReleases.delete(releaseName, this.kube.name, !res.deleteConfigs)),
+        catchError(err => of(err))
+      ).subscribe(
+        res => this.getReleases(),
+        err => console.error(err)
+      )
+  }
+
   private initDialog(target) {
     const popupWidth = 250;
     const dialogRef = this.dialog.open(ConfirmModalComponent, {
@@ -341,10 +357,19 @@ export class ClusterComponent implements OnInit, OnDestroy {
     return dialogRef;
   }
 
-  private initDeleteCluster() {
+  private initDeleteCluster(clusterState) {
     const dialogRef = this.dialog.open(DeleteClusterModalComponent, {
       width: "500px",
+      data: { state: clusterState }
     });
+    return dialogRef;
+  }
+
+  private initDeleteRelease(name) {
+    const dialogRef = this.dialog.open(DeleteReleaseModalComponent, {
+      width: "max-content",
+      data: { name: name }
+    })
     return dialogRef;
   }
 
