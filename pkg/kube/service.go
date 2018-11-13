@@ -5,17 +5,21 @@ import (
 	"encoding/json"
 	"strings"
 
+	"github.com/pborman/uuid"
 	"github.com/pkg/errors"
 	"github.com/technosophos/moniker"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/apimachinery/pkg/runtime/schema"
+	kubejson "k8s.io/apimachinery/pkg/runtime/serializer/json"
+	"k8s.io/apimachinery/pkg/runtime/serializer/versioning"
 	"k8s.io/client-go/rest"
+	clientcmdlatest "k8s.io/client-go/tools/clientcmd/api/latest"
 	"k8s.io/helm/pkg/helm"
 	"k8s.io/helm/pkg/proto/hapi/chart"
 	"k8s.io/helm/pkg/proto/hapi/release"
 	"k8s.io/helm/pkg/timeconv"
 
-	"github.com/pborman/uuid"
 	"github.com/supergiant/supergiant/pkg/model"
 	"github.com/supergiant/supergiant/pkg/runner/ssh"
 	"github.com/supergiant/supergiant/pkg/sgerrors"
@@ -24,6 +28,8 @@ import (
 )
 
 const (
+	KubernetesAdminUser = "kubernetes-admin"
+
 	DefaultStoragePrefix = "/supergiant/kubes/"
 
 	releaseInstallTimeout = 300
@@ -37,12 +43,13 @@ type Interface interface {
 	Get(ctx context.Context, name string) (*model.Kube, error)
 	ListAll(ctx context.Context) ([]model.Kube, error)
 	Delete(ctx context.Context, name string) error
-	ListKubeResources(ctx context.Context, kubeID string) ([]byte, error)
-	GetKubeResources(ctx context.Context, kubeID, resource, ns, name string) ([]byte, error)
-	GetCerts(ctx context.Context, kubeID, cname string) (*Bundle, error)
-	InstallRelease(ctx context.Context, kubeID string, rls *ReleaseInput) (*release.Release, error)
-	ListReleases(ctx context.Context, kubeID, ns, offset string, limit int) ([]*model.ReleaseInfo, error)
-	DeleteRelease(ctx context.Context, kubeID, rlsName string, purge bool) (*model.ReleaseInfo, error)
+	KubeConfigFor(ctx context.Context, kname, user string) ([]byte, error)
+	ListKubeResources(ctx context.Context, kname string) ([]byte, error)
+	GetKubeResources(ctx context.Context, kname, resource, ns, name string) ([]byte, error)
+	GetCerts(ctx context.Context, kname, cname string) (*Bundle, error)
+	InstallRelease(ctx context.Context, kname string, rls *ReleaseInput) (*release.Release, error)
+	ListReleases(ctx context.Context, kname, ns, offset string, limit int) ([]*model.ReleaseInfo, error)
+	DeleteRelease(ctx context.Context, kname, rlsName string, purge bool) (*model.ReleaseInfo, error)
 }
 
 // ChartGetter interface is a wrapper for GetChart function.
@@ -191,9 +198,37 @@ func (s *Service) GetKubeResources(ctx context.Context, kubeID, resource, ns, na
 	return raw, nil
 }
 
-// GetCerts returns a keys bundle for provided component name.
-func (s *Service) GetCerts(ctx context.Context, kubeID, cname string) (*Bundle, error) {
+func (s *Service) KubeConfigFor(ctx context.Context, kubeID, user string) ([]byte, error) {
+	// there are certificates only for the cluster-admin user
+	if user != KubernetesAdminUser {
+		return nil, errors.Wrapf(sgerrors.ErrNotFound, "%q user", user)
+	}
+
 	kube, err := s.Get(ctx, kubeID)
+	if err != nil {
+		return nil, errors.Wrapf(err, "get %s model", kubeID)
+	}
+
+	kubeconfig, err := adminKubeConfig(kube)
+	if err != nil {
+		return nil, err
+	}
+
+	serializer := kubejson.NewSerializer(kubejson.DefaultMetaFactory, clientcmdlatest.Scheme, clientcmdlatest.Scheme, false)
+	codec := versioning.NewDefaultingCodecForScheme(
+		clientcmdlatest.Scheme,
+		serializer,
+		serializer,
+		schema.GroupVersion{Version: clientcmdlatest.Version},
+		runtime.InternalGroupVersioner,
+	)
+	return runtime.Encode(codec, &kubeconfig)
+}
+
+// GetCerts returns a keys bundle for provided component name.
+// TODO: do we need this?
+func (s *Service) GetCerts(ctx context.Context, kname, cname string) (*Bundle, error) {
+	kube, err := s.Get(ctx, kname)
 	if err != nil {
 		return nil, err
 	}

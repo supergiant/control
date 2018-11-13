@@ -11,6 +11,7 @@ import (
 	"github.com/aws/aws-sdk-go/service/ec2/ec2iface"
 	"github.com/pkg/errors"
 	"github.com/stretchr/testify/require"
+
 	"github.com/supergiant/supergiant/pkg/clouds"
 	"github.com/supergiant/supergiant/pkg/profile"
 	"github.com/supergiant/supergiant/pkg/workflows/steps"

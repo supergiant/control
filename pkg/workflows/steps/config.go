@@ -21,6 +21,9 @@ type CertificatesConfig struct {
 	Username string `json:"username"`
 	Password string `json:"password"`
 
+	AdminCert string `json:"adminCert"`
+	AdminKey  string `json:"adminKey"`
+
 	ParenCert []byte `json:"parenCert"`
 	CACert    string `json:"caCert"`
 	CAKey     string `json:"caKey"`

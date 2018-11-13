@@ -69,8 +69,8 @@ func TestWriteCertificates(t *testing.T) {
 		PrivateIP:           masterPrivateIP,
 		Username:            userName,
 		Password:            password,
-		CAKey:               string(caPair.CA.Key),
-		CACert:              string(caPair.CA.Cert),
+		CAKey:               string(caPair.Key),
+		CACert:              string(caPair.Cert),
 	}
 
 	cfg.Runner = r
@@ -102,11 +102,11 @@ func TestWriteCertificates(t *testing.T) {
 		t.Errorf("password %s not found in %s", password, output.String())
 	}
 
-	if !strings.Contains(output.String(), string(caPair.CA.Key)) {
+	if !strings.Contains(output.String(), string(caPair.Key)) {
 		t.Errorf("CA key not found in %s", output.String())
 	}
 
-	if !strings.Contains(output.String(), string(caPair.CA.Cert)) {
+	if !strings.Contains(output.String(), string(caPair.Cert)) {
 		t.Errorf("CA cert not found in %s", output.String())
 	}
 
