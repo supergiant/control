@@ -18,10 +18,6 @@ type CertificatesConfig struct {
 	PublicIP            string `json:"publicIp"`
 	PrivateIP           string `json:"privateIp"`
 
-	IsMaster        bool   `json:"isMaster"`
-	MasterPrivateIP string `json:"masterPrivateIp"`
-	MasterPublicIP  string `json:"masterPublicIp"`
-
 	Username string `json:"username"`
 	Password string `json:"password"`
 
