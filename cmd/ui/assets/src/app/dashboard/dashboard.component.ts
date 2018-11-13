@@ -17,53 +17,6 @@ import { Router } from '@angular/router';
 export class DashboardComponent implements OnInit, OnDestroy {
   public subscriptions = new Subscription();
   public cloudAccounts: any;
-  public hasCluster = false;
-  public hasApp = false;
-  public appCount = 0;
-  public events: Array<any> = ['No Cluster Events (disabled in beta currently)'];
-  public newses: Array<any> = ['No Recent News (disabled in beta currently)'];
-  // lineChart
-  public lineChartData: Array<any> = [{ data: [] }, { data: [] }];
-  public lineChartLabels: Array<any> = [];
-  public lineChartOptions: any = {
-    responsive: true,
-    scales: {
-      xAxes: [{
-        scaleLabel: {
-          display: false
-        }
-      }]
-    }
-  };
-  public lineChartColors: Array<any> = [
-    { // grey
-      backgroundColor: 'rgba(148,159,177,0.2)',
-      borderColor: 'rgba(148,159,177,1)',
-      pointBackgroundColor: 'rgba(148,159,177,1)',
-      pointBorderColor: '#fff',
-      pointHoverBackgroundColor: '#fff',
-      pointHoverBorderColor: 'rgba(148,159,177,0.8)'
-    },
-    { // dark grey
-      backgroundColor: 'rgba(77,83,96,0.2)',
-      borderColor: 'rgba(77,83,96,1)',
-      pointBackgroundColor: 'rgba(77,83,96,1)',
-      pointBorderColor: '#fff',
-      pointHoverBackgroundColor: '#fff',
-      pointHoverBorderColor: 'rgba(77,83,96,1)'
-    },
-    { // grey
-      backgroundColor: 'rgba(148,159,177,0.2)',
-      borderColor: 'rgba(148,159,177,1)',
-      pointBackgroundColor: 'rgba(148,159,177,1)',
-      pointBorderColor: '#fff',
-      pointHoverBackgroundColor: '#fff',
-      pointHoverBorderColor: 'rgba(148,159,177,0.8)'
-    }
-  ];
-  public lineChartLegend: boolean = true;
-  public lineChartType: string = 'line';
-
   public clusters: any;
 
   public clusterListView: string;
@@ -82,48 +35,17 @@ export class DashboardComponent implements OnInit, OnDestroy {
     }
   }
 
-  getKube(id) {
-    this.subscriptions.add(this.supergiant.Kubes.get(id).subscribe(
-      (kube) => {
-        if (kube.extra_data &&
-          kube.extra_data.cpu_usage_rate &&
-          kube.extra_data.kube_cpu_capacity) {
-          this.lineChartLabels.length = 0;
-          let tempArray = kube.extra_data.cpu_usage_rate.map(
-            (data) => convertIsoToHumanReadable(data.timestamp));
-          for (const row of tempArray) {
-            this.lineChartLabels.push(row);
-          }
+  sortByName(cluster1, cluster2) {
+    const clusterName1 = cluster1.name.toLowerCase();
+    const clusterName2 = cluster2.name.toLowerCase();
 
-          tempArray = [
-            {
-              label: 'CPU Usage',
-              data: kube.extra_data.cpu_usage_rate.map((data) => data.value)
-            },
-            {
-              label: 'CPU Capacity',
-              data: kube.extra_data.kube_cpu_capacity.map((data) => data.value)
-            },
-            // this should be set to the length of largest array.
-          ];
-          //linter is angry but it works, can change it later
-          this.lineChartData[0]['label'] = 'CPU Usage';
-          for (const i in tempArray[0]['data']) {
-            const previous = Number(this.lineChartData[0]['data'][i]) || 0;
-            tempArray[0]['data'][i] = previous + tempArray[0]['data'][i];
-          }
-
-          for (const i in tempArray[1]['data']) {
-            const previous = Number(this.lineChartData[1]['data'][i]) || 0;
-            tempArray[1]['data'][i] = previous + tempArray[1]['data'][i];
-          }
-          this.lineChartData = [
-            { label: 'CPU Usage', data: tempArray[0]['data'] },
-            { label: 'CPU Capacity', data: tempArray[1]['data'] }
-          ];
-        }
-      }
-    ))
+    let comparison = 0;
+    if (clusterName1 > clusterName2) {
+      comparison = 1;
+    } else if (clusterName1 < clusterName2) {
+      comparison = -1;
+    }
+    return comparison;
   }
 
   getCloudAccounts() {
@@ -138,14 +60,9 @@ export class DashboardComponent implements OnInit, OnDestroy {
       switchMap(() => this.supergiant.Kubes.get())).subscribe(
         clusters => {
           // TODO: this is terrible
-          clusters.map(c => {
-            if (c.state != "deleting" || c.state != "failed") {
-              this.supergiant.Kubes.getClusterMetrics(c.name).subscribe(
-                res => c.metrics = res,
-                err => console.error(err)
-              )
-            }
-
+          clusters.map((c, i) => {
+            
+            c.index = i + 1;
             c.dataSource = new MatTableDataSource([
             {
               state: c.state,
@@ -158,11 +75,11 @@ export class DashboardComponent implements OnInit, OnDestroy {
               dockerVersion: c.dockerVersion,
               helmVersion: c.helmVersion,
               rbacEnabled: c.rbacEnabled,
-              arch: c.arch
+              arch: c.arch,
             }])
           });
 
-          this.clusters = clusters;
+          this.clusters = clusters.sort(this.sortByName);
 
           if (!this.userChangedView) {
             if (clusters.length > 5) {
