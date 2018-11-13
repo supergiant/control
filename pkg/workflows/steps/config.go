@@ -18,6 +18,10 @@ type CertificatesConfig struct {
 	PublicIP            string `json:"publicIp"`
 	PrivateIP           string `json:"privateIp"`
 
+	IsMaster        bool   `json:"isMaster"`
+	MasterPrivateIP string `json:"masterPrivateIp"`
+	MasterPublicIP  string `json:"masterPublicIp"`
+
 	Username string `json:"username"`
 	Password string `json:"password"`
 
@@ -171,11 +175,10 @@ func (m *Map) MarshalJSON() ([]byte, error) {
 }
 
 type Config struct {
-
 	TaskID                 string
 	Provider               clouds.Name  `json:"provider"`
 	IsMaster               bool         `json:"isMaster"`
-  ClusterID              string    `json:"clusterId"`
+	ClusterID              string       `json:"clusterId"`
 	ClusterName            string       `json:"clusterName"`
 	LogBootstrapPrivateKey bool         `json:"logBootstrapPrivateKey"`
 	DigitalOceanConfig     DOConfig     `json:"digitalOceanConfig"`
@@ -297,6 +300,7 @@ func NewConfig(clusterName, discoveryUrl, cloudAccountName string, profile profi
 			HelmVersion:     profile.HelmVersion,
 			OperatingSystem: profile.OperatingSystem,
 			Arch:            profile.Arch,
+			RBACEnabled:     profile.RBACEnabled,
 		},
 		SshConfig: SshConfig{
 			Port:      "22",
