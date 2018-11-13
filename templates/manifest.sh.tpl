@@ -214,6 +214,7 @@ contexts:
 current-context: service-account-context
 EOF"
 
+{{ if not .IsMaster }}
 sudo bash -c "cat << EOF > {{ .KubernetesConfigDir }}/bootstrap-config.yaml
 apiVersion: v1
 kind: Config
@@ -230,7 +231,8 @@ contexts:
 current-context: default-context
 EOF"
 
-kubectl config set-credentials kubelet-bootstrap --token={{ .Token }} --kubeconfig=bootstrap.kubeconfig
+kubectl config set-credentials kubelet-bootstrap --token={{ .Token }} --kubeconfig={{ .KubernetesConfigDir }}/bootstrap-config.yaml
+{{ end }}
 
 # proxy
 sudo bash -c "cat << EOF > ${KUBERNETES_MANIFESTS_DIR}/kube-proxy.yaml
