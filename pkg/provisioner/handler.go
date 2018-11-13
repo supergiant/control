@@ -47,6 +47,7 @@ type ProvisionRequest struct {
 }
 
 type ProvisionResponse struct {
+	ClusterID string `json:"clusterId"`
 	Tasks map[string][]string `json:"tasks"`
 }
 
@@ -139,6 +140,7 @@ func (h *Handler) Provision(w http.ResponseWriter, r *http.Request) {
 	}
 
 	resp := ProvisionResponse{
+		ClusterID: config.ClusterID,
 		Tasks: roleTaskIdMap,
 	}
 

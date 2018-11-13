@@ -18,6 +18,7 @@ import (
 	"github.com/supergiant/supergiant/pkg/sgerrors"
 	"github.com/supergiant/supergiant/pkg/workflows"
 	"github.com/supergiant/supergiant/pkg/workflows/steps"
+	"github.com/pborman/uuid"
 )
 
 type mockTokenGetter struct {
@@ -177,7 +178,8 @@ func TestProvisionHandler(t *testing.T) {
 			kubeGetter: func(context.Context, string) (*model.Kube, error) {
 				return nil, nil
 			},
-			provision: func(context.Context, *profile.Profile, *steps.Config) (map[string][]*workflows.Task, error) {
+			provision: func(ctx context.Context, profile *profile.Profile, config *steps.Config) (map[string][]*workflows.Task, error) {
+				config.ClusterID = uuid.New()
 				return map[string][]*workflows.Task{
 					"master": {
 						{
@@ -232,6 +234,10 @@ func TestProvisionHandler(t *testing.T) {
 
 			if err != nil {
 				t.Errorf("Unepxpected error while decoding response %v", err)
+			}
+
+			if len(resp.ClusterID) == 0 {
+				t.Errorf("ClusterID must not be empty")
 			}
 		}
 	}
