@@ -91,13 +91,13 @@
     .cpu-usage {}
   }
 
-  .name {
+  .index {
     align-items: center;
     background-image: linear-gradient(315deg, #8721ff, #8b22fb 18%, #ff457e);
     border-radius: 50%;
     box-shadow: 0 0 150px 0 #e63d98;
     display: flex;
-    font-size: 1.3em;
+    font-size: 55px;
     font-family: "Montserrat", sans-serif;
     justify-content: center;
     position: absolute;
@@ -125,5 +125,16 @@
     left: 2px;
 
     .ram-usage {}
+  }
+}
+
+.name {
+  font-size: 16px;
+  font-weight: 700;
+  text-align: center;
+  margin-top: 10px;
+  font-family: "Montserrat", sans-serif;
+
+  span {
   }
 }
