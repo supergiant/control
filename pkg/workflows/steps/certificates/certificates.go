@@ -35,12 +35,20 @@ func New(script *template.Template) *Step {
 }
 
 func (s *Step) Run(ctx context.Context, out io.Writer, config *steps.Config) error {
+	config.CertificatesConfig.IsMaster = config.IsMaster
+
 	if master := config.GetMaster(); master != nil {
-		config.CertificatesConfig.PrivateIP = master.PrivateIp
-		config.CertificatesConfig.PublicIP = master.PublicIp
+		config.CertificatesConfig.MasterPrivateIP = master.PrivateIp
+		config.CertificatesConfig.MasterPublicIP = master.PublicIp
 	} else {
 		return sgerrors.ErrNotFound
 	}
+
+	if !config.CertificatesConfig.IsMaster {
+		config.CertificatesConfig.PrivateIP = config.Node.PrivateIp
+		config.CertificatesConfig.PublicIP = config.Node.PublicIp
+	}
+
 	err := steps.RunTemplate(ctx, s.script,
 		config.Runner, out, config.CertificatesConfig)
 
