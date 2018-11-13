@@ -170,11 +170,10 @@ func (m *Map) MarshalJSON() ([]byte, error) {
 }
 
 type Config struct {
-
 	TaskID                 string
 	Provider               clouds.Name  `json:"provider"`
 	IsMaster               bool         `json:"isMaster"`
-  ClusterID              string    `json:"clusterId"`
+	ClusterID              string       `json:"clusterId"`
 	ClusterName            string       `json:"clusterName"`
 	LogBootstrapPrivateKey bool         `json:"logBootstrapPrivateKey"`
 	DigitalOceanConfig     DOConfig     `json:"digitalOceanConfig"`
