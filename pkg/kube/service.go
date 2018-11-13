@@ -37,12 +37,12 @@ type Interface interface {
 	Get(ctx context.Context, name string) (*model.Kube, error)
 	ListAll(ctx context.Context) ([]model.Kube, error)
 	Delete(ctx context.Context, name string) error
-	ListKubeResources(ctx context.Context, kname string) ([]byte, error)
-	GetKubeResources(ctx context.Context, kname, resource, ns, name string) ([]byte, error)
-	GetCerts(ctx context.Context, kname, cname string) (*Bundle, error)
-	InstallRelease(ctx context.Context, kname string, rls *ReleaseInput) (*release.Release, error)
-	ListReleases(ctx context.Context, kname, ns, offset string, limit int) ([]*model.ReleaseInfo, error)
-	DeleteRelease(ctx context.Context, kname, rlsName string, purge bool) (*model.ReleaseInfo, error)
+	ListKubeResources(ctx context.Context, kubeID string) ([]byte, error)
+	GetKubeResources(ctx context.Context, kubeID, resource, ns, name string) ([]byte, error)
+	GetCerts(ctx context.Context, kubeID, cname string) (*Bundle, error)
+	InstallRelease(ctx context.Context, kubeID string, rls *ReleaseInput) (*release.Release, error)
+	ListReleases(ctx context.Context, kubeID, ns, offset string, limit int) ([]*model.ReleaseInfo, error)
+	DeleteRelease(ctx context.Context, kubeID, rlsName string, purge bool) (*model.ReleaseInfo, error)
 }
 
 // ChartGetter interface is a wrapper for GetChart function.
@@ -158,8 +158,8 @@ func (s *Service) ListKubeResources(ctx context.Context, kubeID string) ([]byte,
 }
 
 // GetKubeResources returns raw representation of the kubernetes resources.
-func (s *Service) GetKubeResources(ctx context.Context, kname, resource, ns, kubeID string) ([]byte, error) {
-	kube, err := s.Get(ctx, kname)
+func (s *Service) GetKubeResources(ctx context.Context, kubeID, resource, ns, name string) ([]byte, error) {
+	kube, err := s.Get(ctx, kubeID)
 	if err != nil {
 		return nil, errors.Wrap(err, "get kube")
 	}
@@ -180,8 +180,8 @@ func (s *Service) GetKubeResources(ctx context.Context, kname, resource, ns, kub
 	}
 
 	req := client.Get().Resource(resource).Namespace(ns)
-	if kubeID != "" {
-		req.Name(kubeID)
+	if name != "" {
+		req.Name(name)
 	}
 	raw, err := req.DoRaw()
 	if err != nil {
