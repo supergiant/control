@@ -19,6 +19,7 @@ import (
 	"github.com/supergiant/supergiant/pkg/util"
 	"github.com/supergiant/supergiant/pkg/workflows"
 	"github.com/supergiant/supergiant/pkg/workflows/steps"
+	"fmt"
 )
 
 const keySize = 4096
@@ -61,7 +62,11 @@ func (tp *TaskProvisioner) ProvisionCluster(ctx context.Context,
 		len(profile.NodesProfiles))
 
 	// Get clusterID from taskID
-	config.ClusterID = clusterTask.ID[:8]
+	if clusterTask != nil && len(clusterTask.ID) >= 8 {
+		config.ClusterID = clusterTask.ID[:8]
+	} else {
+		return nil, errors.New(fmt.Sprintf("Wrong value of cluster task %v", clusterTask))
+	}
 	// TODO(stgleb): Make node names from task id before provisioning starts
 	masters, nodes := nodesFromProfile(config.ClusterName,
 		masterTasks, nodeTasks, profile)
