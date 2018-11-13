@@ -6,6 +6,7 @@ import (
 	"github.com/supergiant/supergiant/pkg/workflows/statuses"
 	"github.com/supergiant/supergiant/pkg/workflows/steps"
 	"github.com/supergiant/supergiant/pkg/workflows/steps/amazon"
+	"github.com/supergiant/supergiant/pkg/workflows/steps/authorizedKeys"
 	"github.com/supergiant/supergiant/pkg/workflows/steps/certificates"
 	"github.com/supergiant/supergiant/pkg/workflows/steps/clustercheck"
 	"github.com/supergiant/supergiant/pkg/workflows/steps/cni"
@@ -46,6 +47,8 @@ const (
 	AWSMaster                 = "AWSMaster"
 	AWSNode                   = "AWSNode"
 	AWSPreProvision           = "AWSPreProvisionCluster"
+	AWSDeleteCluster          = "AWSDeleteCluster"
+	AWSDeleteNode             = "AWSDeleteNode"
 )
 
 type WorkflowSet struct {
@@ -101,6 +104,7 @@ func Init() {
 		steps.GetStep(amazon.StepNameCreateEC2Instance),
 		steps.GetStep(ssh.StepName),
 		steps.GetStep(downloadk8sbinary.StepName),
+		steps.GetStep(authorizedKeys.AddAuthorizedKeyStepName),
 		steps.GetStep(docker.StepName),
 		steps.GetStep(cni.StepName),
 		steps.GetStep(etcd.StepName),
@@ -116,6 +120,7 @@ func Init() {
 		steps.GetStep(amazon.StepNameCreateEC2Instance),
 		steps.GetStep(ssh.StepName),
 		steps.GetStep(downloadk8sbinary.StepName),
+		steps.GetStep(authorizedKeys.AddAuthorizedKeyStepName),
 		steps.GetStep(docker.StepName),
 		steps.GetStep(certificates.StepName),
 		steps.GetStep(manifest.StepName),
@@ -140,6 +145,10 @@ func Init() {
 		steps.GetStep(digitalocean.DeleteClusterStepName),
 	}
 
+	awsDeleteClusterWorkflow := []steps.Step{
+		steps.GetStep(amazon.DeleteClusterStepName),
+	}
+
 	m.Lock()
 	defer m.Unlock()
 
@@ -151,6 +160,7 @@ func Init() {
 	workflowMap[AWSMaster] = awsMasterWorkflow
 	workflowMap[AWSNode] = awsNodeWorkflow
 	workflowMap[AWSPreProvision] = awsPreProvision
+	workflowMap[AWSDeleteCluster] = awsDeleteClusterWorkflow
 }
 
 func RegisterWorkFlow(workflowName string, workflow Workflow) {
