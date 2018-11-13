@@ -15,7 +15,12 @@ import (
 
 type CertificatesConfig struct {
 	KubernetesConfigDir string `json:"kubernetesConfigDir"`
-	MasterHost          string `json:"masterHost"`
+	PublicIP            string `json:"publicIp"`
+	PrivateIP           string `json:"privateIp"`
+
+	IsMaster        bool   `json:"isMaster"`
+	MasterPrivateIP string `json:"masterPrivateIp"`
+	MasterPublicIP  string `json:"masterPublicIp"`
 
 	Username string `json:"username"`
 	Password string `json:"password"`
@@ -180,16 +185,17 @@ func (m *Map) MarshalJSON() ([]byte, error) {
 }
 
 type Config struct {
-	TaskID      string
-	Provider    clouds.Name `json:"provider"`
-	IsMaster    bool        `json:"isMaster"`
-	ClusterName string      `json:"clusterName"`
-
-	DigitalOceanConfig DOConfig     `json:"digitalOceanConfig"`
-	AWSConfig          AWSConfig    `json:"awsConfig"`
-	GCEConfig          GCEConfig    `json:"gceConfig"`
-	OSConfig           OSConfig     `json:"osConfig"`
-	PacketConfig       PacketConfig `json:"packetConfig"`
+	TaskID                 string
+	Provider               clouds.Name  `json:"provider"`
+	IsMaster               bool         `json:"isMaster"`
+	ClusterID              string       `json:"clusterId"`
+	ClusterName            string       `json:"clusterName"`
+	LogBootstrapPrivateKey bool         `json:"logBootstrapPrivateKey"`
+	DigitalOceanConfig     DOConfig     `json:"digitalOceanConfig"`
+	AWSConfig              AWSConfig    `json:"awsConfig"`
+	GCEConfig              GCEConfig    `json:"gceConfig"`
+	OSConfig               OSConfig     `json:"osConfig"`
+	PacketConfig           PacketConfig `json:"packetConfig"`
 
 	DockerConfig       DockerConfig       `json:"dockerConfig"`
 	DownloadK8sBinary  DownloadK8sBinary  `json:"downloadK8sBinary"`
@@ -207,6 +213,7 @@ type Config struct {
 	ClusterCheckConfig ClusterCheckConfig `json:"clusterCheckConfig"`
 
 	Node             node.Node     `json:"node"`
+	CloudAccountID   string        `json:"cloudAccountId" valid:"required, length(1|32)"`
 	CloudAccountName string        `json:"cloudAccountName" valid:"required, length(1|32)"`
 	Timeout          time.Duration `json:"timeout"`
 	Runner           runner.Runner `json:"-"`
@@ -231,6 +238,7 @@ func NewConfig(clusterName, discoveryUrl, cloudAccountName string, profile profi
 		DigitalOceanConfig: DOConfig{
 			Region: profile.Region,
 		},
+		LogBootstrapPrivateKey: profile.LogBootstrapPrivateKey,
 		AWSConfig: AWSConfig{
 			Region: profile.Region,
 
@@ -306,11 +314,13 @@ func NewConfig(clusterName, discoveryUrl, cloudAccountName string, profile profi
 			HelmVersion:     profile.HelmVersion,
 			OperatingSystem: profile.OperatingSystem,
 			Arch:            profile.Arch,
+			RBACEnabled:     profile.RBACEnabled,
 		},
 		SshConfig: SshConfig{
-			Port:    "22",
-			User:    "root",
-			Timeout: 10,
+			Port:      "22",
+			User:      "root",
+			Timeout:   10,
+			PublicKey: profile.PublicKey,
 		},
 		EtcdConfig: EtcdConfig{
 			// TODO(stgleb): this field must be changed per node
@@ -345,6 +355,7 @@ func NewConfig(clusterName, discoveryUrl, cloudAccountName string, profile profi
 		nodeChan:      make(chan node.Node, len(profile.MasterProfiles)+len(profile.NodesProfiles)),
 		kubeStateChan: make(chan model.KubeState, 2),
 	}
+
 	return cfg
 }
 

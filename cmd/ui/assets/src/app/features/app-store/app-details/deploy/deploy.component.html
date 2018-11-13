@@ -25,8 +25,8 @@
         <mat-select matInput
                     placeholder="Cluster name"
                     formControlName="clusterName">
-          <div *ngFor="let cluster of (clusters$ | async)">
-            <mat-option [value]="cluster.name">{{ cluster.name }}</mat-option>
+          <div *ngFor="let cluster of clusters">
+            <mat-option [value]="cluster.name">{{ cluster?.name }}</mat-option>
           </div>
         </mat-select>
       </mat-form-field>

@@ -19,6 +19,7 @@ import (
 	"github.com/supergiant/supergiant/pkg/util"
 	"github.com/supergiant/supergiant/pkg/workflows"
 	"github.com/supergiant/supergiant/pkg/workflows/steps"
+	"fmt"
 )
 
 const keySize = 4096
@@ -57,13 +58,22 @@ func NewProvisioner(repository storage.Interface, kubeService KubeService) *Task
 	}
 }
 
-// ProvisionCluster runs provisionCluster process among nodes that have been provided for provisionCluster
-func (tp *TaskProvisioner) ProvisionCluster(ctx context.Context, profile *profile.Profile, config *steps.Config) (map[string][]*workflows.Task, error) {
+// ProvisionCluster runs provisionCluster process among nodes
+// that have been provided for provisionCluster
+func (tp *TaskProvisioner) ProvisionCluster(ctx context.Context,
+	profile *profile.Profile, config *steps.Config) (map[string][]*workflows.Task, error) {
 	masterTasks, nodeTasks, clusterTask := tp.prepare(config.Provider, len(profile.MasterProfiles),
 		len(profile.NodesProfiles))
 
+	// Get clusterID from taskID
+	if clusterTask != nil && len(clusterTask.ID) >= 8 {
+		config.ClusterID = clusterTask.ID[:8]
+	} else {
+		return nil, errors.New(fmt.Sprintf("Wrong value of cluster task %v", clusterTask))
+	}
 	// TODO(stgleb): Make node names from task id before provisioning starts
-	masters, nodes := nodesFromProfile(config.ClusterName, masterTasks, nodeTasks, profile)
+	masters, nodes := nodesFromProfile(config.ClusterName,
+		masterTasks, nodeTasks, profile)
 
 	if err := bootstrapKeys(config); err != nil {
 		return nil, errors.Wrap(err, "bootstrap keys")
@@ -74,7 +84,11 @@ func (tp *TaskProvisioner) ProvisionCluster(ctx context.Context, profile *profil
 	}
 
 	// Save cluster before provisioning
-	tp.buildInitialCluster(ctx, profile, masters, nodes, config)
+	err := tp.buildInitialCluster(ctx, profile, masters, nodes, config)
+
+	if err != nil {
+		return nil, errors.Wrap(err, "create initial cluster")
+	}
 
 	// monitor cluster state in separate goroutine
 	go tp.monitorClusterState(ctx, config)
@@ -103,14 +117,14 @@ func (tp *TaskProvisioner) ProvisionCluster(ctx context.Context, profile *profil
 		}
 
 		// Save cluster state when masters are provisioned
-		logrus.Infof("master provisioning for cluster %s has finished successfully", config.ClusterName)
+		logrus.Infof("master provisioning for cluster %s has finished successfully", config.ClusterID)
 
 		// ProvisionCluster nodes
 		tp.provisionNodes(ctx, profile, config, nodeTasks)
 
 		// Wait for cluster checks are finished
 		tp.waitCluster(ctx, clusterTask, config)
-		logrus.Infof("cluster %s deployment has finished", config.ClusterName)
+		logrus.Infof("cluster %s deployment has finished", config.ClusterID)
 	}()
 
 	return map[string][]*workflows.Task{
@@ -172,7 +186,7 @@ func (tp *TaskProvisioner) ProvisionNodes(ctx context.Context, nodeProfiles []pr
 			err = <-errChan
 
 			if err != nil {
-				logrus.Errorf("add node to cluster %s caused an error %v", kube.Name, err)
+				logrus.Errorf("add node to cluster %s caused an error %v", kube.ID, err)
 				return
 			}
 
@@ -181,7 +195,7 @@ func (tp *TaskProvisioner) ProvisionNodes(ctx context.Context, nodeProfiles []pr
 				// TODO(stgleb): Use some other method like update or Patch instead of recreate
 				tp.kubeService.Create(context.Background(), kube)
 			} else {
-				logrus.Errorf("add node to cluster %s: node was not added", kube.Name)
+				logrus.Errorf("add node to cluster %s: node was not added", kube.ID)
 			}
 		}(config, errChan)
 	}
@@ -378,8 +392,11 @@ func (tp *TaskProvisioner) waitCluster(ctx context.Context, clusterTask *workflo
 	clusterWg.Wait()
 }
 
-func (tp *TaskProvisioner) buildInitialCluster(ctx context.Context, profile *profile.Profile, masters, nodes map[string]*node.Node, config *steps.Config) error {
+func (tp *TaskProvisioner) buildInitialCluster(ctx context.Context,
+	profile *profile.Profile, masters, nodes map[string]*node.Node,
+	config *steps.Config) error {
 	cluster := &model.Kube{
+		ID:           config.ClusterID,
 		State:        model.StateProvisioning,
 		Name:         config.ClusterName,
 		AccountName:  config.CloudAccountName,
@@ -445,7 +462,7 @@ func (tp *TaskProvisioner) monitorClusterState(ctx context.Context, cfg *steps.C
 	for {
 		select {
 		case n := <-cfg.NodeChan():
-			k, err := tp.kubeService.Get(ctx, cfg.ClusterName)
+			k, err := tp.kubeService.Get(ctx, cfg.ClusterID)
 
 			if err != nil {
 				logrus.Errorf("update kube state caused %v", err)
@@ -465,7 +482,7 @@ func (tp *TaskProvisioner) monitorClusterState(ctx context.Context, cfg *steps.C
 				continue
 			}
 		case state := <-cfg.KubeStateChan():
-			k, err := tp.kubeService.Get(ctx, cfg.ClusterName)
+			k, err := tp.kubeService.Get(ctx, cfg.ClusterID)
 
 			if err != nil {
 				logrus.Errorf("update kube state caused %v", err)

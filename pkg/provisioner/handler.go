@@ -47,6 +47,7 @@ type ProvisionRequest struct {
 }
 
 type ProvisionResponse struct {
+	ClusterID string `json:"clusterId"`
 	Tasks map[string][]string `json:"tasks"`
 }
 
@@ -67,6 +68,7 @@ func (h *Handler) Register(m *mux.Router) {
 	m.HandleFunc("/provision", h.Provision).Methods(http.MethodPost)
 }
 
+// TODO(stgleb): Move this to KubeHandler create kube
 func (h *Handler) Provision(w http.ResponseWriter, r *http.Request) {
 	req := &ProvisionRequest{}
 	err := json.NewDecoder(r.Body).Decode(req)
@@ -84,23 +86,8 @@ func (h *Handler) Provision(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	// NOTE(stgleb): This code is a read-modify-update scenario,
-	// so if someone else make a request to create kube with the same name
-	// between read and create - this will be the case for lost update.
-	// We need to handle that situation using lock or channel synchronization.
-	existingKube, err := h.kubeGetter.Get(r.Context(), req.ClusterName)
-
-	if existingKube != nil {
-		message.SendAlreadyExists(w, existingKube.Name, sgerrors.ErrAlreadyExists)
-		return
-	}
-
-	if err != nil && !sgerrors.IsNotFound(err) {
-		message.SendUnknownError(w, err)
-		return
-	}
-
-	discoveryUrl, err := h.tokenGetter.GetToken(r.Context(), len(req.Profile.MasterProfiles))
+	discoveryUrl, err := h.tokenGetter.GetToken(r.Context(),
+		len(req.Profile.MasterProfiles))
 
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
@@ -109,7 +96,8 @@ func (h *Handler) Provision(w http.ResponseWriter, r *http.Request) {
 	}
 
 	logrus.Infof("Got discoveryUrl %s", discoveryUrl)
-	config := steps.NewConfig(req.ClusterName, discoveryUrl, req.CloudAccountName, req.Profile)
+	config := steps.NewConfig(req.ClusterName, discoveryUrl,
+		req.CloudAccountName, req.Profile)
 
 	acc, err := h.accountGetter.Get(r.Context(), req.CloudAccountName)
 
@@ -152,6 +140,7 @@ func (h *Handler) Provision(w http.ResponseWriter, r *http.Request) {
 	}
 
 	resp := ProvisionResponse{
+		ClusterID: config.ClusterID,
 		Tasks: roleTaskIdMap,
 	}
 

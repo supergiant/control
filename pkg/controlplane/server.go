@@ -11,8 +11,6 @@ import (
 	"github.com/gorilla/mux"
 	"github.com/pkg/errors"
 	"github.com/sirupsen/logrus"
-	"k8s.io/helm/pkg/repo"
-
 	"github.com/supergiant/supergiant/pkg/account"
 	"github.com/supergiant/supergiant/pkg/api"
 	"github.com/supergiant/supergiant/pkg/jwt"
@@ -29,6 +27,7 @@ import (
 	"github.com/supergiant/supergiant/pkg/util"
 	"github.com/supergiant/supergiant/pkg/workflows"
 	"github.com/supergiant/supergiant/pkg/workflows/steps/amazon"
+	"github.com/supergiant/supergiant/pkg/workflows/steps/authorizedKeys"
 	"github.com/supergiant/supergiant/pkg/workflows/steps/certificates"
 	"github.com/supergiant/supergiant/pkg/workflows/steps/clustercheck"
 	"github.com/supergiant/supergiant/pkg/workflows/steps/cni"
@@ -45,6 +44,7 @@ import (
 	"github.com/supergiant/supergiant/pkg/workflows/steps/prometheus"
 	"github.com/supergiant/supergiant/pkg/workflows/steps/ssh"
 	"github.com/supergiant/supergiant/pkg/workflows/steps/tiller"
+	"k8s.io/helm/pkg/repo"
 )
 
 type Server struct {
@@ -212,6 +212,7 @@ func configureApplication(cfg *Config) (*mux.Router, error) {
 
 	digitalocean.Init()
 	certificates.Init()
+	authorizedKeys.Init()
 	cni.Init()
 	docker.Init()
 	downloadk8sbinary.Init()
@@ -232,6 +233,7 @@ func configureApplication(cfg *Config) (*mux.Router, error) {
 	amazon.InitCreateSecurityGroups(amazon.GetEC2)
 	amazon.InitCreateVPC(amazon.GetEC2)
 	amazon.InitCreateSubnet(amazon.GetEC2)
+	amazon.InitDeleteCluster(amazon.GetEC2)
 
 	workflows.Init()
 
