@@ -58,8 +58,8 @@ func TestNewConfig(t *testing.T) {
 
 	cfg := NewConfig(clusterName, discoveryUrl, cloudAccountName, p)
 
-	if cfg.ClusterID != clusterName {
-		t.Errorf("Wrong cluster name expected %s actual %s", clusterName, cfg.ClusterID)
+	if cfg.ClusterName != clusterName {
+		t.Errorf("Wrong cluster name expected %s actual %s", clusterName, cfg.ClusterName)
 	}
 
 	if cfg.CloudAccountName != cloudAccountName {
