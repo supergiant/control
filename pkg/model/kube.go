@@ -16,6 +16,7 @@ const (
 // TODO(stgleb): Add cloud provider for kube
 // Kube represents a kubernetes cluster.
 type Kube struct {
+	ID           string    `json:"id" valid:"-"`
 	State        KubeState `json:"state"`
 	Name         string    `json:"name" valid:"required"`
 	RBACEnabled  bool      `json:"rbacEnabled"`

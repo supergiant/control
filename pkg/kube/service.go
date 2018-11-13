@@ -15,6 +15,7 @@ import (
 	"k8s.io/helm/pkg/proto/hapi/release"
 	"k8s.io/helm/pkg/timeconv"
 
+	"github.com/pborman/uuid"
 	"github.com/supergiant/supergiant/pkg/model"
 	"github.com/supergiant/supergiant/pkg/runner/ssh"
 	"github.com/supergiant/supergiant/pkg/sgerrors"
@@ -36,12 +37,12 @@ type Interface interface {
 	Get(ctx context.Context, name string) (*model.Kube, error)
 	ListAll(ctx context.Context) ([]model.Kube, error)
 	Delete(ctx context.Context, name string) error
-	ListKubeResources(ctx context.Context, kname string) ([]byte, error)
-	GetKubeResources(ctx context.Context, kname, resource, ns, name string) ([]byte, error)
-	GetCerts(ctx context.Context, kname, cname string) (*Bundle, error)
-	InstallRelease(ctx context.Context, kname string, rls *ReleaseInput) (*release.Release, error)
-	ListReleases(ctx context.Context, kname, ns, offset string, limit int) ([]*model.ReleaseInfo, error)
-	DeleteRelease(ctx context.Context, kname, rlsName string, purge bool) (*model.ReleaseInfo, error)
+	ListKubeResources(ctx context.Context, kubeID string) ([]byte, error)
+	GetKubeResources(ctx context.Context, kubeID, resource, ns, name string) ([]byte, error)
+	GetCerts(ctx context.Context, kubeID, cname string) (*Bundle, error)
+	InstallRelease(ctx context.Context, kubeID string, rls *ReleaseInput) (*release.Release, error)
+	ListReleases(ctx context.Context, kubeID, ns, offset string, limit int) ([]*model.ReleaseInfo, error)
+	DeleteRelease(ctx context.Context, kubeID, rlsName string, purge bool) (*model.ReleaseInfo, error)
 }
 
 // ChartGetter interface is a wrapper for GetChart function.
@@ -77,12 +78,16 @@ func NewService(prefix string, s storage.Interface, chrtGetter ChartGetter) *Ser
 
 // Create and stores a kube in the provided storage.
 func (s *Service) Create(ctx context.Context, k *model.Kube) error {
+	if k.ID == "" {
+		k.ID = uuid.New()[:8]
+	}
+
 	raw, err := json.Marshal(k)
 	if err != nil {
 		return errors.Wrap(err, "marshal")
 	}
 
-	err = s.storage.Put(ctx, s.prefix, k.Name, raw)
+	err = s.storage.Put(ctx, s.prefix, k.ID, raw)
 	if err != nil {
 		return errors.Wrap(err, "storage: put")
 	}
@@ -91,8 +96,8 @@ func (s *Service) Create(ctx context.Context, k *model.Kube) error {
 }
 
 // Get returns a kube with a specified name.
-func (s *Service) Get(ctx context.Context, name string) (*model.Kube, error) {
-	raw, err := s.storage.Get(ctx, s.prefix, name)
+func (s *Service) Get(ctx context.Context, kubeID string) (*model.Kube, error) {
+	raw, err := s.storage.Get(ctx, s.prefix, kubeID)
 	if err != nil {
 		return nil, errors.Wrap(err, "storage: get")
 	}
@@ -128,13 +133,13 @@ func (s *Service) ListAll(ctx context.Context) ([]model.Kube, error) {
 }
 
 // Delete deletes a kube with a specified name.
-func (s *Service) Delete(ctx context.Context, name string) error {
-	return s.storage.Delete(ctx, s.prefix, name)
+func (s *Service) Delete(ctx context.Context, kubeID string) error {
+	return s.storage.Delete(ctx, s.prefix, kubeID)
 }
 
 // ListKubeResources returns raw representation of the supported kubernetes resources.
-func (s *Service) ListKubeResources(ctx context.Context, kname string) ([]byte, error) {
-	kube, err := s.Get(ctx, kname)
+func (s *Service) ListKubeResources(ctx context.Context, kubeID string) ([]byte, error) {
+	kube, err := s.Get(ctx, kubeID)
 	if err != nil {
 		return nil, errors.Wrap(err, "get kube")
 	}
@@ -153,8 +158,8 @@ func (s *Service) ListKubeResources(ctx context.Context, kname string) ([]byte, 
 }
 
 // GetKubeResources returns raw representation of the kubernetes resources.
-func (s *Service) GetKubeResources(ctx context.Context, kname, resource, ns, name string) ([]byte, error) {
-	kube, err := s.Get(ctx, kname)
+func (s *Service) GetKubeResources(ctx context.Context, kubeID, resource, ns, name string) ([]byte, error) {
+	kube, err := s.Get(ctx, kubeID)
 	if err != nil {
 		return nil, errors.Wrap(err, "get kube")
 	}
@@ -187,8 +192,8 @@ func (s *Service) GetKubeResources(ctx context.Context, kname, resource, ns, nam
 }
 
 // GetCerts returns a keys bundle for provided component name.
-func (s *Service) GetCerts(ctx context.Context, kname, cname string) (*Bundle, error) {
-	kube, err := s.Get(ctx, kname)
+func (s *Service) GetCerts(ctx context.Context, kubeID, cname string) (*Bundle, error) {
+	kube, err := s.Get(ctx, kubeID)
 	if err != nil {
 		return nil, err
 	}
@@ -215,7 +220,7 @@ func (s *Service) GetCerts(ctx context.Context, kname, cname string) (*Bundle, e
 	return b, nil
 }
 
-func (s *Service) InstallRelease(ctx context.Context, kname string, rls *ReleaseInput) (*release.Release, error) {
+func (s *Service) InstallRelease(ctx context.Context, kubeID string, rls *ReleaseInput) (*release.Release, error) {
 	if rls == nil {
 		return nil, errors.Wrap(sgerrors.ErrNilEntity, "release input")
 	}
@@ -225,7 +230,7 @@ func (s *Service) InstallRelease(ctx context.Context, kname string, rls *Release
 		return nil, errors.Wrap(err, "get chart")
 	}
 
-	kube, err := s.Get(ctx, kname)
+	kube, err := s.Get(ctx, kubeID)
 	if err != nil {
 		return nil, errors.Wrap(err, "get kube")
 	}
@@ -246,8 +251,8 @@ func (s *Service) InstallRelease(ctx context.Context, kname string, rls *Release
 	return rr.GetRelease(), err
 }
 
-func (s *Service) ListReleases(ctx context.Context, kname, namespace, offset string, limit int) ([]*model.ReleaseInfo, error) {
-	kube, err := s.Get(ctx, kname)
+func (s *Service) ListReleases(ctx context.Context, kubeID, namespace, offset string, limit int) ([]*model.ReleaseInfo, error) {
+	kube, err := s.Get(ctx, kubeID)
 	if err != nil {
 		return nil, errors.Wrap(err, "get kube")
 	}
@@ -275,8 +280,8 @@ func (s *Service) ListReleases(ctx context.Context, kname, namespace, offset str
 	return out, nil
 }
 
-func (s *Service) DeleteRelease(ctx context.Context, kname, rlsName string, purge bool) (*model.ReleaseInfo, error) {
-	kube, err := s.Get(ctx, kname)
+func (s *Service) DeleteRelease(ctx context.Context, kubeID, rlsName string, purge bool) (*model.ReleaseInfo, error) {
+	kube, err := s.Get(ctx, kubeID)
 	if err != nil {
 		return nil, errors.Wrap(err, "get kube")
 	}

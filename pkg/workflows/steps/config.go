@@ -170,9 +170,11 @@ func (m *Map) MarshalJSON() ([]byte, error) {
 }
 
 type Config struct {
+
 	TaskID                 string
 	Provider               clouds.Name  `json:"provider"`
 	IsMaster               bool         `json:"isMaster"`
+  ClusterID              string    `json:"clusterId"`
 	ClusterName            string       `json:"clusterName"`
 	LogBootstrapPrivateKey bool         `json:"logBootstrapPrivateKey"`
 	DigitalOceanConfig     DOConfig     `json:"digitalOceanConfig"`
@@ -197,6 +199,7 @@ type Config struct {
 	ClusterCheckConfig ClusterCheckConfig `json:"clusterCheckConfig"`
 
 	Node             node.Node     `json:"node"`
+	CloudAccountID   string        `json:"cloudAccountId" valid:"required, length(1|32)"`
 	CloudAccountName string        `json:"cloudAccountName" valid:"required, length(1|32)"`
 	Timeout          time.Duration `json:"timeout"`
 	Runner           runner.Runner `json:"-"`
