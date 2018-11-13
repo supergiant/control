@@ -6,8 +6,8 @@ import { Chart, selectAppDetails }            from "../../../apps/apps.reducer";
 import { Observable, of }                     from "rxjs";
 import { HttpClient }                         from "@angular/common/http";
 import { MAT_DIALOG_DATA, MatDialogRef }      from "@angular/material";
-import { catchError }                         from "rxjs/operators";
-import { Notifications }                      from "app/shared/notifications/notifications.service";
+import { catchError, filter }                         from "rxjs/operators";
+import { Notifications }                      from "../../../../../app/shared/notifications/notifications.service";
 import { ActivatedRoute, Router }             from "@angular/router";
 
 
@@ -20,7 +20,7 @@ export class DeployComponent implements OnInit {
 
   deployForm: FormGroup;
   currentChart$: Observable<Chart>;
-  clusters$: Observable<any>;
+  clusters: any;
   isProcessing: boolean;
 
   constructor(
@@ -47,17 +47,18 @@ export class DeployComponent implements OnInit {
     });
 
     this.currentChart$ = this.store.pipe(select(selectAppDetails));
-    this.clusters$ = this.http.get('/v1/api/kubes');
+    this.http.get('/v1/api/kubes').subscribe(res => this.clusters = res);
     this.setDefaultFormValues();
   }
 
   submitForm() {
     const formValue = this.deployForm.getRawValue();
+    const selectedCluster = this.clusters.find(c => c.name == formValue.clusterName);
+
     this.deployForm.disable();
     this.isProcessing = true;
 
-
-    this.http.post(`/v1/api/kubes/${formValue.clusterName}/releases`, formValue).pipe(
+    this.http.post("/v1/api/kubes/" + selectedCluster.id + "/releases", formValue).pipe(
       catchError(error => {
         this.notifications.display('error', 'Error', error.statusText);
         return of(new ErrorEvent(error));

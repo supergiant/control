@@ -32,7 +32,8 @@ import { NodeProfileService }                                              from 
   styleUrls: ['./add-node.component.scss']
 })
 export class AddNodeComponent implements OnInit, OnDestroy {
-  clusterName: string;
+  clusterId: number;
+  clusterName: number;
 
   machines = [{
     machineType: null,
@@ -63,9 +64,11 @@ export class AddNodeComponent implements OnInit, OnDestroy {
   }
 
   ngOnInit() {
-    this.clusterName = this.route.snapshot.params.id;
+    this.clusterId = this.route.snapshot.params.id;
 
-    const cluster$ = this.supergiant.Kubes.get(this.clusterName);
+    const cluster$ = this.supergiant.Kubes.get(this.clusterId);
+
+    cluster$.subscribe(cluster => this.clusterName = cluster.name);
 
     const region$ = cluster$.pipe(
       tap(p => {
@@ -171,7 +174,7 @@ export class AddNodeComponent implements OnInit, OnDestroy {
 
     const nodes = this.nodesService.compileProfiles(this.provider, this.machines, "Node");
     // TODO  move to service
-    const url = `/v1/api/kubes/${this.clusterName}/nodes`;
+    const url = `/v1/api/kubes/${this.clusterId}/nodes`;
 
     this.http.post(url, nodes).pipe(
       catchError(error => {
@@ -189,7 +192,7 @@ export class AddNodeComponent implements OnInit, OnDestroy {
           'Success!',
           'Your request is being processed'
         );
-        this.router.navigate([`clusters/${this.clusterName}`]);
+        this.router.navigate([`clusters/${this.clusterId}`]);
       });
   }
 }

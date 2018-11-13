@@ -1,4 +1,4 @@
-<div class="cluster-wrapper" [routerLink]="['/clusters', cluster.name]">
+<div class="cluster-wrapper" [routerLink]="['/clusters', cluster.id]">
   <div class="cluster-info"
     [ngClass]="{
     'provisioning-table': cluster.state == 'provisioning',

@@ -1,4 +1,4 @@
-<a [routerLink]="['/clusters', cluster.name]" class="cluster-hover"
+<a [routerLink]="['/clusters', cluster.id]" class="cluster-hover"
   [ngClass]="{
     'deleting': cluster.state == 'deleting',
     'failed': cluster.state == 'failed'}">
