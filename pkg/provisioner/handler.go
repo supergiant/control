@@ -10,7 +10,7 @@ import (
 	"github.com/sirupsen/logrus"
 
 	"gopkg.in/asaskevich/govalidator.v8"
-	
+
 	"github.com/supergiant/supergiant/pkg/account"
 	"github.com/supergiant/supergiant/pkg/message"
 	"github.com/supergiant/supergiant/pkg/model"

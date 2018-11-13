@@ -95,7 +95,7 @@ type ManifestConfig struct {
 	ProviderString      string `json:"providerString"`
 	MasterHost          string `json:"masterHost"`
 	MasterPort          string `json:"masterPort"`
-	Token string `json:"token"`
+	Token               string `json:"token"`
 }
 
 type PostStartConfig struct {
