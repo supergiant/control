@@ -217,13 +217,9 @@ EOF"
 sudo bash -c "cat << EOF > {{ .KubernetesConfigDir }}/bootstrap-config.yaml
 apiVersion: v1
 kind: Config
-users:
-- name: kubelet-bootstrap
-  user:
-    token: '1234'
 clusters:
     - cluster:
-        certificate-authority: {{ .CAKey }}
+        certificate-authority-data: $(cat /etc/kubernetes/ssl/ca.pem | base64 --wrap=0)
         server: https://{{ .MasterHost }}
       name: local
 contexts:
@@ -233,6 +229,8 @@ contexts:
   name: default-context
 current-context: default-context
 EOF"
+
+kubectl config set-credentials kubelet-bootstrap --token={{ .Token }} --kubeconfig=bootstrap.kubeconfig
 
 # proxy
 sudo bash -c "cat << EOF > ${KUBERNETES_MANIFESTS_DIR}/kube-proxy.yaml
