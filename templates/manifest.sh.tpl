@@ -217,21 +217,23 @@ EOF"
 {{ if not .IsMaster }}
 sudo bash -c "cat << EOF > {{ .KubernetesConfigDir }}/bootstrap-config.yaml
 apiVersion: v1
-kind: Config
 clusters:
-    - cluster:
-        certificate-authority-data: $(cat /etc/kubernetes/ssl/ca.pem | base64 --wrap=0)
-        server: https://{{ .MasterHost }}
-      name: local
+- cluster:
+    server: https://{{ .MasterHost }}
+  name: local
 contexts:
 - context:
     cluster: local
     user: kubelet-bootstrap
   name: default-context
 current-context: default-context
+kind: Config
+preferences: {}
+users:
+- name: kubelet-bootstrap
+  user:
+    token: "{{ .Token }}"
 EOF"
-
-kubectl config set-credentials kubelet-bootstrap --token={{ .Token }} --kubeconfig={{ .KubernetesConfigDir }}/bootstrap-config.yaml
 {{ end }}
 
 # proxy
