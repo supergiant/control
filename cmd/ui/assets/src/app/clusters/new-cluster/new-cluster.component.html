@@ -41,6 +41,7 @@
     <mat-step label="Cluster Configuration" [stepControl]="clusterConfig">
       <form [formGroup]="clusterConfig" class="cluster-config-form">
         <div class="input-group">
+
           <mat-form-field>
             <mat-select placeholder="K8s Version" formControlName="K8sVersion" required>
               <mat-option *ngFor="let k of clusterOptions.K8sVersions" [value]="k">{{ k }}</mat-option>
@@ -58,9 +59,7 @@
               <mat-option *ngFor="let h of clusterOptions.helmVersions" [value]="h">{{ h }}</mat-option>
             </mat-select>
           </mat-form-field>
-        </div>
 
-        <div class="input-group">
           <mat-form-field>
             <mat-select placeholder="Docker Version" formControlName="dockerVersion" required>
               <mat-option *ngFor="let d of clusterOptions.dockerVersions" [value]="d">{{ d }}</mat-option>
@@ -72,15 +71,15 @@
               <mat-option *ngFor="let u of clusterOptions.ubuntuVersions" [value]="u">{{ u }}</mat-option>
             </mat-select>
           </mat-form-field>
+        </div>
 
+        <div class="input-group">
           <mat-form-field>
             <mat-select placeholder="Network Type" formControlName="networkType" required>
               <mat-option *ngFor="let n of clusterOptions.networkTypes" [value]="n">{{ n }}</mat-option>
             </mat-select>
           </mat-form-field>
-        </div>
 
-        <div class="input-group">
           <mat-form-field>
             <input matInput placeholder="CIDR" type="text" formControlName="cidr" required>
           </mat-form-field>
@@ -94,6 +93,12 @@
           <mat-form-field>
             <mat-select placeholder="Arch" formControlName="arch" required>
               <mat-option *ngFor="let a of clusterOptions.archs" [value]="a">{{ a }}</mat-option>
+            </mat-select>
+          </mat-form-field>
+
+          <mat-form-field>
+            <mat-select placeholder="RBAC Enabled" formControlName="rbacEnabled" required>
+              <mat-option *ngFor="let b of clusterOptions.rbacEnabled" [value]="b">{{ b }}</mat-option>
             </mat-select>
           </mat-form-field>
         </div>
@@ -147,6 +152,8 @@
           </div>
 
           <div class="input-group">
+
+
             <mat-form-field>
               <input matInput type="text" formControlName="subnetId" placeholder="Subnet ID" required>
             </mat-form-field>
@@ -160,11 +167,9 @@
               <input matInput type="text" formControlName="nodesSecurityGroupId" placeholder="Node's Security Group ID">
               <mat-hint align="end">Leaving this blank will create a new one</mat-hint>
             </mat-form-field>
-          </div>
 
-          <div class="input-group public-key-wrapper">
             <mat-form-field>
-              <textarea cdkTextareaAutosize cdkAutosizeMaxRows="11" matInput formControlName="publicKey" placeholder="Public Key" required></textarea>
+              <textarea rows="1" matInput formControlName="publicKey" placeholder="Public Key" required></textarea>
             </mat-form-field>
           </div>
 
