@@ -669,12 +669,25 @@
   }
 
   .action-buttons {
-    text-align: center;
+    margin-top: -20px;
 
     .delete-cluster {
-      background-color: rgba(244,67,54,0.3);
-      border: 1px solid rgba(244,67,54,0.8);
-      width: 1270px;
+      display: flex;
+      align-items: center;
+      cursor: pointer;
+      width: max-content;
+
+      &:active {
+        transform: scale(0.95, 0.95);
+      }
+
+      .delete-icon {
+        background-image: url(/assets/img/delete-pink.svg);
+        display: inline-block;
+        margin-right: 5px;
+        height: 24px;
+        width: 24px;
+      }
     }
   }
 
