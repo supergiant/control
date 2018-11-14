@@ -243,14 +243,16 @@ export class ClusterComponent implements OnInit, OnDestroy {
     const nodeNames = Object.keys(kube.nodes);
 
     masterNames.forEach(name => {
-      if (this.machineMetrics[name]) {
-        kube.masters[name].metrics = this.machineMetrics[name];
+      const lowercaseName = name.toLowerCase();
+      if (this.machineMetrics[lowercaseName]) {
+        kube.masters[name].metrics = this.machineMetrics[lowercaseName];
       }
     })
 
     nodeNames.forEach(name => {
-      if (this.machineMetrics[name]) {
-        kube.nodes[name].metrics = this.machineMetrics[name];
+      const lowercaseName = name.toLowerCase();
+      if (this.machineMetrics[lowercaseName]) {
+        kube.nodes[name].metrics = this.machineMetrics[lowercaseName];
       }
     })
 
@@ -281,9 +283,21 @@ export class ClusterComponent implements OnInit, OnDestroy {
 
   getMachineMetrics() {
     this.supergiant.Kubes.getMachineMetrics(this.clusterId).subscribe(
-      res => { this.machineMetrics = res; this.renderKube(this.kube) },
+      res => {
+        this.machineMetrics = this.calculateMachineMetrics(res);
+        this.renderKube(this.kube)
+      },
       err => console.error(err)
     )
+  }
+
+  calculateMachineMetrics(machines) {
+    Object.keys(machines).forEach(m => {
+      machines[m].cpu = (machines[m].cpu * 100).toFixed(1);
+      machines[m].memory = (machines[m].memory * 100).toFixed(1);
+    });
+
+    return machines;
   }
 
   removeNode(nodeName: string, target) {
