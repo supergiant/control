@@ -126,6 +126,7 @@ func NewServer(router *mux.Router, cfg *Config) *Server {
 			IdleTimeout:  cfg.IdleTimeout,
 		},
 	}
+	http.DefaultClient.Timeout = cfg.IdleTimeout
 
 	return s
 }
