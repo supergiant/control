@@ -33,7 +33,9 @@ func NewCreateInstanceStep(dropletTimeout, checkPeriod time.Duration) *CreateIns
 func (s *CreateInstanceStep) Run(ctx context.Context, output io.Writer, config *steps.Config) error {
 	// TODO(stgleb): Extract getting digital ocean sdk to function that will allow it to be mocked.
 	c := digitaloceansdk.New(config.DigitalOceanConfig.AccessToken).GetClient()
-	config.DigitalOceanConfig.Name = util.MakeNodeName(config.ClusterName, config.TaskID, config.IsMaster)
+	// Node name is created from cluster name plus part of task id plus role
+	config.DigitalOceanConfig.Name = util.MakeNodeName(config.ClusterName,
+		config.TaskID, config.IsMaster)
 
 	// TODO(stgleb): Move keys creation for provisioning to provisioner to be able to get
 	// this key on cluster check phase.
@@ -47,7 +49,7 @@ func (s *CreateInstanceStep) Run(ctx context.Context, output io.Writer, config *
 	defer c.Keys.DeleteByFingerprint(context.Background(), fingers[0].Fingerprint)
 
 	tags := []string{
-		config.ClusterName,
+		config.ClusterID,
 		config.DigitalOceanConfig.Name,
 	}
 

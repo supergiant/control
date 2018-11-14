@@ -94,6 +94,7 @@ const (
 	serviceListAll           = "ListAll"
 	serviceDelete            = "Delete"
 	serviceListKubeResources = "ListKubeResources"
+	serviceKubeConfigFor     = "KubeConfigFor"
 	serviceGetKubeResources  = "GetKubeResources"
 	serviceGetCerts          = "GetCerts"
 )
@@ -118,6 +119,14 @@ func (m *kubeServiceMock) Create(ctx context.Context, k *model.Kube) error {
 func (m *kubeServiceMock) Get(ctx context.Context, name string) (*model.Kube, error) {
 	args := m.Called(ctx, name)
 	val, ok := args.Get(0).(*model.Kube)
+	if !ok {
+		return nil, args.Error(1)
+	}
+	return val, args.Error(1)
+}
+func (m *kubeServiceMock) KubeConfigFor(ctx context.Context, kname, user string) ([]byte, error) {
+	args := m.Called(ctx, kname, user)
+	val, ok := args.Get(0).([]byte)
 	if !ok {
 		return nil, args.Error(1)
 	}
@@ -726,11 +735,11 @@ func TestAddNodeToKube(t *testing.T) {
 	for _, testCase := range testCases {
 		t.Log(testCase.testName)
 		svc := new(kubeServiceMock)
-		svc.On(serviceGet, mock.Anything, testCase.kubeName).
+		svc.On(serviceGet, mock.Anything, mock.Anything).
 			Return(testCase.kube, testCase.kubeServiceErr)
 
 		accService := new(accServiceMock)
-		accService.On("Get", mock.Anything, testCase.accountName).
+		accService.On("Get", mock.Anything, mock.Anything).
 			Return(testCase.account, testCase.accountErr)
 
 		mockProvisioner := new(mockNodeProvisioner)
@@ -749,7 +758,7 @@ func TestAddNodeToKube(t *testing.T) {
 		rec := httptest.NewRecorder()
 		router := mux.NewRouter()
 
-		router.HandleFunc("/kubes/{kname}/nodes", h.addNode)
+		router.HandleFunc("/kubes/{kubeID}/nodes", h.addNode)
 		router.ServeHTTP(rec, req)
 
 		if rec.Code != testCase.expectedCode {
@@ -908,12 +917,13 @@ func TestDeleteNodeFromKube(t *testing.T) {
 	for _, testCase := range testCases {
 		t.Log(testCase.testName)
 		svc := new(kubeServiceMock)
-		svc.On(serviceGet, mock.Anything, testCase.kubeName).
+		svc.On(serviceGet, mock.Anything, mock.Anything).
 			Return(testCase.kube, testCase.kubeServiceErr)
-		svc.On(serviceCreate, mock.Anything, testCase.kube).Return(mock.Anything)
+		svc.On(serviceCreate, mock.Anything, testCase.kube).
+			Return(mock.Anything)
 
 		accService := new(accServiceMock)
-		accService.On("Get", mock.Anything, testCase.accountName).
+		accService.On("Get", mock.Anything, mock.Anything).
 			Return(testCase.account, testCase.accountErr)
 
 		mockRepo := new(testutils.MockStorage)
@@ -935,7 +945,7 @@ func TestDeleteNodeFromKube(t *testing.T) {
 		}
 
 		router := mux.NewRouter()
-		router.HandleFunc("/{kname}/nodes/{nodename}", handler.deleteNode).Methods(http.MethodDelete)
+		router.HandleFunc("/{kubeID}/nodes/{nodename}", handler.deleteNode).Methods(http.MethodDelete)
 
 		req, _ := http.NewRequest(http.MethodDelete, fmt.Sprintf("/%s/nodes/%s", testCase.kubeName, testCase.nodeName), nil)
 		rec := httptest.NewRecorder()
@@ -970,9 +980,9 @@ func TestKubeTasks(t *testing.T) {
 		},
 		{
 			[][]byte{
-				[]byte(`{"config": {"clusterName":"test"}}`),
-				[]byte(`{"config": {"clusterName":"test2"}}`),
-				[]byte(`{"config": {"clusterName":"test"}}`),
+				[]byte(`{"config": {"clusterId":"test"}}`),
+				[]byte(`{"config": {"clusterId":"test2"}}`),
+				[]byte(`{"config": {"clusterId":"test"}}`),
 			},
 			nil,
 			"",
@@ -1016,9 +1026,9 @@ func TestDeleteKubeTasks(t *testing.T) {
 		},
 		{
 			[][]byte{
-				[]byte(`{"config": {"clusterName":"test"}}`),
-				[]byte(`{"config": {"clusterName":"test2"}}`),
-				[]byte(`{"config": {"clusterName":"test"}}`),
+				[]byte(`{"config": {"clusterId":"test"}}`),
+				[]byte(`{"config": {"clusterId":"test2"}}`),
+				[]byte(`{"config": {"clusterId":"test"}}`),
 			},
 			nil,
 			nil,
@@ -1029,7 +1039,8 @@ func TestDeleteKubeTasks(t *testing.T) {
 		repo := &testutils.MockStorage{}
 		repo.On("GetAll", mock.Anything, mock.Anything).
 			Return(testCase.repoData, testCase.getAllErr)
-		repo.On("Delete", mock.Anything, mock.Anything, mock.Anything).
+		repo.On("Delete", mock.Anything,
+			mock.Anything, mock.Anything).
 			Return(testCase.deleteErr)
 		h := Handler{
 			repo: repo,
@@ -1095,7 +1106,7 @@ func TestServiceGetCerts(t *testing.T) {
 		rec := httptest.NewRecorder()
 
 		router := mux.NewRouter()
-		router.HandleFunc("/kubes/{kname}/certs/{cname}", h.getCerts)
+		router.HandleFunc("/kubes/{kubeID}/certs/{cname}", h.getCerts)
 		router.ServeHTTP(rec, req)
 
 		if testCase.expectedCode != rec.Code {
@@ -1107,32 +1118,32 @@ func TestServiceGetCerts(t *testing.T) {
 
 func TestGetTasks(t *testing.T) {
 	testCases := []struct {
-		kname    string
+		kubeID   string
 		repoData [][]byte
 		repoErr  error
 
 		expectedCode int
 	}{
 		{
-			kname:        "",
+			kubeID:       "",
 			expectedCode: http.StatusMovedPermanently,
 		},
 		{
-			kname:        "test",
+			kubeID:       "test",
 			repoErr:      sgerrors.ErrNotFound,
 			expectedCode: http.StatusNotFound,
 		},
 		{
-			kname:        "test",
+			kubeID:       "test",
 			repoData:     [][]byte{[]byte(`{`)},
 			expectedCode: http.StatusInternalServerError,
 		},
 		{
-			kname: "test",
+			kubeID: "test",
 			repoData: [][]byte{
-				[]byte(`{"config": {"clusterName":"test"}}`),
-				[]byte(`{"config": {"clusterName":"test2"}}`),
-				[]byte(`{"config": {"clusterName":"test"}}`),
+				[]byte(`{"config": {"clusterId":"test"}}`),
+				[]byte(`{"config": {"clusterId":"test2"}}`),
+				[]byte(`{"config": {"clusterId":"test"}}`),
 			},
 			expectedCode: http.StatusOK,
 		},
@@ -1148,11 +1159,11 @@ func TestGetTasks(t *testing.T) {
 
 		rec := httptest.NewRecorder()
 		req, _ := http.NewRequest(http.MethodGet,
-			fmt.Sprintf("/kubes/%s/tasks", testCase.kname),
+			fmt.Sprintf("/kubes/%s/tasks", testCase.kubeID),
 			nil)
 
 		router := mux.NewRouter()
-		router.HandleFunc("/kubes/{kname}/tasks", h.getTasks)
+		router.HandleFunc("/kubes/{kubeID}/tasks", h.getTasks)
 		router.ServeHTTP(rec, req)
 
 		if testCase.expectedCode != rec.Code {
@@ -1298,6 +1309,77 @@ func TestHander_listReleases(t *testing.T) {
 			require.Nilf(t, json.NewDecoder(w.Body).Decode(apiErr), "TC#%d: decode message", i+1)
 
 			require.Equalf(t, tc.expectedErrCode, apiErr.ErrorCode, "TC#%d: check error code", i+1)
+		}
+	}
+}
+
+func TestHandler_getKubeconfig(t *testing.T) {
+	tcs := []struct {
+		kubeID   string
+		userName string
+
+		serviceResources []byte
+		serviceError     error
+
+		expectedStatus  int
+		expectedErrCode sgerrors.ErrorCode
+	}{
+		{ // TC#1
+			kubeID:         "",
+			expectedStatus: http.StatusNotFound,
+		},
+		{ // TC#2
+			kubeID:         "cluster1",
+			expectedStatus: http.StatusNotFound,
+		},
+		{ // TC#2
+			kubeID:          "service_error",
+			userName:        "uname",
+			serviceError:    errors.New("get error"),
+			expectedStatus:  http.StatusInternalServerError,
+			expectedErrCode: sgerrors.UnknownError,
+		},
+		{ // TC#3
+			kubeID:          "not_found",
+			userName:        "uname",
+			serviceError:    sgerrors.ErrNotFound,
+			expectedStatus:  http.StatusNotFound,
+			expectedErrCode: sgerrors.NotFound,
+		},
+		{ // TC#4
+			kubeID:         "kubeconfig",
+			userName:       "uname",
+			expectedStatus: http.StatusOK,
+		},
+	}
+
+	for i, tc := range tcs {
+		// setup handler
+		svc := new(kubeServiceMock)
+		h := NewHandler(svc, nil, nil, nil)
+
+		// prepare
+		req, err := http.NewRequest(http.MethodGet, fmt.Sprintf("/kubes/%s/users/%s/kubeconfig", tc.kubeID, tc.userName), nil)
+		require.Equalf(t, nil, err, "TC#%d: create request: %v", i+1, err)
+
+		svc.On(serviceKubeConfigFor, mock.Anything, tc.kubeID, tc.userName).Return(tc.serviceResources, tc.serviceError)
+		rr := httptest.NewRecorder()
+
+		router := mux.NewRouter().SkipClean(true)
+		h.Register(router)
+
+		// run
+		router.ServeHTTP(rr, req)
+
+		// check
+		require.Equalf(t, tc.expectedStatus, rr.Code, "TC#%d", i+1)
+
+		if tc.expectedErrCode != sgerrors.ErrorCode(0) {
+			m := new(message.Message)
+			err = json.NewDecoder(rr.Body).Decode(m)
+			require.Equalf(t, nil, err, "TC#%d", i+1)
+
+			require.Equalf(t, tc.expectedErrCode, m.ErrorCode, "TC#%d", i+1)
 		}
 	}
 }

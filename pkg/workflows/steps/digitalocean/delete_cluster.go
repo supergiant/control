@@ -36,7 +36,7 @@ func (s *DeleteClusterStep) Run(ctx context.Context, output io.Writer, config *s
 	)
 
 	for i := 0; i < 3; i++ {
-		resp, err = deleteService.DeleteByTag(ctx, config.ClusterName)
+		resp, err = deleteService.DeleteByTag(ctx, config.ClusterID)
 
 		if resp != nil && resp.StatusCode == http.StatusNoContent {
 			return err

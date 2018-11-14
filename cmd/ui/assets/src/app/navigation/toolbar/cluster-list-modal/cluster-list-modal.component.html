@@ -1,2 +1,2 @@
 <p class="new-cluster menu-item" (click)="newCluster()">CREATE CLUSTER</p>
-<p class="menu-item" *ngFor="let cluster of clusters" (click)="navigate(cluster.name)">{{ cluster.name }}</p>
+<p class="menu-item" *ngFor="let cluster of clusters" (click)="navigate(cluster.id)" [ngClass]="{ 'deleting': cluster.state == 'deleting' }">{{ cluster.name }}</p>

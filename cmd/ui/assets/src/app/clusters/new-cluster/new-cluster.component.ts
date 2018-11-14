@@ -120,9 +120,9 @@ export class NewClusterComponent implements OnInit, OnDestroy {
 
       this.provisioning = true;
       this.subscriptions.add(this.supergiant.Kubes.create(newClusterData).subscribe(
-        (data) => {
+        (data: any) => {
           this.success(newClusterData);
-          this.router.navigate(['/clusters/', newClusterData.clusterName]);
+          this.router.navigate(['/clusters/', data.clusterId]);
           this.provisioning = false;
         },
         (err) => {
@@ -205,14 +205,14 @@ export class NewClusterComponent implements OnInit, OnDestroy {
       if (e.keyCode === 13) {
         this.machines.push({
           machineType: null,
-          role: null,
+          role: "Node",
           qty: 1
         })
       }
     } else {
       this.machines.push({
         machineType: null,
-        role: null,
+        role: "Node",
         qty: 1
       })
     }

@@ -16,6 +16,7 @@ const (
 // TODO(stgleb): Add cloud provider for kube
 // Kube represents a kubernetes cluster.
 type Kube struct {
+	ID           string    `json:"id" valid:"-"`
 	State        KubeState `json:"state"`
 	Name         string    `json:"name" valid:"required"`
 	RBACEnabled  bool      `json:"rbacEnabled"`
@@ -40,12 +41,12 @@ type Kube struct {
 
 // Auth holds all possible auth parameters.
 type Auth struct {
-	Username string `json:"username"`
-	Token    string `json:"token"`
-	CAKey    string `json:"caKey"`
-	CACert   string `json:"caCert"`
-	Cert     string `json:"cert"`
-	Key      string `json:"key"`
+	Username  string `json:"username"`
+	Password  string `json:"token"`
+	CAKey     string `json:"caKey"`
+	CACert    string `json:"caCert"`
+	AdminCert string `json:"adminCert"`
+	AdminKey  string `json:"adminKey"`
 }
 
 type Networking struct {

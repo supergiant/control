@@ -7,6 +7,7 @@ import (
 	"testing"
 	"time"
 
+	"github.com/sirupsen/logrus"
 	"github.com/stretchr/testify/mock"
 
 	"github.com/supergiant/supergiant/pkg/clouds"
@@ -34,7 +35,7 @@ type mockKubeService struct {
 }
 
 func (m *mockKubeService) Create(ctx context.Context, k *model.Kube) error {
-	m.data[k.Name] = k
+	m.data[k.ID] = k
 	return m.createErr
 }
 
@@ -115,6 +116,8 @@ func TestProvisionNodes(t *testing.T) {
 	repository.On("Put", context.Background(),
 		mock.Anything, mock.Anything, mock.Anything).
 		Return(nil)
+	repository.On("Get", mock.Anything, mock.Anything,
+		mock.Anything).Return()
 	bc := &bufferCloser{
 		bytes.Buffer{},
 		nil,
@@ -221,6 +224,7 @@ func TestMonitorCluster(t *testing.T) {
 				model.StateOperational,
 			},
 			kube: &model.Kube{
+				ID:      "1234",
 				Name:    "test",
 				Masters: make(map[string]*node.Node),
 				Nodes:   make(map[string]*node.Node),
@@ -256,6 +260,7 @@ func TestMonitorCluster(t *testing.T) {
 				model.StateFailed,
 			},
 			kube: &model.Kube{
+				ID:      "1234",
 				Name:    "test",
 				Masters: make(map[string]*node.Node),
 				Nodes:   make(map[string]*node.Node),
@@ -276,17 +281,20 @@ func TestMonitorCluster(t *testing.T) {
 	for _, testCase := range testCases {
 		svc := &mockKubeService{
 			data: map[string]*model.Kube{
-				testCase.kube.Name: testCase.kube,
+				testCase.kube.ID: testCase.kube,
 			},
 		}
 
 		p := &TaskProvisioner{
 			kubeService: svc,
 		}
-		cfg := steps.NewConfig("test",
+		cfg := steps.NewConfig(
+			"test",
 			"",
 			"test",
 			profile.Profile{})
+		cfg.ClusterID = testCase.kube.ID
+		logrus.Println(testCase.kube.ID)
 
 		ctx, cancel := context.WithCancel(context.Background())
 		go p.monitorClusterState(ctx, cfg)

@@ -1,12 +1,10 @@
 package pki
 
 import (
-	"bytes"
 	"crypto/rand"
 	"crypto/rsa"
 	"crypto/x509"
 	"crypto/x509/pkix"
-	"encoding/json"
 	"encoding/pem"
 	"math/big"
 	"time"
@@ -29,6 +27,7 @@ type Pair struct {
 }
 
 // PairPEM defines PEM encoded certificate and private key.
+// TODO: user cert pair in the kube model or get rid of it.
 type PairPEM struct {
 	Cert []byte `json:"cert"`
 	Key  []byte `json:"key"`
@@ -42,35 +41,23 @@ type PKI struct {
 	KubeName string `json:"kubeName"`
 }
 
-func (p *PKI) Marshall() []byte {
-	data, _ := json.Marshal(p)
-	return data
-}
-
 // Encode encodes cert/key with PEM and returns them as a PairPEM.
 func Encode(p *Pair) (*PairPEM, error) {
-	encoded := new(PairPEM)
-	buf := new(bytes.Buffer)
-
-	err := pem.Encode(buf, &pem.Block{Type: "CERTIFICATE", Bytes: p.Cert.Raw})
-	if err != nil {
-		return nil, errors.Wrap(err, "encode a certificate with pem")
-
+	if p == nil || p.Cert == nil || p.Key == nil {
+		return nil, ErrEmptyPair
 	}
-	encoded.Cert = buf.Bytes()
-
-	buf.Reset()
-	err = pem.Encode(buf, &pem.Block{Type: "RSA PRIVATE KEY", Bytes: x509.MarshalPKCS1PrivateKey(p.Key)})
-	if err != nil {
-		return nil, errors.Wrap(err, "encode a private key with pem")
-	}
-	encoded.Key = buf.Bytes()
-
-	return encoded, nil
+	return &PairPEM{
+		Cert: certutil.EncodeCertPEM(p.Cert),
+		Key:  certutil.EncodePrivateKeyPEM(p.Key),
+	}, nil
 }
 
 // Decode parses a pem encoded cert/key and returns them as a Pair.
 func Decode(p *PairPEM) (*Pair, error) {
+	if p == nil || p.Cert == nil || p.Key == nil {
+		return nil, ErrEmptyPair
+	}
+
 	pemBytes, rest := pem.Decode(p.Cert)
 	if len(rest) > 0 {
 		return nil, errors.New("decode pem")
@@ -96,7 +83,7 @@ func Decode(p *PairPEM) (*Pair, error) {
 
 // NewCAPair creates certificates and key for a kubernetes cluster.
 // If no CA cert/key is provided, it creates self-signed ones.
-func NewCAPair(parentBytes []byte) (*PKI, error) {
+func NewCAPair(parentBytes []byte) (*PairPEM, error) {
 	var caPem *PairPEM
 
 	if parentBytes == nil || len(parentBytes) == 0 {
@@ -104,33 +91,23 @@ func NewCAPair(parentBytes []byte) (*PKI, error) {
 		if err != nil {
 			return nil, err
 		}
-
-		if err != nil {
-			return nil, err
-		}
-
-		if err != nil {
-			return nil, err
-		}
 		caPem = &PairPEM{Cert: p, Key: k}
 	} else {
 		pemBlock, rest := pem.Decode(parentBytes)
-
 		if len(rest) > 0 {
 			return nil, errors.New("error decode parent cert")
 		}
 
 		cert, err := x509.ParseCertificate(pemBlock.Bytes)
-
 		if err != nil {
 			return nil, errors.Wrap(err, "parse parent cert bytes")
 		}
 
 		certBytes, keyBytes, err := generateCertFromParent(cert)
-
 		if err != nil {
 			return nil, errors.Wrap(err, "create cert from parent")
 		}
+
 		caPem = &PairPEM{Cert: certBytes, Key: keyBytes}
 	}
 
@@ -144,12 +121,10 @@ func NewCAPair(parentBytes []byte) (*PKI, error) {
 		return nil, ErrInvalidCA
 	}
 
-	return &PKI{
-		CA: caPem,
-	}, nil
+	return caPem, nil
 }
 
-//generateCACert will generate a self-signed CA certificate
+// generateCACert will generate a self-signed CA certificate
 func generateCACert() ([]byte, []byte, error) {
 	crt, key, err := newCertificateAuthority()
 	if err != nil {
@@ -188,6 +163,7 @@ func generateCertFromParent(parent *x509.Certificate) ([]byte, []byte, error) {
 		parent = &template
 	}
 	// Generate the certificate.
+	// TODO: there is no ca key, is it valid?
 	cert, err := x509.CreateCertificate(rand.Reader, &template, parent, &key.PublicKey, key)
 	if err != nil {
 		return nil, nil, errors.Wrap(err, "create certificate from parent")

@@ -15,10 +15,14 @@ import (
 
 type CertificatesConfig struct {
 	KubernetesConfigDir string `json:"kubernetesConfigDir"`
-	MasterHost          string `json:"masterHost"`
+	PublicIP            string `json:"publicIp"`
+	PrivateIP           string `json:"privateIp"`
 
 	Username string `json:"username"`
 	Password string `json:"password"`
+
+	AdminCert string `json:"adminCert"`
+	AdminKey  string `json:"adminKey"`
 
 	ParenCert []byte `json:"parenCert"`
 	CACert    string `json:"caCert"`
@@ -173,6 +177,7 @@ type Config struct {
 	TaskID                 string
 	Provider               clouds.Name  `json:"provider"`
 	IsMaster               bool         `json:"isMaster"`
+	ClusterID              string       `json:"clusterId"`
 	ClusterName            string       `json:"clusterName"`
 	LogBootstrapPrivateKey bool         `json:"logBootstrapPrivateKey"`
 	DigitalOceanConfig     DOConfig     `json:"digitalOceanConfig"`
@@ -197,6 +202,7 @@ type Config struct {
 	ClusterCheckConfig ClusterCheckConfig `json:"clusterCheckConfig"`
 
 	Node             node.Node     `json:"node"`
+	CloudAccountID   string        `json:"cloudAccountId" valid:"required, length(1|32)"`
 	CloudAccountName string        `json:"cloudAccountName" valid:"required, length(1|32)"`
 	Timeout          time.Duration `json:"timeout"`
 	Runner           runner.Runner `json:"-"`
@@ -293,6 +299,7 @@ func NewConfig(clusterName, discoveryUrl, cloudAccountName string, profile profi
 			HelmVersion:     profile.HelmVersion,
 			OperatingSystem: profile.OperatingSystem,
 			Arch:            profile.Arch,
+			RBACEnabled:     profile.RBACEnabled,
 		},
 		SshConfig: SshConfig{
 			Port:      "22",
