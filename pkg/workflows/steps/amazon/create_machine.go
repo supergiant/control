@@ -44,6 +44,25 @@ func NewCreateInstance(fn GetEC2Fn) *StepCreateInstance {
 func (s *StepCreateInstance) Run(ctx context.Context, w io.Writer, cfg *steps.Config) error {
 	log := util.GetLogger(w)
 
+	role := node.RoleMaster
+	if !cfg.IsMaster {
+		role = node.RoleNode
+	}
+
+	nodeName := util.MakeNodeName(cfg.ClusterName, cfg.TaskID, cfg.IsMaster)
+
+	cfg.Node = node.Node{
+		Name:     nodeName,
+		TaskID:   cfg.TaskID,
+		Region:   cfg.AWSConfig.Region,
+		Role:     role,
+		Provider: clouds.AWS,
+		State:    node.StatePlanned,
+	}
+
+	// Update node state in cluster
+	cfg.NodeChan() <- cfg.Node
+
 	var secGroupID *string
 
 	//Determining a sec group in AWS for EC2 instance to be spawned.
@@ -69,7 +88,6 @@ func (s *StepCreateInstance) Run(ctx context.Context, w io.Writer, cfg *steps.Co
 	volumeSize, err := strconv.Atoi(cfg.AWSConfig.VolumeSize)
 	hasPublicAddress, err := strconv.ParseBool(cfg.AWSConfig.HasPublicAddr)
 
-	nodeName := util.MakeNodeName(cfg.ClusterName, cfg.TaskID, cfg.IsMaster)
 	runInstanceInput := &ec2.RunInstancesInput{
 		BlockDeviceMappings: []*ec2.BlockDeviceMapping{
 			{
@@ -126,9 +144,13 @@ func (s *StepCreateInstance) Run(ctx context.Context, w io.Writer, cfg *steps.Co
 		}
 	}
 
-	role := node.RoleMaster
-	if !cfg.IsMaster {
-		role = node.RoleNode
+	res, err := EC2.RunInstancesWithContext(ctx, runInstanceInput)
+	if err != nil {
+		cfg.Node.State = node.StateError
+		cfg.NodeChan() <- cfg.Node
+
+		log.Errorf("[%s] - failed to create ec2 instance: %v", StepNameCreateEC2Instance, err)
+		return errors.Wrap(ErrCreateInstance, err.Error())
 	}
 
 	cfg.Node = node.Node{
@@ -142,15 +164,6 @@ func (s *StepCreateInstance) Run(ctx context.Context, w io.Writer, cfg *steps.Co
 
 	// Update node state in cluster
 	cfg.NodeChan() <- cfg.Node
-
-	res, err := EC2.RunInstancesWithContext(ctx, runInstanceInput)
-	if err != nil {
-		cfg.Node.State = node.StateError
-		cfg.NodeChan() <- cfg.Node
-
-		log.Errorf("[%s] - failed to create ec2 instance: %v", StepNameCreateEC2Instance, err)
-		return errors.Wrap(ErrCreateInstance, err.Error())
-	}
 
 	if len(res.Instances) == 0 {
 		cfg.Node.State = node.StateError

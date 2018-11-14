@@ -79,20 +79,20 @@ func (tp *TaskProvisioner) ProvisionCluster(ctx context.Context,
 		return nil, errors.Wrap(err, "bootstrap certs")
 	}
 
-	// Save cluster before provisioning
-	err := tp.buildInitialCluster(ctx, profile, masters, nodes, config)
-
-	if err != nil {
-		return nil, errors.Wrap(err, "create initial cluster")
-	}
-
-	// monitor cluster state in separate goroutine
-	go tp.monitorClusterState(ctx, config)
-
 	go func() {
-		if err := tp.preprovision(ctx, config); err != nil {
+		if err := tp.preProvision(ctx, config); err != nil {
 			logrus.Errorf("Pre provisioning cluster %v", err)
 		}
+
+		// Save cluster before provisioning
+		err := tp.buildInitialCluster(ctx, profile, masters, nodes, config)
+
+		if err != nil {
+			logrus.Errorf("create initial cluster %v", err)
+		}
+
+		// monitor cluster state in separate goroutine
+		go tp.monitorClusterState(ctx, config)
 
 		// ProvisionCluster masters and wait until n/2 + 1 of masters with etcd are up and running
 		doneChan, failChan, err := tp.provisionMasters(ctx, profile, config, masterTasks)
@@ -229,7 +229,7 @@ func (tp *TaskProvisioner) prepare(name clouds.Name, masterCount, nodeCount int)
 	return masterTasks, nodeTasks, clusterTask
 }
 
-func (p *TaskProvisioner) preprovision(ctx context.Context, config *steps.Config) error {
+func (p *TaskProvisioner) preProvision(ctx context.Context, config *steps.Config) error {
 	//some clouds (e.g. AWS) requires running tasks before provisioning nodes (creating a VPC, Subnets, SecGroups, etc)
 	switch config.Provider {
 	case clouds.AWS:
@@ -391,6 +391,20 @@ func (tp *TaskProvisioner) waitCluster(ctx context.Context, clusterTask *workflo
 func (tp *TaskProvisioner) buildInitialCluster(ctx context.Context,
 	profile *profile.Profile, masters, nodes map[string]*node.Node,
 	config *steps.Config) error {
+	cloudSpecificSettings := make(map[string]string)
+
+	// Save cloudSpecificData in kube
+	if profile.Provider == clouds.AWS {
+		// Copy data got from pre provision step to cloud specific settings of kube
+		cloudSpecificSettings["aws_az"] = config.AWSConfig.AvailabilityZone
+		cloudSpecificSettings["aws_vpc_cidr"] = config.AWSConfig.VPCCIDR
+		cloudSpecificSettings["aws_vpc_id"] = config.AWSConfig.VPCID
+		cloudSpecificSettings["aws_keypair_name"] = config.AWSConfig.KeyPairName
+		cloudSpecificSettings["aws_subnet_id"] = config.AWSConfig.SubnetID
+		cloudSpecificSettings["aws_masters_secgroup_id"] = config.AWSConfig.MastersSecurityGroupID
+		cloudSpecificSettings["aws_nodes_secgroup_id"] = config.AWSConfig.NodesSecurityGroupID
+	}
+
 	cluster := &model.Kube{
 		ID:           config.ClusterID,
 		State:        model.StateProvisioning,
@@ -423,8 +437,9 @@ func (tp *TaskProvisioner) buildInitialCluster(ctx context.Context,
 			CIDR:    profile.CIDR,
 		},
 
-		Masters: masters,
-		Nodes:   nodes,
+		CloudSpecificSettings: cloudSpecificSettings,
+		Masters:               masters,
+		Nodes:                 nodes,
 	}
 
 	return tp.kubeService.Create(ctx, cluster)
