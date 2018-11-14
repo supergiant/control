@@ -36,7 +36,7 @@ func TestWriteCertificates(t *testing.T) {
 	var (
 		kubernetesConfigDir = "/etc/kubernetes"
 		masterPrivateIP     = "10.20.30.40"
-		masterPublicIP = "22.33.44.55"
+		masterPublicIP      = "22.33.44.55"
 		userName            = "user"
 		password            = "1234"
 
@@ -74,11 +74,12 @@ func TestWriteCertificates(t *testing.T) {
 	}
 
 	cfg.Runner = r
-	cfg.AddMaster(&node.Node{
+	cfg.Node = node.Node{
 		State:     node.StateActive,
 		PrivateIp: masterPrivateIP,
-		PublicIp: masterPublicIP,
-	})
+		PublicIp:  masterPublicIP,
+	}
+
 	task := &Step{
 		tpl,
 	}
