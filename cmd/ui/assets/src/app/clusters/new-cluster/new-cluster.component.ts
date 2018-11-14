@@ -341,7 +341,7 @@ export class NewClusterComponent implements OnInit, OnDestroy {
         Validators.required,
         this.uniqueClusterName(this.unavailableClusterNames),
         Validators.maxLength(12),
-        Validators.pattern('([-A-Za-z0-9\-]*[A-Za-z0-9\-])?$')]],
+        Validators.pattern('^[A-Za-z]([-A-Za-z0-9\-]*[A-Za-z0-9\-])?$')]],
       cloudAccount: ["", Validators.required]
     })
 
