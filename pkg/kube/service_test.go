@@ -695,6 +695,51 @@ func TestService_GetKubeResources(t *testing.T) {
 	}
 }
 
+func TestService_KubeConfigFor(t *testing.T) {
+	testCases := []struct {
+		user string
+
+		kubeData   []byte
+		getkubeErr error
+
+		expectedErr error
+	}{
+		{
+			expectedErr: sgerrors.ErrNotFound,
+		},
+		{
+			user:        "user",
+			expectedErr: sgerrors.ErrNotFound,
+		},
+		{
+			user:        KubernetesAdminUser,
+			getkubeErr:  fakeErrFileNotFound,
+			expectedErr: fakeErrFileNotFound,
+		},
+		{
+			user:     KubernetesAdminUser,
+			kubeData: []byte(`{"masters":{"m":{"publicIp":"1.2.3.4"}}}`),
+		},
+	}
+
+	for i, tc := range testCases {
+		m := new(testutils.MockStorage)
+		m.On("Get", context.Background(), mock.Anything, mock.Anything).
+			Return(tc.kubeData, tc.getkubeErr)
+
+		svc := Service{
+			storage: m,
+		}
+
+		data, err := svc.KubeConfigFor(context.Background(), "kname", tc.user)
+		require.Equal(t, tc.expectedErr, errors.Cause(err), "TC#%d", i+1)
+
+		if err == nil {
+			require.NotNilf(t, data, "TC#%d", i+1)
+		}
+	}
+}
+
 func TestService_GetCerts(t *testing.T) {
 	testCases := []struct {
 		kname       string
