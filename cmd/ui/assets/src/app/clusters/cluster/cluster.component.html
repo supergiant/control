@@ -205,10 +205,10 @@
           </mat-header-cell>
           <mat-cell *matCellDef="let machine">
             <!-- TODO: need to find a way to manipulate way before here -->
-            <ng-container *ngIf="(machine.metrics?.cpu * 100).toFixed(1) != 'NaN' && (machine.metrics?.cpu * 100).toFixed(1) != 0.0">
-              {{ (machine.metrics?.cpu * 100).toFixed(1) }}%
+            <ng-container *ngIf="machine.metrics?.cpu">
+              {{ machine.metrics?.cpu }}%
             </ng-container>
-            <ng-container *ngIf="(machine.metrics?.cpu * 100).toFixed(1) == 'NaN' || (machine.metrics?.cpu * 100).toFixed(1) == 0.0">
+            <ng-container *ngIf="!machine.metrics?.cpu">
               --
             </ng-container>
           </mat-cell>
@@ -219,10 +219,10 @@
                            *matHeaderCellDef>RAM
           </mat-header-cell>
           <mat-cell *matCellDef="let machine">
-            <ng-container *ngIf="(machine.metrics?.memory * 100).toFixed(1) != 'NaN' && (machine.metrics?.memory * 100).toFixed(1) != 0.0">
-              {{ (machine.metrics?.memory * 100).toFixed(1) }}%
+            <ng-container *ngIf="machine.metrics?.memory">
+              {{ machine.metrics?.memory }}%
             </ng-container>
-            <ng-container *ngIf="(machine.metrics?.memory * 100).toFixed(1) == 'NaN' || (machine.metrics?.memory * 100).toFixed(1) == 0.0">
+            <ng-container *ngIf="!machine.metrics?.memory">
               --
             </ng-container>
           </mat-cell>
