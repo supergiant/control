@@ -476,9 +476,9 @@ func (h *Handler) addNode(w http.ResponseWriter, r *http.Request) {
 		K8SVersion:      k.K8SVersion,
 		HelmVersion:     k.HelmVersion,
 
-		NetworkType:    k.Networking.Type,
-		CIDR:           k.Networking.CIDR,
-		FlannelVersion: k.Networking.Version,
+		NetworkType:           k.Networking.Type,
+		CIDR:                  k.Networking.CIDR,
+		FlannelVersion:        k.Networking.Version,
 		CloudSpecificSettings: k.CloudSpecificSettings,
 
 		NodesProfiles: []profile.NodeProfile{
