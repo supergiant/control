@@ -325,9 +325,12 @@
   </ng-container>
 
   <div class="action-buttons">
-    <button mat-raised-button class="secondary delete-cluster" type="button" (click)="deleteCluster()">
-      <ng-container *ngIf="kube?.state == 'operational' || kube?.state == 'failed'">DELETE CLUSTER</ng-container>
-      <ng-container *ngIf="kube?.state == 'provisioning'">CANCEL</ng-container>
-    </button>
+    <div class="delete-cluster" (click)="deleteCluster()">
+      <div class="delete-icon"></div>
+      <span>
+        <ng-container *ngIf="kube?.state == 'operational' || kube?.state == 'failed'">Delete Cluster</ng-container>
+        <ng-container *ngIf="kube?.state == 'provisioning'">Cancel</ng-container>
+      </span>
+    </div>
   </div>
 </div>
