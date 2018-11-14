@@ -391,6 +391,7 @@ func (tp *TaskProvisioner) waitCluster(ctx context.Context, clusterTask *workflo
 func (tp *TaskProvisioner) buildInitialCluster(ctx context.Context,
 	profile *profile.Profile, masters, nodes map[string]*node.Node,
 	config *steps.Config) error {
+	// TODO(stgleb): move this to separate methid update with cloud specific data after preprovision
 	cloudSpecificSettings := make(map[string]string)
 
 	// Save cloudSpecificData in kube
