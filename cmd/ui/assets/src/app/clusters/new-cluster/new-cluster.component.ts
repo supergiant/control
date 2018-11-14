@@ -205,14 +205,14 @@ export class NewClusterComponent implements OnInit, OnDestroy {
       if (e.keyCode === 13) {
         this.machines.push({
           machineType: null,
-          role: null,
+          role: "Node",
           qty: 1
         })
       }
     } else {
       this.machines.push({
         machineType: null,
-        role: null,
+        role: "Node",
         qty: 1
       })
     }
