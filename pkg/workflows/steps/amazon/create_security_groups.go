@@ -10,7 +10,7 @@ import (
 	"github.com/aws/aws-sdk-go/service/ec2"
 	"github.com/aws/aws-sdk-go/service/ec2/ec2iface"
 	"github.com/pkg/errors"
-
+	"github.com/sirupsen/logrus"
 	"github.com/supergiant/supergiant/pkg/util"
 	"github.com/supergiant/supergiant/pkg/workflows/steps"
 )
@@ -134,6 +134,10 @@ func (s *CreateSecurityGroupsStep) Run(ctx context.Context, w io.Writer, cfg *st
 		return err
 	}
 
+	if err := s.whiteListSupergiantIP(ctx, EC2, cfg.AWSConfig.MastersSecurityGroupID); err != nil {
+		logrus.Errorf("[%s] - failed to whitelist supergiant IP in master security group: %v", s.Name(), err)
+	}
+
 	return nil
 }
 
@@ -204,6 +208,37 @@ func (s *CreateSecurityGroupsStep) allowAllTraffic(ctx context.Context, EC2 ec2i
 			return nil
 		}
 	}
+	return err
+}
+
+func (s *CreateSecurityGroupsStep) whiteListSupergiantIP(ctx context.Context, EC2 ec2iface.EC2API, groupID string) error {
+	supergiantIP, err := util.FindOutboundIP()
+	if err != nil {
+		return err
+	}
+
+	_, err = EC2.AuthorizeSecurityGroupIngressWithContext(ctx, &ec2.AuthorizeSecurityGroupIngressInput{
+		GroupId:    aws.String(groupID),
+		FromPort:   aws.Int64(8080),
+		ToPort:     aws.Int64(8080),
+		CidrIp:     aws.String(fmt.Sprintf("%s/32", supergiantIP)),
+		IpProtocol: aws.String("tcp"),
+	})
+	if err != nil {
+		return err
+	}
+
+	_, err = EC2.AuthorizeSecurityGroupIngressWithContext(ctx, &ec2.AuthorizeSecurityGroupIngressInput{
+		GroupId:    aws.String(groupID),
+		FromPort:   aws.Int64(443),
+		ToPort:     aws.Int64(443),
+		CidrIp:     aws.String(fmt.Sprintf("%s/32", supergiantIP)),
+		IpProtocol: aws.String("tcp"),
+	})
+	if err != nil {
+		return err
+	}
+
 	return err
 }
 

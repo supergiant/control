@@ -178,18 +178,25 @@
           </mat-cell>
         </ng-container>
 
-        <ng-container matColumnDef="name">
-          <mat-header-cell mat-sort-header
-                           *matHeaderCellDef>Name
-          </mat-header-cell>
-          <mat-cell *matCellDef="let machine">{{ machine.name }}</mat-cell>
-        </ng-container>
-
         <ng-container matColumnDef="role">
           <mat-header-cell mat-sort-header
                            *matHeaderCellDef>Role
           </mat-header-cell>
           <mat-cell *matCellDef="let machine">{{ machine.role | titlecase }}</mat-cell>
+        </ng-container>
+
+        <ng-container matColumnDef="size">
+          <mat-header-cell mat-sort-header
+                           *matHeaderCellDef>Size
+          </mat-header-cell>
+          <mat-cell *matCellDef="let machine">{{ machine.size }}</mat-cell>
+        </ng-container>
+
+        <ng-container matColumnDef="name">
+          <mat-header-cell mat-sort-header
+                           *matHeaderCellDef>Name
+          </mat-header-cell>
+          <mat-cell *matCellDef="let machine">{{ machine.name }}</mat-cell>
         </ng-container>
 
         <ng-container matColumnDef="cpu">
