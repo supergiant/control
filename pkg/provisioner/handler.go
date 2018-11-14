@@ -8,7 +8,6 @@ import (
 	"github.com/gorilla/mux"
 	"github.com/pkg/errors"
 	"github.com/sirupsen/logrus"
-
 	"gopkg.in/asaskevich/govalidator.v8"
 
 	"github.com/supergiant/supergiant/pkg/account"
@@ -47,8 +46,8 @@ type ProvisionRequest struct {
 }
 
 type ProvisionResponse struct {
-	ClusterID string `json:"clusterId"`
-	Tasks map[string][]string `json:"tasks"`
+	ClusterID string              `json:"clusterId"`
+	Tasks     map[string][]string `json:"tasks"`
 }
 
 type ClusterProvisioner interface {
@@ -141,7 +140,7 @@ func (h *Handler) Provision(w http.ResponseWriter, r *http.Request) {
 
 	resp := ProvisionResponse{
 		ClusterID: config.ClusterID,
-		Tasks: roleTaskIdMap,
+		Tasks:     roleTaskIdMap,
 	}
 
 	// Respond to client side that request has been accepted

@@ -178,13 +178,6 @@
           </mat-cell>
         </ng-container>
 
-        <ng-container matColumnDef="name">
-          <mat-header-cell mat-sort-header
-                           *matHeaderCellDef>Name
-          </mat-header-cell>
-          <mat-cell *matCellDef="let machine">{{ machine.name }}</mat-cell>
-        </ng-container>
-
         <ng-container matColumnDef="role">
           <mat-header-cell mat-sort-header
                            *matHeaderCellDef>Role
@@ -192,15 +185,30 @@
           <mat-cell *matCellDef="let machine">{{ machine.role | titlecase }}</mat-cell>
         </ng-container>
 
+        <ng-container matColumnDef="size">
+          <mat-header-cell mat-sort-header
+                           *matHeaderCellDef>Size
+          </mat-header-cell>
+          <mat-cell *matCellDef="let machine">{{ machine.size }}</mat-cell>
+        </ng-container>
+
+        <ng-container matColumnDef="name">
+          <mat-header-cell mat-sort-header
+                           *matHeaderCellDef>Name
+          </mat-header-cell>
+          <mat-cell *matCellDef="let machine">{{ machine.name }}</mat-cell>
+        </ng-container>
+
         <ng-container matColumnDef="cpu">
           <mat-header-cell mat-sort-header
                            *matHeaderCellDef>CPU
           </mat-header-cell>
           <mat-cell *matCellDef="let machine">
-            <ng-container *ngIf="(machine.metrics?.cpu * 100).toFixed(1) != 'NaN'">
+            <!-- TODO: need to find a way to manipulate way before here -->
+            <ng-container *ngIf="(machine.metrics?.cpu * 100).toFixed(1) != 'NaN' && (machine.metrics?.cpu * 100).toFixed(1) != 0.0">
               {{ (machine.metrics?.cpu * 100).toFixed(1) }}%
             </ng-container>
-            <ng-container *ngIf="(machine.metrics?.cpu * 100).toFixed(1) == 'NaN'">
+            <ng-container *ngIf="(machine.metrics?.cpu * 100).toFixed(1) == 'NaN' || (machine.metrics?.cpu * 100).toFixed(1) == 0.0">
               --
             </ng-container>
           </mat-cell>
@@ -211,10 +219,10 @@
                            *matHeaderCellDef>RAM
           </mat-header-cell>
           <mat-cell *matCellDef="let machine">
-            <ng-container *ngIf="(machine.metrics?.memory * 100).toFixed(1) != 'NaN'">
+            <ng-container *ngIf="(machine.metrics?.memory * 100).toFixed(1) != 'NaN' && (machine.metrics?.memory * 100).toFixed(1) != 0.0">
               {{ (machine.metrics?.memory * 100).toFixed(1) }}%
             </ng-container>
-            <ng-container *ngIf="(machine.metrics?.memory * 100).toFixed(1) == 'NaN'">
+            <ng-container *ngIf="(machine.metrics?.memory * 100).toFixed(1) == 'NaN' || (machine.metrics?.memory * 100).toFixed(1) == 0.0">
               --
             </ng-container>
           </mat-cell>
@@ -324,9 +332,12 @@
   </ng-container>
 
   <div class="action-buttons">
-    <button mat-raised-button class="secondary delete-cluster" type="button" (click)="deleteCluster()">
-      <ng-container *ngIf="kube?.state == 'operational' || kube?.state == 'failed'">DELETE CLUSTER</ng-container>
-      <ng-container *ngIf="kube?.state == 'provisioning'">CANCEL</ng-container>
-    </button>
+    <div class="delete-cluster" (click)="deleteCluster()">
+      <div class="delete-icon"></div>
+      <span>
+        <ng-container *ngIf="kube?.state == 'operational' || kube?.state == 'failed'">Delete Cluster</ng-container>
+        <ng-container *ngIf="kube?.state == 'provisioning'">Cancel</ng-container>
+      </span>
+    </div>
   </div>
 </div>

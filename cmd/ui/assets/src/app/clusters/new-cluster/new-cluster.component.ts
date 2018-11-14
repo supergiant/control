@@ -99,6 +99,7 @@ export class NewClusterComponent implements OnInit, OnDestroy {
       newClusterData.clusterName = this.clusterName;
       newClusterData.profile.region = this.providerConfig.value.region.id;
       newClusterData.profile.provider = this.selectedCloudAccount.provider;
+      newClusterData.profile.rbacEnabled = true;
       newClusterData.profile.masterProfiles = this.nodesService.compileProfiles(this.selectedCloudAccount.provider, this.machines, "Master");
       newClusterData.profile.nodesProfiles = this.nodesService.compileProfiles(this.selectedCloudAccount.provider, this.machines, "Node");
 
@@ -108,7 +109,6 @@ export class NewClusterComponent implements OnInit, OnDestroy {
             aws_az: this.providerConfig.value.availabilityZone,
             aws_vpc_cidr: this.providerConfig.value.vpcCidr,
             aws_vpc_id: this.providerConfig.value.vpcId,
-            aws_keypair_name: this.providerConfig.value.keypairName,
             aws_subnet_id: this.providerConfig.value.subnetId,
             aws_masters_secgroup_id: this.providerConfig.value.mastersSecurityGroupId,
             aws_nodes_secgroup_id: this.providerConfig.value.nodesSecurityGroupId
@@ -205,14 +205,14 @@ export class NewClusterComponent implements OnInit, OnDestroy {
       if (e.keyCode === 13) {
         this.machines.push({
           machineType: null,
-          role: null,
+          role: "Node",
           qty: 1
         })
       }
     } else {
       this.machines.push({
         machineType: null,
-        role: null,
+        role: "Node",
         qty: 1
       })
     }
@@ -341,7 +341,7 @@ export class NewClusterComponent implements OnInit, OnDestroy {
         Validators.required,
         this.uniqueClusterName(this.unavailableClusterNames),
         Validators.maxLength(12),
-        Validators.pattern('([-A-Za-z0-9\-]*[A-Za-z0-9\-])?$')]],
+        Validators.pattern('^[A-Za-z]([-A-Za-z0-9\-]*[A-Za-z0-9\-])?$')]],
       cloudAccount: ["", Validators.required]
     })
 
@@ -354,8 +354,7 @@ export class NewClusterComponent implements OnInit, OnDestroy {
       networkType: ["vxlan", Validators.required],
       cidr: ["10.0.0.0/16", [Validators.required, this.validCidr()]],
       operatingSystem: ["linux", Validators.required],
-      arch: ["amd64", Validators.required],
-      rbacEnabled: [false, Validators.required]
+      arch: ["amd64", Validators.required]
     });
   }
 

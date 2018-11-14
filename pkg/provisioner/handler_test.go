@@ -9,6 +9,7 @@ import (
 	"testing"
 
 	"github.com/gorilla/mux"
+	"github.com/pborman/uuid"
 	"github.com/pkg/errors"
 
 	"github.com/supergiant/supergiant/pkg/account"
@@ -18,7 +19,6 @@ import (
 	"github.com/supergiant/supergiant/pkg/sgerrors"
 	"github.com/supergiant/supergiant/pkg/workflows"
 	"github.com/supergiant/supergiant/pkg/workflows/steps"
-	"github.com/pborman/uuid"
 )
 
 type mockTokenGetter struct {

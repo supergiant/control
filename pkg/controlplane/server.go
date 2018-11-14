@@ -11,6 +11,8 @@ import (
 	"github.com/gorilla/mux"
 	"github.com/pkg/errors"
 	"github.com/sirupsen/logrus"
+	"k8s.io/helm/pkg/repo"
+
 	"github.com/supergiant/supergiant/pkg/account"
 	"github.com/supergiant/supergiant/pkg/api"
 	"github.com/supergiant/supergiant/pkg/jwt"
@@ -44,7 +46,6 @@ import (
 	"github.com/supergiant/supergiant/pkg/workflows/steps/prometheus"
 	"github.com/supergiant/supergiant/pkg/workflows/steps/ssh"
 	"github.com/supergiant/supergiant/pkg/workflows/steps/tiller"
-	"k8s.io/helm/pkg/repo"
 )
 
 type Server struct {
@@ -126,6 +127,7 @@ func NewServer(router *mux.Router, cfg *Config) *Server {
 			IdleTimeout:  cfg.IdleTimeout,
 		},
 	}
+	http.DefaultClient.Timeout = cfg.IdleTimeout
 
 	return s
 }

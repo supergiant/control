@@ -9,6 +9,25 @@
   }
 }
 
+.deleting {
+  animation: cluster-list-deleting;
+  user-select: none;
+}
+
+@keyframes cluster-list-deleting {
+  0% {
+    opacity: 0.5;
+  }
+
+  50% {
+    opacity: 1;
+  }
+
+  100% {
+    opacity: 0.5;
+  }
+}
+
 .new-cluster {
   color: #d10088;
   font-weight: 300;

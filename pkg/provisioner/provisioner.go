@@ -2,6 +2,7 @@ package provisioner
 
 import (
 	"context"
+	"fmt"
 	"io"
 	"os"
 	"sync"
@@ -19,7 +20,6 @@ import (
 	"github.com/supergiant/supergiant/pkg/util"
 	"github.com/supergiant/supergiant/pkg/workflows"
 	"github.com/supergiant/supergiant/pkg/workflows/steps"
-	"fmt"
 )
 
 const keySize = 4096
@@ -79,8 +79,8 @@ func (tp *TaskProvisioner) ProvisionCluster(ctx context.Context,
 		return nil, errors.Wrap(err, "bootstrap keys")
 	}
 
-	if err := bootstrapCA(config); err != nil {
-		return nil, errors.Wrap(err, "bootstrap CA")
+	if err := bootstrapCerts(config); err != nil {
+		return nil, errors.Wrap(err, "bootstrap certs")
 	}
 
 	// Save cluster before provisioning
@@ -406,8 +406,12 @@ func (tp *TaskProvisioner) buildInitialCluster(ctx context.Context,
 		SshPublicKey: []byte(config.SshConfig.PublicKey),
 
 		Auth: model.Auth{
-			CAKey:  config.CertificatesConfig.CAKey,
-			CACert: config.CertificatesConfig.CACert,
+			Username:  config.CertificatesConfig.Username,
+			Password:  config.CertificatesConfig.Password,
+			CACert:    config.CertificatesConfig.CACert,
+			CAKey:     config.CertificatesConfig.CAKey,
+			AdminCert: config.CertificatesConfig.AdminCert,
+			AdminKey:  config.CertificatesConfig.AdminKey,
 		},
 
 		Arch:                   profile.Arch,
@@ -444,15 +448,20 @@ func bootstrapKeys(config *steps.Config) error {
 	return nil
 }
 
-func bootstrapCA(config *steps.Config) error {
-	pkiBundle, err := pki.NewCAPair(config.CertificatesConfig.ParenCert)
-
+func bootstrapCerts(config *steps.Config) error {
+	ca, err := pki.NewCAPair(config.CertificatesConfig.ParenCert)
 	if err != nil {
 		return errors.Wrap(err, "bootstrap CA for provisioning")
 	}
+	config.CertificatesConfig.CACert = string(ca.Cert)
+	config.CertificatesConfig.CAKey = string(ca.Key)
 
-	config.CertificatesConfig.CACert = string(pkiBundle.CA.Cert)
-	config.CertificatesConfig.CAKey = string(pkiBundle.CA.Key)
+	admin, err := pki.NewAdminPair(ca)
+	if err != nil {
+		return errors.Wrap(err, "create admin certificates")
+	}
+	config.CertificatesConfig.AdminCert = string(admin.Cert)
+	config.CertificatesConfig.AdminKey = string(admin.Key)
 
 	return nil
 }

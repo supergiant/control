@@ -5,9 +5,12 @@ import (
 	"encoding/json"
 	"fmt"
 	"io"
+	"io/ioutil"
 	"math/rand"
+	"net/http"
 	"os"
 	"path"
+	"strings"
 	"time"
 
 	"github.com/sirupsen/logrus"
@@ -132,4 +135,20 @@ func GetRandomNode(nodeMap map[string]*node.Node) *node.Node {
 
 func GetWriter(name string) (io.WriteCloser, error) {
 	return os.OpenFile(path.Join("/tmp", name), os.O_CREATE|os.O_WRONLY|os.O_APPEND, 0666)
+}
+
+func FindOutboundIP() (string, error) {
+	resp, err := http.Get("http://myexternalip.com/raw")
+	if err != nil {
+		return "", nil
+	}
+	defer resp.Body.Close()
+	res, err := ioutil.ReadAll(resp.Body)
+	if err != nil {
+		return "", nil
+	}
+
+	publicIP := string(res)
+	publicIP = strings.Replace(publicIP, "\n", "", -1)
+	return publicIP, nil
 }

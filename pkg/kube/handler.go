@@ -116,6 +116,8 @@ func (h *Handler) Register(r *mux.Router) {
 	r.HandleFunc("/kubes/{kubeID}", h.getKube).Methods(http.MethodGet)
 	r.HandleFunc("/kubes/{kubeID}", h.deleteKube).Methods(http.MethodDelete)
 
+	r.HandleFunc("/kubes/{kubeID}/users/{uname}/kubeconfig", h.getKubeconfig).Methods(http.MethodGet)
+
 	r.HandleFunc("/kubes/{kubeID}/resources", h.listResources).Methods(http.MethodGet)
 	r.HandleFunc("/kubes/{kubeID}/resources/{resource}", h.getResource).Methods(http.MethodGet)
 
@@ -338,6 +340,29 @@ func (h *Handler) deleteKube(w http.ResponseWriter, r *http.Request) {
 	}(t)
 
 	w.WriteHeader(http.StatusAccepted)
+}
+
+func (h *Handler) getKubeconfig(w http.ResponseWriter, r *http.Request) {
+	vars := mux.Vars(r)
+
+	kname := vars["kubeID"]
+	user := vars["uname"]
+
+	data, err := h.svc.KubeConfigFor(r.Context(), kname, user)
+	if err != nil {
+		logrus.Errorf("kubes: %s cluster: get kubeconfig: %s", kname, err)
+		if sgerrors.IsNotFound(err) {
+			message.SendNotFound(w, user, err)
+			return
+		}
+		message.SendUnknownError(w, err)
+		return
+	}
+
+	if _, err = w.Write(data); err != nil {
+		logrus.Errorf("kubes: %s cluster: get kubeconfig: write response: %s", kname, err)
+		message.SendUnknownError(w, err)
+	}
 }
 
 func (h *Handler) listResources(w http.ResponseWriter, r *http.Request) {

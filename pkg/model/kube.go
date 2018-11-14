@@ -41,12 +41,12 @@ type Kube struct {
 
 // Auth holds all possible auth parameters.
 type Auth struct {
-	Username string `json:"username"`
-	Token    string `json:"token"`
-	CAKey    string `json:"caKey"`
-	CACert   string `json:"caCert"`
-	Cert     string `json:"cert"`
-	Key      string `json:"key"`
+	Username  string `json:"username"`
+	Password  string `json:"token"`
+	CAKey     string `json:"caKey"`
+	CACert    string `json:"caCert"`
+	AdminCert string `json:"adminCert"`
+	AdminKey  string `json:"adminKey"`
 }
 
 type Networking struct {
