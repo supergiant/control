@@ -22,6 +22,7 @@ func NewHandler(svc *Service) *Handler {
 }
 
 func (h *Handler) Register(r mux.Router) {
+	// TODO: move it to the kubes handler
 	r.HandleFunc("/certificates", h.GetAll).Methods(http.MethodGet)
 	r.HandleFunc("/certificates/{id}", h.Get).Methods(http.MethodGet)
 	r.HandleFunc("/certificates/{id}", h.Delete).Methods(http.MethodDelete)
@@ -95,7 +96,7 @@ func (h *Handler) Generate(w http.ResponseWriter, r *http.Request) {
 			return
 		}
 	} else {
-		pi, err := h.svc.GenerateSelfSigned(r.Context(), caReq.DNSDomain, ips)
+		pi, err := h.svc.GenerateSelfSigned(r.Context())
 		if err != nil {
 			logrus.Errorf("pki: %v", err)
 			message.SendUnknownError(w, err)

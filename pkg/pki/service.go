@@ -3,7 +3,6 @@ package pki
 import (
 	"context"
 	"encoding/json"
-	"net"
 
 	"github.com/satori/go.uuid"
 
@@ -62,31 +61,48 @@ func (s *Service) GenerateFromCA(ctx context.Context, parentBytes []byte) (*PKI,
 	if err != nil {
 		return nil, err
 	}
-	ID, err := uuid.NewV4()
+	id, err := uuid.NewV4()
 	if err != nil {
 		return nil, err
 	}
-	p.ID = ID.String()
-	if err := s.repository.Put(ctx, s.storagePrefix, p.ID, p.Marshall()); err != nil {
+
+	pki := &PKI{
+		ID: id.String(),
+		CA: p,
+	}
+	data, err := json.Marshal(pki)
+	if err != nil {
 		return nil, err
 	}
-	return p, nil
+
+	if err := s.repository.Put(ctx, s.storagePrefix, pki.ID, data); err != nil {
+		return nil, err
+	}
+	return pki, nil
 }
 
-func (s *Service) GenerateSelfSigned(ctx context.Context, dnsDomain string, masterIPs []net.IP) (*PKI, error) {
+func (s *Service) GenerateSelfSigned(ctx context.Context) (*PKI, error) {
 	p, err := NewCAPair(nil)
 	if err != nil {
 		return nil, err
 	}
 
-	ID, err := uuid.NewV4()
+	id, err := uuid.NewV4()
 	if err != nil {
 		return nil, err
 	}
-	p.ID = ID.String()
 
-	if err := s.repository.Put(ctx, s.storagePrefix, p.ID, p.Marshall()); err != nil {
+	pki := &PKI{
+		ID: id.String(),
+		CA: p,
+	}
+	data, err := json.Marshal(pki)
+	if err != nil {
 		return nil, err
 	}
-	return p, nil
+
+	if err := s.repository.Put(ctx, s.storagePrefix, pki.ID, data); err != nil {
+		return nil, err
+	}
+	return pki, nil
 }

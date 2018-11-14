@@ -94,6 +94,7 @@ const (
 	serviceListAll           = "ListAll"
 	serviceDelete            = "Delete"
 	serviceListKubeResources = "ListKubeResources"
+	serviceKubeConfigFor     = "KubeConfigFor"
 	serviceGetKubeResources  = "GetKubeResources"
 	serviceGetCerts          = "GetCerts"
 )
@@ -118,6 +119,14 @@ func (m *kubeServiceMock) Create(ctx context.Context, k *model.Kube) error {
 func (m *kubeServiceMock) Get(ctx context.Context, name string) (*model.Kube, error) {
 	args := m.Called(ctx, name)
 	val, ok := args.Get(0).(*model.Kube)
+	if !ok {
+		return nil, args.Error(1)
+	}
+	return val, args.Error(1)
+}
+func (m *kubeServiceMock) KubeConfigFor(ctx context.Context, kname, user string) ([]byte, error) {
+	args := m.Called(ctx, kname, user)
+	val, ok := args.Get(0).([]byte)
 	if !ok {
 		return nil, args.Error(1)
 	}
@@ -1300,6 +1309,77 @@ func TestHander_listReleases(t *testing.T) {
 			require.Nilf(t, json.NewDecoder(w.Body).Decode(apiErr), "TC#%d: decode message", i+1)
 
 			require.Equalf(t, tc.expectedErrCode, apiErr.ErrorCode, "TC#%d: check error code", i+1)
+		}
+	}
+}
+
+func TestHandler_getKubeconfig(t *testing.T) {
+	tcs := []struct {
+		kubeID   string
+		userName string
+
+		serviceResources []byte
+		serviceError     error
+
+		expectedStatus  int
+		expectedErrCode sgerrors.ErrorCode
+	}{
+		{ // TC#1
+			kubeID:         "",
+			expectedStatus: http.StatusNotFound,
+		},
+		{ // TC#2
+			kubeID:         "cluster1",
+			expectedStatus: http.StatusNotFound,
+		},
+		{ // TC#2
+			kubeID:          "service_error",
+			userName:        "uname",
+			serviceError:    errors.New("get error"),
+			expectedStatus:  http.StatusInternalServerError,
+			expectedErrCode: sgerrors.UnknownError,
+		},
+		{ // TC#3
+			kubeID:          "not_found",
+			userName:        "uname",
+			serviceError:    sgerrors.ErrNotFound,
+			expectedStatus:  http.StatusNotFound,
+			expectedErrCode: sgerrors.NotFound,
+		},
+		{ // TC#4
+			kubeID:         "kubeconfig",
+			userName:       "uname",
+			expectedStatus: http.StatusOK,
+		},
+	}
+
+	for i, tc := range tcs {
+		// setup handler
+		svc := new(kubeServiceMock)
+		h := NewHandler(svc, nil, nil, nil)
+
+		// prepare
+		req, err := http.NewRequest(http.MethodGet, fmt.Sprintf("/kubes/%s/users/%s/kubeconfig", tc.kubeID, tc.userName), nil)
+		require.Equalf(t, nil, err, "TC#%d: create request: %v", i+1, err)
+
+		svc.On(serviceKubeConfigFor, mock.Anything, tc.kubeID, tc.userName).Return(tc.serviceResources, tc.serviceError)
+		rr := httptest.NewRecorder()
+
+		router := mux.NewRouter().SkipClean(true)
+		h.Register(router)
+
+		// run
+		router.ServeHTTP(rr, req)
+
+		// check
+		require.Equalf(t, tc.expectedStatus, rr.Code, "TC#%d", i+1)
+
+		if tc.expectedErrCode != sgerrors.ErrorCode(0) {
+			m := new(message.Message)
+			err = json.NewDecoder(rr.Body).Decode(m)
+			require.Equalf(t, nil, err, "TC#%d", i+1)
+
+			require.Equalf(t, tc.expectedErrCode, m.ErrorCode, "TC#%d", i+1)
 		}
 	}
 }

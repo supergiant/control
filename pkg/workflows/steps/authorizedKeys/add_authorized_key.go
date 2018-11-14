@@ -6,6 +6,7 @@ import (
 	"text/template"
 
 	"github.com/pkg/errors"
+
 	"github.com/supergiant/supergiant/pkg/templatemanager"
 	"github.com/supergiant/supergiant/pkg/util"
 	"github.com/supergiant/supergiant/pkg/workflows/steps"
