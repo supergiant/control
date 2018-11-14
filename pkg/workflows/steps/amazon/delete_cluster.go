@@ -40,7 +40,7 @@ func (s *DeleteClusterStep) Run(ctx context.Context, w io.Writer, cfg *steps.Con
 		Filters: []*ec2.Filter{
 			{
 				Name:   aws.String("tag:KubernetesCluster"),
-				Values: aws.StringSlice([]string{cfg.ClusterName}),
+				Values: aws.StringSlice([]string{cfg.ClusterID}),
 			},
 		},
 	})

@@ -607,6 +607,11 @@ func (h *Handler) deleteNode(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	//HACK TO PROVIDE REGION TO AWS DELETE CLUSTER
+	if acc.Provider == clouds.AWS {
+		config.AWSConfig.Region = k.Region
+	}
+
 	writer, err := h.getWriter(t.ID)
 
 	if err != nil {
