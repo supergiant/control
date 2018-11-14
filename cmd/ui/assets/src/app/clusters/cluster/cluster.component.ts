@@ -39,7 +39,7 @@ export class ClusterComponent implements OnInit, OnDestroy {
 
   // machine list vars
   machines: any;
-  machineListColumns = ["state", "role", "name", "cpu", "ram", "region", "publicIp"];
+  machineListColumns = ["state", "role", "size", "name", "cpu", "ram", "region", "publicIp"];
 
   // task list vars
   tasks: any;
