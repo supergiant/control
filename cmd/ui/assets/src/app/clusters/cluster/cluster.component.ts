@@ -281,7 +281,7 @@ export class ClusterComponent implements OnInit, OnDestroy {
 
   getMachineMetrics() {
     this.supergiant.Kubes.getMachineMetrics(this.clusterId).subscribe(
-      res => this.machineMetrics = res,
+      res => { this.machineMetrics = res; this.renderKube(this.kube) },
       err => console.error(err)
     )
   }
