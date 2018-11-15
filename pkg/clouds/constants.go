@@ -38,4 +38,6 @@ const (
 	CredsPublicKey             = "publicKey"
 	AWSAccessKeyID             = "access_key"
 	AWSSecretKey               = "secret_key"
+
+	ClusterIDTag = "supergiant.io/cluster-id"
 )

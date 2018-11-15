@@ -13,7 +13,6 @@ import (
 	"github.com/aws/aws-sdk-go/service/ec2/ec2iface"
 	"github.com/pkg/errors"
 	"github.com/sirupsen/logrus"
-
 	"github.com/supergiant/supergiant/pkg/clouds"
 	"github.com/supergiant/supergiant/pkg/node"
 	"github.com/supergiant/supergiant/pkg/util"
@@ -111,7 +110,7 @@ func (s *StepCreateInstance) Run(ctx context.Context, w io.Writer, cfg *steps.Co
 						Value: aws.String(util.MakeRole(cfg.IsMaster)),
 					},
 					{
-						Key:   aws.String("kubernetes.io/cluster"),
+						Key:   aws.String(clouds.ClusterIDTag),
 						Value: aws.String(cfg.ClusterID),
 					},
 				},
