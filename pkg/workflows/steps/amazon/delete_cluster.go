@@ -13,6 +13,7 @@ import (
 
 	"github.com/supergiant/supergiant/pkg/util"
 	"github.com/supergiant/supergiant/pkg/workflows/steps"
+	"github.com/supergiant/supergiant/pkg/clouds"
 )
 
 const DeleteClusterStepName = "aws_delete_cluster"
@@ -39,7 +40,7 @@ func (s *DeleteClusterStep) Run(ctx context.Context, w io.Writer, cfg *steps.Con
 	describeInstanceOutput, err := EC2.DescribeInstancesWithContext(ctx, &ec2.DescribeInstancesInput{
 		Filters: []*ec2.Filter{
 			{
-				Name:   aws.String("tag:KubernetesCluster"),
+				Name:   aws.String(fmt.Sprintf("tag:%s", clouds.ClusterIDTag)),
 				Values: aws.StringSlice([]string{cfg.ClusterID}),
 			},
 		},
