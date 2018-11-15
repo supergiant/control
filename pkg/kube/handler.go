@@ -479,7 +479,7 @@ func (h *Handler) addNode(w http.ResponseWriter, r *http.Request) {
 		NetworkType:    k.Networking.Type,
 		CIDR:           k.Networking.CIDR,
 		FlannelVersion: k.Networking.Version,
-		CloudSpecificSettings: k.CloudSpecificSettings,
+		CloudSpecificSettings: k.CloudSpec,
 
 		NodesProfiles: []profile.NodeProfile{
 			{},
@@ -489,7 +489,6 @@ func (h *Handler) addNode(w http.ResponseWriter, r *http.Request) {
 	}
 
 	config := steps.NewConfig(k.Name, "", k.AccountName, kubeProfile)
-	config.ClusterName = k.Name
 	config.ClusterID = k.ID
 	config.CertificatesConfig.CAKey = k.Auth.CAKey
 	config.CertificatesConfig.CACert = k.Auth.CACert

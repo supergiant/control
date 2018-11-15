@@ -36,7 +36,7 @@ type Kube struct {
 	HelmVersion            string     `json:"helmVersion"`
 	Networking             Networking `json:"networking"`
 
-	CloudSpecificSettings profile.CloudSpecificSettings `json:"cloudSpecificSettings" valid:"-"`
+	CloudSpec profile.CloudSpecificSettings `json:"cloudSpec" valid:"-"`
 
 	Masters map[string]*node.Node `json:"masters"`
 	Nodes   map[string]*node.Node `json:"nodes"`

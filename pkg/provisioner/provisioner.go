@@ -431,9 +431,9 @@ func (tp *TaskProvisioner) buildInitialCluster(ctx context.Context,
 			CIDR:    profile.CIDR,
 		},
 
-		CloudSpecificSettings: profile.CloudSpecificSettings,
-		Masters:               masters,
-		Nodes:                 nodes,
+		CloudSpec: profile.CloudSpecificSettings,
+		Masters:   masters,
+		Nodes:     nodes,
 	}
 
 	return tp.kubeService.Create(ctx, cluster)
@@ -461,7 +461,7 @@ func (t *TaskProvisioner) updateCloudSpecificData(ctx context.Context, config *s
 		return err
 	}
 
-	k.CloudSpecificSettings = cloudSpecificSettings
+	k.CloudSpec = cloudSpecificSettings
 	// Save kubbe with update cloud specific settings
 	return t.kubeService.Create(ctx, k)
 }
