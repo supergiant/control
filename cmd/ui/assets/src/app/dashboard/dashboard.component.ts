@@ -60,9 +60,8 @@ export class DashboardComponent implements OnInit, OnDestroy {
       switchMap(() => this.supergiant.Kubes.get())).subscribe(
         clusters => {
           // TODO: this is terrible
-          clusters.map((c, i) => {
-            
-            c.index = i + 1;
+          clusters.map(c => {
+
             c.dataSource = new MatTableDataSource([
             {
               state: c.state,
@@ -80,6 +79,8 @@ export class DashboardComponent implements OnInit, OnDestroy {
           });
 
           this.clusters = clusters.sort(this.sortByName);
+
+          this.clusters.forEach((c, i) => c.index = i + 1);
 
           if (!this.userChangedView) {
             if (clusters.length > 5) {
