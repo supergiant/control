@@ -21,8 +21,9 @@ import (
 
 const (
 	StepNameCreateEC2Instance = "aws_create_instance"
-	IPAttempts                = 10
+	IPAttempts                = 5
 	SleepSecondsPerAttempt    = 6
+	timeout                   = time.Second * 10
 )
 
 type StepCreateInstance struct {
@@ -182,6 +183,8 @@ func (s *StepCreateInstance) Run(ctx context.Context, w io.Writer, cfg *steps.Co
 
 		//Waiting for AWS to assign public IP requires to poll an describe ec2 endpoint several times
 		found := false
+		sleepTimeout := timeout
+
 		for i := 0; i < IPAttempts; i++ {
 			lookup := &ec2.DescribeInstancesInput{
 				Filters: []*ec2.Filter{
@@ -216,8 +219,9 @@ func (s *StepCreateInstance) Run(ctx context.Context, w io.Writer, cfg *steps.Co
 				found = true
 				break
 			}
-			// TODO(stgleb): Fix this wait loop
-			time.Sleep(2 * time.Second)
+			time.Sleep(sleepTimeout)
+			// Increase sleep timeout exponentially
+			sleepTimeout = sleepTimeout * 2
 		}
 		if !found {
 			log.Errorf("[%s] - failed to find public IP address after %d attempts", s.Name(), IPAttempts)
