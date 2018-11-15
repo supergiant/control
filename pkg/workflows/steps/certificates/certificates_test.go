@@ -134,16 +134,6 @@ func TestWriteCertificates(t *testing.T) {
 				t.Errorf("apiserver-key.pem not found in %s",
 					output.String())
 			}
-
-			if strings.Contains(output.String(), "worker-key.pem") {
-				t.Errorf("worker-key.pem must not be in in %s",
-					output.String())
-			}
-
-			if strings.Contains(output.String(), "worker.pem") {
-				t.Errorf("worker.pem must not be in in %s",
-					output.String())
-			}
 		} else {
 			if !strings.Contains(output.String(), "worker-key.pem") {
 				t.Errorf("worker-key.pem %s not found in %s",
