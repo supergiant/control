@@ -75,7 +75,6 @@ type Config struct {
 	Port         int
 	Addr         string
 	EtcdUrl      string
-	LogLevel     string
 	TemplatesDir string
 
 	ReadTimeout  time.Duration
@@ -88,7 +87,6 @@ func New(cfg *Config) (*Server, error) {
 		return nil, err
 	}
 
-	configureLogging(cfg)
 	r, err := configureApplication(cfg)
 	if err != nil {
 		return nil, err
@@ -236,6 +234,7 @@ func configureApplication(cfg *Config) (*mux.Router, error) {
 	amazon.InitCreateVPC(amazon.GetEC2)
 	amazon.InitCreateSubnet(amazon.GetEC2)
 	amazon.InitDeleteCluster(amazon.GetEC2)
+	amazon.InitDeleteNode(amazon.GetEC2)
 
 	workflows.Init()
 
@@ -270,16 +269,6 @@ func configureApplication(cfg *Config) (*mux.Router, error) {
 	protectedAPI.Use(authMiddleware.AuthMiddleware, api.ContentTypeJSON)
 
 	return router, nil
-}
-
-func configureLogging(cfg *Config) {
-	l, err := logrus.ParseLevel(cfg.LogLevel)
-	if err != nil {
-		logrus.Warnf("incorrect logging level %s provided, setting INFO as default...", l)
-		logrus.SetLevel(logrus.InfoLevel)
-		return
-	}
-	logrus.SetLevel(l)
 }
 
 func ensureHelmRepositories(svc sghelm.Servicer) {

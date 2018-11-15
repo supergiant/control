@@ -127,7 +127,7 @@ export class AddNodeComponent implements OnInit, OnDestroy {
       this.providerSubj.pipe(
         filter(provider => provider === 'digitalocean'),
         switchMap(() => DOmachineSizes$),
-      ).subscribe(sizes => this.machineSizes$ = of(sizes))
+      ).subscribe(sizes => this.machineSizes$ = of(sizes.sort()))
     );
 
     this.subscriptions.add(
@@ -135,7 +135,7 @@ export class AddNodeComponent implements OnInit, OnDestroy {
         filter(provider => provider === 'aws'),
         first(),
         switchMap(_ => awsMachineSizes$)
-      ).subscribe(sizes => this.machineSizes$ = of(sizes))
+      ).subscribe(sizes => this.machineSizes$ = of(sizes.sort()))
     );
 
     this.subscriptions.add(
