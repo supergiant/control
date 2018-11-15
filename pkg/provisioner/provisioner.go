@@ -150,6 +150,10 @@ func (tp *TaskProvisioner) ProvisionNodes(ctx context.Context, nodeProfiles []pr
 		return nil, errors.Wrap(err, "bootstrap keys")
 	}
 
+	if err := tp.loadCloudSpecificData(ctx, config); err != nil {
+		return nil, errors.Wrap(err, "load cloud specific config")
+	}
+
 	providerWorkflowSet, ok := tp.provisionMap[config.Provider]
 
 	if !ok {
@@ -191,14 +195,6 @@ func (tp *TaskProvisioner) ProvisionNodes(ctx context.Context, nodeProfiles []pr
 			if err != nil {
 				logrus.Errorf("add node to cluster %s caused an error %v", kube.ID, err)
 				return
-			}
-
-			if n := cfg.GetNode(); n != nil {
-				kube.Nodes[n.ID] = n
-				// TODO(stgleb): Use some other method like update or Patch instead of recreate
-				tp.kubeService.Create(context.Background(), kube)
-			} else {
-				logrus.Errorf("add node to cluster %s: node was not added", kube.ID)
 			}
 		}(config, errChan)
 	}
@@ -452,6 +448,7 @@ func (t *TaskProvisioner) updateCloudSpecificData(ctx context.Context, config *s
 		cloudSpecificSettings["aws_subnet_id"] = config.AWSConfig.SubnetID
 		cloudSpecificSettings["aws_masters_secgroup_id"] = config.AWSConfig.MastersSecurityGroupID
 		cloudSpecificSettings["aws_nodes_secgroup_id"] = config.AWSConfig.NodesSecurityGroupID
+		cloudSpecificSettings["aws_ssh_bootstrap_private_key"] = config.SshConfig.BootstrapPrivateKey
 	}
 
 	k, err := t.kubeService.Get(ctx, config.ClusterID)
@@ -464,6 +461,29 @@ func (t *TaskProvisioner) updateCloudSpecificData(ctx context.Context, config *s
 	k.CloudSpec = cloudSpecificSettings
 	// Save kubbe with update cloud specific settings
 	return t.kubeService.Create(ctx, k)
+}
+
+func (t *TaskProvisioner) loadCloudSpecificData(ctx context.Context, config *steps.Config) error {
+	k, err := t.kubeService.Get(ctx, config.ClusterID)
+
+	if err != nil {
+		logrus.Errorf("get kube caused %v", err)
+		return err
+	}
+
+	if config.Provider == clouds.AWS {
+		// Copy data got from pre provision step to cloud specific settings of kube
+		config.AWSConfig.AvailabilityZone = k.CloudSpec["aws_az"]
+		config.AWSConfig.VPCCIDR = k.CloudSpec["aws_vpc_cidr"]
+		config.AWSConfig.VPCID = k.CloudSpec["aws_vpc_id"]
+		config.AWSConfig.KeyPairName = k.CloudSpec["aws_keypair_name"]
+		config.AWSConfig.SubnetID = k.CloudSpec["aws_subnet_id"]
+		config.AWSConfig.MastersSecurityGroupID = k.CloudSpec["aws_masters_secgroup_id"]
+		config.AWSConfig.NodesSecurityGroupID = k.CloudSpec["aws_nodes_secgroup_id"]
+		config.SshConfig.BootstrapPrivateKey = k.CloudSpec["aws_ssh_bootstrap_private_key"]
+	}
+
+	return nil
 }
 
 // Create bootstrap key pair and save to config ssh section

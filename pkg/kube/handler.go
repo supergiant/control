@@ -57,9 +57,9 @@ type K8SServices struct {
 		} `json:"metadata"`
 		Spec struct {
 			Ports []struct {
-				Name       string `json:"name"`
-				Protocol   string `json:"protocol"`
-				Port       int    `json:"port"`
+				Name     string `json:"name"`
+				Protocol string `json:"protocol"`
+				Port     int    `json:"port"`
 			} `json:"ports"`
 			Selector struct {
 				App string `json:"app"`
@@ -75,12 +75,11 @@ type K8SServices struct {
 	} `json:"items"`
 }
 
-type ServiceProxy struct{
-	Name string `json:"name"`
-	Type string `json:"type"`
+type ServiceProxy struct {
+	Name     string `json:"name"`
+	Type     string `json:"type"`
 	SelfLink string `json:"selfLink"`
 }
-
 
 type MetricResponse struct {
 	Status string `json:"status"`
@@ -932,10 +931,10 @@ func (h *Handler) getNodesMetrics(w http.ResponseWriter, r *http.Request) {
 
 func (h *Handler) getServices(w http.ResponseWriter, r *http.Request) {
 	var (
-		servicesUrl  = "api/v1/services"
+		servicesUrl = "api/v1/services"
 		kubeID      string
 		masterNode  *node.Node
-		k8sServices   = &K8SServices{}
+		k8sServices = &K8SServices{}
 	)
 	vars := mux.Vars(r)
 	kubeID = vars["kubeID"]
@@ -983,13 +982,13 @@ func (h *Handler) getServices(w http.ResponseWriter, r *http.Request) {
 
 	// TODO(stgleb): Figure out which ports are worth to be proxy
 	webPorts := map[string]struct{}{
-		"web": {},
-		"http": {},
-		"https": {},
+		"web":     {},
+		"http":    {},
+		"https":   {},
 		"service": {},
 	}
 
-	 services := make([]ServiceProxy, 0)
+	services := make([]ServiceProxy, 0)
 
 	for _, service := range k8sServices.Items {
 		for _, port := range service.Spec.Ports {
