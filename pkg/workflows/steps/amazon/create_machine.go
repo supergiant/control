@@ -107,8 +107,6 @@ func (s *StepCreateInstance) Run(ctx context.Context, w io.Writer, cfg *steps.Co
 		KeyName:      &cfg.AWSConfig.KeyPairName,
 		MaxCount:     aws.Int64(1),
 		MinCount:     aws.Int64(1),
-		//	SecurityGroupIds: []*string{secGroupID},
-		//SubnetId: aws.String(cfg.AWSConfig.SubnetID),
 
 		//TODO add custom TAGS
 		TagSpecifications: []*ec2.TagSpecification{

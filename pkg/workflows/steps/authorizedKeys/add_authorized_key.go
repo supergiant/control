@@ -16,10 +16,10 @@ type Step struct {
 	script *template.Template
 }
 
-const AddAuthorizedKeyStepName = "add_authorized_keys"
+const StepName = "add_authorized_keys"
 
 func Init() {
-	steps.RegisterStep(AddAuthorizedKeyStepName, NewAddAuthorizedKeys(templatemanager.GetTemplate(AddAuthorizedKeyStepName)))
+	steps.RegisterStep(StepName, NewAddAuthorizedKeys(templatemanager.GetTemplate(StepName)))
 }
 
 func NewAddAuthorizedKeys(script *template.Template) *Step {
@@ -45,7 +45,7 @@ func (s *Step) Run(ctx context.Context, w io.Writer, cfg *steps.Config) error {
 }
 
 func (*Step) Name() string {
-	return AddAuthorizedKeyStepName
+	return StepName
 }
 
 func (*Step) Description() string {

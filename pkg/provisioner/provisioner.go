@@ -449,6 +449,7 @@ func (t *TaskProvisioner) updateCloudSpecificData(ctx context.Context, config *s
 		cloudSpecificSettings["aws_masters_secgroup_id"] = config.AWSConfig.MastersSecurityGroupID
 		cloudSpecificSettings["aws_nodes_secgroup_id"] = config.AWSConfig.NodesSecurityGroupID
 		cloudSpecificSettings["aws_ssh_bootstrap_private_key"] = config.SshConfig.BootstrapPrivateKey
+		cloudSpecificSettings["aws_user_provided_public_key"] = config.SshConfig.PublicKey
 	}
 
 	k, err := t.kubeService.Get(ctx, config.ClusterID)
@@ -481,6 +482,7 @@ func (t *TaskProvisioner) loadCloudSpecificData(ctx context.Context, config *ste
 		config.AWSConfig.MastersSecurityGroupID = k.CloudSpec["aws_masters_secgroup_id"]
 		config.AWSConfig.NodesSecurityGroupID = k.CloudSpec["aws_nodes_secgroup_id"]
 		config.SshConfig.BootstrapPrivateKey = k.CloudSpec["aws_ssh_bootstrap_private_key"]
+		config.SshConfig.PublicKey = k.CloudSpec["aws_user_provided_public_key"]
 	}
 
 	return nil
