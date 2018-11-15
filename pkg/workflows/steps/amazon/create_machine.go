@@ -21,7 +21,7 @@ import (
 
 const (
 	StepNameCreateEC2Instance = "aws_create_instance"
-	IPAttempts                = 12
+	IPAttempts                = 10
 	SleepSecondsPerAttempt    = 6
 )
 
@@ -190,7 +190,7 @@ func (s *StepCreateInstance) Run(ctx context.Context, w io.Writer, cfg *steps.Co
 						Values: []*string{aws.String(nodeName)},
 					},
 					{
-						Name:   aws.String("tag:KubernetesCluster"),
+						Name:   aws.String(fmt.Sprintf("tag:%s", clouds.ClusterIDTag)),
 						Values: []*string{aws.String(cfg.ClusterID)},
 					},
 				},
@@ -216,6 +216,7 @@ func (s *StepCreateInstance) Run(ctx context.Context, w io.Writer, cfg *steps.Co
 				found = true
 				break
 			}
+			// TODO(stgleb): Fix this wait loop
 			time.Sleep(2 * time.Second)
 		}
 		if !found {
