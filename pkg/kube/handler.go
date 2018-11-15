@@ -524,9 +524,10 @@ func (h *Handler) addNode(w http.ResponseWriter, r *http.Request) {
 		K8SVersion:      k.K8SVersion,
 		HelmVersion:     k.HelmVersion,
 
-		NetworkType:    k.Networking.Type,
-		CIDR:           k.Networking.CIDR,
-		FlannelVersion: k.Networking.Version,
+		NetworkType:           k.Networking.Type,
+		CIDR:                  k.Networking.CIDR,
+		FlannelVersion:        k.Networking.Version,
+		CloudSpecificSettings: k.CloudSpec,
 
 		NodesProfiles: []profile.NodeProfile{
 			{},
@@ -536,8 +537,11 @@ func (h *Handler) addNode(w http.ResponseWriter, r *http.Request) {
 	}
 
 	config := steps.NewConfig(k.Name, "", k.AccountName, kubeProfile)
+	config.ClusterID = k.ID
 	config.CertificatesConfig.CAKey = k.Auth.CAKey
 	config.CertificatesConfig.CACert = k.Auth.CACert
+	config.CertificatesConfig.AdminCert = k.Auth.AdminCert
+	config.CertificatesConfig.AdminKey = k.Auth.AdminKey
 
 	if len(k.Masters) != 0 {
 		config.AddMaster(util.GetRandomNode(k.Masters))
@@ -648,6 +652,11 @@ func (h *Handler) deleteNode(w http.ResponseWriter, r *http.Request) {
 		}
 		message.SendUnknownError(w, err)
 		return
+	}
+
+	//HACK TO PROVIDE REGION TO AWS DELETE CLUSTER
+	if acc.Provider == clouds.AWS {
+		config.AWSConfig.Region = k.Region
 	}
 
 	writer, err := h.getWriter(t.ID)
