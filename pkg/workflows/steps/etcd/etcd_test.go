@@ -18,6 +18,9 @@ import (
 	"github.com/supergiant/control/pkg/testutils"
 	"github.com/supergiant/control/pkg/workflows/steps"
 	"github.com/supergiant/control/pkg/workflows/steps/docker"
+	"fmt"
+	"github.com/google/uuid"
+	"os"
 )
 
 type fakeRunner struct {
@@ -67,7 +70,7 @@ func TestInstallEtcD(t *testing.T) {
 		DataDir:        dataDir,
 		Version:        version,
 		Name:           name,
-		DiscoveryUrl:   clusterToken,
+		ClusterToken:   clusterToken,
 		Timeout:        time.Second * 10,
 		RestartTimeout: "5",
 		StartTimeout:   "0",
@@ -75,8 +78,17 @@ func TestInstallEtcD(t *testing.T) {
 	config.IsMaster = true
 	config.Runner = r
 	config.Node = node.Node{
+		ID:        uuid.New().String(),
 		PrivateIp: "10.20.30.40",
+		PublicIp:  "127.0.0.1",
 	}
+
+	config.AddMaster(&config.Node)
+	config.AddMaster(&node.Node{
+		PrivateIp: "0.0.0.0",
+		ID:        uuid.New().String(),
+		Name:      "etcd1",
+	})
 
 	task := &Step{
 		script: tpl,
@@ -84,6 +96,8 @@ func TestInstallEtcD(t *testing.T) {
 
 	err = task.Run(context.Background(), output, config)
 
+	d := output.String()
+	fmt.Fprint(os.Stdout, d)
 	if err != nil {
 		t.Errorf("Unpexpected error %s", err.Error())
 	}

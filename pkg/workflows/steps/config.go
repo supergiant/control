@@ -146,7 +146,6 @@ type DownloadK8sBinary struct {
 type EtcdConfig struct {
 	Name           string        `json:"name"`
 	Version        string        `json:"version"`
-	DiscoveryUrl   string        `json:"discoveryUrl"`
 	AdvertiseHost  string        `json:"advertiseHost"`
 	Host           string        `json:"host"`
 	DataDir        string        `json:"dataDir"`
@@ -155,6 +154,7 @@ type EtcdConfig struct {
 	Timeout        time.Duration `json:"timeout"`
 	StartTimeout   string        `json:"startTimeout"`
 	RestartTimeout string        `json:"restartTimeout"`
+	ClusterToken   string        `json:"clusterToken"`
 }
 
 type SshConfig struct {
@@ -240,7 +240,7 @@ type Config struct {
 }
 
 // NewConfig builds instance of config for provisioning
-func NewConfig(clusterName, discoveryUrl, cloudAccountName string, profile profile.Profile) *Config {
+func NewConfig(clusterName, clusterToken, cloudAccountName string, profile profile.Profile) *Config {
 	cfg := &Config{
 		Provider:    profile.Provider,
 		ClusterName: clusterName,
@@ -332,7 +332,7 @@ func NewConfig(clusterName, discoveryUrl, cloudAccountName string, profile profi
 		EtcdConfig: EtcdConfig{
 			// TODO(stgleb): this field must be changed per node
 			Name:           "etcd0",
-			Version:        "3.3.9",
+			Version:        "3.3.10",
 			Host:           "0.0.0.0",
 			DataDir:        "/var/supergiant/etcd-data",
 			ServicePort:    "2379",
@@ -340,7 +340,7 @@ func NewConfig(clusterName, discoveryUrl, cloudAccountName string, profile profi
 			Timeout:        time.Minute * 20,
 			StartTimeout:   "0",
 			RestartTimeout: "5",
-			DiscoveryUrl:   discoveryUrl,
+			ClusterToken:   clusterToken,
 		},
 		ClusterCheckConfig: ClusterCheckConfig{
 			MachineCount: len(profile.NodesProfiles) + len(profile.MasterProfiles),
