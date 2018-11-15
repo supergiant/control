@@ -9,7 +9,6 @@ import (
 
 	tm "github.com/supergiant/supergiant/pkg/templatemanager"
 	"github.com/supergiant/supergiant/pkg/workflows/steps"
-	"github.com/sirupsen/logrus"
 )
 
 const StepName = "certificates"
@@ -38,7 +37,6 @@ func (s *Step) Run(ctx context.Context, out io.Writer, config *steps.Config) err
 	config.CertificatesConfig.PrivateIP = config.Node.PrivateIp
 	config.CertificatesConfig.PublicIP = config.Node.PublicIp
 	config.CertificatesConfig.IsMaster = config.IsMaster
-	logrus.Println(config.CertificatesConfig.IsMaster)
 
 	err := steps.RunTemplate(ctx, s.script,
 		config.Runner, out, config.CertificatesConfig)
