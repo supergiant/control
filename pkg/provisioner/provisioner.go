@@ -445,14 +445,15 @@ func (t *TaskProvisioner) updateCloudSpecificData(ctx context.Context, config *s
 	// Save cloudSpecificData in kube
 	if config.Provider == clouds.AWS {
 		// Copy data got from pre provision step to cloud specific settings of kube
-		cloudSpecificSettings["aws_az"] = config.AWSConfig.AvailabilityZone
-		cloudSpecificSettings["aws_vpc_cidr"] = config.AWSConfig.VPCCIDR
-		cloudSpecificSettings["aws_vpc_id"] = config.AWSConfig.VPCID
-		cloudSpecificSettings["aws_keypair_name"] = config.AWSConfig.KeyPairName
-		cloudSpecificSettings["aws_subnet_id"] = config.AWSConfig.SubnetID
-		cloudSpecificSettings["aws_masters_secgroup_id"] = config.AWSConfig.MastersSecurityGroupID
-		cloudSpecificSettings["aws_nodes_secgroup_id"] = config.AWSConfig.NodesSecurityGroupID
-		cloudSpecificSettings["aws_ssh_bootstrap_private_key"] = config.SshConfig.BootstrapPrivateKey
+		cloudSpecificSettings[clouds.AwsAZ] = config.AWSConfig.AvailabilityZone
+		cloudSpecificSettings[clouds.AwsVpcCIDR] = config.AWSConfig.VPCCIDR
+		cloudSpecificSettings[clouds.AwsVpcID] = config.AWSConfig.VPCID
+		cloudSpecificSettings[clouds.AwsKeyPairName] = config.AWSConfig.KeyPairName
+		cloudSpecificSettings[clouds.AwsSubnetID] = config.AWSConfig.SubnetID
+		cloudSpecificSettings[clouds.AwsMastersSecGroupID] = config.AWSConfig.MastersSecurityGroupID
+		cloudSpecificSettings[clouds.AwsNodesSecgroupID] = config.AWSConfig.NodesSecurityGroupID
+		cloudSpecificSettings[clouds.AwsSshBootstrapPrivateKey] = config.SshConfig.BootstrapPrivateKey
+		cloudSpecificSettings[clouds.AwsUserProvidedSshPublicKey] = config.SshConfig.PublicKey
 	}
 
 	k, err := t.kubeService.Get(ctx, config.ClusterID)
@@ -477,14 +478,15 @@ func (t *TaskProvisioner) loadCloudSpecificData(ctx context.Context, config *ste
 
 	if config.Provider == clouds.AWS {
 		// Copy data got from pre provision step to cloud specific settings of kube
-		config.AWSConfig.AvailabilityZone = k.CloudSpec["aws_az"]
-		config.AWSConfig.VPCCIDR = k.CloudSpec["aws_vpc_cidr"]
-		config.AWSConfig.VPCID = k.CloudSpec["aws_vpc_id"]
-		config.AWSConfig.KeyPairName = k.CloudSpec["aws_keypair_name"]
-		config.AWSConfig.SubnetID = k.CloudSpec["aws_subnet_id"]
-		config.AWSConfig.MastersSecurityGroupID = k.CloudSpec["aws_masters_secgroup_id"]
-		config.AWSConfig.NodesSecurityGroupID = k.CloudSpec["aws_nodes_secgroup_id"]
-		config.SshConfig.BootstrapPrivateKey = k.CloudSpec["aws_ssh_bootstrap_private_key"]
+		config.AWSConfig.AvailabilityZone = k.CloudSpec[clouds.AwsAZ]
+		config.AWSConfig.VPCCIDR = k.CloudSpec[clouds.AwsVpcCIDR]
+		config.AWSConfig.VPCID = k.CloudSpec[clouds.AwsVpcID]
+		config.AWSConfig.KeyPairName = k.CloudSpec[clouds.AwsKeyPairName]
+		config.AWSConfig.SubnetID = k.CloudSpec[clouds.AwsSubnetID]
+		config.AWSConfig.MastersSecurityGroupID = k.CloudSpec[clouds.AwsMastersSecGroupID]
+		config.AWSConfig.NodesSecurityGroupID = k.CloudSpec[clouds.AwsNodesSecgroupID]
+		config.SshConfig.BootstrapPrivateKey = k.CloudSpec[clouds.AwsSshBootstrapPrivateKey]
+		config.SshConfig.PublicKey = k.CloudSpec[clouds.AwsUserProvidedSshPublicKey]
 	}
 
 	return nil

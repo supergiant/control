@@ -64,7 +64,7 @@ func (s *KeyPairStep) Run(ctx context.Context, w io.Writer, cfg *steps.Config) e
 		}
 		return errors.Wrap(ErrImportKeyPair, err.Error())
 	}
-
+	// TODO(stgleb):  Wait until key pair actually created WaitUntilKeyPairExists
 	cfg.AWSConfig.KeyPairName = *output.KeyName
 	return nil
 }
