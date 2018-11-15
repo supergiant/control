@@ -83,7 +83,7 @@ func (tp *TaskProvisioner) ProvisionCluster(ctx context.Context,
 	err := tp.buildInitialCluster(ctx, profile, masters, nodes, config)
 
 	if err != nil {
-		logrus.Errorf("create initial cluster %v", err)
+		return nil, errors.Wrap(err, "build initial cluster")
 	}
 
 	// monitor cluster state in separate goroutine
