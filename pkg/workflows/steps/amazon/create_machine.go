@@ -13,7 +13,6 @@ import (
 	"github.com/aws/aws-sdk-go/service/ec2/ec2iface"
 	"github.com/pkg/errors"
 	"github.com/sirupsen/logrus"
-
 	"github.com/supergiant/supergiant/pkg/clouds"
 	"github.com/supergiant/supergiant/pkg/node"
 	"github.com/supergiant/supergiant/pkg/util"
@@ -22,7 +21,7 @@ import (
 
 const (
 	StepNameCreateEC2Instance = "aws_create_instance"
-	IPAttempts                = 12
+	IPAttempts                = 10
 	SleepSecondsPerAttempt    = 6
 )
 
@@ -118,7 +117,7 @@ func (s *StepCreateInstance) Run(ctx context.Context, w io.Writer, cfg *steps.Co
 				Tags: []*ec2.Tag{
 					{
 						Key:   aws.String("KubernetesCluster"),
-						Value: aws.String(cfg.ClusterID),
+						Value: aws.String(cfg.ClusterName),
 					},
 					{
 						Key:   aws.String("Name"),
@@ -127,6 +126,10 @@ func (s *StepCreateInstance) Run(ctx context.Context, w io.Writer, cfg *steps.Co
 					{
 						Key:   aws.String("Role"),
 						Value: aws.String(util.MakeRole(cfg.IsMaster)),
+					},
+					{
+						Key:   aws.String(clouds.ClusterIDTag),
+						Value: aws.String(cfg.ClusterID),
 					},
 				},
 			},
@@ -187,7 +190,7 @@ func (s *StepCreateInstance) Run(ctx context.Context, w io.Writer, cfg *steps.Co
 						Values: []*string{aws.String(nodeName)},
 					},
 					{
-						Name:   aws.String("tag:KubernetesCluster"),
+						Name:   aws.String(fmt.Sprintf("tag:%s", clouds.ClusterIDTag)),
 						Values: []*string{aws.String(cfg.ClusterID)},
 					},
 				},
@@ -213,6 +216,7 @@ func (s *StepCreateInstance) Run(ctx context.Context, w io.Writer, cfg *steps.Co
 				found = true
 				break
 			}
+			// TODO(stgleb): Fix this wait loop
 			time.Sleep(2 * time.Second)
 		}
 		if !found {

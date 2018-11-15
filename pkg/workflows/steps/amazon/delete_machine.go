@@ -58,7 +58,8 @@ func (s *DeleteNodeStep) Run(ctx context.Context, w io.Writer, cfg *steps.Config
 		}
 	}
 	if len(instanceIDS) == 0 {
-		logrus.Infof("[%s] - no nodes in k8s cluster %s", s.Name(), cfg.ClusterName)
+		logrus.Infof("[%s] - node %s not found in cluster %s",
+			s.Name(), cfg.Node.Name, cfg.ClusterName)
 		return nil
 	}
 
@@ -70,13 +71,7 @@ func (s *DeleteNodeStep) Run(ctx context.Context, w io.Writer, cfg *steps.Config
 		})
 
 	if err != nil {
-		logrus.Error(ErrDeleteNode, err.Error())
-		return errors.Wrap(ErrDeleteNode, err.Error())
-	}
-
-	if err != nil {
-		logrus.Error(ErrDeleteNode, err.Error())
-		return errors.Wrap(ErrDeleteNode, err.Error())
+		return errors.Wrap(err, "terminate instance")
 	}
 
 	terminatedInstances := make([]string, 0)

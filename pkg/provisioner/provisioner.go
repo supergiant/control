@@ -83,7 +83,7 @@ func (tp *TaskProvisioner) ProvisionCluster(ctx context.Context,
 	err := tp.buildInitialCluster(ctx, profile, masters, nodes, config)
 
 	if err != nil {
-		logrus.Errorf("create initial cluster %v", err)
+		return nil, errors.Wrap(err, "build initial cluster")
 	}
 
 	// monitor cluster state in separate goroutine
@@ -427,9 +427,9 @@ func (tp *TaskProvisioner) buildInitialCluster(ctx context.Context,
 			CIDR:    profile.CIDR,
 		},
 
-		CloudSpecificSettings: profile.CloudSpecificSettings,
-		Masters:               masters,
-		Nodes:                 nodes,
+		CloudSpec: profile.CloudSpecificSettings,
+		Masters:   masters,
+		Nodes:     nodes,
 	}
 
 	return tp.kubeService.Create(ctx, cluster)
@@ -458,7 +458,7 @@ func (t *TaskProvisioner) updateCloudSpecificData(ctx context.Context, config *s
 		return err
 	}
 
-	k.CloudSpecificSettings = cloudSpecificSettings
+	k.CloudSpec = cloudSpecificSettings
 	// Save kubbe with update cloud specific settings
 	return t.kubeService.Create(ctx, k)
 }
@@ -473,14 +473,14 @@ func (t *TaskProvisioner) loadCloudSpecificData(ctx context.Context, config *ste
 
 	if config.Provider == clouds.AWS {
 		// Copy data got from pre provision step to cloud specific settings of kube
-		config.AWSConfig.AvailabilityZone = k.CloudSpecificSettings["aws_az"]
-		config.AWSConfig.VPCCIDR = k.CloudSpecificSettings["aws_vpc_cidr"]
-		config.AWSConfig.VPCID = k.CloudSpecificSettings["aws_vpc_id"]
-		config.AWSConfig.KeyPairName = k.CloudSpecificSettings["aws_keypair_name"]
-		config.AWSConfig.SubnetID = k.CloudSpecificSettings["aws_subnet_id"]
-		config.AWSConfig.MastersSecurityGroupID = k.CloudSpecificSettings["aws_masters_secgroup_id"]
-		config.AWSConfig.NodesSecurityGroupID = k.CloudSpecificSettings["aws_nodes_secgroup_id"]
-		config.SshConfig.BootstrapPrivateKey = k.CloudSpecificSettings["aws_ssh_bootstrap_private_key"]
+		config.AWSConfig.AvailabilityZone = k.CloudSpec["aws_az"]
+		config.AWSConfig.VPCCIDR = k.CloudSpec["aws_vpc_cidr"]
+		config.AWSConfig.VPCID = k.CloudSpec["aws_vpc_id"]
+		config.AWSConfig.KeyPairName = k.CloudSpec["aws_keypair_name"]
+		config.AWSConfig.SubnetID = k.CloudSpec["aws_subnet_id"]
+		config.AWSConfig.MastersSecurityGroupID = k.CloudSpec["aws_masters_secgroup_id"]
+		config.AWSConfig.NodesSecurityGroupID = k.CloudSpec["aws_nodes_secgroup_id"]
+		config.SshConfig.BootstrapPrivateKey = k.CloudSpec["aws_ssh_bootstrap_private_key"]
 	}
 
 	return nil
