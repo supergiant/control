@@ -51,6 +51,7 @@ func (s *CreateInstanceStep) Run(ctx context.Context, output io.Writer, config *
 	tags := []string{
 		config.ClusterID,
 		config.DigitalOceanConfig.Name,
+		config.ClusterName,
 	}
 
 	dropletRequest := &godo.DropletCreateRequest{

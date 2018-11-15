@@ -149,6 +149,10 @@ func Init() {
 		steps.GetStep(amazon.DeleteClusterStepName),
 	}
 
+	awsDeleteNodeWorkflow := []steps.Step{
+		steps.GetStep(amazon.DeleteNodeStepName),
+	}
+
 	m.Lock()
 	defer m.Unlock()
 
@@ -161,6 +165,7 @@ func Init() {
 	workflowMap[AWSNode] = awsNodeWorkflow
 	workflowMap[AWSPreProvision] = awsPreProvision
 	workflowMap[AWSDeleteCluster] = awsDeleteClusterWorkflow
+	workflowMap[AWSDeleteNode] = awsDeleteNodeWorkflow
 }
 
 func RegisterWorkFlow(workflowName string, workflow Workflow) {
