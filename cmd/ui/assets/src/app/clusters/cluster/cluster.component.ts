@@ -347,7 +347,7 @@ export class ClusterComponent implements OnInit, OnDestroy {
       .afterClosed()
       .pipe(
         filter(res => res.deleteRelease),
-        switchMap(res => this.supergiant.HelmReleases.delete(releaseName, this.kube.name, !res.deleteConfigs)),
+        switchMap(res => this.supergiant.HelmReleases.delete(releaseName, this.clusterId, !res.deleteConfigs)),
         catchError(err => of(err))
       ).subscribe(
         res => this.getReleases(),
