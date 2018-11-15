@@ -160,6 +160,10 @@ func (tp *TaskProvisioner) ProvisionNodes(ctx context.Context, nodeProfiles []pr
 		return nil, errors.Wrap(sgerrors.ErrNotFound, "provider workflow")
 	}
 
+	if err := tp.preProvision(ctx, config); err != nil {
+		logrus.Errorf("Pre provisioning cluster %v", err)
+	}
+
 	// monitor cluster state in separate goroutine
 	go tp.monitorClusterState(ctx, config)
 	tasks := make([]string, 0, len(nodeProfiles))
