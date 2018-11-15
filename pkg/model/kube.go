@@ -2,6 +2,7 @@ package model
 
 import (
 	"github.com/supergiant/supergiant/pkg/node"
+	"github.com/supergiant/supergiant/pkg/profile"
 )
 
 type KubeState string
@@ -34,6 +35,8 @@ type Kube struct {
 	K8SVersion             string     `json:"K8SVersion"`
 	HelmVersion            string     `json:"helmVersion"`
 	Networking             Networking `json:"networking"`
+
+	CloudSpec profile.CloudSpecificSettings `json:"cloudSpec" valid:"-"`
 
 	Masters map[string]*node.Node `json:"masters"`
 	Nodes   map[string]*node.Node `json:"nodes"`

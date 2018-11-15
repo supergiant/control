@@ -11,4 +11,5 @@ var (
 	ErrImportKeyPair  = errors.New("aws: import keypair")
 	ErrNoPublicIP     = errors.New("aws: no public IP assigned")
 	ErrDeleteCluster  = errors.New("aws: delete cluster")
+	ErrDeleteNode     = errors.New("aws: delete node")
 )
