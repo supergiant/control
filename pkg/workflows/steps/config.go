@@ -230,15 +230,13 @@ func NewConfig(clusterName, discoveryUrl, cloudAccountName string, profile profi
 		LogBootstrapPrivateKey: profile.LogBootstrapPrivateKey,
 		AWSConfig: AWSConfig{
 			Region: profile.Region,
-
-			//TODO MOVE TO CONSTANTS
-			AvailabilityZone:       profile.CloudSpecificSettings["aws_az"],
-			VPCCIDR:                profile.CloudSpecificSettings["aws_vpc_cidr"],
-			VPCID:                  profile.CloudSpecificSettings["aws_vpc_id"],
-			KeyPairName:            profile.CloudSpecificSettings["aws_keypair_name"],
-			SubnetID:               profile.CloudSpecificSettings["aws_subnet_id"],
-			MastersSecurityGroupID: profile.CloudSpecificSettings["aws_masters_secgroup_id"],
-			NodesSecurityGroupID:   profile.CloudSpecificSettings["aws_nodes_secgroup_id"],
+			AvailabilityZone:       profile.CloudSpecificSettings[clouds.AwsAZ],
+			VPCCIDR:                profile.CloudSpecificSettings[clouds.AwsVpcCIDR],
+			VPCID:                  profile.CloudSpecificSettings[clouds.AwsVpcID],
+			KeyPairName:            profile.CloudSpecificSettings[clouds.AwsKeyPairName],
+			SubnetID:               profile.CloudSpecificSettings[clouds.AwsSubnetID],
+			MastersSecurityGroupID: profile.CloudSpecificSettings[clouds.AwsMastersSecGroupID],
+			NodesSecurityGroupID:   profile.CloudSpecificSettings[clouds.AwsNodesSecgroupID],
 		},
 		GCEConfig:    GCEConfig{},
 		OSConfig:     OSConfig{},
