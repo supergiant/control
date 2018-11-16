@@ -8,7 +8,7 @@ import (
 	compute "google.golang.org/api/compute/v1"
 	"google.golang.org/api/dns/v1"
 
-	"github.com/Sirupsen/logrus"
+	"github.com/sirupsen/logrus"
 	"github.com/pkg/errors"
 	"github.com/supergiant/supergiant/pkg/workflows/steps"
 )
