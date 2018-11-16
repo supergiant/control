@@ -29,7 +29,7 @@ func (f *fakeEC2CreateMachine) DescribeInstancesWithContext(aws.Context, *ec2.De
 //func TestStepCreateInstance_Run(t *testing.T) {
 //	tt := []struct {
 //		fn          GetEC2Fn
-//		err         error
+//		importErr         error
 //		hasPublicIP bool
 //	}{
 //		{
@@ -46,7 +46,7 @@ func (f *fakeEC2CreateMachine) DescribeInstancesWithContext(aws.Context, *ec2.De
 //					},
 //				}, nil
 //			},
-//			err:         nil,
+//			importErr:         nil,
 //			hasPublicIP: false,
 //		},
 //		{
@@ -78,7 +78,7 @@ func (f *fakeEC2CreateMachine) DescribeInstancesWithContext(aws.Context, *ec2.De
 //					},
 //				}, nil
 //			},
-//			err:         nil,
+//			importErr:         nil,
 //			hasPublicIP: true,
 //		},
 //		{
@@ -106,7 +106,7 @@ func (f *fakeEC2CreateMachine) DescribeInstancesWithContext(aws.Context, *ec2.De
 //					},
 //				}, nil
 //			},
-//			err:         ErrNoPublicIP,
+//			importErr:         ErrNoPublicIP,
 //			hasPublicIP: true,
 //		},
 //	}
@@ -128,11 +128,11 @@ func (f *fakeEC2CreateMachine) DescribeInstancesWithContext(aws.Context, *ec2.De
 //		defer cancel()
 //
 //		step := NewCreateInstance(tc.fn)
-//		err := step.Run(ctx, os.Stdout, cfg)
-//		if tc.err == nil {
-//			require.NoError(t, err, "TC%d, %v", i, err)
+//		importErr := step.Run(ctx, os.Stdout, cfg)
+//		if tc.importErr == nil {
+//			require.NoError(t, importErr, "TC%d, %v", i, importErr)
 //		} else {
-//			require.Truef(t, tc.err == errors.Cause(err), "TC%d, %v", i, err)
+//			require.Truef(t, tc.importErr == errors.Cause(importErr), "TC%d, %v", i, importErr)
 //		}
 //	}
 //}
