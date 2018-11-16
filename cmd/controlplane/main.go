@@ -14,12 +14,13 @@ import (
 )
 
 var (
-	addr         = flag.String("address", "0.0.0.0", "network interface to attach server to")
-	port         = flag.Int("port", 8080, "tcp port to listen for incoming requests")
-	etcdURL      = flag.String("etcd-url", "localhost:2379", "etcd url with port")
-	templatesDir = flag.String("templates", "/etc/supergiant/templates/", "supergiant will load script templates from the specified directory on start")
-	logLevel     = flag.String("log-level", "INFO", "logging level, e.g. info, warning, debug, error, fatal")
-	logFormat    = flag.String("log-format", "txt", "logging format [txt json]")
+	addr          = flag.String("address", "0.0.0.0", "network interface to attach server to")
+	port          = flag.Int("port", 8080, "tcp port to listen for incoming requests")
+	etcdURL       = flag.String("etcd-url", "localhost:2379", "etcd url with port")
+	templatesDir  = flag.String("templates", "/etc/supergiant/templates/", "supergiant will load script templates from the specified directory on start")
+	logLevel      = flag.String("log-level", "INFO", "logging level, e.g. info, warning, debug, error, fatal")
+	logFormat     = flag.String("log-format", "txt", "logging format [txt json]")
+	spawnInterval = flag.Int("spawnInterval", 5, "interval between API calls to cloud provider for creating instance")
 )
 
 func main() {
@@ -28,13 +29,14 @@ func main() {
 	configureLogging(*logLevel, *logFormat)
 
 	cfg := &controlplane.Config{
-		Addr:         *addr,
-		Port:         *port,
-		EtcdUrl:      *etcdURL,
-		TemplatesDir: *templatesDir,
-		ReadTimeout:  time.Second * 20,
-		WriteTimeout: time.Second * 10,
-		IdleTimeout:  time.Second * 120,
+		Addr:          *addr,
+		Port:          *port,
+		EtcdUrl:       *etcdURL,
+		TemplatesDir:  *templatesDir,
+		ReadTimeout:   time.Second * 20,
+		WriteTimeout:  time.Second * 10,
+		IdleTimeout:   time.Second * 120,
+		SpawnInterval: time.Second * time.Duration(*spawnInterval),
 	}
 
 	server, err := controlplane.New(cfg)

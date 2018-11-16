@@ -51,7 +51,8 @@ func (c *CreateVPCStep) Run(ctx context.Context, w io.Writer, cfg *steps.Config)
 		}
 		cfg.AWSConfig.VPCID = *out.Vpc.VpcId
 
-		log.Infof("[%s] - created a VPC with ID %s and CIDR %s", c.Name(), cfg.AWSConfig.VPCID, cfg.AWSConfig.VPCCIDR)
+		log.Infof("[%s] - created a VPC with ID %s and CIDR %s",
+			c.Name(), cfg.AWSConfig.VPCID, cfg.AWSConfig.VPCCIDR)
 	} else {
 		if cfg.AWSConfig.VPCID != "default" {
 			//if a user specified that there is a vpc already exists it should be verified

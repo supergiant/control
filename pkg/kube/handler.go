@@ -7,6 +7,7 @@ import (
 	"fmt"
 	"io"
 	"net/http"
+	"net/url"
 	"strconv"
 	"time"
 
@@ -57,9 +58,9 @@ type K8SServices struct {
 		} `json:"metadata"`
 		Spec struct {
 			Ports []struct {
-				Name       string `json:"name"`
-				Protocol   string `json:"protocol"`
-				Port       int    `json:"port"`
+				Name     string `json:"name"`
+				Protocol string `json:"protocol"`
+				Port     int    `json:"port"`
 			} `json:"ports"`
 			Selector struct {
 				App string `json:"app"`
@@ -75,12 +76,11 @@ type K8SServices struct {
 	} `json:"items"`
 }
 
-type ServiceProxy struct{
-	Name string `json:"name"`
-	Type string `json:"type"`
+type ServiceProxy struct {
+	Name     string `json:"name"`
+	Type     string `json:"type"`
 	SelfLink string `json:"selfLink"`
 }
-
 
 type MetricResponse struct {
 	Status string `json:"status"`
@@ -180,6 +180,7 @@ func (h *Handler) Register(r *mux.Router) {
 	r.HandleFunc("/kubes/{kubeID}/nodes/metrics", h.getNodesMetrics).Methods(http.MethodGet)
 	r.HandleFunc("/kubes/{kubeID}/services", h.getServices).Methods(http.MethodGet)
 	r.HandleFunc("/kubes/{kubeID}/services/proxy", h.proxyService).Methods(http.MethodPost)
+	r.HandleFunc("/kubes/{kubeID}/services/proxy", h.proxyServiceGet).Methods(http.MethodGet)
 }
 
 func (h *Handler) getTasks(w http.ResponseWriter, r *http.Request) {
@@ -932,10 +933,10 @@ func (h *Handler) getNodesMetrics(w http.ResponseWriter, r *http.Request) {
 
 func (h *Handler) getServices(w http.ResponseWriter, r *http.Request) {
 	var (
-		servicesUrl  = "api/v1/services"
+		servicesUrl = "api/v1/services"
 		kubeID      string
 		masterNode  *node.Node
-		k8sServices   = &K8SServices{}
+		k8sServices = &K8SServices{}
 	)
 	vars := mux.Vars(r)
 	kubeID = vars["kubeID"]
@@ -983,13 +984,13 @@ func (h *Handler) getServices(w http.ResponseWriter, r *http.Request) {
 
 	// TODO(stgleb): Figure out which ports are worth to be proxy
 	webPorts := map[string]struct{}{
-		"web": {},
-		"http": {},
-		"https": {},
+		"web":     {},
+		"http":    {},
+		"https":   {},
 		"service": {},
 	}
 
-	 services := make([]ServiceProxy, 0)
+	services := make([]ServiceProxy, 0)
 
 	for _, service := range k8sServices.Items {
 		for _, port := range service.Spec.Ports {
@@ -1019,6 +1020,47 @@ func (h *Handler) proxyService(w http.ResponseWriter, r *http.Request) {
 	err := json.NewDecoder(r.Body).Decode(serviceProxy)
 
 	req, err := http.NewRequest(http.MethodGet, serviceProxy.SelfLink, nil)
+	req.SetBasicAuth("root", "1234")
+
+	tr := &http.Transport{
+		TLSClientConfig: &tls.Config{InsecureSkipVerify: true},
+	}
+	client := &http.Client{
+		Transport: tr,
+	}
+	resp, err := client.Do(req)
+
+	if err != nil {
+		message.SendUnknownError(w, err)
+		return
+	}
+
+	_, err = io.Copy(w, resp.Body)
+
+	if err != nil {
+		message.SendUnknownError(w, err)
+		return
+	}
+}
+
+func (h *Handler) proxyServiceGet(w http.ResponseWriter, r *http.Request) {
+	vars := mux.Vars(r)
+	u, ok := vars["url"]
+
+	logrus.Fatal(u)
+	if !ok {
+		http.Error(w, "url query param must not be empty", http.StatusBadRequest)
+		return
+	}
+
+	serviceUrl, err := url.QueryUnescape(u)
+
+	if err != nil {
+		http.Error(w, fmt.Sprintf("unescae url %s", serviceUrl), http.StatusBadRequest)
+		return
+	}
+
+	req, err := http.NewRequest(http.MethodGet, serviceUrl, nil)
 	req.SetBasicAuth("root", "1234")
 
 	tr := &http.Transport{

@@ -20,10 +20,27 @@ import (
 	"github.com/supergiant/supergiant/pkg/util"
 	"github.com/supergiant/supergiant/pkg/workflows"
 	"github.com/supergiant/supergiant/pkg/workflows/steps"
+	"time"
 )
 
 type EtcdTokenGetter struct {
 	discoveryUrl string
+}
+
+type RateLimiter struct {
+	bucket *time.Ticker
+}
+
+func NewRateLimiter(interval time.Duration) *RateLimiter {
+	return &RateLimiter{
+		bucket: time.NewTicker(interval),
+	}
+}
+
+// Take either returns giving calling code ability to execute or blocks until
+// bucket is full again
+func (r *RateLimiter) Take() {
+	<-r.bucket.C
 }
 
 func NewEtcdTokenGetter() *EtcdTokenGetter {

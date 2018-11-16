@@ -20,6 +20,7 @@ import (
 	"github.com/supergiant/supergiant/pkg/util"
 	"github.com/supergiant/supergiant/pkg/workflows"
 	"github.com/supergiant/supergiant/pkg/workflows/steps"
+	"time"
 )
 
 const keySize = 4096
@@ -34,9 +35,15 @@ type TaskProvisioner struct {
 	repository   storage.Interface
 	getWriter    func(string) (io.WriteCloser, error)
 	provisionMap map[clouds.Name]workflows.WorkflowSet
+	// NOTE(stgleb): Since provisioner is shared object among all users of SG
+	// this rate limiter will affect all users not allowing them to spin-up
+	// to many instances at once, probably we may split rate limiter per user
+	// in future to avoid interference between them.
+	rateLimiter *RateLimiter
 }
 
-func NewProvisioner(repository storage.Interface, kubeService KubeService) *TaskProvisioner {
+func NewProvisioner(repository storage.Interface, kubeService KubeService,
+	spawnInterval time.Duration) *TaskProvisioner {
 	return &TaskProvisioner{
 		kubeService: kubeService,
 		repository:  repository,
@@ -50,7 +57,8 @@ func NewProvisioner(repository storage.Interface, kubeService KubeService) *Task
 				ProvisionNode:   workflows.AWSNode,
 			},
 		},
-		getWriter: util.GetWriter,
+		getWriter:   util.GetWriter,
+		rateLimiter: NewRateLimiter(spawnInterval),
 	}
 }
 
@@ -150,10 +158,18 @@ func (tp *TaskProvisioner) ProvisionNodes(ctx context.Context, nodeProfiles []pr
 		return nil, errors.Wrap(err, "bootstrap keys")
 	}
 
+	if err := tp.loadCloudSpecificData(ctx, config); err != nil {
+		return nil, errors.Wrap(err, "load cloud specific config")
+	}
+
 	providerWorkflowSet, ok := tp.provisionMap[config.Provider]
 
 	if !ok {
 		return nil, errors.Wrap(sgerrors.ErrNotFound, "provider workflow")
+	}
+
+	if err := tp.preProvision(ctx, config); err != nil {
+		logrus.Errorf("Pre provisioning cluster %v", err)
 	}
 
 	// monitor cluster state in separate goroutine
@@ -161,6 +177,9 @@ func (tp *TaskProvisioner) ProvisionNodes(ctx context.Context, nodeProfiles []pr
 	tasks := make([]string, 0, len(nodeProfiles))
 
 	for _, nodeProfile := range nodeProfiles {
+		// Protect cloud API with rate limiter
+		tp.rateLimiter.Take()
+
 		// Take node workflow for the provider
 		t, err := workflows.NewTask(providerWorkflowSet.ProvisionNode, tp.repository)
 		tasks = append(tasks, t.ID)
@@ -191,14 +210,6 @@ func (tp *TaskProvisioner) ProvisionNodes(ctx context.Context, nodeProfiles []pr
 			if err != nil {
 				logrus.Errorf("add node to cluster %s caused an error %v", kube.ID, err)
 				return
-			}
-
-			if n := cfg.GetNode(); n != nil {
-				kube.Nodes[n.ID] = n
-				// TODO(stgleb): Use some other method like update or Patch instead of recreate
-				tp.kubeService.Create(context.Background(), kube)
-			} else {
-				logrus.Errorf("add node to cluster %s: node was not added", kube.ID)
 			}
 		}(config, errChan)
 	}
@@ -271,6 +282,9 @@ func (tp *TaskProvisioner) provisionMasters(ctx context.Context, profile *profil
 
 	// ProvisionCluster master nodes
 	for index, masterTask := range tasks {
+		// Take token that allows perform action with Cloud Provider API
+		tp.rateLimiter.Take()
+
 		if masterTask == nil {
 			logrus.Fatal(tasks)
 		}
@@ -327,6 +341,9 @@ func (tp *TaskProvisioner) provisionNodes(ctx context.Context, profile *profile.
 
 	// ProvisionCluster nodes
 	for index, nodeTask := range tasks {
+		// Take token that allows perform action with Cloud Provider API
+		tp.rateLimiter.Take()
+
 		fileName := util.MakeFileName(nodeTask.ID)
 		out, err := tp.getWriter(fileName)
 
@@ -445,13 +462,15 @@ func (t *TaskProvisioner) updateCloudSpecificData(ctx context.Context, config *s
 	// Save cloudSpecificData in kube
 	if config.Provider == clouds.AWS {
 		// Copy data got from pre provision step to cloud specific settings of kube
-		cloudSpecificSettings["aws_az"] = config.AWSConfig.AvailabilityZone
-		cloudSpecificSettings["aws_vpc_cidr"] = config.AWSConfig.VPCCIDR
-		cloudSpecificSettings["aws_vpc_id"] = config.AWSConfig.VPCID
-		cloudSpecificSettings["aws_keypair_name"] = config.AWSConfig.KeyPairName
-		cloudSpecificSettings["aws_subnet_id"] = config.AWSConfig.SubnetID
-		cloudSpecificSettings["aws_masters_secgroup_id"] = config.AWSConfig.MastersSecurityGroupID
-		cloudSpecificSettings["aws_nodes_secgroup_id"] = config.AWSConfig.NodesSecurityGroupID
+		cloudSpecificSettings[clouds.AwsAZ] = config.AWSConfig.AvailabilityZone
+		cloudSpecificSettings[clouds.AwsVpcCIDR] = config.AWSConfig.VPCCIDR
+		cloudSpecificSettings[clouds.AwsVpcID] = config.AWSConfig.VPCID
+		cloudSpecificSettings[clouds.AwsKeyPairName] = config.AWSConfig.KeyPairName
+		cloudSpecificSettings[clouds.AwsSubnetID] = config.AWSConfig.SubnetID
+		cloudSpecificSettings[clouds.AwsMastersSecGroupID] = config.AWSConfig.MastersSecurityGroupID
+		cloudSpecificSettings[clouds.AwsNodesSecgroupID] = config.AWSConfig.NodesSecurityGroupID
+		cloudSpecificSettings[clouds.AwsSshBootstrapPrivateKey] = config.SshConfig.BootstrapPrivateKey
+		cloudSpecificSettings[clouds.AwsUserProvidedSshPublicKey] = config.SshConfig.PublicKey
 	}
 
 	k, err := t.kubeService.Get(ctx, config.ClusterID)
@@ -464,6 +483,30 @@ func (t *TaskProvisioner) updateCloudSpecificData(ctx context.Context, config *s
 	k.CloudSpec = cloudSpecificSettings
 	// Save kubbe with update cloud specific settings
 	return t.kubeService.Create(ctx, k)
+}
+
+func (t *TaskProvisioner) loadCloudSpecificData(ctx context.Context, config *steps.Config) error {
+	k, err := t.kubeService.Get(ctx, config.ClusterID)
+
+	if err != nil {
+		logrus.Errorf("get kube caused %v", err)
+		return err
+	}
+
+	if config.Provider == clouds.AWS {
+		// Copy data got from pre provision step to cloud specific settings of kube
+		config.AWSConfig.AvailabilityZone = k.CloudSpec[clouds.AwsAZ]
+		config.AWSConfig.VPCCIDR = k.CloudSpec[clouds.AwsVpcCIDR]
+		config.AWSConfig.VPCID = k.CloudSpec[clouds.AwsVpcID]
+		config.AWSConfig.KeyPairName = k.CloudSpec[clouds.AwsKeyPairName]
+		config.AWSConfig.SubnetID = k.CloudSpec[clouds.AwsSubnetID]
+		config.AWSConfig.MastersSecurityGroupID = k.CloudSpec[clouds.AwsMastersSecGroupID]
+		config.AWSConfig.NodesSecurityGroupID = k.CloudSpec[clouds.AwsNodesSecgroupID]
+		config.SshConfig.BootstrapPrivateKey = k.CloudSpec[clouds.AwsSshBootstrapPrivateKey]
+		config.SshConfig.PublicKey = k.CloudSpec[clouds.AwsUserProvidedSshPublicKey]
+	}
+
+	return nil
 }
 
 // Create bootstrap key pair and save to config ssh section

@@ -11,6 +11,7 @@ import (
 	"github.com/pkg/errors"
 	"github.com/sirupsen/logrus"
 
+	"github.com/supergiant/supergiant/pkg/util"
 	"github.com/supergiant/supergiant/pkg/workflows/steps"
 )
 
@@ -27,6 +28,7 @@ func InitDeleteNode(fn GetEC2Fn) {
 }
 
 func (s *DeleteNodeStep) Run(ctx context.Context, w io.Writer, cfg *steps.Config) error {
+	log := util.GetLogger(w)
 	logrus.Infof("[%s] - deleting node %s", s.Name(), cfg.Node.Name)
 
 	EC2, err := s.GetEC2(cfg.AWSConfig)
@@ -55,7 +57,6 @@ func (s *DeleteNodeStep) Run(ctx context.Context, w io.Writer, cfg *steps.Config
 			instanceIDS = append(instanceIDS, *instance.InstanceId)
 		}
 	}
-
 	if len(instanceIDS) == 0 {
 		logrus.Infof("[%s] - node %s not found in cluster %s",
 			s.Name(), cfg.Node.Name, cfg.ClusterName)
@@ -79,7 +80,7 @@ func (s *DeleteNodeStep) Run(ctx context.Context, w io.Writer, cfg *steps.Config
 	}
 
 	msg := fmt.Sprintf("terminated instances %s", strings.Join(terminatedInstances, " , "))
-	logrus.Infof("[%s] - %s", s.Name(), msg)
+	log.Infof("[%s] - %s", s.Name(), msg)
 	logrus.Infof("[%s] Deleted AWS node %s ", cfg.Node.Name, msg)
 
 	return nil
