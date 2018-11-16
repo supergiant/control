@@ -1,6 +1,7 @@
 import { NgModule }                 from '@angular/core';
 import { Routes, RouterModule }     from '@angular/router';
 import { AddNodeComponent }         from "./clusters/cluster/add-node/add-node.component";
+import { ServiceProxyComponent }         from "./clusters/cluster/service-proxy/service-proxy.component";
 import { NodesComponent }           from './nodes/nodes.component';
 import { ServicesComponent }        from './services/services.component';
 import { LoginComponent }           from './login/login.component';
@@ -51,6 +52,7 @@ const appRoutes: Routes = [
       { path: 'new', component: NewClusterComponent },
       { path: ':id', component: ClusterComponent },
       { path: ':id/add-node', component: AddNodeComponent },
+      { path: ':id/services/proxy', component: ServiceProxyComponent }
     ]
   },
   {

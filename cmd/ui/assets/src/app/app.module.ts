@@ -170,6 +170,8 @@ import { UsageOrbComponent } from './dashboard/usage-orb/usage-orb.component';
 import { ClusterTableComponent } from './dashboard/cluster-table/cluster-table.component';
 import { DeleteClusterModalComponent } from './clusters/cluster/delete-cluster-modal/delete-cluster-modal.component';
 import { DeleteReleaseModalComponent } from './clusters/cluster/delete-release-modal/delete-release-modal.component';
+import { ServiceProxyComponent } from './clusters/cluster/service-proxy/service-proxy.component';
+import { SafePipe } from './clusters/cluster/service-proxy/safe.pipe';
 
 @NgModule({
   declarations: [
@@ -244,6 +246,8 @@ import { DeleteReleaseModalComponent } from './clusters/cluster/delete-release-m
     ClusterTableComponent,
     DeleteClusterModalComponent,
     DeleteReleaseModalComponent,
+    ServiceProxyComponent,
+    SafePipe,
   ],
   imports: [
     BrowserModule,
@@ -346,7 +350,7 @@ import { DeleteReleaseModalComponent } from './clusters/cluster/delete-release-m
     MenuModalComponent,
     ClusterListModalComponent,
     DeleteClusterModalComponent,
-    DeleteReleaseModalComponent
+    DeleteReleaseModalComponent,
   ],
   bootstrap: [AppComponent],
 })

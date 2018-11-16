@@ -57,6 +57,9 @@ export class ClusterComponent implements OnInit, OnDestroy {
   ramUsage: number;
   machineMetrics = {};
 
+  clusterServices: any
+  serviceListColumns = ["name", "type", "selfLink"];
+
   constructor(
     private route: ActivatedRoute,
     private location: Location,
@@ -180,10 +183,11 @@ export class ClusterComponent implements OnInit, OnDestroy {
 
           switch (this.kube.state) {
             case "operational": {
-              this.renderKube(this.kube);
               this.getReleases();
               this.getClusterMetrics();
               this.getMachineMetrics();
+              this.getClusterServices();
+              this.renderKube(this.kube);
               break;
             }
             case "provisioning": {
@@ -259,6 +263,13 @@ export class ClusterComponent implements OnInit, OnDestroy {
     this.machines = new MatTableDataSource(this.combineAndFlatten(kube.masters, kube.nodes));
     this.machines.sort = this.sort;
     this.machines.paginator = this.paginator;
+  }
+
+  getClusterServices() {
+    this.supergiant.Kubes.getClusterServices(this.clusterId).subscribe(
+      res => this.clusterServices = new MatTableDataSource(res),
+      err => console.error(err)
+    )
   }
 
   getReleases() {

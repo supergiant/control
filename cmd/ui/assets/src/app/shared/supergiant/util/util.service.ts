@@ -29,6 +29,10 @@ export class UtilService {
     return this.http.get<any>(this.serverEndpoint + path + '?limit=1000');
   }
 
+  fetchParams(path, params) {
+    return this.http.get(this.serverEndpoint + path, { params: params, responseType: "text" });
+  }
+
   fetchResponse(path) {
     return this.http.get(this.serverEndpoint + path, { observe: "response" });
   }

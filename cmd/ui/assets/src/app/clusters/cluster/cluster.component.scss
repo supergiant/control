@@ -478,6 +478,20 @@
           font-size: 12px;
           overflow: unset;
           justify-content: space-between;
+
+          .open-service {
+            background-image: url(/assets/img/launch.svg);
+            height: 22px;
+            width: 22px;
+
+            &:hover {
+              cursor: pointer;
+            }
+
+            &:active {
+              transform: scale(0.95, 0.95);
+            }
+          }
         }
 
         .expanded-tasks {
@@ -653,6 +667,39 @@
       }
     }
   }
+
+  .services-and-cluster-info {
+    display: flex;
+    width: 1270px;
+    justify-content: space-between;
+
+    .cluster-services {
+      width: 560px;
+    }
+
+    .cluster-info {
+      background-color: rgba(0, 0, 0, 0.5);
+      border: 1px solid rgba(255, 255, 255, 0.25);
+      display: flex;
+      flex-direction: column;
+      margin: 48px auto;
+      padding: 21px 24px 24px 24px;
+      height: min-content;
+      width: 560px;
+
+      p {
+        margin: 16px 0px;
+
+        .label {
+          background-color: rgba(255, 0, 166, 0.25);
+          color: #fff;
+          padding: 10px 20px;
+          margin-right: 20px;
+        }
+      }
+    }
+  }
+
 
 
   button {

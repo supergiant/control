@@ -329,6 +329,57 @@
         </a>
       </div>
     </ng-container>
+
+    <div class="services-and-cluster-info">
+
+      <div class="sg-table cluster-services">
+        <h3>CLUSTER SERVICES</h3>
+
+        <mat-table [dataSource]="clusterServices" matSort>
+
+          <ng-container matColumnDef="name">
+            <mat-header-cell mat-sort-header
+                             *matHeaderCellDef>Name
+            </mat-header-cell>
+            <mat-cell *matCellDef="let service">{{ service.name }}</mat-cell>
+          </ng-container>
+
+          <ng-container matColumnDef="type">
+            <mat-header-cell mat-sort-header
+                             *matHeaderCellDef>Type
+            </mat-header-cell>
+            <mat-cell *matCellDef="let service">{{ service.type }}</mat-cell>
+          </ng-container>
+
+          <ng-container matColumnDef="selfLink">
+            <mat-header-cell mat-sort-header
+                             *matHeaderCellDef>Link
+            </mat-header-cell>
+            <mat-cell *matCellDef="let service">
+              <a [routerLink]="['/clusters/' + clusterId + '/services/proxy']" [queryParams]="{url: service.selfLink}" class="open-service"target="_blank"></a>
+            </mat-cell>
+          </ng-container>
+
+          <mat-header-row *matHeaderRowDef="serviceListColumns"></mat-header-row>
+          <mat-row *matRowDef="let row; columns: serviceListColumns"></mat-row>
+        </mat-table>
+      </div>
+
+      <div class="cluster-info">
+        <h3>CLUSTER INFO</h3>
+        <p><span class="label">K8SVersion</span><span class="data">{{kube.K8SVersion}}</span></p>
+        <p><span class="label">Account</span><span class="data">{{kube.accountName}}</span></p>
+        <p><span class="label">Arch</span><span class="data">{{kube.arch}}</span></p>
+        <p><span class="label">OS</span><span class="data">{{kube.operatingSystem}}</span></p>
+        <p><span class="label">OS Vers.</span><span class="data">{{kube.operatingSystemVersion}}</span></p>
+        <p><span class="label">Docker Vers.</span><span class="data">{{kube.dockerVersion}}</span></p>
+        <p><span class="label">Helm Vers.</span><span class="data">{{kube.helmVersion}}</span></p>
+        <p><span class="label">RBAC Enabled</span><span class="data">{{kube.rbacEnabled}}</span></p>
+      </div>
+
+    </div>
+
+
   </ng-container>
 
   <div class="action-buttons">
