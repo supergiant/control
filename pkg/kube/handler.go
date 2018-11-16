@@ -7,6 +7,7 @@ import (
 	"fmt"
 	"io"
 	"net/http"
+	"net/url"
 	"strconv"
 	"time"
 
@@ -26,7 +27,6 @@ import (
 	"github.com/supergiant/supergiant/pkg/workflows"
 	"github.com/supergiant/supergiant/pkg/workflows/statuses"
 	"github.com/supergiant/supergiant/pkg/workflows/steps"
-	"net/url"
 )
 
 type accountGetter interface {
