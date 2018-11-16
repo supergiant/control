@@ -17,6 +17,7 @@ type CertificatesConfig struct {
 	KubernetesConfigDir string `json:"kubernetesConfigDir"`
 	PublicIP            string `json:"publicIp"`
 	PrivateIP           string `json:"privateIp"`
+	IsMaster            bool   `json:"isMaster"`
 
 	Username string `json:"username"`
 	Password string `json:"password"`

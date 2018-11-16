@@ -43,7 +43,8 @@ func (s *KeyPairStep) Run(ctx context.Context, w io.Writer, cfg *steps.Config) e
 	}
 
 	bootstrapKeyPairName := util.MakeKeyName(cfg.ClusterName, false)
-	log.Infof("[%s] - importing cluster bootstrap certificate as keypair %s", s.Name(), bootstrapKeyPairName)
+	log.Infof("[%s] - importing cluster bootstrap certificate as keypair %s",
+		s.Name(), bootstrapKeyPairName)
 	req := &ec2.ImportKeyPairInput{
 		KeyName:           &bootstrapKeyPairName,
 		PublicKeyMaterial: []byte(cfg.SshConfig.BootstrapPublicKey),
