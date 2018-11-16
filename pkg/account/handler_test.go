@@ -142,7 +142,7 @@ func TestEndpoint_CreateError(t *testing.T) {
 
 	okAccount, _ := json.Marshal(model.CloudAccount{
 		Name:        "test",
-		Provider:    "gce",
+		Provider:    "azure",
 		Credentials: map[string]string{},
 	})
 	req, _ := http.NewRequest(http.MethodPost, "/cloud_accounts", bytes.NewReader(okAccount))
