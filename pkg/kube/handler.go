@@ -26,6 +26,7 @@ import (
 	"github.com/supergiant/supergiant/pkg/workflows"
 	"github.com/supergiant/supergiant/pkg/workflows/statuses"
 	"github.com/supergiant/supergiant/pkg/workflows/steps"
+	"net/url"
 )
 
 type accountGetter interface {
@@ -179,6 +180,7 @@ func (h *Handler) Register(r *mux.Router) {
 	r.HandleFunc("/kubes/{kubeID}/nodes/metrics", h.getNodesMetrics).Methods(http.MethodGet)
 	r.HandleFunc("/kubes/{kubeID}/services", h.getServices).Methods(http.MethodGet)
 	r.HandleFunc("/kubes/{kubeID}/services/proxy", h.proxyService).Methods(http.MethodPost)
+	r.HandleFunc("/kubes/{kubeID}/services/proxy", h.proxyServiceGet).Methods(http.MethodGet)
 }
 
 func (h *Handler) getTasks(w http.ResponseWriter, r *http.Request) {
@@ -1018,6 +1020,47 @@ func (h *Handler) proxyService(w http.ResponseWriter, r *http.Request) {
 	err := json.NewDecoder(r.Body).Decode(serviceProxy)
 
 	req, err := http.NewRequest(http.MethodGet, serviceProxy.SelfLink, nil)
+	req.SetBasicAuth("root", "1234")
+
+	tr := &http.Transport{
+		TLSClientConfig: &tls.Config{InsecureSkipVerify: true},
+	}
+	client := &http.Client{
+		Transport: tr,
+	}
+	resp, err := client.Do(req)
+
+	if err != nil {
+		message.SendUnknownError(w, err)
+		return
+	}
+
+	_, err = io.Copy(w, resp.Body)
+
+	if err != nil {
+		message.SendUnknownError(w, err)
+		return
+	}
+}
+
+func (h *Handler) proxyServiceGet(w http.ResponseWriter, r *http.Request) {
+	vars := mux.Vars(r)
+	u, ok := vars["url"]
+
+	logrus.Fatal(u)
+	if !ok {
+		http.Error(w, "url query param must not be empty", http.StatusBadRequest)
+		return
+	}
+
+	serviceUrl, err := url.QueryUnescape(u)
+
+	if err != nil {
+		http.Error(w, fmt.Sprintf("unescae url %s", serviceUrl), http.StatusBadRequest)
+		return
+	}
+
+	req, err := http.NewRequest(http.MethodGet, serviceUrl, nil)
 	req.SetBasicAuth("root", "1234")
 
 	tr := &http.Transport{
