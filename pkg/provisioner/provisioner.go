@@ -20,6 +20,7 @@ import (
 	"github.com/supergiant/supergiant/pkg/util"
 	"github.com/supergiant/supergiant/pkg/workflows"
 	"github.com/supergiant/supergiant/pkg/workflows/steps"
+	"time"
 )
 
 const keySize = 4096
@@ -34,9 +35,15 @@ type TaskProvisioner struct {
 	repository   storage.Interface
 	getWriter    func(string) (io.WriteCloser, error)
 	provisionMap map[clouds.Name]workflows.WorkflowSet
+	// NOTE(stgleb): Since provisioner is shared object among all users of SG
+	// this rate limiter will affect all users not allowing them to spin-up
+	// to many instances at once, probably we may split rate limiter per user
+	// in future to avoid interference between them.
+	rateLimiter *RateLimiter
 }
 
-func NewProvisioner(repository storage.Interface, kubeService KubeService) *TaskProvisioner {
+func NewProvisioner(repository storage.Interface, kubeService KubeService,
+	spawnInterval time.Duration) *TaskProvisioner {
 	return &TaskProvisioner{
 		kubeService: kubeService,
 		repository:  repository,
@@ -54,7 +61,8 @@ func NewProvisioner(repository storage.Interface, kubeService KubeService) *Task
 				ProvisionNode:   workflows.GCENode,
 			},
 		},
-		getWriter: util.GetWriter,
+		getWriter:   util.GetWriter,
+		rateLimiter: NewRateLimiter(spawnInterval),
 	}
 }
 
@@ -173,6 +181,9 @@ func (tp *TaskProvisioner) ProvisionNodes(ctx context.Context, nodeProfiles []pr
 	tasks := make([]string, 0, len(nodeProfiles))
 
 	for _, nodeProfile := range nodeProfiles {
+		// Protect cloud API with rate limiter
+		tp.rateLimiter.Take()
+
 		// Take node workflow for the provider
 		t, err := workflows.NewTask(providerWorkflowSet.ProvisionNode, tp.repository)
 		tasks = append(tasks, t.ID)
@@ -275,6 +286,9 @@ func (tp *TaskProvisioner) provisionMasters(ctx context.Context, profile *profil
 
 	// ProvisionCluster master nodes
 	for index, masterTask := range tasks {
+		// Take token that allows perform action with Cloud Provider API
+		tp.rateLimiter.Take()
+
 		if masterTask == nil {
 			logrus.Fatal(tasks)
 		}
@@ -331,6 +345,9 @@ func (tp *TaskProvisioner) provisionNodes(ctx context.Context, profile *profile.
 
 	// ProvisionCluster nodes
 	for index, nodeTask := range tasks {
+		// Take token that allows perform action with Cloud Provider API
+		tp.rateLimiter.Take()
+
 		fileName := util.MakeFileName(nodeTask.ID)
 		out, err := tp.getWriter(fileName)
 
