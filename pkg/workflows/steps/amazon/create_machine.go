@@ -84,7 +84,7 @@ func (s *StepCreateInstance) Run(ctx context.Context, w io.Writer, cfg *steps.Co
 		return errors.Wrap(err, "failed to find AMI")
 	}
 
-	isEbs, err := strconv.ParseBool(cfg.AWSConfig.EbsOptimized)
+	isEbs := false
 	volumeSize, err := strconv.Atoi(cfg.AWSConfig.VolumeSize)
 	hasPublicAddress, err := strconv.ParseBool(cfg.AWSConfig.HasPublicAddr)
 
