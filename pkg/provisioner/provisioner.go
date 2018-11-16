@@ -410,6 +410,7 @@ func (tp *TaskProvisioner) buildInitialCluster(ctx context.Context,
 		AccountName:  config.CloudAccountName,
 		RBACEnabled:  profile.RBACEnabled,
 		Region:       profile.Region,
+		Zone:         profile.Zone,
 		SshUser:      config.SshConfig.User,
 		SshPublicKey: []byte(config.SshConfig.PublicKey),
 

@@ -2,30 +2,30 @@ package gce
 
 import (
 	"context"
+	"fmt"
 	"io"
 	"time"
 
 	"golang.org/x/oauth2/jwt"
-	"google.golang.org/api/compute/v1"
+	compute "google.golang.org/api/compute/v1"
+	"google.golang.org/api/dns/v1"
 
-	"fmt"
 	"github.com/supergiant/supergiant/pkg/clouds"
 	"github.com/supergiant/supergiant/pkg/node"
 	"github.com/supergiant/supergiant/pkg/sgerrors"
 	"github.com/supergiant/supergiant/pkg/util"
 	"github.com/supergiant/supergiant/pkg/workflows/steps"
-	"google.golang.org/api/dns/v1"
 )
 
-const StepName = "gce"
+const CreateInstanceStepName = "gce_create_instance"
 
-type Step struct {
+type CreateInstanceStep struct {
 	// Client creates the client for the provider.
 	getClient func(context.Context, string, string, string) (*compute.Service, error)
 }
 
-func New() (steps.Step, error) {
-	return &Step{
+func NewCreateInstanceStep() (steps.Step, error) {
+	return &CreateInstanceStep{
 		getClient: func(ctx context.Context, email, privateKey, tokenUri string) (*compute.Service, error) {
 			clientScopes := []string{
 				compute.ComputeScope,
@@ -53,11 +53,14 @@ func New() (steps.Step, error) {
 }
 
 func Init() {
-	s, _ := New()
-	steps.RegisterStep(StepName, s)
+	createInstance, _ := NewCreateInstanceStep()
+	deleteCluster, _ := NewDeleteClusterStep()
+
+	steps.RegisterStep(CreateInstanceStepName, createInstance)
+	steps.RegisterStep(DeleteClusterStepName, deleteCluster)
 }
 
-func (s *Step) Run(ctx context.Context, output io.Writer, config *steps.Config) error {
+func (s *CreateInstanceStep) Run(ctx context.Context, output io.Writer, config *steps.Config) error {
 	// fetch client.
 	client, err := s.getClient(ctx, config.GCEConfig.ClientEmail,
 		config.GCEConfig.PrivateKey, config.GCEConfig.TokenURI)
@@ -164,7 +167,7 @@ func (s *Step) Run(ctx context.Context, output io.Writer, config *steps.Config) 
 	}
 
 	resp, err := client.Instances.Get(config.GCEConfig.ProjectID,
-		config.GCEConfig.Zone, instance.Name).Do()
+		config.GCEConfig.Zone, name).Do()
 	if serr != nil {
 		return err
 	}
@@ -234,18 +237,18 @@ func (s *Step) Run(ctx context.Context, output io.Writer, config *steps.Config) 
 	return nil
 }
 
-func (s *Step) Name() string {
-	return StepName
+func (s *CreateInstanceStep) Name() string {
+	return CreateInstanceStepName
 }
 
-func (s *Step) Depends() []string {
+func (s *CreateInstanceStep) Depends() []string {
 	return nil
 }
 
-func (s *Step) Description() string {
+func (s *CreateInstanceStep) Description() string {
 	return "Google compute engine step for creating instance"
 }
 
-func (s *Step) Rollback(context.Context, io.Writer, *steps.Config) error {
+func (s *CreateInstanceStep) Rollback(context.Context, io.Writer, *steps.Config) error {
 	return nil
 }

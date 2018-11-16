@@ -118,6 +118,9 @@ func NewHandler(svc Interface, accountService accountGetter, provisioner nodePro
 				DeleteCluster: workflows.AWSDeleteCluster,
 				DeleteNode:    workflows.AWSDeleteNode,
 			},
+			clouds.GCE: {
+				DeleteCluster: workflows.GCEDeleteCluster,
+			},
 		},
 		repo:      repo,
 		getWriter: util.GetWriter,
@@ -336,11 +339,17 @@ func (h *Handler) deleteKube(w http.ResponseWriter, r *http.Request) {
 		ClusterID:        k.ID,
 		ClusterName:      k.Name,
 		CloudAccountName: k.AccountName,
+		Masters:          steps.NewMap(k.Masters),
+		Nodes:            steps.NewMap(k.Nodes),
 	}
 
 	//HACK TO PROVIDE REGION TO AWS DELETE CLUSTER
 	if acc.Provider == clouds.AWS {
 		config.AWSConfig.Region = k.Region
+	}
+
+	if acc.Provider == clouds.GCE {
+		config.GCEConfig.Zone = k.Zone
 	}
 
 	err = util.FillCloudAccountCredentials(r.Context(), acc, config)

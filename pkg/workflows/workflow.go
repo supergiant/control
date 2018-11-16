@@ -48,10 +48,11 @@ const (
 	AWSMaster                 = "AWSMaster"
 	AWSNode                   = "AWSNode"
 	AWSPreProvision           = "AWSPreProvisionCluster"
-	GCEMaster                 = "GCEMaster"
-	GCENode                   = "GCENode"
 	AWSDeleteCluster          = "AWSDeleteCluster"
 	AWSDeleteNode             = "AWSDeleteNode"
+	GCEMaster                 = "GCEMaster"
+	GCENode                   = "GCENode"
+	GCEDeleteCluster          = "GCEDeleteCluster"
 )
 
 type WorkflowSet struct {
@@ -157,8 +158,9 @@ func Init() {
 	}
 
 	gceNodeWorkflow := []steps.Step{
-		steps.GetStep(gce.StepName),
+		steps.GetStep(gce.CreateInstanceStepName),
 		steps.GetStep(ssh.StepName),
+		steps.GetStep(authorizedKeys.StepName),
 		steps.GetStep(downloadk8sbinary.StepName),
 		steps.GetStep(docker.StepName),
 		steps.GetStep(manifest.StepName),
@@ -170,8 +172,9 @@ func Init() {
 	}
 
 	gceMasterWorkflow := []steps.Step{
-		steps.GetStep(gce.StepName),
+		steps.GetStep(gce.CreateInstanceStepName),
 		steps.GetStep(ssh.StepName),
+		steps.GetStep(authorizedKeys.StepName),
 		steps.GetStep(downloadk8sbinary.StepName),
 		steps.GetStep(docker.StepName),
 		steps.GetStep(cni.StepName),
@@ -182,6 +185,10 @@ func Init() {
 		steps.GetStep(manifest.StepName),
 		steps.GetStep(kubelet.StepName),
 		steps.GetStep(poststart.StepName),
+	}
+
+	gceDeleteCluster := []steps.Step{
+		steps.GetStep(gce.DeleteClusterStepName),
 	}
 
 	m.Lock()
@@ -196,9 +203,10 @@ func Init() {
 	workflowMap[AWSNode] = awsNodeWorkflow
 	workflowMap[AWSPreProvision] = awsPreProvision
 	workflowMap[AWSDeleteCluster] = awsDeleteClusterWorkflow
+	workflowMap[AWSDeleteNode] = awsDeleteNodeWorkflow
 	workflowMap[GCENode] = gceNodeWorkflow
 	workflowMap[GCEMaster] = gceMasterWorkflow
-	workflowMap[AWSDeleteNode] = awsDeleteNodeWorkflow
+	workflowMap[GCEDeleteCluster] = gceDeleteCluster
 }
 
 func RegisterWorkFlow(workflowName string, workflow Workflow) {

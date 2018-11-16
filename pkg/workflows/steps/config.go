@@ -187,6 +187,12 @@ func (m *Map) MarshalJSON() ([]byte, error) {
 	return json.Marshal(m.internal)
 }
 
+func NewMap(m map[string]*node.Node) Map {
+	return Map{
+		internal: m,
+	}
+}
+
 type Config struct {
 	TaskID                 string
 	Provider               clouds.Name  `json:"provider"`
@@ -243,7 +249,7 @@ func NewConfig(clusterName, discoveryUrl, cloudAccountName string, profile profi
 		},
 		LogBootstrapPrivateKey: profile.LogBootstrapPrivateKey,
 		AWSConfig: AWSConfig{
-			Region: profile.Region,
+			Region:                 profile.Region,
 			AvailabilityZone:       profile.CloudSpecificSettings[clouds.AwsAZ],
 			VPCCIDR:                profile.CloudSpecificSettings[clouds.AwsVpcCIDR],
 			VPCID:                  profile.CloudSpecificSettings[clouds.AwsVpcID],
@@ -253,8 +259,7 @@ func NewConfig(clusterName, discoveryUrl, cloudAccountName string, profile profi
 			NodesSecurityGroupID:   profile.CloudSpecificSettings[clouds.AwsNodesSecgroupID],
 		},
 		GCEConfig: GCEConfig{
-			Zone:          profile.CloudSpecificSettings["gceZone"],
-			InstanceGroup: profile.CloudSpecificSettings["gceInstanceGroup"],
+			Zone: profile.Zone,
 		},
 		OSConfig:     OSConfig{},
 		PacketConfig: PacketConfig{},
