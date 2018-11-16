@@ -15,6 +15,9 @@ import (
 	"github.com/supergiant/supergiant/pkg/clouds"
 	"github.com/supergiant/supergiant/pkg/clouds/digitaloceansdk"
 	"github.com/supergiant/supergiant/pkg/model"
+	"github.com/supergiant/supergiant/pkg/workflows/steps"
+	"github.com/supergiant/supergiant/pkg/util"
+	"github.com/supergiant/supergiant/pkg/workflows/steps/gce"
 )
 
 var (
@@ -73,6 +76,8 @@ func GetRegionFinder(account *model.CloudAccount) (RegionFinder, error) {
 		}, nil
 	case clouds.AWS:
 		return NewAWSFinder(account)
+	case clouds.GCE:
+		return NewGCEFinder(account)
 	}
 	return nil, ErrUnsupportedProvider
 }
@@ -270,4 +275,84 @@ func NewAWSFinder(acc *model.CloudAccount) (*AWSFinder, error) {
 		accessKey: accessKey,
 		secret:    secret,
 	}, nil
+}
+
+type GCEFinder struct{
+	config steps.Config
+}
+
+func NewGCEFinder(acc *model.CloudAccount) (*GCEFinder, error) {
+	if acc.Provider != clouds.GCE {
+		return nil, ErrUnsupportedProvider
+	}
+
+	gceFinder := &GCEFinder{
+		config: steps.Config{},
+	}
+
+	err := util.FillCloudAccountCredentials(context.Background(),
+		acc, &gceFinder.config)
+
+	if err != nil {
+		return nil, errors.Wrap(err, "create gce finder")
+	}
+
+	return gceFinder, nil
+}
+
+func (g *GCEFinder) Find(ctx context.Context) (*RegionSizes, error) {
+	client, err := gce.GetClient(ctx, g.config.GCEConfig.ClientEmail,
+		g.config.GCEConfig.PrivateKey, g.config.GCEConfig.TokenURI)
+
+	regionsOutput, err := client.Regions.List(g.config.GCEConfig.ProjectID).Do()
+
+	if err != nil {
+		return nil, errors.Wrap(err, "gce find regions")
+	}
+
+	regions := make([]*Region, 0)
+	for _, r := range regionsOutput.Items {
+		regions = append(regions, &Region{
+			ID:   r.Name,
+			Name: r.Name,
+		})
+	}
+
+	rs := &RegionSizes{
+		Provider: clouds.AWS,
+		Regions:  regions,
+	}
+
+	return rs, nil
+}
+
+func (g *GCEFinder) GetAZ(ctx context.Context, region string) ([]string, error) {
+	client, err := gce.GetClient(ctx, g.config.GCEConfig.ClientEmail,
+		g.config.GCEConfig.PrivateKey, g.config.GCEConfig.TokenURI)
+
+	regionOutput, err := client.Regions.Get(g.config.GCEConfig.ProjectID, region).Do()
+
+	if err != nil {
+		return nil, errors.Wrap(err, "gce get availability zone")
+	}
+
+	return regionOutput.Zones, nil
+}
+
+func (g *GCEFinder) GetTypes(ctx context.Context, zone string) ([]string, error) {
+	client, err := gce.GetClient(ctx, g.config.GCEConfig.ClientEmail,
+		g.config.GCEConfig.PrivateKey, g.config.GCEConfig.TokenURI)
+
+	machineOutput, err := client.MachineTypes.List(g.config.GCEConfig.ProjectID, zone).Do()
+
+	if err != nil {
+		return nil, errors.Wrap(err, "gce get machine types")
+	}
+
+	machineTypes := make([]string, 0)
+	for _, machineType := range machineOutput.Items {
+		machineTypes = append(machineTypes, machineType.Name)
+	}
+
+	return machineTypes, nil
 }
