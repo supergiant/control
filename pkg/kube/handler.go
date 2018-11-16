@@ -1044,11 +1044,9 @@ func (h *Handler) proxyService(w http.ResponseWriter, r *http.Request) {
 }
 
 func (h *Handler) proxyServiceGet(w http.ResponseWriter, r *http.Request) {
-	vars := mux.Vars(r)
-	u, ok := vars["url"]
+	u := r.URL.Query().Get("url")
 
-	logrus.Fatal(u)
-	if !ok {
+	if len(u) == 0 {
 		http.Error(w, "url query param must not be empty", http.StatusBadRequest)
 		return
 	}
