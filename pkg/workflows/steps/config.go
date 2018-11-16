@@ -229,7 +229,7 @@ func NewConfig(clusterName, discoveryUrl, cloudAccountName string, profile profi
 		},
 		LogBootstrapPrivateKey: profile.LogBootstrapPrivateKey,
 		AWSConfig: AWSConfig{
-			Region: profile.Region,
+			Region:                 profile.Region,
 			AvailabilityZone:       profile.CloudSpecificSettings[clouds.AwsAZ],
 			VPCCIDR:                profile.CloudSpecificSettings[clouds.AwsVpcCIDR],
 			VPCID:                  profile.CloudSpecificSettings[clouds.AwsVpcID],

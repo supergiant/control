@@ -66,6 +66,7 @@ func TestProvisionCluster(t *testing.T) {
 				ProvisionNode:   "test_node",
 			},
 		},
+		NewRateLimiter(time.Nanosecond * 1),
 	}
 
 	workflows.Init()
@@ -136,6 +137,7 @@ func TestProvisionNodes(t *testing.T) {
 				ProvisionMaster: "test_master",
 				ProvisionNode:   "test_node"},
 		},
+		NewRateLimiter(time.Nanosecond * 1),
 	}
 
 	workflows.Init()
