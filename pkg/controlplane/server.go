@@ -71,10 +71,11 @@ func (srv *Server) Shutdown() {
 
 // Config is the server configuration
 type Config struct {
-	Port         int
-	Addr         string
-	EtcdUrl      string
-	TemplatesDir string
+	Port          int
+	Addr          string
+	EtcdUrl       string
+	TemplatesDir  string
+	SpawnInterval time.Duration
 
 	ReadTimeout  time.Duration
 	WriteTimeout time.Duration
@@ -174,6 +175,10 @@ func validate(cfg *Config) error {
 		return errors.New("port can't be negative")
 	}
 
+	if cfg.SpawnInterval == 0 {
+		return errors.New("spawn interval must not be 0")
+	}
+
 	return nil
 }
 
@@ -251,7 +256,9 @@ func configureApplication(cfg *Config) (*mux.Router, error) {
 	kubeService := kube.NewService(kube.DefaultStoragePrefix,
 		repository, helmService)
 
-	taskProvisioner := provisioner.NewProvisioner(repository, kubeService)
+	taskProvisioner := provisioner.NewProvisioner(repository,
+		kubeService,
+		cfg.SpawnInterval)
 	tokenGetter := provisioner.NewEtcdTokenGetter()
 	provisionHandler := provisioner.NewHandler(kubeService, accountService,
 		tokenGetter, taskProvisioner)
