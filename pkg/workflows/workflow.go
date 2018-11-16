@@ -53,6 +53,7 @@ const (
 	GCEMaster                 = "GCEMaster"
 	GCENode                   = "GCENode"
 	GCEDeleteCluster          = "GCEDeleteCluster"
+	GCEDeleteNode             = "GCEDeleteNode"
 )
 
 type WorkflowSet struct {
@@ -191,6 +192,10 @@ func Init() {
 		steps.GetStep(gce.DeleteClusterStepName),
 	}
 
+	gceDeleteNode := []steps.Step{
+		steps.GetStep(gce.DeleteNodeStepName),
+	}
+
 	m.Lock()
 	defer m.Unlock()
 
@@ -207,6 +212,7 @@ func Init() {
 	workflowMap[GCENode] = gceNodeWorkflow
 	workflowMap[GCEMaster] = gceMasterWorkflow
 	workflowMap[GCEDeleteCluster] = gceDeleteCluster
+	workflowMap[GCEDeleteNode] = gceDeleteNode
 }
 
 func RegisterWorkFlow(workflowName string, workflow Workflow) {

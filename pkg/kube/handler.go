@@ -120,6 +120,7 @@ func NewHandler(svc Interface, accountService accountGetter, provisioner nodePro
 			},
 			clouds.GCE: {
 				DeleteCluster: workflows.GCEDeleteCluster,
+				DeleteNode:    workflows.GCEDeleteNode,
 			},
 		},
 		repo:      repo,
@@ -343,7 +344,7 @@ func (h *Handler) deleteKube(w http.ResponseWriter, r *http.Request) {
 		Nodes:            steps.NewMap(k.Nodes),
 	}
 
-	//HACK TO PROVIDE REGION TO AWS DELETE CLUSTER
+	// TODO(stgleb): Move this hacks to separate methods
 	if acc.Provider == clouds.AWS {
 		config.AWSConfig.Region = k.Region
 	}
@@ -525,6 +526,7 @@ func (h *Handler) addNode(w http.ResponseWriter, r *http.Request) {
 	kubeProfile := profile.Profile{
 		Provider:        acc.Provider,
 		Region:          k.Region,
+		Zone:            k.Zone,
 		Arch:            k.Arch,
 		OperatingSystem: k.OperatingSystem,
 		UbuntuVersion:   k.OperatingSystemVersion,
@@ -606,6 +608,14 @@ func (h *Handler) deleteNode(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	logrus.Println("Masters")
+	for master := range k.Masters {
+		logrus.Println(master)
+	}
+	logrus.Println("Nodes")
+	for node := range k.Nodes {
+		logrus.Println(node)
+	}
 	// TODO(stgleb): check whether we will have quorum of master nodes if node is deleted.
 	if _, ok := k.Masters[nodeName]; ok {
 		http.Error(w, "delete master node not allowed", http.StatusMethodNotAllowed)
@@ -662,9 +672,13 @@ func (h *Handler) deleteNode(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	//HACK TO PROVIDE REGION TO AWS DELETE CLUSTER
+	// TODO(stgleb): Move this hacks to separate methods
 	if acc.Provider == clouds.AWS {
 		config.AWSConfig.Region = k.Region
+	}
+
+	if acc.Provider == clouds.GCE {
+		config.GCEConfig.Zone = k.Zone
 	}
 
 	writer, err := h.getWriter(t.ID)

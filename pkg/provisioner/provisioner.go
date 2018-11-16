@@ -448,6 +448,10 @@ func (t *TaskProvisioner) updateCloudSpecificData(ctx context.Context, config *s
 	cloudSpecificSettings := make(map[string]string)
 
 	// Save cloudSpecificData in kube
+	switch config.Provider {
+	case clouds.AWS:
+
+	}
 	if config.Provider == clouds.AWS {
 		// Copy data got from pre provision step to cloud specific settings of kube
 		cloudSpecificSettings[clouds.AwsAZ] = config.AWSConfig.AvailabilityZone
@@ -466,6 +470,10 @@ func (t *TaskProvisioner) updateCloudSpecificData(ctx context.Context, config *s
 	if err != nil {
 		logrus.Errorf("get kube caused %v", err)
 		return err
+	}
+
+	if config.Provider == clouds.GCE {
+		k.Zone = config.GCEConfig.Zone
 	}
 
 	k.CloudSpec = cloudSpecificSettings

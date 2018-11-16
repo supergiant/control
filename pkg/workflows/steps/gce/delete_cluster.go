@@ -4,13 +4,10 @@ import (
 	"context"
 	"io"
 
-	"golang.org/x/oauth2/jwt"
-	compute "google.golang.org/api/compute/v1"
-	"google.golang.org/api/dns/v1"
-
-	"github.com/sirupsen/logrus"
 	"github.com/pkg/errors"
+	"github.com/sirupsen/logrus"
 	"github.com/supergiant/supergiant/pkg/workflows/steps"
+	compute "google.golang.org/api/compute/v1"
 )
 
 const DeleteClusterStepName = "gce_delete_cluster"
@@ -22,33 +19,12 @@ type DeleteClusterStep struct {
 
 func NewDeleteClusterStep() (steps.Step, error) {
 	return &DeleteClusterStep{
-		getClient: func(ctx context.Context, email, privateKey, tokenUri string) (*compute.Service, error) {
-			clientScopes := []string{
-				compute.ComputeScope,
-				compute.CloudPlatformScope,
-				dns.NdevClouddnsReadwriteScope,
-				compute.DevstorageFullControlScope,
-			}
-
-			conf := jwt.Config{
-				Email:      email,
-				PrivateKey: []byte(privateKey),
-				Scopes:     clientScopes,
-				TokenURL:   tokenUri,
-			}
-
-			client := conf.Client(ctx)
-			computeService, err := compute.New(client)
-			if err != nil {
-				return nil, err
-			}
-			return computeService, nil
-		},
+		getClient: GetClient,
 	}, nil
 }
 
 func (s *DeleteClusterStep) Run(ctx context.Context, output io.Writer, config *steps.Config) error {
-	// fetch client.)
+	// fetch client.
 	client, err := s.getClient(ctx, config.GCEConfig.ClientEmail,
 		config.GCEConfig.PrivateKey, config.GCEConfig.TokenURI)
 	if err != nil {

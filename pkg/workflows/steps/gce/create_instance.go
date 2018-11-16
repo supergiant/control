@@ -6,15 +6,12 @@ import (
 	"io"
 	"time"
 
-	"golang.org/x/oauth2/jwt"
-	compute "google.golang.org/api/compute/v1"
-	"google.golang.org/api/dns/v1"
-
 	"github.com/supergiant/supergiant/pkg/clouds"
 	"github.com/supergiant/supergiant/pkg/node"
 	"github.com/supergiant/supergiant/pkg/sgerrors"
 	"github.com/supergiant/supergiant/pkg/util"
 	"github.com/supergiant/supergiant/pkg/workflows/steps"
+	compute "google.golang.org/api/compute/v1"
 )
 
 const CreateInstanceStepName = "gce_create_instance"
@@ -26,38 +23,8 @@ type CreateInstanceStep struct {
 
 func NewCreateInstanceStep() (steps.Step, error) {
 	return &CreateInstanceStep{
-		getClient: func(ctx context.Context, email, privateKey, tokenUri string) (*compute.Service, error) {
-			clientScopes := []string{
-				compute.ComputeScope,
-				compute.CloudPlatformScope,
-				dns.NdevClouddnsReadwriteScope,
-				compute.DevstorageFullControlScope,
-			}
-
-			conf := jwt.Config{
-				Email:      email,
-				PrivateKey: []byte(privateKey),
-				Scopes:     clientScopes,
-				TokenURL:   tokenUri,
-			}
-
-			client := conf.Client(ctx)
-
-			computeService, err := compute.New(client)
-			if err != nil {
-				return nil, err
-			}
-			return computeService, nil
-		},
+		getClient: GetClient,
 	}, nil
-}
-
-func Init() {
-	createInstance, _ := NewCreateInstanceStep()
-	deleteCluster, _ := NewDeleteClusterStep()
-
-	steps.RegisterStep(CreateInstanceStepName, createInstance)
-	steps.RegisterStep(DeleteClusterStepName, deleteCluster)
 }
 
 func (s *CreateInstanceStep) Run(ctx context.Context, output io.Writer, config *steps.Config) error {
