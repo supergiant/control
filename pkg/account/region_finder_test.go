@@ -12,6 +12,7 @@ import (
 	"github.com/supergiant/supergiant/pkg/clouds"
 	"github.com/supergiant/supergiant/pkg/model"
 	"github.com/supergiant/supergiant/pkg/sgerrors"
+	"github.com/supergiant/supergiant/pkg/workflows/steps"
 )
 
 type mockSizeService struct {
@@ -77,7 +78,7 @@ func TestGetRegionFinder(t *testing.T) {
 	}
 
 	for _, testCase := range testCases {
-		rf, err := GetRegionsGetter(testCase.account)
+		rf, err := GetRegionsGetter(testCase.account, &steps.Config{})
 
 		if err != testCase.err {
 			t.Errorf("expected error %v actual %v", testCase.err, err)
@@ -141,7 +142,7 @@ func TestFind(t *testing.T) {
 			},
 		}
 
-		regionSizes, err := rf.Find(context.Background())
+		regionSizes, err := rf.GetRegions(context.Background())
 
 		if err != testCase.expectedErr {
 			t.Errorf("expected error %v actual %v", testCase.expectedErr, err)
