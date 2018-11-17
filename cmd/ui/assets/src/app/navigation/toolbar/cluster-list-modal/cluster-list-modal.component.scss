@@ -11,7 +11,7 @@
 
 .deleting {
   animation: cluster-list-deleting;
-  user-select: none;
+  pointer-events: none;
 }
 
 @keyframes cluster-list-deleting {
