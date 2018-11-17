@@ -39,7 +39,7 @@ export class ClusterComponent implements OnInit, OnDestroy {
 
   // machine list vars
   machines: any;
-  machineListColumns = ["state", "role", "size", "name", "cpu", "ram", "region", "publicIp"];
+  machineListColumns = ["state", "role", "size", "name", "cpu", "ram", "region", "publicIp", "delete"];
 
   // task list vars
   tasks: any;
@@ -47,7 +47,7 @@ export class ClusterComponent implements OnInit, OnDestroy {
   expandedTaskIds = new Set();
 
   releases: any;
-  releaseListColumns = ["status", "name", "chart", "chartVersion", "version", "lastDeployed"];
+  releaseListColumns = ["status", "name", "chart", "chartVersion", "version", "lastDeployed", "delete"];
 
   masterTasksStatus = "executing";
   nodeTasksStatus = "queued";
