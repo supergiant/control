@@ -43,7 +43,7 @@ const appRoutes: Routes = [
     ]
   },
   {
-    path: 'apps',
+    path: 'catalog',
     loadChildren: 'app/features/app-store/app-store.module#AppStoreModule'
   },
   {
