@@ -241,12 +241,16 @@
           </mat-header-cell>
           <mat-cell *matCellDef="let machine">
           {{ machine.publicIp }}
-            <div></div>
-            <button (click)="removeNode(machine.name, $event)"
-                    mat-button>
-              <i class="fa fa-trash"
-                 aria-hidden="true"></i>
-            </button>
+
+          </mat-cell>
+        </ng-container>
+
+        <ng-container matColumnDef="delete">
+          <mat-header-cell class="small-cell" mat-sort-header
+                           *matHeaderCellDef>
+          </mat-header-cell>
+          <mat-cell class="small-cell" *matCellDef="let machine">
+            <div class="delete-icon" (click)="removeNode(machine.name, $event)"></div>
           </mat-cell>
         </ng-container>
 
@@ -310,12 +314,15 @@
             </mat-header-cell>
             <mat-cell *matCellDef="let release">
               {{ release.lastDeployed }}
-              <div></div>
-              <button (click)="deleteRelease(release.name, $event)"
-                      mat-button>
-                <i class="fa fa-trash"
-                   aria-hidden="true"></i>
-              </button>
+            </mat-cell>
+          </ng-container>
+
+          <ng-container matColumnDef="delete">
+            <mat-header-cell class="small-cell" mat-sort-header
+                             *matHeaderCellDef>
+            </mat-header-cell>
+            <mat-cell class="small-cell" *matCellDef="let release">
+              <div class="delete-icon" (click)="deleteRelease(release.name, $event)"></div>
             </mat-cell>
           </ng-container>
 
