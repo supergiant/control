@@ -3,7 +3,7 @@ mat-card-actions {
   justify-content: space-between;
 }
 
-.charts-wrapepr {
+.charts-wrapper {
   display: flex;
   flex-wrap: wrap;
   margin-bottom: 20px;
@@ -12,6 +12,21 @@ mat-card-actions {
     margin-right: 30px;
     margin-bottom: 30px;
     width: 300px;
+
+    .mat-card-actions {
+      display: flex;
+      align-items: center;
+
+      .app-logo-wrapper {
+        align-items: center;
+        background-color: #fff;
+        border-radius: 50%;
+        display: flex;
+        justify-content: center;
+        height: 64px;
+        width: 64px;
+      }
+    }
   }
 }
 
