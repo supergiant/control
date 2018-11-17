@@ -6,12 +6,13 @@ import (
 	"io"
 	"time"
 
+	compute "google.golang.org/api/compute/v1"
+
 	"github.com/supergiant/supergiant/pkg/clouds"
 	"github.com/supergiant/supergiant/pkg/node"
 	"github.com/supergiant/supergiant/pkg/sgerrors"
 	"github.com/supergiant/supergiant/pkg/util"
 	"github.com/supergiant/supergiant/pkg/workflows/steps"
-	compute "google.golang.org/api/compute/v1"
 )
 
 const CreateInstanceStepName = "gce_create_instance"
@@ -44,7 +45,7 @@ func (s *CreateInstanceStep) Run(ctx context.Context, output io.Writer, config *
 
 	// get master machine type.
 	instType, err := client.MachineTypes.Get(config.GCEConfig.ProjectID,
-		config.GCEConfig.Zone, config.GCEConfig.Size).Do()
+		config.GCEConfig.AvailabilityZone, config.GCEConfig.Size).Do()
 	if err != nil {
 		return err
 	}
@@ -126,7 +127,7 @@ func (s *CreateInstanceStep) Run(ctx context.Context, output io.Writer, config *
 
 	// create the instance.
 	_, serr := client.Instances.Insert(config.GCEConfig.ProjectID,
-		config.GCEConfig.Zone,
+		config.GCEConfig.AvailabilityZone,
 		instance).Do()
 
 	if serr != nil {
@@ -134,14 +135,14 @@ func (s *CreateInstanceStep) Run(ctx context.Context, output io.Writer, config *
 	}
 
 	resp, err := client.Instances.Get(config.GCEConfig.ProjectID,
-		config.GCEConfig.Zone, name).Do()
+		config.GCEConfig.AvailabilityZone, name).Do()
 	if serr != nil {
 		return err
 	}
 
 	metadata.Fingerprint = resp.Metadata.Fingerprint
 	_, err = client.Instances.SetMetadata(config.GCEConfig.ProjectID,
-		config.GCEConfig.Zone, name, metadata).Do()
+		config.GCEConfig.AvailabilityZone, name, metadata).Do()
 
 	if err != nil {
 		return err
@@ -161,7 +162,7 @@ func (s *CreateInstanceStep) Run(ctx context.Context, output io.Writer, config *
 		Role:      nodeRole,
 		Provider:  clouds.GCE,
 		Size:      config.GCEConfig.Size,
-		Region:    config.GCEConfig.Zone,
+		Region:    config.GCEConfig.AvailabilityZone,
 	}
 
 	// Update node state in cluster
@@ -174,7 +175,7 @@ func (s *CreateInstanceStep) Run(ctx context.Context, output io.Writer, config *
 		select {
 		case <-ticker.C:
 			resp, serr := client.Instances.Get(config.GCEConfig.ProjectID,
-				config.GCEConfig.Zone, instance.Name).Do()
+				config.GCEConfig.AvailabilityZone, instance.Name).Do()
 			if serr != nil {
 				continue
 			}

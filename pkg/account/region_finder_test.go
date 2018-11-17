@@ -77,7 +77,7 @@ func TestGetRegionFinder(t *testing.T) {
 	}
 
 	for _, testCase := range testCases {
-		rf, err := GetRegionFinder(testCase.account)
+		rf, err := GetRegionsGetter(testCase.account)
 
 		if err != testCase.err {
 			t.Errorf("expected error %v actual %v", testCase.err, err)

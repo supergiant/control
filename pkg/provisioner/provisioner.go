@@ -490,7 +490,7 @@ func (t *TaskProvisioner) updateCloudSpecificData(ctx context.Context, config *s
 	}
 
 	if config.Provider == clouds.GCE {
-		k.Zone = config.GCEConfig.Zone
+		k.Zone = config.GCEConfig.AvailabilityZone
 	}
 
 	k.CloudSpec = cloudSpecificSettings

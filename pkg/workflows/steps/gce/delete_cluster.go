@@ -35,7 +35,7 @@ func (s *DeleteClusterStep) Run(ctx context.Context, output io.Writer, config *s
 		logrus.Debugf("Delete node %s", master.Name)
 
 		_, serr := client.Instances.Delete(config.GCEConfig.ProjectID,
-			config.GCEConfig.Zone,
+			config.GCEConfig.AvailabilityZone,
 			master.Name).Do()
 
 		if serr != nil {
@@ -46,7 +46,7 @@ func (s *DeleteClusterStep) Run(ctx context.Context, output io.Writer, config *s
 	for _, node := range config.GetNodes() {
 		logrus.Debugf("Delete node %s", node.Name)
 		_, serr := client.Instances.Delete(config.GCEConfig.ProjectID,
-			config.GCEConfig.Zone,
+			config.GCEConfig.AvailabilityZone,
 			node.Name).Do()
 
 		if serr != nil {

@@ -352,7 +352,7 @@ func (h *Handler) deleteKube(w http.ResponseWriter, r *http.Request) {
 	}
 
 	if acc.Provider == clouds.GCE {
-		config.GCEConfig.Zone = k.Zone
+		config.GCEConfig.AvailabilityZone = k.Zone
 	}
 
 	err = util.FillCloudAccountCredentials(r.Context(), acc, config)
@@ -680,7 +680,7 @@ func (h *Handler) deleteNode(w http.ResponseWriter, r *http.Request) {
 	}
 
 	if acc.Provider == clouds.GCE {
-		config.GCEConfig.Zone = k.Zone
+		config.GCEConfig.AvailabilityZone = k.Zone
 	}
 
 	writer, err := h.getWriter(t.ID)

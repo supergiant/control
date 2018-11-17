@@ -33,7 +33,7 @@ func (s *DeleteNodeStep) Run(ctx context.Context, output io.Writer, config *step
 	}
 
 	_, serr := client.Instances.Delete(config.GCEConfig.ProjectID,
-		config.GCEConfig.Zone,
+		config.GCEConfig.AvailabilityZone,
 		config.Node.Name).Do()
 
 	if serr != nil {

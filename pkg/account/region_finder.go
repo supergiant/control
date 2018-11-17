@@ -11,13 +11,15 @@ import (
 	"github.com/aws/aws-sdk-go/service/ec2"
 	"github.com/digitalocean/godo"
 	"github.com/pkg/errors"
+	compute "google.golang.org/api/compute/v1"
 
 	"github.com/supergiant/supergiant/pkg/clouds"
 	"github.com/supergiant/supergiant/pkg/clouds/digitaloceansdk"
 	"github.com/supergiant/supergiant/pkg/model"
-	"github.com/supergiant/supergiant/pkg/workflows/steps"
 	"github.com/supergiant/supergiant/pkg/util"
+	"github.com/supergiant/supergiant/pkg/workflows/steps"
 	"github.com/supergiant/supergiant/pkg/workflows/steps/gce"
+	"strings"
 )
 
 var (
@@ -48,36 +50,67 @@ type RegionSizes struct {
 	Sizes    map[string]interface{} `json:"sizes"`
 }
 
-//RegionFinder is used to find a list of available regions(availability zones, etc) with available vm types
-//in a given cloud provider using given account credentials
-type RegionFinder interface {
-	//Find returns a slice of cloud specific regions/az's
-	//if not found would return an empty slice
-	Find(context.Context) (*RegionSizes, error)
+type ZonesGetter interface {
+	GetZones(context.Context, steps.Config) ([]string, error)
 }
 
-//GetRegionFinder returns finder attached to corresponding account as it has all credentials for a cloud provider
-func GetRegionFinder(account *model.CloudAccount) (RegionFinder, error) {
+type TypesGetter interface {
+	GetTypes(context.Context, steps.Config) ([]string, error)
+}
+
+//RegionsGetter is used to find a list of available regions(availability zones, etc) with available vm types
+//in a given cloud provider using given account credentials
+type RegionsGetter interface {
+	//GetRegions returns a slice of cloud specific regions/az's
+	//if not found would return an empty slice
+	GetRegions(context.Context) (*RegionSizes, error)
+}
+
+//GetRegionsGetter returns finder attached to corresponding account as it has all credentials for a cloud provider
+func GetRegionsGetter(account *model.CloudAccount, config *steps.Config) (RegionsGetter, error) {
 	if account == nil {
 		return nil, ErrNilAccount
 	}
 
 	switch account.Provider {
 	case clouds.DigitalOcean:
-		sdk, err := digitaloceansdk.NewFromAccount(account)
-		if err != nil {
-			return nil, err
-		}
-		return &digitalOceanRegionFinder{
-			getServices: func() (godo.SizesService, godo.RegionsService) {
-				client := sdk.GetClient()
-				return client.Sizes, client.Regions
-			},
-		}, nil
+		return NewDOFinder(account)
 	case clouds.AWS:
-		return NewAWSFinder(account)
+		return NewAWSFinder(account, config)
 	case clouds.GCE:
-		return NewGCEFinder(account)
+		return NewGCEFinder(account, config)
+	}
+	return nil, ErrUnsupportedProvider
+}
+
+//GetRegionsGetter returns finder attached to corresponding
+// account as it has all credentials for a cloud provider
+func GetZonesGetter(account *model.CloudAccount, config *steps.Config) (ZonesGetter, error) {
+	if account == nil {
+		return nil, ErrNilAccount
+	}
+
+	switch account.Provider {
+	case clouds.AWS:
+		return NewAWSFinder(account, config)
+	case clouds.GCE:
+		return NewGCEFinder(account, config)
+	}
+	return nil, ErrUnsupportedProvider
+}
+
+//GetRegionsGetter returns finder attached to corresponding
+// account as it has all credentials for a cloud provider
+func GetTypesGetter(account *model.CloudAccount, config *steps.Config) (TypesGetter, error) {
+	if account == nil {
+		return nil, ErrNilAccount
+	}
+
+	switch account.Provider {
+	case clouds.AWS:
+		return NewAWSFinder(account, config)
+	case clouds.GCE:
+		return NewGCEFinder(account, config)
 	}
 	return nil, ErrUnsupportedProvider
 }
@@ -87,7 +120,20 @@ type digitalOceanRegionFinder struct {
 	getServices func() (godo.SizesService, godo.RegionsService)
 }
 
-func (rf *digitalOceanRegionFinder) Find(ctx context.Context) (*RegionSizes, error) {
+func NewDOFinder(acc *model.CloudAccount) (*digitalOceanRegionFinder, error) {
+	sdk, err := digitaloceansdk.NewFromAccount(acc)
+	if err != nil {
+		return nil, err
+	}
+	return &digitalOceanRegionFinder{
+		getServices: func() (godo.SizesService, godo.RegionsService) {
+			client := sdk.GetClient()
+			return client.Sizes, client.Regions
+		},
+	}, nil
+}
+
+func (rf *digitalOceanRegionFinder) GetRegions(ctx context.Context) (*RegionSizes, error) {
 	sizeService, regionService := rf.getServices()
 
 	var wg sync.WaitGroup
@@ -155,15 +201,26 @@ func convertRegion(r godo.Region) *Region {
 }
 
 type AWSFinder struct {
-	accessKey string
-	secret    string
+	client *ec2.EC2
 }
 
-func (af *AWSFinder) Find(ctx context.Context) (*RegionSizes, error) {
+func NewAWSFinder(acc *model.CloudAccount, config *steps.Config) (*AWSFinder, error) {
+	if acc.Provider != clouds.AWS {
+		return nil, ErrUnsupportedProvider
+	}
+
+	err := util.FillCloudAccountCredentials(context.Background(), acc, config)
+
+	if err != nil {
+		return nil, errors.Wrap(err, "aws new finder")
+	}
+
 	sess, err := session.NewSessionWithOptions(session.Options{
 		Config: aws.Config{
-			Region:      aws.String("us-west-1"),
-			Credentials: credentials.NewStaticCredentials(af.accessKey, af.secret, ""),
+			Region: aws.String("us-west-1"),
+			Credentials: credentials.NewStaticCredentials(
+				config.AWSConfig.KeyID, config.AWSConfig.Secret,
+				""),
 		},
 	})
 
@@ -171,9 +228,15 @@ func (af *AWSFinder) Find(ctx context.Context) (*RegionSizes, error) {
 		return nil, errors.Wrap(err, "aws authentication: ")
 	}
 
-	EC2 := ec2.New(sess)
+	client := ec2.New(sess)
 
-	regionsOut, err := EC2.DescribeRegionsWithContext(ctx, &ec2.DescribeRegionsInput{})
+	return &AWSFinder{
+		client: client,
+	}, nil
+}
+
+func (af *AWSFinder) GetRegions(ctx context.Context) (*RegionSizes, error) {
+	regionsOut, err := af.client.DescribeRegionsWithContext(ctx, &ec2.DescribeRegionsInput{})
 
 	if err != nil {
 		return nil, errors.Wrap(err, "failed to read aws regions")
@@ -195,24 +258,13 @@ func (af *AWSFinder) Find(ctx context.Context) (*RegionSizes, error) {
 	return rs, nil
 }
 
-func (af *AWSFinder) GetAZ(ctx context.Context, region string) ([]string, error) {
-	sess, err := session.NewSessionWithOptions(session.Options{
-		Config: aws.Config{
-			Region:      aws.String(region),
-			Credentials: credentials.NewStaticCredentials(af.accessKey, af.secret, ""),
-		},
-	})
-	if err != nil {
-		return nil, errors.Wrap(err, "aws authentication: ")
-	}
-
-	EC2 := ec2.New(sess)
-	azsOut, err := EC2.DescribeAvailabilityZonesWithContext(ctx, &ec2.DescribeAvailabilityZonesInput{
+func (af *AWSFinder) GetZones(ctx context.Context, config steps.Config) ([]string, error) {
+	azsOut, err := af.client.DescribeAvailabilityZonesWithContext(ctx, &ec2.DescribeAvailabilityZonesInput{
 		Filters: []*ec2.Filter{
 			{
 				Name: aws.String("region-name"),
 				Values: []*string{
-					aws.String(region),
+					aws.String(config.AWSConfig.Region),
 				},
 			},
 		},
@@ -229,19 +281,8 @@ func (af *AWSFinder) GetAZ(ctx context.Context, region string) ([]string, error)
 	return zones, nil
 }
 
-func (af *AWSFinder) GetTypes(ctx context.Context, region, az string) ([]string, error) {
-	sess, err := session.NewSessionWithOptions(session.Options{
-		Config: aws.Config{
-			Region:      aws.String(region),
-			Credentials: credentials.NewStaticCredentials(af.accessKey, af.secret, ""),
-		},
-	})
-	if err != nil {
-		return nil, errors.Wrap(err, "aws authentication: ")
-	}
-	EC2 := ec2.New(sess)
-
-	out, err := EC2.DescribeReservedInstancesOfferingsWithContext(ctx, &ec2.DescribeReservedInstancesOfferingsInput{})
+func (af *AWSFinder) GetTypes(ctx context.Context, config steps.Config) ([]string, error) {
+	out, err := af.client.DescribeReservedInstancesOfferingsWithContext(ctx, &ec2.DescribeReservedInstancesOfferingsInput{})
 
 	if err != nil {
 		return nil, errors.Wrap(err, "failed to read aws types")
@@ -255,56 +296,39 @@ func (af *AWSFinder) GetTypes(ctx context.Context, region, az string) ([]string,
 	return instances, nil
 }
 
-func NewAWSFinder(acc *model.CloudAccount) (*AWSFinder, error) {
-	if acc.Provider != clouds.AWS {
-		return nil, ErrUnsupportedProvider
-	}
-
-	accessKey := acc.Credentials[clouds.AWSAccessKeyID]
-	secret := acc.Credentials[clouds.AWSSecretKey]
-
-	if accessKey == "" {
-		return nil, errors.New("no access key id provided for AWS account")
-	}
-
-	if secret == "" {
-		return nil, errors.New("no secret key provided for AWS account")
-	}
-
-	return &AWSFinder{
-		accessKey: accessKey,
-		secret:    secret,
-	}, nil
-}
-
-type GCEFinder struct{
+type GCEResourceFinder struct {
+	client *compute.Service
 	config steps.Config
 }
 
-func NewGCEFinder(acc *model.CloudAccount) (*GCEFinder, error) {
+func NewGCEFinder(acc *model.CloudAccount, config *steps.Config) (*GCEResourceFinder, error) {
 	if acc.Provider != clouds.GCE {
 		return nil, ErrUnsupportedProvider
 	}
 
-	gceFinder := &GCEFinder{
-		config: steps.Config{},
-	}
-
 	err := util.FillCloudAccountCredentials(context.Background(),
-		acc, &gceFinder.config)
+		acc, config)
 
 	if err != nil {
 		return nil, errors.Wrap(err, "create gce finder")
 	}
 
-	return gceFinder, nil
+	client, err := gce.GetClient(context.Background(),
+		config.GCEConfig.ClientEmail, config.GCEConfig.PrivateKey,
+		config.GCEConfig.TokenURI)
+
+	if err != nil {
+		return nil, err
+	}
+
+	return &GCEResourceFinder{
+		client: client,
+		config: *config,
+	}, nil
 }
 
-func (g *GCEFinder) Find(ctx context.Context) (*RegionSizes, error) {
-	client, err := gce.GetClient(ctx, g.config.GCEConfig.ClientEmail,
-		g.config.GCEConfig.PrivateKey, g.config.GCEConfig.TokenURI)
-
-	regionsOutput, err := client.Regions.List(g.config.GCEConfig.ProjectID).Do()
+func (g *GCEResourceFinder) GetRegions(ctx context.Context) (*RegionSizes, error) {
+	regionsOutput, err := g.client.Regions.List(g.config.GCEConfig.ProjectID).Do()
 
 	if err != nil {
 		return nil, errors.Wrap(err, "gce find regions")
@@ -319,31 +343,33 @@ func (g *GCEFinder) Find(ctx context.Context) (*RegionSizes, error) {
 	}
 
 	rs := &RegionSizes{
-		Provider: clouds.AWS,
+		Provider: clouds.GCE,
 		Regions:  regions,
 	}
 
 	return rs, nil
 }
 
-func (g *GCEFinder) GetAZ(ctx context.Context, region string) ([]string, error) {
-	client, err := gce.GetClient(ctx, g.config.GCEConfig.ClientEmail,
-		g.config.GCEConfig.PrivateKey, g.config.GCEConfig.TokenURI)
-
-	regionOutput, err := client.Regions.Get(g.config.GCEConfig.ProjectID, region).Do()
+func (g *GCEResourceFinder) GetZones(ctx context.Context, config steps.Config) ([]string, error) {
+	regionOutput, err := g.client.Regions.Get(config.GCEConfig.ProjectID,
+		config.GCEConfig.Region).Do()
 
 	if err != nil {
 		return nil, errors.Wrap(err, "gce get availability zone")
 	}
 
-	return regionOutput.Zones, nil
+	zones := make([]string, 0, len(regionOutput.Zones))
+
+	for _, zoneLink := range regionOutput.Zones {
+		splitted := strings.Split(zoneLink, "/")
+		zones = append(zones, splitted[len(splitted)-1])
+	}
+	return zones, nil
 }
 
-func (g *GCEFinder) GetTypes(ctx context.Context, zone string) ([]string, error) {
-	client, err := gce.GetClient(ctx, g.config.GCEConfig.ClientEmail,
-		g.config.GCEConfig.PrivateKey, g.config.GCEConfig.TokenURI)
-
-	machineOutput, err := client.MachineTypes.List(g.config.GCEConfig.ProjectID, zone).Do()
+func (g *GCEResourceFinder) GetTypes(ctx context.Context, config steps.Config) ([]string, error) {
+	machineOutput, err := g.client.MachineTypes.List(
+		config.GCEConfig.ProjectID, config.GCEConfig.AvailabilityZone).Do()
 
 	if err != nil {
 		return nil, errors.Wrap(err, "gce get machine types")
