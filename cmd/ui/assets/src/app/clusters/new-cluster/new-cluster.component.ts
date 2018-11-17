@@ -90,6 +90,7 @@ export class NewClusterComponent implements OnInit, OnDestroy {
   }
 
   createCluster() {
+    console.log("entry: ", this.provisioning);
     if (!this.provisioning) {
       // compile frontend new-cluster model into api format
       const newClusterData: any = {};
