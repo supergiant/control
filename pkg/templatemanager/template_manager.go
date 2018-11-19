@@ -5,9 +5,10 @@ import (
 	"os"
 	"path"
 	"strings"
-	"text/template"
-	"github.com/supergiant/supergiant/pkg/sgerrors"
 	"sync"
+	"text/template"
+
+	"github.com/supergiant/supergiant/pkg/sgerrors"
 )
 
 var (
