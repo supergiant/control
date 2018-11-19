@@ -66,8 +66,8 @@ type RegionsGetter interface {
 	GetRegions(context.Context) (*RegionSizes, error)
 }
 
-//GetRegionsGetter returns finder attached to corresponding account as it has all credentials for a cloud provider
-func GetRegionsGetter(account *model.CloudAccount, config *steps.Config) (RegionsGetter, error) {
+//NewRegionsGetter returns finder attached to corresponding account as it has all credentials for a cloud provider
+func NewRegionsGetter(account *model.CloudAccount, config *steps.Config) (RegionsGetter, error) {
 	if account == nil {
 		return nil, ErrNilAccount
 	}
@@ -83,9 +83,9 @@ func GetRegionsGetter(account *model.CloudAccount, config *steps.Config) (Region
 	return nil, ErrUnsupportedProvider
 }
 
-//GetRegionsGetter returns finder attached to corresponding
+//NewZonesGetter returns finder attached to corresponding
 // account as it has all credentials for a cloud provider
-func GetZonesGetter(account *model.CloudAccount, config *steps.Config) (ZonesGetter, error) {
+func NewZonesGetter(account *model.CloudAccount, config *steps.Config) (ZonesGetter, error) {
 	if account == nil {
 		return nil, ErrNilAccount
 	}
@@ -99,9 +99,9 @@ func GetZonesGetter(account *model.CloudAccount, config *steps.Config) (ZonesGet
 	return nil, ErrUnsupportedProvider
 }
 
-//GetRegionsGetter returns finder attached to corresponding
+//NewTypesGetter returns finder attached to corresponding
 // account as it has all credentials for a cloud provider
-func GetTypesGetter(account *model.CloudAccount, config *steps.Config) (TypesGetter, error) {
+func NewTypesGetter(account *model.CloudAccount, config *steps.Config) (TypesGetter, error) {
 	if account == nil {
 		return nil, ErrNilAccount
 	}

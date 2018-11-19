@@ -176,7 +176,7 @@ func (h *Handler) GetRegions(w http.ResponseWriter, r *http.Request) {
 	}
 
 	config := &steps.Config{}
-	getter, err := GetRegionsGetter(acc, config)
+	getter, err := NewRegionsGetter(acc, config)
 	if err != nil {
 		logrus.Errorf("clouds: get regions %v", err)
 		message.SendUnknownError(w, err)
@@ -224,7 +224,7 @@ func (h *Handler) GetAZs(w http.ResponseWriter, r *http.Request) {
 
 	acc.Credentials["region"] = region
 	config := &steps.Config{}
-	getter, err := GetZonesGetter(acc, config)
+	getter, err := NewZonesGetter(acc, config)
 	if err != nil {
 		logrus.Errorf("clouds: get aws availability zones %v", err)
 		message.SendUnknownError(w, err)
@@ -280,7 +280,7 @@ func (h *Handler) GetTypes(w http.ResponseWriter, r *http.Request) {
 	acc.Credentials["region"] = region
 
 	config := &steps.Config{}
-	getter, err := GetTypesGetter(acc, config)
+	getter, err := NewTypesGetter(acc, config)
 	if err != nil {
 		logrus.Errorf("clouds: get aws types %v", err)
 		message.SendUnknownError(w, err)
