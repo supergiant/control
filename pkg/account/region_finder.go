@@ -77,7 +77,7 @@ func NewRegionsGetter(account *model.CloudAccount, config *steps.Config) (Region
 		return NewDOFinder(account)
 	case clouds.AWS:
 		// We need to provide region to AWS even if our
-		// request does not specify regon
+		// request does not specify region
 		config.AWSConfig.Region = "us-west-1"
 		return NewAWSFinder(account, config)
 	case clouds.GCE:
