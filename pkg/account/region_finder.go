@@ -3,6 +3,7 @@ package account
 import (
 	"context"
 	"strconv"
+	"strings"
 	"sync"
 
 	"github.com/aws/aws-sdk-go/aws"
@@ -19,7 +20,6 @@ import (
 	"github.com/supergiant/supergiant/pkg/util"
 	"github.com/supergiant/supergiant/pkg/workflows/steps"
 	"github.com/supergiant/supergiant/pkg/workflows/steps/gce"
-	"strings"
 )
 
 var (
