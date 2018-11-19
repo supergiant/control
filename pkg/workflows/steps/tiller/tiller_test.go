@@ -43,7 +43,7 @@ func TestInstallTiller(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	tpl := templatemanager.GetTemplate(StepName)
+	tpl, _ := templatemanager.GetTemplate(StepName)
 
 	if tpl == nil {
 		t.Fatal("template not found")
@@ -149,9 +149,27 @@ func TestNew(t *testing.T) {
 }
 
 func TestInit(t *testing.T) {
+	templatemanager.SetTemplate(StepName, &template.Template{})
 	Init()
+	templatemanager.DeleteTemplate(StepName)
 
 	s := steps.GetStep(StepName)
+
+	if s == nil {
+		t.Error("Step not found")
+	}
+}
+
+func TestInitPanic(t *testing.T) {
+	defer func(){
+		if r := recover(); r == nil {
+			t.Errorf("recover output must not be nil")
+		}
+	}()
+
+	Init()
+
+	s := steps.GetStep("not_found.sh.tpl")
 
 	if s == nil {
 		t.Error("Step not found")

@@ -11,6 +11,7 @@ import (
 	"github.com/supergiant/supergiant/pkg/workflows/steps"
 	"github.com/supergiant/supergiant/pkg/workflows/steps/etcd"
 	"github.com/supergiant/supergiant/pkg/workflows/steps/network"
+	"fmt"
 )
 
 const StepName = "flannel"
@@ -20,7 +21,13 @@ type Step struct {
 }
 
 func Init() {
-	steps.RegisterStep(StepName, New(tm.GetTemplate(StepName)))
+	tpl, err := tm.GetTemplate(StepName)
+
+	if err != nil {
+		panic(fmt.Sprintf("template %s not found", StepName))
+	}
+
+	steps.RegisterStep(StepName, New(tpl))
 }
 
 func New(tpl *template.Template) *Step {
