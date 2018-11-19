@@ -23,6 +23,7 @@ type Kube struct {
 	RBACEnabled  bool      `json:"rbacEnabled"`
 	AccountName  string    `json:"accountName"`
 	Region       string    `json:"region"`
+	Zone         string    `json:"zone" valid:"-"`
 	APIPort      string    `json:"apiPort"`
 	Auth         Auth      `json:"auth"`
 	SshUser      string    `json:"sshUser"`

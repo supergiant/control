@@ -44,7 +44,18 @@ type DOConfig struct {
 
 // TODO(stgleb): Fill struct with fields when provisioning on other providers is done
 
-type GCEConfig struct{}
+type GCEConfig struct {
+	PrivateKey       string `json:"privateKey"`
+	ImageFamily      string `json:"imageFamily"`
+	ProjectID        string `json:"projectId"`
+	Region           string `json:"region"`
+	AvailabilityZone string `json:"availabilityZone"`
+	Size             string `json:"size"`
+	InstanceGroup    string `json:"instanceGroup"`
+	ClientEmail      string `json:"clientEmail"`
+	TokenURI         string `json:"tokenURI"`
+	AuthURI          string `json:"authURI"`
+}
 
 type PacketConfig struct{}
 
@@ -174,6 +185,12 @@ func (m *Map) MarshalJSON() ([]byte, error) {
 	return json.Marshal(m.internal)
 }
 
+func NewMap(m map[string]*node.Node) Map {
+	return Map{
+		internal: m,
+	}
+}
+
 type Config struct {
 	TaskID                 string
 	Provider               clouds.Name  `json:"provider"`
@@ -239,7 +256,9 @@ func NewConfig(clusterName, discoveryUrl, cloudAccountName string, profile profi
 			MastersSecurityGroupID: profile.CloudSpecificSettings[clouds.AwsMastersSecGroupID],
 			NodesSecurityGroupID:   profile.CloudSpecificSettings[clouds.AwsNodesSecgroupID],
 		},
-		GCEConfig:    GCEConfig{},
+		GCEConfig: GCEConfig{
+			AvailabilityZone: profile.Zone,
+		},
 		OSConfig:     OSConfig{},
 		PacketConfig: PacketConfig{},
 

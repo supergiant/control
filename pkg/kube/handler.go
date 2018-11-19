@@ -119,6 +119,10 @@ func NewHandler(svc Interface, accountService accountGetter, provisioner nodePro
 				DeleteCluster: workflows.AWSDeleteCluster,
 				DeleteNode:    workflows.AWSDeleteNode,
 			},
+			clouds.GCE: {
+				DeleteCluster: workflows.GCEDeleteCluster,
+				DeleteNode:    workflows.GCEDeleteNode,
+			},
 		},
 		repo:      repo,
 		getWriter: util.GetWriter,
@@ -338,11 +342,17 @@ func (h *Handler) deleteKube(w http.ResponseWriter, r *http.Request) {
 		ClusterID:        k.ID,
 		ClusterName:      k.Name,
 		CloudAccountName: k.AccountName,
+		Masters:          steps.NewMap(k.Masters),
+		Nodes:            steps.NewMap(k.Nodes),
 	}
 
-	//HACK TO PROVIDE REGION TO AWS DELETE CLUSTER
+	// TODO(stgleb): Move this hacks to separate methods
 	if acc.Provider == clouds.AWS {
 		config.AWSConfig.Region = k.Region
+	}
+
+	if acc.Provider == clouds.GCE {
+		config.GCEConfig.AvailabilityZone = k.Zone
 	}
 
 	err = util.FillCloudAccountCredentials(r.Context(), acc, config)
@@ -518,6 +528,7 @@ func (h *Handler) addNode(w http.ResponseWriter, r *http.Request) {
 	kubeProfile := profile.Profile{
 		Provider:        acc.Provider,
 		Region:          k.Region,
+		Zone:            k.Zone,
 		Arch:            k.Arch,
 		OperatingSystem: k.OperatingSystem,
 		UbuntuVersion:   k.OperatingSystemVersion,
@@ -655,9 +666,13 @@ func (h *Handler) deleteNode(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	//HACK TO PROVIDE REGION TO AWS DELETE CLUSTER
+	// TODO(stgleb): Move this hacks to separate methods
 	if acc.Provider == clouds.AWS {
 		config.AWSConfig.Region = k.Region
+	}
+
+	if acc.Provider == clouds.GCE {
+		config.GCEConfig.AvailabilityZone = k.Zone
 	}
 
 	writer, err := h.getWriter(t.ID)

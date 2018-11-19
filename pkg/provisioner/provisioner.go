@@ -56,6 +56,10 @@ func NewProvisioner(repository storage.Interface, kubeService KubeService,
 				ProvisionMaster: workflows.AWSMaster,
 				ProvisionNode:   workflows.AWSNode,
 			},
+			clouds.GCE: {
+				ProvisionMaster: workflows.GCEMaster,
+				ProvisionNode:   workflows.GCENode,
+			},
 		},
 		getWriter:   util.GetWriter,
 		rateLimiter: NewRateLimiter(spawnInterval),
@@ -423,6 +427,7 @@ func (tp *TaskProvisioner) buildInitialCluster(ctx context.Context,
 		AccountName:  config.CloudAccountName,
 		RBACEnabled:  profile.RBACEnabled,
 		Region:       profile.Region,
+		Zone:         profile.Zone,
 		SshUser:      config.SshConfig.User,
 		SshPublicKey: []byte(config.SshConfig.PublicKey),
 
@@ -460,6 +465,10 @@ func (t *TaskProvisioner) updateCloudSpecificData(ctx context.Context, config *s
 	cloudSpecificSettings := make(map[string]string)
 
 	// Save cloudSpecificData in kube
+	switch config.Provider {
+	case clouds.AWS:
+
+	}
 	if config.Provider == clouds.AWS {
 		// Copy data got from pre provision step to cloud specific settings of kube
 		cloudSpecificSettings[clouds.AwsAZ] = config.AWSConfig.AvailabilityZone
@@ -478,6 +487,10 @@ func (t *TaskProvisioner) updateCloudSpecificData(ctx context.Context, config *s
 	if err != nil {
 		logrus.Errorf("get kube caused %v", err)
 		return err
+	}
+
+	if config.Provider == clouds.GCE {
+		k.Zone = config.GCEConfig.AvailabilityZone
 	}
 
 	k.CloudSpec = cloudSpecificSettings

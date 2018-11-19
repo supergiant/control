@@ -32,7 +32,6 @@ func (f *FakeEC2KeyPair) DescribeKeyPairs(*ec2.DescribeKeyPairsInput) (*ec2.Desc
 	return f.describeOutput, f.describeErr
 }
 
-
 func TestKeyPairStep_Run(t *testing.T) {
 	cfg := steps.NewConfig("TEST", "", "myacc", profile.Profile{})
 	cfg.AWSConfig.KeyPairName = "mypair"
@@ -40,12 +39,12 @@ func TestKeyPairStep_Run(t *testing.T) {
 	step := NewImportKeyPairStep(func(config steps.AWSConfig) (ec2iface.EC2API, error) {
 		return &FakeEC2KeyPair{
 			importOutput: &ec2.ImportKeyPairOutput{
-				KeyName: aws.String(cfg.AWSConfig.KeyPairName),
+				KeyName:        aws.String(cfg.AWSConfig.KeyPairName),
 				KeyFingerprint: &fingerprint,
 			},
-			importErr: nil,
+			importErr:      nil,
 			describeOutput: &ec2.DescribeKeyPairsOutput{},
-			describeErr: nil,
+			describeErr:    nil,
 		}, nil
 	})
 

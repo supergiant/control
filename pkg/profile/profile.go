@@ -12,6 +12,7 @@ type Profile struct {
 	// to allow user create heterogeneous cluster of machine with different arch
 	Provider               clouds.Name           `json:"provider" valid:"in(aws|digitalocean|packet|gce|openstack)" valid:"-"`
 	Region                 string                `json:"region" valid:"-"`
+	Zone                   string                `json:"zone" valid:"-"`
 	Arch                   string                `json:"arch" valid:"-"`
 	OperatingSystem        string                `json:"operatingSystem" valid:"-"`
 	UbuntuVersion          string                `json:"ubuntuVersion" valid:"-"`

@@ -15,6 +15,7 @@ import (
 	"github.com/supergiant/supergiant/pkg/workflows/steps/downloadk8sbinary"
 	"github.com/supergiant/supergiant/pkg/workflows/steps/etcd"
 	"github.com/supergiant/supergiant/pkg/workflows/steps/flannel"
+	"github.com/supergiant/supergiant/pkg/workflows/steps/gce"
 	"github.com/supergiant/supergiant/pkg/workflows/steps/kubelet"
 	"github.com/supergiant/supergiant/pkg/workflows/steps/manifest"
 	"github.com/supergiant/supergiant/pkg/workflows/steps/network"
@@ -49,6 +50,10 @@ const (
 	AWSPreProvision           = "AWSPreProvisionCluster"
 	AWSDeleteCluster          = "AWSDeleteCluster"
 	AWSDeleteNode             = "AWSDeleteNode"
+	GCEMaster                 = "GCEMaster"
+	GCENode                   = "GCENode"
+	GCEDeleteCluster          = "GCEDeleteCluster"
+	GCEDeleteNode             = "GCEDeleteNode"
 )
 
 type WorkflowSet struct {
@@ -153,6 +158,44 @@ func Init() {
 		steps.GetStep(amazon.DeleteNodeStepName),
 	}
 
+	gceNodeWorkflow := []steps.Step{
+		steps.GetStep(gce.CreateInstanceStepName),
+		steps.GetStep(ssh.StepName),
+		steps.GetStep(authorizedKeys.StepName),
+		steps.GetStep(downloadk8sbinary.StepName),
+		steps.GetStep(docker.StepName),
+		steps.GetStep(manifest.StepName),
+		steps.GetStep(flannel.StepName),
+		steps.GetStep(certificates.StepName),
+		steps.GetStep(kubelet.StepName),
+		steps.GetStep(cni.StepName),
+		steps.GetStep(poststart.StepName),
+	}
+
+	gceMasterWorkflow := []steps.Step{
+		steps.GetStep(gce.CreateInstanceStepName),
+		steps.GetStep(ssh.StepName),
+		steps.GetStep(authorizedKeys.StepName),
+		steps.GetStep(downloadk8sbinary.StepName),
+		steps.GetStep(docker.StepName),
+		steps.GetStep(cni.StepName),
+		steps.GetStep(etcd.StepName),
+		steps.GetStep(network.StepName),
+		steps.GetStep(flannel.StepName),
+		steps.GetStep(certificates.StepName),
+		steps.GetStep(manifest.StepName),
+		steps.GetStep(kubelet.StepName),
+		steps.GetStep(poststart.StepName),
+	}
+
+	gceDeleteCluster := []steps.Step{
+		steps.GetStep(gce.DeleteClusterStepName),
+	}
+
+	gceDeleteNode := []steps.Step{
+		steps.GetStep(gce.DeleteNodeStepName),
+	}
+
 	m.Lock()
 	defer m.Unlock()
 
@@ -166,6 +209,10 @@ func Init() {
 	workflowMap[AWSPreProvision] = awsPreProvision
 	workflowMap[AWSDeleteCluster] = awsDeleteClusterWorkflow
 	workflowMap[AWSDeleteNode] = awsDeleteNodeWorkflow
+	workflowMap[GCENode] = gceNodeWorkflow
+	workflowMap[GCEMaster] = gceMasterWorkflow
+	workflowMap[GCEDeleteCluster] = gceDeleteCluster
+	workflowMap[GCEDeleteNode] = gceDeleteNode
 }
 
 func RegisterWorkFlow(workflowName string, workflow Workflow) {

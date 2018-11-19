@@ -38,6 +38,7 @@ import (
 	"github.com/supergiant/supergiant/pkg/workflows/steps/downloadk8sbinary"
 	"github.com/supergiant/supergiant/pkg/workflows/steps/etcd"
 	"github.com/supergiant/supergiant/pkg/workflows/steps/flannel"
+	"github.com/supergiant/supergiant/pkg/workflows/steps/gce"
 	"github.com/supergiant/supergiant/pkg/workflows/steps/kubelet"
 	"github.com/supergiant/supergiant/pkg/workflows/steps/manifest"
 	"github.com/supergiant/supergiant/pkg/workflows/steps/network"
@@ -230,6 +231,7 @@ func configureApplication(cfg *Config) (*mux.Router, error) {
 	network.Init()
 	clustercheck.Init()
 	prometheus.Init()
+	gce.Init()
 
 	amazon.InitImportKeyPair(amazon.GetEC2)
 	amazon.InitCreateMachine(amazon.GetEC2)

@@ -14,6 +14,7 @@ import (
 	"github.com/supergiant/supergiant/pkg/model"
 	"github.com/supergiant/supergiant/pkg/sgerrors"
 	"github.com/supergiant/supergiant/pkg/util"
+	"github.com/supergiant/supergiant/pkg/workflows/steps"
 )
 
 // Handler is a http controller for account entity
@@ -174,14 +175,15 @@ func (h *Handler) GetRegions(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	finder, err := GetRegionFinder(acc)
+	config := &steps.Config{}
+	getter, err := NewRegionsGetter(acc, config)
 	if err != nil {
 		logrus.Errorf("clouds: get regions %v", err)
 		message.SendUnknownError(w, err)
 		return
 	}
 
-	aggregate, err := finder.Find(r.Context())
+	aggregate, err := getter.GetRegions(r.Context())
 	if err != nil {
 		logrus.Errorf("clouds: get regions %v", err)
 		message.SendUnknownError(w, err)
@@ -220,14 +222,16 @@ func (h *Handler) GetAZs(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	finder, err := NewAWSFinder(acc)
+	acc.Credentials["region"] = region
+	config := &steps.Config{}
+	getter, err := NewZonesGetter(acc, config)
 	if err != nil {
 		logrus.Errorf("clouds: get aws availability zones %v", err)
 		message.SendUnknownError(w, err)
 		return
 	}
 
-	azs, err := finder.GetAZ(r.Context(), region)
+	azs, err := getter.GetZones(r.Context(), *config)
 	if err != nil {
 		logrus.Errorf("clouds: get aws availability zones %v", err)
 		message.SendUnknownError(w, err)
@@ -272,14 +276,18 @@ func (h *Handler) GetTypes(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	finder, err := NewAWSFinder(acc)
+	acc.Credentials["availabilityZone"] = az
+	acc.Credentials["region"] = region
+
+	config := &steps.Config{}
+	getter, err := NewTypesGetter(acc, config)
 	if err != nil {
 		logrus.Errorf("clouds: get aws types %v", err)
 		message.SendUnknownError(w, err)
 		return
 	}
 
-	types, err := finder.GetTypes(r.Context(), region, az)
+	types, err := getter.GetTypes(r.Context(), *config)
 	if err != nil {
 		logrus.Errorf("clouds: get aws types %v", err)
 		message.SendUnknownError(w, err)
