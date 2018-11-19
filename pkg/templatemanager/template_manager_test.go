@@ -6,6 +6,20 @@ import (
 	"text/template"
 )
 
+
+func TestGetTemplate(t *testing.T) {
+	testKey := "testGetKey"
+	testValue := &template.Template{}
+	templateMap[testKey] = testValue
+
+	_, err := GetTemplate("testGetKey")
+
+	if sgerrors.IsNotFound(err) {
+		t.Errorf("Template %s not found", testKey)
+	}
+}
+
+
 func TestGetTemplateNotFound(t *testing.T) {
 	_, err := GetTemplate("not_found.sh.tpl")
 
@@ -28,7 +42,7 @@ func TestDeleteTemplate(t *testing.T) {
 }
 
 func TestSetTemplate(t *testing.T) {
-	testKey := "testDeleteKey"
+	testKey := "testSetKey"
 	testValue := &template.Template{}
 	templateMap[testKey] = testValue
 
