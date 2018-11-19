@@ -269,7 +269,7 @@ func TestGCEResourceFinder_GetRegions(t *testing.T) {
 					ProjectID: testCase.projectID,
 				},
 			},
-			listRegion: func(client *compute.Service, projectID string) (*compute.RegionList, error) {
+			listRegions: func(client *compute.Service, projectID string) (*compute.RegionList, error) {
 				if projectID != testCase.projectID {
 					t.Errorf("Expected projectID %s actual %s",
 						testCase.projectID, projectID)

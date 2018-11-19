@@ -303,7 +303,7 @@ type GCEResourceFinder struct {
 	client *compute.Service
 	config steps.Config
 
-	listRegion       func(*compute.Service, string) (*compute.RegionList, error)
+	listRegions      func(*compute.Service, string) (*compute.RegionList, error)
 	getRegion        func(*compute.Service, string, string) (*compute.Region, error)
 	listMachineTypes func(*compute.Service, string, string) (*compute.MachineTypeList, error)
 }
@@ -331,7 +331,7 @@ func NewGCEFinder(acc *model.CloudAccount, config *steps.Config) (*GCEResourceFi
 	return &GCEResourceFinder{
 		client: client,
 		config: *config,
-		listRegion: func(client *compute.Service, projectID string) (*compute.RegionList, error) {
+		listRegions: func(client *compute.Service, projectID string) (*compute.RegionList, error) {
 			return client.Regions.List(projectID).Do()
 		},
 		getRegion: func(client *compute.Service, projectID, regionID string) (*compute.Region, error) {
@@ -344,7 +344,7 @@ func NewGCEFinder(acc *model.CloudAccount, config *steps.Config) (*GCEResourceFi
 }
 
 func (g *GCEResourceFinder) GetRegions(ctx context.Context) (*RegionSizes, error) {
-	regionsOutput, err := g.listRegion(g.client, g.config.GCEConfig.ProjectID)
+	regionsOutput, err := g.listRegions(g.client, g.config.GCEConfig.ProjectID)
 
 	if err != nil {
 		return nil, errors.Wrap(err, "gce find regions")
