@@ -610,14 +610,6 @@ func (h *Handler) deleteNode(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	logrus.Println("Masters")
-	for master := range k.Masters {
-		logrus.Println(master)
-	}
-	logrus.Println("Nodes")
-	for node := range k.Nodes {
-		logrus.Println(node)
-	}
 	// TODO(stgleb): check whether we will have quorum of master nodes if node is deleted.
 	if _, ok := k.Masters[nodeName]; ok {
 		http.Error(w, "delete master node not allowed", http.StatusMethodNotAllowed)
