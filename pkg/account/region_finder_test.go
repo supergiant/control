@@ -87,7 +87,7 @@ func TestGetRegionFinder(t *testing.T) {
 		}
 
 		if err == nil && rf == nil {
-			t.Error("types finder must not be nil")
+			t.Error("region finder must not be nil")
 		}
 	}
 }
@@ -218,11 +218,11 @@ func TestConvertRegions(t *testing.T) {
 	r := convertRegion(region)
 
 	if r.Name != region.Name {
-		t.Errorf("Wrong name of types expected %s actual %s", region.Name, r.Name)
+		t.Errorf("Wrong name of region expected %s actual %s", region.Name, r.Name)
 	}
 
 	if r.ID != region.Slug {
-		t.Errorf("Wrong ID of types expected %s actual %s", region.Slug, r.ID)
+		t.Errorf("Wrong ID of region expected %s actual %s", region.Slug, r.ID)
 	}
 
 	if len(r.AvailableSizes) != len(region.Sizes) {
