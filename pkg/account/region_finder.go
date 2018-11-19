@@ -43,7 +43,7 @@ type Size struct {
 	CPU string `json:"cpu"`
 }
 
-//RegionSizes represents aggregated information about available regions/azs and node sizes/types
+//RegionSizes represents aggregated information about available regions/azs and node sizes/region
 type RegionSizes struct {
 	Provider clouds.Name            `json:"provider"`
 	Regions  []*Region              `json:"regions"`
@@ -58,7 +58,7 @@ type TypesGetter interface {
 	GetTypes(context.Context, steps.Config) ([]string, error)
 }
 
-//RegionsGetter is used to find a list of available regions(availability zones, etc) with available vm types
+//RegionsGetter is used to find a list of available regions(availability zones, etc) with available vm region
 //in a given cloud provider using given account credentials
 type RegionsGetter interface {
 	//GetRegions returns a slice of cloud specific regions/az's
@@ -76,8 +76,8 @@ func NewRegionsGetter(account *model.CloudAccount, config *steps.Config) (Region
 	case clouds.DigitalOcean:
 		return NewDOFinder(account)
 	case clouds.AWS:
-		// We need to provide types to AWS even if our
-		// request does not specify types
+		// We need to provide region to AWS even if our
+		// request does not specify regon
 		config.AWSConfig.Region = "us-west-1"
 		return NewAWSFinder(account, config)
 	case clouds.GCE:
@@ -371,7 +371,7 @@ func (g *GCEResourceFinder) GetZones(ctx context.Context, config steps.Config) (
 		config.GCEConfig.Region)
 
 	if err != nil {
-		return nil, errors.Wrap(err, "gce get availability types")
+		return nil, errors.Wrap(err, "gce get availability zones")
 	}
 
 	zones := make([]string, 0, len(regionOutput.Zones))
