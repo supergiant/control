@@ -9,6 +9,8 @@ import (
 	"github.com/pkg/errors"
 	"github.com/stretchr/testify/mock"
 
+	compute "google.golang.org/api/compute/v1"
+
 	"github.com/supergiant/supergiant/pkg/clouds"
 	"github.com/supergiant/supergiant/pkg/model"
 	"github.com/supergiant/supergiant/pkg/sgerrors"
@@ -227,4 +229,49 @@ func TestConvertRegions(t *testing.T) {
 		t.Errorf("Wrong count of sizes expected %d actual %d",
 			len(region.Sizes), len(r.AvailableSizes))
 	}
+}
+
+func TestGCEResourceFinder_GetRegions(t *testing.T) {
+	testCases := []struct{
+		projectID string
+		err error
+		regionList *compute.RegionList
+	}{
+		{
+			projectID: "test",
+			err: sgerrors.ErrNotFound,
+			regionList: nil,
+		},
+	}
+
+	for _, testCase := range testCases {
+		mock := &mock.Mock{}
+		mock.On("")
+
+		finder := &GCEResourceFinder{
+			client: nil,
+			config: nil,
+			listRegion: func(client *compute.Service, projectID string) (*compute.RegionList, error) {
+				return mock.Called("", projectID)
+			},
+		}
+
+		regionSizes, err := finder.GetRegions(context.Background())
+
+		if err != testCase.err  {
+			t.Errorf("Expected err %v actual %v", testCase.err, err)
+		}
+
+		if testCase.err == nil {
+
+		}
+	}
+}
+
+func TestGCEResourceFinder_GetZones(t *testing.T) {
+
+}
+
+func TestGCEResourceFinder_GetTypes(t *testing.T) {
+
 }
