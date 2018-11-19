@@ -76,8 +76,8 @@ func NewRegionsGetter(account *model.CloudAccount, config *steps.Config) (Region
 	case clouds.DigitalOcean:
 		return NewDOFinder(account)
 	case clouds.AWS:
-		// We need to provide region to AWS even if our
-		// request does not specify region
+		// We need to provide types to AWS even if our
+		// request does not specify types
 		config.AWSConfig.Region = "us-west-1"
 		return NewAWSFinder(account, config)
 	case clouds.GCE:
@@ -303,8 +303,8 @@ type GCEResourceFinder struct {
 	client *compute.Service
 	config steps.Config
 
-	listRegion func(*compute.Service, string) (*compute.RegionList, error)
-	getRegion func(*compute.Service, string, string) (*compute.Region, error)
+	listRegion       func(*compute.Service, string) (*compute.RegionList, error)
+	getRegion        func(*compute.Service, string, string) (*compute.Region, error)
 	listMachineTypes func(*compute.Service, string, string) (*compute.MachineTypeList, error)
 }
 
@@ -346,8 +346,6 @@ func NewGCEFinder(acc *model.CloudAccount, config *steps.Config) (*GCEResourceFi
 func (g *GCEResourceFinder) GetRegions(ctx context.Context) (*RegionSizes, error) {
 	regionsOutput, err := g.listRegion(g.client, g.config.GCEConfig.ProjectID)
 
-			g.client.Regions.List(g.config.GCEConfig.ProjectID).Do()
-
 	if err != nil {
 		return nil, errors.Wrap(err, "gce find regions")
 	}
@@ -373,7 +371,7 @@ func (g *GCEResourceFinder) GetZones(ctx context.Context, config steps.Config) (
 		config.GCEConfig.Region)
 
 	if err != nil {
-		return nil, errors.Wrap(err, "gce get availability zone")
+		return nil, errors.Wrap(err, "gce get availability types")
 	}
 
 	zones := make([]string, 0, len(regionOutput.Zones))
