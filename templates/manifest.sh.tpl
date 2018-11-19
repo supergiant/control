@@ -268,8 +268,7 @@ spec:
     - --service-cluster-ip-range=10.3.0.0/24
     - --secure-port=443
     - --v=2
-    - --insecure-port=8080
-    - --insecure-bind-address=0.0.0.0
+    - --insecure-port=0
     {{if .RBACEnabled }}- --authorization-mode=Node,RBAC{{end}}
     - --advertise-address={{ .MasterHost }}
     - --admission-control=NamespaceLifecycle,NamespaceExists,LimitRanger,ServiceAccount,ResourceQuota,DefaultStorageClass{{if .RBACEnabled }},NodeRestriction{{end}}
