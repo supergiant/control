@@ -108,6 +108,7 @@ func NewTypesGetter(account *model.CloudAccount, config *steps.Config) (TypesGet
 
 	switch account.Provider {
 	case clouds.AWS:
+		config.AWSConfig.Region = "us-west-1"
 		return NewAWSFinder(account, config)
 	case clouds.GCE:
 		return NewGCEFinder(account, config)
