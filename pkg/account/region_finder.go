@@ -220,7 +220,7 @@ func NewAWSFinder(acc *model.CloudAccount, config *steps.Config) (*AWSFinder, er
 
 	sess, err := session.NewSessionWithOptions(session.Options{
 		Config: aws.Config{
-			Region: aws.String("us-west-1"),
+			Region: aws.String(config.AWSConfig.Region),
 			Credentials: credentials.NewStaticCredentials(
 				config.AWSConfig.KeyID, config.AWSConfig.Secret,
 				""),
