@@ -43,7 +43,7 @@ type Size struct {
 	CPU string `json:"cpu"`
 }
 
-//RegionSizes represents aggregated information about available regions/azs and node sizes/region
+//RegionSizes represents aggregated information about available regions/azs and node sizes/types
 type RegionSizes struct {
 	Provider clouds.Name            `json:"provider"`
 	Regions  []*Region              `json:"regions"`
@@ -58,7 +58,7 @@ type TypesGetter interface {
 	GetTypes(context.Context, steps.Config) ([]string, error)
 }
 
-//RegionsGetter is used to find a list of available regions(availability zones, etc) with available vm region
+//RegionsGetter is used to find a list of available regions(availability zones, etc) with available vm types
 //in a given cloud provider using given account credentials
 type RegionsGetter interface {
 	//GetRegions returns a slice of cloud specific regions/az's
