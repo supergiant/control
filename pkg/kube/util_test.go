@@ -6,6 +6,7 @@ import (
 	"github.com/supergiant/supergiant/pkg/clouds"
 	"github.com/supergiant/supergiant/pkg/model"
 	"github.com/supergiant/supergiant/pkg/node"
+	"strings"
 )
 
 func TestIp2Host(t *testing.T) {
@@ -36,7 +37,7 @@ func TestIp2Host(t *testing.T) {
 func TestProcessAWSMetrics(t *testing.T) {
 	masters := map[string]*node.Node{
 		"master-1": {
-			Name:      "master-1",
+			Name:      "Master-1",
 			PrivateIp: "10.20.30.40",
 		},
 	}
@@ -47,7 +48,7 @@ func TestProcessAWSMetrics(t *testing.T) {
 			PrivateIp: "172.16.0.1",
 		},
 		"node-2": {
-			Name:      "node-2",
+			Name:      "Node-2",
 			PrivateIp: "172.16.0.2",
 		},
 	}
@@ -67,13 +68,13 @@ func TestProcessAWSMetrics(t *testing.T) {
 	processAWSMetrics(k, metrics)
 
 	for _, masterNode := range masters {
-		if _, ok := metrics[masterNode.Name]; !ok {
+		if _, ok := metrics[strings.ToLower(masterNode.Name)]; !ok {
 			t.Errorf("Node %s not found in %v", masterNode.Name, metrics)
 		}
 	}
 
 	for _, workerNode := range nodes {
-		if _, ok := metrics[workerNode.Name]; !ok {
+		if _, ok := metrics[strings.ToLower(workerNode.Name)]; !ok {
 			t.Errorf("Node %s not found in %v", workerNode.Name, metrics)
 		}
 	}

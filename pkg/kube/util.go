@@ -12,14 +12,14 @@ func processAWSMetrics(k *model.Kube, metrics map[string]map[string]interface{})
 		key := ip2Host(masterNode.PrivateIp)
 		value := metrics[key]
 		delete(metrics, key)
-		metrics[masterNode.Name] = value
+		metrics[strings.ToLower(masterNode.Name)] = value
 	}
 
 	for _, workerNode := range k.Nodes {
 		key := ip2Host(workerNode.PrivateIp)
 		value := metrics[key]
 		delete(metrics, key)
-		metrics[workerNode.Name] = value
+		metrics[strings.ToLower(workerNode.Name)] = value
 	}
 }
 
