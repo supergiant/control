@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"io"
+	"time"
 	"strings"
 
 	"github.com/aws/aws-sdk-go/service/ec2"
@@ -13,13 +14,12 @@ import (
 	"github.com/sirupsen/logrus"
 	"github.com/supergiant/supergiant/pkg/util"
 	"github.com/supergiant/supergiant/pkg/workflows/steps"
-	"time"
 )
 
 const StepImportKeyPair = "awskeypairstep"
 
 var (
-	keyPairAttemptCound = 5
+	keyPairAttemptCount = 10
 )
 
 //KeyPairStep represents creation of keypair in aws
@@ -50,7 +50,7 @@ func (s *KeyPairStep) Run(ctx context.Context, w io.Writer, cfg *steps.Config) e
 	}
 
 	bootstrapKeyPairName := util.MakeKeyName(cfg.ClusterName, false)
-	log.Infof("[%s] - importing cluster bootstrap certificate as keypair %s",
+	log.Infof("[%s] - importing cluster bootstrap key as keypair %s",
 		s.Name(), bootstrapKeyPairName)
 	req := &ec2.ImportKeyPairInput{
 		KeyName:           &bootstrapKeyPairName,
@@ -76,7 +76,7 @@ func (s *KeyPairStep) Run(ctx context.Context, w io.Writer, cfg *steps.Config) e
 
 	delay := time.Second * 10
 	// Wait until key pair become available
-	for cnt := 0; cnt < keyPairAttemptCound; cnt++ {
+	for cnt := 0; cnt < keyPairAttemptCount; cnt++ {
 		describeInput := &ec2.DescribeKeyPairsInput{
 			Filters: []*ec2.Filter{
 				{

@@ -205,6 +205,13 @@ func convertRegion(r godo.Region) *Region {
 
 type AWSFinder struct {
 	defaultClient *ec2.EC2
+
+	getRegions func(ctx context.Context, client *ec2.EC2,
+		input *ec2.DescribeRegionsInput) (*ec2.DescribeRegionsOutput, error)
+	getZones func(ctx context.Context, client *ec2.EC2,
+		input *ec2.DescribeAvailabilityZonesInput) (*ec2.DescribeAvailabilityZonesOutput, error)
+	getTypes func(ctx context.Context, client *ec2.EC2,
+		input *ec2.DescribeReservedInstancesOfferingsInput) (*ec2.DescribeReservedInstancesOfferingsOutput, error)
 }
 
 func NewAWSFinder(acc *model.CloudAccount, config *steps.Config) (*AWSFinder, error) {
@@ -235,11 +242,24 @@ func NewAWSFinder(acc *model.CloudAccount, config *steps.Config) (*AWSFinder, er
 
 	return &AWSFinder{
 		defaultClient: client,
+
+		getRegions: func(ctx context.Context, client *ec2.EC2,
+			input *ec2.DescribeRegionsInput) (*ec2.DescribeRegionsOutput, error) {
+			return client.DescribeRegionsWithContext(ctx, &ec2.DescribeRegionsInput{})
+		},
+		getZones: func(ctx context.Context, client *ec2.EC2,
+			input *ec2.DescribeAvailabilityZonesInput) (*ec2.DescribeAvailabilityZonesOutput, error) {
+			return client.DescribeAvailabilityZonesWithContext(ctx, input)
+		},
+		getTypes: func(ctx context.Context, client *ec2.EC2,
+			input *ec2.DescribeReservedInstancesOfferingsInput) (*ec2.DescribeReservedInstancesOfferingsOutput, error) {
+			return client.DescribeReservedInstancesOfferingsWithContext(ctx, input)
+		},
 	}, nil
 }
 
 func (af *AWSFinder) GetRegions(ctx context.Context) (*RegionSizes, error) {
-	regionsOut, err := af.defaultClient.DescribeRegionsWithContext(ctx, &ec2.DescribeRegionsInput{})
+	regionsOut, err := af.getRegions(ctx, af.defaultClient, &ec2.DescribeRegionsInput{})
 
 	if err != nil {
 		return nil, errors.Wrap(err, "failed to read aws regions")
@@ -262,7 +282,7 @@ func (af *AWSFinder) GetRegions(ctx context.Context) (*RegionSizes, error) {
 }
 
 func (af *AWSFinder) GetZones(ctx context.Context, config steps.Config) ([]string, error) {
-	azsOut, err := af.defaultClient.DescribeAvailabilityZonesWithContext(ctx, &ec2.DescribeAvailabilityZonesInput{
+	azsOut, err := af.getZones(ctx, af.defaultClient, &ec2.DescribeAvailabilityZonesInput{
 		Filters: []*ec2.Filter{
 			{
 				Name: aws.String("region-name"),
@@ -285,7 +305,7 @@ func (af *AWSFinder) GetZones(ctx context.Context, config steps.Config) ([]strin
 }
 
 func (af *AWSFinder) GetTypes(ctx context.Context, config steps.Config) ([]string, error) {
-	out, err := af.defaultClient.DescribeReservedInstancesOfferingsWithContext(ctx, &ec2.DescribeReservedInstancesOfferingsInput{})
+	out, err := af.getTypes(ctx, af.defaultClient, &ec2.DescribeReservedInstancesOfferingsInput{})
 
 	if err != nil {
 		return nil, errors.Wrap(err, "failed to read aws types")
