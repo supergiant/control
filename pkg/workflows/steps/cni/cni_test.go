@@ -43,7 +43,7 @@ func TestCNI(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	tpl := templatemanager.GetTemplate(StepName)
+	tpl, _ := templatemanager.GetTemplate(StepName)
 
 	if tpl == nil {
 		t.Fatal("template not found")

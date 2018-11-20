@@ -9,6 +9,7 @@ import (
 
 	tm "github.com/supergiant/supergiant/pkg/templatemanager"
 	"github.com/supergiant/supergiant/pkg/workflows/steps"
+	"fmt"
 )
 
 const StepName = "cni"
@@ -22,7 +23,13 @@ func (s *Step) Rollback(context.Context, io.Writer, *steps.Config) error {
 }
 
 func Init() {
-	steps.RegisterStep(StepName, New(tm.GetTemplate(StepName)))
+	tpl, err := tm.GetTemplate(StepName)
+
+	if err != nil {
+		panic(fmt.Sprintf("template %s not found", StepName))
+	}
+
+	steps.RegisterStep(StepName, New(tpl))
 }
 
 func New(script *template.Template) *Step {
