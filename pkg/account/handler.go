@@ -217,7 +217,7 @@ func (h *Handler) GetAZs(w http.ResponseWriter, r *http.Request) {
 			return
 		}
 
-		logrus.Errorf("clouds: get aws availability zones %v", err)
+		logrus.Errorf("clouds: get %s availability zones %v", acc.Provider, err)
 		message.SendUnknownError(w, err)
 		return
 	}
@@ -226,20 +226,20 @@ func (h *Handler) GetAZs(w http.ResponseWriter, r *http.Request) {
 	config := &steps.Config{}
 	getter, err := NewZonesGetter(acc, config)
 	if err != nil {
-		logrus.Errorf("clouds: get aws availability zones %v", err)
+		logrus.Errorf("clouds: get %s availability zones %v", acc.Provider, err)
 		message.SendUnknownError(w, err)
 		return
 	}
 
 	azs, err := getter.GetZones(r.Context(), *config)
 	if err != nil {
-		logrus.Errorf("clouds: get aws availability zones %v", err)
+		logrus.Errorf("clouds: get %s availability zones %v", acc.Provider, err)
 		message.SendUnknownError(w, err)
 		return
 	}
 
 	if err := json.NewEncoder(w).Encode(azs); err != nil {
-		logrus.Errorf("clouds: get aws availability zones %v", err)
+		logrus.Errorf("clouds: get %s availability zones %v", acc.Provider, err)
 		message.SendUnknownError(w, err)
 		return
 	}
@@ -271,7 +271,7 @@ func (h *Handler) GetTypes(w http.ResponseWriter, r *http.Request) {
 			return
 		}
 
-		logrus.Errorf("clouds: get aws types%v", err)
+		logrus.Errorf("clouds: get %s region %v", acc.Provider, err)
 		message.SendUnknownError(w, err)
 		return
 	}
@@ -282,20 +282,20 @@ func (h *Handler) GetTypes(w http.ResponseWriter, r *http.Request) {
 	config := &steps.Config{}
 	getter, err := NewTypesGetter(acc, config)
 	if err != nil {
-		logrus.Errorf("clouds: get aws types %v", err)
+		logrus.Errorf("clouds: get %s types %v", acc.Provider, err)
 		message.SendUnknownError(w, err)
 		return
 	}
 
 	types, err := getter.GetTypes(r.Context(), *config)
 	if err != nil {
-		logrus.Errorf("clouds: get aws types %v", err)
+		logrus.Errorf("clouds: get %s types %v", acc.Provider, err)
 		message.SendUnknownError(w, err)
 		return
 	}
 
 	if err := json.NewEncoder(w).Encode(types); err != nil {
-		logrus.Errorf("clouds: get aws aws types %v", err)
+		logrus.Errorf("clouds: get %s aws types %v", acc.Provider, err)
 		message.SendUnknownError(w, err)
 		return
 	}

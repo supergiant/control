@@ -9,6 +9,8 @@ import (
 	"github.com/pkg/errors"
 	"github.com/stretchr/testify/mock"
 
+	compute "google.golang.org/api/compute/v1"
+
 	"github.com/supergiant/supergiant/pkg/clouds"
 	"github.com/supergiant/supergiant/pkg/model"
 	"github.com/supergiant/supergiant/pkg/sgerrors"
@@ -226,5 +228,209 @@ func TestConvertRegions(t *testing.T) {
 	if len(r.AvailableSizes) != len(region.Sizes) {
 		t.Errorf("Wrong count of sizes expected %d actual %d",
 			len(region.Sizes), len(r.AvailableSizes))
+	}
+}
+
+func TestGCEResourceFinder_GetRegions(t *testing.T) {
+	testCases := []struct {
+		projectID  string
+		err        error
+		regionList *compute.RegionList
+	}{
+		{
+			projectID:  "test",
+			err:        sgerrors.ErrNotFound,
+			regionList: nil,
+		},
+		{
+			projectID: "test",
+			err:       nil,
+			regionList: &compute.RegionList{
+				Items: []*compute.Region{
+					{
+						Name: "europe-1",
+					},
+					{
+						Name: "ap-north-2",
+					},
+					{
+						Name: "us-west-3",
+					},
+				},
+			},
+		},
+	}
+
+	for _, testCase := range testCases {
+		finder := &GCEResourceFinder{
+			client: nil,
+			config: steps.Config{
+				GCEConfig: steps.GCEConfig{
+					ProjectID: testCase.projectID,
+				},
+			},
+			listRegions: func(client *compute.Service, projectID string) (*compute.RegionList, error) {
+				if projectID != testCase.projectID {
+					t.Errorf("Expected projectID %s actual %s",
+						testCase.projectID, projectID)
+				}
+
+				return testCase.regionList, testCase.err
+			},
+		}
+
+		regionSizes, err := finder.GetRegions(context.Background())
+
+		if testCase.err != nil && !sgerrors.IsNotFound(err) {
+			t.Errorf("Expected err %v actual %v", testCase.err, err)
+		}
+
+		if testCase.err == nil {
+			if len(regionSizes.Regions) != len(testCase.regionList.Items) {
+				t.Errorf("Wrong count of regions expected %d actual %d",
+					len(testCase.regionList.Items), len(regionSizes.Regions))
+			}
+		}
+	}
+}
+
+func TestGCEResourceFinder_GetZones(t *testing.T) {
+	testCases := []struct {
+		projectID string
+		regionID  string
+		err       error
+		region    *compute.Region
+	}{
+		{
+			projectID: "test",
+			regionID:  "us-east33",
+			err:       sgerrors.ErrNotFound,
+			region:    nil,
+		},
+		{
+			projectID: "test",
+			regionID:  "us-east1",
+			err:       nil,
+			region: &compute.Region{
+				Zones: []string{"us-east1-b", "us-east1-c", "us-east1-d"},
+			},
+		},
+	}
+
+	for _, testCase := range testCases {
+		finder := &GCEResourceFinder{
+			client: nil,
+			config: steps.Config{
+				GCEConfig: steps.GCEConfig{
+					ProjectID: testCase.projectID,
+				},
+			},
+			getRegion: func(client *compute.Service, projectID, regionID string) (*compute.Region, error) {
+				if projectID != testCase.projectID {
+					t.Errorf("Expected projectID %s actual %s",
+						testCase.projectID, projectID)
+				}
+
+				if regionID != testCase.regionID {
+					t.Errorf("Expected regionID %s actual %s",
+						testCase.regionID, regionID)
+				}
+
+				return testCase.region, testCase.err
+			},
+		}
+
+		config := steps.Config{
+			GCEConfig: steps.GCEConfig{
+				ProjectID: testCase.projectID,
+				Region:    testCase.regionID,
+			},
+		}
+		zones, err := finder.GetZones(context.Background(), config)
+
+		if testCase.err != nil && !sgerrors.IsNotFound(err) {
+			t.Errorf("Expected err %v actual %v", testCase.err, err)
+		}
+
+		if testCase.err == nil {
+			if len(zones) != len(testCase.region.Zones) {
+				t.Errorf("Wrong count of zones expected %d actual %d",
+					len(testCase.region.Zones), len(zones))
+			}
+		}
+	}
+}
+
+func TestGCEResourceFinder_GetTypes(t *testing.T) {
+	testCases := []struct {
+		projectID string
+		zoneID    string
+		err       error
+		types     *compute.MachineTypeList
+	}{
+		{
+			projectID: "test",
+			zoneID:    "us-east33-a",
+			err:       sgerrors.ErrNotFound,
+			types:     nil,
+		},
+		{
+			projectID: "test",
+			zoneID:    "us-east1-b",
+			err:       nil,
+			types: &compute.MachineTypeList{
+				Items: []*compute.MachineType{
+					{
+						Name: "n1-standard-8",
+					},
+					{
+						Name: "n1-highmem-32",
+					},
+					{
+						Name: "n1-highcpu-96",
+					},
+				},
+			},
+		},
+	}
+
+	for _, testCase := range testCases {
+		config := steps.Config{
+			GCEConfig: steps.GCEConfig{
+				ProjectID:        testCase.projectID,
+				AvailabilityZone: testCase.zoneID,
+			},
+		}
+
+		finder := &GCEResourceFinder{
+			client: nil,
+			config: config,
+			listMachineTypes: func(client *compute.Service, projectID, zoneID string) (*compute.MachineTypeList, error) {
+				if projectID != testCase.projectID {
+					t.Errorf("Expected projectID %s actual %s",
+						testCase.projectID, projectID)
+				}
+
+				if zoneID != testCase.zoneID {
+					t.Errorf("Expected types %s actual %s",
+						testCase.zoneID, zoneID)
+				}
+
+				return testCase.types, testCase.err
+			},
+		}
+
+		types, err := finder.GetTypes(context.Background(), config)
+
+		if testCase.err != nil && !sgerrors.IsNotFound(err) {
+			t.Errorf("Expected err %v actual %v", testCase.err, err)
+		}
+
+		if testCase.err == nil {
+			if len(types) != len(testCase.types.Items) {
+				t.Errorf("Wrong count of types expected %d actual %d",
+					len(testCase.types.Items), len(types))
+			}
+		}
 	}
 }

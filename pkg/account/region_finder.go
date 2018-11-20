@@ -204,7 +204,7 @@ func convertRegion(r godo.Region) *Region {
 }
 
 type AWSFinder struct {
-	client *ec2.EC2
+	defaultClient *ec2.EC2
 }
 
 func NewAWSFinder(acc *model.CloudAccount, config *steps.Config) (*AWSFinder, error) {
@@ -234,12 +234,12 @@ func NewAWSFinder(acc *model.CloudAccount, config *steps.Config) (*AWSFinder, er
 	client := ec2.New(sess)
 
 	return &AWSFinder{
-		client: client,
+		defaultClient: client,
 	}, nil
 }
 
 func (af *AWSFinder) GetRegions(ctx context.Context) (*RegionSizes, error) {
-	regionsOut, err := af.client.DescribeRegionsWithContext(ctx, &ec2.DescribeRegionsInput{})
+	regionsOut, err := af.defaultClient.DescribeRegionsWithContext(ctx, &ec2.DescribeRegionsInput{})
 
 	if err != nil {
 		return nil, errors.Wrap(err, "failed to read aws regions")
@@ -262,7 +262,7 @@ func (af *AWSFinder) GetRegions(ctx context.Context) (*RegionSizes, error) {
 }
 
 func (af *AWSFinder) GetZones(ctx context.Context, config steps.Config) ([]string, error) {
-	azsOut, err := af.client.DescribeAvailabilityZonesWithContext(ctx, &ec2.DescribeAvailabilityZonesInput{
+	azsOut, err := af.defaultClient.DescribeAvailabilityZonesWithContext(ctx, &ec2.DescribeAvailabilityZonesInput{
 		Filters: []*ec2.Filter{
 			{
 				Name: aws.String("region-name"),
@@ -285,7 +285,7 @@ func (af *AWSFinder) GetZones(ctx context.Context, config steps.Config) ([]strin
 }
 
 func (af *AWSFinder) GetTypes(ctx context.Context, config steps.Config) ([]string, error) {
-	out, err := af.client.DescribeReservedInstancesOfferingsWithContext(ctx, &ec2.DescribeReservedInstancesOfferingsInput{})
+	out, err := af.defaultClient.DescribeReservedInstancesOfferingsWithContext(ctx, &ec2.DescribeReservedInstancesOfferingsInput{})
 
 	if err != nil {
 		return nil, errors.Wrap(err, "failed to read aws types")
@@ -302,6 +302,10 @@ func (af *AWSFinder) GetTypes(ctx context.Context, config steps.Config) ([]strin
 type GCEResourceFinder struct {
 	client *compute.Service
 	config steps.Config
+
+	listRegions      func(*compute.Service, string) (*compute.RegionList, error)
+	getRegion        func(*compute.Service, string, string) (*compute.Region, error)
+	listMachineTypes func(*compute.Service, string, string) (*compute.MachineTypeList, error)
 }
 
 func NewGCEFinder(acc *model.CloudAccount, config *steps.Config) (*GCEResourceFinder, error) {
@@ -327,11 +331,20 @@ func NewGCEFinder(acc *model.CloudAccount, config *steps.Config) (*GCEResourceFi
 	return &GCEResourceFinder{
 		client: client,
 		config: *config,
+		listRegions: func(client *compute.Service, projectID string) (*compute.RegionList, error) {
+			return client.Regions.List(projectID).Do()
+		},
+		getRegion: func(client *compute.Service, projectID, regionID string) (*compute.Region, error) {
+			return client.Regions.Get(projectID, regionID).Do()
+		},
+		listMachineTypes: func(client *compute.Service, projectID, availabilityZone string) (*compute.MachineTypeList, error) {
+			return client.MachineTypes.List(projectID, availabilityZone).Do()
+		},
 	}, nil
 }
 
 func (g *GCEResourceFinder) GetRegions(ctx context.Context) (*RegionSizes, error) {
-	regionsOutput, err := g.client.Regions.List(g.config.GCEConfig.ProjectID).Do()
+	regionsOutput, err := g.listRegions(g.client, g.config.GCEConfig.ProjectID)
 
 	if err != nil {
 		return nil, errors.Wrap(err, "gce find regions")
@@ -354,11 +367,11 @@ func (g *GCEResourceFinder) GetRegions(ctx context.Context) (*RegionSizes, error
 }
 
 func (g *GCEResourceFinder) GetZones(ctx context.Context, config steps.Config) ([]string, error) {
-	regionOutput, err := g.client.Regions.Get(config.GCEConfig.ProjectID,
-		config.GCEConfig.Region).Do()
+	regionOutput, err := g.getRegion(g.client, config.GCEConfig.ProjectID,
+		config.GCEConfig.Region)
 
 	if err != nil {
-		return nil, errors.Wrap(err, "gce get availability zone")
+		return nil, errors.Wrap(err, "gce get availability zones")
 	}
 
 	zones := make([]string, 0, len(regionOutput.Zones))
@@ -371,8 +384,8 @@ func (g *GCEResourceFinder) GetZones(ctx context.Context, config steps.Config) (
 }
 
 func (g *GCEResourceFinder) GetTypes(ctx context.Context, config steps.Config) ([]string, error) {
-	machineOutput, err := g.client.MachineTypes.List(
-		config.GCEConfig.ProjectID, config.GCEConfig.AvailabilityZone).Do()
+	machineOutput, err := g.listMachineTypes(g.client, config.GCEConfig.ProjectID,
+		config.GCEConfig.AvailabilityZone)
 
 	if err != nil {
 		return nil, errors.Wrap(err, "gce get machine types")
