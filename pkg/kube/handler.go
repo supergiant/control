@@ -940,6 +940,10 @@ func (h *Handler) getNodesMetrics(w http.ResponseWriter, r *http.Request) {
 		}
 	}
 
+	if k.Provider == clouds.AWS {
+		processAWSMetrics(k, response)
+	}
+
 	err = json.NewEncoder(w).Encode(response)
 
 	if err != nil {
