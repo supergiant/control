@@ -21,17 +21,9 @@
 
 ---
 
-The Supergiant toolkit—Control, Capacity, and Analyze—is built to simplify the administration and operation of Kubernetes. Each tool is rooted in a desire to blaze better trails in DevOps, to put the power of enterprise systems in the hands of any aspiring team or tinkerer.
+Create HA K8s clusters on multiple clouds. Simplify K8s deployment and management, easily configure and deploy Helm releases, and view at-a-glance metrics for cluster usage. Want to skip the rest and install Control? [Get started here](https://supergiant.readme.io/v2.0.0/docs/control-setup).
 
-* Control is the mothership through which clusters can be created, adopted, and modified. It simplifies deployment of Helm releases and provides at-a-glance metrics for cluster resources.
-
-* Capacity asserts through hardware autoscaling that every pod should have a home—but that underutilized infrastructure should not be paid for (and, therefore, should not be running).
-
-* Analyze takes the cumulative experience of our team’s efforts to maximize cluster workloads, and it provides presets and custom “checks” to promote efficiency for applications.
-
-Each tool has a separate UI and API, to give more freedom to end users of all skill levels, or each tool can be used together, in one UI, with Supergiant Control. (_This repository contains Supergiant **Control**._)
-
-# Features of Control
+# Features
 
   * Vanilla, **Certified** Kubernetes (version `1.11.1`)
   * Easy creation of and access to Helm releases
@@ -42,10 +34,14 @@ Each tool has a separate UI and API, to give more freedom to end users of all sk
 
 # Resources
 
-- [Official Website](https://supergiant.io/)
-- [Documentation](https://supergiant.readme.io/v2.0.0/)
+- [Documentation](https://supergiant.readme.io/v2.0.0/docs/control-concepts)
+- [Supergiant Website](https://supergiant.io/)
 - [Slack Channel](https://supergiant.io/slack)
 
-# Community and Contributing
+Control is one of three applications created by Supergiant to simplify the administration and operation of Kubernetes. For information on other Supergiant applications, see:
+* [Supergiant Capacity](https://github.com/supergiant/capacity)
+* [Supergiant Analyze](https://github.com/supergiant/analyze)
+
+# Contributing
 
 We are grateful for any contribution to the Supergiant project, be it in the form of a GitHub issue, a Pull Request, or any social media engagement. :smile: Contributing to Supergiant requires familiarization with the [Community and Contribution Guidelines](https://supergiant.readme.io/v2.0.0/docs/guidelines), where information on development can also be found.
