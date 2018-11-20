@@ -15,6 +15,8 @@ import (
 	"github.com/supergiant/supergiant/pkg/model"
 	"github.com/supergiant/supergiant/pkg/sgerrors"
 	"github.com/supergiant/supergiant/pkg/workflows/steps"
+	"github.com/aws/aws-sdk-go/service/ec2"
+	"github.com/aws/aws-sdk-go/aws"
 )
 
 type mockSizeService struct {
@@ -431,6 +433,151 @@ func TestGCEResourceFinder_GetTypes(t *testing.T) {
 				t.Errorf("Wrong count of types expected %d actual %d",
 					len(testCase.types.Items), len(types))
 			}
+		}
+	}
+}
+
+func TestAWSFinder_GetRegions(t *testing.T) {
+	testCases := []struct {
+		err       error
+		resp     *ec2.DescribeRegionsOutput
+	}{
+		{
+			err: sgerrors.ErrNotFound,
+			resp: nil,
+		},
+		{
+			err: nil,
+			resp: &ec2.DescribeRegionsOutput{
+				Regions:[]*ec2.Region{
+					{
+						RegionName: aws.String("ap-northeast-1"),
+					},
+					{
+						RegionName: aws.String("eu-west-2"),
+					},
+					{
+						RegionName: aws.String("us-west-1"),
+					},
+				},
+			},
+		},
+	}
+
+	for _, testCase := range testCases {
+		awsFinder :=  &AWSFinder{
+			getRegions: func(ctx context.Context, client *ec2.EC2,
+				input *ec2.DescribeRegionsInput) (*ec2.DescribeRegionsOutput, error) {
+				return testCase.resp, testCase.err
+			},
+		}
+
+		resp, err := awsFinder.GetRegions(context.Background())
+
+		if testCase.err != nil && !sgerrors.IsNotFound(err) {
+			t.Errorf("wrong error expected %v actual %v", testCase.err, err)
+		}
+
+		if err == nil && len(resp.Regions) != len(testCase.resp.Regions) {
+			t.Errorf("Wrong count of regions expected %d actual %d",
+				len(testCase.resp.Regions), len(resp.Regions))
+		}
+	}
+}
+
+func TestAWSFinder_GetZones(t *testing.T) {
+	testCases := []struct {
+		err       error
+		resp     *ec2.DescribeAvailabilityZonesOutput
+	}{
+		{
+			err: sgerrors.ErrNotFound,
+			resp: nil,
+		},
+		{
+			err: nil,
+			resp: &ec2.DescribeAvailabilityZonesOutput{
+				AvailabilityZones:[]*ec2.AvailabilityZone{
+					{
+						ZoneName: aws.String("ap-northeast1-b"),
+					},
+					{
+						ZoneName: aws.String("eu-west2-a"),
+					},
+					{
+						ZoneName: aws.String("us-west1-c"),
+					},
+				},
+			},
+		},
+	}
+
+	for _, testCase := range testCases {
+		awsFinder :=  &AWSFinder{
+			getZones: func(ctx context.Context, client *ec2.EC2,
+				input *ec2.DescribeAvailabilityZonesInput) (*ec2.DescribeAvailabilityZonesOutput, error) {
+				return testCase.resp, testCase.err
+			},
+		}
+
+		resp, err := awsFinder.GetZones(context.Background(), steps.Config{})
+
+		if testCase.err != nil && !sgerrors.IsNotFound(err) {
+			t.Errorf("wrong error expected %v actual %v", testCase.err, err)
+		}
+
+		if err == nil && len(resp) != len(testCase.resp.AvailabilityZones) {
+			t.Errorf("Wrong count of regions expected %d actual %d",
+				len(testCase.resp.AvailabilityZones), len(resp))
+		}
+	}
+}
+
+func TestAWSFinder_GetTypes(t *testing.T) {
+	testCases := []struct {
+		err       error
+		resp     *ec2.DescribeReservedInstancesOfferingsOutput
+	}{
+		{
+			err: sgerrors.ErrNotFound,
+			resp: nil,
+		},
+		{
+			err: nil,
+			resp: &ec2.DescribeReservedInstancesOfferingsOutput{
+				ReservedInstancesOfferings:[]*ec2.ReservedInstancesOffering{
+					{
+						InstanceType: aws.String("t3.medium"),
+					},
+					{
+						InstanceType: aws.String("c5.2xlarge"),
+					},
+					{
+						InstanceType: aws.String("r5d.xlarge"),
+					},
+				},
+			},
+		},
+	}
+
+	for _, testCase := range testCases {
+		awsFinder :=  &AWSFinder{
+			getTypes: func(ctx context.Context, client *ec2.EC2,
+				input *ec2.DescribeReservedInstancesOfferingsInput) (*ec2.DescribeReservedInstancesOfferingsOutput,
+					error) {
+				return testCase.resp, testCase.err
+			},
+		}
+
+		resp, err := awsFinder.GetTypes(context.Background(), steps.Config{})
+
+		if testCase.err != nil && !sgerrors.IsNotFound(err) {
+			t.Errorf("wrong error expected %v actual %v", testCase.err, err)
+		}
+
+		if err == nil && len(resp) != len(testCase.resp.ReservedInstancesOfferings) {
+			t.Errorf("Wrong count of regions expected %d actual %d",
+				len(testCase.resp.ReservedInstancesOfferings), len(resp))
 		}
 	}
 }
