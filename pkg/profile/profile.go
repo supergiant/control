@@ -22,6 +22,8 @@ type Profile struct {
 	NetworkType            string                `json:"networkType" valid:"-"`
 	CIDR                   string                `json:"cidr" valid:"-"`
 	HelmVersion            string                `json:"helmVersion" valid:"-"`
+	User                   string                `json:"user" valid:"-"`
+	Password               string                `json:"password" valid:"-"`
 	RBACEnabled            bool                  `json:"rbacEnabled" valid:"-"`
 	CloudSpecificSettings  CloudSpecificSettings `json:"cloudSpecificSettings" valid:"-"`
 	PublicKey              string                `json:"publicKey" valid:"-"`

@@ -108,8 +108,8 @@ func Init() {
 	awsMasterWorkflow := []steps.Step{
 		steps.GetStep(amazon.StepNameCreateEC2Instance),
 		steps.GetStep(ssh.StepName),
-		steps.GetStep(downloadk8sbinary.StepName),
 		steps.GetStep(authorizedKeys.StepName),
+		steps.GetStep(downloadk8sbinary.StepName),
 		steps.GetStep(docker.StepName),
 		steps.GetStep(cni.StepName),
 		steps.GetStep(etcd.StepName),

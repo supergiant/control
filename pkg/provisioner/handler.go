@@ -94,6 +94,11 @@ func (h *Handler) Provision(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	if req.Profile.User == "" || req.Profile.Password == "" {
+		req.Profile.User = "root"
+		req.Profile.Password = "1234"
+	}
+
 	logrus.Infof("Got discoveryUrl %s", discoveryUrl)
 	config := steps.NewConfig(req.ClusterName, discoveryUrl,
 		req.CloudAccountName, req.Profile)

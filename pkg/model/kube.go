@@ -28,6 +28,8 @@ type Kube struct {
 	Auth         Auth      `json:"auth"`
 	SshUser      string    `json:"sshUser"`
 	SshPublicKey []byte    `json:"sshKey"`
+	User                   string                `json:"user" valid:"-"`
+	Password               string                `json:"password" valid:"-"`
 
 	Arch                   string     `json:"arch"`
 	OperatingSystem        string     `json:"operatingSystem"`
