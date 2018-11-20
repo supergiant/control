@@ -2,22 +2,23 @@ package kube
 
 import (
 	"testing"
-	"github.com/supergiant/supergiant/pkg/model"
+
 	"github.com/supergiant/supergiant/pkg/clouds"
+	"github.com/supergiant/supergiant/pkg/model"
 	"github.com/supergiant/supergiant/pkg/node"
 )
 
 func TestIp2Host(t *testing.T) {
-	testCases := []struct{
-		ip string
+	testCases := []struct {
+		ip   string
 		host string
 	}{
 		{
-			ip: "172.16.10.2",
+			ip:   "172.16.10.2",
 			host: "ip-172-16-10-2",
 		},
 		{
-			ip: "",
+			ip:   "",
 			host: "ip-",
 		},
 	}
@@ -35,18 +36,18 @@ func TestIp2Host(t *testing.T) {
 func TestProcessAWSMetrics(t *testing.T) {
 	masters := map[string]*node.Node{
 		"master-1": {
-			Name: "master-1",
+			Name:      "master-1",
 			PrivateIp: "10.20.30.40",
 		},
 	}
 
 	nodes := map[string]*node.Node{
 		"node-1": {
-			Name: "node-1",
+			Name:      "node-1",
 			PrivateIp: "172.16.0.1",
 		},
 		"node-2": {
-			Name: "node-2",
+			Name:      "node-2",
 			PrivateIp: "172.16.0.2",
 		},
 	}
@@ -59,8 +60,8 @@ func TestProcessAWSMetrics(t *testing.T) {
 
 	metrics := map[string]map[string]interface{}{
 		"ip-10-20-30-40": {},
-		"ip-172-16-0-1": {},
-		"ip-172-16-0-2": {},
+		"ip-172-16-0-1":  {},
+		"ip-172-16-0-2":  {},
 	}
 
 	processAWSMetrics(k, metrics)
