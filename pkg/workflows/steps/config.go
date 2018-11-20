@@ -322,7 +322,7 @@ func NewConfig(clusterName, discoveryUrl, cloudAccountName string, profile profi
 		},
 		SshConfig: SshConfig{
 			Port:      "22",
-			User:      profile.User,
+			User:      "root",
 			Timeout:   10,
 			PublicKey: profile.PublicKey,
 		},

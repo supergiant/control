@@ -974,9 +974,9 @@ func (h *Handler) getServices(w http.ResponseWriter, r *http.Request) {
 		}
 	}
 
-	url := fmt.Sprintf("https://%s/%s", masterNode.PublicIp, servicesUrl)
-	req, err := http.NewRequest(http.MethodGet, url, nil)
-	req.SetBasicAuth("root", "1234")
+	serviceURL := fmt.Sprintf("https://%s/%s", masterNode.PublicIp, servicesUrl)
+	req, err := http.NewRequest(http.MethodGet, serviceURL, nil)
+	req.SetBasicAuth(k.User, k.Password)
 
 	tr := &http.Transport{
 		TLSClientConfig: &tls.Config{InsecureSkipVerify: true},
@@ -1036,8 +1036,21 @@ func (h *Handler) proxyService(w http.ResponseWriter, r *http.Request) {
 	serviceProxy := &ServiceProxy{}
 	err := json.NewDecoder(r.Body).Decode(serviceProxy)
 
+	vars := mux.Vars(r)
+	kubeID := vars["kubeID"]
+
+	k, err := h.svc.Get(r.Context(), kubeID)
+	if err != nil {
+		if sgerrors.IsNotFound(err) {
+			message.SendNotFound(w, kubeID, err)
+			return
+		}
+		message.SendUnknownError(w, err)
+		return
+	}
+
 	req, err := http.NewRequest(http.MethodGet, serviceProxy.SelfLink, nil)
-	req.SetBasicAuth("root", "1234")
+	req.SetBasicAuth(k.User, k.Password)
 
 	tr := &http.Transport{
 		TLSClientConfig: &tls.Config{InsecureSkipVerify: true},
@@ -1071,12 +1084,25 @@ func (h *Handler) proxyServiceGet(w http.ResponseWriter, r *http.Request) {
 	serviceUrl, err := url.QueryUnescape(u)
 
 	if err != nil {
-		http.Error(w, fmt.Sprintf("unescae url %s", serviceUrl), http.StatusBadRequest)
+		http.Error(w, fmt.Sprintf("unescaped url %s", serviceUrl), http.StatusBadRequest)
+		return
+	}
+
+	vars := mux.Vars(r)
+	kubeID := vars["kubeID"]
+
+	k, err := h.svc.Get(r.Context(), kubeID)
+	if err != nil {
+		if sgerrors.IsNotFound(err) {
+			message.SendNotFound(w, kubeID, err)
+			return
+		}
+		message.SendUnknownError(w, err)
 		return
 	}
 
 	req, err := http.NewRequest(http.MethodGet, serviceUrl, nil)
-	req.SetBasicAuth("root", "1234")
+	req.SetBasicAuth(k.User, k.Password)
 
 	tr := &http.Transport{
 		TLSClientConfig: &tls.Config{InsecureSkipVerify: true},
