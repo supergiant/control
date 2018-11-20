@@ -274,8 +274,8 @@ func NewConfig(clusterName, discoveryUrl, cloudAccountName string, profile profi
 		},
 		CertificatesConfig: CertificatesConfig{
 			KubernetesConfigDir: "/etc/kubernetes",
-			Username:            "root",
-			Password:            "1234",
+			Username:            profile.User,
+			Password:            profile.Password,
 		},
 		NetworkConfig: NetworkConfig{
 			EtcdRepositoryUrl: "https://github.com/coreos/etcd/releases/download",
@@ -291,7 +291,8 @@ func NewConfig(clusterName, discoveryUrl, cloudAccountName string, profile profi
 		FlannelConfig: FlannelConfig{
 			Arch:    profile.Arch,
 			Version: profile.FlannelVersion,
-			// TODO(stgleb): this should be configurable from user side
+			// NOTE(stgleb): this is any host by default works on master nodes
+			// on worker node this host is changed by any master ip address
 			EtcdHost: "0.0.0.0",
 		},
 		KubeletConfig: KubeletConfig{
@@ -309,7 +310,7 @@ func NewConfig(clusterName, discoveryUrl, cloudAccountName string, profile profi
 		PostStartConfig: PostStartConfig{
 			Host:        "localhost",
 			Port:        "8080",
-			Username:    "root",
+			Username:    profile.User,
 			RBACEnabled: profile.RBACEnabled,
 			Timeout:     600,
 		},
@@ -321,7 +322,7 @@ func NewConfig(clusterName, discoveryUrl, cloudAccountName string, profile profi
 		},
 		SshConfig: SshConfig{
 			Port:      "22",
-			User:      "root",
+			User:      profile.User,
 			Timeout:   10,
 			PublicKey: profile.PublicKey,
 		},

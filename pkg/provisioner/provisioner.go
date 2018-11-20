@@ -430,6 +430,8 @@ func (tp *TaskProvisioner) buildInitialCluster(ctx context.Context,
 		Zone:         profile.Zone,
 		SshUser:      config.SshConfig.User,
 		SshPublicKey: []byte(config.SshConfig.PublicKey),
+		User: profile.User,
+		Password: profile.Password,
 
 		Auth: model.Auth{
 			Username:  config.CertificatesConfig.Username,

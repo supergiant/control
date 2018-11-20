@@ -535,6 +535,8 @@ func (h *Handler) addNode(w http.ResponseWriter, r *http.Request) {
 		DockerVersion:   k.DockerVersion,
 		K8SVersion:      k.K8SVersion,
 		HelmVersion:     k.HelmVersion,
+		User:            k.User,
+		Password:        k.Password,
 
 		NetworkType:           k.Networking.Type,
 		CIDR:                  k.Networking.CIDR,
