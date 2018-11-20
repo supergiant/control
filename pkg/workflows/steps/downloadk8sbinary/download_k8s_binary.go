@@ -9,6 +9,7 @@ import (
 
 	tm "github.com/supergiant/supergiant/pkg/templatemanager"
 	"github.com/supergiant/supergiant/pkg/workflows/steps"
+	"fmt"
 )
 
 const StepName = "download_kubernetes_binary"
@@ -18,7 +19,13 @@ type Step struct {
 }
 
 func Init() {
-	steps.RegisterStep(StepName, New(tm.GetTemplate(StepName)))
+	tpl, err := tm.GetTemplate(StepName)
+
+	if err != nil {
+		panic(fmt.Sprintf("get template error %v %s", err, StepName))
+	}
+
+	steps.RegisterStep(StepName, New(tpl))
 }
 
 func New(tpl *template.Template) *Step {
