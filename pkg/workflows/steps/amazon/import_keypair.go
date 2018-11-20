@@ -19,7 +19,7 @@ import (
 const StepImportKeyPair = "awskeypairstep"
 
 var (
-	keyPairAttemptCount = 10
+	keyPairAttemptCount = 5
 )
 
 //KeyPairStep represents creation of keypair in aws

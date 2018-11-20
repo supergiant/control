@@ -21,7 +21,7 @@ import (
 
 const (
 	StepNameCreateEC2Instance = "aws_create_instance"
-	IPAttempts                = 10
+	IPAttempts                = 5
 	SleepSecondsPerAttempt    = 6
 	timeout                   = time.Second * 10
 )
