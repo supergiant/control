@@ -56,6 +56,7 @@ func (s *StepCreateInstance) Run(ctx context.Context, w io.Writer, cfg *steps.Co
 		TaskID:   cfg.TaskID,
 		Region:   cfg.AWSConfig.Region,
 		Role:     role,
+		Size: 	  cfg.AWSConfig.InstanceType,
 		Provider: clouds.AWS,
 		State:    node.StatePlanned,
 	}
@@ -155,12 +156,14 @@ func (s *StepCreateInstance) Run(ctx context.Context, w io.Writer, cfg *steps.Co
 		return errors.Wrap(ErrCreateInstance, err.Error())
 	}
 
+
 	cfg.Node = node.Node{
 		Name:     nodeName,
 		TaskID:   cfg.TaskID,
 		Region:   cfg.AWSConfig.Region,
 		Role:     role,
 		Provider: clouds.AWS,
+		Size: 	  cfg.AWSConfig.InstanceType,
 		State:    node.StateBuilding,
 	}
 
