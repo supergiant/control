@@ -21,7 +21,7 @@
 
 ---
 
-Create HA K8s clusters on multiple clouds. Simplify K8s deployment and management, easily configure and deploy Helm releases, and view at-a-glance metrics for cluster usage.
+Create HA K8s clusters on multiple clouds. Simplify K8s deployment and management, easily configure and deploy Helm releases, and view at-a-glance metrics for cluster usage. Want to skip the rest and install Control? [Get started here](https://supergiant.readme.io/v2.0.0/docs/control-setup).
 
 # Features
 
@@ -34,7 +34,7 @@ Create HA K8s clusters on multiple clouds. Simplify K8s deployment and managemen
 
 # Resources
 
-- [Documentation](https://supergiant.readme.io/v2.0.0/)
+- [Documentation](https://supergiant.readme.io/v2.0.0/docs/control-concepts)
 - [Supergiant Website](https://supergiant.io/)
 - [Slack Channel](https://supergiant.io/slack)
 
