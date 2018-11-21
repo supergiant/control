@@ -80,6 +80,7 @@ func TestFlannelJob_InstallFlannel(t *testing.T) {
 
 		config := steps.NewConfig("", "", "", profile.Profile{})
 		config.FlannelConfig = steps.FlannelConfig{
+			true,
 			testCase.version,
 			testCase.arch,
 			etcdHost,
