@@ -15,7 +15,7 @@ env:
 go:
   - "1.10"
 
-go_import_path: github.com/supergiant/control
+go_import_path: github.com/supergiant/supergiant
 
 before_install:
   - sudo apt-get update
