@@ -1,6 +1,6 @@
 sudo mkdir -p {{ .DataDir }}
 
-ETCD_VER=v3.3.9
+ETCD_VER=v{{ .Version}}
 
 # choose either URL
 GOOGLE_URL=https://storage.googleapis.com/etcd
