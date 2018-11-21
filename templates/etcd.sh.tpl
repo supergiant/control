@@ -30,7 +30,7 @@ LimitNOFILE=40000
 TimeoutStartSec={{ .StartTimeout }}s
 
 ExecStart=/usr/bin/etcd --name {{ .Name }} \
-            --data-dir /etcd-data \
+            --data-dir {{ .DataDir }} \
             --listen-client-urls http://{{ .Host }}:{{ .ServicePort }} \
             --advertise-client-urls http://{{ .AdvertiseHost }}:{{ .ServicePort }} \
             --listen-peer-urls http://{{ .Host }}:{{ .ManagementPort }} \

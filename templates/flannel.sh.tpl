@@ -19,6 +19,9 @@ Restart=always
 Environment=FLANNEL_IMAGE_TAG=v{{ .Version }}
 Environment="ETCDCTL_API=3"
 ExecStart=/usr/bin/flanneld --etcd-endpoints=http://{{ .EtcdHost }}:2379
+StartLimitInterval=0
+RestartSec=10
+TimeoutStartSec=10
 
 [Install]
 WantedBy=multi-user.target

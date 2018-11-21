@@ -334,7 +334,7 @@ func NewConfig(clusterName, discoveryUrl, cloudAccountName string, profile profi
 			Name:           "etcd0",
 			Version:        "3.3.9",
 			Host:           "0.0.0.0",
-			DataDir:        "/tmp/etcd-data",
+			DataDir:        "/var/supergiant/etcd-data",
 			ServicePort:    "2379",
 			ManagementPort: "2380",
 			Timeout:        time.Minute * 10,

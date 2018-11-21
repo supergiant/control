@@ -27,4 +27,9 @@ echo "PostStart started"
     sudo kubectl config use-context default-system
 {{ end }}
 
+sudo bash -c "cat << EOF > /etc/security/limits.conf
+root soft  nofile 300000
+root hard  nofile 300000
+EOF"
+
 echo "PostStart finished"
