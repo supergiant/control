@@ -40,7 +40,6 @@ func InitImportKeyPair(fn GetEC2Fn) {
 }
 
 //Verifies that a key exists,
-
 func (s *KeyPairStep) Run(ctx context.Context, w io.Writer, cfg *steps.Config) error {
 	log := util.GetLogger(w)
 
@@ -49,7 +48,16 @@ func (s *KeyPairStep) Run(ctx context.Context, w io.Writer, cfg *steps.Config) e
 		return ErrAuthorization
 	}
 
-	bootstrapKeyPairName := util.MakeKeyName(cfg.ClusterName, false)
+	if len(cfg.ClusterID) < 4 {
+		return errors.New("Cluster ID is too short")
+	}
+
+	// NOTE(stgleb): Add unique part to key pair name that allows to
+	// create cluster with the same name and avoid name collision of key pairs.
+	bootstrapKeyPairName := util.MakeKeyName(fmt.Sprintf("%s-%s",
+		cfg.ClusterName,
+		cfg.ClusterID[:4]),
+		false)
 	log.Infof("[%s] - importing cluster bootstrap key as keypair %s",
 		s.Name(), bootstrapKeyPairName)
 	req := &ec2.ImportKeyPairInput{
