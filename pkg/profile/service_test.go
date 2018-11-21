@@ -7,7 +7,7 @@ import (
 
 	"github.com/pkg/errors"
 
-	"github.com/supergiant/supergiant/pkg/testutils"
+	"github.com/supergiant/control/pkg/testutils"
 )
 
 func TestKubeProfileServiceGet(t *testing.T) {

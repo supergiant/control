@@ -8,8 +8,8 @@ import (
 
 	"github.com/digitalocean/godo"
 
-	"github.com/supergiant/supergiant/pkg/clouds/digitaloceansdk"
-	"github.com/supergiant/supergiant/pkg/workflows/steps"
+	"github.com/supergiant/control/pkg/clouds/digitaloceansdk"
+	"github.com/supergiant/control/pkg/workflows/steps"
 )
 
 type DeleteMachineStep struct {

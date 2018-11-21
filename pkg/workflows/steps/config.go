@@ -5,12 +5,12 @@ import (
 	"sync"
 	"time"
 
-	"github.com/supergiant/supergiant/pkg/clouds"
-	"github.com/supergiant/supergiant/pkg/model"
-	"github.com/supergiant/supergiant/pkg/node"
-	"github.com/supergiant/supergiant/pkg/profile"
-	"github.com/supergiant/supergiant/pkg/runner"
-	"github.com/supergiant/supergiant/pkg/storage"
+	"github.com/supergiant/control/pkg/clouds"
+	"github.com/supergiant/control/pkg/model"
+	"github.com/supergiant/control/pkg/node"
+	"github.com/supergiant/control/pkg/profile"
+	"github.com/supergiant/control/pkg/runner"
+	"github.com/supergiant/control/pkg/storage"
 )
 
 type CertificatesConfig struct {
@@ -80,6 +80,7 @@ type AWSConfig struct {
 }
 
 type FlannelConfig struct {
+	IsMaster bool   `json:"isMaster"`
 	Arch     string `json:"arch"`
 	Version  string `json:"version"`
 	EtcdHost string `json:"etcdHost"`
@@ -111,6 +112,7 @@ type ManifestConfig struct {
 	ProviderString      string `json:"providerString"`
 	MasterHost          string `json:"masterHost"`
 	MasterPort          string `json:"masterPort"`
+	Password            string `json:"password"`
 }
 
 type PostStartConfig struct {
@@ -306,6 +308,7 @@ func NewConfig(clusterName, discoveryUrl, cloudAccountName string, profile profi
 			ProviderString:      "todo",
 			MasterHost:          "localhost",
 			MasterPort:          "8080",
+			Password:            profile.Password,
 		},
 		PostStartConfig: PostStartConfig{
 			Host:        "localhost",
@@ -331,7 +334,7 @@ func NewConfig(clusterName, discoveryUrl, cloudAccountName string, profile profi
 			Name:           "etcd0",
 			Version:        "3.3.9",
 			Host:           "0.0.0.0",
-			DataDir:        "/tmp/etcd-data",
+			DataDir:        "/var/supergiant/etcd-data",
 			ServicePort:    "2379",
 			ManagementPort: "2380",
 			Timeout:        time.Minute * 10,

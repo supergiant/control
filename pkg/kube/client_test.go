@@ -6,9 +6,9 @@ import (
 	"github.com/pkg/errors"
 	"k8s.io/apimachinery/pkg/runtime/schema"
 
-	"github.com/supergiant/supergiant/pkg/model"
-	"github.com/supergiant/supergiant/pkg/node"
-	"github.com/supergiant/supergiant/pkg/sgerrors"
+	"github.com/supergiant/control/pkg/model"
+	"github.com/supergiant/control/pkg/node"
+	"github.com/supergiant/control/pkg/sgerrors"
 )
 
 func TestRestClientForGroupVersion(t *testing.T) {

@@ -10,9 +10,9 @@ import (
 
 	"github.com/pkg/errors"
 
-	"github.com/supergiant/supergiant/pkg/templatemanager"
-	"github.com/supergiant/supergiant/pkg/testutils"
-	"github.com/supergiant/supergiant/pkg/workflows/steps"
+	"github.com/supergiant/control/pkg/templatemanager"
+	"github.com/supergiant/control/pkg/testutils"
+	"github.com/supergiant/control/pkg/workflows/steps"
 )
 
 func TestDownloadK8SBinary(t *testing.T) {

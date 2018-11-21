@@ -10,8 +10,8 @@ import (
 	log "github.com/sirupsen/logrus"
 	"k8s.io/helm/pkg/repo"
 
-	"github.com/supergiant/supergiant/pkg/message"
-	"github.com/supergiant/supergiant/pkg/sgerrors"
+	"github.com/supergiant/control/pkg/message"
+	"github.com/supergiant/control/pkg/sgerrors"
 )
 
 // Handler is a http controller for a helm repositories.

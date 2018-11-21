@@ -4,7 +4,7 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/supergiant/supergiant/pkg/util"
+	"github.com/supergiant/control/pkg/util"
 )
 
 func TestBindParams(t *testing.T) {

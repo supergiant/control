@@ -3,8 +3,8 @@ package workflows
 import (
 	"encoding/json"
 
-	"github.com/supergiant/supergiant/pkg/runner/ssh"
-	"github.com/supergiant/supergiant/pkg/storage"
+	"github.com/supergiant/control/pkg/runner/ssh"
+	"github.com/supergiant/control/pkg/storage"
 )
 
 func DeserializeTask(data []byte, repository storage.Interface) (*Task, error) {
