@@ -11,8 +11,8 @@ import (
 	"github.com/aws/aws-sdk-go/service/ec2/ec2iface"
 	"github.com/stretchr/testify/require"
 
-	"github.com/supergiant/supergiant/pkg/profile"
-	"github.com/supergiant/supergiant/pkg/workflows/steps"
+	"github.com/supergiant/control/pkg/profile"
+	"github.com/supergiant/control/pkg/workflows/steps"
 )
 
 type FakeEC2KeyPair struct {

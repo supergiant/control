@@ -8,7 +8,7 @@ import (
 	compute "google.golang.org/api/compute/v1"
 
 	"fmt"
-	"github.com/supergiant/supergiant/pkg/workflows/steps"
+	"github.com/supergiant/control/pkg/workflows/steps"
 )
 
 const DeleteNodeStepName = "gce_delete_node"

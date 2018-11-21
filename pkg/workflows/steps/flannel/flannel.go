@@ -4,14 +4,14 @@ import (
 	"context"
 	"io"
 	"text/template"
+	"fmt"
 
 	"github.com/pkg/errors"
 
-	tm "github.com/supergiant/supergiant/pkg/templatemanager"
-	"github.com/supergiant/supergiant/pkg/workflows/steps"
-	"github.com/supergiant/supergiant/pkg/workflows/steps/etcd"
-	"github.com/supergiant/supergiant/pkg/workflows/steps/network"
-	"fmt"
+	tm "github.com/supergiant/control/pkg/templatemanager"
+	"github.com/supergiant/control/pkg/workflows/steps"
+	"github.com/supergiant/control/pkg/workflows/steps/etcd"
+	"github.com/supergiant/control/pkg/workflows/steps/network"
 )
 
 const StepName = "flannel"

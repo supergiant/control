@@ -11,7 +11,7 @@ import (
 	"github.com/dgrijalva/jwt-go"
 	"github.com/gorilla/mux"
 
-	sgjwt "github.com/supergiant/supergiant/pkg/jwt"
+	sgjwt "github.com/supergiant/control/pkg/jwt"
 )
 
 func TestAuthMiddleware(t *testing.T) {

@@ -14,12 +14,12 @@ import (
 	"github.com/pkg/errors"
 	compute "google.golang.org/api/compute/v1"
 
-	"github.com/supergiant/supergiant/pkg/clouds"
-	"github.com/supergiant/supergiant/pkg/clouds/digitaloceansdk"
-	"github.com/supergiant/supergiant/pkg/model"
-	"github.com/supergiant/supergiant/pkg/util"
-	"github.com/supergiant/supergiant/pkg/workflows/steps"
-	"github.com/supergiant/supergiant/pkg/workflows/steps/gce"
+	"github.com/supergiant/control/pkg/clouds"
+	"github.com/supergiant/control/pkg/clouds/digitaloceansdk"
+	"github.com/supergiant/control/pkg/model"
+	"github.com/supergiant/control/pkg/util"
+	"github.com/supergiant/control/pkg/workflows/steps"
+	"github.com/supergiant/control/pkg/workflows/steps/gce"
 )
 
 var (

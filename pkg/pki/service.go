@@ -6,7 +6,7 @@ import (
 
 	"github.com/satori/go.uuid"
 
-	"github.com/supergiant/supergiant/pkg/storage"
+	"github.com/supergiant/control/pkg/storage"
 )
 
 type Service struct {

@@ -12,8 +12,8 @@ import (
 	"github.com/pkg/errors"
 	"github.com/stretchr/testify/mock"
 
-	"github.com/supergiant/supergiant/pkg/node"
-	"github.com/supergiant/supergiant/pkg/workflows/steps"
+	"github.com/supergiant/control/pkg/node"
+	"github.com/supergiant/control/pkg/workflows/steps"
 )
 
 func TestDeleteMachineRun(t *testing.T) {

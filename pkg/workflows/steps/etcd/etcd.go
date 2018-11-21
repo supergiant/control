@@ -4,13 +4,13 @@ import (
 	"context"
 	"io"
 	"text/template"
+	"fmt"
 
 	"github.com/pkg/errors"
 
-	tm "github.com/supergiant/supergiant/pkg/templatemanager"
-	"github.com/supergiant/supergiant/pkg/workflows/steps"
-	"github.com/supergiant/supergiant/pkg/workflows/steps/docker"
-	"fmt"
+	tm "github.com/supergiant/control/pkg/templatemanager"
+	"github.com/supergiant/control/pkg/workflows/steps"
+	"github.com/supergiant/control/pkg/workflows/steps/docker"
 )
 
 const StepName = "etcd"

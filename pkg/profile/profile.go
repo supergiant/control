@@ -1,6 +1,6 @@
 package profile
 
-import "github.com/supergiant/supergiant/pkg/clouds"
+import "github.com/supergiant/control/pkg/clouds"
 
 type Profile struct {
 	ID string `json:"id" valid:"required"`
