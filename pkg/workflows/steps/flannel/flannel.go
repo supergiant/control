@@ -37,6 +37,8 @@ func New(tpl *template.Template) *Step {
 }
 
 func (t *Step) Run(ctx context.Context, out io.Writer, config *steps.Config) error {
+	config.FlannelConfig.IsMaster = config.IsMaster
+
 	if !config.IsMaster {
 		config.FlannelConfig.EtcdHost = config.GetMaster().PrivateIp
 	}
