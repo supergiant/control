@@ -2,7 +2,6 @@ echo "PostStart started"
 
 {{ if .IsMaster }}
     until $(curl --output /dev/null --silent --head --fail http://{{ .Host }}:{{ .Port }}); do printf '.'; sleep 5; done
-    curl -XPOST -H 'Content-type: application/json' -d'{"apiVersion":"v1","kind":"Namespace","metadata":{"name":"kube-system"}}' http://{{ .Host }}:{{ .Port }}/api/v1/namespaces
     sudo kubectl config set-cluster default-cluster --server="{{ .Host }}:{{ .Port }}"
     sudo kubectl config set-context default-system --cluster=default-cluster --user=default-admin
     sudo kubectl config use-context default-system
@@ -23,7 +22,9 @@ echo "PostStart started"
     sudo kubectl config set-context default-system --cluster=default-cluster --user=default-admin
     sudo kubectl config use-context default-system
 
-    sudo kubectl --kubeconfig /etc/kubernetes/worker-kubeconfig.yaml config set-credentials kubelet --client-certificate /etc/kubernetes/ssl/worker.pem --client-key /etc/kubernetes/ssl/worker-key.pem --server=https://{{ .Host }}
+    sudo kubectl config set-cluster default-cluster --server="{{ .Host }}:{{ .Port }}"
+    sudo kubectl config set-context default-system --cluster=default-cluster --user=default-admin
+    sudo kubectl config use-context default-system
 {{ end }}
 
 echo "PostStart finished"
