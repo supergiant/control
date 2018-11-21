@@ -2,7 +2,7 @@ package templatemanager
 
 import (
 	"testing"
-	"github.com/supergiant/supergiant/pkg/sgerrors"
+	"github.com/supergiant/control/pkg/sgerrors"
 	"text/template"
 )
 

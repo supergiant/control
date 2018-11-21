@@ -6,8 +6,8 @@ import (
 
 	"github.com/pkg/errors"
 
-	"github.com/supergiant/supergiant/pkg/runner/ssh"
-	"github.com/supergiant/supergiant/pkg/workflows/steps"
+	"github.com/supergiant/control/pkg/runner/ssh"
+	"github.com/supergiant/control/pkg/workflows/steps"
 )
 
 const StepName = "ssh"

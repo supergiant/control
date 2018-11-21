@@ -11,11 +11,11 @@ import (
 
 	"github.com/pkg/errors"
 
-	"github.com/supergiant/supergiant/pkg/runner"
-	"github.com/supergiant/supergiant/pkg/templatemanager"
-	"github.com/supergiant/supergiant/pkg/workflows/steps"
-	"github.com/supergiant/supergiant/pkg/workflows/steps/docker"
-	"github.com/supergiant/supergiant/pkg/workflows/steps/manifest"
+	"github.com/supergiant/control/pkg/runner"
+	"github.com/supergiant/control/pkg/templatemanager"
+	"github.com/supergiant/control/pkg/workflows/steps"
+	"github.com/supergiant/control/pkg/workflows/steps/docker"
+	"github.com/supergiant/control/pkg/workflows/steps/manifest"
 )
 
 type fakeRunner struct {

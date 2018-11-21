@@ -10,14 +10,14 @@ import (
 	"github.com/sirupsen/logrus"
 	"gopkg.in/asaskevich/govalidator.v8"
 
-	"github.com/supergiant/supergiant/pkg/account"
-	"github.com/supergiant/supergiant/pkg/message"
-	"github.com/supergiant/supergiant/pkg/model"
-	"github.com/supergiant/supergiant/pkg/profile"
-	"github.com/supergiant/supergiant/pkg/sgerrors"
-	"github.com/supergiant/supergiant/pkg/util"
-	"github.com/supergiant/supergiant/pkg/workflows"
-	"github.com/supergiant/supergiant/pkg/workflows/steps"
+	"github.com/supergiant/control/pkg/account"
+	"github.com/supergiant/control/pkg/message"
+	"github.com/supergiant/control/pkg/model"
+	"github.com/supergiant/control/pkg/profile"
+	"github.com/supergiant/control/pkg/sgerrors"
+	"github.com/supergiant/control/pkg/util"
+	"github.com/supergiant/control/pkg/workflows"
+	"github.com/supergiant/control/pkg/workflows/steps"
 )
 
 type AccountGetter interface {

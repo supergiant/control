@@ -7,8 +7,8 @@ import (
 
 	"github.com/pkg/errors"
 
-	tm "github.com/supergiant/supergiant/pkg/templatemanager"
-	"github.com/supergiant/supergiant/pkg/workflows/steps"
+	tm "github.com/supergiant/control/pkg/templatemanager"
+	"github.com/supergiant/control/pkg/workflows/steps"
 	"fmt"
 )
 

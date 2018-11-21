@@ -8,8 +8,8 @@ import (
 	"github.com/pkg/errors"
 	"github.com/stretchr/testify/require"
 
-	"github.com/supergiant/supergiant/pkg/runner"
-	"github.com/supergiant/supergiant/pkg/runner/ssh"
+	"github.com/supergiant/control/pkg/runner"
+	"github.com/supergiant/control/pkg/runner/ssh"
 )
 
 var (

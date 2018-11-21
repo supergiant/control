@@ -8,7 +8,7 @@ import (
 	"sync"
 	"text/template"
 
-	"github.com/supergiant/supergiant/pkg/sgerrors"
+	"github.com/supergiant/control/pkg/sgerrors"
 )
 
 var (

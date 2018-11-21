@@ -5,9 +5,9 @@ import (
 	"io/ioutil"
 	"testing"
 
-	"github.com/supergiant/supergiant/pkg/node"
-	"github.com/supergiant/supergiant/pkg/profile"
-	"github.com/supergiant/supergiant/pkg/workflows/steps"
+	"github.com/supergiant/control/pkg/node"
+	"github.com/supergiant/control/pkg/profile"
+	"github.com/supergiant/control/pkg/workflows/steps"
 )
 
 var privateKey = `-----BEGIN RSA PRIVATE KEY-----

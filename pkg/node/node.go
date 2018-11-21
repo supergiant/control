@@ -3,7 +3,7 @@ package node
 import (
 	"fmt"
 
-	"github.com/supergiant/supergiant/pkg/clouds"
+	"github.com/supergiant/control/pkg/clouds"
 )
 
 type NodeState string

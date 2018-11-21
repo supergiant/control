@@ -9,10 +9,10 @@ import (
 
 	"github.com/coreos/etcd/clientv3"
 
-	"github.com/supergiant/supergiant/pkg/profile"
-	"github.com/supergiant/supergiant/pkg/sgerrors"
-	"github.com/supergiant/supergiant/pkg/storage"
-	"github.com/supergiant/supergiant/pkg/testutils/assert"
+	"github.com/supergiant/control/pkg/profile"
+	"github.com/supergiant/control/pkg/sgerrors"
+	"github.com/supergiant/control/pkg/storage"
+	"github.com/supergiant/control/pkg/testutils/assert"
 )
 
 const (

@@ -9,14 +9,15 @@ import (
 	"github.com/pkg/errors"
 	"github.com/stretchr/testify/mock"
 
-	compute "google.golang.org/api/compute/v1"
-
-	"github.com/supergiant/supergiant/pkg/clouds"
-	"github.com/supergiant/supergiant/pkg/model"
-	"github.com/supergiant/supergiant/pkg/sgerrors"
-	"github.com/supergiant/supergiant/pkg/workflows/steps"
 	"github.com/aws/aws-sdk-go/service/ec2"
 	"github.com/aws/aws-sdk-go/aws"
+
+	compute "google.golang.org/api/compute/v1"
+
+	"github.com/supergiant/control/pkg/clouds"
+	"github.com/supergiant/control/pkg/model"
+	"github.com/supergiant/control/pkg/sgerrors"
+	"github.com/supergiant/control/pkg/workflows/steps"
 )
 
 type mockSizeService struct {

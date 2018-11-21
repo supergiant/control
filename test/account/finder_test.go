@@ -15,11 +15,11 @@ import (
 	"github.com/sirupsen/logrus"
 	"github.com/stretchr/testify/require"
 
-	"github.com/supergiant/supergiant/pkg/account"
-	"github.com/supergiant/supergiant/pkg/clouds"
-	"github.com/supergiant/supergiant/pkg/model"
-	"github.com/supergiant/supergiant/pkg/storage"
-	"github.com/supergiant/supergiant/pkg/testutils/assert"
+	"github.com/supergiant/control/pkg/account"
+	"github.com/supergiant/control/pkg/clouds"
+	"github.com/supergiant/control/pkg/model"
+	"github.com/supergiant/control/pkg/storage"
+	"github.com/supergiant/control/pkg/testutils/assert"
 )
 
 const defaultETCDHost = "http://127.0.0.1:2379"

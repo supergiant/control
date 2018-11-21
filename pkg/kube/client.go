@@ -12,9 +12,9 @@ import (
 	"k8s.io/client-go/tools/clientcmd"
 	clientcmddapi "k8s.io/client-go/tools/clientcmd/api"
 
-	"github.com/supergiant/supergiant/pkg/model"
-	"github.com/supergiant/supergiant/pkg/sgerrors"
-	"github.com/supergiant/supergiant/pkg/util"
+	"github.com/supergiant/control/pkg/model"
+	"github.com/supergiant/control/pkg/sgerrors"
+	"github.com/supergiant/control/pkg/util"
 )
 
 func NewConfigFor(k *model.Kube) (*rest.Config, error) {

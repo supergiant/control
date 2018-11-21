@@ -18,15 +18,15 @@ import (
 	"k8s.io/helm/pkg/proto/hapi/chart"
 	"k8s.io/helm/pkg/proto/hapi/release"
 
-	"github.com/supergiant/supergiant/pkg/clouds"
-	"github.com/supergiant/supergiant/pkg/message"
-	"github.com/supergiant/supergiant/pkg/model"
-	"github.com/supergiant/supergiant/pkg/node"
-	"github.com/supergiant/supergiant/pkg/profile"
-	"github.com/supergiant/supergiant/pkg/sgerrors"
-	"github.com/supergiant/supergiant/pkg/testutils"
-	"github.com/supergiant/supergiant/pkg/workflows"
-	"github.com/supergiant/supergiant/pkg/workflows/steps"
+	"github.com/supergiant/control/pkg/clouds"
+	"github.com/supergiant/control/pkg/message"
+	"github.com/supergiant/control/pkg/model"
+	"github.com/supergiant/control/pkg/node"
+	"github.com/supergiant/control/pkg/profile"
+	"github.com/supergiant/control/pkg/sgerrors"
+	"github.com/supergiant/control/pkg/testutils"
+	"github.com/supergiant/control/pkg/workflows"
+	"github.com/supergiant/control/pkg/workflows/steps"
 )
 
 var (

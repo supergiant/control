@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"strings"
 
-	"github.com/supergiant/supergiant/pkg/model"
+	"github.com/supergiant/control/pkg/model"
 )
 
 func processAWSMetrics(k *model.Kube, metrics map[string]map[string]interface{}) {

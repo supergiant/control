@@ -7,7 +7,7 @@ import (
 	compute "google.golang.org/api/compute/v1"
 	"google.golang.org/api/dns/v1"
 
-	"github.com/supergiant/supergiant/pkg/workflows/steps"
+	"github.com/supergiant/control/pkg/workflows/steps"
 )
 
 func Init() {
