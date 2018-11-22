@@ -58,16 +58,11 @@ import { NotificationsComponent } from './shared/notifications/notifications.com
 import { SessionsComponent } from './sessions/sessions.component';
 import { CloudAccountsComponent } from './cloud-accounts/cloud-accounts.component';
 import { LoadBalancersComponent } from './load-balancers/load-balancers.component';
-import { NodesComponent } from './nodes/nodes.component';
-import { ServicesComponent } from './services/services.component';
 import { SessionsHeaderComponent } from './sessions/sessions-header/sessions-header.component';
-import { ServicesHeaderComponent } from './services/services-header/services-header.component';
 import { LoadBalancersHeaderComponent } from './load-balancers/load-balancers-header/load-balancers-header.component';
 import { CloudAccountsHeaderComponent } from './cloud-accounts/cloud-accounts-header/cloud-accounts-header.component';
 import { CloudAccountComponent } from './cloud-accounts/cloud-account/cloud-account.component';
 import { LoadBalancerComponent } from './load-balancers/load-balancer/load-balancer.component';
-import { NodeComponent } from './nodes/node/node.component';
-import { ServiceComponent } from './services/service/service.component';
 import { SessionComponent } from './sessions/session/session.component';
 import { UserComponent } from './users/user/user.component';
 import { UsersHeaderComponent } from './users/users-header/users-header.component';
@@ -77,7 +72,6 @@ import { EditModalComponent } from './shared/edit-modal/edit-modal.component';
 import { LoginComponent } from './login/login.component';
 import { CookiesComponent } from './shared/cookies/cookies.component';
 import { Search } from './shared/search-pipe/search-pipe';
-import { NodeDetailsComponent } from './nodes/node-details/node-details.component';
 import { SessionDetailsComponent } from './sessions/session-details/session-details.component';
 import { SessionsListComponent } from './sessions/sessions-list/sessions-list.component';
 import { UserDetailsComponent } from './users/user-details/user-details.component';
@@ -86,8 +80,6 @@ import { CloudAccountDetailsComponent } from './cloud-accounts/cloud-account-det
 import { CloudAccountsListComponent } from './cloud-accounts/cloud-accounts-list/cloud-accounts-list.component';
 import { LoadBalancerDetailsComponent } from './load-balancers/load-balancer-details/load-balancer-details.component';
 import { LoadBalancersListComponent } from './load-balancers/load-balancers-list/load-balancers-list.component';
-import { ServiceDetailsComponent } from './services/service-details/service-details.component';
-import { ServicesListComponent } from './services/services-list/services-list.component';
 import { SupergiantComponent } from './shared/supergiant/supergiant.component';
 // Component Services
 import { SessionsService } from './sessions/sessions.service';
@@ -137,19 +129,10 @@ import { NgxDatatableModule } from '@swimlane/ngx-datatable';
 // temporary 2000 name hack because of conflict
 import { CloudAccount2000Component } from './system/cloud-accounts/cloud-account/cloud-account.component';
 import { CloudAccounts2000Component } from './system/cloud-accounts/cloud-accounts.component';
-import { Users2000Component } from './system/users/users.component';
 import { EditCloudAccountComponent } from './system/cloud-accounts/edit-cloud-account/edit-cloud-account.component';
-import { MainComponent } from './system/main/main.component';
-import { HelmReposComponent } from './system/main/helm-repos/helm-repos.component';
 import { NewClusterComponent } from './clusters/new-cluster/new-cluster.component';
 import { ClusterComponent } from './clusters/cluster/cluster.component';
 import { ListCloudAccountsComponent } from './system/cloud-accounts/list-cloud-accounts/list-cloud-accounts.component';
-import { DashboardTutorialComponent } from './tutorials/dashboard-tutorial/dashboard-tutorial.component';
-import { ClustersTutorialComponent } from './tutorials/clusters-tutorial/clusters-tutorial.component';
-import { SystemTutorialComponent } from './tutorials/system-tutorial/system-tutorial.component';
-import { AppsTutorialComponent } from './tutorials/apps-tutorial/apps-tutorial.component';
-import { LogsComponent } from './system/logs/logs.component';
-import { NewKubeResourceComponent } from './kube-resources/new-kube-resource/new-kube-resource.component';
 import { ToolbarComponent } from './navigation/toolbar/toolbar.component';
 import { UserMenuComponent } from './navigation/user-menu/user-menu.component';
 import { FooterComponent } from './shared/footer/footer.component';
@@ -162,7 +145,7 @@ import { environment } from '../environments/environment';
 import { EffectsModule } from '@ngrx/effects';
 import { AppEffects } from './app.effects';
 import { TaskLogsComponent } from './clusters/cluster/task-logs/task-logs.component';
-import {LoginGuardService} from "./shared/supergiant/auth/login-guard.service";
+import { LoginGuardService } from "./shared/supergiant/auth/login-guard.service";
 import { MenuModalComponent } from './navigation/user-menu/menu-modal/menu-modal.component';
 import { ClusterListModalComponent } from './navigation/toolbar/cluster-list-modal/cluster-list-modal.component';
 import { AddNodeComponent } from './clusters/cluster/add-node/add-node.component';
@@ -179,16 +162,11 @@ import { DeleteReleaseModalComponent } from './clusters/cluster/delete-release-m
     SessionsComponent,
     CloudAccountsComponent,
     LoadBalancersComponent,
-    NodesComponent,
-    ServicesComponent,
     SessionsHeaderComponent,
-    ServicesHeaderComponent,
     LoadBalancersHeaderComponent,
     CloudAccountsHeaderComponent,
     CloudAccountComponent,
     LoadBalancerComponent,
-    NodeComponent,
-    ServiceComponent,
     SessionComponent,
     UserComponent,
     UsersHeaderComponent,
@@ -198,7 +176,6 @@ import { DeleteReleaseModalComponent } from './clusters/cluster/delete-release-m
     EditModalComponent,
     LoginComponent,
     CookiesComponent,
-    NodeDetailsComponent,
     SessionDetailsComponent,
     SessionsListComponent,
     UserDetailsComponent,
@@ -207,30 +184,18 @@ import { DeleteReleaseModalComponent } from './clusters/cluster/delete-release-m
     CloudAccountsListComponent,
     LoadBalancerDetailsComponent,
     LoadBalancersListComponent,
-    ServiceDetailsComponent,
-    ServicesListComponent,
     Search,
     SupergiantComponent,
     DashboardComponent,
     ClustersComponent,
     NewCloudAccountComponent,
     EditCloudAccountComponent,
-    MainComponent,
-    HelmReposComponent,
     NewClusterComponent,
     ClusterComponent,
     CloudAccount2000Component,
     CloudAccounts2000Component,
     SystemComponent,
-    HelmReposComponent,
-    Users2000Component,
     ListCloudAccountsComponent,
-    DashboardTutorialComponent,
-    ClustersTutorialComponent,
-    SystemTutorialComponent,
-    AppsTutorialComponent,
-    LogsComponent,
-    NewKubeResourceComponent,
     ToolbarComponent,
     UserMenuComponent,
     FooterComponent,
