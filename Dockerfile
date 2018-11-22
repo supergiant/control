@@ -1,6 +1,6 @@
 FROM golang:alpine as builder
-COPY . $GOPATH/src/github.com/supergiant/supergiant/
-WORKDIR $GOPATH/src/github.com/supergiant/supergiant/
+COPY . $GOPATH/src/github.com/supergiant/control/
+WORKDIR $GOPATH/src/github.com/supergiant/control/
 
 ARG ARCH=amd64
 
@@ -12,6 +12,6 @@ RUN apk --update add ca-certificates
 FROM scratch
 COPY --from=builder /etc/ssl/certs/ca-certificates.crt /etc/ssl/certs/ca-certificates.crt
 COPY --from=builder /go/bin/supergiant /bin/supergiant
-COPY --from=builder /go/src/github.com/supergiant/supergiant/templates /etc/supergiant/templates
+COPY --from=builder /go/src/github.com/supergiant/control/templates /etc/supergiant/templates
 
 ENTRYPOINT ["/bin/supergiant"]
