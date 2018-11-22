@@ -45,7 +45,7 @@ func (m *mockKubeService) Get(ctx context.Context, kname string) (*model.Kube, e
 
 func TestProvisionCluster(t *testing.T) {
 	repository := &testutils.MockStorage{}
-	repository.On("Put", context.Background(), mock.Anything, mock.Anything, mock.Anything).Return(nil)
+	repository.On("Put", mock.Anything, mock.Anything, mock.Anything, mock.Anything).Return(nil)
 
 	bc := &bufferCloser{
 		bytes.Buffer{},
@@ -67,6 +67,7 @@ func TestProvisionCluster(t *testing.T) {
 			},
 		},
 		NewRateLimiter(time.Nanosecond * 1),
+		make(map[string]func()),
 	}
 
 	workflows.Init()
@@ -114,7 +115,7 @@ func TestProvisionCluster(t *testing.T) {
 
 func TestProvisionNodes(t *testing.T) {
 	repository := &testutils.MockStorage{}
-	repository.On("Put", context.Background(),
+	repository.On("Put", mock.Anything,
 		mock.Anything, mock.Anything, mock.Anything).
 		Return(nil)
 	repository.On("Get", mock.Anything, mock.Anything,
@@ -138,6 +139,7 @@ func TestProvisionNodes(t *testing.T) {
 				ProvisionNode:   "test_node"},
 		},
 		NewRateLimiter(time.Nanosecond * 1),
+		make(map[string]func()),
 	}
 
 	workflows.Init()
@@ -319,5 +321,25 @@ func TestMonitorCluster(t *testing.T) {
 		if testCase.kube.State != testCase.expectedClusterState {
 			t.Errorf("Wrong cluster state in the end of provisioning")
 		}
+	}
+}
+
+func TestTaskProvisioner_Cancel(t *testing.T) {
+	clusterID := "1234"
+	called := false
+	f := func(){
+		called = true
+	}
+
+	tp := &TaskProvisioner{
+		cancelMap: map[string]func(){
+			clusterID: f,
+		},
+	}
+
+	tp.Cancel(clusterID)
+
+	if !called {
+		t.Errorf("Cancel function was not called")
 	}
 }
