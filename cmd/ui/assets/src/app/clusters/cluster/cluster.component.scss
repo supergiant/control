@@ -394,8 +394,50 @@
     .communication {
       color: red;
       font-size: 24px;
-      font-weight: 300;
       text-align: center;
+    }
+  }
+
+  .no-usage-data {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+
+    h1 {
+      @keyframes blink {
+
+        0% {
+          opacity: .2;
+        }
+
+        20% {
+          opacity: 1;
+        }
+
+        100% {
+          opacity: .2;
+        }
+      }
+
+      span {
+        animation-name: blink;
+        animation-duration: 1.4s;
+        animation-iteration-count: infinite;
+        animation-fill-mode: both;
+      }
+
+      span:nth-child(2) {
+        animation-delay: .2s;
+      }
+
+      span:nth-child(3) {
+        animation-delay: .4s;
+      }
+    }
+
+    h2 {
+      font-weight: 300;
+      letter-spacing: 1px;
     }
   }
 
@@ -418,7 +460,7 @@
         .mat-header-cell {
           color: #fff;
           font-family: "Roboto", sans-serif;
-          font-weight: 300;
+          font-weight: 400;
           font-size: 14px;
         }
       }
@@ -431,7 +473,6 @@
         .mat-cell {
           color: #fff;
           font-family: "Roboto", sans-serif;
-          font-weight: 300;
           font-size: 12px;
           overflow: unset;
           justify-content: space-between;
@@ -464,18 +505,18 @@
               }
             }
 
-            .saving span {
+            .current-step span {
               animation-name: blink;
               animation-duration: 1.4s;
               animation-iteration-count: infinite;
               animation-fill-mode: both;
             }
 
-            .saving span:nth-child(2) {
+            .current-step span:nth-child(2) {
               animation-delay: .2s;
             }
 
-            .saving span:nth-child(3) {
+            .current-step span:nth-child(3) {
               animation-delay: .4s;
             }
 
@@ -598,7 +639,7 @@
 
       .add {
         display: inline-block;
-        background-image: url(/assets/img/plus.svg);
+        background-image: url(/assets/img/plus-pink.svg);
         margin-right: 7px;
         height: 24px;
         width: 24px;
@@ -606,8 +647,21 @@
 
       .action {
         font-size: 14px;
-        font-weight: 200;
       }
+    }
+  }
+
+  .delete-icon {
+    background-image: url(/assets/img/delete-pink.svg);
+    height: 24px;
+    width: 20px;
+
+    &:hover {
+      cursor: pointer;
+    }
+
+    &:active {
+      transform: scale(0.95, 0.95);
     }
   }
 
@@ -626,12 +680,26 @@
   }
 
   .action-buttons {
-    text-align: center;
+    margin: 0px auto;
+    width: 1270px;
 
     .delete-cluster {
-      background-color: rgba(244,67,54,0.3);
-      border: 1px solid rgba(244,67,54,0.8);
-      width: 1270px;
+      display: flex;
+      align-items: center;
+      cursor: pointer;
+      width: max-content;
+
+      &:active {
+        transform: scale(0.95, 0.95);
+      }
+
+      .delete-icon {
+        background-image: url(/assets/img/delete-pink.svg);
+        display: inline-block;
+        margin-right: 5px;
+        height: 24px;
+        width: 24px;
+      }
     }
   }
 

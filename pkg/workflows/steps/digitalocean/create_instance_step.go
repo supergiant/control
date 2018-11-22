@@ -5,7 +5,7 @@ import (
 	"io/ioutil"
 	"testing"
 
-	"github.com/supergiant/supergiant/pkg/workflows/steps"
+	"github.com/supergiant/control/pkg/workflows/steps"
 )
 
 func TestCreateInstanceStep_Rollback(t *testing.T) {

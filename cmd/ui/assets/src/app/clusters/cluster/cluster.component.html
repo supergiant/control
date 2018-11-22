@@ -1,7 +1,7 @@
 <div class="cluster-details-wrapper">
 
   <ng-container *ngIf="kube?.state == 'provisioning' || kube?.state == 'failed'">
-    <h1>Creating "{{id}}"</h1>
+    <h1>Creating "{{ kube.name }}"</h1>
     <div class="task-overview">
       <div class="masters task-group">
         <div class="icon masters-icon">
@@ -70,7 +70,6 @@
         <ng-container matColumnDef="status">
           <mat-header-cell *matHeaderCellDef>Status</mat-header-cell>
           <mat-cell class="task-status" *matCellDef="let task">
-            <!-- what are the actual values for tasks? -->
             <mat-spinner class="executing-spinner" *ngIf="task?.status == 'executing'" [diameter]="24"></mat-spinner>
             <div class="ready-icon" *ngIf="task?.status == 'success'"></div>
             <div class="failed-icon" *ngIf="task?.status == 'error'"></div>
@@ -105,7 +104,7 @@
             class="small-cell"
             *matCellDef="let task"
             (click)="toggleSteps(task)"
-            [ngClass]="{ 'show-steps': task.id == expandedTaskId }">
+            [ngClass]="{ 'show-steps': expandedTaskIds.has(task.id) }">
             <div class="steps-toggle"></div>
           </mat-cell>
         </ng-container>
@@ -125,7 +124,7 @@
             <p *ngFor="let step of detail.t.stepsStatuses">
             {{ step.stepName }}
               <span *ngIf=" step.status == 'executing' "
-                    class="saving"><span>.</span><span>.</span><span>.</span></span>
+                    class="current-step"><span>.</span><span>.</span><span>.</span></span>
               <span *ngIf=" step.status != 'executing' "> ...</span>
               <span [ngClass]="{
                 'success': step.status == 'success',
@@ -141,7 +140,7 @@
         <mat-header-row *matHeaderRowDef="taskListColumns"></mat-header-row>
         <mat-row *matRowDef="let row; columns: taskListColumns" [ngClass]="{ 'viewingSteps': row.showSteps }"></mat-row>
         <mat-row class="detail-row" *matRowDef="let row; columns: ['expandedDetail']; when: expandRow"
-                 [@detailExpand]="row.t.id == expandedTaskId ? 'expanded' : 'collapsed'"></mat-row>
+                 [@detailExpand]="expandedTaskIds.has(row.t.id) ? 'expanded' : 'collapsed'"></mat-row>
 
       </mat-table>
       <!--
@@ -155,7 +154,14 @@
   </ng-container>
 
   <ng-container *ngIf="kube?.state == 'operational'">
-    <app-usage-chart [name]="kube?.name"></app-usage-chart>
+    <ng-container *ngIf="cpuUsage == NaN || ramUsage == NaN">
+      <div class="no-usage-data">
+        <h1>Gathering usage data<span>.</span><span>.</span><span>.</span></h1>
+        <h2>This may take a few minutes</h2>
+      </div>
+    </ng-container>
+
+    <app-usage-chart *ngIf="cpuUsage != NaN && ramUsage != NaN" [name]="kube?.name" [cpuUsage]="cpuUsage" [ramUsage]="ramUsage"></app-usage-chart>
 
     <div class="sg-table">
       <h3>MACHINES</h3>
@@ -172,13 +178,6 @@
           </mat-cell>
         </ng-container>
 
-        <ng-container matColumnDef="name">
-          <mat-header-cell mat-sort-header
-                           *matHeaderCellDef>Name
-          </mat-header-cell>
-          <mat-cell *matCellDef="let machine">{{ machine.name }}</mat-cell>
-        </ng-container>
-
         <ng-container matColumnDef="role">
           <mat-header-cell mat-sort-header
                            *matHeaderCellDef>Role
@@ -186,11 +185,47 @@
           <mat-cell *matCellDef="let machine">{{ machine.role | titlecase }}</mat-cell>
         </ng-container>
 
-        <ng-container matColumnDef="id">
+        <ng-container matColumnDef="size">
           <mat-header-cell mat-sort-header
-                           *matHeaderCellDef>ID
+                           *matHeaderCellDef>Size
           </mat-header-cell>
-          <mat-cell *matCellDef="let machine">{{ machine.id }}</mat-cell>
+          <mat-cell *matCellDef="let machine">{{ machine.size }}</mat-cell>
+        </ng-container>
+
+        <ng-container matColumnDef="name">
+          <mat-header-cell mat-sort-header
+                           *matHeaderCellDef>Name
+          </mat-header-cell>
+          <mat-cell *matCellDef="let machine">{{ machine.name }}</mat-cell>
+        </ng-container>
+
+        <ng-container matColumnDef="cpu">
+          <mat-header-cell mat-sort-header
+                           *matHeaderCellDef>CPU
+          </mat-header-cell>
+          <mat-cell *matCellDef="let machine">
+            <!-- TODO: need to find a way to manipulate way before here -->
+            <ng-container *ngIf="machine.metrics?.cpu">
+              {{ machine.metrics?.cpu }}%
+            </ng-container>
+            <ng-container *ngIf="!machine.metrics?.cpu">
+              --
+            </ng-container>
+          </mat-cell>
+        </ng-container>
+
+        <ng-container matColumnDef="ram">
+          <mat-header-cell mat-sort-header
+                           *matHeaderCellDef>RAM
+          </mat-header-cell>
+          <mat-cell *matCellDef="let machine">
+            <ng-container *ngIf="machine.metrics?.memory">
+              {{ machine.metrics?.memory }}%
+            </ng-container>
+            <ng-container *ngIf="!machine.metrics?.memory">
+              --
+            </ng-container>
+          </mat-cell>
         </ng-container>
 
         <ng-container matColumnDef="region">
@@ -206,12 +241,16 @@
           </mat-header-cell>
           <mat-cell *matCellDef="let machine">
           {{ machine.publicIp }}
-            <div></div>
-            <button (click)="removeNode(machine.name, $event)"
-                    mat-button>
-              <i class="fa fa-trash"
-                 aria-hidden="true"></i>
-            </button>
+
+          </mat-cell>
+        </ng-container>
+
+        <ng-container matColumnDef="delete">
+          <mat-header-cell class="small-cell" mat-sort-header
+                           *matHeaderCellDef>
+          </mat-header-cell>
+          <mat-cell class="small-cell" *matCellDef="let machine">
+            <div class="delete-icon" (click)="removeNode(machine.name, $event)"></div>
           </mat-cell>
         </ng-container>
 
@@ -273,14 +312,25 @@
             <mat-header-cell mat-sort-header
                              *matHeaderCellDef>Last Deployed
             </mat-header-cell>
-            <mat-cell *matCellDef="let release">{{ release.lastDeployed }}</mat-cell>
+            <mat-cell *matCellDef="let release">
+              {{ release.lastDeployed }}
+            </mat-cell>
+          </ng-container>
+
+          <ng-container matColumnDef="delete">
+            <mat-header-cell class="small-cell" mat-sort-header
+                             *matHeaderCellDef>
+            </mat-header-cell>
+            <mat-cell class="small-cell" *matCellDef="let release">
+              <div class="delete-icon" (click)="deleteRelease(release.name, $event)"></div>
+            </mat-cell>
           </ng-container>
 
           <mat-header-row *matHeaderRowDef="releaseListColumns"></mat-header-row>
           <mat-row *matRowDef="let row; columns: releaseListColumns"></mat-row>
         </mat-table>
 
-        <a class="new-link" routerLink="/apps">
+        <a class="new-link" routerLink="/catalog">
           <div class="add"></div>
           <span class="action">Add app</span>
         </a>
@@ -289,6 +339,12 @@
   </ng-container>
 
   <div class="action-buttons">
-    <button mat-raised-button class="secondary delete-cluster" type="button" (click)="deleteCluster()">DELETE CLUSTER</button>
+    <div class="delete-cluster" (click)="deleteCluster()">
+      <div class="delete-icon"></div>
+      <span>
+        <ng-container *ngIf="kube?.state == 'operational' || kube?.state == 'failed'">Delete Cluster</ng-container>
+        <ng-container *ngIf="kube?.state == 'provisioning'">Cancel</ng-container>
+      </span>
+    </div>
   </div>
 </div>

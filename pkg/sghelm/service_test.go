@@ -11,8 +11,8 @@ import (
 	"k8s.io/helm/pkg/proto/hapi/chart"
 	"k8s.io/helm/pkg/repo"
 
-	"github.com/supergiant/supergiant/pkg/model"
-	"github.com/supergiant/supergiant/pkg/sgerrors"
+	"github.com/supergiant/control/pkg/model"
+	"github.com/supergiant/control/pkg/sgerrors"
 )
 
 type fakeRepoManager struct {

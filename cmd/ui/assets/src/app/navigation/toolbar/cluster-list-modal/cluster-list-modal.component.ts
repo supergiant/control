@@ -23,8 +23,8 @@ export class ClusterListModalComponent implements OnInit, OnDestroy {
   public clusters: Array<any>;
   private subscriptions = new Subscription();
 
-  navigate(name) {
-    this.router.navigate(['/clusters/', name]);
+  navigate(clusterId) {
+    this.router.navigate(['/clusters/', clusterId]);
     this.dialogRef.close();
   }
 

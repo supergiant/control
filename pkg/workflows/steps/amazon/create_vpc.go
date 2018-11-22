@@ -8,8 +8,8 @@ import (
 	"github.com/aws/aws-sdk-go/service/ec2"
 	"github.com/pkg/errors"
 
-	"github.com/supergiant/supergiant/pkg/util"
-	"github.com/supergiant/supergiant/pkg/workflows/steps"
+	"github.com/supergiant/control/pkg/util"
+	"github.com/supergiant/control/pkg/workflows/steps"
 )
 
 const StepCreateVPC = "aws_create_vpc"
@@ -51,7 +51,8 @@ func (c *CreateVPCStep) Run(ctx context.Context, w io.Writer, cfg *steps.Config)
 		}
 		cfg.AWSConfig.VPCID = *out.Vpc.VpcId
 
-		log.Infof("[%s] - created a VPC with ID %s and CIDR %s", c.Name(), cfg.AWSConfig.VPCID, cfg.AWSConfig.VPCCIDR)
+		log.Infof("[%s] - created a VPC with ID %s and CIDR %s",
+			c.Name(), cfg.AWSConfig.VPCID, cfg.AWSConfig.VPCCIDR)
 	} else {
 		if cfg.AWSConfig.VPCID != "default" {
 			//if a user specified that there is a vpc already exists it should be verified

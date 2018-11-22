@@ -8,10 +8,10 @@ import (
 	"github.com/dgrijalva/jwt-go"
 	"golang.org/x/crypto/ssh"
 
-	"github.com/supergiant/supergiant/pkg/clouds"
-	"github.com/supergiant/supergiant/pkg/profile"
-	"github.com/supergiant/supergiant/pkg/workflows"
-	"github.com/supergiant/supergiant/pkg/workflows/steps"
+	"github.com/supergiant/control/pkg/clouds"
+	"github.com/supergiant/control/pkg/profile"
+	"github.com/supergiant/control/pkg/workflows"
+	"github.com/supergiant/control/pkg/workflows/steps"
 )
 
 var (
@@ -70,11 +70,11 @@ func TestNodesFromProfile(t *testing.T) {
 	}
 
 	cfg := &steps.Config{
-		ClusterName: "test",
+		ClusterID: "test",
 	}
 
 	masterTasks, nodeTasks := []*workflows.Task{{ID: "1234"}}, []*workflows.Task{{ID: "5678"}, {ID: "4321"}}
-	masters, nodes := nodesFromProfile(cfg.ClusterName, masterTasks, nodeTasks, p)
+	masters, nodes := nodesFromProfile(cfg.ClusterID, masterTasks, nodeTasks, p)
 
 	if len(masters) != len(p.MasterProfiles) {
 		t.Errorf("Wrong master node count expected %d actual %d",

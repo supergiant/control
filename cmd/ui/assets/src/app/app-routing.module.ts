@@ -43,7 +43,7 @@ const appRoutes: Routes = [
     ]
   },
   {
-    path: 'apps',
+    path: 'catalog',
     loadChildren: 'app/features/app-store/app-store.module#AppStoreModule'
   },
   {
@@ -55,45 +55,45 @@ const appRoutes: Routes = [
   },
   {
     path: 'system', component: SystemComponent, canActivate: [AuthGuard], children: [
-      { path: '', component: SystemTutorialComponent },
-      {
-        path: 'logs', component: LogsComponent, children: [
-          { path: '', component: LogsComponent },
-        ],
-      },
+      // { path: '', component: SystemTutorialComponent },
+      // {
+      //   path: 'logs', component: LogsComponent, children: [
+      //     { path: '', component: LogsComponent },
+      //   ],
+      // },
       {
         path: 'cloud-accounts', component: CloudAccounts2000Component, children: [
           { path: '', component: ListCloudAccountsComponent },
           { path: 'new', component: NewCloudAccountComponent },
           { path: 'edit/:id', component: EditCloudAccountComponent },
           { path: ':id', component: CloudAccount2000Component },
-        ],
-      },
-      {
-        path: 'users', component: Users2000Component, children: [
-          { path: 'new', component: NewCloudAccountComponent },
-          { path: 'edit/:id', component: EditCloudAccountComponent },
-          { path: ':id', component: CloudAccount2000Component },
         ]
-      },
-      { path: 'main', component: MainComponent },
-      { path: '', component: MainComponent },
+      }
+      // {
+      //   path: 'users', component: Users2000Component, children: [
+      //     { path: 'new', component: NewCloudAccountComponent },
+      //     { path: 'edit/:id', component: EditCloudAccountComponent },
+      //     { path: ':id', component: CloudAccount2000Component },
+      //   ]
+      // },
+      // { path: 'main', component: MainComponent },
+      // { path: '', component: MainComponent },
     ]
   },
-  {
-    path: 'nodes', component: NodesComponent, canActivate: [AuthGuard], children: [
-      { path: ':id', component: NodeDetailsComponent }
-    ]
-  },
-  {
-    path: 'resource/new/:id', component: NewKubeResourceComponent, canActivate: [AuthGuard]
-  },
-  {
-    path: 'services', component: ServicesComponent, canActivate: [AuthGuard], children: [
-      { path: '', component: ServicesListComponent },
-      { path: ':id', component: ServiceDetailsComponent }
-    ]
-  },
+  // {
+  //   path: 'nodes', component: NodesComponent, canActivate: [AuthGuard], children: [
+  //     { path: ':id', component: NodeDetailsComponent }
+  //   ]
+  // },
+  // {
+  //   path: 'resource/new/:id', component: NewKubeResourceComponent, canActivate: [AuthGuard]
+  // },
+  // {
+  //   path: 'services', component: ServicesComponent, canActivate: [AuthGuard], children: [
+  //     { path: '', component: ServicesListComponent },
+  //     { path: ':id', component: ServiceDetailsComponent }
+  //   ]
+  // },
 ];
 
 @NgModule({

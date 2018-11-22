@@ -9,7 +9,7 @@ import (
 
 	"github.com/pkg/errors"
 
-	"github.com/supergiant/supergiant/pkg/runner"
+	"github.com/supergiant/control/pkg/runner"
 )
 
 // Certs specific errors.

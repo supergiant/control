@@ -3,24 +3,26 @@ package workflows
 import (
 	"sync"
 
-	"github.com/supergiant/supergiant/pkg/workflows/statuses"
-	"github.com/supergiant/supergiant/pkg/workflows/steps"
-	"github.com/supergiant/supergiant/pkg/workflows/steps/amazon"
-	"github.com/supergiant/supergiant/pkg/workflows/steps/certificates"
-	"github.com/supergiant/supergiant/pkg/workflows/steps/clustercheck"
-	"github.com/supergiant/supergiant/pkg/workflows/steps/cni"
-	"github.com/supergiant/supergiant/pkg/workflows/steps/digitalocean"
-	"github.com/supergiant/supergiant/pkg/workflows/steps/docker"
-	"github.com/supergiant/supergiant/pkg/workflows/steps/downloadk8sbinary"
-	"github.com/supergiant/supergiant/pkg/workflows/steps/etcd"
-	"github.com/supergiant/supergiant/pkg/workflows/steps/flannel"
-	"github.com/supergiant/supergiant/pkg/workflows/steps/kubelet"
-	"github.com/supergiant/supergiant/pkg/workflows/steps/manifest"
-	"github.com/supergiant/supergiant/pkg/workflows/steps/network"
-	"github.com/supergiant/supergiant/pkg/workflows/steps/poststart"
-	"github.com/supergiant/supergiant/pkg/workflows/steps/prometheus"
-	"github.com/supergiant/supergiant/pkg/workflows/steps/ssh"
-	"github.com/supergiant/supergiant/pkg/workflows/steps/tiller"
+	"github.com/supergiant/control/pkg/workflows/statuses"
+	"github.com/supergiant/control/pkg/workflows/steps"
+	"github.com/supergiant/control/pkg/workflows/steps/amazon"
+	"github.com/supergiant/control/pkg/workflows/steps/authorizedKeys"
+	"github.com/supergiant/control/pkg/workflows/steps/certificates"
+	"github.com/supergiant/control/pkg/workflows/steps/clustercheck"
+	"github.com/supergiant/control/pkg/workflows/steps/cni"
+	"github.com/supergiant/control/pkg/workflows/steps/digitalocean"
+	"github.com/supergiant/control/pkg/workflows/steps/docker"
+	"github.com/supergiant/control/pkg/workflows/steps/downloadk8sbinary"
+	"github.com/supergiant/control/pkg/workflows/steps/etcd"
+	"github.com/supergiant/control/pkg/workflows/steps/flannel"
+	"github.com/supergiant/control/pkg/workflows/steps/gce"
+	"github.com/supergiant/control/pkg/workflows/steps/kubelet"
+	"github.com/supergiant/control/pkg/workflows/steps/manifest"
+	"github.com/supergiant/control/pkg/workflows/steps/network"
+	"github.com/supergiant/control/pkg/workflows/steps/poststart"
+	"github.com/supergiant/control/pkg/workflows/steps/prometheus"
+	"github.com/supergiant/control/pkg/workflows/steps/ssh"
+	"github.com/supergiant/control/pkg/workflows/steps/tiller"
 )
 
 // StepStatus aggregates data that is needed to track progress
@@ -46,6 +48,12 @@ const (
 	AWSMaster                 = "AWSMaster"
 	AWSNode                   = "AWSNode"
 	AWSPreProvision           = "AWSPreProvisionCluster"
+	AWSDeleteCluster          = "AWSDeleteCluster"
+	AWSDeleteNode             = "AWSDeleteNode"
+	GCEMaster                 = "GCEMaster"
+	GCENode                   = "GCENode"
+	GCEDeleteCluster          = "GCEDeleteCluster"
+	GCEDeleteNode             = "GCEDeleteNode"
 )
 
 type WorkflowSet struct {
@@ -67,11 +75,11 @@ func Init() {
 		steps.GetStep(digitalocean.CreateMachineStepName),
 		steps.GetStep(ssh.StepName),
 		steps.GetStep(downloadk8sbinary.StepName),
-		steps.GetStep(docker.StepName),
 		steps.GetStep(cni.StepName),
 		steps.GetStep(etcd.StepName),
 		steps.GetStep(network.StepName),
 		steps.GetStep(flannel.StepName),
+		steps.GetStep(docker.StepName),
 		steps.GetStep(certificates.StepName),
 		steps.GetStep(manifest.StepName),
 		steps.GetStep(kubelet.StepName),
@@ -81,9 +89,9 @@ func Init() {
 		steps.GetStep(digitalocean.CreateMachineStepName),
 		steps.GetStep(ssh.StepName),
 		steps.GetStep(downloadk8sbinary.StepName),
-		steps.GetStep(docker.StepName),
 		steps.GetStep(manifest.StepName),
 		steps.GetStep(flannel.StepName),
+		steps.GetStep(docker.StepName),
 		steps.GetStep(certificates.StepName),
 		steps.GetStep(kubelet.StepName),
 		steps.GetStep(cni.StepName),
@@ -100,12 +108,13 @@ func Init() {
 	awsMasterWorkflow := []steps.Step{
 		steps.GetStep(amazon.StepNameCreateEC2Instance),
 		steps.GetStep(ssh.StepName),
+		steps.GetStep(authorizedKeys.StepName),
 		steps.GetStep(downloadk8sbinary.StepName),
-		steps.GetStep(docker.StepName),
 		steps.GetStep(cni.StepName),
 		steps.GetStep(etcd.StepName),
 		steps.GetStep(network.StepName),
 		steps.GetStep(flannel.StepName),
+		steps.GetStep(docker.StepName),
 		steps.GetStep(certificates.StepName),
 		steps.GetStep(manifest.StepName),
 		steps.GetStep(kubelet.StepName),
@@ -115,11 +124,12 @@ func Init() {
 	awsNodeWorkflow := []steps.Step{
 		steps.GetStep(amazon.StepNameCreateEC2Instance),
 		steps.GetStep(ssh.StepName),
+		steps.GetStep(authorizedKeys.StepName),
 		steps.GetStep(downloadk8sbinary.StepName),
-		steps.GetStep(docker.StepName),
 		steps.GetStep(certificates.StepName),
 		steps.GetStep(manifest.StepName),
 		steps.GetStep(flannel.StepName),
+		steps.GetStep(docker.StepName),
 		steps.GetStep(kubelet.StepName),
 		steps.GetStep(cni.StepName),
 		steps.GetStep(poststart.StepName),
@@ -140,6 +150,52 @@ func Init() {
 		steps.GetStep(digitalocean.DeleteClusterStepName),
 	}
 
+	awsDeleteClusterWorkflow := []steps.Step{
+		steps.GetStep(amazon.DeleteClusterStepName),
+	}
+
+	awsDeleteNodeWorkflow := []steps.Step{
+		steps.GetStep(amazon.DeleteNodeStepName),
+	}
+
+	gceNodeWorkflow := []steps.Step{
+		steps.GetStep(gce.CreateInstanceStepName),
+		steps.GetStep(ssh.StepName),
+		steps.GetStep(authorizedKeys.StepName),
+		steps.GetStep(downloadk8sbinary.StepName),
+		steps.GetStep(manifest.StepName),
+		steps.GetStep(flannel.StepName),
+		steps.GetStep(docker.StepName),
+		steps.GetStep(certificates.StepName),
+		steps.GetStep(kubelet.StepName),
+		steps.GetStep(cni.StepName),
+		steps.GetStep(poststart.StepName),
+	}
+
+	gceMasterWorkflow := []steps.Step{
+		steps.GetStep(gce.CreateInstanceStepName),
+		steps.GetStep(ssh.StepName),
+		steps.GetStep(authorizedKeys.StepName),
+		steps.GetStep(downloadk8sbinary.StepName),
+		steps.GetStep(cni.StepName),
+		steps.GetStep(etcd.StepName),
+		steps.GetStep(network.StepName),
+		steps.GetStep(flannel.StepName),
+		steps.GetStep(docker.StepName),
+		steps.GetStep(certificates.StepName),
+		steps.GetStep(manifest.StepName),
+		steps.GetStep(kubelet.StepName),
+		steps.GetStep(poststart.StepName),
+	}
+
+	gceDeleteCluster := []steps.Step{
+		steps.GetStep(gce.DeleteClusterStepName),
+	}
+
+	gceDeleteNode := []steps.Step{
+		steps.GetStep(gce.DeleteNodeStepName),
+	}
+
 	m.Lock()
 	defer m.Unlock()
 
@@ -151,6 +207,12 @@ func Init() {
 	workflowMap[AWSMaster] = awsMasterWorkflow
 	workflowMap[AWSNode] = awsNodeWorkflow
 	workflowMap[AWSPreProvision] = awsPreProvision
+	workflowMap[AWSDeleteCluster] = awsDeleteClusterWorkflow
+	workflowMap[AWSDeleteNode] = awsDeleteNodeWorkflow
+	workflowMap[GCENode] = gceNodeWorkflow
+	workflowMap[GCEMaster] = gceMasterWorkflow
+	workflowMap[GCEDeleteCluster] = gceDeleteCluster
+	workflowMap[GCEDeleteNode] = gceDeleteNode
 }
 
 func RegisterWorkFlow(workflowName string, workflow Workflow) {

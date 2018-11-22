@@ -12,13 +12,13 @@ import (
 	"k8s.io/client-go/tools/clientcmd"
 	clientcmddapi "k8s.io/client-go/tools/clientcmd/api"
 
-	"github.com/supergiant/supergiant/pkg/model"
-	"github.com/supergiant/supergiant/pkg/sgerrors"
-	"github.com/supergiant/supergiant/pkg/util"
+	"github.com/supergiant/control/pkg/model"
+	"github.com/supergiant/control/pkg/sgerrors"
+	"github.com/supergiant/control/pkg/util"
 )
 
 func NewConfigFor(k *model.Kube) (*rest.Config, error) {
-	kubeConf, err := kubeConfigFor(k)
+	kubeConf, err := adminKubeConfig(k)
 	if err != nil {
 		return nil, errors.Wrap(err, "build kubeconfig")
 	}
@@ -51,9 +51,10 @@ func discoveryClient(k *model.Kube) (*discovery.DiscoveryClient, error) {
 	return discovery.NewDiscoveryClientForConfig(cfg)
 }
 
-// kubeConfigFor returns a kube config for provided cluster.
-func kubeConfigFor(k *model.Kube) (clientcmddapi.Config, error) {
-	if len(k.Masters) == 0 {
+// adminKubeConfig returns a cluster-admin kubeconfig for provided cluster.
+func adminKubeConfig(k *model.Kube) (clientcmddapi.Config, error) {
+	// TODO: this should be an address of the master load balancer
+	if k == nil || len(k.Masters) == 0 {
 		// TODO: use another base error, not ErrNotFound
 		return clientcmddapi.Config{}, errors.Wrap(sgerrors.ErrNotFound, "master nodes")
 	}
@@ -63,31 +64,31 @@ func kubeConfigFor(k *model.Kube) (clientcmddapi.Config, error) {
 	if k.APIPort != "" {
 		apiAddr = fmt.Sprintf("https://%s:%s", m.PublicIp, k.APIPort)
 	} else {
-		// TODO: apiPort has been hardcoded in provisioner, use it if no apiPort has been provided
-		apiAddr = fmt.Sprintf("http://%s:8080", m.PublicIp)
+		// TODO: apiPort has been hardcoded in provisioner, use 443 by default
+		apiAddr = fmt.Sprintf("https://%s", m.PublicIp)
 	}
 
+	// TODO: add validation
 	return clientcmddapi.Config{
 		AuthInfos: map[string]*clientcmddapi.AuthInfo{
-			k.Auth.Username: {
-				Token: k.Auth.Token,
-				ClientCertificateData: []byte(k.Auth.Cert),
-				ClientKeyData:         []byte(k.Auth.Key),
+			adminContext(k.Name): {
+				ClientCertificateData: []byte(k.Auth.AdminCert),
+				ClientKeyData:         []byte(k.Auth.AdminKey),
 			},
 		},
 		Clusters: map[string]*clientcmddapi.Cluster{
-			k.Auth.Username: {
+			k.Name: {
 				Server: apiAddr,
 				CertificateAuthorityData: []byte(k.Auth.CACert),
 			},
 		},
 		Contexts: map[string]*clientcmddapi.Context{
-			k.Auth.Username: {
-				AuthInfo: k.Auth.Username,
-				Cluster:  k.Auth.Username,
+			adminContext(k.Name): {
+				AuthInfo: adminContext(k.Name),
+				Cluster:  k.Name,
 			},
 		},
-		CurrentContext: k.Auth.Username,
+		CurrentContext: adminContext(k.Name),
 	}, nil
 }
 
@@ -102,4 +103,8 @@ func setGroupDefaults(config *rest.Config, gv schema.GroupVersion) {
 	if len(config.UserAgent) == 0 {
 		config.UserAgent = rest.DefaultKubernetesUserAgent()
 	}
+}
+
+func adminContext(clusterName string) string {
+	return "admin@" + clusterName
 }

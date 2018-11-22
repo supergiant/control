@@ -27,9 +27,12 @@ export class NewClusterComponent implements OnInit, OnDestroy {
   availableRegions: any;
   selectedRegion: any;
   availableMachineTypes: Array<any>;
+  regionsLoading = false;
+  machinesLoading = false;
 
   // aws vars
   availabilityZones: Array<any>;
+  azsLoading = false;
 
   machines = [{
     machineType: null,
@@ -55,14 +58,13 @@ export class NewClusterComponent implements OnInit, OnDestroy {
     private router: Router,
     private formBuilder: FormBuilder,
     private nodesService: NodeProfileService,
-  ) {
-  }
+  ) { }
 
 
   getCloudAccounts() {
     this.subscriptions.add(this.supergiant.CloudAccounts.get().subscribe(
       (cloudAccounts) => {
-        this.availableCloudAccounts = cloudAccounts;
+        this.availableCloudAccounts = cloudAccounts.sort();
       })
     );
   }
@@ -97,6 +99,7 @@ export class NewClusterComponent implements OnInit, OnDestroy {
       newClusterData.clusterName = this.clusterName;
       newClusterData.profile.region = this.providerConfig.value.region.id;
       newClusterData.profile.provider = this.selectedCloudAccount.provider;
+      newClusterData.profile.rbacEnabled = true;
       newClusterData.profile.masterProfiles = this.nodesService.compileProfiles(this.selectedCloudAccount.provider, this.machines, "Master");
       newClusterData.profile.nodesProfiles = this.nodesService.compileProfiles(this.selectedCloudAccount.provider, this.machines, "Node");
 
@@ -106,19 +109,20 @@ export class NewClusterComponent implements OnInit, OnDestroy {
             aws_az: this.providerConfig.value.availabilityZone,
             aws_vpc_cidr: this.providerConfig.value.vpcCidr,
             aws_vpc_id: this.providerConfig.value.vpcId,
-            aws_keypair_name: this.providerConfig.value.keypairName,
             aws_subnet_id: this.providerConfig.value.subnetId,
             aws_masters_secgroup_id: this.providerConfig.value.mastersSecurityGroupId,
             aws_nodes_secgroup_id: this.providerConfig.value.nodesSecurityGroupId
-          }
+          };
+
+          newClusterData.profile.publicKey = this.providerConfig.value.publicKey;
         }
       }
 
       this.provisioning = true;
       this.subscriptions.add(this.supergiant.Kubes.create(newClusterData).subscribe(
-        (data) => {
+        (data: any) => {
           this.success(newClusterData);
-          this.router.navigate(['/clusters/', newClusterData.clusterName]);
+          this.router.navigate(['/clusters/', data.clusterId]);
           this.provisioning = false;
         },
         (err) => {
@@ -138,8 +142,6 @@ export class NewClusterComponent implements OnInit, OnDestroy {
   }
 
   error(model, data) {
-    console.log("model:", model);
-    console.log("data:", data);
     this.notifications.display(
       'error',
       'Kube: ' + model.name,
@@ -156,9 +158,16 @@ export class NewClusterComponent implements OnInit, OnDestroy {
     const accountName = this.selectedCloudAccount.name;
     const region = this.providerConfig.value.region.name;
 
+    this.machinesLoading = true;
     this.supergiant.CloudAccounts.getAwsMachineTypes(accountName, region, zone).subscribe(
-      types => this.availableMachineTypes = types.sort(),
-      err => console.error(err)
+      types => {
+        this.availableMachineTypes = types.sort();
+        this.machinesLoading = false;
+      },
+      err => {
+        console.error(err);
+        this.machinesLoading = false;
+      }
     )
   }
 
@@ -176,9 +185,16 @@ export class NewClusterComponent implements OnInit, OnDestroy {
         break;
 
       case "aws":
+        this.azsLoading = true;
         this.getAwsAvailabilityZones(region).subscribe(
-          azList => this.availabilityZones = azList.sort(),
-          err => console.error(err)
+          azList => {
+            this.availabilityZones = azList.sort();
+            this.azsLoading = false
+          },
+          err => {
+            console.error(err);
+            this.azsLoading = false
+          }
         );
         break;
     }
@@ -189,14 +205,14 @@ export class NewClusterComponent implements OnInit, OnDestroy {
       if (e.keyCode === 13) {
         this.machines.push({
           machineType: null,
-          role: null,
+          role: "Node",
           qty: 1
         })
       }
     } else {
       this.machines.push({
         machineType: null,
-        role: null,
+        role: "Node",
         qty: 1
       })
     }
@@ -240,21 +256,27 @@ export class NewClusterComponent implements OnInit, OnDestroy {
           region: ["", Validators.required],
           availabilityZone: ["", Validators.required],
           vpcId: ["default", Validators.required],
-          vpcCidr: ["10.2.0.0/16", Validators.required],
+          vpcCidr: ["10.2.0.0/16", [Validators.required, this.validCidr()]],
           keypairName: [""],
           subnetId: ["default", Validators.required],
           mastersSecurityGroupId: [""],
-          nodesSecurityGroupId: [""]
+          nodesSecurityGroupId: [""],
+          publicKey: ["", Validators.required]
         });
         break;
     }
 
+    this.regionsLoading = true;
     this.subscriptions.add(this.supergiant.CloudAccounts.getRegions(cloudAccount.name).subscribe(
       regionList => {
         this.availableRegions = regionList;
         this.availableRegions.regions.sort(this.sortRegionsByName);
+        this.regionsLoading = false;
       },
-      err => this.error({}, err)
+      err => {
+        this.error({}, err);
+        this.regionsLoading = false;
+      }
     ))
   }
 
@@ -304,12 +326,22 @@ export class NewClusterComponent implements OnInit, OnDestroy {
 
   get cidr() { return this.clusterConfig.get('cidr'); }
 
+  get vpcCidr() {
+    if (this.selectedCloudAccount && this.selectedCloudAccount.provider == "aws") {
+      return this.providerConfig.get('vpcCidr');
+    } else {return true}
+  }
+
   ngOnInit() {
     this.getClusters();
     this.getCloudAccounts();
 
     this.nameAndCloudAccountConfig = this.formBuilder.group({
-      name: ["", [Validators.required, this.uniqueClusterName(this.unavailableClusterNames)]],
+      name: ["", [
+        Validators.required,
+        this.uniqueClusterName(this.unavailableClusterNames),
+        Validators.maxLength(12),
+        Validators.pattern('^[A-Za-z]([-A-Za-z0-9\-]*[A-Za-z0-9\-])?$')]],
       cloudAccount: ["", Validators.required]
     })
 
@@ -322,8 +354,7 @@ export class NewClusterComponent implements OnInit, OnDestroy {
       networkType: ["vxlan", Validators.required],
       cidr: ["10.0.0.0/16", [Validators.required, this.validCidr()]],
       operatingSystem: ["linux", Validators.required],
-      arch: ["amd64", Validators.required],
-      rbacEnabled: [false, Validators.required]
+      arch: ["amd64", Validators.required]
     });
   }
 

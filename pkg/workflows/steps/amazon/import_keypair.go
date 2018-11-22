@@ -1,22 +1,26 @@
 package amazon
 
 import (
-	"bufio"
 	"context"
 	"fmt"
 	"io"
-	"os"
+	"time"
 	"strings"
 
 	"github.com/aws/aws-sdk-go/service/ec2"
 	"github.com/pkg/errors"
-	"github.com/sirupsen/logrus"
 
-	"github.com/supergiant/supergiant/pkg/util"
-	"github.com/supergiant/supergiant/pkg/workflows/steps"
+	"github.com/aws/aws-sdk-go/aws"
+	"github.com/sirupsen/logrus"
+	"github.com/supergiant/control/pkg/util"
+	"github.com/supergiant/control/pkg/workflows/steps"
 )
 
 const StepImportKeyPair = "awskeypairstep"
+
+var (
+	keyPairAttemptCount = 5
+)
 
 //KeyPairStep represents creation of keypair in aws
 //since there is hard cap on keypairs per account supergiant will create one per clster
@@ -35,6 +39,7 @@ func InitImportKeyPair(fn GetEC2Fn) {
 	steps.RegisterStep(StepImportKeyPair, NewImportKeyPairStep(fn))
 }
 
+//Verifies that a key exists,
 func (s *KeyPairStep) Run(ctx context.Context, w io.Writer, cfg *steps.Config) error {
 	log := util.GetLogger(w)
 
@@ -43,46 +48,27 @@ func (s *KeyPairStep) Run(ctx context.Context, w io.Writer, cfg *steps.Config) e
 		return ErrAuthorization
 	}
 
-	if cfg.SshConfig.PublicKey != "" {
-		// Create key for user
-		userKeyPairName := util.MakeKeyName(cfg.AWSConfig.KeyPairName, true)
-
-		req := &ec2.ImportKeyPairInput{
-			KeyName:           &userKeyPairName,
-			PublicKeyMaterial: []byte(cfg.SshConfig.PublicKey),
-		}
-
-		log.Infof("[%s] - importing user certificate as keypair %s", s.Name(), userKeyPairName)
-		output, err := EC2.ImportKeyPairWithContext(ctx, req)
-		if err != nil {
-			return errors.Wrap(ErrImportKeyPair, err.Error())
-		}
-		cfg.AWSConfig.KeyPairName = *output.KeyName
+	if len(cfg.ClusterID) < 4 {
+		return errors.New("Cluster ID is too short")
 	}
 
-	bootstrapKeyPairName := util.MakeKeyName(cfg.AWSConfig.KeyPairName, false)
-	log.Infof("[%s] - importing cluster bootstrap certificate as keypair %s", s.Name(), bootstrapKeyPairName)
+	// NOTE(stgleb): Add unique part to key pair name that allows to
+	// create cluster with the same name and avoid name collision of key pairs.
+	bootstrapKeyPairName := util.MakeKeyName(fmt.Sprintf("%s-%s",
+		cfg.ClusterName,
+		cfg.ClusterID[:4]),
+		false)
+	log.Infof("[%s] - importing cluster bootstrap key as keypair %s",
+		s.Name(), bootstrapKeyPairName)
 	req := &ec2.ImportKeyPairInput{
 		KeyName:           &bootstrapKeyPairName,
 		PublicKeyMaterial: []byte(cfg.SshConfig.BootstrapPublicKey),
 	}
 
-	if log.Level == logrus.DebugLevel {
-		output := strings.Replace(cfg.SshConfig.BootstrapPrivateKey, "\\n", "\n", -1)
-		fmt.Fprintf(w, output)
-
-		f, err := os.Create("/tmp/" + bootstrapKeyPairName + ".pem")
-		if err == nil {
-			buf := bufio.NewWriter(f)
-			buf.Write([]byte(output))
-			buf.Flush()
-
-			if err := os.Chmod(f.Name(), os.FileMode(400)); err != nil {
-				logrus.Debugf("failed to chmod file %s", f.Name())
-			}
-		} else {
-			logrus.Errorf("[%s] - failed to write private key to file %s", s.Name(), f.Name())
-		}
+	if cfg.LogBootstrapPrivateKey {
+		key := strings.Replace(cfg.SshConfig.BootstrapPrivateKey, "\\n", "\n", -1)
+		log.Infof("[%s] - bootstrap private key", s.Name())
+		fmt.Fprintf(w, key)
 	}
 
 	output, err := EC2.ImportKeyPairWithContext(ctx, req)
@@ -95,7 +81,32 @@ func (s *KeyPairStep) Run(ctx context.Context, w io.Writer, cfg *steps.Config) e
 	}
 
 	cfg.AWSConfig.KeyPairName = *output.KeyName
-	return nil
+
+	delay := time.Second * 10
+	// Wait until key pair become available
+	for cnt := 0; cnt < keyPairAttemptCount; cnt++ {
+		describeInput := &ec2.DescribeKeyPairsInput{
+			Filters: []*ec2.Filter{
+				{
+					Name:   aws.String("fingerprint"),
+					Values: []*string{aws.String(*output.KeyFingerprint)},
+				},
+			},
+		}
+
+		_, err = EC2.DescribeKeyPairs(describeInput)
+
+		if err != nil {
+			logrus.Errorf("describe key pair %s error %v", bootstrapKeyPairName, err)
+			time.Sleep(delay)
+			delay = delay * 2
+		} else {
+			return nil
+		}
+	}
+
+	return errors.Wrap(err, fmt.Sprintf("wait until key pair found %s",
+		bootstrapKeyPairName))
 }
 
 func (s *KeyPairStep) Rollback(ctx context.Context, w io.Writer, cfg *steps.Config) error {
@@ -107,7 +118,7 @@ func (*KeyPairStep) Name() string {
 }
 
 func (*KeyPairStep) Description() string {
-	return "If no keypair is present in config, creates a new keypair and writes private RSA key to the database and config"
+	return "If no keypair is present in config, creates a new keypair"
 }
 
 func (*KeyPairStep) Depends() []string {

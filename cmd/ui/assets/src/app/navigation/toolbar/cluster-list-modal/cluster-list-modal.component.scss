@@ -1,10 +1,34 @@
 .menu-item {
   cursor: pointer;
   font-size: 14px;
-  font-weight: 100;
+  font-weight: 400;
   letter-spacing: 2px;
 
   &:last-of-type {
     margin-bottom: 0px;
   }
+}
+
+.deleting {
+  animation: cluster-list-deleting;
+  pointer-events: none;
+}
+
+@keyframes cluster-list-deleting {
+  0% {
+    opacity: 0.5;
+  }
+
+  50% {
+    opacity: 1;
+  }
+
+  100% {
+    opacity: 0.5;
+  }
+}
+
+.new-cluster {
+  color: #d10088;
+  font-weight: 500;
 }

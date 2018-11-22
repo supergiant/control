@@ -2,7 +2,6 @@ package kube
 
 import (
 	"context"
-	"encoding/json"
 	"testing"
 
 	"github.com/golang/protobuf/ptypes/timestamp"
@@ -16,12 +15,12 @@ import (
 	"k8s.io/helm/pkg/proto/hapi/services"
 	"k8s.io/helm/pkg/timeconv"
 
-	"github.com/supergiant/supergiant/pkg/model"
-	"github.com/supergiant/supergiant/pkg/runner/ssh"
-	"github.com/supergiant/supergiant/pkg/sgerrors"
-	"github.com/supergiant/supergiant/pkg/sghelm/proxy"
-	"github.com/supergiant/supergiant/pkg/testutils"
-	"github.com/supergiant/supergiant/pkg/testutils/storage"
+	"github.com/supergiant/control/pkg/model"
+	"github.com/supergiant/control/pkg/runner/ssh"
+	"github.com/supergiant/control/pkg/sgerrors"
+	"github.com/supergiant/control/pkg/sghelm/proxy"
+	"github.com/supergiant/control/pkg/testutils"
+	"github.com/supergiant/control/pkg/testutils/storage"
 )
 
 var (
@@ -135,17 +134,15 @@ func TestKubeServiceCreate(t *testing.T) {
 
 	for _, testCase := range testCases {
 		m := new(testutils.MockStorage)
-		kubeData, _ := json.Marshal(testCase.kube)
 
 		m.On("Put",
 			context.Background(),
 			prefix,
-			testCase.kube.Name,
-			kubeData).
+			mock.Anything,
+			mock.Anything).
 			Return(testCase.err)
 
 		service := NewService(prefix, m, nil)
-
 		err := service.Create(context.Background(), testCase.kube)
 
 		if testCase.err != errors.Cause(err) {
@@ -160,7 +157,7 @@ func TestKubeServiceGetAll(t *testing.T) {
 		err  error
 	}{
 		{
-			data: [][]byte{[]byte(`{"name":"kube-name-1234"}`), []byte(`{"id":"56kube-name-5678"}`)},
+			data: [][]byte{[]byte(`{"id":"kube-name-1234"}`), []byte(`{"id":"56kube-name-5678"}`)},
 			err:  nil,
 		},
 		{
@@ -194,8 +191,8 @@ func TestService_InstallRelease(t *testing.T) {
 	tcs := []struct {
 		svc Service
 
-		clusterName string
-		rlsInput    *ReleaseInput
+		clusterID string
+		rlsInput  *ReleaseInput
 
 		expectedRes *release.Release
 		expectedErr error
@@ -280,7 +277,7 @@ func TestService_InstallRelease(t *testing.T) {
 	}
 
 	for i, tc := range tcs {
-		rls, err := tc.svc.InstallRelease(context.Background(), tc.clusterName, tc.rlsInput)
+		rls, err := tc.svc.InstallRelease(context.Background(), tc.clusterID, tc.rlsInput)
 		require.Equalf(t, tc.expectedErr, errors.Cause(err), "TC#%d: check errors", i+1)
 
 		if err == nil {
@@ -694,6 +691,51 @@ func TestService_GetKubeResources(t *testing.T) {
 		if errors.Cause(err) != testCase.expectedErr {
 			t.Errorf("expected error %v actual %v",
 				testCase.expectedErr, err)
+		}
+	}
+}
+
+func TestService_KubeConfigFor(t *testing.T) {
+	testCases := []struct {
+		user string
+
+		kubeData   []byte
+		getkubeErr error
+
+		expectedErr error
+	}{
+		{
+			expectedErr: sgerrors.ErrNotFound,
+		},
+		{
+			user:        "user",
+			expectedErr: sgerrors.ErrNotFound,
+		},
+		{
+			user:        KubernetesAdminUser,
+			getkubeErr:  fakeErrFileNotFound,
+			expectedErr: fakeErrFileNotFound,
+		},
+		{
+			user:     KubernetesAdminUser,
+			kubeData: []byte(`{"masters":{"m":{"publicIp":"1.2.3.4"}}}`),
+		},
+	}
+
+	for i, tc := range testCases {
+		m := new(testutils.MockStorage)
+		m.On("Get", context.Background(), mock.Anything, mock.Anything).
+			Return(tc.kubeData, tc.getkubeErr)
+
+		svc := Service{
+			storage: m,
+		}
+
+		data, err := svc.KubeConfigFor(context.Background(), "kname", tc.user)
+		require.Equal(t, tc.expectedErr, errors.Cause(err), "TC#%d", i+1)
+
+		if err == nil {
+			require.NotNilf(t, data, "TC#%d", i+1)
 		}
 	}
 }

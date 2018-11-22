@@ -1,25 +1,25 @@
 :host {
   display: flex;
-  align-items: center;
   justify-content: flex-end;
   width: 209px;
 
-  .circle {
-    width: 42px;
-    height: 42px;
-    line-height: 44px;
-    border-radius: 50%;
-    text-align: center;
-    font-size: 16px;
-    background-image: linear-gradient(to bottom right, #8721FF, #FF457E);
-    margin: 0 10px;
-  }
-
-  .surname {
-    color: #808080;
-  }
-
-  .open-menu {
+  .system-menu {
+    align-items: center;
+    display: flex;
     cursor: pointer;
+    width: 45px;
+
+    &:active {
+      transform: scale(0.95, 0.95);
+    }
+
+    .system-icon {
+      background-image: url(/assets/img/settings.svg);
+      margin-right: 5px;
+      height: 20px;
+      width: 20px;
+    }
   }
+
+
 }

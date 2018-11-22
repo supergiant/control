@@ -2,23 +2,25 @@ package provisioner
 
 import (
 	"context"
+	"fmt"
 	"io"
 	"os"
+	"time"
 	"sync"
 
 	"github.com/pkg/errors"
 	"github.com/sirupsen/logrus"
 
-	"github.com/supergiant/supergiant/pkg/clouds"
-	"github.com/supergiant/supergiant/pkg/model"
-	"github.com/supergiant/supergiant/pkg/node"
-	"github.com/supergiant/supergiant/pkg/pki"
-	"github.com/supergiant/supergiant/pkg/profile"
-	"github.com/supergiant/supergiant/pkg/sgerrors"
-	"github.com/supergiant/supergiant/pkg/storage"
-	"github.com/supergiant/supergiant/pkg/util"
-	"github.com/supergiant/supergiant/pkg/workflows"
-	"github.com/supergiant/supergiant/pkg/workflows/steps"
+	"github.com/supergiant/control/pkg/clouds"
+	"github.com/supergiant/control/pkg/model"
+	"github.com/supergiant/control/pkg/node"
+	"github.com/supergiant/control/pkg/pki"
+	"github.com/supergiant/control/pkg/profile"
+	"github.com/supergiant/control/pkg/sgerrors"
+	"github.com/supergiant/control/pkg/storage"
+	"github.com/supergiant/control/pkg/util"
+	"github.com/supergiant/control/pkg/workflows"
+	"github.com/supergiant/control/pkg/workflows/steps"
 )
 
 const keySize = 4096
@@ -33,9 +35,15 @@ type TaskProvisioner struct {
 	repository   storage.Interface
 	getWriter    func(string) (io.WriteCloser, error)
 	provisionMap map[clouds.Name]workflows.WorkflowSet
+	// NOTE(stgleb): Since provisioner is shared object among all users of SG
+	// this rate limiter will affect all users not allowing them to spin-up
+	// to many instances at once, probably we may split rate limiter per user
+	// in future to avoid interference between them.
+	rateLimiter *RateLimiter
 }
 
-func NewProvisioner(repository storage.Interface, kubeService KubeService) *TaskProvisioner {
+func NewProvisioner(repository storage.Interface, kubeService KubeService,
+	spawnInterval time.Duration) *TaskProvisioner {
 	return &TaskProvisioner{
 		kubeService: kubeService,
 		repository:  repository,
@@ -48,36 +56,61 @@ func NewProvisioner(repository storage.Interface, kubeService KubeService) *Task
 				ProvisionMaster: workflows.AWSMaster,
 				ProvisionNode:   workflows.AWSNode,
 			},
+			clouds.GCE: {
+				ProvisionMaster: workflows.GCEMaster,
+				ProvisionNode:   workflows.GCENode,
+			},
 		},
-		getWriter: util.GetWriter,
+		getWriter:   util.GetWriter,
+		rateLimiter: NewRateLimiter(spawnInterval),
 	}
 }
 
-// ProvisionCluster runs provisionCluster process among nodes that have been provided for provisionCluster
-func (tp *TaskProvisioner) ProvisionCluster(ctx context.Context, profile *profile.Profile, config *steps.Config) (map[string][]*workflows.Task, error) {
+// ProvisionCluster runs provisionCluster process among nodes
+// that have been provided for provisionCluster
+func (tp *TaskProvisioner) ProvisionCluster(ctx context.Context,
+	profile *profile.Profile, config *steps.Config) (map[string][]*workflows.Task, error) {
 	masterTasks, nodeTasks, clusterTask := tp.prepare(config.Provider, len(profile.MasterProfiles),
 		len(profile.NodesProfiles))
 
+	// Get clusterID from taskID
+	if clusterTask != nil && len(clusterTask.ID) >= 8 {
+		config.ClusterID = clusterTask.ID[:8]
+	} else {
+		return nil, errors.New(fmt.Sprintf("Wrong value of cluster task %v", clusterTask))
+	}
 	// TODO(stgleb): Make node names from task id before provisioning starts
-	masters, nodes := nodesFromProfile(config.ClusterName, masterTasks, nodeTasks, profile)
+	masters, nodes := nodesFromProfile(config.ClusterName,
+		masterTasks, nodeTasks, profile)
 
 	if err := bootstrapKeys(config); err != nil {
 		return nil, errors.Wrap(err, "bootstrap keys")
 	}
 
-	if err := bootstrapCA(config); err != nil {
-		return nil, errors.Wrap(err, "bootstrap CA")
+	if err := bootstrapCerts(config); err != nil {
+		return nil, errors.Wrap(err, "bootstrap certs")
 	}
 
 	// Save cluster before provisioning
-	tp.buildInitialCluster(ctx, profile, masters, nodes, config)
+	err := tp.buildInitialCluster(ctx, profile, masters, nodes, config)
+
+	if err != nil {
+		return nil, errors.Wrap(err, "build initial cluster")
+	}
 
 	// monitor cluster state in separate goroutine
 	go tp.monitorClusterState(ctx, config)
 
 	go func() {
-		if err := tp.preprovision(ctx, config); err != nil {
+		if err := tp.preProvision(ctx, config); err != nil {
 			logrus.Errorf("Pre provisioning cluster %v", err)
+		}
+
+		// Save cluster before provisioning
+		err := tp.updateCloudSpecificData(ctx, config)
+
+		if err != nil {
+			logrus.Errorf("update cluster with cloud specific data %v", err)
 		}
 
 		// ProvisionCluster masters and wait until n/2 + 1 of masters with etcd are up and running
@@ -99,14 +132,14 @@ func (tp *TaskProvisioner) ProvisionCluster(ctx context.Context, profile *profil
 		}
 
 		// Save cluster state when masters are provisioned
-		logrus.Infof("master provisioning for cluster %s has finished successfully", config.ClusterName)
+		logrus.Infof("master provisioning for cluster %s has finished successfully", config.ClusterID)
 
 		// ProvisionCluster nodes
 		tp.provisionNodes(ctx, profile, config, nodeTasks)
 
 		// Wait for cluster checks are finished
 		tp.waitCluster(ctx, clusterTask, config)
-		logrus.Infof("cluster %s deployment has finished", config.ClusterName)
+		logrus.Infof("cluster %s deployment has finished", config.ClusterID)
 	}()
 
 	return map[string][]*workflows.Task{
@@ -129,10 +162,18 @@ func (tp *TaskProvisioner) ProvisionNodes(ctx context.Context, nodeProfiles []pr
 		return nil, errors.Wrap(err, "bootstrap keys")
 	}
 
+	if err := tp.loadCloudSpecificData(ctx, config); err != nil {
+		return nil, errors.Wrap(err, "load cloud specific config")
+	}
+
 	providerWorkflowSet, ok := tp.provisionMap[config.Provider]
 
 	if !ok {
 		return nil, errors.Wrap(sgerrors.ErrNotFound, "provider workflow")
+	}
+
+	if err := tp.preProvision(ctx, config); err != nil {
+		logrus.Errorf("Pre provisioning cluster %v", err)
 	}
 
 	// monitor cluster state in separate goroutine
@@ -140,6 +181,9 @@ func (tp *TaskProvisioner) ProvisionNodes(ctx context.Context, nodeProfiles []pr
 	tasks := make([]string, 0, len(nodeProfiles))
 
 	for _, nodeProfile := range nodeProfiles {
+		// Protect cloud API with rate limiter
+		tp.rateLimiter.Take()
+
 		// Take node workflow for the provider
 		t, err := workflows.NewTask(providerWorkflowSet.ProvisionNode, tp.repository)
 		tasks = append(tasks, t.ID)
@@ -168,16 +212,8 @@ func (tp *TaskProvisioner) ProvisionNodes(ctx context.Context, nodeProfiles []pr
 			err = <-errChan
 
 			if err != nil {
-				logrus.Errorf("add node to cluster %s caused an error %v", kube.Name, err)
+				logrus.Errorf("add node to cluster %s caused an error %v", kube.ID, err)
 				return
-			}
-
-			if n := cfg.GetNode(); n != nil {
-				kube.Nodes[n.ID] = n
-				// TODO(stgleb): Use some other method like update or Patch instead of recreate
-				tp.kubeService.Create(context.Background(), kube)
-			} else {
-				logrus.Errorf("add node to cluster %s: node was not added", kube.Name)
 			}
 		}(config, errChan)
 	}
@@ -215,7 +251,7 @@ func (tp *TaskProvisioner) prepare(name clouds.Name, masterCount, nodeCount int)
 	return masterTasks, nodeTasks, clusterTask
 }
 
-func (p *TaskProvisioner) preprovision(ctx context.Context, config *steps.Config) error {
+func (p *TaskProvisioner) preProvision(ctx context.Context, config *steps.Config) error {
 	//some clouds (e.g. AWS) requires running tasks before provisioning nodes (creating a VPC, Subnets, SecGroups, etc)
 	switch config.Provider {
 	case clouds.AWS:
@@ -250,6 +286,9 @@ func (tp *TaskProvisioner) provisionMasters(ctx context.Context, profile *profil
 
 	// ProvisionCluster master nodes
 	for index, masterTask := range tasks {
+		// Take token that allows perform action with Cloud Provider API
+		tp.rateLimiter.Take()
+
 		if masterTask == nil {
 			logrus.Fatal(tasks)
 		}
@@ -306,6 +345,9 @@ func (tp *TaskProvisioner) provisionNodes(ctx context.Context, profile *profile.
 
 	// ProvisionCluster nodes
 	for index, nodeTask := range tasks {
+		// Take token that allows perform action with Cloud Provider API
+		tp.rateLimiter.Take()
+
 		fileName := util.MakeFileName(nodeTask.ID)
 		out, err := tp.getWriter(fileName)
 
@@ -374,19 +416,31 @@ func (tp *TaskProvisioner) waitCluster(ctx context.Context, clusterTask *workflo
 	clusterWg.Wait()
 }
 
-func (tp *TaskProvisioner) buildInitialCluster(ctx context.Context, profile *profile.Profile, masters, nodes map[string]*node.Node, config *steps.Config) error {
+func (tp *TaskProvisioner) buildInitialCluster(ctx context.Context,
+	profile *profile.Profile, masters, nodes map[string]*node.Node,
+	config *steps.Config) error {
+
 	cluster := &model.Kube{
+		ID:           config.ClusterID,
 		State:        model.StateProvisioning,
 		Name:         config.ClusterName,
+		Provider: 	  profile.Provider,
 		AccountName:  config.CloudAccountName,
 		RBACEnabled:  profile.RBACEnabled,
 		Region:       profile.Region,
+		Zone:         profile.Zone,
 		SshUser:      config.SshConfig.User,
 		SshPublicKey: []byte(config.SshConfig.PublicKey),
+		User: profile.User,
+		Password: profile.Password,
 
 		Auth: model.Auth{
-			CAKey:  config.CertificatesConfig.CAKey,
-			CACert: config.CertificatesConfig.CACert,
+			Username:  config.CertificatesConfig.Username,
+			Password:  config.CertificatesConfig.Password,
+			CACert:    config.CertificatesConfig.CACert,
+			CAKey:     config.CertificatesConfig.CAKey,
+			AdminCert: config.CertificatesConfig.AdminCert,
+			AdminKey:  config.CertificatesConfig.AdminKey,
 		},
 
 		Arch:                   profile.Arch,
@@ -402,11 +456,73 @@ func (tp *TaskProvisioner) buildInitialCluster(ctx context.Context, profile *pro
 			CIDR:    profile.CIDR,
 		},
 
-		Masters: masters,
-		Nodes:   nodes,
+		CloudSpec: profile.CloudSpecificSettings,
+		Masters:   masters,
+		Nodes:     nodes,
 	}
 
 	return tp.kubeService.Create(ctx, cluster)
+}
+
+func (t *TaskProvisioner) updateCloudSpecificData(ctx context.Context, config *steps.Config) error {
+	cloudSpecificSettings := make(map[string]string)
+
+	// Save cloudSpecificData in kube
+	switch config.Provider {
+	case clouds.AWS:
+
+	}
+	if config.Provider == clouds.AWS {
+		// Copy data got from pre provision step to cloud specific settings of kube
+		cloudSpecificSettings[clouds.AwsAZ] = config.AWSConfig.AvailabilityZone
+		cloudSpecificSettings[clouds.AwsVpcCIDR] = config.AWSConfig.VPCCIDR
+		cloudSpecificSettings[clouds.AwsVpcID] = config.AWSConfig.VPCID
+		cloudSpecificSettings[clouds.AwsKeyPairName] = config.AWSConfig.KeyPairName
+		cloudSpecificSettings[clouds.AwsSubnetID] = config.AWSConfig.SubnetID
+		cloudSpecificSettings[clouds.AwsMastersSecGroupID] = config.AWSConfig.MastersSecurityGroupID
+		cloudSpecificSettings[clouds.AwsNodesSecgroupID] = config.AWSConfig.NodesSecurityGroupID
+		cloudSpecificSettings[clouds.AwsSshBootstrapPrivateKey] = config.SshConfig.BootstrapPrivateKey
+		cloudSpecificSettings[clouds.AwsUserProvidedSshPublicKey] = config.SshConfig.PublicKey
+	}
+
+	k, err := t.kubeService.Get(ctx, config.ClusterID)
+
+	if err != nil {
+		logrus.Errorf("get kube caused %v", err)
+		return err
+	}
+
+	if config.Provider == clouds.GCE {
+		k.Zone = config.GCEConfig.AvailabilityZone
+	}
+
+	k.CloudSpec = cloudSpecificSettings
+	// Save kubbe with update cloud specific settings
+	return t.kubeService.Create(ctx, k)
+}
+
+func (t *TaskProvisioner) loadCloudSpecificData(ctx context.Context, config *steps.Config) error {
+	k, err := t.kubeService.Get(ctx, config.ClusterID)
+
+	if err != nil {
+		logrus.Errorf("get kube caused %v", err)
+		return err
+	}
+
+	if config.Provider == clouds.AWS {
+		// Copy data got from pre provision step to cloud specific settings of kube
+		config.AWSConfig.AvailabilityZone = k.CloudSpec[clouds.AwsAZ]
+		config.AWSConfig.VPCCIDR = k.CloudSpec[clouds.AwsVpcCIDR]
+		config.AWSConfig.VPCID = k.CloudSpec[clouds.AwsVpcID]
+		config.AWSConfig.KeyPairName = k.CloudSpec[clouds.AwsKeyPairName]
+		config.AWSConfig.SubnetID = k.CloudSpec[clouds.AwsSubnetID]
+		config.AWSConfig.MastersSecurityGroupID = k.CloudSpec[clouds.AwsMastersSecGroupID]
+		config.AWSConfig.NodesSecurityGroupID = k.CloudSpec[clouds.AwsNodesSecgroupID]
+		config.SshConfig.BootstrapPrivateKey = k.CloudSpec[clouds.AwsSshBootstrapPrivateKey]
+		config.SshConfig.PublicKey = k.CloudSpec[clouds.AwsUserProvidedSshPublicKey]
+	}
+
+	return nil
 }
 
 // Create bootstrap key pair and save to config ssh section
@@ -423,15 +539,20 @@ func bootstrapKeys(config *steps.Config) error {
 	return nil
 }
 
-func bootstrapCA(config *steps.Config) error {
-	pkiBundle, err := pki.NewCAPair(config.CertificatesConfig.ParenCert)
-
+func bootstrapCerts(config *steps.Config) error {
+	ca, err := pki.NewCAPair(config.CertificatesConfig.ParenCert)
 	if err != nil {
 		return errors.Wrap(err, "bootstrap CA for provisioning")
 	}
+	config.CertificatesConfig.CACert = string(ca.Cert)
+	config.CertificatesConfig.CAKey = string(ca.Key)
 
-	config.CertificatesConfig.CACert = string(pkiBundle.CA.Cert)
-	config.CertificatesConfig.CAKey = string(pkiBundle.CA.Key)
+	admin, err := pki.NewAdminPair(ca)
+	if err != nil {
+		return errors.Wrap(err, "create admin certificates")
+	}
+	config.CertificatesConfig.AdminCert = string(admin.Cert)
+	config.CertificatesConfig.AdminKey = string(admin.Key)
 
 	return nil
 }
@@ -441,7 +562,7 @@ func (tp *TaskProvisioner) monitorClusterState(ctx context.Context, cfg *steps.C
 	for {
 		select {
 		case n := <-cfg.NodeChan():
-			k, err := tp.kubeService.Get(ctx, cfg.ClusterName)
+			k, err := tp.kubeService.Get(ctx, cfg.ClusterID)
 
 			if err != nil {
 				logrus.Errorf("update kube state caused %v", err)
@@ -461,7 +582,7 @@ func (tp *TaskProvisioner) monitorClusterState(ctx context.Context, cfg *steps.C
 				continue
 			}
 		case state := <-cfg.KubeStateChan():
-			k, err := tp.kubeService.Get(ctx, cfg.ClusterName)
+			k, err := tp.kubeService.Get(ctx, cfg.ClusterID)
 
 			if err != nil {
 				logrus.Errorf("update kube state caused %v", err)

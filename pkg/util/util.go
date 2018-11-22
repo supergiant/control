@@ -5,18 +5,21 @@ import (
 	"encoding/json"
 	"fmt"
 	"io"
+	"io/ioutil"
 	"math/rand"
+	"net/http"
 	"os"
 	"path"
+	"strings"
 	"time"
 
 	"github.com/sirupsen/logrus"
 
-	"github.com/supergiant/supergiant/pkg/clouds"
-	"github.com/supergiant/supergiant/pkg/model"
-	"github.com/supergiant/supergiant/pkg/node"
-	"github.com/supergiant/supergiant/pkg/sgerrors"
-	"github.com/supergiant/supergiant/pkg/workflows/steps"
+	"github.com/supergiant/control/pkg/clouds"
+	"github.com/supergiant/control/pkg/model"
+	"github.com/supergiant/control/pkg/node"
+	"github.com/supergiant/control/pkg/sgerrors"
+	"github.com/supergiant/control/pkg/workflows/steps"
 )
 
 const letterBytes = "0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ"
@@ -115,6 +118,8 @@ func FillCloudAccountCredentials(ctx context.Context, cloudAccount *model.CloudA
 		return BindParams(cloudAccount.Credentials, &config.AWSConfig)
 	case clouds.DigitalOcean:
 		return BindParams(cloudAccount.Credentials, &config.DigitalOceanConfig)
+	case clouds.GCE:
+		return BindParams(cloudAccount.Credentials, &config.GCEConfig)
 	default:
 		return sgerrors.ErrUnknownProvider
 	}
@@ -130,4 +135,20 @@ func GetRandomNode(nodeMap map[string]*node.Node) *node.Node {
 
 func GetWriter(name string) (io.WriteCloser, error) {
 	return os.OpenFile(path.Join("/tmp", name), os.O_CREATE|os.O_WRONLY|os.O_APPEND, 0666)
+}
+
+func FindOutboundIP() (string, error) {
+	resp, err := http.Get("http://myexternalip.com/raw")
+	if err != nil {
+		return "", nil
+	}
+	defer resp.Body.Close()
+	res, err := ioutil.ReadAll(resp.Body)
+	if err != nil {
+		return "", nil
+	}
+
+	publicIP := string(res)
+	publicIP = strings.Replace(publicIP, "\n", "", -1)
+	return publicIP, nil
 }

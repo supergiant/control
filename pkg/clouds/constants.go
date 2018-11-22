@@ -38,4 +38,15 @@ const (
 	CredsPublicKey             = "publicKey"
 	AWSAccessKeyID             = "access_key"
 	AWSSecretKey               = "secret_key"
+
+	ClusterIDTag                = "supergiant.io/cluster-id"
+	AwsAZ                       = "aws_az"
+	AwsVpcCIDR                  = "aws_vpc_cidr"
+	AwsVpcID                    = "aws_vpc_id"
+	AwsKeyPairName              = "aws_keypair_name"
+	AwsSubnetID                 = "aws_subnet_id"
+	AwsMastersSecGroupID        = "aws_masters_secgroup_id"
+	AwsNodesSecgroupID          = "aws_nodes_secgroup_id"
+	AwsSshBootstrapPrivateKey   = "aws_ssh_bootstrap_private_key"
+	AwsUserProvidedSshPublicKey = "aws_user_provided_public_key"
 )

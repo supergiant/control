@@ -13,17 +13,17 @@ import (
 	"github.com/aws/aws-sdk-go/service/ec2/ec2iface"
 	"github.com/pkg/errors"
 	"github.com/sirupsen/logrus"
-
-	"github.com/supergiant/supergiant/pkg/clouds"
-	"github.com/supergiant/supergiant/pkg/node"
-	"github.com/supergiant/supergiant/pkg/util"
-	"github.com/supergiant/supergiant/pkg/workflows/steps"
+	"github.com/supergiant/control/pkg/clouds"
+	"github.com/supergiant/control/pkg/node"
+	"github.com/supergiant/control/pkg/util"
+	"github.com/supergiant/control/pkg/workflows/steps"
 )
 
 const (
 	StepNameCreateEC2Instance = "aws_create_instance"
-	IPAttempts                = 12
+	IPAttempts                = 5
 	SleepSecondsPerAttempt    = 6
+	timeout                   = time.Second * 10
 )
 
 type StepCreateInstance struct {
@@ -43,7 +43,26 @@ func NewCreateInstance(fn GetEC2Fn) *StepCreateInstance {
 
 func (s *StepCreateInstance) Run(ctx context.Context, w io.Writer, cfg *steps.Config) error {
 	log := util.GetLogger(w)
-	log.Infof("[%s] - started", StepNameCreateEC2Instance)
+
+	role := node.RoleMaster
+	if !cfg.IsMaster {
+		role = node.RoleNode
+	}
+
+	nodeName := util.MakeNodeName(cfg.ClusterName, cfg.TaskID, cfg.IsMaster)
+
+	cfg.Node = node.Node{
+		Name:     nodeName,
+		TaskID:   cfg.TaskID,
+		Region:   cfg.AWSConfig.Region,
+		Role:     role,
+		Size: 	  cfg.AWSConfig.InstanceType,
+		Provider: clouds.AWS,
+		State:    node.StatePlanned,
+	}
+
+	// Update node state in cluster
+	cfg.NodeChan() <- cfg.Node
 
 	var secGroupID *string
 
@@ -66,11 +85,10 @@ func (s *StepCreateInstance) Run(ctx context.Context, w io.Writer, cfg *steps.Co
 		return errors.Wrap(err, "failed to find AMI")
 	}
 
-	isEbs, err := strconv.ParseBool(cfg.AWSConfig.EbsOptimized)
+	isEbs := false
 	volumeSize, err := strconv.Atoi(cfg.AWSConfig.VolumeSize)
 	hasPublicAddress, err := strconv.ParseBool(cfg.AWSConfig.HasPublicAddr)
 
-	nodeName := util.MakeNodeName(cfg.ClusterName, cfg.TaskID, cfg.IsMaster)
 	runInstanceInput := &ec2.RunInstancesInput{
 		BlockDeviceMappings: []*ec2.BlockDeviceMapping{
 			{
@@ -82,14 +100,15 @@ func (s *StepCreateInstance) Run(ctx context.Context, w io.Writer, cfg *steps.Co
 				},
 			},
 		},
+		Placement: &ec2.Placement{
+			AvailabilityZone: aws.String(cfg.AWSConfig.AvailabilityZone),
+		},
 		EbsOptimized: &isEbs,
 		ImageId:      &amiID,
 		InstanceType: &cfg.AWSConfig.InstanceType,
 		KeyName:      &cfg.AWSConfig.KeyPairName,
 		MaxCount:     aws.Int64(1),
 		MinCount:     aws.Int64(1),
-		//	SecurityGroupIds: []*string{secGroupID},
-		//SubnetId: aws.String(cfg.AWSConfig.SubnetID),
 
 		//TODO add custom TAGS
 		TagSpecifications: []*ec2.TagSpecification{
@@ -108,6 +127,10 @@ func (s *StepCreateInstance) Run(ctx context.Context, w io.Writer, cfg *steps.Co
 						Key:   aws.String("Role"),
 						Value: aws.String(util.MakeRole(cfg.IsMaster)),
 					},
+					{
+						Key:   aws.String(clouds.ClusterIDTag),
+						Value: aws.String(cfg.ClusterID),
+					},
 				},
 			},
 		},
@@ -124,23 +147,6 @@ func (s *StepCreateInstance) Run(ctx context.Context, w io.Writer, cfg *steps.Co
 		}
 	}
 
-	role := node.RoleMaster
-	if !cfg.IsMaster {
-		role = node.RoleNode
-	}
-
-	cfg.Node = node.Node{
-		Name:     nodeName,
-		TaskID:   cfg.TaskID,
-		Region:   cfg.AWSConfig.Region,
-		Role:     role,
-		Provider: clouds.AWS,
-		State:    node.StateBuilding,
-	}
-
-	// Update node state in cluster
-	cfg.NodeChan() <- cfg.Node
-
 	res, err := EC2.RunInstancesWithContext(ctx, runInstanceInput)
 	if err != nil {
 		cfg.Node.State = node.StateError
@@ -149,6 +155,20 @@ func (s *StepCreateInstance) Run(ctx context.Context, w io.Writer, cfg *steps.Co
 		log.Errorf("[%s] - failed to create ec2 instance: %v", StepNameCreateEC2Instance, err)
 		return errors.Wrap(ErrCreateInstance, err.Error())
 	}
+
+
+	cfg.Node = node.Node{
+		Name:     nodeName,
+		TaskID:   cfg.TaskID,
+		Region:   cfg.AWSConfig.Region,
+		Role:     role,
+		Provider: clouds.AWS,
+		Size: 	  cfg.AWSConfig.InstanceType,
+		State:    node.StateBuilding,
+	}
+
+	// Update node state in cluster
+	cfg.NodeChan() <- cfg.Node
 
 	if len(res.Instances) == 0 {
 		cfg.Node.State = node.StateError
@@ -164,6 +184,8 @@ func (s *StepCreateInstance) Run(ctx context.Context, w io.Writer, cfg *steps.Co
 
 		//Waiting for AWS to assign public IP requires to poll an describe ec2 endpoint several times
 		found := false
+		sleepTimeout := timeout
+
 		for i := 0; i < IPAttempts; i++ {
 			lookup := &ec2.DescribeInstancesInput{
 				Filters: []*ec2.Filter{
@@ -172,8 +194,8 @@ func (s *StepCreateInstance) Run(ctx context.Context, w io.Writer, cfg *steps.Co
 						Values: []*string{aws.String(nodeName)},
 					},
 					{
-						Name:   aws.String("tag:KubernetesCluster"),
-						Values: []*string{aws.String(cfg.ClusterName)},
+						Name:   aws.String(fmt.Sprintf("tag:%s", clouds.ClusterIDTag)),
+						Values: []*string{aws.String(cfg.ClusterID)},
 					},
 				},
 			}
@@ -198,7 +220,9 @@ func (s *StepCreateInstance) Run(ctx context.Context, w io.Writer, cfg *steps.Co
 				found = true
 				break
 			}
-			time.Sleep(2 * time.Second)
+			time.Sleep(sleepTimeout)
+			// Increase sleep timeout exponentially
+			sleepTimeout = sleepTimeout * 2
 		}
 		if !found {
 			log.Errorf("[%s] - failed to find public IP address after %d attempts", s.Name(), IPAttempts)
@@ -220,7 +244,7 @@ func (s *StepCreateInstance) Run(ctx context.Context, w io.Writer, cfg *steps.Co
 		cfg.AddNode(&cfg.Node)
 	}
 
-	log.Infof("[%s] - success! Created node %s with instanceID %s", s.Name(), nodeName, cfg.Node.ID)
+	log.Infof("[%s] - success! Created node %s with instanceID %s ", s.Name(), nodeName, cfg.Node.ID)
 	logrus.Debugf("%v", *instance)
 
 	return nil
@@ -257,7 +281,7 @@ func (s *StepCreateInstance) FindAMI(ctx context.Context, w io.Writer, EC2 ec2if
 			{
 				Name: aws.String("description"),
 				Values: []*string{
-					aws.String("Canonical, Ubuntu, 17.10*"),
+					aws.String("Canonical, Ubuntu, 16.04*"),
 				},
 			},
 		},

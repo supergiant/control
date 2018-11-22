@@ -12,6 +12,7 @@ import { UtilService } from '../../shared/supergiant/util/util.service';
 import { Notifications } from '../../shared/notifications/notifications.service';
 import { ConfirmModalComponent } from '../../shared/modals/confirm-modal/confirm-modal.component';
 import { DeleteClusterModalComponent } from './delete-cluster-modal/delete-cluster-modal.component';
+import { DeleteReleaseModalComponent } from './delete-release-modal/delete-release-modal.component';
 import { TaskLogsComponent } from './task-logs/task-logs.component';
 
 
@@ -31,27 +32,30 @@ import { TaskLogsComponent } from './task-logs/task-logs.component';
 })
 
 export class ClusterComponent implements OnInit, OnDestroy {
-  id: number;
+  clusterId: number;
   subscriptions = new Subscription();
   public kube: any;
   public kubeString: string;
 
   // machine list vars
   machines: any;
-  machineListColumns = ["state", "role", "name", "id", "region", "publicIp"];
+  machineListColumns = ["state", "role", "size", "name", "cpu", "ram", "region", "publicIp", "delete"];
 
   // task list vars
   tasks: any;
   taskListColumns = ["status", "type", "id", "steps", "logs"];
-  expandedTaskId: any;
+  expandedTaskIds = new Set();
 
-  // temp for demo, remove ASAP
+  releases: any;
+  releaseListColumns = ["status", "name", "chart", "chartVersion", "version", "lastDeployed", "delete"];
+
   masterTasksStatus = "executing";
   nodeTasksStatus = "queued";
   clusterTasksStatus = "queued";
 
-  releases: any;
-  releaseListColumns = ["status", "name", "chart", "chartVersion", "version", "lastDeployed"];
+  cpuUsage: number;
+  ramUsage: number;
+  machineMetrics = {};
 
   constructor(
     private route: ActivatedRoute,
@@ -64,7 +68,7 @@ export class ClusterComponent implements OnInit, OnDestroy {
     public http: HttpClient,
   ) {
       route.params.subscribe(params => {
-        this.id = params.id;
+        this.clusterId = params.id;
         this.getKube();
       })
     }
@@ -73,7 +77,7 @@ export class ClusterComponent implements OnInit, OnDestroy {
   @ViewChild(MatPaginator) paginator: MatPaginator;
 
   ngOnInit() {
-    this.id = this.route.snapshot.params.id;
+    this.clusterId = this.route.snapshot.params.id;
     this.getKube();
   }
 
@@ -95,19 +99,19 @@ export class ClusterComponent implements OnInit, OnDestroy {
     return arr;
   }
 
-  getKubeStatus(id) {
+  getKubeStatus(clusterId) {
     // we should make Tasks a part of the Supergiant instance
     // if we start using them outside of this
-    return this.util.fetch("/v1/api/kubes/" + id + "/tasks");
+    return this.util.fetch("/v1/api/kubes/" + clusterId + "/tasks");
   }
 
   toggleSteps(task) {
 
     task.showSteps = !task.showSteps;
 
-    if (task.id != this.expandedTaskId) {
-      this.expandedTaskId = task.id;
-    } else { this.expandedTaskId = undefined; }
+    if (this.expandedTaskIds.has(task.id)) {
+      this.expandedTaskIds.delete(task.id);
+    } else { this.expandedTaskIds.add(task.id); }
   }
 
   taskComplete(task) {
@@ -168,26 +172,28 @@ export class ClusterComponent implements OnInit, OnDestroy {
   getKube() {
     // TODO: shameful how smart this ENTIRE component has become.
     this.subscriptions.add(observableTimer(0, 10000).pipe(
-      switchMap(() => this.supergiant.Kubes.get(this.id))).subscribe(
+      switchMap(() => this.supergiant.Kubes.get(this.clusterId))).subscribe(
         k => {
           this.kube = k;
           // for dev-ing
           // this.kube.state = "provisioning";
 
-          switch (k.state) {
+          switch (this.kube.state) {
             case "operational": {
               this.renderKube(this.kube);
-              this.getReleases()
+              this.getReleases();
+              this.getClusterMetrics();
+              this.getMachineMetrics();
               break;
             }
             case "provisioning": {
-              this.getKubeStatus(this.id).subscribe(
+              this.getKubeStatus(this.clusterId).subscribe(
                 tasks => {
                   this.setProvisioningStep(tasks);
 
                   const rows = [];
                   tasks.forEach(t => {
-                    if (t.id == this.expandedTaskId) {
+                    if (this.expandedTaskIds.has(t.id)) {
                       t.showSteps = true;
                     };
                     rows.push(t, { detailRow: true, t })
@@ -201,12 +207,12 @@ export class ClusterComponent implements OnInit, OnDestroy {
               break;
             }
             case "failed": {
-              this.getKubeStatus(this.id).subscribe(
+              this.getKubeStatus(this.clusterId).subscribe(
                 tasks => {
 
                   const rows = [];
                   tasks.forEach(t => {
-                    if (t.id == this.expandedTaskId) {
+                    if (this.expandedTaskIds.has(t.id)) {
                       t.showSteps = true;
                     };
                     rows.push(t, { detailRow: true, t })
@@ -232,26 +238,66 @@ export class ClusterComponent implements OnInit, OnDestroy {
   }
 
   renderKube(kube) {
+    const machineMetrics = {};
+    const masterNames = Object.keys(kube.masters);
+    const nodeNames = Object.keys(kube.nodes);
 
-    let masters = kube.masters;
-    let nodes = kube.nodes;
+    masterNames.forEach(name => {
+      const lowercaseName = name.toLowerCase();
+      if (this.machineMetrics[lowercaseName]) {
+        kube.masters[name].metrics = this.machineMetrics[lowercaseName];
+      }
+    })
 
-    this.machines = new MatTableDataSource(this.combineAndFlatten(masters, nodes));
+    nodeNames.forEach(name => {
+      const lowercaseName = name.toLowerCase();
+      if (this.machineMetrics[lowercaseName]) {
+        kube.nodes[name].metrics = this.machineMetrics[lowercaseName];
+      }
+    })
+
+    this.machines = new MatTableDataSource(this.combineAndFlatten(kube.masters, kube.nodes));
     this.machines.sort = this.sort;
     this.machines.paginator = this.paginator;
   }
 
   getReleases() {
-    this.supergiant.HelmReleases.get(this.id).subscribe(
+    this.supergiant.HelmReleases.get(this.clusterId).subscribe(
       res => {
-        this.releases = new MatTableDataSource(res);
+        const releases = res.filter(r => r.status != "DELETED")
+        this.releases = new MatTableDataSource(releases);
       },
       err => console.error(err)
     )
   }
 
-  goBack() {
-    this.location.back();
+  getClusterMetrics() {
+    this.supergiant.Kubes.getClusterMetrics(this.clusterId).subscribe(
+      res => {
+        this.cpuUsage = res.cpu;
+        this.ramUsage = res.memory;
+      },
+      err => console.error(err)
+    )
+  }
+
+  getMachineMetrics() {
+    this.supergiant.Kubes.getMachineMetrics(this.clusterId).subscribe(
+      res => {
+        this.machineMetrics = this.calculateMachineMetrics(res);
+        this.renderKube(this.kube)
+      },
+      err => console.error(err)
+    )
+  }
+
+  calculateMachineMetrics(machines) {
+    Object.keys(machines).forEach(m => {
+      machines[m].cpu = (machines[m].cpu * 100).toFixed(1);
+      machines[m].memory = (machines[m].memory * 100).toFixed(1);
+    });
+
+    return machines;
   }
 
   removeNode(nodeName: string, target) {
@@ -261,37 +307,52 @@ export class ClusterComponent implements OnInit, OnDestroy {
       .afterClosed()
       .pipe(
         filter(isConfirmed => isConfirmed),
-        switchMap(() => this.supergiant.Nodes.delete(this.id, nodeName)),
-        switchMap(() => this.supergiant.Kubes.get(this.id)),
+        switchMap(() => this.supergiant.Nodes.delete(this.clusterId, nodeName)),
+        switchMap(() => this.supergiant.Kubes.get(this.clusterId)),
         catchError((error) => of(error)),
       ).subscribe(
         k => this.renderKube(k),
         err => {
           console.error(err);
-          this.error(this.id, err)
+          this.error(this.clusterId, err)
         },
      );
   }
 
   deleteCluster() {
-    const dialogRef = this.initDeleteCluster();
+    const dialogRef = this.initDeleteCluster(this.kube.state);
 
     dialogRef
       .afterClosed()
       .pipe(
         filter(isConfirmed => isConfirmed),
-        switchMap(() => this.supergiant.Kubes.delete(this.id)),
+        switchMap(() => this.supergiant.Kubes.delete(this.clusterId)),
         catchError((error) => of(error)),
       ).subscribe(
         res => {
-          this.success(this.id);
+          this.success(this.clusterId);
           this.router.navigate([""]);
         },
         err => {
           console.error(err);
-          this.error(this.id, err)
+          this.error(this.clusterId, err)
         },
      );
+  }
+
+  deleteRelease(releaseName, event) {
+    const dialogRef = this.initDeleteRelease(releaseName)
+
+    dialogRef
+      .afterClosed()
+      .pipe(
+        filter(res => res.deleteRelease),
+        switchMap(res => this.supergiant.HelmReleases.delete(releaseName, this.clusterId, !res.deleteConfigs)),
+        catchError(err => of(err))
+      ).subscribe(
+        res => this.getReleases(),
+        err => console.error(err)
+      )
   }
 
   private initDialog(target) {
@@ -306,10 +367,19 @@ export class ClusterComponent implements OnInit, OnDestroy {
     return dialogRef;
   }
 
-  private initDeleteCluster() {
+  private initDeleteCluster(clusterState) {
     const dialogRef = this.dialog.open(DeleteClusterModalComponent, {
       width: "500px",
+      data: { state: clusterState }
     });
+    return dialogRef;
+  }
+
+  private initDeleteRelease(name) {
+    const dialogRef = this.dialog.open(DeleteReleaseModalComponent, {
+      width: "max-content",
+      data: { name: name }
+    })
     return dialogRef;
   }
 

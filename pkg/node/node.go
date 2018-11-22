@@ -3,7 +3,7 @@ package node
 import (
 	"fmt"
 
-	"github.com/supergiant/supergiant/pkg/clouds"
+	"github.com/supergiant/control/pkg/clouds"
 )
 
 type NodeState string
@@ -16,6 +16,7 @@ const (
 	StateProvisioning NodeState = "provisioning"
 	StateError        NodeState = "error"
 	StateActive       NodeState = "active"
+	StateDeleting     NodeState = "deleting"
 
 	RoleMaster Role = "master"
 	RoleNode   Role = "node"

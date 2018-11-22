@@ -10,9 +10,9 @@ import (
 	"github.com/aws/aws-sdk-go/service/ec2"
 	"github.com/aws/aws-sdk-go/service/ec2/ec2iface"
 	"github.com/pkg/errors"
-
-	"github.com/supergiant/supergiant/pkg/util"
-	"github.com/supergiant/supergiant/pkg/workflows/steps"
+	"github.com/sirupsen/logrus"
+	"github.com/supergiant/control/pkg/util"
+	"github.com/supergiant/control/pkg/workflows/steps"
 )
 
 const StepCreateSecurityGroups = "create_security_groups_step"
@@ -45,11 +45,11 @@ func (s *CreateSecurityGroupsStep) Run(ctx context.Context, w io.Writer, cfg *st
 	}
 
 	if cfg.AWSConfig.MastersSecurityGroupID == "" {
-		groupName := fmt.Sprintf("%s-masters-secgroup", cfg.ClusterName)
+		groupName := fmt.Sprintf("%s-masters-secgroup", cfg.ClusterID)
 
 		log.Infof("[%s] - masters security groups not specified, will create a new one...", s.Name())
 		out, err := EC2.CreateSecurityGroupWithContext(ctx, &ec2.CreateSecurityGroupInput{
-			Description: aws.String("Security group for Kubernetes masters for cluster " + cfg.ClusterName),
+			Description: aws.String("Security group for Kubernetes masters for cluster " + cfg.ClusterID),
 			VpcId:       aws.String(cfg.AWSConfig.VPCID),
 			GroupName:   aws.String(groupName),
 		})
@@ -77,11 +77,11 @@ func (s *CreateSecurityGroupsStep) Run(ctx context.Context, w io.Writer, cfg *st
 	}
 	//If there is no security group, create it
 	if cfg.AWSConfig.NodesSecurityGroupID == "" {
-		groupName := fmt.Sprintf("%s-nodes-secgroup", cfg.ClusterName)
+		groupName := fmt.Sprintf("%s-nodes-secgroup", cfg.ClusterID)
 
 		log.Infof("[%s] - node security groups not specified, will create a new one...", s.Name())
 		out, err := EC2.CreateSecurityGroupWithContext(ctx, &ec2.CreateSecurityGroupInput{
-			Description: aws.String("Security group for Kubernetes nodes for cluster " + cfg.ClusterName),
+			Description: aws.String("Security group for Kubernetes nodes for cluster " + cfg.ClusterID),
 			VpcId:       aws.String(cfg.AWSConfig.VPCID),
 			GroupName:   aws.String(groupName),
 		})
@@ -132,6 +132,10 @@ func (s *CreateSecurityGroupsStep) Run(ctx context.Context, w io.Writer, cfg *st
 
 	if err := s.allowAllTraffic(ctx, EC2, cfg.AWSConfig.NodesSecurityGroupID, *masterGroup.GroupName); err != nil {
 		return err
+	}
+
+	if err := s.whiteListSupergiantIP(ctx, EC2, cfg.AWSConfig.MastersSecurityGroupID); err != nil {
+		logrus.Errorf("[%s] - failed to whitelist supergiant IP in master security group: %v", s.Name(), err)
 	}
 
 	return nil
@@ -204,6 +208,37 @@ func (s *CreateSecurityGroupsStep) allowAllTraffic(ctx context.Context, EC2 ec2i
 			return nil
 		}
 	}
+	return err
+}
+
+func (s *CreateSecurityGroupsStep) whiteListSupergiantIP(ctx context.Context, EC2 ec2iface.EC2API, groupID string) error {
+	supergiantIP, err := util.FindOutboundIP()
+	if err != nil {
+		return err
+	}
+
+	_, err = EC2.AuthorizeSecurityGroupIngressWithContext(ctx, &ec2.AuthorizeSecurityGroupIngressInput{
+		GroupId:    aws.String(groupID),
+		FromPort:   aws.Int64(8080),
+		ToPort:     aws.Int64(8080),
+		CidrIp:     aws.String(fmt.Sprintf("%s/32", supergiantIP)),
+		IpProtocol: aws.String("tcp"),
+	})
+	if err != nil {
+		return err
+	}
+
+	_, err = EC2.AuthorizeSecurityGroupIngressWithContext(ctx, &ec2.AuthorizeSecurityGroupIngressInput{
+		GroupId:    aws.String(groupID),
+		FromPort:   aws.Int64(443),
+		ToPort:     aws.Int64(443),
+		CidrIp:     aws.String(fmt.Sprintf("%s/32", supergiantIP)),
+		IpProtocol: aws.String("tcp"),
+	})
+	if err != nil {
+		return err
+	}
+
 	return err
 }
 

@@ -11,12 +11,12 @@ import (
 
 	"github.com/pkg/errors"
 
-	"github.com/supergiant/supergiant/pkg/node"
-	"github.com/supergiant/supergiant/pkg/pki"
-	"github.com/supergiant/supergiant/pkg/profile"
-	"github.com/supergiant/supergiant/pkg/runner"
-	"github.com/supergiant/supergiant/pkg/templatemanager"
-	"github.com/supergiant/supergiant/pkg/workflows/steps"
+	"github.com/supergiant/control/pkg/node"
+	"github.com/supergiant/control/pkg/pki"
+	"github.com/supergiant/control/pkg/profile"
+	"github.com/supergiant/control/pkg/runner"
+	"github.com/supergiant/control/pkg/templatemanager"
+	"github.com/supergiant/control/pkg/workflows/steps"
 )
 
 type fakeRunner struct {
@@ -35,7 +35,8 @@ func (f *fakeRunner) Run(command *runner.Command) error {
 func TestWriteCertificates(t *testing.T) {
 	var (
 		kubernetesConfigDir = "/etc/kubernetes"
-		masterPrivateIP     = "10.20.30.40"
+		privateIP           = "10.20.30.40"
+		publicIP            = "22.33.44.55"
 		userName            = "user"
 		password            = "1234"
 
@@ -48,7 +49,7 @@ func TestWriteCertificates(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	tpl := templatemanager.GetTemplate(StepName)
+	tpl, _ := templatemanager.GetTemplate(StepName)
 
 	if tpl == nil {
 		t.Fatal("template not found")
@@ -65,45 +66,106 @@ func TestWriteCertificates(t *testing.T) {
 	cfg := steps.NewConfig("", "", "", profile.Profile{})
 	cfg.CertificatesConfig = steps.CertificatesConfig{
 		KubernetesConfigDir: kubernetesConfigDir,
-		MasterHost:          masterPrivateIP,
+		PrivateIP:           privateIP,
 		Username:            userName,
 		Password:            password,
-		CAKey:               string(caPair.CA.Key),
-		CACert:              string(caPair.CA.Cert),
+		CAKey:               string(caPair.Key),
+		CACert:              string(caPair.Cert),
 	}
+
 	cfg.Runner = r
-	cfg.AddMaster(&node.Node{
+	cfg.Node = node.Node{
 		State:     node.StateActive,
-		PrivateIp: "10.20.30.40",
-	})
-	task := &Step{
-		tpl,
+		PrivateIp: privateIP,
+		PublicIp:  publicIP,
 	}
 
-	err = task.Run(context.Background(), output, cfg)
+	nodeRoles := []bool{true, false}
 
-	if err != nil {
-		t.Errorf("Unpexpected error while  provision node %v", err)
-	}
+	for _, isMaster := range nodeRoles {
+		cfg.IsMaster = isMaster
+		task := &Step{
+			tpl,
+		}
 
-	if !strings.Contains(output.String(), kubernetesConfigDir) {
-		t.Errorf("kubernetes config dir %s not found in %s", kubernetesConfigDir, output.String())
-	}
+		err = task.Run(context.Background(), output, cfg)
 
-	if !strings.Contains(output.String(), userName) {
-		t.Errorf("username %s not found in %s", userName, output.String())
-	}
+		if err != nil {
+			t.Errorf("Unpexpected error while  provision node %v", err)
+		}
 
-	if !strings.Contains(output.String(), password) {
-		t.Errorf("password %s not found in %s", password, output.String())
-	}
+		if !strings.Contains(output.String(), kubernetesConfigDir) {
+			t.Errorf("kubernetes config dir %s not found in %s", kubernetesConfigDir, output.String())
+		}
 
-	if !strings.Contains(output.String(), string(caPair.CA.Key)) {
-		t.Errorf("CA key not found in %s", output.String())
-	}
+		if !strings.Contains(output.String(), userName) {
+			t.Errorf("username %s not found in %s", userName, output.String())
+		}
 
-	if !strings.Contains(output.String(), string(caPair.CA.Cert)) {
-		t.Errorf("CA cert not found in %s", output.String())
+		if !strings.Contains(output.String(), password) {
+			t.Errorf("password %s not found in %s", password, output.String())
+		}
+
+		if !strings.Contains(output.String(), string(caPair.Key)) {
+			t.Errorf("CA key not found in %s", output.String())
+		}
+
+		if !strings.Contains(output.String(), string(caPair.Cert)) {
+			t.Errorf("CA cert not found in %s", output.String())
+		}
+
+		if !strings.Contains(output.String(), privateIP) {
+			t.Errorf("Master private ip %s not found in %s",
+				privateIP, output.String())
+		}
+
+		if !strings.Contains(output.String(), publicIP) {
+			t.Errorf("Master public ip %s not found in %s",
+				publicIP, output.String())
+		}
+
+		if isMaster {
+			if !strings.Contains(output.String(), "apiserver-key.pem") {
+				t.Errorf("apiserver-key.pem not found in %s",
+					output.String())
+			}
+
+			if !strings.Contains(output.String(), "apiserver.pem") {
+				t.Errorf("apiserver-key.pem not found in %s",
+					output.String())
+			}
+
+			if !strings.Contains(output.String(), "worker-key.pem") {
+				t.Errorf("worker-key.pem not found in %s",
+					output.String())
+			}
+
+			if !strings.Contains(output.String(), "worker.pem") {
+				t.Errorf("worker.pem not found in %s",
+					output.String())
+			}
+		} else {
+			if !strings.Contains(output.String(), "worker-key.pem") {
+				t.Errorf("worker-key.pem %s not found in %s",
+					publicIP, output.String())
+			}
+
+			if !strings.Contains(output.String(), "worker.pem") {
+				t.Errorf("worker.pem %s not found in %s",
+					publicIP, output.String())
+			}
+
+			if strings.Contains(output.String(), "apiserver-key.pem") {
+				t.Errorf("apiserver-key.pem must not be in in %s",
+					output.String())
+			}
+
+			if strings.Contains(output.String(), "apiserver.pem") {
+				t.Errorf("apiserver.pem must not be in in %s",
+					output.String())
+			}
+		}
+		output.Reset()
 	}
 }
 
@@ -174,9 +236,27 @@ func TestNew(t *testing.T) {
 }
 
 func TestInit(t *testing.T) {
+	templatemanager.SetTemplate(StepName, &template.Template{})
 	Init()
+	templatemanager.DeleteTemplate(StepName)
 
 	s := steps.GetStep(StepName)
+
+	if s == nil {
+		t.Error("Step not found")
+	}
+}
+
+func TestInitPanic(t *testing.T) {
+	defer func(){
+		if r := recover(); r == nil {
+			t.Errorf("recover output must not be nil")
+		}
+	}()
+
+	Init()
+
+	s := steps.GetStep("not_found.sh.tpl")
 
 	if s == nil {
 		t.Error("Step not found")

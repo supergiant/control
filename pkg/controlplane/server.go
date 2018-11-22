@@ -13,37 +13,39 @@ import (
 	"github.com/sirupsen/logrus"
 	"k8s.io/helm/pkg/repo"
 
-	"github.com/supergiant/supergiant/pkg/account"
-	"github.com/supergiant/supergiant/pkg/api"
-	"github.com/supergiant/supergiant/pkg/jwt"
-	"github.com/supergiant/supergiant/pkg/kube"
-	"github.com/supergiant/supergiant/pkg/profile"
-	"github.com/supergiant/supergiant/pkg/provisioner"
-	sshRunner "github.com/supergiant/supergiant/pkg/runner/ssh"
-	"github.com/supergiant/supergiant/pkg/sgerrors"
-	"github.com/supergiant/supergiant/pkg/sghelm"
-	"github.com/supergiant/supergiant/pkg/storage"
-	"github.com/supergiant/supergiant/pkg/templatemanager"
-	"github.com/supergiant/supergiant/pkg/testutils/assert"
-	"github.com/supergiant/supergiant/pkg/user"
-	"github.com/supergiant/supergiant/pkg/util"
-	"github.com/supergiant/supergiant/pkg/workflows"
-	"github.com/supergiant/supergiant/pkg/workflows/steps/amazon"
-	"github.com/supergiant/supergiant/pkg/workflows/steps/certificates"
-	"github.com/supergiant/supergiant/pkg/workflows/steps/clustercheck"
-	"github.com/supergiant/supergiant/pkg/workflows/steps/cni"
-	"github.com/supergiant/supergiant/pkg/workflows/steps/digitalocean"
-	"github.com/supergiant/supergiant/pkg/workflows/steps/docker"
-	"github.com/supergiant/supergiant/pkg/workflows/steps/downloadk8sbinary"
-	"github.com/supergiant/supergiant/pkg/workflows/steps/etcd"
-	"github.com/supergiant/supergiant/pkg/workflows/steps/flannel"
-	"github.com/supergiant/supergiant/pkg/workflows/steps/kubelet"
-	"github.com/supergiant/supergiant/pkg/workflows/steps/manifest"
-	"github.com/supergiant/supergiant/pkg/workflows/steps/network"
-	"github.com/supergiant/supergiant/pkg/workflows/steps/poststart"
-	"github.com/supergiant/supergiant/pkg/workflows/steps/prometheus"
-	"github.com/supergiant/supergiant/pkg/workflows/steps/ssh"
-	"github.com/supergiant/supergiant/pkg/workflows/steps/tiller"
+	"github.com/supergiant/control/pkg/account"
+	"github.com/supergiant/control/pkg/api"
+	"github.com/supergiant/control/pkg/jwt"
+	"github.com/supergiant/control/pkg/kube"
+	"github.com/supergiant/control/pkg/profile"
+	"github.com/supergiant/control/pkg/provisioner"
+	sshRunner "github.com/supergiant/control/pkg/runner/ssh"
+	"github.com/supergiant/control/pkg/sgerrors"
+	"github.com/supergiant/control/pkg/sghelm"
+	"github.com/supergiant/control/pkg/storage"
+	"github.com/supergiant/control/pkg/templatemanager"
+	"github.com/supergiant/control/pkg/testutils/assert"
+	"github.com/supergiant/control/pkg/user"
+	"github.com/supergiant/control/pkg/util"
+	"github.com/supergiant/control/pkg/workflows"
+	"github.com/supergiant/control/pkg/workflows/steps/amazon"
+	"github.com/supergiant/control/pkg/workflows/steps/authorizedKeys"
+	"github.com/supergiant/control/pkg/workflows/steps/certificates"
+	"github.com/supergiant/control/pkg/workflows/steps/clustercheck"
+	"github.com/supergiant/control/pkg/workflows/steps/cni"
+	"github.com/supergiant/control/pkg/workflows/steps/digitalocean"
+	"github.com/supergiant/control/pkg/workflows/steps/docker"
+	"github.com/supergiant/control/pkg/workflows/steps/downloadk8sbinary"
+	"github.com/supergiant/control/pkg/workflows/steps/etcd"
+	"github.com/supergiant/control/pkg/workflows/steps/flannel"
+	"github.com/supergiant/control/pkg/workflows/steps/gce"
+	"github.com/supergiant/control/pkg/workflows/steps/kubelet"
+	"github.com/supergiant/control/pkg/workflows/steps/manifest"
+	"github.com/supergiant/control/pkg/workflows/steps/network"
+	"github.com/supergiant/control/pkg/workflows/steps/poststart"
+	"github.com/supergiant/control/pkg/workflows/steps/prometheus"
+	"github.com/supergiant/control/pkg/workflows/steps/ssh"
+	"github.com/supergiant/control/pkg/workflows/steps/tiller"
 )
 
 type Server struct {
@@ -70,11 +72,11 @@ func (srv *Server) Shutdown() {
 
 // Config is the server configuration
 type Config struct {
-	Port         int
-	Addr         string
-	EtcdUrl      string
-	LogLevel     string
-	TemplatesDir string
+	Port          int
+	Addr          string
+	EtcdUrl       string
+	TemplatesDir  string
+	SpawnInterval time.Duration
 
 	ReadTimeout  time.Duration
 	WriteTimeout time.Duration
@@ -86,7 +88,6 @@ func New(cfg *Config) (*Server, error) {
 		return nil, err
 	}
 
-	configureLogging(cfg)
 	r, err := configureApplication(cfg)
 	if err != nil {
 		return nil, err
@@ -125,6 +126,7 @@ func NewServer(router *mux.Router, cfg *Config) *Server {
 			IdleTimeout:  cfg.IdleTimeout,
 		},
 	}
+	http.DefaultClient.Timeout = cfg.IdleTimeout
 
 	return s
 }
@@ -174,6 +176,10 @@ func validate(cfg *Config) error {
 		return errors.New("port can't be negative")
 	}
 
+	if cfg.SpawnInterval == 0 {
+		return errors.New("spawn interval must not be 0")
+	}
+
 	return nil
 }
 
@@ -211,6 +217,7 @@ func configureApplication(cfg *Config) (*mux.Router, error) {
 
 	digitalocean.Init()
 	certificates.Init()
+	authorizedKeys.Init()
 	cni.Init()
 	docker.Init()
 	downloadk8sbinary.Init()
@@ -224,12 +231,15 @@ func configureApplication(cfg *Config) (*mux.Router, error) {
 	network.Init()
 	clustercheck.Init()
 	prometheus.Init()
+	gce.Init()
 
 	amazon.InitImportKeyPair(amazon.GetEC2)
 	amazon.InitCreateMachine(amazon.GetEC2)
 	amazon.InitCreateSecurityGroups(amazon.GetEC2)
 	amazon.InitCreateVPC(amazon.GetEC2)
 	amazon.InitCreateSubnet(amazon.GetEC2)
+	amazon.InitDeleteCluster(amazon.GetEC2)
+	amazon.InitDeleteNode(amazon.GetEC2)
 
 	workflows.Init()
 
@@ -248,7 +258,9 @@ func configureApplication(cfg *Config) (*mux.Router, error) {
 	kubeService := kube.NewService(kube.DefaultStoragePrefix,
 		repository, helmService)
 
-	taskProvisioner := provisioner.NewProvisioner(repository, kubeService)
+	taskProvisioner := provisioner.NewProvisioner(repository,
+		kubeService,
+		cfg.SpawnInterval)
 	tokenGetter := provisioner.NewEtcdTokenGetter()
 	provisionHandler := provisioner.NewHandler(kubeService, accountService,
 		tokenGetter, taskProvisioner)
@@ -264,16 +276,6 @@ func configureApplication(cfg *Config) (*mux.Router, error) {
 	protectedAPI.Use(authMiddleware.AuthMiddleware, api.ContentTypeJSON)
 
 	return router, nil
-}
-
-func configureLogging(cfg *Config) {
-	l, err := logrus.ParseLevel(cfg.LogLevel)
-	if err != nil {
-		logrus.Warnf("incorrect logging level %s provided, setting INFO as default...", l)
-		logrus.SetLevel(logrus.InfoLevel)
-		return
-	}
-	logrus.SetLevel(l)
 }
 
 func ensureHelmRepositories(svc sghelm.Servicer) {

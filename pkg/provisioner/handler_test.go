@@ -9,15 +9,16 @@ import (
 	"testing"
 
 	"github.com/gorilla/mux"
+	"github.com/pborman/uuid"
 	"github.com/pkg/errors"
 
-	"github.com/supergiant/supergiant/pkg/account"
-	"github.com/supergiant/supergiant/pkg/clouds"
-	"github.com/supergiant/supergiant/pkg/model"
-	"github.com/supergiant/supergiant/pkg/profile"
-	"github.com/supergiant/supergiant/pkg/sgerrors"
-	"github.com/supergiant/supergiant/pkg/workflows"
-	"github.com/supergiant/supergiant/pkg/workflows/steps"
+	"github.com/supergiant/control/pkg/account"
+	"github.com/supergiant/control/pkg/clouds"
+	"github.com/supergiant/control/pkg/model"
+	"github.com/supergiant/control/pkg/profile"
+	"github.com/supergiant/control/pkg/sgerrors"
+	"github.com/supergiant/control/pkg/workflows"
+	"github.com/supergiant/control/pkg/workflows/steps"
 )
 
 type mockTokenGetter struct {
@@ -57,6 +58,28 @@ func (m *mockKubeGetter) Get(ctx context.Context, name string) (*model.Kube, err
 	return m.get(ctx, name)
 }
 
+func TestProvisionBadClusterName(t *testing.T) {
+	testCases := []string{"non_Valid`", "_@badClusterName"}
+
+	for _, clusterName := range testCases {
+		provisionRequest := ProvisionRequest{
+			ClusterName: clusterName,
+		}
+
+		bodyBytes, _ := json.Marshal(&provisionRequest)
+		req, _ := http.NewRequest(http.MethodPost, "/", bytes.NewBuffer(bodyBytes))
+		rec := httptest.NewRecorder()
+
+		handler := Handler{}
+		handler.Provision(rec, req)
+
+		if rec.Code != http.StatusBadRequest {
+			t.Errorf("Wrong status code expected %d actual %d", http.StatusBadRequest, rec.Code)
+			return
+		}
+	}
+}
+
 func TestProvisionHandler(t *testing.T) {
 	p := &ProvisionRequest{
 		"test",
@@ -82,16 +105,6 @@ func TestProvisionHandler(t *testing.T) {
 			description:  "malformed request body",
 			body:         []byte(`{`),
 			expectedCode: http.StatusBadRequest,
-		},
-		{
-			description:  "kube name duplicate",
-			body:         validBody,
-			expectedCode: http.StatusConflict,
-			kubeGetter: func(ctx context.Context, name string) (*model.Kube, error) {
-				return &model.Kube{
-					Name: name,
-				}, nil
-			},
 		},
 		{
 			description:  "error getting the cluster discovery url",
@@ -165,7 +178,8 @@ func TestProvisionHandler(t *testing.T) {
 			kubeGetter: func(context.Context, string) (*model.Kube, error) {
 				return nil, nil
 			},
-			provision: func(context.Context, *profile.Profile, *steps.Config) (map[string][]*workflows.Task, error) {
+			provision: func(ctx context.Context, profile *profile.Profile, config *steps.Config) (map[string][]*workflows.Task, error) {
+				config.ClusterID = uuid.New()
 				return map[string][]*workflows.Task{
 					"master": {
 						{
@@ -220,6 +234,10 @@ func TestProvisionHandler(t *testing.T) {
 
 			if err != nil {
 				t.Errorf("Unepxpected error while decoding response %v", err)
+			}
+
+			if len(resp.ClusterID) == 0 {
+				t.Errorf("ClusterID must not be empty")
 			}
 		}
 	}

@@ -15,8 +15,8 @@
         <form [formGroup]="nameAndCloudAccountConfig">
           <mat-form-field>
             <input matInput type="text" [(ngModel)]="clusterName" placeholder="Cluster name" autofocus="true" formControlName="name" required>
+            <mat-hint align="end">Must be fewer than 12 characters</mat-hint>
           </mat-form-field>
-
 
           <mat-form-field>
             <mat-select placeholder="Choose a cloud account" [(value)]="selectedCloudAccount" (selectionChange)="selectCloudAccount($event.value)" formControlName="cloudAccount" required>
@@ -25,7 +25,9 @@
           </mat-form-field>
 
           <div *ngIf="name.invalid">
-            <p *ngIf="name.errors.nonUniqueName" class="unique-name-warning">Cluster name must be unique</p>
+            <p *ngIf="name.errors.nonUniqueName" class="warning">Cluster name must be unique</p>
+            <p *ngIf="name.errors.maxlength" class="warning">Cluster name must be less than 12 characters</p>
+            <p *ngIf="name.errors.pattern" class="warning">Cluster name must start with a-z or A-Z, and can only contain a-z, A-Z, 0-9, and - characters</p>
           </div>
         </form>
 
@@ -39,7 +41,6 @@
     <mat-step label="Cluster Configuration" [stepControl]="clusterConfig">
       <form [formGroup]="clusterConfig" class="cluster-config-form">
         <div class="input-group">
-
           <mat-form-field>
             <mat-select placeholder="K8s Version" formControlName="K8sVersion" required>
               <mat-option *ngFor="let k of clusterOptions.K8sVersions" [value]="k">{{ k }}</mat-option>
@@ -57,7 +58,9 @@
               <mat-option *ngFor="let h of clusterOptions.helmVersions" [value]="h">{{ h }}</mat-option>
             </mat-select>
           </mat-form-field>
+        </div>
 
+        <div class="input-group">
           <mat-form-field>
             <mat-select placeholder="Docker Version" formControlName="dockerVersion" required>
               <mat-option *ngFor="let d of clusterOptions.dockerVersions" [value]="d">{{ d }}</mat-option>
@@ -69,15 +72,15 @@
               <mat-option *ngFor="let u of clusterOptions.ubuntuVersions" [value]="u">{{ u }}</mat-option>
             </mat-select>
           </mat-form-field>
-        </div>
 
-        <div class="input-group">
           <mat-form-field>
             <mat-select placeholder="Network Type" formControlName="networkType" required>
               <mat-option *ngFor="let n of clusterOptions.networkTypes" [value]="n">{{ n }}</mat-option>
             </mat-select>
           </mat-form-field>
+        </div>
 
+        <div class="input-group">
           <mat-form-field>
             <input matInput placeholder="CIDR" type="text" formControlName="cidr" required>
           </mat-form-field>
@@ -93,14 +96,12 @@
               <mat-option *ngFor="let a of clusterOptions.archs" [value]="a">{{ a }}</mat-option>
             </mat-select>
           </mat-form-field>
-
-          <mat-form-field>
-            <mat-select placeholder="RBAC Enabled" formControlName="rbacEnabled" required>
-              <mat-option *ngFor="let b of clusterOptions.rbacEnabled" [value]="b">{{ b }}</mat-option>
-            </mat-select>
-          </mat-form-field>
         </div>
       </form>
+
+      <div *ngIf="cidr.invalid">
+        <p *ngIf="cidr.errors.invalidCidr" class="warning">{{ cidr.errors.invalidCidr.value }} is not valid CIDR notation</p>
+      </div>
 
       <div class="step-actions">
         <button mat-raised-button class="secondary" matStepperPrevious>BACK</button>
@@ -111,8 +112,8 @@
     <mat-step label="Provider Configuration" [stepControl]="providerConfig">
       <!-- digital ocean -->
       <ng-container *ngIf="selectedCloudAccount?.provider == 'digitalocean'">
-        <form [formGroup]="providerConfig">
-          <mat-form-field>
+        <form [formGroup]="providerConfig" class="do-config">
+          <mat-form-field [ngClass]="{ 'regionsLoading': regionsLoading }">
             <mat-select placeholder="Select a Region" formControlName="region" (selectionChange)="selectRegion($event.value)" required>
               <mat-option *ngFor="let r of availableRegions?.regions" [value]="r">{{ r.name }}</mat-option>
             </mat-select>
@@ -124,13 +125,13 @@
       <ng-container *ngIf="selectedCloudAccount?.provider == 'aws'">
         <form [formGroup]="providerConfig" class="aws-config">
           <div class="input-group">
-            <mat-form-field>
+            <mat-form-field [ngClass]="{ 'regionsLoading': regionsLoading }">
               <mat-select placeholder="Select a Region" formControlName="region" (selectionChange)="selectRegion($event.value)" required>
                 <mat-option *ngFor="let r of availableRegions?.regions" [value]="r">{{ r.name }}</mat-option>
               </mat-select>
             </mat-form-field>
 
-            <mat-form-field>
+            <mat-form-field [ngClass]="{ 'azsLoading': azsLoading }">
               <mat-select [disabled]="!availabilityZones" placeholder="Select an Availability Zone" formControlName="availabilityZone" (selectionChange)="selectAz($event.value)" required>
                 <mat-option *ngFor="let a of availabilityZones" [value]="a">{{ a }}</mat-option>
               </mat-select>
@@ -147,24 +148,32 @@
 
           <div class="input-group">
             <mat-form-field>
-              <input matInput type="text" formControlName="keypairName" placeholder="Keypair Name">
-            </mat-form-field>
-
-            <mat-form-field>
               <input matInput type="text" formControlName="subnetId" placeholder="Subnet ID" required>
             </mat-form-field>
 
             <mat-form-field>
               <input matInput type="text" formControlName="mastersSecurityGroupId" placeholder="Master's Security Group ID">
+              <mat-hint align="end">Leaving this blank will create a new one</mat-hint>
             </mat-form-field>
 
             <mat-form-field>
               <input matInput type="text" formControlName="nodesSecurityGroupId" placeholder="Node's Security Group ID">
+              <mat-hint align="end">Leaving this blank will create a new one</mat-hint>
+            </mat-form-field>
+          </div>
+
+          <div class="input-group public-key-wrapper">
+            <mat-form-field>
+              <textarea cdkTextareaAutosize cdkAutosizeMaxRows="11" matInput formControlName="publicKey" placeholder="Public Key" required></textarea>
             </mat-form-field>
           </div>
 
         </form>
       </ng-container>
+
+      <div *ngIf="vpcCidr.invalid">
+        <p *ngIf="vpcCidr.errors.invalidCidr" class="warning">{{ vpcCidr.errors.invalidCidr.value }} is not valid CIDR notation</p>
+      </div>
 
       <div class="step-actions">
         <button mat-raised-button class="secondary" matStepperPrevious>BACK</button>
@@ -206,7 +215,7 @@
         <!-- aws -->
         <ng-container *ngIf="selectedCloudAccount?.provider == 'aws'" >
           <div class="machine" *ngFor="let m of machines; let idx = index">
-            <mat-form-field class="type">
+            <mat-form-field class="type" [ngClass]="{ 'machinesLoading': machinesLoading }">
               <mat-select placeholder="Machine Type (size)" id="m.machineType" [(value)]="m.machineType" (selectionChange)="checkForValidMachinesConfig()">
                 <mat-option *ngFor="let type of availableMachineTypes" [value]="type">{{ type }}</mat-option>
               </mat-select>
@@ -278,7 +287,6 @@
               <p><span class="label">AVAIL. ZONE:</span> {{ providerConfig.value.availabilityZone }}</p>
               <p><span class="label">VPC ID:</span> {{ providerConfig.value.vpcId }}</p>
               <p><span class="label">VPC CIDR:</span> {{ providerConfig.value.vpcCidr }}</p>
-              <p><span class="label">KEYPAIR NAME:</span> {{ providerConfig.value.keypairName }}</p>
               <p><span class="label">SUBNET ID:</span> {{ providerConfig.value.subnetId }}</p>
               <p><span class="label">MASTERS SEC. GROUP ID:</span> {{ providerConfig.value.mastersSecurityGroupId }}</p>
               <p><span class="label">NODES SEC. GROUP ID:</span> {{ providerConfig.value.nodesSecurityGroupId }}</p>
@@ -296,9 +304,9 @@
         </div>
 
         <div class="action-buttons-wrapper">
-          <button mat-raised-button class="secondary" matStepperPrevious>BACK</button>
+          <button mat-raised-button class="secondary" [ngClass]="{ 'disable': this.provisioning }" matStepperPrevious>BACK</button>
           <!-- <button mat-raised-button class="secondary">SAVE PROFILE</button> -->
-          <button mat-raised-button class="create" color="primary" (click)="createCluster()">
+          <button mat-raised-button class="create" [ngClass]="{ 'disable': this.provisioning }" color="primary" (click)="createCluster()">
             <ng-container *ngIf="!provisioning">CREATE</ng-container>
             <ng-container *ngIf="provisioning">
               <mat-spinner [diameter]="24"></mat-spinner>
@@ -312,7 +320,7 @@
   <div *ngIf="availableCloudAccounts?.length == 0">
     <div class="no-cloud-accounts">
       <h2>You have no cloud accounts linked to Supergiant</h2>
-      <p>Link an AWS, Digital Ocean, or Openstack cloud account and have a Supergiant cluster up in minutes</p>
+      <p>Link an AWS or Digital Ocean cloud account and have a Supergiant cluster up in minutes</p>
       <div>
         <button mat-raised-button color="primary" [routerLink]="['/system/cloud-accounts/new']">LINK ACCOUNT</button>
       </div>

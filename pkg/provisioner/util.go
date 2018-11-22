@@ -8,22 +8,39 @@ import (
 	"crypto/x509"
 	"encoding/pem"
 	"fmt"
+	"time"
 	"io/ioutil"
 	"net/http"
 
 	"golang.org/x/crypto/ssh"
 
-	"github.com/supergiant/supergiant/pkg/clouds"
-	"github.com/supergiant/supergiant/pkg/node"
-	"github.com/supergiant/supergiant/pkg/profile"
-	"github.com/supergiant/supergiant/pkg/sgerrors"
-	"github.com/supergiant/supergiant/pkg/util"
-	"github.com/supergiant/supergiant/pkg/workflows"
-	"github.com/supergiant/supergiant/pkg/workflows/steps"
+	"github.com/supergiant/control/pkg/clouds"
+	"github.com/supergiant/control/pkg/node"
+	"github.com/supergiant/control/pkg/profile"
+	"github.com/supergiant/control/pkg/sgerrors"
+	"github.com/supergiant/control/pkg/util"
+	"github.com/supergiant/control/pkg/workflows"
+	"github.com/supergiant/control/pkg/workflows/steps"
 )
 
 type EtcdTokenGetter struct {
 	discoveryUrl string
+}
+
+type RateLimiter struct {
+	bucket *time.Ticker
+}
+
+func NewRateLimiter(interval time.Duration) *RateLimiter {
+	return &RateLimiter{
+		bucket: time.NewTicker(interval),
+	}
+}
+
+// Take either returns giving calling code ability to execute or blocks until
+// bucket is full again
+func (r *RateLimiter) Take() {
+	<-r.bucket.C
 }
 
 func NewEtcdTokenGetter() *EtcdTokenGetter {

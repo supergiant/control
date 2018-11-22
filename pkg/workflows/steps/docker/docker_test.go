@@ -10,11 +10,11 @@ import (
 	"testing"
 	"text/template"
 
-	"github.com/supergiant/supergiant/pkg/profile"
-	"github.com/supergiant/supergiant/pkg/runner"
-	"github.com/supergiant/supergiant/pkg/templatemanager"
-	"github.com/supergiant/supergiant/pkg/testutils"
-	"github.com/supergiant/supergiant/pkg/workflows/steps"
+	"github.com/supergiant/control/pkg/profile"
+	"github.com/supergiant/control/pkg/runner"
+	"github.com/supergiant/control/pkg/templatemanager"
+	"github.com/supergiant/control/pkg/testutils"
+	"github.com/supergiant/control/pkg/workflows/steps"
 )
 
 type fakeRunner struct {
@@ -31,13 +31,16 @@ func (f *fakeRunner) Run(command *runner.Command) error {
 }
 
 func TestInstallDocker(t *testing.T) {
+	dockerVersion := "17.05"
+	releaseVersion := "1.29"
+	arch := "amd64"
 	err := templatemanager.Init("../../../../templates")
 
 	if err != nil {
 		t.Fatal(err)
 	}
 
-	tpl := templatemanager.GetTemplate(StepName)
+	tpl, _ := templatemanager.GetTemplate(StepName)
 
 	if tpl == nil {
 		t.Fatal("template not found")
@@ -47,6 +50,11 @@ func TestInstallDocker(t *testing.T) {
 	r := &testutils.MockRunner{}
 
 	config := steps.Config{
+		DockerConfig: steps.DockerConfig{
+			Version:        dockerVersion,
+			ReleaseVersion: releaseVersion,
+			Arch:           arch,
+		},
 		Runner: r,
 	}
 
@@ -56,8 +64,12 @@ func TestInstallDocker(t *testing.T) {
 
 	err = task.Run(context.Background(), output, &config)
 
-	if !strings.Contains(output.String(), "sudo apt-get install -qy docker.io") {
-		t.Fatalf("sudo apt-get install -qy docker.io not found in output %s", output.String())
+	if !strings.Contains(output.String(), dockerVersion) {
+		t.Fatalf("docker version %s not found in output %s", dockerVersion, output.String())
+	}
+
+	if !strings.Contains(output.String(), dockerVersion) {
+		t.Fatalf("docker version %s not found in output %s", dockerVersion, output.String())
 	}
 }
 
@@ -124,9 +136,27 @@ func TestNew(t *testing.T) {
 }
 
 func TestInit(t *testing.T) {
+	templatemanager.SetTemplate(StepName, &template.Template{})
 	Init()
+	templatemanager.DeleteTemplate(StepName)
 
 	s := steps.GetStep(StepName)
+
+	if s == nil {
+		t.Error("Step not found")
+	}
+}
+
+func TestInitPanic(t *testing.T) {
+	defer func(){
+		if r := recover(); r == nil {
+			t.Errorf("recover output must not be nil")
+		}
+	}()
+
+	Init()
+
+	s := steps.GetStep("not_found.sh.tpl")
 
 	if s == nil {
 		t.Error("Step not found")

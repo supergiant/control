@@ -5,6 +5,12 @@
 		margin-bottom: 18px;
 	}
 
+	.warning {
+		color: #f44336;
+		font-weight: 300;
+		margin: 4px 0 0 0;
+	}
+
 	.mat-stepper-horizontal {
 		background-color: rgba(0,0,0,0.5);
 		border: 1px solid rgba(255,255,255,0.25);
@@ -29,16 +35,10 @@
 		.name-and-cloud-account {
 			display: flex;
 			flex-direction: column;
-			width: 320px;
+			width: 250px;
 
 			.mat-form-field {
 				width: 100%;
-			}
-
-			.unique-name-warning {
-				color: #f44336;
-				font-weight: 300;
-				margin: 4px 0 0 0;
 			}
 		}
 
@@ -50,11 +50,17 @@
 				display: flex;
 				flex-direction: column;
 				margin-left: 100px;
-				width: 400px;
+				width: 250px;
 
 				&:nth-of-type(1) {
 					margin-left: 0px;
 				}
+			}
+		}
+
+		.do-config {
+			.regionsLoading {
+				animation: loading 1s infinite;
 			}
 		}
 
@@ -66,11 +72,23 @@
 				display: flex;
 				flex-direction: column;
 				margin-left: 100px;
-				width: 400px;
+				width: 250px;
 
 				&:nth-of-type(1) {
 					margin-left: 0px;
 				}
+
+				.regionsLoading {
+					animation: loading 1s infinite;
+				}
+
+				.azsLoading {
+					animation: loading 1s infinite;
+				}
+			}
+
+			.public-key-wrapper {
+				width: 400px;
 			}
 		}
 
@@ -85,6 +103,10 @@
 
 				.type {
 					width: 240px;
+				}
+
+				.machinesLoading {
+					animation: loading 1s infinite;
 				}
 
 				.role {
@@ -170,6 +192,10 @@
 					&:focus {
 						outline: -webkit-focus-ring-color auto 5px;
 					}
+
+					&.disable {
+						pointer-events: none;
+					}
 				}
 
 				.create {
@@ -184,6 +210,20 @@
           }
         }
 			}
+		}
+
+		@keyframes loading {
+		  0% {
+		    opacity: 0.5;
+		  }
+
+		  50% {
+		    opacity: 1;
+		  }
+
+		  100% {
+		    opacity: 0.5;
+		  }
 		}
 	}
 

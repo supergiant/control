@@ -16,4 +16,5 @@ const (
 	TokenExpired        ErrorCode = 1011
 	AlreadyExists       ErrorCode = 1010
 	NilEntity           ErrorCode = 1011
+	TimeoutExceeded     ErrorCode = 1012
 )

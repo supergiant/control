@@ -14,7 +14,7 @@
 
     <div class="communication">
       <h1 class="headline">Welcome to Supergiant.</h1>
-      <p class="description">Link an AWS, Digital Ocean, or Openstack account and have a Supergiant cluster up in minutes</p>
+      <p class="description">Link an AWS or Digital Ocean account and have a Supergiant cluster up in minutes</p>
       <button mat-raised-button [routerLink]="['/system/cloud-accounts/new']" type="button">LINK AN ACCOUNT</button>
     </div>
   </div>
@@ -22,7 +22,7 @@
   <div *ngIf="clusters?.length != 0 && cloudAccounts?.length != 0" class="clusters-wrapper">
     <div class="cluster-list-views">
       <!-- orb view -->
-      <svg (click)="setClusterListView('orb')" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24">
+      <svg (click)="setClusterListView('orb', $event)" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24">
         <defs>
           <style>.a,.b{fill:none;}.b{opacity:0.87;}.c{fill:#d10088;}.d{fill:#fff;}</style>
         </defs>
@@ -36,7 +36,7 @@
         </g>
       </svg>
       <!-- list view icon -->
-      <svg (click)="setClusterListView('list')" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24">
+      <svg (click)="setClusterListView('list', $event)" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24">
         <defs>
           <style>.a,.b{fill:none;}.b{opacity:0.87;}.c{fill:#d10088;}.d{fill:#fff;}</style>
         </defs>
@@ -52,11 +52,11 @@
 
     <div class="cluster-list-wrapper">
       <div class="orbs-wrapper" *ngIf="clusterListView == 'orb'">
-        <usage-orb *ngFor="let c of clusters" [cluster]="c"></usage-orb>
+        <usage-orb *ngFor="let c of clusters; trackBy: trackByFn" [cluster]="c"></usage-orb>
       </div>
 
       <div class="list-wrapper" *ngIf="clusterListView == 'list'">
-        <cluster-table *ngFor="let c of clusters" [cluster]="c"></cluster-table>
+        <cluster-table *ngFor="let c of clusters; trackBy: trackByFn" [cluster]="c"></cluster-table>
       </div>
     </div>
   </div>
@@ -64,6 +64,6 @@
   <div *ngIf="clusters?.length != 0 && cloudAccounts?.length != 0" class="home-actions">
     <button mat-raised-button [routerLink]="['/system/cloud-accounts/new']" type="button">LINK AN ACCOUNT</button>
     <button mat-raised-button [routerLink]="['/clusters/new']" type="button">SPIN UP A CLUSTER</button>
-    <button mat-raised-button [routerLink]="['/apps/supergiant']" type="button">DEPLOY AN APP</button>
+    <button mat-raised-button [routerLink]="['/catalog/supergiant']" type="button">DEPLOY AN APP</button>
   </div>
 </div>
