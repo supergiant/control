@@ -5,21 +5,22 @@ import (
 	"fmt"
 	"io"
 	"os"
+	"time"
 	"sync"
 
 	"github.com/pkg/errors"
 	"github.com/sirupsen/logrus"
 
-	"github.com/supergiant/supergiant/pkg/clouds"
-	"github.com/supergiant/supergiant/pkg/model"
-	"github.com/supergiant/supergiant/pkg/node"
-	"github.com/supergiant/supergiant/pkg/pki"
-	"github.com/supergiant/supergiant/pkg/profile"
-	"github.com/supergiant/supergiant/pkg/sgerrors"
-	"github.com/supergiant/supergiant/pkg/storage"
-	"github.com/supergiant/supergiant/pkg/util"
-	"github.com/supergiant/supergiant/pkg/workflows"
-	"github.com/supergiant/supergiant/pkg/workflows/steps"
+	"github.com/supergiant/control/pkg/clouds"
+	"github.com/supergiant/control/pkg/model"
+	"github.com/supergiant/control/pkg/node"
+	"github.com/supergiant/control/pkg/pki"
+	"github.com/supergiant/control/pkg/profile"
+	"github.com/supergiant/control/pkg/sgerrors"
+	"github.com/supergiant/control/pkg/storage"
+	"github.com/supergiant/control/pkg/util"
+	"github.com/supergiant/control/pkg/workflows"
+	"github.com/supergiant/control/pkg/workflows/steps"
 )
 
 const keySize = 4096
@@ -34,9 +35,15 @@ type TaskProvisioner struct {
 	repository   storage.Interface
 	getWriter    func(string) (io.WriteCloser, error)
 	provisionMap map[clouds.Name]workflows.WorkflowSet
+	// NOTE(stgleb): Since provisioner is shared object among all users of SG
+	// this rate limiter will affect all users not allowing them to spin-up
+	// to many instances at once, probably we may split rate limiter per user
+	// in future to avoid interference between them.
+	rateLimiter *RateLimiter
 }
 
-func NewProvisioner(repository storage.Interface, kubeService KubeService) *TaskProvisioner {
+func NewProvisioner(repository storage.Interface, kubeService KubeService,
+	spawnInterval time.Duration) *TaskProvisioner {
 	return &TaskProvisioner{
 		kubeService: kubeService,
 		repository:  repository,
@@ -49,8 +56,13 @@ func NewProvisioner(repository storage.Interface, kubeService KubeService) *Task
 				ProvisionMaster: workflows.AWSMaster,
 				ProvisionNode:   workflows.AWSNode,
 			},
+			clouds.GCE: {
+				ProvisionMaster: workflows.GCEMaster,
+				ProvisionNode:   workflows.GCENode,
+			},
 		},
-		getWriter: util.GetWriter,
+		getWriter:   util.GetWriter,
+		rateLimiter: NewRateLimiter(spawnInterval),
 	}
 }
 
@@ -169,6 +181,9 @@ func (tp *TaskProvisioner) ProvisionNodes(ctx context.Context, nodeProfiles []pr
 	tasks := make([]string, 0, len(nodeProfiles))
 
 	for _, nodeProfile := range nodeProfiles {
+		// Protect cloud API with rate limiter
+		tp.rateLimiter.Take()
+
 		// Take node workflow for the provider
 		t, err := workflows.NewTask(providerWorkflowSet.ProvisionNode, tp.repository)
 		tasks = append(tasks, t.ID)
@@ -271,6 +286,9 @@ func (tp *TaskProvisioner) provisionMasters(ctx context.Context, profile *profil
 
 	// ProvisionCluster master nodes
 	for index, masterTask := range tasks {
+		// Take token that allows perform action with Cloud Provider API
+		tp.rateLimiter.Take()
+
 		if masterTask == nil {
 			logrus.Fatal(tasks)
 		}
@@ -327,6 +345,9 @@ func (tp *TaskProvisioner) provisionNodes(ctx context.Context, profile *profile.
 
 	// ProvisionCluster nodes
 	for index, nodeTask := range tasks {
+		// Take token that allows perform action with Cloud Provider API
+		tp.rateLimiter.Take()
+
 		fileName := util.MakeFileName(nodeTask.ID)
 		out, err := tp.getWriter(fileName)
 
@@ -403,11 +424,15 @@ func (tp *TaskProvisioner) buildInitialCluster(ctx context.Context,
 		ID:           config.ClusterID,
 		State:        model.StateProvisioning,
 		Name:         config.ClusterName,
+		Provider: 	  profile.Provider,
 		AccountName:  config.CloudAccountName,
 		RBACEnabled:  profile.RBACEnabled,
 		Region:       profile.Region,
+		Zone:         profile.Zone,
 		SshUser:      config.SshConfig.User,
 		SshPublicKey: []byte(config.SshConfig.PublicKey),
+		User: profile.User,
+		Password: profile.Password,
 
 		Auth: model.Auth{
 			Username:  config.CertificatesConfig.Username,
@@ -443,6 +468,10 @@ func (t *TaskProvisioner) updateCloudSpecificData(ctx context.Context, config *s
 	cloudSpecificSettings := make(map[string]string)
 
 	// Save cloudSpecificData in kube
+	switch config.Provider {
+	case clouds.AWS:
+
+	}
 	if config.Provider == clouds.AWS {
 		// Copy data got from pre provision step to cloud specific settings of kube
 		cloudSpecificSettings[clouds.AwsAZ] = config.AWSConfig.AvailabilityZone
@@ -461,6 +490,10 @@ func (t *TaskProvisioner) updateCloudSpecificData(ctx context.Context, config *s
 	if err != nil {
 		logrus.Errorf("get kube caused %v", err)
 		return err
+	}
+
+	if config.Provider == clouds.GCE {
+		k.Zone = config.GCEConfig.AvailabilityZone
 	}
 
 	k.CloudSpec = cloudSpecificSettings

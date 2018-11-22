@@ -200,12 +200,13 @@ kind: Config
 users:
 - name: kubelet
   user:
-    token: '1234'
+    username: kubelet
+    password: '{{ .Password }}'
 clusters:
 - name: local
   cluster:
     insecure-skip-tls-verify: true
-    server: https://{{ .MasterHost }}
+    server: http://{{ .MasterHost }}:8080
 contexts:
 - context:
     cluster: local
@@ -269,7 +270,7 @@ spec:
     - --secure-port=443
     - --v=2
     - --insecure-port=8080
-    - --insecure-bind-address=0.0.0.0
+    - --insecure-bind-address={{ .MasterHost }}
     {{if .RBACEnabled }}- --authorization-mode=Node,RBAC{{end}}
     - --advertise-address={{ .MasterHost }}
     - --admission-control=NamespaceLifecycle,NamespaceExists,LimitRanger,ServiceAccount,ResourceQuota,DefaultStorageClass{{if .RBACEnabled }},NodeRestriction{{end}}

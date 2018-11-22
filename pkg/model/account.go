@@ -1,7 +1,7 @@
 package model
 
 import (
-	"github.com/supergiant/supergiant/pkg/clouds"
+	"github.com/supergiant/control/pkg/clouds"
 )
 
 // CloudAccount is settings of account in public or private cloud (e.g. AWS, vCenter)

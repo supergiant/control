@@ -5,12 +5,12 @@ import (
 	"sync"
 	"time"
 
-	"github.com/supergiant/supergiant/pkg/clouds"
-	"github.com/supergiant/supergiant/pkg/model"
-	"github.com/supergiant/supergiant/pkg/node"
-	"github.com/supergiant/supergiant/pkg/profile"
-	"github.com/supergiant/supergiant/pkg/runner"
-	"github.com/supergiant/supergiant/pkg/storage"
+	"github.com/supergiant/control/pkg/clouds"
+	"github.com/supergiant/control/pkg/model"
+	"github.com/supergiant/control/pkg/node"
+	"github.com/supergiant/control/pkg/profile"
+	"github.com/supergiant/control/pkg/runner"
+	"github.com/supergiant/control/pkg/storage"
 )
 
 type CertificatesConfig struct {
@@ -44,7 +44,18 @@ type DOConfig struct {
 
 // TODO(stgleb): Fill struct with fields when provisioning on other providers is done
 
-type GCEConfig struct{}
+type GCEConfig struct {
+	PrivateKey       string `json:"privateKey"`
+	ImageFamily      string `json:"imageFamily"`
+	ProjectID        string `json:"projectId"`
+	Region           string `json:"region"`
+	AvailabilityZone string `json:"availabilityZone"`
+	Size             string `json:"size"`
+	InstanceGroup    string `json:"instanceGroup"`
+	ClientEmail      string `json:"clientEmail"`
+	TokenURI         string `json:"tokenURI"`
+	AuthURI          string `json:"authURI"`
+}
 
 type PacketConfig struct{}
 
@@ -69,6 +80,7 @@ type AWSConfig struct {
 }
 
 type FlannelConfig struct {
+	IsMaster bool   `json:"isMaster"`
 	Arch     string `json:"arch"`
 	Version  string `json:"version"`
 	EtcdHost string `json:"etcdHost"`
@@ -100,6 +112,7 @@ type ManifestConfig struct {
 	ProviderString      string `json:"providerString"`
 	MasterHost          string `json:"masterHost"`
 	MasterPort          string `json:"masterPort"`
+	Password            string `json:"password"`
 }
 
 type PostStartConfig struct {
@@ -174,6 +187,12 @@ func (m *Map) MarshalJSON() ([]byte, error) {
 	return json.Marshal(m.internal)
 }
 
+func NewMap(m map[string]*node.Node) Map {
+	return Map{
+		internal: m,
+	}
+}
+
 type Config struct {
 	TaskID                 string
 	Provider               clouds.Name  `json:"provider"`
@@ -230,7 +249,7 @@ func NewConfig(clusterName, discoveryUrl, cloudAccountName string, profile profi
 		},
 		LogBootstrapPrivateKey: profile.LogBootstrapPrivateKey,
 		AWSConfig: AWSConfig{
-			Region: profile.Region,
+			Region:                 profile.Region,
 			AvailabilityZone:       profile.CloudSpecificSettings[clouds.AwsAZ],
 			VPCCIDR:                profile.CloudSpecificSettings[clouds.AwsVpcCIDR],
 			VPCID:                  profile.CloudSpecificSettings[clouds.AwsVpcID],
@@ -239,7 +258,9 @@ func NewConfig(clusterName, discoveryUrl, cloudAccountName string, profile profi
 			MastersSecurityGroupID: profile.CloudSpecificSettings[clouds.AwsMastersSecGroupID],
 			NodesSecurityGroupID:   profile.CloudSpecificSettings[clouds.AwsNodesSecgroupID],
 		},
-		GCEConfig:    GCEConfig{},
+		GCEConfig: GCEConfig{
+			AvailabilityZone: profile.Zone,
+		},
 		OSConfig:     OSConfig{},
 		PacketConfig: PacketConfig{},
 
@@ -255,8 +276,8 @@ func NewConfig(clusterName, discoveryUrl, cloudAccountName string, profile profi
 		},
 		CertificatesConfig: CertificatesConfig{
 			KubernetesConfigDir: "/etc/kubernetes",
-			Username:            "root",
-			Password:            "1234",
+			Username:            profile.User,
+			Password:            profile.Password,
 		},
 		NetworkConfig: NetworkConfig{
 			EtcdRepositoryUrl: "https://github.com/coreos/etcd/releases/download",
@@ -272,7 +293,8 @@ func NewConfig(clusterName, discoveryUrl, cloudAccountName string, profile profi
 		FlannelConfig: FlannelConfig{
 			Arch:    profile.Arch,
 			Version: profile.FlannelVersion,
-			// TODO(stgleb): this should be configurable from user side
+			// NOTE(stgleb): this is any host by default works on master nodes
+			// on worker node this host is changed by any master ip address
 			EtcdHost: "0.0.0.0",
 		},
 		KubeletConfig: KubeletConfig{
@@ -286,11 +308,12 @@ func NewConfig(clusterName, discoveryUrl, cloudAccountName string, profile profi
 			ProviderString:      "todo",
 			MasterHost:          "localhost",
 			MasterPort:          "8080",
+			Password:            profile.Password,
 		},
 		PostStartConfig: PostStartConfig{
 			Host:        "localhost",
 			Port:        "8080",
-			Username:    "root",
+			Username:    profile.User,
 			RBACEnabled: profile.RBACEnabled,
 			Timeout:     600,
 		},
@@ -311,7 +334,7 @@ func NewConfig(clusterName, discoveryUrl, cloudAccountName string, profile profi
 			Name:           "etcd0",
 			Version:        "3.3.9",
 			Host:           "0.0.0.0",
-			DataDir:        "/tmp/etcd-data",
+			DataDir:        "/var/supergiant/etcd-data",
 			ServicePort:    "2379",
 			ManagementPort: "2380",
 			Timeout:        time.Minute * 10,

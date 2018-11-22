@@ -6,7 +6,7 @@ import (
 	"github.com/coreos/etcd/clientv3"
 	"github.com/pkg/errors"
 
-	"github.com/supergiant/supergiant/pkg/sgerrors"
+	"github.com/supergiant/control/pkg/sgerrors"
 )
 
 // Interface is an abstraction over key value storage, gets and returns values serialized as byte slices

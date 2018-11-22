@@ -8,10 +8,10 @@ import (
 	"github.com/pkg/errors"
 	"github.com/sirupsen/logrus"
 
-	"github.com/supergiant/supergiant/pkg/clouds"
-	"github.com/supergiant/supergiant/pkg/model"
-	"github.com/supergiant/supergiant/pkg/sgerrors"
-	"github.com/supergiant/supergiant/pkg/storage"
+	"github.com/supergiant/control/pkg/clouds"
+	"github.com/supergiant/control/pkg/model"
+	"github.com/supergiant/control/pkg/sgerrors"
+	"github.com/supergiant/control/pkg/storage"
 )
 
 // Service holds all business logic related to cloud accounts
@@ -98,6 +98,7 @@ func (s *Service) Create(ctx context.Context, account *model.CloudAccount) error
 			account.Credentials[clouds.AWSSecretKey] == "" {
 			return errors.Wrap(sgerrors.ErrInvalidCredentials, "both aws access key and key id should be provided")
 		}
+	case clouds.GCE:
 	default:
 		return sgerrors.ErrUnsupportedProvider
 	}

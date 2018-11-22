@@ -304,9 +304,9 @@
         </div>
 
         <div class="action-buttons-wrapper">
-          <button mat-raised-button class="secondary" matStepperPrevious>BACK</button>
+          <button mat-raised-button class="secondary" [ngClass]="{ 'disable': this.provisioning }" matStepperPrevious>BACK</button>
           <!-- <button mat-raised-button class="secondary">SAVE PROFILE</button> -->
-          <button mat-raised-button class="create" color="primary" (click)="createCluster()">
+          <button mat-raised-button class="create" [ngClass]="{ 'disable': this.provisioning }" color="primary" (click)="createCluster()">
             <ng-container *ngIf="!provisioning">CREATE</ng-container>
             <ng-container *ngIf="provisioning">
               <mat-spinner [diameter]="24"></mat-spinner>

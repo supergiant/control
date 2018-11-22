@@ -4,16 +4,23 @@ import (
 	"context"
 	"fmt"
 	"io"
+	"time"
 	"strings"
 
 	"github.com/aws/aws-sdk-go/service/ec2"
 	"github.com/pkg/errors"
 
-	"github.com/supergiant/supergiant/pkg/util"
-	"github.com/supergiant/supergiant/pkg/workflows/steps"
+	"github.com/aws/aws-sdk-go/aws"
+	"github.com/sirupsen/logrus"
+	"github.com/supergiant/control/pkg/util"
+	"github.com/supergiant/control/pkg/workflows/steps"
 )
 
 const StepImportKeyPair = "awskeypairstep"
+
+var (
+	keyPairAttemptCount = 5
+)
 
 //KeyPairStep represents creation of keypair in aws
 //since there is hard cap on keypairs per account supergiant will create one per clster
@@ -33,7 +40,6 @@ func InitImportKeyPair(fn GetEC2Fn) {
 }
 
 //Verifies that a key exists,
-
 func (s *KeyPairStep) Run(ctx context.Context, w io.Writer, cfg *steps.Config) error {
 	log := util.GetLogger(w)
 
@@ -42,8 +48,17 @@ func (s *KeyPairStep) Run(ctx context.Context, w io.Writer, cfg *steps.Config) e
 		return ErrAuthorization
 	}
 
-	bootstrapKeyPairName := util.MakeKeyName(cfg.ClusterName, false)
-	log.Infof("[%s] - importing cluster bootstrap certificate as keypair %s",
+	if len(cfg.ClusterID) < 4 {
+		return errors.New("Cluster ID is too short")
+	}
+
+	// NOTE(stgleb): Add unique part to key pair name that allows to
+	// create cluster with the same name and avoid name collision of key pairs.
+	bootstrapKeyPairName := util.MakeKeyName(fmt.Sprintf("%s-%s",
+		cfg.ClusterName,
+		cfg.ClusterID[:4]),
+		false)
+	log.Infof("[%s] - importing cluster bootstrap key as keypair %s",
 		s.Name(), bootstrapKeyPairName)
 	req := &ec2.ImportKeyPairInput{
 		KeyName:           &bootstrapKeyPairName,
@@ -64,9 +79,34 @@ func (s *KeyPairStep) Run(ctx context.Context, w io.Writer, cfg *steps.Config) e
 		}
 		return errors.Wrap(ErrImportKeyPair, err.Error())
 	}
-	// TODO(stgleb):  Wait until key pair actually created WaitUntilKeyPairExists
+
 	cfg.AWSConfig.KeyPairName = *output.KeyName
-	return nil
+
+	delay := time.Second * 10
+	// Wait until key pair become available
+	for cnt := 0; cnt < keyPairAttemptCount; cnt++ {
+		describeInput := &ec2.DescribeKeyPairsInput{
+			Filters: []*ec2.Filter{
+				{
+					Name:   aws.String("fingerprint"),
+					Values: []*string{aws.String(*output.KeyFingerprint)},
+				},
+			},
+		}
+
+		_, err = EC2.DescribeKeyPairs(describeInput)
+
+		if err != nil {
+			logrus.Errorf("describe key pair %s error %v", bootstrapKeyPairName, err)
+			time.Sleep(delay)
+			delay = delay * 2
+		} else {
+			return nil
+		}
+	}
+
+	return errors.Wrap(err, fmt.Sprintf("wait until key pair found %s",
+		bootstrapKeyPairName))
 }
 
 func (s *KeyPairStep) Rollback(ctx context.Context, w io.Writer, cfg *steps.Config) error {

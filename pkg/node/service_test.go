@@ -8,7 +8,7 @@ import (
 
 	"github.com/stretchr/testify/mock"
 
-	"github.com/supergiant/supergiant/pkg/testutils"
+	"github.com/supergiant/control/pkg/testutils"
 )
 
 func TestNewService(t *testing.T) {

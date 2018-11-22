@@ -11,7 +11,7 @@ import (
 	"github.com/json-iterator/go"
 	"github.com/stretchr/testify/require"
 
-	"github.com/supergiant/supergiant/pkg/sgerrors"
+	"github.com/supergiant/control/pkg/sgerrors"
 )
 
 func TestSendUnknownError(t *testing.T) {

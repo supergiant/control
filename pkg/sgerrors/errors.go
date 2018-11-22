@@ -30,6 +30,7 @@ var (
 	ErrNilValue            = New("nil value", NilValue)
 	ErrTokenExpired        = New("token has been expire", TokenExpired)
 	ErrNilEntity           = New("nil entity", NilEntity)
+	ErrTimeoutExceeded     = New("timeout exceeded", TimeoutExceeded)
 )
 
 func IsNotFound(err error) bool {
@@ -42,6 +43,10 @@ func IsInvalidCredentials(err error) bool {
 
 func IsAlreadyExists(err error) bool {
 	return errors.Cause(err) == ErrAlreadyExists
+}
+
+func IsTimeoutExceeded(err error) bool {
+	return errors.Cause(err) == ErrTimeoutExceeded
 }
 
 func IsUnknownProvider(err error) bool {

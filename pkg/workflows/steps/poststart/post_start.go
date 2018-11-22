@@ -5,13 +5,14 @@ import (
 	"io"
 	"text/template"
 	"time"
+	"fmt"
 
 	"github.com/pkg/errors"
 
-	"github.com/supergiant/supergiant/pkg/node"
-	tm "github.com/supergiant/supergiant/pkg/templatemanager"
-	"github.com/supergiant/supergiant/pkg/workflows/steps"
-	"github.com/supergiant/supergiant/pkg/workflows/steps/kubelet"
+	"github.com/supergiant/control/pkg/node"
+	tm "github.com/supergiant/control/pkg/templatemanager"
+	"github.com/supergiant/control/pkg/workflows/steps"
+	"github.com/supergiant/control/pkg/workflows/steps/kubelet"
 )
 
 const StepName = "poststart"
@@ -21,7 +22,13 @@ type Step struct {
 }
 
 func Init() {
-	steps.RegisterStep(StepName, New(tm.GetTemplate(StepName)))
+	tpl, err := tm.GetTemplate(StepName)
+
+	if err != nil {
+		panic(fmt.Sprintf("template %s not found", StepName))
+	}
+
+	steps.RegisterStep(StepName, New(tpl))
 }
 
 func New(script *template.Template) *Step {

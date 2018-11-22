@@ -4,13 +4,14 @@ import (
 	"context"
 	"io"
 	"text/template"
+	"fmt"
 
 	"github.com/pkg/errors"
 
-	tm "github.com/supergiant/supergiant/pkg/templatemanager"
-	"github.com/supergiant/supergiant/pkg/workflows/steps"
-	"github.com/supergiant/supergiant/pkg/workflows/steps/etcd"
-	"github.com/supergiant/supergiant/pkg/workflows/steps/network"
+	tm "github.com/supergiant/control/pkg/templatemanager"
+	"github.com/supergiant/control/pkg/workflows/steps"
+	"github.com/supergiant/control/pkg/workflows/steps/etcd"
+	"github.com/supergiant/control/pkg/workflows/steps/network"
 )
 
 const StepName = "flannel"
@@ -20,7 +21,13 @@ type Step struct {
 }
 
 func Init() {
-	steps.RegisterStep(StepName, New(tm.GetTemplate(StepName)))
+	tpl, err := tm.GetTemplate(StepName)
+
+	if err != nil {
+		panic(fmt.Sprintf("template %s not found", StepName))
+	}
+
+	steps.RegisterStep(StepName, New(tpl))
 }
 
 func New(tpl *template.Template) *Step {
@@ -30,6 +37,8 @@ func New(tpl *template.Template) *Step {
 }
 
 func (t *Step) Run(ctx context.Context, out io.Writer, config *steps.Config) error {
+	config.FlannelConfig.IsMaster = config.IsMaster
+
 	if !config.IsMaster {
 		config.FlannelConfig.EtcdHost = config.GetMaster().PrivateIp
 	}

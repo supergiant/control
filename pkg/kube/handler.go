@@ -7,6 +7,7 @@ import (
 	"fmt"
 	"io"
 	"net/http"
+	"net/url"
 	"strconv"
 	"time"
 
@@ -15,17 +16,17 @@ import (
 	"github.com/sirupsen/logrus"
 	"gopkg.in/asaskevich/govalidator.v8"
 
-	"github.com/supergiant/supergiant/pkg/clouds"
-	"github.com/supergiant/supergiant/pkg/message"
-	"github.com/supergiant/supergiant/pkg/model"
-	"github.com/supergiant/supergiant/pkg/node"
-	"github.com/supergiant/supergiant/pkg/profile"
-	"github.com/supergiant/supergiant/pkg/sgerrors"
-	"github.com/supergiant/supergiant/pkg/storage"
-	"github.com/supergiant/supergiant/pkg/util"
-	"github.com/supergiant/supergiant/pkg/workflows"
-	"github.com/supergiant/supergiant/pkg/workflows/statuses"
-	"github.com/supergiant/supergiant/pkg/workflows/steps"
+	"github.com/supergiant/control/pkg/clouds"
+	"github.com/supergiant/control/pkg/message"
+	"github.com/supergiant/control/pkg/model"
+	"github.com/supergiant/control/pkg/node"
+	"github.com/supergiant/control/pkg/profile"
+	"github.com/supergiant/control/pkg/sgerrors"
+	"github.com/supergiant/control/pkg/storage"
+	"github.com/supergiant/control/pkg/util"
+	"github.com/supergiant/control/pkg/workflows"
+	"github.com/supergiant/control/pkg/workflows/statuses"
+	"github.com/supergiant/control/pkg/workflows/steps"
 )
 
 type accountGetter interface {
@@ -118,6 +119,10 @@ func NewHandler(svc Interface, accountService accountGetter, provisioner nodePro
 				DeleteCluster: workflows.AWSDeleteCluster,
 				DeleteNode:    workflows.AWSDeleteNode,
 			},
+			clouds.GCE: {
+				DeleteCluster: workflows.GCEDeleteCluster,
+				DeleteNode:    workflows.GCEDeleteNode,
+			},
 		},
 		repo:      repo,
 		getWriter: util.GetWriter,
@@ -179,6 +184,7 @@ func (h *Handler) Register(r *mux.Router) {
 	r.HandleFunc("/kubes/{kubeID}/nodes/metrics", h.getNodesMetrics).Methods(http.MethodGet)
 	r.HandleFunc("/kubes/{kubeID}/services", h.getServices).Methods(http.MethodGet)
 	r.HandleFunc("/kubes/{kubeID}/services/proxy", h.proxyService).Methods(http.MethodPost)
+	r.HandleFunc("/kubes/{kubeID}/services/proxy", h.proxyServiceGet).Methods(http.MethodGet)
 }
 
 func (h *Handler) getTasks(w http.ResponseWriter, r *http.Request) {
@@ -336,11 +342,17 @@ func (h *Handler) deleteKube(w http.ResponseWriter, r *http.Request) {
 		ClusterID:        k.ID,
 		ClusterName:      k.Name,
 		CloudAccountName: k.AccountName,
+		Masters:          steps.NewMap(k.Masters),
+		Nodes:            steps.NewMap(k.Nodes),
 	}
 
-	//HACK TO PROVIDE REGION TO AWS DELETE CLUSTER
+	// TODO(stgleb): Move this hacks to separate methods
 	if acc.Provider == clouds.AWS {
 		config.AWSConfig.Region = k.Region
+	}
+
+	if acc.Provider == clouds.GCE {
+		config.GCEConfig.AvailabilityZone = k.Zone
 	}
 
 	err = util.FillCloudAccountCredentials(r.Context(), acc, config)
@@ -516,12 +528,15 @@ func (h *Handler) addNode(w http.ResponseWriter, r *http.Request) {
 	kubeProfile := profile.Profile{
 		Provider:        acc.Provider,
 		Region:          k.Region,
+		Zone:            k.Zone,
 		Arch:            k.Arch,
 		OperatingSystem: k.OperatingSystem,
 		UbuntuVersion:   k.OperatingSystemVersion,
 		DockerVersion:   k.DockerVersion,
 		K8SVersion:      k.K8SVersion,
 		HelmVersion:     k.HelmVersion,
+		User:            k.User,
+		Password:        k.Password,
 
 		NetworkType:           k.Networking.Type,
 		CIDR:                  k.Networking.CIDR,
@@ -653,9 +668,13 @@ func (h *Handler) deleteNode(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	//HACK TO PROVIDE REGION TO AWS DELETE CLUSTER
+	// TODO(stgleb): Move this hacks to separate methods
 	if acc.Provider == clouds.AWS {
 		config.AWSConfig.Region = k.Region
+	}
+
+	if acc.Provider == clouds.GCE {
+		config.GCEConfig.AvailabilityZone = k.Zone
 	}
 
 	writer, err := h.getWriter(t.ID)
@@ -921,6 +940,10 @@ func (h *Handler) getNodesMetrics(w http.ResponseWriter, r *http.Request) {
 		}
 	}
 
+	if k.Provider == clouds.AWS {
+		processAWSMetrics(k, response)
+	}
+
 	err = json.NewEncoder(w).Encode(response)
 
 	if err != nil {
@@ -955,9 +978,9 @@ func (h *Handler) getServices(w http.ResponseWriter, r *http.Request) {
 		}
 	}
 
-	url := fmt.Sprintf("https://%s/%s", masterNode.PublicIp, servicesUrl)
-	req, err := http.NewRequest(http.MethodGet, url, nil)
-	req.SetBasicAuth("root", "1234")
+	serviceURL := fmt.Sprintf("https://%s/%s", masterNode.PublicIp, servicesUrl)
+	req, err := http.NewRequest(http.MethodGet, serviceURL, nil)
+	req.SetBasicAuth(k.User, k.Password)
 
 	tr := &http.Transport{
 		TLSClientConfig: &tls.Config{InsecureSkipVerify: true},
@@ -1017,8 +1040,73 @@ func (h *Handler) proxyService(w http.ResponseWriter, r *http.Request) {
 	serviceProxy := &ServiceProxy{}
 	err := json.NewDecoder(r.Body).Decode(serviceProxy)
 
+	vars := mux.Vars(r)
+	kubeID := vars["kubeID"]
+
+	k, err := h.svc.Get(r.Context(), kubeID)
+	if err != nil {
+		if sgerrors.IsNotFound(err) {
+			message.SendNotFound(w, kubeID, err)
+			return
+		}
+		message.SendUnknownError(w, err)
+		return
+	}
+
 	req, err := http.NewRequest(http.MethodGet, serviceProxy.SelfLink, nil)
-	req.SetBasicAuth("root", "1234")
+	req.SetBasicAuth(k.User, k.Password)
+
+	tr := &http.Transport{
+		TLSClientConfig: &tls.Config{InsecureSkipVerify: true},
+	}
+	client := &http.Client{
+		Transport: tr,
+	}
+	resp, err := client.Do(req)
+
+	if err != nil {
+		message.SendUnknownError(w, err)
+		return
+	}
+
+	_, err = io.Copy(w, resp.Body)
+
+	if err != nil {
+		message.SendUnknownError(w, err)
+		return
+	}
+}
+
+func (h *Handler) proxyServiceGet(w http.ResponseWriter, r *http.Request) {
+	u := r.URL.Query().Get("url")
+
+	if len(u) == 0 {
+		http.Error(w, "url query param must not be empty", http.StatusBadRequest)
+		return
+	}
+
+	serviceUrl, err := url.QueryUnescape(u)
+
+	if err != nil {
+		http.Error(w, fmt.Sprintf("unescaped url %s", serviceUrl), http.StatusBadRequest)
+		return
+	}
+
+	vars := mux.Vars(r)
+	kubeID := vars["kubeID"]
+
+	k, err := h.svc.Get(r.Context(), kubeID)
+	if err != nil {
+		if sgerrors.IsNotFound(err) {
+			message.SendNotFound(w, kubeID, err)
+			return
+		}
+		message.SendUnknownError(w, err)
+		return
+	}
+
+	req, err := http.NewRequest(http.MethodGet, serviceUrl, nil)
+	req.SetBasicAuth(k.User, k.Password)
 
 	tr := &http.Transport{
 		TLSClientConfig: &tls.Config{InsecureSkipVerify: true},

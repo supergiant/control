@@ -6,7 +6,7 @@ import (
 	"io"
 	"text/template"
 
-	"github.com/supergiant/supergiant/pkg/runner"
+	"github.com/supergiant/control/pkg/runner"
 )
 
 func RunTemplate(ctx context.Context, tpl *template.Template, r runner.Runner, output io.Writer, cfg interface{}) error {

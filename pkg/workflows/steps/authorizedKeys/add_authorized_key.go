@@ -7,9 +7,10 @@ import (
 
 	"github.com/pkg/errors"
 
-	"github.com/supergiant/supergiant/pkg/templatemanager"
-	"github.com/supergiant/supergiant/pkg/util"
-	"github.com/supergiant/supergiant/pkg/workflows/steps"
+	"github.com/supergiant/control/pkg/templatemanager"
+	"github.com/supergiant/control/pkg/util"
+	"github.com/supergiant/control/pkg/workflows/steps"
+	"fmt"
 )
 
 type Step struct {
@@ -19,7 +20,12 @@ type Step struct {
 const StepName = "add_authorized_keys"
 
 func Init() {
-	steps.RegisterStep(StepName, NewAddAuthorizedKeys(templatemanager.GetTemplate(StepName)))
+	tpl, err := templatemanager.GetTemplate(StepName)
+
+	if err != nil {
+		panic(fmt.Sprintf("template %s not found", StepName))
+	}
+	steps.RegisterStep(StepName, NewAddAuthorizedKeys(tpl))
 }
 
 func NewAddAuthorizedKeys(script *template.Template) *Step {

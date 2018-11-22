@@ -1,8 +1,9 @@
 package model
 
 import (
-	"github.com/supergiant/supergiant/pkg/node"
-	"github.com/supergiant/supergiant/pkg/profile"
+	"github.com/supergiant/control/pkg/node"
+	"github.com/supergiant/control/pkg/profile"
+	"github.com/supergiant/control/pkg/clouds"
 )
 
 type KubeState string
@@ -14,19 +15,22 @@ const (
 	StateDeleting     KubeState = "deleting"
 )
 
-// TODO(stgleb): Add cloud provider for kube
 // Kube represents a kubernetes cluster.
 type Kube struct {
 	ID           string    `json:"id" valid:"-"`
 	State        KubeState `json:"state"`
 	Name         string    `json:"name" valid:"required"`
+	Provider     clouds.Name       `json:"provider" valid:"in(aws|digitalocean|packet|gce|openstack)"`
 	RBACEnabled  bool      `json:"rbacEnabled"`
 	AccountName  string    `json:"accountName"`
 	Region       string    `json:"region"`
+	Zone         string    `json:"zone" valid:"-"`
 	APIPort      string    `json:"apiPort"`
 	Auth         Auth      `json:"auth"`
 	SshUser      string    `json:"sshUser"`
 	SshPublicKey []byte    `json:"sshKey"`
+	User                   string                `json:"user" valid:"-"`
+	Password               string                `json:"password" valid:"-"`
 
 	Arch                   string     `json:"arch"`
 	OperatingSystem        string     `json:"operatingSystem"`
