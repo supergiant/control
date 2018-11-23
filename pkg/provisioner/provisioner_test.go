@@ -14,10 +14,10 @@ import (
 	"github.com/supergiant/control/pkg/model"
 	"github.com/supergiant/control/pkg/node"
 	"github.com/supergiant/control/pkg/profile"
+	"github.com/supergiant/control/pkg/sgerrors"
 	"github.com/supergiant/control/pkg/testutils"
 	"github.com/supergiant/control/pkg/workflows"
 	"github.com/supergiant/control/pkg/workflows/steps"
-	"github.com/supergiant/control/pkg/sgerrors"
 )
 
 type bufferCloser struct {
@@ -42,6 +42,32 @@ func (m *mockKubeService) Create(ctx context.Context, k *model.Kube) error {
 
 func (m *mockKubeService) Get(ctx context.Context, kname string) (*model.Kube, error) {
 	return m.data[kname], m.getError
+}
+
+func TestNewProvisioner(t *testing.T) {
+	storage := &testutils.MockStorage{}
+	service := &mockKubeService{}
+	interval := time.Second * 1
+
+	p := NewProvisioner(storage, service, interval)
+
+	if p.repository != storage {
+		t.Errorf("Wrong repository expected %v actual %v",
+			storage, p.repository)
+	}
+
+	if p.kubeService != service {
+		t.Errorf("Wrong kube service value expected %v actual %v",
+			service, p.kubeService)
+	}
+
+	if p.cancelMap == nil {
+		t.Errorf("Cancel map must not be nil")
+	}
+
+	if p.provisionMap == nil {
+		t.Errorf("Provision map must not be nil")
+	}
 }
 
 func TestProvisionCluster(t *testing.T) {
@@ -339,7 +365,7 @@ func TestMonitorCluster(t *testing.T) {
 func TestTaskProvisioner_Cancel(t *testing.T) {
 	clusterID := "1234"
 	called := false
-	f := func(){
+	f := func() {
 		called = true
 	}
 
@@ -359,7 +385,7 @@ func TestTaskProvisioner_Cancel(t *testing.T) {
 func TestTaskProvisioner_CancelNotFound(t *testing.T) {
 	clusterID := "1234"
 	called := false
-	f := func(){
+	f := func() {
 		called = true
 	}
 
