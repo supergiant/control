@@ -17,6 +17,7 @@ import (
 	"github.com/supergiant/control/pkg/testutils"
 	"github.com/supergiant/control/pkg/workflows"
 	"github.com/supergiant/control/pkg/workflows/steps"
+	"github.com/supergiant/control/pkg/sgerrors"
 )
 
 type bufferCloser struct {
@@ -111,6 +112,11 @@ func TestProvisionCluster(t *testing.T) {
 				len(p.NodesProfiles),
 			len(taskMap))
 	}
+
+	if len(provisioner.cancelMap) != 1 {
+		t.Errorf("Unexpected size of cancel map expected %d actual %d",
+			1, len(provisioner.cancelMap))
+	}
 }
 
 func TestProvisionNodes(t *testing.T) {
@@ -190,6 +196,12 @@ func TestProvisionNodes(t *testing.T) {
 	if err != nil {
 		t.Errorf("Unexpected error %v while provisionCluster", err)
 	}
+
+	if len(provisioner.cancelMap) != 1 {
+		t.Errorf("Unexpected size of cancel map expected %d actual %d",
+			1, len(provisioner.cancelMap))
+	}
+
 }
 
 func TestMonitorCluster(t *testing.T) {
@@ -341,5 +353,29 @@ func TestTaskProvisioner_Cancel(t *testing.T) {
 
 	if !called {
 		t.Errorf("Cancel function was not called")
+	}
+}
+
+func TestTaskProvisioner_CancelNotFound(t *testing.T) {
+	clusterID := "1234"
+	called := false
+	f := func(){
+		called = true
+	}
+
+	tp := &TaskProvisioner{
+		cancelMap: map[string]func(){
+			clusterID: f,
+		},
+	}
+
+	err := tp.Cancel("not_found")
+
+	if called {
+		t.Errorf("Cancel function must not been called")
+	}
+
+	if err != sgerrors.ErrNotFound {
+		t.Errorf("Unexpected error value %v", err)
 	}
 }

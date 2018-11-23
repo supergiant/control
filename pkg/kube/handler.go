@@ -307,6 +307,10 @@ func (h *Handler) deleteKube(w http.ResponseWriter, r *http.Request) {
 	vars := mux.Vars(r)
 
 	kubeID := vars["kubeID"]
+	if err := h.nodeProvisioner.Cancel(kubeID); err != nil {
+		logrus.Debugf("cancel kube tasks error %v", err)
+	}
+
 	k, err := h.svc.Get(r.Context(), kubeID)
 	if err != nil {
 		if sgerrors.IsNotFound(err) {
@@ -315,10 +319,6 @@ func (h *Handler) deleteKube(w http.ResponseWriter, r *http.Request) {
 		}
 		message.SendUnknownError(w, err)
 		return
-	}
-
-	if err := h.nodeProvisioner.Cancel(kubeID); err != nil {
-		logrus.Debugf("cancel kube tasks error %v", err)
 	}
 
 	acc, err := h.accountService.Get(r.Context(), k.AccountName)

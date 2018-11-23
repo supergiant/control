@@ -450,7 +450,8 @@ func TestHandler_deleteKube(t *testing.T) {
 			expectedStatus: http.StatusNotFound,
 		},
 		{
-			kubeName:        "delete kube error",
+			description: "delete kube err not found",
+			kubeName:        "kubeName",
 			getAccountError: nil,
 			accountName:     "test",
 			account: &model.CloudAccount{
