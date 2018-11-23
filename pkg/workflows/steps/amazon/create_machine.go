@@ -3,9 +3,6 @@ package amazon
 import (
 	"context"
 	"fmt"
-	"io"
-	"strconv"
-	"strings"
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/service/ec2"
 	"github.com/aws/aws-sdk-go/service/ec2/ec2iface"
@@ -15,6 +12,9 @@ import (
 	"github.com/supergiant/control/pkg/node"
 	"github.com/supergiant/control/pkg/util"
 	"github.com/supergiant/control/pkg/workflows/steps"
+	"io"
+	"strconv"
+	"strings"
 )
 
 const (
@@ -192,7 +192,8 @@ func (s *StepCreateInstance) Run(ctx context.Context, w io.Writer, cfg *steps.Co
 		err = EC2.WaitUntilInstanceRunningWithContext(ctx, lookup)
 
 		if err != nil {
-			logrus.Errorf("Error waiting instance running %v", err)
+			logrus.Errorf("Error waiting instance %s cluster %s running %v",
+				nodeName, cfg.ClusterName, err)
 		}
 		logrus.Debugf("Instance running %s", nodeName)
 
