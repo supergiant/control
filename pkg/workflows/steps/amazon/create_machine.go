@@ -21,8 +21,7 @@ import (
 
 const (
 	StepNameCreateEC2Instance = "aws_create_instance"
-	IPAttempts                = 5
-	SleepSecondsPerAttempt    = 6
+	IPAttempts                = 10
 	timeout                   = time.Second * 10
 )
 
@@ -209,14 +208,16 @@ func (s *StepCreateInstance) Run(ctx context.Context, w io.Writer, cfg *steps.Co
 
 			if len(out.Reservations) == 0 {
 				log.Infof("[%s] - found 0 ec2 instances, attempt %d", s.Name(), i)
-				time.Sleep(time.Duration(SleepSecondsPerAttempt) * time.Second)
-				continue
+				time.Sleep(sleepTimeout)
+				// Increase sleep timeout exponentially
+				sleepTimeout = sleepTimeout * 2
 			}
 
 			if i := findInstanceWithPublicAddr(out.Reservations); i != nil {
 				cfg.Node.PublicIp = *i.PublicIpAddress
 				cfg.Node.PrivateIp = *i.PrivateIpAddress
-				log.Infof("[%s] - found public ip - %s for node %s", s.Name(), cfg.Node.PublicIp, nodeName)
+				log.Infof("[%s] - found public ip - %s for node %s",
+					s.Name(), cfg.Node.PublicIp, nodeName)
 				found = true
 				break
 			}
