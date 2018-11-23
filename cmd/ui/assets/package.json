@@ -6,6 +6,7 @@
     "ng": "ng",
     "start": "ng serve --proxy-config proxy.conf.json",
     "build": "ng build",
+    "build:prod": "ng build --aot=true --prod=true  --buildOptimizer=true --extractCss=true --optimization=true --output-path ./dist",
     "test": "ng test",
     "lint": "ng lint",
     "e2e": "ng e2e"
