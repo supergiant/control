@@ -1,7 +1,7 @@
 #!/bin/bash
 
-echo "Compressing assests"
-tar -czpf /tmp/assest.gz "${TRAVIS_HOME}"/gopath/src/github.com/"${TRAVIS_REPO_SLUG}"/
+echo "building binary..."
+make build
 
 # if a tag has alpha or beta in the name, it will be released as a pre-release.
 # if a tag does not have alpha or beta, it is pushed as a full release.

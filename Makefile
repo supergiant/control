@@ -28,14 +28,15 @@ build-image:
 test:
 	go test ./pkg/...
 
-build: generate-static build-image
+build: generate-static
+	 CGO_ENABLED=0 GOARCH=amd64 go build -a -installsuffix cgo -ldflags='-extldflags "-static" -w -s' -o /go/bin/supergiant ./cmd/controlplane
 
 push:
 	docker push $(DOCKER_IMAGE_NAME):$(DOCKER_IMAGE_TAG)
 
 release: build push
 
-generate-static build-ui:
+generate-static: build-ui
 	statik -src=./cmd/ui/assets/dist
 
 build-ui:
