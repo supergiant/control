@@ -10,11 +10,14 @@
         Service Catalog
       </h1>
 
-      <div><input (keyup)="filterApps($event)"
-                  class="search-input"
-                  type="search"
-                  placeholder="Filter apps by name"
-                  #filterInput>
+      <div>
+        <mat-form-field class="search-input">
+          <input matInput
+                 (keyup)="filterApps($event)"
+                 type="search"
+                 placeholder="Filter apps by name"
+                 #filterInput>
+        </mat-form-field>
         <button class="clear"
                 [hidden]="!filterInput.value"
                 (click)="filterClear(filterInput)"><i class="fa fa-remove"></i></button>
@@ -23,6 +26,7 @@
 
     <nav class="apps-nav">
     <span *ngFor="let repo of (reposList$ | async)?.slice().reverse() ">
+
       <a routerLinkActive="active"
          [routerLink]="[repo.name]">{{ repo.name | titlecase }}</a>
     </span>

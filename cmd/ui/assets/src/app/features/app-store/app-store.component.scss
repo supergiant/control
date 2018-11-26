@@ -7,7 +7,7 @@
 }
 
 .header-wrapper {
-  padding: 0 52px;
+  padding: 0;
   width: 100%;
 }
 
@@ -16,10 +16,12 @@
 }
 
 .search-input {
-  background: transparent;
-  border: none;
-  outline: none;
-  color: #ffffff;
+  width: 140px;
+  opacity: .5;
+
+  &.mat-focused {
+    opacity: 1;
+  }
 }
 
 button {
@@ -47,7 +49,7 @@ button {
 
     &.active {
       display: inline-block;
-      border-bottom: 1px solid $sg-pink;
+      border-bottom: 2px solid $sg-pink;
       color: $sg-pink;
     }
 
