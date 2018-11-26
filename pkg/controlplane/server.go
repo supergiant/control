@@ -3,6 +3,7 @@ package controlplane
 import (
 	"context"
 	"fmt"
+	"github.com/rakyll/statik/fs"
 	"net/http"
 	"time"
 
@@ -46,6 +47,7 @@ import (
 	"github.com/supergiant/control/pkg/workflows/steps/prometheus"
 	"github.com/supergiant/control/pkg/workflows/steps/ssh"
 	"github.com/supergiant/control/pkg/workflows/steps/tiller"
+	_ "github.com/supergiant/control/statik"
 )
 
 type Server struct {
@@ -274,6 +276,12 @@ func configureApplication(cfg *Config) (*mux.Router, error) {
 		TokenService: jwtService,
 	}
 	protectedAPI.Use(authMiddleware.AuthMiddleware, api.ContentTypeJSON)
+
+	statikFS, err := fs.New()
+	if err != nil {
+		return nil, errors.Wrap(err, "failed to read static files")
+	}
+	router.PathPrefix("/").Handler(http.StripPrefix("/", http.FileServer(statikFS)))
 
 	return router, nil
 }
