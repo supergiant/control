@@ -6,7 +6,7 @@ echo "Building Docker container"
 
 docker build --tag "$TRAVIS_REPO_SLUG":"$TAG" .
 if [[ "$TRAVIS_TAG" =~ ^v[0-9]. ]]; then
-    docker build --tag "$TRAVIS_REPO_SLUG":"latest"
+    docker build --tag "$TRAVIS_REPO_SLUG":"latest" . 
 fi
 
 if [ $? -eq 0 ]; then
