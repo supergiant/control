@@ -1,7 +1,7 @@
 #!/bin/bash
 echo "Running tests"
 
-go test -v -race -covermode=count -coverprofile=profile.cov ./pkg/...
+go test -v -covermode=count -coverprofile=profile.cov ./pkg/...
 goveralls -coverprofile=profile.cov -service=travis-ci
 
 # Check for errors
