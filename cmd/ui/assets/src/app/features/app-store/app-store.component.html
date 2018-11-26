@@ -25,7 +25,7 @@
     </ng-template>
 
     <nav class="apps-nav">
-    <span *ngFor="let repo of (reposList$ | async)?.slice().reverse() ">
+    <span *ngFor="let repo of (reposList$ | async | sortRepos)?.slice().reverse()">
 
       <a routerLinkActive="active"
          [routerLink]="[repo.name]">{{ repo.name | titlecase }}</a>
