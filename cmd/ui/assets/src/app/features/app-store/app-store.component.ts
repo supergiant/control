@@ -59,8 +59,4 @@ export class AppStoreComponent {
     filterInput.value = '';
     this.store.dispatch(new AppFilter(''))
   }
-
-  addRepo() {
-    this.dialog.open(AppsAddComponent)
-  }
 }

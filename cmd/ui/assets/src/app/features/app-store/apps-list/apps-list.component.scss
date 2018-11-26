@@ -1,6 +1,25 @@
-mat-card-actions {
+@mixin action-button {
+  margin-bottom: 10px;
+  color: white;
+}
+
+.mat-card-actions {
   display: flex;
   justify-content: space-between;
+
+  .add-repo {
+    @include action-button;
+
+    background: #D10088;
+  }
+
+  .remove-repo {
+    @include action-button;
+
+    background: #414141;
+    border: none;
+  }
+
 }
 
 .charts-wrapper {
@@ -9,6 +28,7 @@ mat-card-actions {
   margin-bottom: 20px;
 
   .app-card {
+
     margin-right: 30px;
     margin-bottom: 30px;
     width: 300px;

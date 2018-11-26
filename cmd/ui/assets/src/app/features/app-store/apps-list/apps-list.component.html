@@ -1,4 +1,28 @@
 <section class="charts-wrapper">
+  <mat-card class="app-card actions">
+    <mat-card-header>
+      <mat-card-title>
+        <h2>Add/remove repo</h2>
+      </mat-card-title>
+    </mat-card-header>
+    <mat-card-content>
+      <p>
+        Add new or remove current repository
+      </p>
+    </mat-card-content>
+    <mat-card-actions class="repo-actions">
+      <button (click)="addRepo()"
+              mat-raised-button
+              class="add-repo">ADD
+      </button>
+      <button (click)="removeRepo()"
+              mat-raised-button
+              class="remove-repo">REMOVE
+      </button>
+
+    </mat-card-actions>
+  </mat-card>
+
   <mat-card *ngFor="let chart of (charts$ | async)"
             class="app-card">
     <mat-card-header>
