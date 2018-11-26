@@ -18,6 +18,7 @@ go:
 go_import_path: github.com/supergiant/control
 
 before_install:
+  - go get -u github.com/rakyll/statik
   - sudo apt-get update
   - sudo apt-get install docker-ce
   - echo '{"experimental":true}' | sudo tee /etc/docker/daemon.json
@@ -32,11 +33,15 @@ before_install:
 
 install:
   - go get github.com/mattn/goveralls
+  - go get github.com/tcnksm/ghr
 
 script:
   # Test
   # - govendor test +local (NOTE not needed with coverage line below)
   # Coverage
+  - statik -src=./cmd/ui/assets/dist
+  - npm install --prefix ./cmd/ui/assets
+  - npm run build --prefix ./cmd/ui/assets
   - go test -covermode=count -coverprofile=profile.cov ./pkg/...
   - goveralls -coverprofile=profile.cov -service=travis-ci
 
