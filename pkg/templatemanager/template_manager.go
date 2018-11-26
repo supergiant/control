@@ -12,7 +12,7 @@ import (
 )
 
 var (
-	m sync.RWMutex
+	m           sync.RWMutex
 	templateMap map[string]*template.Template
 )
 
@@ -67,7 +67,7 @@ func GetTemplate(templateName string) (*template.Template, error) {
 	}
 }
 
-func SetTemplate(templateName string, tpl *template.Template)  {
+func SetTemplate(templateName string, tpl *template.Template) {
 	m.Lock()
 	defer m.Unlock()
 	templateMap[templateName] = tpl

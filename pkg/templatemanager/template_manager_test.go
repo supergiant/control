@@ -1,11 +1,10 @@
 package templatemanager
 
 import (
-	"testing"
 	"github.com/supergiant/control/pkg/sgerrors"
+	"testing"
 	"text/template"
 )
-
 
 func TestGetTemplate(t *testing.T) {
 	testKey := "testGetKey"
@@ -19,7 +18,6 @@ func TestGetTemplate(t *testing.T) {
 	}
 }
 
-
 func TestGetTemplateNotFound(t *testing.T) {
 	_, err := GetTemplate("not_found.sh.tpl")
 
@@ -27,7 +25,6 @@ func TestGetTemplateNotFound(t *testing.T) {
 		t.Errorf("Wrong error expected %v actual %v", sgerrors.ErrNotFound, err)
 	}
 }
-
 
 func TestDeleteTemplate(t *testing.T) {
 	testKey := "testDeleteKey"

@@ -2,10 +2,10 @@ package poststart
 
 import (
 	"context"
+	"fmt"
 	"io"
 	"text/template"
 	"time"
-	"fmt"
 
 	"github.com/pkg/errors"
 

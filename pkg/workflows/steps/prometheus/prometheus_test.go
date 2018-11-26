@@ -197,7 +197,7 @@ func TestInit(t *testing.T) {
 }
 
 func TestInitPanic(t *testing.T) {
-	defer func(){
+	defer func() {
 		if r := recover(); r == nil {
 			t.Errorf("recover output must not be nil")
 		}

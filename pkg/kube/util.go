@@ -24,5 +24,5 @@ func processAWSMetrics(k *model.Kube, metrics map[string]map[string]interface{})
 }
 
 func ip2Host(ip string) string {
-	return fmt.Sprintf("ip-%s",strings.Join(strings.Split(ip, "."), "-"))
+	return fmt.Sprintf("ip-%s", strings.Join(strings.Split(ip, "."), "-"))
 }

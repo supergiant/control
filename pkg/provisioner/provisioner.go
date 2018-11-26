@@ -5,8 +5,8 @@ import (
 	"fmt"
 	"io"
 	"os"
-	"time"
 	"sync"
+	"time"
 
 	"github.com/pkg/errors"
 	"github.com/sirupsen/logrus"
@@ -424,15 +424,15 @@ func (tp *TaskProvisioner) buildInitialCluster(ctx context.Context,
 		ID:           config.ClusterID,
 		State:        model.StateProvisioning,
 		Name:         config.ClusterName,
-		Provider: 	  profile.Provider,
+		Provider:     profile.Provider,
 		AccountName:  config.CloudAccountName,
 		RBACEnabled:  profile.RBACEnabled,
 		Region:       profile.Region,
 		Zone:         profile.Zone,
 		SshUser:      config.SshConfig.User,
 		SshPublicKey: []byte(config.SshConfig.PublicKey),
-		User: profile.User,
-		Password: profile.Password,
+		User:         profile.User,
+		Password:     profile.Password,
 
 		Auth: model.Auth{
 			Username:  config.CertificatesConfig.Username,
