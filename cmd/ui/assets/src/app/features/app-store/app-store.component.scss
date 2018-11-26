@@ -35,13 +35,20 @@ button {
   justify-content: flex-end;
 
   a {
+
+    &:hover {
+      color: white;
+      text-decoration: none;
+    }
+
     display: flex;
     margin-left: 32px;
     cursor: pointer;
 
     &.active {
+      display: inline-block;
+      border-bottom: 1px solid $sg-pink;
       color: $sg-pink;
-      text-decoration: 1px solid $sg-pink;
     }
 
     &.add-repo {

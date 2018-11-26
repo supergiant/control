@@ -19,7 +19,6 @@
     background: #414141;
     border: none;
   }
-
 }
 
 .charts-wrapper {
@@ -57,16 +56,6 @@ button {
   border: 2px solid #D10088;
   background: transparent;
   padding: 8px 32px;
-
-  &.btn-remove {
-    border: none;
-    position: relative;
-    bottom: 46px;
-
-    .text {
-      color: white;
-    }
-  }
 }
 
 .app-image {
