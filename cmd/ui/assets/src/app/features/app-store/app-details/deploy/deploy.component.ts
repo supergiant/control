@@ -71,7 +71,7 @@ export class DeployComponent implements OnInit {
       if (result instanceof ErrorEvent) {
         return;
       }
-      this.router.navigate(['apps']);
+      this.router.navigate(['/clusters/', selectedCluster.id]);
       this.notifications.display('success', 'Success', 'App is being deployed!');
 
       this.dialogRef.close()
