@@ -5,15 +5,22 @@ import (
 	"os"
 	"path"
 	"strings"
+	"sync"
 	"text/template"
+
+	"github.com/supergiant/control/pkg/sgerrors"
 )
 
 var (
+	m sync.RWMutex
 	templateMap map[string]*template.Template
 )
 
-func Init(templateDir string) error {
+func init() {
 	templateMap = make(map[string]*template.Template)
+}
+
+func Init(templateDir string) error {
 	files, err := ioutil.ReadDir(templateDir)
 	if err != nil {
 		return err
@@ -50,6 +57,24 @@ func Init(templateDir string) error {
 	return nil
 }
 
-func GetTemplate(templateName string) *template.Template {
-	return templateMap[templateName]
+func GetTemplate(templateName string) (*template.Template, error) {
+	m.RLock()
+	m.RUnlock()
+	if tpl, ok := templateMap[templateName]; ok {
+		return tpl, nil
+	} else {
+		return nil, sgerrors.ErrNotFound
+	}
+}
+
+func SetTemplate(templateName string, tpl *template.Template)  {
+	m.Lock()
+	defer m.Unlock()
+	templateMap[templateName] = tpl
+}
+
+func DeleteTemplate(templateName string) {
+	m.Lock()
+	defer m.Unlock()
+	delete(templateMap, templateName)
 }

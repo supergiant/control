@@ -15,11 +15,11 @@ import (
 
 	"github.com/sirupsen/logrus"
 
-	"github.com/supergiant/supergiant/pkg/clouds"
-	"github.com/supergiant/supergiant/pkg/model"
-	"github.com/supergiant/supergiant/pkg/node"
-	"github.com/supergiant/supergiant/pkg/sgerrors"
-	"github.com/supergiant/supergiant/pkg/workflows/steps"
+	"github.com/supergiant/control/pkg/clouds"
+	"github.com/supergiant/control/pkg/model"
+	"github.com/supergiant/control/pkg/node"
+	"github.com/supergiant/control/pkg/sgerrors"
+	"github.com/supergiant/control/pkg/workflows/steps"
 )
 
 const letterBytes = "0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ"
@@ -118,6 +118,8 @@ func FillCloudAccountCredentials(ctx context.Context, cloudAccount *model.CloudA
 		return BindParams(cloudAccount.Credentials, &config.AWSConfig)
 	case clouds.DigitalOcean:
 		return BindParams(cloudAccount.Credentials, &config.DigitalOceanConfig)
+	case clouds.GCE:
+		return BindParams(cloudAccount.Credentials, &config.GCEConfig)
 	default:
 		return sgerrors.ErrUnknownProvider
 	}

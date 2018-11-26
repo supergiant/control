@@ -4,7 +4,7 @@ import (
 	"context"
 	"encoding/json"
 
-	"github.com/supergiant/supergiant/pkg/storage"
+	"github.com/supergiant/control/pkg/storage"
 )
 
 // Service contains business logic for node in particular cloud provider

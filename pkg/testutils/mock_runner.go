@@ -4,7 +4,7 @@ import (
 	"io"
 	"strings"
 
-	"github.com/supergiant/supergiant/pkg/runner"
+	"github.com/supergiant/control/pkg/runner"
 )
 
 type MockRunner struct {

@@ -7,7 +7,7 @@ import (
 
 	"github.com/sirupsen/logrus"
 
-	"github.com/supergiant/supergiant/pkg/sgerrors"
+	"github.com/supergiant/control/pkg/sgerrors"
 )
 
 // Message is used in response body to display separate messages to user and developers

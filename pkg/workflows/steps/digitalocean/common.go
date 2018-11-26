@@ -7,7 +7,7 @@ import (
 
 	"github.com/digitalocean/godo"
 
-	"github.com/supergiant/supergiant/pkg/workflows/steps"
+	"github.com/supergiant/control/pkg/workflows/steps"
 )
 
 const (

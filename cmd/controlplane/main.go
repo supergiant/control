@@ -10,7 +10,7 @@ import (
 
 	"github.com/sirupsen/logrus"
 
-	"github.com/supergiant/supergiant/pkg/controlplane"
+	"github.com/supergiant/control/pkg/controlplane"
 )
 
 var (

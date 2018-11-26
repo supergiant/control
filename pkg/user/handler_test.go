@@ -11,9 +11,9 @@ import (
 	"github.com/stretchr/testify/mock"
 	"github.com/stretchr/testify/require"
 
-	"github.com/supergiant/supergiant/pkg/jwt"
-	"github.com/supergiant/supergiant/pkg/sgerrors"
-	"github.com/supergiant/supergiant/pkg/testutils"
+	"github.com/supergiant/control/pkg/jwt"
+	"github.com/supergiant/control/pkg/sgerrors"
+	"github.com/supergiant/control/pkg/testutils"
 )
 
 type mockTokenIssuer struct {

@@ -3,27 +3,22 @@ package amazon
 import (
 	"context"
 	"fmt"
-	"io"
-	"strconv"
-	"strings"
-	"time"
-
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/service/ec2"
 	"github.com/aws/aws-sdk-go/service/ec2/ec2iface"
 	"github.com/pkg/errors"
 	"github.com/sirupsen/logrus"
-	"github.com/supergiant/supergiant/pkg/clouds"
-	"github.com/supergiant/supergiant/pkg/node"
-	"github.com/supergiant/supergiant/pkg/util"
-	"github.com/supergiant/supergiant/pkg/workflows/steps"
+	"github.com/supergiant/control/pkg/clouds"
+	"github.com/supergiant/control/pkg/node"
+	"github.com/supergiant/control/pkg/util"
+	"github.com/supergiant/control/pkg/workflows/steps"
+	"io"
+	"strconv"
+	"strings"
 )
 
 const (
 	StepNameCreateEC2Instance = "aws_create_instance"
-	IPAttempts                = 5
-	SleepSecondsPerAttempt    = 6
-	timeout                   = time.Second * 10
 )
 
 type StepCreateInstance struct {
@@ -56,6 +51,7 @@ func (s *StepCreateInstance) Run(ctx context.Context, w io.Writer, cfg *steps.Co
 		TaskID:   cfg.TaskID,
 		Region:   cfg.AWSConfig.Region,
 		Role:     role,
+		Size:     cfg.AWSConfig.InstanceType,
 		Provider: clouds.AWS,
 		State:    node.StatePlanned,
 	}
@@ -161,6 +157,7 @@ func (s *StepCreateInstance) Run(ctx context.Context, w io.Writer, cfg *steps.Co
 		Region:   cfg.AWSConfig.Region,
 		Role:     role,
 		Provider: clouds.AWS,
+		Size:     cfg.AWSConfig.InstanceType,
 		State:    node.StateBuilding,
 	}
 
@@ -179,50 +176,45 @@ func (s *StepCreateInstance) Run(ctx context.Context, w io.Writer, cfg *steps.Co
 	if hasPublicAddress {
 		log.Infof("[%s] - waiting to obtain public IP...", s.Name())
 
-		//Waiting for AWS to assign public IP requires to poll an describe ec2 endpoint several times
-		found := false
-		sleepTimeout := timeout
-
-		for i := 0; i < IPAttempts; i++ {
-			lookup := &ec2.DescribeInstancesInput{
-				Filters: []*ec2.Filter{
-					{
-						Name:   aws.String("tag:Name"),
-						Values: []*string{aws.String(nodeName)},
-					},
-					{
-						Name:   aws.String(fmt.Sprintf("tag:%s", clouds.ClusterIDTag)),
-						Values: []*string{aws.String(cfg.ClusterID)},
-					},
+		lookup := &ec2.DescribeInstancesInput{
+			Filters: []*ec2.Filter{
+				{
+					Name:   aws.String("tag:Name"),
+					Values: []*string{aws.String(nodeName)},
 				},
-			}
-			out, err := EC2.DescribeInstancesWithContext(ctx, lookup)
-			if err != nil {
-				cfg.Node.State = node.StateError
-				cfg.NodeChan() <- cfg.Node
-				log.Errorf("[%s] - failed to obtain public IP for node %s: %v", s.Name(), nodeName, err)
-				return errors.Wrap(ErrNoPublicIP, err.Error())
-			}
-
-			if len(out.Reservations) == 0 {
-				log.Infof("[%s] - found 0 ec2 instances, attempt %d", s.Name(), i)
-				time.Sleep(time.Duration(SleepSecondsPerAttempt) * time.Second)
-				continue
-			}
-
-			if i := findInstanceWithPublicAddr(out.Reservations); i != nil {
-				cfg.Node.PublicIp = *i.PublicIpAddress
-				cfg.Node.PrivateIp = *i.PrivateIpAddress
-				log.Infof("[%s] - found public ip - %s for node %s", s.Name(), cfg.Node.PublicIp, nodeName)
-				found = true
-				break
-			}
-			time.Sleep(sleepTimeout)
-			// Increase sleep timeout exponentially
-			sleepTimeout = sleepTimeout * 2
+				{
+					Name:   aws.String(fmt.Sprintf("tag:%s", clouds.ClusterIDTag)),
+					Values: []*string{aws.String(cfg.ClusterID)},
+				},
+			},
 		}
-		if !found {
-			log.Errorf("[%s] - failed to find public IP address after %d attempts", s.Name(), IPAttempts)
+		logrus.Debugf("Wait until instance %s running", nodeName)
+		err = EC2.WaitUntilInstanceRunningWithContext(ctx, lookup)
+
+		if err != nil {
+			logrus.Errorf("Error waiting instance %s cluster %s running %v",
+				nodeName, cfg.ClusterName, err)
+		}
+		logrus.Debugf("Instance running %s", nodeName)
+
+		out, err := EC2.DescribeInstancesWithContext(ctx, lookup)
+		if err != nil {
+			cfg.Node.State = node.StateError
+			cfg.NodeChan() <- cfg.Node
+			log.Errorf("[%s] - failed to obtain public IP for node %s: %v", s.Name(), nodeName, err)
+			return errors.Wrap(ErrNoPublicIP, err.Error())
+		}
+
+		if len(out.Reservations) == 0 {
+			log.Infof("[%s] - found 0 ec2 instances", s.Name())
+		}
+
+		if i := findInstanceWithPublicAddr(out.Reservations); i != nil {
+			cfg.Node.PublicIp = *i.PublicIpAddress
+			cfg.Node.PrivateIp = *i.PrivateIpAddress
+			log.Infof("[%s] - found public ip - %s for node %s", s.Name(), cfg.Node.PublicIp, nodeName)
+		} else {
+			log.Errorf("[%s] - failed to find public IP address", s.Name())
 			cfg.Node.State = node.StateError
 			cfg.NodeChan() <- cfg.Node
 			return ErrNoPublicIP

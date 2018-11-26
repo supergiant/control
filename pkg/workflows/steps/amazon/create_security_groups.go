@@ -11,8 +11,8 @@ import (
 	"github.com/aws/aws-sdk-go/service/ec2/ec2iface"
 	"github.com/pkg/errors"
 	"github.com/sirupsen/logrus"
-	"github.com/supergiant/supergiant/pkg/util"
-	"github.com/supergiant/supergiant/pkg/workflows/steps"
+	"github.com/supergiant/control/pkg/util"
+	"github.com/supergiant/control/pkg/workflows/steps"
 )
 
 const StepCreateSecurityGroups = "create_security_groups_step"

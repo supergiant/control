@@ -1,4 +1,4 @@
-<section class="charts-wrapepr">
+<section class="charts-wrapper">
   <mat-card *ngFor="let chart of (charts$ | async)"
             class="app-card">
     <mat-card-header>
@@ -21,7 +21,7 @@
       <div class="app-logo-wrapper">
         <img class="app-image"
              [src]="chart.icon"
-             onError="this.src='data:image/gif;base64,R0lGODlhAQABAIAAAP///wAAACH5BAEAAAAALAAAAAABAAEAAAICRAEAOw=='">
+             onError="this.src='/assets/img/error.svg'">
       </div>
     </mat-card-actions>
   </mat-card>

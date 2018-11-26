@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"io"
+	"time"
 	"strings"
 
 	"github.com/aws/aws-sdk-go/service/ec2"
@@ -11,15 +12,14 @@ import (
 
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/sirupsen/logrus"
-	"github.com/supergiant/supergiant/pkg/util"
-	"github.com/supergiant/supergiant/pkg/workflows/steps"
-	"time"
+	"github.com/supergiant/control/pkg/util"
+	"github.com/supergiant/control/pkg/workflows/steps"
 )
 
 const StepImportKeyPair = "awskeypairstep"
 
 var (
-	keyPairAttemptCound = 5
+	keyPairAttemptCount = 5
 )
 
 //KeyPairStep represents creation of keypair in aws
@@ -40,7 +40,6 @@ func InitImportKeyPair(fn GetEC2Fn) {
 }
 
 //Verifies that a key exists,
-
 func (s *KeyPairStep) Run(ctx context.Context, w io.Writer, cfg *steps.Config) error {
 	log := util.GetLogger(w)
 
@@ -49,8 +48,17 @@ func (s *KeyPairStep) Run(ctx context.Context, w io.Writer, cfg *steps.Config) e
 		return ErrAuthorization
 	}
 
-	bootstrapKeyPairName := util.MakeKeyName(cfg.ClusterName, false)
-	log.Infof("[%s] - importing cluster bootstrap certificate as keypair %s",
+	if len(cfg.ClusterID) < 4 {
+		return errors.New("Cluster ID is too short")
+	}
+
+	// NOTE(stgleb): Add unique part to key pair name that allows to
+	// create cluster with the same name and avoid name collision of key pairs.
+	bootstrapKeyPairName := util.MakeKeyName(fmt.Sprintf("%s-%s",
+		cfg.ClusterName,
+		cfg.ClusterID[:4]),
+		false)
+	log.Infof("[%s] - importing cluster bootstrap key as keypair %s",
 		s.Name(), bootstrapKeyPairName)
 	req := &ec2.ImportKeyPairInput{
 		KeyName:           &bootstrapKeyPairName,
@@ -76,7 +84,7 @@ func (s *KeyPairStep) Run(ctx context.Context, w io.Writer, cfg *steps.Config) e
 
 	delay := time.Second * 10
 	// Wait until key pair become available
-	for cnt := 0; cnt < keyPairAttemptCound; cnt++ {
+	for cnt := 0; cnt < keyPairAttemptCount; cnt++ {
 		describeInput := &ec2.DescribeKeyPairsInput{
 			Filters: []*ec2.Filter{
 				{

@@ -11,8 +11,9 @@ import (
 	"github.com/aws/aws-sdk-go/service/ec2/ec2iface"
 	"github.com/stretchr/testify/require"
 
-	"github.com/supergiant/supergiant/pkg/profile"
-	"github.com/supergiant/supergiant/pkg/workflows/steps"
+	"github.com/supergiant/control/pkg/profile"
+	"github.com/supergiant/control/pkg/workflows/steps"
+	"github.com/pborman/uuid"
 )
 
 type FakeEC2KeyPair struct {
@@ -32,20 +33,20 @@ func (f *FakeEC2KeyPair) DescribeKeyPairs(*ec2.DescribeKeyPairsInput) (*ec2.Desc
 	return f.describeOutput, f.describeErr
 }
 
-
 func TestKeyPairStep_Run(t *testing.T) {
 	cfg := steps.NewConfig("TEST", "", "myacc", profile.Profile{})
 	cfg.AWSConfig.KeyPairName = "mypair"
+	cfg.ClusterID = uuid.New()
 	fingerprint := "e9:b0:fe:0d:1a:4c:f9:00:dd:fd:c2:16:05:8b:3f:83"
 	step := NewImportKeyPairStep(func(config steps.AWSConfig) (ec2iface.EC2API, error) {
 		return &FakeEC2KeyPair{
 			importOutput: &ec2.ImportKeyPairOutput{
-				KeyName: aws.String(cfg.AWSConfig.KeyPairName),
+				KeyName:        aws.String(cfg.AWSConfig.KeyPairName),
 				KeyFingerprint: &fingerprint,
 			},
-			importErr: nil,
+			importErr:      nil,
 			describeOutput: &ec2.DescribeKeyPairsOutput{},
-			describeErr: nil,
+			describeErr:    nil,
 		}, nil
 	})
 

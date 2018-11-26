@@ -1,6 +1,6 @@
 package profile
 
-import "github.com/supergiant/supergiant/pkg/clouds"
+import "github.com/supergiant/control/pkg/clouds"
 
 type Profile struct {
 	ID string `json:"id" valid:"required"`
@@ -12,6 +12,7 @@ type Profile struct {
 	// to allow user create heterogeneous cluster of machine with different arch
 	Provider               clouds.Name           `json:"provider" valid:"in(aws|digitalocean|packet|gce|openstack)" valid:"-"`
 	Region                 string                `json:"region" valid:"-"`
+	Zone                   string                `json:"zone" valid:"-"`
 	Arch                   string                `json:"arch" valid:"-"`
 	OperatingSystem        string                `json:"operatingSystem" valid:"-"`
 	UbuntuVersion          string                `json:"ubuntuVersion" valid:"-"`
@@ -21,6 +22,8 @@ type Profile struct {
 	NetworkType            string                `json:"networkType" valid:"-"`
 	CIDR                   string                `json:"cidr" valid:"-"`
 	HelmVersion            string                `json:"helmVersion" valid:"-"`
+	User                   string                `json:"user" valid:"-"`
+	Password               string                `json:"password" valid:"-"`
 	RBACEnabled            bool                  `json:"rbacEnabled" valid:"-"`
 	CloudSpecificSettings  CloudSpecificSettings `json:"cloudSpecificSettings" valid:"-"`
 	PublicKey              string                `json:"publicKey" valid:"-"`

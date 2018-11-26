@@ -5,22 +5,22 @@ import (
 	"fmt"
 	"io"
 	"os"
+	"time"
 	"sync"
 
 	"github.com/pkg/errors"
 	"github.com/sirupsen/logrus"
 
-	"github.com/supergiant/supergiant/pkg/clouds"
-	"github.com/supergiant/supergiant/pkg/model"
-	"github.com/supergiant/supergiant/pkg/node"
-	"github.com/supergiant/supergiant/pkg/pki"
-	"github.com/supergiant/supergiant/pkg/profile"
-	"github.com/supergiant/supergiant/pkg/sgerrors"
-	"github.com/supergiant/supergiant/pkg/storage"
-	"github.com/supergiant/supergiant/pkg/util"
-	"github.com/supergiant/supergiant/pkg/workflows"
-	"github.com/supergiant/supergiant/pkg/workflows/steps"
-	"time"
+	"github.com/supergiant/control/pkg/clouds"
+	"github.com/supergiant/control/pkg/model"
+	"github.com/supergiant/control/pkg/node"
+	"github.com/supergiant/control/pkg/pki"
+	"github.com/supergiant/control/pkg/profile"
+	"github.com/supergiant/control/pkg/sgerrors"
+	"github.com/supergiant/control/pkg/storage"
+	"github.com/supergiant/control/pkg/util"
+	"github.com/supergiant/control/pkg/workflows"
+	"github.com/supergiant/control/pkg/workflows/steps"
 )
 
 const keySize = 4096
@@ -55,6 +55,10 @@ func NewProvisioner(repository storage.Interface, kubeService KubeService,
 			clouds.AWS: {
 				ProvisionMaster: workflows.AWSMaster,
 				ProvisionNode:   workflows.AWSNode,
+			},
+			clouds.GCE: {
+				ProvisionMaster: workflows.GCEMaster,
+				ProvisionNode:   workflows.GCENode,
 			},
 		},
 		getWriter:   util.GetWriter,
@@ -420,11 +424,15 @@ func (tp *TaskProvisioner) buildInitialCluster(ctx context.Context,
 		ID:           config.ClusterID,
 		State:        model.StateProvisioning,
 		Name:         config.ClusterName,
+		Provider: 	  profile.Provider,
 		AccountName:  config.CloudAccountName,
 		RBACEnabled:  profile.RBACEnabled,
 		Region:       profile.Region,
+		Zone:         profile.Zone,
 		SshUser:      config.SshConfig.User,
 		SshPublicKey: []byte(config.SshConfig.PublicKey),
+		User: profile.User,
+		Password: profile.Password,
 
 		Auth: model.Auth{
 			Username:  config.CertificatesConfig.Username,
@@ -460,6 +468,10 @@ func (t *TaskProvisioner) updateCloudSpecificData(ctx context.Context, config *s
 	cloudSpecificSettings := make(map[string]string)
 
 	// Save cloudSpecificData in kube
+	switch config.Provider {
+	case clouds.AWS:
+
+	}
 	if config.Provider == clouds.AWS {
 		// Copy data got from pre provision step to cloud specific settings of kube
 		cloudSpecificSettings[clouds.AwsAZ] = config.AWSConfig.AvailabilityZone
@@ -478,6 +490,10 @@ func (t *TaskProvisioner) updateCloudSpecificData(ctx context.Context, config *s
 	if err != nil {
 		logrus.Errorf("get kube caused %v", err)
 		return err
+	}
+
+	if config.Provider == clouds.GCE {
+		k.Zone = config.GCEConfig.AvailabilityZone
 	}
 
 	k.CloudSpec = cloudSpecificSettings

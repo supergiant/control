@@ -7,8 +7,8 @@ import (
 
 	"gopkg.in/asaskevich/govalidator.v8"
 
-	"github.com/supergiant/supergiant/pkg/message"
-	"github.com/supergiant/supergiant/pkg/sgerrors"
+	"github.com/supergiant/control/pkg/message"
+	"github.com/supergiant/control/pkg/sgerrors"
 )
 
 type TokenIssuer interface {
