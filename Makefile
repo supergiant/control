@@ -39,5 +39,5 @@ generate-static build-ui:
 	statik -src=./cmd/ui/assets/dist
 
 build-ui:
-	npm run install --prefix ./cmd/ui/assets
+	npm install --prefix ./cmd/ui/assets
 	npm run build --prefix ./cmd/ui/assets
