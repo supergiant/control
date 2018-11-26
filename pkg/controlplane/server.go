@@ -3,7 +3,6 @@ package controlplane
 import (
 	"context"
 	"fmt"
-	"github.com/rakyll/statik/fs"
 	"net/http"
 	"time"
 
@@ -11,6 +10,7 @@ import (
 	"github.com/gorilla/handlers"
 	"github.com/gorilla/mux"
 	"github.com/pkg/errors"
+	"github.com/rakyll/statik/fs"
 	"github.com/sirupsen/logrus"
 	"k8s.io/helm/pkg/repo"
 
