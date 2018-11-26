@@ -20,3 +20,5 @@ config/config.json
 .idea
 *.iml
 etcd-data
+/statik/
+controlplane
