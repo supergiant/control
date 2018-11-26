@@ -116,12 +116,12 @@ type ManifestConfig struct {
 }
 
 type PostStartConfig struct {
-	IsMaster    bool   `json:"isMaster"`
-	Host        string `json:"host"`
-	Port        string `json:"port"`
-	Username    string `json:"username"`
-	RBACEnabled bool   `json:"rbacEnabled"`
-	Timeout     int    `json:"timeout"`
+	IsMaster    bool          `json:"isMaster"`
+	Host        string        `json:"host"`
+	Port        string        `json:"port"`
+	Username    string        `json:"username"`
+	RBACEnabled bool          `json:"rbacEnabled"`
+	Timeout     time.Duration `json:"timeout"`
 }
 
 type TillerConfig struct {
@@ -315,7 +315,7 @@ func NewConfig(clusterName, discoveryUrl, cloudAccountName string, profile profi
 			Port:        "8080",
 			Username:    profile.User,
 			RBACEnabled: profile.RBACEnabled,
-			Timeout:     600,
+			Timeout:     time.Minute * 20,
 		},
 		TillerConfig: TillerConfig{
 			HelmVersion:     profile.HelmVersion,
@@ -337,7 +337,7 @@ func NewConfig(clusterName, discoveryUrl, cloudAccountName string, profile profi
 			DataDir:        "/var/supergiant/etcd-data",
 			ServicePort:    "2379",
 			ManagementPort: "2380",
-			Timeout:        time.Minute * 10,
+			Timeout:        time.Minute * 20,
 			StartTimeout:   "0",
 			RestartTimeout: "5",
 			DiscoveryUrl:   discoveryUrl,

@@ -2,10 +2,9 @@ package poststart
 
 import (
 	"context"
+	"fmt"
 	"io"
 	"text/template"
-	"time"
-	"fmt"
 
 	"github.com/pkg/errors"
 
@@ -40,7 +39,7 @@ func New(script *template.Template) *Step {
 }
 
 func (s *Step) Run(ctx context.Context, out io.Writer, config *steps.Config) error {
-	ctx2, _ := context.WithTimeout(ctx, time.Duration(config.PostStartConfig.Timeout)*time.Second)
+	ctx2, _ := context.WithTimeout(ctx, config.PostStartConfig.Timeout)
 	config.PostStartConfig.IsMaster = config.IsMaster
 
 	if config.IsMaster {
