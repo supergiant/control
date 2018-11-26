@@ -61,6 +61,8 @@ button {
     &.active {
       display: inline-block;
       border-bottom: 2px solid $sg-pink;
+      display: inline-block;
+      border-bottom: 1px solid $sg-pink;
       color: $sg-pink;
     }
 

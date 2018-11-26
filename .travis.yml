@@ -18,8 +18,10 @@ go:
 go_import_path: github.com/supergiant/control
 
 before_install:
+  - go get -u github.com/rakyll/statik
   - sudo apt-get update
   - sudo apt-get install docker-ce
+  - sudo apt-get install build-essential
   - echo '{"experimental":true}' | sudo tee /etc/docker/daemon.json
   - mkdir ~/.docker
   - echo '{"experimental":"enabled"}' | tee ~/.docker/config.json
@@ -32,17 +34,16 @@ before_install:
 
 install:
   - go get github.com/mattn/goveralls
+  - go get github.com/tcnksm/ghr
 
 script:
   # Test
   # - govendor test +local (NOTE not needed with coverage line below)
   # Coverage
-  - go test -covermode=count -coverprofile=profile.cov ./pkg/...
-  - goveralls -coverprofile=profile.cov -service=travis-ci
-
+  - make generate-static
   # Integration
   - if [ "$TRAVIS_EVENT_TYPE" == "cron" ] ; then echo running integration tests && go test -v -tags=integration -timeout 45m ./pkg/... ./test/... ; fi
-
+  - source travis_build.sh
   # Make build
   #  - docker build . -t supergiant/controlplane
   # - travis_wait 60 build/travis_build.sh
