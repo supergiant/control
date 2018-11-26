@@ -7,11 +7,11 @@ make build
 # if a tag does not have alpha or beta, it is pushed as a full release.
 case "${TAG}" in
 	*alpha* )  echo "Releasing version: ${TAG}, as pre-release"
-	ghr --username supergiant --token "$GITHUB_TOKEN" --replace -b "pre-release" --prerelease --debug "$TAG" ${GOPATH}/bin/controlplane;;
+	ghr --username supergiant --token "$GITHUB_TOKEN" --replace -b "pre-release" --prerelease --debug "$TAG" /go/bin/supergiant;;
 	*beta* )    echo "Releasing version: ${TAG}, as pre-release"
-	ghr --username supergiant --token "$GITHUB_TOKEN" --replace -b "pre-release" --prerelease --debug "$TAG" ${GOPATH}/bin/controlplane;;
+	ghr --username supergiant --token "$GITHUB_TOKEN" --replace -b "pre-release" --prerelease --debug "$TAG"  /go/bin/supergiant;;
 	*)echo "Releasing version: ${TAG}, as latest release."
-	ghr --username supergiant --token "$GITHUB_TOKEN" --replace -b "latest release" --debug "$TAG" ${GOPATH}/bin/controlplane;;
+	ghr --username supergiant --token "$GITHUB_TOKEN" --replace -b "latest release" --debug "$TAG"  /go/bin/supergiant;;
 esac
 
 # Check for errors
