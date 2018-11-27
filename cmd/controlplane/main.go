@@ -21,6 +21,7 @@ var (
 	logLevel      = flag.String("log-level", "INFO", "logging level, e.g. info, warning, debug, error, fatal")
 	logFormat     = flag.String("log-format", "txt", "logging format [txt json]")
 	spawnInterval = flag.Int("spawnInterval", 5, "interval between API calls to cloud provider for creating instance")
+	uiDir         = flag.String("ui-dir", "./cmd/ui/assets/dist", "directory for supergiant ui to be served")
 )
 
 func main() {
@@ -37,6 +38,7 @@ func main() {
 		WriteTimeout:  time.Second * 10,
 		IdleTimeout:   time.Second * 120,
 		SpawnInterval: time.Second * time.Duration(*spawnInterval),
+		UiDir:         *uiDir,
 	}
 
 	server, err := controlplane.New(cfg)
