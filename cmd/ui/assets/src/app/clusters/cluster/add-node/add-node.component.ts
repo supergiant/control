@@ -91,7 +91,7 @@ export class AddNodeComponent implements OnInit, OnDestroy {
       first()
     );
 
-    this.provider$ = firstNode$.pipe(
+    this.provider$ = cluster$.pipe(
       pluck('provider'),
       distinctUntilChanged(),
       tap(provider => {
