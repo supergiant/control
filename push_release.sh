@@ -2,7 +2,7 @@
 
 echo "building release artifacts"
 PROJECTDIR=${TRAVIS_HOME}/gopath/src/github.com/${TRAVIS_REPO_SLUG}
-
+echo ${PROJECTDIR}
 
 mkdir -p ./supergiant-build
 cp ./controlplane ./supergiant-build
