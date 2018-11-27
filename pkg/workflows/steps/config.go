@@ -148,7 +148,8 @@ type EtcdConfig struct {
 	Version        string        `json:"version"`
 	DiscoveryUrl   string        `json:"discoveryUrl"`
 	AdvertiseHost  string        `json:"advertiseHost"`
-	Host           string        `json:"host"`
+	PrivateIP      string        `json:"privateIP"`
+	PublicIP       string        `json:"publicIP"`
 	DataDir        string        `json:"dataDir"`
 	ServicePort    string        `json:"servicePort"`
 	ManagementPort string        `json:"managementPort"`
@@ -333,7 +334,8 @@ func NewConfig(clusterName, discoveryUrl, cloudAccountName string, profile profi
 			// TODO(stgleb): this field must be changed per node
 			Name:           "etcd0",
 			Version:        "3.3.9",
-			Host:           "0.0.0.0",
+			PrivateIP:      "0.0.0.0",
+			PublicIP:       "0.0.0.0",
 			DataDir:        "/var/supergiant/etcd-data",
 			ServicePort:    "2379",
 			ManagementPort: "2380",

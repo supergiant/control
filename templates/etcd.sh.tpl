@@ -30,11 +30,12 @@ LimitNOFILE=40000
 TimeoutStartSec={{ .StartTimeout }}s
 
 ExecStart=/usr/bin/etcd --name {{ .Name }} \
+            --election-timeout '5000' \
             --data-dir {{ .DataDir }} \
-            --listen-client-urls http://{{ .Host }}:{{ .ServicePort }} \
-            --advertise-client-urls http://{{ .AdvertiseHost }}:{{ .ServicePort }} \
-            --listen-peer-urls http://{{ .Host }}:{{ .ManagementPort }} \
-            --initial-advertise-peer-urls http://{{ .AdvertiseHost }}:{{ .ManagementPort }} \
+            --listen-client-urls "http://{{ .PrivateIP }}:{{ .ServicePort }},http://{{ .PublicIP }}:{{ .ServicePort }}" \
+            --advertise-client-urls http://{{ .PrivateIP }}:{{ .ServicePort }} \
+            --listen-peer-urls http://{{ .PrivateIP }}:{{ .ManagementPort }} \
+            --initial-advertise-peer-urls "http://{{ .PrivateIP }}:{{ .ManagementPort }},http://{{ .PublicIP }}:{{ .ManagementPort }}" \
             --discovery {{ .DiscoveryUrl }} \
 
 [Install]

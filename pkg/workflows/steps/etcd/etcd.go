@@ -37,7 +37,9 @@ func New(tpl *template.Template) *Step {
 
 func (s *Step) Run(ctx context.Context, out io.Writer, config *steps.Config) error {
 	config.EtcdConfig.Name = config.Node.ID
-	config.EtcdConfig.AdvertiseHost = config.Node.PrivateIp
+	config.EtcdConfig.PrivateIP = config.Node.PrivateIp
+	config.EtcdConfig.PublicIP = config.Node.PublicIp
+
 	ctx2, _ := context.WithTimeout(ctx, config.EtcdConfig.Timeout)
 
 	err := steps.RunTemplate(ctx2, s.script,
