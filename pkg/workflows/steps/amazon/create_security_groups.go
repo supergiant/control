@@ -134,6 +134,10 @@ func (s *CreateSecurityGroupsStep) Run(ctx context.Context, w io.Writer, cfg *st
 		return err
 	}
 
+	if err := s.allowAllTrafficInsideMasterSecurityGroup(ctx, EC2, cfg.AWSConfig.MastersSecurityGroupID, *masterGroup.GroupName); err != nil {
+		return err
+	}
+
 	if err := s.whiteListSupergiantIP(ctx, EC2, cfg.AWSConfig.MastersSecurityGroupID); err != nil {
 		logrus.Errorf("[%s] - failed to whitelist supergiant IP in master security group: %v", s.Name(), err)
 	}
@@ -188,6 +192,25 @@ func (s *CreateSecurityGroupsStep) authorizeSSH(ctx context.Context, EC2 ec2ifac
 		ToPort:     aws.Int64(22),
 		CidrIp:     aws.String("0.0.0.0/0"),
 		IpProtocol: aws.String("tcp"),
+	})
+	if err, ok := err.(awserr.Error); ok {
+		if err.Code() == "InvalidPermission.Duplicate" {
+			return nil
+		}
+	}
+	return err
+}
+
+// Allow all traffic between master security group nodes
+// this is needed for etc which heartbeats are made in port 2380
+// and for other applications that might be needed in future.
+func (s *CreateSecurityGroupsStep) allowAllTrafficInsideMasterSecurityGroup(ctx context.Context,
+	EC2 ec2iface.EC2API, groupID, groupName string) error {
+
+	_, err := EC2.AuthorizeSecurityGroupIngressWithContext(ctx,
+		&ec2.AuthorizeSecurityGroupIngressInput{
+		GroupId:    aws.String(groupID),
+		SourceSecurityGroupName: aws.String(groupName),
 	})
 	if err, ok := err.(awserr.Error); ok {
 		if err.Code() == "InvalidPermission.Duplicate" {

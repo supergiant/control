@@ -32,10 +32,10 @@ TimeoutStartSec={{ .StartTimeout }}s
 ExecStart=/usr/bin/etcd --name {{ .Name }} \
             --election-timeout '5000' \
             --data-dir {{ .DataDir }} \
-            --listen-client-urls "http://{{ .PrivateIP }}:{{ .ServicePort }},http://{{ .PublicIP }}:{{ .ServicePort }}" \
+            --listen-client-urls http://{{ .PrivateIP }}:{{ .ServicePort }},http://localhost:{{ .ServicePort }} \
             --advertise-client-urls http://{{ .PrivateIP }}:{{ .ServicePort }} \
             --listen-peer-urls http://{{ .PrivateIP }}:{{ .ManagementPort }} \
-            --initial-advertise-peer-urls "http://{{ .PrivateIP }}:{{ .ManagementPort }},http://{{ .PublicIP }}:{{ .ManagementPort }}" \
+            --initial-advertise-peer-urls http://{{ .PrivateIP }}:{{ .ManagementPort }} \
             --discovery {{ .DiscoveryUrl }} \
 
 [Install]
@@ -45,4 +45,4 @@ sudo systemctl daemon-reload
 sudo systemctl enable etcd.service
 sudo systemctl start etcd.service
 
-while [[ "$(curl -s -o /dev/null -w ''%{http_code}'' http://{{ .PrivateIP }}:{{ .ServicePort }}/health)" != "200" ]]; do printf 'wait for etcd\n';sleep 5; done
+while [[ "$(curl -s -o /dev/null -w ''%{http_code}'' http://localhost:{{ .ServicePort }}/health)" != "200" ]]; do printf 'wait for etcd\n';sleep 5; done
