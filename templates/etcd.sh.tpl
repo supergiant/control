@@ -45,4 +45,4 @@ sudo systemctl daemon-reload
 sudo systemctl enable etcd.service
 sudo systemctl start etcd.service
 
-while [[ "$(curl -s -o /dev/null -w ''%{http_code}'' http://{{ .Host }}:{{ .ServicePort }}/health)" != "200" ]]; do printf 'wait for etcd\n';sleep 5; done
+while [[ "$(curl -s -o /dev/null -w ''%{http_code}'' http://{{ .PrivateIP }}:{{ .ServicePort }}/health)" != "200" ]]; do printf 'wait for etcd\n';sleep 5; done
