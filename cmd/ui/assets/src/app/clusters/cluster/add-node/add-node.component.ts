@@ -45,6 +45,8 @@ export class AddNodeComponent implements OnInit, OnDestroy {
   provider$: Observable<any>;
   provider: string;
   providerSubj: Subject<any>;
+  validMachinesConfig = false;
+  displayMachineConfigError = false;
 
   clusterOptions = CLUSTER_OPTIONS;
 
@@ -149,50 +151,71 @@ export class AddNodeComponent implements OnInit, OnDestroy {
     this.subscriptions.unsubscribe();
   }
 
-  machineSizeChange(e) {
-    console.log(e);
-    console.log(this.machines);
-  }
-
   addBlankMachine() {
     this.machines.push({
       machineType: null,
       role: 'Node',
       qty: 1
     })
+
+    this.checkAndSetValidMachineConfig();
   }
 
   deleteMachine(idx) {
     if (this.machines.length === 1) return;
 
     this.machines.splice(idx, 1);
+
+    this.checkAndSetValidMachineConfig();
   }
 
+  validMachine(machine) {
+    if (machine.machineType && machine.role && (typeof(machine.qty) == "number")) {
+      return true;
+    } else { return false; }
+  }
+
+  checkAndSetValidMachineConfig() {
+    this.validMachinesConfig = this.machines.every(this.validMachine);
+
+    if (this.validMachinesConfig) {
+      this.displayMachineConfigError = false;
+    } else { this.displayMachineConfigError = true; }
+  }
 
   finish() {
-    this.isProcessing = true;
 
-    const nodes = this.nodesService.compileProfiles(this.provider, this.machines, "Node");
-    // TODO  move to service
-    const url = `/v1/api/kubes/${this.clusterId}/nodes`;
+    if (this.validMachinesConfig) {
+      this.isProcessing = true;
+      this.displayMachineConfigError = false;
 
-    this.http.post(url, nodes).pipe(
-      catchError(error => {
-        this.notifications.display('error', 'Error', error.statusText);
-        return of(new ErrorEvent(error));
-      })
-    )
-      .subscribe(result => {
-        this.isProcessing = false;
+      const nodes = this.nodesService.compileProfiles(this.provider, this.machines, "Node");
+      // TODO  move to service
+      const url = `/v1/api/kubes/${this.clusterId}/nodes`;
 
-        if (result instanceof ErrorEvent) return;
+      this.http.post(url, nodes).pipe(
+        catchError(error => {
+          this.notifications.display('error', 'Error', error.statusText);
+          return of(new ErrorEvent(error));
+        })
+      )
+        .subscribe(result => {
+          this.isProcessing = false;
 
-        this.notifications.display(
-          'success',
-          'Success!',
-          'Your request is being processed'
-        );
-        this.router.navigate([`clusters/${this.clusterId}`]);
-      });
+          if (result instanceof ErrorEvent) return;
+
+          this.notifications.display(
+            'success',
+            'Success!',
+            'Your request is being processed'
+          );
+          this.router.navigate([`clusters/${this.clusterId}`]);
+        });
+
+    } else {
+      this.isProcessing = false;
+      this.displayMachineConfigError = true;
+    }
+
   }
 }

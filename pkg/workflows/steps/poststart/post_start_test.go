@@ -65,7 +65,7 @@ func TestPostStartMaster(t *testing.T) {
 		Port:        port,
 		Username:    username,
 		RBACEnabled: rbacEnabled,
-		Timeout:     120,
+		Timeout:     time.Second * 10,
 	}
 	cfg.Node = node.Node{
 		PrivateIp: "10.20.30.40",
@@ -112,7 +112,7 @@ func TestPostStartNode(t *testing.T) {
 	})
 	cfg.PostStartConfig = steps.PostStartConfig{
 		Host:    "127.0.0.1",
-		Timeout: 120,
+		Timeout: time.Second * 10,
 	}
 	cfg.Node = node.Node{
 		PrivateIp: "10.20.30.40",
@@ -150,7 +150,7 @@ func TestPostStartError(t *testing.T) {
 
 	cfg := &steps.Config{
 		PostStartConfig: steps.PostStartConfig{
-			Timeout: 1,
+			Timeout: time.Second * 10,
 		},
 		Runner: r,
 	}

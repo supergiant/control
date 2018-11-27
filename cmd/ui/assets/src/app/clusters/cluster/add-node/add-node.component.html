@@ -8,24 +8,23 @@
       <div class="machine" *ngFor="let m of machines; let idx = index">
         <mat-form-field class="type">
           <mat-select placeholder="Machine Type (size)" [(value)]="m.machineType"
-                      (selectionChange)="machineSizeChange($event)">
+                      (selectionChange)="checkAndSetValidMachineConfig()">
             <mat-option *ngFor="let type of (machineSizes$ | async)" [value]="type">{{ type }}</mat-option>
           </mat-select>
         </mat-form-field>
 
         <mat-form-field class="role">
-          <mat-select placeholder="Role" [(value)]="m.role">
+          <mat-select placeholder="Role" [(value)]="m.role" (selectionChange)="checkAndSetValidMachineConfig()">
             <mat-option value="Node">Node</mat-option>
           </mat-select>
         </mat-form-field>
 
         <mat-form-field class="quantity">
-          <input matInput type="number" min="1" placeholder="Q-ty" [(ngModel)]="m.qty">
+          <input matInput type="number" min="1" placeholder="Q-ty" [(ngModel)]="m.qty" (ngModelChange)="checkAndSetValidMachineConfig()">
         </mat-form-field>
         <div class="delete-machine"
              [hidden]="machines.length === 1"
              (click)="deleteMachine(idx)">
-          <i class="fa fa-trash" aria-hidden="true"></i>
         </div>
 
       </div>
@@ -53,15 +52,19 @@
       </section>
     </section>
   </mat-card-content>
+
+  <p *ngIf="displayMachineConfigError" class="warning">Current machine configuration is invalid. Please check that each machine has a type, role, and valid quantity.</p>
+
   <mat-card-actions>
     <div class="add-machines" (click)="addBlankMachine()">
-      <i class="fa fa-plus-circle"></i> Add more machines
+      <div class="add-machine-btn"></div>
+      <span>Add more machines</span>
     </div>
 
     <div>
-      <button mat-button color="primary" (click)="finish()">
+      <button mat-raised-button color="primary" class="submit-btn" (click)="finish()" [disabled]="!validMachinesConfig">
         <span [hidden]="isProcessing">Finish</span>
-        <mat-progress-spinner [diameter]="15"
+        <mat-progress-spinner [diameter]="24"
                               [mode]="'indeterminate'"
                               [color]="'warn'"
                               [hidden]="!isProcessing"></mat-progress-spinner>
