@@ -1,7 +1,7 @@
 #!/bin/bash
 
 echo "building release artifacts"
-PROJECTDIR=${TRAVIS_HOME}"/gopath/src/github.com/"${TRAVIS_REPO_SLUG}""
+PROJECTDIR=${TRAVIS_HOME}/gopath/src/github.com/${TRAVIS_REPO_SLUG}
 
 
 mkdir -p ./supergiant-build
