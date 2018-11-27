@@ -1077,6 +1077,7 @@ func (h *Handler) proxyService(w http.ResponseWriter, r *http.Request) {
 	}
 
 	_, err = io.Copy(w, resp.Body)
+	defer resp.Body.Close()
 
 	if err != nil {
 		message.SendUnknownError(w, err)
@@ -1129,6 +1130,7 @@ func (h *Handler) proxyServiceGet(w http.ResponseWriter, r *http.Request) {
 	}
 
 	_, err = io.Copy(w, resp.Body)
+	defer resp.Body.Close()
 
 	if err != nil {
 		message.SendUnknownError(w, err)
