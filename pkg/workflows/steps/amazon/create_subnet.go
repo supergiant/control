@@ -4,6 +4,7 @@ import (
 	"context"
 	"io"
 
+	"github.com/sirupsen/logrus"
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/service/ec2"
 	"github.com/pkg/errors"
@@ -69,6 +70,7 @@ func (s *CreateSubnetStep) Run(ctx context.Context, w io.Writer, cfg *steps.Conf
 		if len(out.Subnets) == 0 {
 			return errors.Wrap(ErrCreateSubnet, "no default subnet found")
 		}
+		logrus.Debugf("Take subnet %s", *out.Subnets[0].SubnetId)
 		cfg.AWSConfig.SubnetID = *out.Subnets[0].SubnetId
 	} else {
 		log.Infof("[%s] - using subnet %s", s.Name(), cfg.AWSConfig.SubnetID)

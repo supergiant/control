@@ -1,5 +1,16 @@
 @import "src/assets/css/variables";
 
+.sg-icon {
+  width: 16px;
+  height: 16px;
+  margin-right: -26px;
+}
+
+.repo-item {
+  display: flex;
+  align-items: center;
+}
+
 .header {
   display: flex;
   justify-content: space-between;
@@ -7,7 +18,7 @@
 }
 
 .header-wrapper {
-  padding: 0 52px;
+  padding: 0;
   width: 100%;
 }
 
@@ -16,10 +27,12 @@
 }
 
 .search-input {
-  background: transparent;
-  border: none;
-  outline: none;
-  color: #ffffff;
+  width: 140px;
+  opacity: .5;
+
+  &.mat-focused {
+    opacity: 1;
+  }
 }
 
 button {
@@ -35,13 +48,22 @@ button {
   justify-content: flex-end;
 
   a {
+
+    &:hover {
+      color: white;
+      text-decoration: none;
+    }
+
     display: flex;
     margin-left: 32px;
     cursor: pointer;
 
     &.active {
+      display: inline-block;
+      border-bottom: 2px solid $sg-pink;
+      display: inline-block;
+      border-bottom: 1px solid $sg-pink;
       color: $sg-pink;
-      text-decoration: 1px solid $sg-pink;
     }
 
     &.add-repo {
@@ -55,16 +77,16 @@ button {
   &::ng-deep {
 
     h2 {
-      font-size: 32px!important;
+      font-size: 32px !important;
     }
 
     h3 {
       letter-spacing: 2px;
-      font-size: 26px!important;
+      font-size: 26px !important;
     }
 
-    h2, h3{
-      font-weight: 200!important;
+    h2, h3 {
+      font-weight: 200 !important;
     }
     .app-card {
       max-width: 295px;
@@ -88,26 +110,24 @@ button {
 
         &[color='secondary'] {
           color: #fff;
-          border: 1px solid #fff!important;
-          background-color: transparent!important;
+          border: 1px solid #fff !important;
+          background-color: transparent !important;
         }
 
         &[color='primary'] {
           color: #fff;
           border: none;
-          background-color: #D10088!important;
+          background-color: #D10088 !important;
         }
       }
     }
 
-
-
     .mat-card-actions {
-      margin: 0!important;
+      margin: 0 !important;
     }
 
     .mat-card-header-text {
-      margin: 0!important;
+      margin: 0 !important;
     }
 
     .mat-card {

@@ -28,6 +28,7 @@ import { ConfigureComponent }               from './app-details/confure/configur
 import { MarkdownModule }                   from "ngx-markdown";
 import { AceEditorModule }                  from "ng2-ace-editor";
 import { RemoveRepoDialogComponent }        from './apps-list/remove-repo-dialog/remove-repo-dialog.component';
+import { SortReposPipe } from './sort-repos.pipe';
 
 @NgModule({
   imports: [
@@ -59,6 +60,7 @@ import { RemoveRepoDialogComponent }        from './apps-list/remove-repo-dialog
     DeployComponent,
     ConfigureComponent,
     RemoveRepoDialogComponent,
+    SortReposPipe,
   ],
   entryComponents: [
     DeployComponent,

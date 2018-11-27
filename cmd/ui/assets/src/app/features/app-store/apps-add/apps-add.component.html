@@ -25,11 +25,12 @@
           (click)="addRepository()">
 
     <span [hidden]="isProcessing">CONFIRM</span>
-
+    <!-- TODO: make spinner unified component -->
     <mat-progress-spinner [diameter]="15"
                           [mode]="'indeterminate'"
-                          [color]="warn"
+                          [color]="'warn'"
                           [hidden]="!isProcessing"></mat-progress-spinner>
+
   </button>
 
 </mat-dialog-actions>

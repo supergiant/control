@@ -9,6 +9,7 @@ import { State }                                       from "../../../reducers";
 import { LoadCharts }                                  from "../../apps/actions";
 import { ChartList, selectCharts, selectFilterApps }   from "../../apps/apps.reducer";
 import { RemoveRepoDialogComponent }                   from "app/features/app-store/apps-list/remove-repo-dialog/remove-repo-dialog.component";
+import { AppsAddComponent }                            from "app/features/app-store/apps-add/apps-add.component";
 
 @Component({
   selector: 'apps-list',
@@ -119,6 +120,10 @@ export class AppsListComponent implements OnInit {
         //  go get your coffee
         //  and move this to *.effects.ts file
       ));
+  }
+
+  addRepo() {
+    this.dialog.open(AppsAddComponent)
   }
 
 }

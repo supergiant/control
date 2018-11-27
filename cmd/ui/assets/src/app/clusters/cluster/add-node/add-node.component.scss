@@ -2,6 +2,11 @@
 
 :host {
 
+  .mat-card {
+    width: 1270px;
+    margin: 0 auto;
+  }
+
   i {
     color: $sg-pink;
   }
@@ -14,6 +19,12 @@
     justify-content: space-between;
   }
 
+  .warning {
+    color: #f44336;
+    font-weight: 300;
+    margin: 4px 0 0 0;
+  }
+
 
   .column {
     display: flex;
@@ -24,8 +35,11 @@
     }
 
     .delete-machine {
-      padding-top: 25px;
+      background-image: url(/assets/img/delete-pink.svg);
       cursor: pointer;
+      margin: auto;
+      height: 22px;
+      width: 22px;
     }
 
     .machine {
@@ -56,20 +70,26 @@
   }
 
   .add-machines {
+    align-items: center;
     cursor: pointer;
+    display: flex;
+    justify-content: space-between;
+    width: 178px;
+
+    .add-machine-btn {
+      background-image: url(/assets/img/plus-pink.svg);
+      height: 22px;
+      width: 22px;
+    }
   }
 
-  button {
-    outline: none;
+  .submit-btn {
+    min-width: 98px;
+    min-height: 37px;
+    max-height: 37px;
 
-    &[mat-button] {
-      padding: 8px 32px;
-
-      &[color='primary'] {
-        color: #fff;
-        border: none;
-        background-color: #D10088 !important;
-      }
+    .mat-progress-spinner {
+      margin: 0px auto;
     }
   }
 }
