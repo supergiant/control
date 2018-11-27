@@ -34,7 +34,10 @@ type accountGetter interface {
 }
 
 type nodeProvisioner interface {
-	ProvisionNodes(context.Context, []profile.NodeProfile, *model.Kube, *steps.Config) ([]string, error)
+	ProvisionNodes(context.Context, []profile.NodeProfile, *model.Kube,
+		*steps.Config) ([]string, error)
+	// Method that cancels newly added nodes to working cluster
+	Cancel(string) error
 }
 
 type K8SServices struct {
@@ -304,6 +307,10 @@ func (h *Handler) deleteKube(w http.ResponseWriter, r *http.Request) {
 	vars := mux.Vars(r)
 
 	kubeID := vars["kubeID"]
+	if err := h.nodeProvisioner.Cancel(kubeID); err != nil {
+		logrus.Debugf("cancel kube tasks error %v", err)
+	}
+
 	k, err := h.svc.Get(r.Context(), kubeID)
 	if err != nil {
 		if sgerrors.IsNotFound(err) {

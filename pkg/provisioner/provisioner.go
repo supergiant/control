@@ -5,8 +5,8 @@ import (
 	"fmt"
 	"io"
 	"os"
-	"time"
 	"sync"
+	"time"
 
 	"github.com/pkg/errors"
 	"github.com/sirupsen/logrus"
@@ -40,6 +40,10 @@ type TaskProvisioner struct {
 	// to many instances at once, probably we may split rate limiter per user
 	// in future to avoid interference between them.
 	rateLimiter *RateLimiter
+
+	// Cancel map - map of KubeID -> cancel function
+	// that cancels
+	cancelMap map[string]func()
 }
 
 func NewProvisioner(repository storage.Interface, kubeService KubeService,
@@ -63,12 +67,13 @@ func NewProvisioner(repository storage.Interface, kubeService KubeService,
 		},
 		getWriter:   util.GetWriter,
 		rateLimiter: NewRateLimiter(spawnInterval),
+		cancelMap:   make(map[string]func()),
 	}
 }
 
 // ProvisionCluster runs provisionCluster process among nodes
 // that have been provided for provisionCluster
-func (tp *TaskProvisioner) ProvisionCluster(ctx context.Context,
+func (tp *TaskProvisioner) ProvisionCluster(parentContext context.Context,
 	profile *profile.Profile, config *steps.Config) (map[string][]*workflows.Task, error) {
 	masterTasks, nodeTasks, clusterTask := tp.prepare(config.Provider, len(profile.MasterProfiles),
 		len(profile.NodesProfiles))
@@ -79,6 +84,11 @@ func (tp *TaskProvisioner) ProvisionCluster(ctx context.Context,
 	} else {
 		return nil, errors.New(fmt.Sprintf("Wrong value of cluster task %v", clusterTask))
 	}
+
+	// Save cancel that cancel cluster provisioning to cancelMap
+	ctx, cancel := context.WithCancel(parentContext)
+	tp.cancelMap[config.ClusterID] = cancel
+
 	// TODO(stgleb): Make node names from task id before provisioning starts
 	masters, nodes := nodesFromProfile(config.ClusterName,
 		masterTasks, nodeTasks, profile)
@@ -149,7 +159,7 @@ func (tp *TaskProvisioner) ProvisionCluster(ctx context.Context,
 	}, nil
 }
 
-func (tp *TaskProvisioner) ProvisionNodes(ctx context.Context, nodeProfiles []profile.NodeProfile, kube *model.Kube, config *steps.Config) ([]string, error) {
+func (tp *TaskProvisioner) ProvisionNodes(parentContext context.Context, nodeProfiles []profile.NodeProfile, kube *model.Kube, config *steps.Config) ([]string, error) {
 	if len(kube.Masters) != 0 {
 		for key := range kube.Masters {
 			config.AddMaster(kube.Masters[key])
@@ -157,6 +167,10 @@ func (tp *TaskProvisioner) ProvisionNodes(ctx context.Context, nodeProfiles []pr
 	} else {
 		return nil, errors.Wrap(sgerrors.ErrNotFound, "master node")
 	}
+
+	// Save cancel function that cancels node provisioning to cancelMap
+	ctx, cancel := context.WithCancel(parentContext)
+	tp.cancelMap[config.ClusterID] = cancel
 
 	if err := bootstrapKeys(config); err != nil {
 		return nil, errors.Wrap(err, "bootstrap keys")
@@ -219,6 +233,16 @@ func (tp *TaskProvisioner) ProvisionNodes(ctx context.Context, nodeProfiles []pr
 	}
 
 	return tasks, nil
+}
+
+func (tp *TaskProvisioner) Cancel(clusterID string) error {
+	if cancelFunc := tp.cancelMap[clusterID]; cancelFunc != nil {
+		cancelFunc()
+	} else {
+		return sgerrors.ErrNotFound
+	}
+
+	return nil
 }
 
 // prepare creates all tasks for provisioning according to cloud provider
@@ -424,15 +448,15 @@ func (tp *TaskProvisioner) buildInitialCluster(ctx context.Context,
 		ID:           config.ClusterID,
 		State:        model.StateProvisioning,
 		Name:         config.ClusterName,
-		Provider: 	  profile.Provider,
+		Provider:     profile.Provider,
 		AccountName:  config.CloudAccountName,
 		RBACEnabled:  profile.RBACEnabled,
 		Region:       profile.Region,
 		Zone:         profile.Zone,
 		SshUser:      config.SshConfig.User,
 		SshPublicKey: []byte(config.SshConfig.PublicKey),
-		User: profile.User,
-		Password: profile.Password,
+		User:         profile.User,
+		Password:     profile.Password,
 
 		Auth: model.Auth{
 			Username:  config.CertificatesConfig.Username,
@@ -565,7 +589,7 @@ func (tp *TaskProvisioner) monitorClusterState(ctx context.Context, cfg *steps.C
 			k, err := tp.kubeService.Get(ctx, cfg.ClusterID)
 
 			if err != nil {
-				logrus.Errorf("update kube state caused %v", err)
+				logrus.Errorf("cluster monitor: update kube state caused %v", err)
 				continue
 			}
 
@@ -578,14 +602,14 @@ func (tp *TaskProvisioner) monitorClusterState(ctx context.Context, cfg *steps.C
 			err = tp.kubeService.Create(ctx, k)
 
 			if err != nil {
-				logrus.Errorf("update kube state caused %v", err)
+				logrus.Errorf("cluster monitor: update kube state caused %v", err)
 				continue
 			}
 		case state := <-cfg.KubeStateChan():
 			k, err := tp.kubeService.Get(ctx, cfg.ClusterID)
 
 			if err != nil {
-				logrus.Errorf("update kube state caused %v", err)
+				logrus.Errorf("cluster monitor: update kube state caused %v", err)
 				continue
 			}
 
@@ -593,7 +617,7 @@ func (tp *TaskProvisioner) monitorClusterState(ctx context.Context, cfg *steps.C
 			err = tp.kubeService.Create(ctx, k)
 
 			if err != nil {
-				logrus.Errorf("update kube state caused %v", err)
+				logrus.Errorf("cluster monitor: update kube state caused %v", err)
 				continue
 			}
 		case <-ctx.Done():

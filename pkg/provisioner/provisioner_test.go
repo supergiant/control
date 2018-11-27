@@ -14,6 +14,7 @@ import (
 	"github.com/supergiant/control/pkg/model"
 	"github.com/supergiant/control/pkg/node"
 	"github.com/supergiant/control/pkg/profile"
+	"github.com/supergiant/control/pkg/sgerrors"
 	"github.com/supergiant/control/pkg/testutils"
 	"github.com/supergiant/control/pkg/workflows"
 	"github.com/supergiant/control/pkg/workflows/steps"
@@ -43,9 +44,35 @@ func (m *mockKubeService) Get(ctx context.Context, kname string) (*model.Kube, e
 	return m.data[kname], m.getError
 }
 
+func TestNewProvisioner(t *testing.T) {
+	storage := &testutils.MockStorage{}
+	service := &mockKubeService{}
+	interval := time.Second * 1
+
+	p := NewProvisioner(storage, service, interval)
+
+	if p.repository != storage {
+		t.Errorf("Wrong repository expected %v actual %v",
+			storage, p.repository)
+	}
+
+	if p.kubeService != service {
+		t.Errorf("Wrong kube service value expected %v actual %v",
+			service, p.kubeService)
+	}
+
+	if p.cancelMap == nil {
+		t.Errorf("Cancel map must not be nil")
+	}
+
+	if p.provisionMap == nil {
+		t.Errorf("Provision map must not be nil")
+	}
+}
+
 func TestProvisionCluster(t *testing.T) {
 	repository := &testutils.MockStorage{}
-	repository.On("Put", context.Background(), mock.Anything, mock.Anything, mock.Anything).Return(nil)
+	repository.On("Put", mock.Anything, mock.Anything, mock.Anything, mock.Anything).Return(nil)
 
 	bc := &bufferCloser{
 		bytes.Buffer{},
@@ -67,6 +94,7 @@ func TestProvisionCluster(t *testing.T) {
 			},
 		},
 		NewRateLimiter(time.Nanosecond * 1),
+		make(map[string]func()),
 	}
 
 	workflows.Init()
@@ -110,11 +138,16 @@ func TestProvisionCluster(t *testing.T) {
 				len(p.NodesProfiles),
 			len(taskMap))
 	}
+
+	if len(provisioner.cancelMap) != 1 {
+		t.Errorf("Unexpected size of cancel map expected %d actual %d",
+			1, len(provisioner.cancelMap))
+	}
 }
 
 func TestProvisionNodes(t *testing.T) {
 	repository := &testutils.MockStorage{}
-	repository.On("Put", context.Background(),
+	repository.On("Put", mock.Anything,
 		mock.Anything, mock.Anything, mock.Anything).
 		Return(nil)
 	repository.On("Get", mock.Anything, mock.Anything,
@@ -138,6 +171,7 @@ func TestProvisionNodes(t *testing.T) {
 				ProvisionNode:   "test_node"},
 		},
 		NewRateLimiter(time.Nanosecond * 1),
+		make(map[string]func()),
 	}
 
 	workflows.Init()
@@ -188,6 +222,12 @@ func TestProvisionNodes(t *testing.T) {
 	if err != nil {
 		t.Errorf("Unexpected error %v while provisionCluster", err)
 	}
+
+	if len(provisioner.cancelMap) != 1 {
+		t.Errorf("Unexpected size of cancel map expected %d actual %d",
+			1, len(provisioner.cancelMap))
+	}
+
 }
 
 func TestMonitorCluster(t *testing.T) {
@@ -319,5 +359,49 @@ func TestMonitorCluster(t *testing.T) {
 		if testCase.kube.State != testCase.expectedClusterState {
 			t.Errorf("Wrong cluster state in the end of provisioning")
 		}
+	}
+}
+
+func TestTaskProvisioner_Cancel(t *testing.T) {
+	clusterID := "1234"
+	called := false
+	f := func() {
+		called = true
+	}
+
+	tp := &TaskProvisioner{
+		cancelMap: map[string]func(){
+			clusterID: f,
+		},
+	}
+
+	tp.Cancel(clusterID)
+
+	if !called {
+		t.Errorf("Cancel function was not called")
+	}
+}
+
+func TestTaskProvisioner_CancelNotFound(t *testing.T) {
+	clusterID := "1234"
+	called := false
+	f := func() {
+		called = true
+	}
+
+	tp := &TaskProvisioner{
+		cancelMap: map[string]func(){
+			clusterID: f,
+		},
+	}
+
+	err := tp.Cancel("not_found")
+
+	if called {
+		t.Errorf("Cancel function must not been called")
+	}
+
+	if err != sgerrors.ErrNotFound {
+		t.Errorf("Unexpected error value %v", err)
 	}
 }
