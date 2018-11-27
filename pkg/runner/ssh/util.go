@@ -4,11 +4,11 @@ import (
 	"net"
 	"time"
 
+	"context"
+	"fmt"
 	"github.com/pkg/errors"
 	"github.com/sirupsen/logrus"
 	"golang.org/x/crypto/ssh"
-	"context"
-	"fmt"
 )
 
 var (
@@ -56,7 +56,7 @@ func connectionWithBackOff(ctx context.Context, host, port string, config *ssh.C
 
 	for counter < attemptCount {
 		select {
-		case <- ctx.Done():
+		case <-ctx.Done():
 			return nil, ctx.Err()
 		default:
 			c, err = ssh.Dial("tcp", fmt.Sprintf("%s:%s", host, port), config)
@@ -68,11 +68,11 @@ func connectionWithBackOff(ctx context.Context, host, port string, config *ssh.C
 				time.Sleep(timeout)
 				timeout = timeout * 2
 			} else {
-				break
+				return c, err
 			}
 			counter += 1
 		}
 	}
 
-	return c, err
+	return nil, err
 }
