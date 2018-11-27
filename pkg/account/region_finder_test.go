@@ -9,8 +9,8 @@ import (
 	"github.com/pkg/errors"
 	"github.com/stretchr/testify/mock"
 
-	"github.com/aws/aws-sdk-go/service/ec2"
 	"github.com/aws/aws-sdk-go/aws"
+	"github.com/aws/aws-sdk-go/service/ec2"
 
 	compute "google.golang.org/api/compute/v1"
 
@@ -440,17 +440,17 @@ func TestGCEResourceFinder_GetTypes(t *testing.T) {
 
 func TestAWSFinder_GetRegions(t *testing.T) {
 	testCases := []struct {
-		err       error
-		resp     *ec2.DescribeRegionsOutput
+		err  error
+		resp *ec2.DescribeRegionsOutput
 	}{
 		{
-			err: sgerrors.ErrNotFound,
+			err:  sgerrors.ErrNotFound,
 			resp: nil,
 		},
 		{
 			err: nil,
 			resp: &ec2.DescribeRegionsOutput{
-				Regions:[]*ec2.Region{
+				Regions: []*ec2.Region{
 					{
 						RegionName: aws.String("ap-northeast-1"),
 					},
@@ -466,7 +466,7 @@ func TestAWSFinder_GetRegions(t *testing.T) {
 	}
 
 	for _, testCase := range testCases {
-		awsFinder :=  &AWSFinder{
+		awsFinder := &AWSFinder{
 			getRegions: func(ctx context.Context, client *ec2.EC2,
 				input *ec2.DescribeRegionsInput) (*ec2.DescribeRegionsOutput, error) {
 				return testCase.resp, testCase.err
@@ -488,17 +488,17 @@ func TestAWSFinder_GetRegions(t *testing.T) {
 
 func TestAWSFinder_GetZones(t *testing.T) {
 	testCases := []struct {
-		err       error
-		resp     *ec2.DescribeAvailabilityZonesOutput
+		err  error
+		resp *ec2.DescribeAvailabilityZonesOutput
 	}{
 		{
-			err: sgerrors.ErrNotFound,
+			err:  sgerrors.ErrNotFound,
 			resp: nil,
 		},
 		{
 			err: nil,
 			resp: &ec2.DescribeAvailabilityZonesOutput{
-				AvailabilityZones:[]*ec2.AvailabilityZone{
+				AvailabilityZones: []*ec2.AvailabilityZone{
 					{
 						ZoneName: aws.String("ap-northeast1-b"),
 					},
@@ -514,7 +514,7 @@ func TestAWSFinder_GetZones(t *testing.T) {
 	}
 
 	for _, testCase := range testCases {
-		awsFinder :=  &AWSFinder{
+		awsFinder := &AWSFinder{
 			getZones: func(ctx context.Context, client *ec2.EC2,
 				input *ec2.DescribeAvailabilityZonesInput) (*ec2.DescribeAvailabilityZonesOutput, error) {
 				return testCase.resp, testCase.err
@@ -536,17 +536,17 @@ func TestAWSFinder_GetZones(t *testing.T) {
 
 func TestAWSFinder_GetTypes(t *testing.T) {
 	testCases := []struct {
-		err       error
-		resp     *ec2.DescribeReservedInstancesOfferingsOutput
+		err  error
+		resp *ec2.DescribeReservedInstancesOfferingsOutput
 	}{
 		{
-			err: sgerrors.ErrNotFound,
+			err:  sgerrors.ErrNotFound,
 			resp: nil,
 		},
 		{
 			err: nil,
 			resp: &ec2.DescribeReservedInstancesOfferingsOutput{
-				ReservedInstancesOfferings:[]*ec2.ReservedInstancesOffering{
+				ReservedInstancesOfferings: []*ec2.ReservedInstancesOffering{
 					{
 						InstanceType: aws.String("t3.medium"),
 					},
@@ -562,10 +562,10 @@ func TestAWSFinder_GetTypes(t *testing.T) {
 	}
 
 	for _, testCase := range testCases {
-		awsFinder :=  &AWSFinder{
+		awsFinder := &AWSFinder{
 			getTypes: func(ctx context.Context, client *ec2.EC2,
 				input *ec2.DescribeReservedInstancesOfferingsInput) (*ec2.DescribeReservedInstancesOfferingsOutput,
-					error) {
+				error) {
 				return testCase.resp, testCase.err
 			},
 		}
