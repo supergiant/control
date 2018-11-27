@@ -1,11 +1,11 @@
 package ssh
 
 import (
+	"context"
+	"fmt"
 	"net"
 	"time"
 
-	"context"
-	"fmt"
 	"github.com/pkg/errors"
 	"github.com/sirupsen/logrus"
 	"golang.org/x/crypto/ssh"
@@ -62,7 +62,7 @@ func connectionWithBackOff(ctx context.Context, host, port string, config *ssh.C
 			c, err = ssh.Dial("tcp", fmt.Sprintf("%s:%s", host, port), config)
 
 			if err != nil {
-				logrus.Warnf("connect to %s failed, try again in %v seconds, reason: %v",
+				logrus.Debugf("connect to %s failed, try again in %v seconds, reason: %v",
 					fmt.Sprintf("%s:%s", host, port),
 					timeout, err)
 				time.Sleep(timeout)
