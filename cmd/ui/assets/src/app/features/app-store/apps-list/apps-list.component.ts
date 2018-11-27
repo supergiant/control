@@ -78,7 +78,7 @@ export class AppsListComponent implements OnInit {
       ).subscribe((result) => {
         // TODO: progress spinner
         // TODO: handle error
-        this.router.navigate(['apps']);
+        this.router.navigate(['../'], { relativeTo: this.route });
         window.location.reload();
       }
     );
