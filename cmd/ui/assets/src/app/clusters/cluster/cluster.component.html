@@ -250,7 +250,7 @@
                            *matHeaderCellDef>
           </mat-header-cell>
           <mat-cell class="small-cell" *matCellDef="let machine">
-            <div class="delete-icon" (click)="removeNode(machine.name, $event)"></div>
+            <div *ngIf="machine?.role != 'master'" class="delete-icon" (click)="removeNode(machine.name, $event)"></div>
           </mat-cell>
         </ng-container>
 
