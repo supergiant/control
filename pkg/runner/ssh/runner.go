@@ -62,7 +62,8 @@ func (r *Runner) Run(cmd *runner.Command) (err error) {
 		return nil
 	}
 
-	c, err := connectionWithBackOff(r.host, r.port, r.sshConf, time.Second*10, 5)
+	c, err := connectionWithBackOff(cmd.Ctx, r.host, r.port, r.sshConf,
+		time.Second*10, 5)
 
 	if err != nil {
 		return errors.Wrap(err, "ssh: establishing connection")
