@@ -46,6 +46,7 @@ import (
 	"github.com/supergiant/control/pkg/workflows/steps/ssh"
 	"github.com/supergiant/control/pkg/workflows/steps/tiller"
 	"k8s.io/helm/pkg/repo"
+	"net/url"
 )
 
 type Server struct {
@@ -315,6 +316,17 @@ func serveUI(cfg *Config, router *mux.Router) error {
 		return errors.Wrap(err, "no ui directory found")
 	}
 
-	router.PathPrefix("/").Handler(http.StripPrefix("/", http.FileServer(http.Dir(cfg.UiDir))))
+	router.PathPrefix("/").Handler(trimPrefix(http.FileServer(http.Dir(cfg.UiDir))))
 	return nil
+}
+
+func trimPrefix(h http.Handler) http.Handler {
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		r2 := new(http.Request)
+		*r2 = *r
+		r2.URL = new(url.URL)
+		*r2.URL = *r.URL
+		r2.URL.Path = ""
+		h.ServeHTTP(w, r2)
+	})
 }
