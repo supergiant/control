@@ -15,7 +15,6 @@ import (
 	"github.com/supergiant/control/pkg/util"
 	"github.com/supergiant/control/pkg/workflows/statuses"
 	"github.com/supergiant/control/pkg/workflows/steps"
-	"github.com/supergiant/control/pkg/workflows/steps/cni"
 	"github.com/supergiant/control/pkg/workflows/steps/etcd"
 )
 
@@ -199,6 +198,7 @@ func (w *Task) startFrom(ctx context.Context, id string, out io.Writer, i int) e
 		if w.Config.IsMaster {
 			if step.Name() == etcd.StepName {
 				//wait until all masters are ready for etcd bootstrapping
+				w.Config.ReadyForBootstrapLatch.Done()
 				w.Config.ReadyForBootstrapLatch.Wait()
 			}
 		}
@@ -221,13 +221,6 @@ func (w *Task) startFrom(ctx context.Context, id string, out io.Writer, i int) e
 
 			return err
 		} else {
-			if w.Config.IsMaster {
-				//TODO move to step
-				if step.Name() == cni.StepName {
-					//mark master as ready
-					w.Config.ReadyForBootstrapLatch.Done()
-				}
-			}
 			wsLog.Infof("[%s] - success", step.Name())
 			// Mark step as success
 			w.StepStatuses[index].Status = statuses.Success
