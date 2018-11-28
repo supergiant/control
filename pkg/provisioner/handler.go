@@ -13,6 +13,7 @@ import (
 	"github.com/supergiant/control/pkg/account"
 	"github.com/supergiant/control/pkg/message"
 	"github.com/supergiant/control/pkg/model"
+	"github.com/supergiant/control/pkg/pki"
 	"github.com/supergiant/control/pkg/profile"
 	"github.com/supergiant/control/pkg/sgerrors"
 	"github.com/supergiant/control/pkg/util"
@@ -94,9 +95,17 @@ func (h *Handler) Provision(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	// TODO: use staticAuth instead of user/password
 	if req.Profile.User == "" || req.Profile.Password == "" {
 		req.Profile.User = "root"
 		req.Profile.Password = "1234"
+
+		req.Profile.StaticAuth.BasicAuth = append(req.Profile.StaticAuth.BasicAuth, profile.BasicAuthUser{
+			Password: "1234",
+			Name:     "root",
+			ID:       "1234",
+			Groups:   []string{pki.MastersGroup},
+		})
 	}
 
 	logrus.Infof("Got discoveryUrl %s", discoveryUrl)
