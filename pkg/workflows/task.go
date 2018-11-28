@@ -195,6 +195,7 @@ func (w *Task) startFrom(ctx context.Context, id string, out io.Writer, i int) e
 			logrus.Errorf("sync error %v", err)
 		}
 
+		//TODO move to step
 		if w.Config.IsMaster {
 			if step.Name() == etcd.StepName {
 				//wait until all masters are ready for etcd bootstrapping
@@ -221,6 +222,7 @@ func (w *Task) startFrom(ctx context.Context, id string, out io.Writer, i int) e
 			return err
 		} else {
 			if w.Config.IsMaster {
+				//TODO move to step
 				if step.Name() == cni.StepName {
 					//mark master as ready
 					w.Config.ReadyForBootstrapLatch.Done()
