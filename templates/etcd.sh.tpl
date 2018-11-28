@@ -31,9 +31,9 @@ TimeoutStartSec={{ .ETCDConfig.StartTimeout }}s
 
 ExecStart=/usr/bin/etcd --name {{ .ETCDConfig.Name }} \
             --data-dir {{ .ETCDConfig.DataDir }} \
-            --listen-client-urls http://0.0.0.0:{{ .ETCDConfig.ServicePort }} \
+            --listen-client-urls http://{{.ETCDConfig.Host}}:{{ .ETCDConfig.ServicePort }},http://127.0.0.1:{{ .ETCDConfig.ServicePort }} \
             --advertise-client-urls http://{{ .NodePrivateIP }}:{{ .ETCDConfig.ServicePort }} \
-            --listen-peer-urls http://0.0.0.0:{{ .ETCDConfig.ManagementPort }} \
+            --listen-peer-urls http://{{.ETCDConfig.Host}}:{{ .ETCDConfig.ManagementPort }} \
             --initial-cluster-token {{ .ETCDConfig.ClusterToken }} \
             --initial-cluster {{ .InitialClusterIPs }} \
             --initial-cluster-state new \
