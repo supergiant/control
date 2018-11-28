@@ -77,9 +77,21 @@ func TestNewServer(t *testing.T) {
 }
 
 func TestTrimPrefix(t *testing.T) {
-	testCases := []string{"/hello", "/world"}
+	testCases := []struct {
+		input  string
+		output string
+	}{
+		{
+			input:  "/hello",
+			output: "/",
+		},
+		{
+			input:  "/static/vendor.js",
+			output: "static/vendor.js",
+		},
+	}
 
-	for _, testURL := range testCases {
+	for _, testCase := range testCases {
 		called := false
 		actualURL := ""
 
@@ -91,14 +103,14 @@ func TestTrimPrefix(t *testing.T) {
 		h2 := trimPrefix(h)
 
 		rec := httptest.NewRecorder()
-		req, _ := http.NewRequest(http.MethodGet, testURL, nil)
+		req, _ := http.NewRequest(http.MethodGet, testCase.input, nil)
 		h2.ServeHTTP(rec, req)
 
 		if !called {
 			t.Error("Handler has not been called")
 		}
 
-		if actualURL != "" {
+		if actualURL != testCase.output {
 			t.Errorf("url must be empty after trimming prefix actual %s", actualURL)
 		}
 	}
