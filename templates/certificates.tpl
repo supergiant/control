@@ -51,15 +51,13 @@ sudo chmod 600 /etc/kubernetes/ssl/*-key.pem
 sudo chown root:root /etc/kubernetes/ssl/*-key.pem
 
 sudo bash -c "cat > /etc/kubernetes/ssl/basic_auth.csv <<EOF
-{{ .Password }},{{ .Username }},admin
+{{- range .StaticAuth.BasicAuth }}
+{{ .Password }},{{ .Name }},{{ .ID }},{{ stringsJoin .Groups "," }}
+{{ end -}}
 EOF"
 
 sudo bash -c "cat > /etc/kubernetes/ssl/known_tokens.csv <<EOF
-{{ .Password }},kubelet,kubelet
-{{ .Password }},kube_proxy,kube_proxy
-{{ .Password }},system:scheduler,system:scheduler
-{{ .Password }},system:controller_manager,system:controller_manager
-{{ .Password }},system:logging,system:logging
-{{ .Password }},system:monitoring,system:monitoring
-{{ .Password }},system:dns,system:dns
+{{- range .StaticAuth.Tokens }}
+{{ .Token }},{{ .Name }},{{ .ID }},{{ stringsJoin .Groups "," }}
+{{ end -}}
 EOF"

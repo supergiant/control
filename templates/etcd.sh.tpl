@@ -1,6 +1,6 @@
-sudo mkdir -p {{ .DataDir }}
+sudo mkdir -p {{ .ETCDConfig.DataDir }}
 
-ETCD_VER=v{{ .Version}}
+ETCD_VER=v{{ .ETCDConfig.Version}}
 
 # choose either URL
 GOOGLE_URL=https://storage.googleapis.com/etcd
@@ -25,18 +25,19 @@ Requires=network-online.target
 
 [Service]
 Restart=always
-RestartSec={{ .RestartTimeout }}s
+RestartSec={{ .ETCDConfig.RestartTimeout }}s
 LimitNOFILE=40000
-TimeoutStartSec={{ .StartTimeout }}s
+TimeoutStartSec={{ .ETCDConfig.StartTimeout }}s
 
-ExecStart=/usr/bin/etcd --name {{ .Name }} \
-            --data-dir {{ .DataDir }} \
-            --listen-client-urls http://{{ .Host }}:{{ .ServicePort }} \
-            --advertise-client-urls http://{{ .AdvertiseHost }}:{{ .ServicePort }} \
-            --listen-peer-urls http://{{ .Host }}:{{ .ManagementPort }} \
-            --initial-advertise-peer-urls http://{{ .AdvertiseHost }}:{{ .ManagementPort }} \
-            --discovery {{ .DiscoveryUrl }} \
-
+ExecStart=/usr/bin/etcd --name {{ .ETCDConfig.Name }} \
+            --data-dir {{ .ETCDConfig.DataDir }} \
+            --listen-client-urls http://{{.ETCDConfig.Host}}:{{ .ETCDConfig.ServicePort }},http://127.0.0.1:{{ .ETCDConfig.ServicePort }} \
+            --advertise-client-urls http://{{ .NodePrivateIP }}:{{ .ETCDConfig.ServicePort }} \
+            --listen-peer-urls http://{{.ETCDConfig.Host}}:{{ .ETCDConfig.ManagementPort }} \
+            --initial-cluster-token {{ .ETCDConfig.ClusterToken }} \
+            --initial-cluster {{ .InitialClusterIPs }} \
+            --initial-cluster-state new \
+            --initial-advertise-peer-urls http://{{ .NodePrivateIP }}:{{ .ETCDConfig.ManagementPort }}
 [Install]
 WantedBy=multi-user.target
 EOF"
@@ -44,4 +45,4 @@ sudo systemctl daemon-reload
 sudo systemctl enable etcd.service
 sudo systemctl start etcd.service
 
-while [[ "$(curl -s -o /dev/null -w ''%{http_code}'' http://{{ .Host }}:{{ .ServicePort }}/health)" != "200" ]]; do printf 'wait for etcd\n';sleep 5; done
+while [[ "$(curl -s -o /dev/null -w ''%{http_code}'' http://{{ .NodePrivateIP }}:{{ .ETCDConfig.ServicePort }}/health)" != "200" ]]; do printf 'wait for etcd\n';sleep 5; done

@@ -129,8 +129,16 @@ func (s *CreateSecurityGroupsStep) Run(ctx context.Context, w io.Writer, cfg *st
 	if err := s.allowAllTraffic(ctx, EC2, cfg.AWSConfig.MastersSecurityGroupID, *nodesGroup.GroupName); err != nil {
 		return err
 	}
-
+	// nodes to master
 	if err := s.allowAllTraffic(ctx, EC2, cfg.AWSConfig.NodesSecurityGroupID, *masterGroup.GroupName); err != nil {
+		return err
+	}
+	// masters to masters
+	if err := s.allowAllTraffic(ctx, EC2, cfg.AWSConfig.MastersSecurityGroupID, *masterGroup.GroupName); err != nil {
+		return err
+	}
+	// nodes to nodes
+	if err := s.allowAllTraffic(ctx, EC2, cfg.AWSConfig.NodesSecurityGroupID, *nodesGroup.GroupName); err != nil {
 		return err
 	}
 

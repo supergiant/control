@@ -879,7 +879,7 @@ func TestDeleteNodeFromKube(t *testing.T) {
 			http.StatusNotFound,
 		},
 		{
-			"account unkown error",
+			"account unknown error",
 			"test",
 			"test",
 			&model.Kube{

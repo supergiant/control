@@ -15,7 +15,7 @@ import (
 const StepName = "certificates"
 
 type Step struct {
-	script *template.Template
+	template *template.Template
 }
 
 func (s *Step) Rollback(context.Context, io.Writer, *steps.Config) error {
@@ -24,7 +24,6 @@ func (s *Step) Rollback(context.Context, io.Writer, *steps.Config) error {
 
 func Init() {
 	tpl, err := tm.GetTemplate(StepName)
-
 	if err != nil {
 		panic(fmt.Sprintf("template %s not found", StepName))
 	}
@@ -32,20 +31,19 @@ func Init() {
 	steps.RegisterStep(StepName, New(tpl))
 }
 
-func New(script *template.Template) *Step {
-	t := &Step{
-		script: script,
+func New(tpl *template.Template) *Step {
+	return &Step{
+		template: tpl,
 	}
-
-	return t
 }
 
 func (s *Step) Run(ctx context.Context, out io.Writer, config *steps.Config) error {
+	// TODO: why does these is set here, not on the building config step?
 	config.CertificatesConfig.PrivateIP = config.Node.PrivateIp
 	config.CertificatesConfig.PublicIP = config.Node.PublicIp
 	config.CertificatesConfig.IsMaster = config.IsMaster
 
-	err := steps.RunTemplate(ctx, s.script,
+	err := steps.RunTemplate(ctx, s.template,
 		config.Runner, out, config.CertificatesConfig)
 
 	if err != nil {

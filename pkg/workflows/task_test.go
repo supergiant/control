@@ -31,13 +31,13 @@ type MockRepository struct {
 }
 
 func (f *MockRepository) Put(ctx context.Context, prefix string, key string, value []byte) error {
-	f.storage[fmt.Sprintf("%s/%s", prefix, key)] = value
+	f.storage[prefix + key] = value
 
 	return nil
 }
 
 func (f *MockRepository) Get(ctx context.Context, prefix string, key string) ([]byte, error) {
-	return f.storage[fmt.Sprintf("%s/%s", prefix, key)], nil
+	return f.storage[prefix + key], nil
 }
 
 func (f *MockRepository) GetAll(ctx context.Context, prefix string) ([][]byte, error) {
@@ -115,11 +115,17 @@ func TestNewTask(t *testing.T) {
 	}
 
 	for _, testCase := range testCases {
-		_, err := NewTask(testCase.taskType, mockRepository)
+		task, err := NewTask(testCase.taskType, mockRepository)
 
 		if err != testCase.expectedError {
 			t.Errorf("Unexpected error %v", err)
 			return
+		}
+
+		if testCase.expectedError == nil {
+			if _, ok := mockRepository.storage[Prefix + task.ID]; !ok {
+				t.Errorf("Task %s found in storage", task.ID)
+			}
 		}
 	}
 }
@@ -158,7 +164,7 @@ func TestTaskRunError(t *testing.T) {
 	}
 
 	w := &Task{}
-	data := s.storage[fmt.Sprintf("%s/%s", Prefix, id)]
+	data := s.storage[Prefix + id]
 
 	err = json.Unmarshal([]byte(data), w)
 
@@ -206,7 +212,7 @@ func TestTaskRunSuccess(t *testing.T) {
 	}
 
 	w := &Task{}
-	data := s.storage[fmt.Sprintf("%s/%s", Prefix, task.ID)]
+	data := s.storage[Prefix + task.ID]
 
 	err = json.Unmarshal([]byte(data), w)
 
@@ -258,7 +264,7 @@ func TestWorkflowRestart(t *testing.T) {
 		t.Error(fmt.Sprintf("Expected error message %s not found in output %s", errMsg, buffer.String()))
 	}
 
-	data := s.storage[fmt.Sprintf("%s/%s", Prefix, id)]
+	data := s.storage[Prefix + id]
 	err = json.Unmarshal([]byte(data), task)
 
 	if err != nil {

@@ -10,7 +10,6 @@ import (
 
 	"github.com/pkg/errors"
 	"github.com/sirupsen/logrus"
-
 	"github.com/supergiant/control/pkg/clouds"
 	"github.com/supergiant/control/pkg/model"
 	"github.com/supergiant/control/pkg/node"
@@ -101,8 +100,10 @@ func (tp *TaskProvisioner) ProvisionCluster(parentContext context.Context,
 		return nil, errors.Wrap(err, "bootstrap certs")
 	}
 
+	// Gather all task ids
+	taskIds := grabTaskIds(clusterTask, masterTasks, nodeTasks)
 	// Save cluster before provisioning
-	err := tp.buildInitialCluster(ctx, profile, masters, nodes, config)
+	err := tp.buildInitialCluster(ctx, profile, masters, nodes, config, taskIds)
 
 	if err != nil {
 		return nil, errors.Wrap(err, "build initial cluster")
@@ -122,7 +123,8 @@ func (tp *TaskProvisioner) ProvisionCluster(parentContext context.Context,
 		if err != nil {
 			logrus.Errorf("update cluster with cloud specific data %v", err)
 		}
-
+		config.ReadyForBootstrapLatch = &sync.WaitGroup{}
+		config.ReadyForBootstrapLatch.Add(len(profile.MasterProfiles))
 		// ProvisionCluster masters and wait until n/2 + 1 of masters with etcd are up and running
 		doneChan, failChan, err := tp.provisionMasters(ctx, profile, config, masterTasks)
 
@@ -442,7 +444,7 @@ func (tp *TaskProvisioner) waitCluster(ctx context.Context, clusterTask *workflo
 
 func (tp *TaskProvisioner) buildInitialCluster(ctx context.Context,
 	profile *profile.Profile, masters, nodes map[string]*node.Node,
-	config *steps.Config) error {
+	config *steps.Config, taskIds []string) error {
 
 	cluster := &model.Kube{
 		ID:           config.ClusterID,
@@ -483,6 +485,7 @@ func (tp *TaskProvisioner) buildInitialCluster(ctx context.Context,
 		CloudSpec: profile.CloudSpecificSettings,
 		Masters:   masters,
 		Nodes:     nodes,
+		Tasks:     taskIds,
 	}
 
 	return tp.kubeService.Create(ctx, cluster)

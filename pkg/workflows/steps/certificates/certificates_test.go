@@ -44,13 +44,11 @@ func TestWriteCertificates(t *testing.T) {
 	)
 
 	err := templatemanager.Init("../../../../templates")
-
 	if err != nil {
 		t.Fatal(err)
 	}
 
 	tpl, _ := templatemanager.GetTemplate(StepName)
-
 	if tpl == nil {
 		t.Fatal("template not found")
 	}
@@ -64,11 +62,28 @@ func TestWriteCertificates(t *testing.T) {
 	}
 
 	cfg := steps.NewConfig("", "", "", profile.Profile{})
+	// TODO: update tests
 	cfg.CertificatesConfig = steps.CertificatesConfig{
 		KubernetesConfigDir: kubernetesConfigDir,
 		PrivateIP:           privateIP,
-		Username:            userName,
-		Password:            password,
+		StaticAuth: profile.StaticAuth{
+			BasicAuth: []profile.BasicAuthUser{
+				{
+					Password: "42",
+					Name: "john.doe@sg.io",
+					ID: "john.doe",
+					Groups: []string{"systems:masters", "other:group"},
+				},
+			},
+			Tokens: []profile.TokenAuthUser{
+				{
+					Token: "1234",
+					Name: "user@sg.io",
+					ID: "user",
+					Groups: []string{"systems:masters", "other:group"},
+				},
+			},
+		},
 		CAKey:               string(caPair.Key),
 		CACert:              string(caPair.Cert),
 	}
@@ -230,8 +245,8 @@ func TestNew(t *testing.T) {
 	tpl := template.New("test")
 	s := New(tpl)
 
-	if s.script != tpl {
-		t.Errorf("Wrong template expected %v actual %v", tpl, s.script)
+	if s.template != tpl {
+		t.Errorf("Wrong template expected %v actual %v", tpl, s.template)
 	}
 }
 
