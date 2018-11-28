@@ -1,1 +1,19 @@
-<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24"><path fill="none" d="M0 0h24v24H0V0z"/><path d="M11 15h2v2h-2zm0-8h2v6h-2zm.99-5C6.47 2 2 6.48 2 12s4.47 10 9.99 10C17.52 22 22 17.52 22 12S17.52 2 11.99 2zM12 20c-4.42 0-8-3.58-8-8s3.58-8 8-8 8 3.58 8 8-3.58 8-8 8z"/></svg>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32">
+  <defs>
+    <style>
+      .cls-1 {
+        fill: none;
+      }
+
+      .cls-2 {
+        fill: #d10088;
+      }
+    </style>
+  </defs>
+  <g id="icon_hourglass_empty" transform="translate(-932 -653)">
+    <g id="_32x32" data-name="32x32">
+      <path id="Path_817" data-name="Path 817" class="cls-1" d="M0,0H32V32H0Z" transform="translate(932 653)"/>
+      <path id="Path_816" data-name="Path 816" class="cls-2" d="M6,2V8h.01L6,8.01,10,12,6,16l.01.01H6V22H18V16.01h-.01L18,16l-4-4,4-3.99L17.99,8H18V2ZM16,16.5V20H8V16.5l4-4Zm-4-5-4-4V4h8V7.5Z" transform="translate(936 657)"/>
+    </g>
+  </g>
+</svg>
