@@ -1,14 +1,14 @@
-import { HttpClient }                                                      from "@angular/common/http";
+import { HttpClient }                                                from "@angular/common/http";
 import {
   Component,
   OnDestroy,
   OnInit
-}                                                                          from '@angular/core';
+}                                                                    from '@angular/core';
 import {
   ActivatedRoute,
   Router,
-}                                                                          from "@angular/router";
-import { combineLatest, from, Observable, of, Subject, Subscription, zip } from "rxjs";
+}                                                                    from "@angular/router";
+import { combineLatest, Observable, of, Subject, Subscription, zip } from "rxjs";
 import {
   catchError,
   distinctUntilChanged,
@@ -20,11 +20,11 @@ import {
   switchMap,
   take,
   tap
-}                                                                          from "rxjs/operators";
-import { Notifications }                                                   from "../../../shared/notifications/notifications.service";
-import { Supergiant }                                                      from "../../../shared/supergiant/supergiant.service";
-import { CLUSTER_OPTIONS }                                                 from "../../new-cluster/cluster-options.config";
-import { NodeProfileService }                                              from "../../node-profile.service";
+}                                                                    from "rxjs/operators";
+import { Notifications }                                             from "../../../shared/notifications/notifications.service";
+import { Supergiant }                                                from "../../../shared/supergiant/supergiant.service";
+import { CLUSTER_OPTIONS }                                           from "../../new-cluster/cluster-options.config";
+import { NodeProfileService }                                        from "../../node-profile.service";
 
 @Component({
   selector: 'add-node',
@@ -85,13 +85,7 @@ export class AddNodeComponent implements OnInit, OnDestroy {
       pluck('accountName')
     );
 
-    const firstNode$ = cluster$.pipe(
-      pluck('masters'),
-      switchMap(nodes => from(Object.values(nodes))),
-      first()
-    );
-
-    this.provider$ = firstNode$.pipe(
+    this.provider$ = cluster$.pipe(
       pluck('provider'),
       distinctUntilChanged(),
       tap(provider => {
@@ -107,7 +101,7 @@ export class AddNodeComponent implements OnInit, OnDestroy {
     );
 
 
-    const awsMachineSizes$ = zip(this.provider$, region$).pipe(
+    const awsMachineSizes$ = zip(cloudAccountName$, region$).pipe(
       take(1),
       switchMap(([name, region]) =>
         combineLatest(
@@ -155,8 +149,8 @@ export class AddNodeComponent implements OnInit, OnDestroy {
     this.machines.push({
       machineType: null,
       role: 'Node',
-      qty: 1
-    })
+      qty: 1,
+    });
 
     this.checkAndSetValidMachineConfig();
   }
@@ -172,7 +166,9 @@ export class AddNodeComponent implements OnInit, OnDestroy {
   validMachine(machine) {
     if (machine.machineType && machine.role && (typeof(machine.qty) == "number")) {
       return true;
-    } else { return false; }
+    } else {
+      return false;
+    }
   }
 
   checkAndSetValidMachineConfig() {
@@ -180,7 +176,9 @@ export class AddNodeComponent implements OnInit, OnDestroy {
 
     if (this.validMachinesConfig) {
       this.displayMachineConfigError = false;
-    } else { this.displayMachineConfigError = true; }
+    } else {
+      this.displayMachineConfigError = true;
+    }
   }
 
   finish() {
