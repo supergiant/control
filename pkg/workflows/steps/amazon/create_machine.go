@@ -37,12 +37,6 @@ func NewCreateInstance(fn GetEC2Fn) *StepCreateInstance {
 }
 
 func (s *StepCreateInstance) Run(ctx context.Context, w io.Writer, cfg *steps.Config) error {
-	logrus.Infof(cfg.AWSConfig.KeyID)
-	logrus.Infof(cfg.AWSConfig.MastersSecurityGroupID)
-	logrus.Infof(cfg.AWSConfig.SubnetID)
-	logrus.Infof(cfg.AWSConfig.VPCID)
-	logrus.Infof(cfg.SshConfig.PublicKey)
-	logrus.Infof(cfg.AWSConfig.HasPublicAddr)
 	log := util.GetLogger(w)
 
 	role := node.RoleMaster
