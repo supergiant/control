@@ -44,8 +44,10 @@ func Init(templateDir string) error {
 
 			lastTerm := len(strings.Split(f.Name(), "/"))
 			key := strings.Split(strings.Split(f.Name(), "/")[lastTerm-1], ".")[0]
-			t, _ := template.New(key).Parse(string(data))
 
+			t, err := template.New(key).Funcs(template.FuncMap{
+				"stringsJoin": strings.Join,
+			}).Parse(string(data))
 			if err != nil {
 				return err
 			}
@@ -60,7 +62,7 @@ func Init(templateDir string) error {
 func GetTemplate(templateName string) (*template.Template, error) {
 	m.RLock()
 	m.RUnlock()
-	if tpl, ok := templateMap[templateName]; ok {
+	if tpl := templateMap[templateName]; tpl != nil {
 		return tpl, nil
 	} else {
 		return nil, sgerrors.ErrNotFound
