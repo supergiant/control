@@ -10,7 +10,6 @@ import (
 
 	"github.com/pkg/errors"
 	"github.com/sirupsen/logrus"
-
 	"github.com/supergiant/control/pkg/clouds"
 	"github.com/supergiant/control/pkg/model"
 	"github.com/supergiant/control/pkg/node"
@@ -122,7 +121,8 @@ func (tp *TaskProvisioner) ProvisionCluster(parentContext context.Context,
 		if err != nil {
 			logrus.Errorf("update cluster with cloud specific data %v", err)
 		}
-
+		config.ReadyForBootstrapLatch = &sync.WaitGroup{}
+		config.ReadyForBootstrapLatch.Add(len(profile.MasterProfiles))
 		// ProvisionCluster masters and wait until n/2 + 1 of masters with etcd are up and running
 		doneChan, failChan, err := tp.provisionMasters(ctx, profile, config, masterTasks)
 

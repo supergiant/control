@@ -10,12 +10,13 @@ import (
 	"github.com/pborman/uuid"
 	"github.com/pkg/errors"
 	"github.com/sirupsen/logrus"
-
 	"github.com/supergiant/control/pkg/sgerrors"
 	"github.com/supergiant/control/pkg/storage"
 	"github.com/supergiant/control/pkg/util"
 	"github.com/supergiant/control/pkg/workflows/statuses"
 	"github.com/supergiant/control/pkg/workflows/steps"
+	"github.com/supergiant/control/pkg/workflows/steps/cni"
+	"github.com/supergiant/control/pkg/workflows/steps/etcd"
 )
 
 // Task is an entity that has it own state that can be tracked
@@ -185,7 +186,12 @@ func (w *Task) startFrom(ctx context.Context, id string, out io.Writer, i int) e
 
 		wsLog.Infof("[%s] - started", step.Name())
 		logrus.Info(step.Name())
-
+		if w.Config.IsMaster {
+			if step.Name() == etcd.StepName {
+				//wait until all masters are ready for etcd bootstrapping
+				w.Config.ReadyForBootstrapLatch.Wait()
+			}
+		}
 		// sync to storage with task in executing state
 		w.Status = statuses.Executing
 		w.StepStatuses[index].Status = statuses.Executing
@@ -212,6 +218,12 @@ func (w *Task) startFrom(ctx context.Context, id string, out io.Writer, i int) e
 
 			return err
 		} else {
+			if w.Config.IsMaster {
+				if step.Name() == cni.StepName {
+					//mark master as ready
+					w.Config.ReadyForBootstrapLatch.Done()
+				}
+			}
 			wsLog.Infof("[%s] - success", step.Name())
 			// Mark step as success
 			w.StepStatuses[index].Status = statuses.Success

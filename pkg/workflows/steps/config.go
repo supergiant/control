@@ -237,6 +237,8 @@ type Config struct {
 
 	nodeChan      chan node.Node
 	kubeStateChan chan model.KubeState
+
+	ReadyForBootstrapLatch *sync.WaitGroup
 }
 
 // NewConfig builds instance of config for provisioning
