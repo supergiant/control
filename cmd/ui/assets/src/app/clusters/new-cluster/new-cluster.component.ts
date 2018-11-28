@@ -1,12 +1,12 @@
-import { Component, OnDestroy, OnInit, ViewEncapsulation, ViewChild } from '@angular/core';
+import { Component, OnDestroy, OnInit, ViewEncapsulation, ViewChild }       from '@angular/core';
 import { FormBuilder, FormGroup, Validators, ValidatorFn, AbstractControl } from '@angular/forms';
-import { Router }                 from '@angular/router';
-import { MatHorizontalStepper }   from '@angular/material';
-import { Subscription }           from 'rxjs';
-import { Notifications }          from '../../shared/notifications/notifications.service';
-import { Supergiant }             from '../../shared/supergiant/supergiant.service';
-import { NodeProfileService }     from "../node-profile.service";
-import { CLUSTER_OPTIONS }        from "./cluster-options.config";
+import { Router }                                                           from '@angular/router';
+import { MatHorizontalStepper }                                             from '@angular/material';
+import { Subscription }                                                     from 'rxjs';
+import { Notifications }                                                    from '../../shared/notifications/notifications.service';
+import { Supergiant }                                                       from '../../shared/supergiant/supergiant.service';
+import { NodeProfileService }                                               from "../node-profile.service";
+import { CLUSTER_OPTIONS }                                                  from "./cluster-options.config";
 
 // compiler hack
 declare var require: any;
@@ -58,7 +58,8 @@ export class NewClusterComponent implements OnInit, OnDestroy {
     private router: Router,
     private formBuilder: FormBuilder,
     private nodesService: NodeProfileService,
-  ) { }
+  ) {
+  }
 
 
   getCloudAccounts() {
@@ -219,10 +220,10 @@ export class NewClusterComponent implements OnInit, OnDestroy {
   }
 
   deleteMachine(idx, e?) {
-    if(this.machines.length === 1) return;
+    if (this.machines.length === 1) return;
 
     if (e) {
-      if(e.keyCode === 13) {
+      if (e.keyCode === 13) {
         this.machines.splice(idx, 1);
         this.checkForValidMachinesConfig();
       }
@@ -282,12 +283,14 @@ export class NewClusterComponent implements OnInit, OnDestroy {
 
   validMachine(machine) {
     if (
-        machine.machineType != null &&
-        machine.role != null &&
-        typeof(machine.qty) == "number"
-      ) {
+      machine.machineType != null &&
+      machine.role != null &&
+      typeof(machine.qty) == "number"
+    ) {
       return true
-   } else { return false }
+    } else {
+      return false
+    }
   }
 
   checkForValidMachinesConfig() {
@@ -310,26 +313,32 @@ export class NewClusterComponent implements OnInit, OnDestroy {
   }
 
   uniqueClusterName(unavailableNames): ValidatorFn {
-    return (name: AbstractControl): {[key: string]: any} | null => {
-      return unavailableNames.has(name.value) ? {'nonUniqueName': {value: name.value}} : null;
+    return (name: AbstractControl): { [key: string]: any } | null => {
+      return unavailableNames.has(name.value) ? { 'nonUniqueName': { value: name.value } } : null;
     }
   }
 
   validCidr(): ValidatorFn {
-    return (userCidr: AbstractControl): {[key: string]: any} | null => {
-      const validCidr = cidrRegex({exact: true}).test(userCidr.value);
-      return validCidr ? null : {"invalidCidr": {value: userCidr.value}};
+    return (userCidr: AbstractControl): { [key: string]: any } | null => {
+      const validCidr = cidrRegex({ exact: true }).test(userCidr.value);
+      return validCidr ? null : { "invalidCidr": { value: userCidr.value } };
     }
   }
 
-  get name() { return this.nameAndCloudAccountConfig.get('name'); }
+  get name() {
+    return this.nameAndCloudAccountConfig.get('name');
+  }
 
-  get cidr() { return this.clusterConfig.get('cidr'); }
+  get cidr() {
+    return this.clusterConfig.get('cidr');
+  }
 
   get vpcCidr() {
     if (this.selectedCloudAccount && this.selectedCloudAccount.provider == "aws") {
       return this.providerConfig.get('vpcCidr');
-    } else {return true}
+    } else {
+      return true
+    }
   }
 
   ngOnInit() {
@@ -343,7 +352,7 @@ export class NewClusterComponent implements OnInit, OnDestroy {
         Validators.maxLength(12),
         Validators.pattern('^[A-Za-z]([-A-Za-z0-9\-]*[A-Za-z0-9\-])?$')]],
       cloudAccount: ["", Validators.required]
-    })
+    });
 
     this.clusterConfig = this.formBuilder.group({
       K8sVersion: ["1.11.1", Validators.required],
