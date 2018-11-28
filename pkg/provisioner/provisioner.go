@@ -102,17 +102,7 @@ func (tp *TaskProvisioner) ProvisionCluster(parentContext context.Context,
 	}
 
 	// Gather all task ids
-	taskIds := make([]string, 0)
-	taskIds = append(taskIds, clusterTask.ID)
-
-	for _, task := range masterTasks {
-		taskIds = append(taskIds, task.ID)
-	}
-
-	for _, task := range nodeTasks {
-		taskIds = append(taskIds, task.ID)
-	}
-
+	taskIds := grabTaskIds(clusterTask, masterTasks, nodeTasks)
 	// Save cluster before provisioning
 	err := tp.buildInitialCluster(ctx, profile, masters, nodes, config, taskIds)
 
