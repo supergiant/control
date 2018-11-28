@@ -495,7 +495,7 @@ func (tp *TaskProvisioner) buildInitialCluster(ctx context.Context,
 		CloudSpec: profile.CloudSpecificSettings,
 		Masters:   masters,
 		Nodes:     nodes,
-		Tasks: taskIds,
+		Tasks:     taskIds,
 	}
 
 	return tp.kubeService.Create(ctx, cluster)
