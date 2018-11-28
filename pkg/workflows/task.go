@@ -186,18 +186,20 @@ func (w *Task) startFrom(ctx context.Context, id string, out io.Writer, i int) e
 
 		wsLog.Infof("[%s] - started", step.Name())
 		logrus.Info(step.Name())
-		if w.Config.IsMaster {
-			if step.Name() == etcd.StepName {
-				//wait until all masters are ready for etcd bootstrapping
-				w.Config.ReadyForBootstrapLatch.Wait()
-			}
-		}
+
 		// sync to storage with task in executing state
 		w.Status = statuses.Executing
 		w.StepStatuses[index].Status = statuses.Executing
 
 		if err := w.sync(ctx); err != nil {
 			logrus.Errorf("sync error %v", err)
+		}
+
+		if w.Config.IsMaster {
+			if step.Name() == etcd.StepName {
+				//wait until all masters are ready for etcd bootstrapping
+				w.Config.ReadyForBootstrapLatch.Wait()
+			}
 		}
 
 		if err := step.Run(ctx, out, w.Config); err != nil {
