@@ -125,7 +125,7 @@ export class ClusterComponent implements OnInit, OnDestroy {
       }}
     );
 
-    this.util.post("/tasks/" + taskId + "/restart", {}).subscribe(
+    this.util.post("v1/api/tasks/" + taskId + "/restart", {}).subscribe(
       res => console.log(res),
       err => console.error(err)
     );
