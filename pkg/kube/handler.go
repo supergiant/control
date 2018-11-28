@@ -76,10 +76,12 @@ type K8SServices struct {
 	} `json:"items"`
 }
 
-type ServiceProxy struct {
+type ServiceInfo struct {
+	ID string `json:"id"`
 	Name     string `json:"name"`
 	Type     string `json:"type"`
-	SelfLink string `json:"selfLink"`
+	SelfLink          string `json:"selfLink"`
+	APIServerProxyURL string `json:"selfLink"`
 }
 
 type MetricResponse struct {
@@ -102,6 +104,7 @@ type Handler struct {
 	repo            storage.Interface
 	getWriter       func(string) (io.WriteCloser, error)
 	getMetrics      func(string) (*MetricResponse, error)
+	proxies *APIProxy
 }
 
 // NewHandler constructs a Handler for kubes.
@@ -156,6 +159,7 @@ func NewHandler(svc Interface, accountService accountGetter, provisioner nodePro
 
 			return metricResponse, nil
 		},
+		proxies:NewAPIProxy(svc, logrus.New().WithField("component", "proxy")),
 	}
 }
 
@@ -1011,16 +1015,18 @@ func (h *Handler) getServices(w http.ResponseWriter, r *http.Request) {
 		"service": {},
 	}
 
-	services := make([]ServiceProxy, 0)
+	services := make([]ServiceInfo, 0)
 
 	for _, service := range k8sServices.Items {
 		for _, port := range service.Spec.Ports {
 			if port.Protocol == "TCP" {
 				if _, ok := webPorts[port.Name]; ok {
-					service := ServiceProxy{
+					service := ServiceInfo{
+						ID: service.Metadata.UID,
 						Name: service.Metadata.Name,
 						Type: service.Spec.Type,
-						SelfLink: fmt.Sprintf("https://%s%s:%d/proxy",
+						SelfLink: service.Metadata.SelfLink,
+						APIServerProxyURL: fmt.Sprintf("https://%s%s:%d/proxy",
 							masterNode.PublicIp, service.Metadata.SelfLink, port.Port),
 					}
 					services = append(services, service)
@@ -1028,6 +1034,9 @@ func (h *Handler) getServices(w http.ResponseWriter, r *http.Request) {
 			}
 		}
 	}
+
+	// TODO decouple these components
+	h.proxies.SetServices(kubeID, services)
 
 	err = json.NewEncoder(w).Encode(services)
 
@@ -1037,7 +1046,7 @@ func (h *Handler) getServices(w http.ResponseWriter, r *http.Request) {
 }
 
 func (h *Handler) proxyService(w http.ResponseWriter, r *http.Request) {
-	serviceProxy := &ServiceProxy{}
+	serviceProxy := &ServiceInfo{}
 	err := json.NewDecoder(r.Body).Decode(serviceProxy)
 
 	vars := mux.Vars(r)
