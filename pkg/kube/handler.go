@@ -207,7 +207,6 @@ func (h *Handler) getTasks(w http.ResponseWriter, r *http.Request) {
 			return
 		}
 
-		logrus.Error(err)
 		message.SendUnknownError(w, err)
 		return
 	}
