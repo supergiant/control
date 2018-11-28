@@ -101,8 +101,20 @@ func (tp *TaskProvisioner) ProvisionCluster(parentContext context.Context,
 		return nil, errors.Wrap(err, "bootstrap certs")
 	}
 
+	// Gather all task ids
+	taskIds := make([]string, 0)
+	taskIds = append(taskIds, clusterTask.ID)
+
+	for _, task := range masterTasks {
+		taskIds = append(taskIds, task.ID)
+	}
+
+	for _, task := range nodeTasks {
+		taskIds = append(taskIds, task.ID)
+	}
+
 	// Save cluster before provisioning
-	err := tp.buildInitialCluster(ctx, profile, masters, nodes, config)
+	err := tp.buildInitialCluster(ctx, profile, masters, nodes, config, taskIds)
 
 	if err != nil {
 		return nil, errors.Wrap(err, "build initial cluster")
@@ -442,7 +454,7 @@ func (tp *TaskProvisioner) waitCluster(ctx context.Context, clusterTask *workflo
 
 func (tp *TaskProvisioner) buildInitialCluster(ctx context.Context,
 	profile *profile.Profile, masters, nodes map[string]*node.Node,
-	config *steps.Config) error {
+	config *steps.Config, taskIds []string) error {
 
 	cluster := &model.Kube{
 		ID:           config.ClusterID,
@@ -483,6 +495,7 @@ func (tp *TaskProvisioner) buildInitialCluster(ctx context.Context,
 		CloudSpec: profile.CloudSpecificSettings,
 		Masters:   masters,
 		Nodes:     nodes,
+		Tasks: taskIds,
 	}
 
 	return tp.kubeService.Create(ctx, cluster)
