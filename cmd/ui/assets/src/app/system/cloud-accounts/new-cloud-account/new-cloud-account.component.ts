@@ -14,13 +14,13 @@ import { Router } from '@angular/router';
 export class NewCloudAccountComponent implements OnInit, OnDestroy {
   private providersObj = new CloudAccountModel;
   private subscriptions = new Subscription();
-  private providers = this.providersObj.providers;
+  public providers = this.providersObj.providers;
   private model: any;
   public schema: any;
   public nameIsBlank: boolean;
   public gceServiceAccountKeyIsBlank: boolean;
 
-  private selectedProvider: string;
+  public selectedProvider: string;
   private cloudAccountName: string;
 
   constructor(

@@ -1,28 +1,18 @@
 import { Injectable } from '@angular/core';
-import { Http, Response, Headers } from '@angular/http';
 import { HttpClient } from '@angular/common/http';
-import { Observable } from 'rxjs';
-import { Location } from '@angular/common';
 
+/*
+* @deprecated
+* For dev server use proxy.conf.json
+* For production use own config of the remote server
+*/
 @Injectable()
 export class UtilService {
-  serverEndpoint = 'http://localhost:8080';
-  sessionToken: string;
-  SessionID: string;
+  serverEndpoint = '';
 
   constructor(
     private http: HttpClient,
-    private location: Location,
   ) {
-    if (window.location.pathname.split('/')[2] === 'ui') {
-      this.serverEndpoint = '/' + window.location.pathname.split('/')[1] + '/server';
-    } else {
-      if (window.location.hostname === 'localhost') {
-        this.serverEndpoint = window.location.protocol + '//' + window.location.hostname + ':8080';
-      } else {
-        this.serverEndpoint = window.location.protocol + '//' + window.location.hostname;
-      }
-    }
   }
 
   fetch(path) {
@@ -49,6 +39,6 @@ export class UtilService {
   }
 
   destroy(path) {
-    return this.http.delete(this.serverEndpoint + path, {headers: {}});
+    return this.http.delete(this.serverEndpoint + path, { headers: {} });
   }
 }

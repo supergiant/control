@@ -212,7 +212,7 @@ func (s *CreateSecurityGroupsStep) allowAllTraffic(ctx context.Context, EC2 ec2i
 }
 
 func (s *CreateSecurityGroupsStep) whiteListSupergiantIP(ctx context.Context, EC2 ec2iface.EC2API, groupID string) error {
-	supergiantIP, err := util.FindOutboundIP()
+	supergiantIP, err := FindOutboundIP(ctx, findOutBoundIP)
 	if err != nil {
 		return err
 	}

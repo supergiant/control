@@ -108,6 +108,15 @@ func (m *mockNodeProvisioner) ProvisionNodes(ctx context.Context, nodeProfile []
 	return val, args.Error(1)
 }
 
+func (m *mockNodeProvisioner) Cancel(clusterID string) error {
+	args := m.Called(clusterID)
+	val, ok := args.Get(0).(error)
+	if !ok {
+		return args.Error(0)
+	}
+	return val
+}
+
 func (m *kubeServiceMock) Create(ctx context.Context, k *model.Kube) error {
 	args := m.Called(ctx, k)
 	val, ok := args.Get(0).(error)
@@ -441,7 +450,8 @@ func TestHandler_deleteKube(t *testing.T) {
 			expectedStatus: http.StatusNotFound,
 		},
 		{
-			kubeName:        "delete kube error",
+			description: "delete kube err not found",
+			kubeName:        "kubeName",
 			getAccountError: nil,
 			accountName:     "test",
 			account: &model.CloudAccount{
@@ -503,7 +513,11 @@ func TestHandler_deleteKube(t *testing.T) {
 
 		rr := httptest.NewRecorder()
 
-		h := NewHandler(svc, accSvc, nil, mockRepo)
+		mockProvisioner := new(mockNodeProvisioner)
+		mockProvisioner.On("Cancel", mock.Anything).
+			Return(nil)
+
+		h := NewHandler(svc, accSvc, mockProvisioner, mockRepo)
 
 		router := mux.NewRouter().SkipClean(true)
 		h.Register(router)
@@ -746,7 +760,8 @@ func TestAddNodeToKube(t *testing.T) {
 		mockProvisioner.On("ProvisionNodes",
 			mock.Anything, nodeProfile, testCase.kube, mock.Anything).
 			Return(mock.Anything, testCase.provisionErr)
-
+		mockProvisioner.On("Cancel", mock.Anything).
+			Return(nil)
 		h := NewHandler(svc, accService, mockProvisioner, nil)
 
 		data, _ := json.Marshal(nodeProfile)

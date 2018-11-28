@@ -1,14 +1,14 @@
-import { HttpClient }                                                      from "@angular/common/http";
+import { HttpClient }                                                from "@angular/common/http";
 import {
   Component,
   OnDestroy,
   OnInit
-}                                                                          from '@angular/core';
+}                                                                    from '@angular/core';
 import {
   ActivatedRoute,
   Router,
-}                                                                          from "@angular/router";
-import { combineLatest, from, Observable, of, Subject, Subscription, zip } from "rxjs";
+}                                                                    from "@angular/router";
+import { combineLatest, Observable, of, Subject, Subscription, zip } from "rxjs";
 import {
   catchError,
   distinctUntilChanged,
@@ -20,11 +20,11 @@ import {
   switchMap,
   take,
   tap
-}                                                                          from "rxjs/operators";
-import { Notifications }                                                   from "../../../shared/notifications/notifications.service";
-import { Supergiant }                                                      from "../../../shared/supergiant/supergiant.service";
-import { CLUSTER_OPTIONS }                                                 from "../../new-cluster/cluster-options.config";
-import { NodeProfileService }                                              from "../../node-profile.service";
+}                                                                    from "rxjs/operators";
+import { Notifications }                                             from "../../../shared/notifications/notifications.service";
+import { Supergiant }                                                from "../../../shared/supergiant/supergiant.service";
+import { CLUSTER_OPTIONS }                                           from "../../new-cluster/cluster-options.config";
+import { NodeProfileService }                                        from "../../node-profile.service";
 
 @Component({
   selector: 'add-node',
@@ -45,6 +45,8 @@ export class AddNodeComponent implements OnInit, OnDestroy {
   provider$: Observable<any>;
   provider: string;
   providerSubj: Subject<any>;
+  validMachinesConfig = false;
+  displayMachineConfigError = false;
 
   clusterOptions = CLUSTER_OPTIONS;
 
@@ -83,13 +85,7 @@ export class AddNodeComponent implements OnInit, OnDestroy {
       pluck('accountName')
     );
 
-    const firstNode$ = cluster$.pipe(
-      pluck('masters'),
-      switchMap(nodes => from(Object.values(nodes))),
-      first()
-    );
-
-    this.provider$ = firstNode$.pipe(
+    this.provider$ = cluster$.pipe(
       pluck('provider'),
       distinctUntilChanged(),
       tap(provider => {
@@ -105,7 +101,7 @@ export class AddNodeComponent implements OnInit, OnDestroy {
     );
 
 
-    const awsMachineSizes$ = zip(this.provider$, region$).pipe(
+    const awsMachineSizes$ = zip(cloudAccountName$, region$).pipe(
       take(1),
       switchMap(([name, region]) =>
         combineLatest(
@@ -149,50 +145,75 @@ export class AddNodeComponent implements OnInit, OnDestroy {
     this.subscriptions.unsubscribe();
   }
 
-  machineSizeChange(e) {
-    console.log(e);
-    console.log(this.machines);
-  }
-
   addBlankMachine() {
     this.machines.push({
       machineType: null,
       role: 'Node',
-      qty: 1
-    })
+      qty: 1,
+    });
+
+    this.checkAndSetValidMachineConfig();
   }
 
   deleteMachine(idx) {
     if (this.machines.length === 1) return;
 
     this.machines.splice(idx, 1);
+
+    this.checkAndSetValidMachineConfig();
   }
 
+  validMachine(machine) {
+    if (machine.machineType && machine.role && (typeof(machine.qty) == "number")) {
+      return true;
+    } else {
+      return false;
+    }
+  }
+
+  checkAndSetValidMachineConfig() {
+    this.validMachinesConfig = this.machines.every(this.validMachine);
+
+    if (this.validMachinesConfig) {
+      this.displayMachineConfigError = false;
+    } else {
+      this.displayMachineConfigError = true;
+    }
+  }
 
   finish() {
-    this.isProcessing = true;
 
-    const nodes = this.nodesService.compileProfiles(this.provider, this.machines, "Node");
-    // TODO  move to service
-    const url = `/v1/api/kubes/${this.clusterId}/nodes`;
+    if (this.validMachinesConfig) {
+      this.isProcessing = true;
+      this.displayMachineConfigError = false;
 
-    this.http.post(url, nodes).pipe(
-      catchError(error => {
-        this.notifications.display('error', 'Error', error.statusText);
-        return of(new ErrorEvent(error));
-      })
-    )
-      .subscribe(result => {
-        this.isProcessing = false;
+      const nodes = this.nodesService.compileProfiles(this.provider, this.machines, "Node");
+      // TODO  move to service
+      const url = `/v1/api/kubes/${this.clusterId}/nodes`;
 
-        if (result instanceof ErrorEvent) return;
+      this.http.post(url, nodes).pipe(
+        catchError(error => {
+          this.notifications.display('error', 'Error', error.statusText);
+          return of(new ErrorEvent(error));
+        })
+      )
+        .subscribe(result => {
+          this.isProcessing = false;
 
-        this.notifications.display(
-          'success',
-          'Success!',
-          'Your request is being processed'
-        );
-        this.router.navigate([`clusters/${this.clusterId}`]);
-      });
+          if (result instanceof ErrorEvent) return;
+
+          this.notifications.display(
+            'success',
+            'Success!',
+            'Your request is being processed'
+          );
+          this.router.navigate([`clusters/${this.clusterId}`]);
+        });
+
+    } else {
+      this.isProcessing = false;
+      this.displayMachineConfigError = true;
+    }
+
   }
 }

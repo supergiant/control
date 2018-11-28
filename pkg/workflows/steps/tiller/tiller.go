@@ -2,9 +2,9 @@ package tiller
 
 import (
 	"context"
+	"fmt"
 	"io"
 	"text/template"
-	"fmt"
 
 	"github.com/pkg/errors"
 
@@ -27,7 +27,6 @@ func Init() {
 	if err != nil {
 		panic(fmt.Sprintf("template %s not found", StepName))
 	}
-
 
 	steps.RegisterStep(StepName, New(tpl))
 }

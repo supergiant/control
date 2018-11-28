@@ -27,9 +27,16 @@ build-image:
 test:
 	go test ./pkg/...
 
-build: build-image
-
+build:
+	go get -u github.com/hpcloud/tail/...
+	GOOS=linux CGO_ENABLED=0 GOARCH=amd64 go build -o dist/controlplane-linux -a -installsuffix cgo -ldflags='-extldflags "-static" -w -s' ./cmd/controlplane
+	GOOS=darwin CGO_ENABLED=0 GOARCH=amd64 go build -o dist/controlplane-osx -a -installsuffix cgo -ldflags='-extldflags "-static" -w -s' ./cmd/controlplane
+	GOOS=windows CGO_ENABLED=0 GOARCH=amd64 go build -o dist/controlplane-windows -a -installsuffix cgo -ldflags='-extldflags "-static" -w -s' ./cmd/controlplane
 push:
 	docker push $(DOCKER_IMAGE_NAME):$(DOCKER_IMAGE_TAG)
 
 release: build push
+
+build-ui:
+	npm install --prefix ./cmd/ui/assets
+	npm run build --prefix ./cmd/ui/assets

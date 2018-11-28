@@ -67,7 +67,8 @@ func NewTaskHandler(repository storage.Interface, runnerFactory func(config ssh.
 func (h *TaskHandler) Register(m *mux.Router) {
 	m.HandleFunc("/tasks", h.RunTask).Methods(http.MethodPost)
 	m.HandleFunc("/tasks/{id}", h.GetTask).Methods(http.MethodGet)
-	m.HandleFunc("/tasks/{id}/restart", h.RestartTask).Methods(http.MethodPost)
+	m.HandleFunc("/tasks/{id}/restart",
+		h.RestartTask).Methods(http.MethodPost)
 	m.HandleFunc("/tasks/{id}/logs", h.StreamLogs).Methods(http.MethodGet)
 	m.HandleFunc("/tasks/{id}/logs/ws", h.GetLogs).Methods(http.MethodGet)
 }

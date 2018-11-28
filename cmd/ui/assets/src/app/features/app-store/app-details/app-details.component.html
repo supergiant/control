@@ -15,7 +15,7 @@
       <h3>Instructions</h3>
       <section *ngIf="chartDetails.readme; else noInstructions"
                class="instructions">
-      <markdown>{{ chartDetails.readme }}</markdown>
+      <markdown [data]="chartDetails.readme"></markdown>
       </section>
       <ng-template #noInstructions>
         This chart is not provided with the instructions.

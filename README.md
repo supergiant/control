@@ -1,18 +1,18 @@
 <!-- Badge Links -->
-[Release Widget]: https://img.shields.io/github/release/supergiant/supergiant.svg
-[Release URL]: https://github.com/supergiant/supergiant/releases/latest
+[Release Widget]: https://img.shields.io/github/release/supergiant/control.svg
+[Release URL]: https://github.com/supergiant/control/releases/latest
 
-[GoDoc Widget]: https://godoc.org/github.com/supergiant/supergiant?status.svg
-[GoDoc URL]: https://godoc.org/github.com/supergiant/supergiant
+[GoDoc Widget]: https://godoc.org/github.com/supergiant/control?status.svg
+[GoDoc URL]: https://godoc.org/github.com/supergiant/control
 
-[Travis Widget]: https://travis-ci.org/supergiant/supergiant.svg?branch=master
-[Travis URL]: https://travis-ci.org/supergiant/supergiant
+[Travis Widget]: https://travis-ci.org/supergiant/control.svg?branch=master
+[Travis URL]: https://travis-ci.org/supergiant/control
 
-[Coverage Status]: https://coveralls.io/github/supergiant/supergiant?branch=master
-[Coverage Status Widget]: https://coveralls.io/repos/github/supergiant/supergiant/badge.svg?branch=master
+[Coverage Status]: https://coveralls.io/github/supergiant/control?branch=master
+[Coverage Status Widget]: https://coveralls.io/repos/github/supergiant/control/badge.svg?branch=master
 
-[GoReportCard Widget]: https://goreportcard.com/badge/github.com/supergiant/supergiant
-[GoReportCard URL]: https://goreportcard.com/report/github.com/supergiant/supergiant
+[GoReportCard Widget]: https://goreportcard.com/badge/github.com/supergiant/control
+[GoReportCard URL]: https://goreportcard.com/report/github.com/supergiant/control
 
 # <img src="https://s3.amazonaws.com/supergiant-docs-assets/sg_control_light.svg">
 

@@ -23,7 +23,7 @@ export class ClusterTableComponent implements OnInit, OnDestroy {
     private supergiant: Supergiant,
   ) { }
 
-  @Input() cluster: any
+  @Input() cluster: any;
 
   updateMetrics(metrics) {
     this.cpuUsage = (metrics.cpu * 100).toFixed(1);

@@ -13,11 +13,6 @@ import { Notifications } from '../shared/notifications/notifications.service';
 export class LoginComponent implements OnDestroy {
   public login: string;
   public password: string;
-  private session: any;
-  private id: string;
-  private sessionCookie: string;
-  private previousUrl: string;
-  private refresh: boolean;
   private subscriptions = new Subscription();
   public status: string;
 

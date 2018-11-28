@@ -1,6 +1,7 @@
 package ssh
 
 import (
+	"context"
 	"fmt"
 	"net"
 	"time"
@@ -46,7 +47,7 @@ func getSshConfig(config Config) (*ssh.ClientConfig, error) {
 	}, nil
 }
 
-func connectionWithBackOff(host, port string, config *ssh.ClientConfig, timeout time.Duration, attemptCount int) (*ssh.Client, error) {
+func connectionWithBackOff(ctx context.Context, host, port string, config *ssh.ClientConfig, timeout time.Duration, attemptCount int) (*ssh.Client, error) {
 	var (
 		counter = 0
 		c       *ssh.Client
@@ -54,19 +55,24 @@ func connectionWithBackOff(host, port string, config *ssh.ClientConfig, timeout 
 	)
 
 	for counter < attemptCount {
-		c, err = ssh.Dial("tcp", fmt.Sprintf("%s:%s", host, port), config)
+		select {
+		case <-ctx.Done():
+			return nil, ctx.Err()
+		default:
+			c, err = ssh.Dial("tcp", fmt.Sprintf("%s:%s", host, port), config)
 
-		if err != nil {
-			logrus.Warnf("connect to %s failed, try again in %v seconds, reason: %v",
-				fmt.Sprintf("%s:%s", host, port),
-				timeout, err)
-			time.Sleep(timeout)
-			timeout = timeout * 2
-		} else {
-			break
+			if err != nil {
+				logrus.Debugf("connect to %s failed, try again in %v seconds, reason: %v",
+					fmt.Sprintf("%s:%s", host, port),
+					timeout, err)
+				time.Sleep(timeout)
+				timeout = timeout * 2
+			} else {
+				return c, err
+			}
+			counter += 1
 		}
-		counter += 1
 	}
 
-	return c, err
+	return nil, err
 }
