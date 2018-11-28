@@ -5,4 +5,9 @@ sudo tar -C /tmp -xvf /tmp/helm-v{{ .HelmVersion }}-{{ .OperatingSystem }}-{{ .A
 sudo cp /tmp/linux-amd64/helm /opt/bin/helm
 sudo chmod +x /opt/bin/helm
 
+sudo kubectl create serviceaccount -n kube-system tiller
+{{if .RBACEnabled }}
+sudo kubectl create clusterrolebinding tiller-binding --clusterrole=cluster-admin --serviceaccount kube-system:tiller
+{{ end }}
+
 sudo /opt/bin/helm init --automount-service-account-token --wait
