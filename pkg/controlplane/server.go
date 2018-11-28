@@ -4,16 +4,14 @@ import (
 	"context"
 	"fmt"
 	"net/http"
+	"os"
 	"time"
 
 	"github.com/coreos/etcd/clientv3"
 	"github.com/gorilla/handlers"
 	"github.com/gorilla/mux"
 	"github.com/pkg/errors"
-	"github.com/rakyll/statik/fs"
 	"github.com/sirupsen/logrus"
-	"k8s.io/helm/pkg/repo"
-
 	"github.com/supergiant/control/pkg/account"
 	"github.com/supergiant/control/pkg/api"
 	"github.com/supergiant/control/pkg/jwt"
@@ -47,7 +45,7 @@ import (
 	"github.com/supergiant/control/pkg/workflows/steps/prometheus"
 	"github.com/supergiant/control/pkg/workflows/steps/ssh"
 	"github.com/supergiant/control/pkg/workflows/steps/tiller"
-	_ "github.com/supergiant/control/statik"
+	"k8s.io/helm/pkg/repo"
 )
 
 type Server struct {
@@ -79,6 +77,7 @@ type Config struct {
 	EtcdUrl       string
 	TemplatesDir  string
 	SpawnInterval time.Duration
+	UiDir         string
 
 	ReadTimeout  time.Duration
 	WriteTimeout time.Duration
@@ -277,12 +276,9 @@ func configureApplication(cfg *Config) (*mux.Router, error) {
 	}
 	protectedAPI.Use(authMiddleware.AuthMiddleware, api.ContentTypeJSON)
 
-	statikFS, err := fs.New()
-	if err != nil {
-		return nil, errors.Wrap(err, "failed to read static files")
+	if err := serveUI(cfg, router); err != nil {
+		return nil, err
 	}
-	router.PathPrefix("/").Handler(http.StripPrefix("/", http.FileServer(statikFS)))
-
 	return router, nil
 }
 
@@ -312,4 +308,13 @@ func ensureHelmRepositories(svc sghelm.Servicer) {
 		}
 		logrus.Infof("helm repository has been added: %s", entry.Name)
 	}
+}
+
+func serveUI(cfg *Config, router *mux.Router) error {
+	if _, err := os.Stat(cfg.UiDir); err != nil {
+		return errors.Wrap(err, "no ui directory found")
+	}
+
+	router.PathPrefix("/").Handler(http.StripPrefix("/", http.FileServer(http.Dir(cfg.UiDir))))
+	return nil
 }

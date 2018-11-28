@@ -1,8 +1,8 @@
 package kube
 
 import (
-	"testing"
 	"strings"
+	"testing"
 
 	"github.com/supergiant/control/pkg/clouds"
 	"github.com/supergiant/control/pkg/model"

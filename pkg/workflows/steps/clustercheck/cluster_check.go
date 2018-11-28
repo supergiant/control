@@ -7,10 +7,10 @@ import (
 
 	"github.com/pkg/errors"
 
+	"fmt"
 	tm "github.com/supergiant/control/pkg/templatemanager"
 	"github.com/supergiant/control/pkg/workflows/steps"
 	"github.com/supergiant/control/pkg/workflows/steps/kubelet"
-	"fmt"
 )
 
 const StepName = "clustercheck"
@@ -25,7 +25,6 @@ func Init() {
 	if err != nil {
 		panic(fmt.Sprintf("template %s not found", StepName))
 	}
-
 
 	steps.RegisterStep(StepName, New(tpl))
 }

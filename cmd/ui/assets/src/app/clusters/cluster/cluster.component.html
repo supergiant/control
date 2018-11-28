@@ -156,7 +156,7 @@
   <ng-container *ngIf="kube?.state == 'operational'">
     <ng-container *ngIf="cpuUsage == NaN || ramUsage == NaN">
       <div class="no-usage-data">
-        <h1>Gathering usage data<span>.</span><span>.</span><span>.</span></h1>
+        <h1>Gathering usage metrics for {{ kube?.name }}<span>.</span><span>.</span><span>.</span></h1>
         <h2>This may take a few minutes</h2>
       </div>
     </ng-container>
@@ -250,7 +250,7 @@
                            *matHeaderCellDef>
           </mat-header-cell>
           <mat-cell class="small-cell" *matCellDef="let machine">
-            <div class="delete-icon" (click)="removeNode(machine.name, $event)"></div>
+            <div *ngIf="machine?.role != 'master'" class="delete-icon" (click)="removeNode(machine.name, $event)"></div>
           </mat-cell>
         </ng-container>
 

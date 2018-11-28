@@ -7,4 +7,5 @@ const (
 	Executing Status = "executing"
 	Success   Status = "success"
 	Error     Status = "error"
+	Cancelled Status = "cancelled"
 )

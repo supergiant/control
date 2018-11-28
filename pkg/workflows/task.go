@@ -93,11 +93,21 @@ func (w *Task) Run(ctx context.Context, config steps.Config, out io.WriteCloser)
 		err := w.startFrom(ctx, w.ID, out, 0)
 
 		if err != nil {
-			w.Status = statuses.Error
-			if err := w.sync(ctx); err != nil {
-				logrus.Errorf("failed to sync task %s to db: %v", w.ID, err)
+			if ctx.Err() == context.Canceled {
+				w.Status = statuses.Cancelled
+				// Save task in cancelled state
+				if err := w.sync(context.Background()); err != nil {
+					logrus.Errorf("failed to sync task %s to db: %v", w.ID, err)
+				}
+				errChan <- ctx.Err()
+			} else {
+				w.Status = statuses.Error
+				if err := w.sync(ctx); err != nil {
+					logrus.Errorf("failed to sync task %s to db: %v", w.ID, err)
+				}
+				errChan <- err
 			}
-			errChan <- err
+
 			return
 		}
 
@@ -146,11 +156,21 @@ func (w *Task) Restart(ctx context.Context, id string, out io.Writer) chan error
 		err = w.startFrom(ctx, id, out, i)
 
 		if err != nil {
-			w.Status = statuses.Error
-			if err := w.sync(ctx); err != nil {
-				logrus.Errorf("failed to sync task %s to db: %v", w.ID, err)
+			if err == context.Canceled {
+				w.Status = statuses.Cancelled
+				// Save task in cancelled state
+				if err := w.sync(context.Background()); err != nil {
+					logrus.Errorf("failed to sync task %s to db: %v", w.ID, err)
+				}
+			} else {
+				w.Status = statuses.Error
+				if err := w.sync(ctx); err != nil {
+					logrus.Errorf("failed to sync task %s to db: %v", w.ID, err)
+				}
+				errChan <- err
 			}
-			errChan <- err
+
+			return
 		}
 	}()
 	return errChan

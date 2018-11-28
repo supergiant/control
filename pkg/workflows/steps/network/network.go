@@ -2,9 +2,9 @@ package network
 
 import (
 	"context"
+	"fmt"
 	"io"
 	"text/template"
-	"fmt"
 
 	"github.com/pkg/errors"
 
