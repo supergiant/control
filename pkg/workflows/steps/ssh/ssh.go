@@ -9,7 +9,6 @@ import (
 	"github.com/supergiant/control/pkg/runner/ssh"
 	"github.com/supergiant/control/pkg/workflows/steps"
 	"github.com/supergiant/control/pkg/clouds"
-	"github.com/Sirupsen/logrus"
 )
 
 const StepName = "ssh"
@@ -23,7 +22,6 @@ func Init() {
 func (s *Step) Run(ctx context.Context, writer io.Writer, config *steps.Config) error {
 	var err error
 
-	logrus.Info(config.SshConfig.User)
 	if config.Provider == clouds.AWS {
 		//on aws default user name on ubuntu images are not root but ubuntu
 		//https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/AccessingInstancesLinux.html
