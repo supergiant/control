@@ -72,17 +72,21 @@ func TestNewProvisioner(t *testing.T) {
 
 func TestProvisionCluster(t *testing.T) {
 	repository := &testutils.MockStorage{}
-	repository.On("Put", mock.Anything, mock.Anything, mock.Anything, mock.Anything).Return(nil)
+	repository.On("Put", mock.Anything,
+	mock.Anything, mock.Anything,
+	mock.Anything).Return(nil)
 
 	bc := &bufferCloser{
 		bytes.Buffer{},
 		nil,
 	}
 
+	svc := &mockKubeService{
+		data: make(map[string]*model.Kube),
+	}
+
 	provisioner := TaskProvisioner{
-		&mockKubeService{
-			data: make(map[string]*model.Kube),
-		},
+		svc,
 		repository,
 		func(string) (io.WriteCloser, error) {
 			return bc, nil
@@ -142,6 +146,15 @@ func TestProvisionCluster(t *testing.T) {
 	if len(provisioner.cancelMap) != 1 {
 		t.Errorf("Unexpected size of cancel map expected %d actual %d",
 			1, len(provisioner.cancelMap))
+	}
+
+	if k := svc.data[cfg.ClusterID]; k == nil {
+		t.Errorf("Kube %s not found", k.ID)
+
+		if len(k.Tasks) != len(p.MasterProfiles) + len(p.NodesProfiles) + 1 {
+			t.Errorf("Wrong count of tasks in kube expected %d actual %d",
+				len(p.MasterProfiles) + len(p.NodesProfiles) + 1, len(k.Tasks))
+		}
 	}
 }
 
@@ -404,4 +417,30 @@ func TestTaskProvisioner_CancelNotFound(t *testing.T) {
 	if err != sgerrors.ErrNotFound {
 		t.Errorf("Unexpected error value %v", err)
 	}
+}
+
+func TestBuildInitialCluster(t *testing.T) {
+	service := &mockKubeService{
+		data: make(map[string]*model.Kube),
+	}
+	clusterID := "clusterID"
+	tp := &TaskProvisioner{
+		kubeService: service,
+	}
+	taskIds := []string{"1234", "5678", "abcd"}
+
+
+	tp.buildInitialCluster(context.Background(), &profile.Profile{}, nil, nil, &steps.Config{
+		ClusterID: clusterID,
+	}, taskIds)
+
+	if k := service.data[clusterID]; k == nil {
+		t.Errorf("Cluster %s not found", clusterID)
+	} else {
+		if len(k.Tasks) != len(taskIds) {
+			t.Errorf("Wrong number of tasks in cluster " +
+				"expected %d actual %d", len(taskIds), len(k.Tasks))
+		}
+	}
+
 }

@@ -208,6 +208,7 @@ func (h *Handler) getTasks(w http.ResponseWriter, r *http.Request) {
 		}
 
 		message.SendUnknownError(w, err)
+		return
 	}
 
 	if len(tasks) == 0 {
@@ -571,7 +572,8 @@ func (h *Handler) addNode(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	// Get cloud account fill appropriate config structure with cloud account credentials
+	// Get cloud account fill appropriate config structure
+	// with cloud account credentials
 	err = util.FillCloudAccountCredentials(r.Context(), acc, config)
 
 	if err != nil {
@@ -580,7 +582,8 @@ func (h *Handler) addNode(w http.ResponseWriter, r *http.Request) {
 	}
 
 	ctx, _ := context.WithTimeout(context.Background(), time.Minute*10)
-	tasks, err := h.nodeProvisioner.ProvisionNodes(ctx, nodeProfiles, k, config)
+	tasks, err := h.nodeProvisioner.ProvisionNodes(ctx, nodeProfiles,
+		k, config)
 
 	if err != nil && sgerrors.IsNotFound(err) {
 		http.Error(w, err.Error(), http.StatusNotFound)
@@ -588,6 +591,13 @@ func (h *Handler) addNode(w http.ResponseWriter, r *http.Request) {
 	}
 
 	if err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+
+	// Add tasks ids to kube object
+	k.Tasks = append(k.Tasks, tasks...)
+	if err := h.svc.Create(ctx, k); err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
 	}
@@ -731,23 +741,32 @@ func (h *Handler) deleteNode(w http.ResponseWriter, r *http.Request) {
 
 // TODO(stgleb): Create separte task service to manage task object lifecycle
 func (h *Handler) getKubeTasks(ctx context.Context, kubeID string) ([]*workflows.Task, error) {
-	data, err := h.repo.GetAll(ctx, workflows.Prefix)
+	k, err := h.svc.Get(ctx, kubeID)
 
 	if err != nil {
-		return nil, errors.Wrap(err, "get cluster tasks")
+		return nil, err
 	}
 
-	tasks := make([]*workflows.Task, 0)
-	for _, v := range data {
-		task := &workflows.Task{}
-		err := json.Unmarshal(v, task)
+	tasks := make([]*workflows.Task, 0, len(k.Tasks))
+	for _, taskID := range k.Tasks {
+		t, err := h.repo.Get(ctx, workflows.Prefix, taskID)
+
+		// If one of tasks not found we dont care, because
+		// they may npt be created yet
 		if err != nil {
-			return nil, errors.Wrap(err, "unmarshal task data")
+			logrus.Debugf("task %s not found", taskID)
+			continue
 		}
 
-		if task != nil && task.Config != nil && task.Config.ClusterID == kubeID {
-			tasks = append(tasks, task)
+		task := &workflows.Task{}
+		err = json.Unmarshal(t, task)
+
+		if err != nil {
+			return nil, errors.Wrapf(err,
+				"get task %s", taskID)
 		}
+
+		tasks = append(tasks, task)
 	}
 
 	return tasks, nil
