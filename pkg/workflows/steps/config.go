@@ -19,8 +19,12 @@ type CertificatesConfig struct {
 	PrivateIP           string `json:"privateIp"`
 	IsMaster            bool   `json:"isMaster"`
 
-	Username string `json:"username"`
-	Password string `json:"password"`
+	StaticAuth profile.StaticAuth `json:"staticAuth"`
+
+	// DEPRECATED: it's a part of staticAuth
+	Username string
+	// DEPRECATED: it's a part of staticAuth
+	Password string
 
 	AdminCert string `json:"adminCert"`
 	AdminKey  string `json:"adminKey"`
@@ -278,6 +282,7 @@ func NewConfig(clusterName, discoveryUrl, cloudAccountName string, profile profi
 			KubernetesConfigDir: "/etc/kubernetes",
 			Username:            profile.User,
 			Password:            profile.Password,
+			StaticAuth:          profile.StaticAuth,
 		},
 		NetworkConfig: NetworkConfig{
 			EtcdRepositoryUrl: "https://github.com/coreos/etcd/releases/download",

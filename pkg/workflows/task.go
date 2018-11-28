@@ -39,7 +39,13 @@ func NewTask(taskType string, repository storage.Interface) (*Task, error) {
 		return nil, sgerrors.ErrNotFound
 	}
 
-	return newTask(taskType, w, repository), nil
+	t := newTask(taskType, w, repository)
+
+	// Try to sync the task at first time
+	err := t.sync(context.Background())
+
+	return t, err
+
 }
 
 func newTask(workflowType string, workflow Workflow, repository storage.Interface) *Task {

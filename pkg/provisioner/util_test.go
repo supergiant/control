@@ -118,3 +118,29 @@ func TestGenerateKeyPair(t *testing.T) {
 
 	privateKeyRSA.Validate()
 }
+
+func TestGrabTaskIds(t *testing.T) {
+	clusterTsk := &workflows.Task{
+		ID: "1234",
+	}
+
+	masterTasks := []*workflows.Task{
+		{
+			ID: "abcd",
+		},
+		{
+			ID: "1sgsg",
+		},
+		{
+			ID: "szrhhrs",
+		},
+	}
+
+	nodeTasks := []*workflows.Task{}
+	taskIds := grabTaskIds(clusterTsk, masterTasks, nodeTasks)
+
+	if len(taskIds) != len(masterTasks) + len(nodeTasks) + 1 {
+		t.Errorf("Wrong task id count expected %d actual %d",
+			len(masterTasks) + len(nodeTasks) + 1, len(taskIds))
+	}
+}
