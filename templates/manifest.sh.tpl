@@ -270,7 +270,7 @@ spec:
     - --secure-port=443
     - --v=2
     - --insecure-port=8080
-    - --insecure-bind-address=0.0.0.0
+    - --insecure-bind-address={{ .MasterHost }}
     {{if .RBACEnabled }}- --authorization-mode=Node,RBAC{{end}}
     - --advertise-address={{ .MasterHost }}
     - --admission-control=NamespaceLifecycle,NamespaceExists,LimitRanger,ServiceAccount,ResourceQuota,DefaultStorageClass{{if .RBACEnabled }},NodeRestriction{{end}}
