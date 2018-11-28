@@ -112,6 +112,7 @@ func (s *CreateSecurityGroupsStep) Run(ctx context.Context, w io.Writer, cfg *st
 	if err := s.authorizeSSH(ctx, EC2, cfg.AWSConfig.MastersSecurityGroupID); err != nil {
 		return err
 	}
+
 	if err := s.authorizeSSH(ctx, EC2, cfg.AWSConfig.NodesSecurityGroupID); err != nil {
 		return err
 	}
