@@ -107,17 +107,6 @@ func TestProvisionHandler(t *testing.T) {
 			expectedCode: http.StatusBadRequest,
 		},
 		{
-			description:  "error getting the cluster discovery url",
-			body:         validBody,
-			expectedCode: http.StatusInternalServerError,
-			kubeGetter: func(context.Context, string) (*model.Kube, error) {
-				return nil, nil
-			},
-			getToken: func(context.Context, int) (string, error) {
-				return "", errors.New("something has happened")
-			},
-		},
-		{
 			description:  "account not found",
 			body:         validBody,
 			expectedCode: http.StatusNotFound,
