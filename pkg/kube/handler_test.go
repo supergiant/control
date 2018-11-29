@@ -450,7 +450,7 @@ func TestHandler_deleteKube(t *testing.T) {
 			expectedStatus: http.StatusNotFound,
 		},
 		{
-			description: "delete kube err not found",
+			description:     "delete kube err not found",
 			kubeName:        "kubeName",
 			getAccountError: nil,
 			accountName:     "test",

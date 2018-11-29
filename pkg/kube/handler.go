@@ -48,12 +48,12 @@ type K8SServices struct {
 	} `json:"metadata"`
 	Items []struct {
 		Metadata struct {
-			Name              string    `json:"name"`
-			Namespace         string    `json:"namespace"`
-			SelfLink          string    `json:"selfLink"`
-			UID               string    `json:"uid"`
-			ResourceVersion   string    `json:"resourceVersion"`
-			CreationTimestamp time.Time `json:"creationTimestamp"`
+			Name              string            `json:"name"`
+			Namespace         string            `json:"namespace"`
+			SelfLink          string            `json:"selfLink"`
+			UID               string            `json:"uid"`
+			ResourceVersion   string            `json:"resourceVersion"`
+			CreationTimestamp time.Time         `json:"creationTimestamp"`
 			Labels            map[string]string `json:"labels"`
 		} `json:"metadata"`
 		Spec struct {
@@ -77,15 +77,15 @@ type K8SServices struct {
 }
 
 type ServiceInfo struct {
-	ID string `json:"id"`
-	Name     string `json:"name"`
-	Type     string `json:"type"`
+	ID                string `json:"id"`
+	Name              string `json:"name"`
+	Type              string `json:"type"`
 	SelfLink          string `json:"selfLink"`
 	APIServerProxyURL string `json:"selfLink"`
-	Namespace string `json:"namespace"`
-	ProxyPort string `json:"proxyPort"`
-	User string `json:"-"`
-	Password string `json:"-"`
+	Namespace         string `json:"namespace"`
+	ProxyPort         string `json:"proxyPort"`
+	User              string `json:"-"`
+	Password          string `json:"-"`
 }
 
 type MetricResponse struct {
@@ -108,7 +108,7 @@ type Handler struct {
 	repo            storage.Interface
 	getWriter       func(string) (io.WriteCloser, error)
 	getMetrics      func(string) (*MetricResponse, error)
-	proxies *APIProxy
+	proxies         *APIProxy
 }
 
 // NewHandler constructs a Handler for kubes.
@@ -163,7 +163,7 @@ func NewHandler(svc Interface, accountService accountGetter, provisioner nodePro
 
 			return metricResponse, nil
 		},
-		proxies:NewAPIProxy(svc, logrus.New().WithField("component", "proxy")),
+		proxies: NewAPIProxy(svc, logrus.New().WithField("component", "proxy")),
 	}
 }
 
@@ -1047,16 +1047,16 @@ func (h *Handler) getServices(w http.ResponseWriter, r *http.Request) {
 			continue
 		}
 
-		if len(service.Spec.Ports) == 1 &&  service.Spec.Ports[0].Protocol == "TCP"{
+		if len(service.Spec.Ports) == 1 && service.Spec.Ports[0].Protocol == "TCP" {
 			services = append(services, &ServiceInfo{
-				ID: service.Metadata.UID,
-				Name: service.Metadata.Name,
-				Type: service.Spec.Type,
+				ID:       service.Metadata.UID,
+				Name:     service.Metadata.Name,
+				Type:     service.Spec.Type,
 				SelfLink: service.Metadata.SelfLink,
 				APIServerProxyURL: fmt.Sprintf("https://%s%s:%d/proxy",
 					masterNode.PublicIp, service.Metadata.SelfLink, service.Spec.Ports[0].Port),
-				User: k.User,
-				Password:k.Password,
+				User:      k.User,
+				Password:  k.Password,
 				Namespace: service.Metadata.Namespace,
 			})
 			continue
@@ -1066,15 +1066,15 @@ func (h *Handler) getServices(w http.ResponseWriter, r *http.Request) {
 			if port.Protocol == "TCP" {
 				if _, ok := webPorts[port.Name]; ok {
 					service := &ServiceInfo{
-						ID: service.Metadata.UID,
-						Name: service.Metadata.Name,
-						Type: service.Spec.Type,
+						ID:       service.Metadata.UID,
+						Name:     service.Metadata.Name,
+						Type:     service.Spec.Type,
 						SelfLink: service.Metadata.SelfLink,
 						APIServerProxyURL: fmt.Sprintf("https://%s%s:%d/proxy",
 							masterNode.PublicIp, service.Metadata.SelfLink, port.Port),
-							User: k.User,
-							Password:k.Password,
-							Namespace: service.Metadata.Namespace,
+						User:      k.User,
+						Password:  k.Password,
+						Namespace: service.Metadata.Namespace,
 					}
 					services = append(services, service)
 				}
@@ -1094,7 +1094,6 @@ func (h *Handler) getServices(w http.ResponseWriter, r *http.Request) {
 	for _, service := range services {
 		service.ProxyPort = serviceIDToPort[service.ID]
 	}
-
 
 	err = json.NewEncoder(w).Encode(services)
 	if err != nil {

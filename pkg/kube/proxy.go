@@ -3,40 +3,40 @@ package kube
 import (
 	"context"
 	"crypto/tls"
-	"github.com/pkg/errors"
-	"github.com/sirupsen/logrus"
 	"net"
 	"net/http"
 	"net/http/httputil"
 	"net/url"
 	"strings"
 	"sync"
+
+	"github.com/pkg/errors"
+	"github.com/sirupsen/logrus"
 )
 
-
 type APIProxy struct {
-	servicesMux      sync.RWMutex
+	servicesMux sync.RWMutex
 	// map[kubeID]map[serviceID]*ServiceProxy
 	k8sClusterIDToProxies map[string]map[string]*ServiceProxy
-	svc              Interface
-	logger logrus.FieldLogger
+	svc                   Interface
+	logger                logrus.FieldLogger
 }
 
 type ServiceProxy struct {
-	service *ServiceInfo
-	srv *http.Server
+	service     *ServiceInfo
+	srv         *http.Server
 	servingBase string
 }
 
 func NewAPIProxy(svc Interface, logger logrus.FieldLogger) *APIProxy {
 	return &APIProxy{
 		k8sClusterIDToProxies: make(map[string]map[string]*ServiceProxy),
-		svc:              svc,
-		logger:logger,
+		svc:                   svc,
+		logger:                logger,
 	}
 }
 
-func NewServiceProxy(service *ServiceInfo, logger logrus.FieldLogger) (*ServiceProxy, error){
+func NewServiceProxy(service *ServiceInfo, logger logrus.FieldLogger) (*ServiceProxy, error) {
 	var httpServer = &http.Server{}
 	var mux = http.NewServeMux()
 	httpServer.Handler = mux
@@ -75,16 +75,14 @@ func NewServiceProxy(service *ServiceInfo, logger logrus.FieldLogger) (*ServiceP
 
 	logger.Infof("proxy server started on: %s, for service: %+v", addr, service)
 
-
 	return &ServiceProxy{
-		service: service,
-		srv:     httpServer,
+		service:     service,
+		srv:         httpServer,
 		servingBase: addr,
 	}, nil
 }
 
-
-func (p *APIProxy) SetServices(kubeID string, services []*ServiceInfo) (error) {
+func (p *APIProxy) SetServices(kubeID string, services []*ServiceInfo) error {
 	if p.svc == nil || p.k8sClusterIDToProxies == nil {
 		return errors.New("component was not initialized properly")
 	}
@@ -111,21 +109,19 @@ func (p *APIProxy) SetServices(kubeID string, services []*ServiceInfo) (error) {
 	}
 	p.servicesMux.Unlock()
 
-	for k, _ := range  p.k8sClusterIDToProxies[kubeID]{
+	for k := range p.k8sClusterIDToProxies[kubeID] {
 		p.logger.Errorf("%+v", *p.k8sClusterIDToProxies[kubeID][k])
 	}
-
 
 	return nil
 }
 
-
-func (p *APIProxy) GetServicesPorts(kubeID string) (map[string]string) {
+func (p *APIProxy) GetServicesPorts(kubeID string) map[string]string {
 	var serviceIDToPort = map[string]string{}
 
 	p.servicesMux.RLock()
 
-	for serviceID, serviceProxy  := range p.k8sClusterIDToProxies[kubeID] {
+	for serviceID, serviceProxy := range p.k8sClusterIDToProxies[kubeID] {
 		var parts = strings.Split(serviceProxy.servingBase, ":")
 		serviceIDToPort[serviceID] = parts[len(parts)-1]
 	}
@@ -142,13 +138,13 @@ func newHandler(service *ServiceInfo, reverseProxy *httputil.ReverseProxy, logge
 		inputURL = strings.TrimPrefix(inputURL, req.URL.Scheme)
 		inputURL = strings.TrimPrefix(inputURL, req.URL.Host)
 
-		if strings.HasPrefix(inputURL, service.SelfLink){
+		if strings.HasPrefix(inputURL, service.SelfLink) {
 			inputURL = strings.TrimPrefix(inputURL, service.SelfLink)
 		}
 
-		if strings.Index(inputURL, ":") == 0{
+		if strings.Index(inputURL, ":") == 0 {
 			parts := strings.Split(inputURL, "/")
-			inputURL = strings.TrimPrefix(inputURL, parts[0] + "/proxy")
+			inputURL = strings.TrimPrefix(inputURL, parts[0]+"/proxy")
 		}
 
 		logger.Infof("req.URL: %+v, inputURL %s, inputFullURL: %s, service: %+v",
@@ -169,10 +165,10 @@ func newHandler(service *ServiceInfo, reverseProxy *httputil.ReverseProxy, logge
 	}
 }
 
-func (p *APIProxy)Shutdown(ctx context.Context){
+func (p *APIProxy) Shutdown(ctx context.Context) {
 	p.servicesMux.Lock()
 	defer p.servicesMux.Unlock()
-	for clusterID, _ := range p.k8sClusterIDToProxies {
+	for clusterID := range p.k8sClusterIDToProxies {
 		for serviceID, proxy := range p.k8sClusterIDToProxies[clusterID] {
 			if err := proxy.Shutdown(ctx); err != nil {
 				p.logger.Errorf("cant close server for serviceID: %v, error: %v", serviceID, err)
@@ -181,7 +177,7 @@ func (p *APIProxy)Shutdown(ctx context.Context){
 	}
 }
 
-func (sp *ServiceProxy)Shutdown(ctx context.Context) error {
+func (sp *ServiceProxy) Shutdown(ctx context.Context) error {
 	if err := sp.srv.Shutdown(ctx); err != nil {
 		return err
 	}
