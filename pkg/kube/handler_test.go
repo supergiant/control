@@ -453,7 +453,7 @@ func TestHandler_deleteKube(t *testing.T) {
 			expectedStatus: http.StatusNotFound,
 		},
 		{
-			description: "delete kube err not found",
+			description:     "delete kube err not found",
 			kubeName:        "kubeName",
 			getAccountError: nil,
 			accountName:     "test",
@@ -980,90 +980,122 @@ func TestDeleteNodeFromKube(t *testing.T) {
 
 func TestKubeTasks(t *testing.T) {
 	testCases := []struct {
-		repoData [][]byte
-		repoErr  error
+		description string
+		repoData    []byte
+		repoErr     error
 
-		errText   string
-		taskCount int
+		kubeResp *model.Kube
+		kubeErr  error
+
+		err string
 	}{
 		{
-			nil,
-			sgerrors.ErrNotFound,
-			"not found",
-			0,
+			description: "kube not found",
+			kubeResp:    nil,
+			kubeErr:     sgerrors.ErrNotFound,
 		},
 		{
-			[][]byte{[]byte(`{`)},
-			nil,
-			"unmarshal",
-			0,
-		},
-		{
-			[][]byte{
-				[]byte(`{"config": {"clusterId":"test"}}`),
-				[]byte(`{"config": {"clusterId":"test2"}}`),
-				[]byte(`{"config": {"clusterId":"test"}}`),
+			description: "task not found",
+			kubeResp: &model.Kube{
+				Tasks: []string{"taskID"},
 			},
-			nil,
-			"",
-			2,
+			kubeErr: nil,
+			repoErr: sgerrors.ErrNotFound,
+		},
+		{
+			description: "marshall error",
+			kubeResp: &model.Kube{
+				Tasks: []string{"taskID"},
+			},
+			kubeErr:  nil,
+			repoData: []byte(`{`),
+			repoErr:  nil,
+			err:      "unexpected",
+		},
+		{
+			description: "success",
+			kubeResp: &model.Kube{
+				Tasks: []string{"taskID"},
+			},
+			kubeErr:  nil,
+			repoData: []byte(`{"config": {"clusterId":"test"}}`),
+			repoErr:  nil,
 		},
 	}
 
 	for _, testCase := range testCases {
+		t.Log(testCase.description)
+		svc := new(kubeServiceMock)
+		svc.On(serviceGet, mock.Anything, mock.Anything).
+			Return(testCase.kubeResp, testCase.kubeErr)
+
 		repo := &testutils.MockStorage{}
-		repo.On("GetAll", mock.Anything, mock.Anything).
+		repo.On("Get", mock.Anything, mock.Anything, mock.Anything).
 			Return(testCase.repoData, testCase.repoErr)
 		h := Handler{
 			repo: repo,
+			svc:  svc,
 		}
 
-		tasks, err := h.getKubeTasks(context.Background(), "test")
+		_, err := h.getKubeTasks(context.Background(), "test")
 
-		if err != nil && !strings.Contains(err.Error(), testCase.errText) {
+		if err != nil && !strings.Contains(err.Error(), testCase.err) {
 			t.Errorf("Wrong error error message expected to have %s actual %s",
-				testCase.errText, err.Error())
-		}
-
-		if len(tasks) != testCase.taskCount {
-			t.Errorf("Wrong task count expected %d actual %d",
-				testCase.taskCount, len(tasks))
+				testCase.err, err.Error())
 		}
 	}
 }
 
 func TestDeleteKubeTasks(t *testing.T) {
 	testCases := []struct {
-		repoData  [][]byte
-		getAllErr error
+		description string
+		repoData    []byte
+		repoErr     error
+
+		kubeResp *model.Kube
+		kubeErr  error
 
 		deleteErr error
 	}{
 		{
-			nil,
-			sgerrors.ErrNotFound,
-			sgerrors.ErrNotFound,
+			description: "kube not found",
+			kubeErr:     sgerrors.ErrNotFound,
+			deleteErr:   sgerrors.ErrNotFound,
 		},
 		{
-			[][]byte{
-				[]byte(`{"config": {"clusterId":"test"}}`),
-				[]byte(`{"config": {"clusterId":"test2"}}`),
-				[]byte(`{"config": {"clusterId":"test"}}`),
+			description: "repo not found",
+			kubeErr:     nil,
+			kubeResp: &model.Kube{
+				Tasks: []string{"not_found_id"},
 			},
-			nil,
-			nil,
+			repoErr: sgerrors.ErrNotFound,
+		},
+		{
+			description: "success",
+			kubeErr:     nil,
+			kubeResp: &model.Kube{
+				Tasks: []string{"1234"},
+			},
+
+			repoData: []byte(`{"config": {"clusterId":"test"}}`),
 		},
 	}
 
 	for _, testCase := range testCases {
+		t.Log(testCase.description)
+		svc := new(kubeServiceMock)
+		svc.On(serviceGet, mock.Anything, mock.Anything).
+			Return(testCase.kubeResp, testCase.kubeErr)
+
 		repo := &testutils.MockStorage{}
-		repo.On("GetAll", mock.Anything, mock.Anything).
-			Return(testCase.repoData, testCase.getAllErr)
+		repo.On("Get", mock.Anything, mock.Anything, mock.Anything).
+			Return(testCase.repoData, testCase.repoErr)
 		repo.On("Delete", mock.Anything,
 			mock.Anything, mock.Anything).
 			Return(testCase.deleteErr)
 		h := Handler{
 			repo: repo,
+			svc:  svc,
 		}
 
 		err := h.deleteClusterTasks(context.Background(), "test")
@@ -1138,43 +1170,66 @@ func TestServiceGetCerts(t *testing.T) {
 
 func TestGetTasks(t *testing.T) {
 	testCases := []struct {
-		kubeID   string
-		repoData [][]byte
-		repoErr  error
+		description string
+		kubeID      string
+		kubeResp    *model.Kube
+		kubeErr     error
+		repoData    []byte
+		repoErr     error
 
 		expectedCode int
 	}{
 		{
-			kubeID:       "",
-			expectedCode: http.StatusMovedPermanently,
-		},
-		{
+			description:  "kube not found",
 			kubeID:       "test",
-			repoErr:      sgerrors.ErrNotFound,
+			kubeErr:      sgerrors.ErrNotFound,
 			expectedCode: http.StatusNotFound,
 		},
 		{
-			kubeID:       "test",
-			repoData:     [][]byte{[]byte(`{`)},
+			description: "internal error",
+			kubeID:      "test",
+			kubeResp: &model.Kube{
+				ID:    "test",
+				Tasks: []string{"1234"},
+			},
+			repoData:     []byte(``),
 			expectedCode: http.StatusInternalServerError,
 		},
 		{
-			kubeID: "test",
-			repoData: [][]byte{
-				[]byte(`{"config": {"clusterId":"test"}}`),
-				[]byte(`{"config": {"clusterId":"test2"}}`),
-				[]byte(`{"config": {"clusterId":"test"}}`),
+			description: "nothing found",
+			kubeID:      "test",
+			kubeResp: &model.Kube{
+				ID:    "test",
+				Tasks: []string{"1234"},
 			},
+			repoErr:      sgerrors.ErrInvalidJson,
+			expectedCode: http.StatusNotFound,
+		},
+		{
+			description: "success",
+			kubeID:      "test",
+			kubeResp: &model.Kube{
+				ID:    "test",
+				Tasks: []string{"1234"},
+			},
+			repoData:     []byte(`{"config": {"clusterId":"test"}}`),
 			expectedCode: http.StatusOK,
 		},
 	}
 
 	for _, testCase := range testCases {
+		t.Log(testCase.description)
+		svc := new(kubeServiceMock)
+		svc.On(serviceGet, mock.Anything, mock.Anything).
+			Return(testCase.kubeResp, testCase.kubeErr)
+
 		repo := &testutils.MockStorage{}
-		repo.On("GetAll", mock.Anything, mock.Anything).
+		repo.On("Get", mock.Anything,
+			mock.Anything, mock.Anything).
 			Return(testCase.repoData, testCase.repoErr)
 		h := Handler{
 			repo: repo,
+			svc:  svc,
 		}
 
 		rec := httptest.NewRecorder()
@@ -1292,8 +1347,8 @@ func TestHandler_getRelease(t *testing.T) {
 			kubeSvc: &kubeServiceMock{
 				rls: deployedRelease,
 			},
-			expectedStatus:  http.StatusOK,
-			expectedRls: deployedRelease,
+			expectedStatus: http.StatusOK,
+			expectedRls:    deployedRelease,
 		},
 	}
 
