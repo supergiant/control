@@ -39,12 +39,16 @@ func TestWorkflowHandlerGetWorkflow(t *testing.T) {
 		Type:         expectedType,
 		StepStatuses: expectedSteps,
 	}
-	data, _ := json.Marshal(w1)
+	data, err := json.Marshal(w1)
+
+	if err != nil {
+		t.Errorf("json marshall %v", err)
+	}
 
 	h := TaskHandler{
 		repository: &MockRepository{
 			map[string][]byte{
-				fmt.Sprintf("%s/%s", Prefix, id): data,
+				fmt.Sprintf("%s%s", Prefix, id): data,
 			},
 		},
 	}
@@ -57,7 +61,7 @@ func TestWorkflowHandlerGetWorkflow(t *testing.T) {
 	router.ServeHTTP(resp, req)
 
 	w2 := &Task{}
-	err := json.Unmarshal(resp.Body.Bytes(), w2)
+	err = json.Unmarshal(resp.Body.Bytes(), w2)
 
 	if err != nil {
 		t.Errorf("Unexpected err %v", err)
