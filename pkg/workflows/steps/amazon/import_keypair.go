@@ -75,7 +75,7 @@ func (s *KeyPairStep) Run(ctx context.Context, w io.Writer, cfg *steps.Config) e
 	if err != nil {
 		if strings.Contains(err.Error(), "InvalidKeyPair.Duplicate") {
 			cfg.AWSConfig.KeyPairName = bootstrapKeyPairName
-			return nil
+			return errors.Wrap(ErrImportKeyPair, err.Error())
 		}
 		return errors.Wrap(ErrImportKeyPair, err.Error())
 	}

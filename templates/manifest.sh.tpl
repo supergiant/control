@@ -280,7 +280,7 @@ spec:
     - --kubelet-client-certificate=/etc/kubernetes/ssl/apiserver.pem
     - --kubelet-client-key=/etc/kubernetes/ssl/apiserver-key.pem
     - --client-ca-file=/etc/kubernetes/ssl/ca.pem
-    - --service-account-key-file=/etc/kubernetes/ssl/apiserver-key.pem
+    - --service-account-key-file=/etc/kubernetes/ssl/ca.pem
     - --basic-auth-file=/etc/kubernetes/ssl/basic_auth.csv
     - --token-auth-file=/etc/kubernetes/ssl/known_tokens.csv
     - --kubelet-preferred-address-types=InternalIP,Hostname,ExternalIP
@@ -331,7 +331,7 @@ spec:
     - /hyperkube
     - controller-manager
     - --master=http://{{ .MasterHost }}:{{ .MasterPort }}
-    - --service-account-private-key-file=/etc/kubernetes/ssl/apiserver-key.pem
+    - --service-account-private-key-file=/etc/kubernetes/ssl/ca-key.pem
     - --root-ca-file=/etc/kubernetes/ssl/ca.pem
     - --v=2
     - --cluster-cidr=10.244.0.0/14

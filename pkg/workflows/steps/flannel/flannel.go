@@ -41,6 +41,8 @@ func (t *Step) Run(ctx context.Context, out io.Writer, config *steps.Config) err
 
 	if !config.IsMaster {
 		config.FlannelConfig.EtcdHost = config.GetMaster().PrivateIp
+	} else {
+		config.FlannelConfig.EtcdHost = "127.0.0.1"
 	}
 
 	err := steps.RunTemplate(context.Background(), t.script,

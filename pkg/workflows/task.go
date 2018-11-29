@@ -10,12 +10,12 @@ import (
 	"github.com/pborman/uuid"
 	"github.com/pkg/errors"
 	"github.com/sirupsen/logrus"
-
 	"github.com/supergiant/control/pkg/sgerrors"
 	"github.com/supergiant/control/pkg/storage"
 	"github.com/supergiant/control/pkg/util"
 	"github.com/supergiant/control/pkg/workflows/statuses"
 	"github.com/supergiant/control/pkg/workflows/steps"
+	"github.com/supergiant/control/pkg/workflows/steps/etcd"
 )
 
 // Task is an entity that has it own state that can be tracked
@@ -198,6 +198,15 @@ func (w *Task) startFrom(ctx context.Context, id string, out io.Writer, i int) e
 
 		if err := w.sync(ctx); err != nil {
 			logrus.Errorf("sync error %v", err)
+		}
+
+		//TODO move to step
+		if w.Config.IsMaster {
+			if step.Name() == etcd.StepName {
+				//wait until all masters are ready for etcd bootstrapping
+				w.Config.ReadyForBootstrapLatch.Done()
+				w.Config.ReadyForBootstrapLatch.Wait()
+			}
 		}
 
 		if err := step.Run(ctx, out, w.Config); err != nil {
