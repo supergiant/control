@@ -9,10 +9,18 @@ RUN CGO_ENABLED=0 GOOS=linux GOARCH=${ARCH} \
 
 RUN apk --update add ca-certificates
 
+FROM node:10-alpine as ui-builder
+
+COPY ./cmd/ui/ /
+WORKDIR /assets
+
+RUN npm install
+RUN npm run build
+
 FROM scratch
 COPY --from=builder /etc/ssl/certs/ca-certificates.crt /etc/ssl/certs/ca-certificates.crt
 COPY --from=builder /go/bin/supergiant /bin/supergiant
 COPY --from=builder /go/src/github.com/supergiant/control/templates /etc/supergiant/templates
-COPY --from=builder /go/src/github.com/supergiant/control/cmd/ui/assets/dist /etc/supergiant/ui
+COPY --from=ui-builder /assets/dist /etc/supergiant/ui
 
 ENTRYPOINT ["/bin/supergiant", "-ui-dir", "/etc/supergiant/ui"]

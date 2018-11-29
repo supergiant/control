@@ -754,6 +754,8 @@ func TestAddNodeToKube(t *testing.T) {
 		svc := new(kubeServiceMock)
 		svc.On(serviceGet, mock.Anything, mock.Anything).
 			Return(testCase.kube, testCase.kubeServiceErr)
+		svc.On(serviceCreate, mock.Anything, mock.Anything).
+			Return(nil)
 
 		accService := new(accServiceMock)
 		accService.On("Get", mock.Anything, mock.Anything).
