@@ -83,7 +83,6 @@ export class ClusterComponent implements OnInit, OnDestroy {
   ngOnInit() {
     this.clusterId = this.route.snapshot.params.id;
     this.getKube();
-    this.getKubectlConfig();
   }
 
   ngOnDestroy() {
@@ -189,6 +188,7 @@ export class ClusterComponent implements OnInit, OnDestroy {
               this.getReleases();
               this.getClusterMetrics();
               this.getMachineMetrics();
+              this.getKubectlConfig();
               break;
             }
             case "provisioning": {
