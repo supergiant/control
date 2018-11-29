@@ -153,6 +153,8 @@ import { UsageOrbComponent } from './dashboard/usage-orb/usage-orb.component';
 import { ClusterTableComponent } from './dashboard/cluster-table/cluster-table.component';
 import { DeleteClusterModalComponent } from './clusters/cluster/delete-cluster-modal/delete-cluster-modal.component';
 import { DeleteReleaseModalComponent } from './clusters/cluster/delete-release-modal/delete-release-modal.component';
+import { SshCommandsModalComponent } from './clusters/cluster/ssh-commands-modal/ssh-commands-modal.component';
+import { KubectlConfigModalComponent } from './clusters/cluster/kubectl-config-modal/kubectl-config-modal.component';
 
 @NgModule({
   declarations: [
@@ -209,6 +211,8 @@ import { DeleteReleaseModalComponent } from './clusters/cluster/delete-release-m
     ClusterTableComponent,
     DeleteClusterModalComponent,
     DeleteReleaseModalComponent,
+    SshCommandsModalComponent,
+    KubectlConfigModalComponent,
   ],
   imports: [
     BrowserModule,
@@ -311,7 +315,9 @@ import { DeleteReleaseModalComponent } from './clusters/cluster/delete-release-m
     MenuModalComponent,
     ClusterListModalComponent,
     DeleteClusterModalComponent,
-    DeleteReleaseModalComponent
+    DeleteReleaseModalComponent,
+    SshCommandsModalComponent,
+    KubectlConfigModalComponent
   ],
   bootstrap: [AppComponent],
 })

@@ -13,6 +13,8 @@ import { Notifications } from '../../shared/notifications/notifications.service'
 import { ConfirmModalComponent } from '../../shared/modals/confirm-modal/confirm-modal.component';
 import { DeleteClusterModalComponent } from './delete-cluster-modal/delete-cluster-modal.component';
 import { DeleteReleaseModalComponent } from './delete-release-modal/delete-release-modal.component';
+import { SshCommandsModalComponent } from './ssh-commands-modal/ssh-commands-modal.component';
+import { KubectlConfigModalComponent } from './kubectl-config-modal/kubectl-config-modal.component';
 import { TaskLogsComponent } from './task-logs/task-logs.component';
 
 
@@ -57,6 +59,8 @@ export class ClusterComponent implements OnInit, OnDestroy {
   ramUsage: number;
   machineMetrics = {};
 
+  kubectlConfig: any;
+
   constructor(
     private route: ActivatedRoute,
     private location: Location,
@@ -79,6 +83,7 @@ export class ClusterComponent implements OnInit, OnDestroy {
   ngOnInit() {
     this.clusterId = this.route.snapshot.params.id;
     this.getKube();
+    this.getKubectlConfig();
   }
 
   ngOnDestroy() {
@@ -291,6 +296,14 @@ export class ClusterComponent implements OnInit, OnDestroy {
     )
   }
 
+  getKubectlConfig() {
+    // TODO: move to service
+    this.util.fetch('v1/api/kubes/' + this.clusterId + '/users/kubernetes-admin/kubeconfig').subscribe(
+      res => this.kubectlConfig = res,
+      err => console.error(err)
+    )
+  }
+
   calculateMachineMetrics(machines) {
     Object.keys(machines).forEach(m => {
       machines[m].cpu = (machines[m].cpu * 100).toFixed(1);
@@ -355,6 +368,20 @@ export class ClusterComponent implements OnInit, OnDestroy {
       )
   }
 
+  showSshCommands() {
+    const masters = [];
+    const nodes = [];
+
+    Object.keys(this.kube.masters).map(m => masters.push(this.kube.masters[m]));
+    Object.keys(this.kube.nodes).map(m => nodes.push(this.kube.nodes[m]));
+
+    this.initSshCommands(masters, nodes);
+  }
+
+  showKubectlConfig() {
+    this.initKubectlConfig(this.kubectlConfig);
+  }
+
   private initDialog(target) {
     const popupWidth = 250;
     const dialogRef = this.dialog.open(ConfirmModalComponent, {
@@ -380,6 +407,24 @@ export class ClusterComponent implements OnInit, OnDestroy {
       width: "max-content",
       data: { name: name }
     })
+    return dialogRef;
+  }
+
+  private initSshCommands(masters, nodes) {
+    const dialogRef = this.dialog.open(SshCommandsModalComponent, {
+      width: "600px",
+      data: { masters: masters, nodes: nodes }
+    })
+
+    return dialogRef;
+  }
+
+  private initKubectlConfig(config) {
+    const dialogRef = this.dialog.open(KubectlConfigModalComponent, {
+      width: "800px",
+      data: { config: config }
+    })
+
     return dialogRef;
   }
 
