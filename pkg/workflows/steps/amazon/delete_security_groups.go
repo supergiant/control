@@ -10,6 +10,8 @@ import (
 	"github.com/supergiant/control/pkg/sgerrors"
 	"github.com/supergiant/control/pkg/workflows/steps"
 	"io"
+	"github.com/aws/aws-sdk-go/aws/awserr"
+	"time"
 )
 
 const DeleteSecurityGroupsStepName = "aws_delete_security_groups"
@@ -33,15 +35,17 @@ func (s *DeleteSecurityGroup) Run(ctx context.Context, w io.Writer, cfg *steps.C
 	masterGroupName, err := s.getSecurityGroupNameByID(
 		cfg.AWSConfig.MastersSecurityGroupID, EC2)
 
-	if err != nil {
-		return errors.Wrapf(err, "get master security group ID")
+	if err, ok := err.(awserr.Error); ok {
+			logrus.Debugf("get master security group ID %v", err)
+			return errors.Wrapf(err, "get master security group ID")
 	}
 	logrus.Debugf("Master group name %s", masterGroupName)
 
 	nodeGroupName, err := s.getSecurityGroupNameByID(
 		cfg.AWSConfig.NodesSecurityGroupID, EC2)
 
-	if err != nil {
+	if err, ok := err.(awserr.Error); ok {
+		logrus.Debugf("get node security group ID %s", err.Message())
 		return errors.Wrapf(err, "get node security group ID")
 	}
 
@@ -50,27 +54,65 @@ func (s *DeleteSecurityGroup) Run(ctx context.Context, w io.Writer, cfg *steps.C
 	// Decouple security groups from each other
 	revokeInput := &ec2.RevokeSecurityGroupIngressInput{
 		GroupId:   aws.String(cfg.AWSConfig.MastersSecurityGroupID),
-		GroupName: aws.String(nodeGroupName),
+		SourceSecurityGroupName: aws.String(nodeGroupName),
 	}
 
-	output, err := EC2.RevokeSecurityGroupIngress(revokeInput)
+	logrus.Debugf("Revoke relation between master and node security groups")
+	_, err = EC2.RevokeSecurityGroupIngressWithContext(ctx, revokeInput)
 
-	logrus.Debugf(output.String())
-	if err != nil {
-		return errors.Wrapf(err, "find security group %s",
-			cfg.AWSConfig.NodesSecurityGroupID)
+	if err, ok := err.(awserr.Error); ok {
+		return errors.Wrapf(err, "revoke relation between master " +
+			"and node security group %s caused %s",
+			cfg.AWSConfig.NodesSecurityGroupID, err.Message())
 	}
 
 	revokeInput = &ec2.RevokeSecurityGroupIngressInput{
 		GroupId:   aws.String(cfg.AWSConfig.NodesSecurityGroupID),
-		GroupName: aws.String(masterGroupName),
+		SourceSecurityGroupName: aws.String(masterGroupName),
 	}
 
-	_, err = EC2.RevokeSecurityGroupIngress(revokeInput)
+	logrus.Debugf("Revoke relation between node and master security groups")
+	_, err = EC2.RevokeSecurityGroupIngressWithContext(ctx, revokeInput)
 
-	if err != nil {
+	if err, ok := err.(awserr.Error); ok {
+		logrus.Debugf("revoke relation between node and master " +
+			"security group caused %s caused %s",
+			cfg.AWSConfig.MastersSecurityGroupID, err.Message())
 		return errors.Wrapf(err, "find security group %s",
 			cfg.AWSConfig.NodesSecurityGroupID)
+	}
+
+	referenceInput := &ec2.DescribeSecurityGroupReferencesInput{
+		GroupId: []*string{aws.String(cfg.AWSConfig.MastersSecurityGroupID),
+		aws.String(cfg.AWSConfig.NodesSecurityGroupID)},
+	}
+
+	references, err := EC2.DescribeSecurityGroupReferences(referenceInput)
+	for _, ref := range references.SecurityGroupReferenceSet {
+		logrus.Debugf("GroupID: %s ReferenceGroup: %s", *ref.GroupId,
+			*ref.ReferencingVpcId)
+	}
+
+	if err, ok := err.(awserr.Error); ok {
+		logrus.Debugf("DescribeSecurityGroupReferences caused %s", err.Error())
+		return errors.Wrapf(err, "DescribeSecurityGroupReferences:",
+			DeleteSecurityGroupsStepName)
+	}
+
+	// TODO(stgleb): Yes, this needs to be more interactive
+	time.Sleep(time.Minute * 1)
+
+	references, err = EC2.DescribeSecurityGroupReferences(referenceInput)
+	for _, ref := range references.SecurityGroupReferenceSet {
+		logrus.Debugf("GroupID: %s ReferenceGroup: %s", *ref.GroupId,
+			*ref.ReferencingVpcId)
+	}
+
+
+	if err, ok := err.(awserr.Error); ok {
+		logrus.Debugf("DescribeSecurityGroupReferences caused %s", err.Error())
+		return errors.Wrapf(err, "DescribeSecurityGroupReferences:",
+			DeleteSecurityGroupsStepName)
 	}
 
 	logrus.Debugf("Delete master security group %s", cfg.AWSConfig.MastersSecurityGroupID)
@@ -78,22 +120,31 @@ func (s *DeleteSecurityGroup) Run(ctx context.Context, w io.Writer, cfg *steps.C
 		GroupId: aws.String(cfg.AWSConfig.MastersSecurityGroupID),
 	}
 
-	_, err = EC2.DeleteSecurityGroup(reqMaster)
+	_, err = EC2.DeleteSecurityGroupWithContext(ctx, reqMaster)
 
-	if err != nil {
-		return errors.Wrapf(err, "%s: master security groups", DeleteSecurityGroupsStepName)
+	if err, ok := err.(awserr.Error); ok {
+		logrus.Debugf("delete master security group %s caused %s",
+			aws.String(cfg.AWSConfig.MastersSecurityGroupID), err.Error())
+		return errors.Wrapf(err, "%s: master security groups",
+			DeleteSecurityGroupsStepName)
 	}
+
 
 	reqNode := &ec2.DeleteSecurityGroupInput{
 		GroupId: aws.String(cfg.AWSConfig.NodesSecurityGroupID),
 	}
 
-	logrus.Debugf("Delete node security group %s", cfg.AWSConfig.NodesSecurityGroupID)
-	_, err = EC2.DeleteSecurityGroup(reqNode)
+	logrus.Debugf("Delete node security group %s",
+		cfg.AWSConfig.NodesSecurityGroupID)
+	_, err = EC2.DeleteSecurityGroupWithContext(ctx, reqNode)
 
-	if err != nil {
-		return errors.Wrapf(err, "%s: nodes security groups", DeleteSecurityGroupsStepName)
+	if err, ok := err.(awserr.Error); ok {
+		logrus.Debugf("delete node security group %s %s",
+			aws.String(cfg.AWSConfig.NodesSecurityGroupID), err.Message())
+		return errors.Wrapf(err, "%s: nodes security groups",
+			DeleteSecurityGroupsStepName)
 	}
+
 
 	logrus.Debugf("Deleting security group finished")
 	return nil
