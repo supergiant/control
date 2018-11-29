@@ -18,25 +18,28 @@ import (
 
 const DeleteClusterMachinesStepName = "aws_delete_cluster_machines"
 
-type DeleteClusterStep struct {
+type DeleteClusterMachines struct {
 	GetEC2 GetEC2Fn
 }
 
 func InitDeleteClusterMachines(fn GetEC2Fn) {
-	steps.RegisterStep(DeleteClusterMachinesStepName, &DeleteClusterStep{
+	steps.RegisterStep(DeleteClusterMachinesStepName, &DeleteClusterMachines{
 		GetEC2: fn,
 	})
 }
 
-func (s *DeleteClusterStep) Run(ctx context.Context, w io.Writer, cfg *steps.Config) error {
+func (s *DeleteClusterMachines) Run(ctx context.Context, w io.Writer, cfg *steps.Config) error {
 	log := util.GetLogger(w)
 	logrus.Infof("[%s] - deleting cluster %s", s.Name(), cfg.ClusterName)
 
+
+	logrus.Debug(cfg.AWSConfig)
 	EC2, err := s.GetEC2(cfg.AWSConfig)
 	if err != nil {
 		return errors.Wrap(ErrAuthorization, err.Error())
 	}
 
+	logrus.Debug(cfg.AWSConfig)
 	describeInstanceOutput, err := EC2.DescribeInstancesWithContext(ctx, &ec2.DescribeInstancesInput{
 		Filters: []*ec2.Filter{
 			{
@@ -81,18 +84,18 @@ func (s *DeleteClusterStep) Run(ctx context.Context, w io.Writer, cfg *steps.Con
 	return nil
 }
 
-func (*DeleteClusterStep) Name() string {
+func (*DeleteClusterMachines) Name() string {
 	return DeleteClusterMachinesStepName
 }
 
-func (*DeleteClusterStep) Depends() []string {
+func (*DeleteClusterMachines) Depends() []string {
 	return nil
 }
 
-func (*DeleteClusterStep) Description() string {
+func (*DeleteClusterMachines) Description() string {
 	return "Deletes all nodes in aws cluster"
 }
 
-func (*DeleteClusterStep) Rollback(context.Context, io.Writer, *steps.Config) error {
+func (*DeleteClusterMachines) Rollback(context.Context, io.Writer, *steps.Config) error {
 	return nil
 }

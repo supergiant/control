@@ -45,6 +45,7 @@ func findOutBoundIP() (string, error) {
 	resp, err := http.Get(serviceURL)
 	if err != nil {
 		logrus.Debugf("error while accessing %s", serviceURL)
+		return "", err
 	}
 
 	defer resp.Body.Close()
