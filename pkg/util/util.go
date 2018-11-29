@@ -133,3 +133,21 @@ func GetRandomNode(nodeMap map[string]*node.Node) *node.Node {
 func GetWriter(name string) (io.WriteCloser, error) {
 	return os.OpenFile(path.Join("/tmp", name), os.O_CREATE|os.O_WRONLY|os.O_APPEND, 0666)
 }
+
+func LoadCloudSpecificDataFromKube(k *model.Kube, config *steps.Config) {
+	switch config.Provider {
+	case clouds.AWS:
+			config.AWSConfig.Region = k.Region
+			config.AWSConfig.AvailabilityZone = k.CloudSpec[clouds.AwsAZ]
+			config.AWSConfig.VPCCIDR = k.CloudSpec[clouds.AwsVpcCIDR]
+			config.AWSConfig.VPCID = k.CloudSpec[clouds.AwsVpcID]
+			config.AWSConfig.KeyPairName = k.CloudSpec[clouds.AwsKeyPairName]
+			config.AWSConfig.SubnetID = k.CloudSpec[clouds.AwsSubnetID]
+			config.AWSConfig.MastersSecurityGroupID = k.CloudSpec[clouds.AwsMastersSecGroupID]
+			config.AWSConfig.NodesSecurityGroupID = k.CloudSpec[clouds.AwsNodesSecgroupID]
+			config.SshConfig.BootstrapPrivateKey = k.CloudSpec[clouds.AwsSshBootstrapPrivateKey]
+			config.SshConfig.PublicKey = k.CloudSpec[clouds.AwsUserProvidedSshPublicKey]
+	case clouds.GCE:
+		config.GCEConfig.AvailabilityZone = k.Zone
+	}
+}

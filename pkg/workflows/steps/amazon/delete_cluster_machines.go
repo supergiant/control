@@ -16,14 +16,14 @@ import (
 	"github.com/supergiant/control/pkg/workflows/steps"
 )
 
-const DeleteClusterStepName = "aws_delete_cluster"
+const DeleteClusterMachinesStepName = "aws_delete_cluster_machines"
 
 type DeleteClusterStep struct {
 	GetEC2 GetEC2Fn
 }
 
-func InitDeleteCluster(fn GetEC2Fn) {
-	steps.RegisterStep(DeleteClusterStepName, &DeleteClusterStep{
+func InitDeleteClusterMachines(fn GetEC2Fn) {
+	steps.RegisterStep(DeleteClusterMachinesStepName, &DeleteClusterStep{
 		GetEC2: fn,
 	})
 }
@@ -82,7 +82,7 @@ func (s *DeleteClusterStep) Run(ctx context.Context, w io.Writer, cfg *steps.Con
 }
 
 func (*DeleteClusterStep) Name() string {
-	return DeleteClusterStepName
+	return DeleteClusterMachinesStepName
 }
 
 func (*DeleteClusterStep) Depends() []string {

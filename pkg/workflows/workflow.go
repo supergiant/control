@@ -152,7 +152,9 @@ func Init() {
 	}
 
 	awsDeleteClusterWorkflow := []steps.Step{
-		steps.GetStep(amazon.DeleteClusterStepName),
+		steps.GetStep(amazon.DeleteClusterMachinesStepName),
+		steps.GetStep(amazon.DeleteSecurityGroupsStepName),
+		steps.GetStep(amazon.DeleteVPCStepName),
 	}
 
 	awsDeleteNodeWorkflow := []steps.Step{

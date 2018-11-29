@@ -354,10 +354,8 @@ func (h *Handler) deleteKube(w http.ResponseWriter, r *http.Request) {
 		Nodes:            steps.NewMap(k.Nodes),
 	}
 
-	// TODO(stgleb): Move this hacks to separate methods
-	if acc.Provider == clouds.AWS {
-		config.AWSConfig.Region = k.Region
-	}
+	// Load things specific to cloud provider
+	util.LoadCloudSpecificDataFromKube(k, config)
 
 	if acc.Provider == clouds.GCE {
 		config.GCEConfig.AvailabilityZone = k.Zone
@@ -685,14 +683,7 @@ func (h *Handler) deleteNode(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	// TODO(stgleb): Move this hacks to separate methods
-	if acc.Provider == clouds.AWS {
-		config.AWSConfig.Region = k.Region
-	}
-
-	if acc.Provider == clouds.GCE {
-		config.GCEConfig.AvailabilityZone = k.Zone
-	}
+	util.LoadCloudSpecificDataFromKube(k, config)
 
 	writer, err := h.getWriter(t.ID)
 
