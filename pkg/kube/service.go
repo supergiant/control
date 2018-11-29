@@ -35,7 +35,11 @@ const (
 	releaseInstallTimeout = 300
 )
 
-var _ Interface = &Service{}
+var (
+	ErrNoHelmProxy = errors.New("helm proxy constructor not found")
+
+	_ Interface = &Service{}
+)
 
 // Interface represents an interface for a kube service.
 type Interface interface {
@@ -49,6 +53,7 @@ type Interface interface {
 	GetCerts(ctx context.Context, kname, cname string) (*Bundle, error)
 	InstallRelease(ctx context.Context, kname string, rls *ReleaseInput) (*release.Release, error)
 	ListReleases(ctx context.Context, kname, ns, offset string, limit int) ([]*model.ReleaseInfo, error)
+	ReleaseDetails(ctx context.Context, kname, rlsName string) (*release.Release, error)
 	DeleteRelease(ctx context.Context, kname, rlsName string, purge bool) (*model.ReleaseInfo, error)
 }
 
@@ -84,7 +89,7 @@ func NewService(prefix string, s storage.Interface, chrtGetter ChartGetter) *Ser
 }
 
 // Create and stores a kube in the provided storage.
-func (s *Service) Create(ctx context.Context, k *model.Kube) error {
+func (s Service) Create(ctx context.Context, k *model.Kube) error {
 	if k.ID == "" {
 		k.ID = uuid.New()[:8]
 	}
@@ -103,7 +108,7 @@ func (s *Service) Create(ctx context.Context, k *model.Kube) error {
 }
 
 // Get returns a kube with a specified name.
-func (s *Service) Get(ctx context.Context, kubeID string) (*model.Kube, error) {
+func (s Service) Get(ctx context.Context, kubeID string) (*model.Kube, error) {
 	raw, err := s.storage.Get(ctx, s.prefix, kubeID)
 	if err != nil {
 		return nil, errors.Wrap(err, "storage: get")
@@ -121,7 +126,7 @@ func (s *Service) Get(ctx context.Context, kubeID string) (*model.Kube, error) {
 }
 
 // ListAll returns all kubes.
-func (s *Service) ListAll(ctx context.Context) ([]model.Kube, error) {
+func (s Service) ListAll(ctx context.Context) ([]model.Kube, error) {
 	rawKubes, err := s.storage.GetAll(ctx, s.prefix)
 	if err != nil {
 		return nil, errors.Wrap(err, "storage: getAll")
@@ -140,12 +145,12 @@ func (s *Service) ListAll(ctx context.Context) ([]model.Kube, error) {
 }
 
 // Delete deletes a kube with a specified name.
-func (s *Service) Delete(ctx context.Context, kubeID string) error {
+func (s Service) Delete(ctx context.Context, kubeID string) error {
 	return s.storage.Delete(ctx, s.prefix, kubeID)
 }
 
 // ListKubeResources returns raw representation of the supported kubernetes resources.
-func (s *Service) ListKubeResources(ctx context.Context, kubeID string) ([]byte, error) {
+func (s Service) ListKubeResources(ctx context.Context, kubeID string) ([]byte, error) {
 	kube, err := s.Get(ctx, kubeID)
 	if err != nil {
 		return nil, errors.Wrap(err, "get kube")
@@ -165,7 +170,7 @@ func (s *Service) ListKubeResources(ctx context.Context, kubeID string) ([]byte,
 }
 
 // GetKubeResources returns raw representation of the kubernetes resources.
-func (s *Service) GetKubeResources(ctx context.Context, kubeID, resource, ns, name string) ([]byte, error) {
+func (s Service) GetKubeResources(ctx context.Context, kubeID, resource, ns, name string) ([]byte, error) {
 	kube, err := s.Get(ctx, kubeID)
 	if err != nil {
 		return nil, errors.Wrap(err, "get kube")
@@ -198,7 +203,7 @@ func (s *Service) GetKubeResources(ctx context.Context, kubeID, resource, ns, na
 	return raw, nil
 }
 
-func (s *Service) KubeConfigFor(ctx context.Context, kubeID, user string) ([]byte, error) {
+func (s Service) KubeConfigFor(ctx context.Context, kubeID, user string) ([]byte, error) {
 	// there are certificates only for the cluster-admin user
 	if user != KubernetesAdminUser {
 		return nil, errors.Wrapf(sgerrors.ErrNotFound, "%q user", user)
@@ -227,7 +232,7 @@ func (s *Service) KubeConfigFor(ctx context.Context, kubeID, user string) ([]byt
 
 // GetCerts returns a keys bundle for provided component name.
 // TODO: do we need this?
-func (s *Service) GetCerts(ctx context.Context, kname, cname string) (*Bundle, error) {
+func (s Service) GetCerts(ctx context.Context, kname, cname string) (*Bundle, error) {
 	kube, err := s.Get(ctx, kname)
 	if err != nil {
 		return nil, err
@@ -255,7 +260,7 @@ func (s *Service) GetCerts(ctx context.Context, kname, cname string) (*Bundle, e
 	return b, nil
 }
 
-func (s *Service) InstallRelease(ctx context.Context, kubeID string, rls *ReleaseInput) (*release.Release, error) {
+func (s Service) InstallRelease(ctx context.Context, kubeID string, rls *ReleaseInput) (*release.Release, error) {
 	if rls == nil {
 		return nil, errors.Wrap(sgerrors.ErrNilEntity, "release input")
 	}
@@ -269,7 +274,7 @@ func (s *Service) InstallRelease(ctx context.Context, kubeID string, rls *Releas
 	if err != nil {
 		return nil, errors.Wrap(err, "get kube")
 	}
-	kprx, err := s.newHelmProxyFn(kube)
+	kprx, err := s.helmClient(kube)
 	if err != nil {
 		return nil, errors.Wrap(err, "build helm proxy")
 	}
@@ -286,12 +291,30 @@ func (s *Service) InstallRelease(ctx context.Context, kubeID string, rls *Releas
 	return rr.GetRelease(), err
 }
 
-func (s *Service) ListReleases(ctx context.Context, kubeID, namespace, offset string, limit int) ([]*model.ReleaseInfo, error) {
+func (s Service) ReleaseDetails(ctx context.Context, kubeID, rlsName string) (*release.Release, error) {
 	kube, err := s.Get(ctx, kubeID)
 	if err != nil {
 		return nil, errors.Wrap(err, "get kube")
 	}
-	kprx, err := s.newHelmProxyFn(kube)
+	kprx, err := s.helmClient(kube)
+	if err != nil {
+		return nil, errors.Wrap(err, "build helm proxy")
+	}
+
+	rr, err := kprx.ReleaseContent(rlsName)
+	if err != nil {
+		return nil, errors.Wrap(err, "get release details")
+	}
+
+	return rr.GetRelease(), nil
+}
+
+func (s Service) ListReleases(ctx context.Context, kubeID, namespace, offset string, limit int) ([]*model.ReleaseInfo, error) {
+	kube, err := s.Get(ctx, kubeID)
+	if err != nil {
+		return nil, errors.Wrap(err, "get kube")
+	}
+	kprx, err := s.helmClient(kube)
 	if err != nil {
 		return nil, errors.Wrap(err, "build helm proxy")
 	}
@@ -315,12 +338,12 @@ func (s *Service) ListReleases(ctx context.Context, kubeID, namespace, offset st
 	return out, nil
 }
 
-func (s *Service) DeleteRelease(ctx context.Context, kubeID, rlsName string, purge bool) (*model.ReleaseInfo, error) {
+func (s Service) DeleteRelease(ctx context.Context, kubeID, rlsName string, purge bool) (*model.ReleaseInfo, error) {
 	kube, err := s.Get(ctx, kubeID)
 	if err != nil {
 		return nil, errors.Wrap(err, "get kube")
 	}
-	kprx, err := s.newHelmProxyFn(kube)
+	kprx, err := s.helmClient(kube)
 	if err != nil {
 		return nil, errors.Wrap(err, "build helm proxy")
 	}
@@ -336,7 +359,14 @@ func (s *Service) DeleteRelease(ctx context.Context, kubeID, rlsName string, pur
 	return toReleaseInfo(res.GetRelease()), nil
 }
 
-func (s *Service) resourcesGroupInfo(kube *model.Kube) (map[string]schema.GroupVersion, error) {
+func (s Service) helmClient(k *model.Kube) (proxy.Interface, error) {
+	if s.newHelmProxyFn == nil {
+		return nil, ErrNoHelmProxy
+	}
+	return s.newHelmProxyFn(k)
+}
+
+func (s Service) resourcesGroupInfo(kube *model.Kube) (map[string]schema.GroupVersion, error) {
 	client, err := s.discoveryClientFn(kube)
 	if err != nil {
 		return nil, errors.Wrap(err, "get discovery client")

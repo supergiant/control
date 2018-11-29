@@ -188,10 +188,6 @@ func (tp *TaskProvisioner) ProvisionNodes(parentContext context.Context, nodePro
 		return nil, errors.Wrap(sgerrors.ErrNotFound, "provider workflow")
 	}
 
-	if err := tp.preProvision(ctx, config); err != nil {
-		logrus.Errorf("Pre provisioning cluster %v", err)
-	}
-
 	// monitor cluster state in separate goroutine
 	go tp.monitorClusterState(ctx, config)
 	tasks := make([]string, 0, len(nodeProfiles))
@@ -287,9 +283,6 @@ func (p *TaskProvisioner) preProvision(ctx context.Context, config *steps.Config
 				return errors.Wrap(err, "cluster pre provisioning setup failed")
 			}
 		}
-		//on aws default user name on ubuntu images are not root but ubuntu
-		//https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/AccessingInstancesLinux.html
-		config.SshConfig.User = "ubuntu"
 	}
 	return nil
 }

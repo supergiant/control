@@ -99,7 +99,7 @@
         </ng-container>
 
         <ng-container matColumnDef="steps">
-          <mat-header-cell class="small-cell" *matHeaderCellDef></mat-header-cell>
+          <mat-header-cell class="small-cell" *matHeaderCellDef>Progress</mat-header-cell>
           <mat-cell
             class="small-cell"
             *matCellDef="let task"
@@ -110,7 +110,7 @@
         </ng-container>
 
         <ng-container matColumnDef="logs">
-          <mat-header-cell class="small-cell" *matHeaderCellDef></mat-header-cell>
+          <mat-header-cell class="small-cell" *matHeaderCellDef>Logs</mat-header-cell>
           <mat-cell
             class="small-cell"
             *matCellDef="let task"
@@ -162,6 +162,42 @@
     </ng-container>
 
     <app-usage-chart *ngIf="cpuUsage != NaN && ramUsage != NaN" [name]="kube?.name" [cpuUsage]="cpuUsage" [ramUsage]="ramUsage"></app-usage-chart>
+
+    <h1 class="cluster-info-headline">Cluster Details</h1>
+    <div class="cluster-info">
+      <div class="cluster-details">
+        <div class="labels">
+          <span>K8S VERSION:</span>
+          <span>ACCOUNT:</span>
+          <span>ARCH:</span>
+          <span>OS:</span>
+        </div>
+        <div class="values">
+          <span>{{ kube.K8SVersion }}</span>
+          <span>{{ kube.accountName }}</span>
+          <span>{{ kube.arch }}</span>
+          <span>{{ kube.operatingSystem }}</span>
+        </div>
+        <div class="labels">
+          <span>OS VERSION:</span>
+          <span>DOCKER VERSION:</span>
+          <span>HELM VERSION:</span>
+          <span>RBAC ENABLED:</span>
+        </div>
+        <div class="values">
+          <span>{{ kube.operatingSystemVersion }}</span>
+          <span>{{ kube.dockerVersion }}</span>
+          <span>{{ kube.helmVersion }}</span>
+          <span>{{ kube.rbacEnabled }}</span>
+        </div>
+      </div>
+
+      <div class="getting-started">
+        <p (click)="showSshCommands()"><span>ssh</span> TO THIS CLUSTER</p>
+        <p (click)="showKubectlConfig()"><span>kubectl config</span> FOR THIS CLUSTER</p>
+        <p routerLink="/catalog"><span>deploy an app</span> TO THIS CLUSTER</p>
+      </div>
+    </div>
 
     <div class="sg-table">
       <h3>MACHINES</h3>
