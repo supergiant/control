@@ -55,9 +55,7 @@ type K8SServices struct {
 			UID               string    `json:"uid"`
 			ResourceVersion   string    `json:"resourceVersion"`
 			CreationTimestamp time.Time `json:"creationTimestamp"`
-			Labels            struct {
-				OperatedAlertmanager string `json:"operated-alertmanager"`
-			} `json:"labels"`
+			Labels            map[string]string `json:"labels"`
 		} `json:"metadata"`
 		Spec struct {
 			Ports []struct {
@@ -86,6 +84,7 @@ type ServiceInfo struct {
 	SelfLink          string `json:"selfLink"`
 	APIServerProxyURL string `json:"selfLink"`
 	Namespace string `json:"namespace"`
+	ProxyPort string `json:"proxyPort"`
 	User string `json:"-"`
 	Password string `json:"-"`
 }
@@ -986,7 +985,6 @@ func (h *Handler) getNodesMetrics(w http.ResponseWriter, r *http.Request) {
 }
 
 func (h *Handler) getServices(w http.ResponseWriter, r *http.Request) {
-	fmt.Println("OLOLO")
 	var (
 		servicesUrl = "api/v1/services"
 		kubeID      string
@@ -1048,6 +1046,25 @@ func (h *Handler) getServices(w http.ResponseWriter, r *http.Request) {
 	services := make([]*ServiceInfo, 0)
 
 	for _, service := range k8sServices.Items {
+		if !labelIsTrue("kubernetes.io/cluster-service", service.Metadata.Labels) {
+			continue
+		}
+
+		if len(service.Spec.Ports) == 1 &&  service.Spec.Ports[0].Protocol == "TCP"{
+			services = append(services, &ServiceInfo{
+				ID: service.Metadata.UID,
+				Name: service.Metadata.Name,
+				Type: service.Spec.Type,
+				SelfLink: service.Metadata.SelfLink,
+				APIServerProxyURL: fmt.Sprintf("https://%s%s:%d/proxy",
+					masterNode.PublicIp, service.Metadata.SelfLink, service.Spec.Ports[0].Port),
+				User: k.User,
+				Password:k.Password,
+				Namespace: service.Metadata.Namespace,
+			})
+			continue
+		}
+
 		for _, port := range service.Spec.Ports {
 			if port.Protocol == "TCP" {
 				if _, ok := webPorts[port.Name]; ok {
@@ -1069,10 +1086,20 @@ func (h *Handler) getServices(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// TODO decouple these components
-	h.proxies.SetServices(kubeID, services)
+	err = h.proxies.SetServices(kubeID, services)
+	if err != nil {
+		logrus.Error(err)
+		message.SendUnknownError(w, err)
+		return
+	}
+
+	var serviceIDToPort = h.proxies.GetServicesPorts(kubeID)
+	for _, service := range services {
+		service.ProxyPort = serviceIDToPort[service.ID]
+	}
+
 
 	err = json.NewEncoder(w).Encode(services)
-
 	if err != nil {
 		message.SendUnknownError(w, err)
 	}
@@ -1171,4 +1198,15 @@ func (h *Handler) proxyServiceGet(w http.ResponseWriter, r *http.Request) {
 		message.SendUnknownError(w, err)
 		return
 	}
+}
+
+func labelIsTrue(labelName string, labels map[string]string) bool {
+	for labelKey, labelValue := range labels {
+		if labelKey == labelName {
+			if labelValue == "true" {
+				return true
+			}
+		}
+	}
+	return false
 }

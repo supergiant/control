@@ -84,7 +84,7 @@ func NewServiceProxy(service *ServiceInfo, logger logrus.FieldLogger) (*ServiceP
 }
 
 
-func (p *APIProxy) SetServices(kubeID string, services []*ServiceInfo) error {
+func (p *APIProxy) SetServices(kubeID string, services []*ServiceInfo) (error) {
 	if p.svc == nil || p.k8sClusterIDToProxies == nil {
 		return errors.New("component was not initialized properly")
 	}
@@ -117,6 +117,21 @@ func (p *APIProxy) SetServices(kubeID string, services []*ServiceInfo) error {
 
 
 	return nil
+}
+
+
+func (p *APIProxy) GetServicesPorts(kubeID string) (map[string]string) {
+	var serviceIDToPort = map[string]string{}
+
+	p.servicesMux.RLock()
+
+	for serviceID, serviceProxy  := range p.k8sClusterIDToProxies[kubeID] {
+		var parts = strings.Split(serviceProxy.servingBase, ":")
+		serviceIDToPort[serviceID] = parts[len(parts)-1]
+	}
+	p.servicesMux.RUnlock()
+
+	return serviceIDToPort
 }
 
 func newHandler(service *ServiceInfo, reverseProxy *httputil.ReverseProxy, logger logrus.FieldLogger) func(http.ResponseWriter, *http.Request) {
@@ -155,6 +170,8 @@ func newHandler(service *ServiceInfo, reverseProxy *httputil.ReverseProxy, logge
 }
 
 func (p *APIProxy)Shutdown(ctx context.Context){
+	p.servicesMux.Lock()
+	defer p.servicesMux.Unlock()
 	for clusterID, _ := range p.k8sClusterIDToProxies {
 		for serviceID, proxy := range p.k8sClusterIDToProxies[clusterID] {
 			if err := proxy.Shutdown(ctx); err != nil {
