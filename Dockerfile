@@ -9,11 +9,12 @@ RUN CGO_ENABLED=0 GOOS=linux GOARCH=${ARCH} \
 
 RUN apk --update add ca-certificates
 
-FROM node:10-alpine as ui-builder
+FROM node:11.3.0-alpine as ui-builder
 
 COPY ./cmd/ui/ /
 WORKDIR /assets
 
+RUN npm rebuild node-sass
 RUN npm install
 RUN npm run build
 
