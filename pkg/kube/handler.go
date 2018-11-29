@@ -85,6 +85,9 @@ type ServiceInfo struct {
 	Type     string `json:"type"`
 	SelfLink          string `json:"selfLink"`
 	APIServerProxyURL string `json:"selfLink"`
+	Namespace string `json:"namespace"`
+	User string `json:"-"`
+	Password string `json:"-"`
 }
 
 type MetricResponse struct {
@@ -983,6 +986,7 @@ func (h *Handler) getNodesMetrics(w http.ResponseWriter, r *http.Request) {
 }
 
 func (h *Handler) getServices(w http.ResponseWriter, r *http.Request) {
+	fmt.Println("OLOLO")
 	var (
 		servicesUrl = "api/v1/services"
 		kubeID      string
@@ -1041,19 +1045,22 @@ func (h *Handler) getServices(w http.ResponseWriter, r *http.Request) {
 		"service": {},
 	}
 
-	services := make([]ServiceInfo, 0)
+	services := make([]*ServiceInfo, 0)
 
 	for _, service := range k8sServices.Items {
 		for _, port := range service.Spec.Ports {
 			if port.Protocol == "TCP" {
 				if _, ok := webPorts[port.Name]; ok {
-					service := ServiceInfo{
+					service := &ServiceInfo{
 						ID: service.Metadata.UID,
 						Name: service.Metadata.Name,
 						Type: service.Spec.Type,
 						SelfLink: service.Metadata.SelfLink,
 						APIServerProxyURL: fmt.Sprintf("https://%s%s:%d/proxy",
 							masterNode.PublicIp, service.Metadata.SelfLink, port.Port),
+							User: k.User,
+							Password:k.Password,
+							Namespace: service.Metadata.Namespace,
 					}
 					services = append(services, service)
 				}
