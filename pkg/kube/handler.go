@@ -7,7 +7,6 @@ import (
 	"fmt"
 	"io"
 	"net/http"
-	"net/url"
 	"strconv"
 	"time"
 
@@ -192,8 +191,6 @@ func (h *Handler) Register(r *mux.Router) {
 	r.HandleFunc("/kubes/{kubeID}/metrics", h.getClusterMetrics).Methods(http.MethodGet)
 	r.HandleFunc("/kubes/{kubeID}/nodes/metrics", h.getNodesMetrics).Methods(http.MethodGet)
 	r.HandleFunc("/kubes/{kubeID}/services", h.getServices).Methods(http.MethodGet)
-	r.HandleFunc("/kubes/{kubeID}/services/proxy", h.proxyService).Methods(http.MethodPost)
-	r.HandleFunc("/kubes/{kubeID}/services/proxy", h.proxyServiceGet).Methods(http.MethodGet)
 }
 
 func (h *Handler) getTasks(w http.ResponseWriter, r *http.Request) {
@@ -1102,101 +1099,6 @@ func (h *Handler) getServices(w http.ResponseWriter, r *http.Request) {
 	err = json.NewEncoder(w).Encode(services)
 	if err != nil {
 		message.SendUnknownError(w, err)
-	}
-}
-
-func (h *Handler) proxyService(w http.ResponseWriter, r *http.Request) {
-	serviceProxy := &ServiceInfo{}
-	err := json.NewDecoder(r.Body).Decode(serviceProxy)
-
-	vars := mux.Vars(r)
-	kubeID := vars["kubeID"]
-
-	k, err := h.svc.Get(r.Context(), kubeID)
-	if err != nil {
-		if sgerrors.IsNotFound(err) {
-			message.SendNotFound(w, kubeID, err)
-			return
-		}
-		message.SendUnknownError(w, err)
-		return
-	}
-
-	req, err := http.NewRequest(http.MethodGet, serviceProxy.SelfLink, nil)
-	req.SetBasicAuth(k.User, k.Password)
-
-	tr := &http.Transport{
-		TLSClientConfig: &tls.Config{InsecureSkipVerify: true},
-	}
-	client := &http.Client{
-		Transport: tr,
-	}
-	resp, err := client.Do(req)
-
-	if err != nil {
-		message.SendUnknownError(w, err)
-		return
-	}
-
-	_, err = io.Copy(w, resp.Body)
-	defer resp.Body.Close()
-
-	if err != nil {
-		message.SendUnknownError(w, err)
-		return
-	}
-}
-
-func (h *Handler) proxyServiceGet(w http.ResponseWriter, r *http.Request) {
-	u := r.URL.Query().Get("url")
-
-	if len(u) == 0 {
-		http.Error(w, "url query param must not be empty", http.StatusBadRequest)
-		return
-	}
-
-	serviceUrl, err := url.QueryUnescape(u)
-
-	if err != nil {
-		http.Error(w, fmt.Sprintf("unescaped url %s", serviceUrl), http.StatusBadRequest)
-		return
-	}
-
-	vars := mux.Vars(r)
-	kubeID := vars["kubeID"]
-
-	k, err := h.svc.Get(r.Context(), kubeID)
-	if err != nil {
-		if sgerrors.IsNotFound(err) {
-			message.SendNotFound(w, kubeID, err)
-			return
-		}
-		message.SendUnknownError(w, err)
-		return
-	}
-
-	req, err := http.NewRequest(http.MethodGet, serviceUrl, nil)
-	req.SetBasicAuth(k.User, k.Password)
-
-	tr := &http.Transport{
-		TLSClientConfig: &tls.Config{InsecureSkipVerify: true},
-	}
-	client := &http.Client{
-		Transport: tr,
-	}
-	resp, err := client.Do(req)
-
-	if err != nil {
-		message.SendUnknownError(w, err)
-		return
-	}
-
-	_, err = io.Copy(w, resp.Body)
-	defer resp.Body.Close()
-
-	if err != nil {
-		message.SendUnknownError(w, err)
-		return
 	}
 }
 
