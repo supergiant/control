@@ -53,6 +53,7 @@ type fakeHelmProxy struct {
 
 	err               error
 	installRlsResp    *services.InstallReleaseResponse
+	getReleaseResp    *services.GetReleaseContentResponse
 	listReleaseResp   *services.ListReleasesResponse
 	uninstReleaseResp *services.UninstallReleaseResponse
 }
@@ -62,6 +63,9 @@ func (p *fakeHelmProxy) InstallReleaseFromChart(chart *chart.Chart, namespace st
 }
 func (p *fakeHelmProxy) ListReleases(opts ...helm.ReleaseListOption) (*services.ListReleasesResponse, error) {
 	return p.listReleaseResp, p.err
+}
+func (p *fakeHelmProxy) ReleaseContent(rlsName string, opts ...helm.ContentOption) (*services.GetReleaseContentResponse, error) {
+	return p.getReleaseResp, p.err
 }
 func (p *fakeHelmProxy) DeleteRelease(rlsName string, opts ...helm.DeleteOption) (*services.UninstallReleaseResponse, error) {
 	return p.uninstReleaseResp, p.err
@@ -285,6 +289,73 @@ func TestService_InstallRelease(t *testing.T) {
 		}
 	}
 }
+
+func TestService_ReleaseDetails(t *testing.T) {
+	tcs := []struct {
+		svc Service
+
+		expectedRes *release.Release
+		expectedErr error
+	}{
+		{ // TC#1
+			svc: Service{
+				storage: &storage.Fake{
+					GetErr: errFake,
+				},
+			},
+			expectedErr: errFake,
+		},
+		{ // TC#2
+			svc: Service{
+				storage: &storage.Fake{
+					Item: []byte("{}"),
+				},
+				newHelmProxyFn: func(kube *model.Kube) (proxy.Interface, error) {
+					return nil, errFake
+				},
+			},
+			expectedErr: errFake,
+		},
+		{ // TC#3
+			svc: Service{
+				storage: &storage.Fake{
+					Item: []byte("{}"),
+				},
+				newHelmProxyFn: func(kube *model.Kube) (proxy.Interface, error) {
+					return &fakeHelmProxy{
+						err: errFake,
+					}, nil
+				},
+			},
+			expectedErr: errFake,
+		},
+		{ // TC#4
+			svc: Service{
+				storage: &storage.Fake{
+					Item: []byte("{}"),
+				},
+				newHelmProxyFn: func(kube *model.Kube) (proxy.Interface, error) {
+					return &fakeHelmProxy{
+						getReleaseResp: &services.GetReleaseContentResponse{
+							Release: fakeRls,
+						},
+					}, nil
+				},
+			},
+			expectedRes: fakeRls,
+		},
+	}
+
+	for i, tc := range tcs {
+		rls, err := tc.svc.ReleaseDetails(context.Background(), "testCluster", "")
+		require.Equalf(t, tc.expectedErr, errors.Cause(err), "TC#%d: check errors", i+1)
+
+		if err == nil {
+			require.Equalf(t, tc.expectedRes, rls, "TC#%d: check results", i+1)
+		}
+	}
+}
+
 
 func TestService_ListReleases(t *testing.T) {
 	tcs := []struct {
