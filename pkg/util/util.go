@@ -17,6 +17,7 @@ import (
 	"github.com/supergiant/control/pkg/node"
 	"github.com/supergiant/control/pkg/sgerrors"
 	"github.com/supergiant/control/pkg/workflows/steps"
+	"github.com/pkg/errors"
 )
 
 const letterBytes = "0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ"
@@ -134,7 +135,7 @@ func GetWriter(name string) (io.WriteCloser, error) {
 	return os.OpenFile(path.Join("/tmp", name), os.O_CREATE|os.O_WRONLY|os.O_APPEND, 0666)
 }
 
-func LoadCloudSpecificDataFromKube(k *model.Kube, config *steps.Config) {
+func LoadCloudSpecificDataFromKube(k *model.Kube, config *steps.Config) error {
 	switch config.Provider {
 	case clouds.AWS:
 			config.AWSConfig.Region = k.Region
@@ -147,7 +148,13 @@ func LoadCloudSpecificDataFromKube(k *model.Kube, config *steps.Config) {
 			config.AWSConfig.NodesSecurityGroupID = k.CloudSpec[clouds.AwsNodesSecgroupID]
 			config.SshConfig.BootstrapPrivateKey = k.CloudSpec[clouds.AwsSshBootstrapPrivateKey]
 			config.SshConfig.PublicKey = k.CloudSpec[clouds.AwsUserProvidedSshPublicKey]
+
+			return nil
 	case clouds.GCE:
 		config.GCEConfig.AvailabilityZone = k.Zone
+		return nil
 	}
+
+	return errors.Wrapf(sgerrors.ErrUnsupportedProvider,
+		"Load cloud specific data from kube %s", k.ID)
 }

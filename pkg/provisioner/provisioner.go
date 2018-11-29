@@ -536,9 +536,7 @@ func (t *TaskProvisioner) loadCloudSpecificData(ctx context.Context, config *ste
 		return err
 	}
 
-	util.LoadCloudSpecificDataFromKube(k, config)
-
-	return nil
+	return util.LoadCloudSpecificDataFromKube(k, config)
 }
 
 // Create bootstrap key pair and save to config ssh section

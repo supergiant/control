@@ -347,6 +347,7 @@ func (h *Handler) deleteKube(w http.ResponseWriter, r *http.Request) {
 	}
 
 	config := &steps.Config{
+		Provider:         k.Provider,
 		ClusterID:        k.ID,
 		ClusterName:      k.Name,
 		CloudAccountName: k.AccountName,
@@ -355,10 +356,11 @@ func (h *Handler) deleteKube(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// Load things specific to cloud provider
-	util.LoadCloudSpecificDataFromKube(k, config)
+	err = util.LoadCloudSpecificDataFromKube(k, config)
 
-	if acc.Provider == clouds.GCE {
-		config.GCEConfig.AvailabilityZone = k.Zone
+	if err != nil {
+		message.SendUnknownError(w, err)
+		return
 	}
 
 	err = util.FillCloudAccountCredentials(r.Context(), acc, config)
@@ -664,6 +666,7 @@ func (h *Handler) deleteNode(w http.ResponseWriter, r *http.Request) {
 	}
 
 	config := &steps.Config{
+		Provider:         k.Provider,
 		ClusterID:        k.ID,
 		ClusterName:      k.Name,
 		CloudAccountName: k.AccountName,
@@ -683,7 +686,12 @@ func (h *Handler) deleteNode(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	util.LoadCloudSpecificDataFromKube(k, config)
+	err = util.LoadCloudSpecificDataFromKube(k, config)
+
+	if err != nil {
+		message.SendUnknownError(w, err)
+		return
+	}
 
 	writer, err := h.getWriter(t.ID)
 
