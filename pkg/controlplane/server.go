@@ -7,6 +7,11 @@ import (
 	"os"
 	"time"
 
+	"github.com/supergiant/control/pkg/proxy"
+
+	"net/url"
+	"strings"
+
 	"github.com/coreos/etcd/clientv3"
 	"github.com/gorilla/handlers"
 	"github.com/gorilla/mux"
@@ -46,8 +51,6 @@ import (
 	"github.com/supergiant/control/pkg/workflows/steps/ssh"
 	"github.com/supergiant/control/pkg/workflows/steps/tiller"
 	"k8s.io/helm/pkg/repo"
-	"net/url"
-	"strings"
 )
 
 type Server struct {
@@ -84,6 +87,8 @@ type Config struct {
 	ReadTimeout  time.Duration
 	WriteTimeout time.Duration
 	IdleTimeout  time.Duration
+
+	ProxiesPortRange proxy.PortRange
 }
 
 func New(cfg *Config) (*Server, error) {
@@ -268,9 +273,10 @@ func configureApplication(cfg *Config) (*mux.Router, error) {
 	provisionHandler := provisioner.NewHandler(kubeService, accountService,
 		tokenGetter, taskProvisioner)
 	provisionHandler.Register(protectedAPI)
+	apiProxy := proxy.NewReverseProxyContainer(cfg.ProxiesPortRange, logrus.New().WithField("component", "proxy"))
 
 	kubeHandler := kube.NewHandler(kubeService, accountService,
-		taskProvisioner, repository)
+		taskProvisioner, repository, apiProxy)
 	kubeHandler.Register(protectedAPI)
 
 	authMiddleware := api.Middleware{

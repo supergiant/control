@@ -245,7 +245,7 @@ func TestHandler_createKube(t *testing.T) {
 	for i, tc := range tcs {
 		// setup handler
 		svc := new(kubeServiceMock)
-		h := NewHandler(svc, nil, nil, nil)
+		h := NewHandler(svc, nil, nil, nil, nil)
 
 		req, err := http.NewRequest(http.MethodPost, "/kubes",
 			bytes.NewReader(tc.rawKube))
@@ -316,7 +316,7 @@ func TestHandler_getKube(t *testing.T) {
 	for i, tc := range tcs {
 		// setup handler
 		svc := new(kubeServiceMock)
-		h := NewHandler(svc, nil, nil, nil)
+		h := NewHandler(svc, nil, nil, nil, nil)
 
 		// prepare
 		req, err := http.NewRequest(http.MethodGet, "/kubes/"+tc.kubeName, nil)
@@ -378,7 +378,7 @@ func TestHandler_listKubes(t *testing.T) {
 	for i, tc := range tcs {
 		// setup handler
 		svc := new(kubeServiceMock)
-		h := NewHandler(svc, nil, nil, nil)
+		h := NewHandler(svc, nil, nil, nil, nil)
 
 		// prepare
 		req, err := http.NewRequest(http.MethodGet, "/kubes", nil)
@@ -517,7 +517,7 @@ func TestHandler_deleteKube(t *testing.T) {
 		mockProvisioner.On("Cancel", mock.Anything).
 			Return(nil)
 
-		h := NewHandler(svc, accSvc, mockProvisioner, mockRepo)
+		h := NewHandler(svc, accSvc, mockProvisioner, mockRepo, nil)
 
 		router := mux.NewRouter().SkipClean(true)
 		h.Register(router)
@@ -567,7 +567,7 @@ func TestHandler_listResources(t *testing.T) {
 	for i, tc := range tcs {
 		// setup handler
 		svc := new(kubeServiceMock)
-		h := NewHandler(svc, nil, nil, nil)
+		h := NewHandler(svc, nil, nil, nil, nil)
 
 		// prepare
 		req, err := http.NewRequest(http.MethodGet, fmt.Sprintf("/kubes/%s/resources", tc.kubeName), nil)
@@ -634,7 +634,7 @@ func TestHandler_getResources(t *testing.T) {
 	for i, tc := range tcs {
 		// setup handler
 		svc := new(kubeServiceMock)
-		h := NewHandler(svc, nil, nil, nil)
+		h := NewHandler(svc, nil, nil, nil, nil)
 
 		// prepare
 		req, err := http.NewRequest(http.MethodGet, fmt.Sprintf("/kubes/%s/resources/%s", tc.kubeName, tc.resourceName), nil)
@@ -762,7 +762,7 @@ func TestAddNodeToKube(t *testing.T) {
 			Return(mock.Anything, testCase.provisionErr)
 		mockProvisioner.On("Cancel", mock.Anything).
 			Return(nil)
-		h := NewHandler(svc, accService, mockProvisioner, nil)
+		h := NewHandler(svc, accService, mockProvisioner, nil, nil)
 
 		data, _ := json.Marshal(nodeProfile)
 		b := bytes.NewBuffer(data)
@@ -1371,7 +1371,7 @@ func TestHandler_getKubeconfig(t *testing.T) {
 	for i, tc := range tcs {
 		// setup handler
 		svc := new(kubeServiceMock)
-		h := NewHandler(svc, nil, nil, nil)
+		h := NewHandler(svc, nil, nil, nil, nil)
 
 		// prepare
 		req, err := http.NewRequest(http.MethodGet, fmt.Sprintf("/kubes/%s/users/%s/kubeconfig", tc.kubeID, tc.userName), nil)
