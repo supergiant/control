@@ -78,7 +78,7 @@ func adminKubeConfig(k *model.Kube) (clientcmddapi.Config, error) {
 		},
 		Clusters: map[string]*clientcmddapi.Cluster{
 			k.Name: {
-				Server: apiAddr,
+				Server:                   apiAddr,
 				CertificateAuthorityData: []byte(k.Auth.CACert),
 			},
 		},

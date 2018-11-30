@@ -7,7 +7,6 @@ import (
 	"fmt"
 	"io"
 	"net/http"
-	"net/url"
 	"strconv"
 	"time"
 
@@ -21,6 +20,7 @@ import (
 	"github.com/supergiant/control/pkg/model"
 	"github.com/supergiant/control/pkg/node"
 	"github.com/supergiant/control/pkg/profile"
+	"github.com/supergiant/control/pkg/proxy"
 	"github.com/supergiant/control/pkg/sgerrors"
 	"github.com/supergiant/control/pkg/storage"
 	"github.com/supergiant/control/pkg/util"
@@ -40,7 +40,7 @@ type nodeProvisioner interface {
 	Cancel(string) error
 }
 
-type K8SServices struct {
+type k8SServices struct {
 	Kind       string `json:"kind"`
 	APIVersion string `json:"apiVersion"`
 	Metadata   struct {
@@ -49,15 +49,13 @@ type K8SServices struct {
 	} `json:"metadata"`
 	Items []struct {
 		Metadata struct {
-			Name              string    `json:"name"`
-			Namespace         string    `json:"namespace"`
-			SelfLink          string    `json:"selfLink"`
-			UID               string    `json:"uid"`
-			ResourceVersion   string    `json:"resourceVersion"`
-			CreationTimestamp time.Time `json:"creationTimestamp"`
-			Labels            struct {
-				OperatedAlertmanager string `json:"operated-alertmanager"`
-			} `json:"labels"`
+			Name              string            `json:"name"`
+			Namespace         string            `json:"namespace"`
+			SelfLink          string            `json:"selfLink"`
+			UID               string            `json:"uid"`
+			ResourceVersion   string            `json:"resourceVersion"`
+			CreationTimestamp time.Time         `json:"creationTimestamp"`
+			Labels            map[string]string `json:"labels"`
 		} `json:"metadata"`
 		Spec struct {
 			Ports []struct {
@@ -79,10 +77,12 @@ type K8SServices struct {
 	} `json:"items"`
 }
 
-type ServiceProxy struct {
-	Name     string `json:"name"`
-	Type     string `json:"type"`
-	SelfLink string `json:"selfLink"`
+type ServiceInfo struct {
+	ID        string `json:"id"`
+	Name      string `json:"name"`
+	Type      string `json:"type"`
+	Namespace string `json:"namespace"`
+	ProxyPort string `json:"proxyPort"`
 }
 
 type MetricResponse struct {
@@ -105,10 +105,17 @@ type Handler struct {
 	repo            storage.Interface
 	getWriter       func(string) (io.WriteCloser, error)
 	getMetrics      func(string) (*MetricResponse, error)
+	proxies         proxy.Container
 }
 
 // NewHandler constructs a Handler for kubes.
-func NewHandler(svc Interface, accountService accountGetter, provisioner nodeProvisioner, repo storage.Interface) *Handler {
+func NewHandler(
+	svc Interface,
+	accountService accountGetter,
+	provisioner nodeProvisioner,
+	repo storage.Interface,
+	proxies proxy.Container,
+) *Handler {
 	return &Handler{
 		svc:             svc,
 		accountService:  accountService,
@@ -159,6 +166,7 @@ func NewHandler(svc Interface, accountService accountGetter, provisioner nodePro
 
 			return metricResponse, nil
 		},
+		proxies: proxies,
 	}
 }
 
@@ -187,8 +195,6 @@ func (h *Handler) Register(r *mux.Router) {
 	r.HandleFunc("/kubes/{kubeID}/metrics", h.getClusterMetrics).Methods(http.MethodGet)
 	r.HandleFunc("/kubes/{kubeID}/nodes/metrics", h.getNodesMetrics).Methods(http.MethodGet)
 	r.HandleFunc("/kubes/{kubeID}/services", h.getServices).Methods(http.MethodGet)
-	r.HandleFunc("/kubes/{kubeID}/services/proxy", h.proxyService).Methods(http.MethodPost)
-	r.HandleFunc("/kubes/{kubeID}/services/proxy", h.proxyServiceGet).Methods(http.MethodGet)
 }
 
 func (h *Handler) getTasks(w http.ResponseWriter, r *http.Request) {
@@ -1002,7 +1008,7 @@ func (h *Handler) getServices(w http.ResponseWriter, r *http.Request) {
 		servicesUrl = "api/v1/services"
 		kubeID      string
 		masterNode  *node.Node
-		k8sServices = &K8SServices{}
+		k8sServices = &k8SServices{}
 	)
 	vars := mux.Vars(r)
 	kubeID = vars["kubeID"]
@@ -1056,122 +1062,83 @@ func (h *Handler) getServices(w http.ResponseWriter, r *http.Request) {
 		"service": {},
 	}
 
-	services := make([]ServiceProxy, 0)
+	var serviceInfos = make([]*ServiceInfo, 0)
+	var targetServices = make([]*proxy.Target, 0)
 
 	for _, service := range k8sServices.Items {
+		if !contains("kubernetes.io/cluster-service", "true", service.Metadata.Labels) {
+			continue
+		}
+
+		if len(service.Spec.Ports) == 1 && service.Spec.Ports[0].Protocol == "TCP" {
+			var serviceInfo = &ServiceInfo{
+				ID:        service.Metadata.UID,
+				Name:      service.Metadata.Name,
+				Type:      service.Spec.Type,
+				Namespace: service.Metadata.Namespace,
+			}
+			serviceInfos = append(serviceInfos, serviceInfo)
+
+			targetServices = append(targetServices, &proxy.Target{
+				ProxyID: kubeID + service.Metadata.UID,
+				TargetURL: fmt.Sprintf("https://%s%s:%d/proxy",
+					masterNode.PublicIp, service.Metadata.SelfLink, service.Spec.Ports[0].Port),
+				SelfLink: service.Metadata.SelfLink,
+				User:     k.User,
+				Password: k.Password,
+			})
+			continue
+		}
+
 		for _, port := range service.Spec.Ports {
 			if port.Protocol == "TCP" {
 				if _, ok := webPorts[port.Name]; ok {
-					service := ServiceProxy{
-						Name: service.Metadata.Name,
-						Type: service.Spec.Type,
-						SelfLink: fmt.Sprintf("https://%s%s:%d/proxy",
-							masterNode.PublicIp, service.Metadata.SelfLink, port.Port),
+					var serviceInfo = &ServiceInfo{
+						ID:        service.Metadata.UID,
+						Name:      service.Metadata.Name,
+						Type:      service.Spec.Type,
+						Namespace: service.Metadata.Namespace,
 					}
-					services = append(services, service)
+					serviceInfos = append(serviceInfos, serviceInfo)
+
+					targetServices = append(targetServices, &proxy.Target{
+						ProxyID: kubeID + service.Metadata.UID,
+						TargetURL: fmt.Sprintf("https://%s%s:%d/proxy",
+							masterNode.PublicIp, service.Metadata.SelfLink, port.Port),
+						SelfLink: service.Metadata.SelfLink,
+						User:     k.User,
+						Password: k.Password,
+					})
 				}
 			}
 		}
 	}
 
-	err = json.NewEncoder(w).Encode(services)
+	// TODO implement proxy removing logic under separate ticket
+	err = h.proxies.RegisterProxies(targetServices)
+	if err != nil {
+		logrus.Error(err)
+		message.SendUnknownError(w, err)
+		return
+	}
 
+	var proxies = h.proxies.GetProxies(kubeID)
+
+	for _, service := range serviceInfos {
+		service.ProxyPort = proxies[kubeID+service.ID].Port()
+	}
+
+	err = json.NewEncoder(w).Encode(serviceInfos)
 	if err != nil {
 		message.SendUnknownError(w, err)
 	}
 }
 
-func (h *Handler) proxyService(w http.ResponseWriter, r *http.Request) {
-	serviceProxy := &ServiceProxy{}
-	err := json.NewDecoder(r.Body).Decode(serviceProxy)
-
-	vars := mux.Vars(r)
-	kubeID := vars["kubeID"]
-
-	k, err := h.svc.Get(r.Context(), kubeID)
-	if err != nil {
-		if sgerrors.IsNotFound(err) {
-			message.SendNotFound(w, kubeID, err)
-			return
-		}
-		message.SendUnknownError(w, err)
-		return
+func contains(name, value string, labels map[string]string) bool {
+	value, exists := labels[name]
+	if exists && value == value {
+		return true
 	}
 
-	req, err := http.NewRequest(http.MethodGet, serviceProxy.SelfLink, nil)
-	req.SetBasicAuth(k.User, k.Password)
-
-	tr := &http.Transport{
-		TLSClientConfig: &tls.Config{InsecureSkipVerify: true},
-	}
-	client := &http.Client{
-		Transport: tr,
-	}
-	resp, err := client.Do(req)
-
-	if err != nil {
-		message.SendUnknownError(w, err)
-		return
-	}
-
-	_, err = io.Copy(w, resp.Body)
-	defer resp.Body.Close()
-
-	if err != nil {
-		message.SendUnknownError(w, err)
-		return
-	}
-}
-
-func (h *Handler) proxyServiceGet(w http.ResponseWriter, r *http.Request) {
-	u := r.URL.Query().Get("url")
-
-	if len(u) == 0 {
-		http.Error(w, "url query param must not be empty", http.StatusBadRequest)
-		return
-	}
-
-	serviceUrl, err := url.QueryUnescape(u)
-
-	if err != nil {
-		http.Error(w, fmt.Sprintf("unescaped url %s", serviceUrl), http.StatusBadRequest)
-		return
-	}
-
-	vars := mux.Vars(r)
-	kubeID := vars["kubeID"]
-
-	k, err := h.svc.Get(r.Context(), kubeID)
-	if err != nil {
-		if sgerrors.IsNotFound(err) {
-			message.SendNotFound(w, kubeID, err)
-			return
-		}
-		message.SendUnknownError(w, err)
-		return
-	}
-
-	req, err := http.NewRequest(http.MethodGet, serviceUrl, nil)
-	req.SetBasicAuth(k.User, k.Password)
-
-	tr := &http.Transport{
-		TLSClientConfig: &tls.Config{InsecureSkipVerify: true},
-	}
-	client := &http.Client{
-		Transport: tr,
-	}
-	resp, err := client.Do(req)
-
-	if err != nil {
-		message.SendUnknownError(w, err)
-		return
-	}
-
-	_, err = io.Copy(w, resp.Body)
-	defer resp.Body.Close()
-
-	if err != nil {
-		message.SendUnknownError(w, err)
-		return
-	}
+	return false
 }
