@@ -330,8 +330,7 @@
              *ngFor="let m of machines; let idx = index">
 
           <mat-form-field [ngClass]="{ 'azsLoading': azsLoading }">
-            <mat-select [disabled]="!availabilityZones"
-                        placeholder="Select an Availability Zone"
+            <mat-select placeholder="Select an Availability Zone"
                         [(value)]="m.availabilityZone"
                         (selectionChange)="selectAz($event.value, idx)"
                         required>
@@ -345,6 +344,7 @@
             <mat-select placeholder="Machine Type (size)"
                         id="m.machineType"
                         [(value)]="m.machineType"
+                        [disabled]="!m.availabileMachinetypes"
                         (selectionChange)="checkForValidMachinesConfig()">
               <mat-option *ngFor="let type of m.availabileMachinetypes"
                           [value]="type">
