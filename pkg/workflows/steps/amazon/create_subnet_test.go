@@ -45,9 +45,14 @@ func TestCreateSubnetStep_Run(t *testing.T) {
 				}, nil
 			},
 			err: nil,
-			cfg: steps.AWSConfig{},
+			cfg: steps.AWSConfig{
+				VPCCIDR: "10.0.0.0/16",
+			},
 		},
 		{
+			cfg: steps.AWSConfig{
+				VPCCIDR: "10.0.0.0/16",
+			},
 			fn: func(config steps.AWSConfig) (ec2iface.EC2API, error) {
 				return &fakeEC2Subnet{
 					output: nil,

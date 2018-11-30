@@ -44,6 +44,8 @@ func (s *CreateSecurityGroupsStep) Run(ctx context.Context, w io.Writer, cfg *st
 		return errors.Wrap(ErrAuthorization, err.Error())
 	}
 
+	logrus.Debugf("Create security groups for VPC %s",
+		cfg.AWSConfig.VPCID)
 	if cfg.AWSConfig.MastersSecurityGroupID == "" {
 		groupName := fmt.Sprintf("%s-masters-secgroup", cfg.ClusterID)
 
@@ -56,6 +58,8 @@ func (s *CreateSecurityGroupsStep) Run(ctx context.Context, w io.Writer, cfg *st
 		if err != nil {
 			duplicateErr := false
 			if err, ok := err.(awserr.Error); ok {
+				logrus.Debugf("Create security group for masters caused %s",
+					err.Message())
 				if err.Code() == "InvalidGroup.Duplicate" {
 					duplicateErr = true
 				}
@@ -88,6 +92,8 @@ func (s *CreateSecurityGroupsStep) Run(ctx context.Context, w io.Writer, cfg *st
 		if err != nil {
 			duplicateErr := false
 			if err, ok := err.(awserr.Error); ok {
+				logrus.Debugf("Create security group for nodes caused %s",
+					err.Message())
 				if err.Code() == "InvalidGroup.Duplicate" {
 					duplicateErr = true
 				}
@@ -108,6 +114,10 @@ func (s *CreateSecurityGroupsStep) Run(ctx context.Context, w io.Writer, cfg *st
 		}
 	}
 
+	logrus.Debugf("Security groups %s %s has been created",
+		cfg.AWSConfig.MastersSecurityGroupID, cfg.AWSConfig.NodesSecurityGroupID)
+
+	logrus.Debugf("Authorize SSH between groups")
 	//In order to deploy the kubernetes cluster supergiant needs to open port 22
 	if err := s.authorizeSSH(ctx, EC2, cfg.AWSConfig.MastersSecurityGroupID); err != nil {
 		return err
@@ -126,6 +136,7 @@ func (s *CreateSecurityGroupsStep) Run(ctx context.Context, w io.Writer, cfg *st
 		return err
 	}
 
+	logrus.Debugf("Allow traffic between groups")
 	//Open ports between master <-> node security groups
 	if err := s.allowAllTraffic(ctx, EC2, cfg.AWSConfig.MastersSecurityGroupID, *nodesGroup.GroupName); err != nil {
 		return err
@@ -143,14 +154,18 @@ func (s *CreateSecurityGroupsStep) Run(ctx context.Context, w io.Writer, cfg *st
 		return err
 	}
 
+	logrus.Debugf("Whitelist SG IP address")
 	if err := s.whiteListSupergiantIP(ctx, EC2, cfg.AWSConfig.MastersSecurityGroupID); err != nil {
-		logrus.Errorf("[%s] - failed to whitelist supergiant IP in master security group: %v", s.Name(), err)
+		logrus.Errorf("[%s] - failed to whitelist supergiant IP in master "+
+			"security group: %v", s.Name(), err)
 	}
 
 	return nil
 }
 
 func (s *CreateSecurityGroupsStep) getSecurityGroupByName(ctx context.Context, EC2 ec2iface.EC2API, vpcID, groupName string) (string, error) {
+	logrus.Debugf("Get security group %s by name in vpc %s",
+		groupName, vpcID)
 	out, err := EC2.DescribeSecurityGroupsWithContext(ctx, &ec2.DescribeSecurityGroupsInput{
 		GroupNames: aws.StringSlice([]string{groupName}),
 		Filters: []*ec2.Filter{
@@ -167,10 +182,13 @@ func (s *CreateSecurityGroupsStep) getSecurityGroupByName(ctx context.Context, E
 	if len(out.SecurityGroups) == 0 {
 		return "", errors.Errorf("no security group %s found in aws", groupName)
 	}
+	logrus.Debugf("Found %s %s", groupName, *out.SecurityGroups[0].VpcId)
 	return *out.SecurityGroups[0].GroupId, nil
 }
 
 func (s *CreateSecurityGroupsStep) getSecurityGroupById(ctx context.Context, EC2 ec2iface.EC2API, vpcID, groupID string) (*ec2.SecurityGroup, error) {
+	logrus.Debugf("Get security group by Id %s in VPC %s",
+		groupID, vpcID)
 	out, err := EC2.DescribeSecurityGroupsWithContext(ctx, &ec2.DescribeSecurityGroupsInput{
 		GroupIds: aws.StringSlice([]string{groupID}),
 		Filters: []*ec2.Filter{
@@ -207,6 +225,7 @@ func (s *CreateSecurityGroupsStep) authorizeSSH(ctx context.Context, EC2 ec2ifac
 }
 
 func (s *CreateSecurityGroupsStep) allowAllTraffic(ctx context.Context, EC2 ec2iface.EC2API, targetGroupID, sourceGroupName string) error {
+	// For some reason this function looks fo SGs in default VPC
 	_, err := EC2.AuthorizeSecurityGroupIngressWithContext(ctx, &ec2.AuthorizeSecurityGroupIngressInput{
 		GroupId:                 aws.String(targetGroupID),
 		SourceSecurityGroupName: aws.String(sourceGroupName),

@@ -33,6 +33,10 @@ func (f *FakeEC2KeyPair) DescribeKeyPairs(*ec2.DescribeKeyPairsInput) (*ec2.Desc
 	return f.describeOutput, f.describeErr
 }
 
+func (f *FakeEC2KeyPair) WaitUntilKeyPairExists(*ec2.DescribeKeyPairsInput) error {
+	return nil
+}
+
 func TestKeyPairStep_Run(t *testing.T) {
 	cfg := steps.NewConfig("TEST", "", "myacc", profile.Profile{})
 	cfg.AWSConfig.KeyPairName = "mypair"
