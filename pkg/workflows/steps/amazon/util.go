@@ -41,8 +41,8 @@ func FindOutboundIP(ctx context.Context, findExternalIP func() (string, error)) 
 
 func findOutBoundIP() (string, error) {
 	serviceURLs := []string{
-		"http://myexternalip.com/raw",
 		"http://checkip.amazonaws.com/",
+		"http://myexternalip.com/raw",
 	}
 
 	var (
