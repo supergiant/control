@@ -4,13 +4,12 @@ import (
 	"context"
 	"fmt"
 	"net/http"
+	"net/url"
 	"os"
+	"strings"
 	"time"
 
 	"github.com/supergiant/control/pkg/proxy"
-
-	"net/url"
-	"strings"
 
 	"github.com/coreos/etcd/clientv3"
 	"github.com/gorilla/handlers"

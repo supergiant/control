@@ -10,8 +10,6 @@ import (
 	"strconv"
 	"time"
 
-	"github.com/supergiant/control/pkg/proxy"
-
 	"github.com/gorilla/mux"
 	"github.com/pkg/errors"
 	"github.com/sirupsen/logrus"
@@ -22,6 +20,7 @@ import (
 	"github.com/supergiant/control/pkg/model"
 	"github.com/supergiant/control/pkg/node"
 	"github.com/supergiant/control/pkg/profile"
+	"github.com/supergiant/control/pkg/proxy"
 	"github.com/supergiant/control/pkg/sgerrors"
 	"github.com/supergiant/control/pkg/storage"
 	"github.com/supergiant/control/pkg/util"
