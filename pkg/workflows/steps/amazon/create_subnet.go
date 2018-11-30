@@ -3,6 +3,8 @@ package amazon
 import (
 	"context"
 	"io"
+	"math/rand"
+	"net"
 
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/service/ec2"
@@ -13,8 +15,6 @@ import (
 	"github.com/aws/aws-sdk-go/aws/awserr"
 	"github.com/supergiant/control/pkg/util"
 	"github.com/supergiant/control/pkg/workflows/steps"
-	"math/rand"
-	"net"
 )
 
 const StepCreateSubnet = "create_subnet_step"
