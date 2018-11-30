@@ -1014,7 +1014,7 @@ func (h *Handler) getServices(w http.ResponseWriter, r *http.Request) {
 	vars := mux.Vars(r)
 	kubeID = vars["kubeID"]
 
-	k8sCluster, err := h.svc.Get(r.Context(), kubeID)
+	k, err := h.svc.Get(r.Context(), kubeID)
 	if err != nil {
 		if sgerrors.IsNotFound(err) {
 			message.SendNotFound(w, kubeID, err)
@@ -1024,15 +1024,15 @@ func (h *Handler) getServices(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	for key := range k8sCluster.Masters {
-		if k8sCluster.Masters[key] != nil {
-			masterNode = k8sCluster.Masters[key]
+	for key := range k.Masters {
+		if k.Masters[key] != nil {
+			masterNode = k.Masters[key]
 		}
 	}
 
 	serviceURL := fmt.Sprintf("https://%s/%s", masterNode.PublicIp, servicesUrl)
 	req, err := http.NewRequest(http.MethodGet, serviceURL, nil)
-	req.SetBasicAuth(k8sCluster.User, k8sCluster.Password)
+	req.SetBasicAuth(k.User, k.Password)
 
 	tr := &http.Transport{
 		TLSClientConfig: &tls.Config{InsecureSkipVerify: true},
@@ -1067,7 +1067,7 @@ func (h *Handler) getServices(w http.ResponseWriter, r *http.Request) {
 	var targetServices = make([]*proxy.Target, 0)
 
 	for _, service := range k8sServices.Items {
-		if !labelIsTrue("kubernetes.io/cluster-service", service.Metadata.Labels) {
+		if !contains("kubernetes.io/cluster-service", "true", service.Metadata.Labels) {
 			continue
 		}
 
@@ -1081,12 +1081,12 @@ func (h *Handler) getServices(w http.ResponseWriter, r *http.Request) {
 			serviceInfos = append(serviceInfos, serviceInfo)
 
 			targetServices = append(targetServices, &proxy.Target{
-				kubeID + service.Metadata.UID,
-				fmt.Sprintf("https://%s%s:%d/proxy",
+				ProxyID:kubeID + service.Metadata.UID,
+				TargetURL: fmt.Sprintf("https://%s%s:%d/proxy",
 					masterNode.PublicIp, service.Metadata.SelfLink, service.Spec.Ports[0].Port),
-				service.Metadata.SelfLink,
-				k8sCluster.User,
-				k8sCluster.Password,
+				SelfLink: service.Metadata.SelfLink,
+				User:     k.User,
+				Password: k.Password,
 			})
 			continue
 		}
@@ -1103,19 +1103,19 @@ func (h *Handler) getServices(w http.ResponseWriter, r *http.Request) {
 					serviceInfos = append(serviceInfos, serviceInfo)
 
 					targetServices = append(targetServices, &proxy.Target{
-						kubeID + service.Metadata.UID,
-						fmt.Sprintf("https://%s%s:%d/proxy",
+						ProxyID:kubeID + service.Metadata.UID,
+						TargetURL:fmt.Sprintf("https://%s%s:%d/proxy",
 							masterNode.PublicIp, service.Metadata.SelfLink, port.Port),
-						service.Metadata.SelfLink,
-						k8sCluster.User,
-						k8sCluster.Password,
+						SelfLink: service.Metadata.SelfLink,
+						User:     k.User,
+						Password: k.Password,
 					})
 				}
 			}
 		}
 	}
 
-	// TODO decouple these components
+	// TODO implement proxy removing logic under separate ticket
 	err = h.proxies.RegisterProxies(targetServices)
 	if err != nil {
 		logrus.Error(err)
@@ -1135,13 +1135,11 @@ func (h *Handler) getServices(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
-func labelIsTrue(labelName string, labels map[string]string) bool {
-	for labelKey, labelValue := range labels {
-		if labelKey == labelName {
-			if labelValue == "true" {
-				return true
-			}
-		}
+func contains(name, value string, labels map[string]string) bool {
+	value, exists := labels[name]
+	if exists && value == value {
+		return true
 	}
+
 	return false
 }
