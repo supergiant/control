@@ -3,12 +3,12 @@ package api
 import (
 	"net/http"
 	"strings"
-
+	"fmt"
+	
+	"github.com/sirupsen/logrus"
 	"github.com/dgrijalva/jwt-go"
 
 	"github.com/supergiant/control/pkg/sgerrors"
-	"fmt"
-	"github.com/sirupsen/logrus"
 )
 
 type TokenValidater interface {
