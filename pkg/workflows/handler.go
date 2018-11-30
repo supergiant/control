@@ -9,6 +9,7 @@ import (
 	"net/http"
 	"os"
 	"path"
+	"strings"
 	"time"
 
 	"github.com/gorilla/mux"
@@ -24,7 +25,6 @@ import (
 	"github.com/supergiant/control/pkg/storage"
 	"github.com/supergiant/control/pkg/util"
 	"github.com/supergiant/control/pkg/workflows/steps"
-	"strings"
 )
 
 type cloudAccountGetter interface {

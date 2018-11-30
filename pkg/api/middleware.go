@@ -1,12 +1,12 @@
 package api
 
 import (
+	"fmt"
 	"net/http"
 	"strings"
-	"fmt"
-	
-	"github.com/sirupsen/logrus"
+
 	"github.com/dgrijalva/jwt-go"
+	"github.com/sirupsen/logrus"
 
 	"github.com/supergiant/control/pkg/sgerrors"
 )
