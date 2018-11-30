@@ -249,6 +249,7 @@ func configureApplication(cfg *Config) (*mux.Router, error) {
 	amazon.InitDeleteNode(amazon.GetEC2)
 	amazon.InitDeleteSecurityGroup(amazon.GetEC2)
 	amazon.InitDeleteVPC(amazon.GetEC2)
+	amazon.InitDeleteSubnets(amazon.GetEC2)
 
 	workflows.Init()
 
