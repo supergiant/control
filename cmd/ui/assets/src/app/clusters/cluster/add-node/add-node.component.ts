@@ -38,7 +38,8 @@ export class AddNodeComponent implements OnInit, OnDestroy {
   machines = [{
     machineType: null,
     role: "Node",
-    qty: 1
+    qty: 1,
+    availabilityZone: '',
   }];
 
   machineSizes$: Observable<any>;
@@ -52,6 +53,7 @@ export class AddNodeComponent implements OnInit, OnDestroy {
 
   subscriptions: Subscription;
   isProcessing: boolean;
+  availabilityZones: string[];
 
   constructor(
     private supergiant: Supergiant,
@@ -108,11 +110,13 @@ export class AddNodeComponent implements OnInit, OnDestroy {
           of(name),
           of(region),
           this.supergiant.CloudAccounts.getAwsAvailabilityZones(name, region).pipe(
+            tap(availabilityZones => this.availabilityZones = availabilityZones),
             // TODO: error handling
             catchError(e => of(e))
           )
         )
       ),
+      // fetch machine types after az change
       mergeMap(([name, region, awsZones]) =>
         this.supergiant.CloudAccounts.getAwsMachineTypes(name, region, awsZones[0])
       ),
@@ -150,6 +154,7 @@ export class AddNodeComponent implements OnInit, OnDestroy {
       machineType: null,
       role: 'Node',
       qty: 1,
+      availabilityZone: '',
     });
 
     this.checkAndSetValidMachineConfig();
@@ -179,6 +184,10 @@ export class AddNodeComponent implements OnInit, OnDestroy {
     } else {
       this.displayMachineConfigError = true;
     }
+  }
+
+  selectAz(az) {
+
   }
 
   finish() {
@@ -214,6 +223,5 @@ export class AddNodeComponent implements OnInit, OnDestroy {
       this.isProcessing = false;
       this.displayMachineConfigError = true;
     }
-
   }
 }
