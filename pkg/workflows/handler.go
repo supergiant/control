@@ -9,7 +9,6 @@ import (
 	"net/http"
 	"os"
 	"path"
-	"strings"
 	"time"
 
 	"github.com/gorilla/mux"
@@ -210,14 +209,6 @@ func (h *TaskHandler) BuildAndRunTask(w http.ResponseWriter, r *http.Request) {
 
 // NOTE(stgleb): This is made for testing purposes and example, remove when UI is done.
 func (h *TaskHandler) GetLogs(w http.ResponseWriter, r *http.Request) {
-	authHeader := r.Header.Get("Authorization")
-	tokenString := ""
-	ts := strings.Split(authHeader, " ")
-
-	if len(ts) > 1 {
-		tokenString = ts[1]
-	}
-
 	page := `<!DOCTYPE html>
 <html lang="en">
     <head>
@@ -229,7 +220,7 @@ func (h *TaskHandler) GetLogs(w http.ResponseWriter, r *http.Request) {
         <div id="logs"></div>
         <script type="text/javascript">
             (function() {
-                var conn = new WebSocket("ws://{{ .Host }}/v1/api/tasks/{{ .TaskID }}/logs", "{{ .Token }}");
+                var conn = new WebSocket("ws://{{ .Host }}/tasks/{{ .TaskID }}/logs");
                 conn.onmessage = function(evt) {
                     console.log('file updated');
  					$('#logs').append("<p>" + evt.data + "</p>");
@@ -251,11 +242,9 @@ func (h *TaskHandler) GetLogs(w http.ResponseWriter, r *http.Request) {
 	var v = struct {
 		Host   string
 		TaskID string
-		Token  string
 	}{
 		r.Host,
 		id,
-		tokenString,
 	}
 	err := tpl.Execute(w, &v)
 	if err != nil {
