@@ -170,9 +170,32 @@ func TestProvisionNodes(t *testing.T) {
 		nil,
 	}
 
+	kubeID := "1234"
+
+	k := &model.Kube{
+		ID:       kubeID,
+		Provider: clouds.DigitalOcean,
+		Masters: map[string]*node.Node{
+			"1": {
+				ID:        "1",
+				PrivateIp: "10.0.0.1",
+				PublicIp:  "10.20.30.40",
+				State:     node.StateActive,
+				Region:    "fra1",
+				Size:      "s-2vcpu-4gb",
+			},
+		},
+		BootstrapPublicKey:  []byte(""),
+		BootstrapPrivateKey: []byte(""),
+		SshPublicKey:        []byte(""),
+		CloudSpec:           make(map[string]string),
+	}
+
 	provisioner := TaskProvisioner{
 		&mockKubeService{
-			data: make(map[string]*model.Kube),
+			data: map[string]*model.Kube{
+				k.ID: k,
+			},
 		},
 		repository,
 		func(string) (io.WriteCloser, error) {
@@ -193,21 +216,6 @@ func TestProvisionNodes(t *testing.T) {
 	nodeProfile := profile.NodeProfile{
 		"size":  "s-2vcpu-4gb",
 		"image": "ubuntu-18-04-x64",
-	}
-
-	k := &model.Kube{
-		Provider: clouds.DigitalOcean,
-		Masters: map[string]*node.Node{
-			"1": {
-				ID:        "1",
-				PrivateIp: "10.0.0.1",
-				PublicIp:  "10.20.30.40",
-				State:     node.StateActive,
-				Region:    "fra1",
-				Size:      "s-2vcpu-4gb",
-			},
-		},
-		CloudSpec: make(map[string]string),
 	}
 
 	kubeProfile := profile.Profile{
@@ -232,6 +240,8 @@ func TestProvisionNodes(t *testing.T) {
 	}
 
 	config := steps.NewConfig(k.Name, "", k.AccountName, kubeProfile)
+	config.ClusterID = k.ID
+
 	_, err := provisioner.ProvisionNodes(context.Background(),
 		[]profile.NodeProfile{nodeProfile}, k, config)
 
