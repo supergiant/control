@@ -14,5 +14,6 @@ COPY --from=builder /etc/ssl/certs/ca-certificates.crt /etc/ssl/certs/ca-certifi
 COPY --from=builder /go/bin/supergiant /bin/supergiant
 COPY --from=builder /go/src/github.com/supergiant/control/templates /etc/supergiant/templates
 COPY --from=builder /go/src/github.com/supergiant/control/cmd/ui/assets/dist /etc/supergiant/ui
+EXPOSE 60200-60250
 
 ENTRYPOINT ["/bin/supergiant", "-ui-dir", "/etc/supergiant/ui"]

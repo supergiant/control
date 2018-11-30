@@ -24,8 +24,8 @@ var (
 	logFormat            = flag.String("log-format", "txt", "logging format [txt json]")
 	spawnInterval        = flag.Int("spawnInterval", 5, "interval between API calls to cloud provider for creating instance")
 	uiDir                = flag.String("ui-dir", "./cmd/ui/assets/dist", "directory for supergiant ui to be served")
-	ProxiesPortRangeFrom = flag.Int("proxies-port-from", 60100, "first tcp port in a range of binding reverse proxies for service apps")
-	ProxiesPortRangeTo   = flag.Int("proxies-port-to", 60200, "last tcp port in a range of binding reverse proxies for service apps")
+	ProxiesPortRangeFrom = flag.Int("proxies-port-from", 60200, "first tcp port in a range of binding reverse proxies for service apps")
+	ProxiesPortRangeTo   = flag.Int("proxies-port-to", 60250, "last tcp port in a range of binding reverse proxies for service apps")
 )
 
 func main() {
