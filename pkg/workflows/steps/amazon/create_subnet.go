@@ -4,13 +4,17 @@ import (
 	"context"
 	"io"
 
-	"github.com/sirupsen/logrus"
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/service/ec2"
 	"github.com/pkg/errors"
+	"github.com/sirupsen/logrus"
 
+	"github.com/apparentlymart/go-cidr/cidr"
+	"github.com/aws/aws-sdk-go/aws/awserr"
 	"github.com/supergiant/control/pkg/util"
 	"github.com/supergiant/control/pkg/workflows/steps"
+	"math/rand"
+	"net"
 )
 
 const StepCreateSubnet = "create_subnet_step"
@@ -37,15 +41,36 @@ func (s *CreateSubnetStep) Run(ctx context.Context, w io.Writer, cfg *steps.Conf
 		return errors.Wrap(ErrAuthorization, err.Error())
 	}
 	if cfg.AWSConfig.SubnetID == "" {
-		input := &ec2.CreateSubnetInput{
-			VpcId:            aws.String(cfg.AWSConfig.VPCID),
-			AvailabilityZone: aws.String(cfg.AWSConfig.AvailabilityZone),
+		logrus.Debugf(cfg.AWSConfig.VPCCIDR)
+		logrus.Debugf("Create subnet in VPC %s", cfg.AWSConfig.VPCID)
+		_, cidrIP, _ := net.ParseCIDR(cfg.AWSConfig.VPCCIDR)
+
+		var resultError error
+		for i := 0; i < 10; i++ {
+			subnetCidr, err := cidr.Subnet(cidrIP, 8, rand.Int()%256)
+			logrus.Debugf("Subnet cidr %s", subnetCidr)
+
+			if err != nil {
+				logrus.Debugf("Calculating subnet cidr caused %s", err.Error())
+			}
+
+			input := &ec2.CreateSubnetInput{
+				VpcId:            aws.String(cfg.AWSConfig.VPCID),
+				AvailabilityZone: aws.String(cfg.AWSConfig.AvailabilityZone),
+				CidrBlock:        aws.String(subnetCidr.String()),
+			}
+			out, err := EC2.CreateSubnetWithContext(ctx, input)
+			if err, ok := err.(awserr.Error); ok {
+				logrus.Debugf("Create subnet cause error %s", err.Message())
+				resultError = errors.Wrap(ErrCreateSubnet, err.Error())
+				continue
+			}
+
+			cfg.AWSConfig.SubnetID = *out.Subnet.SubnetId
+			break
 		}
-		out, err := EC2.CreateSubnetWithContext(ctx, input)
-		if err != nil {
-			return errors.Wrap(ErrCreateSubnet, err.Error())
-		}
-		cfg.AWSConfig.SubnetID = *out.Subnet.SubnetId
+
+		return resultError
 	} else if cfg.AWSConfig.SubnetID == "default" {
 		input := &ec2.DescribeSubnetsInput{
 			Filters: []*ec2.Filter{

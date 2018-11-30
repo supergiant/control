@@ -3,12 +3,12 @@ package amazon
 import (
 	"context"
 	"github.com/aws/aws-sdk-go/aws"
+	"github.com/aws/aws-sdk-go/aws/awserr"
 	"github.com/aws/aws-sdk-go/service/ec2"
 	"github.com/pkg/errors"
 	"github.com/sirupsen/logrus"
 	"github.com/supergiant/control/pkg/workflows/steps"
 	"io"
-	"github.com/aws/aws-sdk-go/aws/awserr"
 )
 
 const DeleteVPCStepName = "aws_delete_vpc"
@@ -40,8 +40,6 @@ func (s *DeleteVPC) Run(ctx context.Context, w io.Writer, cfg *steps.Config) err
 	if err, ok := err.(awserr.Error); ok {
 		logrus.Debugf("Delete VPC %s caused %s",
 			cfg.AWSConfig.VPCID, err.Message())
-		return errors.Wrapf(err, "%s: %s",
-			DeleteVPCStepName, cfg.AWSConfig.VPCID)
 	}
 
 	return nil

@@ -2,10 +2,14 @@ package amazon
 
 import (
 	"context"
-
-	"github.com/supergiant/control/pkg/workflows/steps"
 	"io"
+
+	"github.com/aws/aws-sdk-go/aws"
+	"github.com/aws/aws-sdk-go/aws/awserr"
+	"github.com/aws/aws-sdk-go/service/ec2"
 	"github.com/pkg/errors"
+	"github.com/sirupsen/logrus"
+	"github.com/supergiant/control/pkg/workflows/steps"
 )
 
 const DeleteSubnetsStepName = "aws_delete_subnets"
@@ -26,8 +30,16 @@ func (s *DeleteSubnets) Run(ctx context.Context, w io.Writer, cfg *steps.Config)
 		return errors.Wrap(ErrAuthorization, err.Error())
 	}
 
-	// TODO(stgleb): Filter by VPC-ID here
-	EC2.DescribeSubnets(nil)
+	descReq := &ec2.DeleteSubnetInput{
+		SubnetId: aws.String(cfg.AWSConfig.SubnetID),
+	}
+
+	_, err = EC2.DeleteSubnet(descReq)
+
+	if err, ok := err.(awserr.Error); ok {
+		logrus.Debugf("DeleteSubnet caused %s", err.Message())
+	}
+
 	return nil
 }
 

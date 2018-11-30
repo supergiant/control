@@ -8,10 +8,10 @@ import (
 	"github.com/aws/aws-sdk-go/service/ec2"
 	"github.com/pkg/errors"
 
+	"github.com/aws/aws-sdk-go/aws/awserr"
+	"github.com/sirupsen/logrus"
 	"github.com/supergiant/control/pkg/util"
 	"github.com/supergiant/control/pkg/workflows/steps"
-	"github.com/sirupsen/logrus"
-	"github.com/aws/aws-sdk-go/aws/awserr"
 )
 
 const StepCreateVPC = "aws_create_vpc"
@@ -98,9 +98,11 @@ func (c *CreateVPCStep) Run(ctx context.Context, w io.Writer, cfg *steps.Config)
 			}
 
 			var defaultVPCID string
+			var defaultVPCCIDR string
 			for _, vpc := range out.Vpcs {
 				if *vpc.IsDefault {
 					defaultVPCID = *vpc.VpcId
+					defaultVPCCIDR = *vpc.CidrBlock
 					break
 				}
 			}
@@ -112,6 +114,7 @@ func (c *CreateVPCStep) Run(ctx context.Context, w io.Writer, cfg *steps.Config)
 			}
 
 			cfg.AWSConfig.VPCID = defaultVPCID
+			cfg.AWSConfig.VPCCIDR = defaultVPCCIDR
 		}
 	}
 
