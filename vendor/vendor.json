@@ -30,6 +30,12 @@
 			"revisionTime": "2017-05-31T11:00:25Z"
 		},
 		{
+			"checksumSHA1": "70O/Uk37QttEs1njiVYWbcje81I=",
+			"path": "github.com/apparentlymart/go-cidr/cidr",
+			"revision": "1755c023625ec3a84979b90841a1ab067ed6c071",
+			"revisionTime": "2018-09-15T14:47:16Z"
+		},
+		{
 			"checksumSHA1": "IjK0rSBVoTA/Zj/e27oQnFKGErU=",
 			"path": "github.com/aws/aws-sdk-go/aws",
 			"revision": "92c96c4f5ad419f2a72401c2f606d51e010cc110",

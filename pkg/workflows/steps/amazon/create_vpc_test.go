@@ -32,6 +32,11 @@ func (f *fakeEC2VPC) DescribeVpcsWithContext(aws.Context, *ec2.DescribeVpcsInput
 	return f.describeVPCOutput, f.err
 }
 
+func (f *fakeEC2VPC) WaitUntilVpcExistsWithContext(aws.Context,
+	*ec2.DescribeVpcsInput,...request.WaiterOption) error {
+	return nil
+}
+
 func TestCreateVPCStep_Run(t *testing.T) {
 	tt := []struct {
 		awsFN  GetEC2Fn
@@ -88,6 +93,7 @@ func TestCreateVPCStep_Run(t *testing.T) {
 						Vpcs: []*ec2.Vpc{
 							{
 								VpcId:     aws.String("default"),
+								CidrBlock: aws.String("10.20.30.40/16"),
 								IsDefault: aws.Bool(true),
 							},
 						},

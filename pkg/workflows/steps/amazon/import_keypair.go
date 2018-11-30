@@ -5,22 +5,18 @@ import (
 	"fmt"
 	"io"
 	"strings"
-	"time"
 
 	"github.com/aws/aws-sdk-go/service/ec2"
 	"github.com/pkg/errors"
 
 	"github.com/aws/aws-sdk-go/aws"
-	"github.com/sirupsen/logrus"
 	"github.com/supergiant/control/pkg/util"
 	"github.com/supergiant/control/pkg/workflows/steps"
+	"github.com/aws/aws-sdk-go/aws/awserr"
+	"github.com/sirupsen/logrus"
 )
 
 const StepImportKeyPair = "awskeypairstep"
-
-var (
-	keyPairAttemptCount = 5
-)
 
 //KeyPairStep represents creation of keypair in aws
 //since there is hard cap on keypairs per account supergiant will create one per clster
@@ -82,31 +78,26 @@ func (s *KeyPairStep) Run(ctx context.Context, w io.Writer, cfg *steps.Config) e
 
 	cfg.AWSConfig.KeyPairName = *output.KeyName
 
-	delay := time.Second * 10
-	// Wait until key pair become available
-	for cnt := 0; cnt < keyPairAttemptCount; cnt++ {
-		describeInput := &ec2.DescribeKeyPairsInput{
-			Filters: []*ec2.Filter{
-				{
-					Name:   aws.String("fingerprint"),
-					Values: []*string{aws.String(*output.KeyFingerprint)},
-				},
+	describeInput := &ec2.DescribeKeyPairsInput{
+		Filters: []*ec2.Filter{
+			{
+				Name:   aws.String("fingerprint"),
+				Values: []*string{aws.String(*output.KeyFingerprint)},
 			},
-		}
-
-		_, err = EC2.DescribeKeyPairs(describeInput)
-
-		if err != nil {
-			logrus.Errorf("describe key pair %s error %v", bootstrapKeyPairName, err)
-			time.Sleep(delay)
-			delay = delay * 2
-		} else {
-			return nil
-		}
+		},
 	}
 
-	return errors.Wrap(err, fmt.Sprintf("wait until key pair found %s",
-		bootstrapKeyPairName))
+	err = EC2.WaitUntilKeyPairExists(describeInput)
+
+	if err != nil {
+		if err, ok := err.(awserr.Error); ok {
+			logrus.Debugf("WaitUntilKeyPairExists caused %s", err.Message())
+		}
+		return errors.Wrap(err, fmt.Sprintf("wait until key pair found %s",
+			bootstrapKeyPairName))
+	}
+
+	return nil
 }
 
 func (s *KeyPairStep) Rollback(ctx context.Context, w io.Writer, cfg *steps.Config) error {

@@ -530,20 +530,7 @@ func (t *TaskProvisioner) loadCloudSpecificData(ctx context.Context, config *ste
 		return err
 	}
 
-	if config.Provider == clouds.AWS {
-		// Copy data got from pre provision step to cloud specific settings of kube
-		config.AWSConfig.AvailabilityZone = k.CloudSpec[clouds.AwsAZ]
-		config.AWSConfig.VPCCIDR = k.CloudSpec[clouds.AwsVpcCIDR]
-		config.AWSConfig.VPCID = k.CloudSpec[clouds.AwsVpcID]
-		config.AWSConfig.KeyPairName = k.CloudSpec[clouds.AwsKeyPairName]
-		config.AWSConfig.SubnetID = k.CloudSpec[clouds.AwsSubnetID]
-		config.AWSConfig.MastersSecurityGroupID = k.CloudSpec[clouds.AwsMastersSecGroupID]
-		config.AWSConfig.NodesSecurityGroupID = k.CloudSpec[clouds.AwsNodesSecgroupID]
-		config.SshConfig.BootstrapPrivateKey = k.CloudSpec[clouds.AwsSshBootstrapPrivateKey]
-		config.SshConfig.PublicKey = k.CloudSpec[clouds.AwsUserProvidedSshPublicKey]
-	}
-
-	return nil
+	return util.LoadCloudSpecificDataFromKube(k, config)
 }
 
 // Create bootstrap key pair and save to config ssh section

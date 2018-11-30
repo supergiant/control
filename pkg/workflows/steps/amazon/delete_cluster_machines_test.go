@@ -87,7 +87,7 @@ func TestDeleteClusterStep_Run(t *testing.T) {
 		cfg.AWSConfig.Region = "us-east-1"
 		cfg.AWSConfig = tc.awsCfg
 
-		step := DeleteClusterStep{
+		step := DeleteClusterMachines{
 			GetEC2: tc.fn,
 		}
 
