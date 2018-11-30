@@ -2,6 +2,9 @@ package amazon
 
 import (
 	"context"
+	"io"
+	"time"
+
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/aws/awserr"
 	"github.com/aws/aws-sdk-go/service/ec2"
@@ -10,8 +13,6 @@ import (
 	"github.com/sirupsen/logrus"
 	"github.com/supergiant/control/pkg/sgerrors"
 	"github.com/supergiant/control/pkg/workflows/steps"
-	"io"
-	"time"
 )
 
 const DeleteSecurityGroupsStepName = "aws_delete_security_groups"

@@ -3,10 +3,11 @@ package amazon
 import (
 	"context"
 	"fmt"
-	"github.com/aws/aws-sdk-go/service/ec2"
-	"github.com/pkg/errors"
 	"io"
 	"strings"
+
+	"github.com/aws/aws-sdk-go/service/ec2"
+	"github.com/pkg/errors"
 
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/aws/awserr"
