@@ -1081,7 +1081,7 @@ func (h *Handler) getServices(w http.ResponseWriter, r *http.Request) {
 			serviceInfos = append(serviceInfos, serviceInfo)
 
 			targetServices = append(targetServices, &proxy.Target{
-				ProxyID:kubeID + service.Metadata.UID,
+				ProxyID: kubeID + service.Metadata.UID,
 				TargetURL: fmt.Sprintf("https://%s%s:%d/proxy",
 					masterNode.PublicIp, service.Metadata.SelfLink, service.Spec.Ports[0].Port),
 				SelfLink: service.Metadata.SelfLink,
@@ -1103,8 +1103,8 @@ func (h *Handler) getServices(w http.ResponseWriter, r *http.Request) {
 					serviceInfos = append(serviceInfos, serviceInfo)
 
 					targetServices = append(targetServices, &proxy.Target{
-						ProxyID:kubeID + service.Metadata.UID,
-						TargetURL:fmt.Sprintf("https://%s%s:%d/proxy",
+						ProxyID: kubeID + service.Metadata.UID,
+						TargetURL: fmt.Sprintf("https://%s%s:%d/proxy",
 							masterNode.PublicIp, service.Metadata.SelfLink, port.Port),
 						SelfLink: service.Metadata.SelfLink,
 						User:     k.User,

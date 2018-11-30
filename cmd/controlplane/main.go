@@ -8,22 +8,21 @@ import (
 	"syscall"
 	"time"
 
-	"github.com/supergiant/control/pkg/proxy"
-
 	"github.com/sirupsen/logrus"
 
 	"github.com/supergiant/control/pkg/controlplane"
+	"github.com/supergiant/control/pkg/proxy"
 )
 
 var (
-	addr                 = flag.String("address", "0.0.0.0", "network interface to attach server to")
-	port                 = flag.Int("port", 8080, "tcp port to listen for incoming requests")
-	etcdURL              = flag.String("etcd-url", "localhost:2379", "etcd url with port")
-	templatesDir         = flag.String("templates", "/etc/supergiant/templates/", "supergiant will load script templates from the specified directory on start")
-	logLevel             = flag.String("log-level", "INFO", "logging level, e.g. info, warning, debug, error, fatal")
-	logFormat            = flag.String("log-format", "txt", "logging format [txt json]")
-	spawnInterval        = flag.Int("spawnInterval", 5, "interval between API calls to cloud provider for creating instance")
-	uiDir                = flag.String("ui-dir", "./cmd/ui/assets/dist", "directory for supergiant ui to be served")
+	addr          = flag.String("address", "0.0.0.0", "network interface to attach server to")
+	port          = flag.Int("port", 8080, "tcp port to listen for incoming requests")
+	etcdURL       = flag.String("etcd-url", "localhost:2379", "etcd url with port")
+	templatesDir  = flag.String("templates", "/etc/supergiant/templates/", "supergiant will load script templates from the specified directory on start")
+	logLevel      = flag.String("log-level", "INFO", "logging level, e.g. info, warning, debug, error, fatal")
+	logFormat     = flag.String("log-format", "txt", "logging format [txt json]")
+	spawnInterval = flag.Int("spawnInterval", 5, "interval between API calls to cloud provider for creating instance")
+	uiDir         = flag.String("ui-dir", "./cmd/ui/assets/dist", "directory for supergiant ui to be served")
 	//TODO: rewrite to single flag port-range
 	ProxiesPortRangeFrom = flag.Int("proxies-port-from", 60200, "first tcp port in a range of binding reverse proxies for service apps")
 	ProxiesPortRangeTo   = flag.Int("proxies-port-to", 60250, "last tcp port in a range of binding reverse proxies for service apps")
