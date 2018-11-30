@@ -55,6 +55,7 @@ export class AddNodeComponent implements OnInit, OnDestroy {
   isProcessing: boolean;
   availabilityZones: string[];
   selectedAZSubj: Subject<string>;
+  isLoadingMachineTypes: boolean;
 
   constructor(
     private supergiant: Supergiant,
@@ -141,7 +142,10 @@ export class AddNodeComponent implements OnInit, OnDestroy {
         filter(provider => provider === 'aws'),
         first(),
         switchMap(_ => awsMachineSizes$)
-      ).subscribe((sizes) => this.machineSizes$ = of(sizes.sort()))
+      ).subscribe((sizes) => {
+        this.isLoadingMachineTypes = false;
+        this.machineSizes$ = of(sizes.sort());
+      })
     );
 
     this.subscriptions.add(
@@ -193,7 +197,8 @@ export class AddNodeComponent implements OnInit, OnDestroy {
   }
 
   onAzChange(az) {
-   this.selectedAZSubj.next(az)
+    this.isLoadingMachineTypes = true;
+    this.selectedAZSubj.next(az);
   }
 
   finish() {

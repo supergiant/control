@@ -3,7 +3,7 @@
 :host {
 
   .mat-card {
-    width: 1270px;
+    width: auto;
     margin: 0 auto;
   }
 
@@ -29,39 +29,54 @@
   .column {
     display: flex;
     align-items: baseline;
+    align-content: space-between;
 
     &.machines-list {
       flex-direction: column;
-    }
 
-    .delete-machine {
-      background-image: url(/assets/img/delete-pink.svg);
-      cursor: pointer;
-      margin: auto;
-      height: 22px;
-      width: 22px;
-    }
+      .machine {
+        display: flex;
 
-    .machine {
-      display: flex;
+        .type-wrapper {
 
-      .type {
-        width: 341px;
+          .type {
+            width: 341px;
+          }
+        }
+
+        .spinner-wrapper {
+          display: flex;
+          position: relative;
+          align-items: center;
+          margin-left: -20px;
+          margin-right: 10px;
+        }
+
+        .role {
+          width: auto;
+        }
+
+        .quantity {
+          width: 30px;
+        }
       }
 
-      .role {
-        width: 123px;
-      }
-
-      .quantity {
-        width: 30px;
+      .delete-machine {
+        display: inline-block;
+        background-image: url(/assets/img/delete-pink.svg);
+        cursor: pointer;
+        margin: auto;
+        height: 22px;
+        width: 22px;
       }
     }
+
+
+
 
     .architecture {
       display: flex;
       flex-wrap: wrap;
-      width: 600px;
 
       mat-form-field {
         width: 270px;

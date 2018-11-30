@@ -40,22 +40,42 @@ func FindOutboundIP(ctx context.Context, findExternalIP func() (string, error)) 
 }
 
 func findOutBoundIP() (string, error) {
-	serviceURL := "http://myexternalip.com/raw"
-
-	resp, err := http.Get(serviceURL)
-	if err != nil {
-		logrus.Debugf("error while accessing %s", serviceURL)
-		return "", err
+	serviceURLs := []string{
+		"http://checkip.amazonaws.com/",
+		"http://myexternalip.com/raw",
 	}
 
-	defer resp.Body.Close()
-	res, err := ioutil.ReadAll(resp.Body)
-	if err != nil {
-		return "", err
-	}
+	var (
+		publicIP string
+		err error
+	)
 
-	publicIP := string(res)
-	publicIP = strings.Replace(publicIP, "\n", "", -1)
+	client := &http.Client{
+		Transport: http.DefaultTransport,
+		Timeout: time.Second * 10,
+	}
+	for _, serviceURL := range serviceURLs {
+		resp, err := client.Get(serviceURL)
+		if err != nil {
+			logrus.Debugf("error while accessing %s", serviceURL)
+			continue
+		}
+
+		res, err := ioutil.ReadAll(resp.Body)
+		if err != nil {
+			continue
+		}
+
+		publicIP = string(res)
+		publicIP = strings.Replace(publicIP, "\n", "", -1)
+
+		logrus.Debugf("get IP from %s", serviceURL)
+		if resp != nil && resp.Body != nil {
+			resp.Body.Close()
+		}
+
+		break
+	}
 
 	return publicIP, err
 }

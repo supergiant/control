@@ -8,46 +8,53 @@
       <div class="machine"
            *ngFor="let m of machines; let idx = index">
         <mat-form-field *ngIf="(provider$ | async)  === 'aws'">
-          <mat-select #availabitityZoneInput
-                      [disabled]="!availabilityZones"
+          <mat-select [disabled]="!availabilityZones"
                       [(value)]="m.availabilityZone"
-                      placeholder="Select an Availability Zone"
                       (selectionChange)="onAzChange($event.value)"
+                      placeholder="Select an Availability Zone"
                       required>
             <mat-option *ngFor="let a of availabilityZones"
                         [value]="a">{{ a }}</mat-option>
           </mat-select>
         </mat-form-field>
 
-        <mat-form-field class="type">
-          <mat-select placeholder="Machine Type (size)"
-                      [disabled]="!m.availabilityZone && (provider$ | async)  === 'aws'"
-                      [(value)]="m.machineType"
-                      (selectionChange)="checkAndSetValidMachineConfig()">
-            <mat-option *ngFor="let type of (machineSizes$ | async)"
-                        [value]="type">{{ type }}</mat-option>
-          </mat-select>
-        </mat-form-field>
 
-        <mat-form-field class="role">
-          <mat-select placeholder="Role"
-                      [(value)]="m.role"
-                      (selectionChange)="checkAndSetValidMachineConfig()">
-            <mat-option value="Node">Node</mat-option>
-          </mat-select>
-        </mat-form-field>
+      <mat-form-field class="type">
+      <mat-select placeholder="Machine Type (size)"
+                  [disabled]="!m.availabilityZone && (provider$ | async)  === 'aws'"
+                  [(value)]="m.machineType"
+                  (selectionChange)="checkAndSetValidMachineConfig()">
+      <mat-option *ngFor="let type of (machineSizes$ | async)"
+                  [value]="type">{{ type }}</mat-option>
+      </mat-select>
+      </mat-form-field>
+        <div class="spinner-wrapper">
+          <mat-spinner *ngIf="isLoadingMachineTypes"
+                     class="progress-spinner"
+                     color="primary"
+                     [diameter]="20">
+        </mat-spinner>
+        </div>
 
-        <mat-form-field class="quantity">
-          <input matInput
-                 type="number"
-                 min="1"
-                 placeholder="Q-ty"
-                 [(ngModel)]="m.qty"
-                 (ngModelChange)="checkAndSetValidMachineConfig()">
-        </mat-form-field>
-        <div class="delete-machine"
-             [hidden]="machines.length === 1"
-             (click)="deleteMachine(idx)">
+          <mat-form-field class="role">
+            <mat-select placeholder="Role"
+                        [(value)]="m.role"
+                        (selectionChange)="checkAndSetValidMachineConfig()">
+              <mat-option value="Node">Node</mat-option>
+            </mat-select>
+          </mat-form-field>
+
+          <mat-form-field class="quantity">
+            <input matInput
+                   type="number"
+                   min="1"
+                   placeholder="Q-ty"
+                   [(ngModel)]="m.qty"
+                   (ngModelChange)="checkAndSetValidMachineConfig()">
+          </mat-form-field>
+          <div class="delete-machine"
+               [hidden]="machines.length === 1"
+               (click)="deleteMachine(idx)">
         </div>
 
       </div>
@@ -62,6 +69,7 @@
                         [value]="a">{{ a }}</mat-option>
           </mat-select>
         </mat-form-field>
+
 
         <mat-form-field>
           <mat-select placeholder="Operating System"
