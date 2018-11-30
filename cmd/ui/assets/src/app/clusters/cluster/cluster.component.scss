@@ -705,6 +705,10 @@
       .metrics-cell {
         justify-content: center !important;
       }
+
+      .machine-name-cell {
+        min-width: max-content;
+      }
     }
 
     .mat-paginator {
