@@ -1,0 +1,8 @@
+<div class="kubectl-config-wrapper">
+  <p>To configure kubectl to access your cluster, do the following:</p>
+  <ul>
+    <li>Copy and save the config file below to your local machine</li>
+    <li>Run all kubectl commands with the flag: <span class="command">--kubeconfig="PATH_TO_CONFIG"</span></li>
+  </ul>
+  <ace-editor [(text)]="config" [readOnly]="true" style="height:540px;width:100%"></ace-editor>
+</div>

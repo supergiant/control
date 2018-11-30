@@ -1,0 +1,22 @@
+<div class="ssh-commands-wrapper">
+
+  <p class="communication">
+    Below is a list of commands you can run from your terminal to access the machines in your cluster. Node commands are provided for troubleshooting purposes; general cluster functions should be run from the master (for multi-master clusters, any master will suffice).
+  </p>
+
+  <div class="command-list">
+    <div class="machine-group">
+      <h3>MASTERS</h3>
+      <div class="machine" *ngFor="let master of data.masters">
+        <span class="name">{{ master.name }}:</span><span class="command">ssh root@{{ master.publicIp }}</span>
+      </div>
+    </div>
+
+    <div class="machine-group">
+      <h3>NODES</h3>
+      <div class="machine" *ngFor="let master of data.nodes">
+        <span class="name">{{ master.name }}:</span><span class="command">ssh root@{{ master.publicIp }}</span>
+      </div>
+    </div>
+  </div>
+</div>

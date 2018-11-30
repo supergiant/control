@@ -184,6 +184,7 @@ func (h *Handler) Register(r *mux.Router) {
 
 	r.HandleFunc("/kubes/{kubeID}/releases", h.installRelease).Methods(http.MethodPost)
 	r.HandleFunc("/kubes/{kubeID}/releases", h.listReleases).Methods(http.MethodGet)
+	r.HandleFunc("/kubes/{kubeID}/releases/{releaseName}", h.getRelease).Methods(http.MethodGet)
 	r.HandleFunc("/kubes/{kubeID}/releases/{releaseName}", h.deleteReleases).Methods(http.MethodDelete)
 
 	r.HandleFunc("/kubes/{kubeID}/certs/{cname}", h.getCerts).Methods(http.MethodGet)
@@ -827,6 +828,25 @@ func (h *Handler) installRelease(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
+func (h *Handler) getRelease(w http.ResponseWriter, r *http.Request) {
+	vars := mux.Vars(r)
+
+	kubeID := vars["kubeID"]
+	rlsName := vars["releaseName"]
+
+	rls, err := h.svc.ReleaseDetails(r.Context(), kubeID, rlsName)
+	if err != nil {
+		logrus.Errorf("helm: get %s release: %s cluster: %s", rlsName, kubeID, err)
+		message.SendUnknownError(w, err)
+		return
+	}
+
+	if err = json.NewEncoder(w).Encode(rls); err != nil {
+		logrus.Errorf("helm: get %s release: %s cluster: write response: %s", rlsName, kubeID, err)
+		message.SendUnknownError(w, err)
+	}
+}
+
 func (h *Handler) listReleases(w http.ResponseWriter, r *http.Request) {
 	vars := mux.Vars(r)
 
@@ -854,7 +874,7 @@ func (h *Handler) deleteReleases(w http.ResponseWriter, r *http.Request) {
 
 	rls, err := h.svc.DeleteRelease(r.Context(), kubeID, rlsName, purge)
 	if err != nil {
-		logrus.Errorf("helm: delete release: cluster %s: release %s: %s", kubeID, rlsName, err)
+		logrus.Errorf("helm: delete release: %s cluster: release %s: %s", kubeID, rlsName, err)
 		message.SendUnknownError(w, err)
 		return
 	}
