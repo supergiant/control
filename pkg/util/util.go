@@ -153,6 +153,8 @@ func LoadCloudSpecificDataFromKube(k *model.Kube, config *steps.Config) error {
 	case clouds.GCE:
 		config.GCEConfig.AvailabilityZone = k.Zone
 		return nil
+	case clouds.DigitalOcean:
+		return nil
 	}
 
 	return errors.Wrapf(sgerrors.ErrUnsupportedProvider,

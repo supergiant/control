@@ -37,11 +37,13 @@ func (f *FakeEC2SecurityGroups) DescribeSecurityGroupsWithContext(aws.Context, *
 
 func TestCreateSecurityGroupsStep_Run(t *testing.T) {
 	tt := []struct {
+		description string
 		fn  GetEC2Fn
 		err error
 		cfg steps.AWSConfig
 	}{
 		{
+			description: "error authorization",
 			fn: func(config steps.AWSConfig) (ec2iface.EC2API, error) {
 				return nil, nil
 			},
@@ -52,6 +54,7 @@ func TestCreateSecurityGroupsStep_Run(t *testing.T) {
 			},
 		},
 		{
+			description: "success",
 			fn: func(config steps.AWSConfig) (ec2iface.EC2API, error) {
 				return &FakeEC2SecurityGroups{
 					createOutput: &ec2.CreateSecurityGroupOutput{
@@ -76,6 +79,7 @@ func TestCreateSecurityGroupsStep_Run(t *testing.T) {
 	}
 
 	for i, tc := range tt {
+		t.Log(tc.description)
 		cfg := steps.NewConfig("", "", "", profile.Profile{})
 		cfg.AWSConfig = tc.cfg
 		step := NewCreateSecurityGroupsStep(tc.fn)

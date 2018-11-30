@@ -196,6 +196,7 @@ func TestProvisionNodes(t *testing.T) {
 	}
 
 	k := &model.Kube{
+		Provider: clouds.DigitalOcean,
 		Masters: map[string]*node.Node{
 			"1": {
 				ID:        "1",
@@ -206,6 +207,7 @@ func TestProvisionNodes(t *testing.T) {
 				Size:      "s-2vcpu-4gb",
 			},
 		},
+		CloudSpec: make(map[string]string),
 	}
 
 	kubeProfile := profile.Profile{
@@ -230,7 +232,8 @@ func TestProvisionNodes(t *testing.T) {
 	}
 
 	config := steps.NewConfig(k.Name, "", k.AccountName, kubeProfile)
-	_, err := provisioner.ProvisionNodes(context.Background(), []profile.NodeProfile{nodeProfile}, k, config)
+	_, err := provisioner.ProvisionNodes(context.Background(),
+		[]profile.NodeProfile{nodeProfile}, k, config)
 
 	if err != nil {
 		t.Errorf("Unexpected error %v while provisionCluster", err)

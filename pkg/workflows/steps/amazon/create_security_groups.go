@@ -205,8 +205,6 @@ func (s *CreateSecurityGroupsStep) getSecurityGroupById(ctx context.Context, EC2
 	if len(out.SecurityGroups) == 0 {
 		return nil, errors.Errorf("no security group with ID %s found in aws", groupID)
 	}
-	logrus.Debugf("Found %s %s", *out.SecurityGroups[0].GroupId,
-		*out.SecurityGroups[0].VpcId)
 	return out.SecurityGroups[0], nil
 }
 

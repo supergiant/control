@@ -10,10 +10,10 @@ import (
 	"github.com/pkg/errors"
 
 	"github.com/aws/aws-sdk-go/aws"
-	"github.com/aws/aws-sdk-go/aws/awserr"
-	"github.com/sirupsen/logrus"
 	"github.com/supergiant/control/pkg/util"
 	"github.com/supergiant/control/pkg/workflows/steps"
+	"github.com/aws/aws-sdk-go/aws/awserr"
+	"github.com/sirupsen/logrus"
 )
 
 const StepImportKeyPair = "awskeypairstep"
@@ -89,8 +89,10 @@ func (s *KeyPairStep) Run(ctx context.Context, w io.Writer, cfg *steps.Config) e
 
 	err = EC2.WaitUntilKeyPairExists(describeInput)
 
-	if err, ok := err.(awserr.Error); ok {
-		logrus.Debugf("WaitUntilKeyPairExists caused %s", err.Message())
+	if err != nil {
+		if err, ok := err.(awserr.Error); ok {
+			logrus.Debugf("WaitUntilKeyPairExists caused %s", err.Message())
+		}
 		return errors.Wrap(err, fmt.Sprintf("wait until key pair found %s",
 			bootstrapKeyPairName))
 	}
