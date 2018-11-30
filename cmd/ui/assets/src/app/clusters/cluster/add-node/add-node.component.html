@@ -12,7 +12,7 @@
                       [disabled]="!availabilityZones"
                       [(value)]="m.availabilityZone"
                       placeholder="Select an Availability Zone"
-                      (selectionChange)="selectAz($event.value)"
+                      (selectionChange)="onAzChange($event.value)"
                       required>
             <mat-option *ngFor="let a of availabilityZones"
                         [value]="a">{{ a }}</mat-option>
