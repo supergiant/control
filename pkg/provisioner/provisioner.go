@@ -450,6 +450,7 @@ func (tp *TaskProvisioner) buildInitialCluster(ctx context.Context,
 		Zone:         profile.Zone,
 		SshUser:      config.SshConfig.User,
 		SshPublicKey: []byte(config.SshConfig.PublicKey),
+		BootstrapKey: []byte(config.SshConfig.BootstrapPublicKey),
 		User:         profile.User,
 		Password:     profile.Password,
 

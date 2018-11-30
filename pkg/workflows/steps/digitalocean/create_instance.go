@@ -45,9 +45,6 @@ func (s *CreateInstanceStep) Run(ctx context.Context, output io.Writer, config *
 		return err
 	}
 
-	// Delete provision key from cloud account
-	defer c.Keys.DeleteByFingerprint(context.Background(), fingers[0].Fingerprint)
-
 	tags := []string{
 		config.ClusterID,
 		config.DigitalOceanConfig.Name,

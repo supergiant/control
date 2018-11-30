@@ -13,7 +13,8 @@ import (
 const (
 	CreateMachineStepName = "createMachineDigitalOcean"
 	DeleteMachineStepName = "deleteMachineDigitalOcean"
-	DeleteClusterStepName = "deleteClusterDigitalOcean"
+	DeleteClusterMachines = "deleteClusterMachineDigitalOcean"
+	DeleteDeleteKeysStep  = "deleteKeys"
 )
 
 var (
@@ -41,5 +42,5 @@ type DeleteService interface {
 func Init() {
 	steps.RegisterStep(CreateMachineStepName, NewCreateInstanceStep(time.Minute*5, time.Second*5))
 	steps.RegisterStep(DeleteMachineStepName, NewDeleteMachineStep(time.Minute*1))
-	steps.RegisterStep(DeleteClusterStepName, NewDeleteClusterStep(time.Minute*1))
+	steps.RegisterStep(DeleteClusterMachines, NewDeletemachinesStep(time.Minute*1))
 }

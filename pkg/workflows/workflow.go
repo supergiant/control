@@ -148,7 +148,7 @@ func Init() {
 	}
 
 	digitalOceanDeleteClusterWorkflow := []steps.Step{
-		steps.GetStep(digitalocean.DeleteClusterStepName),
+		steps.GetStep(digitalocean.DeleteClusterMachines),
 	}
 
 	awsDeleteClusterWorkflow := []steps.Step{
