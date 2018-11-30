@@ -14,7 +14,7 @@
 [GoReportCard Widget]: https://goreportcard.com/badge/github.com/supergiant/control
 [GoReportCard URL]: https://goreportcard.com/report/github.com/supergiant/control
 
-# <img src="https://s3.amazonaws.com/supergiant-docs-assets/sg_control_light.svg">
+# <img src="https://s3.amazonaws.com/supergiant-docs-asets/sg_control_light.svg">
 
 <!-- Badges -->
 [![Release Widget]][Release URL] [![GoDoc Widget]][GoDoc URL] [![Travis Widget]][Travis URL] [![Coverage Status Widget]][Coverage Status] [![GoReportCard Widget]][GoReportCard URL]
