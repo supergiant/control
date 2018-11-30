@@ -73,8 +73,8 @@ func TestNewProvisioner(t *testing.T) {
 func TestProvisionCluster(t *testing.T) {
 	repository := &testutils.MockStorage{}
 	repository.On("Put", mock.Anything,
-	mock.Anything, mock.Anything,
-	mock.Anything).Return(nil)
+		mock.Anything, mock.Anything,
+		mock.Anything).Return(nil)
 
 	bc := &bufferCloser{
 		bytes.Buffer{},
@@ -151,9 +151,9 @@ func TestProvisionCluster(t *testing.T) {
 	if k := svc.data[cfg.ClusterID]; k == nil {
 		t.Errorf("Kube %s not found", k.ID)
 
-		if len(k.Tasks) != len(p.MasterProfiles) + len(p.NodesProfiles) + 1 {
+		if len(k.Tasks) != len(p.MasterProfiles)+len(p.NodesProfiles)+1 {
 			t.Errorf("Wrong count of tasks in kube expected %d actual %d",
-				len(p.MasterProfiles) + len(p.NodesProfiles) + 1, len(k.Tasks))
+				len(p.MasterProfiles)+len(p.NodesProfiles)+1, len(k.Tasks))
 		}
 	}
 }
@@ -432,7 +432,6 @@ func TestBuildInitialCluster(t *testing.T) {
 	}
 	taskIds := []string{"1234", "5678", "abcd"}
 
-
 	tp.buildInitialCluster(context.Background(), &profile.Profile{}, nil, nil, &steps.Config{
 		ClusterID: clusterID,
 	}, taskIds)
@@ -441,7 +440,7 @@ func TestBuildInitialCluster(t *testing.T) {
 		t.Errorf("Cluster %s not found", clusterID)
 	} else {
 		if len(k.Tasks) != len(taskIds) {
-			t.Errorf("Wrong number of tasks in cluster " +
+			t.Errorf("Wrong number of tasks in cluster "+
 				"expected %d actual %d", len(taskIds), len(k.Tasks))
 		}
 	}

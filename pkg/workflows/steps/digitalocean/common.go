@@ -14,7 +14,7 @@ const (
 	CreateMachineStepName = "createMachineDigitalOcean"
 	DeleteMachineStepName = "deleteMachineDigitalOcean"
 	DeleteClusterMachines = "deleteClusterMachineDigitalOcean"
-	DeleteDeleteKeysStep  = "deleteKeys"
+	DeleteDeleteKeysStep  = "deleteKeysDigitalOcean"
 )
 
 var (
@@ -43,4 +43,5 @@ func Init() {
 	steps.RegisterStep(CreateMachineStepName, NewCreateInstanceStep(time.Minute*5, time.Second*5))
 	steps.RegisterStep(DeleteMachineStepName, NewDeleteMachineStep(time.Minute*1))
 	steps.RegisterStep(DeleteClusterMachines, NewDeletemachinesStep(time.Minute*1))
+	steps.RegisterStep(DeleteDeleteKeysStep, NewDeleteKeysStep())
 }

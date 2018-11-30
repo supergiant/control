@@ -174,10 +174,6 @@ func (tp *TaskProvisioner) ProvisionNodes(parentContext context.Context, nodePro
 	ctx, cancel := context.WithCancel(parentContext)
 	tp.cancelMap[config.ClusterID] = cancel
 
-	if err := bootstrapKeys(config); err != nil {
-		return nil, errors.Wrap(err, "bootstrap keys")
-	}
-
 	if err := tp.loadCloudSpecificData(ctx, config); err != nil {
 		return nil, errors.Wrap(err, "load cloud specific config")
 	}
@@ -440,19 +436,19 @@ func (tp *TaskProvisioner) buildInitialCluster(ctx context.Context,
 	config *steps.Config, taskIds []string) error {
 
 	cluster := &model.Kube{
-		ID:           config.ClusterID,
-		State:        model.StateProvisioning,
-		Name:         config.ClusterName,
-		Provider:     profile.Provider,
-		AccountName:  config.CloudAccountName,
-		RBACEnabled:  profile.RBACEnabled,
-		Region:       profile.Region,
-		Zone:         profile.Zone,
-		SshUser:      config.SshConfig.User,
-		SshPublicKey: []byte(config.SshConfig.PublicKey),
-		BootstrapKey: []byte(config.SshConfig.BootstrapPublicKey),
-		User:         profile.User,
-		Password:     profile.Password,
+		ID:                 config.ClusterID,
+		State:              model.StateProvisioning,
+		Name:               config.ClusterName,
+		Provider:           profile.Provider,
+		AccountName:        config.CloudAccountName,
+		RBACEnabled:        profile.RBACEnabled,
+		Region:             profile.Region,
+		Zone:               profile.Zone,
+		SshUser:            config.SshConfig.User,
+		SshPublicKey:       []byte(config.SshConfig.PublicKey),
+		BootstrapPublicKey: []byte(config.SshConfig.BootstrapPublicKey),
+		User:               profile.User,
+		Password:           profile.Password,
 
 		Auth: model.Auth{
 			Username:  config.CertificatesConfig.Username,
@@ -486,26 +482,6 @@ func (tp *TaskProvisioner) buildInitialCluster(ctx context.Context,
 }
 
 func (t *TaskProvisioner) updateCloudSpecificData(ctx context.Context, config *steps.Config) error {
-	cloudSpecificSettings := make(map[string]string)
-
-	// Save cloudSpecificData in kube
-	switch config.Provider {
-	case clouds.AWS:
-
-	}
-	if config.Provider == clouds.AWS {
-		// Copy data got from pre provision step to cloud specific settings of kube
-		cloudSpecificSettings[clouds.AwsAZ] = config.AWSConfig.AvailabilityZone
-		cloudSpecificSettings[clouds.AwsVpcCIDR] = config.AWSConfig.VPCCIDR
-		cloudSpecificSettings[clouds.AwsVpcID] = config.AWSConfig.VPCID
-		cloudSpecificSettings[clouds.AwsKeyPairName] = config.AWSConfig.KeyPairName
-		cloudSpecificSettings[clouds.AwsSubnetID] = config.AWSConfig.SubnetID
-		cloudSpecificSettings[clouds.AwsMastersSecGroupID] = config.AWSConfig.MastersSecurityGroupID
-		cloudSpecificSettings[clouds.AwsNodesSecgroupID] = config.AWSConfig.NodesSecurityGroupID
-		cloudSpecificSettings[clouds.AwsSshBootstrapPrivateKey] = config.SshConfig.BootstrapPrivateKey
-		cloudSpecificSettings[clouds.AwsUserProvidedSshPublicKey] = config.SshConfig.PublicKey
-	}
-
 	k, err := t.kubeService.Get(ctx, config.ClusterID)
 
 	if err != nil {
@@ -513,8 +489,36 @@ func (t *TaskProvisioner) updateCloudSpecificData(ctx context.Context, config *s
 		return err
 	}
 
-	if config.Provider == clouds.GCE {
-		k.Zone = config.GCEConfig.AvailabilityZone
+	cloudSpecificSettings := make(map[string]string)
+
+	// Load key data
+	k.BootstrapPrivateKey = []byte(config.SshConfig.BootstrapPrivateKey)
+	k.SshPublicKey = []byte(config.SshConfig.PublicKey)
+
+	// Save cloudSpecificData in kube
+	switch config.Provider {
+	case clouds.AWS:
+		// Copy data got from pre provision step to cloud specific settings of kube
+		cloudSpecificSettings[clouds.AwsAZ] = config.AWSConfig.AvailabilityZone
+		cloudSpecificSettings[clouds.AwsVpcCIDR] = config.AWSConfig.VPCCIDR
+		cloudSpecificSettings[clouds.AwsVpcID] = config.AWSConfig.VPCID
+		cloudSpecificSettings[clouds.AwsKeyPairName] = config.AWSConfig.KeyPairName
+		cloudSpecificSettings[clouds.AwsSubnetID] = config.AWSConfig.SubnetID
+		cloudSpecificSettings[clouds.AwsMastersSecGroupID] =
+			config.AWSConfig.MastersSecurityGroupID
+		cloudSpecificSettings[clouds.AwsNodesSecgroupID] =
+			config.AWSConfig.NodesSecurityGroupID
+		// TODO(stgleb): this must be done for all types of clouds
+		cloudSpecificSettings[clouds.AwsSshBootstrapPrivateKey] =
+			config.SshConfig.BootstrapPrivateKey
+		cloudSpecificSettings[clouds.AwsUserProvidedSshPublicKey] =
+			config.SshConfig.PublicKey
+	case clouds.GCE:
+		// GCE is the most simple :-)
+	case clouds.DigitalOcean:
+		// DO deletes key by fingerprint that's why we need to download
+		//this bootstrap public key
+		k.BootstrapPublicKey = []byte(config.SshConfig.BootstrapPublicKey)
 	}
 
 	k.CloudSpec = cloudSpecificSettings
