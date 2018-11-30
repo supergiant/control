@@ -5,26 +5,56 @@
   <mat-card-content>
 
     <section class="column machines-list">
-      <div class="machine" *ngFor="let m of machines; let idx = index">
-        <mat-form-field class="type">
-          <mat-select placeholder="Machine Type (size)" [(value)]="m.machineType"
-                      (selectionChange)="checkAndSetValidMachineConfig()">
-            <mat-option *ngFor="let type of (machineSizes$ | async)" [value]="type">{{ type }}</mat-option>
+      <div class="machine"
+           *ngFor="let m of machines; let idx = index">
+        <mat-form-field *ngIf="(provider$ | async)  === 'aws'">
+          <mat-select [disabled]="!availabilityZones"
+                      [(value)]="m.availabilityZone"
+                      (selectionChange)="onAzChange($event.value)"
+                      placeholder="Select an Availability Zone"
+                      required>
+            <mat-option *ngFor="let a of availabilityZones"
+                        [value]="a">{{ a }}</mat-option>
           </mat-select>
         </mat-form-field>
 
-        <mat-form-field class="role">
-          <mat-select placeholder="Role" [(value)]="m.role" (selectionChange)="checkAndSetValidMachineConfig()">
-            <mat-option value="Node">Node</mat-option>
-          </mat-select>
-        </mat-form-field>
 
-        <mat-form-field class="quantity">
-          <input matInput type="number" min="1" placeholder="Q-ty" [(ngModel)]="m.qty" (ngModelChange)="checkAndSetValidMachineConfig()">
-        </mat-form-field>
-        <div class="delete-machine"
-             [hidden]="machines.length === 1"
-             (click)="deleteMachine(idx)">
+      <mat-form-field class="type">
+      <mat-select placeholder="Machine Type (size)"
+                  [disabled]="!m.availabilityZone && (provider$ | async)  === 'aws'"
+                  [(value)]="m.machineType"
+                  (selectionChange)="checkAndSetValidMachineConfig()">
+      <mat-option *ngFor="let type of (machineSizes$ | async)"
+                  [value]="type">{{ type }}</mat-option>
+      </mat-select>
+      </mat-form-field>
+        <div class="spinner-wrapper">
+          <mat-spinner *ngIf="isLoadingMachineTypes"
+                     class="progress-spinner"
+                     color="primary"
+                     [diameter]="20">
+        </mat-spinner>
+        </div>
+
+          <mat-form-field class="role">
+            <mat-select placeholder="Role"
+                        [(value)]="m.role"
+                        (selectionChange)="checkAndSetValidMachineConfig()">
+              <mat-option value="Node">Node</mat-option>
+            </mat-select>
+          </mat-form-field>
+
+          <mat-form-field class="quantity">
+            <input matInput
+                   type="number"
+                   min="1"
+                   placeholder="Q-ty"
+                   [(ngModel)]="m.qty"
+                   (ngModelChange)="checkAndSetValidMachineConfig()">
+          </mat-form-field>
+          <div class="delete-machine"
+               [hidden]="machines.length === 1"
+               (click)="deleteMachine(idx)">
         </div>
 
       </div>
@@ -33,36 +63,50 @@
     <section class="column">
       <section class="architecture">
         <mat-form-field>
-          <mat-select placeholder="Arch" [value]="clusterOptions.archs[0]">
-            <mat-option *ngFor="let a of clusterOptions.archs" [value]="a">{{ a }}</mat-option>
+          <mat-select placeholder="Arch"
+                      [value]="clusterOptions.archs[0]">
+            <mat-option *ngFor="let a of clusterOptions.archs"
+                        [value]="a">{{ a }}</mat-option>
+          </mat-select>
+        </mat-form-field>
+
+
+        <mat-form-field>
+          <mat-select placeholder="Operating System"
+                      [value]="clusterOptions.operatingSystems[0]">
+            <mat-option *ngFor="let os of clusterOptions.operatingSystems"
+                        [value]="os">{{ os }}</mat-option>
           </mat-select>
         </mat-form-field>
 
         <mat-form-field>
-          <mat-select placeholder="Operating System" [value]="clusterOptions.operatingSystems[0]">
-            <mat-option *ngFor="let os of clusterOptions.operatingSystems" [value]="os">{{ os }}</mat-option>
-          </mat-select>
-        </mat-form-field>
-
-        <mat-form-field>
-          <mat-select placeholder="Ubuntu Version" [value]="clusterOptions.ubuntuVersions[0]">
-            <mat-option *ngFor="let u of clusterOptions.ubuntuVersions" [value]="u">{{ u }}</mat-option>
+          <mat-select placeholder="Ubuntu Version"
+                      [value]="clusterOptions.ubuntuVersions[0]">
+            <mat-option *ngFor="let u of clusterOptions.ubuntuVersions"
+                        [value]="u">{{ u }}</mat-option>
           </mat-select>
         </mat-form-field>
       </section>
     </section>
   </mat-card-content>
 
-  <p *ngIf="displayMachineConfigError" class="warning">Current machine configuration is invalid. Please check that each machine has a type, role, and valid quantity.</p>
+  <p *ngIf="displayMachineConfigError"
+     class="warning">Current machine configuration is invalid. Please check that each machine has a type, role, and
+                     valid quantity.</p>
 
   <mat-card-actions>
-    <div class="add-machines" (click)="addBlankMachine()">
+    <div class="add-machines"
+         (click)="addBlankMachine()">
       <div class="add-machine-btn"></div>
       <span>Add more machines</span>
     </div>
 
     <div>
-      <button mat-raised-button color="primary" class="submit-btn" (click)="finish()" [disabled]="!validMachinesConfig">
+      <button mat-raised-button
+              color="primary"
+              class="submit-btn"
+              (click)="finish()"
+              [disabled]="!validMachinesConfig">
         <span [hidden]="isProcessing">Finish</span>
         <mat-progress-spinner [diameter]="24"
                               [mode]="'indeterminate'"

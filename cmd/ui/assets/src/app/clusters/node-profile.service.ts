@@ -26,7 +26,8 @@ export class NodeProfileService {
               volumeSize: "80",
               size: m.machineType,
               ebsOptimized: "true",
-              hasPublicAddr: "true"
+              hasPublicAddr: "true",
+              availabilityZone: m.availabilityZone
             })
           }
         });

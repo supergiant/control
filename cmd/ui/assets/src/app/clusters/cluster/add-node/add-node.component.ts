@@ -38,7 +38,8 @@ export class AddNodeComponent implements OnInit, OnDestroy {
   machines = [{
     machineType: null,
     role: "Node",
-    qty: 1
+    qty: 1,
+    availabilityZone: '',
   }];
 
   machineSizes$: Observable<any>;
@@ -52,6 +53,9 @@ export class AddNodeComponent implements OnInit, OnDestroy {
 
   subscriptions: Subscription;
   isProcessing: boolean;
+  availabilityZones: string[];
+  selectedAZSubj: Subject<string>;
+  isLoadingMachineTypes: boolean;
 
   constructor(
     private supergiant: Supergiant,
@@ -62,6 +66,7 @@ export class AddNodeComponent implements OnInit, OnDestroy {
     private router: Router,
   ) {
     this.providerSubj = new Subject<string>();
+    this.selectedAZSubj = new Subject<string>();
     this.subscriptions = new Subscription();
   }
 
@@ -101,21 +106,27 @@ export class AddNodeComponent implements OnInit, OnDestroy {
     );
 
 
-    const awsMachineSizes$ = zip(cloudAccountName$, region$).pipe(
+    const awsMachineSizes$: Observable<string[]> = zip(cloudAccountName$, region$).pipe(
       take(1),
       switchMap(([name, region]) =>
         combineLatest(
           of(name),
           of(region),
           this.supergiant.CloudAccounts.getAwsAvailabilityZones(name, region).pipe(
+            tap(availabilityZones => this.availabilityZones = availabilityZones),
             // TODO: error handling
             catchError(e => of(e))
           )
         )
       ),
-      mergeMap(([name, region, awsZones]) =>
-        this.supergiant.CloudAccounts.getAwsMachineTypes(name, region, awsZones[0])
-      ),
+      // fetch machine types after az change
+      mergeMap(([name, region]) => {
+        return combineLatest(
+          of({name, region}), this.selectedAZSubj,
+          (params, awsZone) => [params.name, params.region, awsZone]
+        );
+      }),
+      switchMap(([name, region, awsZone]) => this.supergiant.CloudAccounts.getAwsMachineTypes(name, region, awsZone))
     );
 
 
@@ -131,7 +142,10 @@ export class AddNodeComponent implements OnInit, OnDestroy {
         filter(provider => provider === 'aws'),
         first(),
         switchMap(_ => awsMachineSizes$)
-      ).subscribe(sizes => this.machineSizes$ = of(sizes.sort()))
+      ).subscribe((sizes) => {
+        this.isLoadingMachineTypes = false;
+        this.machineSizes$ = of(sizes.sort());
+      })
     );
 
     this.subscriptions.add(
@@ -150,6 +164,7 @@ export class AddNodeComponent implements OnInit, OnDestroy {
       machineType: null,
       role: 'Node',
       qty: 1,
+      availabilityZone: '',
     });
 
     this.checkAndSetValidMachineConfig();
@@ -179,6 +194,11 @@ export class AddNodeComponent implements OnInit, OnDestroy {
     } else {
       this.displayMachineConfigError = true;
     }
+  }
+
+  onAzChange(az) {
+    this.isLoadingMachineTypes = true;
+    this.selectedAZSubj.next(az);
   }
 
   finish() {
@@ -214,6 +234,5 @@ export class AddNodeComponent implements OnInit, OnDestroy {
       this.isProcessing = false;
       this.displayMachineConfigError = true;
     }
-
   }
 }
