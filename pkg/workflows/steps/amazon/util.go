@@ -50,8 +50,11 @@ func findOutBoundIP() (string, error) {
 		err error
 	)
 
+	client := &http.Client{
+		Timeout: time.Second * 10,
+	}
 	for _, serviceURL := range serviceURLs {
-		resp, err := http.Get(serviceURL)
+		resp, err := client.Get(serviceURL)
 		if err != nil {
 			logrus.Debugf("error while accessing %s", serviceURL)
 			continue
