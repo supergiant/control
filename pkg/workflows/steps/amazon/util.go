@@ -51,6 +51,7 @@ func findOutBoundIP() (string, error) {
 	)
 
 	client := &http.Client{
+		Transport: http.DefaultTransport,
 		Timeout: time.Second * 10,
 	}
 	for _, serviceURL := range serviceURLs {
