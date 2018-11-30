@@ -236,10 +236,10 @@
         </ng-container>
 
         <ng-container matColumnDef="cpu">
-          <mat-header-cell mat-sort-header
+          <mat-header-cell class="metrics-cell"
                            *matHeaderCellDef>CPU
           </mat-header-cell>
-          <mat-cell *matCellDef="let machine">
+          <mat-cell class="metrics-cell" *matCellDef="let machine">
             <!-- TODO: need to find a way to manipulate way before here -->
             <ng-container *ngIf="machine.metrics?.cpu">
               {{ machine.metrics?.cpu }}%
@@ -251,10 +251,10 @@
         </ng-container>
 
         <ng-container matColumnDef="ram">
-          <mat-header-cell mat-sort-header
+          <mat-header-cell class="metrics-cell"
                            *matHeaderCellDef>RAM
           </mat-header-cell>
-          <mat-cell *matCellDef="let machine">
+          <mat-cell class="metrics-cell" *matCellDef="let machine">
             <ng-container *ngIf="machine.metrics?.memory">
               {{ machine.metrics?.memory }}%
             </ng-container>
@@ -353,8 +353,17 @@
             </mat-cell>
           </ng-container>
 
+          <ng-container matColumnDef="info">
+            <mat-header-cell class="small-cell"
+                             *matHeaderCellDef>
+            </mat-header-cell>
+            <mat-cell class="small-cell" *matCellDef="let release">
+              <div class="info-icon" (click)="showReleaseInfo(release.name)"></div>
+            </mat-cell>
+          </ng-container>
+
           <ng-container matColumnDef="delete">
-            <mat-header-cell class="small-cell" mat-sort-header
+            <mat-header-cell class="small-cell"
                              *matHeaderCellDef>
             </mat-header-cell>
             <mat-cell class="small-cell" *matCellDef="let release">

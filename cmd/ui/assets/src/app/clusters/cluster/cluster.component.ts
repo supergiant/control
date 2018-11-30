@@ -16,6 +16,7 @@ import { DeleteReleaseModalComponent } from './delete-release-modal/delete-relea
 import { SshCommandsModalComponent } from './ssh-commands-modal/ssh-commands-modal.component';
 import { KubectlConfigModalComponent } from './kubectl-config-modal/kubectl-config-modal.component';
 import { TaskLogsComponent } from './task-logs/task-logs.component';
+import { ReleaseInfoModalComponent } from './release-info-modal/release-info-modal.component';
 
 
 @Component({
@@ -49,7 +50,7 @@ export class ClusterComponent implements OnInit, OnDestroy {
   expandedTaskIds = new Set();
 
   releases: any;
-  releaseListColumns = ["status", "name", "chart", "chartVersion", "version", "lastDeployed", "delete"];
+  releaseListColumns = ["status", "name", "chart", "chartVersion", "version", "lastDeployed", "info", "delete"];
 
   masterTasksStatus = "executing";
   nodeTasksStatus = "queued";
@@ -382,6 +383,10 @@ export class ClusterComponent implements OnInit, OnDestroy {
     this.initKubectlConfig(this.kubectlConfig);
   }
 
+  showReleaseInfo(releaseName) {
+    this.initReleaseInfo(releaseName);
+  }
+
   private initDialog(target) {
     const popupWidth = 250;
     const dialogRef = this.dialog.open(ConfirmModalComponent, {
@@ -423,6 +428,15 @@ export class ClusterComponent implements OnInit, OnDestroy {
     const dialogRef = this.dialog.open(KubectlConfigModalComponent, {
       width: "800px",
       data: { config: config }
+    })
+
+    return dialogRef;
+  }
+
+  private initReleaseInfo(releaseName) {
+    const dialogRef = this.dialog.open(ReleaseInfoModalComponent, {
+      width: "800px",
+      data: { releaseName: releaseName, clusterId: this.clusterId }
     })
 
     return dialogRef;

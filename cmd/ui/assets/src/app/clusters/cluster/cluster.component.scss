@@ -699,7 +699,11 @@
       .small-cell {
         max-width: 60px;
         margin-right: 20px;
-        justify-content: center;
+        justify-content: center !important;
+      }
+
+      .metrics-cell {
+        justify-content: center !important;
       }
     }
 
@@ -745,6 +749,20 @@
     background-image: url(/assets/img/delete-pink.svg);
     height: 24px;
     width: 20px;
+
+    &:hover {
+      cursor: pointer;
+    }
+
+    &:active {
+      transform: scale(0.95, 0.95);
+    }
+  }
+
+  .info-icon {
+    background-image: url(/assets/img/info-pink.svg);
+    height: 24px;
+    width: 24px;
 
     &:hover {
       cursor: pointer;
