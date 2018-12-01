@@ -14,36 +14,35 @@
 [GoReportCard Widget]: https://goreportcard.com/badge/github.com/supergiant/control
 [GoReportCard URL]: https://goreportcard.com/report/github.com/supergiant/control
 
-# <img src="https://s3.amazonaws.com/supergiant-docs-assets/sg_control_light.svg">
+<img src="https://s3.amazonaws.com/supergiant-docs-assets/control_light.svg">
+
+---
 
 <!-- Badges -->
 [![Release Widget]][Release URL] [![GoDoc Widget]][GoDoc URL] [![Travis Widget]][Travis URL] [![Coverage Status Widget]][Coverage Status] [![GoReportCard Widget]][GoReportCard URL]
 
----
-
 # Supergiant Control - Beta
 
-Create HA K8s clusters on multiple clouds. Simplify K8s deployment and management, easily configure and deploy Helm releases, and view at-a-glance metrics for cluster usage. Want to skip the rest and install Control? [Get started here](https://supergiant.readme.io/v2.0.0/docs/control-setup).
+Create HA K8s clusters on multiple clouds. Simplify K8s deployment and management, easily configure and deploy Helm releases, and view at-a-glance metrics for cluster usage. Want to skip the rest and install SG Control? **[Get started here](https://supergiant.readme.io/v2.0.0/docs/control-setup)**.
+
+---
 
 # Features
 
-  * Vanilla, **Certified** Kubernetes (version `1.11.1`)
-  * Easy creation of and access to Helm releases
-  * AWS and Digital Ocean support with easy cloud account setup
-  * At-a-glance metrics of cluster resource usage
-  * Pluggability for Capacity and Analyze
-  * A UI and API designed for user experience
+  * Create K8s clusters on **AWS** and **Digital Ocean**
+  * Upstream, **Certified** Kubernetes (version `1.11.1`)
+  * **Helm** releases made easy with an **intuitive UI**
+  * At-a-glance **metrics** of cluster resource usage
+  * Pluggability for [SG Capacity](https://github.com/supergiant/capacity) and [SG Analyze](https://github.com/supergiant/analyze)
 
 # Resources
 
-- [Documentation](https://supergiant.readme.io/v2.0.0/docs/control-concepts)
+- [SG Control Documentation](https://supergiant.readme.io/v2.0.0/docs/control-concepts)
+- [SG Control Development Guide](https://supergiant.readme.io/v2.0.0/docs/control-dev)
 - [Supergiant Website](https://supergiant.io/)
-- [Slack Channel](https://supergiant.io/slack)
+- [Supergiant Slack Channel](http://slack.supergiant.io)
+- [Supergiant Contributor Guidelines](https://supergiant.readme.io/v2.0.0/docs/guidelines)
 
 Control is one of three applications created by Supergiant to simplify the administration and operation of Kubernetes. For information on other Supergiant applications, see:
 * [Supergiant Capacity](https://github.com/supergiant/capacity)
 * [Supergiant Analyze](https://github.com/supergiant/analyze)
-
-# Contributing
-
-We are grateful for any contribution to the Supergiant project, be it in the form of a GitHub issue, a Pull Request, or any social media engagement. :smile: Contributing to Supergiant requires familiarization with the [Community and Contribution Guidelines](https://supergiant.readme.io/v2.0.0/docs/guidelines), where information on development can also be found.
