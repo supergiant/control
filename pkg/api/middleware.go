@@ -1,14 +1,12 @@
 package api
 
 import (
-	"fmt"
 	"net/http"
 	"strings"
 
 	"github.com/dgrijalva/jwt-go"
-	"github.com/sirupsen/logrus"
-
 	"github.com/supergiant/control/pkg/sgerrors"
+	"fmt"
 )
 
 type TokenValidater interface {
@@ -25,10 +23,8 @@ func (m *Middleware) AuthMiddleware(next http.Handler) http.Handler {
 
 		// In case of websocket protocol look at the header Sec-Websocket-Protocol
 		if authHeader == "" {
-			logrus.Debugf("Websocket header Sec-Websocket-Protocol %s",
-				r.Header.Get("Sec-Websocket-Protocol"))
-			authHeader = fmt.Sprintf("Bearer: %s",
-				r.Header.Get("Sec-Websocket-Protocol"))
+			authHeader = fmt.Sprintf("Bearer %s",
+				r.URL.Query().Get("token"))
 		}
 
 		if authHeader == "" {
