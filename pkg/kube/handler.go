@@ -381,7 +381,8 @@ func (h *Handler) deleteKube(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	writer, err := h.getWriter(t.ID)
+	fileName := util.MakeFileName(t.ID)
+	writer, err := h.getWriter(fileName)
 
 	if err != nil {
 		message.SendUnknownError(w, err)
@@ -700,6 +701,7 @@ func (h *Handler) deleteNode(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	util.MakeFileName(t.ID)
 	writer, err := h.getWriter(t.ID)
 
 	if err != nil {
