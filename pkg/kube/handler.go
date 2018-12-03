@@ -202,7 +202,6 @@ func NewHandler(
 		repo:      repo,
 		getWriter: util.GetWriter,
 		getMetrics: func(metricURI string, k *model.Kube) (*MetricResponse, error) {
-			logrus.Debugf("Get metric with URI %s for kube %s", metricURI, k.ID)
 
 			if m := cache.get(metricURI); m != nil {
 				logrus.Debugf("metric cache hit")
@@ -219,6 +218,7 @@ func NewHandler(
 			}
 
 			req.SetBasicAuth(k.User, k.Password)
+			logrus.Debugf("Get metric with URI %s for kube %s", metricURI, k.ID)
 			resp, err := doReq(req)
 
 			if err != nil {
