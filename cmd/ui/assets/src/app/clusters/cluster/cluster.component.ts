@@ -1,6 +1,6 @@
 import { of, Subscription, timer as observableTimer } from 'rxjs';
 import { catchError, filter, switchMap } from 'rxjs/operators';
-import { ChangeDetectionStrategy, Component, OnDestroy, OnInit, ViewChild, ViewEncapsulation } from '@angular/core';
+import { ChangeDetectionStrategy, Component, OnDestroy, OnInit, ViewChild, ViewEncapsulation, Inject } from '@angular/core';
 import { Location } from '@angular/common';
 import { ActivatedRoute, Router } from '@angular/router';
 import { HttpClient } from '@angular/common/http';
@@ -17,6 +17,7 @@ import { SshCommandsModalComponent } from './ssh-commands-modal/ssh-commands-mod
 import { KubectlConfigModalComponent } from './kubectl-config-modal/kubectl-config-modal.component';
 import { TaskLogsComponent } from './task-logs/task-logs.component';
 import { ReleaseInfoModalComponent } from './release-info-modal/release-info-modal.component';
+import { WINDOW } from '../../shared/helpers/window-providers';
 
 
 @Component({
@@ -71,6 +72,7 @@ export class ClusterComponent implements OnInit, OnDestroy {
     private notifications: Notifications,
     public dialog: MatDialog,
     public http: HttpClient,
+    @Inject(WINDOW) private window: Window
   ) {
       route.params.subscribe(params => {
         this.clusterId = params.id;
@@ -139,7 +141,7 @@ export class ClusterComponent implements OnInit, OnDestroy {
   viewTaskLog(taskId) {
     const modal = this.dialog.open(TaskLogsComponent, {
       width: "1080px",
-      data: { taskId: taskId }
+      data: { taskId: taskId, hostname: this.window.location.hostname }
     })
   }
 
