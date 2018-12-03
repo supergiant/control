@@ -285,7 +285,7 @@
             <mat-select placeholder="Machine Type (size)"
                         id="m.machineType"
                         [(value)]="m.machineType"
-                        (selectionChange)="checkForValidMachinesConfig()">
+                        (selectionChange)="validateMachineConfig()">
               <mat-option *ngFor="let type of availableMachineTypes"
                           [value]="type">{{ type }}</mat-option>
             </mat-select>
@@ -294,7 +294,7 @@
           <mat-form-field class="role">
             <mat-select placeholder="Role"
                         [(value)]="m.role"
-                        (selectionChange)="checkForValidMachinesConfig()">
+                        (selectionChange)="validateMachineConfig()">
               <mat-option value="Master">Master</mat-option>
               <mat-option value="Node">Node</mat-option>
             </mat-select>
@@ -306,7 +306,7 @@
                    min="1"
                    placeholder="Q-ty"
                    [(ngModel)]="m.qty"
-                   (ngModelChange)="checkForValidMachinesConfig()">
+                   (ngModelChange)="validateMachineConfig()">
           </mat-form-field>
 
           <div class="delete"
@@ -345,7 +345,7 @@
                         id="m.machineType"
                         [(value)]="m.machineType"
                         [disabled]="!m.availabileMachinetypes"
-                        (selectionChange)="checkForValidMachinesConfig()">
+                        (selectionChange)="validateMachineConfig()">
               <mat-option *ngFor="let type of m.availabileMachinetypes"
                           [value]="type">
               {{ type }}
@@ -356,7 +356,7 @@
           <mat-form-field class="role">
             <mat-select placeholder="Role"
                         [(value)]="m.role"
-                        (selectionChange)="checkForValidMachinesConfig()">
+                        (selectionChange)="validateMachineConfig()">
               <mat-option value="Master">Master</mat-option>
               <mat-option value="Node">Node</mat-option>
             </mat-select>
@@ -368,7 +368,7 @@
                    min="1"
                    placeholder="Q-ty"
                    [(ngModel)]="m.qty"
-                   (ngModelChange)="checkForValidMachinesConfig()">
+                   (ngModelChange)="validateMachineConfig()">
           </mat-form-field>
 
           <div class="delete"

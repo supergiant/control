@@ -236,11 +236,11 @@ export class NewClusterComponent implements OnInit, OnDestroy {
     if (e) {
       if (e.keyCode === 13) {
         this.machines.splice(idx, 1);
-        this.checkForValidMachinesConfig();
+        this.validateMachineConfig();
       }
     } else {
       this.machines.splice(idx, 1);
-      this.checkForValidMachinesConfig();
+      this.validateMachineConfig();
     }
   }
 
@@ -303,9 +303,10 @@ export class NewClusterComponent implements OnInit, OnDestroy {
     } else {
       return false
     }
+    return false;
   }
 
-  checkForValidMachinesConfig() {
+  validateMachineConfig() {
     if (this.machines.every(this.validMachine)) {
       this.machinesConfigValid = true;
       this.displayMachinesConfigWarning = false;
@@ -315,7 +316,7 @@ export class NewClusterComponent implements OnInit, OnDestroy {
   }
 
   machinesNext() {
-    this.checkForValidMachinesConfig();
+    this.validateMachineConfig();
 
     if (this.machinesConfigValid) {
       this.stepper.next();
@@ -349,7 +350,7 @@ export class NewClusterComponent implements OnInit, OnDestroy {
     if (this.selectedCloudAccount && this.selectedCloudAccount.provider == "aws") {
       return this.providerConfig.get('vpcCidr');
     } else {
-      return true
+      return true;
     }
   }
 
