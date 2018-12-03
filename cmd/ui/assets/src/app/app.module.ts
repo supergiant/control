@@ -112,6 +112,7 @@ import { AuthService } from './shared/supergiant/auth/auth.service';
 import { AuthGuardService } from './shared/supergiant/auth/auth-guard.service';
 import { TokenInterceptor } from './shared/supergiant/auth/token.interceptor';
 import { HTTP_INTERCEPTORS } from '@angular/common/http';
+import { WINDOW_PROVIDERS } from './shared/helpers/window-providers';
 
 
 
@@ -271,6 +272,7 @@ import { ReleaseInfoModalComponent } from './clusters/cluster/release-info-modal
     EffectsModule.forRoot([AppEffects]),
   ],
   providers: [
+    WINDOW_PROVIDERS,
     TitleCasePipe,
     // Component Services
     CloudAccountsService,

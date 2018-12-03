@@ -8,6 +8,7 @@ import (
 	"io"
 	"net/http"
 	"strconv"
+	"sync"
 	"time"
 
 	"github.com/gorilla/mux"
@@ -28,6 +29,48 @@ import (
 	"github.com/supergiant/control/pkg/workflows/statuses"
 	"github.com/supergiant/control/pkg/workflows/steps"
 )
+
+var (
+	cache metricCache
+	m sync.Mutex
+	client *http.Client
+)
+
+type metricCache struct{
+	m sync.RWMutex
+	data map[string]entry
+}
+
+func (c *metricCache) get(key string) *MetricResponse {
+		c.m.RLock()
+		defer c.m.RUnlock()
+		e := c.data[key]
+
+		if e.timestamp == 0 {
+			return nil
+		}
+
+		if e.timestamp < time.Now().Unix() - 60 {
+			return nil
+		}
+
+		return e.value
+}
+
+func (c *metricCache) set(key string, value *MetricResponse) {
+	c.m.Lock()
+	defer c.m.Unlock()
+	c.data[key] = entry{
+		timestamp: time.Now().Unix(),
+		value: value,
+	}
+}
+
+type entry struct{
+	timestamp int64
+	value *MetricResponse
+}
+
 
 type accountGetter interface {
 	Get(context.Context, string) (*model.CloudAccount, error)
@@ -104,8 +147,30 @@ type Handler struct {
 	workflowMap     map[clouds.Name]workflows.WorkflowSet
 	repo            storage.Interface
 	getWriter       func(string) (io.WriteCloser, error)
-	getMetrics      func(string) (*MetricResponse, error)
+	getMetrics      func(string, *model.Kube) (*MetricResponse, error)
 	proxies         proxy.Container
+}
+
+func init() {
+	cache = metricCache{
+		data: make(map[string]entry),
+	}
+	tr := &http.Transport{
+		TLSClientConfig: &tls.Config{InsecureSkipVerify: true},
+		TLSHandshakeTimeout: time.Second * 30,
+		MaxIdleConnsPerHost: 100,
+	}
+	client = &http.Client{
+		Transport: tr,
+		Timeout: time.Second * 30,
+	}
+}
+
+// Use shared http.Client to perform request
+func doReq(req *http.Request) (*http.Response, error) {
+	m.Lock()
+	defer m.Unlock()
+	return client.Do(req)
 }
 
 // NewHandler constructs a Handler for kubes.
@@ -136,23 +201,25 @@ func NewHandler(
 		},
 		repo:      repo,
 		getWriter: util.GetWriter,
-		getMetrics: func(metricURI string) (*MetricResponse, error) {
+		getMetrics: func(metricURI string, k *model.Kube) (*MetricResponse, error) {
+
+			if m := cache.get(metricURI); m != nil {
+				logrus.Debugf("metric cache hit")
+				return m, nil
+			}
+			logrus.Debugf("metric cache miss")
+
 			metricResponse := &MetricResponse{}
+			// TODO(stgleb): Add caching for metric
 			req, err := http.NewRequest(http.MethodGet, metricURI, nil)
 
 			if err != nil {
 				return nil, err
 			}
 
-			// TODO(stgleb): Get rid off basic auth
-			req.SetBasicAuth("root", "1234")
-			tr := &http.Transport{
-				TLSClientConfig: &tls.Config{InsecureSkipVerify: true},
-			}
-			client := &http.Client{
-				Transport: tr,
-			}
-			resp, err := client.Do(req)
+			req.SetBasicAuth(k.User, k.Password)
+			logrus.Debugf("Get metric with URI %s for kube %s", metricURI, k.ID)
+			resp, err := doReq(req)
 
 			if err != nil {
 				return nil, err
@@ -163,6 +230,9 @@ func NewHandler(
 			if err != nil {
 				return nil, err
 			}
+
+			resp.Body.Close()
+			cache.set(metricURI, metricResponse)
 
 			return metricResponse, nil
 		},
@@ -918,7 +988,7 @@ func (h *Handler) getClusterMetrics(w http.ResponseWriter, r *http.Request) {
 
 	for metricType, relUrl := range metricsRelUrls {
 		url := fmt.Sprintf("https://%s/%s/%s", masterNode.PublicIp, baseUrl, relUrl)
-		metricResponse, err := h.getMetrics(url)
+		metricResponse, err := h.getMetrics(url, k)
 
 		if err != nil {
 			message.SendUnknownError(w, err)
@@ -970,7 +1040,7 @@ func (h *Handler) getNodesMetrics(w http.ResponseWriter, r *http.Request) {
 
 	for metricType, relUrl := range metricsRelUrls {
 		url := fmt.Sprintf("https://%s/%s/%s", masterNode.PublicIp, baseUrl, relUrl)
-		metricResponse, err := h.getMetrics(url)
+		metricResponse, err := h.getMetrics(url, k)
 
 		if err != nil {
 			message.SendUnknownError(w, err)

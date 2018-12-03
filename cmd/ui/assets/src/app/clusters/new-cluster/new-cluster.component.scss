@@ -1,254 +1,257 @@
 .new-clusters-wrapper {
-	margin-top: 7px;
+  margin-top: 7px;
 
-	h1 {
-		margin-bottom: 18px;
-	}
+  h1 {
+    margin-bottom: 18px;
+  }
 
-	.warning {
-		color: #f44336;
-		font-weight: 300;
-		margin: 4px 0 0 0;
-	}
+  .warning {
+    color: #f44336;
+    font-weight: 300;
+    margin: 4px 0 0 0;
+  }
 
-	.mat-stepper-horizontal {
-		background-color: rgba(0,0,0,0.5);
-		border: 1px solid rgba(255,255,255,0.25);
+  .mat-stepper-horizontal {
+    background-color: rgba(0, 0, 0, 0.5);
+    border: 1px solid rgba(255, 255, 255, 0.25);
 
-		.step-actions {
-			display: flex;
-			margin-top: 30px;
+    .step-actions {
+      display: flex;
+      margin-top: 30px;
 
-			button {
-				margin-left: 24px;
+      button {
+        margin-left: 24px;
 
-				&:nth-of-type(1) {
-					margin-left: 0px;
-				}
+        &:nth-of-type(1) {
+          margin-left: 0px;
+        }
 
-				&:focus {
-					outline: -webkit-focus-ring-color auto 5px;
-				}
-			}
-		}
+        &:focus {
+          outline: -webkit-focus-ring-color auto 5px;
+        }
+      }
+    }
 
-		.name-and-cloud-account {
-			display: flex;
-			flex-direction: column;
-			width: 250px;
+    .name-and-cloud-account {
+      display: flex;
+      flex-direction: column;
+      width: 250px;
 
-			.mat-form-field {
-				width: 100%;
-			}
-		}
+      .mat-form-field {
+        width: 100%;
+      }
+    }
 
-		.cluster-config-form {
-			display: flex;
-			justify-content: flex-start;
+    .cluster-config-form {
+      display: flex;
+      justify-content: flex-start;
 
-			.input-group {
-				display: flex;
-				flex-direction: column;
-				margin-left: 100px;
-				width: 250px;
+      .input-group {
+        display: flex;
+        flex-direction: column;
+        margin-left: 100px;
+        width: 250px;
 
-				&:nth-of-type(1) {
-					margin-left: 0px;
-				}
-			}
-		}
+        &:nth-of-type(1) {
+          margin-left: 0px;
+        }
+      }
+    }
 
-		.do-config {
-			.regionsLoading {
-				animation: loading 1s infinite;
-			}
-		}
+    .do-config {
+      .regionsLoading {
+        animation: loading 1s infinite;
+      }
+    }
 
-		.aws-config {
-			display: flex;
-			justify-content: flex-start;
+    .aws-config {
+      display: flex;
+      justify-content: flex-start;
 
-			.input-group {
-				display: flex;
-				flex-direction: column;
-				margin-left: 100px;
-				width: 250px;
+      .input-group {
+        display: flex;
+        flex-direction: column;
+        margin-left: 100px;
+        width: 250px;
 
-				&:nth-of-type(1) {
-					margin-left: 0px;
-				}
+        &:nth-of-type(1) {
+          margin-left: 0px;
+        }
 
-				.regionsLoading {
-					animation: loading 1s infinite;
-				}
+        .regionsLoading {
+          animation: loading 1s infinite;
+        }
 
-				.azsLoading {
-					animation: loading 1s infinite;
-				}
-			}
+        .azsLoading {
+          animation: loading 1s infinite;
+        }
+      }
 
-			.public-key-wrapper {
-				width: 400px;
-			}
-		}
+      .public-key-wrapper {
+        width: 400px;
+      }
+    }
 
-		.machine-config-step {
-			display: flex;
-			flex-direction: column;
+    .machine-config-step {
+      display: flex;
+      flex-direction: column;
 
-			.machine {
-				display: flex;
-				justify-content: space-between;
-				width: 500px;
+      .machine {
+        display: flex;
+        width: auto;
 
-				.type {
-					width: 240px;
-				}
+        .mat-form-field {
+          margin-right: 24px;
+        }
 
-				.machinesLoading {
-					animation: loading 1s infinite;
-				}
+        .type {
+          width: 240px;
+        }
 
-				.role {
-					width: 123px;
-				}
+        .machinesLoading {
+          animation: loading 1s infinite;
+        }
 
-				.quantity {
-					width: 30px;
-				}
+        .role {
+          width: 123px;
+        }
 
-				.delete {
-					background: url(/assets/img/delete.svg) no-repeat;
-					background-size: 100% 100%;
-					background-position: center;
-					cursor: pointer;
-					display: inline-block;
-					margin: auto 0;
-					height: 25px;
-					width: 25px;
+        .quantity {
+          width: 30px;
+        }
 
-					&:active {
-						transform: scale(0.95, 0.95);
-					}
-				}
-			}
+        .delete {
+          background: url(/assets/img/delete.svg) no-repeat;
+          background-size: 100% 100%;
+          background-position: center;
+          cursor: pointer;
+          display: inline-block;
+          margin: auto 0;
+          height: 25px;
+          width: 25px;
 
-			.add-machines {
-				cursor: pointer;
-				display: flex;
-				width: max-content;
+          &:active {
+            transform: scale(0.95, 0.95);
+          }
+        }
+      }
 
-				&:active {
-					transform: scale(0.95, 0.95);
-				}
+      .add-machines {
+        cursor: pointer;
+        display: flex;
+        width: max-content;
 
-				.plus {
-					background: url(/assets/img/plus.svg) no-repeat;
-					background-size: 100% 100%;
-					background-position: center;
-					margin: auto 0;
-					height: 20px;
-					width: 20px;
-				}
+        &:active {
+          transform: scale(0.95, 0.95);
+        }
 
-				.add-label {
-					font-size: 14px;
-					font-weight: 300;
-					padding-left: 12px;
-				}
-			}
+        .plus {
+          background: url(/assets/img/plus.svg) no-repeat;
+          background-size: 100% 100%;
+          background-position: center;
+          margin: auto 0;
+          height: 20px;
+          width: 20px;
+        }
 
-			.machine-config-warning {
-				color: #f44336;
-				font-weight: 300;
-				margin: 24px 0 0 0;
-			}
-		}
+        .add-label {
+          font-size: 14px;
+          font-weight: 300;
+          padding-left: 12px;
+        }
+      }
 
-		.review-wrapper {
+      .machine-config-warning {
+        color: #f44336;
+        font-weight: 300;
+        margin: 24px 0 0 0;
+      }
+    }
 
-			.steps {
-				display: flex;
-				justify-content: space-around;
+    .review-wrapper {
 
-				.label {
-					color: #d10088;
-					font-family: "Montserrat", sans-serif;
-					font-size: 14px;
-				}
-			}
+      .steps {
+        display: flex;
+        justify-content: space-around;
 
-			.action-buttons-wrapper {
-				display: flex;
-				justify-content: flex-end;
+        .label {
+          color: #d10088;
+          font-family: "Montserrat", sans-serif;
+          font-size: 14px;
+        }
+      }
 
-				button {
-					margin-right: 24px;
+      .action-buttons-wrapper {
+        display: flex;
+        justify-content: flex-end;
 
-					&:last-of-type {
-						margin-right: 0px;
-					}
+        button {
+          margin-right: 24px;
 
-					&:focus {
-						outline: -webkit-focus-ring-color auto 5px;
-					}
+          &:last-of-type {
+            margin-right: 0px;
+          }
 
-					&.disable {
-						pointer-events: none;
-					}
-				}
+          &:focus {
+            outline: -webkit-focus-ring-color auto 5px;
+          }
 
-				.create {
-					min-width: 112px;
-				}
+          &.disable {
+            pointer-events: none;
+          }
+        }
 
-				.mat-spinner {
+        .create {
+          min-width: 112px;
+        }
+
+        .mat-spinner {
           margin: 6px auto;
 
           circle {
             stroke: #fff;
           }
         }
-			}
-		}
+      }
+    }
 
-		@keyframes loading {
-		  0% {
-		    opacity: 0.5;
-		  }
+    @keyframes loading {
+      0% {
+        opacity: 0.5;
+      }
 
-		  50% {
-		    opacity: 1;
-		  }
+      50% {
+        opacity: 1;
+      }
 
-		  100% {
-		    opacity: 0.5;
-		  }
-		}
-	}
+      100% {
+        opacity: 0.5;
+      }
+    }
+  }
 
-	.no-cloud-accounts {
-	  align-items: center;
-	  background-color: rgba(0, 0, 0, 0.5);
-	  border: 1px solid rgba(255, 255, 255, 0.25);
-	  display: flex;
-	  flex-direction: column;
-	  margin: 24px auto 0;
-	  padding: 24px 0px;
-	  width: 956px;
+  .no-cloud-accounts {
+    align-items: center;
+    background-color: rgba(0, 0, 0, 0.5);
+    border: 1px solid rgba(255, 255, 255, 0.25);
+    display: flex;
+    flex-direction: column;
+    margin: 24px auto 0;
+    padding: 24px 0px;
+    width: 956px;
 
-	  h2 {
-	    font-family: "Montserrat", sans-serif;
-	    font-size: 32px;
-	    font-weight: 200;
-	    margin-bottom: 24px;
-	  }
+    h2 {
+      font-family: "Montserrat", sans-serif;
+      font-size: 32px;
+      font-weight: 200;
+      margin-bottom: 24px;
+    }
 
-	  p {
-	    font-size: 18px;
-	    font-weight: 200;
-	    margin-bottom: 24px;
-	  }
+    p {
+      font-size: 18px;
+      font-weight: 200;
+      margin-bottom: 24px;
+    }
 
-	}
+  }
 }
