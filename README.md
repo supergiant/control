@@ -37,7 +37,7 @@ Create HA K8s clusters on multiple clouds. Simplify K8s deployment and managemen
 
 # Resources
 
-- [SG Control Documentation](https://supergiant.readme.io/v2.0.0/docs/control-concepts)
+- [SG Control Documentation](https://supergiant.readme.io/v2.0.0/docs/control-overview)
 - [SG Control Development Guide](https://supergiant.readme.io/v2.0.0/docs/control-dev)
 - [Supergiant Website](https://supergiant.io/)
 - [Supergiant Slack Channel](http://slack.supergiant.io)
