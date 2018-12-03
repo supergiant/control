@@ -3,6 +3,10 @@ package amazon
 import (
 	"context"
 	"fmt"
+	"io"
+	"strconv"
+	"strings"
+
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/service/ec2"
 	"github.com/aws/aws-sdk-go/service/ec2/ec2iface"
@@ -12,9 +16,6 @@ import (
 	"github.com/supergiant/control/pkg/node"
 	"github.com/supergiant/control/pkg/util"
 	"github.com/supergiant/control/pkg/workflows/steps"
-	"io"
-	"strconv"
-	"strings"
 )
 
 const (
@@ -23,16 +24,18 @@ const (
 
 type StepCreateInstance struct {
 	GetEC2 GetEC2Fn
+	GetIAM GetIAMFn
 }
 
 //InitCreateMachine adds the step to the registry
-func InitCreateMachine(fn func(steps.AWSConfig) (ec2iface.EC2API, error)) {
-	steps.RegisterStep(StepNameCreateEC2Instance, NewCreateInstance(fn))
+func InitCreateMachine(ec2fn GetEC2Fn, iamfn GetIAMFn) {
+	steps.RegisterStep(StepNameCreateEC2Instance, NewCreateInstance(ec2fn, iamfn))
 }
 
-func NewCreateInstance(fn GetEC2Fn) *StepCreateInstance {
+func NewCreateInstance(ec2fn GetEC2Fn, iamfn GetIAMFn) *StepCreateInstance {
 	return &StepCreateInstance{
-		GetEC2: fn,
+		GetEC2: ec2fn,
+		GetIAM: iamfn,
 	}
 }
 
@@ -68,7 +71,14 @@ func (s *StepCreateInstance) Run(ctx context.Context, w io.Writer, cfg *steps.Co
 		secGroupID = &cfg.AWSConfig.NodesSecurityGroupID
 	}
 
+	// TODO: reuse sessions
 	EC2, err := s.GetEC2(cfg.AWSConfig)
+	if err != nil {
+		logrus.Errorf("[%s] - failed to authorize in AWS: %v", s.Name(), err)
+		return errors.Wrap(ErrAuthorization, err.Error())
+	}
+
+	iamS, err := s.GetIAM(cfg.AWSConfig)
 	if err != nil {
 		logrus.Errorf("[%s] - failed to authorize in AWS: %v", s.Name(), err)
 		return errors.Wrap(ErrAuthorization, err.Error())
@@ -78,6 +88,11 @@ func (s *StepCreateInstance) Run(ctx context.Context, w io.Writer, cfg *steps.Co
 	if err != nil {
 		logrus.Errorf("[%s] - failed to find AMI for Ubuntu: %v", s.Name(), err)
 		return errors.Wrap(err, "failed to find AMI")
+	}
+
+	iamProfileName, err := ensureIAMProfile(iamS, cfg.ClusterID, cfg.IsMaster)
+	if err != nil {
+		return errors.WithMessage(err, "setup instance profile")
 	}
 
 	isEbs := false
@@ -99,6 +114,9 @@ func (s *StepCreateInstance) Run(ctx context.Context, w io.Writer, cfg *steps.Co
 			AvailabilityZone: aws.String(cfg.AWSConfig.AvailabilityZone),
 		},
 		EbsOptimized: &isEbs,
+		IamInstanceProfile: &ec2.IamInstanceProfileSpecification{
+			Name: aws.String(iamProfileName),
+		},
 		ImageId:      &amiID,
 		InstanceType: &cfg.AWSConfig.InstanceType,
 		KeyName:      &cfg.AWSConfig.KeyPairName,

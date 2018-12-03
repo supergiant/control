@@ -6,7 +6,8 @@ import (
 	"github.com/aws/aws-sdk-go/aws/session"
 	"github.com/aws/aws-sdk-go/service/ec2"
 	"github.com/aws/aws-sdk-go/service/ec2/ec2iface"
-
+	"github.com/aws/aws-sdk-go/service/iam"
+	"github.com/aws/aws-sdk-go/service/iam/iamiface"
 	"github.com/supergiant/control/pkg/workflows/steps"
 )
 
@@ -24,4 +25,21 @@ func GetEC2(cfg steps.AWSConfig) (ec2iface.EC2API, error) {
 		return nil, err
 	}
 	return ec2.New(sess), nil
+}
+
+type GetIAMFn func(steps.AWSConfig) (iamiface.IAMAPI, error)
+
+// TODO: reuse session
+func GetIAM(cfg steps.AWSConfig) (iamiface.IAMAPI, error) {
+	sess, err := session.NewSessionWithOptions(session.Options{
+		Config: aws.Config{
+			Region:      aws.String(cfg.Region),
+			Credentials: credentials.NewStaticCredentials(cfg.KeyID, cfg.Secret, ""),
+		},
+	})
+
+	if err != nil {
+		return nil, err
+	}
+	return iam.New(sess), nil
 }
