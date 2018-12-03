@@ -8,6 +8,7 @@ import (
 	"io"
 	"net/http"
 	"strconv"
+	"sync"
 	"time"
 
 	"github.com/gorilla/mux"
@@ -27,13 +28,49 @@ import (
 	"github.com/supergiant/control/pkg/workflows"
 	"github.com/supergiant/control/pkg/workflows/statuses"
 	"github.com/supergiant/control/pkg/workflows/steps"
-	"sync"
 )
 
 var (
+	cache metricCache
 	m sync.Mutex
 	client *http.Client
 )
+
+type metricCache struct{
+	m sync.RWMutex
+	data map[string]entry
+}
+
+func (c *metricCache) get(key string) *MetricResponse {
+		c.m.RLock()
+		defer c.m.RUnlock()
+		e := c.data[key]
+
+		if e.timestamp == 0 {
+			return nil
+		}
+
+		if e.timestamp < time.Now().Unix() - 60 {
+			return nil
+		}
+
+		return e.value
+}
+
+func (c *metricCache) set(key string, value *MetricResponse) {
+	c.m.Lock()
+	defer c.m.Unlock()
+	c.data[key] = entry{
+		timestamp: time.Now().Unix(),
+		value: value,
+	}
+}
+
+type entry struct{
+	timestamp int64
+	value *MetricResponse
+}
+
 
 type accountGetter interface {
 	Get(context.Context, string) (*model.CloudAccount, error)
@@ -115,6 +152,9 @@ type Handler struct {
 }
 
 func init() {
+	cache = metricCache{
+		data: make(map[string]entry),
+	}
 	tr := &http.Transport{
 		TLSClientConfig: &tls.Config{InsecureSkipVerify: true},
 		TLSHandshakeTimeout: time.Second * 30,
@@ -163,6 +203,13 @@ func NewHandler(
 		getWriter: util.GetWriter,
 		getMetrics: func(metricURI string, k *model.Kube) (*MetricResponse, error) {
 			logrus.Debugf("Get metric with URI %s for kube %s", metricURI, k.ID)
+
+			if m := cache.get(metricURI); m != nil {
+				logrus.Debugf("metric cache hit")
+				return m, nil
+			}
+			logrus.Debugf("metric cache miss")
+
 			metricResponse := &MetricResponse{}
 			// TODO(stgleb): Add caching for metric
 			req, err := http.NewRequest(http.MethodGet, metricURI, nil)
@@ -185,6 +232,8 @@ func NewHandler(
 			}
 
 			resp.Body.Close()
+			cache.set(metricURI, metricResponse)
+
 			return metricResponse, nil
 		},
 		proxies: proxies,
