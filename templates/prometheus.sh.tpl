@@ -1,6 +1,7 @@
 # prometheus-operator hac rbac enabled by default so set
 # it explicitly
 sudo /opt/bin/helm install stable/prometheus-operator \
+    --namespace kube-system \
     --name=prometheus-operator \
     --set global.rbac.create={{ .RBACEnabled }} \
     --set grafana.rbac.create={{ .RBACEnabled }} \
