@@ -49,16 +49,18 @@ type DOConfig struct {
 // TODO(stgleb): Fill struct with fields when provisioning on other providers is done
 
 type GCEConfig struct {
-	PrivateKey       string `json:"privateKey"`
+	// NOTE(stgleb): This comes from cloud account
+	PrivateKey       string `json:"private_key"`
+	ClientEmail      string `json:"client_email"`
+	TokenURI         string `json:"token_uri"`
+	ProjectID        string `json:"project_id"`
+
+	// This comes from profile
 	ImageFamily      string `json:"imageFamily"`
-	ProjectID        string `json:"projectId"`
 	Region           string `json:"region"`
 	AvailabilityZone string `json:"availabilityZone"`
 	Size             string `json:"size"`
 	InstanceGroup    string `json:"instanceGroup"`
-	ClientEmail      string `json:"clientEmail"`
-	TokenURI         string `json:"tokenURI"`
-	AuthURI          string `json:"authURI"`
 }
 
 type PacketConfig struct{}

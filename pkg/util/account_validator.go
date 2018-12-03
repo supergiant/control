@@ -19,6 +19,7 @@ import (
 	"github.com/supergiant/control/pkg/model"
 	"github.com/supergiant/control/pkg/sgerrors"
 	"github.com/supergiant/control/pkg/workflows/steps"
+	"github.com/Sirupsen/logrus"
 )
 
 type CloudAccountValidator interface {
@@ -107,16 +108,17 @@ func validateGCECredentials(creds map[string]string) error {
 	}
 
 	conf := jwt.Config{
-		Email:      creds["clientEmail"],
-		PrivateKey: []byte(creds["privateKey"]),
+		Email:      creds[clouds.GCEClientEmail],
+		PrivateKey: []byte(creds[clouds.GCEPrivateKey]),
 		Scopes:     clientScopes,
-		TokenURL:   creds["tokenURI"],
+		TokenURL:   creds[clouds.GCETokenURI],
 	}
 
 	client := conf.Client(context.Background())
 
 	computeService, err := compute.New(client)
 	if err != nil {
+		logrus.Errorf("Error creating compute object %v", err)
 		return err
 	}
 
@@ -124,6 +126,7 @@ func validateGCECredentials(creds map[string]string) error {
 	_, err = computeService.Images.GetFromFamily(
 		"ubuntu-os-cloud", "ubuntu-1804-lts").Do()
 	if err != nil {
+		logrus.Errorf("Error getting image %v", err)
 		return err
 	}
 

@@ -156,25 +156,52 @@ export class NewClusterComponent implements OnInit, OnDestroy {
     return this.supergiant.CloudAccounts.getAwsAvailabilityZones(accountName, region.name);
   }
 
+  getGCEAvailabilityZones(region) {
+    const accountName = this.selectedCloudAccount.name;
+
+    return this.supergiant.CloudAccounts.getGCEAvailabilityZones(accountName, region.name);
+  }
+
   selectAz(zone, idx) {
     const accountName = this.selectedCloudAccount.name;
     const region = this.providerConfig.value.region.name;
 
     this.machinesLoading = true;
-    this.supergiant.CloudAccounts.getAwsMachineTypes(accountName, region, zone).subscribe(
-      types => {
-        this.machines[idx] = {
-          ...this.machines[idx],
-          availabileMachinetypes: types.sort()
-        };
 
-        this.machinesLoading = false;
-      },
-      err => {
-        console.error(err);
-        this.machinesLoading = false;
-      }
-    )
+    switch (this.selectedCloudAccount.provider) {
+      case "aws":
+        this.supergiant.CloudAccounts.getAwsMachineTypes(accountName, region, zone).subscribe(
+          types => {
+            this.machines[idx] = {
+              ...this.machines[idx],
+              availabileMachinetypes: types.sort()
+            };
+
+            this.machinesLoading = false;
+          },
+          err => {
+            console.error(err);
+            this.machinesLoading = false;
+          }
+        );
+        break;
+      case "gce":
+        this.supergiant.CloudAccounts.getGCEMachineTypes(accountName, region, zone).subscribe(
+          types => {
+            this.machines[idx] = {
+              ...this.machines[idx],
+              availabileMachinetypes: types.sort()
+            };
+
+            this.machinesLoading = false;
+          },
+          err => {
+            console.error(err);
+            this.machinesLoading = false;
+          }
+        );
+        break;
+    }
   }
 
   selectRegion(region) {
@@ -195,6 +222,19 @@ export class NewClusterComponent implements OnInit, OnDestroy {
       case "aws":
         this.azsLoading = true;
         this.getAwsAvailabilityZones(region).subscribe(
+          azList => {
+            this.availabilityZones = azList.sort();
+            this.azsLoading = false
+          },
+          err => {
+            console.error(err);
+            this.azsLoading = false
+          }
+        );
+        break;
+      case "gce":
+        this.azsLoading = true;
+        this.getGCEAvailabilityZones(region).subscribe(
           azList => {
             this.availabilityZones = azList.sort();
             this.azsLoading = false

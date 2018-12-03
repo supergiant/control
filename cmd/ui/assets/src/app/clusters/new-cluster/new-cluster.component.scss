@@ -92,6 +92,34 @@
       }
     }
 
+    .gce-config {
+          display: flex;
+          justify-content: flex-start;
+
+          .input-group {
+            display: flex;
+            flex-direction: column;
+            margin-left: 100px;
+            width: 250px;
+
+            &:nth-of-type(1) {
+              margin-left: 0px;
+            }
+
+            .regionsLoading {
+              animation: loading 1s infinite;
+            }
+
+            .azsLoading {
+              animation: loading 1s infinite;
+            }
+          }
+
+          .public-key-wrapper {
+            width: 400px;
+          }
+        }
+
     .machine-config-step {
       display: flex;
       flex-direction: column;
