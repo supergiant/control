@@ -204,7 +204,8 @@ func (tp *TaskProvisioner) ProvisionNodes(parentContext context.Context, nodePro
 			return nil, errors.Wrap(sgerrors.ErrNotFound, "workflow")
 		}
 
-		writer, err := tp.getWriter(t.ID)
+		fileName := util.MakeFileName(t.ID)
+		writer, err := tp.getWriter(fileName)
 
 		if err != nil {
 			return nil, errors.Wrap(err, "get writer")
