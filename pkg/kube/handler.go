@@ -27,6 +27,12 @@ import (
 	"github.com/supergiant/control/pkg/workflows"
 	"github.com/supergiant/control/pkg/workflows/statuses"
 	"github.com/supergiant/control/pkg/workflows/steps"
+	"sync"
+)
+
+var (
+	m sync.Mutex
+	client *http.Client
 )
 
 type accountGetter interface {
@@ -104,8 +110,27 @@ type Handler struct {
 	workflowMap     map[clouds.Name]workflows.WorkflowSet
 	repo            storage.Interface
 	getWriter       func(string) (io.WriteCloser, error)
-	getMetrics      func(string) (*MetricResponse, error)
+	getMetrics      func(string, *model.Kube) (*MetricResponse, error)
 	proxies         proxy.Container
+}
+
+func init() {
+	tr := &http.Transport{
+		TLSClientConfig: &tls.Config{InsecureSkipVerify: true},
+		TLSHandshakeTimeout: time.Second * 30,
+		MaxIdleConnsPerHost: 100,
+	}
+	client = &http.Client{
+		Transport: tr,
+		Timeout: time.Second * 30,
+	}
+}
+
+// Use shared http.Client to perform request
+func doReq(req *http.Request) (*http.Response, error) {
+	m.Lock()
+	defer m.Unlock()
+	return client.Do(req)
 }
 
 // NewHandler constructs a Handler for kubes.
@@ -136,23 +161,18 @@ func NewHandler(
 		},
 		repo:      repo,
 		getWriter: util.GetWriter,
-		getMetrics: func(metricURI string) (*MetricResponse, error) {
+		getMetrics: func(metricURI string, k *model.Kube) (*MetricResponse, error) {
+			logrus.Debugf("Get metric with URI %s for kube %s", metricURI, k.ID)
 			metricResponse := &MetricResponse{}
+			// TODO(stgleb): Add caching for metric
 			req, err := http.NewRequest(http.MethodGet, metricURI, nil)
 
 			if err != nil {
 				return nil, err
 			}
 
-			// TODO(stgleb): Get rid off basic auth
-			req.SetBasicAuth("root", "1234")
-			tr := &http.Transport{
-				TLSClientConfig: &tls.Config{InsecureSkipVerify: true},
-			}
-			client := &http.Client{
-				Transport: tr,
-			}
-			resp, err := client.Do(req)
+			req.SetBasicAuth(k.User, k.Password)
+			resp, err := doReq(req)
 
 			if err != nil {
 				return nil, err
@@ -164,6 +184,7 @@ func NewHandler(
 				return nil, err
 			}
 
+			resp.Body.Close()
 			return metricResponse, nil
 		},
 		proxies: proxies,
@@ -916,7 +937,7 @@ func (h *Handler) getClusterMetrics(w http.ResponseWriter, r *http.Request) {
 
 	for metricType, relUrl := range metricsRelUrls {
 		url := fmt.Sprintf("https://%s/%s/%s", masterNode.PublicIp, baseUrl, relUrl)
-		metricResponse, err := h.getMetrics(url)
+		metricResponse, err := h.getMetrics(url, k)
 
 		if err != nil {
 			message.SendUnknownError(w, err)
@@ -968,7 +989,7 @@ func (h *Handler) getNodesMetrics(w http.ResponseWriter, r *http.Request) {
 
 	for metricType, relUrl := range metricsRelUrls {
 		url := fmt.Sprintf("https://%s/%s/%s", masterNode.PublicIp, baseUrl, relUrl)
-		metricResponse, err := h.getMetrics(url)
+		metricResponse, err := h.getMetrics(url, k)
 
 		if err != nil {
 			message.SendUnknownError(w, err)

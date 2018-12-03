@@ -8,14 +8,17 @@ import (
 	"os"
 	"strings"
 	"time"
+	_ "net/http/pprof"
 
-	"github.com/supergiant/control/pkg/proxy"
+	"k8s.io/helm/pkg/repo"
 
 	"github.com/coreos/etcd/clientv3"
 	"github.com/gorilla/handlers"
 	"github.com/gorilla/mux"
 	"github.com/pkg/errors"
 	"github.com/sirupsen/logrus"
+
+	"github.com/supergiant/control/pkg/proxy"
 	"github.com/supergiant/control/pkg/account"
 	"github.com/supergiant/control/pkg/api"
 	"github.com/supergiant/control/pkg/jwt"
@@ -49,7 +52,6 @@ import (
 	"github.com/supergiant/control/pkg/workflows/steps/prometheus"
 	"github.com/supergiant/control/pkg/workflows/steps/ssh"
 	"github.com/supergiant/control/pkg/workflows/steps/tiller"
-	"k8s.io/helm/pkg/repo"
 )
 
 type Server struct {
@@ -285,6 +287,11 @@ func configureApplication(cfg *Config) (*mux.Router, error) {
 		TokenService: jwtService,
 	}
 	protectedAPI.Use(authMiddleware.AuthMiddleware, api.ContentTypeJSON)
+
+	// Run pprof http server
+	go func(){
+		logrus.Info(http.ListenAndServe("localhost:6060", nil))
+	}()
 
 	if err := serveUI(cfg, router); err != nil {
 		return nil, err
