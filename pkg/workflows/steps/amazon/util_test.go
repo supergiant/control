@@ -1,8 +1,8 @@
 package amazon
 
 import (
-	"testing"
 	"context"
+	"testing"
 
 	"github.com/supergiant/control/pkg/sgerrors"
 	"time"
@@ -21,7 +21,7 @@ func TestFindOutboundIPCancelled(t *testing.T) {
 }
 
 func TestFindOutboundIPDeadline(t *testing.T) {
-	ctx, _ := context.WithTimeout(context.Background(), time.Nanosecond * 1)
+	ctx, _ := context.WithTimeout(context.Background(), time.Nanosecond*1)
 	time.Sleep(time.Nanosecond * 2)
 
 	_, err := FindOutboundIP(ctx, func() (string, error) {

@@ -12,12 +12,12 @@ import (
 
 	"github.com/sirupsen/logrus"
 
+	"github.com/pkg/errors"
 	"github.com/supergiant/control/pkg/clouds"
 	"github.com/supergiant/control/pkg/model"
 	"github.com/supergiant/control/pkg/node"
 	"github.com/supergiant/control/pkg/sgerrors"
 	"github.com/supergiant/control/pkg/workflows/steps"
-	"github.com/pkg/errors"
 )
 
 const letterBytes = "0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ"
@@ -136,20 +136,24 @@ func GetWriter(name string) (io.WriteCloser, error) {
 }
 
 func LoadCloudSpecificDataFromKube(k *model.Kube, config *steps.Config) error {
+	config.SshConfig.BootstrapPublicKey = string(k.BootstrapPublicKey)
+	config.SshConfig.BootstrapPrivateKey = string(k.BootstrapPrivateKey)
+	config.SshConfig.PublicKey = string(k.SshPublicKey)
+
 	switch config.Provider {
 	case clouds.AWS:
-			config.AWSConfig.Region = k.Region
-			config.AWSConfig.AvailabilityZone = k.CloudSpec[clouds.AwsAZ]
-			config.AWSConfig.VPCCIDR = k.CloudSpec[clouds.AwsVpcCIDR]
-			config.AWSConfig.VPCID = k.CloudSpec[clouds.AwsVpcID]
-			config.AWSConfig.KeyPairName = k.CloudSpec[clouds.AwsKeyPairName]
-			config.AWSConfig.SubnetID = k.CloudSpec[clouds.AwsSubnetID]
-			config.AWSConfig.MastersSecurityGroupID = k.CloudSpec[clouds.AwsMastersSecGroupID]
-			config.AWSConfig.NodesSecurityGroupID = k.CloudSpec[clouds.AwsNodesSecgroupID]
-			config.SshConfig.BootstrapPrivateKey = k.CloudSpec[clouds.AwsSshBootstrapPrivateKey]
-			config.SshConfig.PublicKey = k.CloudSpec[clouds.AwsUserProvidedSshPublicKey]
+		config.AWSConfig.Region = k.Region
+		config.AWSConfig.AvailabilityZone = k.CloudSpec[clouds.AwsAZ]
+		config.AWSConfig.VPCCIDR = k.CloudSpec[clouds.AwsVpcCIDR]
+		config.AWSConfig.VPCID = k.CloudSpec[clouds.AwsVpcID]
+		config.AWSConfig.KeyPairName = k.CloudSpec[clouds.AwsKeyPairName]
+		config.AWSConfig.SubnetID = k.CloudSpec[clouds.AwsSubnetID]
+		config.AWSConfig.MastersSecurityGroupID = k.CloudSpec[clouds.AwsMastersSecGroupID]
+		config.AWSConfig.NodesSecurityGroupID = k.CloudSpec[clouds.AwsNodesSecgroupID]
+		config.SshConfig.BootstrapPrivateKey = k.CloudSpec[clouds.AwsSshBootstrapPrivateKey]
+		config.SshConfig.PublicKey = k.CloudSpec[clouds.AwsUserProvidedSshPublicKey]
 
-			return nil
+		return nil
 	case clouds.GCE:
 		config.GCEConfig.AvailabilityZone = k.Zone
 		return nil

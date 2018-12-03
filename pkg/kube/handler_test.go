@@ -446,7 +446,7 @@ func TestHandler_deleteKube(t *testing.T) {
 			getAccountError: sgerrors.ErrNotFound,
 			account:         nil,
 			kube: &model.Kube{
-				Provider: clouds.DigitalOcean,
+				Provider:    clouds.DigitalOcean,
 				Name:        "test",
 				AccountName: "test",
 			},
@@ -464,7 +464,7 @@ func TestHandler_deleteKube(t *testing.T) {
 			},
 			getKubeError: nil,
 			kube: &model.Kube{
-				Provider: clouds.DigitalOcean,
+				Provider:    clouds.DigitalOcean,
 				Name:        "test",
 				AccountName: "test",
 			},
@@ -482,7 +482,7 @@ func TestHandler_deleteKube(t *testing.T) {
 			},
 			getKubeError: nil,
 			kube: &model.Kube{
-				Provider: clouds.DigitalOcean,
+				Provider:    clouds.DigitalOcean,
 				Name:        "test",
 				AccountName: "test",
 			},

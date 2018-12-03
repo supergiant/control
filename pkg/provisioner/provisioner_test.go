@@ -73,8 +73,8 @@ func TestNewProvisioner(t *testing.T) {
 func TestProvisionCluster(t *testing.T) {
 	repository := &testutils.MockStorage{}
 	repository.On("Put", mock.Anything,
-	mock.Anything, mock.Anything,
-	mock.Anything).Return(nil)
+		mock.Anything, mock.Anything,
+		mock.Anything).Return(nil)
 
 	bc := &bufferCloser{
 		bytes.Buffer{},
@@ -151,9 +151,9 @@ func TestProvisionCluster(t *testing.T) {
 	if k := svc.data[cfg.ClusterID]; k == nil {
 		t.Errorf("Kube %s not found", k.ID)
 
-		if len(k.Tasks) != len(p.MasterProfiles) + len(p.NodesProfiles) + 1 {
+		if len(k.Tasks) != len(p.MasterProfiles)+len(p.NodesProfiles)+1 {
 			t.Errorf("Wrong count of tasks in kube expected %d actual %d",
-				len(p.MasterProfiles) + len(p.NodesProfiles) + 1, len(k.Tasks))
+				len(p.MasterProfiles)+len(p.NodesProfiles)+1, len(k.Tasks))
 		}
 	}
 }
@@ -170,9 +170,32 @@ func TestProvisionNodes(t *testing.T) {
 		nil,
 	}
 
+	kubeID := "1234"
+
+	k := &model.Kube{
+		ID:       kubeID,
+		Provider: clouds.DigitalOcean,
+		Masters: map[string]*node.Node{
+			"1": {
+				ID:        "1",
+				PrivateIp: "10.0.0.1",
+				PublicIp:  "10.20.30.40",
+				State:     node.StateActive,
+				Region:    "fra1",
+				Size:      "s-2vcpu-4gb",
+			},
+		},
+		BootstrapPublicKey:  []byte(""),
+		BootstrapPrivateKey: []byte(""),
+		SshPublicKey:        []byte(""),
+		CloudSpec:           make(map[string]string),
+	}
+
 	provisioner := TaskProvisioner{
 		&mockKubeService{
-			data: make(map[string]*model.Kube),
+			data: map[string]*model.Kube{
+				k.ID: k,
+			},
 		},
 		repository,
 		func(string) (io.WriteCloser, error) {
@@ -193,21 +216,6 @@ func TestProvisionNodes(t *testing.T) {
 	nodeProfile := profile.NodeProfile{
 		"size":  "s-2vcpu-4gb",
 		"image": "ubuntu-18-04-x64",
-	}
-
-	k := &model.Kube{
-		Provider: clouds.DigitalOcean,
-		Masters: map[string]*node.Node{
-			"1": {
-				ID:        "1",
-				PrivateIp: "10.0.0.1",
-				PublicIp:  "10.20.30.40",
-				State:     node.StateActive,
-				Region:    "fra1",
-				Size:      "s-2vcpu-4gb",
-			},
-		},
-		CloudSpec: make(map[string]string),
 	}
 
 	kubeProfile := profile.Profile{
@@ -232,6 +240,8 @@ func TestProvisionNodes(t *testing.T) {
 	}
 
 	config := steps.NewConfig(k.Name, "", k.AccountName, kubeProfile)
+	config.ClusterID = k.ID
+
 	_, err := provisioner.ProvisionNodes(context.Background(),
 		[]profile.NodeProfile{nodeProfile}, k, config)
 
@@ -432,7 +442,6 @@ func TestBuildInitialCluster(t *testing.T) {
 	}
 	taskIds := []string{"1234", "5678", "abcd"}
 
-
 	tp.buildInitialCluster(context.Background(), &profile.Profile{}, nil, nil, &steps.Config{
 		ClusterID: clusterID,
 	}, taskIds)
@@ -441,7 +450,7 @@ func TestBuildInitialCluster(t *testing.T) {
 		t.Errorf("Cluster %s not found", clusterID)
 	} else {
 		if len(k.Tasks) != len(taskIds) {
-			t.Errorf("Wrong number of tasks in cluster " +
+			t.Errorf("Wrong number of tasks in cluster "+
 				"expected %d actual %d", len(taskIds), len(k.Tasks))
 		}
 	}

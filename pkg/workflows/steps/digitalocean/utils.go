@@ -36,9 +36,18 @@ func getPublicIpPort(networks []godo.NetworkV4) string {
 }
 
 func fingerprint(key string) (string, error) {
-	parts := strings.Fields(string(key))
+	parts := strings.Fields(key)
 
-	k, err := base64.StdEncoding.DecodeString(parts[1])
+	var (
+		k   []byte
+		err error
+	)
+	if len(parts) == 1 {
+		k, err = base64.StdEncoding.DecodeString(parts[0])
+	} else if len(parts) > 1 {
+		k, err = base64.StdEncoding.DecodeString(parts[1])
+	}
+
 	if err != nil {
 		return "", errors.Wrap(err, "fingerprint decode string")
 	}
