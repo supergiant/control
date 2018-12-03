@@ -10,6 +10,8 @@ import (
 
 	"github.com/supergiant/control/pkg/util"
 	"github.com/supergiant/control/pkg/workflows/steps"
+	"github.com/aws/aws-sdk-go/aws/awserr"
+	"github.com/sirupsen/logrus"
 )
 
 const StepCreateVPC = "aws_create_vpc"
@@ -51,6 +53,18 @@ func (c *CreateVPCStep) Run(ctx context.Context, w io.Writer, cfg *steps.Config)
 		}
 		cfg.AWSConfig.VPCID = *out.Vpc.VpcId
 
+		desc := &ec2.DescribeVpcsInput{
+			VpcIds: []*string{aws.String(cfg.AWSConfig.VPCID)},
+		}
+		err = EC2.WaitUntilVpcExistsWithContext(ctx, desc)
+
+		if err != nil {
+			if err, ok := err.(awserr.Error); ok {
+				logrus.Debugf("error waiting for vpc %s %s",
+					cfg.AWSConfig.VPCID, err.Message())
+			}
+			return errors.Wrapf(err, "create vpc error wait")
+		}
 		log.Infof("[%s] - created a VPC with ID %s and CIDR %s",
 			c.Name(), cfg.AWSConfig.VPCID, cfg.AWSConfig.VPCCIDR)
 	} else {
@@ -86,9 +100,11 @@ func (c *CreateVPCStep) Run(ctx context.Context, w io.Writer, cfg *steps.Config)
 			}
 
 			var defaultVPCID string
+			var defaultVPCCIDR string
 			for _, vpc := range out.Vpcs {
 				if *vpc.IsDefault {
 					defaultVPCID = *vpc.VpcId
+					defaultVPCCIDR = *vpc.CidrBlock
 					break
 				}
 			}
@@ -100,6 +116,7 @@ func (c *CreateVPCStep) Run(ctx context.Context, w io.Writer, cfg *steps.Config)
 			}
 
 			cfg.AWSConfig.VPCID = defaultVPCID
+			cfg.AWSConfig.VPCCIDR = defaultVPCCIDR
 		}
 	}
 

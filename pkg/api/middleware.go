@@ -1,10 +1,12 @@
 package api
 
 import (
+	"fmt"
 	"net/http"
 	"strings"
 
 	"github.com/dgrijalva/jwt-go"
+	"github.com/sirupsen/logrus"
 
 	"github.com/supergiant/control/pkg/sgerrors"
 )
@@ -20,6 +22,15 @@ type Middleware struct {
 func (m *Middleware) AuthMiddleware(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		authHeader := r.Header.Get("Authorization")
+
+		// In case of websocket protocol look at the header Sec-Websocket-Protocol
+		if authHeader == "" {
+			logrus.Debugf("Websocket header Sec-Websocket-Protocol %s",
+				r.Header.Get("Sec-Websocket-Protocol"))
+			authHeader = fmt.Sprintf("Bearer: %s",
+				r.Header.Get("Sec-Websocket-Protocol"))
+		}
+
 		if authHeader == "" {
 			http.Error(w, sgerrors.ErrInvalidCredentials.Error(), http.StatusForbidden)
 			return
@@ -29,7 +40,6 @@ func (m *Middleware) AuthMiddleware(next http.Handler) http.Handler {
 			http.Error(w, sgerrors.ErrInvalidCredentials.Error(), http.StatusForbidden)
 			return
 		} else {
-
 			tokenString := ts[1]
 			claims, err := m.TokenService.Validate(tokenString)
 

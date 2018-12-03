@@ -1,0 +1,69 @@
+.release-info-wrapper {
+  position: relative;
+  min-height: 300px;
+
+  .headline {
+    font-family: "Montserrat", sans-serif;
+  }
+
+  .info {
+    display: flex;
+    justify-content: flex-start;
+    margin: 24px 0px;
+
+    .labels {
+      align-content: center;
+      align-items: flex-start;
+      display: flex;
+      flex-direction: column;
+      margin-left: 24px;
+
+      span {
+        color: #D10088;
+        height: 16px;
+        font-size: 16px;
+        font-weight: 500;
+        letter-spacing: 2px;
+        margin-bottom: 16px;
+
+        &:last-child {
+          margin-bottom: 0px;
+        }
+      }
+    }
+
+    .values {
+      align-content: center;
+      align-items: flex-start;
+      display: flex;
+      flex-direction: column;
+      margin-left: 24px;
+      width: max-content;
+
+      span {
+        height: 16px;
+        margin-bottom: 16px;
+
+        &:last-child {
+          margin-bottom: 0px;
+        }
+      }
+    }
+  }
+
+  .notes {
+    white-space: pre-line;
+  }
+
+  .info-loading {
+    align-items: center;
+    background-color: rgba(0,0,0,0.25);
+    display: flex;
+    justify-content: center;
+    position: absolute;
+    left: 0;
+    top: 0;
+    height: 100%;
+    width: 100%;
+  }
+}

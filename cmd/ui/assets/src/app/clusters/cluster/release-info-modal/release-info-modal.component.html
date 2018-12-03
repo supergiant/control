@@ -1,0 +1,22 @@
+<div class="release-info-wrapper">
+  <ng-container *ngIf="releaseInfo">
+    <h1 class="headline">{{ releaseInfo?.name }}</h1>
+    <div class="info">
+      <div class="labels">
+        <span>CHART:</span>
+        <span>VERSION:</span>
+      </div>
+      <div class="values">
+        <span>{{ releaseInfo?.chart.metadata.name }}</span>
+        <span>{{ releaseInfo?.chart.metadata.version }}</span>
+      </div>
+    </div>
+    <p class="notes">
+      {{ releaseInfo?.info.status.notes }}
+    </p>
+  </ng-container>
+
+  <div *ngIf="!releaseInfo" class="info-loading">
+    <mat-spinner class="loading-spinner" [diameter]="148"></mat-spinner>
+  </div>
+</div>

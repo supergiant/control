@@ -155,6 +155,7 @@ import { DeleteClusterModalComponent } from './clusters/cluster/delete-cluster-m
 import { DeleteReleaseModalComponent } from './clusters/cluster/delete-release-modal/delete-release-modal.component';
 import { SshCommandsModalComponent } from './clusters/cluster/ssh-commands-modal/ssh-commands-modal.component';
 import { KubectlConfigModalComponent } from './clusters/cluster/kubectl-config-modal/kubectl-config-modal.component';
+import { ReleaseInfoModalComponent } from './clusters/cluster/release-info-modal/release-info-modal.component';
 
 @NgModule({
   declarations: [
@@ -213,6 +214,7 @@ import { KubectlConfigModalComponent } from './clusters/cluster/kubectl-config-m
     DeleteReleaseModalComponent,
     SshCommandsModalComponent,
     KubectlConfigModalComponent,
+    ReleaseInfoModalComponent,
   ],
   imports: [
     BrowserModule,
@@ -317,7 +319,8 @@ import { KubectlConfigModalComponent } from './clusters/cluster/kubectl-config-m
     DeleteClusterModalComponent,
     DeleteReleaseModalComponent,
     SshCommandsModalComponent,
-    KubectlConfigModalComponent
+    KubectlConfigModalComponent,
+    ReleaseInfoModalComponent
   ],
   bootstrap: [AppComponent],
 })
