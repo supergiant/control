@@ -8,7 +8,6 @@ import (
 	"os"
 	"strings"
 	"time"
-	_ "net/http/pprof"
 
 	"k8s.io/helm/pkg/repo"
 
@@ -287,11 +286,6 @@ func configureApplication(cfg *Config) (*mux.Router, error) {
 		TokenService: jwtService,
 	}
 	protectedAPI.Use(authMiddleware.AuthMiddleware, api.ContentTypeJSON)
-
-	// Run pprof http server
-	go func(){
-		logrus.Info(http.ListenAndServe("localhost:6060", nil))
-	}()
 
 	if err := serveUI(cfg, router); err != nil {
 		return nil, err
