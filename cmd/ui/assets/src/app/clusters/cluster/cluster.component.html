@@ -383,6 +383,40 @@
     </ng-container>
   </ng-container>
 
+  <div *ngIf="clusterServices?.data.length > 0" class="sg-table cluster-services">
+    <h3>CLUSTER SERVICES</h3>
+     <mat-table [dataSource]="clusterServices" matSort>
+      <ng-container matColumnDef="name">
+        <mat-header-cell mat-sort-header
+                         *matHeaderCellDef>Name
+        </mat-header-cell>
+        <mat-cell *matCellDef="let service">{{ service.name }}</mat-cell>
+      </ng-container>
+      <ng-container matColumnDef="type">
+        <mat-header-cell mat-sort-header
+                         *matHeaderCellDef>Type
+        </mat-header-cell>
+        <mat-cell *matCellDef="let service">{{ service.type }}</mat-cell>
+      </ng-container>
+      <ng-container matColumnDef="namespace">
+        <mat-header-cell mat-sort-header
+                         *matHeaderCellDef>Namespace
+        </mat-header-cell>
+        <mat-cell *matCellDef="let service">{{ service.namespace }}</mat-cell>
+      </ng-container>
+      <ng-container matColumnDef="selfLink">
+        <mat-header-cell mat-sort-header
+                         *matHeaderCellDef>Link
+        </mat-header-cell>
+        <mat-cell *matCellDef="let service">
+          <div (click)="openService(service.proxyPort)"  class="open-service"></div>
+        </mat-cell>
+      </ng-container>
+       <mat-header-row *matHeaderRowDef="serviceListColumns"></mat-header-row>
+      <mat-row *matRowDef="let row; columns: serviceListColumns"></mat-row>
+    </mat-table>
+  </div>
+
   <div class="action-buttons">
     <div class="delete-cluster" (click)="deleteCluster()">
       <div class="delete-icon"></div>

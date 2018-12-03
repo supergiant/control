@@ -63,6 +63,10 @@ export class ClusterComponent implements OnInit, OnDestroy {
 
   kubectlConfig: any;
 
+  clusterServices: any
+  serviceListColumns = ["name", "type", "namespace", "selfLink"];
+
+
   constructor(
     private route: ActivatedRoute,
     private location: Location,
@@ -187,11 +191,12 @@ export class ClusterComponent implements OnInit, OnDestroy {
 
           switch (this.kube.state) {
             case "operational": {
-              this.renderKube(this.kube);
+              this.renderMachines(this.kube);
               this.getReleases();
               this.getClusterMetrics();
               this.getMachineMetrics();
               this.getKubectlConfig();
+              this.getClusterServices();
               break;
             }
             case "provisioning": {
@@ -245,7 +250,7 @@ export class ClusterComponent implements OnInit, OnDestroy {
       ))
   }
 
-  renderKube(kube) {
+  renderMachines(kube) {
     const machineMetrics = {};
     const masterNames = Object.keys(kube.masters);
     const nodeNames = Object.keys(kube.nodes);
@@ -293,7 +298,7 @@ export class ClusterComponent implements OnInit, OnDestroy {
     this.supergiant.Kubes.getMachineMetrics(this.clusterId).subscribe(
       res => {
         this.machineMetrics = this.calculateMachineMetrics(res);
-        this.renderKube(this.kube)
+        this.renderMachines(this.kube)
       },
       err => console.error(err)
     )
@@ -303,6 +308,13 @@ export class ClusterComponent implements OnInit, OnDestroy {
     // TODO: move to service
     this.util.fetch('v1/api/kubes/' + this.clusterId + '/users/kubernetes-admin/kubeconfig').subscribe(
       res => this.kubectlConfig = res,
+      err => console.error(err)
+    )
+  }
+
+  getClusterServices() {
+    this.supergiant.Kubes.getClusterServices(this.clusterId).subscribe(
+      res => this.clusterServices = new MatTableDataSource(res),
       err => console.error(err)
     )
   }
@@ -327,7 +339,7 @@ export class ClusterComponent implements OnInit, OnDestroy {
         switchMap(() => this.supergiant.Kubes.get(this.clusterId)),
         catchError((error) => of(error)),
       ).subscribe(
-        k => this.renderKube(k),
+        k => this.renderMachines(k),
         err => {
           console.error(err);
           this.error(this.clusterId, err)
@@ -387,6 +399,13 @@ export class ClusterComponent implements OnInit, OnDestroy {
 
   showReleaseInfo(releaseName) {
     this.initReleaseInfo(releaseName);
+  }
+
+  openService(proxyPort) {
+    const hostname = this.window.location.hostname;
+    const link = "http://" + hostname + ":" + proxyPort;
+
+    this.window.open(link);
   }
 
   private initDialog(target) {

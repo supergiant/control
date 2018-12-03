@@ -83,6 +83,12 @@ export class DeployComponent implements OnInit {
       const repoName = this.data.routeParams.repo;
       const chartName = currentChart.metadata.name;
 
+      if (chartName == "capacity" || chartName == "analyze") {
+        currentChart.metadata["namespace"] = "kube-system";
+      } else {
+        currentChart.metadata["namespace"] = "default";
+      }
+
       this.deployForm.patchValue({
         chartName, repoName, values: currentChart.values
       });
