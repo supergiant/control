@@ -5,7 +5,9 @@ import (
 	"io"
 	"time"
 
+	"github.com/digitalocean/godo"
 	"github.com/sirupsen/logrus"
+
 	"github.com/supergiant/control/pkg/clouds/digitaloceansdk"
 	"github.com/supergiant/control/pkg/workflows/steps"
 )
@@ -13,14 +15,26 @@ import (
 type DeleteKeysStep struct {
 	keyService KeyService
 	timeout    time.Duration
+
+	getKeyService func(string) keyDeleter
+}
+
+type keyDeleter interface {
+	DeleteByFingerprint(context.Context, string) (*godo.Response, error)
 }
 
 func NewDeleteKeysStep() *DeleteKeysStep {
-	return &DeleteKeysStep{}
+	return &DeleteKeysStep{
+		getKeyService: func(accessToken string) keyDeleter {
+			c := digitaloceansdk.New(accessToken).GetClient()
+
+			return c.Keys
+		},
+	}
 }
 
 func (s *DeleteKeysStep) Run(ctx context.Context, output io.Writer, config *steps.Config) error {
-	c := digitaloceansdk.New(config.DigitalOceanConfig.AccessToken).GetClient()
+	keyService := s.getKeyService(config.DigitalOceanConfig.AccessToken)
 
 	bootstrapFg, err := fingerprint(config.SshConfig.BootstrapPublicKey)
 
@@ -28,7 +42,7 @@ func (s *DeleteKeysStep) Run(ctx context.Context, output io.Writer, config *step
 		logrus.Debugf("error computing fingerprint of bootstrap key")
 	}
 
-	resp, err := c.Keys.DeleteByFingerprint(ctx, bootstrapFg)
+	resp, err := keyService.DeleteByFingerprint(ctx, bootstrapFg)
 
 	if err != nil {
 		logrus.Debugf("Delete bootstrap key status %s error %s",
@@ -41,7 +55,7 @@ func (s *DeleteKeysStep) Run(ctx context.Context, output io.Writer, config *step
 		logrus.Debugf("error computing fingerprint of public key")
 	}
 
-	resp, err = c.Keys.DeleteByFingerprint(ctx, publicFg)
+	resp, err = keyService.DeleteByFingerprint(ctx, publicFg)
 
 	if err != nil {
 		logrus.Debugf("Delete bootstrap key status %s error %s",
@@ -56,7 +70,7 @@ func (s *DeleteKeysStep) Rollback(context.Context, io.Writer, *steps.Config) err
 }
 
 func (s *DeleteKeysStep) Name() string {
-	return DeleteDeleteKeysStep
+	return DeleteDeleteKeysStepName
 }
 
 func (s *DeleteKeysStep) Depends() []string {
@@ -64,5 +78,5 @@ func (s *DeleteKeysStep) Depends() []string {
 }
 
 func (s *DeleteKeysStep) Description() string {
-	return ""
+	return "Delete all keys created for provisioning"
 }
