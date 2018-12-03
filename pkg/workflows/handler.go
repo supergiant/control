@@ -158,7 +158,7 @@ func (h *TaskHandler) RestartTask(w http.ResponseWriter, r *http.Request) {
 	task, err := DeserializeTask(data, h.repository)
 
 	if err != nil {
-		logrus.Debugf("error deserializing task %v", err)
+		logrus.Debugf("error deserializing task %s %v", id, err)
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
 	}
