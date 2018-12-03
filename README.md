@@ -23,7 +23,7 @@
 
 # Supergiant Control - Beta
 
-Create HA K8s clusters on multiple clouds. Simplify K8s deployment and management, easily configure and deploy Helm releases, and view at-a-glance metrics for cluster usage. Want to skip the rest and install SG Control? **[Get started here](https://supergiant.readme.io/v2.0.0/docs/control-setup)**.
+Create HA K8s clusters on multiple clouds. Simplify K8s deployment and management, easily configure and deploy Helm releases, and view at-a-glance metrics for cluster usage. Want to skip the rest and install SG Control? **[Get started here](https://supergiant.readme.io/v2.0.0/docs/control-installation)**.
 
 ---
 
@@ -37,7 +37,7 @@ Create HA K8s clusters on multiple clouds. Simplify K8s deployment and managemen
 
 # Resources
 
-- [SG Control Documentation](https://supergiant.readme.io/v2.0.0/docs/control-concepts)
+- [SG Control Documentation](https://supergiant.readme.io/v2.0.0/docs/control-overview)
 - [SG Control Development Guide](https://supergiant.readme.io/v2.0.0/docs/control-dev)
 - [Supergiant Website](https://supergiant.io/)
 - [Supergiant Slack Channel](http://slack.supergiant.io)
