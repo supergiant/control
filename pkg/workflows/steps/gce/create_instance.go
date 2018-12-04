@@ -30,6 +30,9 @@ func NewCreateInstanceStep() (steps.Step, error) {
 
 func (s *CreateInstanceStep) Run(ctx context.Context, output io.Writer, config *steps.Config) error {
 	// fetch client.
+	// TODO(stgleb):  Add UI and API for selecting image family
+	config.GCEConfig.ImageFamily = "ubuntu-1604-lts"
+
 	client, err := s.getClient(ctx, config.GCEConfig.ClientEmail,
 		config.GCEConfig.PrivateKey, config.GCEConfig.TokenURI)
 	if err != nil {

@@ -118,6 +118,11 @@ export class NewClusterComponent implements OnInit, OnDestroy {
 
           newClusterData.profile.publicKey = this.providerConfig.value.publicKey;
         }
+        break;
+        case "gce":
+
+          newClusterData.profile.publicKey = this.providerConfig.value.publicKey;
+          break;
       }
 
       this.provisioning = true;
@@ -314,6 +319,12 @@ export class NewClusterComponent implements OnInit, OnDestroy {
           subnetId: ["default", Validators.required],
           mastersSecurityGroupId: [""],
           nodesSecurityGroupId: [""],
+          publicKey: ["", Validators.required]
+        });
+        break;
+      case "gce":
+        this.providerConfig = this.formBuilder.group({
+          region: ["", Validators.required],
           publicKey: ["", Validators.required]
         });
         break;

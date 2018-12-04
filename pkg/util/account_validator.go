@@ -11,15 +11,15 @@ import (
 
 	"golang.org/x/oauth2"
 	"golang.org/x/oauth2/jwt"
-	"google.golang.org/api/compute/v1"
+	compute "google.golang.org/api/compute/v1"
 	"google.golang.org/api/dns/v1"
+	"github.com/sirupsen/logrus"
 
 	"github.com/supergiant/control/pkg/clouds"
 	"github.com/supergiant/control/pkg/clouds/digitaloceansdk"
 	"github.com/supergiant/control/pkg/model"
 	"github.com/supergiant/control/pkg/sgerrors"
 	"github.com/supergiant/control/pkg/workflows/steps"
-	"github.com/Sirupsen/logrus"
 )
 
 type CloudAccountValidator interface {
