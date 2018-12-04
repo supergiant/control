@@ -299,7 +299,7 @@
                      [(ngModel)]="machineTypesFilter"
                      (blur)="machineTypesFilter = ''"
                      autofocus>
-              <mat-option *ngFor="let type of availableMachineTypes"
+              <mat-option *ngFor="let type of availableMachineTypes | callback: filterCallback"
                           [value]="type">{{ type }}</mat-option>
             </mat-select>
           </mat-form-field>
