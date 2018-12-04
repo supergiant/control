@@ -15,6 +15,7 @@ import (
 )
 
 var (
+	version       = "undefined"
 	addr          = flag.String("address", "0.0.0.0", "network interface to attach server to")
 	port          = flag.Int("port", 8080, "tcp port to listen for incoming requests")
 	etcdURL       = flag.String("etcd-url", "localhost:2379", "etcd url with port")
@@ -49,6 +50,7 @@ func main() {
 		PprofListenStr: *pprofListenStr,
 
 		ProxiesPortRange: proxy.PortRange{int32(*ProxiesPortRangeFrom), int32(*ProxiesPortRangeTo)},
+		Version: version,
 	}
 
 	server, err := controlplane.New(cfg)

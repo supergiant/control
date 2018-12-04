@@ -146,16 +146,19 @@ func (h *TaskHandler) RestartTask(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	logrus.Debugf("get task %s", id)
 	data, err := h.repository.Get(r.Context(), Prefix, id)
 
 	if err != nil {
-		http.Error(w, err.Error(), http.StatusInternalServerError)
+		logrus.Debugf("task %s not found", id)
+		http.NotFound(w, r)
 		return
 	}
 
 	task, err := DeserializeTask(data, h.repository)
 
 	if err != nil {
+		logrus.Debugf("error deserializing task %s %v", id, err)
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
 	}
