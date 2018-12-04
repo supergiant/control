@@ -30,6 +30,7 @@
     display: flex;
     align-items: baseline;
     align-content: space-between;
+    margin-right: 24px;
 
     &.machines-list {
       flex-direction: column;
@@ -106,5 +107,13 @@
     .mat-progress-spinner {
       margin: 0px auto;
     }
+  }
+}
+
+::ng-deep .mat-select-content {
+
+  .machine-types-filter {
+    position: relative;
+    padding: 10px !important;
   }
 }

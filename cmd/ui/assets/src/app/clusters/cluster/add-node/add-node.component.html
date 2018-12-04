@@ -23,8 +23,15 @@
       <mat-select placeholder="Machine Type (size)"
                   [disabled]="!m.availabilityZone && (provider$ | async)  === 'aws'"
                   [(value)]="m.machineType"
+                  (openedChange)="machineTypesFilter = ''"
                   (selectionChange)="checkAndSetValidMachineConfig()">
-      <mat-option *ngFor="let type of (machineSizes$ | async)"
+        <input class="machine-types-filter"
+               matInput
+               type="text"
+               placeholder="Filter machines..."
+               [(ngModel)]="machineTypesFilter"
+               autofocus>
+      <mat-option *ngFor="let type of (machineSizes$ | async) | callback: filterCallback"
                   [value]="type">{{ type }}</mat-option>
       </mat-select>
       </mat-form-field>

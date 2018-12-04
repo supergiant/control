@@ -291,8 +291,15 @@
             <mat-select placeholder="Machine Type (size)"
                         id="m.machineType"
                         [(value)]="m.machineType"
+                        (openedChange)="machineTypesFilter = ''"
                         (selectionChange)="validateMachineConfig()">
-              <mat-option *ngFor="let type of availableMachineTypes"
+              <input class="machine-types-filter"
+                     matInput
+                     type="text"
+                     placeholder="Filter machines..."
+                     [(ngModel)]="machineTypesFilter"
+                     autofocus>
+              <mat-option *ngFor="let type of availableMachineTypes | callback: filterCallback"
                           [value]="type">{{ type }}</mat-option>
             </mat-select>
           </mat-form-field>
@@ -345,14 +352,22 @@
             </mat-select>
           </mat-form-field>
 
+          <!-- TODO: make this separate component -->
           <mat-form-field class="type"
                           [ngClass]="{ 'machinesLoading': machinesLoading }">
             <mat-select placeholder="Machine Type (size)"
                         id="m.machineType"
                         [(value)]="m.machineType"
                         [disabled]="!m.availabileMachinetypes"
+                        (openedChange)="machineTypesFilter = ''"
                         (selectionChange)="validateMachineConfig()">
-              <mat-option *ngFor="let type of m.availabileMachinetypes"
+              <input class="machine-types-filter"
+                     matInput
+                     type="text"
+                     placeholder="Filter machines..."
+                     [(ngModel)]="machineTypesFilter"
+                     autofocus>
+              <mat-option *ngFor="let type of m.availabileMachinetypes | callback: filterCallback"
                           [value]="type">
               {{ type }}
               </mat-option>
