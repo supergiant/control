@@ -66,23 +66,25 @@ type PacketConfig struct{}
 type OSConfig struct{}
 
 type AWSConfig struct {
-	KeyID                  string `json:"access_key"`
-	Secret                 string `json:"secret_key"`
-	Region                 string `json:"region"`
-	AvailabilityZone       string `json:"availabilityZone"`
-	KeyPairName            string `json:"keyPairName"`
-	VPCID                  string `json:"vpcid"`
-	VPCCIDR                string `json:"vpccidr"`
-	SubnetID               string `json:"subnetID"`
-	NodesSecurityGroupID   string `json:"nodesSecurityGroupID"`
-	MastersSecurityGroupID string `json:"mastersSecurityGroupID"`
-	MastersInstanceProfile string `json:"mastersInstanceProfile"`
-	NodesInstanceProfile   string `json:"nodesInstanceProfile"`
-	VolumeSize             string `json:"volumeSize"`
-	EbsOptimized           string `json:"ebsOptimized"`
-	ImageID                string `json:"image"`
-	InstanceType           string `json:"size"`
-	HasPublicAddr          string `json:"hasPublicAddr"`
+	KeyID                         string `json:"access_key"`
+	Secret                        string `json:"secret_key"`
+	Region                        string `json:"region"`
+	AvailabilityZone              string `json:"availabilityZone"`
+	KeyPairName                   string `json:"keyPairName"`
+	VPCID                         string `json:"vpcid"`
+	VPCCIDR                       string `json:"vpccidr"`
+	SubnetID                      string `json:"subnetID"`
+	RouteTableID                  string `json:"routeTableId"`
+	RouteTableSubnetAssociationID string `json:"routeTableSubnetAssociationId"`
+	NodesSecurityGroupID          string `json:"nodesSecurityGroupID"`
+	MastersSecurityGroupID        string `json:"mastersSecurityGroupID"`
+	MastersInstanceProfile        string `json:"mastersInstanceProfile"`
+	NodesInstanceProfile          string `json:"nodesInstanceProfile"`
+	VolumeSize                    string `json:"volumeSize"`
+	EbsOptimized                  string `json:"ebsOptimized"`
+	ImageID                       string `json:"image"`
+	InstanceType                  string `json:"size"`
+	HasPublicAddr                 string `json:"hasPublicAddr"`
 }
 
 type FlannelConfig struct {
