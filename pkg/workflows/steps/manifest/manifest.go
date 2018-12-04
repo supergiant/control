@@ -3,6 +3,7 @@ package manifest
 import (
 	"context"
 	"fmt"
+	"github.com/supergiant/control/pkg/clouds"
 	"io"
 	"text/template"
 
@@ -47,6 +48,10 @@ func (j *Step) Run(ctx context.Context, out io.Writer, config *steps.Config) err
 		if master := config.GetMaster(); master != nil {
 			config.ManifestConfig.MasterHost = config.GetMaster().PrivateIp
 		}
+	}
+
+	if config.Provider != clouds.AWS {
+		config.ManifestConfig.ProviderString = ""
 	}
 
 	err := steps.RunTemplate(ctx, j.script, config.Runner, out, config.ManifestConfig)
