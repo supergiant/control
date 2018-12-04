@@ -105,9 +105,10 @@ type NetworkConfig struct {
 }
 
 type KubeletConfig struct {
-	IsMaster   bool   `json:"isMaster"`
-	ProxyPort  string `json:"proxyPort"`
-	K8SVersion string `json:"k8sVersion"`
+	IsMaster       bool   `json:"isMaster"`
+	ProxyPort      string `json:"proxyPort"`
+	K8SVersion     string `json:"k8sVersion"`
+	ProviderString string `json:"ProviderString"`
 }
 
 type ManifestConfig struct {
@@ -115,7 +116,7 @@ type ManifestConfig struct {
 	K8SVersion          string `json:"k8sVersion"`
 	KubernetesConfigDir string `json:"kubernetesConfigDir"`
 	RBACEnabled         bool   `json:"rbacEnabled"`
-	ProviderString      string `json:"providerString"`
+	ProviderString      string `json:"ProviderString"`
 	MasterHost          string `json:"masterHost"`
 	MasterPort          string `json:"masterPort"`
 	Password            string `json:"password"`
@@ -307,14 +308,15 @@ func NewConfig(clusterName, clusterToken, cloudAccountName string, profile profi
 			EtcdHost: "0.0.0.0",
 		},
 		KubeletConfig: KubeletConfig{
-			ProxyPort:  "8080",
-			K8SVersion: profile.K8SVersion,
+			ProxyPort:      "8080",
+			K8SVersion:     profile.K8SVersion,
+			ProviderString: toCloudProviderOpt(profile.Provider),
 		},
 		ManifestConfig: ManifestConfig{
 			K8SVersion:          profile.K8SVersion,
 			KubernetesConfigDir: "/etc/kubernetes",
 			RBACEnabled:         profile.RBACEnabled,
-			ProviderString:      "todo",
+			ProviderString:      toCloudProviderOpt(profile.Provider),
 			MasterHost:          "localhost",
 			MasterPort:          "8080",
 			Password:            profile.Password,
@@ -465,4 +467,15 @@ func (c *Config) NodeChan() chan node.Node {
 
 func (c *Config) KubeStateChan() chan model.KubeState {
 	return c.kubeStateChan
+}
+
+// TODO: cloud profiles is deprecated by kubernetes, use controller-managers
+func toCloudProviderOpt(cloudName clouds.Name) string {
+	switch cloudName {
+	case clouds.AWS:
+		return "aws"
+	case clouds.GCE:
+		return "gce"
+	}
+	return ""
 }
