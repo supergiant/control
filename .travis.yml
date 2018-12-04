@@ -40,10 +40,10 @@ script:
   # Test
   # - govendor test +local (NOTE not needed with coverage line below)
   # Coverage
-  - make build
   # Integration
   - if [ "$TRAVIS_EVENT_TYPE" == "cron" ] ; then echo running integration tests && go test -v -tags=integration -timeout 45m ./pkg/... ./test/... ; fi
   - travis_wait 30 source travis_build.sh
+  - make build
   # Make build
   #  - docker build . -t supergiant/controlplane
   # - travis_wait 60 build/travis_build.sh
