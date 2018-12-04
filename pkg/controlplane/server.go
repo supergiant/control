@@ -9,21 +9,20 @@ import (
 	"strings"
 	"time"
 
-	"k8s.io/helm/pkg/repo"
-
 	"github.com/coreos/etcd/clientv3"
 	"github.com/gorilla/handlers"
 	"github.com/gorilla/mux"
 	"github.com/pkg/errors"
 	"github.com/sirupsen/logrus"
+	"k8s.io/helm/pkg/repo"
 
-	"github.com/supergiant/control/pkg/proxy"
 	"github.com/supergiant/control/pkg/account"
 	"github.com/supergiant/control/pkg/api"
 	"github.com/supergiant/control/pkg/jwt"
 	"github.com/supergiant/control/pkg/kube"
 	"github.com/supergiant/control/pkg/profile"
 	"github.com/supergiant/control/pkg/provisioner"
+	"github.com/supergiant/control/pkg/proxy"
 	sshRunner "github.com/supergiant/control/pkg/runner/ssh"
 	"github.com/supergiant/control/pkg/sgerrors"
 	"github.com/supergiant/control/pkg/sghelm"
@@ -242,6 +241,7 @@ func configureApplication(cfg *Config) (*mux.Router, error) {
 	gce.Init()
 
 	amazon.InitImportKeyPair(amazon.GetEC2)
+	amazon.InitCreateInstanceProfiles(amazon.GetIAM)
 	amazon.InitCreateMachine(amazon.GetEC2)
 	amazon.InitCreateSecurityGroups(amazon.GetEC2)
 	amazon.InitCreateVPC(amazon.GetEC2)
