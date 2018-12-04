@@ -1,5 +1,8 @@
 import { Component, OnInit, OnDestroy, AfterViewInit, Inject, ViewChild, ElementRef } from '@angular/core';
+
 import { MatDialog, MatDialogRef, MAT_DIALOG_DATA } from '@angular/material';
+
+import { Supergiant } from '../../../shared/supergiant/supergiant.service';
 
 @Component({
   selector: 'task-logs',
@@ -10,7 +13,9 @@ export class TaskLogsComponent implements OnInit, OnDestroy, AfterViewInit {
 
   constructor(
     public dialogRef: MatDialogRef<TaskLogsComponent>,
-      @Inject(MAT_DIALOG_DATA) public data: any
+    private supergiant: Supergiant,
+    @Inject(MAT_DIALOG_DATA) public data: any
+
   ) { this.taskId = data.taskId }
 
   @ViewChild("editor") editor;
@@ -42,7 +47,10 @@ export class TaskLogsComponent implements OnInit, OnDestroy, AfterViewInit {
   }
 
   openConn(taskId) {
-    this.conn = new WebSocket("ws://localhost:8080/tasks/" + taskId + "/logs");
+    const token = this.supergiant.Auth.getToken();
+    const hostname = this.data.hostname;
+
+    this.conn = new WebSocket("ws://" + hostname + ":8080/v1/api/tasks/" + taskId + "/logs?token=" + token);
     this.conn.onmessage = e => { setTimeout(() => this.updateLogs(e), 1); }
   }
 

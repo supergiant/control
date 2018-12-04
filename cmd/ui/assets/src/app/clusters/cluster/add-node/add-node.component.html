@@ -106,7 +106,7 @@
               color="primary"
               class="submit-btn"
               (click)="finish()"
-              [disabled]="!validMachinesConfig">
+              [disabled]="!validMachinesConfig || isProcessing">
         <span [hidden]="isProcessing">Finish</span>
         <mat-progress-spinner [diameter]="24"
                               [mode]="'indeterminate'"

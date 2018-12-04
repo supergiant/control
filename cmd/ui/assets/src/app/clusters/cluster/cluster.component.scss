@@ -566,6 +566,20 @@
           font-size: 12px;
           overflow: unset;
           justify-content: space-between;
+
+          .open-service {
+            background-image: url(/assets/img/launch-pink.svg);
+            height: 22px;
+            width: 22px;
+
+            &:hover {
+              cursor: pointer;
+            }
+
+            &:active {
+              transform: scale(0.95, 0.95);
+            }
+          }
         }
 
         .expanded-tasks {
@@ -777,6 +791,9 @@
     }
   }
 
+  .cluster-services {
+    width: 1270px;
+  }
 
   button {
     outline: none;
@@ -814,6 +831,4 @@
       }
     }
   }
-
-
 }

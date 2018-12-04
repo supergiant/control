@@ -446,7 +446,7 @@ func TestHandler_deleteKube(t *testing.T) {
 			getAccountError: sgerrors.ErrNotFound,
 			account:         nil,
 			kube: &model.Kube{
-				Provider: clouds.DigitalOcean,
+				Provider:    clouds.DigitalOcean,
 				Name:        "test",
 				AccountName: "test",
 			},
@@ -464,7 +464,7 @@ func TestHandler_deleteKube(t *testing.T) {
 			},
 			getKubeError: nil,
 			kube: &model.Kube{
-				Provider: clouds.DigitalOcean,
+				Provider:    clouds.DigitalOcean,
 				Name:        "test",
 				AccountName: "test",
 			},
@@ -482,7 +482,7 @@ func TestHandler_deleteKube(t *testing.T) {
 			},
 			getKubeError: nil,
 			kube: &model.Kube{
-				Provider: clouds.DigitalOcean,
+				Provider:    clouds.DigitalOcean,
 				Name:        "test",
 				AccountName: "test",
 			},
@@ -1586,7 +1586,7 @@ func TestGetClusterMetrics(t *testing.T) {
 	testCases := []struct {
 		kubeServiceGetResp  *model.Kube
 		kubeServiceGetError error
-		getMetrics          func(string) (*MetricResponse, error)
+		getMetrics          func(string, *model.Kube) (*MetricResponse, error)
 		expectedCode        int
 	}{
 		{
@@ -1608,7 +1608,7 @@ func TestGetClusterMetrics(t *testing.T) {
 				},
 			},
 			kubeServiceGetError: nil,
-			getMetrics: func(string) (*MetricResponse, error) {
+			getMetrics: func(string, *model.Kube) (*MetricResponse, error) {
 				return nil, sgerrors.ErrInvalidJson
 			},
 			expectedCode: http.StatusInternalServerError,
@@ -1624,7 +1624,7 @@ func TestGetClusterMetrics(t *testing.T) {
 				},
 			},
 			kubeServiceGetError: nil,
-			getMetrics: func(string) (*MetricResponse, error) {
+			getMetrics: func(string, *model.Kube) (*MetricResponse, error) {
 				return &MetricResponse{
 					Data: struct {
 						ResultType string `json:"resultType"`
@@ -1686,7 +1686,7 @@ func TestGetNodesMetrics(t *testing.T) {
 	testCases := []struct {
 		kubeServiceGetResp  *model.Kube
 		kubeServiceGetError error
-		getMetrics          func(string) (*MetricResponse, error)
+		getMetrics          func(string, *model.Kube) (*MetricResponse, error)
 		expectedCode        int
 	}{
 		{
@@ -1708,7 +1708,7 @@ func TestGetNodesMetrics(t *testing.T) {
 				},
 			},
 			kubeServiceGetError: nil,
-			getMetrics: func(string) (*MetricResponse, error) {
+			getMetrics: func(string, *model.Kube) (*MetricResponse, error) {
 				return nil, sgerrors.ErrInvalidJson
 			},
 			expectedCode: http.StatusInternalServerError,
@@ -1724,7 +1724,7 @@ func TestGetNodesMetrics(t *testing.T) {
 				},
 			},
 			kubeServiceGetError: nil,
-			getMetrics: func(string) (*MetricResponse, error) {
+			getMetrics: func(string, *model.Kube) (*MetricResponse, error) {
 				return &MetricResponse{
 					Data: struct {
 						ResultType string `json:"resultType"`

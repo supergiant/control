@@ -242,7 +242,7 @@ spec:
       readOnly: true
   volumes:
   - hostPath:
-      path: /usr/share/ca-certificates
+      path: /etc/ssl/certs
     name: ssl-certs-host
 EOF"
 
@@ -311,7 +311,7 @@ spec:
       path: /etc/kubernetes/addons
     name: api-addons-kubernetes
   - hostPath:
-      path: /usr/share/ca-certificates
+      path: /etc/ssl/certs
     name: ssl-certs-host
 EOF"
 
@@ -356,7 +356,7 @@ spec:
       path: /etc/kubernetes/ssl
     name: ssl-certs-kubernetes
   - hostPath:
-      path: /usr/share/ca-certificates
+      path: /etc/ssl/certs
     name: ssl-certs-host
 EOF"
 

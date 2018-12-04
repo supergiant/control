@@ -33,7 +33,7 @@ func (f *fakeEC2VPC) DescribeVpcsWithContext(aws.Context, *ec2.DescribeVpcsInput
 }
 
 func (f *fakeEC2VPC) WaitUntilVpcExistsWithContext(aws.Context,
-	*ec2.DescribeVpcsInput,...request.WaiterOption) error {
+	*ec2.DescribeVpcsInput, ...request.WaiterOption) error {
 	return nil
 }
 

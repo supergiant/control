@@ -6,5 +6,5 @@ export const  CLUSTER_OPTIONS = {
   ubuntuVersions: ["xenial"],
   helmVersions: ["2.11.0"],
   dockerVersions: ["17.06.0"],
-  K8sVersions: ["1.11.1"]
+  K8sVersions: ["1.11.5"]
 };

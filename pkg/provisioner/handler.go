@@ -10,6 +10,7 @@ import (
 	"github.com/sirupsen/logrus"
 	"gopkg.in/asaskevich/govalidator.v8"
 
+	"github.com/pborman/uuid"
 	"github.com/supergiant/control/pkg/account"
 	"github.com/supergiant/control/pkg/message"
 	"github.com/supergiant/control/pkg/model"
@@ -19,7 +20,6 @@ import (
 	"github.com/supergiant/control/pkg/util"
 	"github.com/supergiant/control/pkg/workflows"
 	"github.com/supergiant/control/pkg/workflows/steps"
-	"github.com/pborman/uuid"
 )
 
 type AccountGetter interface {
@@ -89,7 +89,6 @@ func (h *Handler) Provision(w http.ResponseWriter, r *http.Request) {
 
 	clusterToken := uuid.New()
 	logrus.Infof("cluster token for ETCD %s", clusterToken)
-
 
 	// TODO: use staticAuth instead of user/password
 	if req.Profile.User == "" || req.Profile.Password == "" {

@@ -20,9 +20,11 @@ export class Kubes {
   public getClusterMetrics(id) {
     return this.util.fetch(this.kubesPath + '/' + id + '/metrics')
   }
-
   public getMachineMetrics(id) {
     return this.util.fetch(this.kubesPath + '/' + id + '/nodes/metrics')
+  }
+  public getClusterServices(id) {
+    return this.util.fetch(this.kubesPath + '/' + id + '/services')
   }
   // adding this back so I don't have to touch apps component right now
   public schema(data?) {
