@@ -1,7 +1,6 @@
 <section class="header-wrapper">
   <section class="header">
     <ng-container *ngIf="showBreadcrumbs; else defaultHeader">
-
       <breadcrumbs></breadcrumbs>
     </ng-container>
 
@@ -10,17 +9,20 @@
         Service Catalog
       </h1>
 
-      <div>
-        <mat-form-field class="search-input">
-          <input matInput
-                 (keyup)="filterApps($event)"
-                 type="search"
-                 placeholder="Filter apps by name"
-                 #filterInput>
-        </mat-form-field>
-        <button class="clear"
-                [hidden]="!filterInput.value"
-                (click)="filterClear(filterInput)"><i class="fa fa-remove"></i></button>
+      <div class="search-input-wrapper">
+        <div>
+          <mat-form-field class="search-input">
+            <input matInput
+                   (keyup)="filterApps($event)"
+                   type="search"
+                   placeholder="Filter apps by name"
+                   #filterInput>
+          </mat-form-field>
+          <button class="clear"
+                  [hidden]="!filterInput.value"
+                  (click)="filterClear(filterInput)"><i class="fa fa-remove"></i></button>
+
+        </div>
       </div>
     </ng-template>
 

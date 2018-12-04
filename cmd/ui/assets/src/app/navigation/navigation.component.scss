@@ -5,6 +5,7 @@
   width: 100%;
 
   padding: 32px 49px;
+  padding-bottom: 0;
 
   position: fixed;
   top: 0;
@@ -13,7 +14,15 @@
   background: linear-gradient(black, black, transparent);
   z-index: 1000;
 
+  & > * {
+    width: 33%;
+  }
+
   .logo {
-    width: 180px;
+
+    a {
+      display: block;
+      width: 180px;
+    }
   }
 }

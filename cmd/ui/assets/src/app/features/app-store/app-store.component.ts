@@ -30,7 +30,7 @@ export class AppStoreComponent {
     this.router.events.pipe(
       filter(event => event instanceof NavigationEnd)
     ).subscribe(() => {
-      const detailPageRegexp = /\/apps\/[a-z]+\/details\/[a-z]/;
+      const detailPageRegexp = /\/catalog\/[a-z]+\/details\/[a-z]/;
       this.showBreadcrumbs = Boolean(this.router.url.match(detailPageRegexp));
       this.store.dispatch(new AppFilter(''))
     });
