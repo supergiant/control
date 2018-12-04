@@ -101,6 +101,7 @@ func Init() {
 	awsPreProvision := []steps.Step{
 		steps.GetStep(amazon.StepCreateVPC),
 		steps.GetStep(amazon.StepCreateSecurityGroups),
+		steps.GetStep(amazon.StepNameCreateInstanceProfiles),
 		steps.GetStep(amazon.StepImportKeyPair),
 	}
 
