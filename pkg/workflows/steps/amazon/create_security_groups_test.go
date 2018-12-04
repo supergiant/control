@@ -38,9 +38,9 @@ func (f *FakeEC2SecurityGroups) DescribeSecurityGroupsWithContext(aws.Context, *
 func TestCreateSecurityGroupsStep_Run(t *testing.T) {
 	tt := []struct {
 		description string
-		fn  GetEC2Fn
-		err error
-		cfg steps.AWSConfig
+		fn          GetEC2Fn
+		err         error
+		cfg         steps.AWSConfig
 	}{
 		{
 			description: "error authorization",

@@ -2,10 +2,10 @@ package amazon
 
 import (
 	"context"
-	"time"
-	"net/http"
 	"io/ioutil"
+	"net/http"
 	"strings"
+	"time"
 
 	"github.com/sirupsen/logrus"
 )
@@ -47,12 +47,12 @@ func findOutBoundIP() (string, error) {
 
 	var (
 		publicIP string
-		err error
+		err      error
 	)
 
 	client := &http.Client{
 		Transport: http.DefaultTransport,
-		Timeout: time.Second * 10,
+		Timeout:   time.Second * 10,
 	}
 	for _, serviceURL := range serviceURLs {
 		resp, err := client.Get(serviceURL)
@@ -79,4 +79,3 @@ func findOutBoundIP() (string, error) {
 
 	return publicIP, err
 }
-

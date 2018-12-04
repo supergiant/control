@@ -76,6 +76,8 @@ type AWSConfig struct {
 	SubnetID               string `json:"subnetID"`
 	NodesSecurityGroupID   string `json:"nodesSecurityGroupID"`
 	MastersSecurityGroupID string `json:"mastersSecurityGroupID"`
+	MastersInstanceProfile string `json:"mastersInstanceProfile"`
+	NodesInstanceProfile   string `json:"nodesInstanceProfile"`
 	VolumeSize             string `json:"volumeSize"`
 	EbsOptimized           string `json:"ebsOptimized"`
 	ImageID                string `json:"image"`

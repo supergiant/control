@@ -1207,8 +1207,8 @@ func (h *Handler) getServices(w http.ResponseWriter, r *http.Request) {
 }
 
 func contains(name, value string, labels map[string]string) bool {
-	value, exists := labels[name]
-	if exists && value == value {
+	v, exists := labels[name]
+	if exists && v == value {
 		return true
 	}
 

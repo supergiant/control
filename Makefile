@@ -1,5 +1,6 @@
 DOCKER_IMAGE_NAME := supergiant/supergiant
 DOCKER_IMAGE_TAG := $(shell git describe --tags --always | tr -d v || echo 'latest')
+VERSION := $(shell git describe --always --long --dirty)
 
 .PHONY: build test push release
 
@@ -29,9 +30,10 @@ test:
 
 build:
 	go get -u github.com/hpcloud/tail/...
-	GOOS=linux CGO_ENABLED=0 GOARCH=amd64 go build -o dist/controlplane-linux -a -installsuffix cgo -ldflags='-extldflags "-static" -w -s' ./cmd/controlplane
-	GOOS=darwin CGO_ENABLED=0 GOARCH=amd64 go build -o dist/controlplane-osx -a -installsuffix cgo -ldflags='-extldflags "-static" -w -s' ./cmd/controlplane
-	GOOS=windows CGO_ENABLED=0 GOARCH=amd64 go build -o dist/controlplane-windows -a -installsuffix cgo -ldflags='-extldflags "-static" -w -s' ./cmd/controlplane
+	GOOS=linux CGO_ENABLED=0 GOARCH=amd64 go build -o dist/controlplane-linux -a -installsuffix cgo -ldflags='-extldflags "-static" -w -s -X main.version=${VERSION}' ./cmd/controlplane
+	GOOS=linux GOARCH=amd64 go build -race -o dist/controlplane-linux-race -a -installsuffix cgo -ldflags='-extldflags "-static" -w -s -X main.version=${VERSION}' ./cmd/controlplane
+	GOOS=darwin CGO_ENABLED=0 GOARCH=amd64 go build -o dist/controlplane-osx -a -installsuffix cgo -ldflags='-extldflags "-static" -w -s -X main.version=${VERSION}' ./cmd/controlplane
+	GOOS=windows CGO_ENABLED=0 GOARCH=amd64 go build -o dist/controlplane-windows -a -installsuffix cgo -ldflags='-extldflags "-static" -w -s -X main.version=${VERSION}' ./cmd/controlplane
 push:
 	docker push $(DOCKER_IMAGE_NAME):$(DOCKER_IMAGE_TAG)
 

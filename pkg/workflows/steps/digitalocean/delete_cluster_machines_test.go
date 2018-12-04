@@ -95,7 +95,7 @@ func TestDeleteClusterRun(t *testing.T) {
 			svc.On("DeleteByTag", mock.Anything, mock.Anything).
 				Return(testCase.responses[i], testCase.dropletErrors[i])
 
-			step := NewDeleteClusterStep(time.Microsecond * 1)
+			step := NewDeletemachinesStep(time.Microsecond * 1)
 			step.getDeleteService = func(string) DeleteService {
 				return svc
 			}
@@ -111,15 +111,15 @@ func TestDeleteClusterRun(t *testing.T) {
 }
 
 func TestDeleteClusterStepName(t *testing.T) {
-	s := DeleteClusterStep{}
+	s := DeleteMachinesStep{}
 
-	if s.Name() != DeleteClusterStepName {
-		t.Errorf("Unexpected step name expected %s actual %s", DeleteClusterStepName, s.Name())
+	if s.Name() != DeleteClusterMachines {
+		t.Errorf("Unexpected step name expected %s actual %s", DeleteClusterMachines, s.Name())
 	}
 }
 
 func TestDeleteClusterDepends(t *testing.T) {
-	s := DeleteClusterStep{}
+	s := DeleteMachinesStep{}
 
 	if len(s.Depends()) != 0 {
 		t.Errorf("Wrong dependency list %v expected %v", s.Depends(), []string{})
@@ -127,7 +127,7 @@ func TestDeleteClusterDepends(t *testing.T) {
 }
 
 func TestStepDeleteCluster_Rollback(t *testing.T) {
-	s := DeleteClusterStep{}
+	s := DeleteMachinesStep{}
 	err := s.Rollback(context.Background(), ioutil.Discard, &steps.Config{})
 
 	if err != nil {
