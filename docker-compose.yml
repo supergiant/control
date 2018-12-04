@@ -1,4 +1,4 @@
-version: "2"
+version: "2.3"
 
 services:
   control_plane:
@@ -6,6 +6,7 @@ services:
     build:
       context: .
       dockerfile: Dockerfile
+      target: prod
     command: -etcd-url=etcd:2379
     depends_on:
     - etcd
@@ -18,7 +19,7 @@ services:
     - sg_net
   etcd:
     ports:
-    - "2379:2379"
+    - "2400:2379"
     image: quay.io/coreos/etcd
     command: etcd --initial-cluster-state new --listen-client-urls http://0.0.0.0:2379 --advertise-client-urls http://127.0.0.1:2379
     volumes:
