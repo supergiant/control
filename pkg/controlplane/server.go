@@ -14,8 +14,8 @@ import (
 	"github.com/gorilla/mux"
 	"github.com/pkg/errors"
 	"github.com/sirupsen/logrus"
+	"k8s.io/helm/pkg/repo"
 
-	"github.com/supergiant/control/pkg/proxy"
 	"github.com/supergiant/control/pkg/account"
 	"github.com/supergiant/control/pkg/api"
 	"github.com/supergiant/control/pkg/jwt"
@@ -241,7 +241,8 @@ func configureApplication(cfg *Config) (*mux.Router, error) {
 	gce.Init()
 
 	amazon.InitImportKeyPair(amazon.GetEC2)
-	amazon.InitCreateMachine(amazon.GetEC2, amazon.GetIAM)
+	amazon.InitCreateInstanceProfiles(amazon.GetIAM)
+	amazon.InitCreateMachine(amazon.GetEC2)
 	amazon.InitCreateSecurityGroups(amazon.GetEC2)
 	amazon.InitCreateVPC(amazon.GetEC2)
 	amazon.InitCreateSubnet(amazon.GetEC2)

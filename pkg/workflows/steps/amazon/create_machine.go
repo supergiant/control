@@ -12,6 +12,7 @@ import (
 	"github.com/aws/aws-sdk-go/service/ec2/ec2iface"
 	"github.com/pkg/errors"
 	"github.com/sirupsen/logrus"
+
 	"github.com/supergiant/control/pkg/clouds"
 	"github.com/supergiant/control/pkg/node"
 	"github.com/supergiant/control/pkg/util"
@@ -24,18 +25,16 @@ const (
 
 type StepCreateInstance struct {
 	GetEC2 GetEC2Fn
-	GetIAM GetIAMFn
 }
 
 //InitCreateMachine adds the step to the registry
-func InitCreateMachine(ec2fn GetEC2Fn, iamfn GetIAMFn) {
-	steps.RegisterStep(StepNameCreateEC2Instance, NewCreateInstance(ec2fn, iamfn))
+func InitCreateMachine(ec2fn GetEC2Fn) {
+	steps.RegisterStep(StepNameCreateEC2Instance, NewCreateInstance(ec2fn))
 }
 
-func NewCreateInstance(ec2fn GetEC2Fn, iamfn GetIAMFn) *StepCreateInstance {
+func NewCreateInstance(ec2fn GetEC2Fn) *StepCreateInstance {
 	return &StepCreateInstance{
 		GetEC2: ec2fn,
-		GetIAM: iamfn,
 	}
 }
 
@@ -63,12 +62,15 @@ func (s *StepCreateInstance) Run(ctx context.Context, w io.Writer, cfg *steps.Co
 	cfg.NodeChan() <- cfg.Node
 
 	var secGroupID *string
+	var instanceProfileName *string
 
 	//Determining a sec group in AWS for EC2 instance to be spawned.
 	if cfg.IsMaster {
 		secGroupID = &cfg.AWSConfig.MastersSecurityGroupID
+		instanceProfileName = &cfg.AWSConfig.MastersInstanceProfile
 	} else {
 		secGroupID = &cfg.AWSConfig.NodesSecurityGroupID
+		instanceProfileName = &cfg.AWSConfig.NodesInstanceProfile
 	}
 
 	// TODO: reuse sessions
@@ -78,21 +80,10 @@ func (s *StepCreateInstance) Run(ctx context.Context, w io.Writer, cfg *steps.Co
 		return errors.Wrap(ErrAuthorization, err.Error())
 	}
 
-	iamS, err := s.GetIAM(cfg.AWSConfig)
-	if err != nil {
-		logrus.Errorf("[%s] - failed to authorize in AWS: %v", s.Name(), err)
-		return errors.Wrap(ErrAuthorization, err.Error())
-	}
-
 	amiID, err := s.FindAMI(ctx, w, EC2)
 	if err != nil {
 		logrus.Errorf("[%s] - failed to find AMI for Ubuntu: %v", s.Name(), err)
 		return errors.Wrap(err, "failed to find AMI")
-	}
-
-	iamProfileName, err := ensureIAMProfile(iamS, cfg.ClusterID, cfg.IsMaster)
-	if err != nil {
-		return errors.WithMessage(err, "setup instance profile")
 	}
 
 	isEbs := false
@@ -115,7 +106,7 @@ func (s *StepCreateInstance) Run(ctx context.Context, w io.Writer, cfg *steps.Co
 		},
 		EbsOptimized: &isEbs,
 		IamInstanceProfile: &ec2.IamInstanceProfileSpecification{
-			Name: aws.String(iamProfileName),
+			Name: instanceProfileName,
 		},
 		ImageId:      &amiID,
 		InstanceType: &cfg.AWSConfig.InstanceType,

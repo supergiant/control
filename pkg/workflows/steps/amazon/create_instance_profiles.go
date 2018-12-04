@@ -1,6 +1,8 @@
 package amazon
 
 import (
+	"context"
+	"io"
 	"strings"
 
 	"github.com/aws/aws-sdk-go/aws"
@@ -8,11 +10,14 @@ import (
 	"github.com/aws/aws-sdk-go/service/iam"
 	"github.com/aws/aws-sdk-go/service/iam/iamiface"
 	"github.com/pkg/errors"
+	"github.com/sirupsen/logrus"
+
+	"github.com/supergiant/control/pkg/node"
+	"github.com/supergiant/control/pkg/workflows/steps"
 )
 
 const (
 	roleMaster = "master"
-	roleNode   = "node"
 
 	assumePolicy = `{
   "Version": "2012-10-17",
@@ -116,34 +121,94 @@ const (
 }`
 )
 
-func ensureIAMProfile(iamS iamiface.IAMAPI, prefix string, isMaster bool) (string, error) {
+var (
+	ErrEmptyResponse = errors.New("empty response")
+)
+
+const (
+	StepNameCreateInstanceProfiles = "aws_create_instance_profiles"
+)
+
+type StepCreateInstanceProfiles struct {
+	GetIAM GetIAMFn
+}
+
+func InitCreateInstanceProfiles(iamfn GetIAMFn) {
+	steps.RegisterStep(StepNameCreateInstanceProfiles, NewCreateInstanceProfiles(iamfn))
+}
+
+func NewCreateInstanceProfiles(iamfn GetIAMFn) *StepCreateInstanceProfiles {
+	return &StepCreateInstanceProfiles{
+		GetIAM: iamfn,
+	}
+}
+
+func (s StepCreateInstanceProfiles) Run(ctx context.Context, w io.Writer, cfg *steps.Config) error {
+	iamS, err := s.GetIAM(cfg.AWSConfig)
+	if err != nil {
+		return errors.Wrapf(err, "%s: failed to authorize in AWS: %v", s.Name(), err)
+	}
+
+	// TODO: use a separate config: aws.Nodes/aws.Masters?
+	cfg.AWSConfig.MastersInstanceProfile, err = ensureIAMProfile(ctx, iamS, cfg.ClusterID, string(node.RoleMaster))
+	if err != nil {
+		return errors.Wrapf(err, "%s: failed to authorize in AWS: %v", s.Name(), err)
+	}
+	logrus.Infof("%s: set up %s instance profile", s.Name(), cfg.AWSConfig.MastersInstanceProfile)
+
+	cfg.AWSConfig.NodesInstanceProfile, err = ensureIAMProfile(ctx, iamS, cfg.ClusterID, string(node.RoleNode))
+	if err != nil {
+		return errors.Wrapf(err, "%s: failed to authorize in AWS: %v", s.Name(), err)
+	}
+	logrus.Infof("%s: set up %s instance profile", s.Name(), cfg.AWSConfig.NodesInstanceProfile)
+
+	return nil
+}
+
+func (s StepCreateInstanceProfiles) Rollback(ctx context.Context, w io.Writer, cfg *steps.Config) error {
+	// TODO: implement instance profile removal
+	return nil
+}
+
+func (StepCreateInstanceProfiles) Name() string {
+	return StepNameCreateEC2Instance
+}
+
+func (StepCreateInstanceProfiles) Description() string {
+	return "Create EC2 Instance master/node profiles"
+}
+
+func (StepCreateInstanceProfiles) Depends() []string {
+	return nil
+}
+
+func ensureIAMProfile(ctx context.Context, iamS iamiface.IAMAPI, prefix, role string) (string, error) {
 	var err error
-	role := toRole(isMaster)
 	name := buildIAMName(prefix, role)
 
-	if err = createIAMRolePolicy(iamS, name, policyFor(role)); err != nil {
+	if err = createIAMRolePolicy(ctx, iamS, name, policyFor(role)); err != nil {
 		return "", errors.Wrapf(err, "ensure %s policy exists", name)
 	}
-	if err = createIAMRole(iamS, name, assumePolicy); err != nil {
+	if err = createIAMRole(ctx, iamS, name, assumePolicy); err != nil {
 		return "", errors.Wrapf(err, "ensure %s role exists", name)
 	}
-	if err = createIAMInstanceProfile(iamS, name); err != nil {
+	if err = createIAMInstanceProfile(ctx, iamS, name); err != nil {
 		return "", errors.Wrapf(err, "ensure %s instance profile exists", name)
 	}
 
 	return name, nil
 }
 
-func createIAMInstanceProfile(iamS iamiface.IAMAPI, name string) error {
+func createIAMInstanceProfile(ctx context.Context, iamS iamiface.IAMAPI, name string) error {
 	getInput := &iam.GetInstanceProfileInput{
 		InstanceProfileName: aws.String(name),
 	}
 
 	var instanceProfile *iam.InstanceProfile
 
-	resp, err := iamS.GetInstanceProfile(getInput)
+	resp, err := iamS.GetInstanceProfileWithContext(ctx, getInput)
 	if err != nil {
-		if !isAlreadyExistErr(err) {
+		if !isNotFoundErr(err) {
 			return err
 		}
 
@@ -151,13 +216,19 @@ func createIAMInstanceProfile(iamS iamiface.IAMAPI, name string) error {
 			InstanceProfileName: aws.String(name),
 			Path:                aws.String("/"),
 		}
-		createResp, err := iamS.CreateInstanceProfile(input)
+		createResp, err := iamS.CreateInstanceProfileWithContext(ctx, input)
 		if err != nil {
 			return err
+		}
+		if createResp == nil || createResp.InstanceProfile == nil {
+			return errors.Wrap(ErrEmptyResponse, "create instance profile")
 		}
 		instanceProfile = createResp.InstanceProfile
 
 	} else {
+		if resp == nil || resp.InstanceProfile == nil {
+			return errors.Wrap(ErrEmptyResponse, "get instance profile")
+		}
 		instanceProfile = resp.InstanceProfile
 	}
 
@@ -166,7 +237,7 @@ func createIAMInstanceProfile(iamS iamiface.IAMAPI, name string) error {
 			RoleName:            aws.String(name),
 			InstanceProfileName: aws.String(name),
 		}
-		if _, err = iamS.AddRoleToInstanceProfile(addInput); err != nil {
+		if _, err = iamS.AddRoleToInstanceProfileWithContext(ctx, addInput); err != nil {
 			return err
 		}
 	}
@@ -174,14 +245,15 @@ func createIAMInstanceProfile(iamS iamiface.IAMAPI, name string) error {
 	return nil
 }
 
-func createIAMRole(iamS iamiface.IAMAPI, name string, policy string) error {
+func createIAMRole(ctx context.Context, iamS iamiface.IAMAPI, name string, policy string) error {
 	getInput := &iam.GetRoleInput{
 		RoleName: aws.String(name),
 	}
-	_, err := iamS.GetRole(getInput)
+	_, err := iamS.GetRoleWithContext(ctx, getInput)
 	if err == nil {
 		return nil
-	} else if !isAlreadyExistErr(err) {
+	}
+	if !isNotFoundErr(err) {
 		return err
 	}
 	input := &iam.CreateRoleInput{
@@ -189,46 +261,38 @@ func createIAMRole(iamS iamiface.IAMAPI, name string, policy string) error {
 		Path:                     aws.String("/"),
 		AssumeRolePolicyDocument: aws.String(policy),
 	}
-	_, err = iamS.CreateRole(input)
+	_, err = iamS.CreateRoleWithContext(ctx, input)
 	return err
 }
 
-func createIAMRolePolicy(iamS iamiface.IAMAPI, name string, policy string) error {
+func createIAMRolePolicy(ctx context.Context, iamS iamiface.IAMAPI, name string, policy string) error {
 	getInput := &iam.GetRolePolicyInput{
 		RoleName:   aws.String(name),
 		PolicyName: aws.String(name),
 	}
-	_, err := iamS.GetRolePolicy(getInput)
+	_, err := iamS.GetRolePolicyWithContext(ctx, getInput)
 	if err == nil {
 		return nil
-	} else if !isAlreadyExistErr(err) {
+	}
+	if !isNotFoundErr(err) {
 		return err
 	}
-
 	putRoleInput := &iam.PutRolePolicyInput{
 		RoleName:       aws.String(name),
 		PolicyName:     aws.String(name),
 		PolicyDocument: aws.String(policy),
 	}
-	_, err = iamS.PutRolePolicy(putRoleInput)
+	_, err = iamS.PutRolePolicyWithContext(ctx, putRoleInput)
 	return err
 }
 
-func isAlreadyExistErr(err error) bool {
+func isNotFoundErr(err error) bool {
 	if aerr, ok := err.(awserr.Error); ok {
-		if aerr.Code() == iam.ErrCodeEntityAlreadyExistsException {
+		if aerr.Code() == iam.ErrCodeNoSuchEntityException {
 			return true
 		}
 	}
 	return false
-}
-
-// TODO: use node.Role
-func toRole(isMaster bool) string {
-	if isMaster {
-		return roleMaster
-	}
-	return roleNode
 }
 
 func policyFor(role string) string {
@@ -239,6 +303,6 @@ func policyFor(role string) string {
 }
 
 func buildIAMName(prefix, role string) string {
-	// TODO: use cluster specific names, add roles removal.
+	// TODO: use cluster specific names after adding roles removal.
 	return strings.Join([]string{"kubernetes", role}, "-")
 }
