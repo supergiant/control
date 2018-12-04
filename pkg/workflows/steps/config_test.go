@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"testing"
 
+	"github.com/supergiant/control/pkg/clouds"
 	"github.com/supergiant/control/pkg/node"
 	"github.com/supergiant/control/pkg/profile"
 )
@@ -261,6 +262,21 @@ func TestConfigGetNodes(t *testing.T) {
 		if len(nodes) != testCase.expectedCount {
 			t.Errorf("Wrong amount of nodes expected %d actual %d",
 				testCase.expectedCount, len(nodes))
+		}
+	}
+}
+
+func TestToCloudProviderOpt(t *testing.T) {
+	for _, tc := range []struct {
+		in  clouds.Name
+		out string
+	}{
+		{clouds.AWS, "aws"},
+		{clouds.GCE, "gce"},
+		{clouds.DigitalOcean, ""},
+	} {
+		if toCloudProviderOpt(tc.in) != tc.out {
+			t.Logf("toCloudProvider(%s) = %s", tc.in, tc.out)
 		}
 	}
 }
