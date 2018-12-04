@@ -13,6 +13,7 @@ import (
 	"github.com/supergiant/control/pkg/sgerrors"
 	"github.com/supergiant/control/pkg/util"
 	"github.com/supergiant/control/pkg/workflows/steps"
+	"strings"
 )
 
 const CreateInstanceStepName = "gce_create_instance"
@@ -60,7 +61,10 @@ func (s *CreateInstanceStep) Run(ctx context.Context, output io.Writer, config *
 	if !config.IsMaster {
 		role = "node"
 	}
-	name := util.MakeNodeName(config.ClusterName, config.TaskID, config.IsMaster)
+	// NOTE(stgleb): Upper-case symbols are forbidden
+	// Instance name must follow regexp: (?:[a-z](?:[-a-z0-9]{0,61}[a-z0-9])?)
+	name := util.MakeNodeName(strings.ToLower(config.ClusterName),
+		config.TaskID, config.IsMaster)
 
 	// TODO(stgleb): also copy user provided ssh key
 	publicKey := fmt.Sprintf("%s:%s",
