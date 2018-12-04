@@ -268,10 +268,10 @@ export class NewClusterComponent implements OnInit, OnDestroy {
       case "aws":
         this.providerConfig = this.formBuilder.group({
           region: ["", Validators.required],
-          vpcId: ["default", Validators.required],
+          vpcId: [""],
           vpcCidr: ["10.2.0.0/16", [Validators.required, this.validCidr()]],
           keypairName: [""],
-          subnetId: ["default", Validators.required],
+          subnetId: [""],
           mastersSecurityGroupId: [""],
           nodesSecurityGroupId: [""],
           publicKey: ["", Validators.required]
