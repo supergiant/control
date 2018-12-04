@@ -70,22 +70,22 @@ func TestWriteCertificates(t *testing.T) {
 			BasicAuth: []profile.BasicAuthUser{
 				{
 					Password: "42",
-					Name: "john.doe@sg.io",
-					ID: "john.doe",
-					Groups: []string{"systems:masters", "other:group"},
+					Name:     "john.doe@sg.io",
+					ID:       "john.doe",
+					Groups:   []string{"systems:masters", "other:group"},
 				},
 			},
 			Tokens: []profile.TokenAuthUser{
 				{
-					Token: "1234",
-					Name: "user@sg.io",
-					ID: "user",
+					Token:  "1234",
+					Name:   "user@sg.io",
+					ID:     "user",
 					Groups: []string{"systems:masters", "other:group"},
 				},
 			},
 		},
-		CAKey:               string(caPair.Key),
-		CACert:              string(caPair.Cert),
+		CAKey:  string(caPair.Key),
+		CACert: string(caPair.Cert),
 	}
 
 	cfg.Runner = r

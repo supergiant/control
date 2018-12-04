@@ -12,13 +12,13 @@ import (
 	"github.com/supergiant/control/pkg/workflows/steps"
 )
 
-type DeleteClusterStep struct {
+type DeleteMachinesStep struct {
 	getDeleteService func(string) DeleteService
 	timeout          time.Duration
 }
 
-func NewDeleteClusterStep(timeout time.Duration) *DeleteClusterStep {
-	return &DeleteClusterStep{
+func NewDeletemachinesStep(timeout time.Duration) *DeleteMachinesStep {
+	return &DeleteMachinesStep{
 		timeout: timeout,
 		getDeleteService: func(accessToken string) DeleteService {
 			return digitaloceansdk.New(accessToken).GetClient().Droplets
@@ -26,7 +26,7 @@ func NewDeleteClusterStep(timeout time.Duration) *DeleteClusterStep {
 	}
 }
 
-func (s *DeleteClusterStep) Run(ctx context.Context, output io.Writer, config *steps.Config) error {
+func (s *DeleteMachinesStep) Run(ctx context.Context, output io.Writer, config *steps.Config) error {
 	deleteService := s.getDeleteService(config.DigitalOceanConfig.AccessToken)
 
 	var (
@@ -49,18 +49,18 @@ func (s *DeleteClusterStep) Run(ctx context.Context, output io.Writer, config *s
 	return err
 }
 
-func (s *DeleteClusterStep) Rollback(context.Context, io.Writer, *steps.Config) error {
+func (s *DeleteMachinesStep) Rollback(context.Context, io.Writer, *steps.Config) error {
 	return nil
 }
 
-func (s *DeleteClusterStep) Name() string {
-	return DeleteClusterStepName
+func (s *DeleteMachinesStep) Name() string {
+	return DeleteClusterMachines
 }
 
-func (s *DeleteClusterStep) Depends() []string {
+func (s *DeleteMachinesStep) Depends() []string {
 	return nil
 }
 
-func (s *DeleteClusterStep) Description() string {
+func (s *DeleteMachinesStep) Description() string {
 	return ""
 }

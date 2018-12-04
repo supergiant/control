@@ -1,6 +1,6 @@
 import { of, Subscription, timer as observableTimer } from 'rxjs';
 import { catchError, filter, switchMap } from 'rxjs/operators';
-import { ChangeDetectionStrategy, Component, OnDestroy, OnInit, ViewChild, ViewEncapsulation } from '@angular/core';
+import { ChangeDetectionStrategy, Component, OnDestroy, OnInit, ViewChild, ViewEncapsulation, Inject } from '@angular/core';
 import { Location } from '@angular/common';
 import { ActivatedRoute, Router } from '@angular/router';
 import { HttpClient } from '@angular/common/http';
@@ -17,6 +17,7 @@ import { SshCommandsModalComponent } from './ssh-commands-modal/ssh-commands-mod
 import { KubectlConfigModalComponent } from './kubectl-config-modal/kubectl-config-modal.component';
 import { TaskLogsComponent } from './task-logs/task-logs.component';
 import { ReleaseInfoModalComponent } from './release-info-modal/release-info-modal.component';
+import { WINDOW } from '../../shared/helpers/window-providers';
 
 
 @Component({
@@ -62,6 +63,10 @@ export class ClusterComponent implements OnInit, OnDestroy {
 
   kubectlConfig: any;
 
+  clusterServices: any
+  serviceListColumns = ["name", "type", "namespace", "selfLink"];
+
+
   constructor(
     private route: ActivatedRoute,
     private location: Location,
@@ -71,6 +76,7 @@ export class ClusterComponent implements OnInit, OnDestroy {
     private notifications: Notifications,
     public dialog: MatDialog,
     public http: HttpClient,
+    @Inject(WINDOW) private window: Window
   ) {
       route.params.subscribe(params => {
         this.clusterId = params.id;
@@ -139,7 +145,7 @@ export class ClusterComponent implements OnInit, OnDestroy {
   viewTaskLog(taskId) {
     const modal = this.dialog.open(TaskLogsComponent, {
       width: "1080px",
-      data: { taskId: taskId }
+      data: { taskId: taskId, hostname: this.window.location.hostname }
     })
   }
 
@@ -185,11 +191,12 @@ export class ClusterComponent implements OnInit, OnDestroy {
 
           switch (this.kube.state) {
             case "operational": {
-              this.renderKube(this.kube);
+              this.renderMachines(this.kube);
               this.getReleases();
               this.getClusterMetrics();
               this.getMachineMetrics();
               this.getKubectlConfig();
+              this.getClusterServices();
               break;
             }
             case "provisioning": {
@@ -243,7 +250,7 @@ export class ClusterComponent implements OnInit, OnDestroy {
       ))
   }
 
-  renderKube(kube) {
+  renderMachines(kube) {
     const machineMetrics = {};
     const masterNames = Object.keys(kube.masters);
     const nodeNames = Object.keys(kube.nodes);
@@ -291,7 +298,7 @@ export class ClusterComponent implements OnInit, OnDestroy {
     this.supergiant.Kubes.getMachineMetrics(this.clusterId).subscribe(
       res => {
         this.machineMetrics = this.calculateMachineMetrics(res);
-        this.renderKube(this.kube)
+        this.renderMachines(this.kube)
       },
       err => console.error(err)
     )
@@ -301,6 +308,13 @@ export class ClusterComponent implements OnInit, OnDestroy {
     // TODO: move to service
     this.util.fetch('v1/api/kubes/' + this.clusterId + '/users/kubernetes-admin/kubeconfig').subscribe(
       res => this.kubectlConfig = res,
+      err => console.error(err)
+    )
+  }
+
+  getClusterServices() {
+    this.supergiant.Kubes.getClusterServices(this.clusterId).subscribe(
+      res => this.clusterServices = new MatTableDataSource(res),
       err => console.error(err)
     )
   }
@@ -325,7 +339,7 @@ export class ClusterComponent implements OnInit, OnDestroy {
         switchMap(() => this.supergiant.Kubes.get(this.clusterId)),
         catchError((error) => of(error)),
       ).subscribe(
-        k => this.renderKube(k),
+        k => this.renderMachines(k),
         err => {
           console.error(err);
           this.error(this.clusterId, err)
@@ -385,6 +399,13 @@ export class ClusterComponent implements OnInit, OnDestroy {
 
   showReleaseInfo(releaseName) {
     this.initReleaseInfo(releaseName);
+  }
+
+  openService(proxyPort) {
+    const hostname = this.window.location.hostname;
+    const link = "http://" + hostname + ":" + proxyPort;
+
+    this.window.open(link);
   }
 
   private initDialog(target) {

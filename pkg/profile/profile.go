@@ -14,9 +14,9 @@ type Profile struct {
 
 	// TODO: get rid of its usage
 	// DEPRECATED: should be a part of the static auth
-	User                   string                `json:"user" valid:"-"`
+	User string `json:"user" valid:"-"`
 	// DEPRECATED: should be a part of the static auth
-	Password               string                `json:"password" valid:"-"`
+	Password string `json:"password" valid:"-"`
 
 	// TODO(stgleb): In future releases arch will probably migrate to node profile
 	// to allow user create heterogeneous cluster of machine with different arch

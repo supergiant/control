@@ -356,7 +356,6 @@ func TestService_ReleaseDetails(t *testing.T) {
 	}
 }
 
-
 func TestService_ListReleases(t *testing.T) {
 	tcs := []struct {
 		svc Service

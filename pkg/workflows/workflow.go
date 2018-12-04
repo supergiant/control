@@ -143,12 +143,13 @@ func Init() {
 		steps.GetStep(prometheus.StepName),
 	}
 
-	digitalOceanDeleteWorkflow := []steps.Step{
+	digitalOceanDeleteNodeWorkflow := []steps.Step{
 		steps.GetStep(digitalocean.DeleteMachineStepName),
 	}
 
 	digitalOceanDeleteClusterWorkflow := []steps.Step{
-		steps.GetStep(digitalocean.DeleteClusterStepName),
+		steps.GetStep(digitalocean.DeleteClusterMachines),
+		steps.GetStep(digitalocean.DeleteDeleteKeysStepName),
 	}
 
 	awsDeleteClusterWorkflow := []steps.Step{
@@ -203,7 +204,7 @@ func Init() {
 	m.Lock()
 	defer m.Unlock()
 
-	workflowMap[DigitalOceanDeleteNode] = digitalOceanDeleteWorkflow
+	workflowMap[DigitalOceanDeleteNode] = digitalOceanDeleteNodeWorkflow
 	workflowMap[Cluster] = commonWorkflow
 	workflowMap[DigitalOceanMaster] = digitalOceanMasterWorkflow
 	workflowMap[DigitalOceanNode] = digitalOceanNodeWorkflow
