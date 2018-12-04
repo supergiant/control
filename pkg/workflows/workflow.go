@@ -101,11 +101,15 @@ func Init() {
 	awsPreProvision := []steps.Step{
 		steps.GetStep(amazon.StepCreateVPC),
 		steps.GetStep(amazon.StepCreateSecurityGroups),
+		steps.GetStep(amazon.StepNameCreateInstanceProfiles),
 		steps.GetStep(amazon.StepImportKeyPair),
+		steps.GetStep(amazon.StepCreateInternetGateway),
+		steps.GetStep(amazon.StepCreateRouteTable),
 	}
 
 	awsMasterWorkflow := []steps.Step{
 		steps.GetStep(amazon.StepCreateSubnet),
+		steps.GetStep(amazon.StepAssociateRouteTable),
 		steps.GetStep(amazon.StepNameCreateEC2Instance),
 		steps.GetStep(ssh.StepName),
 		steps.GetStep(authorizedKeys.StepName),

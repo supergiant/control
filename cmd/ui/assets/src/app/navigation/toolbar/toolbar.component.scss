@@ -1,6 +1,11 @@
 // TODO: make global theme used variables
 $rose: #D10088;
 
+:host{
+  display: flex;
+  justify-content: space-around;
+}
+
 a:hover {
   text-decoration: none;
 }
@@ -8,6 +13,7 @@ a:hover {
 .mat-toolbar {
   position: relative;
   background: transparent;
+  width: auto;
 }
 
 .item {

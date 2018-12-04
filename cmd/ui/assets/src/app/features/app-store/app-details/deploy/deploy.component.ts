@@ -89,8 +89,9 @@ export class DeployComponent implements OnInit {
         currentChart.metadata["namespace"] = "default";
       }
 
+      const namespace = currentChart.metadata["namespace"];
       this.deployForm.patchValue({
-        chartName, repoName, values: currentChart.values
+        chartName, repoName, namespace, values: currentChart.values
       });
     });
 

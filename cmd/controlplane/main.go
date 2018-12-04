@@ -15,6 +15,7 @@ import (
 )
 
 var (
+	version       = "undefined"
 	addr          = flag.String("address", "0.0.0.0", "network interface to attach server to")
 	port          = flag.Int("port", 8080, "tcp port to listen for incoming requests")
 	etcdURL       = flag.String("etcd-url", "localhost:2379", "etcd url with port")
@@ -34,16 +35,18 @@ func main() {
 	configureLogging(*logLevel, *logFormat)
 
 	cfg := &controlplane.Config{
-		Addr:             *addr,
-		Port:             *port,
-		EtcdUrl:          *etcdURL,
-		TemplatesDir:     *templatesDir,
-		ReadTimeout:      time.Second * 20,
-		WriteTimeout:     time.Second * 10,
-		IdleTimeout:      time.Second * 120,
-		SpawnInterval:    time.Second * time.Duration(*spawnInterval),
-		UiDir:            *uiDir,
-		ProxiesPortRange: proxy.PortRange{int32(*ProxiesPortRangeFrom), int32(*ProxiesPortRangeTo)},
+		Addr:          *addr,
+		Port:          *port,
+		EtcdUrl:       *etcdURL,
+		TemplatesDir:  *templatesDir,
+		ReadTimeout:   time.Second * 20,
+		WriteTimeout:  time.Second * 10,
+		IdleTimeout:   time.Second * 120,
+		SpawnInterval: time.Second * time.Duration(*spawnInterval),
+		UiDir:         *uiDir,
+		ProxiesPortRange: proxy.PortRange{int32(*ProxiesPortRangeFrom),
+			int32(*ProxiesPortRangeTo)},
+		Version: version,
 	}
 
 	server, err := controlplane.New(cfg)

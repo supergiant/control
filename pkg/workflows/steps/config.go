@@ -68,21 +68,26 @@ type PacketConfig struct{}
 type OSConfig struct{}
 
 type AWSConfig struct {
-	KeyID                  string `json:"access_key"`
-	Secret                 string `json:"secret_key"`
-	Region                 string `json:"region"`
-	AvailabilityZone       string `json:"availabilityZone"`
-	KeyPairName            string `json:"keyPairName"`
-	VPCID                  string `json:"vpcid"`
-	VPCCIDR                string `json:"vpccidr"`
-	SubnetID               string `json:"subnetID"`
-	NodesSecurityGroupID   string `json:"nodesSecurityGroupID"`
-	MastersSecurityGroupID string `json:"mastersSecurityGroupID"`
-	VolumeSize             string `json:"volumeSize"`
-	EbsOptimized           string `json:"ebsOptimized"`
-	ImageID                string `json:"image"`
-	InstanceType           string `json:"size"`
-	HasPublicAddr          string `json:"hasPublicAddr"`
+	KeyID                         string `json:"access_key"`
+	Secret                        string `json:"secret_key"`
+	Region                        string `json:"region"`
+	AvailabilityZone              string `json:"availabilityZone"`
+	KeyPairName                   string `json:"keyPairName"`
+	VPCID                         string `json:"vpcid"`
+	VPCCIDR                       string `json:"vpccidr"`
+	SubnetID                      string `json:"subnetID"`
+	RouteTableID                  string `json:"routeTableId"`
+	RouteTableSubnetAssociationID string `json:"routeTableSubnetAssociationId"`
+	InternetGatewayID             string `json:"internetGatewayId"`
+	NodesSecurityGroupID          string `json:"nodesSecurityGroupID"`
+	MastersSecurityGroupID        string `json:"mastersSecurityGroupID"`
+	MastersInstanceProfile        string `json:"mastersInstanceProfile"`
+	NodesInstanceProfile          string `json:"nodesInstanceProfile"`
+	VolumeSize                    string `json:"volumeSize"`
+	EbsOptimized                  string `json:"ebsOptimized"`
+	ImageID                       string `json:"image"`
+	InstanceType                  string `json:"size"`
+	HasPublicAddr                 string `json:"hasPublicAddr"`
 }
 
 type FlannelConfig struct {
@@ -105,9 +110,10 @@ type NetworkConfig struct {
 }
 
 type KubeletConfig struct {
-	IsMaster   bool   `json:"isMaster"`
-	ProxyPort  string `json:"proxyPort"`
-	K8SVersion string `json:"k8sVersion"`
+	IsMaster       bool   `json:"isMaster"`
+	ProxyPort      string `json:"proxyPort"`
+	K8SVersion     string `json:"k8sVersion"`
+	ProviderString string `json:"ProviderString"`
 }
 
 type ManifestConfig struct {
@@ -115,7 +121,7 @@ type ManifestConfig struct {
 	K8SVersion          string `json:"k8sVersion"`
 	KubernetesConfigDir string `json:"kubernetesConfigDir"`
 	RBACEnabled         bool   `json:"rbacEnabled"`
-	ProviderString      string `json:"providerString"`
+	ProviderString      string `json:"ProviderString"`
 	MasterHost          string `json:"masterHost"`
 	MasterPort          string `json:"masterPort"`
 	Password            string `json:"password"`
@@ -307,14 +313,15 @@ func NewConfig(clusterName, clusterToken, cloudAccountName string, profile profi
 			EtcdHost: "0.0.0.0",
 		},
 		KubeletConfig: KubeletConfig{
-			ProxyPort:  "8080",
-			K8SVersion: profile.K8SVersion,
+			ProxyPort:      "8080",
+			K8SVersion:     profile.K8SVersion,
+			ProviderString: toCloudProviderOpt(profile.Provider),
 		},
 		ManifestConfig: ManifestConfig{
 			K8SVersion:          profile.K8SVersion,
 			KubernetesConfigDir: "/etc/kubernetes",
 			RBACEnabled:         profile.RBACEnabled,
-			ProviderString:      "todo",
+			ProviderString:      toCloudProviderOpt(profile.Provider),
 			MasterHost:          "localhost",
 			MasterPort:          "8080",
 			Password:            profile.Password,
@@ -465,4 +472,15 @@ func (c *Config) NodeChan() chan node.Node {
 
 func (c *Config) KubeStateChan() chan model.KubeState {
 	return c.kubeStateChan
+}
+
+// TODO: cloud profiles is deprecated by kubernetes, use controller-managers
+func toCloudProviderOpt(cloudName clouds.Name) string {
+	switch cloudName {
+	case clouds.AWS:
+		return "aws"
+	case clouds.GCE:
+		return "gce"
+	}
+	return ""
 }

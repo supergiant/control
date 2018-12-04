@@ -514,6 +514,10 @@ func (t *TaskProvisioner) updateCloudSpecificData(ctx context.Context, config *s
 			config.SshConfig.BootstrapPrivateKey
 		cloudSpecificSettings[clouds.AwsUserProvidedSshPublicKey] =
 			config.SshConfig.PublicKey
+		cloudSpecificSettings[clouds.AwsRouteTableID] =
+			config.AWSConfig.RouteTableID
+		cloudSpecificSettings[clouds.AwsInternetGateWayID] =
+			config.AWSConfig.InternetGatewayID
 	case clouds.GCE:
 		// GCE is the most simple :-)
 	case clouds.DigitalOcean:
