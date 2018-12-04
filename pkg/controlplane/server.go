@@ -88,6 +88,8 @@ type Config struct {
 	IdleTimeout  time.Duration
 
 	ProxiesPortRange proxy.PortRange
+
+	Version string
 }
 
 func New(cfg *Config) (*Server, error) {
@@ -209,6 +211,7 @@ func configureApplication(cfg *Config) (*mux.Router, error) {
 	userService := user.NewService(user.DefaultStoragePrefix, repository)
 	userHandler := user.NewHandler(userService, jwtService)
 
+	router.HandleFunc("/version", NewVersionHandler(cfg.Version))
 	router.HandleFunc("/auth", userHandler.Authenticate).Methods(http.MethodPost)
 	//Opening it up for testing right now, will be protected after implementing initial user generation
 	protectedAPI.HandleFunc("/users", userHandler.Create).Methods(http.MethodPost)
@@ -354,4 +357,10 @@ func trimPrefix(h http.Handler) http.Handler {
 			h.ServeHTTP(w, r2)
 		}
 	})
+}
+
+func NewVersionHandler(version string) func(w http.ResponseWriter, r *http.Request) {
+	return func(w http.ResponseWriter, r *http.Request) {
+		fmt.Fprintf(w, "Supergiant Version: %s", version)
+	}
 }

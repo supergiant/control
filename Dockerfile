@@ -5,7 +5,7 @@ WORKDIR $GOPATH/src/github.com/supergiant/control/
 ARG ARCH=amd64
 
 RUN CGO_ENABLED=0 GOOS=linux GOARCH=${ARCH} \
-    go build -a -installsuffix cgo -ldflags='-extldflags "-static" -w -s' -o /go/bin/supergiant ./cmd/controlplane
+    go build -a -installsuffix cgo -ldflags='-extldflags "-static" -w -s -X main.version=${TAG}' -o /go/bin/supergiant ./cmd/controlplane
 
 RUN apk --update add ca-certificates
 
