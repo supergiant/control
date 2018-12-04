@@ -254,7 +254,9 @@ func configureApplication(cfg *Config) (*mux.Router, error) {
 	amazon.InitDeleteSecurityGroup(amazon.GetEC2)
 	amazon.InitDeleteVPC(amazon.GetEC2)
 	amazon.InitDeleteSubnets(amazon.GetEC2)
-
+	amazon.InitCreateRouteTable(amazon.GetEC2)
+	amazon.InitAssociateRouteTable(amazon.GetEC2)
+	amazon.InitCreateInternetGateway(amazon.GetEC2)
 	workflows.Init()
 
 	taskHandler := workflows.NewTaskHandler(repository, sshRunner.NewRunner, accountService)

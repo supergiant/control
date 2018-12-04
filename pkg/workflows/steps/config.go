@@ -76,6 +76,7 @@ type AWSConfig struct {
 	SubnetID                      string `json:"subnetID"`
 	RouteTableID                  string `json:"routeTableId"`
 	RouteTableSubnetAssociationID string `json:"routeTableSubnetAssociationId"`
+	InternetGatewayID             string `json:"internetGatewayId"`
 	NodesSecurityGroupID          string `json:"nodesSecurityGroupID"`
 	MastersSecurityGroupID        string `json:"mastersSecurityGroupID"`
 	MastersInstanceProfile        string `json:"mastersInstanceProfile"`

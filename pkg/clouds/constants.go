@@ -49,4 +49,6 @@ const (
 	AwsNodesSecgroupID          = "aws_nodes_secgroup_id"
 	AwsSshBootstrapPrivateKey   = "aws_ssh_bootstrap_private_key"
 	AwsUserProvidedSshPublicKey = "aws_user_provided_public_key"
+	AwsRouteTableID             = "aws_route_table_id"
+	AwsInternetGateWayID        = "aws_internet_gateway_id"
 )

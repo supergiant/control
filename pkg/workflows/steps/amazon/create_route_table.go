@@ -1,34 +1,40 @@
 package amazon
 
 import (
-	"github.com/supergiant/control/pkg/workflows/steps"
-	"io"
 	"context"
-	"github.com/aws/aws-sdk-go/aws"
-	"github.com/sirupsen/logrus"
+	"fmt"
+	"io"
+
 	"github.com/pkg/errors"
+
+	"github.com/sirupsen/logrus"
+
+	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/service/ec2"
+
+	"github.com/supergiant/control/pkg/clouds"
+	"github.com/supergiant/control/pkg/workflows/steps"
 )
 
-const CreateRouteTableStepName = "create_route_table"
+const StepCreateRouteTable = "create_route_table"
 
-type CreateRouteTableStep struct{
+type CreateRouteTableStep struct {
 	GetEC2 GetEC2Fn
 }
 
 //InitCreateMachine adds the step to the registry
 func InitCreateRouteTable(ec2fn GetEC2Fn) {
-	steps.RegisterStep(CreateRouteTableStepName, NewCreateRouteTableStep(ec2fn))
+	steps.RegisterStep(StepCreateRouteTable, NewCreateRouteTableStep(ec2fn))
 }
 
-
-func NewCreateRouteTableStep(ec2fn GetEC2Fn) *StepCreateInstance {
-	return &StepCreateInstance{
+func NewCreateRouteTableStep(ec2fn GetEC2Fn) *CreateRouteTableStep {
+	return &CreateRouteTableStep{
 		GetEC2: ec2fn,
 	}
 }
 
 func (s *CreateRouteTableStep) Run(ctx context.Context, w io.Writer, cfg *steps.Config) error {
+	logrus.Debugf(StepCreateRouteTable)
 	ec2Client, err := s.GetEC2(cfg.AWSConfig)
 
 	if err != nil {
@@ -37,11 +43,11 @@ func (s *CreateRouteTableStep) Run(ctx context.Context, w io.Writer, cfg *steps.
 	}
 
 	//  route table already exists
-	if cfg.AWSConfig.RouteTableID != ""{
+	if cfg.AWSConfig.RouteTableID != "" {
 		return nil
 	}
 
-	resp, err := ec2Client.CreateRouteTable(&ec2.CreateRouteTableInput{
+	createResp, err := ec2Client.CreateRouteTable(&ec2.CreateRouteTableInput{
 		VpcId: aws.String(cfg.AWSConfig.VPCID),
 	})
 
@@ -50,21 +56,48 @@ func (s *CreateRouteTableStep) Run(ctx context.Context, w io.Writer, cfg *steps.
 		return err
 	}
 
-	cfg.AWSConfig.RouteTableID = *resp.RouteTable.RouteTableId
+	cfg.AWSConfig.RouteTableID = *createResp.RouteTable.RouteTableId
 
-	// TODO(stgleb): tag route table
+	// Tag route table
+	ec2Tags := []*ec2.Tag{
+		{
+			Key:   aws.String("KubernetesCluster"),
+			Value: aws.String(cfg.ClusterName),
+		},
+		{
+			Key:   aws.String(clouds.ClusterIDTag),
+			Value: aws.String(cfg.ClusterID),
+		},
+		{
+			Key: aws.String("Name"),
+			Value: aws.String(fmt.Sprintf("route-table-%s",
+				cfg.ClusterID)),
+		},
+	}
 
+	input := &ec2.CreateTagsInput{
+		Resources: []*string{aws.String(cfg.AWSConfig.RouteTableID)},
+		Tags:      ec2Tags,
+	}
+	_, err = ec2Client.CreateTags(input)
 
-	associtationResponse, err := ec2Client.AssociateRouteTable(&ec2.AssociateRouteTableInput{
-		RouteTableId: aws.String(cfg.AWSConfig.RouteTableID),
-		SubnetId:     aws.String(cfg.AWSConfig.SubnetID),
-	})
 	if err != nil {
+		logrus.Errorf("Error tagging route table %s %v",
+			cfg.AWSConfig.RouteTableID, err)
 		return err
 	}
 
-	cfg.AWSConfig.RouteTableSubnetAssociationID = *associtationResponse.AssociationId
+	// Create route for external connectivity
+	_, err = ec2Client.CreateRoute(&ec2.CreateRouteInput{
+		DestinationCidrBlock: aws.String("0.0.0.0/0"),
+		RouteTableId:         aws.String(cfg.AWSConfig.RouteTableID),
+		GatewayId:            aws.String(cfg.AWSConfig.InternetGatewayID),
+	})
 
+	if err != nil {
+		logrus.Debugf("Error creating rule for internet gateway %v", err)
+		return err
+	}
 
 	return nil
 }
@@ -72,7 +105,6 @@ func (s *CreateRouteTableStep) Run(ctx context.Context, w io.Writer, cfg *steps.
 func (s *CreateRouteTableStep) Rollback(ctx context.Context, w io.Writer, cfg *steps.Config) error {
 	return nil
 }
-
 
 func (*CreateRouteTableStep) Name() string {
 	return StepNameCreateEC2Instance
@@ -83,6 +115,5 @@ func (*CreateRouteTableStep) Description() string {
 }
 
 func (*CreateRouteTableStep) Depends() []string {
-	return []string{StepCreateSubnet}
+	return []string{StepCreateInternetGateway}
 }
-
