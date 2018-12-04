@@ -51,6 +51,7 @@ export class NewClusterComponent implements OnInit, OnDestroy {
   clusterConfig: FormGroup;
   providerConfig: FormGroup;
   unavailableClusterNames = new Set();
+  machineTypesFilter: string = '';
 
   @ViewChild(MatHorizontalStepper) stepper: MatHorizontalStepper;
 
@@ -384,4 +385,11 @@ export class NewClusterComponent implements OnInit, OnDestroy {
     this.subscriptions.unsubscribe();
   }
 
+  filterCallback = (val) => {
+    if (this.machineTypesFilter === '') {
+      return val;
+    }
+
+    return val.indexOf(this.machineTypesFilter) > -1;
+  }
 }

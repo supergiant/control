@@ -3,6 +3,7 @@ import { NO_ERRORS_SCHEMA } from '@angular/core';
 
 import { NewClusterComponent } from './new-cluster.component';
 
+// TODO: UNIT TESTING IS REQUIRED
 describe('NewClusterComponent', () => {
   let component: NewClusterComponent;
   let fixture: ComponentFixture<NewClusterComponent>;
