@@ -155,6 +155,7 @@ func LoadCloudSpecificDataFromKube(k *model.Kube, config *steps.Config) error {
 
 		return nil
 	case clouds.GCE:
+		config.GCEConfig.Region = k.Region
 		return nil
 	case clouds.DigitalOcean:
 		return nil

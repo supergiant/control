@@ -21,6 +21,7 @@ import (
 	"github.com/supergiant/control/pkg/util"
 	"github.com/supergiant/control/pkg/workflows"
 	"github.com/supergiant/control/pkg/workflows/steps"
+	"strings"
 )
 
 type EtcdTokenGetter struct {
@@ -101,10 +102,15 @@ func nodesFromProfile(clusterName string, masterTasks, nodeTasks []*workflows.Ta
 
 	for index, p := range profile.MasterProfiles {
 		taskId := masterTasks[index].ID
+		name := util.MakeNodeName(clusterName, taskId, true)
 
+		// TODO(stgleb): check if we can lowercase node names for all nodes
+		if profile.Provider == clouds.GCE {
+			name = strings.ToLower(name)
+		}
 		n := &node.Node{
 			TaskID:   taskId,
-			Name:     util.MakeNodeName(clusterName, taskId, true),
+			Name:     name,
 			Provider: profile.Provider,
 			Region:   profile.Region,
 			State:    node.StatePlanned,
@@ -116,10 +122,15 @@ func nodesFromProfile(clusterName string, masterTasks, nodeTasks []*workflows.Ta
 
 	for index, p := range profile.NodesProfiles {
 		taskId := nodeTasks[index].ID
+		name := util.MakeNodeName(clusterName, taskId[:4], false)
 
+		// TODO(stgleb): check if we can lowercase node names for all nodes
+		if profile.Provider == clouds.GCE {
+			name = strings.ToLower(name)
+		}
 		n := &node.Node{
 			TaskID:   taskId,
-			Name:     util.MakeNodeName(clusterName, taskId[:4], false),
+			Name:     name,
 			Provider: profile.Provider,
 			Region:   profile.Region,
 			State:    node.StatePlanned,

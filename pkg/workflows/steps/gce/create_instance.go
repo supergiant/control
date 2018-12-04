@@ -169,6 +169,9 @@ func (s *CreateInstanceStep) Run(ctx context.Context, output io.Writer, config *
 		Role:      nodeRole,
 		Provider:  clouds.GCE,
 		Size:      config.GCEConfig.Size,
+		// Note(stgleb):  This is a hack, we put az to region, because region is
+		// cluster wide and we need az to delete instance.
+		// TODO(stgleb): consider adding AZ to node struct
 		Region:    config.GCEConfig.AvailabilityZone,
 	}
 
