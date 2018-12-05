@@ -6,11 +6,11 @@ import (
 	"net/http"
 
 	"github.com/gorilla/mux"
+	"github.com/pborman/uuid"
 	"github.com/pkg/errors"
 	"github.com/sirupsen/logrus"
 	"gopkg.in/asaskevich/govalidator.v8"
 
-	"github.com/pborman/uuid"
 	"github.com/supergiant/control/pkg/account"
 	"github.com/supergiant/control/pkg/message"
 	"github.com/supergiant/control/pkg/model"

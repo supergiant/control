@@ -2,12 +2,12 @@ package gce
 
 import (
 	"context"
+	"fmt"
 	"io"
 
 	"github.com/pkg/errors"
 	compute "google.golang.org/api/compute/v1"
 
-	"fmt"
 	"github.com/supergiant/control/pkg/workflows/steps"
 )
 

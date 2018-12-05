@@ -1,12 +1,13 @@
 package api
 
 import (
+	"fmt"
 	"net/http"
 	"strings"
 
 	"github.com/dgrijalva/jwt-go"
+
 	"github.com/supergiant/control/pkg/sgerrors"
-	"fmt"
 )
 
 type TokenValidater interface {
