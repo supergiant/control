@@ -51,4 +51,6 @@ const (
 	AwsUserProvidedSshPublicKey = "aws_user_provided_public_key"
 	AwsRouteTableID             = "aws_route_table_id"
 	AwsInternetGateWayID        = "aws_internet_gateway_id"
+	AwsMasterInstanceProfile    = "aws_master_instance_profile"
+	AwsNodeInstanceProfile      = "aws_node_instance_profile"
 )

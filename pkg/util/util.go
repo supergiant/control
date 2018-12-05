@@ -154,6 +154,8 @@ func LoadCloudSpecificDataFromKube(k *model.Kube, config *steps.Config) error {
 		config.SshConfig.PublicKey = k.CloudSpec[clouds.AwsUserProvidedSshPublicKey]
 		config.AWSConfig.RouteTableID = k.CloudSpec[clouds.AwsRouteTableID]
 		config.AWSConfig.InternetGatewayID = k.CloudSpec[clouds.AwsInternetGateWayID]
+		config.AWSConfig.MastersInstanceProfile = k.CloudSpec[clouds.AwsMasterInstanceProfile]
+		config.AWSConfig.NodesInstanceProfile = k.CloudSpec[clouds.AwsNodeInstanceProfile]
 		return nil
 	case clouds.GCE:
 		config.GCEConfig.AvailabilityZone = k.Zone

@@ -519,6 +519,10 @@ func (t *TaskProvisioner) updateCloudSpecificData(ctx context.Context, config *s
 			config.AWSConfig.RouteTableID
 		cloudSpecificSettings[clouds.AwsInternetGateWayID] =
 			config.AWSConfig.InternetGatewayID
+		cloudSpecificSettings[clouds.AwsMasterInstanceProfile] =
+			config.AWSConfig.MastersInstanceProfile
+		cloudSpecificSettings[clouds.AwsNodeInstanceProfile] =
+			config.AWSConfig.NodesInstanceProfile
 	case clouds.GCE:
 		// GCE is the most simple :-)
 	case clouds.DigitalOcean:
