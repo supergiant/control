@@ -16,24 +16,25 @@ import (
 	"github.com/supergiant/control/pkg/util"
 	"github.com/supergiant/control/pkg/workflows/steps"
 	"github.com/supergiant/control/pkg/account"
+	"github.com/supergiant/control/pkg/model"
 )
 
 const StepCreateSubnets = "create_subnet_steps"
 
 type CreateSubnetsStep struct {
 	GetEC2 GetEC2Fn
-	zoneGetter account.ZonesGetter
+	accSvc *account.Service
 }
 
-func NewCreateSubnetStep(fn GetEC2Fn, zoneGetter account.ZonesGetter) *CreateSubnetsStep {
+func NewCreateSubnetStep(fn GetEC2Fn, accSvc *account.Service) *CreateSubnetsStep {
 	return &CreateSubnetsStep{
 		GetEC2: fn,
-		zoneGetter: zoneGetter,
+		accSvc: accSvc,
 	}
 }
 
-func InitCreateSubnet(fn GetEC2Fn, zoneGetter account.ZonesGetter) {
-	steps.RegisterStep(StepCreateSubnets, NewCreateSubnetStep(fn, zoneGetter))
+func InitCreateSubnet(fn GetEC2Fn, accSvc *account.Service) {
+	steps.RegisterStep(StepCreateSubnets, NewCreateSubnetStep(fn, accSvc))
 }
 
 func (s *CreateSubnetsStep) Run(ctx context.Context, w io.Writer, cfg *steps.Config) error {
@@ -44,12 +45,27 @@ func (s *CreateSubnetsStep) Run(ctx context.Context, w io.Writer, cfg *steps.Con
 		return errors.Wrap(ErrAuthorization, err.Error())
 	}
 
+	var acc *model.CloudAccount
+
+	if acc, err = s.accSvc.Get(ctx, cfg.CloudAccountName); acc == nil {
+		logrus.Errorf("Get cloud account %s caused error %v",
+			cfg.CloudAccountName, err)
+		return err
+	}
+
+	zoneGetter, err := account.NewZonesGetter(acc, cfg)
+
+	if err != nil {
+		logrus.Errorf("Create zone getter caused error %v", err)
+		return errors.Wrapf(err, "create subnets for vpc %s", cfg.AWSConfig.VPCID)
+	}
+
 	if len(cfg.AWSConfig.Subnets) == 0 {
 		logrus.Debugf(cfg.AWSConfig.VPCCIDR)
 		logrus.Debugf("Create subnet in VPC %s", cfg.AWSConfig.VPCID)
 
 		logrus.Debugf("get zones for region %s", cfg.AWSConfig.Region)
-		zones, err := s.zoneGetter.GetZones(ctx, *cfg)
+		zones, err := zoneGetter.GetZones(ctx, *cfg)
 
 		if err != nil {
 			logrus.Errorf("Error getting zones for region %s",

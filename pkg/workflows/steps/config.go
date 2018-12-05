@@ -268,7 +268,7 @@ func NewConfig(clusterName, clusterToken, cloudAccountName string, profile profi
 			VPCCIDR:                profile.CloudSpecificSettings[clouds.AwsVpcCIDR],
 			VPCID:                  profile.CloudSpecificSettings[clouds.AwsVpcID],
 			KeyPairName:            profile.CloudSpecificSettings[clouds.AwsKeyPairName],
-			Subnets:               profile.CloudSpecificSettings[clouds.AwsSubnets],
+			Subnets:                nil,
 			MastersSecurityGroupID: profile.CloudSpecificSettings[clouds.AwsMastersSecGroupID],
 			NodesSecurityGroupID:   profile.CloudSpecificSettings[clouds.AwsNodesSecgroupID],
 		},

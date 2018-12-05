@@ -12,14 +12,14 @@ import (
 	"github.com/supergiant/control/pkg/workflows/steps"
 )
 
-const DissasociateRouteTableStepName = "aws_disassociate_route_table"
+const DisassociateRouteTableStepName = "aws_disassociate_route_table"
 
 type DisassociateRouteTable struct {
 	GetEC2 GetEC2Fn
 }
 
 func InitDisassociateRouteTable(fn GetEC2Fn) {
-	steps.RegisterStep(DissasociateRouteTableStepName, &DisassociateRouteTable{
+	steps.RegisterStep(DisassociateRouteTableStepName, &DisassociateRouteTable{
 		GetEC2: fn,
 	})
 }
@@ -46,7 +46,7 @@ func (s *DisassociateRouteTable) Run(ctx context.Context, w io.Writer, cfg *step
 }
 
 func (*DisassociateRouteTable) Name() string {
-	return DissasociateRouteTableStepName
+	return DisassociateRouteTableStepName
 }
 
 func (*DisassociateRouteTable) Depends() []string {

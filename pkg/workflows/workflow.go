@@ -159,8 +159,10 @@ func Init() {
 	awsDeleteClusterWorkflow := []steps.Step{
 		steps.GetStep(amazon.DeleteClusterMachinesStepName),
 		steps.GetStep(amazon.DeleteSecurityGroupsStepName),
-		steps.GetStep(amazon.DissasociateRouteTableStepName),
+		steps.GetStep(amazon.DisassociateRouteTableStepName),
+		steps.GetStep(amazon.DeleteRouteTableStepName),
 		steps.GetStep(amazon.DeleteSubnetsStepName),
+		steps.GetStep(amazon.DeleteInternetGatewayStepName),
 		steps.GetStep(amazon.DeleteVPCStepName),
 	}
 

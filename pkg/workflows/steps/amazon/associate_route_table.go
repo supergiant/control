@@ -40,7 +40,7 @@ func (s *AssociateRouteTableStep) Run(ctx context.Context, w io.Writer, cfg *ste
 		return errors.Wrap(ErrAuthorization, err.Error())
 	}
 
-	logrus.Debugf("Associate route table %s with subnets",
+	logrus.Debugf("Associate route table %s with subnet %s",
 		cfg.AWSConfig.RouteTableID, cfg.AWSConfig.Subnets[cfg.AWSConfig.AvailabilityZone])
 
 	if cfg.AWSConfig.RouteTableAssociationIDs == nil {
