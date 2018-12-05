@@ -13,9 +13,8 @@ import (
 
 	"github.com/apparentlymart/go-cidr/cidr"
 	"github.com/aws/aws-sdk-go/aws/awserr"
-	"github.com/supergiant/control/pkg/util"
-	"github.com/supergiant/control/pkg/workflows/steps"
 	"github.com/supergiant/control/pkg/account"
+	"github.com/supergiant/control/pkg/workflows/steps"
 )
 
 const StepCreateSubnets = "create_subnet_steps"
@@ -53,8 +52,6 @@ func InitCreateSubnet(fn GetEC2Fn, accSvc *account.Service) {
 }
 
 func (s *CreateSubnetsStep) Run(ctx context.Context, w io.Writer, cfg *steps.Config) error {
-	log := util.GetLogger(w)
-
 	EC2, err := s.GetEC2(cfg.AWSConfig)
 	if err != nil {
 		return errors.Wrap(ErrAuthorization, err.Error())
@@ -67,54 +64,54 @@ func (s *CreateSubnetsStep) Run(ctx context.Context, w io.Writer, cfg *steps.Con
 		return errors.Wrapf(err, "create subnets for vpc %s", cfg.AWSConfig.VPCID)
 	}
 
-	if len(cfg.AWSConfig.Subnets) == 0 {
-		logrus.Debugf(cfg.AWSConfig.VPCCIDR)
-		logrus.Debugf("Create subnet in VPC %s", cfg.AWSConfig.VPCID)
+	// Make sure we create a subnet map
+	if cfg.AWSConfig.Subnets == nil {
+		cfg.AWSConfig.Subnets = make(map[string]string)
+	}
 
-		logrus.Debugf("get zones for region %s", cfg.AWSConfig.Region)
-		zones, err := zoneGetter.GetZones(ctx, *cfg)
+	logrus.Debugf(cfg.AWSConfig.VPCCIDR)
+	logrus.Debugf("Create subnet in VPC %s", cfg.AWSConfig.VPCID)
+
+	logrus.Debugf("get zones for region %s", cfg.AWSConfig.Region)
+	zones, err := zoneGetter.GetZones(ctx, *cfg)
+
+	if err != nil {
+		logrus.Errorf("Error getting zones for region %s",
+			cfg.AWSConfig.Region)
+	}
+
+	// Create subnet for each availability zone
+	for _, zone := range zones {
+
+		// We already have existing subnet for that
+		if cfg.AWSConfig.Subnets[zone] != "" {
+			continue
+		}
+
+		_, cidrIP, _ := net.ParseCIDR(cfg.AWSConfig.VPCCIDR)
+
+		subnetCidr, err := cidr.Subnet(cidrIP, 8, rand.Int()%256)
+		logrus.Debugf("Subnet cidr %s", subnetCidr)
 
 		if err != nil {
-			logrus.Errorf("Error getting zones for region %s",
-				cfg.AWSConfig.Region)
+			logrus.Debugf("Calculating subnet cidr caused %s", err.Error())
 		}
 
-		// Make sure we create a subnet map
-		if cfg.AWSConfig.Subnets == nil {
-			cfg.AWSConfig.Subnets = make(map[string]string)
+		input := &ec2.CreateSubnetInput{
+			VpcId:            aws.String(cfg.AWSConfig.VPCID),
+			AvailabilityZone: aws.String(zone),
+			CidrBlock:        aws.String(subnetCidr.String()),
+		}
+		out, err := EC2.CreateSubnetWithContext(ctx, input)
+		if err != nil {
+			if err, ok := err.(awserr.Error); ok {
+				logrus.Debugf("Create subnet cause error %s", err.Message())
+			}
+			return errors.Wrap(ErrCreateSubnet, err.Error())
 		}
 
-		// Create subnet for each availability zone
-		for _, zone := range zones {
-			_, cidrIP, _ := net.ParseCIDR(cfg.AWSConfig.VPCCIDR)
-
-			subnetCidr, err := cidr.Subnet(cidrIP, 8, rand.Int()%256)
-			logrus.Debugf("Subnet cidr %s", subnetCidr)
-
-			if err != nil {
-				logrus.Debugf("Calculating subnet cidr caused %s", err.Error())
-			}
-
-			input := &ec2.CreateSubnetInput{
-				VpcId:            aws.String(cfg.AWSConfig.VPCID),
-				AvailabilityZone: aws.String(zone),
-				CidrBlock:        aws.String(subnetCidr.String()),
-			}
-			out, err := EC2.CreateSubnetWithContext(ctx, input)
-			if err != nil {
-				if err, ok := err.(awserr.Error); ok {
-					logrus.Debugf("Create subnet cause error %s", err.Message())
-				}
-				return errors.Wrap(ErrCreateSubnet, err.Error())
-			}
-
-			// Store subnet in subnets map
-			cfg.AWSConfig.Subnets[zone] = *out.Subnet.SubnetId
-		}
-
-		return nil
-	} else {
-		log.Infof("[%s] - using subnets %s", s.Name(), cfg.AWSConfig.Subnets)
+		// Store subnet in subnets map
+		cfg.AWSConfig.Subnets[zone] = *out.Subnet.SubnetId
 	}
 
 	return nil

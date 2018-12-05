@@ -126,7 +126,6 @@ func Init() {
 	}
 
 	awsNodeWorkflow := []steps.Step{
-		steps.GetStep(amazon.StepCreateSubnets),
 		steps.GetStep(amazon.StepNameCreateEC2Instance),
 		steps.GetStep(ssh.StepName),
 		steps.GetStep(authorizedKeys.StepName),
