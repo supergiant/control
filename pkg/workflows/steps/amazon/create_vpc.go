@@ -5,11 +5,11 @@ import (
 	"io"
 
 	"github.com/aws/aws-sdk-go/aws"
+	"github.com/aws/aws-sdk-go/aws/awserr"
 	"github.com/aws/aws-sdk-go/service/ec2"
 	"github.com/pkg/errors"
-
-	"github.com/aws/aws-sdk-go/aws/awserr"
 	"github.com/sirupsen/logrus"
+
 	"github.com/supergiant/control/pkg/util"
 	"github.com/supergiant/control/pkg/workflows/steps"
 )
@@ -68,56 +68,42 @@ func (c *CreateVPCStep) Run(ctx context.Context, w io.Writer, cfg *steps.Config)
 		log.Infof("[%s] - created a VPC with ID %s and CIDR %s",
 			c.Name(), cfg.AWSConfig.VPCID, cfg.AWSConfig.VPCCIDR)
 	} else {
-		if cfg.AWSConfig.VPCID != "default" {
-			//if a user specified that there is a vpc already exists it should be verified
-			out, err := EC2.DescribeVpcsWithContext(ctx, &ec2.DescribeVpcsInput{
-				VpcIds: aws.StringSlice([]string{cfg.AWSConfig.VPCID}),
-			})
-			if err != nil {
-				log.Errorf("[%s] - failed to read VPC data", c.Name())
-				return errors.Wrap(ErrReadVPC, err.Error())
-			}
-			if len(out.Vpcs) == 0 {
-				return errors.Wrap(ErrReadVPC, err.Error())
-			}
-		} else {
-			out, err := EC2.DescribeVpcsWithContext(ctx, &ec2.DescribeVpcsInput{
-				Filters: []*ec2.Filter{
-					{
-						Name: aws.String("isDefault"),
-						Values: aws.StringSlice([]string{
-							"true",
-						}),
-					},
+		out, err := EC2.DescribeVpcsWithContext(ctx, &ec2.DescribeVpcsInput{
+			Filters: []*ec2.Filter{
+				{
+					Name: aws.String("isDefault"),
+					Values: aws.StringSlice([]string{
+						"true",
+					}),
 				},
-			})
-			if err != nil {
-				log.Errorf("[%s] - failed to read VPC data", c.Name())
-				return errors.Wrap(ErrReadVPC, err.Error())
-			}
-			if len(out.Vpcs) == 0 {
-				return ErrReadVPC
-			}
-
-			var defaultVPCID string
-			var defaultVPCCIDR string
-			for _, vpc := range out.Vpcs {
-				if *vpc.IsDefault {
-					defaultVPCID = *vpc.VpcId
-					defaultVPCCIDR = *vpc.CidrBlock
-					break
-				}
-			}
-
-			//Case when a user has deleted a default VPC
-			if defaultVPCID == "" {
-				log.Errorf("[%s] - default vpc not found, no custom vpc provided...", c.Name())
-				return errors.Wrap(ErrReadVPC, "VPC with default ID not found!")
-			}
-
-			cfg.AWSConfig.VPCID = defaultVPCID
-			cfg.AWSConfig.VPCCIDR = defaultVPCCIDR
+			},
+		})
+		if err != nil {
+			log.Errorf("[%s] - failed to read VPC data", c.Name())
+			return errors.Wrap(ErrReadVPC, err.Error())
 		}
+		if len(out.Vpcs) == 0 {
+			return ErrReadVPC
+		}
+
+		var defaultVPCID string
+		var defaultVPCCIDR string
+		for _, vpc := range out.Vpcs {
+			if *vpc.IsDefault {
+				defaultVPCID = *vpc.VpcId
+				defaultVPCCIDR = *vpc.CidrBlock
+				break
+			}
+		}
+
+		//Case when a user has deleted a default VPC
+		if defaultVPCID == "" {
+			log.Errorf("[%s] - default vpc not found, no custom vpc provided...", c.Name())
+			return errors.Wrap(ErrReadVPC, "VPC with default ID not found!")
+		}
+
+		cfg.AWSConfig.VPCID = defaultVPCID
+		cfg.AWSConfig.VPCCIDR = defaultVPCCIDR
 	}
 
 	return nil

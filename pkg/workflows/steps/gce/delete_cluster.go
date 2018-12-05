@@ -6,8 +6,9 @@ import (
 
 	"github.com/pkg/errors"
 	"github.com/sirupsen/logrus"
-	"github.com/supergiant/control/pkg/workflows/steps"
 	compute "google.golang.org/api/compute/v1"
+
+	"github.com/supergiant/control/pkg/workflows/steps"
 )
 
 const DeleteClusterStepName = "gce_delete_cluster"

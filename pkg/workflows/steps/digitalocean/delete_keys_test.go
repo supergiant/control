@@ -1,12 +1,14 @@
 package digitalocean
 
 import (
-	"testing"
-	"github.com/digitalocean/godo"
 	"context"
-	"net/http"
-	"github.com/supergiant/control/pkg/sgerrors"
 	"io/ioutil"
+	"net/http"
+	"testing"
+
+	"github.com/digitalocean/godo"
+
+	"github.com/supergiant/control/pkg/sgerrors"
 	"github.com/supergiant/control/pkg/workflows/steps"
 )
 
@@ -14,14 +16,14 @@ var (
 	testKey = `ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABAQDB2ckfv5rVySSq7p9ziEt+waU28aFGo9VNGr9gottC7dew2N+ggLj7DzUUAEI2809qPBxNFN9C/rC2aP+brS8jcvInbcMxOHK/QzxzOSDjQQOfq5tQ451HshkCqRFtz5cIRgrn/yLaPZ+4dr+gspsgu8qvTGZIb8zCyjVPZsfhg70Z8Ql+1kn+1KTljOlvQ6jlxZvZX3o68kMb8wRvkFc8ps4xTyeCfHaCqz6OHWnV9DCtvQYmMmADzezJKOvwAeR6Uf1A1Lwe+B8eUvxtfaeYUZ5pWtHFFfOykmd03Xk0pRYAwtSC9ZWeje6WooyTMf56ErpIUK4qgXmJzG2oHHjD`
 )
 
-type mockKeyDeleter struct{
+type mockKeyDeleter struct {
 	responses []*godo.Response
-	errors []error
+	errors    []error
 	callCount int
 }
 
 func (m *mockKeyDeleter) DeleteByFingerprint(ctx context.Context, fg string) (*godo.Response, error) {
-	defer func() {m.callCount++}()
+	defer func() { m.callCount++ }()
 
 	if len(m.responses) <= m.callCount || len(m.errors) <= m.callCount {
 		panic("illegal call")
@@ -31,9 +33,9 @@ func (m *mockKeyDeleter) DeleteByFingerprint(ctx context.Context, fg string) (*g
 }
 
 func TestDeleteKeysStep_Run(t *testing.T) {
-	testCases := []struct{
-		responses []*godo.Response
-		errors []error
+	testCases := []struct {
+		responses         []*godo.Response
+		errors            []error
 		expectedCallCount int
 	}{
 		{
@@ -49,7 +51,7 @@ func TestDeleteKeysStep_Run(t *testing.T) {
 					},
 				},
 			},
-			errors: []error{sgerrors.ErrNotFound, sgerrors.ErrNotFound},
+			errors:            []error{sgerrors.ErrNotFound, sgerrors.ErrNotFound},
 			expectedCallCount: 2,
 		},
 		{
@@ -65,7 +67,7 @@ func TestDeleteKeysStep_Run(t *testing.T) {
 					},
 				},
 			},
-			errors: []error{nil, sgerrors.ErrNotFound},
+			errors:            []error{nil, sgerrors.ErrNotFound},
 			expectedCallCount: 2,
 		},
 		{
@@ -81,7 +83,7 @@ func TestDeleteKeysStep_Run(t *testing.T) {
 					},
 				},
 			},
-			errors: []error{nil, nil},
+			errors:            []error{nil, nil},
 			expectedCallCount: 2,
 		},
 	}
@@ -89,7 +91,7 @@ func TestDeleteKeysStep_Run(t *testing.T) {
 	for _, testCase := range testCases {
 		keyDeleterMock := &mockKeyDeleter{
 			responses: testCase.responses,
-			errors: testCase.errors,
+			errors:    testCase.errors,
 			callCount: 0,
 		}
 
@@ -101,8 +103,8 @@ func TestDeleteKeysStep_Run(t *testing.T) {
 
 		config := &steps.Config{
 			SshConfig: steps.SshConfig{
-					PublicKey: testKey,
-					BootstrapPublicKey: testKey,
+				PublicKey:          testKey,
+				BootstrapPublicKey: testKey,
 			},
 		}
 		step.Run(context.Background(), ioutil.Discard, config)

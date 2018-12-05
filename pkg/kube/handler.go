@@ -31,30 +31,30 @@ import (
 )
 
 var (
-	cache metricCache
-	m sync.Mutex
+	cache  metricCache
+	m      sync.Mutex
 	client *http.Client
 )
 
-type metricCache struct{
-	m sync.RWMutex
+type metricCache struct {
+	m    sync.RWMutex
 	data map[string]entry
 }
 
 func (c *metricCache) get(key string) *MetricResponse {
-		c.m.RLock()
-		defer c.m.RUnlock()
-		e := c.data[key]
+	c.m.RLock()
+	defer c.m.RUnlock()
+	e := c.data[key]
 
-		if e.timestamp == 0 {
-			return nil
-		}
+	if e.timestamp == 0 {
+		return nil
+	}
 
-		if e.timestamp < time.Now().Unix() - 60 {
-			return nil
-		}
+	if e.timestamp < time.Now().Unix()-60 {
+		return nil
+	}
 
-		return e.value
+	return e.value
 }
 
 func (c *metricCache) set(key string, value *MetricResponse) {
@@ -62,15 +62,14 @@ func (c *metricCache) set(key string, value *MetricResponse) {
 	defer c.m.Unlock()
 	c.data[key] = entry{
 		timestamp: time.Now().Unix(),
-		value: value,
+		value:     value,
 	}
 }
 
-type entry struct{
+type entry struct {
 	timestamp int64
-	value *MetricResponse
+	value     *MetricResponse
 }
-
 
 type accountGetter interface {
 	Get(context.Context, string) (*model.CloudAccount, error)
@@ -156,13 +155,13 @@ func init() {
 		data: make(map[string]entry),
 	}
 	tr := &http.Transport{
-		TLSClientConfig: &tls.Config{InsecureSkipVerify: true},
+		TLSClientConfig:     &tls.Config{InsecureSkipVerify: true},
 		TLSHandshakeTimeout: time.Second * 30,
 		MaxIdleConnsPerHost: 100,
 	}
 	client = &http.Client{
 		Transport: tr,
-		Timeout: time.Second * 30,
+		Timeout:   time.Second * 30,
 	}
 }
 

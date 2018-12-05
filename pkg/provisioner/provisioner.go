@@ -10,6 +10,7 @@ import (
 
 	"github.com/pkg/errors"
 	"github.com/sirupsen/logrus"
+
 	"github.com/supergiant/control/pkg/clouds"
 	"github.com/supergiant/control/pkg/model"
 	"github.com/supergiant/control/pkg/node"
@@ -499,12 +500,13 @@ func (t *TaskProvisioner) updateCloudSpecificData(ctx context.Context, config *s
 	// Save cloudSpecificData in kube
 	switch config.Provider {
 	case clouds.AWS:
+		// Save az to subnets mapping for this cluster
+		k.Subnets = config.AWSConfig.Subnets
 		// Copy data got from pre provision step to cloud specific settings of kube
 		cloudSpecificSettings[clouds.AwsAZ] = config.AWSConfig.AvailabilityZone
 		cloudSpecificSettings[clouds.AwsVpcCIDR] = config.AWSConfig.VPCCIDR
 		cloudSpecificSettings[clouds.AwsVpcID] = config.AWSConfig.VPCID
 		cloudSpecificSettings[clouds.AwsKeyPairName] = config.AWSConfig.KeyPairName
-		cloudSpecificSettings[clouds.AwsSubnetID] = config.AWSConfig.SubnetID
 		cloudSpecificSettings[clouds.AwsMastersSecGroupID] =
 			config.AWSConfig.MastersSecurityGroupID
 		cloudSpecificSettings[clouds.AwsNodesSecgroupID] =
@@ -518,6 +520,10 @@ func (t *TaskProvisioner) updateCloudSpecificData(ctx context.Context, config *s
 			config.AWSConfig.RouteTableID
 		cloudSpecificSettings[clouds.AwsInternetGateWayID] =
 			config.AWSConfig.InternetGatewayID
+		cloudSpecificSettings[clouds.AwsMasterInstanceProfile] =
+			config.AWSConfig.MastersInstanceProfile
+		cloudSpecificSettings[clouds.AwsNodeInstanceProfile] =
+			config.AWSConfig.NodesInstanceProfile
 	case clouds.GCE:
 		// GCE is the most simple :-)
 	case clouds.DigitalOcean:

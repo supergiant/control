@@ -36,13 +36,14 @@ type Kube struct {
 	User     string `json:"user" valid:"-"`
 	Password string `json:"password" valid:"-"`
 
-	Arch                   string     `json:"arch"`
-	OperatingSystem        string     `json:"operatingSystem"`
-	OperatingSystemVersion string     `json:"operatingSystemVersion"`
-	DockerVersion          string     `json:"dockerVersion"`
-	K8SVersion             string     `json:"K8SVersion"`
-	HelmVersion            string     `json:"helmVersion"`
-	Networking             Networking `json:"networking"`
+	Arch                   string            `json:"arch"`
+	OperatingSystem        string            `json:"operatingSystem"`
+	OperatingSystemVersion string            `json:"operatingSystemVersion"`
+	DockerVersion          string            `json:"dockerVersion"`
+	K8SVersion             string            `json:"K8SVersion"`
+	HelmVersion            string            `json:"helmVersion"`
+	Networking             Networking        `json:"networking"`
+	Subnets                map[string]string `json:"subnets"`
 
 	CloudSpec profile.CloudSpecificSettings `json:"cloudSpec" valid:"-"`
 
