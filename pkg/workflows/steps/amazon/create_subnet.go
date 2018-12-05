@@ -16,7 +16,6 @@ import (
 	"github.com/supergiant/control/pkg/util"
 	"github.com/supergiant/control/pkg/workflows/steps"
 	"github.com/supergiant/control/pkg/account"
-	"github.com/supergiant/control/pkg/model"
 )
 
 const StepCreateSubnets = "create_subnet_steps"
@@ -24,12 +23,28 @@ const StepCreateSubnets = "create_subnet_steps"
 type CreateSubnetsStep struct {
 	GetEC2 GetEC2Fn
 	accSvc *account.Service
+
+	zoneGetterFactory func(context.Context, *account.Service, *steps.Config) (account.ZonesGetter, error)
 }
 
 func NewCreateSubnetStep(fn GetEC2Fn, accSvc *account.Service) *CreateSubnetsStep {
 	return &CreateSubnetsStep{
 		GetEC2: fn,
 		accSvc: accSvc,
+
+		zoneGetterFactory: func(ctx context.Context, accSvc *account.Service, cfg *steps.Config) (account.ZonesGetter, error) {
+			acc, err := accSvc.Get(ctx, cfg.CloudAccountName)
+
+			if err != nil {
+				logrus.Errorf("Get cloud account %s caused error %v",
+					cfg.CloudAccountName, err)
+				return nil, err
+			}
+
+			zoneGetter, err := account.NewZonesGetter(acc, cfg)
+
+			return zoneGetter, err
+		},
 	}
 }
 
@@ -45,15 +60,7 @@ func (s *CreateSubnetsStep) Run(ctx context.Context, w io.Writer, cfg *steps.Con
 		return errors.Wrap(ErrAuthorization, err.Error())
 	}
 
-	var acc *model.CloudAccount
-
-	if acc, err = s.accSvc.Get(ctx, cfg.CloudAccountName); acc == nil {
-		logrus.Errorf("Get cloud account %s caused error %v",
-			cfg.CloudAccountName, err)
-		return err
-	}
-
-	zoneGetter, err := account.NewZonesGetter(acc, cfg)
+	zoneGetter, err := s.zoneGetterFactory(ctx, s.accSvc, cfg)
 
 	if err != nil {
 		logrus.Errorf("Create zone getter caused error %v", err)
