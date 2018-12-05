@@ -1,4 +1,4 @@
-version: "2"
+version: "2.3"
 
 services:
   control_plane:
@@ -6,6 +6,7 @@ services:
     build:
       context: .
       dockerfile: Dockerfile
+      target: prod
     command: -etcd-url=etcd:2379
     depends_on:
     - etcd
