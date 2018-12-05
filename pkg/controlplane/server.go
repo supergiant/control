@@ -3,12 +3,15 @@ package controlplane
 import (
 	"context"
 	"fmt"
+	"github.com/supergiant/control/pkg/workflows/steps/storageclass"
 	"net/http"
 	_ "net/http/pprof"
 	"net/url"
 	"os"
 	"strings"
 	"time"
+
+	_ "net/http/pprof"
 
 	"github.com/coreos/etcd/clientv3"
 	"github.com/gorilla/handlers"
@@ -245,6 +248,7 @@ func configureApplication(cfg *Config) (*mux.Router, error) {
 	clustercheck.Init()
 	prometheus.Init()
 	gce.Init()
+	storageclass.Init()
 
 	amazon.InitFindAMI(amazon.GetEC2)
 	amazon.InitImportKeyPair(amazon.GetEC2)

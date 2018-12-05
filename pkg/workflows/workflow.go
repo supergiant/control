@@ -1,6 +1,7 @@
 package workflows
 
 import (
+	"github.com/supergiant/control/pkg/workflows/steps/storageclass"
 	"sync"
 
 	"github.com/supergiant/control/pkg/workflows/statuses"
@@ -146,6 +147,7 @@ func Init() {
 		steps.GetStep(clustercheck.StepName),
 		steps.GetStep(tiller.StepName),
 		steps.GetStep(prometheus.StepName),
+		steps.GetStep(storageclass.StepName),
 	}
 
 	digitalOceanDeleteNodeWorkflow := []steps.Step{
