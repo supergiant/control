@@ -499,12 +499,13 @@ func (t *TaskProvisioner) updateCloudSpecificData(ctx context.Context, config *s
 	// Save cloudSpecificData in kube
 	switch config.Provider {
 	case clouds.AWS:
+		// Save az to subnets mapping for this cluster
+		k.Subnets = config.AWSConfig.Subnets
 		// Copy data got from pre provision step to cloud specific settings of kube
 		cloudSpecificSettings[clouds.AwsAZ] = config.AWSConfig.AvailabilityZone
 		cloudSpecificSettings[clouds.AwsVpcCIDR] = config.AWSConfig.VPCCIDR
 		cloudSpecificSettings[clouds.AwsVpcID] = config.AWSConfig.VPCID
 		cloudSpecificSettings[clouds.AwsKeyPairName] = config.AWSConfig.KeyPairName
-		//cloudSpecificSettings[clouds.AwsSubnets] = config.AWSConfig.SubnetID
 		cloudSpecificSettings[clouds.AwsMastersSecGroupID] =
 			config.AWSConfig.MastersSecurityGroupID
 		cloudSpecificSettings[clouds.AwsNodesSecgroupID] =
