@@ -162,6 +162,7 @@ func Init() {
 		steps.GetStep(amazon.DeleteRouteTableStepName),
 		steps.GetStep(amazon.DeleteSubnetsStepName),
 		steps.GetStep(amazon.DeleteInternetGatewayStepName),
+		steps.GetStep(amazon.DeleteKeyPairStepName),
 		steps.GetStep(amazon.DeleteVPCStepName),
 	}
 
