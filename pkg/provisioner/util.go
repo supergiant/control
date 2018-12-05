@@ -1,15 +1,11 @@
 package provisioner
 
 import (
-	"context"
 	"crypto/rand"
 	"crypto/rsa"
-	"crypto/tls"
 	"crypto/x509"
 	"encoding/pem"
-	"fmt"
-	"io/ioutil"
-	"net/http"
+	"strings"
 	"time"
 
 	"golang.org/x/crypto/ssh"
@@ -21,12 +17,7 @@ import (
 	"github.com/supergiant/control/pkg/util"
 	"github.com/supergiant/control/pkg/workflows"
 	"github.com/supergiant/control/pkg/workflows/steps"
-	"strings"
 )
-
-type EtcdTokenGetter struct {
-	discoveryUrl string
-}
 
 type RateLimiter struct {
 	bucket *time.Ticker
@@ -42,38 +33,6 @@ func NewRateLimiter(interval time.Duration) *RateLimiter {
 // bucket is full again
 func (r *RateLimiter) Take() {
 	<-r.bucket.C
-}
-
-func NewEtcdTokenGetter() *EtcdTokenGetter {
-	return &EtcdTokenGetter{
-		discoveryUrl: "https://discovery.etcd.io/new?size=%d",
-	}
-}
-
-func (e *EtcdTokenGetter) GetToken(ctx context.Context, num int) (string, error) {
-	client := http.Client{
-		Transport: &http.Transport{
-			TLSClientConfig: &tls.Config{
-				InsecureSkipVerify: true,
-			},
-		},
-	}
-
-	req, err := http.NewRequest(http.MethodGet, fmt.Sprintf(e.discoveryUrl, num), nil)
-	req = req.WithContext(ctx)
-	resp, err := client.Do(req)
-
-	if err != nil {
-		return "", err
-	}
-
-	body, err := ioutil.ReadAll(resp.Body)
-	defer resp.Body.Close()
-
-	if err != nil {
-		return "", err
-	}
-	return string(body), nil
 }
 
 // Fill cloud account specific data gets data from the map and puts to particular cloud provider config

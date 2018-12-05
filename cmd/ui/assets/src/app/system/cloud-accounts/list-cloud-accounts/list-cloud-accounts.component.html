@@ -21,6 +21,10 @@
                 Digital Ocean
               </ng-container>
 
+              <ng-container *ngIf="account.provider == 'gce'">
+                GCE - Google Compute Engine
+              </ng-container>
+
               <ng-container *ngIf="account.provider == 'openstack'">
                 Openstack
               </ng-container>

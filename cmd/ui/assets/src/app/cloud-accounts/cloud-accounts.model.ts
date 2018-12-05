@@ -140,7 +140,7 @@ export class CloudAccountModel {
         },
         'provider': {
           'default': 'gce',
-          'description': 'GCE - Google Compute Engine',
+          'description': 'GCE - Google Compute Engine(Experimental)',
           'type': 'string',
           'widget': 'hidden'
         }
@@ -239,7 +239,7 @@ export class CloudAccountModel {
   public providers = {
     'AWS - Amazon Web Services': this.aws,
     'Digital Ocean': this.digitalocean,
-    'GCE - Google Compute Engine': this.gce,
+    'GCE - Google Compute Engine(Experimental)': this.gce,
     'OpenStack': this.openstack,
     'Packet.net': this.packet
   };

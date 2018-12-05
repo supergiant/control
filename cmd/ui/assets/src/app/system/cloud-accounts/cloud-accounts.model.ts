@@ -96,7 +96,7 @@ export class CloudAccountModel {
   };
 
   gce = {
-    'name' : 'GCE - Google Compute Engine',
+    'name' : 'GCE - Google Compute Engine(Experimental)',
     'model': {
       'provider': 'gce',
       'name': '',
@@ -157,7 +157,7 @@ export class CloudAccountModel {
       data: this.digitalocean
     },
     {
-      display: "GCE - Google Compute Engine",
+      display: "GCE - Google Compute Engine(Experimental",
       name: "gce",
       data: this.gce
     }

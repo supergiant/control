@@ -30,13 +30,8 @@ type KubeGetter interface {
 	Get(ctx context.Context, name string) (*model.Kube, error)
 }
 
-type TokenGetter interface {
-	GetToken(context.Context, int) (string, error)
-}
-
 type Handler struct {
 	accountGetter AccountGetter
-	tokenGetter   TokenGetter
 	kubeGetter    KubeGetter
 	provisioner   ClusterProvisioner
 }
@@ -56,11 +51,10 @@ type ClusterProvisioner interface {
 	ProvisionCluster(context.Context, *profile.Profile, *steps.Config) (map[string][]*workflows.Task, error)
 }
 
-func NewHandler(kubeService KubeGetter, cloudAccountService *account.Service, tokenGetter TokenGetter, provisioner ClusterProvisioner) *Handler {
+func NewHandler(kubeService KubeGetter, cloudAccountService *account.Service, provisioner ClusterProvisioner) *Handler {
 	return &Handler{
 		kubeGetter:    kubeService,
 		accountGetter: cloudAccountService,
-		tokenGetter:   tokenGetter,
 		provisioner:   provisioner,
 	}
 }
