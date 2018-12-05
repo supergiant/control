@@ -203,29 +203,21 @@
           <mat-form-field>
             <input matInput
                    type="text"
-                   formControlName="vpcId"
-                   placeholder="VPC ID">
-            <mat-hint align="end">Leaving this blank will create a new one</mat-hint>
-          </mat-form-field>
-
-          <mat-form-field>
-            <input matInput
-                   type="text"
                    formControlName="vpcCidr"
                    placeholder="VPC CIDR"
                    required>
           </mat-form-field>
-        </div>
 
-        <div class="input-group">
           <mat-form-field>
             <input matInput
                    type="text"
-                   formControlName="subnetId"
-                   placeholder="Subnet ID">
+                   formControlName="vpcId"
+                   placeholder="VPC ID">
             <mat-hint align="end">Leaving this blank will create a new one</mat-hint>
           </mat-form-field>
+        </div>
 
+        <div class="input-group">
           <mat-form-field>
             <input matInput
                    type="text"
