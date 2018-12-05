@@ -10,6 +10,7 @@ import (
 	"github.com/sirupsen/logrus"
 	"github.com/supergiant/control/pkg/workflows/steps"
 	"time"
+	"github.com/aws/aws-sdk-go/aws/awserr"
 )
 
 const DeleteRouteTableStepName = "aws_delete_route_table"
@@ -48,9 +49,9 @@ func (s *DeleteRouteTable) Run(ctx context.Context, w io.Writer, cfg *steps.Conf
 			RouteTableId: aws.String(cfg.AWSConfig.RouteTableID),
 		})
 
-		if deleteErr != nil {
+		if err, ok := deleteErr.(awserr.Error); ok {
 			logrus.Debugf("Delete route table %s caused %s sleep for %v",
-				cfg.AWSConfig.RouteTableID, err.Error(), timeout)
+				cfg.AWSConfig.RouteTableID, err.Message(), timeout)
 			time.Sleep(timeout)
 			timeout = timeout * 2
 		} else {
