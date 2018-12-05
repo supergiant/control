@@ -10,7 +10,7 @@ gofmt:
 	@FLAGS="-w" build/gofmt.sh
 
 goimports:
-	@FLAGS="-w -local github.com/supergiant/supergiant" build/goimports.sh
+	@FLAGS="-w -local github.com/supergiant/control" build/goimports.sh
 
 lint:
 	# TODO: enable the test directory when e2e tests will be updated
