@@ -27,6 +27,8 @@ var (
 	//TODO: rewrite to single flag port-range
 	ProxiesPortRangeFrom = flag.Int("proxies-port-from", 60200, "first tcp port in a range of binding reverse proxies for service apps")
 	ProxiesPortRangeTo   = flag.Int("proxies-port-to", 60250, "last tcp port in a range of binding reverse proxies for service apps")
+	pprofListenStr = flag.String("pprofListenStr", "",
+		"pprof listen str host:port")
 )
 
 func main() {
@@ -35,17 +37,19 @@ func main() {
 	configureLogging(*logLevel, *logFormat)
 
 	cfg := &controlplane.Config{
-		Addr:          *addr,
-		Port:          *port,
-		EtcdUrl:       *etcdURL,
-		TemplatesDir:  *templatesDir,
-		ReadTimeout:   time.Second * 20,
-		WriteTimeout:  time.Second * 10,
-		IdleTimeout:   time.Second * 120,
-		SpawnInterval: time.Second * time.Duration(*spawnInterval),
-		UiDir:         *uiDir,
-		ProxiesPortRange: proxy.PortRange{int32(*ProxiesPortRangeFrom),
-			int32(*ProxiesPortRangeTo)},
+		Addr:             *addr,
+		Port:             *port,
+		EtcdUrl:          *etcdURL,
+		TemplatesDir:     *templatesDir,
+		ReadTimeout:      time.Second * 20,
+		WriteTimeout:     time.Second * 10,
+		IdleTimeout:      time.Second * 120,
+		SpawnInterval:    time.Second * time.Duration(*spawnInterval),
+		UiDir:            *uiDir,
+
+		PprofListenStr: *pprofListenStr,
+
+		ProxiesPortRange: proxy.PortRange{int32(*ProxiesPortRangeFrom), int32(*ProxiesPortRangeTo)},
 		Version: version,
 	}
 
