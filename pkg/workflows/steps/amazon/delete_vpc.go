@@ -16,7 +16,7 @@ import (
 const DeleteVPCStepName = "aws_delete_vpc"
 
 var (
-	deleteVPCTimeout      = time.Minute * 1
+	deleteVPCTimeout      = time.Second * 30
 	deleteVPCAttemptCount = 3
 )
 
