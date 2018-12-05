@@ -4,15 +4,13 @@ import (
 	"context"
 	"io"
 
-	"github.com/pkg/errors"
-
-	"github.com/sirupsen/logrus"
-
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/service/ec2"
+	"github.com/pkg/errors"
+	"github.com/sirupsen/logrus"
 
-	"github.com/supergiant/control/pkg/workflows/steps"
 	"github.com/supergiant/control/pkg/sgerrors"
+	"github.com/supergiant/control/pkg/workflows/steps"
 )
 
 const StepCreateInternetGateway = "create_internet_gateway"
@@ -49,7 +47,7 @@ func (s *CreateInternetGatewayStep) Run(ctx context.Context, w io.Writer, cfg *s
 		output, err := ec2Client.DescribeInternetGateways(&ec2.DescribeInternetGatewaysInput{
 			Filters: []*ec2.Filter{
 				{
-					Name: aws.String("attachment.vpc-id"),
+					Name:   aws.String("attachment.vpc-id"),
 					Values: []*string{aws.String(cfg.AWSConfig.VPCID)},
 				},
 			},
@@ -69,7 +67,6 @@ func (s *CreateInternetGatewayStep) Run(ctx context.Context, w io.Writer, cfg *s
 
 		cfg.AWSConfig.InternetGatewayID = *output.InternetGateways[0].InternetGatewayId
 	}
-
 
 	return nil
 }

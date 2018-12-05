@@ -5,11 +5,11 @@ import (
 	"io"
 
 	"github.com/aws/aws-sdk-go/aws"
+	"github.com/aws/aws-sdk-go/aws/awserr"
 	"github.com/aws/aws-sdk-go/service/ec2"
 	"github.com/pkg/errors"
-
-	"github.com/aws/aws-sdk-go/aws/awserr"
 	"github.com/sirupsen/logrus"
+
 	"github.com/supergiant/control/pkg/util"
 	"github.com/supergiant/control/pkg/workflows/steps"
 )

@@ -1,9 +1,10 @@
 package templatemanager
 
 import (
-	"github.com/supergiant/control/pkg/sgerrors"
 	"testing"
 	"text/template"
+
+	"github.com/supergiant/control/pkg/sgerrors"
 )
 
 func TestGetTemplate(t *testing.T) {

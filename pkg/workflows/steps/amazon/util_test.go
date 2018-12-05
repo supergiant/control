@@ -3,9 +3,9 @@ package amazon
 import (
 	"context"
 	"testing"
+	"time"
 
 	"github.com/supergiant/control/pkg/sgerrors"
-	"time"
 )
 
 func TestFindOutboundIPCancelled(t *testing.T) {

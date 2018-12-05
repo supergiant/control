@@ -2,12 +2,12 @@ package clustercheck
 
 import (
 	"context"
+	"fmt"
 	"io"
 	"text/template"
 
 	"github.com/pkg/errors"
 
-	"fmt"
 	tm "github.com/supergiant/control/pkg/templatemanager"
 	"github.com/supergiant/control/pkg/workflows/steps"
 	"github.com/supergiant/control/pkg/workflows/steps/kubelet"
