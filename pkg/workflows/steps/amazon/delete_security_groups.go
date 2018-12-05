@@ -84,7 +84,7 @@ func (s *DeleteSecurityGroup) Run(ctx context.Context, w io.Writer, cfg *steps.C
 		},
 	}
 
-	logrus.Debugf("Revoking dependent Master Security Group ingress rules",
+	logrus.Debugf("Revoking dependent Master Security Group  %s ingress rules",
 		cfg.AWSConfig.MastersSecurityGroupID)
 	_, err = EC2.RevokeSecurityGroupIngressWithContext(ctx, revokeInput)
 
@@ -130,6 +130,7 @@ func (s *DeleteSecurityGroup) Run(ctx context.Context, w io.Writer, cfg *steps.C
 			cfg.AWSConfig.NodesSecurityGroupID)
 	}
 
+	logrus.Debugf("Dependencies between security groups has been revoked")
 	var deleteErr error
 	var timeout = deleteSecGroupTimeout
 
