@@ -30,7 +30,8 @@ func (s *DeleteSubnets) Run(ctx context.Context, w io.Writer, cfg *steps.Config)
 		return errors.Wrap(ErrAuthorization, err.Error())
 	}
 
-	for _, subnet := range cfg.AWSConfig.Subnets {
+	for az, subnet := range cfg.AWSConfig.Subnets {
+		logrus.Debugf("Delete subnet %s in az %s", subnet, az)
 		descReq := &ec2.DeleteSubnetInput{
 			SubnetId: aws.String(subnet),
 		}
