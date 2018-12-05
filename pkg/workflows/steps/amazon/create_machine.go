@@ -3,18 +3,20 @@ package amazon
 import (
 	"context"
 	"fmt"
+	"io"
+	"strconv"
+	"strings"
+
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/service/ec2"
 	"github.com/aws/aws-sdk-go/service/ec2/ec2iface"
 	"github.com/pkg/errors"
 	"github.com/sirupsen/logrus"
+
 	"github.com/supergiant/control/pkg/clouds"
 	"github.com/supergiant/control/pkg/node"
 	"github.com/supergiant/control/pkg/util"
 	"github.com/supergiant/control/pkg/workflows/steps"
-	"io"
-	"strconv"
-	"strings"
 )
 
 const (
@@ -26,13 +28,13 @@ type StepCreateInstance struct {
 }
 
 //InitCreateMachine adds the step to the registry
-func InitCreateMachine(fn func(steps.AWSConfig) (ec2iface.EC2API, error)) {
-	steps.RegisterStep(StepNameCreateEC2Instance, NewCreateInstance(fn))
+func InitCreateMachine(ec2fn GetEC2Fn) {
+	steps.RegisterStep(StepNameCreateEC2Instance, NewCreateInstance(ec2fn))
 }
 
-func NewCreateInstance(fn GetEC2Fn) *StepCreateInstance {
+func NewCreateInstance(ec2fn GetEC2Fn) *StepCreateInstance {
 	return &StepCreateInstance{
-		GetEC2: fn,
+		GetEC2: ec2fn,
 	}
 }
 
@@ -60,14 +62,18 @@ func (s *StepCreateInstance) Run(ctx context.Context, w io.Writer, cfg *steps.Co
 	cfg.NodeChan() <- cfg.Node
 
 	var secGroupID *string
+	var instanceProfileName *string
 
 	//Determining a sec group in AWS for EC2 instance to be spawned.
 	if cfg.IsMaster {
 		secGroupID = &cfg.AWSConfig.MastersSecurityGroupID
+		instanceProfileName = &cfg.AWSConfig.MastersInstanceProfile
 	} else {
 		secGroupID = &cfg.AWSConfig.NodesSecurityGroupID
+		instanceProfileName = &cfg.AWSConfig.NodesInstanceProfile
 	}
 
+	// TODO: reuse sessions
 	EC2, err := s.GetEC2(cfg.AWSConfig)
 	if err != nil {
 		logrus.Errorf("[%s] - failed to authorize in AWS: %v", s.Name(), err)
@@ -99,6 +105,9 @@ func (s *StepCreateInstance) Run(ctx context.Context, w io.Writer, cfg *steps.Co
 			AvailabilityZone: aws.String(cfg.AWSConfig.AvailabilityZone),
 		},
 		EbsOptimized: &isEbs,
+		IamInstanceProfile: &ec2.IamInstanceProfileSpecification{
+			Name: instanceProfileName,
+		},
 		ImageId:      &amiID,
 		InstanceType: &cfg.AWSConfig.InstanceType,
 		KeyName:      &cfg.AWSConfig.KeyPairName,

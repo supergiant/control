@@ -1,9 +1,9 @@
 <ul>
   <li><a [routerLink]="['/']">Home</a></li>
   <i class="fa fa-chevron-right"></i>
-  <li><a [routerLink]="['/apps']">Apps</a></li>
+  <li><a [routerLink]="['/catalog']">Apps</a></li>
   <i class="fa fa-chevron-right"></i>
-  <li><a [routerLink]="['/apps/' + repoName ]">{{ repoName | titlecase }}</a></li>
+  <li><a [routerLink]="['/catalog/' + repoName ]">{{ repoName | titlecase }}</a></li>
   <i class="fa fa-chevron-right"></i>
   <li class="active">{{ chartName | titlecase }}</li>
 </ul>

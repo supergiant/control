@@ -10,9 +10,9 @@ import (
 	"path"
 	"time"
 
+	"github.com/pkg/errors"
 	"github.com/sirupsen/logrus"
 
-	"github.com/pkg/errors"
 	"github.com/supergiant/control/pkg/clouds"
 	"github.com/supergiant/control/pkg/model"
 	"github.com/supergiant/control/pkg/node"
@@ -100,7 +100,6 @@ func MakeKeyName(name string, isUser bool) string {
 // TODO(stgleb): move getting cloud account outside of this function
 // Gets cloud account from storage and fills config object with those credentials
 func FillCloudAccountCredentials(ctx context.Context, cloudAccount *model.CloudAccount, config *steps.Config) error {
-	config.ManifestConfig.ProviderString = string(cloudAccount.Provider)
 	config.Provider = cloudAccount.Provider
 
 	// Bind private key to config
@@ -152,7 +151,8 @@ func LoadCloudSpecificDataFromKube(k *model.Kube, config *steps.Config) error {
 		config.AWSConfig.NodesSecurityGroupID = k.CloudSpec[clouds.AwsNodesSecgroupID]
 		config.SshConfig.BootstrapPrivateKey = k.CloudSpec[clouds.AwsSshBootstrapPrivateKey]
 		config.SshConfig.PublicKey = k.CloudSpec[clouds.AwsUserProvidedSshPublicKey]
-
+		config.AWSConfig.RouteTableID = k.CloudSpec[clouds.AwsRouteTableID]
+		config.AWSConfig.InternetGatewayID = k.CloudSpec[clouds.AwsInternetGateWayID]
 		return nil
 	case clouds.GCE:
 		config.GCEConfig.AvailabilityZone = k.Zone

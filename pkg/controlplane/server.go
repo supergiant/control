@@ -9,21 +9,20 @@ import (
 	"strings"
 	"time"
 
-	"k8s.io/helm/pkg/repo"
-
 	"github.com/coreos/etcd/clientv3"
 	"github.com/gorilla/handlers"
 	"github.com/gorilla/mux"
 	"github.com/pkg/errors"
 	"github.com/sirupsen/logrus"
+	"k8s.io/helm/pkg/repo"
 
-	"github.com/supergiant/control/pkg/proxy"
 	"github.com/supergiant/control/pkg/account"
 	"github.com/supergiant/control/pkg/api"
 	"github.com/supergiant/control/pkg/jwt"
 	"github.com/supergiant/control/pkg/kube"
 	"github.com/supergiant/control/pkg/profile"
 	"github.com/supergiant/control/pkg/provisioner"
+	"github.com/supergiant/control/pkg/proxy"
 	sshRunner "github.com/supergiant/control/pkg/runner/ssh"
 	"github.com/supergiant/control/pkg/sgerrors"
 	"github.com/supergiant/control/pkg/sghelm"
@@ -89,6 +88,8 @@ type Config struct {
 	IdleTimeout  time.Duration
 
 	ProxiesPortRange proxy.PortRange
+
+	Version string
 }
 
 func New(cfg *Config) (*Server, error) {
@@ -210,6 +211,7 @@ func configureApplication(cfg *Config) (*mux.Router, error) {
 	userService := user.NewService(user.DefaultStoragePrefix, repository)
 	userHandler := user.NewHandler(userService, jwtService)
 
+	router.HandleFunc("/version", NewVersionHandler(cfg.Version))
 	router.HandleFunc("/auth", userHandler.Authenticate).Methods(http.MethodPost)
 	//Opening it up for testing right now, will be protected after implementing initial user generation
 	protectedAPI.HandleFunc("/users", userHandler.Create).Methods(http.MethodPost)
@@ -242,6 +244,7 @@ func configureApplication(cfg *Config) (*mux.Router, error) {
 	gce.Init()
 
 	amazon.InitImportKeyPair(amazon.GetEC2)
+	amazon.InitCreateInstanceProfiles(amazon.GetIAM)
 	amazon.InitCreateMachine(amazon.GetEC2)
 	amazon.InitCreateSecurityGroups(amazon.GetEC2)
 	amazon.InitCreateVPC(amazon.GetEC2)
@@ -251,7 +254,9 @@ func configureApplication(cfg *Config) (*mux.Router, error) {
 	amazon.InitDeleteSecurityGroup(amazon.GetEC2)
 	amazon.InitDeleteVPC(amazon.GetEC2)
 	amazon.InitDeleteSubnets(amazon.GetEC2)
-
+	amazon.InitCreateRouteTable(amazon.GetEC2)
+	amazon.InitAssociateRouteTable(amazon.GetEC2)
+	amazon.InitCreateInternetGateway(amazon.GetEC2)
 	workflows.Init()
 
 	taskHandler := workflows.NewTaskHandler(repository, sshRunner.NewRunner, accountService)
@@ -354,4 +359,10 @@ func trimPrefix(h http.Handler) http.Handler {
 			h.ServeHTTP(w, r2)
 		}
 	})
+}
+
+func NewVersionHandler(version string) func(w http.ResponseWriter, r *http.Request) {
+	return func(w http.ResponseWriter, r *http.Request) {
+		fmt.Fprintf(w, "Supergiant Version: %s", version)
+	}
 }
