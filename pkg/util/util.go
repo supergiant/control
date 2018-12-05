@@ -141,18 +141,21 @@ func LoadCloudSpecificDataFromKube(k *model.Kube, config *steps.Config) error {
 
 	switch config.Provider {
 	case clouds.AWS:
+		// Load AZ -> subnet mapping for cluster
+		config.AWSConfig.Subnets = k.Subnets
 		config.AWSConfig.Region = k.Region
 		config.AWSConfig.AvailabilityZone = k.CloudSpec[clouds.AwsAZ]
 		config.AWSConfig.VPCCIDR = k.CloudSpec[clouds.AwsVpcCIDR]
 		config.AWSConfig.VPCID = k.CloudSpec[clouds.AwsVpcID]
 		config.AWSConfig.KeyPairName = k.CloudSpec[clouds.AwsKeyPairName]
-		config.AWSConfig.SubnetID = k.CloudSpec[clouds.AwsSubnetID]
 		config.AWSConfig.MastersSecurityGroupID = k.CloudSpec[clouds.AwsMastersSecGroupID]
 		config.AWSConfig.NodesSecurityGroupID = k.CloudSpec[clouds.AwsNodesSecgroupID]
 		config.SshConfig.BootstrapPrivateKey = k.CloudSpec[clouds.AwsSshBootstrapPrivateKey]
 		config.SshConfig.PublicKey = k.CloudSpec[clouds.AwsUserProvidedSshPublicKey]
 		config.AWSConfig.RouteTableID = k.CloudSpec[clouds.AwsRouteTableID]
 		config.AWSConfig.InternetGatewayID = k.CloudSpec[clouds.AwsInternetGateWayID]
+		config.AWSConfig.MastersInstanceProfile = k.CloudSpec[clouds.AwsMasterInstanceProfile]
+		config.AWSConfig.NodesInstanceProfile = k.CloudSpec[clouds.AwsNodeInstanceProfile]
 		return nil
 	case clouds.GCE:
 		config.GCEConfig.AvailabilityZone = k.Zone

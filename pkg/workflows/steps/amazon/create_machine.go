@@ -145,7 +145,7 @@ func (s *StepCreateInstance) Run(ctx context.Context, w io.Writer, cfg *steps.Co
 				DeviceIndex:              aws.Int64(0),
 				AssociatePublicIpAddress: aws.Bool(true),
 				DeleteOnTermination:      aws.Bool(true),
-				SubnetId:                 aws.String(cfg.AWSConfig.SubnetID),
+				SubnetId:                 aws.String(cfg.AWSConfig.Subnets[cfg.AWSConfig.AvailabilityZone]),
 				Groups:                   []*string{secGroupID},
 			},
 		}

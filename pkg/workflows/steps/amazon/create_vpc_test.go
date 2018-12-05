@@ -76,6 +76,8 @@ func TestCreateVPCStep_Run(t *testing.T) {
 						Vpcs: []*ec2.Vpc{
 							{
 								VpcId: aws.String("1"),
+								IsDefault: aws.Bool(true),
+								CidrBlock: aws.String("10.20.30.40/16"),
 							},
 						},
 					},

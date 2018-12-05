@@ -3,13 +3,16 @@ package amazon
 import (
 	"context"
 	"io"
+	"strings"
+	"fmt"
 
-	"github.com/aws/aws-sdk-go/aws"
-	"github.com/aws/aws-sdk-go/service/ec2"
 	"github.com/pkg/errors"
-	"github.com/sirupsen/logrus"
 
-	"github.com/supergiant/control/pkg/sgerrors"
+	"github.com/sirupsen/logrus"
+	"github.com/aws/aws-sdk-go/service/ec2"
+	"github.com/aws/aws-sdk-go/aws"
+
+	"github.com/supergiant/control/pkg/clouds"
 	"github.com/supergiant/control/pkg/workflows/steps"
 )
 
@@ -41,31 +44,54 @@ func (s *CreateInternetGatewayStep) Run(ctx context.Context, w io.Writer, cfg *s
 
 	// Internet gateway already exists
 	if cfg.AWSConfig.InternetGatewayID != "" {
+		logrus.Debugf("use internet gateway %s",
+			cfg.AWSConfig.InternetGatewayID)
 		return nil
 	} else {
 		// Use default gateway for VPC
-		output, err := ec2Client.DescribeInternetGateways(&ec2.DescribeInternetGatewaysInput{
-			Filters: []*ec2.Filter{
-				{
-					Name:   aws.String("attachment.vpc-id"),
-					Values: []*string{aws.String(cfg.AWSConfig.VPCID)},
-				},
+		resp, err := ec2Client.CreateInternetGateway(new(ec2.CreateInternetGatewayInput))
+		if err != nil {
+			return err
+		}
+		cfg.AWSConfig.InternetGatewayID = *resp.InternetGateway.InternetGatewayId
+
+		// Tag gateway
+		ec2Tags := []*ec2.Tag{
+			{
+				Key:   aws.String("KubernetesCluster"),
+				Value: aws.String(cfg.ClusterName),
 			},
-		})
+			{
+				Key:   aws.String(clouds.ClusterIDTag),
+				Value: aws.String(cfg.ClusterID),
+			},
+			{
+				Key: aws.String("Name"),
+				Value: aws.String(fmt.Sprintf("inet-gateway-%s",
+					cfg.ClusterID)),
+			},
+		}
+
+		tagInput := &ec2.CreateTagsInput{
+			Resources: []*string{aws.String(cfg.AWSConfig.InternetGatewayID)},
+			Tags:      ec2Tags,
+		}
+		_, err = ec2Client.CreateTags(tagInput)
 
 		if err != nil {
-			logrus.Errorf("error getting internet gateway for vpc %s %v",
-				cfg.AWSConfig.VPCID, err)
+			logrus.Errorf("Error tagging route table %s %v",
+				cfg.AWSConfig.RouteTableID, err)
 			return err
 		}
 
-		if len(output.InternetGateways) == 0 {
-			return errors.Wrapf(sgerrors.ErrNotFound,
-				"not found gateways for vpc id %s",
-				cfg.AWSConfig.VPCID)
+		// Attach GW to VPC
+		attachGw := &ec2.AttachInternetGatewayInput{
+			VpcId:             aws.String(cfg.AWSConfig.VPCID),
+			InternetGatewayId: aws.String(cfg.AWSConfig.InternetGatewayID),
 		}
-
-		cfg.AWSConfig.InternetGatewayID = *output.InternetGateways[0].InternetGatewayId
+		if _, err := ec2Client.AttachInternetGateway(attachGw); err != nil && !strings.Contains(err.Error(), "already has an internet gateway attached") {
+			return err
+		}
 	}
 
 	return nil

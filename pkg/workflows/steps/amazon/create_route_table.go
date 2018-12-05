@@ -20,7 +20,7 @@ type CreateRouteTableStep struct {
 	GetEC2 GetEC2Fn
 }
 
-//InitCreateMachine adds the step to the registry
+// InitCreateRouteTable adds the step to the registry
 func InitCreateRouteTable(ec2fn GetEC2Fn) {
 	steps.RegisterStep(StepCreateRouteTable, NewCreateRouteTableStep(ec2fn))
 }
