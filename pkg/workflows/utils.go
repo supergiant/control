@@ -3,8 +3,8 @@ package workflows
 import (
 	"encoding/json"
 
-	"github.com/supergiant/control/pkg/storage"
 	"github.com/supergiant/control/pkg/runner/ssh"
+	"github.com/supergiant/control/pkg/storage"
 )
 
 func DeserializeTask(data []byte, repository storage.Interface) (*Task, error) {
@@ -18,7 +18,6 @@ func DeserializeTask(data []byte, repository storage.Interface) (*Task, error) {
 	// Assign repository from task handler to task and restore workflow
 	task.repository = repository
 	task.workflow = GetWorkflow(task.Type)
-
 
 	// NOTE(stgleb): If step has failed on machine creation state
 	// public ip will be blank and lead to error when restart

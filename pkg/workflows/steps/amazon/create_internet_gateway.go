@@ -3,18 +3,17 @@ package amazon
 import (
 	"context"
 	"io"
+	"strings"
+	"fmt"
 
 	"github.com/pkg/errors"
 
 	"github.com/sirupsen/logrus"
-
-	"github.com/supergiant/control/pkg/workflows/steps"
 	"github.com/aws/aws-sdk-go/service/ec2"
 	"github.com/aws/aws-sdk-go/aws"
-	"strings"
+
 	"github.com/supergiant/control/pkg/clouds"
-	"fmt"
-)
+	"github.com/supergiant/control/pkg/workflows/steps"
 
 const StepCreateInternetGateway = "create_internet_gateway"
 

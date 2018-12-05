@@ -2,12 +2,12 @@ package authorizedKeys
 
 import (
 	"context"
+	"fmt"
 	"io"
 	"text/template"
 
 	"github.com/pkg/errors"
 
-	"fmt"
 	"github.com/supergiant/control/pkg/templatemanager"
 	"github.com/supergiant/control/pkg/util"
 	"github.com/supergiant/control/pkg/workflows/steps"
