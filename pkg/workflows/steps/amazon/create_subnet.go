@@ -68,35 +68,10 @@ func (s *CreateSubnetStep) Run(ctx context.Context, w io.Writer, cfg *steps.Conf
 		cfg.AWSConfig.SubnetID = *out.Subnet.SubnetId
 
 		return nil
-	} else if cfg.AWSConfig.SubnetID == "default" {
-		input := &ec2.DescribeSubnetsInput{
-			Filters: []*ec2.Filter{
-				{
-					Name:   aws.String("vpc-id"),
-					Values: aws.StringSlice([]string{cfg.AWSConfig.VPCID}),
-				},
-				{
-					Name:   aws.String("availabilityZone"),
-					Values: aws.StringSlice([]string{cfg.AWSConfig.AvailabilityZone}),
-				},
-				{
-					Name:   aws.String("default-for-az"),
-					Values: aws.StringSlice([]string{"true"}),
-				},
-			},
-		}
-		out, err := EC2.DescribeSubnetsWithContext(ctx, input)
-		if err != nil {
-			return errors.Wrap(ErrCreateSubnet, err.Error())
-		}
-		if len(out.Subnets) == 0 {
-			return errors.Wrap(ErrCreateSubnet, "no default subnet found")
-		}
-		logrus.Debugf("Take subnet %s", *out.Subnets[0].SubnetId)
-		cfg.AWSConfig.SubnetID = *out.Subnets[0].SubnetId
 	} else {
 		log.Infof("[%s] - using subnet %s", s.Name(), cfg.AWSConfig.SubnetID)
 	}
+
 	return nil
 }
 

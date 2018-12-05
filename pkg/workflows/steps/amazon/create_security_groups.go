@@ -127,30 +127,10 @@ func (s *CreateSecurityGroupsStep) Run(ctx context.Context, w io.Writer, cfg *st
 		return err
 	}
 
-	masterGroup, err := s.getSecurityGroupById(ctx, EC2, cfg.AWSConfig.VPCID, cfg.AWSConfig.MastersSecurityGroupID)
-	if err != nil {
-		return err
-	}
-	nodesGroup, err := s.getSecurityGroupById(ctx, EC2, cfg.AWSConfig.VPCID, cfg.AWSConfig.NodesSecurityGroupID)
-	if err != nil {
-		return err
-	}
-
 	logrus.Debugf("Allow traffic between groups")
 	//Open ports between master <-> node security groups
-	if err := s.allowAllTraffic(ctx, EC2, cfg.AWSConfig.MastersSecurityGroupID, *nodesGroup.GroupName); err != nil {
-		return err
-	}
-	// nodes to master
-	if err := s.allowAllTraffic(ctx, EC2, cfg.AWSConfig.NodesSecurityGroupID, *masterGroup.GroupName); err != nil {
-		return err
-	}
-	// masters to masters
-	if err := s.allowAllTraffic(ctx, EC2, cfg.AWSConfig.MastersSecurityGroupID, *masterGroup.GroupName); err != nil {
-		return err
-	}
 	// nodes to nodes
-	if err := s.allowAllTraffic(ctx, EC2, cfg.AWSConfig.NodesSecurityGroupID, *nodesGroup.GroupName); err != nil {
+	if err := s.allowAllTraffic(ctx, EC2, cfg); err != nil {
 		return err
 	}
 
@@ -224,11 +204,52 @@ func (s *CreateSecurityGroupsStep) authorizeSSH(ctx context.Context, EC2 ec2ifac
 	return err
 }
 
-func (s *CreateSecurityGroupsStep) allowAllTraffic(ctx context.Context, EC2 ec2iface.EC2API, targetGroupID, sourceGroupName string) error {
+func (s *CreateSecurityGroupsStep) allowAllTraffic(ctx context.Context, EC2 ec2iface.EC2API, cfg *steps.Config) error {
 	// For some reason this function looks fo SGs in default VPC
 	_, err := EC2.AuthorizeSecurityGroupIngressWithContext(ctx, &ec2.AuthorizeSecurityGroupIngressInput{
-		GroupId:                 aws.String(targetGroupID),
-		SourceSecurityGroupName: aws.String(sourceGroupName),
+		GroupId: aws.String(cfg.AWSConfig.MastersSecurityGroupID),
+		IpPermissions: []*ec2.IpPermission{
+			{
+				FromPort:   aws.Int64(22),
+				ToPort:     aws.Int64(22),
+				IpProtocol: aws.String("tcp"),
+				IpRanges: []*ec2.IpRange{
+					{
+						CidrIp: aws.String("0.0.0.0/0"),
+					},
+				},
+			},
+			{
+				FromPort:   aws.Int64(443),
+				ToPort:     aws.Int64(443),
+				IpProtocol: aws.String("tcp"),
+				IpRanges: []*ec2.IpRange{
+					{
+						CidrIp: aws.String("0.0.0.0/0"),
+					},
+				},
+			},
+			{
+				FromPort:   aws.Int64(0),
+				ToPort:     aws.Int64(0),
+				IpProtocol: aws.String("-1"),
+				UserIdGroupPairs: []*ec2.UserIdGroupPair{
+					{
+						GroupId: aws.String(cfg.AWSConfig.MastersSecurityGroupID),
+					},
+				},
+			},
+			{
+				FromPort:   aws.Int64(0),
+				ToPort:     aws.Int64(0),
+				IpProtocol: aws.String("-1"),
+				UserIdGroupPairs: []*ec2.UserIdGroupPair{
+					{
+						GroupId: aws.String(cfg.AWSConfig.NodesSecurityGroupID),
+					},
+				},
+			},
+		},
 	})
 
 	if err, ok := err.(awserr.Error); ok {
@@ -236,6 +257,69 @@ func (s *CreateSecurityGroupsStep) allowAllTraffic(ctx context.Context, EC2 ec2i
 			return nil
 		}
 	}
+
+	_, err = EC2.AuthorizeSecurityGroupIngressWithContext(ctx, &ec2.AuthorizeSecurityGroupIngressInput{
+		GroupId: aws.String(cfg.AWSConfig.NodesSecurityGroupID),
+		IpPermissions: []*ec2.IpPermission{
+			{
+				FromPort:   aws.Int64(22),
+				ToPort:     aws.Int64(22),
+				IpProtocol: aws.String("tcp"),
+				IpRanges: []*ec2.IpRange{
+					{
+						CidrIp: aws.String("0.0.0.0/0"),
+					},
+				},
+			},
+			{
+				FromPort:   aws.Int64(443),
+				ToPort:     aws.Int64(443),
+				IpProtocol: aws.String("tcp"),
+				IpRanges: []*ec2.IpRange{
+					{
+						CidrIp: aws.String("0.0.0.0/0"),
+					},
+				},
+			},
+			{
+				FromPort:   aws.Int64(30000),
+				ToPort:     aws.Int64(32767),
+				IpProtocol: aws.String("tcp"),
+				IpRanges: []*ec2.IpRange{
+					{
+						CidrIp: aws.String("0.0.0.0/0"),
+					},
+				},
+			},
+			{
+				FromPort:   aws.Int64(0),
+				ToPort:     aws.Int64(0),
+				IpProtocol: aws.String("-1"),
+				UserIdGroupPairs: []*ec2.UserIdGroupPair{
+					{
+						GroupId: aws.String(cfg.AWSConfig.MastersSecurityGroupID),
+					},
+				},
+			},
+			{
+				FromPort:   aws.Int64(0),
+				ToPort:     aws.Int64(0),
+				IpProtocol: aws.String("-1"),
+				UserIdGroupPairs: []*ec2.UserIdGroupPair{
+					{
+						GroupId: aws.String(cfg.AWSConfig.NodesSecurityGroupID),
+					},
+				},
+			},
+		},
+	})
+
+	if err, ok := err.(awserr.Error); ok {
+		if err.Code() == "InvalidPermission.Duplicate" {
+			return nil
+		}
+	}
+
 	return err
 }
 
