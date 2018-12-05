@@ -32,7 +32,8 @@ ExecStart=/usr/bin/docker run \
       --client-ca-file=/etc/kubernetes/ssl/ca.pem \
       --tls-cert-file=/etc/kubernetes/ssl/worker.pem \
       --tls-private-key-file=/etc/kubernetes/ssl/worker-key.pem \
-      {{ if .ProviderString }}--cloud-provider={{ .ProviderString }} \{{ end }}
+      {{- if .ProviderString }}
+      --cloud-provider={{ .ProviderString }} \{{ end }}
       --volume-plugin-dir=/etc/kubernetes/volumeplugins --fail-swap-on=false --register-node=true
 Restart=always
 StartLimitInterval=0

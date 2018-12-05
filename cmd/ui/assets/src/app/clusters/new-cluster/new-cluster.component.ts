@@ -51,6 +51,7 @@ export class NewClusterComponent implements OnInit, OnDestroy {
   clusterConfig: FormGroup;
   providerConfig: FormGroup;
   unavailableClusterNames = new Set();
+  machineTypesFilter: string = '';
 
   @ViewChild(MatHorizontalStepper) stepper: MatHorizontalStepper;
 
@@ -313,10 +314,10 @@ export class NewClusterComponent implements OnInit, OnDestroy {
       case "aws":
         this.providerConfig = this.formBuilder.group({
           region: ["", Validators.required],
-          vpcId: ["default", Validators.required],
+          vpcId: [""],
           vpcCidr: ["10.2.0.0/16", [Validators.required, this.validCidr()]],
           keypairName: [""],
-          subnetId: ["default", Validators.required],
+          subnetId: [""],
           mastersSecurityGroupId: [""],
           nodesSecurityGroupId: [""],
           publicKey: ["", Validators.required]
@@ -435,4 +436,11 @@ export class NewClusterComponent implements OnInit, OnDestroy {
     this.subscriptions.unsubscribe();
   }
 
+  filterCallback = (val) => {
+    if (this.machineTypesFilter === '') {
+      return val;
+    }
+
+    return val.indexOf(this.machineTypesFilter) > -1;
+  }
 }
