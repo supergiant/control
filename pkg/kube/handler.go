@@ -201,7 +201,6 @@ func NewHandler(
 		repo:      repo,
 		getWriter: util.GetWriter,
 		getMetrics: func(metricURI string, k *model.Kube) (*MetricResponse, error) {
-
 			if m := cache.get(metricURI); m != nil {
 				logrus.Debugf("metric cache hit")
 				return m, nil
