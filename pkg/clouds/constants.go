@@ -44,7 +44,7 @@ const (
 	AwsVpcCIDR                  = "aws_vpc_cidr"
 	AwsVpcID                    = "aws_vpc_id"
 	AwsKeyPairName              = "aws_keypair_name"
-	AwsSubnetID                 = "aws_subnet_id"
+	AwsSubnets                  = "aws_subnets"
 	AwsMastersSecGroupID        = "aws_masters_secgroup_id"
 	AwsNodesSecgroupID          = "aws_nodes_secgroup_id"
 	AwsSshBootstrapPrivateKey   = "aws_ssh_bootstrap_private_key"

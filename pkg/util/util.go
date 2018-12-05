@@ -146,7 +146,7 @@ func LoadCloudSpecificDataFromKube(k *model.Kube, config *steps.Config) error {
 		config.AWSConfig.VPCCIDR = k.CloudSpec[clouds.AwsVpcCIDR]
 		config.AWSConfig.VPCID = k.CloudSpec[clouds.AwsVpcID]
 		config.AWSConfig.KeyPairName = k.CloudSpec[clouds.AwsKeyPairName]
-		config.AWSConfig.SubnetID = k.CloudSpec[clouds.AwsSubnetID]
+		config.AWSConfig.SubnetID = k.CloudSpec[clouds.AwsSubnets]
 		config.AWSConfig.MastersSecurityGroupID = k.CloudSpec[clouds.AwsMastersSecGroupID]
 		config.AWSConfig.NodesSecurityGroupID = k.CloudSpec[clouds.AwsNodesSecgroupID]
 		config.SshConfig.BootstrapPrivateKey = k.CloudSpec[clouds.AwsSshBootstrapPrivateKey]

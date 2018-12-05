@@ -504,7 +504,7 @@ func (t *TaskProvisioner) updateCloudSpecificData(ctx context.Context, config *s
 		cloudSpecificSettings[clouds.AwsVpcCIDR] = config.AWSConfig.VPCCIDR
 		cloudSpecificSettings[clouds.AwsVpcID] = config.AWSConfig.VPCID
 		cloudSpecificSettings[clouds.AwsKeyPairName] = config.AWSConfig.KeyPairName
-		cloudSpecificSettings[clouds.AwsSubnetID] = config.AWSConfig.SubnetID
+		cloudSpecificSettings[clouds.AwsSubnets] = config.AWSConfig.SubnetID
 		cloudSpecificSettings[clouds.AwsMastersSecGroupID] =
 			config.AWSConfig.MastersSecurityGroupID
 		cloudSpecificSettings[clouds.AwsNodesSecgroupID] =

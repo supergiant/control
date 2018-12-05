@@ -73,9 +73,7 @@ type AWSConfig struct {
 	KeyPairName                   string `json:"keyPairName"`
 	VPCID                         string `json:"vpcid"`
 	VPCCIDR                       string `json:"vpccidr"`
-	SubnetID                      string `json:"subnetID"`
 	RouteTableID                  string `json:"routeTableId"`
-	RouteTableSubnetAssociationID string `json:"routeTableSubnetAssociationId"`
 	InternetGatewayID             string `json:"internetGatewayId"`
 	NodesSecurityGroupID          string `json:"nodesSecurityGroupID"`
 	MastersSecurityGroupID        string `json:"mastersSecurityGroupID"`
@@ -86,6 +84,10 @@ type AWSConfig struct {
 	ImageID                       string `json:"image"`
 	InstanceType                  string `json:"size"`
 	HasPublicAddr                 string `json:"hasPublicAddr"`
+	// Map of availability zone to subnet
+	Subnets  map[string]string `json:"subnets"`
+	// Map az to route table association
+	RouteTableAssociationIDs map[string]string `json:"routeTableAssociationIds"`
 }
 
 type FlannelConfig struct {
@@ -266,7 +268,7 @@ func NewConfig(clusterName, clusterToken, cloudAccountName string, profile profi
 			VPCCIDR:                profile.CloudSpecificSettings[clouds.AwsVpcCIDR],
 			VPCID:                  profile.CloudSpecificSettings[clouds.AwsVpcID],
 			KeyPairName:            profile.CloudSpecificSettings[clouds.AwsKeyPairName],
-			SubnetID:               profile.CloudSpecificSettings[clouds.AwsSubnetID],
+			Subnets:               profile.CloudSpecificSettings[clouds.AwsSubnets],
 			MastersSecurityGroupID: profile.CloudSpecificSettings[clouds.AwsMastersSecGroupID],
 			NodesSecurityGroupID:   profile.CloudSpecificSettings[clouds.AwsNodesSecgroupID],
 		},

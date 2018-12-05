@@ -20,7 +20,7 @@ type AssociateRouteTableStep struct {
 	GetEC2 GetEC2Fn
 }
 
-//InitCreateMachine adds the step to the registry
+// InitAssociateRouteTable adds the step to the registry
 func InitAssociateRouteTable(ec2fn GetEC2Fn) {
 	steps.RegisterStep(StepAssociateRouteTable, NewAssociateRouteTableStep(ec2fn))
 }
@@ -40,22 +40,33 @@ func (s *AssociateRouteTableStep) Run(ctx context.Context, w io.Writer, cfg *ste
 		return errors.Wrap(ErrAuthorization, err.Error())
 	}
 
-	// Associate route table with subnet
-	associtationResponse, err := ec2Client.AssociateRouteTable(&ec2.AssociateRouteTableInput{
-		RouteTableId: aws.String(cfg.AWSConfig.RouteTableID),
-		SubnetId:     aws.String(cfg.AWSConfig.SubnetID),
-	})
+	logrus.Debugf("Associate route table %s with subnets",
+		cfg.AWSConfig.RouteTableID, cfg.AWSConfig.Subnets[cfg.AWSConfig.AvailabilityZone])
 
-	// Skip it since by default route table is associated with default subnet
-	if err != nil {
-		logrus.Debugf("error associating route table %s with subnet %s %v",
-			cfg.AWSConfig.RouteTableID,
-			cfg.AWSConfig.SubnetID,
-			err)
-		return nil
+	if cfg.AWSConfig.RouteTableAssociationIDs == nil {
+		cfg.AWSConfig.RouteTableAssociationIDs = make(map[string]string)
 	}
 
-	cfg.AWSConfig.RouteTableSubnetAssociationID = *associtationResponse.AssociationId
+	for az, subnet := range cfg.AWSConfig.Subnets {
+		// Associate route table with subnet
+		associtationResponse, err := ec2Client.AssociateRouteTable(&ec2.AssociateRouteTableInput{
+			RouteTableId: aws.String(cfg.AWSConfig.RouteTableID),
+			SubnetId:     aws.String(subnet),
+		})
+
+		// Skip it since by default route table is associated with default subnet
+		if err != nil {
+			logrus.Debugf("error associating route table %s with subnet %s in az %s %v",
+				cfg.AWSConfig.RouteTableID,
+				subnet,
+				az,
+				err)
+			return nil
+		}
+
+		// Save this for later
+		cfg.AWSConfig.RouteTableAssociationIDs[az] = *associtationResponse.AssociationId
+	}
 
 	return nil
 }
@@ -73,5 +84,5 @@ func (*AssociateRouteTableStep) Description() string {
 }
 
 func (*AssociateRouteTableStep) Depends() []string {
-	return []string{StepCreateSubnet}
+	return []string{StepCreateSubnets}
 }

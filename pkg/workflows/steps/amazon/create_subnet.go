@@ -15,78 +15,100 @@ import (
 	"github.com/aws/aws-sdk-go/aws/awserr"
 	"github.com/supergiant/control/pkg/util"
 	"github.com/supergiant/control/pkg/workflows/steps"
+	"github.com/supergiant/control/pkg/account"
 )
 
-const StepCreateSubnet = "create_subnet_step"
+const StepCreateSubnets = "create_subnet_steps"
 
-type CreateSubnetStep struct {
+type CreateSubnetsStep struct {
 	GetEC2 GetEC2Fn
+	zoneGetter account.ZonesGetter
 }
 
-func NewCreateSubnetStep(fn GetEC2Fn) *CreateSubnetStep {
-	return &CreateSubnetStep{
+func NewCreateSubnetStep(fn GetEC2Fn, zoneGetter account.ZonesGetter) *CreateSubnetsStep {
+	return &CreateSubnetsStep{
 		GetEC2: fn,
+		zoneGetter: zoneGetter,
 	}
 }
 
-func InitCreateSubnet(fn GetEC2Fn) {
-	steps.RegisterStep(StepCreateSubnet, NewCreateSubnetStep(fn))
+func InitCreateSubnet(fn GetEC2Fn, zoneGetter account.ZonesGetter) {
+	steps.RegisterStep(StepCreateSubnets, NewCreateSubnetStep(fn, zoneGetter))
 }
 
-func (s *CreateSubnetStep) Run(ctx context.Context, w io.Writer, cfg *steps.Config) error {
+func (s *CreateSubnetsStep) Run(ctx context.Context, w io.Writer, cfg *steps.Config) error {
 	log := util.GetLogger(w)
 
 	EC2, err := s.GetEC2(cfg.AWSConfig)
 	if err != nil {
 		return errors.Wrap(ErrAuthorization, err.Error())
 	}
-	if cfg.AWSConfig.SubnetID == "" {
+
+	if len(cfg.AWSConfig.Subnets) == 0 {
 		logrus.Debugf(cfg.AWSConfig.VPCCIDR)
 		logrus.Debugf("Create subnet in VPC %s", cfg.AWSConfig.VPCID)
-		_, cidrIP, _ := net.ParseCIDR(cfg.AWSConfig.VPCCIDR)
 
-		subnetCidr, err := cidr.Subnet(cidrIP, 8, rand.Int()%256)
-		logrus.Debugf("Subnet cidr %s", subnetCidr)
+		logrus.Debugf("get zones for region %s", cfg.AWSConfig.Region)
+		zones, err := s.zoneGetter.GetZones(ctx, *cfg)
 
 		if err != nil {
-			logrus.Debugf("Calculating subnet cidr caused %s", err.Error())
+			logrus.Errorf("Error getting zones for region %s",
+				cfg.AWSConfig.Region)
 		}
 
-		input := &ec2.CreateSubnetInput{
-			VpcId:            aws.String(cfg.AWSConfig.VPCID),
-			AvailabilityZone: aws.String(cfg.AWSConfig.AvailabilityZone),
-			CidrBlock:        aws.String(subnetCidr.String()),
+		// Make sure we create a subnet map
+		if cfg.AWSConfig.Subnets == nil {
+			cfg.AWSConfig.Subnets = make(map[string]string)
 		}
-		out, err := EC2.CreateSubnetWithContext(ctx, input)
-		if err != nil {
-			if err, ok := err.(awserr.Error); ok {
-				logrus.Debugf("Create subnet cause error %s", err.Message())
+
+		// Create subnet for each availability zone
+		for _, zone := range zones {
+			_, cidrIP, _ := net.ParseCIDR(cfg.AWSConfig.VPCCIDR)
+
+			subnetCidr, err := cidr.Subnet(cidrIP, 8, rand.Int()%256)
+			logrus.Debugf("Subnet cidr %s", subnetCidr)
+
+			if err != nil {
+				logrus.Debugf("Calculating subnet cidr caused %s", err.Error())
 			}
-			return errors.Wrap(ErrCreateSubnet, err.Error())
-		}
 
-		cfg.AWSConfig.SubnetID = *out.Subnet.SubnetId
+			input := &ec2.CreateSubnetInput{
+				VpcId:            aws.String(cfg.AWSConfig.VPCID),
+				AvailabilityZone: aws.String(zone),
+				CidrBlock:        aws.String(subnetCidr.String()),
+			}
+			out, err := EC2.CreateSubnetWithContext(ctx, input)
+			if err != nil {
+				if err, ok := err.(awserr.Error); ok {
+					logrus.Debugf("Create subnet cause error %s", err.Message())
+				}
+				return errors.Wrap(ErrCreateSubnet, err.Error())
+			}
+
+			// Store subnet in subnets map
+			cfg.AWSConfig.Subnets[zone] = *out.Subnet.SubnetId
+		}
 
 		return nil
 	} else {
-		log.Infof("[%s] - using subnet %s", s.Name(), cfg.AWSConfig.SubnetID)
+		log.Infof("[%s] - using subnets %s", s.Name(), cfg.AWSConfig.Subnets)
 	}
 
 	return nil
 }
 
-func (*CreateSubnetStep) Name() string {
-	return StepCreateSubnet
+func (*CreateSubnetsStep) Name() string {
+	return StepCreateSubnets
 }
 
-func (*CreateSubnetStep) Description() string {
-	return ""
+func (*CreateSubnetsStep) Description() string {
+	return "Step create subnets in all availability zones for Region"
 }
 
-func (*CreateSubnetStep) Depends() []string {
+func (*CreateSubnetsStep) Depends() []string {
 	return nil
 }
 
-func (*CreateSubnetStep) Rollback(context.Context, io.Writer, *steps.Config) error {
+func (*CreateSubnetsStep) Rollback(context.Context, io.Writer, *steps.Config) error {
 	return nil
 }
