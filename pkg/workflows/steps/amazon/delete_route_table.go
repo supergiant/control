@@ -16,7 +16,7 @@ import (
 const DeleteRouteTableStepName = "aws_delete_route_table"
 
 var (
-	deleteRouteAttemptCount = 3
+	deleteRouteAttemptCount = 5
 	deleteRouteTimeout      = time.Minute
 )
 
@@ -67,7 +67,7 @@ func (*DeleteRouteTable) Name() string {
 }
 
 func (*DeleteRouteTable) Depends() []string {
-	return []string{DisassociateRouteTableStepName}
+	return []string{DeleteSubnetsStepName}
 }
 
 func (*DeleteRouteTable) Description() string {
