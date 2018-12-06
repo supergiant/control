@@ -9,6 +9,9 @@ import (
 	"strings"
 	"time"
 
+	_ "net/http/pprof"
+
+
 	"github.com/coreos/etcd/clientv3"
 	"github.com/gorilla/handlers"
 	"github.com/gorilla/mux"
@@ -86,6 +89,8 @@ type Config struct {
 	ReadTimeout  time.Duration
 	WriteTimeout time.Duration
 	IdleTimeout  time.Duration
+
+	PprofListenStr string
 
 	ProxiesPortRange proxy.PortRange
 
@@ -295,6 +300,13 @@ func configureApplication(cfg *Config) (*mux.Router, error) {
 		TokenService: jwtService,
 	}
 	protectedAPI.Use(authMiddleware.AuthMiddleware, api.ContentTypeJSON)
+
+	if cfg.PprofListenStr != "" {
+		go func() {
+			logrus.Debugf("Start pprof on %s", cfg.PprofListenStr)
+			logrus.Info(http.ListenAndServe(cfg.PprofListenStr, nil))
+		}()
+	}
 
 	if err := serveUI(cfg, router); err != nil {
 		return nil, err
