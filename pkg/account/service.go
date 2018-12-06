@@ -99,6 +99,13 @@ func (s *Service) Create(ctx context.Context, account *model.CloudAccount) error
 			return errors.Wrap(sgerrors.ErrInvalidCredentials, "both aws access key and key id should be provided")
 		}
 	case clouds.GCE:
+		if account.Credentials[clouds.GCEPrivateKey] == "" ||
+		account.Credentials[clouds.GCEClientEmail] == "" ||
+		account.Credentials[clouds.GCEProjectID] == "" ||
+		account.Credentials[clouds.GCETokenURI] == "" {
+			return errors.Wrapf(sgerrors.ErrInvalidCredentials,
+				"gce: not enough credentials %v", account.Credentials)
+		}
 	default:
 		return sgerrors.ErrUnsupportedProvider
 	}

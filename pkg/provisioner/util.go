@@ -1,15 +1,11 @@
 package provisioner
 
 import (
-	"context"
 	"crypto/rand"
 	"crypto/rsa"
-	"crypto/tls"
 	"crypto/x509"
 	"encoding/pem"
-	"fmt"
-	"io/ioutil"
-	"net/http"
+	"strings"
 	"time"
 
 	"golang.org/x/crypto/ssh"
@@ -22,10 +18,6 @@ import (
 	"github.com/supergiant/control/pkg/workflows"
 	"github.com/supergiant/control/pkg/workflows/steps"
 )
-
-type EtcdTokenGetter struct {
-	discoveryUrl string
-}
 
 type RateLimiter struct {
 	bucket *time.Ticker
@@ -41,38 +33,6 @@ func NewRateLimiter(interval time.Duration) *RateLimiter {
 // bucket is full again
 func (r *RateLimiter) Take() {
 	<-r.bucket.C
-}
-
-func NewEtcdTokenGetter() *EtcdTokenGetter {
-	return &EtcdTokenGetter{
-		discoveryUrl: "https://discovery.etcd.io/new?size=%d",
-	}
-}
-
-func (e *EtcdTokenGetter) GetToken(ctx context.Context, num int) (string, error) {
-	client := http.Client{
-		Transport: &http.Transport{
-			TLSClientConfig: &tls.Config{
-				InsecureSkipVerify: true,
-			},
-		},
-	}
-
-	req, err := http.NewRequest(http.MethodGet, fmt.Sprintf(e.discoveryUrl, num), nil)
-	req = req.WithContext(ctx)
-	resp, err := client.Do(req)
-
-	if err != nil {
-		return "", err
-	}
-
-	body, err := ioutil.ReadAll(resp.Body)
-	defer resp.Body.Close()
-
-	if err != nil {
-		return "", err
-	}
-	return string(body), nil
 }
 
 // Fill cloud account specific data gets data from the map and puts to particular cloud provider config
@@ -101,10 +61,15 @@ func nodesFromProfile(clusterName string, masterTasks, nodeTasks []*workflows.Ta
 
 	for index, p := range profile.MasterProfiles {
 		taskId := masterTasks[index].ID
+		name := util.MakeNodeName(clusterName, taskId, true)
 
+		// TODO(stgleb): check if we can lowercase node names for all nodes
+		if profile.Provider == clouds.GCE {
+			name = strings.ToLower(name)
+		}
 		n := &node.Node{
 			TaskID:   taskId,
-			Name:     util.MakeNodeName(clusterName, taskId, true),
+			Name:     name,
 			Provider: profile.Provider,
 			Region:   profile.Region,
 			State:    node.StatePlanned,
@@ -116,10 +81,15 @@ func nodesFromProfile(clusterName string, masterTasks, nodeTasks []*workflows.Ta
 
 	for index, p := range profile.NodesProfiles {
 		taskId := nodeTasks[index].ID
+		name := util.MakeNodeName(clusterName, taskId[:4], false)
 
+		// TODO(stgleb): check if we can lowercase node names for all nodes
+		if profile.Provider == clouds.GCE {
+			name = strings.ToLower(name)
+		}
 		n := &node.Node{
 			TaskID:   taskId,
-			Name:     util.MakeNodeName(clusterName, taskId[:4], false),
+			Name:     name,
 			Provider: profile.Provider,
 			Region:   profile.Region,
 			State:    node.StatePlanned,
