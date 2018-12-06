@@ -149,9 +149,14 @@ func generatePublicKey(publicKey *rsa.PublicKey) ([]byte, error) {
 	return pubKeyBytes, nil
 }
 
-func grabTaskIds(clusterTask *workflows.Task, masterTasks, nodeTasks []*workflows.Task) []string {
+func grabTaskIds(preProvisionTask, clusterTask *workflows.Task, masterTasks, nodeTasks []*workflows.Task) []string {
 	taskIds := make([]string, 0)
 	taskIds = append(taskIds, clusterTask.ID)
+
+	// NOTE(stgleb): not all providers have preProvision type of workflow
+	if preProvisionTask != nil {
+		taskIds = append(taskIds, preProvisionTask.ID)
+	}
 
 	for _, task := range masterTasks {
 		taskIds = append(taskIds, task.ID)
