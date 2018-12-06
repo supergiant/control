@@ -34,13 +34,18 @@
 
         <ng-container matColumnDef="delete">
           <mat-header-cell *matHeaderCellDef class="small-cell"></mat-header-cell>
-          <mat-cell *matCellDef="let account" class="small-cell delete" (click)="delete(account.name, $event)"></mat-cell>
+          <mat-cell class="small-cell" *matCellDef="let account">
+            <div *ngIf="!activeCloudAccounts.has(account?.name)" class="delete" (click)="delete(account.name, $event)"></div>
+            <div *ngIf="activeCloudAccounts.has(account?.name)" class="delete disable"></div>
+          </mat-cell>
         </ng-container>
 
         <mat-header-row *matHeaderRowDef="accountColumns"></mat-header-row>
         <mat-row *matRowDef="let row; columns: accountColumns"></mat-row>
 
       </mat-table>
+
+      <p class="info">*Cloud accounts with live clusters attached to them cannot be deleted.</p>
 
       <div class="actions">
         <a [routerLink]="['new']"><button mat-raised-button color="primary" type="button">ADD</button></a>
