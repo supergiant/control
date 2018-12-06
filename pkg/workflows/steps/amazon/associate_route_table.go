@@ -44,13 +44,14 @@ func (s *AssociateRouteTableStep) Run(ctx context.Context, w io.Writer, cfg *ste
 
 	for az, subnet := range cfg.AWSConfig.Subnets {
 		logrus.Debugf("Associate route table %s with subnet %s",
-			cfg.AWSConfig.RouteTableID, cfg.AWSConfig.Subnets[cfg.AWSConfig.AvailabilityZone])
+			cfg.AWSConfig.RouteTableID, subnet)
 
 		// Associate route table with subnet
-		associtationResponse, err := ec2Client.AssociateRouteTable(&ec2.AssociateRouteTableInput{
-			RouteTableId: aws.String(cfg.AWSConfig.RouteTableID),
-			SubnetId:     aws.String(subnet),
-		})
+		associtationResponse, err := ec2Client.AssociateRouteTable(
+			&ec2.AssociateRouteTableInput{
+				RouteTableId: aws.String(cfg.AWSConfig.RouteTableID),
+				SubnetId:     aws.String(subnet),
+			})
 
 		// Skip it since by default route table is associated with default subnet
 		if err != nil {
