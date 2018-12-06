@@ -116,6 +116,7 @@ func (tp *TaskProvisioner) ProvisionCluster(parentContext context.Context,
 	go func() {
 		if err := tp.preProvision(ctx, config); err != nil {
 			logrus.Errorf("Pre provisioning cluster %v", err)
+			return
 		}
 
 		// Save cluster before provisioning
