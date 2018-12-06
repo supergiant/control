@@ -50,7 +50,7 @@ type Kube struct {
 	Masters map[string]*node.Node `json:"masters"`
 	Nodes   map[string]*node.Node `json:"nodes"`
 	// Store taskIds of tasks that are made to provision this kube
-	Tasks []string `json:"tasks"`
+	Tasks map[string][]string `json:"tasks"`
 }
 
 // Auth holds all possible auth parameters.

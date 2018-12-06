@@ -157,9 +157,9 @@ func (tp *TaskProvisioner) ProvisionCluster(parentContext context.Context,
 	}()
 
 	return map[string][]*workflows.Task{
-		"master":  masterTasks,
-		"node":    nodeTasks,
-		"cluster": {clusterTask},
+		workflows.MasterTask:  masterTasks,
+		workflows.NodeTask:    nodeTasks,
+		workflows.Cluster: {clusterTask},
 	}, nil
 }
 
@@ -436,7 +436,7 @@ func (tp *TaskProvisioner) waitCluster(ctx context.Context, clusterTask *workflo
 
 func (tp *TaskProvisioner) buildInitialCluster(ctx context.Context,
 	profile *profile.Profile, masters, nodes map[string]*node.Node,
-	config *steps.Config, taskIds []string) error {
+	config *steps.Config, taskIds map[string][]string) error {
 
 	cluster := &model.Kube{
 		ID:                 config.ClusterID,

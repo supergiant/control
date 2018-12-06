@@ -700,6 +700,7 @@ func TestAddNodeToKube(t *testing.T) {
 			"test",
 			&model.Kube{
 				AccountName: "test",
+				Tasks: make(map[string][]string),
 			},
 			nil,
 			"test",
@@ -713,6 +714,7 @@ func TestAddNodeToKube(t *testing.T) {
 			"test",
 			&model.Kube{
 				AccountName: "test",
+				Tasks: make(map[string][]string),
 			},
 			nil,
 			"test",
@@ -732,6 +734,7 @@ func TestAddNodeToKube(t *testing.T) {
 				Masters: map[string]*node.Node{
 					"": {},
 				},
+				Tasks: make(map[string][]string),
 			},
 			nil,
 			"test",
@@ -1000,7 +1003,9 @@ func TestKubeTasks(t *testing.T) {
 		{
 			description: "task not found",
 			kubeResp: &model.Kube{
-				Tasks: []string{"taskID"},
+				Tasks: map[string][]string{
+					workflows.MasterTask: {"taskID"},
+					},
 			},
 			kubeErr: nil,
 			repoErr: sgerrors.ErrNotFound,
@@ -1008,7 +1013,9 @@ func TestKubeTasks(t *testing.T) {
 		{
 			description: "marshall error",
 			kubeResp: &model.Kube{
-				Tasks: []string{"taskID"},
+				Tasks: map[string][]string{
+					workflows.MasterTask: {"taskID"},
+				},
 			},
 			kubeErr:  nil,
 			repoData: []byte(`{`),
@@ -1018,7 +1025,9 @@ func TestKubeTasks(t *testing.T) {
 		{
 			description: "success",
 			kubeResp: &model.Kube{
-				Tasks: []string{"taskID"},
+				Tasks: map[string][]string{
+					workflows.MasterTask: {"taskID"},
+				},
 			},
 			kubeErr:  nil,
 			repoData: []byte(`{"config": {"clusterId":"test"}}`),
@@ -1069,7 +1078,9 @@ func TestDeleteKubeTasks(t *testing.T) {
 			description: "repo not found",
 			kubeErr:     nil,
 			kubeResp: &model.Kube{
-				Tasks: []string{"not_found_id"},
+				Tasks: map[string][]string{
+					workflows.MasterTask: {"not_found_id"},
+				},
 			},
 			repoErr: sgerrors.ErrNotFound,
 		},
@@ -1077,7 +1088,9 @@ func TestDeleteKubeTasks(t *testing.T) {
 			description: "success",
 			kubeErr:     nil,
 			kubeResp: &model.Kube{
-				Tasks: []string{"1234"},
+				Tasks: map[string][]string{
+					workflows.MasterTask: {"1234"},
+				},
 			},
 
 			repoData: []byte(`{"config": {"clusterId":"test"}}`),
@@ -1193,7 +1206,9 @@ func TestGetTasks(t *testing.T) {
 			kubeID:      "test",
 			kubeResp: &model.Kube{
 				ID:    "test",
-				Tasks: []string{"1234"},
+				Tasks: map[string][]string{
+					workflows.MasterTask: {"1234"},
+				},
 			},
 			repoData:     []byte(``),
 			expectedCode: http.StatusInternalServerError,
@@ -1203,7 +1218,9 @@ func TestGetTasks(t *testing.T) {
 			kubeID:      "test",
 			kubeResp: &model.Kube{
 				ID:    "test",
-				Tasks: []string{"1234"},
+				Tasks: map[string][]string{
+					workflows.MasterTask: {"1234"},
+				},
 			},
 			repoErr:      sgerrors.ErrInvalidJson,
 			expectedCode: http.StatusNotFound,
@@ -1213,7 +1230,9 @@ func TestGetTasks(t *testing.T) {
 			kubeID:      "test",
 			kubeResp: &model.Kube{
 				ID:    "test",
-				Tasks: []string{"1234"},
+				Tasks: map[string][]string{
+					workflows.MasterTask: {"1234"},
+				},
 			},
 			repoData:     []byte(`{"config": {"clusterId":"test"}}`),
 			expectedCode: http.StatusOK,

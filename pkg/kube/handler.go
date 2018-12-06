@@ -672,7 +672,8 @@ func (h *Handler) addNode(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// Add tasks ids to kube object
-	k.Tasks = append(k.Tasks, tasks...)
+	k.Tasks[workflows.NodeTask] = append(k.Tasks[workflows.NodeTask], tasks...)
+
 	if err := h.svc.Create(ctx, k); err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
@@ -824,25 +825,28 @@ func (h *Handler) getKubeTasks(ctx context.Context, kubeID string) ([]*workflows
 	}
 
 	tasks := make([]*workflows.Task, 0, len(k.Tasks))
-	for _, taskID := range k.Tasks {
-		t, err := h.repo.Get(ctx, workflows.Prefix, taskID)
 
-		// If one of tasks not found we dont care, because
-		// they may npt be created yet
-		if err != nil {
-			logrus.Debugf("task %s not found", taskID)
-			continue
+	for _, taskSet := range k.Tasks {
+		for _, taskID := range taskSet {
+			t, err := h.repo.Get(ctx, workflows.Prefix, taskID)
+
+			// If one of tasks not found we dont care, because
+			// they may npt be created yet
+			if err != nil {
+				logrus.Debugf("task %s not found", taskID)
+				continue
+			}
+
+			task := &workflows.Task{}
+			err = json.Unmarshal(t, task)
+
+			if err != nil {
+				return nil, errors.Wrapf(err,
+					"get task %s", taskID)
+			}
+
+			tasks = append(tasks, task)
 		}
-
-		task := &workflows.Task{}
-		err = json.Unmarshal(t, task)
-
-		if err != nil {
-			return nil, errors.Wrapf(err,
-				"get task %s", taskID)
-		}
-
-		tasks = append(tasks, task)
 	}
 
 	return tasks, nil

@@ -179,17 +179,26 @@ func generatePublicKey(publicKey *rsa.PublicKey) ([]byte, error) {
 	return pubKeyBytes, nil
 }
 
-func grabTaskIds(clusterTask *workflows.Task, masterTasks, nodeTasks []*workflows.Task) []string {
-	taskIds := make([]string, 0)
-	taskIds = append(taskIds, clusterTask.ID)
+func grabTaskIds(clusterTask *workflows.Task, masterTasks, nodeTasks []*workflows.Task) map[string][]string {
+	taskIds := make(map[string][]string, 0)
+	taskIds[workflows.Cluster] = []string{clusterTask.ID}
+
+	var (
+		masterTaskIds []string
+		nodeTaskIds   []string
+	)
 
 	for _, task := range masterTasks {
-		taskIds = append(taskIds, task.ID)
+		masterTaskIds = append(masterTaskIds, task.ID)
 	}
 
+	taskIds[workflows.MasterTask] = masterTaskIds
+
 	for _, task := range nodeTasks {
-		taskIds = append(taskIds, task.ID)
+		nodeTaskIds = append(nodeTaskIds, task.ID)
 	}
+
+	taskIds[workflows.NodeTask] = nodeTaskIds
 
 	return taskIds
 }

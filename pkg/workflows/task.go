@@ -19,6 +19,16 @@ import (
 	"github.com/supergiant/control/pkg/workflows/steps/etcd"
 )
 
+
+type TaskType string
+
+const (
+	MasterTask  = "master"
+	NodeTask  = "node"
+	ClusterTask  = "cluster"
+	PreProvisionTask = "preprovision"
+)
+
 // Task is an entity that has it own state that can be tracked
 // and written to persistent storage through repository, it executes
 // particular workflow of steps.
