@@ -37,6 +37,7 @@ import (
 	"github.com/supergiant/control/pkg/workflows/steps/authorizedKeys"
 	"github.com/supergiant/control/pkg/workflows/steps/certificates"
 	"github.com/supergiant/control/pkg/workflows/steps/clustercheck"
+	"github.com/supergiant/control/pkg/workflows/steps/clusterservices"
 	"github.com/supergiant/control/pkg/workflows/steps/cni"
 	"github.com/supergiant/control/pkg/workflows/steps/digitalocean"
 	"github.com/supergiant/control/pkg/workflows/steps/docker"
@@ -245,6 +246,7 @@ func configureApplication(cfg *Config) (*mux.Router, error) {
 	clustercheck.Init()
 	prometheus.Init()
 	gce.Init()
+	clusterservices.Init()
 
 	amazon.InitFindAMI(amazon.GetEC2)
 	amazon.InitImportKeyPair(amazon.GetEC2)

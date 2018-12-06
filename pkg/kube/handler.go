@@ -1,7 +1,6 @@
 package kube
 
 import (
-	"bytes"
 	"context"
 	"crypto/tls"
 	"encoding/json"
@@ -29,6 +28,7 @@ import (
 	"github.com/supergiant/control/pkg/workflows"
 	"github.com/supergiant/control/pkg/workflows/statuses"
 	"github.com/supergiant/control/pkg/workflows/steps"
+	"github.com/supergiant/control/pkg/workflows/steps/dryrun"
 )
 
 var (
@@ -662,7 +662,7 @@ func (h *Handler) addNode(w http.ResponseWriter, r *http.Request) {
 	}
 
 	if dryRun {
-		out, err := buildScriptFor(workflows.GetWorkflow(workflows.NodeSetup), config)
+		out, err := dryrun.NodeScript(config)
 		if err != nil {
 			logrus.Errorf("provision node: dryRun: %s", err)
 			message.SendUnknownError(w, err)
@@ -1229,33 +1229,6 @@ func (h *Handler) getServices(w http.ResponseWriter, r *http.Request) {
 	if err != nil {
 		message.SendUnknownError(w, err)
 	}
-}
-
-// TODO: this is a hack, implement dryRun for workflow
-func buildScriptFor(setupWorkflow workflows.Workflow, config *steps.Config) (string, error) {
-	if setupWorkflow == nil {
-		return "", errors.New("workflow is empty")
-	}
-	if config == nil {
-		return "", errors.New("config is empty")
-	}
-
-	config.DryRun = true
-
-	script := &bytes.Buffer{}
-	script.WriteString("# Node provisioning script\n\n")
-
-	w := &bytes.Buffer{}
-	for _, step := range setupWorkflow {
-		w.Reset()
-		if err := step.Run(context.Background(), w, config); err != nil {
-			return "", errors.New(fmt.Sprintf("run %s step: %s", step.Name(), err))
-		}
-
-		script.WriteString(fmt.Sprintf("## Step: %s\n%s\n\n", step.Name(), w.String()))
-	}
-
-	return script.String(), nil
 }
 
 func contains(name, value string, labels map[string]string) bool {

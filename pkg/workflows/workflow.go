@@ -1,6 +1,7 @@
 package workflows
 
 import (
+	"github.com/supergiant/control/pkg/workflows/steps/clusterservices"
 	"sync"
 
 	"github.com/supergiant/control/pkg/workflows/statuses"
@@ -41,8 +42,6 @@ const (
 
 	Cluster = "Cluster"
 
-	NodeSetup = "NodeSetup"
-
 	DigitalOceanMaster        = "DigitalOceanMaster"
 	DigitalOceanNode          = "DigitalOceanNode"
 	DigitalOceanDeleteNode    = "DigitalOceanDeleteNode"
@@ -75,17 +74,6 @@ func Init() {
 	workflowMap = make(map[string]Workflow)
 
 	// TODO: master/node machine provisioning is the same for all cloud providers, refactor it
-	nodeSetup := []steps.Step{
-		steps.GetStep(authorizedKeys.StepName),
-		steps.GetStep(downloadk8sbinary.StepName),
-		steps.GetStep(certificates.StepName),
-		steps.GetStep(manifest.StepName),
-		steps.GetStep(flannel.StepName),
-		steps.GetStep(docker.StepName),
-		steps.GetStep(kubelet.StepName),
-		steps.GetStep(cni.StepName),
-		steps.GetStep(poststart.StepName),
-	}
 
 	digitalOceanMasterWorkflow := []steps.Step{
 		steps.GetStep(digitalocean.CreateMachineStepName),
@@ -162,6 +150,7 @@ func Init() {
 		steps.GetStep(clustercheck.StepName),
 		steps.GetStep(tiller.StepName),
 		steps.GetStep(prometheus.StepName),
+		steps.GetStep(clusterservices.StepName),
 	}
 
 	digitalOceanDeleteNodeWorkflow := []steps.Step{
@@ -229,7 +218,6 @@ func Init() {
 	m.Lock()
 	defer m.Unlock()
 
-	workflowMap[NodeSetup] = nodeSetup
 	workflowMap[DigitalOceanDeleteNode] = digitalOceanDeleteNodeWorkflow
 	workflowMap[Cluster] = commonWorkflow
 	workflowMap[DigitalOceanMaster] = digitalOceanMasterWorkflow
