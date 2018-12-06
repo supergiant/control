@@ -53,4 +53,5 @@ const (
 	AwsInternetGateWayID        = "aws_internet_gateway_id"
 	AwsMasterInstanceProfile    = "aws_master_instance_profile"
 	AwsNodeInstanceProfile      = "aws_node_instance_profile"
+	AwsImageID = "aws_image_id"
 )
