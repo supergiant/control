@@ -57,6 +57,7 @@ const (
 )
 
 type WorkflowSet struct {
+	PreProvision    string
 	ProvisionMaster string
 	ProvisionNode   string
 	DeleteNode      string
