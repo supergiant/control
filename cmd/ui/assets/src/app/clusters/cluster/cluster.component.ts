@@ -260,14 +260,14 @@ export class ClusterComponent implements OnInit, OnDestroy {
       if (this.machineMetrics[lowercaseName]) {
         kube.masters[name].metrics = this.machineMetrics[lowercaseName];
       }
-    })
+    });
 
     nodeNames.forEach(name => {
       const lowercaseName = name.toLowerCase();
       if (this.machineMetrics[lowercaseName]) {
         kube.nodes[name].metrics = this.machineMetrics[lowercaseName];
       }
-    })
+    });
 
     this.machines = new MatTableDataSource(this.combineAndFlatten(kube.masters, kube.nodes));
     this.machines.sort = this.sort;
@@ -368,8 +368,8 @@ export class ClusterComponent implements OnInit, OnDestroy {
      );
   }
 
-  deleteRelease(releaseName, event) {
-    const dialogRef = this.initDeleteRelease(releaseName)
+  deleteRelease(releaseName) {
+    const dialogRef = this.initDeleteRelease(releaseName);
 
     dialogRef
       .afterClosed()
