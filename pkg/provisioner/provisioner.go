@@ -525,6 +525,8 @@ func (t *TaskProvisioner) updateCloudSpecificData(ctx context.Context, config *s
 			config.AWSConfig.MastersInstanceProfile
 		cloudSpecificSettings[clouds.AwsNodeInstanceProfile] =
 			config.AWSConfig.NodesInstanceProfile
+		cloudSpecificSettings[clouds.AwsImageID] =
+			config.AWSConfig.ImageID
 	case clouds.GCE:
 		// GCE is the most simple :-)
 	case clouds.DigitalOcean:
