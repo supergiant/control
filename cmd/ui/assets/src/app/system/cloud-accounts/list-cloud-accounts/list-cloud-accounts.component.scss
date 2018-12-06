@@ -37,14 +37,29 @@
           font-size: 12px;
           overflow: unset;
           justify-content: space-between;
+
+          .delete {
+            background: url(/assets/img/delete-pink.svg) no-repeat center;
+            height: 24px;
+            width: 24px;
+
+            &:hover {
+              cursor: pointer;
+            }
+          }
+
+          .disable {
+            opacity: 0.5;
+            pointer-events: none;
+
+            &:hover {
+              cursor: default;
+            }
+          }
         }
 
         .edit {
           background: url(/assets/img/edit.svg) no-repeat center;
-        }
-
-        .delete {
-          background: url(/assets/img/delete-pink.svg) no-repeat center;
         }
 
         .edit:hover, .delete:hover {
@@ -58,14 +73,16 @@
       }
     }
 
-    .mat-paginator {
-      background-color: rgba(255, 255, 255, 0.1);
+    .info {
+      font-style: italic;
+      font-size: 12px;
+      opacity: 0.8;
+      margin: 4px 0px 4px 5px;
     }
 
     .actions {
       display: flex;
       justify-content: flex-end;
-      margin-top: 24px;
     }
   }
 
