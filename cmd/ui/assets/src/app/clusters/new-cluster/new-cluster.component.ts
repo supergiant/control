@@ -287,20 +287,28 @@ export class NewClusterComponent implements OnInit, OnDestroy {
       machine.role != null &&
       typeof(machine.qty) == "number"
     ) {
-      return true
+      return true;
     } else {
-      return false
+      return false;
     }
     return false;
   }
 
   validateMachineConfig() {
-    if (this.machines.every(this.validMachine)) {
+    if (this.machines.every(this.validMachine) && this.isOddNumberOfMasters()) {
       this.machinesConfigValid = true;
       this.displayMachinesConfigWarning = false;
     } else {
       this.machinesConfigValid = false;
     }
+  }
+
+  isOddNumberOfMasters () {
+    const numberOfMasterProfiles = this.machines
+      .filter(m => m.role === 'Master')
+      .map(m => m.qty)
+      .reduce((prev, next) => prev + next);
+    return (numberOfMasterProfiles) % 2 !== 0;
   }
 
   machinesNext() {
