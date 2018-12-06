@@ -12,9 +12,9 @@ import (
 	"github.com/pkg/errors"
 	"github.com/stretchr/testify/require"
 
+	"github.com/supergiant/control/pkg/account"
 	"github.com/supergiant/control/pkg/profile"
 	"github.com/supergiant/control/pkg/workflows/steps"
-	"github.com/supergiant/control/pkg/account"
 )
 
 type fakeEC2Subnet struct {
@@ -27,9 +27,9 @@ func (f *fakeEC2Subnet) CreateSubnetWithContext(aws.Context, *ec2.CreateSubnetIn
 	return f.output, f.err
 }
 
-type mockZoneGetter struct{
+type mockZoneGetter struct {
 	zones []string
-	err error
+	err   error
 }
 
 func (m *mockZoneGetter) GetZones(context.Context, steps.Config) ([]string, error) {
@@ -81,10 +81,10 @@ func TestCreateSubnetStep_Run(t *testing.T) {
 			GetEC2: tc.fn,
 			accSvc: nil,
 			zoneGetterFactory: func(ctx context.Context, accSvc *account.Service,
-				cfg *steps.Config) (account.ZonesGetter, error){
+				cfg *steps.Config) (account.ZonesGetter, error) {
 				return &mockZoneGetter{
 					zones: []string{"eu-west-1a", "eu-west-1b"},
-					err: nil,
+					err:   nil,
 				}, nil
 			},
 		}

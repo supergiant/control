@@ -2,11 +2,12 @@ import { Component, OnDestroy, OnInit, ViewEncapsulation, ViewChild }       from
 import { FormBuilder, FormGroup, Validators, ValidatorFn, AbstractControl } from '@angular/forms';
 import { Router }                                                           from '@angular/router';
 import { MatHorizontalStepper }                                             from '@angular/material';
-import { Subscription }                                                     from 'rxjs';
-import { Notifications }                                                    from '../../shared/notifications/notifications.service';
-import { Supergiant }                                                       from '../../shared/supergiant/supergiant.service';
-import { NodeProfileService }                                               from "../node-profile.service";
-import { CLUSTER_OPTIONS }                                                  from "./cluster-options.config";
+import { Subscription }        from 'rxjs';
+import { Notifications }       from '../../shared/notifications/notifications.service';
+import { Supergiant }          from '../../shared/supergiant/supergiant.service';
+import { NodeProfileService }  from "../node-profile.service";
+import { CLUSTER_OPTIONS }     from "./cluster-options.config";
+import { DEFAULT_MACHINE_SET } from "app/clusters/new-cluster/new-cluster.component.config";
 
 // compiler hack
 declare var require: any;
@@ -25,7 +26,6 @@ export class NewClusterComponent implements OnInit, OnDestroy {
   availableCloudAccounts: Array<any>;
   selectedCloudAccount: any;
   availableRegions: any;
-  selectedRegion: any;
   availableMachineTypes: Array<any>;
   regionsLoading = false;
   machinesLoading = false;
@@ -34,13 +34,7 @@ export class NewClusterComponent implements OnInit, OnDestroy {
   availabilityZones: Array<any>;
   azsLoading = false;
 
-  machines = [{
-    machineType: null,
-    role: "Master",
-    qty: 1,
-    availabilityZone: '',
-    availabileMachinetypes: null,
-  }];
+  machines = DEFAULT_MACHINE_SET;
 
   clusterOptions = CLUSTER_OPTIONS;
 
@@ -251,13 +245,6 @@ export class NewClusterComponent implements OnInit, OnDestroy {
     this.availableRegions = null;
     this.availabilityZones = null;
     this.availableMachineTypes = null;
-    this.machines = [{
-      machineType: null,
-      role: "Master",
-      qty: 1,
-      availabilityZone: '',
-      availabileMachinetypes: null,
-    }];
 
     switch (this.selectedCloudAccount.provider) {
       case "digitalocean":

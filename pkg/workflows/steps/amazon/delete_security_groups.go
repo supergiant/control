@@ -60,7 +60,7 @@ func (s *DeleteSecurityGroup) Run(ctx context.Context, w io.Writer, cfg *steps.C
 
 	// Decouple security groups from each other
 	revokeInput := &ec2.RevokeSecurityGroupIngressInput{
-		GroupId:                 aws.String(cfg.AWSConfig.MastersSecurityGroupID),
+		GroupId: aws.String(cfg.AWSConfig.MastersSecurityGroupID),
 		IpPermissions: []*ec2.IpPermission{
 			{
 				FromPort:   aws.Int64(0),
@@ -96,7 +96,7 @@ func (s *DeleteSecurityGroup) Run(ctx context.Context, w io.Writer, cfg *steps.C
 	}
 
 	revokeInput = &ec2.RevokeSecurityGroupIngressInput{
-		GroupId:                 aws.String(cfg.AWSConfig.NodesSecurityGroupID),
+		GroupId: aws.String(cfg.AWSConfig.NodesSecurityGroupID),
 		IpPermissions: []*ec2.IpPermission{
 			{
 				FromPort:   aws.Int64(0),

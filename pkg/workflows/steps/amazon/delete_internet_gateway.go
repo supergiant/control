@@ -9,6 +9,7 @@ import (
 	"github.com/aws/aws-sdk-go/service/ec2"
 	"github.com/pkg/errors"
 	"github.com/sirupsen/logrus"
+
 	"github.com/supergiant/control/pkg/workflows/steps"
 )
 
@@ -34,7 +35,7 @@ func (s *DeleteInternetGateway) Run(ctx context.Context, w io.Writer, cfg *steps
 		cfg.AWSConfig.InternetGatewayID, cfg.AWSConfig.VPCID)
 	_, err = EC2.DetachInternetGateway(&ec2.DetachInternetGatewayInput{
 		InternetGatewayId: aws.String(cfg.AWSConfig.InternetGatewayID),
-		VpcId: aws.String(cfg.AWSConfig.VPCID),
+		VpcId:             aws.String(cfg.AWSConfig.VPCID),
 	})
 
 	if err != nil {
