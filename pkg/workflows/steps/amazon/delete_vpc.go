@@ -26,6 +26,10 @@ func InitDeleteVPC(fn GetEC2Fn) {
 }
 
 func (s *DeleteVPC) Run(ctx context.Context, w io.Writer, cfg *steps.Config) error {
+	if cfg.AWSConfig.VPCID == "" {
+		return nil
+	}
+
 	EC2, err := s.GetEC2(cfg.AWSConfig)
 
 	if err != nil {
