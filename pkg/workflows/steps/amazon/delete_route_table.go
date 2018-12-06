@@ -4,12 +4,13 @@ import (
 	"context"
 	"io"
 
+	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/aws/awserr"
+	"github.com/aws/aws-sdk-go/service/ec2"
 	"github.com/pkg/errors"
 	"github.com/sirupsen/logrus"
+
 	"github.com/supergiant/control/pkg/workflows/steps"
-	"github.com/aws/aws-sdk-go/service/ec2"
-	"github.com/aws/aws-sdk-go/aws"
 )
 
 const DeleteRouteTableStepName = "aws_delete_route_table"
