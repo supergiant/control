@@ -1,195 +1,206 @@
 <div class="new-clusters-wrapper">
   <h1>Create Kubernetes Cluster</h1>
 
-<mat-horizontal-stepper *ngIf="availableCloudAccounts?.length > 0"
-                        [linear]="true"
-                        #stepper>
+  <mat-horizontal-stepper *ngIf="availableCloudAccounts?.length > 0"
+                          [linear]="true"
+                          #stepper>
 
-  <!--
-  TODO:
-    - material considers a step "done" when all fields are completed and *NOT* editable;
-      if complete and editable it shows "edit" icon
-    - we should consider manually overriding the icons to remove the non-editable requirement for "done" state
-    - https://github.com/angular/material2/issues/8997
-  -->
-  <mat-step label="Name and Cloud Account"
-            [stepControl]="nameAndCloudAccountConfig">
-    <div class="name-and-cloud-account">
-      <form [formGroup]="nameAndCloudAccountConfig">
-        <mat-form-field>
-          <input matInput
-                 type="text"
-                 [(ngModel)]="clusterName"
-                 placeholder="Cluster name"
-                 autofocus="true"
-                 formControlName="name"
-                 required>
-          <mat-hint align="end">Must be fewer than 12 characters</mat-hint>
-        </mat-form-field>
+    <!--
+    TODO:
+      - material considers a step "done" when all fields are completed and *NOT* editable;
+        if complete and editable it shows "edit" icon
+      - we should consider manually overriding the icons to remove the non-editable requirement for "done" state
+      - https://github.com/angular/material2/issues/8997
+    -->
+    <mat-step label="Name and Cloud Account"
+              [stepControl]="nameAndCloudAccountConfig">
+      <div class="name-and-cloud-account">
+        <form [formGroup]="nameAndCloudAccountConfig">
+          <mat-form-field>
+            <input matInput
+                   type="text"
+                   [(ngModel)]="clusterName"
+                   placeholder="Cluster name"
+                   autofocus="true"
+                   formControlName="name"
+                   required>
+            <mat-hint align="end">Must be fewer than 12 characters</mat-hint>
+          </mat-form-field>
 
-        <mat-form-field>
-          <mat-select placeholder="Choose a cloud account"
-                      [(value)]="selectedCloudAccount"
-                      (selectionChange)="selectCloudAccount($event.value)"
-                      formControlName="cloudAccount"
-                      required>
-            <mat-option *ngFor="let account of availableCloudAccounts"
-                        [value]="account">{{ account.name }}</mat-option>
-          </mat-select>
-        </mat-form-field>
+          <mat-form-field>
+            <mat-select placeholder="Choose a cloud account"
+                        [(value)]="selectedCloudAccount"
+                        (selectionChange)="selectCloudAccount($event.value)"
+                        formControlName="cloudAccount"
+                        required>
+              <mat-option *ngFor="let account of availableCloudAccounts"
+                          [value]="account">{{ account.name }}</mat-option>
+            </mat-select>
+          </mat-form-field>
 
-        <div *ngIf="name.invalid">
-          <p *ngIf="name.errors.nonUniqueName"
-             class="warning">Cluster name must be unique</p>
-          <p *ngIf="name.errors.maxlength"
-             class="warning">Cluster name must be less than 12 characters</p>
-          <p *ngIf="name.errors.pattern"
-             class="warning">Cluster name must start with a-z or A-Z, and can only contain a-z, A-Z, 0-9, and -
-                             characters</p>
+          <div *ngIf="name.invalid">
+            <p *ngIf="name.errors.nonUniqueName"
+               class="warning">Cluster name must be unique</p>
+            <p *ngIf="name.errors.maxlength"
+               class="warning">Cluster name must be less than 12 characters</p>
+            <p *ngIf="name.errors.pattern"
+               class="warning">Cluster name must start with a-z or A-Z, and can only contain a-z, A-Z, 0-9, and -
+                               characters</p>
+          </div>
+        </form>
+
+        <div class="step-actions">
+          <!-- <button mat-raised-button class="secondary">LOAD PROFILE</button> -->
+          <button mat-raised-button
+                  class="secondary"
+                  matStepperNext>NEXT
+          </button>
+        </div>
+      </div>
+    </mat-step>
+
+    <mat-step label="Cluster Configuration"
+              [stepControl]="clusterConfig">
+      <form [formGroup]="clusterConfig"
+            class="cluster-config-form">
+        <div class="input-group">
+          <mat-form-field>
+            <mat-select placeholder="K8s Version"
+                        formControlName="K8sVersion"
+                        required>
+              <mat-option *ngFor="let k of clusterOptions.K8sVersions"
+                          [value]="k">{{ k }}</mat-option>
+            </mat-select>
+            <mat-hint align="end">Check out k8s
+              <a href="https://kubernetes.io/docs/setup/release/notes/"
+                 target="_blank">release notes</a>
+            </mat-hint>
+          </mat-form-field>
+
+          <mat-form-field>
+            <mat-select placeholder="Flannel Version"
+                        formControlName="flannelVersion"
+                        required>
+              <mat-option *ngFor="let f of clusterOptions.flannelVersions"
+                          [value]="f">{{ f }}</mat-option>
+            </mat-select>
+            <mat-hint align="end">What is
+              <a href="https://coreos.com/flannel/docs/latest/"
+                 target="_blank">flunnel</a>?
+            </mat-hint>
+          </mat-form-field>
+
+          <mat-form-field>
+            <mat-select placeholder="Helm Version"
+                        formControlName="helmVersion"
+                        required>
+              <mat-option *ngFor="let h of clusterOptions.helmVersions"
+                          [value]="h">{{ h }}</mat-option>
+            </mat-select>
+            <mat-hint align="end">What is
+              <a href="https://docs.helm.sh/helm/"
+                 target="_blank">helm</a>?
+            </mat-hint>
+          </mat-form-field>
+        </div>
+
+        <div class="input-group">
+          <mat-form-field>
+            <mat-select placeholder="Docker Version"
+                        formControlName="dockerVersion"
+                        required>
+              <mat-option *ngFor="let d of clusterOptions.dockerVersions"
+                          [value]="d">{{ d }}</mat-option>
+            </mat-select>
+            <mat-hint align="end">Check out Docker
+              <a href="https://docs.docker.com/release-notes/"
+                 target="_blank">release notes</a>
+            </mat-hint>
+          </mat-form-field>
+
+          <mat-form-field>
+            <mat-select placeholder="Ubuntu Version"
+                        formControlName="ubuntuVersion"
+                        required>
+              <mat-option *ngFor="let u of clusterOptions.ubuntuVersions"
+                          [value]="u">{{ u }}</mat-option>
+            </mat-select>
+            <mat-hint align="end">Check out other
+              <a href="https://hub.docker.com/_/ubuntu/"
+                 target="_blank">ubuntu docker images</a>
+            </mat-hint>
+          </mat-form-field>
+
+          <mat-form-field>
+            <mat-select placeholder="Network Type"
+                        formControlName="networkType"
+                        required>
+              <mat-option *ngFor="let n of clusterOptions.networkTypes"
+                          [value]="n">{{ n }}</mat-option>
+            </mat-select>
+            <mat-hint align="end">Read more about
+              <a href="https://github.com/coreos/flannel/blob/master/Documentation/backends.md"
+                 target="_blank">network types</a>
+            </mat-hint>
+          </mat-form-field>
+        </div>
+
+        <div class="input-group">
+          <mat-form-field>
+            <input matInput
+                   placeholder="CIDR"
+                   type="text"
+                   formControlName="cidr"
+                   required>
+            <mat-hint align="end">What is
+              <a href="https://en.wikipedia.org/wiki/Classless_Inter-Domain_Routing"
+                 target="_blank">CIDR</a>?
+            </mat-hint>
+          </mat-form-field>
+
+          <mat-form-field>
+            <mat-select placeholder="Operating System"
+                        formControlName="operatingSystem"
+                        required>
+              <mat-option *ngFor="let os of clusterOptions.operatingSystems"
+                          [value]="os">{{ os }}</mat-option>
+            </mat-select>
+          </mat-form-field>
+
+          <mat-form-field>
+            <mat-select placeholder="Arch"
+                        formControlName="arch"
+                        required>
+              <mat-option *ngFor="let a of clusterOptions.archs"
+                          [value]="a">{{ a }}</mat-option>
+            </mat-select>
+          </mat-form-field>
         </div>
       </form>
 
+      <div *ngIf="cidr.invalid">
+        <p *ngIf="cidr.errors.invalidCidr"
+           class="warning">{{ cidr.errors.invalidCidr.value }} is not valid CIDR notation</p>
+      </div>
+
       <div class="step-actions">
-        <!-- <button mat-raised-button class="secondary">LOAD PROFILE</button> -->
+        <button mat-raised-button
+                class="secondary"
+                matStepperPrevious>BACK
+        </button>
         <button mat-raised-button
                 class="secondary"
                 matStepperNext>NEXT
         </button>
       </div>
-    </div>
-  </mat-step>
+    </mat-step>
 
-  <mat-step label="Cluster Configuration"
-            [stepControl]="clusterConfig">
-    <form [formGroup]="clusterConfig"
-          class="cluster-config-form">
-      <div class="input-group">
-        <mat-form-field>
-          <mat-select placeholder="K8s Version"
-                      formControlName="K8sVersion"
-                      required>
-            <mat-option *ngFor="let k of clusterOptions.K8sVersions"
-                        [value]="k">{{ k }}</mat-option>
-          </mat-select>
-        </mat-form-field>
-
-        <mat-form-field>
-          <mat-select placeholder="Flannel Version"
-                      formControlName="flannelVersion"
-                      required>
-            <mat-option *ngFor="let f of clusterOptions.flannelVersions"
-                        [value]="f">{{ f }}</mat-option>
-          </mat-select>
-        </mat-form-field>
-
-        <mat-form-field>
-          <mat-select placeholder="Helm Version"
-                      formControlName="helmVersion"
-                      required>
-            <mat-option *ngFor="let h of clusterOptions.helmVersions"
-                        [value]="h">{{ h }}</mat-option>
-          </mat-select>
-        </mat-form-field>
-      </div>
-
-      <div class="input-group">
-        <mat-form-field>
-          <mat-select placeholder="Docker Version"
-                      formControlName="dockerVersion"
-                      required>
-            <mat-option *ngFor="let d of clusterOptions.dockerVersions"
-                        [value]="d">{{ d }}</mat-option>
-          </mat-select>
-        </mat-form-field>
-
-        <mat-form-field>
-          <mat-select placeholder="Ubuntu Version"
-                      formControlName="ubuntuVersion"
-                      required>
-            <mat-option *ngFor="let u of clusterOptions.ubuntuVersions"
-                        [value]="u">{{ u }}</mat-option>
-          </mat-select>
-        </mat-form-field>
-
-        <mat-form-field>
-          <mat-select placeholder="Network Type"
-                      formControlName="networkType"
-                      required>
-            <mat-option *ngFor="let n of clusterOptions.networkTypes"
-                        [value]="n">{{ n }}</mat-option>
-          </mat-select>
-        </mat-form-field>
-      </div>
-
-      <div class="input-group">
-        <mat-form-field>
-          <input matInput
-                 placeholder="CIDR"
-                 type="text"
-                 formControlName="cidr"
-                 required>
-        </mat-form-field>
-
-        <mat-form-field>
-          <mat-select placeholder="Operating System"
-                      formControlName="operatingSystem"
-                      required>
-            <mat-option *ngFor="let os of clusterOptions.operatingSystems"
-                        [value]="os">{{ os }}</mat-option>
-          </mat-select>
-        </mat-form-field>
-
-        <mat-form-field>
-          <mat-select placeholder="Arch"
-                      formControlName="arch"
-                      required>
-            <mat-option *ngFor="let a of clusterOptions.archs"
-                        [value]="a">{{ a }}</mat-option>
-          </mat-select>
-        </mat-form-field>
-      </div>
-    </form>
-
-    <div *ngIf="cidr.invalid">
-      <p *ngIf="cidr.errors.invalidCidr"
-         class="warning">{{ cidr.errors.invalidCidr.value }} is not valid CIDR notation</p>
-    </div>
-
-    <div class="step-actions">
-      <button mat-raised-button
-              class="secondary"
-              matStepperPrevious>BACK
-      </button>
-      <button mat-raised-button
-              class="secondary"
-              matStepperNext>NEXT
-      </button>
-    </div>
-  </mat-step>
-
-  <mat-step label="Provider Configuration"
-            [stepControl]="providerConfig">
-    <!-- digital ocean -->
-    <ng-container *ngIf="selectedCloudAccount?.provider == 'digitalocean'">
-      <form [formGroup]="providerConfig"
-            class="do-config">
-        <mat-form-field [ngClass]="{ 'regionsLoading': regionsLoading }">
-          <mat-select placeholder="Select a Region"
-                      formControlName="region"
-                      (selectionChange)="selectRegion($event.value)"
-                      required>
-            <mat-option *ngFor="let r of availableRegions?.regions"
-                        [value]="r">{{ r.name }}</mat-option>
-          </mat-select>
-        </mat-form-field>
-      </form>
-    </ng-container>
-
-    <!-- aws -->
-    <ng-container *ngIf="selectedCloudAccount?.provider == 'aws'">
-      <form [formGroup]="providerConfig"
-            class="aws-config">
-        <div class="input-group">
+    <mat-step label="Provider Configuration"
+              [stepControl]="providerConfig">
+      <!-- digital ocean -->
+      <ng-container *ngIf="selectedCloudAccount?.provider == 'digitalocean'">
+        <form [formGroup]="providerConfig"
+              class="do-config">
           <mat-form-field [ngClass]="{ 'regionsLoading': regionsLoading }">
             <mat-select placeholder="Select a Region"
                         formControlName="region"
@@ -199,297 +210,314 @@
                           [value]="r">{{ r.name }}</mat-option>
             </mat-select>
           </mat-form-field>
+        </form>
+      </ng-container>
 
-          <mat-form-field>
-            <input matInput
-                   type="text"
-                   formControlName="vpcCidr"
-                   placeholder="VPC CIDR"
-                   required>
-          </mat-form-field>
+      <!-- aws -->
+      <ng-container *ngIf="selectedCloudAccount?.provider == 'aws'">
+        <form [formGroup]="providerConfig"
+              class="aws-config">
+          <div class="input-group">
+            <mat-form-field [ngClass]="{ 'regionsLoading': regionsLoading }">
+              <mat-select placeholder="Select a Region"
+                          formControlName="region"
+                          (selectionChange)="selectRegion($event.value)"
+                          required>
+                <mat-option *ngFor="let r of availableRegions?.regions"
+                            [value]="r">{{ r.name }}</mat-option>
+              </mat-select>
+            </mat-form-field>
 
-          <mat-form-field>
-            <input matInput
-                   type="text"
-                   formControlName="vpcId"
-                   placeholder="VPC ID">
-            <mat-hint align="end">Leaving this blank will create a new one</mat-hint>
-          </mat-form-field>
-        </div>
+            <mat-form-field>
+              <input matInput
+                     type="text"
+                     formControlName="vpcCidr"
+                     placeholder="VPC CIDR"
+                     required>
+            </mat-form-field>
 
-        <div class="input-group">
-          <mat-form-field>
-            <input matInput
-                   type="text"
-                   formControlName="mastersSecurityGroupId"
-                   placeholder="Master's Security Group ID">
-            <mat-hint align="end">Leaving this blank will create a new one</mat-hint>
-          </mat-form-field>
+            <mat-form-field>
+              <input matInput
+                     type="text"
+                     formControlName="vpcId"
+                     placeholder="VPC ID">
+              <mat-hint align="end">Leaving this blank will create a new one</mat-hint>
+            </mat-form-field>
+          </div>
 
-          <mat-form-field>
-            <input matInput
-                   type="text"
-                   formControlName="nodesSecurityGroupId"
-                   placeholder="Node's Security Group ID">
-            <mat-hint align="end">Leaving this blank will create a new one</mat-hint>
-          </mat-form-field>
-        </div>
+          <div class="input-group">
+            <mat-form-field>
+              <input matInput
+                     type="text"
+                     formControlName="mastersSecurityGroupId"
+                     placeholder="Master's Security Group ID">
+              <mat-hint align="end">Leaving this blank will create a new one</mat-hint>
+            </mat-form-field>
 
-        <div class="input-group public-key-wrapper">
-          <mat-form-field>
+            <mat-form-field>
+              <input matInput
+                     type="text"
+                     formControlName="nodesSecurityGroupId"
+                     placeholder="Node's Security Group ID">
+              <mat-hint align="end">Leaving this blank will create a new one</mat-hint>
+            </mat-form-field>
+          </div>
+
+          <div class="input-group public-key-wrapper">
+            <mat-form-field>
             <textarea cdkTextareaAutosize
                       cdkAutosizeMaxRows="11"
                       matInput
                       formControlName="publicKey"
                       placeholder="Public ssh key"
                       required></textarea>
-            <mat-hint align="end">
-              <a href="https://en.wikipedia.org/wiki/Secure_Shell#Key_management"
-                 target="_blank">
-                Where do I find my public key?
-              </a>
-            </mat-hint>
-          </mat-form-field>
-        </div>
+              <mat-hint align="end">
+                <a href="https://en.wikipedia.org/wiki/Secure_Shell#Key_management"
+                   target="_blank">
+                  Where do I find my public key?
+                </a>
+              </mat-hint>
+            </mat-form-field>
+          </div>
 
-      </form>
-    </ng-container>
-
-    <div *ngIf="vpcCidr.invalid">
-      <p *ngIf="vpcCidr.errors.invalidCidr"
-         class="warning">{{ vpcCidr.errors.invalidCidr.value }} is not valid CIDR notation</p>
-    </div>
-
-    <div class="step-actions">
-      <button mat-raised-button
-              class="secondary"
-              matStepperPrevious>BACK
-      </button>
-      <button mat-raised-button
-              class="secondary"
-              matStepperNext>NEXT
-      </button>
-    </div>
-  </mat-step>
-
-  <mat-step label="Machine Configuration"
-            [completed]="machinesConfigValid">
-    <div class="machine-config-step">
-      <!-- digital ocean -->
-      <ng-container *ngIf="selectedCloudAccount?.provider == 'digitalocean'">
-        <div class="machine"
-             *ngFor="let m of machines; let idx = index">
-          <mat-form-field class="type">
-            <mat-select placeholder="Machine Type (size)"
-                        id="m.machineType"
-                        [(value)]="m.machineType"
-                        (openedChange)="machineTypesFilter = ''"
-                        (selectionChange)="validateMachineConfig()">
-              <input class="machine-types-filter"
-                     matInput
-                     type="text"
-                     placeholder="Filter machines..."
-                     [(ngModel)]="machineTypesFilter"
-                     autofocus>
-              <mat-option *ngFor="let type of availableMachineTypes | callback: filterCallback"
-                          [value]="type">{{ type }}</mat-option>
-            </mat-select>
-          </mat-form-field>
-
-          <mat-form-field class="role">
-            <mat-select placeholder="Role"
-                        [(value)]="m.role"
-                        (selectionChange)="validateMachineConfig()">
-              <mat-option value="Master">Master</mat-option>
-              <mat-option value="Node">Node</mat-option>
-            </mat-select>
-          </mat-form-field>
-
-          <mat-form-field class="quantity">
-            <input matInput
-                   type="number"
-                   min="1"
-                   placeholder="Q-ty"
-                   [(ngModel)]="m.qty"
-                   (ngModelChange)="validateMachineConfig()">
-          </mat-form-field>
-
-          <div class="delete"
-               (click)="deleteMachine(idx)"
-               (keyup)="deleteMachine(idx, $event)"
-               tabindex="0"></div>
-        </div>
-
-        <div class="add-machines"
-             (click)="addBlankMachine()"
-             (keyup)="addBlankMachine($event)"
-             tabindex="0">
-          <div class="plus"></div>
-          <span class="add-label">Add more machines</span>
-        </div>
+        </form>
       </ng-container>
 
-      <!-- aws -->
-      <ng-container *ngIf="selectedCloudAccount?.provider == 'aws'">
-        <div class="machine"
-             *ngFor="let m of machines; let idx = index">
+      <div *ngIf="vpcCidr.invalid">
+        <p *ngIf="vpcCidr.errors.invalidCidr"
+           class="warning">{{ vpcCidr.errors.invalidCidr.value }} is not valid CIDR notation</p>
+      </div>
 
-          <mat-form-field [ngClass]="{ 'azsLoading': azsLoading }">
-            <mat-select placeholder="Select an Availability Zone"
-                        [(value)]="m.availabilityZone"
-                        (selectionChange)="selectAz($event.value, idx)"
-                        required>
-              <mat-option *ngFor="let a of availabilityZones"
-                          [value]="a">{{ a }}</mat-option>
-            </mat-select>
-          </mat-form-field>
+      <div class="step-actions">
+        <button mat-raised-button
+                class="secondary"
+                matStepperPrevious>BACK
+        </button>
+        <button mat-raised-button
+                class="secondary"
+                matStepperNext>NEXT
+        </button>
+      </div>
+    </mat-step>
 
-          <!-- TODO: make this separate component -->
-          <mat-form-field class="type"
-                          [ngClass]="{ 'machinesLoading': machinesLoading }">
-            <mat-select placeholder="Machine Type (size)"
-                        id="m.machineType"
-                        [(value)]="m.machineType"
-                        [disabled]="!m.availabileMachinetypes"
-                        (openedChange)="machineTypesFilter = ''"
-                        (selectionChange)="validateMachineConfig()">
-              <input class="machine-types-filter"
-                     matInput
-                     type="text"
-                     placeholder="Filter machines..."
-                     [(ngModel)]="machineTypesFilter"
-                     autofocus>
-              <mat-option *ngFor="let type of m.availabileMachinetypes | callback: filterCallback"
-                          [value]="type">
-              {{ type }}
-              </mat-option>
-            </mat-select>
-          </mat-form-field>
+    <mat-step label="Machine Configuration"
+              [completed]="machinesConfigValid">
+      <div class="machine-config-step">
+        <!-- digital ocean -->
+        <ng-container *ngIf="selectedCloudAccount?.provider == 'digitalocean'">
+          <div class="machine"
+               *ngFor="let m of machines; let idx = index">
+            <mat-form-field class="type">
+              <mat-select placeholder="Machine Type (size)"
+                          id="m.machineType"
+                          [(value)]="m.machineType"
+                          (openedChange)="machineTypesFilter = ''"
+                          (selectionChange)="validateMachineConfig()">
+                <input class="machine-types-filter"
+                       matInput
+                       type="text"
+                       placeholder="Filter machines..."
+                       [(ngModel)]="machineTypesFilter"
+                       autofocus>
+                <mat-option *ngFor="let type of availableMachineTypes | callback: filterCallback"
+                            [value]="type">{{ type }}</mat-option>
+              </mat-select>
+            </mat-form-field>
 
-          <mat-form-field class="role">
-            <mat-select placeholder="Role"
-                        [(value)]="m.role"
-                        (selectionChange)="validateMachineConfig()">
-              <mat-option value="Master">Master</mat-option>
-              <mat-option value="Node">Node</mat-option>
-            </mat-select>
-          </mat-form-field>
+            <mat-form-field class="role">
+              <mat-select placeholder="Role"
+                          [(value)]="m.role"
+                          (selectionChange)="validateMachineConfig()">
+                <mat-option value="Master">Master</mat-option>
+                <mat-option value="Node">Node</mat-option>
+              </mat-select>
+            </mat-form-field>
 
-          <mat-form-field class="quantity">
-            <input matInput
-                   type="number"
-                   min="1"
-                   placeholder="Q-ty"
-                   [(ngModel)]="m.qty"
-                   (ngModelChange)="validateMachineConfig()">
-          </mat-form-field>
+            <mat-form-field class="quantity">
+              <input matInput
+                     type="number"
+                     min="1"
+                     placeholder="Q-ty"
+                     [(ngModel)]="m.qty"
+                     (ngModelChange)="validateMachineConfig()">
+            </mat-form-field>
 
-          <div class="delete"
-               (click)="deleteMachine(idx)"
-               (keyup)="deleteMachine(idx, $event)"
-               tabindex="0"></div>
+            <div class="delete"
+                 (click)="deleteMachine(idx)"
+                 (keyup)="deleteMachine(idx, $event)"
+                 tabindex="0"></div>
+          </div>
+
+          <div class="add-machines"
+               (click)="addBlankMachine()"
+               (keyup)="addBlankMachine($event)"
+               tabindex="0">
+            <div class="plus"></div>
+            <span class="add-label">Add more machines</span>
+          </div>
+        </ng-container>
+
+        <!-- aws -->
+        <ng-container *ngIf="selectedCloudAccount?.provider == 'aws'">
+          <div class="machine"
+               *ngFor="let m of machines; let idx = index">
+
+            <mat-form-field [ngClass]="{ 'azsLoading': azsLoading }">
+              <mat-select placeholder="Select an Availability Zone"
+                          [(value)]="m.availabilityZone"
+                          (selectionChange)="selectAz($event.value, idx)"
+                          required>
+                <mat-option *ngFor="let a of availabilityZones"
+                            [value]="a">{{ a }}</mat-option>
+              </mat-select>
+            </mat-form-field>
+
+            <!-- TODO: make this separate component -->
+            <mat-form-field class="type"
+                            [ngClass]="{ 'machinesLoading': machinesLoading }">
+              <mat-select placeholder="Machine Type (size)"
+                          id="m.machineType"
+                          [(value)]="m.machineType"
+                          [disabled]="!m.availabileMachinetypes"
+                          (openedChange)="machineTypesFilter = ''"
+                          (selectionChange)="validateMachineConfig()">
+                <input class="machine-types-filter"
+                       matInput
+                       type="text"
+                       placeholder="Filter machines..."
+                       [(ngModel)]="machineTypesFilter"
+                       autofocus>
+                <mat-option *ngFor="let type of m.availabileMachinetypes | callback: filterCallback"
+                            [value]="type">
+                  {{ type }}
+                </mat-option>
+              </mat-select>
+            </mat-form-field>
+
+            <mat-form-field class="role">
+              <mat-select placeholder="Role"
+                          [(value)]="m.role"
+                          (selectionChange)="validateMachineConfig()">
+                <mat-option value="Master">Master</mat-option>
+                <mat-option value="Node">Node</mat-option>
+              </mat-select>
+            </mat-form-field>
+
+            <mat-form-field class="quantity">
+              <input matInput
+                     type="number"
+                     min="1"
+                     placeholder="Q-ty"
+                     [(ngModel)]="m.qty"
+                     (ngModelChange)="validateMachineConfig()">
+            </mat-form-field>
+
+            <div class="delete"
+                 (click)="deleteMachine(idx)"
+                 (keyup)="deleteMachine(idx, $event)"
+                 tabindex="0"></div>
+          </div>
+
+          <div class="add-machines"
+               (click)="addBlankMachine()"
+               (keyup)="addBlankMachine($event)"
+               tabindex="0">
+            <div class="plus"></div>
+            <span class="add-label">Add more machines</span>
+          </div>
+        </ng-container>
+
+        <p *ngIf="displayMachinesConfigWarning"
+           class="machine-config-warning">Current machine configuration is invalid. Please check that each machine has a
+                                          type, role, and valid quantity.</p>
+      </div>
+
+      <div class="step-actions">
+        <button mat-raised-button
+                class="secondary"
+                matStepperPrevious>BACK
+        </button>
+        <button mat-raised-button
+                class="secondary"
+                (click)="machinesNext()">NEXT
+        </button>
+      </div>
+    </mat-step>
+
+    <mat-step label="Review">
+      <div class="review-wrapper">
+        <h1>{{ clusterName }}</h1>
+        <div class="steps">
+          <div class="cloud-account">
+            <h3>CLOUD ACCOUNT</h3>
+            <p>{{ selectedCloudAccount?.name }} ({{ selectedCloudAccount?.provider }})</p>
+          </div>
+
+          <div class="cluster">
+            <h3>CLUSTER DETAILS</h3>
+            <div>
+              <p><span class="label">K8s VERSION:</span> {{ clusterConfig.value.K8sVersion }}</p>
+              <p><span class="label">FLANNEL VERSION:</span> {{ clusterConfig.value.flannelVersion }}</p>
+              <p><span class="label">HELM VERSION:</span> {{ clusterConfig.value.helmVersion }}</p>
+              <p><span class="label">DOCKER VERSION:</span> {{ clusterConfig.value.dockerVersion }}</p>
+              <p><span class="label">UBUNTU VERSION:</span> {{ clusterConfig.value.ubuntuVersion }}</p>
+              <p><span class="label">NETWORK TYPE:</span> {{ clusterConfig.value.networkType }}</p>
+              <p><span class="label">CIDR:</span> {{ clusterConfig.value.cidr }}</p>
+              <p><span class="label">OPERATING SYSTEM:</span> {{ clusterConfig.value.operatingSystem }}</p>
+              <p><span class="label">ARCH:</span> {{ clusterConfig.value.arch }}</p>
+            </div>
+          </div>
+
+          <div class="provider">
+            <h3>PROVIDER CONFIGURATION</h3>
+            <!-- digital ocean -->
+            <div *ngIf="selectedCloudAccount?.provider == 'digitalocean'">
+              <p><span class="label">REGION:</span> {{ providerConfig.value.region.name }}</p>
+            </div>
+
+            <!-- aws -->
+            <div *ngIf="selectedCloudAccount?.provider == 'aws'">
+              <p><span class="label">REGION:</span> {{ providerConfig.value.region.name }}</p>
+              <p><span class="label">AVAIL. ZONE:</span> {{ providerConfig.value.availabilityZone }}</p>
+              <p><span class="label">VPC ID:</span> {{ providerConfig.value.vpcId }}</p>
+              <p><span class="label">VPC CIDR:</span> {{ providerConfig.value.vpcCidr }}</p>
+              <p><span class="label">SUBNET ID:</span> {{ providerConfig.value.subnetId }}</p>
+              <p><span class="label">MASTERS SEC. GROUP ID:</span> {{ providerConfig.value.mastersSecurityGroupId }}</p>
+              <p><span class="label">NODES SEC. GROUP ID:</span> {{ providerConfig.value.nodesSecurityGroupId }}</p>
+            </div>
+          </div>
+
+          <div class="machines">
+            <h3>MACHINES</h3>
+            <div>
+              <div *ngFor="let m of machines">
+                <p>{{ m.qty }} x {{ m.machineType }} ({{ m.role }})</p>
+              </div>
+            </div>
+          </div>
         </div>
 
-        <div class="add-machines"
-             (click)="addBlankMachine()"
-             (keyup)="addBlankMachine($event)"
-             tabindex="0">
-          <div class="plus"></div>
-          <span class="add-label">Add more machines</span>
+        <div class="action-buttons-wrapper">
+          <button mat-raised-button
+                  class="secondary"
+                  [ngClass]="{ 'disable': this.provisioning }"
+                  matStepperPrevious>BACK
+          </button>
+          <!-- <button mat-raised-button class="secondary">SAVE PROFILE</button> -->
+          <button mat-raised-button
+                  class="create"
+                  [ngClass]="{ 'disable': this.provisioning }"
+                  color="primary"
+                  (click)="createCluster()">
+            <ng-container *ngIf="!provisioning">CREATE</ng-container>
+            <ng-container *ngIf="provisioning">
+              <mat-spinner [diameter]="24"></mat-spinner>
+            </ng-container>
+          </button>
         </div>
-      </ng-container>
-
-      <p *ngIf="displayMachinesConfigWarning"
-         class="machine-config-warning">Current machine configuration is invalid. Please check that each machine has a
-                                        type, role, and valid quantity.</p>
-    </div>
-
-    <div class="step-actions">
-      <button mat-raised-button
-              class="secondary"
-              matStepperPrevious>BACK
-      </button>
-      <button mat-raised-button
-              class="secondary"
-              (click)="machinesNext()">NEXT
-      </button>
-    </div>
-  </mat-step>
-
-<mat-step label="Review">
-<div class="review-wrapper">
-  <h1>{{ clusterName }}</h1>
-<div class="steps">
-<div class="cloud-account">
-  <h3>CLOUD ACCOUNT</h3>
-<p>{{ selectedCloudAccount?.name }} ({{ selectedCloudAccount?.provider }})</p>
-</div>
-
-<div class="cluster">
-  <h3>CLUSTER DETAILS</h3>
-<div>
-<p><span class="label">K8s VERSION:</span> {{ clusterConfig.value.K8sVersion }}</p>
-<p><span class="label">FLANNEL VERSION:</span> {{ clusterConfig.value.flannelVersion }}</p>
-<p><span class="label">HELM VERSION:</span> {{ clusterConfig.value.helmVersion }}</p>
-<p><span class="label">DOCKER VERSION:</span> {{ clusterConfig.value.dockerVersion }}</p>
-<p><span class="label">UBUNTU VERSION:</span> {{ clusterConfig.value.ubuntuVersion }}</p>
-<p><span class="label">NETWORK TYPE:</span> {{ clusterConfig.value.networkType }}</p>
-<p><span class="label">CIDR:</span> {{ clusterConfig.value.cidr }}</p>
-<p><span class="label">OPERATING SYSTEM:</span> {{ clusterConfig.value.operatingSystem }}</p>
-<p><span class="label">ARCH:</span> {{ clusterConfig.value.arch }}</p>
-</div>
-</div>
-
-<div class="provider">
-  <h3>PROVIDER CONFIGURATION</h3>
-  <!-- digital ocean -->
-<div *ngIf="selectedCloudAccount?.provider == 'digitalocean'">
-<p><span class="label">REGION:</span> {{ providerConfig.value.region.name }}</p>
-</div>
-
-  <!-- aws -->
-<div *ngIf="selectedCloudAccount?.provider == 'aws'">
-<p><span class="label">REGION:</span> {{ providerConfig.value.region.name }}</p>
-<p><span class="label">AVAIL. ZONE:</span> {{ providerConfig.value.availabilityZone }}</p>
-<p><span class="label">VPC ID:</span> {{ providerConfig.value.vpcId }}</p>
-<p><span class="label">VPC CIDR:</span> {{ providerConfig.value.vpcCidr }}</p>
-<p><span class="label">SUBNET ID:</span> {{ providerConfig.value.subnetId }}</p>
-<p><span class="label">MASTERS SEC. GROUP ID:</span> {{ providerConfig.value.mastersSecurityGroupId }}</p>
-<p><span class="label">NODES SEC. GROUP ID:</span> {{ providerConfig.value.nodesSecurityGroupId }}</p>
-</div>
-</div>
-
-<div class="machines">
-  <h3>MACHINES</h3>
-<div>
-<div *ngFor="let m of machines">
-<p>{{ m.qty }} x {{ m.machineType }} ({{ m.role }})</p>
-</div>
-</div>
-</div>
-</div>
-
-  <div class="action-buttons-wrapper">
-    <button mat-raised-button
-            class="secondary"
-            [ngClass]="{ 'disable': this.provisioning }"
-            matStepperPrevious>BACK
-    </button>
-    <!-- <button mat-raised-button class="secondary">SAVE PROFILE</button> -->
-    <button mat-raised-button
-            class="create"
-            [ngClass]="{ 'disable': this.provisioning }"
-            color="primary"
-            (click)="createCluster()">
-      <ng-container *ngIf="!provisioning">CREATE</ng-container>
-      <ng-container *ngIf="provisioning">
-        <mat-spinner [diameter]="24"></mat-spinner>
-      </ng-container>
-    </button>
-  </div>
-</div>
-</mat-step>
-</mat-horizontal-stepper>
+      </div>
+    </mat-step>
+  </mat-horizontal-stepper>
 
   <div *ngIf="availableCloudAccounts?.length == 0">
     <div class="no-cloud-accounts">
