@@ -9,11 +9,16 @@ import (
 	"github.com/aws/aws-sdk-go/service/ec2"
 	"github.com/pkg/errors"
 	"github.com/sirupsen/logrus"
-
 	"github.com/supergiant/control/pkg/workflows/steps"
+	"time"
 )
 
 const DeleteVPCStepName = "aws_delete_vpc"
+
+var (
+	deleteVPCTimeout      = time.Second * 30
+	deleteVPCAttemptCount = 3
+)
 
 type DeleteVPC struct {
 	GetEC2 GetEC2Fn
@@ -32,16 +37,27 @@ func (s *DeleteVPC) Run(ctx context.Context, w io.Writer, cfg *steps.Config) err
 		return errors.Wrap(ErrAuthorization, err.Error())
 	}
 
-	req := &ec2.DeleteVpcInput{
-		VpcId: aws.String(cfg.AWSConfig.VPCID),
-	}
+	var (
+		deleteErr error
+		timeout   = deleteVPCTimeout
+	)
 
-	logrus.Debugf("Delete VPC ID: %s", cfg.AWSConfig.VPCID)
-	_, err = EC2.DeleteVpc(req)
+	for i := 0; i < deleteVPCAttemptCount; i++ {
+		req := &ec2.DeleteVpcInput{
+			VpcId: aws.String(cfg.AWSConfig.VPCID),
+		}
 
-	if err, ok := err.(awserr.Error); ok {
-		logrus.Debugf("Delete VPC %s caused %s",
-			cfg.AWSConfig.VPCID, err.Message())
+		logrus.Debugf("Delete VPC ID: %s", cfg.AWSConfig.VPCID)
+		_, deleteErr = EC2.DeleteVpcWithContext(ctx, req)
+
+		if err, ok := deleteErr.(awserr.Error); ok {
+			logrus.Debugf("Delete VPC %s caused %s retry in %v ",
+				cfg.AWSConfig.VPCID, err.Message(), timeout)
+			time.Sleep(timeout)
+			timeout = timeout * 2
+		} else {
+			break
+		}
 	}
 
 	return nil

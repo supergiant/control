@@ -3,6 +3,7 @@ package amazon
 import (
 	"context"
 	"io"
+	"time"
 
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/aws/awserr"
@@ -14,6 +15,11 @@ import (
 )
 
 const DeleteRouteTableStepName = "aws_delete_route_table"
+
+var (
+	deleteRouteAttemptCount = 5
+	deleteRouteTimeout      = time.Minute
+)
 
 type DeleteRouteTable struct {
 	GetEC2 GetEC2Fn
@@ -31,14 +37,27 @@ func (s *DeleteRouteTable) Run(ctx context.Context, w io.Writer, cfg *steps.Conf
 		return errors.Wrap(ErrAuthorization, err.Error())
 	}
 
-	logrus.Debugf("Delete route table %s from VPC %s",
-		cfg.AWSConfig.RouteTableID, cfg.AWSConfig.VPCID)
-	_, err = EC2.DeleteRouteTable(&ec2.DeleteRouteTableInput{
-		RouteTableId: aws.String(cfg.AWSConfig.RouteTableID),
-	})
+	var (
+		deleteErr error
+		timeout   = deleteRouteTimeout
+	)
 
-	if err, ok := err.(awserr.Error); ok {
-		logrus.Debugf("DisassociateRouteTable caused %s", err.Message())
+	// Disassociating of route table and subnets can take a while, we need to be patient
+	for i := 0; i < deleteRouteAttemptCount; i++ {
+		logrus.Debugf("Delete route table %s from VPC %s",
+			cfg.AWSConfig.RouteTableID, cfg.AWSConfig.VPCID)
+		_, deleteErr = EC2.DeleteRouteTable(&ec2.DeleteRouteTableInput{
+			RouteTableId: aws.String(cfg.AWSConfig.RouteTableID),
+		})
+
+		if err, ok := deleteErr.(awserr.Error); ok {
+			logrus.Debugf("Delete route table %s caused %s sleep for %v",
+				cfg.AWSConfig.RouteTableID, err.Message(), timeout)
+			time.Sleep(timeout)
+			timeout = timeout * 2
+		} else {
+			break
+		}
 	}
 
 	return nil
@@ -49,7 +68,7 @@ func (*DeleteRouteTable) Name() string {
 }
 
 func (*DeleteRouteTable) Depends() []string {
-	return []string{DisassociateRouteTableStepName}
+	return []string{DeleteSubnetsStepName}
 }
 
 func (*DeleteRouteTable) Description() string {
