@@ -242,6 +242,44 @@ func (tp *TaskProvisioner) Cancel(clusterID string) error {
 	return nil
 }
 
+func (tp *TaskProvisioner) RestartClusterProvisioning(ctx context.Context, clusterProfile profile.Profile, config *steps.Config, taskIdMap map[string][]string) error {
+	taskMap := make(map[string][]*workflows.Task)
+
+	// Deserialize tasks and put them to map
+	for taskSet, tasks := range taskIdMap {
+		for _, taskId := range tasks {
+			data, err := tp.repository.Get(ctx, workflows.Prefix, taskId)
+
+			if err != nil {
+				logrus.Debugf("error getting task %s %v", taskId, err)
+				return errors.Wrapf(err, "task id %s not found %s", taskId)
+			}
+
+			task, err := workflows.DeserializeTask(data, tp.repository)
+
+			if err != nil {
+				logrus.Debugf("error deserializing task %s %v", taskId, err)
+				return errors.Wrapf(err, "error deserializing task %s %v", taskId, err)
+			}
+
+			taskMap[taskSet] = append(taskMap[taskSet], task)
+		}
+	}
+
+	go func() {
+		// Save cluster before provisioning
+		err := tp.updateCloudSpecificData(ctx, config)
+
+		if err != nil {
+			logrus.Errorf("update cluster with cloud specific data %v", err)
+		}
+		config.ReadyForBootstrapLatch = &sync.WaitGroup{}
+		config.ReadyForBootstrapLatch.Add(len(taskMap[workflows.MasterTask]))
+	}()
+
+	return nil
+}
+
 // prepare creates all tasks for provisioning according to cloud provider
 func (tp *TaskProvisioner) prepare(name clouds.Name, masterCount, nodeCount int) ([]*workflows.Task, []*workflows.Task, *workflows.Task) {
 	masterTasks := make([]*workflows.Task, 0, masterCount)

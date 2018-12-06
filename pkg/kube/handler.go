@@ -82,6 +82,12 @@ type nodeProvisioner interface {
 	Cancel(string) error
 }
 
+
+type kubeProvisioner interface{
+	RestartClusterProvisioning(context.Context, *steps.Config, map[string][]string) error
+}
+
+// TODO(stgleb): use standard k8s structs for that
 type k8SServices struct {
 	Kind       string `json:"kind"`
 	APIVersion string `json:"apiVersion"`
@@ -143,6 +149,7 @@ type Handler struct {
 	svc             Interface
 	accountService  accountGetter
 	nodeProvisioner nodeProvisioner
+	kubeProvisioner kubeProvisioner
 	workflowMap     map[clouds.Name]workflows.WorkflowSet
 	repo            storage.Interface
 	getWriter       func(string) (io.WriteCloser, error)
@@ -177,6 +184,7 @@ func NewHandler(
 	svc Interface,
 	accountService accountGetter,
 	provisioner nodeProvisioner,
+	kubeProvisioner kubeProvisioner,
 	repo storage.Interface,
 	proxies proxy.Container,
 ) *Handler {
@@ -184,6 +192,7 @@ func NewHandler(
 		svc:             svc,
 		accountService:  accountService,
 		nodeProvisioner: provisioner,
+		kubeProvisioner: kubeProvisioner,
 		workflowMap: map[clouds.Name]workflows.WorkflowSet{
 			clouds.DigitalOcean: {
 				DeleteCluster: workflows.DigitalOceanDeleteCluster,
@@ -263,6 +272,7 @@ func (h *Handler) Register(r *mux.Router) {
 	r.HandleFunc("/kubes/{kubeID}/metrics", h.getClusterMetrics).Methods(http.MethodGet)
 	r.HandleFunc("/kubes/{kubeID}/nodes/metrics", h.getNodesMetrics).Methods(http.MethodGet)
 	r.HandleFunc("/kubes/{kubeID}/services", h.getServices).Methods(http.MethodGet)
+	r.HandleFunc("/kubes/{kubeID}/restart", h.restartKubeProvisioning).Methods(http.MethodPost)
 }
 
 func (h *Handler) getTasks(w http.ResponseWriter, r *http.Request) {
@@ -1215,4 +1225,44 @@ func contains(name, value string, labels map[string]string) bool {
 	}
 
 	return false
+}
+
+func (h *Handler) restartKubeProvisioning(w http.ResponseWriter, r *http.Request) {
+	vars := mux.Vars(r)
+	kubeID := vars["kubeID"]
+
+	k, err := h.svc.Get(r.Context(), kubeID)
+	if err != nil {
+		if sgerrors.IsNotFound(err) {
+			message.SendNotFound(w, kubeID, err)
+			return
+		}
+		message.SendUnknownError(w, err)
+		return
+	}
+
+
+	config := &steps.Config{
+		Provider:         k.Provider,
+		ClusterID:        k.ID,
+		ClusterName:      k.Name,
+		CloudAccountName: k.AccountName,
+		Masters:          steps.NewMap(k.Masters),
+		Nodes:            steps.NewMap(k.Nodes),
+	}
+
+	// Load things specific to cloud provider
+	err = util.LoadCloudSpecificDataFromKube(k, config)
+
+	if err != nil {
+		message.SendUnknownError(w, err)
+		return
+	}
+
+	err = h.kubeProvisioner.RestartClusterProvisioning(r.Context(), config, k.Tasks)
+
+	if err != nil {
+		message.SendUnknownError(w, err)
+		return
+	}
 }
