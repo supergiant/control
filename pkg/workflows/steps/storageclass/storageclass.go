@@ -39,7 +39,7 @@ func New(script *template.Template) *Step {
 func (s *Step) Run(ctx context.Context, w io.Writer, cfg *steps.Config) error {
 	log := util.GetLogger(w)
 
-	log.Infof("[%s] - applying default storage class")
+	log.Infof("[%s] - applying default storage class", s.Name())
 
 	err := steps.RunTemplate(ctx, s.script, cfg.Runner, w, cfg)
 	if err != nil {

@@ -19,7 +19,7 @@ kind: StorageClass
 metadata:
   name: gp2
   annotations:
-    storageclass.beta.kubernetes.io/is-default-class: \"true\"
+    storageclass.kubernetes.io/is-default-class: \"true\"
   labels:
     k8s-addon: storage-aws.addons.k8s.io
 provisioner: kubernetes.io/aws-ebs
@@ -33,7 +33,7 @@ kind: StorageClass
 metadata:
   name: default
   annotations:
-    storageclass.beta.kubernetes.io/is-default-class: "true"
+    storageclass.kubernetes.io/is-default-class: "true"
   labels:
     kubernetes.io/cluster-service: "true"
     k8s-addon: storage-gce.addons.k8s.io
