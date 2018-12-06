@@ -41,6 +41,8 @@ const (
 
 	Cluster = "Cluster"
 
+	NodeSetup = "NodeSetup"
+
 	DigitalOceanMaster        = "DigitalOceanMaster"
 	DigitalOceanNode          = "DigitalOceanNode"
 	DigitalOceanDeleteNode    = "DigitalOceanDeleteNode"
@@ -72,6 +74,19 @@ var (
 func Init() {
 	workflowMap = make(map[string]Workflow)
 
+	// TODO: master/node machine provisioning is the same for all cloud providers, refactor it
+	nodeSetup := []steps.Step{
+		steps.GetStep(authorizedKeys.StepName),
+		steps.GetStep(downloadk8sbinary.StepName),
+		steps.GetStep(certificates.StepName),
+		steps.GetStep(manifest.StepName),
+		steps.GetStep(flannel.StepName),
+		steps.GetStep(docker.StepName),
+		steps.GetStep(kubelet.StepName),
+		steps.GetStep(cni.StepName),
+		steps.GetStep(poststart.StepName),
+	}
+
 	digitalOceanMasterWorkflow := []steps.Step{
 		steps.GetStep(digitalocean.CreateMachineStepName),
 		steps.GetStep(ssh.StepName),
@@ -99,6 +114,7 @@ func Init() {
 		steps.GetStep(poststart.StepName),
 	}
 
+	// TODO: use a single step for these, ClusterInfrastructure?
 	awsPreProvision := []steps.Step{
 		steps.GetStep(amazon.StepFindAMI),
 		steps.GetStep(amazon.StepCreateVPC),
@@ -213,6 +229,7 @@ func Init() {
 	m.Lock()
 	defer m.Unlock()
 
+	workflowMap[NodeSetup] = nodeSetup
 	workflowMap[DigitalOceanDeleteNode] = digitalOceanDeleteNodeWorkflow
 	workflowMap[Cluster] = commonWorkflow
 	workflowMap[DigitalOceanMaster] = digitalOceanMasterWorkflow

@@ -44,7 +44,7 @@ func (s *Step) Run(ctx context.Context, out io.Writer, config *steps.Config) err
 	config.CertificatesConfig.IsMaster = config.IsMaster
 
 	err := steps.RunTemplate(ctx, s.template,
-		config.Runner, out, config.CertificatesConfig)
+		config.Runner, out, config.CertificatesConfig, config.DryRun)
 
 	if err != nil {
 		return errors.Wrap(err, "write certificates step")

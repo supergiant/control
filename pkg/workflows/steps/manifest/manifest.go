@@ -49,7 +49,7 @@ func (j *Step) Run(ctx context.Context, out io.Writer, config *steps.Config) err
 		}
 	}
 
-	err := steps.RunTemplate(ctx, j.script, config.Runner, out, config.ManifestConfig)
+	err := steps.RunTemplate(ctx, j.script, config.Runner, out, config.ManifestConfig, config.DryRun)
 
 	if err != nil {
 		return errors.Wrap(err, "write manifest step")

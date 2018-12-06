@@ -50,7 +50,7 @@ func (s *Step) Run(ctx context.Context, out io.Writer, config *steps.Config) err
 		}
 	}
 
-	err := steps.RunTemplate(ctx2, s.script, config.Runner, out, config.PostStartConfig)
+	err := steps.RunTemplate(ctx2, s.script, config.Runner, out, config.PostStartConfig, config.DryRun)
 
 	if err != nil {
 		return errors.Wrap(err, "run post start script step")

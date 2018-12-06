@@ -46,7 +46,7 @@ func (t *Step) Run(ctx context.Context, out io.Writer, config *steps.Config) err
 	}
 
 	err := steps.RunTemplate(context.Background(), t.script,
-		config.Runner, out, config.FlannelConfig)
+		config.Runner, out, config.FlannelConfig, config.DryRun)
 	if err != nil {
 		return errors.Wrap(err, "install flannel step")
 	}

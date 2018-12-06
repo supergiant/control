@@ -72,7 +72,7 @@ func (s *Step) Run(ctx context.Context, out io.Writer, config *steps.Config) err
 		vars.AdvertiseURLs = strings.Replace(vars.InitialAdvertisePeerURLs, ":2380", ":2379", -1)
 	}
 
-	err := steps.RunTemplate(ctx2, s.script, config.Runner, out, vars)
+	err := steps.RunTemplate(ctx2, s.script, config.Runner, out, vars, config.DryRun)
 
 	if err != nil {
 		return errors.Wrap(err, "install etcd step")

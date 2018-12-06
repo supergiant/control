@@ -208,6 +208,8 @@ func NewMap(m map[string]*node.Node) Map {
 }
 
 type Config struct {
+	DryRun bool `json:"dryRun"`
+
 	TaskID                 string
 	Provider               clouds.Name  `json:"provider"`
 	IsMaster               bool         `json:"isMaster"`

@@ -41,7 +41,7 @@ func New(script *template.Template) *Step {
 }
 
 func (s *Step) Run(ctx context.Context, out io.Writer, config *steps.Config) error {
-	err := steps.RunTemplate(ctx, s.script, config.Runner, out, nil)
+	err := steps.RunTemplate(ctx, s.script, config.Runner, out, nil, config.DryRun)
 
 	if err != nil {
 		return errors.Wrap(err, "install cni step")

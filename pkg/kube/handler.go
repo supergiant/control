@@ -1,6 +1,7 @@
 package kube
 
 import (
+	"bytes"
 	"context"
 	"crypto/tls"
 	"encoding/json"
@@ -576,6 +577,17 @@ func (h *Handler) getCerts(w http.ResponseWriter, r *http.Request) {
 func (h *Handler) addNode(w http.ResponseWriter, r *http.Request) {
 	vars := mux.Vars(r)
 	kubeID := vars["kubeID"]
+	dryRun := r.URL.Query().Get("dryRun") == "true"
+
+	var nodeProfiles []profile.NodeProfile
+	if !dryRun {
+		nodeProfiles = make([]profile.NodeProfile, 0)
+		if err := json.NewDecoder(r.Body).Decode(&nodeProfiles); err != nil {
+			http.Error(w, err.Error(), http.StatusBadRequest)
+			return
+		}
+	}
+
 	k, err := h.svc.Get(r.Context(), kubeID)
 
 	// TODO(stgleb): This method contains a lot of specific stuff, implement provision node
@@ -587,14 +599,6 @@ func (h *Handler) addNode(w http.ResponseWriter, r *http.Request) {
 
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
-		return
-	}
-
-	nodeProfiles := make([]profile.NodeProfile, 0)
-	err = json.NewDecoder(r.Body).Decode(&nodeProfiles)
-
-	if err != nil {
-		http.Error(w, err.Error(), http.StatusBadRequest)
 		return
 	}
 
@@ -652,9 +656,29 @@ func (h *Handler) addNode(w http.ResponseWriter, r *http.Request) {
 	// Get cloud account fill appropriate config structure
 	// with cloud account credentials
 	err = util.FillCloudAccountCredentials(r.Context(), acc, config)
-
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+
+	if dryRun {
+		out, err := buildScriptFor(workflows.GetWorkflow(workflows.NodeSetup), config)
+		if err != nil {
+			logrus.Errorf("provision node: dryRun: %s", err)
+			message.SendUnknownError(w, err)
+			return
+		}
+
+		res := struct {
+			ClusterID string `json:"clusterId"`
+			NodeSetup string `json:"nodeSetup"`
+		}{
+			ClusterID: config.ClusterID,
+			NodeSetup: out,
+		}
+		if err = json.NewEncoder(w).Encode(res); err != nil {
+			http.Error(w, err.Error(), http.StatusInternalServerError)
+		}
 		return
 	}
 
@@ -1205,6 +1229,33 @@ func (h *Handler) getServices(w http.ResponseWriter, r *http.Request) {
 	if err != nil {
 		message.SendUnknownError(w, err)
 	}
+}
+
+// TODO: this is a hack, implement dryRun for workflow
+func buildScriptFor(setupWorkflow workflows.Workflow, config *steps.Config) (string, error) {
+	if setupWorkflow == nil {
+		return "", errors.New("workflow is empty")
+	}
+	if config == nil {
+		return "", errors.New("config is empty")
+	}
+
+	config.DryRun = true
+
+	script := &bytes.Buffer{}
+	script.WriteString("# Node provisioning script\n\n")
+
+	w := &bytes.Buffer{}
+	for _, step := range setupWorkflow {
+		w.Reset()
+		if err := step.Run(context.Background(), w, config); err != nil {
+			return "", errors.New(fmt.Sprintf("run %s step: %s", step.Name(), err))
+		}
+
+		script.WriteString(fmt.Sprintf("## Step: %s\n%s\n\n", step.Name(), w.String()))
+	}
+
+	return script.String(), nil
 }
 
 func contains(name, value string, labels map[string]string) bool {

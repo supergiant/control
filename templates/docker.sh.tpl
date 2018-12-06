@@ -1,6 +1,4 @@
-#!/bin/sh
 # https://download.docker.com/linux/ubuntu/dists/xenial/pool/stable/amd64/docker-ce_17.06.0~ce-0~ubuntu_amd64.deb
-
 DOCKER_VERSION={{ .Version }}
 UBUNTU_RELEASE={{ .ReleaseVersion }}
 ARCH={{ .Arch }}

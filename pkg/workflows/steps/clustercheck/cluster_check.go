@@ -38,7 +38,7 @@ func New(script *template.Template) *Step {
 }
 
 func (s *Step) Run(ctx context.Context, out io.Writer, config *steps.Config) error {
-	err := steps.RunTemplate(ctx, s.script, config.Runner, out, config.ClusterCheckConfig)
+	err := steps.RunTemplate(ctx, s.script, config.Runner, out, config.ClusterCheckConfig, config.DryRun)
 
 	if err != nil {
 		return errors.Wrap(err, "cluster check step")

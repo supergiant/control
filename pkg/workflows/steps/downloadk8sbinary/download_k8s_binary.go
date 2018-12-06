@@ -36,7 +36,7 @@ func New(tpl *template.Template) *Step {
 
 func (s *Step) Run(ctx context.Context, out io.Writer, config *steps.Config) error {
 	err := steps.RunTemplate(context.Background(), s.script,
-		config.Runner, out, config.DownloadK8sBinary)
+		config.Runner, out, config.DownloadK8sBinary, config.DryRun)
 	if err != nil {
 		return errors.Wrap(err, "download k8s binary step")
 	}

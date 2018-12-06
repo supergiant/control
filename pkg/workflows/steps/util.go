@@ -9,17 +9,24 @@ import (
 	"github.com/supergiant/control/pkg/runner"
 )
 
-func RunTemplate(ctx context.Context, tpl *template.Template, r runner.Runner, output io.Writer, cfg interface{}) error {
+func RunTemplate(ctx context.Context, tpl *template.Template, r runner.Runner, output io.Writer, cfg interface{}, dryRun bool) error {
+	cmd := new(bytes.Buffer)
+	if err := tpl.Execute(cmd, cfg); err != nil {
+		return err
+	}
+	// TODO: this is a hack. Add DryRun to the step interface?
+	if dryRun {
+		_, err := output.Write(cmd.Bytes())
+		return err
+	}
+	return RunCommand(ctx, r, cmd.String(), output)
+}
+
+func RunCommand(ctx context.Context, r runner.Runner, command string, output io.Writer) error {
 	resultChan := make(chan error)
 
 	go func() {
-		buffer := new(bytes.Buffer)
-		err := tpl.Execute(buffer, cfg)
-
-		if err != nil {
-			resultChan <- err
-		}
-		cmd, err := runner.NewCommand(ctx, buffer.String(), output, output)
+		cmd, err := runner.NewCommand(ctx, command, output, output)
 
 		if err != nil {
 			resultChan <- err

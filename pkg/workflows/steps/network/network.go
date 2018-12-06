@@ -37,7 +37,7 @@ func New(tpl *template.Template) *Step {
 
 func (t *Step) Run(ctx context.Context, out io.Writer, config *steps.Config) error {
 	err := steps.RunTemplate(context.Background(), t.script,
-		config.Runner, out, config.NetworkConfig)
+		config.Runner, out, config.NetworkConfig, config.DryRun)
 	if err != nil {
 		return errors.Wrap(err, "configure network step")
 	}
