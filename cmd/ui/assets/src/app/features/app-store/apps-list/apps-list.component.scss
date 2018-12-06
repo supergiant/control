@@ -3,6 +3,11 @@
   color: white;
 }
 
+.mat-card-title {
+  width: 250px;
+  overflow-wrap: break-word;
+}
+
 .mat-card-actions {
   display: flex;
   justify-content: space-between;
@@ -20,6 +25,7 @@
     border: none;
   }
 }
+
 
 .charts-wrapper {
   display: flex;
