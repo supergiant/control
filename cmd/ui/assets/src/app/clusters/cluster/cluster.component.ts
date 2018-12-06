@@ -42,8 +42,11 @@ export class ClusterComponent implements OnInit, OnDestroy {
   public kubeString: string;
 
   // machine list vars
-  machines: any;
-  machineListColumns = ["state", "role", "size", "name", "cpu", "ram", "region", "publicIp", "delete"];
+  activeMachines: any;
+  activeMachineListColumns = ["state", "role", "size", "name", "cpu", "ram", "region", "publicIp", "delete"];
+
+  nonActiveMachines: any;
+  nonActiveMachineListColumns = ["state", "role", "size", "name", "region", "steps", "logs", "delete"];
 
   // task list vars
   tasks: any;
@@ -117,7 +120,6 @@ export class ClusterComponent implements OnInit, OnDestroy {
   }
 
   toggleSteps(task) {
-
     task.showSteps = !task.showSteps;
 
     if (this.expandedTaskIds.has(task.id)) {
@@ -212,8 +214,6 @@ export class ClusterComponent implements OnInit, OnDestroy {
                     rows.push(t, { detailRow: true, t })
                   });
                   this.tasks = new MatTableDataSource(rows);
-                  this.tasks.sort = this.sort;
-                  this.tasks.paginator = this.paginator;
                 },
                 err => console.log(err)
               )
@@ -251,7 +251,6 @@ export class ClusterComponent implements OnInit, OnDestroy {
   }
 
   renderMachines(kube) {
-    const machineMetrics = {};
     const masterNames = Object.keys(kube.masters);
     const nodeNames = Object.keys(kube.nodes);
 
@@ -269,9 +268,41 @@ export class ClusterComponent implements OnInit, OnDestroy {
       }
     });
 
-    this.machines = new MatTableDataSource(this.combineAndFlatten(kube.masters, kube.nodes));
-    this.machines.sort = this.sort;
-    this.machines.paginator = this.paginator;
+    const allMachines = this.combineAndFlatten(kube.masters, kube.nodes);
+    const activeMachines = allMachines.filter(m => m.state == "active" || m.state == "deleting");
+    const nonActiveMachines = allMachines.filter(m => m.state != "active" && m.state != "deleting");
+
+    this.activeMachines = new MatTableDataSource(activeMachines);
+    this.activeMachines.sort = this.sort;
+    this.activeMachines.paginator = this.paginator;
+
+    if (nonActiveMachines.length > 0) {
+      let executingTasksObj = {};
+
+      this.getKubeStatus(this.clusterId).subscribe(
+        tasks => {
+          let executing = tasks.filter(t => t.status == "executing");
+          executing.forEach(t => {
+            if (this.expandedTaskIds.has(t.id)) {
+              t.showSteps = true;
+            };
+            executingTasksObj[t.id] = t;
+          });
+
+          let nonAM = [];
+          nonActiveMachines.forEach(m => {
+            const tid = m.taskId;
+            const t = executingTasksObj[tid];
+            m.taskData = executingTasksObj[tid];
+
+            nonAM.push(m, { detailRow: true, t })
+          });
+
+          this.nonActiveMachines = new MatTableDataSource(nonAM);
+        },
+        err => console.error(err)
+      )
+    } else { this.nonActiveMachines = {} }
   }
 
   getReleases() {

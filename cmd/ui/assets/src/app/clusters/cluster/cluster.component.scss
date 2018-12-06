@@ -580,6 +580,29 @@
               transform: scale(0.95, 0.95);
             }
           }
+
+          .small-btn {
+            font-size: 12px;
+            line-height: 24px;
+            margin-left: 12px;
+            min-width: max-content;
+            padding: 0px 4px;
+          }
+
+          .restart-task {
+            font-size: 12px;
+            line-height: 24px;
+            margin-left: 24px;
+            padding: 0px 16px;
+
+            .restart-spinner {
+              margin: 3px auto;
+
+              circle {
+                stroke: #fff;
+              }
+            }
+          }
         }
 
         .expanded-tasks {
@@ -664,21 +687,6 @@
             height: 30px;
             width: 48px;
           }
-
-          .restart-task {
-            font-size: 12px;
-            line-height: 24px;
-            margin-left: 24px;
-            padding: 0px 16px;
-
-            .restart-spinner {
-              margin: 3px auto;
-
-              circle {
-                stroke: #fff;
-              }
-            }
-          }
         }
 
         .steps-toggle {
@@ -695,6 +703,10 @@
           height: 50px;
           width: 75%;
           margin: 0 auto;
+        }
+
+        .open-machine-logs {
+          width: 50%;
         }
 
         .show-steps {
@@ -716,12 +728,16 @@
         justify-content: center !important;
       }
 
-      .metrics-cell {
+      .center-cell {
         justify-content: center !important;
       }
 
-      .machine-name-cell {
+      .max-content-cell {
         min-width: max-content;
+      }
+
+      .machine-state-cell {
+
       }
     }
 
