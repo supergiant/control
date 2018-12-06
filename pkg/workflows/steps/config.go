@@ -66,26 +66,26 @@ type PacketConfig struct{}
 type OSConfig struct{}
 
 type AWSConfig struct {
-	KeyID                         string `json:"access_key"`
-	Secret                        string `json:"secret_key"`
-	Region                        string `json:"region"`
-	AvailabilityZone              string `json:"availabilityZone"`
-	KeyPairName                   string `json:"keyPairName"`
-	VPCID                         string `json:"vpcid"`
-	VPCCIDR                       string `json:"vpccidr"`
-	RouteTableID                  string `json:"routeTableId"`
-	InternetGatewayID             string `json:"internetGatewayId"`
-	NodesSecurityGroupID          string `json:"nodesSecurityGroupID"`
-	MastersSecurityGroupID        string `json:"mastersSecurityGroupID"`
-	MastersInstanceProfile        string `json:"mastersInstanceProfile"`
-	NodesInstanceProfile          string `json:"nodesInstanceProfile"`
-	VolumeSize                    string `json:"volumeSize"`
-	EbsOptimized                  string `json:"ebsOptimized"`
-	ImageID                       string `json:"image"`
-	InstanceType                  string `json:"size"`
-	HasPublicAddr                 string `json:"hasPublicAddr"`
+	KeyID                  string `json:"access_key"`
+	Secret                 string `json:"secret_key"`
+	Region                 string `json:"region"`
+	AvailabilityZone       string `json:"availabilityZone"`
+	KeyPairName            string `json:"keyPairName"`
+	VPCID                  string `json:"vpcid"`
+	VPCCIDR                string `json:"vpccidr"`
+	RouteTableID           string `json:"routeTableId"`
+	InternetGatewayID      string `json:"internetGatewayId"`
+	NodesSecurityGroupID   string `json:"nodesSecurityGroupID"`
+	MastersSecurityGroupID string `json:"mastersSecurityGroupID"`
+	MastersInstanceProfile string `json:"mastersInstanceProfile"`
+	NodesInstanceProfile   string `json:"nodesInstanceProfile"`
+	VolumeSize             string `json:"volumeSize"`
+	EbsOptimized           string `json:"ebsOptimized"`
+	ImageID                string `json:"image"`
+	InstanceType           string `json:"size"`
+	HasPublicAddr          string `json:"hasPublicAddr"`
 	// Map of availability zone to subnet
-	Subnets  map[string]string `json:"subnets"`
+	Subnets map[string]string `json:"subnets"`
 	// Map az to route table association
 	RouteTableAssociationIDs map[string]string `json:"routeTableAssociationIds"`
 }

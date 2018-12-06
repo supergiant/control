@@ -4,13 +4,11 @@ import (
 	"context"
 	"fmt"
 	"net/http"
+	_ "net/http/pprof"
 	"net/url"
 	"os"
 	"strings"
 	"time"
-
-	_ "net/http/pprof"
-
 
 	"github.com/coreos/etcd/clientv3"
 	"github.com/gorilla/handlers"
@@ -248,6 +246,7 @@ func configureApplication(cfg *Config) (*mux.Router, error) {
 	prometheus.Init()
 	gce.Init()
 
+	amazon.InitFindAMI(amazon.GetEC2)
 	amazon.InitImportKeyPair(amazon.GetEC2)
 	amazon.InitCreateInstanceProfiles(amazon.GetIAM)
 	amazon.InitCreateMachine(amazon.GetEC2)
