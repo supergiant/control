@@ -714,6 +714,24 @@
         }
       }
 
+      .deleting-app {
+        animation: deleting-app 2.5s infinite;
+      }
+
+      @keyframes deleting-app {
+        0% {
+          opacity: 1;
+        }
+
+        50% {
+          opacity: 0.5;
+        }
+
+        100% {
+          opacity: 1;
+        }
+      }
+
       .viewingSteps {
         margin-bottom: 0px;
       }

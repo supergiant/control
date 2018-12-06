@@ -69,6 +69,7 @@ export class ClusterComponent implements OnInit, OnDestroy {
   clusterServices: any
   serviceListColumns = ["name", "type", "namespace", "selfLink"];
 
+  deletingApps = new Set();
 
   constructor(
     private route: ActivatedRoute,
@@ -184,7 +185,8 @@ export class ClusterComponent implements OnInit, OnDestroy {
 
   getKube() {
     // TODO: shameful how smart this ENTIRE component has become.
-    this.subscriptions.add(observableTimer(0, 10000).pipe(
+    // this.subscriptions.add(observableTimer(0, 10000).pipe(
+    this.subscriptions.add(observableTimer(0, 120000).pipe(
       switchMap(() => this.supergiant.Kubes.get(this.clusterId))).subscribe(
         k => {
           this.kube = k;
@@ -305,11 +307,15 @@ export class ClusterComponent implements OnInit, OnDestroy {
     } else { this.nonActiveMachines = {} }
   }
 
-  getReleases() {
+  getReleases(deletedReleaseName?) {
     this.supergiant.HelmReleases.get(this.clusterId).subscribe(
       res => {
         const releases = res.filter(r => r.status != "DELETED")
         this.releases = new MatTableDataSource(releases);
+        // TODO: this is temporary. We need to figure out a way around the constant polling
+        if (deletedReleaseName) {
+          this.deletingApps.delete(deletedReleaseName);
+        }
       },
       err => console.error(err)
     )
@@ -399,18 +405,20 @@ export class ClusterComponent implements OnInit, OnDestroy {
      );
   }
 
-  deleteRelease(releaseName) {
+  deleteRelease(releaseName, idx) {
     const dialogRef = this.initDeleteRelease(releaseName);
 
     dialogRef
       .afterClosed()
       .pipe(
         filter(res => res.deleteRelease),
-        switchMap(res => this.supergiant.HelmReleases.delete(releaseName, this.clusterId, !res.deleteConfigs)),
+        // can't mutate table data source, polling erases any optimistic updates, so this happens, sorry...
+        switchMap((_) => this.deletingApps.add(releaseName)),
+        switchMap(res => this.supergiant.HelmReleases.delete(releaseName, this.clusterId, true)),
         catchError(err => of(err))
       ).subscribe(
-        res => this.getReleases(),
-        err => console.error(err)
+        res => { this.getReleases(releaseName) },
+        err => { this.deletingApps.delete(releaseName); console.error(err) }
       )
   }
 

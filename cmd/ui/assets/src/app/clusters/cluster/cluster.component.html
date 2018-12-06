@@ -199,6 +199,40 @@
       </div>
     </div>
 
+    <div *ngIf="clusterServices?.data.length > 0" class="sg-table cluster-services">
+      <h3>CLUSTER SERVICES</h3>
+       <mat-table [dataSource]="clusterServices" matSort>
+        <ng-container matColumnDef="name">
+          <mat-header-cell mat-sort-header
+                           *matHeaderCellDef>Name
+          </mat-header-cell>
+          <mat-cell *matCellDef="let service">{{ service.name }}</mat-cell>
+        </ng-container>
+        <ng-container matColumnDef="type">
+          <mat-header-cell mat-sort-header
+                           *matHeaderCellDef>Type
+          </mat-header-cell>
+          <mat-cell *matCellDef="let service">{{ service.type }}</mat-cell>
+        </ng-container>
+        <ng-container matColumnDef="namespace">
+          <mat-header-cell mat-sort-header
+                           *matHeaderCellDef>Namespace
+          </mat-header-cell>
+          <mat-cell *matCellDef="let service">{{ service.namespace }}</mat-cell>
+        </ng-container>
+        <ng-container matColumnDef="selfLink">
+          <mat-header-cell mat-sort-header
+                           *matHeaderCellDef>Link
+          </mat-header-cell>
+          <mat-cell *matCellDef="let service">
+            <div (click)="openService(service.proxyPort)"  class="open-service"></div>
+          </mat-cell>
+        </ng-container>
+         <mat-header-row *matHeaderRowDef="serviceListColumns"></mat-header-row>
+        <mat-row *matRowDef="let row; columns: serviceListColumns"></mat-row>
+      </mat-table>
+    </div>
+
     <div class="sg-table">
       <h3>ACTIVE MACHINES</h3>
 
@@ -412,7 +446,10 @@
             <mat-header-cell mat-sort-header
                              *matHeaderCellDef>Status
             </mat-header-cell>
-            <mat-cell *matCellDef="let release">{{ release.status }}</mat-cell>
+            <mat-cell *matCellDef="let release">
+              <ng-container *ngIf="!deletingApps.has(release.name)">{{ release.status }}</ng-container>
+              <ng-container *ngIf="deletingApps.has(release.name)">DELETING</ng-container>
+            </mat-cell>
           </ng-container>
 
           <ng-container matColumnDef="name">
@@ -465,13 +502,13 @@
             <mat-header-cell class="small-cell"
                              *matHeaderCellDef>
             </mat-header-cell>
-            <mat-cell class="small-cell" *matCellDef="let release">
-              <div class="delete-icon" (click)="deleteRelease(release.name, $event)"></div>
+            <mat-cell class="small-cell" *matCellDef="let release; let idx = index">
+              <div class="delete-icon" (click)="deleteRelease(release.name, idx)"></div>
             </mat-cell>
           </ng-container>
 
           <mat-header-row *matHeaderRowDef="releaseListColumns"></mat-header-row>
-          <mat-row *matRowDef="let row; columns: releaseListColumns"></mat-row>
+          <mat-row *matRowDef="let row; columns: releaseListColumns" [ngClass]="{ 'deleting-app': deletingApps.has(row.name) }"></mat-row>
         </mat-table>
 
         <a class="new-link" routerLink="/catalog">
@@ -480,38 +517,6 @@
         </a>
       </div>
     </ng-container>
-
-    <div *ngIf="clusterServices?.data.length > 0" class="sg-table cluster-services">
-      <h3>CLUSTER SERVICES</h3>
-       <mat-table [dataSource]="clusterServices" matSort>
-        <ng-container matColumnDef="name">
-          <mat-header-cell mat-sort-header
-                           *matHeaderCellDef>Name
-          </mat-header-cell>
-          <mat-cell *matCellDef="let service">{{ service.name }}</mat-cell>
-        </ng-container>
-        <ng-container matColumnDef="type">
-          <mat-header-cell mat-sort-header
-                           *matHeaderCellDef>Type
-          </mat-header-cell>
-          <mat-cell *matCellDef="let service">{{ service.type }}</mat-cell>
-        </ng-container>
-        <ng-container matColumnDef="namespace">
-          <mat-header-cell mat-sort-header
-                           *matHeaderCellDef>Namespace
-          </mat-header-cell>
-          <mat-cell *matCellDef="let service">{{ service.namespace }}</mat-cell>
-        </ng-container>
-        <ng-container matColumnDef="selfLink">
-          <mat-header-cell *matHeaderCellDef>Link</mat-header-cell>
-          <mat-cell *matCellDef="let service">
-            <div (click)="openService(service.proxyPort)"  class="open-service"></div>
-          </mat-cell>
-        </ng-container>
-         <mat-header-row *matHeaderRowDef="serviceListColumns"></mat-header-row>
-        <mat-row *matRowDef="let row; columns: serviceListColumns"></mat-row>
-      </mat-table>
-    </div>
   </ng-container>
 
   <div class="action-buttons">
