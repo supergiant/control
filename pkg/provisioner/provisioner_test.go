@@ -440,7 +440,10 @@ func TestBuildInitialCluster(t *testing.T) {
 	tp := &TaskProvisioner{
 		kubeService: service,
 	}
-	taskIds := []string{"1234", "5678", "abcd"}
+
+	taskIds := map[string][]string{
+		workflows.MasterTask: {"1234", "5678", "abcd"},
+	}
 
 	tp.buildInitialCluster(context.Background(), &profile.Profile{}, nil, nil, &steps.Config{
 		ClusterID: clusterID,

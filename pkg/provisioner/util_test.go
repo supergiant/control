@@ -139,7 +139,7 @@ func TestGrabTaskIds(t *testing.T) {
 	nodeTasks := []*workflows.Task{}
 	taskIds := grabTaskIds(clusterTsk, masterTasks, nodeTasks)
 
-	if len(taskIds) != len(masterTasks)+len(nodeTasks)+1 {
+	if len(taskIds) != 3 {
 		t.Errorf("Wrong task id count expected %d actual %d",
 			len(masterTasks)+len(nodeTasks)+1, len(taskIds))
 	}
