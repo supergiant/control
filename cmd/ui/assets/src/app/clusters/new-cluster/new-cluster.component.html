@@ -61,122 +61,152 @@
 
     <mat-step label="Cluster Configuration"
               [stepControl]="clusterConfig">
-      <form [formGroup]="clusterConfig"
-            class="cluster-config-form">
-        <div class="input-group">
-          <mat-form-field>
-            <mat-select placeholder="K8s Version"
-                        formControlName="K8sVersion"
-                        required>
-              <mat-option *ngFor="let k of clusterOptions.K8sVersions"
-                          [value]="k">{{ k }}</mat-option>
-            </mat-select>
-            <mat-hint align="end">Check out k8s
-              <a href="https://kubernetes.io/docs/setup/release/notes/"
-                 target="_blank">release notes</a>
-            </mat-hint>
-          </mat-form-field>
+      <div class="cluster-config-forms-wrapper">
+        <form [formGroup]="clusterConfig"
+              class="cluster-config-form">
+          <div class="input-group">
+            <mat-form-field>
+              <mat-select placeholder="K8s Version"
+                          formControlName="K8sVersion"
+                          required>
+                <mat-option *ngFor="let k of clusterOptions.K8sVersions"
+                            [value]="k">{{ k }}</mat-option>
+              </mat-select>
+              <mat-hint align="end">Check out k8s
+                <a href="https://kubernetes.io/docs/setup/release/notes/"
+                   target="_blank">release notes</a>
+              </mat-hint>
+            </mat-form-field>
 
-          <mat-form-field>
-            <mat-select placeholder="Flannel Version"
-                        formControlName="flannelVersion"
-                        required>
-              <mat-option *ngFor="let f of clusterOptions.flannelVersions"
-                          [value]="f">{{ f }}</mat-option>
-            </mat-select>
-            <mat-hint align="end">What is
-              <a href="https://coreos.com/flannel/docs/latest/"
-                 target="_blank">Flannel</a>?
-            </mat-hint>
-          </mat-form-field>
+            <mat-form-field>
+              <mat-select placeholder="Flannel Version"
+                          formControlName="flannelVersion"
+                          required>
+                <mat-option *ngFor="let f of clusterOptions.flannelVersions"
+                            [value]="f">{{ f }}</mat-option>
+              </mat-select>
+              <mat-hint align="end">What is
+                <a href="https://coreos.com/flannel/docs/latest/"
+                   target="_blank">Flannel</a>?
+              </mat-hint>
+            </mat-form-field>
 
-          <mat-form-field>
-            <mat-select placeholder="Helm Version"
-                        formControlName="helmVersion"
-                        required>
-              <mat-option *ngFor="let h of clusterOptions.helmVersions"
-                          [value]="h">{{ h }}</mat-option>
-            </mat-select>
-            <mat-hint align="end">What is
-              <a href="https://docs.helm.sh/helm/"
-                 target="_blank">Helm</a>?
-            </mat-hint>
-          </mat-form-field>
-        </div>
+            <mat-form-field>
+              <mat-select placeholder="Helm Version"
+                          formControlName="helmVersion"
+                          required>
+                <mat-option *ngFor="let h of clusterOptions.helmVersions"
+                            [value]="h">{{ h }}</mat-option>
+              </mat-select>
+              <mat-hint align="end">What is
+                <a href="https://docs.helm.sh/helm/"
+                   target="_blank">Helm</a>?
+              </mat-hint>
+            </mat-form-field>
+          </div>
 
-        <div class="input-group">
-          <mat-form-field>
-            <mat-select placeholder="Docker Version"
-                        formControlName="dockerVersion"
-                        required>
-              <mat-option *ngFor="let d of clusterOptions.dockerVersions"
-                          [value]="d">{{ d }}</mat-option>
-            </mat-select>
-            <mat-hint align="end">Check out Docker
-              <a href="https://docs.docker.com/release-notes/"
-                 target="_blank">release notes</a>
-            </mat-hint>
-          </mat-form-field>
+          <div class="input-group">
+            <mat-form-field>
+              <mat-select placeholder="Docker Version"
+                          formControlName="dockerVersion"
+                          required>
+                <mat-option *ngFor="let d of clusterOptions.dockerVersions"
+                            [value]="d">{{ d }}</mat-option>
+              </mat-select>
+              <mat-hint align="end">Check out Docker
+                <a href="https://docs.docker.com/release-notes/"
+                   target="_blank">release notes</a>
+              </mat-hint>
+            </mat-form-field>
 
-          <mat-form-field>
-            <mat-select placeholder="Ubuntu Version"
-                        formControlName="ubuntuVersion"
-                        required>
-              <mat-option *ngFor="let u of clusterOptions.ubuntuVersions"
-                          [value]="u">{{ u }}</mat-option>
-            </mat-select>
-            <mat-hint align="end">Check out
-              <a href="https://www.ubuntu.com/"
-                 target="_blank">Ubuntu</a>
-            </mat-hint>
-          </mat-form-field>
+            <mat-form-field>
+              <mat-select placeholder="Ubuntu Version"
+                          formControlName="ubuntuVersion"
+                          required>
+                <mat-option *ngFor="let u of clusterOptions.ubuntuVersions"
+                            [value]="u">{{ u }}</mat-option>
+              </mat-select>
+              <mat-hint align="end">Check out
+                <a href="https://www.ubuntu.com/"
+                   target="_blank">Ubuntu</a>
+              </mat-hint>
+            </mat-form-field>
 
-          <mat-form-field>
-            <mat-select placeholder="Network Type"
-                        formControlName="networkType"
-                        required>
-              <mat-option *ngFor="let n of clusterOptions.networkTypes"
-                          [value]="n">{{ n }}</mat-option>
-            </mat-select>
-            <mat-hint align="end">Read more about
-              <a href="https://github.com/coreos/flannel/blob/master/Documentation/backends.md"
-                 target="_blank">network types</a>
-            </mat-hint>
-          </mat-form-field>
-        </div>
+            <mat-form-field>
+              <mat-select placeholder="Network Type"
+                          formControlName="networkType"
+                          required>
+                <mat-option *ngFor="let n of clusterOptions.networkTypes"
+                            [value]="n">{{ n }}</mat-option>
+              </mat-select>
+              <mat-hint align="end">Read more about
+                <a href="https://github.com/coreos/flannel/blob/master/Documentation/backends.md"
+                   target="_blank">network types</a>
+              </mat-hint>
+            </mat-form-field>
+          </div>
 
-        <div class="input-group">
-          <mat-form-field>
-            <input matInput
-                   placeholder="CIDR"
+          <div class="input-group">
+            <mat-form-field>
+              <input matInput
+                     placeholder="CIDR"
+                     type="text"
+                     formControlName="cidr"
+                     required>
+              <mat-hint align="end">What is
+                <a href="https://en.wikipedia.org/wiki/Classless_Inter-Domain_Routing"
+                   target="_blank">CIDR</a>?
+              </mat-hint>
+            </mat-form-field>
+
+            <mat-form-field>
+              <mat-select placeholder="Operating System"
+                          formControlName="operatingSystem"
+                          required>
+                <mat-option *ngFor="let os of clusterOptions.operatingSystems"
+                            [value]="os">{{ os }}</mat-option>
+              </mat-select>
+            </mat-form-field>
+
+            <mat-form-field>
+              <mat-select placeholder="Arch"
+                          formControlName="arch"
+                          required>
+                <mat-option *ngFor="let a of clusterOptions.archs"
+                            [value]="a">{{ a }}</mat-option>
+              </mat-select>
+            </mat-form-field>
+          </div>
+        </form>
+
+        <form [formGroup]="basicAuthConfig" class="cluster-config-form">
+          <div class="input-group basic-auth-first-group">
+            <mat-form-field>
+              <input matInput
+                     placeholder="Basic Auth Username"
+                     type="text"
+                     formControlName="authName"
+                     required>
+            </mat-form-field>
+
+            <mat-form-field>
+              <input matInput
+                   placeholder="Basic Auth Password"
                    type="text"
-                   formControlName="cidr"
+                   formControlName="authPassword"
                    required>
-            <mat-hint align="end">What is
-              <a href="https://en.wikipedia.org/wiki/Classless_Inter-Domain_Routing"
-                 target="_blank">CIDR</a>?
-            </mat-hint>
-          </mat-form-field>
+            </mat-form-field>
 
-          <mat-form-field>
-            <mat-select placeholder="Operating System"
-                        formControlName="operatingSystem"
-                        required>
-              <mat-option *ngFor="let os of clusterOptions.operatingSystems"
-                          [value]="os">{{ os }}</mat-option>
-            </mat-select>
-          </mat-form-field>
-
-          <mat-form-field>
-            <mat-select placeholder="Arch"
-                        formControlName="arch"
-                        required>
-              <mat-option *ngFor="let a of clusterOptions.archs"
-                          [value]="a">{{ a }}</mat-option>
-            </mat-select>
-          </mat-form-field>
-        </div>
-      </form>
+            <mat-form-field>
+              <input matInput
+                   placeholder="Basic Auth ID"
+                   type="text"
+                   formControlName="authId"
+                   required>
+            </mat-form-field>
+          </div>
+        </form>
+      </div>
 
       <div *ngIf="cidr.invalid">
         <p *ngIf="cidr.errors.invalidCidr"
@@ -562,6 +592,9 @@
           <p><span class="label">CIDR:</span> {{ clusterConfig.value.cidr }}</p>
           <p><span class="label">OPERATING SYSTEM:</span> {{ clusterConfig.value.operatingSystem }}</p>
           <p><span class="label">ARCH:</span> {{ clusterConfig.value.arch }}</p>
+          <p><span class="label">BASIC AUTH USERNAME:</span> {{ basicAuthConfig.value.authName }}</p>
+          <p><span class="label">BASIC AUTH PASSWORD:</span> {{ basicAuthConfig.value.authPassword }}</p>
+          <p><span class="label">BASIC AUTH ID:</span> {{ basicAuthConfig.value.authId }}</p>
         </div>
       </div>
 

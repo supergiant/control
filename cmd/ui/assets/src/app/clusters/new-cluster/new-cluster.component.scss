@@ -46,18 +46,27 @@
       }
     }
 
-    .cluster-config-form {
+    .cluster-config-forms-wrapper {
       display: flex;
-      justify-content: flex-start;
+      flex-direction: row;
 
-      .input-group {
+      .cluster-config-form {
         display: flex;
-        flex-direction: column;
-        margin-left: 100px;
-        width: 250px;
+        justify-content: flex-start;
 
-        &:nth-of-type(1) {
-          margin-left: 0px;
+        .input-group {
+          display: flex;
+          flex-direction: column;
+          margin-left: 100px;
+          width: 200px;
+
+          &:nth-of-type(1) {
+            margin-left: 0px;
+          }
+        }
+
+        .basic-auth-first-group {
+          margin-left: 100px !important;
         }
       }
     }

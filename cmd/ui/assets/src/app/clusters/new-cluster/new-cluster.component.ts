@@ -43,6 +43,7 @@ export class NewClusterComponent implements OnInit, OnDestroy {
   provisioning = false;
   nameAndCloudAccountConfig: FormGroup;
   clusterConfig: FormGroup;
+  basicAuthConfig: FormGroup;
   providerConfig: FormGroup;
   unavailableClusterNames = new Set();
   machineTypesFilter: string = '';
@@ -91,6 +92,14 @@ export class NewClusterComponent implements OnInit, OnDestroy {
     if (!this.provisioning) {
       // compile frontend new-cluster model into api format
       const newClusterData: any = {};
+      const basicAuthValues = [
+        {
+          name: this.basicAuthConfig.value.authName,
+          password: this.basicAuthConfig.value.authPassword,
+          id: this.basicAuthConfig.value.authId,
+          group: ["system:masters"]
+        }
+      ]
       newClusterData.profile = this.clusterConfig.value;
 
       newClusterData.cloudAccountName = this.selectedCloudAccount.name;
@@ -100,6 +109,7 @@ export class NewClusterComponent implements OnInit, OnDestroy {
       newClusterData.profile.rbacEnabled = true;
       newClusterData.profile.masterProfiles = this.nodesService.compileProfiles(this.selectedCloudAccount.provider, this.machines, "Master");
       newClusterData.profile.nodesProfiles = this.nodesService.compileProfiles(this.selectedCloudAccount.provider, this.machines, "Node");
+      newClusterData.profile.staticAuth = { basicAuth: basicAuthValues };
 
       switch (newClusterData.profile.provider) {
         case "aws": {
@@ -110,17 +120,16 @@ export class NewClusterComponent implements OnInit, OnDestroy {
             aws_masters_secgroup_id: this.providerConfig.value.mastersSecurityGroupId,
             aws_nodes_secgroup_id: this.providerConfig.value.nodesSecurityGroupId
           };
-
           newClusterData.profile.publicKey = this.providerConfig.value.publicKey;
         }
         break;
         case "gce":
-
           newClusterData.profile.publicKey = this.providerConfig.value.publicKey;
           break;
       }
 
       this.provisioning = true;
+
       this.subscriptions.add(this.supergiant.Kubes.create(newClusterData).subscribe(
         (data: any) => {
           this.success(newClusterData);
@@ -425,6 +434,12 @@ export class NewClusterComponent implements OnInit, OnDestroy {
       operatingSystem: ["linux", Validators.required],
       arch: ["amd64", Validators.required]
     });
+
+    this.basicAuthConfig = this.formBuilder.group({
+      authName: ["root", Validators.required],
+      authPassword: ["", Validators.required],
+      authId: ["", Validators.required]
+    })
   }
 
   ngOnDestroy() {
