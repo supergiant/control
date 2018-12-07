@@ -139,29 +139,20 @@ func (w *Task) Run(ctx context.Context, config steps.Config, out io.WriteCloser)
 	return errChan
 }
 
-// TODO(stgleb): there is need a way to provide config if we want ot restart that task with
 // different settings.
 // Restart executes task from the last failed step
-func (w *Task) Restart(ctx context.Context, id string, out io.Writer) chan error {
+func (w *Task) Restart(ctx context.Context, config  steps.Config, out io.Writer) chan error {
+	if w.Status == statuses.Success {
+		return nil
+	}
+
+	w.Config = &config
 	errChan := make(chan error, 1)
 	wsLog := util.GetLogger(out)
 
-	wsLog.Infof("Restarting task %s", id)
+	wsLog.Infof("Restarting task %s", w.ID)
 	go func() {
 		defer close(errChan)
-		data, err := w.repository.Get(ctx, Prefix, id)
-
-		if err != nil {
-			errChan <- err
-			return
-		}
-
-		err = json.Unmarshal(data, w)
-
-		if err != nil {
-			errChan <- err
-			return
-		}
 
 		i := 0
 		// Skip successfully finished steps
@@ -172,7 +163,7 @@ func (w *Task) Restart(ctx context.Context, id string, out io.Writer) chan error
 			}
 		}
 		// Start from the last failed one
-		err = w.startFrom(ctx, id, out, i)
+		err := w.startFrom(ctx, w.ID, out, i)
 
 		if err != nil {
 			if err == context.Canceled {

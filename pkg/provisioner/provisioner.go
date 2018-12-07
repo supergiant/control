@@ -19,6 +19,7 @@ import (
 	"github.com/supergiant/control/pkg/storage"
 	"github.com/supergiant/control/pkg/util"
 	"github.com/supergiant/control/pkg/workflows"
+	"github.com/supergiant/control/pkg/workflows/statuses"
 	"github.com/supergiant/control/pkg/workflows/steps"
 )
 
@@ -291,7 +292,7 @@ func (tp *TaskProvisioner) RestartClusterProvisioning(ctx context.Context, clust
 	go func() {
 		preProvisionTask := taskMap[workflows.PreProvisionTask]
 
-		if preProvisionTask != nil && len(preProvisionTask) > 0{
+		if preProvisionTask != nil && len(preProvisionTask) > 0 {
 			fileName := util.MakeFileName(preProvisionTask[0].ID)
 			out, err := tp.getWriter(fileName)
 
@@ -299,7 +300,7 @@ func (tp *TaskProvisioner) RestartClusterProvisioning(ctx context.Context, clust
 				logrus.Errorf("error while getting writer %v", err)
 			}
 
-			preProvisionTask[0].Restart(ctx, preProvisionTask[0].ID, out)
+			preProvisionTask[0].Restart(ctx, *config, out)
 			config = preProvisionTask[0].Config
 		}
 
@@ -310,55 +311,35 @@ func (tp *TaskProvisioner) RestartClusterProvisioning(ctx context.Context, clust
 			logrus.Errorf("update cluster with cloud specific data %v", err)
 		}
 
-		// master latch controls when the majority of masters with etcd are up and running
-		// so etcd is available for writes of flannel that starts on each machine
-		masterLatch := util.NewCountdownLatch(ctx,
-			len(clusterProfile.MasterProfiles)/2+1)
-
-		// If we fail n /2 of master deploy jobs - all cluster deployment is failed
-		failLatch := util.NewCountdownLatch(ctx,
-			len(clusterProfile.MasterProfiles)/2+1)
-
-		// ProvisionCluster master nodes
-		for index, masterTask := range taskMap[workflows.MasterTask] {
-			// Take token that allows perform action with Cloud Provider API
-			tp.rateLimiter.Take()
-
-			if masterTask == nil {
-				logrus.Fatal(masterTask)
-			}
-
-			fileName := util.MakeFileName(masterTask.ID)
-			out, err := tp.getWriter(fileName)
-
-			if err != nil {
-				logrus.Errorf("Error getting writer for %s", fileName)
-				return
-			}
-
-			// Fulfill task config with data about provider specific node configuration
-			p := clusterProfile.MasterProfiles[index]
-			FillNodeCloudSpecificData(clusterProfile.Provider, p, config)
-
-			go func(t *workflows.Task) {
-				// Put task id to config so that create instance step can use this id when generate node name
-				config.TaskID = t.ID
-				// TODO(stgleb): pass config here
-				result := t.Restart(ctx, t.ID, out)
-				err = <-result
-
-				if err != nil {
-					failLatch.CountDown()
-					logrus.Errorf("master task %s has finished with error %v", t.ID, err)
-				} else {
-					masterLatch.CountDown()
-					logrus.Infof("master-task %s has finished", t.ID)
-				}
-			}(masterTask)
-		}
-
 		config.ReadyForBootstrapLatch = &sync.WaitGroup{}
 		config.ReadyForBootstrapLatch.Add(len(taskMap[workflows.MasterTask]))
+
+		doneChan, failChan, err := tp.restartMasterTasks(ctx, config,
+			taskMap[workflows.MasterTask], clusterProfile)
+
+		if err != nil {
+			logrus.Errorf("ProvisionCluster master %v", err)
+		}
+
+		select {
+		case <-ctx.Done():
+			logrus.Errorf("Master cluster has not been created %v", ctx.Err())
+			return
+		case <-doneChan:
+		case <-failChan:
+			config.KubeStateChan() <- model.StateFailed
+			logrus.Errorf("master cluster deployment has been failed")
+			return
+		}
+
+		// Save cluster state when masters are provisioned
+		logrus.Infof("master provisioning for cluster %s has finished successfully", config.ClusterID)
+
+		tp.restartNodeTasks(ctx, &clusterProfile, config, taskMap[workflows.NodeTask])
+
+		// Wait for cluster checks are finished
+		tp.waitCluster(ctx, taskMap[workflows.ClusterTask][0], config)
+		logrus.Infof("cluster %s deployment has finished", config.ClusterID)
 	}()
 
 	return nil
@@ -369,7 +350,7 @@ func (tp *TaskProvisioner) prepare(name clouds.Name, masterCount, nodeCount int)
 	var (
 		preProvisionTask  *workflows.Task
 		postProvisionTask *workflows.Task
-		err error
+		err               error
 	)
 
 	masterTasks := make([]*workflows.Task, 0, masterCount)
@@ -439,7 +420,9 @@ func (tp *TaskProvisioner) preProvision(ctx context.Context, preProvisionTask *w
 	return err
 }
 
-func (tp *TaskProvisioner) provisionMasters(ctx context.Context, profile *profile.Profile, config *steps.Config, tasks []*workflows.Task) (chan struct{}, chan struct{}, error) {
+func (tp *TaskProvisioner) provisionMasters(ctx context.Context,
+	profile *profile.Profile, config *steps.Config,
+	tasks []*workflows.Task) (chan struct{}, chan struct{}, error) {
 	config.IsMaster = true
 	doneChan := make(chan struct{})
 	failChan := make(chan struct{})
@@ -461,7 +444,8 @@ func (tp *TaskProvisioner) provisionMasters(ctx context.Context, profile *profil
 		tp.rateLimiter.Take()
 
 		if masterTask == nil {
-			logrus.Fatal(tasks)
+			logrus.Error("Master tasks are nil")
+			return nil, nil, nil
 		}
 		fileName := util.MakeFileName(masterTask.ID)
 		out, err := tp.getWriter(fileName)
@@ -778,5 +762,124 @@ func (tp *TaskProvisioner) monitorClusterState(ctx context.Context, cfg *steps.C
 		case <-ctx.Done():
 			return
 		}
+	}
+}
+
+func (tp *TaskProvisioner) restartMasterTasks(ctx context.Context,
+	config *steps.Config, masterTasks []*workflows.Task,
+	clusterProfile profile.Profile) (chan struct{}, chan struct{}, error) {
+
+	doneChan := make(chan struct{})
+	failChan := make(chan struct{})
+
+	// master latch controls when the majority of masters with etcd are up and running
+	// so etcd is available for writes of flannel that starts on each machine
+	masterLatch := util.NewCountdownLatch(ctx,
+		len(clusterProfile.MasterProfiles)/2+1)
+
+	// If we fail n /2 of master deploy jobs - all cluster deployment is failed
+	failLatch := util.NewCountdownLatch(ctx,
+		len(clusterProfile.MasterProfiles)/2+1)
+
+	// ProvisionCluster master nodes
+	for index, masterTask := range masterTasks {
+		masterTask.Config = config
+
+		if masterTask.Status == statuses.Success {
+			continue
+		}
+
+		// Take token that allows perform action with Cloud Provider API
+		tp.rateLimiter.Take()
+
+		if masterTask == nil {
+			logrus.Fatal(masterTask)
+		}
+
+		fileName := util.MakeFileName(masterTask.ID)
+		out, err := tp.getWriter(fileName)
+
+		if err != nil {
+			logrus.Errorf("Error getting writer for %s", fileName)
+			return nil, nil, nil
+		}
+
+		// Fulfill task config with data about provider specific node configuration
+		p := clusterProfile.MasterProfiles[index]
+		FillNodeCloudSpecificData(clusterProfile.Provider, p, masterTask.Config)
+
+		// Set is master to be sure
+		masterTask.Config.IsMaster = true
+		go func(t *workflows.Task) {
+			t.Config.TaskID = t.ID
+			result := t.Restart(ctx, *config, out)
+			err = <-result
+
+			if err != nil {
+				failLatch.CountDown()
+				logrus.Errorf("master task %s has finished with error %v", t.ID, err)
+			} else {
+				masterLatch.CountDown()
+				logrus.Infof("master-task %s has finished", t.ID)
+			}
+		}(masterTask)
+
+		go func() {
+			masterLatch.Wait()
+			close(doneChan)
+		}()
+
+		go func() {
+			failLatch.Wait()
+			close(failChan)
+		}()
+	}
+
+	return doneChan, failChan, nil
+}
+
+func (tp *TaskProvisioner) restartNodeTasks(ctx context.Context, profile *profile.Profile, config *steps.Config, tasks []*workflows.Task) {
+	// Do internal communication inside private network
+	if master := config.GetMaster(); master != nil {
+		config.FlannelConfig.EtcdHost = master.PrivateIp
+	} else {
+		return
+	}
+
+	// ProvisionCluster nodes
+	for index, nodeTask := range tasks {
+		if nodeTask.Status == statuses.Success {
+			continue
+		}
+
+		// Take token that allows perform action with Cloud Provider API
+		tp.rateLimiter.Take()
+
+		fileName := util.MakeFileName(nodeTask.ID)
+		out, err := tp.getWriter(fileName)
+
+		if err != nil {
+			logrus.Errorf("Error getting writer for %s", fileName)
+			return
+		}
+
+		// Fulfill task config with data about provider specific
+		// node configuration
+		p := profile.NodesProfiles[index]
+		FillNodeCloudSpecificData(profile.Provider, p, config)
+
+		go func(t *workflows.Task) {
+			// Put task id to config so that create instance step can use
+			// this id when generate node name
+			config.TaskID = t.ID
+			result := t.Restart(ctx, *config, out)
+			err = <-result
+
+			if err != nil {
+				logrus.Errorf("node task %s has finished with error %v", t.ID, err)
+			} else {
+				logrus.Infof("node-task %s has finished", t.ID)
+			}
+		}(nodeTask)
 	}
 }
