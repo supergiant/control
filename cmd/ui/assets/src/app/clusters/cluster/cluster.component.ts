@@ -185,8 +185,7 @@ export class ClusterComponent implements OnInit, OnDestroy {
 
   getKube() {
     // TODO: shameful how smart this ENTIRE component has become.
-    // this.subscriptions.add(observableTimer(0, 10000).pipe(
-    this.subscriptions.add(observableTimer(0, 120000).pipe(
+    this.subscriptions.add(observableTimer(0, 10000).pipe(
       switchMap(() => this.supergiant.Kubes.get(this.clusterId))).subscribe(
         k => {
           this.kube = k;
