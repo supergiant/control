@@ -172,7 +172,7 @@ func (h *TaskHandler) RestartTask(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	task.Restart(context.Background(), writer)
+	task.Run(context.Background(), *task.Config, writer)
 	w.WriteHeader(http.StatusAccepted)
 }
 

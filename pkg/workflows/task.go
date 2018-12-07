@@ -149,52 +149,6 @@ func (w *Task) Run(ctx context.Context, config steps.Config, out io.WriteCloser)
 	return errChan
 }
 
-// different settings.
-// Restart executes task from the last failed step
-func (w *Task) Restart(ctx context.Context, config  steps.Config, out io.Writer) chan error {
-	if w.Status == statuses.Success {
-		return nil
-	}
-
-	w.Config = &config
-	errChan := make(chan error, 1)
-	wsLog := util.GetLogger(out)
-
-	wsLog.Infof("Restarting task %s", w.ID)
-	go func() {
-		defer close(errChan)
-
-		i := 0
-		// Skip successfully finished steps
-		for index, stepStatus := range w.StepStatuses {
-			if stepStatus.Status == statuses.Error {
-				i = index
-				break
-			}
-		}
-		// Start from the last failed one
-		err := w.startFrom(ctx, w.ID, out, i)
-
-		if err != nil {
-			if err == context.Canceled {
-				w.Status = statuses.Cancelled
-				// Save task in cancelled state
-				if err := w.sync(context.Background()); err != nil {
-					logrus.Errorf("failed to sync task %s to db: %v", w.ID, err)
-				}
-			} else {
-				w.Status = statuses.Error
-				if err := w.sync(ctx); err != nil {
-					logrus.Errorf("failed to sync task %s to db: %v", w.ID, err)
-				}
-				errChan <- err
-			}
-
-			return
-		}
-	}()
-	return errChan
-}
 
 // start task execution from particular step
 func (w *Task) startFrom(ctx context.Context, id string, out io.Writer, i int) error {
