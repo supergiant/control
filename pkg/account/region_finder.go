@@ -305,7 +305,9 @@ func (af *AWSFinder) GetZones(ctx context.Context, config steps.Config) ([]strin
 }
 
 func (af *AWSFinder) GetTypes(ctx context.Context, config steps.Config) ([]string, error) {
-	out, err := af.getTypes(ctx, af.defaultClient, &ec2.DescribeReservedInstancesOfferingsInput{})
+	out, err := af.getTypes(ctx, af.defaultClient, &ec2.DescribeReservedInstancesOfferingsInput{
+		AvailabilityZone: aws.String(config.AWSConfig.AvailabilityZone),
+	})
 
 	if err != nil {
 		return nil, errors.Wrap(err, "failed to read aws types")
