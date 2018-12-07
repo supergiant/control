@@ -19,7 +19,6 @@ import (
 	"github.com/supergiant/control/pkg/storage"
 	"github.com/supergiant/control/pkg/util"
 	"github.com/supergiant/control/pkg/workflows"
-	"github.com/supergiant/control/pkg/workflows/statuses"
 	"github.com/supergiant/control/pkg/workflows/steps"
 )
 
@@ -265,7 +264,9 @@ func (tp *TaskProvisioner) Cancel(clusterID string) error {
 	return nil
 }
 
-func (tp *TaskProvisioner) RestartClusterProvisioning(ctx context.Context, clusterProfile profile.Profile, config *steps.Config, taskIdMap map[string][]string) error {
+func (tp *TaskProvisioner) RestartClusterProvisioning(ctx context.Context,
+	clusterProfile *profile.Profile,
+	config *steps.Config, taskIdMap map[string][]string) error {
 	taskMap := make(map[string][]*workflows.Task)
 
 	// Deserialize tasks and put them to map
@@ -275,14 +276,16 @@ func (tp *TaskProvisioner) RestartClusterProvisioning(ctx context.Context, clust
 
 			if err != nil {
 				logrus.Debugf("error getting task %s %v", taskId, err)
-				return errors.Wrapf(err, "task id %s not found %b", taskId, err)
+				return errors.Wrapf(err, "task id %s not "+
+					"found %b", taskId, err)
 			}
 
 			task, err := workflows.DeserializeTask(data, tp.repository)
 
 			if err != nil {
 				logrus.Debugf("error deserializing task %s %v", taskId, err)
-				return errors.Wrapf(err, "error deserializing task %s %v", taskId, err)
+				return errors.Wrapf(err, "error deserializing "+
+					"task %s %v", taskId, err)
 			}
 
 			taskMap[taskSet] = append(taskMap[taskSet], task)
@@ -300,7 +303,7 @@ func (tp *TaskProvisioner) RestartClusterProvisioning(ctx context.Context, clust
 				logrus.Errorf("error while getting writer %v", err)
 			}
 
-			preProvisionTask[0].Restart(ctx, *config, out)
+			preProvisionTask[0].Run(ctx, *config, out)
 			config = preProvisionTask[0].Config
 		}
 
@@ -314,8 +317,8 @@ func (tp *TaskProvisioner) RestartClusterProvisioning(ctx context.Context, clust
 		config.ReadyForBootstrapLatch = &sync.WaitGroup{}
 		config.ReadyForBootstrapLatch.Add(len(taskMap[workflows.MasterTask]))
 
-		doneChan, failChan, err := tp.restartMasterTasks(ctx, config,
-			taskMap[workflows.MasterTask], clusterProfile)
+		doneChan, failChan, err := tp.provisionMasters(ctx, clusterProfile,
+			config, taskMap[workflows.MasterTask])
 
 		if err != nil {
 			logrus.Errorf("ProvisionCluster master %v", err)
@@ -323,7 +326,8 @@ func (tp *TaskProvisioner) RestartClusterProvisioning(ctx context.Context, clust
 
 		select {
 		case <-ctx.Done():
-			logrus.Errorf("Master cluster has not been created %v", ctx.Err())
+			logrus.Errorf("Master cluster has not been created %v",
+				ctx.Err())
 			return
 		case <-doneChan:
 		case <-failChan:
@@ -333,13 +337,17 @@ func (tp *TaskProvisioner) RestartClusterProvisioning(ctx context.Context, clust
 		}
 
 		// Save cluster state when masters are provisioned
-		logrus.Infof("master provisioning for cluster %s has finished successfully", config.ClusterID)
+		logrus.Infof("master provisioning for cluster"+
+			"%s has finished successfully",
+			config.ClusterID)
 
-		tp.restartNodeTasks(ctx, &clusterProfile, config, taskMap[workflows.NodeTask])
+		tp.provisionNodes(ctx, clusterProfile, config,
+			taskMap[workflows.NodeTask])
 
 		// Wait for cluster checks are finished
 		tp.waitCluster(ctx, taskMap[workflows.ClusterTask][0], config)
-		logrus.Infof("cluster %s deployment has finished", config.ClusterID)
+		logrus.Infof("cluster %s deployment has finished",
+			config.ClusterID)
 	}()
 
 	return nil
@@ -762,124 +770,5 @@ func (tp *TaskProvisioner) monitorClusterState(ctx context.Context, cfg *steps.C
 		case <-ctx.Done():
 			return
 		}
-	}
-}
-
-func (tp *TaskProvisioner) restartMasterTasks(ctx context.Context,
-	config *steps.Config, masterTasks []*workflows.Task,
-	clusterProfile profile.Profile) (chan struct{}, chan struct{}, error) {
-
-	doneChan := make(chan struct{})
-	failChan := make(chan struct{})
-
-	// master latch controls when the majority of masters with etcd are up and running
-	// so etcd is available for writes of flannel that starts on each machine
-	masterLatch := util.NewCountdownLatch(ctx,
-		len(clusterProfile.MasterProfiles)/2+1)
-
-	// If we fail n /2 of master deploy jobs - all cluster deployment is failed
-	failLatch := util.NewCountdownLatch(ctx,
-		len(clusterProfile.MasterProfiles)/2+1)
-
-	// ProvisionCluster master nodes
-	for index, masterTask := range masterTasks {
-		masterTask.Config = config
-
-		if masterTask.Status == statuses.Success {
-			continue
-		}
-
-		// Take token that allows perform action with Cloud Provider API
-		tp.rateLimiter.Take()
-
-		if masterTask == nil {
-			logrus.Fatal(masterTask)
-		}
-
-		fileName := util.MakeFileName(masterTask.ID)
-		out, err := tp.getWriter(fileName)
-
-		if err != nil {
-			logrus.Errorf("Error getting writer for %s", fileName)
-			return nil, nil, nil
-		}
-
-		// Fulfill task config with data about provider specific node configuration
-		p := clusterProfile.MasterProfiles[index]
-		FillNodeCloudSpecificData(clusterProfile.Provider, p, masterTask.Config)
-
-		// Set is master to be sure
-		masterTask.Config.IsMaster = true
-		go func(t *workflows.Task) {
-			t.Config.TaskID = t.ID
-			result := t.Restart(ctx, *config, out)
-			err = <-result
-
-			if err != nil {
-				failLatch.CountDown()
-				logrus.Errorf("master task %s has finished with error %v", t.ID, err)
-			} else {
-				masterLatch.CountDown()
-				logrus.Infof("master-task %s has finished", t.ID)
-			}
-		}(masterTask)
-
-		go func() {
-			masterLatch.Wait()
-			close(doneChan)
-		}()
-
-		go func() {
-			failLatch.Wait()
-			close(failChan)
-		}()
-	}
-
-	return doneChan, failChan, nil
-}
-
-func (tp *TaskProvisioner) restartNodeTasks(ctx context.Context, profile *profile.Profile, config *steps.Config, tasks []*workflows.Task) {
-	// Do internal communication inside private network
-	if master := config.GetMaster(); master != nil {
-		config.FlannelConfig.EtcdHost = master.PrivateIp
-	} else {
-		return
-	}
-
-	// ProvisionCluster nodes
-	for index, nodeTask := range tasks {
-		if nodeTask.Status == statuses.Success {
-			continue
-		}
-
-		// Take token that allows perform action with Cloud Provider API
-		tp.rateLimiter.Take()
-
-		fileName := util.MakeFileName(nodeTask.ID)
-		out, err := tp.getWriter(fileName)
-
-		if err != nil {
-			logrus.Errorf("Error getting writer for %s", fileName)
-			return
-		}
-
-		// Fulfill task config with data about provider specific
-		// node configuration
-		p := profile.NodesProfiles[index]
-		FillNodeCloudSpecificData(profile.Provider, p, config)
-
-		go func(t *workflows.Task) {
-			// Put task id to config so that create instance step can use
-			// this id when generate node name
-			config.TaskID = t.ID
-			result := t.Restart(ctx, *config, out)
-			err = <-result
-
-			if err != nil {
-				logrus.Errorf("node task %s has finished with error %v", t.ID, err)
-			} else {
-				logrus.Infof("node-task %s has finished", t.ID)
-			}
-		}(nodeTask)
 	}
 }

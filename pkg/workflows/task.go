@@ -106,8 +106,18 @@ func (w *Task) Run(ctx context.Context, config steps.Config, out io.WriteCloser)
 		if err := w.sync(ctx); err != nil {
 			logrus.Errorf("Error saving task state %v", err)
 		}
+
+		i := 0
+		// Skip successfully finished steps in case of restart
+		for index, stepStatus := range w.StepStatuses {
+			if stepStatus.Status == statuses.Error {
+				i = index
+				break
+			}
+		}
+
 		// Start from the first step
-		err := w.startFrom(ctx, w.ID, out, 0)
+		err := w.startFrom(ctx, w.ID, out, i)
 
 		if err != nil {
 			if ctx.Err() == context.Canceled {
