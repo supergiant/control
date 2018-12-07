@@ -529,96 +529,111 @@
                                           type, role, and the quantity of master nodes is an odd number.</p>
       </div>
 
-      <div class="step-actions">
+    <div class="step-actions">
+      <button mat-raised-button
+              class="secondary"
+              matStepperPrevious>BACK
+      </button>
+      <button mat-raised-button
+              class="secondary"
+              (click)="machinesNext()">NEXT
+      </button>
+    </div>
+  </mat-step>
+
+  <mat-step label="Review">
+    <div class="review-wrapper">
+      <h1>{{ clusterName }}</h1>
+    <div class="steps">
+      <div class="cloud-account">
+        <h3>CLOUD ACCOUNT</h3>
+        <p>{{ selectedCloudAccount?.name }} ({{ selectedCloudAccount?.provider }})</p>
+      </div>
+
+      <div class="cluster">
+        <h3>CLUSTER DETAILS</h3>
+        <div>
+          <p><span class="label">K8s VERSION:</span> {{ clusterConfig.value.K8sVersion }}</p>
+          <p><span class="label">FLANNEL VERSION:</span> {{ clusterConfig.value.flannelVersion }}</p>
+          <p><span class="label">HELM VERSION:</span> {{ clusterConfig.value.helmVersion }}</p>
+          <p><span class="label">DOCKER VERSION:</span> {{ clusterConfig.value.dockerVersion }}</p>
+          <p><span class="label">UBUNTU VERSION:</span> {{ clusterConfig.value.ubuntuVersion }}</p>
+          <p><span class="label">NETWORK TYPE:</span> {{ clusterConfig.value.networkType }}</p>
+          <p><span class="label">CIDR:</span> {{ clusterConfig.value.cidr }}</p>
+          <p><span class="label">OPERATING SYSTEM:</span> {{ clusterConfig.value.operatingSystem }}</p>
+          <p><span class="label">ARCH:</span> {{ clusterConfig.value.arch }}</p>
+        </div>
+      </div>
+
+      <div class="provider">
+        <h3>PROVIDER CONFIGURATION</h3>
+        <!-- digital ocean -->
+        <div *ngIf="selectedCloudAccount?.provider == 'digitalocean'">
+          <p><span class="label">REGION:</span> {{ providerConfig.value.region.name }}</p>
+        </div>
+
+        <!-- aws -->
+        <div *ngIf="selectedCloudAccount?.provider == 'aws'">
+          <p><span class="label">REGION: </span> {{ providerConfig.value.region.name }}</p>
+          <p><span class="label">VPC ID: </span>{{ providerConfig.value.vpcId }}</p>
+          <p><span class="label">VPC CIDR: </span> {{ providerConfig.value.vpcCidr }}</p>
+          <p><span class="label">SUBNET ID: </span>{{ providerConfig.value.subnetId }}</p>
+          <p><span class="label">MASTERS SEC. GROUP ID: </span>{{ providerConfig.value.mastersSecurityGroupId }}</p>
+          <p><span class="label">NODES SEC. GROUP ID: </span>{{ providerConfig.value.nodesSecurityGroupId }}</p>
+        </div>
+
+        <!-- gce -->
+        <div *ngIf="selectedCloudAccount?.provider == 'gce'">
+          <p><span class="label">REGION:</span> {{ providerConfig.value.region.name }}</p>
+        </div>
+      </div>
+
+      <div class="machines">
+        <h3>MACHINES</h3>
+        <div>
+            <div *ngFor="let m of machines">
+              <!-- digital ocean -->
+              <ng-container *ngIf="selectedCloudAccount?.provider == 'digitalocean'">
+                <p>{{ m.qty }} x {{ m.machineType }} ({{ m.role }})</p>
+              </ng-container>
+
+              <!-- aws -->
+              <ng-container *ngIf="selectedCloudAccount?.provider == 'aws'">
+                <p class="label machine-label">{{ m.qty }} x {{ m.machineType }} ({{ m.role }})</p>
+                <p class="availability-zone">{{ m.availabilityZone }}</p>
+              </ng-container>
+
+              <!-- gce -->
+              <ng-container *ngIf="selectedCloudAccount?.provider == 'gce'">
+                <p class="label machine-label">{{ m.qty }} x {{ m.machineType }} ({{ m.role }}): {{ m.availabilityZone }}</p>
+                <p class="availability-zone">{{ m.availabilityZone }}</p>
+              </ng-container>
+            </div>
+        </div>
+      </div>
+    </div>
+
+      <div class="action-buttons-wrapper">
         <button mat-raised-button
                 class="secondary"
+                [ngClass]="{ 'disable': this.provisioning }"
                 matStepperPrevious>BACK
         </button>
+        <!-- <button mat-raised-button class="secondary">SAVE PROFILE</button> -->
         <button mat-raised-button
-                class="secondary"
-                (click)="machinesNext()">NEXT
+                class="create"
+                [ngClass]="{ 'disable': this.provisioning }"
+                color="primary"
+                (click)="createCluster()">
+          <ng-container *ngIf="!provisioning">CREATE</ng-container>
+          <ng-container *ngIf="provisioning">
+            <mat-spinner [diameter]="24"></mat-spinner>
+          </ng-container>
         </button>
       </div>
-    </mat-step>
-
-    <mat-step label="Review">
-      <div class="review-wrapper">
-        <h1>{{ clusterName }}</h1>
-        <div class="steps">
-          <div class="cloud-account">
-            <h3>CLOUD ACCOUNT</h3>
-            <p>{{ selectedCloudAccount?.name }} ({{ selectedCloudAccount?.provider }})</p>
-          </div>
-
-          <div class="cluster">
-            <h3>CLUSTER DETAILS</h3>
-            <div>
-              <p><span class="label">K8s VERSION:</span> {{ clusterConfig.value.K8sVersion }}</p>
-              <p><span class="label">FLANNEL VERSION:</span> {{ clusterConfig.value.flannelVersion }}</p>
-              <p><span class="label">HELM VERSION:</span> {{ clusterConfig.value.helmVersion }}</p>
-              <p><span class="label">DOCKER VERSION:</span> {{ clusterConfig.value.dockerVersion }}</p>
-              <p><span class="label">UBUNTU VERSION:</span> {{ clusterConfig.value.ubuntuVersion }}</p>
-              <p><span class="label">NETWORK TYPE:</span> {{ clusterConfig.value.networkType }}</p>
-              <p><span class="label">CIDR:</span> {{ clusterConfig.value.cidr }}</p>
-              <p><span class="label">OPERATING SYSTEM:</span> {{ clusterConfig.value.operatingSystem }}</p>
-              <p><span class="label">ARCH:</span> {{ clusterConfig.value.arch }}</p>
-            </div>
-          </div>
-
-          <div class="provider">
-            <h3>PROVIDER CONFIGURATION</h3>
-            <!-- digital ocean -->
-            <div *ngIf="selectedCloudAccount?.provider == 'digitalocean'">
-              <p><span class="label">REGION:</span> {{ providerConfig.value.region.name }}</p>
-            </div>
-
-            <!-- aws -->
-            <div *ngIf="selectedCloudAccount?.provider == 'aws'">
-              <p><span class="label">REGION:</span> {{ providerConfig.value.region.name }}</p>
-              <p><span class="label">AVAIL. ZONE:</span> {{ providerConfig.value.availabilityZone }}</p>
-              <p><span class="label">VPC ID:</span> {{ providerConfig.value.vpcId }}</p>
-              <p><span class="label">VPC CIDR:</span> {{ providerConfig.value.vpcCidr }}</p>
-              <p><span class="label">SUBNET ID:</span> {{ providerConfig.value.subnetId }}</p>
-              <p><span class="label">MASTERS SEC. GROUP ID:</span> {{ providerConfig.value.mastersSecurityGroupId }}</p>
-              <p><span class="label">NODES SEC. GROUP ID:</span> {{ providerConfig.value.nodesSecurityGroupId }}</p>
-            </div>
-
-            <div *ngIf="selectedCloudAccount?.provider == 'gce'">
-              <p><span class="label">REGION:</span> {{ providerConfig.value.region.name }}</p>
-            </div>
-          </div>
-
-          <div class="machines">
-            <h3>MACHINES</h3>
-            <div>
-              <div *ngFor="let m of machines">
-                <p>{{ m.qty }} x {{ m.machineType }} ({{ m.role }})</p>
-              </div>
-            </div>
-          </div>
-        </div>
-
-        <div class="action-buttons-wrapper">
-          <button mat-raised-button
-                  class="secondary"
-                  [ngClass]="{ 'disable': this.provisioning }"
-                  matStepperPrevious>BACK
-          </button>
-          <!-- <button mat-raised-button class="secondary">SAVE PROFILE</button> -->
-          <button mat-raised-button
-                  class="create"
-                  [ngClass]="{ 'disable': this.provisioning }"
-                  color="primary"
-                  (click)="createCluster()">
-            <ng-container *ngIf="!provisioning">CREATE</ng-container>
-            <ng-container *ngIf="provisioning">
-              <mat-spinner [diameter]="24"></mat-spinner>
-            </ng-container>
-          </button>
-        </div>
-      </div>
-    </mat-step>
-  </mat-horizontal-stepper>
+    </div>
+  </mat-step>
+</mat-horizontal-stepper>
 
   <div *ngIf="availableCloudAccounts?.length == 0">
     <div class="no-cloud-accounts">
