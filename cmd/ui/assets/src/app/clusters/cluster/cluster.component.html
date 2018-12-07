@@ -104,7 +104,7 @@
             class="small-cell"
             *matCellDef="let task"
             (click)="toggleSteps(task)"
-            [ngClass]="{ 'show-steps': expandedTaskIds.has(task.id) }">
+            [ngClass]="{ 'show-steps': expandedTaskIds.has(task.id), 'disabled': task.status == 'todo' }">
             <div class="steps-toggle"></div>
           </mat-cell>
         </ng-container>
@@ -114,7 +114,8 @@
           <mat-cell
             class="small-cell"
             *matCellDef="let task"
-            (click)="viewTaskLog(task.id)">
+            (click)="viewTaskLog(task.id)"
+            [ngClass]="{ 'disabled': task.status == 'todo' }">
             <div class="open-logs"></div>
           </mat-cell>
         </ng-container>
