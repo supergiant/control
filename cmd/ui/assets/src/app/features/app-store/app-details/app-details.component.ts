@@ -35,7 +35,6 @@ export class AppDetailsComponent implements OnInit, OnDestroy {
 
   ngOnInit() {
     this.chartDetails$ = this.store.pipe(select(selectAppDetails));
-    console.log(this.chartDetails$);
   }
 
   openDeployDialog() {
