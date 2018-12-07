@@ -32,6 +32,16 @@ export class NodeProfileService {
           }
         });
         break;
+      case "gce":
+        filteredMachines.forEach(m => {
+          for (var i = 0; i < m.qty; i++) {
+            compiledProfiles.push({
+              size: m.machineType,
+              availabilityZone: m.availabilityZone
+            })
+          }
+        });
+        break;
     }
     return compiledProfiles;
   }

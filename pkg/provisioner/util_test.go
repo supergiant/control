@@ -136,10 +136,11 @@ func TestGrabTaskIds(t *testing.T) {
 		},
 	}
 
+	preProvisionTask := &workflows.Task{}
 	nodeTasks := []*workflows.Task{}
-	taskIds := grabTaskIds(clusterTsk, masterTasks, nodeTasks)
+	taskIds := grabTaskIds(preProvisionTask, clusterTsk, masterTasks, nodeTasks)
 
-	if len(taskIds) != 3 {
+	if len(taskIds) != 4 {
 		t.Errorf("Wrong task id count expected %d actual %d",
 			len(masterTasks)+len(nodeTasks)+1, len(taskIds))
 	}

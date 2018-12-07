@@ -265,6 +265,7 @@ func configureApplication(cfg *Config) (*mux.Router, error) {
 	amazon.InitDisassociateRouteTable(amazon.GetEC2)
 	amazon.InitDeleteRouteTable(amazon.GetEC2)
 	amazon.InitDeleteInternetGateWay(amazon.GetEC2)
+	amazon.InitDeleteKeyPair(amazon.GetEC2)
 	workflows.Init()
 
 	taskHandler := workflows.NewTaskHandler(repository, sshRunner.NewRunner, accountService)
@@ -285,9 +286,8 @@ func configureApplication(cfg *Config) (*mux.Router, error) {
 	taskProvisioner := provisioner.NewProvisioner(repository,
 		kubeService,
 		cfg.SpawnInterval)
-	tokenGetter := provisioner.NewEtcdTokenGetter()
 	provisionHandler := provisioner.NewHandler(kubeService, accountService,
-		tokenGetter, taskProvisioner)
+		taskProvisioner)
 	provisionHandler.Register(protectedAPI)
 	apiProxy := proxy.NewReverseProxyContainer(cfg.ProxiesPortRange, logrus.New().WithField("component", "proxy"))
 

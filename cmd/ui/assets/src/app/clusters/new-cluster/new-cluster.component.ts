@@ -113,6 +113,11 @@ export class NewClusterComponent implements OnInit, OnDestroy {
 
           newClusterData.profile.publicKey = this.providerConfig.value.publicKey;
         }
+        break;
+        case "gce":
+
+          newClusterData.profile.publicKey = this.providerConfig.value.publicKey;
+          break;
       }
 
       this.provisioning = true;
@@ -151,25 +156,52 @@ export class NewClusterComponent implements OnInit, OnDestroy {
     return this.supergiant.CloudAccounts.getAwsAvailabilityZones(accountName, region.name);
   }
 
+  getGCEAvailabilityZones(region) {
+    const accountName = this.selectedCloudAccount.name;
+
+    return this.supergiant.CloudAccounts.getGCEAvailabilityZones(accountName, region.name);
+  }
+
   selectAz(zone, idx) {
     const accountName = this.selectedCloudAccount.name;
     const region = this.providerConfig.value.region.name;
 
     this.machinesLoading = true;
-    this.supergiant.CloudAccounts.getAwsMachineTypes(accountName, region, zone).subscribe(
-      types => {
-        this.machines[idx] = {
-          ...this.machines[idx],
-          availabileMachinetypes: types.sort()
-        };
 
-        this.machinesLoading = false;
-      },
-      err => {
-        console.error(err);
-        this.machinesLoading = false;
-      }
-    )
+    switch (this.selectedCloudAccount.provider) {
+      case "aws":
+        this.supergiant.CloudAccounts.getAwsMachineTypes(accountName, region, zone).subscribe(
+          types => {
+            this.machines[idx] = {
+              ...this.machines[idx],
+              availabileMachinetypes: types.sort()
+            };
+
+            this.machinesLoading = false;
+          },
+          err => {
+            console.error(err);
+            this.machinesLoading = false;
+          }
+        );
+        break;
+      case "gce":
+        this.supergiant.CloudAccounts.getGCEMachineTypes(accountName, region, zone).subscribe(
+          types => {
+            this.machines[idx] = {
+              ...this.machines[idx],
+              availabileMachinetypes: types.sort()
+            };
+
+            this.machinesLoading = false;
+          },
+          err => {
+            console.error(err);
+            this.machinesLoading = false;
+          }
+        );
+        break;
+    }
   }
 
   selectRegion(region) {
@@ -190,6 +222,19 @@ export class NewClusterComponent implements OnInit, OnDestroy {
       case "aws":
         this.azsLoading = true;
         this.getAwsAvailabilityZones(region).subscribe(
+          azList => {
+            this.availabilityZones = azList.sort();
+            this.azsLoading = false
+          },
+          err => {
+            console.error(err);
+            this.azsLoading = false
+          }
+        );
+        break;
+      case "gce":
+        this.azsLoading = true;
+        this.getGCEAvailabilityZones(region).subscribe(
           azList => {
             this.availabilityZones = azList.sort();
             this.azsLoading = false
@@ -265,6 +310,12 @@ export class NewClusterComponent implements OnInit, OnDestroy {
           publicKey: ["", Validators.required]
         });
         break;
+      case "gce":
+        this.providerConfig = this.formBuilder.group({
+          region: ["", Validators.required],
+          publicKey: ["", Validators.required]
+        });
+        break;
     }
 
     this.regionsLoading = true;
@@ -287,20 +338,28 @@ export class NewClusterComponent implements OnInit, OnDestroy {
       machine.role != null &&
       typeof(machine.qty) == "number"
     ) {
-      return true
+      return true;
     } else {
-      return false
+      return false;
     }
     return false;
   }
 
   validateMachineConfig() {
-    if (this.machines.every(this.validMachine)) {
+    if (this.machines.every(this.validMachine) && this.isOddNumberOfMasters()) {
       this.machinesConfigValid = true;
       this.displayMachinesConfigWarning = false;
     } else {
       this.machinesConfigValid = false;
     }
+  }
+
+  isOddNumberOfMasters () {
+    const numberOfMasterProfiles = this.machines
+      .filter(m => m.role === 'Master')
+      .map(m => m.qty)
+      .reduce((prev, next) => prev + next);
+    return (numberOfMasterProfiles) % 2 !== 0;
   }
 
   machinesNext() {

@@ -255,6 +255,42 @@
       </form>
     </ng-container>
 
+    <ng-container *ngIf="selectedCloudAccount?.provider == 'gce'">
+      <form [formGroup]="providerConfig"
+            class="gce-config">
+        <div class="input-group">
+          <mat-form-field [ngClass]="{ 'regionsLoading': regionsLoading }">
+            <mat-select placeholder="Select a Region"
+                        formControlName="region"
+                        (selectionChange)="selectRegion($event.value)"
+                        required>
+              <mat-option *ngFor="let r of availableRegions?.regions"
+                          [value]="r">{{ r.name }}</mat-option>
+            </mat-select>
+          </mat-form-field>
+        </div>
+
+        <div class="input-group public-key-wrapper">
+          <mat-form-field>
+            <textarea cdkTextareaAutosize
+                      cdkAutosizeMaxRows="11"
+                      matInput
+                      formControlName="publicKey"
+                      placeholder="Public ssh key"
+                      required></textarea>
+            <mat-hint align="end">
+              <a href="https://en.wikipedia.org/wiki/Secure_Shell#Key_management"
+                 target="_blank">
+                Where do I find my public key?
+              </a>
+            </mat-hint>
+          </mat-form-field>
+        </div>
+
+      </form>
+    </ng-container>
+
+
     <div *ngIf="vpcCidr.invalid">
       <p *ngIf="vpcCidr.errors.invalidCidr"
          class="warning">{{ vpcCidr.errors.invalidCidr.value }} is not valid CIDR notation</p>
@@ -399,10 +435,71 @@
         </div>
       </ng-container>
 
-      <p *ngIf="displayMachinesConfigWarning"
-         class="machine-config-warning">Current machine configuration is invalid. Please check that each machine has a
-                                        type, role, and valid quantity.</p>
-    </div>
+      <!-- gce -->
+      <ng-container *ngIf="selectedCloudAccount?.provider == 'gce'">
+        <div class="machine"
+             *ngFor="let m of machines; let idx = index">
+
+          <mat-form-field [ngClass]="{ 'azsLoading': azsLoading }">
+            <mat-select placeholder="Select an Availability Zone"
+                        [(value)]="m.availabilityZone"
+                        (selectionChange)="selectAz($event.value, idx)"
+                        required>
+              <mat-option *ngFor="let a of availabilityZones"
+                          [value]="a">{{ a }}</mat-option>
+            </mat-select>
+          </mat-form-field>
+
+          <mat-form-field class="type"
+                          [ngClass]="{ 'machinesLoading': machinesLoading }">
+            <mat-select placeholder="Machine Type (size)"
+                        id="m.machineType"
+                        [(value)]="m.machineType"
+                        [disabled]="!m.availabileMachinetypes"
+                        (selectionChange)="validateMachineConfig()">
+              <mat-option *ngFor="let type of m.availabileMachinetypes"
+                          [value]="type">
+                {{ type }}
+              </mat-option>
+            </mat-select>
+          </mat-form-field>
+
+          <mat-form-field class="role">
+            <mat-select placeholder="Role"
+                        [(value)]="m.role"
+                        (selectionChange)="validateMachineConfig()">
+              <mat-option value="Master">Master</mat-option>
+              <mat-option value="Node">Node</mat-option>
+            </mat-select>
+          </mat-form-field>
+
+          <mat-form-field class="quantity">
+            <input matInput
+                   type="number"
+                   min="1"
+                   placeholder="Q-ty"
+                   [(ngModel)]="m.qty"
+                   (ngModelChange)="validateMachineConfig()">
+          </mat-form-field>
+
+          <div class="delete"
+               (click)="deleteMachine(idx)"
+               (keyup)="deleteMachine(idx, $event)"
+               tabindex="0"></div>
+        </div>
+
+        <div class="add-machines"
+             (click)="addBlankMachine()"
+             (keyup)="addBlankMachine($event)"
+             tabindex="0">
+          <div class="plus"></div>
+          <span class="add-label">Add more machines</span>
+        </div>
+      </ng-container>
+        <p *ngIf="displayMachinesConfigWarning"
+           class="machine-config-warning">Current machine configuration is invalid. Please check that each machine has a
+                                          type, role, and the quantity of master nodes is an odd number.</p>
+      </div>
 
     <div class="step-actions">
       <button mat-raised-button
@@ -456,6 +553,10 @@
 <p><span class="label">SUBNET ID:</span> {{ providerConfig.value.subnetId }}</p>
 <p><span class="label">MASTERS SEC. GROUP ID:</span> {{ providerConfig.value.mastersSecurityGroupId }}</p>
 <p><span class="label">NODES SEC. GROUP ID:</span> {{ providerConfig.value.nodesSecurityGroupId }}</p>
+</div>
+
+<div *ngIf="selectedCloudAccount?.provider == 'gce'">
+<p><span class="label">REGION:</span> {{ providerConfig.value.region.name }}</p>
 </div>
 </div>
 

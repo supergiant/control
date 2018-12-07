@@ -32,6 +32,10 @@ func (s *DisassociateRouteTable) Run(ctx context.Context, w io.Writer, cfg *step
 	}
 
 	for _, associationID := range cfg.AWSConfig.RouteTableAssociationIDs {
+		if associationID == "" {
+			continue
+		}
+
 		disReq := &ec2.DisassociateRouteTableInput{
 			AssociationId: aws.String(associationID),
 		}

@@ -84,7 +84,7 @@ type nodeProvisioner interface {
 
 
 type kubeProvisioner interface{
-	RestartClusterProvisioning(context.Context, *steps.Config, map[string][]string) error
+	RestartClusterProvisioning(context.Context, profile.Profile, *steps.Config, map[string][]string) error
 }
 
 // TODO(stgleb): use standard k8s structs for that
@@ -391,8 +391,9 @@ func (h *Handler) listKubes(w http.ResponseWriter, r *http.Request) {
 
 func (h *Handler) deleteKube(w http.ResponseWriter, r *http.Request) {
 	vars := mux.Vars(r)
-
 	kubeID := vars["kubeID"]
+	logrus.Debugf("Delete kube %s", kubeID)
+
 	if err := h.nodeProvisioner.Cancel(kubeID); err != nil {
 		logrus.Debugf("cancel kube tasks error %v", err)
 	}
@@ -706,6 +707,8 @@ func (h *Handler) deleteNode(w http.ResponseWriter, r *http.Request) {
 	kubeID := vars["kubeID"]
 	nodeName := vars["nodename"]
 
+	logrus.Debugf("Delete node %s from kube %s",
+		nodeName, kubeID)
 	k, err := h.svc.Get(r.Context(), kubeID)
 	if err != nil {
 		if sgerrors.IsNotFound(err) {
@@ -722,7 +725,9 @@ func (h *Handler) deleteNode(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if _, ok := k.Nodes[nodeName]; !ok {
+	var n *node.Node
+
+	if n = k.Nodes[nodeName]; n == nil {
 		http.NotFound(w, r)
 		return
 	}
@@ -757,9 +762,7 @@ func (h *Handler) deleteNode(w http.ResponseWriter, r *http.Request) {
 		ClusterID:        k.ID,
 		ClusterName:      k.Name,
 		CloudAccountName: k.AccountName,
-		Node: node.Node{
-			Name: nodeName,
-		},
+		Node: *n,
 	}
 
 	err = util.FillCloudAccountCredentials(r.Context(), acc, config)
@@ -1259,7 +1262,7 @@ func (h *Handler) restartKubeProvisioning(w http.ResponseWriter, r *http.Request
 		return
 	}
 
-	err = h.kubeProvisioner.RestartClusterProvisioning(r.Context(), config, k.Tasks)
+	err = h.kubeProvisioner.RestartClusterProvisioning(r.Context(), profile.Profile{}, config, k.Tasks)
 
 	if err != nil {
 		message.SendUnknownError(w, err)
