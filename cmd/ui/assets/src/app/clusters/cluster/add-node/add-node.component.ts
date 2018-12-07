@@ -130,6 +130,28 @@ export class AddNodeComponent implements OnInit, OnDestroy {
       switchMap(([name, region, awsZone]) => this.supergiant.CloudAccounts.getAwsMachineTypes(name, region, awsZone))
     );
 
+    const gceMachineSizes$: Observable<string[]> = zip(cloudAccountName$, region$).pipe(
+      take(1),
+      switchMap(([name, region]) =>
+        combineLatest(
+          of(name),
+          of(region),
+          this.supergiant.CloudAccounts.getGCEAvailabilityZones(name, region).pipe(
+            tap(availabilityZones => this.availabilityZones = availabilityZones),
+            // TODO: error handling
+            catchError(e => of(e))
+          )
+        )
+      ),
+      // fetch machine types after az change
+      mergeMap(([name, region]) => {
+        return combineLatest(
+          of({name, region}), this.selectedAZSubj,
+          (params, gceZone) => [params.name, params.region, gceZone]
+        );
+      }),
+      switchMap(([name, region, gceZone]) => this.supergiant.CloudAccounts.getGCEMachineTypes(name, region, gceZone))
+    );
 
     this.subscriptions.add(
       this.providerSubj.pipe(
@@ -143,6 +165,17 @@ export class AddNodeComponent implements OnInit, OnDestroy {
         filter(provider => provider === 'aws'),
         first(),
         switchMap(_ => awsMachineSizes$)
+      ).subscribe((sizes) => {
+        this.isLoadingMachineTypes = false;
+        this.machineSizes$ = of(sizes.sort());
+      })
+    );
+
+    this.subscriptions.add(
+      this.providerSubj.pipe(
+        filter(provider => provider === 'gce'),
+        first(),
+        switchMap(_ => gceMachineSizes$)
       ).subscribe((sizes) => {
         this.isLoadingMachineTypes = false;
         this.machineSizes$ = of(sizes.sort());

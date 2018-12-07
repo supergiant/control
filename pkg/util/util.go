@@ -156,9 +156,10 @@ func LoadCloudSpecificDataFromKube(k *model.Kube, config *steps.Config) error {
 		config.AWSConfig.InternetGatewayID = k.CloudSpec[clouds.AwsInternetGateWayID]
 		config.AWSConfig.MastersInstanceProfile = k.CloudSpec[clouds.AwsMasterInstanceProfile]
 		config.AWSConfig.NodesInstanceProfile = k.CloudSpec[clouds.AwsNodeInstanceProfile]
+		config.AWSConfig.ImageID = k.CloudSpec[clouds.AwsImageID]
 		return nil
 	case clouds.GCE:
-		config.GCEConfig.AvailabilityZone = k.Zone
+		config.GCEConfig.Region = k.Region
 		return nil
 	case clouds.DigitalOcean:
 		return nil

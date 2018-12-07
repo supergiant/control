@@ -51,12 +51,14 @@ func (h *Handler) Create(rw http.ResponseWriter, r *http.Request) {
 
 	ok, err := govalidator.ValidateStruct(account)
 	if !ok {
+		logrus.Errorf("Error validating account struct %v", err)
 		message.SendValidationFailed(rw, err)
 		return
 	}
 
 	// Check account data for validity
 	if err := h.validator.ValidateCredentials(account); err != nil {
+		logrus.Errorf("error validating credentials %v", err)
 		message.SendInvalidCredentials(rw, err)
 		return
 	}

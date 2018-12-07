@@ -6,13 +6,14 @@ import (
 	"io"
 	"time"
 
-	compute "google.golang.org/api/compute/v1"
+	"google.golang.org/api/compute/v1"
 
 	"github.com/supergiant/control/pkg/clouds"
 	"github.com/supergiant/control/pkg/node"
 	"github.com/supergiant/control/pkg/sgerrors"
 	"github.com/supergiant/control/pkg/util"
 	"github.com/supergiant/control/pkg/workflows/steps"
+	"strings"
 )
 
 const CreateInstanceStepName = "gce_create_instance"
@@ -30,6 +31,9 @@ func NewCreateInstanceStep() (steps.Step, error) {
 
 func (s *CreateInstanceStep) Run(ctx context.Context, output io.Writer, config *steps.Config) error {
 	// fetch client.
+	// TODO(stgleb):  Add UI and API for selecting image family
+	config.GCEConfig.ImageFamily = "ubuntu-1604-lts"
+
 	client, err := s.getClient(ctx, config.GCEConfig.ClientEmail,
 		config.GCEConfig.PrivateKey, config.GCEConfig.TokenURI)
 	if err != nil {
@@ -57,7 +61,10 @@ func (s *CreateInstanceStep) Run(ctx context.Context, output io.Writer, config *
 	if !config.IsMaster {
 		role = "node"
 	}
-	name := util.MakeNodeName(config.ClusterName, config.TaskID, config.IsMaster)
+	// NOTE(stgleb): Upper-case symbols are forbidden
+	// Instance name must follow regexp: (?:[a-z](?:[-a-z0-9]{0,61}[a-z0-9])?)
+	name := util.MakeNodeName(strings.ToLower(config.ClusterName),
+		config.TaskID, config.IsMaster)
 
 	// TODO(stgleb): also copy user provided ssh key
 	publicKey := fmt.Sprintf("%s:%s",
@@ -162,6 +169,9 @@ func (s *CreateInstanceStep) Run(ctx context.Context, output io.Writer, config *
 		Role:      nodeRole,
 		Provider:  clouds.GCE,
 		Size:      config.GCEConfig.Size,
+		// Note(stgleb):  This is a hack, we put az to region, because region is
+		// cluster wide and we need az to delete instance.
+		// TODO(stgleb): consider adding AZ to node struct
 		Region:    config.GCEConfig.AvailabilityZone,
 	}
 

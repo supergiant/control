@@ -57,6 +57,7 @@ const (
 )
 
 type WorkflowSet struct {
+	PreProvision    string
 	ProvisionMaster string
 	ProvisionNode   string
 	DeleteNode      string
@@ -160,9 +161,10 @@ func Init() {
 		steps.GetStep(amazon.DeleteClusterMachinesStepName),
 		steps.GetStep(amazon.DeleteSecurityGroupsStepName),
 		steps.GetStep(amazon.DisassociateRouteTableStepName),
-		steps.GetStep(amazon.DeleteRouteTableStepName),
 		steps.GetStep(amazon.DeleteSubnetsStepName),
+		steps.GetStep(amazon.DeleteRouteTableStepName),
 		steps.GetStep(amazon.DeleteInternetGatewayStepName),
+		steps.GetStep(amazon.DeleteKeyPairStepName),
 		steps.GetStep(amazon.DeleteVPCStepName),
 	}
 

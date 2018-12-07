@@ -4,7 +4,6 @@ import (
 	"context"
 	"fmt"
 	"io"
-	"os"
 	"sync"
 	"time"
 
@@ -59,6 +58,7 @@ func NewProvisioner(repository storage.Interface, kubeService KubeService,
 			clouds.AWS: {
 				ProvisionMaster: workflows.AWSMaster,
 				ProvisionNode:   workflows.AWSNode,
+				PreProvision:    workflows.AWSPreProvision,
 			},
 			clouds.GCE: {
 				ProvisionMaster: workflows.GCEMaster,
@@ -75,7 +75,7 @@ func NewProvisioner(repository storage.Interface, kubeService KubeService,
 // that have been provided for provisionCluster
 func (tp *TaskProvisioner) ProvisionCluster(parentContext context.Context,
 	profile *profile.Profile, config *steps.Config) (map[string][]*workflows.Task, error) {
-	masterTasks, nodeTasks, clusterTask := tp.prepare(config.Provider, len(profile.MasterProfiles),
+	masterTasks, nodeTasks, preProvisionTask, clusterTask := tp.prepare(config.Provider, len(profile.MasterProfiles),
 		len(profile.NodesProfiles))
 
 	// Get clusterID from taskID
@@ -102,7 +102,7 @@ func (tp *TaskProvisioner) ProvisionCluster(parentContext context.Context,
 	}
 
 	// Gather all task ids
-	taskIds := grabTaskIds(clusterTask, masterTasks, nodeTasks)
+	taskIds := grabTaskIds(preProvisionTask, clusterTask, masterTasks, nodeTasks)
 	// Save cluster before provisioning
 	err := tp.buildInitialCluster(ctx, profile, masters, nodes, config, taskIds)
 
@@ -114,11 +114,27 @@ func (tp *TaskProvisioner) ProvisionCluster(parentContext context.Context,
 	go tp.monitorClusterState(ctx, config)
 
 	go func() {
-		if err := tp.preProvision(ctx, config); err != nil {
-			logrus.Errorf("Pre provisioning cluster %v", err)
-			return
+		var preProvisionErr error
+
+		if preProvisionTask != nil {
+			if preProvisionErr := tp.preProvision(ctx, preProvisionTask, config); preProvisionErr != nil {
+				logrus.Errorf("Pre provisioning cluster %v", err)
+			}
+
+			// Copy config from preProvision task because it contains all things need for further
+			// provisioning VPC, SecGroup, Subnets etc.
+			config = preProvisionTask.Config
+
+			// In case of preprovision failure stop provisioning process.
+			if preProvisionErr != nil {
+				// TODO(stgleb): move this to separate step
+				// Save cluster before provisioning
+				tp.updateCloudSpecificData(ctx, config)
+				return
+			}
 		}
 
+		// TODO(stgleb): move this to separate step
 		// Save cluster before provisioning
 		err := tp.updateCloudSpecificData(ctx, config)
 
@@ -156,11 +172,17 @@ func (tp *TaskProvisioner) ProvisionCluster(parentContext context.Context,
 		logrus.Infof("cluster %s deployment has finished", config.ClusterID)
 	}()
 
-	return map[string][]*workflows.Task{
+	taskMap := map[string][]*workflows.Task{
 		"master":  masterTasks,
 		"node":    nodeTasks,
 		"cluster": {clusterTask},
-	}, nil
+	}
+
+	if preProvisionTask != nil {
+		taskMap["preprovision"] = []*workflows.Task{preProvisionTask}
+	}
+
+	return taskMap, nil
 }
 
 func (tp *TaskProvisioner) ProvisionNodes(parentContext context.Context, nodeProfiles []profile.NodeProfile, kube *model.Kube, config *steps.Config) ([]string, error) {
@@ -243,9 +265,28 @@ func (tp *TaskProvisioner) Cancel(clusterID string) error {
 }
 
 // prepare creates all tasks for provisioning according to cloud provider
-func (tp *TaskProvisioner) prepare(name clouds.Name, masterCount, nodeCount int) ([]*workflows.Task, []*workflows.Task, *workflows.Task) {
+func (tp *TaskProvisioner) prepare(name clouds.Name, masterCount, nodeCount int) ([]*workflows.Task, []*workflows.Task, *workflows.Task, *workflows.Task) {
+	var (
+		preProvisionTask  *workflows.Task
+		postProvisionTask *workflows.Task
+		err error
+	)
+
 	masterTasks := make([]*workflows.Task, 0, masterCount)
 	nodeTasks := make([]*workflows.Task, 0, nodeCount)
+	//some clouds (e.g. AWS) requires running tasks before provisioning nodes (creating a VPC, Subnets, SecGroups, etc)
+	switch name {
+	case clouds.AWS:
+		preProvisionTask, err = workflows.NewTask(tp.provisionMap[name].PreProvision, tp.repository)
+		// We can't go further without pre provision task
+		if err != nil {
+			logrus.Errorf("create pre provision task has finished with %v", err)
+			return nil, nil, nil, nil
+		}
+	case clouds.GCE:
+	case clouds.DigitalOcean:
+		// TODO(stgleb): Create key pairs here
+	}
 
 	for i := 0; i < masterCount; i++ {
 		t, err := workflows.NewTask(tp.provisionMap[name].ProvisionMaster, tp.repository)
@@ -267,23 +308,35 @@ func (tp *TaskProvisioner) prepare(name clouds.Name, masterCount, nodeCount int)
 		nodeTasks = append(nodeTasks, t)
 	}
 
-	clusterTask, _ := workflows.NewTask(workflows.Cluster, tp.repository)
+	postProvisionTask, _ = workflows.NewTask(workflows.Cluster, tp.repository)
 
-	return masterTasks, nodeTasks, clusterTask
+	return masterTasks, nodeTasks, preProvisionTask, postProvisionTask
 }
 
-func (p *TaskProvisioner) preProvision(ctx context.Context, config *steps.Config) error {
-	//some clouds (e.g. AWS) requires running tasks before provisioning nodes (creating a VPC, Subnets, SecGroups, etc)
-	switch config.Provider {
-	case clouds.AWS:
-		wf := workflows.GetWorkflow(workflows.AWSPreProvision)
-		for _, t := range wf {
-			if err := t.Run(ctx, os.Stdout, config); err != nil {
-				return errors.Wrap(err, "cluster pre provisioning setup failed")
-			}
-		}
+// preProvision is for preparing activities before instances can be creates like
+// creation of VPC, key pairs, security groups, subnets etc.
+func (tp *TaskProvisioner) preProvision(ctx context.Context, preProvisionTask *workflows.Task, config *steps.Config) error {
+	fileName := util.MakeFileName(preProvisionTask.ID)
+	out, err := tp.getWriter(fileName)
+
+	if err != nil {
+		logrus.Errorf("Error getting writer for %s", fileName)
+		return err
 	}
-	return nil
+
+	result := preProvisionTask.Run(ctx, *config, out)
+	err = <-result
+
+	if err != nil {
+		config.KubeStateChan() <- model.StateFailed
+		logrus.Errorf("pre provision task %s has finished with error %v",
+			preProvisionTask.ID, err)
+	} else {
+		config.KubeStateChan() <- model.StateProvisioning
+		logrus.Infof("pre provision %s has finished", preProvisionTask.ID)
+	}
+
+	return err
 }
 
 func (tp *TaskProvisioner) provisionMasters(ctx context.Context, profile *profile.Profile, config *steps.Config, tasks []*workflows.Task) (chan struct{}, chan struct{}, error) {
@@ -525,6 +578,8 @@ func (t *TaskProvisioner) updateCloudSpecificData(ctx context.Context, config *s
 			config.AWSConfig.MastersInstanceProfile
 		cloudSpecificSettings[clouds.AwsNodeInstanceProfile] =
 			config.AWSConfig.NodesInstanceProfile
+		cloudSpecificSettings[clouds.AwsImageID] =
+			config.AWSConfig.ImageID
 	case clouds.GCE:
 		// GCE is the most simple :-)
 	case clouds.DigitalOcean:
