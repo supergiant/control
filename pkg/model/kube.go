@@ -47,6 +47,8 @@ type Kube struct {
 
 	CloudSpec profile.CloudSpecificSettings `json:"cloudSpec" valid:"-"`
 
+	ProfileID string `json:"profileId"`
+
 	Masters map[string]*node.Node `json:"masters"`
 	Nodes   map[string]*node.Node `json:"nodes"`
 	// Store taskIds of tasks that are made to provision this kube
