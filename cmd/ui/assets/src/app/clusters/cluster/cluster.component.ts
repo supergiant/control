@@ -129,7 +129,9 @@ export class ClusterComponent implements OnInit, OnDestroy {
   }
 
   taskComplete(task) {
-    return task.stepsStatuses.every((s) => s.status == "success");
+    if (task.stepStatuses) {
+      return task.stepsStatuses.every((s) => s.status == "success");
+    } else { return false; }
   }
 
   restartTask(taskId) {
@@ -185,8 +187,7 @@ export class ClusterComponent implements OnInit, OnDestroy {
 
   getKube() {
     // TODO: shameful how smart this ENTIRE component has become.
-    // this.subscriptions.add(observableTimer(0, 10000).pipe(
-    this.subscriptions.add(observableTimer(0, 120000).pipe(
+    this.subscriptions.add(observableTimer(0, 10000).pipe(
       switchMap(() => this.supergiant.Kubes.get(this.clusterId))).subscribe(
         k => {
           this.kube = k;
