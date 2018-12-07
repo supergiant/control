@@ -18,6 +18,7 @@ import { map, switchMap, tap, filter }                           from "rxjs/oper
 export class AppDetailsComponent implements OnInit, OnDestroy {
   chartDetails$: Observable<Chart>;
   private subscriptons: Subscription;
+  repo: string;
 
   constructor(
     private route: ActivatedRoute,
@@ -26,10 +27,10 @@ export class AppDetailsComponent implements OnInit, OnDestroy {
   ) {
     this.subscriptons = new Subscription();
 
-    let repo = this.route.snapshot.paramMap.get('repo');
+    this.repo = this.route.snapshot.paramMap.get('repo');
     let chart = this.route.snapshot.paramMap.get('chart');
 
-    this.store.dispatch(new LoadAppDetails({ repo, chart }));
+    this.store.dispatch(new LoadAppDetails({ repo: this.repo, chart }));
   }
 
   ngOnInit() {

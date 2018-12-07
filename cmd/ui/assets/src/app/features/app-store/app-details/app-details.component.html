@@ -47,6 +47,7 @@
           mat-button
           color="primary">DEPLOY
   </button>
+  <p *ngIf="repo == 'stable'" class="stable-warning">Charts from this repo should be configured before deployed.</p>
 </aside>
 </mat-card>
 </section>
