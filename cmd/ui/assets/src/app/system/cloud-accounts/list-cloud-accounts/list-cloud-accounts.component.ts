@@ -31,9 +31,21 @@ export class ListCloudAccountsComponent implements OnInit, OnDestroy {
   @ViewChild(MatSort) sort: MatSort;
   @ViewChild(MatPaginator) paginator: MatPaginator;
 
+  activeCloudAccounts = new Set();
+
+  getClusters() {
+    this.subscriptions.add(observableTimer(0, 10000).pipe(
+      switchMap(() => this.supergiant.Kubes.get())).subscribe(
+        kubes => {
+          kubes.forEach(k => this.activeCloudAccounts.add(k.accountName));
+        },
+        err => console.error(err)
+      ))
+  }
+
   getCloudAccounts() {
     // TODO: do we really need to poll this page?
-    this.subscriptions.add(observableTimer(0, 5000).pipe(
+    this.subscriptions.add(observableTimer(0, 10000).pipe(
       switchMap(() => this.supergiant.CloudAccounts.get())).subscribe(
         accounts => {
           this.accounts = new MatTableDataSource(accounts);
@@ -79,6 +91,7 @@ export class ListCloudAccountsComponent implements OnInit, OnDestroy {
   }
 
   ngOnInit() {
+    this.getClusters();
     this.getCloudAccounts();
   }
 

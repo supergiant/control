@@ -49,16 +49,18 @@ type DOConfig struct {
 // TODO(stgleb): Fill struct with fields when provisioning on other providers is done
 
 type GCEConfig struct {
-	PrivateKey       string `json:"privateKey"`
+	// NOTE(stgleb): This comes from cloud account
+	PrivateKey       string `json:"private_key"`
+	ClientEmail      string `json:"client_email"`
+	TokenURI         string `json:"token_uri"`
+	ProjectID        string `json:"project_id"`
+
+	// This comes from profile
 	ImageFamily      string `json:"imageFamily"`
-	ProjectID        string `json:"projectId"`
 	Region           string `json:"region"`
 	AvailabilityZone string `json:"availabilityZone"`
 	Size             string `json:"size"`
 	InstanceGroup    string `json:"instanceGroup"`
-	ClientEmail      string `json:"clientEmail"`
-	TokenURI         string `json:"tokenURI"`
-	AuthURI          string `json:"authURI"`
 }
 
 type PacketConfig struct{}
@@ -66,26 +68,28 @@ type PacketConfig struct{}
 type OSConfig struct{}
 
 type AWSConfig struct {
-	KeyID                         string `json:"access_key"`
-	Secret                        string `json:"secret_key"`
-	Region                        string `json:"region"`
-	AvailabilityZone              string `json:"availabilityZone"`
-	KeyPairName                   string `json:"keyPairName"`
-	VPCID                         string `json:"vpcid"`
-	VPCCIDR                       string `json:"vpccidr"`
-	SubnetID                      string `json:"subnetID"`
-	RouteTableID                  string `json:"routeTableId"`
-	RouteTableSubnetAssociationID string `json:"routeTableSubnetAssociationId"`
-	InternetGatewayID             string `json:"internetGatewayId"`
-	NodesSecurityGroupID          string `json:"nodesSecurityGroupID"`
-	MastersSecurityGroupID        string `json:"mastersSecurityGroupID"`
-	MastersInstanceProfile        string `json:"mastersInstanceProfile"`
-	NodesInstanceProfile          string `json:"nodesInstanceProfile"`
-	VolumeSize                    string `json:"volumeSize"`
-	EbsOptimized                  string `json:"ebsOptimized"`
-	ImageID                       string `json:"image"`
-	InstanceType                  string `json:"size"`
-	HasPublicAddr                 string `json:"hasPublicAddr"`
+	KeyID                  string `json:"access_key"`
+	Secret                 string `json:"secret_key"`
+	Region                 string `json:"region"`
+	AvailabilityZone       string `json:"availabilityZone"`
+	KeyPairName            string `json:"keyPairName"`
+	VPCID                  string `json:"vpcid"`
+	VPCCIDR                string `json:"vpccidr"`
+	RouteTableID           string `json:"routeTableId"`
+	InternetGatewayID      string `json:"internetGatewayId"`
+	NodesSecurityGroupID   string `json:"nodesSecurityGroupID"`
+	MastersSecurityGroupID string `json:"mastersSecurityGroupID"`
+	MastersInstanceProfile string `json:"mastersInstanceProfile"`
+	NodesInstanceProfile   string `json:"nodesInstanceProfile"`
+	VolumeSize             string `json:"volumeSize"`
+	EbsOptimized           string `json:"ebsOptimized"`
+	ImageID                string `json:"image"`
+	InstanceType           string `json:"size"`
+	HasPublicAddr          string `json:"hasPublicAddr"`
+	// Map of availability zone to subnet
+	Subnets map[string]string `json:"subnets"`
+	// Map az to route table association
+	RouteTableAssociationIDs map[string]string `json:"routeTableAssociationIds"`
 }
 
 type FlannelConfig struct {
@@ -266,7 +270,7 @@ func NewConfig(clusterName, clusterToken, cloudAccountName string, profile profi
 			VPCCIDR:                profile.CloudSpecificSettings[clouds.AwsVpcCIDR],
 			VPCID:                  profile.CloudSpecificSettings[clouds.AwsVpcID],
 			KeyPairName:            profile.CloudSpecificSettings[clouds.AwsKeyPairName],
-			SubnetID:               profile.CloudSpecificSettings[clouds.AwsSubnetID],
+			Subnets:                nil,
 			MastersSecurityGroupID: profile.CloudSpecificSettings[clouds.AwsMastersSecGroupID],
 			NodesSecurityGroupID:   profile.CloudSpecificSettings[clouds.AwsNodesSecgroupID],
 		},

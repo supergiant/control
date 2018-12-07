@@ -2,13 +2,14 @@ package gce
 
 import (
 	"context"
+	"fmt"
 	"io"
 
 	"github.com/pkg/errors"
-	compute "google.golang.org/api/compute/v1"
+	"google.golang.org/api/compute/v1"
 
-	"fmt"
 	"github.com/supergiant/control/pkg/workflows/steps"
+	"github.com/sirupsen/logrus"
 )
 
 const DeleteNodeStepName = "gce_delete_node"
@@ -25,15 +26,17 @@ func NewDeleteNodeStep() (steps.Step, error) {
 }
 
 func (s *DeleteNodeStep) Run(ctx context.Context, output io.Writer, config *steps.Config) error {
-	// fetch client.)
+	// fetch client
 	client, err := s.getClient(ctx, config.GCEConfig.ClientEmail,
 		config.GCEConfig.PrivateKey, config.GCEConfig.TokenURI)
 	if err != nil {
 		return err
 	}
 
+	logrus.Debugf("Delete node %s in %s",
+		config.Node.Name, config.Node.Region)
 	_, serr := client.Instances.Delete(config.GCEConfig.ProjectID,
-		config.GCEConfig.AvailabilityZone,
+		config.Node.Region,
 		config.Node.Name).Do()
 
 	if serr != nil {

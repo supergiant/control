@@ -18,7 +18,7 @@ RUN npm rebuild node-sass
 RUN npm install
 RUN npm run build
 
-FROM scratch
+FROM scratch as prod
 COPY --from=builder /etc/ssl/certs/ca-certificates.crt /etc/ssl/certs/ca-certificates.crt
 COPY --from=builder /go/bin/supergiant /bin/supergiant
 COPY --from=builder /go/src/github.com/supergiant/control/templates /etc/supergiant/templates

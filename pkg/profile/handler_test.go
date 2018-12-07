@@ -66,6 +66,7 @@ func TestKubeProfileEndpointCreateProfileSuccess(t *testing.T) {
 		CIDR:                  "10.0.0.1/24",
 		HelmVersion:           "0.11.1",
 		RBACEnabled:           false,
+		Subnets:               nil,
 		CloudSpecificSettings: map[string]string{},
 	}
 

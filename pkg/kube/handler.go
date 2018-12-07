@@ -31,30 +31,30 @@ import (
 )
 
 var (
-	cache metricCache
-	m sync.Mutex
+	cache  metricCache
+	m      sync.Mutex
 	client *http.Client
 )
 
-type metricCache struct{
-	m sync.RWMutex
+type metricCache struct {
+	m    sync.RWMutex
 	data map[string]entry
 }
 
 func (c *metricCache) get(key string) *MetricResponse {
-		c.m.RLock()
-		defer c.m.RUnlock()
-		e := c.data[key]
+	c.m.RLock()
+	defer c.m.RUnlock()
+	e := c.data[key]
 
-		if e.timestamp == 0 {
-			return nil
-		}
+	if e.timestamp == 0 {
+		return nil
+	}
 
-		if e.timestamp < time.Now().Unix() - 60 {
-			return nil
-		}
+	if e.timestamp < time.Now().Unix()-60 {
+		return nil
+	}
 
-		return e.value
+	return e.value
 }
 
 func (c *metricCache) set(key string, value *MetricResponse) {
@@ -62,15 +62,14 @@ func (c *metricCache) set(key string, value *MetricResponse) {
 	defer c.m.Unlock()
 	c.data[key] = entry{
 		timestamp: time.Now().Unix(),
-		value: value,
+		value:     value,
 	}
 }
 
-type entry struct{
+type entry struct {
 	timestamp int64
-	value *MetricResponse
+	value     *MetricResponse
 }
-
 
 type accountGetter interface {
 	Get(context.Context, string) (*model.CloudAccount, error)
@@ -156,13 +155,13 @@ func init() {
 		data: make(map[string]entry),
 	}
 	tr := &http.Transport{
-		TLSClientConfig: &tls.Config{InsecureSkipVerify: true},
+		TLSClientConfig:     &tls.Config{InsecureSkipVerify: true},
 		TLSHandshakeTimeout: time.Second * 30,
 		MaxIdleConnsPerHost: 100,
 	}
 	client = &http.Client{
 		Transport: tr,
-		Timeout: time.Second * 30,
+		Timeout:   time.Second * 30,
 	}
 }
 
@@ -202,7 +201,6 @@ func NewHandler(
 		repo:      repo,
 		getWriter: util.GetWriter,
 		getMetrics: func(metricURI string, k *model.Kube) (*MetricResponse, error) {
-
 			if m := cache.get(metricURI); m != nil {
 				logrus.Debugf("metric cache hit")
 				return m, nil
@@ -383,8 +381,9 @@ func (h *Handler) listKubes(w http.ResponseWriter, r *http.Request) {
 
 func (h *Handler) deleteKube(w http.ResponseWriter, r *http.Request) {
 	vars := mux.Vars(r)
-
 	kubeID := vars["kubeID"]
+	logrus.Debugf("Delete kube %s", kubeID)
+
 	if err := h.nodeProvisioner.Cancel(kubeID); err != nil {
 		logrus.Debugf("cancel kube tasks error %v", err)
 	}
@@ -697,6 +696,8 @@ func (h *Handler) deleteNode(w http.ResponseWriter, r *http.Request) {
 	kubeID := vars["kubeID"]
 	nodeName := vars["nodename"]
 
+	logrus.Debugf("Delete node %s from kube %s",
+		nodeName, kubeID)
 	k, err := h.svc.Get(r.Context(), kubeID)
 	if err != nil {
 		if sgerrors.IsNotFound(err) {
@@ -713,7 +714,9 @@ func (h *Handler) deleteNode(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if _, ok := k.Nodes[nodeName]; !ok {
+	var n *node.Node
+
+	if n = k.Nodes[nodeName]; n == nil {
 		http.NotFound(w, r)
 		return
 	}
@@ -748,9 +751,7 @@ func (h *Handler) deleteNode(w http.ResponseWriter, r *http.Request) {
 		ClusterID:        k.ID,
 		ClusterName:      k.Name,
 		CloudAccountName: k.AccountName,
-		Node: node.Node{
-			Name: nodeName,
-		},
+		Node: *n,
 	}
 
 	err = util.FillCloudAccountCredentials(r.Context(), acc, config)

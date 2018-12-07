@@ -8,11 +8,11 @@ import (
 	"github.com/aws/aws-sdk-go/aws/session"
 	"github.com/aws/aws-sdk-go/service/ec2"
 	"github.com/digitalocean/godo"
-
 	"golang.org/x/oauth2"
 	"golang.org/x/oauth2/jwt"
-	"google.golang.org/api/compute/v1"
+	compute "google.golang.org/api/compute/v1"
 	"google.golang.org/api/dns/v1"
+	"github.com/sirupsen/logrus"
 
 	"github.com/supergiant/control/pkg/clouds"
 	"github.com/supergiant/control/pkg/clouds/digitaloceansdk"
@@ -107,16 +107,17 @@ func validateGCECredentials(creds map[string]string) error {
 	}
 
 	conf := jwt.Config{
-		Email:      creds["clientEmail"],
-		PrivateKey: []byte(creds["privateKey"]),
+		Email:      creds[clouds.GCEClientEmail],
+		PrivateKey: []byte(creds[clouds.GCEPrivateKey]),
 		Scopes:     clientScopes,
-		TokenURL:   creds["tokenURI"],
+		TokenURL:   creds[clouds.GCETokenURI],
 	}
 
 	client := conf.Client(context.Background())
 
 	computeService, err := compute.New(client)
 	if err != nil {
+		logrus.Errorf("Error creating compute object %v", err)
 		return err
 	}
 
@@ -124,6 +125,7 @@ func validateGCECredentials(creds map[string]string) error {
 	_, err = computeService.Images.GetFromFamily(
 		"ubuntu-os-cloud", "ubuntu-1804-lts").Do()
 	if err != nil {
+		logrus.Errorf("Error getting image %v", err)
 		return err
 	}
 

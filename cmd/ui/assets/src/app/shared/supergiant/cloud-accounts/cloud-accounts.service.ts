@@ -26,6 +26,15 @@ export class CloudAccounts {
   public getAwsMachineTypes(cloudAccountName, region, az):Observable<string[]> {
     return this.util.fetch(this.cloudAccountsPath + '/' + cloudAccountName + '/' + 'regions' + '/' + region + '/az/' + az + '/types');
   }
+
+  public getGCEAvailabilityZones(cloudAccountName, region) {
+    return this.util.fetch(this.cloudAccountsPath + '/' + cloudAccountName + '/' + 'regions' + '/' + region + '/az');
+  }
+
+  public getGCEMachineTypes(cloudAccountName, region, az):Observable<string[]> {
+    return this.util.fetch(this.cloudAccountsPath + '/' + cloudAccountName + '/' + 'regions' + '/' + region + '/az/' + az + '/types');
+  }
+
   public create(data) {
     return this.util.post(this.cloudAccountsPath, data);
   }

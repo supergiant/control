@@ -6,8 +6,9 @@ import (
 
 	"github.com/pkg/errors"
 	"github.com/sirupsen/logrus"
-	"github.com/supergiant/control/pkg/workflows/steps"
 	compute "google.golang.org/api/compute/v1"
+
+	"github.com/supergiant/control/pkg/workflows/steps"
 )
 
 const DeleteClusterStepName = "gce_delete_cluster"
@@ -32,10 +33,10 @@ func (s *DeleteClusterStep) Run(ctx context.Context, output io.Writer, config *s
 	}
 
 	for _, master := range config.GetMasters() {
-		logrus.Debugf("Delete node %s", master.Name)
+		logrus.Debugf("Delete master %s in %s", master.Name, master.Region)
 
 		_, serr := client.Instances.Delete(config.GCEConfig.ProjectID,
-			config.GCEConfig.AvailabilityZone,
+			master.Region,
 			master.Name).Do()
 
 		if serr != nil {
@@ -44,9 +45,9 @@ func (s *DeleteClusterStep) Run(ctx context.Context, output io.Writer, config *s
 	}
 
 	for _, node := range config.GetNodes() {
-		logrus.Debugf("Delete node %s", node.Name)
+		logrus.Debugf("Delete node %s in %s", node.Name, node.Region)
 		_, serr := client.Instances.Delete(config.GCEConfig.ProjectID,
-			config.GCEConfig.AvailabilityZone,
+			node.Region,
 			node.Name).Do()
 
 		if serr != nil {

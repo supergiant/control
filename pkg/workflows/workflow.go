@@ -57,6 +57,7 @@ const (
 )
 
 type WorkflowSet struct {
+	PreProvision    string
 	ProvisionMaster string
 	ProvisionNode   string
 	DeleteNode      string
@@ -99,17 +100,18 @@ func Init() {
 	}
 
 	awsPreProvision := []steps.Step{
+		steps.GetStep(amazon.StepFindAMI),
 		steps.GetStep(amazon.StepCreateVPC),
 		steps.GetStep(amazon.StepCreateSecurityGroups),
 		steps.GetStep(amazon.StepNameCreateInstanceProfiles),
 		steps.GetStep(amazon.StepImportKeyPair),
 		steps.GetStep(amazon.StepCreateInternetGateway),
+		steps.GetStep(amazon.StepCreateSubnets),
 		steps.GetStep(amazon.StepCreateRouteTable),
+		steps.GetStep(amazon.StepAssociateRouteTable),
 	}
 
 	awsMasterWorkflow := []steps.Step{
-		steps.GetStep(amazon.StepCreateSubnet),
-		steps.GetStep(amazon.StepAssociateRouteTable),
 		steps.GetStep(amazon.StepNameCreateEC2Instance),
 		steps.GetStep(ssh.StepName),
 		steps.GetStep(authorizedKeys.StepName),
@@ -126,7 +128,6 @@ func Init() {
 	}
 
 	awsNodeWorkflow := []steps.Step{
-		steps.GetStep(amazon.StepCreateSubnet),
 		steps.GetStep(amazon.StepNameCreateEC2Instance),
 		steps.GetStep(ssh.StepName),
 		steps.GetStep(authorizedKeys.StepName),
@@ -159,7 +160,11 @@ func Init() {
 	awsDeleteClusterWorkflow := []steps.Step{
 		steps.GetStep(amazon.DeleteClusterMachinesStepName),
 		steps.GetStep(amazon.DeleteSecurityGroupsStepName),
+		steps.GetStep(amazon.DisassociateRouteTableStepName),
 		steps.GetStep(amazon.DeleteSubnetsStepName),
+		steps.GetStep(amazon.DeleteRouteTableStepName),
+		steps.GetStep(amazon.DeleteInternetGatewayStepName),
+		steps.GetStep(amazon.DeleteKeyPairStepName),
 		steps.GetStep(amazon.DeleteVPCStepName),
 	}
 

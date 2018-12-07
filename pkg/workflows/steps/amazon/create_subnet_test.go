@@ -12,6 +12,7 @@ import (
 	"github.com/pkg/errors"
 	"github.com/stretchr/testify/require"
 
+	"github.com/supergiant/control/pkg/account"
 	"github.com/supergiant/control/pkg/profile"
 	"github.com/supergiant/control/pkg/workflows/steps"
 )
@@ -24,6 +25,15 @@ type fakeEC2Subnet struct {
 
 func (f *fakeEC2Subnet) CreateSubnetWithContext(aws.Context, *ec2.CreateSubnetInput, ...request.Option) (*ec2.CreateSubnetOutput, error) {
 	return f.output, f.err
+}
+
+type mockZoneGetter struct {
+	zones []string
+	err   error
+}
+
+func (m *mockZoneGetter) GetZones(context.Context, steps.Config) ([]string, error) {
+	return m.zones, m.err
 }
 
 func TestCreateSubnetStep_Run(t *testing.T) {
@@ -67,7 +77,17 @@ func TestCreateSubnetStep_Run(t *testing.T) {
 		cfg := steps.NewConfig("", "", "", profile.Profile{})
 		cfg.AWSConfig = tc.cfg
 
-		step := NewCreateSubnetStep(tc.fn)
+		step := &CreateSubnetsStep{
+			GetEC2: tc.fn,
+			accSvc: nil,
+			zoneGetterFactory: func(ctx context.Context, accSvc *account.Service,
+				cfg *steps.Config) (account.ZonesGetter, error) {
+				return &mockZoneGetter{
+					zones: []string{"eu-west-1a", "eu-west-1b"},
+					err:   nil,
+				}, nil
+			},
+		}
 		err := step.Run(context.Background(), os.Stdout, cfg)
 		if tc.err == nil {
 			require.NoError(t, err, "TC%d, %v", i, err)

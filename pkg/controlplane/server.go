@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"net/http"
+	_ "net/http/pprof"
 	"net/url"
 	"os"
 	"strings"
@@ -86,6 +87,8 @@ type Config struct {
 	ReadTimeout  time.Duration
 	WriteTimeout time.Duration
 	IdleTimeout  time.Duration
+
+	PprofListenStr string
 
 	ProxiesPortRange proxy.PortRange
 
@@ -243,12 +246,13 @@ func configureApplication(cfg *Config) (*mux.Router, error) {
 	prometheus.Init()
 	gce.Init()
 
+	amazon.InitFindAMI(amazon.GetEC2)
 	amazon.InitImportKeyPair(amazon.GetEC2)
 	amazon.InitCreateInstanceProfiles(amazon.GetIAM)
 	amazon.InitCreateMachine(amazon.GetEC2)
 	amazon.InitCreateSecurityGroups(amazon.GetEC2)
 	amazon.InitCreateVPC(amazon.GetEC2)
-	amazon.InitCreateSubnet(amazon.GetEC2)
+	amazon.InitCreateSubnet(amazon.GetEC2, accountService)
 	amazon.InitDeleteClusterMachines(amazon.GetEC2)
 	amazon.InitDeleteNode(amazon.GetEC2)
 	amazon.InitDeleteSecurityGroup(amazon.GetEC2)
@@ -257,6 +261,11 @@ func configureApplication(cfg *Config) (*mux.Router, error) {
 	amazon.InitCreateRouteTable(amazon.GetEC2)
 	amazon.InitAssociateRouteTable(amazon.GetEC2)
 	amazon.InitCreateInternetGateway(amazon.GetEC2)
+	amazon.InitDeleteSubnets(amazon.GetEC2)
+	amazon.InitDisassociateRouteTable(amazon.GetEC2)
+	amazon.InitDeleteRouteTable(amazon.GetEC2)
+	amazon.InitDeleteInternetGateWay(amazon.GetEC2)
+	amazon.InitDeleteKeyPair(amazon.GetEC2)
 	workflows.Init()
 
 	taskHandler := workflows.NewTaskHandler(repository, sshRunner.NewRunner, accountService)
@@ -277,9 +286,8 @@ func configureApplication(cfg *Config) (*mux.Router, error) {
 	taskProvisioner := provisioner.NewProvisioner(repository,
 		kubeService,
 		cfg.SpawnInterval)
-	tokenGetter := provisioner.NewEtcdTokenGetter()
 	provisionHandler := provisioner.NewHandler(kubeService, accountService,
-		tokenGetter, taskProvisioner)
+		taskProvisioner)
 	provisionHandler.Register(protectedAPI)
 	apiProxy := proxy.NewReverseProxyContainer(cfg.ProxiesPortRange, logrus.New().WithField("component", "proxy"))
 
@@ -291,6 +299,13 @@ func configureApplication(cfg *Config) (*mux.Router, error) {
 		TokenService: jwtService,
 	}
 	protectedAPI.Use(authMiddleware.AuthMiddleware, api.ContentTypeJSON)
+
+	if cfg.PprofListenStr != "" {
+		go func() {
+			logrus.Debugf("Start pprof on %s", cfg.PprofListenStr)
+			logrus.Info(http.ListenAndServe(cfg.PprofListenStr, nil))
+		}()
+	}
 
 	if err := serveUI(cfg, router); err != nil {
 		return nil, err

@@ -26,7 +26,8 @@
                     placeholder="Cluster name"
                     formControlName="clusterName">
           <div *ngFor="let cluster of clusters">
-            <mat-option [value]="cluster.name">{{ cluster?.name }}</mat-option>
+            <mat-option *ngIf="cluster.state === 'operational'"
+                        [value]="cluster.name">{{ cluster?.name }}</mat-option>
           </div>
         </mat-select>
       </mat-form-field>

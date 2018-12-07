@@ -11,6 +11,7 @@ import (
 	"github.com/aws/aws-sdk-go/service/ec2/ec2iface"
 	"github.com/pkg/errors"
 	"github.com/sirupsen/logrus"
+
 	"github.com/supergiant/control/pkg/sgerrors"
 	"github.com/supergiant/control/pkg/workflows/steps"
 )
@@ -33,6 +34,11 @@ func InitDeleteSecurityGroup(fn GetEC2Fn) {
 }
 
 func (s *DeleteSecurityGroup) Run(ctx context.Context, w io.Writer, cfg *steps.Config) error {
+	if cfg.AWSConfig.MastersSecurityGroupID == "" ||
+		cfg.AWSConfig.NodesSecurityGroupID == "" {
+		return nil
+	}
+
 	EC2, err := s.GetEC2(cfg.AWSConfig)
 	if err != nil {
 		return errors.Wrap(ErrAuthorization, err.Error())
@@ -55,15 +61,37 @@ func (s *DeleteSecurityGroup) Run(ctx context.Context, w io.Writer, cfg *steps.C
 		return errors.Wrapf(err, "get node security group ID")
 	}
 
-	logrus.Debugf("Node group name %s", nodeGroupName)
+	logrus.Debugf("Revoking dependent Node Security Group ingress rules %s", nodeGroupName)
 
 	// Decouple security groups from each other
 	revokeInput := &ec2.RevokeSecurityGroupIngressInput{
-		GroupId:                 aws.String(cfg.AWSConfig.MastersSecurityGroupID),
-		SourceSecurityGroupName: aws.String(nodeGroupName),
+		GroupId: aws.String(cfg.AWSConfig.MastersSecurityGroupID),
+		IpPermissions: []*ec2.IpPermission{
+			{
+				FromPort:   aws.Int64(0),
+				ToPort:     aws.Int64(0),
+				IpProtocol: aws.String("-1"),
+				UserIdGroupPairs: []*ec2.UserIdGroupPair{
+					{
+						GroupId: aws.String(cfg.AWSConfig.NodesSecurityGroupID),
+					},
+				},
+			},
+			{
+				FromPort:   aws.Int64(0),
+				ToPort:     aws.Int64(0),
+				IpProtocol: aws.String("-1"),
+				UserIdGroupPairs: []*ec2.UserIdGroupPair{
+					{
+						GroupId: aws.String(cfg.AWSConfig.MastersSecurityGroupID),
+					},
+				},
+			},
+		},
 	}
 
-	logrus.Debugf("Revoke relation between master and node security groups")
+	logrus.Debugf("Revoking dependent Master Security Group  %s ingress rules",
+		cfg.AWSConfig.MastersSecurityGroupID)
 	_, err = EC2.RevokeSecurityGroupIngressWithContext(ctx, revokeInput)
 
 	if err, ok := err.(awserr.Error); ok {
@@ -73,11 +101,31 @@ func (s *DeleteSecurityGroup) Run(ctx context.Context, w io.Writer, cfg *steps.C
 	}
 
 	revokeInput = &ec2.RevokeSecurityGroupIngressInput{
-		GroupId:                 aws.String(cfg.AWSConfig.NodesSecurityGroupID),
-		SourceSecurityGroupName: aws.String(masterGroupName),
+		GroupId: aws.String(cfg.AWSConfig.NodesSecurityGroupID),
+		IpPermissions: []*ec2.IpPermission{
+			{
+				FromPort:   aws.Int64(0),
+				ToPort:     aws.Int64(0),
+				IpProtocol: aws.String("-1"),
+				UserIdGroupPairs: []*ec2.UserIdGroupPair{
+					{
+						GroupId: aws.String(cfg.AWSConfig.NodesSecurityGroupID),
+					},
+				},
+			},
+			{
+				FromPort:   aws.Int64(0),
+				ToPort:     aws.Int64(0),
+				IpProtocol: aws.String("-1"),
+				UserIdGroupPairs: []*ec2.UserIdGroupPair{
+					{
+						GroupId: aws.String(cfg.AWSConfig.MastersSecurityGroupID),
+					},
+				},
+			},
+		},
 	}
 
-	logrus.Debugf("Revoke relation between node and master security groups")
 	_, err = EC2.RevokeSecurityGroupIngressWithContext(ctx, revokeInput)
 
 	if err, ok := err.(awserr.Error); ok {
@@ -88,6 +136,7 @@ func (s *DeleteSecurityGroup) Run(ctx context.Context, w io.Writer, cfg *steps.C
 			cfg.AWSConfig.NodesSecurityGroupID)
 	}
 
+	logrus.Debugf("Dependencies between security groups has been revoked")
 	var deleteErr error
 	var timeout = deleteSecGroupTimeout
 

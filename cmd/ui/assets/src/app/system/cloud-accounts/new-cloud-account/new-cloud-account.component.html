@@ -4,13 +4,17 @@
 
   <div class="inputs-wrapper">
     <mat-form-field>
-      <mat-select placeholder="Choose a Provider" [(value)]="selectedProvider">
-        <mat-option *ngFor="let p of providers" [value]="p">{{ p.display }}</mat-option>
+      <mat-select placeholder="Choose a Provider"
+                  [(value)]="selectedProvider">
+        <mat-option *ngFor="let p of providers"
+                    [value]="p">{{ p.display }}</mat-option>
       </mat-select>
     </mat-form-field>
 
-    <div class="credentials-wrapper" *ngIf=" selectedProvider ">
-      <div class="provider-wrapper" *ngIf=" selectedProvider.name != 'gce' ">
+    <div class="credentials-wrapper"
+         *ngIf=" selectedProvider ">
+      <div class="provider-wrapper"
+           *ngIf=" selectedProvider.name != 'gce' ">
         <json-schema-form
           [schema]="selectedProvider.data.schema"
           [layout]="selectedProvider.data.layout"
@@ -22,10 +26,18 @@
       </div>
 
       <!-- TODO: consider making this a widget for form tool -->
-      <div class="provider-wrapper" *ngIf=" selectedProvider.name == 'gce' ">
+      <div class="provider-wrapper"
+           *ngIf=" selectedProvider.name == 'gce' ">
         <mat-form-field *ngIf=" selectedProvider ">
-          <input matInput placeholder="Cloud Account Name *" type="text" [(ngModel)]="selectedProvider.data.model.name" (ngModelChange)="checkForBlankName($event)" (blur)="checkForBlankName($event.target.value)">
-          <mat-hint class="value-is-blank" *ngIf="nameIsBlank">This field is required.</mat-hint>
+          <input matInput
+                 placeholder="Cloud Account Name *"
+                 type="text"
+                 [(ngModel)]="selectedProvider.data.model.name"
+                 (ngModelChange)="checkForBlankName($event)"
+                 (blur)="checkForBlankName($event.target.value)">
+          <mat-hint class="value-is-blank"
+                    *ngIf="nameIsBlank">This field is required.
+          </mat-hint>
         </mat-form-field>
 
         <div>
@@ -36,12 +48,25 @@
             (textChanged)="selectedProvider.data.model.credentials.service_account_key=$event">
           </ace-editor>
         </div>
-        <mat-hint class="value-is-blank" *ngIf="gceServiceAccountKeyIsBlank">This field is required (GCE Service Account Key - JSON).</mat-hint>
-        <button class="gce-button" mat-raised-button color="primary" type="button"
+        <mat-hint class="value-is-blank"
+                  *ngIf="gceServiceAccountKeyIsBlank">This field is required (GCE Service Account Key - JSON).
+        </mat-hint>
+        <button class="gce-button"
+                mat-raised-button
+                color="primary"
+                type="button"
                 (click)="create(selectedProvider.data.model)">Submit
         </button>
       </div>
-
     </div>
+    <!-- TODO: requires more appropriate alignment but requires too much effort because of ng2-schema-form -->
+    <a [routerLink]="['../']">
+      <button [ngClass]="selectedProvider ? 'dirty-hack' : ''"
+              class="cancel-btn gce-button"
+              mat-raised-button
+              color="secondary"
+              type="button">Cancel
+      </button>
+    </a>
   </div>
 </div>

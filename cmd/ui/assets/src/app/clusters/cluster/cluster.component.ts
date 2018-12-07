@@ -42,8 +42,11 @@ export class ClusterComponent implements OnInit, OnDestroy {
   public kubeString: string;
 
   // machine list vars
-  machines: any;
-  machineListColumns = ["state", "role", "size", "name", "cpu", "ram", "region", "publicIp", "delete"];
+  activeMachines: any;
+  activeMachineListColumns = ["state", "role", "size", "name", "cpu", "ram", "region", "publicIp", "delete"];
+
+  nonActiveMachines: any;
+  nonActiveMachineListColumns = ["state", "role", "size", "name", "region", "steps", "logs", "delete"];
 
   // task list vars
   tasks: any;
@@ -66,6 +69,7 @@ export class ClusterComponent implements OnInit, OnDestroy {
   clusterServices: any
   serviceListColumns = ["name", "type", "namespace", "selfLink"];
 
+  deletingApps = new Set();
 
   constructor(
     private route: ActivatedRoute,
@@ -117,7 +121,6 @@ export class ClusterComponent implements OnInit, OnDestroy {
   }
 
   toggleSteps(task) {
-
     task.showSteps = !task.showSteps;
 
     if (this.expandedTaskIds.has(task.id)) {
@@ -182,7 +185,8 @@ export class ClusterComponent implements OnInit, OnDestroy {
 
   getKube() {
     // TODO: shameful how smart this ENTIRE component has become.
-    this.subscriptions.add(observableTimer(0, 10000).pipe(
+    // this.subscriptions.add(observableTimer(0, 10000).pipe(
+    this.subscriptions.add(observableTimer(0, 120000).pipe(
       switchMap(() => this.supergiant.Kubes.get(this.clusterId))).subscribe(
         k => {
           this.kube = k;
@@ -212,8 +216,6 @@ export class ClusterComponent implements OnInit, OnDestroy {
                     rows.push(t, { detailRow: true, t })
                   });
                   this.tasks = new MatTableDataSource(rows);
-                  this.tasks.sort = this.sort;
-                  this.tasks.paginator = this.paginator;
                 },
                 err => console.log(err)
               )
@@ -251,7 +253,6 @@ export class ClusterComponent implements OnInit, OnDestroy {
   }
 
   renderMachines(kube) {
-    const machineMetrics = {};
     const masterNames = Object.keys(kube.masters);
     const nodeNames = Object.keys(kube.nodes);
 
@@ -260,25 +261,61 @@ export class ClusterComponent implements OnInit, OnDestroy {
       if (this.machineMetrics[lowercaseName]) {
         kube.masters[name].metrics = this.machineMetrics[lowercaseName];
       }
-    })
+    });
 
     nodeNames.forEach(name => {
       const lowercaseName = name.toLowerCase();
       if (this.machineMetrics[lowercaseName]) {
         kube.nodes[name].metrics = this.machineMetrics[lowercaseName];
       }
-    })
+    });
 
-    this.machines = new MatTableDataSource(this.combineAndFlatten(kube.masters, kube.nodes));
-    this.machines.sort = this.sort;
-    this.machines.paginator = this.paginator;
+    const allMachines = this.combineAndFlatten(kube.masters, kube.nodes);
+    const activeMachines = allMachines.filter(m => m.state == "active" || m.state == "deleting");
+    const nonActiveMachines = allMachines.filter(m => m.state != "active" && m.state != "deleting");
+
+    this.activeMachines = new MatTableDataSource(activeMachines);
+    this.activeMachines.sort = this.sort;
+    this.activeMachines.paginator = this.paginator;
+
+    if (nonActiveMachines.length > 0) {
+      let executingTasksObj = {};
+
+      this.getKubeStatus(this.clusterId).subscribe(
+        tasks => {
+          let executing = tasks.filter(t => t.status == "executing");
+          executing.forEach(t => {
+            if (this.expandedTaskIds.has(t.id)) {
+              t.showSteps = true;
+            };
+            executingTasksObj[t.id] = t;
+          });
+
+          let nonAM = [];
+          nonActiveMachines.forEach(m => {
+            const tid = m.taskId;
+            const t = executingTasksObj[tid];
+            m.taskData = executingTasksObj[tid];
+
+            nonAM.push(m, { detailRow: true, t })
+          });
+
+          this.nonActiveMachines = new MatTableDataSource(nonAM);
+        },
+        err => console.error(err)
+      )
+    } else { this.nonActiveMachines = {} }
   }
 
-  getReleases() {
+  getReleases(deletedReleaseName?) {
     this.supergiant.HelmReleases.get(this.clusterId).subscribe(
       res => {
         const releases = res.filter(r => r.status != "DELETED")
         this.releases = new MatTableDataSource(releases);
+        // TODO: this is temporary. We need to figure out a way around the constant polling
+        if (deletedReleaseName) {
+          this.deletingApps.delete(deletedReleaseName);
+        }
       },
       err => console.error(err)
     )
@@ -368,18 +405,20 @@ export class ClusterComponent implements OnInit, OnDestroy {
      );
   }
 
-  deleteRelease(releaseName, event) {
-    const dialogRef = this.initDeleteRelease(releaseName)
+  deleteRelease(releaseName, idx) {
+    const dialogRef = this.initDeleteRelease(releaseName);
 
     dialogRef
       .afterClosed()
       .pipe(
         filter(res => res.deleteRelease),
-        switchMap(res => this.supergiant.HelmReleases.delete(releaseName, this.clusterId, !res.deleteConfigs)),
+        // can't mutate table data source, polling erases any optimistic updates, so this happens, sorry...
+        switchMap((_) => this.deletingApps.add(releaseName)),
+        switchMap(res => this.supergiant.HelmReleases.delete(releaseName, this.clusterId, true)),
         catchError(err => of(err))
       ).subscribe(
-        res => this.getReleases(),
-        err => console.error(err)
+        res => { this.getReleases(releaseName) },
+        err => { this.deletingApps.delete(releaseName); console.error(err) }
       )
   }
 

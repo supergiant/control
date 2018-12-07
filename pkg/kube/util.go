@@ -9,17 +9,27 @@ import (
 
 func processAWSMetrics(k *model.Kube, metrics map[string]map[string]interface{}) {
 	for _, masterNode := range k.Masters {
-		key := ip2Host(masterNode.PrivateIp)
-		value := metrics[key]
-		delete(metrics, key)
-		metrics[strings.ToLower(masterNode.Name)] = value
+		// After some amount of time prometheus start using region in metric name
+		prefix := ip2Host(masterNode.PrivateIp)
+		for metricKey := range metrics {
+			if strings.Contains(metricKey, prefix) {
+				value := metrics[metricKey]
+				delete(metrics, metricKey)
+				metrics[strings.ToLower(masterNode.Name)] = value
+			}
+		}
 	}
 
 	for _, workerNode := range k.Nodes {
-		key := ip2Host(workerNode.PrivateIp)
-		value := metrics[key]
-		delete(metrics, key)
-		metrics[strings.ToLower(workerNode.Name)] = value
+		prefix := ip2Host(workerNode.PrivateIp)
+
+		for metricKey := range metrics {
+			if strings.Contains(metricKey, prefix) {
+				value := metrics[metricKey]
+				delete(metrics, metricKey)
+				metrics[strings.ToLower(workerNode.Name)] = value
+			}
+		}
 	}
 }
 

@@ -5,11 +5,9 @@ import (
 	"fmt"
 	"io"
 	"strconv"
-	"strings"
 
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/service/ec2"
-	"github.com/aws/aws-sdk-go/service/ec2/ec2iface"
 	"github.com/pkg/errors"
 	"github.com/sirupsen/logrus"
 
@@ -80,12 +78,6 @@ func (s *StepCreateInstance) Run(ctx context.Context, w io.Writer, cfg *steps.Co
 		return errors.Wrap(ErrAuthorization, err.Error())
 	}
 
-	amiID, err := s.FindAMI(ctx, w, EC2)
-	if err != nil {
-		logrus.Errorf("[%s] - failed to find AMI for Ubuntu: %v", s.Name(), err)
-		return errors.Wrap(err, "failed to find AMI")
-	}
-
 	isEbs := false
 	volumeSize, err := strconv.Atoi(cfg.AWSConfig.VolumeSize)
 	hasPublicAddress, err := strconv.ParseBool(cfg.AWSConfig.HasPublicAddr)
@@ -108,7 +100,7 @@ func (s *StepCreateInstance) Run(ctx context.Context, w io.Writer, cfg *steps.Co
 		IamInstanceProfile: &ec2.IamInstanceProfileSpecification{
 			Name: instanceProfileName,
 		},
-		ImageId:      &amiID,
+		ImageId:      &cfg.AWSConfig.ImageID,
 		InstanceType: &cfg.AWSConfig.InstanceType,
 		KeyName:      &cfg.AWSConfig.KeyPairName,
 		MaxCount:     aws.Int64(1),
@@ -145,7 +137,7 @@ func (s *StepCreateInstance) Run(ctx context.Context, w io.Writer, cfg *steps.Co
 				DeviceIndex:              aws.Int64(0),
 				AssociatePublicIpAddress: aws.Bool(true),
 				DeleteOnTermination:      aws.Bool(true),
-				SubnetId:                 aws.String(cfg.AWSConfig.SubnetID),
+				SubnetId:                 aws.String(cfg.AWSConfig.Subnets[cfg.AWSConfig.AvailabilityZone]),
 				Groups:                   []*string{secGroupID},
 			},
 		}
@@ -246,68 +238,6 @@ func (s *StepCreateInstance) Run(ctx context.Context, w io.Writer, cfg *steps.Co
 	logrus.Debugf("%v", *instance)
 
 	return nil
-}
-
-func (s *StepCreateInstance) FindAMI(ctx context.Context, w io.Writer, EC2 ec2iface.EC2API) (string, error) {
-	out, err := EC2.DescribeImagesWithContext(ctx, &ec2.DescribeImagesInput{
-		Filters: []*ec2.Filter{
-			{
-				Name: aws.String("architecture"),
-				Values: []*string{
-					aws.String("x86_64"),
-				},
-			},
-			{
-				Name: aws.String("virtualization-type"),
-				Values: []*string{
-					aws.String("hvm"),
-				},
-			},
-			{
-				Name: aws.String("root-device-type"),
-				Values: []*string{
-					aws.String("ebs"),
-				},
-			},
-			//Owner should be Canonical
-			{
-				Name: aws.String("owner-id"),
-				Values: []*string{
-					aws.String("099720109477"),
-				},
-			},
-			{
-				Name: aws.String("description"),
-				Values: []*string{
-					aws.String("Canonical, Ubuntu, 16.04*"),
-				},
-			},
-		},
-	})
-	if err != nil {
-		return "", err
-	}
-	amiID := ""
-
-	log := util.GetLogger(w)
-
-	for _, img := range out.Images {
-		if img.Description == nil {
-			continue
-		}
-		if strings.Contains(*img.Description, "UNSUPPORTED") {
-			continue
-		}
-		amiID = *img.ImageId
-
-		logMessage := fmt.Sprintf("[%s] - using AMI (ID: %s) %s", s.Name(), amiID, *img.Description)
-		log.Info(logMessage)
-		logrus.Info(logMessage)
-
-		break
-	}
-
-	return amiID, nil
 }
 
 func (s *StepCreateInstance) Rollback(ctx context.Context, w io.Writer, cfg *steps.Config) error {

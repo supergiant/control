@@ -2,11 +2,12 @@ import { Component, OnDestroy, OnInit, ViewEncapsulation, ViewChild }       from
 import { FormBuilder, FormGroup, Validators, ValidatorFn, AbstractControl } from '@angular/forms';
 import { Router }                                                           from '@angular/router';
 import { MatHorizontalStepper }                                             from '@angular/material';
-import { Subscription }                                                     from 'rxjs';
-import { Notifications }                                                    from '../../shared/notifications/notifications.service';
-import { Supergiant }                                                       from '../../shared/supergiant/supergiant.service';
-import { NodeProfileService }                                               from "../node-profile.service";
-import { CLUSTER_OPTIONS }                                                  from "./cluster-options.config";
+import { Subscription }        from 'rxjs';
+import { Notifications }       from '../../shared/notifications/notifications.service';
+import { Supergiant }          from '../../shared/supergiant/supergiant.service';
+import { NodeProfileService }  from "../node-profile.service";
+import { CLUSTER_OPTIONS }     from "./cluster-options.config";
+import { DEFAULT_MACHINE_SET } from "app/clusters/new-cluster/new-cluster.component.config";
 
 // compiler hack
 declare var require: any;
@@ -25,7 +26,6 @@ export class NewClusterComponent implements OnInit, OnDestroy {
   availableCloudAccounts: Array<any>;
   selectedCloudAccount: any;
   availableRegions: any;
-  selectedRegion: any;
   availableMachineTypes: Array<any>;
   regionsLoading = false;
   machinesLoading = false;
@@ -34,13 +34,7 @@ export class NewClusterComponent implements OnInit, OnDestroy {
   availabilityZones: Array<any>;
   azsLoading = false;
 
-  machines = [{
-    machineType: null,
-    role: "Master",
-    qty: 1,
-    availabilityZone: '',
-    availabileMachinetypes: null,
-  }];
+  machines = DEFAULT_MACHINE_SET;
 
   clusterOptions = CLUSTER_OPTIONS;
 
@@ -119,6 +113,11 @@ export class NewClusterComponent implements OnInit, OnDestroy {
 
           newClusterData.profile.publicKey = this.providerConfig.value.publicKey;
         }
+        break;
+        case "gce":
+
+          newClusterData.profile.publicKey = this.providerConfig.value.publicKey;
+          break;
       }
 
       this.provisioning = true;
@@ -157,25 +156,52 @@ export class NewClusterComponent implements OnInit, OnDestroy {
     return this.supergiant.CloudAccounts.getAwsAvailabilityZones(accountName, region.name);
   }
 
+  getGCEAvailabilityZones(region) {
+    const accountName = this.selectedCloudAccount.name;
+
+    return this.supergiant.CloudAccounts.getGCEAvailabilityZones(accountName, region.name);
+  }
+
   selectAz(zone, idx) {
     const accountName = this.selectedCloudAccount.name;
     const region = this.providerConfig.value.region.name;
 
     this.machinesLoading = true;
-    this.supergiant.CloudAccounts.getAwsMachineTypes(accountName, region, zone).subscribe(
-      types => {
-        this.machines[idx] = {
-          ...this.machines[idx],
-          availabileMachinetypes: types.sort()
-        };
 
-        this.machinesLoading = false;
-      },
-      err => {
-        console.error(err);
-        this.machinesLoading = false;
-      }
-    )
+    switch (this.selectedCloudAccount.provider) {
+      case "aws":
+        this.supergiant.CloudAccounts.getAwsMachineTypes(accountName, region, zone).subscribe(
+          types => {
+            this.machines[idx] = {
+              ...this.machines[idx],
+              availabileMachinetypes: types.sort()
+            };
+
+            this.machinesLoading = false;
+          },
+          err => {
+            console.error(err);
+            this.machinesLoading = false;
+          }
+        );
+        break;
+      case "gce":
+        this.supergiant.CloudAccounts.getGCEMachineTypes(accountName, region, zone).subscribe(
+          types => {
+            this.machines[idx] = {
+              ...this.machines[idx],
+              availabileMachinetypes: types.sort()
+            };
+
+            this.machinesLoading = false;
+          },
+          err => {
+            console.error(err);
+            this.machinesLoading = false;
+          }
+        );
+        break;
+    }
   }
 
   selectRegion(region) {
@@ -196,6 +222,19 @@ export class NewClusterComponent implements OnInit, OnDestroy {
       case "aws":
         this.azsLoading = true;
         this.getAwsAvailabilityZones(region).subscribe(
+          azList => {
+            this.availabilityZones = azList.sort();
+            this.azsLoading = false
+          },
+          err => {
+            console.error(err);
+            this.azsLoading = false
+          }
+        );
+        break;
+      case "gce":
+        this.azsLoading = true;
+        this.getGCEAvailabilityZones(region).subscribe(
           azList => {
             this.availabilityZones = azList.sort();
             this.azsLoading = false
@@ -251,13 +290,6 @@ export class NewClusterComponent implements OnInit, OnDestroy {
     this.availableRegions = null;
     this.availabilityZones = null;
     this.availableMachineTypes = null;
-    this.machines = [{
-      machineType: null,
-      role: "Master",
-      qty: 1,
-      availabilityZone: '',
-      availabileMachinetypes: null,
-    }];
 
     switch (this.selectedCloudAccount.provider) {
       case "digitalocean":
@@ -275,6 +307,12 @@ export class NewClusterComponent implements OnInit, OnDestroy {
           subnetId: [""],
           mastersSecurityGroupId: [""],
           nodesSecurityGroupId: [""],
+          publicKey: ["", Validators.required]
+        });
+        break;
+      case "gce":
+        this.providerConfig = this.formBuilder.group({
+          region: ["", Validators.required],
           publicKey: ["", Validators.required]
         });
         break;
@@ -300,20 +338,28 @@ export class NewClusterComponent implements OnInit, OnDestroy {
       machine.role != null &&
       typeof(machine.qty) == "number"
     ) {
-      return true
+      return true;
     } else {
-      return false
+      return false;
     }
     return false;
   }
 
   validateMachineConfig() {
-    if (this.machines.every(this.validMachine)) {
+    if (this.machines.every(this.validMachine) && this.isOddNumberOfMasters()) {
       this.machinesConfigValid = true;
       this.displayMachinesConfigWarning = false;
     } else {
       this.machinesConfigValid = false;
     }
+  }
+
+  isOddNumberOfMasters () {
+    const numberOfMasterProfiles = this.machines
+      .filter(m => m.role === 'Master')
+      .map(m => m.qty)
+      .reduce((prev, next) => prev + next);
+    return (numberOfMasterProfiles) % 2 !== 0;
   }
 
   machinesNext() {
