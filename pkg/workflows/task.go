@@ -139,6 +139,8 @@ func (w *Task) Run(ctx context.Context, config steps.Config, out io.WriteCloser)
 	return errChan
 }
 
+// TODO(stgleb): there is need a way to provide config if we want ot restart that task with
+// different settings.
 // Restart executes task from the last failed step
 func (w *Task) Restart(ctx context.Context, id string, out io.Writer) chan error {
 	errChan := make(chan error, 1)

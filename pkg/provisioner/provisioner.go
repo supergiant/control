@@ -289,12 +289,74 @@ func (tp *TaskProvisioner) RestartClusterProvisioning(ctx context.Context, clust
 	}
 
 	go func() {
+		preProvisionTask := taskMap[workflows.PreProvisionTask]
+
+		if preProvisionTask != nil && len(preProvisionTask) > 0{
+			fileName := util.MakeFileName(preProvisionTask[0].ID)
+			out, err := tp.getWriter(fileName)
+
+			if err != nil {
+				logrus.Errorf("error while getting writer %v", err)
+			}
+
+			preProvisionTask[0].Restart(ctx, preProvisionTask[0].ID, out)
+			config = preProvisionTask[0].Config
+		}
+
 		// Save cluster before provisioning
 		err := tp.updateCloudSpecificData(ctx, config)
 
 		if err != nil {
 			logrus.Errorf("update cluster with cloud specific data %v", err)
 		}
+
+		// master latch controls when the majority of masters with etcd are up and running
+		// so etcd is available for writes of flannel that starts on each machine
+		masterLatch := util.NewCountdownLatch(ctx,
+			len(clusterProfile.MasterProfiles)/2+1)
+
+		// If we fail n /2 of master deploy jobs - all cluster deployment is failed
+		failLatch := util.NewCountdownLatch(ctx,
+			len(clusterProfile.MasterProfiles)/2+1)
+
+		// ProvisionCluster master nodes
+		for index, masterTask := range taskMap[workflows.MasterTask] {
+			// Take token that allows perform action with Cloud Provider API
+			tp.rateLimiter.Take()
+
+			if masterTask == nil {
+				logrus.Fatal(masterTask)
+			}
+
+			fileName := util.MakeFileName(masterTask.ID)
+			out, err := tp.getWriter(fileName)
+
+			if err != nil {
+				logrus.Errorf("Error getting writer for %s", fileName)
+				return
+			}
+
+			// Fulfill task config with data about provider specific node configuration
+			p := clusterProfile.MasterProfiles[index]
+			FillNodeCloudSpecificData(clusterProfile.Provider, p, config)
+
+			go func(t *workflows.Task) {
+				// Put task id to config so that create instance step can use this id when generate node name
+				config.TaskID = t.ID
+				// TODO(stgleb): pass config here
+				result := t.Restart(ctx, t.ID, out)
+				err = <-result
+
+				if err != nil {
+					failLatch.CountDown()
+					logrus.Errorf("master task %s has finished with error %v", t.ID, err)
+				} else {
+					masterLatch.CountDown()
+					logrus.Infof("master-task %s has finished", t.ID)
+				}
+			}(masterTask)
+		}
+
 		config.ReadyForBootstrapLatch = &sync.WaitGroup{}
 		config.ReadyForBootstrapLatch.Add(len(taskMap[workflows.MasterTask]))
 	}()
