@@ -1,17 +1,17 @@
-<h2 mat-dialog-title>Add repository</h2>
+<h2 mat-dialog-title>Add New Helm Repository</h2>
 <mat-dialog-content>
   <form [formGroup]="addRepositoryForm">
     <mat-form-field>
       <input matInput
              type="text"
              formControlName="name"
-             placeholder="Name">
+             placeholder="Name or Alias">
     </mat-form-field>
     <mat-form-field>
       <input matInput
              type="text"
              formControlName="url"
-             placeholder="Repository url">
+             placeholder="Helm Repository Url">
     </mat-form-field>
   </form>
 </mat-dialog-content>
