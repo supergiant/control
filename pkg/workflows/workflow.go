@@ -22,6 +22,7 @@ import (
 	"github.com/supergiant/control/pkg/workflows/steps/poststart"
 	"github.com/supergiant/control/pkg/workflows/steps/prometheus"
 	"github.com/supergiant/control/pkg/workflows/steps/ssh"
+	"github.com/supergiant/control/pkg/workflows/steps/storageclass"
 	"github.com/supergiant/control/pkg/workflows/steps/tiller"
 )
 
@@ -144,6 +145,7 @@ func Init() {
 	commonWorkflow := []steps.Step{
 		steps.GetStep(ssh.StepName),
 		steps.GetStep(clustercheck.StepName),
+		steps.GetStep(storageclass.StepName),
 		steps.GetStep(tiller.StepName),
 		steps.GetStep(prometheus.StepName),
 	}

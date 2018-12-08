@@ -5,6 +5,10 @@
     margin-bottom: 18px;
   }
 
+  .mat-form-field {
+    margin-bottom: 10px;
+  }
+
   .warning {
     color: #f44336;
     font-weight: 300;
@@ -93,32 +97,32 @@
     }
 
     .gce-config {
-          display: flex;
-          justify-content: flex-start;
+      display: flex;
+      justify-content: flex-start;
 
-          .input-group {
-            display: flex;
-            flex-direction: column;
-            margin-left: 100px;
-            width: 250px;
+      .input-group {
+        display: flex;
+        flex-direction: column;
+        margin-left: 100px;
+        width: 250px;
 
-            &:nth-of-type(1) {
-              margin-left: 0px;
-            }
-
-            .regionsLoading {
-              animation: loading 1s infinite;
-            }
-
-            .azsLoading {
-              animation: loading 1s infinite;
-            }
-          }
-
-          .public-key-wrapper {
-            width: 400px;
-          }
+        &:nth-of-type(1) {
+          margin-left: 0px;
         }
+
+        .regionsLoading {
+          animation: loading 1s infinite;
+        }
+
+        .azsLoading {
+          animation: loading 1s infinite;
+        }
+      }
+
+      .public-key-wrapper {
+        width: 400px;
+      }
+    }
 
     .machine-config-step {
       display: flex;
@@ -207,6 +211,17 @@
           font-family: "Montserrat", sans-serif;
           font-size: 14px;
         }
+
+        .machine-label {
+          font-size: 16px;
+          margin-bottom: 0px;
+        }
+
+        .create-new {
+          font-size: 14px;
+          font-style: italic;
+          opacity: 0.5;
+        }
       }
 
       .action-buttons-wrapper {
@@ -282,11 +297,24 @@
     }
   }
 }
+.mat-form-field:not(.mat-focused)  {
+  .mat-form-field-underline {
+    opacity: .25;
+    background-color: white!important;
+  }
+}
 
 .mat-select-content {
-
   .machine-types-filter {
     position: relative;
     padding: 10px !important;
+  }
+}
+
+.mat-hint {
+  color: grey!important;
+
+  a {
+    color: #D10088;
   }
 }
