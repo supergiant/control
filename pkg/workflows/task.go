@@ -91,6 +91,7 @@ func (w *Task) Run(ctx context.Context, config steps.Config, out io.WriteCloser)
 
 		// In case of restart skip creating step statuses
 		if len(w.StepStatuses) > 0 {
+			// This must be done in NewTask
 			// Create list of statuses to track
 			for _, step := range w.workflow {
 				w.StepStatuses = append(w.StepStatuses, StepStatus{
@@ -101,6 +102,7 @@ func (w *Task) Run(ctx context.Context, config steps.Config, out io.WriteCloser)
 			}
 		}
 
+		// TODO(stgleb): This status set must happen in NewConfig
 		// Set config to the task
 		w.Config = &config
 		w.Status = statuses.Todo
