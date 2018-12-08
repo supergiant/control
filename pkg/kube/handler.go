@@ -75,6 +75,10 @@ type accountGetter interface {
 	Get(context.Context, string) (*model.CloudAccount, error)
 }
 
+type profileGetter interface {
+	Get(context.Context, string) (*profile.Profile, error)
+}
+
 type nodeProvisioner interface {
 	ProvisionNodes(context.Context, []profile.NodeProfile, *model.Kube,
 		*steps.Config) ([]string, error)
@@ -82,9 +86,11 @@ type nodeProvisioner interface {
 	Cancel(string) error
 }
 
-
-type kubeProvisioner interface{
-	RestartClusterProvisioning(context.Context, profile.Profile, *steps.Config, map[string][]string) error
+type kubeProvisioner interface {
+	RestartClusterProvisioning(ctx context.Context,
+		clusterProfile *profile.Profile,
+		config *steps.Config,
+		taskIdMap map[string][]string) error
 }
 
 // TODO(stgleb): use standard k8s structs for that
@@ -150,11 +156,13 @@ type Handler struct {
 	accountService  accountGetter
 	nodeProvisioner nodeProvisioner
 	kubeProvisioner kubeProvisioner
-	workflowMap     map[clouds.Name]workflows.WorkflowSet
-	repo            storage.Interface
-	getWriter       func(string) (io.WriteCloser, error)
-	getMetrics      func(string, *model.Kube) (*MetricResponse, error)
-	proxies         proxy.Container
+	profileSvc      profileGetter
+
+	workflowMap map[clouds.Name]workflows.WorkflowSet
+	repo        storage.Interface
+	getWriter   func(string) (io.WriteCloser, error)
+	getMetrics  func(string, *model.Kube) (*MetricResponse, error)
+	proxies     proxy.Container
 }
 
 func init() {
@@ -183,6 +191,7 @@ func doReq(req *http.Request) (*http.Response, error) {
 func NewHandler(
 	svc Interface,
 	accountService accountGetter,
+	profileSvc profileGetter,
 	provisioner nodeProvisioner,
 	kubeProvisioner kubeProvisioner,
 	repo storage.Interface,
@@ -193,6 +202,7 @@ func NewHandler(
 		accountService:  accountService,
 		nodeProvisioner: provisioner,
 		kubeProvisioner: kubeProvisioner,
+		profileSvc:      profileSvc,
 		workflowMap: map[clouds.Name]workflows.WorkflowSet{
 			clouds.DigitalOcean: {
 				DeleteCluster: workflows.DigitalOceanDeleteCluster,
@@ -762,7 +772,7 @@ func (h *Handler) deleteNode(w http.ResponseWriter, r *http.Request) {
 		ClusterID:        k.ID,
 		ClusterName:      k.Name,
 		CloudAccountName: k.AccountName,
-		Node: *n,
+		Node:             *n,
 	}
 
 	err = util.FillCloudAccountCredentials(r.Context(), acc, config)
@@ -1244,7 +1254,6 @@ func (h *Handler) restartKubeProvisioning(w http.ResponseWriter, r *http.Request
 		return
 	}
 
-
 	config := &steps.Config{
 		Provider:         k.Provider,
 		ClusterID:        k.ID,
@@ -1262,7 +1271,20 @@ func (h *Handler) restartKubeProvisioning(w http.ResponseWriter, r *http.Request
 		return
 	}
 
-	err = h.kubeProvisioner.RestartClusterProvisioning(r.Context(), profile.Profile{}, config, k.Tasks)
+	kubeProfile, err := h.profileSvc.Get(r.Context(), k.ProfileID)
+
+	if err != nil {
+		if sgerrors.IsNotFound(err) {
+			message.SendUnknownError(w, err)
+			return
+		}
+
+		message.SendUnknownError(w, err)
+		return
+	}
+
+	err = h.kubeProvisioner.RestartClusterProvisioning(r.Context(),
+		kubeProfile, config, k.Tasks)
 
 	if err != nil {
 		message.SendUnknownError(w, err)

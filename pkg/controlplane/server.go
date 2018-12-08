@@ -292,7 +292,8 @@ func configureApplication(cfg *Config) (*mux.Router, error) {
 	apiProxy := proxy.NewReverseProxyContainer(cfg.ProxiesPortRange, logrus.New().WithField("component", "proxy"))
 
 	kubeHandler := kube.NewHandler(kubeService, accountService,
-		taskProvisioner, taskProvisioner, repository, apiProxy)
+		profileService, taskProvisioner, taskProvisioner,
+		repository, apiProxy)
 	kubeHandler.Register(protectedAPI)
 
 	authMiddleware := api.Middleware{
