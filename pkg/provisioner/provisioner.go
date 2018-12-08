@@ -114,24 +114,18 @@ func (tp *TaskProvisioner) ProvisionCluster(parentContext context.Context,
 	go tp.monitorClusterState(ctx, config)
 
 	go func() {
-		var preProvisionErr error
-
 		if preProvisionTask != nil {
 			if preProvisionErr := tp.preProvision(ctx, preProvisionTask, config); preProvisionErr != nil {
 				logrus.Errorf("Pre provisioning cluster %v", err)
-			}
-
-			// Copy config from preProvision task because it contains all things need for further
-			// provisioning VPC, SecGroup, Subnets etc.
-			config = preProvisionTask.Config
-
-			// In case of preprovision failure stop provisioning process.
-			if preProvisionErr != nil {
 				// TODO(stgleb): move this to separate step
 				// Save cluster before provisioning
 				tp.updateCloudSpecificData(ctx, config)
 				return
 			}
+
+			// Copy config from preProvision task because it contains all things need for further
+			// provisioning VPC, SecGroup, Subnets etc.
+			config = preProvisionTask.Config
 		}
 
 		// TODO(stgleb): move this to separate step
@@ -269,9 +263,14 @@ func (tp *TaskProvisioner) RestartClusterProvisioning(ctx context.Context,
 	config *steps.Config, taskIdMap map[string][]string) error {
 	taskMap := make(map[string][]*workflows.Task)
 
+	ctx, cancel := context.WithTimeout(context.Background(),
+		time.Minute * 30)
+	tp.cancelMap[config.ClusterID] = cancel
+	logrus.Debugf("Deserialize tasks")
 	// Deserialize tasks and put them to map
 	for taskSet, tasks := range taskIdMap {
 		for _, taskId := range tasks {
+			logrus.Debugf("Get task id %s", taskId)
 			data, err := tp.repository.Get(ctx, workflows.Prefix, taskId)
 
 			if err != nil {
@@ -281,6 +280,7 @@ func (tp *TaskProvisioner) RestartClusterProvisioning(ctx context.Context,
 			}
 
 			task, err := workflows.DeserializeTask(data, tp.repository)
+			task.Config = config
 
 			if err != nil {
 				logrus.Debugf("error deserializing task %s %v", taskId, err)
@@ -296,6 +296,8 @@ func (tp *TaskProvisioner) RestartClusterProvisioning(ctx context.Context,
 		preProvisionTask := taskMap[workflows.PreProvisionTask]
 
 		if preProvisionTask != nil && len(preProvisionTask) > 0 {
+			logrus.Debugf("Restart preprovision task %s",
+				preProvisionTask[0].ID)
 			fileName := util.MakeFileName(preProvisionTask[0].ID)
 			out, err := tp.getWriter(fileName)
 
@@ -307,6 +309,7 @@ func (tp *TaskProvisioner) RestartClusterProvisioning(ctx context.Context,
 			config = preProvisionTask[0].Config
 		}
 
+		logrus.Debugf("Save cloud specific data to cluster")
 		// Save cluster before provisioning
 		err := tp.updateCloudSpecificData(ctx, config)
 
@@ -595,6 +598,7 @@ func (tp *TaskProvisioner) buildInitialCluster(ctx context.Context,
 		SshUser:            config.SshConfig.User,
 		SshPublicKey:       []byte(config.SshConfig.PublicKey),
 		BootstrapPublicKey: []byte(config.SshConfig.BootstrapPublicKey),
+		ProfileID:          profile.ID,
 		User:               profile.User,
 		Password:           profile.Password,
 

@@ -30,10 +30,15 @@ type KubeGetter interface {
 	Get(ctx context.Context, name string) (*model.Kube, error)
 }
 
+type ProfileCreater interface {
+	Create(context.Context, *profile.Profile) error
+}
+
 type Handler struct {
-	accountGetter AccountGetter
-	kubeGetter    KubeGetter
-	provisioner   ClusterProvisioner
+	accountGetter  AccountGetter
+	profileService ProfileCreater
+	kubeGetter     KubeGetter
+	provisioner    ClusterProvisioner
 }
 
 type ProvisionRequest struct {
@@ -51,11 +56,15 @@ type ClusterProvisioner interface {
 	ProvisionCluster(context.Context, *profile.Profile, *steps.Config) (map[string][]*workflows.Task, error)
 }
 
-func NewHandler(kubeService KubeGetter, cloudAccountService *account.Service, provisioner ClusterProvisioner) *Handler {
+func NewHandler(kubeService KubeGetter,
+	cloudAccountService *account.Service,
+	profileSvc ProfileCreater,
+	provisioner ClusterProvisioner) *Handler {
 	return &Handler{
-		kubeGetter:    kubeService,
-		accountGetter: cloudAccountService,
-		provisioner:   provisioner,
+		kubeGetter:     kubeService,
+		profileService: profileSvc,
+		accountGetter:  cloudAccountService,
+		provisioner:    provisioner,
 	}
 }
 
@@ -121,6 +130,8 @@ func (h *Handler) Provision(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	// Assign ID to profile
+	req.Profile.ID = uuid.New()[:8]
 	ctx, _ := context.WithTimeout(context.Background(), config.Timeout)
 	taskMap, err := h.provisioner.ProvisionCluster(ctx, &req.Profile, config)
 
@@ -128,6 +139,10 @@ func (h *Handler) Provision(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		logrus.Error(errors.Wrap(err, "provisionCluster"))
 		return
+	}
+
+	if err := h.profileService.Create(r.Context(), &req.Profile); err != nil {
+		logrus.Debugf("Error creating profile %s", req.Profile.ID)
 	}
 
 	roleTaskIdMap := make(map[string][]string, len(taskMap))

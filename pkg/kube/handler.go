@@ -1244,6 +1244,7 @@ func (h *Handler) restartKubeProvisioning(w http.ResponseWriter, r *http.Request
 	vars := mux.Vars(r)
 	kubeID := vars["kubeID"]
 
+	logrus.Debugf("Get kube %s", kubeID)
 	k, err := h.svc.Get(r.Context(), kubeID)
 	if err != nil {
 		if sgerrors.IsNotFound(err) {
@@ -1263,6 +1264,7 @@ func (h *Handler) restartKubeProvisioning(w http.ResponseWriter, r *http.Request
 		Nodes:            steps.NewMap(k.Nodes),
 	}
 
+	logrus.Debugf("load clout specific data from kube")
 	// Load things specific to cloud provider
 	err = util.LoadCloudSpecificDataFromKube(k, config)
 
@@ -1271,6 +1273,7 @@ func (h *Handler) restartKubeProvisioning(w http.ResponseWriter, r *http.Request
 		return
 	}
 
+	logrus.Debugf("Get cloud profile %s", k.ProfileID)
 	kubeProfile, err := h.profileSvc.Get(r.Context(), k.ProfileID)
 
 	if err != nil {
@@ -1283,6 +1286,7 @@ func (h *Handler) restartKubeProvisioning(w http.ResponseWriter, r *http.Request
 		return
 	}
 
+	logrus.Debugf("Restart cluster provisioning")
 	err = h.kubeProvisioner.RestartClusterProvisioning(r.Context(),
 		kubeProfile, config, k.Tasks)
 

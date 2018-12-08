@@ -139,6 +139,10 @@ func LoadCloudSpecificDataFromKube(k *model.Kube, config *steps.Config) error {
 	config.SshConfig.BootstrapPrivateKey = string(k.BootstrapPrivateKey)
 	config.SshConfig.PublicKey = string(k.SshPublicKey)
 
+	if k.CloudSpec == nil {
+		return nil
+	}
+
 	switch config.Provider {
 	case clouds.AWS:
 		// Load AZ -> subnet mapping for cluster

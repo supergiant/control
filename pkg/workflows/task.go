@@ -89,13 +89,16 @@ func (w *Task) Run(ctx context.Context, config steps.Config, out io.WriteCloser)
 			return
 		}
 
-		// Create list of statuses to track
-		for _, step := range w.workflow {
-			w.StepStatuses = append(w.StepStatuses, StepStatus{
-				Status:   statuses.Todo,
-				StepName: step.Name(),
-				ErrMsg:   "",
-			})
+		// In case of restart skip creating step statuses
+		if len(w.StepStatuses) > 0 {
+			// Create list of statuses to track
+			for _, step := range w.workflow {
+				w.StepStatuses = append(w.StepStatuses, StepStatus{
+					Status:   statuses.Todo,
+					StepName: step.Name(),
+					ErrMsg:   "",
+				})
+			}
 		}
 
 		// Set config to the task
@@ -110,7 +113,7 @@ func (w *Task) Run(ctx context.Context, config steps.Config, out io.WriteCloser)
 		i := 0
 		// Skip successfully finished steps in case of restart
 		for index, stepStatus := range w.StepStatuses {
-			if stepStatus.Status == statuses.Error {
+			if stepStatus.Status != statuses.Success {
 				i = index
 				break
 			}
