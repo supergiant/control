@@ -85,11 +85,12 @@ func newTask(workflowType string, workflow Workflow, repository storage.Interfac
 
 // Run executes all steps of workflow and tracks the progress in persistent storage
 func (w *Task) Run(ctx context.Context, config steps.Config, out io.WriteCloser) chan error {
-	if w.Status == statuses.Success {
-		return nil
-	}
-
 	errChan := make(chan error, 1)
+
+	if w.Status == statuses.Success {
+		close(errChan)
+		return errChan
+	}
 
 	go func() {
 		defer func() {
