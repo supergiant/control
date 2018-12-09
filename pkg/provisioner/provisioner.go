@@ -644,6 +644,7 @@ func (tp *TaskProvisioner) buildInitialCluster(ctx context.Context,
 	return tp.kubeService.Create(ctx, cluster)
 }
 
+// TODO(stgleb): Split it by steps among pre provision phases for each cloud providers
 func (t *TaskProvisioner) updateCloudSpecificData(ctx context.Context, config *steps.Config) error {
 	k, err := t.kubeService.Get(ctx, config.ClusterID)
 
