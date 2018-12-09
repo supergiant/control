@@ -32,16 +32,20 @@ func InitFindAMI(fn GetEC2Fn) {
 	steps.RegisterStep(StepFindAMI, NewFindAMIStep(fn))
 }
 
-func (s *FindAMIStep) Run(ctx context.Context, w io.Writer, cfg *steps.Config) error {
+func (s *FindAMIStep) Run(ctx context.Context, w io.Writer,
+	cfg *steps.Config) error {
 	EC2, err := s.GetEC2(cfg.AWSConfig)
 	if err != nil {
-		logrus.Errorf("[%s] - failed to authorize in AWS: %v", s.Name(), err)
+		logrus.Errorf("[%s] - failed to authorize in AWS: %v",
+			s.Name(), err)
 		return errors.Wrap(ErrAuthorization, err.Error())
 	}
 
 	cfg.AWSConfig.ImageID, err = s.FindAMI(ctx, w, EC2)
+	logrus.Debugf("Found image id %s", cfg.AWSConfig.ImageID)
 	if err != nil {
-		logrus.Errorf("[%s] - failed to find AMI for Ubuntu: %v", s.Name(), err)
+		logrus.Errorf("[%s] - failed to find AMI for Ubuntu: %v",
+			s.Name(), err)
 		return errors.Wrap(err, "failed to find AMI")
 	}
 

@@ -1268,15 +1268,7 @@ func (h *Handler) restartKubeProvisioning(w http.ResponseWriter, r *http.Request
 		return
 	}
 
-	// TODO(stgleb): Create config from existing kube
-	config := &steps.Config{
-		Provider:         k.Provider,
-		ClusterID:        k.ID,
-		ClusterName:      k.Name,
-		CloudAccountName: k.AccountName,
-		Masters:          steps.NewMap(k.Masters),
-		Nodes:            steps.NewMap(k.Nodes),
-	}
+	config := steps.NewConfigFromKube(kubeProfile, k)
 
 	logrus.Debugf("load clout specific data from kube")
 	// Load things specific to cloud provider
@@ -1312,7 +1304,7 @@ func (h *Handler) restartKubeProvisioning(w http.ResponseWriter, r *http.Request
 		return
 	}
 
-	logrus.Debugf("Restart cluster provisioning")
+	logrus.Debugf("Restart cluster %s provisioning", k.ID)
 	err = h.kubeProvisioner.RestartClusterProvisioning(r.Context(),
 		kubeProfile, config, k.Tasks)
 

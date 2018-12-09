@@ -169,7 +169,6 @@ func (w *Task) startFrom(ctx context.Context, id string, out io.Writer, i int) e
 	// Start workflow from the last failed step
 	wsLog := util.GetLogger(out)
 	for index := i; index < len(w.StepStatuses); index++ {
-		logrus.Debug(w.StepStatuses)
 		step := w.workflow[index]
 
 		wsLog.Infof("[%s] - started", step.Name())

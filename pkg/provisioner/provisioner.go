@@ -119,6 +119,10 @@ func (tp *TaskProvisioner) ProvisionCluster(parentContext context.Context,
 				logrus.Errorf("Pre provisioning cluster %v", err)
 				// TODO(stgleb): move this to separate step
 				// Save cluster before provisioning
+				// Copy config from preProvision task because it contains all things need for further
+				// provisioning VPC, SecGroup, Subnets etc.
+				config = preProvisionTask.Config
+
 				tp.updateCloudSpecificData(ctx, config)
 				return
 			}
@@ -307,6 +311,7 @@ func (tp *TaskProvisioner) RestartClusterProvisioning(ctx context.Context,
 				logrus.Errorf("Pre provisioning cluster %v", preProvisionErr)
 				// TODO(stgleb): move this to separate step
 				// Save cluster before provisioning
+				config = preProvisionTask[0].Config
 				tp.updateCloudSpecificData(ctx, config)
 				return
 			}
