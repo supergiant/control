@@ -135,25 +135,22 @@ func TestTaskRunError(t *testing.T) {
 	s := &MockRepository{
 		storage: make(map[string][]byte),
 	}
-	id := "abcd"
 
-	workflow := Task{
-		ID:         id,
-		repository: s,
-		workflow: []steps.Step{
-			&MockStep{name: "step1", errs: nil},
-			&MockStep{name: "step2", errs: []error{errors.New(errMsg)}},
-			&MockStep{name: "step3", errs: nil}},
+	wf := []steps.Step{
+		&MockStep{name: "step1", errs: nil},
+		&MockStep{name: "step2", errs: []error{errors.New(errMsg)}},
+		&MockStep{name: "step3", errs: nil},
 	}
+
+	workflowMap = make(map[string]Workflow)
+	RegisterWorkFlow("mock", wf)
+	task, err := NewTask("mock", s)
+
 
 	buffer := &bufferCloser{}
-	errChan := workflow.Run(context.Background(), steps.Config{}, buffer)
+	errChan := task.Run(context.Background(), steps.Config{}, buffer)
 
-	if len(workflow.ID) == 0 {
-		t.Error("id must not be empty")
-	}
-
-	err := <-errChan
+	err = <-errChan
 
 	if err == nil {
 		t.Error("Error must not be nil")
@@ -164,7 +161,7 @@ func TestTaskRunError(t *testing.T) {
 	}
 
 	w := &Task{}
-	data := s.storage[Prefix+id]
+	data := s.storage[Prefix+task.ID]
 
 	err = json.Unmarshal([]byte(data), w)
 
@@ -188,24 +185,20 @@ func TestTaskRunSuccess(t *testing.T) {
 		storage: make(map[string][]byte),
 	}
 
-	id := "abcd"
-	task := Task{
-		ID:         id,
-		repository: s,
-		workflow: []steps.Step{
-			&MockStep{name: "step1", errs: nil},
-			&MockStep{name: "step2", errs: nil},
-			&MockStep{name: "step3", errs: nil}},
+	wf := []steps.Step{
+		&MockStep{name: "step1", errs: nil},
+		&MockStep{name: "step2", errs: nil},
+		&MockStep{name: "step3", errs: nil},
 	}
+
+	workflowMap = make(map[string]Workflow)
+	RegisterWorkFlow("mock", wf)
+	task, err := NewTask("mock", s)
 
 	buffer := &bufferCloser{}
 	errChan := task.Run(context.Background(), steps.Config{}, buffer)
 
-	if len(id) == 0 {
-		t.Error("id must not be empty")
-	}
-
-	err := <-errChan
+	err = <-errChan
 
 	if err != nil {
 		t.Error("Error must be nil")
@@ -235,26 +228,24 @@ func TestWorkflowRestart(t *testing.T) {
 	s := &MockRepository{
 		storage: make(map[string][]byte),
 	}
-	id := "abcd"
 
-	task := &Task{
-		ID:         id,
-		repository: s,
-		workflow: []steps.Step{
-			&MockStep{name: "step1", errs: nil},
-			&MockStep{name: "step2", errs: []error{errors.New(errMsg), nil}},
-			&MockStep{name: "step3", errs: nil},
-		},
+	wf := []steps.Step{
+		&MockStep{name: "step1", errs: nil},
+		&MockStep{name: "step2", errs: []error{errors.New(errMsg), nil}},
+		&MockStep{name: "step3", errs: nil},
+	}
+	workflowMap = make(map[string]Workflow)
+	RegisterWorkFlow("mock", wf)
+	task, err := NewTask("mock", s)
+
+	if err != nil {
+		t.Errorf("Error while creating task %v", err)
+		return
 	}
 
 	buffer := &bufferCloser{}
 	errChan := task.Run(context.Background(), steps.Config{}, buffer)
-
-	if len(id) == 0 {
-		t.Error("id must not be empty")
-	}
-
-	err := <-errChan
+	err = <-errChan
 
 	if err == nil {
 		t.Error("Error must not be nil")
@@ -264,7 +255,7 @@ func TestWorkflowRestart(t *testing.T) {
 		t.Error(fmt.Sprintf("Expected error message %s not found in output %s", errMsg, buffer.String()))
 	}
 
-	data := s.storage[Prefix+id]
+	data := s.storage[Prefix+task.ID]
 	err = json.Unmarshal([]byte(data), task)
 
 	if err != nil {
@@ -277,7 +268,7 @@ func TestWorkflowRestart(t *testing.T) {
 	}
 
 	buffer.Reset()
-	errChan = task.Restart(context.Background(), id, buffer)
+	errChan = task.Run(context.Background(), steps.Config{}, buffer)
 	err = <-errChan
 
 	if err != nil {
@@ -289,21 +280,20 @@ func TestRollback(t *testing.T) {
 	s := &MockRepository{
 		storage: make(map[string][]byte),
 	}
-	id := "abcd"
 
 	mockStep := &MockStep{name: "step1", errs: []error{errors.New("should happen")}}
-	task := &Task{
-		ID:         id,
-		repository: s,
-		workflow: []steps.Step{
-			mockStep,
-		},
+	wf := []steps.Step{
+		mockStep,
 	}
+	workflowMap = make(map[string]Workflow)
+	RegisterWorkFlow("mock", wf)
+	task, err := NewTask("mock", s)
+
 	require.False(t, mockStep.rollback)
 
 	buffer := &bufferCloser{}
 	errChan := task.Run(context.Background(), steps.Config{}, buffer)
-	err := <-errChan
+	err = <-errChan
 	require.Error(t, err)
 
 	require.True(t, mockStep.rollback)

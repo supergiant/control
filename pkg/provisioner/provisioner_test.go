@@ -95,7 +95,7 @@ func TestProvisionCluster(t *testing.T) {
 			clouds.DigitalOcean: {
 				ProvisionMaster: "test_master",
 				ProvisionNode:   "test_node",
-				PreProvision: "",
+				PreProvision:    "",
 			},
 		},
 		NewRateLimiter(time.Nanosecond * 1),
@@ -105,6 +105,7 @@ func TestProvisionCluster(t *testing.T) {
 	workflows.Init()
 	workflows.RegisterWorkFlow("test_master", []steps.Step{})
 	workflows.RegisterWorkFlow("test_node", []steps.Step{})
+	workflows.RegisterWorkFlow(workflows.Cluster, []steps.Step{})
 
 	p := &profile.Profile{
 		Provider: clouds.DigitalOcean,
@@ -458,5 +459,4 @@ func TestBuildInitialCluster(t *testing.T) {
 				"expected %d actual %d", len(taskIds), len(k.Tasks))
 		}
 	}
-
 }
