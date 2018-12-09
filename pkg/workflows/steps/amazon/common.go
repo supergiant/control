@@ -8,9 +8,10 @@ import (
 	"github.com/aws/aws-sdk-go/service/ec2/ec2iface"
 	"github.com/aws/aws-sdk-go/service/iam"
 	"github.com/aws/aws-sdk-go/service/iam/iamiface"
+	"github.com/sirupsen/logrus"
+
 
 	"github.com/supergiant/control/pkg/workflows/steps"
-	"github.com/Sirupsen/logrus"
 )
 
 type GetEC2Fn func(steps.AWSConfig) (ec2iface.EC2API, error)
