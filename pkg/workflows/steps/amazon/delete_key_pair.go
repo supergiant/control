@@ -31,6 +31,10 @@ func InitDeleteKeyPair(fn GetEC2Fn) {
 }
 
 func (s *DeleteKeyPair) Run(ctx context.Context, w io.Writer, cfg *steps.Config) error {
+	if cfg.AWSConfig.KeyPairName == "" {
+		return nil
+	}
+
 	EC2, err := s.GetEC2(cfg.AWSConfig)
 	if err != nil {
 		return errors.Wrap(ErrAuthorization, err.Error())

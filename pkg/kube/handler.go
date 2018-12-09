@@ -1255,6 +1255,20 @@ func (h *Handler) restartKubeProvisioning(w http.ResponseWriter, r *http.Request
 		return
 	}
 
+	logrus.Debugf("Get cloud profile %s", k.ProfileID)
+	kubeProfile, err := h.profileSvc.Get(r.Context(), k.ProfileID)
+
+	if err != nil {
+		if sgerrors.IsNotFound(err) {
+			message.SendUnknownError(w, err)
+			return
+		}
+
+		message.SendUnknownError(w, err)
+		return
+	}
+
+	// TODO(stgleb): Create config from existing kube
 	config := &steps.Config{
 		Provider:         k.Provider,
 		ClusterID:        k.ID,
@@ -1273,15 +1287,27 @@ func (h *Handler) restartKubeProvisioning(w http.ResponseWriter, r *http.Request
 		return
 	}
 
-	logrus.Debugf("Get cloud profile %s", k.ProfileID)
-	kubeProfile, err := h.profileSvc.Get(r.Context(), k.ProfileID)
+	logrus.Debugf("Get cloud account %s", k.AccountName)
+	acc, err := h.accountService.Get(r.Context(), k.AccountName)
 
 	if err != nil {
 		if sgerrors.IsNotFound(err) {
-			message.SendUnknownError(w, err)
+			http.NotFound(w, r)
 			return
 		}
 
+		message.SendUnknownError(w, err)
+		return
+	}
+
+	logrus.Debug("Fill config with cloud account credentials")
+	err = util.FillCloudAccountCredentials(r.Context(), acc, config)
+
+	if err != nil {
+		if sgerrors.IsNotFound(err) {
+			http.NotFound(w, r)
+			return
+		}
 		message.SendUnknownError(w, err)
 		return
 	}

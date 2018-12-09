@@ -105,7 +105,7 @@ func (s *CreateRouteTableStep) Rollback(ctx context.Context, w io.Writer, cfg *s
 }
 
 func (*CreateRouteTableStep) Name() string {
-	return StepNameCreateEC2Instance
+	return StepCreateRouteTable
 }
 
 func (*CreateRouteTableStep) Description() string {

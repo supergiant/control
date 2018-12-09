@@ -52,6 +52,19 @@ func NewTask(taskType string, repository storage.Interface) (*Task, error) {
 
 	t := newTask(taskType, w, repository)
 
+	// This must be done in NewTask
+	// Create list of statuses to track
+	for _, step := range t.workflow {
+		t.StepStatuses = append(t.StepStatuses, StepStatus{
+			Status:   statuses.Todo,
+			StepName: step.Name(),
+			ErrMsg:   "",
+		})
+	}
+
+	// Set status for task
+	t.Status = statuses.Todo
+
 	// Try to sync the task at first time
 	err := t.sync(context.Background())
 
@@ -72,6 +85,10 @@ func newTask(workflowType string, workflow Workflow, repository storage.Interfac
 
 // Run executes all steps of workflow and tracks the progress in persistent storage
 func (w *Task) Run(ctx context.Context, config steps.Config, out io.WriteCloser) chan error {
+	if w.Status == statuses.Success {
+		return nil
+	}
+
 	errChan := make(chan error, 1)
 
 	go func() {
@@ -85,44 +102,28 @@ func (w *Task) Run(ctx context.Context, config steps.Config, out io.WriteCloser)
 				errChan <- errors.Errorf("provisioning failed, unexpected panic: %v ", r)
 			}
 		}()
-		if w == nil {
-			return
-		}
 
-		// In case of restart skip creating step statuses
-		if len(w.StepStatuses) > 0 {
-			// This must be done in NewTask
-			// Create list of statuses to track
-			for _, step := range w.workflow {
-				w.StepStatuses = append(w.StepStatuses, StepStatus{
-					Status:   statuses.Todo,
-					StepName: step.Name(),
-					ErrMsg:   "",
-				})
-			}
-		}
-
-		// TODO(stgleb): This status set must happen in NewConfig
-		// Set config to the task
 		w.Config = &config
-		w.Status = statuses.Todo
 
 		// Save task state before first step
 		if err := w.sync(ctx); err != nil {
 			logrus.Errorf("Error saving task state %v", err)
 		}
 
-		i := 0
+		startIndex := 0
 		// Skip successfully finished steps in case of restart
 		for index, stepStatus := range w.StepStatuses {
 			if stepStatus.Status != statuses.Success {
-				i = index
+				startIndex = index
 				break
 			}
 		}
 
+		logrus.Debugf("start task from step #%d startIndex %s",
+			startIndex, w.StepStatuses[startIndex].StepName)
+
 		// Start from the first step
-		err := w.startFrom(ctx, w.ID, out, i)
+		err := w.startFrom(ctx, w.ID, out, startIndex)
 
 		if err != nil {
 			if ctx.Err() == context.Canceled {
@@ -143,6 +144,13 @@ func (w *Task) Run(ctx context.Context, config steps.Config, out io.WriteCloser)
 			return
 		}
 
+		// Set task state to success and save this state
+		w.Status = statuses.Success
+
+		if err := w.sync(ctx); err != nil {
+			logrus.Errorf("failed to sync task %s to db: %v", w.ID, err)
+		}
+
 		logrus.Infof("Task %s has finished successfully", w.ID)
 		// Notify provisioner that task output closed with error
 		if err := out.Close(); err != nil {
@@ -160,6 +168,7 @@ func (w *Task) startFrom(ctx context.Context, id string, out io.Writer, i int) e
 	// Start workflow from the last failed step
 	wsLog := util.GetLogger(out)
 	for index := i; index < len(w.StepStatuses); index++ {
+		logrus.Debug(w.StepStatuses)
 		step := w.workflow[index]
 
 		wsLog.Infof("[%s] - started", step.Name())
@@ -203,8 +212,8 @@ func (w *Task) startFrom(ctx context.Context, id string, out io.Writer, i int) e
 			wsLog.Infof("[%s] - success", step.Name())
 			// Mark step as success
 			w.StepStatuses[index].Status = statuses.Success
+			w.StepStatuses[index].ErrMsg = ""
 			w.Status = statuses.Success
-
 			if err := w.sync(ctx); err != nil {
 				logrus.Errorf("sync error %v for step %s", err, step.Name())
 			}

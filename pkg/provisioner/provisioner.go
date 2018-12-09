@@ -292,20 +292,25 @@ func (tp *TaskProvisioner) RestartClusterProvisioning(ctx context.Context,
 		}
 	}
 
+	// monitor cluster state in separate goroutine
+	go tp.monitorClusterState(ctx, config)
+
 	go func() {
 		preProvisionTask := taskMap[workflows.PreProvisionTask]
 
 		if preProvisionTask != nil && len(preProvisionTask) > 0 {
 			logrus.Debugf("Restart preprovision task %s",
 				preProvisionTask[0].ID)
-			fileName := util.MakeFileName(preProvisionTask[0].ID)
-			out, err := tp.getWriter(fileName)
 
-			if err != nil {
-				logrus.Errorf("error while getting writer %v", err)
+			if preProvisionErr := tp.preProvision(ctx, preProvisionTask[0], config);
+			preProvisionErr != nil {
+				logrus.Errorf("Pre provisioning cluster %v", preProvisionErr)
+				// TODO(stgleb): move this to separate step
+				// Save cluster before provisioning
+				tp.updateCloudSpecificData(ctx, config)
+				return
 			}
 
-			preProvisionTask[0].Run(ctx, *config, out)
 			config = preProvisionTask[0].Config
 		}
 
@@ -320,6 +325,7 @@ func (tp *TaskProvisioner) RestartClusterProvisioning(ctx context.Context,
 		config.ReadyForBootstrapLatch = &sync.WaitGroup{}
 		config.ReadyForBootstrapLatch.Add(len(taskMap[workflows.MasterTask]))
 
+		logrus.Debug("Restart provision masters")
 		doneChan, failChan, err := tp.provisionMasters(ctx, clusterProfile,
 			config, taskMap[workflows.MasterTask])
 
@@ -420,12 +426,12 @@ func (tp *TaskProvisioner) preProvision(ctx context.Context, preProvisionTask *w
 	err = <-result
 
 	if err != nil {
-		config.KubeStateChan() <- model.StateFailed
 		logrus.Errorf("pre provision task %s has finished with error %v",
 			preProvisionTask.ID, err)
+		config.KubeStateChan() <- model.StateFailed
 	} else {
-		config.KubeStateChan() <- model.StateProvisioning
 		logrus.Infof("pre provision %s has finished", preProvisionTask.ID)
+		config.KubeStateChan() <- model.StateProvisioning
 	}
 
 	return err

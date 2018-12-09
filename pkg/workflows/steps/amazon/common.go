@@ -10,11 +10,13 @@ import (
 	"github.com/aws/aws-sdk-go/service/iam/iamiface"
 
 	"github.com/supergiant/control/pkg/workflows/steps"
+	"github.com/Sirupsen/logrus"
 )
 
 type GetEC2Fn func(steps.AWSConfig) (ec2iface.EC2API, error)
 
 func GetEC2(cfg steps.AWSConfig) (ec2iface.EC2API, error) {
+	logrus.Debug("get EC2 client")
 	sess, err := session.NewSessionWithOptions(session.Options{
 		Config: aws.Config{
 			Region:      aws.String(cfg.Region),

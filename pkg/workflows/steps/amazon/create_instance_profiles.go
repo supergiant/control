@@ -171,7 +171,7 @@ func (s StepCreateInstanceProfiles) Rollback(ctx context.Context, w io.Writer, c
 }
 
 func (StepCreateInstanceProfiles) Name() string {
-	return StepNameCreateEC2Instance
+	return StepNameCreateInstanceProfiles
 }
 
 func (StepCreateInstanceProfiles) Description() string {
