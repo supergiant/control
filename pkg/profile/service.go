@@ -4,8 +4,9 @@ import (
 	"context"
 	"encoding/json"
 
+	"github.com/sirupsen/logrus"
+
 	"github.com/supergiant/control/pkg/storage"
-	"github.com/Sirupsen/logrus"
 )
 
 const DefaultKubeProfilePreifx = "/supergiant/profile"
