@@ -10,7 +10,6 @@ import (
 	"github.com/aws/aws-sdk-go/service/iam/iamiface"
 	"github.com/sirupsen/logrus"
 
-
 	"github.com/supergiant/control/pkg/workflows/steps"
 )
 
