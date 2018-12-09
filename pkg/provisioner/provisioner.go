@@ -380,10 +380,13 @@ func (tp *TaskProvisioner) prepare(name clouds.Name, masterCount, nodeCount int)
 	//some clouds (e.g. AWS) requires running tasks before provisioning nodes (creating a VPC, Subnets, SecGroups, etc)
 	switch name {
 	case clouds.AWS:
-		preProvisionTask, err = workflows.NewTask(tp.provisionMap[name].PreProvision, tp.repository)
+		preProvisionTask, err = workflows.NewTask(
+			tp.provisionMap[name].PreProvision,
+			tp.repository)
 		// We can't go further without pre provision task
 		if err != nil {
-			logrus.Errorf("create pre provision task has finished with %v", err)
+			logrus.Errorf("create pre provision task has finished with %v",
+				err)
 			return nil, nil, nil, nil
 		}
 	case clouds.GCE:
