@@ -1260,7 +1260,7 @@ func (h *Handler) restartKubeProvisioning(w http.ResponseWriter, r *http.Request
 
 	if err != nil {
 		if sgerrors.IsNotFound(err) {
-			message.SendUnknownError(w, err)
+			message.SendNotFound(w, k.ProfileID, err)
 			return
 		}
 
@@ -1312,4 +1312,6 @@ func (h *Handler) restartKubeProvisioning(w http.ResponseWriter, r *http.Request
 		message.SendUnknownError(w, err)
 		return
 	}
+
+	w.WriteHeader(http.StatusAccepted)
 }

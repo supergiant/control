@@ -79,6 +79,38 @@ type mockNodeProvisioner struct {
 	mock.Mock
 }
 
+type mockProvisioner struct {
+	mock.Mock
+}
+
+type mockProfileGetter struct {
+	mock.Mock
+}
+
+func (m *mockProfileGetter) Get(ctx context.Context,
+	profileID string) (*profile.Profile, error) {
+	args := m.Called(ctx, profileID)
+
+	val, ok := args.Get(0).(*profile.Profile)
+	if !ok {
+		return nil, args.Error(1)
+	}
+	return val, args.Error(1)
+}
+
+func (m *mockProvisioner) RestartClusterProvisioning(ctx context.Context,
+	clusterProfile *profile.Profile,
+	config *steps.Config,
+	taskIdMap map[string][]string) error {
+	args := m.Called(ctx, clusterProfile, config, taskIdMap)
+
+	val, ok := args.Get(0).(error)
+	if !ok {
+		return args.Error(0)
+	}
+	return val
+}
+
 type bufferCloser struct {
 	bytes.Buffer
 	err error
@@ -253,7 +285,7 @@ func TestHandler_createKube(t *testing.T) {
 		// setup handler
 		svc := new(kubeServiceMock)
 		h := NewHandler(svc, nil,
-			nil, nil , nil, nil, nil)
+			nil, nil, nil, nil, nil)
 
 		req, err := http.NewRequest(http.MethodPost, "/kubes",
 			bytes.NewReader(tc.rawKube))
@@ -710,7 +742,7 @@ func TestAddNodeToKube(t *testing.T) {
 			"test",
 			&model.Kube{
 				AccountName: "test",
-				Tasks: make(map[string][]string),
+				Tasks:       make(map[string][]string),
 			},
 			nil,
 			"test",
@@ -724,7 +756,7 @@ func TestAddNodeToKube(t *testing.T) {
 			"test",
 			&model.Kube{
 				AccountName: "test",
-				Tasks: make(map[string][]string),
+				Tasks:       make(map[string][]string),
 			},
 			nil,
 			"test",
@@ -1017,7 +1049,7 @@ func TestKubeTasks(t *testing.T) {
 			kubeResp: &model.Kube{
 				Tasks: map[string][]string{
 					workflows.MasterTask: {"taskID"},
-					},
+				},
 			},
 			kubeErr: nil,
 			repoErr: sgerrors.ErrNotFound,
@@ -1217,7 +1249,7 @@ func TestGetTasks(t *testing.T) {
 			description: "internal error",
 			kubeID:      "test",
 			kubeResp: &model.Kube{
-				ID:    "test",
+				ID: "test",
 				Tasks: map[string][]string{
 					workflows.MasterTask: {"1234"},
 				},
@@ -1229,7 +1261,7 @@ func TestGetTasks(t *testing.T) {
 			description: "nothing found",
 			kubeID:      "test",
 			kubeResp: &model.Kube{
-				ID:    "test",
+				ID: "test",
 				Tasks: map[string][]string{
 					workflows.MasterTask: {"1234"},
 				},
@@ -1241,7 +1273,7 @@ func TestGetTasks(t *testing.T) {
 			description: "success",
 			kubeID:      "test",
 			kubeResp: &model.Kube{
-				ID:    "test",
+				ID: "test",
 				Tasks: map[string][]string{
 					workflows.MasterTask: {"1234"},
 				},
@@ -1856,6 +1888,145 @@ func TestGetNodesMetrics(t *testing.T) {
 				t.Errorf("Unexpected count of nodes expected %d actual %d",
 					expectedNodeCount, len(resp))
 			}
+		}
+	}
+}
+
+func TestRestarProvisioningKube(t *testing.T) {
+	testCases := []struct {
+		description string
+		kubeName    string
+
+		kube           *model.Kube
+		kubeServiceErr error
+
+		kubeProfile *profile.Profile
+		profileErr  error
+
+		accountName string
+		account     *model.CloudAccount
+		accountErr  error
+
+		provisionErr error
+
+		expectedCode int
+	}{
+		{
+			description:    "kube not found",
+			kubeName:       "test",
+			kubeServiceErr: sgerrors.ErrNotFound,
+			expectedCode:   http.StatusNotFound,
+		},
+		{
+			description: "profile not found",
+			kubeName:    "test",
+			kube: &model.Kube{
+				AccountName: "test",
+				Tasks:       make(map[string][]string),
+			},
+
+			profileErr:   sgerrors.ErrNotFound,
+			expectedCode: http.StatusNotFound,
+		},
+		{
+			description: "account not found",
+			kubeName:    "test",
+			kube: &model.Kube{
+				AccountName: "test",
+				Tasks:       make(map[string][]string),
+			},
+
+			kubeProfile:  &profile.Profile{},
+			accountName:  "not found",
+			accountErr:   sgerrors.ErrNotFound,
+			expectedCode: http.StatusNotFound,
+		},
+		{
+			description: "unsupported cloud provider",
+			kubeName:    "test",
+			kube: &model.Kube{
+				AccountName: "test",
+				Tasks:       make(map[string][]string),
+			},
+
+			kubeProfile: &profile.Profile{},
+			accountName: "not found",
+			account: &model.CloudAccount{
+				Provider: "unsupported",
+			},
+			expectedCode: http.StatusInternalServerError,
+		},
+		{
+			description: "Error while provision",
+			kubeName:    "test",
+			kube: &model.Kube{
+				AccountName: "test",
+				Tasks:       make(map[string][]string),
+			},
+
+			kubeProfile: &profile.Profile{},
+			accountName: "not found",
+			account: &model.CloudAccount{
+				Provider: "unsupported",
+			},
+			provisionErr: errors.New("provision error"),
+			expectedCode: http.StatusInternalServerError,
+		},
+		{
+			description: "Success",
+			kubeName:    "test",
+			kube: &model.Kube{
+				AccountName: "test",
+				Tasks:       make(map[string][]string),
+			},
+
+			kubeProfile: &profile.Profile{},
+			accountName: "not found",
+			account: &model.CloudAccount{
+				Provider: clouds.AWS,
+			},
+			expectedCode: http.StatusAccepted,
+		},
+	}
+
+	for _, testCase := range testCases {
+		t.Log(testCase.description)
+		svc := new(kubeServiceMock)
+		svc.On(serviceGet, mock.Anything, mock.Anything).
+			Return(testCase.kube, testCase.kubeServiceErr)
+		svc.On(serviceCreate, mock.Anything, mock.Anything).
+			Return(nil)
+
+		profileSvc := new(mockProfileGetter)
+		profileSvc.On("Get", mock.Anything,
+			mock.Anything).Return(testCase.kubeProfile,
+				testCase.profileErr)
+
+		accService := new(accServiceMock)
+		accService.On("Get", mock.Anything, mock.Anything).
+			Return(testCase.account, testCase.accountErr)
+
+		mockProvisioner := new(mockProvisioner)
+		mockProvisioner.On("RestartClusterProvisioning",
+			mock.Anything, mock.Anything, mock.Anything, mock.Anything).
+			Return(testCase.provisionErr)
+
+		h := NewHandler(svc, accService, profileSvc,
+			nil, mockProvisioner,
+			nil, nil)
+
+		req, _ := http.NewRequest(http.MethodPost,
+			fmt.Sprintf("/kubes/%s/restart", testCase.kubeName),
+			nil)
+		rec := httptest.NewRecorder()
+		router := mux.NewRouter()
+
+		router.HandleFunc("/kubes/{kubeID}/restart", h.restartKubeProvisioning)
+		router.ServeHTTP(rec, req)
+
+		if rec.Code != testCase.expectedCode {
+			t.Errorf("Wrong error code expected %d actual %d",
+				testCase.expectedCode, rec.Code)
 		}
 	}
 }
