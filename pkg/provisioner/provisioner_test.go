@@ -7,9 +7,9 @@ import (
 	"testing"
 	"time"
 
+	"github.com/pkg/errors"
 	"github.com/sirupsen/logrus"
 	"github.com/stretchr/testify/mock"
-	"github.com/pkg/errors"
 
 	"github.com/supergiant/control/pkg/clouds"
 	"github.com/supergiant/control/pkg/model"
@@ -43,6 +43,29 @@ func (m *mockKubeService) Create(ctx context.Context, k *model.Kube) error {
 
 func (m *mockKubeService) Get(ctx context.Context, kname string) (*model.Kube, error) {
 	return m.data[kname], m.getError
+}
+
+type mockStep struct {
+}
+
+func (m *mockStep) Run(context.Context, io.Writer, *steps.Config) error {
+	return nil
+}
+
+func (m *mockStep) Name() string {
+	return ""
+}
+
+func (m *mockStep) Description() string {
+	return ""
+}
+
+func (m *mockStep) Depends() []string {
+	return nil
+}
+
+func (m *mockStep) Rollback(context.Context, io.Writer, *steps.Config) error {
+	return nil
 }
 
 func TestNewProvisioner(t *testing.T) {
@@ -265,7 +288,9 @@ func TestRestartProvisionCluster(t *testing.T) {
 		mock.Anything, mock.Anything,
 		mock.Anything).Return(nil)
 	repository.On("Get", mock.Anything,
-		mock.Anything, mock.Anything).Return([]byte(`{"id": "task_id", "type": "preprovision"}`),
+		mock.Anything,
+		mock.Anything).Return([]byte(`{"id": "task_id", 
+"type": "AWSPreProvisionCluster", "stepsStatuses":[{"status": "error"}]}`),
 		nil)
 
 	bc := &bufferCloser{
@@ -302,7 +327,9 @@ func TestRestartProvisionCluster(t *testing.T) {
 	workflows.RegisterWorkFlow(workflows.AWSMaster, []steps.Step{})
 	workflows.RegisterWorkFlow(workflows.AWSNode, []steps.Step{})
 	workflows.RegisterWorkFlow(workflows.Cluster, []steps.Step{})
-	workflows.RegisterWorkFlow(workflows.AWSPreProvision, []steps.Step{})
+	workflows.RegisterWorkFlow(workflows.AWSPreProvision, []steps.Step{
+		&mockStep{},
+	})
 
 	p := &profile.Profile{
 		Provider: clouds.AWS,
@@ -543,7 +570,8 @@ func TestMonitorCluster(t *testing.T) {
 		}
 
 		if testCase.kube.State != testCase.expectedClusterState {
-			t.Errorf("Wrong cluster state in the end of provisioning")
+			t.Errorf("Wrong cluster state in the end of provisioning expected %s actual %s",
+				testCase.expectedClusterState, testCase.kube.State)
 		}
 	}
 }

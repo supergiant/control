@@ -74,15 +74,24 @@ func NewProvisioner(repository storage.Interface, kubeService KubeService,
 // ProvisionCluster runs provisionCluster process among nodes
 // that have been provided for provisionCluster
 func (tp *TaskProvisioner) ProvisionCluster(parentContext context.Context,
-	profile *profile.Profile, config *steps.Config) (map[string][]*workflows.Task, error) {
-	masterTasks, nodeTasks, preProvisionTask, clusterTask := tp.prepare(config.Provider, len(profile.MasterProfiles),
-		len(profile.NodesProfiles))
+	clusterProfile *profile.Profile, config *steps.Config) (map[string][]*workflows.Task, error) {
+
+	var (
+		clusterTask *workflows.Task
+	)
+
+	taskMap := tp.prepare(config.Provider,
+		len(clusterProfile.MasterProfiles),
+		len(clusterProfile.NodesProfiles))
+
+	clusterTask = taskMap[workflows.ClusterTask][0]
 
 	// Get clusterID from taskID
 	if clusterTask != nil && len(clusterTask.ID) >= 8 {
 		config.ClusterID = clusterTask.ID[:8]
 	} else {
-		return nil, errors.New(fmt.Sprintf("Wrong value of cluster task %v", clusterTask))
+		return nil, errors.New(fmt.Sprintf("Wrong value of "+
+			"cluster task %v", clusterTask))
 	}
 
 	// Save cancel that cancel cluster provisioning to cancelMap
@@ -91,7 +100,8 @@ func (tp *TaskProvisioner) ProvisionCluster(parentContext context.Context,
 
 	// TODO(stgleb): Make node names from task id before provisioning starts
 	masters, nodes := nodesFromProfile(config.ClusterName,
-		masterTasks, nodeTasks, profile)
+		taskMap[workflows.MasterTask], taskMap[workflows.NodeTask],
+		clusterProfile)
 
 	if err := bootstrapKeys(config); err != nil {
 		return nil, errors.Wrap(err, "bootstrap keys")
@@ -102,9 +112,10 @@ func (tp *TaskProvisioner) ProvisionCluster(parentContext context.Context,
 	}
 
 	// Gather all task ids
-	taskIds := grabTaskIds(preProvisionTask, clusterTask, masterTasks, nodeTasks)
+	taskIds := grabTaskIds(taskMap)
 	// Save cluster before provisioning
-	err := tp.buildInitialCluster(ctx, profile, masters, nodes, config, taskIds)
+	err := tp.buildInitialCluster(ctx, clusterProfile, masters, nodes,
+		config, taskIds)
 
 	if err != nil {
 		return nil, errors.Wrap(err, "build initial cluster")
@@ -112,74 +123,7 @@ func (tp *TaskProvisioner) ProvisionCluster(parentContext context.Context,
 
 	// monitor cluster state in separate goroutine
 	go tp.monitorClusterState(ctx, config)
-
-	// TODO(stgleb): Extract this function to provisioner method
-	go func() {
-		if preProvisionTask != nil {
-			if preProvisionErr := tp.preProvision(ctx, preProvisionTask, config); preProvisionErr != nil {
-				logrus.Errorf("Pre provisioning cluster %v", err)
-				// TODO(stgleb): move this to separate step
-				// Save cluster before provisioning
-				// Copy config from preProvision task because it contains all things need for further
-				// provisioning VPC, SecGroup, Subnets etc.
-				config = preProvisionTask.Config
-
-				tp.updateCloudSpecificData(ctx, config)
-				return
-			}
-
-			// Copy config from preProvision task because it contains all things need for further
-			// provisioning VPC, SecGroup, Subnets etc.
-			config = preProvisionTask.Config
-		}
-
-		// TODO(stgleb): move this to separate step
-		// Save cluster before provisioning
-		err := tp.updateCloudSpecificData(ctx, config)
-
-		if err != nil {
-			logrus.Errorf("update cluster with cloud specific data %v", err)
-		}
-		config.ReadyForBootstrapLatch = &sync.WaitGroup{}
-		config.ReadyForBootstrapLatch.Add(len(profile.MasterProfiles))
-		// ProvisionCluster masters and wait until n/2 + 1 of masters with etcd are up and running
-		doneChan, failChan, err := tp.provisionMasters(ctx, profile, config, masterTasks)
-
-		if err != nil {
-			logrus.Errorf("ProvisionCluster master %v", err)
-		}
-
-		select {
-		case <-ctx.Done():
-			logrus.Errorf("Master cluster has not been created %v", ctx.Err())
-			return
-		case <-doneChan:
-		case <-failChan:
-			config.KubeStateChan() <- model.StateFailed
-			logrus.Errorf("master cluster deployment has been failed")
-			return
-		}
-
-		// Save cluster state when masters are provisioned
-		logrus.Infof("master provisioning for cluster %s has finished successfully", config.ClusterID)
-
-		// ProvisionCluster nodes
-		tp.provisionNodes(ctx, profile, config, nodeTasks)
-
-		// Wait for cluster checks are finished
-		tp.waitCluster(ctx, clusterTask, config)
-		logrus.Infof("cluster %s deployment has finished", config.ClusterID)
-	}()
-
-	taskMap := map[string][]*workflows.Task{
-		"master":  masterTasks,
-		"node":    nodeTasks,
-		"cluster": {clusterTask},
-	}
-
-	if preProvisionTask != nil {
-		taskMap["preprovision"] = []*workflows.Task{preProvisionTask}
-	}
+	go tp.provision(ctx, taskMap, clusterProfile, config)
 
 	return taskMap, nil
 }
@@ -268,7 +212,7 @@ func (tp *TaskProvisioner) RestartClusterProvisioning(parentCtx context.Context,
 	config *steps.Config, taskIdMap map[string][]string) error {
 
 	ctx, cancel := context.WithTimeout(context.Background(),
-		time.Minute * 30)
+		time.Minute*30)
 	tp.cancelMap[config.ClusterID] = cancel
 	logrus.Debugf("Deserialize tasks")
 
@@ -282,82 +226,83 @@ func (tp *TaskProvisioner) RestartClusterProvisioning(parentCtx context.Context,
 
 	// monitor cluster state in separate goroutine
 	go tp.monitorClusterState(ctx, config)
-
-	// TODO(stgleb): Extract this function to provisioner method
-	go func() {
-		preProvisionTask := taskMap[workflows.PreProvisionTask]
-
-		if preProvisionTask != nil && len(preProvisionTask) > 0 {
-			logrus.Debugf("Restart preprovision task %s",
-				preProvisionTask[0].ID)
-
-			if preProvisionErr := tp.preProvision(ctx, preProvisionTask[0], config);
-			preProvisionErr != nil {
-				logrus.Errorf("Pre provisioning cluster %v", preProvisionErr)
-				// TODO(stgleb): move this to separate step
-				// Save cluster before provisioning
-				config = preProvisionTask[0].Config
-				tp.updateCloudSpecificData(ctx, config)
-				return
-			}
-
-			config = preProvisionTask[0].Config
-		}
-
-		logrus.Debugf("Save cloud specific data to cluster")
-		// Save cluster before provisioning
-		err = tp.updateCloudSpecificData(ctx, config)
-
-		if err != nil {
-			logrus.Errorf("update cluster with cloud specific data %v", err)
-		}
-
-		config.ReadyForBootstrapLatch = &sync.WaitGroup{}
-		config.ReadyForBootstrapLatch.Add(len(taskMap[workflows.MasterTask]))
-
-		logrus.Debug("Restart provision masters")
-		doneChan, failChan, err := tp.provisionMasters(ctx, clusterProfile,
-			config, taskMap[workflows.MasterTask])
-
-		if err != nil {
-			logrus.Errorf("ProvisionCluster master %v", err)
-		}
-
-		select {
-		case <-ctx.Done():
-			logrus.Errorf("Master cluster has not been created %v",
-				ctx.Err())
-			return
-		case <-doneChan:
-		case <-failChan:
-			config.KubeStateChan() <- model.StateFailed
-			logrus.Errorf("master cluster deployment has been failed")
-			return
-		}
-
-		// Save cluster state when masters are provisioned
-		logrus.Infof("master provisioning for cluster"+
-			"%s has finished successfully",
-			config.ClusterID)
-
-		tp.provisionNodes(ctx, clusterProfile, config,
-			taskMap[workflows.NodeTask])
-
-		// Wait for cluster checks are finished
-		tp.waitCluster(ctx, taskMap[workflows.ClusterTask][0], config)
-		logrus.Infof("cluster %s deployment has finished",
-			config.ClusterID)
-	}()
+	go tp.provision(ctx, taskMap, clusterProfile, config)
 
 	return nil
 }
 
+func (tp *TaskProvisioner) provision(ctx context.Context,
+	taskMap map[string][]*workflows.Task, clusterProfile *profile.Profile,
+	config *steps.Config) {
+	preProvisionTask := taskMap[workflows.PreProvisionTask]
+
+	if preProvisionTask != nil && len(preProvisionTask) > 0 {
+		logrus.Debugf("Restart preprovision task %s",
+			preProvisionTask[0].ID)
+
+		if preProvisionErr := tp.preProvision(ctx, preProvisionTask[0], config); preProvisionErr != nil {
+			logrus.Errorf("Pre provisioning cluster %v", preProvisionErr)
+			// TODO(stgleb): move this to separate step
+			// Save cluster before provisioning
+			config = preProvisionTask[0].Config
+			tp.updateCloudSpecificData(ctx, config)
+			return
+		}
+
+		config = preProvisionTask[0].Config
+	}
+
+	logrus.Debugf("Save cloud specific data to cluster")
+	// Save cluster before provisioning
+	err := tp.updateCloudSpecificData(ctx, config)
+
+	if err != nil {
+		logrus.Errorf("update cluster with cloud specific data %v", err)
+	}
+
+	config.ReadyForBootstrapLatch = &sync.WaitGroup{}
+	config.ReadyForBootstrapLatch.Add(len(taskMap[workflows.MasterTask]))
+
+	logrus.Debug("Restart provision masters")
+	doneChan, failChan, err := tp.provisionMasters(ctx, clusterProfile,
+		config, taskMap[workflows.MasterTask])
+
+	if err != nil {
+		logrus.Errorf("ProvisionCluster master %v", err)
+	}
+
+	select {
+	case <-ctx.Done():
+		logrus.Errorf("Master cluster has not been created %v",
+			ctx.Err())
+		return
+	case <-doneChan:
+	case <-failChan:
+		config.KubeStateChan() <- model.StateFailed
+		logrus.Errorf("master cluster deployment has been failed")
+		return
+	}
+
+	// Save cluster state when masters are provisioned
+	logrus.Infof("master provisioning for cluster"+
+		"%s has finished successfully",
+		config.ClusterID)
+
+	tp.provisionNodes(ctx, clusterProfile, config,
+		taskMap[workflows.NodeTask])
+
+	// Wait for cluster checks are finished
+	tp.waitCluster(ctx, taskMap[workflows.ClusterTask][0], config)
+	logrus.Infof("cluster %s deployment has finished",
+		config.ClusterID)
+}
+
 // prepare creates all tasks for provisioning according to cloud provider
-func (tp *TaskProvisioner) prepare(name clouds.Name, masterCount, nodeCount int) ([]*workflows.Task, []*workflows.Task, *workflows.Task, *workflows.Task) {
+func (tp *TaskProvisioner) prepare(name clouds.Name, masterCount, nodeCount int) map[string][]*workflows.Task {
 	var (
-		preProvisionTask  *workflows.Task
-		postProvisionTask *workflows.Task
-		err               error
+		preProvisionTask *workflows.Task
+		clusterTask      *workflows.Task
+		err              error
 	)
 
 	masterTasks := make([]*workflows.Task, 0, masterCount)
@@ -372,7 +317,7 @@ func (tp *TaskProvisioner) prepare(name clouds.Name, masterCount, nodeCount int)
 		if err != nil {
 			logrus.Errorf("create pre provision task has finished with %v",
 				err)
-			return nil, nil, nil, nil
+			return nil
 		}
 	case clouds.GCE:
 	case clouds.DigitalOcean:
@@ -399,9 +344,20 @@ func (tp *TaskProvisioner) prepare(name clouds.Name, masterCount, nodeCount int)
 		nodeTasks = append(nodeTasks, t)
 	}
 
-	postProvisionTask, _ = workflows.NewTask(workflows.Cluster, tp.repository)
+	clusterTask, _ = workflows.NewTask(workflows.Cluster, tp.repository)
 
-	return masterTasks, nodeTasks, preProvisionTask, postProvisionTask
+	taskMap := map[string][]*workflows.Task{
+		workflows.MasterTask:  masterTasks,
+		workflows.NodeTask:    nodeTasks,
+		workflows.ClusterTask: {clusterTask},
+	}
+
+	if preProvisionTask != nil {
+		taskMap[workflows.PreProvisionTask] =
+			[]*workflows.Task{preProvisionTask}
+	}
+
+	return taskMap
 }
 
 // preProvision is for preparing activities before instances can be creates like
