@@ -265,7 +265,7 @@ func TestRestartProvisionCluster(t *testing.T) {
 		mock.Anything, mock.Anything,
 		mock.Anything).Return(nil)
 	repository.On("Get", mock.Anything,
-		mock.Anything, mock.Anything).Return([]byte(`{"id": "task_id", type": "preprovision"}`),
+		mock.Anything, mock.Anything).Return([]byte(`{"id": "task_id", "type": "preprovision"}`),
 		nil)
 
 	bc := &bufferCloser{
@@ -343,7 +343,7 @@ func TestDeserializeTasks(t *testing.T) {
 	repository.On("Get", mock.Anything,
 		mock.Anything, mock.Anything).Return(
 		[]byte(
-			`{"id": "4567", type": "master"}`),
+			`{"id": "4567", "type": "master"}`),
 		nil)
 
 	repository.On("Get", mock.Anything,

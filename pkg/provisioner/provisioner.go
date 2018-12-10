@@ -271,18 +271,18 @@ func (tp *TaskProvisioner) RestartClusterProvisioning(parentCtx context.Context,
 	tp.cancelMap[config.ClusterID] = cancel
 	logrus.Debugf("Deserialize tasks")
 
+	// Deserialize tasks and put them to map
+	taskMap, err := tp.deserializeClusterTasks(ctx, taskIdMap)
+
+	if err != nil {
+		logrus.Errorf("Restart cluster provisioning %v", err)
+		return errors.Wrapf(err, "Restart cluster provisioning")
+	}
+
 	// monitor cluster state in separate goroutine
 	go tp.monitorClusterState(ctx, config)
 
 	go func() {
-		// Deserialize tasks and put them to map
-		taskMap, err := tp.deserializeClusterTasks(ctx, taskIdMap)
-
-		if err != nil {
-			logrus.Errorf("Restart cluster provisioning %v", err)
-			return
-		}
-
 		preProvisionTask := taskMap[workflows.PreProvisionTask]
 
 		if preProvisionTask != nil && len(preProvisionTask) > 0 {
