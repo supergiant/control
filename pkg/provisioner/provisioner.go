@@ -262,44 +262,27 @@ func (tp *TaskProvisioner) Cancel(clusterID string) error {
 	return nil
 }
 
-func (tp *TaskProvisioner) RestartClusterProvisioning(ctx context.Context,
+func (tp *TaskProvisioner) RestartClusterProvisioning(parentCtx context.Context,
 	clusterProfile *profile.Profile,
 	config *steps.Config, taskIdMap map[string][]string) error {
-	taskMap := make(map[string][]*workflows.Task)
 
 	ctx, cancel := context.WithTimeout(context.Background(),
 		time.Minute * 30)
 	tp.cancelMap[config.ClusterID] = cancel
 	logrus.Debugf("Deserialize tasks")
-	// Deserialize tasks and put them to map
-	for taskSet, tasks := range taskIdMap {
-		for _, taskId := range tasks {
-			logrus.Debugf("Get task id %s", taskId)
-			data, err := tp.repository.Get(ctx, workflows.Prefix, taskId)
-
-			if err != nil {
-				logrus.Debugf("error getting task %s %v", taskId, err)
-				return errors.Wrapf(err, "task id %s not "+
-					"found %b", taskId, err)
-			}
-
-			task, err := workflows.DeserializeTask(data, tp.repository)
-			task.Config = config
-
-			if err != nil {
-				logrus.Debugf("error deserializing task %s %v", taskId, err)
-				return errors.Wrapf(err, "error deserializing "+
-					"task %s %v", taskId, err)
-			}
-
-			taskMap[taskSet] = append(taskMap[taskSet], task)
-		}
-	}
 
 	// monitor cluster state in separate goroutine
 	go tp.monitorClusterState(ctx, config)
 
 	go func() {
+		// Deserialize tasks and put them to map
+		taskMap, err := tp.deserializeClusterTasks(ctx, taskIdMap)
+
+		if err != nil {
+			logrus.Errorf("Restart cluster provisioning %v", err)
+			return
+		}
+
 		preProvisionTask := taskMap[workflows.PreProvisionTask]
 
 		if preProvisionTask != nil && len(preProvisionTask) > 0 {
@@ -321,7 +304,7 @@ func (tp *TaskProvisioner) RestartClusterProvisioning(ctx context.Context,
 
 		logrus.Debugf("Save cloud specific data to cluster")
 		// Save cluster before provisioning
-		err := tp.updateCloudSpecificData(ctx, config)
+		err = tp.updateCloudSpecificData(ctx, config)
 
 		if err != nil {
 			logrus.Errorf("update cluster with cloud specific data %v", err)
@@ -790,4 +773,30 @@ func (tp *TaskProvisioner) monitorClusterState(ctx context.Context, cfg *steps.C
 			return
 		}
 	}
+}
+
+func (tp *TaskProvisioner) deserializeClusterTasks(ctx context.Context, taskIdMap map[string][]string) (map[string][]*workflows.Task, error) {
+	taskMap := make(map[string][]*workflows.Task)
+
+	for taskSet, tasks := range taskIdMap {
+		for _, taskId := range tasks {
+			data, err := tp.repository.Get(ctx, workflows.Prefix, taskId)
+
+			if err != nil {
+				logrus.Debugf("error getting task %s %v", taskId, err)
+				return nil, errors.Wrapf(err, "task id %s not found %b", taskId, err)
+			}
+
+			task, err := workflows.DeserializeTask(data, tp.repository)
+
+			if err != nil {
+				logrus.Debugf("error deserializing task %s %v", taskId, err)
+				return nil, errors.Wrapf(err, "error deserializing task %s %v", taskId, err)
+			}
+
+			taskMap[taskSet] = append(taskMap[taskSet], task)
+		}
+	}
+
+	return taskMap, nil
 }
