@@ -18,6 +18,7 @@ import (
 	"github.com/supergiant/control/pkg/testutils"
 	"github.com/supergiant/control/pkg/workflows"
 	"github.com/supergiant/control/pkg/workflows/steps"
+	"github.com/pkg/errors"
 )
 
 type bufferCloser struct {
@@ -256,6 +257,157 @@ func TestProvisionNodes(t *testing.T) {
 			1, len(provisioner.cancelMap))
 	}
 
+}
+
+func TestRestartProvisionCluster(t *testing.T) {
+	repository := &testutils.MockStorage{}
+	repository.On("Put", mock.Anything,
+		mock.Anything, mock.Anything,
+		mock.Anything).Return(nil)
+	repository.On("Get", mock.Anything,
+		mock.Anything, mock.Anything).Return([]byte(`{"id": "task_id", type": "preprovision"}`),
+		nil)
+
+	bc := &bufferCloser{
+		bytes.Buffer{},
+		nil,
+	}
+
+	svc := &mockKubeService{
+		data: make(map[string]*model.Kube),
+	}
+
+	provisioner := TaskProvisioner{
+		svc,
+		repository,
+		func(string) (io.WriteCloser, error) {
+			return bc, nil
+		},
+		map[clouds.Name]workflows.WorkflowSet{
+			clouds.DigitalOcean: {
+				ProvisionMaster: workflows.AWSMaster,
+				ProvisionNode:   workflows.AWSNode,
+				PreProvision:    workflows.AWSPreProvision,
+			},
+		},
+		NewRateLimiter(time.Nanosecond * 1),
+		make(map[string]func()),
+	}
+
+	workflows.Init()
+	workflows.RegisterWorkFlow(workflows.AWSMaster, []steps.Step{})
+	workflows.RegisterWorkFlow(workflows.AWSNode, []steps.Step{})
+	workflows.RegisterWorkFlow(workflows.Cluster, []steps.Step{})
+	workflows.RegisterWorkFlow(workflows.AWSPreProvision, []steps.Step{})
+
+	p := &profile.Profile{
+		Provider: clouds.AWS,
+		MasterProfiles: []profile.NodeProfile{
+			{},
+		},
+		NodesProfiles: []profile.NodeProfile{
+			{},
+			{},
+		},
+	}
+
+	taskMap := map[string][]string{
+		workflows.PreProvisionTask: {
+			"task_id",
+		},
+	}
+	cfg := steps.NewConfig("kube_name", "", "", *p)
+	cfg.ClusterID = "kube_id"
+
+	err := provisioner.
+		RestartClusterProvisioning(context.Background(),
+			p, cfg, taskMap)
+
+	if err != nil {
+		t.Errorf("Unexpected error %v while provisionCluster", err)
+	}
+
+	if _, ok := provisioner.cancelMap["kube_id"]; !ok {
+		t.Errorf("cancal map for kube must not be empty")
+	}
+}
+
+func TestDeserializeTasks(t *testing.T) {
+	repository := &testutils.MockStorage{}
+
+	repository.On("Get", mock.Anything,
+		mock.Anything, mock.Anything).Return(
+		[]byte(`{"id": "1234", "type": "preprovision"}`),
+		nil)
+
+	repository.On("Get", mock.Anything,
+		mock.Anything, mock.Anything).Return(
+		[]byte(
+			`{"id": "4567", type": "master"}`),
+		nil)
+
+	repository.On("Get", mock.Anything,
+		mock.Anything, mock.Anything).Return(
+		[]byte(`{"id": "9876", "type": "node"}`),
+		nil)
+
+	repository.On("Get", mock.Anything,
+		mock.Anything, mock.Anything).Return(
+		[]byte(`{"id": "abcd", "type": "cluster"}`),
+		nil)
+
+	provisioner := TaskProvisioner{
+		repository: repository,
+	}
+
+	taskIdMap := map[string][]string{
+		workflows.PreProvisionTask: {"1234"},
+		workflows.MasterTask:       {"4567"},
+		workflows.NodeTask:         {"9876"},
+		workflows.ClusterTask:      {"abcd"},
+	}
+
+	taskMap, err := provisioner.deserializeClusterTasks(context.Background(),
+		taskIdMap)
+
+	if err != nil {
+		t.Errorf("Unexpected error %v", err)
+		return
+	}
+
+	if len(taskMap) != len(taskIdMap) {
+		t.Errorf("Wrong task count expected %d actual %d",
+			len(taskIdMap), len(taskMap))
+	}
+}
+
+func TestDeserializeTasksError(t *testing.T) {
+	repository := &testutils.MockStorage{}
+
+	repository.On("Get", mock.Anything,
+		mock.Anything, mock.Anything).Return(
+		nil,
+		sgerrors.ErrNotFound)
+
+	provisioner := TaskProvisioner{
+		repository: repository,
+	}
+
+	taskIdMap := map[string][]string{
+		workflows.PreProvisionTask: {"1234"},
+	}
+
+	taskMap, err := provisioner.deserializeClusterTasks(context.Background(),
+		taskIdMap)
+
+	if errors.Cause(err) != sgerrors.ErrNotFound {
+		t.Errorf("Unexpected error %v", err)
+		return
+	}
+
+	if taskMap != nil {
+		t.Error("Task map must be nil")
+	}
 }
 
 func TestMonitorCluster(t *testing.T) {
