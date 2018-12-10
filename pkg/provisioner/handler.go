@@ -85,14 +85,15 @@ func (h *Handler) Provision(w http.ResponseWriter, r *http.Request) {
 	logrus.Infof("cluster token for ETCD %s", clusterToken)
 
 	// TODO: use staticAuth instead of user/password
+	// TODO: replace usage of user/password with TLS certificates
 	if req.Profile.User == "" || req.Profile.Password == "" {
-		req.Profile.User = "root"
-		req.Profile.Password = "1234"
+		req.Profile.User = util.RandomString(8)
+		req.Profile.Password = util.RandomString(16)
 
 		req.Profile.StaticAuth.BasicAuth = append(req.Profile.StaticAuth.BasicAuth, profile.BasicAuthUser{
-			Password: "1234",
-			Name:     "root",
-			ID:       "1234",
+			Password: req.Profile.Password,
+			Name:     req.Profile.User,
+			ID:       req.Profile.User,
 			Groups:   []string{pki.MastersGroup},
 		})
 	}
