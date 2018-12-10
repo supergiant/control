@@ -113,6 +113,7 @@ func (tp *TaskProvisioner) ProvisionCluster(parentContext context.Context,
 	// monitor cluster state in separate goroutine
 	go tp.monitorClusterState(ctx, config)
 
+	// TODO(stgleb): Extract this function to provisioner method
 	go func() {
 		if preProvisionTask != nil {
 			if preProvisionErr := tp.preProvision(ctx, preProvisionTask, config); preProvisionErr != nil {
@@ -282,6 +283,7 @@ func (tp *TaskProvisioner) RestartClusterProvisioning(parentCtx context.Context,
 	// monitor cluster state in separate goroutine
 	go tp.monitorClusterState(ctx, config)
 
+	// TODO(stgleb): Extract this function to provisioner method
 	go func() {
 		preProvisionTask := taskMap[workflows.PreProvisionTask]
 
