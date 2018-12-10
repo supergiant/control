@@ -194,12 +194,10 @@ export class AddNodeComponent implements OnInit, OnDestroy {
   }
 
   addBlankMachine() {
-    this.machines.push({
-      machineType: null,
-      role: 'Node',
-      qty: 1,
-      availabilityZone: '',
-    });
+    const lastMachine = this.machines[this.machines.length - 1];
+    const newMachine = Object.assign({}, lastMachine);
+
+    this.machines.push(newMachine);
 
     this.checkAndSetValidMachineConfig();
   }
