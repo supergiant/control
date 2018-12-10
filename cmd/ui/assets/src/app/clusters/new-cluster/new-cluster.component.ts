@@ -264,6 +264,25 @@ export class NewClusterComponent implements OnInit, OnDestroy {
     this.availabilityZones = null;
     this.availableMachineTypes = null;
 
+    // TODO: quick fix to get pre-release cut
+    // move to class and create new instance
+    this.machines = [
+      {
+        machineType: null,
+        qty: 1,
+        availabilityZone: '',
+        availableMachineTypes: null,
+        role: "Master"
+      },
+      {
+        machineType: null,
+        qty: 1,
+        availabilityZone: '',
+        availableMachineTypes: null,
+        role: "Node"
+      }
+    ];
+
     switch (this.selectedCloudAccount.provider) {
       case "digitalocean":
         this.providerConfig = this.formBuilder.group({
