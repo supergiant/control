@@ -9,6 +9,7 @@ import (
 
 	"github.com/sirupsen/logrus"
 	"github.com/stretchr/testify/mock"
+	"github.com/pkg/errors"
 
 	"github.com/supergiant/control/pkg/clouds"
 	"github.com/supergiant/control/pkg/model"
@@ -18,7 +19,6 @@ import (
 	"github.com/supergiant/control/pkg/testutils"
 	"github.com/supergiant/control/pkg/workflows"
 	"github.com/supergiant/control/pkg/workflows/steps"
-	"github.com/pkg/errors"
 )
 
 type bufferCloser struct {
@@ -274,7 +274,11 @@ func TestRestartProvisionCluster(t *testing.T) {
 	}
 
 	svc := &mockKubeService{
-		data: make(map[string]*model.Kube),
+		data: map[string]*model.Kube{
+			"kubeID": {
+				ID: "kubeID",
+			},
+		},
 	}
 
 	provisioner := TaskProvisioner{
@@ -316,18 +320,20 @@ func TestRestartProvisionCluster(t *testing.T) {
 			"task_id",
 		},
 	}
-	cfg := steps.NewConfig("kube_name", "", "", *p)
-	cfg.ClusterID = "kube_id"
+	cfg := steps.NewConfig("kube_name",
+		"", "", *p)
+	cfg.ClusterID = "kubeID"
 
 	err := provisioner.
 		RestartClusterProvisioning(context.Background(),
 			p, cfg, taskMap)
 
+	time.Sleep(time.Second * 1)
 	if err != nil {
 		t.Errorf("Unexpected error %v while provisionCluster", err)
 	}
 
-	if _, ok := provisioner.cancelMap["kube_id"]; !ok {
+	if _, ok := provisioner.cancelMap["kubeID"]; !ok {
 		t.Errorf("cancal map for kube must not be empty")
 	}
 }
