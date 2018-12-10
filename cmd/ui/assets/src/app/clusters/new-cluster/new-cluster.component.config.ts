@@ -1,17 +1,21 @@
+import { IMachineType } from "app/clusters/new-cluster/new-cluster.component.interface";
+
+export const BLANK_MACHINE_TEMPLATE: IMachineType = {
+  machineType: null,
+  role: '',
+  qty: 1,
+  availabilityZone: '',
+  availableMachineTypes: null,
+};
+
 // TODO: an interface type need to be defined
 export const DEFAULT_MACHINE_SET = [
   {
-    machineType: null,
-    role: "Master",
-    qty: 1,
-    availabilityZone: '',
-    availabileMachinetypes: null,
+    ...BLANK_MACHINE_TEMPLATE,
+    role: 'Master',
   },
   {
-    machineType: null,
-    role: "Node",
-    qty: 1,
-    availabilityZone: '',
-    availabileMachinetypes: null,
+    ...BLANK_MACHINE_TEMPLATE,
+    role: 'Node',
   },
 ];
