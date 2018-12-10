@@ -16,6 +16,12 @@ type mockKeyService struct {
 	err  error
 }
 
+type mockDropletService struct {
+	droplet *godo.Droplet
+	resp    *godo.Response
+	err     error
+}
+
 var (
 	expectedPublicKey = `ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABAQDB2ckfv5rVySSq7p9ziEt+waU28aFGo9VNGr9gottC7dew2N+ggLj7DzUUAEI2809qPBxNFN9C/rC2aP+brS8jcvInbcMxOHK/QzxzOSDjQQOfq5tQ451HshkCqRFtz5cIRgrn/yLaPZ+4dr+gspsgu8qvTGZIb8zCyjVPZsfhg70Z8Ql+1kn+1KTljOlvQ6jlxZvZX3o68kMb8wRvkFc8ps4xTyeCfHaCqz6OHWnV9DCtvQYmMmADzezJKOvwAeR6Uf1A1Lwe+B8eUvxtfaeYUZ5pWtHFFfOykmd03Xk0pRYAwtSC9ZWeje6WooyTMf56ErpIUK4qgXmJzG2oHHjD`
 )
@@ -165,4 +171,14 @@ func TestCreateKey(t *testing.T) {
 			t.Errorf("Unexpected err value expected %v actual %v", testCase.err, err)
 		}
 	}
+}
+
+func (m *mockDropletService) Create(ctx context.Context,
+	req *godo.DropletCreateRequest) (*godo.Droplet, *godo.Response, error) {
+	return m.droplet, nil, m.err
+}
+
+func (m *mockDropletService) Get(ctx context.Context,
+	dropletId int) (*godo.Droplet, *godo.Response, error) {
+	return m.droplet, m.resp, m.err
 }
