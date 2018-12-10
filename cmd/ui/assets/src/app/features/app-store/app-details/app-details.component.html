@@ -1,53 +1,55 @@
 <section *ngIf="chartDetails$ | async as chartDetails">
 
-<mat-card>
-  <article class="left">
-    <mat-card-header>
-      <mat-card-title>
-        <h2>{{ chartDetails.metadata?.name | titlecase }}</h2>
-      </mat-card-title>
-    </mat-card-header>
-    <mat-card-content>
-      <section class="description">
-      {{ chartDetails.metadata?.description }}
-      </section>
+  <mat-card>
+    <article class="left">
+      <mat-card-header>
+        <mat-card-title>
+          <h2>{{ chartDetails.metadata?.name | titlecase }}</h2>
+        </mat-card-title>
+      </mat-card-header>
+      <mat-card-content>
+        <section class="description">
+          {{ chartDetails.metadata?.description }}
+        </section>
 
-      <h3>Instructions</h3>
-      <section *ngIf="chartDetails.readme; else noInstructions"
-               class="instructions">
-      <markdown [data]="chartDetails.readme"></markdown>
-      </section>
-      <ng-template #noInstructions>
-        This chart is not provided with the instructions.
-      </ng-template>
-    </mat-card-content>
-  </article>
-<aside>
-  <h3>Info</h3>
+        <h3>Instructions</h3>
+        <section *ngIf="chartDetails.readme; else noInstructions"
+                 class="instructions">
+          <markdown [data]="chartDetails.readme"></markdown>
+        </section>
+        <ng-template #noInstructions>
+          This chart is not provided with the instructions.
+        </ng-template>
+      </mat-card-content>
+    </article>
+    <aside>
+      <h3>Info</h3>
 
-<table class="info">
-<tr>
-  <td>Version:</td>
-<td *ngIf="chartDetails.metadata?.version as version">
- {{ version }}
-</td>
-</tr>
-<tr>
-  <td>Repo:</td>
-<td>{{ repo }}</td>
-</tr>
-</table>
+      <table class="info">
+        <tr>
+          <td>Version:</td>
+          <td *ngIf="chartDetails.metadata?.version as version">
+            {{ version }}
+          </td>
+        </tr>
+        <tr>
+          <td>Repo:</td>
+          <td>{{ repo }}</td>
+        </tr>
+      </table>
 
-  <h3>Actions</h3>
-  <button (click)="openConfigureDialog()" mat-button
-          color="secondary"
-          class="configure">CONFIGURE
-  </button>
-  <button (click)="openDeployDialog()"
-          mat-button
-          color="primary">DEPLOY
-  </button>
-  <p *ngIf="repo == 'stable'" class="stable-warning">Charts from this repo should be configured before deployed.</p>
-</aside>
-</mat-card>
+      <h3>Actions</h3>
+      <button (click)="openConfigureDialog()"
+              mat-button
+              color="secondary"
+              class="configure">CONFIGURE
+      </button>
+      <button (click)="openDeployDialog()"
+              mat-button
+              color="primary">DEPLOY
+      </button>
+      <p *ngIf="repo == 'stable'"
+         class="stable-warning">Charts from this repo should be configured before deployed.</p>
+    </aside>
+  </mat-card>
 </section>

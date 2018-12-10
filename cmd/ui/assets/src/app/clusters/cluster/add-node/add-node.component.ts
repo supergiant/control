@@ -20,11 +20,13 @@ import {
   switchMap,
   take,
   tap
-}                                                                    from "rxjs/operators";
-import { Notifications }                                             from "../../../shared/notifications/notifications.service";
-import { Supergiant }                                                from "../../../shared/supergiant/supergiant.service";
-import { CLUSTER_OPTIONS }                                           from "../../new-cluster/cluster-options.config";
-import { NodeProfileService }                                        from "../../node-profile.service";
+}                                       from "rxjs/operators";
+// TODO: create refactoring task for this "ladder-like" imports across the project
+import { Notifications }                from "../../../shared/notifications/notifications.service";
+import { Supergiant }                   from "../../../shared/supergiant/supergiant.service";
+import { CLUSTER_OPTIONS }              from "../../new-cluster/cluster-options.config";
+import { NodeProfileService }           from "../../node-profile.service";
+import { sortDigitaloceanMachineTypes } from "app/clusters/new-cluster/new-cluster.helpers";
 
 @Component({
   selector: 'add-node',
@@ -104,6 +106,7 @@ export class AddNodeComponent implements OnInit, OnDestroy {
       switchMap(accountName => this.supergiant.CloudAccounts.getRegions(accountName)),
       pluck('sizes'),
       map(sizes => Object.keys(sizes)),
+      map( sortDigitaloceanMachineTypes),
     );
 
 
@@ -157,7 +160,7 @@ export class AddNodeComponent implements OnInit, OnDestroy {
       this.providerSubj.pipe(
         filter(provider => provider === 'digitalocean'),
         switchMap(() => DOmachineSizes$),
-      ).subscribe(sizes => this.machineSizes$ = of(sizes.sort()))
+      ).subscribe(sizes => this.machineSizes$ = of(sizes))
     );
 
     this.subscriptions.add(
