@@ -127,9 +127,15 @@ func TestProvisionCluster(t *testing.T) {
 	}
 
 	workflows.Init()
-	workflows.RegisterWorkFlow("test_master", []steps.Step{})
-	workflows.RegisterWorkFlow("test_node", []steps.Step{})
-	workflows.RegisterWorkFlow(workflows.Cluster, []steps.Step{})
+	workflows.RegisterWorkFlow("test_master", []steps.Step{
+		&mockStep{},
+	})
+	workflows.RegisterWorkFlow("test_node", []steps.Step{
+		&mockStep{},
+	})
+	workflows.RegisterWorkFlow(workflows.Cluster, []steps.Step{
+		&mockStep{},
+	})
 
 	p := &profile.Profile{
 		Provider: clouds.DigitalOcean,
@@ -153,6 +159,7 @@ func TestProvisionCluster(t *testing.T) {
 
 	cfg := steps.NewConfig("", "", "", *p)
 	taskMap, err := provisioner.ProvisionCluster(context.Background(), p, cfg)
+	time.Sleep(time.Millisecond * 10)
 
 	if err != nil {
 		t.Errorf("Unexpected error %v while provisionCluster", err)
@@ -237,7 +244,9 @@ func TestProvisionNodes(t *testing.T) {
 	}
 
 	workflows.Init()
-	workflows.RegisterWorkFlow("test_node", []steps.Step{})
+	workflows.RegisterWorkFlow("test_node", []steps.Step{
+		&mockStep{},
+	})
 
 	nodeProfile := profile.NodeProfile{
 		"size":  "s-2vcpu-4gb",
@@ -271,6 +280,7 @@ func TestProvisionNodes(t *testing.T) {
 	_, err := provisioner.ProvisionNodes(context.Background(),
 		[]profile.NodeProfile{nodeProfile}, k, config)
 
+	time.Sleep(time.Millisecond * 10)
 	if err != nil {
 		t.Errorf("Unexpected error %v while provisionCluster", err)
 	}
@@ -282,7 +292,7 @@ func TestProvisionNodes(t *testing.T) {
 
 }
 
-func TestRestartProvisionCluster(t *testing.T) {
+func TestRestartProvisionClusterSuccess(t *testing.T) {
 	repository := &testutils.MockStorage{}
 	repository.On("Put", mock.Anything,
 		mock.Anything, mock.Anything,
@@ -290,7 +300,84 @@ func TestRestartProvisionCluster(t *testing.T) {
 	repository.On("Get", mock.Anything,
 		mock.Anything,
 		mock.Anything).Return([]byte(`{"id": "task_id", 
-"type": "AWSPreProvisionCluster", "stepsStatuses":[{"status": "error"}]}`),
+		"type": "AWSPreProvisionCluster", "stepsStatuses":[{"status": "error"}]}`),
+		nil)
+
+	bc := &bufferCloser{
+		bytes.Buffer{},
+		nil,
+	}
+
+	svc := &mockKubeService{
+		data: map[string]*model.Kube{
+			"kubeID": {
+				ID: "kubeID",
+			},
+		},
+	}
+
+	provisioner := TaskProvisioner{
+		svc,
+		repository,
+		func(string) (io.WriteCloser, error) {
+			return bc, nil
+		},
+		map[clouds.Name]workflows.WorkflowSet{
+			clouds.DigitalOcean: {
+				ProvisionMaster: workflows.AWSMaster,
+				ProvisionNode:   workflows.AWSNode,
+				PreProvision:    workflows.AWSPreProvision,
+			},
+		},
+		NewRateLimiter(time.Nanosecond * 1),
+		make(map[string]func()),
+	}
+
+	workflows.Init()
+	workflows.RegisterWorkFlow(workflows.AWSPreProvision, []steps.Step{
+		&mockStep{},
+	})
+
+	p := &profile.Profile{
+		Provider: clouds.AWS,
+		MasterProfiles: []profile.NodeProfile{
+			{},
+		},
+		NodesProfiles: []profile.NodeProfile{
+			{},
+			{},
+		},
+	}
+
+	taskMap := map[string][]string{
+		workflows.PreProvisionTask: {
+			"task_id",
+		},
+	}
+	cfg := steps.NewConfig("kube_name",
+		"", "", *p)
+	cfg.ClusterID = "kubeID"
+
+	err := provisioner.
+		RestartClusterProvisioning(context.Background(),
+		p, cfg, taskMap)
+
+	time.Sleep(time.Millisecond * 10)
+
+	if err != nil {
+		t.Errorf("Unexpected error %v while provisionCluster", err)
+	}
+}
+
+
+	func TestRestartProvisionClusterError(t *testing.T) {
+	repository := &testutils.MockStorage{}
+	repository.On("Put", mock.Anything,
+		mock.Anything, mock.Anything,
+		mock.Anything).Return(nil)
+	repository.On("Get", mock.Anything,
+		mock.Anything,
+		mock.Anything).Return([]byte(`}`),
 		nil)
 
 	bc := &bufferCloser{
@@ -355,13 +442,9 @@ func TestRestartProvisionCluster(t *testing.T) {
 		RestartClusterProvisioning(context.Background(),
 			p, cfg, taskMap)
 
-	time.Sleep(time.Second * 1)
-	if err != nil {
-		t.Errorf("Unexpected error %v while provisionCluster", err)
-	}
-
-	if _, ok := provisioner.cancelMap["kubeID"]; !ok {
-		t.Errorf("cancal map for kube must not be empty")
+	time.Sleep(time.Millisecond * 10)
+	if err == nil  {
+		t.Errorf("Error must not be nil")
 	}
 }
 
