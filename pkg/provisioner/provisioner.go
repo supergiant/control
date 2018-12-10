@@ -120,21 +120,19 @@ func (tp *TaskProvisioner) ProvisionCluster(parentContext context.Context,
 			if preProvisionErr := tp.preProvision(ctx, preProvisionTask, config); preProvisionErr != nil {
 				logrus.Errorf("Pre provisioning cluster %v", err)
 			}
+
+			// Copy config from preProvision task because it contains all things need for further
+			// provisioning VPC, SecGroup, Subnets etc.
+			config = preProvisionTask.Config
+			
 			// In case of preprovision failure stop provisioning process.
 			if preProvisionErr != nil {
-				// Copy config from preProvision task because it contains all things need for further
-				// provisioning VPC, SecGroup, Subnets etc.
-				config = preProvisionTask.Config
-
 				// TODO(stgleb): move this to separate step
 				// Save cluster before provisioning
 				tp.updateCloudSpecificData(ctx, config)
 				return
 			}
 		}
-		// Copy config from preProvision task because it contains all things need for further
-		// provisioning VPC, SecGroup, Subnets etc.
-		config = preProvisionTask.Config
 
 		// TODO(stgleb): move this to separate step
 		// Save cluster before provisioning

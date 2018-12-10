@@ -455,5 +455,4 @@ func TestBuildInitialCluster(t *testing.T) {
 				"expected %d actual %d", len(taskIds), len(k.Tasks))
 		}
 	}
-
 }
