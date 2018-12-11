@@ -106,7 +106,7 @@ func TestCreateInternetGatewayStep_Run(t *testing.T) {
 		svc.On("CreateInternetGateway", mock.Anything).
 			Return(testCase.createIGWOut, testCase.createIGWErr)
 		svc.On("CreateTags", mock.Anything).
-			Return(mock.Anything, testCase.attachErr)
+			Return(mock.Anything, testCase.createTagserr)
 		svc.On("AttachInternetGateway", mock.Anything).
 			Return(mock.Anything, testCase.attachErr)
 

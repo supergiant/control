@@ -106,7 +106,9 @@ func (s *CreateInternetGatewayStep) Run(ctx context.Context, w io.Writer, cfg *s
 			VpcId:             aws.String(cfg.AWSConfig.VPCID),
 			InternetGatewayId: aws.String(cfg.AWSConfig.InternetGatewayID),
 		}
-		if _, err := svc.AttachInternetGateway(attachGw); err != nil && !strings.Contains(err.Error(), "already has an internet gateway attached") {
+		if _, err := svc.AttachInternetGateway(attachGw);
+		err != nil && !strings.Contains(err.Error(), "already has an internet gateway attached") {
+			logrus.Errorf("Error attaching GW %s to VPC %s", cfg.AWSConfig.InternetGatewayID, cfg.AWSConfig.VPCID)
 			return err
 		}
 	}
