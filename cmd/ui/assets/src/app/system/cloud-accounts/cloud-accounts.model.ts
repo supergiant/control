@@ -157,7 +157,7 @@ export class CloudAccountModel {
       data: this.digitalocean
     },
     {
-      display: "GCE - Google Compute Engine(Experimental",
+      display: "GCE - Google Compute Engine (Experimental)",
       name: "gce",
       data: this.gce
     }

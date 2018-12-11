@@ -380,13 +380,13 @@
 
             <div class="delete"
                  (click)="deleteMachine(idx)"
-                 (keyup)="deleteMachine(idx, $event)"
+                 (keyup.enter)="deleteMachine(idx)"
                  tabindex="0"></div>
           </div>
 
           <div class="add-machines"
                (click)="addBlankMachine()"
-               (keyup)="addBlankMachine($event)"
+               (keyup.enter)="addBlankMachine()"
                tabindex="0">
             <div class="plus"></div>
             <span class="add-label">Add more machines</span>
@@ -414,7 +414,7 @@
               <mat-select placeholder="Machine Type (size)"
                           id="m.machineType"
                           [(value)]="m.machineType"
-                          [disabled]="!m.availabileMachinetypes"
+                          [disabled]="!m.availableMachineTypes"
                           (openedChange)="machineTypesFilter = ''"
                           (selectionChange)="validateMachineConfig()">
                 <input class="machine-types-filter"
@@ -423,7 +423,7 @@
                        placeholder="Filter machines..."
                        [(ngModel)]="machineTypesFilter"
                        autofocus>
-                <mat-option *ngFor="let type of m.availabileMachinetypes | callback: filterCallback"
+                <mat-option *ngFor="let type of m.availableMachineTypes | callback: filterCallback"
                             [value]="type">
                   {{ type }}
                 </mat-option>
@@ -450,7 +450,7 @@
 
             <div class="delete"
                  (click)="deleteMachine(idx)"
-                 (keyup)="deleteMachine(idx, $event)"
+                 (keyup.enter)="deleteMachine(idx)"
                  tabindex="0"></div>
           </div>
 
@@ -483,9 +483,9 @@
               <mat-select placeholder="Machine Type (size)"
                           id="m.machineType"
                           [(value)]="m.machineType"
-                          [disabled]="!m.availabileMachinetypes"
+                          [disabled]="!m.availableMachineTypes"
                           (selectionChange)="validateMachineConfig()">
-                <mat-option *ngFor="let type of m.availabileMachinetypes"
+                <mat-option *ngFor="let type of m.availableMachineTypes"
                             [value]="type">
                   {{ type }}
                 </mat-option>
@@ -512,7 +512,7 @@
 
             <div class="delete"
                  (click)="deleteMachine(idx)"
-                 (keyup)="deleteMachine(idx, $event)"
+                 (keyup.enter)="deleteMachine(idx)"
                  tabindex="0"></div>
           </div>
 

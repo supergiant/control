@@ -7,8 +7,8 @@ import (
 	"strings"
 
 	"github.com/aws/aws-sdk-go/aws"
+	"github.com/aws/aws-sdk-go/aws/request"
 	"github.com/aws/aws-sdk-go/service/ec2"
-	"github.com/aws/aws-sdk-go/service/ec2/ec2iface"
 	"github.com/pkg/errors"
 	"github.com/sirupsen/logrus"
 
@@ -18,13 +18,27 @@ import (
 
 const StepFindAMI = "find_amazon_machine_image"
 
+type ImageFinder interface {
+	DescribeImagesWithContext(aws.Context, *ec2.DescribeImagesInput,
+		...request.Option) (*ec2.DescribeImagesOutput, error)
+}
+
 type FindAMIStep struct {
-	GetEC2 GetEC2Fn
+	getImageService func(config steps.AWSConfig) (ImageFinder, error)
 }
 
 func NewFindAMIStep(fn GetEC2Fn) *FindAMIStep {
 	return &FindAMIStep{
-		GetEC2: fn,
+		getImageService: func(config steps.AWSConfig) (ImageFinder, error) {
+			EC2, err := fn(config)
+			if err != nil {
+				logrus.Errorf("[%s] - failed to authorize in AWS: %v",
+					StepFindAMI, err)
+				return nil, errors.Wrap(ErrAuthorization, err.Error())
+			}
+
+			return EC2, nil
+		},
 	}
 }
 
@@ -33,17 +47,28 @@ func InitFindAMI(fn GetEC2Fn) {
 }
 
 func (s *FindAMIStep) Run(ctx context.Context, w io.Writer, cfg *steps.Config) error {
-	EC2, err := s.GetEC2(cfg.AWSConfig)
+	finder, err := s.getImageService(cfg.AWSConfig)
+
 	if err != nil {
-		logrus.Errorf("[%s] - failed to authorize in AWS: %v", s.Name(), err)
-		return errors.Wrap(ErrAuthorization, err.Error())
+		logrus.Debugf("Error while finding image %v", err)
+		return errors.Wrap(err, StepFindAMI)
 	}
 
-	cfg.AWSConfig.ImageID, err = s.FindAMI(ctx, w, EC2)
+	imageID, err := s.FindAMI(ctx, w, finder)
+
 	if err != nil {
-		logrus.Errorf("[%s] - failed to find AMI for Ubuntu: %v", s.Name(), err)
+		logrus.Errorf("[%s] - failed to find AMI for Ubuntu: %v",
+			s.Name(), err)
 		return errors.Wrap(err, "failed to find AMI")
 	}
+
+	if err == nil && imageID == "" {
+		logrus.Debugf("[%s] - can't find supported image", s.Name())
+		return errors.New(fmt.Sprintf("[%s] - can't find "+
+			"supported image", s.Name()))
+	}
+
+	cfg.AWSConfig.ImageID = imageID
 
 	return nil
 }
@@ -64,9 +89,9 @@ func (*FindAMIStep) Rollback(context.Context, io.Writer, *steps.Config) error {
 	return nil
 }
 
-func (s *FindAMIStep) FindAMI(ctx context.Context, w io.Writer, EC2 ec2iface.EC2API) (string, error) {
+func (s *FindAMIStep) FindAMI(ctx context.Context, w io.Writer, finder ImageFinder) (string, error) {
 	// TODO: should it be configurable?
-	out, err := EC2.DescribeImagesWithContext(ctx, &ec2.DescribeImagesInput{
+	out, err := finder.DescribeImagesWithContext(ctx, &ec2.DescribeImagesInput{
 		Filters: []*ec2.Filter{
 			{
 				Name: aws.String("architecture"),

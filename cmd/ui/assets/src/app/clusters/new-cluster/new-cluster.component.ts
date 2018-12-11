@@ -1,13 +1,13 @@
 import { Component, OnDestroy, OnInit, ViewEncapsulation, ViewChild }       from '@angular/core';
 import { FormBuilder, FormGroup, Validators, ValidatorFn, AbstractControl } from '@angular/forms';
-import { Router }                                                           from '@angular/router';
-import { MatHorizontalStepper }                                             from '@angular/material';
-import { Subscription }        from 'rxjs';
-import { Notifications }       from '../../shared/notifications/notifications.service';
-import { Supergiant }          from '../../shared/supergiant/supergiant.service';
-import { NodeProfileService }  from "../node-profile.service";
-import { CLUSTER_OPTIONS }     from "./cluster-options.config";
-import { DEFAULT_MACHINE_SET } from "app/clusters/new-cluster/new-cluster.component.config";
+import { Router }                                      from '@angular/router';
+import { MatHorizontalStepper }                        from '@angular/material';
+import { Subscription }                                from 'rxjs';
+import { Notifications }                               from '../../shared/notifications/notifications.service';
+import { Supergiant }                                  from '../../shared/supergiant/supergiant.service';
+import { NodeProfileService }                          from "../node-profile.service";
+import { CLUSTER_OPTIONS }                             from "./cluster-options.config";
+import { DEFAULT_MACHINE_SET, BLANK_MACHINE_TEMPLATE } from "app/clusters/new-cluster/new-cluster.component.config";
 
 // compiler hack
 declare var require: any;
@@ -174,7 +174,7 @@ export class NewClusterComponent implements OnInit, OnDestroy {
           types => {
             this.machines[idx] = {
               ...this.machines[idx],
-              availabileMachinetypes: types.sort()
+              availableMachineTypes: types.sort()
             };
 
             this.machinesLoading = false;
@@ -190,7 +190,7 @@ export class NewClusterComponent implements OnInit, OnDestroy {
           types => {
             this.machines[idx] = {
               ...this.machines[idx],
-              availabileMachinetypes: types.sort()
+              availableMachineTypes: types.sort()
             };
 
             this.machinesLoading = false;
@@ -209,13 +209,7 @@ export class NewClusterComponent implements OnInit, OnDestroy {
       case "digitalocean":
         this.availableMachineTypes = region.AvailableSizes.sort();
         if (this.machines.length === 0) {
-          this.machines.push({
-            machineType: null,
-            role: null,
-            qty: 1,
-            availabilityZone: '',
-            availabileMachinetypes: null,
-          });
+          this.machines.push(BLANK_MACHINE_TEMPLATE);
         }
         break;
 
@@ -248,40 +242,19 @@ export class NewClusterComponent implements OnInit, OnDestroy {
     }
   }
 
-  addBlankMachine(e?) {
-    if (e) {
-      if (e.keyCode === 13) {
-        this.machines.push({
-          machineType: null,
-          role: "Node",
-          qty: 1,
-          availabilityZone: '',
-          availabileMachinetypes: null,
-        });
-      }
-    } else {
-      this.machines.push({
-        machineType: null,
-        role: "Node",
-        qty: 1,
-        availabilityZone: '',
-        availabileMachinetypes: null,
-      });
-    }
+  addBlankMachine() {
+    const lastMachine = this.machines[this.machines.length - 1];
+
+    this.machines.push(
+      Object.assign({}, lastMachine)
+    );
   }
 
-  deleteMachine(idx, e?) {
+  deleteMachine(idx) {
     if (this.machines.length === 1) return;
 
-    if (e) {
-      if (e.keyCode === 13) {
-        this.machines.splice(idx, 1);
-        this.validateMachineConfig();
-      }
-    } else {
-      this.machines.splice(idx, 1);
-      this.validateMachineConfig();
-    }
+    this.machines.splice(idx, 1);
+    this.validateMachineConfig();
   }
 
   selectCloudAccount(cloudAccount) {
@@ -290,6 +263,25 @@ export class NewClusterComponent implements OnInit, OnDestroy {
     this.availableRegions = null;
     this.availabilityZones = null;
     this.availableMachineTypes = null;
+
+    // TODO: quick fix to get pre-release cut
+    // move to class and create new instance
+    this.machines = [
+      {
+        machineType: null,
+        qty: 1,
+        availabilityZone: '',
+        availableMachineTypes: null,
+        role: "Master"
+      },
+      {
+        machineType: null,
+        qty: 1,
+        availabilityZone: '',
+        availableMachineTypes: null,
+        role: "Node"
+      }
+    ];
 
     switch (this.selectedCloudAccount.provider) {
       case "digitalocean":

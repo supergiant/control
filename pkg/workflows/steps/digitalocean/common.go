@@ -23,8 +23,8 @@ var (
 )
 
 type DropletService interface {
-	Get(int) (*godo.Droplet, *godo.Response, error)
-	Create(*godo.DropletCreateRequest) (*godo.Droplet, *godo.Response, error)
+	Get(context.Context, int) (*godo.Droplet, *godo.Response, error)
+	Create(context.Context, *godo.DropletCreateRequest) (*godo.Droplet, *godo.Response, error)
 }
 
 type TagService interface {
