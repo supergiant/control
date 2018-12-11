@@ -13,6 +13,7 @@ import (
 	"github.com/stretchr/testify/mock"
 
 	"github.com/supergiant/control/pkg/workflows/steps"
+	"github.com/aws/aws-sdk-go/service/ec2/ec2iface"
 )
 
 type mockIGWService struct {
@@ -167,7 +168,7 @@ func TestDeleteInternetGateway_Rollback(t *testing.T) {
 	}
 }
 
-func TestCreateRouteTableStep_Depends(t *testing.T) {
+func TestCreateInternetGatewayStep_Depends(t *testing.T) {
 	step := &CreateInternetGatewayStep{}
 
 	if deps := step.Depends(); deps != nil {
@@ -185,6 +186,31 @@ func TestNewCreateInternetGatewayStep(t *testing.T) {
 
 	if step.getIGWService == nil {
 		t.Errorf("getIGWService must not be nil")
+	}
+
+	if api, err := step.getIGWService(steps.AWSConfig{}); err != nil || api == nil {
+		t.Errorf("Unexpected values %v %v", api, err)
+	}
+}
+
+func TestNewCreateInternetGatewayStepError(t *testing.T) {
+	fn := func(steps.AWSConfig)(ec2iface.EC2API, error) {
+		return nil, errors.New("errorMessage")
+	}
+
+	step := NewCreateInternetGatewayStep(fn)
+
+	if step == nil {
+		t.Errorf("Step must not be nil")
+		return
+	}
+
+	if step.getIGWService == nil {
+		t.Errorf("getIGWService must not be nil")
+	}
+
+	if api, err := step.getIGWService(steps.AWSConfig{}); err == nil || api != nil {
+		t.Errorf("Unexpected values %v %v", api, err)
 	}
 }
 

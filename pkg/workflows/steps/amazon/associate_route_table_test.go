@@ -13,6 +13,7 @@ import (
 
 	"github.com/supergiant/control/pkg/workflows/steps"
 	"github.com/aws/aws-sdk-go/aws"
+	"github.com/aws/aws-sdk-go/service/ec2/ec2iface"
 )
 
 type mockAssociater struct{
@@ -27,8 +28,36 @@ func (m *mockAssociater) AssociateRouteTable(*ec2.AssociateRouteTableInput) (*ec
 func TestNewAssociateRouteTableStep(t *testing.T) {
 	step := NewAssociateRouteTableStep(GetEC2)
 
+	if step == nil {
+		t.Errorf("Wrong step value must not be nil")
+	}
+
 	if step.getRouteTableSvc == nil {
 		t.Error("getRouteTableSvc must not be nil")
+	}
+
+	if api, err := step.getRouteTableSvc(steps.AWSConfig{}); err != nil || api == nil {
+		t.Errorf("Unexpected values %v %v", api, err)
+	}
+}
+
+func TestNewAssociateRouteTableStepError(t *testing.T) {
+	fn := func(steps.AWSConfig)(ec2iface.EC2API, error) {
+		return nil, errors.New("errorMessage")
+	}
+
+	step := NewAssociateRouteTableStep(fn)
+
+	if step == nil {
+		t.Errorf("Wrong step value must not be nil")
+	}
+
+	if step.getRouteTableSvc == nil {
+		t.Error("getRouteTableSvc must not be nil")
+	}
+
+	if api, err := step.getRouteTableSvc(steps.AWSConfig{}); err == nil || api != nil {
+		t.Errorf("Unexpected error %v %v", api, err)
 	}
 }
 

@@ -12,6 +12,7 @@ import (
 	"github.com/pkg/errors"
 	"github.com/stretchr/testify/require"
 
+	"bytes"
 	"github.com/supergiant/control/pkg/node"
 	"github.com/supergiant/control/pkg/workflows/steps"
 )
@@ -289,3 +290,87 @@ func TestCreateIAMRolePolicy(t *testing.T) {
 		require.Equalf(t, tc.expectedErr, errors.Cause(err), "TC: %s", tc.name)
 	}
 }
+
+func TestInitCreateInstanceProfiles(t *testing.T) {
+	InitCreateInstanceProfiles(GetIAM)
+
+	s := steps.GetStep(StepNameCreateInstanceProfiles)
+
+	if s == nil {
+		t.Errorf("Step %s must not be nil",
+			StepNameCreateInstanceProfiles)
+	}
+}
+
+func TestStepCreateInstanceProfiles_Depends(t *testing.T) {
+	step := &StepCreateInstanceProfiles{}
+
+	if deps := step.Depends(); deps != nil {
+		t.Errorf("Unexpected deps value %v", deps)
+	}
+}
+
+func TestStepCreateInstanceProfiles_Description(t *testing.T) {
+	step := &StepCreateInstanceProfiles{}
+
+	if desc := step.Description(); desc != "Create EC2 Instance master/node profiles" {
+		t.Errorf("Unexpected description value %s "+
+			"expected Create EC2 Instance master/node profiles", desc)
+	}
+}
+
+func TestStepCreateInstanceProfiles_Rollback(t *testing.T) {
+	step := &StepCreateInstanceProfiles{}
+
+	if err := step.Rollback(context.Background(), &bytes.Buffer{}, &steps.Config{}); err != nil {
+		t.Errorf("Unexpected error value %v", err)
+	}
+}
+
+func TestStepCreateInstanceProfiles_Name(t *testing.T) {
+	step := &StepCreateInstanceProfiles{}
+
+	if name := step.Name(); name != StepNameCreateInstanceProfiles {
+		t.Errorf("Wrong step name expected %s actual %s",
+			StepNameCreateInstanceProfiles, step.Name())
+	}
+}
+
+func TestNewCreateInstanceProfilesError(t *testing.T) {
+	fn := func(steps.AWSConfig) (iamiface.IAMAPI, error) {
+		return nil, errors.New("errorMessage")
+	}
+
+	step := NewCreateInstanceProfiles(fn)
+
+	if step == nil {
+		t.Errorf("Step must not be nil")
+		return
+	}
+
+	if step.GetIAM == nil {
+		t.Errorf("GetIAM must not be nil")
+	}
+
+	if api, err := step.GetIAM(steps.AWSConfig{}); err == nil || api != nil {
+		t.Errorf("Unexpected values %v %v", api, err)
+	}
+}
+
+func TestNewCreateInstanceProfiles(t *testing.T) {
+	step := NewCreateInstanceProfiles(GetIAM)
+
+	if step == nil {
+		t.Errorf("Step must not be nil")
+		return
+	}
+
+	if step.GetIAM == nil {
+		t.Errorf("GetIAM must not be nil")
+	}
+
+	if api, err := step.GetIAM(steps.AWSConfig{}); err != nil || api == nil {
+		t.Errorf("Unexpected values %v %v", api, err)
+	}
+}
+
