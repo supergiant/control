@@ -98,6 +98,15 @@ func TestCreateInternetGatewayStep_Run(t *testing.T) {
 					InternetGatewayId: aws.String("1234"),
 				},
 			},
+			createTagserr: errors.New("message5"),
+			errMsg: "message5",
+		},
+		{
+			createIGWOut: &ec2.CreateInternetGatewayOutput{
+				InternetGateway: &ec2.InternetGateway{
+					InternetGatewayId: aws.String("1234"),
+				},
+			},
 		},
 	}
 

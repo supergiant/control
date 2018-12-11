@@ -56,7 +56,7 @@ func TestDeleteInternetGateway_Run(t *testing.T) {
 		{
 			description: "detach error",
 			existingID:  "1234",
-			deleteErr:   errors.New("message2"),
+			detachErr:   errors.New("message2"),
 		},
 
 		{
