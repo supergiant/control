@@ -26,6 +26,11 @@ func InitDeleteSubnets(fn GetEC2Fn) {
 }
 
 func (s *DeleteSubnets) Run(ctx context.Context, w io.Writer, cfg *steps.Config) error {
+	if len(cfg.AWSConfig.Subnets) == 0 {
+		logrus.Debug("Skip deleting empty subnets")
+		return nil
+	}
+
 	EC2, err := s.GetEC2(cfg.AWSConfig)
 	if err != nil {
 		return errors.Wrap(ErrAuthorization, err.Error())

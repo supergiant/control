@@ -50,10 +50,10 @@ type DOConfig struct {
 
 type GCEConfig struct {
 	// NOTE(stgleb): This comes from cloud account
-	PrivateKey       string `json:"private_key"`
-	ClientEmail      string `json:"client_email"`
-	TokenURI         string `json:"token_uri"`
-	ProjectID        string `json:"project_id"`
+	PrivateKey  string `json:"private_key"`
+	ClientEmail string `json:"client_email"`
+	TokenURI    string `json:"token_uri"`
+	ProjectID   string `json:"project_id"`
 
 	// This comes from profile
 	ImageFamily      string `json:"imageFamily"`
@@ -251,6 +251,7 @@ type Config struct {
 
 	nodeChan      chan node.Node
 	kubeStateChan chan model.KubeState
+	configChan    chan *Config
 
 	ReadyForBootstrapLatch *sync.WaitGroup
 }
@@ -379,6 +380,7 @@ func NewConfig(clusterName, clusterToken, cloudAccountName string, profile profi
 
 		nodeChan:      make(chan node.Node, len(profile.MasterProfiles)+len(profile.NodesProfiles)),
 		kubeStateChan: make(chan model.KubeState, 2),
+		configChan:    make(chan *Config),
 	}
 
 	return cfg
@@ -474,6 +476,10 @@ func (c *Config) NodeChan() chan node.Node {
 
 func (c *Config) KubeStateChan() chan model.KubeState {
 	return c.kubeStateChan
+}
+
+func (c *Config) ConfigChan() chan *Config {
+	return c.configChan
 }
 
 // TODO: cloud profiles is deprecated by kubernetes, use controller-managers
