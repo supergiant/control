@@ -111,7 +111,8 @@ func (tp *TaskProvisioner) ProvisionCluster(parentContext context.Context,
 	}
 
 	// monitor cluster state in separate goroutine
-	go tp.monitorClusterState(ctx, config)
+	go tp.monitorClusterState(ctx, config.ClusterID, config.NodeChan(),
+		config.KubeStateChan(), config.ConfigChan())
 
 	go func() {
 		var preProvisionErr error
@@ -123,13 +124,7 @@ func (tp *TaskProvisioner) ProvisionCluster(parentContext context.Context,
 
 			// In case of preprovision failure stop provisioning process.
 			if preProvisionErr != nil {
-				// Copy config from preProvision task because it contains all things need for further
-				// provisioning VPC, SecGroup, Subnets etc.
-				config = preProvisionTask.Config
-
-				// TODO(stgleb): move this to separate step
-				// Save cluster before provisioning
-				tp.updateCloudSpecificData(ctx, config)
+				logrus.Errorf("pre provision has failed with %v", err)
 				return
 			}
 
@@ -138,13 +133,6 @@ func (tp *TaskProvisioner) ProvisionCluster(parentContext context.Context,
 			config = preProvisionTask.Config
 		}
 
-		// TODO(stgleb): move this to separate step
-		// Save cluster before provisioning
-		err := tp.updateCloudSpecificData(ctx, config)
-
-		if err != nil {
-			logrus.Errorf("update cluster with cloud specific data %v", err)
-		}
 		config.ReadyForBootstrapLatch = &sync.WaitGroup{}
 		config.ReadyForBootstrapLatch.Add(len(profile.MasterProfiles))
 		// ProvisionCluster masters and wait until n/2 + 1 of masters with etcd are up and running
@@ -213,7 +201,9 @@ func (tp *TaskProvisioner) ProvisionNodes(parentContext context.Context, nodePro
 	}
 
 	// monitor cluster state in separate goroutine
-	go tp.monitorClusterState(ctx, config)
+	go tp.monitorClusterState(ctx, config.ClusterID,
+		config.NodeChan(), config.KubeStateChan(), config.ConfigChan())
+
 	tasks := make([]string, 0, len(nodeProfiles))
 
 	for _, nodeProfile := range nodeProfiles {
@@ -273,7 +263,7 @@ func (tp *TaskProvisioner) prepare(name clouds.Name, masterCount, nodeCount int)
 	var (
 		preProvisionTask  *workflows.Task
 		postProvisionTask *workflows.Task
-		err error
+		err               error
 	)
 
 	masterTasks := make([]*workflows.Task, 0, masterCount)
@@ -336,7 +326,10 @@ func (tp *TaskProvisioner) preProvision(ctx context.Context, preProvisionTask *w
 		logrus.Errorf("pre provision task %s has finished with error %v",
 			preProvisionTask.ID, err)
 	} else {
+		// Update kube state
 		config.KubeStateChan() <- model.StateProvisioning
+		// Update cloud spec
+		config.ConfigChan() <- preProvisionTask.Config
 		logrus.Infof("pre provision %s has finished", preProvisionTask.ID)
 	}
 
@@ -496,19 +489,20 @@ func (tp *TaskProvisioner) buildInitialCluster(ctx context.Context,
 	config *steps.Config, taskIds []string) error {
 
 	cluster := &model.Kube{
-		ID:                 config.ClusterID,
-		State:              model.StateProvisioning,
-		Name:               config.ClusterName,
-		Provider:           profile.Provider,
-		AccountName:        config.CloudAccountName,
-		RBACEnabled:        profile.RBACEnabled,
-		Region:             profile.Region,
-		Zone:               profile.Zone,
-		SshUser:            config.SshConfig.User,
-		SshPublicKey:       []byte(config.SshConfig.PublicKey),
-		BootstrapPublicKey: []byte(config.SshConfig.BootstrapPublicKey),
-		User:               profile.User,
-		Password:           profile.Password,
+		ID:                  config.ClusterID,
+		State:               model.StateProvisioning,
+		Name:                config.ClusterName,
+		Provider:            profile.Provider,
+		AccountName:         config.CloudAccountName,
+		RBACEnabled:         profile.RBACEnabled,
+		Region:              profile.Region,
+		Zone:                profile.Zone,
+		SshUser:             config.SshConfig.User,
+		SshPublicKey:        []byte(config.SshConfig.PublicKey),
+		BootstrapPublicKey:  []byte(config.SshConfig.BootstrapPublicKey),
+		BootstrapPrivateKey: []byte(config.SshConfig.BootstrapPrivateKey),
+		User:                profile.User,
+		Password:            profile.Password,
 
 		Auth: model.Auth{
 			Username:  config.CertificatesConfig.Username,
@@ -541,13 +535,9 @@ func (tp *TaskProvisioner) buildInitialCluster(ctx context.Context,
 	return tp.kubeService.Create(ctx, cluster)
 }
 
-func (t *TaskProvisioner) updateCloudSpecificData(ctx context.Context, config *steps.Config) error {
-	k, err := t.kubeService.Get(ctx, config.ClusterID)
-
-	if err != nil {
-		logrus.Errorf("get kube caused %v", err)
-		return err
-	}
+func (t *TaskProvisioner) updateCloudSpecificData(k *model.Kube, config *steps.Config) {
+	logrus.Debugf("Update cloud specific data for kube %s",
+		config.ClusterID)
 
 	cloudSpecificSettings := make(map[string]string)
 
@@ -593,8 +583,6 @@ func (t *TaskProvisioner) updateCloudSpecificData(ctx context.Context, config *s
 	}
 
 	k.CloudSpec = cloudSpecificSettings
-	// Save kubbe with update cloud specific settings
-	return t.kubeService.Create(ctx, k)
 }
 
 func (t *TaskProvisioner) loadCloudSpecificData(ctx context.Context, config *steps.Config) error {
@@ -640,12 +628,14 @@ func bootstrapCerts(config *steps.Config) error {
 	return nil
 }
 
-// All cluster state changes during provisioning are made in this function
-func (tp *TaskProvisioner) monitorClusterState(ctx context.Context, cfg *steps.Config) {
+// All cluster state changes during provisioning must be made in this function
+func (tp *TaskProvisioner) monitorClusterState(ctx context.Context,
+	clusterID string, nodeChan chan node.Node, kubeStateChan chan model.KubeState,
+	configChan chan *steps.Config) {
 	for {
 		select {
-		case n := <-cfg.NodeChan():
-			k, err := tp.kubeService.Get(ctx, cfg.ClusterID)
+		case n := <-nodeChan:
+			k, err := tp.kubeService.Get(ctx, clusterID)
 
 			if err != nil {
 				logrus.Errorf("cluster monitor: update kube state caused %v", err)
@@ -664,8 +654,9 @@ func (tp *TaskProvisioner) monitorClusterState(ctx context.Context, cfg *steps.C
 				logrus.Errorf("cluster monitor: update kube state caused %v", err)
 				continue
 			}
-		case state := <-cfg.KubeStateChan():
-			k, err := tp.kubeService.Get(ctx, cfg.ClusterID)
+		case state := <-kubeStateChan:
+			logrus.Debugf("monitor: get kube %s", clusterID)
+			k, err := tp.kubeService.Get(ctx, clusterID)
 
 			if err != nil {
 				logrus.Errorf("cluster monitor: update kube state caused %v", err)
@@ -673,6 +664,25 @@ func (tp *TaskProvisioner) monitorClusterState(ctx context.Context, cfg *steps.C
 			}
 
 			k.State = state
+			logrus.Debugf("monitor: update kube %s with state %s",
+				k.ID, state)
+			err = tp.kubeService.Create(ctx, k)
+
+			if err != nil {
+				logrus.Errorf("cluster monitor: update kube state caused %v", err)
+				continue
+			}
+		case config := <-configChan:
+			logrus.Debugf("monitor: get kube %s", clusterID)
+			k, err := tp.kubeService.Get(ctx, clusterID)
+
+			if err != nil {
+				logrus.Errorf("cluster monitor: update kube state caused %v", err)
+				continue
+			}
+
+			tp.updateCloudSpecificData(k, config)
+
 			err = tp.kubeService.Create(ctx, k)
 
 			if err != nil {

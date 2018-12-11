@@ -366,7 +366,8 @@ func TestMonitorCluster(t *testing.T) {
 		logrus.Println(testCase.kube.ID)
 
 		ctx, cancel := context.WithCancel(context.Background())
-		go p.monitorClusterState(ctx, cfg)
+		go p.monitorClusterState(ctx, cfg.ClusterID, cfg.NodeChan(),
+			cfg.KubeStateChan(), cfg.ConfigChan())
 
 		for _, n := range testCase.nodes {
 			cfg.NodeChan() <- n
