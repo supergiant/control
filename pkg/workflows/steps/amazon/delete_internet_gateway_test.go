@@ -7,6 +7,7 @@ import (
 	"testing"
 
 	"github.com/aws/aws-sdk-go/service/ec2"
+	"github.com/aws/aws-sdk-go/service/ec2/ec2iface"
 	"github.com/pkg/errors"
 	"github.com/stretchr/testify/mock"
 	"github.com/supergiant/control/pkg/workflows/steps"
@@ -142,7 +143,43 @@ func TestDeleteInternetGateway_Description(t *testing.T) {
 func TestDeleteInternetGateway_Rollback(t *testing.T) {
 	s := &DeleteInternetGateway{}
 
-	if err := s.Rollback(context.Background(), &bytes.Buffer{}, &steps.Config{}); err != nil  {
+	if err := s.Rollback(context.Background(), &bytes.Buffer{}, &steps.Config{}); err != nil {
 		t.Errorf("Unexpecter error %v", err)
+	}
+}
+
+func TestNewDeleteInernetGateway(t *testing.T) {
+	step := NewDeleteInernetGateway(GetEC2)
+
+	if step == nil {
+		t.Error("step must not be nil")
+	}
+
+	if step.getIGWService == nil {
+		t.Errorf("getIGWService must not be nil")
+	}
+
+	if api, err := step.getIGWService(steps.AWSConfig{}); err != nil || api == nil {
+		t.Errorf("Unexpected values %v %v", api, err)
+	}
+}
+
+func TestNewDeleteInernetGatewayErr(t *testing.T) {
+	fn := func(steps.AWSConfig) (ec2iface.EC2API, error) {
+		return nil, errors.New("errorMessage")
+	}
+
+	step := NewDeleteInernetGateway(fn)
+
+	if step == nil {
+		t.Error("step must not be nil")
+	}
+
+	if step.getIGWService == nil {
+		t.Errorf("getIGWService must not be nil")
+	}
+
+	if api, err := step.getIGWService(steps.AWSConfig{}); err == nil || api != nil {
+		t.Errorf("Unexpected values %v %v", api, err)
 	}
 }

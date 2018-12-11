@@ -5,7 +5,6 @@ import (
 	"io"
 
 	"github.com/aws/aws-sdk-go/aws"
-	"github.com/aws/aws-sdk-go/aws/awserr"
 	"github.com/aws/aws-sdk-go/service/ec2"
 	"github.com/pkg/errors"
 	"github.com/sirupsen/logrus"
@@ -25,7 +24,12 @@ type DeleteInternetGateway struct {
 }
 
 func InitDeleteInternetGateWay(fn GetEC2Fn) {
-	steps.RegisterStep(DeleteInternetGatewayStepName, &DeleteInternetGateway{
+	steps.RegisterStep(DeleteInternetGatewayStepName,
+		NewDeleteInernetGateway(fn))
+}
+
+func NewDeleteInernetGateway(fn GetEC2Fn) *DeleteInternetGateway {
+	return &DeleteInternetGateway{
 		getIGWService: func(config steps.AWSConfig) (IGWDeleter, error) {
 			EC2, err := fn(config)
 			if err != nil {
@@ -34,7 +38,7 @@ func InitDeleteInternetGateWay(fn GetEC2Fn) {
 
 			return EC2, nil
 		},
-	})
+	}
 }
 
 func (s *DeleteInternetGateway) Run(ctx context.Context, w io.Writer, cfg *steps.Config) error {
@@ -59,6 +63,7 @@ func (s *DeleteInternetGateway) Run(ctx context.Context, w io.Writer, cfg *steps
 	if err != nil {
 		logrus.Debugf("Detach internet gateway %s from vpc %s caused %v",
 			cfg.AWSConfig.InternetGatewayID, cfg.AWSConfig.VPCID, err)
+		return errors.Wrapf(err, "Detach internet gateway")
 	}
 
 	logrus.Debugf("Delete internet gateway %s from vpc %s",
@@ -68,8 +73,9 @@ func (s *DeleteInternetGateway) Run(ctx context.Context, w io.Writer, cfg *steps
 		InternetGatewayId: aws.String(cfg.AWSConfig.InternetGatewayID),
 	})
 
-	if err, ok := err.(awserr.Error); ok {
-		logrus.Debugf("DisassociateRouteTable caused %s", err.Message())
+	if err != nil {
+		logrus.Debugf("DeleteInternetGateway caused %s", err.Error())
+		return errors.Wrapf(err, "DeleteInternetGateway")
 	}
 
 	logrus.Debugf("Internet gateway %s was deleted from vpc %s",
