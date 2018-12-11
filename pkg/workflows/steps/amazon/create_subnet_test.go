@@ -170,6 +170,38 @@ func TestNewCreateSubnetStep(t *testing.T) {
 	if step.GetEC2 == nil {
 		t.Errorf("Wrong get EC2 function must not be nil")
 	}
+
+	if api, err := step.GetEC2(steps.AWSConfig{}); err != nil || api == nil {
+		t.Errorf("Unexpected values %v %v", api, err)
+	}
+}
+
+
+func TestNewCreateSubnetStepErr(t *testing.T) {
+	fn := func(steps.AWSConfig)(ec2iface.EC2API, error) {
+		return nil, errors.New("errorMessage")
+	}
+
+	accSvc := &account.Service{}
+
+	step := NewCreateSubnetStep(fn, accSvc)
+
+	if step == nil {
+		t.Errorf("Step must not be nil")
+	}
+
+	if step.accSvc != accSvc {
+		t.Errorf("account service value is wrong exepected %v actual %v",
+			step.accSvc, accSvc)
+	}
+
+	if step.GetEC2 == nil {
+		t.Errorf("Wrong get EC2 function must not be nil")
+	}
+
+	if api, err := step.GetEC2(steps.AWSConfig{}); err == nil || api != nil {
+		t.Errorf("Unexpected values %v %v", api, err)
+	}
 }
 
 func TestCreateSubnetsStep_Name(t *testing.T) {
