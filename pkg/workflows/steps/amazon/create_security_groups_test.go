@@ -14,6 +14,7 @@ import (
 
 	"github.com/supergiant/control/pkg/profile"
 	"github.com/supergiant/control/pkg/workflows/steps"
+	"bytes"
 )
 
 type FakeEC2SecurityGroups struct {
@@ -89,5 +90,85 @@ func TestCreateSecurityGroupsStep_Run(t *testing.T) {
 		} else {
 			require.True(t, tc.err == errors.Cause(err), "TC%d, %v", i, err)
 		}
+	}
+}
+
+func TestInitCreateSecurityGroups(t *testing.T) {
+	InitCreateSecurityGroups(GetEC2)
+
+	s := steps.GetStep(StepCreateSecurityGroups)
+
+	if s == nil {
+		t.Errorf("Step must not be nil")
+	}
+}
+
+func TestNewCreateSecurityGroupsStep(t *testing.T) {
+	s := NewCreateSecurityGroupsStep(GetEC2)
+
+	if s == nil {
+		t.Errorf("Step must not be nil")
+	}
+
+	if s.GetEC2 == nil {
+		t.Errorf("GetEC2 must not be nil")
+	}
+
+	if api, err := s.GetEC2(steps.AWSConfig{}); err != nil || api == nil {
+		t.Errorf("Unexpected values %v %v", api, err)
+	}
+}
+
+func TestNewCreateSecurityGroupsStepErr(t *testing.T) {
+	fn := func(steps.AWSConfig)(ec2iface.EC2API, error) {
+		return nil, errors.New("errorMessage")
+	}
+
+	s := NewCreateSecurityGroupsStep(fn)
+
+	if s == nil {
+		t.Errorf("Step must not be nil")
+	}
+
+	if s.GetEC2 == nil {
+		t.Errorf("GetEC2 must not be nil")
+	}
+
+	if api, err := s.GetEC2(steps.AWSConfig{}); err == nil || api != nil {
+		t.Errorf("Unexpected values %v %v", api, err)
+	}
+}
+
+func TestCreateSecurityGroupsStep_Depends(t *testing.T) {
+	s := &CreateSecurityGroupsStep{}
+
+	if deps := s.Depends(); deps != nil {
+		t.Errorf("Deps must be nil")
+	}
+}
+
+func TestCreateSecurityGroupsStep_Name(t *testing.T) {
+	s := &CreateSecurityGroupsStep{}
+
+	if name := s.Name(); name != StepCreateSecurityGroups {
+		t.Errorf("Wrong step name expected %s actual %s",
+			StepCreateSecurityGroups, s.Name())
+	}
+}
+
+func TestCreateSecurityGroupsStep_Rollback(t *testing.T) {
+	s := &CreateSecurityGroupsStep{}
+
+	if err := s.Rollback(context.Background(), &bytes.Buffer{}, &steps.Config{}); err != nil {
+		t.Errorf("Unexpected value of err %v", err)
+	}
+}
+
+func TestCreateSecurityGroupsStep_Description(t *testing.T) {
+	s := &CreateSecurityGroupsStep{}
+
+	if desc := s.Description(); desc != "Create security groups" {
+		t.Errorf("Wrong step desc expected Create security groups" +
+			" actual %s", s.Description())
 	}
 }

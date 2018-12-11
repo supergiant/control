@@ -309,7 +309,7 @@ func (*CreateSecurityGroupsStep) Name() string {
 }
 
 func (*CreateSecurityGroupsStep) Description() string {
-	return ""
+	return "Create security groups"
 }
 
 func (*CreateSecurityGroupsStep) Depends() []string {
