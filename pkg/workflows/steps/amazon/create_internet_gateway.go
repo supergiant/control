@@ -18,7 +18,13 @@ import (
 const StepCreateInternetGateway = "create_internet_gateway"
 
 type CreateInternetGatewayStep struct {
-	GetEC2 GetEC2Fn
+	getIGWService func(cfg steps.AWSConfig) (InternetGatewayCreater, error)
+}
+
+type InternetGatewayCreater interface {
+	CreateInternetGateway(*ec2.CreateInternetGatewayInput) (*ec2.CreateInternetGatewayOutput, error)
+	CreateTags(*ec2.CreateTagsInput) (*ec2.CreateTagsOutput, error)
+	AttachInternetGateway(*ec2.AttachInternetGatewayInput) (*ec2.AttachInternetGatewayOutput, error)
 }
 
 //InitCreateMachine adds the step to the registry
@@ -28,18 +34,22 @@ func InitCreateInternetGateway(ec2fn GetEC2Fn) {
 
 func NewCreateInternetGatewayStep(ec2fn GetEC2Fn) *CreateInternetGatewayStep {
 	return &CreateInternetGatewayStep{
-		GetEC2: ec2fn,
+		getIGWService: func(cfg steps.AWSConfig) (InternetGatewayCreater, error) {
+			ec2Client, err := ec2fn(cfg)
+
+			if err != nil {
+				logrus.Errorf("[%s] - failed to authorize in AWS: %v",
+					StepCreateInternetGateway, err)
+				return nil, errors.Wrap(ErrAuthorization, err.Error())
+			}
+
+			return ec2Client, nil
+		},
 	}
 }
 
 func (s *CreateInternetGatewayStep) Run(ctx context.Context, w io.Writer, cfg *steps.Config) error {
 	logrus.Debugf(StepCreateInternetGateway)
-	ec2Client, err := s.GetEC2(cfg.AWSConfig)
-
-	if err != nil {
-		logrus.Errorf("[%s] - failed to authorize in AWS: %v", s.Name(), err)
-		return errors.Wrap(ErrAuthorization, err.Error())
-	}
 
 	// Internet gateway already exists
 	if cfg.AWSConfig.InternetGatewayID != "" {
@@ -47,11 +57,19 @@ func (s *CreateInternetGatewayStep) Run(ctx context.Context, w io.Writer, cfg *s
 			cfg.AWSConfig.InternetGatewayID)
 		return nil
 	} else {
+		svc, err := s.getIGWService(cfg.AWSConfig)
+
+		if err != nil {
+			return errors.Wrapf(err, "error getting IGW service %s",
+				StepCreateInternetGateway)
+		}
+
 		// Use default gateway for VPC
-		resp, err := ec2Client.CreateInternetGateway(new(ec2.CreateInternetGatewayInput))
+		resp, err := svc.CreateInternetGateway(new(ec2.CreateInternetGatewayInput))
 		if err != nil {
 			return err
 		}
+
 		cfg.AWSConfig.InternetGatewayID = *resp.InternetGateway.InternetGatewayId
 
 		// Tag gateway
@@ -75,7 +93,7 @@ func (s *CreateInternetGatewayStep) Run(ctx context.Context, w io.Writer, cfg *s
 			Resources: []*string{aws.String(cfg.AWSConfig.InternetGatewayID)},
 			Tags:      ec2Tags,
 		}
-		_, err = ec2Client.CreateTags(tagInput)
+		_, err = svc.CreateTags(tagInput)
 
 		if err != nil {
 			logrus.Errorf("Error tagging route table %s %v",
@@ -88,7 +106,7 @@ func (s *CreateInternetGatewayStep) Run(ctx context.Context, w io.Writer, cfg *s
 			VpcId:             aws.String(cfg.AWSConfig.VPCID),
 			InternetGatewayId: aws.String(cfg.AWSConfig.InternetGatewayID),
 		}
-		if _, err := ec2Client.AttachInternetGateway(attachGw); err != nil && !strings.Contains(err.Error(), "already has an internet gateway attached") {
+		if _, err := svc.AttachInternetGateway(attachGw); err != nil && !strings.Contains(err.Error(), "already has an internet gateway attached") {
 			return err
 		}
 	}
@@ -101,7 +119,7 @@ func (s *CreateInternetGatewayStep) Rollback(ctx context.Context, w io.Writer, c
 }
 
 func (*CreateInternetGatewayStep) Name() string {
-	return StepNameCreateEC2Instance
+	return StepCreateInternetGateway
 }
 
 func (*CreateInternetGatewayStep) Description() string {
