@@ -282,6 +282,7 @@ spec:
     - --client-ca-file=/etc/kubernetes/ssl/ca.pem
     - --service-account-key-file=/etc/kubernetes/ssl/ca.pem
     - --basic-auth-file=/etc/kubernetes/ssl/basic_auth.csv
+    - --anonymous-auth=false
     - --token-auth-file=/etc/kubernetes/ssl/known_tokens.csv
     - --kubelet-preferred-address-types=InternalIP,Hostname,ExternalIP
     - --storage-backend=etcd3

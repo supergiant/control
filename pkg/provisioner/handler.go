@@ -98,6 +98,8 @@ func (h *Handler) Provision(w http.ResponseWriter, r *http.Request) {
 		})
 	}
 
+	logrus.Infof("api server user:password for cluster %s is %s:%s")
+
 	config := steps.NewConfig(req.ClusterName, clusterToken,
 		req.CloudAccountName, req.Profile)
 
