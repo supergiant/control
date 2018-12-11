@@ -32,6 +32,7 @@ func InitDeleteVPC(fn GetEC2Fn) {
 
 func (s *DeleteVPC) Run(ctx context.Context, w io.Writer, cfg *steps.Config) error {
 	if cfg.AWSConfig.VPCID == "" {
+		logrus.Debug("Skip deleting empty VPC")
 		return nil
 	}
 

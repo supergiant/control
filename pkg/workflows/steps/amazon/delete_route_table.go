@@ -33,6 +33,7 @@ func InitDeleteRouteTable(fn GetEC2Fn) {
 
 func (s *DeleteRouteTable) Run(ctx context.Context, w io.Writer, cfg *steps.Config) error {
 	if cfg.AWSConfig.RouteTableID == "" {
+		logrus.Debug("Skip deleting empty route table")
 		return nil
 	}
 

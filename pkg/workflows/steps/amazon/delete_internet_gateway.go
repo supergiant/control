@@ -27,6 +27,7 @@ func InitDeleteInternetGateWay(fn GetEC2Fn) {
 
 func (s *DeleteInternetGateway) Run(ctx context.Context, w io.Writer, cfg *steps.Config) error {
 	if cfg.AWSConfig.InternetGatewayID == "" {
+		logrus.Debug("Skip deleting empty Internet GW")
 		return nil
 	}
 
