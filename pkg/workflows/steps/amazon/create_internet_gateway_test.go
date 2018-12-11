@@ -187,3 +187,13 @@ func TestNewCreateInternetGatewayStep(t *testing.T) {
 		t.Errorf("getIGWService must not be nil")
 	}
 }
+
+func TestInitCreateInternetGateway(t *testing.T) {
+	InitCreateInternetGateway(GetEC2)
+
+	s := steps.GetStep(StepCreateInternetGateway)
+
+	if s == nil {
+		t.Errorf("Step %s not found", StepCreateInternetGateway)
+	}
+}

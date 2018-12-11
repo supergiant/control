@@ -78,6 +78,8 @@ func (s *CreateSubnetsStep) Run(ctx context.Context, w io.Writer, cfg *steps.Con
 	if err != nil {
 		logrus.Errorf("Error getting zones for region %s",
 			cfg.AWSConfig.Region)
+		return errors.Wrapf(err, "Error getting zone for region %s",
+			cfg.AWSConfig.Region)
 	}
 
 	// Create subnet for each availability zone

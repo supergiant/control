@@ -142,3 +142,13 @@ func TestCreateRouteTableStep_Run(t *testing.T) {
 		}
 	}
 }
+
+func TestInitCreateRouteTable(t *testing.T) {
+	InitCreateRouteTable(GetEC2)
+
+	s := steps.GetStep(StepCreateRouteTable)
+
+	if s == nil {
+		t.Errorf("Step %s not found", StepCreateRouteTable)
+	}
+}
