@@ -11,8 +11,8 @@ export class UsageChartComponent implements OnInit, OnChanges {
   @Input() name: string;
   @Input() cpuUsage: number;
   @Input() ramUsage: number;
-  @ViewChild("cpu_usage_path") cpu_usage_path;
-  @ViewChild("ram_usage_path") ram_usage_path;
+  @ViewChild('cpu_usage_path') cpu_usage_path;
+  @ViewChild('ram_usage_path') ram_usage_path;
 
   ngOnChanges() {
     const cpu_length = this.cpu_usage_path.nativeElement.getTotalLength();

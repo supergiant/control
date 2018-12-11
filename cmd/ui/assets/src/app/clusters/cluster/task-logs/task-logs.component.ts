@@ -22,15 +22,15 @@ export class TaskLogsComponent implements OnDestroy, AfterContentInit {
     private supergiant: Supergiant,
     @Inject(MAT_DIALOG_DATA) public data: any
   ) {
-    this.taskId = data.taskId
+    this.taskId = data.taskId;
   }
 
-  @ViewChild("editor") editor;
+  @ViewChild('editor') editor;
 
   conn: any;
 
   taskId: any;
-  logsString = "";
+  logsString = '';
   userScrolled = false;
 
   scrollToBottom() {
@@ -43,7 +43,7 @@ export class TaskLogsComponent implements OnDestroy, AfterContentInit {
   }
 
   updateLogs(e) {
-    const newMessage = e.data + "\r\n";
+    const newMessage = e.data + '\r\n';
     this.logsString = this.logsString + newMessage;
     if (!this.userScrolled) {
       this.scrollToBottom();
@@ -54,10 +54,10 @@ export class TaskLogsComponent implements OnDestroy, AfterContentInit {
     const token = this.supergiant.Auth.getToken();
     const hostname = this.data.hostname;
 
-    this.conn = new WebSocket("ws://" + hostname + ":8080/v1/api/tasks/" + taskId + "/logs?token=" + token);
+    this.conn = new WebSocket('ws://' + hostname + ':8080/v1/api/tasks/' + taskId + '/logs?token=' + token);
     this.conn.onmessage = e => {
       setTimeout(() => this.updateLogs(e), 1);
-    }
+    };
   }
 
   ngAfterContentInit() {

@@ -1,4 +1,4 @@
-import { IMachineType } from "app/clusters/new-cluster/new-cluster.component.interface";
+import { IMachineType } from 'app/clusters/new-cluster/new-cluster.component.interface';
 
 export const BLANK_MACHINE_TEMPLATE: IMachineType = {
   machineType: null,

@@ -146,7 +146,7 @@ import { environment } from '../environments/environment';
 import { EffectsModule } from '@ngrx/effects';
 import { AppEffects } from './app.effects';
 import { TaskLogsComponent } from './clusters/cluster/task-logs/task-logs.component';
-import { LoginGuardService } from "./shared/supergiant/auth/login-guard.service";
+import { LoginGuardService } from './shared/supergiant/auth/login-guard.service';
 import { MenuModalComponent } from './navigation/user-menu/menu-modal/menu-modal.component';
 import { ClusterListModalComponent } from './navigation/toolbar/cluster-list-modal/cluster-list-modal.component';
 import { AddNodeComponent } from './clusters/cluster/add-node/add-node.component';

@@ -1,14 +1,14 @@
 import { Component, OnInit, OnDestroy }  from '@angular/core';
-import { ActivatedRoute }                                        from "@angular/router";
-import { LoadAppDetails, SetAppDetails }                         from "../../apps/actions";
-import { State }                                                 from "../../../reducers";
-import { select, Store }                                         from "@ngrx/store";
-import { Chart, selectAppDetails }                               from "../../apps/apps.reducer";
-import { Observable, Subscription }                              from "rxjs";
-import { MatDialog }                                             from "@angular/material";
-import { DeployComponent }                                       from "./deploy/deploy.component";
-import { ConfigureComponent }                                    from "./confure/configure.component";
-import { map, switchMap, tap, filter }                           from "rxjs/operators";
+import { ActivatedRoute }                                        from '@angular/router';
+import { LoadAppDetails, SetAppDetails }                         from '../../apps/actions';
+import { State }                                                 from '../../../reducers';
+import { select, Store }                                         from '@ngrx/store';
+import { Chart, selectAppDetails }                               from '../../apps/apps.reducer';
+import { Observable, Subscription }                              from 'rxjs';
+import { MatDialog }                                             from '@angular/material';
+import { DeployComponent }                                       from './deploy/deploy.component';
+import { ConfigureComponent }                                    from './confure/configure.component';
+import { map, switchMap, tap, filter }                           from 'rxjs/operators';
 
 @Component({
   selector: 'app-details',
@@ -28,7 +28,7 @@ export class AppDetailsComponent implements OnInit, OnDestroy {
     this.subscriptons = new Subscription();
 
     this.repo = this.route.snapshot.paramMap.get('repo');
-    let chart = this.route.snapshot.paramMap.get('chart');
+    const chart = this.route.snapshot.paramMap.get('chart');
 
     this.store.dispatch(new LoadAppDetails({ repo: this.repo, chart }));
   }

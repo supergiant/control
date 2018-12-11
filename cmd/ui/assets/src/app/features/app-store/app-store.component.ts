@@ -1,14 +1,14 @@
 import { Component }                    from '@angular/core';
-import { NavigationEnd, Router }        from "@angular/router";
-import { State }                        from "../../reducers";
-import { select, Store }                from "@ngrx/store";
-import { Repository, selectAppDetails } from "../apps/apps.reducer";
-import { Observable }                   from "rxjs";
-import { AppFilter }                    from "../apps/actions";
-import { MatDialog }                    from "@angular/material";
-import { AppsAddComponent }             from "./apps-add/apps-add.component";
-import { HttpClient }                   from "@angular/common/http";
-import { filter, map }                  from "rxjs/operators";
+import { NavigationEnd, Router }        from '@angular/router';
+import { State }                        from '../../reducers';
+import { select, Store }                from '@ngrx/store';
+import { Repository, selectAppDetails } from '../apps/apps.reducer';
+import { Observable }                   from 'rxjs';
+import { AppFilter }                    from '../apps/actions';
+import { MatDialog }                    from '@angular/material';
+import { AppsAddComponent }             from './apps-add/apps-add.component';
+import { HttpClient }                   from '@angular/common/http';
+import { filter, map }                  from 'rxjs/operators';
 
 @Component({
   selector: 'app-app-store',
@@ -32,7 +32,7 @@ export class AppStoreComponent {
     ).subscribe(() => {
       const detailPageRegexp = /\/catalog\/[a-z]+\/details\/[a-z]/;
       this.showBreadcrumbs = Boolean(this.router.url.match(detailPageRegexp));
-      this.store.dispatch(new AppFilter(''))
+      this.store.dispatch(new AppFilter(''));
     });
 
     this.breadcrumbsData$ = this.store.pipe(
@@ -44,7 +44,7 @@ export class AppStoreComponent {
           return {
             url: repo.config.url,
             name: repo.config.name
-          }
+          };
         }
       ))
     );
@@ -52,11 +52,11 @@ export class AppStoreComponent {
 
   // TODO create separate component
   filterApps(e) {
-    this.store.dispatch(new AppFilter(e.target.value))
+    this.store.dispatch(new AppFilter(e.target.value));
   }
 
   filterClear(filterInput) {
     filterInput.value = '';
-    this.store.dispatch(new AppFilter(''))
+    this.store.dispatch(new AppFilter(''));
   }
 }

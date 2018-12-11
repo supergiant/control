@@ -23,7 +23,7 @@ export class ReleaseInfoModalComponent implements OnInit {
     this.supergiant.HelmReleases.get(this.clusterId, this.releaseName).subscribe(
       res => this.releaseInfo = res,
       err => console.error(err)
-    )
+    );
   }
 
   ngOnInit() {
