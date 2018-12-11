@@ -118,6 +118,11 @@ func TestAssociateRouteTableStep_Run(t *testing.T) {
 
 		config := &steps.Config{
 			AWSConfig: steps.AWSConfig{
+				Subnets: map[string]string{
+					"az1": "subnet1",
+					"az2": "subnet2",
+					"az3": "subnet3",
+				},
 			},
 		}
 
@@ -131,6 +136,13 @@ func TestAssociateRouteTableStep_Run(t *testing.T) {
 		if err != nil && !strings.Contains(err.Error(), testCase.errMsg) {
 			t.Errorf("Error message %s does not contain %s",
 				err.Error(), testCase.errMsg)
+			continue
+		}
+
+		if testCase.errMsg == "" &&
+			len(config.AWSConfig.RouteTableAssociationIDs) != len(config.AWSConfig.Subnets) {
+			t.Errorf("Route table must be size %d of one actual %d",
+				len(config.AWSConfig.Subnets), len(config.AWSConfig.RouteTableAssociationIDs))
 		}
 	}
 }

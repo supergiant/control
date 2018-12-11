@@ -112,13 +112,13 @@ func TestCreateInternetGatewayStep_Run(t *testing.T) {
 			},
 		}
 
-		config := steps.Config{
+		config := &steps.Config{
 			AWSConfig: steps.AWSConfig{
 				InternetGatewayID: testCase.existingGW,
 			},
 		}
 
-		err := step.Run(context.Background(), &bytes.Buffer{}, &config)
+		err := step.Run(context.Background(), &bytes.Buffer{}, config)
 
 		if err != nil && testCase.errMsg == "" {
 			t.Errorf("Unexpected error %v", err)
@@ -128,6 +128,12 @@ func TestCreateInternetGatewayStep_Run(t *testing.T) {
 		if err != nil && !strings.Contains(err.Error(), testCase.errMsg) {
 			t.Errorf("Wrong error must contain %s actual %s",
 				testCase.errMsg, err.Error())
+			continue
+		}
+
+		if testCase.errMsg == "" &&
+			config.AWSConfig.InternetGatewayID == "" {
+			t.Errorf("Wrong Internet gateway ID must not be empty")
 		}
 	}
 }
