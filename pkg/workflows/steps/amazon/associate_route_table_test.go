@@ -5,14 +5,14 @@ import (
 	"testing"
 	"context"
 	"bytes"
+	"strings"
 
-
+	"github.com/pkg/errors"
+	
 	"github.com/aws/aws-sdk-go/service/ec2"
 
 	"github.com/supergiant/control/pkg/workflows/steps"
-	"github.com/pkg/errors"
 	"github.com/aws/aws-sdk-go/aws"
-	"strings"
 )
 
 type mockAssociater struct{

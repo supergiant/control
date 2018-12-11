@@ -1,15 +1,18 @@
 package amazon
 
 import (
-	"github.com/stretchr/testify/mock"
-	"github.com/aws/aws-sdk-go/service/ec2"
-	"testing"
-	"github.com/pkg/errors"
-	"github.com/aws/aws-sdk-go/aws"
-	"github.com/supergiant/control/pkg/workflows/steps"
 	"context"
 	"bytes"
 	"strings"
+	"testing"
+
+	"github.com/pkg/errors"
+
+	"github.com/aws/aws-sdk-go/service/ec2"
+	"github.com/aws/aws-sdk-go/aws"
+
+	"github.com/stretchr/testify/mock"
+	"github.com/supergiant/control/pkg/workflows/steps"
 )
 
 type mockService struct {

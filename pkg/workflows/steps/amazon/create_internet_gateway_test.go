@@ -1,15 +1,18 @@
 package amazon
 
 import (
-	"github.com/aws/aws-sdk-go/service/ec2"
-	"github.com/stretchr/testify/mock"
-	"testing"
-	"github.com/pkg/errors"
-	"github.com/aws/aws-sdk-go/aws"
-	"github.com/supergiant/control/pkg/workflows/steps"
 	"context"
 	"bytes"
 	"strings"
+	"testing"
+
+	"github.com/pkg/errors"
+
+	"github.com/aws/aws-sdk-go/aws"
+	"github.com/aws/aws-sdk-go/service/ec2"
+	"github.com/stretchr/testify/mock"
+
+	"github.com/supergiant/control/pkg/workflows/steps"
 )
 
 type mockIGWService struct {
