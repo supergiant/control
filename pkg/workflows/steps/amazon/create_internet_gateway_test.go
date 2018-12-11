@@ -160,7 +160,7 @@ func TestCreateInternetGatewayStep_Description(t *testing.T) {
 	}
 }
 
-func TestDeleteInternetGateway_Rollback(t *testing.T) {
+func TestCreateInternetGateway_Rollback(t *testing.T) {
 	step := &CreateInternetGatewayStep{}
 
 	if err := step.Rollback(context.Background(), nil, nil); err != nil {

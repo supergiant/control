@@ -193,7 +193,7 @@ func TestCreateVPCStep_Name(t *testing.T) {
 func TestCreateVPCStep_Description(t *testing.T) {
 	s := &CreateVPCStep{}
 
-	if desc := s.Description(); desc != StepCreateVPC {
+	if desc := s.Description(); desc != "create a vpc in aws or reuse existing one" {
 		t.Errorf("Wrong step desc expected  " +
 			"create a vpc in aws or reuse existing one actual %s",
 			s.Description())

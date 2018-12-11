@@ -15,13 +15,25 @@ import (
 
 const DeleteInternetGatewayStepName = "aws_delete_internet_gateway"
 
+type IGWDeleter interface {
+	DetachInternetGateway(*ec2.DetachInternetGatewayInput) (*ec2.DetachInternetGatewayOutput, error)
+	DeleteInternetGateway(*ec2.DeleteInternetGatewayInput) (*ec2.DeleteInternetGatewayOutput, error)
+}
+
 type DeleteInternetGateway struct {
-	GetEC2 GetEC2Fn
+	getIGWService func(steps.AWSConfig) (IGWDeleter, error)
 }
 
 func InitDeleteInternetGateWay(fn GetEC2Fn) {
 	steps.RegisterStep(DeleteInternetGatewayStepName, &DeleteInternetGateway{
-		GetEC2: fn,
+		getIGWService: func(config steps.AWSConfig) (IGWDeleter, error) {
+			EC2, err := fn(config)
+			if err != nil {
+				return nil, errors.Wrap(ErrAuthorization, err.Error())
+			}
+
+			return EC2, nil
+		},
 	})
 }
 
@@ -31,14 +43,15 @@ func (s *DeleteInternetGateway) Run(ctx context.Context, w io.Writer, cfg *steps
 		return nil
 	}
 
-	EC2, err := s.GetEC2(cfg.AWSConfig)
+	svc, err := s.getIGWService(cfg.AWSConfig)
 	if err != nil {
+		logrus.Errorf("Error while getting IGW deleter %v", err)
 		return errors.Wrap(ErrAuthorization, err.Error())
 	}
 
 	logrus.Debugf("Detach internet gateway %s from vpc %s",
 		cfg.AWSConfig.InternetGatewayID, cfg.AWSConfig.VPCID)
-	_, err = EC2.DetachInternetGateway(&ec2.DetachInternetGatewayInput{
+	_, err = svc.DetachInternetGateway(&ec2.DetachInternetGatewayInput{
 		InternetGatewayId: aws.String(cfg.AWSConfig.InternetGatewayID),
 		VpcId:             aws.String(cfg.AWSConfig.VPCID),
 	})
@@ -51,7 +64,7 @@ func (s *DeleteInternetGateway) Run(ctx context.Context, w io.Writer, cfg *steps
 	logrus.Debugf("Delete internet gateway %s from vpc %s",
 		cfg.AWSConfig.InternetGatewayID, cfg.AWSConfig.VPCID)
 
-	_, err = EC2.DeleteInternetGateway(&ec2.DeleteInternetGatewayInput{
+	_, err = svc.DeleteInternetGateway(&ec2.DeleteInternetGatewayInput{
 		InternetGatewayId: aws.String(cfg.AWSConfig.InternetGatewayID),
 	})
 
