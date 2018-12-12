@@ -1,14 +1,14 @@
 import { Component, Inject, OnInit }          from '@angular/core';
-import { FormBuilder, FormGroup, Validators } from "@angular/forms";
-import { State }                              from "../../../../reducers";
-import { select, Store }                      from "@ngrx/store";
-import { Chart, selectAppDetails }            from "../../../apps/apps.reducer";
-import { Observable, of }                     from "rxjs";
-import { HttpClient }                         from "@angular/common/http";
-import { MAT_DIALOG_DATA, MatDialogRef }      from "@angular/material";
-import { catchError, filter }                         from "rxjs/operators";
-import { Notifications }                      from "../../../../../app/shared/notifications/notifications.service";
-import { ActivatedRoute, Router }             from "@angular/router";
+import { FormBuilder, FormGroup, Validators } from '@angular/forms';
+import { State }                              from '../../../../reducers';
+import { select, Store }                      from '@ngrx/store';
+import { Chart, selectAppDetails }            from '../../../apps/apps.reducer';
+import { Observable, of }                     from 'rxjs';
+import { HttpClient }                         from '@angular/common/http';
+import { MAT_DIALOG_DATA, MatDialogRef }      from '@angular/material';
+import { catchError, filter }                         from 'rxjs/operators';
+import { Notifications }                      from '../../../../../app/shared/notifications/notifications.service';
+import { ActivatedRoute, Router }             from '@angular/router';
 
 
 @Component({
@@ -58,7 +58,7 @@ export class DeployComponent implements OnInit {
     this.deployForm.disable();
     this.isProcessing = true;
 
-    this.http.post("/v1/api/kubes/" + selectedCluster.id + "/releases", formValue).pipe(
+    this.http.post('/v1/api/kubes/' + selectedCluster.id + '/releases', formValue).pipe(
       catchError(error => {
         this.notifications.display('error', 'Error', error.statusText);
         return of(new ErrorEvent(error));
@@ -74,7 +74,7 @@ export class DeployComponent implements OnInit {
       this.router.navigate(['/clusters/', selectedCluster.id]);
       this.notifications.display('success', 'Success', 'App is being deployed!');
 
-      this.dialogRef.close()
+      this.dialogRef.close();
     });
   }
 
@@ -83,13 +83,13 @@ export class DeployComponent implements OnInit {
       const repoName = this.data.routeParams.repo;
       const chartName = currentChart.metadata.name;
 
-      if (chartName == "capacity" || chartName == "analyze") {
-        currentChart.metadata["namespace"] = "kube-system";
+      if (chartName == 'capacity' || chartName == 'analyze') {
+        currentChart.metadata['namespace'] = 'kube-system';
       } else {
-        currentChart.metadata["namespace"] = "default";
+        currentChart.metadata['namespace'] = 'default';
       }
 
-      const namespace = currentChart.metadata["namespace"];
+      const namespace = currentChart.metadata['namespace'];
       this.deployForm.patchValue({
         chartName, repoName, namespace, values: currentChart.values
       });

@@ -1,6 +1,6 @@
 import {Injectable}   from '@angular/core';
 import {UtilService}  from '../util/util.service';
-import { Observable } from "rxjs";
+import { Observable } from 'rxjs';
 
 @Injectable()
 export class CloudAccounts {
@@ -23,7 +23,7 @@ export class CloudAccounts {
     return this.util.fetch(this.cloudAccountsPath + '/' + cloudAccountName + '/' + 'regions' + '/' + region + '/az');
   }
 
-  public getAwsMachineTypes(cloudAccountName, region, az):Observable<string[]> {
+  public getAwsMachineTypes(cloudAccountName, region, az): Observable<string[]> {
     return this.util.fetch(this.cloudAccountsPath + '/' + cloudAccountName + '/' + 'regions' + '/' + region + '/az/' + az + '/types');
   }
 
@@ -31,7 +31,7 @@ export class CloudAccounts {
     return this.util.fetch(this.cloudAccountsPath + '/' + cloudAccountName + '/' + 'regions' + '/' + region + '/az');
   }
 
-  public getGCEMachineTypes(cloudAccountName, region, az):Observable<string[]> {
+  public getGCEMachineTypes(cloudAccountName, region, az): Observable<string[]> {
     return this.util.fetch(this.cloudAccountsPath + '/' + cloudAccountName + '/' + 'regions' + '/' + region + '/az/' + az + '/types');
   }
 

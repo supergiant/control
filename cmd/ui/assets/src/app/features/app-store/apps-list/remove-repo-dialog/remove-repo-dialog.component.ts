@@ -1,5 +1,5 @@
 import { Component }    from '@angular/core';
-import { MatDialogRef } from "@angular/material";
+import { MatDialogRef } from '@angular/material';
 
 @Component({
   selector: 'remove-repo-dialog',

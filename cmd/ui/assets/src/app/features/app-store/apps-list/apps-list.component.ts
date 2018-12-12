@@ -1,15 +1,15 @@
-import { HttpClient }                                  from "@angular/common/http";
+import { HttpClient }                                  from '@angular/common/http';
 import { Component, OnInit, ViewChild }                from '@angular/core';
-import { MatPaginator, MatDialog }                     from "@angular/material";
-import { ActivatedRoute, NavigationEnd, Router }       from "@angular/router";
-import { select, Store }                               from "@ngrx/store";
-import { combineLatest, Observable, of, Subscription } from "rxjs";
-import { filter, map, startWith, switchMap, tap }      from "rxjs/operators";
-import { State }                                       from "../../../reducers";
-import { LoadCharts }                                  from "../../apps/actions";
-import { ChartList, selectCharts, selectFilterApps }   from "../../apps/apps.reducer";
-import { RemoveRepoDialogComponent }                   from "app/features/app-store/apps-list/remove-repo-dialog/remove-repo-dialog.component";
-import { AppsAddComponent }                            from "app/features/app-store/apps-add/apps-add.component";
+import { MatPaginator, MatDialog }                     from '@angular/material';
+import { ActivatedRoute, NavigationEnd, Router }       from '@angular/router';
+import { select, Store }                               from '@ngrx/store';
+import { combineLatest, Observable, of, Subscription } from 'rxjs';
+import { filter, map, startWith, switchMap, tap }      from 'rxjs/operators';
+import { State }                                       from '../../../reducers';
+import { LoadCharts }                                  from '../../apps/actions';
+import { ChartList, selectCharts, selectFilterApps }   from '../../apps/apps.reducer';
+import { RemoveRepoDialogComponent }                   from 'app/features/app-store/apps-list/remove-repo-dialog/remove-repo-dialog.component';
+import { AppsAddComponent }                            from 'app/features/app-store/apps-add/apps-add.component';
 
 @Component({
   selector: 'apps-list',
@@ -123,7 +123,7 @@ export class AppsListComponent implements OnInit {
   }
 
   addRepo() {
-    this.dialog.open(AppsAddComponent)
+    this.dialog.open(AppsAddComponent);
   }
 
 }
