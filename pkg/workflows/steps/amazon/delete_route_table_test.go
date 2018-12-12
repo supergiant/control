@@ -149,10 +149,10 @@ func TestDeleteRouteTable_Name(t *testing.T) {
 	}
 }
 
-func TestDeleteClusterMachines_Rollback(t *testing.T) {
+func TestDeleteRouteTable_Rollback(t *testing.T) {
 	step := &DeleteRouteTable{}
 
-	if err := step.Run(context.Background(), &bytes.Buffer{}, &steps.Config{}); err != nil {
+	if err := step.Rollback(context.Background(), &bytes.Buffer{}, &steps.Config{}); err != nil {
 		t.Errorf("Unexpected error %v while rolling back", err)
 	}
 }
