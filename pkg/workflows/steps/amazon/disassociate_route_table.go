@@ -42,11 +42,6 @@ func NewDisassociateRouteTableStep(fn GetEC2Fn) *DisassociateRouteTable {
 }
 
 func (s *DisassociateRouteTable) Run(ctx context.Context, w io.Writer, cfg *steps.Config) error {
-	if len(cfg.AWSConfig.RouteTableAssociationIDs) == 0 {
-		logrus.Debug("Skip disassociating empty route table associations")
-		return nil
-	}
-
 	svc, err := s.getSvc(cfg.AWSConfig)
 
 	if err != nil {

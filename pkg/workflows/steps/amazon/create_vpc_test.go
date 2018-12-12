@@ -45,6 +45,32 @@ func TestCreateVPCStep_Run(t *testing.T) {
 		awsCfg steps.AWSConfig
 	}{
 		{
+			func(config steps.AWSConfig) (ec2iface.EC2API, error) {
+				return &fakeEC2VPC{
+					createVPCOutput: &ec2.CreateVpcOutput{
+						Vpc: &ec2.Vpc{
+							VpcId: aws.String("ID"),
+						},
+					},
+				}, ErrAuthorization
+			},
+			ErrAuthorization,
+			steps.AWSConfig{},
+		},
+		{
+			func(config steps.AWSConfig) (ec2iface.EC2API, error) {
+				return &fakeEC2VPC{
+					createVPCOutput: &ec2.CreateVpcOutput{
+						Vpc: &ec2.Vpc{
+							VpcId: aws.String("ID"),
+						},
+					},
+				}, nil
+			},
+			nil,
+			steps.AWSConfig{},
+		},
+		{
 			//happy path
 			func(config steps.AWSConfig) (ec2iface.EC2API, error) {
 				return &fakeEC2VPC{
@@ -56,6 +82,21 @@ func TestCreateVPCStep_Run(t *testing.T) {
 				}, nil
 			},
 			nil,
+			steps.AWSConfig{},
+		},
+		{
+			//happy path
+			func(config steps.AWSConfig) (ec2iface.EC2API, error) {
+				return &fakeEC2VPC{
+					createVPCOutput: &ec2.CreateVpcOutput{
+						Vpc: &ec2.Vpc{
+							VpcId: aws.String("ID"),
+						},
+					},
+					err: errors.New("error"),
+				}, nil
+			},
+			ErrCreateVPC,
 			steps.AWSConfig{},
 		},
 		{
@@ -119,6 +160,7 @@ func TestCreateVPCStep_Run(t *testing.T) {
 
 		step := NewCreateVPCStep(tc.awsFN)
 		err := step.Run(context.Background(), os.Stdout, cfg)
+
 		if tc.err == nil {
 			require.NoError(t, err, "TC%d, %v", i, err)
 		} else {

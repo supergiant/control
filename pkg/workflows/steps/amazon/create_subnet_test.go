@@ -48,7 +48,7 @@ func TestCreateSubnetStep_Run(t *testing.T) {
 		cfg           steps.AWSConfig
 	}{
 		{
-			description: "success",
+			description: "err creds",
 			fn: func(config steps.AWSConfig) (ec2iface.EC2API, error) {
 				return &fakeEC2Subnet{
 					output: &ec2.CreateSubnetOutput{
@@ -58,9 +58,9 @@ func TestCreateSubnetStep_Run(t *testing.T) {
 							SubnetId:         aws.String("mysubnetid"),
 						},
 					},
-				}, nil
+				}, sgerrors.ErrInvalidCredentials
 			},
-			err: nil,
+			err: ErrAuthorization,
 			cfg: steps.AWSConfig{
 				VPCCIDR: "10.0.0.0/16",
 			},

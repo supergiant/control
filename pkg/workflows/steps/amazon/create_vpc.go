@@ -5,7 +5,6 @@ import (
 	"io"
 
 	"github.com/aws/aws-sdk-go/aws"
-	"github.com/aws/aws-sdk-go/aws/awserr"
 	"github.com/aws/aws-sdk-go/service/ec2"
 	"github.com/pkg/errors"
 	"github.com/sirupsen/logrus"
@@ -59,10 +58,8 @@ func (c *CreateVPCStep) Run(ctx context.Context, w io.Writer, cfg *steps.Config)
 		err = EC2.WaitUntilVpcExistsWithContext(ctx, desc)
 
 		if err != nil {
-			if err, ok := err.(awserr.Error); ok {
 				logrus.Debugf("error waiting for vpc %s %s",
-					cfg.AWSConfig.VPCID, err.Message())
-			}
+					cfg.AWSConfig.VPCID, err.Error())
 			return errors.Wrapf(err, "create vpc error wait")
 		}
 		log.Infof("[%s] - created a VPC with ID %s and CIDR %s",
@@ -82,9 +79,6 @@ func (c *CreateVPCStep) Run(ctx context.Context, w io.Writer, cfg *steps.Config)
 			log.Errorf("[%s] - failed to read VPC data", c.Name())
 			return errors.Wrap(ErrReadVPC, err.Error())
 		}
-		if len(out.Vpcs) == 0 {
-			return ErrReadVPC
-		}
 
 		var defaultVPCID string
 		var defaultVPCCIDR string
@@ -94,12 +88,6 @@ func (c *CreateVPCStep) Run(ctx context.Context, w io.Writer, cfg *steps.Config)
 				defaultVPCCIDR = *vpc.CidrBlock
 				break
 			}
-		}
-
-		//Case when a user has deleted a default VPC
-		if defaultVPCID == "" {
-			log.Errorf("[%s] - default vpc not found, no custom vpc provided...", c.Name())
-			return errors.Wrap(ErrReadVPC, "VPC with default ID not found!")
 		}
 
 		cfg.AWSConfig.VPCID = defaultVPCID
