@@ -1,17 +1,18 @@
 package amazon
 
 import (
+	"context"
+	"bytes"
+	"time"
+	"strings"
 	"testing"
 	"github.com/pkg/errors"
 
 	"github.com/stretchr/testify/mock"
 	"github.com/aws/aws-sdk-go/service/ec2"
-	"github.com/supergiant/control/pkg/workflows/steps"
-	"context"
-	"bytes"
-	"time"
-	"strings"
 	"github.com/aws/aws-sdk-go/service/ec2/ec2iface"
+
+	"github.com/supergiant/control/pkg/workflows/steps"
 )
 
 type mockKeySvc struct {

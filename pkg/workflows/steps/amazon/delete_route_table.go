@@ -6,7 +6,6 @@ import (
 	"time"
 
 	"github.com/aws/aws-sdk-go/aws"
-	"github.com/aws/aws-sdk-go/aws/awserr"
 	"github.com/aws/aws-sdk-go/service/ec2"
 	"github.com/pkg/errors"
 	"github.com/sirupsen/logrus"
@@ -21,24 +20,40 @@ var (
 	deleteRouteTimeout      = time.Minute
 )
 
+type deleteRouteTableSvc interface{
+	DeleteRouteTable(*ec2.DeleteRouteTableInput) (*ec2.DeleteRouteTableOutput, error)
+}
+
 type DeleteRouteTable struct {
-	GetEC2 GetEC2Fn
+	getSvc func(steps.AWSConfig) (deleteRouteTableSvc, error)
 }
 
 func InitDeleteRouteTable(fn GetEC2Fn) {
-	steps.RegisterStep(DeleteRouteTableStepName, &DeleteRouteTable{
-		GetEC2: fn,
-	})
+	steps.RegisterStep(DeleteRouteTableStepName, NewDeleteRouteTableStep(fn))
 }
 
+func NewDeleteRouteTableStep(fn GetEC2Fn) *DeleteRouteTable {
+	return &DeleteRouteTable{
+		getSvc: func(config steps.AWSConfig) (deleteRouteTableSvc, error) {
+			EC2, err := fn(config)
+			if err != nil {
+				return nil, errors.Wrap(ErrAuthorization, err.Error())
+			}
+
+			return EC2, nil
+		},
+	}
+}
 func (s *DeleteRouteTable) Run(ctx context.Context, w io.Writer, cfg *steps.Config) error {
 	if cfg.AWSConfig.RouteTableID == "" {
 		logrus.Debug("Skip deleting empty route table")
 		return nil
 	}
 
-	EC2, err := s.GetEC2(cfg.AWSConfig)
+	svc, err := s.getSvc(cfg.AWSConfig)
+
 	if err != nil {
+		logrus.Errorf("Error getting delete service %v", err)
 		return errors.Wrap(ErrAuthorization, err.Error())
 	}
 
@@ -51,13 +66,13 @@ func (s *DeleteRouteTable) Run(ctx context.Context, w io.Writer, cfg *steps.Conf
 	for i := 0; i < deleteRouteAttemptCount; i++ {
 		logrus.Debugf("Delete route table %s from VPC %s",
 			cfg.AWSConfig.RouteTableID, cfg.AWSConfig.VPCID)
-		_, deleteErr = EC2.DeleteRouteTable(&ec2.DeleteRouteTableInput{
+		_, deleteErr = svc.DeleteRouteTable(&ec2.DeleteRouteTableInput{
 			RouteTableId: aws.String(cfg.AWSConfig.RouteTableID),
 		})
 
-		if err, ok := deleteErr.(awserr.Error); ok {
+		if deleteErr != nil {
 			logrus.Debugf("Delete route table %s caused %s sleep for %v",
-				cfg.AWSConfig.RouteTableID, err.Message(), timeout)
+				cfg.AWSConfig.RouteTableID, deleteErr.Error(), timeout)
 			time.Sleep(timeout)
 			timeout = timeout * 2
 		} else {
