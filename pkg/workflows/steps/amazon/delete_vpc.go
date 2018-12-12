@@ -5,7 +5,7 @@ import (
 	"io"
 
 	"github.com/aws/aws-sdk-go/aws"
-	"github.com/aws/aws-sdk-go/aws/awserr"
+	"github.com/aws/aws-sdk-go/aws/request"
 	"github.com/aws/aws-sdk-go/service/ec2"
 	"github.com/pkg/errors"
 	"github.com/sirupsen/logrus"
@@ -20,14 +20,31 @@ var (
 	deleteVPCAttemptCount = 3
 )
 
+type vpcSvc interface {
+	DeleteVpcWithContext(aws.Context, *ec2.DeleteVpcInput, ...request.Option) (*ec2.DeleteVpcOutput, error)
+}
+
 type DeleteVPC struct {
+	getSvc func(steps.AWSConfig) (vpcSvc, error)
 	GetEC2 GetEC2Fn
 }
 
 func InitDeleteVPC(fn GetEC2Fn) {
-	steps.RegisterStep(DeleteVPCStepName, &DeleteVPC{
-		GetEC2: fn,
-	})
+	steps.RegisterStep(DeleteVPCStepName, NewDeleteSubnets(fn))
+}
+
+func NewDeleteVPC(fn GetEC2Fn) *DeleteVPC {
+	return &DeleteVPC{
+		getSvc: func(cfg steps.AWSConfig) (vpcSvc, error) {
+			EC2, err := fn(cfg)
+
+			if err != nil {
+				return nil, errors.Wrap(ErrAuthorization, err.Error())
+			}
+
+			return EC2, nil
+		},
+	}
 }
 
 func (s *DeleteVPC) Run(ctx context.Context, w io.Writer, cfg *steps.Config) error {
@@ -36,9 +53,10 @@ func (s *DeleteVPC) Run(ctx context.Context, w io.Writer, cfg *steps.Config) err
 		return nil
 	}
 
-	EC2, err := s.GetEC2(cfg.AWSConfig)
+	svc, err := s.getSvc(cfg.AWSConfig)
 
 	if err != nil {
+		logrus.Errorf("Error getting service %v", err)
 		return errors.Wrap(ErrAuthorization, err.Error())
 	}
 
@@ -53,11 +71,11 @@ func (s *DeleteVPC) Run(ctx context.Context, w io.Writer, cfg *steps.Config) err
 		}
 
 		logrus.Debugf("Delete VPC ID: %s", cfg.AWSConfig.VPCID)
-		_, deleteErr = EC2.DeleteVpcWithContext(ctx, req)
+		_, deleteErr = svc.DeleteVpcWithContext(ctx, req)
 
-		if err, ok := deleteErr.(awserr.Error); ok {
+		if deleteErr != nil {
 			logrus.Debugf("Delete VPC %s caused %s retry in %v ",
-				cfg.AWSConfig.VPCID, err.Message(), timeout)
+				cfg.AWSConfig.VPCID, deleteErr.Error(), timeout)
 			time.Sleep(timeout)
 			timeout = timeout * 2
 		} else {
@@ -65,7 +83,7 @@ func (s *DeleteVPC) Run(ctx context.Context, w io.Writer, cfg *steps.Config) err
 		}
 	}
 
-	return nil
+	return deleteErr
 }
 
 func (*DeleteVPC) Name() string {
