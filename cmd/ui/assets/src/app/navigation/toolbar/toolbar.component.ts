@@ -26,9 +26,8 @@ export class ToolbarComponent implements OnInit {
   }
 
   initDialog(event) {
-    const popupWidth = 200;
     const dialogRef = this.dialog.open(ClusterListModalComponent, {
-      width: `${popupWidth}px`,
+      width: 'max-content',
       backdropClass: 'backdrop',
       data: { clusters: this.clusters }
     });

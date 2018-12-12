@@ -33,9 +33,9 @@ kind: StorageClass
 metadata:
   name: default
   annotations:
-    storageclass.kubernetes.io/is-default-class: "true"
+    storageclass.kubernetes.io/is-default-class: \"true\"
   labels:
-    kubernetes.io/cluster-service: "true"
+    kubernetes.io/cluster-service: \"true\"
     k8s-addon: storage-gce.addons.k8s.io
     addonmanager.kubernetes.io/mode: EnsureExists
 provisioner: kubernetes.io/gce-pd
@@ -48,6 +48,8 @@ kind: StorageClass
 apiVersion: storage.k8s.io/v1
 metadata:
   name: local-storage
+  annotations:
+    storageclass.kubernetes.io/is-default-class: \"true\"
 provisioner: kubernetes.io/no-provisioner
 volumeBindingMode: WaitForFirstConsumer
 EOF"

@@ -36,6 +36,7 @@ func InitDeleteSecurityGroup(fn GetEC2Fn) {
 func (s *DeleteSecurityGroup) Run(ctx context.Context, w io.Writer, cfg *steps.Config) error {
 	if cfg.AWSConfig.MastersSecurityGroupID == "" ||
 		cfg.AWSConfig.NodesSecurityGroupID == "" {
+			logrus.Debug("Skip deleting empty security groups")
 		return nil
 	}
 
