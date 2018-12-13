@@ -8,7 +8,6 @@ import (
 
 	"github.com/apparentlymart/go-cidr/cidr"
 	"github.com/aws/aws-sdk-go/aws"
-	"github.com/aws/aws-sdk-go/aws/awserr"
 	"github.com/aws/aws-sdk-go/service/ec2"
 	"github.com/pkg/errors"
 	"github.com/sirupsen/logrus"
@@ -78,6 +77,8 @@ func (s *CreateSubnetsStep) Run(ctx context.Context, w io.Writer, cfg *steps.Con
 	if err != nil {
 		logrus.Errorf("Error getting zones for region %s",
 			cfg.AWSConfig.Region)
+		return errors.Wrapf(err, "Error getting zone for region %s",
+			cfg.AWSConfig.Region)
 	}
 
 	// Create subnet for each availability zone
@@ -104,9 +105,7 @@ func (s *CreateSubnetsStep) Run(ctx context.Context, w io.Writer, cfg *steps.Con
 		}
 		out, err := EC2.CreateSubnetWithContext(ctx, input)
 		if err != nil {
-			if err, ok := err.(awserr.Error); ok {
-				logrus.Debugf("Create subnet cause error %s", err.Message())
-			}
+			logrus.Debugf("Create subnet cause error %s", err.Error())
 			return errors.Wrap(ErrCreateSubnet, err.Error())
 		}
 

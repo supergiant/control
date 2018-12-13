@@ -2,12 +2,12 @@ package amazon
 
 import (
 	"context"
-	"fmt"
 	"io"
-	"strings"
 
 	"github.com/aws/aws-sdk-go/aws"
+	"github.com/aws/aws-sdk-go/aws/request"
 	"github.com/aws/aws-sdk-go/service/ec2"
+
 	"github.com/pkg/errors"
 	"github.com/sirupsen/logrus"
 
@@ -17,27 +17,46 @@ import (
 
 const DeleteNodeStepName = "aws_delete_node"
 
+type instanceDeleter interface {
+	DescribeInstancesWithContext(aws.Context, *ec2.DescribeInstancesInput, ...request.Option) (*ec2.DescribeInstancesOutput, error)
+	TerminateInstancesWithContext(aws.Context, *ec2.TerminateInstancesInput, ...request.Option) (*ec2.TerminateInstancesOutput, error)
+}
+
 type DeleteNodeStep struct {
-	GetEC2 GetEC2Fn
+	getSvc func(steps.AWSConfig) (instanceDeleter, error)
 }
 
 func InitDeleteNode(fn GetEC2Fn) {
-	steps.RegisterStep(DeleteNodeStepName, &DeleteNodeStep{
-		GetEC2: fn,
-	})
+	steps.RegisterStep(DeleteNodeStepName, NewDeleteVPC(fn))
+}
+
+func NewDeleteNode(fn GetEC2Fn) *DeleteNodeStep {
+	return &DeleteNodeStep{
+		getSvc: func(cfg steps.AWSConfig) (instanceDeleter, error) {
+			EC2, err := fn(cfg)
+
+			if err != nil {
+				return nil, errors.Wrap(ErrAuthorization, err.Error())
+			}
+
+			return EC2, nil
+		},
+	}
 }
 
 func (s *DeleteNodeStep) Run(ctx context.Context, w io.Writer, cfg *steps.Config) error {
 	log := util.GetLogger(w)
 	logrus.Infof("[%s] - deleting node %s", s.Name(), cfg.Node.Name)
 
-	EC2, err := s.GetEC2(cfg.AWSConfig)
+	svc, err := s.getSvc(cfg.AWSConfig)
+
 	if err != nil {
+		logrus.Errorf("Error getting service %v", err)
 		return errors.Wrap(ErrAuthorization, err.Error())
 	}
 
 	logrus.Debugf("Get instance by name filter %s", cfg.Node.Name)
-	describeInstanceOutput, err := EC2.DescribeInstancesWithContext(ctx, &ec2.DescribeInstancesInput{
+	describeInstanceOutput, err := svc.DescribeInstancesWithContext(ctx, &ec2.DescribeInstancesInput{
 		Filters: []*ec2.Filter{
 			{
 				Name:   aws.String("tag:Name"),
@@ -45,6 +64,7 @@ func (s *DeleteNodeStep) Run(ctx context.Context, w io.Writer, cfg *steps.Config
 			},
 		},
 	})
+
 	if err != nil {
 		return errors.Wrap(ErrDeleteNode, err.Error())
 	}
@@ -57,6 +77,7 @@ func (s *DeleteNodeStep) Run(ctx context.Context, w io.Writer, cfg *steps.Config
 			instanceIDS = append(instanceIDS, *instance.InstanceId)
 		}
 	}
+
 	if len(instanceIDS) == 0 {
 		logrus.Infof("[%s] - node %s not found in cluster %s",
 			s.Name(), cfg.Node.Name, cfg.ClusterName)
@@ -65,23 +86,16 @@ func (s *DeleteNodeStep) Run(ctx context.Context, w io.Writer, cfg *steps.Config
 
 	logrus.Debugf("Node to be deleted Name: %s AWS id: %v",
 		cfg.Node.Name, instanceIDS)
-	output, err := EC2.TerminateInstancesWithContext(ctx,
+	_, err = svc.TerminateInstancesWithContext(ctx,
 		&ec2.TerminateInstancesInput{
 			InstanceIds: aws.StringSlice(instanceIDS),
 		})
 
 	if err != nil {
-		return errors.Wrap(err, "terminate instance")
+		return errors.Wrapf(err, "%s terminate instance", DeleteNodeStepName)
 	}
 
-	terminatedInstances := make([]string, 0)
-	for _, instance := range output.TerminatingInstances {
-		terminatedInstances = append(terminatedInstances, *instance.InstanceId)
-	}
-
-	msg := fmt.Sprintf("terminated instances %s", strings.Join(terminatedInstances, " , "))
-	log.Infof("[%s] - %s", s.Name(), msg)
-	logrus.Infof("[%s] Deleted AWS node %s ", cfg.Node.Name, msg)
+	log.Infof("[%s] - finished successfully", s.Name())
 
 	return nil
 }

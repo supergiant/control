@@ -4,44 +4,60 @@ import (
 	"context"
 	"fmt"
 	"io"
-	"strings"
-
 	"github.com/aws/aws-sdk-go/aws"
-	"github.com/aws/aws-sdk-go/aws/awserr"
 	"github.com/aws/aws-sdk-go/service/ec2"
 	"github.com/pkg/errors"
 	"github.com/sirupsen/logrus"
 
 	"github.com/supergiant/control/pkg/util"
 	"github.com/supergiant/control/pkg/workflows/steps"
+	"github.com/aws/aws-sdk-go/aws/request"
 )
 
-const StepImportKeyPair = "awskeypairstep"
+const StepImportKeyPair = "aws_import_keypair_step"
 
-//KeyPairStep represents creation of keypair in aws
-//since there is hard cap on keypairs per account supergiant will create one per clster
+type keyImporter interface {
+	ImportKeyPairWithContext(aws.Context, *ec2.ImportKeyPairInput, ...request.Option) (*ec2.ImportKeyPairOutput, error)
+	WaitUntilKeyPairExists(*ec2.DescribeKeyPairsInput) error
+}
+
+// KeyPairStep represents creation of keypair in aws
+// since there is hard cap on keypairs per account supergiant will create one per cluster
 type KeyPairStep struct {
 	GetEC2 GetEC2Fn
+	getSvc func(steps.AWSConfig) (keyImporter, error)
 }
 
-func NewImportKeyPairStep(fn GetEC2Fn) *KeyPairStep {
-	return &KeyPairStep{
-		GetEC2: fn,
-	}
-}
 
 //InitImportKeyPair add the step to the registry
 func InitImportKeyPair(fn GetEC2Fn) {
 	steps.RegisterStep(StepImportKeyPair, NewImportKeyPairStep(fn))
 }
 
+func NewImportKeyPairStep(fn GetEC2Fn) *KeyPairStep {
+	return &KeyPairStep{
+		getSvc: func(cfg steps.AWSConfig) (keyImporter, error) {
+			EC2, err := fn(cfg)
+
+			if err != nil {
+				return nil, ErrAuthorization
+			}
+
+			return EC2, nil
+		},
+	}
+}
+
 //Verifies that a key exists,
 func (s *KeyPairStep) Run(ctx context.Context, w io.Writer, cfg *steps.Config) error {
 	log := util.GetLogger(w)
 
-	EC2, err := s.GetEC2(cfg.AWSConfig)
+	svc, err := s.getSvc(cfg.AWSConfig)
+
 	if err != nil {
-		return ErrAuthorization
+		logrus.Errorf("Getting service caused %v", err)
+		return errors.Wrapf(err, "%s caused error when getting service",
+			StepImportKeyPair)
 	}
 
 	if len(cfg.ClusterID) < 4 {
@@ -61,18 +77,8 @@ func (s *KeyPairStep) Run(ctx context.Context, w io.Writer, cfg *steps.Config) e
 		PublicKeyMaterial: []byte(cfg.SshConfig.BootstrapPublicKey),
 	}
 
-	if cfg.LogBootstrapPrivateKey {
-		key := strings.Replace(cfg.SshConfig.BootstrapPrivateKey, "\\n", "\n", -1)
-		log.Infof("[%s] - bootstrap private key", s.Name())
-		fmt.Fprintf(w, key)
-	}
-
-	output, err := EC2.ImportKeyPairWithContext(ctx, req)
+	output, err := svc.ImportKeyPairWithContext(ctx, req)
 	if err != nil {
-		if strings.Contains(err.Error(), "InvalidKeyPair.Duplicate") {
-			cfg.AWSConfig.KeyPairName = bootstrapKeyPairName
-			return errors.Wrap(ErrImportKeyPair, err.Error())
-		}
 		return errors.Wrap(ErrImportKeyPair, err.Error())
 	}
 
@@ -87,12 +93,10 @@ func (s *KeyPairStep) Run(ctx context.Context, w io.Writer, cfg *steps.Config) e
 		},
 	}
 
-	err = EC2.WaitUntilKeyPairExists(describeInput)
+	err = svc.WaitUntilKeyPairExists(describeInput)
 
 	if err != nil {
-		if err, ok := err.(awserr.Error); ok {
-			logrus.Debugf("WaitUntilKeyPairExists caused %s", err.Message())
-		}
+		logrus.Debugf("WaitUntilKeyPairExists caused %s", err.Error())
 		return errors.Wrap(err, fmt.Sprintf("wait until key pair found %s",
 			bootstrapKeyPairName))
 	}

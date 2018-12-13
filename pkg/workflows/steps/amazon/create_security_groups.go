@@ -6,7 +6,6 @@ import (
 	"io"
 
 	"github.com/aws/aws-sdk-go/aws"
-	"github.com/aws/aws-sdk-go/aws/awserr"
 	"github.com/aws/aws-sdk-go/service/ec2"
 	"github.com/aws/aws-sdk-go/service/ec2/ec2iface"
 	"github.com/pkg/errors"
@@ -57,25 +56,7 @@ func (s *CreateSecurityGroupsStep) Run(ctx context.Context, w io.Writer, cfg *st
 			GroupName:   aws.String(groupName),
 		})
 		if err != nil {
-			duplicateErr := false
-			if err, ok := err.(awserr.Error); ok {
-				logrus.Debugf("Create security group for masters caused %s",
-					err.Message())
-				if err.Code() == "InvalidGroup.Duplicate" {
-					duplicateErr = true
-				}
-			}
-			if !duplicateErr {
-				log.Errorf("[%s] - create security groups for k8s masters: %v", s.Name(), err)
-				return err
-			}
-
-			groupID, err := s.getSecurityGroupByName(ctx, EC2, cfg.AWSConfig.VPCID, groupName)
-			if err != nil {
-				return err
-			}
-
-			cfg.AWSConfig.MastersSecurityGroupID = groupID
+			return errors.Wrapf(err, "create master security group")
 		} else {
 			cfg.AWSConfig.MastersSecurityGroupID = *out.GroupId
 		}
@@ -91,25 +72,7 @@ func (s *CreateSecurityGroupsStep) Run(ctx context.Context, w io.Writer, cfg *st
 			GroupName:   aws.String(groupName),
 		})
 		if err != nil {
-			duplicateErr := false
-			if err, ok := err.(awserr.Error); ok {
-				logrus.Debugf("Create security group for nodes caused %s",
-					err.Message())
-				if err.Code() == "InvalidGroup.Duplicate" {
-					duplicateErr = true
-				}
-			}
-			if !duplicateErr {
-				log.Errorf("[%s] - create security groups for k8s nodes: %v", s.Name(), err)
-				return err
-			}
-
-			groupID, err := s.getSecurityGroupByName(ctx, EC2, cfg.AWSConfig.VPCID, groupName)
-			if err != nil {
-				return err
-			}
-
-			cfg.AWSConfig.NodesSecurityGroupID = groupID
+			return errors.Wrapf(err, "create node security group")
 		} else {
 			cfg.AWSConfig.NodesSecurityGroupID = *out.GroupId
 		}
@@ -197,11 +160,7 @@ func (s *CreateSecurityGroupsStep) authorizeSSH(ctx context.Context, EC2 ec2ifac
 		CidrIp:     aws.String("0.0.0.0/0"),
 		IpProtocol: aws.String("tcp"),
 	})
-	if err, ok := err.(awserr.Error); ok {
-		if err.Code() == "InvalidPermission.Duplicate" {
-			return nil
-		}
-	}
+
 	return err
 }
 
@@ -232,12 +191,6 @@ func (s *CreateSecurityGroupsStep) allowAllTraffic(ctx context.Context, EC2 ec2i
 		},
 	})
 
-	if err, ok := err.(awserr.Error); ok {
-		if err.Code() == "InvalidPermission.Duplicate" {
-			return nil
-		}
-	}
-
 	_, err = EC2.AuthorizeSecurityGroupIngressWithContext(ctx, &ec2.AuthorizeSecurityGroupIngressInput{
 		GroupId: aws.String(cfg.AWSConfig.NodesSecurityGroupID),
 		IpPermissions: []*ec2.IpPermission{
@@ -263,12 +216,6 @@ func (s *CreateSecurityGroupsStep) allowAllTraffic(ctx context.Context, EC2 ec2i
 			},
 		},
 	})
-
-	if err, ok := err.(awserr.Error); ok {
-		if err.Code() == "InvalidPermission.Duplicate" {
-			return nil
-		}
-	}
 
 	return err
 }
@@ -309,7 +256,7 @@ func (*CreateSecurityGroupsStep) Name() string {
 }
 
 func (*CreateSecurityGroupsStep) Description() string {
-	return ""
+	return "Create security groups"
 }
 
 func (*CreateSecurityGroupsStep) Depends() []string {
