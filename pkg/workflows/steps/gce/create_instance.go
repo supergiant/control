@@ -4,54 +4,105 @@ import (
 	"context"
 	"fmt"
 	"io"
+	"strings"
 	"time"
 
 	"google.golang.org/api/compute/v1"
+
+	"github.com/pkg/errors"
+	"github.com/sirupsen/logrus"
 
 	"github.com/supergiant/control/pkg/clouds"
 	"github.com/supergiant/control/pkg/node"
 	"github.com/supergiant/control/pkg/sgerrors"
 	"github.com/supergiant/control/pkg/util"
 	"github.com/supergiant/control/pkg/workflows/steps"
-	"strings"
 )
 
 const CreateInstanceStepName = "gce_create_instance"
 
-type CreateInstanceStep struct {
-	// Client creates the client for the provider.
-	getClient func(context.Context, string, string, string) (*compute.Service, error)
+type computeService struct {
+	getFromFamily       func(context.Context, steps.GCEConfig) (*compute.Image, error)
+	getMachineTypes     func(context.Context, steps.GCEConfig) (*compute.MachineType, error)
+	insertInstance      func(context.Context, steps.GCEConfig, *compute.Instance) (*compute.Operation, error)
+	getInstance         func(context.Context, steps.GCEConfig, string) (*compute.Instance, error)
+	setInstanceMetadata func(context.Context, steps.GCEConfig, string, *compute.Metadata) (*compute.Operation, error)
 }
 
-func NewCreateInstanceStep() (steps.Step, error) {
+type CreateInstanceStep struct {
+	// Client creates the client for the provider.
+	instanceTimeout time.Duration
+	checkPeriod     time.Duration
+
+	getComputeSvc func(context.Context, steps.GCEConfig) (*computeService, error)
+}
+
+
+func NewCreateInstanceStep(period, timeout time.Duration) (steps.Step, error) {
 	return &CreateInstanceStep{
-		getClient: GetClient,
+		checkPeriod: period,
+		instanceTimeout: timeout,
+		getComputeSvc: func(ctx context.Context, config steps.GCEConfig) (*computeService, error) {
+			client, err := GetClient(ctx, config.ClientEmail,
+				config.PrivateKey, config.TokenURI)
+
+			if err != nil {
+				return nil, err
+			}
+
+			return &computeService{
+				getFromFamily: func(ctx context.Context, config steps.GCEConfig) (*compute.Image, error) {
+					return client.Images.GetFromFamily("ubuntu-os-cloud", config.ImageFamily).Do()
+				},
+				getMachineTypes: func(ctx context.Context,
+					config steps.GCEConfig) (*compute.MachineType, error) {
+					return client.MachineTypes.Get(config.ProjectID,
+						config.AvailabilityZone, config.Size).Do()
+				},
+				insertInstance: func(ctx context.Context,
+					config steps.GCEConfig, instance *compute.Instance) (*compute.Operation, error) {
+					return client.Instances.Insert(config.ProjectID,
+						config.AvailabilityZone, instance).Do()
+				},
+				getInstance: func(ctx context.Context,
+					config steps.GCEConfig, name string) (*compute.Instance, error) {
+					return client.Instances.Get(config.ProjectID,
+						config.AvailabilityZone, name).Do()
+				},
+				setInstanceMetadata: func(ctx context.Context, config steps.GCEConfig,
+					name string, metadata *compute.Metadata) (*compute.Operation, error) {
+					return client.Instances.SetMetadata(config.ProjectID,
+						config.AvailabilityZone, name, metadata).Do()
+				},
+			}, nil
+		},
 	}, nil
 }
 
-func (s *CreateInstanceStep) Run(ctx context.Context, output io.Writer, config *steps.Config) error {
-	// fetch client.
-	// TODO(stgleb):  Add UI and API for selecting image family
-	config.GCEConfig.ImageFamily = "ubuntu-1604-lts"
+func (s *CreateInstanceStep) Run(ctx context.Context, output io.Writer,
+	config *steps.Config) error {
+	svc, err := s.getComputeSvc(ctx, config.GCEConfig)
 
-	client, err := s.getClient(ctx, config.GCEConfig.ClientEmail,
-		config.GCEConfig.PrivateKey, config.GCEConfig.TokenURI)
 	if err != nil {
-		return err
+		logrus.Errorf("Error getting service %v", err)
+		return errors.Wrapf(err, "%s getting service caused", CreateInstanceStepName)
 	}
 
-	// TODO(stgleb): probably we want to switch between projects in future
-	image, err := client.Images.GetFromFamily("ubuntu-os-cloud",
-		config.GCEConfig.ImageFamily).Do()
+	image, err := svc.getFromFamily(ctx, config.GCEConfig)
+
 	if err != nil {
-		return err
+		logrus.Errorf("Error getting image from family %s %v",
+			config.GCEConfig.ImageFamily, err)
+		return errors.Wrapf(err, "Error getting image from family %s",
+			config.GCEConfig.ImageFamily)
 	}
 
 	// get master machine type.
-	instType, err := client.MachineTypes.Get(config.GCEConfig.ProjectID,
-		config.GCEConfig.AvailabilityZone, config.GCEConfig.Size).Do()
+	instType, err := svc.getMachineTypes(ctx, config.GCEConfig)
+
 	if err != nil {
-		return err
+		logrus.Errorf("Error getting machine type %v", err)
+		return errors.Wrapf(err, "error gettting machine types")
 	}
 
 	prefix := "https://www.googleapis.com/compute/v1/projects/" + config.GCEConfig.ProjectID
@@ -61,6 +112,7 @@ func (s *CreateInstanceStep) Run(ctx context.Context, output io.Writer, config *
 	if !config.IsMaster {
 		role = "node"
 	}
+
 	// NOTE(stgleb): Upper-case symbols are forbidden
 	// Instance name must follow regexp: (?:[a-z](?:[-a-z0-9]{0,61}[a-z0-9])?)
 	name := util.MakeNodeName(strings.ToLower(config.ClusterName),
@@ -133,26 +185,28 @@ func (s *CreateInstanceStep) Run(ctx context.Context, output io.Writer, config *
 	}
 
 	// create the instance.
-	_, serr := client.Instances.Insert(config.GCEConfig.ProjectID,
-		config.GCEConfig.AvailabilityZone,
-		instance).Do()
+	_, err = svc.insertInstance(ctx, config.GCEConfig, instance)
 
-	if serr != nil {
-		return serr
+	if err != nil {
+		logrus.Errorf("inserting instance caused %v", err)
+		return errors.Wrapf(err, "%s inserting instance",
+			CreateInstanceStepName)
 	}
 
-	resp, err := client.Instances.Get(config.GCEConfig.ProjectID,
-		config.GCEConfig.AvailabilityZone, name).Do()
-	if serr != nil {
-		return err
+	resp, err := svc.getInstance(ctx, config.GCEConfig, name)
+	if err != nil {
+		logrus.Errorf("getting instance caused %v", err)
+		return errors.Wrapf(err, "%s getting instance",
+			CreateInstanceStepName)
 	}
 
 	metadata.Fingerprint = resp.Metadata.Fingerprint
-	_, err = client.Instances.SetMetadata(config.GCEConfig.ProjectID,
-		config.GCEConfig.AvailabilityZone, name, metadata).Do()
+	_, err = svc.setInstanceMetadata(ctx, config.GCEConfig, name, metadata)
 
 	if err != nil {
-		return err
+		logrus.Errorf("setting instance metadata caused %v", err)
+		return errors.Wrapf(err, "%s setting instance metadata",
+			CreateInstanceStepName)
 	}
 
 	nodeRole := node.RoleMaster
@@ -172,20 +226,19 @@ func (s *CreateInstanceStep) Run(ctx context.Context, output io.Writer, config *
 		// Note(stgleb):  This is a hack, we put az to region, because region is
 		// cluster wide and we need az to delete instance.
 		// TODO(stgleb): consider adding AZ to node struct
-		Region:    config.GCEConfig.AvailabilityZone,
+		Region: config.GCEConfig.AvailabilityZone,
 	}
 
 	// Update node state in cluster
 	config.NodeChan() <- config.Node
 
-	ticker := time.NewTicker(time.Second * 10)
-	after := time.After(time.Minute * 5)
+	ticker := time.NewTicker(s.checkPeriod)
+	after := time.After(s.instanceTimeout)
 
 	for {
 		select {
 		case <-ticker.C:
-			resp, serr := client.Instances.Get(config.GCEConfig.ProjectID,
-				config.GCEConfig.AvailabilityZone, instance.Name).Do()
+			resp, serr := svc.getInstance(ctx, config.GCEConfig, instance.Name)
 			if serr != nil {
 				continue
 			}

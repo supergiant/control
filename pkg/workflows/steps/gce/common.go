@@ -8,10 +8,11 @@ import (
 	"google.golang.org/api/dns/v1"
 
 	"github.com/supergiant/control/pkg/workflows/steps"
+	"time"
 )
 
 func Init() {
-	createInstance, _ := NewCreateInstanceStep()
+	createInstance, _ := NewCreateInstanceStep(time.Second * 10, time.Minute * 1)
 	deleteCluster, _ := NewDeleteClusterStep()
 	deleteNode, _ := NewDeleteNodeStep()
 
