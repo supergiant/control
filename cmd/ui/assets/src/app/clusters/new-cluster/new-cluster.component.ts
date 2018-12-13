@@ -11,7 +11,7 @@ import {
   DEFAULT_MACHINE_SET,
   BLANK_MACHINE_TEMPLATE
 }                                       from "app/clusters/new-cluster/new-cluster.component.config";
-import { sortDigitaloceanMachineTypes } from "app/clusters/new-cluster/new-cluster.helpers";
+import { sortDigitalOceanMachineTypes } from "app/clusters/new-cluster/new-cluster.helpers";
 
 // compiler hack
 declare var require: any;
@@ -211,7 +211,7 @@ export class NewClusterComponent implements OnInit, OnDestroy {
   selectRegion(region) {
     switch (this.selectedCloudAccount.provider) {
       case 'digitalocean':
-        this.availableMachineTypes = sortDigitaloceanMachineTypes(region.AvailableSizes);
+        this.availableMachineTypes = sortDigitalOceanMachineTypes(region.AvailableSizes);
 
         if (this.machines.length === 0) {
           this.machines.push(BLANK_MACHINE_TEMPLATE);

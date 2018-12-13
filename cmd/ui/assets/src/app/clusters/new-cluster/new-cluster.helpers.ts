@@ -1,80 +1,75 @@
 // TODO: remove this file once
 // "new cluster wizard" is separated by components
 
-export function sortDigitaloceanMachineTypes(machineTypes) {
-  const SEPARATOR_GB = 'gb';
-  const SEPARATOR_MB = 'mb';
+export function sortDigitalOceanMachineTypes(machineTypes) {
 
   return machineTypes
+    .sort(sortByCategory)
+    .sort(sortTypeWithinCategory);
+}
 
-    .sort((a, b) => { // for types like 's-1vcpu-1gb'
-      const [sizeA] = a.split(SEPARATOR_GB);
-      const [sizeB] = b.split(SEPARATOR_GB);
+function sortByCategory(a, b) {
+  const typeA = getDigitalOceanMachineType(a);
+  const typeB = getDigitalOceanMachineType(b);
 
-      if (sizeA === sizeB) {
-        return 0;
-      }
+  return typeA - typeB;
+}
 
-      return (isNaN(+sizeA) || isNaN(+sizeB)) ? -1 : 1;
-    })
+const typeSorters = [
+  (a, b) => { // 512mb
+    const separator = 'mb';
+    const A = +a.split(separator)[0];
+    const B = +b.split(separator)[0];
+    return A - B;
+  },
+  (a, b) => { // 1gb
+    const separator = 'gb';
+    const A = +a.split(separator)[0];
+    const B = +b.split(separator)[0];
+    return A - B;
+  },
+  (a, b) => { // m-4
+    const separator = '-';
+    const A = +a.split(separator)[1];
+    const B = +b.split(separator)[1];
+    return A - B;
+  },
+  (a, b) => { // m-16gb
+    const separator = '-';
+    const A = +a.split(separator)[1].split('gb')[0];
+    const B = +b.split(separator)[1].split('gb')[0];
+    return A - B;
+  },
+  (a, b) => { // s-1cpu-1gb
+    const separator = '-';
+    const A = +a.split(separator)[2].split('gb')[0];
+    const B = +b.split(separator)[2].split('gb')[0];
+    return A - B;
+  },
+];
 
-    .sort((a, b) => { // for types like '1gb'
-      const [sizeA] = a.split(SEPARATOR_GB);
-      const [sizeB] = b.split(SEPARATOR_GB);
+function sortTypeWithinCategory(a, b) {
+  const typeA = getDigitalOceanMachineType(a);
+  const typeB = getDigitalOceanMachineType(b);
 
-      if (sizeA === sizeB) {
-        return 0;
-      }
+  if (typeA === typeB) {
+    return typeSorters[typeA](a, b);
+  }
+  return 0;
+}
 
-      return +sizeA > +sizeB ? 1 : -1;
-    })
+export function getDigitalOceanMachineType(machineSize): number {
+  // NOTE: type index is the order of types sorting
+  const sizeTypes = [
+    /^\d+mb$/, // 1mb
+    /^\d+gb$/, // 1gb
+    /^[a-z]-\d+$/, // m-4
+    /^[a-z]-\d+gb$/, // m-16gb
+    /^[a-z]-\d+[a-z]+-\d+gb$/, // s-12vcpu-48gb
+  ];
 
-    .sort((a, b) => { // for types like '1gb'
-      const SEPARATOR_DASH = '-';
-      const sizeA = a.split(SEPARATOR_DASH);
-      const sizeB = b.split(SEPARATOR_DASH);
-
-      const isSorted = [sizeA, sizeB].every(el => el.length < 3);
-
-      if (isSorted) {
-        return 0;
-      }
-
-      if (sizeA.length === 2 && sizeB.length === 2) { //
-
-        const A = sizeA[0];
-        const B = sizeB[0];
-
-        if (A === B) {
-          return 0;
-        }
-
-        return A > B ? 1 : -1;
-      }
-
-      if (sizeA.length === 3 && sizeB.length === 3) { //
-        const A = sizeA[2].split(SEPARATOR_GB)[0];
-        const B = sizeB[2].split(SEPARATOR_GB)[0];
-
-        if (A === B) {
-          return 0;
-        }
-
-        return +A > +B ? 1 : -1;
-      }
-    })
-
-    .sort((a, b) => {
-
-      if (a.indexOf(SEPARATOR_MB) > -1) {
-        return -1;
-      }
-
-      if (a === b) {
-        return 0;
-      }
-
-      return 1;
-
-    });
+  return sizeTypes
+    .findIndex(
+      typeRegEx => machineSize.match(typeRegEx),
+    );
 }

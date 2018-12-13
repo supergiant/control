@@ -26,7 +26,7 @@ import { Notifications }                from "../../../shared/notifications/noti
 import { Supergiant }                   from "../../../shared/supergiant/supergiant.service";
 import { CLUSTER_OPTIONS }              from "../../new-cluster/cluster-options.config";
 import { NodeProfileService }           from "../../node-profile.service";
-import { sortDigitaloceanMachineTypes } from "app/clusters/new-cluster/new-cluster.helpers";
+import { sortDigitalOceanMachineTypes } from "app/clusters/new-cluster/new-cluster.helpers";
 
 @Component({
   selector: 'add-node',
@@ -106,7 +106,7 @@ export class AddNodeComponent implements OnInit, OnDestroy {
       switchMap(accountName => this.supergiant.CloudAccounts.getRegions(accountName)),
       pluck('sizes'),
       map(sizes => Object.keys(sizes)),
-      map( sortDigitaloceanMachineTypes),
+      map(sortDigitalOceanMachineTypes),
     );
 
 
