@@ -151,7 +151,7 @@ func TestDeleteKeyPair_Depends(t *testing.T) {
 	}
 }
 
-func TestDeleteClusterMachines_Description(t *testing.T) {
+func TestDeleteKeyPair_Description(t *testing.T) {
 	s := &DeleteKeyPair{}
 
 	if desc := s.Description(); desc != "Delete key pair" {

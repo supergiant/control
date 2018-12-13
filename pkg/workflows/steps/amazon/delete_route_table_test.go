@@ -157,7 +157,7 @@ func TestDeleteRouteTable_Rollback(t *testing.T) {
 	}
 }
 
-func TestDeleteKeyPair_Description(t *testing.T) {
+func TestDeleteRouteTable_Description(t *testing.T) {
 	step := &DeleteRouteTable{}
 
 	if desc := step.Description(); desc != "Delete route table from vpc" {
