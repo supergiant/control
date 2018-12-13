@@ -75,6 +75,7 @@ func (s *CreateRouteTableStep) Run(ctx context.Context, w io.Writer, cfg *steps.
 	}
 
 	cfg.AWSConfig.RouteTableID = *createResp.RouteTable.RouteTableId
+	logrus.Infof("Create route table %s", cfg.AWSConfig.RouteTableID)
 
 	// Tag route table
 	ec2Tags := []*ec2.Tag{
