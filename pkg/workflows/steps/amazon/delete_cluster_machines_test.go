@@ -15,6 +15,7 @@ import (
 	"github.com/supergiant/control/pkg/clouds"
 	"github.com/supergiant/control/pkg/profile"
 	"github.com/supergiant/control/pkg/workflows/steps"
+	"bytes"
 )
 
 type FakeEC2DeleteCluster struct {
@@ -98,5 +99,50 @@ func TestDeleteClusterStep_Run(t *testing.T) {
 			require.True(t, tc.err == errors.Cause(err), "TC%d, %v", i, err)
 		}
 
+	}
+}
+
+func TestInitDeleteClusterMachines(t *testing.T) {
+	InitDeleteClusterMachines(GetEC2)
+
+	s := steps.GetStep(DeleteClusterMachinesStepName)
+
+	if s == nil {
+		t.Errorf("Step must not be nil")
+	}
+}
+
+func TestDeleteClusterMachines_Depends(t *testing.T) {
+	s := &DeleteClusterMachines{}
+
+	if deps := s.Depends(); deps != nil {
+		t.Errorf("depencies must be nil")
+	}
+}
+
+
+func TestDeleteClusterMachines_Name(t *testing.T) {
+	s := &DeleteClusterMachines{}
+
+	if name := s.Name(); name != DeleteClusterMachinesStepName {
+		t.Errorf("Wrong name expected %s actual %s",
+			DeleteClusterMachinesStepName, name)
+	}
+}
+
+func TestDeleteClusterMachines_Rollback(t *testing.T) {
+	s := &DeleteClusterMachines{}
+
+	if err := s.Rollback(context.Background(), &bytes.Buffer{}, &steps.Config{}); err != nil {
+		t.Errorf("Unexpected error while rollback %v", err)
+	}
+}
+
+func TestDeleteClusterMachines_Description(t *testing.T) {
+	s := &DeleteClusterMachines{}
+
+	if desc := s.Description(); desc != "Deletes all nodes in aws cluster" {
+		t.Errorf("Wrong description expected Deletes all nodes " +
+			"in aws cluster actual %s", desc)
 	}
 }

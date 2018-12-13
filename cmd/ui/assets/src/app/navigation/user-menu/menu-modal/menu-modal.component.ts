@@ -1,8 +1,8 @@
 import { Component, OnInit } from '@angular/core';
 import { MatDialogRef } from '@angular/material';
-import { Router } from '@angular/router'
+import { Router } from '@angular/router';
 
-import { AuthService } from '../../../shared/supergiant/auth/auth.service'
+import { AuthService } from '../../../shared/supergiant/auth/auth.service';
 
 @Component({
   selector: 'menu-modal',
@@ -25,7 +25,7 @@ export class MenuModalComponent implements OnInit {
   logout() {
     this.auth.logout();
     this.dialogRef.close();
-    this.router.navigate([""])
+    this.router.navigate(['']);
   }
 
   ngOnInit() {

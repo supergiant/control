@@ -16,7 +16,7 @@ export class ClusterTableComponent implements OnInit, OnDestroy {
   private subscriptions = new Subscription();
   public cpuUsage;
   public ramUsage;
-  public clusterColumns = ["state", "accountName", "region", "cpu", "ram", "mastersCount", "nodesCount", "k8sversion", "operatingSystem", "dockerVersion", "helmVersion"];
+  public clusterColumns = ['state', 'accountName', 'region', 'cpu', 'ram', 'mastersCount', 'nodesCount', 'k8sversion', 'operatingSystem', 'dockerVersion', 'helmVersion'];
 
   constructor(
     private router: Router,
@@ -36,11 +36,11 @@ export class ClusterTableComponent implements OnInit, OnDestroy {
         res => this.updateMetrics(res),
         err => console.error(err)
       )
-    )
+    );
   }
 
   ngOnInit() {
-    if (this.cluster.state == "operational") {
+    if (this.cluster.state == 'operational') {
       this.getMetrics();
     }
   }

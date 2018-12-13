@@ -21,6 +21,6 @@ export class HelmReleases {
     return this.util.update(this.helmReleasesPath + '/' + clusterId, data);
   }
   public delete(releaseName, clusterId, purge) {
-    return this.util.destroy(this.helmReleasesPath + '/kubes/' + clusterId + "/releases/" + releaseName + "?purge=" + purge);
+    return this.util.destroy(this.helmReleasesPath + '/kubes/' + clusterId + '/releases/' + releaseName + '?purge=' + purge);
   }
 }

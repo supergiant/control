@@ -5,6 +5,7 @@ import (
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/aws/request"
 	"github.com/aws/aws-sdk-go/service/ec2"
+	"github.com/aws/aws-sdk-go/service/ec2/ec2iface"
 	"github.com/pkg/errors"
 	"github.com/supergiant/control/pkg/workflows/steps"
 	"go.uber.org/zap/buffer"
@@ -110,8 +111,36 @@ func TestFindAMIStep_Run(t *testing.T) {
 func TestNewFindAMIStep(t *testing.T) {
 	step := NewFindAMIStep(GetEC2)
 
+	if step == nil {
+		t.Errorf("Step must not be nil")
+	}
+
 	if step.getImageService == nil {
 		t.Error("getImageService must not be nil")
+	}
+
+	if api, err := step.getImageService(steps.AWSConfig{}); err != nil || api == nil {
+		t.Errorf("Unexpected values %v %v", api, err)
+	}
+}
+
+func TestNewFindAMIStepErr(t *testing.T) {
+	fn := func(steps.AWSConfig) (ec2iface.EC2API, error) {
+		return nil, errors.New("errorMessage")
+	}
+
+	step := NewFindAMIStep(fn)
+
+	if step == nil {
+		t.Errorf("Step must not be nil")
+	}
+
+	if step.getImageService == nil {
+		t.Error("getImageService must not be nil")
+	}
+
+	if api, err := step.getImageService(steps.AWSConfig{}); err == nil || api != nil {
+		t.Errorf("Unexpected values %v %v", api, err)
 	}
 }
 
@@ -148,5 +177,15 @@ func TestFindAMIStep_Description(t *testing.T) {
 	if !strings.Contains(step.Description(), "Amazon Machine Image") {
 		t.Errorf("Step description %s doesn't contain Amazon "+
 			"Machine Image", step.Description())
+	}
+}
+
+func TestInitFindAMI(t *testing.T) {
+	InitFindAMI(GetEC2)
+
+	s := steps.GetStep(StepFindAMI)
+
+	if s == nil {
+		t.Errorf("Step must not be nil")
 	}
 }

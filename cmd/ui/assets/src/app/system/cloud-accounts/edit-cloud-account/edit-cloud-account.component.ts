@@ -28,7 +28,7 @@ export class EditCloudAccountComponent implements OnInit, OnDestroy {
     this.subscriptions.add(this.supergiant.CloudAccounts.get(name).subscribe(
       data => this.account = data,
       err => console.error(err)
-    ))
+    ));
   }
 
   editAccount(account) {
@@ -38,7 +38,7 @@ export class EditCloudAccountComponent implements OnInit, OnDestroy {
       this.supergiant.CloudAccounts.update(this.accountName, account).subscribe(
         res => this.router.navigate(['../../'], { relativeTo: this.route}),
         err => console.error(err)
-      )
+      );
     }
   }
 
@@ -48,7 +48,7 @@ export class EditCloudAccountComponent implements OnInit, OnDestroy {
 
   ngOnInit() {
     this.accountName = this.route.snapshot.params.id;
-    this.getAccount(this.accountName)
+    this.getAccount(this.accountName);
   }
 
   ngOnDestroy() {

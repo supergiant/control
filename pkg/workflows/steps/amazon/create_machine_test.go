@@ -5,6 +5,9 @@ import (
 	"github.com/aws/aws-sdk-go/aws/request"
 	"github.com/aws/aws-sdk-go/service/ec2"
 	"github.com/aws/aws-sdk-go/service/ec2/ec2iface"
+	"testing"
+	"github.com/supergiant/control/pkg/workflows/steps"
+	"github.com/pkg/errors"
 )
 
 type fakeEC2CreateMachine struct {
@@ -136,3 +139,83 @@ func (f *fakeEC2CreateMachine) DescribeInstancesWithContext(aws.Context, *ec2.De
 //		}
 //	}
 //}
+
+func TestCreateInstanceStepName(t *testing.T) {
+	s := StepCreateInstance{}
+
+	if s.Name() != StepNameCreateEC2Instance {
+		t.Errorf("Unexpected step name expected %s actual %s", StepNameCreateEC2Instance, s.Name())
+	}
+}
+
+func TestDepends(t *testing.T) {
+	s := StepCreateInstance{}
+
+	if len(s.Depends()) != 0 {
+		t.Errorf("Wrong dependency list %v expected %v", s.Depends(), []string{})
+	}
+}
+
+func TestNewCreateInstance(t *testing.T) {
+	step := NewCreateInstance(GetEC2)
+
+	if step.GetEC2 == nil {
+		t.Errorf("Wrong GetEC2 function must not be nil")
+	}
+
+	if api, err := step.GetEC2(steps.AWSConfig{}); err != nil || api == nil {
+		t.Errorf("Unexpected values %v %v", api, err)
+	}
+}
+
+func TestNewCreateInstanceError(t *testing.T) {
+	fn := func(steps.AWSConfig)(ec2iface.EC2API, error) {
+		return nil, errors.New("errorMessage")
+	}
+
+	step := NewCreateInstance(fn)
+
+	if step.GetEC2 == nil {
+		t.Errorf("Wrong GetEC2 function must not be nil")
+	}
+
+	if api, err := step.GetEC2(steps.AWSConfig{}); err == nil || api != nil {
+		t.Errorf("Unexpected values %v %v", api, err)
+	}
+}
+
+func TestInitCreateMachine(t *testing.T) {
+	InitCreateMachine(GetEC2)
+
+	s := steps.GetStep(StepNameCreateEC2Instance)
+
+	if s == nil {
+		t.Errorf("Step value must not be nil")
+	}
+}
+
+func TestStepCreateInstance_Depends(t *testing.T) {
+	s := &StepCreateInstance{}
+
+	if deps := s.Depends(); deps != nil {
+		t.Errorf("Unexpected deps value must not be nil")
+	}
+}
+
+func TestStepCreateInstance_Description(t *testing.T) {
+	s := &StepCreateInstance{}
+
+	if desc := s.Description(); desc != "Create EC2 Instance" {
+		t.Errorf("Wrong description value expected " +
+			"Create EC2 Instance actual %s", s.Description())
+	}
+}
+
+func TestStepCreateInstance_Name(t *testing.T) {
+	s := &StepCreateInstance{}
+
+	if name := s.Name(); name != StepNameCreateEC2Instance {
+		t.Errorf("Wrong name value expected %s actual %s",
+			StepNameCreateEC2Instance, s.Name())
+	}
+}

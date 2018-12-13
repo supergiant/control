@@ -5,10 +5,10 @@ import (
 	"fmt"
 	"io"
 
-	"github.com/aws/aws-sdk-go/aws"
-	"github.com/aws/aws-sdk-go/service/ec2"
 	"github.com/pkg/errors"
 	"github.com/sirupsen/logrus"
+	"github.com/aws/aws-sdk-go/aws"
+	"github.com/aws/aws-sdk-go/service/ec2"
 
 	"github.com/supergiant/control/pkg/clouds"
 	"github.com/supergiant/control/pkg/workflows/steps"
@@ -16,7 +16,14 @@ import (
 
 const StepCreateRouteTable = "create_route_table"
 
+type Service interface {
+	CreateRouteTable(*ec2.CreateRouteTableInput) (*ec2.CreateRouteTableOutput, error)
+	CreateTags(*ec2.CreateTagsInput) (*ec2.CreateTagsOutput, error)
+	CreateRoute(*ec2.CreateRouteInput) (*ec2.CreateRouteOutput, error)
+}
+
 type CreateRouteTableStep struct {
+	getService func(config steps.AWSConfig) (Service, error)
 	GetEC2 GetEC2Fn
 }
 
@@ -27,25 +34,38 @@ func InitCreateRouteTable(ec2fn GetEC2Fn) {
 
 func NewCreateRouteTableStep(ec2fn GetEC2Fn) *CreateRouteTableStep {
 	return &CreateRouteTableStep{
-		GetEC2: ec2fn,
+		getService: func(cfg steps.AWSConfig) (Service, error) {
+			ec2Client, err := ec2fn(cfg)
+
+			if err != nil {
+				logrus.Errorf("[%s] - failed to authorize in AWS: %v",
+					StepCreateRouteTable, err)
+				return nil, errors.Wrap(ErrAuthorization, err.Error())
+			}
+
+			return ec2Client, nil
+		},
 	}
 }
 
 func (s *CreateRouteTableStep) Run(ctx context.Context, w io.Writer, cfg *steps.Config) error {
 	logrus.Debugf(StepCreateRouteTable)
-	ec2Client, err := s.GetEC2(cfg.AWSConfig)
-
-	if err != nil {
-		logrus.Errorf("[%s] - failed to authorize in AWS: %v", s.Name(), err)
-		return errors.Wrap(ErrAuthorization, err.Error())
-	}
 
 	//  route table already exists
 	if cfg.AWSConfig.RouteTableID != "" {
 		return nil
 	}
 
-	createResp, err := ec2Client.CreateRouteTable(&ec2.CreateRouteTableInput{
+	svc, err := s.getService(cfg.AWSConfig)
+
+	if err != nil {
+		logrus.Errorf("error getting service on step %s %v",
+			StepCreateRouteTable, err)
+		return errors.Wrapf(err, "error getting service on step %s",
+			StepCreateRouteTable)
+	}
+
+	createResp, err := svc.CreateRouteTable(&ec2.CreateRouteTableInput{
 		VpcId: aws.String(cfg.AWSConfig.VPCID),
 	})
 
@@ -77,7 +97,7 @@ func (s *CreateRouteTableStep) Run(ctx context.Context, w io.Writer, cfg *steps.
 		Resources: []*string{aws.String(cfg.AWSConfig.RouteTableID)},
 		Tags:      ec2Tags,
 	}
-	_, err = ec2Client.CreateTags(input)
+	_, err = svc.CreateTags(input)
 
 	if err != nil {
 		logrus.Errorf("Error tagging route table %s %v",
@@ -86,7 +106,7 @@ func (s *CreateRouteTableStep) Run(ctx context.Context, w io.Writer, cfg *steps.
 	}
 
 	// Create route for external connectivity
-	_, err = ec2Client.CreateRoute(&ec2.CreateRouteInput{
+	_, err = svc.CreateRoute(&ec2.CreateRouteInput{
 		DestinationCidrBlock: aws.String("0.0.0.0/0"),
 		RouteTableId:         aws.String(cfg.AWSConfig.RouteTableID),
 		GatewayId:            aws.String(cfg.AWSConfig.InternetGatewayID),
@@ -105,7 +125,7 @@ func (s *CreateRouteTableStep) Rollback(ctx context.Context, w io.Writer, cfg *s
 }
 
 func (*CreateRouteTableStep) Name() string {
-	return StepNameCreateEC2Instance
+	return StepCreateRouteTable
 }
 
 func (*CreateRouteTableStep) Description() string {

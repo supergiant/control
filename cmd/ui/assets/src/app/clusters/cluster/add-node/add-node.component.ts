@@ -1,4 +1,4 @@
-import { HttpClient }                                                from "@angular/common/http";
+import { HttpClient }                                                from '@angular/common/http';
 import {
   Component,
   OnDestroy,
@@ -7,8 +7,8 @@ import {
 import {
   ActivatedRoute,
   Router,
-}                                                                    from "@angular/router";
-import { combineLatest, Observable, of, Subject, Subscription, zip } from "rxjs";
+}                                                                    from '@angular/router';
+import { combineLatest, Observable, of, Subject, Subscription, zip } from 'rxjs';
 import {
   catchError,
   distinctUntilChanged,
@@ -39,7 +39,7 @@ export class AddNodeComponent implements OnInit, OnDestroy {
 
   machines = [{
     machineType: null,
-    role: "Node",
+    role: 'Node',
     qty: 1,
     availabilityZone: '',
   }];
@@ -58,7 +58,7 @@ export class AddNodeComponent implements OnInit, OnDestroy {
   availabilityZones: string[];
   selectedAZSubj: Subject<string>;
   isLoadingMachineTypes: boolean;
-  machineTypesFilter: string = '';
+  machineTypesFilter = '';
 
   constructor(
     private supergiant: Supergiant,
@@ -206,7 +206,7 @@ export class AddNodeComponent implements OnInit, OnDestroy {
   }
 
   deleteMachine(idx) {
-    if (this.machines.length === 1) return;
+    if (this.machines.length === 1) { return; }
 
     this.machines.splice(idx, 1);
 
@@ -214,7 +214,7 @@ export class AddNodeComponent implements OnInit, OnDestroy {
   }
 
   validMachine(machine) {
-    if (machine.machineType && machine.role && (typeof(machine.qty) == "number")) {
+    if (machine.machineType && machine.role && (typeof(machine.qty) == 'number')) {
       return true;
     } else {
       return false;
@@ -242,7 +242,7 @@ export class AddNodeComponent implements OnInit, OnDestroy {
       this.isProcessing = true;
       this.displayMachineConfigError = false;
 
-      const nodes = this.nodesService.compileProfiles(this.provider, this.machines, "Node");
+      const nodes = this.nodesService.compileProfiles(this.provider, this.machines, 'Node');
       // TODO  move to service
       const url = `/v1/api/kubes/${this.clusterId}/nodes`;
 
@@ -255,7 +255,7 @@ export class AddNodeComponent implements OnInit, OnDestroy {
         .subscribe(result => {
           this.isProcessing = false;
 
-          if (result instanceof ErrorEvent) return;
+          if (result instanceof ErrorEvent) { return; }
 
           this.notifications.display(
             'success',
