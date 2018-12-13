@@ -8,7 +8,6 @@ import (
 
 	"github.com/apparentlymart/go-cidr/cidr"
 	"github.com/aws/aws-sdk-go/aws"
-	"github.com/aws/aws-sdk-go/aws/awserr"
 	"github.com/aws/aws-sdk-go/service/ec2"
 	"github.com/pkg/errors"
 	"github.com/sirupsen/logrus"
@@ -106,9 +105,7 @@ func (s *CreateSubnetsStep) Run(ctx context.Context, w io.Writer, cfg *steps.Con
 		}
 		out, err := EC2.CreateSubnetWithContext(ctx, input)
 		if err != nil {
-			if err, ok := err.(awserr.Error); ok {
-				logrus.Debugf("Create subnet cause error %s", err.Message())
-			}
+			logrus.Debugf("Create subnet cause error %s", err.Error())
 			return errors.Wrap(ErrCreateSubnet, err.Error())
 		}
 
