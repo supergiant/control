@@ -34,7 +34,6 @@ export class TaskLogsComponent implements OnDestroy, AfterContentInit {
   userScrolled = false;
 
   scrollToBottom() {
-    // console.log(this.editor.getEditor());
     const renderer = this.editor.getEditor().renderer;
     const height = renderer.$size.scrollerHeight;
     if (renderer.scrollTop > 700) {
@@ -58,6 +57,10 @@ export class TaskLogsComponent implements OnDestroy, AfterContentInit {
     this.conn.onmessage = e => {
       setTimeout(() => this.updateLogs(e), 1);
     };
+  }
+
+  closeModal() {
+    this.dialogRef.close();
   }
 
   ngAfterContentInit() {
