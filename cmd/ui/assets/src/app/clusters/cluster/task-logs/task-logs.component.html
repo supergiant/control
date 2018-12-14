@@ -1,4 +1,5 @@
 <div class="task-logs-wrapper">
+  <span class="close" (click)="closeModal()"></span>
   <ace-editor #editor
     [(text)]="logsString"
     [readOnly]="true"
