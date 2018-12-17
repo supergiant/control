@@ -42,8 +42,8 @@ export class NewCloudAccountComponent implements OnInit, OnDestroy {
   }
 
   checkForBlankName(name) {
-    console.log("name: ", name);
-    console.log("type: ", typeof(name) === "string");
+    console.log('name: ', name);
+    console.log('type: ', typeof(name) === 'string');
     if (name) {
       console.log('true');
       this.nameIsBlank = false;
@@ -58,7 +58,7 @@ export class NewCloudAccountComponent implements OnInit, OnDestroy {
     if (model.provider === 'gce') {
       const serviceAccountKey = model.credentials.service_account_key;
 
-      if (serviceAccountKey == "") {
+      if (serviceAccountKey == '') {
         this.gceServiceAccountKeyIsBlank = true;
       } else {
         this.gceServiceAccountKeyIsBlank = false;

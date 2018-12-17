@@ -1,13 +1,17 @@
 import { Component, OnDestroy, OnInit, ViewEncapsulation, ViewChild }       from '@angular/core';
 import { FormBuilder, FormGroup, Validators, ValidatorFn, AbstractControl } from '@angular/forms';
-import { Router }                                      from '@angular/router';
-import { MatHorizontalStepper }                        from '@angular/material';
-import { Subscription }                                from 'rxjs';
-import { Notifications }                               from '../../shared/notifications/notifications.service';
-import { Supergiant }                                  from '../../shared/supergiant/supergiant.service';
-import { NodeProfileService }                          from "../node-profile.service";
-import { CLUSTER_OPTIONS }                             from "./cluster-options.config";
-import { DEFAULT_MACHINE_SET, BLANK_MACHINE_TEMPLATE } from "app/clusters/new-cluster/new-cluster.component.config";
+import { Router }                                                           from '@angular/router';
+import { MatHorizontalStepper }                                             from '@angular/material';
+import { Subscription }                                                     from 'rxjs';
+import { Notifications }                from '../../shared/notifications/notifications.service';
+import { Supergiant }                   from '../../shared/supergiant/supergiant.service';
+import { NodeProfileService }           from "../node-profile.service";
+import { CLUSTER_OPTIONS }              from "./cluster-options.config";
+import {
+  DEFAULT_MACHINE_SET,
+  BLANK_MACHINE_TEMPLATE
+}                                       from "app/clusters/new-cluster/new-cluster.component.config";
+import { sortDigitalOceanMachineTypes } from "app/clusters/new-cluster/new-cluster.helpers";
 
 // compiler hack
 declare var require: any;
@@ -45,7 +49,7 @@ export class NewClusterComponent implements OnInit, OnDestroy {
   clusterConfig: FormGroup;
   providerConfig: FormGroup;
   unavailableClusterNames = new Set();
-  machineTypesFilter: string = '';
+  machineTypesFilter = '';
 
   @ViewChild(MatHorizontalStepper) stepper: MatHorizontalStepper;
 
@@ -71,7 +75,7 @@ export class NewClusterComponent implements OnInit, OnDestroy {
     this.supergiant.Kubes.get().subscribe(
       clusters => clusters.map(c => this.unavailableClusterNames.add(c.name)),
       err => console.error(err)
-    )
+    );
   }
 
   sortRegionsByName(reg1, reg2) {
@@ -98,11 +102,11 @@ export class NewClusterComponent implements OnInit, OnDestroy {
       newClusterData.profile.region = this.providerConfig.value.region.id;
       newClusterData.profile.provider = this.selectedCloudAccount.provider;
       newClusterData.profile.rbacEnabled = true;
-      newClusterData.profile.masterProfiles = this.nodesService.compileProfiles(this.selectedCloudAccount.provider, this.machines, "Master");
-      newClusterData.profile.nodesProfiles = this.nodesService.compileProfiles(this.selectedCloudAccount.provider, this.machines, "Node");
+      newClusterData.profile.masterProfiles = this.nodesService.compileProfiles(this.selectedCloudAccount.provider, this.machines, 'Master');
+      newClusterData.profile.nodesProfiles = this.nodesService.compileProfiles(this.selectedCloudAccount.provider, this.machines, 'Node');
 
       switch (newClusterData.profile.provider) {
-        case "aws": {
+        case 'aws': {
           newClusterData.profile.cloudSpecificSettings = {
             aws_vpc_cidr: this.providerConfig.value.vpcCidr,
             aws_vpc_id: this.providerConfig.value.vpcId,
@@ -114,7 +118,7 @@ export class NewClusterComponent implements OnInit, OnDestroy {
           newClusterData.profile.publicKey = this.providerConfig.value.publicKey;
         }
         break;
-        case "gce":
+        case 'gce':
 
           newClusterData.profile.publicKey = this.providerConfig.value.publicKey;
           break;
@@ -169,7 +173,7 @@ export class NewClusterComponent implements OnInit, OnDestroy {
     this.machinesLoading = true;
 
     switch (this.selectedCloudAccount.provider) {
-      case "aws":
+      case 'aws':
         this.supergiant.CloudAccounts.getAwsMachineTypes(accountName, region, zone).subscribe(
           types => {
             this.machines[idx] = {
@@ -185,7 +189,7 @@ export class NewClusterComponent implements OnInit, OnDestroy {
           }
         );
         break;
-      case "gce":
+      case 'gce':
         this.supergiant.CloudAccounts.getGCEMachineTypes(accountName, region, zone).subscribe(
           types => {
             this.machines[idx] = {
@@ -206,36 +210,37 @@ export class NewClusterComponent implements OnInit, OnDestroy {
 
   selectRegion(region) {
     switch (this.selectedCloudAccount.provider) {
-      case "digitalocean":
-        this.availableMachineTypes = region.AvailableSizes.sort();
+      case 'digitalocean':
+        this.availableMachineTypes = sortDigitalOceanMachineTypes(region.AvailableSizes);
+
         if (this.machines.length === 0) {
           this.machines.push(BLANK_MACHINE_TEMPLATE);
         }
         break;
 
-      case "aws":
+      case 'aws':
         this.azsLoading = true;
         this.getAwsAvailabilityZones(region).subscribe(
           azList => {
             this.availabilityZones = azList.sort();
-            this.azsLoading = false
+            this.azsLoading = false;
           },
           err => {
             console.error(err);
-            this.azsLoading = false
+            this.azsLoading = false;
           }
         );
         break;
-      case "gce":
+      case 'gce':
         this.azsLoading = true;
         this.getGCEAvailabilityZones(region).subscribe(
           azList => {
             this.availabilityZones = azList.sort();
-            this.azsLoading = false
+            this.azsLoading = false;
           },
           err => {
             console.error(err);
-            this.azsLoading = false
+            this.azsLoading = false;
           }
         );
         break;
@@ -251,7 +256,7 @@ export class NewClusterComponent implements OnInit, OnDestroy {
   }
 
   deleteMachine(idx) {
-    if (this.machines.length === 1) return;
+    if (this.machines.length === 1) { return; }
 
     this.machines.splice(idx, 1);
     this.validateMachineConfig();
@@ -264,29 +269,48 @@ export class NewClusterComponent implements OnInit, OnDestroy {
     this.availabilityZones = null;
     this.availableMachineTypes = null;
 
+    // TODO: quick fix to get pre-release cut
+    // move to class and create new instance
+    this.machines = [
+      {
+        machineType: null,
+        qty: 1,
+        availabilityZone: '',
+        availableMachineTypes: null,
+        role: 'Master'
+      },
+      {
+        machineType: null,
+        qty: 1,
+        availabilityZone: '',
+        availableMachineTypes: null,
+        role: 'Node'
+      }
+    ];
+
     switch (this.selectedCloudAccount.provider) {
-      case "digitalocean":
+      case 'digitalocean':
         this.providerConfig = this.formBuilder.group({
-          region: ["", Validators.required]
+          region: ['', Validators.required]
         });
         break;
 
-      case "aws":
+      case 'aws':
         this.providerConfig = this.formBuilder.group({
-          region: ["", Validators.required],
-          vpcId: [""],
-          vpcCidr: ["10.2.0.0/16", [Validators.required, this.validCidr()]],
-          keypairName: [""],
-          subnetId: [""],
-          mastersSecurityGroupId: [""],
-          nodesSecurityGroupId: [""],
-          publicKey: ["", Validators.required]
+          region: ['', Validators.required],
+          vpcId: [''],
+          vpcCidr: ['10.2.0.0/16', [Validators.required, this.validCidr()]],
+          keypairName: [''],
+          subnetId: [''],
+          mastersSecurityGroupId: [''],
+          nodesSecurityGroupId: [''],
+          publicKey: ['', Validators.required]
         });
         break;
-      case "gce":
+      case 'gce':
         this.providerConfig = this.formBuilder.group({
-          region: ["", Validators.required],
-          publicKey: ["", Validators.required]
+          region: ['', Validators.required],
+          publicKey: ['', Validators.required]
         });
         break;
     }
@@ -302,14 +326,14 @@ export class NewClusterComponent implements OnInit, OnDestroy {
         this.error({}, err);
         this.regionsLoading = false;
       }
-    ))
+    ));
   }
 
   validMachine(machine) {
     if (
       machine.machineType != null &&
       machine.role != null &&
-      typeof(machine.qty) == "number"
+      typeof(machine.qty) == 'number'
     ) {
       return true;
     } else {
@@ -327,7 +351,7 @@ export class NewClusterComponent implements OnInit, OnDestroy {
     }
   }
 
-  isOddNumberOfMasters () {
+  isOddNumberOfMasters() {
     const numberOfMasterProfiles = this.machines
       .filter(m => m.role === 'Master')
       .map(m => m.qty)
@@ -348,14 +372,14 @@ export class NewClusterComponent implements OnInit, OnDestroy {
   uniqueClusterName(unavailableNames): ValidatorFn {
     return (name: AbstractControl): { [key: string]: any } | null => {
       return unavailableNames.has(name.value) ? { 'nonUniqueName': { value: name.value } } : null;
-    }
+    };
   }
 
   validCidr(): ValidatorFn {
     return (userCidr: AbstractControl): { [key: string]: any } | null => {
       const validCidr = cidrRegex({ exact: true }).test(userCidr.value);
-      return validCidr ? null : { "invalidCidr": { value: userCidr.value } };
-    }
+      return validCidr ? null : { 'invalidCidr': { value: userCidr.value } };
+    };
   }
 
   get name() {
@@ -367,7 +391,7 @@ export class NewClusterComponent implements OnInit, OnDestroy {
   }
 
   get vpcCidr() {
-    if (this.selectedCloudAccount && this.selectedCloudAccount.provider == "aws") {
+    if (this.selectedCloudAccount && this.selectedCloudAccount.provider == 'aws') {
       return this.providerConfig.get('vpcCidr');
     } else {
       return true;
@@ -379,24 +403,24 @@ export class NewClusterComponent implements OnInit, OnDestroy {
     this.getCloudAccounts();
 
     this.nameAndCloudAccountConfig = this.formBuilder.group({
-      name: ["", [
+      name: ['', [
         Validators.required,
         this.uniqueClusterName(this.unavailableClusterNames),
         Validators.maxLength(12),
         Validators.pattern('^[A-Za-z]([-A-Za-z0-9\-]*[A-Za-z0-9\-])?$')]],
-      cloudAccount: ["", Validators.required]
-    })
+      cloudAccount: ['', Validators.required]
+    });
 
     this.clusterConfig = this.formBuilder.group({
-      K8sVersion: ["1.11.5", Validators.required],
-      flannelVersion: ["0.10.0", Validators.required],
-      helmVersion: ["2.11.0", Validators.required],
-      dockerVersion: ["17.06.0", Validators.required],
-      ubuntuVersion: ["xenial", Validators.required],
-      networkType: ["vxlan", Validators.required],
-      cidr: ["10.0.0.0/16", [Validators.required, this.validCidr()]],
-      operatingSystem: ["linux", Validators.required],
-      arch: ["amd64", Validators.required]
+      K8sVersion: ['1.11.5', Validators.required],
+      flannelVersion: ['0.10.0', Validators.required],
+      helmVersion: ['2.11.0', Validators.required],
+      dockerVersion: ['17.06.0', Validators.required],
+      ubuntuVersion: ['xenial', Validators.required],
+      networkType: ['vxlan', Validators.required],
+      cidr: ['10.0.0.0/16', [Validators.required, this.validCidr()]],
+      operatingSystem: ['linux', Validators.required],
+      arch: ['amd64', Validators.required]
     });
   }
 

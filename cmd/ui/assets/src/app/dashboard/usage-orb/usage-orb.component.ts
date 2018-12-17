@@ -15,8 +15,8 @@ export class UsageOrbComponent implements OnInit, OnDestroy {
   constructor( private supergiant: Supergiant ) { }
 
   @Input() cluster: any;
-  @ViewChild("cpu_usage_path") cpu_usage_path;
-  @ViewChild("ram_usage_path") ram_usage_path;
+  @ViewChild('cpu_usage_path') cpu_usage_path;
+  @ViewChild('ram_usage_path') ram_usage_path;
 
 
 
@@ -42,17 +42,17 @@ export class UsageOrbComponent implements OnInit, OnDestroy {
         res => this.updateMetrics(res),
         err => console.error(err)
       )
-    )
+    );
   }
 
   ngOnInit() {
-    if (this.cluster.state == "operational") {
+    if (this.cluster.state == 'operational') {
       this.getMetrics();
     }
   }
 
   ngOnDestroy() {
-    this.subscriptions.unsubscribe()
+    this.subscriptions.unsubscribe();
   }
 
 }

@@ -23,10 +23,10 @@ import { AppsListComponent }                from './apps-list/apps-list.componen
 import { AppDetailsComponent }              from './app-details/app-details.component';
 import { BreadcrumbsComponent }             from './breadcrumbs/breadcrumbs.component';
 import { DeployComponent }                  from './app-details/deploy/deploy.component';
-import { FormsModule, ReactiveFormsModule } from "@angular/forms";
+import { FormsModule, ReactiveFormsModule } from '@angular/forms';
 import { ConfigureComponent }               from './app-details/confure/configure.component';
-import { MarkdownModule }                   from "ngx-markdown";
-import { AceEditorModule }                  from "ng2-ace-editor";
+import { MarkdownModule }                   from 'ngx-markdown';
+import { AceEditorModule }                  from 'ng2-ace-editor';
 import { RemoveRepoDialogComponent }        from './apps-list/remove-repo-dialog/remove-repo-dialog.component';
 import { SortReposPipe } from './sort-repos.pipe';
 

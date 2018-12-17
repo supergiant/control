@@ -241,26 +241,6 @@ func (s *StepCreateInstance) Run(ctx context.Context, w io.Writer, cfg *steps.Co
 }
 
 func (s *StepCreateInstance) Rollback(ctx context.Context, w io.Writer, cfg *steps.Config) error {
-	log := util.GetLogger(w)
-	log.Infof("[%s] - rollback initiated", s.Name())
-
-	EC2, err := s.GetEC2(cfg.AWSConfig)
-	if err != nil {
-		return errors.New("aws: authorization")
-	}
-
-	if cfg.Node.ID != "" {
-		_, err := EC2.TerminateInstancesWithContext(ctx, &ec2.TerminateInstancesInput{
-			InstanceIds: []*string{
-				aws.String(cfg.Node.ID),
-			},
-		})
-		if err != nil {
-			return err
-		}
-		log.Infof("[%s] - deleted ec2 instance %s", s.Name(), cfg.Node.ID)
-		return nil
-	}
 	return nil
 }
 

@@ -4,7 +4,7 @@ import { Subscription, timer as observableTimer } from 'rxjs';
 import { switchMap } from 'rxjs/operators';
 
 import { Supergiant } from '../../shared/supergiant/supergiant.service';
-import { ClusterListModalComponent } from './cluster-list-modal/cluster-list-modal.component'
+import { ClusterListModalComponent } from './cluster-list-modal/cluster-list-modal.component';
 
 @Component({
   selector: 'app-toolbar',
@@ -19,17 +19,16 @@ export class ToolbarComponent implements OnInit {
   ) { }
 
   private subscriptions = new Subscription();
-  private clusters: Array<any>
+  private clusters: Array<any>;
 
   openClusterList(event) {
     this.initDialog(event);
   }
 
   initDialog(event) {
-    const popupWidth = 200;
     const dialogRef = this.dialog.open(ClusterListModalComponent, {
-      width: `${popupWidth}px`,
-      backdropClass: "backdrop",
+      width: 'max-content',
+      backdropClass: 'backdrop',
       data: { clusters: this.clusters }
     });
     dialogRef.updatePosition({

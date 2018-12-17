@@ -252,6 +252,7 @@ type Config struct {
 
 	nodeChan      chan node.Node
 	kubeStateChan chan model.KubeState
+	configChan    chan *Config
 
 	ReadyForBootstrapLatch *sync.WaitGroup
 }
@@ -380,6 +381,7 @@ func NewConfig(clusterName, clusterToken, cloudAccountName string, profile profi
 
 		nodeChan:      make(chan node.Node, len(profile.MasterProfiles)+len(profile.NodesProfiles)),
 		kubeStateChan: make(chan model.KubeState, 2),
+		configChan:    make(chan *Config),
 	}
 }
 
@@ -607,6 +609,10 @@ func (c *Config) NodeChan() chan node.Node {
 
 func (c *Config) KubeStateChan() chan model.KubeState {
 	return c.kubeStateChan
+}
+
+func (c *Config) ConfigChan() chan *Config {
+	return c.configChan
 }
 
 // TODO: cloud profiles is deprecated by kubernetes, use controller-managers

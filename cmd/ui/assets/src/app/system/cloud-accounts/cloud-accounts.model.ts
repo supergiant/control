@@ -34,15 +34,15 @@ export class CloudAccountModel {
               'description': 'IAM user secret access key'
             }
           },
-          "required": [ "access_key", "secret_key" ]
+          'required': [ 'access_key', 'secret_key' ]
         }
       },
-      "required": [ "name", "credentials" ]
+      'required': [ 'name', 'credentials' ]
     },
     'layout': [
-      { "key": "name", "title": "Cloud Account Name", "placeholder": "Cloud Account Name" },
-      { "key": "credentials.access_key", "placeholder": "Access Key" },
-      { "key": "credentials.secret_key", "placeholder": "Secret Key" },
+      { 'key': 'name', 'title': 'Cloud Account Name', 'placeholder': 'Cloud Account Name' },
+      { 'key': 'credentials.access_key', 'placeholder': 'Access Key' },
+      { 'key': 'credentials.secret_key', 'placeholder': 'Secret Key' },
       // TODO: json-schema-form doesn't check for invalid forms when using custom submit buttons
       // { "type": "submit", "title": "CREATE" }
     ]
@@ -81,15 +81,15 @@ export class CloudAccountModel {
               'description': 'Your personal private key'
             }
           },
-          "required": [ "accessToken", "publicKey" ]
+          'required': [ 'accessToken', 'publicKey' ]
         }
       },
-      "required": [ "name", "credentials" ]
+      'required': [ 'name', 'credentials' ]
     },
     'layout': [
-      { "key": "name", "title": "Cloud Account Name", "placeholder": "Cloud Account Name" },
-      { "key": "credentials.accessToken", "placeholder": "Access Token" },
-      { "type": "textarea", "key": "credentials.publicKey", "placeholder": "Public Key" },
+      { 'key': 'name', 'title': 'Cloud Account Name', 'placeholder': 'Cloud Account Name' },
+      { 'key': 'credentials.accessToken', 'placeholder': 'Access Token' },
+      { 'type': 'textarea', 'key': 'credentials.publicKey', 'placeholder': 'Public Key' },
       // TODO: json-schema-form doesn't check for invalid forms when using custom submit buttons
       // { "type": "submit", "title": "CREATE" }
     ]
@@ -133,33 +133,33 @@ export class CloudAccountModel {
               'description': 'API Token for your Packet account'
             }
           },
-          "required": [ "api_token" ]
+          'required': [ 'api_token' ]
         }
       },
-      "required": [ "name", "credentials" ]
+      'required': [ 'name', 'credentials' ]
     },
     'layout': [
-      { "key": "name", "title": "Cloud Account Name", "placeholder": "Cloud Account Name" },
-      { "key": "credentials.api_token", "title": "API Token", "placeholder": "API Token" },
+      { 'key': 'name', 'title': 'Cloud Account Name', 'placeholder': 'Cloud Account Name' },
+      { 'key': 'credentials.api_token', 'title': 'API Token', 'placeholder': 'API Token' },
       // { "type": "submit", "title": "CREATE" }
     ]
   };
 
   public providers = [
     {
-      display: "AWS - Amazon Web Services",
-      name: "aws",
+      display: 'AWS - Amazon Web Services',
+      name: 'aws',
       data: this.aws
     },
     {
-      display: "Digital Ocean",
-      name: "digitalocean",
+      display: 'Digital Ocean',
+      name: 'digitalocean',
       data: this.digitalocean
     },
     {
-      display: "GCE - Google Compute Engine(Experimental",
-      name: "gce",
+      display: 'GCE - Google Compute Engine (Experimental)',
+      name: 'gce',
       data: this.gce
     }
-  ]
+  ];
 }

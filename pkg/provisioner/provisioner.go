@@ -122,7 +122,9 @@ func (tp *TaskProvisioner) ProvisionCluster(parentContext context.Context,
 	}
 
 	// monitor cluster state in separate goroutine
-	go tp.monitorClusterState(ctx, config)
+	// monitor cluster state in separate goroutine
+	go tp.monitorClusterState(ctx, config.ClusterID, config.NodeChan(),
+		config.KubeStateChan(), config.ConfigChan())
 	go tp.provision(ctx, taskMap, clusterProfile, config)
 
 	return taskMap, nil
@@ -152,7 +154,9 @@ func (tp *TaskProvisioner) ProvisionNodes(parentContext context.Context, nodePro
 	}
 
 	// monitor cluster state in separate goroutine
-	go tp.monitorClusterState(ctx, config)
+	go tp.monitorClusterState(ctx, config.ClusterID,
+		config.NodeChan(), config.KubeStateChan(), config.ConfigChan())
+
 	tasks := make([]string, 0, len(nodeProfiles))
 
 	for _, nodeProfile := range nodeProfiles {
@@ -225,7 +229,8 @@ func (tp *TaskProvisioner) RestartClusterProvisioning(parentCtx context.Context,
 	}
 
 	// monitor cluster state in separate goroutine
-	go tp.monitorClusterState(ctx, config)
+	go tp.monitorClusterState(ctx, config.ClusterID,
+		config.NodeChan(), config.KubeStateChan(), config.ConfigChan())
 	go tp.provision(ctx, taskMap, clusterProfile, config)
 
 	return nil
@@ -379,8 +384,11 @@ func (tp *TaskProvisioner) preProvision(ctx context.Context, preProvisionTask *w
 			preProvisionTask.ID, err)
 		config.KubeStateChan() <- model.StateFailed
 	} else {
-		logrus.Infof("pre provision %s has finished", preProvisionTask.ID)
+		// Update kube state
 		config.KubeStateChan() <- model.StateProvisioning
+		// Update cloud spec
+		config.ConfigChan() <- preProvisionTask.Config
+		logrus.Infof("pre provision %s has finished", preProvisionTask.ID)
 	}
 
 	return err
@@ -588,14 +596,9 @@ func (tp *TaskProvisioner) buildInitialCluster(ctx context.Context,
 	return tp.kubeService.Create(ctx, cluster)
 }
 
-// TODO(stgleb): Split it by steps among pre provision phases for each cloud providers
-func (t *TaskProvisioner) updateCloudSpecificData(ctx context.Context, config *steps.Config) error {
-	k, err := t.kubeService.Get(ctx, config.ClusterID)
-
-	if err != nil {
-		logrus.Errorf("get kube caused %v", err)
-		return err
-	}
+func (t *TaskProvisioner) updateCloudSpecificData(k *model.Kube, config *steps.Config) {
+	logrus.Debugf("Update cloud specific data for kube %s",
+		config.ClusterID)
 
 	cloudSpecificSettings := make(map[string]string)
 
@@ -641,8 +644,6 @@ func (t *TaskProvisioner) updateCloudSpecificData(ctx context.Context, config *s
 	}
 
 	k.CloudSpec = cloudSpecificSettings
-	// Save kubbe with update cloud specific settings
-	return t.kubeService.Create(ctx, k)
 }
 
 func (t *TaskProvisioner) loadCloudSpecificData(ctx context.Context, config *steps.Config) error {
@@ -688,12 +689,14 @@ func bootstrapCerts(config *steps.Config) error {
 	return nil
 }
 
-// All cluster state changes during provisioning are made in this function
-func (tp *TaskProvisioner) monitorClusterState(ctx context.Context, cfg *steps.Config) {
+// All cluster state changes during provisioning must be made in this function
+func (tp *TaskProvisioner) monitorClusterState(ctx context.Context,
+	clusterID string, nodeChan chan node.Node, kubeStateChan chan model.KubeState,
+	configChan chan *steps.Config) {
 	for {
 		select {
-		case n := <-cfg.NodeChan():
-			k, err := tp.kubeService.Get(ctx, cfg.ClusterID)
+		case n := <-nodeChan:
+			k, err := tp.kubeService.Get(ctx, clusterID)
 
 			if err != nil {
 				logrus.Errorf("cluster monitor: update kube state caused %v", err)
@@ -712,8 +715,9 @@ func (tp *TaskProvisioner) monitorClusterState(ctx context.Context, cfg *steps.C
 				logrus.Errorf("cluster monitor: update kube state caused %v", err)
 				continue
 			}
-		case state := <-cfg.KubeStateChan():
-			k, err := tp.kubeService.Get(ctx, cfg.ClusterID)
+		case state := <-kubeStateChan:
+			logrus.Debugf("monitor: get kube %s", clusterID)
+			k, err := tp.kubeService.Get(ctx, clusterID)
 
 			if err != nil {
 				logrus.Errorf("cluster monitor: update kube state caused %v", err)
@@ -721,6 +725,25 @@ func (tp *TaskProvisioner) monitorClusterState(ctx context.Context, cfg *steps.C
 			}
 
 			k.State = state
+			logrus.Debugf("monitor: update kube %s with state %s",
+				k.ID, state)
+			err = tp.kubeService.Create(ctx, k)
+
+			if err != nil {
+				logrus.Errorf("cluster monitor: update kube state caused %v", err)
+				continue
+			}
+		case config := <-configChan:
+			logrus.Debugf("monitor: get kube %s", clusterID)
+			k, err := tp.kubeService.Get(ctx, clusterID)
+
+			if err != nil {
+				logrus.Errorf("cluster monitor: update kube state caused %v", err)
+				continue
+			}
+
+			tp.updateCloudSpecificData(k, config)
+
 			err = tp.kubeService.Create(ctx, k)
 
 			if err != nil {

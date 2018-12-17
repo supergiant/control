@@ -5,7 +5,6 @@ import (
 	"io"
 
 	"github.com/aws/aws-sdk-go/aws"
-	"github.com/aws/aws-sdk-go/aws/awserr"
 	"github.com/aws/aws-sdk-go/service/ec2"
 	"github.com/pkg/errors"
 	"github.com/sirupsen/logrus"
@@ -15,36 +14,57 @@ import (
 
 const DeleteSubnetsStepName = "aws_delete_subnets"
 
+type deleteSubnetesSvc interface {
+	DeleteSubnet(*ec2.DeleteSubnetInput) (*ec2.DeleteSubnetOutput, error)
+}
+
 type DeleteSubnets struct {
+	getSvc func(steps.AWSConfig) (deleteSubnetesSvc, error)
 	GetEC2 GetEC2Fn
 }
 
 func InitDeleteSubnets(fn GetEC2Fn) {
-	steps.RegisterStep(DeleteSubnetsStepName, &DeleteSubnets{
-		GetEC2: fn,
-	})
+	steps.RegisterStep(DeleteSubnetsStepName, NewDeleteSubnets(fn))
+}
+
+func NewDeleteSubnets(fn GetEC2Fn) *DeleteSubnets {
+	return &DeleteSubnets{
+		getSvc: func(cfg steps.AWSConfig) (deleteSubnetesSvc, error) {
+			EC2, err := fn(cfg)
+
+			if err != nil {
+				return nil, errors.Wrap(ErrAuthorization, err.Error())
+			}
+
+			return EC2, nil
+		},
+	}
 }
 
 func (s *DeleteSubnets) Run(ctx context.Context, w io.Writer, cfg *steps.Config) error {
-	EC2, err := s.GetEC2(cfg.AWSConfig)
+	if len(cfg.AWSConfig.Subnets) == 0 {
+		logrus.Debug("Skip deleting empty subnets")
+		return nil
+	}
+
+	svc, err := s.getSvc(cfg.AWSConfig)
+
 	if err != nil {
-		return errors.Wrap(ErrAuthorization, err.Error())
+		logrus.Errorf("Error getting delete subnets service %v", err)
+		return errors.Wrapf(ErrAuthorization, "%s %v",
+			DeleteSubnetsStepName, err.Error())
 	}
 
 	for az, subnet := range cfg.AWSConfig.Subnets {
-		if subnet == "" {
-			continue
-		}
-
 		logrus.Debugf("Delete subnet %s in az %s", subnet, az)
 		descReq := &ec2.DeleteSubnetInput{
 			SubnetId: aws.String(subnet),
 		}
 
-		_, err = EC2.DeleteSubnet(descReq)
+		_, err = svc.DeleteSubnet(descReq)
 
-		if err, ok := err.(awserr.Error); ok {
-			logrus.Debugf("DeleteSubnet caused %s", err.Message())
+		if err != nil {
+			logrus.Debugf("DeleteSubnet caused %s", err.Error())
 		}
 	}
 
@@ -52,7 +72,7 @@ func (s *DeleteSubnets) Run(ctx context.Context, w io.Writer, cfg *steps.Config)
 }
 
 func (*DeleteSubnets) Name() string {
-	return DeleteSecurityGroupsStepName
+	return DeleteSubnetsStepName
 }
 
 func (*DeleteSubnets) Depends() []string {
