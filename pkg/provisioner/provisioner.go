@@ -247,22 +247,11 @@ func (tp *TaskProvisioner) provision(ctx context.Context,
 
 		if preProvisionErr := tp.preProvision(ctx, preProvisionTask[0], config); preProvisionErr != nil {
 			logrus.Errorf("Pre provisioning cluster %v", preProvisionErr)
-			// TODO(stgleb): move this to separate step
-			// Save cluster before provisioning
 			config = preProvisionTask[0].Config
-			tp.updateCloudSpecificData(ctx, config)
 			return
 		}
 
 		config = preProvisionTask[0].Config
-	}
-
-	logrus.Debugf("Save cloud specific data to cluster")
-	// Save cluster before provisioning
-	err := tp.updateCloudSpecificData(ctx, config)
-
-	if err != nil {
-		logrus.Errorf("update cluster with cloud specific data %v", err)
 	}
 
 	config.ReadyForBootstrapLatch = &sync.WaitGroup{}
