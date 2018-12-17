@@ -189,3 +189,66 @@ func TestCreateInstanceStep_Run(t *testing.T) {
 		}
 	}
 }
+
+func TestNewCreateInstanceStep(t *testing.T) {
+	period := time.Second * 1
+	timeout := time.Second * 2
+
+	s, err := NewCreateInstanceStep(period, timeout)
+
+	if s == nil {
+		t.Error("Step must not be nil")
+	}
+
+	if err != nil {
+		t.Errorf("Unexpected error %v", err)
+	}
+
+	if s.checkPeriod != period {
+		t.Errorf("Wrong period expected %v actual %v",
+			period, s.checkPeriod)
+	}
+
+	if s.instanceTimeout != timeout {
+		t.Errorf("Wrong timeout expected %v actual %v",
+			timeout, s.instanceTimeout)
+	}
+
+	if s.getComputeSvc == nil {
+		t.Errorf("get compute service must not be nil")
+	}
+}
+
+func TestCreateInstanceStep_Depends(t *testing.T) {
+	s := CreateInstanceStep{}
+
+	if deps := s.Depends(); deps != nil {
+		t.Errorf("dependencies must be nil")
+	}
+}
+
+func TestCreateInstanceStep_Name(t *testing.T) {
+	s := CreateInstanceStep{}
+
+	if name := s.Name(); name != CreateInstanceStepName {
+		t.Errorf("Wrong name expected %s actual %s",
+			CreateInstanceStepName, name)
+	}
+}
+
+func TestDeleteNodeStep_Rollback(t *testing.T) {
+	s := CreateInstanceStep{}
+
+	if err := s.Rollback(context.Background(), &bytes.Buffer{}, &steps.Config{}); err != nil {
+		t.Errorf("Unexpected error %v", err)
+	}
+}
+
+func TestDeleteNodeStep_Description(t *testing.T) {
+	s := CreateInstanceStep{}
+
+	if desc := s.Description(); desc != "Google compute engine step for creating instance" {
+		t.Errorf("Wrong description expected %s actual " +
+			"Google compute engine step for creating instance", desc, )
+	}
+}

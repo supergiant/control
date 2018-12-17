@@ -38,7 +38,7 @@ type CreateInstanceStep struct {
 }
 
 
-func NewCreateInstanceStep(period, timeout time.Duration) (steps.Step, error) {
+func NewCreateInstanceStep(period, timeout time.Duration) (*CreateInstanceStep, error) {
 	return &CreateInstanceStep{
 		checkPeriod: period,
 		instanceTimeout: timeout,
