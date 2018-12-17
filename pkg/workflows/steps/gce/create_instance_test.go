@@ -12,6 +12,7 @@ import (
 	"github.com/pborman/uuid"
 	"github.com/supergiant/control/pkg/util"
 	"time"
+	"github.com/supergiant/control/pkg/sgerrors"
 )
 
 func TestCreateInstanceStep_Run(t *testing.T) {
@@ -90,6 +91,19 @@ func TestCreateInstanceStep_Run(t *testing.T) {
 			errMsg: "message6",
 		},
 		{
+			description: "timeout",
+			image: &compute.Image{
+				Id: 1234,
+			},
+			machineType: &compute.MachineType{
+				SelfLink: "https://itsme.com",
+			},
+			instance: &compute.Instance{
+				Metadata: &compute.Metadata{},
+			},
+			errMsg: sgerrors.ErrTimeoutExceeded.Error(),
+		},
+		{
 			description: "success",
 			image: &compute.Image{
 				Id: 1234,
@@ -116,14 +130,10 @@ func TestCreateInstanceStep_Run(t *testing.T) {
 
 	for _, testCase := range testCases {
 		t.Log(testCase.description)
-		config := steps.NewConfig("", "",
-			"", profile.Profile{})
-		config.TaskID = uuid.New()
-		config.ClusterName = util.RandomString(8)
-		config.ClusterID = uuid.New()[:8]
 
 		step := &CreateInstanceStep{
 			checkPeriod: time.Nanosecond,
+			instanceTimeout: time.Millisecond * 1,
 			getComputeSvc: func(ctx context.Context,
 				config steps.GCEConfig) (*computeService, error) {
 				return &computeService{
@@ -146,27 +156,36 @@ func TestCreateInstanceStep_Run(t *testing.T) {
 			},
 		}
 
-		ctx, cancel := context.WithCancel(context.Background())
+		for _, role := range []bool{true, false} {
+			config := steps.NewConfig("", "",
+				"", profile.Profile{})
+			config.TaskID = uuid.New()
+			config.ClusterName = util.RandomString(8)
+			config.ClusterID = uuid.New()[:8]
+			config.IsMaster = role
 
-		go func(){
-			for {
-				select {
+			ctx, cancel := context.WithCancel(context.Background())
+
+			go func(){
+				for {
+					select {
 					case <- config.NodeChan():
 					case <- ctx.Done():
+					}
 				}
+			}()
+
+			err := step.Run(ctx, &bytes.Buffer{}, config)
+			cancel()
+
+			if err == nil && testCase.errMsg != "" {
+				t.Errorf("error must not be nil")
 			}
-		}()
 
-		err := step.Run(ctx, &bytes.Buffer{}, config)
-		cancel()
-
-		if err == nil && testCase.errMsg != "" {
-			t.Errorf("error must not be nil")
-		}
-
-		if err != nil && !strings.Contains(err.Error(), testCase.errMsg) {
-			t.Errorf("Error message %s does not contain %s",
-				err.Error(), testCase.errMsg)
+			if err != nil && !strings.Contains(err.Error(), testCase.errMsg) {
+				t.Errorf("Error message %s does not contain %s",
+					err.Error(), testCase.errMsg)
+			}
 		}
 	}
 }

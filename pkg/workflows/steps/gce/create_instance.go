@@ -238,13 +238,10 @@ func (s *CreateInstanceStep) Run(ctx context.Context, output io.Writer,
 	for {
 		select {
 		case <-ticker.C:
-			resp, serr := svc.getInstance(ctx, config.GCEConfig, instance.Name)
-			if serr != nil {
-				continue
-			}
+			resp, _ := svc.getInstance(ctx, config.GCEConfig, instance.Name)
 
 			// Save Master info when ready
-			if resp.Status == "RUNNING" {
+			if resp != nil && resp.Status == "RUNNING" {
 				config.Node.PublicIp = resp.NetworkInterfaces[0].AccessConfigs[0].NatIP
 				config.Node.PrivateIp = resp.NetworkInterfaces[0].NetworkIP
 				config.Node.State = node.StateActive
