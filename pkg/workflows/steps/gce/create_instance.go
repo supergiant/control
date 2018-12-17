@@ -21,14 +21,6 @@ import (
 
 const CreateInstanceStepName = "gce_create_instance"
 
-type computeService struct {
-	getFromFamily       func(context.Context, steps.GCEConfig) (*compute.Image, error)
-	getMachineTypes     func(context.Context, steps.GCEConfig) (*compute.MachineType, error)
-	insertInstance      func(context.Context, steps.GCEConfig, *compute.Instance) (*compute.Operation, error)
-	getInstance         func(context.Context, steps.GCEConfig, string) (*compute.Instance, error)
-	setInstanceMetadata func(context.Context, steps.GCEConfig, string, *compute.Metadata) (*compute.Operation, error)
-}
-
 type CreateInstanceStep struct {
 	// Client creates the client for the provider.
 	instanceTimeout time.Duration
@@ -37,10 +29,9 @@ type CreateInstanceStep struct {
 	getComputeSvc func(context.Context, steps.GCEConfig) (*computeService, error)
 }
 
-
 func NewCreateInstanceStep(period, timeout time.Duration) (*CreateInstanceStep, error) {
 	return &CreateInstanceStep{
-		checkPeriod: period,
+		checkPeriod:     period,
 		instanceTimeout: timeout,
 		getComputeSvc: func(ctx context.Context, config steps.GCEConfig) (*computeService, error) {
 			client, err := GetClient(ctx, config.ClientEmail,

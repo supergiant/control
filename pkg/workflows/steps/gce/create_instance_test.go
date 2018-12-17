@@ -1,34 +1,34 @@
 package gce
 
 import (
-	"testing"
-	"google.golang.org/api/compute/v1"
-	"github.com/pkg/errors"
-	"github.com/supergiant/control/pkg/workflows/steps"
-	"github.com/supergiant/control/pkg/profile"
-	"context"
 	"bytes"
-	"strings"
+	"context"
 	"github.com/pborman/uuid"
-	"github.com/supergiant/control/pkg/util"
-	"time"
+	"github.com/pkg/errors"
+	"github.com/supergiant/control/pkg/profile"
 	"github.com/supergiant/control/pkg/sgerrors"
+	"github.com/supergiant/control/pkg/util"
+	"github.com/supergiant/control/pkg/workflows/steps"
+	"google.golang.org/api/compute/v1"
+	"strings"
+	"testing"
+	"time"
 )
 
 func TestCreateInstanceStep_Run(t *testing.T) {
-	testCases := []struct{
+	testCases := []struct {
 		description string
-		getSvcErr error
+		getSvcErr   error
 
-		image *compute.Image
+		image       *compute.Image
 		getImageErr error
 
-		machineType *compute.MachineType
+		machineType       *compute.MachineType
 		getMachineTypeErr error
 
 		insertErr error
 
-		instance *compute.Instance
+		instance       *compute.Instance
 		getInstanceErr error
 
 		setMetadataErr error
@@ -37,13 +37,13 @@ func TestCreateInstanceStep_Run(t *testing.T) {
 	}{
 		{
 			description: "get service error",
-			getSvcErr: errors.New("message1"),
-			errMsg: "message1",
+			getSvcErr:   errors.New("message1"),
+			errMsg:      "message1",
 		},
 		{
 			description: "get image error",
 			getImageErr: errors.New("message2"),
-			errMsg: "message2",
+			errMsg:      "message2",
 		},
 		{
 			description: "get machine type error",
@@ -51,7 +51,7 @@ func TestCreateInstanceStep_Run(t *testing.T) {
 				Id: 1234,
 			},
 			getMachineTypeErr: errors.New("message3"),
-			errMsg: "message3",
+			errMsg:            "message3",
 		},
 		{
 			description: "insert instance error",
@@ -62,7 +62,7 @@ func TestCreateInstanceStep_Run(t *testing.T) {
 				SelfLink: "https://itsme.com",
 			},
 			insertErr: errors.New("message4"),
-			errMsg: "message4",
+			errMsg:    "message4",
 		},
 		{
 			description: "get instance error",
@@ -73,7 +73,7 @@ func TestCreateInstanceStep_Run(t *testing.T) {
 				SelfLink: "https://itsme.com",
 			},
 			getInstanceErr: errors.New("message5"),
-			errMsg: "message5",
+			errMsg:         "message5",
 		},
 		{
 			description: "set metadata error",
@@ -84,11 +84,11 @@ func TestCreateInstanceStep_Run(t *testing.T) {
 				SelfLink: "https://itsme.com",
 			},
 			instance: &compute.Instance{
-				Status: "RUNNING",
+				Status:   "RUNNING",
 				Metadata: &compute.Metadata{},
 			},
 			setMetadataErr: errors.New("message6"),
-			errMsg: "message6",
+			errMsg:         "message6",
 		},
 		{
 			description: "timeout",
@@ -112,7 +112,7 @@ func TestCreateInstanceStep_Run(t *testing.T) {
 				SelfLink: "https://itsme.com",
 			},
 			instance: &compute.Instance{
-				Status: "RUNNING",
+				Status:   "RUNNING",
 				Metadata: &compute.Metadata{},
 				NetworkInterfaces: []*compute.NetworkInterface{
 					{
@@ -132,7 +132,7 @@ func TestCreateInstanceStep_Run(t *testing.T) {
 		t.Log(testCase.description)
 
 		step := &CreateInstanceStep{
-			checkPeriod: time.Nanosecond,
+			checkPeriod:     time.Nanosecond,
 			instanceTimeout: time.Millisecond * 1,
 			getComputeSvc: func(ctx context.Context,
 				config steps.GCEConfig) (*computeService, error) {
@@ -166,11 +166,11 @@ func TestCreateInstanceStep_Run(t *testing.T) {
 
 			ctx, cancel := context.WithCancel(context.Background())
 
-			go func(){
+			go func() {
 				for {
 					select {
-					case <- config.NodeChan():
-					case <- ctx.Done():
+					case <-config.NodeChan():
+					case <-ctx.Done():
 					}
 				}
 			}()
@@ -236,7 +236,7 @@ func TestCreateInstanceStep_Name(t *testing.T) {
 	}
 }
 
-func TestDeleteNodeStep_Rollback(t *testing.T) {
+func TestCreateInstanceStep_Rollback(t *testing.T) {
 	s := CreateInstanceStep{}
 
 	if err := s.Rollback(context.Background(), &bytes.Buffer{}, &steps.Config{}); err != nil {
@@ -244,11 +244,11 @@ func TestDeleteNodeStep_Rollback(t *testing.T) {
 	}
 }
 
-func TestDeleteNodeStep_Description(t *testing.T) {
+func TestCreateInstanceStep_Description(t *testing.T) {
 	s := CreateInstanceStep{}
 
 	if desc := s.Description(); desc != "Google compute engine step for creating instance" {
-		t.Errorf("Wrong description expected %s actual " +
-			"Google compute engine step for creating instance", desc, )
+		t.Errorf("Wrong description expected %s actual "+
+			"Google compute engine step for creating instance", desc)
 	}
 }
