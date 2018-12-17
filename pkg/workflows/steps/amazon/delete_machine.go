@@ -27,7 +27,7 @@ type DeleteNodeStep struct {
 }
 
 func InitDeleteNode(fn GetEC2Fn) {
-	steps.RegisterStep(DeleteNodeStepName, NewDeleteVPC(fn))
+	steps.RegisterStep(DeleteNodeStepName, NewDeleteNode(fn))
 }
 
 func NewDeleteNode(fn GetEC2Fn) *DeleteNodeStep {

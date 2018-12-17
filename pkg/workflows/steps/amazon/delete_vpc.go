@@ -30,7 +30,7 @@ type DeleteVPC struct {
 }
 
 func InitDeleteVPC(fn GetEC2Fn) {
-	steps.RegisterStep(DeleteVPCStepName, NewDeleteSubnets(fn))
+	steps.RegisterStep(DeleteVPCStepName, NewDeleteVPC(fn))
 }
 
 func NewDeleteVPC(fn GetEC2Fn) *DeleteVPC {

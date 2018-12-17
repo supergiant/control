@@ -1,13 +1,17 @@
 import { Component, OnDestroy, OnInit, ViewEncapsulation, ViewChild }       from '@angular/core';
 import { FormBuilder, FormGroup, Validators, ValidatorFn, AbstractControl } from '@angular/forms';
-import { Router }                                      from '@angular/router';
-import { MatHorizontalStepper }                        from '@angular/material';
-import { Subscription }                                from 'rxjs';
-import { Notifications }                               from '../../shared/notifications/notifications.service';
-import { Supergiant }                                  from '../../shared/supergiant/supergiant.service';
-import { NodeProfileService }                          from '../node-profile.service';
-import { CLUSTER_OPTIONS }                             from './cluster-options.config';
-import { DEFAULT_MACHINE_SET, BLANK_MACHINE_TEMPLATE } from 'app/clusters/new-cluster/new-cluster.component.config';
+import { Router }                                                           from '@angular/router';
+import { MatHorizontalStepper }                                             from '@angular/material';
+import { Subscription }                                                     from 'rxjs';
+import { Notifications }                from '../../shared/notifications/notifications.service';
+import { Supergiant }                   from '../../shared/supergiant/supergiant.service';
+import { NodeProfileService }           from "../node-profile.service";
+import { CLUSTER_OPTIONS }              from "./cluster-options.config";
+import {
+  DEFAULT_MACHINE_SET,
+  BLANK_MACHINE_TEMPLATE
+}                                       from "app/clusters/new-cluster/new-cluster.component.config";
+import { sortDigitalOceanMachineTypes } from "app/clusters/new-cluster/new-cluster.helpers";
 
 // compiler hack
 declare var require: any;
@@ -207,7 +211,8 @@ export class NewClusterComponent implements OnInit, OnDestroy {
   selectRegion(region) {
     switch (this.selectedCloudAccount.provider) {
       case 'digitalocean':
-        this.availableMachineTypes = region.AvailableSizes.sort();
+        this.availableMachineTypes = sortDigitalOceanMachineTypes(region.AvailableSizes);
+
         if (this.machines.length === 0) {
           this.machines.push(BLANK_MACHINE_TEMPLATE);
         }
@@ -346,7 +351,7 @@ export class NewClusterComponent implements OnInit, OnDestroy {
     }
   }
 
-  isOddNumberOfMasters () {
+  isOddNumberOfMasters() {
     const numberOfMasterProfiles = this.machines
       .filter(m => m.role === 'Master')
       .map(m => m.qty)

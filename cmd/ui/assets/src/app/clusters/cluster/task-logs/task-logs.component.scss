@@ -1,1 +1,15 @@
+.task-logs-wrapper {
+  position: relative;
 
+  .close {
+    background: url(/assets/img/close.svg) no-repeat center;
+    color: #fff;
+    cursor: pointer;
+    font-weight: 200;
+    position: absolute;
+    top: -19px;
+    right: -19px;
+    height: 16px;
+    width: 16px;
+  }
+}
