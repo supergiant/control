@@ -158,6 +158,8 @@ func (s *CreateInstanceStep) Description() string {
 func (s *CreateInstanceStep) createKeys(ctx context.Context, keyService KeyService, config *steps.Config) ([]godo.DropletCreateSSHKey, error) {
 	var fingers []godo.DropletCreateSSHKey
 
+	logrus.Debugf("Step %s", CreateMachineStepName)
+
 	// Create key for provisioning
 	key, err := createKey(ctx, keyService,
 		util.MakeKeyName(config.DigitalOceanConfig.Name, false),

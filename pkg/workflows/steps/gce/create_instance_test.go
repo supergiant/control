@@ -3,16 +3,18 @@ package gce
 import (
 	"bytes"
 	"context"
+	"strings"
+	"testing"
+	"time"
+
 	"github.com/pborman/uuid"
 	"github.com/pkg/errors"
+	"google.golang.org/api/compute/v1"
+
 	"github.com/supergiant/control/pkg/profile"
 	"github.com/supergiant/control/pkg/sgerrors"
 	"github.com/supergiant/control/pkg/util"
 	"github.com/supergiant/control/pkg/workflows/steps"
-	"google.golang.org/api/compute/v1"
-	"strings"
-	"testing"
-	"time"
 )
 
 func TestCreateInstanceStep_Run(t *testing.T) {

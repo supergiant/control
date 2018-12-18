@@ -72,6 +72,8 @@ func NewCreateInstanceStep(period, timeout time.Duration) (*CreateInstanceStep, 
 
 func (s *CreateInstanceStep) Run(ctx context.Context, output io.Writer,
 	config *steps.Config) error {
+	logrus.Debugf("Step %s", CreateInstanceStepName)
+
 	svc, err := s.getComputeSvc(ctx, config.GCEConfig)
 
 	if err != nil {
