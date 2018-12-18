@@ -515,7 +515,8 @@ func NewConfigFromKube(profile *profile.Profile, k *model.Kube) *Config {
 		CloudAccountName: k.AccountName,
 
 		nodeChan:      make(chan node.Node, len(profile.MasterProfiles)+len(profile.NodesProfiles)),
-		kubeStateChan: make(chan model.KubeState, 2),
+		kubeStateChan: make(chan model.KubeState, 5),
+		configChan:    make(chan *Config),
 	}
 }
 

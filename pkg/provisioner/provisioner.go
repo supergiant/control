@@ -247,7 +247,6 @@ func (tp *TaskProvisioner) provision(ctx context.Context,
 
 		if preProvisionErr := tp.preProvision(ctx, preProvisionTask[0], config); preProvisionErr != nil {
 			logrus.Errorf("Pre provisioning cluster %v", preProvisionErr)
-			config = preProvisionTask[0].Config
 			return
 		}
 
@@ -373,12 +372,14 @@ func (tp *TaskProvisioner) preProvision(ctx context.Context, preProvisionTask *w
 			preProvisionTask.ID, err)
 		config.KubeStateChan() <- model.StateFailed
 	} else {
-		// Update kube state
-		config.KubeStateChan() <- model.StateProvisioning
-		// Update cloud spec
-		config.ConfigChan() <- preProvisionTask.Config
 		logrus.Infof("pre provision %s has finished", preProvisionTask.ID)
+		// Update kube state
+		logrus.Debug("update kube state")
+		config.KubeStateChan() <- model.StateProvisioning
 	}
+
+	logrus.Debug("update kube config")
+	config.ConfigChan() <- preProvisionTask.Config
 
 	return err
 }
@@ -540,7 +541,7 @@ func (tp *TaskProvisioner) buildInitialCluster(ctx context.Context,
 
 	cluster := &model.Kube{
 		ID:                 config.ClusterID,
-		State:              model.StateProvisioning,
+		State:              model.StatePrepare,
 		Name:               config.ClusterName,
 		Provider:           profile.Provider,
 		AccountName:        config.CloudAccountName,
@@ -723,7 +724,7 @@ func (tp *TaskProvisioner) monitorClusterState(ctx context.Context,
 				continue
 			}
 		case config := <-configChan:
-			logrus.Debugf("monitor: get kube %s", clusterID)
+			logrus.Debugf("update kube %s with config %v", clusterID, config)
 			k, err := tp.kubeService.Get(ctx, clusterID)
 
 			if err != nil {

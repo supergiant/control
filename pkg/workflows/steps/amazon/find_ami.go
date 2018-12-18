@@ -70,6 +70,7 @@ func (s *FindAMIStep) Run(ctx context.Context, w io.Writer, cfg *steps.Config) e
 			"supported image", s.Name()))
 	}
 
+	logrus.Debugf("Use image id %s", imageID)
 	cfg.AWSConfig.ImageID = imageID
 
 	return nil

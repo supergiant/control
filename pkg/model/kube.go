@@ -9,6 +9,7 @@ import (
 type KubeState string
 
 const (
+	StatePrepare KubeState = "prepare"
 	StateProvisioning KubeState = "provisioning"
 	StateFailed       KubeState = "failed"
 	StateOperational  KubeState = "operational"
