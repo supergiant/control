@@ -165,11 +165,12 @@ func (tp *TaskProvisioner) ProvisionNodes(parentContext context.Context, nodePro
 
 		// Take node workflow for the provider
 		t, err := workflows.NewTask(providerWorkflowSet.ProvisionNode, tp.repository)
-		tasks = append(tasks, t.ID)
 
 		if err != nil {
 			return nil, errors.Wrap(sgerrors.ErrNotFound, "workflow")
 		}
+
+		tasks = append(tasks, t.ID)
 
 		fileName := util.MakeFileName(t.ID)
 		writer, err := tp.getWriter(fileName)
