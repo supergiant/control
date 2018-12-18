@@ -61,5 +61,5 @@ func (s *DeleteMachineStep) Depends() []string {
 }
 
 func (s *DeleteMachineStep) Description() string {
-	return ""
+	return "delete digital ocean instance"
 }
