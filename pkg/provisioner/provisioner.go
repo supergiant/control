@@ -236,6 +236,7 @@ func (tp *TaskProvisioner) RestartClusterProvisioning(parentCtx context.Context,
 	return nil
 }
 
+// provision do actual provisioning of master and worker nodes
 func (tp *TaskProvisioner) provision(ctx context.Context,
 	taskMap map[string][]*workflows.Task, clusterProfile *profile.Profile,
 	config *steps.Config) {
