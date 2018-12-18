@@ -9,7 +9,7 @@ import (
 
 	"github.com/coreos/etcd/clientv3"
 	"github.com/stretchr/testify/require"
-
+	"github.com/supergiant/control/pkg/sgerrors"
 	"github.com/supergiant/control/pkg/storage"
 	"github.com/supergiant/control/pkg/testutils/assert"
 )
@@ -67,7 +67,7 @@ func TestStorageE2E(t *testing.T) {
 	require.Empty(t, res)
 
 	x, err := kv.Get(ctx, testPrefix, "NO_SUCH_KEY")
-	require.NoError(t, err)
+	require.EqualError(t, sgerrors.ErrNotFound, err.Error())
 	require.Nil(t, x)
 
 	resultSlice, err := kv.GetAll(ctx, "NO_SUCH_PREFIX")
