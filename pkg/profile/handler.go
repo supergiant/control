@@ -32,11 +32,6 @@ func (h *Handler) GetProfile(w http.ResponseWriter, r *http.Request) {
 	vars := mux.Vars(r)
 	profileId := vars["id"]
 
-	if profileId == "" {
-		http.NotFound(w, r)
-		return
-	}
-
 	kubeProfile, err := h.service.Get(r.Context(), profileId)
 	if err != nil {
 		if sgerrors.IsNotFound(err) {
