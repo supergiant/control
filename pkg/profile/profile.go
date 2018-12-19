@@ -9,7 +9,7 @@ type Profile struct {
 	NodesProfiles  []NodeProfile `json:"nodesProfiles" valid:"-"`
 
 	// StaticAuth represents tokens and basic authentication credentials that
-	// would be set to profile-apiserver on start.
+	// would be set to kube-apiserver on start.
 	StaticAuth StaticAuth `json:"staticAuth" valid:"-"`
 
 	// TODO: get rid of its usage
