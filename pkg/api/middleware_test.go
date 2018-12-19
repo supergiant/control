@@ -1,7 +1,6 @@
 package api
 
 import (
-	"fmt"
 	"net/http"
 	"net/http/httptest"
 	"strings"
@@ -11,6 +10,7 @@ import (
 	"github.com/dgrijalva/jwt-go"
 	"github.com/gorilla/mux"
 
+	"fmt"
 	sgjwt "github.com/supergiant/control/pkg/jwt"
 )
 
@@ -20,16 +20,17 @@ func TestAuthMiddleware(t *testing.T) {
 		err          error
 		expectedCode int
 		authHeader   string
+		query        string
 		userId       string
 		issuer       func(string) (string, error)
 	}{
 		{
-			"token ok",
-			nil,
-			http.StatusOK,
-			"Bearer %s",
-			"login",
-			func(userId string) (string, error) {
+			description:  "token ok",
+			err:          nil,
+			expectedCode: http.StatusOK,
+			authHeader:   "Bearer %s",
+			userId:       "login",
+			issuer: func(userId string) (string, error) {
 				token := jwt.NewWithClaims(jwt.SigningMethodHS512, jwt.MapClaims{
 					"accesses":   []string{"edit", "view"},
 					"user_id":    userId,
@@ -47,12 +48,35 @@ func TestAuthMiddleware(t *testing.T) {
 			},
 		},
 		{
-			"token expired",
-			nil,
-			http.StatusForbidden,
-			"Bearer %s",
-			"",
-			func(userId string) (string, error) {
+			description:  "token from query",
+			err:          nil,
+			expectedCode: http.StatusOK,
+			userId:       "login",
+			query:        "/url?token=%s",
+			issuer: func(userId string) (string, error) {
+				token := jwt.NewWithClaims(jwt.SigningMethodHS512, jwt.MapClaims{
+					"accesses":   []string{"edit", "view"},
+					"user_id":    userId,
+					"issued_at":  time.Now().Unix(),
+					"expires_at": time.Now().Unix() + 600,
+				})
+
+				tokenString, err := token.SignedString([]byte("secret"))
+
+				if err != nil {
+					return "", err
+				}
+
+				return tokenString, nil
+			},
+		},
+		{
+			description:  "token expired",
+			err:          nil,
+			expectedCode: http.StatusForbidden,
+			authHeader:   "Bearer %s",
+			userId:       "",
+			issuer: func(userId string) (string, error) {
 				token := jwt.NewWithClaims(jwt.SigningMethodHS512, jwt.MapClaims{
 					"accesses":   []string{"edit", "view"},
 					"user_id":    userId,
@@ -70,12 +94,11 @@ func TestAuthMiddleware(t *testing.T) {
 			},
 		},
 		{
-			"user id empty",
-			nil,
-			http.StatusForbidden,
-			"Bearer %s",
-			"",
-			func(userId string) (string, error) {
+			description:  "user id empty",
+			err:          nil,
+			expectedCode: http.StatusForbidden,
+			authHeader:   "Bearer %s",
+			issuer: func(userId string) (string, error) {
 				token := jwt.NewWithClaims(jwt.SigningMethodHS512, jwt.MapClaims{
 					"accesses":   []string{"edit", "view"},
 					"user_id":    userId,
@@ -93,24 +116,33 @@ func TestAuthMiddleware(t *testing.T) {
 			},
 		},
 		{
-			"empty header",
-			nil,
-			http.StatusForbidden,
-			"",
-			"root",
-			func(userId string) (string, error) {
+			description:  "no token provided",
+			err:          nil,
+			expectedCode: http.StatusForbidden,
+			userId:       "root",
+			issuer: func(userId string) (string, error) {
 				return "", nil
 			},
 		},
 		{
-			"bad claims",
-			nil,
-			http.StatusForbidden,
-			"",
-			"root",
-			func(userId string) (string, error) {
+			description:  "no enough data in token",
+			err:          nil,
+			expectedCode: http.StatusForbidden,
+			userId:       "root",
+			authHeader:   "%s",
+			issuer: func(userId string) (string, error) {
+				return "", nil
+			},
+		},
+		{
+			description:  "bad claims",
+			err:          nil,
+			expectedCode: http.StatusForbidden,
+			userId:       "root",
+			authHeader:   "Bearer %s",
+			issuer: func(userId string) (string, error) {
 				token := jwt.NewWithClaims(jwt.SigningMethodHS512, jwt.MapClaims{
-					"user_id": 42,
+					"user_id": "user",
 				})
 
 				tokenString, err := token.SignedString([]byte("secret"))
@@ -127,11 +159,22 @@ func TestAuthMiddleware(t *testing.T) {
 	ts := sgjwt.NewTokenService(60, []byte("secret"))
 
 	for _, testCase := range testCases {
-		tokenString, _ := ts.Issue(testCase.userId)
+		t.Log(testCase.description)
+		tokenString, _ := testCase.issuer(testCase.userId)
+
+		url := ""
+
+		if testCase.query != "" {
+			url = fmt.Sprintf(testCase.query, tokenString)
+		}
 
 		rec := httptest.NewRecorder()
-		req, err := http.NewRequest("", "", nil)
-		req.Header.Set("Authorization", fmt.Sprintf(testCase.authHeader, tokenString))
+		req, err := http.NewRequest(http.MethodGet, url, nil)
+
+		if testCase.authHeader != "" {
+			req.Header.Set("Authorization",
+				fmt.Sprintf(testCase.authHeader, tokenString))
+		}
 
 		if err != nil {
 			t.Error(err)
@@ -148,6 +191,7 @@ func TestAuthMiddleware(t *testing.T) {
 		if rec.Code != testCase.expectedCode {
 			t.Errorf("Wrong response code expected %d actual %d", testCase.expectedCode, rec.Code)
 		}
+
 	}
 }
 
