@@ -16,6 +16,7 @@ import (
 	"github.com/supergiant/control/pkg/node"
 	"github.com/supergiant/control/pkg/util"
 	"github.com/supergiant/control/pkg/workflows/steps"
+	"github.com/supergiant/control/pkg/sgerrors"
 )
 
 type CreateInstanceStep struct {
@@ -132,7 +133,7 @@ func (s *CreateInstanceStep) Run(ctx context.Context, output io.Writer, config *
 				return nil
 			}
 		case <-after:
-			return ErrTimeoutExceeded
+			return sgerrors.ErrTimeoutExceeded
 		}
 	}
 
@@ -157,6 +158,8 @@ func (s *CreateInstanceStep) Description() string {
 
 func (s *CreateInstanceStep) createKeys(ctx context.Context, keyService KeyService, config *steps.Config) ([]godo.DropletCreateSSHKey, error) {
 	var fingers []godo.DropletCreateSSHKey
+
+	logrus.Debugf("Step %s", CreateMachineStepName)
 
 	// Create key for provisioning
 	key, err := createKey(ctx, keyService,

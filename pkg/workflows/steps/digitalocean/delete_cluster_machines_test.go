@@ -134,3 +134,34 @@ func TestStepDeleteCluster_Rollback(t *testing.T) {
 		t.Errorf("unexpected error while rollback %v", err)
 	}
 }
+
+func TestDeleteMachinesStep_Description(t *testing.T) {
+	s := DeleteMachinesStep{}
+
+	if desc := s.Description(); desc != "delete digital ocean cluster" {
+		t.Errorf("Wrong description expected " +
+			"delete digital ocean cluster actual %s", desc)
+	}
+}
+
+func TestNewDeletemachinesStep(t *testing.T) {
+	timeout := time.Nanosecond
+	step := NewDeletemachinesStep(timeout)
+
+	if step == nil {
+		t.Errorf("Step must not be nil")
+	}
+
+	if step.timeout != timeout {
+		t.Errorf("Wrong timeout expected %v actual %v",
+			timeout, step.timeout)
+	}
+
+	if step.getDeleteService == nil {
+		t.Errorf("Get delete service must not be nil")
+	}
+
+	if svc := step.getDeleteService("token"); svc == nil {
+		t.Errorf("Service must be nil")
+	}
+}

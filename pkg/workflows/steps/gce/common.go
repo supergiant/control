@@ -8,10 +8,20 @@ import (
 	"google.golang.org/api/dns/v1"
 
 	"github.com/supergiant/control/pkg/workflows/steps"
+	"time"
 )
 
+type computeService struct {
+	getFromFamily       func(context.Context, steps.GCEConfig) (*compute.Image, error)
+	getMachineTypes     func(context.Context, steps.GCEConfig) (*compute.MachineType, error)
+	insertInstance      func(context.Context, steps.GCEConfig, *compute.Instance) (*compute.Operation, error)
+	getInstance         func(context.Context, steps.GCEConfig, string) (*compute.Instance, error)
+	setInstanceMetadata func(context.Context, steps.GCEConfig, string, *compute.Metadata) (*compute.Operation, error)
+	deleteInstance      func(string, string, string) (*compute.Operation, error)
+}
+
 func Init() {
-	createInstance, _ := NewCreateInstanceStep()
+	createInstance, _ := NewCreateInstanceStep(time.Second*10, time.Minute*1)
 	deleteCluster, _ := NewDeleteClusterStep()
 	deleteNode, _ := NewDeleteNodeStep()
 

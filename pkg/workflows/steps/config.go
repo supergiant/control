@@ -278,6 +278,7 @@ func NewConfig(clusterName, clusterToken, cloudAccountName string, profile profi
 		},
 		GCEConfig: GCEConfig{
 			AvailabilityZone: profile.Zone,
+			ImageFamily: "ubuntu-1604-lts",
 		},
 		OSConfig:     OSConfig{},
 		PacketConfig: PacketConfig{},

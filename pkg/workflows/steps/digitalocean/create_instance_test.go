@@ -34,6 +34,10 @@ func TestNewCreateInstanceStep(t *testing.T) {
 	if step.getServices == nil {
 		t.Errorf("get services must not be nil")
 	}
+
+	if client, err := step.getServices("access token"); err == nil {
+		t.Errorf("Unexpected values %v %v", client, err)
+	}
 }
 
 func TestCreateInstanceStep_Rollback(t *testing.T) {
@@ -62,7 +66,7 @@ func TestCreateInstanceStep_Name(t *testing.T) {
 	}
 }
 
-func TestDeleteMachinesStep_Description(t *testing.T) {
+func TestCreateInstanceStep_Description(t *testing.T) {
 	step := NewCreateInstanceStep(time.Second, time.Second)
 
 	if step.Description() != "Create instance in Digital Ocean" {
@@ -73,26 +77,41 @@ func TestDeleteMachinesStep_Description(t *testing.T) {
 
 func TestCreateInstanceStep_Run(t *testing.T) {
 	testCases := []struct {
+		description string
 		createKey    *godo.Key
 		createKeyErr error
 		droplet      *godo.Droplet
-		dropletErr   error
+		createErr    error
+		getErr       error
 
+		dropletTimeout time.Duration
+		period         time.Duration
+
+		isMaster    bool
 		expectError bool
 	}{
 		{
-			createKeyErr: errors.New("error creating key"),
-			expectError:  true,
+			description: "create key error",
+			dropletTimeout: time.Minute,
+			period:         time.Second,
+			createKeyErr:   errors.New("error creating key"),
+			expectError:    true,
 		},
 		{
+			description: "create droplet error",
+			dropletTimeout: time.Minute,
+			period:         time.Second,
 			createKey: &godo.Key{
 				ID: 1234,
 			},
 			createKeyErr: nil,
-			dropletErr:   errors.New("error creating droplet"),
+			createErr:    errors.New("error creating droplet"),
 			expectError:  true,
 		},
 		{
+			description: "timeout exceed",
+			dropletTimeout: time.Nanosecond,
+			period:         time.Nanosecond * 2,
 			createKey: &godo.Key{
 				ID: 1234,
 			},
@@ -113,12 +132,95 @@ func TestCreateInstanceStep_Run(t *testing.T) {
 					},
 				},
 			},
-			dropletErr:  nil,
+			expectError: true,
+		},
+		{
+			description: "fail on master get",
+			dropletTimeout: time.Minute,
+			period:         time.Second,
+			createKey: &godo.Key{
+				ID: 1234,
+			},
+			createKeyErr: nil,
+			droplet: &godo.Droplet{
+				ID:     5678,
+				Status: "active",
+				Networks: &godo.Networks{
+					V4: []godo.NetworkV4{
+						{
+							Type:      "public",
+							IPAddress: "1.2.3.4",
+						},
+						{
+							Type:      "private",
+							IPAddress: "5.6.7.8",
+						},
+					},
+				},
+			},
+			isMaster:    true,
+			getErr:      errors.New("get error"),
+			expectError: true,
+		},
+		{
+			description: "fail on master create",
+			dropletTimeout: time.Minute,
+			period:         time.Second,
+			createKey: &godo.Key{
+				ID: 1234,
+			},
+			createKeyErr: nil,
+			droplet: &godo.Droplet{
+				ID:     5678,
+				Status: "active",
+				Networks: &godo.Networks{
+					V4: []godo.NetworkV4{
+						{
+							Type:      "public",
+							IPAddress: "1.2.3.4",
+						},
+						{
+							Type:      "private",
+							IPAddress: "5.6.7.8",
+						},
+					},
+				},
+			},
+			isMaster:    true,
+			createErr:   nil,
+			expectError: false,
+		},
+		{
+			description: "success",
+			dropletTimeout: time.Minute,
+			period:         time.Second,
+			createKey: &godo.Key{
+				ID: 1234,
+			},
+			createKeyErr: nil,
+			droplet: &godo.Droplet{
+				ID:     5678,
+				Status: "active",
+				Networks: &godo.Networks{
+					V4: []godo.NetworkV4{
+						{
+							Type:      "public",
+							IPAddress: "1.2.3.4",
+						},
+						{
+							Type:      "private",
+							IPAddress: "5.6.7.8",
+						},
+					},
+				},
+			},
+			createErr:   nil,
 			expectError: false,
 		},
 	}
 
 	for _, testCase := range testCases {
+		t.Log(testCase.description)
 		keySvc := &mockKeyService{
 			key: testCase.createKey,
 			resp: &godo.Response{
@@ -132,12 +234,13 @@ func TestCreateInstanceStep_Run(t *testing.T) {
 			resp: &godo.Response{
 				Response: &http.Response{},
 			},
-			err: testCase.dropletErr,
+			createErr: testCase.createErr,
+			getErr:    testCase.getErr,
 		}
 
 		step := &CreateInstanceStep{
-			CheckPeriod:    time.Second * 1,
-			DropletTimeout: time.Minute * 1,
+			CheckPeriod:    testCase.period,
+			DropletTimeout: testCase.dropletTimeout,
 			getServices: func(accessToken string) (DropletService, KeyService) {
 				return dropletSvc, keySvc
 			},
@@ -149,7 +252,7 @@ func TestCreateInstanceStep_Run(t *testing.T) {
 			})
 		cfg.ClusterID = uuid.New()
 		cfg.TaskID = uuid.New()
-		cfg.IsMaster = true
+		cfg.IsMaster = testCase.isMaster
 		err := step.Run(context.Background(), &buffer.Buffer{}, cfg)
 
 		if testCase.expectError && err == nil {

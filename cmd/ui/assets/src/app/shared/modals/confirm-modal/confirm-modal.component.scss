@@ -5,9 +5,15 @@
 :host {
   @include font-weignt;
 
+  .mat-dialog-actions {
+    display: flex;
+    justify-content: space-between;
+  }
+
   button {
     @include font-weignt;
     outline: none;
+    margin: 0;
   }
 
 }
