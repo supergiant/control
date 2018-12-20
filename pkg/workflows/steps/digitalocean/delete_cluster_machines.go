@@ -62,5 +62,5 @@ func (s *DeleteMachinesStep) Depends() []string {
 }
 
 func (s *DeleteMachinesStep) Description() string {
-	return ""
+	return "delete digital ocean cluster"
 }
