@@ -1,7 +1,7 @@
 <div class="new-clusters-wrapper">
   <h1>Create Kubernetes Cluster</h1>
 
-  <mat-horizontal-stepper *ngIf="availableCloudAccounts?.length > 0"
+  <mat-horizontal-stepper *ngIf="(availableCloudAccounts$ | async)?.length > 0"
                           [linear]="true"
                           #stepper>
 
@@ -33,7 +33,7 @@
                         (selectionChange)="selectCloudAccount($event.value)"
                         formControlName="cloudAccount"
                         required>
-              <mat-option *ngFor="let account of availableCloudAccounts"
+              <mat-option *ngFor="let account of (availableCloudAccounts$ | async)"
                           [value]="account">{{ account.name }}</mat-option>
             </mat-select>
           </mat-form-field>
@@ -50,7 +50,6 @@
         </form>
 
         <div class="step-actions">
-          <!-- <button mat-raised-button class="secondary">LOAD PROFILE</button> -->
           <button mat-raised-button
                   class="secondary"
                   matStepperNext>NEXT
@@ -635,7 +634,7 @@
   </mat-step>
 </mat-horizontal-stepper>
 
-  <div *ngIf="availableCloudAccounts?.length == 0">
+  <div *ngIf="(availableCloudAccounts$ | async)?.length === 0">
     <div class="no-cloud-accounts">
       <h2>You have no cloud accounts linked to Supergiant</h2>
       <p>Link an AWS or Digital Ocean cloud account and have a Supergiant cluster up in minutes</p>
