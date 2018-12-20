@@ -1,4 +1,4 @@
-export const CLOUD_ACCOUNTS_MOCK = [{
+export const CLOUD_ACCOUNTS_MOCK = [ {
   name: 'nick-DO-acc',
   provider: 'digitalocean',
   credentials: {
@@ -22,4 +22,80 @@ export const CLOUD_ACCOUNTS_MOCK = [{
     token_uri: 'https://oauth2.googleapis.com/token',
     type: 'service_account',
   },
-}];
+} ];
+
+
+export const CLUSTERS_LIST_MOCK = [
+  {
+    'id': '768b61d5',
+    'state': 'operational',
+    'name': 'asdf',
+    'provider': 'digitalocean',
+    'rbacEnabled': true,
+    'accountName': 'nick-DO-acc',
+    'region': 'fra1',
+    'zone': '',
+    'apiPort': '',
+    'auth': {
+      'username': 'root',
+      'token': '1234',
+      'caKey': 'xxx',
+      'caCert': 'xxx',
+      'adminCert': 'xxx',
+      'adminKey': 'xxx',
+    },
+    'sshUser': 'root',
+    'sshKey': 'xxx',
+    'bootstrapPublicKey': 'xxx',
+    'bootstrapPrivateKey': 'xxx',
+    'user': 'root',
+    'password': '1234',
+    'arch': 'amd64',
+    'operatingSystem': 'linux',
+    'operatingSystemVersion': 'xenial',
+    'dockerVersion': '17.06.0',
+    'K8SVersion': '1.11.5',
+    'helmVersion': '2.11.0',
+    'networking': {
+      'manager': '0.10.0',
+      'version': '0.10.0',
+      'type': 'vxlan',
+      'cidr': '10.0.0.0/16',
+    },
+    'subnets': null,
+    'cloudSpec': {},
+    'masters': {
+      'asdf-master-862c': {
+        'id': '122919495',
+        'taskId': 'xxx',
+        'role': 'master',
+        'createdAt': 0,
+        'provider': 'digitalocean',
+        'region': 'fra1',
+        'size': '1gb',
+        'publicIp': '68.183.214.160',
+        'privateIp': '10.135.8.93',
+        'state': 'active',
+        'name': 'asdf-master-862c',
+      },
+    },
+    'nodes': {
+      'asdf-node-8ba6': {
+        'id': '122919912',
+        'taskId': '8ba6410f-1f3f-495c-915f-bbf914bc5723',
+        'role': 'node',
+        'createdAt': 0,
+        'provider': 'digitalocean',
+        'region': 'fra1',
+        'size': '1gb',
+        'publicIp': '142.93.163.205',
+        'privateIp': '10.135.124.182',
+        'state': 'active',
+        'name': 'asdf-node-8ba6',
+      },
+    },
+    'tasks': [
+      '768b61d5-229b-4667-879e-5720807c8522',
+    ],
+  },
+];
