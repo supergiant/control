@@ -113,9 +113,9 @@ func TestFillCloudAccountCredentials(t *testing.T) {
 				Credentials: map[string]string{
 					"projectId":   "ordinal-case-222023",
 					"privateKey":  "-----BEGIN PRIVATE KEY-----\n\n-----END PRIVATE KEY-----\n",
-					"clientEmail": "test-268@ordinal-case-222023.iam.gserviceaccount.com",
+					"clientEmail": "myemail@gmail.comn",
 					"tokenURI":    "https://oauth2.googleapis.com/token",
-					"publicKey":   "ssh-rsa  glebstepanov1992@gmail.com",
+					"publicKey":   "ssh-rsa  myemail@gmail.com",
 				},
 			},
 			err: nil,
