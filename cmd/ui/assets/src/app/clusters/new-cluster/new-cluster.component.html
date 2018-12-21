@@ -204,9 +204,17 @@
           <mat-form-field [ngClass]="{ 'regionsLoading': regionsLoading }">
             <mat-select placeholder="Select a Region"
                         formControlName="region"
+                        (openedChange)="regionsFilter = ''"
                         (selectionChange)="selectRegion($event.value)"
                         required>
-              <mat-option *ngFor="let r of availableRegions?.regions"
+              <input class="select-filter"
+                     matInput
+                     type="text"
+                     placeholder="Filter regions..."
+                     [(ngModel)]="regionsFilter"
+                     [ngModelOptions]="{ standalone: true }"
+                     autofocus>
+              <mat-option *ngFor="let r of availableRegions?.regions | callback: regionsFilterCallback"
                           [value]="r">{{ r.name }}</mat-option>
             </mat-select>
           </mat-form-field>
@@ -221,9 +229,17 @@
             <mat-form-field [ngClass]="{ 'regionsLoading': regionsLoading }">
               <mat-select placeholder="Select a Region"
                           formControlName="region"
+                          (openedChange)="regionsFilter = ''"
                           (selectionChange)="selectRegion($event.value)"
                           required>
-                <mat-option *ngFor="let r of availableRegions?.regions"
+                <input class="select-filter"
+                       matInput
+                       type="text"
+                       placeholder="Filter regions..."
+                       [(ngModel)]="regionsFilter"
+                       [ngModelOptions]="{ standalone: true }"
+                       autofocus>
+                <mat-option *ngFor="let r of availableRegions?.regions | callback: regionsFilterCallback"
                             [value]="r">{{ r.name }}</mat-option>
               </mat-select>
             </mat-form-field>
@@ -283,6 +299,7 @@
         </form>
       </ng-container>
 
+      <!-- gce -->
       <ng-container *ngIf="selectedCloudAccount?.provider == 'gce'">
         <form [formGroup]="providerConfig"
               class="gce-config">
@@ -290,9 +307,17 @@
             <mat-form-field [ngClass]="{ 'regionsLoading': regionsLoading }">
               <mat-select placeholder="Select a Region"
                           formControlName="region"
+                          (openedChange)="regionsFilter = ''"
                           (selectionChange)="selectRegion($event.value)"
                           required>
-                <mat-option *ngFor="let r of availableRegions?.regions"
+                <input class="select-filter"
+                       matInput
+                       type="text"
+                       placeholder="Filter regions..."
+                       [(ngModel)]="regionsFilter"
+                       [ngModelOptions]="{ standalone: true }"
+                       autofocus>
+                <mat-option *ngFor="let r of availableRegions?.regions | callback: regionsFilterCallback"
                             [value]="r">{{ r.name }}</mat-option>
               </mat-select>
             </mat-form-field>
@@ -349,13 +374,13 @@
                           [(value)]="m.machineType"
                           (openedChange)="machineTypesFilter = ''"
                           (selectionChange)="validateMachineConfig()">
-                <input class="machine-types-filter"
+                <input class="select-filter"
                        matInput
                        type="text"
                        placeholder="Filter machines..."
                        [(ngModel)]="machineTypesFilter"
                        autofocus>
-                <mat-option *ngFor="let type of availableMachineTypes | callback: filterCallback"
+                <mat-option *ngFor="let type of availableMachineTypes | callback: machineTypesFilterCallback"
                             [value]="type">{{ type }}</mat-option>
               </mat-select>
             </mat-form-field>
@@ -401,6 +426,7 @@
             <mat-form-field [ngClass]="{ 'azsLoading': azsLoading }">
               <mat-select placeholder="Select an Availability Zone"
                           [(value)]="m.availabilityZone"
+                          (openedChange)="machineTypesFilter = ''"
                           (selectionChange)="selectAz($event.value, idx)"
                           required>
                 <mat-option *ngFor="let a of availabilityZones"
@@ -417,13 +443,13 @@
                           [disabled]="!m.availableMachineTypes"
                           (openedChange)="machineTypesFilter = ''"
                           (selectionChange)="validateMachineConfig()">
-                <input class="machine-types-filter"
+                <input class="select-filter"
                        matInput
                        type="text"
                        placeholder="Filter machines..."
                        [(ngModel)]="machineTypesFilter"
                        autofocus>
-                <mat-option *ngFor="let type of m.availableMachineTypes | callback: filterCallback"
+                <mat-option *ngFor="let type of m.availableMachineTypes | callback: machineTypesFilterCallback"
                             [value]="type">
                   {{ type }}
                 </mat-option>
@@ -471,6 +497,7 @@
             <mat-form-field [ngClass]="{ 'azsLoading': azsLoading }">
               <mat-select placeholder="Select an Availability Zone"
                           [(value)]="m.availabilityZone"
+                          (openedChange)="machineTypesFilter = ''"
                           (selectionChange)="selectAz($event.value, idx)"
                           required>
                 <mat-option *ngFor="let a of availabilityZones"
@@ -485,7 +512,13 @@
                           [(value)]="m.machineType"
                           [disabled]="!m.availableMachineTypes"
                           (selectionChange)="validateMachineConfig()">
-                <mat-option *ngFor="let type of m.availableMachineTypes"
+                <input class="select-filter"
+                       matInput
+                       type="text"
+                       placeholder="Filter machines..."
+                       [(ngModel)]="machineTypesFilter"
+                       autofocus>
+                <mat-option *ngFor="let type of m.availableMachineTypes | callback: machineTypesFilterCallback"
                             [value]="type">
                   {{ type }}
                 </mat-option>

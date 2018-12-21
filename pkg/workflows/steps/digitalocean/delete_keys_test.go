@@ -127,6 +127,10 @@ func TestNewDeleteKeysStep(t *testing.T) {
 	if step.getKeyService == nil {
 		t.Errorf("Step value must not be nil")
 	}
+
+	if svc := step.getKeyService("token"); svc == nil {
+		t.Errorf("key service must be nil")
+	}
 }
 
 func TestDeleteKeysStep_Rollback(t *testing.T) {
