@@ -8,6 +8,8 @@
     "build": "ng build",
     "build:prod": "ng build --aot=true --prod=true  --buildOptimizer=true --extractCss=true --optimization=true --output-path ./dist",
     "test": "ng test --watch",
+    "test:debug": "npm run test -- --browsers=Chrome",
+    "test:coverage": "ng test --no-watch --code-coverage",
     "lint": "ng lint",
     "e2e": "ng e2e"
   },
