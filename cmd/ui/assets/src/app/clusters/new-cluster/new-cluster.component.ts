@@ -433,7 +433,7 @@ export class NewClusterComponent implements OnInit, OnDestroy {
     }
 
     return val.toLowerCase().indexOf(this.machineTypesFilter.toLowerCase()) > -1;
-  }
+  };
 
   regionsFilterCallback = (val) => {
     if (this.regionsFilter === '') {
@@ -441,5 +441,5 @@ export class NewClusterComponent implements OnInit, OnDestroy {
     }
 
     return val.name.toLowerCase().indexOf(this.regionsFilter.toLowerCase()) > -1;
-  }
+  };
 }
