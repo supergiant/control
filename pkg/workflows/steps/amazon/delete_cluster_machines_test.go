@@ -2,105 +2,157 @@ package amazon
 
 import (
 	"context"
-	"os"
+	"bytes"
+	"strings"
 	"testing"
 
 	"github.com/aws/aws-sdk-go/aws"
-	"github.com/aws/aws-sdk-go/aws/request"
 	"github.com/aws/aws-sdk-go/service/ec2"
-	"github.com/aws/aws-sdk-go/service/ec2/ec2iface"
 	"github.com/pkg/errors"
-	"github.com/stretchr/testify/require"
 
-	"github.com/supergiant/control/pkg/clouds"
-	"github.com/supergiant/control/pkg/profile"
 	"github.com/supergiant/control/pkg/workflows/steps"
-	"bytes"
+	"github.com/stretchr/testify/mock"
+	"github.com/aws/aws-sdk-go/service/ec2/ec2iface"
 )
 
-type FakeEC2DeleteCluster struct {
-	ec2iface.EC2API
+func TestDeleteClusterMachibesStep_Run(t *testing.T) {
+	testCases := []struct{
+		description string
 
-	instancesOutput  *ec2.DescribeInstancesOutput
-	terminatedOutput *ec2.TerminateInstancesOutput
-	err              error
-}
+		getSvcErr error
 
-func (f *FakeEC2DeleteCluster) DescribeInstancesWithContext(aws.Context, *ec2.DescribeInstancesInput, ...request.Option) (*ec2.DescribeInstancesOutput, error) {
-	return f.instancesOutput, f.err
-}
+		describeErr error
+		describeOutput *ec2.DescribeInstancesOutput
 
-func (f *FakeEC2DeleteCluster) TerminateInstancesWithContext(aws.Context, *ec2.TerminateInstancesInput, ...request.Option) (*ec2.TerminateInstancesOutput, error) {
-	return f.terminatedOutput, f.err
-}
-
-func TestDeleteClusterStep_Run(t *testing.T) {
-	tt := []struct {
-		fn     GetEC2Fn
-		err    error
-		awsCfg steps.AWSConfig
+		terminateErr error
+		errMsg string
 	}{
-		//No instances found
 		{
-			fn: func(config steps.AWSConfig) (ec2iface.EC2API, error) {
-				return &FakeEC2DeleteCluster{
-					instancesOutput: &ec2.DescribeInstancesOutput{
-						Reservations: []*ec2.Reservation{},
-					},
-				}, nil
-			},
-			err:    nil,
-			awsCfg: steps.AWSConfig{},
+			description: "get service error",
+			getSvcErr: errors.New("message1"),
+			errMsg: "message1",
 		},
 		{
-			fn: func(config steps.AWSConfig) (ec2iface.EC2API, error) {
-				return &FakeEC2DeleteCluster{
-					instancesOutput: &ec2.DescribeInstancesOutput{
-						Reservations: []*ec2.Reservation{
-							{
-								Instances: []*ec2.Instance{
-									{
-										InstanceId: aws.String("test"),
-									},
-								},
-							},
-						},
-					},
-					terminatedOutput: &ec2.TerminateInstancesOutput{
-						TerminatingInstances: []*ec2.InstanceStateChange{
-							{
-								InstanceId: aws.String("test"),
-							},
-						},
-					},
-				}, nil
+			description: "describe error",
+			describeErr: errors.New("message2"),
+			errMsg: "message2",
+		},
+		{
+			description: "reservation empty",
+			describeOutput: &ec2.DescribeInstancesOutput{
+				Reservations: []*ec2.Reservation{},
 			},
-			err:    nil,
-			awsCfg: steps.AWSConfig{},
+			terminateErr: errors.New("message3"),
+		},
+		{
+			description: "instance empty",
+			describeOutput: &ec2.DescribeInstancesOutput{
+				Reservations: []*ec2.Reservation{
+					{
+						Instances: []*ec2.Instance{},
+					},
+				},
+			},
+			terminateErr: errors.New("message3"),
+		},
+
+		{
+			description: "terminate error",
+			describeOutput: &ec2.DescribeInstancesOutput{
+				Reservations: []*ec2.Reservation{
+					{
+						Instances: []*ec2.Instance{
+							{
+								InstanceId: aws.String("instanceID"),
+							},
+						},
+					},
+				},
+			},
+			terminateErr: errors.New("message3"),
+			errMsg: "message3",
+		},
+		{
+			description: "success",
+			describeOutput: &ec2.DescribeInstancesOutput{
+				Reservations: []*ec2.Reservation{
+					{
+						Instances: []*ec2.Instance{
+							{
+								InstanceId: aws.String("instanceID"),
+							},
+						},
+					},
+				},
+			},
 		},
 	}
 
-	for i, tc := range tt {
-		cfg := steps.NewConfig("TEST", "", "TEST", profile.Profile{
-			Region:   "us-east-1",
-			Provider: clouds.AWS,
-		})
-		cfg.AWSConfig.Region = "us-east-1"
-		cfg.AWSConfig = tc.awsCfg
+	for _, testCase := range testCases {
+		t.Log(testCase.description)
+		svc := &mockInstanceDeleter{}
+		svc.On("DescribeInstancesWithContext", mock.Anything,
+			mock.Anything, mock.Anything).Return(testCase.describeOutput,
+			testCase.describeErr)
+		svc.On("TerminateInstancesWithContext",
+			mock.Anything, mock.Anything, mock.Anything).
+			Return(mock.Anything, testCase.terminateErr)
 
+		config := &steps.Config{}
 		step := DeleteClusterMachines{
-			GetEC2: tc.fn,
+			getSvc: func(steps.AWSConfig) (instanceDeleter, error) {
+				return svc, testCase.getSvcErr
+			},
 		}
 
-		err := step.Run(context.Background(), os.Stdout, cfg)
-		if tc.err == nil {
-			require.NoError(t, err, "TC%d, %v", i, err)
-		} else {
-			require.True(t, tc.err == errors.Cause(err), "TC%d, %v", i, err)
+		err := step.Run(context.Background(), &bytes.Buffer{}, config)
+
+		if err == nil && testCase.errMsg != "" {
+			t.Errorf("Error must not be nil")
 		}
 
+		if err != nil && !strings.Contains(err.Error(), testCase.errMsg) {
+			t.Errorf("Error message %s does not contain %s",
+				err.Error(), testCase.errMsg)
+		}
 	}
 }
+func TestNewDeleteClusterInstances(t *testing.T) {
+	s := NewDeleteClusterInstances(GetEC2)
+
+	if s == nil {
+		t.Error("Step must not be nil")
+	}
+
+	if s.getSvc == nil {
+		t.Error("getSvc must not be nil")
+	}
+
+	if api, err := s.getSvc(steps.AWSConfig{}); err != nil || api == nil {
+		t.Errorf("Unexpected values %v %v", api, err)
+	}
+}
+
+func TestNewDeleteClusterInstancesErr(t *testing.T) {
+	fn := func(steps.AWSConfig) (ec2iface.EC2API, error) {
+		return nil, errors.New("errorMessage")
+	}
+
+	s := NewDeleteClusterInstances(fn)
+
+	if s == nil {
+		t.Error("Step must not be nil")
+	}
+
+	if s.getSvc == nil {
+		t.Error("getSvc must not be nil")
+	}
+
+	if api, err := s.getSvc(steps.AWSConfig{}); err == nil || api != nil {
+		t.Errorf("Unexpected values %v %v", api, err)
+	}
+}
+
 
 func TestInitDeleteClusterMachines(t *testing.T) {
 	InitDeleteClusterMachines(GetEC2)
