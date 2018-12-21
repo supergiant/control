@@ -135,6 +135,10 @@ func GetWriter(name string) (io.WriteCloser, error) {
 }
 
 func LoadCloudSpecificDataFromKube(k *model.Kube, config *steps.Config) error {
+	if k == nil {
+		return sgerrors.ErrNilEntity
+	}
+
 	config.SshConfig.BootstrapPublicKey = string(k.BootstrapPublicKey)
 	config.SshConfig.BootstrapPrivateKey = string(k.BootstrapPrivateKey)
 	config.SshConfig.PublicKey = string(k.SshPublicKey)
