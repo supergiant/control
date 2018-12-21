@@ -46,7 +46,7 @@ export class NewClusterComponent implements OnInit, OnDestroy {
   machinesConfigValid: boolean;
   displayMachinesConfigWarning: boolean;
   provisioning = false;
-  nameAndCloudAccountConfig: FormGroup;
+  nameAndCloudAccountForm: FormGroup;
   clusterConfig: FormGroup;
   providerConfig: FormGroup;
   unavailableClusterNames = new Set();
@@ -70,7 +70,7 @@ export class NewClusterComponent implements OnInit, OnDestroy {
     );
 
 
-    this.nameAndCloudAccountConfig = this.formBuilder.group({
+    this.nameAndCloudAccountForm = this.formBuilder.group({
       name: ['', [
         Validators.required,
         this.uniqueClusterName(this.unavailableClusterNames),
@@ -97,7 +97,7 @@ export class NewClusterComponent implements OnInit, OnDestroy {
   }
 
   get name() {
-    return this.nameAndCloudAccountConfig.get('name');
+    return this.nameAndCloudAccountForm.get('name');
   }
 
   get cidr() {
@@ -124,13 +124,13 @@ export class NewClusterComponent implements OnInit, OnDestroy {
     const regionName1 = reg1.name.toLowerCase();
     const regionName2 = reg2.name.toLowerCase();
 
-    let comparison = 0;
     if (regionName1 > regionName2) {
-      comparison = 1;
+      return 1;
     } else if (regionName1 < regionName2) {
-      comparison = -1;
+      return -1;
     }
-    return comparison;
+
+    return 0;
   }
 
   createCluster() {
@@ -403,7 +403,7 @@ export class NewClusterComponent implements OnInit, OnDestroy {
     return (numberOfMasterProfiles) % 2 !== 0;
   }
 
-  machinesNext() {
+  nextStep() {
     this.validateMachineConfig();
 
     if (this.machinesConfigValid) {

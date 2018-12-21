@@ -13,9 +13,9 @@
       - https://github.com/angular/material2/issues/8997
     -->
     <mat-step label="Name and Cloud Account"
-              [stepControl]="nameAndCloudAccountConfig">
+              [stepControl]="nameAndCloudAccountForm">
       <div class="name-and-cloud-account">
-        <form [formGroup]="nameAndCloudAccountConfig">
+        <form [formGroup]="nameAndCloudAccountForm">
           <mat-form-field>
             <input matInput
                    type="text"
@@ -535,7 +535,7 @@
       </button>
       <button mat-raised-button
               class="secondary"
-              (click)="machinesNext()">NEXT
+              (click)="nextStep()">NEXT
       </button>
     </div>
   </mat-step>
