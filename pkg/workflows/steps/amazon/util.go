@@ -10,13 +10,14 @@ import (
 	"github.com/sirupsen/logrus"
 )
 
+var (
+	timeout  = time.Second * 10
+	attempts = 5
+	publicIP string
+)
+
 func FindOutboundIP(ctx context.Context, findExternalIP func() (string, error)) (string, error) {
-	var (
-		timeout  = time.Second * 10
-		attempts = 5
-		publicIP string
-		err      error
-	)
+	var err error
 
 	for i := 0; i < attempts; i++ {
 		select {
