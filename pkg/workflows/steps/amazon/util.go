@@ -12,8 +12,14 @@ import (
 
 var (
 	timeout  = time.Second * 10
+	serviceURLs = []string{
+		"http://checkip.amazonaws.com/",
+		"http://myexternalip.com/raw",
+	}
+
 	attempts = 5
 	publicIP string
+
 )
 
 func FindOutboundIP(ctx context.Context, findExternalIP func() (string, error)) (string, error) {
@@ -41,13 +47,9 @@ func FindOutboundIP(ctx context.Context, findExternalIP func() (string, error)) 
 }
 
 func findOutBoundIP() (string, error) {
-	serviceURLs := []string{
-		"http://checkip.amazonaws.com/",
-		"http://myexternalip.com/raw",
-	}
-
 	var (
 		publicIP string
+		resp 	*http.Response
 		err      error
 	)
 
@@ -56,7 +58,7 @@ func findOutBoundIP() (string, error) {
 		Timeout:   time.Second * 10,
 	}
 	for _, serviceURL := range serviceURLs {
-		resp, err := client.Get(serviceURL)
+		resp, err = client.Get(serviceURL)
 		if err != nil {
 			logrus.Debugf("error while accessing %s", serviceURL)
 			continue
