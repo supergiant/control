@@ -1102,6 +1102,7 @@ func (h *Handler) getServices(w http.ResponseWriter, r *http.Request) {
 		}
 	}
 
+	// TODO(stgeb): extract to func and set as a field to handler
 	serviceURL := fmt.Sprintf("https://%s/%s", masterNode.PublicIp, servicesUrl)
 	req, err := http.NewRequest(http.MethodGet, serviceURL, nil)
 	req.SetBasicAuth(k.User, k.Password)
