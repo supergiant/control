@@ -4,6 +4,7 @@ import (
 	"testing"
 
 	"github.com/stretchr/testify/require"
+	"strings"
 )
 
 var (
@@ -143,6 +144,90 @@ func TestNewPKI(t *testing.T) {
 
 		if err == nil && p == nil {
 			t.Errorf("pki bundle must not be nil")
+		}
+	}
+}
+
+func TestEncodeErr(t *testing.T) {
+	p := &Pair{}
+
+	pairPem, err := Encode(p)
+
+	if err != ErrEmptyPair {
+		t.Errorf("wrong error type expected %v actual %v",
+			ErrEmptyPair, err)
+	}
+
+	if pairPem != nil {
+		t.Errorf("pair per must be nil")
+	}
+}
+
+func TestEncodeSuccess(t *testing.T) {
+	crt, key, _ := newCertificateAuthority()
+	p := &Pair{
+		Cert: crt,
+		Key: key,
+	}
+
+	pairPem, err := Encode(p)
+
+	if err != nil {
+		t.Errorf("Unexpected error %v", err)
+	}
+
+	if pairPem == nil {
+		t.Errorf("pair per must not be nil")
+	}
+}
+
+func TestDecode(t *testing.T) {
+	testCases := []struct{
+		description string
+
+		cert []byte
+		key []byte
+
+		errMsg string
+	}{
+		{
+			description: "nil value",
+			errMsg: ErrEmptyPair.Error(),
+		},
+		{
+			description: "decode cert err",
+			cert: []byte(`cert`),
+			key: []byte(`key`),
+			errMsg: "decode pem",
+		},
+		{
+			description: "decode key err",
+			cert: testCACert,
+			key: []byte(`key`),
+			errMsg: "decode pem",
+		},
+		{
+			description: "success",
+			cert:testCACert,
+			key: testCAKey,
+		},
+	}
+
+	for _, testCase := range testCases {
+		p := &PairPEM{
+			Cert: testCase.cert,
+			Key: testCase.key,
+		}
+
+		_, err := Decode(p)
+
+		if err == nil && testCase.errMsg != "" {
+			t.Errorf("Error must not be nil")
+		}
+
+		if err != nil && !strings.Contains(err.Error(), testCase.errMsg) {
+			t.Errorf("error message %v does not contain %s",
+				err, testCase.errMsg)
 		}
 	}
 }
