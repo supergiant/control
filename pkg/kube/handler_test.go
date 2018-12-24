@@ -11,6 +11,9 @@ import (
 	"strings"
 	"testing"
 
+	core "k8s.io/api/core/v1"
+	meta "k8s.io/apimachinery/pkg/apis/meta/v1"
+
 	"github.com/gorilla/mux"
 	"github.com/pkg/errors"
 	"github.com/stretchr/testify/mock"
@@ -1864,10 +1867,10 @@ func TestGetServices(t *testing.T) {
 		getKube    *model.Kube
 
 		getServicesErr error
-		k8sServices    *k8SServices
+		k8sServices    *core.ServiceList
 
 		registerProxiesErr error
-		getProxiesErr      error
+		getProxies         map[string]*proxy.ServiceReverseProxy
 
 		expectedCode int
 	}{
@@ -1913,12 +1916,12 @@ func TestGetServices(t *testing.T) {
 					},
 				},
 			},
-			k8sServices:        &k8SServices{},
+			k8sServices:        &core.ServiceList{},
 			registerProxiesErr: errors.New("error"),
 			expectedCode:       http.StatusInternalServerError,
 		},
 		{
-			description: "success",
+			description: "success 1",
 
 			getKube: &model.Kube{
 				ID: "1234",
@@ -1928,7 +1931,108 @@ func TestGetServices(t *testing.T) {
 					},
 				},
 			},
-			k8sServices:   &k8SServices{},
+			k8sServices:   &core.ServiceList{
+				Items: []core.Service{
+					{
+						ObjectMeta: meta.ObjectMeta{
+							Labels: map[string]string{
+								"kubernetes.io/cluster-service": "false",
+							},
+						},
+						Spec: core.ServiceSpec{
+							Ports: []core.ServicePort{
+								{
+									Name: "http",
+									Protocol: "TCP",
+								},
+							},
+						},
+					},
+				},
+			},
+			getProxies: map[string]*proxy.ServiceReverseProxy{
+				"kubeID": {
+					ServingBase: "http:/10.20.30.40:9090",
+				},
+			},
+			expectedCode:  http.StatusOK,
+		},
+		{
+			description: "success 2",
+
+			getKube: &model.Kube{
+				ID: "1234",
+				Masters: map[string]*node.Node{
+					"key": {
+						ID: "key",
+					},
+				},
+			},
+			k8sServices:   &core.ServiceList{
+				Items: []core.Service{
+					{
+						ObjectMeta: meta.ObjectMeta{
+							Labels: map[string]string{
+								"kubernetes.io/cluster-service": "true",
+							},
+						},
+						Spec: core.ServiceSpec{
+							Ports: []core.ServicePort{
+								{
+									Name: "http",
+									Protocol: "TCP",
+								},
+							},
+						},
+					},
+				},
+			},
+			getProxies: map[string]*proxy.ServiceReverseProxy{
+				"kubeID": {
+					ServingBase: "http:/10.20.30.40:9090",
+				},
+			},
+			expectedCode:  http.StatusOK,
+		},
+		{
+			description: "success 3",
+
+			getKube: &model.Kube{
+				ID: "1234",
+				Masters: map[string]*node.Node{
+					"key": {
+						ID: "key",
+					},
+				},
+			},
+			k8sServices:   &core.ServiceList{
+				Items: []core.Service{
+					{
+						ObjectMeta: meta.ObjectMeta{
+							Labels: map[string]string{
+								"kubernetes.io/cluster-service": "true",
+							},
+						},
+						Spec: core.ServiceSpec{
+							Ports: []core.ServicePort{
+								{
+									Name: "other",
+									Protocol: "unknown",
+								},
+								{
+									Name: "http",
+									Protocol: "TCP",
+								},
+							},
+						},
+					},
+				},
+			},
+			getProxies: map[string]*proxy.ServiceReverseProxy{
+				"kubeID": {
+					ServingBase: "http:/10.20.30.40:9090",
+				},
+			},
 			expectedCode:  http.StatusOK,
 		},
 	}
@@ -1942,8 +2046,8 @@ func TestGetServices(t *testing.T) {
 		mockProxies.On("RegisterProxies",
 			mock.Anything).Return(testCase.registerProxiesErr)
 		mockProxies.On("GetProxies",
-			mock.Anything).Return(testCase.getProxiesErr)
-		getSvc := func(*model.Kube, string, string) (*k8SServices, error) {
+			mock.Anything).Return(testCase.getProxies)
+		getSvc := func(*model.Kube, string, string) (*core.ServiceList, error) {
 			return testCase.k8sServices, testCase.getServicesErr
 		}
 
