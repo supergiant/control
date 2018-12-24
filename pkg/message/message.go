@@ -5,8 +5,6 @@ import (
 	"fmt"
 	"net/http"
 
-	"github.com/sirupsen/logrus"
-
 	"github.com/supergiant/control/pkg/sgerrors"
 )
 
@@ -31,12 +29,7 @@ func New(userMessage string, devMessage string, code sgerrors.ErrorCode, moreInf
 	}
 }
 func SendMessage(w http.ResponseWriter, msg Message, status int) {
-	data, err := json.Marshal(msg)
-	if err != nil {
-		logrus.Errorf("failed to marshall message: %v", err)
-		http.Error(w, "", http.StatusInternalServerError)
-		return
-	}
+	data, _ := json.Marshal(msg)
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(status)
 	w.Write(data)
@@ -45,13 +38,7 @@ func SendMessage(w http.ResponseWriter, msg Message, status int) {
 func SendInvalidJSON(w http.ResponseWriter, err error) {
 	msg := New("User has sent data in malformed format", err.Error(), sgerrors.InvalidJSON, "")
 
-	data, err := json.Marshal(msg)
-	if err != nil {
-		logrus.Errorf("failed to marshall message: %v", err)
-		http.Error(w, "", http.StatusInternalServerError)
-		return
-	}
-
+	data, _ := json.Marshal(msg)
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(http.StatusBadRequest)
 	w.Write(data)
@@ -61,13 +48,7 @@ func SendInvalidJSON(w http.ResponseWriter, err error) {
 func SendValidationFailed(w http.ResponseWriter, err error) {
 	msg := New("Validation Failed", err.Error(), sgerrors.ValidationFailed, "")
 
-	data, err := json.Marshal(msg)
-	if err != nil {
-		logrus.Errorf("failed to marshall message: %v", err)
-		http.Error(w, "", http.StatusInternalServerError)
-		return
-	}
-
+	data, _ := json.Marshal(msg)
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(http.StatusBadRequest)
 	w.Write(data)
@@ -76,12 +57,7 @@ func SendValidationFailed(w http.ResponseWriter, err error) {
 func SendUnknownError(w http.ResponseWriter, err error) {
 	msg := New("Internal error occurred, please consult administrator", err.Error(), sgerrors.UnknownError, "")
 
-	data, err := json.Marshal(msg)
-	if err != nil {
-		logrus.Errorf("failed to marshall message: %v", err)
-		http.Error(w, "", http.StatusInternalServerError)
-		return
-	}
+	data, _ := json.Marshal(msg)
 
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(http.StatusInternalServerError)
@@ -91,12 +67,7 @@ func SendUnknownError(w http.ResponseWriter, err error) {
 func SendNotFound(w http.ResponseWriter, entityName string, err error) {
 	msg := New(fmt.Sprintf("No such %s", entityName), err.Error(), sgerrors.NotFound, "")
 
-	data, err := json.Marshal(msg)
-	if err != nil {
-		logrus.Errorf("failed to marshall message: %v", err)
-		http.Error(w, "", http.StatusInternalServerError)
-		return
-	}
+	data, _ := json.Marshal(msg)
 
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(http.StatusNotFound)
@@ -106,13 +77,7 @@ func SendNotFound(w http.ResponseWriter, entityName string, err error) {
 func SendAlreadyExists(w http.ResponseWriter, entityName string, err error) {
 	msg := New(fmt.Sprintf("%s already exists", entityName), err.Error(), sgerrors.AlreadyExists, "")
 
-	data, err := json.Marshal(msg)
-	if err != nil {
-		logrus.Errorf("failed to marshall message: %v", err)
-		http.Error(w, "", http.StatusInternalServerError)
-		return
-	}
-
+	data, _ := json.Marshal(msg)
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(http.StatusConflict)
 	w.Write(data)
@@ -122,12 +87,7 @@ func SendInvalidCredentials(w http.ResponseWriter, err error) {
 	msg := New("Credentials are bad for cloud provider",
 		err.Error(), sgerrors.InvalidCredentials, "")
 
-	data, err := json.Marshal(msg)
-	if err != nil {
-		logrus.Errorf("failed to marshall message: %v", err)
-		http.Error(w, "", http.StatusInternalServerError)
-		return
-	}
+	data, _ := json.Marshal(msg)
 
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(http.StatusBadRequest)
