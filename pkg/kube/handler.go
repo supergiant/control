@@ -147,6 +147,7 @@ type Handler struct {
 	repo            storage.Interface
 	getWriter       func(string) (io.WriteCloser, error)
 	getMetrics      func(string, *model.Kube) (*MetricResponse, error)
+	getK8sServices  func(*model.Kube, string, string) (*k8SServices, error)
 	proxies         proxy.Container
 }
 
@@ -233,6 +234,32 @@ func NewHandler(
 			cache.set(metricURI, metricResponse)
 
 			return metricResponse, nil
+		},
+		getK8sServices: func(k *model.Kube, servicesUrl, publicIP string) (*k8SServices, error) {
+			k8sServices := &k8SServices{}
+			serviceURL := fmt.Sprintf("https://%s/%s", publicIP, servicesUrl)
+			req, err := http.NewRequest(http.MethodGet, serviceURL, nil)
+			req.SetBasicAuth(k.User, k.Password)
+
+			tr := &http.Transport{
+				TLSClientConfig: &tls.Config{InsecureSkipVerify: true},
+			}
+			client := &http.Client{
+				Transport: tr,
+			}
+			resp, err := client.Do(req)
+
+			if err != nil {
+				return nil, err
+			}
+
+			err = json.NewDecoder(resp.Body).Decode(k8sServices)
+
+			if err != nil {
+				return nil, err
+			}
+
+			return k8sServices, nil
 		},
 		proxies: proxies,
 	}
@@ -1081,8 +1108,8 @@ func (h *Handler) getServices(w http.ResponseWriter, r *http.Request) {
 		servicesUrl = "api/v1/services"
 		kubeID      string
 		masterNode  *node.Node
-		k8sServices = &k8SServices{}
 	)
+
 	vars := mux.Vars(r)
 	kubeID = vars["kubeID"]
 
@@ -1096,35 +1123,23 @@ func (h *Handler) getServices(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	if len(k.Masters) == 0 {
+		message.SendNotFound(w, kubeID,
+			errors.New("no master node found"))
+		return
+	}
+
 	for key := range k.Masters {
 		if k.Masters[key] != nil {
 			masterNode = k.Masters[key]
 		}
 	}
 
-	// TODO(stgeb): extract to func and set as a field to handler
-	serviceURL := fmt.Sprintf("https://%s/%s", masterNode.PublicIp, servicesUrl)
-	req, err := http.NewRequest(http.MethodGet, serviceURL, nil)
-	req.SetBasicAuth(k.User, k.Password)
-
-	tr := &http.Transport{
-		TLSClientConfig: &tls.Config{InsecureSkipVerify: true},
-	}
-	client := &http.Client{
-		Transport: tr,
-	}
-	resp, err := client.Do(req)
+	k8sServices, err := h.getK8sServices(k,
+		servicesUrl, masterNode.PublicIp)
 
 	if err != nil {
 		message.SendUnknownError(w, err)
-		return
-	}
-
-	err = json.NewDecoder(resp.Body).Decode(k8sServices)
-
-	if err != nil {
-		logrus.Error(err)
-		message.SendInvalidJSON(w, err)
 		return
 	}
 
