@@ -53,7 +53,7 @@ func (s *Step) Name() string {
 }
 
 func (s *Step) Description() string {
-	return ""
+	return "Download kubectl"
 }
 
 func (s *Step) Depends() []string {
