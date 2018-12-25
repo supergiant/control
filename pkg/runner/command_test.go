@@ -29,10 +29,6 @@ func TestNewCommand(t *testing.T) {
 			script: "echo 'hello, world'",
 			err:    ErrNilWriter,
 		},
-		{
-			ctx: nil,
-			err: ErrNilContext,
-		},
 	}
 
 	for _, testCase := range testCases {
