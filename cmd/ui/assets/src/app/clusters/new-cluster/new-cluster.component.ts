@@ -2,16 +2,17 @@ import { Component, OnDestroy, OnInit, ViewEncapsulation, ViewChild }       from
 import { FormBuilder, FormGroup, Validators, ValidatorFn, AbstractControl } from '@angular/forms';
 import { Router }                                                           from '@angular/router';
 import { MatHorizontalStepper }                                             from '@angular/material';
-import { Subscription }                                                     from 'rxjs';
-import { Notifications }                from '../../shared/notifications/notifications.service';
-import { Supergiant }                   from '../../shared/supergiant/supergiant.service';
-import { NodeProfileService }           from "../node-profile.service";
-import { CLUSTER_OPTIONS }              from "./cluster-options.config";
+import { Subscription, Observable }                                         from 'rxjs';
+import { Notifications }                                                    from '../../shared/notifications/notifications.service';
+import { Supergiant }                                                       from '../../shared/supergiant/supergiant.service';
+import { NodeProfileService }                                               from '../node-profile.service';
+import { CLUSTER_OPTIONS }                                                  from './cluster-options.config';
 import {
   DEFAULT_MACHINE_SET,
-  BLANK_MACHINE_TEMPLATE
-}                                       from "app/clusters/new-cluster/new-cluster.component.config";
-import { sortDigitalOceanMachineTypes } from "app/clusters/new-cluster/new-cluster.helpers";
+  BLANK_MACHINE_TEMPLATE,
+}                                                                           from 'app/clusters/new-cluster/new-cluster.component.config';
+import { sortDigitalOceanMachineTypes }                                     from 'app/clusters/new-cluster/new-cluster.helpers';
+import { map }                                                              from 'rxjs/operators';
 
 // compiler hack
 declare var require: any;
@@ -21,13 +22,13 @@ const cidrRegex = require('cidr-regex');
   selector: 'app-new-cluster',
   templateUrl: './new-cluster.component.html',
   styleUrls: ['./new-cluster.component.scss'],
-  encapsulation: ViewEncapsulation.None
+  encapsulation: ViewEncapsulation.None,
 })
 export class NewClusterComponent implements OnInit, OnDestroy {
   subscriptions = new Subscription();
 
   clusterName: string;
-  availableCloudAccounts: Array<any>;
+  availableCloudAccounts$: Observable<any[]>;
   selectedCloudAccount: any;
   availableRegions: any;
   availableMachineTypes: Array<any>;
@@ -45,7 +46,7 @@ export class NewClusterComponent implements OnInit, OnDestroy {
   machinesConfigValid: boolean;
   displayMachinesConfigWarning: boolean;
   provisioning = false;
-  nameAndCloudAccountConfig: FormGroup;
+  nameAndCloudAccountForm: FormGroup;
   clusterConfig: FormGroup;
   providerConfig: FormGroup;
   unavailableClusterNames = new Set();
@@ -63,19 +64,60 @@ export class NewClusterComponent implements OnInit, OnDestroy {
   ) {
   }
 
-
-  getCloudAccounts() {
-    this.subscriptions.add(this.supergiant.CloudAccounts.get().subscribe(
-      (cloudAccounts) => {
-        this.availableCloudAccounts = cloudAccounts.sort();
-      })
+  ngOnInit() {
+    this.getClusters();
+    this.availableCloudAccounts$ = this.supergiant.CloudAccounts.get().pipe(
+      map(cloudAccounts => cloudAccounts.sort()),
     );
+
+
+    this.nameAndCloudAccountForm = this.formBuilder.group({
+      name: ['', [
+        Validators.required,
+        this.uniqueClusterName(this.unavailableClusterNames),
+        Validators.maxLength(12),
+        Validators.pattern('^[A-Za-z]([-A-Za-z0-9\-]*[A-Za-z0-9\-])?$')]],
+      cloudAccount: ['', Validators.required],
+    });
+
+    this.clusterConfig = this.formBuilder.group({
+      K8sVersion: ['1.11.5', Validators.required],
+      flannelVersion: ['0.10.0', Validators.required],
+      helmVersion: ['2.11.0', Validators.required],
+      dockerVersion: ['17.06.0', Validators.required],
+      ubuntuVersion: ['xenial', Validators.required],
+      networkType: ['vxlan', Validators.required],
+      cidr: ['10.0.0.0/16', [Validators.required, this.validCidr()]],
+      operatingSystem: ['linux', Validators.required],
+      arch: ['amd64', Validators.required],
+    });
   }
+
+  ngOnDestroy() {
+    this.subscriptions.unsubscribe();
+  }
+
+  get name() {
+    return this.nameAndCloudAccountForm.get('name');
+  }
+
+  get cidr() {
+    return this.clusterConfig.get('cidr');
+  }
+
+  get vpcCidr() {
+    if (this.selectedCloudAccount && this.selectedCloudAccount.provider == 'aws') {
+      return this.providerConfig.get('vpcCidr');
+    } else {
+      return true;
+    }
+  }
+
 
   getClusters() {
     this.supergiant.Kubes.get().subscribe(
       clusters => clusters.map(c => this.unavailableClusterNames.add(c.name)),
-      err => console.error(err)
+      err => console.error(err),
     );
   }
 
@@ -83,13 +125,13 @@ export class NewClusterComponent implements OnInit, OnDestroy {
     const regionName1 = reg1.name.toLowerCase();
     const regionName2 = reg2.name.toLowerCase();
 
-    let comparison = 0;
     if (regionName1 > regionName2) {
-      comparison = 1;
+      return 1;
     } else if (regionName1 < regionName2) {
-      comparison = -1;
+      return -1;
     }
-    return comparison;
+
+    return 0;
   }
 
   createCluster() {
@@ -113,12 +155,12 @@ export class NewClusterComponent implements OnInit, OnDestroy {
             aws_vpc_id: this.providerConfig.value.vpcId,
             aws_subnet_id: this.providerConfig.value.subnetId,
             aws_masters_secgroup_id: this.providerConfig.value.mastersSecurityGroupId,
-            aws_nodes_secgroup_id: this.providerConfig.value.nodesSecurityGroupId
+            aws_nodes_secgroup_id: this.providerConfig.value.nodesSecurityGroupId,
           };
 
           newClusterData.profile.publicKey = this.providerConfig.value.publicKey;
         }
-        break;
+          break;
         case 'gce':
 
           newClusterData.profile.publicKey = this.providerConfig.value.publicKey;
@@ -135,7 +177,7 @@ export class NewClusterComponent implements OnInit, OnDestroy {
         (err) => {
           this.error(newClusterData, err);
           this.provisioning = false;
-        }
+        },
       ));
     }
   }
@@ -179,7 +221,7 @@ export class NewClusterComponent implements OnInit, OnDestroy {
           types => {
             this.machines[idx] = {
               ...this.machines[idx],
-              availableMachineTypes: types.sort()
+              availableMachineTypes: types.sort(),
             };
 
             this.machinesLoading = false;
@@ -187,7 +229,7 @@ export class NewClusterComponent implements OnInit, OnDestroy {
           err => {
             console.error(err);
             this.machinesLoading = false;
-          }
+          },
         );
         break;
       case 'gce':
@@ -195,7 +237,7 @@ export class NewClusterComponent implements OnInit, OnDestroy {
           types => {
             this.machines[idx] = {
               ...this.machines[idx],
-              availableMachineTypes: types.sort()
+              availableMachineTypes: types.sort(),
             };
 
             this.machinesLoading = false;
@@ -203,7 +245,7 @@ export class NewClusterComponent implements OnInit, OnDestroy {
           err => {
             console.error(err);
             this.machinesLoading = false;
-          }
+          },
         );
         break;
     }
@@ -229,7 +271,7 @@ export class NewClusterComponent implements OnInit, OnDestroy {
           err => {
             console.error(err);
             this.azsLoading = false;
-          }
+          },
         );
         break;
       case 'gce':
@@ -242,7 +284,7 @@ export class NewClusterComponent implements OnInit, OnDestroy {
           err => {
             console.error(err);
             this.azsLoading = false;
-          }
+          },
         );
         break;
     }
@@ -252,12 +294,14 @@ export class NewClusterComponent implements OnInit, OnDestroy {
     const lastMachine = this.machines[this.machines.length - 1];
 
     this.machines.push(
-      Object.assign({}, lastMachine)
+      Object.assign({}, lastMachine),
     );
   }
 
   deleteMachine(idx) {
-    if (this.machines.length === 1) { return; }
+    if (this.machines.length === 1) {
+      return;
+    }
 
     this.machines.splice(idx, 1);
     this.validateMachineConfig();
@@ -278,21 +322,21 @@ export class NewClusterComponent implements OnInit, OnDestroy {
         qty: 1,
         availabilityZone: '',
         availableMachineTypes: null,
-        role: 'Master'
+        role: 'Master',
       },
       {
         machineType: null,
         qty: 1,
         availabilityZone: '',
         availableMachineTypes: null,
-        role: 'Node'
-      }
+        role: 'Node',
+      },
     ];
 
     switch (this.selectedCloudAccount.provider) {
       case 'digitalocean':
         this.providerConfig = this.formBuilder.group({
-          region: ['', Validators.required]
+          region: ['', Validators.required],
         });
         break;
 
@@ -305,13 +349,13 @@ export class NewClusterComponent implements OnInit, OnDestroy {
           subnetId: [''],
           mastersSecurityGroupId: [''],
           nodesSecurityGroupId: [''],
-          publicKey: ['', Validators.required]
+          publicKey: ['', Validators.required],
         });
         break;
       case 'gce':
         this.providerConfig = this.formBuilder.group({
           region: ['', Validators.required],
-          publicKey: ['', Validators.required]
+          publicKey: ['', Validators.required],
         });
         break;
     }
@@ -326,7 +370,7 @@ export class NewClusterComponent implements OnInit, OnDestroy {
       err => {
         this.error({}, err);
         this.regionsLoading = false;
-      }
+      },
     ));
   }
 
@@ -334,7 +378,7 @@ export class NewClusterComponent implements OnInit, OnDestroy {
     if (
       machine.machineType != null &&
       machine.role != null &&
-      typeof(machine.qty) == 'number'
+      typeof (machine.qty) == 'number'
     ) {
       return true;
     } else {
@@ -360,7 +404,7 @@ export class NewClusterComponent implements OnInit, OnDestroy {
     return (numberOfMasterProfiles) % 2 !== 0;
   }
 
-  machinesNext() {
+  nextStep() {
     this.validateMachineConfig();
 
     if (this.machinesConfigValid) {
@@ -383,59 +427,13 @@ export class NewClusterComponent implements OnInit, OnDestroy {
     };
   }
 
-  get name() {
-    return this.nameAndCloudAccountConfig.get('name');
-  }
-
-  get cidr() {
-    return this.clusterConfig.get('cidr');
-  }
-
-  get vpcCidr() {
-    if (this.selectedCloudAccount && this.selectedCloudAccount.provider == 'aws') {
-      return this.providerConfig.get('vpcCidr');
-    } else {
-      return true;
-    }
-  }
-
-  ngOnInit() {
-    this.getClusters();
-    this.getCloudAccounts();
-
-    this.nameAndCloudAccountConfig = this.formBuilder.group({
-      name: ['', [
-        Validators.required,
-        this.uniqueClusterName(this.unavailableClusterNames),
-        Validators.maxLength(12),
-        Validators.pattern('^[A-Za-z]([-A-Za-z0-9\-]*[A-Za-z0-9\-])?$')]],
-      cloudAccount: ['', Validators.required]
-    });
-
-    this.clusterConfig = this.formBuilder.group({
-      K8sVersion: ['1.11.5', Validators.required],
-      flannelVersion: ['0.10.0', Validators.required],
-      helmVersion: ['2.11.0', Validators.required],
-      dockerVersion: ['17.06.0', Validators.required],
-      ubuntuVersion: ['xenial', Validators.required],
-      networkType: ['vxlan', Validators.required],
-      cidr: ['10.0.0.0/16', [Validators.required, this.validCidr()]],
-      operatingSystem: ['linux', Validators.required],
-      arch: ['amd64', Validators.required]
-    });
-  }
-
-  ngOnDestroy() {
-    this.subscriptions.unsubscribe();
-  }
-
   machineTypesFilterCallback = (val) => {
     if (this.machineTypesFilter === '') {
       return val;
     }
 
     return val.toLowerCase().indexOf(this.machineTypesFilter.toLowerCase()) > -1;
-  }
+  };
 
   regionsFilterCallback = (val) => {
     if (this.regionsFilter === '') {
@@ -443,5 +441,5 @@ export class NewClusterComponent implements OnInit, OnDestroy {
     }
 
     return val.name.toLowerCase().indexOf(this.regionsFilter.toLowerCase()) > -1;
-  }
+  };
 }
