@@ -58,7 +58,7 @@ func (t *Step) Name() string {
 }
 
 func (t *Step) Description() string {
-	return ""
+	return "Run kubelet"
 }
 
 func (s *Step) Depends() []string {
