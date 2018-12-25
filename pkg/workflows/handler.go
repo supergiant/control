@@ -163,7 +163,8 @@ func (h *TaskHandler) RestartTask(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	writer, err := h.getWriter(id)
+	fileName := util.MakeFileName(id)
+	writer, err := h.getWriter(fileName)
 
 	if err != nil {
 		http.Error(w, fmt.Sprintf("get writer %v", err), http.StatusInternalServerError)
@@ -171,7 +172,7 @@ func (h *TaskHandler) RestartTask(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	task.Restart(context.Background(), id, writer)
+	task.Run(context.Background(), *task.Config, writer)
 	w.WriteHeader(http.StatusAccepted)
 }
 

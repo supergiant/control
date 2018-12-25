@@ -4,6 +4,8 @@ import (
 	"context"
 	"encoding/json"
 
+	"github.com/sirupsen/logrus"
+
 	"github.com/supergiant/control/pkg/storage"
 )
 
@@ -22,6 +24,7 @@ func NewService(prefix string, s storage.Interface) *Service {
 }
 
 func (s *Service) Get(ctx context.Context, profileId string) (*Profile, error) {
+	logrus.Debugf("get cloud profile by id %s", profileId)
 	profileData, err := s.kubeProfileStorage.Get(ctx, s.prefix, profileId)
 	profile := &Profile{}
 

@@ -75,6 +75,10 @@ type accountGetter interface {
 	Get(context.Context, string) (*model.CloudAccount, error)
 }
 
+type profileGetter interface {
+	Get(context.Context, string) (*profile.Profile, error)
+}
+
 type nodeProvisioner interface {
 	ProvisionNodes(context.Context, []profile.NodeProfile, *model.Kube,
 		*steps.Config) ([]string, error)
@@ -82,6 +86,14 @@ type nodeProvisioner interface {
 	Cancel(string) error
 }
 
+type kubeProvisioner interface {
+	RestartClusterProvisioning(ctx context.Context,
+		clusterProfile *profile.Profile,
+		config *steps.Config,
+		taskIdMap map[string][]string) error
+}
+
+// TODO(stgleb): use standard k8s structs for that
 type k8SServices struct {
 	Kind       string `json:"kind"`
 	APIVersion string `json:"apiVersion"`
@@ -143,11 +155,14 @@ type Handler struct {
 	svc             Interface
 	accountService  accountGetter
 	nodeProvisioner nodeProvisioner
-	workflowMap     map[clouds.Name]workflows.WorkflowSet
-	repo            storage.Interface
-	getWriter       func(string) (io.WriteCloser, error)
-	getMetrics      func(string, *model.Kube) (*MetricResponse, error)
-	proxies         proxy.Container
+	kubeProvisioner kubeProvisioner
+	profileSvc      profileGetter
+
+	workflowMap map[clouds.Name]workflows.WorkflowSet
+	repo        storage.Interface
+	getWriter   func(string) (io.WriteCloser, error)
+	getMetrics  func(string, *model.Kube) (*MetricResponse, error)
+	proxies     proxy.Container
 }
 
 func init() {
@@ -176,7 +191,9 @@ func doReq(req *http.Request) (*http.Response, error) {
 func NewHandler(
 	svc Interface,
 	accountService accountGetter,
+	profileSvc profileGetter,
 	provisioner nodeProvisioner,
+	kubeProvisioner kubeProvisioner,
 	repo storage.Interface,
 	proxies proxy.Container,
 ) *Handler {
@@ -184,6 +201,8 @@ func NewHandler(
 		svc:             svc,
 		accountService:  accountService,
 		nodeProvisioner: provisioner,
+		kubeProvisioner: kubeProvisioner,
+		profileSvc:      profileSvc,
 		workflowMap: map[clouds.Name]workflows.WorkflowSet{
 			clouds.DigitalOcean: {
 				DeleteCluster: workflows.DigitalOceanDeleteCluster,
@@ -263,6 +282,7 @@ func (h *Handler) Register(r *mux.Router) {
 	r.HandleFunc("/kubes/{kubeID}/metrics", h.getClusterMetrics).Methods(http.MethodGet)
 	r.HandleFunc("/kubes/{kubeID}/nodes/metrics", h.getNodesMetrics).Methods(http.MethodGet)
 	r.HandleFunc("/kubes/{kubeID}/services", h.getServices).Methods(http.MethodGet)
+	r.HandleFunc("/kubes/{kubeID}/restart", h.restartKubeProvisioning).Methods(http.MethodPost)
 }
 
 func (h *Handler) getTasks(w http.ResponseWriter, r *http.Request) {
@@ -673,7 +693,8 @@ func (h *Handler) addNode(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// Add tasks ids to kube object
-	k.Tasks = append(k.Tasks, tasks...)
+	k.Tasks[workflows.NodeTask] = append(k.Tasks[workflows.NodeTask], tasks...)
+
 	if err := h.svc.Create(ctx, k); err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
@@ -751,7 +772,7 @@ func (h *Handler) deleteNode(w http.ResponseWriter, r *http.Request) {
 		ClusterID:        k.ID,
 		ClusterName:      k.Name,
 		CloudAccountName: k.AccountName,
-		Node: *n,
+		Node:             *n,
 	}
 
 	err = util.FillCloudAccountCredentials(r.Context(), acc, config)
@@ -827,25 +848,28 @@ func (h *Handler) getKubeTasks(ctx context.Context, kubeID string) ([]*workflows
 	}
 
 	tasks := make([]*workflows.Task, 0, len(k.Tasks))
-	for _, taskID := range k.Tasks {
-		t, err := h.repo.Get(ctx, workflows.Prefix, taskID)
 
-		// If one of tasks not found we dont care, because
-		// they may npt be created yet
-		if err != nil {
-			logrus.Debugf("task %s not found", taskID)
-			continue
+	for _, taskSet := range k.Tasks {
+		for _, taskID := range taskSet {
+			t, err := h.repo.Get(ctx, workflows.Prefix, taskID)
+
+			// If one of tasks not found we dont care, because
+			// they may npt be created yet
+			if err != nil {
+				logrus.Debugf("task %s not found", taskID)
+				continue
+			}
+
+			task := &workflows.Task{}
+			err = json.Unmarshal(t, task)
+
+			if err != nil {
+				return nil, errors.Wrapf(err,
+					"get task %s", taskID)
+			}
+
+			tasks = append(tasks, task)
 		}
-
-		task := &workflows.Task{}
-		err = json.Unmarshal(t, task)
-
-		if err != nil {
-			return nil, errors.Wrapf(err,
-				"get task %s", taskID)
-		}
-
-		tasks = append(tasks, task)
 	}
 
 	return tasks, nil
@@ -1214,4 +1238,80 @@ func contains(name, value string, labels map[string]string) bool {
 	}
 
 	return false
+}
+
+func (h *Handler) restartKubeProvisioning(w http.ResponseWriter, r *http.Request) {
+	vars := mux.Vars(r)
+	kubeID := vars["kubeID"]
+
+	logrus.Debugf("Get kube %s", kubeID)
+	k, err := h.svc.Get(r.Context(), kubeID)
+	if err != nil {
+		if sgerrors.IsNotFound(err) {
+			message.SendNotFound(w, kubeID, err)
+			return
+		}
+		message.SendUnknownError(w, err)
+		return
+	}
+
+	logrus.Debugf("Get cloud profile %s", k.ProfileID)
+	kubeProfile, err := h.profileSvc.Get(r.Context(), k.ProfileID)
+
+	if err != nil {
+		if sgerrors.IsNotFound(err) {
+			message.SendNotFound(w, k.ProfileID, err)
+			return
+		}
+
+		message.SendUnknownError(w, err)
+		return
+	}
+
+	config := steps.NewConfigFromKube(kubeProfile, k)
+
+	logrus.Debugf("load clout specific data from kube")
+	// Load things specific to cloud provider
+	err = util.LoadCloudSpecificDataFromKube(k, config)
+
+	if err != nil {
+		message.SendUnknownError(w, err)
+		return
+	}
+
+	logrus.Debugf("Get cloud account %s", k.AccountName)
+	acc, err := h.accountService.Get(r.Context(), k.AccountName)
+
+	if err != nil {
+		if sgerrors.IsNotFound(err) {
+			http.NotFound(w, r)
+			return
+		}
+
+		message.SendUnknownError(w, err)
+		return
+	}
+
+	logrus.Debug("Fill config with cloud account credentials")
+	err = util.FillCloudAccountCredentials(r.Context(), acc, config)
+
+	if err != nil {
+		if sgerrors.IsNotFound(err) {
+			http.NotFound(w, r)
+			return
+		}
+		message.SendUnknownError(w, err)
+		return
+	}
+
+	logrus.Debugf("Restart cluster %s provisioning", k.ID)
+	err = h.kubeProvisioner.RestartClusterProvisioning(r.Context(),
+		kubeProfile, config, k.Tasks)
+
+	if err != nil {
+		message.SendUnknownError(w, err)
+		return
+	}
+
+	w.WriteHeader(http.StatusAccepted)
 }

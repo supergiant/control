@@ -74,15 +74,24 @@ func NewProvisioner(repository storage.Interface, kubeService KubeService,
 // ProvisionCluster runs provisionCluster process among nodes
 // that have been provided for provisionCluster
 func (tp *TaskProvisioner) ProvisionCluster(parentContext context.Context,
-	profile *profile.Profile, config *steps.Config) (map[string][]*workflows.Task, error) {
-	masterTasks, nodeTasks, preProvisionTask, clusterTask := tp.prepare(config.Provider, len(profile.MasterProfiles),
-		len(profile.NodesProfiles))
+	clusterProfile *profile.Profile, config *steps.Config) (map[string][]*workflows.Task, error) {
+
+	var (
+		clusterTask *workflows.Task
+	)
+
+	taskMap := tp.prepare(config.Provider,
+		len(clusterProfile.MasterProfiles),
+		len(clusterProfile.NodesProfiles))
+
+	clusterTask = taskMap[workflows.ClusterTask][0]
 
 	// Get clusterID from taskID
 	if clusterTask != nil && len(clusterTask.ID) >= 8 {
 		config.ClusterID = clusterTask.ID[:8]
 	} else {
-		return nil, errors.New(fmt.Sprintf("Wrong value of cluster task %v", clusterTask))
+		return nil, errors.New(fmt.Sprintf("Wrong value of "+
+			"cluster task %v", clusterTask))
 	}
 
 	// Save cancel that cancel cluster provisioning to cancelMap
@@ -91,7 +100,8 @@ func (tp *TaskProvisioner) ProvisionCluster(parentContext context.Context,
 
 	// TODO(stgleb): Make node names from task id before provisioning starts
 	masters, nodes := nodesFromProfile(config.ClusterName,
-		masterTasks, nodeTasks, profile)
+		taskMap[workflows.MasterTask], taskMap[workflows.NodeTask],
+		clusterProfile)
 
 	if err := bootstrapKeys(config); err != nil {
 		return nil, errors.Wrap(err, "bootstrap keys")
@@ -102,77 +112,20 @@ func (tp *TaskProvisioner) ProvisionCluster(parentContext context.Context,
 	}
 
 	// Gather all task ids
-	taskIds := grabTaskIds(preProvisionTask, clusterTask, masterTasks, nodeTasks)
+	taskIds := grabTaskIds(taskMap)
 	// Save cluster before provisioning
-	err := tp.buildInitialCluster(ctx, profile, masters, nodes, config, taskIds)
+	err := tp.buildInitialCluster(ctx, clusterProfile, masters, nodes,
+		config, taskIds)
 
 	if err != nil {
 		return nil, errors.Wrap(err, "build initial cluster")
 	}
 
 	// monitor cluster state in separate goroutine
+	// monitor cluster state in separate goroutine
 	go tp.monitorClusterState(ctx, config.ClusterID, config.NodeChan(),
 		config.KubeStateChan(), config.ConfigChan())
-
-	go func() {
-		var preProvisionErr error
-
-		if preProvisionTask != nil {
-			if preProvisionErr := tp.preProvision(ctx, preProvisionTask, config); preProvisionErr != nil {
-				logrus.Errorf("Pre provisioning cluster %v", err)
-			}
-
-			// In case of preprovision failure stop provisioning process.
-			if preProvisionErr != nil {
-				logrus.Errorf("pre provision has failed with %v", err)
-				return
-			}
-
-			// Copy config from preProvision task because it contains all things need for further
-			// provisioning VPC, SecGroup, Subnets etc.
-			config = preProvisionTask.Config
-		}
-
-		config.ReadyForBootstrapLatch = &sync.WaitGroup{}
-		config.ReadyForBootstrapLatch.Add(len(profile.MasterProfiles))
-		// ProvisionCluster masters and wait until n/2 + 1 of masters with etcd are up and running
-		doneChan, failChan, err := tp.provisionMasters(ctx, profile, config, masterTasks)
-
-		if err != nil {
-			logrus.Errorf("ProvisionCluster master %v", err)
-		}
-
-		select {
-		case <-ctx.Done():
-			logrus.Errorf("Master cluster has not been created %v", ctx.Err())
-			return
-		case <-doneChan:
-		case <-failChan:
-			config.KubeStateChan() <- model.StateFailed
-			logrus.Errorf("master cluster deployment has been failed")
-			return
-		}
-
-		// Save cluster state when masters are provisioned
-		logrus.Infof("master provisioning for cluster %s has finished successfully", config.ClusterID)
-
-		// ProvisionCluster nodes
-		tp.provisionNodes(ctx, profile, config, nodeTasks)
-
-		// Wait for cluster checks are finished
-		tp.waitCluster(ctx, clusterTask, config)
-		logrus.Infof("cluster %s deployment has finished", config.ClusterID)
-	}()
-
-	taskMap := map[string][]*workflows.Task{
-		"master":  masterTasks,
-		"node":    nodeTasks,
-		"cluster": {clusterTask},
-	}
-
-	if preProvisionTask != nil {
-		taskMap["preprovision"] = []*workflows.Task{preProvisionTask}
-	}
+	go tp.provision(ctx, taskMap, clusterProfile, config)
 
 	return taskMap, nil
 }
@@ -212,11 +165,12 @@ func (tp *TaskProvisioner) ProvisionNodes(parentContext context.Context, nodePro
 
 		// Take node workflow for the provider
 		t, err := workflows.NewTask(providerWorkflowSet.ProvisionNode, tp.repository)
-		tasks = append(tasks, t.ID)
 
 		if err != nil {
 			return nil, errors.Wrap(sgerrors.ErrNotFound, "workflow")
 		}
+
+		tasks = append(tasks, t.ID)
 
 		fileName := util.MakeFileName(t.ID)
 		writer, err := tp.getWriter(fileName)
@@ -258,12 +212,92 @@ func (tp *TaskProvisioner) Cancel(clusterID string) error {
 	return nil
 }
 
+func (tp *TaskProvisioner) RestartClusterProvisioning(parentCtx context.Context,
+	clusterProfile *profile.Profile,
+	config *steps.Config, taskIdMap map[string][]string) error {
+
+	ctx, cancel := context.WithTimeout(context.Background(),
+		time.Minute*30)
+	tp.cancelMap[config.ClusterID] = cancel
+	logrus.Debugf("Deserialize tasks")
+
+	// Deserialize tasks and put them to map
+	taskMap, err := tp.deserializeClusterTasks(ctx, taskIdMap)
+
+	if err != nil {
+		logrus.Errorf("Restart cluster provisioning %v", err)
+		return errors.Wrapf(err, "Restart cluster provisioning")
+	}
+
+	// monitor cluster state in separate goroutine
+	go tp.monitorClusterState(ctx, config.ClusterID,
+		config.NodeChan(), config.KubeStateChan(), config.ConfigChan())
+	go tp.provision(ctx, taskMap, clusterProfile, config)
+
+	return nil
+}
+
+// provision do actual provisioning of master and worker nodes
+func (tp *TaskProvisioner) provision(ctx context.Context,
+	taskMap map[string][]*workflows.Task, clusterProfile *profile.Profile,
+	config *steps.Config) {
+	preProvisionTask := taskMap[workflows.PreProvisionTask]
+
+	if preProvisionTask != nil && len(preProvisionTask) > 0 {
+		logrus.Debugf("Restart preprovision task %s",
+			preProvisionTask[0].ID)
+
+		if preProvisionErr := tp.preProvision(ctx, preProvisionTask[0], config); preProvisionErr != nil {
+			logrus.Errorf("Pre provisioning cluster %v", preProvisionErr)
+			return
+		}
+
+		config = preProvisionTask[0].Config
+	}
+
+	config.ReadyForBootstrapLatch = &sync.WaitGroup{}
+	config.ReadyForBootstrapLatch.Add(len(taskMap[workflows.MasterTask]))
+
+	logrus.Debug("Restart provision masters")
+	doneChan, failChan, err := tp.provisionMasters(ctx, clusterProfile,
+		config, taskMap[workflows.MasterTask])
+
+	if err != nil {
+		logrus.Errorf("ProvisionCluster master %v", err)
+	}
+
+	select {
+	case <-ctx.Done():
+		logrus.Errorf("Master cluster has not been created %v",
+			ctx.Err())
+		return
+	case <-doneChan:
+	case <-failChan:
+		config.KubeStateChan() <- model.StateFailed
+		logrus.Errorf("master cluster deployment has been failed")
+		return
+	}
+
+	// Save cluster state when masters are provisioned
+	logrus.Infof("master provisioning for cluster"+
+		"%s has finished successfully",
+		config.ClusterID)
+
+	tp.provisionNodes(ctx, clusterProfile, config,
+		taskMap[workflows.NodeTask])
+
+	// Wait for cluster checks are finished
+	tp.waitCluster(ctx, taskMap[workflows.ClusterTask][0], config)
+	logrus.Infof("cluster %s deployment has finished",
+		config.ClusterID)
+}
+
 // prepare creates all tasks for provisioning according to cloud provider
-func (tp *TaskProvisioner) prepare(name clouds.Name, masterCount, nodeCount int) ([]*workflows.Task, []*workflows.Task, *workflows.Task, *workflows.Task) {
+func (tp *TaskProvisioner) prepare(name clouds.Name, masterCount, nodeCount int) map[string][]*workflows.Task {
 	var (
-		preProvisionTask  *workflows.Task
-		postProvisionTask *workflows.Task
-		err               error
+		preProvisionTask *workflows.Task
+		clusterTask      *workflows.Task
+		err              error
 	)
 
 	masterTasks := make([]*workflows.Task, 0, masterCount)
@@ -271,11 +305,14 @@ func (tp *TaskProvisioner) prepare(name clouds.Name, masterCount, nodeCount int)
 	//some clouds (e.g. AWS) requires running tasks before provisioning nodes (creating a VPC, Subnets, SecGroups, etc)
 	switch name {
 	case clouds.AWS:
-		preProvisionTask, err = workflows.NewTask(tp.provisionMap[name].PreProvision, tp.repository)
+		preProvisionTask, err = workflows.NewTask(
+			tp.provisionMap[name].PreProvision,
+			tp.repository)
 		// We can't go further without pre provision task
 		if err != nil {
-			logrus.Errorf("create pre provision task has finished with %v", err)
-			return nil, nil, nil, nil
+			logrus.Errorf("create pre provision task has finished with %v",
+				err)
+			return nil
 		}
 	case clouds.GCE:
 	case clouds.DigitalOcean:
@@ -302,9 +339,20 @@ func (tp *TaskProvisioner) prepare(name clouds.Name, masterCount, nodeCount int)
 		nodeTasks = append(nodeTasks, t)
 	}
 
-	postProvisionTask, _ = workflows.NewTask(workflows.Cluster, tp.repository)
+	clusterTask, _ = workflows.NewTask(workflows.Cluster, tp.repository)
 
-	return masterTasks, nodeTasks, preProvisionTask, postProvisionTask
+	taskMap := map[string][]*workflows.Task{
+		workflows.MasterTask:  masterTasks,
+		workflows.NodeTask:    nodeTasks,
+		workflows.ClusterTask: {clusterTask},
+	}
+
+	if preProvisionTask != nil {
+		taskMap[workflows.PreProvisionTask] =
+			[]*workflows.Task{preProvisionTask}
+	}
+
+	return taskMap
 }
 
 // preProvision is for preparing activities before instances can be creates like
@@ -322,21 +370,25 @@ func (tp *TaskProvisioner) preProvision(ctx context.Context, preProvisionTask *w
 	err = <-result
 
 	if err != nil {
-		config.KubeStateChan() <- model.StateFailed
 		logrus.Errorf("pre provision task %s has finished with error %v",
 			preProvisionTask.ID, err)
+		config.KubeStateChan() <- model.StateFailed
 	} else {
-		// Update kube state
-		config.KubeStateChan() <- model.StateProvisioning
-		// Update cloud spec
-		config.ConfigChan() <- preProvisionTask.Config
 		logrus.Infof("pre provision %s has finished", preProvisionTask.ID)
+		// Update kube state
+		logrus.Debug("update kube state")
+		config.KubeStateChan() <- model.StateProvisioning
 	}
+
+	logrus.Debug("update kube config")
+	config.ConfigChan() <- preProvisionTask.Config
 
 	return err
 }
 
-func (tp *TaskProvisioner) provisionMasters(ctx context.Context, profile *profile.Profile, config *steps.Config, tasks []*workflows.Task) (chan struct{}, chan struct{}, error) {
+func (tp *TaskProvisioner) provisionMasters(ctx context.Context,
+	profile *profile.Profile, config *steps.Config,
+	tasks []*workflows.Task) (chan struct{}, chan struct{}, error) {
 	config.IsMaster = true
 	doneChan := make(chan struct{})
 	failChan := make(chan struct{})
@@ -358,7 +410,8 @@ func (tp *TaskProvisioner) provisionMasters(ctx context.Context, profile *profil
 		tp.rateLimiter.Take()
 
 		if masterTask == nil {
-			logrus.Fatal(tasks)
+			logrus.Error("Master tasks are nil")
+			return nil, nil, nil
 		}
 		fileName := util.MakeFileName(masterTask.ID)
 		out, err := tp.getWriter(fileName)
@@ -486,23 +539,23 @@ func (tp *TaskProvisioner) waitCluster(ctx context.Context, clusterTask *workflo
 
 func (tp *TaskProvisioner) buildInitialCluster(ctx context.Context,
 	profile *profile.Profile, masters, nodes map[string]*node.Node,
-	config *steps.Config, taskIds []string) error {
+	config *steps.Config, taskIds map[string][]string) error {
 
 	cluster := &model.Kube{
-		ID:                  config.ClusterID,
-		State:               model.StateProvisioning,
-		Name:                config.ClusterName,
-		Provider:            profile.Provider,
-		AccountName:         config.CloudAccountName,
-		RBACEnabled:         profile.RBACEnabled,
-		Region:              profile.Region,
-		Zone:                profile.Zone,
-		SshUser:             config.SshConfig.User,
-		SshPublicKey:        []byte(config.SshConfig.PublicKey),
-		BootstrapPublicKey:  []byte(config.SshConfig.BootstrapPublicKey),
-		BootstrapPrivateKey: []byte(config.SshConfig.BootstrapPrivateKey),
-		User:                profile.User,
-		Password:            profile.Password,
+		ID:                 config.ClusterID,
+		State:              model.StatePrepare,
+		Name:               config.ClusterName,
+		Provider:           profile.Provider,
+		AccountName:        config.CloudAccountName,
+		RBACEnabled:        profile.RBACEnabled,
+		Region:             profile.Region,
+		Zone:               profile.Zone,
+		SshUser:            config.SshConfig.User,
+		SshPublicKey:       []byte(config.SshConfig.PublicKey),
+		BootstrapPublicKey: []byte(config.SshConfig.BootstrapPublicKey),
+		ProfileID:          profile.ID,
+		User:               profile.User,
+		Password:           profile.Password,
 
 		Auth: model.Auth{
 			Username:  config.CertificatesConfig.Username,
@@ -673,7 +726,7 @@ func (tp *TaskProvisioner) monitorClusterState(ctx context.Context,
 				continue
 			}
 		case config := <-configChan:
-			logrus.Debugf("monitor: get kube %s", clusterID)
+			logrus.Debugf("update kube %s with config %v", clusterID, config)
 			k, err := tp.kubeService.Get(ctx, clusterID)
 
 			if err != nil {
@@ -693,4 +746,30 @@ func (tp *TaskProvisioner) monitorClusterState(ctx context.Context,
 			return
 		}
 	}
+}
+
+func (tp *TaskProvisioner) deserializeClusterTasks(ctx context.Context, taskIdMap map[string][]string) (map[string][]*workflows.Task, error) {
+	taskMap := make(map[string][]*workflows.Task)
+
+	for taskSet, tasks := range taskIdMap {
+		for _, taskId := range tasks {
+			data, err := tp.repository.Get(ctx, workflows.Prefix, taskId)
+
+			if err != nil {
+				logrus.Debugf("error getting task %s %v", taskId, err)
+				return nil, errors.Wrapf(err, "task id %s not found %b", taskId, err)
+			}
+
+			task, err := workflows.DeserializeTask(data, tp.repository)
+
+			if err != nil {
+				logrus.Debugf("error deserializing task %s %v", taskId, err)
+				return nil, errors.Wrapf(err, "error deserializing task %s %v", taskId, err)
+			}
+
+			taskMap[taskSet] = append(taskMap[taskSet], task)
+		}
+	}
+
+	return taskMap, nil
 }

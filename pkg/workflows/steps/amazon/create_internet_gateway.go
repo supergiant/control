@@ -101,6 +101,8 @@ func (s *CreateInternetGatewayStep) Run(ctx context.Context, w io.Writer, cfg *s
 			return err
 		}
 
+		logrus.Debugf("Attach Internet GW %s to VPC %s",
+			cfg.AWSConfig.InternetGatewayID, cfg.AWSConfig.VPCID)
 		// Attach GW to VPC
 		attachGw := &ec2.AttachInternetGatewayInput{
 			VpcId:             aws.String(cfg.AWSConfig.VPCID),
