@@ -289,3 +289,12 @@ func TestWorkflowHandlerBuildWorkflow(t *testing.T) {
 		t.Errorf("Unexpected err while parsing response %v", err)
 	}
 }
+
+func TestNewTaskHandler(t *testing.T) {
+	r := &testutils.MockStorage{}
+	h := NewTaskHandler(r, nil, nil)
+
+	if h == nil {
+		t.Errorf("Handler must not be nil")
+	}
+}
