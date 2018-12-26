@@ -185,7 +185,6 @@ import { CallbackPipe } from './callback.pipe';
     MatTooltipModule,
 
     CommonModule,
-    ContextMenuModule.forRoot(),
     AppRoutingModule,
     FormsModule,
     BrowserAnimationsModule,
