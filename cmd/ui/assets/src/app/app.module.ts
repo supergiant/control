@@ -32,11 +32,9 @@ import { SchemaFormModule, WidgetRegistry, DefaultWidgetRegistry } from 'ngx-sch
 import { MaterialDesignFrameworkModule } from 'angular6-json-schema-form';
 import { AppRoutingModule } from './app-routing.module';
 import { AceEditorModule } from 'ng2-ace-editor';
-import { ChartsModule } from 'ng2-charts';
 import { NgxPaginationModule } from 'ngx-pagination';
 import { TitleCasePipe } from '@angular/common';
 import { CommonModule } from '@angular/common';
-import { ContextMenuModule } from 'ngx-contextmenu';
 
 
 // Components
@@ -191,7 +189,6 @@ import { CallbackPipe } from './callback.pipe';
     SimpleNotificationsModule.forRoot(),
     ReactiveFormsModule,
     SchemaFormModule,
-    ChartsModule,
     NgxPaginationModule,
     AceEditorModule,
     BrowserModule,
