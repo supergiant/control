@@ -33,6 +33,8 @@ type cloudAccountGetter interface {
 
 type TaskHandler struct {
 	runnerFactory  func(config ssh.Config) (runner.Runner, error)
+	getTail        func(string) (*tail.Tail, error)
+
 	cloudAccGetter cloudAccountGetter
 	repository     storage.Interface
 	getWriter      func(string) (io.WriteCloser, error)
@@ -61,6 +63,25 @@ func NewTaskHandler(repository storage.Interface, runnerFactory func(config ssh.
 		getWriter: func(name string) (io.WriteCloser, error) {
 			// TODO(stgleb): Add log directory to params of supergiant
 			return os.OpenFile(path.Join("/tmp", name), os.O_CREATE|os.O_WRONLY|os.O_APPEND, 0666)
+		},
+		getTail: func(id string) (*tail.Tail, error) {
+			t, err := tail.TailFile(path.Join("/tmp", util.MakeFileName(id)),
+				tail.Config{
+					Follow:    true,
+					MustExist: true,
+					Location: &tail.SeekInfo{
+						Offset: 0,
+						Whence: io.SeekStart,
+					},
+					Logger:      tail.DiscardingLogger,
+					MaxLineSize: 160,
+				})
+
+			if err != nil  {
+				return nil, err
+			}
+
+			return t, nil
 		},
 	}
 }
@@ -244,12 +265,7 @@ func (h *TaskHandler) GetLogs(w http.ResponseWriter, r *http.Request) {
 	tpl := template.Must(template.New("").Parse(page))
 	w.Header().Set("Content-Type", "text/html; charset=utf-8")
 	vars := mux.Vars(r)
-	id, ok := vars["id"]
-
-	if !ok {
-		http.Error(w, "need id of task", http.StatusBadRequest)
-		return
-	}
+	id := vars["id"]
 
 	var v = struct {
 		Host   string
@@ -285,17 +301,7 @@ func (h *TaskHandler) StreamLogs(w http.ResponseWriter, r *http.Request) {
 		},
 	}
 
-	t, err := tail.TailFile(path.Join("/tmp", util.MakeFileName(id)),
-		tail.Config{
-			Follow:    true,
-			MustExist: true,
-			Location: &tail.SeekInfo{
-				Offset: 0,
-				Whence: io.SeekStart,
-			},
-			Logger:      tail.DiscardingLogger,
-			MaxLineSize: 160,
-		})
+	t, err := h.getTail(id)
 
 	if os.IsNotExist(err) {
 		http.NotFound(w, r)

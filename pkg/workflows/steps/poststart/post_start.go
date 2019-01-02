@@ -73,7 +73,7 @@ func (s *Step) Rollback(context.Context, io.Writer, *steps.Config) error {
 }
 
 func (s *Step) Description() string {
-	return ""
+	return "Post start step executes after provisioning"
 }
 
 func (s *Step) Depends() []string {

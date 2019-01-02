@@ -135,11 +135,39 @@ func TestNew(t *testing.T) {
 }
 
 func TestInit(t *testing.T) {
+	templatemanager.SetTemplate(StepName, &template.Template{})
 	Init()
 
 	s := steps.GetStep(StepName)
 
 	if s == nil {
 		t.Error("Step not found")
+	}
+
+	templatemanager.DeleteTemplate(StepName)
+}
+
+func TestInitPanic(t *testing.T) {
+	defer func() {
+		if r := recover(); r == nil {
+			t.Errorf("recover output must not be nil")
+		}
+	}()
+
+	Init()
+
+	s := steps.GetStep("not_found.sh.tpl")
+
+	if s == nil {
+		t.Error("Step not found")
+	}
+}
+
+func TestStep_Description(t *testing.T) {
+	s := &Step{}
+
+	if desc := s.Description(); desc != "install CNI plugin" {
+		t.Errorf("Wrong desription expected %s actual %s",
+			"install CNI plugin", desc)
 	}
 }

@@ -170,3 +170,12 @@ func TestInitPanic(t *testing.T) {
 		t.Error("Step not found")
 	}
 }
+
+func TestStep_Description(t *testing.T) {
+	s := &Step{}
+
+	if desc := s.Description(); desc != "Check cluster health" {
+		t.Errorf("Wrong desription expected %s actual %s",
+			"Check cluster health", desc)
+	}
+}
