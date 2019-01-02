@@ -202,13 +202,15 @@ func (h *Handler) GetRegions(w http.ResponseWriter, r *http.Request) {
 func (h *Handler) GetAZs(w http.ResponseWriter, r *http.Request) {
 	accountName, ok := mux.Vars(r)["accountName"]
 	if !ok || accountName == "" {
-		message.SendValidationFailed(w, errors.New("clouds: preconditions failed"))
+		message.SendValidationFailed(w, errors.New("clouds: " +
+			"preconditions failed"))
 		return
 	}
 
 	region, ok := mux.Vars(r)["region"]
 	if region == "" {
-		message.SendValidationFailed(w, errors.New("clouds: preconditions failed"))
+		message.SendValidationFailed(w, errors.New("clouds: " +
+			"preconditions failed"))
 		return
 	}
 
@@ -219,7 +221,8 @@ func (h *Handler) GetAZs(w http.ResponseWriter, r *http.Request) {
 			return
 		}
 
-		logrus.Errorf("clouds: get %s availability zones %v", acc.Provider, err)
+		logrus.Errorf("clouds: get account %s error: %v",
+			accountName, err)
 		message.SendUnknownError(w, err)
 		return
 	}
@@ -228,20 +231,23 @@ func (h *Handler) GetAZs(w http.ResponseWriter, r *http.Request) {
 	config := &steps.Config{}
 	getter, err := NewZonesGetter(acc, config)
 	if err != nil {
-		logrus.Errorf("clouds: get %s availability zones %v", acc.Provider, err)
+		logrus.Errorf("clouds: get %s availability zones %v",
+			acc.Provider, err)
 		message.SendUnknownError(w, err)
 		return
 	}
 
 	azs, err := getter.GetZones(r.Context(), *config)
 	if err != nil {
-		logrus.Errorf("clouds: get %s availability zones %v", acc.Provider, err)
+		logrus.Errorf("clouds: get %s availability zones %v",
+			acc.Provider, err)
 		message.SendUnknownError(w, err)
 		return
 	}
 
 	if err := json.NewEncoder(w).Encode(azs); err != nil {
-		logrus.Errorf("clouds: get %s availability zones %v", acc.Provider, err)
+		logrus.Errorf("clouds: get %s availability zones %v",
+			acc.Provider, err)
 		message.SendUnknownError(w, err)
 		return
 	}
@@ -250,19 +256,22 @@ func (h *Handler) GetAZs(w http.ResponseWriter, r *http.Request) {
 func (h *Handler) GetTypes(w http.ResponseWriter, r *http.Request) {
 	accountName, ok := mux.Vars(r)["accountName"]
 	if !ok || accountName == "" {
-		message.SendValidationFailed(w, errors.New("clouds: preconditions failed"))
+		message.SendValidationFailed(w, errors.New("clouds: " +
+			"preconditions failed"))
 		return
 	}
 
 	region, ok := mux.Vars(r)["region"]
 	if region == "" {
-		message.SendValidationFailed(w, errors.New("clouds: preconditions failed"))
+		message.SendValidationFailed(w, errors.New("clouds: " +
+			"preconditions failed"))
 		return
 	}
 
 	az, ok := mux.Vars(r)["az"]
 	if az == "" {
-		message.SendValidationFailed(w, errors.New("clouds: preconditions failed"))
+		message.SendValidationFailed(w, errors.New("clouds: " +
+			"preconditions failed"))
 		return
 	}
 
@@ -273,7 +282,7 @@ func (h *Handler) GetTypes(w http.ResponseWriter, r *http.Request) {
 			return
 		}
 
-		logrus.Errorf("clouds: get %s region %v", acc.Provider, err)
+		logrus.Errorf("clouds: get types %s %v", accountName, err)
 		message.SendUnknownError(w, err)
 		return
 	}

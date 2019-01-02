@@ -10,6 +10,7 @@ import (
 	"net/http/httptest"
 	"testing"
 	"time"
+	"os"
 
 	"github.com/gorilla/mux"
 
@@ -22,7 +23,6 @@ import (
 	"github.com/supergiant/control/pkg/runner/ssh"
 	"github.com/supergiant/control/pkg/testutils"
 	"github.com/supergiant/control/pkg/workflows/steps"
-	"os"
 )
 
 type mockCloudAccountService struct {
@@ -363,5 +363,14 @@ func TestTaskHandler_StreamLogs(t *testing.T) {
 			t.Errorf("Wrong response code expected %d actual %d",
 				testCase.expectedCode, rec.Code)
 		}
+	}
+}
+
+func TestNewTaskHandler(t *testing.T) {
+	r := &testutils.MockStorage{}
+	h := NewTaskHandler(r, nil, nil)
+
+	if h == nil {
+		t.Errorf("Handler must not be nil")
 	}
 }

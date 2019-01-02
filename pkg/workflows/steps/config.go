@@ -85,7 +85,7 @@ type AWSConfig struct {
 	EbsOptimized           string `json:"ebsOptimized"`
 	ImageID                string `json:"image"`
 	InstanceType           string `json:"size"`
-	HasPublicAddr          string `json:"hasPublicAddr"`
+	HasPublicAddr          bool   `json:"hasPublicAddr"`
 	// Map of availability zone to subnet
 	Subnets map[string]string `json:"subnets"`
 	// Map az to route table association
@@ -271,13 +271,13 @@ func NewConfig(clusterName, clusterToken, cloudAccountName string, profile profi
 			VPCCIDR:                profile.CloudSpecificSettings[clouds.AwsVpcCIDR],
 			VPCID:                  profile.CloudSpecificSettings[clouds.AwsVpcID],
 			KeyPairName:            profile.CloudSpecificSettings[clouds.AwsKeyPairName],
-			Subnets:                nil,
 			MastersSecurityGroupID: profile.CloudSpecificSettings[clouds.AwsMastersSecGroupID],
 			NodesSecurityGroupID:   profile.CloudSpecificSettings[clouds.AwsNodesSecgroupID],
+			HasPublicAddr:          true,
 		},
 		GCEConfig: GCEConfig{
 			AvailabilityZone: profile.Zone,
-			ImageFamily: "ubuntu-1604-lts",
+			ImageFamily:      "ubuntu-1604-lts",
 		},
 		OSConfig:     OSConfig{},
 		PacketConfig: PacketConfig{},

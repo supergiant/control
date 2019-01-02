@@ -4,8 +4,6 @@ import (
 	"context"
 	"fmt"
 	"io"
-	"strings"
-
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/service/ec2"
 	"github.com/pkg/errors"
@@ -20,12 +18,25 @@ const DeleteClusterMachinesStepName = "aws_delete_cluster_machines"
 
 type DeleteClusterMachines struct {
 	GetEC2 GetEC2Fn
+	getSvc func(steps.AWSConfig) (instanceDeleter, error)
 }
 
 func InitDeleteClusterMachines(fn GetEC2Fn) {
-	steps.RegisterStep(DeleteClusterMachinesStepName, &DeleteClusterMachines{
-		GetEC2: fn,
-	})
+	steps.RegisterStep(DeleteClusterMachinesStepName, NewDeleteClusterInstances(fn))
+}
+
+func NewDeleteClusterInstances(fn GetEC2Fn) *DeleteClusterMachines {
+	return &DeleteClusterMachines{
+		getSvc: func(config steps.AWSConfig) (instanceDeleter, error) {
+			EC2, err := fn(config)
+
+			if err != nil {
+				return nil, errors.Wrap(ErrAuthorization, err.Error())
+			}
+
+			return EC2, nil
+		},
+	}
 }
 
 func (s *DeleteClusterMachines) Run(ctx context.Context, w io.Writer, cfg *steps.Config) error {
@@ -33,13 +44,17 @@ func (s *DeleteClusterMachines) Run(ctx context.Context, w io.Writer, cfg *steps
 	logrus.Infof("[%s] - deleting cluster %s machines",
 		s.Name(), cfg.ClusterName)
 
-	EC2, err := s.GetEC2(cfg.AWSConfig)
+	svc, err := s.getSvc(cfg.AWSConfig)
+
 	if err != nil {
-		return errors.Wrap(ErrAuthorization, err.Error())
+		logrus.Errorf("%s Error getting service %v",
+			DeleteClusterMachinesStepName, err)
+		return errors.Wrapf(err, "%s error getting service",
+			DeleteClusterMachinesStepName)
 	}
 
 	logrus.Debug(cfg.AWSConfig)
-	describeInstanceOutput, err := EC2.DescribeInstancesWithContext(ctx, &ec2.DescribeInstancesInput{
+	describeInstanceOutput, err := svc.DescribeInstancesWithContext(ctx, &ec2.DescribeInstancesInput{
 		Filters: []*ec2.Filter{
 			{
 				Name:   aws.String(fmt.Sprintf("tag:%s", clouds.ClusterIDTag)),
@@ -47,6 +62,7 @@ func (s *DeleteClusterMachines) Run(ctx context.Context, w io.Writer, cfg *steps
 			},
 		},
 	})
+
 	if err != nil {
 		return errors.Wrap(ErrDeleteCluster, err.Error())
 	}
@@ -62,7 +78,7 @@ func (s *DeleteClusterMachines) Run(ctx context.Context, w io.Writer, cfg *steps
 		return nil
 	}
 
-	output, err := EC2.TerminateInstancesWithContext(ctx, &ec2.TerminateInstancesInput{
+	_, err = svc.TerminateInstancesWithContext(ctx, &ec2.TerminateInstancesInput{
 		InstanceIds: aws.StringSlice(instanceIDS),
 	})
 
@@ -71,14 +87,9 @@ func (s *DeleteClusterMachines) Run(ctx context.Context, w io.Writer, cfg *steps
 		return errors.Wrap(ErrDeleteCluster, err.Error())
 	}
 
-	terminatedInstances := make([]string, 0)
-	for _, instance := range output.TerminatingInstances {
-		terminatedInstances = append(terminatedInstances, *instance.InstanceId)
-	}
-
-	msg := fmt.Sprintf("terminated instances %s", strings.Join(terminatedInstances, " , "))
-	log.Infof("[%s] - %s", s.Name(), msg)
-	logrus.Infof("[%s] Deleted AWS cluster %s, %s", s.Name(), cfg.ClusterName, msg)
+	log.Infof("[%s] - completed", s.Name())
+	logrus.Infof("[%s] Deleted AWS cluster %s",
+		s.Name(), cfg.ClusterName)
 
 	return nil
 }

@@ -56,7 +56,7 @@ func (s *Step) Rollback(context.Context, io.Writer, *steps.Config) error {
 }
 
 func (s *Step) Description() string {
-	return ""
+	return "Check cluster health"
 }
 
 func (s *Step) Depends() []string {

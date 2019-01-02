@@ -1,4 +1,4 @@
-package kubelet
+package authorizedKeys
 
 import (
 	"bytes"
@@ -11,11 +11,11 @@ import (
 
 	"github.com/pkg/errors"
 
+	"github.com/supergiant/control/pkg/node"
+	"github.com/supergiant/control/pkg/profile"
 	"github.com/supergiant/control/pkg/runner"
 	"github.com/supergiant/control/pkg/templatemanager"
 	"github.com/supergiant/control/pkg/workflows/steps"
-	"github.com/supergiant/control/pkg/workflows/steps/docker"
-	"github.com/supergiant/control/pkg/workflows/steps/manifest"
 )
 
 type fakeRunner struct {
@@ -31,11 +31,12 @@ func (f *fakeRunner) Run(command *runner.Command) error {
 	return err
 }
 
-func TestStartKubelet(t *testing.T) {
-	k8sVersion := "1.8.7"
-	proxyPort := "8080"
+func TestAuthorizedkeys(t *testing.T) {
+	var (
+		expected               = "key"
+		r        runner.Runner = &fakeRunner{}
+	)
 
-	r := &fakeRunner{}
 	err := templatemanager.Init("../../../../templates")
 
 	if err != nil {
@@ -50,45 +51,46 @@ func TestStartKubelet(t *testing.T) {
 
 	output := new(bytes.Buffer)
 
-	cfg := &steps.Config{
-		KubeletConfig: steps.KubeletConfig{
-			K8SVersion: k8sVersion,
-			ProxyPort:  proxyPort,
-		},
-		Runner: r,
-	}
-
+	cfg := steps.NewConfig("", "", "", profile.Profile{})
+	cfg.Runner = r
 	task := &Step{
 		tpl,
 	}
 
 	err = task.Run(context.Background(), output, cfg)
 
-	if !strings.Contains(output.String(), k8sVersion) {
-		t.Errorf("k8s version %s not found in %s", k8sVersion, output.String())
+	if err != nil {
+		t.Errorf("Unpexpected error while  provision node %v", err)
+	}
+
+	if !strings.Contains(output.String(), expected) {
+		t.Errorf("not found %s in %s", expected, output.String())
 	}
 }
 
-func TestStartKubeletError(t *testing.T) {
+func TestAuthorizedKeysErr(t *testing.T) {
 	errMsg := "error has occurred"
 
 	r := &fakeRunner{
 		errMsg: errMsg,
 	}
 
-	kubeletScriptTemplate, err := template.New(StepName).Parse("")
-
+	proxyTemplate, err := template.New(StepName).Parse("")
 	output := new(bytes.Buffer)
-	config := &steps.Config{
-		KubeletConfig: steps.KubeletConfig{},
-		Runner:        r,
+
+	task := &Step{
+		proxyTemplate,
 	}
 
-	j := &Step{
-		kubeletScriptTemplate,
-	}
-
-	err = j.Run(context.Background(), output, config)
+	cfg := steps.NewConfig("", "",
+		"", profile.Profile{})
+	cfg.SshConfig.PublicKey = "key"
+	cfg.Runner = r
+	cfg.AddMaster(&node.Node{
+		State:     node.StateActive,
+		PrivateIp: "10.20.30.40",
+	})
+	err = task.Run(context.Background(), output, cfg)
 
 	if err == nil {
 		t.Errorf("Error must not be nil")
@@ -111,8 +113,8 @@ func TestStepName(t *testing.T) {
 func TestDepends(t *testing.T) {
 	s := Step{}
 
-	if len(s.Depends()) != 1 && s.Depends()[0] != docker.StepName && s.Depends()[1] != manifest.StepName {
-		t.Errorf("Wrong dependency list %v expected %v", s.Depends(), []string{docker.StepName, manifest.StepName})
+	if len(s.Depends()) != 0 {
+		t.Errorf("Wrong dependency list %v expected %v", s.Depends(), []string{})
 	}
 }
 
@@ -127,7 +129,7 @@ func TestStep_Rollback(t *testing.T) {
 
 func TestNew(t *testing.T) {
 	tpl := template.New("test")
-	s := New(tpl)
+	s := NewAddAuthorizedKeys(tpl)
 
 	if s.script != tpl {
 		t.Errorf("Wrong template expected %v actual %v", tpl, s.script)
@@ -137,13 +139,14 @@ func TestNew(t *testing.T) {
 func TestInit(t *testing.T) {
 	templatemanager.SetTemplate(StepName, &template.Template{})
 	Init()
-	templatemanager.DeleteTemplate(StepName)
 
 	s := steps.GetStep(StepName)
 
 	if s == nil {
 		t.Error("Step not found")
 	}
+
+	templatemanager.DeleteTemplate(StepName)
 }
 
 func TestInitPanic(t *testing.T) {
@@ -165,8 +168,8 @@ func TestInitPanic(t *testing.T) {
 func TestStep_Description(t *testing.T) {
 	s := &Step{}
 
-	if desc := s.Description(); desc != "Run kubelet" {
+	if desc := s.Description(); desc != "adds ssh public key to the authorized keys file" {
 		t.Errorf("Wrong desription expected %s actual %s",
-			"Run kubelet", desc)
+			"adds ssh public key to the authorized keys file", desc)
 	}
 }

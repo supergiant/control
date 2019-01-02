@@ -63,7 +63,7 @@ func (t *Step) Name() string {
 }
 
 func (t *Step) Description() string {
-	return ""
+	return "Install flannel"
 }
 
 func (t *Step) Depends() []string {

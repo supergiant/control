@@ -266,3 +266,12 @@ func TestInitPanic(t *testing.T) {
 		t.Error("Step not found")
 	}
 }
+
+func TestStep_Description(t *testing.T) {
+	s := &Step{}
+
+	if desc := s.Description(); desc != "Write manifes to /etc/kubernetes" {
+		t.Errorf("Wrong desription expected %s actual %s",
+			"Write manifes to /etc/kubernetes", desc)
+	}
+}

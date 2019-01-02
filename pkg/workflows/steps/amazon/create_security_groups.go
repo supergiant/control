@@ -7,23 +7,37 @@ import (
 
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/service/ec2"
-	"github.com/aws/aws-sdk-go/service/ec2/ec2iface"
 	"github.com/pkg/errors"
 	"github.com/sirupsen/logrus"
 
+	"github.com/aws/aws-sdk-go/aws/request"
 	"github.com/supergiant/control/pkg/util"
 	"github.com/supergiant/control/pkg/workflows/steps"
 )
 
 const StepCreateSecurityGroups = "create_security_groups_step"
 
+type secGroupService interface {
+	CreateSecurityGroupWithContext(aws.Context, *ec2.CreateSecurityGroupInput, ...request.Option) (*ec2.CreateSecurityGroupOutput, error)
+	AuthorizeSecurityGroupIngressWithContext(aws.Context, *ec2.AuthorizeSecurityGroupIngressInput, ...request.Option) (*ec2.AuthorizeSecurityGroupIngressOutput, error)
+}
+
 type CreateSecurityGroupsStep struct {
-	GetEC2 GetEC2Fn
+	getSvc         func(config steps.AWSConfig) (secGroupService, error)
+	findOutboundIP func() (string, error)
 }
 
 func NewCreateSecurityGroupsStep(fn GetEC2Fn) *CreateSecurityGroupsStep {
 	return &CreateSecurityGroupsStep{
-		GetEC2: fn,
+		getSvc: func(config steps.AWSConfig) (secGroupService, error) {
+			EC2, err := fn(config)
+			if err != nil {
+				return nil, ErrAuthorization
+			}
+
+			return EC2, nil
+		},
+		findOutboundIP: findOutBoundIP,
 	}
 }
 
@@ -33,16 +47,15 @@ func InitCreateSecurityGroups(fn GetEC2Fn) {
 
 func (s *CreateSecurityGroupsStep) Run(ctx context.Context, w io.Writer, cfg *steps.Config) error {
 	log := util.GetLogger(w)
-	EC2, err := s.GetEC2(cfg.AWSConfig)
+
+	svc, err := s.getSvc(cfg.AWSConfig)
+
 	if err != nil {
-		return ErrAuthorization
+		logrus.Errorf("%s: Getting service caused %v",
+			StepCreateSecurityGroups, err)
+		return errors.Wrapf(err, "%s get service", StepCreateSecurityGroups)
 	}
 
-	if cfg.AWSConfig.VPCID == "" {
-		err := errors.New("no vpc id provided for security groups creation")
-		log.Errorf("[%s] - %v", s.Name(), err)
-		return errors.Wrap(ErrAuthorization, err.Error())
-	}
 
 	logrus.Debugf("Create security groups for VPC %s",
 		cfg.AWSConfig.VPCID)
@@ -50,7 +63,7 @@ func (s *CreateSecurityGroupsStep) Run(ctx context.Context, w io.Writer, cfg *st
 		groupName := fmt.Sprintf("%s-masters-secgroup", cfg.ClusterID)
 
 		log.Infof("[%s] - masters security groups not specified, will create a new one...", s.Name())
-		out, err := EC2.CreateSecurityGroupWithContext(ctx, &ec2.CreateSecurityGroupInput{
+		out, err := svc.CreateSecurityGroupWithContext(ctx, &ec2.CreateSecurityGroupInput{
 			Description: aws.String("Security group for Kubernetes masters for cluster " + cfg.ClusterID),
 			VpcId:       aws.String(cfg.AWSConfig.VPCID),
 			GroupName:   aws.String(groupName),
@@ -66,7 +79,7 @@ func (s *CreateSecurityGroupsStep) Run(ctx context.Context, w io.Writer, cfg *st
 		groupName := fmt.Sprintf("%s-nodes-secgroup", cfg.ClusterID)
 
 		log.Infof("[%s] - node security groups not specified, will create a new one...", s.Name())
-		out, err := EC2.CreateSecurityGroupWithContext(ctx, &ec2.CreateSecurityGroupInput{
+		out, err := svc.CreateSecurityGroupWithContext(ctx, &ec2.CreateSecurityGroupInput{
 			Description: aws.String("Security group for Kubernetes nodes for cluster " + cfg.ClusterID),
 			VpcId:       aws.String(cfg.AWSConfig.VPCID),
 			GroupName:   aws.String(groupName),
@@ -83,76 +96,36 @@ func (s *CreateSecurityGroupsStep) Run(ctx context.Context, w io.Writer, cfg *st
 
 	logrus.Debugf("Authorize SSH between groups")
 	//In order to deploy the kubernetes cluster supergiant needs to open port 22
-	if err := s.authorizeSSH(ctx, EC2, cfg.AWSConfig.MastersSecurityGroupID); err != nil {
-		return err
+	if err := s.authorizeSSH(ctx, svc, cfg.AWSConfig.MastersSecurityGroupID); err != nil {
+		logrus.Errorf("authorize ssh for masters caused %v", err)
+		return errors.Wrapf(err, "%s authorize ssh for masters",
+			StepCreateSecurityGroups)
 	}
 
-	if err := s.authorizeSSH(ctx, EC2, cfg.AWSConfig.NodesSecurityGroupID); err != nil {
-		return err
+	if err := s.authorizeSSH(ctx, svc, cfg.AWSConfig.NodesSecurityGroupID); err != nil {
+		logrus.Errorf("authorize ssh for nodes caused %v", err)
+		return errors.Wrapf(err, "%s authorize ssh for nodes",
+			StepCreateSecurityGroups)
 	}
 
 	logrus.Debugf("Allow traffic between groups")
 	//Open ports between master <-> node security groups
 	// nodes to nodes
-	if err := s.allowAllTraffic(ctx, EC2, cfg); err != nil {
+	if err := s.allowAllTraffic(ctx, svc, cfg); err != nil {
 		return err
 	}
 
 	logrus.Debugf("Whitelist SG IP address")
-	if err := s.whiteListSupergiantIP(ctx, EC2, cfg.AWSConfig.MastersSecurityGroupID); err != nil {
+	if err := s.whiteListSupergiantIP(ctx, svc, cfg.AWSConfig.MastersSecurityGroupID); err != nil {
 		logrus.Errorf("[%s] - failed to whitelist supergiant IP in master "+
 			"security group: %v", s.Name(), err)
+		return errors.Wrapf(err, "%s failed whitelisting supergiant IP", s.Name())
 	}
 
 	return nil
 }
 
-func (s *CreateSecurityGroupsStep) getSecurityGroupByName(ctx context.Context, EC2 ec2iface.EC2API, vpcID, groupName string) (string, error) {
-	logrus.Debugf("Get security group %s by name in vpc %s",
-		groupName, vpcID)
-	out, err := EC2.DescribeSecurityGroupsWithContext(ctx, &ec2.DescribeSecurityGroupsInput{
-		GroupNames: aws.StringSlice([]string{groupName}),
-		Filters: []*ec2.Filter{
-			{
-				Name:   aws.String("vpc-id"),
-				Values: aws.StringSlice([]string{vpcID}),
-			},
-		},
-	})
-
-	if err != nil {
-		return "", err
-	}
-	if len(out.SecurityGroups) == 0 {
-		return "", errors.Errorf("no security group %s found in aws", groupName)
-	}
-	logrus.Debugf("Found %s %s", groupName, *out.SecurityGroups[0].VpcId)
-	return *out.SecurityGroups[0].GroupId, nil
-}
-
-func (s *CreateSecurityGroupsStep) getSecurityGroupById(ctx context.Context, EC2 ec2iface.EC2API, vpcID, groupID string) (*ec2.SecurityGroup, error) {
-	logrus.Debugf("Get security group by Id %s in VPC %s",
-		groupID, vpcID)
-	out, err := EC2.DescribeSecurityGroupsWithContext(ctx, &ec2.DescribeSecurityGroupsInput{
-		GroupIds: aws.StringSlice([]string{groupID}),
-		Filters: []*ec2.Filter{
-			{
-				Name:   aws.String("vpc-id"),
-				Values: aws.StringSlice([]string{vpcID}),
-			},
-		},
-	})
-	if err != nil {
-		return nil, err
-	}
-
-	if len(out.SecurityGroups) == 0 {
-		return nil, errors.Errorf("no security group with ID %s found in aws", groupID)
-	}
-	return out.SecurityGroups[0], nil
-}
-
-func (s *CreateSecurityGroupsStep) authorizeSSH(ctx context.Context, EC2 ec2iface.EC2API, groupID string) error {
+func (s *CreateSecurityGroupsStep) authorizeSSH(ctx context.Context, EC2 secGroupService, groupID string) error {
 	_, err := EC2.AuthorizeSecurityGroupIngressWithContext(ctx, &ec2.AuthorizeSecurityGroupIngressInput{
 		GroupId:    aws.String(groupID),
 		FromPort:   aws.Int64(22),
@@ -164,7 +137,7 @@ func (s *CreateSecurityGroupsStep) authorizeSSH(ctx context.Context, EC2 ec2ifac
 	return err
 }
 
-func (s *CreateSecurityGroupsStep) allowAllTraffic(ctx context.Context, EC2 ec2iface.EC2API, cfg *steps.Config) error {
+func (s *CreateSecurityGroupsStep) allowAllTraffic(ctx context.Context, EC2 secGroupService, cfg *steps.Config) error {
 	_, err := EC2.AuthorizeSecurityGroupIngressWithContext(ctx, &ec2.AuthorizeSecurityGroupIngressInput{
 		GroupId: aws.String(cfg.AWSConfig.MastersSecurityGroupID),
 		IpPermissions: []*ec2.IpPermission{
@@ -190,6 +163,10 @@ func (s *CreateSecurityGroupsStep) allowAllTraffic(ctx context.Context, EC2 ec2i
 			},
 		},
 	})
+
+	if err != nil {
+		return err
+	}
 
 	_, err = EC2.AuthorizeSecurityGroupIngressWithContext(ctx, &ec2.AuthorizeSecurityGroupIngressInput{
 		GroupId: aws.String(cfg.AWSConfig.NodesSecurityGroupID),
@@ -220,8 +197,8 @@ func (s *CreateSecurityGroupsStep) allowAllTraffic(ctx context.Context, EC2 ec2i
 	return err
 }
 
-func (s *CreateSecurityGroupsStep) whiteListSupergiantIP(ctx context.Context, EC2 ec2iface.EC2API, groupID string) error {
-	supergiantIP, err := FindOutboundIP(ctx, findOutBoundIP)
+func (s *CreateSecurityGroupsStep) whiteListSupergiantIP(ctx context.Context, EC2 secGroupService, groupID string) error {
+	supergiantIP, err := FindOutboundIP(ctx, s.findOutboundIP)
 	if err != nil {
 		return err
 	}
