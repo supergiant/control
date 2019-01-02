@@ -211,3 +211,12 @@ func TestInitPanic(t *testing.T) {
 		t.Error("Step not found")
 	}
 }
+
+func TestStep_Description(t *testing.T) {
+	s := &Step{}
+
+	if desc := s.Description(); desc != "Install prometheus" {
+		t.Errorf("Wrong desription expected %s actual %s",
+			"Install prometheus", desc)
+	}
+}

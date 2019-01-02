@@ -20,8 +20,9 @@ func TestGetStepNotFound(t *testing.T) {
 		stepName = "not_found"
 	)
 
-	if _, ok := stepMap[stepName]; ok {
-		t.Errorf("unexpected step %s", stepName)
-	}
+	s := GetStep(stepName)
 
+	if s != nil {
+		t.Errorf("Step must be nil")
+	}
 }

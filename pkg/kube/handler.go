@@ -8,7 +8,6 @@ import (
 	"io"
 	"net/http"
 	"strconv"
-	"sync"
 	"time"
 
 	core "k8s.io/api/core/v1"
@@ -17,6 +16,7 @@ import (
 	"github.com/pkg/errors"
 	"github.com/sirupsen/logrus"
 	"gopkg.in/asaskevich/govalidator.v8"
+	"k8s.io/client-go/rest"
 
 	"github.com/supergiant/control/pkg/clouds"
 	"github.com/supergiant/control/pkg/message"
@@ -31,42 +31,6 @@ import (
 	"github.com/supergiant/control/pkg/workflows/statuses"
 	"github.com/supergiant/control/pkg/workflows/steps"
 )
-
-var (
-	cache  metricCache
-	m      sync.Mutex
-	client *http.Client
-)
-
-type metricCache struct {
-	m    sync.RWMutex
-	data map[string]entry
-}
-
-func (c *metricCache) get(key string) *MetricResponse {
-	c.m.RLock()
-	defer c.m.RUnlock()
-	e := c.data[key]
-
-	if e.timestamp == 0 {
-		return nil
-	}
-
-	if e.timestamp < time.Now().Unix()-60 {
-		return nil
-	}
-
-	return e.value
-}
-
-func (c *metricCache) set(key string, value *MetricResponse) {
-	c.m.Lock()
-	defer c.m.Unlock()
-	c.data[key] = entry{
-		timestamp: time.Now().Unix(),
-		value:     value,
-	}
-}
 
 type entry struct {
 	timestamp int64
@@ -117,28 +81,6 @@ type Handler struct {
 	proxies         proxy.Container
 }
 
-func init() {
-	cache = metricCache{
-		data: make(map[string]entry),
-	}
-	tr := &http.Transport{
-		TLSClientConfig:     &tls.Config{InsecureSkipVerify: true},
-		TLSHandshakeTimeout: time.Second * 30,
-		MaxIdleConnsPerHost: 100,
-	}
-	client = &http.Client{
-		Transport: tr,
-		Timeout:   time.Second * 30,
-	}
-}
-
-// Use shared http.Client to perform request
-func doReq(req *http.Request) (*http.Response, error) {
-	m.Lock()
-	defer m.Unlock()
-	return client.Do(req)
-}
-
 // NewHandler constructs a Handler for kubes.
 func NewHandler(
 	svc Interface,
@@ -168,36 +110,25 @@ func NewHandler(
 		repo:      repo,
 		getWriter: util.GetWriter,
 		getMetrics: func(metricURI string, k *model.Kube) (*MetricResponse, error) {
-			if m := cache.get(metricURI); m != nil {
-				logrus.Debugf("metric cache hit")
-				return m, nil
+			cfg, err := NewConfigFor(k)
+			if err != nil {
+				return nil, errors.Wrap(err, "build kubernetes rest config")
 			}
-			logrus.Debugf("metric cache miss")
+			kclient, err := rest.UnversionedRESTClientFor(cfg)
+			if err != nil {
+				return nil, errors.Wrap(err, "build kubernetes client")
+			}
+
+			raw, err := kclient.Get().RequestURI(metricURI).Do().Raw()
+			if err != nil {
+				return nil, errors.Wrap(err, "retrieve metrics")
+			}
 
 			metricResponse := &MetricResponse{}
-			// TODO(stgleb): Add caching for metric
-			req, err := http.NewRequest(http.MethodGet, metricURI, nil)
-
+			err = json.Unmarshal(raw, metricResponse)
 			if err != nil {
-				return nil, err
+				return nil, errors.Wrap(err, "unmarshal")
 			}
-
-			req.SetBasicAuth(k.User, k.Password)
-			logrus.Debugf("Get metric with URI %s for kube %s", metricURI, k.ID)
-			resp, err := doReq(req)
-
-			if err != nil {
-				return nil, err
-			}
-
-			err = json.NewDecoder(resp.Body).Decode(metricResponse)
-
-			if err != nil {
-				return nil, err
-			}
-
-			resp.Body.Close()
-			cache.set(metricURI, metricResponse)
 
 			return metricResponse, nil
 		},
@@ -744,7 +675,7 @@ func (h *Handler) deleteNode(w http.ResponseWriter, r *http.Request) {
 		ClusterID:        k.ID,
 		ClusterName:      k.Name,
 		CloudAccountName: k.AccountName,
-		Node: *n,
+		Node:             *n,
 	}
 
 	err = util.FillCloudAccountCredentials(r.Context(), acc, config)

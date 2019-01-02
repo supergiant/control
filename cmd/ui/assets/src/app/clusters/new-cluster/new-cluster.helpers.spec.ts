@@ -1,6 +1,6 @@
 import { getDigitalOceanMachineType } from 'app/clusters/new-cluster/new-cluster.helpers';
 
-fdescribe('NewClusterHelpersComponent', () => {
+describe('NewClusterHelpersComponent', () => {
 
   describe('getDigitalOceanMachineType', () => {
     let machineSize: string;

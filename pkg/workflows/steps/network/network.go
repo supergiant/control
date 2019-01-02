@@ -54,7 +54,7 @@ func (s *Step) Rollback(context.Context, io.Writer, *steps.Config) error {
 }
 
 func (t *Step) Description() string {
-	return ""
+	return "Configure networking"
 }
 
 func (s *Step) Depends() []string {
