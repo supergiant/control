@@ -10,9 +10,12 @@ import (
 	"net/http/httptest"
 	"testing"
 	"time"
+	"os"
 
 	"github.com/gorilla/mux"
 
+	"github.com/hpcloud/tail"
+	"github.com/pkg/errors"
 	"github.com/supergiant/control/pkg/clouds"
 	"github.com/supergiant/control/pkg/model"
 	"github.com/supergiant/control/pkg/node"
@@ -287,6 +290,79 @@ func TestWorkflowHandlerBuildWorkflow(t *testing.T) {
 
 	if err != nil {
 		t.Errorf("Unexpected err while parsing response %v", err)
+	}
+}
+
+func TestTaskHandler_GetLogs(t *testing.T) {
+	rec := httptest.NewRecorder()
+	req, _ := http.NewRequest(http.MethodGet, "/tasks/abcd/logs/ws", nil)
+
+	rec.Header().Add("Authorization", "bearer none")
+	router := mux.NewRouter()
+	handler := TaskHandler{}
+	handler.Register(router)
+
+	router.ServeHTTP(rec, req)
+
+	if rec.Code != http.StatusOK {
+		t.Errorf("Wrong status code expected %d actual %d",
+			http.StatusOK, rec.Code)
+	}
+}
+
+func TestTaskHandler_StreamLogs(t *testing.T) {
+	testCases := []struct {
+		description  string
+		getTailErr   error
+		t            *tail.Tail
+		expectedCode int
+	}{
+		{
+			description:  "wrong task id",
+			expectedCode: http.StatusBadRequest,
+		},
+		{
+			description:  "wrong task id",
+			expectedCode: http.StatusBadRequest,
+		},
+		{
+			description:  "file not found",
+			getTailErr:   os.ErrNotExist,
+			expectedCode: http.StatusNotFound,
+		},
+		{
+			description:  "unknown error",
+			getTailErr:   errors.New("error"),
+			expectedCode: http.StatusInternalServerError,
+		},
+		{
+			description: "upgrade error",
+			t: &tail.Tail{
+				Lines: make(chan *tail.Line),
+			},
+
+			expectedCode: http.StatusBadRequest,
+		},
+	}
+
+	for _, testCase := range testCases {
+		t.Log(testCase.description)
+		rec := httptest.NewRecorder()
+		req, _ := http.NewRequest(http.MethodGet, "/tasks/abcd/logs", nil)
+
+		router := mux.NewRouter()
+		handler := TaskHandler{
+			getTail: func(s string) (*tail.Tail, error) {
+				return testCase.t, testCase.getTailErr
+			},
+		}
+		handler.Register(router)
+		router.ServeHTTP(rec, req)
+
+		if rec.Code != testCase.expectedCode {
+			t.Errorf("Wrong response code expected %d actual %d",
+				testCase.expectedCode, rec.Code)
+		}
 	}
 }
 
