@@ -10,7 +10,7 @@ import (
 	"strconv"
 	"time"
 
-	core "k8s.io/api/core/v1"
+	corev1 "k8s.io/api/core/v1"
 
 	"github.com/gorilla/mux"
 	"github.com/pkg/errors"
@@ -30,6 +30,10 @@ import (
 	"github.com/supergiant/control/pkg/workflows"
 	"github.com/supergiant/control/pkg/workflows/statuses"
 	"github.com/supergiant/control/pkg/workflows/steps"
+)
+
+const (
+	clusterService = "kubernetes.io/cluster-service"
 )
 
 type entry struct {
@@ -77,7 +81,7 @@ type Handler struct {
 	repo            storage.Interface
 	getWriter       func(string) (io.WriteCloser, error)
 	getMetrics      func(string, *model.Kube) (*MetricResponse, error)
-	getK8sServices  func(*model.Kube, string, string) (*core.ServiceList, error)
+	getK8sServices  func(*model.Kube, string, string) (*corev1.ServiceList, error)
 	proxies         proxy.Container
 }
 
@@ -132,8 +136,8 @@ func NewHandler(
 
 			return metricResponse, nil
 		},
-		getK8sServices: func(k *model.Kube, servicesUrl, publicIP string) (*core.ServiceList, error) {
-			k8sServices := &core.ServiceList{}
+		getK8sServices: func(k *model.Kube, servicesUrl, publicIP string) (*corev1.ServiceList, error) {
+			k8sServices := &corev1.ServiceList{}
 			serviceURL := fmt.Sprintf("https://%s/%s", publicIP, servicesUrl)
 			req, err := http.NewRequest(http.MethodGet, serviceURL, nil)
 			req.SetBasicAuth(k.User, k.Password)
@@ -1052,7 +1056,7 @@ func (h *Handler) getServices(w http.ResponseWriter, r *http.Request) {
 	var targetServices = make([]*proxy.Target, 0)
 
 	for _, service := range k8sServices.Items {
-		if !contains("kubernetes.io/cluster-service",
+		if !contains(clusterService,
 			"true", service.ObjectMeta.Labels) {
 			continue
 		}

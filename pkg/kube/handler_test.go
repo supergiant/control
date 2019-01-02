@@ -1936,7 +1936,7 @@ func TestGetServices(t *testing.T) {
 					{
 						ObjectMeta: meta.ObjectMeta{
 							Labels: map[string]string{
-								"kubernetes.io/cluster-service": "false",
+								clusterService: "false",
 							},
 						},
 						Spec: core.ServiceSpec{
@@ -1973,7 +1973,7 @@ func TestGetServices(t *testing.T) {
 					{
 						ObjectMeta: meta.ObjectMeta{
 							Labels: map[string]string{
-								"kubernetes.io/cluster-service": "true",
+								clusterService: "true",
 							},
 						},
 						Spec: core.ServiceSpec{
@@ -2010,7 +2010,7 @@ func TestGetServices(t *testing.T) {
 					{
 						ObjectMeta: meta.ObjectMeta{
 							Labels: map[string]string{
-								"kubernetes.io/cluster-service": "true",
+								clusterService: "true",
 							},
 						},
 						Spec: core.ServiceSpec{
