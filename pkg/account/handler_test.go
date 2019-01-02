@@ -441,3 +441,173 @@ func TestHandler_GetRegions(t *testing.T) {
 		}
 	}
 }
+
+func TestHandler_GetAZs(t *testing.T) {
+	testCases := []struct {
+		description          string
+		accountName          string
+		accData              []byte
+		serviceErr           error
+		expectedAccountCount int
+		expectedCode         int
+	}{
+		{
+			description:          "error get account",
+			accountName:          "test",
+			accData:              []byte{},
+			serviceErr:           errors.New("weird error"),
+			expectedAccountCount: 1,
+			expectedCode:         http.StatusInternalServerError,
+		},
+		{
+			description:          "account not found",
+			accountName:          "test",
+			accData:              nil,
+			serviceErr:           sgerrors.ErrNotFound,
+			expectedAccountCount: 1,
+			expectedCode:         http.StatusNotFound,
+		},
+		{
+			description:          "unsupported cloud provider",
+			accountName:          "test",
+			accData:              []byte(`{"provider":"unknowncloud"}`),
+			serviceErr:           nil,
+			expectedAccountCount: 1,
+			expectedCode:         http.StatusInternalServerError,
+		},
+		{
+			description:          "get getter error",
+			accountName:          "test",
+			accData:              []byte(`{"provider":"digitalocean"}`),
+			serviceErr:           nil,
+			expectedAccountCount: 1,
+			expectedCode:         http.StatusInternalServerError,
+		},
+		{
+			description:          "get zones empty creds",
+			accountName:          "test",
+			accData:              []byte(`{"provider":"aws"}`),
+			serviceErr:           nil,
+			expectedAccountCount: 1,
+			expectedCode:         http.StatusInternalServerError,
+		},
+		{
+			description: "get zones error",
+			accountName: "test",
+			accData: []byte(`{"provider":"aws", 
+							"credentials": {"access_key":"access", 
+											"secret_key":"key"}}`),
+			serviceErr:           nil,
+			expectedAccountCount: 1,
+			expectedCode:         http.StatusInternalServerError,
+		},
+	}
+
+	for _, testCase := range testCases {
+		t.Log(testCase.description)
+		e, m := fixtures()
+		m.On("Get", mock.Anything,
+			mock.Anything, mock.Anything, mock.Anything).
+			Return(testCase.accData, testCase.serviceErr)
+
+		router := mux.NewRouter()
+		e.Register(router)
+		rec := httptest.NewRecorder()
+		req, _ := http.NewRequest(http.MethodGet,
+			fmt.Sprintf("/accounts/%s/regions/regionName/az",
+				testCase.accountName), nil)
+
+		router.ServeHTTP(rec, req)
+
+		if rec.Code != testCase.expectedCode {
+			t.Errorf("Wrong response code expected %d actual %d",
+				testCase.expectedCode, rec.Code)
+			continue
+		}
+	}
+}
+
+func TestHandler_GetTypes(t *testing.T) {
+	testCases := []struct {
+		description          string
+		accountName          string
+		accData              []byte
+		serviceErr           error
+		expectedAccountCount int
+		expectedCode         int
+	}{
+		{
+			description:          "error get account",
+			accountName:          "test",
+			accData:              []byte{},
+			serviceErr:           errors.New("weird error"),
+			expectedAccountCount: 1,
+			expectedCode:         http.StatusInternalServerError,
+		},
+		{
+			description:          "account not found",
+			accountName:          "test",
+			accData:              nil,
+			serviceErr:           sgerrors.ErrNotFound,
+			expectedAccountCount: 1,
+			expectedCode:         http.StatusNotFound,
+		},
+		{
+			description:          "unsupported cloud provider",
+			accountName:          "test",
+			accData:              []byte(`{"provider":"unknowncloud"}`),
+			serviceErr:           nil,
+			expectedAccountCount: 1,
+			expectedCode:         http.StatusInternalServerError,
+		},
+		{
+			description:          "get getter error",
+			accountName:          "test",
+			accData:              []byte(`{"provider":"digitalocean"}`),
+			serviceErr:           nil,
+			expectedAccountCount: 1,
+			expectedCode:         http.StatusInternalServerError,
+		},
+		{
+			description:          "get zones empty creds",
+			accountName:          "test",
+			accData:              []byte(`{"provider":"aws"}`),
+			serviceErr:           nil,
+			expectedAccountCount: 1,
+			expectedCode:         http.StatusInternalServerError,
+		},
+		{
+			description: "get zones error",
+			accountName: "test",
+			accData: []byte(`{"provider":"aws", 
+							"credentials": {"access_key":"access", 
+											"secret_key":"key"}}`),
+			serviceErr:           nil,
+			expectedAccountCount: 1,
+			expectedCode:         http.StatusInternalServerError,
+		},
+	}
+
+	for _, testCase := range testCases {
+		t.Log(testCase.description)
+		e, m := fixtures()
+		m.On("Get", mock.Anything,
+			mock.Anything, mock.Anything, mock.Anything).
+			Return(testCase.accData, testCase.serviceErr)
+
+		router := mux.NewRouter()
+		e.Register(router)
+		rec := httptest.NewRecorder()
+		req, _ := http.NewRequest(http.MethodGet,
+			fmt.Sprintf("/accounts/%s/regions/us-west-1a/az/us-west-1a/types",
+				testCase.accountName), nil)
+
+		router.ServeHTTP(rec, req)
+
+		if rec.Code != testCase.expectedCode {
+			t.Errorf("Wrong response code expected %d actual %d",
+				testCase.expectedCode, rec.Code)
+			continue
+		}
+	}
+}
