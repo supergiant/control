@@ -10,6 +10,8 @@ import (
 	"strconv"
 	"time"
 
+	corev1 "k8s.io/api/core/v1"
+
 	"github.com/gorilla/mux"
 	"github.com/pkg/errors"
 	"github.com/sirupsen/logrus"
@@ -30,6 +32,10 @@ import (
 	"github.com/supergiant/control/pkg/workflows/steps"
 )
 
+const (
+	clusterService = "kubernetes.io/cluster-service"
+)
+
 type entry struct {
 	timestamp int64
 	value     *MetricResponse
@@ -46,42 +52,6 @@ type nodeProvisioner interface {
 	Cancel(string) error
 }
 
-type k8SServices struct {
-	Kind       string `json:"kind"`
-	APIVersion string `json:"apiVersion"`
-	Metadata   struct {
-		SelfLink        string `json:"selfLink"`
-		ResourceVersion string `json:"resourceVersion"`
-	} `json:"metadata"`
-	Items []struct {
-		Metadata struct {
-			Name              string            `json:"name"`
-			Namespace         string            `json:"namespace"`
-			SelfLink          string            `json:"selfLink"`
-			UID               string            `json:"uid"`
-			ResourceVersion   string            `json:"resourceVersion"`
-			CreationTimestamp time.Time         `json:"creationTimestamp"`
-			Labels            map[string]string `json:"labels"`
-		} `json:"metadata"`
-		Spec struct {
-			Ports []struct {
-				Name     string `json:"name"`
-				Protocol string `json:"protocol"`
-				Port     int    `json:"port"`
-			} `json:"ports"`
-			Selector struct {
-				App string `json:"app"`
-			} `json:"selector"`
-			ClusterIP       string `json:"clusterIP"`
-			Type            string `json:"type"`
-			SessionAffinity string `json:"sessionAffinity"`
-		} `json:"spec"`
-		Status struct {
-			LoadBalancer struct {
-			} `json:"loadBalancer"`
-		} `json:"status"`
-	} `json:"items"`
-}
 
 type ServiceInfo struct {
 	ID        string `json:"id"`
@@ -111,6 +81,7 @@ type Handler struct {
 	repo            storage.Interface
 	getWriter       func(string) (io.WriteCloser, error)
 	getMetrics      func(string, *model.Kube) (*MetricResponse, error)
+	getK8sServices  func(*model.Kube, string, string) (*corev1.ServiceList, error)
 	proxies         proxy.Container
 }
 
@@ -164,6 +135,32 @@ func NewHandler(
 			}
 
 			return metricResponse, nil
+		},
+		getK8sServices: func(k *model.Kube, servicesUrl, publicIP string) (*corev1.ServiceList, error) {
+			k8sServices := &corev1.ServiceList{}
+			serviceURL := fmt.Sprintf("https://%s/%s", publicIP, servicesUrl)
+			req, err := http.NewRequest(http.MethodGet, serviceURL, nil)
+			req.SetBasicAuth(k.User, k.Password)
+
+			tr := &http.Transport{
+				TLSClientConfig: &tls.Config{InsecureSkipVerify: true},
+			}
+			client := &http.Client{
+				Transport: tr,
+			}
+			resp, err := client.Do(req)
+
+			if err != nil {
+				return nil, err
+			}
+
+			err = json.NewDecoder(resp.Body).Decode(k8sServices)
+
+			if err != nil {
+				return nil, err
+			}
+
+			return k8sServices, nil
 		},
 		proxies: proxies,
 	}
@@ -1012,8 +1009,8 @@ func (h *Handler) getServices(w http.ResponseWriter, r *http.Request) {
 		servicesUrl = "api/v1/services"
 		kubeID      string
 		masterNode  *node.Node
-		k8sServices = &k8SServices{}
 	)
+
 	vars := mux.Vars(r)
 	kubeID = vars["kubeID"]
 
@@ -1027,34 +1024,23 @@ func (h *Handler) getServices(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	if len(k.Masters) == 0 {
+		message.SendNotFound(w, kubeID,
+			errors.New("no master node found"))
+		return
+	}
+
 	for key := range k.Masters {
 		if k.Masters[key] != nil {
 			masterNode = k.Masters[key]
 		}
 	}
 
-	serviceURL := fmt.Sprintf("https://%s/%s", masterNode.PublicIp, servicesUrl)
-	req, err := http.NewRequest(http.MethodGet, serviceURL, nil)
-	req.SetBasicAuth(k.User, k.Password)
-
-	tr := &http.Transport{
-		TLSClientConfig: &tls.Config{InsecureSkipVerify: true},
-	}
-	client := &http.Client{
-		Transport: tr,
-	}
-	resp, err := client.Do(req)
+	k8sServices, err := h.getK8sServices(k,
+		servicesUrl, masterNode.PublicIp)
 
 	if err != nil {
 		message.SendUnknownError(w, err)
-		return
-	}
-
-	err = json.NewDecoder(resp.Body).Decode(k8sServices)
-
-	if err != nil {
-		logrus.Error(err)
-		message.SendInvalidJSON(w, err)
 		return
 	}
 
@@ -1070,24 +1056,25 @@ func (h *Handler) getServices(w http.ResponseWriter, r *http.Request) {
 	var targetServices = make([]*proxy.Target, 0)
 
 	for _, service := range k8sServices.Items {
-		if !contains("kubernetes.io/cluster-service", "true", service.Metadata.Labels) {
+		if !contains(clusterService,
+			"true", service.ObjectMeta.Labels) {
 			continue
 		}
 
 		if len(service.Spec.Ports) == 1 && service.Spec.Ports[0].Protocol == "TCP" {
 			var serviceInfo = &ServiceInfo{
-				ID:        service.Metadata.UID,
-				Name:      service.Metadata.Name,
-				Type:      service.Spec.Type,
-				Namespace: service.Metadata.Namespace,
+				ID:        string(service.ObjectMeta.UID),
+				Name:      service.ObjectMeta.Name,
+				Type:      string(service.Spec.Type),
+				Namespace: service.ObjectMeta.Namespace,
 			}
 			serviceInfos = append(serviceInfos, serviceInfo)
 
 			targetServices = append(targetServices, &proxy.Target{
-				ProxyID: kubeID + service.Metadata.UID,
+				ProxyID: kubeID + string(service.ObjectMeta.UID),
 				TargetURL: fmt.Sprintf("https://%s%s:%d/proxy",
-					masterNode.PublicIp, service.Metadata.SelfLink, service.Spec.Ports[0].Port),
-				SelfLink: service.Metadata.SelfLink,
+					masterNode.PublicIp, service.ObjectMeta.SelfLink, service.Spec.Ports[0].Port),
+				SelfLink: service.ObjectMeta.SelfLink,
 				User:     k.User,
 				Password: k.Password,
 			})
@@ -1098,18 +1085,18 @@ func (h *Handler) getServices(w http.ResponseWriter, r *http.Request) {
 			if port.Protocol == "TCP" {
 				if _, ok := webPorts[port.Name]; ok {
 					var serviceInfo = &ServiceInfo{
-						ID:        service.Metadata.UID,
-						Name:      service.Metadata.Name,
-						Type:      service.Spec.Type,
-						Namespace: service.Metadata.Namespace,
+						ID:        string(service.ObjectMeta.UID),
+						Name:      string(service.ObjectMeta.Name),
+						Type:      string(service.Spec.Type),
+						Namespace: service.ObjectMeta.Namespace,
 					}
 					serviceInfos = append(serviceInfos, serviceInfo)
 
 					targetServices = append(targetServices, &proxy.Target{
-						ProxyID: kubeID + service.Metadata.UID,
+						ProxyID: kubeID + string(service.ObjectMeta.UID),
 						TargetURL: fmt.Sprintf("https://%s%s:%d/proxy",
-							masterNode.PublicIp, service.Metadata.SelfLink, port.Port),
-						SelfLink: service.Metadata.SelfLink,
+							masterNode.PublicIp, service.ObjectMeta.SelfLink, port.Port),
+						SelfLink: service.ObjectMeta.SelfLink,
 						User:     k.User,
 						Password: k.Password,
 					})

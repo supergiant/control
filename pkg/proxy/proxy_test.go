@@ -35,7 +35,7 @@ func TestNewReverseProxyContainer(t *testing.T) {
 func TestServiceReverseProxy_Port(t *testing.T) {
 	expectedPort := "8080"
 	p := &ServiceReverseProxy{
-		servingBase: fmt.Sprintf("host:%s", expectedPort),
+		ServingBase: fmt.Sprintf("host:%s", expectedPort),
 	}
 
 	actualPort := p.Port()
@@ -48,7 +48,7 @@ func TestServiceReverseProxy_Port(t *testing.T) {
 
 func TestServiceReverseProxy_PortErr(t *testing.T) {
 	p := &ServiceReverseProxy{
-		servingBase: "",
+		ServingBase: "",
 	}
 
 	actualPort := p.Port()
