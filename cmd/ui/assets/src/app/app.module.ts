@@ -29,14 +29,12 @@ import {
   MatTooltipModule,
 } from '@angular/material';
 import { SchemaFormModule, WidgetRegistry, DefaultWidgetRegistry } from 'ngx-schema-form';
-import { MaterialDesignFrameworkModule }                           from 'angular6-json-schema-form';
-import { AppRoutingModule }                                        from './app-routing.module';
-import { AceEditorModule }                                         from 'ng2-ace-editor';
-import { ChartsModule }                                            from 'ng2-charts';
-import { NgxPaginationModule }                                     from 'ngx-pagination';
-import { TitleCasePipe }                                           from '@angular/common';
-import { CommonModule }                                            from '@angular/common';
-import { ContextMenuModule }                                       from 'ngx-contextmenu';
+import { MaterialDesignFrameworkModule } from 'angular6-json-schema-form';
+import { AppRoutingModule } from './app-routing.module';
+import { AceEditorModule } from 'ng2-ace-editor';
+import { NgxPaginationModule } from 'ngx-pagination';
+import { TitleCasePipe } from '@angular/common';
+import { CommonModule } from '@angular/common';
 
 
 // Components
@@ -60,57 +58,57 @@ import { Notifications } from './shared/notifications/notifications.service';
 import { CookieMonster } from './shared/cookies/cookies.service';
 
 // Supergiant API Services
-import { Supergiant }        from './shared/supergiant/supergiant.service';
-import { UtilService }       from './shared/supergiant/util/util.service';
-import { Sessions }          from './shared/supergiant/sessions/sessions.service';
-import { Users }             from './shared/supergiant/users/users.service';
-import { CloudAccounts }     from './shared/supergiant/cloud-accounts/cloud-accounts.service';
-import { Kubes }             from './shared/supergiant/kubes/kubes.service';
-import { KubeResources }     from './shared/supergiant/kube-resources/kube-resources.service';
-import { Nodes }             from './shared/supergiant/nodes/nodes.service';
-import { LoadBalancers }     from './shared/supergiant/load-balancers/load-balancers.service';
-import { HelmRepos }         from './shared/supergiant/helm-repos/helm-repos.service';
-import { HelmCharts }        from './shared/supergiant/helm-charts/helm-charts.service';
-import { HelmReleases }      from './shared/supergiant/helm-releases/helm-releases.service';
-import { Logs }              from './shared/supergiant/logs/logs.service';
-import { AuthService }       from './shared/supergiant/auth/auth.service';
-import { AuthGuardService }  from './shared/supergiant/auth/auth-guard.service';
-import { TokenInterceptor }  from './shared/supergiant/auth/token.interceptor';
+import { Supergiant } from './shared/supergiant/supergiant.service';
+import { UtilService } from './shared/supergiant/util/util.service';
+import { Sessions } from './shared/supergiant/sessions/sessions.service';
+import { Users } from './shared/supergiant/users/users.service';
+import { CloudAccounts } from './shared/supergiant/cloud-accounts/cloud-accounts.service';
+import { Kubes } from './shared/supergiant/kubes/kubes.service';
+import { KubeResources } from './shared/supergiant/kube-resources/kube-resources.service';
+import { Nodes } from './shared/supergiant/nodes/nodes.service';
+import { LoadBalancers } from './shared/supergiant/load-balancers/load-balancers.service';
+import { HelmRepos } from './shared/supergiant/helm-repos/helm-repos.service';
+import { HelmCharts } from './shared/supergiant/helm-charts/helm-charts.service';
+import { HelmReleases } from './shared/supergiant/helm-releases/helm-releases.service';
+import { Logs } from './shared/supergiant/logs/logs.service';
+import { AuthService } from './shared/supergiant/auth/auth.service';
+import { AuthGuardService } from './shared/supergiant/auth/auth-guard.service';
+import { TokenInterceptor } from './shared/supergiant/auth/token.interceptor';
 import { HTTP_INTERCEPTORS } from '@angular/common/http';
-import { WINDOW_PROVIDERS }  from './shared/helpers/window-providers';
+import { WINDOW_PROVIDERS } from './shared/helpers/window-providers';
 
 
 // ui2000
-import { SystemComponent }             from './system/system.component';
-import { DashboardComponent }          from './dashboard/dashboard.component';
-import { ClustersComponent }           from './clusters/clusters.component';
-import { NewCloudAccountComponent }    from './system/cloud-accounts/new-cloud-account/new-cloud-account.component';
-import { NgxDatatableModule }          from '@swimlane/ngx-datatable';
+import { SystemComponent } from './system/system.component';
+import { DashboardComponent } from './dashboard/dashboard.component';
+import { ClustersComponent } from './clusters/clusters.component';
+import { NewCloudAccountComponent } from './system/cloud-accounts/new-cloud-account/new-cloud-account.component';
+import { NgxDatatableModule } from '@swimlane/ngx-datatable';
 // temporary 2000 name hack because of conflict
-import { CloudAccount2000Component }   from './system/cloud-accounts/cloud-account/cloud-account.component';
-import { CloudAccounts2000Component }  from './system/cloud-accounts/cloud-accounts.component';
-import { EditCloudAccountComponent }   from './system/cloud-accounts/edit-cloud-account/edit-cloud-account.component';
-import { NewClusterComponent }         from './clusters/new-cluster/new-cluster.component';
-import { ClusterComponent }            from './clusters/cluster/cluster.component';
-import { ListCloudAccountsComponent }  from './system/cloud-accounts/list-cloud-accounts/list-cloud-accounts.component';
-import { ToolbarComponent }            from './navigation/toolbar/toolbar.component';
-import { UserMenuComponent }           from './navigation/user-menu/user-menu.component';
-import { FooterComponent }             from './shared/footer/footer.component';
-import { ConfirmModalComponent }       from './shared/modals/confirm-modal/confirm-modal.component';
-import { UsageChartComponent }         from './clusters/cluster/usage-chart/usage-chart.component';
-import { StoreModule }                 from '@ngrx/store';
-import { reducers, metaReducers }      from './reducers';
-import { StoreDevtoolsModule }         from '@ngrx/store-devtools';
-import { environment }                 from '../environments/environment';
-import { EffectsModule }               from '@ngrx/effects';
-import { AppEffects }                  from './app.effects';
-import { TaskLogsComponent }           from './clusters/cluster/task-logs/task-logs.component';
-import { LoginGuardService }           from './shared/supergiant/auth/login-guard.service';
-import { MenuModalComponent }          from './navigation/user-menu/menu-modal/menu-modal.component';
-import { ClusterListModalComponent }   from './navigation/toolbar/cluster-list-modal/cluster-list-modal.component';
-import { AddNodeComponent }            from './clusters/cluster/add-node/add-node.component';
-import { UsageOrbComponent }           from './dashboard/usage-orb/usage-orb.component';
-import { ClusterTableComponent }       from './dashboard/cluster-table/cluster-table.component';
+import { CloudAccount2000Component } from './system/cloud-accounts/cloud-account/cloud-account.component';
+import { CloudAccounts2000Component } from './system/cloud-accounts/cloud-accounts.component';
+import { EditCloudAccountComponent } from './system/cloud-accounts/edit-cloud-account/edit-cloud-account.component';
+import { NewClusterComponent } from './clusters/new-cluster/new-cluster.component';
+import { ClusterComponent } from './clusters/cluster/cluster.component';
+import { ListCloudAccountsComponent } from './system/cloud-accounts/list-cloud-accounts/list-cloud-accounts.component';
+import { ToolbarComponent } from './navigation/toolbar/toolbar.component';
+import { UserMenuComponent } from './navigation/user-menu/user-menu.component';
+import { FooterComponent } from './shared/footer/footer.component';
+import { ConfirmModalComponent } from './shared/modals/confirm-modal/confirm-modal.component';
+import { UsageChartComponent } from './clusters/cluster/usage-chart/usage-chart.component';
+import { StoreModule } from '@ngrx/store';
+import { reducers, metaReducers } from './reducers';
+import { StoreDevtoolsModule } from '@ngrx/store-devtools';
+import { environment } from '../environments/environment';
+import { EffectsModule } from '@ngrx/effects';
+import { AppEffects } from './app.effects';
+import { TaskLogsComponent } from './clusters/cluster/task-logs/task-logs.component';
+import { LoginGuardService } from './shared/supergiant/auth/login-guard.service';
+import { MenuModalComponent } from './navigation/user-menu/menu-modal/menu-modal.component';
+import { ClusterListModalComponent } from './navigation/toolbar/cluster-list-modal/cluster-list-modal.component';
+import { AddNodeComponent } from './clusters/cluster/add-node/add-node.component';
+import { UsageOrbComponent } from './dashboard/usage-orb/usage-orb.component';
+import { ClusterTableComponent } from './dashboard/cluster-table/cluster-table.component';
 import { DeleteClusterModalComponent } from './clusters/cluster/delete-cluster-modal/delete-cluster-modal.component';
 import { DeleteReleaseModalComponent } from './clusters/cluster/delete-release-modal/delete-release-modal.component';
 import { SshCommandsModalComponent } from './clusters/cluster/ssh-commands-modal/ssh-commands-modal.component';
@@ -185,14 +183,12 @@ import { CallbackPipe } from './callback.pipe';
     MatTooltipModule,
 
     CommonModule,
-    ContextMenuModule.forRoot(),
     AppRoutingModule,
     FormsModule,
     BrowserAnimationsModule,
     SimpleNotificationsModule.forRoot(),
     ReactiveFormsModule,
     SchemaFormModule,
-    ChartsModule,
     NgxPaginationModule,
     AceEditorModule,
     BrowserModule,
