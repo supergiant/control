@@ -67,7 +67,7 @@ func (t *Step) Name() string {
 }
 
 func (t *Step) Description() string {
-	return ""
+	return "Write manifes to /etc/kubernetes"
 }
 
 func (s *Step) Depends() []string {

@@ -2,96 +2,59 @@
 import { BrowserModule } from '@angular/platform-browser';
 import { FormsModule, ReactiveFormsModule } from '@angular/forms';
 import { NgModule } from '@angular/core';
-import { NgbModule } from '@ng-bootstrap/ng-bootstrap';
 import { HttpClientModule } from '@angular/common/http';
 import { SimpleNotificationsModule } from 'angular2-notifications';
 import { BrowserAnimationsModule } from '@angular/platform-browser/animations';
 import {
-  MatAutocompleteModule,
   MatButtonModule,
-  MatButtonToggleModule,
   MatCardModule,
-  MatCheckboxModule,
   MatChipsModule,
-  MatDatepickerModule,
   MatDialogModule,
   MatDividerModule,
   MatExpansionModule,
-  MatGridListModule,
   MatIconModule,
   MatInputModule,
-  MatListModule,
-  MatMenuModule,
   MatNativeDateModule,
   MatPaginatorModule,
   MatProgressBarModule,
   MatProgressSpinnerModule,
-  MatRadioModule,
   MatRippleModule,
   MatSelectModule,
   MatSidenavModule,
-  MatSliderModule,
-  MatSlideToggleModule,
-  MatSnackBarModule,
   MatSortModule,
   MatStepperModule,
   MatTableModule,
   MatTabsModule,
   MatToolbarModule,
-  MatTooltipModule } from '@angular/material';
+  MatTooltipModule,
+} from '@angular/material';
 import { SchemaFormModule, WidgetRegistry, DefaultWidgetRegistry } from 'ngx-schema-form';
 import { MaterialDesignFrameworkModule } from 'angular6-json-schema-form';
 import { AppRoutingModule } from './app-routing.module';
 import { AceEditorModule } from 'ng2-ace-editor';
-import { ChartsModule } from 'ng2-charts';
 import { NgxPaginationModule } from 'ngx-pagination';
 import { TitleCasePipe } from '@angular/common';
 import { CommonModule } from '@angular/common';
-import { ContextMenuModule } from 'ngx-contextmenu';
 
 
 // Components
 import { AppComponent } from './app.component';
 import { NavigationComponent } from './navigation/navigation.component';
-import { UsersComponent } from './users/users.component';
 import { NotificationsComponent } from './shared/notifications/notifications.component';
-import { SessionsComponent } from './sessions/sessions.component';
 import { CloudAccountsComponent } from './cloud-accounts/cloud-accounts.component';
 import { LoadBalancersComponent } from './load-balancers/load-balancers.component';
-import { SessionsHeaderComponent } from './sessions/sessions-header/sessions-header.component';
-import { LoadBalancersHeaderComponent } from './load-balancers/load-balancers-header/load-balancers-header.component';
-import { CloudAccountsHeaderComponent } from './cloud-accounts/cloud-accounts-header/cloud-accounts-header.component';
 import { CloudAccountComponent } from './cloud-accounts/cloud-account/cloud-account.component';
-import { LoadBalancerComponent } from './load-balancers/load-balancer/load-balancer.component';
-import { SessionComponent } from './sessions/session/session.component';
-import { UserComponent } from './users/user/user.component';
-import { UsersHeaderComponent } from './users/users-header/users-header.component';
-import { SystemModalComponent } from './shared/system-modal/system-modal.component';
-import { DropdownModalComponent } from './shared/dropdown-modal/dropdown-modal.component';
-import { EditModalComponent } from './shared/edit-modal/edit-modal.component';
 import { LoginComponent } from './login/login.component';
 import { CookiesComponent } from './shared/cookies/cookies.component';
 import { Search } from './shared/search-pipe/search-pipe';
-import { SessionDetailsComponent } from './sessions/session-details/session-details.component';
-import { SessionsListComponent } from './sessions/sessions-list/sessions-list.component';
-import { UserDetailsComponent } from './users/user-details/user-details.component';
-import { UsersListComponent } from './users/users-list/users-list.component';
-import { CloudAccountDetailsComponent } from './cloud-accounts/cloud-account-details/cloud-account-details.component';
-import { CloudAccountsListComponent } from './cloud-accounts/cloud-accounts-list/cloud-accounts-list.component';
-import { LoadBalancerDetailsComponent } from './load-balancers/load-balancer-details/load-balancer-details.component';
-import { LoadBalancersListComponent } from './load-balancers/load-balancers-list/load-balancers-list.component';
 import { SupergiantComponent } from './shared/supergiant/supergiant.component';
 // Component Services
 import { SessionsService } from './sessions/sessions.service';
 import { CloudAccountsService } from './cloud-accounts/cloud-accounts.service';
-import { UsersService } from './users/users.service';
 import { NodesService } from './nodes/nodes.service';
 import { ServicesService } from './services/services.service';
 import { LoadBalancersService } from './load-balancers/load-balancers.service';
 import { Notifications } from './shared/notifications/notifications.service';
-import { SystemModalService } from './shared/system-modal/system-modal.service';
-import { DropdownModalService } from './shared/dropdown-modal/dropdown-modal.service';
-import { EditModalService } from './shared/edit-modal/edit-modal.service';
 import { CookieMonster } from './shared/cookies/cookies.service';
 
 // Supergiant API Services
@@ -113,12 +76,6 @@ import { AuthGuardService } from './shared/supergiant/auth/auth-guard.service';
 import { TokenInterceptor } from './shared/supergiant/auth/token.interceptor';
 import { HTTP_INTERCEPTORS } from '@angular/common/http';
 import { WINDOW_PROVIDERS } from './shared/helpers/window-providers';
-
-
-
-
-
-
 
 
 // ui2000
@@ -154,41 +111,21 @@ import { UsageOrbComponent } from './dashboard/usage-orb/usage-orb.component';
 import { ClusterTableComponent } from './dashboard/cluster-table/cluster-table.component';
 import { DeleteClusterModalComponent } from './clusters/cluster/delete-cluster-modal/delete-cluster-modal.component';
 import { DeleteReleaseModalComponent } from './clusters/cluster/delete-release-modal/delete-release-modal.component';
-import { SshCommandsModalComponent }   from './clusters/cluster/ssh-commands-modal/ssh-commands-modal.component';
+import { SshCommandsModalComponent } from './clusters/cluster/ssh-commands-modal/ssh-commands-modal.component';
 import { KubectlConfigModalComponent } from './clusters/cluster/kubectl-config-modal/kubectl-config-modal.component';
-import { ReleaseInfoModalComponent }   from './clusters/cluster/release-info-modal/release-info-modal.component';
-import { CallbackPipe }                from './callback.pipe';
+import { ReleaseInfoModalComponent } from './clusters/cluster/release-info-modal/release-info-modal.component';
+import { CallbackPipe } from './callback.pipe';
 
 @NgModule({
   declarations: [
     AppComponent,
     NavigationComponent,
-    UsersComponent,
-    SessionsComponent,
     CloudAccountsComponent,
     LoadBalancersComponent,
-    SessionsHeaderComponent,
-    LoadBalancersHeaderComponent,
-    CloudAccountsHeaderComponent,
     CloudAccountComponent,
-    LoadBalancerComponent,
-    SessionComponent,
-    UserComponent,
-    UsersHeaderComponent,
     NotificationsComponent,
-    SystemModalComponent,
-    DropdownModalComponent,
-    EditModalComponent,
     LoginComponent,
     CookiesComponent,
-    SessionDetailsComponent,
-    SessionsListComponent,
-    UserDetailsComponent,
-    UsersListComponent,
-    CloudAccountDetailsComponent,
-    CloudAccountsListComponent,
-    LoadBalancerDetailsComponent,
-    LoadBalancersListComponent,
     Search,
     SupergiantComponent,
     DashboardComponent,
@@ -223,51 +160,39 @@ import { CallbackPipe }                from './callback.pipe';
     BrowserModule,
     HttpClientModule,
     // Material:
-    MatAutocompleteModule,
     MatButtonModule,
-    MatButtonToggleModule,
     MatCardModule,
-    MatCheckboxModule,
     MatChipsModule,
-    MatDatepickerModule,
     MatDialogModule,
     MatDividerModule,
     MatExpansionModule,
-    MatGridListModule,
     MatIconModule,
     MatInputModule,
-    MatListModule,
-    MatMenuModule,
     MatNativeDateModule,
     MatPaginatorModule,
     MatProgressBarModule,
     MatProgressSpinnerModule,
-    MatRadioModule,
     MatRippleModule,
     MatSelectModule,
     MatSidenavModule,
-    MatSliderModule,
-    MatSlideToggleModule,
-    MatSnackBarModule,
     MatSortModule,
     MatStepperModule,
     MatTableModule,
     MatTabsModule,
     MatToolbarModule,
     MatTooltipModule,
+
     CommonModule,
-    ContextMenuModule.forRoot(),
-    NgbModule.forRoot(),
     AppRoutingModule,
     FormsModule,
     BrowserAnimationsModule,
     SimpleNotificationsModule.forRoot(),
     ReactiveFormsModule,
     SchemaFormModule,
-    ChartsModule,
     NgxPaginationModule,
     AceEditorModule,
-    BrowserModule, MaterialDesignFrameworkModule,
+    BrowserModule,
+    MaterialDesignFrameworkModule,
     NgxDatatableModule,
     StoreModule.forRoot(reducers, { metaReducers }),
     !environment.production ? StoreDevtoolsModule.instrument() : [],
@@ -279,7 +204,6 @@ import { CallbackPipe }                from './callback.pipe';
     // Component Services
     CloudAccountsService,
     SessionsService,
-    UsersService,
     NodesService,
     LoadBalancersService,
     ServicesService,
@@ -300,20 +224,16 @@ import { CallbackPipe }                from './callback.pipe';
     // Other Shared Services
     { provide: WidgetRegistry, useClass: DefaultWidgetRegistry },
     Notifications,
-    SystemModalService,
-    DropdownModalService,
-    EditModalService,
     CookieMonster,
     LoginComponent,
     AuthService,
     AuthGuardService,
     LoginGuardService,
-    // { provide: Http, useClass: AuthenticatedHttpService },
     {
       provide: HTTP_INTERCEPTORS,
       useClass: TokenInterceptor,
-      multi: true
-    }
+      multi: true,
+    },
   ],
   entryComponents: [
     ConfirmModalComponent,
@@ -324,9 +244,10 @@ import { CallbackPipe }                from './callback.pipe';
     DeleteReleaseModalComponent,
     SshCommandsModalComponent,
     KubectlConfigModalComponent,
-    ReleaseInfoModalComponent
+    ReleaseInfoModalComponent,
   ],
   bootstrap: [AppComponent],
 })
 
-export class AppModule { }
+export class AppModule {
+}

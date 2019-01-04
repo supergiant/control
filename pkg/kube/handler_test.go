@@ -11,6 +11,9 @@ import (
 	"strings"
 	"testing"
 
+	core "k8s.io/api/core/v1"
+	meta "k8s.io/apimachinery/pkg/apis/meta/v1"
+
 	"github.com/gorilla/mux"
 	"github.com/pkg/errors"
 	"github.com/stretchr/testify/mock"
@@ -27,6 +30,7 @@ import (
 	"github.com/supergiant/control/pkg/testutils"
 	"github.com/supergiant/control/pkg/workflows"
 	"github.com/supergiant/control/pkg/workflows/steps"
+	"github.com/supergiant/control/pkg/proxy"
 )
 
 var (
@@ -228,6 +232,33 @@ func (m *kubeServiceMock) ListReleases(ctx context.Context,
 func (m *kubeServiceMock) DeleteRelease(ctx context.Context,
 	kname, rlsName string, purge bool) (*model.ReleaseInfo, error) {
 	return m.rlsInfo, m.rlsErr
+}
+
+type mockContainter struct {
+	mock.Mock
+}
+
+
+func (m *mockContainter) RegisterProxies(targets []*proxy.Target) error {
+	args := m.Called(targets)
+	val, ok := args.Get(0).(error)
+	if !ok {
+		return args.Error(0)
+	}
+	return val
+}
+
+func (m *mockContainter) GetProxies(prefix string) map[string]*proxy.ServiceReverseProxy {
+	args := m.Called(prefix)
+	val, ok := args.Get(0).(map[string]*proxy.ServiceReverseProxy)
+	if !ok {
+		return nil
+	}
+	return val
+}
+
+func (m *mockContainter) Shutdown(ctx context.Context) {
+	m.Called(ctx)
 }
 
 func (a *accServiceMock) Get(ctx context.Context, name string) (*model.CloudAccount, error) {
@@ -2027,6 +2058,220 @@ func TestRestarProvisioningKube(t *testing.T) {
 		if rec.Code != testCase.expectedCode {
 			t.Errorf("Wrong error code expected %d actual %d",
 				testCase.expectedCode, rec.Code)
+		}
+	}
+}
+
+func TestGetServices(t *testing.T) {
+	testCases := []struct {
+		description string
+
+		getKubeErr error
+		getKube    *model.Kube
+
+		getServicesErr error
+		k8sServices    *core.ServiceList
+
+		registerProxiesErr error
+		getProxies         map[string]*proxy.ServiceReverseProxy
+
+		expectedCode int
+	}{
+		{
+			description:  "kube not found",
+			getKubeErr:   sgerrors.ErrNotFound,
+			expectedCode: http.StatusNotFound,
+		},
+		{
+			description:  "kube internal error",
+			getKubeErr:   errors.New("unknown"),
+			expectedCode: http.StatusInternalServerError,
+		},
+		{
+			description: "no master found",
+			getKube: &model.Kube{
+				ID:      "1234",
+				Masters: map[string]*node.Node{},
+			},
+			expectedCode: http.StatusNotFound,
+		},
+		{
+			description: "get services error",
+			getKube: &model.Kube{
+				ID: "1234",
+				Masters: map[string]*node.Node{
+					"key": {
+						ID: "key",
+					},
+				},
+			},
+			getServicesErr: errors.New("error"),
+			expectedCode:   http.StatusInternalServerError,
+		},
+		{
+			description: "register proxy error",
+
+			getKube: &model.Kube{
+				ID: "1234",
+				Masters: map[string]*node.Node{
+					"key": {
+						ID: "key",
+					},
+				},
+			},
+			k8sServices:        &core.ServiceList{},
+			registerProxiesErr: errors.New("error"),
+			expectedCode:       http.StatusInternalServerError,
+		},
+		{
+			description: "success 1",
+
+			getKube: &model.Kube{
+				ID: "1234",
+				Masters: map[string]*node.Node{
+					"key": {
+						ID: "key",
+					},
+				},
+			},
+			k8sServices:   &core.ServiceList{
+				Items: []core.Service{
+					{
+						ObjectMeta: meta.ObjectMeta{
+							Labels: map[string]string{
+								clusterService: "false",
+							},
+						},
+						Spec: core.ServiceSpec{
+							Ports: []core.ServicePort{
+								{
+									Name: "http",
+									Protocol: "TCP",
+								},
+							},
+						},
+					},
+				},
+			},
+			getProxies: map[string]*proxy.ServiceReverseProxy{
+				"kubeID": {
+					ServingBase: "http:/10.20.30.40:9090",
+				},
+			},
+			expectedCode:  http.StatusOK,
+		},
+		{
+			description: "success 2",
+
+			getKube: &model.Kube{
+				ID: "1234",
+				Masters: map[string]*node.Node{
+					"key": {
+						ID: "key",
+					},
+				},
+			},
+			k8sServices:   &core.ServiceList{
+				Items: []core.Service{
+					{
+						ObjectMeta: meta.ObjectMeta{
+							Labels: map[string]string{
+								clusterService: "true",
+							},
+						},
+						Spec: core.ServiceSpec{
+							Ports: []core.ServicePort{
+								{
+									Name: "http",
+									Protocol: "TCP",
+								},
+							},
+						},
+					},
+				},
+			},
+			getProxies: map[string]*proxy.ServiceReverseProxy{
+				"kubeID": {
+					ServingBase: "http:/10.20.30.40:9090",
+				},
+			},
+			expectedCode:  http.StatusOK,
+		},
+		{
+			description: "success 3",
+
+			getKube: &model.Kube{
+				ID: "1234",
+				Masters: map[string]*node.Node{
+					"key": {
+						ID: "key",
+					},
+				},
+			},
+			k8sServices:   &core.ServiceList{
+				Items: []core.Service{
+					{
+						ObjectMeta: meta.ObjectMeta{
+							Labels: map[string]string{
+								clusterService: "true",
+							},
+						},
+						Spec: core.ServiceSpec{
+							Ports: []core.ServicePort{
+								{
+									Name: "other",
+									Protocol: "unknown",
+								},
+								{
+									Name: "http",
+									Protocol: "TCP",
+								},
+							},
+						},
+					},
+				},
+			},
+			getProxies: map[string]*proxy.ServiceReverseProxy{
+				"kubeID": {
+					ServingBase: "http:/10.20.30.40:9090",
+				},
+			},
+			expectedCode:  http.StatusOK,
+		},
+	}
+
+	for _, testCase := range testCases {
+		t.Log(testCase.description)
+		kubeSvc := &kubeServiceMock{}
+		kubeSvc.On("Get", mock.Anything, mock.Anything).
+			Return(testCase.getKube, testCase.getKubeErr)
+		mockProxies := &mockContainter{}
+		mockProxies.On("RegisterProxies",
+			mock.Anything).Return(testCase.registerProxiesErr)
+		mockProxies.On("GetProxies",
+			mock.Anything).Return(testCase.getProxies)
+		getSvc := func(*model.Kube, string, string) (*core.ServiceList, error) {
+			return testCase.k8sServices, testCase.getServicesErr
+		}
+
+		handler := &Handler{
+			getK8sServices: getSvc,
+			svc: kubeSvc,
+			proxies: mockProxies,
+		}
+
+		rec := httptest.NewRecorder()
+		req, _ := http.NewRequest(http.MethodGet,
+			"/kubes/kubeID/services", nil)
+
+		router := mux.NewRouter().SkipClean(true)
+		handler.Register(router)
+
+		router.ServeHTTP(rec, req)
+
+		if rec.Code != testCase.expectedCode {
+			t.Errorf("Wrong response code expected " +
+				"%d actual %d", testCase.expectedCode, rec.Code)
 		}
 	}
 }

@@ -24,10 +24,6 @@ type Command struct {
 
 //  TODO(stgleb): Use single io.Writer for gathering command output
 func NewCommand(ctx context.Context, script string, out, err io.Writer) (*Command, error) {
-	if ctx == nil {
-		return nil, ErrNilContext
-	}
-
 	if out == nil || err == nil {
 		return nil, ErrNilWriter
 	}

@@ -1,6 +1,9 @@
 import { Injectable } from '@angular/core';
 import { UtilService } from '../util/util.service';
 
+/*
+* @deprecated
+*/
 @Injectable()
 export class HelmCharts {
   helmChartsPath = '/v1/api/helm_charts';

@@ -90,7 +90,7 @@ func (s *Step) Name() string {
 }
 
 func (s *Step) Description() string {
-	return ""
+	return "Install EtcD"
 }
 
 func (s *Step) Depends() []string {

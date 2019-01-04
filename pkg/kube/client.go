@@ -30,6 +30,11 @@ func NewConfigFor(k *model.Kube) (*rest.Config, error) {
 		nil,
 	).ClientConfig()
 
+	restConf.NegotiatedSerializer = serializer.DirectCodecFactory{CodecFactory: scheme.Codecs}
+	if len(restConf.UserAgent) == 0 {
+		restConf.UserAgent = rest.DefaultKubernetesUserAgent()
+	}
+
 	return restConf, errors.Wrap(err, "build rest config")
 }
 
@@ -98,10 +103,6 @@ func setGroupDefaults(config *rest.Config, gv schema.GroupVersion) {
 		config.APIPath = "/api"
 	} else {
 		config.APIPath = "/apis"
-	}
-	config.NegotiatedSerializer = serializer.DirectCodecFactory{CodecFactory: scheme.Codecs}
-	if len(config.UserAgent) == 0 {
-		config.UserAgent = rest.DefaultKubernetesUserAgent()
 	}
 }
 

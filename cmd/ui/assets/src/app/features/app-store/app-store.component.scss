@@ -17,7 +17,6 @@
 
   top: 50px;
   left: 0;
-  padding: 20px 52px;
   z-index: 2;
   width: 100%;
   background-image: linear-gradient(black, black, black, transparent);
@@ -31,6 +30,8 @@
     align-items: center;
     padding-top: 55px;
     margin-bottom: 20px;
+    margin-left: 52px;
+    margin-right: 52px;
 
     & > * {
       width: 33%;
