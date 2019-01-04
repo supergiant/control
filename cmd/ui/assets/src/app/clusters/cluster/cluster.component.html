@@ -155,14 +155,17 @@
   </ng-container>
 
   <ng-container *ngIf="kube?.state == 'operational'">
-    <ng-container *ngIf="cpuUsage == NaN || ramUsage == NaN">
+    <ng-container *ngIf="!showUsageChart">
       <div class="no-usage-data">
         <h1>Gathering usage metrics for {{ kube?.name }}<span>.</span><span>.</span><span>.</span></h1>
         <h2>This may take a few minutes</h2>
       </div>
     </ng-container>
 
-    <app-usage-chart *ngIf="cpuUsage != NaN && ramUsage != NaN" [name]="kube?.name" [cpuUsage]="cpuUsage" [ramUsage]="ramUsage"></app-usage-chart>
+    <app-usage-chart *ngIf="showUsageChart"
+                     [name]="kube?.name"
+                     [cpuUsage]="cpuUsage"
+                     [ramUsage]="ramUsage"></app-usage-chart>
 
     <h1 class="cluster-info-headline">Cluster Details</h1>
     <div class="cluster-info">
@@ -529,4 +532,8 @@
       </span>
     </div>
   </div>
+
+  <ng-template #notAvailable>
+    <span>Not available now...</span>
+  </ng-template>
 </div>

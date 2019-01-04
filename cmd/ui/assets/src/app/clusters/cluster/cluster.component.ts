@@ -1,6 +1,14 @@
 import { of, Subscription, timer as observableTimer } from 'rxjs';
 import { catchError, filter, switchMap } from 'rxjs/operators';
-import { ChangeDetectionStrategy, Component, OnDestroy, OnInit, ViewChild, ViewEncapsulation, Inject } from '@angular/core';
+import {
+  ChangeDetectionStrategy,
+  Component,
+  OnDestroy,
+  ViewChild,
+  ViewEncapsulation,
+  Inject,
+  AfterViewInit,
+} from '@angular/core';
 import { Location } from '@angular/common';
 import { ActivatedRoute, Router } from '@angular/router';
 import { HttpClient } from '@angular/common/http';
@@ -35,11 +43,10 @@ import { WINDOW } from '../../shared/helpers/window-providers';
     ]
 })
 
-export class ClusterComponent implements OnInit, OnDestroy {
+export class ClusterComponent implements AfterViewInit, OnDestroy {
   clusterId: number;
   subscriptions = new Subscription();
   public kube: any;
-  public kubeString: string;
 
   // machine list vars
   activeMachines: any;
@@ -91,7 +98,11 @@ export class ClusterComponent implements OnInit, OnDestroy {
   @ViewChild(MatSort) sort: MatSort;
   @ViewChild(MatPaginator) paginator: MatPaginator;
 
-  ngOnInit() {
+  get showUsageChart() {
+    return !isNaN(this.cpuUsage) && !isNaN(this.ramUsage);
+  }
+
+  ngAfterViewInit() {
     this.clusterId = this.route.snapshot.params.id;
     this.getKube();
   }
@@ -311,7 +322,7 @@ export class ClusterComponent implements OnInit, OnDestroy {
   getReleases(deletedReleaseName?) {
     this.supergiant.HelmReleases.get(this.clusterId).subscribe(
       res => {
-        const releases = res.filter(r => r.status != 'DELETED');
+        const releases = res.filter(r => r.status !== 'DELETED');
         this.releases = new MatTableDataSource(releases);
         // TODO: this is temporary. We need to figure out a way around the constant polling
         if (deletedReleaseName) {
