@@ -7,14 +7,21 @@ import (
 	"text/template"
 
 	"github.com/pkg/errors"
+	"k8s.io/apimachinery/pkg/labels"
 
+	"github.com/supergiant/control/pkg/node"
 	tm "github.com/supergiant/control/pkg/templatemanager"
 	"github.com/supergiant/control/pkg/workflows/steps"
 	"github.com/supergiant/control/pkg/workflows/steps/docker"
 	"github.com/supergiant/control/pkg/workflows/steps/manifest"
 )
 
-const StepName = "kubelet"
+const (
+	StepName = "kubelet"
+
+	// nodeLabelRole specifies the role of a node
+	nodeLabelRole = "kubernetes.io/role"
+)
 
 type Step struct {
 	script *template.Template
@@ -40,6 +47,7 @@ func New(script *template.Template) *Step {
 
 func (t *Step) Run(ctx context.Context, out io.Writer, config *steps.Config) error {
 	config.KubeletConfig.IsMaster = config.IsMaster
+	config.KubeletConfig.NodeLabels = getNodeLables(toRole(config.IsMaster))
 	err := steps.RunTemplate(ctx, t.script, config.Runner, out, config.KubeletConfig)
 
 	if err != nil {
@@ -63,4 +71,18 @@ func (t *Step) Description() string {
 
 func (s *Step) Depends() []string {
 	return []string{docker.StepName, manifest.StepName}
+}
+
+func getNodeLables(role string) string {
+	return labels.Set(map[string]string{
+		nodeLabelRole: role,
+	}).String()
+}
+
+// TODO: role should be a port of config, it's used by a few tasks
+func toRole(isMaster bool) string {
+	if isMaster {
+		return string(node.RoleMaster)
+	}
+	return string(node.RoleNode)
 }
