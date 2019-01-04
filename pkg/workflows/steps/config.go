@@ -113,6 +113,7 @@ type NetworkConfig struct {
 
 type KubeletConfig struct {
 	IsMaster       bool   `json:"isMaster"`
+	NodeLabels     string `json:"nodeLabels"`
 	ProxyPort      string `json:"proxyPort"`
 	K8SVersion     string `json:"k8sVersion"`
 	ProviderString string `json:"ProviderString"`
