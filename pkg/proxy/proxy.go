@@ -2,7 +2,6 @@ package proxy
 
 import (
 	"context"
-	"crypto/tls"
 	"fmt"
 	"net"
 	"net/http"
@@ -14,6 +13,7 @@ import (
 
 	"github.com/pkg/errors"
 	"github.com/sirupsen/logrus"
+	"k8s.io/client-go/rest"
 )
 
 type ReverseProxyContainer struct {
@@ -30,17 +30,20 @@ type PortRange struct {
 	From, To int32
 }
 
-type Target struct{ ProxyID, TargetURL, SelfLink, User, Password string }
+type Target struct {
+	ProxyID    string
+	TargetURL  string
+	KubeConfig *rest.Config
+}
 
 type Container interface {
-	RegisterProxies(targets []*Target) error
+	RegisterProxies(targets []Target) error
 	GetProxies(prefix string) map[string]*ServiceReverseProxy
 	Shutdown(ctx context.Context)
 }
 
 type ServiceReverseProxy struct {
 	TargetURL   string
-	SelfLink    string
 	ServingBase string
 
 	srv *http.Server
@@ -54,7 +57,7 @@ func NewReverseProxyContainer(proxiesPortRange PortRange, logger logrus.FieldLog
 	}
 }
 
-func NewServiceProxy(port int32, targetURL, selfLink, user, password string, logger logrus.FieldLogger) (*ServiceReverseProxy, error) {
+func NewServiceProxy(port int32, targetURL string, tr http.RoundTripper, logger logrus.FieldLogger) (*ServiceReverseProxy, error) {
 	var httpServer = &http.Server{}
 	var mux = http.NewServeMux()
 	httpServer.Handler = mux
@@ -63,13 +66,12 @@ func NewServiceProxy(port int32, targetURL, selfLink, user, password string, log
 	if err != nil {
 		return nil, err
 	}
+
 	// create the reverse proxy
 	proxy := httputil.NewSingleHostReverseProxy(url)
-	proxy.Transport = &http.Transport{
-		TLSClientConfig: &tls.Config{InsecureSkipVerify: true},
-	}
+	proxy.Transport = tr
 
-	mux.HandleFunc("/", newHandler(selfLink, user, password, proxy, logger))
+	mux.HandleFunc("/", proxyHandler(url.Path, proxy, logger))
 
 	listener, err := net.Listen("tcp", ":"+strconv.Itoa(int(port)))
 	if err != nil {
@@ -99,34 +101,28 @@ func NewServiceProxy(port int32, targetURL, selfLink, user, password string, log
 	}, nil
 }
 
-func (p *ReverseProxyContainer) RegisterProxies(targets []*Target) error {
+func (p *ReverseProxyContainer) RegisterProxies(targets []Target) error {
 	if p.Proxies == nil {
 		return errors.New("component was not initialized properly")
 	}
 
 	p.servicesMux.Lock()
+	defer p.servicesMux.Unlock()
 
-	for _, targetSvc := range targets {
-		_, exists := p.Proxies[targetSvc.ProxyID]
+	for _, t := range targets {
+		_, exists := p.Proxies[t.ProxyID]
 		if exists {
 			continue
 		}
 
-		var port, err = getNonOccupiedPort(p.ProxiesPortRange)
+		prx, err := p.register(t)
 		if err != nil {
-			errors.Wrap(err, "can't create proxy")
-		}
-
-		p.logger.Infof("returned port: %d", port)
-
-		proxy, err := NewServiceProxy(port, targetSvc.TargetURL, targetSvc.SelfLink, targetSvc.User, targetSvc.Password, p.logger)
-		if err != nil {
-			p.logger.Errorf("can't create proxy for serviceID: %v, err: %v", err, targetSvc.ProxyID)
+			p.logger.Errorf("can't create proxy for serviceID: %v, err: %v", err, t.ProxyID)
 			continue
 		}
-		p.Proxies[targetSvc.ProxyID] = proxy
+
+		p.Proxies[t.ProxyID] = prx
 	}
-	p.servicesMux.Unlock()
 
 	return nil
 }
@@ -146,34 +142,36 @@ func (p *ReverseProxyContainer) GetProxies(prefix string) map[string]*ServiceRev
 	return result
 }
 
-func newHandler(selfLink, user, password string, reverseProxy *httputil.ReverseProxy, logger logrus.FieldLogger) func(http.ResponseWriter, *http.Request) {
+func (p *ReverseProxyContainer) register(t Target) (*ServiceReverseProxy, error) {
+	if t.KubeConfig == nil {
+		return nil, errors.New("rest config should be provided")
+	}
 
+	port, err := getNonOccupiedPort(p.ProxiesPortRange)
+	if err != nil {
+		return nil, err
+	}
+
+	tr, err := rest.TransportFor(t.KubeConfig)
+	if err != nil {
+		return nil, err
+	}
+
+	return NewServiceProxy(port, t.TargetURL, tr, p.logger)
+}
+
+func proxyHandler(baseuri string, reverseProxy *httputil.ReverseProxy, logger logrus.FieldLogger) func(http.ResponseWriter, *http.Request) {
 	return func(res http.ResponseWriter, req *http.Request) {
-		var inputURL = req.URL.Path
-
-		inputURL = strings.TrimPrefix(inputURL, req.URL.Scheme)
-		inputURL = strings.TrimPrefix(inputURL, req.URL.Host)
-
-		if strings.HasPrefix(inputURL, selfLink) {
-			inputURL = strings.TrimPrefix(inputURL, selfLink)
-		}
-
-		if strings.Index(inputURL, ":") == 0 {
-			parts := strings.Split(inputURL, "/")
-			inputURL = strings.TrimPrefix(inputURL, parts[0]+"/proxy")
-		}
-
-		logger.Infof("req.URL: %+v, inputURL %s, inputFullURL: %s",
-			req.URL,
-			inputURL,
-			req.URL.String(),
+		logger.Debugf("baseuri: %s, req.URL: %+v, inputURL %s",
+			baseuri,
+			req.URL.Path,
+			strings.TrimPrefix(req.URL.Path, baseuri),
 		)
-
-		req.SetBasicAuth(user, password)
+		// Path prefix has been set to proxy
+		req.URL.Path = strings.TrimPrefix(req.URL.Path, baseuri)
 
 		// Update the headers to allow for SSL redirection
 		req.Header.Set("X-Forwarded-Host", req.Header.Get("Host"))
-		req.URL.Path = inputURL
 
 		// Note that ServeHttp is non blocking and uses a go routine under the hood
 		reverseProxy.ServeHTTP(res, req)

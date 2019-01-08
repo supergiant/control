@@ -111,8 +111,7 @@ func TestNewHandler(t *testing.T) {
 	u := &url.URL{}
 	reverseproxy := httputil.NewSingleHostReverseProxy(u)
 	logger := logrus.New()
-	h := newHandler("selflink",
-		"user", "password", reverseproxy, logger)
+	h := proxyHandler("selflink", reverseproxy, logger)
 
 	if h == nil {
 		t.Errorf("Handler value must not be nil")
@@ -172,7 +171,7 @@ func TestNewServiceProxy(t *testing.T) {
 	}
 
 	logger := logrus.New()
-	proxy, err := NewServiceProxy(port, "/url", "selflink", "user", "password", logger)
+	proxy, err := NewServiceProxy(port, "/url", nil, logger)
 	if err != nil {
 		t.Errorf("Unexpected error %v", err)
 	}
@@ -184,7 +183,7 @@ func TestNewServiceProxy(t *testing.T) {
 
 func TestReverseProxyContainer_RegisterProxiesErr(t *testing.T) {
 	containter := &ReverseProxyContainer{}
-	err := containter.RegisterProxies([]*Target{})
+	err := containter.RegisterProxies([]Target{})
 
 	if err == nil {
 		t.Errorf("error must be nil")
@@ -202,16 +201,13 @@ func TestReverseProxyContainer_RegisterProxies(t *testing.T) {
 			65535,
 		},
 	}
-	err := containter.RegisterProxies([]*Target{
+	err := containter.RegisterProxies([]Target{
 		{
 			ProxyID: "1234",
 		},
 		{
 			ProxyID:   "5678",
 			TargetURL: "/url",
-			SelfLink:  "selflink",
-			User:      "user",
-			Password:  "password",
 		},
 	})
 

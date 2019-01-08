@@ -15,8 +15,8 @@ import (
 	"github.com/pkg/errors"
 	"github.com/stretchr/testify/mock"
 	"github.com/stretchr/testify/require"
-	core "k8s.io/api/core/v1"
-	meta "k8s.io/apimachinery/pkg/apis/meta/v1"
+	corev1 "k8s.io/api/core/v1"
+	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/helm/pkg/proto/hapi/chart"
 	"k8s.io/helm/pkg/proto/hapi/release"
 
@@ -237,7 +237,7 @@ type mockContainter struct {
 	mock.Mock
 }
 
-func (m *mockContainter) RegisterProxies(targets []*proxy.Target) error {
+func (m *mockContainter) RegisterProxies(targets []proxy.Target) error {
 	args := m.Called(targets)
 	val, ok := args.Get(0).(error)
 	if !ok {
@@ -2062,13 +2062,13 @@ func TestRestarProvisioningKube(t *testing.T) {
 
 func TestGetServices(t *testing.T) {
 	testCases := []struct {
-		description string
+		name string
 
 		getKubeErr error
 		getKube    *model.Kube
 
 		getServicesErr error
-		k8sServices    *core.ServiceList
+		k8sServices    *corev1.ServiceList
 
 		registerProxiesErr error
 		getProxies         map[string]*proxy.ServiceReverseProxy
@@ -2076,25 +2076,17 @@ func TestGetServices(t *testing.T) {
 		expectedCode int
 	}{
 		{
-			description:  "kube not found",
+			name:         "kube not found",
 			getKubeErr:   sgerrors.ErrNotFound,
 			expectedCode: http.StatusNotFound,
 		},
 		{
-			description:  "kube internal error",
+			name:         "kube internal error",
 			getKubeErr:   errors.New("unknown"),
 			expectedCode: http.StatusInternalServerError,
 		},
 		{
-			description: "no master found",
-			getKube: &model.Kube{
-				ID:      "1234",
-				Masters: map[string]*node.Node{},
-			},
-			expectedCode: http.StatusNotFound,
-		},
-		{
-			description: "get services error",
+			name: "get services error",
 			getKube: &model.Kube{
 				ID: "1234",
 				Masters: map[string]*node.Node{
@@ -2107,7 +2099,7 @@ func TestGetServices(t *testing.T) {
 			expectedCode:   http.StatusInternalServerError,
 		},
 		{
-			description: "register proxy error",
+			name: "register proxy error",
 
 			getKube: &model.Kube{
 				ID: "1234",
@@ -2117,12 +2109,12 @@ func TestGetServices(t *testing.T) {
 					},
 				},
 			},
-			k8sServices:        &core.ServiceList{},
+			k8sServices:        &corev1.ServiceList{},
 			registerProxiesErr: errors.New("error"),
 			expectedCode:       http.StatusInternalServerError,
 		},
 		{
-			description: "success 1",
+			name: "success 1",
 
 			getKube: &model.Kube{
 				ID: "1234",
@@ -2132,16 +2124,16 @@ func TestGetServices(t *testing.T) {
 					},
 				},
 			},
-			k8sServices: &core.ServiceList{
-				Items: []core.Service{
+			k8sServices: &corev1.ServiceList{
+				Items: []corev1.Service{
 					{
-						ObjectMeta: meta.ObjectMeta{
+						ObjectMeta: metav1.ObjectMeta{
 							Labels: map[string]string{
 								clusterService: "false",
 							},
 						},
-						Spec: core.ServiceSpec{
-							Ports: []core.ServicePort{
+						Spec: corev1.ServiceSpec{
+							Ports: []corev1.ServicePort{
 								{
 									Name:     "http",
 									Protocol: "TCP",
@@ -2159,7 +2151,7 @@ func TestGetServices(t *testing.T) {
 			expectedCode: http.StatusOK,
 		},
 		{
-			description: "success 2",
+			name: "success 2",
 
 			getKube: &model.Kube{
 				ID: "1234",
@@ -2169,16 +2161,16 @@ func TestGetServices(t *testing.T) {
 					},
 				},
 			},
-			k8sServices: &core.ServiceList{
-				Items: []core.Service{
+			k8sServices: &corev1.ServiceList{
+				Items: []corev1.Service{
 					{
-						ObjectMeta: meta.ObjectMeta{
+						ObjectMeta: metav1.ObjectMeta{
 							Labels: map[string]string{
 								clusterService: "true",
 							},
 						},
-						Spec: core.ServiceSpec{
-							Ports: []core.ServicePort{
+						Spec: corev1.ServiceSpec{
+							Ports: []corev1.ServicePort{
 								{
 									Name:     "http",
 									Protocol: "TCP",
@@ -2196,7 +2188,7 @@ func TestGetServices(t *testing.T) {
 			expectedCode: http.StatusOK,
 		},
 		{
-			description: "success 3",
+			name: "success 3",
 
 			getKube: &model.Kube{
 				ID: "1234",
@@ -2206,16 +2198,16 @@ func TestGetServices(t *testing.T) {
 					},
 				},
 			},
-			k8sServices: &core.ServiceList{
-				Items: []core.Service{
+			k8sServices: &corev1.ServiceList{
+				Items: []corev1.Service{
 					{
-						ObjectMeta: meta.ObjectMeta{
+						ObjectMeta: metav1.ObjectMeta{
 							Labels: map[string]string{
 								clusterService: "true",
 							},
 						},
-						Spec: core.ServiceSpec{
-							Ports: []core.ServicePort{
+						Spec: corev1.ServiceSpec{
+							Ports: []corev1.ServicePort{
 								{
 									Name:     "other",
 									Protocol: "unknown",
@@ -2238,24 +2230,23 @@ func TestGetServices(t *testing.T) {
 		},
 	}
 
-	for _, testCase := range testCases {
-		t.Log(testCase.description)
+	for _, tc := range testCases {
 		kubeSvc := &kubeServiceMock{}
 		kubeSvc.On("Get", mock.Anything, mock.Anything).
-			Return(testCase.getKube, testCase.getKubeErr)
+			Return(tc.getKube, tc.getKubeErr)
 		mockProxies := &mockContainter{}
 		mockProxies.On("RegisterProxies",
-			mock.Anything).Return(testCase.registerProxiesErr)
+			mock.Anything).Return(tc.registerProxiesErr)
 		mockProxies.On("GetProxies",
-			mock.Anything).Return(testCase.getProxies)
-		getSvc := func(*model.Kube, string, string) (*core.ServiceList, error) {
-			return testCase.k8sServices, testCase.getServicesErr
+			mock.Anything).Return(tc.getProxies)
+		getSvc := func(*model.Kube, string) (*corev1.ServiceList, error) {
+			return tc.k8sServices, tc.getServicesErr
 		}
 
 		handler := &Handler{
-			getK8sServices: getSvc,
-			svc:            kubeSvc,
-			proxies:        mockProxies,
+			listK8sServices: getSvc,
+			svc:             kubeSvc,
+			proxies:         mockProxies,
 		}
 
 		rec := httptest.NewRecorder()
@@ -2267,9 +2258,9 @@ func TestGetServices(t *testing.T) {
 
 		router.ServeHTTP(rec, req)
 
-		if rec.Code != testCase.expectedCode {
-			t.Errorf("Wrong response code expected "+
-				"%d actual %d", testCase.expectedCode, rec.Code)
+		if rec.Code != tc.expectedCode {
+			t.Errorf("TC: %s: wrong response code expected "+
+				"%d actual %d", tc.name, tc.expectedCode, rec.Code)
 		}
 	}
 }
