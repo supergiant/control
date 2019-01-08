@@ -1,7 +1,5 @@
 .cluster-details-wrapper {
 
-  margin-top: 15px;
-
   h1 {
     text-align: center;
     line-height: 60px;
@@ -456,7 +454,7 @@
     display: flex;
     justify-content: space-between;
     margin: 48px auto 0px;
-    width: 1270px;
+    width: auto;
 
     .cluster-details {
       background-color: rgba(0, 0, 0, 0.5);
@@ -542,10 +540,10 @@
     margin: 48px auto;
     padding: 21px 24px 24px 24px;
     height: min-content;
-    width: 1270px;
+    width: auto;
 
     .mat-table {
-      background-color: rgba(0,0,0,0);
+      background-color: rgba(0, 0, 0, 0);
 
       .mat-header-row {
         background-color: rgba(255, 0, 166, 0.25);
@@ -615,7 +613,7 @@
           display: flex;
           flex-direction: column;
           font-family: courier;
-          background-color: rgba(255,255,255,0.1);
+          background-color: rgba(255, 255, 255, 0.1);
           padding: 10px 0px 0px 0px;
           margin: 0px 20px;
 
@@ -715,7 +713,7 @@
         }
 
         .show-steps {
-          background-color: rgba(255,255,255,0.1);
+          background-color: rgba(255, 255, 255, 0.1);
         }
 
         .disabled {
@@ -840,7 +838,7 @@
   }
 
   .cluster-services {
-    width: 1270px;
+    width: auto;
   }
 
   button {
@@ -858,7 +856,7 @@
 
   .action-buttons {
     margin: 0px auto;
-    width: 1270px;
+    width: auto;
 
     .delete-cluster {
       display: flex;
@@ -879,4 +877,6 @@
       }
     }
   }
+
 }
+

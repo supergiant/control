@@ -268,3 +268,13 @@ func TestInitPanic(t *testing.T) {
 		t.Error("Step not found")
 	}
 }
+
+func TestStep_Description(t *testing.T) {
+	s := &Step{}
+
+	if desc := s.Description(); desc != "Post start step executes after "+
+		"provisioning" {
+		t.Errorf("Wrong desription expected %s actual %s",
+			"Post start step executes after provisioning", desc)
+	}
+}

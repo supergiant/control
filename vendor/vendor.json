@@ -581,6 +581,12 @@
 			"revisionTime": "2016-03-09T20:12:52Z"
 		},
 		{
+			"checksumSHA1": "vT5Rn19xP0Ndw1ydV9sGjobiIHg=",
+			"path": "github.com/jarcoal/httpmock",
+			"revision": "53def6cd0f87425f5425d4f0f27f66f048759b94",
+			"revisionTime": "2018-11-10T09:27:31Z"
+		},
+		{
 			"checksumSHA1": "0ZrwvB6KoGPj2PoDNSEJwxQ6Mog=",
 			"origin": "github.com/aws/aws-sdk-go/vendor/github.com/jmespath/go-jmespath",
 			"path": "github.com/jmespath/go-jmespath",
