@@ -1,7 +1,6 @@
 package workflows
 
 import (
-	"bytes"
 	"context"
 	"encoding/json"
 	"fmt"
@@ -9,7 +8,6 @@ import (
 	"net/http"
 	"net/http/httptest"
 	"testing"
-	"time"
 	"os"
 
 	"github.com/gorilla/mux"
@@ -81,67 +79,6 @@ func TestWorkflowHandlerGetWorkflow(t *testing.T) {
 	}
 }
 
-func TestTaskHandlerRunTask(t *testing.T) {
-	Init()
-	h := TaskHandler{
-		runnerFactory: func(cfg ssh.Config) (runner.Runner, error) {
-			return &testutils.MockRunner{}, nil
-		},
-		repository: &MockRepository{
-			map[string][]byte{},
-		},
-		cloudAccGetter: &mockCloudAccountService{
-			cloudAccount: &model.CloudAccount{
-				Name:     "testName",
-				Provider: clouds.DigitalOcean,
-				Credentials: map[string]string{
-					"fingerprints": "fingerprint",
-					"accessToken":  "abcd",
-				},
-			},
-			err: nil,
-		},
-	}
-
-	workflowName := "workflow1"
-	message := "hello, world!!!"
-	step := &MockStep{
-		name:     "mock_step",
-		messages: []string{message},
-	}
-
-	workflow := []steps.Step{step}
-	RegisterWorkFlow(workflowName, workflow)
-
-	reqBody := RunTaskRequest{
-		Cfg: steps.Config{
-			Timeout: time.Second * 1,
-		},
-		WorkflowName: workflowName,
-	}
-
-	body := &bytes.Buffer{}
-	err := json.NewEncoder(body).Encode(reqBody)
-
-	if err != nil {
-		t.Errorf("Unexpected err while json encoding req body %v", err)
-	}
-
-	rec := httptest.NewRecorder()
-	req := httptest.NewRequest(http.MethodPost, "/", body)
-	h.RunTask(rec, req)
-
-	if rec.Code != http.StatusAccepted {
-		t.Errorf("Wrong response code expected %d received %d", http.StatusAccepted, rec.Code)
-	}
-
-	resp := &TaskResponse{}
-	json.NewDecoder(rec.Body).Decode(resp)
-
-	if len(resp.ID) == 0 {
-		t.Error("task id in response should not be empty")
-	}
-}
 
 func TestTaskHandlerRestartTask(t *testing.T) {
 	Init()
@@ -239,57 +176,6 @@ dZM6MSCYh9kcT0pi2FPmY9iXba9kx4XAnf+0YB5xCz9QSMk4W5xSTBs=
 
 	if rec.Code != http.StatusAccepted {
 		t.Errorf("Wrong response code expected %d received %d", http.StatusAccepted, rec.Code)
-	}
-}
-
-func TestWorkflowHandlerBuildWorkflow(t *testing.T) {
-	h := TaskHandler{
-		runnerFactory: func(cfg ssh.Config) (runner.Runner, error) {
-			return &testutils.MockRunner{}, nil
-		},
-		repository: &MockRepository{
-			map[string][]byte{},
-		},
-	}
-
-	message := "hello, world!!!"
-	step := &MockStep{
-		name:     "mock_step",
-		messages: []string{message},
-	}
-
-	steps.RegisterStep(step.Name(), step)
-
-	reqBody := BuildTaskRequest{
-		Cfg: steps.Config{
-			Timeout: time.Second * 1,
-		},
-		StepNames: []string{step.Name()},
-		SshConfig: ssh.Config{
-			Host:    "12.34.56.67",
-			Port:    "22",
-			User:    "root",
-			Timeout: 1,
-			Key:     []byte("")},
-	}
-
-	body := &bytes.Buffer{}
-	err := json.NewEncoder(body).Encode(reqBody)
-	rec := httptest.NewRecorder()
-	req := httptest.NewRequest(http.MethodPost, "/", body)
-
-	h.BuildAndRunTask(rec, req)
-
-	resp := &TaskResponse{}
-	err = json.Unmarshal(rec.Body.Bytes(), resp)
-
-	if rec.Code != http.StatusCreated {
-		t.Errorf("Wrong response code expected %d actual %d", rec.Code, http.StatusCreated)
-		return
-	}
-
-	if err != nil {
-		t.Errorf("Unexpected err while parsing response %v", err)
 	}
 }
 
