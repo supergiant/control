@@ -181,7 +181,7 @@ metadata:
 spec:
   selector:
     k8s-app: kube-dns
-  clusterIP: '10.3.0.10'
+  clusterIP: '{{ .ClusterDNSIP }}'
   ports:
   - name: dns
     port: 53
@@ -266,7 +266,7 @@ spec:
     - --bind-address=0.0.0.0
     - --etcd-servers=http://{{ .MasterHost }}:2379
     - --allow-privileged=true
-    - --service-cluster-ip-range=10.3.0.0/24
+    - --service-cluster-ip-range={{ .ServicesCIDR }}
     - --secure-port=443
     - --v=2
     - --insecure-port=8080

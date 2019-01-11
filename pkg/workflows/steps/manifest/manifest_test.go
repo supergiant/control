@@ -56,8 +56,9 @@ func TestWriteManifestMaster(t *testing.T) {
 
 	output := new(bytes.Buffer)
 	p := profile.Profile{
-		K8SVersion:  kubernetesVersion,
-		RBACEnabled: true,
+		K8SVersion:      kubernetesVersion,
+		RBACEnabled:     true,
+		K8SServicesCIDR: "10.3.0.0/16",
 	}
 	cfg := steps.NewConfig("", "", "", p)
 	cfg.Node = node.Node{
@@ -133,8 +134,9 @@ func TestWriteManifestNode(t *testing.T) {
 
 	output := new(bytes.Buffer)
 	p := profile.Profile{
-		K8SVersion:  kubernetesVersion,
-		RBACEnabled: false,
+		K8SVersion:      kubernetesVersion,
+		RBACEnabled:     false,
+		K8SServicesCIDR: "10.3.0.0/16",
 	}
 	cfg := steps.NewConfig("", "", "", p)
 	cfg.AddMaster(&node.Node{
@@ -182,7 +184,9 @@ func TestWriteManifestError(t *testing.T) {
 
 	proxyTemplate, err := template.New(StepName).Parse("")
 	output := new(bytes.Buffer)
-	cfg := steps.NewConfig("", "", "", profile.Profile{})
+	cfg := steps.NewConfig("", "", "", profile.Profile{
+		K8SServicesCIDR: "10.3.0.0/16",
+	})
 	cfg.AddMaster(&node.Node{
 		State:     node.StateActive,
 		PrivateIp: "127.0.0.1",

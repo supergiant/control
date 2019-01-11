@@ -61,7 +61,9 @@ func TestWriteCertificates(t *testing.T) {
 		t.Errorf("unexpected error creating PKI bundle %v", err)
 	}
 
-	cfg := steps.NewConfig("", "", "", profile.Profile{})
+	cfg := steps.NewConfig("", "", "", profile.Profile{
+		K8SServicesCIDR: "10.3.0.0/16",
+	})
 	// TODO: update tests
 	cfg.CertificatesConfig = steps.CertificatesConfig{
 		KubernetesConfigDir: kubernetesConfigDir,
@@ -198,7 +200,9 @@ func TestWriteCertificatesError(t *testing.T) {
 		proxyTemplate,
 	}
 
-	cfg := steps.NewConfig("", "", "", profile.Profile{})
+	cfg := steps.NewConfig("", "", "", profile.Profile{
+		K8SServicesCIDR: "10.3.0.0/16",
+	})
 	cfg.Runner = r
 	cfg.AddMaster(&node.Node{
 		State:     node.StateActive,

@@ -17,17 +17,18 @@ const (
 
 // Kube represents a kubernetes cluster.
 type Kube struct {
-	ID          string      `json:"id" valid:"-"`
-	State       KubeState   `json:"state"`
-	Name        string      `json:"name" valid:"required"`
-	Provider    clouds.Name `json:"provider" valid:"in(aws|digitalocean|packet|gce|openstack)"`
-	RBACEnabled bool        `json:"rbacEnabled"`
-	AccountName string      `json:"accountName"`
-	Region      string      `json:"region"`
-	Zone        string      `json:"zone" valid:"-"`
-	APIPort     string      `json:"apiPort"`
-	Auth        Auth        `json:"auth"`
-	SshUser     string      `json:"sshUser"`
+	ID           string      `json:"id" valid:"-"`
+	State        KubeState   `json:"state"`
+	Name         string      `json:"name" valid:"required"`
+	Provider     clouds.Name `json:"provider" valid:"in(aws|digitalocean|packet|gce|openstack)"`
+	RBACEnabled  bool        `json:"rbacEnabled"`
+	AccountName  string      `json:"accountName"`
+	Region       string      `json:"region"`
+	Zone         string      `json:"zone" valid:"-"`
+	ServicesCIDR string      `json:"servicesCIDR"`
+	APIPort      string      `json:"apiPort"`
+	Auth         Auth        `json:"auth"`
+	SshUser      string      `json:"sshUser"`
 
 	SshPublicKey        []byte `json:"sshKey"`
 	BootstrapPublicKey  []byte `json:"bootstrapPublicKey"`

@@ -21,7 +21,6 @@ import (
 	"github.com/supergiant/control/pkg/workflows/steps"
 )
 
-
 type mockProvisioner struct {
 	provisionCluster func(context.Context, *profile.Profile, *steps.Config) (map[string][]*workflows.Task, error)
 	provisionNode    func(context.Context, profile.NodeProfile, *model.Kube, *steps.Config) (*workflows.Task, error)

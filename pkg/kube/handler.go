@@ -10,12 +10,11 @@ import (
 	"strconv"
 	"time"
 
-	corev1 "k8s.io/api/core/v1"
-
 	"github.com/gorilla/mux"
 	"github.com/pkg/errors"
 	"github.com/sirupsen/logrus"
 	"gopkg.in/asaskevich/govalidator.v8"
+	corev1 "k8s.io/api/core/v1"
 	"k8s.io/client-go/rest"
 
 	"github.com/supergiant/control/pkg/clouds"
@@ -51,7 +50,6 @@ type nodeProvisioner interface {
 	// Method that cancels newly added nodes to working cluster
 	Cancel(string) error
 }
-
 
 type ServiceInfo struct {
 	ID        string `json:"id"`
@@ -547,6 +545,7 @@ func (h *Handler) addNode(w http.ResponseWriter, r *http.Request) {
 		UbuntuVersion:   k.OperatingSystemVersion,
 		DockerVersion:   k.DockerVersion,
 		K8SVersion:      k.K8SVersion,
+		K8SServicesCIDR: k.ServicesCIDR,
 		HelmVersion:     k.HelmVersion,
 		User:            k.User,
 		Password:        k.Password,
