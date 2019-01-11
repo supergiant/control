@@ -95,7 +95,7 @@ func TestProvisionCluster(t *testing.T) {
 			clouds.DigitalOcean: {
 				ProvisionMaster: "test_master",
 				ProvisionNode:   "test_node",
-				PreProvision: "",
+				PreProvision:    "",
 			},
 		},
 		NewRateLimiter(time.Nanosecond * 1),

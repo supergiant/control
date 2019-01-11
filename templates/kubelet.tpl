@@ -25,7 +25,6 @@ ExecStart=/usr/bin/docker run \
       -v /etc/kubernetes:/etc/kubernetes:ro \
       gcr.io/google-containers/hyperkube:v{{ .K8SVersion }} \
       /hyperkube kubelet --allow-privileged=true \
-      --cluster-dns=10.3.0.10 \
       --cluster-domain=cluster.local \
       --pod-manifest-path=/etc/kubernetes/manifests \
       --kubeconfig=/etc/kubernetes/worker-kubeconfig.yaml \

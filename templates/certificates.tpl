@@ -16,9 +16,10 @@ DNS.1 = kubernetes
 DNS.2 = kubernetes.default
 DNS.3 = kubernetes.default.svc
 DNS.4 = kubernetes.default.svc.cluster
+DNS.5 = kubernetes.default.svc.cluster.local
 IP.1 = {{ .PublicIP }}
 IP.2 = {{ .PrivateIP }}
-IP.3 = 10.3.0.1
+IP.3 = {{ .KubernetesSvcIP }}
 EOF"
 
 sudo bash -c "cat > /etc/kubernetes/ssl/ca.pem <<EOF

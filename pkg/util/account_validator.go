@@ -8,11 +8,11 @@ import (
 	"github.com/aws/aws-sdk-go/aws/session"
 	"github.com/aws/aws-sdk-go/service/ec2"
 	"github.com/digitalocean/godo"
+	"github.com/sirupsen/logrus"
 	"golang.org/x/oauth2"
 	"golang.org/x/oauth2/jwt"
 	compute "google.golang.org/api/compute/v1"
 	"google.golang.org/api/dns/v1"
-	"github.com/sirupsen/logrus"
 
 	"github.com/supergiant/control/pkg/clouds"
 	"github.com/supergiant/control/pkg/clouds/digitaloceansdk"

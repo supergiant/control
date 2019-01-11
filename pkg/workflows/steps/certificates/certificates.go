@@ -9,6 +9,7 @@ import (
 	"github.com/pkg/errors"
 
 	tm "github.com/supergiant/control/pkg/templatemanager"
+	"github.com/supergiant/control/pkg/util"
 	"github.com/supergiant/control/pkg/workflows/steps"
 )
 
@@ -43,9 +44,13 @@ func (s *Step) Run(ctx context.Context, out io.Writer, config *steps.Config) err
 	config.CertificatesConfig.PublicIP = config.Node.PublicIp
 	config.CertificatesConfig.IsMaster = config.IsMaster
 
-	err := steps.RunTemplate(ctx, s.template,
-		config.Runner, out, config.CertificatesConfig)
+	kubeDefaultSvcIp, err := util.GetKubernetesDefaultSvcIP(config.ManifestConfig.ServicesCIDR)
+	if err != nil {
+		return errors.Wrapf(err, "get cluster dns ip from the %s subnet", config.ManifestConfig.ServicesCIDR)
+	}
+	config.CertificatesConfig.KubernetesSvcIP = kubeDefaultSvcIp.String()
 
+	err = steps.RunTemplate(ctx, s.template, config.Runner, out, config.CertificatesConfig)
 	if err != nil {
 		return errors.Wrap(err, "write certificates step")
 	}

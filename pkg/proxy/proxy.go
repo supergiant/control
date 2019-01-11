@@ -43,7 +43,7 @@ type ServiceReverseProxy struct {
 	SelfLink    string
 	ServingBase string
 
-	srv         *http.Server
+	srv *http.Server
 }
 
 func NewReverseProxyContainer(proxiesPortRange PortRange, logger logrus.FieldLogger) *ReverseProxyContainer {
@@ -95,7 +95,7 @@ func NewServiceProxy(port int32, targetURL, selfLink, user, password string, log
 	return &ServiceReverseProxy{
 		ServingBase: addr,
 
-		srv:         httpServer,
+		srv: httpServer,
 	}, nil
 }
 

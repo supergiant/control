@@ -6,9 +6,9 @@ import (
 	"testing"
 
 	"github.com/pkg/errors"
+	"github.com/stretchr/testify/mock"
 
 	"github.com/supergiant/control/pkg/testutils"
-	"github.com/stretchr/testify/mock"
 )
 
 func TestKubeProfileServiceGet(t *testing.T) {

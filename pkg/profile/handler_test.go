@@ -291,28 +291,28 @@ func TestGetProfile(t *testing.T) {
 
 func TestService_GetAll(t *testing.T) {
 	testCases := []struct {
-		description string
+		description  string
 		repoErr      error
 		getAllData   [][]byte
 		expectedCode int
 	}{
 		{
-			description: "unknown error",
+			description:  "unknown error",
 			repoErr:      errors.New("unknown error"),
 			expectedCode: http.StatusInternalServerError,
 		},
 		{
-			description: "invalid json",
+			description:  "invalid json",
 			getAllData:   [][]byte{[]byte(`{`)},
 			expectedCode: http.StatusInternalServerError,
 		},
 		{
-			description: "error marshalling",
+			description:  "error marshalling",
 			getAllData:   [][]byte{[]byte(``)},
 			expectedCode: http.StatusInternalServerError,
 		},
 		{
-			description: "success",
+			description:  "success",
 			getAllData:   [][]byte{[]byte(`{}`)},
 			expectedCode: http.StatusOK,
 		},
