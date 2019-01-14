@@ -1188,7 +1188,7 @@ func (h *Handler) restartKubeProvisioning(w http.ResponseWriter, r *http.Request
 
 	config := steps.NewConfigFromKube(kubeProfile, k)
 
-	logrus.Debugf("load clout specific data from kube")
+	logrus.Debugf("load clout specific data from kube %s", k.ID)
 	// Load things specific to cloud provider
 	err = util.LoadCloudSpecificDataFromKube(k, config)
 
