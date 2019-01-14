@@ -133,7 +133,8 @@ func TestProvisionCluster(t *testing.T) {
 	}
 
 	cfg := steps.NewConfig("", "", "", *p)
-	taskMap, err := provisioner.ProvisionCluster(context.Background(), p, cfg)
+	ctx, cancel := context.WithCancel(context.Background())
+	taskMap, err := provisioner.ProvisionCluster(ctx, p, cfg)
 
 	if err != nil {
 		t.Errorf("Unexpected error %v while provisionCluster", err)
@@ -155,6 +156,8 @@ func TestProvisionCluster(t *testing.T) {
 			1, len(provisioner.cancelMap))
 	}
 
+	// Cancel context to shut down cluster state monitoring
+	cancel()
 	if k := svc.data[cfg.ClusterID]; k == nil {
 		t.Errorf("Kube %s not found", k.ID)
 
