@@ -75,16 +75,11 @@ func NewProvisioner(repository storage.Interface, kubeService KubeService,
 // that have been provided for provisionCluster
 func (tp *TaskProvisioner) ProvisionCluster(parentContext context.Context,
 	clusterProfile *profile.Profile, config *steps.Config) (map[string][]*workflows.Task, error) {
-
-	var (
-		clusterTask *workflows.Task
-	)
-
 	taskMap := tp.prepare(config.Provider,
 		len(clusterProfile.MasterProfiles),
 		len(clusterProfile.NodesProfiles))
 
-	clusterTask = taskMap[workflows.ClusterTask][0]
+	clusterTask := taskMap[workflows.ClusterTask][0]
 
 	// Get clusterID from taskID
 	if clusterTask != nil && len(clusterTask.ID) >= 8 {

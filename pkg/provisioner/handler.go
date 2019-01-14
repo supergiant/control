@@ -20,6 +20,7 @@ import (
 	"github.com/supergiant/control/pkg/util"
 	"github.com/supergiant/control/pkg/workflows"
 	"github.com/supergiant/control/pkg/workflows/steps"
+	"fmt"
 )
 
 const (
@@ -139,7 +140,16 @@ func (h *Handler) Provision(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// Assign ID to profile
-	req.Profile.ID = uuid.New()[:8]
+	id := uuid.New()
+
+	if len(id) > 0 {
+		req.Profile.ID = uuid.New()[:8]
+	} else {
+		http.Error(w, fmt.Sprintf("generated id is too short %s", id), http.StatusInternalServerError)
+		logrus.Error(errors.New(fmt.Sprintf("generated id %s is too short", id)))
+		return
+	}
+
 	ctx, _ := context.WithTimeout(context.Background(), config.Timeout)
 	taskMap, err := h.provisioner.ProvisionCluster(ctx, &req.Profile, config)
 
