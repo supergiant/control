@@ -3,6 +3,7 @@ package provisioner
 import (
 	"bytes"
 	"context"
+	"sync"
 	"io"
 	"testing"
 	"time"
@@ -18,7 +19,6 @@ import (
 	"github.com/supergiant/control/pkg/testutils"
 	"github.com/supergiant/control/pkg/workflows"
 	"github.com/supergiant/control/pkg/workflows/steps"
-	"sync"
 )
 
 type bufferCloser struct {
