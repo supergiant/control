@@ -76,7 +76,7 @@ matrix:
 
       script:
         - npm run build
-        - npm run test
+        - ng test
 
       after_success:
         - echo UI Tests Success
