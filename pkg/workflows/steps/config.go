@@ -19,6 +19,9 @@ type CertificatesConfig struct {
 	PublicIP            string `json:"publicIp"`
 	PrivateIP           string `json:"privateIp"`
 	IsMaster            bool   `json:"isMaster"`
+	// TODO: this shouldn't be a part of SANs
+	// https://kubernetes.io/docs/setup/certificates/#all-certificates
+	KubernetesSvcIP string `json:"kubernetesSvcIp"`
 
 	StaticAuth profile.StaticAuth `json:"staticAuth"`
 
@@ -114,6 +117,7 @@ type NetworkConfig struct {
 
 type KubeletConfig struct {
 	IsMaster       bool   `json:"isMaster"`
+	NodeLabels     string `json:"nodeLabels"`
 	ProxyPort      string `json:"proxyPort"`
 	K8SVersion     string `json:"k8sVersion"`
 	ProviderString string `json:"ProviderString"`
@@ -125,6 +129,8 @@ type ManifestConfig struct {
 	KubernetesConfigDir string `json:"kubernetesConfigDir"`
 	RBACEnabled         bool   `json:"rbacEnabled"`
 	ProviderString      string `json:"ProviderString"`
+	ServicesCIDR        string `json:"servicesCIDR"`
+	ClusterDNSIP        string `json:"clusterDNSIp"`
 	MasterHost          string `json:"masterHost"`
 	MasterPort          string `json:"masterPort"`
 	Password            string `json:"password"`
@@ -326,6 +332,7 @@ func NewConfig(clusterName, clusterToken, cloudAccountName string, profile profi
 			K8SVersion:          profile.K8SVersion,
 			KubernetesConfigDir: "/etc/kubernetes",
 			RBACEnabled:         profile.RBACEnabled,
+			ServicesCIDR:        profile.K8SServicesCIDR,
 			ProviderString:      toCloudProviderOpt(profile.Provider),
 			MasterHost:          "localhost",
 			MasterPort:          "8080",

@@ -25,7 +25,6 @@ ExecStart=/usr/bin/docker run \
       -v /etc/kubernetes:/etc/kubernetes:ro \
       gcr.io/google-containers/hyperkube:v{{ .K8SVersion }} \
       /hyperkube kubelet --allow-privileged=true \
-      --cluster-dns=10.3.0.10 \
       --cluster-domain=cluster.local \
       --pod-manifest-path=/etc/kubernetes/manifests \
       --kubeconfig=/etc/kubernetes/worker-kubeconfig.yaml \
@@ -34,6 +33,8 @@ ExecStart=/usr/bin/docker run \
       --tls-private-key-file=/etc/kubernetes/ssl/worker-key.pem \
       {{- if .ProviderString }}
       --cloud-provider={{ .ProviderString }} \{{ end }}
+      {{- if .NodeLabels }}
+      --node-labels={{ .NodeLabels }} \{{ end }}
       --volume-plugin-dir=/etc/kubernetes/volumeplugins --fail-swap-on=false --register-node=true \
       --anonymous-auth=false
 Restart=always

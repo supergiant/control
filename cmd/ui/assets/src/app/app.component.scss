@@ -1,8 +1,9 @@
 :host {
   display: flex;
   flex-direction: column;
-  width: 100%;
-  padding: 0;
+  width: auto;
+  // TODO: remove these 'magic numbers'
+  padding: 49px;
 
   .content {
     min-height: calc(100vh - 275px);

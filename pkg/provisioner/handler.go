@@ -22,6 +22,10 @@ import (
 	"github.com/supergiant/control/pkg/workflows/steps"
 )
 
+const (
+	DefaultK8SServicesCIDR = "10.3.0.0/16"
+)
+
 type AccountGetter interface {
 	Get(context.Context, string) (*model.CloudAccount, error)
 }
@@ -107,8 +111,11 @@ func (h *Handler) Provision(w http.ResponseWriter, r *http.Request) {
 		})
 	}
 
-	config := steps.NewConfig(req.ClusterName, clusterToken,
-		req.CloudAccountName, req.Profile)
+	if req.Profile.K8SServicesCIDR == "" {
+		req.Profile.K8SServicesCIDR = DefaultK8SServicesCIDR
+	}
+
+	config := steps.NewConfig(req.ClusterName, clusterToken, req.CloudAccountName, req.Profile)
 
 	acc, err := h.accountGetter.Get(r.Context(), req.CloudAccountName)
 

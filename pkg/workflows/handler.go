@@ -2,7 +2,6 @@ package workflows
 
 import (
 	"context"
-	"encoding/json"
 	"fmt"
 	"html/template"
 	"io"
@@ -17,11 +16,9 @@ import (
 	"github.com/hpcloud/tail"
 	"github.com/sirupsen/logrus"
 
-	"github.com/supergiant/control/pkg/message"
 	"github.com/supergiant/control/pkg/model"
 	"github.com/supergiant/control/pkg/runner"
 	"github.com/supergiant/control/pkg/runner/ssh"
-	"github.com/supergiant/control/pkg/sgerrors"
 	"github.com/supergiant/control/pkg/storage"
 	"github.com/supergiant/control/pkg/util"
 	"github.com/supergiant/control/pkg/workflows/steps"
@@ -32,8 +29,8 @@ type cloudAccountGetter interface {
 }
 
 type TaskHandler struct {
-	runnerFactory  func(config ssh.Config) (runner.Runner, error)
-	getTail        func(string) (*tail.Tail, error)
+	runnerFactory func(config ssh.Config) (runner.Runner, error)
+	getTail       func(string) (*tail.Tail, error)
 
 	cloudAccGetter cloudAccountGetter
 	repository     storage.Interface
@@ -77,7 +74,7 @@ func NewTaskHandler(repository storage.Interface, runnerFactory func(config ssh.
 					MaxLineSize: 160,
 				})
 
-			if err != nil  {
+			if err != nil {
 				return nil, err
 			}
 
@@ -87,7 +84,6 @@ func NewTaskHandler(repository storage.Interface, runnerFactory func(config ssh.
 }
 
 func (h *TaskHandler) Register(m *mux.Router) {
-	m.HandleFunc("/tasks", h.RunTask).Methods(http.MethodPost)
 	m.HandleFunc("/tasks/{id}", h.GetTask).Methods(http.MethodGet)
 	m.HandleFunc("/tasks/{id}/restart",
 		h.RestartTask).Methods(http.MethodPost)
@@ -112,50 +108,6 @@ func (h *TaskHandler) GetTask(w http.ResponseWriter, r *http.Request) {
 	}
 
 	w.Write(data)
-}
-
-func (h *TaskHandler) RunTask(w http.ResponseWriter, r *http.Request) {
-	req := &RunTaskRequest{}
-	err := json.NewDecoder(r.Body).Decode(req)
-
-	if err != nil {
-		http.Error(w, err.Error(), http.StatusBadRequest)
-		return
-	}
-
-	acc, err := h.cloudAccGetter.Get(r.Context(), req.Cfg.CloudAccountName)
-
-	if err != nil {
-		if sgerrors.IsNotFound(err) {
-			http.NotFound(w, r)
-			return
-		}
-
-		message.SendUnknownError(w, err)
-		return
-	}
-
-	// Get cloud account fill appropriate config structure with cloud account credentials
-	err = util.FillCloudAccountCredentials(r.Context(), acc, &req.Cfg)
-
-	if err != nil {
-		http.Error(w, err.Error(), http.StatusNotFound)
-		return
-	}
-
-	task, err := NewTask(req.WorkflowName, h.repository)
-
-	if err != nil {
-		http.Error(w, err.Error(), http.StatusInternalServerError)
-		return
-	}
-
-	task.Run(context.Background(), req.Cfg, os.Stdout)
-
-	w.WriteHeader(http.StatusAccepted)
-	json.NewEncoder(w).Encode(&TaskResponse{
-		task.ID,
-	})
 }
 
 func (h *TaskHandler) RestartTask(w http.ResponseWriter, r *http.Request) {
@@ -195,42 +147,6 @@ func (h *TaskHandler) RestartTask(w http.ResponseWriter, r *http.Request) {
 
 	task.Run(context.Background(), *task.Config, writer)
 	w.WriteHeader(http.StatusAccepted)
-}
-
-func (h *TaskHandler) BuildAndRunTask(w http.ResponseWriter, r *http.Request) {
-	req := &BuildTaskRequest{}
-	err := json.NewDecoder(r.Body).Decode(req)
-
-	if err != nil {
-		http.Error(w, err.Error(), http.StatusBadRequest)
-		return
-	}
-
-	// Create newTask sshRunner with config provided
-	sshRunner, err := h.runnerFactory(req.SshConfig)
-
-	if err != nil {
-		http.Error(w, err.Error(), http.StatusInternalServerError)
-		return
-	}
-
-	req.Cfg.Runner = sshRunner
-	s := make([]steps.Step, 0, len(req.StepNames))
-	// Get steps for task
-	for _, stepName := range req.StepNames {
-		s = append(s, steps.GetStep(stepName))
-	}
-
-	// TODO(stgleb): pass here workflow type DOMaster or DONode
-	task := newTask("", s, h.repository)
-	// We ignore cancel function since we cannot get it back
-	ctx, _ := context.WithTimeout(context.Background(), req.Cfg.Timeout*time.Second)
-	task.Run(ctx, req.Cfg, os.Stdout)
-
-	w.WriteHeader(http.StatusCreated)
-	json.NewEncoder(w).Encode(&TaskResponse{
-		task.ID,
-	})
 }
 
 // NOTE(stgleb): This is made for testing purposes and example, remove when UI is done.

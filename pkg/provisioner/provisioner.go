@@ -122,7 +122,6 @@ func (tp *TaskProvisioner) ProvisionCluster(parentContext context.Context,
 	}
 
 	// monitor cluster state in separate goroutine
-	// monitor cluster state in separate goroutine
 	go tp.monitorClusterState(ctx, config.ClusterID, config.NodeChan(),
 		config.KubeStateChan(), config.ConfigChan())
 	go tp.provision(ctx, taskMap, clusterProfile, config)
@@ -548,6 +547,7 @@ func (tp *TaskProvisioner) buildInitialCluster(ctx context.Context,
 		Provider:           profile.Provider,
 		AccountName:        config.CloudAccountName,
 		RBACEnabled:        profile.RBACEnabled,
+		ServicesCIDR:        profile.K8SServicesCIDR,
 		Region:             profile.Region,
 		Zone:               profile.Zone,
 		SshUser:            config.SshConfig.User,

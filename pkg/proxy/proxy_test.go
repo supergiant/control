@@ -3,13 +3,14 @@ package proxy
 import (
 	"context"
 	"fmt"
-	"github.com/sirupsen/logrus"
 	"net/http"
 	"net/http/httptest"
 	"net/http/httputil"
 	"net/url"
 	"testing"
 	"time"
+
+	"github.com/sirupsen/logrus"
 )
 
 func TestNewReverseProxyContainer(t *testing.T) {
@@ -165,10 +166,13 @@ func TestGetNonOccupiedPortSuccess(t *testing.T) {
 }
 
 func TestNewServiceProxy(t *testing.T) {
-	logger := logrus.New()
-	proxy, err := NewServiceProxy(8080, "/url",
-		"selflink", "user", "password", logger)
+	port, err := getNonOccupiedPort(PortRange{int32(50000), int32(50200)})
+	if err != nil {
+		t.Log("failed to get unused port")
+	}
 
+	logger := logrus.New()
+	proxy, err := NewServiceProxy(port, "/url", "selflink", "user", "password", logger)
 	if err != nil {
 		t.Errorf("Unexpected error %v", err)
 	}

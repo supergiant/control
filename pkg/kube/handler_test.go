@@ -11,13 +11,12 @@ import (
 	"strings"
 	"testing"
 
-	core "k8s.io/api/core/v1"
-	meta "k8s.io/apimachinery/pkg/apis/meta/v1"
-
 	"github.com/gorilla/mux"
 	"github.com/pkg/errors"
 	"github.com/stretchr/testify/mock"
 	"github.com/stretchr/testify/require"
+	core "k8s.io/api/core/v1"
+	meta "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/helm/pkg/proto/hapi/chart"
 	"k8s.io/helm/pkg/proto/hapi/release"
 
@@ -26,11 +25,11 @@ import (
 	"github.com/supergiant/control/pkg/model"
 	"github.com/supergiant/control/pkg/node"
 	"github.com/supergiant/control/pkg/profile"
+	"github.com/supergiant/control/pkg/proxy"
 	"github.com/supergiant/control/pkg/sgerrors"
 	"github.com/supergiant/control/pkg/testutils"
 	"github.com/supergiant/control/pkg/workflows"
 	"github.com/supergiant/control/pkg/workflows/steps"
-	"github.com/supergiant/control/pkg/proxy"
 )
 
 var (
@@ -237,7 +236,6 @@ func (m *kubeServiceMock) DeleteRelease(ctx context.Context,
 type mockContainter struct {
 	mock.Mock
 }
-
 
 func (m *mockContainter) RegisterProxies(targets []*proxy.Target) error {
 	args := m.Called(targets)
@@ -2134,7 +2132,7 @@ func TestGetServices(t *testing.T) {
 					},
 				},
 			},
-			k8sServices:   &core.ServiceList{
+			k8sServices: &core.ServiceList{
 				Items: []core.Service{
 					{
 						ObjectMeta: meta.ObjectMeta{
@@ -2145,7 +2143,7 @@ func TestGetServices(t *testing.T) {
 						Spec: core.ServiceSpec{
 							Ports: []core.ServicePort{
 								{
-									Name: "http",
+									Name:     "http",
 									Protocol: "TCP",
 								},
 							},
@@ -2158,7 +2156,7 @@ func TestGetServices(t *testing.T) {
 					ServingBase: "http:/10.20.30.40:9090",
 				},
 			},
-			expectedCode:  http.StatusOK,
+			expectedCode: http.StatusOK,
 		},
 		{
 			description: "success 2",
@@ -2171,7 +2169,7 @@ func TestGetServices(t *testing.T) {
 					},
 				},
 			},
-			k8sServices:   &core.ServiceList{
+			k8sServices: &core.ServiceList{
 				Items: []core.Service{
 					{
 						ObjectMeta: meta.ObjectMeta{
@@ -2182,7 +2180,7 @@ func TestGetServices(t *testing.T) {
 						Spec: core.ServiceSpec{
 							Ports: []core.ServicePort{
 								{
-									Name: "http",
+									Name:     "http",
 									Protocol: "TCP",
 								},
 							},
@@ -2195,7 +2193,7 @@ func TestGetServices(t *testing.T) {
 					ServingBase: "http:/10.20.30.40:9090",
 				},
 			},
-			expectedCode:  http.StatusOK,
+			expectedCode: http.StatusOK,
 		},
 		{
 			description: "success 3",
@@ -2208,7 +2206,7 @@ func TestGetServices(t *testing.T) {
 					},
 				},
 			},
-			k8sServices:   &core.ServiceList{
+			k8sServices: &core.ServiceList{
 				Items: []core.Service{
 					{
 						ObjectMeta: meta.ObjectMeta{
@@ -2219,11 +2217,11 @@ func TestGetServices(t *testing.T) {
 						Spec: core.ServiceSpec{
 							Ports: []core.ServicePort{
 								{
-									Name: "other",
+									Name:     "other",
 									Protocol: "unknown",
 								},
 								{
-									Name: "http",
+									Name:     "http",
 									Protocol: "TCP",
 								},
 							},
@@ -2236,7 +2234,7 @@ func TestGetServices(t *testing.T) {
 					ServingBase: "http:/10.20.30.40:9090",
 				},
 			},
-			expectedCode:  http.StatusOK,
+			expectedCode: http.StatusOK,
 		},
 	}
 
@@ -2256,8 +2254,8 @@ func TestGetServices(t *testing.T) {
 
 		handler := &Handler{
 			getK8sServices: getSvc,
-			svc: kubeSvc,
-			proxies: mockProxies,
+			svc:            kubeSvc,
+			proxies:        mockProxies,
 		}
 
 		rec := httptest.NewRecorder()
@@ -2270,7 +2268,7 @@ func TestGetServices(t *testing.T) {
 		router.ServeHTTP(rec, req)
 
 		if rec.Code != testCase.expectedCode {
-			t.Errorf("Wrong response code expected " +
+			t.Errorf("Wrong response code expected "+
 				"%d actual %d", testCase.expectedCode, rec.Code)
 		}
 	}
