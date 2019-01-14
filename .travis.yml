@@ -79,4 +79,4 @@ matrix:
         - ng test
 
       after_success:
-        - echo UI Tests Success
+        - echo Success
