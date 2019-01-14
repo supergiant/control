@@ -18,6 +18,7 @@ import (
 	"github.com/supergiant/control/pkg/testutils"
 	"github.com/supergiant/control/pkg/workflows"
 	"github.com/supergiant/control/pkg/workflows/steps"
+	"sync"
 )
 
 type bufferCloser struct {
@@ -32,15 +33,20 @@ func (b *bufferCloser) Close() error {
 type mockKubeService struct {
 	getError  error
 	createErr error
+	lock sync.RWMutex
 	data      map[string]*model.Kube
 }
 
 func (m *mockKubeService) Create(ctx context.Context, k *model.Kube) error {
+	m.lock.Lock()
 	m.data[k.ID] = k
+	m.lock.Unlock()
 	return m.createErr
 }
 
 func (m *mockKubeService) Get(ctx context.Context, kname string) (*model.Kube, error) {
+	m.lock.RLock()
+	defer m.lock.RUnlock()
 	return m.data[kname], m.getError
 }
 
