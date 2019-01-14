@@ -1,57 +1,82 @@
-sudo: required
+matrix:
+  include:
+    - sudo: required
 
-services:
-  - docker
+      services:
+        - docker
 
-language: go
+      language: go
 
-env:
-  global:
-    - secure: oYBxHnfsmfNmnbFb0qPoiCMjr4vEdA7s/28IIZUwpNpLwsV4NuaA0u6awDmpG7viu+PbwY/+/JWhultZ7mbNwscX40nT5LBUxb6OIqEvxPNhU27knxDrFD6g0+70d4PCv1eF1bc3rsLnAvVinZB2n4mxAikMVll2iDON+UEJBRKwAu1cp1ipa84sAATvK2fZMtE+DSaJmt2l1zyquVKHMlGCNzsk6ANNvCTEk6CeYnvSSM9TlOnDp2SrXqrNqCPpli/Z8FJfRj5tCHrvRIQIhrbUrSVv1ISSiMr6TFucsWVTRslVwbtQUL1lb/Ae/mItZCoWW+yrJvkVUcj+OTHFo6mQKxAE+Rj7/inrpHxId4o5luvMZvCPlNl5AB58iCX0LhnzOkDQzLSXBwV6VEYWUXACSlDuK7pmSAKA+FR7Z4sfL4q5MDAN0BttTcak4RP8OCuAV7oHmY49j0VWP8Zu86OF0MZD+R8uYMzYyoi9J2iUQjb+WfR1MSxb3UL51+K2mFqahD99kp17mumnzxLlw1CzbIS3axUFIuRm2b/bDFtnse8iVSrWyWg1lfkitCflDrejWA3h9Pwe/7fUuiTonA4OtjIHNuyQpMdcAOFDDoxXhyCfqEXuWZqycF2rAfx3H4DU2O/4Sqok82gziHz4x7FZfWUbSxiGJAIh3xNlobs=
-    - secure: SM4VoIu6684mlsXlYDOgo/RpjB4+Gn1/yJKM2C7yTATm6Xz0SG/+Y1qum5HDsqLPIRu/bhbYB3xTXcbJDNzJM8SZg4NiPrlG/B0NEXMVqP9oK2wRxnokmTI79kAia6XKDUshAd8NiUP1Q22o0wM6WousI2GspJLeswX5dhVPb2/2pqsY2asYlthnTwmnDspqDvy4WGlHBKQWQZUsKyorqOs7EzlEuiGHNtojhuFlTYb7CPnf5isBBGVrhItmWs8orguME83UhviWw8HFb0TW3hKg35bpa5Wo1yxyYLRwVwyp4/b1iJoKUNmM6IBg+A6x1pi75GtCx4qZtkQUVL2oq5whJris4wXVeb+va9FtcRiM5xqxCuQfv4+o8jfxMjh88ow5F2y9CUO1JwxQhJj1I0DX4jcrBjQs3PNJD9Gmz5XVrYwC9BYzSvQYQBnHkiRBjImn+1dTL4x3rGyJycazWeqm5Sjlt0/vA8PYK3WbIpiJZ7TFUu3ekJOFuHZsrFhoEtZQ67omabbNlSrE+VMoAZ5j9ER4KRTClZTlciWMzEnXcXRTbTPDiGY94rRrkPXPvBovZiBXSvcqJ9dGBxTAIUMiiW0F2xrNfLsK5dcqwwJ2YJDJbNyIt4o2pI6oZp558+L1Gv4MBnxj30ypfYIv/kVY8U2PAHFCJJJn2snywpA=
-    - secure: oWoBhJqpMYdegsUMiovQugOh6BUEdCIF9sbkYT1TzW75QtmNhSrnoq/VN639oSQfTKflsBfiNzl+yXogOKSNNuz62NlFMYbsncw3IuLAKHNYNozgVPTp7n6aJNepincTrzVJCIhCulXajoXDRrkH0/SYi9yGEoPcSMqRlPuHawxCmr0lePHuRhdIjKS+eaQOw7RZ4pq+f51NV3Khj3VNsuacAQT/946wWNVLHdqBiN1jQH5oNLmYgSsFjQW0VXelU/hQtie3kI3vWQMRmjiAzOFEE/YBIlip+WUTXTMWUb7UQ+GlNhueyS0RKkgmub9TW1f2vs8gZ6kyHw1tu3rQXG2fx3FNiYJfc72vQN3LS6Xrpgq+KXoecqkgzXobyjHMfk967De968snEX9WAhj02Wvm8w1+ThvVi/ZuARx+H5T/ZvvUdVs53t8mPcS1H7BnDNX4dy/a0nDxxeAtlvaxcPt7O4jHzt3L/vNdAJv6w0NGDldBFwfdeJSLCKCZ+qWDnMHHKBknGgP5e9bwB2NL5ictAuZ4HSJfmiaWKGOuGvNH6SfwzLK6m49U29nVWtnQlkaVnmJ1lwk3fKRPdIHcdDVfN7MbcRQ8uAkEwinikzkA/S0nHu1Gjl+icleBMgwbAyyMG+/p2UfC2pinRSiMxdlDORUORXgRplG+QrdQC9g=
-    - COMMIT=${TRAVIS_COMMIT::8}
+      env:
+        global:
+          - secure: oYBxHnfsmfNmnbFb0qPoiCMjr4vEdA7s/28IIZUwpNpLwsV4NuaA0u6awDmpG7viu+PbwY/+/JWhultZ7mbNwscX40nT5LBUxb6OIqEvxPNhU27knxDrFD6g0+70d4PCv1eF1bc3rsLnAvVinZB2n4mxAikMVll2iDON+UEJBRKwAu1cp1ipa84sAATvK2fZMtE+DSaJmt2l1zyquVKHMlGCNzsk6ANNvCTEk6CeYnvSSM9TlOnDp2SrXqrNqCPpli/Z8FJfRj5tCHrvRIQIhrbUrSVv1ISSiMr6TFucsWVTRslVwbtQUL1lb/Ae/mItZCoWW+yrJvkVUcj+OTHFo6mQKxAE+Rj7/inrpHxId4o5luvMZvCPlNl5AB58iCX0LhnzOkDQzLSXBwV6VEYWUXACSlDuK7pmSAKA+FR7Z4sfL4q5MDAN0BttTcak4RP8OCuAV7oHmY49j0VWP8Zu86OF0MZD+R8uYMzYyoi9J2iUQjb+WfR1MSxb3UL51+K2mFqahD99kp17mumnzxLlw1CzbIS3axUFIuRm2b/bDFtnse8iVSrWyWg1lfkitCflDrejWA3h9Pwe/7fUuiTonA4OtjIHNuyQpMdcAOFDDoxXhyCfqEXuWZqycF2rAfx3H4DU2O/4Sqok82gziHz4x7FZfWUbSxiGJAIh3xNlobs=
+          - secure: SM4VoIu6684mlsXlYDOgo/RpjB4+Gn1/yJKM2C7yTATm6Xz0SG/+Y1qum5HDsqLPIRu/bhbYB3xTXcbJDNzJM8SZg4NiPrlG/B0NEXMVqP9oK2wRxnokmTI79kAia6XKDUshAd8NiUP1Q22o0wM6WousI2GspJLeswX5dhVPb2/2pqsY2asYlthnTwmnDspqDvy4WGlHBKQWQZUsKyorqOs7EzlEuiGHNtojhuFlTYb7CPnf5isBBGVrhItmWs8orguME83UhviWw8HFb0TW3hKg35bpa5Wo1yxyYLRwVwyp4/b1iJoKUNmM6IBg+A6x1pi75GtCx4qZtkQUVL2oq5whJris4wXVeb+va9FtcRiM5xqxCuQfv4+o8jfxMjh88ow5F2y9CUO1JwxQhJj1I0DX4jcrBjQs3PNJD9Gmz5XVrYwC9BYzSvQYQBnHkiRBjImn+1dTL4x3rGyJycazWeqm5Sjlt0/vA8PYK3WbIpiJZ7TFUu3ekJOFuHZsrFhoEtZQ67omabbNlSrE+VMoAZ5j9ER4KRTClZTlciWMzEnXcXRTbTPDiGY94rRrkPXPvBovZiBXSvcqJ9dGBxTAIUMiiW0F2xrNfLsK5dcqwwJ2YJDJbNyIt4o2pI6oZp558+L1Gv4MBnxj30ypfYIv/kVY8U2PAHFCJJJn2snywpA=
+          - secure: oWoBhJqpMYdegsUMiovQugOh6BUEdCIF9sbkYT1TzW75QtmNhSrnoq/VN639oSQfTKflsBfiNzl+yXogOKSNNuz62NlFMYbsncw3IuLAKHNYNozgVPTp7n6aJNepincTrzVJCIhCulXajoXDRrkH0/SYi9yGEoPcSMqRlPuHawxCmr0lePHuRhdIjKS+eaQOw7RZ4pq+f51NV3Khj3VNsuacAQT/946wWNVLHdqBiN1jQH5oNLmYgSsFjQW0VXelU/hQtie3kI3vWQMRmjiAzOFEE/YBIlip+WUTXTMWUb7UQ+GlNhueyS0RKkgmub9TW1f2vs8gZ6kyHw1tu3rQXG2fx3FNiYJfc72vQN3LS6Xrpgq+KXoecqkgzXobyjHMfk967De968snEX9WAhj02Wvm8w1+ThvVi/ZuARx+H5T/ZvvUdVs53t8mPcS1H7BnDNX4dy/a0nDxxeAtlvaxcPt7O4jHzt3L/vNdAJv6w0NGDldBFwfdeJSLCKCZ+qWDnMHHKBknGgP5e9bwB2NL5ictAuZ4HSJfmiaWKGOuGvNH6SfwzLK6m49U29nVWtnQlkaVnmJ1lwk3fKRPdIHcdDVfN7MbcRQ8uAkEwinikzkA/S0nHu1Gjl+icleBMgwbAyyMG+/p2UfC2pinRSiMxdlDORUORXgRplG+QrdQC9g=
+          - COMMIT=${TRAVIS_COMMIT::8}
 
-go:
-  - "1.10"
+      go:
+        - "1.10"
 
-go_import_path: github.com/supergiant/control
+      go_import_path: github.com/supergiant/control
 
-before_install:
-  - go get -u github.com/rakyll/statik
-  - sudo apt-get update
-  - sudo apt-get install docker-ce
-  - sudo apt-get install build-essential
-  - echo '{"experimental":true}' | sudo tee /etc/docker/daemon.json
-  - mkdir ~/.docker
-  - echo '{"experimental":"enabled"}' | tee ~/.docker/config.json
-  - sudo service docker restart
-  - docker version
-  - docker volume create --name etcd-data
-  - export DATA_DIR="etcd-data"
-  - export REGISTRY=quay.io/coreos/etcd
-  - docker run -d -p 2379:2379 -p 2380:2380 --volume=${DATA_DIR}:/etcd-data --name etcd ${REGISTRY}:latest /usr/local/bin/etcd --data-dir=/etcd-data --name node1 --initial-advertise-peer-urls http://0.0.0.0:2380 --listen-peer-urls http://0.0.0.0:2380 --advertise-client-urls http://0.0.0.0:2379 --listen-client-urls http://0.0.0.0:2379 --initial-cluster node1=http://0.0.0.0:2380
+      before_install:
+        - go get -u github.com/rakyll/statik
+        - sudo apt-get update
+        - sudo apt-get install docker-ce
+        - sudo apt-get install build-essential
+        - echo '{"experimental":true}' | sudo tee /etc/docker/daemon.json
+        - mkdir ~/.docker
+        - echo '{"experimental":"enabled"}' | tee ~/.docker/config.json
+        - sudo service docker restart
+        - docker version
+        - docker volume create --name etcd-data
+        - export DATA_DIR="etcd-data"
+        - export REGISTRY=quay.io/coreos/etcd
+        - docker run -d -p 2379:2379 -p 2380:2380 --volume=${DATA_DIR}:/etcd-data --name etcd ${REGISTRY}:latest /usr/local/bin/etcd --data-dir=/etcd-data --name node1 --initial-advertise-peer-urls http://0.0.0.0:2380 --listen-peer-urls http://0.0.0.0:2380 --advertise-client-urls http://0.0.0.0:2379 --listen-client-urls http://0.0.0.0:2379 --initial-cluster node1=http://0.0.0.0:2380
 
-install:
-  - go get github.com/mattn/goveralls
-  - go get github.com/tcnksm/ghr
+      install:
+        - go get github.com/mattn/goveralls
+        - go get github.com/tcnksm/ghr
 
-script:
-  # Test
-  # - govendor test +local (NOTE not needed with coverage line below)
-  # Coverage
-  - make build
-  # Integration
-  - if [ "$TRAVIS_EVENT_TYPE" == "cron" ] ; then echo running integration tests && go test -v -tags=integration -timeout 45m ./pkg/... ./test/... ; fi
-  - travis_wait 30 source travis_build.sh
-  # Make build
-  #  - docker build . -t supergiant/controlplane
-  # - travis_wait 60 build/travis_build.sh
+      script:
+        # Test
+        # - govendor test +local (NOTE not needed with coverage line below)
+        # Coverage
+        - make build
+        # Integration
+        - if [ "$TRAVIS_EVENT_TYPE" == "cron" ] ; then echo running integration tests && go test -v -tags=integration -timeout 45m ./pkg/... ./test/... ; fi
+        - travis_wait 30 source travis_build.sh
+        # Make build
+        #  - docker build . -t supergiant/controlplane
+        # - travis_wait 60 build/travis_build.sh
 
-after_success:
-  #- build/ghr.sh
-   - echo Success
+      after_success:
+        #- build/ghr.sh
+        - echo Success
 
-notifications:
-  slack:
-    secure: u2FdlOGvhlGeak7Pcnb7AOiNspC8Gi83xQsRgBxwtRy1zj/bxHVHeDWQMlfbmpzGoQelWa33kxym1l+UIISXyWfxS1v/tIbbWH2kjkDlVj/saQBHBIG/I5YsSNgwTmKiAO/Kfvng/vRInQ/AI6+aJDAJN71T6PGkbVMK0Tnsim6ojBowDbzhJouXLIz6H7hqA/8CNpS/NgqGJ5sPUY3TWr9f769q+zohP54Tc3t/NveHLYaoiKgwdi10+587F1jOeWkP0T5Z62o3qEg+W3MpKkAt8Ev02EXfk+DGTSLxXDlN9MTLapfUTrX/6B0m5/ttDpOv6x35amE5rrO2peDGB+cWcqx/JyuoPN9SelYL9uINRrgAF+5pqvI8fqUiXHFHUOMJ0w+wlD/tZyrpS1WZN9kgzXQbQz5UAkzwQ8utfQRY5RgFvSuBPUvUvxTsszWo4rZC3refZ3/b6u1PnPstOLXnxdNgbR8/pTZqDgyy8cuDzvcNTvoTFMMZ8AZxO0HTKmW1ioBkvMtWA0NZoLDXNA76kUH/zKxZ16ZYCQloxseEK9p75m+2LkA4VSB03JALtHdVW+DIanscdzX6KNSXqUtKxutGX0uFmUYTFcCXH1rDbwMTJ8wh8mCjFLlXb1v0M9w4WqRoPjIJEeyWHgQemf2tKcNLbu8BuDq2fgUN7+4=
+      notifications:
+        slack:
+          secure: u2FdlOGvhlGeak7Pcnb7AOiNspC8Gi83xQsRgBxwtRy1zj/bxHVHeDWQMlfbmpzGoQelWa33kxym1l+UIISXyWfxS1v/tIbbWH2kjkDlVj/saQBHBIG/I5YsSNgwTmKiAO/Kfvng/vRInQ/AI6+aJDAJN71T6PGkbVMK0Tnsim6ojBowDbzhJouXLIz6H7hqA/8CNpS/NgqGJ5sPUY3TWr9f769q+zohP54Tc3t/NveHLYaoiKgwdi10+587F1jOeWkP0T5Z62o3qEg+W3MpKkAt8Ev02EXfk+DGTSLxXDlN9MTLapfUTrX/6B0m5/ttDpOv6x35amE5rrO2peDGB+cWcqx/JyuoPN9SelYL9uINRrgAF+5pqvI8fqUiXHFHUOMJ0w+wlD/tZyrpS1WZN9kgzXQbQz5UAkzwQ8utfQRY5RgFvSuBPUvUvxTsszWo4rZC3refZ3/b6u1PnPstOLXnxdNgbR8/pTZqDgyy8cuDzvcNTvoTFMMZ8AZxO0HTKmW1ioBkvMtWA0NZoLDXNA76kUH/zKxZ16ZYCQloxseEK9p75m+2LkA4VSB03JALtHdVW+DIanscdzX6KNSXqUtKxutGX0uFmUYTFcCXH1rDbwMTJ8wh8mCjFLlXb1v0M9w4WqRoPjIJEeyWHgQemf2tKcNLbu8BuDq2fgUN7+4=
+    - sudo: required
+      addons:
+        chrome: stable
+
+      language: node_js
+      node_js:
+        - "10"
+
+      branches:
+        only:
+          - master
+
+      before_script:
+        - cd cmd/ui/assets
+        - npm i
+        - npm install -g @angular/cli
+
+      script:
+        - npm run build
+        - npm run test
+
+      after_success:
+        - echo UI Tests Success
