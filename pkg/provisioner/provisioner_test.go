@@ -3,8 +3,8 @@ package provisioner
 import (
 	"bytes"
 	"context"
-	"sync"
 	"io"
+	"sync"
 	"testing"
 	"time"
 
@@ -33,7 +33,7 @@ func (b *bufferCloser) Close() error {
 type mockKubeService struct {
 	getError  error
 	createErr error
-	lock sync.RWMutex
+	lock      sync.RWMutex
 	data      map[string]*model.Kube
 }
 
