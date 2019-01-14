@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"context"
 	"io"
+	"sync"
 	"testing"
 	"time"
 
@@ -32,15 +33,20 @@ func (b *bufferCloser) Close() error {
 type mockKubeService struct {
 	getError  error
 	createErr error
+	lock      sync.RWMutex
 	data      map[string]*model.Kube
 }
 
 func (m *mockKubeService) Create(ctx context.Context, k *model.Kube) error {
+	m.lock.Lock()
 	m.data[k.ID] = k
+	m.lock.Unlock()
 	return m.createErr
 }
 
 func (m *mockKubeService) Get(ctx context.Context, kname string) (*model.Kube, error) {
+	m.lock.RLock()
+	defer m.lock.RUnlock()
 	return m.data[kname], m.getError
 }
 
@@ -127,7 +133,8 @@ func TestProvisionCluster(t *testing.T) {
 	}
 
 	cfg := steps.NewConfig("", "", "", *p)
-	taskMap, err := provisioner.ProvisionCluster(context.Background(), p, cfg)
+	ctx, cancel := context.WithCancel(context.Background())
+	taskMap, err := provisioner.ProvisionCluster(ctx, p, cfg)
 
 	if err != nil {
 		t.Errorf("Unexpected error %v while provisionCluster", err)
@@ -149,6 +156,8 @@ func TestProvisionCluster(t *testing.T) {
 			1, len(provisioner.cancelMap))
 	}
 
+	// Cancel context to shut down cluster state monitoring
+	cancel()
 	if k := svc.data[cfg.ClusterID]; k == nil {
 		t.Errorf("Kube %s not found", k.ID)
 
