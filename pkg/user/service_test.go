@@ -3,6 +3,7 @@ package user
 import (
 	"context"
 	"encoding/json"
+	"github.com/stretchr/testify/require"
 	"testing"
 
 	"github.com/pkg/errors"
@@ -215,5 +216,48 @@ func TestService_GetAll(t *testing.T) {
 			t.Errorf("Wrong count expected %d actual %d",
 				testCase.expectedCount, len(data))
 		}
+	}
+}
+
+func TestService_IsColdStart(t *testing.T) {
+	testCases := []struct {
+		repoData      [][]byte
+		expectedErr   error
+		expectedValue bool
+	}{
+		{
+			repoData:      [][]byte{[]byte(`{"login":"root"}`)},
+			expectedErr:   nil,
+			expectedValue: false,
+		},
+		{
+			repoData:      [][]byte{},
+			expectedErr:   nil,
+			expectedValue: true,
+		},
+		{
+			repoData:      [][]byte{[]byte(`{`)},
+			expectedErr:   sgerrors.ErrInvalidJson,
+			expectedValue: false,
+		},
+	}
+
+	for _, tc := range testCases {
+		mockRepo := &testutils.MockStorage{}
+		mockRepo.On("GetAll", mock.Anything, mock.Anything).
+			Return(tc.repoData, tc.expectedErr)
+
+		svc := Service{
+			repository: mockRepo,
+		}
+
+		value, err := svc.IsColdStart(context.Background())
+		if tc.expectedErr == nil {
+			require.NoError(t, err)
+		} else {
+			require.EqualError(t, tc.expectedErr, err.Error())
+		}
+
+		require.Equal(t, tc.expectedValue, value)
 	}
 }

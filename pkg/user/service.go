@@ -85,3 +85,13 @@ func (s *Service) GetAll(ctx context.Context) ([]*User, error) {
 	}
 	return usrs, nil
 }
+
+//IsColdStart tells if any users are registered.
+func (s *Service) IsColdStart(ctx context.Context) (bool, error) {
+	users, err := s.GetAll(ctx)
+	if err != nil {
+		return false, err
+	}
+
+	return len(users) == 0, nil
+}

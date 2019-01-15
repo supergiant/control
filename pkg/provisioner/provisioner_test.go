@@ -103,7 +103,7 @@ func TestNewProvisioner(t *testing.T) {
 func TestProvisionCluster(t *testing.T) {
 	repository := &testutils.MockStorage{}
 	repository.On("Put", mock.Anything,
-		mock.Anything, mock.Anything,
+		mock.Anything, mockYe.Anything,
 		mock.Anything).Return(nil)
 
 	bc := &bufferCloser{

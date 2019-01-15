@@ -31,7 +31,6 @@ import (
 	"github.com/supergiant/control/pkg/templatemanager"
 	"github.com/supergiant/control/pkg/testutils/assert"
 	"github.com/supergiant/control/pkg/user"
-	"github.com/supergiant/control/pkg/util"
 	"github.com/supergiant/control/pkg/workflows"
 	"github.com/supergiant/control/pkg/workflows/steps/amazon"
 	"github.com/supergiant/control/pkg/workflows/steps/authorizedKeys"
@@ -107,9 +106,6 @@ func New(cfg *Config) (*Server, error) {
 	}
 
 	s := NewServer(r, cfg)
-	if err := generateUserIfColdStart(cfg); err != nil {
-		return nil, err
-	}
 
 	return s, nil
 }
@@ -142,38 +138,6 @@ func NewServer(router *mux.Router, cfg *Config) *Server {
 	http.DefaultClient.Timeout = cfg.IdleTimeout
 
 	return s
-}
-
-//generateUserIfColdStart checks if there are any users in the db and if not (i.e. on first launch) generates a root user
-func generateUserIfColdStart(cfg *Config) error {
-	etcdCfg := clientv3.Config{
-		DialTimeout: time.Second * 10,
-		Endpoints:   []string{cfg.EtcdUrl},
-	}
-	repository := storage.NewETCDRepository(etcdCfg)
-	userService := user.NewService(user.DefaultStoragePrefix, repository)
-
-	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
-	defer cancel()
-
-	users, err := userService.GetAll(ctx)
-	if err != nil {
-		return err
-	}
-
-	if len(users) == 0 {
-		u := &user.User{
-			Login:    "root",
-			Password: util.RandomString(13),
-		}
-		logrus.Infof("first time launch detected, use %s as login and %s as password", u.Login, u.Password)
-		err := userService.Create(ctx, u)
-		if err != nil {
-			return nil
-		}
-	}
-
-	return nil
 }
 
 func validate(cfg *Config) error {
@@ -217,7 +181,8 @@ func configureApplication(cfg *Config) (*mux.Router, error) {
 
 	router.HandleFunc("/version", NewVersionHandler(cfg.Version))
 	router.HandleFunc("/auth", userHandler.Authenticate).Methods(http.MethodPost)
-	//Opening it up for testing right now, will be protected after implementing initial user generation
+	router.HandleFunc("/root", userHandler.RegisterRootUser).Methods(http.MethodPost)
+	router.HandleFunc("/coldstart", userHandler.IsColdStart).Methods(http.MethodGet)
 	protectedAPI.HandleFunc("/users", userHandler.Create).Methods(http.MethodPost)
 
 	profileService := profile.NewService(profile.DefaultKubeProfilePreifx, repository)
