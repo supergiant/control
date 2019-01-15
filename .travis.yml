@@ -76,7 +76,7 @@ matrix:
 
       script:
         - npm run build
-        - ng test
+        - ng test --watch=false
 
       after_success:
         - echo Success
