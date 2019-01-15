@@ -112,7 +112,7 @@ func (s *CreateInstanceStep) Run(ctx context.Context, output io.Writer,
 
 	// TODO(stgleb): also copy user provided ssh key
 	publicKey := fmt.Sprintf("%s:%s",
-		config.SshConfig.User, config.SshConfig.BootstrapPublicKey)
+		config.Kube.SSHConfig.User, config.Kube.SSHConfig.BootstrapPublicKey)
 	// Put bootstrap key to instance metadata that allows ssh connection to the node
 	metadata := &compute.Metadata{
 		Items: []*compute.MetadataItems{

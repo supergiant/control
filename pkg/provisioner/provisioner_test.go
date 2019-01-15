@@ -190,7 +190,7 @@ func TestProvisionCluster(t *testing.T) {
 
 	// Cancel context to shut down cluster state monitoring
 	cancel()
-	if k := svc.data[cfg.ClusterID]; k == nil {
+	if k, err := svc.Get(context.Background(), cfg.ClusterID); err == nil && k == nil {
 		t.Errorf("Kube %s not found", k.ID)
 
 		if len(k.Tasks) != len(p.MasterProfiles)+len(p.NodesProfiles)+1 {
@@ -227,10 +227,7 @@ func TestProvisionNodes(t *testing.T) {
 				Size:      "s-2vcpu-4gb",
 			},
 		},
-		BootstrapPublicKey:  []byte(""),
-		BootstrapPrivateKey: []byte(""),
-		SshPublicKey:        []byte(""),
-		CloudSpec:           make(map[string]string),
+		CloudSpec: make(map[string]string),
 	}
 
 	provisioner := TaskProvisioner{

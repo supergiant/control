@@ -162,9 +162,9 @@ func TestFillCloudAccountCredentials(t *testing.T) {
 			}
 		}
 
-		if config.SshConfig.PublicKey != testCase.cloudAccount.Credentials["publicKey"] {
+		if config.Kube.SSHConfig.PublicKey != testCase.cloudAccount.Credentials["publicKey"] {
 			t.Errorf("PublicKey %s not found in credentials %v",
-				testCase.cloudAccount.Credentials["publicKey"], config.SshConfig.PublicKey)
+				testCase.cloudAccount.Credentials["publicKey"], config.Kube.SSHConfig.PublicKey)
 		}
 
 		if err != testCase.err {
@@ -357,29 +357,18 @@ func TestLoadCloudSpecificDataFromKube(t *testing.T) {
 		{
 			description: "digitalocean",
 			kube: &model.Kube{
-				BootstrapPrivateKey: []byte(`private-key`),
-				BootstrapPublicKey:  []byte(`public-key`),
-				SshPublicKey:        []byte(`public-key2`),
-
 				Region: "fra-1",
 			},
 			provider: clouds.DigitalOcean,
 		},
 		{
 			description: "gce",
-			kube: &model.Kube{
-				BootstrapPrivateKey: []byte(`private-key`),
-				BootstrapPublicKey:  []byte(`public-key`),
-				SshPublicKey:        []byte(`public-key2`),
-			},
-			provider: clouds.GCE,
+			kube:        &model.Kube{},
+			provider:    clouds.GCE,
 		},
 		{
 			description: "aws",
 			kube: &model.Kube{
-				BootstrapPrivateKey: []byte(`private-key`),
-				BootstrapPublicKey:  []byte(`public-key`),
-				SshPublicKey:        []byte(`public-key2`),
 				CloudSpec: map[string]string{
 					clouds.AwsImageID:               "imageId",
 					clouds.AwsVpcID:                 "vpcId",
@@ -400,10 +389,7 @@ func TestLoadCloudSpecificDataFromKube(t *testing.T) {
 		{
 			description: "unsupported",
 			kube: &model.Kube{
-				BootstrapPrivateKey: []byte(`private-key`),
-				BootstrapPublicKey:  []byte(`public-key`),
-				SshPublicKey:        []byte(`public-key2`),
-				CloudSpec:           map[string]string{},
+				CloudSpec: map[string]string{},
 			},
 			provider: clouds.Name("unsupported"),
 			hasErr:   true,
@@ -416,27 +402,23 @@ func TestLoadCloudSpecificDataFromKube(t *testing.T) {
 			description: "cloud spec is nil",
 			hasErr:      false,
 			kube: &model.Kube{
-				Provider:            clouds.AWS,
-				BootstrapPrivateKey: []byte(`private-key`),
-				BootstrapPublicKey:  []byte(`public-key`),
-				SshPublicKey:        []byte(`public-key2`),
+				Provider: clouds.AWS,
 			},
 		},
 	}
 
 	for _, testCase := range testCases {
-		t.Log(testCase.description)
 		config := &steps.Config{
 			Provider: testCase.provider,
 		}
 		err := LoadCloudSpecificDataFromKube(testCase.kube, config)
 
 		if testCase.hasErr && err == nil {
-			t.Errorf("Error must not be nil")
+			t.Errorf("TC: %s: error should not be nil", testCase.description)
 		}
 
 		if !testCase.hasErr && err != nil {
-			t.Errorf("unexpected error %v", err)
+			t.Errorf("TC: %s: unexpected error %v", testCase.description, err)
 		}
 	}
 }
