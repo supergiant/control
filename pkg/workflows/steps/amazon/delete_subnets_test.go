@@ -3,13 +3,15 @@ package amazon
 import (
 	"bytes"
 	"context"
+	"strings"
+	"testing"
+
 	"github.com/aws/aws-sdk-go/service/ec2"
 	"github.com/aws/aws-sdk-go/service/ec2/ec2iface"
 	"github.com/pkg/errors"
 	"github.com/stretchr/testify/mock"
+
 	"github.com/supergiant/control/pkg/workflows/steps"
-	"strings"
-	"testing"
 )
 
 type mockDeleteSubnetService struct {
@@ -144,14 +146,13 @@ func TestNewDeleteSubnetsErr(t *testing.T) {
 	}
 }
 
-
 func TestDeleteSubnets_Depends(t *testing.T) {
 	s := &DeleteSubnets{}
 
 	if deps := s.Depends(); deps == nil ||
 		len(deps) != 1 || deps[0] != DeleteSecurityGroupsStepName {
 		t.Errorf("Wrong dependencies expected %v actual %v",
-			[]string{DeleteSecurityGroupsStepName},deps)
+			[]string{DeleteSecurityGroupsStepName}, deps)
 	}
 }
 
@@ -159,7 +160,7 @@ func TestDeleteSubnets_Description(t *testing.T) {
 	s := &DeleteSubnets{}
 
 	if desc := s.Description(); desc != "Deletes security groups" {
-		t.Errorf("Wrong description expected " +
+		t.Errorf("Wrong description expected "+
 			"Deletes security groups actual %s", desc)
 	}
 }

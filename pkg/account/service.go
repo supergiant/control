@@ -100,9 +100,9 @@ func (s *Service) Create(ctx context.Context, account *model.CloudAccount) error
 		}
 	case clouds.GCE:
 		if account.Credentials[clouds.GCEPrivateKey] == "" ||
-		account.Credentials[clouds.GCEClientEmail] == "" ||
-		account.Credentials[clouds.GCEProjectID] == "" ||
-		account.Credentials[clouds.GCETokenURI] == "" {
+			account.Credentials[clouds.GCEClientEmail] == "" ||
+			account.Credentials[clouds.GCEProjectID] == "" ||
+			account.Credentials[clouds.GCETokenURI] == "" {
 			return errors.Wrapf(sgerrors.ErrInvalidCredentials,
 				"gce: not enough credentials %v", account.Credentials)
 		}

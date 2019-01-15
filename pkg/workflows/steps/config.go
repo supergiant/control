@@ -5,6 +5,8 @@ import (
 	"sync"
 	"time"
 
+	"github.com/pborman/uuid"
+
 	"github.com/supergiant/control/pkg/clouds"
 	"github.com/supergiant/control/pkg/model"
 	"github.com/supergiant/control/pkg/node"
@@ -269,7 +271,7 @@ type Config struct {
 
 // NewConfig builds instance of config for provisioning
 func NewConfig(clusterName, clusterToken, cloudAccountName string, profile profile.Profile) *Config {
-	cfg := &Config{
+	return &Config{
 		Provider:    profile.Provider,
 		ClusterName: clusterName,
 		DigitalOceanConfig: DOConfig{
@@ -395,8 +397,141 @@ func NewConfig(clusterName, clusterToken, cloudAccountName string, profile profi
 		kubeStateChan: make(chan model.KubeState, 2),
 		configChan:    make(chan *Config),
 	}
+}
 
-	return cfg
+func NewConfigFromKube(profile *profile.Profile, k *model.Kube) *Config {
+	clusterToken := uuid.New()
+
+	return &Config{
+		ClusterID:   k.ID,
+		Provider:    profile.Provider,
+		ClusterName: k.Name,
+		DigitalOceanConfig: DOConfig{
+			Region: profile.Region,
+		},
+		LogBootstrapPrivateKey: profile.LogBootstrapPrivateKey,
+		AWSConfig: AWSConfig{
+			Region:                 profile.Region,
+			AvailabilityZone:       k.CloudSpec[clouds.AwsAZ],
+			VPCCIDR:                k.CloudSpec[clouds.AwsVpcCIDR],
+			VPCID:                  k.CloudSpec[clouds.AwsVpcID],
+			KeyPairName:            k.CloudSpec[clouds.AwsKeyPairName],
+			Subnets:                k.Subnets,
+			MastersSecurityGroupID: k.CloudSpec[clouds.AwsMastersSecGroupID],
+			NodesSecurityGroupID:   k.CloudSpec[clouds.AwsNodesSecgroupID],
+			ImageID:                k.CloudSpec[clouds.AwsImageID],
+		},
+		GCEConfig: GCEConfig{
+			AvailabilityZone: profile.Zone,
+		},
+		OSConfig:     OSConfig{},
+		PacketConfig: PacketConfig{},
+
+		DockerConfig: DockerConfig{
+			Version:        profile.DockerVersion,
+			ReleaseVersion: profile.UbuntuVersion,
+			Arch:           profile.Arch,
+		},
+		DownloadK8sBinary: DownloadK8sBinary{
+			K8SVersion:      profile.K8SVersion,
+			Arch:            profile.Arch,
+			OperatingSystem: profile.OperatingSystem,
+		},
+		CertificatesConfig: CertificatesConfig{
+			KubernetesConfigDir: "/etc/kubernetes",
+			Username:            profile.User,
+			Password:            profile.Password,
+			StaticAuth:          profile.StaticAuth,
+			CAKey:               k.Auth.CAKey,
+			CACert:              k.Auth.CACert,
+			AdminCert:           k.Auth.AdminCert,
+			AdminKey:            k.Auth.AdminKey,
+		},
+		NetworkConfig: NetworkConfig{
+			EtcdRepositoryUrl: "https://github.com/coreos/etcd/releases/download",
+			EtcdVersion:       "3.3.9",
+			EtcdHost:          "0.0.0.0",
+
+			Arch:            profile.Arch,
+			OperatingSystem: profile.OperatingSystem,
+
+			Network:     profile.CIDR,
+			NetworkType: profile.NetworkType,
+		},
+		FlannelConfig: FlannelConfig{
+			Arch:    profile.Arch,
+			Version: profile.FlannelVersion,
+			// NOTE(stgleb): this is any host by default works on master nodes
+			// on worker node this host is changed by any master ip address
+			EtcdHost: "0.0.0.0",
+		},
+		KubeletConfig: KubeletConfig{
+			ProxyPort:      "8080",
+			K8SVersion:     profile.K8SVersion,
+			ProviderString: toCloudProviderOpt(profile.Provider),
+		},
+		ManifestConfig: ManifestConfig{
+			K8SVersion:          profile.K8SVersion,
+			KubernetesConfigDir: "/etc/kubernetes",
+			RBACEnabled:         profile.RBACEnabled,
+			ProviderString:      toCloudProviderOpt(profile.Provider),
+			MasterHost:          "localhost",
+			MasterPort:          "8080",
+			Password:            profile.Password,
+		},
+		PostStartConfig: PostStartConfig{
+			Host:        "localhost",
+			Port:        "8080",
+			Username:    profile.User,
+			RBACEnabled: profile.RBACEnabled,
+			Timeout:     time.Minute * 20,
+		},
+		TillerConfig: TillerConfig{
+			HelmVersion:     profile.HelmVersion,
+			OperatingSystem: profile.OperatingSystem,
+			Arch:            profile.Arch,
+			RBACEnabled:     profile.RBACEnabled,
+		},
+		SshConfig: SshConfig{
+			Port:      "22",
+			User:      "root",
+			Timeout:   10,
+			PublicKey: profile.PublicKey,
+		},
+		EtcdConfig: EtcdConfig{
+			// TODO(stgleb): this field must be changed per node
+			Name:           "etcd0",
+			Version:        "3.3.10",
+			Host:           "0.0.0.0",
+			DataDir:        "/var/supergiant/etcd-data",
+			ServicePort:    "2379",
+			ManagementPort: "2380",
+			Timeout:        time.Minute * 20,
+			StartTimeout:   "0",
+			RestartTimeout: "5",
+			ClusterToken:   clusterToken,
+		},
+		ClusterCheckConfig: ClusterCheckConfig{
+			MachineCount: len(profile.NodesProfiles) + len(profile.MasterProfiles),
+		},
+		PrometheusConfig: PrometheusConfig{
+			Port:        "30900",
+			RBACEnabled: profile.RBACEnabled,
+		},
+
+		Masters: Map{
+			internal: make(map[string]*node.Node, len(k.Masters)),
+		},
+		Nodes: Map{
+			internal: make(map[string]*node.Node, len(k.Nodes)),
+		},
+		Timeout:          time.Minute * 30,
+		CloudAccountName: k.AccountName,
+
+		nodeChan:      make(chan node.Node, len(profile.MasterProfiles)+len(profile.NodesProfiles)),
+		kubeStateChan: make(chan model.KubeState, 5),
+		configChan:    make(chan *Config),
+	}
 }
 
 // AddMaster to map of master, map is used because it is reference and can be shared among

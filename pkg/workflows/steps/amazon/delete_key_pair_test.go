@@ -1,16 +1,16 @@
 package amazon
 
 import (
-	"context"
 	"bytes"
-	"time"
+	"context"
 	"strings"
 	"testing"
-	"github.com/pkg/errors"
+	"time"
 
-	"github.com/stretchr/testify/mock"
 	"github.com/aws/aws-sdk-go/service/ec2"
 	"github.com/aws/aws-sdk-go/service/ec2/ec2iface"
+	"github.com/pkg/errors"
+	"github.com/stretchr/testify/mock"
 
 	"github.com/supergiant/control/pkg/workflows/steps"
 )
@@ -19,41 +19,39 @@ type mockKeySvc struct {
 	mock.Mock
 }
 
-
 func (m *mockKeySvc) DeleteKeyPair(input *ec2.DeleteKeyPairInput) (*ec2.DeleteKeyPairOutput, error) {
 	args := m.Called(input)
 	val, ok := args.Get(0).(*ec2.DeleteKeyPairOutput)
 	if !ok {
-	return nil, args.Error(1)
+		return nil, args.Error(1)
 	}
 	return val, args.Error(1)
 }
 
-
 func TestDeleteKeyPair_Run(t *testing.T) {
-	testCases := []struct{
-		decription string
+	testCases := []struct {
+		decription    string
 		existingKeyID string
-		getSvcErr error
-		deleteErr error
-		errMsg string
+		getSvcErr     error
+		deleteErr     error
+		errMsg        string
 	}{
 		{
 			decription: "skip deletion",
 		},
 		{
-			decription: "get service error",
+			decription:    "get service error",
 			existingKeyID: "1234",
-			getSvcErr: errors.New("message1"),
-			errMsg: "message1",
+			getSvcErr:     errors.New("message1"),
+			errMsg:        "message1",
 		},
 		{
-			decription: "delete error",
+			decription:    "delete error",
 			existingKeyID: "1234",
-			deleteErr: errors.New("message2"),
+			deleteErr:     errors.New("message2"),
 		},
 		{
-			decription: "success",
+			decription:    "success",
 			existingKeyID: "1234",
 		},
 	}
@@ -76,7 +74,7 @@ func TestDeleteKeyPair_Run(t *testing.T) {
 
 		config := &steps.Config{
 			AWSConfig: steps.AWSConfig{
-				KeyID: testCase.existingKeyID,
+				KeyID:       testCase.existingKeyID,
 				KeyPairName: "test",
 			},
 		}
@@ -94,7 +92,6 @@ func TestDeleteKeyPair_Run(t *testing.T) {
 		}
 	}
 }
-
 
 func TestInitDeleteKeyPair(t *testing.T) {
 	InitDeleteKeyPair(GetEC2)
@@ -117,11 +114,10 @@ func TestNewDeleteKeyPair(t *testing.T) {
 		t.Error("step get service func must  not be nil")
 	}
 
-	if api, err := step.getSvc(steps.AWSConfig{}); err != nil ||api == nil {
+	if api, err := step.getSvc(steps.AWSConfig{}); err != nil || api == nil {
 		t.Errorf("Unexpected values %v %v", api, err)
 	}
 }
-
 
 func TestNewDeleteKeyPairError(t *testing.T) {
 	fn := func(steps.AWSConfig) (ec2iface.EC2API, error) {
@@ -138,7 +134,7 @@ func TestNewDeleteKeyPairError(t *testing.T) {
 		t.Error("step get service func must  not be nil")
 	}
 
-	if api, err := step.getSvc(steps.AWSConfig{}); err == nil ||api != nil {
+	if api, err := step.getSvc(steps.AWSConfig{}); err == nil || api != nil {
 		t.Errorf("Unexpected values %v %v", api, err)
 	}
 }

@@ -2,15 +2,15 @@ package amazon
 
 import (
 	"context"
+	"io"
+	"net/http"
 	"testing"
 	"time"
-	"net/http"
-
-	"github.com/pkg/errors"
 
 	"github.com/jarcoal/httpmock"
+	"github.com/pkg/errors"
+
 	"github.com/supergiant/control/pkg/sgerrors"
-	"io"
 )
 
 func TestFindOutboundIPCancelled(t *testing.T) {
@@ -72,7 +72,7 @@ func TestFindOutboundIP(t *testing.T) {
 			awsUrl:      serviceURLs[0],
 			awsCode:     http.StatusOK,
 			awsResp:     []byte(`10.20.30.40`),
-			awsReadErr: io.EOF,
+			awsReadErr:  io.EOF,
 			expectedIP:  "10.20.30.40",
 		},
 		{
@@ -89,7 +89,7 @@ func TestFindOutboundIP(t *testing.T) {
 			description: "aws bad body",
 			awsUrl:      serviceURLs[0],
 			awsCode:     http.StatusGatewayTimeout,
-			awsReadErr: errors.New("error"),
+			awsReadErr:  errors.New("error"),
 
 			myExtUrl:   serviceURLs[1],
 			myExtCode:  http.StatusOK,

@@ -2,8 +2,9 @@ package gce
 
 import (
 	"context"
-	"github.com/supergiant/control/pkg/workflows/steps"
 	"testing"
+
+	"github.com/supergiant/control/pkg/workflows/steps"
 )
 
 func TestNewCreateInstanceStep2(t *testing.T) {

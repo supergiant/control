@@ -7,6 +7,7 @@ import (
 	"strconv"
 
 	"github.com/aws/aws-sdk-go/aws"
+	"github.com/aws/aws-sdk-go/aws/request"
 	"github.com/aws/aws-sdk-go/service/ec2"
 	"github.com/pkg/errors"
 	"github.com/sirupsen/logrus"
@@ -15,7 +16,6 @@ import (
 	"github.com/supergiant/control/pkg/node"
 	"github.com/supergiant/control/pkg/util"
 	"github.com/supergiant/control/pkg/workflows/steps"
-	"github.com/aws/aws-sdk-go/aws/request"
 )
 
 const (
@@ -53,7 +53,6 @@ func NewCreateInstance(ec2fn GetEC2Fn) *StepCreateInstance {
 
 func (s *StepCreateInstance) Run(ctx context.Context, w io.Writer, cfg *steps.Config) error {
 	log := util.GetLogger(w)
-
 
 	// TODO: reuse sessions
 	ec2Svc, err := s.getSvc(cfg.AWSConfig)
@@ -248,8 +247,8 @@ func (s *StepCreateInstance) Run(ctx context.Context, w io.Writer, cfg *steps.Co
 		cfg.AddNode(&cfg.Node)
 	}
 
-	log.Infof("[%s] - success! Created node %s with instanceID %s ", s.Name(), nodeName, cfg.Node.ID)
-	logrus.Debugf("%v", *instance)
+	log.Infof("[%s] - success! Created node %s with instanceID %s ",
+		s.Name(), nodeName, cfg.Node.ID)
 
 	return nil
 }

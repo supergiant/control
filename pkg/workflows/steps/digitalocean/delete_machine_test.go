@@ -122,7 +122,6 @@ func TestStep_Rollback(t *testing.T) {
 	}
 }
 
-
 func TestNewDeleteMachineStep(t *testing.T) {
 	timeout := time.Nanosecond
 	step := NewDeleteMachineStep(timeout)
@@ -149,7 +148,7 @@ func TestDeleteMachineStep_Description(t *testing.T) {
 	step := &DeleteMachineStep{}
 
 	if desc := step.Description(); desc != "delete digital ocean instance" {
-		t.Errorf("Wrong description expected " +
+		t.Errorf("Wrong description expected "+
 			"delete digital ocean instance actual %s", desc)
 	}
 }

@@ -1,25 +1,23 @@
 package amazon
 
 import (
-	"context"
 	"bytes"
+	"context"
 	"strings"
-	"time"
 	"testing"
-
-	"github.com/pkg/errors"
-
+	"time"
 
 	"github.com/aws/aws-sdk-go/aws"
-	"github.com/aws/aws-sdk-go/service/ec2"
 	"github.com/aws/aws-sdk-go/aws/request"
+	"github.com/aws/aws-sdk-go/service/ec2"
+	"github.com/aws/aws-sdk-go/service/ec2/ec2iface"
+	"github.com/pkg/errors"
 	"github.com/stretchr/testify/mock"
 
 	"github.com/supergiant/control/pkg/workflows/steps"
-	"github.com/aws/aws-sdk-go/service/ec2/ec2iface"
 )
 
-type mockDeleteVpcSvc struct{
+type mockDeleteVpcSvc struct {
 	mock.Mock
 }
 
@@ -32,11 +30,10 @@ func (m *mockDeleteVpcSvc) DeleteVpcWithContext(ctx aws.Context, input *ec2.Dele
 	return val, args.Error(1)
 }
 
-
 func TestDeleteVPC_Run(t *testing.T) {
-	testCases := []struct{
+	testCases := []struct {
 		description string
-		existingID string
+		existingID  string
 
 		getSvcErr error
 		deleteErr error
@@ -48,19 +45,19 @@ func TestDeleteVPC_Run(t *testing.T) {
 		},
 		{
 			description: "get svc error",
-			existingID: "1234",
-			getSvcErr: errors.New("message1"),
-			errMsg: "message1",
+			existingID:  "1234",
+			getSvcErr:   errors.New("message1"),
+			errMsg:      "message1",
 		},
 		{
 			description: "delete error",
-			existingID: "1234",
-			deleteErr: errors.New("message2"),
-			errMsg: "message2",
+			existingID:  "1234",
+			deleteErr:   errors.New("message2"),
+			errMsg:      "message2",
 		},
 		{
 			description: "success",
-			existingID: "1234",
+			existingID:  "1234",
 		},
 	}
 
@@ -69,7 +66,7 @@ func TestDeleteVPC_Run(t *testing.T) {
 		svc := &mockDeleteVpcSvc{}
 		svc.On("DeleteVpcWithContext", mock.Anything,
 			mock.Anything, mock.Anything).Return(mock.Anything,
-				testCase.deleteErr)
+			testCase.deleteErr)
 		step := &DeleteVPC{
 			getSvc: func(config steps.AWSConfig) (vpcSvc, error) {
 				return svc, testCase.getSvcErr
@@ -82,7 +79,7 @@ func TestDeleteVPC_Run(t *testing.T) {
 			},
 		}
 
-		deleteVPCAttemptCount  =1
+		deleteVPCAttemptCount = 1
 		deleteVPCTimeout = time.Nanosecond
 
 		err := step.Run(context.Background(), &bytes.Buffer{}, config)
@@ -123,7 +120,6 @@ func TestNewDeleteVPC(t *testing.T) {
 		t.Errorf("Unexpected values %v %v", err, api)
 	}
 }
-
 
 func TestNewDeleteVPCErr(t *testing.T) {
 	fn := func(steps.AWSConfig) (ec2iface.EC2API, error) {

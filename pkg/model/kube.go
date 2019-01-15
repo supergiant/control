@@ -9,6 +9,7 @@ import (
 type KubeState string
 
 const (
+	StatePrepare      KubeState = "prepare"
 	StateProvisioning KubeState = "provisioning"
 	StateFailed       KubeState = "failed"
 	StateOperational  KubeState = "operational"
@@ -48,10 +49,12 @@ type Kube struct {
 
 	CloudSpec profile.CloudSpecificSettings `json:"cloudSpec" valid:"-"`
 
+	ProfileID string `json:"profileId"`
+
 	Masters map[string]*node.Node `json:"masters"`
 	Nodes   map[string]*node.Node `json:"nodes"`
 	// Store taskIds of tasks that are made to provision this kube
-	Tasks []string `json:"tasks"`
+	Tasks map[string][]string `json:"tasks"`
 }
 
 // Auth holds all possible auth parameters.

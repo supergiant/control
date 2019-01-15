@@ -184,12 +184,80 @@ func TestSendNotFound(t *testing.T) {
 	}
 
 	if msg2.DevMessage != errMsg {
-		t.Errorf("Wonr dev message expected %s actual %s",
+		t.Errorf("Wrong dev message expected %s actual %s",
 			errMsg, msg2.DevMessage)
 	}
 
 	if msg2.UserMessage != fmt.Sprintf("No such %s", entityName) {
 		t.Errorf("wrong user message expected %s actual %s",
 			fmt.Sprintf("No such %s", entityName), msg2.UserMessage)
+	}
+}
+
+func TestSendAlreadyExists(t *testing.T) {
+	header := "Content-Type"
+	headerValue := "application/json"
+	errMsg := "expected error dev message"
+	entityName := "entity"
+	err := errors.New(errMsg)
+	rec := httptest.NewRecorder()
+
+	SendAlreadyExists(rec, entityName, err)
+
+	if h := rec.Header().Get(header); h != headerValue {
+		t.Errorf("Wrong header expected %s actual %s", headerValue, h)
+	}
+
+	if rec.Code != http.StatusConflict {
+		t.Errorf("Wrong code expected %d actual %d",
+			http.StatusConflict, rec.Code)
+	}
+
+	msg2 := &Message{}
+	err = json.Unmarshal(rec.Body.Bytes(), msg2)
+
+	if err != nil {
+		t.Errorf("unexpected error %v", err)
+	}
+
+	if msg2.DevMessage != errMsg {
+		t.Errorf("Wrong dev message expected %s actual %s",
+			errMsg, msg2.DevMessage)
+	}
+
+	if msg2.UserMessage != fmt.Sprintf("%s already exists", entityName) {
+		t.Errorf("wrong user message expected %s actual %s",
+			fmt.Sprintf("No such %s", entityName), msg2.UserMessage)
+	}
+}
+
+func TestSendInvalidCredentials(t *testing.T) {
+	header := "Content-Type"
+	headerValue := "application/json"
+	errMsg := "expected error dev message"
+	err := errors.New(errMsg)
+	rec := httptest.NewRecorder()
+
+	SendInvalidCredentials(rec, err)
+
+	if h := rec.Header().Get(header); h != headerValue {
+		t.Errorf("Wrong header expected %s actual %s", headerValue, h)
+	}
+
+	if rec.Code != http.StatusBadRequest {
+		t.Errorf("Wrong code expected %d actual %d",
+			http.StatusBadRequest, rec.Code)
+	}
+
+	msg2 := &Message{}
+	err = json.Unmarshal(rec.Body.Bytes(), msg2)
+
+	if err != nil {
+		t.Errorf("unexpected error %v", err)
+	}
+
+	if msg2.DevMessage != errMsg {
+		t.Errorf("Wrong dev message expected %s actual %s",
+			errMsg, msg2.DevMessage)
 	}
 }

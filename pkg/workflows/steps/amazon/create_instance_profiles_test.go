@@ -1,6 +1,7 @@
 package amazon
 
 import (
+	"bytes"
 	"context"
 	"io/ioutil"
 	"testing"
@@ -12,7 +13,6 @@ import (
 	"github.com/pkg/errors"
 	"github.com/stretchr/testify/require"
 
-	"bytes"
 	"github.com/supergiant/control/pkg/node"
 	"github.com/supergiant/control/pkg/workflows/steps"
 )
@@ -373,4 +373,3 @@ func TestNewCreateInstanceProfiles(t *testing.T) {
 		t.Errorf("Unexpected values %v %v", api, err)
 	}
 }
-

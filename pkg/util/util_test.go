@@ -403,6 +403,7 @@ func TestLoadCloudSpecificDataFromKube(t *testing.T) {
 				BootstrapPrivateKey: []byte(`private-key`),
 				BootstrapPublicKey:  []byte(`public-key`),
 				SshPublicKey:        []byte(`public-key2`),
+				CloudSpec:           map[string]string{},
 			},
 			provider: clouds.Name("unsupported"),
 			hasErr:   true,
@@ -410,6 +411,16 @@ func TestLoadCloudSpecificDataFromKube(t *testing.T) {
 		{
 			description: "nil value",
 			hasErr:      true,
+		},
+		{
+			description: "cloud spec is nil",
+			hasErr:      false,
+			kube: &model.Kube{
+				Provider:            clouds.AWS,
+				BootstrapPrivateKey: []byte(`private-key`),
+				BootstrapPublicKey:  []byte(`public-key`),
+				SshPublicKey:        []byte(`public-key2`),
+			},
 		},
 	}
 

@@ -146,10 +146,10 @@ func TestFingerPrint3(t *testing.T) {
 func TestCreateKey(t *testing.T) {
 	testCases := []struct {
 		description string
-		key  *godo.Key
-		resp *godo.Response
-		publicKey string
-		err  error
+		key         *godo.Key
+		resp        *godo.Response
+		publicKey   string
+		err         error
 	}{
 		{
 			description: "success",
@@ -165,29 +165,29 @@ func TestCreateKey(t *testing.T) {
 				},
 			},
 			publicKey: expectedPublicKey,
-			err: nil,
+			err:       nil,
 		},
 		{
 			description: "error create key",
-			key:&godo.Key{},
+			key:         &godo.Key{},
 			resp: &godo.Response{
 				Response: &http.Response{
 					StatusCode: http.StatusInternalServerError,
 				},
 			},
 			publicKey: expectedPublicKey,
-			err: errors.New("error create key"),
+			err:       errors.New("error create key"),
 		},
 		{
 			description: "error create key bad public key",
-			key:&godo.Key{},
+			key:         &godo.Key{},
 			resp: &godo.Response{
 				Response: &http.Response{
 					StatusCode: http.StatusInternalServerError,
 				},
 			},
 			publicKey: "",
-			err: errors.New("error create key"),
+			err:       errors.New("error create key"),
 		},
 		{
 			description: "unprocessable entity",

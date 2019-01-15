@@ -3,17 +3,17 @@ package digitalocean
 import (
 	"context"
 	"io/ioutil"
+	"net/http"
 	"testing"
 	"time"
 
 	"github.com/digitalocean/godo"
-	"github.com/pkg/errors"
-
 	"github.com/pborman/uuid"
+	"github.com/pkg/errors"
+	"go.uber.org/zap/buffer"
+
 	"github.com/supergiant/control/pkg/profile"
 	"github.com/supergiant/control/pkg/workflows/steps"
-	"go.uber.org/zap/buffer"
-	"net/http"
 )
 
 func TestNewCreateInstanceStep(t *testing.T) {
@@ -77,7 +77,7 @@ func TestCreateInstanceStep_Description(t *testing.T) {
 
 func TestCreateInstanceStep_Run(t *testing.T) {
 	testCases := []struct {
-		description string
+		description  string
 		createKey    *godo.Key
 		createKeyErr error
 		droplet      *godo.Droplet
@@ -91,14 +91,14 @@ func TestCreateInstanceStep_Run(t *testing.T) {
 		expectError bool
 	}{
 		{
-			description: "create key error",
+			description:    "create key error",
 			dropletTimeout: time.Minute,
 			period:         time.Second,
 			createKeyErr:   errors.New("error creating key"),
 			expectError:    true,
 		},
 		{
-			description: "create droplet error",
+			description:    "create droplet error",
 			dropletTimeout: time.Minute,
 			period:         time.Second,
 			createKey: &godo.Key{
@@ -109,7 +109,7 @@ func TestCreateInstanceStep_Run(t *testing.T) {
 			expectError:  true,
 		},
 		{
-			description: "timeout exceed",
+			description:    "timeout exceed",
 			dropletTimeout: time.Nanosecond,
 			period:         time.Nanosecond * 2,
 			createKey: &godo.Key{
@@ -135,7 +135,7 @@ func TestCreateInstanceStep_Run(t *testing.T) {
 			expectError: true,
 		},
 		{
-			description: "fail on master get",
+			description:    "fail on master get",
 			dropletTimeout: time.Minute,
 			period:         time.Second,
 			createKey: &godo.Key{
@@ -163,7 +163,7 @@ func TestCreateInstanceStep_Run(t *testing.T) {
 			expectError: true,
 		},
 		{
-			description: "fail on master create",
+			description:    "fail on master create",
 			dropletTimeout: time.Minute,
 			period:         time.Second,
 			createKey: &godo.Key{
@@ -191,7 +191,7 @@ func TestCreateInstanceStep_Run(t *testing.T) {
 			expectError: false,
 		},
 		{
-			description: "success",
+			description:    "success",
 			dropletTimeout: time.Minute,
 			period:         time.Second,
 			createKey: &godo.Key{

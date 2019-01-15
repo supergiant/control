@@ -1,9 +1,9 @@
 package pki
 
 import (
+	"crypto/rand"
 	"strings"
 	"testing"
-	"crypto/rand"
 
 	"github.com/pkg/errors"
 	"github.com/stretchr/testify/mock"

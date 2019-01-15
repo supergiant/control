@@ -19,6 +19,15 @@ import (
 	"github.com/supergiant/control/pkg/workflows/steps/etcd"
 )
 
+type TaskType string
+
+const (
+	MasterTask       = "master"
+	NodeTask         = "node"
+	ClusterTask      = "cluster"
+	PreProvisionTask = "preprovision"
+)
+
 // Task is an entity that has it own state that can be tracked
 // and written to persistent storage through repository, it executes
 // particular workflow of steps.
@@ -42,6 +51,19 @@ func NewTask(taskType string, repository storage.Interface) (*Task, error) {
 
 	t := newTask(taskType, w, repository)
 
+	// This must be done in NewTask
+	// Create list of statuses to track
+	for _, step := range t.workflow {
+		t.StepStatuses = append(t.StepStatuses, StepStatus{
+			Status:   statuses.Todo,
+			StepName: step.Name(),
+			ErrMsg:   "",
+		})
+	}
+
+	// Set status for task
+	t.Status = statuses.Todo
+
 	// Try to sync the task at first time
 	err := t.sync(context.Background())
 
@@ -61,56 +83,60 @@ func newTask(workflowType string, workflow Workflow, repository storage.Interfac
 }
 
 // Run executes all steps of workflow and tracks the progress in persistent storage
-func (w *Task) Run(ctx context.Context, config steps.Config, out io.WriteCloser) chan error {
+func (t *Task) Run(ctx context.Context, config steps.Config, out io.WriteCloser) chan error {
 	errChan := make(chan error, 1)
+
+	if t.Status == statuses.Success {
+		errChan <- nil
+		return errChan
+	}
 
 	go func() {
 		defer func() {
 			if r := recover(); r != nil {
-				w.Status = statuses.Error
-				if err := w.sync(ctx); err != nil {
-					logrus.Errorf("sync error %v for task %s", err, w.ID)
+				t.Status = statuses.Error
+				if err := t.sync(ctx); err != nil {
+					logrus.Errorf("sync error %v for task %s", err, t.ID)
 				}
 				debug.PrintStack()
 				errChan <- errors.Errorf("provisioning failed, unexpected panic: %v ", r)
 			}
 		}()
-		if w == nil {
-			return
-		}
 
-		// Create list of statuses to track
-		for _, step := range w.workflow {
-			w.StepStatuses = append(w.StepStatuses, StepStatus{
-				Status:   statuses.Todo,
-				StepName: step.Name(),
-				ErrMsg:   "",
-			})
-		}
-
-		// Set config to the task
-		w.Config = &config
-		w.Status = statuses.Todo
+		t.Config = &config
 
 		// Save task state before first step
-		if err := w.sync(ctx); err != nil {
+		if err := t.sync(ctx); err != nil {
 			logrus.Errorf("Error saving task state %v", err)
 		}
+
+		startIndex := 0
+		// Skip successfully finished steps in case of restart
+		for index, stepStatus := range t.StepStatuses {
+			if stepStatus.Status != statuses.Success {
+				startIndex = index
+				break
+			}
+		}
+
+		logrus.Debugf("start task from step #%d startIndex %s",
+			startIndex, t.StepStatuses[startIndex].StepName)
+
 		// Start from the first step
-		err := w.startFrom(ctx, w.ID, out, 0)
+		err := t.startFrom(ctx, t.ID, out, startIndex)
 
 		if err != nil {
 			if ctx.Err() == context.Canceled {
-				w.Status = statuses.Cancelled
+				t.Status = statuses.Cancelled
 				// Save task in cancelled state
-				if err := w.sync(context.Background()); err != nil {
-					logrus.Errorf("failed to sync task %s to db: %v", w.ID, err)
+				if err := t.sync(context.Background()); err != nil {
+					logrus.Errorf("failed to sync task %s to db: %v", t.ID, err)
 				}
 				errChan <- ctx.Err()
 			} else {
-				w.Status = statuses.Error
-				if err := w.sync(ctx); err != nil {
-					logrus.Errorf("failed to sync task %s to db: %v", w.ID, err)
+				t.Status = statuses.Error
+				if err := t.sync(ctx); err != nil {
+					logrus.Errorf("failed to sync task %s to db: %v", t.ID, err)
 				}
 				errChan <- err
 			}
@@ -118,7 +144,14 @@ func (w *Task) Run(ctx context.Context, config steps.Config, out io.WriteCloser)
 			return
 		}
 
-		logrus.Infof("Task %s has finished successfully", w.ID)
+		// Set task state to success and save this state
+		t.Status = statuses.Success
+
+		if err := t.sync(ctx); err != nil {
+			logrus.Errorf("failed to sync task %s to db: %v", t.ID, err)
+		}
+
+		logrus.Infof("Task %s has finished successfully", t.ID)
 		// Notify provisioner that task output closed with error
 		if err := out.Close(); err != nil {
 			errChan <- err
@@ -126,60 +159,6 @@ func (w *Task) Run(ctx context.Context, config steps.Config, out io.WriteCloser)
 		close(errChan)
 	}()
 
-	return errChan
-}
-
-// Restart executes task from the last failed step
-func (w *Task) Restart(ctx context.Context, id string, out io.Writer) chan error {
-	errChan := make(chan error, 1)
-	wsLog := util.GetLogger(out)
-
-	wsLog.Infof("Restarting task %s", id)
-	go func() {
-		defer close(errChan)
-		data, err := w.repository.Get(ctx, Prefix, id)
-
-		if err != nil {
-			errChan <- err
-			return
-		}
-
-		err = json.Unmarshal(data, w)
-
-		if err != nil {
-			errChan <- err
-			return
-		}
-
-		i := 0
-		// Skip successfully finished steps
-		for index, stepStatus := range w.StepStatuses {
-			if stepStatus.Status == statuses.Error {
-				i = index
-				break
-			}
-		}
-		// Start from the last failed one
-		err = w.startFrom(ctx, id, out, i)
-
-		if err != nil {
-			if err == context.Canceled {
-				w.Status = statuses.Cancelled
-				// Save task in cancelled state
-				if err := w.sync(context.Background()); err != nil {
-					logrus.Errorf("failed to sync task %s to db: %v", w.ID, err)
-				}
-			} else {
-				w.Status = statuses.Error
-				if err := w.sync(ctx); err != nil {
-					logrus.Errorf("failed to sync task %s to db: %v", w.ID, err)
-				}
-				errChan <- err
-			}
-
-			return
-		}
-	}()
 	return errChan
 }
 
@@ -231,8 +210,8 @@ func (w *Task) startFrom(ctx context.Context, id string, out io.Writer, i int) e
 			wsLog.Infof("[%s] - success", step.Name())
 			// Mark step as success
 			w.StepStatuses[index].Status = statuses.Success
+			w.StepStatuses[index].ErrMsg = ""
 			w.Status = statuses.Success
-
 			if err := w.sync(ctx); err != nil {
 				logrus.Errorf("sync error %v for step %s", err, step.Name())
 			}

@@ -44,14 +44,12 @@ func SendMessage(w http.ResponseWriter, msg Message, status int) {
 
 func SendInvalidJSON(w http.ResponseWriter, err error) {
 	msg := New("User has sent data in malformed format", err.Error(), sgerrors.InvalidJSON, "")
-
 	data, err := json.Marshal(msg)
 	if err != nil {
 		logrus.Errorf("failed to marshall message: %v", err)
 		http.Error(w, "", http.StatusInternalServerError)
 		return
 	}
-
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(http.StatusBadRequest)
 	w.Write(data)
@@ -60,14 +58,12 @@ func SendInvalidJSON(w http.ResponseWriter, err error) {
 // SendValidationFailed - this is special case where frontend should parse dev message and present it on the UI
 func SendValidationFailed(w http.ResponseWriter, err error) {
 	msg := New("Validation Failed", err.Error(), sgerrors.ValidationFailed, "")
-
 	data, err := json.Marshal(msg)
 	if err != nil {
 		logrus.Errorf("failed to marshall message: %v", err)
 		http.Error(w, "", http.StatusInternalServerError)
 		return
 	}
-
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(http.StatusBadRequest)
 	w.Write(data)
@@ -82,7 +78,6 @@ func SendUnknownError(w http.ResponseWriter, err error) {
 		http.Error(w, "", http.StatusInternalServerError)
 		return
 	}
-
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(http.StatusInternalServerError)
 	w.Write(data)
@@ -97,7 +92,6 @@ func SendNotFound(w http.ResponseWriter, entityName string, err error) {
 		http.Error(w, "", http.StatusInternalServerError)
 		return
 	}
-
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(http.StatusNotFound)
 	w.Write(data)
@@ -112,7 +106,6 @@ func SendAlreadyExists(w http.ResponseWriter, entityName string, err error) {
 		http.Error(w, "", http.StatusInternalServerError)
 		return
 	}
-
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(http.StatusConflict)
 	w.Write(data)
@@ -128,7 +121,6 @@ func SendInvalidCredentials(w http.ResponseWriter, err error) {
 		http.Error(w, "", http.StatusInternalServerError)
 		return
 	}
-
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(http.StatusBadRequest)
 	w.Write(data)

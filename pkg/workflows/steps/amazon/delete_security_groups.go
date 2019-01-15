@@ -6,11 +6,11 @@ import (
 	"time"
 
 	"github.com/aws/aws-sdk-go/aws"
+	"github.com/aws/aws-sdk-go/aws/request"
 	"github.com/aws/aws-sdk-go/service/ec2"
 	"github.com/pkg/errors"
 	"github.com/sirupsen/logrus"
 
-	"github.com/aws/aws-sdk-go/aws/request"
 	"github.com/supergiant/control/pkg/sgerrors"
 	"github.com/supergiant/control/pkg/workflows/steps"
 )
@@ -214,7 +214,6 @@ func (s *DeleteSecurityGroup) Run(ctx context.Context, w io.Writer, cfg *steps.C
 		time.Sleep(timeout)
 		timeout = timeout * 2
 	}
-
 
 	if deleteErr != nil {
 		logrus.Errorf("Delete node security group %s", DeleteSecurityGroupsStepName)

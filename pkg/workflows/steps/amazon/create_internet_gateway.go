@@ -6,10 +6,10 @@ import (
 	"io"
 	"strings"
 
-	"github.com/pkg/errors"
-	"github.com/sirupsen/logrus"
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/service/ec2"
+	"github.com/pkg/errors"
+	"github.com/sirupsen/logrus"
 
 	"github.com/supergiant/control/pkg/clouds"
 	"github.com/supergiant/control/pkg/workflows/steps"
@@ -101,13 +101,14 @@ func (s *CreateInternetGatewayStep) Run(ctx context.Context, w io.Writer, cfg *s
 			return err
 		}
 
+		logrus.Debugf("Attach Internet GW %s to VPC %s",
+			cfg.AWSConfig.InternetGatewayID, cfg.AWSConfig.VPCID)
 		// Attach GW to VPC
 		attachGw := &ec2.AttachInternetGatewayInput{
 			VpcId:             aws.String(cfg.AWSConfig.VPCID),
 			InternetGatewayId: aws.String(cfg.AWSConfig.InternetGatewayID),
 		}
-		if _, err := svc.AttachInternetGateway(attachGw);
-		err != nil && !strings.Contains(err.Error(), "already has an internet gateway attached") {
+		if _, err := svc.AttachInternetGateway(attachGw); err != nil && !strings.Contains(err.Error(), "already has an internet gateway attached") {
 			logrus.Errorf("Error attaching GW %s to VPC %s", cfg.AWSConfig.InternetGatewayID, cfg.AWSConfig.VPCID)
 			return err
 		}
