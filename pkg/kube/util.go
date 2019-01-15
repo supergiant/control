@@ -5,7 +5,6 @@ import (
 	"strings"
 
 	"github.com/supergiant/control/pkg/model"
-	"github.com/supergiant/control/pkg/node"
 )
 
 func processAWSMetrics(k *model.Kube, metrics map[string]map[string]interface{}) {
@@ -36,22 +35,4 @@ func processAWSMetrics(k *model.Kube, metrics map[string]map[string]interface{})
 
 func ip2Host(ip string) string {
 	return fmt.Sprintf("ip-%s", strings.Join(strings.Split(ip, "."), "-"))
-}
-
-func getMaster(k *model.Kube) *node.Node {
-	if k == nil {
-		return nil
-	}
-
-	if  k.Masters == nil {
-		return nil
-	}
-
-	for key := range k.Masters {
-		if master := k.Masters[key]; master != nil {
-			return master
-		}
-	}
-
-	return nil
 }

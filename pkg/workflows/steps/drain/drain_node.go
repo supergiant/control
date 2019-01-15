@@ -10,6 +10,8 @@ import (
 
 	tm "github.com/supergiant/control/pkg/templatemanager"
 	"github.com/supergiant/control/pkg/workflows/steps"
+	"github.com/supergiant/control/pkg/runner/ssh"
+	"github.com/supergiant/control/pkg/sgerrors"
 )
 
 const StepName = "drain"
@@ -41,7 +43,27 @@ func New(script *template.Template) *Step {
 }
 
 func (s *Step) Run(ctx context.Context, out io.Writer, config *steps.Config) error {
-	err := steps.RunTemplate(ctx, s.script, config.Runner, out, config.DrainConfig)
+	masterNode := config.GetMaster()
+
+	if masterNode == nil {
+		return errors.Wrapf(sgerrors.ErrNotFound, "master node not found")
+	}
+
+	cfg := ssh.Config{
+		Host:    masterNode.PublicIp,
+		Port:    config.SshConfig.Port,
+		User:    config.SshConfig.User,
+		Timeout: 10,
+		Key:     []byte(config.SshConfig.BootstrapPrivateKey),
+	}
+
+	sshRunner, err := ssh.NewRunner(cfg)
+
+	if err != nil {
+		return errors.Wrapf(err, "create ssh runner")
+	}
+
+	err = steps.RunTemplate(ctx, s.script, sshRunner, out, config.DrainConfig)
 
 	if err != nil {
 		return errors.Wrap(err, "drain step")
