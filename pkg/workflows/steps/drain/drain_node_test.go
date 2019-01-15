@@ -58,7 +58,7 @@ func TestDrain(t *testing.T) {
 		tpl,
 	}
 
-	cfg.DrainConfig.NodeName = expected
+	cfg.DrainConfig.PrivateIP = expected
 
 	err = task.Run(context.Background(), output, cfg)
 

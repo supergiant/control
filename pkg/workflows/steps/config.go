@@ -198,7 +198,7 @@ type PrometheusConfig struct {
 }
 
 type DrainConfig struct {
-	NodeName string
+	PrivateIP string `json:"privateIp"`
 }
 
 type Map struct {

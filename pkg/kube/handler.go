@@ -684,6 +684,9 @@ func (h *Handler) deleteNode(w http.ResponseWriter, r *http.Request) {
 			Port: ssh.DefaultPort,
 			BootstrapPrivateKey: string(k.BootstrapPrivateKey),
 		},
+		DrainConfig: steps.DrainConfig{
+			PrivateIP: n.PrivateIp,
+		},
 		ClusterID:        k.ID,
 		ClusterName:      k.Name,
 		CloudAccountName: k.AccountName,
