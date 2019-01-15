@@ -5,7 +5,6 @@ import (
 	"io"
 
 	"github.com/aws/aws-sdk-go/aws"
-	"github.com/aws/aws-sdk-go/aws/awserr"
 	"github.com/aws/aws-sdk-go/service/ec2"
 	"github.com/pkg/errors"
 	"github.com/sirupsen/logrus"
@@ -15,31 +14,56 @@ import (
 
 const DisassociateRouteTableStepName = "aws_disassociate_route_table"
 
+type DisassociateService interface {
+	DisassociateRouteTable(*ec2.DisassociateRouteTableInput) (*ec2.DisassociateRouteTableOutput, error)
+}
+
 type DisassociateRouteTable struct {
-	GetEC2 GetEC2Fn
+	getSvc func(steps.AWSConfig) (DisassociateService, error)
 }
 
 func InitDisassociateRouteTable(fn GetEC2Fn) {
-	steps.RegisterStep(DisassociateRouteTableStepName, &DisassociateRouteTable{
-		GetEC2: fn,
-	})
+	steps.RegisterStep(DisassociateRouteTableStepName,
+		NewDisassociateRouteTableStep(fn))
+}
+
+func NewDisassociateRouteTableStep(fn GetEC2Fn) *DisassociateRouteTable {
+	return &DisassociateRouteTable{
+		getSvc: func(cfg steps.AWSConfig) (DisassociateService, error) {
+			EC2, err := fn(cfg)
+
+			if err != nil {
+				return nil, errors.Wrap(ErrAuthorization, err.Error())
+			}
+
+			return EC2, nil
+		},
+	}
 }
 
 func (s *DisassociateRouteTable) Run(ctx context.Context, w io.Writer, cfg *steps.Config) error {
-	EC2, err := s.GetEC2(cfg.AWSConfig)
+	svc, err := s.getSvc(cfg.AWSConfig)
+
 	if err != nil {
-		return errors.Wrap(ErrAuthorization, err.Error())
+		logrus.Errorf("%s error getting service %v",
+			DisassociateRouteTableStepName, err)
+		return errors.Wrapf(err, "Step %s getting service error",
+			DisassociateRouteTableStepName)
 	}
 
 	for _, associationID := range cfg.AWSConfig.RouteTableAssociationIDs {
+		if associationID == "" {
+			continue
+		}
+
 		disReq := &ec2.DisassociateRouteTableInput{
 			AssociationId: aws.String(associationID),
 		}
 
-		_, err = EC2.DisassociateRouteTable(disReq)
+		_, err = svc.DisassociateRouteTable(disReq)
 
-		if err, ok := err.(awserr.Error); ok {
-			logrus.Debugf("DisassociateRouteTable caused %s", err.Message())
+		if err != nil {
+			logrus.Debugf("DisassociateRouteTable caused %s", err.Error())
 		}
 	}
 

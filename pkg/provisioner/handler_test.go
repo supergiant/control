@@ -21,14 +21,6 @@ import (
 	"github.com/supergiant/control/pkg/workflows/steps"
 )
 
-type mockTokenGetter struct {
-	getToken func(context.Context, int) (string, error)
-}
-
-func (t *mockTokenGetter) GetToken(ctx context.Context, num int) (string, error) {
-	return t.getToken(ctx, num)
-}
-
 type mockProvisioner struct {
 	provisionCluster func(context.Context, *profile.Profile, *steps.Config) (map[string][]*workflows.Task, error)
 	provisionNode    func(context.Context, profile.NodeProfile, *model.Kube, *steps.Config) (*workflows.Task, error)
@@ -98,7 +90,6 @@ func TestProvisionHandler(t *testing.T) {
 		getProfile func(context.Context, string) (*profile.Profile, error)
 		kubeGetter func(context.Context, string) (*model.Kube, error)
 		getAccount func(context.Context, string) (*model.CloudAccount, error)
-		getToken   func(context.Context, int) (string, error)
 		provision  func(context.Context, *profile.Profile, *steps.Config) (map[string][]*workflows.Task, error)
 	}{
 		{
@@ -116,9 +107,6 @@ func TestProvisionHandler(t *testing.T) {
 			kubeGetter: func(context.Context, string) (*model.Kube, error) {
 				return nil, nil
 			},
-			getToken: func(context.Context, int) (string, error) {
-				return "foo", nil
-			},
 		},
 		{
 			description:  "wrong cloud provider name",
@@ -130,9 +118,6 @@ func TestProvisionHandler(t *testing.T) {
 			kubeGetter: func(context.Context, string) (*model.Kube, error) {
 				return nil, nil
 			},
-			getToken: func(context.Context, int) (string, error) {
-				return "foo", nil
-			},
 		},
 		{
 			description:  "invalid credentials when provisionCluster",
@@ -142,9 +127,6 @@ func TestProvisionHandler(t *testing.T) {
 				return &model.CloudAccount{
 					Provider: clouds.DigitalOcean,
 				}, nil
-			},
-			getToken: func(context.Context, int) (string, error) {
-				return "foo", nil
 			},
 			kubeGetter: func(context.Context, string) (*model.Kube, error) {
 				return nil, nil
@@ -160,9 +142,6 @@ func TestProvisionHandler(t *testing.T) {
 				return &model.CloudAccount{
 					Provider: clouds.DigitalOcean,
 				}, nil
-			},
-			getToken: func(context.Context, int) (string, error) {
-				return "foo", nil
 			},
 			kubeGetter: func(context.Context, string) (*model.Kube, error) {
 				return nil, nil
@@ -191,13 +170,11 @@ func TestProvisionHandler(t *testing.T) {
 	provisioner := &mockProvisioner{}
 	kubeGetter := &mockKubeGetter{}
 	accGetter := &mockAccountGetter{}
-	tokenGetter := &mockTokenGetter{}
 
 	for _, testCase := range testCases {
 		provisioner.provisionCluster = testCase.provision
 		accGetter.get = testCase.getAccount
 		kubeGetter.get = testCase.kubeGetter
-		tokenGetter.getToken = testCase.getToken
 
 		req, _ := http.NewRequest(http.MethodPost, "/", bytes.NewBuffer(testCase.body))
 		rec := httptest.NewRecorder()
@@ -205,7 +182,6 @@ func TestProvisionHandler(t *testing.T) {
 		handler := Handler{
 			kubeGetter:    kubeGetter,
 			provisioner:   provisioner,
-			tokenGetter:   tokenGetter,
 			accountGetter: accGetter,
 		}
 
@@ -235,9 +211,8 @@ func TestProvisionHandler(t *testing.T) {
 func TestNewHandler(t *testing.T) {
 	accSvc := &account.Service{}
 	kubeSvc := &mockKubeService{}
-	tg := &mockTokenGetter{}
 	p := &TaskProvisioner{}
-	h := NewHandler(kubeSvc, accSvc, tg, p)
+	h := NewHandler(kubeSvc, accSvc, p)
 
 	if h.accountGetter == nil {
 		t.Errorf("account getter must not be nil")
@@ -245,10 +220,6 @@ func TestNewHandler(t *testing.T) {
 
 	if h.provisioner != p {
 		t.Errorf("expected provisioner %v actual %v", p, h.provisioner)
-	}
-
-	if h.tokenGetter != tg {
-		t.Errorf("Wrong token getter exppected %v actual %v", tg, h.tokenGetter)
 	}
 }
 

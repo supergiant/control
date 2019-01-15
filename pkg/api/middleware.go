@@ -1,7 +1,6 @@
 package api
 
 import (
-	"fmt"
 	"net/http"
 	"strings"
 
@@ -22,43 +21,39 @@ func (m *Middleware) AuthMiddleware(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		authHeader := r.Header.Get("Authorization")
 
-		// In case of websocket protocol look at the header Sec-Websocket-Protocol
-		if authHeader == "" {
-			authHeader = fmt.Sprintf("Bearer %s",
-				r.URL.Query().Get("token"))
-		}
+		var tokenString string
 
 		if authHeader == "" {
-			http.Error(w, sgerrors.ErrInvalidCredentials.Error(), http.StatusForbidden)
-			return
-		}
-
-		if ts := strings.Split(authHeader, " "); len(ts) <= 1 {
-			http.Error(w, sgerrors.ErrInvalidCredentials.Error(), http.StatusForbidden)
-			return
+			// this is for websocket
+			tokenString = r.URL.Query().Get("token")
 		} else {
-			tokenString := ts[1]
-			claims, err := m.TokenService.Validate(tokenString)
-
-			if err != nil {
-				http.Error(w, err.Error(), http.StatusForbidden)
+			if ts := strings.Split(authHeader, " "); len(ts) <= 1 {
+				http.Error(w, sgerrors.ErrInvalidCredentials.Error(), http.StatusForbidden)
 				return
+			} else {
+				tokenString = ts[1]
 			}
-
-			// TODO(stgleb): Do something with claims
-			userId, ok := claims["user_id"].(string)
-			if !ok {
-				http.Error(w, err.Error(), http.StatusForbidden)
-				return
-			}
-
-			if len(userId) == 0 {
-				http.Error(w, "unknown user", http.StatusForbidden)
-				return
-			}
-
-			next.ServeHTTP(w, r)
 		}
+
+		claims, err := m.TokenService.Validate(tokenString)
+
+		if err != nil {
+			http.Error(w, err.Error(), http.StatusForbidden)
+			return
+		}
+
+		userId, ok := claims["user_id"].(string)
+		if !ok {
+			http.Error(w, sgerrors.ErrInvalidCredentials.Error(), http.StatusForbidden)
+			return
+		}
+
+		if len(userId) == 0 {
+			http.Error(w, "unknown user", http.StatusForbidden)
+			return
+		}
+
+		next.ServeHTTP(w, r)
 	})
 }
 

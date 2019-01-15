@@ -22,6 +22,10 @@ import (
 	"github.com/supergiant/control/pkg/workflows/steps"
 )
 
+const (
+	DefaultK8SServicesCIDR = "10.3.0.0/16"
+)
+
 type AccountGetter interface {
 	Get(context.Context, string) (*model.CloudAccount, error)
 }
@@ -30,13 +34,8 @@ type KubeGetter interface {
 	Get(ctx context.Context, name string) (*model.Kube, error)
 }
 
-type TokenGetter interface {
-	GetToken(context.Context, int) (string, error)
-}
-
 type Handler struct {
 	accountGetter AccountGetter
-	tokenGetter   TokenGetter
 	kubeGetter    KubeGetter
 	provisioner   ClusterProvisioner
 }
@@ -56,11 +55,10 @@ type ClusterProvisioner interface {
 	ProvisionCluster(context.Context, *profile.Profile, *steps.Config) (map[string][]*workflows.Task, error)
 }
 
-func NewHandler(kubeService KubeGetter, cloudAccountService *account.Service, tokenGetter TokenGetter, provisioner ClusterProvisioner) *Handler {
+func NewHandler(kubeService KubeGetter, cloudAccountService *account.Service, provisioner ClusterProvisioner) *Handler {
 	return &Handler{
 		kubeGetter:    kubeService,
 		accountGetter: cloudAccountService,
-		tokenGetter:   tokenGetter,
 		provisioner:   provisioner,
 	}
 }
@@ -91,20 +89,24 @@ func (h *Handler) Provision(w http.ResponseWriter, r *http.Request) {
 	logrus.Infof("cluster token for ETCD %s", clusterToken)
 
 	// TODO: use staticAuth instead of user/password
+	// TODO: replace usage of user/password with TLS certificates
 	if req.Profile.User == "" || req.Profile.Password == "" {
-		req.Profile.User = "root"
-		req.Profile.Password = "1234"
+		req.Profile.User = util.RandomString(8)
+		req.Profile.Password = util.RandomString(16)
 
 		req.Profile.StaticAuth.BasicAuth = append(req.Profile.StaticAuth.BasicAuth, profile.BasicAuthUser{
-			Password: "1234",
-			Name:     "root",
-			ID:       "1234",
+			Password: req.Profile.Password,
+			Name:     req.Profile.User,
+			ID:       req.Profile.User,
 			Groups:   []string{pki.MastersGroup},
 		})
 	}
 
-	config := steps.NewConfig(req.ClusterName, clusterToken,
-		req.CloudAccountName, req.Profile)
+	if req.Profile.K8SServicesCIDR == "" {
+		req.Profile.K8SServicesCIDR = DefaultK8SServicesCIDR
+	}
+
+	config := steps.NewConfig(req.ClusterName, clusterToken, req.CloudAccountName, req.Profile)
 
 	acc, err := h.accountGetter.Get(r.Context(), req.CloudAccountName)
 

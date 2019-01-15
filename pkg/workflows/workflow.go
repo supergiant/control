@@ -22,6 +22,7 @@ import (
 	"github.com/supergiant/control/pkg/workflows/steps/poststart"
 	"github.com/supergiant/control/pkg/workflows/steps/prometheus"
 	"github.com/supergiant/control/pkg/workflows/steps/ssh"
+	"github.com/supergiant/control/pkg/workflows/steps/storageclass"
 	"github.com/supergiant/control/pkg/workflows/steps/tiller"
 )
 
@@ -57,6 +58,7 @@ const (
 )
 
 type WorkflowSet struct {
+	PreProvision    string
 	ProvisionMaster string
 	ProvisionNode   string
 	DeleteNode      string
@@ -143,6 +145,7 @@ func Init() {
 	commonWorkflow := []steps.Step{
 		steps.GetStep(ssh.StepName),
 		steps.GetStep(clustercheck.StepName),
+		steps.GetStep(storageclass.StepName),
 		steps.GetStep(tiller.StepName),
 		steps.GetStep(prometheus.StepName),
 	}
@@ -160,9 +163,10 @@ func Init() {
 		steps.GetStep(amazon.DeleteClusterMachinesStepName),
 		steps.GetStep(amazon.DeleteSecurityGroupsStepName),
 		steps.GetStep(amazon.DisassociateRouteTableStepName),
-		steps.GetStep(amazon.DeleteRouteTableStepName),
 		steps.GetStep(amazon.DeleteSubnetsStepName),
+		steps.GetStep(amazon.DeleteRouteTableStepName),
 		steps.GetStep(amazon.DeleteInternetGatewayStepName),
+		steps.GetStep(amazon.DeleteKeyPairStepName),
 		steps.GetStep(amazon.DeleteVPCStepName),
 	}
 

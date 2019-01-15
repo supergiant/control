@@ -225,30 +225,37 @@ func TestGetProfile(t *testing.T) {
 	data, _ := json.Marshal(kubeProfile)
 
 	testCases := []struct {
+		description   string
 		profileId     string
 		profileData   []byte
 		getProfileErr error
 		expectedCode  int
 	}{
 		{
+			description:  "not found",
 			expectedCode: http.StatusNotFound,
 		},
 		{
+			description:   "not found2",
+			profileId:     "profileId",
 			profileData:   []byte(`{}`),
 			getProfileErr: sgerrors.ErrNotFound,
 			expectedCode:  http.StatusNotFound,
 		},
 		{
+			description:  "invalid json",
 			profileId:    "profileId",
 			profileData:  []byte(`{`),
 			expectedCode: http.StatusInternalServerError,
 		},
 		{
+			description:  "error marshalling profile",
 			profileId:    "profileId",
-			profileData:  []byte(`{`),
+			profileData:  nil,
 			expectedCode: http.StatusInternalServerError,
 		},
 		{
+			description:  "success",
 			profileId:    "profileId",
 			profileData:  data,
 			expectedCode: http.StatusOK,
@@ -256,6 +263,7 @@ func TestGetProfile(t *testing.T) {
 	}
 
 	for _, testCase := range testCases {
+		t.Log(testCase.description)
 		mockRepo := &testutils.MockStorage{}
 		mockRepo.On("Get", mock.Anything, mock.Anything, mock.Anything).
 			Return(testCase.profileData, testCase.getProfileErr)
@@ -283,19 +291,28 @@ func TestGetProfile(t *testing.T) {
 
 func TestService_GetAll(t *testing.T) {
 	testCases := []struct {
+		description  string
 		repoErr      error
 		getAllData   [][]byte
 		expectedCode int
 	}{
 		{
+			description:  "unknown error",
 			repoErr:      errors.New("unknown error"),
 			expectedCode: http.StatusInternalServerError,
 		},
 		{
+			description:  "invalid json",
 			getAllData:   [][]byte{[]byte(`{`)},
 			expectedCode: http.StatusInternalServerError,
 		},
 		{
+			description:  "error marshalling",
+			getAllData:   [][]byte{[]byte(``)},
+			expectedCode: http.StatusInternalServerError,
+		},
+		{
+			description:  "success",
 			getAllData:   [][]byte{[]byte(`{}`)},
 			expectedCode: http.StatusOK,
 		},

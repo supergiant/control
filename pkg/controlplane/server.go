@@ -15,8 +15,6 @@ import (
 	"github.com/gorilla/mux"
 	"github.com/pkg/errors"
 	"github.com/sirupsen/logrus"
-	"k8s.io/helm/pkg/repo"
-
 	"github.com/supergiant/control/pkg/account"
 	"github.com/supergiant/control/pkg/api"
 	"github.com/supergiant/control/pkg/jwt"
@@ -50,7 +48,9 @@ import (
 	"github.com/supergiant/control/pkg/workflows/steps/poststart"
 	"github.com/supergiant/control/pkg/workflows/steps/prometheus"
 	"github.com/supergiant/control/pkg/workflows/steps/ssh"
+	"github.com/supergiant/control/pkg/workflows/steps/storageclass"
 	"github.com/supergiant/control/pkg/workflows/steps/tiller"
+	"k8s.io/helm/pkg/repo"
 )
 
 type Server struct {
@@ -245,6 +245,7 @@ func configureApplication(cfg *Config) (*mux.Router, error) {
 	clustercheck.Init()
 	prometheus.Init()
 	gce.Init()
+	storageclass.Init()
 
 	amazon.InitFindAMI(amazon.GetEC2)
 	amazon.InitImportKeyPair(amazon.GetEC2)
@@ -265,6 +266,7 @@ func configureApplication(cfg *Config) (*mux.Router, error) {
 	amazon.InitDisassociateRouteTable(amazon.GetEC2)
 	amazon.InitDeleteRouteTable(amazon.GetEC2)
 	amazon.InitDeleteInternetGateWay(amazon.GetEC2)
+	amazon.InitDeleteKeyPair(amazon.GetEC2)
 	workflows.Init()
 
 	taskHandler := workflows.NewTaskHandler(repository, sshRunner.NewRunner, accountService)
@@ -285,9 +287,8 @@ func configureApplication(cfg *Config) (*mux.Router, error) {
 	taskProvisioner := provisioner.NewProvisioner(repository,
 		kubeService,
 		cfg.SpawnInterval)
-	tokenGetter := provisioner.NewEtcdTokenGetter()
 	provisionHandler := provisioner.NewHandler(kubeService, accountService,
-		tokenGetter, taskProvisioner)
+		taskProvisioner)
 	provisionHandler.Register(protectedAPI)
 	apiProxy := proxy.NewReverseProxyContainer(cfg.ProxiesPortRange, logrus.New().WithField("component", "proxy"))
 

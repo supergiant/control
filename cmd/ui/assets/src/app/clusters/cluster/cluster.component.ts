@@ -1,6 +1,14 @@
 import { of, Subscription, timer as observableTimer } from 'rxjs';
 import { catchError, filter, switchMap } from 'rxjs/operators';
-import { ChangeDetectionStrategy, Component, OnDestroy, OnInit, ViewChild, ViewEncapsulation, Inject } from '@angular/core';
+import {
+  ChangeDetectionStrategy,
+  Component,
+  OnDestroy,
+  ViewChild,
+  ViewEncapsulation,
+  Inject,
+  AfterViewInit,
+} from '@angular/core';
 import { Location } from '@angular/common';
 import { ActivatedRoute, Router } from '@angular/router';
 import { HttpClient } from '@angular/common/http';
@@ -35,27 +43,29 @@ import { WINDOW } from '../../shared/helpers/window-providers';
     ]
 })
 
-export class ClusterComponent implements OnInit, OnDestroy {
+export class ClusterComponent implements AfterViewInit, OnDestroy {
   clusterId: number;
   subscriptions = new Subscription();
   public kube: any;
-  public kubeString: string;
 
   // machine list vars
-  machines: any;
-  machineListColumns = ["state", "role", "size", "name", "cpu", "ram", "region", "publicIp", "delete"];
+  activeMachines: any;
+  activeMachineListColumns = ['state', 'role', 'size', 'name', 'cpu', 'ram', 'region', 'publicIp', 'delete'];
+
+  nonActiveMachines: any;
+  nonActiveMachineListColumns = ['state', 'role', 'size', 'name', 'region', 'steps', 'logs', 'delete'];
 
   // task list vars
   tasks: any;
-  taskListColumns = ["status", "type", "id", "steps", "logs"];
+  taskListColumns = ['status', 'type', 'id', 'steps', 'logs'];
   expandedTaskIds = new Set();
 
   releases: any;
-  releaseListColumns = ["status", "name", "chart", "chartVersion", "version", "lastDeployed", "info", "delete"];
+  releaseListColumns = ['status', 'name', 'chart', 'chartVersion', 'version', 'lastDeployed', 'info', 'delete'];
 
-  masterTasksStatus = "executing";
-  nodeTasksStatus = "queued";
-  clusterTasksStatus = "queued";
+  masterTasksStatus = 'executing';
+  nodeTasksStatus = 'queued';
+  clusterTasksStatus = 'queued';
 
   cpuUsage: number;
   ramUsage: number;
@@ -63,9 +73,10 @@ export class ClusterComponent implements OnInit, OnDestroy {
 
   kubectlConfig: any;
 
-  clusterServices: any
-  serviceListColumns = ["name", "type", "namespace", "selfLink"];
+  clusterServices: any;
+  serviceListColumns = ['name', 'type', 'namespace', 'selfLink'];
 
+  deletingApps = new Set();
 
   constructor(
     private route: ActivatedRoute,
@@ -81,13 +92,17 @@ export class ClusterComponent implements OnInit, OnDestroy {
       route.params.subscribe(params => {
         this.clusterId = params.id;
         this.getKube();
-      })
+      });
     }
 
   @ViewChild(MatSort) sort: MatSort;
   @ViewChild(MatPaginator) paginator: MatPaginator;
 
-  ngOnInit() {
+  get showUsageChart() {
+    return !isNaN(this.cpuUsage) && !isNaN(this.ramUsage);
+  }
+
+  ngAfterViewInit() {
     this.clusterId = this.route.snapshot.params.id;
     this.getKube();
   }
@@ -113,11 +128,10 @@ export class ClusterComponent implements OnInit, OnDestroy {
   getKubeStatus(clusterId) {
     // we should make Tasks a part of the Supergiant instance
     // if we start using them outside of this
-    return this.util.fetch("/v1/api/kubes/" + clusterId + "/tasks");
+    return this.util.fetch('/v1/api/kubes/' + clusterId + '/tasks');
   }
 
   toggleSteps(task) {
-
     task.showSteps = !task.showSteps;
 
     if (this.expandedTaskIds.has(task.id)) {
@@ -126,7 +140,9 @@ export class ClusterComponent implements OnInit, OnDestroy {
   }
 
   taskComplete(task) {
-    return task.stepsStatuses.every((s) => s.status == "success");
+    if (task.stepStatuses) {
+      return task.stepsStatuses.every((s) => s.status == 'success');
+    } else { return false; }
   }
 
   restartTask(taskId) {
@@ -136,7 +152,7 @@ export class ClusterComponent implements OnInit, OnDestroy {
       }}
     );
 
-    this.util.post("v1/api/tasks/" + taskId + "/restart", {}).subscribe(
+    this.util.post('v1/api/tasks/' + taskId + '/restart', {}).subscribe(
       res => console.log(res),
       err => console.error(err)
     );
@@ -144,9 +160,9 @@ export class ClusterComponent implements OnInit, OnDestroy {
 
   viewTaskLog(taskId) {
     const modal = this.dialog.open(TaskLogsComponent, {
-      width: "1080px",
+      width: '1080px',
       data: { taskId: taskId, hostname: this.window.location.hostname }
-    })
+    });
   }
 
   setProvisioningStep(tasks) {
@@ -163,20 +179,20 @@ export class ClusterComponent implements OnInit, OnDestroy {
     // oh my god I'm so sorry
     if (masterTasks.every(this.taskComplete)) {
       // masters complete
-      this.masterTasksStatus = "complete";
+      this.masterTasksStatus = 'complete';
 
       if (nodeTasks.every(this.taskComplete)) {
         // masters AND nodes complete
-        this.nodeTasksStatus = "complete";
-        this.clusterTasksStatus = "executing";
+        this.nodeTasksStatus = 'complete';
+        this.clusterTasksStatus = 'executing';
 
       } else {
         // masters complete, nodes executing
-        this.nodeTasksStatus = "executing"
+        this.nodeTasksStatus = 'executing';
       }
     } else {
       // masters executing
-      this.masterTasksStatus = "executing";
+      this.masterTasksStatus = 'executing';
     }
   }
 
@@ -190,7 +206,7 @@ export class ClusterComponent implements OnInit, OnDestroy {
           // this.kube.state = "provisioning";
 
           switch (this.kube.state) {
-            case "operational": {
+            case 'operational': {
               this.renderMachines(this.kube);
               this.getReleases();
               this.getClusterMetrics();
@@ -199,7 +215,7 @@ export class ClusterComponent implements OnInit, OnDestroy {
               this.getClusterServices();
               break;
             }
-            case "provisioning": {
+            case 'provisioning': {
               this.getKubeStatus(this.clusterId).subscribe(
                 tasks => {
                   this.setProvisioningStep(tasks);
@@ -208,18 +224,16 @@ export class ClusterComponent implements OnInit, OnDestroy {
                   tasks.forEach(t => {
                     if (this.expandedTaskIds.has(t.id)) {
                       t.showSteps = true;
-                    };
-                    rows.push(t, { detailRow: true, t })
+                    }
+                    rows.push(t, { detailRow: true, t });
                   });
                   this.tasks = new MatTableDataSource(rows);
-                  this.tasks.sort = this.sort;
-                  this.tasks.paginator = this.paginator;
                 },
                 err => console.log(err)
-              )
+              );
               break;
             }
-            case "failed": {
+            case 'failed': {
               this.getKubeStatus(this.clusterId).subscribe(
                 tasks => {
 
@@ -227,8 +241,8 @@ export class ClusterComponent implements OnInit, OnDestroy {
                   tasks.forEach(t => {
                     if (this.expandedTaskIds.has(t.id)) {
                       t.showSteps = true;
-                    };
-                    rows.push(t, { detailRow: true, t })
+                    }
+                    rows.push(t, { detailRow: true, t });
                   });
                   this.tasks = new MatTableDataSource(rows);
                   this.tasks.sort = this.sort;
@@ -236,9 +250,9 @@ export class ClusterComponent implements OnInit, OnDestroy {
                 },
                 err => console.log(err)
               );
-              this.masterTasksStatus = "failed";
-              this.nodeTasksStatus = "failed";
-              this.clusterTasksStatus = "failed";
+              this.masterTasksStatus = 'failed';
+              this.nodeTasksStatus = 'failed';
+              this.clusterTasksStatus = 'failed';
               break;
             }
             default: {
@@ -247,11 +261,10 @@ export class ClusterComponent implements OnInit, OnDestroy {
           }
         },
         err => console.error(err)
-      ))
+      ));
   }
 
   renderMachines(kube) {
-    const machineMetrics = {};
     const masterNames = Object.keys(kube.masters);
     const nodeNames = Object.keys(kube.nodes);
 
@@ -269,19 +282,55 @@ export class ClusterComponent implements OnInit, OnDestroy {
       }
     });
 
-    this.machines = new MatTableDataSource(this.combineAndFlatten(kube.masters, kube.nodes));
-    this.machines.sort = this.sort;
-    this.machines.paginator = this.paginator;
+    const allMachines = this.combineAndFlatten(kube.masters, kube.nodes);
+    const activeMachines = allMachines.filter(m => m.state == 'active' || m.state == 'deleting');
+    const nonActiveMachines = allMachines.filter(m => m.state != 'active' && m.state != 'deleting');
+
+    this.activeMachines = new MatTableDataSource(activeMachines);
+    this.activeMachines.sort = this.sort;
+    this.activeMachines.paginator = this.paginator;
+
+    if (nonActiveMachines.length > 0) {
+      const executingTasksObj = {};
+
+      this.getKubeStatus(this.clusterId).subscribe(
+        tasks => {
+          const executing = tasks.filter(t => t.status == 'executing');
+          executing.forEach(t => {
+            if (this.expandedTaskIds.has(t.id)) {
+              t.showSteps = true;
+            }
+            executingTasksObj[t.id] = t;
+          });
+
+          const nonAM = [];
+          nonActiveMachines.forEach(m => {
+            const tid = m.taskId;
+            const t = executingTasksObj[tid];
+            m.taskData = executingTasksObj[tid];
+
+            nonAM.push(m, { detailRow: true, t });
+          });
+
+          this.nonActiveMachines = new MatTableDataSource(nonAM);
+        },
+        err => console.error(err)
+      );
+    } else { this.nonActiveMachines = {}; }
   }
 
-  getReleases() {
+  getReleases(deletedReleaseName?) {
     this.supergiant.HelmReleases.get(this.clusterId).subscribe(
       res => {
-        const releases = res.filter(r => r.status != "DELETED")
+        const releases = res.filter(r => r.status !== 'DELETED');
         this.releases = new MatTableDataSource(releases);
+        // TODO: this is temporary. We need to figure out a way around the constant polling
+        if (deletedReleaseName) {
+          this.deletingApps.delete(deletedReleaseName);
+        }
       },
       err => console.error(err)
-    )
+    );
   }
 
   getClusterMetrics() {
@@ -291,17 +340,17 @@ export class ClusterComponent implements OnInit, OnDestroy {
         this.ramUsage = res.memory;
       },
       err => console.error(err)
-    )
+    );
   }
 
   getMachineMetrics() {
     this.supergiant.Kubes.getMachineMetrics(this.clusterId).subscribe(
       res => {
         this.machineMetrics = this.calculateMachineMetrics(res);
-        this.renderMachines(this.kube)
+        this.renderMachines(this.kube);
       },
       err => console.error(err)
-    )
+    );
   }
 
   getKubectlConfig() {
@@ -309,14 +358,14 @@ export class ClusterComponent implements OnInit, OnDestroy {
     this.util.fetch('v1/api/kubes/' + this.clusterId + '/users/kubernetes-admin/kubeconfig').subscribe(
       res => this.kubectlConfig = res,
       err => console.error(err)
-    )
+    );
   }
 
   getClusterServices() {
     this.supergiant.Kubes.getClusterServices(this.clusterId).subscribe(
       res => this.clusterServices = new MatTableDataSource(res),
       err => console.error(err)
-    )
+    );
   }
 
   calculateMachineMetrics(machines) {
@@ -342,7 +391,7 @@ export class ClusterComponent implements OnInit, OnDestroy {
         k => this.renderMachines(k),
         err => {
           console.error(err);
-          this.error(this.clusterId, err)
+          this.error(this.clusterId, err);
         },
      );
   }
@@ -359,28 +408,30 @@ export class ClusterComponent implements OnInit, OnDestroy {
       ).subscribe(
         res => {
           this.success(this.clusterId);
-          this.router.navigate([""]);
+          this.router.navigate(['']);
         },
         err => {
           console.error(err);
-          this.error(this.clusterId, err)
+          this.error(this.clusterId, err);
         },
      );
   }
 
-  deleteRelease(releaseName) {
+  deleteRelease(releaseName, idx) {
     const dialogRef = this.initDeleteRelease(releaseName);
 
     dialogRef
       .afterClosed()
       .pipe(
         filter(res => res.deleteRelease),
-        switchMap(res => this.supergiant.HelmReleases.delete(releaseName, this.clusterId, !res.deleteConfigs)),
+        // can't mutate table data source, polling erases any optimistic updates, so this happens, sorry...
+        switchMap((_) => this.deletingApps.add(releaseName)),
+        switchMap(res => this.supergiant.HelmReleases.delete(releaseName, this.clusterId, true)),
         catchError(err => of(err))
       ).subscribe(
-        res => this.getReleases(),
-        err => console.error(err)
-      )
+        res => { this.getReleases(releaseName); },
+        err => { this.deletingApps.delete(releaseName); console.error(err); }
+      );
   }
 
   showSshCommands() {
@@ -403,7 +454,7 @@ export class ClusterComponent implements OnInit, OnDestroy {
 
   openService(proxyPort) {
     const hostname = this.window.location.hostname;
-    const link = "http://" + hostname + ":" + proxyPort;
+    const link = 'http://' + hostname + ':' + proxyPort;
 
     this.window.open(link);
   }
@@ -422,7 +473,7 @@ export class ClusterComponent implements OnInit, OnDestroy {
 
   private initDeleteCluster(clusterState) {
     const dialogRef = this.dialog.open(DeleteClusterModalComponent, {
-      width: "500px",
+      width: '500px',
       data: { state: clusterState }
     });
     return dialogRef;
@@ -430,35 +481,35 @@ export class ClusterComponent implements OnInit, OnDestroy {
 
   private initDeleteRelease(name) {
     const dialogRef = this.dialog.open(DeleteReleaseModalComponent, {
-      width: "max-content",
+      width: 'max-content',
       data: { name: name }
-    })
+    });
     return dialogRef;
   }
 
   private initSshCommands(masters, nodes) {
     const dialogRef = this.dialog.open(SshCommandsModalComponent, {
-      width: "600px",
+      width: '600px',
       data: { masters: masters, nodes: nodes }
-    })
+    });
 
     return dialogRef;
   }
 
   private initKubectlConfig(config) {
     const dialogRef = this.dialog.open(KubectlConfigModalComponent, {
-      width: "800px",
+      width: '800px',
       data: { config: config }
-    })
+    });
 
     return dialogRef;
   }
 
   private initReleaseInfo(releaseName) {
     const dialogRef = this.dialog.open(ReleaseInfoModalComponent, {
-      width: "800px",
+      width: '800px',
       data: { releaseName: releaseName, clusterId: this.clusterId }
-    })
+    });
 
     return dialogRef;
   }

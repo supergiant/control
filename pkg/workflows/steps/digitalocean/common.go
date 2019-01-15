@@ -2,7 +2,6 @@ package digitalocean
 
 import (
 	"context"
-	"errors"
 	"time"
 
 	"github.com/digitalocean/godo"
@@ -17,14 +16,9 @@ const (
 	DeleteDeleteKeysStepName = "deleteKeysDigitalOcean"
 )
 
-var (
-	// TODO(stgleb): We need global error for timeout exceeding
-	ErrTimeoutExceeded = errors.New("timeout exceeded")
-)
-
 type DropletService interface {
-	Get(int) (*godo.Droplet, *godo.Response, error)
-	Create(*godo.DropletCreateRequest) (*godo.Droplet, *godo.Response, error)
+	Get(context.Context, int) (*godo.Droplet, *godo.Response, error)
+	Create(context.Context, *godo.DropletCreateRequest) (*godo.Droplet, *godo.Response, error)
 }
 
 type TagService interface {

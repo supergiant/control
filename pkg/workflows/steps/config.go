@@ -18,6 +18,9 @@ type CertificatesConfig struct {
 	PublicIP            string `json:"publicIp"`
 	PrivateIP           string `json:"privateIp"`
 	IsMaster            bool   `json:"isMaster"`
+	// TODO: this shouldn't be a part of SANs
+	// https://kubernetes.io/docs/setup/certificates/#all-certificates
+	KubernetesSvcIP string `json:"kubernetesSvcIp"`
 
 	StaticAuth profile.StaticAuth `json:"staticAuth"`
 
@@ -49,16 +52,18 @@ type DOConfig struct {
 // TODO(stgleb): Fill struct with fields when provisioning on other providers is done
 
 type GCEConfig struct {
-	PrivateKey       string `json:"privateKey"`
+	// NOTE(stgleb): This comes from cloud account
+	PrivateKey  string `json:"private_key"`
+	ClientEmail string `json:"client_email"`
+	TokenURI    string `json:"token_uri"`
+	ProjectID   string `json:"project_id"`
+
+	// This comes from profile
 	ImageFamily      string `json:"imageFamily"`
-	ProjectID        string `json:"projectId"`
 	Region           string `json:"region"`
 	AvailabilityZone string `json:"availabilityZone"`
 	Size             string `json:"size"`
 	InstanceGroup    string `json:"instanceGroup"`
-	ClientEmail      string `json:"clientEmail"`
-	TokenURI         string `json:"tokenURI"`
-	AuthURI          string `json:"authURI"`
 }
 
 type PacketConfig struct{}
@@ -83,7 +88,7 @@ type AWSConfig struct {
 	EbsOptimized           string `json:"ebsOptimized"`
 	ImageID                string `json:"image"`
 	InstanceType           string `json:"size"`
-	HasPublicAddr          string `json:"hasPublicAddr"`
+	HasPublicAddr          bool   `json:"hasPublicAddr"`
 	// Map of availability zone to subnet
 	Subnets map[string]string `json:"subnets"`
 	// Map az to route table association
@@ -111,6 +116,7 @@ type NetworkConfig struct {
 
 type KubeletConfig struct {
 	IsMaster       bool   `json:"isMaster"`
+	NodeLabels     string `json:"nodeLabels"`
 	ProxyPort      string `json:"proxyPort"`
 	K8SVersion     string `json:"k8sVersion"`
 	ProviderString string `json:"ProviderString"`
@@ -122,6 +128,8 @@ type ManifestConfig struct {
 	KubernetesConfigDir string `json:"kubernetesConfigDir"`
 	RBACEnabled         bool   `json:"rbacEnabled"`
 	ProviderString      string `json:"ProviderString"`
+	ServicesCIDR        string `json:"servicesCIDR"`
+	ClusterDNSIP        string `json:"clusterDNSIp"`
 	MasterHost          string `json:"masterHost"`
 	MasterPort          string `json:"masterPort"`
 	Password            string `json:"password"`
@@ -249,6 +257,7 @@ type Config struct {
 
 	nodeChan      chan node.Node
 	kubeStateChan chan model.KubeState
+	configChan    chan *Config
 
 	ReadyForBootstrapLatch *sync.WaitGroup
 }
@@ -268,12 +277,13 @@ func NewConfig(clusterName, clusterToken, cloudAccountName string, profile profi
 			VPCCIDR:                profile.CloudSpecificSettings[clouds.AwsVpcCIDR],
 			VPCID:                  profile.CloudSpecificSettings[clouds.AwsVpcID],
 			KeyPairName:            profile.CloudSpecificSettings[clouds.AwsKeyPairName],
-			Subnets:                nil,
 			MastersSecurityGroupID: profile.CloudSpecificSettings[clouds.AwsMastersSecGroupID],
 			NodesSecurityGroupID:   profile.CloudSpecificSettings[clouds.AwsNodesSecgroupID],
+			HasPublicAddr:          true,
 		},
 		GCEConfig: GCEConfig{
 			AvailabilityZone: profile.Zone,
+			ImageFamily:      "ubuntu-1604-lts",
 		},
 		OSConfig:     OSConfig{},
 		PacketConfig: PacketConfig{},
@@ -321,6 +331,7 @@ func NewConfig(clusterName, clusterToken, cloudAccountName string, profile profi
 			K8SVersion:          profile.K8SVersion,
 			KubernetesConfigDir: "/etc/kubernetes",
 			RBACEnabled:         profile.RBACEnabled,
+			ServicesCIDR:        profile.K8SServicesCIDR,
 			ProviderString:      toCloudProviderOpt(profile.Provider),
 			MasterHost:          "localhost",
 			MasterPort:          "8080",
@@ -377,6 +388,7 @@ func NewConfig(clusterName, clusterToken, cloudAccountName string, profile profi
 
 		nodeChan:      make(chan node.Node, len(profile.MasterProfiles)+len(profile.NodesProfiles)),
 		kubeStateChan: make(chan model.KubeState, 2),
+		configChan:    make(chan *Config),
 	}
 
 	return cfg
@@ -472,6 +484,10 @@ func (c *Config) NodeChan() chan node.Node {
 
 func (c *Config) KubeStateChan() chan model.KubeState {
 	return c.kubeStateChan
+}
+
+func (c *Config) ConfigChan() chan *Config {
+	return c.configChan
 }
 
 // TODO: cloud profiles is deprecated by kubernetes, use controller-managers

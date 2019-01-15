@@ -55,7 +55,7 @@ func (s *Step) Name() string {
 }
 
 func (s *Step) Description() string {
-	return ""
+	return "install CNI plugin"
 }
 
 func (s *Step) Depends() []string {

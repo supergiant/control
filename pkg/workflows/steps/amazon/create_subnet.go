@@ -8,36 +8,53 @@ import (
 
 	"github.com/apparentlymart/go-cidr/cidr"
 	"github.com/aws/aws-sdk-go/aws"
-	"github.com/aws/aws-sdk-go/aws/awserr"
 	"github.com/aws/aws-sdk-go/service/ec2"
 	"github.com/pkg/errors"
 	"github.com/sirupsen/logrus"
 
 	"github.com/supergiant/control/pkg/account"
 	"github.com/supergiant/control/pkg/workflows/steps"
+	"github.com/supergiant/control/pkg/model"
+	"github.com/aws/aws-sdk-go/aws/request"
 )
 
 const StepCreateSubnets = "create_subnet_steps"
 
-type CreateSubnetsStep struct {
-	GetEC2 GetEC2Fn
-	accSvc *account.Service
-
-	zoneGetterFactory func(context.Context, *account.Service, *steps.Config) (account.ZonesGetter, error)
+type accountGetter interface {
+	Get(context.Context, string) (*model.CloudAccount, error)
 }
 
-func NewCreateSubnetStep(fn GetEC2Fn, accSvc *account.Service) *CreateSubnetsStep {
-	return &CreateSubnetsStep{
-		GetEC2: fn,
-		accSvc: accSvc,
+type subnetSvc interface {
+	CreateSubnetWithContext(aws.Context, *ec2.CreateSubnetInput,
+		...request.Option) (*ec2.CreateSubnetOutput, error)
+}
 
-		zoneGetterFactory: func(ctx context.Context, accSvc *account.Service, cfg *steps.Config) (account.ZonesGetter, error) {
-			acc, err := accSvc.Get(ctx, cfg.CloudAccountName)
+type CreateSubnetsStep struct {
+	accountGetter accountGetter
+	getSvc func(steps.AWSConfig) (subnetSvc, error)
+	zoneGetterFactory func(context.Context, accountGetter, *steps.Config) (account.ZonesGetter, error)
+}
+
+func NewCreateSubnetStep(fn GetEC2Fn, getter accountGetter) *CreateSubnetsStep {
+	return &CreateSubnetsStep{
+		accountGetter: getter,
+		getSvc: func(config steps.AWSConfig) (subnetSvc, error) {
+			client, err := fn(config)
+
+			if err != nil {
+				return nil, ErrAuthorization
+			}
+
+			return client, nil
+		},
+		zoneGetterFactory: func(ctx context.Context, accountGetter accountGetter,
+			cfg *steps.Config) (account.ZonesGetter, error) {
+			acc, err := accountGetter.Get(ctx, cfg.CloudAccountName)
 
 			if err != nil {
 				logrus.Errorf("Get cloud account %s caused error %v",
 					cfg.CloudAccountName, err)
-				return nil, err
+				return nil, errors.Wrapf(err, "Get cloud account")
 			}
 
 			zoneGetter, err := account.NewZonesGetter(acc, cfg)
@@ -52,12 +69,16 @@ func InitCreateSubnet(fn GetEC2Fn, accSvc *account.Service) {
 }
 
 func (s *CreateSubnetsStep) Run(ctx context.Context, w io.Writer, cfg *steps.Config) error {
-	EC2, err := s.GetEC2(cfg.AWSConfig)
+	svc, err := s.getSvc(cfg.AWSConfig)
+
 	if err != nil {
-		return errors.Wrap(ErrAuthorization, err.Error())
+		logrus.Errorf("%s error getting service %v",
+			StepCreateSubnets, err)
+		return errors.Wrapf(err, "%s error getting service",
+			StepCreateSubnets)
 	}
 
-	zoneGetter, err := s.zoneGetterFactory(ctx, s.accSvc, cfg)
+	zoneGetter, err := s.zoneGetterFactory(ctx, s.accountGetter, cfg)
 
 	if err != nil {
 		logrus.Errorf("Create zone getter caused error %v", err)
@@ -78,23 +99,29 @@ func (s *CreateSubnetsStep) Run(ctx context.Context, w io.Writer, cfg *steps.Con
 	if err != nil {
 		logrus.Errorf("Error getting zones for region %s",
 			cfg.AWSConfig.Region)
+		return errors.Wrapf(err, "Error getting zone for region %s",
+			cfg.AWSConfig.Region)
 	}
 
 	// Create subnet for each availability zone
 	for _, zone := range zones {
+		_, cidrIP, err := net.ParseCIDR(cfg.AWSConfig.VPCCIDR)
 
-		// We already have existing subnet for that
-		if cfg.AWSConfig.Subnets[zone] != "" {
-			continue
+		if err != nil {
+			logrus.Errorf("Error parsing VPC cidr %s",
+				cfg.AWSConfig.VPCCIDR)
+			return errors.Wrapf(err, "Error parsing VPC cidr %s",
+				cfg.AWSConfig.VPCCIDR)
 		}
 
-		_, cidrIP, _ := net.ParseCIDR(cfg.AWSConfig.VPCCIDR)
-
+		logrus.Info(cidrIP)
 		subnetCidr, err := cidr.Subnet(cidrIP, 8, rand.Int()%256)
 		logrus.Debugf("Subnet cidr %s", subnetCidr)
 
 		if err != nil {
 			logrus.Debugf("Calculating subnet cidr caused %s", err.Error())
+			return errors.Wrapf(err, "%s Calculating subnet" +
+				" cidr caused error", StepCreateSubnets)
 		}
 
 		input := &ec2.CreateSubnetInput{
@@ -102,11 +129,9 @@ func (s *CreateSubnetsStep) Run(ctx context.Context, w io.Writer, cfg *steps.Con
 			AvailabilityZone: aws.String(zone),
 			CidrBlock:        aws.String(subnetCidr.String()),
 		}
-		out, err := EC2.CreateSubnetWithContext(ctx, input)
+		out, err := svc.CreateSubnetWithContext(ctx, input)
 		if err != nil {
-			if err, ok := err.(awserr.Error); ok {
-				logrus.Debugf("Create subnet cause error %s", err.Message())
-			}
+			logrus.Debugf("Create subnet cause error %s", err.Error())
 			return errors.Wrap(ErrCreateSubnet, err.Error())
 		}
 

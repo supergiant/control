@@ -15,14 +15,21 @@ import (
 	"github.com/supergiant/control/pkg/node"
 	"github.com/supergiant/control/pkg/util"
 	"github.com/supergiant/control/pkg/workflows/steps"
+	"github.com/aws/aws-sdk-go/aws/request"
 )
 
 const (
 	StepNameCreateEC2Instance = "aws_create_instance"
 )
 
+type instanceService interface {
+	RunInstancesWithContext(aws.Context, *ec2.RunInstancesInput, ...request.Option) (*ec2.Reservation, error)
+	DescribeInstancesWithContext(aws.Context, *ec2.DescribeInstancesInput, ...request.Option) (*ec2.DescribeInstancesOutput, error)
+	WaitUntilInstanceRunningWithContext(aws.Context, *ec2.DescribeInstancesInput, ...request.WaiterOption) error
+}
+
 type StepCreateInstance struct {
-	GetEC2 GetEC2Fn
+	getSvc func(steps.AWSConfig) (instanceService, error)
 }
 
 //InitCreateMachine adds the step to the registry
@@ -32,12 +39,28 @@ func InitCreateMachine(ec2fn GetEC2Fn) {
 
 func NewCreateInstance(ec2fn GetEC2Fn) *StepCreateInstance {
 	return &StepCreateInstance{
-		GetEC2: ec2fn,
+		getSvc: func(config steps.AWSConfig) (instanceService, error) {
+			EC2, err := ec2fn(config)
+
+			if err != nil {
+				return nil, errors.Wrap(ErrAuthorization, err.Error())
+			}
+
+			return EC2, nil
+		},
 	}
 }
 
 func (s *StepCreateInstance) Run(ctx context.Context, w io.Writer, cfg *steps.Config) error {
 	log := util.GetLogger(w)
+
+
+	// TODO: reuse sessions
+	ec2Svc, err := s.getSvc(cfg.AWSConfig)
+	if err != nil {
+		logrus.Errorf("[%s] - failed to authorize in AWS: %v", s.Name(), err)
+		return errors.Wrap(ErrAuthorization, err.Error())
+	}
 
 	role := node.RoleMaster
 	if !cfg.IsMaster {
@@ -71,16 +94,8 @@ func (s *StepCreateInstance) Run(ctx context.Context, w io.Writer, cfg *steps.Co
 		instanceProfileName = &cfg.AWSConfig.NodesInstanceProfile
 	}
 
-	// TODO: reuse sessions
-	EC2, err := s.GetEC2(cfg.AWSConfig)
-	if err != nil {
-		logrus.Errorf("[%s] - failed to authorize in AWS: %v", s.Name(), err)
-		return errors.Wrap(ErrAuthorization, err.Error())
-	}
-
 	isEbs := false
 	volumeSize, err := strconv.Atoi(cfg.AWSConfig.VolumeSize)
-	hasPublicAddress, err := strconv.ParseBool(cfg.AWSConfig.HasPublicAddr)
 
 	runInstanceInput := &ec2.RunInstancesInput{
 		BlockDeviceMappings: []*ec2.BlockDeviceMapping{
@@ -131,7 +146,7 @@ func (s *StepCreateInstance) Run(ctx context.Context, w io.Writer, cfg *steps.Co
 			},
 		},
 	}
-	if hasPublicAddress {
+	if cfg.AWSConfig.HasPublicAddr {
 		runInstanceInput.NetworkInterfaces = []*ec2.InstanceNetworkInterfaceSpecification{
 			{
 				DeviceIndex:              aws.Int64(0),
@@ -143,7 +158,7 @@ func (s *StepCreateInstance) Run(ctx context.Context, w io.Writer, cfg *steps.Co
 		}
 	}
 
-	res, err := EC2.RunInstancesWithContext(ctx, runInstanceInput)
+	res, err := ec2Svc.RunInstancesWithContext(ctx, runInstanceInput)
 	if err != nil {
 		cfg.Node.State = node.StateError
 		cfg.NodeChan() <- cfg.Node
@@ -174,7 +189,7 @@ func (s *StepCreateInstance) Run(ctx context.Context, w io.Writer, cfg *steps.Co
 
 	instance := res.Instances[0]
 
-	if hasPublicAddress {
+	if cfg.AWSConfig.HasPublicAddr {
 		log.Infof("[%s] - waiting to obtain public IP...", s.Name())
 
 		lookup := &ec2.DescribeInstancesInput{
@@ -190,24 +205,23 @@ func (s *StepCreateInstance) Run(ctx context.Context, w io.Writer, cfg *steps.Co
 			},
 		}
 		logrus.Debugf("Wait until instance %s running", nodeName)
-		err = EC2.WaitUntilInstanceRunningWithContext(ctx, lookup)
+		err = ec2Svc.WaitUntilInstanceRunningWithContext(ctx, lookup)
 
 		if err != nil {
 			logrus.Errorf("Error waiting instance %s cluster %s running %v",
-				nodeName, cfg.ClusterName, err)
+				nodeName, cfg.ClusterID, err)
+			return errors.Wrapf(err, "Error waiting instance %s cluster-id %s",
+				nodeName, cfg.ClusterID)
 		}
+
 		logrus.Debugf("Instance running %s", nodeName)
 
-		out, err := EC2.DescribeInstancesWithContext(ctx, lookup)
+		out, err := ec2Svc.DescribeInstancesWithContext(ctx, lookup)
 		if err != nil {
 			cfg.Node.State = node.StateError
 			cfg.NodeChan() <- cfg.Node
 			log.Errorf("[%s] - failed to obtain public IP for node %s: %v", s.Name(), nodeName, err)
 			return errors.Wrap(ErrNoPublicIP, err.Error())
-		}
-
-		if len(out.Reservations) == 0 {
-			log.Infof("[%s] - found 0 ec2 instances", s.Name())
 		}
 
 		if i := findInstanceWithPublicAddr(out.Reservations); i != nil {
@@ -241,26 +255,6 @@ func (s *StepCreateInstance) Run(ctx context.Context, w io.Writer, cfg *steps.Co
 }
 
 func (s *StepCreateInstance) Rollback(ctx context.Context, w io.Writer, cfg *steps.Config) error {
-	log := util.GetLogger(w)
-	log.Infof("[%s] - rollback initiated", s.Name())
-
-	EC2, err := s.GetEC2(cfg.AWSConfig)
-	if err != nil {
-		return errors.New("aws: authorization")
-	}
-
-	if cfg.Node.ID != "" {
-		_, err := EC2.TerminateInstancesWithContext(ctx, &ec2.TerminateInstancesInput{
-			InstanceIds: []*string{
-				aws.String(cfg.Node.ID),
-			},
-		})
-		if err != nil {
-			return err
-		}
-		log.Infof("[%s] - deleted ec2 instance %s", s.Name(), cfg.Node.ID)
-		return nil
-	}
 	return nil
 }
 

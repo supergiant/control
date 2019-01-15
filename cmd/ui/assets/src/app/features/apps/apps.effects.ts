@@ -4,13 +4,13 @@ import { distinctUntilChanged, map, mergeMap, switchMap } from 'rxjs/operators';
 import { HttpClient }                                     from '@angular/common/http';
 import { Action }                                         from '@ngrx/store';
 import { Observable }                                     from 'rxjs';
-import { Chart }                                          from "./apps.reducer";
+import { Chart }                                          from './apps.reducer';
 import {
   AppCommonActions,
   AppCommonActionTypes,
   AppDetailActionTypes, LoadAppDetails,
   SetAppDetails, LoadChartsSuccess,
-}                                                         from "./actions";
+}                                                         from './actions';
 
 
 @Injectable()
@@ -23,7 +23,7 @@ export class AppsEffects {
     mergeMap(
       (action: AppCommonActions) => this.http.get(`/v1/api/helm/repositories/${action.payload}/charts`),
       (action: AppCommonActions, charts) => {
-        return new LoadChartsSuccess({ repo: action.payload, charts })
+        return new LoadChartsSuccess({ repo: action.payload, charts });
       }
     ),
   );

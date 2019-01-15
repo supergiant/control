@@ -1,14 +1,14 @@
-import { HttpClient }                                                from "@angular/common/http";
+import { HttpClient }                                                from '@angular/common/http';
 import {
   Component,
   OnDestroy,
-  OnInit
+  OnInit,
 }                                                                    from '@angular/core';
 import {
   ActivatedRoute,
   Router,
-}                                                                    from "@angular/router";
-import { combineLatest, Observable, of, Subject, Subscription, zip } from "rxjs";
+}                                                                    from '@angular/router';
+import { combineLatest, Observable, of, Subject, Subscription, zip } from 'rxjs';
 import {
   catchError,
   distinctUntilChanged,
@@ -19,17 +19,19 @@ import {
   pluck,
   switchMap,
   take,
-  tap
-}                                                                    from "rxjs/operators";
-import { Notifications }                                             from "../../../shared/notifications/notifications.service";
-import { Supergiant }                                                from "../../../shared/supergiant/supergiant.service";
-import { CLUSTER_OPTIONS }                                           from "../../new-cluster/cluster-options.config";
-import { NodeProfileService }                                        from "../../node-profile.service";
+  tap,
+}                                                                    from 'rxjs/operators';
+// TODO: create refactoring task for this "ladder-like" imports across the project
+import { Notifications }                                             from '../../../shared/notifications/notifications.service';
+import { Supergiant }                                                from '../../../shared/supergiant/supergiant.service';
+import { CLUSTER_OPTIONS }                                           from '../../new-cluster/cluster-options.config';
+import { NodeProfileService }                                        from '../../node-profile.service';
+import { sortDigitalOceanMachineTypes }                              from 'app/clusters/new-cluster/new-cluster.helpers';
 
 @Component({
   selector: 'add-node',
   templateUrl: './add-node.component.html',
-  styleUrls: ['./add-node.component.scss']
+  styleUrls: ['./add-node.component.scss'],
 })
 export class AddNodeComponent implements OnInit, OnDestroy {
   clusterId: number;
@@ -37,7 +39,7 @@ export class AddNodeComponent implements OnInit, OnDestroy {
 
   machines = [{
     machineType: null,
-    role: "Node",
+    role: 'Node',
     qty: 1,
     availabilityZone: '',
   }];
@@ -56,7 +58,7 @@ export class AddNodeComponent implements OnInit, OnDestroy {
   availabilityZones: string[];
   selectedAZSubj: Subject<string>;
   isLoadingMachineTypes: boolean;
-  machineTypesFilter: string = '';
+  machineTypesFilter = '';
 
   constructor(
     private supergiant: Supergiant,
@@ -83,12 +85,12 @@ export class AddNodeComponent implements OnInit, OnDestroy {
         console.log('prov', p);
       }),
       pluck('region'),
-      distinctUntilChanged()
+      distinctUntilChanged(),
     );
 
 
     const cloudAccountName$ = cluster$.pipe(
-      pluck('accountName')
+      pluck('accountName'),
     );
 
     this.provider$ = cluster$.pipe(
@@ -96,14 +98,21 @@ export class AddNodeComponent implements OnInit, OnDestroy {
       distinctUntilChanged(),
       tap(provider => {
         this.providerSubj.next(provider);
-      })
+      }),
     );
 
     // Digital Ocean machine sizes
-    const DOmachineSizes$ = cloudAccountName$.pipe(
+    const DOregions$ = cloudAccountName$.pipe(
       switchMap(accountName => this.supergiant.CloudAccounts.getRegions(accountName)),
-      pluck('sizes'),
-      map(sizes => Object.keys(sizes)),
+      pluck('regions'),
+    );
+
+    const DOmachineSizes$ = DOregions$.pipe(
+      switchMap((regions: any[]) => region$.pipe(
+        map((region: any) => regions.filter(el => el.id === region)[0]),
+      )),
+      pluck('AvailableSizes'),
+      map(sortDigitalOceanMachineTypes),
     );
 
 
@@ -116,42 +125,75 @@ export class AddNodeComponent implements OnInit, OnDestroy {
           this.supergiant.CloudAccounts.getAwsAvailabilityZones(name, region).pipe(
             tap(availabilityZones => this.availabilityZones = availabilityZones),
             // TODO: error handling
-            catchError(e => of(e))
-          )
-        )
+            catchError(e => of(e)),
+          ),
+        ),
       ),
       // fetch machine types after az change
       mergeMap(([name, region]) => {
         return combineLatest(
-          of({name, region}), this.selectedAZSubj,
-          (params, awsZone) => [params.name, params.region, awsZone]
+          of({ name, region }), this.selectedAZSubj,
+          (params, awsZone) => [params.name, params.region, awsZone],
         );
       }),
-      switchMap(([name, region, awsZone]) => this.supergiant.CloudAccounts.getAwsMachineTypes(name, region, awsZone))
+      switchMap(([name, region, awsZone]) => this.supergiant.CloudAccounts.getAwsMachineTypes(name, region, awsZone)),
     );
 
+    const gceMachineSizes$: Observable<string[]> = zip(cloudAccountName$, region$).pipe(
+      take(1),
+      switchMap(([name, region]) =>
+        combineLatest(
+          of(name),
+          of(region),
+          this.supergiant.CloudAccounts.getGCEAvailabilityZones(name, region).pipe(
+            tap(availabilityZones => this.availabilityZones = availabilityZones),
+            // TODO: error handling
+            catchError(e => of(e)),
+          ),
+        ),
+      ),
+      // fetch machine types after az change
+      mergeMap(([name, region]) => {
+        return combineLatest(
+          of({ name, region }), this.selectedAZSubj,
+          (params, gceZone) => [params.name, params.region, gceZone],
+        );
+      }),
+      switchMap(([name, region, gceZone]) => this.supergiant.CloudAccounts.getGCEMachineTypes(name, region, gceZone)),
+    );
 
     this.subscriptions.add(
       this.providerSubj.pipe(
         filter(provider => provider === 'digitalocean'),
         switchMap(() => DOmachineSizes$),
-      ).subscribe(sizes => this.machineSizes$ = of(sizes.sort()))
+      ).subscribe(sizes => this.machineSizes$ = of(sizes)),
     );
 
     this.subscriptions.add(
       this.providerSubj.pipe(
         filter(provider => provider === 'aws'),
         first(),
-        switchMap(_ => awsMachineSizes$)
+        switchMap(_ => awsMachineSizes$),
       ).subscribe((sizes) => {
         this.isLoadingMachineTypes = false;
         this.machineSizes$ = of(sizes.sort());
-      })
+      }),
+    );
+
+    this.subscriptions.add(
+      this.providerSubj.pipe(
+        filter(provider => provider === 'gce'),
+        first(),
+        switchMap(_ => gceMachineSizes$),
+      ).subscribe((sizes) => {
+        this.isLoadingMachineTypes = false;
+        this.machineSizes$ = of(sizes.sort());
+      }),
     );
 
     this.subscriptions.add(
       this.provider$
-        .subscribe(provider => this.provider = provider)
+        .subscribe(provider => this.provider = provider),
     );
 
   }
@@ -161,18 +203,18 @@ export class AddNodeComponent implements OnInit, OnDestroy {
   }
 
   addBlankMachine() {
-    this.machines.push({
-      machineType: null,
-      role: 'Node',
-      qty: 1,
-      availabilityZone: '',
-    });
+    const lastMachine = this.machines[this.machines.length - 1];
+    const newMachine = Object.assign({}, lastMachine);
+
+    this.machines.push(newMachine);
 
     this.checkAndSetValidMachineConfig();
   }
 
   deleteMachine(idx) {
-    if (this.machines.length === 1) return;
+    if (this.machines.length === 1) {
+      return;
+    }
 
     this.machines.splice(idx, 1);
 
@@ -180,7 +222,7 @@ export class AddNodeComponent implements OnInit, OnDestroy {
   }
 
   validMachine(machine) {
-    if (machine.machineType && machine.role && (typeof(machine.qty) == "number")) {
+    if (machine.machineType && machine.role && (typeof (machine.qty) == 'number')) {
       return true;
     } else {
       return false;
@@ -208,7 +250,7 @@ export class AddNodeComponent implements OnInit, OnDestroy {
       this.isProcessing = true;
       this.displayMachineConfigError = false;
 
-      const nodes = this.nodesService.compileProfiles(this.provider, this.machines, "Node");
+      const nodes = this.nodesService.compileProfiles(this.provider, this.machines, 'Node');
       // TODO  move to service
       const url = `/v1/api/kubes/${this.clusterId}/nodes`;
 
@@ -216,17 +258,19 @@ export class AddNodeComponent implements OnInit, OnDestroy {
         catchError(error => {
           this.notifications.display('error', 'Error', error.statusText);
           return of(new ErrorEvent(error));
-        })
+        }),
       )
         .subscribe(result => {
           this.isProcessing = false;
 
-          if (result instanceof ErrorEvent) return;
+          if (result instanceof ErrorEvent) {
+            return;
+          }
 
           this.notifications.display(
             'success',
             'Success!',
-            'Your request is being processed'
+            'Your request is being processed',
           );
           this.router.navigate([`clusters/${this.clusterId}`]);
         });
@@ -243,6 +287,6 @@ export class AddNodeComponent implements OnInit, OnDestroy {
     }
 
     return val.indexOf(this.machineTypesFilter) > -1;
-  }
+  };
 
 }

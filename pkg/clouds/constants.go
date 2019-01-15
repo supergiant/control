@@ -34,12 +34,16 @@ const (
 	DigitalOceanFingerPrint    = "fingerprint"
 	DigitalOceanAccessToken    = "accessToken"
 	EnvDigitalOceanAccessToken = "DIGITALOCEAN_TOKEN"
-	CredsPrivateKey            = "privateKey"
-	CredsPublicKey             = "publicKey"
-	AWSAccessKeyID             = "access_key"
-	AWSSecretKey               = "secret_key"
+
+	GCEProjectID   = "project_id"
+	GCEPrivateKey  = "private_key"
+	GCEClientEmail = "client_email"
+	GCETokenURI    = "token_uri"
 
 	ClusterIDTag                = "supergiant.io/cluster-id"
+
+	AWSAccessKeyID             = "access_key"
+	AWSSecretKey               = "secret_key"
 	AwsAZ                       = "aws_az"
 	AwsVpcCIDR                  = "aws_vpc_cidr"
 	AwsVpcID                    = "aws_vpc_id"
@@ -53,4 +57,5 @@ const (
 	AwsInternetGateWayID        = "aws_internet_gateway_id"
 	AwsMasterInstanceProfile    = "aws_master_instance_profile"
 	AwsNodeInstanceProfile      = "aws_node_instance_profile"
+	AwsImageID = "aws_image_id"
 )

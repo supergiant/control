@@ -6,6 +6,7 @@ import (
 	"testing"
 
 	"github.com/pkg/errors"
+	"github.com/stretchr/testify/mock"
 
 	"github.com/supergiant/control/pkg/testutils"
 )
@@ -27,7 +28,7 @@ func TestKubeProfileServiceGet(t *testing.T) {
 		},
 	}
 
-	prefix := "/kube/"
+	prefix := "/profile/"
 
 	for _, testCase := range testCases {
 		m := new(testutils.MockStorage)
@@ -53,29 +54,29 @@ func TestKubeProfileServiceGet(t *testing.T) {
 
 func TestKubeProfileServiceCreate(t *testing.T) {
 	testCases := []struct {
-		kube *Profile
-		err  error
+		profile *Profile
+		err     error
 	}{
 		{
-			kube: &Profile{},
-			err:  nil,
+			profile: &Profile{},
+			err:     nil,
 		},
 		{
-			kube: &Profile{},
-			err:  errors.New("test err"),
+			profile: &Profile{},
+			err:     errors.New("test err"),
 		},
 	}
 
-	prefix := "/kube/"
+	prefix := "/profile/"
 
 	for _, testCase := range testCases {
 		m := new(testutils.MockStorage)
-		kubeData, _ := json.Marshal(testCase.kube)
+		kubeData, _ := json.Marshal(testCase.profile)
 
 		m.On("Put",
 			context.Background(),
 			prefix,
-			testCase.kube.ID,
+			mock.Anything,
 			kubeData).
 			Return(testCase.err)
 
@@ -84,7 +85,7 @@ func TestKubeProfileServiceCreate(t *testing.T) {
 			m,
 		}
 
-		err := service.Create(context.Background(), testCase.kube)
+		err := service.Create(context.Background(), testCase.profile)
 
 		if testCase.err != err {
 			t.Errorf("Unexpected error when create node %v", err)
@@ -107,7 +108,7 @@ func TestKubeProfileServiceGetAll(t *testing.T) {
 		},
 	}
 
-	prefix := "/kube/"
+	prefix := "/profile/"
 
 	for _, testCase := range testCases {
 		m := new(testutils.MockStorage)

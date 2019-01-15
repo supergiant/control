@@ -6,7 +6,8 @@ import (
 	"io"
 
 	"github.com/pkg/errors"
-	compute "google.golang.org/api/compute/v1"
+	"github.com/sirupsen/logrus"
+	"google.golang.org/api/compute/v1"
 
 	"github.com/supergiant/control/pkg/workflows/steps"
 )
@@ -14,27 +15,41 @@ import (
 const DeleteNodeStepName = "gce_delete_node"
 
 type DeleteNodeStep struct {
-	// Client creates the client for the provider.
-	getClient func(context.Context, string, string, string) (*compute.Service, error)
+	getComputeSvc func(context.Context, steps.GCEConfig) (*computeService, error)
 }
 
-func NewDeleteNodeStep() (steps.Step, error) {
+func NewDeleteNodeStep() (*DeleteNodeStep, error) {
 	return &DeleteNodeStep{
-		getClient: GetClient,
+		getComputeSvc: func(ctx context.Context, config steps.GCEConfig) (*computeService, error) {
+			client, err := GetClient(ctx, config.ClientEmail,
+				config.PrivateKey, config.TokenURI)
+
+			if err != nil {
+				return nil, err
+			}
+
+			return &computeService{
+				deleteInstance: func(projectID string, region string, name string) (*compute.Operation, error) {
+					return client.Instances.Delete(projectID, region, name).Do()
+				},
+			}, nil
+		},
 	}, nil
 }
 
 func (s *DeleteNodeStep) Run(ctx context.Context, output io.Writer, config *steps.Config) error {
-	// fetch client.)
-	client, err := s.getClient(ctx, config.GCEConfig.ClientEmail,
-		config.GCEConfig.PrivateKey, config.GCEConfig.TokenURI)
+	// fetch client
+	svc, err := s.getComputeSvc(ctx, config.GCEConfig)
+
 	if err != nil {
-		return err
+		return errors.Wrapf(err, "%s get service", DeleteClusterStepName)
 	}
 
-	_, serr := client.Instances.Delete(config.GCEConfig.ProjectID,
-		config.GCEConfig.AvailabilityZone,
-		config.Node.Name).Do()
+	logrus.Debugf("Delete node %s in %s",
+		config.Node.Name, config.Node.Region)
+	_, serr := svc.deleteInstance(config.GCEConfig.ProjectID,
+		config.Node.Region,
+		config.Node.Name)
 
 	if serr != nil {
 		return errors.Wrap(serr, fmt.Sprintf("GCE delete instance %s", config.Node.Name))
@@ -52,7 +67,7 @@ func (s *DeleteNodeStep) Depends() []string {
 }
 
 func (s *DeleteNodeStep) Description() string {
-	return "Google compute engine step for creating instance"
+	return "Google compute engine delete instance step"
 }
 
 func (s *DeleteNodeStep) Rollback(context.Context, io.Writer, *steps.Config) error {

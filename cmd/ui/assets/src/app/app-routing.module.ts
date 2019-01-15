@@ -1,6 +1,6 @@
 import { NgModule }                 from '@angular/core';
 import { Routes, RouterModule }     from '@angular/router';
-import { AddNodeComponent }         from "./clusters/cluster/add-node/add-node.component";
+import { AddNodeComponent }         from './clusters/cluster/add-node/add-node.component';
 import { LoginComponent }           from './login/login.component';
 
 // ui 2000 components
@@ -20,7 +20,7 @@ import { ClusterComponent } from './clusters/cluster/cluster.component';
 import {
   AuthGuardService as AuthGuard
 } from './shared/supergiant/auth/auth-guard.service';
-import {LoginGuardService} from "./shared/supergiant/auth/login-guard.service";
+import {LoginGuardService} from './shared/supergiant/auth/login-guard.service';
 
 const appRoutes: Routes = [
   {

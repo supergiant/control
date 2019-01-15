@@ -4,7 +4,6 @@ import (
 	"context"
 	"fmt"
 	"io"
-	"os"
 	"sync"
 	"time"
 
@@ -59,6 +58,7 @@ func NewProvisioner(repository storage.Interface, kubeService KubeService,
 			clouds.AWS: {
 				ProvisionMaster: workflows.AWSMaster,
 				ProvisionNode:   workflows.AWSNode,
+				PreProvision:    workflows.AWSPreProvision,
 			},
 			clouds.GCE: {
 				ProvisionMaster: workflows.GCEMaster,
@@ -75,7 +75,7 @@ func NewProvisioner(repository storage.Interface, kubeService KubeService,
 // that have been provided for provisionCluster
 func (tp *TaskProvisioner) ProvisionCluster(parentContext context.Context,
 	profile *profile.Profile, config *steps.Config) (map[string][]*workflows.Task, error) {
-	masterTasks, nodeTasks, clusterTask := tp.prepare(config.Provider, len(profile.MasterProfiles),
+	masterTasks, nodeTasks, preProvisionTask, clusterTask := tp.prepare(config.Provider, len(profile.MasterProfiles),
 		len(profile.NodesProfiles))
 
 	// Get clusterID from taskID
@@ -102,7 +102,7 @@ func (tp *TaskProvisioner) ProvisionCluster(parentContext context.Context,
 	}
 
 	// Gather all task ids
-	taskIds := grabTaskIds(clusterTask, masterTasks, nodeTasks)
+	taskIds := grabTaskIds(preProvisionTask, clusterTask, masterTasks, nodeTasks)
 	// Save cluster before provisioning
 	err := tp.buildInitialCluster(ctx, profile, masters, nodes, config, taskIds)
 
@@ -111,20 +111,28 @@ func (tp *TaskProvisioner) ProvisionCluster(parentContext context.Context,
 	}
 
 	// monitor cluster state in separate goroutine
-	go tp.monitorClusterState(ctx, config)
+	go tp.monitorClusterState(ctx, config.ClusterID, config.NodeChan(),
+		config.KubeStateChan(), config.ConfigChan())
 
 	go func() {
-		if err := tp.preProvision(ctx, config); err != nil {
-			logrus.Errorf("Pre provisioning cluster %v", err)
-			return
+		var preProvisionErr error
+
+		if preProvisionTask != nil {
+			if preProvisionErr := tp.preProvision(ctx, preProvisionTask, config); preProvisionErr != nil {
+				logrus.Errorf("Pre provisioning cluster %v", err)
+			}
+
+			// In case of preprovision failure stop provisioning process.
+			if preProvisionErr != nil {
+				logrus.Errorf("pre provision has failed with %v", err)
+				return
+			}
+
+			// Copy config from preProvision task because it contains all things need for further
+			// provisioning VPC, SecGroup, Subnets etc.
+			config = preProvisionTask.Config
 		}
 
-		// Save cluster before provisioning
-		err := tp.updateCloudSpecificData(ctx, config)
-
-		if err != nil {
-			logrus.Errorf("update cluster with cloud specific data %v", err)
-		}
 		config.ReadyForBootstrapLatch = &sync.WaitGroup{}
 		config.ReadyForBootstrapLatch.Add(len(profile.MasterProfiles))
 		// ProvisionCluster masters and wait until n/2 + 1 of masters with etcd are up and running
@@ -156,11 +164,17 @@ func (tp *TaskProvisioner) ProvisionCluster(parentContext context.Context,
 		logrus.Infof("cluster %s deployment has finished", config.ClusterID)
 	}()
 
-	return map[string][]*workflows.Task{
+	taskMap := map[string][]*workflows.Task{
 		"master":  masterTasks,
 		"node":    nodeTasks,
 		"cluster": {clusterTask},
-	}, nil
+	}
+
+	if preProvisionTask != nil {
+		taskMap["preprovision"] = []*workflows.Task{preProvisionTask}
+	}
+
+	return taskMap, nil
 }
 
 func (tp *TaskProvisioner) ProvisionNodes(parentContext context.Context, nodeProfiles []profile.NodeProfile, kube *model.Kube, config *steps.Config) ([]string, error) {
@@ -187,7 +201,9 @@ func (tp *TaskProvisioner) ProvisionNodes(parentContext context.Context, nodePro
 	}
 
 	// monitor cluster state in separate goroutine
-	go tp.monitorClusterState(ctx, config)
+	go tp.monitorClusterState(ctx, config.ClusterID,
+		config.NodeChan(), config.KubeStateChan(), config.ConfigChan())
+
 	tasks := make([]string, 0, len(nodeProfiles))
 
 	for _, nodeProfile := range nodeProfiles {
@@ -243,9 +259,28 @@ func (tp *TaskProvisioner) Cancel(clusterID string) error {
 }
 
 // prepare creates all tasks for provisioning according to cloud provider
-func (tp *TaskProvisioner) prepare(name clouds.Name, masterCount, nodeCount int) ([]*workflows.Task, []*workflows.Task, *workflows.Task) {
+func (tp *TaskProvisioner) prepare(name clouds.Name, masterCount, nodeCount int) ([]*workflows.Task, []*workflows.Task, *workflows.Task, *workflows.Task) {
+	var (
+		preProvisionTask  *workflows.Task
+		postProvisionTask *workflows.Task
+		err               error
+	)
+
 	masterTasks := make([]*workflows.Task, 0, masterCount)
 	nodeTasks := make([]*workflows.Task, 0, nodeCount)
+	//some clouds (e.g. AWS) requires running tasks before provisioning nodes (creating a VPC, Subnets, SecGroups, etc)
+	switch name {
+	case clouds.AWS:
+		preProvisionTask, err = workflows.NewTask(tp.provisionMap[name].PreProvision, tp.repository)
+		// We can't go further without pre provision task
+		if err != nil {
+			logrus.Errorf("create pre provision task has finished with %v", err)
+			return nil, nil, nil, nil
+		}
+	case clouds.GCE:
+	case clouds.DigitalOcean:
+		// TODO(stgleb): Create key pairs here
+	}
 
 	for i := 0; i < masterCount; i++ {
 		t, err := workflows.NewTask(tp.provisionMap[name].ProvisionMaster, tp.repository)
@@ -267,23 +302,38 @@ func (tp *TaskProvisioner) prepare(name clouds.Name, masterCount, nodeCount int)
 		nodeTasks = append(nodeTasks, t)
 	}
 
-	clusterTask, _ := workflows.NewTask(workflows.Cluster, tp.repository)
+	postProvisionTask, _ = workflows.NewTask(workflows.Cluster, tp.repository)
 
-	return masterTasks, nodeTasks, clusterTask
+	return masterTasks, nodeTasks, preProvisionTask, postProvisionTask
 }
 
-func (p *TaskProvisioner) preProvision(ctx context.Context, config *steps.Config) error {
-	//some clouds (e.g. AWS) requires running tasks before provisioning nodes (creating a VPC, Subnets, SecGroups, etc)
-	switch config.Provider {
-	case clouds.AWS:
-		wf := workflows.GetWorkflow(workflows.AWSPreProvision)
-		for _, t := range wf {
-			if err := t.Run(ctx, os.Stdout, config); err != nil {
-				return errors.Wrap(err, "cluster pre provisioning setup failed")
-			}
-		}
+// preProvision is for preparing activities before instances can be creates like
+// creation of VPC, key pairs, security groups, subnets etc.
+func (tp *TaskProvisioner) preProvision(ctx context.Context, preProvisionTask *workflows.Task, config *steps.Config) error {
+	fileName := util.MakeFileName(preProvisionTask.ID)
+	out, err := tp.getWriter(fileName)
+
+	if err != nil {
+		logrus.Errorf("Error getting writer for %s", fileName)
+		return err
 	}
-	return nil
+
+	result := preProvisionTask.Run(ctx, *config, out)
+	err = <-result
+
+	if err != nil {
+		config.KubeStateChan() <- model.StateFailed
+		logrus.Errorf("pre provision task %s has finished with error %v",
+			preProvisionTask.ID, err)
+	} else {
+		// Update kube state
+		config.KubeStateChan() <- model.StateProvisioning
+		// Update cloud spec
+		config.ConfigChan() <- preProvisionTask.Config
+		logrus.Infof("pre provision %s has finished", preProvisionTask.ID)
+	}
+
+	return err
 }
 
 func (tp *TaskProvisioner) provisionMasters(ctx context.Context, profile *profile.Profile, config *steps.Config, tasks []*workflows.Task) (chan struct{}, chan struct{}, error) {
@@ -439,19 +489,21 @@ func (tp *TaskProvisioner) buildInitialCluster(ctx context.Context,
 	config *steps.Config, taskIds []string) error {
 
 	cluster := &model.Kube{
-		ID:                 config.ClusterID,
-		State:              model.StateProvisioning,
-		Name:               config.ClusterName,
-		Provider:           profile.Provider,
-		AccountName:        config.CloudAccountName,
-		RBACEnabled:        profile.RBACEnabled,
-		Region:             profile.Region,
-		Zone:               profile.Zone,
-		SshUser:            config.SshConfig.User,
-		SshPublicKey:       []byte(config.SshConfig.PublicKey),
-		BootstrapPublicKey: []byte(config.SshConfig.BootstrapPublicKey),
-		User:               profile.User,
-		Password:           profile.Password,
+		ID:                  config.ClusterID,
+		State:               model.StateProvisioning,
+		Name:                config.ClusterName,
+		Provider:            profile.Provider,
+		AccountName:         config.CloudAccountName,
+		RBACEnabled:         profile.RBACEnabled,
+		ServicesCIDR:        profile.K8SServicesCIDR,
+		Region:              profile.Region,
+		Zone:                profile.Zone,
+		SshUser:             config.SshConfig.User,
+		SshPublicKey:        []byte(config.SshConfig.PublicKey),
+		BootstrapPublicKey:  []byte(config.SshConfig.BootstrapPublicKey),
+		BootstrapPrivateKey: []byte(config.SshConfig.BootstrapPrivateKey),
+		User:                profile.User,
+		Password:            profile.Password,
 
 		Auth: model.Auth{
 			Username:  config.CertificatesConfig.Username,
@@ -484,13 +536,9 @@ func (tp *TaskProvisioner) buildInitialCluster(ctx context.Context,
 	return tp.kubeService.Create(ctx, cluster)
 }
 
-func (t *TaskProvisioner) updateCloudSpecificData(ctx context.Context, config *steps.Config) error {
-	k, err := t.kubeService.Get(ctx, config.ClusterID)
-
-	if err != nil {
-		logrus.Errorf("get kube caused %v", err)
-		return err
-	}
+func (t *TaskProvisioner) updateCloudSpecificData(k *model.Kube, config *steps.Config) {
+	logrus.Debugf("Update cloud specific data for kube %s",
+		config.ClusterID)
 
 	cloudSpecificSettings := make(map[string]string)
 
@@ -525,6 +573,8 @@ func (t *TaskProvisioner) updateCloudSpecificData(ctx context.Context, config *s
 			config.AWSConfig.MastersInstanceProfile
 		cloudSpecificSettings[clouds.AwsNodeInstanceProfile] =
 			config.AWSConfig.NodesInstanceProfile
+		cloudSpecificSettings[clouds.AwsImageID] =
+			config.AWSConfig.ImageID
 	case clouds.GCE:
 		// GCE is the most simple :-)
 	case clouds.DigitalOcean:
@@ -534,8 +584,6 @@ func (t *TaskProvisioner) updateCloudSpecificData(ctx context.Context, config *s
 	}
 
 	k.CloudSpec = cloudSpecificSettings
-	// Save kubbe with update cloud specific settings
-	return t.kubeService.Create(ctx, k)
 }
 
 func (t *TaskProvisioner) loadCloudSpecificData(ctx context.Context, config *steps.Config) error {
@@ -581,12 +629,14 @@ func bootstrapCerts(config *steps.Config) error {
 	return nil
 }
 
-// All cluster state changes during provisioning are made in this function
-func (tp *TaskProvisioner) monitorClusterState(ctx context.Context, cfg *steps.Config) {
+// All cluster state changes during provisioning must be made in this function
+func (tp *TaskProvisioner) monitorClusterState(ctx context.Context,
+	clusterID string, nodeChan chan node.Node, kubeStateChan chan model.KubeState,
+	configChan chan *steps.Config) {
 	for {
 		select {
-		case n := <-cfg.NodeChan():
-			k, err := tp.kubeService.Get(ctx, cfg.ClusterID)
+		case n := <-nodeChan:
+			k, err := tp.kubeService.Get(ctx, clusterID)
 
 			if err != nil {
 				logrus.Errorf("cluster monitor: update kube state caused %v", err)
@@ -605,8 +655,9 @@ func (tp *TaskProvisioner) monitorClusterState(ctx context.Context, cfg *steps.C
 				logrus.Errorf("cluster monitor: update kube state caused %v", err)
 				continue
 			}
-		case state := <-cfg.KubeStateChan():
-			k, err := tp.kubeService.Get(ctx, cfg.ClusterID)
+		case state := <-kubeStateChan:
+			logrus.Debugf("monitor: get kube %s", clusterID)
+			k, err := tp.kubeService.Get(ctx, clusterID)
 
 			if err != nil {
 				logrus.Errorf("cluster monitor: update kube state caused %v", err)
@@ -614,6 +665,25 @@ func (tp *TaskProvisioner) monitorClusterState(ctx context.Context, cfg *steps.C
 			}
 
 			k.State = state
+			logrus.Debugf("monitor: update kube %s with state %s",
+				k.ID, state)
+			err = tp.kubeService.Create(ctx, k)
+
+			if err != nil {
+				logrus.Errorf("cluster monitor: update kube state caused %v", err)
+				continue
+			}
+		case config := <-configChan:
+			logrus.Debugf("monitor: get kube %s", clusterID)
+			k, err := tp.kubeService.Get(ctx, clusterID)
+
+			if err != nil {
+				logrus.Errorf("cluster monitor: update kube state caused %v", err)
+				continue
+			}
+
+			tp.updateCloudSpecificData(k, config)
+
 			err = tp.kubeService.Create(ctx, k)
 
 			if err != nil {

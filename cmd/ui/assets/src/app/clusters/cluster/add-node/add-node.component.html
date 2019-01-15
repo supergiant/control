@@ -1,13 +1,13 @@
 <mat-card>
   <mat-card-header>
-    <h1>Adding node to "{{ clusterName }}"</h1>
+    <h1>Adding node to "{{ clusterName }}" cluster</h1>
   </mat-card-header>
   <mat-card-content>
 
     <section class="column machines-list">
       <div class="machine"
            *ngFor="let m of machines; let idx = index">
-        <mat-form-field *ngIf="(provider$ | async)  === 'aws'">
+        <mat-form-field *ngIf="(provider$ | async)  === 'aws' || (provider$ | async)  === 'gce'">
           <mat-select [disabled]="!availabilityZones"
                       [(value)]="m.availabilityZone"
                       (selectionChange)="onAzChange($event.value)"
@@ -18,10 +18,9 @@
           </mat-select>
         </mat-form-field>
 
-
       <mat-form-field class="type">
       <mat-select placeholder="Machine Type (size)"
-                  [disabled]="!m.availabilityZone && (provider$ | async)  === 'aws'"
+                  [disabled]="!m.availabilityZone && ((provider$ | async)  === 'aws' || (provider$ | async)  === 'gce')"
                   [(value)]="m.machineType"
                   (openedChange)="machineTypesFilter = ''"
                   (selectionChange)="checkAndSetValidMachineConfig()">

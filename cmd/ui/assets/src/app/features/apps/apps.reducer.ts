@@ -5,10 +5,10 @@ import {
   AppCommonActionTypes,
   AppDetailActions,
   AppDetailActionTypes,
-}                         from "./actions";
+}                         from './actions';
 
 export interface Chart {
-  metadata: ChartMetadata
+  metadata: ChartMetadata;
   values?: string;
   readme?: string;
 }
@@ -18,7 +18,7 @@ export interface ChartMetadata {
   repo: string;
   description: string;
   version: string;
-};
+}
 
 export interface ChartList {
   name?: string;
@@ -28,9 +28,9 @@ export interface ChartList {
 export interface AppStoreState {
   charts: {
     [ key: string ]: ChartMetadata[]
-  }
-  currentChart: Chart
-  filter: string,
+  };
+  currentChart: Chart;
+  filter: string;
 }
 
 const mockChart = {
@@ -54,7 +54,7 @@ export interface Repository {
   config: {
     url: string;
     name: string;
-  }
+  };
 }
 
 // TODO: make separate reducers

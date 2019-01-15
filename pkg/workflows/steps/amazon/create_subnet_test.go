@@ -2,7 +2,6 @@ package amazon
 
 import (
 	"context"
-	"os"
 	"testing"
 
 	"github.com/aws/aws-sdk-go/aws"
@@ -10,21 +9,44 @@ import (
 	"github.com/aws/aws-sdk-go/service/ec2"
 	"github.com/aws/aws-sdk-go/service/ec2/ec2iface"
 	"github.com/pkg/errors"
-	"github.com/stretchr/testify/require"
 
+	"bytes"
+	"github.com/stretchr/testify/mock"
 	"github.com/supergiant/control/pkg/account"
-	"github.com/supergiant/control/pkg/profile"
 	"github.com/supergiant/control/pkg/workflows/steps"
+	"github.com/supergiant/control/pkg/model"
+	"strings"
+	"github.com/supergiant/control/pkg/clouds"
+	"github.com/supergiant/control/pkg/profile"
 )
 
-type fakeEC2Subnet struct {
-	ec2iface.EC2API
-	output *ec2.CreateSubnetOutput
-	err    error
+type mockSubnetSvc struct {
+	mock.Mock
 }
 
-func (f *fakeEC2Subnet) CreateSubnetWithContext(aws.Context, *ec2.CreateSubnetInput, ...request.Option) (*ec2.CreateSubnetOutput, error) {
-	return f.output, f.err
+func (m *mockSubnetSvc) CreateSubnetWithContext(ctx aws.Context,
+	req *ec2.CreateSubnetInput, opts ...request.Option) (*ec2.CreateSubnetOutput, error) {
+	args := m.Called(ctx, req, opts)
+	val, ok := args.Get(0).(*ec2.CreateSubnetOutput)
+	if !ok {
+		return nil, args.Error(1)
+	}
+
+	return val, args.Error(1)
+}
+
+type mockAccountGetter struct{
+	mock.Mock
+}
+
+func (m *mockAccountGetter) Get(ctx context.Context, accName string) (*model.CloudAccount, error) {
+	args := m.Called(ctx, accName)
+	val, ok := args.Get(0).(*model.CloudAccount)
+	if !ok {
+		return nil, args.Error(1)
+	}
+
+	return val, args.Error(1)
 }
 
 type mockZoneGetter struct {
@@ -37,62 +59,249 @@ func (m *mockZoneGetter) GetZones(context.Context, steps.Config) ([]string, erro
 }
 
 func TestCreateSubnetStep_Run(t *testing.T) {
-	tt := []struct {
-		fn  GetEC2Fn
-		err error
-		cfg steps.AWSConfig
+	testCases := []struct{
+		description string
+
+		getSvcErr     error
+		zoneGetterErr error
+		zoneGetter    account.ZonesGetter
+		vpcCIDR       string
+
+		getZoneErr error
+		getZoneResp []string
+
+		createSubnetErr error
+		createSubnet *ec2.CreateSubnetOutput
+
+		errMsg string
 	}{
 		{
-			fn: func(config steps.AWSConfig) (ec2iface.EC2API, error) {
-				return &fakeEC2Subnet{
-					output: &ec2.CreateSubnetOutput{
-						Subnet: &ec2.Subnet{
-							VpcId:            aws.String("1"),
-							AvailabilityZone: aws.String("my-az"),
-							SubnetId:         aws.String("mysubnetid"),
-						},
-					},
-				}, nil
-			},
-			err: nil,
-			cfg: steps.AWSConfig{
-				VPCCIDR: "10.0.0.0/16",
-			},
+			description: "get service error",
+			getSvcErr: errors.New("message1"),
+			errMsg: "message1",
 		},
 		{
-			cfg: steps.AWSConfig{
-				VPCCIDR: "10.0.0.0/16",
+			description: "zone getter error",
+			zoneGetterErr: errors.New("message2"),
+			errMsg: "message2",
+		},
+		{
+			description: "invalid vpc cidr",
+			getZoneResp: []string{"us-west-1a", "us-west-1b"},
+			vpcCIDR:     "10.0.0.0/36",
+			errMsg:      "Error parsing VPC",
+		},
+		{
+			description: "calculating subnet",
+			getZoneResp: []string{"us-west-1a", "us-west-1b"},
+			vpcCIDR:     "10.3.5.1/32",
+			errMsg:      "Calculating",
+		},
+		{
+			description: "get zones error",
+			vpcCIDR: "10.0.0.0/16",
+			getZoneErr: errors.New("message3"),
+			errMsg: "message3",
+		},
+		{
+			description: "create subnets error",
+			getZoneResp: []string{"us-west-1a", "us-west-1b"},
+			vpcCIDR: "10.0.0.0/16",
+			createSubnetErr: errors.New("message4"),
+			errMsg: "message4",
+		},
+		{
+			description: "success",
+			vpcCIDR: "10.0.0.0/16",
+			getZoneResp: []string{"us-west-1a", "us-west-1b"},
+			createSubnet: &ec2.CreateSubnetOutput{
+				Subnet: &ec2.Subnet{
+					SubnetId: aws.String("1234"),
+				},
 			},
-			fn: func(config steps.AWSConfig) (ec2iface.EC2API, error) {
-				return &fakeEC2Subnet{
-					output: nil,
-					err:    errors.New("fail!"),
-				}, nil
-			},
-			err: ErrCreateSubnet,
 		},
 	}
 
-	for i, tc := range tt {
-		cfg := steps.NewConfig("", "", "", profile.Profile{})
-		cfg.AWSConfig = tc.cfg
+	for _, testCase := range testCases {
+		t.Log(testCase.description)
+		svc := &mockSubnetSvc{}
+		svc.On("CreateSubnetWithContext",
+			mock.Anything, mock.Anything, mock.Anything).
+			Return(testCase.createSubnet, testCase.createSubnetErr)
+		zoneGetter := &mockZoneGetter{
+			zones: testCase.getZoneResp,
+			err: testCase.getZoneErr,
+		}
 
 		step := &CreateSubnetsStep{
-			GetEC2: tc.fn,
-			accSvc: nil,
-			zoneGetterFactory: func(ctx context.Context, accSvc *account.Service,
-				cfg *steps.Config) (account.ZonesGetter, error) {
-				return &mockZoneGetter{
-					zones: []string{"eu-west-1a", "eu-west-1b"},
-					err:   nil,
-				}, nil
+			getSvc: func(steps.AWSConfig) (subnetSvc, error) {
+				return svc, testCase.getSvcErr
+			},
+			zoneGetterFactory: func(context.Context, accountGetter, *steps.Config) (account.ZonesGetter, error) {
+				return zoneGetter, testCase.zoneGetterErr
 			},
 		}
-		err := step.Run(context.Background(), os.Stdout, cfg)
-		if tc.err == nil {
-			require.NoError(t, err, "TC%d, %v", i, err)
-		} else {
-			require.True(t, tc.err == errors.Cause(err), "TC%d, %v", i, err)
+
+		config := steps.NewConfig("clusterName",
+			"", "", profile.Profile{})
+		config.AWSConfig.VPCCIDR = testCase.vpcCIDR
+
+		err := step.Run(context.Background(), &bytes.Buffer{}, config)
+
+		if err == nil && testCase.errMsg != "" {
+			t.Errorf("Error must not be nil")
 		}
+
+		if err != nil && !strings.Contains(err.Error(), testCase.errMsg) {
+			t.Errorf("Wrong error message %v expected to have %s",
+				err, testCase.errMsg)
+		}
+	}
+}
+
+func TestInitCreateSubnet(t *testing.T) {
+	InitCreateSubnet(GetEC2, nil)
+
+	s := steps.GetStep(StepCreateSubnets)
+
+	if s == nil {
+		t.Errorf("Step %s not found", StepCreateSubnets)
+	}
+}
+
+func TestNewCreateSubnetStep2(t *testing.T) {
+	testCases := []struct{
+		description string
+		getAccErr error
+		acc *model.CloudAccount
+		errMSg string
+	}{
+		{
+				description: "Get cloud account error",
+				getAccErr: errors.New("message1"),
+				errMSg: "message1",
+		},
+		{
+			description: "unsupported cloud provider",
+			acc: &model.CloudAccount{
+				Provider: clouds.Name("unsupported"),
+			},
+			errMSg: account.ErrUnsupportedProvider.Error(),
+		},
+		{
+			description: "success",
+			acc: &model.CloudAccount{
+				Provider: clouds.AWS,
+			},
+		},
+	}
+
+	for _, testCase := range testCases {
+		accGetter := &mockAccountGetter{}
+		accGetter.On("Get", mock.Anything,
+			mock.Anything).Return(testCase.acc, testCase.getAccErr)
+
+		step := NewCreateSubnetStep(nil, accGetter)
+
+		svc, err := step.zoneGetterFactory(context.Background(), accGetter,
+			&steps.Config{})
+
+		if testCase.errMSg != "" && err == nil {
+			t.Error("Error must not be nil")
+		}
+
+		if err != nil && !strings.Contains(err.Error(), testCase.errMSg) {
+			t.Errorf("Wrong error message %v must contain %s",
+				err, testCase.errMSg)
+		}
+
+		if testCase.errMSg == "" && svc == nil {
+			t.Errorf("Service must not be nil")
+		}
+	}
+}
+
+func TestNewCreateSubnetStep(t *testing.T) {
+	accSvc := &account.Service{}
+
+	step := NewCreateSubnetStep(GetEC2, accSvc)
+
+	if step == nil {
+		t.Errorf("Step must not be nil")
+	}
+
+	if step.accountGetter != accSvc {
+		t.Errorf("account gettere value is wrong exepected %v actual %v",
+			step.accountGetter, accSvc)
+	}
+
+	if step.getSvc == nil {
+		t.Errorf("Wrong get EC2 function must not be nil")
+	}
+
+	if api, err := step.getSvc(steps.AWSConfig{}); err != nil || api == nil {
+		t.Errorf("Unexpected values %v %v", api, err)
+	}
+}
+
+func TestNewCreateSubnetStepErr(t *testing.T) {
+	fn := func(steps.AWSConfig) (ec2iface.EC2API, error) {
+		return nil, errors.New("errorMessage")
+	}
+
+	accSvc := &account.Service{}
+
+	step := NewCreateSubnetStep(fn, accSvc)
+
+	if step == nil {
+		t.Errorf("Step must not be nil")
+	}
+
+	if step.accountGetter != accSvc {
+		t.Errorf("account getter value is wrong exepected %v actual %v",
+			step.accountGetter, accSvc)
+	}
+
+	if step.getSvc == nil {
+		t.Errorf("Wrong get getSvc function must not be nil")
+	}
+
+	if api, err := step.getSvc(steps.AWSConfig{}); err == nil || api != nil {
+		t.Errorf("Unexpected values %v %v", api, err)
+	}
+}
+
+func TestCreateSubnetsStep_Name(t *testing.T) {
+	step := &CreateSubnetsStep{}
+
+	if step.Name() != StepCreateSubnets {
+		t.Errorf("Wrong step name expected %s actual %s",
+			StepCreateSubnets, step.Name())
+	}
+}
+
+func TestCreateSubnetsStep_Description(t *testing.T) {
+	step := &CreateSubnetsStep{}
+
+	if step.Description() != "Step create subnets in all availability zones for Region" {
+		t.Errorf("Wrong step description expected Step create subnets in "+
+			"all availability zones for Region actual %s", step.Description())
+	}
+}
+
+func TestCreateSubnetsStep_Depends(t *testing.T) {
+	step := &CreateSubnetsStep{}
+
+	if deps := step.Depends(); deps != nil {
+		t.Errorf("%s dependencies must be nil", StepCreateSubnets)
+	}
+}
+
+func TestCreateSubnetsStep_Rollback(t *testing.T) {
+	step := &CreateSubnetsStep{}
+
+	if err := step.Rollback(context.Background(),
+		&bytes.Buffer{}, &steps.Config{}); err != nil {
+		t.Errorf("Unexpected error %v when rollback", err)
 	}
 }

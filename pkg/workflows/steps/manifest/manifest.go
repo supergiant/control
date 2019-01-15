@@ -9,6 +9,7 @@ import (
 	"github.com/pkg/errors"
 
 	tm "github.com/supergiant/control/pkg/templatemanager"
+	"github.com/supergiant/control/pkg/util"
 	"github.com/supergiant/control/pkg/workflows/steps"
 	"github.com/supergiant/control/pkg/workflows/steps/certificates"
 )
@@ -49,8 +50,13 @@ func (j *Step) Run(ctx context.Context, out io.Writer, config *steps.Config) err
 		}
 	}
 
-	err := steps.RunTemplate(ctx, j.script, config.Runner, out, config.ManifestConfig)
+	clusterDNSIP, err := util.GetDNSIP(config.ManifestConfig.ServicesCIDR)
+	if err != nil {
+		return errors.Wrapf(err, "get cluster dns ip from the %s subnet", config.ManifestConfig.ServicesCIDR)
+	}
+	config.ManifestConfig.ClusterDNSIP = clusterDNSIP.String()
 
+	err = steps.RunTemplate(ctx, j.script, config.Runner, out, config.ManifestConfig)
 	if err != nil {
 		return errors.Wrap(err, "write manifest step")
 	}
@@ -67,7 +73,7 @@ func (t *Step) Name() string {
 }
 
 func (t *Step) Description() string {
-	return ""
+	return "Write manifes to /etc/kubernetes"
 }
 
 func (s *Step) Depends() []string {

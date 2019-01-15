@@ -75,7 +75,7 @@ export class DashboardComponent implements OnInit, OnDestroy {
               helmVersion: c.helmVersion,
               rbacEnabled: c.rbacEnabled,
               arch: c.arch,
-            }])
+            }]);
           });
 
           this.clusters = clusters.sort(this.sortByName);
@@ -84,9 +84,9 @@ export class DashboardComponent implements OnInit, OnDestroy {
 
           if (!this.userChangedView) {
             if (clusters.length > 5) {
-              this.clusterListView = "list"
+              this.clusterListView = 'list';
             } else {
-              this.clusterListView = "orb"
+              this.clusterListView = 'orb';
             }
           }
       },

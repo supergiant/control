@@ -5,6 +5,10 @@
     margin-bottom: 18px;
   }
 
+  .mat-form-field {
+    margin-bottom: 10px;
+  }
+
   .warning {
     color: #f44336;
     font-weight: 300;
@@ -65,6 +69,34 @@
     }
 
     .aws-config {
+      display: flex;
+      justify-content: flex-start;
+
+      .input-group {
+        display: flex;
+        flex-direction: column;
+        margin-left: 100px;
+        width: 250px;
+
+        &:nth-of-type(1) {
+          margin-left: 0px;
+        }
+
+        .regionsLoading {
+          animation: loading 1s infinite;
+        }
+
+        .azsLoading {
+          animation: loading 1s infinite;
+        }
+      }
+
+      .public-key-wrapper {
+        width: 400px;
+      }
+    }
+
+    .gce-config {
       display: flex;
       justify-content: flex-start;
 
@@ -179,6 +211,17 @@
           font-family: "Montserrat", sans-serif;
           font-size: 14px;
         }
+
+        .machine-label {
+          font-size: 16px;
+          margin-bottom: 0px;
+        }
+
+        .create-new {
+          font-size: 14px;
+          font-style: italic;
+          opacity: 0.5;
+        }
       }
 
       .action-buttons-wrapper {
@@ -243,22 +286,35 @@
     h2 {
       font-family: "Montserrat", sans-serif;
       font-size: 32px;
-      font-weight: 200;
+      font-weight: 300;
       margin-bottom: 24px;
     }
 
     p {
       font-size: 18px;
-      font-weight: 200;
+      font-weight: 300;
       margin-bottom: 24px;
     }
   }
 }
+.mat-form-field:not(.mat-focused)  {
+  .mat-form-field-underline {
+    opacity: .25;
+    background-color: white!important;
+  }
+}
 
 .mat-select-content {
-
-  .machine-types-filter {
+  .select-filter {
     position: relative;
     padding: 10px !important;
+  }
+}
+
+.mat-hint {
+  color: grey!important;
+
+  a {
+    color: #D10088;
   }
 }

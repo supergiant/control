@@ -1,9 +1,9 @@
 import { Component, OnInit }      from '@angular/core';
-import { FormBuilder, FormGroup } from "@angular/forms";
-import { HttpClient }             from "@angular/common/http";
-import { catchError }             from "rxjs/operators";
-import { of }                     from "rxjs";
-import { Notifications }          from "../../../shared/notifications/notifications.service";
+import { FormBuilder, FormGroup } from '@angular/forms';
+import { HttpClient }             from '@angular/common/http';
+import { catchError }             from 'rxjs/operators';
+import { of }                     from 'rxjs';
+import { Notifications }          from '../../../shared/notifications/notifications.service';
 
 @Component({
   selector: 'app-apps-add',
@@ -48,7 +48,7 @@ export class AppsAddComponent implements OnInit {
       this.isProcessing = false;
       this.addRepositoryForm.enable();
       // TODO
-      if(!(result instanceof ErrorEvent)) {
+      if (!(result instanceof ErrorEvent)) {
         window.location.reload();
       }
     });

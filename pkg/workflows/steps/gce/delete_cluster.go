@@ -14,30 +14,42 @@ import (
 const DeleteClusterStepName = "gce_delete_cluster"
 
 type DeleteClusterStep struct {
-	// Client creates the client for the provider.
-	getClient func(context.Context, string, string, string) (*compute.Service, error)
+	getComputeSvc func(context.Context, steps.GCEConfig) (*computeService, error)
 }
 
-func NewDeleteClusterStep() (steps.Step, error) {
+func NewDeleteClusterStep() (*DeleteClusterStep, error) {
 	return &DeleteClusterStep{
-		getClient: GetClient,
+		getComputeSvc: func(ctx context.Context, config steps.GCEConfig) (*computeService, error) {
+			client, err := GetClient(ctx, config.ClientEmail,
+				config.PrivateKey, config.TokenURI)
+
+			if err != nil {
+				return nil, err
+			}
+
+			return &computeService{
+				deleteInstance: func(projectID string, region string, name string) (*compute.Operation, error) {
+					return client.Instances.Delete(projectID, region, name).Do()
+				},
+			}, nil
+		},
 	}, nil
 }
 
 func (s *DeleteClusterStep) Run(ctx context.Context, output io.Writer, config *steps.Config) error {
 	// fetch client.
-	client, err := s.getClient(ctx, config.GCEConfig.ClientEmail,
-		config.GCEConfig.PrivateKey, config.GCEConfig.TokenURI)
+	svc, err := s.getComputeSvc(ctx, config.GCEConfig)
+
 	if err != nil {
-		return err
+		return errors.Wrapf(err, "%s get service", DeleteClusterStepName)
 	}
 
 	for _, master := range config.GetMasters() {
-		logrus.Debugf("Delete node %s", master.Name)
+		logrus.Debugf("Delete master %s in %s", master.Name, master.Region)
 
-		_, serr := client.Instances.Delete(config.GCEConfig.ProjectID,
-			config.GCEConfig.AvailabilityZone,
-			master.Name).Do()
+		_, serr := svc.deleteInstance(config.GCEConfig.ProjectID,
+			master.Region,
+			master.Name)
 
 		if serr != nil {
 			return errors.Wrap(serr, "GCE delete instance")
@@ -45,10 +57,10 @@ func (s *DeleteClusterStep) Run(ctx context.Context, output io.Writer, config *s
 	}
 
 	for _, node := range config.GetNodes() {
-		logrus.Debugf("Delete node %s", node.Name)
-		_, serr := client.Instances.Delete(config.GCEConfig.ProjectID,
-			config.GCEConfig.AvailabilityZone,
-			node.Name).Do()
+		logrus.Debugf("Delete node %s in %s", node.Name, node.Region)
+		_, serr := svc.deleteInstance(config.GCEConfig.ProjectID,
+			node.Region,
+			node.Name)
 
 		if serr != nil {
 			return errors.Wrap(serr, "GCE delete instance")
@@ -67,7 +79,7 @@ func (s *DeleteClusterStep) Depends() []string {
 }
 
 func (s *DeleteClusterStep) Description() string {
-	return "Google compute engine step for creating instance"
+	return "Google compute engine delete cluster step"
 }
 
 func (s *DeleteClusterStep) Rollback(context.Context, io.Writer, *steps.Config) error {

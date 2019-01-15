@@ -12,23 +12,33 @@ export class NodeProfileService {
     const compiledProfiles = [];
 
     switch (provider) {
-      case "digitalocean":
+      case 'digitalocean':
         filteredMachines.forEach(m => {
-          for (var i = 0; i < m.qty; i++) {
-            compiledProfiles.push({ image: "ubuntu-16-04-x64", size: m.machineType })
+          for (let i = 0; i < m.qty; i++) {
+            compiledProfiles.push({ image: 'ubuntu-16-04-x64', size: m.machineType });
           }
         });
         break;
-      case "aws":
+      case 'aws':
         filteredMachines.forEach(m => {
-          for (var i = 0; i < m.qty; i++) {
+          for (let i = 0; i < m.qty; i++) {
             compiledProfiles.push({
-              volumeSize: "80",
+              volumeSize: '80',
               size: m.machineType,
-              ebsOptimized: "true",
-              hasPublicAddr: "true",
+              ebsOptimized: 'true',
+              hasPublicAddr: 'true',
               availabilityZone: m.availabilityZone
-            })
+            });
+          }
+        });
+        break;
+      case 'gce':
+        filteredMachines.forEach(m => {
+          for (let i = 0; i < m.qty; i++) {
+            compiledProfiles.push({
+              size: m.machineType,
+              availabilityZone: m.availabilityZone
+            });
           }
         });
         break;

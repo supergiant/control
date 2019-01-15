@@ -13,14 +13,14 @@ export class UserMenuComponent implements OnInit {
   constructor( public dialog: MatDialog ) { }
 
   toggleMenu(event) {
-    const menu = this.initDialog(event)
+    const menu = this.initDialog(event);
   }
 
   initDialog(event) {
     const popupWidth = 200;
     const dialogRef = this.dialog.open(MenuModalComponent, {
       width: `${popupWidth}px`,
-      backdropClass: "backdrop"
+      backdropClass: 'backdrop'
     });
     dialogRef.updatePosition({
       top: `${event.clientY + 20}px`,

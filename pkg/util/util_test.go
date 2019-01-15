@@ -106,6 +106,21 @@ func TestFillCloudAccountCredentials(t *testing.T) {
 			err: nil,
 		},
 		{
+			testName: "aws",
+			cloudAccount: &model.CloudAccount{
+				Name:     "testName",
+				Provider: clouds.GCE,
+				Credentials: map[string]string{
+					"projectId":   "ordinal-case-222023",
+					"privateKey":  "-----BEGIN PRIVATE KEY-----\n\n-----END PRIVATE KEY-----\n",
+					"clientEmail": "myemail@gmail.comn",
+					"tokenURI":    "https://oauth2.googleapis.com/token",
+					"publicKey":   "ssh-rsa  myemail@gmail.com",
+				},
+			},
+			err: nil,
+		},
+		{
 			testName: "unknown provider",
 			cloudAccount: &model.CloudAccount{
 				Name:     "testName",
@@ -189,6 +204,11 @@ func TestMakeKeyName(t *testing.T) {
 			expectedResult: fmt.Sprintf("%s-user", "test"),
 		},
 		{
+			keyName:        "",
+			isUser:         false,
+			expectedResult: "-provision",
+		},
+		{
 			keyName:        "test",
 			isUser:         false,
 			expectedResult: fmt.Sprintf("%s-provision", "test"),
@@ -198,7 +218,7 @@ func TestMakeKeyName(t *testing.T) {
 	for _, testCase := range testCases {
 		actual := MakeKeyName(testCase.keyName, testCase.isUser)
 
-		if !strings.EqualFold(actual, testCase.expectedResult) {
+		if !strings.Contains(actual, testCase.expectedResult) {
 			t.Errorf("Wrong key name expected %s actual %s",
 				testCase.expectedResult, actual)
 		}
@@ -295,6 +315,117 @@ func TestGetRandomNode(t *testing.T) {
 		if actual != testCase.expectedNode {
 			t.Errorf("expected node %v actual %v",
 				testCase.expectedNode, actual)
+		}
+	}
+}
+
+func TestGetWriter(t *testing.T) {
+	testCases := []struct {
+		name   string
+		hasErr bool
+	}{
+		{
+			name:   "test.txt",
+			hasErr: false,
+		},
+		{
+			name:   "",
+			hasErr: true,
+		},
+	}
+
+	for _, testCase := range testCases {
+		writer, err := GetWriter(testCase.name)
+
+		if err == nil && testCase.hasErr {
+			t.Errorf("error must not be nil")
+		}
+
+		if testCase.hasErr && writer == nil {
+			t.Errorf("Writer must not be nil")
+		}
+	}
+}
+
+func TestLoadCloudSpecificDataFromKube(t *testing.T) {
+	testCases := []struct {
+		description string
+		kube        *model.Kube
+		provider    clouds.Name
+		hasErr      bool
+	}{
+		{
+			description: "digitalocean",
+			kube: &model.Kube{
+				BootstrapPrivateKey: []byte(`private-key`),
+				BootstrapPublicKey:  []byte(`public-key`),
+				SshPublicKey:        []byte(`public-key2`),
+
+				Region: "fra-1",
+			},
+			provider: clouds.DigitalOcean,
+		},
+		{
+			description: "gce",
+			kube: &model.Kube{
+				BootstrapPrivateKey: []byte(`private-key`),
+				BootstrapPublicKey:  []byte(`public-key`),
+				SshPublicKey:        []byte(`public-key2`),
+			},
+			provider: clouds.GCE,
+		},
+		{
+			description: "aws",
+			kube: &model.Kube{
+				BootstrapPrivateKey: []byte(`private-key`),
+				BootstrapPublicKey:  []byte(`public-key`),
+				SshPublicKey:        []byte(`public-key2`),
+				CloudSpec: map[string]string{
+					clouds.AwsImageID:               "imageId",
+					clouds.AwsVpcID:                 "vpcId",
+					clouds.AwsNodeInstanceProfile:   "nodeProfile",
+					clouds.AwsMasterInstanceProfile: "masterProfile",
+					clouds.AwsInternetGateWayID:     "internetGWId",
+					clouds.AwsNodesSecgroupID:       "nodesSecurityId",
+					clouds.AwsMastersSecGroupID:     "masterSecGroup",
+					clouds.AwsAZ:                    "az",
+					clouds.AwsRouteTableID:          "routetableid",
+					clouds.AWSAccessKeyID:           "accessKey",
+					clouds.AWSSecretKey:             "secretKey",
+					clouds.AwsKeyPairName:           "keyPairName",
+				},
+			},
+			provider: clouds.AWS,
+		},
+		{
+			description: "unsupported",
+			kube: &model.Kube{
+				BootstrapPrivateKey: []byte(`private-key`),
+				BootstrapPublicKey:  []byte(`public-key`),
+				SshPublicKey:        []byte(`public-key2`),
+			},
+			provider: clouds.Name("unsupported"),
+			hasErr:   true,
+		},
+		{
+			description: "nil value",
+			hasErr:      true,
+		},
+	}
+
+	for _, testCase := range testCases {
+		t.Log(testCase.description)
+		config := &steps.Config{
+			Provider: testCase.provider,
+		}
+		err := LoadCloudSpecificDataFromKube(testCase.kube, config)
+
+		if testCase.hasErr && err == nil {
+			t.Errorf("Error must not be nil")
+		}
+
+		if !testCase.hasErr && err != nil {
+			t.Errorf("unexpected error %v", err)
 		}
 	}
 }

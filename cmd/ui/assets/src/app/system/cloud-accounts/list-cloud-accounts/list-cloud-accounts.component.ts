@@ -17,7 +17,7 @@ import { ConfirmModalComponent } from '../../../shared/modals/confirm-modal/conf
 export class ListCloudAccountsComponent implements OnInit, OnDestroy {
   public subscriptions = new Subscription();
   public accounts: any;
-  public accountColumns = ["provider", "name", "edit", "delete"];
+  public accountColumns = ['provider', 'name', 'edit', 'delete'];
   public deletingAccount: string;
 
   constructor(
@@ -40,7 +40,7 @@ export class ListCloudAccountsComponent implements OnInit, OnDestroy {
           kubes.forEach(k => this.activeCloudAccounts.add(k.accountName));
         },
         err => console.error(err)
-      ))
+      ));
   }
 
   getCloudAccounts() {
@@ -69,21 +69,21 @@ export class ListCloudAccountsComponent implements OnInit, OnDestroy {
   }
 
   delete(name, event) {
-    const modal = this.initDialog(event)
+    const modal = this.initDialog(event);
 
     modal.afterClosed().subscribe(res => {
       if (res) {
         this.supergiant.CloudAccounts.delete(name).subscribe(
           res => {
-            const refreshedAccounts = this.accounts.data.filter(account => { return account.name != name })
-            this.accounts = new MatTableDataSource(refreshedAccounts)
+            const refreshedAccounts = this.accounts.data.filter(account => account.name != name);
+            this.accounts = new MatTableDataSource(refreshedAccounts);
             this.accounts.sort = this.sort;
             this.accounts.paginator = this.paginator;
           },
           err => this.notifications.display('warn', 'Error deleting account:', err)
-        )
+        );
       }
-    })
+    });
   }
 
   edit(name) {

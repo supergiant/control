@@ -40,9 +40,10 @@ type Container interface {
 
 type ServiceReverseProxy struct {
 	TargetURL   string
-	selfLink    string
-	srv         *http.Server
-	servingBase string
+	SelfLink    string
+	ServingBase string
+
+	srv *http.Server
 }
 
 func NewReverseProxyContainer(proxiesPortRange PortRange, logger logrus.FieldLogger) *ReverseProxyContainer {
@@ -92,8 +93,9 @@ func NewServiceProxy(port int32, targetURL, selfLink, user, password string, log
 	logger.Infof("proxy server started on: %s, for targetURL: %+v", addr, targetURL)
 
 	return &ServiceReverseProxy{
-		srv:         httpServer,
-		servingBase: addr,
+		ServingBase: addr,
+
+		srv: httpServer,
 	}, nil
 }
 
@@ -198,7 +200,7 @@ func (sp *ServiceReverseProxy) shutdown(ctx context.Context) error {
 }
 
 func (sp *ServiceReverseProxy) Port() string {
-	var parts = strings.Split(sp.servingBase, ":")
+	var parts = strings.Split(sp.ServingBase, ":")
 	if len(parts) == 0 {
 		return ""
 	}

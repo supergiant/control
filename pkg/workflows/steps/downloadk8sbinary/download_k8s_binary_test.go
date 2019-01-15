@@ -149,3 +149,12 @@ func TestInitPanic(t *testing.T) {
 		t.Error("Step not found")
 	}
 }
+
+func TestStep_Description(t *testing.T) {
+	s := &Step{}
+
+	if desc := s.Description(); desc != "Download kubectl" {
+		t.Errorf("Wrong desription expected %s actual %s",
+			"Download kubectl", desc)
+	}
+}

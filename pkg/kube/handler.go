@@ -8,13 +8,14 @@ import (
 	"io"
 	"net/http"
 	"strconv"
-	"sync"
 	"time"
 
 	"github.com/gorilla/mux"
 	"github.com/pkg/errors"
 	"github.com/sirupsen/logrus"
 	"gopkg.in/asaskevich/govalidator.v8"
+	corev1 "k8s.io/api/core/v1"
+	"k8s.io/client-go/rest"
 
 	"github.com/supergiant/control/pkg/clouds"
 	"github.com/supergiant/control/pkg/message"
@@ -30,41 +31,9 @@ import (
 	"github.com/supergiant/control/pkg/workflows/steps"
 )
 
-var (
-	cache  metricCache
-	m      sync.Mutex
-	client *http.Client
+const (
+	clusterService = "kubernetes.io/cluster-service"
 )
-
-type metricCache struct {
-	m    sync.RWMutex
-	data map[string]entry
-}
-
-func (c *metricCache) get(key string) *MetricResponse {
-	c.m.RLock()
-	defer c.m.RUnlock()
-	e := c.data[key]
-
-	if e.timestamp == 0 {
-		return nil
-	}
-
-	if e.timestamp < time.Now().Unix()-60 {
-		return nil
-	}
-
-	return e.value
-}
-
-func (c *metricCache) set(key string, value *MetricResponse) {
-	c.m.Lock()
-	defer c.m.Unlock()
-	c.data[key] = entry{
-		timestamp: time.Now().Unix(),
-		value:     value,
-	}
-}
 
 type entry struct {
 	timestamp int64
@@ -80,43 +49,6 @@ type nodeProvisioner interface {
 		*steps.Config) ([]string, error)
 	// Method that cancels newly added nodes to working cluster
 	Cancel(string) error
-}
-
-type k8SServices struct {
-	Kind       string `json:"kind"`
-	APIVersion string `json:"apiVersion"`
-	Metadata   struct {
-		SelfLink        string `json:"selfLink"`
-		ResourceVersion string `json:"resourceVersion"`
-	} `json:"metadata"`
-	Items []struct {
-		Metadata struct {
-			Name              string            `json:"name"`
-			Namespace         string            `json:"namespace"`
-			SelfLink          string            `json:"selfLink"`
-			UID               string            `json:"uid"`
-			ResourceVersion   string            `json:"resourceVersion"`
-			CreationTimestamp time.Time         `json:"creationTimestamp"`
-			Labels            map[string]string `json:"labels"`
-		} `json:"metadata"`
-		Spec struct {
-			Ports []struct {
-				Name     string `json:"name"`
-				Protocol string `json:"protocol"`
-				Port     int    `json:"port"`
-			} `json:"ports"`
-			Selector struct {
-				App string `json:"app"`
-			} `json:"selector"`
-			ClusterIP       string `json:"clusterIP"`
-			Type            string `json:"type"`
-			SessionAffinity string `json:"sessionAffinity"`
-		} `json:"spec"`
-		Status struct {
-			LoadBalancer struct {
-			} `json:"loadBalancer"`
-		} `json:"status"`
-	} `json:"items"`
 }
 
 type ServiceInfo struct {
@@ -147,29 +79,8 @@ type Handler struct {
 	repo            storage.Interface
 	getWriter       func(string) (io.WriteCloser, error)
 	getMetrics      func(string, *model.Kube) (*MetricResponse, error)
+	getK8sServices  func(*model.Kube, string, string) (*corev1.ServiceList, error)
 	proxies         proxy.Container
-}
-
-func init() {
-	cache = metricCache{
-		data: make(map[string]entry),
-	}
-	tr := &http.Transport{
-		TLSClientConfig:     &tls.Config{InsecureSkipVerify: true},
-		TLSHandshakeTimeout: time.Second * 30,
-		MaxIdleConnsPerHost: 100,
-	}
-	client = &http.Client{
-		Transport: tr,
-		Timeout:   time.Second * 30,
-	}
-}
-
-// Use shared http.Client to perform request
-func doReq(req *http.Request) (*http.Response, error) {
-	m.Lock()
-	defer m.Unlock()
-	return client.Do(req)
 }
 
 // NewHandler constructs a Handler for kubes.
@@ -201,38 +112,53 @@ func NewHandler(
 		repo:      repo,
 		getWriter: util.GetWriter,
 		getMetrics: func(metricURI string, k *model.Kube) (*MetricResponse, error) {
-			if m := cache.get(metricURI); m != nil {
-				logrus.Debugf("metric cache hit")
-				return m, nil
+			cfg, err := NewConfigFor(k)
+			if err != nil {
+				return nil, errors.Wrap(err, "build kubernetes rest config")
 			}
-			logrus.Debugf("metric cache miss")
+			kclient, err := rest.UnversionedRESTClientFor(cfg)
+			if err != nil {
+				return nil, errors.Wrap(err, "build kubernetes client")
+			}
+
+			raw, err := kclient.Get().RequestURI(metricURI).Do().Raw()
+			if err != nil {
+				return nil, errors.Wrap(err, "retrieve metrics")
+			}
 
 			metricResponse := &MetricResponse{}
-			// TODO(stgleb): Add caching for metric
-			req, err := http.NewRequest(http.MethodGet, metricURI, nil)
-
+			err = json.Unmarshal(raw, metricResponse)
 			if err != nil {
-				return nil, err
+				return nil, errors.Wrap(err, "unmarshal")
 			}
-
-			req.SetBasicAuth(k.User, k.Password)
-			logrus.Debugf("Get metric with URI %s for kube %s", metricURI, k.ID)
-			resp, err := doReq(req)
-
-			if err != nil {
-				return nil, err
-			}
-
-			err = json.NewDecoder(resp.Body).Decode(metricResponse)
-
-			if err != nil {
-				return nil, err
-			}
-
-			resp.Body.Close()
-			cache.set(metricURI, metricResponse)
 
 			return metricResponse, nil
+		},
+		getK8sServices: func(k *model.Kube, servicesUrl, publicIP string) (*corev1.ServiceList, error) {
+			k8sServices := &corev1.ServiceList{}
+			serviceURL := fmt.Sprintf("https://%s/%s", publicIP, servicesUrl)
+			req, err := http.NewRequest(http.MethodGet, serviceURL, nil)
+			req.SetBasicAuth(k.User, k.Password)
+
+			tr := &http.Transport{
+				TLSClientConfig: &tls.Config{InsecureSkipVerify: true},
+			}
+			client := &http.Client{
+				Transport: tr,
+			}
+			resp, err := client.Do(req)
+
+			if err != nil {
+				return nil, err
+			}
+
+			err = json.NewDecoder(resp.Body).Decode(k8sServices)
+
+			if err != nil {
+				return nil, err
+			}
+
+			return k8sServices, nil
 		},
 		proxies: proxies,
 	}
@@ -381,8 +307,9 @@ func (h *Handler) listKubes(w http.ResponseWriter, r *http.Request) {
 
 func (h *Handler) deleteKube(w http.ResponseWriter, r *http.Request) {
 	vars := mux.Vars(r)
-
 	kubeID := vars["kubeID"]
+	logrus.Debugf("Delete kube %s", kubeID)
+
 	if err := h.nodeProvisioner.Cancel(kubeID); err != nil {
 		logrus.Debugf("cancel kube tasks error %v", err)
 	}
@@ -618,6 +545,7 @@ func (h *Handler) addNode(w http.ResponseWriter, r *http.Request) {
 		UbuntuVersion:   k.OperatingSystemVersion,
 		DockerVersion:   k.DockerVersion,
 		K8SVersion:      k.K8SVersion,
+		K8SServicesCIDR: k.ServicesCIDR,
 		HelmVersion:     k.HelmVersion,
 		User:            k.User,
 		Password:        k.Password,
@@ -695,6 +623,8 @@ func (h *Handler) deleteNode(w http.ResponseWriter, r *http.Request) {
 	kubeID := vars["kubeID"]
 	nodeName := vars["nodename"]
 
+	logrus.Debugf("Delete node %s from kube %s",
+		nodeName, kubeID)
 	k, err := h.svc.Get(r.Context(), kubeID)
 	if err != nil {
 		if sgerrors.IsNotFound(err) {
@@ -711,7 +641,9 @@ func (h *Handler) deleteNode(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if _, ok := k.Nodes[nodeName]; !ok {
+	var n *node.Node
+
+	if n = k.Nodes[nodeName]; n == nil {
 		http.NotFound(w, r)
 		return
 	}
@@ -746,9 +678,7 @@ func (h *Handler) deleteNode(w http.ResponseWriter, r *http.Request) {
 		ClusterID:        k.ID,
 		ClusterName:      k.Name,
 		CloudAccountName: k.AccountName,
-		Node: node.Node{
-			Name: nodeName,
-		},
+		Node:             *n,
 	}
 
 	err = util.FillCloudAccountCredentials(r.Context(), acc, config)
@@ -1078,8 +1008,8 @@ func (h *Handler) getServices(w http.ResponseWriter, r *http.Request) {
 		servicesUrl = "api/v1/services"
 		kubeID      string
 		masterNode  *node.Node
-		k8sServices = &k8SServices{}
 	)
+
 	vars := mux.Vars(r)
 	kubeID = vars["kubeID"]
 
@@ -1093,34 +1023,23 @@ func (h *Handler) getServices(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	if len(k.Masters) == 0 {
+		message.SendNotFound(w, kubeID,
+			errors.New("no master node found"))
+		return
+	}
+
 	for key := range k.Masters {
 		if k.Masters[key] != nil {
 			masterNode = k.Masters[key]
 		}
 	}
 
-	serviceURL := fmt.Sprintf("https://%s/%s", masterNode.PublicIp, servicesUrl)
-	req, err := http.NewRequest(http.MethodGet, serviceURL, nil)
-	req.SetBasicAuth(k.User, k.Password)
-
-	tr := &http.Transport{
-		TLSClientConfig: &tls.Config{InsecureSkipVerify: true},
-	}
-	client := &http.Client{
-		Transport: tr,
-	}
-	resp, err := client.Do(req)
+	k8sServices, err := h.getK8sServices(k,
+		servicesUrl, masterNode.PublicIp)
 
 	if err != nil {
 		message.SendUnknownError(w, err)
-		return
-	}
-
-	err = json.NewDecoder(resp.Body).Decode(k8sServices)
-
-	if err != nil {
-		logrus.Error(err)
-		message.SendInvalidJSON(w, err)
 		return
 	}
 
@@ -1136,24 +1055,25 @@ func (h *Handler) getServices(w http.ResponseWriter, r *http.Request) {
 	var targetServices = make([]*proxy.Target, 0)
 
 	for _, service := range k8sServices.Items {
-		if !contains("kubernetes.io/cluster-service", "true", service.Metadata.Labels) {
+		if !contains(clusterService,
+			"true", service.ObjectMeta.Labels) {
 			continue
 		}
 
 		if len(service.Spec.Ports) == 1 && service.Spec.Ports[0].Protocol == "TCP" {
 			var serviceInfo = &ServiceInfo{
-				ID:        service.Metadata.UID,
-				Name:      service.Metadata.Name,
-				Type:      service.Spec.Type,
-				Namespace: service.Metadata.Namespace,
+				ID:        string(service.ObjectMeta.UID),
+				Name:      service.ObjectMeta.Name,
+				Type:      string(service.Spec.Type),
+				Namespace: service.ObjectMeta.Namespace,
 			}
 			serviceInfos = append(serviceInfos, serviceInfo)
 
 			targetServices = append(targetServices, &proxy.Target{
-				ProxyID: kubeID + service.Metadata.UID,
+				ProxyID: kubeID + string(service.ObjectMeta.UID),
 				TargetURL: fmt.Sprintf("https://%s%s:%d/proxy",
-					masterNode.PublicIp, service.Metadata.SelfLink, service.Spec.Ports[0].Port),
-				SelfLink: service.Metadata.SelfLink,
+					masterNode.PublicIp, service.ObjectMeta.SelfLink, service.Spec.Ports[0].Port),
+				SelfLink: service.ObjectMeta.SelfLink,
 				User:     k.User,
 				Password: k.Password,
 			})
@@ -1164,18 +1084,18 @@ func (h *Handler) getServices(w http.ResponseWriter, r *http.Request) {
 			if port.Protocol == "TCP" {
 				if _, ok := webPorts[port.Name]; ok {
 					var serviceInfo = &ServiceInfo{
-						ID:        service.Metadata.UID,
-						Name:      service.Metadata.Name,
-						Type:      service.Spec.Type,
-						Namespace: service.Metadata.Namespace,
+						ID:        string(service.ObjectMeta.UID),
+						Name:      string(service.ObjectMeta.Name),
+						Type:      string(service.Spec.Type),
+						Namespace: service.ObjectMeta.Namespace,
 					}
 					serviceInfos = append(serviceInfos, serviceInfo)
 
 					targetServices = append(targetServices, &proxy.Target{
-						ProxyID: kubeID + service.Metadata.UID,
+						ProxyID: kubeID + string(service.ObjectMeta.UID),
 						TargetURL: fmt.Sprintf("https://%s%s:%d/proxy",
-							masterNode.PublicIp, service.Metadata.SelfLink, port.Port),
-						SelfLink: service.Metadata.SelfLink,
+							masterNode.PublicIp, service.ObjectMeta.SelfLink, port.Port),
+						SelfLink: service.ObjectMeta.SelfLink,
 						User:     k.User,
 						Password: k.Password,
 					})
