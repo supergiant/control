@@ -29,6 +29,7 @@ import (
 	"github.com/supergiant/control/pkg/workflows"
 	"github.com/supergiant/control/pkg/workflows/statuses"
 	"github.com/supergiant/control/pkg/workflows/steps"
+	"github.com/supergiant/control/pkg/runner/ssh"
 )
 
 const (
@@ -673,12 +674,14 @@ func (h *Handler) deleteNode(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	ssh.NewRunner()
 	config := &steps.Config{
 		Provider:         k.Provider,
 		ClusterID:        k.ID,
 		ClusterName:      k.Name,
 		CloudAccountName: k.AccountName,
 		Node:             *n,
+		Runner: r,
 	}
 
 	err = util.FillCloudAccountCredentials(r.Context(), acc, config)
