@@ -3,13 +3,15 @@ package steps
 import (
 	"bytes"
 	"context"
-	"github.com/pkg/errors"
-	"github.com/stretchr/testify/mock"
-	"github.com/supergiant/control/pkg/runner"
 	"strings"
 	"testing"
 	"text/template"
 	"time"
+
+	"github.com/pkg/errors"
+	"github.com/stretchr/testify/mock"
+
+	"github.com/supergiant/control/pkg/runner"
 )
 
 type mockRunner struct {

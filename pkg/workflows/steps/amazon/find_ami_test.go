@@ -2,15 +2,17 @@ package amazon
 
 import (
 	"context"
+	"strings"
+	"testing"
+
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/aws/request"
 	"github.com/aws/aws-sdk-go/service/ec2"
 	"github.com/aws/aws-sdk-go/service/ec2/ec2iface"
 	"github.com/pkg/errors"
-	"github.com/supergiant/control/pkg/workflows/steps"
 	"go.uber.org/zap/buffer"
-	"strings"
-	"testing"
+
+	"github.com/supergiant/control/pkg/workflows/steps"
 )
 
 type mockImageService struct {

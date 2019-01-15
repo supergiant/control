@@ -3,17 +3,19 @@ package amazon
 import (
 	"bytes"
 	"context"
-	"github.com/aws/aws-sdk-go/aws"
-	"github.com/aws/aws-sdk-go/aws/request"
-	"github.com/aws/aws-sdk-go/service/ec2"
-	"github.com/pkg/errors"
-	"github.com/stretchr/testify/mock"
-	"github.com/supergiant/control/pkg/sgerrors"
-	"github.com/supergiant/control/pkg/workflows/steps"
 	"strings"
 	"testing"
 	"time"
+
+	"github.com/aws/aws-sdk-go/aws"
+	"github.com/aws/aws-sdk-go/aws/request"
+	"github.com/aws/aws-sdk-go/service/ec2"
 	"github.com/aws/aws-sdk-go/service/ec2/ec2iface"
+	"github.com/pkg/errors"
+	"github.com/stretchr/testify/mock"
+
+	"github.com/supergiant/control/pkg/sgerrors"
+	"github.com/supergiant/control/pkg/workflows/steps"
 )
 
 type mockDeleteSecGroupSvc struct {
@@ -163,7 +165,7 @@ func TestDeleteSecurityGroup_Run(t *testing.T) {
 			},
 
 			revokeMasterErr: errors.New("message4"),
-			errMsg: "message4",
+			errMsg:          "message4",
 		},
 		{
 			description: "revoke node error",
@@ -188,7 +190,7 @@ func TestDeleteSecurityGroup_Run(t *testing.T) {
 			},
 
 			revokeNodeErr: errors.New("message5"),
-			errMsg: "message5",
+			errMsg:        "message5",
 		},
 		{
 			description: "delete master error",
@@ -213,7 +215,7 @@ func TestDeleteSecurityGroup_Run(t *testing.T) {
 			},
 
 			deleteMasterErr: errors.New("message6"),
-			errMsg: "message6",
+			errMsg:          "message6",
 		},
 		{
 			description: "delete node error",
@@ -238,7 +240,7 @@ func TestDeleteSecurityGroup_Run(t *testing.T) {
 			},
 
 			deleteNodeErr: errors.New("message7"),
-			errMsg: "message7",
+			errMsg:        "message7",
 		},
 		{
 			description: "success",
@@ -318,7 +320,6 @@ func TestDeleteSecurityGroup_Run(t *testing.T) {
 	}
 }
 
-
 func TestInitDeleteSecurityGroup(t *testing.T) {
 	InitDeleteSecurityGroup(GetEC2)
 
@@ -382,12 +383,11 @@ func TestDeleteSecurityGroup_Rollback(t *testing.T) {
 	}
 }
 
-
 func TestDeleteSecurityGroup_Description(t *testing.T) {
 	s := &DeleteSecurityGroup{}
 
 	if desc := s.Description(); desc != "Deletes security groups" {
-		t.Errorf("Wrong description value expected Deletes " +
+		t.Errorf("Wrong description value expected Deletes "+
 			"security groups actual %s", desc)
 	}
 }

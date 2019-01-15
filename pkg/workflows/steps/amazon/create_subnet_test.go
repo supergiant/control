@@ -1,7 +1,9 @@
 package amazon
 
 import (
+	"bytes"
 	"context"
+	"strings"
 	"testing"
 
 	"github.com/aws/aws-sdk-go/aws"
@@ -9,15 +11,13 @@ import (
 	"github.com/aws/aws-sdk-go/service/ec2"
 	"github.com/aws/aws-sdk-go/service/ec2/ec2iface"
 	"github.com/pkg/errors"
-
-	"bytes"
 	"github.com/stretchr/testify/mock"
+
 	"github.com/supergiant/control/pkg/account"
-	"github.com/supergiant/control/pkg/workflows/steps"
-	"github.com/supergiant/control/pkg/model"
-	"strings"
 	"github.com/supergiant/control/pkg/clouds"
+	"github.com/supergiant/control/pkg/model"
 	"github.com/supergiant/control/pkg/profile"
+	"github.com/supergiant/control/pkg/workflows/steps"
 )
 
 type mockSubnetSvc struct {
@@ -35,7 +35,7 @@ func (m *mockSubnetSvc) CreateSubnetWithContext(ctx aws.Context,
 	return val, args.Error(1)
 }
 
-type mockAccountGetter struct{
+type mockAccountGetter struct {
 	mock.Mock
 }
 
@@ -59,7 +59,7 @@ func (m *mockZoneGetter) GetZones(context.Context, steps.Config) ([]string, erro
 }
 
 func TestCreateSubnetStep_Run(t *testing.T) {
-	testCases := []struct{
+	testCases := []struct {
 		description string
 
 		getSvcErr     error
@@ -67,23 +67,23 @@ func TestCreateSubnetStep_Run(t *testing.T) {
 		zoneGetter    account.ZonesGetter
 		vpcCIDR       string
 
-		getZoneErr error
+		getZoneErr  error
 		getZoneResp []string
 
 		createSubnetErr error
-		createSubnet *ec2.CreateSubnetOutput
+		createSubnet    *ec2.CreateSubnetOutput
 
 		errMsg string
 	}{
 		{
 			description: "get service error",
-			getSvcErr: errors.New("message1"),
-			errMsg: "message1",
+			getSvcErr:   errors.New("message1"),
+			errMsg:      "message1",
 		},
 		{
-			description: "zone getter error",
+			description:   "zone getter error",
 			zoneGetterErr: errors.New("message2"),
-			errMsg: "message2",
+			errMsg:        "message2",
 		},
 		{
 			description: "invalid vpc cidr",
@@ -99,20 +99,20 @@ func TestCreateSubnetStep_Run(t *testing.T) {
 		},
 		{
 			description: "get zones error",
-			vpcCIDR: "10.0.0.0/16",
-			getZoneErr: errors.New("message3"),
-			errMsg: "message3",
+			vpcCIDR:     "10.0.0.0/16",
+			getZoneErr:  errors.New("message3"),
+			errMsg:      "message3",
 		},
 		{
-			description: "create subnets error",
-			getZoneResp: []string{"us-west-1a", "us-west-1b"},
-			vpcCIDR: "10.0.0.0/16",
+			description:     "create subnets error",
+			getZoneResp:     []string{"us-west-1a", "us-west-1b"},
+			vpcCIDR:         "10.0.0.0/16",
 			createSubnetErr: errors.New("message4"),
-			errMsg: "message4",
+			errMsg:          "message4",
 		},
 		{
 			description: "success",
-			vpcCIDR: "10.0.0.0/16",
+			vpcCIDR:     "10.0.0.0/16",
 			getZoneResp: []string{"us-west-1a", "us-west-1b"},
 			createSubnet: &ec2.CreateSubnetOutput{
 				Subnet: &ec2.Subnet{
@@ -130,7 +130,7 @@ func TestCreateSubnetStep_Run(t *testing.T) {
 			Return(testCase.createSubnet, testCase.createSubnetErr)
 		zoneGetter := &mockZoneGetter{
 			zones: testCase.getZoneResp,
-			err: testCase.getZoneErr,
+			err:   testCase.getZoneErr,
 		}
 
 		step := &CreateSubnetsStep{
@@ -170,16 +170,16 @@ func TestInitCreateSubnet(t *testing.T) {
 }
 
 func TestNewCreateSubnetStep2(t *testing.T) {
-	testCases := []struct{
+	testCases := []struct {
 		description string
-		getAccErr error
-		acc *model.CloudAccount
-		errMSg string
+		getAccErr   error
+		acc         *model.CloudAccount
+		errMSg      string
 	}{
 		{
-				description: "Get cloud account error",
-				getAccErr: errors.New("message1"),
-				errMSg: "message1",
+			description: "Get cloud account error",
+			getAccErr:   errors.New("message1"),
+			errMSg:      "message1",
 		},
 		{
 			description: "unsupported cloud provider",

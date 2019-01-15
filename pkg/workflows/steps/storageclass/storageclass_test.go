@@ -10,6 +10,7 @@ import (
 	"text/template"
 
 	"github.com/stretchr/testify/require"
+
 	"github.com/supergiant/control/pkg/clouds"
 	"github.com/supergiant/control/pkg/profile"
 	"github.com/supergiant/control/pkg/runner"
@@ -142,7 +143,7 @@ func TestStep_Description(t *testing.T) {
 	s := &Step{}
 
 	if desc := s.Description(); desc != "add storage class to k8s" {
-		t.Errorf("Wrong desc expected add storage class to " +
+		t.Errorf("Wrong desc expected add storage class to "+
 			"k8s actual %s", desc)
 	}
 }

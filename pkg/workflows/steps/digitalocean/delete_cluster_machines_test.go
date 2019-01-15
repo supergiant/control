@@ -139,7 +139,7 @@ func TestDeleteMachinesStep_Description(t *testing.T) {
 	s := DeleteMachinesStep{}
 
 	if desc := s.Description(); desc != "delete digital ocean cluster" {
-		t.Errorf("Wrong description expected " +
+		t.Errorf("Wrong description expected "+
 			"delete digital ocean cluster actual %s", desc)
 	}
 }

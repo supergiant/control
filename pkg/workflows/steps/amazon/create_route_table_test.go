@@ -6,14 +6,13 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/pkg/errors"
-
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/service/ec2"
-
-	"github.com/stretchr/testify/mock"
-	"github.com/supergiant/control/pkg/workflows/steps"
 	"github.com/aws/aws-sdk-go/service/ec2/ec2iface"
+	"github.com/pkg/errors"
+	"github.com/stretchr/testify/mock"
+
+	"github.com/supergiant/control/pkg/workflows/steps"
 )
 
 type mockService struct {
@@ -171,7 +170,7 @@ func TestNewCreateRouteTableStep(t *testing.T) {
 }
 
 func TestNewCreateRouteTableStepError(t *testing.T) {
-	fn := func(steps.AWSConfig)(ec2iface.EC2API, error) {
+	fn := func(steps.AWSConfig) (ec2iface.EC2API, error) {
 		return nil, errors.New("errorMessage")
 	}
 

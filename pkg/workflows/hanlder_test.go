@@ -7,13 +7,13 @@ import (
 	"io"
 	"net/http"
 	"net/http/httptest"
-	"testing"
 	"os"
+	"testing"
 
 	"github.com/gorilla/mux"
-
 	"github.com/hpcloud/tail"
 	"github.com/pkg/errors"
+
 	"github.com/supergiant/control/pkg/clouds"
 	"github.com/supergiant/control/pkg/model"
 	"github.com/supergiant/control/pkg/node"
@@ -78,7 +78,6 @@ func TestWorkflowHandlerGetWorkflow(t *testing.T) {
 			w1.Type, w2.Type)
 	}
 }
-
 
 func TestTaskHandlerRestartTask(t *testing.T) {
 	Init()

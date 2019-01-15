@@ -1,23 +1,22 @@
 package amazon
 
 import (
-	"context"
 	"bytes"
+	"context"
 	"strings"
 	"testing"
 
-	"github.com/pkg/errors"
-
 	"github.com/aws/aws-sdk-go/aws"
-	"github.com/aws/aws-sdk-go/service/ec2"
 	"github.com/aws/aws-sdk-go/aws/request"
+	"github.com/aws/aws-sdk-go/service/ec2"
 	"github.com/aws/aws-sdk-go/service/ec2/ec2iface"
+	"github.com/pkg/errors"
 	"github.com/stretchr/testify/mock"
 
 	"github.com/supergiant/control/pkg/workflows/steps"
 )
 
-type mockInstanceDeleter struct{
+type mockInstanceDeleter struct {
 	mock.Mock
 }
 
@@ -42,33 +41,32 @@ func (m *mockInstanceDeleter) TerminateInstancesWithContext(ctx aws.Context,
 	return val, args.Error(1)
 }
 
-
 func TestDeleteNodeStep_Run(t *testing.T) {
-	testCases := []struct{
+	testCases := []struct {
 		description string
 
 		getSvcErr error
 
-		describeErr error
+		describeErr    error
 		describeOutput *ec2.DescribeInstancesOutput
 
 		terminateErr error
-		errMsg string
+		errMsg       string
 	}{
 		{
 			description: "get service error",
-			getSvcErr: errors.New("message1"),
-			errMsg: "message1",
+			getSvcErr:   errors.New("message1"),
+			errMsg:      "message1",
 		},
 		{
 			description: "describe error",
 			describeErr: errors.New("message2"),
-			errMsg: "message2",
+			errMsg:      "message2",
 		},
 		{
 			description: "reservation empty",
 			describeOutput: &ec2.DescribeInstancesOutput{
-					Reservations: []*ec2.Reservation{},
+				Reservations: []*ec2.Reservation{},
 			},
 			terminateErr: errors.New("message3"),
 		},
@@ -98,7 +96,7 @@ func TestDeleteNodeStep_Run(t *testing.T) {
 				},
 			},
 			terminateErr: errors.New("message3"),
-			errMsg: "message3",
+			errMsg:       "message3",
 		},
 		{
 			description: "success",
@@ -121,7 +119,7 @@ func TestDeleteNodeStep_Run(t *testing.T) {
 		svc := &mockInstanceDeleter{}
 		svc.On("DescribeInstancesWithContext", mock.Anything,
 			mock.Anything, mock.Anything).Return(testCase.describeOutput,
-				testCase.describeErr)
+			testCase.describeErr)
 		svc.On("TerminateInstancesWithContext",
 			mock.Anything, mock.Anything, mock.Anything).
 			Return(mock.Anything, testCase.terminateErr)
@@ -221,7 +219,7 @@ func TestDeleteNodeStep_Description(t *testing.T) {
 	s := &DeleteNodeStep{}
 
 	if desc := s.Description(); desc != "Deletes node in aws cluster" {
-		t.Errorf("Wrong description expected " +
+		t.Errorf("Wrong description expected "+
 			"Deletes node in aws cluster actual %s", desc)
 	}
 }

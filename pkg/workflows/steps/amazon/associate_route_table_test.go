@@ -1,24 +1,22 @@
 package amazon
 
-
 import (
-	"testing"
-	"context"
 	"bytes"
+	"context"
 	"strings"
+	"testing"
 
-	"github.com/pkg/errors"
-	
+	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/service/ec2"
+	"github.com/aws/aws-sdk-go/service/ec2/ec2iface"
+	"github.com/pkg/errors"
 
 	"github.com/supergiant/control/pkg/workflows/steps"
-	"github.com/aws/aws-sdk-go/aws"
-	"github.com/aws/aws-sdk-go/service/ec2/ec2iface"
 )
 
-type mockAssociater struct{
+type mockAssociater struct {
 	association *ec2.AssociateRouteTableOutput
-	err error
+	err         error
 }
 
 func (m *mockAssociater) AssociateRouteTable(*ec2.AssociateRouteTableInput) (*ec2.AssociateRouteTableOutput, error) {
@@ -42,7 +40,7 @@ func TestNewAssociateRouteTableStep(t *testing.T) {
 }
 
 func TestNewAssociateRouteTableStepError(t *testing.T) {
-	fn := func(steps.AWSConfig)(ec2iface.EC2API, error) {
+	fn := func(steps.AWSConfig) (ec2iface.EC2API, error) {
 		return nil, errors.New("errorMessage")
 	}
 
@@ -69,13 +67,13 @@ func TestAssociateRouteTableStep_Depends(t *testing.T) {
 			[]string{StepCreateSubnets}, deps)
 	}
 }
- func TestAssociateRouteTableStep_Name(t *testing.T) {
-	 step := &AssociateRouteTableStep{}
+func TestAssociateRouteTableStep_Name(t *testing.T) {
+	step := &AssociateRouteTableStep{}
 
-	 if step.Name() != StepAssociateRouteTable {
-	 	t.Errorf("Wrong name expected %s actual %s",
-	 		StepAssociateRouteTable, step.Name())
-	 }
+	if step.Name() != StepAssociateRouteTable {
+		t.Errorf("Wrong name expected %s actual %s",
+			StepAssociateRouteTable, step.Name())
+	}
 }
 
 func TestAssociateRouteTableStep_Rollback(t *testing.T) {
@@ -100,32 +98,31 @@ func TestAssociateRouteTableStep_Description(t *testing.T) {
 	step := &AssociateRouteTableStep{}
 
 	if step.Description() != "Associate route table with all subnets in VPC" {
-		t.Errorf("Wrong description expected Associate route table " +
+		t.Errorf("Wrong description expected Associate route table "+
 			"with all subnets in VPC actual %s", step.Description())
 	}
 }
 
-
 func TestAssociateRouteTableStep_Run(t *testing.T) {
-	testCases := []struct{
-		description string
-		getSvcErr error
+	testCases := []struct {
+		description   string
+		getSvcErr     error
 		associationID string
-		associateErr error
-		errMsg string
+		associateErr  error
+		errMsg        string
 	}{
 		{
 			description: "get svc error",
-			getSvcErr: errors.New("message1"),
-			errMsg: "message1",
+			getSvcErr:   errors.New("message1"),
+			errMsg:      "message1",
 		},
 		{
-			description: "create association error",
+			description:  "create association error",
 			associateErr: errors.New("message2"),
-			errMsg: "message2",
+			errMsg:       "message2",
 		},
 		{
-			description: "success",
+			description:   "success",
 			associationID: "1234",
 		},
 	}
@@ -136,7 +133,7 @@ func TestAssociateRouteTableStep_Run(t *testing.T) {
 			association: &ec2.AssociateRouteTableOutput{
 				AssociationId: aws.String(testCase.associationID),
 			},
-			err:testCase.associateErr,
+			err: testCase.associateErr,
 		}
 
 		step := &AssociateRouteTableStep{

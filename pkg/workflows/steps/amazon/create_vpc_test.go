@@ -1,6 +1,7 @@
 package amazon
 
 import (
+	"bytes"
 	"context"
 	"os"
 	"testing"
@@ -15,7 +16,6 @@ import (
 	"github.com/supergiant/control/pkg/clouds"
 	"github.com/supergiant/control/pkg/profile"
 	"github.com/supergiant/control/pkg/workflows/steps"
-	"bytes"
 )
 
 type fakeEC2VPC struct {
@@ -196,7 +196,7 @@ func TestNewCreateVPCStep(t *testing.T) {
 }
 
 func TestNewCreateVPCStepErr(t *testing.T) {
-	fn := func(steps.AWSConfig)(ec2iface.EC2API, error) {
+	fn := func(steps.AWSConfig) (ec2iface.EC2API, error) {
 		return nil, errors.New("errorMessage")
 	}
 
@@ -236,7 +236,7 @@ func TestCreateVPCStep_Description(t *testing.T) {
 	s := &CreateVPCStep{}
 
 	if desc := s.Description(); desc != "create a vpc in aws or reuse existing one" {
-		t.Errorf("Wrong step desc expected  " +
+		t.Errorf("Wrong step desc expected  "+
 			"create a vpc in aws or reuse existing one actual %s",
 			s.Description())
 	}
@@ -246,7 +246,7 @@ func TestCreateVPCStep_Rollback(t *testing.T) {
 	s := &CreateVPCStep{}
 
 	if err := s.Rollback(context.Background(), &bytes.Buffer{},
-	&steps.Config{}); err != nil {
+		&steps.Config{}); err != nil {
 		t.Errorf("Unexpected error while rolback")
 	}
 }

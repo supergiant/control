@@ -5,9 +5,9 @@ import (
 	"testing"
 
 	"github.com/supergiant/control/pkg/clouds"
+	"github.com/supergiant/control/pkg/model"
 	"github.com/supergiant/control/pkg/node"
 	"github.com/supergiant/control/pkg/profile"
-	"github.com/supergiant/control/pkg/model"
 )
 
 func TestMarshalConfig(t *testing.T) {
@@ -282,7 +282,6 @@ func TestToCloudProviderOpt(t *testing.T) {
 	}
 }
 
-
 func TestNewConfigFromKube(t *testing.T) {
 	expectedMasterCount := 3
 	expectedNodeCount := 5
@@ -293,12 +292,12 @@ func TestNewConfigFromKube(t *testing.T) {
 	}
 
 	k := &model.Kube{
-		ID: "ClusteID",
-		Name: "ClusterName",
+		ID:          "ClusteID",
+		Name:        "ClusterName",
 		AccountName: "CloudAccount",
 		CloudSpec: map[string]string{
 			clouds.AwsImageID: "ImageID",
-			clouds.AwsVpcID: "VpcID",
+			clouds.AwsVpcID:   "VpcID",
 		},
 	}
 

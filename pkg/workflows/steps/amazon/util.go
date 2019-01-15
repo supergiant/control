@@ -11,7 +11,7 @@ import (
 )
 
 var (
-	timeout  = time.Second * 10
+	timeout     = time.Second * 10
 	serviceURLs = []string{
 		"http://checkip.amazonaws.com/",
 		"http://myexternalip.com/raw",
@@ -19,7 +19,6 @@ var (
 
 	attempts = 5
 	publicIP string
-
 )
 
 func FindOutboundIP(ctx context.Context, findExternalIP func() (string, error)) (string, error) {
@@ -49,7 +48,7 @@ func FindOutboundIP(ctx context.Context, findExternalIP func() (string, error)) 
 func findOutBoundIP() (string, error) {
 	var (
 		publicIP string
-		resp 	*http.Response
+		resp     *http.Response
 		err      error
 	)
 

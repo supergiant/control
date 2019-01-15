@@ -7,10 +7,9 @@ import (
 	"strings"
 	"time"
 
-	"google.golang.org/api/compute/v1"
-
 	"github.com/pkg/errors"
 	"github.com/sirupsen/logrus"
+	"google.golang.org/api/compute/v1"
 
 	"github.com/supergiant/control/pkg/clouds"
 	"github.com/supergiant/control/pkg/node"

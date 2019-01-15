@@ -3,7 +3,9 @@ package amazon
 import (
 	"bytes"
 	"context"
+	"strings"
 	"testing"
+	"time"
 
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/aws/request"
@@ -11,9 +13,8 @@ import (
 	"github.com/aws/aws-sdk-go/service/ec2/ec2iface"
 	"github.com/pkg/errors"
 	"github.com/stretchr/testify/mock"
+
 	"github.com/supergiant/control/pkg/workflows/steps"
-	"strings"
-	"time"
 )
 
 type mockSecurityGroupSvc struct {
@@ -59,8 +60,8 @@ func TestCreateSecurityGroupsStep_Run(t *testing.T) {
 
 		findOutboundIP func() (string, error)
 
-		whiteListErr1  error
-		whiteListErr2  error
+		whiteListErr1 error
+		whiteListErr2 error
 
 		errMsg string
 	}{
@@ -113,7 +114,7 @@ func TestCreateSecurityGroupsStep_Run(t *testing.T) {
 				GroupId: aws.String("nodeID"),
 			},
 			authorizeAllErr1: errors.New("message5"),
-			errMsg:            "message5",
+			errMsg:           "message5",
 		},
 		{
 			description: "allow all traffic #2",
@@ -124,7 +125,7 @@ func TestCreateSecurityGroupsStep_Run(t *testing.T) {
 				GroupId: aws.String("nodeID"),
 			},
 			authorizeAllErr2: errors.New("message6"),
-			errMsg:            "message6",
+			errMsg:           "message6",
 		},
 		{
 			description: "find outbound error",

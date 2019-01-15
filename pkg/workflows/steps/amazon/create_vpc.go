@@ -58,8 +58,8 @@ func (c *CreateVPCStep) Run(ctx context.Context, w io.Writer, cfg *steps.Config)
 		err = EC2.WaitUntilVpcExistsWithContext(ctx, desc)
 
 		if err != nil {
-				logrus.Debugf("error waiting for vpc %s %s",
-					cfg.AWSConfig.VPCID, err.Error())
+			logrus.Debugf("error waiting for vpc %s %s",
+				cfg.AWSConfig.VPCID, err.Error())
 			return errors.Wrapf(err, "create vpc error wait")
 		}
 		log.Infof("[%s] - created a VPC with ID %s and CIDR %s",

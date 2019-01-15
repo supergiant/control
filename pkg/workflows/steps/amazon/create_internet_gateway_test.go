@@ -1,19 +1,18 @@
 package amazon
 
 import (
-	"context"
 	"bytes"
+	"context"
 	"strings"
 	"testing"
 
-	"github.com/pkg/errors"
-
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/service/ec2"
+	"github.com/aws/aws-sdk-go/service/ec2/ec2iface"
+	"github.com/pkg/errors"
 	"github.com/stretchr/testify/mock"
 
 	"github.com/supergiant/control/pkg/workflows/steps"
-	"github.com/aws/aws-sdk-go/service/ec2/ec2iface"
 )
 
 type mockIGWService struct {
@@ -51,15 +50,15 @@ func (m *mockIGWService) AttachInternetGateway(
 }
 
 func TestCreateInternetGatewayStep_Run(t *testing.T) {
-	testCases := []struct{
+	testCases := []struct {
 		existingGW string
-		getSvcErr error
+		getSvcErr  error
 
 		createIGWOut *ec2.CreateInternetGatewayOutput
 		createIGWErr error
 
 		createTagserr error
-		attachErr error
+		attachErr     error
 
 		errMsg string
 	}{
@@ -68,11 +67,11 @@ func TestCreateInternetGatewayStep_Run(t *testing.T) {
 		},
 		{
 			getSvcErr: errors.New("message1"),
-			errMsg: "message1",
+			errMsg:    "message1",
 		},
 		{
 			createIGWErr: errors.New("message2"),
-			errMsg: "message2",
+			errMsg:       "message2",
 		},
 		{
 			createIGWOut: &ec2.CreateInternetGatewayOutput{
@@ -81,7 +80,7 @@ func TestCreateInternetGatewayStep_Run(t *testing.T) {
 				},
 			},
 			createIGWErr: errors.New("message3"),
-			errMsg: "message3",
+			errMsg:       "message3",
 		},
 		{
 			createIGWOut: &ec2.CreateInternetGatewayOutput{
@@ -90,7 +89,7 @@ func TestCreateInternetGatewayStep_Run(t *testing.T) {
 				},
 			},
 			attachErr: errors.New("message4"),
-			errMsg: "message4",
+			errMsg:    "message4",
 		},
 		{
 			createIGWOut: &ec2.CreateInternetGatewayOutput{
@@ -99,7 +98,7 @@ func TestCreateInternetGatewayStep_Run(t *testing.T) {
 				},
 			},
 			createTagserr: errors.New("message5"),
-			errMsg: "message5",
+			errMsg:        "message5",
 		},
 		{
 			createIGWOut: &ec2.CreateInternetGatewayOutput{
@@ -203,7 +202,7 @@ func TestNewCreateInternetGatewayStep(t *testing.T) {
 }
 
 func TestNewCreateInternetGatewayStepError(t *testing.T) {
-	fn := func(steps.AWSConfig)(ec2iface.EC2API, error) {
+	fn := func(steps.AWSConfig) (ec2iface.EC2API, error) {
 		return nil, errors.New("errorMessage")
 	}
 

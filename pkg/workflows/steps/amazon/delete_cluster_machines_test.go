@@ -1,41 +1,41 @@
 package amazon
 
 import (
-	"context"
 	"bytes"
+	"context"
 	"strings"
 	"testing"
 
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/service/ec2"
+	"github.com/aws/aws-sdk-go/service/ec2/ec2iface"
 	"github.com/pkg/errors"
+	"github.com/stretchr/testify/mock"
 
 	"github.com/supergiant/control/pkg/workflows/steps"
-	"github.com/stretchr/testify/mock"
-	"github.com/aws/aws-sdk-go/service/ec2/ec2iface"
 )
 
 func TestDeleteClusterMachibesStep_Run(t *testing.T) {
-	testCases := []struct{
+	testCases := []struct {
 		description string
 
 		getSvcErr error
 
-		describeErr error
+		describeErr    error
 		describeOutput *ec2.DescribeInstancesOutput
 
 		terminateErr error
-		errMsg string
+		errMsg       string
 	}{
 		{
 			description: "get service error",
-			getSvcErr: errors.New("message1"),
-			errMsg: "message1",
+			getSvcErr:   errors.New("message1"),
+			errMsg:      "message1",
 		},
 		{
 			description: "describe error",
 			describeErr: errors.New("message2"),
-			errMsg: "message2",
+			errMsg:      "message2",
 		},
 		{
 			description: "reservation empty",
@@ -70,7 +70,7 @@ func TestDeleteClusterMachibesStep_Run(t *testing.T) {
 				},
 			},
 			terminateErr: errors.New("message3"),
-			errMsg: "message3",
+			errMsg:       "message3",
 		},
 		{
 			description: "success",
@@ -153,7 +153,6 @@ func TestNewDeleteClusterInstancesErr(t *testing.T) {
 	}
 }
 
-
 func TestInitDeleteClusterMachines(t *testing.T) {
 	InitDeleteClusterMachines(GetEC2)
 
@@ -171,7 +170,6 @@ func TestDeleteClusterMachines_Depends(t *testing.T) {
 		t.Errorf("depencies must be nil")
 	}
 }
-
 
 func TestDeleteClusterMachines_Name(t *testing.T) {
 	s := &DeleteClusterMachines{}
@@ -194,7 +192,7 @@ func TestDeleteClusterMachines_Description(t *testing.T) {
 	s := &DeleteClusterMachines{}
 
 	if desc := s.Description(); desc != "Deletes all nodes in aws cluster" {
-		t.Errorf("Wrong description expected Deletes all nodes " +
+		t.Errorf("Wrong description expected Deletes all nodes "+
 			"in aws cluster actual %s", desc)
 	}
 }

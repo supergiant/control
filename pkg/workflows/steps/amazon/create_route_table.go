@@ -5,10 +5,10 @@ import (
 	"fmt"
 	"io"
 
-	"github.com/pkg/errors"
-	"github.com/sirupsen/logrus"
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/service/ec2"
+	"github.com/pkg/errors"
+	"github.com/sirupsen/logrus"
 
 	"github.com/supergiant/control/pkg/clouds"
 	"github.com/supergiant/control/pkg/workflows/steps"
@@ -24,7 +24,7 @@ type Service interface {
 
 type CreateRouteTableStep struct {
 	getService func(config steps.AWSConfig) (Service, error)
-	GetEC2 GetEC2Fn
+	GetEC2     GetEC2Fn
 }
 
 // InitCreateRouteTable adds the step to the registry
