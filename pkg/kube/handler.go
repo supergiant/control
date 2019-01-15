@@ -23,13 +23,13 @@ import (
 	"github.com/supergiant/control/pkg/node"
 	"github.com/supergiant/control/pkg/profile"
 	"github.com/supergiant/control/pkg/proxy"
+	"github.com/supergiant/control/pkg/runner/ssh"
 	"github.com/supergiant/control/pkg/sgerrors"
 	"github.com/supergiant/control/pkg/storage"
 	"github.com/supergiant/control/pkg/util"
 	"github.com/supergiant/control/pkg/workflows"
 	"github.com/supergiant/control/pkg/workflows/statuses"
 	"github.com/supergiant/control/pkg/workflows/steps"
-	"github.com/supergiant/control/pkg/runner/ssh"
 )
 
 const (
@@ -659,7 +659,6 @@ func (h *Handler) deleteNode(w http.ResponseWriter, r *http.Request) {
 
 		message.SendUnknownError(w, err)
 		return
-
 	}
 
 	t, err := workflows.NewTask(h.workflowMap[acc.Provider].DeleteNode, h.repo)
@@ -674,14 +673,36 @@ func (h *Handler) deleteNode(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	ssh.NewRunner()
+	masterNode := getMaster(k)
+
+	if masterNode == nil {
+		http.NotFound(w, r)
+		return
+	}
+
+	cfg := ssh.Config{
+		Host:    masterNode.PublicIp,
+		Port:    "22",
+		User:    k.SshUser,
+		Timeout: 10,
+		Key:     []byte(k.BootstrapPrivateKey),
+	}
+
+	sshRunner, err := ssh.NewRunner(cfg)
+
+	if err != nil {
+		message.SendUnknownError(w, err)
+		return
+	}
+
 	config := &steps.Config{
 		Provider:         k.Provider,
 		ClusterID:        k.ID,
 		ClusterName:      k.Name,
 		CloudAccountName: k.AccountName,
 		Node:             *n,
-		Runner: r,
+		Runner:           sshRunner,
+		Masters: steps.NewMap(k.Masters),
 	}
 
 	err = util.FillCloudAccountCredentials(r.Context(), acc, config)
