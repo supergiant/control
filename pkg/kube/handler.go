@@ -712,8 +712,7 @@ func (h *Handler) deleteNode(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	util.MakeFileName(t.ID)
-	writer, err := h.getWriter(t.ID)
+	writer, err := h.getWriter(util.MakeFileName(t.ID))
 
 	if err != nil {
 		message.SendUnknownError(w, err)

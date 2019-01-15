@@ -13,6 +13,8 @@ import (
 	"github.com/supergiant/control/pkg/sgerrors"
 	tm "github.com/supergiant/control/pkg/templatemanager"
 	"github.com/supergiant/control/pkg/workflows/steps"
+	"os"
+	"github.com/supergiant/control/pkg/clouds"
 )
 
 const StepName = "drain"
@@ -40,6 +42,12 @@ func New(script *template.Template) *Step {
 	t := &Step{
 		script: script,
 		getRunner: func(masterIp string, config *steps.Config) (runner.Runner, error) {
+			if config.Provider == clouds.AWS {
+				//on aws default user name on ubuntu images are not root but ubuntu
+				//https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/AccessingInstancesLinux.html
+				config.SshConfig.User = "ubuntu"
+			}
+
 			cfg := ssh.Config{
 				Host:    masterIp,
 				Port:    config.SshConfig.Port,
@@ -74,6 +82,7 @@ func (s *Step) Run(ctx context.Context, out io.Writer, config *steps.Config) err
 		return errors.Wrapf(err, "get runner")
 	}
 
+	out = io.MultiWriter(out, os.Stdout, os.Stderr)
 	err = steps.RunTemplate(ctx, s.script, r, out, config.DrainConfig)
 
 	if err != nil {
