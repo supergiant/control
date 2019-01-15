@@ -19,13 +19,12 @@ import (
 	"github.com/supergiant/control/pkg/workflows/steps/etcd"
 )
 
-
 type TaskType string
 
 const (
-	MasterTask  = "master"
-	NodeTask  = "node"
-	ClusterTask  = "cluster"
+	MasterTask       = "master"
+	NodeTask         = "node"
+	ClusterTask      = "cluster"
 	PreProvisionTask = "preprovision"
 )
 
@@ -162,7 +161,6 @@ func (t *Task) Run(ctx context.Context, config steps.Config, out io.WriteCloser)
 
 	return errChan
 }
-
 
 // start task execution from particular step
 func (w *Task) startFrom(ctx context.Context, id string, out io.Writer, i int) error {

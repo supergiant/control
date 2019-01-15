@@ -1,10 +1,10 @@
 package pki
 
 import (
+	"strings"
 	"testing"
 
 	"github.com/stretchr/testify/require"
-	"strings"
 )
 
 var (
@@ -167,7 +167,7 @@ func TestEncodeSuccess(t *testing.T) {
 	crt, key, _ := newCertificateAuthority()
 	p := &Pair{
 		Cert: crt,
-		Key: key,
+		Key:  key,
 	}
 
 	pairPem, err := Encode(p)
@@ -182,41 +182,41 @@ func TestEncodeSuccess(t *testing.T) {
 }
 
 func TestDecode(t *testing.T) {
-	testCases := []struct{
+	testCases := []struct {
 		description string
 
 		cert []byte
-		key []byte
+		key  []byte
 
 		errMsg string
 	}{
 		{
 			description: "nil value",
-			errMsg: ErrEmptyPair.Error(),
+			errMsg:      ErrEmptyPair.Error(),
 		},
 		{
 			description: "decode cert err",
-			cert: []byte(`cert`),
-			key: []byte(`key`),
-			errMsg: "decode pem",
+			cert:        []byte(`cert`),
+			key:         []byte(`key`),
+			errMsg:      "decode pem",
 		},
 		{
 			description: "decode key err",
-			cert: testCACert,
-			key: []byte(`key`),
-			errMsg: "decode pem",
+			cert:        testCACert,
+			key:         []byte(`key`),
+			errMsg:      "decode pem",
 		},
 		{
 			description: "success",
-			cert:testCACert,
-			key: testCAKey,
+			cert:        testCACert,
+			key:         testCAKey,
 		},
 	}
 
 	for _, testCase := range testCases {
 		p := &PairPEM{
 			Cert: testCase.cert,
-			Key: testCase.key,
+			Key:  testCase.key,
 		}
 
 		_, err := Decode(p)

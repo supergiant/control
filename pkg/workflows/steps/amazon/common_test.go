@@ -2,6 +2,7 @@ package amazon
 
 import (
 	"testing"
+
 	"github.com/supergiant/control/pkg/workflows/steps"
 )
 

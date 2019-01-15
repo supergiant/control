@@ -2029,7 +2029,7 @@ func TestRestarProvisioningKube(t *testing.T) {
 		profileSvc := new(mockProfileGetter)
 		profileSvc.On("Get", mock.Anything,
 			mock.Anything).Return(testCase.kubeProfile,
-				testCase.profileErr)
+			testCase.profileErr)
 
 		accService := new(accServiceMock)
 		accService.On("Get", mock.Anything, mock.Anything).

@@ -93,10 +93,9 @@ type Handler struct {
 	repo        storage.Interface
 	proxies     proxy.Container
 
-	getWriter   func(string) (io.WriteCloser, error)
-	getMetrics  func(string, *model.Kube) (*MetricResponse, error)
-	getK8sServices  func(*model.Kube, string, string) (*corev1.ServiceList, error)
-
+	getWriter      func(string) (io.WriteCloser, error)
+	getMetrics     func(string, *model.Kube) (*MetricResponse, error)
+	getK8sServices func(*model.Kube, string, string) (*corev1.ServiceList, error)
 }
 
 // NewHandler constructs a Handler for kubes.

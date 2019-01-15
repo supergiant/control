@@ -1,19 +1,21 @@
 package amazon
 
 import (
-	"github.com/stretchr/testify/mock"
-	"github.com/aws/aws-sdk-go/service/ec2"
-	"testing"
-	"github.com/pkg/errors"
-	"github.com/supergiant/control/pkg/workflows/steps"
-	"context"
 	"bytes"
+	"context"
 	"strings"
+	"testing"
 	"time"
+
+	"github.com/aws/aws-sdk-go/service/ec2"
 	"github.com/aws/aws-sdk-go/service/ec2/ec2iface"
+	"github.com/pkg/errors"
+	"github.com/stretchr/testify/mock"
+
+	"github.com/supergiant/control/pkg/workflows/steps"
 )
 
-type mockDeleteRouteTableService struct{
+type mockDeleteRouteTableService struct {
 	mock.Mock
 }
 
@@ -27,30 +29,30 @@ func (m *mockDeleteRouteTableService) DeleteRouteTable(input *ec2.DeleteRouteTab
 }
 
 func TestDeleteRouteTable_Run(t *testing.T) {
-	testCases := []struct{
+	testCases := []struct {
 		description string
-		existingID string
-		getSvcErr error
-		deleteErr error
-		errMsg string
+		existingID  string
+		getSvcErr   error
+		deleteErr   error
+		errMsg      string
 	}{
 		{
 			description: "skip step",
 		},
 		{
-			description:"get service error",
-			existingID: "1234",
-			getSvcErr: errors.New("message1"),
-			errMsg: "message1",
+			description: "get service error",
+			existingID:  "1234",
+			getSvcErr:   errors.New("message1"),
+			errMsg:      "message1",
 		},
 		{
 			description: "delete error",
-			existingID: "1234",
-			deleteErr: errors.New("message2"),
+			existingID:  "1234",
+			deleteErr:   errors.New("message2"),
 		},
 		{
 			description: "success",
-			existingID: "1234",
+			existingID:  "1234",
 		},
 	}
 
@@ -91,7 +93,7 @@ func TestInitDeleteRouteTable(t *testing.T) {
 
 	s := steps.GetStep(DeleteRouteTableStepName)
 
-	if s ==  nil {
+	if s == nil {
 		t.Errorf("Step %s must  not be nil", DeleteRouteTableStepName)
 	}
 }
@@ -161,7 +163,7 @@ func TestDeleteRouteTable_Description(t *testing.T) {
 	step := &DeleteRouteTable{}
 
 	if desc := step.Description(); desc != "Delete route table from vpc" {
-		t.Errorf("Wrong description expected Delete route " +
+		t.Errorf("Wrong description expected Delete route "+
 			"table from vpc actual %s", desc)
 	}
 }

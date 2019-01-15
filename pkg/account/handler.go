@@ -202,14 +202,14 @@ func (h *Handler) GetRegions(w http.ResponseWriter, r *http.Request) {
 func (h *Handler) GetAZs(w http.ResponseWriter, r *http.Request) {
 	accountName, ok := mux.Vars(r)["accountName"]
 	if !ok || accountName == "" {
-		message.SendValidationFailed(w, errors.New("clouds: " +
+		message.SendValidationFailed(w, errors.New("clouds: "+
 			"preconditions failed"))
 		return
 	}
 
 	region, ok := mux.Vars(r)["region"]
 	if region == "" {
-		message.SendValidationFailed(w, errors.New("clouds: " +
+		message.SendValidationFailed(w, errors.New("clouds: "+
 			"preconditions failed"))
 		return
 	}
@@ -256,21 +256,21 @@ func (h *Handler) GetAZs(w http.ResponseWriter, r *http.Request) {
 func (h *Handler) GetTypes(w http.ResponseWriter, r *http.Request) {
 	accountName, ok := mux.Vars(r)["accountName"]
 	if !ok || accountName == "" {
-		message.SendValidationFailed(w, errors.New("clouds: " +
+		message.SendValidationFailed(w, errors.New("clouds: "+
 			"preconditions failed"))
 		return
 	}
 
 	region, ok := mux.Vars(r)["region"]
 	if region == "" {
-		message.SendValidationFailed(w, errors.New("clouds: " +
+		message.SendValidationFailed(w, errors.New("clouds: "+
 			"preconditions failed"))
 		return
 	}
 
 	az, ok := mux.Vars(r)["az"]
 	if az == "" {
-		message.SendValidationFailed(w, errors.New("clouds: " +
+		message.SendValidationFailed(w, errors.New("clouds: "+
 			"preconditions failed"))
 		return
 	}

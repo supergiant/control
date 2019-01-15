@@ -146,7 +146,6 @@ func TestTaskRunError(t *testing.T) {
 	RegisterWorkFlow("mock", wf)
 	task, err := NewTask("mock", s)
 
-
 	buffer := &bufferCloser{}
 	errChan := task.Run(context.Background(), steps.Config{}, buffer)
 

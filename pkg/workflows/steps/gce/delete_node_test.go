@@ -6,9 +6,9 @@ import (
 	"strings"
 	"testing"
 
+	"github.com/pkg/errors"
 	"google.golang.org/api/compute/v1"
 
-	"github.com/pkg/errors"
 	"github.com/supergiant/control/pkg/node"
 	"github.com/supergiant/control/pkg/workflows/steps"
 )

@@ -1,18 +1,20 @@
 package amazon
 
 import (
-	"github.com/stretchr/testify/mock"
-	"github.com/aws/aws-sdk-go/service/ec2"
-	"testing"
-	"github.com/pkg/errors"
-	"github.com/supergiant/control/pkg/workflows/steps"
-	"context"
 	"bytes"
+	"context"
 	"strings"
+	"testing"
+
+	"github.com/aws/aws-sdk-go/service/ec2"
 	"github.com/aws/aws-sdk-go/service/ec2/ec2iface"
+	"github.com/pkg/errors"
+	"github.com/stretchr/testify/mock"
+
+	"github.com/supergiant/control/pkg/workflows/steps"
 )
 
-type mockDisassociateService struct{
+type mockDisassociateService struct {
 	mock.Mock
 }
 
@@ -27,30 +29,30 @@ func (m *mockDisassociateService) DisassociateRouteTable(
 }
 
 func TestDisassociateRouteTable_Run(t *testing.T) {
-	testCases := []struct{
-		description string
-		existingID string
-		getSvcErr error
+	testCases := []struct {
+		description     string
+		existingID      string
+		getSvcErr       error
 		disassociateErr error
-		errMsg string
+		errMsg          string
 	}{
 		{
 			description: "skip disassociate",
 		},
 		{
 			description: "get service error",
-			existingID: "1234",
-			getSvcErr: errors.New("message1"),
-			errMsg: "message1",
+			existingID:  "1234",
+			getSvcErr:   errors.New("message1"),
+			errMsg:      "message1",
 		},
 		{
-			description: "disassociate error",
-			existingID: "1234",
+			description:     "disassociate error",
+			existingID:      "1234",
 			disassociateErr: errors.New("message2"),
 		},
 		{
 			description: "success",
-			existingID: "1234",
+			existingID:  "1234",
 		},
 	}
 
@@ -85,7 +87,6 @@ func TestDisassociateRouteTable_Run(t *testing.T) {
 		}
 	}
 }
-
 
 func TestInitDisassociateRouteTable(t *testing.T) {
 	InitDisassociateRouteTable(GetEC2)
@@ -166,10 +167,10 @@ func TestDisassociateRouteTable_Rollback(t *testing.T) {
 }
 
 func TestDisassociateRouteTable_Description(t *testing.T) {
-	s :=  &DisassociateRouteTable{}
+	s := &DisassociateRouteTable{}
 
 	if desc := s.Description(); desc != "Disassociate route table with subnets" {
-		t.Errorf("Wrong description expected Disassociate route table " +
+		t.Errorf("Wrong description expected Disassociate route table "+
 			"with subnets actual %s", desc)
 	}
 }

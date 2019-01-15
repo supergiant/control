@@ -20,7 +20,7 @@ var (
 	deleteRouteTimeout      = time.Minute
 )
 
-type deleteRouteTableSvc interface{
+type deleteRouteTableSvc interface {
 	DeleteRouteTable(*ec2.DeleteRouteTableInput) (*ec2.DeleteRouteTableOutput, error)
 }
 

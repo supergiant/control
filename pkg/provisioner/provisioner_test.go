@@ -369,7 +369,7 @@ func TestRestartProvisionClusterSuccess(t *testing.T) {
 
 	err := provisioner.
 		RestartClusterProvisioning(context.Background(),
-		p, cfg, taskMap)
+			p, cfg, taskMap)
 
 	time.Sleep(time.Millisecond * 10)
 
@@ -378,8 +378,7 @@ func TestRestartProvisionClusterSuccess(t *testing.T) {
 	}
 }
 
-
-	func TestRestartProvisionClusterError(t *testing.T) {
+func TestRestartProvisionClusterError(t *testing.T) {
 	repository := &testutils.MockStorage{}
 	repository.On("Put", mock.Anything,
 		mock.Anything, mock.Anything,
@@ -452,7 +451,7 @@ func TestRestartProvisionClusterSuccess(t *testing.T) {
 			p, cfg, taskMap)
 
 	time.Sleep(time.Millisecond * 10)
-	if err == nil  {
+	if err == nil {
 		t.Errorf("Error must not be nil")
 	}
 }

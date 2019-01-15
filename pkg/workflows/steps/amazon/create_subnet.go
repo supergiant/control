@@ -8,14 +8,14 @@ import (
 
 	"github.com/apparentlymart/go-cidr/cidr"
 	"github.com/aws/aws-sdk-go/aws"
+	"github.com/aws/aws-sdk-go/aws/request"
 	"github.com/aws/aws-sdk-go/service/ec2"
 	"github.com/pkg/errors"
 	"github.com/sirupsen/logrus"
 
 	"github.com/supergiant/control/pkg/account"
-	"github.com/supergiant/control/pkg/workflows/steps"
 	"github.com/supergiant/control/pkg/model"
-	"github.com/aws/aws-sdk-go/aws/request"
+	"github.com/supergiant/control/pkg/workflows/steps"
 )
 
 const StepCreateSubnets = "create_subnet_steps"
@@ -30,8 +30,8 @@ type subnetSvc interface {
 }
 
 type CreateSubnetsStep struct {
-	accountGetter accountGetter
-	getSvc func(steps.AWSConfig) (subnetSvc, error)
+	accountGetter     accountGetter
+	getSvc            func(steps.AWSConfig) (subnetSvc, error)
 	zoneGetterFactory func(context.Context, accountGetter, *steps.Config) (account.ZonesGetter, error)
 }
 
@@ -120,7 +120,7 @@ func (s *CreateSubnetsStep) Run(ctx context.Context, w io.Writer, cfg *steps.Con
 
 		if err != nil {
 			logrus.Debugf("Calculating subnet cidr caused %s", err.Error())
-			return errors.Wrapf(err, "%s Calculating subnet" +
+			return errors.Wrapf(err, "%s Calculating subnet"+
 				" cidr caused error", StepCreateSubnets)
 		}
 

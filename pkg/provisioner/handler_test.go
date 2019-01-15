@@ -11,8 +11,8 @@ import (
 	"github.com/gorilla/mux"
 	"github.com/pborman/uuid"
 	"github.com/pkg/errors"
-
 	"github.com/stretchr/testify/mock"
+
 	"github.com/supergiant/control/pkg/account"
 	"github.com/supergiant/control/pkg/clouds"
 	"github.com/supergiant/control/pkg/model"

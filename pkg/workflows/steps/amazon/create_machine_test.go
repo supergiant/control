@@ -3,6 +3,10 @@ package amazon
 import (
 	"bytes"
 	"context"
+	"strings"
+	"testing"
+	"time"
+
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/aws/request"
 	"github.com/aws/aws-sdk-go/service/ec2"
@@ -10,11 +14,9 @@ import (
 	"github.com/pborman/uuid"
 	"github.com/pkg/errors"
 	"github.com/stretchr/testify/mock"
+
 	"github.com/supergiant/control/pkg/profile"
 	"github.com/supergiant/control/pkg/workflows/steps"
-	"strings"
-	"testing"
-	"time"
 )
 
 type mockEC2 struct {
@@ -54,7 +56,7 @@ func (m *mockEC2) WaitUntilInstanceRunningWithContext(ctx aws.Context,
 func TestStepCreateInstance_Run(t *testing.T) {
 	testCases := []struct {
 		description       string
-		isMaster  bool
+		isMaster          bool
 		getSvcErr         error
 		runInstanceErr    error
 		runInstanceResp   *ec2.Reservation
@@ -75,7 +77,7 @@ func TestStepCreateInstance_Run(t *testing.T) {
 		},
 		{
 			description:    "run master instance error",
-			isMaster: true,
+			isMaster:       true,
 			runInstanceErr: errors.New("message2"),
 			errMsg:         "message2",
 		},

@@ -3,12 +3,12 @@ package controlplane
 import (
 	"net/http"
 	"net/http/httptest"
+	"strings"
 	"testing"
+	"time"
 
 	"github.com/gorilla/handlers"
 	"github.com/gorilla/mux"
-	"time"
-	"strings"
 )
 
 func TestNewServer(t *testing.T) {
@@ -123,7 +123,7 @@ func TestConfigureApp(t *testing.T) {
 		PprofListenStr: ":9090",
 		TemplatesDir:   "../../templates",
 		UiDir:          "../../cmd/ui",
-		SpawnInterval: time.Second * 5,
+		SpawnInterval:  time.Second * 5,
 	}
 
 	router, err := configureApplication(config)

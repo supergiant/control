@@ -2,6 +2,7 @@ package digitalocean
 
 import (
 	"testing"
+
 	"github.com/supergiant/control/pkg/workflows/steps"
 )
 

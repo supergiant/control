@@ -1,18 +1,19 @@
 package amazon
 
 import (
-	"testing"
-
 	"bytes"
 	"context"
+	"strings"
+	"testing"
+
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/aws/request"
 	"github.com/aws/aws-sdk-go/service/ec2"
 	"github.com/aws/aws-sdk-go/service/ec2/ec2iface"
 	"github.com/pkg/errors"
 	"github.com/stretchr/testify/mock"
+
 	"github.com/supergiant/control/pkg/workflows/steps"
-	"strings"
 )
 
 type FakeEC2KeyPair struct {
@@ -156,7 +157,6 @@ func TestNewImportKeyPairStep(t *testing.T) {
 	}
 }
 
-
 func TestNewImportKeyPairStepErr(t *testing.T) {
 	fn := func(steps.AWSConfig) (ec2iface.EC2API, error) {
 		return nil, errors.New("errorMessage")
@@ -189,7 +189,7 @@ func TestKeyPairStep_Description(t *testing.T) {
 	s := &KeyPairStep{}
 
 	if desc := s.Description(); desc != "If no keypair is present in config, creates a new keypair" {
-		t.Errorf("Description is wrong expected " +
+		t.Errorf("Description is wrong expected "+
 			"If no keypair is present in config, creates a new keypair actuak %s",
 			desc)
 	}
