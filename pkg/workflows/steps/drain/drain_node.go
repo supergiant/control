@@ -8,16 +8,18 @@ import (
 
 	"github.com/pkg/errors"
 
-	tm "github.com/supergiant/control/pkg/templatemanager"
-	"github.com/supergiant/control/pkg/workflows/steps"
+	"github.com/supergiant/control/pkg/runner"
 	"github.com/supergiant/control/pkg/runner/ssh"
 	"github.com/supergiant/control/pkg/sgerrors"
+	tm "github.com/supergiant/control/pkg/templatemanager"
+	"github.com/supergiant/control/pkg/workflows/steps"
 )
 
 const StepName = "drain"
 
 type Step struct {
-	script *template.Template
+	script    *template.Template
+	getRunner func(string, *steps.Config) (runner.Runner, error)
 }
 
 func (s *Step) Rollback(context.Context, io.Writer, *steps.Config) error {
@@ -37,6 +39,23 @@ func Init() {
 func New(script *template.Template) *Step {
 	t := &Step{
 		script: script,
+		getRunner: func(masterIp string, config *steps.Config) (runner.Runner, error) {
+			cfg := ssh.Config{
+				Host:    masterIp,
+				Port:    config.SshConfig.Port,
+				User:    config.SshConfig.User,
+				Timeout: 10,
+				Key:     []byte(config.SshConfig.BootstrapPrivateKey),
+			}
+
+			sshRunner, err := ssh.NewRunner(cfg)
+
+			if err != nil {
+				return nil, errors.Wrapf(err, "create ssh runner")
+			}
+
+			return sshRunner, err
+		},
 	}
 
 	return t
@@ -49,21 +68,13 @@ func (s *Step) Run(ctx context.Context, out io.Writer, config *steps.Config) err
 		return errors.Wrapf(sgerrors.ErrNotFound, "master node not found")
 	}
 
-	cfg := ssh.Config{
-		Host:    masterNode.PublicIp,
-		Port:    config.SshConfig.Port,
-		User:    config.SshConfig.User,
-		Timeout: 10,
-		Key:     []byte(config.SshConfig.BootstrapPrivateKey),
-	}
-
-	sshRunner, err := ssh.NewRunner(cfg)
+	r, err := s.getRunner(masterNode.PublicIp, config)
 
 	if err != nil {
-		return errors.Wrapf(err, "create ssh runner")
+		return errors.Wrapf(err, "get runner")
 	}
 
-	err = steps.RunTemplate(ctx, s.script, sshRunner, out, config.DrainConfig)
+	err = steps.RunTemplate(ctx, s.script, r, out, config.DrainConfig)
 
 	if err != nil {
 		return errors.Wrap(err, "drain step")
