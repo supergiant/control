@@ -249,6 +249,10 @@ func (tp *TaskProvisioner) provision(ctx context.Context,
 		config = preProvisionTask[0].Config
 	}
 
+	// Update kube state
+	logrus.Debug("update kube state")
+	config.KubeStateChan() <- model.StateProvisioning
+
 	config.ReadyForBootstrapLatch = &sync.WaitGroup{}
 	config.ReadyForBootstrapLatch.Add(len(taskMap[workflows.MasterTask]))
 
@@ -367,14 +371,9 @@ func (tp *TaskProvisioner) preProvision(ctx context.Context, preProvisionTask *w
 		logrus.Errorf("pre provision task %s has finished with error %v",
 			preProvisionTask.ID, err)
 		config.KubeStateChan() <- model.StateFailed
-	} else {
-		logrus.Infof("pre provision %s has finished", preProvisionTask.ID)
-		// Update kube state
-		logrus.Debug("update kube state")
-		config.KubeStateChan() <- model.StateProvisioning
 	}
 
-	logrus.Debug("update kube config")
+	logrus.Infof("pre provision task %s has finished", preProvisionTask.ID)
 	config.ConfigChan() <- preProvisionTask.Config
 
 	return err
