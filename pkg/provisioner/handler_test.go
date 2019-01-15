@@ -12,6 +12,7 @@ import (
 	"github.com/pborman/uuid"
 	"github.com/pkg/errors"
 
+	"github.com/stretchr/testify/mock"
 	"github.com/supergiant/control/pkg/account"
 	"github.com/supergiant/control/pkg/clouds"
 	"github.com/supergiant/control/pkg/model"
@@ -48,6 +49,15 @@ type mockKubeGetter struct {
 
 func (m *mockKubeGetter) Get(ctx context.Context, name string) (*model.Kube, error) {
 	return m.get(ctx, name)
+}
+
+type mockProfileCreator struct {
+	mock.Mock
+}
+
+func (m *mockProfileCreator) Create(ctx context.Context, p *profile.Profile) error {
+	args := m.Called(ctx, p)
+	return args.Error(0)
 }
 
 func TestProvisionBadClusterName(t *testing.T) {
@@ -170,6 +180,9 @@ func TestProvisionHandler(t *testing.T) {
 	provisioner := &mockProvisioner{}
 	kubeGetter := &mockKubeGetter{}
 	accGetter := &mockAccountGetter{}
+	profileCreator := &mockProfileCreator{}
+	profileCreator.On("Create",
+		mock.Anything, mock.Anything).Return(nil)
 
 	for _, testCase := range testCases {
 		provisioner.provisionCluster = testCase.provision
@@ -180,9 +193,10 @@ func TestProvisionHandler(t *testing.T) {
 		rec := httptest.NewRecorder()
 
 		handler := Handler{
-			kubeGetter:    kubeGetter,
-			provisioner:   provisioner,
-			accountGetter: accGetter,
+			kubeGetter:     kubeGetter,
+			provisioner:    provisioner,
+			accountGetter:  accGetter,
+			profileService: profileCreator,
 		}
 
 		handler.Provision(rec, req)
@@ -212,7 +226,7 @@ func TestNewHandler(t *testing.T) {
 	accSvc := &account.Service{}
 	kubeSvc := &mockKubeService{}
 	p := &TaskProvisioner{}
-	h := NewHandler(kubeSvc, accSvc, p)
+	h := NewHandler(kubeSvc, accSvc, nil, p)
 
 	if h.accountGetter == nil {
 		t.Errorf("account getter must not be nil")

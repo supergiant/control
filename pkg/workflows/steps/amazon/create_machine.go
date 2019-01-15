@@ -248,8 +248,8 @@ func (s *StepCreateInstance) Run(ctx context.Context, w io.Writer, cfg *steps.Co
 		cfg.AddNode(&cfg.Node)
 	}
 
-	log.Infof("[%s] - success! Created node %s with instanceID %s ", s.Name(), nodeName, cfg.Node.ID)
-	logrus.Debugf("%v", *instance)
+	log.Infof("[%s] - success! Created node %s with instanceID %s ",
+		s.Name(), nodeName, cfg.Node.ID)
 
 	return nil
 }

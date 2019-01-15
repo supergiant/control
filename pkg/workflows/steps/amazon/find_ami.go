@@ -50,11 +50,13 @@ func (s *FindAMIStep) Run(ctx context.Context, w io.Writer, cfg *steps.Config) e
 	finder, err := s.getImageService(cfg.AWSConfig)
 
 	if err != nil {
-		logrus.Debugf("Error while finding image %v", err)
+		logrus.Errorf("[%s] - failed to authorize in AWS: %v",
+			s.Name(), err)
 		return errors.Wrap(err, StepFindAMI)
 	}
 
 	imageID, err := s.FindAMI(ctx, w, finder)
+	logrus.Debugf("Found image id %s", cfg.AWSConfig.ImageID)
 
 	if err != nil {
 		logrus.Errorf("[%s] - failed to find AMI for Ubuntu: %v",
@@ -68,6 +70,7 @@ func (s *FindAMIStep) Run(ctx context.Context, w io.Writer, cfg *steps.Config) e
 			"supported image", s.Name()))
 	}
 
+	logrus.Debugf("Use image id %s", imageID)
 	cfg.AWSConfig.ImageID = imageID
 
 	return nil

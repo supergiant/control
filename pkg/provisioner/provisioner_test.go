@@ -8,6 +8,7 @@ import (
 	"testing"
 	"time"
 
+	"github.com/pkg/errors"
 	"github.com/sirupsen/logrus"
 	"github.com/stretchr/testify/mock"
 
@@ -48,6 +49,29 @@ func (m *mockKubeService) Get(ctx context.Context, kname string) (*model.Kube, e
 	m.lock.RLock()
 	defer m.lock.RUnlock()
 	return m.data[kname], m.getError
+}
+
+type mockStep struct {
+}
+
+func (m *mockStep) Run(context.Context, io.Writer, *steps.Config) error {
+	return nil
+}
+
+func (m *mockStep) Name() string {
+	return ""
+}
+
+func (m *mockStep) Description() string {
+	return ""
+}
+
+func (m *mockStep) Depends() []string {
+	return nil
+}
+
+func (m *mockStep) Rollback(context.Context, io.Writer, *steps.Config) error {
+	return nil
 }
 
 func TestNewProvisioner(t *testing.T) {
@@ -109,8 +133,15 @@ func TestProvisionCluster(t *testing.T) {
 	}
 
 	workflows.Init()
-	workflows.RegisterWorkFlow("test_master", []steps.Step{})
-	workflows.RegisterWorkFlow("test_node", []steps.Step{})
+	workflows.RegisterWorkFlow("test_master", []steps.Step{
+		&mockStep{},
+	})
+	workflows.RegisterWorkFlow("test_node", []steps.Step{
+		&mockStep{},
+	})
+	workflows.RegisterWorkFlow(workflows.Cluster, []steps.Step{
+		&mockStep{},
+	})
 
 	p := &profile.Profile{
 		Provider: clouds.DigitalOcean,
@@ -135,6 +166,7 @@ func TestProvisionCluster(t *testing.T) {
 	cfg := steps.NewConfig("", "", "", *p)
 	ctx, cancel := context.WithCancel(context.Background())
 	taskMap, err := provisioner.ProvisionCluster(ctx, p, cfg)
+	time.Sleep(time.Millisecond * 10)
 
 	if err != nil {
 		t.Errorf("Unexpected error %v while provisionCluster", err)
@@ -221,7 +253,9 @@ func TestProvisionNodes(t *testing.T) {
 	}
 
 	workflows.Init()
-	workflows.RegisterWorkFlow("test_node", []steps.Step{})
+	workflows.RegisterWorkFlow("test_node", []steps.Step{
+		&mockStep{},
+	})
 
 	nodeProfile := profile.NodeProfile{
 		"size":  "s-2vcpu-4gb",
@@ -255,6 +289,7 @@ func TestProvisionNodes(t *testing.T) {
 	_, err := provisioner.ProvisionNodes(context.Background(),
 		[]profile.NodeProfile{nodeProfile}, k, config)
 
+	time.Sleep(time.Millisecond * 10)
 	if err != nil {
 		t.Errorf("Unexpected error %v while provisionCluster", err)
 	}
@@ -264,6 +299,240 @@ func TestProvisionNodes(t *testing.T) {
 			1, len(provisioner.cancelMap))
 	}
 
+}
+
+func TestRestartProvisionClusterSuccess(t *testing.T) {
+	repository := &testutils.MockStorage{}
+	repository.On("Put", mock.Anything,
+		mock.Anything, mock.Anything,
+		mock.Anything).Return(nil)
+	repository.On("Get", mock.Anything,
+		mock.Anything,
+		mock.Anything).Return([]byte(`{"id": "task_id", 
+		"type": "AWSPreProvisionCluster", "stepsStatuses":[{"status": "error"}]}`),
+		nil)
+
+	bc := &bufferCloser{
+		bytes.Buffer{},
+		nil,
+	}
+
+	svc := &mockKubeService{
+		data: map[string]*model.Kube{
+			"kubeID": {
+				ID: "kubeID",
+			},
+		},
+	}
+
+	provisioner := TaskProvisioner{
+		svc,
+		repository,
+		func(string) (io.WriteCloser, error) {
+			return bc, nil
+		},
+		map[clouds.Name]workflows.WorkflowSet{
+			clouds.DigitalOcean: {
+				ProvisionMaster: workflows.AWSMaster,
+				ProvisionNode:   workflows.AWSNode,
+				PreProvision:    workflows.AWSPreProvision,
+			},
+		},
+		NewRateLimiter(time.Nanosecond * 1),
+		make(map[string]func()),
+	}
+
+	workflows.Init()
+	workflows.RegisterWorkFlow(workflows.AWSPreProvision, []steps.Step{
+		&mockStep{},
+	})
+
+	p := &profile.Profile{
+		Provider: clouds.AWS,
+		MasterProfiles: []profile.NodeProfile{
+			{},
+		},
+		NodesProfiles: []profile.NodeProfile{
+			{},
+			{},
+		},
+	}
+
+	taskMap := map[string][]string{
+		workflows.PreProvisionTask: {
+			"task_id",
+		},
+	}
+	cfg := steps.NewConfig("kube_name",
+		"", "", *p)
+	cfg.ClusterID = "kubeID"
+
+	err := provisioner.
+		RestartClusterProvisioning(context.Background(),
+		p, cfg, taskMap)
+
+	time.Sleep(time.Millisecond * 10)
+
+	if err != nil {
+		t.Errorf("Unexpected error %v while provisionCluster", err)
+	}
+}
+
+
+	func TestRestartProvisionClusterError(t *testing.T) {
+	repository := &testutils.MockStorage{}
+	repository.On("Put", mock.Anything,
+		mock.Anything, mock.Anything,
+		mock.Anything).Return(nil)
+	repository.On("Get", mock.Anything,
+		mock.Anything,
+		mock.Anything).Return([]byte(`}`),
+		nil)
+
+	bc := &bufferCloser{
+		bytes.Buffer{},
+		nil,
+	}
+
+	svc := &mockKubeService{
+		data: map[string]*model.Kube{
+			"kubeID": {
+				ID: "kubeID",
+			},
+		},
+	}
+
+	provisioner := TaskProvisioner{
+		svc,
+		repository,
+		func(string) (io.WriteCloser, error) {
+			return bc, nil
+		},
+		map[clouds.Name]workflows.WorkflowSet{
+			clouds.DigitalOcean: {
+				ProvisionMaster: workflows.AWSMaster,
+				ProvisionNode:   workflows.AWSNode,
+				PreProvision:    workflows.AWSPreProvision,
+			},
+		},
+		NewRateLimiter(time.Nanosecond * 1),
+		make(map[string]func()),
+	}
+
+	workflows.Init()
+	workflows.RegisterWorkFlow(workflows.AWSMaster, []steps.Step{})
+	workflows.RegisterWorkFlow(workflows.AWSNode, []steps.Step{})
+	workflows.RegisterWorkFlow(workflows.Cluster, []steps.Step{})
+	workflows.RegisterWorkFlow(workflows.AWSPreProvision, []steps.Step{
+		&mockStep{},
+	})
+
+	p := &profile.Profile{
+		Provider: clouds.AWS,
+		MasterProfiles: []profile.NodeProfile{
+			{},
+		},
+		NodesProfiles: []profile.NodeProfile{
+			{},
+			{},
+		},
+	}
+
+	taskMap := map[string][]string{
+		workflows.PreProvisionTask: {
+			"task_id",
+		},
+	}
+	cfg := steps.NewConfig("kube_name",
+		"", "", *p)
+	cfg.ClusterID = "kubeID"
+
+	err := provisioner.
+		RestartClusterProvisioning(context.Background(),
+			p, cfg, taskMap)
+
+	time.Sleep(time.Millisecond * 10)
+	if err == nil  {
+		t.Errorf("Error must not be nil")
+	}
+}
+
+func TestDeserializeTasks(t *testing.T) {
+	repository := &testutils.MockStorage{}
+
+	repository.On("Get", mock.Anything,
+		mock.Anything, mock.Anything).Return(
+		[]byte(`{"id": "1234", "type": "preprovision"}`),
+		nil)
+
+	repository.On("Get", mock.Anything,
+		mock.Anything, mock.Anything).Return(
+		[]byte(
+			`{"id": "4567", "type": "master"}`),
+		nil)
+
+	repository.On("Get", mock.Anything,
+		mock.Anything, mock.Anything).Return(
+		[]byte(`{"id": "9876", "type": "node"}`),
+		nil)
+
+	repository.On("Get", mock.Anything,
+		mock.Anything, mock.Anything).Return(
+		[]byte(`{"id": "abcd", "type": "cluster"}`),
+		nil)
+
+	provisioner := TaskProvisioner{
+		repository: repository,
+	}
+
+	taskIdMap := map[string][]string{
+		workflows.PreProvisionTask: {"1234"},
+		workflows.MasterTask:       {"4567"},
+		workflows.NodeTask:         {"9876"},
+		workflows.ClusterTask:      {"abcd"},
+	}
+
+	taskMap, err := provisioner.deserializeClusterTasks(context.Background(),
+		taskIdMap)
+
+	if err != nil {
+		t.Errorf("Unexpected error %v", err)
+		return
+	}
+
+	if len(taskMap) != len(taskIdMap) {
+		t.Errorf("Wrong task count expected %d actual %d",
+			len(taskIdMap), len(taskMap))
+	}
+}
+
+func TestDeserializeTasksError(t *testing.T) {
+	repository := &testutils.MockStorage{}
+
+	repository.On("Get", mock.Anything,
+		mock.Anything, mock.Anything).Return(
+		nil,
+		sgerrors.ErrNotFound)
+
+	provisioner := TaskProvisioner{
+		repository: repository,
+	}
+
+	taskIdMap := map[string][]string{
+		workflows.PreProvisionTask: {"1234"},
+	}
+
+	taskMap, err := provisioner.deserializeClusterTasks(context.Background(),
+		taskIdMap)
+
+	if errors.Cause(err) != sgerrors.ErrNotFound {
+		t.Errorf("Unexpected error %v", err)
+		return
+	}
+
+	if taskMap != nil {
+		t.Error("Task map must be nil")
+	}
 }
 
 func TestMonitorCluster(t *testing.T) {
@@ -394,7 +663,8 @@ func TestMonitorCluster(t *testing.T) {
 		}
 
 		if testCase.kube.State != testCase.expectedClusterState {
-			t.Errorf("Wrong cluster state in the end of provisioning")
+			t.Errorf("Wrong cluster state in the end of provisioning expected %s actual %s",
+				testCase.expectedClusterState, testCase.kube.State)
 		}
 	}
 }
@@ -451,7 +721,10 @@ func TestBuildInitialCluster(t *testing.T) {
 	tp := &TaskProvisioner{
 		kubeService: service,
 	}
-	taskIds := []string{"1234", "5678", "abcd"}
+
+	taskIds := map[string][]string{
+		workflows.MasterTask: {"1234", "5678", "abcd"},
+	}
 
 	tp.buildInitialCluster(context.Background(), &profile.Profile{}, nil, nil, &steps.Config{
 		ClusterID: clusterID,

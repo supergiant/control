@@ -7,6 +7,7 @@ import (
 	"github.com/supergiant/control/pkg/clouds"
 	"github.com/supergiant/control/pkg/node"
 	"github.com/supergiant/control/pkg/profile"
+	"github.com/supergiant/control/pkg/model"
 )
 
 func TestMarshalConfig(t *testing.T) {
@@ -278,5 +279,52 @@ func TestToCloudProviderOpt(t *testing.T) {
 		if toCloudProviderOpt(tc.in) != tc.out {
 			t.Logf("toCloudProvider(%s) = %s", tc.in, tc.out)
 		}
+	}
+}
+
+
+func TestNewConfigFromKube(t *testing.T) {
+	expectedMasterCount := 3
+	expectedNodeCount := 5
+
+	p := profile.Profile{
+		MasterProfiles: make([]profile.NodeProfile, expectedMasterCount),
+		NodesProfiles:  make([]profile.NodeProfile, expectedNodeCount),
+	}
+
+	k := &model.Kube{
+		ID: "ClusteID",
+		Name: "ClusterName",
+		AccountName: "CloudAccount",
+		CloudSpec: map[string]string{
+			clouds.AwsImageID: "ImageID",
+			clouds.AwsVpcID: "VpcID",
+		},
+	}
+
+	cfg := NewConfigFromKube(&p, k)
+
+	if cfg.ClusterName != k.Name {
+		t.Errorf("Wrong cluster name expected %s actual %s", k.Name, cfg.ClusterName)
+	}
+
+	if cfg.CloudAccountName != k.AccountName {
+		t.Errorf("Wrong cloud account name expected %s actual %s",
+			k.AccountName, cfg.CloudAccountName)
+	}
+
+	if cfg.AWSConfig.VPCID != k.CloudSpec[clouds.AwsVpcID] {
+		t.Errorf("Wrong VPCID value expected %s actual %s",
+			k.CloudSpec[clouds.AwsVpcID], cfg.AWSConfig.VPCID)
+	}
+
+	if cfg.AWSConfig.ImageID != k.CloudSpec[clouds.AwsImageID] {
+		t.Errorf("Wrong AWS Image ID value expected %s actual %s",
+			k.CloudSpec[clouds.AwsImageID], cfg.AWSConfig.ImageID)
+	}
+
+	if cap(cfg.nodeChan) != expectedNodeCount+expectedMasterCount {
+		t.Errorf("Wrong node chan capacity expected %d actual %d",
+			expectedNodeCount+expectedMasterCount, len(cfg.Nodes.internal)+len(cfg.Masters.internal))
 	}
 }
