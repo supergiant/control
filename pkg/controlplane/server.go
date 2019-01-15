@@ -242,7 +242,7 @@ func configureApplication(cfg *Config) (*mux.Router, error) {
 	if err != nil {
 		return nil, errors.Wrap(err, "new helm service")
 	}
-	go ensureHelmRepositories(helmService)
+	go ensureHelmRepositories(helmService, userService)
 
 	helmHandler := sghelm.NewHandler(helmService)
 	helmHandler.Register(protectedAPI)
@@ -282,31 +282,34 @@ func configureApplication(cfg *Config) (*mux.Router, error) {
 	return router, nil
 }
 
-func ensureHelmRepositories(svc sghelm.Servicer) {
-	if svc == nil {
+func ensureHelmRepositories(svc sghelm.Servicer, users *user.Service) {
+	if svc == nil || users == nil {
 		return
 	}
 
-	entries := []repo.Entry{
-		{
-			Name: "supergiant",
-			URL:  "https://supergiant.github.io/charts",
-		},
-		{
-			Name: "stable",
-			URL:  "https://kubernetes-charts.storage.googleapis.com",
-		},
-	}
+	if coldstart, _ := users.IsColdStart(context.Background()); coldstart {
 
-	for _, entry := range entries {
-		_, err := svc.CreateRepo(context.Background(), &entry)
-		if err != nil {
-			if !sgerrors.IsAlreadyExists(err) {
-				logrus.Errorf("failed to add %q helm repository: %v", entry.Name, err)
-			}
-			continue
+		entries := []repo.Entry{
+			{
+				Name: "supergiant",
+				URL:  "https://supergiant.github.io/charts",
+			},
+			{
+				Name: "stable",
+				URL:  "https://kubernetes-charts.storage.googleapis.com",
+			},
 		}
-		logrus.Infof("helm repository has been added: %s", entry.Name)
+
+		for _, entry := range entries {
+			_, err := svc.CreateRepo(context.Background(), &entry)
+			if err != nil {
+				if !sgerrors.IsAlreadyExists(err) {
+					logrus.Errorf("failed to add %q helm repository: %v", entry.Name, err)
+				}
+				continue
+			}
+			logrus.Infof("helm repository has been added: %s", entry.Name)
+		}
 	}
 }
 
