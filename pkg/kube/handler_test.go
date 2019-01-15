@@ -982,7 +982,7 @@ func TestDeleteNodeFromKube(t *testing.T) {
 			http.StatusInternalServerError,
 		},
 		{
-			"master not not found",
+			"success",
 			"test",
 			"test",
 			&model.Kube{
@@ -1006,7 +1006,7 @@ func TestDeleteNodeFromKube(t *testing.T) {
 			func(string) (io.WriteCloser, error) {
 				return &bufferCloser{}, nil
 			},
-			http.StatusNotFound,
+			http.StatusAccepted,
 		},
 	}
 
