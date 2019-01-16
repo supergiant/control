@@ -30,6 +30,7 @@ import (
 	"github.com/supergiant/control/pkg/workflows"
 	"github.com/supergiant/control/pkg/workflows/statuses"
 	"github.com/supergiant/control/pkg/workflows/steps"
+	"github.com/supergiant/control/pkg/runner/ssh"
 )
 
 const (
@@ -662,7 +663,6 @@ func (h *Handler) deleteNode(w http.ResponseWriter, r *http.Request) {
 
 		message.SendUnknownError(w, err)
 		return
-
 	}
 
 	t, err := workflows.NewTask(h.workflowMap[acc.Provider].DeleteNode, h.repo)
@@ -679,10 +679,19 @@ func (h *Handler) deleteNode(w http.ResponseWriter, r *http.Request) {
 
 	config := &steps.Config{
 		Provider:         k.Provider,
+		SshConfig: steps.SshConfig{
+			User: k.SshUser,
+			Port: ssh.DefaultPort,
+			BootstrapPrivateKey: string(k.BootstrapPrivateKey),
+		},
+		DrainConfig: steps.DrainConfig{
+			PrivateIP: n.PrivateIp,
+		},
 		ClusterID:        k.ID,
 		ClusterName:      k.Name,
 		CloudAccountName: k.AccountName,
 		Node:             *n,
+		Masters: steps.NewMap(k.Masters),
 	}
 
 	err = util.FillCloudAccountCredentials(r.Context(), acc, config)
@@ -703,8 +712,7 @@ func (h *Handler) deleteNode(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	util.MakeFileName(t.ID)
-	writer, err := h.getWriter(t.ID)
+	writer, err := h.getWriter(util.MakeFileName(t.ID))
 
 	if err != nil {
 		message.SendUnknownError(w, err)

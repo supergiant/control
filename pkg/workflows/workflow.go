@@ -24,6 +24,7 @@ import (
 	"github.com/supergiant/control/pkg/workflows/steps/ssh"
 	"github.com/supergiant/control/pkg/workflows/steps/storageclass"
 	"github.com/supergiant/control/pkg/workflows/steps/tiller"
+	"github.com/supergiant/control/pkg/workflows/steps/drain"
 )
 
 // StepStatus aggregates data that is needed to track progress
@@ -151,6 +152,7 @@ func Init() {
 	}
 
 	digitalOceanDeleteNodeWorkflow := []steps.Step{
+		steps.GetStep(drain.StepName),
 		steps.GetStep(digitalocean.DeleteMachineStepName),
 	}
 
@@ -171,6 +173,7 @@ func Init() {
 	}
 
 	awsDeleteNodeWorkflow := []steps.Step{
+		steps.GetStep(drain.StepName),
 		steps.GetStep(amazon.DeleteNodeStepName),
 	}
 
@@ -209,6 +212,7 @@ func Init() {
 	}
 
 	gceDeleteNode := []steps.Step{
+		steps.GetStep(drain.StepName),
 		steps.GetStep(gce.DeleteNodeStepName),
 	}
 

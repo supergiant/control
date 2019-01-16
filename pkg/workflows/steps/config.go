@@ -197,6 +197,10 @@ type PrometheusConfig struct {
 	RBACEnabled bool   `json:"rbacEnabled"`
 }
 
+type DrainConfig struct {
+	PrivateIP string `json:"privateIp"`
+}
+
 type Map struct {
 	internal map[string]*node.Node
 }
@@ -240,6 +244,7 @@ type Config struct {
 	EtcdConfig         EtcdConfig         `json:"etcdConfig"`
 	SshConfig          SshConfig          `json:"sshConfig"`
 	PrometheusConfig   PrometheusConfig   `json:"prometheusConfig"`
+	DrainConfig        DrainConfig        `json:"drainConfig"`
 
 	ClusterCheckConfig ClusterCheckConfig `json:"clusterCheckConfig"`
 

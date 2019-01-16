@@ -38,6 +38,7 @@ import (
 	"github.com/supergiant/control/pkg/workflows/steps/digitalocean"
 	"github.com/supergiant/control/pkg/workflows/steps/docker"
 	"github.com/supergiant/control/pkg/workflows/steps/downloadk8sbinary"
+	"github.com/supergiant/control/pkg/workflows/steps/drain"
 	"github.com/supergiant/control/pkg/workflows/steps/etcd"
 	"github.com/supergiant/control/pkg/workflows/steps/flannel"
 	"github.com/supergiant/control/pkg/workflows/steps/gce"
@@ -211,6 +212,7 @@ func configureApplication(cfg *Config) (*mux.Router, error) {
 	prometheus.Init()
 	gce.Init()
 	storageclass.Init()
+	drain.Init()
 
 	amazon.InitFindAMI(amazon.GetEC2)
 	amazon.InitImportKeyPair(amazon.GetEC2)
