@@ -13,7 +13,6 @@ import (
 	"github.com/supergiant/control/pkg/sgerrors"
 	tm "github.com/supergiant/control/pkg/templatemanager"
 	"github.com/supergiant/control/pkg/workflows/steps"
-	"os"
 	"github.com/supergiant/control/pkg/clouds"
 )
 
@@ -82,7 +81,6 @@ func (s *Step) Run(ctx context.Context, out io.Writer, config *steps.Config) err
 		return errors.Wrapf(err, "get runner")
 	}
 
-	out = io.MultiWriter(out, os.Stderr)
 	err = steps.RunTemplate(ctx, s.script, r, out, config.DrainConfig)
 
 	if err != nil {
