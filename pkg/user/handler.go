@@ -5,10 +5,9 @@ import (
 	"fmt"
 	"net/http"
 
-	"gopkg.in/asaskevich/govalidator.v8"
-
 	"github.com/supergiant/control/pkg/message"
 	"github.com/supergiant/control/pkg/sgerrors"
+	"gopkg.in/asaskevich/govalidator.v8"
 )
 
 type TokenIssuer interface {
@@ -91,10 +90,7 @@ func (h *Handler) RegisterRootUser(w http.ResponseWriter, r *http.Request) {
 			return
 		}
 	} else {
-		message.SendMessage(w, message.Message{
-			UserMessage: "Root user already exists",
-			ErrorCode:   sgerrors.EntityAlreadyExists,
-		}, http.StatusForbidden)
+		message.SendAlreadyExists(w, "root user", err)
 		return
 	}
 }

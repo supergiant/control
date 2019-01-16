@@ -3,10 +3,9 @@ package user
 import (
 	"context"
 
-	"golang.org/x/crypto/bcrypt"
-
 	"github.com/supergiant/control/pkg/sgerrors"
 	"github.com/supergiant/control/pkg/storage"
+	"golang.org/x/crypto/bcrypt"
 )
 
 const DefaultStoragePrefix = "/supergiant/user/"
