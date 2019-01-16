@@ -3,10 +3,9 @@ package user
 import (
 	"context"
 
-	"golang.org/x/crypto/bcrypt"
-
 	"github.com/supergiant/control/pkg/sgerrors"
 	"github.com/supergiant/control/pkg/storage"
+	"golang.org/x/crypto/bcrypt"
 )
 
 const DefaultStoragePrefix = "/supergiant/user/"
@@ -84,4 +83,14 @@ func (s *Service) GetAll(ctx context.Context) ([]*User, error) {
 		usrs = append(usrs, u)
 	}
 	return usrs, nil
+}
+
+//IsColdStart tells if any users are registered.
+func (s *Service) IsColdStart(ctx context.Context) (bool, error) {
+	users, err := s.GetAll(ctx)
+	if err != nil {
+		return false, err
+	}
+
+	return len(users) == 0, nil
 }
