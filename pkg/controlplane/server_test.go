@@ -5,8 +5,6 @@ import (
 	"net/http/httptest"
 	"strings"
 	"testing"
-	"time"
-
 	"github.com/gorilla/handlers"
 	"github.com/gorilla/mux"
 )
@@ -115,25 +113,6 @@ func TestTrimPrefix(t *testing.T) {
 		if actualURL != testCase.output {
 			t.Errorf("url must be empty after trimming prefix actual %s", actualURL)
 		}
-	}
-}
-
-func TestConfigureApp(t *testing.T) {
-	config := &Config{
-		PprofListenStr: ":9090",
-		TemplatesDir:   "../../templates",
-		UiDir:          "../../cmd/ui",
-		SpawnInterval:  time.Second * 5,
-	}
-
-	router, err := configureApplication(config)
-
-	if err != nil {
-		t.Errorf("Unexpected error %v", err)
-	}
-
-	if router == nil {
-		t.Errorf("router must not be nil")
 	}
 }
 
