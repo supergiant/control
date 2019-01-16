@@ -245,7 +245,7 @@ func configureApplication(cfg *Config) (*mux.Router, error) {
 	}
 	if coldstart, err := userService.IsColdStart(context.Background()); err == nil && coldstart {
 		go ensureHelmRepositories(helmService)
-	} else {
+	} else if err != nil {
 		return nil, err
 	}
 
