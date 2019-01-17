@@ -5,6 +5,7 @@ import (
 	"net/http/httptest"
 	"strings"
 	"testing"
+
 	"github.com/gorilla/handlers"
 	"github.com/gorilla/mux"
 )

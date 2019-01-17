@@ -36,7 +36,7 @@ func NewDeleteKeysStep() *DeleteKeysStep {
 func (s *DeleteKeysStep) Run(ctx context.Context, output io.Writer, config *steps.Config) error {
 	keyService := s.getKeyService(config.DigitalOceanConfig.AccessToken)
 
-	bootstrapFg, err := fingerprint(config.SshConfig.BootstrapPublicKey)
+	bootstrapFg, err := fingerprint(config.Kube.SSHConfig.BootstrapPublicKey)
 
 	if err != nil {
 		logrus.Debugf("error computing fingerprint of bootstrap key")
@@ -49,7 +49,7 @@ func (s *DeleteKeysStep) Run(ctx context.Context, output io.Writer, config *step
 			resp.Status, err)
 	}
 
-	publicFg, err := fingerprint(config.SshConfig.PublicKey)
+	publicFg, err := fingerprint(config.Kube.SSHConfig.PublicKey)
 
 	if err != nil {
 		logrus.Debugf("error computing fingerprint of public key")

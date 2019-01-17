@@ -122,10 +122,11 @@ func TestTaskHandlerRestartTask(t *testing.T) {
 	task := &Task{
 		ID: taskId,
 		Config: &steps.Config{
-			SshConfig: steps.SshConfig{
-				User: "root",
-				Port: "22",
-				BootstrapPrivateKey: `-----BEGIN RSA PRIVATE KEY-----
+			Kube: model.Kube{
+				SSHConfig: model.SSHConfig{
+					User: "root",
+					Port: "22",
+					BootstrapPrivateKey: `-----BEGIN RSA PRIVATE KEY-----
 MIIEpQIBAAKCAQEAtArxGzmUffkRNy4bpITg0oicUA6itrh2RumMoydra2QqRL8i
 sA6xBaPHbBAOJO/gY/h/qvr8Hnb38GFJcQQy2eENb83i2u8BVnnN2IFkgyCyYCN7
 DE54bQejH0xD4qMhXdyEUOyKaOBzHHBliyIR4HmobiddJho4G0Ku3onLDm+++XNG
@@ -152,7 +153,8 @@ dVUN1U8CgYEAw5N6ScysYb9Jsaurcykij4mn1tvXzpDcap/Lqu/QXSUJZU1D7Cac
 OOJSve1MuYQbV1LEIc15yMPsWTTik2Z98r9IL+3xdofh9yFaG1nxzi9OkN6aVMAz
 dZM6MSCYh9kcT0pi2FPmY9iXba9kx4XAnf+0YB5xCz9QSMk4W5xSTBs=
 -----END RSA PRIVATE KEY-----`,
-				Timeout: 10,
+					Timeout: 10,
+				},
 			},
 			Node: node.Node{
 				PublicIp: "10.20.30.40",

@@ -8,12 +8,12 @@ import (
 
 	"github.com/pkg/errors"
 
+	"github.com/supergiant/control/pkg/clouds"
 	"github.com/supergiant/control/pkg/runner"
 	"github.com/supergiant/control/pkg/runner/ssh"
 	"github.com/supergiant/control/pkg/sgerrors"
 	tm "github.com/supergiant/control/pkg/templatemanager"
 	"github.com/supergiant/control/pkg/workflows/steps"
-	"github.com/supergiant/control/pkg/clouds"
 )
 
 const StepName = "drain"
@@ -44,15 +44,15 @@ func New(script *template.Template) *Step {
 			if config.Provider == clouds.AWS {
 				//on aws default user name on ubuntu images are not root but ubuntu
 				//https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/AccessingInstancesLinux.html
-				config.SshConfig.User = "ubuntu"
+				config.Kube.SSHConfig.User = "ubuntu"
 			}
 
 			cfg := ssh.Config{
 				Host:    masterIp,
-				Port:    config.SshConfig.Port,
-				User:    config.SshConfig.User,
+				Port:    config.Kube.SSHConfig.Port,
+				User:    config.Kube.SSHConfig.User,
 				Timeout: 10,
-				Key:     []byte(config.SshConfig.BootstrapPrivateKey),
+				Key:     []byte(config.Kube.SSHConfig.BootstrapPrivateKey),
 			}
 
 			sshRunner, err := ssh.NewRunner(cfg)

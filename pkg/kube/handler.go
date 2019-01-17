@@ -30,7 +30,6 @@ import (
 	"github.com/supergiant/control/pkg/workflows"
 	"github.com/supergiant/control/pkg/workflows/statuses"
 	"github.com/supergiant/control/pkg/workflows/steps"
-	"github.com/supergiant/control/pkg/runner/ssh"
 )
 
 const (
@@ -678,12 +677,8 @@ func (h *Handler) deleteNode(w http.ResponseWriter, r *http.Request) {
 	}
 
 	config := &steps.Config{
-		Provider:         k.Provider,
-		SshConfig: steps.SshConfig{
-			User: k.SshUser,
-			Port: ssh.DefaultPort,
-			BootstrapPrivateKey: string(k.BootstrapPrivateKey),
-		},
+		Kube:     *k,
+		Provider: k.Provider,
 		DrainConfig: steps.DrainConfig{
 			PrivateIP: n.PrivateIp,
 		},
@@ -691,7 +686,7 @@ func (h *Handler) deleteNode(w http.ResponseWriter, r *http.Request) {
 		ClusterName:      k.Name,
 		CloudAccountName: k.AccountName,
 		Node:             *n,
-		Masters: steps.NewMap(k.Masters),
+		Masters:          steps.NewMap(k.Masters),
 	}
 
 	err = util.FillCloudAccountCredentials(r.Context(), acc, config)
@@ -719,8 +714,6 @@ func (h *Handler) deleteNode(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	errChan := t.Run(context.Background(), *config, writer)
-
 	// Update cluster state when deletion completes
 	go func() {
 		// Set node to deleting state
@@ -738,7 +731,7 @@ func (h *Handler) deleteNode(w http.ResponseWriter, r *http.Request) {
 			logrus.Errorf("update cluster %s caused %v", kubeID, err)
 		}
 
-		err = <-errChan
+		err = <-t.Run(context.Background(), *config, writer)
 
 		if err != nil {
 			logrus.Errorf("delete node %s from cluster %s caused %v", nodeName, kubeID, err)

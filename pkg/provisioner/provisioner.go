@@ -535,21 +535,17 @@ func (tp *TaskProvisioner) buildInitialCluster(ctx context.Context,
 	config *steps.Config, taskIds map[string][]string) error {
 
 	cluster := &model.Kube{
-		ID:                 config.ClusterID,
-		State:              model.StatePrepare,
-		Name:               config.ClusterName,
-		Provider:           profile.Provider,
-		AccountName:        config.CloudAccountName,
-		RBACEnabled:        profile.RBACEnabled,
-		ServicesCIDR:       profile.K8SServicesCIDR,
-		Region:             profile.Region,
-		Zone:               profile.Zone,
-		SshUser:            config.SshConfig.User,
-		SshPublicKey:       []byte(config.SshConfig.PublicKey),
-		BootstrapPublicKey: []byte(config.SshConfig.BootstrapPublicKey),
-		ProfileID:          profile.ID,
-		User:               profile.User,
-		Password:           profile.Password,
+		ID:           config.ClusterID,
+		State:        model.StateProvisioning,
+		Name:         config.ClusterName,
+		Provider:     profile.Provider,
+		AccountName:  config.CloudAccountName,
+		RBACEnabled:  profile.RBACEnabled,
+		ServicesCIDR: profile.K8SServicesCIDR,
+		Region:       profile.Region,
+		Zone:         profile.Zone,
+		User:         profile.User,
+		Password:     profile.Password,
 
 		Auth: model.Auth{
 			Username:  config.CertificatesConfig.Username,
@@ -577,6 +573,8 @@ func (tp *TaskProvisioner) buildInitialCluster(ctx context.Context,
 		Masters:   masters,
 		Nodes:     nodes,
 		Tasks:     taskIds,
+
+		SSHConfig: config.Kube.SSHConfig,
 	}
 
 	return tp.kubeService.Create(ctx, cluster)
@@ -587,10 +585,6 @@ func (t *TaskProvisioner) updateCloudSpecificData(k *model.Kube, config *steps.C
 		config.ClusterID)
 
 	cloudSpecificSettings := make(map[string]string)
-
-	// Load key data
-	k.BootstrapPrivateKey = []byte(config.SshConfig.BootstrapPrivateKey)
-	k.SshPublicKey = []byte(config.SshConfig.PublicKey)
 
 	// Save cloudSpecificData in kube
 	switch config.Provider {
@@ -608,9 +602,9 @@ func (t *TaskProvisioner) updateCloudSpecificData(k *model.Kube, config *steps.C
 			config.AWSConfig.NodesSecurityGroupID
 		// TODO(stgleb): this must be done for all types of clouds
 		cloudSpecificSettings[clouds.AwsSshBootstrapPrivateKey] =
-			config.SshConfig.BootstrapPrivateKey
+			config.Kube.SSHConfig.BootstrapPrivateKey
 		cloudSpecificSettings[clouds.AwsUserProvidedSshPublicKey] =
-			config.SshConfig.PublicKey
+			config.Kube.SSHConfig.PublicKey
 		cloudSpecificSettings[clouds.AwsRouteTableID] =
 			config.AWSConfig.RouteTableID
 		cloudSpecificSettings[clouds.AwsInternetGateWayID] =
@@ -624,9 +618,6 @@ func (t *TaskProvisioner) updateCloudSpecificData(k *model.Kube, config *steps.C
 	case clouds.GCE:
 		// GCE is the most simple :-)
 	case clouds.DigitalOcean:
-		// DO deletes key by fingerprint that's why we need to download
-		//this bootstrap public key
-		k.BootstrapPublicKey = []byte(config.SshConfig.BootstrapPublicKey)
 	}
 
 	k.CloudSpec = cloudSpecificSettings
@@ -651,8 +642,8 @@ func bootstrapKeys(config *steps.Config) error {
 		return err
 	}
 
-	config.SshConfig.BootstrapPrivateKey = private
-	config.SshConfig.BootstrapPublicKey = public
+	config.Kube.SSHConfig.BootstrapPrivateKey = private
+	config.Kube.SSHConfig.BootstrapPublicKey = public
 
 	return nil
 }
