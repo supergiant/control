@@ -25,10 +25,10 @@ func DeserializeTask(data []byte, repository storage.Interface) (*Task, error) {
 	if task.Config != nil && task.Config.Node.PublicIp != "" {
 		cfg := ssh.Config{
 			Host:    task.Config.Node.PublicIp,
-			Port:    task.Config.SshConfig.Port,
-			User:    task.Config.SshConfig.User,
-			Timeout: task.Config.SshConfig.Timeout,
-			Key:     []byte(task.Config.SshConfig.BootstrapPrivateKey),
+			Port:    task.Config.Kube.SSHConfig.Port,
+			User:    task.Config.Kube.SSHConfig.User,
+			Timeout: task.Config.Kube.SSHConfig.Timeout,
+			Key:     []byte(task.Config.Kube.SSHConfig.BootstrapPrivateKey),
 		}
 
 		task.Config.Runner, err = ssh.NewRunner(cfg)

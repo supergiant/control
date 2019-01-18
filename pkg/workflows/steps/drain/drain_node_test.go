@@ -11,6 +11,7 @@ import (
 
 	"github.com/pkg/errors"
 
+	"github.com/supergiant/control/pkg/model"
 	"github.com/supergiant/control/pkg/node"
 	"github.com/supergiant/control/pkg/profile"
 	"github.com/supergiant/control/pkg/runner"
@@ -91,10 +92,10 @@ func TestDrain(t *testing.T) {
 			PublicIp: "10.20.30.40",
 		},
 	})
-	cfg.SshConfig = steps.SshConfig{
+	cfg.Kube.SSHConfig = model.SSHConfig{
 		BootstrapPrivateKey: privateKey,
-		User: "root",
-		Port: ssh.DefaultPort,
+		User:                "root",
+		Port:                ssh.DefaultPort,
 	}
 
 	task := &Step{
@@ -128,7 +129,7 @@ func TestErrors(t *testing.T) {
 	output := new(bytes.Buffer)
 
 	task := &Step{
-		script:proxyTemplate,
+		script: proxyTemplate,
 		getRunner: func(masterIP string, config *steps.Config) (runner.Runner, error) {
 			return r, nil
 		},
@@ -196,10 +197,12 @@ func TestNew(t *testing.T) {
 	}
 
 	cfg := &steps.Config{
-		SshConfig: steps.SshConfig{
-			BootstrapPrivateKey: privateKey,
-			User: "root",
-			Port: ssh.DefaultPort,
+		Kube: model.Kube{
+			SSHConfig: model.SSHConfig{
+				BootstrapPrivateKey: privateKey,
+				User:                "root",
+				Port:                ssh.DefaultPort,
+			},
 		},
 	}
 
@@ -221,9 +224,7 @@ func TestNewErr(t *testing.T) {
 		t.Errorf("getRunner function must not be nil")
 	}
 
-	cfg := &steps.Config{
-		SshConfig: steps.SshConfig{},
-	}
+	cfg := &steps.Config{}
 
 	if _, err := s.getRunner("10.20.30.40", cfg); err == nil {
 		t.Errorf("Error must not be nil")

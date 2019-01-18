@@ -5,6 +5,7 @@ import (
 	"io/ioutil"
 	"testing"
 
+	"github.com/supergiant/control/pkg/model"
 	"github.com/supergiant/control/pkg/node"
 	"github.com/supergiant/control/pkg/profile"
 	"github.com/supergiant/control/pkg/workflows/steps"
@@ -47,7 +48,7 @@ func TestStepRunSuccess(t *testing.T) {
 	timeout := 120
 
 	config := steps.NewConfig("", "", "", profile.Profile{})
-	config.SshConfig = steps.SshConfig{
+	config.Kube.SSHConfig = model.SSHConfig{
 		Port:                port,
 		User:                user,
 		Timeout:             timeout,
@@ -88,7 +89,7 @@ func TestStepRunError(t *testing.T) {
 	config.Node = node.Node{
 		PrivateIp: host,
 	}
-	config.SshConfig = steps.SshConfig{
+	config.Kube.SSHConfig = model.SSHConfig{
 		Port:                port,
 		User:                user,
 		Timeout:             timeout,

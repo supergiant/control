@@ -5,9 +5,10 @@ import (
 	"fmt"
 	"net/http"
 
+	"gopkg.in/asaskevich/govalidator.v8"
+
 	"github.com/supergiant/control/pkg/message"
 	"github.com/supergiant/control/pkg/sgerrors"
-	"gopkg.in/asaskevich/govalidator.v8"
 )
 
 type TokenIssuer interface {

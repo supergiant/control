@@ -13,6 +13,7 @@ import (
 	"github.com/supergiant/control/pkg/workflows/steps/digitalocean"
 	"github.com/supergiant/control/pkg/workflows/steps/docker"
 	"github.com/supergiant/control/pkg/workflows/steps/downloadk8sbinary"
+	"github.com/supergiant/control/pkg/workflows/steps/drain"
 	"github.com/supergiant/control/pkg/workflows/steps/etcd"
 	"github.com/supergiant/control/pkg/workflows/steps/flannel"
 	"github.com/supergiant/control/pkg/workflows/steps/gce"
@@ -24,7 +25,6 @@ import (
 	"github.com/supergiant/control/pkg/workflows/steps/ssh"
 	"github.com/supergiant/control/pkg/workflows/steps/storageclass"
 	"github.com/supergiant/control/pkg/workflows/steps/tiller"
-	"github.com/supergiant/control/pkg/workflows/steps/drain"
 )
 
 // StepStatus aggregates data that is needed to track progress

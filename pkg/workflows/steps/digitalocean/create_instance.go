@@ -164,7 +164,7 @@ func (s *CreateInstanceStep) createKeys(ctx context.Context, keyService KeyServi
 	// Create key for provisioning
 	key, err := createKey(ctx, keyService,
 		util.MakeKeyName(config.DigitalOceanConfig.Name, false),
-		config.SshConfig.BootstrapPublicKey)
+		config.Kube.SSHConfig.BootstrapPublicKey)
 
 	if err != nil {
 		return nil, errors.Wrap(err, "create provision key")
@@ -177,12 +177,12 @@ func (s *CreateInstanceStep) createKeys(ctx context.Context, keyService KeyServi
 	// Create user provided key
 	key, _ = createKey(ctx, keyService,
 		util.MakeKeyName(config.DigitalOceanConfig.Name, true),
-		config.SshConfig.PublicKey)
+		config.Kube.SSHConfig.PublicKey)
 
 	// NOTE(stgleb): In case if this key is already used by user of this account
 	// just compute fingerprint and pass it
 	if key == nil {
-		fg, _ := fingerprint(config.SshConfig.PublicKey)
+		fg, _ := fingerprint(config.Kube.SSHConfig.PublicKey)
 		fingers = append(fingers, godo.DropletCreateSSHKey{
 			Fingerprint: fg,
 		})
