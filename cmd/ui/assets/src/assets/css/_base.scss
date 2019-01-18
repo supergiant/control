@@ -127,3 +127,15 @@ button {
 .mat-paginator {
   background-color: rgba(255, 255, 255, 0.1)!important;
 }
+
+@mixin action-button {
+  padding: 8px 32px;
+  color: white;
+}
+
+.btn-secondary {
+  @include action-button;
+
+  background: #414141;
+  border: none;
+}
