@@ -405,9 +405,12 @@ export class NewClusterComponent implements OnInit, OnDestroy {
     const selectedOption: MatOption = this.selectedMachineType.selected as MatOption;
     const selectedMachineType: string = selectedOption.value;
 
-
+    // checking recommendation for cluster size
     if (currentMachine && currentMachine.role === MachineRoles.master) {
-      currentMachine.recommendedNodesCount = this.getRecommendedNodesCount(selectedMachineType);
+      currentMachine.recommendedNodesCount =
+        this.getRecommendedNodesCount(selectedMachineType) * currentMachine.qty;
+    } else {
+      currentMachine.recommendedNodesCount = 0;
     }
 
     if (this.machines.every(this.validMachine) && this.isOddNumberOfMasters()) {
@@ -419,7 +422,7 @@ export class NewClusterComponent implements OnInit, OnDestroy {
   }
 
   getRecommendedNodesCount(machineType: string): number {
-    
+
     // TODO: move these consts into config file
     const AWS_RECOMENDATIONS = {
       'm3.medium': 5,

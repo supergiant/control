@@ -388,7 +388,7 @@
             <mat-form-field class="role">
               <mat-select placeholder="Role"
                           [(value)]="m.role"
-                          (selectionChange)="validateMachineConfig()">
+                          (selectionChange)="validateMachineConfig(m)">
                 <mat-option value="Master">Master</mat-option>
                 <mat-option value="Node">Node</mat-option>
               </mat-select>
@@ -400,7 +400,7 @@
                      min="1"
                      placeholder="Q-ty"
                      [(ngModel)]="m.qty"
-                     (ngModelChange)="validateMachineConfig()">
+                     (ngModelChange)="validateMachineConfig(m)">
             </mat-form-field>
 
             <div class="delete"
@@ -466,7 +466,7 @@
             <mat-form-field class="role">
               <mat-select placeholder="Role"
                           [(value)]="m.role"
-                          (selectionChange)="validateMachineConfig()">
+                          (selectionChange)="validateMachineConfig(m)">
                 <mat-option value="Master">Master</mat-option>
                 <mat-option value="Node">Node</mat-option>
               </mat-select>
@@ -478,7 +478,7 @@
                      min="1"
                      placeholder="Q-ty"
                      [(ngModel)]="m.qty"
-                     (ngModelChange)="validateMachineConfig()">
+                     (ngModelChange)="validateMachineConfig(m)">
             </mat-form-field>
 
             <div class="delete"
@@ -542,7 +542,7 @@
             <mat-form-field class="role">
               <mat-select placeholder="Role"
                           [(value)]="m.role"
-                          (selectionChange)="validateMachineConfig()">
+                          (selectionChange)="validateMachineConfig(m)">
                 <mat-option value="Master">Master</mat-option>
                 <mat-option value="Node">Node</mat-option>
               </mat-select>
@@ -554,7 +554,7 @@
                      min="1"
                      placeholder="Q-ty"
                      [(ngModel)]="m.qty"
-                     (ngModelChange)="validateMachineConfig()">
+                     (ngModelChange)="validateMachineConfig(m)">
             </mat-form-field>
 
             <div class="delete"
