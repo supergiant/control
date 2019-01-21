@@ -179,15 +179,6 @@ type EtcdConfig struct {
 	ClusterToken   string        `json:"clusterToken"`
 }
 
-type SshConfig struct {
-	User                string `json:"user"`
-	Port                string `json:"port"`
-	BootstrapPrivateKey string `json:"bootstrapPrivateKey"`
-	BootstrapPublicKey  string `json:"bootstrapPublicKey"`
-	PublicKey           string `json:"publicKey"`
-	Timeout             int    `json:"timeout"`
-}
-
 type ClusterCheckConfig struct {
 	MachineCount int
 }
@@ -195,6 +186,10 @@ type ClusterCheckConfig struct {
 type PrometheusConfig struct {
 	Port        string `json:"port"`
 	RBACEnabled bool   `json:"rbacEnabled"`
+}
+
+type DrainConfig struct {
+	PrivateIP string `json:"privateIp"`
 }
 
 type Map struct {
@@ -216,6 +211,8 @@ func NewMap(m map[string]*node.Node) Map {
 }
 
 type Config struct {
+	Kube model.Kube `json:"kube"`
+
 	TaskID                 string
 	Provider               clouds.Name  `json:"provider"`
 	IsMaster               bool         `json:"isMaster"`
@@ -238,8 +235,8 @@ type Config struct {
 	PostStartConfig    PostStartConfig    `json:"postStartConfig"`
 	TillerConfig       TillerConfig       `json:"tillerConfig"`
 	EtcdConfig         EtcdConfig         `json:"etcdConfig"`
-	SshConfig          SshConfig          `json:"sshConfig"`
 	PrometheusConfig   PrometheusConfig   `json:"prometheusConfig"`
+	DrainConfig        DrainConfig        `json:"drainConfig"`
 
 	ClusterCheckConfig ClusterCheckConfig `json:"clusterCheckConfig"`
 
@@ -267,6 +264,14 @@ type Config struct {
 // NewConfig builds instance of config for provisioning
 func NewConfig(clusterName, clusterToken, cloudAccountName string, profile profile.Profile) *Config {
 	return &Config{
+		Kube: model.Kube{
+			SSHConfig: model.SSHConfig{
+				Port:      "22",
+				User:      "root",
+				Timeout:   10,
+				PublicKey: profile.PublicKey,
+			},
+		},
 		Provider:    profile.Provider,
 		ClusterName: clusterName,
 		DigitalOceanConfig: DOConfig{
@@ -352,12 +357,6 @@ func NewConfig(clusterName, clusterToken, cloudAccountName string, profile profi
 			Arch:            profile.Arch,
 			RBACEnabled:     profile.RBACEnabled,
 		},
-		SshConfig: SshConfig{
-			Port:      "22",
-			User:      "root",
-			Timeout:   10,
-			PublicKey: profile.PublicKey,
-		},
 		EtcdConfig: EtcdConfig{
 			// TODO(stgleb): this field must be changed per node
 			Name:           "etcd0",
@@ -397,7 +396,7 @@ func NewConfig(clusterName, clusterToken, cloudAccountName string, profile profi
 func NewConfigFromKube(profile *profile.Profile, k *model.Kube) *Config {
 	clusterToken := uuid.New()
 
-	return &Config{
+	cfg := &Config{
 		ClusterID:   k.ID,
 		Provider:    profile.Provider,
 		ClusterName: k.Name,
@@ -487,12 +486,6 @@ func NewConfigFromKube(profile *profile.Profile, k *model.Kube) *Config {
 			Arch:            profile.Arch,
 			RBACEnabled:     profile.RBACEnabled,
 		},
-		SshConfig: SshConfig{
-			Port:      "22",
-			User:      "root",
-			Timeout:   10,
-			PublicKey: profile.PublicKey,
-		},
 		EtcdConfig: EtcdConfig{
 			// TODO(stgleb): this field must be changed per node
 			Name:           "etcd0",
@@ -522,11 +515,23 @@ func NewConfigFromKube(profile *profile.Profile, k *model.Kube) *Config {
 		},
 		Timeout:          time.Minute * 30,
 		CloudAccountName: k.AccountName,
-
-		nodeChan:      make(chan node.Node, len(profile.MasterProfiles)+len(profile.NodesProfiles)),
-		kubeStateChan: make(chan model.KubeState, 5),
-		configChan:    make(chan *Config),
+		nodeChan:         make(chan node.Node, len(profile.MasterProfiles)+len(profile.NodesProfiles)),
+		kubeStateChan:    make(chan model.KubeState, 5),
+		configChan:       make(chan *Config),
 	}
+
+	if k != nil {
+		cfg.Kube = *k
+
+		cfg.Kube.SSHConfig = model.SSHConfig{
+			Port:      "22",
+			User:      "root",
+			Timeout:   10,
+			PublicKey: profile.PublicKey,
+		}
+	}
+
+	return cfg
 }
 
 // AddMaster to map of master, map is used because it is reference and can be shared among

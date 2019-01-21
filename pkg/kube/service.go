@@ -240,8 +240,8 @@ func (s Service) GetCerts(ctx context.Context, kname, cname string) (*Bundle, er
 
 	// TODO(stgleb): pass host info here
 	r, err := ssh.NewRunner(ssh.Config{
-		User: kube.SshUser,
-		Key:  kube.SshPublicKey,
+		User: kube.SSHConfig.User,
+		Key:  []byte(kube.SSHConfig.PublicKey),
 	})
 	if err != nil {
 		return nil, errors.Wrap(err, "setup runner")

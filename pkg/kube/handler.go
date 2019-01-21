@@ -662,7 +662,6 @@ func (h *Handler) deleteNode(w http.ResponseWriter, r *http.Request) {
 
 		message.SendUnknownError(w, err)
 		return
-
 	}
 
 	t, err := workflows.NewTask(h.workflowMap[acc.Provider].DeleteNode, h.repo)
@@ -678,11 +677,16 @@ func (h *Handler) deleteNode(w http.ResponseWriter, r *http.Request) {
 	}
 
 	config := &steps.Config{
-		Provider:         k.Provider,
+		Kube:     *k,
+		Provider: k.Provider,
+		DrainConfig: steps.DrainConfig{
+			PrivateIP: n.PrivateIp,
+		},
 		ClusterID:        k.ID,
 		ClusterName:      k.Name,
 		CloudAccountName: k.AccountName,
 		Node:             *n,
+		Masters:          steps.NewMap(k.Masters),
 	}
 
 	err = util.FillCloudAccountCredentials(r.Context(), acc, config)
@@ -703,15 +707,12 @@ func (h *Handler) deleteNode(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	util.MakeFileName(t.ID)
-	writer, err := h.getWriter(t.ID)
+	writer, err := h.getWriter(util.MakeFileName(t.ID))
 
 	if err != nil {
 		message.SendUnknownError(w, err)
 		return
 	}
-
-	errChan := t.Run(context.Background(), *config, writer)
 
 	// Update cluster state when deletion completes
 	go func() {
@@ -730,7 +731,7 @@ func (h *Handler) deleteNode(w http.ResponseWriter, r *http.Request) {
 			logrus.Errorf("update cluster %s caused %v", kubeID, err)
 		}
 
-		err = <-errChan
+		err = <-t.Run(context.Background(), *config, writer)
 
 		if err != nil {
 			logrus.Errorf("delete node %s from cluster %s caused %v", nodeName, kubeID, err)

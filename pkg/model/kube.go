@@ -29,11 +29,6 @@ type Kube struct {
 	ServicesCIDR string      `json:"servicesCIDR"`
 	APIPort      string      `json:"apiPort"`
 	Auth         Auth        `json:"auth"`
-	SshUser      string      `json:"sshUser"`
-
-	SshPublicKey        []byte `json:"sshKey"`
-	BootstrapPublicKey  []byte `json:"bootstrapPublicKey"`
-	BootstrapPrivateKey []byte `json:"bootstrapPrivateKey"`
 
 	User     string `json:"user" valid:"-"`
 	Password string `json:"password" valid:"-"`
@@ -55,6 +50,25 @@ type Kube struct {
 	Nodes   map[string]*node.Node `json:"nodes"`
 	// Store taskIds of tasks that are made to provision this kube
 	Tasks map[string][]string `json:"tasks"`
+
+	SSHConfig SSHConfig `json:"sshConfig"`
+	// DEPRECATED
+	SshUser string `json:"sshUser"`
+	// DEPRECATED
+	SshPublicKey []byte `json:"sshKey"`
+	// DEPRECATED
+	BootstrapPublicKey []byte `json:"bootstrapPublicKey"`
+	// DEPRECATED
+	BootstrapPrivateKey []byte `json:"bootstrapPrivateKey"`
+}
+
+type SSHConfig struct {
+	User                string `json:"user"`
+	Port                string `json:"port"`
+	BootstrapPrivateKey string `json:"bootstrapPrivateKey"`
+	BootstrapPublicKey  string `json:"bootstrapPublicKey"`
+	PublicKey           string `json:"publicKey"`
+	Timeout             int    `json:"timeout"`
 }
 
 // Auth holds all possible auth parameters.

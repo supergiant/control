@@ -38,8 +38,8 @@ func (s *Step) Run(ctx context.Context, w io.Writer, cfg *steps.Config) error {
 	log := util.GetLogger(w)
 
 	log.Infof("[%s] - adding user's public key to the node", s.Name())
-	if cfg.SshConfig.PublicKey != "" {
-		err := steps.RunTemplate(ctx, s.script, cfg.Runner, w, cfg.SshConfig)
+	if cfg == nil || cfg.Kube.SSHConfig.PublicKey != "" {
+		err := steps.RunTemplate(ctx, s.script, cfg.Runner, w, cfg.Kube.SSHConfig)
 		if err != nil {
 			return errors.Wrap(err, "add authorized key step")
 		}

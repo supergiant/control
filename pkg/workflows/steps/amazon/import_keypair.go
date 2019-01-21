@@ -74,7 +74,7 @@ func (s *KeyPairStep) Run(ctx context.Context, w io.Writer, cfg *steps.Config) e
 		s.Name(), bootstrapKeyPairName)
 	req := &ec2.ImportKeyPairInput{
 		KeyName:           &bootstrapKeyPairName,
-		PublicKeyMaterial: []byte(cfg.SshConfig.BootstrapPublicKey),
+		PublicKeyMaterial: []byte(cfg.Kube.SSHConfig.BootstrapPublicKey),
 	}
 
 	output, err := svc.ImportKeyPairWithContext(ctx, req)

@@ -21,4 +21,4 @@ config/config.json
 *.iml
 etcd-data
 /statik/
-controlplane
+/controlplane

@@ -13,6 +13,7 @@ import (
 	"github.com/supergiant/control/pkg/workflows/steps/digitalocean"
 	"github.com/supergiant/control/pkg/workflows/steps/docker"
 	"github.com/supergiant/control/pkg/workflows/steps/downloadk8sbinary"
+	"github.com/supergiant/control/pkg/workflows/steps/drain"
 	"github.com/supergiant/control/pkg/workflows/steps/etcd"
 	"github.com/supergiant/control/pkg/workflows/steps/flannel"
 	"github.com/supergiant/control/pkg/workflows/steps/gce"
@@ -151,6 +152,7 @@ func Init() {
 	}
 
 	digitalOceanDeleteNodeWorkflow := []steps.Step{
+		steps.GetStep(drain.StepName),
 		steps.GetStep(digitalocean.DeleteMachineStepName),
 	}
 
@@ -171,6 +173,7 @@ func Init() {
 	}
 
 	awsDeleteNodeWorkflow := []steps.Step{
+		steps.GetStep(drain.StepName),
 		steps.GetStep(amazon.DeleteNodeStepName),
 	}
 
@@ -209,6 +212,7 @@ func Init() {
 	}
 
 	gceDeleteNode := []steps.Step{
+		steps.GetStep(drain.StepName),
 		steps.GetStep(gce.DeleteNodeStepName),
 	}
 

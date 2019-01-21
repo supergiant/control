@@ -66,6 +66,54 @@ func (h *Handler) Authenticate(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
+func (h *Handler) RegisterRootUser(w http.ResponseWriter, r *http.Request) {
+	var user User
+	if err := json.NewDecoder(r.Body).Decode(&user); err != nil {
+		message.SendInvalidJSON(w, err)
+		return
+	}
+
+	ok, err := govalidator.ValidateStruct(user)
+	if !ok {
+		message.SendValidationFailed(w, err)
+		return
+	}
+
+	coldstart, err := h.userService.IsColdStart(r.Context())
+	if err != nil {
+		message.SendUnknownError(w, err)
+		return
+	}
+
+	if coldstart {
+		if err := h.userService.Create(r.Context(), &user); err != nil {
+			message.SendUnknownError(w, err)
+			return
+		}
+	} else {
+		message.SendAlreadyExists(w, "root user", err)
+		return
+	}
+}
+
+func (h *Handler) IsColdStart(w http.ResponseWriter, r *http.Request) {
+	coldstart, err := h.userService.IsColdStart(r.Context())
+	if err != nil {
+		message.SendUnknownError(w, err)
+		return
+	}
+
+	resp := &struct {
+		IsColdStart bool `json:"isColdStart"`
+	}{
+		coldstart,
+	}
+
+	if err := json.NewEncoder(w).Encode(resp); err != nil {
+		message.SendUnknownError(w, err)
+	}
+}
+
 func (h *Handler) Create(rw http.ResponseWriter, r *http.Request) {
 	var user User
 
@@ -86,7 +134,7 @@ func (h *Handler) Create(rw http.ResponseWriter, r *http.Request) {
 
 	if err := h.userService.Create(r.Context(), &user); err != nil {
 		if sgerrors.IsAlreadyExists(err) {
-			msg := message.New(fmt.Sprintf("Login %s is already occupied", user.Login), "", sgerrors.EntityAlreadyExists, "")
+			msg := message.New(fmt.Sprintf("login %s is already occupied", user.Login), "", sgerrors.EntityAlreadyExists, "")
 			message.SendMessage(rw, msg, http.StatusBadRequest)
 			return
 		}

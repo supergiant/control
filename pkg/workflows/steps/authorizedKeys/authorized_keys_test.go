@@ -84,7 +84,7 @@ func TestAuthorizedKeysErr(t *testing.T) {
 
 	cfg := steps.NewConfig("", "",
 		"", profile.Profile{})
-	cfg.SshConfig.PublicKey = "key"
+	cfg.Kube.SSHConfig.PublicKey = "key"
 	cfg.Runner = r
 	cfg.AddMaster(&node.Node{
 		State:     node.StateActive,
