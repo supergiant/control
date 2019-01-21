@@ -1,109 +1,13 @@
-/*
-  Layout Rules
-  ==========
-
-  Layout rules divide the page into sections. Layouts hold one or more modules
-  together.
-*/
-
-
-#container,
-#sidebar,
-#content {
-  height: 100%;
-  margin: 0;
-}
-
-#container {
-  /*display: table;*/
-  /*position: absolute;*/
-}
-
-#sidebar, #content {
-  /*display: table-cell;*/
-  box-sizing: border-box;
-  /*vertical-align: top;*/
-}
-
-#sidebar {
-  width: 250px;
-  border-right: 1px solid #ddd;
-  float: left;
-  overflow-y: hidden;
-}
-
-#content {
-  /*width: 100%;*/
-  background: #f2f1f7;
-  margin-left: 250px;
-}
-
-#logo {
-  display: block;
-  height: 160px;
-  text-indent: -9999px;
-  background: url(/ui/assets/img/supergiant.svg) no-repeat;
-  background-size: 130px auto;
-  background-position: center;
-}
-
-#nav a {
-  font-family: 'Montserrat', sans-serif;
-  color: #595959;
-  font-size: 13px;
-  display: block;
-  padding: 13px 59px;
-  border-top: 1px solid #ddd;
-}
-
-#nav a:hover, #nav a:active {
-  background: #fafafa;
-}
-
-#nav a.active {
-  background: #0e6ccc;
-  color: white;
-}
-
-#nav a:last-child {
-  border-bottom: 1px solid #ddd;
-}
-
-a#new::after {
-  content: "+";
-  font-size: 17px;
-  line-height: 0;
-  position: relative;
-  left: 8px;
-  top: 2px;
-  padding-right: 3px;
-}
-
 
 .app-header {
   height: 4rem;
-  left: 0;
   overflow: visible;
   position: fixed;
-  right: 0;
-  top: 0;
   width: 100%;
+
   z-index: $zindex-app-header;
 
   simple-notifications {
     z-index: $zindex-notifications;
   }
-
-}
-
-
-.app-footer {
-  bottom: 0;
-  height: auto;
-  left: 0;
-  overflow: visible;
-  position: fixed;
-  right: 0;
-  width: 100%;
-  z-index: $zindex-app-footer;
 }
