@@ -47,7 +47,8 @@
     </form>
   </mat-dialog-content>
   <mat-dialog-actions>
-    <button mat-button
+    <button class="btn-secondary"
+            mat-button
             mat-dialog-close>Cancel
     </button>
     <button [disabled]="!deployForm.valid || !deployForm.controls['clusterName'].value"
