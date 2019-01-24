@@ -40,22 +40,38 @@
   </g>
 </svg>
 
+<h1 *ngIf="isColdStart" class="welcome"><span>WELCOME TO</span></h1>
 <h1 class="headline"><span>CONTROL</span></h1>
 
-<div class="login-inputs-wrapper">
+<p *ngIf="isColdStart" class="coldstart-comm">Choose a master login and password. You cannot change them, so make sure to record them.</p>
+
+<form class="login-form" [formGroup]="loginForm" (ngSubmit)="onSubmit()">
   <mat-form-field>
-    <input matInput placeholder="Login" [(ngModel)]="login">
+    <input matInput
+           placeholder="Login"
+           [formControl]="loginForm.get('login')">
+    <mat-error>Please choose a login</mat-error>
   </mat-form-field>
 
   <mat-form-field>
-    <input matInput placeholder="Password" type="password" [(ngModel)]="password">
+    <input matInput
+           placeholder="Password"
+           type="password"
+           [formControl]="loginForm.get('password')">
+    <mat-hint *ngIf="isColdStart" align="start">
+      Min 8 characters, upper and lowercase letters, and at least 1 number.
+    </mat-hint>
+    <mat-error>Password must be a minimum of 8 characters, contain upper and lowercase characters, and at least 1 number.</mat-error>
   </mat-form-field>
-</div>
 
-<div class="buttons-wrapper">
-  <!-- <a href="https://supergiant.io" title="Supergiant Home">
-    <button mat-raised-button class="secondary" type="button">REQUEST A DEMO</button>
-  </a> -->
-  <button mat-raised-button type="button" color="primary" (click)="onSubmit()">SIGN IN</button>
-</div>
-
+  <div class="buttons-wrapper">
+    <button mat-raised-button type="submit" color="primary" [disabled]="!loginForm.valid">
+      <ng-container *ngIf="!isColdStart">
+        SIGN IN
+      </ng-container>
+      <ng-container *ngIf="isColdStart">
+        CREATE
+      </ng-container>
+    </button>
+  </div>
+</form>
