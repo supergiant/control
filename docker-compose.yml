@@ -13,7 +13,7 @@ services:
     volumes:
     - /tmp:/tmp
     ports:
-    - "8082:8080"
+    - "8080:8080"
     - "60200-60250:60200-60250"
     networks:
     - sg_net
