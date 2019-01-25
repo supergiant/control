@@ -13,13 +13,11 @@ services:
     volumes:
     - /tmp:/tmp
     ports:
-    - "8080:8080"
+    - "8082:8080"
     - "60200-60250:60200-60250"
     networks:
     - sg_net
   etcd:
-    ports:
-    - "2379:2379"
     image: quay.io/coreos/etcd
     command: etcd --initial-cluster-state new --listen-client-urls http://0.0.0.0:2379 --advertise-client-urls http://127.0.0.1:2379
     volumes:
