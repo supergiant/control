@@ -93,10 +93,6 @@ func TestNewProvisioner(t *testing.T) {
 	if p.cancelMap == nil {
 		t.Errorf("Cancel map must not be nil")
 	}
-
-	if p.provisionMap == nil {
-		t.Errorf("Provision map must not be nil")
-	}
 }
 
 func TestProvisionCluster(t *testing.T) {
@@ -120,25 +116,18 @@ func TestProvisionCluster(t *testing.T) {
 		func(string) (io.WriteCloser, error) {
 			return bc, nil
 		},
-		map[clouds.Name]workflows.WorkflowSet{
-			clouds.DigitalOcean: {
-				ProvisionMaster: "test_master",
-				ProvisionNode:   "test_node",
-				PreProvision:    "",
-			},
-		},
 		NewRateLimiter(time.Nanosecond * 1),
 		make(map[string]func()),
 	}
 
 	workflows.Init()
-	workflows.RegisterWorkFlow("test_master", []steps.Step{
+	workflows.RegisterWorkFlow(workflows.ProvisionMaster, []steps.Step{
 		&mockStep{},
 	})
-	workflows.RegisterWorkFlow("test_node", []steps.Step{
+	workflows.RegisterWorkFlow(workflows.ProvisionNode, []steps.Step{
 		&mockStep{},
 	})
-	workflows.RegisterWorkFlow(workflows.Cluster, []steps.Step{
+	workflows.RegisterWorkFlow(workflows.PostProvision, []steps.Step{
 		&mockStep{},
 	})
 
@@ -239,17 +228,12 @@ func TestProvisionNodes(t *testing.T) {
 		func(string) (io.WriteCloser, error) {
 			return bc, nil
 		},
-		map[clouds.Name]workflows.WorkflowSet{
-			clouds.DigitalOcean: {
-				ProvisionMaster: "test_master",
-				ProvisionNode:   "test_node"},
-		},
 		NewRateLimiter(time.Nanosecond * 1),
 		make(map[string]func()),
 	}
 
 	workflows.Init()
-	workflows.RegisterWorkFlow("test_node", []steps.Step{
+	workflows.RegisterWorkFlow(workflows.ProvisionNode, []steps.Step{
 		&mockStep{},
 	})
 
@@ -327,19 +311,12 @@ func TestRestartProvisionClusterSuccess(t *testing.T) {
 		func(string) (io.WriteCloser, error) {
 			return bc, nil
 		},
-		map[clouds.Name]workflows.WorkflowSet{
-			clouds.DigitalOcean: {
-				ProvisionMaster: workflows.AWSMaster,
-				ProvisionNode:   workflows.AWSNode,
-				PreProvision:    workflows.AWSPreProvision,
-			},
-		},
 		NewRateLimiter(time.Nanosecond * 1),
 		make(map[string]func()),
 	}
 
 	workflows.Init()
-	workflows.RegisterWorkFlow(workflows.AWSPreProvision, []steps.Step{
+	workflows.RegisterWorkFlow(workflows.PreProvision, []steps.Step{
 		&mockStep{},
 	})
 
@@ -403,22 +380,15 @@ func TestRestartProvisionClusterError(t *testing.T) {
 		func(string) (io.WriteCloser, error) {
 			return bc, nil
 		},
-		map[clouds.Name]workflows.WorkflowSet{
-			clouds.DigitalOcean: {
-				ProvisionMaster: workflows.AWSMaster,
-				ProvisionNode:   workflows.AWSNode,
-				PreProvision:    workflows.AWSPreProvision,
-			},
-		},
 		NewRateLimiter(time.Nanosecond * 1),
 		make(map[string]func()),
 	}
 
 	workflows.Init()
-	workflows.RegisterWorkFlow(workflows.AWSMaster, []steps.Step{})
-	workflows.RegisterWorkFlow(workflows.AWSNode, []steps.Step{})
-	workflows.RegisterWorkFlow(workflows.Cluster, []steps.Step{})
-	workflows.RegisterWorkFlow(workflows.AWSPreProvision, []steps.Step{
+	workflows.RegisterWorkFlow(workflows.ProvisionMaster, []steps.Step{})
+	workflows.RegisterWorkFlow(workflows.ProvisionNode, []steps.Step{})
+	workflows.RegisterWorkFlow(workflows.PostProvision, []steps.Step{})
+	workflows.RegisterWorkFlow(workflows.PreProvision, []steps.Step{
 		&mockStep{},
 	})
 

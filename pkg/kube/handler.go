@@ -84,9 +84,8 @@ type Handler struct {
 	kubeProvisioner kubeProvisioner
 	profileSvc      profileGetter
 
-	workflowMap map[clouds.Name]workflows.WorkflowSet
-	repo        storage.Interface
-	proxies     proxy.Container
+	repo    storage.Interface
+	proxies proxy.Container
 
 	getWriter       func(string) (io.WriteCloser, error)
 	getMetrics      func(string, *model.Kube) (*MetricResponse, error)
@@ -109,22 +108,8 @@ func NewHandler(
 		nodeProvisioner: provisioner,
 		kubeProvisioner: kubeProvisioner,
 		profileSvc:      profileSvc,
-		workflowMap: map[clouds.Name]workflows.WorkflowSet{
-			clouds.DigitalOcean: {
-				DeleteCluster: workflows.DigitalOceanDeleteCluster,
-				DeleteNode:    workflows.DigitalOceanDeleteNode,
-			},
-			clouds.AWS: {
-				DeleteCluster: workflows.AWSDeleteCluster,
-				DeleteNode:    workflows.AWSDeleteNode,
-			},
-			clouds.GCE: {
-				DeleteCluster: workflows.GCEDeleteCluster,
-				DeleteNode:    workflows.GCEDeleteNode,
-			},
-		},
-		repo:      repo,
-		getWriter: util.GetWriter,
+		repo:            repo,
+		getWriter:       util.GetWriter,
 		getMetrics: func(metricURI string, k *model.Kube) (*MetricResponse, error) {
 			cfg, err := NewConfigFor(k)
 			if err != nil {
@@ -344,7 +329,7 @@ func (h *Handler) deleteKube(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	t, err := workflows.NewTask(h.workflowMap[acc.Provider].DeleteCluster, h.repo)
+	t, err := workflows.NewTask(workflows.DeleteCluster, h.repo)
 
 	if err != nil {
 		if sgerrors.IsNotFound(err) {
@@ -669,8 +654,7 @@ func (h *Handler) deleteMachine(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	t, err := workflows.NewTask(h.workflowMap[acc.Provider].DeleteNode, h.repo)
-
+	t, err := workflows.NewTask(workflows.DeleteNode, h.repo)
 	if err != nil {
 		if sgerrors.IsNotFound(err) {
 			http.NotFound(w, r)

@@ -38,21 +38,12 @@ type Workflow []steps.Step
 const (
 	Prefix = "tasks"
 
-	Cluster = "Cluster"
-
-	DigitalOceanMaster        = "DigitalOceanMaster"
-	DigitalOceanNode          = "DigitalOceanNode"
-	DigitalOceanDeleteNode    = "DigitalOceanDeleteNode"
-	DigitalOceanDeleteCluster = "DigitalOceanDeleteCluster"
-	AWSMaster                 = "AWSMaster"
-	AWSNode                   = "AWSNode"
-	AWSPreProvision           = "AWSPreProvisionCluster"
-	AWSDeleteCluster          = "AWSDeleteCluster"
-	AWSDeleteNode             = "AWSDeleteNode"
-	GCEMaster                 = "GCEMaster"
-	GCENode                   = "GCENode"
-	GCEDeleteCluster          = "GCEDeleteCluster"
-	GCEDeleteNode             = "GCEDeleteNode"
+	PostProvision   = "PostProvision"
+	PreProvision    = "PreProvision"
+	ProvisionMaster = "ProvisionMaster"
+	ProvisionNode   = "ProvisionNode"
+	DeleteNode      = "DeleteNode"
+	DeleteCluster   = "DeleteCluster"
 )
 
 type WorkflowSet struct {
@@ -103,7 +94,7 @@ func Init() {
 		steps.GetStep(poststart.StepName),
 	}
 
-	commonWorkflow := []steps.Step{
+	postProvision := []steps.Step{
 		steps.GetStep(ssh.StepName),
 		steps.GetStep(clustercheck.StepName),
 		steps.GetStep(storageclass.StepName),
@@ -123,23 +114,12 @@ func Init() {
 	m.Lock()
 	defer m.Unlock()
 
-	workflowMap[Cluster] = commonWorkflow
-
-	workflowMap[DigitalOceanMaster] = masterWorkflow
-	workflowMap[DigitalOceanNode] = nodeWorkflow
-	workflowMap[DigitalOceanDeleteNode] = deleteMachineWorkflow
-	workflowMap[DigitalOceanDeleteCluster] = deleteClusterWorkflow
-
-	workflowMap[AWSMaster] = masterWorkflow
-	workflowMap[AWSNode] = nodeWorkflow
-	workflowMap[AWSPreProvision] = preProvision
-	workflowMap[AWSDeleteNode] = deleteMachineWorkflow
-	workflowMap[AWSDeleteCluster] = deleteClusterWorkflow
-
-	workflowMap[GCENode] = nodeWorkflow
-	workflowMap[GCEMaster] = masterWorkflow
-	workflowMap[GCEDeleteNode] = deleteMachineWorkflow
-	workflowMap[GCEDeleteCluster] = deleteClusterWorkflow
+	workflowMap[PreProvision] = preProvision
+	workflowMap[ProvisionMaster] = masterWorkflow
+	workflowMap[ProvisionNode] = nodeWorkflow
+	workflowMap[DeleteNode] = deleteMachineWorkflow
+	workflowMap[DeleteCluster] = deleteClusterWorkflow
+	workflowMap[PostProvision] = postProvision
 }
 
 func RegisterWorkFlow(workflowName string, workflow Workflow) {

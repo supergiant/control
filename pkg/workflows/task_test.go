@@ -98,14 +98,14 @@ func TestNewTask(t *testing.T) {
 	}
 
 	workflowMap = make(map[string]Workflow)
-	RegisterWorkFlow(DigitalOceanMaster, Workflow{})
+	RegisterWorkFlow(ProvisionMaster, Workflow{})
 
 	testCases := []struct {
 		taskType      string
 		expectedError error
 	}{
 		{
-			DigitalOceanMaster,
+			ProvisionMaster,
 			nil,
 		},
 		{
