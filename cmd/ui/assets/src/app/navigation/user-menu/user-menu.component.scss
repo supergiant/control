@@ -1,7 +1,7 @@
 :host {
   display: flex;
   justify-content: flex-end;
-  width: 209px;
+  padding-right: 85px;
 
   .system-menu {
     align-items: center;
@@ -20,6 +20,4 @@
       width: 20px;
     }
   }
-
-
 }

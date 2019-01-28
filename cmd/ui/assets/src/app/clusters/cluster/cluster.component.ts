@@ -140,9 +140,7 @@ export class ClusterComponent implements AfterViewInit, OnDestroy {
   }
 
   taskComplete(task) {
-    if (task.stepStatuses) {
-      return task.stepsStatuses.every((s) => s.status == 'success');
-    } else { return false; }
+    return task.status == 'success';
   }
 
   restartTask(taskId) {

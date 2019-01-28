@@ -5,6 +5,7 @@ import {tap} from 'rxjs/operators';
 @Injectable()
 export class AuthService {
   authPath = '/auth';
+  signupPath = '/root';
 
   constructor(private util: UtilService) { }
 
@@ -14,6 +15,10 @@ export class AuthService {
         const rawJwt = res.headers.get('authorization');
         this.startSession(rawJwt);
       }));
+  }
+
+  signup(data) {
+    return this.util.postResponse(this.signupPath, data)
   }
 
   private startSession(rawJwt) {
