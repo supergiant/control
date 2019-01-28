@@ -4,6 +4,9 @@ import (
 	"context"
 
 	"github.com/pkg/errors"
+	"github.com/supergiant/control/pkg/storage/memory"
+	"github.com/supergiant/control/pkg/storage/file"
+	"github.com/supergiant/control/pkg/storage/etcd"
 )
 
 const (
@@ -24,11 +27,11 @@ type Interface interface {
 func GetStorage(storageType, uri string) (Interface, error) {
 	switch storageType {
 	case memoryStorageType:
-		return NewInMemoryRepository(), nil
+		return memory.NewInMemoryRepository(), nil
 	case fileStorageType:
-		return NewFileRepository(uri)
+		return file.NewFileRepository(uri)
 	case etcdStorageType:
-		return NewETCDRepository(uri), nil
+		return etcd.NewETCDRepository(uri), nil
 	}
 
 	return nil, errors.New("wrong storage type" + storageType)

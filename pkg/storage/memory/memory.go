@@ -1,4 +1,4 @@
-package storage
+package memory
 
 import (
 	"context"
@@ -13,7 +13,7 @@ type InMemoryRepository struct {
 	data map[string][]byte
 }
 
-func NewInMemoryRepository() Interface {
+func NewInMemoryRepository() *InMemoryRepository {
 	return &InMemoryRepository{
 		data: make(map[string][]byte),
 	}

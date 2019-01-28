@@ -1,4 +1,4 @@
-package storage
+package etcd
 
 import (
 	"context"
@@ -10,6 +10,14 @@ import (
 
 type ETCDRepository struct {
 	cfg clientv3.Config
+}
+
+func NewETCDRepository(uri string) *ETCDRepository {
+	return &ETCDRepository{
+		cfg: clientv3.Config{
+			Endpoints: []string{uri},
+		},
+	}
 }
 
 func (e *ETCDRepository) Get(ctx context.Context, prefix string, key string) ([]byte, error) {
@@ -78,12 +86,3 @@ func (e *ETCDRepository) GetAll(ctx context.Context, prefix string) ([][]byte, e
 	}
 	return result, nil
 }
-
-func NewETCDRepository(uri string) Interface {
-	return &ETCDRepository{
-		cfg: clientv3.Config{
-			Endpoints: []string{uri},
-		},
-	}
-}
-
