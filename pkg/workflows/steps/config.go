@@ -629,6 +629,18 @@ func (c *Config) ConfigChan() chan *Config {
 	return c.configChan
 }
 
+func (c *Config) SetNodeChan(nodeChan chan node.Node) {
+	c.nodeChan = nodeChan
+}
+
+func (c *Config) SetKubeStateChan(kubeStateChan chan model.KubeState) {
+	c.kubeStateChan = kubeStateChan
+}
+
+func (c *Config) SetConfigChan(configChan chan *Config) {
+	c.configChan = configChan
+}
+
 // TODO: cloud profiles is deprecated by kubernetes, use controller-managers
 func toCloudProviderOpt(cloudName clouds.Name) string {
 	switch cloudName {

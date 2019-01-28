@@ -245,7 +245,11 @@ func (tp *TaskProvisioner) provision(ctx context.Context,
 			return
 		}
 
+		kubeChan, nodeChan, configChan := config.KubeStateChan(), config.NodeChan(), config.ConfigChan()
 		config = preProvisionTask[0].Config
+		config.SetKubeStateChan(kubeChan)
+		config.SetNodeChan(nodeChan)
+		config.SetConfigChan(configChan)
 	}
 
 	// Update kube state
@@ -538,6 +542,7 @@ func (tp *TaskProvisioner) buildInitialCluster(ctx context.Context,
 		State:        model.StateProvisioning,
 		Name:         config.ClusterName,
 		Provider:     profile.Provider,
+		ProfileID:    profile.ID,
 		AccountName:  config.CloudAccountName,
 		RBACEnabled:  profile.RBACEnabled,
 		ServicesCIDR: profile.K8SServicesCIDR,
