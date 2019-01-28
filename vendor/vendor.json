@@ -346,6 +346,12 @@
 			"revisionTime": "2017-09-12T18:36:27Z"
 		},
 		{
+			"checksumSHA1": "ySzd4wbbkGYl9Ch1dJbJOAmNXWQ=",
+			"path": "github.com/etcd-io/bbolt",
+			"revision": "8693da9f4d974485d222d310878b60125253b3b4",
+			"revisionTime": "2019-01-25T18:30:05Z"
+		},
+		{
 			"checksumSHA1": "nQqAEaB3gBG9PSKYZTbQ5IiN3jo=",
 			"path": "github.com/ghodss/yaml",
 			"revision": "e9ed3c6dfb39bb1a32197cb10d527906fe4da4b6",

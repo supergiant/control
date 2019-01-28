@@ -1,10 +1,10 @@
 package storage
 
 import (
+	"bytes"
 	"context"
 	"fmt"
 
-	"bytes"
 	"github.com/etcd-io/bbolt"
 	"github.com/supergiant/control/pkg/sgerrors"
 )
