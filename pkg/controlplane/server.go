@@ -78,7 +78,7 @@ func (srv *Server) Shutdown() {
 type Config struct {
 	Port          int
 	Addr          string
-	StorageType   string
+	StorageMode   string
 	StorageURI    string
 	TemplatesDir  string
 	SpawnInterval time.Duration
@@ -157,11 +157,11 @@ func configureApplication(cfg *Config) (*mux.Router, error) {
 	router := mux.NewRouter()
 
 	protectedAPI := router.PathPrefix("/v1/api").Subrouter()
-	repository, err := storage.GetStorage(cfg.StorageType, cfg.StorageURI)
+	repository, err := storage.GetStorage(cfg.StorageMode, cfg.StorageURI)
 
 	if err != nil {
 		return nil, errors.Wrapf(err, "get storage type %s uri %s",
-			cfg.StorageType, cfg.StorageURI)
+			cfg.StorageMode, cfg.StorageURI)
 	}
 
 	accountService := account.NewService(account.DefaultStoragePrefix, repository)
