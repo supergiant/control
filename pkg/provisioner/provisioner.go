@@ -12,7 +12,6 @@ import (
 
 	"github.com/supergiant/control/pkg/clouds"
 	"github.com/supergiant/control/pkg/model"
-	"github.com/supergiant/control/pkg/node"
 	"github.com/supergiant/control/pkg/pki"
 	"github.com/supergiant/control/pkg/profile"
 	"github.com/supergiant/control/pkg/sgerrors"
@@ -531,7 +530,7 @@ func (tp *TaskProvisioner) waitCluster(ctx context.Context, clusterTask *workflo
 }
 
 func (tp *TaskProvisioner) buildInitialCluster(ctx context.Context,
-	profile *profile.Profile, masters, nodes map[string]*node.Node,
+	profile *profile.Profile, masters, nodes map[string]*model.Machine,
 	config *steps.Config, taskIds map[string][]string) error {
 
 	cluster := &model.Kube{
@@ -668,7 +667,7 @@ func bootstrapCerts(config *steps.Config) error {
 
 // All cluster state changes during provisioning must be made in this function
 func (tp *TaskProvisioner) monitorClusterState(ctx context.Context,
-	clusterID string, nodeChan chan node.Node, kubeStateChan chan model.KubeState,
+	clusterID string, nodeChan chan model.Machine, kubeStateChan chan model.KubeState,
 	configChan chan *steps.Config) {
 	for {
 		select {
@@ -680,7 +679,7 @@ func (tp *TaskProvisioner) monitorClusterState(ctx context.Context,
 				continue
 			}
 
-			if n.Role == node.RoleMaster {
+			if n.Role == model.RoleMaster {
 				k.Masters[n.Name] = &n
 			} else {
 				k.Nodes[n.Name] = &n

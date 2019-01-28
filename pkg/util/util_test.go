@@ -9,7 +9,6 @@ import (
 
 	"github.com/supergiant/control/pkg/clouds"
 	"github.com/supergiant/control/pkg/model"
-	"github.com/supergiant/control/pkg/node"
 	"github.com/supergiant/control/pkg/sgerrors"
 	"github.com/supergiant/control/pkg/workflows/steps"
 )
@@ -231,12 +230,12 @@ func TestMakeRole(t *testing.T) {
 	for _, testCase := range testCases {
 		role := MakeRole(testCase)
 
-		if testCase && !strings.EqualFold(role, string(node.RoleMaster)) {
-			t.Errorf("Wrong role expected %s actual %s", node.RoleMaster, role)
+		if testCase && !strings.EqualFold(role, string(model.RoleMaster)) {
+			t.Errorf("Wrong role expected %s actual %s", model.RoleMaster, role)
 		}
 
-		if !testCase && !strings.EqualFold(role, string(node.RoleNode)) {
-			t.Errorf("Wrong role expected %s actual %s", node.RoleNode, role)
+		if !testCase && !strings.EqualFold(role, string(model.RoleNode)) {
+			t.Errorf("Wrong role expected %s actual %s", model.RoleNode, role)
 		}
 	}
 }
@@ -291,20 +290,20 @@ func TestBindParams(t *testing.T) {
 }
 
 func TestGetRandomNode(t *testing.T) {
-	n := &node.Node{}
+	n := &model.Machine{}
 
 	testCases := []struct {
-		nodeMap      map[string]*node.Node
-		expectedNode *node.Node
+		nodeMap      map[string]*model.Machine
+		expectedNode *model.Machine
 	}{
 		{
-			nodeMap: map[string]*node.Node{
+			nodeMap: map[string]*model.Machine{
 				"node-1": n,
 			},
 			expectedNode: n,
 		},
 		{
-			nodeMap:      map[string]*node.Node{},
+			nodeMap:      map[string]*model.Machine{},
 			expectedNode: nil,
 		},
 	}

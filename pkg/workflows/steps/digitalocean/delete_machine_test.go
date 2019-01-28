@@ -12,7 +12,7 @@ import (
 	"github.com/pkg/errors"
 	"github.com/stretchr/testify/mock"
 
-	"github.com/supergiant/control/pkg/node"
+	"github.com/supergiant/control/pkg/model"
 	"github.com/supergiant/control/pkg/workflows/steps"
 )
 
@@ -85,7 +85,7 @@ func TestDeleteMachineRun(t *testing.T) {
 				return svc
 			}
 			err := step.Run(context.Background(), &bytes.Buffer{}, &steps.Config{
-				Node: node.Node{
+				Node: model.Machine{
 					Name: testCase.machineName,
 				},
 			})

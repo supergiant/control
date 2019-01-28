@@ -12,7 +12,7 @@ import (
 
 	"github.com/pkg/errors"
 
-	"github.com/supergiant/control/pkg/node"
+	"github.com/supergiant/control/pkg/model"
 	"github.com/supergiant/control/pkg/profile"
 	"github.com/supergiant/control/pkg/runner"
 	"github.com/supergiant/control/pkg/templatemanager"
@@ -58,8 +58,8 @@ func TestClusterCheck(t *testing.T) {
 		MachineCount: machineCount,
 	}
 	cfg.Runner = r
-	cfg.AddMaster(&node.Node{
-		State:     node.StateActive,
+	cfg.AddMaster(&model.Machine{
+		State:     model.MachineStateActive,
 		PrivateIp: "10.20.30.40",
 	})
 	task := &Step{
@@ -93,8 +93,8 @@ func TestClusterCheckErrors(t *testing.T) {
 
 	cfg := steps.NewConfig("", "", "", profile.Profile{})
 	cfg.Runner = r
-	cfg.AddMaster(&node.Node{
-		State:     node.StateActive,
+	cfg.AddMaster(&model.Machine{
+		State:     model.MachineStateActive,
 		PrivateIp: "10.20.30.40",
 	})
 	err = task.Run(context.Background(), output, cfg)

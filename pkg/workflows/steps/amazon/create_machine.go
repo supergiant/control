@@ -13,7 +13,7 @@ import (
 	"github.com/sirupsen/logrus"
 
 	"github.com/supergiant/control/pkg/clouds"
-	"github.com/supergiant/control/pkg/node"
+	"github.com/supergiant/control/pkg/model"
 	"github.com/supergiant/control/pkg/util"
 	"github.com/supergiant/control/pkg/workflows/steps"
 )
@@ -61,21 +61,21 @@ func (s *StepCreateInstance) Run(ctx context.Context, w io.Writer, cfg *steps.Co
 		return errors.Wrap(ErrAuthorization, err.Error())
 	}
 
-	role := node.RoleMaster
+	role := model.RoleMaster
 	if !cfg.IsMaster {
-		role = node.RoleNode
+		role = model.RoleNode
 	}
 
 	nodeName := util.MakeNodeName(cfg.ClusterName, cfg.TaskID, cfg.IsMaster)
 
-	cfg.Node = node.Node{
+	cfg.Node = model.Machine{
 		Name:     nodeName,
 		TaskID:   cfg.TaskID,
 		Region:   cfg.AWSConfig.Region,
 		Role:     role,
 		Size:     cfg.AWSConfig.InstanceType,
 		Provider: clouds.AWS,
-		State:    node.StatePlanned,
+		State:    model.MachineStatePlanned,
 	}
 
 	// Update node state in cluster
@@ -159,28 +159,28 @@ func (s *StepCreateInstance) Run(ctx context.Context, w io.Writer, cfg *steps.Co
 
 	res, err := ec2Svc.RunInstancesWithContext(ctx, runInstanceInput)
 	if err != nil {
-		cfg.Node.State = node.StateError
+		cfg.Node.State = model.MachineStateError
 		cfg.NodeChan() <- cfg.Node
 
 		log.Errorf("[%s] - failed to create ec2 instance: %v", StepNameCreateEC2Instance, err)
 		return errors.Wrap(ErrCreateInstance, err.Error())
 	}
 
-	cfg.Node = node.Node{
+	cfg.Node = model.Machine{
 		Name:     nodeName,
 		TaskID:   cfg.TaskID,
 		Region:   cfg.AWSConfig.Region,
 		Role:     role,
 		Provider: clouds.AWS,
 		Size:     cfg.AWSConfig.InstanceType,
-		State:    node.StateBuilding,
+		State:    model.MachineStateBuilding,
 	}
 
 	// Update node state in cluster
 	cfg.NodeChan() <- cfg.Node
 
 	if len(res.Instances) == 0 {
-		cfg.Node.State = node.StateError
+		cfg.Node.State = model.MachineStateError
 		cfg.NodeChan() <- cfg.Node
 
 		return errors.Wrap(ErrCreateInstance, "no instances created")
@@ -217,7 +217,7 @@ func (s *StepCreateInstance) Run(ctx context.Context, w io.Writer, cfg *steps.Co
 
 		out, err := ec2Svc.DescribeInstancesWithContext(ctx, lookup)
 		if err != nil {
-			cfg.Node.State = node.StateError
+			cfg.Node.State = model.MachineStateError
 			cfg.NodeChan() <- cfg.Node
 			log.Errorf("[%s] - failed to obtain public IP for node %s: %v", s.Name(), nodeName, err)
 			return errors.Wrap(ErrNoPublicIP, err.Error())
@@ -229,7 +229,7 @@ func (s *StepCreateInstance) Run(ctx context.Context, w io.Writer, cfg *steps.Co
 			log.Infof("[%s] - found public ip - %s for node %s", s.Name(), cfg.Node.PublicIp, nodeName)
 		} else {
 			log.Errorf("[%s] - failed to find public IP address", s.Name())
-			cfg.Node.State = node.StateError
+			cfg.Node.State = model.MachineStateError
 			cfg.NodeChan() <- cfg.Node
 			return ErrNoPublicIP
 		}
@@ -238,7 +238,7 @@ func (s *StepCreateInstance) Run(ctx context.Context, w io.Writer, cfg *steps.Co
 	cfg.Node.Region = cfg.AWSConfig.Region
 	cfg.Node.CreatedAt = instance.LaunchTime.Unix()
 	cfg.Node.ID = *instance.InstanceId
-	cfg.Node.State = node.StateProvisioning
+	cfg.Node.State = model.MachineStateProvisioning
 
 	cfg.NodeChan() <- cfg.Node
 	if cfg.IsMaster {

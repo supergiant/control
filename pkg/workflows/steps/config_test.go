@@ -6,13 +6,12 @@ import (
 
 	"github.com/supergiant/control/pkg/clouds"
 	"github.com/supergiant/control/pkg/model"
-	"github.com/supergiant/control/pkg/node"
 	"github.com/supergiant/control/pkg/profile"
 )
 
 func TestMarshalConfig(t *testing.T) {
-	nodes := []*node.Node{{ID: "1"}, {ID: "2"}}
-	masterMap := make(map[string]*node.Node)
+	nodes := []*model.Machine{{ID: "1"}, {ID: "2"}}
+	masterMap := make(map[string]*model.Machine)
 
 	for _, n := range nodes {
 		masterMap[n.ID] = n
@@ -76,13 +75,13 @@ func TestNewConfig(t *testing.T) {
 }
 
 func TestAddMaster(t *testing.T) {
-	n := &node.Node{
-		Role: node.RoleMaster,
+	n := &model.Machine{
+		Role: model.RoleMaster,
 	}
 
 	cfg := &Config{
 		Masters: Map{
-			internal: make(map[string]*node.Node),
+			internal: make(map[string]*model.Machine),
 		},
 	}
 
@@ -95,13 +94,13 @@ func TestAddMaster(t *testing.T) {
 }
 
 func TestAddNode(t *testing.T) {
-	n := &node.Node{
-		Role: node.RoleNode,
+	n := &model.Machine{
+		Role: model.RoleNode,
 	}
 
 	cfg := &Config{
 		Nodes: Map{
-			internal: make(map[string]*node.Node),
+			internal: make(map[string]*model.Machine),
 		},
 	}
 
@@ -114,20 +113,20 @@ func TestAddNode(t *testing.T) {
 }
 
 func TestConfigGetMaster(t *testing.T) {
-	n := &node.Node{
+	n := &model.Machine{
 		Name:  "master-1",
-		State: node.StateActive,
-		Role:  node.RoleMaster,
+		State: model.MachineStateActive,
+		Role:  model.RoleMaster,
 	}
 
 	testCases := []struct {
 		cfg          *Config
-		expectedNode *node.Node
+		expectedNode *model.Machine
 	}{
 		{
 			cfg: &Config{
 				Masters: Map{
-					internal: map[string]*node.Node{
+					internal: map[string]*model.Machine{
 						n.Name: n,
 					},
 				},
@@ -150,24 +149,24 @@ func TestConfigGetMaster(t *testing.T) {
 }
 
 func TestConfigGetNode(t *testing.T) {
-	n1, n2 := &node.Node{
+	n1, n2 := &model.Machine{
 		Name:  "node-1",
-		State: node.StateError,
-		Role:  node.RoleNode,
-	}, &node.Node{
+		State: model.MachineStateError,
+		Role:  model.RoleNode,
+	}, &model.Machine{
 		Name:  "node-2",
-		State: node.StateActive,
-		Role:  node.RoleNode,
+		State: model.MachineStateActive,
+		Role:  model.RoleNode,
 	}
 
 	testCases := []struct {
 		cfg          *Config
-		expectedNode *node.Node
+		expectedNode *model.Machine
 	}{
 		{
 			cfg: &Config{
 				Nodes: Map{
-					internal: map[string]*node.Node{
+					internal: map[string]*model.Machine{
 						n1.Name: n1,
 						n2.Name: n2,
 					},
@@ -178,7 +177,7 @@ func TestConfigGetNode(t *testing.T) {
 		{
 			cfg: &Config{
 				Nodes: Map{
-					internal: map[string]*node.Node{
+					internal: map[string]*model.Machine{
 						n1.Name: n1,
 					},
 				},
@@ -205,7 +204,7 @@ func TestConfigGetMasters(t *testing.T) {
 		{
 			cfg: &Config{
 				Masters: Map{
-					internal: map[string]*node.Node{
+					internal: map[string]*model.Machine{
 						"node-1": {},
 					},
 				},
@@ -215,7 +214,7 @@ func TestConfigGetMasters(t *testing.T) {
 		{
 			cfg: &Config{
 				Masters: Map{
-					internal: map[string]*node.Node{},
+					internal: map[string]*model.Machine{},
 				},
 			},
 			expectedCount: 0,
@@ -240,7 +239,7 @@ func TestConfigGetNodes(t *testing.T) {
 		{
 			cfg: &Config{
 				Nodes: Map{
-					internal: map[string]*node.Node{
+					internal: map[string]*model.Machine{
 						"node-1": {},
 					},
 				},
@@ -250,7 +249,7 @@ func TestConfigGetNodes(t *testing.T) {
 		{
 			cfg: &Config{
 				Nodes: Map{
-					internal: map[string]*node.Node{},
+					internal: map[string]*model.Machine{},
 				},
 			},
 			expectedCount: 0,

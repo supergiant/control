@@ -9,7 +9,7 @@ import (
 	"github.com/pkg/errors"
 	"google.golang.org/api/compute/v1"
 
-	"github.com/supergiant/control/pkg/node"
+	"github.com/supergiant/control/pkg/model"
 	"github.com/supergiant/control/pkg/workflows/steps"
 )
 
@@ -18,7 +18,7 @@ func TestDeleteNodeStep_Run(t *testing.T) {
 		description string
 		getSvcErr   error
 		deleteErr   error
-		role        node.Role
+		role        model.Role
 		errMsg      string
 	}{
 		{
@@ -29,14 +29,14 @@ func TestDeleteNodeStep_Run(t *testing.T) {
 		{
 			description: "delete master error",
 			deleteErr:   errors.New("error2"),
-			role:        node.RoleMaster,
+			role:        model.RoleMaster,
 			errMsg:      "error2",
 		},
 
 		{
 			description: "delete node error",
 			deleteErr:   errors.New("error3"),
-			role:        node.RoleNode,
+			role:        model.RoleNode,
 			errMsg:      "error3",
 		},
 		{
@@ -57,17 +57,17 @@ func TestDeleteNodeStep_Run(t *testing.T) {
 		}
 
 		config := &steps.Config{
-			Masters: steps.NewMap(map[string]*node.Node{}),
-			Nodes:   steps.NewMap(map[string]*node.Node{}),
+			Masters: steps.NewMap(map[string]*model.Machine{}),
+			Nodes:   steps.NewMap(map[string]*model.Machine{}),
 		}
 
-		if testCase.role == node.RoleMaster {
-			config.AddMaster(&node.Node{
+		if testCase.role == model.RoleMaster {
+			config.AddMaster(&model.Machine{
 				Name: "name",
 				Role: testCase.role,
 			})
 		} else {
-			config.AddNode(&node.Node{
+			config.AddNode(&model.Machine{
 				Name: "name",
 				Role: testCase.role,
 			})

@@ -1,9 +1,10 @@
-package node
+package machines
 
 import (
 	"context"
 	"encoding/json"
 
+	"github.com/supergiant/control/pkg/model"
 	"github.com/supergiant/control/pkg/storage"
 )
 
@@ -21,7 +22,7 @@ func NewService(prefix string, s storage.Interface) *Service {
 	}
 }
 
-func (s *Service) Create(ctx context.Context, node *Node) error {
+func (s *Service) Create(ctx context.Context, node *model.Machine) error {
 	profileData, err := json.Marshal(node)
 
 	if err != nil {
@@ -31,9 +32,9 @@ func (s *Service) Create(ctx context.Context, node *Node) error {
 	return s.repository.Put(ctx, s.prefix, node.ID, profileData)
 }
 
-func (s *Service) Get(ctx context.Context, nodeId string) (*Node, error) {
+func (s *Service) Get(ctx context.Context, nodeId string) (*model.Machine, error) {
 	profileData, err := s.repository.Get(ctx, s.prefix, nodeId)
-	profile := &Node{}
+	profile := &model.Machine{}
 
 	if err != nil {
 		return nil, err
@@ -48,10 +49,10 @@ func (s *Service) Get(ctx context.Context, nodeId string) (*Node, error) {
 	return profile, nil
 }
 
-func (s *Service) ListAll(ctx context.Context) ([]Node, error) {
+func (s *Service) ListAll(ctx context.Context) ([]model.Machine, error) {
 	var (
-		nodes []Node
-		node  Node
+		nodes []model.Machine
+		node  model.Machine
 	)
 
 	data, err := s.repository.GetAll(ctx, s.prefix)
