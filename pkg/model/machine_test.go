@@ -1,4 +1,4 @@
-package node
+package model
 
 import (
 	"strings"
@@ -10,7 +10,7 @@ func TestNode_String(t *testing.T) {
 	id := "id"
 	size := "node-size"
 
-	n := &Node{
+	n := &Machine{
 		ID:   id,
 		Name: name,
 		Size: size,

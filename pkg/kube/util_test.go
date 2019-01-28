@@ -6,7 +6,6 @@ import (
 
 	"github.com/supergiant/control/pkg/clouds"
 	"github.com/supergiant/control/pkg/model"
-	"github.com/supergiant/control/pkg/node"
 )
 
 func TestIp2Host(t *testing.T) {
@@ -35,14 +34,14 @@ func TestIp2Host(t *testing.T) {
 }
 
 func TestProcessAWSMetrics(t *testing.T) {
-	masters := map[string]*node.Node{
+	masters := map[string]*model.Machine{
 		"master-1": {
 			Name:      "Master-1",
 			PrivateIp: "10.20.30.40",
 		},
 	}
 
-	nodes := map[string]*node.Node{
+	nodes := map[string]*model.Machine{
 		"node-1": {
 			Name:      "node-1",
 			PrivateIp: "172.16.0.1",

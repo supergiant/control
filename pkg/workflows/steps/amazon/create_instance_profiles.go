@@ -12,7 +12,7 @@ import (
 	"github.com/pkg/errors"
 	"github.com/sirupsen/logrus"
 
-	"github.com/supergiant/control/pkg/node"
+	"github.com/supergiant/control/pkg/model"
 	"github.com/supergiant/control/pkg/workflows/steps"
 )
 
@@ -150,13 +150,13 @@ func (s StepCreateInstanceProfiles) Run(ctx context.Context, w io.Writer, cfg *s
 	}
 
 	// TODO: use a separate config: aws.Nodes/aws.Masters?
-	cfg.AWSConfig.MastersInstanceProfile, err = ensureIAMProfile(ctx, iamS, cfg.ClusterID, string(node.RoleMaster))
+	cfg.AWSConfig.MastersInstanceProfile, err = ensureIAMProfile(ctx, iamS, cfg.ClusterID, string(model.RoleMaster))
 	if err != nil {
 		return errors.Wrapf(err, "%s: failed to authorize in AWS: %v", s.Name(), err)
 	}
 	logrus.Infof("%s: set up %s instance profile", s.Name(), cfg.AWSConfig.MastersInstanceProfile)
 
-	cfg.AWSConfig.NodesInstanceProfile, err = ensureIAMProfile(ctx, iamS, cfg.ClusterID, string(node.RoleNode))
+	cfg.AWSConfig.NodesInstanceProfile, err = ensureIAMProfile(ctx, iamS, cfg.ClusterID, string(model.RoleNode))
 	if err != nil {
 		return errors.Wrapf(err, "%s: failed to authorize in AWS: %v", s.Name(), err)
 	}

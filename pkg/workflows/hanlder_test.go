@@ -16,7 +16,6 @@ import (
 
 	"github.com/supergiant/control/pkg/clouds"
 	"github.com/supergiant/control/pkg/model"
-	"github.com/supergiant/control/pkg/node"
 	"github.com/supergiant/control/pkg/runner"
 	"github.com/supergiant/control/pkg/runner/ssh"
 	"github.com/supergiant/control/pkg/testutils"
@@ -156,7 +155,7 @@ dZM6MSCYh9kcT0pi2FPmY9iXba9kx4XAnf+0YB5xCz9QSMk4W5xSTBs=
 					Timeout: 10,
 				},
 			},
-			Node: node.Node{
+			Node: model.Machine{
 				PublicIp: "10.20.30.40",
 			},
 		},

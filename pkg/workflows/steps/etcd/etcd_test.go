@@ -15,7 +15,7 @@ import (
 
 	"github.com/google/uuid"
 
-	"github.com/supergiant/control/pkg/node"
+	"github.com/supergiant/control/pkg/model"
 	"github.com/supergiant/control/pkg/profile"
 	"github.com/supergiant/control/pkg/runner"
 	"github.com/supergiant/control/pkg/templatemanager"
@@ -78,14 +78,14 @@ func TestInstallEtcD(t *testing.T) {
 	}
 	config.IsMaster = true
 	config.Runner = r
-	config.Node = node.Node{
+	config.Node = model.Machine{
 		ID:        uuid.New().String(),
 		PrivateIp: "10.20.30.40",
 		PublicIp:  "127.0.0.1",
 	}
 
 	config.AddMaster(&config.Node)
-	config.AddMaster(&node.Node{
+	config.AddMaster(&model.Machine{
 		PrivateIp: "0.0.0.0",
 		ID:        uuid.New().String(),
 		Name:      "etcd1",
@@ -148,7 +148,7 @@ func TestInstallEtcdTimeout(t *testing.T) {
 	}
 	config.IsMaster = true
 	config.Runner = r
-	config.Node = node.Node{
+	config.Node = model.Machine{
 		PrivateIp: "10.20.30.40",
 	}
 

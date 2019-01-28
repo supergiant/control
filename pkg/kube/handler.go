@@ -21,7 +21,6 @@ import (
 	"github.com/supergiant/control/pkg/clouds"
 	"github.com/supergiant/control/pkg/message"
 	"github.com/supergiant/control/pkg/model"
-	"github.com/supergiant/control/pkg/node"
 	"github.com/supergiant/control/pkg/profile"
 	"github.com/supergiant/control/pkg/proxy"
 	"github.com/supergiant/control/pkg/sgerrors"
@@ -186,10 +185,16 @@ func (h *Handler) Register(r *mux.Router) {
 	r.HandleFunc("/kubes/{kubeID}/certs/{cname}", h.getCerts).Methods(http.MethodGet)
 	r.HandleFunc("/kubes/{kubeID}/tasks", h.getTasks).Methods(http.MethodGet)
 
-	r.HandleFunc("/kubes/{kubeID}/nodes", h.addNode).Methods(http.MethodPost)
-	r.HandleFunc("/kubes/{kubeID}/nodes/{nodename}", h.deleteNode).Methods(http.MethodDelete)
-	r.HandleFunc("/kubes/{kubeID}/metrics", h.getClusterMetrics).Methods(http.MethodGet)
+	// DEPRECATED: has been moved to /kubes/{kubeID}/machines
+	r.HandleFunc("/kubes/{kubeID}/nodes", h.addMachine).Methods(http.MethodPost)
+	// DEPRECATED: has been moved to /kubes/{kubeID}/machines
+	r.HandleFunc("/kubes/{kubeID}/nodes/{nodename}", h.deleteMachine).Methods(http.MethodDelete)
+
+	r.HandleFunc("/kubes/{kubeID}/machines", h.addMachine).Methods(http.MethodPost)
+	r.HandleFunc("/kubes/{kubeID}/machines/{nodename}", h.deleteMachine).Methods(http.MethodDelete)
+
 	r.HandleFunc("/kubes/{kubeID}/nodes/metrics", h.getNodesMetrics).Methods(http.MethodGet)
+	r.HandleFunc("/kubes/{kubeID}/metrics", h.getClusterMetrics).Methods(http.MethodGet)
 	r.HandleFunc("/kubes/{kubeID}/services", h.getServices).Methods(http.MethodGet)
 	r.HandleFunc("/kubes/{kubeID}/restart", h.restartKubeProvisioning).Methods(http.MethodPost)
 }
@@ -502,7 +507,7 @@ func (h *Handler) getCerts(w http.ResponseWriter, r *http.Request) {
 }
 
 // Add node to working kube
-func (h *Handler) addNode(w http.ResponseWriter, r *http.Request) {
+func (h *Handler) addMachine(w http.ResponseWriter, r *http.Request) {
 	vars := mux.Vars(r)
 	kubeID := vars["kubeID"]
 	k, err := h.svc.Get(r.Context(), kubeID)
@@ -621,7 +626,7 @@ func (h *Handler) addNode(w http.ResponseWriter, r *http.Request) {
 }
 
 // TODO(stgleb): cover with unit tests
-func (h *Handler) deleteNode(w http.ResponseWriter, r *http.Request) {
+func (h *Handler) deleteMachine(w http.ResponseWriter, r *http.Request) {
 	vars := mux.Vars(r)
 
 	kubeID := vars["kubeID"]
@@ -645,7 +650,7 @@ func (h *Handler) deleteNode(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	var n *node.Node
+	var n *model.Machine
 
 	if n = k.Nodes[nodeName]; n == nil {
 		http.NotFound(w, r)
@@ -723,7 +728,7 @@ func (h *Handler) deleteNode(w http.ResponseWriter, r *http.Request) {
 			logrus.Errorf("Node %s not found", nodeName)
 			return
 		}
-		nodeToDelete.State = node.StateDeleting
+		nodeToDelete.State = model.MachineStateDeleting
 		k.Nodes[nodeName] = nodeToDelete
 		err := h.svc.Create(context.Background(), k)
 
@@ -898,7 +903,7 @@ func (h *Handler) getClusterMetrics(w http.ResponseWriter, r *http.Request) {
 			"cpu":    "api/v1/query?query=:node_cpu_utilisation:avg1m",
 			"memory": "api/v1/query?query=:node_memory_utilisation:",
 		}
-		masterNode *node.Node
+		masterNode *model.Machine
 		response   = map[string]interface{}{}
 		baseUrl    = "api/v1/namespaces/default/services/prometheus-operated:9090/proxy"
 	)
@@ -950,7 +955,7 @@ func (h *Handler) getNodesMetrics(w http.ResponseWriter, r *http.Request) {
 			"cpu":    "api/v1/query?query=node:node_cpu_utilisation:avg1m",
 			"memory": "api/v1/query?query=node:node_memory_utilisation:",
 		}
-		masterNode *node.Node
+		masterNode *model.Machine
 		response   = map[string]map[string]interface{}{}
 		baseUrl    = "api/v1/namespaces/default/services/prometheus-operated:9090/proxy"
 	)

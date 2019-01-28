@@ -9,7 +9,6 @@ import (
 
 	"github.com/supergiant/control/pkg/clouds"
 	"github.com/supergiant/control/pkg/model"
-	"github.com/supergiant/control/pkg/node"
 	"github.com/supergiant/control/pkg/profile"
 	"github.com/supergiant/control/pkg/runner"
 	"github.com/supergiant/control/pkg/storage"
@@ -193,7 +192,7 @@ type DrainConfig struct {
 }
 
 type Map struct {
-	internal map[string]*node.Node
+	internal map[string]*model.Machine
 }
 
 func (m *Map) UnmarshalJSON(b []byte) error {
@@ -204,7 +203,7 @@ func (m *Map) MarshalJSON() ([]byte, error) {
 	return json.Marshal(m.internal)
 }
 
-func NewMap(m map[string]*node.Node) Map {
+func NewMap(m map[string]*model.Machine) Map {
 	return Map{
 		internal: m,
 	}
@@ -240,7 +239,7 @@ type Config struct {
 
 	ClusterCheckConfig ClusterCheckConfig `json:"clusterCheckConfig"`
 
-	Node             node.Node     `json:"node"`
+	Node             model.Machine `json:"node"`
 	CloudAccountID   string        `json:"cloudAccountId" valid:"required, length(1|32)"`
 	CloudAccountName string        `json:"cloudAccountName" valid:"required, length(1|32)"`
 	Timeout          time.Duration `json:"timeout"`
@@ -254,7 +253,7 @@ type Config struct {
 	m2    sync.RWMutex
 	Nodes Map `json:"nodes"`
 
-	nodeChan      chan node.Node
+	nodeChan      chan model.Machine
 	kubeStateChan chan model.KubeState
 	configChan    chan *Config
 
@@ -379,15 +378,15 @@ func NewConfig(clusterName, clusterToken, cloudAccountName string, profile profi
 		},
 
 		Masters: Map{
-			internal: make(map[string]*node.Node, len(profile.MasterProfiles)),
+			internal: make(map[string]*model.Machine, len(profile.MasterProfiles)),
 		},
 		Nodes: Map{
-			internal: make(map[string]*node.Node, len(profile.NodesProfiles)),
+			internal: make(map[string]*model.Machine, len(profile.NodesProfiles)),
 		},
 		Timeout:          time.Minute * 30,
 		CloudAccountName: cloudAccountName,
 
-		nodeChan:      make(chan node.Node, len(profile.MasterProfiles)+len(profile.NodesProfiles)),
+		nodeChan:      make(chan model.Machine, len(profile.MasterProfiles)+len(profile.NodesProfiles)),
 		kubeStateChan: make(chan model.KubeState, 2),
 		configChan:    make(chan *Config),
 	}
@@ -508,14 +507,14 @@ func NewConfigFromKube(profile *profile.Profile, k *model.Kube) *Config {
 		},
 
 		Masters: Map{
-			internal: make(map[string]*node.Node, len(k.Masters)),
+			internal: make(map[string]*model.Machine, len(k.Masters)),
 		},
 		Nodes: Map{
-			internal: make(map[string]*node.Node, len(k.Nodes)),
+			internal: make(map[string]*model.Machine, len(k.Nodes)),
 		},
 		Timeout:          time.Minute * 30,
 		CloudAccountName: k.AccountName,
-		nodeChan:         make(chan node.Node, len(profile.MasterProfiles)+len(profile.NodesProfiles)),
+		nodeChan:         make(chan model.Machine, len(profile.MasterProfiles)+len(profile.NodesProfiles)),
 		kubeStateChan:    make(chan model.KubeState, 5),
 		configChan:       make(chan *Config),
 	}
@@ -536,21 +535,21 @@ func NewConfigFromKube(profile *profile.Profile, k *model.Kube) *Config {
 
 // AddMaster to map of master, map is used because it is reference and can be shared among
 // goroutines that run multiple tasks of cluster deployment
-func (c *Config) AddMaster(n *node.Node) {
+func (c *Config) AddMaster(n *model.Machine) {
 	c.m1.Lock()
 	defer c.m1.Unlock()
 	c.Masters.internal[n.ID] = n
 }
 
 // AddNode to map of nodes in cluster
-func (c *Config) AddNode(n *node.Node) {
+func (c *Config) AddNode(n *model.Machine) {
 	c.m2.Lock()
 	defer c.m2.Unlock()
 	c.Nodes.internal[n.ID] = n
 }
 
 // GetMaster returns first master in master map or nil
-func (c *Config) GetMaster() *node.Node {
+func (c *Config) GetMaster() *model.Machine {
 	// non-blocking fast path for master nodes
 	if c.IsMaster {
 		return &c.Node
@@ -565,7 +564,7 @@ func (c *Config) GetMaster() *node.Node {
 
 	for key := range c.Masters.internal {
 		// Skip inactive nodes for selecting
-		if c.Masters.internal[key] != nil && c.Masters.internal[key].State == node.StateActive {
+		if c.Masters.internal[key] != nil && c.Masters.internal[key].State == model.MachineStateActive {
 			return c.Masters.internal[key]
 		}
 	}
@@ -573,11 +572,11 @@ func (c *Config) GetMaster() *node.Node {
 	return nil
 }
 
-func (c *Config) GetMasters() map[string]*node.Node {
+func (c *Config) GetMasters() map[string]*model.Machine {
 	c.m1.RLock()
 	defer c.m1.RUnlock()
 
-	m := make(map[string]*node.Node, len(c.Masters.internal))
+	m := make(map[string]*model.Machine, len(c.Masters.internal))
 
 	for key := range c.Masters.internal {
 		m[c.Masters.internal[key].Name] = c.Masters.internal[key]
@@ -586,11 +585,11 @@ func (c *Config) GetMasters() map[string]*node.Node {
 	return m
 }
 
-func (c *Config) GetNodes() map[string]*node.Node {
+func (c *Config) GetNodes() map[string]*model.Machine {
 	c.m2.RLock()
 	defer c.m2.RUnlock()
 
-	m := make(map[string]*node.Node, len(c.Nodes.internal))
+	m := make(map[string]*model.Machine, len(c.Nodes.internal))
 
 	for key := range c.Nodes.internal {
 		m[c.Nodes.internal[key].Name] = c.Nodes.internal[key]
@@ -600,7 +599,7 @@ func (c *Config) GetNodes() map[string]*node.Node {
 }
 
 // GetMaster returns first master in master map or nil
-func (c *Config) GetNode() *node.Node {
+func (c *Config) GetNode() *model.Machine {
 	c.m2.RLock()
 	defer c.m2.RUnlock()
 
@@ -610,7 +609,7 @@ func (c *Config) GetNode() *node.Node {
 
 	for key := range c.Nodes.internal {
 		// Skip inactive nodes for selecting
-		if c.Nodes.internal[key] != nil && c.Nodes.internal[key].State == node.StateActive {
+		if c.Nodes.internal[key] != nil && c.Nodes.internal[key].State == model.MachineStateActive {
 			return c.Nodes.internal[key]
 		}
 	}
@@ -618,7 +617,7 @@ func (c *Config) GetNode() *node.Node {
 	return nil
 }
 
-func (c *Config) NodeChan() chan node.Node {
+func (c *Config) NodeChan() chan model.Machine {
 	return c.nodeChan
 }
 

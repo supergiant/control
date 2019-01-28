@@ -12,7 +12,7 @@ import (
 	"google.golang.org/api/compute/v1"
 
 	"github.com/supergiant/control/pkg/clouds"
-	"github.com/supergiant/control/pkg/node"
+	"github.com/supergiant/control/pkg/model"
 	"github.com/supergiant/control/pkg/sgerrors"
 	"github.com/supergiant/control/pkg/util"
 	"github.com/supergiant/control/pkg/workflows/steps"
@@ -201,17 +201,17 @@ func (s *CreateInstanceStep) Run(ctx context.Context, output io.Writer,
 			CreateInstanceStepName)
 	}
 
-	nodeRole := node.RoleMaster
+	nodeRole := model.RoleMaster
 
 	if !config.IsMaster {
-		nodeRole = node.RoleNode
+		nodeRole = model.RoleNode
 	}
 
-	config.Node = node.Node{
+	config.Node = model.Machine{
 		ID:        string(resp.Id),
 		Name:      name,
 		CreatedAt: time.Now().Unix(),
-		State:     node.StateBuilding,
+		State:     model.MachineStateBuilding,
 		Role:      nodeRole,
 		Provider:  clouds.GCE,
 		Size:      config.GCEConfig.Size,
@@ -236,7 +236,7 @@ func (s *CreateInstanceStep) Run(ctx context.Context, output io.Writer,
 			if resp != nil && resp.Status == "RUNNING" {
 				config.Node.PublicIp = resp.NetworkInterfaces[0].AccessConfigs[0].NatIP
 				config.Node.PrivateIp = resp.NetworkInterfaces[0].NetworkIP
-				config.Node.State = node.StateActive
+				config.Node.State = model.MachineStateActive
 
 				// Update node state in cluster
 				config.NodeChan() <- config.Node

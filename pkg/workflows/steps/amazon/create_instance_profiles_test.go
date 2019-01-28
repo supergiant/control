@@ -13,7 +13,7 @@ import (
 	"github.com/pkg/errors"
 	"github.com/stretchr/testify/require"
 
-	"github.com/supergiant/control/pkg/node"
+	"github.com/supergiant/control/pkg/model"
 	"github.com/supergiant/control/pkg/workflows/steps"
 )
 
@@ -133,13 +133,13 @@ func TestCreateInstanceProfiles_Run(t *testing.T) {
 		if err == nil {
 			require.Equalf(
 				t,
-				buildIAMName(tc.cfg.ClusterID, string(node.RoleMaster)),
+				buildIAMName(tc.cfg.ClusterID, string(model.RoleMaster)),
 				tc.cfg.AWSConfig.MastersInstanceProfile,
 				"TC: %s", tc.name)
 
 			require.Equalf(
 				t,
-				buildIAMName(tc.cfg.ClusterID, string(node.RoleNode)),
+				buildIAMName(tc.cfg.ClusterID, string(model.RoleNode)),
 				tc.cfg.AWSConfig.NodesInstanceProfile,
 				"TC: %s", tc.name)
 		}

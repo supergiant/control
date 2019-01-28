@@ -7,7 +7,6 @@ import (
 	"k8s.io/apimachinery/pkg/runtime/schema"
 
 	"github.com/supergiant/control/pkg/model"
-	"github.com/supergiant/control/pkg/node"
 	"github.com/supergiant/control/pkg/sgerrors"
 )
 
@@ -24,7 +23,7 @@ func TestRestClientForGroupVersion(t *testing.T) {
 		},
 		{
 			kube: &model.Kube{
-				Masters: map[string]*node.Node{
+				Masters: map[string]*model.Machine{
 					"node-1": {
 						Name:     "node-1",
 						PublicIp: "10.20.30.40",
@@ -60,7 +59,7 @@ func TestDiscoveryClient(t *testing.T) {
 		},
 		{
 			kube: &model.Kube{
-				Masters: map[string]*node.Node{
+				Masters: map[string]*model.Machine{
 					"node-1": {
 						Name:     "node-1",
 						PublicIp: "10.20.30.40",

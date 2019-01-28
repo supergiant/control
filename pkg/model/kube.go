@@ -2,7 +2,6 @@ package model
 
 import (
 	"github.com/supergiant/control/pkg/clouds"
-	"github.com/supergiant/control/pkg/node"
 	"github.com/supergiant/control/pkg/profile"
 )
 
@@ -46,8 +45,8 @@ type Kube struct {
 
 	ProfileID string `json:"profileId"`
 
-	Masters map[string]*node.Node `json:"masters"`
-	Nodes   map[string]*node.Node `json:"nodes"`
+	Masters map[string]*Machine `json:"masters"`
+	Nodes   map[string]*Machine `json:"nodes"`
 	// Store taskIds of tasks that are made to provision this kube
 	Tasks map[string][]string `json:"tasks"`
 

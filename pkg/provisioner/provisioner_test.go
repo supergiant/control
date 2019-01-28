@@ -14,7 +14,6 @@ import (
 
 	"github.com/supergiant/control/pkg/clouds"
 	"github.com/supergiant/control/pkg/model"
-	"github.com/supergiant/control/pkg/node"
 	"github.com/supergiant/control/pkg/profile"
 	"github.com/supergiant/control/pkg/sgerrors"
 	"github.com/supergiant/control/pkg/testutils"
@@ -217,12 +216,12 @@ func TestProvisionNodes(t *testing.T) {
 	k := &model.Kube{
 		ID:       kubeID,
 		Provider: clouds.DigitalOcean,
-		Masters: map[string]*node.Node{
+		Masters: map[string]*model.Machine{
 			"1": {
 				ID:        "1",
 				PrivateIp: "10.0.0.1",
 				PublicIp:  "10.20.30.40",
-				State:     node.StateActive,
+				State:     model.MachineStateActive,
 				Region:    "fra1",
 				Size:      "s-2vcpu-4gb",
 			},
@@ -533,33 +532,33 @@ func TestDeserializeTasksError(t *testing.T) {
 
 func TestMonitorCluster(t *testing.T) {
 	testCases := []struct {
-		nodes                []node.Node
+		nodes                []model.Machine
 		states               []model.KubeState
 		kube                 *model.Kube
 		expectedNodeCount    int
 		expectedClusterState model.KubeState
 	}{
 		{
-			nodes: []node.Node{
+			nodes: []model.Machine{
 				{
 					Name:  "test",
-					Role:  node.RoleMaster,
-					State: node.StatePlanned,
+					Role:  model.RoleMaster,
+					State: model.MachineStatePlanned,
 				},
 				{
 					Name:  "test",
-					Role:  node.RoleMaster,
-					State: node.StateBuilding,
+					Role:  model.RoleMaster,
+					State: model.MachineStateBuilding,
 				},
 				{
 					Name:  "test",
-					Role:  node.RoleMaster,
-					State: node.StateProvisioning,
+					Role:  model.RoleMaster,
+					State: model.MachineStateProvisioning,
 				},
 				{
 					Name:  "test",
-					Role:  node.RoleMaster,
-					State: node.StateActive,
+					Role:  model.RoleMaster,
+					State: model.MachineStateActive,
 				},
 			},
 			states: []model.KubeState{
@@ -569,33 +568,33 @@ func TestMonitorCluster(t *testing.T) {
 			kube: &model.Kube{
 				ID:      "1234",
 				Name:    "test",
-				Masters: make(map[string]*node.Node),
-				Nodes:   make(map[string]*node.Node),
+				Masters: make(map[string]*model.Machine),
+				Nodes:   make(map[string]*model.Machine),
 			},
 			expectedNodeCount:    1,
 			expectedClusterState: model.StateOperational,
 		},
 		{
-			nodes: []node.Node{
+			nodes: []model.Machine{
 				{
 					Name:  "test1",
-					Role:  node.RoleMaster,
-					State: node.StateProvisioning,
+					Role:  model.RoleMaster,
+					State: model.MachineStateProvisioning,
 				},
 				{
 					Name:  "test2",
-					Role:  node.RoleMaster,
-					State: node.StateError,
+					Role:  model.RoleMaster,
+					State: model.MachineStateError,
 				},
 				{
 					Name:  "test1",
-					Role:  node.RoleMaster,
-					State: node.StateProvisioning,
+					Role:  model.RoleMaster,
+					State: model.MachineStateProvisioning,
 				},
 				{
 					Name:  "test2",
-					Role:  node.RoleMaster,
-					State: node.StateActive,
+					Role:  model.RoleMaster,
+					State: model.MachineStateActive,
 				},
 			},
 			states: []model.KubeState{
@@ -605,8 +604,8 @@ func TestMonitorCluster(t *testing.T) {
 			kube: &model.Kube{
 				ID:      "1234",
 				Name:    "test",
-				Masters: make(map[string]*node.Node),
-				Nodes:   make(map[string]*node.Node),
+				Masters: make(map[string]*model.Machine),
+				Nodes:   make(map[string]*model.Machine),
 			},
 			expectedNodeCount:    2,
 			expectedClusterState: model.StateFailed,

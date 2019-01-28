@@ -15,7 +15,6 @@ import (
 
 	"github.com/supergiant/control/pkg/clouds"
 	"github.com/supergiant/control/pkg/model"
-	"github.com/supergiant/control/pkg/node"
 	"github.com/supergiant/control/pkg/sgerrors"
 	"github.com/supergiant/control/pkg/workflows/steps"
 )
@@ -122,7 +121,7 @@ func FillCloudAccountCredentials(ctx context.Context, cloudAccount *model.CloudA
 	}
 }
 
-func GetRandomNode(nodeMap map[string]*node.Node) *node.Node {
+func GetRandomNode(nodeMap map[string]*model.Machine) *model.Machine {
 	for key := range nodeMap {
 		return nodeMap[key]
 	}

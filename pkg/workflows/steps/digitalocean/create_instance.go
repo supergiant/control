@@ -13,7 +13,7 @@ import (
 
 	"github.com/supergiant/control/pkg/clouds"
 	"github.com/supergiant/control/pkg/clouds/digitaloceansdk"
-	"github.com/supergiant/control/pkg/node"
+	"github.com/supergiant/control/pkg/model"
 	"github.com/supergiant/control/pkg/sgerrors"
 	"github.com/supergiant/control/pkg/util"
 	"github.com/supergiant/control/pkg/workflows/steps"
@@ -70,18 +70,18 @@ func (s *CreateInstanceStep) Run(ctx context.Context, output io.Writer, config *
 		Tags: tags,
 	}
 
-	role := node.RoleMaster
+	role := model.RoleMaster
 	if !config.IsMaster {
-		role = node.RoleNode
+		role = model.RoleNode
 	}
 
-	config.Node = node.Node{
+	config.Node = model.Machine{
 		TaskID:   config.TaskID,
 		Role:     role,
 		Provider: clouds.DigitalOcean,
 		Size:     config.DigitalOceanConfig.Size,
 		Region:   config.DigitalOceanConfig.Region,
-		State:    node.StateBuilding,
+		State:    model.MachineStateBuilding,
 		Name:     config.DigitalOceanConfig.Name,
 	}
 
@@ -90,7 +90,7 @@ func (s *CreateInstanceStep) Run(ctx context.Context, output io.Writer, config *
 	droplet, _, err := dropletSvc.Create(ctx, dropletRequest)
 
 	if err != nil {
-		config.Node.State = node.StateError
+		config.Node.State = model.MachineStateError
 		config.NodeChan() <- config.Node
 		return errors.Wrap(err, "dropletService has returned an error in Run job")
 	}
@@ -116,7 +116,7 @@ func (s *CreateInstanceStep) Run(ctx context.Context, output io.Writer, config *
 				config.Node.CreatedAt = int64(createdAt)
 				config.Node.PublicIp = getPublicIpPort(droplet.Networks.V4)
 				config.Node.PrivateIp = getPrivateIpPort(droplet.Networks.V4)
-				config.Node.State = node.StateProvisioning
+				config.Node.State = model.MachineStateProvisioning
 				config.Node.Name = config.DigitalOceanConfig.Name
 
 				// Update node state in cluster

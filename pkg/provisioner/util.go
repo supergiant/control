@@ -11,7 +11,7 @@ import (
 	"golang.org/x/crypto/ssh"
 
 	"github.com/supergiant/control/pkg/clouds"
-	"github.com/supergiant/control/pkg/node"
+	"github.com/supergiant/control/pkg/model"
 	"github.com/supergiant/control/pkg/profile"
 	"github.com/supergiant/control/pkg/sgerrors"
 	"github.com/supergiant/control/pkg/util"
@@ -55,9 +55,9 @@ func FillNodeCloudSpecificData(provider clouds.Name, nodeProfile profile.NodePro
 	return nil
 }
 
-func nodesFromProfile(clusterName string, masterTasks, nodeTasks []*workflows.Task, profile *profile.Profile) (map[string]*node.Node, map[string]*node.Node) {
-	masters := make(map[string]*node.Node)
-	nodes := make(map[string]*node.Node)
+func nodesFromProfile(clusterName string, masterTasks, nodeTasks []*workflows.Task, profile *profile.Profile) (map[string]*model.Machine, map[string]*model.Machine) {
+	masters := make(map[string]*model.Machine)
+	nodes := make(map[string]*model.Machine)
 
 	for index, p := range profile.MasterProfiles {
 		taskId := masterTasks[index].ID
@@ -67,12 +67,12 @@ func nodesFromProfile(clusterName string, masterTasks, nodeTasks []*workflows.Ta
 		if profile.Provider == clouds.GCE {
 			name = strings.ToLower(name)
 		}
-		n := &node.Node{
+		n := &model.Machine{
 			TaskID:   taskId,
 			Name:     name,
 			Provider: profile.Provider,
 			Region:   profile.Region,
-			State:    node.StatePlanned,
+			State:    model.MachineStatePlanned,
 		}
 
 		util.BindParams(p, n)
@@ -87,12 +87,12 @@ func nodesFromProfile(clusterName string, masterTasks, nodeTasks []*workflows.Ta
 		if profile.Provider == clouds.GCE {
 			name = strings.ToLower(name)
 		}
-		n := &node.Node{
+		n := &model.Machine{
 			TaskID:   taskId,
 			Name:     name,
 			Provider: profile.Provider,
 			Region:   profile.Region,
-			State:    node.StatePlanned,
+			State:    model.MachineStatePlanned,
 		}
 
 		util.BindParams(p, n)
