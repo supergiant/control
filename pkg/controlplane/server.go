@@ -10,7 +10,6 @@ import (
 	"strings"
 	"time"
 
-	"github.com/coreos/etcd/clientv3"
 	"github.com/gorilla/handlers"
 	"github.com/gorilla/mux"
 	"github.com/pkg/errors"
@@ -29,7 +28,6 @@ import (
 	"github.com/supergiant/control/pkg/sghelm"
 	"github.com/supergiant/control/pkg/storage"
 	"github.com/supergiant/control/pkg/templatemanager"
-	"github.com/supergiant/control/pkg/testutils/assert"
 	"github.com/supergiant/control/pkg/user"
 	"github.com/supergiant/control/pkg/workflows"
 	"github.com/supergiant/control/pkg/workflows/steps/amazon"
@@ -80,7 +78,8 @@ func (srv *Server) Shutdown() {
 type Config struct {
 	Port          int
 	Addr          string
-	EtcdUrl       string
+	StorageType   string
+	StorageURI    string
 	TemplatesDir  string
 	SpawnInterval time.Duration
 	UiDir         string
@@ -142,14 +141,6 @@ func NewServer(router *mux.Router, cfg *Config) *Server {
 }
 
 func validate(cfg *Config) error {
-	if cfg.EtcdUrl == "" {
-		return errors.New("etcd url can't be empty")
-	}
-
-	if err := assert.CheckETCD(cfg.EtcdUrl); err != nil {
-		return errors.Wrapf(err, "etcd url %s", cfg.EtcdUrl)
-	}
-
 	if cfg.Port <= 0 {
 		return errors.New("port can't be negative")
 	}
@@ -163,13 +154,15 @@ func validate(cfg *Config) error {
 
 func configureApplication(cfg *Config) (*mux.Router, error) {
 	//TODO will work for now, but we should revisit ETCD configuration later
-	etcdCfg := clientv3.Config{
-		Endpoints: []string{cfg.EtcdUrl},
-	}
 	router := mux.NewRouter()
 
 	protectedAPI := router.PathPrefix("/v1/api").Subrouter()
-	repository := storage.NewETCDRepository(etcdCfg)
+	repository, err := storage.GetStorage(cfg.StorageType, cfg.StorageURI)
+
+	if err != nil {
+		return nil, errors.Wrapf(err, "get storage type %s uri %s",
+			cfg.StorageType, cfg.StorageURI)
+	}
 
 	accountService := account.NewService(account.DefaultStoragePrefix, repository)
 	accountHandler := account.NewHandler(accountService)

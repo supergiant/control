@@ -79,9 +79,11 @@ func (e *ETCDRepository) GetAll(ctx context.Context, prefix string) ([][]byte, e
 	return result, nil
 }
 
-func NewETCDRepository(cfg clientv3.Config) Interface {
+func NewETCDRepository(uri string) Interface {
 	return &ETCDRepository{
-		cfg: cfg,
+		cfg: clientv3.Config{
+			Endpoints: []string{uri},
+		},
 	}
 }
 

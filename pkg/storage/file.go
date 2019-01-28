@@ -92,12 +92,7 @@ func (i *FileRepository) GetAll(ctx context.Context, prefix string) ([][]byte, e
 	values := make([][]byte, 0)
 
 	err := i.db.View(func(tx *bbolt.Tx) error {
-		bucket, err := tx.CreateBucketIfNotExists([]byte(bucketName))
-
-		if err != nil {
-			return fmt.Errorf("create bucket: %s", err)
-		}
-
+		bucket := tx.Bucket([]byte(bucketName))
 		cursor := bucket.Cursor()
 		prefixBytes := []byte(prefix)
 
