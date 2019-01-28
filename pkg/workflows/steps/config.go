@@ -629,7 +629,7 @@ func (c *Config) ConfigChan() chan *Config {
 	return c.configChan
 }
 
-func (c *Config) SetNodeChan(nodeChan chan node.Node) {
+func (c *Config) SetNodeChan(nodeChan chan model.Machine) {
 	c.nodeChan = nodeChan
 }
 
