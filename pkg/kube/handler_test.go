@@ -582,7 +582,7 @@ func TestHandler_deleteKube(t *testing.T) {
 			mock.Anything).Return([][]byte{}, nil)
 
 		workflows.Init()
-		workflows.RegisterWorkFlow(workflows.DigitalOceanDeleteCluster, []steps.Step{})
+		workflows.RegisterWorkFlow(workflows.DeleteCluster, []steps.Step{})
 
 		rr := httptest.NewRecorder()
 
@@ -1010,7 +1010,7 @@ func TestDeleteNodeFromKube(t *testing.T) {
 	}
 
 	workflows.Init()
-	workflows.RegisterWorkFlow(workflows.DigitalOceanDeleteNode, []steps.Step{})
+	workflows.RegisterWorkFlow(workflows.DeleteNode, []steps.Step{})
 
 	for _, testCase := range testCases {
 		t.Log(testCase.testName)
@@ -1034,12 +1034,8 @@ func TestDeleteNodeFromKube(t *testing.T) {
 		handler := Handler{
 			svc:            svc,
 			accountService: accService,
-			workflowMap: map[clouds.Name]workflows.WorkflowSet{
-				clouds.DigitalOcean: {
-					DeleteNode: workflows.DigitalOceanDeleteNode},
-			},
-			getWriter: testCase.getWriter,
-			repo:      mockRepo,
+			getWriter:      testCase.getWriter,
+			repo:           mockRepo,
 		}
 
 		router := mux.NewRouter()
