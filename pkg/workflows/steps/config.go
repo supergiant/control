@@ -413,6 +413,7 @@ func NewConfigFromKube(profile *profile.Profile, k *model.Kube) *Config {
 			MastersSecurityGroupID: k.CloudSpec[clouds.AwsMastersSecGroupID],
 			NodesSecurityGroupID:   k.CloudSpec[clouds.AwsNodesSecgroupID],
 			ImageID:                k.CloudSpec[clouds.AwsImageID],
+			HasPublicAddr:          true,
 		},
 		GCEConfig: GCEConfig{
 			AvailabilityZone: profile.Zone,
@@ -467,6 +468,7 @@ func NewConfigFromKube(profile *profile.Profile, k *model.Kube) *Config {
 			K8SVersion:          profile.K8SVersion,
 			KubernetesConfigDir: "/etc/kubernetes",
 			RBACEnabled:         profile.RBACEnabled,
+			ServicesCIDR:        k.ServicesCIDR,
 			ProviderString:      toCloudProviderOpt(profile.Provider),
 			MasterHost:          "localhost",
 			MasterPort:          "8080",
