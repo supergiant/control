@@ -18,7 +18,8 @@ var (
 	version       = "undefined"
 	addr          = flag.String("address", "0.0.0.0", "network interface to attach server to")
 	port          = flag.Int("port", 8080, "tcp port to listen for incoming requests")
-	etcdURL       = flag.String("etcd-url", "localhost:2379", "etcd url with port")
+	storageMode   = flag.String("storage-mode", "file", "storage type either file(default), memory or etcd")
+	storageURI    = flag.String("storage-uri", "supertiant.db", "uri of storage depends on selected storage type, for memory storage type this is empty")
 	templatesDir  = flag.String("templates", "/etc/supergiant/templates/", "supergiant will load script templates from the specified directory on start")
 	logLevel      = flag.String("log-level", "INFO", "logging level, e.g. info, warning, debug, error, fatal")
 	logFormat     = flag.String("log-format", "txt", "logging format [txt json]")
@@ -39,7 +40,8 @@ func main() {
 	cfg := &controlplane.Config{
 		Addr:          *addr,
 		Port:          *port,
-		EtcdUrl:       *etcdURL,
+		StorageMode:   *storageMode,
+		StorageURI:    *storageURI,
 		TemplatesDir:  *templatesDir,
 		ReadTimeout:   time.Second * 20,
 		WriteTimeout:  time.Second * 10,
