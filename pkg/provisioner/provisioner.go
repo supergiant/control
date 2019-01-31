@@ -291,6 +291,7 @@ func (tp *TaskProvisioner) prepare(config *steps.Config, masterCount, nodeCount 
 		// TODO(stgleb): Create key pairs here
 	}
 
+	preProvisionTask.Config = config
 	for i := 0; i < masterCount; i++ {
 		t, err := workflows.NewTask(workflows.ProvisionMaster, tp.repository)
 		if err != nil {
@@ -317,6 +318,7 @@ func (tp *TaskProvisioner) prepare(config *steps.Config, masterCount, nodeCount 
 		return nil
 	}
 
+	clusterTask.Config = config
 	taskMap := map[string][]*workflows.Task{
 		workflows.MasterTask:  masterTasks,
 		workflows.NodeTask:    nodeTasks,
