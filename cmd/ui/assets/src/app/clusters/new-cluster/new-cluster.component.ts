@@ -30,6 +30,14 @@ enum CloudProviders {
   gce = 'gce',
 }
 
+enum StepIndexes {
+  NameAndCloudAccount = 1,
+  ClusterConfig = 2,
+  ProvideConfig = 3,
+  MachinesConfig = 4,
+  Review = 5,
+}
+
 @Component({
   selector: 'app-new-cluster',
   templateUrl: './new-cluster.component.html',
@@ -402,11 +410,11 @@ export class NewClusterComponent implements OnInit, OnDestroy {
   }
 
   validateMachineConfig(currentMachine: IMachineType = null) {
-    const selectedOption: MatOption = this.selectedMachineType.selected as MatOption;
+      const selectedOption: MatOption = this.selectedMachineType.selected as MatOption;
 
-    if (selectedOption) {
-      const selectedMachineType: string = selectedOption.value;
-      this.checkRecommendations(currentMachine, selectedMachineType);
+      if (selectedOption) {
+        const selectedMachineType: string = selectedOption.value;
+        this.checkRecommendations(currentMachine, selectedMachineType);
     }
 
     if (this.machines.every(this.validMachine) && this.isOddNumberOfMasters()) {
@@ -479,7 +487,9 @@ export class NewClusterComponent implements OnInit, OnDestroy {
   }
 
   nextStep() {
-    this.validateMachineConfig();
+    if (this.stepper.selectedIndex === StepIndexes.MachinesConfig) {
+      this.validateMachineConfig();
+    }
 
     if (this.machinesConfigValid) {
       this.stepper.next();
