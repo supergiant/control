@@ -403,14 +403,10 @@ export class NewClusterComponent implements OnInit, OnDestroy {
 
   validateMachineConfig(currentMachine: IMachineType = null) {
     const selectedOption: MatOption = this.selectedMachineType.selected as MatOption;
-    const selectedMachineType: string = selectedOption.value;
 
-    // checking recommendation for cluster size
-    if (currentMachine && currentMachine.role === MachineRoles.master) {
-      currentMachine.recommendedNodesCount =
-        this.getRecommendedNodesCount(selectedMachineType) * currentMachine.qty;
-    } else {
-      currentMachine.recommendedNodesCount = 0;
+    if (selectedOption) {
+      const selectedMachineType: string = selectedOption.value;
+      this.checkRecommendations(currentMachine, selectedMachineType);
     }
 
     if (this.machines.every(this.validMachine) && this.isOddNumberOfMasters()) {
@@ -418,6 +414,16 @@ export class NewClusterComponent implements OnInit, OnDestroy {
       this.displayMachinesConfigWarning = false;
     } else {
       this.machinesConfigValid = false;
+    }
+  }
+
+  private checkRecommendations(currentMachine: IMachineType, selectedMachineType: string) {
+// checking recommendation for cluster size
+    if (currentMachine && currentMachine.role === MachineRoles.master) {
+      currentMachine.recommendedNodesCount =
+        this.getRecommendedNodesCount(selectedMachineType) * currentMachine.qty;
+    } else if (currentMachine) {
+      currentMachine.recommendedNodesCount = 0;
     }
   }
 

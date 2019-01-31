@@ -410,7 +410,7 @@
             </div>
 
             <ng-container *ngIf="m.recommendedNodesCount"
-                          [ngTemplateOutlet]="recommendedNodesCount"
+                          [ngTemplateOutlet]="recommendedNodesCountTpl"
                           [ngTemplateOutletContext]="{ $implicit: m.recommendedNodesCount }">
             </ng-container>
           </div>
@@ -488,7 +488,7 @@
             </div>
 
             <ng-container *ngIf="m.recommendedNodesCount"
-                          [ngTemplateOutlet]="recommendedNodesCount"
+                          [ngTemplateOutlet]="recommendedNodesCountTpl"
                           [ngTemplateOutletContext]="{ $implicit: m.recommendedNodesCount }">
             </ng-container>
           </div>
@@ -522,9 +522,9 @@
                             [ngClass]="{ 'machinesLoading': machinesLoading }">
               <mat-select #selectedMachineType
                           placeholder="Machine Type (size)"
-                          id="m.machineType"
                           [(value)]="m.machineType"
                           [disabled]="!m.availableMachineTypes"
+                          (openedChange)="machineTypesFilter = ''"
                           (selectionChange)="validateMachineConfig(m)">
                 <input class="select-filter"
                        matInput
@@ -564,7 +564,7 @@
             </div>
 
             <ng-container *ngIf="m.recommendedNodesCount"
-                          [ngTemplateOutlet]="recommendedNodesCount"
+                          [ngTemplateOutlet]="recommendedNodesCountTpl"
                           [ngTemplateOutletContext]="{ $implicit: m.recommendedNodesCount }">
             </ng-container>
 
@@ -572,7 +572,7 @@
 
           <div class="add-machines"
                (click)="addBlankMachine()"
-               (keyup)="addBlankMachine($event)"
+               (keyup.enter)="addBlankMachine()"
                tabindex="0">
             <div class="plus"></div>
             <span class="add-label">Add more machines</span>
@@ -704,7 +704,7 @@
   </div>
 </div>
 
-<ng-template #recommendedNodesCount
+<ng-template #recommendedNodesCountTpl
              let-recommendedNodesCount>
   <div class="cluster-size-recommendation">
                 <span class="text">
