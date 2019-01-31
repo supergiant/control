@@ -414,7 +414,7 @@ export class NewClusterComponent implements OnInit, OnDestroy {
 
       if (selectedOption) {
         const selectedMachineType: string = selectedOption.value;
-        this.checkRecommendations(currentMachine, selectedMachineType);
+        this.updateRecommendations(currentMachine, selectedMachineType);
     }
 
     if (this.machines.every(this.validMachine) && this.isOddNumberOfMasters()) {
@@ -425,8 +425,8 @@ export class NewClusterComponent implements OnInit, OnDestroy {
     }
   }
 
-  private checkRecommendations(currentMachine: IMachineType, selectedMachineType: string) {
-// checking recommendation for cluster size
+  private updateRecommendations(currentMachine: IMachineType, selectedMachineType: string) {
+    // checking recommendation for cluster size
     if (currentMachine && currentMachine.role === MachineRoles.master) {
       currentMachine.recommendedNodesCount =
         this.getRecommendedNodesCount(selectedMachineType) * currentMachine.qty;
