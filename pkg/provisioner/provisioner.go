@@ -58,7 +58,7 @@ func NewProvisioner(repository storage.Interface, kubeService KubeService,
 // that have been provided for provisionCluster
 func (tp *TaskProvisioner) ProvisionCluster(parentContext context.Context,
 	clusterProfile *profile.Profile, config *steps.Config) (map[string][]*workflows.Task, error) {
-	taskMap := tp.prepare(config.Provider, len(clusterProfile.MasterProfiles), len(clusterProfile.NodesProfiles))
+	taskMap := tp.prepare(config, len(clusterProfile.MasterProfiles), len(clusterProfile.NodesProfiles))
 
 	clusterTask := taskMap[workflows.ClusterTask][0]
 
@@ -220,11 +220,10 @@ func (tp *TaskProvisioner) provision(ctx context.Context,
 			return
 		}
 
-		kubeChan, nodeChan, configChan := config.KubeStateChan(), config.NodeChan(), config.ConfigChan()
-		config = preProvisionTask[0].Config
-		config.SetKubeStateChan(kubeChan)
-		config.SetNodeChan(nodeChan)
-		config.SetConfigChan(configChan)
+		switch config.Provider {
+		case clouds.AWS:
+			config.AWSConfig = preProvisionTask[0].Config.AWSConfig
+		}
 	}
 
 	// Update kube state
@@ -269,7 +268,7 @@ func (tp *TaskProvisioner) provision(ctx context.Context,
 }
 
 // prepare creates all tasks for provisioning according to cloud provider
-func (tp *TaskProvisioner) prepare(name clouds.Name, masterCount, nodeCount int) map[string][]*workflows.Task {
+func (tp *TaskProvisioner) prepare(config *steps.Config, masterCount, nodeCount int) map[string][]*workflows.Task {
 	var (
 		preProvisionTask *workflows.Task
 		clusterTask      *workflows.Task
@@ -279,7 +278,7 @@ func (tp *TaskProvisioner) prepare(name clouds.Name, masterCount, nodeCount int)
 	masterTasks := make([]*workflows.Task, 0, masterCount)
 	nodeTasks := make([]*workflows.Task, 0, nodeCount)
 	//some clouds (e.g. AWS) requires running tasks before provisioning nodes (creating a VPC, Subnets, SecGroups, etc)
-	switch name {
+	switch config.Provider {
 	case clouds.AWS:
 		preProvisionTask, err = workflows.NewTask(workflows.PreProvision, tp.repository)
 		if err != nil {
@@ -298,6 +297,7 @@ func (tp *TaskProvisioner) prepare(name clouds.Name, masterCount, nodeCount int)
 			logrus.Errorf("Failed to set up task for %s workflow", workflows.ProvisionMaster)
 			continue
 		}
+		t.Config = config
 		masterTasks = append(masterTasks, t)
 	}
 
@@ -307,6 +307,7 @@ func (tp *TaskProvisioner) prepare(name clouds.Name, masterCount, nodeCount int)
 			logrus.Errorf("Failed to set up task for %s workflow", workflows.ProvisionNode)
 			continue
 		}
+		t.Config = config
 		nodeTasks = append(nodeTasks, t)
 	}
 
@@ -397,6 +398,14 @@ func (tp *TaskProvisioner) provisionMasters(ctx context.Context,
 		go func(t *workflows.Task) {
 			// Put task id to config so that create instance step can use this id when generate node name
 			config.TaskID = t.ID
+
+			// This is for case of restart cluster provisioning when node and runner are made of
+			// deserializing task instead of creation
+			if t.Config != nil {
+				config.Node = t.Config.Node
+				config.Runner = t.Config.Runner
+			}
+
 			result := t.Run(ctx, *config, out)
 			err = <-result
 
