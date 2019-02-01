@@ -347,6 +347,6 @@ func trimPrefix(h http.Handler) http.Handler {
 
 func NewVersionHandler(version string) func(w http.ResponseWriter, r *http.Request) {
 	return func(w http.ResponseWriter, r *http.Request) {
-		fmt.Fprintf(w, "Supergiant Version: %s", version)
+		fmt.Fprintf(w, version)
 	}
 }

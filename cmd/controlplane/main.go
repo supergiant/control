@@ -15,7 +15,7 @@ import (
 )
 
 var (
-	version       = "undefined"
+	version       = "v2.0.0-rc.3"
 	addr          = flag.String("address", "0.0.0.0", "network interface to attach server to")
 	port          = flag.Int("port", 8080, "tcp port to listen for incoming requests")
 	storageMode   = flag.String("storage-mode", "file", "storage type either file(default), memory or etcd")
