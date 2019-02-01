@@ -22,6 +22,7 @@ import (
 	"github.com/supergiant/control/pkg/workflows/steps/ssh"
 	"github.com/supergiant/control/pkg/workflows/steps/storageclass"
 	"github.com/supergiant/control/pkg/workflows/steps/tiller"
+	"github.com/supergiant/control/pkg/workflows/steps/authorizedKeys"
 )
 
 // StepStatus aggregates data that is needed to track progress
@@ -69,6 +70,7 @@ func Init() {
 	masterWorkflow := []steps.Step{
 		provider.StepCreateMachine{},
 		steps.GetStep(ssh.StepName),
+		steps.GetStep(authorizedKeys.StepName),
 		steps.GetStep(downloadk8sbinary.StepName),
 		steps.GetStep(cni.StepName),
 		steps.GetStep(etcd.StepName),
@@ -84,6 +86,7 @@ func Init() {
 	nodeWorkflow := []steps.Step{
 		provider.StepCreateMachine{},
 		steps.GetStep(ssh.StepName),
+		steps.GetStep(authorizedKeys.StepName),
 		steps.GetStep(downloadk8sbinary.StepName),
 		steps.GetStep(manifest.StepName),
 		steps.GetStep(flannel.StepName),
