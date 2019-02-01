@@ -18,7 +18,6 @@ go:
 go_import_path: github.com/supergiant/control
 
 before_install:
-  - go get -u github.com/rakyll/statik
   - sudo apt-get update
   - sudo apt-get install docker-ce
   - sudo apt-get install build-essential
@@ -35,11 +34,13 @@ before_install:
 install:
   - go get github.com/mattn/goveralls
   - go get github.com/tcnksm/ghr
+  - go get -u github.com/rakyll/statik
 
 script:
   # Test
   # - govendor test +local (NOTE not needed with coverage line below)
   # Coverage
+  - statik -src=./cmd/ui/assets/dist
   - make build
   # Integration
   - if [ "$TRAVIS_EVENT_TYPE" == "cron" ] ; then echo running integration tests && go test -v -tags=integration -timeout 45m ./pkg/... ./test/... ; fi
