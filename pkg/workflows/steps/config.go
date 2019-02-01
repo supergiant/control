@@ -367,6 +367,7 @@ func NewConfig(clusterName, clusterToken, cloudAccountName string, profile profi
 			Timeout:        time.Minute * 20,
 			StartTimeout:   "0",
 			RestartTimeout: "5",
+			// TODO(stgleb): this should be saved as a part of cluster for restart routine
 			ClusterToken:   clusterToken,
 		},
 		ClusterCheckConfig: ClusterCheckConfig{
