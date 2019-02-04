@@ -1,3 +1,5 @@
+@import "src/assets/css/variables";
+
 .new-clusters-wrapper {
   margin-top: 7px;
 
@@ -164,6 +166,16 @@
 
           &:active {
             transform: scale(0.95, 0.95);
+          }
+        }
+
+        .cluster-size-recommendation {
+          display: flex;
+          align-items: center;
+
+          .text {
+            color: $sg-pink;
+            display: flex;
           }
         }
       }
