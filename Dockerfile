@@ -28,4 +28,4 @@ COPY --from=builder /go/bin/supergiant /bin/supergiant
 COPY --from=builder /go/src/github.com/supergiant/control/templates /etc/supergiant/templates
 EXPOSE 60200-60250
 
-ENTRYPOINT ["/bin/supergiant", "storage-uri", "/var/run/supergiant/supergiant.db"]
+ENTRYPOINT ["/bin/supergiant", "-storage-uri", "/var/run/supergiant/supergiant.db"]
