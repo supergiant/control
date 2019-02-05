@@ -23,7 +23,6 @@ import (
 	"github.com/supergiant/control/pkg/clouds"
 	"github.com/supergiant/control/pkg/message"
 	"github.com/supergiant/control/pkg/model"
-	"github.com/supergiant/control/pkg/node"
 	"github.com/supergiant/control/pkg/profile"
 	"github.com/supergiant/control/pkg/proxy"
 	"github.com/supergiant/control/pkg/sgerrors"
@@ -583,7 +582,7 @@ func TestHandler_deleteKube(t *testing.T) {
 			mock.Anything).Return([][]byte{}, nil)
 
 		workflows.Init()
-		workflows.RegisterWorkFlow(workflows.DigitalOceanDeleteCluster, []steps.Step{})
+		workflows.RegisterWorkFlow(workflows.DeleteCluster, []steps.Step{})
 
 		rr := httptest.NewRecorder()
 
@@ -802,7 +801,7 @@ func TestAddNodeToKube(t *testing.T) {
 			"test",
 			&model.Kube{
 				AccountName: "test",
-				Masters: map[string]*node.Node{
+				Masters: map[string]*model.Machine{
 					"": {},
 				},
 				Tasks: make(map[string][]string),
@@ -857,7 +856,7 @@ func TestAddNodeToKube(t *testing.T) {
 		rec := httptest.NewRecorder()
 		router := mux.NewRouter()
 
-		router.HandleFunc("/kubes/{kubeID}/nodes", h.addNode)
+		router.HandleFunc("/kubes/{kubeID}/nodes", h.addMachine)
 		router.ServeHTTP(rec, req)
 
 		if rec.Code != testCase.expectedCode {
@@ -912,7 +911,7 @@ func TestDeleteNodeFromKube(t *testing.T) {
 			"test",
 			"test",
 			&model.Kube{
-				Masters: map[string]*node.Node{
+				Masters: map[string]*model.Machine{
 					"test": {
 						Name: "test",
 					},
@@ -930,7 +929,7 @@ func TestDeleteNodeFromKube(t *testing.T) {
 			"test",
 			"test",
 			&model.Kube{
-				Nodes: map[string]*node.Node{
+				Nodes: map[string]*model.Machine{
 					"test2": {
 						Name: "test2",
 					},
@@ -949,7 +948,7 @@ func TestDeleteNodeFromKube(t *testing.T) {
 			"test",
 			&model.Kube{
 				AccountName: "test",
-				Nodes: map[string]*node.Node{
+				Nodes: map[string]*model.Machine{
 					"test": {
 						Name: "test",
 					},
@@ -968,7 +967,7 @@ func TestDeleteNodeFromKube(t *testing.T) {
 			"test",
 			&model.Kube{
 				AccountName: "test",
-				Nodes: map[string]*node.Node{
+				Nodes: map[string]*model.Machine{
 					"test": {
 						Name: "test",
 					},
@@ -987,7 +986,7 @@ func TestDeleteNodeFromKube(t *testing.T) {
 			"test",
 			&model.Kube{
 				AccountName: "test",
-				Nodes: map[string]*node.Node{
+				Nodes: map[string]*model.Machine{
 					"test": {
 						Name: "test",
 					},
@@ -1011,7 +1010,7 @@ func TestDeleteNodeFromKube(t *testing.T) {
 	}
 
 	workflows.Init()
-	workflows.RegisterWorkFlow(workflows.DigitalOceanDeleteNode, []steps.Step{})
+	workflows.RegisterWorkFlow(workflows.DeleteNode, []steps.Step{})
 
 	for _, testCase := range testCases {
 		t.Log(testCase.testName)
@@ -1035,16 +1034,12 @@ func TestDeleteNodeFromKube(t *testing.T) {
 		handler := Handler{
 			svc:            svc,
 			accountService: accService,
-			workflowMap: map[clouds.Name]workflows.WorkflowSet{
-				clouds.DigitalOcean: {
-					DeleteNode: workflows.DigitalOceanDeleteNode},
-			},
-			getWriter: testCase.getWriter,
-			repo:      mockRepo,
+			getWriter:      testCase.getWriter,
+			repo:           mockRepo,
 		}
 
 		router := mux.NewRouter()
-		router.HandleFunc("/{kubeID}/nodes/{nodename}", handler.deleteNode).Methods(http.MethodDelete)
+		router.HandleFunc("/{kubeID}/nodes/{nodename}", handler.deleteMachine).Methods(http.MethodDelete)
 
 		req, _ := http.NewRequest(http.MethodDelete, fmt.Sprintf("/%s/nodes/%s", testCase.kubeName, testCase.nodeName), nil)
 		rec := httptest.NewRecorder()
@@ -1693,7 +1688,7 @@ func TestGetClusterMetrics(t *testing.T) {
 		{
 			kubeServiceGetResp: &model.Kube{
 				Name: "test",
-				Masters: map[string]*node.Node{
+				Masters: map[string]*model.Machine{
 					"master-1": {
 						Name:     "master-1",
 						PublicIp: "10.20.30.40",
@@ -1709,7 +1704,7 @@ func TestGetClusterMetrics(t *testing.T) {
 		{
 			kubeServiceGetResp: &model.Kube{
 				Name: "test",
-				Masters: map[string]*node.Node{
+				Masters: map[string]*model.Machine{
 					"master-1": {
 						Name:     "master-1",
 						PublicIp: "10.20.30.40",
@@ -1793,7 +1788,7 @@ func TestGetNodesMetrics(t *testing.T) {
 		{
 			kubeServiceGetResp: &model.Kube{
 				Name: "test",
-				Masters: map[string]*node.Node{
+				Masters: map[string]*model.Machine{
 					"master-1": {
 						Name:     "master-1",
 						PublicIp: "10.20.30.40",
@@ -1809,7 +1804,7 @@ func TestGetNodesMetrics(t *testing.T) {
 		{
 			kubeServiceGetResp: &model.Kube{
 				Name: "test",
-				Masters: map[string]*node.Node{
+				Masters: map[string]*model.Machine{
 					"master-1": {
 						Name:     "master-1",
 						PublicIp: "10.20.30.40",
@@ -2089,7 +2084,7 @@ func TestGetServices(t *testing.T) {
 			name: "get services error",
 			getKube: &model.Kube{
 				ID: "1234",
-				Masters: map[string]*node.Node{
+				Masters: map[string]*model.Machine{
 					"key": {
 						ID: "key",
 					},
@@ -2103,7 +2098,7 @@ func TestGetServices(t *testing.T) {
 
 			getKube: &model.Kube{
 				ID: "1234",
-				Masters: map[string]*node.Node{
+				Masters: map[string]*model.Machine{
 					"key": {
 						ID: "key",
 					},
@@ -2118,7 +2113,7 @@ func TestGetServices(t *testing.T) {
 
 			getKube: &model.Kube{
 				ID: "1234",
-				Masters: map[string]*node.Node{
+				Masters: map[string]*model.Machine{
 					"key": {
 						ID: "key",
 					},
@@ -2155,7 +2150,7 @@ func TestGetServices(t *testing.T) {
 
 			getKube: &model.Kube{
 				ID: "1234",
-				Masters: map[string]*node.Node{
+				Masters: map[string]*model.Machine{
 					"key": {
 						ID: "key",
 					},
@@ -2192,7 +2187,7 @@ func TestGetServices(t *testing.T) {
 
 			getKube: &model.Kube{
 				ID: "1234",
-				Masters: map[string]*node.Node{
+				Masters: map[string]*model.Machine{
 					"key": {
 						ID: "key",
 					},

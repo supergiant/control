@@ -11,7 +11,7 @@ import (
 
 	"github.com/pkg/errors"
 
-	"github.com/supergiant/control/pkg/node"
+	"github.com/supergiant/control/pkg/model"
 	"github.com/supergiant/control/pkg/profile"
 	"github.com/supergiant/control/pkg/runner"
 	"github.com/supergiant/control/pkg/templatemanager"
@@ -88,8 +88,8 @@ func TestFlannelJob_InstallFlannel(t *testing.T) {
 		config.IsMaster = false
 		config.Runner = r
 
-		config.AddMaster(&node.Node{
-			State:     node.StateActive,
+		config.AddMaster(&model.Machine{
+			State:     model.MachineStateActive,
 			PrivateIp: "127.0.0.1",
 		})
 
@@ -133,8 +133,8 @@ func TestFlannelErrors(t *testing.T) {
 
 	cfg := steps.NewConfig("", "", "", profile.Profile{})
 	cfg.Runner = r
-	cfg.AddMaster(&node.Node{
-		State:     node.StateActive,
+	cfg.AddMaster(&model.Machine{
+		State:     model.MachineStateActive,
 		PrivateIp: "127.0.0.1",
 	})
 

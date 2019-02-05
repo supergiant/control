@@ -1,4 +1,4 @@
-package node
+package machines
 
 import (
 	"context"
@@ -8,6 +8,7 @@ import (
 
 	"github.com/stretchr/testify/mock"
 
+	"github.com/supergiant/control/pkg/model"
 	"github.com/supergiant/control/pkg/testutils"
 )
 
@@ -26,7 +27,7 @@ func TestNewService(t *testing.T) {
 	}
 }
 
-func TestNodeServiceGet(t *testing.T) {
+func TestMachineServiceGet(t *testing.T) {
 	testCases := []struct {
 		expectedId string
 		data       []byte
@@ -67,17 +68,17 @@ func TestNodeServiceGet(t *testing.T) {
 	}
 }
 
-func TestNodeCreate(t *testing.T) {
+func TestMachineCreate(t *testing.T) {
 	testCases := []struct {
-		node *Node
+		node *model.Machine
 		err  error
 	}{
 		{
-			node: &Node{},
+			node: &model.Machine{},
 			err:  nil,
 		},
 		{
-			node: &Node{},
+			node: &model.Machine{},
 			err:  errors.New("test err"),
 		},
 	}
@@ -108,7 +109,7 @@ func TestNodeCreate(t *testing.T) {
 	}
 }
 
-func TestNodeListAll(t *testing.T) {
+func TestMachineListAll(t *testing.T) {
 	testCases := []struct {
 		data [][]byte
 		err  error

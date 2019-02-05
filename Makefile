@@ -19,6 +19,7 @@ lint:
 get-tools:
 	go get -u github.com/kardianos/govendor
 	go get -u github.com/alecthomas/gometalinter
+	go get github.com/rakyll/statik
 	gometalinter --install
 
 build-image:
@@ -41,3 +42,4 @@ release: build push
 build-ui:
 	npm install --prefix ./cmd/ui/assets
 	npm run build --prefix ./cmd/ui/assets
+	statik -src=./cmd/ui/assets/dist

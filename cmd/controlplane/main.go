@@ -18,12 +18,12 @@ var (
 	version       = "undefined"
 	addr          = flag.String("address", "0.0.0.0", "network interface to attach server to")
 	port          = flag.Int("port", 8080, "tcp port to listen for incoming requests")
-	etcdURL       = flag.String("etcd-url", "localhost:2379", "etcd url with port")
+	storageMode   = flag.String("storage-mode", "file", "storage type either file(default), memory or etcd")
+	storageURI    = flag.String("storage-uri", "supertiant.db", "uri of storage depends on selected storage type, for memory storage type this is empty")
 	templatesDir  = flag.String("templates", "/etc/supergiant/templates/", "supergiant will load script templates from the specified directory on start")
 	logLevel      = flag.String("log-level", "INFO", "logging level, e.g. info, warning, debug, error, fatal")
 	logFormat     = flag.String("log-format", "txt", "logging format [txt json]")
 	spawnInterval = flag.Int("spawnInterval", 5, "interval between API calls to cloud provider for creating instance")
-	uiDir         = flag.String("ui-dir", "./cmd/ui/assets/dist", "directory for supergiant ui to be served")
 	//TODO: rewrite to single flag port-range
 	ProxiesPortRangeFrom = flag.Int("proxies-port-from", 60200, "first tcp port in a range of binding reverse proxies for service apps")
 	ProxiesPortRangeTo   = flag.Int("proxies-port-to", 60250, "last tcp port in a range of binding reverse proxies for service apps")
@@ -39,13 +39,13 @@ func main() {
 	cfg := &controlplane.Config{
 		Addr:          *addr,
 		Port:          *port,
-		EtcdUrl:       *etcdURL,
+		StorageMode:   *storageMode,
+		StorageURI:    *storageURI,
 		TemplatesDir:  *templatesDir,
 		ReadTimeout:   time.Second * 20,
 		WriteTimeout:  time.Second * 10,
 		IdleTimeout:   time.Second * 120,
 		SpawnInterval: time.Second * time.Duration(*spawnInterval),
-		UiDir:         *uiDir,
 
 		PprofListenStr: *pprofListenStr,
 

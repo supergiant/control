@@ -8,6 +8,7 @@ import { CLUSTER_OPTIONS } from 'app/clusters/new-cluster/cluster-options.config
 import { NEW_CLUSTER_MODULE_METADATA } from './new-cluster.component.metadata';
 
 
+
 // TODO: UNIT TESTING IS REQUIRED
 describe('NewClusterComponent', () => {
   let component: NewClusterComponent;

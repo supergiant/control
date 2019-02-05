@@ -12,7 +12,6 @@ import (
 	"github.com/pkg/errors"
 
 	"github.com/supergiant/control/pkg/model"
-	"github.com/supergiant/control/pkg/node"
 	"github.com/supergiant/control/pkg/profile"
 	"github.com/supergiant/control/pkg/runner"
 	"github.com/supergiant/control/pkg/runner/ssh"
@@ -85,10 +84,10 @@ func TestDrain(t *testing.T) {
 
 	cfg := steps.NewConfig("", "",
 		"", profile.Profile{})
-	cfg.Masters = steps.NewMap(map[string]*node.Node{
+	cfg.Masters = steps.NewMap(map[string]*model.Machine{
 		"master-0": {
 			Name:     "master-0",
-			State:    node.StateActive,
+			State:    model.MachineStateActive,
 			PublicIp: "10.20.30.40",
 		},
 	})
@@ -138,8 +137,8 @@ func TestErrors(t *testing.T) {
 	cfg := steps.NewConfig("", "",
 		"", profile.Profile{})
 	cfg.Runner = r
-	cfg.AddMaster(&node.Node{
-		State:     node.StateActive,
+	cfg.AddMaster(&model.Machine{
+		State:     model.MachineStateActive,
 		PrivateIp: "10.20.30.40",
 	})
 	err = task.Run(context.Background(), output, cfg)

@@ -9,7 +9,7 @@ import (
 	"github.com/pkg/errors"
 	"k8s.io/apimachinery/pkg/labels"
 
-	"github.com/supergiant/control/pkg/node"
+	"github.com/supergiant/control/pkg/model"
 	tm "github.com/supergiant/control/pkg/templatemanager"
 	"github.com/supergiant/control/pkg/workflows/steps"
 	"github.com/supergiant/control/pkg/workflows/steps/docker"
@@ -82,7 +82,7 @@ func getNodeLables(role string) string {
 // TODO: role should be a port of config, it's used by a few tasks
 func toRole(isMaster bool) string {
 	if isMaster {
-		return string(node.RoleMaster)
+		return string(model.RoleMaster)
 	}
-	return string(node.RoleNode)
+	return string(model.RoleNode)
 }

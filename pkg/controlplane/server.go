@@ -6,17 +6,17 @@ import (
 	"net/http"
 	_ "net/http/pprof"
 	"net/url"
-	"os"
 	"strings"
 	"time"
 
-	"github.com/coreos/etcd/clientv3"
 	"github.com/gorilla/handlers"
 	"github.com/gorilla/mux"
 	"github.com/pkg/errors"
 	"github.com/sirupsen/logrus"
 	"k8s.io/helm/pkg/repo"
+	"github.com/rakyll/statik/fs"
 
+	_ "github.com/supergiant/control/statik"
 	"github.com/supergiant/control/pkg/account"
 	"github.com/supergiant/control/pkg/api"
 	"github.com/supergiant/control/pkg/jwt"
@@ -29,7 +29,6 @@ import (
 	"github.com/supergiant/control/pkg/sghelm"
 	"github.com/supergiant/control/pkg/storage"
 	"github.com/supergiant/control/pkg/templatemanager"
-	"github.com/supergiant/control/pkg/testutils/assert"
 	"github.com/supergiant/control/pkg/user"
 	"github.com/supergiant/control/pkg/workflows"
 	"github.com/supergiant/control/pkg/workflows/steps/amazon"
@@ -80,10 +79,10 @@ func (srv *Server) Shutdown() {
 type Config struct {
 	Port          int
 	Addr          string
-	EtcdUrl       string
+	StorageMode   string
+	StorageURI    string
 	TemplatesDir  string
 	SpawnInterval time.Duration
-	UiDir         string
 
 	ReadTimeout  time.Duration
 	WriteTimeout time.Duration
@@ -142,17 +141,10 @@ func NewServer(router *mux.Router, cfg *Config) *Server {
 }
 
 func validate(cfg *Config) error {
-	if cfg.EtcdUrl == "" {
-		return errors.New("etcd url can't be empty")
-	}
-
-	if err := assert.CheckETCD(cfg.EtcdUrl); err != nil {
-		return errors.Wrapf(err, "etcd url %s", cfg.EtcdUrl)
-	}
-
 	if cfg.Port <= 0 {
 		return errors.New("port can't be negative")
 	}
+
 
 	if cfg.SpawnInterval == 0 {
 		return errors.New("spawn interval must not be 0")
@@ -163,13 +155,15 @@ func validate(cfg *Config) error {
 
 func configureApplication(cfg *Config) (*mux.Router, error) {
 	//TODO will work for now, but we should revisit ETCD configuration later
-	etcdCfg := clientv3.Config{
-		Endpoints: []string{cfg.EtcdUrl},
-	}
 	router := mux.NewRouter()
 
 	protectedAPI := router.PathPrefix("/v1/api").Subrouter()
-	repository := storage.NewETCDRepository(etcdCfg)
+	repository, err := storage.GetStorage(cfg.StorageMode, cfg.StorageURI)
+
+	if err != nil {
+		return nil, errors.Wrapf(err, "get storage type %s uri %s",
+			cfg.StorageMode, cfg.StorageURI)
+	}
 
 	accountService := account.NewService(account.DefaultStoragePrefix, repository)
 	accountHandler := account.NewHandler(accountService)
@@ -318,11 +312,12 @@ func ensureHelmRepositories(svc sghelm.Servicer) {
 }
 
 func serveUI(cfg *Config, router *mux.Router) error {
-	if _, err := os.Stat(cfg.UiDir); err != nil {
-		return errors.Wrap(err, "no ui directory found")
+	statikFS, err := fs.New()
+	if err != nil {
+		return err
 	}
 
-	router.PathPrefix("/").Handler(trimPrefix(http.FileServer(http.Dir(cfg.UiDir))))
+	router.PathPrefix("/").Handler(trimPrefix(http.FileServer(statikFS)))
 	return nil
 }
 

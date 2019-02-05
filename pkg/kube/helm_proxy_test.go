@@ -5,7 +5,6 @@ import (
 	"testing"
 
 	"github.com/supergiant/control/pkg/model"
-	"github.com/supergiant/control/pkg/node"
 	"github.com/supergiant/control/pkg/sgerrors"
 )
 
@@ -22,14 +21,14 @@ func TestHelmProxyFrom(t *testing.T) {
 		{
 			description: "no master",
 			k: &model.Kube{
-				Masters: map[string]*node.Node{},
+				Masters: map[string]*model.Machine{},
 			},
 			errMsg: sgerrors.ErrNotFound.Error(),
 		},
 		{
 			description: "success",
 			k: &model.Kube{
-				Masters: map[string]*node.Node{
+				Masters: map[string]*model.Machine{
 					"key": {
 						ID:       "key",
 						Name:     "key",

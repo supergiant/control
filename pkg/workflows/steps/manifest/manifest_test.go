@@ -11,7 +11,7 @@ import (
 
 	"github.com/pkg/errors"
 
-	"github.com/supergiant/control/pkg/node"
+	"github.com/supergiant/control/pkg/model"
 	"github.com/supergiant/control/pkg/profile"
 	"github.com/supergiant/control/pkg/runner"
 	"github.com/supergiant/control/pkg/templatemanager"
@@ -61,7 +61,7 @@ func TestWriteManifestMaster(t *testing.T) {
 		K8SServicesCIDR: "10.3.0.0/16",
 	}
 	cfg := steps.NewConfig("", "", "", p)
-	cfg.Node = node.Node{
+	cfg.Node = model.Machine{
 		PrivateIp: masterHost,
 	}
 
@@ -139,8 +139,8 @@ func TestWriteManifestNode(t *testing.T) {
 		K8SServicesCIDR: "10.3.0.0/16",
 	}
 	cfg := steps.NewConfig("", "", "", p)
-	cfg.AddMaster(&node.Node{
-		State:     node.StateActive,
+	cfg.AddMaster(&model.Machine{
+		State:     model.MachineStateActive,
 		PrivateIp: masterHost,
 	})
 	cfg.Runner = r
@@ -187,8 +187,8 @@ func TestWriteManifestError(t *testing.T) {
 	cfg := steps.NewConfig("", "", "", profile.Profile{
 		K8SServicesCIDR: "10.3.0.0/16",
 	})
-	cfg.AddMaster(&node.Node{
-		State:     node.StateActive,
+	cfg.AddMaster(&model.Machine{
+		State:     model.MachineStateActive,
 		PrivateIp: "127.0.0.1",
 	})
 	cfg.Runner = r

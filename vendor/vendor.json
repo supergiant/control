@@ -346,6 +346,12 @@
 			"revisionTime": "2017-09-12T18:36:27Z"
 		},
 		{
+			"checksumSHA1": "ySzd4wbbkGYl9Ch1dJbJOAmNXWQ=",
+			"path": "github.com/etcd-io/bbolt",
+			"revision": "8693da9f4d974485d222d310878b60125253b3b4",
+			"revisionTime": "2019-01-25T18:30:05Z"
+		},
+		{
 			"checksumSHA1": "nQqAEaB3gBG9PSKYZTbQ5IiN3jo=",
 			"path": "github.com/ghodss/yaml",
 			"revision": "e9ed3c6dfb39bb1a32197cb10d527906fe4da4b6",
@@ -636,6 +642,12 @@
 			"path": "github.com/pmezard/go-difflib/difflib",
 			"revision": "792786c7400a136282c1664665ae0a8db921c6c2",
 			"revisionTime": "2016-01-10T10:55:54Z"
+		},
+		{
+			"checksumSHA1": "672YU7e54ba9xuO3Mf+sEZjPBxo=",
+			"path": "github.com/rakyll/statik",
+			"revision": "1355192d24db2566a83c3914e187e2a7e7679832",
+			"revisionTime": "2018-09-21T16:35:09Z"
 		},
 		{
 			"checksumSHA1": "eDQ6f1EsNf+frcRO/9XukSEchm8=",

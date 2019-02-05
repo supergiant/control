@@ -14,7 +14,6 @@ import (
 
 	"github.com/supergiant/control/pkg/clouds"
 	"github.com/supergiant/control/pkg/model"
-	"github.com/supergiant/control/pkg/node"
 	"github.com/supergiant/control/pkg/profile"
 	"github.com/supergiant/control/pkg/sgerrors"
 	"github.com/supergiant/control/pkg/testutils"
@@ -94,10 +93,6 @@ func TestNewProvisioner(t *testing.T) {
 	if p.cancelMap == nil {
 		t.Errorf("Cancel map must not be nil")
 	}
-
-	if p.provisionMap == nil {
-		t.Errorf("Provision map must not be nil")
-	}
 }
 
 func TestProvisionCluster(t *testing.T) {
@@ -121,25 +116,18 @@ func TestProvisionCluster(t *testing.T) {
 		func(string) (io.WriteCloser, error) {
 			return bc, nil
 		},
-		map[clouds.Name]workflows.WorkflowSet{
-			clouds.DigitalOcean: {
-				ProvisionMaster: "test_master",
-				ProvisionNode:   "test_node",
-				PreProvision:    "",
-			},
-		},
 		NewRateLimiter(time.Nanosecond * 1),
 		make(map[string]func()),
 	}
 
 	workflows.Init()
-	workflows.RegisterWorkFlow("test_master", []steps.Step{
+	workflows.RegisterWorkFlow(workflows.ProvisionMaster, []steps.Step{
 		&mockStep{},
 	})
-	workflows.RegisterWorkFlow("test_node", []steps.Step{
+	workflows.RegisterWorkFlow(workflows.ProvisionNode, []steps.Step{
 		&mockStep{},
 	})
-	workflows.RegisterWorkFlow(workflows.Cluster, []steps.Step{
+	workflows.RegisterWorkFlow(workflows.PostProvision, []steps.Step{
 		&mockStep{},
 	})
 
@@ -217,12 +205,12 @@ func TestProvisionNodes(t *testing.T) {
 	k := &model.Kube{
 		ID:       kubeID,
 		Provider: clouds.DigitalOcean,
-		Masters: map[string]*node.Node{
+		Masters: map[string]*model.Machine{
 			"1": {
 				ID:        "1",
 				PrivateIp: "10.0.0.1",
 				PublicIp:  "10.20.30.40",
-				State:     node.StateActive,
+				State:     model.MachineStateActive,
 				Region:    "fra1",
 				Size:      "s-2vcpu-4gb",
 			},
@@ -240,17 +228,12 @@ func TestProvisionNodes(t *testing.T) {
 		func(string) (io.WriteCloser, error) {
 			return bc, nil
 		},
-		map[clouds.Name]workflows.WorkflowSet{
-			clouds.DigitalOcean: {
-				ProvisionMaster: "test_master",
-				ProvisionNode:   "test_node"},
-		},
 		NewRateLimiter(time.Nanosecond * 1),
 		make(map[string]func()),
 	}
 
 	workflows.Init()
-	workflows.RegisterWorkFlow("test_node", []steps.Step{
+	workflows.RegisterWorkFlow(workflows.ProvisionNode, []steps.Step{
 		&mockStep{},
 	})
 
@@ -328,19 +311,12 @@ func TestRestartProvisionClusterSuccess(t *testing.T) {
 		func(string) (io.WriteCloser, error) {
 			return bc, nil
 		},
-		map[clouds.Name]workflows.WorkflowSet{
-			clouds.DigitalOcean: {
-				ProvisionMaster: workflows.AWSMaster,
-				ProvisionNode:   workflows.AWSNode,
-				PreProvision:    workflows.AWSPreProvision,
-			},
-		},
 		NewRateLimiter(time.Nanosecond * 1),
 		make(map[string]func()),
 	}
 
 	workflows.Init()
-	workflows.RegisterWorkFlow(workflows.AWSPreProvision, []steps.Step{
+	workflows.RegisterWorkFlow(workflows.PreProvision, []steps.Step{
 		&mockStep{},
 	})
 
@@ -404,22 +380,15 @@ func TestRestartProvisionClusterError(t *testing.T) {
 		func(string) (io.WriteCloser, error) {
 			return bc, nil
 		},
-		map[clouds.Name]workflows.WorkflowSet{
-			clouds.DigitalOcean: {
-				ProvisionMaster: workflows.AWSMaster,
-				ProvisionNode:   workflows.AWSNode,
-				PreProvision:    workflows.AWSPreProvision,
-			},
-		},
 		NewRateLimiter(time.Nanosecond * 1),
 		make(map[string]func()),
 	}
 
 	workflows.Init()
-	workflows.RegisterWorkFlow(workflows.AWSMaster, []steps.Step{})
-	workflows.RegisterWorkFlow(workflows.AWSNode, []steps.Step{})
-	workflows.RegisterWorkFlow(workflows.Cluster, []steps.Step{})
-	workflows.RegisterWorkFlow(workflows.AWSPreProvision, []steps.Step{
+	workflows.RegisterWorkFlow(workflows.ProvisionMaster, []steps.Step{})
+	workflows.RegisterWorkFlow(workflows.ProvisionNode, []steps.Step{})
+	workflows.RegisterWorkFlow(workflows.PostProvision, []steps.Step{})
+	workflows.RegisterWorkFlow(workflows.PreProvision, []steps.Step{
 		&mockStep{},
 	})
 
@@ -533,33 +502,33 @@ func TestDeserializeTasksError(t *testing.T) {
 
 func TestMonitorCluster(t *testing.T) {
 	testCases := []struct {
-		nodes                []node.Node
+		nodes                []model.Machine
 		states               []model.KubeState
 		kube                 *model.Kube
 		expectedNodeCount    int
 		expectedClusterState model.KubeState
 	}{
 		{
-			nodes: []node.Node{
+			nodes: []model.Machine{
 				{
 					Name:  "test",
-					Role:  node.RoleMaster,
-					State: node.StatePlanned,
+					Role:  model.RoleMaster,
+					State: model.MachineStatePlanned,
 				},
 				{
 					Name:  "test",
-					Role:  node.RoleMaster,
-					State: node.StateBuilding,
+					Role:  model.RoleMaster,
+					State: model.MachineStateBuilding,
 				},
 				{
 					Name:  "test",
-					Role:  node.RoleMaster,
-					State: node.StateProvisioning,
+					Role:  model.RoleMaster,
+					State: model.MachineStateProvisioning,
 				},
 				{
 					Name:  "test",
-					Role:  node.RoleMaster,
-					State: node.StateActive,
+					Role:  model.RoleMaster,
+					State: model.MachineStateActive,
 				},
 			},
 			states: []model.KubeState{
@@ -569,33 +538,33 @@ func TestMonitorCluster(t *testing.T) {
 			kube: &model.Kube{
 				ID:      "1234",
 				Name:    "test",
-				Masters: make(map[string]*node.Node),
-				Nodes:   make(map[string]*node.Node),
+				Masters: make(map[string]*model.Machine),
+				Nodes:   make(map[string]*model.Machine),
 			},
 			expectedNodeCount:    1,
 			expectedClusterState: model.StateOperational,
 		},
 		{
-			nodes: []node.Node{
+			nodes: []model.Machine{
 				{
 					Name:  "test1",
-					Role:  node.RoleMaster,
-					State: node.StateProvisioning,
+					Role:  model.RoleMaster,
+					State: model.MachineStateProvisioning,
 				},
 				{
 					Name:  "test2",
-					Role:  node.RoleMaster,
-					State: node.StateError,
+					Role:  model.RoleMaster,
+					State: model.MachineStateError,
 				},
 				{
 					Name:  "test1",
-					Role:  node.RoleMaster,
-					State: node.StateProvisioning,
+					Role:  model.RoleMaster,
+					State: model.MachineStateProvisioning,
 				},
 				{
 					Name:  "test2",
-					Role:  node.RoleMaster,
-					State: node.StateActive,
+					Role:  model.RoleMaster,
+					State: model.MachineStateActive,
 				},
 			},
 			states: []model.KubeState{
@@ -605,8 +574,8 @@ func TestMonitorCluster(t *testing.T) {
 			kube: &model.Kube{
 				ID:      "1234",
 				Name:    "test",
-				Masters: make(map[string]*node.Node),
-				Nodes:   make(map[string]*node.Node),
+				Masters: make(map[string]*model.Machine),
+				Nodes:   make(map[string]*model.Machine),
 			},
 			expectedNodeCount:    2,
 			expectedClusterState: model.StateFailed,

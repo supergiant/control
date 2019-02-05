@@ -12,7 +12,6 @@ import (
 
 	"github.com/supergiant/control/pkg/clouds"
 	"github.com/supergiant/control/pkg/model"
-	"github.com/supergiant/control/pkg/node"
 	"github.com/supergiant/control/pkg/pki"
 	"github.com/supergiant/control/pkg/profile"
 	"github.com/supergiant/control/pkg/sgerrors"
@@ -30,10 +29,9 @@ type KubeService interface {
 }
 
 type TaskProvisioner struct {
-	kubeService  KubeService
-	repository   storage.Interface
-	getWriter    func(string) (io.WriteCloser, error)
-	provisionMap map[clouds.Name]workflows.WorkflowSet
+	kubeService KubeService
+	repository  storage.Interface
+	getWriter   func(string) (io.WriteCloser, error)
 	// NOTE(stgleb): Since provisioner is shared object among all users of SG
 	// this rate limiter will affect all users not allowing them to spin-up
 	// to many instances at once, probably we may split rate limiter per user
@@ -50,21 +48,6 @@ func NewProvisioner(repository storage.Interface, kubeService KubeService,
 	return &TaskProvisioner{
 		kubeService: kubeService,
 		repository:  repository,
-		provisionMap: map[clouds.Name]workflows.WorkflowSet{
-			clouds.DigitalOcean: {
-				ProvisionMaster: workflows.DigitalOceanMaster,
-				ProvisionNode:   workflows.DigitalOceanNode,
-			},
-			clouds.AWS: {
-				ProvisionMaster: workflows.AWSMaster,
-				ProvisionNode:   workflows.AWSNode,
-				PreProvision:    workflows.AWSPreProvision,
-			},
-			clouds.GCE: {
-				ProvisionMaster: workflows.GCEMaster,
-				ProvisionNode:   workflows.GCENode,
-			},
-		},
 		getWriter:   util.GetWriter,
 		rateLimiter: NewRateLimiter(spawnInterval),
 		cancelMap:   make(map[string]func()),
@@ -75,9 +58,7 @@ func NewProvisioner(repository storage.Interface, kubeService KubeService,
 // that have been provided for provisionCluster
 func (tp *TaskProvisioner) ProvisionCluster(parentContext context.Context,
 	clusterProfile *profile.Profile, config *steps.Config) (map[string][]*workflows.Task, error) {
-	taskMap := tp.prepare(config.Provider,
-		len(clusterProfile.MasterProfiles),
-		len(clusterProfile.NodesProfiles))
+	taskMap := tp.prepare(config.Provider, len(clusterProfile.MasterProfiles), len(clusterProfile.NodesProfiles))
 
 	clusterTask := taskMap[workflows.ClusterTask][0]
 
@@ -141,12 +122,6 @@ func (tp *TaskProvisioner) ProvisionNodes(parentContext context.Context, nodePro
 		return nil, errors.Wrap(err, "load cloud specific config")
 	}
 
-	providerWorkflowSet, ok := tp.provisionMap[config.Provider]
-
-	if !ok {
-		return nil, errors.Wrap(sgerrors.ErrNotFound, "provider workflow")
-	}
-
 	// monitor cluster state in separate goroutine
 	go tp.monitorClusterState(ctx, config.ClusterID,
 		config.NodeChan(), config.KubeStateChan(), config.ConfigChan())
@@ -158,8 +133,7 @@ func (tp *TaskProvisioner) ProvisionNodes(parentContext context.Context, nodePro
 		tp.rateLimiter.Take()
 
 		// Take node workflow for the provider
-		t, err := workflows.NewTask(providerWorkflowSet.ProvisionNode, tp.repository)
-
+		t, err := workflows.NewTask(workflows.ProvisionNode, tp.repository)
 		if err != nil {
 			return nil, errors.Wrap(sgerrors.ErrNotFound, "workflow")
 		}
@@ -246,7 +220,11 @@ func (tp *TaskProvisioner) provision(ctx context.Context,
 			return
 		}
 
+		kubeChan, nodeChan, configChan := config.KubeStateChan(), config.NodeChan(), config.ConfigChan()
 		config = preProvisionTask[0].Config
+		config.SetKubeStateChan(kubeChan)
+		config.SetNodeChan(nodeChan)
+		config.SetConfigChan(configChan)
 	}
 
 	// Update kube state
@@ -303,13 +281,10 @@ func (tp *TaskProvisioner) prepare(name clouds.Name, masterCount, nodeCount int)
 	//some clouds (e.g. AWS) requires running tasks before provisioning nodes (creating a VPC, Subnets, SecGroups, etc)
 	switch name {
 	case clouds.AWS:
-		preProvisionTask, err = workflows.NewTask(
-			tp.provisionMap[name].PreProvision,
-			tp.repository)
-		// We can't go further without pre provision task
+		preProvisionTask, err = workflows.NewTask(workflows.PreProvision, tp.repository)
 		if err != nil {
-			logrus.Errorf("create pre provision task has finished with %v",
-				err)
+			// We can't go further without pre provision task
+			logrus.Errorf("create pre provision task has finished with %v", err)
 			return nil
 		}
 	case clouds.GCE:
@@ -318,26 +293,28 @@ func (tp *TaskProvisioner) prepare(name clouds.Name, masterCount, nodeCount int)
 	}
 
 	for i := 0; i < masterCount; i++ {
-		t, err := workflows.NewTask(tp.provisionMap[name].ProvisionMaster, tp.repository)
-
+		t, err := workflows.NewTask(workflows.ProvisionMaster, tp.repository)
 		if err != nil {
-			logrus.Errorf("Task type %s not found", tp.provisionMap[name].ProvisionMaster)
+			logrus.Errorf("Failed to set up task for %s workflow", workflows.ProvisionMaster)
 			continue
 		}
 		masterTasks = append(masterTasks, t)
 	}
 
 	for i := 0; i < nodeCount; i++ {
-		t, err := workflows.NewTask(tp.provisionMap[name].ProvisionNode, tp.repository)
-
+		t, err := workflows.NewTask(workflows.ProvisionNode, tp.repository)
 		if err != nil {
-			logrus.Errorf("Task type %s not found", tp.provisionMap[name].ProvisionNode)
+			logrus.Errorf("Failed to set up task for %s workflow", workflows.ProvisionNode)
 			continue
 		}
 		nodeTasks = append(nodeTasks, t)
 	}
 
-	clusterTask, _ = workflows.NewTask(workflows.Cluster, tp.repository)
+	clusterTask, err = workflows.NewTask(workflows.PostProvision, tp.repository)
+	if err != nil {
+		logrus.Errorf("Failed to set up task for %s workflow", workflows.PostProvision)
+		return nil
+	}
 
 	taskMap := map[string][]*workflows.Task{
 		workflows.MasterTask:  masterTasks,
@@ -346,8 +323,7 @@ func (tp *TaskProvisioner) prepare(name clouds.Name, masterCount, nodeCount int)
 	}
 
 	if preProvisionTask != nil {
-		taskMap[workflows.PreProvisionTask] =
-			[]*workflows.Task{preProvisionTask}
+		taskMap[workflows.PreProvisionTask] = []*workflows.Task{preProvisionTask}
 	}
 
 	return taskMap
@@ -531,7 +507,7 @@ func (tp *TaskProvisioner) waitCluster(ctx context.Context, clusterTask *workflo
 }
 
 func (tp *TaskProvisioner) buildInitialCluster(ctx context.Context,
-	profile *profile.Profile, masters, nodes map[string]*node.Node,
+	profile *profile.Profile, masters, nodes map[string]*model.Machine,
 	config *steps.Config, taskIds map[string][]string) error {
 
 	cluster := &model.Kube{
@@ -539,6 +515,7 @@ func (tp *TaskProvisioner) buildInitialCluster(ctx context.Context,
 		State:        model.StateProvisioning,
 		Name:         config.ClusterName,
 		Provider:     profile.Provider,
+		ProfileID:    profile.ID,
 		AccountName:  config.CloudAccountName,
 		RBACEnabled:  profile.RBACEnabled,
 		ServicesCIDR: profile.K8SServicesCIDR,
@@ -668,7 +645,7 @@ func bootstrapCerts(config *steps.Config) error {
 
 // All cluster state changes during provisioning must be made in this function
 func (tp *TaskProvisioner) monitorClusterState(ctx context.Context,
-	clusterID string, nodeChan chan node.Node, kubeStateChan chan model.KubeState,
+	clusterID string, nodeChan chan model.Machine, kubeStateChan chan model.KubeState,
 	configChan chan *steps.Config) {
 	for {
 		select {
@@ -680,7 +657,7 @@ func (tp *TaskProvisioner) monitorClusterState(ctx context.Context,
 				continue
 			}
 
-			if n.Role == node.RoleMaster {
+			if n.Role == model.RoleMaster {
 				k.Masters[n.Name] = &n
 			} else {
 				k.Nodes[n.Name] = &n

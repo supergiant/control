@@ -6,7 +6,6 @@ import (
 	"testing"
 
 	"github.com/supergiant/control/pkg/model"
-	"github.com/supergiant/control/pkg/node"
 	"github.com/supergiant/control/pkg/profile"
 	"github.com/supergiant/control/pkg/workflows/steps"
 )
@@ -55,12 +54,12 @@ func TestStepRunSuccess(t *testing.T) {
 		BootstrapPrivateKey: privateKey,
 	}
 
-	config.AddMaster(&node.Node{
+	config.AddMaster(&model.Machine{
 		PrivateIp: host,
 		PublicIp:  host,
 	})
 
-	config.Node = node.Node{
+	config.Node = model.Machine{
 		PublicIp: host,
 	}
 
@@ -86,7 +85,7 @@ func TestStepRunError(t *testing.T) {
 	timeout := 120
 
 	config := steps.NewConfig("", "", "", profile.Profile{})
-	config.Node = node.Node{
+	config.Node = model.Machine{
 		PrivateIp: host,
 	}
 	config.Kube.SSHConfig = model.SSHConfig{
