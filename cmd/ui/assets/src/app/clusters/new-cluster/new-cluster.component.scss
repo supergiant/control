@@ -170,12 +170,13 @@
         }
 
         .cluster-size-recommendation {
-          display: flex;
-          align-items: center;
 
           .text {
+            color: grey;
+          }
+
+          .mat-icon, .is-highlighted {
             color: $sg-pink;
-            display: flex;
           }
         }
       }
