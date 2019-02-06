@@ -51,6 +51,7 @@ import (
 	"github.com/supergiant/control/pkg/workflows/steps/ssh"
 	"github.com/supergiant/control/pkg/workflows/steps/storageclass"
 	"github.com/supergiant/control/pkg/workflows/steps/tiller"
+	"github.com/supergiant/control/pkg/workflows/steps/kubeadm"
 )
 
 type Server struct {
@@ -208,6 +209,7 @@ func configureApplication(cfg *Config) (*mux.Router, error) {
 	gce.Init()
 	storageclass.Init()
 	drain.Init()
+	kubeadm.Init()
 
 	amazon.InitFindAMI(amazon.GetEC2)
 	amazon.InitImportKeyPair(amazon.GetEC2)

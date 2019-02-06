@@ -5,17 +5,9 @@ import (
 
 	"github.com/supergiant/control/pkg/workflows/statuses"
 	"github.com/supergiant/control/pkg/workflows/steps"
-	"github.com/supergiant/control/pkg/workflows/steps/certificates"
 	"github.com/supergiant/control/pkg/workflows/steps/clustercheck"
-	"github.com/supergiant/control/pkg/workflows/steps/cni"
-	"github.com/supergiant/control/pkg/workflows/steps/docker"
 	"github.com/supergiant/control/pkg/workflows/steps/downloadk8sbinary"
 	"github.com/supergiant/control/pkg/workflows/steps/drain"
-	"github.com/supergiant/control/pkg/workflows/steps/etcd"
-	"github.com/supergiant/control/pkg/workflows/steps/flannel"
-	"github.com/supergiant/control/pkg/workflows/steps/kubelet"
-	"github.com/supergiant/control/pkg/workflows/steps/manifest"
-	"github.com/supergiant/control/pkg/workflows/steps/network"
 	"github.com/supergiant/control/pkg/workflows/steps/poststart"
 	"github.com/supergiant/control/pkg/workflows/steps/prometheus"
 	"github.com/supergiant/control/pkg/workflows/steps/provider"
@@ -23,6 +15,7 @@ import (
 	"github.com/supergiant/control/pkg/workflows/steps/storageclass"
 	"github.com/supergiant/control/pkg/workflows/steps/tiller"
 	"github.com/supergiant/control/pkg/workflows/steps/authorizedKeys"
+	"github.com/supergiant/control/pkg/workflows/steps/kubeadm"
 )
 
 // StepStatus aggregates data that is needed to track progress
@@ -72,14 +65,7 @@ func Init() {
 		steps.GetStep(ssh.StepName),
 		steps.GetStep(authorizedKeys.StepName),
 		steps.GetStep(downloadk8sbinary.StepName),
-		steps.GetStep(cni.StepName),
-		steps.GetStep(etcd.StepName),
-		steps.GetStep(network.StepName),
-		steps.GetStep(flannel.StepName),
-		steps.GetStep(docker.StepName),
-		steps.GetStep(certificates.StepName),
-		steps.GetStep(manifest.StepName),
-		steps.GetStep(kubelet.StepName),
+		steps.GetStep(kubeadm.StepName),
 		steps.GetStep(poststart.StepName),
 	}
 
@@ -88,12 +74,7 @@ func Init() {
 		steps.GetStep(ssh.StepName),
 		steps.GetStep(authorizedKeys.StepName),
 		steps.GetStep(downloadk8sbinary.StepName),
-		steps.GetStep(manifest.StepName),
-		steps.GetStep(flannel.StepName),
-		steps.GetStep(docker.StepName),
-		steps.GetStep(certificates.StepName),
-		steps.GetStep(kubelet.StepName),
-		steps.GetStep(cni.StepName),
+		steps.GetStep(kubeadm.StepName),
 		steps.GetStep(poststart.StepName),
 	}
 

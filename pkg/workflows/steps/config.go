@@ -6,12 +6,12 @@ import (
 	"time"
 
 	"github.com/pborman/uuid"
-
 	"github.com/supergiant/control/pkg/clouds"
 	"github.com/supergiant/control/pkg/model"
 	"github.com/supergiant/control/pkg/profile"
 	"github.com/supergiant/control/pkg/runner"
 	"github.com/supergiant/control/pkg/storage"
+	bootstraputil "k8s.io/cluster-bootstrap/token/util"
 )
 
 type CertificatesConfig struct {
@@ -192,8 +192,8 @@ type KubeadmConfig struct {
 	IsBootstrap      bool   `json:"isBootstrap"`
 	CIDR             string `json:"cidr"`
 	Token            string `json:"token"`
-	LoadBalancerIP   string `json:"loadBalancerIp"`
-	LoadBalancerPort string `json:"loadBalancerPort"`
+	LoadBalancerHost string `json:"loadBalancerHost"`
+	NetworkProvider  string `json:"networkProvider"`
 }
 
 type DrainConfig struct {
@@ -245,7 +245,7 @@ type Config struct {
 	EtcdConfig         EtcdConfig         `json:"etcdConfig"`
 	PrometheusConfig   PrometheusConfig   `json:"prometheusConfig"`
 	DrainConfig        DrainConfig        `json:"drainConfig"`
-	KubeadmConfig      KubeletConfig      `json:"kubeadmConfig"`
+	KubeadmConfig      KubeadmConfig      `json:"kubeadmConfig"`
 
 	ClusterCheckConfig ClusterCheckConfig `json:"clusterCheckConfig"`
 
@@ -272,6 +272,8 @@ type Config struct {
 
 // NewConfig builds instance of config for provisioning
 func NewConfig(clusterName, clusterToken, cloudAccountName string, profile profile.Profile) *Config {
+	token, _ := bootstraputil.GenerateBootstrapToken()
+
 	return &Config{
 		Kube: model.Kube{
 			SSHConfig: model.SSHConfig{
@@ -386,6 +388,12 @@ func NewConfig(clusterName, clusterToken, cloudAccountName string, profile profi
 			Port:        "30900",
 			RBACEnabled: profile.RBACEnabled,
 		},
+		KubeadmConfig: KubeadmConfig{
+			IsBootstrap: true,
+			Token: token,
+			CIDR: profile.CIDR,
+			// TODO(stgleb): Get Network provider from profile
+		},
 
 		Masters: Map{
 			internal: make(map[string]*model.Machine, len(profile.MasterProfiles)),
@@ -404,6 +412,7 @@ func NewConfig(clusterName, clusterToken, cloudAccountName string, profile profi
 
 func NewConfigFromKube(profile *profile.Profile, k *model.Kube) *Config {
 	clusterToken := uuid.New()
+	token, _ := bootstraputil.GenerateBootstrapToken()
 
 	cfg := &Config{
 		ClusterID:   k.ID,
@@ -516,6 +525,12 @@ func NewConfigFromKube(profile *profile.Profile, k *model.Kube) *Config {
 		PrometheusConfig: PrometheusConfig{
 			Port:        "30900",
 			RBACEnabled: profile.RBACEnabled,
+		},
+		KubeadmConfig: KubeadmConfig{
+			IsBootstrap: true,
+			Token: token,
+			CIDR: profile.CIDR,
+			// TODO(stgleb): Get Network provider from profile
 		},
 
 		Masters: Map{
