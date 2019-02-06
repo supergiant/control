@@ -31,7 +31,7 @@ func (f *fakeRunner) Run(command *runner.Command) error {
 	return err
 }
 
-func TestStartKubelet(t *testing.T) {
+func TestStartKubeadm(t *testing.T) {
 	r := &fakeRunner{}
 	err := templatemanager.Init("../../../../templates")
 
@@ -77,7 +77,7 @@ func TestStartKubelet(t *testing.T) {
 	}
 }
 
-func TestStartKubeletError(t *testing.T) {
+func TestStartKubeadmError(t *testing.T) {
 	errMsg := "error has occurred"
 
 	r := &fakeRunner{

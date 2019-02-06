@@ -5,13 +5,15 @@ import (
 	"sync"
 	"time"
 
+	//bootstraputil "k8s.io/cluster-bootstrap/token/util"
+
 	"github.com/pborman/uuid"
 	"github.com/supergiant/control/pkg/clouds"
 	"github.com/supergiant/control/pkg/model"
 	"github.com/supergiant/control/pkg/profile"
 	"github.com/supergiant/control/pkg/runner"
 	"github.com/supergiant/control/pkg/storage"
-	bootstraputil "k8s.io/cluster-bootstrap/token/util"
+	"github.com/supergiant/control/pkg/bootstrap"
 )
 
 type CertificatesConfig struct {
@@ -272,7 +274,7 @@ type Config struct {
 
 // NewConfig builds instance of config for provisioning
 func NewConfig(clusterName, clusterToken, cloudAccountName string, profile profile.Profile) *Config {
-	token, _ := bootstraputil.GenerateBootstrapToken()
+	token, _ := bootstrap.GenerateBootstrapToken()
 
 	return &Config{
 		Kube: model.Kube{
@@ -412,7 +414,7 @@ func NewConfig(clusterName, clusterToken, cloudAccountName string, profile profi
 
 func NewConfigFromKube(profile *profile.Profile, k *model.Kube) *Config {
 	clusterToken := uuid.New()
-	token, _ := bootstraputil.GenerateBootstrapToken()
+	token, _ := bootstrap.GenerateBootstrapToken()
 
 	cfg := &Config{
 		ClusterID:   k.ID,
