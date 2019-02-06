@@ -395,6 +395,7 @@ func NewConfig(clusterName, clusterToken, cloudAccountName string, profile profi
 			Token: token,
 			CIDR: profile.CIDR,
 			// TODO(stgleb): Get Network provider from profile
+			NetworkProvider: "Flannel",
 		},
 
 		Masters: Map{
@@ -533,6 +534,7 @@ func NewConfigFromKube(profile *profile.Profile, k *model.Kube) *Config {
 			Token: token,
 			CIDR: profile.CIDR,
 			// TODO(stgleb): Get Network provider from profile
+			NetworkProvider: "Flannel",
 		},
 
 		Masters: Map{
