@@ -405,6 +405,12 @@ func (tp *TaskProvisioner) provisionMasters(ctx context.Context,
 		logrus.Infof("master bootstrap %s has finished", bootstrapTask.ID)
 	}
 
+	// NOTE(stgleb): This temporarily before load balancers step is not implemented as a step
+	if master := config.GetMaster(); master != nil {
+		config.KubeadmConfig.LoadBalancerHost = master.PrivateIp
+		config.KubeadmConfig.IsBootstrap = false
+	}
+
 	// ProvisionCluster rest of master nodes master nodes
 	for index, masterTask := range tasks {
 		// Take token that allows perform action with Cloud Provider API
