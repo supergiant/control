@@ -20,7 +20,7 @@ kubeadm config images pull
 {{ if .Bootstrap }}
 sudo kubeadm init --token={{ .Token }} --pod-network-cidr={{ .CIDR }}
 sudo kubeadm config view > kubeadm-config.yaml
-sed -i 's/controlPlaneEndpoint: ""/controlPlaneEndpoint: "{{ .PrivateIP }}"/g' kubeadm-config.yaml
+sed -i 's/controlPlaneEndpoint: ""/controlPlaneEndpoint: "{{ .LoadBalancerIP }}"/g' kubeadm-config.yaml
 sudo kubeadm config upload from-file --config=kubeadm-config.yaml
 
 {{ else }}
