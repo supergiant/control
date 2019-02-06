@@ -20,11 +20,11 @@ kubeadm config images pull
 {{ if .Bootstrap }}
 sudo kubeadm init --token={{ .Token }} --pod-network-cidr={{ .CIDR }}
 sudo kubeadm config view > kubeadm-config.yaml
-sed -i 's/controlPlaneEndpoint: ""/controlPlaneEndpoint: "{{ .LoadBalancerIP }}"/g' kubeadm-config.yaml
+sed -i 's/controlPlaneEndpoint: ""/controlPlaneEndpoint: "{{ .LoadBalancerIP }}:{{ .LoadBalancerPort }}"/g' kubeadm-config.yaml
 sudo kubeadm config upload from-file --config=kubeadm-config.yaml
 
 {{ else }}
-sudo kubeadm join {{ .MasterHost }}:{{ .MasterPort }} --token {{ .Token }} \
+sudo kubeadm join {{ .LoadBalancerIP }}:{{ .LoadBalancerPort }} --token {{ .Token }} \
 --discovery-token-unsafe-skip-ca-verification --experimental-control-plane
 {{ end }}
 
@@ -32,6 +32,6 @@ sudo mkdir -p $HOME/.kube
 sudo cp -i /etc/kubernetes/admin.conf $HOME/.kube/config
 sudo chown $(id -u):$(id -g) $HOME/.kube/config
 {{ else }}
-sudo kubeadm join {{ .MasterHost }}:{{ .MasterPort }} --token {{ .Token }} \
+sudo kubeadm join {{ .LoadBalancerIP }}:{{ .LoadBalancerPort }} --token {{ .Token }} \
 --discovery-token-unsafe-skip-ca-verification
 {{ end }}

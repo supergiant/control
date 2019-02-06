@@ -187,6 +187,15 @@ type PrometheusConfig struct {
 	RBACEnabled bool   `json:"rbacEnabled"`
 }
 
+type KubeadmConfig struct {
+	IsMaster         bool   `json:"isMaster"`
+	IsBootstrap      bool   `json:"isBootstrap"`
+	CIDR             string `json:"cidr"`
+	Token            string `json:"token"`
+	LoadBalancerIP   string `json:"loadBalancerIp"`
+	LoadBalancerPort string `json:"loadBalancerPort"`
+}
+
 type DrainConfig struct {
 	PrivateIP string `json:"privateIp"`
 }
@@ -236,6 +245,7 @@ type Config struct {
 	EtcdConfig         EtcdConfig         `json:"etcdConfig"`
 	PrometheusConfig   PrometheusConfig   `json:"prometheusConfig"`
 	DrainConfig        DrainConfig        `json:"drainConfig"`
+	KubeadmConfig      KubeletConfig      `json:"kubeadmConfig"`
 
 	ClusterCheckConfig ClusterCheckConfig `json:"clusterCheckConfig"`
 
