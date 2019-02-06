@@ -361,6 +361,7 @@ func (tp *TaskProvisioner) provisionMasters(ctx context.Context,
 	config.IsMaster = true
 	doneChan := make(chan struct{})
 	failChan := make(chan struct{})
+	bootstrapResult := make(chan error)
 
 	if len(profile.MasterProfiles) == 0 {
 		close(doneChan)
@@ -368,12 +369,43 @@ func (tp *TaskProvisioner) provisionMasters(ctx context.Context,
 	}
 	// master latch controls when the majority of masters with etcd are up and running
 	// so etcd is available for writes of flannel that starts on each machine
-	masterLatch := util.NewCountdownLatch(ctx, len(profile.MasterProfiles)/2+1)
+	masterLatch := util.NewCountdownLatch(ctx, len(profile.MasterProfiles)/2)
 
 	// If we fail n /2 of master deploy jobs - all cluster deployment is failed
-	failLatch := util.NewCountdownLatch(ctx, len(profile.MasterProfiles)/2+1)
+	failLatch := util.NewCountdownLatch(ctx, len(profile.MasterProfiles)/2)
 
-	// ProvisionCluster master nodes
+
+	// Get bootstrap task as a first master task
+	bootstrapTask, tasks := tasks[0], tasks[1:]
+
+	fileName := util.MakeFileName(bootstrapTask.ID)
+	out, err := tp.getWriter(fileName)
+
+	if err != nil {
+		logrus.Errorf("Error getting writer for %s", fileName)
+		return nil, nil, err
+	}
+
+	// Fulfill task config with data about provider specific node configuration
+	p := profile.MasterProfiles[0]
+	FillNodeCloudSpecificData(profile.Provider, p, config)
+
+	go func(t *workflows.Task) {
+		// Put task id to config so that create instance step can use this id when generate node name
+		config.TaskID = t.ID
+		bootstrapResult = t.Run(ctx, *config, out)
+	}(bootstrapTask)
+
+	err = <-bootstrapResult
+
+	if err != nil {
+		logrus.Errorf("master bootstrap task %s has finished with error %v", bootstrapTask.ID, err)
+		return nil, nil, errors.Wrapf(err, "master bootstrap task %s has finished with error %v", bootstrapTask.ID)
+	} else {
+		logrus.Infof("master bootstrap %s has finished", bootstrapTask.ID)
+	}
+
+	// ProvisionCluster rest of master nodes master nodes
 	for index, masterTask := range tasks {
 		// Take token that allows perform action with Cloud Provider API
 		tp.rateLimiter.Take()

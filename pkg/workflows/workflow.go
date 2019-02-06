@@ -16,6 +16,7 @@ import (
 	"github.com/supergiant/control/pkg/workflows/steps/tiller"
 	"github.com/supergiant/control/pkg/workflows/steps/authorizedKeys"
 	"github.com/supergiant/control/pkg/workflows/steps/kubeadm"
+	"github.com/supergiant/control/pkg/workflows/steps/docker"
 )
 
 // StepStatus aggregates data that is needed to track progress
@@ -65,6 +66,7 @@ func Init() {
 		steps.GetStep(ssh.StepName),
 		steps.GetStep(authorizedKeys.StepName),
 		steps.GetStep(downloadk8sbinary.StepName),
+		steps.GetStep(docker.StepName),
 		steps.GetStep(kubeadm.StepName),
 		steps.GetStep(poststart.StepName),
 	}
@@ -74,6 +76,7 @@ func Init() {
 		steps.GetStep(ssh.StepName),
 		steps.GetStep(authorizedKeys.StepName),
 		steps.GetStep(downloadk8sbinary.StepName),
+		steps.GetStep(docker.StepName),
 		steps.GetStep(kubeadm.StepName),
 		steps.GetStep(poststart.StepName),
 	}

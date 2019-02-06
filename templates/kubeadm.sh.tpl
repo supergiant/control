@@ -8,7 +8,6 @@ EOF
 sudo apt-get update
 sudo apt-get install -y kubelet kubeadm kubectl
 sudo apt-mark hold kubelet kubeadm kubectl
-sudo apt install -y docker.io
 
 sudo systemctl daemon-reload
 sudo systemctl enable docker
@@ -18,10 +17,34 @@ sudo systemctl restart kubelet
 kubeadm config images pull
 
 {{ if .IsBootstrap }}
-sudo kubeadm init --token={{ .Token }} --pod-network-cidr={{ .CIDR }}
-sudo kubeadm config view > kubeadm-config.yaml
-sed -i 's/controlPlaneEndpoint: ""/controlPlaneEndpoint: "https://{{ .LoadBalancerHost }}"/g' kubeadm-config.yaml
-sudo kubeadm config upload from-file --config=kubeadm-config.yaml
+
+sudo bash -c "cat << EOF > kubeadm-config.yaml
+apiServer:
+  extraArgs:
+    authorization-mode: Node,RBAC
+  timeoutForControlPlane: 4m0s
+apiVersion: kubeadm.k8s.io/v1beta1
+certificatesDir: /etc/kubernetes/pki
+clusterName: kubernetes
+controlPlaneEndpoint: "https://{{ .LoadBalancerHost }}"
+controllerManager: {}
+dns:
+  type: CoreDNS
+etcd:
+  local:
+    dataDir: /var/lib/etcd
+imageRepository: k8s.gcr.io
+kind: ClusterConfiguration
+kubernetesVersion: v1.13.3
+networking:
+  dnsDomain: cluster.local
+  podSubnet: ""
+  serviceSubnet: 10.96.0.0/12
+scheduler: {}
+EOF"
+
+sudo kubeadm init --token={{ .Token }} --pod-network-cidr={{ .CIDR }} --config=kubeadm-config.yaml
+
 
 {{ if eq .NeworkProvider "Flannel" }}
 kubectl apply -f https://raw.githubusercontent.com/coreos/flannel/bc79dd1505b0c8681ece4de4c0d86c5cd2643275/Documentation/kube-flannel.yml
