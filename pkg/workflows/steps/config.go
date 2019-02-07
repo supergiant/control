@@ -553,7 +553,7 @@ func (c *Config) AddNode(n *model.Machine) {
 // GetMaster returns first master in master map or nil
 func (c *Config) GetMaster() *model.Machine {
 	// non-blocking fast path for master nodes
-	if c.IsMaster {
+	if c.IsMaster && c.Node.State == model.MachineStateActive {
 		return &c.Node
 	}
 

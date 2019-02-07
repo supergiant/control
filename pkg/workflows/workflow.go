@@ -9,7 +9,6 @@ import (
 	"github.com/supergiant/control/pkg/workflows/steps/downloadk8sbinary"
 	"github.com/supergiant/control/pkg/workflows/steps/drain"
 	"github.com/supergiant/control/pkg/workflows/steps/poststart"
-	"github.com/supergiant/control/pkg/workflows/steps/prometheus"
 	"github.com/supergiant/control/pkg/workflows/steps/provider"
 	"github.com/supergiant/control/pkg/workflows/steps/ssh"
 	"github.com/supergiant/control/pkg/workflows/steps/storageclass"
@@ -18,6 +17,7 @@ import (
 	"github.com/supergiant/control/pkg/workflows/steps/kubeadm"
 	"github.com/supergiant/control/pkg/workflows/steps/docker"
 	"github.com/supergiant/control/pkg/workflows/steps/network"
+	"github.com/supergiant/control/pkg/workflows/steps/prometheus"
 )
 
 // StepStatus aggregates data that is needed to track progress

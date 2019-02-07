@@ -240,6 +240,7 @@ func (s *StepCreateInstance) Run(ctx context.Context, w io.Writer, cfg *steps.Co
 	cfg.Node.ID = *instance.InstanceId
 	cfg.Node.State = model.MachineStateProvisioning
 
+	logrus.Infof("Machine created %v", cfg.Node)
 	cfg.NodeChan() <- cfg.Node
 	if cfg.IsMaster {
 		cfg.AddMaster(&cfg.Node)
