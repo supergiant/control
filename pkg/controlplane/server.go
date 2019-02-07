@@ -6,7 +6,6 @@ import (
 	"net/http"
 	_ "net/http/pprof"
 	"net/url"
-	"os"
 	"strings"
 	"time"
 
@@ -15,7 +14,9 @@ import (
 	"github.com/pkg/errors"
 	"github.com/sirupsen/logrus"
 	"k8s.io/helm/pkg/repo"
+	"github.com/rakyll/statik/fs"
 
+	_ "github.com/supergiant/control/statik"
 	"github.com/supergiant/control/pkg/account"
 	"github.com/supergiant/control/pkg/api"
 	"github.com/supergiant/control/pkg/jwt"
@@ -82,7 +83,6 @@ type Config struct {
 	StorageURI    string
 	TemplatesDir  string
 	SpawnInterval time.Duration
-	UiDir         string
 
 	ReadTimeout  time.Duration
 	WriteTimeout time.Duration
@@ -144,6 +144,7 @@ func validate(cfg *Config) error {
 	if cfg.Port <= 0 {
 		return errors.New("port can't be negative")
 	}
+
 
 	if cfg.SpawnInterval == 0 {
 		return errors.New("spawn interval must not be 0")
@@ -311,11 +312,12 @@ func ensureHelmRepositories(svc sghelm.Servicer) {
 }
 
 func serveUI(cfg *Config, router *mux.Router) error {
-	if _, err := os.Stat(cfg.UiDir); err != nil {
-		return errors.Wrap(err, "no ui directory found")
+	statikFS, err := fs.New()
+	if err != nil {
+		return err
 	}
 
-	router.PathPrefix("/").Handler(trimPrefix(http.FileServer(http.Dir(cfg.UiDir))))
+	router.PathPrefix("/").Handler(trimPrefix(http.FileServer(statikFS)))
 	return nil
 }
 

@@ -1,22 +1,42 @@
-import { Component, OnDestroy, OnInit, ViewEncapsulation, ViewChild }       from '@angular/core';
+import { Component, OnDestroy, OnInit, ViewEncapsulation, ViewChild } from '@angular/core';
 import { FormBuilder, FormGroup, Validators, ValidatorFn, AbstractControl } from '@angular/forms';
-import { Router }                                                           from '@angular/router';
-import { MatHorizontalStepper }                                             from '@angular/material';
-import { Subscription, Observable }                                         from 'rxjs';
-import { Notifications }                                                    from '../../shared/notifications/notifications.service';
-import { Supergiant }                                                       from '../../shared/supergiant/supergiant.service';
-import { NodeProfileService }                                               from '../node-profile.service';
-import { CLUSTER_OPTIONS }                                                  from './cluster-options.config';
+import { Router } from '@angular/router';
+import { MatHorizontalStepper, MatOption, MatSelect } from '@angular/material';
+import { Subscription, Observable } from 'rxjs';
+import { Notifications } from '../../shared/notifications/notifications.service';
+import { Supergiant } from '../../shared/supergiant/supergiant.service';
+import { NodeProfileService } from '../node-profile.service';
+import { CLUSTER_OPTIONS } from './cluster-options.config';
 import {
   DEFAULT_MACHINE_SET,
   BLANK_MACHINE_TEMPLATE,
-}                                                                           from 'app/clusters/new-cluster/new-cluster.component.config';
-import { sortDigitalOceanMachineTypes }                                     from 'app/clusters/new-cluster/new-cluster.helpers';
-import { map }                                                              from 'rxjs/operators';
+} from 'app/clusters/new-cluster/new-cluster.component.config';
+import { sortDigitalOceanMachineTypes } from 'app/clusters/new-cluster/new-cluster.helpers';
+import { map } from 'rxjs/operators';
+import { IMachineType } from './new-cluster.component.interface';
 
 // compiler hack
 declare var require: any;
 const cidrRegex = require('cidr-regex');
+
+enum MachineRoles {
+  master = 'Master',
+  node = 'Node'
+}
+
+enum CloudProviders {
+  aws = 'aws',
+  digitalocean = 'digitalocean',
+  gce = 'gce',
+}
+
+export enum StepIndexes {
+  NameAndCloudAccount = 0,
+  ClusterConfig = 1,
+  ProvideConfig = 2,
+  MachinesConfig = 3,
+  Review = 4,
+}
 
 @Component({
   selector: 'app-new-cluster',
@@ -54,6 +74,7 @@ export class NewClusterComponent implements OnInit, OnDestroy {
   regionsFilter = '';
 
   @ViewChild(MatHorizontalStepper) stepper: MatHorizontalStepper;
+  @ViewChild('selectedMachineType') selectedMachineType: MatSelect;
 
   constructor(
     private supergiant: Supergiant,
@@ -91,6 +112,7 @@ export class NewClusterComponent implements OnInit, OnDestroy {
       operatingSystem: ['linux', Validators.required],
       arch: ['amd64', Validators.required],
     });
+
   }
 
   ngOnDestroy() {
@@ -387,12 +409,72 @@ export class NewClusterComponent implements OnInit, OnDestroy {
     return false;
   }
 
-  validateMachineConfig() {
+  validateMachineConfig(currentMachine: IMachineType = null) {
+    const selectedOption: MatOption = this.selectedMachineType.selected as MatOption;
+
+    if (selectedOption) {
+      const selectedMachineType: string = selectedOption.value;
+      this.updateRecommendations(currentMachine, selectedMachineType);
+    }
+
     if (this.machines.every(this.validMachine) && this.isOddNumberOfMasters()) {
       this.machinesConfigValid = true;
       this.displayMachinesConfigWarning = false;
     } else {
       this.machinesConfigValid = false;
+    }
+  }
+
+  private updateRecommendations(currentMachine: IMachineType, selectedMachineType: string) {
+    // checking recommendation for cluster size
+    if (currentMachine && currentMachine.role === MachineRoles.master) {
+      currentMachine.recommendedNodesCount =
+        this.getRecommendedNodesCount(selectedMachineType) * currentMachine.qty;
+    } else if (currentMachine) {
+      currentMachine.recommendedNodesCount = 0;
+    }
+  }
+
+  getRecommendedNodesCount(machineType: string): number {
+
+    // TODO: move these consts into config file
+    const AWS_RECOMENDATIONS = {
+      'm3.medium': 5,
+      'm3.large': 10,
+      'm3.xlarge': 100,
+      'm3.2xlarge': 250,
+      'c4.4xlarge': 500,
+      'c4.8xlarge': 500,
+    };
+
+    const DO_RECOMMENDATIONS = {
+      's-1vcpu-3gb': 5,
+      's-4vcpu-8gb': 10,
+      's-6vcpu-16gb': 100,
+      's-8vcpu-32gb': 250,
+      's-16vcpu-64gb': 500,
+    };
+
+    const GCE_RECOMMENDATIONS = {
+      'n1-standard-1': 5,
+      'n1-standard-2': 10,
+      'n1-standard-4': 100,
+      'n1-standard-8': 250,
+      'n1-standard-16': 500,
+      'n1-standard-32': 1000,
+    };
+
+
+    switch (this.selectedCloudAccount.provider) {
+      case CloudProviders.aws:
+        return AWS_RECOMENDATIONS[machineType];
+      case CloudProviders.digitalocean:
+        return DO_RECOMMENDATIONS[machineType];
+      case CloudProviders.gce:
+        return GCE_RECOMMENDATIONS[machineType];
+
+      default:
+        return 0;
     }
   }
 
@@ -405,7 +487,10 @@ export class NewClusterComponent implements OnInit, OnDestroy {
   }
 
   nextStep() {
-    this.validateMachineConfig();
+
+    if (this.stepper.selectedIndex === StepIndexes.Review) {
+      this.validateMachineConfig();
+    }
 
     if (this.machinesConfigValid) {
       this.stepper.next();

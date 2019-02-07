@@ -644,6 +644,18 @@
 			"revisionTime": "2016-01-10T10:55:54Z"
 		},
 		{
+			"checksumSHA1": "672YU7e54ba9xuO3Mf+sEZjPBxo=",
+			"path": "github.com/rakyll/statik",
+			"revision": "1355192d24db2566a83c3914e187e2a7e7679832",
+			"revisionTime": "2018-09-21T16:35:09Z"
+		},
+		{
+			"checksumSHA1": "Pps01vZwszFzmTQixlqFizN/w14=",
+			"path": "github.com/rakyll/statik/fs",
+			"revision": "79258177a57a85a8ab2eca7ce0936aad80307f4e",
+			"revisionTime": "2018-11-28T13:56:55Z"
+		},
+		{
 			"checksumSHA1": "eDQ6f1EsNf+frcRO/9XukSEchm8=",
 			"path": "github.com/satori/go.uuid",
 			"revision": "36e9d2ebbde5e3f13ab2e25625fd453271d6522e",

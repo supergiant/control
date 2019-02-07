@@ -1,3 +1,5 @@
+@import "src/assets/css/variables";
+
 .new-clusters-wrapper {
   margin-top: 7px;
 
@@ -164,6 +166,17 @@
 
           &:active {
             transform: scale(0.95, 0.95);
+          }
+        }
+
+        .cluster-size-recommendation {
+
+          .text {
+            color: grey;
+          }
+
+          .mat-icon, .is-highlighted {
+            color: $sg-pink;
           }
         }
       }
