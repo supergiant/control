@@ -10,7 +10,7 @@ import (
 
 	tm "github.com/supergiant/control/pkg/templatemanager"
 	"github.com/supergiant/control/pkg/workflows/steps"
-	"github.com/supergiant/control/pkg/workflows/steps/etcd"
+	"github.com/supergiant/control/pkg/workflows/steps/ssh"
 )
 
 const StepName = "network"
@@ -58,5 +58,5 @@ func (t *Step) Description() string {
 }
 
 func (s *Step) Depends() []string {
-	return []string{etcd.StepName}
+	return []string{ssh.StepName}
 }

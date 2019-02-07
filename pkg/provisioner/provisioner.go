@@ -400,7 +400,7 @@ func (tp *TaskProvisioner) provisionMasters(ctx context.Context,
 
 	if err != nil {
 		logrus.Errorf("master bootstrap task %s has finished with error %v", bootstrapTask.ID, err)
-		return nil, nil, errors.Wrapf(err, "master bootstrap task %s has finished with error %v", bootstrapTask.ID)
+		return nil, nil, errors.Wrapf(err, "master bootstrap task %s has finished with error", bootstrapTask.ID)
 	} else {
 		logrus.Infof("master bootstrap %s has finished", bootstrapTask.ID)
 	}

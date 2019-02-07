@@ -31,7 +31,7 @@ func (f *fakeRunner) Run(command *runner.Command) error {
 	return err
 }
 
-func TestStartKubeadm(t *testing.T) {
+func TestKubeadm(t *testing.T) {
 	r := &fakeRunner{}
 	err := templatemanager.Init("../../../../templates")
 
@@ -48,6 +48,7 @@ func TestStartKubeadm(t *testing.T) {
 	output := new(bytes.Buffer)
 
 	cfg := &steps.Config{
+		IsMaster: true,
 		KubeadmConfig: steps.KubeadmConfig{
 			IsMaster: true,
 			IsBootstrap: true,
