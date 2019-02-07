@@ -106,15 +106,7 @@ type FlannelConfig struct {
 }
 
 type NetworkConfig struct {
-	EtcdRepositoryUrl string `json:"etcdRepositoryUrl"`
-	EtcdVersion       string `json:"etcdVersion"`
-	EtcdHost          string `json:"etcdHost"`
-
-	Arch            string `json:"arch"`
-	OperatingSystem string `json:"operatingSystem"`
-
-	Network     string `json:"network"`
-	NetworkType string `json:"networkType"`
+	NetworkProvider string `json:"networkProvider"`
 }
 
 type KubeletConfig struct {
@@ -190,6 +182,7 @@ type PrometheusConfig struct {
 }
 
 type KubeadmConfig struct {
+	K8SVersion string `json:"K8SVersion"`
 	IsMaster         bool   `json:"isMaster"`
 	IsBootstrap      bool   `json:"isBootstrap"`
 	CIDR             string `json:"cidr"`
@@ -325,22 +318,8 @@ func NewConfig(clusterName, clusterToken, cloudAccountName string, profile profi
 			StaticAuth:          profile.StaticAuth,
 		},
 		NetworkConfig: NetworkConfig{
-			EtcdRepositoryUrl: "https://github.com/coreos/etcd/releases/download",
-			EtcdVersion:       "3.3.9",
-			EtcdHost:          "0.0.0.0",
-
-			Arch:            profile.Arch,
-			OperatingSystem: profile.OperatingSystem,
-
-			Network:     profile.CIDR,
-			NetworkType: profile.NetworkType,
-		},
-		FlannelConfig: FlannelConfig{
-			Arch:    profile.Arch,
-			Version: profile.FlannelVersion,
-			// NOTE(stgleb): this is any host by default works on master nodes
-			// on worker node this host is changed by any master ip address
-			EtcdHost: "0.0.0.0",
+			// TODO(stgleb): Take it from profile when UI updates
+			NetworkProvider: "Flannel",
 		},
 		KubeletConfig: KubeletConfig{
 			ProxyPort:      "8080",
@@ -391,6 +370,7 @@ func NewConfig(clusterName, clusterToken, cloudAccountName string, profile profi
 			RBACEnabled: profile.RBACEnabled,
 		},
 		KubeadmConfig: KubeadmConfig{
+			K8SVersion: profile.K8SVersion,
 			IsBootstrap: true,
 			Token: token,
 			CIDR: profile.CIDR,
@@ -464,15 +444,8 @@ func NewConfigFromKube(profile *profile.Profile, k *model.Kube) *Config {
 			AdminKey:            k.Auth.AdminKey,
 		},
 		NetworkConfig: NetworkConfig{
-			EtcdRepositoryUrl: "https://github.com/coreos/etcd/releases/download",
-			EtcdVersion:       "3.3.9",
-			EtcdHost:          "0.0.0.0",
-
-			Arch:            profile.Arch,
-			OperatingSystem: profile.OperatingSystem,
-
-			Network:     profile.CIDR,
-			NetworkType: profile.NetworkType,
+			// TODO(stgleb): Take it from profile when UI is updated
+			NetworkProvider: "Flannel",
 		},
 		FlannelConfig: FlannelConfig{
 			Arch:    profile.Arch,
@@ -530,13 +503,11 @@ func NewConfigFromKube(profile *profile.Profile, k *model.Kube) *Config {
 			RBACEnabled: profile.RBACEnabled,
 		},
 		KubeadmConfig: KubeadmConfig{
+			K8SVersion: profile.K8SVersion,
 			IsBootstrap: true,
 			Token: token,
 			CIDR: profile.CIDR,
-			// TODO(stgleb): Get Network provider from profile
-			NetworkProvider: "Flannel",
 		},
-
 		Masters: Map{
 			internal: make(map[string]*model.Machine, len(k.Masters)),
 		},

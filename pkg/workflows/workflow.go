@@ -17,6 +17,7 @@ import (
 	"github.com/supergiant/control/pkg/workflows/steps/authorizedKeys"
 	"github.com/supergiant/control/pkg/workflows/steps/kubeadm"
 	"github.com/supergiant/control/pkg/workflows/steps/docker"
+	"github.com/supergiant/control/pkg/workflows/steps/network"
 )
 
 // StepStatus aggregates data that is needed to track progress
@@ -84,6 +85,7 @@ func Init() {
 	postProvision := []steps.Step{
 		steps.GetStep(ssh.StepName),
 		steps.GetStep(clustercheck.StepName),
+		steps.GetStep(network.StepName),
 		steps.GetStep(storageclass.StepName),
 		steps.GetStep(tiller.StepName),
 		steps.GetStep(prometheus.StepName),

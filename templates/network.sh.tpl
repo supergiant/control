@@ -1,12 +1,13 @@
-sudo curl -L {{ .EtcdRepositoryUrl }}/v{{ .EtcdVersion }}/etcd-v{{ .EtcdVersion }}-{{ .OperatingSystem }}-{{ .Arch }}.tar.gz -o /tmp/etcd-v{{ .EtcdVersion }}-{{ .OperatingSystem }}-{{ .Arch }}.tar.gz
-sudo tar xzvf /tmp/etcd-v{{ .EtcdVersion }}-{{ .OperatingSystem }}-{{ .Arch }}.tar.gz -C /usr/bin --strip-components=1
+{{ if eq .NetworkProvider "Flannel" }}
+sudo kubectl apply -f https://raw.githubusercontent.com/coreos/flannel/bc79dd1505b0c8681ece4de4c0d86c5cd2643275/Documentation/kube-flannel.yml
+{{ end }}
 
-ETCD_ADVERTISE_CLIENT_URLS=http://{{ .EtcdHost }}:2379
-ETCD_INITIAL_ADVERTISE_PEER_URLS=http://{{ .EtcdHost }}:2380
-ETCD_ADVERTISE_CLIENT_URLS=http://{{ .EtcdHost }}:2379
-ETCD_LISTEN_CLIENT_URLS=http://{{ .EtcdHost }}:2379
-ETCD_LISTEN_PEER_URLS=http://{{ .EtcdHost }}:2380
-ETCDCTL_API=3 /usr/bin/etcdctl version
 
-sudo /usr/bin/etcdctl set /coreos.com/network/config '{"Network":"{{ .Network }}", "Backend": {"Type": "{{ .NetworkType }}"}}'
-sudo /usr/bin/etcdctl get /coreos.com/network/config
+{{ if eq .NetworkProvider "Calico" }}
+sudo kubectl apply -f https://docs.projectcalico.org/v3.3/getting-started/kubernetes/installation/hosted/rbac-kdd.yaml
+sudo kubectl apply -f https://docs.projectcalico.org/v3.3/getting-started/kubernetes/installation/hosted/kubernetes-datastore/calico-networking/1.7/calico.yaml
+{{ end }}
+
+{{ if eq .NetworkProvider "Weave" }}
+sudo kubectl apply -f "https://cloud.weave.works/k8s/net?k8s-version=$(kubectl version | base64 | tr -d '\n')"
+{{ end }}

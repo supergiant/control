@@ -17,24 +17,10 @@ sudo kubeadm config images pull
 
 {{ if .IsBootstrap }}
 
-sudo kubeadm init --token={{ .Token }} --pod-network-cidr={{ .CIDR }}
+sudo kubeadm init --token={{ .Token }} --pod-network-cidr={{ .CIDR }} --kubernetes-version {{ .K8SVersion }}
 sudo kubeadm config view > kubeadm-config.yaml
 sed -i 's/controlPlaneEndpoint: ""/controlPlaneEndpoint: "https://{{ .LoadBalancerHost }}"/g' kubeadm-config.yaml
 sudo kubeadm config upload from-file --config=kubeadm-config.yaml
-
-{{ if eq .NetworkProvider "Flannel" }}
-sudo kubectl apply -f https://raw.githubusercontent.com/coreos/flannel/bc79dd1505b0c8681ece4de4c0d86c5cd2643275/Documentation/kube-flannel.yml
-{{ end }}
-
-
-{{ if eq .NetworkProvider "Calico" }}
-sudo kubectl apply -f https://docs.projectcalico.org/v3.3/getting-started/kubernetes/installation/hosted/rbac-kdd.yaml
-sudo kubectl apply -f https://docs.projectcalico.org/v3.3/getting-started/kubernetes/installation/hosted/kubernetes-datastore/calico-networking/1.7/calico.yaml
-{{ end }}
-
-{{ if eq .NetworkProvider "Weave" }}
-sudo kubectl apply -f "https://cloud.weave.works/k8s/net?k8s-version=$(kubectl version | base64 | tr -d '\n')"
-{{ end }}
 
 {{ else }}
 sudo kubeadm join https://{{ .LoadBalancerHost }} --token {{ .Token }} \

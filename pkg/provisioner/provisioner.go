@@ -464,12 +464,6 @@ func (tp *TaskProvisioner) provisionMasters(ctx context.Context,
 func (tp *TaskProvisioner) provisionNodes(ctx context.Context, profile *profile.Profile, config *steps.Config, tasks []*workflows.Task) {
 	config.IsMaster = false
 	config.ManifestConfig.IsMaster = false
-	// Do internal communication inside private network
-	if master := config.GetMaster(); master != nil {
-		config.FlannelConfig.EtcdHost = master.PrivateIp
-	} else {
-		return
-	}
 
 	// ProvisionCluster nodes
 	for index, nodeTask := range tasks {
