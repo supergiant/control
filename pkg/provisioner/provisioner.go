@@ -234,21 +234,11 @@ func (tp *TaskProvisioner) provision(ctx context.Context,
 	config.ReadyForBootstrapLatch = &sync.WaitGroup{}
 	config.ReadyForBootstrapLatch.Add(len(taskMap[workflows.MasterTask]))
 
-	logrus.Debug("Restart provision masters")
-	doneChan, failChan, err := tp.provisionMasters(ctx, clusterProfile,
+	logrus.Debug("Provision masters")
+	err := tp.provisionMasters(ctx, clusterProfile,
 		config, taskMap[workflows.MasterTask])
 
 	if err != nil {
-		logrus.Errorf("ProvisionCluster master %v", err)
-	}
-
-	select {
-	case <-ctx.Done():
-		logrus.Errorf("Master cluster has not been created %v",
-			ctx.Err())
-		return
-	case <-doneChan:
-	case <-failChan:
 		config.KubeStateChan() <- model.StateFailed
 		logrus.Errorf("master cluster deployment has been failed")
 		return
@@ -357,23 +347,8 @@ func (tp *TaskProvisioner) preProvision(ctx context.Context, preProvisionTask *w
 
 func (tp *TaskProvisioner) provisionMasters(ctx context.Context,
 	profile *profile.Profile, config *steps.Config,
-	tasks []*workflows.Task) (chan struct{}, chan struct{}, error) {
+	tasks []*workflows.Task) error {
 	config.IsMaster = true
-	doneChan := make(chan struct{})
-	failChan := make(chan struct{})
-	bootstrapResult := make(chan error)
-
-	if len(profile.MasterProfiles) == 0 {
-		close(doneChan)
-		return doneChan, failChan, nil
-	}
-	// master latch controls when the majority of masters with etcd are up and running
-	// so etcd is available for writes of flannel that starts on each machine
-	masterLatch := util.NewCountdownLatch(ctx, len(profile.MasterProfiles)/2)
-
-	// If we fail n /2 of master deploy jobs - all cluster deployment is failed
-	failLatch := util.NewCountdownLatch(ctx, len(profile.MasterProfiles)/2)
-
 
 	// Get bootstrap task as a first master task
 	bootstrapTask, tasks := tasks[0], tasks[1:]
@@ -383,24 +358,19 @@ func (tp *TaskProvisioner) provisionMasters(ctx context.Context,
 
 	if err != nil {
 		logrus.Errorf("Error getting writer for %s", fileName)
-		return nil, nil, err
+		return errors.Wrapf(err, "Error getting writer for %s", fileName)
 	}
 
 	// Fulfill task config with data about provider specific node configuration
 	p := profile.MasterProfiles[0]
 	FillNodeCloudSpecificData(profile.Provider, p, config)
 
-	go func(t *workflows.Task) {
-		// Put task id to config so that create instance step can use this id when generate node name
-		config.TaskID = t.ID
-		bootstrapResult = t.Run(ctx, *config, out)
-	}(bootstrapTask)
-
-	err = <-bootstrapResult
+	config.TaskID = bootstrapTask.ID
+	err = <- bootstrapTask.Run(ctx, *config, out)
 
 	if err != nil {
 		logrus.Errorf("master bootstrap task %s has finished with error %v", bootstrapTask.ID, err)
-		return nil, nil, errors.Wrapf(err, "master bootstrap task %s has finished with error", bootstrapTask.ID)
+		return errors.Wrapf(err, "master bootstrap task %s has finished with error %v", bootstrapTask.ID, err)
 	} else {
 		logrus.Infof("master bootstrap %s has finished", bootstrapTask.ID)
 	}
@@ -416,16 +386,11 @@ func (tp *TaskProvisioner) provisionMasters(ctx context.Context,
 		// Take token that allows perform action with Cloud Provider API
 		tp.rateLimiter.Take()
 
-		if masterTask == nil {
-			logrus.Error("Master tasks are nil")
-			return nil, nil, nil
-		}
 		fileName := util.MakeFileName(masterTask.ID)
 		out, err := tp.getWriter(fileName)
 
 		if err != nil {
 			logrus.Errorf("Error getting writer for %s", fileName)
-			return nil, nil, err
 		}
 
 		// Fulfill task config with data about provider specific node configuration
@@ -439,26 +404,14 @@ func (tp *TaskProvisioner) provisionMasters(ctx context.Context,
 			err = <-result
 
 			if err != nil {
-				failLatch.CountDown()
 				logrus.Errorf("master task %s has finished with error %v", t.ID, err)
 			} else {
-				masterLatch.CountDown()
 				logrus.Infof("master-task %s has finished", t.ID)
 			}
 		}(masterTask)
 	}
 
-	go func() {
-		masterLatch.Wait()
-		close(doneChan)
-	}()
-
-	go func() {
-		failLatch.Wait()
-		close(failChan)
-	}()
-
-	return doneChan, failChan, nil
+	return nil
 }
 
 func (tp *TaskProvisioner) provisionNodes(ctx context.Context, profile *profile.Profile, config *steps.Config, tasks []*workflows.Task) {
