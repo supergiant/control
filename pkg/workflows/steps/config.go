@@ -8,12 +8,12 @@ import (
 	//bootstraputil "k8s.io/cluster-bootstrap/token/util"
 
 	"github.com/pborman/uuid"
+	"github.com/supergiant/control/pkg/bootstrap"
 	"github.com/supergiant/control/pkg/clouds"
 	"github.com/supergiant/control/pkg/model"
 	"github.com/supergiant/control/pkg/profile"
 	"github.com/supergiant/control/pkg/runner"
 	"github.com/supergiant/control/pkg/storage"
-	"github.com/supergiant/control/pkg/bootstrap"
 )
 
 type CertificatesConfig struct {
@@ -106,6 +106,7 @@ type FlannelConfig struct {
 }
 
 type NetworkConfig struct {
+	CIDR            string `json:"cidr"`
 	NetworkProvider string `json:"networkProvider"`
 }
 
@@ -182,13 +183,12 @@ type PrometheusConfig struct {
 }
 
 type KubeadmConfig struct {
-	K8SVersion string `json:"K8SVersion"`
+	K8SVersion       string `json:"K8SVersion"`
 	IsMaster         bool   `json:"isMaster"`
 	IsBootstrap      bool   `json:"isBootstrap"`
 	CIDR             string `json:"cidr"`
 	Token            string `json:"token"`
 	LoadBalancerHost string `json:"loadBalancerHost"`
-	NetworkProvider  string `json:"networkProvider"`
 }
 
 type DrainConfig struct {
@@ -318,7 +318,7 @@ func NewConfig(clusterName, clusterToken, cloudAccountName string, profile profi
 			StaticAuth:          profile.StaticAuth,
 		},
 		NetworkConfig: NetworkConfig{
-			// TODO(stgleb): Take it from profile when UI updates
+			CIDR: profile.CIDR,
 			NetworkProvider: "Flannel",
 		},
 		KubeletConfig: KubeletConfig{
@@ -370,12 +370,10 @@ func NewConfig(clusterName, clusterToken, cloudAccountName string, profile profi
 			RBACEnabled: profile.RBACEnabled,
 		},
 		KubeadmConfig: KubeadmConfig{
-			K8SVersion: profile.K8SVersion,
+			K8SVersion:  profile.K8SVersion,
 			IsBootstrap: true,
-			Token: token,
-			CIDR: profile.CIDR,
-			// TODO(stgleb): Get Network provider from profile
-			NetworkProvider: "Flannel",
+			Token:       token,
+			CIDR:        profile.CIDR,
 		},
 
 		Masters: Map{
@@ -446,6 +444,7 @@ func NewConfigFromKube(profile *profile.Profile, k *model.Kube) *Config {
 		NetworkConfig: NetworkConfig{
 			// TODO(stgleb): Take it from profile when UI is updated
 			NetworkProvider: "Flannel",
+			CIDR: profile.CIDR,
 		},
 		FlannelConfig: FlannelConfig{
 			Arch:    profile.Arch,
@@ -503,10 +502,10 @@ func NewConfigFromKube(profile *profile.Profile, k *model.Kube) *Config {
 			RBACEnabled: profile.RBACEnabled,
 		},
 		KubeadmConfig: KubeadmConfig{
-			K8SVersion: profile.K8SVersion,
+			K8SVersion:  profile.K8SVersion,
 			IsBootstrap: true,
-			Token: token,
-			CIDR: profile.CIDR,
+			Token:       token,
+			CIDR:        profile.CIDR,
 		},
 		Masters: Map{
 			internal: make(map[string]*model.Machine, len(k.Masters)),
