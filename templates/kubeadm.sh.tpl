@@ -16,8 +16,8 @@ sudo systemctl restart kubelet
 sudo kubeadm config images pull
 
 {{ if .IsBootstrap }}
-
-sudo kubeadm init --token={{ .Token }} --pod-network-cidr={{ .CIDR }} --kubernetes-version {{ .K8SVersion }} --apiserver-bind-port=443
+sudo kubeadm init --token={{ .Token }} --pod-network-cidr={{ .CIDR }} \
+--kubernetes-version {{ .K8SVersion }} --apiserver-bind-port=443 --apiserver-cert-extra-sans {{ .LoadBalancerHost }}
 sudo kubeadm config view > kubeadm-config.yaml
 sed -i 's/controlPlaneEndpoint: ""/controlPlaneEndpoint: "{{ .LoadBalancerHost }}:443"/g' kubeadm-config.yaml
 sudo kubeadm config upload from-file --config=kubeadm-config.yaml
