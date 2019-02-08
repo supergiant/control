@@ -7,20 +7,20 @@ metadata:
   name: flannel
 rules:
   - apiGroups:
-      - ''
+      - ""
     resources:
       - pods
     verbs:
       - get
   - apiGroups:
-      - ''
+      - ""
     resources:
       - nodes
     verbs:
       - list
       - watch
   - apiGroups:
-      - ''
+      - ""
     resources:
       - nodes/status
     verbs:
@@ -56,28 +56,28 @@ metadata:
 data:
   cni-conf.json: |
     {
-      'name': 'cbr0',
-      'plugins': [
+      "name": "cbr0",
+      "plugins": [
         {
-          'type': 'flannel',
-          'delegate': {
-            'hairpinMode': true,
-            'isDefaultGateway': true
+          "type": "flannel",
+          "delegate": {
+            "hairpinMode": true,
+            "isDefaultGateway": true
           }
         },
         {
-          'type': 'portmap',
-          'capabilities': {
-            'portMappings': true
+          "type": "portmap",
+          "capabilities": {
+            "portMappings": true
           }
         }
       ]
     }
   net-conf.json: |
     {
-      'Network': '{{ .CIDR }}',
-      'Backend': {
-        'Type': 'vxlan'
+      "Network": "{{ .CIDR }}",
+      "Backend": {
+        "Type": "vxlan"
       }
     }
 ---
@@ -127,11 +127,11 @@ spec:
         - --kube-subnet-mgr
         resources:
           requests:
-            cpu: '100m'
-            memory: '50Mi'
+            cpu: "100m"
+            memory: "50Mi"
           limits:
-            cpu: '100m'
-            memory: '50Mi'
+            cpu: "100m"
+            memory: "50Mi"
         securityContext:
           privileged: true
         env:
@@ -205,11 +205,11 @@ spec:
         - --kube-subnet-mgr
         resources:
           requests:
-            cpu: '100m'
-            memory: '50Mi'
+            cpu: "100m"
+            memory: "50Mi"
           limits:
-            cpu: '100m'
-            memory: '50Mi'
+            cpu: "100m"
+            memory: "50Mi"
         securityContext:
           privileged: true
         env:
@@ -283,11 +283,11 @@ spec:
         - --kube-subnet-mgr
         resources:
           requests:
-            cpu: '100m'
-            memory: '50Mi'
+            cpu: "100m"
+            memory: "50Mi"
           limits:
-            cpu: '100m'
-            memory: '50Mi'
+            cpu: "100m"
+            memory: "50Mi"
         securityContext:
           privileged: true
         env:
@@ -361,11 +361,11 @@ spec:
         - --kube-subnet-mgr
         resources:
           requests:
-            cpu: '100m'
-            memory: '50Mi'
+            cpu: "100m"
+            memory: "50Mi"
           limits:
-            cpu: '100m'
-            memory: '50Mi'
+            cpu: "100m"
+            memory: "50Mi"
         securityContext:
           privileged: true
         env:
@@ -439,11 +439,11 @@ spec:
         - --kube-subnet-mgr
         resources:
           requests:
-            cpu: '100m'
-            memory: '50Mi'
+            cpu: "100m"
+            memory: "50Mi"
           limits:
-            cpu: '100m'
-            memory: '50Mi'
+            cpu: "100m"
+            memory: "50Mi"
         securityContext:
           privileged: true
         env:
@@ -485,7 +485,7 @@ apiVersion: rbac.authorization.k8s.io/v1beta1
 metadata:
   name: calico-node
 rules:
-  - apiGroups: ['']
+  - apiGroups: [""]
     resources:
       - namespaces
       - serviceaccounts
@@ -493,29 +493,29 @@ rules:
       - get
       - list
       - watch
-  - apiGroups: ['']
+  - apiGroups: [""]
     resources:
       - pods/status
     verbs:
       - patch
-  - apiGroups: ['']
+  - apiGroups: [""]
     resources:
       - pods
     verbs:
       - get
       - list
       - watch
-  - apiGroups: ['']
+  - apiGroups: [""]
     resources:
       - services
     verbs:
       - get
-  - apiGroups: ['']
+  - apiGroups: [""]
     resources:
       - endpoints
     verbs:
       - get
-  - apiGroups: ['']
+  - apiGroups: [""]
     resources:
       - nodes
     verbs:
@@ -523,20 +523,20 @@ rules:
       - list
       - update
       - watch
-  - apiGroups: ['extensions']
+  - apiGroups: ["extensions"]
     resources:
       - networkpolicies
     verbs:
       - get
       - list
       - watch
-  - apiGroups: ['networking.k8s.io']
+  - apiGroups: ["networking.k8s.io"]
     resources:
       - networkpolicies
     verbs:
       - watch
       - list
-  - apiGroups: ['crd.projectcalico.org']
+  - apiGroups: ["crd.projectcalico.org"]
     resources:
       - globalfelixconfigs
       - felixconfigurations
@@ -588,44 +588,44 @@ metadata:
   name: calico-config
   namespace: kube-system
 data:
-  # To enable Typha, set this to 'calico-typha' *and* set a non-zero value for Typha replicas
+  # To enable Typha, set this to "calico-typha" *and* set a non-zero value for Typha replicas
   # below.  We recommend using Typha if you have more than 50 nodes. Above 100 nodes it is
   # essential.
-  typha_service_name: 'none'
+  typha_service_name: "none"
   # Configure the Calico backend to use.
-  calico_backend: 'bird'
+  calico_backend: "bird"
 
   # Configure the MTU to use
-  veth_mtu: '1440'
+  veth_mtu: "1440"
 
   # The CNI network configuration to install on each node.  The special
   # values in this config will be automatically populated.
   cni_network_config: |-
     {
-      'name': 'k8s-pod-network',
-      'cniVersion': '0.3.0',
-      'plugins': [
+      "name": "k8s-pod-network",
+      "cniVersion": "0.3.0",
+      "plugins": [
         {
-          'type': 'calico',
-          'log_level': 'info',
-          'datastore_type': 'kubernetes',
-          'nodename': '__KUBERNETES_NODE_NAME__',
-          'mtu': __CNI_MTU__,
-          'ipam': {
-            'type': 'host-local',
-            'subnet': 'usePodCidr'
+          "type": "calico",
+          "log_level": "info",
+          "datastore_type": "kubernetes",
+          "nodename": "__KUBERNETES_NODE_NAME__",
+          "mtu": __CNI_MTU__,
+          "ipam": {
+            "type": "host-local",
+            "subnet": "usePodCidr"
           },
-          'policy': {
-              'type': 'k8s'
+          "policy": {
+              "type": "k8s"
           },
-          'kubernetes': {
-              'kubeconfig': '__KUBECONFIG_FILEPATH__'
+          "kubernetes": {
+              "kubeconfig": "__KUBECONFIG_FILEPATH__"
           }
         },
         {
-          'type': 'portmap',
-          'snat': true,
-          'capabilities': {'portMappings': true}
+          "type": "portmap",
+          "snat": true,
+          "capabilities": {"portMappings": true}
         }
       ]
     }
@@ -701,28 +701,28 @@ spec:
           name: calico-typha
           protocol: TCP
         env:
-          # Enable 'info' logging by default.  Can be set to 'debug' to increase verbosity.
+          # Enable "info" logging by default.  Can be set to "debug" to increase verbosity.
           - name: TYPHA_LOGSEVERITYSCREEN
-            value: 'info'
+            value: "info"
           # Disable logging to file and syslog since those don't make sense in Kubernetes.
           - name: TYPHA_LOGFILEPATH
-            value: 'none'
+            value: "none"
           - name: TYPHA_LOGSEVERITYSYS
-            value: 'none'
+            value: "none"
           # Monitor the Kubernetes API to find the number of running instances and rebalance
           # connections.
           - name: TYPHA_CONNECTIONREBALANCINGMODE
-            value: 'kubernetes'
+            value: "kubernetes"
           - name: TYPHA_DATASTORETYPE
-            value: 'kubernetes'
+            value: "kubernetes"
           - name: TYPHA_HEALTHENABLED
-            value: 'true'
+            value: "true"
           # Uncomment these lines to enable prometheus metrics.  Since Typha is host-networked,
           # this opens a port on the host, which may need to be secured.
           #- name: TYPHA_PROMETHEUSMETRICSENABLED
-          #  value: 'true'
+          #  value: "true"
           #- name: TYPHA_PROMETHEUSMETRICSPORT
-          #  value: '9093'
+          #  value: "9093"
         livenessProbe:
           exec:
             command:
@@ -800,8 +800,8 @@ spec:
         - effect: NoExecute
           operator: Exists
       serviceAccountName: calico-node
-      # Minimize downtime during a rolling upgrade or deletion; tell Kubernetes to do a 'force
-      # deletion': https://kubernetes.io/docs/concepts/workloads/pods/pod/#termination-of-pods.
+      # Minimize downtime during a rolling upgrade or deletion; tell Kubernetes to do a "force
+      # deletion": https://kubernetes.io/docs/concepts/workloads/pods/pod/#termination-of-pods.
       terminationGracePeriodSeconds: 0
       containers:
         # Runs calico/node container on each Kubernetes node.  This
@@ -812,7 +812,7 @@ spec:
           env:
             # Use Kubernetes API as the backing datastore.
             - name: DATASTORE_TYPE
-              value: 'kubernetes'
+              value: "kubernetes"
             # Typha support: controlled by the ConfigMap.
             - name: FELIX_TYPHAK8SSERVICENAME
               valueFrom:
@@ -821,7 +821,7 @@ spec:
                   key: typha_service_name
             # Wait for the datastore.
             - name: WAIT_FOR_DATASTORE
-              value: 'true'
+              value: "true"
             # Set based on the k8s node name.
             - name: NODENAME
               valueFrom:
@@ -835,13 +835,13 @@ spec:
                   key: calico_backend
             # Cluster type to identify the deployment type
             - name: CLUSTER_TYPE
-              value: 'k8s,bgp'
+              value: "k8s,bgp"
             # Auto-detect the BGP IP address.
             - name: IP
-              value: 'autodetect'
+              value: "autodetect"
             # Enable IPIP
             - name: CALICO_IPV4POOL_IPIP
-              value: 'Always'
+              value: "Always"
             # Set MTU for tunnel device used if ipip is enabled
             - name: FELIX_IPINIPMTU
               valueFrom:
@@ -852,21 +852,21 @@ spec:
             # chosen from this range. Changing this value after installation will have
             # no effect. This should fall within `--cluster-cidr`.
             - name: CALICO_IPV4POOL_CIDR
-              value: {{ .CIDR }}
+              value: "{{ .CIDR }}"
             # Disable file logging so `kubectl logs` works.
             - name: CALICO_DISABLE_FILE_LOGGING
-              value: 'true'
+              value: "true"
             # Set Felix endpoint to host default action to ACCEPT.
             - name: FELIX_DEFAULTENDPOINTTOHOSTACTION
-              value: 'ACCEPT'
+              value: "ACCEPT"
             # Disable IPv6 on Kubernetes.
             - name: FELIX_IPV6SUPPORT
-              value: 'false'
-            # Set Felix logging to 'info'
+              value: "false"
+            # Set Felix logging to "info"
             - name: FELIX_LOGSEVERITYSCREEN
-              value: 'info'
+              value: "info"
             - name: FELIX_HEALTHENABLED
-              value: 'true'
+              value: "true"
           securityContext:
             privileged: true
           resources:
@@ -904,11 +904,11 @@ spec:
         # and CNI network config file on each node.
         - name: install-cni
           image: calico/cni:v3.3.2
-          command: ['/install-cni.sh']
+          command: ["/install-cni.sh"]
           env:
             # Name of the CNI config file to create.
             - name: CNI_CONF_NAME
-              value: '10-calico.conflist'
+              value: "10-calico.conflist"
             # Set the hostname based on the k8s node name.
             - name: KUBERNETES_NODE_NAME
               valueFrom:
