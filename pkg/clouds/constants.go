@@ -9,6 +9,7 @@ const (
 	DigitalOcean Name = "digitalocean"
 	Packet       Name = "packet"
 	GCE          Name = "gce"
+	Azure        Name = "azure"
 	OpenStack    Name = "openstack"
 
 	Unknown Name = "unknown"
@@ -58,4 +59,11 @@ const (
 	AwsMasterInstanceProfile    = "aws_master_instance_profile"
 	AwsNodeInstanceProfile      = "aws_node_instance_profile"
 	AwsImageID                  = "aws_image_id"
+
+	// Use client credentials auth model for azure.
+	// https://github.com/Azure/azure-sdk-for-go#more-authentication-details
+	AzureTenantID       = "azureTenantId"
+	AzureSubscriptionID = "azureSubscriptionId"
+	AzureClientID       = "azureClientId"
+	AzureClientSecret   = "azureClientSecret"
 )

@@ -21,12 +21,12 @@ func TestGetStorage(t *testing.T) {
 			reflect.TypeOf(&memory.InMemoryRepository{}),
 		},
 		{
-			"file.db",
+			"/tmp/file.db",
 			fileStorageType,
 			reflect.TypeOf(&file.FileRepository{}),
 		},
 		{
-			"file.db",
+			"/tmp/file.db",
 			etcdStorageType,
 			reflect.TypeOf(&etcd.ETCDRepository{}),
 		},

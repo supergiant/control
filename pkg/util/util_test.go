@@ -7,6 +7,8 @@ import (
 	"strings"
 	"testing"
 
+	"github.com/pkg/errors"
+
 	"github.com/supergiant/control/pkg/clouds"
 	"github.com/supergiant/control/pkg/model"
 	"github.com/supergiant/control/pkg/sgerrors"
@@ -418,6 +420,45 @@ func TestLoadCloudSpecificDataFromKube(t *testing.T) {
 
 		if !testCase.hasErr && err != nil {
 			t.Errorf("TC: %s: unexpected error %v", testCase.description, err)
+		}
+	}
+}
+
+func TestValidateAzureCredentials(t *testing.T) {
+	for _, tc := range []struct {
+		name        string
+		creds       map[string]string
+		expectedErr error
+	}{
+		{
+			name:        "nil credentials map",
+			expectedErr: ErrInvalidCredentials,
+		},
+		{
+			name:        "empty credentials map",
+			creds:       map[string]string{},
+			expectedErr: ErrInvalidCredentials,
+		},
+		{
+			name: "invalid client id",
+			creds: map[string]string{
+				clouds.AzureTenantID: "1",
+			},
+			expectedErr: ErrInvalidCredentials,
+		},
+		{
+			name: "client credentials",
+			creds: map[string]string{
+				clouds.AzureTenantID:       "11",
+				clouds.AzureSubscriptionID: "33",
+				clouds.AzureClientID:       "22",
+				clouds.AzureClientSecret:   "clientsecret",
+			},
+		},
+	} {
+		err := validateAzureCredentials(tc.creds)
+		if errors.Cause(err) != tc.expectedErr {
+			t.Errorf("TC: %s: result='%v', expected='%v'", tc.name, errors.Cause(err), tc.expectedErr)
 		}
 	}
 }

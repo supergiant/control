@@ -2,14 +2,14 @@ package memory
 
 import (
 	"context"
-	"sync"
 	"strings"
+	"sync"
 
 	"github.com/supergiant/control/pkg/sgerrors"
 )
 
 type InMemoryRepository struct {
-	m sync.RWMutex
+	m    sync.RWMutex
 	data map[string][]byte
 }
 
@@ -23,7 +23,7 @@ func (i *InMemoryRepository) Get(ctx context.Context, prefix string, key string)
 	i.m.RLock()
 	defer i.m.RUnlock()
 
-	value, ok := i.data[prefix + key]
+	value, ok := i.data[prefix+key]
 
 	if !ok {
 		return nil, sgerrors.ErrNotFound
@@ -36,7 +36,7 @@ func (i *InMemoryRepository) Put(ctx context.Context, prefix string, key string,
 	i.m.Lock()
 	defer i.m.Unlock()
 
-	i.data[prefix + key] = value
+	i.data[prefix+key] = value
 	return nil
 }
 
@@ -44,8 +44,7 @@ func (i *InMemoryRepository) Delete(ctx context.Context, prefix string, key stri
 	i.m.Lock()
 	defer i.m.Unlock()
 
-
-	delete(i.data, prefix + key)
+	delete(i.data, prefix+key)
 	return nil
 }
 

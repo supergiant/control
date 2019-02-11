@@ -59,7 +59,7 @@ func (h *Handler) Create(rw http.ResponseWriter, r *http.Request) {
 	// Check account data for validity
 	if err := h.validator.ValidateCredentials(account); err != nil {
 		logrus.Errorf("error validating credentials %v", err)
-		message.SendInvalidCredentials(rw, err)
+		message.SendValidationFailed(rw, err)
 		return
 	}
 
