@@ -656,14 +656,6 @@
 			"revisionTime": "2018-11-28T13:56:55Z"
 		},
 		{
-			"checksumSHA1": "eDQ6f1EsNf+frcRO/9XukSEchm8=",
-			"path": "github.com/satori/go.uuid",
-			"revision": "36e9d2ebbde5e3f13ab2e25625fd453271d6522e",
-			"revisionTime": "2018-01-03T17:44:51Z",
-			"version": "master",
-			"versionExact": "master"
-		},
-		{
 			"checksumSHA1": "ySaT8G3I3y4MmnoXOYAAX0rC+p8=",
 			"path": "github.com/sirupsen/logrus",
 			"revision": "d682213848ed68c0a260ca37d6dd5ace8423f5ba",
@@ -1640,6 +1632,14 @@
 			"versionExact": "kubernetes-1.11.3"
 		},
 		{
+			"checksumSHA1": "rvTUvuVwU6NmzJiseUnl4KQ9498=",
+			"path": "k8s.io/apimachinery/pkg/util/mergepatch",
+			"revision": "def12e63c512da17043b4f0293f52d1006603d9f",
+			"revisionTime": "2018-09-04T19:39:09Z",
+			"version": "kubernetes-1.11.3",
+			"versionExact": "kubernetes-1.11.3"
+		},
+		{
 			"checksumSHA1": "OrKcR7aVHsamDGWtb2Z0/kAVOtk=",
 			"path": "k8s.io/apimachinery/pkg/util/net",
 			"revision": "def12e63c512da17043b4f0293f52d1006603d9f",
@@ -1658,6 +1658,14 @@
 		{
 			"checksumSHA1": "ozEwMzA48zwMyQ50SwNKSM852U4=",
 			"path": "k8s.io/apimachinery/pkg/util/sets",
+			"revision": "def12e63c512da17043b4f0293f52d1006603d9f",
+			"revisionTime": "2018-09-04T19:39:09Z",
+			"version": "kubernetes-1.11.3",
+			"versionExact": "kubernetes-1.11.3"
+		},
+		{
+			"checksumSHA1": "COpKHNN+0YT7fn4pColmA/OVrFQ=",
+			"path": "k8s.io/apimachinery/pkg/util/strategicpatch",
 			"revision": "def12e63c512da17043b4f0293f52d1006603d9f",
 			"revisionTime": "2018-09-04T19:39:09Z",
 			"version": "kubernetes-1.11.3",
@@ -1712,6 +1720,14 @@
 			"versionExact": "kubernetes-1.11.3"
 		},
 		{
+			"checksumSHA1": "Z0LTjblQqzGRHcnruaPaC6kBIiQ=",
+			"path": "k8s.io/apimachinery/third_party/forked/golang/json",
+			"revision": "def12e63c512da17043b4f0293f52d1006603d9f",
+			"revisionTime": "2018-09-04T19:39:09Z",
+			"version": "kubernetes-1.11.3",
+			"versionExact": "kubernetes-1.11.3"
+		},
+		{
 			"checksumSHA1": "OGbsdDRP+y4F++eGe/dh3FIWThg=",
 			"path": "k8s.io/apimachinery/third_party/forked/golang/netutil",
 			"revision": "def12e63c512da17043b4f0293f52d1006603d9f",
@@ -1746,6 +1762,14 @@
 		{
 			"checksumSHA1": "0E6RtvR8px6fkUWtT5FYjVcowEI=",
 			"path": "k8s.io/client-go/kubernetes/typed/core/v1",
+			"revision": "7d04d0e2a0a1a4d4a1cd6baa432a2301492e4e65",
+			"revisionTime": "2018-06-28T04:30:50Z",
+			"version": "v8.0.0",
+			"versionExact": "v8.0.0"
+		},
+		{
+			"checksumSHA1": "U3kQTqGjstKRZIZyuZlqZ9rcPv8=",
+			"path": "k8s.io/client-go/kubernetes/typed/core/v1/fake",
 			"revision": "7d04d0e2a0a1a4d4a1cd6baa432a2301492e4e65",
 			"revisionTime": "2018-06-28T04:30:50Z",
 			"version": "v8.0.0",
@@ -1802,6 +1826,14 @@
 		{
 			"checksumSHA1": "+wYCwQaVc1GvMWwOWc3wXd2GT5s=",
 			"path": "k8s.io/client-go/rest/watch",
+			"revision": "7d04d0e2a0a1a4d4a1cd6baa432a2301492e4e65",
+			"revisionTime": "2018-06-28T04:30:50Z",
+			"version": "v8.0.0",
+			"versionExact": "v8.0.0"
+		},
+		{
+			"checksumSHA1": "I3bHgG6WAdMckRtd+KamQHlPRPY=",
+			"path": "k8s.io/client-go/testing",
 			"revision": "7d04d0e2a0a1a4d4a1cd6baa432a2301492e4e65",
 			"revisionTime": "2018-06-28T04:30:50Z",
 			"version": "v8.0.0",
@@ -2110,6 +2142,12 @@
 			"revisionTime": "2018-09-19T18:20:32Z",
 			"version": "v2.11.0",
 			"versionExact": "v2.11.0"
+		},
+		{
+			"checksumSHA1": "h2W7fCaCOwCsXxBgmm7pjzT/akk=",
+			"path": "k8s.io/kube-openapi/pkg/util/proto",
+			"revision": "d7c86cdc46e3a4fcf892b32dd7bc3aa775e0870e",
+			"revisionTime": "2019-02-08T20:55:40Z"
 		}
 	],
 	"rootPath": "github.com/supergiant/control"
