@@ -2,12 +2,14 @@ package util
 
 import (
 	"context"
+	"strings"
 
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/aws/credentials"
 	"github.com/aws/aws-sdk-go/aws/session"
 	"github.com/aws/aws-sdk-go/service/ec2"
 	"github.com/digitalocean/godo"
+	"github.com/pkg/errors"
 	"github.com/sirupsen/logrus"
 	"golang.org/x/oauth2"
 	"golang.org/x/oauth2/jwt"
@@ -21,6 +23,10 @@ import (
 	"github.com/supergiant/control/pkg/workflows/steps"
 )
 
+var (
+	ErrInvalidCredentials = errors.New("invalid credentials")
+)
+
 type CloudAccountValidator interface {
 	ValidateCredentials(cloudAccount *model.CloudAccount) error
 }
@@ -29,6 +35,7 @@ type CloudAccountValidatorImpl struct {
 	digitalOcean func(map[string]string) error
 	aws          func(map[string]string) error
 	gce          func(map[string]string) error
+	azure        func(map[string]string) error
 }
 
 func NewCloudAccountValidator() *CloudAccountValidatorImpl {
@@ -36,17 +43,20 @@ func NewCloudAccountValidator() *CloudAccountValidatorImpl {
 		digitalOcean: validateDigitalOceanCredentials,
 		aws:          validateAWSCredentials,
 		gce:          validateGCECredentials,
+		azure:        validateAzureCredentials,
 	}
 }
 
-func (validator *CloudAccountValidatorImpl) ValidateCredentials(cloudAccount *model.CloudAccount) error {
+func (v *CloudAccountValidatorImpl) ValidateCredentials(cloudAccount *model.CloudAccount) error {
 	switch cloudAccount.Provider {
 	case clouds.DigitalOcean:
-		return validator.digitalOcean(cloudAccount.Credentials)
+		return v.digitalOcean(cloudAccount.Credentials)
 	case clouds.AWS:
-		return validator.aws(cloudAccount.Credentials)
+		return v.aws(cloudAccount.Credentials)
 	case clouds.GCE:
-		return validator.gce(cloudAccount.Credentials)
+		return v.gce(cloudAccount.Credentials)
+	case clouds.Azure:
+		return v.azure(cloudAccount.Credentials)
 	}
 
 	return sgerrors.ErrUnsupportedProvider
@@ -127,6 +137,26 @@ func validateGCECredentials(creds map[string]string) error {
 	if err != nil {
 		logrus.Errorf("Error getting image %v", err)
 		return err
+	}
+
+	return nil
+}
+
+func validateAzureCredentials(creds map[string]string) error {
+	if creds == nil {
+		return ErrInvalidCredentials
+	}
+
+	for _, k := range []string{
+		clouds.AzureTenantID,
+		clouds.AzureSubscriptionID,
+		clouds.AzureClientID,
+		clouds.AzureClientSecret,
+	} {
+		creds[k] = strings.TrimSpace(creds[k])
+		if creds[k] == "" {
+			return errors.Wrapf(ErrInvalidCredentials, "azure: %s should be provided", k)
+		}
 	}
 
 	return nil

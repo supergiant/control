@@ -12,11 +12,10 @@ import (
 	"github.com/gorilla/handlers"
 	"github.com/gorilla/mux"
 	"github.com/pkg/errors"
+	"github.com/rakyll/statik/fs"
 	"github.com/sirupsen/logrus"
 	"k8s.io/helm/pkg/repo"
-	"github.com/rakyll/statik/fs"
 
-	_ "github.com/supergiant/control/statik"
 	"github.com/supergiant/control/pkg/account"
 	"github.com/supergiant/control/pkg/api"
 	"github.com/supergiant/control/pkg/jwt"
@@ -51,6 +50,7 @@ import (
 	"github.com/supergiant/control/pkg/workflows/steps/ssh"
 	"github.com/supergiant/control/pkg/workflows/steps/storageclass"
 	"github.com/supergiant/control/pkg/workflows/steps/tiller"
+	_ "github.com/supergiant/control/statik"
 	"github.com/supergiant/control/pkg/workflows/steps/kubeadm"
 )
 
@@ -145,7 +145,6 @@ func validate(cfg *Config) error {
 	if cfg.Port <= 0 {
 		return errors.New("port can't be negative")
 	}
-
 
 	if cfg.SpawnInterval == 0 {
 		return errors.New("spawn interval must not be 0")

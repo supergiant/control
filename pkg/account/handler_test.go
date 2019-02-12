@@ -19,6 +19,7 @@ import (
 	"github.com/supergiant/control/pkg/model"
 	"github.com/supergiant/control/pkg/sgerrors"
 	"github.com/supergiant/control/pkg/testutils"
+	"github.com/supergiant/control/pkg/util"
 )
 
 type MockValidator struct {
@@ -52,30 +53,28 @@ func TestEndpoint_CreateSuccess(t *testing.T) {
 
 	malformedAccount, _ := json.Marshal(model.CloudAccount{
 		Name:        "ff",
-		Provider:    clouds.DigitalOcean,
+		Provider:    clouds.Azure,
 		Credentials: map[string]string{},
 	})
 
 	req, _ := http.NewRequest(http.MethodPost, "/cloud_accounts", bytes.NewReader(malformedAccount))
 
-	e.validator = &MockValidator{
-		validate: func(map[string]string) error {
-			return nil
-		},
-	}
+	e.validator = util.NewCloudAccountValidator()
 	handler := http.HandlerFunc(e.Create)
 
 	rr := httptest.NewRecorder()
 	handler.ServeHTTP(rr, req)
 
-	require.Equal(t, http.StatusInternalServerError, rr.Code, rr.Body.String())
+	require.Equal(t, http.StatusBadRequest, rr.Code, rr.Body.String())
 
 	okAccount, _ := json.Marshal(model.CloudAccount{
 		Name:     "test",
-		Provider: clouds.DigitalOcean,
+		Provider: clouds.Azure,
 		Credentials: map[string]string{
-			clouds.DigitalOceanAccessToken: "test",
-			clouds.DigitalOceanFingerPrint: "fingerprint",
+			clouds.AzureTenantID:       "test",
+			clouds.AzureSubscriptionID: "subscription",
+			clouds.AzureClientID:       "id",
+			clouds.AzureClientSecret:   "secret",
 		},
 	})
 	req, _ = http.NewRequest(http.MethodPost, "/cloud_accounts", bytes.NewReader(okAccount))
@@ -142,7 +141,7 @@ func TestEndpoint_CreateError(t *testing.T) {
 
 	okAccount, _ := json.Marshal(model.CloudAccount{
 		Name:        "test",
-		Provider:    "azure",
+		Provider:    "unknown",
 		Credentials: map[string]string{},
 	})
 	req, _ := http.NewRequest(http.MethodPost, "/cloud_accounts", bytes.NewReader(okAccount))

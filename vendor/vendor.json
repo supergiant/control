@@ -650,6 +650,12 @@
 			"revisionTime": "2018-09-21T16:35:09Z"
 		},
 		{
+			"checksumSHA1": "Pps01vZwszFzmTQixlqFizN/w14=",
+			"path": "github.com/rakyll/statik/fs",
+			"revision": "79258177a57a85a8ab2eca7ce0936aad80307f4e",
+			"revisionTime": "2018-11-28T13:56:55Z"
+		},
+		{
 			"checksumSHA1": "eDQ6f1EsNf+frcRO/9XukSEchm8=",
 			"path": "github.com/satori/go.uuid",
 			"revision": "36e9d2ebbde5e3f13ab2e25625fd453271d6522e",

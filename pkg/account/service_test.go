@@ -7,7 +7,6 @@ import (
 	"github.com/pkg/errors"
 	"github.com/stretchr/testify/mock"
 
-	"github.com/supergiant/control/pkg/clouds"
 	"github.com/supergiant/control/pkg/model"
 	"github.com/supergiant/control/pkg/sgerrors"
 	"github.com/supergiant/control/pkg/testutils"
@@ -47,35 +46,6 @@ func TestServiceCreate(t *testing.T) {
 				Name:     "test",
 				Provider: "nonameprovider",
 			},
-		},
-		{
-			getResponse: nil,
-			getError:    sgerrors.ErrNotFound,
-			account: &model.CloudAccount{
-				Name:     "test",
-				Provider: "nonameprovider",
-			},
-			expectedErr: ErrUnsupportedProvider,
-		},
-		{
-			getResponse: nil,
-			getError:    sgerrors.ErrNotFound,
-			account: &model.CloudAccount{
-				Name:        "test",
-				Provider:    clouds.DigitalOcean,
-				Credentials: map[string]string{},
-			},
-			expectedErr: sgerrors.ErrInvalidCredentials,
-		},
-		{
-			getResponse: nil,
-			getError:    sgerrors.ErrNotFound,
-			account: &model.CloudAccount{
-				Name:        "test",
-				Provider:    clouds.AWS,
-				Credentials: map[string]string{},
-			},
-			expectedErr: sgerrors.ErrInvalidCredentials,
 		},
 	}
 

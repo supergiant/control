@@ -6,6 +6,7 @@ import (
 	"fmt"
 
 	"github.com/etcd-io/bbolt"
+
 	"github.com/supergiant/control/pkg/sgerrors"
 )
 

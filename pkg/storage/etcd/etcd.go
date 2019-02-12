@@ -3,8 +3,9 @@ package etcd
 import (
 	"context"
 
-	"github.com/pkg/errors"
 	"github.com/coreos/etcd/clientv3"
+	"github.com/pkg/errors"
+
 	"github.com/supergiant/control/pkg/sgerrors"
 )
 

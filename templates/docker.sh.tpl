@@ -1,5 +1,5 @@
 #!/bin/sh
-# https://download.docker.com/linux/ubuntu/dists/xenial/pool/stable/amd64/docker-ce_18.06.1~ce~3-0~ubuntu_amd64.deb
+# https://download.docker.com/linux/ubuntu/dists/xenial/pool/stable/amd64/docker-ce_18.09.2~ce-0~ubuntu_amd64.deb
 
 DOCKER_VERSION={{ .Version }}
 UBUNTU_RELEASE={{ .ReleaseVersion }}
