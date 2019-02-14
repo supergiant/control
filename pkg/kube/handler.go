@@ -555,7 +555,7 @@ func (h *Handler) addMachine(w http.ResponseWriter, r *http.Request) {
 		RBACEnabled: k.RBACEnabled,
 	}
 
-	config := steps.NewConfig(k.Name, "", k.AccountName, kubeProfile)
+	config := steps.NewConfig(k.Name, k.AccountName, kubeProfile)
 	config.ClusterID = k.ID
 	config.CertificatesConfig.CAKey = k.Auth.CAKey
 	config.CertificatesConfig.CACert = k.Auth.CACert

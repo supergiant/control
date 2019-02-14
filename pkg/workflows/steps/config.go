@@ -7,7 +7,6 @@ import (
 
 	//bootstraputil "k8s.io/cluster-bootstrap/token/util"
 
-	"github.com/pborman/uuid"
 	"github.com/supergiant/control/pkg/bootstrap"
 	"github.com/supergiant/control/pkg/clouds"
 	"github.com/supergiant/control/pkg/model"
@@ -98,13 +97,6 @@ type AWSConfig struct {
 	RouteTableAssociationIDs map[string]string `json:"routeTableAssociationIds"`
 }
 
-type FlannelConfig struct {
-	IsMaster bool   `json:"isMaster"`
-	Arch     string `json:"arch"`
-	Version  string `json:"version"`
-	EtcdHost string `json:"etcdHost"`
-}
-
 type NetworkConfig struct {
 	CIDR            string `json:"cidr"`
 	NetworkProvider string `json:"networkProvider"`
@@ -157,20 +149,6 @@ type DownloadK8sBinary struct {
 	K8SVersion      string `json:"k8sVersion"`
 	Arch            string `json:"arch"`
 	OperatingSystem string `json:"operatingSystem"`
-}
-
-type EtcdConfig struct {
-	Name           string        `json:"name"`
-	Version        string        `json:"version"`
-	AdvertiseHost  string        `json:"advertiseHost"`
-	Host           string        `json:"host"`
-	DataDir        string        `json:"dataDir"`
-	ServicePort    string        `json:"servicePort"`
-	ManagementPort string        `json:"managementPort"`
-	Timeout        time.Duration `json:"timeout"`
-	StartTimeout   string        `json:"startTimeout"`
-	RestartTimeout string        `json:"restartTimeout"`
-	ClusterToken   string        `json:"clusterToken"`
 }
 
 type ClusterCheckConfig struct {
@@ -231,13 +209,11 @@ type Config struct {
 	DockerConfig       DockerConfig       `json:"dockerConfig"`
 	DownloadK8sBinary  DownloadK8sBinary  `json:"downloadK8sBinary"`
 	CertificatesConfig CertificatesConfig `json:"certificatesConfig"`
-	FlannelConfig      FlannelConfig      `json:"flannelConfig"`
 	NetworkConfig      NetworkConfig      `json:"networkConfig"`
 	KubeletConfig      KubeletConfig      `json:"kubeletConfig"`
 	ManifestConfig     ManifestConfig     `json:"manifestConfig"`
 	PostStartConfig    PostStartConfig    `json:"postStartConfig"`
 	TillerConfig       TillerConfig       `json:"tillerConfig"`
-	EtcdConfig         EtcdConfig         `json:"etcdConfig"`
 	PrometheusConfig   PrometheusConfig   `json:"prometheusConfig"`
 	DrainConfig        DrainConfig        `json:"drainConfig"`
 	KubeadmConfig      KubeadmConfig      `json:"kubeadmConfig"`
@@ -261,12 +237,10 @@ type Config struct {
 	nodeChan      chan model.Machine
 	kubeStateChan chan model.KubeState
 	configChan    chan *Config
-
-	ReadyForBootstrapLatch *sync.WaitGroup
 }
 
 // NewConfig builds instance of config for provisioning
-func NewConfig(clusterName, clusterToken, cloudAccountName string, profile profile.Profile) *Config {
+func NewConfig(clusterName, cloudAccountName string, profile profile.Profile) *Config {
 	token, _ := bootstrap.GenerateBootstrapToken()
 
 	return &Config{
@@ -349,19 +323,6 @@ func NewConfig(clusterName, clusterToken, cloudAccountName string, profile profi
 			Arch:            profile.Arch,
 			RBACEnabled:     profile.RBACEnabled,
 		},
-		EtcdConfig: EtcdConfig{
-			// TODO(stgleb): this field must be changed per node
-			Name:           "etcd0",
-			Version:        "3.3.10",
-			Host:           "0.0.0.0",
-			DataDir:        "/var/supergiant/etcd-data",
-			ServicePort:    "2379",
-			ManagementPort: "2380",
-			Timeout:        time.Minute * 20,
-			StartTimeout:   "0",
-			RestartTimeout: "5",
-			ClusterToken:   clusterToken,
-		},
 		ClusterCheckConfig: ClusterCheckConfig{
 			MachineCount: len(profile.NodesProfiles) + len(profile.MasterProfiles),
 		},
@@ -392,7 +353,6 @@ func NewConfig(clusterName, clusterToken, cloudAccountName string, profile profi
 }
 
 func NewConfigFromKube(profile *profile.Profile, k *model.Kube) *Config {
-	clusterToken := uuid.New()
 	token, _ := bootstrap.GenerateBootstrapToken()
 
 	cfg := &Config{
@@ -446,13 +406,6 @@ func NewConfigFromKube(profile *profile.Profile, k *model.Kube) *Config {
 			NetworkProvider: "Flannel",
 			CIDR: profile.CIDR,
 		},
-		FlannelConfig: FlannelConfig{
-			Arch:    profile.Arch,
-			Version: profile.FlannelVersion,
-			// NOTE(stgleb): this is any host by default works on master nodes
-			// on worker node this host is changed by any master ip address
-			EtcdHost: "0.0.0.0",
-		},
 		KubeletConfig: KubeletConfig{
 			ProxyPort:      "8080",
 			K8SVersion:     profile.K8SVersion,
@@ -480,19 +433,6 @@ func NewConfigFromKube(profile *profile.Profile, k *model.Kube) *Config {
 			OperatingSystem: profile.OperatingSystem,
 			Arch:            profile.Arch,
 			RBACEnabled:     profile.RBACEnabled,
-		},
-		EtcdConfig: EtcdConfig{
-			// TODO(stgleb): this field must be changed per node
-			Name:           "etcd0",
-			Version:        "3.3.10",
-			Host:           "0.0.0.0",
-			DataDir:        "/var/supergiant/etcd-data",
-			ServicePort:    "2379",
-			ManagementPort: "2380",
-			Timeout:        time.Minute * 20,
-			StartTimeout:   "0",
-			RestartTimeout: "5",
-			ClusterToken:   clusterToken,
 		},
 		ClusterCheckConfig: ClusterCheckConfig{
 			MachineCount: len(profile.NodesProfiles) + len(profile.MasterProfiles),

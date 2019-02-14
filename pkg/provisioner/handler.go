@@ -116,7 +116,7 @@ func (h *Handler) Provision(w http.ResponseWriter, r *http.Request) {
 		req.Profile.K8SServicesCIDR = DefaultK8SServicesCIDR
 	}
 
-	config := steps.NewConfig(req.ClusterName, clusterToken, req.CloudAccountName, req.Profile)
+	config := steps.NewConfig(req.ClusterName, req.CloudAccountName, req.Profile)
 
 	acc, err := h.accountGetter.Get(r.Context(), req.CloudAccountName)
 

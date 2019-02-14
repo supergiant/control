@@ -231,9 +231,6 @@ func (tp *TaskProvisioner) provision(ctx context.Context,
 	logrus.Debug("update kube state")
 	config.KubeStateChan() <- model.StateProvisioning
 
-	config.ReadyForBootstrapLatch = &sync.WaitGroup{}
-	config.ReadyForBootstrapLatch.Add(len(taskMap[workflows.MasterTask]))
-
 	logrus.Debug("Provision masters")
 	err := tp.provisionMasters(ctx, clusterProfile,
 		config, taskMap[workflows.MasterTask])

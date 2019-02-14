@@ -39,7 +39,6 @@ import (
 	"github.com/supergiant/control/pkg/workflows/steps/docker"
 	"github.com/supergiant/control/pkg/workflows/steps/downloadk8sbinary"
 	"github.com/supergiant/control/pkg/workflows/steps/drain"
-	"github.com/supergiant/control/pkg/workflows/steps/etcd"
 	"github.com/supergiant/control/pkg/workflows/steps/gce"
 	"github.com/supergiant/control/pkg/workflows/steps/kubelet"
 	"github.com/supergiant/control/pkg/workflows/steps/manifest"
@@ -198,7 +197,6 @@ func configureApplication(cfg *Config) (*mux.Router, error) {
 	manifest.Init()
 	poststart.Init()
 	tiller.Init()
-	etcd.Init()
 	ssh.Init()
 	network.Init()
 	clustercheck.Init()
