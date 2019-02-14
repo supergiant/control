@@ -102,14 +102,6 @@ type NetworkConfig struct {
 	NetworkProvider string `json:"networkProvider"`
 }
 
-type KubeletConfig struct {
-	IsMaster       bool   `json:"isMaster"`
-	NodeLabels     string `json:"nodeLabels"`
-	ProxyPort      string `json:"proxyPort"`
-	K8SVersion     string `json:"k8sVersion"`
-	ProviderString string `json:"ProviderString"`
-}
-
 type ManifestConfig struct {
 	IsMaster            bool   `json:"isMaster"`
 	K8SVersion          string `json:"k8sVersion"`
@@ -210,7 +202,6 @@ type Config struct {
 	DownloadK8sBinary  DownloadK8sBinary  `json:"downloadK8sBinary"`
 	CertificatesConfig CertificatesConfig `json:"certificatesConfig"`
 	NetworkConfig      NetworkConfig      `json:"networkConfig"`
-	KubeletConfig      KubeletConfig      `json:"kubeletConfig"`
 	ManifestConfig     ManifestConfig     `json:"manifestConfig"`
 	PostStartConfig    PostStartConfig    `json:"postStartConfig"`
 	TillerConfig       TillerConfig       `json:"tillerConfig"`
@@ -294,11 +285,6 @@ func NewConfig(clusterName, cloudAccountName string, profile profile.Profile) *C
 		NetworkConfig: NetworkConfig{
 			CIDR: profile.CIDR,
 			NetworkProvider: "Flannel",
-		},
-		KubeletConfig: KubeletConfig{
-			ProxyPort:      "8080",
-			K8SVersion:     profile.K8SVersion,
-			ProviderString: toCloudProviderOpt(profile.Provider),
 		},
 		ManifestConfig: ManifestConfig{
 			K8SVersion:          profile.K8SVersion,
@@ -405,11 +391,6 @@ func NewConfigFromKube(profile *profile.Profile, k *model.Kube) *Config {
 			// TODO(stgleb): Take it from profile when UI is updated
 			NetworkProvider: "Flannel",
 			CIDR: profile.CIDR,
-		},
-		KubeletConfig: KubeletConfig{
-			ProxyPort:      "8080",
-			K8SVersion:     profile.K8SVersion,
-			ProviderString: toCloudProviderOpt(profile.Provider),
 		},
 		ManifestConfig: ManifestConfig{
 			K8SVersion:          profile.K8SVersion,

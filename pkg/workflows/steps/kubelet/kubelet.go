@@ -46,9 +46,7 @@ func New(script *template.Template) *Step {
 }
 
 func (t *Step) Run(ctx context.Context, out io.Writer, config *steps.Config) error {
-	config.KubeletConfig.IsMaster = config.IsMaster
-	config.KubeletConfig.NodeLabels = getNodeLables(toRole(config.IsMaster))
-	err := steps.RunTemplate(ctx, t.script, config.Runner, out, config.KubeletConfig)
+	err := steps.RunTemplate(ctx, t.script, config.Runner, out, nil)
 
 	if err != nil {
 		return errors.Wrap(err, "install kubelet step")

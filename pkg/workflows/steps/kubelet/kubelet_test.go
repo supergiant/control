@@ -32,9 +32,6 @@ func (f *fakeRunner) Run(command *runner.Command) error {
 }
 
 func TestStartKubelet(t *testing.T) {
-	k8sVersion := "1.8.7"
-	proxyPort := "8080"
-
 	r := &fakeRunner{}
 	err := templatemanager.Init("../../../../templates")
 
@@ -51,10 +48,6 @@ func TestStartKubelet(t *testing.T) {
 	output := new(bytes.Buffer)
 
 	cfg := &steps.Config{
-		KubeletConfig: steps.KubeletConfig{
-			K8SVersion: k8sVersion,
-			ProxyPort:  proxyPort,
-		},
 		Runner: r,
 	}
 
@@ -64,8 +57,8 @@ func TestStartKubelet(t *testing.T) {
 
 	err = task.Run(context.Background(), output, cfg)
 
-	if !strings.Contains(output.String(), k8sVersion) {
-		t.Errorf("k8s version %s not found in %s", k8sVersion, output.String())
+	if err != nil {
+		t.Errorf("Unexpected error %v", err)
 	}
 }
 
@@ -80,7 +73,6 @@ func TestStartKubeletError(t *testing.T) {
 
 	output := new(bytes.Buffer)
 	config := &steps.Config{
-		KubeletConfig: steps.KubeletConfig{},
 		Runner:        r,
 	}
 
