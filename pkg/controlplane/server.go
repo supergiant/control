@@ -40,7 +40,6 @@ import (
 	"github.com/supergiant/control/pkg/workflows/steps/downloadk8sbinary"
 	"github.com/supergiant/control/pkg/workflows/steps/drain"
 	"github.com/supergiant/control/pkg/workflows/steps/etcd"
-	"github.com/supergiant/control/pkg/workflows/steps/flannel"
 	"github.com/supergiant/control/pkg/workflows/steps/gce"
 	"github.com/supergiant/control/pkg/workflows/steps/kubelet"
 	"github.com/supergiant/control/pkg/workflows/steps/manifest"
@@ -195,7 +194,6 @@ func configureApplication(cfg *Config) (*mux.Router, error) {
 	cni.Init()
 	docker.Init()
 	downloadk8sbinary.Init()
-	flannel.Init()
 	kubelet.Init()
 	manifest.Init()
 	poststart.Init()
