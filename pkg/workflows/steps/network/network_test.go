@@ -16,7 +16,8 @@ import (
 	"github.com/supergiant/control/pkg/templatemanager"
 	"github.com/supergiant/control/pkg/testutils"
 	"github.com/supergiant/control/pkg/workflows/steps"
-	"github.com/supergiant/control/pkg/workflows/steps/etcd"
+	"github.com/supergiant/control/pkg/workflows/steps/poststart"
+	"github.com/supergiant/control/pkg/workflows/steps/ssh"
 )
 
 type fakeRunner struct {
@@ -47,8 +48,8 @@ func TestNetworkConfig(t *testing.T) {
 
 	testCases := []struct {
 		networkProvider string
-		expectedContent   string
-		expectedError     error
+		expectedContent string
+		expectedError   error
 	}{
 		{
 			"Flannel",
@@ -79,7 +80,7 @@ func TestNetworkConfig(t *testing.T) {
 
 		output := &bytes.Buffer{}
 
-		config := steps.NewConfig("", "", "", profile.Profile{})
+		config := steps.NewConfig("", "", profile.Profile{})
 		config.NetworkConfig = steps.NetworkConfig{
 			NetworkProvider: testCase.networkProvider,
 		}
@@ -117,7 +118,7 @@ func TestNetworkErrors(t *testing.T) {
 		proxyTemplate,
 	}
 
-	cfg := steps.NewConfig("", "", "", profile.Profile{})
+	cfg := steps.NewConfig("", "", profile.Profile{})
 	cfg.Runner = r
 	err = task.Run(context.Background(), output, cfg)
 
@@ -142,8 +143,8 @@ func TestStepName(t *testing.T) {
 func TestDepends(t *testing.T) {
 	s := Step{}
 
-	if len(s.Depends()) != 1 && s.Depends()[0] != etcd.StepName {
-		t.Errorf("Wrong dependency list %v expected %v", s.Depends(), []string{etcd.StepName})
+	if len(s.Depends()) != 1 && s.Depends()[0] != ssh.StepName {
+		t.Errorf("Wrong dependency list %v expected %v", s.Depends(), []string{poststart.StepName})
 	}
 }
 

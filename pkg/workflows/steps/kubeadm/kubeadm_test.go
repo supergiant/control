@@ -15,7 +15,6 @@ import (
 	"github.com/supergiant/control/pkg/templatemanager"
 	"github.com/supergiant/control/pkg/workflows/steps"
 	"github.com/supergiant/control/pkg/workflows/steps/docker"
-	"github.com/supergiant/control/pkg/workflows/steps/manifest"
 )
 
 type fakeRunner struct {
@@ -50,10 +49,10 @@ func TestKubeadm(t *testing.T) {
 	cfg := &steps.Config{
 		IsMaster: true,
 		KubeadmConfig: steps.KubeadmConfig{
-			IsMaster: true,
-			IsBootstrap: true,
-			CIDR: "10.0.0.0/24",
-			Token: "1234",
+			IsMaster:         true,
+			IsBootstrap:      true,
+			CIDR:             "10.0.0.0/24",
+			Token:            "1234",
 			LoadBalancerHost: "10.20.30.40",
 		},
 		Runner: r,
@@ -120,8 +119,8 @@ func TestStepName(t *testing.T) {
 func TestDepends(t *testing.T) {
 	s := Step{}
 
-	if len(s.Depends()) != 1 && s.Depends()[0] != docker.StepName && s.Depends()[1] != manifest.StepName {
-		t.Errorf("Wrong dependency list %v expected %v", s.Depends(), []string{docker.StepName, manifest.StepName})
+	if len(s.Depends()) != 1 && s.Depends()[0] != docker.StepName {
+		t.Errorf("Wrong dependency list %v expected %v", s.Depends(), []string{docker.StepName})
 	}
 }
 

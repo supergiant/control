@@ -1,15 +1,15 @@
 package bootstrap
 
 import (
-	"fmt"
 	"bufio"
 	"crypto/rand"
+	"fmt"
 )
 
 const (
-	bootstrapTokenIDLen = 6
+	bootstrapTokenIDLen     = 6
 	bootstrapTokenSecretLen = 16
-	bootstrapTokenChars = "0123456789abcdefghijklmnopqrstuvwxyz"
+	bootstrapTokenChars     = "0123456789abcdefghijklmnopqrstuvwxyz"
 )
 
 func GenerateBootstrapToken() (string, error) {

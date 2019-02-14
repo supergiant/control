@@ -51,7 +51,7 @@ func TestPrometheusRBACDisbled(t *testing.T) {
 
 	output := new(bytes.Buffer)
 
-	cfg := steps.NewConfig("", "",
+	cfg := steps.NewConfig("",
 		"", profile.Profile{})
 	cfg.Runner = r
 	cfg.PrometheusConfig = steps.PrometheusConfig{
@@ -95,8 +95,7 @@ func TestPrometheusRBACEnabled(t *testing.T) {
 
 	output := new(bytes.Buffer)
 
-	cfg := steps.NewConfig("", "",
-		"", profile.Profile{})
+	cfg := steps.NewConfig("", "", profile.Profile{})
 	cfg.Runner = r
 	cfg.PrometheusConfig = steps.PrometheusConfig{
 		Port:        promPort,
@@ -132,7 +131,7 @@ func TestPrometheusErr(t *testing.T) {
 		proxyTemplate,
 	}
 
-	cfg := steps.NewConfig("", "", "", profile.Profile{})
+	cfg := steps.NewConfig("", "", profile.Profile{})
 	cfg.Runner = r
 	cfg.AddMaster(&model.Machine{
 		State:     model.MachineStateActive,

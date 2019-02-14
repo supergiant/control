@@ -87,7 +87,7 @@ func TestDockerError(t *testing.T) {
 		proxyTemplate,
 	}
 
-	cfg := steps.NewConfig("", "", "", profile.Profile{})
+	cfg := steps.NewConfig("", "", profile.Profile{})
 	cfg.Runner = r
 	err = task.Run(context.Background(), output, cfg)
 

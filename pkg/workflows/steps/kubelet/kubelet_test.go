@@ -15,7 +15,6 @@ import (
 	"github.com/supergiant/control/pkg/templatemanager"
 	"github.com/supergiant/control/pkg/workflows/steps"
 	"github.com/supergiant/control/pkg/workflows/steps/docker"
-	"github.com/supergiant/control/pkg/workflows/steps/manifest"
 )
 
 type fakeRunner struct {
@@ -73,7 +72,7 @@ func TestStartKubeletError(t *testing.T) {
 
 	output := new(bytes.Buffer)
 	config := &steps.Config{
-		Runner:        r,
+		Runner: r,
 	}
 
 	j := &Step{
@@ -103,8 +102,8 @@ func TestStepName(t *testing.T) {
 func TestDepends(t *testing.T) {
 	s := Step{}
 
-	if len(s.Depends()) != 1 && s.Depends()[0] != docker.StepName && s.Depends()[1] != manifest.StepName {
-		t.Errorf("Wrong dependency list %v expected %v", s.Depends(), []string{docker.StepName, manifest.StepName})
+	if len(s.Depends()) != 1 && s.Depends()[0] != docker.StepName {
+		t.Errorf("Wrong dependency list %v expected %v", s.Depends(), []string{docker.StepName})
 	}
 }
 

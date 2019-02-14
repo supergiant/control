@@ -16,10 +16,10 @@ import (
 )
 
 type CertificatesConfig struct {
-	KubernetesConfigDir string `json:"kubernetesConfigDir"`
-	PublicIP            string `json:"publicIp"`
-	PrivateIP           string `json:"privateIp"`
-	IsMaster            bool   `json:"isMaster"`
+	ServicesCIDR string `json:"servicesCIDR"`
+	PublicIP     string `json:"publicIp"`
+	PrivateIP    string `json:"privateIp"`
+	IsMaster     bool   `json:"isMaster"`
 	// TODO: this shouldn't be a part of SANs
 	// https://kubernetes.io/docs/setup/certificates/#all-certificates
 	KubernetesSvcIP string `json:"kubernetesSvcIp"`
@@ -100,19 +100,6 @@ type AWSConfig struct {
 type NetworkConfig struct {
 	CIDR            string `json:"cidr"`
 	NetworkProvider string `json:"networkProvider"`
-}
-
-type ManifestConfig struct {
-	IsMaster            bool   `json:"isMaster"`
-	K8SVersion          string `json:"k8sVersion"`
-	KubernetesConfigDir string `json:"kubernetesConfigDir"`
-	RBACEnabled         bool   `json:"rbacEnabled"`
-	ProviderString      string `json:"ProviderString"`
-	ServicesCIDR        string `json:"servicesCIDR"`
-	ClusterDNSIP        string `json:"clusterDNSIp"`
-	MasterHost          string `json:"masterHost"`
-	MasterPort          string `json:"masterPort"`
-	Password            string `json:"password"`
 }
 
 type PostStartConfig struct {
@@ -202,7 +189,6 @@ type Config struct {
 	DownloadK8sBinary  DownloadK8sBinary  `json:"downloadK8sBinary"`
 	CertificatesConfig CertificatesConfig `json:"certificatesConfig"`
 	NetworkConfig      NetworkConfig      `json:"networkConfig"`
-	ManifestConfig     ManifestConfig     `json:"manifestConfig"`
 	PostStartConfig    PostStartConfig    `json:"postStartConfig"`
 	TillerConfig       TillerConfig       `json:"tillerConfig"`
 	PrometheusConfig   PrometheusConfig   `json:"prometheusConfig"`
@@ -277,24 +263,14 @@ func NewConfig(clusterName, cloudAccountName string, profile profile.Profile) *C
 			OperatingSystem: profile.OperatingSystem,
 		},
 		CertificatesConfig: CertificatesConfig{
-			KubernetesConfigDir: "/etc/kubernetes",
-			Username:            profile.User,
-			Password:            profile.Password,
-			StaticAuth:          profile.StaticAuth,
+			ServicesCIDR: profile.K8SServicesCIDR,
+			Username:     profile.User,
+			Password:     profile.Password,
+			StaticAuth:   profile.StaticAuth,
 		},
 		NetworkConfig: NetworkConfig{
-			CIDR: profile.CIDR,
+			CIDR:            profile.CIDR,
 			NetworkProvider: "Flannel",
-		},
-		ManifestConfig: ManifestConfig{
-			K8SVersion:          profile.K8SVersion,
-			KubernetesConfigDir: "/etc/kubernetes",
-			RBACEnabled:         profile.RBACEnabled,
-			ServicesCIDR:        profile.K8SServicesCIDR,
-			ProviderString:      toCloudProviderOpt(profile.Provider),
-			MasterHost:          "localhost",
-			MasterPort:          "8080",
-			Password:            profile.Password,
 		},
 		PostStartConfig: PostStartConfig{
 			Host:        "localhost",
@@ -378,30 +354,21 @@ func NewConfigFromKube(profile *profile.Profile, k *model.Kube) *Config {
 			OperatingSystem: profile.OperatingSystem,
 		},
 		CertificatesConfig: CertificatesConfig{
-			KubernetesConfigDir: "/etc/kubernetes",
-			Username:            profile.User,
-			Password:            profile.Password,
-			StaticAuth:          profile.StaticAuth,
-			CAKey:               k.Auth.CAKey,
-			CACert:              k.Auth.CACert,
-			AdminCert:           k.Auth.AdminCert,
-			AdminKey:            k.Auth.AdminKey,
+			ServicesCIDR: profile.K8SServicesCIDR,
+			Username:     profile.User,
+			Password:     profile.Password,
+			StaticAuth:   profile.StaticAuth,
+			CAKey:        k.Auth.CAKey,
+			CACert:       k.Auth.CACert,
+			AdminCert:    k.Auth.AdminCert,
+			AdminKey:     k.Auth.AdminKey,
 		},
 		NetworkConfig: NetworkConfig{
 			// TODO(stgleb): Take it from profile when UI is updated
 			NetworkProvider: "Flannel",
-			CIDR: profile.CIDR,
+			CIDR:            profile.CIDR,
 		},
-		ManifestConfig: ManifestConfig{
-			K8SVersion:          profile.K8SVersion,
-			KubernetesConfigDir: "/etc/kubernetes",
-			RBACEnabled:         profile.RBACEnabled,
-			ServicesCIDR:        k.ServicesCIDR,
-			ProviderString:      toCloudProviderOpt(profile.Provider),
-			MasterHost:          "localhost",
-			MasterPort:          "8080",
-			Password:            profile.Password,
-		},
+
 		PostStartConfig: PostStartConfig{
 			Host:        "localhost",
 			Port:        "8080",

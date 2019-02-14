@@ -152,7 +152,7 @@ func TestCreateVPCStep_Run(t *testing.T) {
 	}
 
 	for i, tc := range tt {
-		cfg := steps.NewConfig("TEST", "", "TEST", profile.Profile{
+		cfg := steps.NewConfig("TEST", "TEST", profile.Profile{
 			Region:   "us-east-1",
 			Provider: clouds.AWS,
 		})

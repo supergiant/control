@@ -363,7 +363,7 @@ func (tp *TaskProvisioner) provisionMasters(ctx context.Context,
 	FillNodeCloudSpecificData(profile.Provider, p, config)
 
 	config.TaskID = bootstrapTask.ID
-	err = <- bootstrapTask.Run(ctx, *config, out)
+	err = <-bootstrapTask.Run(ctx, *config, out)
 
 	if err != nil {
 		logrus.Errorf("master bootstrap task %s has finished with error %v", bootstrapTask.ID, err)
@@ -413,7 +413,6 @@ func (tp *TaskProvisioner) provisionMasters(ctx context.Context,
 
 func (tp *TaskProvisioner) provisionNodes(ctx context.Context, profile *profile.Profile, config *steps.Config, tasks []*workflows.Task) {
 	config.IsMaster = false
-	config.ManifestConfig.IsMaster = false
 
 	// ProvisionCluster nodes
 	for index, nodeTask := range tasks {
@@ -614,7 +613,6 @@ func bootstrapCerts(config *steps.Config) error {
 	}
 	config.CertificatesConfig.CACert = string(ca.Cert)
 	config.CertificatesConfig.CAKey = string(ca.Key)
-
 
 	admin, err := pki.NewAdminPair(ca)
 	if err != nil {

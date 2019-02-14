@@ -53,12 +53,12 @@ func TestPostStartMaster(t *testing.T) {
 	}
 
 	output := new(bytes.Buffer)
-	cfg := steps.NewConfig("test", "", "test", profile.Profile{
+	cfg := steps.NewConfig("test", "test", profile.Profile{
 		MasterProfiles: []profile.NodeProfile{{}},
 	})
 	cfg.IsMaster = true
 	cfg.PostStartConfig = steps.PostStartConfig{
-		Timeout:     time.Second * 10,
+		Timeout: time.Second * 10,
 	}
 	cfg.Node = model.Machine{
 		PrivateIp: "10.20.30.40",
@@ -92,7 +92,7 @@ func TestPostStartNode(t *testing.T) {
 	}
 
 	output := new(bytes.Buffer)
-	cfg := steps.NewConfig("test", "", "test", profile.Profile{
+	cfg := steps.NewConfig("test", "test", profile.Profile{
 		MasterProfiles: []profile.NodeProfile{{}},
 	})
 	cfg.PostStartConfig = steps.PostStartConfig{
@@ -163,7 +163,7 @@ func TestPostStartTimeout(t *testing.T) {
 		proxyTemplate,
 	}
 
-	cfg := steps.NewConfig("", "", "", profile.Profile{})
+	cfg := steps.NewConfig("", "", profile.Profile{})
 	cfg.PostStartConfig = steps.PostStartConfig{
 		true,
 		"127.0.0.1",

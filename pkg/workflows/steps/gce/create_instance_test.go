@@ -159,8 +159,7 @@ func TestCreateInstanceStep_Run(t *testing.T) {
 		}
 
 		for _, role := range []bool{true, false} {
-			config := steps.NewConfig("", "",
-				"", profile.Profile{})
+			config := steps.NewConfig("", "", profile.Profile{})
 			config.TaskID = uuid.New()
 			config.ClusterName = util.RandomString(8)
 			config.ClusterID = uuid.New()[:8]

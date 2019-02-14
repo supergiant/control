@@ -15,7 +15,6 @@ import (
 	"github.com/supergiant/control/pkg/account"
 	"github.com/supergiant/control/pkg/message"
 	"github.com/supergiant/control/pkg/model"
-	"github.com/supergiant/control/pkg/pki"
 	"github.com/supergiant/control/pkg/profile"
 	"github.com/supergiant/control/pkg/sgerrors"
 	"github.com/supergiant/control/pkg/util"
@@ -93,23 +92,6 @@ func (h *Handler) Provision(w http.ResponseWriter, r *http.Request) {
 		logrus.Errorf("Validation error %v", err.Error())
 		message.SendValidationFailed(w, err)
 		return
-	}
-
-	clusterToken := uuid.New()
-	logrus.Infof("cluster token for ETCD %s", clusterToken)
-
-	// TODO: use staticAuth instead of user/password
-	// TODO: replace usage of user/password with TLS certificates
-	if req.Profile.User == "" || req.Profile.Password == "" {
-		req.Profile.User = util.RandomString(8)
-		req.Profile.Password = util.RandomString(16)
-
-		req.Profile.StaticAuth.BasicAuth = append(req.Profile.StaticAuth.BasicAuth, profile.BasicAuthUser{
-			Password: req.Profile.Password,
-			Name:     req.Profile.User,
-			ID:       req.Profile.User,
-			Groups:   []string{pki.MastersGroup},
-		})
 	}
 
 	if req.Profile.K8SServicesCIDR == "" {

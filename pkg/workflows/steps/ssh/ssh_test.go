@@ -46,7 +46,7 @@ func TestStepRunSuccess(t *testing.T) {
 	host := "10.20.30.40"
 	timeout := 120
 
-	config := steps.NewConfig("", "", "", profile.Profile{})
+	config := steps.NewConfig("", "", profile.Profile{})
 	config.Kube.SSHConfig = model.SSHConfig{
 		Port:                port,
 		User:                user,
@@ -84,7 +84,7 @@ func TestStepRunError(t *testing.T) {
 	host := "10.20.30.40"
 	timeout := 120
 
-	config := steps.NewConfig("", "", "", profile.Profile{})
+	config := steps.NewConfig("", "", profile.Profile{})
 	config.Node = model.Machine{
 		PrivateIp: host,
 	}

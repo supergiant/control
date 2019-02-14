@@ -246,10 +246,9 @@ func TestCreateInstanceStep_Run(t *testing.T) {
 			},
 		}
 
-		cfg := steps.NewConfig("", "",
-			"", profile.Profile{
-				MasterProfiles: make([]profile.NodeProfile, 10),
-			})
+		cfg := steps.NewConfig("", "", profile.Profile{
+			MasterProfiles: make([]profile.NodeProfile, 10),
+		})
 		cfg.ClusterID = uuid.New()
 		cfg.TaskID = uuid.New()
 		cfg.IsMaster = testCase.isMaster

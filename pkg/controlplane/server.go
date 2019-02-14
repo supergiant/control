@@ -40,8 +40,8 @@ import (
 	"github.com/supergiant/control/pkg/workflows/steps/downloadk8sbinary"
 	"github.com/supergiant/control/pkg/workflows/steps/drain"
 	"github.com/supergiant/control/pkg/workflows/steps/gce"
+	"github.com/supergiant/control/pkg/workflows/steps/kubeadm"
 	"github.com/supergiant/control/pkg/workflows/steps/kubelet"
-	"github.com/supergiant/control/pkg/workflows/steps/manifest"
 	"github.com/supergiant/control/pkg/workflows/steps/network"
 	"github.com/supergiant/control/pkg/workflows/steps/poststart"
 	"github.com/supergiant/control/pkg/workflows/steps/prometheus"
@@ -49,7 +49,6 @@ import (
 	"github.com/supergiant/control/pkg/workflows/steps/storageclass"
 	"github.com/supergiant/control/pkg/workflows/steps/tiller"
 	_ "github.com/supergiant/control/statik"
-	"github.com/supergiant/control/pkg/workflows/steps/kubeadm"
 )
 
 type Server struct {
@@ -194,7 +193,6 @@ func configureApplication(cfg *Config) (*mux.Router, error) {
 	docker.Init()
 	downloadk8sbinary.Init()
 	kubelet.Init()
-	manifest.Init()
 	poststart.Init()
 	tiller.Init()
 	ssh.Init()

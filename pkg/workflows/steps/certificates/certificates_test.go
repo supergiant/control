@@ -34,13 +34,10 @@ func (f *fakeRunner) Run(command *runner.Command) error {
 
 func TestWriteCertificates(t *testing.T) {
 	var (
-		kubernetesConfigDir = "/etc/kubernetes"
-		privateIP           = "10.20.30.40"
-		publicIP            = "22.33.44.55"
-		userName            = "user"
-		password            = "1234"
-
-		r runner.Runner = &fakeRunner{}
+		kubernetesConfigDir               = "/etc/kubernetes"
+		privateIP                         = "10.20.30.40"
+		publicIP                          = "22.33.44.55"
+		r                   runner.Runner = &fakeRunner{}
 	)
 
 	err := templatemanager.Init("../../../../templates")
@@ -61,13 +58,13 @@ func TestWriteCertificates(t *testing.T) {
 		t.Errorf("unexpected error creating PKI bundle %v", err)
 	}
 
-	cfg := steps.NewConfig("", "", "", profile.Profile{
+	cfg := steps.NewConfig("", "", profile.Profile{
 		K8SServicesCIDR: "10.3.0.0/16",
 	})
 	// TODO: update tests
 	cfg.CertificatesConfig = steps.CertificatesConfig{
-		KubernetesConfigDir: kubernetesConfigDir,
-		PrivateIP:           privateIP,
+		ServicesCIDR: "10.0.0.0/16",
+		PrivateIP:    privateIP,
 		StaticAuth: profile.StaticAuth{
 			BasicAuth: []profile.BasicAuthUser{
 				{
@@ -115,14 +112,6 @@ func TestWriteCertificates(t *testing.T) {
 			t.Errorf("kubernetes config dir %s not found in %s", kubernetesConfigDir, output.String())
 		}
 
-		if !strings.Contains(output.String(), userName) {
-			t.Errorf("username %s not found in %s", userName, output.String())
-		}
-
-		if !strings.Contains(output.String(), password) {
-			t.Errorf("password %s not found in %s", password, output.String())
-		}
-
 		if !strings.Contains(output.String(), string(caPair.Key)) {
 			t.Errorf("CA key not found in %s", output.String())
 		}
@@ -141,47 +130,16 @@ func TestWriteCertificates(t *testing.T) {
 				publicIP, output.String())
 		}
 
-		if isMaster {
-			if !strings.Contains(output.String(), "apiserver-key.pem") {
-				t.Errorf("apiserver-key.pem not found in %s",
-					output.String())
-			}
-
-			if !strings.Contains(output.String(), "apiserver.pem") {
-				t.Errorf("apiserver-key.pem not found in %s",
-					output.String())
-			}
-
-			if !strings.Contains(output.String(), "worker-key.pem") {
-				t.Errorf("worker-key.pem not found in %s",
-					output.String())
-			}
-
-			if !strings.Contains(output.String(), "worker.pem") {
-				t.Errorf("worker.pem not found in %s",
-					output.String())
-			}
-		} else {
-			if !strings.Contains(output.String(), "worker-key.pem") {
-				t.Errorf("worker-key.pem %s not found in %s",
-					publicIP, output.String())
-			}
-
-			if !strings.Contains(output.String(), "worker.pem") {
-				t.Errorf("worker.pem %s not found in %s",
-					publicIP, output.String())
-			}
-
-			if strings.Contains(output.String(), "apiserver-key.pem") {
-				t.Errorf("apiserver-key.pem must not be in in %s",
-					output.String())
-			}
-
-			if strings.Contains(output.String(), "apiserver.pem") {
-				t.Errorf("apiserver.pem must not be in in %s",
-					output.String())
-			}
+		if !strings.Contains(output.String(), "kubelet.crt") {
+			t.Errorf("kubelet.crt not found in %s",
+				output.String())
 		}
+
+		if !strings.Contains(output.String(), "kubelet.key") {
+			t.Errorf("kubelet.key not found in %s",
+				output.String())
+		}
+
 		output.Reset()
 	}
 }
@@ -200,7 +158,7 @@ func TestWriteCertificatesError(t *testing.T) {
 		proxyTemplate,
 	}
 
-	cfg := steps.NewConfig("", "", "", profile.Profile{
+	cfg := steps.NewConfig("", "", profile.Profile{
 		K8SServicesCIDR: "10.3.0.0/16",
 	})
 	cfg.Runner = r

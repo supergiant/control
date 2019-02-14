@@ -82,7 +82,7 @@ func TestDrain(t *testing.T) {
 
 	output := new(bytes.Buffer)
 
-	cfg := steps.NewConfig("", "",
+	cfg := steps.NewConfig("",
 		"", profile.Profile{})
 	cfg.Masters = steps.NewMap(map[string]*model.Machine{
 		"master-0": {
@@ -134,7 +134,7 @@ func TestErrors(t *testing.T) {
 		},
 	}
 
-	cfg := steps.NewConfig("", "",
+	cfg := steps.NewConfig("",
 		"", profile.Profile{})
 	cfg.Runner = r
 	cfg.AddMaster(&model.Machine{

@@ -13,7 +13,6 @@ import (
 	tm "github.com/supergiant/control/pkg/templatemanager"
 	"github.com/supergiant/control/pkg/workflows/steps"
 	"github.com/supergiant/control/pkg/workflows/steps/docker"
-	"github.com/supergiant/control/pkg/workflows/steps/manifest"
 )
 
 const (
@@ -68,7 +67,7 @@ func (t *Step) Description() string {
 }
 
 func (s *Step) Depends() []string {
-	return []string{docker.StepName, manifest.StepName}
+	return []string{docker.StepName}
 }
 
 func getNodeLables(role string) string {

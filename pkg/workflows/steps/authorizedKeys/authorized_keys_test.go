@@ -51,7 +51,7 @@ func TestAuthorizedkeys(t *testing.T) {
 
 	output := new(bytes.Buffer)
 
-	cfg := steps.NewConfig("", "", "", profile.Profile{})
+	cfg := steps.NewConfig("", "", profile.Profile{})
 	cfg.Runner = r
 	task := &Step{
 		tpl,
@@ -83,7 +83,7 @@ func TestAuthorizedKeysErr(t *testing.T) {
 	}
 
 	cfg := steps.NewConfig("", "",
-		"", profile.Profile{})
+		profile.Profile{})
 	cfg.Kube.SSHConfig.PublicKey = "key"
 	cfg.Runner = r
 	cfg.AddMaster(&model.Machine{

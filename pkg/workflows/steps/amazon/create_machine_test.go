@@ -189,8 +189,7 @@ func TestStepCreateInstance_Run(t *testing.T) {
 
 	for _, testCase := range testCases {
 		t.Log(testCase.description)
-		config := steps.NewConfig("test",
-			"", "", profile.Profile{})
+		config := steps.NewConfig("test", "", profile.Profile{})
 		config.AWSConfig.HasPublicAddr = true
 		config.TaskID = uuid.New()
 		config.ClusterID = uuid.New()

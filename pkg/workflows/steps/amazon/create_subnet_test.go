@@ -142,8 +142,7 @@ func TestCreateSubnetStep_Run(t *testing.T) {
 			},
 		}
 
-		config := steps.NewConfig("clusterName",
-			"", "", profile.Profile{})
+		config := steps.NewConfig("clusterName", "", profile.Profile{})
 		config.AWSConfig.VPCCIDR = testCase.vpcCIDR
 
 		err := step.Run(context.Background(), &bytes.Buffer{}, config)

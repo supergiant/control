@@ -151,7 +151,7 @@ func TestProvisionCluster(t *testing.T) {
 		},
 	}
 
-	cfg := steps.NewConfig("", "", "", *p)
+	cfg := steps.NewConfig("", "", *p)
 	ctx, cancel := context.WithCancel(context.Background())
 	taskMap, err := provisioner.ProvisionCluster(ctx, p, cfg)
 	time.Sleep(time.Millisecond * 10)
@@ -263,7 +263,7 @@ func TestProvisionNodes(t *testing.T) {
 		RBACEnabled: k.RBACEnabled,
 	}
 
-	config := steps.NewConfig(k.Name, "", k.AccountName, kubeProfile)
+	config := steps.NewConfig(k.Name, k.AccountName, kubeProfile)
 	config.ClusterID = k.ID
 
 	_, err := provisioner.ProvisionNodes(context.Background(),
@@ -336,8 +336,7 @@ func TestRestartProvisionClusterSuccess(t *testing.T) {
 			"task_id",
 		},
 	}
-	cfg := steps.NewConfig("kube_name",
-		"", "", *p)
+	cfg := steps.NewConfig("kube_name", "", *p)
 	cfg.ClusterID = "kubeID"
 
 	err := provisioner.
@@ -409,7 +408,7 @@ func TestRestartProvisionClusterError(t *testing.T) {
 		},
 	}
 	cfg := steps.NewConfig("kube_name",
-		"", "", *p)
+		"", *p)
 	cfg.ClusterID = "kubeID"
 
 	err := provisioner.
@@ -602,7 +601,6 @@ func TestMonitorCluster(t *testing.T) {
 		}
 		cfg := steps.NewConfig(
 			"test",
-			"",
 			"test",
 			profile.Profile{})
 		cfg.ClusterID = testCase.kube.ID
