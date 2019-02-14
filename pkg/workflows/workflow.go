@@ -19,6 +19,7 @@ import (
 	"github.com/supergiant/control/pkg/workflows/steps/docker"
 	"github.com/supergiant/control/pkg/workflows/steps/network"
 	"github.com/supergiant/control/pkg/workflows/steps/prometheus"
+	"github.com/supergiant/control/pkg/workflows/steps/kubelet"
 )
 
 // StepStatus aggregates data that is needed to track progress
@@ -69,7 +70,9 @@ func Init() {
 		steps.GetStep(authorizedKeys.StepName),
 		steps.GetStep(downloadk8sbinary.StepName),
 		steps.GetStep(docker.StepName),
+		steps.GetStep(certificates.StepName),
 		steps.GetStep(kubeadm.StepName),
+		steps.GetStep(kubelet.StepName),
 		steps.GetStep(poststart.StepName),
 	}
 
@@ -79,7 +82,9 @@ func Init() {
 		steps.GetStep(authorizedKeys.StepName),
 		steps.GetStep(downloadk8sbinary.StepName),
 		steps.GetStep(docker.StepName),
+		steps.GetStep(certificates.StepName),
 		steps.GetStep(kubeadm.StepName),
+		steps.GetStep(kubelet.StepName),
 		steps.GetStep(poststart.StepName),
 	}
 

@@ -618,6 +618,7 @@ func bootstrapCerts(config *steps.Config) error {
 	config.CertificatesConfig.CACert = string(ca.Cert)
 	config.CertificatesConfig.CAKey = string(ca.Key)
 
+
 	admin, err := pki.NewAdminPair(ca)
 	if err != nil {
 		return errors.Wrap(err, "create admin certificates")
