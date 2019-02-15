@@ -55,7 +55,9 @@ func (t *Step) Run(ctx context.Context, out io.Writer, config *steps.Config) err
 	if err != nil {
 		return errors.Wrapf(err, "get cluster dns ip from the %s subnet", config.ManifestConfig.ServicesCIDR)
 	}
+
 	config.ManifestConfig.ClusterDNSIP = clusterDNSIP.String()
+	config.KubeletConfig.ClusterDNSIP = clusterDNSIP.String()
 
 	err = steps.RunTemplate(ctx, t.script, config.Runner, out, config.KubeletConfig)
 
