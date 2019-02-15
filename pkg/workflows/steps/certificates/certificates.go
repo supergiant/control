@@ -9,7 +9,7 @@ import (
 	"github.com/pkg/errors"
 
 	tm "github.com/supergiant/control/pkg/templatemanager"
-	"github.com/supergiant/control/pkg/util"
+	"github.com/supergiant/control/pkg/workflows/util"
 	"github.com/supergiant/control/pkg/workflows/steps"
 )
 

@@ -12,6 +12,7 @@ import (
 	"github.com/supergiant/control/pkg/profile"
 	"github.com/supergiant/control/pkg/runner"
 	"github.com/supergiant/control/pkg/storage"
+	"github.com/supergiant/control/pkg/workflows/util"
 )
 
 type CertificatesConfig struct {
@@ -263,6 +264,10 @@ type Config struct {
 
 // NewConfig builds instance of config for provisioning
 func NewConfig(clusterName, clusterToken, cloudAccountName string, profile profile.Profile) *Config {
+	// TODO(stgleb): Handle this error
+	clusterDNSIP, _ := util.GetDNSIP(profile.K8SServicesCIDR)
+	dnsServiceIP := clusterDNSIP.String()
+
 	return &Config{
 		Kube: model.Kube{
 			SSHConfig: model.SSHConfig{
@@ -333,6 +338,7 @@ func NewConfig(clusterName, clusterToken, cloudAccountName string, profile profi
 			ProxyPort:      "8080",
 			K8SVersion:     profile.K8SVersion,
 			ProviderString: toCloudProviderOpt(profile.Provider),
+			ClusterDNSIP:   dnsServiceIP,
 		},
 		ManifestConfig: ManifestConfig{
 			K8SVersion:          profile.K8SVersion,
@@ -343,6 +349,7 @@ func NewConfig(clusterName, clusterToken, cloudAccountName string, profile profi
 			MasterHost:          "localhost",
 			MasterPort:          "8080",
 			Password:            profile.Password,
+			ClusterDNSIP:        dnsServiceIP,
 		},
 		PostStartConfig: PostStartConfig{
 			Host:        "localhost",
@@ -395,6 +402,10 @@ func NewConfig(clusterName, clusterToken, cloudAccountName string, profile profi
 
 func NewConfigFromKube(profile *profile.Profile, k *model.Kube) *Config {
 	clusterToken := uuid.New()
+
+	// TODO(stgleb): Handle this error
+	clusterDNSIP, _ := util.GetDNSIP(k.ServicesCIDR)
+	dnsServiceIP := clusterDNSIP.String()
 
 	cfg := &Config{
 		ClusterID:   k.ID,
@@ -464,6 +475,7 @@ func NewConfigFromKube(profile *profile.Profile, k *model.Kube) *Config {
 			ProxyPort:      "8080",
 			K8SVersion:     profile.K8SVersion,
 			ProviderString: toCloudProviderOpt(profile.Provider),
+			ClusterDNSIP:   dnsServiceIP,
 		},
 		ManifestConfig: ManifestConfig{
 			K8SVersion:          profile.K8SVersion,
@@ -474,6 +486,7 @@ func NewConfigFromKube(profile *profile.Profile, k *model.Kube) *Config {
 			MasterHost:          "localhost",
 			MasterPort:          "8080",
 			Password:            profile.Password,
+			ClusterDNSIP:        dnsServiceIP,
 		},
 		PostStartConfig: PostStartConfig{
 			Host:        "localhost",
