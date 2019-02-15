@@ -14,6 +14,7 @@ import (
 	"github.com/supergiant/control/pkg/workflows/steps"
 	"github.com/supergiant/control/pkg/workflows/steps/docker"
 	"github.com/supergiant/control/pkg/workflows/steps/manifest"
+	"github.com/supergiant/control/pkg/util"
 )
 
 const (
@@ -48,7 +49,15 @@ func New(script *template.Template) *Step {
 func (t *Step) Run(ctx context.Context, out io.Writer, config *steps.Config) error {
 	config.KubeletConfig.IsMaster = config.IsMaster
 	config.KubeletConfig.NodeLabels = getNodeLables(toRole(config.IsMaster))
-	err := steps.RunTemplate(ctx, t.script, config.Runner, out, config.KubeletConfig)
+
+	// Get DNS svc IP on this stage to pass it to kubelet
+	clusterDNSIP, err := util.GetDNSIP(config.ManifestConfig.ServicesCIDR)
+	if err != nil {
+		return errors.Wrapf(err, "get cluster dns ip from the %s subnet", config.ManifestConfig.ServicesCIDR)
+	}
+	config.ManifestConfig.ClusterDNSIP = clusterDNSIP.String()
+
+	err = steps.RunTemplate(ctx, t.script, config.Runner, out, config.KubeletConfig)
 
 	if err != nil {
 		return errors.Wrap(err, "install kubelet step")

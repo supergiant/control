@@ -26,6 +26,7 @@ ExecStart=/usr/bin/docker run \
       gcr.io/google-containers/hyperkube:v{{ .K8SVersion }} \
       /hyperkube kubelet --allow-privileged=true \
       --cluster-domain=cluster.local \
+      --cluster-dns={{ .ClusterDNSIP }}  \
       --pod-manifest-path=/etc/kubernetes/manifests \
       --kubeconfig=/etc/kubernetes/worker-kubeconfig.yaml \
       --client-ca-file=/etc/kubernetes/ssl/ca.pem \
