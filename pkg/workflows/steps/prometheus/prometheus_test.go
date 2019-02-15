@@ -51,8 +51,13 @@ func TestPrometheusRBACDisbled(t *testing.T) {
 
 	output := new(bytes.Buffer)
 
-	cfg := steps.NewConfig("",
+	cfg, err := steps.NewConfig("",
 		"", profile.Profile{})
+
+	if err != nil {
+		t.Errorf("Unexpected error %v", err)
+	}
+
 	cfg.Runner = r
 	cfg.PrometheusConfig = steps.PrometheusConfig{
 		Port:        promPort,
@@ -95,7 +100,12 @@ func TestPrometheusRBACEnabled(t *testing.T) {
 
 	output := new(bytes.Buffer)
 
-	cfg := steps.NewConfig("", "", profile.Profile{})
+	cfg, err := steps.NewConfig("", "", profile.Profile{})
+
+	if err != nil {
+		t.Errorf("Unexpected error %v", err)
+	}
+
 	cfg.Runner = r
 	cfg.PrometheusConfig = steps.PrometheusConfig{
 		Port:        promPort,
@@ -131,7 +141,12 @@ func TestPrometheusErr(t *testing.T) {
 		proxyTemplate,
 	}
 
-	cfg := steps.NewConfig("", "", profile.Profile{})
+	cfg, err := steps.NewConfig("", "", profile.Profile{})
+
+	if err != nil {
+		t.Errorf("Unexpected error %v", err)
+	}
+
 	cfg.Runner = r
 	cfg.AddMaster(&model.Machine{
 		State:     model.MachineStateActive,

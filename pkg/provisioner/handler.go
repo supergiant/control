@@ -98,7 +98,13 @@ func (h *Handler) Provision(w http.ResponseWriter, r *http.Request) {
 		req.Profile.K8SServicesCIDR = DefaultK8SServicesCIDR
 	}
 
-	config := steps.NewConfig(req.ClusterName, req.CloudAccountName, req.Profile)
+	config, err := steps.NewConfig(req.ClusterName, req.CloudAccountName, req.Profile)
+
+	if err != nil {
+		logrus.Errorf("New config %v", err.Error())
+		message.SendUnknownError(w, err)
+		return
+	}
 
 	acc, err := h.accountGetter.Get(r.Context(), req.CloudAccountName)
 

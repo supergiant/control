@@ -53,7 +53,12 @@ func TestClusterCheck(t *testing.T) {
 
 	output := new(bytes.Buffer)
 
-	cfg := steps.NewConfig("", "", profile.Profile{})
+	cfg, err := steps.NewConfig("", "", profile.Profile{})
+
+	if err != nil {
+		t.Errorf("Unexpected error %v", err)
+	}
+
 	cfg.ClusterCheckConfig = steps.ClusterCheckConfig{
 		MachineCount: machineCount,
 	}
@@ -91,7 +96,12 @@ func TestClusterCheckErrors(t *testing.T) {
 		proxyTemplate,
 	}
 
-	cfg := steps.NewConfig("", "", profile.Profile{})
+	cfg, err := steps.NewConfig("", "", profile.Profile{})
+
+	if err != nil {
+		t.Errorf("Unexpected error %v", err)
+	}
+
 	cfg.Runner = r
 	cfg.AddMaster(&model.Machine{
 		State:     model.MachineStateActive,

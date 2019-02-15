@@ -249,8 +249,10 @@ func (tp *TaskProvisioner) provision(ctx context.Context,
 	tp.provisionNodes(ctx, clusterProfile, config,
 		taskMap[workflows.NodeTask])
 
-	// Wait for cluster checks are finished
-	tp.waitCluster(ctx, taskMap[workflows.ClusterTask][0], config)
+	if len(taskMap[workflows.ClusterTask]) != 0 {
+		// Wait for cluster checks are finished
+		tp.waitCluster(ctx, taskMap[workflows.ClusterTask][0], config)
+	}
 	logrus.Infof("cluster %s deployment has finished",
 		config.ClusterID)
 }
@@ -347,6 +349,10 @@ func (tp *TaskProvisioner) provisionMasters(ctx context.Context,
 	tasks []*workflows.Task) error {
 	config.IsMaster = true
 
+	if len(tasks) == 0 {
+		return nil
+	}
+
 	// Get bootstrap task as a first master task
 	bootstrapTask, tasks := tasks[0], tasks[1:]
 
@@ -430,11 +436,12 @@ func (tp *TaskProvisioner) provisionNodes(ctx context.Context, profile *profile.
 		// Fulfill task config with data about provider specific node configuration
 		p := profile.NodesProfiles[index]
 		FillNodeCloudSpecificData(profile.Provider, p, config)
+		// Put task id to config so that create instance step can use this id when generate node name
+		taskConfig := *config
+		taskConfig.TaskID = nodeTask.ID
 
 		go func(t *workflows.Task) {
-			// Put task id to config so that create instance step can use this id when generate node name
-			config.TaskID = t.ID
-			result := t.Run(ctx, *config, out)
+			result := t.Run(ctx, taskConfig, out)
 			err = <-result
 
 			if err != nil {

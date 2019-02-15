@@ -152,14 +152,19 @@ func TestCreateVPCStep_Run(t *testing.T) {
 	}
 
 	for i, tc := range tt {
-		cfg := steps.NewConfig("TEST", "TEST", profile.Profile{
+		cfg, err := steps.NewConfig("TEST", "TEST", profile.Profile{
 			Region:   "us-east-1",
 			Provider: clouds.AWS,
 		})
+
+		if err != nil {
+			t.Errorf("Unexpected error %v", err)
+		}
+
 		cfg.AWSConfig = tc.awsCfg
 
 		step := NewCreateVPCStep(tc.awsFN)
-		err := step.Run(context.Background(), os.Stdout, cfg)
+		err = step.Run(context.Background(), os.Stdout, cfg)
 
 		if tc.err == nil {
 			require.NoError(t, err, "TC%d, %v", i, err)

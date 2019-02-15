@@ -13,6 +13,7 @@ import (
 	"github.com/supergiant/control/pkg/profile"
 	"github.com/supergiant/control/pkg/runner"
 	"github.com/supergiant/control/pkg/storage"
+	"github.com/pkg/errors"
 )
 
 type CertificatesConfig struct {
@@ -217,8 +218,13 @@ type Config struct {
 }
 
 // NewConfig builds instance of config for provisioning
-func NewConfig(clusterName, cloudAccountName string, profile profile.Profile) *Config {
-	token, _ := bootstrap.GenerateBootstrapToken()
+func NewConfig(clusterName, cloudAccountName string, profile profile.Profile) (*Config, error) {
+	token, err := bootstrap.GenerateBootstrapToken()
+
+	if err != nil {
+		return nil, errors.Wrapf(err, "bootstrap token")
+	}
+
 
 	return &Config{
 		Kube: model.Kube{
@@ -311,11 +317,15 @@ func NewConfig(clusterName, cloudAccountName string, profile profile.Profile) *C
 		nodeChan:      make(chan model.Machine, len(profile.MasterProfiles)+len(profile.NodesProfiles)),
 		kubeStateChan: make(chan model.KubeState, 2),
 		configChan:    make(chan *Config),
-	}
+	}, nil
 }
 
-func NewConfigFromKube(profile *profile.Profile, k *model.Kube) *Config {
-	token, _ := bootstrap.GenerateBootstrapToken()
+func NewConfigFromKube(profile *profile.Profile, k *model.Kube) (*Config, error) {
+	token, err := bootstrap.GenerateBootstrapToken()
+
+	if err != nil {
+		return nil, errors.Wrapf(err, "bootstrap token")
+	}
 
 	cfg := &Config{
 		ClusterID:   k.ID,
@@ -419,7 +429,7 @@ func NewConfigFromKube(profile *profile.Profile, k *model.Kube) *Config {
 		}
 	}
 
-	return cfg
+	return cfg, nil
 }
 
 // AddMaster to map of master, map is used because it is reference and can be shared among

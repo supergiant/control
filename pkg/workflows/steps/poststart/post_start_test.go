@@ -53,9 +53,14 @@ func TestPostStartMaster(t *testing.T) {
 	}
 
 	output := new(bytes.Buffer)
-	cfg := steps.NewConfig("test", "test", profile.Profile{
+	cfg, err := steps.NewConfig("test", "test", profile.Profile{
 		MasterProfiles: []profile.NodeProfile{{}},
 	})
+
+	if err != nil {
+		t.Errorf("Unexpected error %v", err)
+	}
+
 	cfg.IsMaster = true
 	cfg.PostStartConfig = steps.PostStartConfig{
 		Timeout: time.Second * 10,
@@ -92,9 +97,14 @@ func TestPostStartNode(t *testing.T) {
 	}
 
 	output := new(bytes.Buffer)
-	cfg := steps.NewConfig("test", "test", profile.Profile{
+	cfg, err := steps.NewConfig("test", "test", profile.Profile{
 		MasterProfiles: []profile.NodeProfile{{}},
 	})
+
+	if err != nil {
+		t.Errorf("Unexpected error %v", err)
+	}
+
 	cfg.PostStartConfig = steps.PostStartConfig{
 		Timeout: time.Second * 10,
 	}
@@ -163,7 +173,12 @@ func TestPostStartTimeout(t *testing.T) {
 		proxyTemplate,
 	}
 
-	cfg := steps.NewConfig("", "", profile.Profile{})
+	cfg, err := steps.NewConfig("", "", profile.Profile{})
+
+	if err != nil {
+		t.Errorf("Unexpected error %v", err)
+	}
+
 	cfg.PostStartConfig = steps.PostStartConfig{
 		true,
 		"127.0.0.1",

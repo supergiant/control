@@ -246,13 +246,17 @@ func TestCreateInstanceStep_Run(t *testing.T) {
 			},
 		}
 
-		cfg := steps.NewConfig("", "", profile.Profile{
+		cfg, err := steps.NewConfig("", "", profile.Profile{
 			MasterProfiles: make([]profile.NodeProfile, 10),
 		})
+		if err != nil {
+			t.Errorf("Unexpected error %v", err)
+		}
+
 		cfg.ClusterID = uuid.New()
 		cfg.TaskID = uuid.New()
 		cfg.IsMaster = testCase.isMaster
-		err := step.Run(context.Background(), &buffer.Buffer{}, cfg)
+		err = step.Run(context.Background(), &buffer.Buffer{}, cfg)
 
 		if testCase.expectError && err == nil {
 			t.Errorf("Error not must be nil")

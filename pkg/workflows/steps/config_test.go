@@ -56,7 +56,11 @@ func TestNewConfig(t *testing.T) {
 		NodesProfiles:  make([]profile.NodeProfile, expectedNodeCount),
 	}
 
-	cfg := NewConfig(clusterName, cloudAccountName, p)
+	cfg, err := NewConfig(clusterName, cloudAccountName, p)
+
+	if err != nil {
+		t.Errorf("Unexpected error %v", err)
+	}
 
 	if cfg.ClusterName != clusterName {
 		t.Errorf("Wrong cluster name expected %s actual %s", clusterName, cfg.ClusterName)
@@ -299,7 +303,11 @@ func TestNewConfigFromKube(t *testing.T) {
 		},
 	}
 
-	cfg := NewConfigFromKube(&p, k)
+	cfg, err := NewConfigFromKube(&p, k)
+
+	if err != nil {
+		t.Errorf("Unexpected error %v", err)
+	}
 
 	if cfg.ClusterName != k.Name {
 		t.Errorf("Wrong cluster name expected %s actual %s", k.Name, cfg.ClusterName)

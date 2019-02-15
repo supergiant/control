@@ -189,7 +189,12 @@ func TestStepCreateInstance_Run(t *testing.T) {
 
 	for _, testCase := range testCases {
 		t.Log(testCase.description)
-		config := steps.NewConfig("test", "", profile.Profile{})
+		config, err := steps.NewConfig("test", "", profile.Profile{})
+
+		if err != nil {
+			t.Errorf("Unexpected error %v", err)
+		}
+
 		config.AWSConfig.HasPublicAddr = true
 		config.TaskID = uuid.New()
 		config.ClusterID = uuid.New()
@@ -221,7 +226,7 @@ func TestStepCreateInstance_Run(t *testing.T) {
 			}
 		}()
 
-		err := step.Run(ctx, &bytes.Buffer{}, config)
+		err = step.Run(ctx, &bytes.Buffer{}, config)
 		cancel()
 
 		if err == nil && testCase.errMsg != "" {

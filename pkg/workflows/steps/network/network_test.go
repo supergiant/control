@@ -80,7 +80,12 @@ func TestNetworkConfig(t *testing.T) {
 
 		output := &bytes.Buffer{}
 
-		config := steps.NewConfig("", "", profile.Profile{})
+		config, err := steps.NewConfig("", "", profile.Profile{})
+
+		if err != nil {
+			t.Errorf("Unexpected error %v", err)
+		}
+
 		config.NetworkConfig = steps.NetworkConfig{
 			NetworkProvider: testCase.networkProvider,
 		}
@@ -92,7 +97,7 @@ func TestNetworkConfig(t *testing.T) {
 			script: tpl,
 		}
 
-		err := task.Run(context.Background(), output, config)
+		err = task.Run(context.Background(), output, config)
 
 		if testCase.expectedError != errors.Cause(err) {
 			t.Fatalf("wrong error expected %v actual %v", testCase.expectedError, err)
@@ -118,7 +123,12 @@ func TestNetworkErrors(t *testing.T) {
 		proxyTemplate,
 	}
 
-	cfg := steps.NewConfig("", "", profile.Profile{})
+	cfg, err := steps.NewConfig("", "", profile.Profile{})
+
+	if err != nil {
+		t.Errorf("Unexpected error %v", err)
+	}
+
 	cfg.Runner = r
 	err = task.Run(context.Background(), output, cfg)
 
