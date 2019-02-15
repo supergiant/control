@@ -121,6 +121,7 @@ type KubeletConfig struct {
 	ProxyPort      string `json:"proxyPort"`
 	K8SVersion     string `json:"k8sVersion"`
 	ProviderString string `json:"ProviderString"`
+	ClusterDNSIP   string `json:"clusterDNSip"`
 }
 
 type ManifestConfig struct {
