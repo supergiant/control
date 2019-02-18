@@ -5,15 +5,14 @@ import (
 	"sync"
 	"time"
 
-	//bootstraputil "k8s.io/cluster-bootstrap/token/util"
+	"github.com/pkg/errors"
 
-	"github.com/supergiant/control/pkg/bootstrap"
 	"github.com/supergiant/control/pkg/clouds"
 	"github.com/supergiant/control/pkg/model"
 	"github.com/supergiant/control/pkg/profile"
 	"github.com/supergiant/control/pkg/runner"
 	"github.com/supergiant/control/pkg/storage"
-	"github.com/pkg/errors"
+	"github.com/supergiant/control/pkg/bootstrap"
 )
 
 type CertificatesConfig struct {
