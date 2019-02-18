@@ -116,6 +116,8 @@ func FillCloudAccountCredentials(ctx context.Context, cloudAccount *model.CloudA
 		return BindParams(cloudAccount.Credentials, &config.DigitalOceanConfig)
 	case clouds.GCE:
 		return BindParams(cloudAccount.Credentials, &config.GCEConfig)
+	case clouds.Azure:
+		return BindParams(cloudAccount.Credentials, &config.AzureConfig)
 	default:
 		return sgerrors.ErrUnknownProvider
 	}
@@ -160,17 +162,20 @@ func LoadCloudSpecificDataFromKube(k *model.Kube, config *steps.Config) error {
 		config.AWSConfig.MastersInstanceProfile = k.CloudSpec[clouds.AwsMasterInstanceProfile]
 		config.AWSConfig.NodesInstanceProfile = k.CloudSpec[clouds.AwsNodeInstanceProfile]
 		config.AWSConfig.ImageID = k.CloudSpec[clouds.AwsImageID]
-
 		config.Kube.SSHConfig.BootstrapPrivateKey = k.CloudSpec[clouds.AwsSshBootstrapPrivateKey]
 		config.Kube.SSHConfig.PublicKey = k.CloudSpec[clouds.AwsUserProvidedSshPublicKey]
-		return nil
+
 	case clouds.GCE:
 		config.GCEConfig.Region = k.Region
-		return nil
+
 	case clouds.DigitalOcean:
-		return nil
+
+	case clouds.Azure:
+		config.AzureConfig.Location = k.Region
+
+	default:
+		return errors.Wrapf(sgerrors.ErrUnsupportedProvider, "Load cloud specific data from kube %s", k.ID)
 	}
 
-	return errors.Wrapf(sgerrors.ErrUnsupportedProvider,
-		"Load cloud specific data from kube %s", k.ID)
+	return nil
 }

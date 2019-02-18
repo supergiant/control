@@ -68,6 +68,15 @@ type GCEConfig struct {
 	InstanceGroup    string `json:"instanceGroup"`
 }
 
+type AzureConfig struct {
+	ClientID       string `json:"clientId"`
+	ClientSecret   string `json:"clientSecret"`
+	TenantID       string `json:"tenantId"`
+	SubscriptionID string `json:"subscriptionId"`
+
+	Location string `json:location`
+}
+
 type PacketConfig struct{}
 
 type OSConfig struct{}
@@ -223,6 +232,7 @@ type Config struct {
 	DigitalOceanConfig     DOConfig     `json:"digitalOceanConfig"`
 	AWSConfig              AWSConfig    `json:"awsConfig"`
 	GCEConfig              GCEConfig    `json:"gceConfig"`
+	AzureConfig            AzureConfig  `json:"azureConfig"`
 	OSConfig               OSConfig     `json:"osConfig"`
 	PacketConfig           PacketConfig `json:"packetConfig"`
 
@@ -296,6 +306,9 @@ func NewConfig(clusterName, clusterToken, cloudAccountName string, profile profi
 		GCEConfig: GCEConfig{
 			AvailabilityZone: profile.Zone,
 			ImageFamily:      "ubuntu-1604-lts",
+		},
+		AzureConfig: AzureConfig{
+			Location: profile.Region,
 		},
 		OSConfig:     OSConfig{},
 		PacketConfig: PacketConfig{},
@@ -425,6 +438,9 @@ func NewConfigFromKube(profile *profile.Profile, k *model.Kube) *Config {
 		},
 		GCEConfig: GCEConfig{
 			AvailabilityZone: profile.Zone,
+		},
+		AzureConfig: AzureConfig{
+			Location: profile.Region,
 		},
 		OSConfig:     OSConfig{},
 		PacketConfig: PacketConfig{},
