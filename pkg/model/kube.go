@@ -26,6 +26,7 @@ type Kube struct {
 	Region       string      `json:"region"`
 	Zone         string      `json:"zone" valid:"-"`
 	ServicesCIDR string      `json:"servicesCIDR"`
+	DNSIP        string      `json:"dnsip"`
 	APIPort      string      `json:"apiPort"`
 	Auth         Auth        `json:"auth"`
 

@@ -403,10 +403,6 @@ func NewConfig(clusterName, clusterToken, cloudAccountName string, profile profi
 func NewConfigFromKube(profile *profile.Profile, k *model.Kube) *Config {
 	clusterToken := uuid.New()
 
-	// TODO(stgleb): Handle this error
-	clusterDNSIP, _ := util.GetDNSIP(k.ServicesCIDR)
-	dnsServiceIP := clusterDNSIP.String()
-
 	cfg := &Config{
 		ClusterID:   k.ID,
 		Provider:    profile.Provider,
@@ -475,7 +471,7 @@ func NewConfigFromKube(profile *profile.Profile, k *model.Kube) *Config {
 			ProxyPort:      "8080",
 			K8SVersion:     profile.K8SVersion,
 			ProviderString: toCloudProviderOpt(profile.Provider),
-			ClusterDNSIP:   dnsServiceIP,
+			ClusterDNSIP:   k.DNSIP,
 		},
 		ManifestConfig: ManifestConfig{
 			K8SVersion:          profile.K8SVersion,
@@ -486,7 +482,7 @@ func NewConfigFromKube(profile *profile.Profile, k *model.Kube) *Config {
 			MasterHost:          "localhost",
 			MasterPort:          "8080",
 			Password:            profile.Password,
-			ClusterDNSIP:        dnsServiceIP,
+			ClusterDNSIP:        k.DNSIP,
 		},
 		PostStartConfig: PostStartConfig{
 			Host:        "localhost",
