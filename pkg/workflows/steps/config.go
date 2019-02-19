@@ -74,12 +74,16 @@ type GCEConfig struct {
 }
 
 type AzureConfig struct {
-	ClientID       string `json:"clientId"`
-	ClientSecret   string `json:"clientSecret"`
-	TenantID       string `json:"tenantId"`
-	SubscriptionID string `json:"subscriptionId"`
-
-	Location string `json:location`
+	ClientID           string `json:"clientId"`
+	ClientSecret       string `json:"clientSecret"`
+	TenantID           string `json:"tenantId"`
+	SubscriptionID     string `json:"subscriptionId"`
+	Location           string `json:"location"`
+	ResourceGroupName  string `json:"resourceGroupName"`
+	VirtualNetworkName string `json:"virtualNetworkName"`
+	User               string `json:"user"`
+	Password           string `json:"password"`
+	Size               string `json:"size"`
 }
 
 type PacketConfig struct{}
@@ -369,7 +373,8 @@ func NewConfigFromKube(profile *profile.Profile, k *model.Kube) (*Config, error)
 			AvailabilityZone: profile.Zone,
 		},
 		AzureConfig: AzureConfig{
-			Location: profile.Region,
+			Location:           profile.Region,
+			VirtualNetworkName: k.CloudSpec[clouds.AzureVNetName],
 		},
 		OSConfig:     OSConfig{},
 		PacketConfig: PacketConfig{},

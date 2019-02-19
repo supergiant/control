@@ -78,6 +78,10 @@ func cleanUpStepsFor(provider clouds.Name) ([]steps.Step, error) {
 		return []steps.Step{
 			steps.GetStep(gce.DeleteNodeStepName),
 		}, nil
+	case clouds.Azure:
+		return []steps.Step{
+			//TODO DELETION
+		}, nil
 	}
 	return nil, errors.New(fmt.Sprintf("unknown provider: %s", provider))
 }

@@ -3,6 +3,8 @@ package azure
 import (
 	"fmt"
 
+	"github.com/supergiant/control/pkg/workflows/steps"
+
 	"github.com/Azure/azure-sdk-for-go/services/resources/mgmt/2018-05-01/resources"
 	"github.com/Azure/go-autorest/autorest"
 )
@@ -27,4 +29,14 @@ func toResourceGroupName(clusterID, clusterName string) string {
 
 func toStrPtr(s string) *string {
 	return &s
+}
+
+func toBoolPtr(b bool) *bool {
+	return &b
+}
+
+func Init() {
+	steps.RegisterStep(CreateMachineStepName, &CreateMachineStep{})
+	steps.RegisterStep(CreateGroupStepName, &CreateGroupStep{})
+	steps.RegisterStep(CreateVNetStepName, &CreateVnetStep{})
 }

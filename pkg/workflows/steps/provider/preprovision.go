@@ -3,6 +3,7 @@ package provider
 import (
 	"context"
 	"fmt"
+	"github.com/supergiant/control/pkg/workflows/steps/azure"
 	"io"
 
 	"github.com/pkg/errors"
@@ -72,6 +73,11 @@ func prepProvisionStepFor(provider clouds.Name) ([]steps.Step, error) {
 		return []steps.Step{}, nil
 	case clouds.GCE:
 		return []steps.Step{}, nil
+	case clouds.Azure:
+		return []steps.Step{
+			steps.GetStep(azure.CreateGroupStepName),
+			steps.GetStep(azure.CreateVNetStepName),
+		}, nil
 	}
 	return nil, errors.New(fmt.Sprintf("unknown provider: %s", provider))
 }

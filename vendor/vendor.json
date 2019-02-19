@@ -9,6 +9,36 @@
 			"revisionTime": "2019-02-14T01:44:58Z"
 		},
 		{
+			"checksumSHA1": "4op2cBxknsrutrpMNzcI0R9oAG4=",
+			"path": "github.com/Azure/azure-sdk-for-go/profiles/2018-03-01/compute/mgmt/compute",
+			"revision": "421f1eabcf99ae840f9e5c785754ed9019de00c7",
+			"revisionTime": "2019-02-27T21:15:09Z"
+		},
+		{
+			"checksumSHA1": "VJpOSH+TFLb7RdcdzwWOz3Nb5qk=",
+			"path": "github.com/Azure/azure-sdk-for-go/profiles/2018-03-01/network/mgmt/network",
+			"revision": "961851084b22af00900473bc704eb2f06e3a4e6c",
+			"revisionTime": "2019-03-01T22:03:26Z"
+		},
+		{
+			"checksumSHA1": "texhTxK0SZEtXmXNar3OAdZ8xUo=",
+			"path": "github.com/Azure/azure-sdk-for-go/services/compute/mgmt/2017-03-30/compute",
+			"revision": "961851084b22af00900473bc704eb2f06e3a4e6c",
+			"revisionTime": "2019-03-01T22:03:26Z"
+		},
+		{
+			"checksumSHA1": "5JH0j0T+RXPELKIPXoLL8jtTJb4=",
+			"path": "github.com/Azure/azure-sdk-for-go/services/network/mgmt/2017-10-01/network",
+			"revision": "421f1eabcf99ae840f9e5c785754ed9019de00c7",
+			"revisionTime": "2019-02-27T21:15:09Z"
+		},
+		{
+			"checksumSHA1": "41HjBzQOOEXzXjb4mevUnKUEDcA=",
+			"path": "github.com/Azure/azure-sdk-for-go/services/network/mgmt/2018-11-01/network",
+			"revision": "2ea98fc438b9d78aa2ab32bab44c7f68e506385e",
+			"revisionTime": "2019-02-06T21:01:01Z"
+		},
+		{
 			"checksumSHA1": "uJlA7Ak0zO19/MYXrKFkcTk8Qq0=",
 			"path": "github.com/Azure/azure-sdk-for-go/services/resources/mgmt/2018-05-01/resources",
 			"revision": "2ea98fc438b9d78aa2ab32bab44c7f68e506385e",

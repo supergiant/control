@@ -269,6 +269,8 @@ func (tp *TaskProvisioner) prepare(name clouds.Name, masterCount, nodeCount int)
 	nodeTasks := make([]*workflows.Task, 0, nodeCount)
 	//some clouds (e.g. AWS) requires running tasks before provisioning nodes (creating a VPC, Subnets, SecGroups, etc)
 	switch name {
+	case clouds.Azure:
+		fallthrough
 	case clouds.AWS:
 		preProvisionTask, err = workflows.NewTask(workflows.PreProvision, tp.repository)
 		if err != nil {

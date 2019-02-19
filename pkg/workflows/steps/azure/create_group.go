@@ -2,54 +2,47 @@ package azure
 
 import (
 	"context"
+	"fmt"
+	"github.com/supergiant/control/pkg/clouds/azuresdk"
 	"io"
 
 	"github.com/Azure/azure-sdk-for-go/services/resources/mgmt/2018-05-01/resources"
-	"github.com/Azure/go-autorest/autorest/azure/auth"
 	"github.com/pkg/errors"
-
-	"github.com/supergiant/control/pkg/sgerrors"
 	"github.com/supergiant/control/pkg/workflows/steps"
 )
 
 const CreateGroupStepName = "CreateResourceGroup"
 
-type BaseClientFn func(authorizer Autorizerer, subscriptionID string) (resources.BaseClient, error)
-
 type CreateGroupStep struct {
-	baseClientFn BaseClientFn
 }
 
 func NewCreateInstanceStep() *CreateGroupStep {
-	return &CreateGroupStep{
-		baseClientFn: BaseClientFor,
-	}
+	return &CreateGroupStep{}
 }
 
-func (s *CreateGroupStep) Run(ctx context.Context, output io.Writer, config *steps.Config) error {
-	if s.baseClientFn == nil {
-		return errors.Wrap(sgerrors.ErrNilEntity, "base client builder")
-	}
+func (s *CreateGroupStep) Run(ctx context.Context, w io.Writer, cfg *steps.Config) error {
+	sdk := azuresdk.New(cfg.AzureConfig)
 
-	baseClient, err := s.baseClientFn(auth.ClientCredentialsConfig{
-		ClientID:     config.AzureConfig.ClientID,
-		ClientSecret: config.AzureConfig.ClientSecret,
-		TenantID:     config.AzureConfig.TenantID,
-	},
-		config.AzureConfig.SubscriptionID,
-	)
+	groupName := toResourceGroupName(cfg.ClusterID, cfg.ClusterName)
+
+	groupsClient, err := sdk.GroupsClient()
 	if err != nil {
 		return err
 	}
-
-	groupsClient := resources.GroupsClient{BaseClient: baseClient}
-	_, err = groupsClient.CreateOrUpdate(ctx, "", resources.Group{
-		Name:     toStrPtr(toResourceGroupName(config.ClusterID, config.ClusterName)),
-		Location: toStrPtr(config.AzureConfig.Location),
+	result, err := groupsClient.CreateOrUpdate(ctx, groupName, resources.Group{
+		Name:     toStrPtr(groupName),
+		Location: toStrPtr(cfg.AzureConfig.Location),
 		Tags:     map[string]*string{},
 	})
 
-	return errors.Wrap(err, "create resources group")
+	if err != nil {
+		return errors.Wrap(err, "create resources group")
+	}
+	fmt.Printf("%+v", result)
+
+	cfg.AzureConfig.ResourceGroupName = groupName
+
+	return nil
 }
 
 func (s *CreateGroupStep) Rollback(context.Context, io.Writer, *steps.Config) error {

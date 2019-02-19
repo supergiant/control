@@ -66,4 +66,5 @@ const (
 	AzureSubscriptionID = "subscriptionId"
 	AzureClientID       = "clientId"
 	AzureClientSecret   = "clientSecret"
+	AzureVNetName       = "azure_vnet_name"
 )

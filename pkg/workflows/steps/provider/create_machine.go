@@ -3,6 +3,7 @@ package provider
 import (
 	"context"
 	"fmt"
+	"github.com/supergiant/control/pkg/workflows/steps/azure"
 	"io"
 
 	"github.com/pkg/errors"
@@ -58,6 +59,8 @@ func createMachineStepFor(provider clouds.Name) (steps.Step, error) {
 		return steps.GetStep(digitalocean.CreateMachineStepName), nil
 	case clouds.GCE:
 		return steps.GetStep(gce.CreateInstanceStepName), nil
+	case clouds.Azure:
+		return steps.GetStep(azure.CreateMachineStepName), nil
 	}
 	return nil, errors.New(fmt.Sprintf("unknown provider: %s", provider))
 }
