@@ -41,15 +41,22 @@ func (s *CreateGroupStep) Run(ctx context.Context, output io.Writer, config *ste
 	if err != nil {
 		return err
 	}
+	groupName := toResourceGroupName(config.ClusterID, config.ClusterName)
 
 	groupsClient := resources.GroupsClient{BaseClient: baseClient}
 	_, err = groupsClient.CreateOrUpdate(ctx, "", resources.Group{
-		Name:     toStrPtr(toResourceGroupName(config.ClusterID, config.ClusterName)),
+		Name:     toStrPtr(groupName),
 		Location: toStrPtr(config.AzureConfig.Location),
 		Tags:     map[string]*string{},
 	})
 
-	return errors.Wrap(err, "create resources group")
+	if err != nil {
+		return errors.Wrap(err, "create resources group")
+	}
+
+	config.AzureConfig.ResourceGroupName = groupName
+
+	return nil
 }
 
 func (s *CreateGroupStep) Rollback(context.Context, io.Writer, *steps.Config) error {

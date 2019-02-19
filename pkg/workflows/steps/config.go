@@ -69,12 +69,13 @@ type GCEConfig struct {
 }
 
 type AzureConfig struct {
-	ClientID       string `json:"clientId"`
-	ClientSecret   string `json:"clientSecret"`
-	TenantID       string `json:"tenantId"`
-	SubscriptionID string `json:"subscriptionId"`
-
-	Location string `json:location`
+	ClientID           string `json:"clientId"`
+	ClientSecret       string `json:"clientSecret"`
+	TenantID           string `json:"tenantId"`
+	SubscriptionID     string `json:"subscriptionId"`
+	Location           string `json:"location"`
+	ResourceGroupName  string `json:"resourceGroupName"`
+	VirtualNetworkName string `json:"virtualNetworkName"`
 }
 
 type PacketConfig struct{}
