@@ -77,10 +77,10 @@
           </mat-form-field>
 
           <mat-form-field>
-            <mat-select placeholder="Flannel Version"
-                        formControlName="flannelVersion"
+            <mat-select placeholder="Network Provider"
+                        formControlName="networkProvider"
                         required>
-              <mat-option *ngFor="let f of clusterOptions.flannelVersions"
+              <mat-option *ngFor="let f of clusterOptions.networkProviders"
                           [value]="f">{{ f }}</mat-option>
             </mat-select>
             <mat-hint align="end">What is
