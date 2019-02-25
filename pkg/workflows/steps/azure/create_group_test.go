@@ -11,9 +11,10 @@ import (
 	"github.com/supergiant/control/pkg/workflows/steps"
 )
 
-func TestCreateClusterStep(t *testing.T) {
+func TestCreateGroupStep(t *testing.T) {
 	s := NewCreateGroupStep()
-	require.NotNil(t, s.groupsClientFn, "groups client shouldn't be nil")
+
+	require.NotNil(t, s.groupsClientFn, "base client shouldn't be nil")
 
 	var nilStringSlice []string
 	require.Equal(t, nil, s.Rollback(context.Background(), nil, nil), "rollback not implemented")
@@ -61,6 +62,7 @@ func TestCreateClusterStep_Run(t *testing.T) {
 		},
 	} {
 		err := tc.createGroup.Run(context.Background(), nil, &steps.Config{})
+
 		require.Equalf(t, tc.expectedErr, errors.Cause(err), "TC: %s", tc.name)
 	}
 }

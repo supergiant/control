@@ -3,6 +3,7 @@ package provisioner
 import (
 	"context"
 	"io"
+	"io/ioutil"
 	"sync"
 	"testing"
 	"time"
@@ -18,7 +19,6 @@ import (
 	"github.com/supergiant/control/pkg/testutils"
 	"github.com/supergiant/control/pkg/workflows"
 	"github.com/supergiant/control/pkg/workflows/steps"
-	"io/ioutil"
 )
 
 type bufferCloser struct {
@@ -274,7 +274,6 @@ func TestProvisionNodes(t *testing.T) {
 		t.Errorf("Unexpected error %v", err)
 	}
 
-
 	config.ClusterID = k.ID
 
 	_, err = provisioner.ProvisionNodes(context.Background(),
@@ -435,7 +434,6 @@ func TestRestartProvisionClusterError(t *testing.T) {
 	if err != nil {
 		t.Errorf("Unexpected error %v", err)
 	}
-
 
 	cfg.ClusterID = "kubeID"
 
@@ -635,7 +633,6 @@ func TestMonitorCluster(t *testing.T) {
 		if err != nil {
 			t.Errorf("Unexpected error %v", err)
 		}
-
 
 		cfg.ClusterID = testCase.kube.ID
 		logrus.Println(testCase.kube.ID)

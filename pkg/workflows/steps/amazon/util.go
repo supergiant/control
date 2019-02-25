@@ -45,7 +45,7 @@ func FindOutboundIP(ctx context.Context, findExternalIP func() (string, error)) 
 	return publicIP, err
 }
 
-func findOutBoundIP() (string, error) {
+func FindExternalIP() (string, error) {
 	var (
 		publicIP string
 		resp     *http.Response

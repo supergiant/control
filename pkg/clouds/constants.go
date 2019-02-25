@@ -41,7 +41,8 @@ const (
 	GCEClientEmail = "client_email"
 	GCETokenURI    = "token_uri"
 
-	ClusterIDTag = "supergiant.io/cluster-id"
+	TagClusterID         = "supergiant.io/cluster-id"
+	TagKubernetesCluster = "KubernetesCluster"
 
 	AWSAccessKeyID              = "access_key"
 	AWSSecretKey                = "secret_key"
