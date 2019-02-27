@@ -1,12 +1,12 @@
 import { Component, OnInit, OnDestroy, ViewEncapsulation } from '@angular/core';
+import { Router } from '@angular/router';
+import { MatTableDataSource } from '@angular/material';
 import { of, Subscription, timer as observableTimer } from 'rxjs';
 import { switchMap } from 'rxjs/operators';
-import { convertIsoToHumanReadable } from '../shared/helpers/helpers';
-import { MatTableDataSource } from '@angular/material';
 
 import { Supergiant } from '../shared/supergiant/supergiant.service';
 import { AuthService } from '../shared/supergiant/auth/auth.service';
-import { Router } from '@angular/router';
+import { Notifications } from '../shared/notifications/notifications.service';
 
 @Component({
   selector: 'app-dashboard',
@@ -25,7 +25,8 @@ export class DashboardComponent implements OnInit, OnDestroy {
   constructor(
     private supergiant: Supergiant,
     public auth: AuthService,
-    private router: Router
+    private router: Router,
+    private notifications: Notifications
   ) { }
 
   setClusterListView(view, e?) {
@@ -50,15 +51,15 @@ export class DashboardComponent implements OnInit, OnDestroy {
 
   getCloudAccounts() {
     this.subscriptions.add(this.supergiant.CloudAccounts.get().subscribe(
-      (cloudAccounts) => {
-        this.cloudAccounts = cloudAccounts;
-      }));
+      cloudAccounts => this.cloudAccounts = cloudAccounts,
+      err => console.error(err)
+    ));
   }
 
   getClusters() {
     this.subscriptions.add(observableTimer(0, 10000).pipe(
       switchMap(() => this.supergiant.Kubes.get())).subscribe(
-        clusters => {
+      clusters => {
           // TODO: this is terrible
           clusters.map(c => {
 
@@ -90,7 +91,7 @@ export class DashboardComponent implements OnInit, OnDestroy {
             }
           }
       },
-      err => console.error(err)
+      err => this.displayError(err)
     ));
   }
 
@@ -101,6 +102,19 @@ export class DashboardComponent implements OnInit, OnDestroy {
   logout() {
     this.auth.logout();
     this.router.navigate(['']);
+  }
+
+  displayError(err) {
+    let msg: string;
+
+    if (err.userMessage) {
+      msg = err.userMessage;
+    } else {
+      msg = err.error;
+      // msg = err.message;
+    }
+
+    this.notifications.display("error", "Error",msg);
   }
 
   ngOnInit() {

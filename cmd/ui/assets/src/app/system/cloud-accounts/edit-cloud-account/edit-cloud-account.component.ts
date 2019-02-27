@@ -3,6 +3,7 @@ import { ActivatedRoute, Router } from '@angular/router';
 import { Subscription } from 'rxjs';
 
 import { Supergiant } from '../../../shared/supergiant/supergiant.service';
+import { Notifications } from '../../../shared/notifications/notifications.service';
 
 @Component({
   selector: 'app-edit-cloud-account',
@@ -21,7 +22,8 @@ export class EditCloudAccountComponent implements OnInit, OnDestroy {
   constructor(
     private route: ActivatedRoute,
     private router: Router,
-    private supergiant: Supergiant
+    private supergiant: Supergiant,
+    private notifications: Notifications
   ) { }
 
   getAccount(name) {
@@ -36,14 +38,42 @@ export class EditCloudAccountComponent implements OnInit, OnDestroy {
       this.saving = true;
 
       this.supergiant.CloudAccounts.update(this.accountName, account).subscribe(
-        res => this.router.navigate(['../../'], { relativeTo: this.route}),
-        err => console.error(err)
+        res => {
+          this.displaySuccess(this.accountName);
+          this.router.navigate(['../../'], { relativeTo: this.route});
+        },
+        err => this.displayError(this.accountName, err)
       );
     }
   }
 
   cancel() {
     this.router.navigate(['../../'], { relativeTo: this.route});
+  }
+
+  displaySuccess(accountName) {
+    this.notifications.display(
+      "success",
+      "Account: " + accountName,
+      "Saved successfully"
+    )
+  }
+
+  displayError(accountName, err) {
+    let msg: string;
+
+    if (err.error.userMessage) {
+      console.log(err.error.devMessage);
+      msg = err.error.userMessage
+    } else {
+      msg = err.error
+    }
+
+    this.notifications.display(
+      'error',
+      'Account: ' + accountName,
+      'Error: ' + msg
+    );
   }
 
   ngOnInit() {

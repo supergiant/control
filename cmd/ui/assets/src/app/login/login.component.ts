@@ -37,11 +37,18 @@ export class LoginComponent implements OnDestroy, OnInit {
     this.loginForm.controls['password'].updateValueAndValidity()
   }
 
-  error(msg) {
+  displayError(err) {
+    let msg: string;
+    if (err.userMessage) {
+      msg = err.userMessage
+    } else {
+      msg = err.error
+      // msg = err.message
+    }
     this.notifications.display(
       'error',
-      'Login Error',
-      'Error:' + msg);
+      'Error',
+      msg);
   }
 
   login(creds) {
@@ -51,7 +58,7 @@ export class LoginComponent implements OnDestroy, OnInit {
         this.router.navigate(['/dashboard']);
       },
       err => {
-        this.error(err.userMessage)
+        this.displayError(err);
       }
     )
   }
@@ -93,7 +100,7 @@ export class LoginComponent implements OnDestroy, OnInit {
           this.initColdStartForm();
         }
       },
-      err => this.error(err.userMessage)
+      err => this.error(err)
     )
   }
 
