@@ -39,11 +39,10 @@ export class LoginComponent implements OnDestroy, OnInit {
 
   displayError(err) {
     let msg: string;
-    if (err.userMessage) {
-      msg = err.userMessage
+    if (err.error.userMessage) {
+      msg = err.error.userMessage
     } else {
       msg = err.error
-      // msg = err.message
     }
     this.notifications.display(
       'error',
@@ -75,7 +74,7 @@ export class LoginComponent implements OnDestroy, OnInit {
           this.supergiant.loginSuccess = true;
           this.router.navigate(['/dashboard']);
         },
-        err => this.error(err.userMessage)
+        err => this.displayError(err)
       )
     } else {
       this.login(creds)
@@ -100,7 +99,7 @@ export class LoginComponent implements OnDestroy, OnInit {
           this.initColdStartForm();
         }
       },
-      err => this.error(err)
+      err => this.displayError(err)
     )
   }
 
