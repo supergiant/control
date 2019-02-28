@@ -16,10 +16,7 @@ export class HelmReleases {
       return this.util.fetch(this.helmReleasesPath + '/kubes/' + clusterId + '/releases/' + releaseName);
     }
 
-    return this.util.fetch(this.helmReleasesPath + '/kubes/' + clusterId + '/releases')
-      .pipe(
-        timeout(1000),
-      );
+    return this.util.fetch(this.helmReleasesPath + '/kubes/' + clusterId + '/releases');
   }
 
   public create(data): Observable<any> {
