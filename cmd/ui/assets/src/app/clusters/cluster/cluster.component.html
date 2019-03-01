@@ -196,7 +196,8 @@
         </div>
         <div class="values">
           <span>{{ kube.K8SVersion }}</span>
-          <span>{{ kube.accountName }}</span>
+          <!-- TODO: do this in component or service -->
+          <span>{{ (kube.accountName.length>8)? (kube.accountName | slice:0:8)+'...':(kube.accountName) }}</span>
           <span>{{ kube.arch }}</span>
           <span>{{ kube.operatingSystem }}</span>
         </div>
