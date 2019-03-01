@@ -404,8 +404,7 @@ export class ClusterComponent implements AfterViewInit, OnDestroy {
       .afterClosed()
       .pipe(
         filter(isConfirmed => isConfirmed),
-        switchMap(() => this.supergiant.Kubes.delete(this.clusterId)),
-        catchError((error) => of(error)),
+        switchMap(() => this.supergiant.Kubes.delete(this.clusterId))
       ).subscribe(
         res => {
           this.displaySuccess("Kube: " + this.kube.name, "Deleted!");
