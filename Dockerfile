@@ -14,11 +14,12 @@ COPY . $GOPATH/src/github.com/supergiant/control/
 WORKDIR $GOPATH/src/github.com/supergiant/control/
 
 ARG ARCH=amd64
+ARG TAG=unstable
 
 RUN go get -u github.com/rakyll/statik
 RUN statik -src=/etc/supergiant/ui
 RUN CGO_ENABLED=0 GOOS=linux GOARCH=${ARCH} \
-    go build -a -installsuffix cgo -ldflags='-extldflags "-static" -w -s -X main.version=${TAG}' -o /go/bin/supergiant ./cmd/controlplane
+    go build -a -ldflags="-X main.version=${TAG}" -o /go/bin/supergiant ./cmd/controlplane
 
 RUN update-ca-certificates
 
