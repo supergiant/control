@@ -55,6 +55,7 @@ func main() {
 
 	server, err := controlplane.New(cfg)
 	if err != nil {
+		logrus.Infof("configuration: %+v", *cfg)
 		logrus.Fatalf("broken configuration: %v", err)
 	}
 
