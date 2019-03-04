@@ -19,8 +19,8 @@ import (
 const (
 	StepName = "kubelet"
 
-	// nodeLabelRole specifies the role of a node
-	nodeLabelRole = "kubernetes.io/role"
+	// LabelNodeRole specifies the role of a node
+	LabelNodeRole = "kubernetes.io/role"
 )
 
 type Step struct {
@@ -76,7 +76,7 @@ func (s *Step) Depends() []string {
 
 func getNodeLables(role string) string {
 	return labels.Set(map[string]string{
-		nodeLabelRole: role,
+		LabelNodeRole: role,
 	}).String()
 }
 

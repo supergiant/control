@@ -8,6 +8,7 @@ import (
 	"k8s.io/apimachinery/pkg/runtime/serializer"
 	"k8s.io/client-go/discovery"
 	"k8s.io/client-go/kubernetes/scheme"
+	corev1client "k8s.io/client-go/kubernetes/typed/core/v1"
 	"k8s.io/client-go/rest"
 	"k8s.io/client-go/tools/clientcmd"
 	clientcmddapi "k8s.io/client-go/tools/clientcmd/api"
@@ -54,6 +55,14 @@ func discoveryClient(k *model.Kube) (*discovery.DiscoveryClient, error) {
 		return nil, err
 	}
 	return discovery.NewDiscoveryClientForConfig(cfg)
+}
+
+func corev1Client(k *model.Kube) (corev1client.CoreV1Interface, error) {
+	cfg, err := NewConfigFor(k)
+	if err != nil {
+		return nil, err
+	}
+	return corev1client.NewForConfig(cfg)
 }
 
 // adminKubeConfig returns a cluster-admin kubeconfig for provided cluster.
