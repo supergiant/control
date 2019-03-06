@@ -2,12 +2,12 @@ echo "PostStart started"
 
 {{ if .IsMaster }}
 
-{{ if eq .Provider "openstack" }}
-sudo sed '/- kube-controller-manager/a \ \ \  - --cloud-provider={{ .Provider }}' /etc/kubernetes/manifests/kube-controller-manager.yaml > tmp.yaml
-sudo mv tmp.yaml /etc/kubernetes/manifests/kube-controller-manager.yaml
-sudo sed '/- kube-apiserver/a \ \ \  - --cloud-provider={{ .Provider }}' /etc/kubernetes/manifests/kube-apiserver.yaml > tmp.yaml
-sudo mv tmp.yaml /etc/kubernetes/manifests/kube-apiserver.yaml
-{{ end }}
+    {{ if eq .Provider "openstack" }}
+    sudo sed '/- kube-controller-manager/a \ \ \  - --cloud-provider={{ .Provider }}' /etc/kubernetes/manifests/kube-controller-manager.yaml > tmp.yaml
+    sudo mv tmp.yaml /etc/kubernetes/manifests/kube-controller-manager.yaml
+    sudo sed '/- kube-apiserver/a \ \ \  - --cloud-provider={{ .Provider }}' /etc/kubernetes/manifests/kube-apiserver.yaml > tmp.yaml
+    sudo mv tmp.yaml /etc/kubernetes/manifests/kube-apiserver.yaml
+    {{ end }}
 
     {{if .RBACEnabled }}
     sudo kubectl create clusterrolebinding kubelet-binding --clusterrole=system:node --user=kubelet

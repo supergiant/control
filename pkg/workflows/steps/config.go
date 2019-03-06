@@ -19,7 +19,12 @@ type CertificatesConfig struct {
 	ServicesCIDR string `json:"servicesCIDR"`
 	PublicIP     string `json:"publicIp"`
 	PrivateIP    string `json:"privateIp"`
-	IsMaster     bool   `json:"isMaster"`
+
+	MasterHost string `json:"masterHost"`
+	MasterPort string `json:"masterPort"`
+	NodeName   string `json:"nodeName"`
+
+	IsMaster bool `json:"isMaster"`
 	// TODO: this shouldn't be a part of SANs
 	// https://kubernetes.io/docs/setup/certificates/#all-certificates
 	KubernetesSvcIP string `json:"kubernetesSvcIp"`

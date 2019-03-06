@@ -44,6 +44,13 @@ func (s *Step) Run(ctx context.Context, out io.Writer, config *steps.Config) err
 	config.CertificatesConfig.PublicIP = config.Node.PublicIp
 	config.CertificatesConfig.IsMaster = config.IsMaster
 
+	if !config.IsMaster {
+		master := config.GetMaster()
+		config.CertificatesConfig.MasterHost = master.PrivateIp
+		config.CertificatesConfig.MasterPort = "443"
+		config.CertificatesConfig.NodeName = config.Node.Name
+	}
+
 	kubeDefaultSvcIp, err := util.GetKubernetesDefaultSvcIP(config.CertificatesConfig.ServicesCIDR)
 	if err != nil {
 		return errors.Wrapf(err, "get cluster dns ip from the %s subnet", config.CertificatesConfig.ServicesCIDR)
