@@ -15,7 +15,7 @@ import (
 )
 
 var (
-	version       = "undefined"
+	version       = "unstable"
 	addr          = flag.String("address", "0.0.0.0", "network interface to attach server to")
 	port          = flag.Int("port", 8080, "tcp port to listen for incoming requests")
 	storageMode   = flag.String("storage-mode", "file", "storage type either file(default), memory or etcd")
@@ -55,6 +55,7 @@ func main() {
 
 	server, err := controlplane.New(cfg)
 	if err != nil {
+		logrus.Infof("configuration: %+v", *cfg)
 		logrus.Fatalf("broken configuration: %v", err)
 	}
 

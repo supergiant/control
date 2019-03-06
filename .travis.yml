@@ -40,6 +40,7 @@ script:
   # Test
   # - govendor test +local (NOTE not needed with coverage line below)
   # Coverage
+  - cat cmd/controlplane/main.go | grep version
   - make build-ui
   - statik -src=./cmd/ui/assets/dist
   - make build

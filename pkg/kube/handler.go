@@ -175,6 +175,8 @@ func (h *Handler) Register(r *mux.Router) {
 	// DEPRECATED: has been moved to /kubes/{kubeID}/machines
 	r.HandleFunc("/kubes/{kubeID}/nodes/{nodename}", h.deleteMachine).Methods(http.MethodDelete)
 
+	r.HandleFunc("/kubes/{kubeID}/nodes", h.listNodes).Methods(http.MethodGet)
+
 	r.HandleFunc("/kubes/{kubeID}/machines", h.addMachine).Methods(http.MethodPost)
 	r.HandleFunc("/kubes/{kubeID}/machines/{nodename}", h.deleteMachine).Methods(http.MethodDelete)
 
@@ -487,6 +489,32 @@ func (h *Handler) getCerts(w http.ResponseWriter, r *http.Request) {
 	}
 
 	if err = json.NewEncoder(w).Encode(b); err != nil {
+		message.SendUnknownError(w, err)
+	}
+}
+
+func (h *Handler) listNodes(w http.ResponseWriter, r *http.Request) {
+	vars := mux.Vars(r)
+	kubeID := vars["kubeID"]
+	role := r.URL.Query().Get("role")
+
+	k, err := h.svc.Get(r.Context(), kubeID)
+	if err != nil {
+		if sgerrors.IsNotFound(err) {
+			message.SendNotFound(w, kubeID, err)
+			return
+		}
+		message.SendUnknownError(w, err)
+		return
+	}
+
+	nodes, err := h.svc.ListNodes(r.Context(), k, role)
+	if err != nil {
+		message.SendUnknownError(w, err)
+		return
+	}
+
+	if err = json.NewEncoder(w).Encode(nodes); err != nil {
 		message.SendUnknownError(w, err)
 	}
 }

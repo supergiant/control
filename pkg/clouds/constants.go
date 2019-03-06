@@ -62,8 +62,8 @@ const (
 
 	// Use client credentials auth model for azure.
 	// https://github.com/Azure/azure-sdk-for-go#more-authentication-details
-	AzureTenantID       = "azureTenantId"
-	AzureSubscriptionID = "azureSubscriptionId"
-	AzureClientID       = "azureClientId"
-	AzureClientSecret   = "azureClientSecret"
+	AzureTenantID       = "tenantId"
+	AzureSubscriptionID = "subscriptionId"
+	AzureClientID       = "clientId"
+	AzureClientSecret   = "clientSecret"
 )

@@ -7,7 +7,7 @@ make build-ui
 
 docker build --tag "$TRAVIS_REPO_SLUG":"$TAG" .
 if [[ "$TRAVIS_TAG" =~ ^v[0-9]. ]]; then
-    docker build --tag "$TRAVIS_REPO_SLUG":"latest" .
+    docker build --build-arg TAG=$(git describe --tags) --tag "$TRAVIS_REPO_SLUG":"latest" .
 fi
 
 if [ $? -eq 0 ]; then
