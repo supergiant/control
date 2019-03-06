@@ -7,12 +7,12 @@ import (
 
 	"github.com/pkg/errors"
 
+	"github.com/supergiant/control/pkg/bootstrap"
 	"github.com/supergiant/control/pkg/clouds"
 	"github.com/supergiant/control/pkg/model"
 	"github.com/supergiant/control/pkg/profile"
 	"github.com/supergiant/control/pkg/runner"
 	"github.com/supergiant/control/pkg/storage"
-	"github.com/supergiant/control/pkg/bootstrap"
 )
 
 type CertificatesConfig struct {
@@ -113,6 +113,7 @@ type NetworkConfig struct {
 
 type PostStartConfig struct {
 	IsMaster    bool          `json:"isMaster"`
+	Provider    clouds.Name   `json:"provider"`
 	Host        string        `json:"host"`
 	Port        string        `json:"port"`
 	Username    string        `json:"username"`
@@ -234,7 +235,6 @@ func NewConfig(clusterName, cloudAccountName string, profile profile.Profile) (*
 		return nil, errors.Wrapf(err, "bootstrap token")
 	}
 
-
 	return &Config{
 		Kube: model.Kube{
 			SSHConfig: model.SSHConfig{
@@ -296,6 +296,7 @@ func NewConfig(clusterName, cloudAccountName string, profile profile.Profile) (*
 			Username:    profile.User,
 			RBACEnabled: profile.RBACEnabled,
 			Timeout:     time.Minute * 20,
+			Provider:    profile.Provider,
 		},
 		TillerConfig: TillerConfig{
 			HelmVersion:     profile.HelmVersion,
@@ -400,6 +401,7 @@ func NewConfigFromKube(profile *profile.Profile, k *model.Kube) (*Config, error)
 			Username:    profile.User,
 			RBACEnabled: profile.RBACEnabled,
 			Timeout:     time.Minute * 20,
+			Provider:    k.Provider,
 		},
 		TillerConfig: TillerConfig{
 			HelmVersion:     profile.HelmVersion,
