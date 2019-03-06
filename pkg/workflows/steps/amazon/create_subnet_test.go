@@ -142,11 +142,16 @@ func TestCreateSubnetStep_Run(t *testing.T) {
 			},
 		}
 
-		config := steps.NewConfig("clusterName",
-			"", "", profile.Profile{})
+		config, err := steps.NewConfig("clusterName", "", profile.Profile{})
+
+		if err != nil {
+			t.Errorf("Unexpected error %v", err)
+		}
+
+
 		config.AWSConfig.VPCCIDR = testCase.vpcCIDR
 
-		err := step.Run(context.Background(), &bytes.Buffer{}, config)
+		err = step.Run(context.Background(), &bytes.Buffer{}, config)
 
 		if err == nil && testCase.errMsg != "" {
 			t.Errorf("Error must not be nil")

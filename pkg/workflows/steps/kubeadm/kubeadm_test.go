@@ -1,4 +1,4 @@
-package prometheus
+package kubeadm
 
 import (
 	"bytes"
@@ -11,11 +11,10 @@ import (
 
 	"github.com/pkg/errors"
 
-	"github.com/supergiant/control/pkg/model"
-	"github.com/supergiant/control/pkg/profile"
 	"github.com/supergiant/control/pkg/runner"
 	"github.com/supergiant/control/pkg/templatemanager"
 	"github.com/supergiant/control/pkg/workflows/steps"
+	"github.com/supergiant/control/pkg/workflows/steps/docker"
 )
 
 type fakeRunner struct {
@@ -31,12 +30,8 @@ func (f *fakeRunner) Run(command *runner.Command) error {
 	return err
 }
 
-func TestPrometheusRBACDisbled(t *testing.T) {
-	var (
-		promPort               = "30900"
-		r        runner.Runner = &fakeRunner{}
-	)
-
+func TestKubeadm(t *testing.T) {
+	r := &fakeRunner{}
 	err := templatemanager.Init("../../../../templates")
 
 	if err != nil {
@@ -51,65 +46,16 @@ func TestPrometheusRBACDisbled(t *testing.T) {
 
 	output := new(bytes.Buffer)
 
-	cfg, err := steps.NewConfig("",
-		"", profile.Profile{})
-
-	if err != nil {
-		t.Errorf("Unexpected error %v", err)
-	}
-
-	cfg.Runner = r
-	cfg.PrometheusConfig = steps.PrometheusConfig{
-		Port:        promPort,
-		RBACEnabled: false,
-	}
-
-	task := &Step{
-		tpl,
-	}
-
-	err = task.Run(context.Background(), output, cfg)
-
-	if err != nil {
-		t.Errorf("Unpexpected error while  provision node %v", err)
-	}
-
-	if !strings.Contains(output.String(), "prometheus-operator") {
-		t.Errorf("not found %s in %s", "prometheus-operator", output.String())
-	}
-}
-
-func TestPrometheusRBACEnabled(t *testing.T) {
-	var (
-		rbacEnabled               = true
-		promPort                  = "30900"
-		r           runner.Runner = &fakeRunner{}
-	)
-
-	err := templatemanager.Init("../../../../templates")
-
-	if err != nil {
-		t.Fatal(err)
-	}
-
-	tpl, _ := templatemanager.GetTemplate(StepName)
-
-	if tpl == nil {
-		t.Fatal("template not found")
-	}
-
-	output := new(bytes.Buffer)
-
-	cfg, err := steps.NewConfig("", "", profile.Profile{})
-
-	if err != nil {
-		t.Errorf("Unexpected error %v", err)
-	}
-
-	cfg.Runner = r
-	cfg.PrometheusConfig = steps.PrometheusConfig{
-		Port:        promPort,
-		RBACEnabled: rbacEnabled,
+	cfg := &steps.Config{
+		IsMaster: true,
+		KubeadmConfig: steps.KubeadmConfig{
+			IsMaster:         true,
+			IsBootstrap:      true,
+			CIDR:             "10.0.0.0/24",
+			Token:            "1234",
+			LoadBalancerHost: "10.20.30.40",
+		},
+		Runner: r,
 	}
 
 	task := &Step{
@@ -118,41 +64,39 @@ func TestPrometheusRBACEnabled(t *testing.T) {
 
 	err = task.Run(context.Background(), output, cfg)
 
-	if err != nil {
-		t.Errorf("Unpexpected error while  provision node %v", err)
+	if !strings.Contains(output.String(), cfg.KubeadmConfig.CIDR) {
+		t.Errorf("CIDR %s not found in %s", cfg.KubeadmConfig.CIDR, output.String())
 	}
 
-	if !strings.Contains(output.String(), "prometheus-operator") {
-		t.Errorf("not found %s in %s", "prometheus-operator", output.String())
+	if !strings.Contains(output.String(), cfg.KubeadmConfig.Token) {
+		t.Errorf("Token %s not found in %s", cfg.KubeadmConfig.Token, output.String())
+	}
+
+	if !strings.Contains(output.String(), cfg.KubeadmConfig.LoadBalancerHost) {
+		t.Errorf("LoadBalancerHost %s not found in %s", cfg.KubeadmConfig.LoadBalancerHost, output.String())
 	}
 }
 
-func TestPrometheusErr(t *testing.T) {
+func TestStartKubeadmError(t *testing.T) {
 	errMsg := "error has occurred"
 
 	r := &fakeRunner{
 		errMsg: errMsg,
 	}
 
-	proxyTemplate, err := template.New(StepName).Parse("")
+	kubeletScriptTemplate, err := template.New(StepName).Parse("")
+
 	output := new(bytes.Buffer)
-
-	task := &Step{
-		proxyTemplate,
+	config := &steps.Config{
+		KubeadmConfig: steps.KubeadmConfig{},
+		Runner:        r,
 	}
 
-	cfg, err := steps.NewConfig("", "", profile.Profile{})
-
-	if err != nil {
-		t.Errorf("Unexpected error %v", err)
+	j := &Step{
+		kubeletScriptTemplate,
 	}
 
-	cfg.Runner = r
-	cfg.AddMaster(&model.Machine{
-		State:     model.MachineStateActive,
-		PrivateIp: "10.20.30.40",
-	})
-	err = task.Run(context.Background(), output, cfg)
+	err = j.Run(context.Background(), output, config)
 
 	if err == nil {
 		t.Errorf("Error must not be nil")
@@ -175,8 +119,8 @@ func TestStepName(t *testing.T) {
 func TestDepends(t *testing.T) {
 	s := Step{}
 
-	if len(s.Depends()) != 0 {
-		t.Errorf("Wrong dependency list %v expected %v", s.Depends(), []string{})
+	if len(s.Depends()) != 1 && s.Depends()[0] != docker.StepName {
+		t.Errorf("Wrong dependency list %v expected %v", s.Depends(), []string{docker.StepName})
 	}
 }
 
@@ -229,8 +173,8 @@ func TestInitPanic(t *testing.T) {
 func TestStep_Description(t *testing.T) {
 	s := &Step{}
 
-	if desc := s.Description(); desc != "Install prometheus" {
+	if desc := s.Description(); desc != "run kubeadm" {
 		t.Errorf("Wrong desription expected %s actual %s",
-			"Install prometheus", desc)
+			"Run kubelet", desc)
 	}
 }

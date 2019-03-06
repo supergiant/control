@@ -46,7 +46,12 @@ func TestStepRunSuccess(t *testing.T) {
 	host := "10.20.30.40"
 	timeout := 120
 
-	config := steps.NewConfig("", "", "", profile.Profile{})
+	config, err := steps.NewConfig("", "", profile.Profile{})
+
+	if err != nil {
+		t.Errorf("Unexpected error %v", err)
+	}
+
 	config.Kube.SSHConfig = model.SSHConfig{
 		Port:                port,
 		User:                user,
@@ -63,7 +68,7 @@ func TestStepRunSuccess(t *testing.T) {
 		PublicIp: host,
 	}
 
-	err := step.Run(context.Background(), ioutil.Discard, config)
+	err = step.Run(context.Background(), ioutil.Discard, config)
 
 	if err != nil {
 		t.Errorf("Unexpected error %v", err)
@@ -84,7 +89,12 @@ func TestStepRunError(t *testing.T) {
 	host := "10.20.30.40"
 	timeout := 120
 
-	config := steps.NewConfig("", "", "", profile.Profile{})
+	config, err := steps.NewConfig("", "", profile.Profile{})
+
+	if err != nil {
+		t.Errorf("Unexpected error %v", err)
+	}
+
 	config.Node = model.Machine{
 		PrivateIp: host,
 	}
@@ -95,7 +105,7 @@ func TestStepRunError(t *testing.T) {
 		BootstrapPrivateKey: "",
 	}
 
-	err := step.Run(context.Background(), ioutil.Discard, config)
+	err = step.Run(context.Background(), ioutil.Discard, config)
 
 	if err == nil {
 		t.Errorf("Error must not be nil")

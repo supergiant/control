@@ -231,24 +231,11 @@ func (tp *TaskProvisioner) provision(ctx context.Context,
 	logrus.Debug("update kube state")
 	config.KubeStateChan() <- model.StateProvisioning
 
-	config.ReadyForBootstrapLatch = &sync.WaitGroup{}
-	config.ReadyForBootstrapLatch.Add(len(taskMap[workflows.MasterTask]))
-
-	logrus.Debug("Restart provision masters")
-	doneChan, failChan, err := tp.provisionMasters(ctx, clusterProfile,
+	logrus.Debug("Provision masters")
+	err := tp.provisionMasters(ctx, clusterProfile,
 		config, taskMap[workflows.MasterTask])
 
 	if err != nil {
-		logrus.Errorf("ProvisionCluster master %v", err)
-	}
-
-	select {
-	case <-ctx.Done():
-		logrus.Errorf("Master cluster has not been created %v",
-			ctx.Err())
-		return
-	case <-doneChan:
-	case <-failChan:
 		config.KubeStateChan() <- model.StateFailed
 		logrus.Errorf("master cluster deployment has been failed")
 		return
@@ -262,8 +249,10 @@ func (tp *TaskProvisioner) provision(ctx context.Context,
 	tp.provisionNodes(ctx, clusterProfile, config,
 		taskMap[workflows.NodeTask])
 
-	// Wait for cluster checks are finished
-	tp.waitCluster(ctx, taskMap[workflows.ClusterTask][0], config)
+	if len(taskMap[workflows.ClusterTask]) != 0 {
+		// Wait for cluster checks are finished
+		tp.waitCluster(ctx, taskMap[workflows.ClusterTask][0], config)
+	}
 	logrus.Infof("cluster %s deployment has finished",
 		config.ClusterID)
 }
@@ -357,37 +346,54 @@ func (tp *TaskProvisioner) preProvision(ctx context.Context, preProvisionTask *w
 
 func (tp *TaskProvisioner) provisionMasters(ctx context.Context,
 	profile *profile.Profile, config *steps.Config,
-	tasks []*workflows.Task) (chan struct{}, chan struct{}, error) {
+	tasks []*workflows.Task) error {
 	config.IsMaster = true
-	doneChan := make(chan struct{})
-	failChan := make(chan struct{})
 
-	if len(profile.MasterProfiles) == 0 {
-		close(doneChan)
-		return doneChan, failChan, nil
+	if len(tasks) == 0 {
+		return nil
 	}
-	// master latch controls when the majority of masters with etcd are up and running
-	// so etcd is available for writes of flannel that starts on each machine
-	masterLatch := util.NewCountdownLatch(ctx, len(profile.MasterProfiles)/2+1)
 
-	// If we fail n /2 of master deploy jobs - all cluster deployment is failed
-	failLatch := util.NewCountdownLatch(ctx, len(profile.MasterProfiles)/2+1)
+	// Get bootstrap task as a first master task
+	bootstrapTask, tasks := tasks[0], tasks[1:]
 
-	// ProvisionCluster master nodes
+	fileName := util.MakeFileName(bootstrapTask.ID)
+	out, err := tp.getWriter(fileName)
+
+	if err != nil {
+		logrus.Errorf("Error getting writer for %s", fileName)
+		return errors.Wrapf(err, "Error getting writer for %s", fileName)
+	}
+
+	// Fulfill task config with data about provider specific node configuration
+	p := profile.MasterProfiles[0]
+	FillNodeCloudSpecificData(profile.Provider, p, config)
+
+	config.TaskID = bootstrapTask.ID
+	err = <-bootstrapTask.Run(ctx, *config, out)
+
+	if err != nil {
+		logrus.Errorf("master bootstrap task %s has finished with error %v", bootstrapTask.ID, err)
+		return errors.Wrapf(err, "master bootstrap task %s has finished with error %v", bootstrapTask.ID, err)
+	} else {
+		logrus.Infof("master bootstrap %s has finished", bootstrapTask.ID)
+	}
+
+	// NOTE(stgleb): This temporarily before load balancers step is not implemented as a step
+	if master := config.GetMaster(); master != nil {
+		config.KubeadmConfig.LoadBalancerHost = master.PrivateIp
+		config.KubeadmConfig.IsBootstrap = false
+	}
+
+	// ProvisionCluster rest of master nodes master nodes
 	for index, masterTask := range tasks {
 		// Take token that allows perform action with Cloud Provider API
 		tp.rateLimiter.Take()
 
-		if masterTask == nil {
-			logrus.Error("Master tasks are nil")
-			return nil, nil, nil
-		}
 		fileName := util.MakeFileName(masterTask.ID)
 		out, err := tp.getWriter(fileName)
 
 		if err != nil {
 			logrus.Errorf("Error getting writer for %s", fileName)
-			return nil, nil, err
 		}
 
 		// Fulfill task config with data about provider specific node configuration
@@ -401,37 +407,18 @@ func (tp *TaskProvisioner) provisionMasters(ctx context.Context,
 			err = <-result
 
 			if err != nil {
-				failLatch.CountDown()
 				logrus.Errorf("master task %s has finished with error %v", t.ID, err)
 			} else {
-				masterLatch.CountDown()
 				logrus.Infof("master-task %s has finished", t.ID)
 			}
 		}(masterTask)
 	}
 
-	go func() {
-		masterLatch.Wait()
-		close(doneChan)
-	}()
-
-	go func() {
-		failLatch.Wait()
-		close(failChan)
-	}()
-
-	return doneChan, failChan, nil
+	return nil
 }
 
 func (tp *TaskProvisioner) provisionNodes(ctx context.Context, profile *profile.Profile, config *steps.Config, tasks []*workflows.Task) {
 	config.IsMaster = false
-	config.ManifestConfig.IsMaster = false
-	// Do internal communication inside private network
-	if master := config.GetMaster(); master != nil {
-		config.FlannelConfig.EtcdHost = master.PrivateIp
-	} else {
-		return
-	}
 
 	// ProvisionCluster nodes
 	for index, nodeTask := range tasks {
@@ -449,11 +436,12 @@ func (tp *TaskProvisioner) provisionNodes(ctx context.Context, profile *profile.
 		// Fulfill task config with data about provider specific node configuration
 		p := profile.NodesProfiles[index]
 		FillNodeCloudSpecificData(profile.Provider, p, config)
+		// Put task id to config so that create instance step can use this id when generate node name
+		taskConfig := *config
+		taskConfig.TaskID = nodeTask.ID
 
 		go func(t *workflows.Task) {
-			// Put task id to config so that create instance step can use this id when generate node name
-			config.TaskID = t.ID
-			result := t.Run(ctx, *config, out)
+			result := t.Run(ctx, taskConfig, out)
 			err = <-result
 
 			if err != nil {
@@ -519,7 +507,6 @@ func (tp *TaskProvisioner) buildInitialCluster(ctx context.Context,
 		AccountName:  config.CloudAccountName,
 		RBACEnabled:  profile.RBACEnabled,
 		ServicesCIDR: profile.K8SServicesCIDR,
-		DNSIP:        config.ManifestConfig.ClusterDNSIP,
 		Region:       profile.Region,
 		Zone:         profile.Zone,
 		User:         profile.User,

@@ -583,7 +583,14 @@ func (h *Handler) addMachine(w http.ResponseWriter, r *http.Request) {
 		RBACEnabled: k.RBACEnabled,
 	}
 
-	config := steps.NewConfig(k.Name, "", k.AccountName, kubeProfile)
+	config, err := steps.NewConfig(k.Name, k.AccountName, kubeProfile)
+
+	if err != nil {
+		logrus.Errorf("New config %v", err.Error())
+		message.SendUnknownError(w, err)
+		return
+	}
+
 	config.ClusterID = k.ID
 	config.CertificatesConfig.CAKey = k.Auth.CAKey
 	config.CertificatesConfig.CACert = k.Auth.CACert
@@ -1148,7 +1155,13 @@ func (h *Handler) restartKubeProvisioning(w http.ResponseWriter, r *http.Request
 		return
 	}
 
-	config := steps.NewConfigFromKube(kubeProfile, k)
+	config, err := steps.NewConfigFromKube(kubeProfile, k)
+	if err != nil {
+		logrus.Errorf("New config %v", err.Error())
+		message.SendUnknownError(w, err)
+		return
+	}
+
 
 	logrus.Debugf("load clout specific data from kube %s", k.ID)
 	// Load things specific to cloud provider

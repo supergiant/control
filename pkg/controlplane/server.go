@@ -39,11 +39,9 @@ import (
 	"github.com/supergiant/control/pkg/workflows/steps/docker"
 	"github.com/supergiant/control/pkg/workflows/steps/downloadk8sbinary"
 	"github.com/supergiant/control/pkg/workflows/steps/drain"
-	"github.com/supergiant/control/pkg/workflows/steps/etcd"
-	"github.com/supergiant/control/pkg/workflows/steps/flannel"
 	"github.com/supergiant/control/pkg/workflows/steps/gce"
+	"github.com/supergiant/control/pkg/workflows/steps/kubeadm"
 	"github.com/supergiant/control/pkg/workflows/steps/kubelet"
-	"github.com/supergiant/control/pkg/workflows/steps/manifest"
 	"github.com/supergiant/control/pkg/workflows/steps/network"
 	"github.com/supergiant/control/pkg/workflows/steps/poststart"
 	"github.com/supergiant/control/pkg/workflows/steps/prometheus"
@@ -194,12 +192,9 @@ func configureApplication(cfg *Config) (*mux.Router, error) {
 	cni.Init()
 	docker.Init()
 	downloadk8sbinary.Init()
-	flannel.Init()
 	kubelet.Init()
-	manifest.Init()
 	poststart.Init()
 	tiller.Init()
-	etcd.Init()
 	ssh.Init()
 	network.Init()
 	clustercheck.Init()
@@ -207,6 +202,7 @@ func configureApplication(cfg *Config) (*mux.Router, error) {
 	gce.Init()
 	storageclass.Init()
 	drain.Init()
+	kubeadm.Init()
 
 	amazon.InitFindAMI(amazon.GetEC2)
 	amazon.InitImportKeyPair(amazon.GetEC2)

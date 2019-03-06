@@ -159,8 +159,12 @@ func TestCreateInstanceStep_Run(t *testing.T) {
 		}
 
 		for _, role := range []bool{true, false} {
-			config := steps.NewConfig("", "",
-				"", profile.Profile{})
+			config, err := steps.NewConfig("", "", profile.Profile{})
+
+			if err != nil {
+				t.Errorf("Unexpected error %v", err)
+			}
+
 			config.TaskID = uuid.New()
 			config.ClusterName = util.RandomString(8)
 			config.ClusterID = uuid.New()[:8]
@@ -177,7 +181,7 @@ func TestCreateInstanceStep_Run(t *testing.T) {
 				}
 			}()
 
-			err := step.Run(ctx, &bytes.Buffer{}, config)
+			err = step.Run(ctx, &bytes.Buffer{}, config)
 			cancel()
 
 			if err == nil && testCase.errMsg != "" {
