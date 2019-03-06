@@ -18,6 +18,7 @@ import (
 	"github.com/supergiant/control/pkg/templatemanager"
 	"github.com/supergiant/control/pkg/workflows/steps"
 	"github.com/supergiant/control/pkg/workflows/steps/kubelet"
+	"github.com/supergiant/control/pkg/clouds"
 )
 
 type fakeRunner struct {
@@ -180,12 +181,13 @@ func TestPostStartTimeout(t *testing.T) {
 	}
 
 	cfg.PostStartConfig = steps.PostStartConfig{
-		true,
-		"127.0.0.1",
-		port,
-		username,
-		rbacEnabled,
-		1,
+		IsMaster: true,
+		Provider: clouds.AWS,
+		Host: "127.0.0.1",
+		Port: port,
+		Username: username,
+		RBACEnabled: rbacEnabled,
+		Timeout: 1,
 	}
 	cfg.Runner = r
 

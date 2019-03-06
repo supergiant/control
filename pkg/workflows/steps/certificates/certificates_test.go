@@ -58,9 +58,25 @@ func TestWriteCertificates(t *testing.T) {
 		t.Errorf("unexpected error creating PKI bundle %v", err)
 	}
 
+	adminPair, err := pki.NewAdminPair(caPair)
+
+	if err != nil {
+		t.Errorf("unexpected error creating Admin pair %v", err)
+	}
+
+
 	cfg, err := steps.NewConfig("", "", profile.Profile{
 		K8SServicesCIDR: "10.3.0.0/16",
 	})
+
+	masterNode := model.Machine{
+		State:     model.MachineStateActive,
+		PrivateIp: privateIP,
+		PublicIp:  publicIP,
+	}
+
+	cfg.AddMaster(&masterNode)
+	cfg.IsMaster = true
 
 	if err != nil {
 		t.Errorf("Unexpected error %v", err)
@@ -90,6 +106,9 @@ func TestWriteCertificates(t *testing.T) {
 		},
 		CAKey:  string(caPair.Key),
 		CACert: string(caPair.Cert),
+
+		AdminKey: string(adminPair.Key),
+		AdminCert: string(adminPair.Cert),
 	}
 
 	cfg.Runner = r
@@ -117,12 +136,26 @@ func TestWriteCertificates(t *testing.T) {
 			t.Errorf("kubernetes config dir %s not found in %s", kubernetesConfigDir, output.String())
 		}
 
-		if !strings.Contains(output.String(), string(caPair.Key)) {
-			t.Errorf("CA key not found in %s", output.String())
-		}
+		if isMaster {
+			if !strings.Contains(output.String(), string(caPair.Key)) {
+				t.Errorf("CA key not found in %s", output.String())
+			}
 
-		if !strings.Contains(output.String(), string(caPair.Cert)) {
-			t.Errorf("CA cert not found in %s", output.String())
+			if !strings.Contains(output.String(), string(caPair.Cert)) {
+				t.Errorf("CA cert not found in %s", output.String())
+			}
+		} else {
+			if !strings.Contains(output.String(), string(adminPair.Key)) {
+				t.Errorf("Admin key not found in %s", output.String())
+			}
+
+			if !strings.Contains(output.String(), string(adminPair.Cert)) {
+				t.Errorf("Admin cert not found in %s", output.String())
+			}
+
+			if !strings.Contains(output.String(), "request") {
+				t.Errorf("request.yaml cert not found in %s", output.String())
+			}
 		}
 
 		if !strings.Contains(output.String(), privateIP) {
