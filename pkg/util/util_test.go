@@ -2,7 +2,6 @@ package util
 
 import (
 	"bytes"
-	"context"
 	"fmt"
 	"strings"
 	"testing"
@@ -137,7 +136,7 @@ func TestFillCloudAccountCredentials(t *testing.T) {
 			CloudAccountName: testCase.cloudAccount.Name,
 		}
 
-		err := FillCloudAccountCredentials(context.Background(), testCase.cloudAccount, config)
+		err := FillCloudAccountCredentials(testCase.cloudAccount, config)
 
 		if testCase.cloudAccount.Provider == clouds.DigitalOcean {
 			if !strings.EqualFold(testCase.cloudAccount.Credentials["accessToken"], config.DigitalOceanConfig.AccessToken) {

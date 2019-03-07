@@ -17,6 +17,22 @@
 			"versionExact": "v25.1.0"
 		},
 		{
+			"checksumSHA1": "auKEllNmHV2WPfLeg+OeFhp/E+4=",
+			"path": "github.com/Azure/azure-sdk-for-go/services/compute/mgmt/2017-09-01/skus",
+			"revision": "2ea98fc438b9d78aa2ab32bab44c7f68e506385e",
+			"revisionTime": "2019-02-06T21:01:01Z",
+			"version": "v25.1.0",
+			"versionExact": "v25.1.0"
+		},
+		{
+			"checksumSHA1": "SMYl3mBqGDkbuLxQzkNlwReav/E=",
+			"path": "github.com/Azure/azure-sdk-for-go/services/preview/subscription/mgmt/2018-03-01-preview/subscription",
+			"revision": "2ea98fc438b9d78aa2ab32bab44c7f68e506385e",
+			"revisionTime": "2019-02-06T21:01:01Z",
+			"version": "v25.1.0",
+			"versionExact": "v25.1.0"
+		},
+		{
 			"checksumSHA1": "uJlA7Ak0zO19/MYXrKFkcTk8Qq0=",
 			"path": "github.com/Azure/azure-sdk-for-go/services/resources/mgmt/2018-05-01/resources",
 			"revision": "2ea98fc438b9d78aa2ab32bab44c7f68e506385e",

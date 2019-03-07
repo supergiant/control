@@ -172,7 +172,7 @@ func (h *Handler) GetRegions(w http.ResponseWriter, r *http.Request) {
 			message.SendNotFound(w, "account", err)
 			return
 		}
-		logrus.Errorf("clouds: get regions %v", err)
+		logrus.Errorf("clouds: get regions: %v", err)
 		message.SendUnknownError(w, err)
 		return
 	}
@@ -180,20 +180,20 @@ func (h *Handler) GetRegions(w http.ResponseWriter, r *http.Request) {
 	config := &steps.Config{}
 	getter, err := NewRegionsGetter(acc, config)
 	if err != nil {
-		logrus.Errorf("clouds: get regions %v", err)
+		logrus.Errorf("clouds: get regions: %v", err)
 		message.SendUnknownError(w, err)
 		return
 	}
 
 	aggregate, err := getter.GetRegions(r.Context())
 	if err != nil {
-		logrus.Errorf("clouds: get regions %v", err)
+		logrus.Errorf("clouds: get regions: %v", err)
 		message.SendUnknownError(w, err)
 		return
 	}
 
 	if err := json.NewEncoder(w).Encode(aggregate); err != nil {
-		logrus.Errorf("clouds: get regions %v", err)
+		logrus.Errorf("clouds: get regions: %v", err)
 		message.SendUnknownError(w, err)
 		return
 	}

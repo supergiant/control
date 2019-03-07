@@ -360,7 +360,7 @@ func (h *Handler) deleteKube(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	err = util.FillCloudAccountCredentials(r.Context(), acc, config)
+	err = util.FillCloudAccountCredentials(acc, config)
 
 	if err != nil {
 		if sgerrors.IsNotFound(err) {
@@ -606,7 +606,7 @@ func (h *Handler) addMachine(w http.ResponseWriter, r *http.Request) {
 
 	// Get cloud account fill appropriate config structure
 	// with cloud account credentials
-	err = util.FillCloudAccountCredentials(r.Context(), acc, config)
+	err = util.FillCloudAccountCredentials(acc, config)
 
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
@@ -713,7 +713,7 @@ func (h *Handler) deleteMachine(w http.ResponseWriter, r *http.Request) {
 		Masters:          steps.NewMap(k.Masters),
 	}
 
-	err = util.FillCloudAccountCredentials(r.Context(), acc, config)
+	err = util.FillCloudAccountCredentials(acc, config)
 
 	if err != nil {
 		if sgerrors.IsNotFound(err) {
@@ -1185,7 +1185,7 @@ func (h *Handler) restartKubeProvisioning(w http.ResponseWriter, r *http.Request
 	}
 
 	logrus.Debug("Fill config with cloud account credentials")
-	err = util.FillCloudAccountCredentials(r.Context(), acc, config)
+	err = util.FillCloudAccountCredentials(acc, config)
 
 	if err != nil {
 		if sgerrors.IsNotFound(err) {
