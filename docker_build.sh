@@ -3,7 +3,6 @@
 echo "$TRAVIS_REPO_SLUG":"$TAG"
 # build the docker container
 echo "Building Docker container"
-make build-ui
 
 docker build --tag "$TRAVIS_REPO_SLUG":"$TAG" .
 if [[ "$TRAVIS_TAG" =~ ^v[0-9]. ]]; then
