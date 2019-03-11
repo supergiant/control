@@ -5,6 +5,6 @@ export const CLUSTER_OPTIONS = {
   networkTypes: ['vxlan'],
   ubuntuVersions: ['xenial'],
   helmVersions: ['2.11.0'],
-  dockerVersions: ['17.06.0'],
+  dockerVersions: ['18.06.3'],
   K8sVersions: ['1.13.4']
 };
