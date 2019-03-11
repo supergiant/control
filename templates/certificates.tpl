@@ -93,6 +93,8 @@ $(sudo kubectl --kubeconfig=/root/.kube/config get csr {{ .NodeName }} -o jsonpa
 EOF"
 
 sudo rm /etc/kubernetes/pki/ca.crt
+sudo rm /etc/kubernetes/pki/admin.key
+sudo rm /etc/kubernetes/pki/admin.crt
 
 {{ end }}
 
