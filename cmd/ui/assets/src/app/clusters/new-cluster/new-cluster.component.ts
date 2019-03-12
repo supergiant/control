@@ -417,7 +417,7 @@ export class NewClusterComponent implements OnInit, OnDestroy {
       this.updateRecommendations(currentMachine, selectedMachineType);
     }
 
-    if (this.machines.every(this.validMachine) && this.isOddNumberOfMasters()) {
+    if (this.machines.every(this.validMachine) && this.isOddNumberOfMasters() && this.hasMasterAndNode(this.machines)) {
       this.machinesConfigValid = true;
       this.displayMachinesConfigWarning = false;
     } else {
@@ -484,6 +484,14 @@ export class NewClusterComponent implements OnInit, OnDestroy {
       .map(m => m.qty)
       .reduce((prev, next) => prev + next);
     return (numberOfMasterProfiles) % 2 !== 0;
+  }
+
+  hasMasterAndNode(machines) {
+    const masters = machines.filter(m => m.role == MachineRoles.master)
+
+    const nodes = machines.filter(m => m.role == MachineRoles.node)
+
+    return (masters.length > 0 && nodes.length > 0);
   }
 
   nextStep() {
