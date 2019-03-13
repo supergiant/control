@@ -1,6 +1,6 @@
 export const CLUSTER_OPTIONS = {
   archs: ['amd64'],
-  flannelVersions: ['0.10.0'],
+  networkProviders: ['Flannel', 'Calico', 'Weave'],
   operatingSystems: ['linux'],
   networkTypes: ['vxlan'],
   ubuntuVersions: ['xenial'],
