@@ -2,7 +2,6 @@ package azure
 
 import (
 	"context"
-	"errors"
 	"fmt"
 	"io"
 
@@ -30,24 +29,26 @@ func (s *CreateVnetStep) Run(ctx context.Context, w io.Writer, cfg *steps.Config
 		vnetName := fmt.Sprintf("sg-%s-%s", cfg.ClusterID, cfg.ClusterName)
 		log.Infof("[%s] - trying to create virtual network %s", CreateGroupStepName, vnetName)
 
-		res, err := cl.CreateOrUpdate(ctx, cfg.AzureConfig.ResourceGroupName, vnetName, network.VirtualNetwork{
+		future, err := cl.CreateOrUpdate(ctx, cfg.AzureConfig.ResourceGroupName, vnetName, network.VirtualNetwork{
 			Location: toStrPtr(cfg.AzureConfig.Location),
 			Name:     toStrPtr(vnetName),
+			VirtualNetworkPropertiesFormat: &network.VirtualNetworkPropertiesFormat{
+				AddressSpace: &network.AddressSpace{
+					AddressPrefixes: &[]string{cfg.NetworkConfig.CIDR},
+				},
+			},
 		})
 		if err != nil {
 			return err
 		}
-		done, err := res.DoneWithContext(ctx, cl.Sender)
-		if err != nil {
+
+		if err := future.WaitForCompletionRef(ctx, cl.Client); err != nil {
 			return err
-		}
-		if !done {
-			log.Errorf("[%s] - failed to create virtual network", s.Name())
-			return errors.New("failed to create vnet")
 		}
 
 		cfg.AzureConfig.VirtualNetworkName = vnetName
 	} else {
+		//TODO add validation
 		log.Infof("[%s] - using virtual network %s", cfg.AzureConfig.VirtualNetworkName)
 	}
 
