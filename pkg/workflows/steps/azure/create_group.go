@@ -14,24 +14,24 @@ import (
 
 const CreateGroupStepName = "CreateResourceGroup"
 
-type BaseClientFn func(authorizer Autorizerer, subscriptionID string) (resources.BaseClient, error)
+type GroupsClientFn func(authorizer Autorizerer, subscriptionID string) (GroupsInterface, error)
 
 type CreateGroupStep struct {
-	baseClientFn BaseClientFn
+	groupsClientFn GroupsClientFn
 }
 
-func NewCreateInstanceStep() *CreateGroupStep {
+func NewCreateGroupStep() *CreateGroupStep {
 	return &CreateGroupStep{
-		baseClientFn: BaseClientFor,
+		groupsClientFn: GroupsClientFor,
 	}
 }
 
 func (s *CreateGroupStep) Run(ctx context.Context, output io.Writer, config *steps.Config) error {
-	if s.baseClientFn == nil {
+	if s.groupsClientFn == nil {
 		return errors.Wrap(sgerrors.ErrNilEntity, "base client builder")
 	}
 
-	baseClient, err := s.baseClientFn(auth.ClientCredentialsConfig{
+	c, err := s.groupsClientFn(auth.ClientCredentialsConfig{
 		ClientID:     config.AzureConfig.ClientID,
 		ClientSecret: config.AzureConfig.ClientSecret,
 		TenantID:     config.AzureConfig.TenantID,
@@ -42,14 +42,13 @@ func (s *CreateGroupStep) Run(ctx context.Context, output io.Writer, config *ste
 		return err
 	}
 
-	groupsClient := resources.GroupsClient{BaseClient: baseClient}
-	_, err = groupsClient.CreateOrUpdate(ctx, "", resources.Group{
+	_, err = c.CreateOrUpdate(ctx, "", resources.Group{
 		Name:     toStrPtr(toResourceGroupName(config.ClusterID, config.ClusterName)),
 		Location: toStrPtr(config.AzureConfig.Location),
 		Tags:     map[string]*string{},
 	})
 
-	return errors.Wrap(err, "create resources group")
+	return errors.Wrap(err, "create resource group")
 }
 
 func (s *CreateGroupStep) Rollback(context.Context, io.Writer, *steps.Config) error {
