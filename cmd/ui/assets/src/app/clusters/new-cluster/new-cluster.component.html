@@ -77,15 +77,15 @@
           </mat-form-field>
 
           <mat-form-field>
-            <mat-select placeholder="Flannel Version"
-                        formControlName="flannelVersion"
+            <mat-select placeholder="Network Provider"
+                        formControlName="networkProvider"
                         required>
-              <mat-option *ngFor="let f of clusterOptions.flannelVersions"
-                          [value]="f">{{ f }}</mat-option>
+              <mat-option *ngFor="let n of clusterOptions.networkProviders"
+                          [value]="n">{{ n }}</mat-option>
             </mat-select>
-            <mat-hint align="end">What is
-              <a href="https://coreos.com/flannel/docs/latest/"
-                 target="_blank">Flannel</a>?
+            <mat-hint align="end">Read more about 
+              <a href="https://kubernetes.io/docs/concepts/cluster-administration/networking/"
+                 target="_blank">cluster networking</a>
             </mat-hint>
           </mat-form-field>
 

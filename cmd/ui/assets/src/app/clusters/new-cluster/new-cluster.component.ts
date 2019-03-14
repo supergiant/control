@@ -103,7 +103,7 @@ export class NewClusterComponent implements OnInit, OnDestroy {
 
     this.clusterConfig = this.formBuilder.group({
       K8sVersion: ['1.13.4', Validators.required],
-      flannelVersion: ['0.10.0', Validators.required],
+      networkProvider: ['Flannel', Validators.required],
       helmVersion: ['2.11.0', Validators.required],
       dockerVersion: ['18.06.3', Validators.required],
       ubuntuVersion: ['xenial', Validators.required],
