@@ -64,7 +64,6 @@ func TestWriteCertificates(t *testing.T) {
 		t.Errorf("unexpected error creating Admin pair %v", err)
 	}
 
-
 	cfg, err := steps.NewConfig("", "", profile.Profile{
 		K8SServicesCIDR: "10.3.0.0/16",
 	})
@@ -107,7 +106,7 @@ func TestWriteCertificates(t *testing.T) {
 		CAKey:  string(caPair.Key),
 		CACert: string(caPair.Cert),
 
-		AdminKey: string(adminPair.Key),
+		AdminKey:  string(adminPair.Key),
 		AdminCert: string(adminPair.Cert),
 	}
 

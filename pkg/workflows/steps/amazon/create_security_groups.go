@@ -37,7 +37,7 @@ func NewCreateSecurityGroupsStep(fn GetEC2Fn) *CreateSecurityGroupsStep {
 
 			return EC2, nil
 		},
-		findOutboundIP: findOutBoundIP,
+		findOutboundIP: FindExternalIP,
 	}
 }
 

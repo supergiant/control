@@ -9,11 +9,11 @@ import (
 	"github.com/pkg/errors"
 	"k8s.io/apimachinery/pkg/labels"
 
+	"github.com/supergiant/control/pkg/clouds"
 	"github.com/supergiant/control/pkg/model"
 	tm "github.com/supergiant/control/pkg/templatemanager"
 	"github.com/supergiant/control/pkg/workflows/steps"
 	"github.com/supergiant/control/pkg/workflows/steps/docker"
-	"github.com/supergiant/control/pkg/clouds"
 )
 
 const (
@@ -46,7 +46,7 @@ func New(script *template.Template) *Step {
 }
 
 func (t *Step) Run(ctx context.Context, out io.Writer, config *steps.Config) error {
-	err := steps.RunTemplate(ctx, t.script, config.Runner, out, struct{Provider clouds.Name}{config.Provider})
+	err := steps.RunTemplate(ctx, t.script, config.Runner, out, struct{ Provider clouds.Name }{config.Provider})
 
 	if err != nil {
 		return errors.Wrap(err, "install kubelet step")

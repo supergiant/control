@@ -10,6 +10,10 @@ type MachineState string
 
 type Role string
 
+func (r Role) String() string {
+	return string(r)
+}
+
 const (
 	MachineStatePlanned      MachineState = "planned"
 	MachineStateBuilding     MachineState = "building"

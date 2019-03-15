@@ -138,7 +138,7 @@ func (s *StepCreateInstance) Run(ctx context.Context, w io.Writer, cfg *steps.Co
 						Value: aws.String(util.MakeRole(cfg.IsMaster)),
 					},
 					{
-						Key:   aws.String(clouds.ClusterIDTag),
+						Key:   aws.String(clouds.TagClusterID),
 						Value: aws.String(cfg.ClusterID),
 					},
 				},
@@ -198,7 +198,7 @@ func (s *StepCreateInstance) Run(ctx context.Context, w io.Writer, cfg *steps.Co
 					Values: []*string{aws.String(nodeName)},
 				},
 				{
-					Name:   aws.String(fmt.Sprintf("tag:%s", clouds.ClusterIDTag)),
+					Name:   aws.String(fmt.Sprintf("tag:%s", clouds.TagClusterID)),
 					Values: []*string{aws.String(cfg.ClusterID)},
 				},
 			},

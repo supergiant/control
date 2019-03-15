@@ -134,7 +134,7 @@ func TestFindOutboundIP(t *testing.T) {
 				return resp, nil
 			})
 
-		ip, err := findOutBoundIP()
+		ip, err := FindExternalIP()
 		httpmock.DeactivateAndReset()
 
 		if testCase.hasErr && err == nil {
