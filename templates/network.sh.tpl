@@ -478,8 +478,6 @@ sudo kubectl create -f flannel.yaml
 
 {{ if eq .NetworkProvider "Calico" }}
 sudo bash -c 'cat << EOF > rbac-kdd.yaml
-# Calico Version v3.3.2
-# https://docs.projectcalico.org/v3.3/releases#v3.3.2
 kind: ClusterRole
 apiVersion: rbac.authorization.k8s.io/v1beta1
 metadata:
@@ -575,31 +573,17 @@ EOF'
 sudo kubectl create -f rbac-kdd.yaml
 
 sudo bash -c 'cat << EOF > calico.yaml
-# Calico Version v3.3.2
-# https://docs.projectcalico.org/v3.3/releases#v3.3.2
-# This manifest includes the following component versions:
-#   calico/node:v3.3.2
-#   calico/cni:v3.3.2
-
-# This ConfigMap is used to configure a self-hosted Calico installation.
 kind: ConfigMap
 apiVersion: v1
 metadata:
   name: calico-config
   namespace: kube-system
 data:
-  # To enable Typha, set this to "calico-typha" *and* set a non-zero value for Typha replicas
-  # below.  We recommend using Typha if you have more than 50 nodes. Above 100 nodes it is
-  # essential.
   typha_service_name: "none"
-  # Configure the Calico backend to use.
   calico_backend: "bird"
 
-  # Configure the MTU to use
   veth_mtu: "1440"
 
-  # The CNI network configuration to install on each node.  The special
-  # values in this config will be automatically populated.
   cni_network_config: |-
     {
       "name": "k8s-pod-network",
@@ -629,13 +613,7 @@ data:
         }
       ]
     }
-
 ---
-
-
-# This manifest creates a Service, which will be backed by Calico's Typha daemon.
-# Typha sits in between Felix and the API server, reducing Calico's load on the API server.
-
 apiVersion: v1
 kind: Service
 metadata:
@@ -653,9 +631,6 @@ spec:
     k8s-app: calico-typha
 
 ---
-
-# This manifest creates a Deployment of Typha to back the above service.
-
 apiVersion: apps/v1beta1
 kind: Deployment
 metadata:
@@ -664,12 +639,6 @@ metadata:
   labels:
     k8s-app: calico-typha
 spec:
-  # Number of Typha replicas.  To enable Typha, set this to a non-zero value *and* set the
-  # typha_service_name variable in the calico-config ConfigMap above.
-  #
-  # We recommend using Typha if you have more than 50 nodes.  Above 100 nodes it is essential
-  # (when using the Kubernetes datastore).  Use one replica for every 100-200 nodes.  In
-  # production, we recommend running at least 3 replicas to reduce the impact of rolling upgrade.
   replicas: 0
   revisionHistoryLimit: 2
   template:
@@ -677,9 +646,6 @@ spec:
       labels:
         k8s-app: calico-typha
       annotations:
-        # This, along with the CriticalAddonsOnly toleration below, marks the pod as a critical
-        # add-on, ensuring it gets priority scheduling and that its resources are reserved
-        # if it ever gets evicted.
         scheduler.alpha.kubernetes.io/critical-pod: ''
         cluster-autoscaler.kubernetes.io/safe-to-evict: 'true'
     spec:
@@ -690,8 +656,6 @@ spec:
         # Mark the pod as a critical add-on for rescheduling.
         - key: CriticalAddonsOnly
           operator: Exists
-      # Since Calico can't network a pod until Typha is up, we need to run Typha itself
-      # as a host-networked pod.
       serviceAccountName: calico-node
       containers:
       - image: calico/typha:v3.3.2
@@ -701,28 +665,18 @@ spec:
           name: calico-typha
           protocol: TCP
         env:
-          # Enable "info" logging by default.  Can be set to "debug" to increase verbosity.
           - name: TYPHA_LOGSEVERITYSCREEN
             value: "info"
-          # Disable logging to file and syslog since those don't make sense in Kubernetes.
           - name: TYPHA_LOGFILEPATH
             value: "none"
           - name: TYPHA_LOGSEVERITYSYS
             value: "none"
-          # Monitor the Kubernetes API to find the number of running instances and rebalance
-          # connections.
           - name: TYPHA_CONNECTIONREBALANCINGMODE
             value: "kubernetes"
           - name: TYPHA_DATASTORETYPE
             value: "kubernetes"
           - name: TYPHA_HEALTHENABLED
             value: "true"
-          # Uncomment these lines to enable prometheus metrics.  Since Typha is host-networked,
-          # this opens a port on the host, which may need to be secured.
-          #- name: TYPHA_PROMETHEUSMETRICSENABLED
-          #  value: "true"
-          #- name: TYPHA_PROMETHEUSMETRICSPORT
-          #  value: "9093"
         livenessProbe:
           exec:
             command:
@@ -740,9 +694,6 @@ spec:
           periodSeconds: 10
 
 ---
-
-# This manifest creates a Pod Disruption Budget for Typha to allow K8s Cluster Autoscaler to evict
-
 apiVersion: policy/v1beta1
 kind: PodDisruptionBudget
 metadata:
@@ -757,10 +708,6 @@ spec:
       k8s-app: calico-typha
 
 ---
-
-# This manifest installs the calico/node container, as well
-# as the Calico CNI plugins and network config on
-# each master and worker node in a Kubernetes cluster.
 kind: DaemonSet
 apiVersion: extensions/v1beta1
 metadata:
@@ -781,17 +728,12 @@ spec:
       labels:
         k8s-app: calico-node
       annotations:
-        # This, along with the CriticalAddonsOnly toleration below,
-        # marks the pod as a critical add-on, ensuring it gets
-        # priority scheduling and that its resources are reserved
-        # if it ever gets evicted.
         scheduler.alpha.kubernetes.io/critical-pod: ''
     spec:
       nodeSelector:
         beta.kubernetes.io/os: linux
       hostNetwork: true
       tolerations:
-        # Make sure calico-node gets scheduled on all nodes.
         - effect: NoSchedule
           operator: Exists
         # Mark the pod as a critical add-on for rescheduling.
@@ -800,69 +742,48 @@ spec:
         - effect: NoExecute
           operator: Exists
       serviceAccountName: calico-node
-      # Minimize downtime during a rolling upgrade or deletion; tell Kubernetes to do a "force
-      # deletion": https://kubernetes.io/docs/concepts/workloads/pods/pod/#termination-of-pods.
       terminationGracePeriodSeconds: 0
       containers:
-        # Runs calico/node container on each Kubernetes node.  This
-        # container programs network policy and routes on each
-        # host.
         - name: calico-node
           image: calico/node:v3.3.2
           env:
-            # Use Kubernetes API as the backing datastore.
             - name: DATASTORE_TYPE
               value: "kubernetes"
-            # Typha support: controlled by the ConfigMap.
             - name: FELIX_TYPHAK8SSERVICENAME
               valueFrom:
                 configMapKeyRef:
                   name: calico-config
                   key: typha_service_name
-            # Wait for the datastore.
             - name: WAIT_FOR_DATASTORE
               value: "true"
-            # Set based on the k8s node name.
             - name: NODENAME
               valueFrom:
                 fieldRef:
                   fieldPath: spec.nodeName
-            # Choose the backend to use.
             - name: CALICO_NETWORKING_BACKEND
               valueFrom:
                 configMapKeyRef:
                   name: calico-config
                   key: calico_backend
-            # Cluster type to identify the deployment type
             - name: CLUSTER_TYPE
               value: "k8s,bgp"
-            # Auto-detect the BGP IP address.
             - name: IP
               value: "autodetect"
-            # Enable IPIP
             - name: CALICO_IPV4POOL_IPIP
               value: "Always"
-            # Set MTU for tunnel device used if ipip is enabled
             - name: FELIX_IPINIPMTU
               valueFrom:
                 configMapKeyRef:
                   name: calico-config
                   key: veth_mtu
-            # The default IPv4 pool to create on startup if none exists. Pod IPs will be
-            # chosen from this range. Changing this value after installation will have
-            # no effect. This should fall within `--cluster-cidr`.
             - name: CALICO_IPV4POOL_CIDR
               value: "{{ .CIDR }}"
-            # Disable file logging so `kubectl logs` works.
             - name: CALICO_DISABLE_FILE_LOGGING
               value: "true"
-            # Set Felix endpoint to host default action to ACCEPT.
             - name: FELIX_DEFAULTENDPOINTTOHOSTACTION
               value: "ACCEPT"
-            # Disable IPv6 on Kubernetes.
             - name: FELIX_IPV6SUPPORT
               value: "false"
-            # Set Felix logging to "info"
             - name: FELIX_LOGSEVERITYSCREEN
               value: "info"
             - name: FELIX_HEALTHENABLED
@@ -900,27 +821,21 @@ spec:
             - mountPath: /var/lib/calico
               name: var-lib-calico
               readOnly: false
-        # This container installs the Calico CNI binaries
-        # and CNI network config file on each node.
         - name: install-cni
           image: calico/cni:v3.3.2
           command: ["/install-cni.sh"]
           env:
-            # Name of the CNI config file to create.
             - name: CNI_CONF_NAME
               value: "10-calico.conflist"
-            # Set the hostname based on the k8s node name.
             - name: KUBERNETES_NODE_NAME
               valueFrom:
                 fieldRef:
                   fieldPath: spec.nodeName
-            # The CNI network config to install on each node.
             - name: CNI_NETWORK_CONFIG
               valueFrom:
                 configMapKeyRef:
                   name: calico-config
                   key: cni_network_config
-            # CNI MTU Config variable
             - name: CNI_MTU
               valueFrom:
                 configMapKeyRef:
@@ -946,7 +861,6 @@ spec:
           hostPath:
             path: /run/xtables.lock
             type: FileOrCreate
-        # Used to install CNI.
         - name: cni-bin-dir
           hostPath:
             path: /opt/cni/bin
@@ -954,7 +868,6 @@ spec:
           hostPath:
             path: /etc/cni/net.d
 ---
-
 apiVersion: v1
 kind: ServiceAccount
 metadata:
@@ -962,10 +875,6 @@ metadata:
   namespace: kube-system
 
 ---
-
-# Create all the CustomResourceDefinitions needed for
-# Calico policy and networking mode.
-
 apiVersion: apiextensions.k8s.io/v1beta1
 kind: CustomResourceDefinition
 metadata:
@@ -1102,7 +1011,7 @@ sudo kubectl create -f calico.yaml
 {{ end }}
 
 {{ if eq .NetworkProvider "Weave" }}
-sudo bash -c 'cat << EOF > weave.yaml
+sudo bash -c "cat << EOF > weave.yaml
 apiVersion: v1
 kind: List
 items:
@@ -1113,11 +1022,11 @@ items:
       annotations:
         cloud.weave.works/launcher-info: |-
           {
-            "original-request": {
-              "url": "/k8s/v1.8/net.yaml",
-              "date": "Thu Feb 14 2019 15:22:05 GMT+0000 (UTC)"
+            'original-request': {
+              'url': '/k8s/v1.10/net.yaml?k8s-version=Q2xpZW50IFZlcnNpb246IHZlcnNpb24uSW5mb3tNYWpvcjoiMSIsIE1pbm9yOiIxMCIsIEdpdFZlcnNpb246InYxLjEwLjciLCBHaXRDb21taXQ6IjBjMzhjMzYyNTExYjIwYTA5OGQ3Y2Q4NTVmMTMxNGRhZDkyYzI3ODAiLCBHaXRUcmVlU3RhdGU6ImNsZWFuIiwgQnVpbGREYXRlOiIyMDE4LTA4LTIwVDEwOjA5OjAzWiIsIEdvVmVyc2lvbjoiZ28xLjkuMyIsIENvbXBpbGVyOiJnYyIsIFBsYXRmb3JtOiJsaW51eC9hbWQ2NCJ9ClNlcnZlciBWZXJzaW9uOiB2ZXJzaW9uLkluZm97TWFqb3I6IjEiLCBNaW5vcjoiMTIiLCBHaXRWZXJzaW9uOiJ2MS4xMi40IiwgR2l0Q29tbWl0OiJmNDlmYTAyMmRiZTYzZmFhZmQwZGExMDZlZjdlMDVhMjk3MjFkM2YxIiwgR2l0VHJlZVN0YXRlOiJjbGVhbiIsIEJ1aWxkRGF0ZToiMjAxOC0xMi0xNFQwNjo1OTozN1oiLCBHb1ZlcnNpb246ImdvMS4xMC40IiwgQ29tcGlsZXI6ImdjIiwgUGxhdGZvcm06ImxpbnV4L2FtZDY0In0K',
+              'date': 'Fri Mar 15 2019 15:27:35 GMT+0000 (UTC)'
             },
-            "email-address": "support@weave.works"
+            'email-address': 'support@weave.works'
           }
       labels:
         name: weave-net
@@ -1129,11 +1038,11 @@ items:
       annotations:
         cloud.weave.works/launcher-info: |-
           {
-            "original-request": {
-              "url": "/k8s/v1.8/net.yaml",
-              "date": "Thu Feb 14 2019 15:22:05 GMT+0000 (UTC)"
+            'original-request': {
+              'url': '/k8s/v1.10/net.yaml?k8s-version=Q2xpZW50IFZlcnNpb246IHZlcnNpb24uSW5mb3tNYWpvcjoiMSIsIE1pbm9yOiIxMCIsIEdpdFZlcnNpb246InYxLjEwLjciLCBHaXRDb21taXQ6IjBjMzhjMzYyNTExYjIwYTA5OGQ3Y2Q4NTVmMTMxNGRhZDkyYzI3ODAiLCBHaXRUcmVlU3RhdGU6ImNsZWFuIiwgQnVpbGREYXRlOiIyMDE4LTA4LTIwVDEwOjA5OjAzWiIsIEdvVmVyc2lvbjoiZ28xLjkuMyIsIENvbXBpbGVyOiJnYyIsIFBsYXRmb3JtOiJsaW51eC9hbWQ2NCJ9ClNlcnZlciBWZXJzaW9uOiB2ZXJzaW9uLkluZm97TWFqb3I6IjEiLCBNaW5vcjoiMTIiLCBHaXRWZXJzaW9uOiJ2MS4xMi40IiwgR2l0Q29tbWl0OiJmNDlmYTAyMmRiZTYzZmFhZmQwZGExMDZlZjdlMDVhMjk3MjFkM2YxIiwgR2l0VHJlZVN0YXRlOiJjbGVhbiIsIEJ1aWxkRGF0ZToiMjAxOC0xMi0xNFQwNjo1OTozN1oiLCBHb1ZlcnNpb246ImdvMS4xMC40IiwgQ29tcGlsZXI6ImdjIiwgUGxhdGZvcm06ImxpbnV4L2FtZDY0In0K',
+              'date': 'Fri Mar 15 2019 15:27:35 GMT+0000 (UTC)'
             },
-            "email-address": "support@weave.works"
+            'email-address': 'support@weave.works'
           }
       labels:
         name: weave-net
@@ -1170,11 +1079,11 @@ items:
       annotations:
         cloud.weave.works/launcher-info: |-
           {
-            "original-request": {
-              "url": "/k8s/v1.8/net.yaml",
-              "date": "Thu Feb 14 2019 15:22:05 GMT+0000 (UTC)"
+            'original-request': {
+              'url': '/k8s/v1.10/net.yaml?k8s-version=Q2xpZW50IFZlcnNpb246IHZlcnNpb24uSW5mb3tNYWpvcjoiMSIsIE1pbm9yOiIxMCIsIEdpdFZlcnNpb246InYxLjEwLjciLCBHaXRDb21taXQ6IjBjMzhjMzYyNTExYjIwYTA5OGQ3Y2Q4NTVmMTMxNGRhZDkyYzI3ODAiLCBHaXRUcmVlU3RhdGU6ImNsZWFuIiwgQnVpbGREYXRlOiIyMDE4LTA4LTIwVDEwOjA5OjAzWiIsIEdvVmVyc2lvbjoiZ28xLjkuMyIsIENvbXBpbGVyOiJnYyIsIFBsYXRmb3JtOiJsaW51eC9hbWQ2NCJ9ClNlcnZlciBWZXJzaW9uOiB2ZXJzaW9uLkluZm97TWFqb3I6IjEiLCBNaW5vcjoiMTIiLCBHaXRWZXJzaW9uOiJ2MS4xMi40IiwgR2l0Q29tbWl0OiJmNDlmYTAyMmRiZTYzZmFhZmQwZGExMDZlZjdlMDVhMjk3MjFkM2YxIiwgR2l0VHJlZVN0YXRlOiJjbGVhbiIsIEJ1aWxkRGF0ZToiMjAxOC0xMi0xNFQwNjo1OTozN1oiLCBHb1ZlcnNpb246ImdvMS4xMC40IiwgQ29tcGlsZXI6ImdjIiwgUGxhdGZvcm06ImxpbnV4L2FtZDY0In0K',
+              'date': 'Fri Mar 15 2019 15:27:35 GMT+0000 (UTC)'
             },
-            "email-address": "support@weave.works"
+            'email-address': 'support@weave.works'
           }
       labels:
         name: weave-net
@@ -1193,11 +1102,11 @@ items:
       annotations:
         cloud.weave.works/launcher-info: |-
           {
-            "original-request": {
-              "url": "/k8s/v1.8/net.yaml",
-              "date": "Thu Feb 14 2019 15:22:05 GMT+0000 (UTC)"
+            'original-request': {
+              'url': '/k8s/v1.10/net.yaml?k8s-version=Q2xpZW50IFZlcnNpb246IHZlcnNpb24uSW5mb3tNYWpvcjoiMSIsIE1pbm9yOiIxMCIsIEdpdFZlcnNpb246InYxLjEwLjciLCBHaXRDb21taXQ6IjBjMzhjMzYyNTExYjIwYTA5OGQ3Y2Q4NTVmMTMxNGRhZDkyYzI3ODAiLCBHaXRUcmVlU3RhdGU6ImNsZWFuIiwgQnVpbGREYXRlOiIyMDE4LTA4LTIwVDEwOjA5OjAzWiIsIEdvVmVyc2lvbjoiZ28xLjkuMyIsIENvbXBpbGVyOiJnYyIsIFBsYXRmb3JtOiJsaW51eC9hbWQ2NCJ9ClNlcnZlciBWZXJzaW9uOiB2ZXJzaW9uLkluZm97TWFqb3I6IjEiLCBNaW5vcjoiMTIiLCBHaXRWZXJzaW9uOiJ2MS4xMi40IiwgR2l0Q29tbWl0OiJmNDlmYTAyMmRiZTYzZmFhZmQwZGExMDZlZjdlMDVhMjk3MjFkM2YxIiwgR2l0VHJlZVN0YXRlOiJjbGVhbiIsIEJ1aWxkRGF0ZToiMjAxOC0xMi0xNFQwNjo1OTozN1oiLCBHb1ZlcnNpb246ImdvMS4xMC40IiwgQ29tcGlsZXI6ImdjIiwgUGxhdGZvcm06ImxpbnV4L2FtZDY0In0K',
+              'date': 'Fri Mar 15 2019 15:27:35 GMT+0000 (UTC)'
             },
-            "email-address": "support@weave.works"
+            'email-address': 'support@weave.works'
           }
       labels:
         name: weave-net
@@ -1225,11 +1134,11 @@ items:
       annotations:
         cloud.weave.works/launcher-info: |-
           {
-            "original-request": {
-              "url": "/k8s/v1.8/net.yaml",
-              "date": "Thu Feb 14 2019 15:22:05 GMT+0000 (UTC)"
+            'original-request': {
+              'url': '/k8s/v1.10/net.yaml?k8s-version=Q2xpZW50IFZlcnNpb246IHZlcnNpb24uSW5mb3tNYWpvcjoiMSIsIE1pbm9yOiIxMCIsIEdpdFZlcnNpb246InYxLjEwLjciLCBHaXRDb21taXQ6IjBjMzhjMzYyNTExYjIwYTA5OGQ3Y2Q4NTVmMTMxNGRhZDkyYzI3ODAiLCBHaXRUcmVlU3RhdGU6ImNsZWFuIiwgQnVpbGREYXRlOiIyMDE4LTA4LTIwVDEwOjA5OjAzWiIsIEdvVmVyc2lvbjoiZ28xLjkuMyIsIENvbXBpbGVyOiJnYyIsIFBsYXRmb3JtOiJsaW51eC9hbWQ2NCJ9ClNlcnZlciBWZXJzaW9uOiB2ZXJzaW9uLkluZm97TWFqb3I6IjEiLCBNaW5vcjoiMTIiLCBHaXRWZXJzaW9uOiJ2MS4xMi40IiwgR2l0Q29tbWl0OiJmNDlmYTAyMmRiZTYzZmFhZmQwZGExMDZlZjdlMDVhMjk3MjFkM2YxIiwgR2l0VHJlZVN0YXRlOiJjbGVhbiIsIEJ1aWxkRGF0ZToiMjAxOC0xMi0xNFQwNjo1OTozN1oiLCBHb1ZlcnNpb246ImdvMS4xMC40IiwgQ29tcGlsZXI6ImdjIiwgUGxhdGZvcm06ImxpbnV4L2FtZDY0In0K',
+              'date': 'Fri Mar 15 2019 15:27:35 GMT+0000 (UTC)'
             },
-            "email-address": "support@weave.works"
+            'email-address': 'support@weave.works'
           }
       labels:
         name: weave-net
@@ -1249,11 +1158,11 @@ items:
       annotations:
         cloud.weave.works/launcher-info: |-
           {
-            "original-request": {
-              "url": "/k8s/v1.8/net.yaml",
-              "date": "Thu Feb 14 2019 15:22:05 GMT+0000 (UTC)"
+            'original-request': {
+              'url': '/k8s/v1.10/net.yaml?k8s-version=Q2xpZW50IFZlcnNpb246IHZlcnNpb24uSW5mb3tNYWpvcjoiMSIsIE1pbm9yOiIxMCIsIEdpdFZlcnNpb246InYxLjEwLjciLCBHaXRDb21taXQ6IjBjMzhjMzYyNTExYjIwYTA5OGQ3Y2Q4NTVmMTMxNGRhZDkyYzI3ODAiLCBHaXRUcmVlU3RhdGU6ImNsZWFuIiwgQnVpbGREYXRlOiIyMDE4LTA4LTIwVDEwOjA5OjAzWiIsIEdvVmVyc2lvbjoiZ28xLjkuMyIsIENvbXBpbGVyOiJnYyIsIFBsYXRmb3JtOiJsaW51eC9hbWQ2NCJ9ClNlcnZlciBWZXJzaW9uOiB2ZXJzaW9uLkluZm97TWFqb3I6IjEiLCBNaW5vcjoiMTIiLCBHaXRWZXJzaW9uOiJ2MS4xMi40IiwgR2l0Q29tbWl0OiJmNDlmYTAyMmRiZTYzZmFhZmQwZGExMDZlZjdlMDVhMjk3MjFkM2YxIiwgR2l0VHJlZVN0YXRlOiJjbGVhbiIsIEJ1aWxkRGF0ZToiMjAxOC0xMi0xNFQwNjo1OTozN1oiLCBHb1ZlcnNpb246ImdvMS4xMC40IiwgQ29tcGlsZXI6ImdjIiwgUGxhdGZvcm06ImxpbnV4L2FtZDY0In0K',
+              'date': 'Fri Mar 15 2019 15:27:35 GMT+0000 (UTC)'
             },
-            "email-address": "support@weave.works"
+            'email-address': 'support@weave.works'
           }
       labels:
         name: weave-net
@@ -1351,5 +1260,7 @@ items:
                 type: FileOrCreate
       updateStrategy:
         type: RollingUpdate
-EOF'
+EOF"
+
+sudo kubectl create -f weave.yaml
 {{ end }}

@@ -294,7 +294,7 @@ func NewConfig(clusterName, cloudAccountName string, profile profile.Profile) (*
 		},
 		NetworkConfig: NetworkConfig{
 			CIDR:            profile.CIDR,
-			NetworkProvider: "Flannel",
+			NetworkProvider: profile.NetworkProvider,
 		},
 		PostStartConfig: PostStartConfig{
 			Host:        "localhost",
@@ -396,8 +396,7 @@ func NewConfigFromKube(profile *profile.Profile, k *model.Kube) (*Config, error)
 			AdminKey:     k.Auth.AdminKey,
 		},
 		NetworkConfig: NetworkConfig{
-			// TODO(stgleb): Take it from profile when UI is updated
-			NetworkProvider: "Flannel",
+			NetworkProvider: profile.NetworkProvider,
 			CIDR:            profile.CIDR,
 		},
 
