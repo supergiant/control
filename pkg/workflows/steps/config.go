@@ -157,6 +157,7 @@ type PrometheusConfig struct {
 type KubeadmConfig struct {
 	K8SVersion       string `json:"K8SVersion"`
 	IsMaster         bool   `json:"isMaster"`
+	AdvertiseAddress string `json:"advertiseAddress"`
 	IsBootstrap      bool   `json:"isBootstrap"`
 	CIDR             string `json:"cidr"`
 	Token            string `json:"token"`
