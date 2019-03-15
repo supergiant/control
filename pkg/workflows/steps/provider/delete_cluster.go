@@ -15,43 +15,43 @@ import (
 )
 
 const (
-	CleanUpStep = "cleanUp"
+	DeleteClusterStepName = "deleteCluster"
 )
 
-type StepCleanUp struct {
+type DeleteCluster struct {
 }
 
-func (s StepCleanUp) Run(ctx context.Context, out io.Writer, cfg *steps.Config) error {
+func (s DeleteCluster) Run(ctx context.Context, out io.Writer, cfg *steps.Config) error {
 	if cfg == nil {
 		return errors.New("invalid config")
 	}
 
 	steps, err := cleanUpStepsFor(cfg.Provider)
 	if err != nil {
-		return errors.Wrap(err, CleanUpStep)
+		return errors.Wrap(err, DeleteClusterStepName)
 	}
 	for _, s := range steps {
 		if err = s.Run(ctx, out, cfg); err != nil {
-			return errors.Wrap(err, CleanUpStep)
+			return errors.Wrap(err, DeleteClusterStepName)
 		}
 	}
 
 	return nil
 }
 
-func (s StepCleanUp) Name() string {
-	return CleanUpStep
+func (s DeleteCluster) Name() string {
+	return DeleteClusterStepName
 }
 
-func (s StepCleanUp) Description() string {
-	return CleanUpStep
+func (s DeleteCluster) Description() string {
+	return DeleteClusterStepName
 }
 
-func (s StepCleanUp) Depends() []string {
+func (s DeleteCluster) Depends() []string {
 	return nil
 }
 
-func (s StepCleanUp) Rollback(context.Context, io.Writer, *steps.Config) error {
+func (s DeleteCluster) Rollback(context.Context, io.Writer, *steps.Config) error {
 	return nil
 }
 
@@ -71,7 +71,7 @@ func cleanUpStepsFor(provider clouds.Name) ([]steps.Step, error) {
 		}, nil
 	case clouds.DigitalOcean:
 		return []steps.Step{
-			steps.GetStep(digitalocean.DeleteMachineStepName),
+			steps.GetStep(digitalocean.DeleteClusterMachines),
 			steps.GetStep(digitalocean.DeleteDeleteKeysStepName),
 		}, nil
 	case clouds.GCE:

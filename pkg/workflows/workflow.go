@@ -103,7 +103,7 @@ func Init() {
 	}
 
 	deleteClusterWorkflow := []steps.Step{
-		provider.StepCleanUp{},
+		provider.DeleteCluster{},
 	}
 
 	m.Lock()

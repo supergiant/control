@@ -42,6 +42,7 @@ func (t *Step) Run(ctx context.Context, out io.Writer, config *steps.Config) err
 	// Use bootstrap master node as a controlPlaneEndpoint
 	if config.KubeadmConfig.IsBootstrap {
 		config.KubeadmConfig.LoadBalancerHost = config.Node.PublicIp
+		config.KubeadmConfig.AdvertiseAddress = config.Node.PrivateIp
 	}
 
 	config.KubeadmConfig.IsMaster = config.IsMaster
