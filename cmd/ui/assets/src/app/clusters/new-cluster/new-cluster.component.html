@@ -83,7 +83,7 @@
               <mat-option *ngFor="let n of clusterOptions.networkProviders"
                           [value]="n">{{ n }}</mat-option>
             </mat-select>
-            <mat-hint align="end">Read more about 
+            <mat-hint align="end">Read more about
               <a href="https://kubernetes.io/docs/concepts/cluster-administration/networking/"
                  target="_blank">cluster networking</a>
             </mat-hint>
@@ -621,7 +621,7 @@
             <h3>CLUSTER DETAILS</h3>
             <div>
               <p><span class="label">K8s VERSION:</span> {{ clusterConfig.value.K8sVersion }}</p>
-              <p><span class="label">FLANNEL VERSION:</span> {{ clusterConfig.value.flannelVersion }}</p>
+              <p><span class="label">NETWORK PROVIDER:</span> {{ clusterConfig.value.networkProvider }}</p>
               <p><span class="label">HELM VERSION:</span> {{ clusterConfig.value.helmVersion }}</p>
               <p><span class="label">DOCKER VERSION:</span> {{ clusterConfig.value.dockerVersion }}</p>
               <p><span class="label">UBUNTU VERSION:</span> {{ clusterConfig.value.ubuntuVersion }}</p>
