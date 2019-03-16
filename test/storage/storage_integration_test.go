@@ -1,76 +1,67 @@
-// +build integration
-
 package storage
 
 import (
 	"context"
+	"fmt"
 	"testing"
 	"time"
 
-	"github.com/coreos/etcd/clientv3"
 	"github.com/stretchr/testify/require"
 
 	"github.com/supergiant/control/pkg/sgerrors"
-	"github.com/supergiant/control/pkg/storage"
-	"github.com/supergiant/control/pkg/testutils/assert"
+	"github.com/supergiant/control/pkg/storage/file"
 )
 
 const (
-	defaultETCDHost = "http://127.0.0.1:2379"
-	testPrefix      = "/test/"
+	testPrefix = "/test/"
 )
 
-var defaultConfig clientv3.Config
-
-func init() {
-	assert.MustRunETCD(defaultETCDHost)
-	defaultConfig = clientv3.Config{
-		Endpoints: []string{defaultETCDHost},
-	}
-}
-
 func TestStorageE2E(t *testing.T) {
+	s, err := file.NewFileRepository(fmt.Sprintf("/tmp/sg-storage-%d", time.Now().UnixNano()))
+	require.Nil(t, err, "setup file storage provider")
+
 	ctx, cancel := context.WithTimeout(context.Background(), 3*time.Second)
 	defer cancel()
-	kv := storage.NewETCDRepository(defaultConfig)
 
-	err := kv.Delete(ctx, testPrefix, "")
+	err = s.Delete(ctx, testPrefix, "")
 	require.NoError(t, err)
 
-	res, err := kv.GetAll(ctx, testPrefix)
+	res, err := s.GetAll(ctx, testPrefix)
 	require.NoError(t, err)
 	require.Empty(t, res)
 
-	err = kv.Put(ctx, testPrefix, "1", []byte("test"))
+	err = s.Put(ctx, testPrefix, "1", []byte("test"))
 	require.NoError(t, err)
 
-	getResult, err := kv.Get(ctx, testPrefix, "1")
+	getResult, err := s.Get(ctx, testPrefix, "1")
 	require.Equal(t, "test", string(getResult))
 
-	err = kv.Put(ctx, testPrefix, "2", []byte("test"))
+	err = s.Put(ctx, testPrefix, "2", []byte("test"))
 	require.NoError(t, err)
 
-	err = kv.Put(ctx, testPrefix, "2", []byte("test222"))
+	err = s.Put(ctx, testPrefix, "2", []byte("test222"))
 	require.NoError(t, err)
 
-	getResult, err = kv.Get(ctx, testPrefix, "2")
+	getResult, err = s.Get(ctx, testPrefix, "2")
 	require.Equal(t, "test222", string(getResult))
 
-	res, err = kv.GetAll(ctx, testPrefix)
+	res, err = s.GetAll(ctx, testPrefix)
 	require.NoError(t, err)
 	require.True(t, len(res) == 2)
 
-	err = kv.Delete(ctx, testPrefix, "")
+	err = s.Delete(ctx, testPrefix, "1")
+	require.NoError(t, err)
+	err = s.Delete(ctx, testPrefix, "2")
 	require.NoError(t, err)
 
-	res, err = kv.GetAll(ctx, testPrefix)
+	res, err = s.GetAll(ctx, testPrefix)
 	require.NoError(t, err)
 	require.Empty(t, res)
 
-	x, err := kv.Get(ctx, testPrefix, "NO_SUCH_KEY")
+	x, err := s.Get(ctx, testPrefix, "NO_SUCH_KEY")
 	require.EqualError(t, sgerrors.ErrNotFound, err.Error())
 	require.Nil(t, x)
 
-	resultSlice, err := kv.GetAll(ctx, "NO_SUCH_PREFIX")
+	resultSlice, err := s.GetAll(ctx, "NO_SUCH_PREFIX")
 	require.Empty(t, resultSlice)
 }
