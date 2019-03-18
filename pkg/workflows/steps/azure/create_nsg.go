@@ -6,7 +6,7 @@ import (
 	"io"
 
 	"github.com/Azure/azure-sdk-for-go/services/network/mgmt/2018-11-01/network"
-	"github.com/Azure/go-autorest/autorest/azure/auth"
+	"github.com/Azure/go-autorest/autorest"
 	"github.com/Azure/go-autorest/autorest/to"
 	"github.com/pkg/errors"
 
@@ -18,7 +18,7 @@ import (
 
 const CreateSecurityGroupStepName = "CreateNetworkSecurityGroup"
 
-type NSGClientFn func(authorizer Autorizerer, subscriptionID string) (SecurityGroupCreator, error)
+type NSGClientFn func(a autorest.Authorizer, subscriptionID string) (SecurityGroupCreator, autorest.Client)
 
 type CreateSecurityGroupStep struct {
 	nsgClientFn    NSGClientFn
@@ -35,21 +35,14 @@ func NewCreateSecurityGroupStep() *CreateSecurityGroupStep {
 }
 
 func (s *CreateSecurityGroupStep) Run(ctx context.Context, output io.Writer, config *steps.Config) error {
+	if config == nil {
+		return errors.Wrap(sgerrors.ErrNilEntity, "config")
+	}
 	if s.nsgClientFn == nil {
 		return errors.Wrap(sgerrors.ErrNilEntity, "security group client builder")
 	}
 
-	nsgClient, err := s.nsgClientFn(
-		auth.NewClientCredentialsConfig(
-			config.AzureConfig.ClientID,
-			config.AzureConfig.ClientSecret,
-			config.AzureConfig.TenantID,
-		),
-		config.AzureConfig.SubscriptionID,
-	)
-	if err != nil {
-		return errors.Wrap(err, "build nsg client")
-	}
+	nsgClient, restclient := s.nsgClientFn(config.GetAzureAuthorizer(), config.AzureConfig.SubscriptionID)
 
 	sgAddr, err := s.findOutboundIP(ctx)
 	if err != nil {
@@ -71,7 +64,7 @@ func (s *CreateSecurityGroupStep) Run(ctx context.Context, output io.Writer, con
 			rules: nodeSecurityRules(sgAddr),
 		},
 	} {
-		_, err = nsgClient.CreateOrUpdate(
+		f, err := nsgClient.CreateOrUpdate(
 			ctx,
 			toResourceGroupName(config.ClusterID, config.ClusterName),
 			r.name,
@@ -85,6 +78,11 @@ func (s *CreateSecurityGroupStep) Run(ctx context.Context, output io.Writer, con
 		if err != nil {
 			return errors.Wrapf(err, "create %s network security group", r.name)
 		}
+
+		if err = f.WaitForCompletionRef(ctx, restclient); err != nil {
+			return errors.Wrapf(err, "wait for %s security group is ready", r.name)
+		}
+
 	}
 
 	return nil
