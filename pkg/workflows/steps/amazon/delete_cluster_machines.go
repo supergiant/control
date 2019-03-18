@@ -58,7 +58,7 @@ func (s *DeleteClusterMachines) Run(ctx context.Context, w io.Writer, cfg *steps
 	describeInstanceOutput, err := svc.DescribeInstancesWithContext(ctx, &ec2.DescribeInstancesInput{
 		Filters: []*ec2.Filter{
 			{
-				Name:   aws.String(fmt.Sprintf("tag:%s", clouds.ClusterIDTag)),
+				Name:   aws.String(fmt.Sprintf("tag:%s", clouds.TagClusterID)),
 				Values: aws.StringSlice([]string{cfg.ClusterID}),
 			},
 		},

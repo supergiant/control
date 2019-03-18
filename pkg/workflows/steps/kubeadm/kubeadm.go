@@ -7,6 +7,7 @@ import (
 	"text/template"
 
 	"github.com/pkg/errors"
+
 	tm "github.com/supergiant/control/pkg/templatemanager"
 	"github.com/supergiant/control/pkg/workflows/steps"
 	"github.com/supergiant/control/pkg/workflows/steps/docker"
@@ -42,6 +43,7 @@ func (t *Step) Run(ctx context.Context, out io.Writer, config *steps.Config) err
 	// Use bootstrap master node as a controlPlaneEndpoint
 	if config.KubeadmConfig.IsBootstrap {
 		config.KubeadmConfig.LoadBalancerHost = config.Node.PublicIp
+		config.KubeadmConfig.AdvertiseAddress = config.Node.PrivateIp
 	}
 
 	config.KubeadmConfig.IsMaster = config.IsMaster

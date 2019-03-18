@@ -1,7 +1,6 @@
 package util
 
 import (
-	"context"
 	"encoding/json"
 	"fmt"
 	"io"
@@ -98,7 +97,7 @@ func MakeKeyName(name string, isUser bool) string {
 
 // TODO(stgleb): move getting cloud account outside of this function
 // Gets cloud account from storage and fills config object with those credentials
-func FillCloudAccountCredentials(ctx context.Context, cloudAccount *model.CloudAccount, config *steps.Config) error {
+func FillCloudAccountCredentials(cloudAccount *model.CloudAccount, config *steps.Config) error {
 	config.Provider = cloudAccount.Provider
 
 	// Bind private key to config

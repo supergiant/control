@@ -20,7 +20,8 @@
 
         <ng-container matColumnDef="accountName">
           <mat-header-cell *matHeaderCellDef>Account</mat-header-cell>
-          <mat-cell *matCellDef="let cluster">{{ cluster.accountName }}</mat-cell>
+          <!-- TODO: move this to component or service -->
+          <mat-cell *matCellDef="let cluster">{{ (cluster.accountName.length>8)? (cluster.accountName | slice:0:8)+'...':(cluster.accountName) }}</mat-cell>
         </ng-container>
 
         <ng-container matColumnDef="cpu">

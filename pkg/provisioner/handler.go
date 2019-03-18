@@ -119,7 +119,7 @@ func (h *Handler) Provision(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// Fill config with appropriate cloud account credentials
-	err = util.FillCloudAccountCredentials(r.Context(), acc, config)
+	err = util.FillCloudAccountCredentials(acc, config)
 
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusNotFound)

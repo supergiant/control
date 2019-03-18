@@ -148,7 +148,6 @@ func TestCreateSubnetStep_Run(t *testing.T) {
 			t.Errorf("Unexpected error %v", err)
 		}
 
-
 		config.AWSConfig.VPCCIDR = testCase.vpcCIDR
 
 		err = step.Run(context.Background(), &bytes.Buffer{}, config)
