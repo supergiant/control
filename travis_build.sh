@@ -60,10 +60,10 @@ elif [[ "$TRAVIS_BRANCH" == "master" ]]; then
 	check_status
 else
 # any other branch is considered a testing branch and will only run tests and build the container.
-    make build-dev
 	echo "testing branch - run tests and docker build"
 	export TAG="${TAG}-testing"
 	echo "Tag Name: ${TAG}"
+	make build-dev
 	# run tests
 	./run_tests.sh
 	check_status
