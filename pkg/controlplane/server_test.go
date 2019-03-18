@@ -8,17 +8,18 @@ import (
 
 	"github.com/gorilla/handlers"
 	"github.com/gorilla/mux"
+	"github.com/supergiant/control/pkg/controlplane/config"
 )
 
 func TestNewServer(t *testing.T) {
 	testCases := []struct {
-		cfg          *Config
+		cfg          *config.Config
 		headers      map[string]string
 		method       string
 		expectedCode int
 	}{
 		{
-			cfg: &Config{},
+			cfg: &config.Config{},
 			headers: map[string]string{
 				"Access-Control-Request-Headers": "something",
 				"Access-Control-Request-Method":  "something",
@@ -29,7 +30,7 @@ func TestNewServer(t *testing.T) {
 			expectedCode: http.StatusMethodNotAllowed,
 		},
 		{
-			cfg: &Config{},
+			cfg: &config.Config{},
 			headers: map[string]string{
 				"Authorization": "Bearer token",
 				"Origin":        "localhost",
@@ -38,7 +39,7 @@ func TestNewServer(t *testing.T) {
 			expectedCode: http.StatusBadRequest,
 		},
 		{
-			cfg: &Config{},
+			cfg: &config.Config{},
 			headers: map[string]string{
 				"Access-Control-Request-Headers": "something",
 				"Authorization":                  "Bearer token",
@@ -77,45 +78,6 @@ func TestNewServer(t *testing.T) {
 	}
 }
 
-func TestTrimPrefix(t *testing.T) {
-	testCases := []struct {
-		input  string
-		output string
-	}{
-		{
-			input:  "/hello",
-			output: "/",
-		},
-		{
-			input:  "/static/vendor.js",
-			output: "static/vendor.js",
-		},
-	}
-
-	for _, testCase := range testCases {
-		called := false
-		actualURL := ""
-
-		h := http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-			called = true
-			actualURL = r.URL.Path
-		})
-
-		h2 := trimPrefix(h)
-
-		rec := httptest.NewRecorder()
-		req, _ := http.NewRequest(http.MethodGet, testCase.input, nil)
-		h2.ServeHTTP(rec, req)
-
-		if !called {
-			t.Error("Handler has not been called")
-		}
-
-		if actualURL != testCase.output {
-			t.Errorf("url must be empty after trimming prefix actual %s", actualURL)
-		}
-	}
-}
 
 func TestNewVersionHandler(t *testing.T) {
 	rec := httptest.NewRecorder()

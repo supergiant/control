@@ -18,6 +18,9 @@ echo "Tag Name: ${TAG}"
 # dockerhub, and then a release is pushed to the releases page.
 if [[ "$TRAVIS_TAG" =~ ^v[0-9]. ]]; then
 	echo "release"
+    make build-ui
+    statik -src=./cmd/ui/assets/dist
+    make build-prod
 	# run tests
 	./run_tests.sh
 	check_status
@@ -35,6 +38,9 @@ elif [[ "$TRAVIS_BRANCH" == *release-* ]]; then
 	echo "unstable branch"
 	export TAG="${TAG}-unstable"
 	echo "Tag Name: ${TAG}"
+	make build-ui
+    statik -src=./cmd/ui/assets/dist
+    make build-prod
 	# run tests
 	./run_tests.sh
 	check_status
@@ -48,11 +54,13 @@ elif [[ "$TRAVIS_BRANCH" == *release-* ]]; then
 elif [[ "$TRAVIS_BRANCH" == "master" ]]; then
 	echo "master branch - test will only be run"
 	echo "Tag Name: ${TAG}"
+	make build-dev
 	# run tests
 	./run_tests.sh
 	check_status
 else
 # any other branch is considered a testing branch and will only run tests and build the container.
+    make build-dev
 	echo "testing branch - run tests and docker build"
 	export TAG="${TAG}-testing"
 	echo "Tag Name: ${TAG}"

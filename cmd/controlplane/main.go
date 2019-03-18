@@ -12,6 +12,7 @@ import (
 
 	"github.com/supergiant/control/pkg/controlplane"
 	"github.com/supergiant/control/pkg/proxy"
+	"github.com/supergiant/control/pkg/controlplane/config"
 )
 
 var (
@@ -36,7 +37,7 @@ func main() {
 
 	configureLogging(*logLevel, *logFormat)
 
-	cfg := &controlplane.Config{
+	cfg := &config.Config{
 		Addr:          *addr,
 		Port:          *port,
 		StorageMode:   *storageMode,
