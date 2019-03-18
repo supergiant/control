@@ -5,7 +5,7 @@ import (
 	"io"
 
 	"github.com/Azure/azure-sdk-for-go/services/resources/mgmt/2018-05-01/resources"
-	"github.com/Azure/go-autorest/autorest/azure/auth"
+	"github.com/Azure/go-autorest/autorest"
 	"github.com/Azure/go-autorest/autorest/to"
 	"github.com/pkg/errors"
 
@@ -16,7 +16,7 @@ import (
 
 const CreateGroupStepName = "CreateResourceGroup"
 
-type GroupsClientFn func(authorizer Autorizerer, subscriptionID string) (GroupsInterface, error)
+type GroupsClientFn func(a autorest.Authorizer, subscriptionID string) GroupsInterface
 
 type CreateGroupStep struct {
 	groupsClientFn GroupsClientFn
@@ -29,23 +29,15 @@ func NewCreateGroupStep() *CreateGroupStep {
 }
 
 func (s *CreateGroupStep) Run(ctx context.Context, output io.Writer, config *steps.Config) error {
+	if config == nil {
+		return errors.Wrap(sgerrors.ErrNilEntity, "config")
+	}
 	if s.groupsClientFn == nil {
 		return errors.Wrap(sgerrors.ErrNilEntity, "base client builder")
 	}
 
-	c, err := s.groupsClientFn(
-		auth.NewClientCredentialsConfig(
-			config.AzureConfig.ClientID,
-			config.AzureConfig.ClientSecret,
-			config.AzureConfig.TenantID,
-		),
-		config.AzureConfig.SubscriptionID,
-	)
-	if err != nil {
-		return err
-	}
-
-	_, err = c.CreateOrUpdate(ctx, "", resources.Group{
+	groupsClient := s.groupsClientFn(config.GetAzureAuthorizer(), config.AzureConfig.SubscriptionID)
+	_, err := groupsClient.CreateOrUpdate(ctx, "", resources.Group{
 		Name:     to.StringPtr(toResourceGroupName(config.ClusterID, config.ClusterName)),
 		Location: to.StringPtr(config.AzureConfig.Location),
 		Tags: map[string]*string{
