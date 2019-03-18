@@ -4,6 +4,7 @@ import (
 	"context"
 	"io"
 
+	"github.com/Azure/go-autorest/autorest"
 	"github.com/Azure/go-autorest/autorest/azure/auth"
 	"github.com/pkg/errors"
 
@@ -11,21 +12,28 @@ import (
 	"github.com/supergiant/control/pkg/workflows/steps"
 )
 
-const GetAuthorizerName = "GetAuthorizer"
+const GetAuthorizerStepName = "GetAuthorizer"
 
-type CreadentialsClientFn func(clientID string, clientSecret string, tenantID string) auth.ClientCredentialsConfig
+type Authorizerer interface {
+	Authorizer() (autorest.Authorizer, error)
+}
 
-type GetAuthorizer struct {
+type CreadentialsClientFn func(clientID string, clientSecret string, tenantID string) Authorizerer
+
+type GetAuthorizerStep struct {
 	clientCreadsFn CreadentialsClientFn
 }
 
-func NewGetAuthorizer() *GetAuthorizer {
-	return &GetAuthorizer{
-		clientCreadsFn: auth.NewClientCredentialsConfig,
+func NewGetAuthorizerStepStep() *GetAuthorizerStep {
+	return &GetAuthorizerStep{
+		clientCreadsFn: func(clientID string, clientSecret string, tenantID string) Authorizerer {
+			a := auth.NewClientCredentialsConfig(clientID, clientSecret, tenantID)
+			return &a
+		},
 	}
 }
 
-func (s *GetAuthorizer) Run(ctx context.Context, output io.Writer, config *steps.Config) error {
+func (s *GetAuthorizerStep) Run(ctx context.Context, output io.Writer, config *steps.Config) error {
 	if config == nil {
 		return errors.Wrap(sgerrors.ErrNilEntity, "config")
 	}
@@ -46,18 +54,18 @@ func (s *GetAuthorizer) Run(ctx context.Context, output io.Writer, config *steps
 	return nil
 }
 
-func (s *GetAuthorizer) Rollback(context.Context, io.Writer, *steps.Config) error {
+func (s *GetAuthorizerStep) Rollback(context.Context, io.Writer, *steps.Config) error {
 	return nil
 }
 
-func (s *GetAuthorizer) Name() string {
-	return GetAuthorizerName
+func (s *GetAuthorizerStep) Name() string {
+	return GetAuthorizerStepName
 }
 
-func (s *GetAuthorizer) Depends() []string {
+func (s *GetAuthorizerStep) Depends() []string {
 	return nil
 }
 
-func (s *GetAuthorizer) Description() string {
+func (s *GetAuthorizerStep) Description() string {
 	return "Azure: Get authentication token"
 }

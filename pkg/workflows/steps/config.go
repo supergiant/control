@@ -80,8 +80,10 @@ type AzureConfig struct {
 	TenantID       string `json:"tenantId"`
 	SubscriptionID string `json:"subscriptionId"`
 
-	Location string `json:location`
-	VNetCIDR string
+	Location string `json:"location"`
+
+	// TODO: cidr validation?
+	VNetCIDR string `json:"vNetCIDR"`
 }
 
 type PacketConfig struct{}
