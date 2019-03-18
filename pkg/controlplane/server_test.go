@@ -8,18 +8,17 @@ import (
 
 	"github.com/gorilla/handlers"
 	"github.com/gorilla/mux"
-	"github.com/supergiant/control/pkg/controlplane/config"
 )
 
 func TestNewServer(t *testing.T) {
 	testCases := []struct {
-		cfg          *config.Config
+		cfg          *Config
 		headers      map[string]string
 		method       string
 		expectedCode int
 	}{
 		{
-			cfg: &config.Config{},
+			cfg: &Config{},
 			headers: map[string]string{
 				"Access-Control-Request-Headers": "something",
 				"Access-Control-Request-Method":  "something",
@@ -30,7 +29,7 @@ func TestNewServer(t *testing.T) {
 			expectedCode: http.StatusMethodNotAllowed,
 		},
 		{
-			cfg: &config.Config{},
+			cfg: &Config{},
 			headers: map[string]string{
 				"Authorization": "Bearer token",
 				"Origin":        "localhost",
@@ -39,7 +38,7 @@ func TestNewServer(t *testing.T) {
 			expectedCode: http.StatusBadRequest,
 		},
 		{
-			cfg: &config.Config{},
+			cfg: &Config{},
 			headers: map[string]string{
 				"Access-Control-Request-Headers": "something",
 				"Authorization":                  "Bearer token",
