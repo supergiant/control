@@ -226,6 +226,7 @@ func configureApplication(cfg *Config) (*mux.Router, error) {
 	amazon.InitDeleteKeyPair(amazon.GetEC2)
 	amazon.InitCreateLoadBalancer(amazon.GetELB)
 	amazon.InitDeleteLoadBalancer(amazon.GetELB)
+	amazon.InitRegisterInstance(amazon.GetELB)
 
 	workflows.Init()
 

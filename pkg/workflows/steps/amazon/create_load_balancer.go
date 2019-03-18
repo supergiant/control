@@ -60,9 +60,12 @@ func (s *CreateLoadBalancerStep) Run(ctx context.Context, out io.Writer, cfg *st
 
 		subnetsSlice := make([]*string, 0, len(cfg.AWSConfig.Subnets))
 
-		for _, subnet := range cfg.AWSConfig.Subnets {
-			subnetsSlice = append(subnetsSlice, &subnet)
+		for az := range cfg.AWSConfig.Subnets {
+			subnet := cfg.AWSConfig.Subnets[az]
+			subnetsSlice = append(subnetsSlice, aws.String(subnet))
 		}
+
+		loadBalancer := aws.String(cfg.ClusterID)
 
 		output, err := svc.CreateLoadBalancerWithContext(ctx, &elb.CreateLoadBalancerInput{
 			Listeners: []*elb.Listener{
@@ -72,7 +75,7 @@ func (s *CreateLoadBalancerStep) Run(ctx context.Context, out io.Writer, cfg *st
 					Protocol:         aws.String("TCP"),
 				},
 			},
-			LoadBalancerName: aws.String("LoadBalancer"),
+			LoadBalancerName: loadBalancer,
 			Scheme:           aws.String("internet-facing"),
 			SecurityGroups: []*string{
 				aws.String(cfg.AWSConfig.MastersSecurityGroupID),
@@ -98,6 +101,7 @@ func (s *CreateLoadBalancerStep) Run(ctx context.Context, out io.Writer, cfg *st
 
 		logrus.Infof("Create load balancer %s with dns name %s", )
 		cfg.DNSName = *output.DNSName
+		cfg.AWSConfig.LoadBalancerName = *loadBalancer
 	}
 
 	return nil
