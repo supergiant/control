@@ -3,7 +3,7 @@ package amazon
 import (
 	"context"
 	"io"
-	
+
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/aws/request"
 	"github.com/aws/aws-sdk-go/service/elb"
@@ -53,6 +53,7 @@ func (s *CreateLoadBalancerStep) Run(ctx context.Context, out io.Writer, cfg *st
 		svc, err := s.getLoadBalancerService(cfg.AWSConfig)
 
 		if err != nil {
+			logrus.Errorf("error getting ELB service %v", err)
 			return errors.Wrapf(err, "error getting ELB service %s",
 				StepCreateLoadBalancer)
 		}
@@ -71,7 +72,7 @@ func (s *CreateLoadBalancerStep) Run(ctx context.Context, out io.Writer, cfg *st
 					Protocol:         aws.String("TCP"),
 				},
 			},
-			LoadBalancerName: aws.String("load-balancer-" + cfg.ClusterID),
+			LoadBalancerName: aws.String("LoadBalancer"),
 			Scheme:           aws.String("internet-facing"),
 			SecurityGroups: []*string{
 				aws.String(cfg.AWSConfig.MastersSecurityGroupID),
@@ -92,10 +93,11 @@ func (s *CreateLoadBalancerStep) Run(ctx context.Context, out io.Writer, cfg *st
 		if err != nil {
 			logrus.Debugf("create load balancer %v",
 				err)
-			return nil
+			return errors.Wrapf(err, "create load balancer %s", StepCreateLoadBalancer)
 		}
 
-		cfg.AWSConfig.ELBDNSName = *output.DNSName
+		logrus.Infof("Create load balancer %s with dns name %s", )
+		cfg.DNSName = *output.DNSName
 	}
 
 	return nil

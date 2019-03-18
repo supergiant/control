@@ -380,7 +380,6 @@ func (tp *TaskProvisioner) provisionMasters(ctx context.Context,
 
 	// NOTE(stgleb): This temporarily before load balancers step is not implemented as a step
 	if master := config.GetMaster(); master != nil {
-		config.KubeadmConfig.LoadBalancerHost = master.PrivateIp
 		config.KubeadmConfig.IsBootstrap = false
 	}
 

@@ -61,6 +61,7 @@ func cleanUpStepsFor(provider clouds.Name) ([]steps.Step, error) {
 	case clouds.AWS:
 		return []steps.Step{
 			steps.GetStep(amazon.DeleteClusterMachinesStepName),
+			steps.GetStep(amazon.DeleteLoadBalancerStepName),
 			steps.GetStep(amazon.DeleteSecurityGroupsStepName),
 			steps.GetStep(amazon.DisassociateRouteTableStepName),
 			steps.GetStep(amazon.DeleteSubnetsStepName),
