@@ -105,6 +105,9 @@ type AWSConfig struct {
 	ImageID                string `json:"image"`
 	InstanceType           string `json:"size"`
 	HasPublicAddr          bool   `json:"hasPublicAddr"`
+	LoadBalancerName       string `json:"loadBalancerName"`
+	ELBDNSName             string `json:"elbDnsName"`
+
 	// Map of availability zone to subnet
 	Subnets map[string]string `json:"subnets"`
 	// Map az to route table association
