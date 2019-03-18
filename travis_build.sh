@@ -19,7 +19,6 @@ echo "Tag Name: ${TAG}"
 if [[ "$TRAVIS_TAG" =~ ^v[0-9]. ]]; then
 	echo "release"
     make build-ui
-    statik -src=./cmd/ui/assets/dist
     make build
 	# run tests
 	./run_tests.sh
@@ -39,7 +38,6 @@ elif [[ "$TRAVIS_BRANCH" == *release-* ]]; then
 	export TAG="${TAG}-unstable"
 	echo "Tag Name: ${TAG}"
 	make build-ui
-    statik -src=./cmd/ui/assets/dist
     make build
 	# run tests
 	./run_tests.sh
