@@ -2,6 +2,7 @@ package azure
 
 import (
 	"context"
+	"net"
 	"testing"
 
 	"github.com/Azure/azure-sdk-for-go/services/network/mgmt/2018-11-01/network"
@@ -51,8 +52,36 @@ func TestCreateVirtualNetworkStep_Run(t *testing.T) {
 			expectedErr: sgerrors.ErrNilEntity,
 		},
 		{
-			name: "create vnet: error",
+			name: "invalid vnet CIDR",
 			inp:  &steps.Config{},
+			step: CreateVirtualNetworkStep{
+				vnetClientFn: func(a autorest.Authorizer, subscriptionID string) (VirtualNetworkCreator, autorest.Client) {
+					return fakeVNetClient{}, autorest.Client{}
+				},
+			},
+			expectedErr: &net.ParseError{Type: "CIDR address"},
+		},
+		{
+			name: "calculate masters CIDR: error",
+			inp: &steps.Config{
+				AzureConfig: steps.AzureConfig{
+					VNetCIDR: "1.2.3.4/30",
+				},
+			},
+			step: CreateVirtualNetworkStep{
+				vnetClientFn: func(a autorest.Authorizer, subscriptionID string) (VirtualNetworkCreator, autorest.Client) {
+					return fakeVNetClient{}, autorest.Client{}
+				},
+			},
+			expectedErr: sgerrors.ErrRawError,
+		},
+		{
+			name: "create vnet: error",
+			inp: &steps.Config{
+				AzureConfig: steps.AzureConfig{
+					VNetCIDR: "10.0.0.0/12",
+				},
+			},
 			step: CreateVirtualNetworkStep{
 				vnetClientFn: func(a autorest.Authorizer, subscriptionID string) (VirtualNetworkCreator, autorest.Client) {
 					return fakeVNetClient{

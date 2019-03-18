@@ -24,6 +24,10 @@ type SecurityGroupCreator interface {
 	CreateOrUpdate(ctx context.Context, groupName string, nsgName string, params network.SecurityGroup) (network.SecurityGroupsCreateOrUpdateFuture, error)
 }
 
+type SubnetGetter interface {
+	Get(ctx context.Context, groupName, vnetName, subnetName, expand string) (network.Subnet, error)
+}
+
 type VirtualNetworkCreator interface {
 	CreateOrUpdate(ctx context.Context, groupName string, vnetName string, params network.VirtualNetwork) (network.VirtualNetworksCreateOrUpdateFuture, error)
 }
@@ -32,6 +36,12 @@ func NSGClientFor(a autorest.Authorizer, subscriptionID string) (SecurityGroupCr
 	nsgClient := network.NewSecurityGroupsClient(subscriptionID)
 	nsgClient.Authorizer = a
 	return nsgClient, nsgClient.Client
+}
+
+func SubnetClientFor(a autorest.Authorizer, subscriptionID string) SubnetGetter {
+	subnetClient := network.NewSubnetsClient(subscriptionID)
+	subnetClient.Authorizer = a
+	return subnetClient
 }
 
 func VNetClientFor(a autorest.Authorizer, subscriptionID string) (VirtualNetworkCreator, autorest.Client) {
@@ -56,4 +66,8 @@ func toVNetName(clusterID, clusterName string) string {
 
 func toNSGName(clusterID, clusterName, role string) string {
 	return fmt.Sprintf("sg-nsg-%s-%s-%s", clusterName, clusterID, role)
+}
+
+func toSubnetName(clusterID, clusterName, role string) string {
+	return fmt.Sprintf("sg-subnet-%s-%s-%s", clusterName, clusterID, role)
 }

@@ -17,4 +17,5 @@ const (
 	AlreadyExists       ErrorCode = 1010
 	NilEntity           ErrorCode = 1011
 	TimeoutExceeded     ErrorCode = 1012
+	RawError            ErrorCode = 1013
 )

@@ -28,6 +28,15 @@ func (c fakeNSGClient) CreateOrUpdate(ctx context.Context, groupName string, nsg
 	return network.SecurityGroupsCreateOrUpdateFuture{}, c.err
 }
 
+type fakeSubnetGetter struct {
+	res network.Subnet
+	err error
+}
+
+func (f fakeSubnetGetter) Get(ctx context.Context, groupName, vnetName, subnetName, expand string) (network.Subnet, error) {
+	return f.res, f.err
+}
+
 func TestCreateSecurityGroupStep(t *testing.T) {
 	s := NewCreateSecurityGroupStep()
 	require.NotNil(t, s.nsgClientFn, "nsg client shouldn't be nil")
@@ -53,9 +62,19 @@ func TestCreateSecurityGroupStep_Run(t *testing.T) {
 			expectedErr: sgerrors.ErrNilEntity,
 		},
 		{
-			name:        "nsg client builder is empty",
+			name:        "nsg client builder is nil",
 			inp:         &steps.Config{},
 			step:        CreateSecurityGroupStep{},
+			expectedErr: sgerrors.ErrNilEntity,
+		},
+		{
+			name: "subnet getter is nil",
+			inp:  &steps.Config{},
+			step: CreateSecurityGroupStep{
+				nsgClientFn: func(a autorest.Authorizer, subscriptionID string) (SecurityGroupCreator, autorest.Client) {
+					return fakeNSGClient{}, autorest.Client{}
+				},
+			},
 			expectedErr: sgerrors.ErrNilEntity,
 		},
 		{
@@ -65,8 +84,27 @@ func TestCreateSecurityGroupStep_Run(t *testing.T) {
 				nsgClientFn: func(a autorest.Authorizer, subscriptionID string) (SecurityGroupCreator, autorest.Client) {
 					return fakeNSGClient{}, autorest.Client{}
 				},
+				subnetGetterFn: func(a autorest.Authorizer, subscriptionID string) SubnetGetter {
+					return fakeSubnetGetter{}
+				},
 				findOutboundIP: func(ctx context.Context) (string, error) {
 					return "", fakeErr
+				},
+			},
+			expectedErr: fakeErr,
+		},
+		{
+			name: "get subnet: error",
+			inp:  &steps.Config{},
+			step: CreateSecurityGroupStep{
+				nsgClientFn: func(a autorest.Authorizer, subscriptionID string) (SecurityGroupCreator, autorest.Client) {
+					return fakeNSGClient{}, autorest.Client{}
+				},
+				subnetGetterFn: func(a autorest.Authorizer, subscriptionID string) SubnetGetter {
+					return fakeSubnetGetter{err: fakeErr}
+				},
+				findOutboundIP: func(ctx context.Context) (string, error) {
+					return "", nil
 				},
 			},
 			expectedErr: fakeErr,
@@ -79,6 +117,9 @@ func TestCreateSecurityGroupStep_Run(t *testing.T) {
 					return fakeNSGClient{
 						err: fakeErr,
 					}, autorest.Client{}
+				},
+				subnetGetterFn: func(a autorest.Authorizer, subscriptionID string) SubnetGetter {
+					return fakeSubnetGetter{}
 				},
 				findOutboundIP: func(ctx context.Context) (string, error) {
 					return "1.2.3.4", nil
