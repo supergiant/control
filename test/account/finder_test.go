@@ -3,13 +3,14 @@ package account
 import (
 	"context"
 	"encoding/json"
+	"fmt"
 	"io/ioutil"
 	"net/http"
 	"net/http/httptest"
 	"os"
 	"testing"
+	"time"
 
-	"github.com/coreos/etcd/clientv3"
 	"github.com/gorilla/mux"
 	"github.com/pborman/uuid"
 	"github.com/sirupsen/logrus"
@@ -18,20 +19,8 @@ import (
 	"github.com/supergiant/control/pkg/account"
 	"github.com/supergiant/control/pkg/clouds"
 	"github.com/supergiant/control/pkg/model"
-	"github.com/supergiant/control/pkg/storage"
-	"github.com/supergiant/control/pkg/testutils/assert"
+	"github.com/supergiant/control/pkg/storage/file"
 )
-
-const defaultETCDHost = "http://127.0.0.1:2379"
-
-var defaultConfig clientv3.Config
-
-func init() {
-	assert.MustRunETCD(defaultETCDHost)
-	defaultConfig = clientv3.Config{
-		Endpoints: []string{defaultETCDHost},
-	}
-}
 
 func TestFindDigitalOceanRegions(t *testing.T) {
 	doToken := os.Getenv(clouds.EnvDigitalOceanAccessToken)
@@ -41,11 +30,13 @@ func TestFindDigitalOceanRegions(t *testing.T) {
 
 	logrus.SetLevel(logrus.DebugLevel)
 
-	kv := storage.NewETCDRepository(defaultConfig)
-	accounts := account.NewService(account.DefaultStoragePrefix, kv)
+	s, err := file.NewFileRepository(fmt.Sprintf("/tmp/sg-storage-%d", time.Now().UnixNano()))
+	require.Nil(t, err, "setup file storage provider")
+
+	accounts := account.NewService(account.DefaultStoragePrefix, s)
 
 	accName := uuid.New()
-	err := accounts.Create(context.Background(), &model.CloudAccount{
+	err = accounts.Create(context.Background(), &model.CloudAccount{
 		Name:     accName,
 		Provider: clouds.DigitalOcean,
 		Credentials: map[string]string{

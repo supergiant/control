@@ -1,35 +1,21 @@
-// +build integration
-
 package profile
 
 import (
 	"context"
+	"fmt"
 	"testing"
 	"time"
 
-	"github.com/coreos/etcd/clientv3"
+	"github.com/stretchr/testify/require"
 
 	"github.com/supergiant/control/pkg/profile"
 	"github.com/supergiant/control/pkg/sgerrors"
-	"github.com/supergiant/control/pkg/storage"
-	"github.com/supergiant/control/pkg/testutils/assert"
+	"github.com/supergiant/control/pkg/storage/file"
 )
-
-const (
-	defaultETCDHost = "http://127.0.0.1:2379"
-)
-
-var defaultConfig clientv3.Config
-
-func init() {
-	assert.MustRunETCD(defaultETCDHost)
-	defaultConfig = clientv3.Config{
-		Endpoints: []string{defaultETCDHost},
-	}
-}
 
 func TestProfileGet(t *testing.T) {
-	kv := storage.NewETCDRepository(defaultConfig)
+	s, err := file.NewFileRepository(fmt.Sprintf("/tmp/sg-storage-%d", time.Now().UnixNano()))
+	require.Nil(t, err, "setup file storage provider")
 
 	testCases := []struct {
 		expectedId string
@@ -51,10 +37,10 @@ func TestProfileGet(t *testing.T) {
 
 	for _, testCase := range testCases {
 		if len(testCase.expectedId) > 0 {
-			kv.Put(context.Background(), prefix, testCase.expectedId, testCase.data)
+			s.Put(context.Background(), prefix, testCase.expectedId, testCase.data)
 		}
 
-		service := profile.NewService(prefix, kv)
+		service := profile.NewService(prefix, s)
 		ctx, cancel := context.WithTimeout(context.Background(), 3*time.Second)
 		defer cancel()
 
@@ -72,7 +58,9 @@ func TestProfileGet(t *testing.T) {
 }
 
 func TestKubeProfileCreate(t *testing.T) {
-	kv := storage.NewETCDRepository(defaultConfig)
+	s, err := file.NewFileRepository(fmt.Sprintf("/tmp/sg-storage-%d", time.Now().UnixNano()))
+	require.Nil(t, err, "setup file storage provider")
+
 	prefix := "/profile/"
 	key := "key"
 	version := "1.8.7"
@@ -82,11 +70,11 @@ func TestKubeProfileCreate(t *testing.T) {
 		K8SVersion: version,
 	}
 
-	service := profile.NewService(prefix, kv)
+	service := profile.NewService(prefix, s)
 	ctx, cancel := context.WithTimeout(context.Background(), 3*time.Second)
 	defer cancel()
 
-	err := service.Create(ctx, kube)
+	err = service.Create(ctx, kube)
 
 	if err != nil {
 		t.Errorf("Unepexpected error while creating kube profile %v", err)
@@ -104,12 +92,14 @@ func TestKubeProfileCreate(t *testing.T) {
 }
 
 func TestKubeProfileGetAll(t *testing.T) {
-	kv := storage.NewETCDRepository(defaultConfig)
+	s, err := file.NewFileRepository(fmt.Sprintf("/tmp/sg-storage-%d", time.Now().UnixNano()))
+	require.Nil(t, err, "setup file storage provider")
+
 	prefix := "/profile/"
 	key := "key"
 	version := "1.8.7"
 
-	service := profile.NewService(prefix, kv)
+	service := profile.NewService(prefix, s)
 	ctx, cancel := context.WithTimeout(context.Background(), 3*time.Second)
 	defer cancel()
 
@@ -118,7 +108,7 @@ func TestKubeProfileGetAll(t *testing.T) {
 		K8SVersion: version,
 	}
 
-	err := service.Create(ctx, kube)
+	err = service.Create(ctx, kube)
 
 	if err != nil {
 		t.Errorf("Unepexpected error while creating kube profile %v", err)
