@@ -1,4 +1,4 @@
-package ui
+package controlplane
 
 import (
 	"net/http"

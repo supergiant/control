@@ -12,7 +12,6 @@ import (
 
 	"github.com/supergiant/control/pkg/controlplane"
 	"github.com/supergiant/control/pkg/proxy"
-	"github.com/supergiant/control/pkg/controlplane/config"
 )
 
 var (
@@ -22,6 +21,7 @@ var (
 	storageMode   = flag.String("storage-mode", "file", "storage type either file(default), memory or etcd")
 	storageURI    = flag.String("storage-uri", "supergiant.db", "uri of storage depends on selected storage type, for memory storage type this is empty")
 	templatesDir  = flag.String("templates", "/etc/supergiant/templates/", "supergiant will load script templates from the specified directory on start")
+	uiDir         = flag.String("ui", "cmd/ui/assets", "")
 	logLevel      = flag.String("log-level", "INFO", "logging level, e.g. info, warning, debug, error, fatal")
 	logFormat     = flag.String("log-format", "txt", "logging format [txt json]")
 	spawnInterval = flag.Int("spawnInterval", 5, "interval between API calls to cloud provider for creating instance")
@@ -37,7 +37,7 @@ func main() {
 
 	configureLogging(*logLevel, *logFormat)
 
-	cfg := &config.Config{
+	cfg := &controlplane.Config{
 		Addr:          *addr,
 		Port:          *port,
 		StorageMode:   *storageMode,
@@ -47,6 +47,7 @@ func main() {
 		WriteTimeout:  time.Second * 10,
 		IdleTimeout:   time.Second * 120,
 		SpawnInterval: time.Second * time.Duration(*spawnInterval),
+		UIDir:         *uiDir,
 
 		PprofListenStr: *pprofListenStr,
 

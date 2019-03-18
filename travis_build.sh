@@ -20,7 +20,7 @@ if [[ "$TRAVIS_TAG" =~ ^v[0-9]. ]]; then
 	echo "release"
     make build-ui
     statik -src=./cmd/ui/assets/dist
-    make build-prod
+    make build
 	# run tests
 	./run_tests.sh
 	check_status
@@ -40,7 +40,7 @@ elif [[ "$TRAVIS_BRANCH" == *release-* ]]; then
 	echo "Tag Name: ${TAG}"
 	make build-ui
     statik -src=./cmd/ui/assets/dist
-    make build-prod
+    make build
 	# run tests
 	./run_tests.sh
 	check_status

@@ -1,17 +1,16 @@
 // +build dev
 
-package ui
+package controlplane
 
 import (
 	"net/http"
-	"github.com/gorilla/mux"
 	"os"
+
+	"github.com/gorilla/mux"
 	"github.com/pkg/errors"
-	"github.com/supergiant/control/pkg/controlplane/config"
 )
 
-
-func ServeUI(cfg *config.Config, router *mux.Router) error {
+func ServeUI(cfg *Config, router *mux.Router) error {
 	if _, err := os.Stat(cfg.UIDir); err != nil {
 		return errors.Wrap(err, "no ui directory found")
 	}

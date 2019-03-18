@@ -25,7 +25,6 @@ import (
 	"github.com/supergiant/control/pkg/sghelm"
 	"github.com/supergiant/control/pkg/storage"
 	"github.com/supergiant/control/pkg/templatemanager"
-	"github.com/supergiant/control/pkg/ui"
 	"github.com/supergiant/control/pkg/user"
 	"github.com/supergiant/control/pkg/workflows"
 	"github.com/supergiant/control/pkg/workflows/steps/amazon"
@@ -46,12 +45,11 @@ import (
 	"github.com/supergiant/control/pkg/workflows/steps/ssh"
 	"github.com/supergiant/control/pkg/workflows/steps/storageclass"
 	"github.com/supergiant/control/pkg/workflows/steps/tiller"
-	"github.com/supergiant/control/pkg/controlplane/config"
 )
 
 type Server struct {
 	server http.Server
-	cfg    *config.Config
+	cfg    *Config
 }
 
 func (srv *Server) Start() {
@@ -71,7 +69,7 @@ func (srv *Server) Shutdown() {
 	}
 }
 
-func New(cfg *config.Config) (*Server, error) {
+func New(cfg *Config) (*Server, error) {
 	if err := validate(cfg); err != nil {
 		return nil, err
 	}
@@ -86,7 +84,7 @@ func New(cfg *config.Config) (*Server, error) {
 	return s, nil
 }
 
-func NewServer(router *mux.Router, cfg *config.Config) *Server {
+func NewServer(router *mux.Router, cfg *Config) *Server {
 	headersOk := handlers.AllowedHeaders([]string{
 		"Access-Control-Request-Headers",
 		"Authorization",
@@ -116,7 +114,7 @@ func NewServer(router *mux.Router, cfg *config.Config) *Server {
 	return s
 }
 
-func validate(cfg *config.Config) error {
+func validate(cfg *Config) error {
 	if cfg.Port <= 0 {
 		return errors.New("port can't be negative")
 	}
@@ -128,7 +126,7 @@ func validate(cfg *config.Config) error {
 	return nil
 }
 
-func configureApplication(cfg *config.Config) (*mux.Router, error) {
+func configureApplication(cfg *Config) (*mux.Router, error) {
 	//TODO will work for now, but we should revisit ETCD configuration later
 	router := mux.NewRouter()
 
@@ -249,7 +247,7 @@ func configureApplication(cfg *config.Config) (*mux.Router, error) {
 		}()
 	}
 
-	if err := ui.ServeUI(cfg, router); err != nil {
+	if err := ServeUI(cfg, router); err != nil {
 		return nil, err
 	}
 	return router, nil

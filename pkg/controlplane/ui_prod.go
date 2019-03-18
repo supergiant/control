@@ -1,17 +1,16 @@
 // +build prod
 
-package ui
+package controlplane
 
 import (
 	"net/http"
 	"github.com/gorilla/mux"
 	"github.com/rakyll/statik/fs"
 
-	"github.com/supergiant/control/pkg/controlplane/config"
 	_ "github.com/supergiant/control/statik"
 )
 
-func ServeUI(cfg *config.Config, router *mux.Router) error {
+func ServeUI(cfg *Config, router *mux.Router) error {
 	statikFS, err := fs.New()
 	if err != nil {
 		return err

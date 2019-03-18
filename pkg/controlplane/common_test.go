@@ -1,6 +1,6 @@
 // +build dev
 
-package ui
+package controlplane
 
 import (
 	"testing"
