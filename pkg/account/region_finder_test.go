@@ -5,18 +5,24 @@ import (
 	"strconv"
 	"testing"
 
+	"github.com/Azure/azure-sdk-for-go/services/compute/mgmt/2017-09-01/skus"
+	"github.com/Azure/azure-sdk-for-go/services/preview/subscription/mgmt/2018-03-01-preview/subscription"
+	"github.com/Azure/go-autorest/autorest/to"
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/service/ec2"
 	"github.com/digitalocean/godo"
 	"github.com/pkg/errors"
 	"github.com/stretchr/testify/mock"
-	compute "google.golang.org/api/compute/v1"
+	"github.com/stretchr/testify/require"
+	"google.golang.org/api/compute/v1"
 
 	"github.com/supergiant/control/pkg/clouds"
 	"github.com/supergiant/control/pkg/model"
 	"github.com/supergiant/control/pkg/sgerrors"
 	"github.com/supergiant/control/pkg/workflows/steps"
 )
+
+var fakeErr = errors.New("fake error")
 
 type mockSizeService struct {
 	mock.Mock
@@ -44,6 +50,24 @@ func (m *mockRegionService) List(ctx context.Context, options *godo.ListOptions)
 		return nil, nil, args.Error(1)
 	}
 	return val, nil, args.Error(1)
+}
+
+type fakeSubscriptions struct {
+	list subscription.LocationListResult
+	err  error
+}
+
+func (c fakeSubscriptions) ListLocations(ctx context.Context, subscriptionID string) (subscription.LocationListResult, error) {
+	return c.list, c.err
+}
+
+type fakeSKUSClient struct {
+	res skus.ResourceSkusResultIterator
+	err error
+}
+
+func (c fakeSKUSClient) ListComplete(ctx context.Context) (skus.ResourceSkusResultIterator, error) {
+	return c.res, c.err
 }
 
 func TestGetRegionFinder(t *testing.T) {
@@ -578,5 +602,233 @@ func TestAWSFinder_GetTypes(t *testing.T) {
 			t.Errorf("Wrong count of regions expected %d actual %d",
 				len(testCase.resp.ReservedInstancesOfferings), len(resp))
 		}
+	}
+}
+
+func TestAzureFinder_GetRegions(t *testing.T) {
+	// used for the success test mock
+	var zero int
+
+	for _, tc := range []struct {
+		name        string
+		f           AzureFinder
+		expectedRes *RegionSizes
+		expectedErr error
+	}{
+		{
+			name: "list locations: error",
+			f: AzureFinder{
+				subscriptionsClient: fakeSubscriptions{
+					err: fakeErr,
+				},
+			},
+			expectedErr: fakeErr,
+		},
+		{
+			name: "list locations: nil values",
+			f: AzureFinder{
+				subscriptionsClient: fakeSubscriptions{},
+			},
+			expectedErr: sgerrors.ErrNilEntity,
+		},
+		{
+			name: "get vm sizes: ListComplete error",
+			f: AzureFinder{
+				subscriptionsClient: fakeSubscriptions{
+					list: subscription.LocationListResult{
+						Value: &([]subscription.Location{}),
+					},
+				},
+				skusClient: fakeSKUSClient{
+					err: fakeErr,
+				},
+			},
+			expectedErr: fakeErr,
+		},
+		{
+			name: "get vm sizes: NextWithContext error",
+			f: AzureFinder{
+				subscriptionsClient: fakeSubscriptions{
+					list: subscription.LocationListResult{
+						Value: &([]subscription.Location{
+							{
+								Name:        to.StringPtr("euwest1"),
+								DisplayName: to.StringPtr("eu west 1"),
+							},
+						}),
+					},
+				},
+				skusClient: fakeSKUSClient{
+					res: skus.NewResourceSkusResultIterator(skus.NewResourceSkusResultPage(
+						func(context.Context, skus.ResourceSkusResult) (skus.ResourceSkusResult, error) {
+							return skus.ResourceSkusResult{}, fakeErr
+						},
+					)),
+				},
+			},
+			expectedErr: fakeErr,
+		},
+		{
+			name: "get vm sizes: success",
+			f: AzureFinder{
+				subscriptionsClient: fakeSubscriptions{
+					list: subscription.LocationListResult{
+						Value: &([]subscription.Location{
+							{
+								Name:        to.StringPtr("euwest1"),
+								DisplayName: to.StringPtr("eu west 1"),
+							},
+						}),
+					},
+				},
+				skusClient: fakeSKUSClient{
+					res: skus.NewResourceSkusResultIterator(skus.NewResourceSkusResultPage(
+						func(context.Context, skus.ResourceSkusResult) (skus.ResourceSkusResult, error) {
+							if zero == 0 {
+								zero++
+								return skus.ResourceSkusResult{
+									Value: &([]skus.ResourceSku{
+										{
+											Name:      to.StringPtr(""),
+											Size:      to.StringPtr("size1"),
+											Locations: to.StringSlicePtr([]string{"euwest1"}),
+										},
+										{
+											Name:      to.StringPtr("size2name"),
+											Size:      to.StringPtr(""),
+											Locations: to.StringSlicePtr([]string{"euwest1"}),
+										},
+										{
+											Name:      to.StringPtr("size3name"),
+											Size:      to.StringPtr("size3"),
+											Locations: to.StringSlicePtr([]string{"euwest1"}),
+										},
+										{
+											Name:      to.StringPtr("size4name"),
+											Size:      to.StringPtr("size4"),
+											Locations: to.StringSlicePtr([]string{"useast1"}),
+										},
+									}),
+								}, nil
+							}
+							return skus.ResourceSkusResult{}, nil
+						},
+					)),
+				},
+			},
+			expectedRes: &RegionSizes{
+				Provider: clouds.Azure,
+				Regions: []*Region{
+					{
+						ID:             "euwest1",
+						Name:           "eu west 1",
+						AvailableSizes: []string{"size1", "size3"},
+					},
+				},
+				Sizes: map[string]interface{}{
+					"size1": skus.ResourceSku{
+						Name:      to.StringPtr(""),
+						Size:      to.StringPtr("size1"),
+						Locations: to.StringSlicePtr([]string{"euwest1"}),
+					},
+					"size3": skus.ResourceSku{
+						Name:      to.StringPtr("size3name"),
+						Size:      to.StringPtr("size3"),
+						Locations: to.StringSlicePtr([]string{"euwest1"}),
+					},
+					"size4": skus.ResourceSku{
+						Name:      to.StringPtr("size4name"),
+						Size:      to.StringPtr("size4"),
+						Locations: to.StringSlicePtr([]string{"useast1"}),
+					},
+				},
+			},
+		},
+	} {
+		rs, err := tc.f.GetRegions(context.Background())
+
+		require.Equalf(t, tc.expectedRes, rs, "TC: %s: check result", tc.name)
+		require.Equalf(t, tc.expectedErr, errors.Cause(err), "TC: %s: check error", tc.name)
+	}
+}
+
+func TestAzureFinder_GetTypes(t *testing.T) {
+	// used for the success test mock
+	var zero int
+
+	for _, tc := range []struct {
+		name        string
+		f           AzureFinder
+		expectedRes []string
+		expectedErr error
+	}{
+		{
+			name: "get vm sizes: ListComplete error",
+			f: AzureFinder{
+				skusClient: fakeSKUSClient{
+					err: fakeErr,
+				},
+			},
+			expectedErr: fakeErr,
+		},
+		{
+			name: "get vm sizes: NextWithContext error",
+			f: AzureFinder{
+				skusClient: fakeSKUSClient{
+					res: skus.NewResourceSkusResultIterator(skus.NewResourceSkusResultPage(
+						func(context.Context, skus.ResourceSkusResult) (skus.ResourceSkusResult, error) {
+							return skus.ResourceSkusResult{}, fakeErr
+						},
+					)),
+				},
+			},
+			expectedErr: fakeErr,
+		},
+		{
+			name: "get vm sizes: success",
+			f: AzureFinder{
+				skusClient: fakeSKUSClient{
+					res: skus.NewResourceSkusResultIterator(skus.NewResourceSkusResultPage(
+						func(context.Context, skus.ResourceSkusResult) (skus.ResourceSkusResult, error) {
+							if zero == 0 {
+								zero++
+								return skus.ResourceSkusResult{
+									Value: &([]skus.ResourceSku{
+										{
+											Name:      to.StringPtr(""),
+											Size:      to.StringPtr("size1"),
+											Locations: to.StringSlicePtr([]string{"euwest1"}),
+										},
+										{
+											Name:      to.StringPtr("size2name"),
+											Size:      to.StringPtr(""),
+											Locations: to.StringSlicePtr([]string{"euwest1"}),
+										},
+										{
+											Name:      to.StringPtr("size3name"),
+											Size:      to.StringPtr("size3"),
+											Locations: to.StringSlicePtr([]string{"euwest1"}),
+										},
+										{
+											Name:      to.StringPtr("size4name"),
+											Size:      to.StringPtr("size4"),
+											Locations: to.StringSlicePtr([]string{"useast1"}),
+										},
+									}),
+								}, nil
+							}
+							return skus.ResourceSkusResult{}, nil
+						},
+					)),
+				},
+				location: "euwest1",
+			},
+			expectedRes: []string{"size1", "size3"},
+		},
+	} {
+		rs, err := tc.f.GetTypes(context.Background(), steps.Config{})
+
+		require.Equalf(t, tc.expectedRes, rs, "TC: %s: check result", tc.name)
+		require.Equalf(t, tc.expectedErr, errors.Cause(err), "TC: %s: check error", tc.name)
 	}
 }
