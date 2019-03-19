@@ -41,15 +41,6 @@ func New(script *template.Template) *Step {
 func (s *Step) Run(ctx context.Context, out io.Writer, config *steps.Config) error {
 	ctx2, _ := context.WithTimeout(ctx, config.PostStartConfig.Timeout)
 	config.PostStartConfig.IsMaster = config.IsMaster
-
-	if config.IsMaster {
-		config.PostStartConfig.Host = config.Node.PrivateIp
-	} else {
-		if masterNode := config.GetMaster(); masterNode != nil {
-			config.PostStartConfig.Host = masterNode.PrivateIp
-		}
-	}
-
 	err := steps.RunTemplate(ctx2, s.script, config.Runner, out, config.PostStartConfig)
 
 	if err != nil {
