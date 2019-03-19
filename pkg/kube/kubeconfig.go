@@ -72,13 +72,14 @@ func adminKubeConfig(k *model.Kube) (clientcmddapi.Config, error) {
 		// TODO: use another base error, not ErrNotFound
 		return clientcmddapi.Config{}, errors.Wrap(sgerrors.ErrNotFound, "master nodes")
 	}
+	// TODO(stgleb): Remove it when LB has support on each cloud provider
 	m := util.GetRandomNode(k.Masters)
 
 	var apiAddr string
-	if k.APIPort != "" {
-		apiAddr = fmt.Sprintf("https://%s:%s", m.PublicIp, k.APIPort)
+	if k.ExternalDNSName != "" {
+		apiAddr = fmt.Sprintf("https://%s", k.ExternalDNSName)
 	} else {
-		// TODO: apiPort has been hardcoded in provisioner, use 443 by default
+		// Use public IP in case if DNS name is absent
 		apiAddr = fmt.Sprintf("https://%s", m.PublicIp)
 	}
 
