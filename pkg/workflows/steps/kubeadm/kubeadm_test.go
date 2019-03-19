@@ -53,7 +53,7 @@ func TestKubeadm(t *testing.T) {
 			IsBootstrap:      true,
 			CIDR:             "10.0.0.0/24",
 			Token:            "1234",
-			LoadBalancerHost: "10.20.30.40",
+			InternalDNSName: "internal.dns.name",
 		},
 		Runner: r,
 	}
@@ -72,8 +72,8 @@ func TestKubeadm(t *testing.T) {
 		t.Errorf("Token %s not found in %s", cfg.KubeadmConfig.Token, output.String())
 	}
 
-	if !strings.Contains(output.String(), cfg.KubeadmConfig.LoadBalancerHost) {
-		t.Errorf("LoadBalancerHost %s not found in %s", cfg.KubeadmConfig.LoadBalancerHost, output.String())
+	if !strings.Contains(output.String(), cfg.KubeadmConfig.InternalDNSName) {
+		t.Errorf("LoadBalancerHost %s not found in %s", cfg.KubeadmConfig.InternalDNSName, output.String())
 	}
 }
 
