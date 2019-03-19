@@ -31,6 +31,6 @@ sudo mkdir -p $HOME/.kube
 sudo cp -i /etc/kubernetes/admin.conf $HOME/.kube/config
 sudo chown $(id -u):$(id -g) $HOME/.kube/config
 {{ else }}
-sudo kubeadm join {{ .InternalDNSName }}:443 --token {{ .Token }} \
+sudo kubeadm join --ignore-preflight-errors=NumCPU  C{{ .InternalDNSName }}:443 --token {{ .Token }} \
 --discovery-token-unsafe-skip-ca-verification
 {{ end }}
