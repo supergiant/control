@@ -20,7 +20,6 @@ import (
 	"github.com/supergiant/control/pkg/workflows/steps/ssh"
 	"github.com/supergiant/control/pkg/workflows/steps/storageclass"
 	"github.com/supergiant/control/pkg/workflows/steps/tiller"
-	"github.com/supergiant/control/pkg/workflows/steps/amazon"
 )
 
 // StepStatus aggregates data that is needed to track progress
@@ -66,9 +65,9 @@ func Init() {
 	}
 
 	masterWorkflow := []steps.Step{
+		// TODO(stgleb): Provider steps should also register itsels it step map
 		provider.StepCreateMachine{},
-		// TODO(stgleb): Move that to provider
-		steps.GetStep(amazon.RegisterInstanceStepName),
+		&provider.RegisterInstanceToLoadBalancer{},
 		steps.GetStep(ssh.StepName),
 		steps.GetStep(authorizedKeys.StepName),
 		steps.GetStep(downloadk8sbinary.StepName),
@@ -80,6 +79,7 @@ func Init() {
 	}
 
 	nodeWorkflow := []steps.Step{
+		// TODO(stgleb): Provider steps should also register theirself it step map
 		provider.StepCreateMachine{},
 		steps.GetStep(ssh.StepName),
 		steps.GetStep(authorizedKeys.StepName),
