@@ -4,6 +4,7 @@ import (
 	"context"
 	"testing"
 
+	"github.com/Azure/go-autorest/autorest"
 	"github.com/pkg/errors"
 	"github.com/stretchr/testify/require"
 
@@ -29,42 +30,42 @@ func TestDeleteClusterStep(t *testing.T) {
 func TestDeleteClusterStep_Run(t *testing.T) {
 	for _, tc := range []struct {
 		name          string
+		inp           *steps.Config
 		deleteCluster DeleteClusterStep
 		expectedErr   error
 	}{
 		{
-			name:          "nil groups client builder",
+			name:          "nil steps config",
 			deleteCluster: DeleteClusterStep{},
 			expectedErr:   sgerrors.ErrNilEntity,
 		},
 		{
-			name: "build groups client error",
-			deleteCluster: DeleteClusterStep{
-				groupsClientFn: func(authorizer Autorizerer, subscriptionID string) (GroupsInterface, error) {
-					return nil, errFake
-				},
-			},
-			expectedErr: errFake,
+			name:          "nil groups client builder",
+			inp:           &steps.Config{},
+			deleteCluster: DeleteClusterStep{},
+			expectedErr:   sgerrors.ErrNilEntity,
 		},
 		{
 			name: "delete cluster error",
+			inp:  &steps.Config{},
 			deleteCluster: DeleteClusterStep{
-				groupsClientFn: func(authorizer Autorizerer, subscriptionID string) (GroupsInterface, error) {
-					return fakeGroupsClient{deleteErr: errFake}, nil
+				groupsClientFn: func(a autorest.Authorizer, subscriptionID string) GroupsInterface {
+					return fakeGroupsClient{deleteErr: errFake}
 				},
 			},
 			expectedErr: errFake,
 		},
 		{
 			name: "success",
+			inp:  &steps.Config{},
 			deleteCluster: DeleteClusterStep{
-				groupsClientFn: func(authorizer Autorizerer, subscriptionID string) (GroupsInterface, error) {
-					return fakeGroupsClient{}, nil
+				groupsClientFn: func(a autorest.Authorizer, subscriptionID string) GroupsInterface {
+					return fakeGroupsClient{}
 				},
 			},
 		},
 	} {
-		err := tc.deleteCluster.Run(context.Background(), nil, &steps.Config{})
+		err := tc.deleteCluster.Run(context.Background(), nil, tc.inp)
 		require.Equalf(t, tc.expectedErr, errors.Cause(err), "TC: %s", tc.name)
 	}
 }

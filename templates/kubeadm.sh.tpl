@@ -16,14 +16,14 @@ sudo systemctl restart kubelet
 sudo kubeadm config images pull
 
 {{ if .IsBootstrap }}
-sudo kubeadm init --apiserver-advertise-address={{ .AdvertiseAddress }} --token={{ .Token }} --pod-network-cidr={{ .CIDR }} \
+sudo kubeadm init --ignore-preflight-errors=NumCPU --apiserver-advertise-address={{ .AdvertiseAddress }} --token={{ .Token }} --pod-network-cidr={{ .CIDR }} \
 --kubernetes-version {{ .K8SVersion }} --apiserver-bind-port=443 --apiserver-cert-extra-sans {{ .InternalDNSName }},{{ .ExternalDNSName }}
 sudo kubeadm config view > kubeadm-config.yaml
 sed -i 's/controlPlaneEndpoint: ""/controlPlaneEndpoint: "{{ .InternalDNSName }}:443"/g' kubeadm-config.yaml
 sudo kubeadm config upload from-file --config=kubeadm-config.yaml
 
 {{ else }}
-sudo kubeadm join {{ .InternalDNSName }}:443 --token {{ .Token }} \
+sudo kubeadm join --ignore-preflight-errors=NumCPU {{ .InternalDNSName }}:443 --token {{ .Token }} \
 --discovery-token-unsafe-skip-ca-verification --experimental-control-plane
 {{ end }}
 

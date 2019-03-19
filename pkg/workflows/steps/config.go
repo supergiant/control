@@ -5,6 +5,7 @@ import (
 	"sync"
 	"time"
 
+	"github.com/Azure/go-autorest/autorest"
 	"github.com/pkg/errors"
 
 	"github.com/supergiant/control/pkg/bootstrap"
@@ -79,7 +80,10 @@ type AzureConfig struct {
 	TenantID       string `json:"tenantId"`
 	SubscriptionID string `json:"subscriptionId"`
 
-	Location string `json:location`
+	Location string `json:"location"`
+
+	// TODO: cidr validation?
+	VNetCIDR string `json:"vNetCIDR"`
 }
 
 type PacketConfig struct{}
@@ -236,6 +240,9 @@ type Config struct {
 
 	m2    sync.RWMutex
 	Nodes Map `json:"nodes"`
+
+	authorizerMux  sync.RWMutex
+	azureAthorizer autorest.Authorizer
 
 	nodeChan      chan model.Machine
 	kubeStateChan chan model.KubeState
@@ -569,6 +576,20 @@ func (c *Config) SetKubeStateChan(kubeStateChan chan model.KubeState) {
 
 func (c *Config) SetConfigChan(configChan chan *Config) {
 	c.configChan = configChan
+}
+
+func (c *Config) SetAzureAuthorizer(a autorest.Authorizer) {
+	c.authorizerMux.Lock()
+	defer c.authorizerMux.Unlock()
+
+	c.azureAthorizer = a
+}
+
+func (c *Config) GetAzureAuthorizer() autorest.Authorizer {
+	c.authorizerMux.RLock()
+	defer c.authorizerMux.RUnlock()
+
+	return c.azureAthorizer
 }
 
 // TODO: cloud profiles is deprecated by kubernetes, use controller-managers
