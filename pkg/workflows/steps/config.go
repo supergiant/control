@@ -165,7 +165,9 @@ type KubeadmConfig struct {
 	IsBootstrap      bool   `json:"isBootstrap"`
 	CIDR             string `json:"cidr"`
 	Token            string `json:"token"`
-	LoadBalancerHost string `json:"loadBalancerHost"`
+
+	InternalDNSName string `json:"internalDNSName"`
+	ExternalDNSName string `json:"externalDNSName"`
 }
 
 type DrainConfig struct {

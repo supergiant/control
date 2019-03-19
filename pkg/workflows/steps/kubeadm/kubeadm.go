@@ -40,12 +40,13 @@ func New(script *template.Template) *Step {
 }
 
 func (t *Step) Run(ctx context.Context, out io.Writer, config *steps.Config) error {
-	// Use bootstrap master node as a controlPlaneEndpoint
+	// NOTE(stgleb): Kubeadm accepts only ipv4 or ipv6 addresses as advertise address
 	if config.KubeadmConfig.IsBootstrap {
 		config.KubeadmConfig.AdvertiseAddress = config.Node.PrivateIp
 	}
 
-	config.KubeadmConfig.LoadBalancerHost = config.InternalDNSName
+	config.KubeadmConfig.InternalDNSName = config.InternalDNSName
+	config.KubeadmConfig.ExternalDNSName = config.ExternalDNSName
 	config.KubeadmConfig.IsMaster = config.IsMaster
 
 	err := steps.RunTemplate(ctx, t.script, config.Runner, out, config.KubeadmConfig)
