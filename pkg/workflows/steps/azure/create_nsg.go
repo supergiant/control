@@ -20,14 +20,18 @@ const CreateSecurityGroupStepName = "CreateNetworkSecurityGroup"
 
 type NSGClientFn func(a autorest.Authorizer, subscriptionID string) (SecurityGroupCreator, autorest.Client)
 
+type SubnetClientFn func(a autorest.Authorizer, subscriptionID string) SubnetGetter
+
 type CreateSecurityGroupStep struct {
 	nsgClientFn    NSGClientFn
+	subnetGetterFn SubnetClientFn
 	findOutboundIP func(ctx context.Context) (string, error)
 }
 
 func NewCreateSecurityGroupStep() *CreateSecurityGroupStep {
 	return &CreateSecurityGroupStep{
-		nsgClientFn: NSGClientFor,
+		nsgClientFn:    NSGClientFor,
+		subnetGetterFn: SubnetClientFor,
 		findOutboundIP: func(ctx context.Context) (string, error) {
 			return amazon.FindOutboundIP(ctx, amazon.FindExternalIP)
 		},
@@ -41,8 +45,12 @@ func (s *CreateSecurityGroupStep) Run(ctx context.Context, output io.Writer, con
 	if s.nsgClientFn == nil {
 		return errors.Wrap(sgerrors.ErrNilEntity, "security group client builder")
 	}
+	if s.subnetGetterFn == nil {
+		return errors.Wrap(sgerrors.ErrNilEntity, "subnets client builder")
+	}
 
 	nsgClient, restclient := s.nsgClientFn(config.GetAzureAuthorizer(), config.AzureConfig.SubscriptionID)
+	subnetClient := s.subnetGetterFn(config.GetAzureAuthorizer(), config.AzureConfig.SubscriptionID)
 
 	sgAddr, err := s.findOutboundIP(ctx)
 	if err != nil {
@@ -52,35 +60,48 @@ func (s *CreateSecurityGroupStep) Run(ctx context.Context, output io.Writer, con
 	// default security rules:
 	// https://docs.microsoft.com/en-us/azure/virtual-network/security-overview#default-security-rules
 	for _, r := range []struct {
-		name  string
+		role  string
 		rules []network.SecurityRule
 	}{
 		{
-			name:  toNSGName(config.ClusterID, config.ClusterName, model.RoleNode.String()),
+			role:  model.RoleNode.String(),
 			rules: masterSecurityRules(sgAddr),
 		},
 		{
-			name:  toNSGName(config.ClusterID, config.ClusterName, model.RoleNode.String()),
+			role:  model.RoleNode.String(),
 			rules: nodeSecurityRules(sgAddr),
 		},
 	} {
+		subnet, err := subnetClient.Get(
+			ctx,
+			toResourceGroupName(config.ClusterID, config.ClusterName),
+			toVNetName(config.ClusterID, config.ClusterName),
+			toSubnetName(config.ClusterID, config.ClusterName, r.role),
+			"",
+		)
+		if err != nil {
+			return errors.Wrapf(err, "get %s subnet", toSubnetName(config.ClusterID, config.ClusterName, r.role))
+		}
+
+		name := toNSGName(config.ClusterID, config.ClusterName, r.role)
 		f, err := nsgClient.CreateOrUpdate(
 			ctx,
 			toResourceGroupName(config.ClusterID, config.ClusterName),
-			r.name,
+			name,
 			network.SecurityGroup{
 				Location: to.StringPtr(config.AzureConfig.Location),
 				SecurityGroupPropertiesFormat: &network.SecurityGroupPropertiesFormat{
 					SecurityRules: &r.rules,
+					Subnets:       &[]network.Subnet{subnet},
 				},
 			},
 		)
 		if err != nil {
-			return errors.Wrapf(err, "create %s network security group", r.name)
+			return errors.Wrapf(err, "create %s network security group", name)
 		}
 
 		if err = f.WaitForCompletionRef(ctx, restclient); err != nil {
-			return errors.Wrapf(err, "wait for %s security group is ready", r.name)
+			return errors.Wrapf(err, "wait for %s security group is ready", name)
 		}
 
 	}

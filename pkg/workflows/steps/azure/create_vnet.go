@@ -3,13 +3,16 @@ package azure
 import (
 	"context"
 	"io"
+	"net"
 	"time"
 
 	"github.com/Azure/azure-sdk-for-go/services/network/mgmt/2018-11-01/network"
 	"github.com/Azure/go-autorest/autorest"
 	"github.com/Azure/go-autorest/autorest/to"
+	"github.com/apparentlymart/go-cidr/cidr"
 	"github.com/pkg/errors"
 
+	"github.com/supergiant/control/pkg/model"
 	"github.com/supergiant/control/pkg/sgerrors"
 	"github.com/supergiant/control/pkg/workflows/steps"
 )
@@ -38,6 +41,19 @@ func (s *CreateVirtualNetworkStep) Run(ctx context.Context, output io.Writer, co
 		return errors.Wrap(sgerrors.ErrNilEntity, "virtual network client builder")
 	}
 
+	_, vnet, err := net.ParseCIDR(config.AzureConfig.VNetCIDR)
+	if err != nil {
+		return errors.Wrap(err, "parse vnet cidr")
+	}
+	mastersSubnet, err := buildSubnet(vnet, 1, toSubnetName(config.ClusterID, config.ClusterName, model.RoleMaster.String()))
+	if err != nil {
+		return errors.Wrap(err, "calculate subnet for masters")
+	}
+	nodesSubnet, err := buildSubnet(vnet, 5, toSubnetName(config.ClusterID, config.ClusterName, model.RoleNode.String()))
+	if err != nil {
+		return errors.Wrap(err, "calculate subnet for nodes")
+	}
+
 	vnetClient, restclient := s.vnetClientFn(config.GetAzureAuthorizer(), config.AzureConfig.SubscriptionID)
 
 	f, err := vnetClient.CreateOrUpdate(
@@ -49,6 +65,10 @@ func (s *CreateVirtualNetworkStep) Run(ctx context.Context, output io.Writer, co
 			VirtualNetworkPropertiesFormat: &network.VirtualNetworkPropertiesFormat{
 				AddressSpace: &network.AddressSpace{
 					AddressPrefixes: &[]string{config.AzureConfig.VNetCIDR},
+				},
+				Subnets: &[]network.Subnet{
+					mastersSubnet,
+					nodesSubnet,
 				},
 			},
 		},
@@ -76,4 +96,17 @@ func (s *CreateVirtualNetworkStep) Depends() []string {
 
 func (s *CreateVirtualNetworkStep) Description() string {
 	return "Azure: Create virtual network"
+}
+
+func buildSubnet(baseCIDR *net.IPNet, netNum int, name string) (network.Subnet, error) {
+	subnetCidr, err := cidr.Subnet(baseCIDR, 8, netNum)
+	if err != nil {
+		return network.Subnet{}, errors.Wrapf(sgerrors.ErrRawError, "%s", err)
+	}
+	return network.Subnet{
+		Name: to.StringPtr(name),
+		SubnetPropertiesFormat: &network.SubnetPropertiesFormat{
+			AddressPrefix: to.StringPtr(subnetCidr.String()),
+		},
+	}, nil
 }
