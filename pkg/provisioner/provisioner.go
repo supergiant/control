@@ -378,10 +378,7 @@ func (tp *TaskProvisioner) provisionMasters(ctx context.Context,
 		logrus.Infof("master bootstrap %s has finished", bootstrapTask.ID)
 	}
 
-	// NOTE(stgleb): This temporarily before load balancers step is not implemented as a step
-	if master := config.GetMaster(); master != nil {
-		config.KubeadmConfig.IsBootstrap = false
-	}
+	config.KubeadmConfig.IsBootstrap = false
 
 	// ProvisionCluster rest of master nodes master nodes
 	for index, masterTask := range tasks {
@@ -511,6 +508,10 @@ func (tp *TaskProvisioner) buildInitialCluster(ctx context.Context,
 		User:         profile.User,
 		Password:     profile.Password,
 
+		// TODO(stgleb): extract to utility function
+		ExternalLoadBalancerName: fmt.Sprintf("ex-%s", config.ClusterID),
+		InternalLoadBalancerName: fmt.Sprintf("in-%s", config.ClusterID),
+
 		Auth: model.Auth{
 			Username:  config.CertificatesConfig.Username,
 			Password:  config.CertificatesConfig.Password,
@@ -549,12 +550,17 @@ func (t *TaskProvisioner) updateCloudSpecificData(k *model.Kube, config *steps.C
 		config.ClusterID)
 
 	cloudSpecificSettings := make(map[string]string)
+	logrus.Infof("Save internal DNS name %s and external DNS name %s",
+		config.InternalDNSName, config.ExternalDNSName)
+	k.ExternalDNSName = config.ExternalDNSName
+	k.ExternalDNSName = config.ExternalDNSName
 
 	// Save cloudSpecificData in kube
 	switch config.Provider {
 	case clouds.AWS:
 		// Save az to subnets mapping for this cluster
 		k.Subnets = config.AWSConfig.Subnets
+
 		// Copy data got from pre provision step to cloud specific settings of kube
 		cloudSpecificSettings[clouds.AwsAZ] = config.AWSConfig.AvailabilityZone
 		cloudSpecificSettings[clouds.AwsVpcCIDR] = config.AWSConfig.VPCCIDR

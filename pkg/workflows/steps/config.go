@@ -105,7 +105,9 @@ type AWSConfig struct {
 	ImageID                string `json:"image"`
 	InstanceType           string `json:"size"`
 	HasPublicAddr          bool   `json:"hasPublicAddr"`
-	LoadBalancerName       string `json:"loadBalancerName"`
+
+	ExternalLoadBalancerName string `json:"externalLoadBalancerName"`
+	InternalLoadBalancerName string `json:"internalLoadBalancerName"`
 
 	// Map of availability zone to subnet
 	Subnets map[string]string `json:"subnets"`
@@ -196,7 +198,6 @@ type Config struct {
 	IsMaster               bool         `json:"isMaster"`
 	ClusterID              string       `json:"clusterId"`
 	ClusterName            string       `json:"clusterName"`
-	DNSName                string       `json:"dnsName"`
 	LogBootstrapPrivateKey bool         `json:"logBootstrapPrivateKey"`
 	DigitalOceanConfig     DOConfig     `json:"digitalOceanConfig"`
 	AWSConfig              AWSConfig    `json:"awsConfig"`
@@ -214,6 +215,9 @@ type Config struct {
 	PrometheusConfig   PrometheusConfig   `json:"prometheusConfig"`
 	DrainConfig        DrainConfig        `json:"drainConfig"`
 	KubeadmConfig      KubeadmConfig      `json:"kubeadmConfig"`
+
+	ExternalDNSName string `json:"externalDnsName"`
+	InternalDNSName string `json:"internalDnsName"`
 
 	ClusterCheckConfig ClusterCheckConfig `json:"clusterCheckConfig"`
 

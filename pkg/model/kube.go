@@ -42,6 +42,12 @@ type Kube struct {
 	Networking             Networking        `json:"networking"`
 	Subnets                map[string]string `json:"subnets"`
 
+	ExternalLoadBalancerName string `json:"externalloadBalancerName"`
+	InternalLoadBalancerName string `json:"internalloadBalancerName"`
+
+	ExternalDNSName  string `json:"externalDNSName"`
+	InternalDNSName  string `json:"internalDNSName"`
+
 	CloudSpec profile.CloudSpecificSettings `json:"cloudSpec" valid:"-"`
 
 	ProfileID string `json:"profileId"`

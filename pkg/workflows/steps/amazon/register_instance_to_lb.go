@@ -3,12 +3,12 @@ package amazon
 import (
 	"context"
 	"github.com/aws/aws-sdk-go/aws"
+	"github.com/aws/aws-sdk-go/aws/request"
 	"github.com/aws/aws-sdk-go/service/elb"
 	"github.com/pkg/errors"
 	"github.com/sirupsen/logrus"
 	"github.com/supergiant/control/pkg/workflows/steps"
 	"io"
-	"github.com/aws/aws-sdk-go/aws/request"
 )
 
 const RegisterInstanceStepName = "register_instance"
@@ -52,10 +52,10 @@ func (s *RegisterInstanceStep) Run(ctx context.Context, out io.Writer, cfg *step
 			RegisterInstanceStepName)
 	}
 
-	logrus.Infof("Register instance Name: %s ID: %s to load balancer: %s",
-		cfg.Node.Name, cfg.Node.ID, cfg.AWSConfig.LoadBalancerName)
+	logrus.Infof("Register instance Name: %s ID: %s to external load balancer: %s",
+		cfg.Node.Name, cfg.Node.ID, cfg.AWSConfig.ExternalLoadBalancerName)
 	_, err = svc.RegisterInstancesWithLoadBalancerWithContext(ctx, &elb.RegisterInstancesWithLoadBalancerInput{
-		LoadBalancerName: aws.String(cfg.AWSConfig.LoadBalancerName),
+		LoadBalancerName: aws.String(cfg.AWSConfig.ExternalLoadBalancerName),
 		Instances: []*elb.Instance{
 			{
 				InstanceId: aws.String(cfg.Node.ID),
@@ -64,9 +64,27 @@ func (s *RegisterInstanceStep) Run(ctx context.Context, out io.Writer, cfg *step
 	})
 
 	if err != nil {
-		logrus.Errorf("error registering instance %s to loadbalancer %s %v", cfg.Node.ID, cfg.AWSConfig.LoadBalancerName, err)
+		logrus.Errorf("error registering instance %s to external loadbalancer %s %v", cfg.Node.ID, cfg.AWSConfig.ExternalLoadBalancerName, err)
 		return errors.Wrapf(err, "registering instance %s to load balancer Load balancer %s %s",
-			cfg.Node.ID, cfg.AWSConfig.LoadBalancerName,
+			cfg.Node.ID, cfg.AWSConfig.ExternalLoadBalancerName,
+			DeleteLoadBalancerStepName)
+	}
+
+	logrus.Infof("Register instance Name: %s ID: %s to internal load balancer: %s",
+		cfg.Node.Name, cfg.Node.ID, cfg.AWSConfig.ExternalLoadBalancerName)
+	_, err = svc.RegisterInstancesWithLoadBalancerWithContext(ctx, &elb.RegisterInstancesWithLoadBalancerInput{
+		LoadBalancerName: aws.String(cfg.AWSConfig.InternalLoadBalancerName),
+		Instances: []*elb.Instance{
+			{
+				InstanceId: aws.String(cfg.Node.ID),
+			},
+		},
+	})
+
+	if err != nil {
+		logrus.Errorf("error registering instance %s to internal loadbalancer %s %v", cfg.Node.ID, cfg.AWSConfig.ExternalLoadBalancerName, err)
+		return errors.Wrapf(err, "registering instance %s to internal load balancer Load balancer %s %s",
+			cfg.Node.ID, cfg.AWSConfig.ExternalLoadBalancerName,
 			DeleteLoadBalancerStepName)
 	}
 

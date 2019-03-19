@@ -52,12 +52,22 @@ func (s *DeleteLoadBalancerStep) Run(ctx context.Context, out io.Writer, cfg *st
 	}
 
 	_, err = svc.DeleteLoadBalancer(&elb.DeleteLoadBalancerInput{
-		LoadBalancerName: aws.String(cfg.AWSConfig.LoadBalancerName),
+		LoadBalancerName: aws.String(cfg.AWSConfig.ExternalLoadBalancerName),
 	})
 
 	if err != nil {
-		logrus.Errorf("error deleting loadbalancer %s %v", cfg.AWSConfig.LoadBalancerName, err)
-		return errors.Wrapf(err, "error deleteing Load balancer %s %s", cfg.AWSConfig.LoadBalancerName,
+		logrus.Errorf("error deleting external loadbalancer %s %v", cfg.AWSConfig.ExternalLoadBalancerName, err)
+		return errors.Wrapf(err, "error deleteing external Load balancer %s %s", cfg.AWSConfig.ExternalLoadBalancerName,
+			DeleteLoadBalancerStepName)
+	}
+
+	_, err = svc.DeleteLoadBalancer(&elb.DeleteLoadBalancerInput{
+		LoadBalancerName: aws.String(cfg.AWSConfig.InternalLoadBalancerName),
+	})
+
+	if err != nil {
+		logrus.Errorf("error deleting internal loadbalancer %s %v", cfg.AWSConfig.InternalLoadBalancerName, err)
+		return errors.Wrapf(err, "error deleteing internal Load balancer %s %s", cfg.AWSConfig.InternalLoadBalancerName,
 			DeleteLoadBalancerStepName)
 	}
 

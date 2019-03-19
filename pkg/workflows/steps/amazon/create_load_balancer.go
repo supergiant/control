@@ -4,6 +4,7 @@ import (
 	"context"
 	"io"
 
+	"fmt"
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/aws/request"
 	"github.com/aws/aws-sdk-go/service/elb"
@@ -45,9 +46,9 @@ func NewCreateLoadBalancerStep(getELBFn GetELBFn) *CreateLoadBalancerStep {
 }
 
 func (s *CreateLoadBalancerStep) Run(ctx context.Context, out io.Writer, cfg *steps.Config) error {
-	if cfg.AWSConfig.LoadBalancerName != "" {
+	if cfg.AWSConfig.ExternalLoadBalancerName != "" {
 		logrus.Debugf("use load balancer %s",
-			cfg.AWSConfig.LoadBalancerName)
+			cfg.AWSConfig.ExternalLoadBalancerName)
 		return nil
 	} else {
 		svc, err := s.getLoadBalancerService(cfg.AWSConfig)
@@ -65,7 +66,7 @@ func (s *CreateLoadBalancerStep) Run(ctx context.Context, out io.Writer, cfg *st
 			subnetsSlice = append(subnetsSlice, aws.String(subnet))
 		}
 
-		loadBalancer := aws.String(cfg.ClusterID)
+		externalLoadBalancerName := aws.String(fmt.Sprintf("ex-%s", cfg.ClusterID))
 
 		output, err := svc.CreateLoadBalancerWithContext(ctx, &elb.CreateLoadBalancerInput{
 			Listeners: []*elb.Listener{
@@ -75,7 +76,7 @@ func (s *CreateLoadBalancerStep) Run(ctx context.Context, out io.Writer, cfg *st
 					Protocol:         aws.String("TCP"),
 				},
 			},
-			LoadBalancerName: loadBalancer,
+			LoadBalancerName: externalLoadBalancerName,
 			Scheme:           aws.String("internet-facing"),
 			SecurityGroups: []*string{
 				aws.String(cfg.AWSConfig.MastersSecurityGroupID),
@@ -90,18 +91,77 @@ func (s *CreateLoadBalancerStep) Run(ctx context.Context, out io.Writer, cfg *st
 					Key:   aws.String("ClusterName"),
 					Value: aws.String(cfg.ClusterName),
 				},
+				{
+					Key:   aws.String("Type"),
+					Value: aws.String("external"),
+				},
 			},
 		})
 
 		if err != nil {
-			logrus.Debugf("create load balancer %v",
+			logrus.Debugf("create external load balancer %v",
 				err)
 			return errors.Wrapf(err, "create load balancer %s", StepCreateLoadBalancer)
 		}
 
-		logrus.Infof("Create load balancer %s with dns name %s", )
-		cfg.DNSName = *output.DNSName
-		cfg.AWSConfig.LoadBalancerName = *loadBalancer
+		logrus.Infof("Created load external balancer %s with dns name %s", *externalLoadBalancerName, *output.DNSName)
+
+		cfg.ExternalDNSName = *output.DNSName
+		cfg.AWSConfig.ExternalLoadBalancerName = *externalLoadBalancerName
+
+		internalLoadBalancerName := aws.String(fmt.Sprintf("in-%s", cfg.ClusterID))
+
+		output, err = svc.CreateLoadBalancerWithContext(ctx, &elb.CreateLoadBalancerInput{
+			Listeners: []*elb.Listener{
+				{
+					InstancePort:     aws.Int64(443),
+					LoadBalancerPort: aws.Int64(443),
+					Protocol:         aws.String("TCP"),
+				},
+				{
+					InstancePort:     aws.Int64(2379),
+					LoadBalancerPort: aws.Int64(2379),
+					Protocol:         aws.String("TCP"),
+				},
+				{
+					InstancePort:     aws.Int64(2380),
+					LoadBalancerPort: aws.Int64(2380),
+					Protocol:         aws.String("TCP"),
+				},
+			},
+			LoadBalancerName: internalLoadBalancerName,
+			Scheme:           aws.String("internal"),
+			SecurityGroups: []*string{
+				aws.String(cfg.AWSConfig.MastersSecurityGroupID),
+				aws.String(cfg.AWSConfig.NodesSecurityGroupID),
+			},
+			Subnets: subnetsSlice,
+			Tags: []*elb.Tag{
+				{
+					Key:   aws.String("ClusterID"),
+					Value: aws.String(cfg.ClusterID),
+				},
+				{
+					Key:   aws.String("ClusterName"),
+					Value: aws.String(cfg.ClusterName),
+				},
+				{
+					Key:   aws.String("Type"),
+					Value: aws.String("internal"),
+				},
+			},
+		})
+
+		if err != nil {
+			logrus.Debugf("create internal load balancer %v",
+				err)
+			return errors.Wrapf(err, "create internal load balancer %s", StepCreateLoadBalancer)
+		}
+
+		logrus.Infof("Created load internal balancer %s with dns name %s", *externalLoadBalancerName, *output.DNSName)
+
+		cfg.InternalDNSName = *output.DNSName
+		cfg.AWSConfig.InternalLoadBalancerName = *internalLoadBalancerName
 	}
 
 	return nil

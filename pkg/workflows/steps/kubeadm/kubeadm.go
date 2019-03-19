@@ -45,7 +45,7 @@ func (t *Step) Run(ctx context.Context, out io.Writer, config *steps.Config) err
 		config.KubeadmConfig.AdvertiseAddress = config.Node.PrivateIp
 	}
 
-	config.KubeadmConfig.LoadBalancerHost = config.DNSName
+	config.KubeadmConfig.LoadBalancerHost = config.InternalDNSName
 	config.KubeadmConfig.IsMaster = config.IsMaster
 
 	err := steps.RunTemplate(ctx, t.script, config.Runner, out, config.KubeadmConfig)
