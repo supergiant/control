@@ -29,11 +29,17 @@ build-image:
 test:
 	go test ./pkg/...
 
+build-dev:
+	go get -u github.com/hpcloud/tail/...
+	GOOS=linux CGO_ENABLED=0 GOARCH=amd64 go build -tags dev -o dist/controlplane-linux -a -installsuffix cgo -ldflags='-extldflags "-static" -w -s -X main.version=${VERSION}' ./cmd/controlplane
+	GOOS=darwin CGO_ENABLED=0 GOARCH=amd64 go build -tags dev -o dist/controlplane-osx -a -installsuffix cgo -ldflags='-extldflags "-static" -w -s -X main.version=${VERSION}' ./cmd/controlplane
+	GOOS=windows CGO_ENABLED=0 GOARCH=amd64 go build -tags dev -o dist/controlplane-windows -a -installsuffix cgo -ldflags='-extldflags "-static" -w -s -X main.version=${VERSION}' ./cmd/controlplane
+
 build:
 	go get -u github.com/hpcloud/tail/...
-	GOOS=linux CGO_ENABLED=0 GOARCH=amd64 go build -o dist/controlplane-linux -a -installsuffix cgo -ldflags='-extldflags "-static" -w -s -X main.version=${VERSION}' ./cmd/controlplane
-	GOOS=darwin CGO_ENABLED=0 GOARCH=amd64 go build -o dist/controlplane-osx -a -installsuffix cgo -ldflags='-extldflags "-static" -w -s -X main.version=${VERSION}' ./cmd/controlplane
-	GOOS=windows CGO_ENABLED=0 GOARCH=amd64 go build -o dist/controlplane-windows -a -installsuffix cgo -ldflags='-extldflags "-static" -w -s -X main.version=${VERSION}' ./cmd/controlplane
+	GOOS=linux CGO_ENABLED=0 GOARCH=amd64 go build -tags prod -o dist/controlplane-linux -a -installsuffix cgo -ldflags='-extldflags "-static" -w -s -X main.version=${VERSION}' ./cmd/controlplane
+	GOOS=darwin CGO_ENABLED=0 GOARCH=amd64 go build -tags prod -o dist/controlplane-osx -a -installsuffix cgo -ldflags='-extldflags "-static" -w -s -X main.version=${VERSION}' ./cmd/controlplane
+	GOOS=windows CGO_ENABLED=0 GOARCH=amd64 go build -tags prod -o dist/controlplane-windows -a -installsuffix cgo -ldflags='-extldflags "-static" -w -s -X main.version=${VERSION}' ./cmd/controlplane
 push:
 	docker push $(DOCKER_IMAGE_NAME):$(DOCKER_IMAGE_TAG)
 

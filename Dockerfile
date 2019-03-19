@@ -19,7 +19,7 @@ ARG TAG=unstable
 RUN go get -u github.com/rakyll/statik
 RUN statik -src=/etc/supergiant/ui
 RUN CGO_ENABLED=0 GOOS=linux GOARCH=${ARCH} \
-    go build -a -ldflags="-X main.version=${TAG}" -o /go/bin/supergiant ./cmd/controlplane
+    go build -tags prod -a -ldflags="-X main.version=${TAG}" -o /go/bin/supergiant ./cmd/controlplane
 
 RUN update-ca-certificates
 
