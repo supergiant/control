@@ -402,10 +402,12 @@
 			"versionExact": "v1.14.6"
 		},
 		{
-			"checksumSHA1": "7Xdct5YMsJUhQhbtxFCn5An5hdk=",
+			"checksumSHA1": "dRf+FPPbJm74GqF3BDbaoaf5KbM=",
 			"path": "github.com/aws/aws-sdk-go/service/elb",
-			"revision": "06b6ff7a2d1360d3504c1ad6e7d3d073e1bc4619",
-			"revisionTime": "2019-03-14T18:57:26Z"
+			"revision": "92c96c4f5ad419f2a72401c2f606d51e010cc110",
+			"revisionTime": "2018-06-13T21:50:45Z",
+			"version": "v1.14.6",
+			"versionExact": "v1.14.6"
 		},
 		{
 			"checksumSHA1": "2fW5rVTwFXBjEsV8TfQNdibLQQM=",
