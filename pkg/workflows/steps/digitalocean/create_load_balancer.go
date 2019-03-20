@@ -5,12 +5,13 @@ import (
 	"io"
 	"time"
 
-	"github.com/supergiant/control/pkg/clouds/digitaloceansdk"
-	"github.com/supergiant/control/pkg/workflows/steps"
 	"github.com/digitalocean/godo"
-	"github.com/supergiant/control/pkg/workflows"
 	"github.com/sirupsen/logrus"
 	"github.com/pkg/errors"
+	
+	"github.com/supergiant/control/pkg/clouds/digitaloceansdk"
+	"github.com/supergiant/control/pkg/workflows/steps"
+	"github.com/supergiant/control/pkg/util"
 )
 
 type CreateLoadBalancerStep struct {
@@ -33,7 +34,7 @@ func (s *CreateLoadBalancerStep) Run(ctx context.Context, output io.Writer, conf
 	lbSvc := s.getServices(config.DigitalOceanConfig.AccessToken)
 
 	req := &godo.LoadBalancerRequest{
-		Name: workflows.CreateLBName(config.ClusterID, true),
+		Name: util.CreateLBName(config.ClusterID, true),
 		Region: config.DigitalOceanConfig.Region,
 		ForwardingRules: []godo.ForwardingRule{
 			{
@@ -67,7 +68,7 @@ func (s *CreateLoadBalancerStep) Run(ctx context.Context, output io.Writer, conf
 	}
 
 	req = &godo.LoadBalancerRequest{
-		Name: workflows.CreateLBName(config.ClusterID, false),
+		Name: util.CreateLBName(config.ClusterID, false),
 		Region: config.DigitalOceanConfig.Region,
 		ForwardingRules: []godo.ForwardingRule{
 			{

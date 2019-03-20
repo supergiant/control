@@ -180,3 +180,11 @@ func LoadCloudSpecificDataFromKube(k *model.Kube, config *steps.Config) error {
 
 	return nil
 }
+
+func CreateLBName(clusterID string, isExternal bool) string {
+	if isExternal {
+		return fmt.Sprintf("ex-%s", clusterID)
+	}
+
+	return fmt.Sprintf("in-%s", clusterID)
+}
