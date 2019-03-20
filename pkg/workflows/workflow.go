@@ -65,7 +65,9 @@ func Init() {
 	}
 
 	masterWorkflow := []steps.Step{
+		// TODO(stgleb): Provider steps should also register itsels it step map
 		provider.StepCreateMachine{},
+		&provider.RegisterInstanceToLoadBalancer{},
 		steps.GetStep(ssh.StepName),
 		steps.GetStep(authorizedKeys.StepName),
 		steps.GetStep(downloadk8sbinary.StepName),
@@ -77,6 +79,7 @@ func Init() {
 	}
 
 	nodeWorkflow := []steps.Step{
+		// TODO(stgleb): Provider steps should also register theirself it step map
 		provider.StepCreateMachine{},
 		steps.GetStep(ssh.StepName),
 		steps.GetStep(authorizedKeys.StepName),

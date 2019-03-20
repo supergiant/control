@@ -596,6 +596,8 @@ func (h *Handler) addMachine(w http.ResponseWriter, r *http.Request) {
 	config.CertificatesConfig.CACert = k.Auth.CACert
 	config.CertificatesConfig.AdminCert = k.Auth.AdminCert
 	config.CertificatesConfig.AdminKey = k.Auth.AdminKey
+	config.ExternalDNSName = k.ExternalDNSName
+	config.InternalDNSName = k.InternalDNSName
 
 	if len(k.Masters) != 0 {
 		config.AddMaster(util.GetRandomNode(k.Masters))

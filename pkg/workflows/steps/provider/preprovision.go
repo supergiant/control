@@ -67,11 +67,12 @@ func prepProvisionStepFor(provider clouds.Name) ([]steps.Step, error) {
 			steps.GetStep(amazon.StepCreateSubnets),
 			steps.GetStep(amazon.StepCreateRouteTable),
 			steps.GetStep(amazon.StepAssociateRouteTable),
+			steps.GetStep(amazon.StepCreateLoadBalancer),
 		}, nil
 	case clouds.DigitalOcean:
 		return []steps.Step{}, nil
 	case clouds.GCE:
 		return []steps.Step{}, nil
 	}
-	return nil, errors.New(fmt.Sprintf("unknown provider: %s", provider))
+	return nil, errors.Wrapf(fmt.Errorf("unknown provider: %s", provider), PreProvisionStep)
 }

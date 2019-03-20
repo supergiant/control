@@ -109,6 +109,10 @@ type AWSConfig struct {
 	ImageID                string `json:"image"`
 	InstanceType           string `json:"size"`
 	HasPublicAddr          bool   `json:"hasPublicAddr"`
+
+	ExternalLoadBalancerName string `json:"externalLoadBalancerName"`
+	InternalLoadBalancerName string `json:"internalLoadBalancerName"`
+
 	// Map of availability zone to subnet
 	Subnets map[string]string `json:"subnets"`
 	// Map az to route table association
@@ -165,7 +169,10 @@ type KubeadmConfig struct {
 	IsBootstrap      bool   `json:"isBootstrap"`
 	CIDR             string `json:"cidr"`
 	Token            string `json:"token"`
-	LoadBalancerHost string `json:"loadBalancerHost"`
+	Provider    string `json:"provider"`
+
+	InternalDNSName string `json:"internalDNSName"`
+	ExternalDNSName string `json:"externalDNSName"`
 }
 
 type DrainConfig struct {
@@ -215,6 +222,9 @@ type Config struct {
 	PrometheusConfig   PrometheusConfig   `json:"prometheusConfig"`
 	DrainConfig        DrainConfig        `json:"drainConfig"`
 	KubeadmConfig      KubeadmConfig      `json:"kubeadmConfig"`
+
+	ExternalDNSName string `json:"externalDnsName"`
+	InternalDNSName string `json:"internalDnsName"`
 
 	ClusterCheckConfig ClusterCheckConfig `json:"clusterCheckConfig"`
 

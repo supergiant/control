@@ -11,6 +11,7 @@ import (
 	tm "github.com/supergiant/control/pkg/templatemanager"
 	"github.com/supergiant/control/pkg/workflows/steps"
 	"github.com/supergiant/control/pkg/workflows/steps/docker"
+	"github.com/supergiant/control/pkg/clouds"
 )
 
 const (
@@ -40,10 +41,28 @@ func New(script *template.Template) *Step {
 }
 
 func (t *Step) Run(ctx context.Context, out io.Writer, config *steps.Config) error {
-	// Use bootstrap master node as a controlPlaneEndpoint
+	config.KubeadmConfig.Provider = string(config.Provider)
+
+	// NOTE(stgleb): Kubeadm accepts only ipv4 or ipv6 addresses as advertise address
 	if config.KubeadmConfig.IsBootstrap {
-		config.KubeadmConfig.LoadBalancerHost = config.Node.PublicIp
 		config.KubeadmConfig.AdvertiseAddress = config.Node.PrivateIp
+
+		// TODO(stgleb): Remove that when all providers support Load Balancers
+		if config.Provider != clouds.AWS {
+			config.KubeadmConfig.ExternalDNSName = config.Node.PublicIp
+			config.KubeadmConfig.InternalDNSName = config.Node.PublicIp
+		}
+	}
+
+	// TODO(stgleb): Remove that when all providers support Load Balancers
+	if config.Provider == clouds.AWS {
+		config.KubeadmConfig.InternalDNSName = config.InternalDNSName
+		config.KubeadmConfig.ExternalDNSName = config.ExternalDNSName
+	} else {
+		if master := config.GetMaster(); master != nil {
+			config.KubeadmConfig.InternalDNSName = master.PublicIp
+			config.KubeadmConfig.ExternalDNSName = master.PublicIp
+		}
 	}
 
 	config.KubeadmConfig.IsMaster = config.IsMaster

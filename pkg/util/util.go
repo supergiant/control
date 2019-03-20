@@ -163,7 +163,8 @@ func LoadCloudSpecificDataFromKube(k *model.Kube, config *steps.Config) error {
 		config.AWSConfig.ImageID = k.CloudSpec[clouds.AwsImageID]
 		config.Kube.SSHConfig.BootstrapPrivateKey = k.CloudSpec[clouds.AwsSshBootstrapPrivateKey]
 		config.Kube.SSHConfig.PublicKey = k.CloudSpec[clouds.AwsUserProvidedSshPublicKey]
-
+		config.AWSConfig.ExternalLoadBalancerName = k.ExternalLoadBalancerName
+		config.AWSConfig.InternalLoadBalancerName = k.InternalLoadBalancerName
 	case clouds.GCE:
 		config.GCEConfig.Region = k.Region
 

@@ -45,9 +45,13 @@ func (s *Step) Run(ctx context.Context, out io.Writer, config *steps.Config) err
 	config.CertificatesConfig.IsMaster = config.IsMaster
 
 	if !config.IsMaster {
-		master := config.GetMaster()
-		config.CertificatesConfig.MasterHost = master.PrivateIp
-		config.CertificatesConfig.MasterPort = "443"
+		if config.InternalDNSName == "" {
+			master := config.GetMaster()
+			config.CertificatesConfig.MasterHost = master.PrivateIp
+		} else {
+			config.CertificatesConfig.MasterHost = config.InternalDNSName
+		}
+
 		config.CertificatesConfig.NodeName = config.Node.Name
 	}
 
