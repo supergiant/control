@@ -41,9 +41,17 @@ func New(script *template.Template) *Step {
 }
 
 func (t *Step) Run(ctx context.Context, out io.Writer, config *steps.Config) error {
+	config.KubeadmConfig.Provider = string(config.Provider)
+
 	// NOTE(stgleb): Kubeadm accepts only ipv4 or ipv6 addresses as advertise address
 	if config.KubeadmConfig.IsBootstrap {
 		config.KubeadmConfig.AdvertiseAddress = config.Node.PrivateIp
+
+		// TODO(stgleb): Remove that when all providers support Load Balancers
+		if config.Provider != clouds.AWS {
+			config.KubeadmConfig.ExternalDNSName = config.Node.PublicIp
+			config.KubeadmConfig.InternalDNSName = config.Node.PublicIp
+		}
 	}
 
 	// TODO(stgleb): Remove that when all providers support Load Balancers
@@ -51,8 +59,10 @@ func (t *Step) Run(ctx context.Context, out io.Writer, config *steps.Config) err
 		config.KubeadmConfig.InternalDNSName = config.InternalDNSName
 		config.KubeadmConfig.ExternalDNSName = config.ExternalDNSName
 	} else {
-		config.KubeadmConfig.InternalDNSName = config.Node.PrivateIp
-		config.KubeadmConfig.ExternalDNSName = config.Node.PublicIp
+		if master := config.GetMaster(); master != nil {
+			config.KubeadmConfig.InternalDNSName = master.PublicIp
+			config.KubeadmConfig.ExternalDNSName = master.PublicIp
+		}
 	}
 
 	config.KubeadmConfig.IsMaster = config.IsMaster

@@ -169,6 +169,7 @@ type KubeadmConfig struct {
 	IsBootstrap      bool   `json:"isBootstrap"`
 	CIDR             string `json:"cidr"`
 	Token            string `json:"token"`
+	Provider    string `json:"provider"`
 
 	InternalDNSName string `json:"internalDNSName"`
 	ExternalDNSName string `json:"externalDNSName"`
