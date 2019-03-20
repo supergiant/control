@@ -96,7 +96,7 @@ func (s *RegisterInstanceStep) Name() string {
 }
 
 func (s *RegisterInstanceStep) Description() string {
-	return "Register node to Load balancer"
+	return "Register node to external and internal Load balancers"
 }
 
 func (s *RegisterInstanceStep) Depends() []string {

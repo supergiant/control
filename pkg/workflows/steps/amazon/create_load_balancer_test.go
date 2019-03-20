@@ -39,6 +39,15 @@ func (m *mockELBService) DeleteLoadBalancerWithContext(ctx aws.Context, input *e
 	return val, args.Error(1)
 }
 
+func (m *mockELBService) RegisterInstancesWithLoadBalancerWithContext(ctx aws.Context, input *elb.RegisterInstancesWithLoadBalancerInput, opts ...request.Option) (*elb.RegisterInstancesWithLoadBalancerOutput, error) {
+	args := m.Called(ctx, input, opts)
+	val, ok := args.Get(0).(*elb.RegisterInstancesWithLoadBalancerOutput)
+	if !ok {
+		return nil, args.Error(1)
+	}
+	return val, args.Error(1)
+}
+
 func TestInitCreateLoadBalancer(t *testing.T) {
 	InitCreateLoadBalancer(GetELB)
 
