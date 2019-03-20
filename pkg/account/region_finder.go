@@ -31,6 +31,8 @@ import (
 var (
 	ErrNilAccount          = errors.New("nil account")
 	ErrUnsupportedProvider = errors.New("unsupported provider")
+
+	VMResourceType = "virtualMachines"
 )
 
 //Region represents
@@ -516,6 +518,10 @@ func (f AzureFinder) getVMSizes(ctx context.Context) ([]skus.ResourceSku, error)
 			break
 		}
 
+		if to.String(sizesList.Value().ResourceType) != VMResourceType {
+			continue
+		}
+
 		// filter by location
 		if sizesList.Value().Locations != nil && f.location != "" && !contains(*sizesList.Value().Locations, f.location) {
 			continue
@@ -532,16 +538,16 @@ func (f AzureFinder) toRegionSizes(locations []subscription.Location, machineSiz
 	regionSizes := make(map[string]*strset.Set)
 	sizes := make(map[string]interface{})
 	for _, vm := range machineSizes {
-		if to.String(vm.Size) == "" {
+		if to.String(vm.Name) == "" || to.String(vm.Size) == "" {
 			continue
 		}
 
-		sizes[to.String(vm.Size)] = vm
+		sizes[to.String(vm.Name)] = vm
 		for _, l := range to.StringSlice(vm.Locations) {
 			if regionSizes[l] == nil {
 				regionSizes[l] = strset.New()
 			}
-			regionSizes[l].Add(to.String(vm.Size))
+			regionSizes[l].Add(to.String(vm.Name))
 		}
 	}
 
@@ -564,10 +570,10 @@ func (f AzureFinder) toRegionSizes(locations []subscription.Location, machineSiz
 func vmSizesNames(sizes []skus.ResourceSku) []string {
 	names := strset.New()
 	for _, s := range sizes {
-		if to.String(s.Size) == "" {
+		if to.String(s.Name) == "" || to.String(s.Size) == "" {
 			continue
 		}
-		names.Add(to.String(s.Size))
+		names.Add(to.String(s.Name))
 	}
 	return names.ToSlice()
 }

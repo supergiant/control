@@ -689,24 +689,34 @@ func TestAzureFinder_GetRegions(t *testing.T) {
 								return skus.ResourceSkusResult{
 									Value: &([]skus.ResourceSku{
 										{
-											Name:      to.StringPtr(""),
-											Size:      to.StringPtr("size1"),
-											Locations: to.StringSlicePtr([]string{"euwest1"}),
+											Name:         to.StringPtr(""),
+											Size:         to.StringPtr("size0"),
+											ResourceType: to.StringPtr(VMResourceType),
+											Locations:    to.StringSlicePtr([]string{"euwest1"}),
 										},
 										{
-											Name:      to.StringPtr("size2name"),
-											Size:      to.StringPtr(""),
-											Locations: to.StringSlicePtr([]string{"euwest1"}),
+											Name:         to.StringPtr("size1name"),
+											Size:         to.StringPtr("size1"),
+											ResourceType: to.StringPtr(VMResourceType),
+											Locations:    to.StringSlicePtr([]string{"euwest1"}),
 										},
 										{
-											Name:      to.StringPtr("size3name"),
-											Size:      to.StringPtr("size3"),
-											Locations: to.StringSlicePtr([]string{"euwest1"}),
+											Name:         to.StringPtr("size2name"),
+											Size:         to.StringPtr(""),
+											ResourceType: to.StringPtr(VMResourceType),
+											Locations:    to.StringSlicePtr([]string{"euwest1"}),
 										},
 										{
-											Name:      to.StringPtr("size4name"),
-											Size:      to.StringPtr("size4"),
-											Locations: to.StringSlicePtr([]string{"useast1"}),
+											Name:         to.StringPtr("size3name"),
+											Size:         to.StringPtr("size3"),
+											ResourceType: to.StringPtr(VMResourceType),
+											Locations:    to.StringSlicePtr([]string{"euwest1"}),
+										},
+										{
+											Name:         to.StringPtr("size4name"),
+											Size:         to.StringPtr("size4"),
+											ResourceType: to.StringPtr(VMResourceType),
+											Locations:    to.StringSlicePtr([]string{"useast1"}),
 										},
 									}),
 								}, nil
@@ -722,24 +732,27 @@ func TestAzureFinder_GetRegions(t *testing.T) {
 					{
 						ID:             "euwest1",
 						Name:           "eu west 1",
-						AvailableSizes: []string{"size1", "size3"},
+						AvailableSizes: []string{"size1name", "size3name"},
 					},
 				},
 				Sizes: map[string]interface{}{
-					"size1": skus.ResourceSku{
-						Name:      to.StringPtr(""),
-						Size:      to.StringPtr("size1"),
-						Locations: to.StringSlicePtr([]string{"euwest1"}),
+					"size1name": skus.ResourceSku{
+						Name:         to.StringPtr("size1name"),
+						Size:         to.StringPtr("size1"),
+						ResourceType: to.StringPtr(VMResourceType),
+						Locations:    to.StringSlicePtr([]string{"euwest1"}),
 					},
-					"size3": skus.ResourceSku{
-						Name:      to.StringPtr("size3name"),
-						Size:      to.StringPtr("size3"),
-						Locations: to.StringSlicePtr([]string{"euwest1"}),
+					"size3name": skus.ResourceSku{
+						Name:         to.StringPtr("size3name"),
+						Size:         to.StringPtr("size3"),
+						ResourceType: to.StringPtr(VMResourceType),
+						Locations:    to.StringSlicePtr([]string{"euwest1"}),
 					},
-					"size4": skus.ResourceSku{
-						Name:      to.StringPtr("size4name"),
-						Size:      to.StringPtr("size4"),
-						Locations: to.StringSlicePtr([]string{"useast1"}),
+					"size4name": skus.ResourceSku{
+						Name:         to.StringPtr("size4name"),
+						Size:         to.StringPtr("size4"),
+						ResourceType: to.StringPtr(VMResourceType),
+						Locations:    to.StringSlicePtr([]string{"useast1"}),
 					},
 				},
 			},
@@ -795,24 +808,34 @@ func TestAzureFinder_GetTypes(t *testing.T) {
 								return skus.ResourceSkusResult{
 									Value: &([]skus.ResourceSku{
 										{
-											Name:      to.StringPtr(""),
-											Size:      to.StringPtr("size1"),
-											Locations: to.StringSlicePtr([]string{"euwest1"}),
+											Name:         to.StringPtr(""),
+											Size:         to.StringPtr("size0"),
+											ResourceType: to.StringPtr(VMResourceType),
+											Locations:    to.StringSlicePtr([]string{"euwest1"}),
 										},
 										{
-											Name:      to.StringPtr("size2name"),
-											Size:      to.StringPtr(""),
-											Locations: to.StringSlicePtr([]string{"euwest1"}),
+											Name:         to.StringPtr("size1name"),
+											Size:         to.StringPtr("size1"),
+											ResourceType: to.StringPtr(VMResourceType),
+											Locations:    to.StringSlicePtr([]string{"euwest1"}),
 										},
 										{
-											Name:      to.StringPtr("size3name"),
-											Size:      to.StringPtr("size3"),
-											Locations: to.StringSlicePtr([]string{"euwest1"}),
+											Name:         to.StringPtr("size2name"),
+											Size:         to.StringPtr(""),
+											ResourceType: to.StringPtr(VMResourceType),
+											Locations:    to.StringSlicePtr([]string{"euwest1"}),
 										},
 										{
-											Name:      to.StringPtr("size4name"),
-											Size:      to.StringPtr("size4"),
-											Locations: to.StringSlicePtr([]string{"useast1"}),
+											Name:         to.StringPtr("size3name"),
+											Size:         to.StringPtr("size3"),
+											ResourceType: to.StringPtr(VMResourceType),
+											Locations:    to.StringSlicePtr([]string{"euwest1"}),
+										},
+										{
+											Name:         to.StringPtr("size4name"),
+											Size:         to.StringPtr("size4"),
+											ResourceType: to.StringPtr(VMResourceType),
+											Locations:    to.StringSlicePtr([]string{"useast1"}),
 										},
 									}),
 								}, nil
@@ -823,7 +846,7 @@ func TestAzureFinder_GetTypes(t *testing.T) {
 				},
 				location: "euwest1",
 			},
-			expectedRes: []string{"size1", "size3"},
+			expectedRes: []string{"size1name", "size3name"},
 		},
 	} {
 		rs, err := tc.f.GetTypes(context.Background(), steps.Config{})

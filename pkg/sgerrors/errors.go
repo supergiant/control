@@ -31,6 +31,7 @@ var (
 	ErrTokenExpired        = New("token has been expire", TokenExpired)
 	ErrNilEntity           = New("nil entity", NilEntity)
 	ErrTimeoutExceeded     = New("timeout exceeded", TimeoutExceeded)
+	ErrRawError            = New("error", RawError)
 )
 
 func IsNotFound(err error) bool {
