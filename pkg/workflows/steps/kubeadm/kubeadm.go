@@ -11,6 +11,7 @@ import (
 	tm "github.com/supergiant/control/pkg/templatemanager"
 	"github.com/supergiant/control/pkg/workflows/steps"
 	"github.com/supergiant/control/pkg/workflows/steps/docker"
+	"github.com/supergiant/control/pkg/clouds"
 )
 
 const (
@@ -45,8 +46,15 @@ func (t *Step) Run(ctx context.Context, out io.Writer, config *steps.Config) err
 		config.KubeadmConfig.AdvertiseAddress = config.Node.PrivateIp
 	}
 
-	config.KubeadmConfig.InternalDNSName = config.InternalDNSName
-	config.KubeadmConfig.ExternalDNSName = config.ExternalDNSName
+	// TODO(stgleb): Remove that when all providers support Load Balancers
+	if config.Provider == clouds.AWS {
+		config.KubeadmConfig.InternalDNSName = config.InternalDNSName
+		config.KubeadmConfig.ExternalDNSName = config.ExternalDNSName
+	} else {
+		config.KubeadmConfig.InternalDNSName = config.Node.PrivateIp
+		config.KubeadmConfig.ExternalDNSName = config.Node.PublicIp
+	}
+
 	config.KubeadmConfig.IsMaster = config.IsMaster
 
 	err := steps.RunTemplate(ctx, t.script, config.Runner, out, config.KubeadmConfig)
