@@ -24,7 +24,6 @@ func NewCreateLoadBalancerStep() *CreateLoadBalancerStep {
 		getServices: func(accessToken string) LoadBalancerService {
 			client := digitaloceansdk.New(accessToken).GetClient()
 
-			client.LoadBalancers.Update()
 			return client.LoadBalancers
 		},
 	}
