@@ -13,7 +13,6 @@ import (
 
 	"github.com/aws/aws-sdk-go/service/elb"
 	"github.com/supergiant/control/pkg/workflows/steps"
-	"github.com/aws/aws-sdk-go/service/elb/elbiface"
 )
 
 type GetEC2Fn func(steps.AWSConfig) (ec2iface.EC2API, error)

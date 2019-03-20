@@ -55,9 +55,6 @@ type DOConfig struct {
 	// These come from cloud account
 	Fingerprint string `json:"fingerprint" valid:"required"`
 	AccessToken string `json:"accessToken" valid:"required"`
-
-	ExternalLoadBalancerID string `json:"externalLoadBalancerId"`
-	InternalLoadBalancerID string `json:"internalLoadBalancerId"`
 }
 
 // TODO(stgleb): Fill struct with fields when provisioning on other providers is done

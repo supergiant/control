@@ -11,7 +11,6 @@ import (
 
 const (
 	CreateMachineStepName    = "createMachineDigitalOcean"
-	CreateLoadBalancerStepName = "createLoadBalancerDigitalOcean"
 	DeleteMachineStepName    = "deleteMachineDigitalOcean"
 	DeleteClusterMachines    = "deleteClusterMachineDigitalOcean"
 	DeleteDeleteKeysStepName = "deleteKeysDigitalOcean"
@@ -32,12 +31,6 @@ type KeyService interface {
 
 type DeleteService interface {
 	DeleteByTag(context.Context, string) (*godo.Response, error)
-}
-
-type LoadBalancerService interface {
-	Create(context.Context, *godo.LoadBalancerRequest) (*godo.LoadBalancer, *godo.Response, error)
-	Delete(ctx context.Context, lbID string) (*godo.Response, error)
-	AddDroplets(ctx context.Context, lbID string, dropletIDs ...int) (*godo.Response, error)
 }
 
 func Init() {

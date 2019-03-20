@@ -34,8 +34,6 @@ func ToProvider(name string) (Name, error) {
 const (
 	DigitalOceanFingerPrint    = "fingerprint"
 	DigitalOceanAccessToken    = "accessToken"
-	ExternalDigitalOceanLoadBalancerID = "externalLoadBalancerID"
-	InternalDigitalOceanLoadBalancerID = "internalLoadBalancerID"
 	EnvDigitalOceanAccessToken = "DIGITALOCEAN_TOKEN"
 
 	GCEProjectID   = "project_id"
@@ -62,8 +60,6 @@ const (
 	AwsMasterInstanceProfile    = "aws_master_instance_profile"
 	AwsNodeInstanceProfile      = "aws_node_instance_profile"
 	AwsImageID                  = "aws_image_id"
-	AwsExternalLoadBalancerName = "AwsExternalLoadBalancerName"
-	AwsInternalLoadBalancerName = "AwsInternalLoadBalancerName"
 
 	// Use client credentials auth model for azure.
 	// https://github.com/Azure/azure-sdk-for-go#more-authentication-details
