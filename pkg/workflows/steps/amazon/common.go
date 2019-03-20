@@ -13,6 +13,8 @@ import (
 
 	"github.com/aws/aws-sdk-go/service/elb"
 	"github.com/supergiant/control/pkg/workflows/steps"
+	"github.com/aws/aws-sdk-go/service/elb/elbiface"
+	"github.com/aws/aws-sdk-go/service/elbv2/elbv2iface"
 )
 
 type GetEC2Fn func(steps.AWSConfig) (ec2iface.EC2API, error)
@@ -51,7 +53,7 @@ func GetIAM(cfg steps.AWSConfig) (iamiface.IAMAPI, error) {
 // NOT(stgleb): *elb.ELB doesn't implement elbiface.ELBAPI for some reasom
 type GetELBFn func(steps.AWSConfig) (*elb.ELB, error)
 
-func GetELB(cfg steps.AWSConfig) (*elb.ELB, error) {
+func GetELB(cfg steps.AWSConfig) (elbiface.ELBAPI, error) {
 	sess, err := session.NewSessionWithOptions(session.Options{
 		Config: aws.Config{
 			Region:      aws.String(cfg.Region),

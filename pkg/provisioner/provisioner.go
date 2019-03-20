@@ -508,10 +508,6 @@ func (tp *TaskProvisioner) buildInitialCluster(ctx context.Context,
 		User:         profile.User,
 		Password:     profile.Password,
 
-		// TODO(stgleb): extract to utility function
-		ExternalLoadBalancerName: fmt.Sprintf("ex-%s", config.ClusterID),
-		InternalLoadBalancerName: fmt.Sprintf("in-%s", config.ClusterID),
-
 		Auth: model.Auth{
 			Username:  config.CertificatesConfig.Username,
 			Password:  config.CertificatesConfig.Password,
@@ -585,9 +581,15 @@ func (t *TaskProvisioner) updateCloudSpecificData(k *model.Kube, config *steps.C
 			config.AWSConfig.NodesInstanceProfile
 		cloudSpecificSettings[clouds.AwsImageID] =
 			config.AWSConfig.ImageID
+		cloudSpecificSettings[clouds.AwsExternalLoadBalancerName] =
+			config.AWSConfig.ExternalLoadBalancerName
+		cloudSpecificSettings[clouds.AwsInternalLoadBalancerName] =
+			config.AWSConfig.InternalLoadBalancerName
 	case clouds.GCE:
 		// GCE is the most simple :-)
 	case clouds.DigitalOcean:
+		cloudSpecificSettings[clouds.ExternalDigitalOceanLoadBalancerID] = config.DigitalOceanConfig.ExternalLoadBalancerID
+		cloudSpecificSettings[clouds.InternalDigitalOceanLoadBalancerID] = config.DigitalOceanConfig.InternalLoadBalancerID
 	}
 
 	k.CloudSpec = cloudSpecificSettings

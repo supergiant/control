@@ -5,6 +5,7 @@ import (
 
 	"github.com/supergiant/control/pkg/runner/ssh"
 	"github.com/supergiant/control/pkg/storage"
+	"fmt"
 )
 
 func DeserializeTask(data []byte, repository storage.Interface) (*Task, error) {
@@ -39,4 +40,12 @@ func DeserializeTask(data []byte, repository storage.Interface) (*Task, error) {
 	}
 
 	return task, nil
+}
+
+func CreateLBName(clusterID string, isExternal bool) string {
+	if isExternal {
+		return fmt.Sprintf("ex-%s", clusterID)
+	}
+
+	return fmt.Sprintf("in-%s", clusterID)
 }
