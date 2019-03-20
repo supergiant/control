@@ -2,18 +2,21 @@ package amazon
 
 import (
 	"context"
+	"io"
+
 	"github.com/aws/aws-sdk-go/aws"
+	"github.com/aws/aws-sdk-go/aws/request"
 	"github.com/aws/aws-sdk-go/service/elb"
 	"github.com/pkg/errors"
 	"github.com/sirupsen/logrus"
+
 	"github.com/supergiant/control/pkg/workflows/steps"
-	"io"
 )
 
 const DeleteLoadBalancerStepName = "delete_load_balancer"
 
 type LoadBalancerDeleter interface {
-	DeleteLoadBalancer(*elb.DeleteLoadBalancerInput) (*elb.DeleteLoadBalancerOutput, error)
+	DeleteLoadBalancerWithContext(aws.Context, *elb.DeleteLoadBalancerInput, ...request.Option) (*elb.DeleteLoadBalancerOutput, error)
 }
 
 type DeleteLoadBalancerStep struct {
@@ -51,7 +54,7 @@ func (s *DeleteLoadBalancerStep) Run(ctx context.Context, out io.Writer, cfg *st
 			DeleteLoadBalancerStepName)
 	}
 
-	_, err = svc.DeleteLoadBalancer(&elb.DeleteLoadBalancerInput{
+	_, err = svc.DeleteLoadBalancerWithContext(ctx, &elb.DeleteLoadBalancerInput{
 		LoadBalancerName: aws.String(cfg.AWSConfig.ExternalLoadBalancerName),
 	})
 
@@ -61,7 +64,7 @@ func (s *DeleteLoadBalancerStep) Run(ctx context.Context, out io.Writer, cfg *st
 			DeleteLoadBalancerStepName)
 	}
 
-	_, err = svc.DeleteLoadBalancer(&elb.DeleteLoadBalancerInput{
+	_, err = svc.DeleteLoadBalancerWithContext(ctx, &elb.DeleteLoadBalancerInput{
 		LoadBalancerName: aws.String(cfg.AWSConfig.InternalLoadBalancerName),
 	})
 
@@ -75,11 +78,11 @@ func (s *DeleteLoadBalancerStep) Run(ctx context.Context, out io.Writer, cfg *st
 }
 
 func (s *DeleteLoadBalancerStep) Name() string {
-	return StepCreateLoadBalancer
+	return DeleteLoadBalancerStepName
 }
 
 func (s *DeleteLoadBalancerStep) Description() string {
-	return "Create ELB load balancer for master nodes"
+	return "Delete external and internal ELB load balancers for master nodes"
 }
 
 func (s *DeleteLoadBalancerStep) Depends() []string {
