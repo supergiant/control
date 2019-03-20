@@ -2,11 +2,11 @@ package provider
 
 import (
 	"context"
-	"fmt"
 	"io"
 
 	"github.com/pkg/errors"
 
+	"fmt"
 	"github.com/supergiant/control/pkg/clouds"
 	"github.com/supergiant/control/pkg/workflows/steps"
 	"github.com/supergiant/control/pkg/workflows/steps/amazon"
@@ -24,9 +24,18 @@ func (s *RegisterInstanceToLoadBalancer) Run(ctx context.Context, out io.Writer,
 		return errors.New("invalid config")
 	}
 
-	step, err := registerMachineToLoadBalancer(cfg.Provider)
-	if err != nil {
-		return err
+	var step steps.Step
+
+	switch cfg.Provider {
+	case clouds.AWS:
+		step = steps.GetStep(amazon.RegisterInstanceStepName)
+	// TODO(stgleb): rest of providers TBD
+	case clouds.DigitalOcean:
+		return nil
+	case clouds.GCE:
+		return nil
+	default:
+		return errors.Wrapf(fmt.Errorf("unknown provider: %s", cfg.Provider), RegisterInstanceStepName)
 	}
 
 	return step.Run(ctx, out, cfg)
@@ -46,13 +55,4 @@ func (s *RegisterInstanceToLoadBalancer) Depends() []string {
 
 func (s *RegisterInstanceToLoadBalancer) Rollback(context.Context, io.Writer, *steps.Config) error {
 	return nil
-}
-
-func registerMachineToLoadBalancer(provider clouds.Name) (steps.Step, error) {
-	switch provider {
-	case clouds.AWS:
-		return steps.GetStep(amazon.RegisterInstanceStepName), nil
-	// TODO(stgleb): rest of providers TBD
-	}
-	return nil, errors.New(fmt.Sprintf("unknown provider: %s", provider))
 }

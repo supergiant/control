@@ -74,5 +74,5 @@ func prepProvisionStepFor(provider clouds.Name) ([]steps.Step, error) {
 	case clouds.GCE:
 		return []steps.Step{}, nil
 	}
-	return nil, errors.New(fmt.Sprintf("unknown provider: %s", provider))
+	return nil, errors.Wrapf(fmt.Errorf("unknown provider: %s", provider), PreProvisionStep)
 }
