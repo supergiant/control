@@ -10,11 +10,14 @@ import (
 )
 
 const (
-	CreateMachineStepName    = "createMachineDigitalOcean"
+	CreateMachineStepName      = "createMachineDigitalOcean"
 	CreateLoadBalancerStepName = "createLoadBalancerDigitalOcean"
-	DeleteMachineStepName    = "deleteMachineDigitalOcean"
-	DeleteClusterMachines    = "deleteClusterMachineDigitalOcean"
-	DeleteDeleteKeysStepName = "deleteKeysDigitalOcean"
+	RegisterInstanceToLB       = "registerInstanceToLoadBalancerDigitalOcean"
+
+	DeleteMachineStepName      = "deleteMachineDigitalOcean"
+	DeleteClusterMachines      = "deleteClusterMachineDigitalOcean"
+	DeleteDeleteKeysStepName   = "deleteKeysDigitalOcean"
+	DeleteLoadBalancerSTepName = "deleteLoadBalancerDigitalOcean"
 )
 
 type DropletService interface {
@@ -45,4 +48,6 @@ func Init() {
 	steps.RegisterStep(DeleteMachineStepName, NewDeleteMachineStep(time.Minute*1))
 	steps.RegisterStep(DeleteClusterMachines, NewDeletemachinesStep(time.Minute*1))
 	steps.RegisterStep(DeleteDeleteKeysStepName, NewDeleteKeysStep())
+	steps.RegisterStep(RegisterInstanceToLB, NewRegisterInstanceToLBStep())
+	steps.RegisterStep(DeleteLoadBalancerSTepName, NewDeleteLoadBalancerStep())
 }
