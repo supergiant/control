@@ -508,10 +508,6 @@ func (tp *TaskProvisioner) buildInitialCluster(ctx context.Context,
 		User:         profile.User,
 		Password:     profile.Password,
 
-		// TODO(stgleb): extract to utility function
-		ExternalLoadBalancerName: fmt.Sprintf("ex-%s", config.ClusterID),
-		InternalLoadBalancerName: fmt.Sprintf("in-%s", config.ClusterID),
-
 		Auth: model.Auth{
 			Username:  config.CertificatesConfig.Username,
 			Password:  config.CertificatesConfig.Password,
