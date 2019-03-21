@@ -38,7 +38,7 @@ func (s *RegisterInstanceToLBStep) Run(ctx context.Context, output io.Writer, co
 		return errors.Wrapf(err, "error converting ID to int")
 	}
 
-	_, err = lbSvc.AddDroplets(ctx, config.DigitalOceanConfig.ExternalLoadBalancerID, instanceID)
+	_, err = lbSvc.AddDroplets(ctx, config.DigitalOceanConfig.ExternalLoadBalancerID, []int{instanceID}...)
 
 	if err != nil {
 		logrus.Errorf("Error adding droplet %d to external load balancer %s %v",
@@ -47,7 +47,7 @@ func (s *RegisterInstanceToLBStep) Run(ctx context.Context, output io.Writer, co
 			instanceID, config.DigitalOceanConfig.ExternalLoadBalancerID)
 	}
 
-	_, err = lbSvc.AddDroplets(ctx, config.DigitalOceanConfig.InternalLoadBalancerID, instanceID)
+	_, err = lbSvc.AddDroplets(ctx, config.DigitalOceanConfig.InternalLoadBalancerID, []int{instanceID}...)
 
 	if err != nil {
 		logrus.Errorf("Error adding droplet %d to internal load balancer %s %v",

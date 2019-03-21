@@ -268,17 +268,11 @@ func (tp *TaskProvisioner) prepare(name clouds.Name, masterCount, nodeCount int)
 	masterTasks := make([]*workflows.Task, 0, masterCount)
 	nodeTasks := make([]*workflows.Task, 0, nodeCount)
 	//some clouds (e.g. AWS) requires running tasks before provisioning nodes (creating a VPC, Subnets, SecGroups, etc)
-	switch name {
-	case clouds.AWS:
-		preProvisionTask, err = workflows.NewTask(workflows.PreProvision, tp.repository)
-		if err != nil {
-			// We can't go further without pre provision task
-			logrus.Errorf("create pre provision task has finished with %v", err)
-			return nil
-		}
-	case clouds.GCE:
-	case clouds.DigitalOcean:
-		// TODO(stgleb): Create key pairs here
+	preProvisionTask, err = workflows.NewTask(workflows.PreProvision, tp.repository)
+	if err != nil {
+		// We can't go further without pre provision task
+		logrus.Errorf("create pre provision task has finished with %v", err)
+		return nil
 	}
 
 	for i := 0; i < masterCount; i++ {

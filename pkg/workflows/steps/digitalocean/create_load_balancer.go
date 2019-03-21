@@ -12,6 +12,7 @@ import (
 	"github.com/supergiant/control/pkg/clouds/digitaloceansdk"
 	"github.com/supergiant/control/pkg/workflows/steps"
 	"github.com/supergiant/control/pkg/util"
+	"fmt"
 )
 
 type CreateLoadBalancerStep struct {
@@ -39,23 +40,23 @@ func (s *CreateLoadBalancerStep) Run(ctx context.Context, output io.Writer, conf
 		ForwardingRules: []godo.ForwardingRule{
 			{
 				EntryPort: 443,
-				EntryProtocol: "TCP",
+				EntryProtocol: "HTTPS",
 				TargetPort: 443,
-				TargetProtocol: "TCP",
+				TargetProtocol: "HTTPS",
 				// NOTE(stgleb): Sticky sessions won't work with TLS passthrough
 				// https://www.digitalocean.com/docs/networking/load-balancers/how-to/ssl-passthrough/
 				TlsPassthrough: true,
 			},
 		},
 		HealthCheck: &godo.HealthCheck{
-			Protocol: "https",
+			Protocol: "HTTP",
 			Port: 443,
-			Path: "/version",
+			Path: "/healthz",
 			CheckIntervalSeconds: 60,
 			UnhealthyThreshold: 3,
 			ResponseTimeoutSeconds: 30,
 		},
-		Tag: config.ClusterID,
+		Tag: fmt.Sprintf("master-%s", config.ClusterID),
 	}
 
 	externalLoadBalancer, _, err := lbSvc.Create(ctx, req)
@@ -74,36 +75,18 @@ func (s *CreateLoadBalancerStep) Run(ctx context.Context, output io.Writer, conf
 		ForwardingRules: []godo.ForwardingRule{
 			{
 				EntryPort: 443,
-				EntryProtocol: "TCP",
+				EntryProtocol: "HTTPS",
 				TargetPort: 443,
-				TargetProtocol: "TCP",
-				// NOTE(stgleb): Sticky sessions won't work with TLS passthrough
-				// https://www.digitalocean.com/docs/networking/load-balancers/how-to/ssl-passthrough/
-				TlsPassthrough: true,
-			},
-			{
-				EntryPort: 2379,
-				EntryProtocol: "TCP",
-				TargetPort: 2379,
-				TargetProtocol: "TCP",
-				// NOTE(stgleb): Sticky sessions won't work with TLS passthrough
-				// https://www.digitalocean.com/docs/networking/load-balancers/how-to/ssl-passthrough/
-				TlsPassthrough: true,
-			},
-			{
-				EntryPort: 2380,
-				EntryProtocol: "TCP",
-				TargetPort: 2380,
-				TargetProtocol: "TCP",
+				TargetProtocol: "HTTPS",
 				// NOTE(stgleb): Sticky sessions won't work with TLS passthrough
 				// https://www.digitalocean.com/docs/networking/load-balancers/how-to/ssl-passthrough/
 				TlsPassthrough: true,
 			},
 		},
 		HealthCheck: &godo.HealthCheck{
-			Protocol: "https",
+			Protocol: "HTTP",
 			Port: 443,
-			Path: "/version",
+			Path: "/healthz",
 			CheckIntervalSeconds: 60,
 			UnhealthyThreshold: 3,
 			ResponseTimeoutSeconds: 30,

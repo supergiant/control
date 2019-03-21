@@ -48,6 +48,8 @@ func Init() {
 	steps.RegisterStep(DeleteMachineStepName, NewDeleteMachineStep(time.Minute*1))
 	steps.RegisterStep(DeleteClusterMachines, NewDeletemachinesStep(time.Minute*1))
 	steps.RegisterStep(DeleteDeleteKeysStepName, NewDeleteKeysStep())
+
+	steps.RegisterStep(CreateLoadBalancerStepName, NewCreateLoadBalancerStep())
 	steps.RegisterStep(RegisterInstanceToLB, NewRegisterInstanceToLBStep())
 	steps.RegisterStep(DeleteLoadBalancerStepName, NewDeleteLoadBalancerStep())
 }

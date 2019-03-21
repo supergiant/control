@@ -10,6 +10,7 @@ import (
 	"github.com/supergiant/control/pkg/clouds"
 	"github.com/supergiant/control/pkg/workflows/steps"
 	"github.com/supergiant/control/pkg/workflows/steps/amazon"
+	"github.com/supergiant/control/pkg/workflows/steps/digitalocean"
 )
 
 const (
@@ -70,7 +71,10 @@ func prepProvisionStepFor(provider clouds.Name) ([]steps.Step, error) {
 			steps.GetStep(amazon.StepCreateLoadBalancer),
 		}, nil
 	case clouds.DigitalOcean:
-		return []steps.Step{}, nil
+		return []steps.Step{
+			// TODO(stgleb): Apply security stuff here
+			steps.GetStep(digitalocean.CreateLoadBalancerStepName),
+		}, nil
 	case clouds.GCE:
 		return []steps.Step{}, nil
 	}
