@@ -266,7 +266,7 @@ func NewConfig(clusterName, cloudAccountName string, profile profile.Profile) (*
 			SSHConfig: model.SSHConfig{
 				Port:      "22",
 				User:      "root",
-				Timeout:   10,
+				Timeout:   30,
 				PublicKey: profile.PublicKey,
 			},
 		},
@@ -321,7 +321,7 @@ func NewConfig(clusterName, cloudAccountName string, profile profile.Profile) (*
 			Port:        "8080",
 			Username:    profile.User,
 			RBACEnabled: profile.RBACEnabled,
-			Timeout:     time.Minute * 20,
+			Timeout:     time.Minute * 30,
 			Provider:    profile.Provider,
 		},
 		TillerConfig: TillerConfig{
@@ -425,7 +425,7 @@ func NewConfigFromKube(profile *profile.Profile, k *model.Kube) (*Config, error)
 			Port:        "8080",
 			Username:    profile.User,
 			RBACEnabled: profile.RBACEnabled,
-			Timeout:     time.Minute * 20,
+			Timeout:     time.Minute * 30,
 			Provider:    k.Provider,
 		},
 		TillerConfig: TillerConfig{
