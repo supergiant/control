@@ -59,13 +59,14 @@ func (s *CreateLoadBalancerStep) Run(ctx context.Context, output io.Writer, conf
 	}
 
 	externalLoadBalancer, _, err := lbSvc.Create(ctx, req)
-	config.ExternalDNSName = externalLoadBalancer.IP
-	config.DigitalOceanConfig.ExternalLoadBalancerID = externalLoadBalancer.ID
 
 	if err != nil {
 		logrus.Errorf("Error while creating external load balancer %v", err)
 		return errors.Wrapf(err, "Error while creating external load balancer")
 	}
+
+	config.ExternalDNSName = externalLoadBalancer.IP
+	config.DigitalOceanConfig.ExternalLoadBalancerID = externalLoadBalancer.ID
 
 	req = &godo.LoadBalancerRequest{
 		Name: util.CreateLBName(config.ClusterID, false),
@@ -111,13 +112,14 @@ func (s *CreateLoadBalancerStep) Run(ctx context.Context, output io.Writer, conf
 	}
 
 	internalLoadBalancer, _, err := lbSvc.Create(ctx, req)
-	config.InternalDNSName = internalLoadBalancer.IP
-	config.DigitalOceanConfig.InternalLoadBalancerID = internalLoadBalancer.ID
 
 	if err != nil {
 		logrus.Errorf("Error while creating internal load balancer %v", err)
 		return errors.Wrapf(err, "Error while creating internal load balancer")
 	}
+
+	config.InternalDNSName = internalLoadBalancer.IP
+	config.DigitalOceanConfig.InternalLoadBalancerID = internalLoadBalancer.ID
 
 	return nil
 }

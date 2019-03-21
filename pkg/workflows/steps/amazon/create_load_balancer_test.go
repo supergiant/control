@@ -2,17 +2,18 @@ package amazon
 
 import (
 	"testing"
+	"bytes"
+	"context"
+	"errors"
+	"strings"
+
 
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/stretchr/testify/mock"
 
-	"bytes"
-	"context"
-	"errors"
 	"github.com/aws/aws-sdk-go/aws/request"
 	"github.com/aws/aws-sdk-go/service/elb"
 	"github.com/supergiant/control/pkg/workflows/steps"
-	"strings"
 )
 
 type mockELBService struct {

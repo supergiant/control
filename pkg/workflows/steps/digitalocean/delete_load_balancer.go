@@ -42,7 +42,7 @@ func (s *DeleteLoadBalancerStep) Run(ctx context.Context, output io.Writer, conf
 	_, err = lbSvc.Delete(ctx, config.DigitalOceanConfig.InternalLoadBalancerID)
 
 	if err != nil {
-		logrus.Errorf("Error deleting internal load balancer %s", config.DigitalOceanConfig.InternalLoadBalancerID, err)
+		logrus.Errorf("Error deleting internal load balancer %s %v", config.DigitalOceanConfig.InternalLoadBalancerID, err)
 		return errors.Wrapf(err, "Errordeleting internal load balancer %s", config.DigitalOceanConfig.InternalLoadBalancerID)
 	}
 
