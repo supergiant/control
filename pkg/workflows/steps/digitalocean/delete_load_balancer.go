@@ -54,7 +54,7 @@ func (s *DeleteLoadBalancerStep) Rollback(context.Context, io.Writer, *steps.Con
 }
 
 func (s *DeleteLoadBalancerStep) Name() string {
-	return RegisterInstanceToLB
+	return DeleteLoadBalancerStepName
 }
 
 func (s *DeleteLoadBalancerStep) Depends() []string {

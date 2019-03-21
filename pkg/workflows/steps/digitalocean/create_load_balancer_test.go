@@ -3,14 +3,14 @@ package digitalocean
 import (
 	"bytes"
 	"context"
+	"io/ioutil"
+	"strings"
 	"testing"
 
 	"github.com/digitalocean/godo"
 	"github.com/pkg/errors"
 	"github.com/stretchr/testify/mock"
 	"github.com/supergiant/control/pkg/workflows/steps"
-	"io/ioutil"
-	"strings"
 )
 
 type MockLBService struct {
