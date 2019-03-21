@@ -130,6 +130,9 @@ func TestProvisionCluster(t *testing.T) {
 	workflows.RegisterWorkFlow(workflows.PostProvision, []steps.Step{
 		&mockStep{},
 	})
+	workflows.RegisterWorkFlow(workflows.PreProvision, []steps.Step{
+		&mockStep{},
+	})
 
 	p := &profile.Profile{
 		Provider: clouds.DigitalOcean,
@@ -165,8 +168,8 @@ func TestProvisionCluster(t *testing.T) {
 		t.Errorf("Unexpected error %v while provisionCluster", err)
 	}
 
-	if len(taskMap) != 3 {
-		t.Errorf("Expected task map len 3 actul %d", len(taskMap))
+	if len(taskMap) != 4 {
+		t.Errorf("Expected task map len 4 actual %d", len(taskMap))
 	}
 
 	if len(taskMap["master"])+len(taskMap["node"]) != len(p.MasterProfiles)+len(p.NodesProfiles) {

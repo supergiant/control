@@ -95,7 +95,7 @@ func TestCreateLoadBalancerStep_Run(t *testing.T) {
 
 			createExternalLB:    &godo.LoadBalancer{},
 			getExternalLB: &godo.LoadBalancer{
-				Status: "active",
+				Status: StatusActive,
 				IP: "10.20.30.40",
 			},
 
@@ -108,7 +108,7 @@ func TestCreateLoadBalancerStep_Run(t *testing.T) {
 
 			createExternalLB: &godo.LoadBalancer{},
 			getExternalLB: &godo.LoadBalancer{
-				Status: "active",
+				Status: StatusActive,
 				IP: "10.20.30.40",
 			},
 			createInternalLB: &godo.LoadBalancer{},
@@ -130,12 +130,12 @@ func TestCreateLoadBalancerStep_Run(t *testing.T) {
 
 			createExternalLB: &godo.LoadBalancer{},
 			getExternalLB: &godo.LoadBalancer{
-				Status: "active",
+				Status: StatusActive,
 				IP: "10.20.30.40",
 			},
 			createInternalLB: &godo.LoadBalancer{},
 			getInternalLB: &godo.LoadBalancer{
-				Status: "active",
+				Status: StatusActive,
 				IP: "11.22.33.44",
 			},
 		},

@@ -43,10 +43,4 @@ func TestInit(t *testing.T) {
 	if deleteLB == nil {
 		t.Errorf("%s must not be nil", DeleteLoadBalancerStepName)
 	}
-
-	registerInstanceToLB := steps.GetStep(RegisterInstanceToLB)
-
-	if registerInstanceToLB == nil {
-		t.Errorf("%s must not be nil", RegisterInstanceToLB)
-	}
 }

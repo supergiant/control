@@ -12,12 +12,13 @@ import (
 const (
 	CreateMachineStepName      = "createMachineDigitalOcean"
 	CreateLoadBalancerStepName = "createLoadBalancerDigitalOcean"
-	RegisterInstanceToLB       = "registerInstanceToLoadBalancerDigitalOcean"
 
 	DeleteMachineStepName      = "deleteMachineDigitalOcean"
 	DeleteClusterMachines      = "deleteClusterMachineDigitalOcean"
 	DeleteDeleteKeysStepName   = "deleteKeysDigitalOcean"
 	DeleteLoadBalancerStepName = "deleteLoadBalancerDigitalOcean"
+
+	StatusActive = "active"
 )
 
 type DropletService interface {

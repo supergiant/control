@@ -25,11 +25,11 @@ func (s StepPreProvision) Run(ctx context.Context, out io.Writer, cfg *steps.Con
 		return errors.New("invalid config")
 	}
 
-	steps, err := prepProvisionStepFor(cfg.Provider)
+	preProvisionSteps, err := prepProvisionStepFor(cfg.Provider)
 	if err != nil {
 		return errors.Wrap(err, PreProvisionStep)
 	}
-	for _, s := range steps {
+	for _, s := range preProvisionSteps {
 		if err = s.Run(ctx, out, cfg); err != nil {
 			return errors.Wrap(err, PreProvisionStep)
 		}

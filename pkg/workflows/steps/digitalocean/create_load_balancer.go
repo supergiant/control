@@ -80,7 +80,7 @@ func (s *CreateLoadBalancerStep) Run(ctx context.Context, output io.Writer, conf
 				config.DigitalOceanConfig.ExternalLoadBalancerID, externalLoadBalancer.Status)
 		}
 
-		if err == nil && externalLoadBalancer.Status == "active" {
+		if err == nil && externalLoadBalancer.Status == StatusActive {
 			break
 		}
 
@@ -144,7 +144,7 @@ func (s *CreateLoadBalancerStep) Run(ctx context.Context, output io.Writer, conf
 				config.DigitalOceanConfig.InternalLoadBalancerID, internalLoadBalancer.Status)
 		}
 
-		if err == nil && internalLoadBalancer.Status == "active" {
+		if err == nil && internalLoadBalancer.Status == StatusActive {
 			break
 		}
 

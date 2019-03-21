@@ -111,7 +111,7 @@ func (s *CreateInstanceStep) Run(ctx context.Context, output io.Writer, config *
 				return err
 			}
 			// Wait for droplet becomes active
-			if droplet.Status == "active" {
+			if droplet.Status == StatusActive {
 				// Get private ip ports from droplet networks
 
 				createdAt, _ := strconv.Atoi(droplet.Created)
