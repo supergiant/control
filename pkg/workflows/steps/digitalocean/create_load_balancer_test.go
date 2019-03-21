@@ -11,6 +11,7 @@ import (
 	"github.com/pkg/errors"
 	"github.com/stretchr/testify/mock"
 	"github.com/supergiant/control/pkg/workflows/steps"
+	"time"
 )
 
 type MockLBService struct {
@@ -35,13 +36,13 @@ func (m *MockLBService) Delete(ctx context.Context, lbID string) (*godo.Response
 	return val, args.Error(1)
 }
 
-func (m *MockLBService) AddDroplets(ctx context.Context, lbID string, dropletIDs ...int) (*godo.Response, error) {
-	args := m.Called(ctx, lbID, dropletIDs)
-	val, ok := args.Get(0).(*godo.Response)
+func (m *MockLBService) Get(ctx context.Context, lbID string) (*godo.LoadBalancer, *godo.Response, error) {
+	args := m.Called(ctx, lbID)
+	val, ok := args.Get(0).(*godo.LoadBalancer)
 	if !ok {
-		return nil, args.Error(1)
+		return nil, nil, args.Error(1)
 	}
-	return val, args.Error(1)
+	return val, nil, args.Error(1)
 }
 
 func TestNewCreateLoadBalancerStep(t *testing.T) {
@@ -63,8 +64,15 @@ func TestCreateLoadBalancerStep_Run(t *testing.T) {
 		createExternalLB    *godo.LoadBalancer
 		createExternalLBErr error
 
+		getExternalLB *godo.LoadBalancer
+		getExternalLBErr error
+
 		createInternalLB    *godo.LoadBalancer
 		createInternalLBErr error
+
+		getInternalLB *godo.LoadBalancer
+		getInternalLBErr error
+
 
 		errMsg string
 	}{
@@ -75,20 +83,59 @@ func TestCreateLoadBalancerStep_Run(t *testing.T) {
 			errMsg:              "error1",
 		},
 		{
-			description: "Error creating internal LB",
+			description: "Error getting external LB",
 
 			createExternalLB:    &godo.LoadBalancer{},
-			createInternalLBErr: errors.New("error2"),
+			getExternalLBErr: errors.New("error2"),
 
 			errMsg: "error2",
 		},
 		{
-			description: "success",
+			description: "Error creating internal LB",
 
-			createInternalLB: &godo.LoadBalancer{
+			createExternalLB:    &godo.LoadBalancer{},
+			getExternalLB: &godo.LoadBalancer{
+				Status: "active",
 				IP: "10.20.30.40",
 			},
-			createExternalLB: &godo.LoadBalancer{
+
+			createInternalLBErr: errors.New("error3"),
+
+			errMsg: "error3",
+		},
+		{
+			description: "Error getting internal LB",
+
+			createExternalLB: &godo.LoadBalancer{},
+			getExternalLB: &godo.LoadBalancer{
+				Status: "active",
+				IP: "10.20.30.40",
+			},
+			createInternalLB: &godo.LoadBalancer{},
+			getInternalLBErr: errors.New("error4"),
+			errMsg: "error4",
+		},
+		{
+			description: "inactive LB",
+
+			createExternalLB: &godo.LoadBalancer{},
+			getExternalLB: &godo.LoadBalancer{
+				Status: "",
+				IP: "",
+			},
+			errMsg: "IP must not be empty",
+		},
+		{
+			description: "success",
+
+			createExternalLB: &godo.LoadBalancer{},
+			getExternalLB: &godo.LoadBalancer{
+				Status: "active",
+				IP: "10.20.30.40",
+			},
+			createInternalLB: &godo.LoadBalancer{},
+			getInternalLB: &godo.LoadBalancer{
+				Status: "active",
 				IP: "11.22.33.44",
 			},
 		},
@@ -101,13 +148,21 @@ func TestCreateLoadBalancerStep_Run(t *testing.T) {
 		svc.On("Create", mock.Anything, mock.Anything).
 			Return(testCase.createExternalLB, testCase.createExternalLBErr).Once()
 
+		svc.On("Get", mock.Anything, mock.Anything).
+			Return(testCase.getExternalLB, testCase.getExternalLBErr).Once()
+
 		svc.On("Create", mock.Anything, mock.Anything).
 			Return(testCase.createInternalLB, testCase.createInternalLBErr).Once()
+
+		svc.On("Get", mock.Anything, mock.Anything).
+			Return(testCase.getInternalLB, testCase.getInternalLBErr).Once()
 
 		step := &CreateLoadBalancerStep{
 			getServices: func(accessToken string) LoadBalancerService {
 				return svc
 			},
+			Attempts: 1,
+			Timeout: time.Nanosecond * 1,
 		}
 
 		config := &steps.Config{}
@@ -126,8 +181,9 @@ func TestCreateLoadBalancerStep_Run(t *testing.T) {
 			t.Errorf("Error message %s must contain %s", err.Error(), testCase.errMsg)
 		}
 
-		if err == nil && (strings.Compare(config.ExternalDNSName, testCase.createExternalLB.IP) != 0 ||
-			strings.Compare(config.ExternalDNSName, testCase.createExternalLB.IP) != 0) {
+		if err == nil && (strings.Compare(config.ExternalDNSName, testCase.getExternalLB.IP) != 0 ||
+			strings.Compare(config.InternalDNSName, testCase.getInternalLB.IP) != 0) {
+			t.Log(testCase.getExternalLB.ID, testCase.getInternalLB.ID)
 			t.Errorf("External or Internal DNS names do not correspond actual output")
 		}
 	}

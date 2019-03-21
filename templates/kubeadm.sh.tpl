@@ -17,7 +17,7 @@ sudo kubeadm config images pull
 
 {{ if .IsBootstrap }}
 sudo kubeadm init --ignore-preflight-errors=NumCPU --apiserver-advertise-address={{ .AdvertiseAddress }} --token={{ .Token }} --pod-network-cidr={{ .CIDR }} \
---kubernetes-version {{ .K8SVersion }} --apiserver-bind-port=443 --apiserver-cert-extra-sans {{ .ExternalDNSName }}{{ if eq .Provider "aws" }},{{ .InternalDNSName }}{{ end }}
+--kubernetes-version {{ .K8SVersion }} --apiserver-bind-port=443 --apiserver-cert-extra-sans {{ .ExternalDNSName }},{{ .InternalDNSName }}
 sudo kubeadm config view > kubeadm-config.yaml
 sed -i 's/controlPlaneEndpoint: ""/controlPlaneEndpoint: "{{ .InternalDNSName }}:443"/g' kubeadm-config.yaml
 sudo kubeadm config upload from-file --config=kubeadm-config.yaml

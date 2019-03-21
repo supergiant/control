@@ -6,23 +6,25 @@ import (
 	"time"
 
 	"github.com/digitalocean/godo"
-	"github.com/sirupsen/logrus"
 	"github.com/pkg/errors"
-	
-	"github.com/supergiant/control/pkg/clouds/digitaloceansdk"
-	"github.com/supergiant/control/pkg/workflows/steps"
-	"github.com/supergiant/control/pkg/util"
+	"github.com/sirupsen/logrus"
+
 	"fmt"
+	"github.com/supergiant/control/pkg/clouds/digitaloceansdk"
+	"github.com/supergiant/control/pkg/util"
+	"github.com/supergiant/control/pkg/workflows/steps"
 )
 
 type CreateLoadBalancerStep struct {
-	Timeout time.Duration
-
+	Timeout     time.Duration
+	Attempts    int
 	getServices func(string) LoadBalancerService
 }
 
 func NewCreateLoadBalancerStep() *CreateLoadBalancerStep {
 	return &CreateLoadBalancerStep{
+		Timeout:  time.Second * 10,
+		Attempts: 6,
 		getServices: func(accessToken string) LoadBalancerService {
 			client := digitaloceansdk.New(accessToken).GetClient()
 
@@ -35,13 +37,13 @@ func (s *CreateLoadBalancerStep) Run(ctx context.Context, output io.Writer, conf
 	lbSvc := s.getServices(config.DigitalOceanConfig.AccessToken)
 
 	req := &godo.LoadBalancerRequest{
-		Name: util.CreateLBName(config.ClusterID, true),
+		Name:   util.CreateLBName(config.ClusterID, true),
 		Region: config.DigitalOceanConfig.Region,
 		ForwardingRules: []godo.ForwardingRule{
 			{
-				EntryPort: 443,
-				EntryProtocol: "HTTPS",
-				TargetPort: 443,
+				EntryPort:      443,
+				EntryProtocol:  "HTTPS",
+				TargetPort:     443,
 				TargetProtocol: "HTTPS",
 				// NOTE(stgleb): Sticky sessions won't work with TLS passthrough
 				// https://www.digitalocean.com/docs/networking/load-balancers/how-to/ssl-passthrough/
@@ -49,12 +51,12 @@ func (s *CreateLoadBalancerStep) Run(ctx context.Context, output io.Writer, conf
 			},
 		},
 		HealthCheck: &godo.HealthCheck{
-			Protocol: "HTTP",
-			Port: 443,
-			Path: "/healthz",
-			CheckIntervalSeconds: 60,
-			UnhealthyThreshold: 3,
-			ResponseTimeoutSeconds: 30,
+			Protocol:               "TCP",
+			Port:                   443,
+			CheckIntervalSeconds:   10,
+			UnhealthyThreshold:     3,
+			HealthyThreshold:       3,
+			ResponseTimeoutSeconds: 10,
 		},
 		Tag: fmt.Sprintf("master-%s", config.ClusterID),
 	}
@@ -66,17 +68,46 @@ func (s *CreateLoadBalancerStep) Run(ctx context.Context, output io.Writer, conf
 		return errors.Wrapf(err, "Error while creating external load balancer")
 	}
 
-	config.ExternalDNSName = externalLoadBalancer.IP
 	config.DigitalOceanConfig.ExternalLoadBalancerID = externalLoadBalancer.ID
 
+	timeout := s.Timeout
+	logrus.Infof("Wait until External load balancer %s become active", externalLoadBalancer.ID)
+	for i := 0; i < s.Attempts; i++ {
+		externalLoadBalancer, _, err = lbSvc.Get(ctx, config.DigitalOceanConfig.ExternalLoadBalancerID)
+
+		if err == nil {
+			logrus.Debugf("External Load balancer %s status %s",
+				config.DigitalOceanConfig.ExternalLoadBalancerID, externalLoadBalancer.Status)
+		}
+
+		if err == nil && externalLoadBalancer.Status == "active" {
+			break
+		}
+
+		time.Sleep(timeout)
+		timeout = timeout * 2
+	}
+
+	if err != nil {
+		logrus.Errorf("Error while getting external load balancer %v", err)
+		return errors.Wrapf(err, "Error while getting external load balancer")
+	}
+
+	if externalLoadBalancer.IP == "" {
+		logrus.Errorf("External Load balancer IP must not be empty")
+		return errors.New("External Load balancer IP must not be empty")
+	}
+
+	config.ExternalDNSName = externalLoadBalancer.IP
+
 	req = &godo.LoadBalancerRequest{
-		Name: util.CreateLBName(config.ClusterID, false),
+		Name:   util.CreateLBName(config.ClusterID, false),
 		Region: config.DigitalOceanConfig.Region,
 		ForwardingRules: []godo.ForwardingRule{
 			{
-				EntryPort: 443,
-				EntryProtocol: "HTTPS",
-				TargetPort: 443,
+				EntryPort:      443,
+				EntryProtocol:  "HTTPS",
+				TargetPort:     443,
 				TargetProtocol: "HTTPS",
 				// NOTE(stgleb): Sticky sessions won't work with TLS passthrough
 				// https://www.digitalocean.com/docs/networking/load-balancers/how-to/ssl-passthrough/
@@ -84,14 +115,14 @@ func (s *CreateLoadBalancerStep) Run(ctx context.Context, output io.Writer, conf
 			},
 		},
 		HealthCheck: &godo.HealthCheck{
-			Protocol: "HTTP",
-			Port: 443,
-			Path: "/healthz",
-			CheckIntervalSeconds: 60,
-			UnhealthyThreshold: 3,
-			ResponseTimeoutSeconds: 30,
+			Protocol:               "TCP",
+			Port:                   443,
+			CheckIntervalSeconds:   10,
+			UnhealthyThreshold:     3,
+			HealthyThreshold:       3,
+			ResponseTimeoutSeconds: 10,
 		},
-		Tag: config.ClusterID,
+		Tag: fmt.Sprintf("master-%s", config.ClusterID),
 	}
 
 	internalLoadBalancer, _, err := lbSvc.Create(ctx, req)
@@ -101,8 +132,37 @@ func (s *CreateLoadBalancerStep) Run(ctx context.Context, output io.Writer, conf
 		return errors.Wrapf(err, "Error while creating internal load balancer")
 	}
 
-	config.InternalDNSName = internalLoadBalancer.IP
 	config.DigitalOceanConfig.InternalLoadBalancerID = internalLoadBalancer.ID
+	logrus.Infof("Wait until Internal load balancer %s become active", internalLoadBalancer.ID)
+
+	timeout = s.Timeout
+	for i := 0; i < s.Attempts; i++ {
+		internalLoadBalancer, _, err = lbSvc.Get(ctx, config.DigitalOceanConfig.InternalLoadBalancerID)
+
+		if err == nil {
+			logrus.Debugf("Internal Load balancer %s status %s",
+				config.DigitalOceanConfig.InternalLoadBalancerID, internalLoadBalancer.Status)
+		}
+
+		if err == nil && internalLoadBalancer.Status == "active" {
+			break
+		}
+
+		time.Sleep(timeout)
+		timeout = timeout * 2
+	}
+
+	if err != nil {
+		logrus.Errorf("Error while getting internal load balancer %v", err)
+		return errors.Wrapf(err, "Error while getting internal load balancer")
+	}
+
+	if internalLoadBalancer.IP == "" {
+		logrus.Errorf("Internal Load balancer IP must not be empty")
+		return errors.New("Internal Load balancer IP must not be empty")
+	}
+
+	config.InternalDNSName = internalLoadBalancer.IP
 
 	return nil
 }

@@ -39,8 +39,8 @@ type DeleteService interface {
 
 type LoadBalancerService interface {
 	Create(context.Context, *godo.LoadBalancerRequest) (*godo.LoadBalancer, *godo.Response, error)
-	Delete(ctx context.Context, lbID string) (*godo.Response, error)
-	AddDroplets(ctx context.Context, lbID string, dropletIDs ...int) (*godo.Response, error)
+	Delete(context.Context, string) (*godo.Response, error)
+	Get(context.Context, string) (*godo.LoadBalancer, *godo.Response, error)
 }
 
 func Init() {
@@ -50,6 +50,5 @@ func Init() {
 	steps.RegisterStep(DeleteDeleteKeysStepName, NewDeleteKeysStep())
 
 	steps.RegisterStep(CreateLoadBalancerStepName, NewCreateLoadBalancerStep())
-	steps.RegisterStep(RegisterInstanceToLB, NewRegisterInstanceToLBStep())
 	steps.RegisterStep(DeleteLoadBalancerStepName, NewDeleteLoadBalancerStep())
 }
