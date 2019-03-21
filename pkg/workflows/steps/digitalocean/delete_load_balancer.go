@@ -3,8 +3,6 @@ package digitalocean
 import (
 	"context"
 	"io"
-	"time"
-
 	"github.com/pkg/errors"
 	"github.com/sirupsen/logrus"
 
@@ -13,8 +11,6 @@ import (
 )
 
 type DeleteLoadBalancerStep struct {
-	Timeout time.Duration
-
 	getServices func(string) LoadBalancerService
 }
 

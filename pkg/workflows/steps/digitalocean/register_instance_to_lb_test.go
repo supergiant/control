@@ -3,7 +3,6 @@ package digitalocean
 import (
 	"bytes"
 	"context"
-	"strings"
 	"io/ioutil"
 	"testing"
 
@@ -11,10 +10,12 @@ import (
 	"github.com/pkg/errors"
 	"github.com/stretchr/testify/mock"
 	"github.com/supergiant/control/pkg/workflows/steps"
+	"strings"
+	"github.com/supergiant/control/pkg/model"
 )
 
-func TestNewDeleteLoadBalancerStep(t *testing.T) {
-	step := NewCreateLoadBalancerStep()
+func TestNewRegisterInstanceToLBStep(t *testing.T) {
+	step := NewRegisterInstanceToLBStep()
 
 	if step.getServices == nil {
 		t.Errorf("get services must not be nil")
@@ -25,10 +26,11 @@ func TestNewDeleteLoadBalancerStep(t *testing.T) {
 	}
 }
 
-func TestDeleteLoadBalancerStep_Run(t *testing.T) {
+func TestRegisterInstanceToLBStep_Run(t *testing.T) {
 	testCases := []struct {
 		description string
 
+		InstanceID string
 		externalResp *godo.Response
 		deleteExErr  error
 
@@ -38,13 +40,23 @@ func TestDeleteLoadBalancerStep_Run(t *testing.T) {
 		errMsg string
 	}{
 		{
-			description: "Error deleting external LB",
+			description: "Error converting instance id from string to id",
+
+			InstanceID: "not a number",
+			errMsg:      "converting",
+		},
+		{
+			description: "Error registering instance to external LB",
+
+			InstanceID: "1",
 
 			deleteExErr: errors.New("error1"),
 			errMsg:      "error1",
 		},
 		{
-			description: "Error deleting internal LB",
+			description: "Error registering instance to internal LB",
+
+			InstanceID: "1",
 
 			externalResp: &godo.Response{},
 			deleteInErr:  errors.New("error2"),
@@ -53,6 +65,8 @@ func TestDeleteLoadBalancerStep_Run(t *testing.T) {
 		},
 		{
 			description: "success",
+
+			InstanceID: "1",
 
 			internalResp: &godo.Response{},
 			externalResp: &godo.Response{},
@@ -63,19 +77,23 @@ func TestDeleteLoadBalancerStep_Run(t *testing.T) {
 		t.Log(testCase.description)
 		svc := &MockLBService{}
 
-		svc.On("Delete", mock.Anything, mock.Anything).
+		svc.On("AddDroplets", mock.Anything, mock.Anything, mock.Anything).
 			Return(testCase.externalResp, testCase.deleteExErr).Once()
 
-		svc.On("Delete", mock.Anything, mock.Anything).
+		svc.On("AddDroplets", mock.Anything, mock.Anything, mock.Anything).
 			Return(testCase.internalResp, testCase.deleteInErr).Once()
 
-		step := &DeleteLoadBalancerStep{
+		step := &RegisterInstanceToLBStep{
 			getServices: func(accessToken string) LoadBalancerService {
 				return svc
 			},
 		}
 
-		config := &steps.Config{}
+		config := &steps.Config{
+			Node: model.Machine{
+				ID: testCase.InstanceID,
+			},
+		}
 
 		err := step.Run(context.Background(), &bytes.Buffer{}, config)
 
@@ -93,33 +111,33 @@ func TestDeleteLoadBalancerStep_Run(t *testing.T) {
 	}
 }
 
-func TestDeleteLoadBalancerStep_Name(t *testing.T) {
-	step := NewDeleteLoadBalancerStep()
+func TestRegisterInstanceToLBStep_Name(t *testing.T) {
+	step := NewRegisterInstanceToLBStep()
 
-	if step.Name() != DeleteLoadBalancerStepName {
+	if step.Name() != RegisterInstanceToLB {
 		t.Errorf("Wrong step name expected %s actual %s",
-			DeleteLoadBalancerStepName, step.Name())
+			RegisterInstanceToLB, step.Name())
 	}
 }
 
-func TestDeleteLoadBalancerStep_Depends(t *testing.T) {
-	step := NewDeleteLoadBalancerStep()
+func TestRegisterInstanceToLBStep_Depends(t *testing.T) {
+	step := NewRegisterInstanceToLBStep()
 
 	if step.Depends() != nil {
-		t.Error("Delete load balancer step depends must be nil")
+		t.Error("Register instance to load balancer step depends must be nil")
 	}
 }
 
-func TestDeleteLoadBalancerStep_Description(t *testing.T) {
-	step := NewDeleteLoadBalancerStep()
+func TestRegisterInstanceToLBStep_Description(t *testing.T) {
+	step := NewRegisterInstanceToLBStep()
 
-	if step.Description() != "Delete external and internal load balancers in Digital Ocean" {
-		t.Errorf("Wrong step description expected Delete external and internal load balancers in Digital Ocean %s", step.Description())
+	if step.Description() != "Register instance to load balancers in Digital Ocean" {
+		t.Errorf("Wrong step description expected Register instance to load balancers in Digital Ocean %s", step.Description())
 	}
 }
 
-func TestDeleteLoadBalancerStep_Rollback(t *testing.T) {
-	s := DeleteLoadBalancerStep{}
+func TestRegisterInstanceToLBStep_Rollback(t *testing.T) {
+	s := RegisterInstanceToLBStep{}
 	err := s.Rollback(context.Background(), ioutil.Discard, &steps.Config{})
 
 	if err != nil {

@@ -122,6 +122,10 @@ func TestCreateLoadBalancerStep_Run(t *testing.T) {
 			t.Errorf("Unexpected error %v", err)
 		}
 
+		if err != nil && !strings.Contains(err.Error(), testCase.errMsg) {
+			t.Errorf("Error message %s must contain %s", err.Error(), testCase.errMsg)
+		}
+
 		if err == nil && (strings.Compare(config.ExternalDNSName, testCase.createExternalLB.IP) != 0 ||
 			strings.Compare(config.ExternalDNSName, testCase.createExternalLB.IP) != 0) {
 			t.Errorf("External or Internal DNS names do not correspond actual output")
