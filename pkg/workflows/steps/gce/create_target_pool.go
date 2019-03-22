@@ -28,20 +28,8 @@ func NewCreateTargetPoolStep() (*CreateTargetPoolStep, error) {
 			}
 
 			return &computeService{
-				insertAddress: func(ctx context.Context, config steps.GCEConfig, address *compute.Address) (*compute.Operation, error) {
-					return client.Addresses.Insert(config.ProjectID, config.Region, address).Do()
-				},
-				insertForwardingRule: func(ctx context.Context, config steps.GCEConfig, forwardingRule *compute.ForwardingRule) (*compute.Operation, error) {
-					return client.ForwardingRules.Insert(config.ProjectID, config.Region, forwardingRule).Do()
-				},
 				insertTargetPool: func(ctx context.Context, config steps.GCEConfig, targetPool *compute.TargetPool) (*compute.Operation, error) {
 					return client.TargetPools.Insert(config.ProjectID, config.Region, targetPool).Do()
-				},
-				addInstanceToTargetGroup: func(ctx context.Context, config steps.GCEConfig, targetPoolName string, req *compute.TargetPoolsAddInstanceRequest) (*compute.Operation, error) {
-					return client.TargetPools.AddInstance(config.ProjectID, config.Region, targetPoolName, req).Do()
-				},
-				insertHealthCheck: func(ctx context.Context, config steps.GCEConfig, check *compute.HealthCheck) (*compute.Operation, error) {
-					return client.HealthChecks.Insert(config.ProjectID, check).Do()
 				},
 				addHealthCheckToTargetPool: func(ctx context.Context, config steps.GCEConfig, targetPool string, request *compute.TargetPoolsAddHealthCheckRequest) (*compute.Operation, error) {
 					return client.TargetPools.AddHealthCheck(config.ProjectID, config.Region, targetPool, request).Do()

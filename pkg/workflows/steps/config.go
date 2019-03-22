@@ -82,6 +82,7 @@ type GCEConfig struct {
 	ExternalIPAddress string `json:"externalIpAddress"`
 	InternalIPAddress string `json:"internalIpAddress"`
 
+	BackendServicename string `json:"backendServicename"`
 	HealthCheckName string `json:"healthCheckName"`
 }
 
