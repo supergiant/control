@@ -34,8 +34,10 @@ func ToProvider(name string) (Name, error) {
 const (
 	DigitalOceanFingerPrint    = "fingerprint"
 	DigitalOceanAccessToken    = "accessToken"
-	ExternalDigitalOceanLoadBalancerID = "externalLoadBalancerID"
-	InternalDigitalOceanLoadBalancerID = "internalLoadBalancerID"
+
+	DigitalOceanExternalLoadBalancerID = "externalLoadBalancerID"
+	DigitalOceanInternalLoadBalancerID = "internalLoadBalancerID"
+
 	EnvDigitalOceanAccessToken = "DIGITALOCEAN_TOKEN"
 
 	GCEProjectID   = "project_id"
