@@ -21,11 +21,12 @@ type computeService struct {
 
 	insertTargetPool           func(context.Context, steps.GCEConfig, *compute.TargetPool) (*compute.Operation, error)
 	insertAddress              func(context.Context, steps.GCEConfig, *compute.Address) (*compute.Operation, error)
-	getAddress   				func(context.Context, steps.GCEConfig, string) (*compute.Address, error)
+	getAddress                 func(context.Context, steps.GCEConfig, string) (*compute.Address, error)
 	insertForwardingRule       func(context.Context, steps.GCEConfig, *compute.ForwardingRule) (*compute.Operation, error)
 	addInstanceToTargetGroup   func(context.Context, steps.GCEConfig, string, *compute.TargetPoolsAddInstanceRequest) (*compute.Operation, error)
 	insertHealthCheck          func(context.Context, steps.GCEConfig, *compute.HealthCheck) (*compute.Operation, error)
 	addHealthCheckToTargetPool func(context.Context, steps.GCEConfig, string, *compute.TargetPoolsAddHealthCheckRequest) (*compute.Operation, error)
+	insertInstanceGroup        func(context.Context, steps.GCEConfig, *compute.InstanceGroup) (*compute.Operation, error)
 }
 
 func Init() {
@@ -35,6 +36,7 @@ func Init() {
 	createTargetPool, _ := NewCreateTargetPoolStep()
 	createIPAddress, _ := NewCreateAddressStep()
 	createHealthCheck, _ := NewCreateHealthCheckStep()
+	createInstanceGroup, _ := NewCreateInstanceGroupStep()
 
 	steps.RegisterStep(CreateInstanceStepName, createInstance)
 	steps.RegisterStep(DeleteClusterStepName, deleteCluster)
@@ -42,6 +44,7 @@ func Init() {
 	steps.RegisterStep(CreateTargetPullStepName, createTargetPool)
 	steps.RegisterStep(CreateIPAddressStepName, createIPAddress)
 	steps.RegisterStep(CreateHealthCheckStepName, createHealthCheck)
+	steps.RegisterStep(CreateInstanceGroupStepName, createInstanceGroup)
 }
 
 func GetClient(ctx context.Context, email, privateKey, tokenUri string) (*compute.Service, error) {
