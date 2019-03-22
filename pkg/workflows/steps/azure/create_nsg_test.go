@@ -24,6 +24,10 @@ type fakeNSGClient struct {
 	err error
 }
 
+func (c fakeNSGClient) Get(ctx context.Context, groupName string, nsgName string, expand string) (network.SecurityGroup, error) {
+	panic("implement me")
+}
+
 func (c fakeNSGClient) CreateOrUpdate(ctx context.Context, groupName string, nsgName string, params network.SecurityGroup) (network.SecurityGroupsCreateOrUpdateFuture, error) {
 	return network.SecurityGroupsCreateOrUpdateFuture{}, c.err
 }
@@ -71,7 +75,7 @@ func TestCreateSecurityGroupStep_Run(t *testing.T) {
 			name: "subnet getter is nil",
 			inp:  &steps.Config{},
 			step: CreateSecurityGroupStep{
-				nsgClientFn: func(a autorest.Authorizer, subscriptionID string) (SecurityGroupCreator, autorest.Client) {
+				nsgClientFn: func(a autorest.Authorizer, subscriptionID string) (SecurityGroupInterface, autorest.Client) {
 					return fakeNSGClient{}, autorest.Client{}
 				},
 			},
@@ -81,7 +85,7 @@ func TestCreateSecurityGroupStep_Run(t *testing.T) {
 			name: "get sg address: error",
 			inp:  &steps.Config{},
 			step: CreateSecurityGroupStep{
-				nsgClientFn: func(a autorest.Authorizer, subscriptionID string) (SecurityGroupCreator, autorest.Client) {
+				nsgClientFn: func(a autorest.Authorizer, subscriptionID string) (SecurityGroupInterface, autorest.Client) {
 					return fakeNSGClient{}, autorest.Client{}
 				},
 				subnetGetterFn: func(a autorest.Authorizer, subscriptionID string) SubnetGetter {
@@ -97,7 +101,7 @@ func TestCreateSecurityGroupStep_Run(t *testing.T) {
 			name: "get subnet: error",
 			inp:  &steps.Config{},
 			step: CreateSecurityGroupStep{
-				nsgClientFn: func(a autorest.Authorizer, subscriptionID string) (SecurityGroupCreator, autorest.Client) {
+				nsgClientFn: func(a autorest.Authorizer, subscriptionID string) (SecurityGroupInterface, autorest.Client) {
 					return fakeNSGClient{}, autorest.Client{}
 				},
 				subnetGetterFn: func(a autorest.Authorizer, subscriptionID string) SubnetGetter {
@@ -113,7 +117,7 @@ func TestCreateSecurityGroupStep_Run(t *testing.T) {
 			name: "create nsg: error",
 			inp:  &steps.Config{},
 			step: CreateSecurityGroupStep{
-				nsgClientFn: func(a autorest.Authorizer, subscriptionID string) (SecurityGroupCreator, autorest.Client) {
+				nsgClientFn: func(a autorest.Authorizer, subscriptionID string) (SecurityGroupInterface, autorest.Client) {
 					return fakeNSGClient{
 						err: fakeErr,
 					}, autorest.Client{}
@@ -131,7 +135,7 @@ func TestCreateSecurityGroupStep_Run(t *testing.T) {
 		//{
 		//	name: "create nsg: success",
 		//	step: CreateSecurityGroupStep{
-		//		nsgClientFn: func(a autorest.Authorizer, subscriptionID string) (SecurityGroupCreator, autorest.Client) {
+		//		nsgClientFn: func(a autorest.Authorizer, subscriptionID string) (SecurityGroupInterface, autorest.Client) {
 		//			return fakeNSGClient{
 		//				res: network.SecurityGroupsCreateOrUpdateFuture{
 		//					Future: toAzureFuture(http.Response{

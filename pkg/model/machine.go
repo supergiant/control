@@ -46,3 +46,10 @@ func (m Machine) String() string {
 		m.ID, m.Name, m.State, m.Size, m.CreatedAt, m.Provider, m.Region,
 		m.availabilityZone, m.PublicIp, m.PrivateIp)
 }
+
+func ToRole(isMaster bool) Role {
+	if isMaster {
+		return RoleMaster
+	}
+	return RoleNode
+}

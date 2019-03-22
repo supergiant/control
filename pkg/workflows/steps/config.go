@@ -84,6 +84,7 @@ type AzureConfig struct {
 
 	// TODO: cidr validation?
 	VNetCIDR string `json:"vNetCIDR"`
+	VMSize string `json:"vmSize"`
 }
 
 type PacketConfig struct{}
