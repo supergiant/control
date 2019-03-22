@@ -41,6 +41,9 @@ const (
 	GCEClientEmail = "client_email"
 	GCETokenURI    = "token_uri"
 
+	GCEExternalTargetPoolName = "gceExternalTargetPoolName"
+	GCEInternalTargetPoolName = "gceInternalTargetPoolName"
+
 	TagClusterID         = "supergiant.io/cluster-id"
 	TagKubernetesCluster = "KubernetesCluster"
 

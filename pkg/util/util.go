@@ -167,7 +167,8 @@ func LoadCloudSpecificDataFromKube(k *model.Kube, config *steps.Config) error {
 		config.AWSConfig.InternalLoadBalancerName = k.InternalLoadBalancerName
 	case clouds.GCE:
 		config.GCEConfig.Region = k.Region
-
+		config.GCEConfig.ExternalTargetPoolName = k.CloudSpec[clouds.GCEExternalTargetPoolName]
+		config.GCEConfig.InternalTargetPoolName = k.CloudSpec[clouds.GCEInternalTargetPoolName]
 	case clouds.DigitalOcean:
 
 	case clouds.Azure:
