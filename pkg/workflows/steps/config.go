@@ -81,6 +81,8 @@ type GCEConfig struct {
 
 	ExternalIPAddress string `json:"externalIpAddress"`
 	InternalIPAddress string `json:"internalIpAddress"`
+
+	HealthCheckName string `json:"healthCheckName"`
 }
 
 type AzureConfig struct {

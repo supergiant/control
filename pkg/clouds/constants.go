@@ -47,6 +47,8 @@ const (
 	GCEExternalIPAddress = "gceExternalIpAddress"
 	GCEInternalIPAddress = "gceInternalIpAddress"
 
+	GCEHealthCheckName = "gceHealthCheckName"
+
 	GCEExternalIPAddressName = "gceExternalIpAddressName"
 	GCEInternalIPAddressName = "gceInternalIpAddressName"
 

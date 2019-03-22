@@ -34,12 +34,14 @@ func Init() {
 	deleteNode, _ := NewDeleteNodeStep()
 	createTargetPool, _ := NewCreateTargetPoolStep()
 	createIPAddress, _ := NewCreateAddressStep()
+	createHealthCheck, _ := NewCreateHealthCheckStep()
 
 	steps.RegisterStep(CreateInstanceStepName, createInstance)
 	steps.RegisterStep(DeleteClusterStepName, deleteCluster)
 	steps.RegisterStep(DeleteNodeStepName, deleteNode)
 	steps.RegisterStep(CreateTargetPullStepName, createTargetPool)
 	steps.RegisterStep(CreateIPAddressStepName, createIPAddress)
+	steps.RegisterStep(CreateHealthCheckStepName, createHealthCheck)
 }
 
 func GetClient(ctx context.Context, email, privateKey, tokenUri string) (*compute.Service, error) {
