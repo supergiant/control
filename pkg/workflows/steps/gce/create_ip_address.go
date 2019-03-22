@@ -92,6 +92,7 @@ func (s *CreateAddressStep) Run(ctx context.Context, output io.Writer,
 	}
 
 	config.GCEConfig.ExternalIPAddress = externalAddress.Address
+	config.ExternalDNSName = externalAddress.Address
 	internalAddressName := fmt.Sprintf("in-ip-%s", config.ClusterID)
 	config.GCEConfig.InternalAddressName = internalAddressName
 
@@ -127,6 +128,7 @@ func (s *CreateAddressStep) Run(ctx context.Context, output io.Writer,
 	}
 
 	config.GCEConfig.InternalAddressName = internalAddress.Address
+	config.InternalDNSName = internalAddress.Address
 
 	return nil
 }

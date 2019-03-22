@@ -44,6 +44,13 @@ const (
 	GCEExternalTargetPoolName = "gceExternalTargetPoolName"
 	GCEInternalTargetPoolName = "gceInternalTargetPoolName"
 
+	GCEExternalIPAddress = "gceExternalIpAddress"
+	GCEInternalIPAddress = "gceInternalIpAddress"
+
+	GCEExternalIPAddressName = "gceExternalIpAddressName"
+	GCEInternalIPAddressName = "gceInternalIpAddressName"
+
+
 	TagClusterID         = "supergiant.io/cluster-id"
 	TagKubernetesCluster = "KubernetesCluster"
 
