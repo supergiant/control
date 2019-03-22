@@ -21,6 +21,7 @@ type computeService struct {
 
 	insertTargetPool           func(context.Context, steps.GCEConfig, *compute.TargetPool) (*compute.Operation, error)
 	insertAddress              func(context.Context, steps.GCEConfig, *compute.Address) (*compute.Operation, error)
+	getAddress   				func(context.Context, steps.GCEConfig, string) (*compute.Address, error)
 	insertForwardingRule       func(context.Context, steps.GCEConfig, *compute.ForwardingRule) (*compute.Operation, error)
 	addInstanceToTargetGroup   func(context.Context, steps.GCEConfig, string, *compute.TargetPoolsAddInstanceRequest) (*compute.Operation, error)
 	insertHealthCheck          func(context.Context, steps.GCEConfig, *compute.HealthCheck) (*compute.Operation, error)
@@ -32,11 +33,13 @@ func Init() {
 	deleteCluster, _ := NewDeleteClusterStep()
 	deleteNode, _ := NewDeleteNodeStep()
 	createTargetPool, _ := NewCreateTargetPoolStep()
+	createIPAddress, _ := NewCreateAddressStep()
 
 	steps.RegisterStep(CreateInstanceStepName, createInstance)
 	steps.RegisterStep(DeleteClusterStepName, deleteCluster)
 	steps.RegisterStep(DeleteNodeStepName, deleteNode)
 	steps.RegisterStep(CreateTargetPullStepName, createTargetPool)
+	steps.RegisterStep(CreateIPAddressStepName, createIPAddress)
 }
 
 func GetClient(ctx context.Context, email, privateKey, tokenUri string) (*compute.Service, error) {

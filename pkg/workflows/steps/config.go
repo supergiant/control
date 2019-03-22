@@ -75,6 +75,12 @@ type GCEConfig struct {
 
 	ExternalTargetPoolName string `json:"externalTargetPoolName"`
 	InternalTargetPoolName string `json:"internalTargetPoolName"`
+
+	ExternalAddressName string `json:"externalAddressName"`
+	InternalAddressName string `json:"internalAddressName"`
+
+	ExternalIPAddress string `json:"externalIpAddress"`
+	InternalIPAddress string `json:"internalIpAddress"`
 }
 
 type AzureConfig struct {
@@ -172,7 +178,7 @@ type KubeadmConfig struct {
 	IsBootstrap      bool   `json:"isBootstrap"`
 	CIDR             string `json:"cidr"`
 	Token            string `json:"token"`
-	Provider    string `json:"provider"`
+	Provider         string `json:"provider"`
 
 	InternalDNSName string `json:"internalDNSName"`
 	ExternalDNSName string `json:"externalDNSName"`

@@ -2,14 +2,13 @@ package gce
 
 import (
 	"context"
-	"io"
 	"github.com/sirupsen/logrus"
 	"google.golang.org/api/compute/v1"
+	"io"
 
-
-	"github.com/supergiant/control/pkg/workflows/steps"
-	"github.com/pkg/errors"
 	"fmt"
+	"github.com/pkg/errors"
+	"github.com/supergiant/control/pkg/workflows/steps"
 )
 
 const CreateTargetPullStepName = "gce_create_target_pool"
@@ -18,8 +17,8 @@ type CreateTargetPoolStep struct {
 	getComputeSvc func(context.Context, steps.GCEConfig) (*computeService, error)
 }
 
-func NewCreateTargetPoolStep() (*CreateInstanceStep, error) {
-	return &CreateInstanceStep{
+func NewCreateTargetPoolStep() (*CreateTargetPoolStep, error) {
+	return &CreateTargetPoolStep{
 		getComputeSvc: func(ctx context.Context, config steps.GCEConfig) (*computeService, error) {
 			client, err := GetClient(ctx, config.ClientEmail,
 				config.PrivateKey, config.TokenURI)
@@ -66,7 +65,7 @@ func (s *CreateTargetPoolStep) Run(ctx context.Context, output io.Writer,
 	externalTargetPoolName := fmt.Sprintf("ex-%s", config.ClusterID)
 	externalTargetPool := &compute.TargetPool{
 		Description: "Target pool for balancing external traffic",
-		Name: externalTargetPoolName,
+		Name:        externalTargetPoolName,
 	}
 
 	_, err = svc.insertTargetPool(ctx, config.GCEConfig, externalTargetPool)
@@ -81,7 +80,7 @@ func (s *CreateTargetPoolStep) Run(ctx context.Context, output io.Writer,
 	internalTargetPoolName := fmt.Sprintf("ex-%s", config.ClusterID)
 	internalTargetPool := &compute.TargetPool{
 		Description: "Target pool for balancing internal traffic",
-		Name: internalTargetPoolName,
+		Name:        internalTargetPoolName,
 	}
 
 	_, err = svc.insertTargetPool(ctx, config.GCEConfig, internalTargetPool)
