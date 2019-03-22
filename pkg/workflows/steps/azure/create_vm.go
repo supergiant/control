@@ -88,7 +88,7 @@ func (s *CreateVMStep) Run(ctx context.Context, output io.Writer, config *steps.
 		config.AddNode(&config.Node)
 	}
 
-	logrus.Debugf("Machine created %+v", config.Node.Name)
+	logrus.Debugf("Machine created %s/%s", config.ClusterName, config.Node.Name)
 	return nil
 }
 
@@ -157,8 +157,7 @@ func (s *CreateVMStep) setupVM(ctx context.Context, config *steps.Config, vmName
 				},
 				OsProfile: &compute.OSProfile{
 					ComputerName:  to.StringPtr(vmName),
-					AdminUsername: to.StringPtr(OSUser), // TODO: config.Kube.SSHConfig.BootstrapPublicKey??
-					//AdminPassword: to.StringPtr(password),
+					AdminUsername: to.StringPtr(OSUser),
 					LinuxConfiguration: &compute.LinuxConfiguration{
 						DisablePasswordAuthentication: to.BoolPtr(true),
 						SSH: &compute.SSHConfiguration{
@@ -220,12 +219,12 @@ func (s *CreateVMStep) setupVM(ctx context.Context, config *steps.Config, vmName
 
 func (s *CreateVMStep) setupNIC(ctx context.Context, a autorest.Authorizer, subsID, location, groupName,
 	vnetName, subnetName, nsgName, ipName, nicName string) (network.Interface, error) {
+
 	subnet, err := s.sdk.SubnetClient(a, subsID).Get(ctx, groupName, vnetName, subnetName, "")
 	if err != nil {
 		return network.Interface{}, errors.Wrap(err, "get subnet")
 	}
 
-	// TODO: applied to subnets
 	nsg, err := s.sdk.NSGClient(a, subsID).Get(ctx, groupName, nsgName, "")
 	if err != nil {
 		return network.Interface{}, errors.Wrap(err, "get network security group")

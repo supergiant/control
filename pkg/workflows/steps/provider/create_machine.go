@@ -8,8 +8,10 @@ import (
 	"github.com/pkg/errors"
 
 	"github.com/supergiant/control/pkg/clouds"
+	"github.com/supergiant/control/pkg/sgerrors"
 	"github.com/supergiant/control/pkg/workflows/steps"
 	"github.com/supergiant/control/pkg/workflows/steps/amazon"
+	"github.com/supergiant/control/pkg/workflows/steps/azure"
 	"github.com/supergiant/control/pkg/workflows/steps/digitalocean"
 	"github.com/supergiant/control/pkg/workflows/steps/gce"
 )
@@ -29,6 +31,10 @@ func (s StepCreateMachine) Run(ctx context.Context, out io.Writer, cfg *steps.Co
 	step, err := createMachineStepFor(cfg.Provider)
 	if err != nil {
 		return err
+	}
+	// TODO: check it on steps.GetStep()
+	if step == nil {
+		return errors.Wrap(sgerrors.ErrRawError, "createMachine step not found")
 	}
 
 	return step.Run(ctx, out, cfg)
@@ -58,6 +64,8 @@ func createMachineStepFor(provider clouds.Name) (steps.Step, error) {
 		return steps.GetStep(digitalocean.CreateMachineStepName), nil
 	case clouds.GCE:
 		return steps.GetStep(gce.CreateInstanceStepName), nil
+	case clouds.Azure:
+		return steps.GetStep(azure.CreateVMStepName), nil
 	}
 	return nil, errors.New(fmt.Sprintf("unknown provider: %s", provider))
 }

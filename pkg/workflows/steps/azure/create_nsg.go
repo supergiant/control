@@ -64,7 +64,7 @@ func (s *CreateSecurityGroupStep) Run(ctx context.Context, output io.Writer, con
 		rules []network.SecurityRule
 	}{
 		{
-			role:  model.RoleNode.String(),
+			role:  model.RoleMaster.String(),
 			rules: masterSecurityRules(sgAddr),
 		},
 		{

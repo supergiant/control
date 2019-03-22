@@ -63,17 +63,19 @@ func (fakeNICClient) Get(ctx context.Context, groupName string, nicName string, 
 }
 
 type fakeVMClient struct {
+	deleteRes compute.VirtualMachinesDeleteFuture
+	deleteErr error
 }
 
-func (fakeVMClient) Get(ctx context.Context, groupName string, vmName string, expand compute.InstanceViewTypes) (compute.VirtualMachine, error) {
+func (f fakeVMClient) Get(ctx context.Context, groupName string, vmName string, expand compute.InstanceViewTypes) (compute.VirtualMachine, error) {
 	panic("implement me")
 }
 
-func (fakeVMClient) Delete(ctx context.Context, groupName string, vmName string) (compute.VirtualMachinesDeleteFuture, error) {
-	panic("implement me")
+func (f fakeVMClient) Delete(ctx context.Context, groupName string, vmName string) (compute.VirtualMachinesDeleteFuture, error) {
+	return f.deleteRes, f.deleteErr
 }
 
-func (fakeVMClient) CreateOrUpdate(ctx context.Context, groupName string, vmName string, params compute.VirtualMachine) (compute.VirtualMachinesCreateOrUpdateFuture, error) {
+func (f fakeVMClient) CreateOrUpdate(ctx context.Context, groupName string, vmName string, params compute.VirtualMachine) (compute.VirtualMachinesCreateOrUpdateFuture, error) {
 	panic("implement me")
 }
 

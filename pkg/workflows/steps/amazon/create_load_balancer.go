@@ -2,14 +2,15 @@ package amazon
 
 import (
 	"context"
+	"fmt"
 	"io"
 
-	"fmt"
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/aws/request"
 	"github.com/aws/aws-sdk-go/service/elb"
 	"github.com/pkg/errors"
 	"github.com/sirupsen/logrus"
+
 	"github.com/supergiant/control/pkg/workflows/steps"
 )
 
