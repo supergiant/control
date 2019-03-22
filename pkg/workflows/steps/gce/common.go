@@ -18,16 +18,25 @@ type computeService struct {
 	getInstance         func(context.Context, steps.GCEConfig, string) (*compute.Instance, error)
 	setInstanceMetadata func(context.Context, steps.GCEConfig, string, *compute.Metadata) (*compute.Operation, error)
 	deleteInstance      func(string, string, string) (*compute.Operation, error)
+
+	insertTargetPool           func(context.Context, steps.GCEConfig, *compute.TargetPool) (*compute.Operation, error)
+	insertAddress              func(context.Context, steps.GCEConfig, *compute.Address) (*compute.Operation, error)
+	insertForwardingRule       func(context.Context, steps.GCEConfig, *compute.ForwardingRule) (*compute.Operation, error)
+	addInstanceToTargetGroup   func(context.Context, steps.GCEConfig, string, *compute.TargetPoolsAddInstanceRequest) (*compute.Operation, error)
+	insertHealthCheck          func(context.Context, steps.GCEConfig, *compute.HealthCheck) (*compute.Operation, error)
+	addHealthCheckToTargetPool func(context.Context, steps.GCEConfig, string, *compute.TargetPoolsAddHealthCheckRequest) (*compute.Operation, error)
 }
 
 func Init() {
 	createInstance, _ := NewCreateInstanceStep(time.Second*10, time.Minute*1)
 	deleteCluster, _ := NewDeleteClusterStep()
 	deleteNode, _ := NewDeleteNodeStep()
+	createTargetPool, _ := NewCreateTargetPoolStep()
 
 	steps.RegisterStep(CreateInstanceStepName, createInstance)
 	steps.RegisterStep(DeleteClusterStepName, deleteCluster)
 	steps.RegisterStep(DeleteNodeStepName, deleteNode)
+	steps.RegisterStep(CreateTargetPullStepName, createTargetPool)
 }
 
 func GetClient(ctx context.Context, email, privateKey, tokenUri string) (*compute.Service, error) {

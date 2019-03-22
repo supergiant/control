@@ -75,6 +75,9 @@ type GCEConfig struct {
 	AvailabilityZone string `json:"availabilityZone"`
 	Size             string `json:"size"`
 	InstanceGroup    string `json:"instanceGroup"`
+
+	ExternalTargetPoolName string `json:"externalTargetPoolName"`
+	InternalTargetPoolName string `json:"internalTargetPoolName"`
 }
 
 type AzureConfig struct {

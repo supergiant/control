@@ -581,6 +581,8 @@ func (t *TaskProvisioner) updateCloudSpecificData(k *model.Kube, config *steps.C
 			config.AWSConfig.InternalLoadBalancerName
 	case clouds.GCE:
 		// GCE is the most simple :-)
+		cloudSpecificSettings[clouds.GCEExternalTargetPoolName] = config.GCEConfig.ExternalTargetPoolName
+		cloudSpecificSettings[clouds.GCEInternalTargetPoolName] = config.GCEConfig.InternalTargetPoolName
 	case clouds.DigitalOcean:
 		cloudSpecificSettings[clouds.ExternalDigitalOceanLoadBalancerID] = config.DigitalOceanConfig.ExternalLoadBalancerID
 		cloudSpecificSettings[clouds.InternalDigitalOceanLoadBalancerID] = config.DigitalOceanConfig.InternalLoadBalancerID
