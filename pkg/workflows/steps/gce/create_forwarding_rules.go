@@ -28,17 +28,6 @@ func NewCreateForwardingRulesStep() (*CreateForwardingRules, error) {
 				return nil, err
 			}
 
-			// TODO(stgleb): For internal traffic create instance group, create backend service with backend that references this instance group
-			//backend := &compute.Backend{
-			//	Group: config.InstanceGroup,
-			//}
-			//
-			//backSvc := &compute.BackendService{
-			//	Backends: []*compute.Backend{backend},
-			//}
-			//
-			//client.RegionBackendServices.Insert(config.ProjectID, config.Region, backSvc).Do()
-
 			return &computeService{
 				insertForwardingRule: func(ctx context.Context, config steps.GCEConfig, rule *compute.ForwardingRule) (*compute.Operation, error) {
 					return client.ForwardingRules.Insert(config.ProjectID, config.Region, rule).Do()
@@ -86,7 +75,7 @@ func (s *CreateForwardingRules) Run(ctx context.Context, output io.Writer,
 		IPProtocol: "TCP",
 		Ports: []string{"443"},
 		// TODO(stgleb): Create backend service and backend
-		BackendService: config.GCEConfig.BackendServicename,
+		BackendService: config.GCEConfig.BackendServiceName,
 	}
 
 	_, err = svc.insertForwardingRule(ctx, config.GCEConfig, internalForwardingRule)

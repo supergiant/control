@@ -41,8 +41,8 @@ const (
 	GCEClientEmail = "client_email"
 	GCETokenURI    = "token_uri"
 
-	GCEExternalTargetPoolName = "gceExternalTargetPoolName"
-	GCEInternalTargetPoolName = "gceInternalTargetPoolName"
+	GCETargetPoolName     = "gceTargetPoolName"
+	GCEBackendServiceName = "gceBackendServiceName"
 
 	GCEExternalIPAddress = "gceExternalIpAddress"
 	GCEInternalIPAddress = "gceInternalIpAddress"

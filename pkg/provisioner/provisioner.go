@@ -586,8 +586,8 @@ func (t *TaskProvisioner) updateCloudSpecificData(k *model.Kube, config *steps.C
 		cloudSpecificSettings[clouds.AwsImageID] =
 			config.AWSConfig.ImageID
 	case clouds.GCE:
-		cloudSpecificSettings[clouds.GCEExternalTargetPoolName] = config.GCEConfig.TargetPoolName
-		cloudSpecificSettings[clouds.GCEInternalTargetPoolName] = config.GCEConfig.BackendServiceName
+		cloudSpecificSettings[clouds.GCETargetPoolName] = config.GCEConfig.TargetPoolName
+		cloudSpecificSettings[clouds.GCEBackendServiceName] = config.GCEConfig.BackendServiceName
 
 		cloudSpecificSettings[clouds.GCEExternalIPAddressName] = config.GCEConfig.ExternalAddressName
 		cloudSpecificSettings[clouds.GCEInternalIPAddressName] = config.GCEConfig.InternalAddressName
