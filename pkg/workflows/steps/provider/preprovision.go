@@ -11,6 +11,7 @@ import (
 	"github.com/supergiant/control/pkg/workflows/steps"
 	"github.com/supergiant/control/pkg/workflows/steps/amazon"
 	"github.com/supergiant/control/pkg/workflows/steps/digitalocean"
+	"github.com/supergiant/control/pkg/workflows/steps/azure"
 )
 
 const (

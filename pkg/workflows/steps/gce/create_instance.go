@@ -40,8 +40,6 @@ func NewCreateInstanceStep(period, timeout time.Duration) (*CreateInstanceStep, 
 				return nil, err
 			}
 
-			v,  _:= client.RegionBackendServices.Get().Do()
-			v.
 			return &computeService{
 				getFromFamily: func(ctx context.Context, config steps.GCEConfig) (*compute.Image, error) {
 					return client.Images.GetFromFamily("ubuntu-os-cloud", config.ImageFamily).Do()

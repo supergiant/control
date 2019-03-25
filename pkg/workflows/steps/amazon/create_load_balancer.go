@@ -2,7 +2,6 @@ package amazon
 
 import (
 	"context"
-	"fmt"
 	"io"
 
 	"github.com/aws/aws-sdk-go/aws"
