@@ -55,6 +55,9 @@ type DOConfig struct {
 	// These come from cloud account
 	Fingerprint string `json:"fingerprint" valid:"required"`
 	AccessToken string `json:"accessToken" valid:"required"`
+
+	ExternalLoadBalancerID string `json:"externalLoadBalancerId"`
+	InternalLoadBalancerID string `json:"internalLoadBalancerId"`
 }
 
 // TODO(stgleb): Fill struct with fields when provisioning on other providers is done
@@ -264,7 +267,7 @@ func NewConfig(clusterName, cloudAccountName string, profile profile.Profile) (*
 			SSHConfig: model.SSHConfig{
 				Port:      "22",
 				User:      "root",
-				Timeout:   10,
+				Timeout:   30,
 				PublicKey: profile.PublicKey,
 			},
 		},
@@ -320,7 +323,7 @@ func NewConfig(clusterName, cloudAccountName string, profile profile.Profile) (*
 			Port:        "8080",
 			Username:    profile.User,
 			RBACEnabled: profile.RBACEnabled,
-			Timeout:     time.Minute * 20,
+			Timeout:     time.Minute * 30,
 			Provider:    profile.Provider,
 		},
 		TillerConfig: TillerConfig{
@@ -424,7 +427,7 @@ func NewConfigFromKube(profile *profile.Profile, k *model.Kube) (*Config, error)
 			Port:        "8080",
 			Username:    profile.User,
 			RBACEnabled: profile.RBACEnabled,
-			Timeout:     time.Minute * 20,
+			Timeout:     time.Minute * 30,
 			Provider:    k.Provider,
 		},
 		TillerConfig: TillerConfig{

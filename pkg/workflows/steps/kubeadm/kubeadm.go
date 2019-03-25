@@ -48,14 +48,14 @@ func (t *Step) Run(ctx context.Context, out io.Writer, config *steps.Config) err
 		config.KubeadmConfig.AdvertiseAddress = config.Node.PrivateIp
 
 		// TODO(stgleb): Remove that when all providers support Load Balancers
-		if config.Provider != clouds.AWS {
+		if config.Provider == clouds.AWS || config.Provider == clouds.DigitalOcean {
 			config.KubeadmConfig.ExternalDNSName = config.Node.PublicIp
 			config.KubeadmConfig.InternalDNSName = config.Node.PublicIp
 		}
 	}
 
 	// TODO(stgleb): Remove that when all providers support Load Balancers
-	if config.Provider == clouds.AWS {
+	if config.Provider == clouds.AWS || config.Provider == clouds.DigitalOcean {
 		config.KubeadmConfig.InternalDNSName = config.InternalDNSName
 		config.KubeadmConfig.ExternalDNSName = config.ExternalDNSName
 	} else {

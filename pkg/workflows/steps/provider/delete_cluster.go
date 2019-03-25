@@ -75,6 +75,7 @@ func cleanUpStepsFor(provider clouds.Name) ([]steps.Step, error) {
 		return []steps.Step{
 			steps.GetStep(digitalocean.DeleteClusterMachines),
 			steps.GetStep(digitalocean.DeleteDeleteKeysStepName),
+			steps.GetStep(digitalocean.DeleteLoadBalancerStepName),
 		}, nil
 	case clouds.GCE:
 		return []steps.Step{

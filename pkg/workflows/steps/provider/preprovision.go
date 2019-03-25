@@ -10,6 +10,7 @@ import (
 	"github.com/supergiant/control/pkg/clouds"
 	"github.com/supergiant/control/pkg/workflows/steps"
 	"github.com/supergiant/control/pkg/workflows/steps/amazon"
+	"github.com/supergiant/control/pkg/workflows/steps/digitalocean"
 	"github.com/supergiant/control/pkg/workflows/steps/azure"
 )
 
@@ -25,11 +26,11 @@ func (s StepPreProvision) Run(ctx context.Context, out io.Writer, cfg *steps.Con
 		return errors.New("invalid config")
 	}
 
-	steps, err := prepProvisionStepFor(cfg.Provider)
+	preProvisionSteps, err := prepProvisionStepFor(cfg.Provider)
 	if err != nil {
 		return errors.Wrap(err, PreProvisionStep)
 	}
-	for _, s := range steps {
+	for _, s := range preProvisionSteps {
 		if err = s.Run(ctx, out, cfg); err != nil {
 			return errors.Wrap(err, PreProvisionStep)
 		}
@@ -71,7 +72,10 @@ func prepProvisionStepFor(provider clouds.Name) ([]steps.Step, error) {
 			steps.GetStep(amazon.StepCreateLoadBalancer),
 		}, nil
 	case clouds.DigitalOcean:
-		return []steps.Step{}, nil
+		return []steps.Step{
+			// TODO(stgleb): Apply security stuff here
+			steps.GetStep(digitalocean.CreateLoadBalancerStepName),
+		}, nil
 	case clouds.GCE:
 		return []steps.Step{}, nil
 	case clouds.Azure:
