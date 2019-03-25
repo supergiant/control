@@ -268,18 +268,11 @@ func (tp *TaskProvisioner) prepare(name clouds.Name, masterCount, nodeCount int)
 	masterTasks := make([]*workflows.Task, 0, masterCount)
 	nodeTasks := make([]*workflows.Task, 0, nodeCount)
 	//some clouds (e.g. AWS) requires running tasks before provisioning nodes (creating a VPC, Subnets, SecGroups, etc)
-	// TODO: no need to switch
-	switch name {
-	case clouds.AWS, clouds.Azure:
-		preProvisionTask, err = workflows.NewTask(workflows.PreProvision, tp.repository)
-		if err != nil {
-			// We can't go further without pre provision task
-			logrus.Errorf("create pre provision task has finished with %v", err)
-			return nil
-		}
-	case clouds.GCE:
-	case clouds.DigitalOcean:
-		// TODO(stgleb): Create key pairs here
+	preProvisionTask, err = workflows.NewTask(workflows.PreProvision, tp.repository)
+	if err != nil {
+		// We can't go further without pre provision task
+		logrus.Errorf("create pre provision task has finished with %v", err)
+		return nil
 	}
 
 	for i := 0; i < masterCount; i++ {
@@ -509,10 +502,6 @@ func (tp *TaskProvisioner) buildInitialCluster(ctx context.Context,
 		User:         profile.User,
 		Password:     profile.Password,
 
-		// TODO(stgleb): extract to utility function
-		ExternalLoadBalancerName: fmt.Sprintf("ex-%s", config.ClusterID),
-		InternalLoadBalancerName: fmt.Sprintf("in-%s", config.ClusterID),
-
 		Auth: model.Auth{
 			Username:  config.CertificatesConfig.Username,
 			Password:  config.CertificatesConfig.Password,
@@ -586,6 +575,10 @@ func (t *TaskProvisioner) updateCloudSpecificData(k *model.Kube, config *steps.C
 			config.AWSConfig.NodesInstanceProfile
 		cloudSpecificSettings[clouds.AwsImageID] =
 			config.AWSConfig.ImageID
+		cloudSpecificSettings[clouds.AwsExternalLoadBalancerName] =
+			config.AWSConfig.ExternalLoadBalancerName
+		cloudSpecificSettings[clouds.AwsInternalLoadBalancerName] =
+			config.AWSConfig.InternalLoadBalancerName
 	case clouds.GCE:
 		cloudSpecificSettings[clouds.GCETargetPoolName] = config.GCEConfig.TargetPoolName
 		cloudSpecificSettings[clouds.GCEBackendServiceName] = config.GCEConfig.BackendServiceName
@@ -598,6 +591,8 @@ func (t *TaskProvisioner) updateCloudSpecificData(k *model.Kube, config *steps.C
 
 		cloudSpecificSettings[clouds.GCEHealthCheckName] = config.GCEConfig.HealthCheckName
 	case clouds.DigitalOcean:
+		cloudSpecificSettings[clouds.DigitalOceanExternalLoadBalancerID] = config.DigitalOceanConfig.ExternalLoadBalancerID
+		cloudSpecificSettings[clouds.DigitalOceanInternalLoadBalancerID] = config.DigitalOceanConfig.InternalLoadBalancerID
 	}
 
 	k.CloudSpec = cloudSpecificSettings

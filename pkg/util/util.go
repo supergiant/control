@@ -163,8 +163,8 @@ func LoadCloudSpecificDataFromKube(k *model.Kube, config *steps.Config) error {
 		config.AWSConfig.ImageID = k.CloudSpec[clouds.AwsImageID]
 		config.Kube.SSHConfig.BootstrapPrivateKey = k.CloudSpec[clouds.AwsSshBootstrapPrivateKey]
 		config.Kube.SSHConfig.PublicKey = k.CloudSpec[clouds.AwsUserProvidedSshPublicKey]
-		config.AWSConfig.ExternalLoadBalancerName = k.ExternalLoadBalancerName
-		config.AWSConfig.InternalLoadBalancerName = k.InternalLoadBalancerName
+		config.AWSConfig.ExternalLoadBalancerName = k.CloudSpec[clouds.AwsExternalLoadBalancerName]
+		config.AWSConfig.InternalLoadBalancerName = k.CloudSpec[clouds.AwsInternalLoadBalancerName]
 	case clouds.GCE:
 		config.GCEConfig.Region = k.Region
 		config.GCEConfig.TargetPoolName = k.CloudSpec[clouds.GCETargetPoolName]
@@ -178,7 +178,8 @@ func LoadCloudSpecificDataFromKube(k *model.Kube, config *steps.Config) error {
 
 		config.GCEConfig.HealthCheckName = k.CloudSpec[clouds.GCEHealthCheckName]
 	case clouds.DigitalOcean:
-
+		config.DigitalOceanConfig.ExternalLoadBalancerID = k.CloudSpec[clouds.DigitalOceanExternalLoadBalancerID]
+		config.DigitalOceanConfig.InternalLoadBalancerID = k.CloudSpec[clouds.DigitalOceanInternalLoadBalancerID]
 	case clouds.Azure:
 		config.AzureConfig.Location = k.Region
 		config.AzureConfig.VNetCIDR = k.CloudSpec[clouds.AzureVNetCIDR]
@@ -188,4 +189,12 @@ func LoadCloudSpecificDataFromKube(k *model.Kube, config *steps.Config) error {
 	}
 
 	return nil
+}
+
+func CreateLBName(clusterID string, isExternal bool) string {
+	if isExternal {
+		return fmt.Sprintf("ex-%s", clusterID)
+	}
+
+	return fmt.Sprintf("in-%s", clusterID)
 }

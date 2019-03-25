@@ -2,7 +2,6 @@ package amazon
 
 import (
 	"context"
-	"fmt"
 	"io"
 
 	"github.com/aws/aws-sdk-go/aws"
@@ -12,6 +11,7 @@ import (
 	"github.com/sirupsen/logrus"
 
 	"github.com/supergiant/control/pkg/workflows/steps"
+	"github.com/supergiant/control/pkg/util"
 )
 
 const StepCreateLoadBalancer = "create_load_balancer"
@@ -62,7 +62,7 @@ func (s *CreateLoadBalancerStep) Run(ctx context.Context, out io.Writer, cfg *st
 		subnetsSlice = append(subnetsSlice, aws.String(subnet))
 	}
 
-	externalLoadBalancerName := aws.String(fmt.Sprintf("ex-%s", cfg.ClusterID))
+	externalLoadBalancerName := aws.String(util.CreateLBName(cfg.ClusterID, true))
 
 	output, err := svc.CreateLoadBalancerWithContext(ctx, &elb.CreateLoadBalancerInput{
 		Listeners: []*elb.Listener{
@@ -105,7 +105,7 @@ func (s *CreateLoadBalancerStep) Run(ctx context.Context, out io.Writer, cfg *st
 	cfg.ExternalDNSName = *output.DNSName
 	cfg.AWSConfig.ExternalLoadBalancerName = *externalLoadBalancerName
 
-	internalLoadBalancerName := aws.String(fmt.Sprintf("in-%s", cfg.ClusterID))
+	internalLoadBalancerName := aws.String(util.CreateLBName(cfg.ClusterID, false))
 
 	output, err = svc.CreateLoadBalancerWithContext(ctx, &elb.CreateLoadBalancerInput{
 		Listeners: []*elb.Listener{

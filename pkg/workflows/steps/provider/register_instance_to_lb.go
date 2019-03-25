@@ -31,6 +31,7 @@ func (s *RegisterInstanceToLoadBalancer) Run(ctx context.Context, out io.Writer,
 		step = steps.GetStep(amazon.RegisterInstanceStepName)
 	// TODO(stgleb): rest of providers TBD
 	case clouds.DigitalOcean:
+		// Load balancing in DO is made by tags
 		return nil
 	case clouds.GCE:
 		return nil
