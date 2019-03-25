@@ -82,9 +82,9 @@ type AzureConfig struct {
 
 	Location string `json:"location"`
 
+	VMSize string `json:"vmSize"`
 	// TODO: cidr validation?
 	VNetCIDR string `json:"vNetCIDR"`
-	VMSize string `json:"vmSize"`
 }
 
 type PacketConfig struct{}
@@ -170,7 +170,7 @@ type KubeadmConfig struct {
 	IsBootstrap      bool   `json:"isBootstrap"`
 	CIDR             string `json:"cidr"`
 	Token            string `json:"token"`
-	Provider    string `json:"provider"`
+	Provider         string `json:"provider"`
 
 	InternalDNSName string `json:"internalDNSName"`
 	ExternalDNSName string `json:"externalDNSName"`
@@ -290,6 +290,7 @@ func NewConfig(clusterName, cloudAccountName string, profile profile.Profile) (*
 		},
 		AzureConfig: AzureConfig{
 			Location: profile.Region,
+			VNetCIDR: profile.CloudSpecificSettings[clouds.AzureVNetCIDR],
 		},
 		OSConfig:     OSConfig{},
 		PacketConfig: PacketConfig{},

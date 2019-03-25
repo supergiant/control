@@ -110,7 +110,7 @@ func (h *Handler) Provision(w http.ResponseWriter, r *http.Request) {
 
 	if err != nil {
 		if sgerrors.IsNotFound(err) {
-			http.NotFound(w, r)
+			message.SendValidationFailed(w, fmt.Errorf("%s account not found", req.CloudAccountName))
 			return
 		}
 

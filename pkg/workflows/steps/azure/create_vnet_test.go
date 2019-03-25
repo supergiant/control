@@ -29,7 +29,7 @@ func TestCreateVirtualNetworkStep(t *testing.T) {
 
 	require.Equal(t, nil, s.Rollback(context.Background(), nil, nil), "rollback not implemented")
 	require.Equal(t, []string{CreateGroupStepName}, s.Depends(), "depends not implemented")
-	require.Equal(t, CreateVirtualNetworkStepName, s.Name(), "check step name")
+	require.Equal(t, CreateVNetAndSubnetsStepName, s.Name(), "check step name")
 	require.Equal(t, "Azure: Create virtual network", s.Description(), "check description")
 }
 

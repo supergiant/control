@@ -6,12 +6,11 @@ import (
 	"github.com/aws/aws-sdk-go/aws/session"
 	"github.com/aws/aws-sdk-go/service/ec2"
 	"github.com/aws/aws-sdk-go/service/ec2/ec2iface"
+	"github.com/aws/aws-sdk-go/service/elb"
 	"github.com/aws/aws-sdk-go/service/iam"
 	"github.com/aws/aws-sdk-go/service/iam/iamiface"
-
 	"github.com/sirupsen/logrus"
 
-	"github.com/aws/aws-sdk-go/service/elb"
 	"github.com/supergiant/control/pkg/workflows/steps"
 )
 

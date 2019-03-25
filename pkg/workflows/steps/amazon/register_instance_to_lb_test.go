@@ -7,9 +7,9 @@ import (
 	"strings"
 	"testing"
 
+	"github.com/aws/aws-sdk-go/service/elb"
 	"github.com/stretchr/testify/mock"
 
-	"github.com/aws/aws-sdk-go/service/elb"
 	"github.com/supergiant/control/pkg/workflows/steps"
 )
 

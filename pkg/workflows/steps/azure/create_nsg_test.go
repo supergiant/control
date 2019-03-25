@@ -2,6 +2,7 @@ package azure
 
 import (
 	"context"
+	"fmt"
 	"net/http"
 	"testing"
 
@@ -131,25 +132,21 @@ func TestCreateSecurityGroupStep_Run(t *testing.T) {
 			},
 			expectedErr: fakeErr,
 		},
-		// TODO: mock azure.Future
 		//{
 		//	name: "create nsg: success",
+		//	inp:  &steps.Config{},
 		//	step: CreateSecurityGroupStep{
 		//		nsgClientFn: func(a autorest.Authorizer, subscriptionID string) (SecurityGroupInterface, autorest.Client) {
-		//			return fakeNSGClient{
-		//				res: network.SecurityGroupsCreateOrUpdateFuture{
-		//					Future: toAzureFuture(http.Response{
-		//						Request: &http.Request{
-		//							Method: http.MethodPost,
-		//						},
-		//					}),
-		//				},
-		//			}, autorest.Client{}
+		//			return fakeNSGClient{}, autorest.Client{}
+		//		},
+		//		subnetGetterFn: func(a autorest.Authorizer, subscriptionID string) SubnetGetter {
+		//			return fakeSubnetGetter{}
 		//		},
 		//		findOutboundIP: func(ctx context.Context) (string, error) {
 		//			return "1.2.3.4", nil
 		//		},
 		//	},
+		//	expectedErr: fakeErr,
 		//},
 	} {
 		err := tc.step.Run(context.Background(), nil, tc.inp)
@@ -161,7 +158,9 @@ func TestCreateSecurityGroupStep_Run(t *testing.T) {
 func toAzureFuture(r http.Response) azure.Future {
 	f, err := azure.NewFutureFromResponse(&r)
 	if err != nil {
+		fmt.Printf("return empty: %s\n", err)
 		return azure.Future{}
 	}
+	fmt.Printf("future: %+v\n", f)
 	return f
 }

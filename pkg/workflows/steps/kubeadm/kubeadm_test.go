@@ -49,10 +49,10 @@ func TestKubeadm(t *testing.T) {
 	cfg := &steps.Config{
 		IsMaster: true,
 		KubeadmConfig: steps.KubeadmConfig{
-			IsMaster:         true,
-			IsBootstrap:      true,
-			CIDR:             "10.0.0.0/24",
-			Token:            "1234",
+			IsMaster:        true,
+			IsBootstrap:     true,
+			CIDR:            "10.0.0.0/24",
+			Token:           "1234",
 			InternalDNSName: "internal.dns.name",
 		},
 		Runner: r,

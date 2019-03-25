@@ -172,6 +172,7 @@ func LoadCloudSpecificDataFromKube(k *model.Kube, config *steps.Config) error {
 
 	case clouds.Azure:
 		config.AzureConfig.Location = k.Region
+		config.AzureConfig.VNetCIDR = k.CloudSpec[clouds.AzureVNetCIDR]
 
 	default:
 		return errors.Wrapf(sgerrors.ErrUnsupportedProvider, "Load cloud specific data from kube %s", k.ID)
