@@ -74,7 +74,7 @@ type GCEConfig struct {
 	InstanceGroup    string `json:"instanceGroup"`
 
 	// Target pool acts as a balancer for external traffic https://cloud.google.com/load-balancing/docs/target-pools
-	TargetPoolName     string `json:"targetPoolName"`
+	TargetPoolName string `json:"targetPoolName"`
 	// BackendService acts as a balancer for internal traffic https://cloud.google.com/load-balancing/docs/backend-service
 	BackendServiceName string `json:"backendServiceName"`
 

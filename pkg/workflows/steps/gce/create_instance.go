@@ -252,7 +252,7 @@ func (s *CreateInstanceStep) Run(ctx context.Context, output io.Writer,
 					config.AddMaster(&config.Node)
 
 					addInstanceToTargetPoolReq := &compute.TargetPoolsAddInstanceRequest{
-						Instances:[]*compute.InstanceReference{
+						Instances: []*compute.InstanceReference{
 							{
 								Instance: resp.SelfLink,
 							},
@@ -262,12 +262,12 @@ func (s *CreateInstanceStep) Run(ctx context.Context, output io.Writer,
 						config.GCEConfig.TargetPoolName, addInstanceToTargetPoolReq)
 
 					if err != nil {
-						logrus.Error("error adding instance %s URL %s to target pool %s",
+						logrus.Errorf("error adding instance %s URL %s to target pool %s",
 							resp.Name, resp.SelfLink, config.GCEConfig.TargetPoolName)
 					}
 
 					addInstanceToInstanceGroup := &compute.InstanceGroupsAddInstancesRequest{
-						Instances:[]*compute.InstanceReference{
+						Instances: []*compute.InstanceReference{
 							{
 								Instance: resp.SelfLink,
 							},
@@ -278,7 +278,7 @@ func (s *CreateInstanceStep) Run(ctx context.Context, output io.Writer,
 						config.GCEConfig.TargetPoolName, addInstanceToInstanceGroup)
 
 					if err != nil {
-						logrus.Error("error adding instance %s URL %s to instance group %s",
+						logrus.Errorf("error adding instance %s URL %s to instance group %s",
 							resp.Name, resp.SelfLink, config.GCEConfig.InstanceGroup)
 					}
 				} else {

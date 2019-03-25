@@ -52,7 +52,6 @@ const (
 	GCEExternalIPAddressName = "gceExternalIpAddressName"
 	GCEInternalIPAddressName = "gceInternalIpAddressName"
 
-
 	TagClusterID         = "supergiant.io/cluster-id"
 	TagKubernetesCluster = "KubernetesCluster"
 

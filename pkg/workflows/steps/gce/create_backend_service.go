@@ -9,8 +9,8 @@ import (
 	"github.com/sirupsen/logrus"
 	"google.golang.org/api/compute/v1"
 
-	"github.com/supergiant/control/pkg/workflows/steps"
 	"fmt"
+	"github.com/supergiant/control/pkg/workflows/steps"
 )
 
 const CreateBackendServiceStepName = "gce_create_backend_service"
@@ -51,12 +51,11 @@ func (s *CreateBackendServiceStep) Run(ctx context.Context, output io.Writer,
 		return errors.Wrapf(err, "%s getting service caused", CreateBackendServiceStepName)
 	}
 
-
 	backendService := &compute.BackendService{
-		Name: fmt.Sprintf("backendService-%s", config.ClusterID),
-		Description: "Backend service for internal traffic",
+		Name:                fmt.Sprintf("backendService-%s", config.ClusterID),
+		Description:         "Backend service for internal traffic",
 		LoadBalancingScheme: "INTERNAL",
-		Protocol: "TCP",
+		Protocol:            "TCP",
 		Backends: []*compute.Backend{
 			{
 				Group: config.GCEConfig.InstanceGroup,
@@ -67,7 +66,7 @@ func (s *CreateBackendServiceStep) Run(ctx context.Context, output io.Writer,
 	_, err = svc.insertBackendService(ctx, config.GCEConfig, backendService)
 
 	if err != nil {
-		logrus.Error("error creating backend service %v", err)
+		logrus.Errorf("error creating backend service %v", err)
 		return errors.Wrapf(err, "error creating backend service")
 	}
 
