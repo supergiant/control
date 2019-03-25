@@ -8,10 +8,10 @@ import (
 
 	"github.com/pkg/errors"
 
+	"github.com/supergiant/control/pkg/clouds"
 	tm "github.com/supergiant/control/pkg/templatemanager"
 	"github.com/supergiant/control/pkg/workflows/steps"
 	"github.com/supergiant/control/pkg/workflows/steps/docker"
-	"github.com/supergiant/control/pkg/clouds"
 )
 
 const (
@@ -60,7 +60,7 @@ func (t *Step) Run(ctx context.Context, out io.Writer, config *steps.Config) err
 		config.KubeadmConfig.ExternalDNSName = config.ExternalDNSName
 	} else {
 		if master := config.GetMaster(); master != nil {
-			config.KubeadmConfig.InternalDNSName = master.PublicIp
+			config.KubeadmConfig.InternalDNSName = master.PrivateIp
 			config.KubeadmConfig.ExternalDNSName = master.PublicIp
 		}
 	}

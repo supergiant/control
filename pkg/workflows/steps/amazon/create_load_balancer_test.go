@@ -7,12 +7,12 @@ import (
 	"errors"
 	"strings"
 
-
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/stretchr/testify/mock"
 
 	"github.com/aws/aws-sdk-go/aws/request"
 	"github.com/aws/aws-sdk-go/service/elb"
+
 	"github.com/supergiant/control/pkg/workflows/steps"
 )
 
@@ -29,7 +29,6 @@ func (m *mockELBService) CreateLoadBalancerWithContext(ctx aws.Context,
 	}
 	return val, args.Error(1)
 }
-
 
 func (m *mockELBService) DeleteLoadBalancerWithContext(ctx aws.Context, input *elb.DeleteLoadBalancerInput, opts ...request.Option) (*elb.DeleteLoadBalancerOutput, error) {
 	args := m.Called(ctx, input, opts)

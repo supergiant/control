@@ -10,6 +10,7 @@ import (
 	"github.com/supergiant/control/pkg/clouds"
 	"github.com/supergiant/control/pkg/workflows/steps"
 	"github.com/supergiant/control/pkg/workflows/steps/amazon"
+	"github.com/supergiant/control/pkg/workflows/steps/azure"
 	"github.com/supergiant/control/pkg/workflows/steps/digitalocean"
 	"github.com/supergiant/control/pkg/workflows/steps/gce"
 )
@@ -79,6 +80,11 @@ func cleanUpStepsFor(provider clouds.Name) ([]steps.Step, error) {
 	case clouds.GCE:
 		return []steps.Step{
 			steps.GetStep(gce.DeleteNodeStepName),
+		}, nil
+	case clouds.Azure:
+		return []steps.Step{
+			steps.GetStep(azure.GetAuthorizerStepName),
+			steps.GetStep(azure.DeleteClusterStepName),
 		}, nil
 	}
 	return nil, errors.New(fmt.Sprintf("unknown provider: %s", provider))

@@ -677,7 +677,7 @@ func (tp *TaskProvisioner) monitorClusterState(ctx context.Context,
 				continue
 			}
 		case config := <-configChan:
-			logrus.Debugf("update kube %s with config %v", clusterID, config)
+			logrus.Debugf("update kube %s with config %+v", clusterID, config)
 			k, err := tp.kubeService.Get(ctx, clusterID)
 
 			if err != nil {

@@ -17,7 +17,7 @@ import (
 	"github.com/supergiant/control/pkg/workflows/steps"
 )
 
-const CreateVirtualNetworkStepName = "CreateVirtualNetworkNetwork"
+const CreateVNetAndSubnetsStepName = "CreateVirtualNetworkNetworkAndSubnets"
 
 var VNetCreationTimeout = 60 * time.Second
 
@@ -87,7 +87,7 @@ func (s *CreateVirtualNetworkStep) Rollback(context.Context, io.Writer, *steps.C
 }
 
 func (s *CreateVirtualNetworkStep) Name() string {
-	return CreateVirtualNetworkStepName
+	return CreateVNetAndSubnetsStepName
 }
 
 func (s *CreateVirtualNetworkStep) Depends() []string {
@@ -98,6 +98,7 @@ func (s *CreateVirtualNetworkStep) Description() string {
 	return "Azure: Create virtual network"
 }
 
+// TODO: this doesn't calculate a subcidr just updates the net number and mask (aws uses the same)
 func buildSubnet(baseCIDR *net.IPNet, netNum int, name string) (network.Subnet, error) {
 	subnetCidr, err := cidr.Subnet(baseCIDR, 8, netNum)
 	if err != nil {

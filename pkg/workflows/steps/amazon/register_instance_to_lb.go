@@ -9,6 +9,7 @@ import (
 	"github.com/aws/aws-sdk-go/service/elb"
 	"github.com/pkg/errors"
 	"github.com/sirupsen/logrus"
+
 	"github.com/supergiant/control/pkg/workflows/steps"
 )
 

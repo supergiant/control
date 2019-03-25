@@ -73,4 +73,6 @@ const (
 	AzureSubscriptionID = "subscriptionId"
 	AzureClientID       = "clientId"
 	AzureClientSecret   = "clientSecret"
+
+	AzureVNetCIDR = "azureVNetCIDR"
 )

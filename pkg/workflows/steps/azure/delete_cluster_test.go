@@ -4,7 +4,6 @@ import (
 	"context"
 	"testing"
 
-	"github.com/Azure/go-autorest/autorest"
 	"github.com/pkg/errors"
 	"github.com/stretchr/testify/require"
 
@@ -17,7 +16,7 @@ var (
 )
 
 func TestDeleteClusterStep(t *testing.T) {
-	s := NewDeleteClusterStep()
+	s := NewDeleteClusterStep(NewSDK())
 	require.NotNil(t, s.groupsClientFn, "groups client shouldn't be nil")
 
 	var nilStringSlice []string
@@ -44,25 +43,6 @@ func TestDeleteClusterStep_Run(t *testing.T) {
 			inp:           &steps.Config{},
 			deleteCluster: DeleteClusterStep{},
 			expectedErr:   sgerrors.ErrNilEntity,
-		},
-		{
-			name: "delete cluster error",
-			inp:  &steps.Config{},
-			deleteCluster: DeleteClusterStep{
-				groupsClientFn: func(a autorest.Authorizer, subscriptionID string) GroupsInterface {
-					return fakeGroupsClient{deleteErr: errFake}
-				},
-			},
-			expectedErr: errFake,
-		},
-		{
-			name: "success",
-			inp:  &steps.Config{},
-			deleteCluster: DeleteClusterStep{
-				groupsClientFn: func(a autorest.Authorizer, subscriptionID string) GroupsInterface {
-					return fakeGroupsClient{}
-				},
-			},
 		},
 	} {
 		err := tc.deleteCluster.Run(context.Background(), nil, tc.inp)

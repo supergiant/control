@@ -18,7 +18,7 @@ import (
 
 const CreateSecurityGroupStepName = "CreateNetworkSecurityGroup"
 
-type NSGClientFn func(a autorest.Authorizer, subscriptionID string) (SecurityGroupCreator, autorest.Client)
+type NSGClientFn func(a autorest.Authorizer, subscriptionID string) (SecurityGroupInterface, autorest.Client)
 
 type SubnetClientFn func(a autorest.Authorizer, subscriptionID string) SubnetGetter
 
@@ -64,7 +64,7 @@ func (s *CreateSecurityGroupStep) Run(ctx context.Context, output io.Writer, con
 		rules []network.SecurityRule
 	}{
 		{
-			role:  model.RoleNode.String(),
+			role:  model.RoleMaster.String(),
 			rules: masterSecurityRules(sgAddr),
 		},
 		{

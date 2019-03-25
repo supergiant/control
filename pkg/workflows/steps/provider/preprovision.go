@@ -77,6 +77,13 @@ func prepProvisionStepFor(provider clouds.Name) ([]steps.Step, error) {
 		}, nil
 	case clouds.GCE:
 		return []steps.Step{}, nil
+	case clouds.Azure:
+		return []steps.Step{
+			steps.GetStep(azure.GetAuthorizerStepName),
+			steps.GetStep(azure.CreateGroupStepName),
+			steps.GetStep(azure.CreateVNetAndSubnetsStepName),
+			steps.GetStep(azure.CreateSecurityGroupStepName),
+		}, nil
 	}
 	return nil, errors.Wrapf(fmt.Errorf("unknown provider: %s", provider), PreProvisionStep)
 }
