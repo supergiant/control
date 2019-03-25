@@ -63,22 +63,7 @@ func (s *CreateTargetPoolStep) Run(ctx context.Context, output io.Writer,
 		return errors.Wrapf(err, "%s creating external target pool", CreateTargetPullStepName)
 	}
 
-	config.GCEConfig.ExternalTargetPoolName = externalTargetPoolName
-
-	internalTargetPoolName := fmt.Sprintf("ex-%s", config.ClusterID)
-	internalTargetPool := &compute.TargetPool{
-		Description: "Target pool for balancing internal traffic",
-		Name:        internalTargetPoolName,
-	}
-
-	_, err = svc.insertTargetPool(ctx, config.GCEConfig, internalTargetPool)
-
-	if err != nil {
-		logrus.Errorf("Error creating internal target pool %v", err)
-		return errors.Wrapf(err, "%s creating internal target pool", CreateTargetPullStepName)
-	}
-
-	config.GCEConfig.InternalTargetPoolName = internalTargetPoolName
+	config.GCEConfig.TargetPoolName = externalTargetPoolName
 
 	return nil
 }

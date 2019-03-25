@@ -73,8 +73,8 @@ type GCEConfig struct {
 	Size             string `json:"size"`
 	InstanceGroup    string `json:"instanceGroup"`
 
-	ExternalTargetPoolName string `json:"externalTargetPoolName"`
-	InternalTargetPoolName string `json:"internalTargetPoolName"`
+	TargetPoolName     string `json:"targetPoolName"`
+	BackendServiceName string `json:"backendServiceName"`
 
 	ExternalAddressName string `json:"externalAddressName"`
 	InternalAddressName string `json:"internalAddressName"`
@@ -82,7 +82,6 @@ type GCEConfig struct {
 	ExternalIPAddress string `json:"externalIpAddress"`
 	InternalIPAddress string `json:"internalIpAddress"`
 
-	BackendServicename string `json:"backendServicename"`
 	HealthCheckName string `json:"healthCheckName"`
 }
 

@@ -64,6 +64,13 @@ func NewCreateInstanceStep(period, timeout time.Duration) (*CreateInstanceStep, 
 					return client.Instances.SetMetadata(config.ProjectID,
 						config.AvailabilityZone, name, metadata).Do()
 				},
+				addInstanceToTargetGroup: func(ctx context.Context, config steps.GCEConfig, targetPoolName string, request *compute.TargetPoolsAddInstanceRequest) (*compute.Operation, error) {
+					return client.TargetPools.AddInstance(config.ProjectID, config.Region, config.TargetPoolName, request).Do()
+				},
+				addInstanceToInstanceGroup: func(ctx context.Context, config steps.GCEConfig, instanceGroup string, request *compute.InstanceGroupsAddInstancesRequest) (*compute.Operation, error) {
+					return client.InstanceGroups.AddInstances(config.ProjectID, config.AvailabilityZone,
+						config.InstanceGroup, request).Do()
+				},
 			}, nil
 		},
 	}, nil
@@ -243,6 +250,37 @@ func (s *CreateInstanceStep) Run(ctx context.Context, output io.Writer,
 
 				if config.IsMaster {
 					config.AddMaster(&config.Node)
+
+					addInstanceToTargetPoolReq := &compute.TargetPoolsAddInstanceRequest{
+						Instances:[]*compute.InstanceReference{
+							{
+								Instance: resp.SelfLink,
+							},
+						},
+					}
+					_, err := svc.addInstanceToTargetGroup(ctx, config.GCEConfig,
+						config.GCEConfig.TargetPoolName, addInstanceToTargetPoolReq)
+
+					if err != nil {
+						logrus.Error("error adding instance %s URL %s to target pool %s",
+							resp.Name, resp.SelfLink, config.GCEConfig.TargetPoolName)
+					}
+
+					addInstanceToInstanceGroup := &compute.InstanceGroupsAddInstancesRequest{
+						Instances:[]*compute.InstanceReference{
+							{
+								Instance: resp.SelfLink,
+							},
+						},
+					}
+
+					_, err = svc.addInstanceToInstanceGroup(ctx, config.GCEConfig,
+						config.GCEConfig.TargetPoolName, addInstanceToInstanceGroup)
+
+					if err != nil {
+						logrus.Error("error adding instance %s URL %s to instance group %s",
+							resp.Name, resp.SelfLink, config.GCEConfig.InstanceGroup)
+					}
 				} else {
 					config.AddNode(&config.Node)
 				}

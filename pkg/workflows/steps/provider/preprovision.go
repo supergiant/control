@@ -10,6 +10,7 @@ import (
 	"github.com/supergiant/control/pkg/clouds"
 	"github.com/supergiant/control/pkg/workflows/steps"
 	"github.com/supergiant/control/pkg/workflows/steps/amazon"
+	"github.com/supergiant/control/pkg/workflows/steps/gce"
 )
 
 const (
@@ -72,7 +73,14 @@ func prepProvisionStepFor(provider clouds.Name) ([]steps.Step, error) {
 	case clouds.DigitalOcean:
 		return []steps.Step{}, nil
 	case clouds.GCE:
-		return []steps.Step{}, nil
+		return []steps.Step{
+			steps.GetStep(gce.CreateIPAddressStepName),
+			steps.GetStep(gce.CreateTargetPullStepName),
+			steps.GetStep(gce.CreateHealthCheckStepName),
+			steps.GetStep(gce.CreateInstanceGroupStepName),
+			steps.GetStep(gce.CreateBackendServiceStepName),
+			steps.GetStep(gce.CreateForwardingRulesStepName),
+		}, nil
 	}
 	return nil, errors.Wrapf(fmt.Errorf("unknown provider: %s", provider), PreProvisionStep)
 }

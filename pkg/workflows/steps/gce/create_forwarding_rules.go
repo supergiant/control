@@ -66,7 +66,7 @@ func (s *CreateForwardingRules) Run(ctx context.Context, output io.Writer,
 		Description: "External forwarding rule to target pool",
 		IpVersion: "IPV4",
 		IPProtocol: "TCP",
-		Target: config.GCEConfig.ExternalTargetPoolName,
+		Target: config.GCEConfig.TargetPoolName,
 		Ports: []string{"443"},
 	}
 

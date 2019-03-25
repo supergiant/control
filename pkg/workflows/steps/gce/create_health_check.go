@@ -82,23 +82,23 @@ func (s *CreateHealthCheck) Run(ctx context.Context, output io.Writer,
 	}
 
 	_, err = svc.addHealthCheckToTargetPool(ctx, config.GCEConfig,
-		config.GCEConfig.ExternalTargetPoolName, addHealthCheckRequest)
+		config.GCEConfig.TargetPoolName, addHealthCheckRequest)
 
 	if err != nil {
 		logrus.Errorf("Error adding health check %s to target pool %s %v",
-			healthCheck.Name, config.GCEConfig.ExternalTargetPoolName, err)
+			healthCheck.Name, config.GCEConfig.TargetPoolName, err)
 		return errors.Wrapf(err, "%s adding health check %s to target pool %s caused",
-			healthCheck.Name, config.GCEConfig.ExternalTargetPoolName, CreateHealthCheckStepName)
+			healthCheck.Name, config.GCEConfig.TargetPoolName, CreateHealthCheckStepName)
 	}
 
 	_, err = svc.addHealthCheckToTargetPool(ctx, config.GCEConfig,
-		config.GCEConfig.InternalTargetPoolName, addHealthCheckRequest)
+		config.GCEConfig.BackendServiceName, addHealthCheckRequest)
 
 	if err != nil {
 		logrus.Errorf("Error adding health check %s to target pool %s %v",
-			healthCheck.Name, config.GCEConfig.InternalTargetPoolName, err)
+			healthCheck.Name, config.GCEConfig.BackendServiceName, err)
 		return errors.Wrapf(err, "%s adding health check %s to target pool %s caused",
-			healthCheck.Name, config.GCEConfig.InternalTargetPoolName, CreateHealthCheckStepName)
+			healthCheck.Name, config.GCEConfig.BackendServiceName, CreateHealthCheckStepName)
 	}
 
 	return nil
@@ -109,7 +109,7 @@ func (s *CreateHealthCheck) Name() string {
 }
 
 func (s *CreateHealthCheck) Depends() []string {
-	return []string{CreateTargetPullStepName}
+	return []string{CreateTargetPullStepName, CreateBackendServiceStepName}
 }
 
 func (s *CreateHealthCheck) Description() string {
