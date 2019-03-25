@@ -268,8 +268,9 @@ func (tp *TaskProvisioner) prepare(name clouds.Name, masterCount, nodeCount int)
 	masterTasks := make([]*workflows.Task, 0, masterCount)
 	nodeTasks := make([]*workflows.Task, 0, nodeCount)
 	//some clouds (e.g. AWS) requires running tasks before provisioning nodes (creating a VPC, Subnets, SecGroups, etc)
+	// TODO: no need to switch
 	switch name {
-	case clouds.AWS:
+	case clouds.AWS, clouds.Azure:
 		preProvisionTask, err = workflows.NewTask(workflows.PreProvision, tp.repository)
 		if err != nil {
 			// We can't go further without pre provision task
@@ -690,7 +691,7 @@ func (tp *TaskProvisioner) monitorClusterState(ctx context.Context,
 				continue
 			}
 		case config := <-configChan:
-			logrus.Debugf("update kube %s with config %v", clusterID, config)
+			logrus.Debugf("update kube %s with config %+v", clusterID, config)
 			k, err := tp.kubeService.Get(ctx, clusterID)
 
 			if err != nil {

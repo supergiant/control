@@ -2,11 +2,11 @@ package provider
 
 import (
 	"context"
+	"fmt"
 	"io"
 
 	"github.com/pkg/errors"
 
-	"fmt"
 	"github.com/supergiant/control/pkg/clouds"
 	"github.com/supergiant/control/pkg/workflows/steps"
 	"github.com/supergiant/control/pkg/workflows/steps/amazon"
@@ -33,6 +33,8 @@ func (s *RegisterInstanceToLoadBalancer) Run(ctx context.Context, out io.Writer,
 	case clouds.DigitalOcean:
 		return nil
 	case clouds.GCE:
+		return nil
+	case clouds.Azure:
 		return nil
 	default:
 		return errors.Wrapf(fmt.Errorf("unknown provider: %s", cfg.Provider), RegisterInstanceStepName)

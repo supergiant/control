@@ -45,8 +45,8 @@ type Kube struct {
 	ExternalLoadBalancerName string `json:"externalloadBalancerName"`
 	InternalLoadBalancerName string `json:"internalloadBalancerName"`
 
-	ExternalDNSName  string `json:"externalDNSName"`
-	InternalDNSName  string `json:"internalDNSName"`
+	ExternalDNSName string `json:"externalDNSName"`
+	InternalDNSName string `json:"internalDNSName"`
 
 	CloudSpec profile.CloudSpecificSettings `json:"cloudSpec" valid:"-"`
 

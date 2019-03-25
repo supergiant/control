@@ -10,7 +10,6 @@ import (
 	"k8s.io/apimachinery/pkg/labels"
 
 	"github.com/supergiant/control/pkg/clouds"
-	"github.com/supergiant/control/pkg/model"
 	tm "github.com/supergiant/control/pkg/templatemanager"
 	"github.com/supergiant/control/pkg/workflows/steps"
 	"github.com/supergiant/control/pkg/workflows/steps/docker"
@@ -75,12 +74,4 @@ func getNodeLables(role string) string {
 	return labels.Set(map[string]string{
 		LabelNodeRole: role,
 	}).String()
-}
-
-// TODO: role should be a port of config, it's used by a few tasks
-func toRole(isMaster bool) string {
-	if isMaster {
-		return string(model.RoleMaster)
-	}
-	return string(model.RoleNode)
 }

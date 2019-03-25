@@ -11,6 +11,7 @@ import (
 	"github.com/supergiant/control/pkg/workflows/steps"
 	"github.com/supergiant/control/pkg/workflows/steps/amazon"
 	"github.com/supergiant/control/pkg/workflows/steps/gce"
+	"github.com/supergiant/control/pkg/workflows/steps/azure"
 )
 
 const (
@@ -72,6 +73,13 @@ func prepProvisionStepFor(provider clouds.Name) ([]steps.Step, error) {
 		}, nil
 	case clouds.DigitalOcean:
 		return []steps.Step{}, nil
+	case clouds.Azure:
+		return []steps.Step{
+			steps.GetStep(azure.GetAuthorizerStepName),
+			steps.GetStep(azure.CreateGroupStepName),
+			steps.GetStep(azure.CreateVNetAndSubnetsStepName),
+			steps.GetStep(azure.CreateSecurityGroupStepName),
+		}, nil
 	case clouds.GCE:
 		return []steps.Step{
 			steps.GetStep(gce.CreateIPAddressStepName),

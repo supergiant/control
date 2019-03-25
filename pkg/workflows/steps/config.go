@@ -95,6 +95,7 @@ type AzureConfig struct {
 
 	Location string `json:"location"`
 
+	VMSize string `json:"vmSize"`
 	// TODO: cidr validation?
 	VNetCIDR string `json:"vNetCIDR"`
 }
@@ -302,6 +303,7 @@ func NewConfig(clusterName, cloudAccountName string, profile profile.Profile) (*
 		},
 		AzureConfig: AzureConfig{
 			Location: profile.Region,
+			VNetCIDR: profile.CloudSpecificSettings[clouds.AzureVNetCIDR],
 		},
 		OSConfig:     OSConfig{},
 		PacketConfig: PacketConfig{},

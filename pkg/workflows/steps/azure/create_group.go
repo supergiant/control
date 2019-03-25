@@ -9,7 +9,6 @@ import (
 	"github.com/Azure/go-autorest/autorest/to"
 	"github.com/pkg/errors"
 
-	"github.com/supergiant/control/pkg/clouds"
 	"github.com/supergiant/control/pkg/sgerrors"
 	"github.com/supergiant/control/pkg/workflows/steps"
 )
@@ -37,13 +36,9 @@ func (s *CreateGroupStep) Run(ctx context.Context, output io.Writer, config *ste
 	}
 
 	groupsClient := s.groupsClientFn(config.GetAzureAuthorizer(), config.AzureConfig.SubscriptionID)
-	_, err := groupsClient.CreateOrUpdate(ctx, "", resources.Group{
+	_, err := groupsClient.CreateOrUpdate(ctx, toResourceGroupName(config.ClusterID, config.ClusterName), resources.Group{
 		Name:     to.StringPtr(toResourceGroupName(config.ClusterID, config.ClusterName)),
 		Location: to.StringPtr(config.AzureConfig.Location),
-		Tags: map[string]*string{
-			clouds.TagKubernetesCluster: to.StringPtr(config.ClusterName),
-			clouds.TagClusterID:         to.StringPtr(config.ClusterName),
-		},
 	})
 
 	return errors.Wrap(err, "create resource group")
