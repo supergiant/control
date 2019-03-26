@@ -45,7 +45,13 @@ func New(script *template.Template) *Step {
 }
 
 func (t *Step) Run(ctx context.Context, out io.Writer, config *steps.Config) error {
-	err := steps.RunTemplate(ctx, t.script, config.Runner, out, struct{ Provider clouds.Name }{config.Provider})
+	err := steps.RunTemplate(ctx, t.script, config.Runner, out, struct {
+		Provider   clouds.Name
+		K8SVersion string
+	}{
+		Provider:   config.Provider,
+		K8SVersion: config.KubeadmConfig.K8SVersion,
+	})
 
 	if err != nil {
 		return errors.Wrap(err, "install kubelet step")

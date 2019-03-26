@@ -73,8 +73,8 @@ func Init() {
 		steps.GetStep(downloadk8sbinary.StepName),
 		steps.GetStep(docker.StepName),
 		steps.GetStep(certificates.StepName),
-		steps.GetStep(kubeadm.StepName),
 		steps.GetStep(kubelet.StepName),
+		steps.GetStep(kubeadm.StepName),
 		steps.GetStep(poststart.StepName),
 	}
 
@@ -86,8 +86,8 @@ func Init() {
 		steps.GetStep(downloadk8sbinary.StepName),
 		steps.GetStep(docker.StepName),
 		steps.GetStep(certificates.StepName),
-		steps.GetStep(kubeadm.StepName),
 		steps.GetStep(kubelet.StepName),
+		steps.GetStep(kubeadm.StepName),
 		steps.GetStep(poststart.StepName),
 	}
 
