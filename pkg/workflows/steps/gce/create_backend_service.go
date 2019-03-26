@@ -3,12 +3,10 @@ package gce
 import (
 	"context"
 	"fmt"
-	"io"
-	"time"
-
 	"github.com/pkg/errors"
 	"github.com/sirupsen/logrus"
 	"google.golang.org/api/compute/v1"
+	"io"
 
 	"github.com/supergiant/control/pkg/workflows/steps"
 )
@@ -19,10 +17,8 @@ type CreateBackendServiceStep struct {
 	getComputeSvc func(context.Context, steps.GCEConfig) (*computeService, error)
 }
 
-func NewCreateBackendServiceStep() (*CreateAddressStep, error) {
-	return &CreateAddressStep{
-		Timeout:      time.Second * 10,
-		AttemptCount: 6,
+func NewCreateBackendServiceStep() (*CreateBackendServiceStep, error) {
+	return &CreateBackendServiceStep{
 		getComputeSvc: func(ctx context.Context, config steps.GCEConfig) (*computeService, error) {
 			client, err := GetClient(ctx, config)
 
@@ -32,7 +28,11 @@ func NewCreateBackendServiceStep() (*CreateAddressStep, error) {
 
 			return &computeService{
 				insertBackendService: func(ctx context.Context, config steps.GCEConfig, service *compute.BackendService) (*compute.Operation, error) {
-					return client.BackendServices.Insert(config.ServiceAccount.ProjectID, service).Do()
+					return client.RegionBackendServices.Insert(config.ServiceAccount.ProjectID, config.Region, service).Do()
+				},
+				getInstanceGroup: func(ctx context.Context, config steps.GCEConfig, instaceGroupName string) (*compute.InstanceGroup, error) {
+					config.AvailabilityZone = "us-central1-a"
+					return client.InstanceGroups.Get(config.ProjectID, config.AvailabilityZone, instaceGroupName).Do()
 				},
 			}, nil
 		},
@@ -50,16 +50,24 @@ func (s *CreateBackendServiceStep) Run(ctx context.Context, output io.Writer,
 		return errors.Wrapf(err, "%s getting service caused", CreateBackendServiceStepName)
 	}
 
+	instanceGroup, err := svc.getInstanceGroup(ctx, config.GCEConfig, config.GCEConfig.InstanceGroup)
+
+	if err != nil {
+		return errors.Wrapf(err, "error getting instance group %s", config.GCEConfig.InstanceGroup)
+	}
+
 	backendService := &compute.BackendService{
-		Name:                fmt.Sprintf("backendService-%s", config.ClusterID),
+		Name:                fmt.Sprintf("bs-%s", config.ClusterID),
 		Description:         "Backend service for internal traffic",
 		LoadBalancingScheme: "INTERNAL",
 		Protocol:            "TCP",
+		Region:              config.GCEConfig.Region,
 		Backends: []*compute.Backend{
 			{
-				Group: config.GCEConfig.InstanceGroup,
+				Group: instanceGroup.SelfLink,
 			},
 		},
+		HealthChecks: []string{config.GCEConfig.HealthCheckName},
 	}
 
 	_, err = svc.insertBackendService(ctx, config.GCEConfig, backendService)

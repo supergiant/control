@@ -2,13 +2,12 @@ package gce
 
 import (
 	"context"
-	"io"
-	"time"
-
 	"github.com/pkg/errors"
 	"github.com/sirupsen/logrus"
 	"google.golang.org/api/compute/v1"
+	"io"
 
+	"fmt"
 	"github.com/supergiant/control/pkg/workflows/steps"
 )
 
@@ -18,10 +17,8 @@ type CreateHealthCheck struct {
 	getComputeSvc func(context.Context, steps.GCEConfig) (*computeService, error)
 }
 
-func NewCreateHealthCheckStep() (*CreateAddressStep, error) {
-	return &CreateAddressStep{
-		Timeout:      time.Second * 10,
-		AttemptCount: 6,
+func NewCreateHealthCheckStep() (*CreateHealthCheck, error) {
+	return &CreateHealthCheck{
 		getComputeSvc: func(ctx context.Context, config steps.GCEConfig) (*computeService, error) {
 			client, err := GetClient(ctx, config)
 
@@ -32,6 +29,9 @@ func NewCreateHealthCheckStep() (*CreateAddressStep, error) {
 			return &computeService{
 				insertHealthCheck: func(ctx context.Context, config steps.GCEConfig, check *compute.HealthCheck) (*compute.Operation, error) {
 					return client.HealthChecks.Insert(config.ServiceAccount.ProjectID, check).Do()
+				},
+				getHealthCheck: func(ctx context.Context, config steps.GCEConfig, healthCheckName string) (*compute.HealthCheck, error) {
+					return client.HealthChecks.Get(config.ProjectID, healthCheckName).Do()
 				},
 				addHealthCheckToTargetPool: func(ctx context.Context, config steps.GCEConfig, targetPool string, request *compute.TargetPoolsAddHealthCheckRequest) (*compute.Operation, error) {
 					return client.TargetPools.AddHealthCheck(config.ServiceAccount.ProjectID, config.Region, targetPool, request).Do()
@@ -53,14 +53,13 @@ func (s *CreateHealthCheck) Run(ctx context.Context, output io.Writer,
 	}
 
 	healthCheck := &compute.HealthCheck{
-		Name:               "healthCheck",
+		Name:               fmt.Sprintf("hc-%s", config.ClusterID),
 		CheckIntervalSec:   10,
 		HealthyThreshold:   3,
 		UnhealthyThreshold: 3,
-		Type:               "HTTPS",
-		HttpsHealthCheck: &compute.HTTPSHealthCheck{
-			Port:        443,
-			RequestPath: "/healthz",
+		Type:               "TCP",
+		TcpHealthCheck: &compute.TCPHealthCheck{
+			Port: 443,
 		},
 	}
 
@@ -72,33 +71,9 @@ func (s *CreateHealthCheck) Run(ctx context.Context, output io.Writer,
 			CreateHealthCheckStepName)
 	}
 
-	addHealthCheckRequest := &compute.TargetPoolsAddHealthCheckRequest{
-		HealthChecks: []*compute.HealthCheckReference{
-			{
-				HealthCheck: healthCheck.Name,
-			},
-		},
-	}
+	hc, err := svc.getHealthCheck(ctx, config.GCEConfig, healthCheck.Name)
 
-	_, err = svc.addHealthCheckToTargetPool(ctx, config.GCEConfig,
-		config.GCEConfig.TargetPoolName, addHealthCheckRequest)
-
-	if err != nil {
-		logrus.Errorf("Error adding health check %s to target pool %s %v",
-			healthCheck.Name, config.GCEConfig.TargetPoolName, err)
-		return errors.Wrapf(err, "%s adding health check %s to target pool %s caused",
-			healthCheck.Name, config.GCEConfig.TargetPoolName, CreateHealthCheckStepName)
-	}
-
-	_, err = svc.addHealthCheckToTargetPool(ctx, config.GCEConfig,
-		config.GCEConfig.BackendServiceName, addHealthCheckRequest)
-
-	if err != nil {
-		logrus.Errorf("Error adding health check %s to target pool %s %v",
-			healthCheck.Name, config.GCEConfig.BackendServiceName, err)
-		return errors.Wrapf(err, "%s adding health check %s to target pool %s caused",
-			healthCheck.Name, config.GCEConfig.BackendServiceName, CreateHealthCheckStepName)
-	}
+	config.GCEConfig.HealthCheckName = hc.SelfLink
 
 	return nil
 }

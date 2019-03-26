@@ -7,10 +7,9 @@ import (
 	"google.golang.org/api/compute/v1"
 	"google.golang.org/api/option"
 
-
-	"github.com/supergiant/control/pkg/workflows/steps"
-	"github.com/pkg/errors"
 	"encoding/json"
+	"github.com/pkg/errors"
+	"github.com/supergiant/control/pkg/workflows/steps"
 )
 
 type computeService struct {
@@ -31,6 +30,8 @@ type computeService struct {
 	addHealthCheckToTargetPool func(context.Context, steps.GCEConfig, string, *compute.TargetPoolsAddHealthCheckRequest) (*compute.Operation, error)
 	insertInstanceGroup        func(context.Context, steps.GCEConfig, *compute.InstanceGroup) (*compute.Operation, error)
 	insertBackendService       func(context.Context, steps.GCEConfig, *compute.BackendService) (*compute.Operation, error)
+	getHealthCheck             func(context.Context, steps.GCEConfig, string) (*compute.HealthCheck, error)
+	getInstanceGroup           func(context.Context, steps.GCEConfig, string) (*compute.InstanceGroup, error)
 }
 
 func Init() {

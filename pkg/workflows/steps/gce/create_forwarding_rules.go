@@ -48,7 +48,7 @@ func (s *CreateForwardingRules) Run(ctx context.Context, output io.Writer,
 	}
 
 	externalForwardingRule := &compute.ForwardingRule{
-		Name:                fmt.Sprintf("ex-rule-%s", config.ClusterID),
+		Name:                fmt.Sprintf("exrule-%s", config.ClusterID),
 		IPAddress:           config.GCEConfig.ExternalIPAddress,
 		LoadBalancingScheme: "EXTERNAL",
 		Description:         "External forwarding rule to target pool",
@@ -66,7 +66,7 @@ func (s *CreateForwardingRules) Run(ctx context.Context, output io.Writer,
 	}
 
 	internalForwardingRule := &compute.ForwardingRule{
-		Name:                fmt.Sprintf("in-rule-%s", config.ClusterID),
+		Name:                fmt.Sprintf("inrule-%s", config.ClusterID),
 		IPAddress:           config.GCEConfig.InternalIPAddress,
 		LoadBalancingScheme: "INTERNAL",
 		Description:         "Internal forwarding rule to target pool",

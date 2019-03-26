@@ -286,7 +286,6 @@ func NewConfig(clusterName, cloudAccountName string, profile profile.Profile) (*
 	if err != nil {
 		return nil, errors.Wrapf(err, "bootstrap token")
 	}
-
 	return &Config{
 		Kube: model.Kube{
 			SSHConfig: model.SSHConfig{

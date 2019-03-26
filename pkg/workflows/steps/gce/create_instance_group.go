@@ -29,6 +29,8 @@ func NewCreateInstanceGroupStep() (*CreateInstanceGroupStep, error) {
 
 			return &computeService{
 				insertInstanceGroup: func(ctx context.Context, config steps.GCEConfig, group *compute.InstanceGroup) (*compute.Operation, error) {
+					// TODO(stgleb): Create instance group for each AZ
+					config.AvailabilityZone = "us-central1-a"
 					return client.InstanceGroups.Insert(config.ServiceAccount.ProjectID, config.AvailabilityZone, group).Do()
 				},
 			}, nil
@@ -38,13 +40,13 @@ func NewCreateInstanceGroupStep() (*CreateInstanceGroupStep, error) {
 
 func (s *CreateInstanceGroupStep) Run(ctx context.Context, output io.Writer,
 	config *steps.Config) error {
-	logrus.Debugf("Step %s", CreateIPAddressStepName)
+	logrus.Debugf("Step %s", CreateInstanceGroupStepName)
 
 	svc, err := s.getComputeSvc(ctx, config.GCEConfig)
 
 	if err != nil {
 		logrus.Errorf("Error getting service %v", err)
-		return errors.Wrapf(err, "%s getting service caused", CreateIPAddressStepName)
+		return errors.Wrapf(err, "%s getting service caused", CreateInstanceGroupStepName)
 	}
 
 	instanceGroup := &compute.InstanceGroup{
@@ -56,7 +58,7 @@ func (s *CreateInstanceGroupStep) Run(ctx context.Context, output io.Writer,
 
 	if err != nil {
 		logrus.Errorf("Error creating instance group %v", err)
-		return errors.Wrapf(err, "%s creating instance group caused", CreateIPAddressStepName)
+		return errors.Wrapf(err, "%s creating instance group caused", CreateInstanceGroupStepName)
 	}
 
 	config.GCEConfig.InstanceGroup = instanceGroup.Name
