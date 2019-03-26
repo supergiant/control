@@ -79,7 +79,7 @@ type ServiceAccount struct {
 }
 
 type GCEConfig struct {
-	ServiceAccount ServiceAccount `json:"serviceAccount"`
+	ServiceAccount
 
 	// This comes from profile
 	ImageFamily      string `json:"imageFamily"`

@@ -398,7 +398,7 @@ func (g *GCEResourceFinder) GetRegions(ctx context.Context) (*RegionSizes, error
 
 func (g *GCEResourceFinder) GetZones(ctx context.Context, config steps.Config) ([]string, error) {
 	regionOutput, err := g.getRegion(g.client, g.config.GCEConfig.ServiceAccount.ProjectID,
-		"us-central1"/*g.config.GCEConfig.Region*/)
+		g.config.GCEConfig.Region)
 
 	if err != nil {
 		return nil, errors.Wrap(err, "gce get availability zones")
