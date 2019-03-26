@@ -2,6 +2,7 @@ package gce
 
 import (
 	"context"
+	"fmt"
 	"io"
 	"time"
 
@@ -9,7 +10,6 @@ import (
 	"github.com/sirupsen/logrus"
 	"google.golang.org/api/compute/v1"
 
-	"fmt"
 	"github.com/supergiant/control/pkg/workflows/steps"
 )
 
