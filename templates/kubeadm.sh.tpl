@@ -6,8 +6,12 @@ deb https://apt.kubernetes.io/ kubernetes-xenial main
 EOF"
 
 sudo apt-get update
-sudo apt-get install -y kubelet kubeadm kubectl --allow-unauthenticated
-sudo apt-mark hold kubelet kubeadm kubectl
+sudo wget https://dl.k8s.io/v{{ .K8SVersion }}/kubernetes-server-linux-amd64.tar.gz
+sudo tar -xvf kubernetes-server-linux-amd64.tar.gz
+sudo cp kubernetes/server/bin/kubelet /usr/bin
+sudo cp kubernetes/server/bin/kubectl /usr/bin
+sudo apt-get install -y kubeadm --allow-unauthenticated
+sudo apt-mark hold kubeadm
 
 sudo systemctl daemon-reload
 sudo systemctl restart kubelet
