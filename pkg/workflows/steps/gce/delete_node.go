@@ -21,8 +21,7 @@ type DeleteNodeStep struct {
 func NewDeleteNodeStep() (*DeleteNodeStep, error) {
 	return &DeleteNodeStep{
 		getComputeSvc: func(ctx context.Context, config steps.GCEConfig) (*computeService, error) {
-			client, err := GetClient(ctx, config.ClientEmail,
-				config.PrivateKey, config.TokenURI)
+			client, err := GetClient(ctx, config)
 
 			if err != nil {
 				return nil, err
@@ -47,7 +46,7 @@ func (s *DeleteNodeStep) Run(ctx context.Context, output io.Writer, config *step
 
 	logrus.Debugf("Delete node %s in %s",
 		config.Node.Name, config.Node.Region)
-	_, serr := svc.deleteInstance(config.GCEConfig.ProjectID,
+	_, serr := svc.deleteInstance(config.GCEConfig.ServiceAccount.ProjectID,
 		config.Node.Region,
 		config.Node.Name)
 

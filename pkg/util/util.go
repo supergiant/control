@@ -114,7 +114,7 @@ func FillCloudAccountCredentials(cloudAccount *model.CloudAccount, config *steps
 	case clouds.DigitalOcean:
 		return BindParams(cloudAccount.Credentials, &config.DigitalOceanConfig)
 	case clouds.GCE:
-		return BindParams(cloudAccount.Credentials, &config.GCEConfig)
+		return BindParams(cloudAccount.Credentials, &config.GCEConfig.ServiceAccount)
 	case clouds.Azure:
 		return BindParams(cloudAccount.Credentials, &config.AzureConfig)
 	default:

@@ -60,14 +60,26 @@ type DOConfig struct {
 	InternalLoadBalancerID string `json:"internalLoadBalancerId"`
 }
 
-// TODO(stgleb): Fill struct with fields when provisioning on other providers is done
+type ServiceAccount struct {
+	// NOTE(stgleb): This comes from cloud account
+	Type      string `json:"type"`
+	ProjectID string `json:"project_id"`
+
+	PrivateKeyID string `json:"private_key_id"`
+	PrivateKey   string `json:"private_key"`
+
+	ClientEmail string `json:"client_email"`
+	ClientID    string `json:"client_id"`
+
+	AuthURI  string `json:"auth_uri"`
+	TokenURI string `json:"token_uri"`
+
+	AuthProviderX509CertURL string `json:"auth_provider_x509_cert_url"`
+	ClientX509CertUrl       string `json:"client_x509_cert_url"`
+}
 
 type GCEConfig struct {
-	// NOTE(stgleb): This comes from cloud account
-	PrivateKey  string `json:"private_key"`
-	ClientEmail string `json:"client_email"`
-	TokenURI    string `json:"token_uri"`
-	ProjectID   string `json:"project_id"`
+	ServiceAccount ServiceAccount `json:"serviceAccount"`
 
 	// This comes from profile
 	ImageFamily      string `json:"imageFamily"`
@@ -303,6 +315,7 @@ func NewConfig(clusterName, cloudAccountName string, profile profile.Profile) (*
 		GCEConfig: GCEConfig{
 			AvailabilityZone: profile.Zone,
 			ImageFamily:      "ubuntu-1604-lts",
+			Region:   		  profile.Region,
 		},
 		AzureConfig: AzureConfig{
 			Location: profile.Region,

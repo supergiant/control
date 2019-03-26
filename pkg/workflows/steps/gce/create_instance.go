@@ -33,8 +33,7 @@ func NewCreateInstanceStep(period, timeout time.Duration) (*CreateInstanceStep, 
 		checkPeriod:     period,
 		instanceTimeout: timeout,
 		getComputeSvc: func(ctx context.Context, config steps.GCEConfig) (*computeService, error) {
-			client, err := GetClient(ctx, config.ClientEmail,
-				config.PrivateKey, config.TokenURI)
+			client, err := GetClient(ctx, config)
 
 			if err != nil {
 				return nil, err
@@ -46,29 +45,29 @@ func NewCreateInstanceStep(period, timeout time.Duration) (*CreateInstanceStep, 
 				},
 				getMachineTypes: func(ctx context.Context,
 					config steps.GCEConfig) (*compute.MachineType, error) {
-					return client.MachineTypes.Get(config.ProjectID,
+					return client.MachineTypes.Get(config.ServiceAccount.ProjectID,
 						config.AvailabilityZone, config.Size).Do()
 				},
 				insertInstance: func(ctx context.Context,
 					config steps.GCEConfig, instance *compute.Instance) (*compute.Operation, error) {
-					return client.Instances.Insert(config.ProjectID,
+					return client.Instances.Insert(config.ServiceAccount.ProjectID,
 						config.AvailabilityZone, instance).Do()
 				},
 				getInstance: func(ctx context.Context,
 					config steps.GCEConfig, name string) (*compute.Instance, error) {
-					return client.Instances.Get(config.ProjectID,
+					return client.Instances.Get(config.ServiceAccount.ProjectID,
 						config.AvailabilityZone, name).Do()
 				},
 				setInstanceMetadata: func(ctx context.Context, config steps.GCEConfig,
 					name string, metadata *compute.Metadata) (*compute.Operation, error) {
-					return client.Instances.SetMetadata(config.ProjectID,
+					return client.Instances.SetMetadata(config.ServiceAccount.ProjectID,
 						config.AvailabilityZone, name, metadata).Do()
 				},
 				addInstanceToTargetGroup: func(ctx context.Context, config steps.GCEConfig, targetPoolName string, request *compute.TargetPoolsAddInstanceRequest) (*compute.Operation, error) {
-					return client.TargetPools.AddInstance(config.ProjectID, config.Region, config.TargetPoolName, request).Do()
+					return client.TargetPools.AddInstance(config.ServiceAccount.ProjectID, config.Region, config.TargetPoolName, request).Do()
 				},
 				addInstanceToInstanceGroup: func(ctx context.Context, config steps.GCEConfig, instanceGroup string, request *compute.InstanceGroupsAddInstancesRequest) (*compute.Operation, error) {
-					return client.InstanceGroups.AddInstances(config.ProjectID, config.AvailabilityZone,
+					return client.InstanceGroups.AddInstances(config.ServiceAccount.ProjectID, config.AvailabilityZone,
 						config.InstanceGroup, request).Do()
 				},
 			}, nil
@@ -104,7 +103,7 @@ func (s *CreateInstanceStep) Run(ctx context.Context, output io.Writer,
 		return errors.Wrapf(err, "error gettting machine types")
 	}
 
-	prefix := "https://www.googleapis.com/compute/v1/projects/" + config.GCEConfig.ProjectID
+	prefix := "https://www.googleapis.com/compute/v1/projects/" + config.GCEConfig.ServiceAccount.ProjectID
 
 	role := "master"
 
@@ -174,7 +173,7 @@ func (s *CreateInstanceStep) Run(ctx context.Context, output io.Writer,
 		},
 		ServiceAccounts: []*compute.ServiceAccount{
 			{
-				Email: config.GCEConfig.ClientEmail,
+				Email: config.GCEConfig.ServiceAccount.ClientEmail,
 				Scopes: []string{
 					compute.DevstorageFullControlScope,
 					compute.ComputeScope,

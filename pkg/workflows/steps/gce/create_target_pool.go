@@ -20,8 +20,7 @@ type CreateTargetPoolStep struct {
 func NewCreateTargetPoolStep() (*CreateTargetPoolStep, error) {
 	return &CreateTargetPoolStep{
 		getComputeSvc: func(ctx context.Context, config steps.GCEConfig) (*computeService, error) {
-			client, err := GetClient(ctx, config.ClientEmail,
-				config.PrivateKey, config.TokenURI)
+			client, err := GetClient(ctx, config)
 
 			if err != nil {
 				return nil, err
@@ -29,10 +28,10 @@ func NewCreateTargetPoolStep() (*CreateTargetPoolStep, error) {
 
 			return &computeService{
 				insertTargetPool: func(ctx context.Context, config steps.GCEConfig, targetPool *compute.TargetPool) (*compute.Operation, error) {
-					return client.TargetPools.Insert(config.ProjectID, config.Region, targetPool).Do()
+					return client.TargetPools.Insert(config.ServiceAccount.ProjectID, config.Region, targetPool).Do()
 				},
 				addHealthCheckToTargetPool: func(ctx context.Context, config steps.GCEConfig, targetPool string, request *compute.TargetPoolsAddHealthCheckRequest) (*compute.Operation, error) {
-					return client.TargetPools.AddHealthCheck(config.ProjectID, config.Region, targetPool, request).Do()
+					return client.TargetPools.AddHealthCheck(config.ServiceAccount.ProjectID, config.Region, targetPool, request).Do()
 				},
 			}, nil
 		},

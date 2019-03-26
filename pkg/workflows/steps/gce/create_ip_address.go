@@ -5,9 +5,9 @@ import (
 	"fmt"
 	"io"
 	"time"
-
 	"github.com/pkg/errors"
 	"github.com/sirupsen/logrus"
+
 	"google.golang.org/api/compute/v1"
 
 	"github.com/supergiant/control/pkg/workflows/steps"
@@ -26,8 +26,7 @@ func NewCreateAddressStep() (*CreateAddressStep, error) {
 		Timeout:      time.Second * 10,
 		AttemptCount: 6,
 		getComputeSvc: func(ctx context.Context, config steps.GCEConfig) (*computeService, error) {
-			client, err := GetClient(ctx, config.ClientEmail,
-				config.PrivateKey, config.TokenURI)
+			client, err := GetClient(ctx, config)
 
 			if err != nil {
 				return nil, err
@@ -35,10 +34,10 @@ func NewCreateAddressStep() (*CreateAddressStep, error) {
 
 			return &computeService{
 				insertAddress: func(ctx context.Context, config steps.GCEConfig, address *compute.Address) (*compute.Operation, error) {
-					return client.Addresses.Insert(config.ProjectID, config.Region, address).Do()
+					return client.Addresses.Insert(config.ServiceAccount.ProjectID, config.Region, address).Do()
 				},
 				getAddress: func(ctx context.Context, config steps.GCEConfig, addressName string) (*compute.Address, error) {
-					return client.Addresses.Get(config.ProjectID, config.Region, addressName).Do()
+					return client.Addresses.Get(config.ServiceAccount.ProjectID, config.Region, addressName).Do()
 				},
 			}, nil
 		},
@@ -63,7 +62,6 @@ func (s *CreateAddressStep) Run(ctx context.Context, output io.Writer,
 		Name:        externalAddressName,
 		Description: "External static IP address",
 		AddressType: "EXTERNAL",
-		IpVersion:   "IPV4",
 	}
 
 	_, err = svc.insertAddress(ctx, config.GCEConfig, externalAddress)
@@ -100,7 +98,6 @@ func (s *CreateAddressStep) Run(ctx context.Context, output io.Writer,
 		Name:        internalAddressName,
 		Description: "Internal static IP address",
 		AddressType: "INTERNAL",
-		IpVersion:   "IPV4",
 	}
 	_, err = svc.insertAddress(ctx, config.GCEConfig, internalAddress)
 

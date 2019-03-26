@@ -24,8 +24,7 @@ func NewCreateBackendServiceStep() (*CreateAddressStep, error) {
 		Timeout:      time.Second * 10,
 		AttemptCount: 6,
 		getComputeSvc: func(ctx context.Context, config steps.GCEConfig) (*computeService, error) {
-			client, err := GetClient(ctx, config.ClientEmail,
-				config.PrivateKey, config.TokenURI)
+			client, err := GetClient(ctx, config)
 
 			if err != nil {
 				return nil, err
@@ -33,7 +32,7 @@ func NewCreateBackendServiceStep() (*CreateAddressStep, error) {
 
 			return &computeService{
 				insertBackendService: func(ctx context.Context, config steps.GCEConfig, service *compute.BackendService) (*compute.Operation, error) {
-					return client.BackendServices.Insert(config.ProjectID, service).Do()
+					return client.BackendServices.Insert(config.ServiceAccount.ProjectID, service).Do()
 				},
 			}, nil
 		},

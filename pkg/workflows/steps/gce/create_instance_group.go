@@ -21,8 +21,7 @@ type CreateInstanceGroupStep struct {
 func NewCreateInstanceGroupStep() (*CreateInstanceGroupStep, error) {
 	return &CreateInstanceGroupStep{
 		getComputeSvc: func(ctx context.Context, config steps.GCEConfig) (*computeService, error) {
-			client, err := GetClient(ctx, config.ClientEmail,
-				config.PrivateKey, config.TokenURI)
+			client, err := GetClient(ctx, config)
 
 			if err != nil {
 				return nil, err
@@ -30,7 +29,7 @@ func NewCreateInstanceGroupStep() (*CreateInstanceGroupStep, error) {
 
 			return &computeService{
 				insertInstanceGroup: func(ctx context.Context, config steps.GCEConfig, group *compute.InstanceGroup) (*compute.Operation, error) {
-					return client.InstanceGroups.Insert(config.ProjectID, config.AvailabilityZone, group).Do()
+					return client.InstanceGroups.Insert(config.ServiceAccount.ProjectID, config.AvailabilityZone, group).Do()
 				},
 			}, nil
 		},

@@ -21,8 +21,7 @@ type CreateForwardingRules struct {
 func NewCreateForwardingRulesStep() (*CreateForwardingRules, error) {
 	return &CreateForwardingRules{
 		getComputeSvc: func(ctx context.Context, config steps.GCEConfig) (*computeService, error) {
-			client, err := GetClient(ctx, config.ClientEmail,
-				config.PrivateKey, config.TokenURI)
+			client, err := GetClient(ctx, config)
 
 			if err != nil {
 				return nil, err
@@ -30,7 +29,7 @@ func NewCreateForwardingRulesStep() (*CreateForwardingRules, error) {
 
 			return &computeService{
 				insertForwardingRule: func(ctx context.Context, config steps.GCEConfig, rule *compute.ForwardingRule) (*compute.Operation, error) {
-					return client.ForwardingRules.Insert(config.ProjectID, config.Region, rule).Do()
+					return client.ForwardingRules.Insert(config.ServiceAccount.ProjectID, config.Region, rule).Do()
 				},
 			}, nil
 		},

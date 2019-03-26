@@ -4,11 +4,13 @@ import (
 	"context"
 	"time"
 
-	"golang.org/x/oauth2/jwt"
-	compute "google.golang.org/api/compute/v1"
-	"google.golang.org/api/dns/v1"
+	"google.golang.org/api/compute/v1"
+	"google.golang.org/api/option"
+
 
 	"github.com/supergiant/control/pkg/workflows/steps"
+	"github.com/pkg/errors"
+	"encoding/json"
 )
 
 type computeService struct {
@@ -51,23 +53,17 @@ func Init() {
 	steps.RegisterStep(CreateBackendServiceStepName, createBackendService)
 }
 
-func GetClient(ctx context.Context, email, privateKey, tokenUri string) (*compute.Service, error) {
-	clientScopes := []string{
-		compute.ComputeScope,
-		compute.CloudPlatformScope,
-		dns.NdevClouddnsReadwriteScope,
-		compute.DevstorageFullControlScope,
+func GetClient(ctx context.Context, config steps.GCEConfig) (*compute.Service, error) {
+	data, err := json.Marshal(&config.ServiceAccount)
+
+	if err != nil {
+		return nil, errors.Wrapf(err, "Error marshalling service account")
 	}
 
-	conf := jwt.Config{
-		Email:      email,
-		PrivateKey: []byte(privateKey),
-		Scopes:     clientScopes,
-		TokenURL:   tokenUri,
-	}
+	opts := option.WithCredentialsJSON(data)
 
-	client := conf.Client(ctx)
-	computeService, err := compute.New(client)
+	computeService, err := compute.NewService(ctx, opts)
+
 	if err != nil {
 		return nil, err
 	}

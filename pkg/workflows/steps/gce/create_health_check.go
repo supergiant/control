@@ -23,8 +23,7 @@ func NewCreateHealthCheckStep() (*CreateAddressStep, error) {
 		Timeout:      time.Second * 10,
 		AttemptCount: 6,
 		getComputeSvc: func(ctx context.Context, config steps.GCEConfig) (*computeService, error) {
-			client, err := GetClient(ctx, config.ClientEmail,
-				config.PrivateKey, config.TokenURI)
+			client, err := GetClient(ctx, config)
 
 			if err != nil {
 				return nil, err
@@ -32,10 +31,10 @@ func NewCreateHealthCheckStep() (*CreateAddressStep, error) {
 
 			return &computeService{
 				insertHealthCheck: func(ctx context.Context, config steps.GCEConfig, check *compute.HealthCheck) (*compute.Operation, error) {
-					return client.HealthChecks.Insert(config.ProjectID, check).Do()
+					return client.HealthChecks.Insert(config.ServiceAccount.ProjectID, check).Do()
 				},
 				addHealthCheckToTargetPool: func(ctx context.Context, config steps.GCEConfig, targetPool string, request *compute.TargetPoolsAddHealthCheckRequest) (*compute.Operation, error) {
-					return client.TargetPools.AddHealthCheck(config.ProjectID, config.Region, targetPool, request).Do()
+					return client.TargetPools.AddHealthCheck(config.ServiceAccount.ProjectID, config.Region, targetPool, request).Do()
 				},
 			}, nil
 		},
