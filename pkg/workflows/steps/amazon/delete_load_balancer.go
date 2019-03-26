@@ -47,31 +47,32 @@ func NewDeleteLoadBalancerStep(getELBFn GetELBFn) *DeleteLoadBalancerStep {
 
 func (s *DeleteLoadBalancerStep) Run(ctx context.Context, out io.Writer, cfg *steps.Config) error {
 	svc, err := s.getLoadBalancerService(cfg.AWSConfig)
-
 	if err != nil {
 		logrus.Errorf("error getting ELB service %v", err)
 		return errors.Wrapf(err, "error getting ELB service %s",
 			DeleteLoadBalancerStepName)
 	}
 
-	_, err = svc.DeleteLoadBalancerWithContext(ctx, &elb.DeleteLoadBalancerInput{
-		LoadBalancerName: aws.String(cfg.AWSConfig.ExternalLoadBalancerName),
-	})
-
-	if err != nil {
-		logrus.Errorf("error deleting external loadbalancer %s %v", cfg.AWSConfig.ExternalLoadBalancerName, err)
-		return errors.Wrapf(err, "error deleteing external Load balancer %s %s", cfg.AWSConfig.ExternalLoadBalancerName,
-			DeleteLoadBalancerStepName)
+	if cfg.AWSConfig.ExternalLoadBalancerName != "" {
+		_, err = svc.DeleteLoadBalancerWithContext(ctx, &elb.DeleteLoadBalancerInput{
+			LoadBalancerName: aws.String(cfg.AWSConfig.ExternalLoadBalancerName),
+		})
+		if err != nil {
+			logrus.Errorf("error deleting external loadbalancer %s %v", cfg.AWSConfig.ExternalLoadBalancerName, err)
+			return errors.Wrapf(err, "error deleteing external Load balancer %s %s", cfg.AWSConfig.ExternalLoadBalancerName,
+				DeleteLoadBalancerStepName)
+		}
 	}
 
-	_, err = svc.DeleteLoadBalancerWithContext(ctx, &elb.DeleteLoadBalancerInput{
-		LoadBalancerName: aws.String(cfg.AWSConfig.InternalLoadBalancerName),
-	})
-
-	if err != nil {
-		logrus.Errorf("error deleting internal loadbalancer %s %v", cfg.AWSConfig.InternalLoadBalancerName, err)
-		return errors.Wrapf(err, "error deleteing internal Load balancer %s %s", cfg.AWSConfig.InternalLoadBalancerName,
-			DeleteLoadBalancerStepName)
+	if cfg.AWSConfig.InternalLoadBalancerName != "" {
+		_, err = svc.DeleteLoadBalancerWithContext(ctx, &elb.DeleteLoadBalancerInput{
+			LoadBalancerName: aws.String(cfg.AWSConfig.InternalLoadBalancerName),
+		})
+		if err != nil {
+			logrus.Errorf("error deleting internal loadbalancer %s %v", cfg.AWSConfig.InternalLoadBalancerName, err)
+			return errors.Wrapf(err, "error deleteing internal Load balancer %s %s", cfg.AWSConfig.InternalLoadBalancerName,
+				DeleteLoadBalancerStepName)
+		}
 	}
 
 	return nil

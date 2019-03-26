@@ -270,6 +270,7 @@ func NewConfig(clusterName, cloudAccountName string, profile profile.Profile) (*
 				Timeout:   30,
 				PublicKey: profile.PublicKey,
 			},
+			ExposedAddresses: profile.ExposedAddresses,
 		},
 		Provider:    profile.Provider,
 		ClusterName: clusterName,

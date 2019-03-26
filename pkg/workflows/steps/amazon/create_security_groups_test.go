@@ -155,20 +155,6 @@ func TestCreateSecurityGroupsStep_Run(t *testing.T) {
 			errMsg:        "message7",
 		},
 		{
-			description: "white list SG IP #2",
-			createMasterGroupOutput: &ec2.CreateSecurityGroupOutput{
-				GroupId: aws.String("masterID"),
-			},
-			createNodeGroupOutput: &ec2.CreateSecurityGroupOutput{
-				GroupId: aws.String("nodeID"),
-			},
-			findOutboundIP: func() (string, error) {
-				return "10.20.30.40", nil
-			},
-			whiteListErr2: errors.New("message8"),
-			errMsg:        "message8",
-		},
-		{
 			description: "success",
 			createMasterGroupOutput: &ec2.CreateSecurityGroupOutput{
 				GroupId: aws.String("masterID"),
@@ -187,7 +173,6 @@ func TestCreateSecurityGroupsStep_Run(t *testing.T) {
 	timeout = time.Nanosecond
 
 	for _, testCase := range testCases {
-		t.Log(testCase.description)
 		svc := &mockSecurityGroupSvc{}
 		svc.On("CreateSecurityGroupWithContext",
 			mock.Anything, mock.Anything, mock.Anything).
@@ -245,12 +230,11 @@ func TestCreateSecurityGroupsStep_Run(t *testing.T) {
 		err := step.Run(context.Background(), &bytes.Buffer{}, config)
 
 		if err == nil && testCase.errMsg != "" {
-			t.Errorf("Error must not be nil")
+			t.Errorf("TC: %s: Error must not be nil", testCase.description)
 		}
 
 		if err != nil && !strings.Contains(err.Error(), testCase.errMsg) {
-			t.Errorf("Wrong error message %v must contain %s",
-				err, testCase.errMsg)
+			t.Errorf("TC: %s: Wrong error message %v must contain %s", err, testCase.errMsg, testCase.description)
 		}
 	}
 }

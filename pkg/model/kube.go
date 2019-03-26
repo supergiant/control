@@ -42,8 +42,8 @@ type Kube struct {
 	Networking             Networking        `json:"networking"`
 	Subnets                map[string]string `json:"subnets"`
 
-	ExternalDNSName  string `json:"externalDNSName"`
-	InternalDNSName  string `json:"internalDNSName"`
+	ExternalDNSName string `json:"externalDNSName"`
+	InternalDNSName string `json:"internalDNSName"`
 
 	CloudSpec profile.CloudSpecificSettings `json:"cloudSpec" valid:"-"`
 
@@ -63,6 +63,8 @@ type Kube struct {
 	BootstrapPublicKey []byte `json:"bootstrapPublicKey"`
 	// DEPRECATED
 	BootstrapPrivateKey []byte `json:"bootstrapPrivateKey"`
+
+	ExposedAddresses []profile.Addresses `json:"exposedAddresses"`
 }
 
 type SSHConfig struct {
