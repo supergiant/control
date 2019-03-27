@@ -37,7 +37,7 @@ type computeService struct {
 }
 
 func Init() {
-	createInstance, _ := NewCreateInstanceStep(time.Second*10, time.Minute*1)
+	createInstance, _ := NewCreateInstanceStep(time.Second*10, time.Minute*5)
 	deleteCluster, _ := NewDeleteClusterStep()
 	deleteNode, _ := NewDeleteNodeStep()
 	createTargetPool, _ := NewCreateTargetPoolStep()

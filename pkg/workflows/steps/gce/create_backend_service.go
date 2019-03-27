@@ -3,13 +3,14 @@ package gce
 import (
 	"context"
 	"fmt"
+	"time"
+	"io"
+
 	"github.com/pkg/errors"
 	"github.com/sirupsen/logrus"
 	"google.golang.org/api/compute/v1"
-	"io"
 
 	"github.com/supergiant/control/pkg/workflows/steps"
-	"time"
 )
 
 const CreateBackendServiceStepName = "gce_create_backend_service"
@@ -36,7 +37,7 @@ func NewCreateBackendServiceStep() (*CreateBackendServiceStep, error) {
 					return client.InstanceGroups.Get(config.ProjectID, config.AvailabilityZone, instaceGroupName).Do()
 				},
 				getBackendService: func(ctx context.Context, config steps.GCEConfig, backenServiceName string) (*compute.BackendService, error) {
-					return client.BackendServices.Get(config.ProjectID, backenServiceName).Do()
+					return client.RegionBackendServices.Get(config.ProjectID, config.Region, backenServiceName).Do()
 				},
 			}, nil
 		},
@@ -80,7 +81,6 @@ func (s *CreateBackendServiceStep) Run(ctx context.Context, output io.Writer,
 		return errors.Wrapf(err, "error creating backend service")
 	}
 
-	time.Sleep(time.Minute * 1)
 	backendService, err = svc.getBackendService(ctx, config.GCEConfig, backendService.Name)
 
 	if err != nil {
@@ -91,6 +91,8 @@ func (s *CreateBackendServiceStep) Run(ctx context.Context, output io.Writer,
 	config.GCEConfig.BackendServiceName = backendService.Name
 	config.GCEConfig.BackendServiceLink = backendService.SelfLink
 
+	// NOTE(stgleb): There is no field that signals for backend service is available so we simple sleep.
+	time.Sleep(time.Minute * 1)
 	return nil
 }
 

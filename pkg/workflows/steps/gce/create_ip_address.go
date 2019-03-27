@@ -92,7 +92,7 @@ func (s *CreateAddressStep) Run(ctx context.Context, output io.Writer,
 	logrus.Debugf("Save external IP address SelfLink %s", externalAddress.SelfLink)
 	config.GCEConfig.ExternalIPAddressLink = externalAddress.SelfLink
 	config.ExternalDNSName = externalAddress.Address
-	internalAddressName := fmt.Sprintf("in-ip-%s", config.ClusterID)
+	internalAddressName := fmt.Sprintf("in-%s", config.ClusterID)
 	config.GCEConfig.InternalAddressName = internalAddressName
 
 	internalAddress := &compute.Address{

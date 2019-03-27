@@ -74,6 +74,7 @@ func (s *CreateForwardingRules) Run(ctx context.Context, output io.Writer,
 		LoadBalancingScheme: "INTERNAL",
 		Description:         "Internal forwarding rule to target pool",
 		IPProtocol:          "TCP",
+		Ports:               []string{"443"},
 		BackendService:      config.GCEConfig.BackendServiceLink,
 	}
 
