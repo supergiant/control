@@ -56,7 +56,7 @@ func (s *CreateAddressStep) Run(ctx context.Context, output io.Writer,
 	}
 
 	externalAddressName := fmt.Sprintf("ex-ip-%s", config.ClusterID)
-	config.GCEConfig.ExternalAddressName = externalAddressName
+	logrus.Debugf("create external ip address %s", externalAddressName)
 
 	externalAddress := &compute.Address{
 		Name:        externalAddressName,
@@ -92,14 +92,15 @@ func (s *CreateAddressStep) Run(ctx context.Context, output io.Writer,
 	logrus.Debugf("Save external IP address SelfLink %s", externalAddress.SelfLink)
 	config.GCEConfig.ExternalIPAddressLink = externalAddress.SelfLink
 	config.ExternalDNSName = externalAddress.Address
-	internalAddressName := fmt.Sprintf("in-%s", config.ClusterID)
-	config.GCEConfig.InternalAddressName = internalAddressName
+	internalAddressName := fmt.Sprintf("in-ip-%s", config.ClusterID)
 
 	internalAddress := &compute.Address{
 		Name:        internalAddressName,
 		Description: "Internal static IP address",
 		AddressType: "INTERNAL",
 	}
+
+	logrus.Debugf("create internal ip address %s", internalAddressName)
 	_, err = svc.insertAddress(ctx, config.GCEConfig, internalAddress)
 
 	if err != nil {
