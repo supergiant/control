@@ -30,7 +30,11 @@ func TestNewCreateInstanceStep2(t *testing.T) {
 }
 
 func TestGetClient(t *testing.T) {
-	client, err := GetClient(context.Background(), "", "", "")
+	client, err := GetClient(context.Background(), steps.GCEConfig{
+		ServiceAccount: steps.ServiceAccount{
+			Type: "service_account",
+		},
+	})
 
 	if err != nil {
 		t.Errorf("Unexpected error %v", err)
