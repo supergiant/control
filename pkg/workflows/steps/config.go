@@ -95,6 +95,7 @@ type GCEConfig struct {
 
 	// BackendService acts as a balancer for internal traffic https://cloud.google.com/load-balancing/docs/backend-service
 	BackendServiceName string `json:"backendServiceName"`
+	BackendServiceLink string `json:"backendServiceLink"`
 
 	ExternalAddressName string `json:"externalAddressName"`
 	InternalAddressName string `json:"internalAddressName"`
