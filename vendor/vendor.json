@@ -3,6 +3,12 @@
 	"ignore": "test",
 	"package": [
 		{
+			"checksumSHA1": "b1KgRkWqz0RmrEBK6IJ8kOJva6w=",
+			"path": "cloud.google.com/go/compute/metadata",
+			"revision": "16bf007f472b38edd9456aae993a7d55a45cd614",
+			"revisionTime": "2019-03-19T22:12:07Z"
+		},
+		{
 			"checksumSHA1": "YuMpOH4wetzXVxF8Og6pIhZ75Rk=",
 			"path": "contrib.go.opencensus.io/exporter/ocagent",
 			"revision": "b04e1cc76a788f6bdf6a468a84f18261b716cc01",
