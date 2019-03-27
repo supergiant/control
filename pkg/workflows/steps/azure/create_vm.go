@@ -244,7 +244,7 @@ func (s *CreateVMStep) setupNIC(ctx context.Context, a autorest.Authorizer, subs
 				{
 					Name: to.StringPtr(ifaceName),
 					InterfaceIPConfigurationPropertiesFormat: &network.InterfaceIPConfigurationPropertiesFormat{
-						Subnet: &subnet,
+						Subnet:                    &subnet,
 						PrivateIPAllocationMethod: network.Dynamic,
 						PublicIPAddress:           &ip,
 					},

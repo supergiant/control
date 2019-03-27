@@ -1,11 +1,11 @@
 package amazon
 
 import (
-	"testing"
 	"bytes"
 	"context"
 	"errors"
 	"strings"
+	"testing"
 
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/stretchr/testify/mock"

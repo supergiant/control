@@ -38,6 +38,11 @@ func NewCreateForwardingRulesStep() (*CreateForwardingRules, error) {
 
 func (s *CreateForwardingRules) Run(ctx context.Context, output io.Writer,
 	config *steps.Config) error {
+	// Skip this step for the rest of nodes
+	if !config.KubeadmConfig.IsBootstrap {
+		return nil
+	}
+
 	logrus.Debugf("Step %s", CreateTargetPullStepName)
 
 	svc, err := s.getComputeSvc(ctx, config.GCEConfig)
@@ -49,13 +54,11 @@ func (s *CreateForwardingRules) Run(ctx context.Context, output io.Writer,
 
 	externalForwardingRule := &compute.ForwardingRule{
 		Name:                fmt.Sprintf("exrule-%s", config.ClusterID),
-		IPAddress:           config.GCEConfig.ExternalIPAddress,
+		IPAddress:           config.GCEConfig.ExternalIPAddressLink,
 		LoadBalancingScheme: "EXTERNAL",
 		Description:         "External forwarding rule to target pool",
-		IpVersion:           "IPV4",
 		IPProtocol:          "TCP",
-		Target:              config.GCEConfig.TargetPoolName,
-		Ports:               []string{"443"},
+		Target:              config.GCEConfig.TargetPoolLink,
 	}
 
 	_, err = svc.insertForwardingRule(ctx, config.GCEConfig, externalForwardingRule)
@@ -67,13 +70,10 @@ func (s *CreateForwardingRules) Run(ctx context.Context, output io.Writer,
 
 	internalForwardingRule := &compute.ForwardingRule{
 		Name:                fmt.Sprintf("inrule-%s", config.ClusterID),
-		IPAddress:           config.GCEConfig.InternalIPAddress,
+		IPAddress:           config.GCEConfig.InternalIPAddressLink,
 		LoadBalancingScheme: "INTERNAL",
 		Description:         "Internal forwarding rule to target pool",
-		IpVersion:           "IPV4",
 		IPProtocol:          "TCP",
-		Ports:               []string{"443"},
-		// TODO(stgleb): Create backend service and backend
 		BackendService: config.GCEConfig.BackendServiceName,
 	}
 

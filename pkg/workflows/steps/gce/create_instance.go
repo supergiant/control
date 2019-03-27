@@ -68,7 +68,7 @@ func NewCreateInstanceStep(period, timeout time.Duration) (*CreateInstanceStep, 
 				},
 				addInstanceToInstanceGroup: func(ctx context.Context, config steps.GCEConfig, instanceGroup string, request *compute.InstanceGroupsAddInstancesRequest) (*compute.Operation, error) {
 					return client.InstanceGroups.AddInstances(config.ServiceAccount.ProjectID, config.AvailabilityZone,
-						config.InstanceGroup, request).Do()
+						instanceGroup, request).Do()
 				},
 			}, nil
 		},
@@ -263,22 +263,6 @@ func (s *CreateInstanceStep) Run(ctx context.Context, output io.Writer,
 					if err != nil {
 						logrus.Errorf("error adding instance %s URL %s to target pool %s",
 							resp.Name, resp.SelfLink, config.GCEConfig.TargetPoolName)
-					}
-
-					addInstanceToInstanceGroup := &compute.InstanceGroupsAddInstancesRequest{
-						Instances: []*compute.InstanceReference{
-							{
-								Instance: resp.SelfLink,
-							},
-						},
-					}
-
-					_, err = svc.addInstanceToInstanceGroup(ctx, config.GCEConfig,
-						config.GCEConfig.TargetPoolName, addInstanceToInstanceGroup)
-
-					if err != nil {
-						logrus.Errorf("error adding instance %s URL %s to instance group %s",
-							resp.Name, resp.SelfLink, config.GCEConfig.InstanceGroup)
 					}
 				} else {
 					config.AddNode(&config.Node)

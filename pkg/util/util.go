@@ -173,8 +173,8 @@ func LoadCloudSpecificDataFromKube(k *model.Kube, config *steps.Config) error {
 		config.GCEConfig.ExternalAddressName = k.CloudSpec[clouds.GCEExternalIPAddressName]
 		config.GCEConfig.InternalAddressName = k.CloudSpec[clouds.GCEInternalIPAddressName]
 
-		config.GCEConfig.ExternalIPAddress = k.CloudSpec[clouds.GCEExternalIPAddress]
-		config.GCEConfig.InternalIPAddress = k.CloudSpec[clouds.GCEInternalIPAddress]
+		config.GCEConfig.ExternalIPAddressLink = k.CloudSpec[clouds.GCEExternalIPAddress]
+		config.GCEConfig.InternalIPAddressLink = k.CloudSpec[clouds.GCEInternalIPAddress]
 
 		config.GCEConfig.HealthCheckName = k.CloudSpec[clouds.GCEHealthCheckName]
 	case clouds.DigitalOcean:

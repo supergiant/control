@@ -31,7 +31,25 @@ func NewCreateInstanceGroupStep() (*CreateInstanceGroupStep, error) {
 				insertInstanceGroup: func(ctx context.Context, config steps.GCEConfig, group *compute.InstanceGroup) (*compute.Operation, error) {
 					// TODO(stgleb): Create instance group for each AZ
 					config.AvailabilityZone = "us-central1-a"
+
 					return client.InstanceGroups.Insert(config.ServiceAccount.ProjectID, config.AvailabilityZone, group).Do()
+				},
+				addInstanceToInstanceGroup: func(ctx context.Context, config steps.GCEConfig, instanceGroupName string, request *compute.InstanceGroupsAddInstancesRequest) (*compute.Operation, error) {
+					// TODO(stgleb): Create instance group for each AZ
+					config.AvailabilityZone = "us-central1-a"
+
+					return client.InstanceGroups.AddInstances(config.ServiceAccount.ProjectID, config.AvailabilityZone, instanceGroupName, request).Do()
+				},
+				getInstanceGroup: func(ctx context.Context, config steps.GCEConfig, instanceGroupName string) (*compute.InstanceGroup, error) {
+					// TODO(stgleb): Create instance group for each AZ
+					config.AvailabilityZone = "us-central1-a"
+
+					return client.InstanceGroups.Get(config.ProjectID, config.AvailabilityZone, instanceGroupName).Do()
+				},
+				getInstance: func(ctx context.Context,
+					config steps.GCEConfig, name string) (*compute.Instance, error) {
+					return client.Instances.Get(config.ServiceAccount.ProjectID,
+						config.AvailabilityZone, name).Do()
 				},
 			}, nil
 		},
@@ -40,6 +58,12 @@ func NewCreateInstanceGroupStep() (*CreateInstanceGroupStep, error) {
 
 func (s *CreateInstanceGroupStep) Run(ctx context.Context, output io.Writer,
 	config *steps.Config) error {
+
+	// Skip this step for the rest of nodes
+	if !config.KubeadmConfig.IsBootstrap {
+		return nil
+	}
+
 	logrus.Debugf("Step %s", CreateInstanceGroupStepName)
 
 	svc, err := s.getComputeSvc(ctx, config.GCEConfig)
@@ -61,7 +85,31 @@ func (s *CreateInstanceGroupStep) Run(ctx context.Context, output io.Writer,
 		return errors.Wrapf(err, "%s creating instance group caused", CreateInstanceGroupStepName)
 	}
 
-	config.GCEConfig.InstanceGroup = instanceGroup.Name
+	instanceGroup, err = svc.getInstanceGroup(ctx, config.GCEConfig, instanceGroup.Name)
+
+	if err != nil {
+		logrus.Errorf("Error getting instance group %v", err)
+		return errors.Wrapf(err, "%s creating getting group caused", CreateInstanceGroupStepName)
+	}
+
+	instance, err := svc.getInstance(ctx, config.GCEConfig, config.Node.Name)
+
+	if err != nil {
+		logrus.Errorf("getting instance caused %v", err)
+		return errors.Wrapf(err, "%s getting instance",
+			CreateInstanceStepName)
+	}
+
+	config.GCEConfig.InstanceGroupName = instanceGroup.Name
+	config.GCEConfig.InstanceGroupLink = instanceGroup.SelfLink
+
+	svc.addInstanceToInstanceGroup(ctx, config.GCEConfig, instanceGroup.Name, &compute.InstanceGroupsAddInstancesRequest{
+		Instances: []*compute.InstanceReference{
+			{
+				Instance: instance.SelfLink,
+			},
+		},
+	})
 
 	return nil
 }

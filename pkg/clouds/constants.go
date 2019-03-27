@@ -32,8 +32,8 @@ func ToProvider(name string) (Name, error) {
 }
 
 const (
-	DigitalOceanFingerPrint    = "fingerprint"
-	DigitalOceanAccessToken    = "accessToken"
+	DigitalOceanFingerPrint = "fingerprint"
+	DigitalOceanAccessToken = "accessToken"
 
 	DigitalOceanExternalLoadBalancerID = "externalLoadBalancerID"
 	DigitalOceanInternalLoadBalancerID = "internalLoadBalancerID"

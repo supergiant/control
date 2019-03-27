@@ -586,8 +586,8 @@ func (t *TaskProvisioner) updateCloudSpecificData(k *model.Kube, config *steps.C
 		cloudSpecificSettings[clouds.GCEExternalIPAddressName] = config.GCEConfig.ExternalAddressName
 		cloudSpecificSettings[clouds.GCEInternalIPAddressName] = config.GCEConfig.InternalAddressName
 
-		cloudSpecificSettings[clouds.GCEExternalIPAddress] = config.GCEConfig.ExternalIPAddress
-		cloudSpecificSettings[clouds.GCEInternalIPAddress] = config.GCEConfig.InternalIPAddress
+		cloudSpecificSettings[clouds.GCEExternalIPAddress] = config.GCEConfig.ExternalIPAddressLink
+		cloudSpecificSettings[clouds.GCEInternalIPAddress] = config.GCEConfig.InternalIPAddressLink
 
 		cloudSpecificSettings[clouds.GCEHealthCheckName] = config.GCEConfig.HealthCheckName
 	case clouds.DigitalOcean:

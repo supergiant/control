@@ -32,6 +32,7 @@ type computeService struct {
 	insertBackendService       func(context.Context, steps.GCEConfig, *compute.BackendService) (*compute.Operation, error)
 	getHealthCheck             func(context.Context, steps.GCEConfig, string) (*compute.HealthCheck, error)
 	getInstanceGroup           func(context.Context, steps.GCEConfig, string) (*compute.InstanceGroup, error)
+	getTargetPool  func(context.Context, steps.GCEConfig, string) (*compute.TargetPool, error)
 }
 
 func Init() {
@@ -43,6 +44,7 @@ func Init() {
 	createHealthCheck, _ := NewCreateHealthCheckStep()
 	createInstanceGroup, _ := NewCreateInstanceGroupStep()
 	createBackendService, _ := NewCreateBackendServiceStep()
+	createForwardingRules, _ := NewCreateForwardingRulesStep()
 
 	steps.RegisterStep(CreateInstanceStepName, createInstance)
 	steps.RegisterStep(DeleteClusterStepName, deleteCluster)
@@ -52,6 +54,7 @@ func Init() {
 	steps.RegisterStep(CreateHealthCheckStepName, createHealthCheck)
 	steps.RegisterStep(CreateInstanceGroupStepName, createInstanceGroup)
 	steps.RegisterStep(CreateBackendServiceStepName, createBackendService)
+	steps.RegisterStep(CreateForwardingRulesStepName, createForwardingRules)
 }
 
 func GetClient(ctx context.Context, config steps.GCEConfig) (*compute.Service, error) {

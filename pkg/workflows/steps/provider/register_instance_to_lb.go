@@ -10,6 +10,7 @@ import (
 	"github.com/supergiant/control/pkg/clouds"
 	"github.com/supergiant/control/pkg/workflows/steps"
 	"github.com/supergiant/control/pkg/workflows/steps/amazon"
+	"github.com/supergiant/control/pkg/workflows/steps/gce"
 )
 
 const (
@@ -34,6 +35,18 @@ func (s *RegisterInstanceToLoadBalancer) Run(ctx context.Context, out io.Writer,
 		// Load balancing in DO is made by tags
 		return nil
 	case clouds.GCE:
+		lbSteps := []steps.Step{
+			steps.GetStep(gce.CreateInstanceGroupStepName),
+			steps.GetStep(gce.CreateBackendServiceStepName),
+			steps.GetStep(gce.CreateForwardingRulesStepName),
+		}
+
+		for _, s := range lbSteps {
+			if err := s.Run(ctx, out, cfg); err != nil {
+				return errors.Wrap(err, PreProvisionStep)
+			}
+		}
+
 		return nil
 	case clouds.Azure:
 		return nil

@@ -33,6 +33,9 @@ func NewCreateTargetPoolStep() (*CreateTargetPoolStep, error) {
 				addHealthCheckToTargetPool: func(ctx context.Context, config steps.GCEConfig, targetPool string, request *compute.TargetPoolsAddHealthCheckRequest) (*compute.Operation, error) {
 					return client.TargetPools.AddHealthCheck(config.ServiceAccount.ProjectID, config.Region, targetPool, request).Do()
 				},
+				getTargetPool: func(ctx context.Context, config steps.GCEConfig, targetPoolName string) (*compute.TargetPool, error) {
+					return client.TargetPools.Get(config.ProjectID, config.Region, targetPoolName).Do()
+				},
 			}, nil
 		},
 	}, nil
@@ -49,20 +52,28 @@ func (s *CreateTargetPoolStep) Run(ctx context.Context, output io.Writer,
 		return errors.Wrapf(err, "%s getting service caused", CreateTargetPullStepName)
 	}
 
-	externalTargetPoolName := fmt.Sprintf("ex-%s", config.ClusterID)
-	externalTargetPool := &compute.TargetPool{
-		Description: "Target pool for balancing external traffic",
-		Name:        externalTargetPoolName,
+	targetPoolName := fmt.Sprintf("ex-%s", config.ClusterID)
+	targetPool := &compute.TargetPool{
+		Description: "Target pool for balancing traffic",
+		Name:        targetPoolName,
 	}
 
-	_, err = svc.insertTargetPool(ctx, config.GCEConfig, externalTargetPool)
+	_, err = svc.insertTargetPool(ctx, config.GCEConfig, targetPool)
 
 	if err != nil {
-		logrus.Errorf("Error creating external target pool %v", err)
-		return errors.Wrapf(err, "%s creating external target pool", CreateTargetPullStepName)
+		logrus.Errorf("Error creating target pool %v", err)
+		return errors.Wrapf(err, "%s creating target pool", CreateTargetPullStepName)
 	}
 
-	config.GCEConfig.TargetPoolName = externalTargetPoolName
+	targetPool, err = svc.getTargetPool(ctx, config.GCEConfig, targetPoolName)
+
+	if err != nil {
+		logrus.Errorf("Error getting target pool %v", err)
+		return errors.Wrapf(err, "%s getting target pool", CreateTargetPullStepName)
+	}
+
+	config.GCEConfig.TargetPoolName = targetPoolName
+	config.GCEConfig.TargetPoolLink = targetPool.SelfLink
 
 	return nil
 }

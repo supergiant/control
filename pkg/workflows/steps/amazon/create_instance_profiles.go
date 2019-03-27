@@ -257,8 +257,8 @@ func createIAMRole(ctx context.Context, iamS iamiface.IAMAPI, name string, polic
 		return err
 	}
 	input := &iam.CreateRoleInput{
-		RoleName: aws.String(name),
-		Path:     aws.String("/"),
+		RoleName:                 aws.String(name),
+		Path:                     aws.String("/"),
 		AssumeRolePolicyDocument: aws.String(policy),
 	}
 	_, err = iamS.CreateRoleWithContext(ctx, input)

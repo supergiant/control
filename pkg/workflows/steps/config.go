@@ -86,18 +86,21 @@ type GCEConfig struct {
 	Region           string `json:"region"`
 	AvailabilityZone string `json:"availabilityZone"`
 	Size             string `json:"size"`
-	InstanceGroup    string `json:"instanceGroup"`
+	InstanceGroupName    string `json:"instanceGroupName"`
+	InstanceGroupLink    string `json:"instanceGroupLink"`
 
 	// Target pool acts as a balancer for external traffic https://cloud.google.com/load-balancing/docs/target-pools
 	TargetPoolName string `json:"targetPoolName"`
+	TargetPoolLink string `json:"targetPoolLink"`
+
 	// BackendService acts as a balancer for internal traffic https://cloud.google.com/load-balancing/docs/backend-service
 	BackendServiceName string `json:"backendServiceName"`
 
 	ExternalAddressName string `json:"externalAddressName"`
 	InternalAddressName string `json:"internalAddressName"`
 
-	ExternalIPAddress string `json:"externalIpAddress"`
-	InternalIPAddress string `json:"internalIpAddress"`
+	ExternalIPAddressLink string `json:"externalIpAddressLink"`
+	InternalIPAddressLink string `json:"internalIpAddressLink"`
 
 	HealthCheckName string `json:"healthCheckName"`
 }
@@ -314,7 +317,7 @@ func NewConfig(clusterName, cloudAccountName string, profile profile.Profile) (*
 		GCEConfig: GCEConfig{
 			AvailabilityZone: profile.Zone,
 			ImageFamily:      "ubuntu-1604-lts",
-			Region:   		  profile.Region,
+			Region:           profile.Region,
 		},
 		AzureConfig: AzureConfig{
 			Location: profile.Region,

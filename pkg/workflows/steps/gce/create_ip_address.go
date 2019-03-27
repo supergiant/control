@@ -3,10 +3,10 @@ package gce
 import (
 	"context"
 	"fmt"
-	"io"
-	"time"
 	"github.com/pkg/errors"
 	"github.com/sirupsen/logrus"
+	"io"
+	"time"
 
 	"google.golang.org/api/compute/v1"
 
@@ -89,7 +89,8 @@ func (s *CreateAddressStep) Run(ctx context.Context, output io.Writer,
 		return errors.Wrapf(err, "error obtaining external ip address types")
 	}
 
-	config.GCEConfig.ExternalIPAddress = externalAddress.Address
+	logrus.Debugf("Save external IP address SelfLink %s", externalAddress.SelfLink)
+	config.GCEConfig.ExternalIPAddressLink = externalAddress.SelfLink
 	config.ExternalDNSName = externalAddress.Address
 	internalAddressName := fmt.Sprintf("in-ip-%s", config.ClusterID)
 	config.GCEConfig.InternalAddressName = internalAddressName
@@ -124,7 +125,8 @@ func (s *CreateAddressStep) Run(ctx context.Context, output io.Writer,
 		return errors.Wrapf(err, "error obtaining internal ip address types")
 	}
 
-	config.GCEConfig.InternalAddressName = internalAddress.Address
+	logrus.Debugf("Save internal IP address SelfLink %s", internalAddress.SelfLink)
+	config.GCEConfig.InternalAddressName = internalAddress.SelfLink
 	config.InternalDNSName = internalAddress.Address
 
 	return nil

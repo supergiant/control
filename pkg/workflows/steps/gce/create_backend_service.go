@@ -41,6 +41,11 @@ func NewCreateBackendServiceStep() (*CreateBackendServiceStep, error) {
 
 func (s *CreateBackendServiceStep) Run(ctx context.Context, output io.Writer,
 	config *steps.Config) error {
+	// Skip this step for the rest of nodes
+	if !config.KubeadmConfig.IsBootstrap {
+		return nil
+	}
+
 	logrus.Debugf("Step %s", CreateBackendServiceStepName)
 
 	svc, err := s.getComputeSvc(ctx, config.GCEConfig)
@@ -48,12 +53,6 @@ func (s *CreateBackendServiceStep) Run(ctx context.Context, output io.Writer,
 	if err != nil {
 		logrus.Errorf("Error getting service %v", err)
 		return errors.Wrapf(err, "%s getting service caused", CreateBackendServiceStepName)
-	}
-
-	instanceGroup, err := svc.getInstanceGroup(ctx, config.GCEConfig, config.GCEConfig.InstanceGroup)
-
-	if err != nil {
-		return errors.Wrapf(err, "error getting instance group %s", config.GCEConfig.InstanceGroup)
 	}
 
 	backendService := &compute.BackendService{
@@ -64,7 +63,7 @@ func (s *CreateBackendServiceStep) Run(ctx context.Context, output io.Writer,
 		Region:              config.GCEConfig.Region,
 		Backends: []*compute.Backend{
 			{
-				Group: instanceGroup.SelfLink,
+				Group: config.GCEConfig.InstanceGroupLink,
 			},
 		},
 		HealthChecks: []string{config.GCEConfig.HealthCheckName},

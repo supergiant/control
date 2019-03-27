@@ -2,9 +2,9 @@ package digitalocean
 
 import (
 	"context"
-	"io"
 	"github.com/pkg/errors"
 	"github.com/sirupsen/logrus"
+	"io"
 
 	"github.com/supergiant/control/pkg/clouds/digitaloceansdk"
 	"github.com/supergiant/control/pkg/workflows/steps"
@@ -26,7 +26,6 @@ func NewDeleteLoadBalancerStep() *DeleteLoadBalancerStep {
 
 func (s *DeleteLoadBalancerStep) Run(ctx context.Context, output io.Writer, config *steps.Config) error {
 	lbSvc := s.getServices(config.DigitalOceanConfig.AccessToken)
-
 
 	_, err := lbSvc.Delete(ctx, config.DigitalOceanConfig.ExternalLoadBalancerID)
 

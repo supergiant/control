@@ -3,8 +3,8 @@ package digitalocean
 import (
 	"bytes"
 	"context"
-	"strings"
 	"io/ioutil"
+	"strings"
 	"testing"
 
 	"github.com/digitalocean/godo"

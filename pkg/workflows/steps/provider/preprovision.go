@@ -10,8 +10,8 @@ import (
 	"github.com/supergiant/control/pkg/clouds"
 	"github.com/supergiant/control/pkg/workflows/steps"
 	"github.com/supergiant/control/pkg/workflows/steps/amazon"
-	"github.com/supergiant/control/pkg/workflows/steps/digitalocean"
 	"github.com/supergiant/control/pkg/workflows/steps/azure"
+	"github.com/supergiant/control/pkg/workflows/steps/digitalocean"
 	"github.com/supergiant/control/pkg/workflows/steps/gce"
 )
 
@@ -89,9 +89,6 @@ func prepProvisionStepFor(provider clouds.Name) ([]steps.Step, error) {
 			steps.GetStep(gce.CreateIPAddressStepName),
 			steps.GetStep(gce.CreateTargetPullStepName),
 			steps.GetStep(gce.CreateHealthCheckStepName),
-			steps.GetStep(gce.CreateInstanceGroupStepName),
-			steps.GetStep(gce.CreateBackendServiceStepName),
-			steps.GetStep(gce.CreateForwardingRulesStepName),
 		}, nil
 	}
 	return nil, errors.Wrapf(fmt.Errorf("unknown provider: %s", provider), PreProvisionStep)
