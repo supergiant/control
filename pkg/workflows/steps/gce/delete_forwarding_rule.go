@@ -45,21 +45,21 @@ func (s *DeleteForwardingRulesStep) Run(ctx context.Context, output io.Writer,
 
 	if err != nil {
 		logrus.Errorf("Error getting service %v", err)
-		return errors.Wrapf(err, "%s getting service caused", CreateTargetPullStepName)
+		return errors.Wrapf(err, "%s getting service caused", DeleteForwardingRulesStepName)
 	}
 
 	_, err = svc.deleteForwardingRule(ctx, config.GCEConfig, config.GCEConfig.ExternalForwardingRuleName)
 
 	if err != nil {
 		logrus.Errorf("Error deleting external forwarding rule %v", err)
-		return errors.Wrapf(err, "%s deleting external forwarding rule caused", CreateTargetPullStepName)
+		return errors.Wrapf(err, "%s deleting external forwarding rule caused", DeleteForwardingRulesStepName)
 	}
 
 	_, err = svc.deleteForwardingRule(ctx, config.GCEConfig, config.GCEConfig.InternalForwardingRuleName)
 
 	if err != nil {
 		logrus.Errorf("Error deleting internal forwarding rule %v", err)
-		return errors.Wrapf(err, "%s creating deleting forwarding rule caused", CreateTargetPullStepName)
+		return errors.Wrapf(err, "%s creating deleting forwarding rule caused", DeleteForwardingRulesStepName)
 	}
 
 	return nil

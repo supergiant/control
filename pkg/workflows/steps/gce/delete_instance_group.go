@@ -40,20 +40,20 @@ func NewDeleteInstanceGroupStep() (*DeleteInstanceGroupStep, error) {
 func (s *DeleteInstanceGroupStep) Run(ctx context.Context, output io.Writer,
 	config *steps.Config) error {
 
-	logrus.Debugf("Step %s", DeleteForwardingRulesStepName)
+	logrus.Debugf("Step %s", DeleteInstanceGroupStepName)
 
 	svc, err := s.getComputeSvc(ctx, config.GCEConfig)
 
 	if err != nil {
 		logrus.Errorf("Error getting service %v", err)
-		return errors.Wrapf(err, "%s getting service caused", CreateTargetPullStepName)
+		return errors.Wrapf(err, "%s getting service caused", DeleteInstanceGroupStepName)
 	}
 
 	_, err = svc.deleteInstanceGroup(ctx, config.GCEConfig, config.GCEConfig.InstanceGroupName)
 
 	if err != nil {
 		logrus.Errorf("Error deleting instance group %v", err)
-		return errors.Wrapf(err, "%s deleting instance group  caused", CreateTargetPullStepName)
+		return errors.Wrapf(err, "%s deleting instance group  caused", DeleteInstanceGroupStepName)
 	}
 
 	return nil
