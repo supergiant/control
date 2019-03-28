@@ -66,7 +66,7 @@ func (s *DeleteForwardingRulesStep) Run(ctx context.Context, output io.Writer,
 }
 
 func (s *DeleteForwardingRulesStep) Name() string {
-	return CreateForwardingRulesStepName
+	return DeleteForwardingRulesStepName
 }
 
 func (s *DeleteForwardingRulesStep) Depends() []string {
@@ -74,7 +74,7 @@ func (s *DeleteForwardingRulesStep) Depends() []string {
 }
 
 func (s *DeleteForwardingRulesStep) Description() string {
-	return "Create forwarding rules to pass traffic to nodes"
+	return "Delete forwarding rules"
 }
 
 func (s *DeleteForwardingRulesStep) Rollback(context.Context, io.Writer, *steps.Config) error {
