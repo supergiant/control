@@ -43,3 +43,7 @@ build-ui:
 	npm install --prefix ./cmd/ui/assets
 	npm run build --prefix ./cmd/ui/assets
 	statik -src=./cmd/ui/assets/dist
+
+gogen:
+	go generate ./pkg/account
+
