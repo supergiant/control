@@ -35,6 +35,10 @@ type computeService struct {
 	getTargetPool              func(context.Context, steps.GCEConfig, string) (*compute.TargetPool, error)
 	getBackendService          func(context.Context, steps.GCEConfig, string) (*compute.BackendService, error)
 	deleteForwardingRule       func(context.Context, steps.GCEConfig, string) (*compute.Operation, error)
+	deleteBackendService       func(context.Context, steps.GCEConfig, string) (*compute.Operation, error)
+	deleteInstanceGroup        func(context.Context, steps.GCEConfig, string) (*compute.Operation, error)
+	deleteTargetPool           func(context.Context, steps.GCEConfig, string) (*compute.Operation, error)
+	deleteIpAddress            func(context.Context, steps.GCEConfig, string) (*compute.Operation, error)
 }
 
 func Init() {
