@@ -79,7 +79,7 @@ func cleanUpStepsFor(provider clouds.Name) ([]steps.Step, error) {
 		}, nil
 	case clouds.GCE:
 		return []steps.Step{
-			steps.GetStep(gce.DeleteNodeStepName),
+			steps.GetStep(gce.DeleteClusterStepName),
 		}, nil
 	case clouds.Azure:
 		return []steps.Step{
