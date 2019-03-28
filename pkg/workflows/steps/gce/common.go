@@ -2,13 +2,14 @@ package gce
 
 import (
 	"context"
+	"encoding/json"
 	"time"
+
+	"github.com/pkg/errors"
 
 	"google.golang.org/api/compute/v1"
 	"google.golang.org/api/option"
 
-	"encoding/json"
-	"github.com/pkg/errors"
 	"github.com/supergiant/control/pkg/workflows/steps"
 )
 

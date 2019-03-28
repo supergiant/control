@@ -4,16 +4,17 @@ import (
 	"context"
 	"io"
 
+	"github.com/pkg/errors"
+
 	"github.com/sirupsen/logrus"
 	"google.golang.org/api/compute/v1"
 
-	"github.com/pkg/errors"
 	"github.com/supergiant/control/pkg/workflows/steps"
 )
 
 const DeleteForwardingRulesStepName = "gce_delete_forwarding_rules"
 
-type DeleteForwardingRulesStep struct{
+type DeleteForwardingRulesStep struct {
 	getComputeSvc func(context.Context, steps.GCEConfig) (*computeService, error)
 }
 
