@@ -82,6 +82,7 @@ func cleanUpStepsFor(provider clouds.Name) ([]steps.Step, error) {
 			steps.GetStep(gce.DeleteClusterStepName),
 			steps.GetStep(gce.DeleteForwardingRulesStepName),
 			steps.GetStep(gce.DeleteInstanceGroupStepName),
+			steps.GetStep(gce.DeleteBackendServicStepName),
 		}, nil
 	case clouds.Azure:
 		return []steps.Step{

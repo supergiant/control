@@ -54,6 +54,7 @@ func Init() {
 	createForwardingRules, _ := NewCreateForwardingRulesStep()
 	deleteForwardingRules, _ := NewDeleteForwardingRulesStep()
 	deleteInstanceGroup, _ := NewDeleteInstanceGroupStep()
+	deleteBackendService, _ := NewDeleteBackendServiceStep()
 
 	steps.RegisterStep(CreateInstanceStepName, createInstance)
 	steps.RegisterStep(DeleteClusterStepName, deleteCluster)
@@ -66,6 +67,7 @@ func Init() {
 	steps.RegisterStep(CreateForwardingRulesStepName, createForwardingRules)
 	steps.RegisterStep(DeleteForwardingRulesStepName, deleteForwardingRules)
 	steps.RegisterStep(DeleteInstanceGroupStepName, deleteInstanceGroup)
+	steps.RegisterStep(DeleteBackendServicStepName, deleteBackendService)
 }
 
 func GetClient(ctx context.Context, config steps.GCEConfig) (*compute.Service, error) {
