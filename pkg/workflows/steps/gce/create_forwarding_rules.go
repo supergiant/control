@@ -68,6 +68,8 @@ func (s *CreateForwardingRules) Run(ctx context.Context, output io.Writer,
 		return errors.Wrapf(err, "%s creating external forwarding rule caused", CreateTargetPullStepName)
 	}
 
+	config.GCEConfig.ExternalForwardingRuleName = externalForwardingRule.Name
+
 	internalForwardingRule := &compute.ForwardingRule{
 		Name:                fmt.Sprintf("inrule-%s", config.ClusterID),
 		IPAddress:           config.GCEConfig.InternalIPAddressLink,
@@ -84,6 +86,8 @@ func (s *CreateForwardingRules) Run(ctx context.Context, output io.Writer,
 		logrus.Errorf("Error creating internal forwarding rule %v", err)
 		return errors.Wrapf(err, "%s creating internal forwarding rule caused", CreateTargetPullStepName)
 	}
+
+	config.GCEConfig.InternalForwardingRuleName = internalForwardingRule.Name
 
 	return nil
 }

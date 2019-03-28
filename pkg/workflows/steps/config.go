@@ -104,6 +104,9 @@ type GCEConfig struct {
 	InternalIPAddressLink string `json:"internalIpAddressLink"`
 
 	HealthCheckName string `json:"healthCheckName"`
+
+	ExternalForwardingRuleName string `json:"externalForwardingRuleName"`
+	InternalForwardingRuleName string `json:"internalForwardingRuleName"`
 }
 
 type AzureConfig struct {
