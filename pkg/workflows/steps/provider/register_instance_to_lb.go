@@ -35,6 +35,7 @@ func (s *RegisterInstanceToLoadBalancer) Run(ctx context.Context, out io.Writer,
 		// Load balancing in DO is made by tags
 		return nil
 	case clouds.GCE:
+		// NOTE(stgleb): this is because instance group must have at least one instance to be connected to backend service
 		lbSteps := []steps.Step{
 			steps.GetStep(gce.CreateInstanceGroupStepName),
 			steps.GetStep(gce.CreateBackendServiceStepName),

@@ -2,10 +2,9 @@ package gce
 
 import (
 	"context"
+	"github.com/pkg/errors"
 	"io"
 	"time"
-
-	"github.com/pkg/errors"
 
 	"github.com/sirupsen/logrus"
 	"google.golang.org/api/compute/v1"
@@ -16,11 +15,16 @@ import (
 const DeleteBackendServicStepName = "gce_delete_backend_service"
 
 type DeleteBackendServiceStep struct {
+	Timeout      time.Duration
+	AttemptCount int
+
 	getComputeSvc func(context.Context, steps.GCEConfig) (*computeService, error)
 }
 
 func NewDeleteBackendServiceStep() (*DeleteBackendServiceStep, error) {
 	return &DeleteBackendServiceStep{
+		Timeout:      time.Second * 10,
+		AttemptCount: 10,
 		getComputeSvc: func(ctx context.Context, config steps.GCEConfig) (*computeService, error) {
 			client, err := GetClient(ctx, config)
 
@@ -40,6 +44,7 @@ func NewDeleteBackendServiceStep() (*DeleteBackendServiceStep, error) {
 func (s *DeleteBackendServiceStep) Run(ctx context.Context, output io.Writer,
 	config *steps.Config) error {
 
+	var err error
 	logrus.Debugf("Step %s", DeleteBackendServicStepName)
 
 	svc, err := s.getComputeSvc(ctx, config.GCEConfig)
@@ -49,17 +54,22 @@ func (s *DeleteBackendServiceStep) Run(ctx context.Context, output io.Writer,
 		return errors.Wrapf(err, "%s getting service caused", DeleteBackendServicStepName)
 	}
 
-	// TODO(stgleb): Add polling mechanism
-	time.Sleep(time.Second * 30)
-	_, err = svc.deleteBackendService(ctx, config.GCEConfig, config.GCEConfig.BackendServiceName)
+	timeout := s.Timeout
 
-	if err != nil {
-		logrus.Errorf("Error deleting backend service rule %v", err)
-		return errors.Wrapf(err, "%s deleting backend service %s rule caused",
-			config.GCEConfig.BackendServiceName, DeleteBackendServicStepName)
+	for i := 0; i < s.AttemptCount; i++ {
+		_, err = svc.deleteBackendService(ctx, config.GCEConfig, config.GCEConfig.BackendServiceName)
+
+		if err != nil {
+			logrus.Errorf("Error deleting backend service rule %v", err)
+		} else {
+			break
+		}
+
+		time.Sleep(timeout)
+		timeout = timeout * 2
 	}
 
-	return nil
+	return err
 }
 
 func (s *DeleteBackendServiceStep) Name() string {

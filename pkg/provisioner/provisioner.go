@@ -241,7 +241,6 @@ func (tp *TaskProvisioner) provision(ctx context.Context,
 	bootstrapTask := taskMap[workflows.MasterTask][0]
 	taskMap[workflows.MasterTask] = taskMap[workflows.MasterTask][1:]
 
-	logrus.Info(config.Kube.SSHConfig)
 	logrus.Debug("Provision bootstrap node")
 	err := tp.bootstrapMaster(ctx, clusterProfile, config, bootstrapTask)
 
@@ -256,7 +255,6 @@ func (tp *TaskProvisioner) provision(ctx context.Context,
 
 	config = bootstrapTask.Config
 	config.IsBootstrap = false
-	logrus.Info(config.Kube.SSHConfig)
 	logrus.Debug("Provision masters")
 	err = tp.provisionMasters(ctx, clusterProfile,
 		config, taskMap[workflows.MasterTask])
