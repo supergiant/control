@@ -50,7 +50,6 @@ func (s *Step) Run(ctx context.Context, out io.Writer, config *steps.Config) err
 	// Mark current node as active to allow cluster check task select it for cluster wide task
 	config.Node.State = model.MachineStateActive
 	config.NodeChan() <- config.Node
-	config.Kube.SSHConfig.BootstrapPrivateKey = ""
 
 	return nil
 }

@@ -57,7 +57,7 @@ const (
 	GCEInternalIPAddressName = "gceInternalIpAddressName"
 
 	GCEExternalForwardingRuleName = "gceExternalForwardingRuleName"
-	GCEInternalForwardingRuleName = "gceIntenalForwardingRuleName"
+	GCEInternalForwardingRuleName = "gceInternalForwardingRuleName"
 	GCEInstanceGroupName          = "gceInstanceGroupName"
 
 	TagClusterID         = "supergiant.io/cluster-id"

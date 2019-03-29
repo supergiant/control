@@ -231,8 +231,34 @@ func (tp *TaskProvisioner) provision(ctx context.Context,
 	logrus.Debug("update kube state")
 	config.KubeStateChan() <- model.StateProvisioning
 
+	if len(taskMap[workflows.MasterTask]) == 0 {
+		return
+	}
+
+	config.IsMaster = true
+	config.IsBootstrap = true
+	// Get bootstrap task as a first master task
+	bootstrapTask := taskMap[workflows.MasterTask][0]
+	taskMap[workflows.MasterTask] = taskMap[workflows.MasterTask][1:]
+
+	logrus.Info(config.Kube.SSHConfig)
+	logrus.Debug("Provision bootstrap node")
+	err := tp.bootstrapMaster(ctx, clusterProfile, config, bootstrapTask)
+
+	if err != nil {
+		config.KubeStateChan() <- model.StateFailed
+		logrus.Errorf("provisioning bootstrap node has been failed")
+		return
+	}
+
+	logrus.Infof(bootstrapTask.Config.GCEConfig.ExternalForwardingRuleName)
+	logrus.Infof(bootstrapTask.Config.GCEConfig.InternalForwardingRuleName)
+
+	config = bootstrapTask.Config
+	config.IsBootstrap = false
+	logrus.Info(config.Kube.SSHConfig)
 	logrus.Debug("Provision masters")
-	err := tp.provisionMasters(ctx, clusterProfile,
+	err = tp.provisionMasters(ctx, clusterProfile,
 		config, taskMap[workflows.MasterTask])
 
 	if err != nil {
@@ -338,17 +364,9 @@ func (tp *TaskProvisioner) preProvision(ctx context.Context, preProvisionTask *w
 	return err
 }
 
-func (tp *TaskProvisioner) provisionMasters(ctx context.Context,
+func (tp *TaskProvisioner) bootstrapMaster(ctx context.Context,
 	profile *profile.Profile, config *steps.Config,
-	tasks []*workflows.Task) error {
-	config.IsMaster = true
-
-	if len(tasks) == 0 {
-		return nil
-	}
-
-	// Get bootstrap task as a first master task
-	bootstrapTask, tasks := tasks[0], tasks[1:]
+	bootstrapTask *workflows.Task) error {
 
 	fileName := util.MakeFileName(bootstrapTask.ID)
 	out, err := tp.getWriter(fileName)
@@ -360,20 +378,36 @@ func (tp *TaskProvisioner) provisionMasters(ctx context.Context,
 
 	// Fulfill task config with data about provider specific node configuration
 	p := profile.MasterProfiles[0]
-	FillNodeCloudSpecificData(profile.Provider, p, config)
+	err = FillNodeCloudSpecificData(profile.Provider, p, config)
+
+	if err != nil {
+		return errors.Wrapf(err, "fill node cloud account")
+	}
 
 	config.TaskID = bootstrapTask.ID
 	err = <-bootstrapTask.Run(ctx, *config, out)
 
 	if err != nil {
-		logrus.Errorf("master bootstrap task %s has finished with error %v", bootstrapTask.ID, err)
+		logrus.Errorf("bootstrap task %s has finished with error %v", bootstrapTask.ID, err)
 		return errors.Wrapf(err, "master bootstrap task %s has finished with error %v", bootstrapTask.ID, err)
 	} else {
-		logrus.Infof("master bootstrap %s has finished", bootstrapTask.ID)
+		logrus.Infof("bootstrap %s has finished", bootstrapTask.ID)
 	}
 
-	config.KubeadmConfig.IsBootstrap = false
+	logrus.Infof("bootstrap task %s has finished", bootstrapTask.ID)
+	config.ConfigChan() <- bootstrapTask.Config
 
+	return nil
+}
+
+func (tp *TaskProvisioner) provisionMasters(ctx context.Context,
+	profile *profile.Profile, config *steps.Config,
+	tasks []*workflows.Task) error {
+	if len(tasks) == 0 {
+		return nil
+	}
+
+	config.IsMaster = true
 	// ProvisionCluster rest of master nodes master nodes
 	for index, masterTask := range tasks {
 		// Take token that allows perform action with Cloud Provider API

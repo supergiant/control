@@ -47,7 +47,7 @@ func NewCreateBackendServiceStep() (*CreateBackendServiceStep, error) {
 func (s *CreateBackendServiceStep) Run(ctx context.Context, output io.Writer,
 	config *steps.Config) error {
 	// Skip this step for the rest of nodes
-	if !config.KubeadmConfig.IsBootstrap {
+	if !config.IsBootstrap {
 		return nil
 	}
 

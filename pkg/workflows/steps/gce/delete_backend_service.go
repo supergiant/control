@@ -3,6 +3,7 @@ package gce
 import (
 	"context"
 	"io"
+	"time"
 
 	"github.com/pkg/errors"
 
@@ -48,6 +49,8 @@ func (s *DeleteBackendServiceStep) Run(ctx context.Context, output io.Writer,
 		return errors.Wrapf(err, "%s getting service caused", DeleteBackendServicStepName)
 	}
 
+	// TODO(stgleb): Add polling mechanism
+	time.Sleep(time.Second * 30)
 	_, err = svc.deleteBackendService(ctx, config.GCEConfig, config.GCEConfig.BackendServiceName)
 
 	if err != nil {

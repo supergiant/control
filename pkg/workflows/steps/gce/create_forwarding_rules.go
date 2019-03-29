@@ -39,21 +39,22 @@ func NewCreateForwardingRulesStep() (*CreateForwardingRules, error) {
 func (s *CreateForwardingRules) Run(ctx context.Context, output io.Writer,
 	config *steps.Config) error {
 	// Skip this step for the rest of nodes
-	if !config.KubeadmConfig.IsBootstrap {
+	if !config.IsBootstrap {
 		return nil
 	}
 
-	logrus.Debugf("Step %s", CreateTargetPullStepName)
+	logrus.Debugf("Step %s", CreateForwardingRulesStepName)
 
 	svc, err := s.getComputeSvc(ctx, config.GCEConfig)
 
 	if err != nil {
 		logrus.Errorf("Error getting service %v", err)
-		return errors.Wrapf(err, "%s getting service caused", CreateTargetPullStepName)
+		return errors.Wrapf(err, "%s getting service caused", CreateForwardingRulesStepName)
 	}
 
+	exName := fmt.Sprintf("exrule-%s", config.ClusterID)
 	externalForwardingRule := &compute.ForwardingRule{
-		Name:                fmt.Sprintf("exrule-%s", config.ClusterID),
+		Name:                exName,
 		IPAddress:           config.GCEConfig.ExternalIPAddressLink,
 		LoadBalancingScheme: "EXTERNAL",
 		Description:         "External forwarding rule to target pool",
@@ -65,13 +66,14 @@ func (s *CreateForwardingRules) Run(ctx context.Context, output io.Writer,
 
 	if err != nil {
 		logrus.Errorf("Error creating external forwarding rule %v", err)
-		return errors.Wrapf(err, "%s creating external forwarding rule caused", CreateTargetPullStepName)
+		return errors.Wrapf(err, "%s creating external forwarding rule caused", CreateForwardingRulesStepName)
 	}
 
-	config.GCEConfig.ExternalForwardingRuleName = externalForwardingRule.Name
+	config.GCEConfig.ExternalForwardingRuleName = exName
 
+	inName := fmt.Sprintf("inrule-%s", config.ClusterID)
 	internalForwardingRule := &compute.ForwardingRule{
-		Name:                fmt.Sprintf("inrule-%s", config.ClusterID),
+		Name:                inName,
 		IPAddress:           config.GCEConfig.InternalIPAddressLink,
 		LoadBalancingScheme: "INTERNAL",
 		Description:         "Internal forwarding rule to target pool",
@@ -84,10 +86,10 @@ func (s *CreateForwardingRules) Run(ctx context.Context, output io.Writer,
 
 	if err != nil {
 		logrus.Errorf("Error creating internal forwarding rule %v", err)
-		return errors.Wrapf(err, "%s creating internal forwarding rule caused", CreateTargetPullStepName)
+		return errors.Wrapf(err, "%s creating internal forwarding rule caused", CreateForwardingRulesStepName)
 	}
 
-	config.GCEConfig.InternalForwardingRuleName = internalForwardingRule.Name
+	config.GCEConfig.InternalForwardingRuleName = inName
 
 	return nil
 }

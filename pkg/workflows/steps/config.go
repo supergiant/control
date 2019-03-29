@@ -202,7 +202,7 @@ type KubeadmConfig struct {
 	K8SVersion       string `json:"K8SVersion"`
 	IsMaster         bool   `json:"isMaster"`
 	AdvertiseAddress string `json:"advertiseAddress"`
-	IsBootstrap      bool   `json:"isBootstrap"`
+	IsBootstrap      bool   `json:"IsBootstrap"`
 	CIDR             string `json:"cidr"`
 	Token            string `json:"token"`
 	Provider         string `json:"provider"`
@@ -237,16 +237,17 @@ type Config struct {
 	Kube model.Kube `json:"kube"`
 
 	TaskID                 string
-	Provider               clouds.Name  `json:"provider"`
-	IsMaster               bool         `json:"isMaster"`
-	ClusterID              string       `json:"clusterId"`
-	ClusterName            string       `json:"clusterName"`
-	LogBootstrapPrivateKey bool         `json:"logBootstrapPrivateKey"`
-	DigitalOceanConfig     DOConfig     `json:"digitalOceanConfig"`
-	AWSConfig              AWSConfig    `json:"awsConfig"`
-	GCEConfig              GCEConfig    `json:"gceConfig"`
-	AzureConfig            AzureConfig  `json:"azureConfig"`
-	OSConfig               OSConfig     `json:"osConfig"`
+	Provider               clouds.Name `json:"provider"`
+	IsMaster               bool        `json:"isMaster"`
+	IsBootstrap            bool        `json:"IsBootstrap"`
+	ClusterID              string      `json:"clusterId"`
+	ClusterName            string      `json:"clusterName"`
+	LogBootstrapPrivateKey bool        `json:"logBootstrapPrivateKey"`
+	DigitalOceanConfig     DOConfig    `json:"digitalOceanConfig"`
+	AWSConfig              AWSConfig   `json:"awsConfig"`
+	GCEConfig              GCEConfig   `json:"gceConfig"`
+	AzureConfig            AzureConfig `json:"azureConfig"`
+	OSConfig               OSConfig    `json:"osConfig"`
 	PacketConfig           PacketConfig `json:"packetConfig"`
 
 	DockerConfig       DockerConfig       `json:"dockerConfig"`
@@ -294,6 +295,7 @@ func NewConfig(clusterName, cloudAccountName string, profile profile.Profile) (*
 		return nil, errors.Wrapf(err, "bootstrap token")
 	}
 	return &Config{
+		IsBootstrap: true,
 		Kube: model.Kube{
 			SSHConfig: model.SSHConfig{
 				Port:      "22",

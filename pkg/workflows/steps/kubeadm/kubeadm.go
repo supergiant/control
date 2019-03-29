@@ -42,9 +42,11 @@ func New(script *template.Template) *Step {
 
 func (t *Step) Run(ctx context.Context, out io.Writer, config *steps.Config) error {
 	config.KubeadmConfig.Provider = string(config.Provider)
+	config.KubeadmConfig.IsBootstrap = config.IsBootstrap
+	config.KubeadmConfig.IsMaster = config.IsMaster
 
 	// NOTE(stgleb): Kubeadm accepts only ipv4 or ipv6 addresses as advertise address
-	if config.KubeadmConfig.IsBootstrap {
+	if config.IsBootstrap {
 		config.KubeadmConfig.AdvertiseAddress = config.Node.PrivateIp
 
 		// TODO(stgleb): Remove that when all providers support Load Balancers
@@ -64,8 +66,6 @@ func (t *Step) Run(ctx context.Context, out io.Writer, config *steps.Config) err
 			config.KubeadmConfig.ExternalDNSName = master.PublicIp
 		}
 	}
-
-	config.KubeadmConfig.IsMaster = config.IsMaster
 
 	err := steps.RunTemplate(ctx, t.script, config.Runner, out, config.KubeadmConfig)
 
