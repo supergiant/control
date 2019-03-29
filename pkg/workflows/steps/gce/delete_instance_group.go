@@ -53,7 +53,8 @@ func (s *DeleteInstanceGroupStep) Run(ctx context.Context, output io.Writer,
 
 	if err != nil {
 		logrus.Errorf("Error deleting instance group %v", err)
-		return errors.Wrapf(err, "%s deleting instance group  caused", DeleteInstanceGroupStepName)
+		return errors.Wrapf(err, "%s deleting instance group %s caused",
+			config.GCEConfig.InstanceGroupName, DeleteInstanceGroupStepName)
 	}
 
 	return nil

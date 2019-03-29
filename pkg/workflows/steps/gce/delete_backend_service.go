@@ -52,7 +52,8 @@ func (s *DeleteBackendServiceStep) Run(ctx context.Context, output io.Writer,
 
 	if err != nil {
 		logrus.Errorf("Error deleting backend service rule %v", err)
-		return errors.Wrapf(err, "%s deleting backend service rule caused", DeleteBackendServicStepName)
+		return errors.Wrapf(err, "%s deleting backend service %s rule caused",
+			config.GCEConfig.BackendServiceName, DeleteBackendServicStepName)
 	}
 
 	return nil

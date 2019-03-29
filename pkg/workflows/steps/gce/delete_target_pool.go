@@ -51,7 +51,8 @@ func (s *DeleteTargetPoolStep) Run(ctx context.Context, output io.Writer,
 
 	if err != nil {
 		logrus.Errorf("Error deleting target pool %v", err)
-		return errors.Wrapf(err, "%s deleting target pool caused", DeleteTargetPoolStepName)
+		return errors.Wrapf(err, "%s deleting target pool %s caused",
+			config.GCEConfig.InstanceGroupName, DeleteTargetPoolStepName)
 	}
 
 	return nil

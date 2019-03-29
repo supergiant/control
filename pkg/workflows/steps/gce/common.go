@@ -56,6 +56,7 @@ func Init() {
 	deleteInstanceGroup, _ := NewDeleteInstanceGroupStep()
 	deleteBackendService, _ := NewDeleteBackendServiceStep()
 	deleteTargetPool, _ := NewDeleteTargetPoolStep()
+	deleteIpAddress, _ := NewDeleteIpAddressStep()
 
 	steps.RegisterStep(CreateInstanceStepName, createInstance)
 	steps.RegisterStep(DeleteClusterStepName, deleteCluster)
@@ -70,6 +71,7 @@ func Init() {
 	steps.RegisterStep(DeleteInstanceGroupStepName, deleteInstanceGroup)
 	steps.RegisterStep(DeleteBackendServicStepName, deleteBackendService)
 	steps.RegisterStep(DeleteTargetPoolStepName, deleteTargetPool)
+	steps.RegisterStep(DeleteIpAddressStepName, deleteIpAddress)
 }
 
 func GetClient(ctx context.Context, config steps.GCEConfig) (*compute.Service, error) {
