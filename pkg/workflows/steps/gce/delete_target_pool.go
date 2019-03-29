@@ -47,7 +47,7 @@ func (s *DeleteTargetPoolStep) Run(ctx context.Context, output io.Writer,
 		return errors.Wrapf(err, "%s getting service caused", DeleteTargetPoolStepName)
 	}
 
-	_, err = svc.deleteInstanceGroup(ctx, config.GCEConfig, config.GCEConfig.InstanceGroupName)
+	_, err = svc.deleteTargetPool(ctx, config.GCEConfig, config.GCEConfig.TargetPoolName)
 
 	if err != nil {
 		logrus.Errorf("Error deleting target pool %v", err)
