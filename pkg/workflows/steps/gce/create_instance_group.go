@@ -103,13 +103,20 @@ func (s *CreateInstanceGroupStep) Run(ctx context.Context, output io.Writer,
 	config.GCEConfig.InstanceGroupName = instanceGroup.Name
 	config.GCEConfig.InstanceGroupLink = instanceGroup.SelfLink
 
-	svc.addInstanceToInstanceGroup(ctx, config.GCEConfig, instanceGroup.Name, &compute.InstanceGroupsAddInstancesRequest{
+	_, err = svc.addInstanceToInstanceGroup(ctx, config.GCEConfig, instanceGroup.Name, &compute.InstanceGroupsAddInstancesRequest{
 		Instances: []*compute.InstanceReference{
 			{
 				Instance: instance.SelfLink,
 			},
 		},
 	})
+
+	if err != nil {
+		logrus.Errorf("adding instance %s to instance group %s caused %v",
+			instance.Name, instanceGroup.Name, err)
+		return errors.Wrapf(err, "adding instance %s to instance group %s ",
+			CreateInstanceStepName)
+	}
 
 	return nil
 }

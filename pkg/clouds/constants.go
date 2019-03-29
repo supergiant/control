@@ -56,6 +56,10 @@ const (
 	GCEExternalIPAddressName = "gceExternalIpAddressName"
 	GCEInternalIPAddressName = "gceInternalIpAddressName"
 
+	GCEExternalForwardingRuleName = "gceExternalForwardingRuleName"
+	GCEInternalForwardingRuleName = "gceIntenalForwardingRuleName"
+	GCEInstanceGroupName          = "gceInstanceGroupName"
+
 	TagClusterID         = "supergiant.io/cluster-id"
 	TagKubernetesCluster = "KubernetesCluster"
 

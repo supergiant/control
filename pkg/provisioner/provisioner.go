@@ -590,6 +590,10 @@ func (t *TaskProvisioner) updateCloudSpecificData(k *model.Kube, config *steps.C
 		cloudSpecificSettings[clouds.GCEInternalIPAddress] = config.GCEConfig.InternalIPAddressLink
 
 		cloudSpecificSettings[clouds.GCEHealthCheckName] = config.GCEConfig.HealthCheckName
+
+		cloudSpecificSettings[clouds.GCEInstanceGroupName] = config.GCEConfig.InstanceGroupName
+		cloudSpecificSettings[clouds.GCEExternalForwardingRuleName] = config.GCEConfig.ExternalForwardingRuleName
+		cloudSpecificSettings[clouds.GCEInternalForwardingRuleName] = config.GCEConfig.InternalForwardingRuleName
 	case clouds.DigitalOcean:
 		cloudSpecificSettings[clouds.DigitalOceanExternalLoadBalancerID] = config.DigitalOceanConfig.ExternalLoadBalancerID
 		cloudSpecificSettings[clouds.DigitalOceanInternalLoadBalancerID] = config.DigitalOceanConfig.InternalLoadBalancerID
