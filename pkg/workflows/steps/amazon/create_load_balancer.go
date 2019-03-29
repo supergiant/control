@@ -10,8 +10,8 @@ import (
 	"github.com/pkg/errors"
 	"github.com/sirupsen/logrus"
 
-	"github.com/supergiant/control/pkg/workflows/steps"
 	"github.com/supergiant/control/pkg/util"
+	"github.com/supergiant/control/pkg/workflows/steps"
 )
 
 const StepCreateLoadBalancer = "create_load_balancer"

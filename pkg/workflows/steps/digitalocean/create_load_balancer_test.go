@@ -6,12 +6,13 @@ import (
 	"io/ioutil"
 	"strings"
 	"testing"
+	"time"
 
 	"github.com/digitalocean/godo"
 	"github.com/pkg/errors"
 	"github.com/stretchr/testify/mock"
+
 	"github.com/supergiant/control/pkg/workflows/steps"
-	"time"
 )
 
 type MockLBService struct {
@@ -64,15 +65,14 @@ func TestCreateLoadBalancerStep_Run(t *testing.T) {
 		createExternalLB    *godo.LoadBalancer
 		createExternalLBErr error
 
-		getExternalLB *godo.LoadBalancer
+		getExternalLB    *godo.LoadBalancer
 		getExternalLBErr error
 
 		createInternalLB    *godo.LoadBalancer
 		createInternalLBErr error
 
-		getInternalLB *godo.LoadBalancer
+		getInternalLB    *godo.LoadBalancer
 		getInternalLBErr error
-
 
 		errMsg string
 	}{
@@ -85,7 +85,7 @@ func TestCreateLoadBalancerStep_Run(t *testing.T) {
 		{
 			description: "Error getting external LB",
 
-			createExternalLB:    &godo.LoadBalancer{},
+			createExternalLB: &godo.LoadBalancer{},
 			getExternalLBErr: errors.New("error2"),
 
 			errMsg: "error2",
@@ -93,10 +93,10 @@ func TestCreateLoadBalancerStep_Run(t *testing.T) {
 		{
 			description: "Error creating internal LB",
 
-			createExternalLB:    &godo.LoadBalancer{},
+			createExternalLB: &godo.LoadBalancer{},
 			getExternalLB: &godo.LoadBalancer{
 				Status: StatusActive,
-				IP: "10.20.30.40",
+				IP:     "10.20.30.40",
 			},
 
 			createInternalLBErr: errors.New("error3"),
@@ -109,11 +109,11 @@ func TestCreateLoadBalancerStep_Run(t *testing.T) {
 			createExternalLB: &godo.LoadBalancer{},
 			getExternalLB: &godo.LoadBalancer{
 				Status: StatusActive,
-				IP: "10.20.30.40",
+				IP:     "10.20.30.40",
 			},
 			createInternalLB: &godo.LoadBalancer{},
 			getInternalLBErr: errors.New("error4"),
-			errMsg: "error4",
+			errMsg:           "error4",
 		},
 		{
 			description: "inactive LB",
@@ -121,7 +121,7 @@ func TestCreateLoadBalancerStep_Run(t *testing.T) {
 			createExternalLB: &godo.LoadBalancer{},
 			getExternalLB: &godo.LoadBalancer{
 				Status: "",
-				IP: "",
+				IP:     "",
 			},
 			errMsg: "IP must not be empty",
 		},
@@ -131,12 +131,12 @@ func TestCreateLoadBalancerStep_Run(t *testing.T) {
 			createExternalLB: &godo.LoadBalancer{},
 			getExternalLB: &godo.LoadBalancer{
 				Status: StatusActive,
-				IP: "10.20.30.40",
+				IP:     "10.20.30.40",
 			},
 			createInternalLB: &godo.LoadBalancer{},
 			getInternalLB: &godo.LoadBalancer{
 				Status: StatusActive,
-				IP: "11.22.33.44",
+				IP:     "11.22.33.44",
 			},
 		},
 	}
@@ -162,7 +162,7 @@ func TestCreateLoadBalancerStep_Run(t *testing.T) {
 				return svc
 			},
 			Attempts: 1,
-			Timeout: time.Nanosecond * 1,
+			Timeout:  time.Nanosecond * 1,
 		}
 
 		config := &steps.Config{}
