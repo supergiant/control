@@ -168,6 +168,7 @@ func (s *CreateInstanceStep) Run(ctx context.Context, output io.Writer,
 						Name: "External NAT",
 					},
 				},
+				// TODO(stgleb): Create own network instead of default
 				Network: prefix + "/global/networks/default",
 			},
 		},

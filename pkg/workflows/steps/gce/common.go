@@ -31,6 +31,7 @@ type computeService struct {
 	addHealthCheckToTargetPool func(context.Context, steps.GCEConfig, string, *compute.TargetPoolsAddHealthCheckRequest) (*compute.Operation, error)
 	insertInstanceGroup        func(context.Context, steps.GCEConfig, *compute.InstanceGroup) (*compute.Operation, error)
 	insertBackendService       func(context.Context, steps.GCEConfig, *compute.BackendService) (*compute.Operation, error)
+	insertNetwork              func(context.Context, steps.GCEConfig, *compute.Network) (*compute.Operation, error)
 	getHealthCheck             func(context.Context, steps.GCEConfig, string) (*compute.HealthCheck, error)
 	getInstanceGroup           func(context.Context, steps.GCEConfig, string) (*compute.InstanceGroup, error)
 	getTargetPool              func(context.Context, steps.GCEConfig, string) (*compute.TargetPool, error)
