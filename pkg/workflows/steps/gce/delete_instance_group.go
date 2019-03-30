@@ -3,6 +3,7 @@ package gce
 import (
 	"context"
 	"io"
+	"time"
 
 	"github.com/pkg/errors"
 
@@ -15,11 +16,15 @@ import (
 const DeleteInstanceGroupStepName = "gce_delete_instance_group"
 
 type DeleteInstanceGroupStep struct {
+	Timeout time.Duration
+	AttemptCount int
 	getComputeSvc func(context.Context, steps.GCEConfig) (*computeService, error)
 }
 
 func NewDeleteInstanceGroupStep() (*DeleteInstanceGroupStep, error) {
 	return &DeleteInstanceGroupStep{
+		Timeout: time.Second * 10,
+		AttemptCount: 10,
 		getComputeSvc: func(ctx context.Context, config steps.GCEConfig) (*computeService, error) {
 			client, err := GetClient(ctx, config)
 
@@ -49,15 +54,23 @@ func (s *DeleteInstanceGroupStep) Run(ctx context.Context, output io.Writer,
 		return errors.Wrapf(err, "%s getting service caused", DeleteInstanceGroupStepName)
 	}
 
-	_, err = svc.deleteInstanceGroup(ctx, config.GCEConfig, config.GCEConfig.InstanceGroupName)
+	timeout := s.Timeout
 
-	if err != nil {
-		logrus.Errorf("Error deleting instance group %v", err)
-		return errors.Wrapf(err, "%s deleting instance group %s caused",
-			config.GCEConfig.InstanceGroupName, DeleteInstanceGroupStepName)
+	for i := 0; i < s.AttemptCount; i++ {
+		_, err = svc.deleteInstanceGroup(ctx, config.GCEConfig, config.GCEConfig.InstanceGroupName)
+
+		if err != nil {
+			logrus.Debugf("Error deleting instance group %v", err)
+		} else {
+			break
+		}
+
+		time.Sleep(timeout)
+		timeout = timeout * 2
 	}
 
-	return nil
+	return err
+
 }
 
 func (s *DeleteInstanceGroupStep) Name() string {
