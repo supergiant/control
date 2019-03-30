@@ -28,7 +28,7 @@ func NewDeleteTargetPoolStep() (*DeleteTargetPoolStep, error) {
 			return &computeService{
 				deleteTargetPool: func(ctx context.Context, config steps.GCEConfig, targetPoolName string) (*compute.Operation, error) {
 					config.AvailabilityZone = "us-central1-a"
-					return client.InstanceGroups.Delete(config.ServiceAccount.ProjectID, config.AvailabilityZone, targetPoolName).Do()
+					return client.TargetPools.Delete(config.ServiceAccount.ProjectID, config.Region, targetPoolName).Do()
 				},
 			}, nil
 		},
@@ -51,8 +51,6 @@ func (s *DeleteTargetPoolStep) Run(ctx context.Context, output io.Writer,
 
 	if err != nil {
 		logrus.Errorf("Error deleting target pool %v", err)
-		return errors.Wrapf(err, "%s deleting target pool %s caused",
-			config.GCEConfig.InstanceGroupName, DeleteTargetPoolStepName)
 	}
 
 	return nil

@@ -24,7 +24,7 @@ type CreateAddressStep struct {
 func NewCreateAddressStep() (*CreateAddressStep, error) {
 	return &CreateAddressStep{
 		Timeout:      time.Second * 10,
-		AttemptCount: 6,
+		AttemptCount: 10,
 		getComputeSvc: func(ctx context.Context, config steps.GCEConfig) (*computeService, error) {
 			client, err := GetClient(ctx, config)
 
@@ -56,7 +56,7 @@ func (s *CreateAddressStep) Run(ctx context.Context, output io.Writer,
 	}
 
 	externalAddressName := fmt.Sprintf("ex-ip-%s", config.ClusterID)
-	logrus.Debugf("create external ip address %s", externalAddressName)
+	logrus.Debugf("create external ip address name %s", externalAddressName)
 
 	externalAddress := &compute.Address{
 		Name:        externalAddressName,
@@ -76,9 +76,10 @@ func (s *CreateAddressStep) Run(ctx context.Context, output io.Writer,
 	for i := 0; i < s.AttemptCount; i++ {
 		externalAddress, err = svc.getAddress(ctx, config.GCEConfig, externalAddressName)
 
-		if err == nil && externalAddress.Status == "RESERVED" {
+		if err == nil && externalAddress.Address != "" {
 			config.GCEConfig.ExternalIPAddressLink = externalAddress.SelfLink
 			config.ExternalDNSName = externalAddress.Address
+			logrus.Debugf("External IP %s", externalAddress.Address)
 			break
 		}
 
@@ -113,9 +114,10 @@ func (s *CreateAddressStep) Run(ctx context.Context, output io.Writer,
 	for i := 0; i < s.AttemptCount; i++ {
 		internalAddress, err = svc.getAddress(ctx, config.GCEConfig, internalAddressName)
 
-		if err == nil && internalAddress.Status == "RESERVED" {
+		if err == nil && internalAddress.Address != "" {
 			config.GCEConfig.InternalAddressName = internalAddress.SelfLink
 			config.InternalDNSName = internalAddress.Address
+			logrus.Debugf("Internal IP %s", internalAddress.Address)
 			break
 		}
 
