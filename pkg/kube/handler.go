@@ -379,8 +379,7 @@ func (h *Handler) deleteKube(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	logrus.Infof("forwarding rule ex %s", config.GCEConfig.ExternalForwardingRuleName)
-	logrus.Infof("forwarding rule in %s", config.GCEConfig.InternalForwardingRuleName)
+	logrus.Infof("forwarding rule ex %s", config.GCEConfig.ForwardingRuleName)
 	logrus.Info(k.CloudSpec)
 
 	errChan := t.Run(context.Background(), *config, writer)

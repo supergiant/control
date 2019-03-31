@@ -70,28 +70,7 @@ func (s *CreateForwardingRules) Run(ctx context.Context, output io.Writer,
 	}
 
 	logrus.Debugf("Created external forwarding rule %s", exName)
-	config.GCEConfig.ExternalForwardingRuleName = exName
-
-	inName := fmt.Sprintf("inrule-%s", config.ClusterID)
-	internalForwardingRule := &compute.ForwardingRule{
-		Name:                inName,
-		IPAddress:           config.GCEConfig.InternalIPAddressLink,
-		LoadBalancingScheme: "INTERNAL",
-		Description:         "Internal forwarding rule to target pool",
-		IPProtocol:          "TCP",
-		Ports:               []string{"443"},
-		BackendService:      config.GCEConfig.BackendServiceLink,
-	}
-
-	_, err = svc.insertForwardingRule(ctx, config.GCEConfig, internalForwardingRule)
-
-	if err != nil {
-		logrus.Errorf("Error creating internal forwarding rule %v", err)
-		return errors.Wrapf(err, "%s creating internal forwarding rule caused", CreateForwardingRulesStepName)
-	}
-
-	logrus.Debugf("Created internal forwarding rule %s", inName)
-	config.GCEConfig.InternalForwardingRuleName = inName
+	config.GCEConfig.ForwardingRuleName = exName
 
 	return nil
 }

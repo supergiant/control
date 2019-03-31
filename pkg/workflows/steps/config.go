@@ -93,20 +93,13 @@ type GCEConfig struct {
 	TargetPoolName string `json:"targetPoolName"`
 	TargetPoolLink string `json:"targetPoolLink"`
 
-	// BackendService acts as a balancer for internal traffic https://cloud.google.com/load-balancing/docs/backend-service
-	BackendServiceName string `json:"backendServiceName"`
-	BackendServiceLink string `json:"backendServiceLink"`
-
 	ExternalAddressName string `json:"externalAddressName"`
-	InternalAddressName string `json:"internalAddressName"`
 
 	ExternalIPAddressLink string `json:"externalIpAddressLink"`
-	InternalIPAddressLink string `json:"internalIpAddressLink"`
 
 	HealthCheckName string `json:"healthCheckName"`
 
-	ExternalForwardingRuleName string `json:"externalForwardingRuleName"`
-	InternalForwardingRuleName string `json:"internalForwardingRuleName"`
+	ForwardingRuleName string `json:"externalForwardingRuleName"`
 }
 
 type AzureConfig struct {

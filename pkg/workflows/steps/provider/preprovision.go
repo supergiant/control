@@ -88,6 +88,7 @@ func prepProvisionStepFor(provider clouds.Name) ([]steps.Step, error) {
 		return []steps.Step{
 			steps.GetStep(gce.CreateIPAddressStepName),
 			steps.GetStep(gce.CreateTargetPullStepName),
+			steps.GetStep(gce.CreateForwardingRulesStepName),
 			steps.GetStep(gce.CreateHealthCheckStepName),
 		}, nil
 	}

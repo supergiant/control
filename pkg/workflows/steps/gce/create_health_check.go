@@ -73,6 +73,10 @@ func (s *CreateHealthCheck) Run(ctx context.Context, output io.Writer,
 
 	hc, err := svc.getHealthCheck(ctx, config.GCEConfig, healthCheck.Name)
 
+	if err != nil {
+		return errors.Wrapf(err, "Error creating health check")
+	}
+
 	config.GCEConfig.HealthCheckName = hc.SelfLink
 
 	return nil
@@ -83,7 +87,7 @@ func (s *CreateHealthCheck) Name() string {
 }
 
 func (s *CreateHealthCheck) Depends() []string {
-	return []string{CreateTargetPullStepName, CreateBackendServiceStepName}
+	return []string{CreateTargetPullStepName}
 }
 
 func (s *CreateHealthCheck) Description() string {

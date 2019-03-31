@@ -52,16 +52,12 @@ func (s *DeleteIpAddressStep) Run(ctx context.Context, output io.Writer,
 
 	if err != nil {
 		logrus.Errorf("Error deleting external address %v", err)
-		return errors.Wrapf(err, "%s deleting external address %s caused",
-			config.GCEConfig.ExternalAddressName, DeleteIpAddressStepName)
 	}
 
 	_, err = svc.deleteIpAddress(ctx, config.GCEConfig, config.GCEConfig.ExternalAddressName)
 
 	if err != nil {
 		logrus.Errorf("Error deleting internal address %v", err)
-		return errors.Wrapf(err, "%s creating deleting address %s caused",
-			config.GCEConfig.ExternalAddressName, DeleteIpAddressStepName)
 	}
 
 	return nil

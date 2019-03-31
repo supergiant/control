@@ -250,9 +250,6 @@ func (tp *TaskProvisioner) provision(ctx context.Context,
 		return
 	}
 
-	logrus.Infof(bootstrapTask.Config.GCEConfig.ExternalForwardingRuleName)
-	logrus.Infof(bootstrapTask.Config.GCEConfig.InternalForwardingRuleName)
-
 	config = bootstrapTask.Config
 	config.IsBootstrap = false
 	logrus.Debug("Provision masters")
@@ -613,19 +610,11 @@ func (t *TaskProvisioner) updateCloudSpecificData(k *model.Kube, config *steps.C
 			config.AWSConfig.InternalLoadBalancerName
 	case clouds.GCE:
 		cloudSpecificSettings[clouds.GCETargetPoolName] = config.GCEConfig.TargetPoolName
-		cloudSpecificSettings[clouds.GCEBackendServiceName] = config.GCEConfig.BackendServiceName
-
 		cloudSpecificSettings[clouds.GCEExternalIPAddressName] = config.GCEConfig.ExternalAddressName
-		cloudSpecificSettings[clouds.GCEInternalIPAddressName] = config.GCEConfig.InternalAddressName
-
 		cloudSpecificSettings[clouds.GCEExternalIPAddress] = config.GCEConfig.ExternalIPAddressLink
-		cloudSpecificSettings[clouds.GCEInternalIPAddress] = config.GCEConfig.InternalIPAddressLink
-
 		cloudSpecificSettings[clouds.GCEHealthCheckName] = config.GCEConfig.HealthCheckName
-
 		cloudSpecificSettings[clouds.GCEInstanceGroupName] = config.GCEConfig.InstanceGroupName
-		cloudSpecificSettings[clouds.GCEExternalForwardingRuleName] = config.GCEConfig.ExternalForwardingRuleName
-		cloudSpecificSettings[clouds.GCEInternalForwardingRuleName] = config.GCEConfig.InternalForwardingRuleName
+		cloudSpecificSettings[clouds.GCEExternalForwardingRuleName] = config.GCEConfig.ForwardingRuleName
 	case clouds.DigitalOcean:
 		cloudSpecificSettings[clouds.DigitalOceanExternalLoadBalancerID] = config.DigitalOceanConfig.ExternalLoadBalancerID
 		cloudSpecificSettings[clouds.DigitalOceanInternalLoadBalancerID] = config.DigitalOceanConfig.InternalLoadBalancerID

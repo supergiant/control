@@ -79,6 +79,7 @@ func (s *CreateAddressStep) Run(ctx context.Context, output io.Writer,
 		if err == nil && externalAddress.Address != "" {
 			config.GCEConfig.ExternalIPAddressLink = externalAddress.SelfLink
 			config.ExternalDNSName = externalAddress.Address
+			config.InternalDNSName = externalAddress.Address
 			logrus.Debugf("External IP %s", externalAddress.Address)
 			break
 		}
@@ -91,46 +92,6 @@ func (s *CreateAddressStep) Run(ctx context.Context, output io.Writer,
 		logrus.Errorf("Error obtaining external ip address %v", err)
 		return errors.Wrapf(err, "error obtaining external ip address types")
 	}
-
-	logrus.Debugf("Save external IP address SelfLink %s", externalAddress.SelfLink)
-	internalAddressName := fmt.Sprintf("in-ip-%s", config.ClusterID)
-
-	internalAddress := &compute.Address{
-		Name:        internalAddressName,
-		Description: "Internal static IP address",
-		AddressType: "INTERNAL",
-	}
-
-	logrus.Debugf("create internal ip address %s", internalAddressName)
-	_, err = svc.insertAddress(ctx, config.GCEConfig, internalAddress)
-
-	if err != nil {
-		logrus.Errorf("Error creating internal ip address %v", err)
-		return errors.Wrapf(err, "error creating internal ip address types")
-	}
-
-	timeout = s.Timeout
-
-	for i := 0; i < s.AttemptCount; i++ {
-		internalAddress, err = svc.getAddress(ctx, config.GCEConfig, internalAddressName)
-
-		if err == nil && internalAddress.Address != "" {
-			config.GCEConfig.InternalAddressName = internalAddress.SelfLink
-			config.InternalDNSName = internalAddress.Address
-			logrus.Debugf("Internal IP %s", internalAddress.Address)
-			break
-		}
-
-		time.Sleep(timeout)
-		timeout = timeout * 2
-	}
-
-	if err != nil {
-		logrus.Errorf("Error obtaining internal ip address %v", err)
-		return errors.Wrapf(err, "error obtaining internal ip address types")
-	}
-
-	logrus.Debugf("Save internal IP address SelfLink %s", internalAddress.SelfLink)
 
 	return nil
 }
