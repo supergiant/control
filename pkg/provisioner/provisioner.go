@@ -530,9 +530,6 @@ func (tp *TaskProvisioner) buildInitialCluster(ctx context.Context,
 		Tasks:     taskIds,
 
 		SSHConfig: config.Kube.SSHConfig,
-
-		BootstrapPrivateKey: []byte(config.Kube.SSHConfig.BootstrapPrivateKey),
-		BootstrapPublicKey:  []byte(config.Kube.SSHConfig.BootstrapPublicKey),
 	}
 
 	return tp.kubeService.Create(ctx, cluster)

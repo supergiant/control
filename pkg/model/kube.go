@@ -55,13 +55,6 @@ type Kube struct {
 	Tasks map[string][]string `json:"tasks"`
 
 	SSHConfig SSHConfig `json:"sshConfig"`
-	// DEPRECATED
-	SshUser string `json:"sshUser"`
-	// DEPRECATED
-	SshPublicKey []byte `json:"sshKey"`
-
-	BootstrapPublicKey []byte `json:"bootstrapPublicKey"`
-	BootstrapPrivateKey []byte `json:"bootstrapPrivateKey"`
 
 	ExposedAddresses []profile.Addresses `json:"exposedAddresses"`
 }
@@ -77,12 +70,12 @@ type SSHConfig struct {
 
 // Auth holds all possible auth parameters.
 type Auth struct {
-	Username            string `json:"username"`
-	Password            string `json:"token"`
-	CAKey               string `json:"caKey"`
-	CACert              string `json:"caCert"`
-	AdminCert           string `json:"adminCert"`
-	AdminKey            string `json:"adminKey"`
+	Username  string `json:"username"`
+	Password  string `json:"token"`
+	CAKey     string `json:"caKey"`
+	CACert    string `json:"caCert"`
+	AdminCert string `json:"adminCert"`
+	AdminKey  string `json:"adminKey"`
 }
 
 type Networking struct {
