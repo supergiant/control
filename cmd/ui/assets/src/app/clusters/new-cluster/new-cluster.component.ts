@@ -191,32 +191,41 @@ export class NewClusterComponent implements OnInit, OnDestroy {
 
       this.provisioning = true;
       this.subscriptions.add(this.supergiant.Kubes.create(newClusterData).subscribe(
-        (data: any) => {
-          this.success(newClusterData);
+        data => {
+          this.displaySuccess(newClusterData);
           this.router.navigate(['/clusters/', data.clusterId]);
           this.provisioning = false;
         },
-        (err) => {
-          this.error(newClusterData, err);
+        err => {
+          this.displayError(err);
           this.provisioning = false;
         },
       ));
     }
   }
 
-  success(model) {
+  displaySuccess(model) {
     this.notifications.display(
       'success',
       'Kube: ' + model.clusterName,
-      'Created...',
+      'Created!',
     );
   }
 
-  error(model, data) {
+  displayError(err) {
+    let msg: string;
+
+    if (err.error.userMessage) {
+      msg = err.error.userMessage;
+    } else {
+      msg = err.error
+    }
+
     this.notifications.display(
       'error',
-      'Kube: ' + model.name,
-      'Error:' + data.statusText);
+      'Error: ',
+      msg
+    );
   }
 
   getAwsAvailabilityZones(region) {
@@ -390,7 +399,7 @@ export class NewClusterComponent implements OnInit, OnDestroy {
         this.regionsLoading = false;
       },
       err => {
-        this.error({}, err);
+        this.displayError(err);
         this.regionsLoading = false;
       },
     ));
