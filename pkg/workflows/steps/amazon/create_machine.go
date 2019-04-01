@@ -3,14 +3,13 @@ package amazon
 import (
 	"context"
 	"fmt"
-	"io"
-	"strconv"
-
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/aws/request"
 	"github.com/aws/aws-sdk-go/service/ec2"
 	"github.com/pkg/errors"
 	"github.com/sirupsen/logrus"
+	"io"
+	"strconv"
 
 	"github.com/supergiant/control/pkg/clouds"
 	"github.com/supergiant/control/pkg/model"
@@ -99,7 +98,7 @@ func (s *StepCreateInstance) Run(ctx context.Context, w io.Writer, cfg *steps.Co
 	runInstanceInput := &ec2.RunInstancesInput{
 		BlockDeviceMappings: []*ec2.BlockDeviceMapping{
 			{
-				DeviceName: aws.String("/dev/xvda"),
+				DeviceName: aws.String(cfg.AWSConfig.DeviceName),
 				Ebs: &ec2.EbsBlockDevice{
 					DeleteOnTermination: aws.Bool(true),
 					VolumeType:          aws.String("gp2"),
