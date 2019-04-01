@@ -6,18 +6,24 @@ import (
 	"strings"
 	"sync"
 
+	"github.com/Azure/azure-sdk-for-go/services/compute/mgmt/2017-09-01/skus"
+	"github.com/Azure/azure-sdk-for-go/services/preview/subscription/mgmt/2018-03-01-preview/subscription"
+	"github.com/Azure/go-autorest/autorest/azure/auth"
+	"github.com/Azure/go-autorest/autorest/to"
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/aws/credentials"
 	"github.com/aws/aws-sdk-go/aws/session"
 	"github.com/aws/aws-sdk-go/service/ec2"
 	"github.com/digitalocean/godo"
 	"github.com/pkg/errors"
-	compute "google.golang.org/api/compute/v1"
+	gcecomputev1 "google.golang.org/api/compute/v1"
 
 	"github.com/supergiant/control/pkg/clouds"
 	"github.com/supergiant/control/pkg/clouds/digitaloceansdk"
 	"github.com/supergiant/control/pkg/model"
+	"github.com/supergiant/control/pkg/sgerrors"
 	"github.com/supergiant/control/pkg/util"
+	"github.com/supergiant/control/pkg/util/strset"
 	"github.com/supergiant/control/pkg/workflows/steps"
 	"github.com/supergiant/control/pkg/workflows/steps/gce"
 )
@@ -25,6 +31,8 @@ import (
 var (
 	ErrNilAccount          = errors.New("nil account")
 	ErrUnsupportedProvider = errors.New("unsupported provider")
+
+	VMResourceType = "virtualMachines"
 )
 
 //Region represents
@@ -82,6 +90,8 @@ func NewRegionsGetter(account *model.CloudAccount, config *steps.Config) (Region
 		return NewAWSFinder(account, config)
 	case clouds.GCE:
 		return NewGCEFinder(account, config)
+	case clouds.Azure:
+		return NewAzureFinder(account, config)
 	}
 	return nil, ErrUnsupportedProvider
 }
@@ -114,6 +124,8 @@ func NewTypesGetter(account *model.CloudAccount, config *steps.Config) (TypesGet
 		return NewAWSFinder(account, config)
 	case clouds.GCE:
 		return NewGCEFinder(account, config)
+	case clouds.Azure:
+		return NewAzureFinder(account, config)
 	}
 	return nil, ErrUnsupportedProvider
 }
@@ -205,13 +217,10 @@ func convertRegion(r godo.Region) *Region {
 
 type AWSFinder struct {
 	defaultClient *ec2.EC2
+	machines      MachineTypes
 
-	getRegions func(ctx context.Context, client *ec2.EC2,
-		input *ec2.DescribeRegionsInput) (*ec2.DescribeRegionsOutput, error)
 	getZones func(ctx context.Context, client *ec2.EC2,
 		input *ec2.DescribeAvailabilityZonesInput) (*ec2.DescribeAvailabilityZonesOutput, error)
-	getTypes func(ctx context.Context, client *ec2.EC2,
-		input *ec2.DescribeReservedInstancesOfferingsInput) (*ec2.DescribeReservedInstancesOfferingsOutput, error)
 }
 
 func NewAWSFinder(acc *model.CloudAccount, config *steps.Config) (*AWSFinder, error) {
@@ -219,7 +228,7 @@ func NewAWSFinder(acc *model.CloudAccount, config *steps.Config) (*AWSFinder, er
 		return nil, ErrUnsupportedProvider
 	}
 
-	err := util.FillCloudAccountCredentials(context.Background(), acc, config)
+	err := util.FillCloudAccountCredentials(acc, config)
 
 	if err != nil {
 		return nil, errors.Wrap(err, "aws new finder")
@@ -242,43 +251,20 @@ func NewAWSFinder(acc *model.CloudAccount, config *steps.Config) (*AWSFinder, er
 
 	return &AWSFinder{
 		defaultClient: client,
+		machines:      awsMachines,
 
-		getRegions: func(ctx context.Context, client *ec2.EC2,
-			input *ec2.DescribeRegionsInput) (*ec2.DescribeRegionsOutput, error) {
-			return client.DescribeRegionsWithContext(ctx, &ec2.DescribeRegionsInput{})
-		},
 		getZones: func(ctx context.Context, client *ec2.EC2,
 			input *ec2.DescribeAvailabilityZonesInput) (*ec2.DescribeAvailabilityZonesOutput, error) {
 			return client.DescribeAvailabilityZonesWithContext(ctx, input)
-		},
-		getTypes: func(ctx context.Context, client *ec2.EC2,
-			input *ec2.DescribeReservedInstancesOfferingsInput) (*ec2.DescribeReservedInstancesOfferingsOutput, error) {
-			return client.DescribeReservedInstancesOfferingsWithContext(ctx, input)
 		},
 	}, nil
 }
 
 func (af *AWSFinder) GetRegions(ctx context.Context) (*RegionSizes, error) {
-	regionsOut, err := af.getRegions(ctx, af.defaultClient, &ec2.DescribeRegionsInput{})
-
-	if err != nil {
-		return nil, errors.Wrap(err, "failed to read aws regions")
-	}
-
-	regions := make([]*Region, 0)
-	for _, r := range regionsOut.Regions {
-		regions = append(regions, &Region{
-			ID:   *r.RegionName,
-			Name: *r.RegionName,
-		})
-	}
-
-	rs := &RegionSizes{
+	return &RegionSizes{
 		Provider: clouds.AWS,
-		Regions:  regions,
-	}
-
-	return rs, nil
+		Regions:  toRegions(af.machines.Regions()),
+	}, nil
 }
 
 func (af *AWSFinder) GetZones(ctx context.Context, config steps.Config) ([]string, error) {
@@ -305,27 +291,16 @@ func (af *AWSFinder) GetZones(ctx context.Context, config steps.Config) ([]strin
 }
 
 func (af *AWSFinder) GetTypes(ctx context.Context, config steps.Config) ([]string, error) {
-	out, err := af.getTypes(ctx, af.defaultClient, &ec2.DescribeReservedInstancesOfferingsInput{})
-
-	if err != nil {
-		return nil, errors.Wrap(err, "failed to read aws types")
-	}
-
-	instances := make([]string, 0)
-	for _, of := range out.ReservedInstancesOfferings {
-		instances = append(instances, *of.InstanceType)
-	}
-
-	return instances, nil
+	return af.machines.RegionTypes(config.AWSConfig.Region)
 }
 
 type GCEResourceFinder struct {
-	client *compute.Service
+	client *gcecomputev1.Service
 	config steps.Config
 
-	listRegions      func(*compute.Service, string) (*compute.RegionList, error)
-	getRegion        func(*compute.Service, string, string) (*compute.Region, error)
-	listMachineTypes func(*compute.Service, string, string) (*compute.MachineTypeList, error)
+	listRegions      func(*gcecomputev1.Service, string) (*gcecomputev1.RegionList, error)
+	getRegion        func(*gcecomputev1.Service, string, string) (*gcecomputev1.Region, error)
+	listMachineTypes func(*gcecomputev1.Service, string, string) (*gcecomputev1.MachineTypeList, error)
 }
 
 func NewGCEFinder(acc *model.CloudAccount, config *steps.Config) (*GCEResourceFinder, error) {
@@ -333,8 +308,7 @@ func NewGCEFinder(acc *model.CloudAccount, config *steps.Config) (*GCEResourceFi
 		return nil, ErrUnsupportedProvider
 	}
 
-	err := util.FillCloudAccountCredentials(context.Background(),
-		acc, config)
+	err := util.FillCloudAccountCredentials(acc, config)
 
 	if err != nil {
 		return nil, errors.Wrap(err, "create gce finder")
@@ -351,13 +325,13 @@ func NewGCEFinder(acc *model.CloudAccount, config *steps.Config) (*GCEResourceFi
 	return &GCEResourceFinder{
 		client: client,
 		config: *config,
-		listRegions: func(client *compute.Service, projectID string) (*compute.RegionList, error) {
+		listRegions: func(client *gcecomputev1.Service, projectID string) (*gcecomputev1.RegionList, error) {
 			return client.Regions.List(projectID).Do()
 		},
-		getRegion: func(client *compute.Service, projectID, regionID string) (*compute.Region, error) {
+		getRegion: func(client *gcecomputev1.Service, projectID, regionID string) (*gcecomputev1.Region, error) {
 			return client.Regions.Get(projectID, regionID).Do()
 		},
-		listMachineTypes: func(client *compute.Service, projectID, availabilityZone string) (*compute.MachineTypeList, error) {
+		listMachineTypes: func(client *gcecomputev1.Service, projectID, availabilityZone string) (*gcecomputev1.MachineTypeList, error) {
 			return client.MachineTypes.List(projectID, availabilityZone).Do()
 		},
 	}, nil
@@ -417,4 +391,172 @@ func (g *GCEResourceFinder) GetTypes(ctx context.Context, config steps.Config) (
 	}
 
 	return machineTypes, nil
+}
+
+type SubscriptionsInterface interface {
+	ListLocations(ctx context.Context, subscriptionID string) (subscription.LocationListResult, error)
+}
+
+type SKUSInterface interface {
+	ListComplete(ctx context.Context) (skus.ResourceSkusResultIterator, error)
+}
+
+type AzureFinder struct {
+	subscriptionID      string
+	location            string
+	subscriptionsClient SubscriptionsInterface
+	skusClient          SKUSInterface
+}
+
+func NewAzureFinder(acc *model.CloudAccount, cfg *steps.Config) (*AzureFinder, error) {
+	err := util.FillCloudAccountCredentials(acc, cfg)
+	if err != nil {
+		return nil, errors.Wrap(err, "retrieve cloud credentials")
+	}
+
+	token, err := auth.NewClientCredentialsConfig(cfg.AzureConfig.ClientID, cfg.AzureConfig.ClientSecret, cfg.AzureConfig.TenantID).Authorizer()
+	if err != nil {
+		return nil, errors.Wrap(err, "get authorization token")
+	}
+
+	sclient := subscription.NewSubscriptionsClient()
+	sclient.Authorizer = token
+	skusclient := skus.NewResourceSkusClient(cfg.AzureConfig.SubscriptionID)
+	skusclient.Authorizer = token
+
+	return &AzureFinder{
+		subscriptionID:      cfg.AzureConfig.SubscriptionID,
+		location:            acc.Credentials["region"],
+		subscriptionsClient: sclient,
+		skusClient:          skusclient,
+	}, nil
+}
+
+func (f AzureFinder) GetRegions(ctx context.Context) (*RegionSizes, error) {
+	res, err := f.subscriptionsClient.ListLocations(ctx, f.subscriptionID)
+	if err != nil {
+		return nil, err
+	}
+	if res.Value == nil {
+		return nil, errors.Wrap(sgerrors.ErrNilEntity, "list locations")
+	}
+
+	sizes, err := f.getVMSizes(ctx)
+	if err != nil {
+		return nil, err
+	}
+
+	// TODO: cache this data
+	return f.toRegionSizes(*res.Value, sizes), nil
+}
+
+func (f AzureFinder) GetZones(ctx context.Context, config steps.Config) ([]string, error) {
+	// TODO: add azure zones getter: https://github.com/Azure/azure-rest-api-specs/issues/3594
+	return []string{}, nil
+}
+
+func (f AzureFinder) GetTypes(ctx context.Context, cfg steps.Config) ([]string, error) {
+	sizes, err := f.getVMSizes(ctx)
+	if err != nil {
+		return nil, err
+	}
+	return vmSizesNames(sizes), nil
+}
+
+func (f AzureFinder) getVMSizes(ctx context.Context) ([]skus.ResourceSku, error) {
+	sizesList, err := f.skusClient.ListComplete(ctx)
+	if err != nil {
+		return nil, err
+	}
+
+	machineTypes := make([]skus.ResourceSku, 0)
+	for {
+		err = sizesList.NextWithContext(ctx)
+		if err != nil {
+			return nil, err
+		}
+
+		if !sizesList.NotDone() {
+			// exit the loop
+			break
+		}
+
+		if to.String(sizesList.Value().ResourceType) != VMResourceType {
+			continue
+		}
+
+		// filter by location
+		if sizesList.Value().Locations != nil && f.location != "" && !contains(*sizesList.Value().Locations, f.location) {
+			continue
+		}
+
+		machineTypes = append(machineTypes, sizesList.Value())
+	}
+
+	return machineTypes, nil
+}
+
+func (f AzureFinder) toRegionSizes(locations []subscription.Location, machineSizes []skus.ResourceSku) *RegionSizes {
+	// regions map with unique sizes
+	regionSizes := make(map[string]*strset.Set)
+	sizes := make(map[string]interface{})
+	for _, vm := range machineSizes {
+		if to.String(vm.Name) == "" || to.String(vm.Size) == "" {
+			continue
+		}
+
+		sizes[to.String(vm.Name)] = vm
+		for _, l := range to.StringSlice(vm.Locations) {
+			if regionSizes[l] == nil {
+				regionSizes[l] = strset.New()
+			}
+			regionSizes[l].Add(to.String(vm.Name))
+		}
+	}
+
+	regions := make([]*Region, 0)
+	for _, l := range locations {
+		regions = append(regions, &Region{
+			ID:             to.String(l.Name),
+			Name:           to.String(l.DisplayName),
+			AvailableSizes: regionSizes[to.String(l.Name)].ToSlice(),
+		})
+	}
+
+	return &RegionSizes{
+		Provider: clouds.Azure,
+		Regions:  regions,
+		Sizes:    sizes,
+	}
+}
+
+func toRegions(names []string) []*Region {
+	regions := make([]*Region, len(names))
+	for i, r := range names {
+		regions[i] = &Region{
+			ID:   r,
+			Name: r,
+		}
+	}
+	return regions
+}
+
+func vmSizesNames(sizes []skus.ResourceSku) []string {
+	names := strset.New()
+	for _, s := range sizes {
+		if to.String(s.Name) == "" || to.String(s.Size) == "" {
+			continue
+		}
+		names.Add(to.String(s.Name))
+	}
+	return names.ToSlice()
+}
+
+func contains(list []string, item string) bool {
+	for _, li := range list {
+		if li == item {
+			return true
+		}
+	}
+	return false
 }

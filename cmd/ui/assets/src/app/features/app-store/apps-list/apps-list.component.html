@@ -1,5 +1,5 @@
 <section class="charts-wrapper">
-  <mat-card class="app-card actions">
+  <mat-card class="card">
     <mat-card-header>
       <mat-card-title>
         <h2>Add/remove repo</h2>
@@ -24,7 +24,8 @@
   </mat-card>
 
   <mat-card *ngFor="let chart of (charts$ | async)"
-            class="app-card">
+            class="card app-card"
+            [routerLink]="['details', chart.name]">
     <mat-card-header>
       <mat-card-title>
         <h2>{{ chart.name | titlecase }}</h2>
@@ -35,12 +36,7 @@
       {{ chart.description }}
       </p>
     </mat-card-content>
-    <mat-card-actions>
-      <a [routerLink]="['details', chart.name]">
-        <button mat-raised-button
-                class="secondary">VIEW
-        </button>
-      </a>
+    <mat-card-actions class="app-actions">
 
       <div class="app-logo-wrapper">
         <img class="app-image"

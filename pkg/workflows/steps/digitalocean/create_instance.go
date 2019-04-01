@@ -58,6 +58,10 @@ func (s *CreateInstanceStep) Run(ctx context.Context, output io.Writer, config *
 		config.ClusterName,
 	}
 
+	if config.IsMaster {
+		tags = append(tags, fmt.Sprintf("master-%s", config.ClusterID))
+	}
+
 	dropletRequest := &godo.DropletCreateRequest{
 		Name:              config.DigitalOceanConfig.Name,
 		Region:            config.DigitalOceanConfig.Region,
@@ -107,7 +111,7 @@ func (s *CreateInstanceStep) Run(ctx context.Context, output io.Writer, config *
 				return err
 			}
 			// Wait for droplet becomes active
-			if droplet.Status == "active" {
+			if droplet.Status == StatusActive {
 				// Get private ip ports from droplet networks
 
 				createdAt, _ := strconv.Atoi(droplet.Created)

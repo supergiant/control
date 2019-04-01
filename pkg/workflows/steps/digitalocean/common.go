@@ -10,10 +10,15 @@ import (
 )
 
 const (
-	CreateMachineStepName    = "createMachineDigitalOcean"
-	DeleteMachineStepName    = "deleteMachineDigitalOcean"
-	DeleteClusterMachines    = "deleteClusterMachineDigitalOcean"
-	DeleteDeleteKeysStepName = "deleteKeysDigitalOcean"
+	CreateMachineStepName      = "createMachineDigitalOcean"
+	CreateLoadBalancerStepName = "createLoadBalancerDigitalOcean"
+
+	DeleteMachineStepName      = "deleteMachineDigitalOcean"
+	DeleteClusterMachines      = "deleteClusterMachineDigitalOcean"
+	DeleteDeleteKeysStepName   = "deleteKeysDigitalOcean"
+	DeleteLoadBalancerStepName = "deleteLoadBalancerDigitalOcean"
+
+	StatusActive = "active"
 )
 
 type DropletService interface {
@@ -33,9 +38,18 @@ type DeleteService interface {
 	DeleteByTag(context.Context, string) (*godo.Response, error)
 }
 
+type LoadBalancerService interface {
+	Create(context.Context, *godo.LoadBalancerRequest) (*godo.LoadBalancer, *godo.Response, error)
+	Delete(context.Context, string) (*godo.Response, error)
+	Get(context.Context, string) (*godo.LoadBalancer, *godo.Response, error)
+}
+
 func Init() {
 	steps.RegisterStep(CreateMachineStepName, NewCreateInstanceStep(time.Minute*5, time.Second*5))
 	steps.RegisterStep(DeleteMachineStepName, NewDeleteMachineStep(time.Minute*1))
 	steps.RegisterStep(DeleteClusterMachines, NewDeletemachinesStep(time.Minute*1))
 	steps.RegisterStep(DeleteDeleteKeysStepName, NewDeleteKeysStep())
+
+	steps.RegisterStep(CreateLoadBalancerStepName, NewCreateLoadBalancerStep())
+	steps.RegisterStep(DeleteLoadBalancerStepName, NewDeleteLoadBalancerStep())
 }

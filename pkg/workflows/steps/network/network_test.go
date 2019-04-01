@@ -16,7 +16,8 @@ import (
 	"github.com/supergiant/control/pkg/templatemanager"
 	"github.com/supergiant/control/pkg/testutils"
 	"github.com/supergiant/control/pkg/workflows/steps"
-	"github.com/supergiant/control/pkg/workflows/steps/etcd"
+	"github.com/supergiant/control/pkg/workflows/steps/poststart"
+	"github.com/supergiant/control/pkg/workflows/steps/ssh"
 )
 
 type fakeRunner struct {
@@ -46,31 +47,26 @@ func TestNetworkConfig(t *testing.T) {
 	}
 
 	testCases := []struct {
-		etcdRepositoryUrl string
-		etcdVersion       string
-		etcdHost          string
-		arch              string
-		operatingSystem   string
-		network           string
-		networkType       string
-		expectedError     error
+		networkProvider string
+		expectedContent string
+		expectedError   error
 	}{
 		{
-			"https://github.com/coreos/etcd/releases/download",
-			"0.9.0",
-			"10.20.30.40",
-			"amd64",
-			"linux",
-			"10.0.2.0/24",
-			"vxlan",
+			"Flannel",
+			"flannel",
 			nil,
 		},
 		{
-			"",
-			"",
-			"",
-			"",
-			"",
+			"Calico",
+			"calico",
+			nil,
+		},
+		{
+			"Weave",
+			"weave",
+			nil,
+		},
+		{
 			"",
 			"",
 			errors.New("error has occurred"),
@@ -84,17 +80,14 @@ func TestNetworkConfig(t *testing.T) {
 
 		output := &bytes.Buffer{}
 
-		config := steps.NewConfig("", "", "", profile.Profile{})
+		config, err := steps.NewConfig("", "", profile.Profile{})
+
+		if err != nil {
+			t.Errorf("Unexpected error %v", err)
+		}
+
 		config.NetworkConfig = steps.NetworkConfig{
-			EtcdHost:          testCase.etcdHost,
-			EtcdVersion:       testCase.etcdVersion,
-			EtcdRepositoryUrl: testCase.etcdRepositoryUrl,
-
-			Arch:            testCase.arch,
-			OperatingSystem: testCase.operatingSystem,
-
-			Network:     testCase.network,
-			NetworkType: testCase.networkType,
+			NetworkProvider: testCase.networkProvider,
 		}
 		config.Runner = r
 		config.IsMaster = true
@@ -104,42 +97,14 @@ func TestNetworkConfig(t *testing.T) {
 			script: tpl,
 		}
 
-		err := task.Run(context.Background(), output, config)
+		err = task.Run(context.Background(), output, config)
 
 		if testCase.expectedError != errors.Cause(err) {
 			t.Fatalf("wrong error expected %v actual %v", testCase.expectedError, err)
 		}
 
-		if !strings.Contains(output.String(), testCase.etcdRepositoryUrl) {
-			t.Fatalf("Etcd repository url Version %s not found in output %s", testCase.etcdRepositoryUrl, output.String())
-		}
-
-		if !strings.Contains(output.String(), testCase.etcdVersion) {
-			t.Fatalf("Etcd Version %s not found in output %s", testCase.etcdVersion, output.String())
-		}
-
-		if !strings.Contains(output.String(), testCase.arch) {
-			t.Fatalf("architecture %s not found in output %s", testCase.arch, output.String())
-		}
-
-		if !strings.Contains(output.String(), testCase.network) {
-			t.Fatalf("network %s not found in output %s", testCase.network, output.String())
-		}
-
-		if !strings.Contains(output.String(), testCase.networkType) {
-			t.Fatalf("network type %s not found in output %s", testCase.networkType, output.String())
-		}
-
-		if !strings.Contains(output.String(), testCase.arch) {
-			t.Fatalf("arch %s not found in output %s", testCase.arch, output.String())
-		}
-
-		if !strings.Contains(output.String(), testCase.operatingSystem) {
-			t.Fatalf("operating system %s not found in output %s", testCase.operatingSystem, output.String())
-		}
-
-		if testCase.expectedError == nil && !strings.Contains(output.String(), testCase.etcdHost) {
-			t.Fatalf("etcd host %s not found in output %s", testCase.etcdHost, output.String())
+		if !strings.Contains(output.String(), testCase.expectedContent) {
+			t.Fatalf("expectedContent %s not found in output %s", testCase.expectedContent, output.String())
 		}
 	}
 }
@@ -158,7 +123,12 @@ func TestNetworkErrors(t *testing.T) {
 		proxyTemplate,
 	}
 
-	cfg := steps.NewConfig("", "", "", profile.Profile{})
+	cfg, err := steps.NewConfig("", "", profile.Profile{})
+
+	if err != nil {
+		t.Errorf("Unexpected error %v", err)
+	}
+
 	cfg.Runner = r
 	err = task.Run(context.Background(), output, cfg)
 
@@ -183,8 +153,8 @@ func TestStepName(t *testing.T) {
 func TestDepends(t *testing.T) {
 	s := Step{}
 
-	if len(s.Depends()) != 1 && s.Depends()[0] != etcd.StepName {
-		t.Errorf("Wrong dependency list %v expected %v", s.Depends(), []string{etcd.StepName})
+	if len(s.Depends()) != 1 && s.Depends()[0] != ssh.StepName {
+		t.Errorf("Wrong dependency list %v expected %v", s.Depends(), []string{poststart.StepName})
 	}
 }
 

@@ -9,18 +9,17 @@ import (
 	"github.com/pkg/errors"
 	"k8s.io/apimachinery/pkg/labels"
 
-	"github.com/supergiant/control/pkg/model"
+	"github.com/supergiant/control/pkg/clouds"
 	tm "github.com/supergiant/control/pkg/templatemanager"
 	"github.com/supergiant/control/pkg/workflows/steps"
 	"github.com/supergiant/control/pkg/workflows/steps/docker"
-	"github.com/supergiant/control/pkg/workflows/steps/manifest"
 )
 
 const (
 	StepName = "kubelet"
 
-	// nodeLabelRole specifies the role of a node
-	nodeLabelRole = "kubernetes.io/role"
+	// LabelNodeRole specifies the role of a node
+	LabelNodeRole = "kubernetes.io/role"
 )
 
 type Step struct {
@@ -46,10 +45,7 @@ func New(script *template.Template) *Step {
 }
 
 func (t *Step) Run(ctx context.Context, out io.Writer, config *steps.Config) error {
-	config.KubeletConfig.IsMaster = config.IsMaster
-	config.KubeletConfig.NodeLabels = getNodeLables(toRole(config.IsMaster))
-
-	err := steps.RunTemplate(ctx, t.	script, config.Runner, out, config.KubeletConfig)
+	err := steps.RunTemplate(ctx, t.script, config.Runner, out, struct{ Provider clouds.Name }{config.Provider})
 
 	if err != nil {
 		return errors.Wrap(err, "install kubelet step")
@@ -71,19 +67,11 @@ func (t *Step) Description() string {
 }
 
 func (s *Step) Depends() []string {
-	return []string{docker.StepName, manifest.StepName}
+	return []string{docker.StepName}
 }
 
 func getNodeLables(role string) string {
 	return labels.Set(map[string]string{
-		nodeLabelRole: role,
+		LabelNodeRole: role,
 	}).String()
-}
-
-// TODO: role should be a port of config, it's used by a few tasks
-func toRole(isMaster bool) string {
-	if isMaster {
-		return string(model.RoleMaster)
-	}
-	return string(model.RoleNode)
 }

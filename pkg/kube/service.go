@@ -3,16 +3,19 @@ package kube
 import (
 	"context"
 	"encoding/json"
+	"fmt"
 	"strings"
 
 	"github.com/pborman/uuid"
 	"github.com/pkg/errors"
 	"github.com/technosophos/moniker"
+	corev1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/apimachinery/pkg/runtime/schema"
 	kubejson "k8s.io/apimachinery/pkg/runtime/serializer/json"
 	"k8s.io/apimachinery/pkg/runtime/serializer/versioning"
+	corev1client "k8s.io/client-go/kubernetes/typed/core/v1"
 	"k8s.io/client-go/rest"
 	clientcmdlatest "k8s.io/client-go/tools/clientcmd/api/latest"
 	"k8s.io/helm/pkg/helm"
@@ -25,6 +28,7 @@ import (
 	"github.com/supergiant/control/pkg/sgerrors"
 	"github.com/supergiant/control/pkg/sghelm/proxy"
 	"github.com/supergiant/control/pkg/storage"
+	"github.com/supergiant/control/pkg/workflows/steps/kubelet"
 )
 
 const (
@@ -50,6 +54,7 @@ type Interface interface {
 	KubeConfigFor(ctx context.Context, kname, user string) ([]byte, error)
 	ListKubeResources(ctx context.Context, kname string) ([]byte, error)
 	GetKubeResources(ctx context.Context, kname, resource, ns, name string) ([]byte, error)
+	ListNodes(ctx context.Context, k *model.Kube, role string) ([]corev1.Node, error)
 	GetCerts(ctx context.Context, kname, cname string) (*Bundle, error)
 	InstallRelease(ctx context.Context, kname string, rls *ReleaseInput) (*release.Release, error)
 	ListReleases(ctx context.Context, kname, ns, offset string, limit int) ([]*model.ReleaseInfo, error)
@@ -69,6 +74,7 @@ type ServerResourceGetter interface {
 // Service manages kubernetes clusters.
 type Service struct {
 	discoveryClientFn func(k *model.Kube) (ServerResourceGetter, error)
+	corev1ClientFn    func(k *model.Kube) (corev1client.CoreV1Interface, error)
 	clientForGroupFn  func(k *model.Kube, gv schema.GroupVersion) (rest.Interface, error)
 
 	prefix  string
@@ -81,10 +87,12 @@ type Service struct {
 // NewService constructs a Service.
 func NewService(prefix string, s storage.Interface, chrtGetter ChartGetter) *Service {
 	return &Service{
-		clientForGroupFn: restClientForGroupVersion, newHelmProxyFn: helmProxyFrom,
-		chrtGetter: chrtGetter,
-		prefix:     prefix,
-		storage:    s,
+		clientForGroupFn: restClientForGroupVersion,
+		corev1ClientFn:   corev1Client,
+		newHelmProxyFn:   helmProxyFrom,
+		chrtGetter:       chrtGetter,
+		prefix:           prefix,
+		storage:          s,
 	}
 }
 
@@ -201,6 +209,23 @@ func (s Service) GetKubeResources(ctx context.Context, kubeID, resource, ns, nam
 	}
 
 	return raw, nil
+}
+
+func (s Service) ListNodes(ctx context.Context, kube *model.Kube, role string) ([]corev1.Node, error) {
+	if s.corev1ClientFn == nil {
+		return nil, errors.Wrap(sgerrors.ErrNilEntity, "corev1client builder")
+	}
+	kclient, err := s.corev1ClientFn(kube)
+	if err != nil {
+		return nil, err
+	}
+	nodeList, err := kclient.Nodes().List(metav1.ListOptions{
+		LabelSelector: toRoleSelector(role),
+	})
+	if err != nil {
+		return nil, err
+	}
+	return nodeList.Items, nil
 }
 
 func (s Service) KubeConfigFor(ctx context.Context, kubeID, user string) ([]byte, error) {
@@ -429,4 +454,11 @@ func releaseStatuses() []release.Status_Code {
 		release.Status_PENDING_UPGRADE,
 		release.Status_PENDING_ROLLBACK,
 	}
+}
+
+func toRoleSelector(role string) string {
+	if role != "" {
+		return fmt.Sprintf("%s=%s", kubelet.LabelNodeRole, role)
+	}
+	return ""
 }

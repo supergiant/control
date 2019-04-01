@@ -8,7 +8,12 @@ import (
 	"github.com/pkg/errors"
 	"github.com/stretchr/testify/mock"
 	"github.com/stretchr/testify/require"
+	corev1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+	"k8s.io/apimachinery/pkg/runtime"
+	corev1client "k8s.io/client-go/kubernetes/typed/core/v1"
+	fakev1client "k8s.io/client-go/kubernetes/typed/core/v1/fake"
+	kubetesting "k8s.io/client-go/testing"
 	"k8s.io/helm/pkg/helm"
 	"k8s.io/helm/pkg/proto/hapi/chart"
 	"k8s.io/helm/pkg/proto/hapi/release"
@@ -762,6 +767,85 @@ func TestService_GetKubeResources(t *testing.T) {
 			t.Errorf("expected error %v actual %v",
 				testCase.expectedErr, err)
 		}
+	}
+}
+
+func TestService_ListNodes(t *testing.T) {
+	for _, tc := range []struct {
+		name           string
+		corev1ClientFn func(k *model.Kube) (corev1client.CoreV1Interface, error)
+		expectedErr    error
+		expectedRes    []corev1.Node
+	}{
+		{
+			name:        "invalid corev1 client builder",
+			expectedErr: sgerrors.ErrNilEntity,
+		},
+		{
+			name: "build client error",
+			corev1ClientFn: func(k *model.Kube) (corev1client.CoreV1Interface, error) {
+				return nil, fakeErrFileNotFound
+			},
+			expectedErr: fakeErrFileNotFound,
+		},
+		{
+			name: "list nodes error",
+			corev1ClientFn: func(k *model.Kube) (corev1client.CoreV1Interface, error) {
+				cl := &fakev1client.FakeCoreV1{
+					Fake: &kubetesting.Fake{},
+				}
+
+				cl.AddReactor(
+					"list",
+					"nodes",
+					func(action kubetesting.Action) (handled bool, ret runtime.Object, err error) {
+						return true, &corev1.NodeList{}, fakeErrFileNotFound
+					})
+
+				return cl, nil
+			},
+			expectedErr: fakeErrFileNotFound,
+		},
+		{
+			name: "success",
+			corev1ClientFn: func(k *model.Kube) (corev1client.CoreV1Interface, error) {
+				cl := &fakev1client.FakeCoreV1{
+					Fake: &kubetesting.Fake{},
+				}
+
+				cl.AddReactor(
+					"list",
+					"nodes",
+					func(action kubetesting.Action) (handled bool, ret runtime.Object, err error) {
+						return true, &corev1.NodeList{
+							Items: []corev1.Node{
+								{
+									ObjectMeta: metav1.ObjectMeta{
+										Name: "myNode",
+									},
+								},
+							},
+						}, nil
+					})
+
+				return cl, nil
+			},
+			expectedRes: []corev1.Node{
+				{
+					ObjectMeta: metav1.ObjectMeta{
+						Name: "myNode",
+					},
+				},
+			},
+		},
+	} {
+		svc := Service{
+			corev1ClientFn: tc.corev1ClientFn,
+		}
+
+		nodes, err := svc.ListNodes(context.Background(), &model.Kube{}, "")
+		require.Equal(t, tc.expectedErr, errors.Cause(err), "TC: %s", tc.name)
+		require.Equal(t, tc.expectedRes, nodes, "TC: %s: check result", tc.name)
 	}
 }
 

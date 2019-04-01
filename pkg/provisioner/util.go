@@ -48,6 +48,8 @@ func FillNodeCloudSpecificData(provider clouds.Name, nodeProfile profile.NodePro
 		return util.BindParams(nodeProfile, &config.PacketConfig)
 	case clouds.OpenStack:
 		return util.BindParams(nodeProfile, &config.OSConfig)
+	case clouds.Azure:
+		return util.BindParams(nodeProfile, &config.AzureConfig)
 	default:
 		return sgerrors.ErrUnknownProvider
 	}

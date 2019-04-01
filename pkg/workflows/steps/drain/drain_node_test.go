@@ -82,8 +82,13 @@ func TestDrain(t *testing.T) {
 
 	output := new(bytes.Buffer)
 
-	cfg := steps.NewConfig("", "",
+	cfg, err := steps.NewConfig("",
 		"", profile.Profile{})
+
+	if err != nil {
+		t.Errorf("Unexpected error %v", err)
+	}
+
 	cfg.Masters = steps.NewMap(map[string]*model.Machine{
 		"master-0": {
 			Name:     "master-0",
@@ -134,8 +139,13 @@ func TestErrors(t *testing.T) {
 		},
 	}
 
-	cfg := steps.NewConfig("", "",
+	cfg, err := steps.NewConfig("",
 		"", profile.Profile{})
+
+	if err != nil {
+		t.Errorf("Unexpected error %v", err)
+	}
+
 	cfg.Runner = r
 	cfg.AddMaster(&model.Machine{
 		State:     model.MachineStateActive,

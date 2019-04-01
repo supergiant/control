@@ -8,14 +8,11 @@ import (
 	"github.com/supergiant/control/pkg/workflows/steps/authorizedKeys"
 	"github.com/supergiant/control/pkg/workflows/steps/certificates"
 	"github.com/supergiant/control/pkg/workflows/steps/clustercheck"
-	"github.com/supergiant/control/pkg/workflows/steps/cni"
 	"github.com/supergiant/control/pkg/workflows/steps/docker"
 	"github.com/supergiant/control/pkg/workflows/steps/downloadk8sbinary"
 	"github.com/supergiant/control/pkg/workflows/steps/drain"
-	"github.com/supergiant/control/pkg/workflows/steps/etcd"
-	"github.com/supergiant/control/pkg/workflows/steps/flannel"
+	"github.com/supergiant/control/pkg/workflows/steps/kubeadm"
 	"github.com/supergiant/control/pkg/workflows/steps/kubelet"
-	"github.com/supergiant/control/pkg/workflows/steps/manifest"
 	"github.com/supergiant/control/pkg/workflows/steps/network"
 	"github.com/supergiant/control/pkg/workflows/steps/poststart"
 	"github.com/supergiant/control/pkg/workflows/steps/prometheus"
@@ -68,37 +65,35 @@ func Init() {
 	}
 
 	masterWorkflow := []steps.Step{
+		// TODO(stgleb): Provider steps should also register itsels it step map
 		provider.StepCreateMachine{},
+		&provider.RegisterInstanceToLoadBalancer{},
 		steps.GetStep(ssh.StepName),
 		steps.GetStep(authorizedKeys.StepName),
 		steps.GetStep(downloadk8sbinary.StepName),
-		steps.GetStep(cni.StepName),
-		steps.GetStep(etcd.StepName),
-		steps.GetStep(network.StepName),
-		steps.GetStep(flannel.StepName),
 		steps.GetStep(docker.StepName),
 		steps.GetStep(certificates.StepName),
-		steps.GetStep(manifest.StepName),
+		steps.GetStep(kubeadm.StepName),
 		steps.GetStep(kubelet.StepName),
 		steps.GetStep(poststart.StepName),
 	}
 
 	nodeWorkflow := []steps.Step{
+		// TODO(stgleb): Provider steps should also register theirself it step map
 		provider.StepCreateMachine{},
 		steps.GetStep(ssh.StepName),
 		steps.GetStep(authorizedKeys.StepName),
 		steps.GetStep(downloadk8sbinary.StepName),
-		steps.GetStep(manifest.StepName),
-		steps.GetStep(flannel.StepName),
 		steps.GetStep(docker.StepName),
 		steps.GetStep(certificates.StepName),
+		steps.GetStep(kubeadm.StepName),
 		steps.GetStep(kubelet.StepName),
-		steps.GetStep(cni.StepName),
 		steps.GetStep(poststart.StepName),
 	}
 
 	postProvision := []steps.Step{
 		steps.GetStep(ssh.StepName),
+		steps.GetStep(network.StepName),
 		steps.GetStep(clustercheck.StepName),
 		steps.GetStep(storageclass.StepName),
 		steps.GetStep(tiller.StepName),
@@ -111,7 +106,7 @@ func Init() {
 	}
 
 	deleteClusterWorkflow := []steps.Step{
-		provider.StepCleanUp{},
+		provider.DeleteCluster{},
 	}
 
 	m.Lock()

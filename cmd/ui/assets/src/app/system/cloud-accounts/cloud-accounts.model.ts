@@ -145,6 +145,63 @@ export class CloudAccountModel {
     ]
   };
 
+  azure = {
+    'name' : 'Microsoft Azure',
+    'model': {
+      'provider': 'azure',
+      'name': '',
+      'credentials': {
+        'clientId': '',
+        'clientSecret': '',
+        'tenantId': '',
+        'subscriptionId': ''
+      }
+    },
+    'schema': {
+      'properties': {
+        'provider': {
+          'default': 'azure',
+          'description': 'Microsoft Azure',
+          'type': 'string',
+          'widget': 'hidden'
+        },
+        'name': {
+          'type': 'string'
+        },
+        'credentials': {
+          'type': 'object',
+          'properties': {
+            'clientId': {
+              'type': 'string',
+              'description': 'Azure Client ID'
+            },
+            'clientSecret': {
+              'type': 'string',
+              'description': 'Azure Client Secret'
+            },
+            'tenantId': {
+              'type': 'string',
+              'description': 'Azure Tenant ID'
+            },
+            'subscriptionId': {
+              'type': 'string',
+              'description': 'Azure Subscription ID'
+            }
+          },
+          'required': [ 'clientId', 'clientSecret', 'tenantId', 'subscriptionId' ]
+        }
+      },
+      'required': [ 'name', 'credentials' ]
+    },
+    'layout': [
+      { 'key': 'name', 'title': 'Cloud Account Name', 'placeholder': 'Cloud Account Name' },
+      { 'key': 'credentials.clientId', 'placeholder': 'Client ID' },
+      { 'key': 'credentials.clientSecret', 'placeholder': 'Client Secret' },
+      { 'key': 'credentials.tenantId', 'placeholder': 'Tenant ID' },
+      { 'key': 'credentials.subscriptionId', 'placeholder': 'Subscription ID' }
+    ]
+  };
+
   public providers = [
     {
       display: 'AWS - Amazon Web Services',
@@ -160,6 +217,11 @@ export class CloudAccountModel {
       display: 'GCE - Google Compute Engine',
       name: 'gce',
       data: this.gce
+    },
+    {
+      display: 'Microsoft Azure',
+      name: 'azure',
+      data: this.azure
     }
   ];
 }

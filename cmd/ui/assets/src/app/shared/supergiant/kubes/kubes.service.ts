@@ -1,6 +1,5 @@
 import { Injectable } from '@angular/core';
 import { Observable } from 'rxjs';
-import { timeout } from 'rxjs/operators';
 import { UtilService } from '../util/util.service';
 
 @Injectable()
@@ -24,24 +23,15 @@ export class Kubes {
   }
 
   public getClusterMetrics(id): Observable<any> {
-    return this.util.fetch(this.kubesPath + '/' + id + '/metrics')
-      .pipe(
-        timeout(1000),
-      );
+    return this.util.fetch(this.kubesPath + '/' + id + '/metrics');
   }
 
   public getMachineMetrics(id): Observable<any> {
-    return this.util.fetch(this.kubesPath + '/' + id + '/nodes/metrics')
-      .pipe(
-        timeout(1000),
-      );
+    return this.util.fetch(this.kubesPath + '/' + id + '/nodes/metrics');
   }
 
   public getClusterServices(id): Observable<any> {
-    return this.util.fetch(this.kubesPath + '/' + id + '/services')
-      .pipe(
-        timeout(1000),
-      );
+    return this.util.fetch(this.kubesPath + '/' + id + '/services');
   }
 
   // adding this back so I don't have to touch apps component right now

@@ -10,6 +10,10 @@ type MachineState string
 
 type Role string
 
+func (r Role) String() string {
+	return string(r)
+}
+
 const (
 	MachineStatePlanned      MachineState = "planned"
 	MachineStateBuilding     MachineState = "building"
@@ -41,4 +45,11 @@ func (m Machine) String() string {
 	return fmt.Sprintf("<ID: %s, Name: %s Active: %v, Size: %s, CreatedAt: %d, Provider: %s, Region; %s, AvailabilityZone: %s, PublicIp: %s, PrivateIp: %s>",
 		m.ID, m.Name, m.State, m.Size, m.CreatedAt, m.Provider, m.Region,
 		m.availabilityZone, m.PublicIp, m.PrivateIp)
+}
+
+func ToRole(isMaster bool) Role {
+	if isMaster {
+		return RoleMaster
+	}
+	return RoleNode
 }

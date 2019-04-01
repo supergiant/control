@@ -4,7 +4,7 @@
 
   <div class="inputs-wrapper">
     <ng-container *ngIf=" account?.provider == 'aws' ">
-    <h3>AMAZON WEB SERVICES (AWS)</h3>
+    <h3>AWS - AMAZON WEB SERVICES</h3>
       <mat-form-field>
         <input matInput type="text" placeholder="Access Key" [(ngModel)]="account.credentials.access_key">
         <mat-hint align="end">Access Key for {{ accountName }}</mat-hint>
@@ -26,6 +26,29 @@
       <mat-form-field>
         <textarea matInput rows="14" placeholder="Public Key" [(ngModel)]="account.credentials.publicKey"></textarea>
         <mat-hint align="end">Public Key for {{ accountName }}</mat-hint>
+      </mat-form-field>
+    </ng-container>
+
+    <ng-container *ngIf=" account?.provider == 'azure' ">
+    <h3>MICROSOFT AZURE</h3>
+      <mat-form-field>
+        <input matInput type="text" placeholder="Client ID" [(ngModel)]="account.credentials.clientId">
+        <mat-hint align="end">Client ID for {{ accountName }}</mat-hint>
+      </mat-form-field>
+
+      <mat-form-field>
+        <input matInput type ="text" placeholder="Client Secret" [(ngModel)]="account.credentials.clientSecret">
+        <mat-hint align="end">Client Secret for {{ accountName }}</mat-hint>
+      </mat-form-field>
+
+      <mat-form-field>
+        <input matInput type ="text" placeholder="Tenant ID" [(ngModel)]="account.credentials.tenantId">
+        <mat-hint align="end">Tenant ID for {{ accountName }}</mat-hint>
+      </mat-form-field>
+
+      <mat-form-field>
+        <input matInput type ="text" placeholder="Subscription ID" [(ngModel)]="account.credentials.subscriptionId">
+        <mat-hint align="end">Subscription ID for {{ accountName }}</mat-hint>
       </mat-form-field>
     </ng-container>
 

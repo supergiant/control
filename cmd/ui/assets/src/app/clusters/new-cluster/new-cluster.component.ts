@@ -102,10 +102,10 @@ export class NewClusterComponent implements OnInit, OnDestroy {
     });
 
     this.clusterConfig = this.formBuilder.group({
-      K8sVersion: ['1.11.5', Validators.required],
-      flannelVersion: ['0.10.0', Validators.required],
+      K8sVersion: ['1.14.0', Validators.required],
+      networkProvider: ['Flannel', Validators.required],
       helmVersion: ['2.11.0', Validators.required],
-      dockerVersion: ['17.06.0', Validators.required],
+      dockerVersion: ['18.06.3', Validators.required],
       ubuntuVersion: ['xenial', Validators.required],
       networkType: ['vxlan', Validators.required],
       cidr: ['10.0.0.0/16', [Validators.required, this.validCidr()]],
@@ -417,7 +417,7 @@ export class NewClusterComponent implements OnInit, OnDestroy {
       this.updateRecommendations(currentMachine, selectedMachineType);
     }
 
-    if (this.machines.every(this.validMachine) && this.isOddNumberOfMasters()) {
+    if (this.machines.every(this.validMachine) && this.isOddNumberOfMasters() && this.hasMasterAndNode(this.machines)) {
       this.machinesConfigValid = true;
       this.displayMachinesConfigWarning = false;
     } else {
@@ -484,6 +484,14 @@ export class NewClusterComponent implements OnInit, OnDestroy {
       .map(m => m.qty)
       .reduce((prev, next) => prev + next);
     return (numberOfMasterProfiles) % 2 !== 0;
+  }
+
+  hasMasterAndNode(machines) {
+    const masters = machines.filter(m => m.role == MachineRoles.master)
+
+    const nodes = machines.filter(m => m.role == MachineRoles.node)
+
+    return (masters.length > 0 && nodes.length > 0);
   }
 
   nextStep() {

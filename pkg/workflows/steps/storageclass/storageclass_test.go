@@ -57,8 +57,12 @@ func TestStep_Run(t *testing.T) {
 	}
 
 	for _, tc := range tt {
-		cfg := steps.NewConfig("", "",
-			"", profile.Profile{})
+		cfg, err := steps.NewConfig("", "", profile.Profile{})
+
+		if err != nil {
+			t.Errorf("Unexpected error %v", err)
+		}
+
 		cfg.Provider = tc.provider
 		cfg.Runner = &fakeRunner{}
 

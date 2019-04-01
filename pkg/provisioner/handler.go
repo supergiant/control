@@ -15,7 +15,6 @@ import (
 	"github.com/supergiant/control/pkg/account"
 	"github.com/supergiant/control/pkg/message"
 	"github.com/supergiant/control/pkg/model"
-	"github.com/supergiant/control/pkg/pki"
 	"github.com/supergiant/control/pkg/profile"
 	"github.com/supergiant/control/pkg/sgerrors"
 	"github.com/supergiant/control/pkg/util"
@@ -95,34 +94,23 @@ func (h *Handler) Provision(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	clusterToken := uuid.New()
-	logrus.Infof("cluster token for ETCD %s", clusterToken)
-
-	// TODO: use staticAuth instead of user/password
-	// TODO: replace usage of user/password with TLS certificates
-	if req.Profile.User == "" || req.Profile.Password == "" {
-		req.Profile.User = util.RandomString(8)
-		req.Profile.Password = util.RandomString(16)
-
-		req.Profile.StaticAuth.BasicAuth = append(req.Profile.StaticAuth.BasicAuth, profile.BasicAuthUser{
-			Password: req.Profile.Password,
-			Name:     req.Profile.User,
-			ID:       req.Profile.User,
-			Groups:   []string{pki.MastersGroup},
-		})
-	}
-
 	if req.Profile.K8SServicesCIDR == "" {
 		req.Profile.K8SServicesCIDR = DefaultK8SServicesCIDR
 	}
 
-	config := steps.NewConfig(req.ClusterName, clusterToken, req.CloudAccountName, req.Profile)
+	config, err := steps.NewConfig(req.ClusterName, req.CloudAccountName, req.Profile)
+
+	if err != nil {
+		logrus.Errorf("New config %v", err.Error())
+		message.SendUnknownError(w, err)
+		return
+	}
 
 	acc, err := h.accountGetter.Get(r.Context(), req.CloudAccountName)
 
 	if err != nil {
 		if sgerrors.IsNotFound(err) {
-			http.NotFound(w, r)
+			message.SendValidationFailed(w, fmt.Errorf("%s account not found", req.CloudAccountName))
 			return
 		}
 
@@ -131,7 +119,7 @@ func (h *Handler) Provision(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// Fill config with appropriate cloud account credentials
-	err = util.FillCloudAccountCredentials(r.Context(), acc, config)
+	err = util.FillCloudAccountCredentials(acc, config)
 
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusNotFound)

@@ -110,7 +110,7 @@ func TestProvisionHandler(t *testing.T) {
 		{
 			description:  "account not found",
 			body:         validBody,
-			expectedCode: http.StatusNotFound,
+			expectedCode: http.StatusBadRequest,
 			getAccount: func(context.Context, string) (*model.CloudAccount, error) {
 				return nil, sgerrors.ErrNotFound
 			},

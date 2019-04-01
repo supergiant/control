@@ -47,6 +47,23 @@ export class EditCloudAccountComponent implements OnInit, OnDestroy {
     }
   }
 
+  success(account) {
+    this.notifications.display(
+      'success',
+      'Account: ' + account.name,
+      'Updated',
+    );
+  }
+
+  error(account, err) {
+    console.log(err.error.devMessage);
+    this.notifications.display(
+      'error',
+      'Account: ' + account.name,
+      'Error: ' + err.error.userMessage
+    );
+  }
+
   cancel() {
     this.router.navigate(['../../'], { relativeTo: this.route});
   }

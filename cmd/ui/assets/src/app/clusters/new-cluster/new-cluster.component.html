@@ -77,15 +77,15 @@
           </mat-form-field>
 
           <mat-form-field>
-            <mat-select placeholder="Flannel Version"
-                        formControlName="flannelVersion"
+            <mat-select placeholder="Network Provider"
+                        formControlName="networkProvider"
                         required>
-              <mat-option *ngFor="let f of clusterOptions.flannelVersions"
-                          [value]="f">{{ f }}</mat-option>
+              <mat-option *ngFor="let n of clusterOptions.networkProviders"
+                          [value]="n">{{ n }}</mat-option>
             </mat-select>
-            <mat-hint align="end">What is
-              <a href="https://coreos.com/flannel/docs/latest/"
-                 target="_blank">Flannel</a>?
+            <mat-hint align="end">Read more about
+              <a href="https://kubernetes.io/docs/concepts/cluster-administration/networking/"
+                 target="_blank">cluster networking</a>
             </mat-hint>
           </mat-form-field>
 
@@ -593,7 +593,7 @@
         </ng-container>
         <p *ngIf="displayMachinesConfigWarning"
            class="machine-config-warning">Current machine configuration is invalid. Please check that each machine has a
-                                          type, role, and the quantity of master nodes is an odd number.</p>
+                                          type, role, the quantity of masters is an odd number, and there is at least one node.</p>
       </div>
 
       <div class="step-actions">
@@ -621,7 +621,7 @@
             <h3>CLUSTER DETAILS</h3>
             <div>
               <p><span class="label">K8s VERSION:</span> {{ clusterConfig.value.K8sVersion }}</p>
-              <p><span class="label">FLANNEL VERSION:</span> {{ clusterConfig.value.flannelVersion }}</p>
+              <p><span class="label">NETWORK PROVIDER:</span> {{ clusterConfig.value.networkProvider }}</p>
               <p><span class="label">HELM VERSION:</span> {{ clusterConfig.value.helmVersion }}</p>
               <p><span class="label">DOCKER VERSION:</span> {{ clusterConfig.value.dockerVersion }}</p>
               <p><span class="label">UBUNTU VERSION:</span> {{ clusterConfig.value.ubuntuVersion }}</p>

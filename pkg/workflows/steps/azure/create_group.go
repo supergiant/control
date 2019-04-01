@@ -5,7 +5,8 @@ import (
 	"io"
 
 	"github.com/Azure/azure-sdk-for-go/services/resources/mgmt/2018-05-01/resources"
-	"github.com/Azure/go-autorest/autorest/azure/auth"
+	"github.com/Azure/go-autorest/autorest"
+	"github.com/Azure/go-autorest/autorest/to"
 	"github.com/pkg/errors"
 
 	"github.com/supergiant/control/pkg/sgerrors"
@@ -14,42 +15,33 @@ import (
 
 const CreateGroupStepName = "CreateResourceGroup"
 
-type BaseClientFn func(authorizer Autorizerer, subscriptionID string) (resources.BaseClient, error)
+type GroupsClientFn func(a autorest.Authorizer, subscriptionID string) GroupsInterface
 
 type CreateGroupStep struct {
-	baseClientFn BaseClientFn
+	groupsClientFn GroupsClientFn
 }
 
-func NewCreateInstanceStep() *CreateGroupStep {
+func NewCreateGroupStep() *CreateGroupStep {
 	return &CreateGroupStep{
-		baseClientFn: BaseClientFor,
+		groupsClientFn: GroupsClientFor,
 	}
 }
 
 func (s *CreateGroupStep) Run(ctx context.Context, output io.Writer, config *steps.Config) error {
-	if s.baseClientFn == nil {
+	if config == nil {
+		return errors.Wrap(sgerrors.ErrNilEntity, "config")
+	}
+	if s.groupsClientFn == nil {
 		return errors.Wrap(sgerrors.ErrNilEntity, "base client builder")
 	}
 
-	baseClient, err := s.baseClientFn(auth.ClientCredentialsConfig{
-		ClientID:     config.AzureConfig.ClientID,
-		ClientSecret: config.AzureConfig.ClientSecret,
-		TenantID:     config.AzureConfig.TenantID,
-	},
-		config.AzureConfig.SubscriptionID,
-	)
-	if err != nil {
-		return err
-	}
-
-	groupsClient := resources.GroupsClient{BaseClient: baseClient}
-	_, err = groupsClient.CreateOrUpdate(ctx, "", resources.Group{
-		Name:     toStrPtr(toResourceGroupName(config.ClusterID, config.ClusterName)),
-		Location: toStrPtr(config.AzureConfig.Location),
-		Tags:     map[string]*string{},
+	groupsClient := s.groupsClientFn(config.GetAzureAuthorizer(), config.AzureConfig.SubscriptionID)
+	_, err := groupsClient.CreateOrUpdate(ctx, toResourceGroupName(config.ClusterID, config.ClusterName), resources.Group{
+		Name:     to.StringPtr(toResourceGroupName(config.ClusterID, config.ClusterName)),
+		Location: to.StringPtr(config.AzureConfig.Location),
 	})
 
-	return errors.Wrap(err, "create resources group")
+	return errors.Wrap(err, "create resource group")
 }
 
 func (s *CreateGroupStep) Rollback(context.Context, io.Writer, *steps.Config) error {

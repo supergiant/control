@@ -9,6 +9,7 @@ import (
 	"github.com/supergiant/control/pkg/clouds"
 	"github.com/supergiant/control/pkg/runner/ssh"
 	"github.com/supergiant/control/pkg/workflows/steps"
+	"github.com/supergiant/control/pkg/workflows/steps/azure"
 )
 
 const StepName = "ssh"
@@ -27,7 +28,10 @@ func (s *Step) Run(ctx context.Context, writer io.Writer, config *steps.Config) 
 		//https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/AccessingInstancesLinux.html
 		// TODO: this should be set by provisioner
 		config.Kube.SSHConfig.User = "ubuntu"
+	} else if config.Provider == clouds.Azure {
+		config.Kube.SSHConfig.User = azure.OSUser
 	}
+
 	cfg := ssh.Config{
 		Host:    config.Node.PublicIp,
 		Port:    config.Kube.SSHConfig.Port,

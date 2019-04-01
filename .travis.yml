@@ -40,11 +40,12 @@ script:
   # Test
   # - govendor test +local (NOTE not needed with coverage line below)
   # Coverage
+  - cat cmd/controlplane/main.go | grep version
   - make build-ui
   - statik -src=./cmd/ui/assets/dist
   - make build
   # Integration
-  - if [ "$TRAVIS_EVENT_TYPE" == "cron" ] ; then echo running integration tests && go test -v -tags=integration -timeout 45m ./pkg/... ./test/... ; fi
+  - if [ "$TRAVIS_EVENT_TYPE" == "cron" ] ; then echo running integration tests && go test -race -timeout 45m ./test/... ; fi
   - travis_wait 30 source travis_build.sh
   # Make build
   #  - docker build . -t supergiant/controlplane

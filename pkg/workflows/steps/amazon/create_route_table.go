@@ -84,7 +84,7 @@ func (s *CreateRouteTableStep) Run(ctx context.Context, w io.Writer, cfg *steps.
 			Value: aws.String(cfg.ClusterName),
 		},
 		{
-			Key:   aws.String(clouds.ClusterIDTag),
+			Key:   aws.String(clouds.TagClusterID),
 			Value: aws.String(cfg.ClusterID),
 		},
 		{

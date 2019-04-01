@@ -15,11 +15,11 @@ import (
 )
 
 var (
-	version       = "v2.0.0-rc.3"
+	version       = "unstable"
 	addr          = flag.String("address", "0.0.0.0", "network interface to attach server to")
 	port          = flag.Int("port", 8080, "tcp port to listen for incoming requests")
 	storageMode   = flag.String("storage-mode", "file", "storage type either file(default), memory or etcd")
-	storageURI    = flag.String("storage-uri", "supertiant.db", "uri of storage depends on selected storage type, for memory storage type this is empty")
+	storageURI    = flag.String("storage-uri", "supergiant.db", "uri of storage depends on selected storage type, for memory storage type this is empty")
 	templatesDir  = flag.String("templates", "/etc/supergiant/templates/", "supergiant will load script templates from the specified directory on start")
 	logLevel      = flag.String("log-level", "INFO", "logging level, e.g. info, warning, debug, error, fatal")
 	logFormat     = flag.String("log-format", "txt", "logging format [txt json]")
@@ -55,6 +55,7 @@ func main() {
 
 	server, err := controlplane.New(cfg)
 	if err != nil {
+		logrus.Infof("configuration: %+v", *cfg)
 		logrus.Fatalf("broken configuration: %v", err)
 	}
 

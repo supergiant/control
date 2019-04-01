@@ -10,6 +10,8 @@ import (
 	"github.com/supergiant/control/pkg/clouds"
 	"github.com/supergiant/control/pkg/workflows/steps"
 	"github.com/supergiant/control/pkg/workflows/steps/amazon"
+	"github.com/supergiant/control/pkg/workflows/steps/azure"
+	"github.com/supergiant/control/pkg/workflows/steps/digitalocean"
 )
 
 const (
@@ -24,11 +26,11 @@ func (s StepPreProvision) Run(ctx context.Context, out io.Writer, cfg *steps.Con
 		return errors.New("invalid config")
 	}
 
-	steps, err := prepProvisionStepFor(cfg.Provider)
+	preProvisionSteps, err := prepProvisionStepFor(cfg.Provider)
 	if err != nil {
 		return errors.Wrap(err, PreProvisionStep)
 	}
-	for _, s := range steps {
+	for _, s := range preProvisionSteps {
 		if err = s.Run(ctx, out, cfg); err != nil {
 			return errors.Wrap(err, PreProvisionStep)
 		}
@@ -67,11 +69,22 @@ func prepProvisionStepFor(provider clouds.Name) ([]steps.Step, error) {
 			steps.GetStep(amazon.StepCreateSubnets),
 			steps.GetStep(amazon.StepCreateRouteTable),
 			steps.GetStep(amazon.StepAssociateRouteTable),
+			steps.GetStep(amazon.StepCreateLoadBalancer),
 		}, nil
 	case clouds.DigitalOcean:
-		return []steps.Step{}, nil
+		return []steps.Step{
+			// TODO(stgleb): Apply security stuff here
+			steps.GetStep(digitalocean.CreateLoadBalancerStepName),
+		}, nil
 	case clouds.GCE:
 		return []steps.Step{}, nil
+	case clouds.Azure:
+		return []steps.Step{
+			steps.GetStep(azure.GetAuthorizerStepName),
+			steps.GetStep(azure.CreateGroupStepName),
+			steps.GetStep(azure.CreateVNetAndSubnetsStepName),
+			steps.GetStep(azure.CreateSecurityGroupStepName),
+		}, nil
 	}
-	return nil, errors.New(fmt.Sprintf("unknown provider: %s", provider))
+	return nil, errors.Wrapf(fmt.Errorf("unknown provider: %s", provider), PreProvisionStep)
 }

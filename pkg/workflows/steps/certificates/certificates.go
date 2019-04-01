@@ -9,8 +9,8 @@ import (
 	"github.com/pkg/errors"
 
 	tm "github.com/supergiant/control/pkg/templatemanager"
-	"github.com/supergiant/control/pkg/workflows/util"
 	"github.com/supergiant/control/pkg/workflows/steps"
+	"github.com/supergiant/control/pkg/workflows/util"
 )
 
 const StepName = "certificates"
@@ -44,9 +44,20 @@ func (s *Step) Run(ctx context.Context, out io.Writer, config *steps.Config) err
 	config.CertificatesConfig.PublicIP = config.Node.PublicIp
 	config.CertificatesConfig.IsMaster = config.IsMaster
 
-	kubeDefaultSvcIp, err := util.GetKubernetesDefaultSvcIP(config.ManifestConfig.ServicesCIDR)
+	if !config.IsMaster {
+		if config.InternalDNSName == "" {
+			master := config.GetMaster()
+			config.CertificatesConfig.MasterHost = master.PrivateIp
+		} else {
+			config.CertificatesConfig.MasterHost = config.InternalDNSName
+		}
+
+		config.CertificatesConfig.NodeName = config.Node.Name
+	}
+
+	kubeDefaultSvcIp, err := util.GetKubernetesDefaultSvcIP(config.CertificatesConfig.ServicesCIDR)
 	if err != nil {
-		return errors.Wrapf(err, "get cluster dns ip from the %s subnet", config.ManifestConfig.ServicesCIDR)
+		return errors.Wrapf(err, "get cluster dns ip from the %s subnet", config.CertificatesConfig.ServicesCIDR)
 	}
 	config.CertificatesConfig.KubernetesSvcIP = kubeDefaultSvcIp.String()
 

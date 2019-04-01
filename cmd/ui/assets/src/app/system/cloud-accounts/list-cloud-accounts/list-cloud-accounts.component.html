@@ -25,6 +25,10 @@
                 GCE - Google Compute Engine
               </ng-container>
 
+              <ng-container *ngIf="account.provider == 'azure'">
+                Microsoft Azure
+              </ng-container>
+
               <ng-container *ngIf="account.provider == 'openstack'">
                 Openstack
               </ng-container>
