@@ -75,7 +75,8 @@ func newTask(workflowType string, workflow Workflow, repository storage.Interfac
 		ID:     uuid.New(),
 		Type:   workflowType,
 		Status: statuses.Todo,
-
+		StepStatuses: make([]StepStatus, 0, 0),
+		
 		workflow:   workflow,
 		repository: repository,
 	}
