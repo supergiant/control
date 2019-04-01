@@ -175,6 +175,7 @@ type KubeadmConfig struct {
 	Token            string `json:"token"`
 	Provider         string `json:"provider"`
 
+	MasterPrivateIP string `json:"masterPrivateIp"`
 	InternalDNSName string `json:"internalDNSName"`
 	ExternalDNSName string `json:"externalDNSName"`
 }

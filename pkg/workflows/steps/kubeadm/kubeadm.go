@@ -58,6 +58,10 @@ func (t *Step) Run(ctx context.Context, out io.Writer, config *steps.Config) err
 	if config.Provider == clouds.AWS || config.Provider == clouds.DigitalOcean {
 		config.KubeadmConfig.InternalDNSName = config.InternalDNSName
 		config.KubeadmConfig.ExternalDNSName = config.ExternalDNSName
+
+		if master := config.GetMaster(); master != nil {
+			config.KubeadmConfig.MasterPrivateIP = master.PrivateIp
+		}
 	} else {
 		if master := config.GetMaster(); master != nil {
 			config.KubeadmConfig.InternalDNSName = master.PrivateIp
