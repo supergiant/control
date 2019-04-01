@@ -64,14 +64,14 @@ export class NewCloudAccountComponent implements OnInit, OnDestroy {
 
     this.subscriptions.add(this.supergiant.CloudAccounts.create(model).subscribe(
       data => {
-        this.success(model);
+        this.displaySuccess(model);
         this.router.navigate(['/clusters/new']);
       },
-      err => this.error(model, err)
+      err => this.displayError(model, err)
     ));
   }
 
-  success(model) {
+  displaySuccess(model) {
     this.notifications.display(
       'success',
       'Account: ' + model.name,
@@ -79,12 +79,20 @@ export class NewCloudAccountComponent implements OnInit, OnDestroy {
     );
   }
 
-  error(model, err) {
-    console.log(err.error.devMessage);
+  displayError(model, err) {
+    let msg: string;
+
+    if (err.error.userMessage) {
+      msg = err.error.userMessage
+      console.log(err.error.devMessage);
+    } else {
+      msg = err.error
+    }
+
     this.notifications.display(
       'error',
       'Account: ' + model.name,
-      'Error: ' + err.error.userMessage
+      'Error: ' + msg
     );
   }
 }

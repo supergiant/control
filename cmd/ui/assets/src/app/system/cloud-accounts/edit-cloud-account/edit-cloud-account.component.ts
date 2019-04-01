@@ -39,13 +39,10 @@ export class EditCloudAccountComponent implements OnInit, OnDestroy {
 
       this.supergiant.CloudAccounts.update(this.accountName, account).subscribe(
         res => {
-          this.success(account);
-          this.router.navigate(['../../'], { relativeTo: this.route})
+          this.displaySuccess(this.accountName);
+          this.router.navigate(['../../'], { relativeTo: this.route});
         },
-        err => {
-          this.error(account, err);
-          console.error(err)
-        }
+        err => this.displayError(this.accountName, err)
       );
     }
   }
@@ -69,6 +66,31 @@ export class EditCloudAccountComponent implements OnInit, OnDestroy {
 
   cancel() {
     this.router.navigate(['../../'], { relativeTo: this.route});
+  }
+
+  displaySuccess(accountName) {
+    this.notifications.display(
+      "success",
+      "Account: " + accountName,
+      "Saved successfully"
+    )
+  }
+
+  displayError(accountName, err) {
+    let msg: string;
+
+    if (err.error.userMessage) {
+      console.log(err.error.devMessage);
+      msg = err.error.userMessage
+    } else {
+      msg = err.error
+    }
+
+    this.notifications.display(
+      'error',
+      'Account: ' + accountName,
+      'Error: ' + msg
+    );
   }
 
   ngOnInit() {
