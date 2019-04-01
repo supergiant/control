@@ -80,69 +80,6 @@ func (c *Client) AvailableInstanceTypes(ctx context.Context) ([]*EC2TypeInfo, er
 	return ec2Infos, nil
 }
 
-// CreateInstance starts a new instance due to the config.
-func (c *Client) CreateInstance(ctx context.Context, cfg InstanceConfig) (*ec2.Instance, error) {
-	cfg.Region = strings.TrimSpace(cfg.Region)
-	if cfg.Region == "" {
-		return nil, ErrNoRegionProvided
-	}
-	ec2S := c.ec2SvcFn(c.session, cfg.Region)
-
-	instanceInp := &ec2.RunInstancesInput{
-		ImageId:      aws.String(cfg.ImageID),
-		InstanceType: aws.String(cfg.Type),
-		MinCount:     aws.Int64(1),
-		MaxCount:     aws.Int64(1),
-		KeyName:      aws.String(cfg.KeyName),
-		EbsOptimized: cfg.EBSOptimized,
-		IamInstanceProfile: &ec2.IamInstanceProfileSpecification{
-			Name: aws.String(cfg.IAMRole),
-		},
-		BlockDeviceMappings: []*ec2.BlockDeviceMapping{
-			{
-				DeviceName: aws.String("/dev/xvda"),
-				Ebs: &ec2.EbsBlockDevice{
-					DeleteOnTermination: aws.Bool(true),
-					VolumeType:          aws.String(cfg.VolumeType),
-					VolumeSize:          aws.Int64(cfg.VolumeSize),
-				},
-			},
-		},
-		SecurityGroupIds: cfg.SecurityGroups,
-		SubnetId:         aws.String(cfg.SubnetID),
-		TagSpecifications: []*ec2.TagSpecification{
-			{
-				ResourceType: aws.String(ec2.ResourceTypeInstance),
-				Tags:         getTags(c.tags, &cfg),
-			},
-		},
-	}
-	if cfg.UsedData != "" {
-		instanceInp.UserData = aws.String(cfg.UsedData)
-	}
-	if cfg.HasPublicAddr {
-		instanceInp.NetworkInterfaces = []*ec2.InstanceNetworkInterfaceSpecification{
-			{
-				DeviceIndex:              aws.Int64(0),
-				AssociatePublicIpAddress: aws.Bool(cfg.HasPublicAddr),
-				DeleteOnTermination:      aws.Bool(true),
-				Groups:                   cfg.SecurityGroups,
-				SubnetId:                 aws.String(cfg.SubnetID),
-			},
-		}
-	}
-
-	res, err := ec2S.RunInstancesWithContext(ctx, instanceInp)
-	if err != nil {
-		return nil, errors.Wrap(err, "aws: run instance")
-	}
-	if res.Instances == nil || len(res.Instances) < 1 {
-		return nil, ErrNoInstancesCreated
-	}
-
-	return res.Instances[0], nil
-}
-
 // GetInstance retrieves an instance by instanceID.
 func (c *Client) GetInstance(ctx context.Context, region, id string) (*ec2.Instance, error) {
 	region, id = strings.TrimSpace(region), strings.TrimSpace(id)

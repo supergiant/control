@@ -86,65 +86,6 @@ func TestNewClient(t *testing.T) {
 	}
 }
 
-func TestClient_CreateInstance(t *testing.T) {
-	tcs := []struct {
-		name   string
-		config InstanceConfig
-
-		ec2Res *ec2.Reservation
-		ec2Err error
-
-		expectedErr error
-	}{
-		// TC#1
-		{
-			name:        "no region provided",
-			expectedErr: ErrNoRegionProvided,
-		},
-		// TC#2
-		{
-			name:        "failed to run instance",
-			config:      InstanceConfig{Region: "us1"},
-			ec2Err:      errFake,
-			expectedErr: errFake,
-		},
-		// TC#3
-		{
-			name:        "no instances created",
-			config:      InstanceConfig{Region: "us1"},
-			ec2Res:      &ec2.Reservation{},
-			expectedErr: ErrNoInstancesCreated,
-		},
-		// TC#5
-		{
-			config: InstanceConfig{
-				Region:        "us1",
-				UsedData:      "userdata",
-				HasPublicAddr: true,
-			},
-			ec2Res: &ec2.Reservation{
-				Instances: []*ec2.Instance{
-					{InstanceId: aws.String("1")},
-				},
-			},
-			name: "create and tag instance",
-		},
-	}
-
-	ec2Fake := &fakeEC2Service{}
-	for i, tc := range tcs {
-		ec2Fake.ec2Reservation, ec2Fake.err = tc.ec2Res, tc.ec2Err
-		c := &Client{
-			ec2SvcFn: func(s *session.Session, region string) ec2iface.EC2API {
-				return ec2Fake
-			},
-		}
-
-		_, err := c.CreateInstance(context.Background(), tc.config)
-		require.Equalf(t, tc.expectedErr, errors.Cause(err), "TC#%d: %s", i+1, tc.name)
-	}
-}
-
 func TestClient_DeleteInstance(t *testing.T) {
 	tcs := []struct {
 		name       string
