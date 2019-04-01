@@ -42,13 +42,9 @@ export class NewCloudAccountComponent implements OnInit, OnDestroy {
   }
 
   checkForBlankName(name) {
-    console.log('name: ', name);
-    console.log('type: ', typeof(name) === 'string');
     if (name) {
-      console.log('true');
       this.nameIsBlank = false;
     } else {
-      console.log('false');
       this.nameIsBlank = true;
     }
   }

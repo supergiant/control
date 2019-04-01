@@ -3,6 +3,7 @@ import { ActivatedRoute, Router } from '@angular/router';
 import { Subscription } from 'rxjs';
 
 import { Supergiant } from '../../../shared/supergiant/supergiant.service';
+import { Notifications } from '../../../shared/notifications/notifications.service';
 
 @Component({
   selector: 'app-edit-cloud-account',
@@ -21,7 +22,8 @@ export class EditCloudAccountComponent implements OnInit, OnDestroy {
   constructor(
     private route: ActivatedRoute,
     private router: Router,
-    private supergiant: Supergiant
+    private supergiant: Supergiant,
+    private notifications: Notifications
   ) { }
 
   getAccount(name) {
@@ -36,10 +38,33 @@ export class EditCloudAccountComponent implements OnInit, OnDestroy {
       this.saving = true;
 
       this.supergiant.CloudAccounts.update(this.accountName, account).subscribe(
-        res => this.router.navigate(['../../'], { relativeTo: this.route}),
-        err => console.error(err)
+        res => {
+          this.success(account);
+          this.router.navigate(['../../'], { relativeTo: this.route})
+        },
+        err => {
+          this.error(account, err);
+          console.error(err)
+        }
       );
     }
+  }
+
+  success(account) {
+    this.notifications.display(
+      'success',
+      'Account: ' + account.name,
+      'Updated',
+    );
+  }
+
+  error(account, err) {
+    console.log(err.error.devMessage);
+    this.notifications.display(
+      'error',
+      'Account: ' + account.name,
+      'Error: ' + err.error.userMessage
+    );
   }
 
   cancel() {
