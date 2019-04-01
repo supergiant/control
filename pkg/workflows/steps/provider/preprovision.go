@@ -6,13 +6,13 @@ import (
 	"io"
 
 	"github.com/pkg/errors"
+	"github.com/supergiant/control/pkg/workflows/steps/gce"
 
 	"github.com/supergiant/control/pkg/clouds"
 	"github.com/supergiant/control/pkg/workflows/steps"
 	"github.com/supergiant/control/pkg/workflows/steps/amazon"
 	"github.com/supergiant/control/pkg/workflows/steps/azure"
 	"github.com/supergiant/control/pkg/workflows/steps/digitalocean"
-	"github.com/supergiant/control/pkg/workflows/steps/gce"
 )
 
 const (

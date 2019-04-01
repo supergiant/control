@@ -2,9 +2,10 @@ package digitalocean
 
 import (
 	"context"
+	"io"
+
 	"github.com/pkg/errors"
 	"github.com/sirupsen/logrus"
-	"io"
 
 	"github.com/supergiant/control/pkg/clouds/digitaloceansdk"
 	"github.com/supergiant/control/pkg/workflows/steps"

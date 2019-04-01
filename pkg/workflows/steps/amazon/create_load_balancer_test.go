@@ -8,10 +8,9 @@ import (
 	"testing"
 
 	"github.com/aws/aws-sdk-go/aws"
-	"github.com/stretchr/testify/mock"
-
 	"github.com/aws/aws-sdk-go/aws/request"
 	"github.com/aws/aws-sdk-go/service/elb"
+	"github.com/stretchr/testify/mock"
 
 	"github.com/supergiant/control/pkg/workflows/steps"
 )
