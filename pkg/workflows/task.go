@@ -75,6 +75,7 @@ func newTask(workflowType string, workflow Workflow, repository storage.Interfac
 		ID:     uuid.New(),
 		Type:   workflowType,
 		Status: statuses.Todo,
+		StepStatuses: make([]StepStatus, 0, 0),
 
 		workflow:   workflow,
 		repository: repository,
@@ -87,6 +88,11 @@ func (t *Task) Run(ctx context.Context, config steps.Config, out io.WriteCloser)
 
 	if t.Status == statuses.Success {
 		errChan <- nil
+		return errChan
+	}
+
+	// Check for tasks with no steps
+	if len(t.workflow) == 0 {
 		return errChan
 	}
 
