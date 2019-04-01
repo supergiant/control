@@ -17,7 +17,7 @@ type CreateTargetPoolStep struct {
 	getComputeSvc func(context.Context, steps.GCEConfig) (*computeService, error)
 }
 
-func NewCreateTargetPoolStep() (*CreateTargetPoolStep, error) {
+func NewCreateTargetPoolStep() *CreateTargetPoolStep {
 	return &CreateTargetPoolStep{
 		getComputeSvc: func(ctx context.Context, config steps.GCEConfig) (*computeService, error) {
 			client, err := GetClient(ctx, config)
@@ -38,7 +38,7 @@ func NewCreateTargetPoolStep() (*CreateTargetPoolStep, error) {
 				},
 			}, nil
 		},
-	}, nil
+	}
 }
 
 func (s *CreateTargetPoolStep) Run(ctx context.Context, output io.Writer,

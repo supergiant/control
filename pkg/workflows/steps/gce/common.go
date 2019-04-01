@@ -44,16 +44,16 @@ type computeService struct {
 }
 
 func Init() {
-	createInstance, _ := NewCreateInstanceStep(time.Second*10, time.Minute*5)
-	deleteCluster, _ := NewDeleteClusterStep()
-	deleteNode, _ := NewDeleteNodeStep()
-	createTargetPool, _ := NewCreateTargetPoolStep()
-	createIPAddress, _ := NewCreateAddressStep()
-	createHealthCheck, _ := NewCreateHealthCheckStep()
-	createForwardingRules, _ := NewCreateForwardingRulesStep()
-	deleteForwardingRules, _ := NewDeleteForwardingRulesStep()
-	deleteTargetPool, _ := NewDeleteTargetPoolStep()
-	deleteIpAddress, _ := NewDeleteIpAddressStep()
+	createInstance := NewCreateInstanceStep(time.Second*10, time.Minute*5)
+	deleteCluster := NewDeleteClusterStep()
+	deleteNode := NewDeleteNodeStep()
+	createTargetPool := NewCreateTargetPoolStep()
+	createIPAddress := NewCreateAddressStep()
+	createHealthCheck := NewCreateHealthCheckStep()
+	createForwardingRules := NewCreateForwardingRulesStep()
+	deleteForwardingRules := NewDeleteForwardingRulesStep()
+	deleteTargetPool := NewDeleteTargetPoolStep()
+	deleteIpAddress := NewDeleteIpAddressStep()
 
 	steps.RegisterStep(CreateInstanceStepName, createInstance)
 	steps.RegisterStep(DeleteClusterStepName, deleteCluster)

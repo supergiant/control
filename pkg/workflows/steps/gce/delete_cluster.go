@@ -17,7 +17,7 @@ type DeleteClusterStep struct {
 	getComputeSvc func(context.Context, steps.GCEConfig) (*computeService, error)
 }
 
-func NewDeleteClusterStep() (*DeleteClusterStep, error) {
+func NewDeleteClusterStep() *DeleteClusterStep {
 	return &DeleteClusterStep{
 		getComputeSvc: func(ctx context.Context, config steps.GCEConfig) (*computeService, error) {
 			client, err := GetClient(ctx, config)
@@ -32,7 +32,7 @@ func NewDeleteClusterStep() (*DeleteClusterStep, error) {
 				},
 			}, nil
 		},
-	}, nil
+	}
 }
 
 func (s *DeleteClusterStep) Run(ctx context.Context, output io.Writer, config *steps.Config) error {

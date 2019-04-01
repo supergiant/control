@@ -16,7 +16,7 @@ type DeleteTargetPoolStep struct {
 	getComputeSvc func(context.Context, steps.GCEConfig) (*computeService, error)
 }
 
-func NewDeleteTargetPoolStep() (*DeleteTargetPoolStep, error) {
+func NewDeleteTargetPoolStep() *DeleteTargetPoolStep {
 	return &DeleteTargetPoolStep{
 		getComputeSvc: func(ctx context.Context, config steps.GCEConfig) (*computeService, error) {
 			client, err := GetClient(ctx, config)
@@ -27,12 +27,11 @@ func NewDeleteTargetPoolStep() (*DeleteTargetPoolStep, error) {
 
 			return &computeService{
 				deleteTargetPool: func(ctx context.Context, config steps.GCEConfig, targetPoolName string) (*compute.Operation, error) {
-					config.AvailabilityZone = "us-central1-a"
 					return client.TargetPools.Delete(config.ServiceAccount.ProjectID, config.Region, targetPoolName).Do()
 				},
 			}, nil
 		},
-	}, nil
+	}
 }
 
 func (s *DeleteTargetPoolStep) Run(ctx context.Context, output io.Writer,

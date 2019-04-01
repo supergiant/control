@@ -206,14 +206,11 @@ func TestNewCreateInstanceStep(t *testing.T) {
 	period := time.Second * 1
 	timeout := time.Second * 2
 
-	s, err := NewCreateInstanceStep(period, timeout)
+	s := NewCreateInstanceStep(period, timeout)
 
 	if s == nil {
 		t.Error("Step must not be nil")
-	}
-
-	if err != nil {
-		t.Errorf("Unexpected error %v", err)
+		return
 	}
 
 	if s.checkPeriod != period {

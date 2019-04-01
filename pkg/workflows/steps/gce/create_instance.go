@@ -28,7 +28,7 @@ type CreateInstanceStep struct {
 	getComputeSvc func(context.Context, steps.GCEConfig) (*computeService, error)
 }
 
-func NewCreateInstanceStep(period, timeout time.Duration) (*CreateInstanceStep, error) {
+func NewCreateInstanceStep(period, timeout time.Duration) *CreateInstanceStep {
 	return &CreateInstanceStep{
 		checkPeriod:     period,
 		instanceTimeout: timeout,
@@ -72,7 +72,7 @@ func NewCreateInstanceStep(period, timeout time.Duration) (*CreateInstanceStep, 
 				},
 			}, nil
 		},
-	}, nil
+	}
 }
 
 func (s *CreateInstanceStep) Run(ctx context.Context, output io.Writer,

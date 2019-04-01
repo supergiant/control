@@ -18,7 +18,7 @@ type DeleteForwardingRulesStep struct {
 	getComputeSvc func(context.Context, steps.GCEConfig) (*computeService, error)
 }
 
-func NewDeleteForwardingRulesStep() (*DeleteForwardingRulesStep, error) {
+func NewDeleteForwardingRulesStep() *DeleteForwardingRulesStep {
 	return &DeleteForwardingRulesStep{
 		getComputeSvc: func(ctx context.Context, config steps.GCEConfig) (*computeService, error) {
 			client, err := GetClient(ctx, config)
@@ -33,7 +33,7 @@ func NewDeleteForwardingRulesStep() (*DeleteForwardingRulesStep, error) {
 				},
 			}, nil
 		},
-	}, nil
+	}
 }
 
 func (s *DeleteForwardingRulesStep) Run(ctx context.Context, output io.Writer,

@@ -18,7 +18,7 @@ type DeleteIpAddressStep struct {
 	getComputeSvc func(context.Context, steps.GCEConfig) (*computeService, error)
 }
 
-func NewDeleteIpAddressStep() (*DeleteIpAddressStep, error) {
+func NewDeleteIpAddressStep() *DeleteIpAddressStep {
 	return &DeleteIpAddressStep{
 		getComputeSvc: func(ctx context.Context, config steps.GCEConfig) (*computeService, error) {
 			client, err := GetClient(ctx, config)
@@ -33,7 +33,7 @@ func NewDeleteIpAddressStep() (*DeleteIpAddressStep, error) {
 				},
 			}, nil
 		},
-	}, nil
+	}
 }
 
 func (s *DeleteIpAddressStep) Run(ctx context.Context, output io.Writer,

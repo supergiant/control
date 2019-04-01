@@ -17,7 +17,7 @@ type CreateHealthCheck struct {
 	getComputeSvc func(context.Context, steps.GCEConfig) (*computeService, error)
 }
 
-func NewCreateHealthCheckStep() (*CreateHealthCheck, error) {
+func NewCreateHealthCheckStep() *CreateHealthCheck {
 	return &CreateHealthCheck{
 		getComputeSvc: func(ctx context.Context, config steps.GCEConfig) (*computeService, error) {
 			client, err := GetClient(ctx, config)
@@ -38,7 +38,7 @@ func NewCreateHealthCheckStep() (*CreateHealthCheck, error) {
 				},
 			}, nil
 		},
-	}, nil
+	}
 }
 
 func (s *CreateHealthCheck) Run(ctx context.Context, output io.Writer,

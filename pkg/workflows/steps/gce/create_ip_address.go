@@ -21,7 +21,7 @@ type CreateAddressStep struct {
 	getComputeSvc func(context.Context, steps.GCEConfig) (*computeService, error)
 }
 
-func NewCreateAddressStep() (*CreateAddressStep, error) {
+func NewCreateAddressStep() *CreateAddressStep {
 	return &CreateAddressStep{
 		Timeout:      time.Second * 10,
 		AttemptCount: 10,
@@ -41,7 +41,7 @@ func NewCreateAddressStep() (*CreateAddressStep, error) {
 				},
 			}, nil
 		},
-	}, nil
+	}
 }
 
 func (s *CreateAddressStep) Run(ctx context.Context, output io.Writer,
