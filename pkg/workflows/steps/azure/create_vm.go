@@ -109,6 +109,11 @@ func (s *CreateVMStep) Description() string {
 }
 
 func (s *CreateVMStep) setupVM(ctx context.Context, config *steps.Config, vmName string) error {
+	var lbName string
+	if config.IsMaster {
+		lbName = toLBName(config.ClusterID, config.ClusterName)
+	}
+
 	nic, err := s.setupNIC(
 		ctx,
 		config.GetAzureAuthorizer(),
@@ -120,6 +125,7 @@ func (s *CreateVMStep) setupVM(ctx context.Context, config *steps.Config, vmName
 		toNSGName(config.ClusterID, config.ClusterName, model.ToRole(config.IsMaster).String()),
 		toIPName(vmName),
 		toNICName(vmName),
+		lbName,
 	)
 	if err != nil {
 		config.Node.State = model.MachineStateError
@@ -218,7 +224,7 @@ func (s *CreateVMStep) setupVM(ctx context.Context, config *steps.Config, vmName
 }
 
 func (s *CreateVMStep) setupNIC(ctx context.Context, a autorest.Authorizer, subsID, location, groupName,
-	vnetName, subnetName, nsgName, ipName, nicName string) (network.Interface, error) {
+	vnetName, subnetName, nsgName, ipName, nicName, lbName string) (network.Interface, error) {
 
 	subnet, err := s.sdk.SubnetClient(a, subsID).Get(ctx, groupName, vnetName, subnetName, "")
 	if err != nil {
@@ -235,6 +241,23 @@ func (s *CreateVMStep) setupNIC(ctx context.Context, a autorest.Authorizer, subs
 		return network.Interface{}, errors.Wrap(err, "create public ip address")
 	}
 
+	var lbPool *[]network.BackendAddressPool
+	if len(lbName) > 0 {
+		// add to the lb address pool
+		lb, err := s.sdk.LBClient(a, subsID).Get(ctx, groupName, lbName, "")
+		if err != nil {
+			return network.Interface{}, err
+		}
+		if lb.BackendAddressPools == nil || len(*lb.BackendAddressPools) == 0 {
+			return network.Interface{}, errors.Wrapf(sgerrors.ErrRawError, "%s load balancer has no address pools", lbName)
+		}
+		lbPool = &[]network.BackendAddressPool{
+			{
+				ID: (*lb.BackendAddressPools)[0].ID,
+			},
+		}
+	}
+
 	nicParams := network.Interface{
 		Name:     to.StringPtr(nicName),
 		Location: to.StringPtr(location),
@@ -244,9 +267,10 @@ func (s *CreateVMStep) setupNIC(ctx context.Context, a autorest.Authorizer, subs
 				{
 					Name: to.StringPtr(ifaceName),
 					InterfaceIPConfigurationPropertiesFormat: &network.InterfaceIPConfigurationPropertiesFormat{
-						Subnet:                    &subnet,
-						PrivateIPAllocationMethod: network.Dynamic,
-						PublicIPAddress:           &ip,
+						Subnet:                          &subnet,
+						PrivateIPAllocationMethod:       network.Dynamic,
+						PublicIPAddress:                 &ip,
+						LoadBalancerBackendAddressPools: lbPool,
 					},
 				},
 			},
