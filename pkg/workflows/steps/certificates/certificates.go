@@ -3,6 +3,7 @@ package certificates
 import (
 	"context"
 	"fmt"
+	"github.com/sirupsen/logrus"
 	"io"
 	"text/template"
 
@@ -45,9 +46,12 @@ func (s *Step) Run(ctx context.Context, out io.Writer, config *steps.Config) err
 	config.CertificatesConfig.IsMaster = config.IsMaster
 
 	if !config.IsMaster {
-		master := config.GetMaster()
-		config.CertificatesConfig.MasterHost = master.PrivateIp
-		config.CertificatesConfig.NodeName = config.Node.Name
+		if master := config.GetMaster(); master != nil {
+			config.CertificatesConfig.MasterHost = master.PrivateIp
+			config.CertificatesConfig.NodeName = config.Node.Name
+		} else {
+			logrus.Errorf("master not found in config")
+		}
 	}
 
 	kubeDefaultSvcIp, err := util.GetKubernetesDefaultSvcIP(config.CertificatesConfig.ServicesCIDR)

@@ -100,7 +100,7 @@ func (tp *TaskProvisioner) ProvisionCluster(parentContext context.Context,
 	// monitor cluster state in separate goroutine
 	go tp.monitorClusterState(ctx, config.ClusterID, config.NodeChan(),
 		config.KubeStateChan(), config.ConfigChan())
-	go tp.provision(ctx, taskMap, clusterProfile, config)
+	go tp.provision(ctx, taskMap, clusterProfile)
 
 	return taskMap, nil
 }
@@ -133,7 +133,7 @@ func (tp *TaskProvisioner) ProvisionNodes(parentContext context.Context, nodePro
 		tp.rateLimiter.Take()
 
 		// Take node workflow for the provider
-		t, err := workflows.NewTask(workflows.ProvisionNode, tp.repository)
+		t, err := workflows.NewTask(config, workflows.ProvisionNode, tp.repository)
 		if err != nil {
 			return nil, errors.Wrap(sgerrors.ErrNotFound, "workflow")
 		}
@@ -190,27 +190,26 @@ func (tp *TaskProvisioner) RestartClusterProvisioning(parentCtx context.Context,
 	logrus.Debugf("Deserialize tasks")
 
 	// Deserialize tasks and put them to map
-	taskMap, err := tp.deserializeClusterTasks(ctx, taskIdMap)
+	taskMap, err := tp.deserializeClusterTasks(ctx, config, taskIdMap)
 
 	if err != nil {
 		logrus.Errorf("Restart cluster provisioning %v", err)
 		return errors.Wrapf(err, "Restart cluster provisioning")
 	}
 
-	// monitor cluster state in separate goroutine
 	go tp.monitorClusterState(ctx, config.ClusterID,
 		config.NodeChan(), config.KubeStateChan(), config.ConfigChan())
-	go tp.provision(ctx, taskMap, clusterProfile, config)
+	go tp.provision(ctx, taskMap, clusterProfile)
 
 	return nil
 }
 
 // provision do actual provisioning of master and worker nodes
 func (tp *TaskProvisioner) provision(ctx context.Context,
-	taskMap map[string][]*workflows.Task, clusterProfile *profile.Profile,
-	config *steps.Config) {
+	taskMap map[string][]*workflows.Task, clusterProfile *profile.Profile) {
 	preProvisionTask := taskMap[workflows.PreProvisionTask]
 
+	config := preProvisionTask[0].Config
 	if preProvisionTask != nil && len(preProvisionTask) > 0 {
 		logrus.Debugf("Restart preprovision task %s",
 			preProvisionTask[0].ID)
@@ -222,6 +221,7 @@ func (tp *TaskProvisioner) provision(ctx context.Context,
 
 		kubeChan, nodeChan, configChan := config.KubeStateChan(), config.NodeChan(), config.ConfigChan()
 		config = preProvisionTask[0].Config
+		logrus.Infof("Config after pre provision %v", config.AWSConfig)
 		config.SetKubeStateChan(kubeChan)
 		config.SetNodeChan(nodeChan)
 		config.SetConfigChan(configChan)
@@ -274,7 +274,7 @@ func (tp *TaskProvisioner) prepare(config *steps.Config, masterCount, nodeCount 
 	masterTasks := make([]*workflows.Task, 0, masterCount)
 	nodeTasks := make([]*workflows.Task, 0, nodeCount)
 	//some clouds (e.g. AWS) requires running tasks before provisioning nodes (creating a VPC, Subnets, SecGroups, etc)
-	preProvisionTask, err = workflows.NewTask(workflows.PreProvision, tp.repository)
+	preProvisionTask, err = workflows.NewTask(config, workflows.PreProvision, tp.repository)
 	if err != nil {
 		// We can't go further without pre provision task
 		logrus.Errorf("create pre provision task has finished with %v", err)
@@ -283,7 +283,7 @@ func (tp *TaskProvisioner) prepare(config *steps.Config, masterCount, nodeCount 
 
 	preProvisionTask.Config = config
 	for i := 0; i < masterCount; i++ {
-		t, err := workflows.NewTask(workflows.ProvisionMaster, tp.repository)
+		t, err := workflows.NewTask(config, workflows.ProvisionMaster, tp.repository)
 		if err != nil {
 			logrus.Errorf("Failed to set up task for %s workflow", workflows.ProvisionMaster)
 			continue
@@ -293,7 +293,7 @@ func (tp *TaskProvisioner) prepare(config *steps.Config, masterCount, nodeCount 
 	}
 
 	for i := 0; i < nodeCount; i++ {
-		t, err := workflows.NewTask(workflows.ProvisionNode, tp.repository)
+		t, err := workflows.NewTask(config, workflows.ProvisionNode, tp.repository)
 		if err != nil {
 			logrus.Errorf("Failed to set up task for %s workflow", workflows.ProvisionNode)
 			continue
@@ -302,13 +302,12 @@ func (tp *TaskProvisioner) prepare(config *steps.Config, masterCount, nodeCount 
 		nodeTasks = append(nodeTasks, t)
 	}
 
-	clusterTask, err = workflows.NewTask(workflows.PostProvision, tp.repository)
+	clusterTask, err = workflows.NewTask(config, workflows.PostProvision, tp.repository)
 	if err != nil {
 		logrus.Errorf("Failed to set up task for %s workflow", workflows.PostProvision)
 		return nil
 	}
 
-	clusterTask.Config = config
 	taskMap := map[string][]*workflows.Task{
 		workflows.MasterTask:  masterTasks,
 		workflows.NodeTask:    nodeTasks,
@@ -349,9 +348,8 @@ func (tp *TaskProvisioner) preProvision(ctx context.Context, preProvisionTask *w
 }
 
 func (tp *TaskProvisioner) provisionMasters(ctx context.Context,
-	profile *profile.Profile, config *steps.Config,
+	profile *profile.Profile, rootConfig *steps.Config,
 	tasks []*workflows.Task) error {
-	config.IsMaster = true
 
 	if len(tasks) == 0 {
 		return nil
@@ -370,10 +368,16 @@ func (tp *TaskProvisioner) provisionMasters(ctx context.Context,
 
 	// Fulfill task config with data about provider specific node configuration
 	p := profile.MasterProfiles[0]
-	FillNodeCloudSpecificData(profile.Provider, p, config)
+	if err := MergeConfig(rootConfig, bootstrapTask.Config); err != nil {
+		return errors.Wrapf(err, "merge pre provision config to bootstrap task config")
+	}
 
-	config.TaskID = bootstrapTask.ID
-	err = <-bootstrapTask.Run(ctx, *config, out)
+	FillNodeCloudSpecificData(profile.Provider, p, bootstrapTask.Config)
+	bootstrapTask.Config.TaskID = bootstrapTask.ID
+	bootstrapTask.Config.KubeadmConfig.IsBootstrap = true
+	bootstrapTask.Config.IsMaster = true
+
+	err = <-bootstrapTask.Run(ctx, *bootstrapTask.Config, out)
 
 	if err != nil {
 		logrus.Errorf("master bootstrap task %s has finished with error %v", bootstrapTask.ID, err)
@@ -381,8 +385,6 @@ func (tp *TaskProvisioner) provisionMasters(ctx context.Context,
 	} else {
 		logrus.Infof("master bootstrap %s has finished", bootstrapTask.ID)
 	}
-
-	config.KubeadmConfig.IsBootstrap = false
 
 	// ProvisionCluster rest of master nodes master nodes
 	for index, masterTask := range tasks {
@@ -396,9 +398,13 @@ func (tp *TaskProvisioner) provisionMasters(ctx context.Context,
 			logrus.Errorf("Error getting writer for %s", fileName)
 		}
 
+		if err := MergeConfig(rootConfig, masterTask.Config); err != nil {
+			return errors.Wrapf(err, "merge pre provision config to bootstrap task config")
+		}
+
 		// Fulfill task config with data about provider specific node configuration
 		p := profile.MasterProfiles[index]
-		err = FillNodeCloudSpecificData(profile.Provider, p, config)
+		err = FillNodeCloudSpecificData(profile.Provider, p, masterTask.Config)
 
 		if err != nil {
 			return errors.Wrapf(err, "provision masters fill node cloud specific data")
@@ -406,16 +412,11 @@ func (tp *TaskProvisioner) provisionMasters(ctx context.Context,
 
 		go func(t *workflows.Task) {
 			// Put task id to config so that create instance step can use this id when generate node name
-			config.TaskID = t.ID
+			t.Config.KubeadmConfig.IsBootstrap = false
+			t.Config.TaskID = t.ID
+			t.Config.IsMaster = true
 
-			// This is for case of restart cluster provisioning when node and runner are made of
-			// deserializing task instead of creation
-			if t.Config != nil {
-				config.Node = t.Config.Node
-				config.Runner = t.Config.Runner
-			}
-
-			result := t.Run(ctx, *config, out)
+			result := t.Run(ctx, *t.Config, out)
 			err = <-result
 
 			if err != nil {
@@ -429,8 +430,7 @@ func (tp *TaskProvisioner) provisionMasters(ctx context.Context,
 	return nil
 }
 
-func (tp *TaskProvisioner) provisionNodes(ctx context.Context, profile *profile.Profile, config *steps.Config, tasks []*workflows.Task) error {
-	config.IsMaster = false
+func (tp *TaskProvisioner) provisionNodes(ctx context.Context, profile *profile.Profile, rootConfig *steps.Config, tasks []*workflows.Task) error {
 	wg := sync.WaitGroup{}
 	wg.Add(len(tasks))
 
@@ -449,13 +449,17 @@ func (tp *TaskProvisioner) provisionNodes(ctx context.Context, profile *profile.
 
 		// Fulfill task config with data about provider specific node configuration
 		p := profile.NodesProfiles[index]
-		FillNodeCloudSpecificData(profile.Provider, p, config)
+		if err := MergeConfig(rootConfig, nodeTask.Config); err != nil {
+			logrus.Errorf("merge pre provision config to bootstrap task config caused %v", err)
+		}
+
+		FillNodeCloudSpecificData(profile.Provider, p, nodeTask.Config)
 		// Put task id to config so that create instance step can use this id when generate node name
-		taskConfig := *config
-		taskConfig.TaskID = nodeTask.ID
+		nodeTask.Config.TaskID = nodeTask.ID
 
 		go func(t *workflows.Task) {
-			result := t.Run(ctx, taskConfig, out)
+
+			result := t.Run(ctx, *nodeTask.Config, out)
 			err = <-result
 
 			if err != nil {
@@ -728,7 +732,7 @@ func (tp *TaskProvisioner) monitorClusterState(ctx context.Context,
 	}
 }
 
-func (tp *TaskProvisioner) deserializeClusterTasks(ctx context.Context, taskIdMap map[string][]string) (map[string][]*workflows.Task, error) {
+func (tp *TaskProvisioner) deserializeClusterTasks(ctx context.Context, kubeConfig *steps.Config, taskIdMap map[string][]string) (map[string][]*workflows.Task, error) {
 	taskMap := make(map[string][]*workflows.Task)
 
 	for taskSet, tasks := range taskIdMap {
@@ -747,6 +751,13 @@ func (tp *TaskProvisioner) deserializeClusterTasks(ctx context.Context, taskIdMa
 				return nil, errors.Wrapf(err, "error deserializing task %s %v", taskId, err)
 			}
 
+			err = MergeConfig(kubeConfig, task.Config)
+
+			if err != nil {
+				return nil, errors.Wrapf(err, "deserialize task")
+			}
+
+			logrus.Infof("deserialize task id %s", task.ID)
 			taskMap[taskSet] = append(taskMap[taskSet], task)
 		}
 	}
