@@ -128,6 +128,7 @@ const (
 	serviceListAll           = "ListAll"
 	serviceDelete            = "Delete"
 	serviceListKubeResources = "ListKubeResources"
+	serviceListNodes         = "ListNodes"
 	serviceKubeConfigFor     = "KubeConfigFor"
 	serviceGetKubeResources  = "GetKubeResources"
 	serviceGetCerts          = "GetCerts"
@@ -187,6 +188,15 @@ func (m *kubeServiceMock) ListAll(ctx context.Context) ([]model.Kube, error) {
 func (m *kubeServiceMock) Delete(ctx context.Context, name string) error {
 	args := m.Called(ctx, name)
 	return args.Error(0)
+}
+
+func (m *kubeServiceMock) ListNodes(ctx context.Context, k *model.Kube, role string) ([]corev1.Node, error) {
+	args := m.Called(ctx, k, role)
+	val, ok := args.Get(0).([]corev1.Node)
+	if !ok {
+		return nil, args.Error(1)
+	}
+	return val, args.Error(1)
 }
 
 func (m *kubeServiceMock) ListKubeResources(ctx context.Context, kname string) ([]byte, error) {
@@ -735,6 +745,83 @@ func TestHandler_getResources(t *testing.T) {
 			require.Equalf(t, nil, err, "TC#%d", i+1)
 
 			require.Equalf(t, tc.expectedErrCode, m.ErrorCode, "TC#%d", i+1)
+		}
+	}
+}
+
+func TestHandler_listNodes(t *testing.T) {
+	tcs := []struct {
+		name            string
+		kubeID          string
+		svcNodes        []corev1.Node
+		svcGetErr       error
+		svcListNodesErr error
+
+		expectedStatus  int
+		expectedErrCode sgerrors.ErrorCode
+	}{
+		{
+			name:           "invalid kube",
+			expectedStatus: http.StatusNotFound,
+		},
+		{
+			name:            "kube not found",
+			kubeID:          "13",
+			svcGetErr:       sgerrors.ErrNotFound,
+			expectedStatus:  http.StatusNotFound,
+			expectedErrCode: sgerrors.NotFound,
+		},
+		{
+			name:            "get kube: internal error",
+			kubeID:          "13",
+			svcGetErr:       sgerrors.ErrNilEntity,
+			expectedStatus:  http.StatusInternalServerError,
+			expectedErrCode: sgerrors.UnknownError,
+		},
+		{
+			name:            "list nodes error",
+			kubeID:          "13",
+			svcListNodesErr: sgerrors.ErrNilValue,
+			expectedStatus:  http.StatusInternalServerError,
+			expectedErrCode: sgerrors.UnknownError,
+		},
+		{
+			name:           "list nodes",
+			kubeID:         "13",
+			expectedStatus: http.StatusOK,
+		},
+	}
+
+	for _, tc := range tcs {
+
+		// setup handler
+		svc := new(kubeServiceMock)
+		h := NewHandler(svc, nil, nil,
+			nil, nil, nil, nil)
+
+		// prepare
+		req, err := http.NewRequest(http.MethodGet, fmt.Sprintf("/kubes/%s/nodes", tc.kubeID), nil)
+		require.Equalf(t, nil, err, "TC %s: create request: %v", tc.name, err)
+
+		svc.On(serviceGet, mock.Anything, mock.Anything).Return(&model.Kube{}, tc.svcGetErr)
+		svc.On(serviceListNodes, mock.Anything, mock.Anything, mock.Anything).Return(tc.svcNodes, tc.svcListNodesErr)
+		rr := httptest.NewRecorder()
+
+		router := mux.NewRouter().SkipClean(true)
+		h.Register(router)
+
+		// run
+		router.ServeHTTP(rr, req)
+
+		// check
+		require.Equalf(t, tc.expectedStatus, rr.Code, "TC %s: status code", tc.name)
+
+		if tc.expectedErrCode != sgerrors.ErrorCode(0) {
+			m := new(message.Message)
+			err = json.NewDecoder(rr.Body).Decode(m)
+			require.Equalf(t, nil, err, "TC %s: error codemess", tc.name)
+
+			require.Equalf(t, tc.expectedErrCode, m.ErrorCode, "TC %s", tc.name)
 		}
 	}
 }

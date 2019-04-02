@@ -10,7 +10,7 @@ import (
 
 	tm "github.com/supergiant/control/pkg/templatemanager"
 	"github.com/supergiant/control/pkg/workflows/steps"
-	"github.com/supergiant/control/pkg/workflows/steps/kubelet"
+	"github.com/supergiant/control/pkg/workflows/steps/network"
 )
 
 const StepName = "clustercheck"
@@ -60,5 +60,5 @@ func (s *Step) Description() string {
 }
 
 func (s *Step) Depends() []string {
-	return []string{kubelet.StepName}
+	return []string{network.StepName}
 }

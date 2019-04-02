@@ -77,15 +77,15 @@
           </mat-form-field>
 
           <mat-form-field>
-            <mat-select placeholder="Flannel Version"
-                        formControlName="flannelVersion"
+            <mat-select placeholder="Network Provider"
+                        formControlName="networkProvider"
                         required>
-              <mat-option *ngFor="let f of clusterOptions.flannelVersions"
-                          [value]="f">{{ f }}</mat-option>
+              <mat-option *ngFor="let n of clusterOptions.networkProviders"
+                          [value]="n">{{ n }}</mat-option>
             </mat-select>
-            <mat-hint align="end">What is
-              <a href="https://coreos.com/flannel/docs/latest/"
-                 target="_blank">Flannel</a>?
+            <mat-hint align="end">Read more about
+              <a href="https://kubernetes.io/docs/concepts/cluster-administration/networking/"
+                 target="_blank">cluster networking</a>
             </mat-hint>
           </mat-form-field>
 
@@ -368,11 +368,12 @@
           <div class="machine"
                *ngFor="let m of machines; let idx = index">
             <mat-form-field class="type">
-              <mat-select placeholder="Machine Type (size)"
+              <mat-select #selectedMachineType
+                          placeholder="Machine Type (size)"
                           id="m.machineType"
                           [(value)]="m.machineType"
                           (openedChange)="machineTypesFilter = ''"
-                          (selectionChange)="validateMachineConfig()">
+                          (selectionChange)="validateMachineConfig(m)">
                 <input class="select-filter"
                        matInput
                        type="text"
@@ -382,12 +383,18 @@
                 <mat-option *ngFor="let type of availableMachineTypes | callback: machineTypesFilterCallback"
                             [value]="type">{{ type }}</mat-option>
               </mat-select>
+              <mat-hint align="end">
+                <ng-container *ngIf="m.recommendedNodesCount"
+                              [ngTemplateOutlet]="recommendedNodesCountTpl"
+                              [ngTemplateOutletContext]="{ $implicit: m.recommendedNodesCount }">
+                </ng-container>
+              </mat-hint>
             </mat-form-field>
 
             <mat-form-field class="role">
               <mat-select placeholder="Role"
                           [(value)]="m.role"
-                          (selectionChange)="validateMachineConfig()">
+                          (selectionChange)="validateMachineConfig(m)">
                 <mat-option value="Master">Master</mat-option>
                 <mat-option value="Node">Node</mat-option>
               </mat-select>
@@ -399,13 +406,19 @@
                      min="1"
                      placeholder="Q-ty"
                      [(ngModel)]="m.qty"
-                     (ngModelChange)="validateMachineConfig()">
+                     (ngModelChange)="validateMachineConfig(m)">
             </mat-form-field>
 
             <div class="delete"
                  (click)="deleteMachine(idx)"
                  (keyup.enter)="deleteMachine(idx)"
-                 tabindex="0"></div>
+                 tabindex="0">
+            </div>
+
+            <ng-container *ngIf="m.recommendedNodesCount"
+                          [ngTemplateOutlet]="recommendedNodesCountTpl"
+                          [ngTemplateOutletContext]="{ $implicit: m.recommendedNodesCount }">
+            </ng-container>
           </div>
 
           <div class="add-machines"
@@ -436,12 +449,13 @@
             <!-- TODO: make this separate component -->
             <mat-form-field class="type"
                             [ngClass]="{ 'machinesLoading': machinesLoading }">
-              <mat-select placeholder="Machine Type (size)"
+              <mat-select #selectedMachineType
+                          placeholder="Machine Type (size)"
                           id="m.machineType"
                           [(value)]="m.machineType"
                           [disabled]="!m.availableMachineTypes"
                           (openedChange)="machineTypesFilter = ''"
-                          (selectionChange)="validateMachineConfig()">
+                          (selectionChange)="validateMachineConfig(m)">
                 <input class="select-filter"
                        matInput
                        type="text"
@@ -453,12 +467,18 @@
                   {{ type }}
                 </mat-option>
               </mat-select>
+              <mat-hint align="end">
+                <ng-container *ngIf="m.recommendedNodesCount"
+                              [ngTemplateOutlet]="recommendedNodesCountTpl"
+                              [ngTemplateOutletContext]="{ $implicit: m.recommendedNodesCount }">
+                </ng-container>
+              </mat-hint>
             </mat-form-field>
 
             <mat-form-field class="role">
               <mat-select placeholder="Role"
                           [(value)]="m.role"
-                          (selectionChange)="validateMachineConfig()">
+                          (selectionChange)="validateMachineConfig(m)">
                 <mat-option value="Master">Master</mat-option>
                 <mat-option value="Node">Node</mat-option>
               </mat-select>
@@ -470,13 +490,19 @@
                      min="1"
                      placeholder="Q-ty"
                      [(ngModel)]="m.qty"
-                     (ngModelChange)="validateMachineConfig()">
+                     (ngModelChange)="validateMachineConfig(m)">
             </mat-form-field>
 
             <div class="delete"
                  (click)="deleteMachine(idx)"
                  (keyup.enter)="deleteMachine(idx)"
-                 tabindex="0"></div>
+                 tabindex="0">
+            </div>
+
+            <ng-container *ngIf="m.recommendedNodesCount"
+                          [ngTemplateOutlet]="recommendedNodesCountTpl"
+                          [ngTemplateOutletContext]="{ $implicit: m.recommendedNodesCount }">
+            </ng-container>
           </div>
 
           <div class="add-machines"
@@ -506,11 +532,12 @@
 
             <mat-form-field class="type"
                             [ngClass]="{ 'machinesLoading': machinesLoading }">
-              <mat-select placeholder="Machine Type (size)"
-                          id="m.machineType"
+              <mat-select #selectedMachineType
+                          placeholder="Machine Type (size)"
                           [(value)]="m.machineType"
                           [disabled]="!m.availableMachineTypes"
-                          (selectionChange)="validateMachineConfig()">
+                          (openedChange)="machineTypesFilter = ''"
+                          (selectionChange)="validateMachineConfig(m)">
                 <input class="select-filter"
                        matInput
                        type="text"
@@ -522,12 +549,18 @@
                   {{ type }}
                 </mat-option>
               </mat-select>
+              <mat-hint align="end">
+                <ng-container *ngIf="m.recommendedNodesCount"
+                              [ngTemplateOutlet]="recommendedNodesCountTpl"
+                              [ngTemplateOutletContext]="{ $implicit: m.recommendedNodesCount }">
+                </ng-container>
+              </mat-hint>
             </mat-form-field>
 
             <mat-form-field class="role">
               <mat-select placeholder="Role"
                           [(value)]="m.role"
-                          (selectionChange)="validateMachineConfig()">
+                          (selectionChange)="validateMachineConfig(m)">
                 <mat-option value="Master">Master</mat-option>
                 <mat-option value="Node">Node</mat-option>
               </mat-select>
@@ -539,18 +572,20 @@
                      min="1"
                      placeholder="Q-ty"
                      [(ngModel)]="m.qty"
-                     (ngModelChange)="validateMachineConfig()">
+                     (ngModelChange)="validateMachineConfig(m)">
             </mat-form-field>
 
             <div class="delete"
                  (click)="deleteMachine(idx)"
                  (keyup.enter)="deleteMachine(idx)"
-                 tabindex="0"></div>
+                 tabindex="0">
+            </div>
+
           </div>
 
           <div class="add-machines"
                (click)="addBlankMachine()"
-               (keyup)="addBlankMachine($event)"
+               (keyup.enter)="addBlankMachine()"
                tabindex="0">
             <div class="plus"></div>
             <span class="add-label">Add more machines</span>
@@ -558,114 +593,115 @@
         </ng-container>
         <p *ngIf="displayMachinesConfigWarning"
            class="machine-config-warning">Current machine configuration is invalid. Please check that each machine has a
-                                          type, role, and the quantity of master nodes is an odd number.</p>
+                                          type, role, the quantity of masters is an odd number, and there is at least one node.</p>
       </div>
 
-    <div class="step-actions">
-      <button mat-raised-button
-              class="secondary"
-              matStepperPrevious>BACK
-      </button>
-      <button mat-raised-button
-              class="secondary"
-              (click)="nextStep()">NEXT
-      </button>
-    </div>
-  </mat-step>
-
-  <mat-step label="Review">
-    <div class="review-wrapper">
-      <h1>{{ clusterName }}</h1>
-    <div class="steps">
-      <div class="cloud-account">
-        <h3>CLOUD ACCOUNT</h3>
-        <p>{{ selectedCloudAccount?.name }} ({{ selectedCloudAccount?.provider }})</p>
-      </div>
-
-      <div class="cluster">
-        <h3>CLUSTER DETAILS</h3>
-        <div>
-          <p><span class="label">K8s VERSION:</span> {{ clusterConfig.value.K8sVersion }}</p>
-          <p><span class="label">FLANNEL VERSION:</span> {{ clusterConfig.value.flannelVersion }}</p>
-          <p><span class="label">HELM VERSION:</span> {{ clusterConfig.value.helmVersion }}</p>
-          <p><span class="label">DOCKER VERSION:</span> {{ clusterConfig.value.dockerVersion }}</p>
-          <p><span class="label">UBUNTU VERSION:</span> {{ clusterConfig.value.ubuntuVersion }}</p>
-          <p><span class="label">NETWORK TYPE:</span> {{ clusterConfig.value.networkType }}</p>
-          <p><span class="label">CIDR:</span> {{ clusterConfig.value.cidr }}</p>
-          <p><span class="label">OPERATING SYSTEM:</span> {{ clusterConfig.value.operatingSystem }}</p>
-          <p><span class="label">ARCH:</span> {{ clusterConfig.value.arch }}</p>
-        </div>
-      </div>
-
-      <div class="provider">
-        <h3>PROVIDER CONFIGURATION</h3>
-        <!-- digital ocean -->
-        <div *ngIf="selectedCloudAccount?.provider == 'digitalocean'">
-          <p><span class="label">REGION:</span> {{ providerConfig.value.region.name }}</p>
-        </div>
-
-        <!-- aws -->
-        <div *ngIf="selectedCloudAccount?.provider == 'aws'">
-          <p><span class="label">REGION: </span> {{ providerConfig.value.region.name }}</p>
-          <p><span class="label">VPC ID: </span>{{ providerConfig.value.vpcId }}</p>
-          <p><span class="label">VPC CIDR: </span> {{ providerConfig.value.vpcCidr }}</p>
-          <p><span class="label">SUBNET ID: </span>{{ providerConfig.value.subnetId }}</p>
-          <p><span class="label">MASTERS SEC. GROUP ID: </span>{{ providerConfig.value.mastersSecurityGroupId }}</p>
-          <p><span class="label">NODES SEC. GROUP ID: </span>{{ providerConfig.value.nodesSecurityGroupId }}</p>
-        </div>
-
-        <!-- gce -->
-        <div *ngIf="selectedCloudAccount?.provider == 'gce'">
-          <p><span class="label">REGION:</span> {{ providerConfig.value.region.name }}</p>
-        </div>
-      </div>
-
-      <div class="machines">
-        <h3>MACHINES</h3>
-        <div>
-            <div *ngFor="let m of machines">
-              <!-- digital ocean -->
-              <ng-container *ngIf="selectedCloudAccount?.provider == 'digitalocean'">
-                <p>{{ m.qty }} x {{ m.machineType }} ({{ m.role }})</p>
-              </ng-container>
-
-              <!-- aws -->
-              <ng-container *ngIf="selectedCloudAccount?.provider == 'aws'">
-                <p class="label machine-label">{{ m.qty }} x {{ m.machineType }} ({{ m.role }})</p>
-                <p class="availability-zone">{{ m.availabilityZone }}</p>
-              </ng-container>
-
-              <!-- gce -->
-              <ng-container *ngIf="selectedCloudAccount?.provider == 'gce'">
-                <p class="label machine-label">{{ m.qty }} x {{ m.machineType }} ({{ m.role }}): {{ m.availabilityZone }}</p>
-                <p class="availability-zone">{{ m.availabilityZone }}</p>
-              </ng-container>
-            </div>
-        </div>
-      </div>
-    </div>
-
-      <div class="action-buttons-wrapper">
+      <div class="step-actions">
         <button mat-raised-button
                 class="secondary"
-                [ngClass]="{ 'disable': this.provisioning }"
                 matStepperPrevious>BACK
         </button>
-        <!-- <button mat-raised-button class="secondary">SAVE PROFILE</button> -->
         <button mat-raised-button
-                class="create"
-                [ngClass]="{ 'disable': this.provisioning }"
-                color="primary"
-                (click)="createCluster()">
-          <ng-container *ngIf="!provisioning">CREATE</ng-container>
-          <ng-container *ngIf="provisioning">
-            <mat-spinner [diameter]="24"></mat-spinner>
-          </ng-container>
+                class="secondary"
+                (click)="nextStep()">NEXT
         </button>
       </div>
-    </div>
-  </mat-step>
-</mat-horizontal-stepper>
+    </mat-step>
+
+    <mat-step label="Review">
+      <div class="review-wrapper">
+        <h1>{{ clusterName }}</h1>
+        <div class="steps">
+          <div class="cloud-account">
+            <h3>CLOUD ACCOUNT</h3>
+            <p>{{ selectedCloudAccount?.name }} ({{ selectedCloudAccount?.provider }})</p>
+          </div>
+
+          <div class="cluster">
+            <h3>CLUSTER DETAILS</h3>
+            <div>
+              <p><span class="label">K8s VERSION:</span> {{ clusterConfig.value.K8sVersion }}</p>
+              <p><span class="label">NETWORK PROVIDER:</span> {{ clusterConfig.value.networkProvider }}</p>
+              <p><span class="label">HELM VERSION:</span> {{ clusterConfig.value.helmVersion }}</p>
+              <p><span class="label">DOCKER VERSION:</span> {{ clusterConfig.value.dockerVersion }}</p>
+              <p><span class="label">UBUNTU VERSION:</span> {{ clusterConfig.value.ubuntuVersion }}</p>
+              <p><span class="label">NETWORK TYPE:</span> {{ clusterConfig.value.networkType }}</p>
+              <p><span class="label">CIDR:</span> {{ clusterConfig.value.cidr }}</p>
+              <p><span class="label">OPERATING SYSTEM:</span> {{ clusterConfig.value.operatingSystem }}</p>
+              <p><span class="label">ARCH:</span> {{ clusterConfig.value.arch }}</p>
+            </div>
+          </div>
+
+          <div class="provider">
+            <h3>PROVIDER CONFIGURATION</h3>
+            <!-- digital ocean -->
+            <div *ngIf="selectedCloudAccount?.provider == 'digitalocean'">
+              <p><span class="label">REGION:</span> {{ providerConfig.value.region.name }}</p>
+            </div>
+
+            <!-- aws -->
+            <div *ngIf="selectedCloudAccount?.provider == 'aws'">
+              <p><span class="label">REGION: </span> {{ providerConfig.value.region.name }}</p>
+              <p><span class="label">VPC ID: </span>{{ providerConfig.value.vpcId }}</p>
+              <p><span class="label">VPC CIDR: </span> {{ providerConfig.value.vpcCidr }}</p>
+              <p><span class="label">SUBNET ID: </span>{{ providerConfig.value.subnetId }}</p>
+              <p><span class="label">MASTERS SEC. GROUP ID: </span>{{ providerConfig.value.mastersSecurityGroupId }}</p>
+              <p><span class="label">NODES SEC. GROUP ID: </span>{{ providerConfig.value.nodesSecurityGroupId }}</p>
+            </div>
+
+            <!-- gce -->
+            <div *ngIf="selectedCloudAccount?.provider == 'gce'">
+              <p><span class="label">REGION:</span> {{ providerConfig.value.region.name }}</p>
+            </div>
+          </div>
+
+          <div class="machines">
+            <h3>MACHINES</h3>
+            <div>
+              <div *ngFor="let m of machines">
+                <!-- digital ocean -->
+                <ng-container *ngIf="selectedCloudAccount?.provider == 'digitalocean'">
+                  <p>{{ m.qty }} x {{ m.machineType }} ({{ m.role }})</p>
+                </ng-container>
+
+                <!-- aws -->
+                <ng-container *ngIf="selectedCloudAccount?.provider == 'aws'">
+                  <p class="label machine-label">{{ m.qty }} x {{ m.machineType }} ({{ m.role }})</p>
+                  <p class="availability-zone">{{ m.availabilityZone }}</p>
+                </ng-container>
+
+                <!-- gce -->
+                <ng-container *ngIf="selectedCloudAccount?.provider == 'gce'">
+                  <p class="label machine-label">{{ m.qty }} x {{ m.machineType }} ({{ m.role }}
+                                                             ): {{ m.availabilityZone }}</p>
+                  <p class="availability-zone">{{ m.availabilityZone }}</p>
+                </ng-container>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="action-buttons-wrapper">
+          <button mat-raised-button
+                  class="secondary"
+                  [ngClass]="{ 'disable': this.provisioning }"
+                  matStepperPrevious>BACK
+          </button>
+          <!-- <button mat-raised-button class="secondary">SAVE PROFILE</button> -->
+          <button mat-raised-button
+                  class="create"
+                  [ngClass]="{ 'disable': this.provisioning }"
+                  color="primary"
+                  (click)="createCluster()">
+            <ng-container *ngIf="!provisioning">CREATE</ng-container>
+            <ng-container *ngIf="provisioning">
+              <mat-spinner [diameter]="24"></mat-spinner>
+            </ng-container>
+          </button>
+        </div>
+      </div>
+    </mat-step>
+  </mat-horizontal-stepper>
 
   <div *ngIf="(availableCloudAccounts$ | async)?.length === 0">
     <div class="no-cloud-accounts">
@@ -679,5 +715,23 @@
       </div>
     </div>
   </div>
-
 </div>
+
+<ng-template #recommendedNodesCountTpl
+             let-recommendedNodesCount>
+  <div class="cluster-size-recommendation">
+                <span class="text">
+                  Recommended cluster size is
+                </span>
+    <span>&nbsp;</span>
+    <span class="is-highlighted"
+          matTooltip="A guessed and recommended maximum number of worker nodes supported by given cluster configuration. This is not 100% accurate, please refer to kubernetes documentation and use your best judgement on making this decision">
+                  <b>{{ recommendedNodesCount }}</b><span>&nbsp;</span>nodes
+                  <span>&nbsp;</span>
+                  <mat-icon>
+                    info
+                  </mat-icon>
+                </span>
+
+  </div>
+</ng-template>

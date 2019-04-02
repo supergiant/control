@@ -48,7 +48,6 @@ func TestMarshalConfig(t *testing.T) {
 func TestNewConfig(t *testing.T) {
 	clusterName := "testCluster"
 	cloudAccountName := "cloudAccountName"
-	discoveryUrl := "https://etcd.io"
 	expectedMasterCount := 3
 	expectedNodeCount := 5
 
@@ -57,7 +56,11 @@ func TestNewConfig(t *testing.T) {
 		NodesProfiles:  make([]profile.NodeProfile, expectedNodeCount),
 	}
 
-	cfg := NewConfig(clusterName, discoveryUrl, cloudAccountName, p)
+	cfg, err := NewConfig(clusterName, cloudAccountName, p)
+
+	if err != nil {
+		t.Errorf("Unexpected error %v", err)
+	}
 
 	if cfg.ClusterName != clusterName {
 		t.Errorf("Wrong cluster name expected %s actual %s", clusterName, cfg.ClusterName)
@@ -300,7 +303,11 @@ func TestNewConfigFromKube(t *testing.T) {
 		},
 	}
 
-	cfg := NewConfigFromKube(&p, k)
+	cfg, err := NewConfigFromKube(&p, k)
+
+	if err != nil {
+		t.Errorf("Unexpected error %v", err)
+	}
 
 	if cfg.ClusterName != k.Name {
 		t.Errorf("Wrong cluster name expected %s actual %s", k.Name, cfg.ClusterName)

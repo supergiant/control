@@ -8,7 +8,6 @@ import (
 	"github.com/pkg/errors"
 	"github.com/sirupsen/logrus"
 
-	"github.com/supergiant/control/pkg/clouds"
 	"github.com/supergiant/control/pkg/model"
 	"github.com/supergiant/control/pkg/sgerrors"
 	"github.com/supergiant/control/pkg/storage"
@@ -79,7 +78,6 @@ func (s *Service) Get(ctx context.Context, accountName string) (*model.CloudAcco
 func (s *Service) Create(ctx context.Context, account *model.CloudAccount) error {
 	// Check if account with that name already exists
 	existingAccount, err := s.Get(ctx, account.Name)
-
 	if err != nil && !sgerrors.IsNotFound(err) {
 		return err
 	}
@@ -88,36 +86,12 @@ func (s *Service) Create(ctx context.Context, account *model.CloudAccount) error
 		return sgerrors.ErrAlreadyExists
 	}
 
-	switch account.Provider {
-	case clouds.DigitalOcean:
-		if account.Credentials[clouds.DigitalOceanAccessToken] == "" {
-			return errors.Wrap(sgerrors.ErrInvalidCredentials, "no digital ocean's access token provided")
-		}
-	case clouds.AWS:
-		if account.Credentials[clouds.AWSAccessKeyID] == "" ||
-			account.Credentials[clouds.AWSSecretKey] == "" {
-			return errors.Wrap(sgerrors.ErrInvalidCredentials, "both aws access key and key id should be provided")
-		}
-	case clouds.GCE:
-		if account.Credentials[clouds.GCEPrivateKey] == "" ||
-			account.Credentials[clouds.GCEClientEmail] == "" ||
-			account.Credentials[clouds.GCEProjectID] == "" ||
-			account.Credentials[clouds.GCETokenURI] == "" {
-			return errors.Wrapf(sgerrors.ErrInvalidCredentials,
-				"gce: not enough credentials %v", account.Credentials)
-		}
-	default:
-		return sgerrors.ErrUnsupportedProvider
-	}
-
 	rawJSON, err := json.Marshal(account)
 	if err != nil {
-		return errors.WithStack(err)
+		return err
 	}
 
-	err = s.repository.Put(ctx, s.storagePrefix, account.Name, rawJSON)
-
-	return err
+	return s.repository.Put(ctx, s.storagePrefix, account.Name, rawJSON)
 }
 
 // Update cloud account

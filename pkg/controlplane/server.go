@@ -6,13 +6,13 @@ import (
 	"net/http"
 	_ "net/http/pprof"
 	"net/url"
-	"os"
 	"strings"
 	"time"
 
 	"github.com/gorilla/handlers"
 	"github.com/gorilla/mux"
 	"github.com/pkg/errors"
+	"github.com/rakyll/statik/fs"
 	"github.com/sirupsen/logrus"
 	"k8s.io/helm/pkg/repo"
 
@@ -32,6 +32,7 @@ import (
 	"github.com/supergiant/control/pkg/workflows"
 	"github.com/supergiant/control/pkg/workflows/steps/amazon"
 	"github.com/supergiant/control/pkg/workflows/steps/authorizedKeys"
+	"github.com/supergiant/control/pkg/workflows/steps/azure"
 	"github.com/supergiant/control/pkg/workflows/steps/certificates"
 	"github.com/supergiant/control/pkg/workflows/steps/clustercheck"
 	"github.com/supergiant/control/pkg/workflows/steps/cni"
@@ -39,17 +40,16 @@ import (
 	"github.com/supergiant/control/pkg/workflows/steps/docker"
 	"github.com/supergiant/control/pkg/workflows/steps/downloadk8sbinary"
 	"github.com/supergiant/control/pkg/workflows/steps/drain"
-	"github.com/supergiant/control/pkg/workflows/steps/etcd"
-	"github.com/supergiant/control/pkg/workflows/steps/flannel"
 	"github.com/supergiant/control/pkg/workflows/steps/gce"
+	"github.com/supergiant/control/pkg/workflows/steps/kubeadm"
 	"github.com/supergiant/control/pkg/workflows/steps/kubelet"
-	"github.com/supergiant/control/pkg/workflows/steps/manifest"
 	"github.com/supergiant/control/pkg/workflows/steps/network"
 	"github.com/supergiant/control/pkg/workflows/steps/poststart"
 	"github.com/supergiant/control/pkg/workflows/steps/prometheus"
 	"github.com/supergiant/control/pkg/workflows/steps/ssh"
 	"github.com/supergiant/control/pkg/workflows/steps/storageclass"
 	"github.com/supergiant/control/pkg/workflows/steps/tiller"
+	_ "github.com/supergiant/control/statik"
 )
 
 type Server struct {
@@ -82,7 +82,6 @@ type Config struct {
 	StorageURI    string
 	TemplatesDir  string
 	SpawnInterval time.Duration
-	UiDir         string
 
 	ReadTimeout  time.Duration
 	WriteTimeout time.Duration
@@ -194,12 +193,9 @@ func configureApplication(cfg *Config) (*mux.Router, error) {
 	cni.Init()
 	docker.Init()
 	downloadk8sbinary.Init()
-	flannel.Init()
 	kubelet.Init()
-	manifest.Init()
 	poststart.Init()
 	tiller.Init()
-	etcd.Init()
 	ssh.Init()
 	network.Init()
 	clustercheck.Init()
@@ -207,6 +203,7 @@ func configureApplication(cfg *Config) (*mux.Router, error) {
 	gce.Init()
 	storageclass.Init()
 	drain.Init()
+	kubeadm.Init()
 
 	amazon.InitFindAMI(amazon.GetEC2)
 	amazon.InitImportKeyPair(amazon.GetEC2)
@@ -228,7 +225,12 @@ func configureApplication(cfg *Config) (*mux.Router, error) {
 	amazon.InitDeleteRouteTable(amazon.GetEC2)
 	amazon.InitDeleteInternetGateWay(amazon.GetEC2)
 	amazon.InitDeleteKeyPair(amazon.GetEC2)
+	amazon.InitCreateLoadBalancer(amazon.GetELB)
+	amazon.InitDeleteLoadBalancer(amazon.GetELB)
+	amazon.InitRegisterInstance(amazon.GetELB)
+
 	workflows.Init()
+	azure.Init()
 
 	taskHandler := workflows.NewTaskHandler(repository, sshRunner.NewRunner, accountService)
 	taskHandler.Register(protectedAPI)
@@ -311,11 +313,12 @@ func ensureHelmRepositories(svc sghelm.Servicer) {
 }
 
 func serveUI(cfg *Config, router *mux.Router) error {
-	if _, err := os.Stat(cfg.UiDir); err != nil {
-		return errors.Wrap(err, "no ui directory found")
+	statikFS, err := fs.New()
+	if err != nil {
+		return err
 	}
 
-	router.PathPrefix("/").Handler(trimPrefix(http.FileServer(http.Dir(cfg.UiDir))))
+	router.PathPrefix("/").Handler(trimPrefix(http.FileServer(statikFS)))
 	return nil
 }
 
@@ -347,6 +350,6 @@ func trimPrefix(h http.Handler) http.Handler {
 
 func NewVersionHandler(version string) func(w http.ResponseWriter, r *http.Request) {
 	return func(w http.ResponseWriter, r *http.Request) {
-		fmt.Fprintf(w, "Supergiant Version: %s", version)
+		fmt.Fprintf(w, version)
 	}
 }

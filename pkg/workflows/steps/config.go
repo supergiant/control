@@ -5,8 +5,10 @@ import (
 	"sync"
 	"time"
 
-	"github.com/pborman/uuid"
+	"github.com/Azure/go-autorest/autorest"
+	"github.com/pkg/errors"
 
+	"github.com/supergiant/control/pkg/bootstrap"
 	"github.com/supergiant/control/pkg/clouds"
 	"github.com/supergiant/control/pkg/model"
 	"github.com/supergiant/control/pkg/profile"
@@ -15,10 +17,15 @@ import (
 )
 
 type CertificatesConfig struct {
-	KubernetesConfigDir string `json:"kubernetesConfigDir"`
-	PublicIP            string `json:"publicIp"`
-	PrivateIP           string `json:"privateIp"`
-	IsMaster            bool   `json:"isMaster"`
+	ServicesCIDR string `json:"servicesCIDR"`
+	PublicIP     string `json:"publicIp"`
+	PrivateIP    string `json:"privateIp"`
+
+	MasterHost string `json:"masterHost"`
+	MasterPort string `json:"masterPort"`
+	NodeName   string `json:"nodeName"`
+
+	IsMaster bool `json:"isMaster"`
 	// TODO: this shouldn't be a part of SANs
 	// https://kubernetes.io/docs/setup/certificates/#all-certificates
 	KubernetesSvcIP string `json:"kubernetesSvcIp"`
@@ -48,6 +55,9 @@ type DOConfig struct {
 	// These come from cloud account
 	Fingerprint string `json:"fingerprint" valid:"required"`
 	AccessToken string `json:"accessToken" valid:"required"`
+
+	ExternalLoadBalancerID string `json:"externalLoadBalancerId"`
+	InternalLoadBalancerID string `json:"internalLoadBalancerId"`
 }
 
 // TODO(stgleb): Fill struct with fields when provisioning on other providers is done
@@ -65,6 +75,19 @@ type GCEConfig struct {
 	AvailabilityZone string `json:"availabilityZone"`
 	Size             string `json:"size"`
 	InstanceGroup    string `json:"instanceGroup"`
+}
+
+type AzureConfig struct {
+	ClientID       string `json:"clientId"`
+	ClientSecret   string `json:"clientSecret"`
+	TenantID       string `json:"tenantId"`
+	SubscriptionID string `json:"subscriptionId"`
+
+	Location string `json:"location"`
+
+	VMSize string `json:"vmSize"`
+	// TODO: cidr validation?
+	VNetCIDR string `json:"vNetCIDR"`
 }
 
 type PacketConfig struct{}
@@ -86,58 +109,29 @@ type AWSConfig struct {
 	MastersInstanceProfile string `json:"mastersInstanceProfile"`
 	NodesInstanceProfile   string `json:"nodesInstanceProfile"`
 	VolumeSize             string `json:"volumeSize"`
+	DeviceName 			   string `json:"deviceName"`
 	EbsOptimized           string `json:"ebsOptimized"`
 	ImageID                string `json:"image"`
 	InstanceType           string `json:"size"`
 	HasPublicAddr          bool   `json:"hasPublicAddr"`
+
+	ExternalLoadBalancerName string `json:"externalLoadBalancerName"`
+	InternalLoadBalancerName string `json:"internalLoadBalancerName"`
+
 	// Map of availability zone to subnet
 	Subnets map[string]string `json:"subnets"`
 	// Map az to route table association
 	RouteTableAssociationIDs map[string]string `json:"routeTableAssociationIds"`
 }
 
-type FlannelConfig struct {
-	IsMaster bool   `json:"isMaster"`
-	Arch     string `json:"arch"`
-	Version  string `json:"version"`
-	EtcdHost string `json:"etcdHost"`
-}
-
 type NetworkConfig struct {
-	EtcdRepositoryUrl string `json:"etcdRepositoryUrl"`
-	EtcdVersion       string `json:"etcdVersion"`
-	EtcdHost          string `json:"etcdHost"`
-
-	Arch            string `json:"arch"`
-	OperatingSystem string `json:"operatingSystem"`
-
-	Network     string `json:"network"`
-	NetworkType string `json:"networkType"`
-}
-
-type KubeletConfig struct {
-	IsMaster       bool   `json:"isMaster"`
-	NodeLabels     string `json:"nodeLabels"`
-	ProxyPort      string `json:"proxyPort"`
-	K8SVersion     string `json:"k8sVersion"`
-	ProviderString string `json:"ProviderString"`
-}
-
-type ManifestConfig struct {
-	IsMaster            bool   `json:"isMaster"`
-	K8SVersion          string `json:"k8sVersion"`
-	KubernetesConfigDir string `json:"kubernetesConfigDir"`
-	RBACEnabled         bool   `json:"rbacEnabled"`
-	ProviderString      string `json:"ProviderString"`
-	ServicesCIDR        string `json:"servicesCIDR"`
-	ClusterDNSIP        string `json:"clusterDNSIp"`
-	MasterHost          string `json:"masterHost"`
-	MasterPort          string `json:"masterPort"`
-	Password            string `json:"password"`
+	CIDR            string `json:"cidr"`
+	NetworkProvider string `json:"networkProvider"`
 }
 
 type PostStartConfig struct {
 	IsMaster    bool          `json:"isMaster"`
+	Provider    clouds.Name   `json:"provider"`
 	Host        string        `json:"host"`
 	Port        string        `json:"port"`
 	Username    string        `json:"username"`
@@ -164,20 +158,6 @@ type DownloadK8sBinary struct {
 	OperatingSystem string `json:"operatingSystem"`
 }
 
-type EtcdConfig struct {
-	Name           string        `json:"name"`
-	Version        string        `json:"version"`
-	AdvertiseHost  string        `json:"advertiseHost"`
-	Host           string        `json:"host"`
-	DataDir        string        `json:"dataDir"`
-	ServicePort    string        `json:"servicePort"`
-	ManagementPort string        `json:"managementPort"`
-	Timeout        time.Duration `json:"timeout"`
-	StartTimeout   string        `json:"startTimeout"`
-	RestartTimeout string        `json:"restartTimeout"`
-	ClusterToken   string        `json:"clusterToken"`
-}
-
 type ClusterCheckConfig struct {
 	MachineCount int
 }
@@ -185,6 +165,19 @@ type ClusterCheckConfig struct {
 type PrometheusConfig struct {
 	Port        string `json:"port"`
 	RBACEnabled bool   `json:"rbacEnabled"`
+}
+
+type KubeadmConfig struct {
+	K8SVersion       string `json:"K8SVersion"`
+	IsMaster         bool   `json:"isMaster"`
+	AdvertiseAddress string `json:"advertiseAddress"`
+	IsBootstrap      bool   `json:"isBootstrap"`
+	CIDR             string `json:"cidr"`
+	Token            string `json:"token"`
+	Provider         string `json:"provider"`
+
+	InternalDNSName string `json:"internalDNSName"`
+	ExternalDNSName string `json:"externalDNSName"`
 }
 
 type DrainConfig struct {
@@ -221,21 +214,22 @@ type Config struct {
 	DigitalOceanConfig     DOConfig     `json:"digitalOceanConfig"`
 	AWSConfig              AWSConfig    `json:"awsConfig"`
 	GCEConfig              GCEConfig    `json:"gceConfig"`
+	AzureConfig            AzureConfig  `json:"azureConfig"`
 	OSConfig               OSConfig     `json:"osConfig"`
 	PacketConfig           PacketConfig `json:"packetConfig"`
 
 	DockerConfig       DockerConfig       `json:"dockerConfig"`
 	DownloadK8sBinary  DownloadK8sBinary  `json:"downloadK8sBinary"`
 	CertificatesConfig CertificatesConfig `json:"certificatesConfig"`
-	FlannelConfig      FlannelConfig      `json:"flannelConfig"`
 	NetworkConfig      NetworkConfig      `json:"networkConfig"`
-	KubeletConfig      KubeletConfig      `json:"kubeletConfig"`
-	ManifestConfig     ManifestConfig     `json:"manifestConfig"`
 	PostStartConfig    PostStartConfig    `json:"postStartConfig"`
 	TillerConfig       TillerConfig       `json:"tillerConfig"`
-	EtcdConfig         EtcdConfig         `json:"etcdConfig"`
 	PrometheusConfig   PrometheusConfig   `json:"prometheusConfig"`
 	DrainConfig        DrainConfig        `json:"drainConfig"`
+	KubeadmConfig      KubeadmConfig      `json:"kubeadmConfig"`
+
+	ExternalDNSName string `json:"externalDnsName"`
+	InternalDNSName string `json:"internalDnsName"`
 
 	ClusterCheckConfig ClusterCheckConfig `json:"clusterCheckConfig"`
 
@@ -253,23 +247,31 @@ type Config struct {
 	m2    sync.RWMutex
 	Nodes Map `json:"nodes"`
 
+	authorizerMux  sync.RWMutex
+	azureAthorizer autorest.Authorizer
+
 	nodeChan      chan model.Machine
 	kubeStateChan chan model.KubeState
 	configChan    chan *Config
-
-	ReadyForBootstrapLatch *sync.WaitGroup
 }
 
 // NewConfig builds instance of config for provisioning
-func NewConfig(clusterName, clusterToken, cloudAccountName string, profile profile.Profile) *Config {
+func NewConfig(clusterName, cloudAccountName string, profile profile.Profile) (*Config, error) {
+	token, err := bootstrap.GenerateBootstrapToken()
+
+	if err != nil {
+		return nil, errors.Wrapf(err, "bootstrap token")
+	}
+
 	return &Config{
 		Kube: model.Kube{
 			SSHConfig: model.SSHConfig{
 				Port:      "22",
 				User:      "root",
-				Timeout:   10,
+				Timeout:   30,
 				PublicKey: profile.PublicKey,
 			},
+			ExposedAddresses: profile.ExposedAddresses,
 		},
 		Provider:    profile.Provider,
 		ClusterName: clusterName,
@@ -285,11 +287,17 @@ func NewConfig(clusterName, clusterToken, cloudAccountName string, profile profi
 			KeyPairName:            profile.CloudSpecificSettings[clouds.AwsKeyPairName],
 			MastersSecurityGroupID: profile.CloudSpecificSettings[clouds.AwsMastersSecGroupID],
 			NodesSecurityGroupID:   profile.CloudSpecificSettings[clouds.AwsNodesSecgroupID],
+			// TODO(stgleb): Passs this from UI or figure out any better way
+			DeviceName: 		    "/dev/sda1",
 			HasPublicAddr:          true,
 		},
 		GCEConfig: GCEConfig{
 			AvailabilityZone: profile.Zone,
 			ImageFamily:      "ubuntu-1604-lts",
+		},
+		AzureConfig: AzureConfig{
+			Location: profile.Region,
+			VNetCIDR: profile.CloudSpecificSettings[clouds.AzureVNetCIDR],
 		},
 		OSConfig:     OSConfig{},
 		PacketConfig: PacketConfig{},
@@ -305,50 +313,22 @@ func NewConfig(clusterName, clusterToken, cloudAccountName string, profile profi
 			OperatingSystem: profile.OperatingSystem,
 		},
 		CertificatesConfig: CertificatesConfig{
-			KubernetesConfigDir: "/etc/kubernetes",
-			Username:            profile.User,
-			Password:            profile.Password,
-			StaticAuth:          profile.StaticAuth,
+			ServicesCIDR: profile.K8SServicesCIDR,
+			Username:     profile.User,
+			Password:     profile.Password,
+			StaticAuth:   profile.StaticAuth,
 		},
 		NetworkConfig: NetworkConfig{
-			EtcdRepositoryUrl: "https://github.com/coreos/etcd/releases/download",
-			EtcdVersion:       "3.3.9",
-			EtcdHost:          "0.0.0.0",
-
-			Arch:            profile.Arch,
-			OperatingSystem: profile.OperatingSystem,
-
-			Network:     profile.CIDR,
-			NetworkType: profile.NetworkType,
-		},
-		FlannelConfig: FlannelConfig{
-			Arch:    profile.Arch,
-			Version: profile.FlannelVersion,
-			// NOTE(stgleb): this is any host by default works on master nodes
-			// on worker node this host is changed by any master ip address
-			EtcdHost: "0.0.0.0",
-		},
-		KubeletConfig: KubeletConfig{
-			ProxyPort:      "8080",
-			K8SVersion:     profile.K8SVersion,
-			ProviderString: toCloudProviderOpt(profile.Provider),
-		},
-		ManifestConfig: ManifestConfig{
-			K8SVersion:          profile.K8SVersion,
-			KubernetesConfigDir: "/etc/kubernetes",
-			RBACEnabled:         profile.RBACEnabled,
-			ServicesCIDR:        profile.K8SServicesCIDR,
-			ProviderString:      toCloudProviderOpt(profile.Provider),
-			MasterHost:          "localhost",
-			MasterPort:          "8080",
-			Password:            profile.Password,
+			CIDR:            profile.CIDR,
+			NetworkProvider: profile.NetworkProvider,
 		},
 		PostStartConfig: PostStartConfig{
 			Host:        "localhost",
 			Port:        "8080",
 			Username:    profile.User,
 			RBACEnabled: profile.RBACEnabled,
-			Timeout:     time.Minute * 20,
+			Timeout:     time.Minute * 30,
+			Provider:    profile.Provider,
 		},
 		TillerConfig: TillerConfig{
 			HelmVersion:     profile.HelmVersion,
@@ -356,26 +336,18 @@ func NewConfig(clusterName, clusterToken, cloudAccountName string, profile profi
 			Arch:            profile.Arch,
 			RBACEnabled:     profile.RBACEnabled,
 		},
-		EtcdConfig: EtcdConfig{
-			// TODO(stgleb): this field must be changed per node
-			Name:           "etcd0",
-			Version:        "3.3.10",
-			Host:           "0.0.0.0",
-			DataDir:        "/var/supergiant/etcd-data",
-			ServicePort:    "2379",
-			ManagementPort: "2380",
-			Timeout:        time.Minute * 20,
-			StartTimeout:   "0",
-			RestartTimeout: "5",
-			// TODO(stgleb): this should be saved as a part of cluster for restart routine
-			ClusterToken:   clusterToken,
-		},
 		ClusterCheckConfig: ClusterCheckConfig{
 			MachineCount: len(profile.NodesProfiles) + len(profile.MasterProfiles),
 		},
 		PrometheusConfig: PrometheusConfig{
 			Port:        "30900",
 			RBACEnabled: profile.RBACEnabled,
+		},
+		KubeadmConfig: KubeadmConfig{
+			K8SVersion:  profile.K8SVersion,
+			IsBootstrap: true,
+			Token:       token,
+			CIDR:        profile.CIDR,
 		},
 
 		Masters: Map{
@@ -390,11 +362,15 @@ func NewConfig(clusterName, clusterToken, cloudAccountName string, profile profi
 		nodeChan:      make(chan model.Machine, len(profile.MasterProfiles)+len(profile.NodesProfiles)),
 		kubeStateChan: make(chan model.KubeState, 2),
 		configChan:    make(chan *Config),
-	}
+	}, nil
 }
 
-func NewConfigFromKube(profile *profile.Profile, k *model.Kube) *Config {
-	clusterToken := uuid.New()
+func NewConfigFromKube(profile *profile.Profile, k *model.Kube) (*Config, error) {
+	token, err := bootstrap.GenerateBootstrapToken()
+
+	if err != nil {
+		return nil, errors.Wrapf(err, "bootstrap token")
+	}
 
 	cfg := &Config{
 		ClusterID:   k.ID,
@@ -414,10 +390,15 @@ func NewConfigFromKube(profile *profile.Profile, k *model.Kube) *Config {
 			MastersSecurityGroupID: k.CloudSpec[clouds.AwsMastersSecGroupID],
 			NodesSecurityGroupID:   k.CloudSpec[clouds.AwsNodesSecgroupID],
 			ImageID:                k.CloudSpec[clouds.AwsImageID],
+			// TODO(stgleb): Passs this from UI or figure out any better way
+			DeviceName: 		    "/dev/sda1",
 			HasPublicAddr:          true,
 		},
 		GCEConfig: GCEConfig{
 			AvailabilityZone: profile.Zone,
+		},
+		AzureConfig: AzureConfig{
+			Location: profile.Region,
 		},
 		OSConfig:     OSConfig{},
 		PacketConfig: PacketConfig{},
@@ -433,73 +414,33 @@ func NewConfigFromKube(profile *profile.Profile, k *model.Kube) *Config {
 			OperatingSystem: profile.OperatingSystem,
 		},
 		CertificatesConfig: CertificatesConfig{
-			KubernetesConfigDir: "/etc/kubernetes",
-			Username:            profile.User,
-			Password:            profile.Password,
-			StaticAuth:          profile.StaticAuth,
-			CAKey:               k.Auth.CAKey,
-			CACert:              k.Auth.CACert,
-			AdminCert:           k.Auth.AdminCert,
-			AdminKey:            k.Auth.AdminKey,
+			ServicesCIDR: profile.K8SServicesCIDR,
+			Username:     profile.User,
+			Password:     profile.Password,
+			StaticAuth:   profile.StaticAuth,
+			CAKey:        k.Auth.CAKey,
+			CACert:       k.Auth.CACert,
+			AdminCert:    k.Auth.AdminCert,
+			AdminKey:     k.Auth.AdminKey,
 		},
 		NetworkConfig: NetworkConfig{
-			EtcdRepositoryUrl: "https://github.com/coreos/etcd/releases/download",
-			EtcdVersion:       "3.3.9",
-			EtcdHost:          "0.0.0.0",
+			NetworkProvider: profile.NetworkProvider,
+			CIDR:            profile.CIDR,
+		},
 
-			Arch:            profile.Arch,
-			OperatingSystem: profile.OperatingSystem,
-
-			Network:     profile.CIDR,
-			NetworkType: profile.NetworkType,
-		},
-		FlannelConfig: FlannelConfig{
-			Arch:    profile.Arch,
-			Version: profile.FlannelVersion,
-			// NOTE(stgleb): this is any host by default works on master nodes
-			// on worker node this host is changed by any master ip address
-			EtcdHost: "0.0.0.0",
-		},
-		KubeletConfig: KubeletConfig{
-			ProxyPort:      "8080",
-			K8SVersion:     profile.K8SVersion,
-			ProviderString: toCloudProviderOpt(profile.Provider),
-		},
-		ManifestConfig: ManifestConfig{
-			K8SVersion:          profile.K8SVersion,
-			KubernetesConfigDir: "/etc/kubernetes",
-			RBACEnabled:         profile.RBACEnabled,
-			ServicesCIDR:        k.ServicesCIDR,
-			ProviderString:      toCloudProviderOpt(profile.Provider),
-			MasterHost:          "localhost",
-			MasterPort:          "8080",
-			Password:            profile.Password,
-		},
 		PostStartConfig: PostStartConfig{
 			Host:        "localhost",
 			Port:        "8080",
 			Username:    profile.User,
 			RBACEnabled: profile.RBACEnabled,
-			Timeout:     time.Minute * 20,
+			Timeout:     time.Minute * 30,
+			Provider:    k.Provider,
 		},
 		TillerConfig: TillerConfig{
 			HelmVersion:     profile.HelmVersion,
 			OperatingSystem: profile.OperatingSystem,
 			Arch:            profile.Arch,
 			RBACEnabled:     profile.RBACEnabled,
-		},
-		EtcdConfig: EtcdConfig{
-			// TODO(stgleb): this field must be changed per node
-			Name:           "etcd0",
-			Version:        "3.3.10",
-			Host:           "0.0.0.0",
-			DataDir:        "/var/supergiant/etcd-data",
-			ServicePort:    "2379",
-			ManagementPort: "2380",
-			Timeout:        time.Minute * 20,
-			StartTimeout:   "0",
-			RestartTimeout: "5",
-			ClusterToken:   clusterToken,
 		},
 		ClusterCheckConfig: ClusterCheckConfig{
 			MachineCount: len(profile.NodesProfiles) + len(profile.MasterProfiles),
@@ -508,7 +449,12 @@ func NewConfigFromKube(profile *profile.Profile, k *model.Kube) *Config {
 			Port:        "30900",
 			RBACEnabled: profile.RBACEnabled,
 		},
-
+		KubeadmConfig: KubeadmConfig{
+			K8SVersion:  profile.K8SVersion,
+			IsBootstrap: true,
+			Token:       token,
+			CIDR:        profile.CIDR,
+		},
 		Masters: Map{
 			internal: make(map[string]*model.Machine, len(k.Masters)),
 		},
@@ -533,7 +479,7 @@ func NewConfigFromKube(profile *profile.Profile, k *model.Kube) *Config {
 		}
 	}
 
-	return cfg
+	return cfg, nil
 }
 
 // AddMaster to map of master, map is used because it is reference and can be shared among
@@ -554,7 +500,7 @@ func (c *Config) AddNode(n *model.Machine) {
 // GetMaster returns first master in master map or nil
 func (c *Config) GetMaster() *model.Machine {
 	// non-blocking fast path for master nodes
-	if c.IsMaster {
+	if c.IsMaster && c.Node.State == model.MachineStateActive {
 		return &c.Node
 	}
 
@@ -642,6 +588,20 @@ func (c *Config) SetKubeStateChan(kubeStateChan chan model.KubeState) {
 
 func (c *Config) SetConfigChan(configChan chan *Config) {
 	c.configChan = configChan
+}
+
+func (c *Config) SetAzureAuthorizer(a autorest.Authorizer) {
+	c.authorizerMux.Lock()
+	defer c.authorizerMux.Unlock()
+
+	c.azureAthorizer = a
+}
+
+func (c *Config) GetAzureAuthorizer() autorest.Authorizer {
+	c.authorizerMux.RLock()
+	defer c.authorizerMux.RUnlock()
+
+	return c.azureAthorizer
 }
 
 // TODO: cloud profiles is deprecated by kubernetes, use controller-managers

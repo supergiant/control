@@ -1,8 +1,8 @@
-KUBERNETES_SSL_DIR={{ .KubernetesConfigDir }}/ssl
+sudo mkdir -p /etc/kubernetes
+sudo mkdir -p /etc/kubernetes/pki
+sudo mkdir -p /etc/kubernetes/pki/etcd
 
-sudo mkdir -p ${KUBERNETES_SSL_DIR}
-
-sudo bash -c "cat > /etc/kubernetes/ssl/openssl.cnf <<EOF
+sudo bash -c "cat > /etc/kubernetes/pki/openssl.cnf <<EOF
 [req]
 req_extensions = v3_req
 distinguished_name = req_distinguished_name
@@ -22,43 +22,79 @@ IP.2 = {{ .PrivateIP }}
 IP.3 = {{ .KubernetesSvcIP }}
 EOF"
 
-sudo bash -c "cat > /etc/kubernetes/ssl/ca.pem <<EOF
-{{ .CACert }}EOF"
-
-sudo bash -c "cat > /etc/kubernetes/ssl/ca-key.pem <<EOF
-{{ .CAKey }}EOF"
 
 {{ if .IsMaster }}
-sudo openssl genrsa -out /etc/kubernetes/ssl/apiserver-key.pem 2048
-sudo openssl req -new -key /etc/kubernetes/ssl/apiserver-key.pem -out /etc/kubernetes/ssl/apiserver.csr -subj "/CN=kube-apiserver" -config /etc/kubernetes/ssl/openssl.cnf
-sudo openssl x509 -req -in /etc/kubernetes/ssl/apiserver.csr -CA /etc/kubernetes/ssl/ca.pem -CAkey /etc/kubernetes/ssl/ca-key.pem -CAcreateserial -out /etc/kubernetes/ssl/apiserver.pem -days 365 -extensions v3_req -extfile /etc/kubernetes/ssl/openssl.cnf
-{{ end }}
-sudo openssl genrsa -out /etc/kubernetes/ssl/worker-key.pem 2048
-sudo openssl req -new -key /etc/kubernetes/ssl/worker-key.pem -out /etc/kubernetes/ssl/worker.csr -subj "/CN=kube-worker"
-sudo openssl x509 -req -in /etc/kubernetes/ssl/worker.csr -CA /etc/kubernetes/ssl/ca.pem -CAkey /etc/kubernetes/ssl/ca-key.pem -CAcreateserial -out /etc/kubernetes/ssl/worker.pem -days 365 -extensions v3_req -extfile /etc/kubernetes/ssl/openssl.cnf
+sudo bash -c "cat > /etc/kubernetes/pki/ca.crt <<EOF
+{{ .CACert }}EOF"
 
+sudo bash -c "cat > /etc/kubernetes/pki/ca.key <<EOF
+{{ .CAKey }}EOF"
 
-sudo bash -c "cat > /etc/kubernetes/ssl/admin.pem <<EOF
+sudo bash -c "cat > /etc/kubernetes/pki/front-proxy-ca.crt <<EOF
+{{ .CACert }}EOF"
+
+sudo bash -c "cat > /etc/kubernetes/pki/front-proxy-ca.key <<EOF
+{{ .CAKey }}EOF"
+
+sudo bash -c "cat > /etc/kubernetes/pki/etcd/ca.crt <<EOF
+{{ .CACert }}EOF"
+
+sudo bash -c "cat > /etc/kubernetes/pki/etcd/ca.key <<EOF
+{{ .CAKey }}EOF"
+
+sudo bash -c "cat > /etc/kubernetes/pki/cluster-ca.crt <<EOF
+{{ .CACert }}EOF"
+
+sudo bash -c "cat > /etc/kubernetes/pki/cluster-ca.key <<EOF
+{{ .CAKey }}EOF"
+
+sudo openssl genrsa -out /etc/kubernetes/pki/kubelet.key 2048
+sudo openssl req -new -key /etc/kubernetes/pki/kubelet.key -out /etc/kubernetes/pki/kubelet.csr -subj "/CN=kube-worker"
+sudo openssl x509 -req -in /etc/kubernetes/pki/kubelet.csr -CA /etc/kubernetes/pki/ca.crt -CAkey /etc/kubernetes/pki/ca.key -CAcreateserial -out /etc/kubernetes/pki/kubelet.crt -days 365 -extensions v3_req -extfile /etc/kubernetes/pki/openssl.cnf
+
+{{ else }}
+
+sudo bash -c "cat > /etc/kubernetes/pki/ca.crt <<EOF
+{{ .CACert }}EOF"
+
+sudo bash -c "cat > /etc/kubernetes/pki/admin.crt <<EOF
 {{ .AdminCert }}EOF"
-sudo bash -c "cat > /etc/kubernetes/ssl/admin-key.pem <<EOF
+
+sudo bash -c "cat > /etc/kubernetes/pki/admin.key <<EOF
 {{ .AdminKey }}EOF"
 
+sudo kubectl --kubeconfig=/root/.kube/config config set-cluster kubernetes --server='https://{{ .MasterHost }}' --certificate-authority=/etc/kubernetes/pki/ca.crt --embed-certs=true
+sudo kubectl --kubeconfig=/root/.kube/config config set-credentials kubernetes --client-certificate=/etc/kubernetes/pki/admin.crt --client-key=/etc/kubernetes/pki/admin.key --embed-certs=true
+sudo kubectl --kubeconfig=/root/.kube/config config set-context kubernetes --cluster=kubernetes --user=kubernetes
+sudo kubectl --kubeconfig=/root/.kube/config config use-context kubernetes
 
-sudo cp /etc/kubernetes/ssl/ca.pem /usr/share/ca-certificates/ca.crt
-sudo bash -c "echo \"ca.crt\" >> /etc/ca-certificates.conf"
-sudo update-ca-certificates
+sudo openssl genrsa -out /etc/kubernetes/pki/kubelet.key 2048
+sudo openssl req -new -key /etc/kubernetes/pki/kubelet.key -out /etc/kubernetes/pki/kubelet.csr -subj "/CN=kube-worker"
 
-sudo chmod 600 /etc/kubernetes/ssl/*-key.pem
-sudo chown root:root /etc/kubernetes/ssl/*-key.pem
-
-sudo bash -c "cat > /etc/kubernetes/ssl/basic_auth.csv <<EOF
-{{- range .StaticAuth.BasicAuth }}
-{{ .Password }},{{ .Name }},{{ .ID }},{{ stringsJoin .Groups "," }}
-{{ end -}}
+sudo bash -c "cat > /etc/kubernetes/pki/request.yaml <<EOF
+apiVersion: certificates.k8s.io/v1beta1
+kind: CertificateSigningRequest
+metadata:
+  name: {{ .NodeName }}
+spec:
+  groups:
+  - system:authenticated
+  request: $(cat /etc/kubernetes/pki/kubelet.csr | base64 | tr -d '\n')
+  usages:
+  - digital signature
+  - key encipherment
+  - server auth
 EOF"
 
-sudo bash -c "cat > /etc/kubernetes/ssl/known_tokens.csv <<EOF
-{{- range .StaticAuth.Tokens }}
-{{ .Token }},{{ .Name }},{{ .ID }},{{ stringsJoin .Groups "," }}
-{{ end -}}
+sudo kubectl --kubeconfig=/root/.kube/config create -f /etc/kubernetes/pki/request.yaml
+sudo kubectl --kubeconfig=/root/.kube/config certificate approve -f /etc/kubernetes/pki/request.yaml
+sudo bash -c "cat > /etc/kubernetes/pki/kubelet.crt <<EOF
+$(sudo kubectl --kubeconfig=/root/.kube/config get csr {{ .NodeName }} -o jsonpath='{.status.certificate}' | base64 -d)
 EOF"
+
+sudo rm /etc/kubernetes/pki/ca.crt
+sudo rm /etc/kubernetes/pki/admin.key
+sudo rm /etc/kubernetes/pki/admin.crt
+
+{{ end }}
+

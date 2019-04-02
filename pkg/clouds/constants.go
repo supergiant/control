@@ -9,6 +9,7 @@ const (
 	DigitalOcean Name = "digitalocean"
 	Packet       Name = "packet"
 	GCE          Name = "gce"
+	Azure        Name = "azure"
 	OpenStack    Name = "openstack"
 
 	Unknown Name = "unknown"
@@ -31,8 +32,12 @@ func ToProvider(name string) (Name, error) {
 }
 
 const (
-	DigitalOceanFingerPrint    = "fingerprint"
-	DigitalOceanAccessToken    = "accessToken"
+	DigitalOceanFingerPrint = "fingerprint"
+	DigitalOceanAccessToken = "accessToken"
+
+	DigitalOceanExternalLoadBalancerID = "externalLoadBalancerID"
+	DigitalOceanInternalLoadBalancerID = "internalLoadBalancerID"
+
 	EnvDigitalOceanAccessToken = "DIGITALOCEAN_TOKEN"
 
 	GCEProjectID   = "project_id"
@@ -40,7 +45,8 @@ const (
 	GCEClientEmail = "client_email"
 	GCETokenURI    = "token_uri"
 
-	ClusterIDTag = "supergiant.io/cluster-id"
+	TagClusterID         = "supergiant.io/cluster-id"
+	TagKubernetesCluster = "KubernetesCluster"
 
 	AWSAccessKeyID              = "access_key"
 	AWSSecretKey                = "secret_key"
@@ -58,4 +64,15 @@ const (
 	AwsMasterInstanceProfile    = "aws_master_instance_profile"
 	AwsNodeInstanceProfile      = "aws_node_instance_profile"
 	AwsImageID                  = "aws_image_id"
+	AwsExternalLoadBalancerName = "AwsExternalLoadBalancerName"
+	AwsInternalLoadBalancerName = "AwsInternalLoadBalancerName"
+
+	// Use client credentials auth model for azure.
+	// https://github.com/Azure/azure-sdk-for-go#more-authentication-details
+	AzureTenantID       = "tenantId"
+	AzureSubscriptionID = "subscriptionId"
+	AzureClientID       = "clientId"
+	AzureClientSecret   = "clientSecret"
+
+	AzureVNetCIDR = "azureVNetCIDR"
 )

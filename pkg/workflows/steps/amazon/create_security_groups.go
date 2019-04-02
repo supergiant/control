@@ -11,6 +11,7 @@ import (
 	"github.com/pkg/errors"
 	"github.com/sirupsen/logrus"
 
+	"github.com/supergiant/control/pkg/profile"
 	"github.com/supergiant/control/pkg/util"
 	"github.com/supergiant/control/pkg/workflows/steps"
 )
@@ -37,7 +38,7 @@ func NewCreateSecurityGroupsStep(fn GetEC2Fn) *CreateSecurityGroupsStep {
 
 			return EC2, nil
 		},
-		findOutboundIP: findOutBoundIP,
+		findOutboundIP: FindExternalIP,
 	}
 }
 
@@ -114,11 +115,10 @@ func (s *CreateSecurityGroupsStep) Run(ctx context.Context, w io.Writer, cfg *st
 		return err
 	}
 
-	logrus.Debugf("Whitelist SG IP address")
-	if err := s.whiteListSupergiantIP(ctx, svc, cfg.AWSConfig.MastersSecurityGroupID); err != nil {
-		logrus.Errorf("[%s] - failed to whitelist supergiant IP in master "+
-			"security group: %v", s.Name(), err)
-		return errors.Wrapf(err, "%s failed whitelisting supergiant IP", s.Name())
+	logrus.Debugf("Whitelist addresses SG and provided addresses")
+	if err := s.whiteListAddresses(ctx, svc, cfg.AWSConfig.MastersSecurityGroupID, cfg.Kube.ExposedAddresses); err != nil {
+		logrus.Errorf("[%s] - failed to whitelist addresses in master security group: %v", s.Name(), err)
+		return errors.Wrapf(err, "%s failed whitelisting addresses", s.Name())
 	}
 
 	return nil
@@ -196,33 +196,28 @@ func (s *CreateSecurityGroupsStep) allowAllTraffic(ctx context.Context, EC2 secG
 	return err
 }
 
-func (s *CreateSecurityGroupsStep) whiteListSupergiantIP(ctx context.Context, EC2 secGroupService, groupID string) error {
+func (s *CreateSecurityGroupsStep) whiteListAddresses(ctx context.Context, EC2 secGroupService, groupID string, addrs []profile.Addresses) error {
 	supergiantIP, err := FindOutboundIP(ctx, s.findOutboundIP)
 	if err != nil {
 		return err
 	}
 
-	_, err = EC2.AuthorizeSecurityGroupIngressWithContext(ctx, &ec2.AuthorizeSecurityGroupIngressInput{
-		GroupId:    aws.String(groupID),
-		FromPort:   aws.Int64(8080),
-		ToPort:     aws.Int64(8080),
-		CidrIp:     aws.String(fmt.Sprintf("%s/32", supergiantIP)),
-		IpProtocol: aws.String("tcp"),
-	})
-	if err != nil {
-		return err
+	ips := []*ec2.IpRange{{CidrIp: aws.String(fmt.Sprintf("%s/32", supergiantIP))}}
+	for _, addr := range addrs {
+		ips = append(ips, &ec2.IpRange{CidrIp: aws.String(addr.CIDR)})
 	}
 
 	_, err = EC2.AuthorizeSecurityGroupIngressWithContext(ctx, &ec2.AuthorizeSecurityGroupIngressInput{
-		GroupId:    aws.String(groupID),
-		FromPort:   aws.Int64(443),
-		ToPort:     aws.Int64(443),
-		CidrIp:     aws.String(fmt.Sprintf("%s/32", supergiantIP)),
-		IpProtocol: aws.String("tcp"),
+		GroupId: aws.String(groupID),
+		IpPermissions: []*ec2.IpPermission{
+			{
+				FromPort:   aws.Int64(443),
+				ToPort:     aws.Int64(443),
+				IpRanges:   ips,
+				IpProtocol: aws.String("tcp"),
+			},
+		},
 	})
-	if err != nil {
-		return err
-	}
 
 	return err
 }

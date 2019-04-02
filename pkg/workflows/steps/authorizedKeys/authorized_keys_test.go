@@ -51,7 +51,12 @@ func TestAuthorizedkeys(t *testing.T) {
 
 	output := new(bytes.Buffer)
 
-	cfg := steps.NewConfig("", "", "", profile.Profile{})
+	cfg, err := steps.NewConfig("", "", profile.Profile{})
+
+	if err != nil {
+		t.Errorf("Unexpected error %v", err)
+	}
+
 	cfg.Runner = r
 	task := &Step{
 		tpl,
@@ -82,8 +87,13 @@ func TestAuthorizedKeysErr(t *testing.T) {
 		proxyTemplate,
 	}
 
-	cfg := steps.NewConfig("", "",
-		"", profile.Profile{})
+	cfg, err := steps.NewConfig("", "",
+		profile.Profile{})
+
+	if err != nil {
+		t.Errorf("Unexpected error %v", err)
+	}
+
 	cfg.Kube.SSHConfig.PublicKey = "key"
 	cfg.Runner = r
 	cfg.AddMaster(&model.Machine{

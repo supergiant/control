@@ -1,22 +1,42 @@
-import { Component, OnDestroy, OnInit, ViewEncapsulation, ViewChild }       from '@angular/core';
+import { Component, OnDestroy, OnInit, ViewEncapsulation, ViewChild } from '@angular/core';
 import { FormBuilder, FormGroup, Validators, ValidatorFn, AbstractControl } from '@angular/forms';
-import { Router }                                                           from '@angular/router';
-import { MatHorizontalStepper }                                             from '@angular/material';
-import { Subscription, Observable }                                         from 'rxjs';
-import { Notifications }                                                    from '../../shared/notifications/notifications.service';
-import { Supergiant }                                                       from '../../shared/supergiant/supergiant.service';
-import { NodeProfileService }                                               from '../node-profile.service';
-import { CLUSTER_OPTIONS }                                                  from './cluster-options.config';
+import { Router } from '@angular/router';
+import { MatHorizontalStepper, MatOption, MatSelect } from '@angular/material';
+import { Subscription, Observable } from 'rxjs';
+import { Notifications } from '../../shared/notifications/notifications.service';
+import { Supergiant } from '../../shared/supergiant/supergiant.service';
+import { NodeProfileService } from '../node-profile.service';
+import { CLUSTER_OPTIONS } from './cluster-options.config';
 import {
   DEFAULT_MACHINE_SET,
   BLANK_MACHINE_TEMPLATE,
-}                                                                           from 'app/clusters/new-cluster/new-cluster.component.config';
-import { sortDigitalOceanMachineTypes }                                     from 'app/clusters/new-cluster/new-cluster.helpers';
-import { map }                                                              from 'rxjs/operators';
+} from 'app/clusters/new-cluster/new-cluster.component.config';
+import { sortDigitalOceanMachineTypes } from 'app/clusters/new-cluster/new-cluster.helpers';
+import { map } from 'rxjs/operators';
+import { IMachineType } from './new-cluster.component.interface';
 
 // compiler hack
 declare var require: any;
 const cidrRegex = require('cidr-regex');
+
+enum MachineRoles {
+  master = 'Master',
+  node = 'Node'
+}
+
+enum CloudProviders {
+  aws = 'aws',
+  digitalocean = 'digitalocean',
+  gce = 'gce',
+}
+
+export enum StepIndexes {
+  NameAndCloudAccount = 0,
+  ClusterConfig = 1,
+  ProvideConfig = 2,
+  MachinesConfig = 3,
+  Review = 4,
+}
 
 @Component({
   selector: 'app-new-cluster',
@@ -54,6 +74,7 @@ export class NewClusterComponent implements OnInit, OnDestroy {
   regionsFilter = '';
 
   @ViewChild(MatHorizontalStepper) stepper: MatHorizontalStepper;
+  @ViewChild('selectedMachineType') selectedMachineType: MatSelect;
 
   constructor(
     private supergiant: Supergiant,
@@ -81,16 +102,17 @@ export class NewClusterComponent implements OnInit, OnDestroy {
     });
 
     this.clusterConfig = this.formBuilder.group({
-      K8sVersion: ['1.11.5', Validators.required],
-      flannelVersion: ['0.10.0', Validators.required],
+      K8sVersion: ['1.14.0', Validators.required],
+      networkProvider: ['Flannel', Validators.required],
       helmVersion: ['2.11.0', Validators.required],
-      dockerVersion: ['17.06.0', Validators.required],
+      dockerVersion: ['18.06.3', Validators.required],
       ubuntuVersion: ['xenial', Validators.required],
       networkType: ['vxlan', Validators.required],
       cidr: ['10.0.0.0/16', [Validators.required, this.validCidr()]],
       operatingSystem: ['linux', Validators.required],
       arch: ['amd64', Validators.required],
     });
+
   }
 
   ngOnDestroy() {
@@ -169,32 +191,41 @@ export class NewClusterComponent implements OnInit, OnDestroy {
 
       this.provisioning = true;
       this.subscriptions.add(this.supergiant.Kubes.create(newClusterData).subscribe(
-        (data: any) => {
-          this.success(newClusterData);
+        data => {
+          this.displaySuccess(newClusterData);
           this.router.navigate(['/clusters/', data.clusterId]);
           this.provisioning = false;
         },
-        (err) => {
-          this.error(newClusterData, err);
+        err => {
+          this.displayError(err);
           this.provisioning = false;
         },
       ));
     }
   }
 
-  success(model) {
+  displaySuccess(model) {
     this.notifications.display(
       'success',
       'Kube: ' + model.clusterName,
-      'Created...',
+      'Created!',
     );
   }
 
-  error(model, data) {
+  displayError(err) {
+    let msg: string;
+
+    if (err.error.userMessage) {
+      msg = err.error.userMessage;
+    } else {
+      msg = err.error
+    }
+
     this.notifications.display(
       'error',
-      'Kube: ' + model.name,
-      'Error:' + data.statusText);
+      'Error: ',
+      msg
+    );
   }
 
   getAwsAvailabilityZones(region) {
@@ -368,7 +399,7 @@ export class NewClusterComponent implements OnInit, OnDestroy {
         this.regionsLoading = false;
       },
       err => {
-        this.error({}, err);
+        this.displayError(err);
         this.regionsLoading = false;
       },
     ));
@@ -387,12 +418,72 @@ export class NewClusterComponent implements OnInit, OnDestroy {
     return false;
   }
 
-  validateMachineConfig() {
-    if (this.machines.every(this.validMachine) && this.isOddNumberOfMasters()) {
+  validateMachineConfig(currentMachine: IMachineType = null) {
+    const selectedOption: MatOption = this.selectedMachineType.selected as MatOption;
+
+    if (selectedOption) {
+      const selectedMachineType: string = selectedOption.value;
+      this.updateRecommendations(currentMachine, selectedMachineType);
+    }
+
+    if (this.machines.every(this.validMachine) && this.isOddNumberOfMasters() && this.hasMasterAndNode(this.machines)) {
       this.machinesConfigValid = true;
       this.displayMachinesConfigWarning = false;
     } else {
       this.machinesConfigValid = false;
+    }
+  }
+
+  private updateRecommendations(currentMachine: IMachineType, selectedMachineType: string) {
+    // checking recommendation for cluster size
+    if (currentMachine && currentMachine.role === MachineRoles.master) {
+      currentMachine.recommendedNodesCount =
+        this.getRecommendedNodesCount(selectedMachineType) * currentMachine.qty;
+    } else if (currentMachine) {
+      currentMachine.recommendedNodesCount = 0;
+    }
+  }
+
+  getRecommendedNodesCount(machineType: string): number {
+
+    // TODO: move these consts into config file
+    const AWS_RECOMENDATIONS = {
+      'm3.medium': 5,
+      'm3.large': 10,
+      'm3.xlarge': 100,
+      'm3.2xlarge': 250,
+      'c4.4xlarge': 500,
+      'c4.8xlarge': 500,
+    };
+
+    const DO_RECOMMENDATIONS = {
+      's-1vcpu-3gb': 5,
+      's-4vcpu-8gb': 10,
+      's-6vcpu-16gb': 100,
+      's-8vcpu-32gb': 250,
+      's-16vcpu-64gb': 500,
+    };
+
+    const GCE_RECOMMENDATIONS = {
+      'n1-standard-1': 5,
+      'n1-standard-2': 10,
+      'n1-standard-4': 100,
+      'n1-standard-8': 250,
+      'n1-standard-16': 500,
+      'n1-standard-32': 1000,
+    };
+
+
+    switch (this.selectedCloudAccount.provider) {
+      case CloudProviders.aws:
+        return AWS_RECOMENDATIONS[machineType];
+      case CloudProviders.digitalocean:
+        return DO_RECOMMENDATIONS[machineType];
+      case CloudProviders.gce:
+        return GCE_RECOMMENDATIONS[machineType];
+
+      default:
+        return 0;
     }
   }
 
@@ -404,8 +495,19 @@ export class NewClusterComponent implements OnInit, OnDestroy {
     return (numberOfMasterProfiles) % 2 !== 0;
   }
 
+  hasMasterAndNode(machines) {
+    const masters = machines.filter(m => m.role == MachineRoles.master)
+
+    const nodes = machines.filter(m => m.role == MachineRoles.node)
+
+    return (masters.length > 0 && nodes.length > 0);
+  }
+
   nextStep() {
-    this.validateMachineConfig();
+
+    if (this.stepper.selectedIndex === StepIndexes.Review) {
+      this.validateMachineConfig();
+    }
 
     if (this.machinesConfigValid) {
       this.stepper.next();

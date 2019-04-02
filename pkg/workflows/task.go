@@ -16,7 +16,6 @@ import (
 	"github.com/supergiant/control/pkg/util"
 	"github.com/supergiant/control/pkg/workflows/statuses"
 	"github.com/supergiant/control/pkg/workflows/steps"
-	"github.com/supergiant/control/pkg/workflows/steps/etcd"
 )
 
 type TaskType string
@@ -178,15 +177,6 @@ func (w *Task) startFrom(ctx context.Context, id string, out io.Writer, i int) e
 
 		if err := w.sync(ctx); err != nil {
 			logrus.Errorf("sync error %v", err)
-		}
-
-		//TODO move to step
-		if w.Config.IsMaster {
-			if step.Name() == etcd.StepName {
-				//wait until all masters are ready for etcd bootstrapping
-				w.Config.ReadyForBootstrapLatch.Done()
-				w.Config.ReadyForBootstrapLatch.Wait()
-			}
 		}
 
 		if err := step.Run(ctx, out, w.Config); err != nil {

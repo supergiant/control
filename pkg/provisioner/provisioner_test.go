@@ -1,9 +1,9 @@
 package provisioner
 
 import (
-	"bytes"
 	"context"
 	"io"
+	"io/ioutil"
 	"sync"
 	"testing"
 	"time"
@@ -22,7 +22,7 @@ import (
 )
 
 type bufferCloser struct {
-	bytes.Buffer
+	io.Writer
 	err error
 }
 
@@ -102,7 +102,7 @@ func TestProvisionCluster(t *testing.T) {
 		mock.Anything).Return(nil)
 
 	bc := &bufferCloser{
-		bytes.Buffer{},
+		ioutil.Discard,
 		nil,
 	}
 
@@ -130,6 +130,9 @@ func TestProvisionCluster(t *testing.T) {
 	workflows.RegisterWorkFlow(workflows.PostProvision, []steps.Step{
 		&mockStep{},
 	})
+	workflows.RegisterWorkFlow(workflows.PreProvision, []steps.Step{
+		&mockStep{},
+	})
 
 	p := &profile.Profile{
 		Provider: clouds.DigitalOcean,
@@ -151,7 +154,12 @@ func TestProvisionCluster(t *testing.T) {
 		},
 	}
 
-	cfg := steps.NewConfig("", "", "", *p)
+	cfg, err := steps.NewConfig("", "", *p)
+
+	if err != nil {
+		t.Errorf("Unexpected error %v", err)
+	}
+
 	ctx, cancel := context.WithCancel(context.Background())
 	taskMap, err := provisioner.ProvisionCluster(ctx, p, cfg)
 	time.Sleep(time.Millisecond * 10)
@@ -160,8 +168,8 @@ func TestProvisionCluster(t *testing.T) {
 		t.Errorf("Unexpected error %v while provisionCluster", err)
 	}
 
-	if len(taskMap) != 3 {
-		t.Errorf("Expected task map len 3 actul %d", len(taskMap))
+	if len(taskMap) != 4 {
+		t.Errorf("Expected task map len 4 actual %d", len(taskMap))
 	}
 
 	if len(taskMap["master"])+len(taskMap["node"]) != len(p.MasterProfiles)+len(p.NodesProfiles) {
@@ -196,7 +204,7 @@ func TestProvisionNodes(t *testing.T) {
 	repository.On("Get", mock.Anything, mock.Anything,
 		mock.Anything).Return()
 	bc := &bufferCloser{
-		bytes.Buffer{},
+		ioutil.Discard,
 		nil,
 	}
 
@@ -263,10 +271,15 @@ func TestProvisionNodes(t *testing.T) {
 		RBACEnabled: k.RBACEnabled,
 	}
 
-	config := steps.NewConfig(k.Name, "", k.AccountName, kubeProfile)
+	config, err := steps.NewConfig(k.Name, k.AccountName, kubeProfile)
+
+	if err != nil {
+		t.Errorf("Unexpected error %v", err)
+	}
+
 	config.ClusterID = k.ID
 
-	_, err := provisioner.ProvisionNodes(context.Background(),
+	_, err = provisioner.ProvisionNodes(context.Background(),
 		[]profile.NodeProfile{nodeProfile}, k, config)
 
 	time.Sleep(time.Millisecond * 10)
@@ -289,11 +302,17 @@ func TestRestartProvisionClusterSuccess(t *testing.T) {
 	repository.On("Get", mock.Anything,
 		mock.Anything,
 		mock.Anything).Return([]byte(`{"id": "task_id", 
-		"type": "AWSPreProvisionCluster", "stepsStatuses":[{"status": "error"}]}`),
-		nil)
+		"type": "PreProvision", "stepsStatuses":[{"status": "error"}]}`),
+		nil).Once()
+
+	repository.On("Get", mock.Anything,
+		mock.Anything,
+		mock.Anything).Return([]byte(`{"id": "task_id", 
+		"type": "ProvisionMaster", "stepsStatuses":[{"status": "error"}]}`),
+		nil).Once()
 
 	bc := &bufferCloser{
-		bytes.Buffer{},
+		ioutil.Discard,
 		nil,
 	}
 
@@ -336,11 +355,15 @@ func TestRestartProvisionClusterSuccess(t *testing.T) {
 			"task_id",
 		},
 	}
-	cfg := steps.NewConfig("kube_name",
-		"", "", *p)
+	cfg, err := steps.NewConfig("kube_name", "", *p)
+
+	if err != nil {
+		t.Errorf("Unexpected error %v", err)
+	}
+
 	cfg.ClusterID = "kubeID"
 
-	err := provisioner.
+	err = provisioner.
 		RestartClusterProvisioning(context.Background(),
 			p, cfg, taskMap)
 
@@ -362,7 +385,7 @@ func TestRestartProvisionClusterError(t *testing.T) {
 		nil)
 
 	bc := &bufferCloser{
-		bytes.Buffer{},
+		ioutil.Discard,
 		nil,
 	}
 
@@ -408,11 +431,16 @@ func TestRestartProvisionClusterError(t *testing.T) {
 			"task_id",
 		},
 	}
-	cfg := steps.NewConfig("kube_name",
-		"", "", *p)
+	cfg, err := steps.NewConfig("kube_name",
+		"", *p)
+
+	if err != nil {
+		t.Errorf("Unexpected error %v", err)
+	}
+
 	cfg.ClusterID = "kubeID"
 
-	err := provisioner.
+	err = provisioner.
 		RestartClusterProvisioning(context.Background(),
 			p, cfg, taskMap)
 
@@ -600,11 +628,15 @@ func TestMonitorCluster(t *testing.T) {
 		p := &TaskProvisioner{
 			kubeService: svc,
 		}
-		cfg := steps.NewConfig(
+		cfg, err := steps.NewConfig(
 			"test",
-			"",
 			"test",
 			profile.Profile{})
+
+		if err != nil {
+			t.Errorf("Unexpected error %v", err)
+		}
+
 		cfg.ClusterID = testCase.kube.ID
 		logrus.Println(testCase.kube.ID)
 

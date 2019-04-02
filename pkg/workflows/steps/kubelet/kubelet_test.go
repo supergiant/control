@@ -15,7 +15,6 @@ import (
 	"github.com/supergiant/control/pkg/templatemanager"
 	"github.com/supergiant/control/pkg/workflows/steps"
 	"github.com/supergiant/control/pkg/workflows/steps/docker"
-	"github.com/supergiant/control/pkg/workflows/steps/manifest"
 )
 
 type fakeRunner struct {
@@ -32,9 +31,6 @@ func (f *fakeRunner) Run(command *runner.Command) error {
 }
 
 func TestStartKubelet(t *testing.T) {
-	k8sVersion := "1.8.7"
-	proxyPort := "8080"
-
 	r := &fakeRunner{}
 	err := templatemanager.Init("../../../../templates")
 
@@ -51,10 +47,6 @@ func TestStartKubelet(t *testing.T) {
 	output := new(bytes.Buffer)
 
 	cfg := &steps.Config{
-		KubeletConfig: steps.KubeletConfig{
-			K8SVersion: k8sVersion,
-			ProxyPort:  proxyPort,
-		},
 		Runner: r,
 	}
 
@@ -64,8 +56,8 @@ func TestStartKubelet(t *testing.T) {
 
 	err = task.Run(context.Background(), output, cfg)
 
-	if !strings.Contains(output.String(), k8sVersion) {
-		t.Errorf("k8s version %s not found in %s", k8sVersion, output.String())
+	if err != nil {
+		t.Errorf("Unexpected error %v", err)
 	}
 }
 
@@ -80,8 +72,7 @@ func TestStartKubeletError(t *testing.T) {
 
 	output := new(bytes.Buffer)
 	config := &steps.Config{
-		KubeletConfig: steps.KubeletConfig{},
-		Runner:        r,
+		Runner: r,
 	}
 
 	j := &Step{
@@ -111,8 +102,8 @@ func TestStepName(t *testing.T) {
 func TestDepends(t *testing.T) {
 	s := Step{}
 
-	if len(s.Depends()) != 1 && s.Depends()[0] != docker.StepName && s.Depends()[1] != manifest.StepName {
-		t.Errorf("Wrong dependency list %v expected %v", s.Depends(), []string{docker.StepName, manifest.StepName})
+	if len(s.Depends()) != 1 && s.Depends()[0] != docker.StepName {
+		t.Errorf("Wrong dependency list %v expected %v", s.Depends(), []string{docker.StepName})
 	}
 }
 

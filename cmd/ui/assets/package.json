@@ -5,9 +5,12 @@
   "scripts": {
     "ng": "ng",
     "start": "ng serve --proxy-config proxy.conf.json --live-reload=false",
-    "build": "ng build",
-    "build:prod": "ng build --aot=true --prod=true  --buildOptimizer=true --extractCss=true --optimization=true --output-path ./dist",
-    "test": "ng test --watch",
+    "start:build": "cd ../../.. && go run cmd/controlplane/main.go -etcd-url localhost:2379 -templates ./templates -ui-dir cmd/ui/assets/dist/",
+    "start:build:latest": "npm run build && npm run start:build",
+    "build": "npm run build:prod",
+    "build:prod": "ng build --aot=true --prod=true  --buildOptimizer=true --extractCss=true --optimization --output-path ./dist",
+    "bundle-report": "webpack-bundle-analyzer dist/stats.json",
+    "test": "ng test",
     "test:debug": "npm run test -- --browsers=Chrome",
     "test:coverage": "ng test --no-watch --code-coverage",
     "lint": "ng lint",
@@ -65,7 +68,7 @@
     "zone.js": "^0.8.4"
   },
   "devDependencies": {
-    "@angular-devkit/build-angular": "^0.8.7",
+    "@angular-devkit/build-angular": "^0.12.3",
     "@angular/cli": "^6.2.7",
     "@angular/compiler-cli": "^6.1.10",
     "@ngrx/schematics": "^6.1.2",

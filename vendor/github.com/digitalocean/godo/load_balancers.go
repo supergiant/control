@@ -26,6 +26,7 @@ type LoadBalancersService interface {
 }
 
 // LoadBalancer represents a DigitalOcean load balancer configuration.
+// Tags can only be provided upon the creation of a Load Balancer.
 type LoadBalancer struct {
 	ID                  string           `json:"id,omitempty"`
 	Name                string           `json:"name,omitempty"`
@@ -39,12 +40,18 @@ type LoadBalancer struct {
 	Region              *Region          `json:"region,omitempty"`
 	DropletIDs          []int            `json:"droplet_ids,omitempty"`
 	Tag                 string           `json:"tag,omitempty"`
+	Tags                []string         `json:"tags,omitempty"`
 	RedirectHttpToHttps bool             `json:"redirect_http_to_https,omitempty"`
+	EnableProxyProtocol bool             `json:"enable_proxy_protocol,omitempty"`
 }
 
 // String creates a human-readable description of a LoadBalancer.
 func (l LoadBalancer) String() string {
 	return Stringify(l)
+}
+
+func (l LoadBalancer) URN() string {
+	return ToURN("LoadBalancer", l.ID)
 }
 
 // AsRequest creates a LoadBalancerRequest that can be submitted to Update with the current values of the LoadBalancer.
@@ -57,8 +64,10 @@ func (l LoadBalancer) AsRequest() *LoadBalancerRequest {
 		DropletIDs:          append([]int(nil), l.DropletIDs...),
 		Tag:                 l.Tag,
 		RedirectHttpToHttps: l.RedirectHttpToHttps,
+		EnableProxyProtocol: l.EnableProxyProtocol,
 		HealthCheck:         l.HealthCheck,
 	}
+
 	if l.HealthCheck != nil {
 		r.HealthCheck = &HealthCheck{}
 		*r.HealthCheck = *l.HealthCheck
@@ -126,7 +135,9 @@ type LoadBalancerRequest struct {
 	StickySessions      *StickySessions  `json:"sticky_sessions,omitempty"`
 	DropletIDs          []int            `json:"droplet_ids,omitempty"`
 	Tag                 string           `json:"tag,omitempty"`
+	Tags                []string         `json:"tags,omitempty"`
 	RedirectHttpToHttps bool             `json:"redirect_http_to_https,omitempty"`
+	EnableProxyProtocol bool             `json:"enable_proxy_protocol,omitempty"`
 }
 
 // String creates a human-readable description of a LoadBalancerRequest.

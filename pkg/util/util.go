@@ -1,7 +1,6 @@
 package util
 
 import (
-	"context"
 	"encoding/json"
 	"fmt"
 	"io"
@@ -98,7 +97,7 @@ func MakeKeyName(name string, isUser bool) string {
 
 // TODO(stgleb): move getting cloud account outside of this function
 // Gets cloud account from storage and fills config object with those credentials
-func FillCloudAccountCredentials(ctx context.Context, cloudAccount *model.CloudAccount, config *steps.Config) error {
+func FillCloudAccountCredentials(cloudAccount *model.CloudAccount, config *steps.Config) error {
 	config.Provider = cloudAccount.Provider
 
 	// Bind private key to config
@@ -116,6 +115,8 @@ func FillCloudAccountCredentials(ctx context.Context, cloudAccount *model.CloudA
 		return BindParams(cloudAccount.Credentials, &config.DigitalOceanConfig)
 	case clouds.GCE:
 		return BindParams(cloudAccount.Credentials, &config.GCEConfig)
+	case clouds.Azure:
+		return BindParams(cloudAccount.Credentials, &config.AzureConfig)
 	default:
 		return sgerrors.ErrUnknownProvider
 	}
@@ -160,17 +161,31 @@ func LoadCloudSpecificDataFromKube(k *model.Kube, config *steps.Config) error {
 		config.AWSConfig.MastersInstanceProfile = k.CloudSpec[clouds.AwsMasterInstanceProfile]
 		config.AWSConfig.NodesInstanceProfile = k.CloudSpec[clouds.AwsNodeInstanceProfile]
 		config.AWSConfig.ImageID = k.CloudSpec[clouds.AwsImageID]
-
 		config.Kube.SSHConfig.BootstrapPrivateKey = k.CloudSpec[clouds.AwsSshBootstrapPrivateKey]
 		config.Kube.SSHConfig.PublicKey = k.CloudSpec[clouds.AwsUserProvidedSshPublicKey]
-		return nil
+		config.AWSConfig.ExternalLoadBalancerName = k.CloudSpec[clouds.AwsExternalLoadBalancerName]
+		config.AWSConfig.InternalLoadBalancerName = k.CloudSpec[clouds.AwsInternalLoadBalancerName]
 	case clouds.GCE:
 		config.GCEConfig.Region = k.Region
-		return nil
+
 	case clouds.DigitalOcean:
-		return nil
+		config.DigitalOceanConfig.ExternalLoadBalancerID = k.CloudSpec[clouds.DigitalOceanExternalLoadBalancerID]
+		config.DigitalOceanConfig.InternalLoadBalancerID = k.CloudSpec[clouds.DigitalOceanInternalLoadBalancerID]
+	case clouds.Azure:
+		config.AzureConfig.Location = k.Region
+		config.AzureConfig.VNetCIDR = k.CloudSpec[clouds.AzureVNetCIDR]
+
+	default:
+		return errors.Wrapf(sgerrors.ErrUnsupportedProvider, "Load cloud specific data from kube %s", k.ID)
 	}
 
-	return errors.Wrapf(sgerrors.ErrUnsupportedProvider,
-		"Load cloud specific data from kube %s", k.ID)
+	return nil
+}
+
+func CreateLBName(clusterID string, isExternal bool) string {
+	if isExternal {
+		return fmt.Sprintf("ex-%s", clusterID)
+	}
+
+	return fmt.Sprintf("in-%s", clusterID)
 }

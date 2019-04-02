@@ -1,8 +1,8 @@
 package memory
 
 import (
-	"testing"
 	"context"
+	"testing"
 
 	"github.com/supergiant/control/pkg/sgerrors"
 )
@@ -70,8 +70,8 @@ func TestInMemoryRepository_Put(t *testing.T) {
 func TestInMemoryRepository_GetAll(t *testing.T) {
 	repo := &InMemoryRepository{
 		data: map[string][]byte{
-			"prefixkeyone": []byte(`value1`),
-			"prefixkeytwo": []byte(`value2`),
+			"prefixkeyone":   []byte(`value1`),
+			"prefixkeytwo":   []byte(`value2`),
 			"prefixkeythree": []byte(`value3`),
 		},
 	}

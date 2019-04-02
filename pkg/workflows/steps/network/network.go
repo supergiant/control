@@ -7,10 +7,11 @@ import (
 	"text/template"
 
 	"github.com/pkg/errors"
+	"github.com/sirupsen/logrus"
 
 	tm "github.com/supergiant/control/pkg/templatemanager"
 	"github.com/supergiant/control/pkg/workflows/steps"
-	"github.com/supergiant/control/pkg/workflows/steps/etcd"
+	"github.com/supergiant/control/pkg/workflows/steps/ssh"
 )
 
 const StepName = "network"
@@ -36,8 +37,8 @@ func New(tpl *template.Template) *Step {
 }
 
 func (t *Step) Run(ctx context.Context, out io.Writer, config *steps.Config) error {
-	err := steps.RunTemplate(context.Background(), t.script,
-		config.Runner, out, config.NetworkConfig)
+	logrus.Debugf("cluster %s: network config: %+v", config.ClusterName, config.NetworkConfig)
+	err := steps.RunTemplate(context.Background(), t.script, config.Runner, out, config.NetworkConfig)
 	if err != nil {
 		return errors.Wrap(err, "configure network step")
 	}
@@ -58,5 +59,5 @@ func (t *Step) Description() string {
 }
 
 func (s *Step) Depends() []string {
-	return []string{etcd.StepName}
+	return []string{ssh.StepName}
 }

@@ -220,34 +220,22 @@ func (tp *TaskProvisioner) provision(ctx context.Context,
 			return
 		}
 
-		switch config.Provider {
-		case clouds.AWS:
-			config.AWSConfig = preProvisionTask[0].Config.AWSConfig
-		}
+		kubeChan, nodeChan, configChan := config.KubeStateChan(), config.NodeChan(), config.ConfigChan()
+		config = preProvisionTask[0].Config
+		config.SetKubeStateChan(kubeChan)
+		config.SetNodeChan(nodeChan)
+		config.SetConfigChan(configChan)
 	}
 
 	// Update kube state
 	logrus.Debug("update kube state")
 	config.KubeStateChan() <- model.StateProvisioning
 
-	config.ReadyForBootstrapLatch = &sync.WaitGroup{}
-	config.ReadyForBootstrapLatch.Add(len(taskMap[workflows.MasterTask]))
-
-	logrus.Debug("Restart provision masters")
-	doneChan, failChan, err := tp.provisionMasters(ctx, clusterProfile,
+	logrus.Debug("Provision masters")
+	err := tp.provisionMasters(ctx, clusterProfile,
 		config, taskMap[workflows.MasterTask])
 
 	if err != nil {
-		logrus.Errorf("ProvisionCluster master %v", err)
-	}
-
-	select {
-	case <-ctx.Done():
-		logrus.Errorf("Master cluster has not been created %v",
-			ctx.Err())
-		return
-	case <-doneChan:
-	case <-failChan:
 		config.KubeStateChan() <- model.StateFailed
 		logrus.Errorf("master cluster deployment has been failed")
 		return
@@ -261,8 +249,10 @@ func (tp *TaskProvisioner) provision(ctx context.Context,
 	tp.provisionNodes(ctx, clusterProfile, config,
 		taskMap[workflows.NodeTask])
 
-	// Wait for cluster checks are finished
-	tp.waitCluster(ctx, taskMap[workflows.ClusterTask][0], config)
+	if len(taskMap[workflows.ClusterTask]) != 0 {
+		// Wait for cluster checks are finished
+		tp.waitCluster(ctx, taskMap[workflows.ClusterTask][0], config)
+	}
 	logrus.Infof("cluster %s deployment has finished",
 		config.ClusterID)
 }
@@ -278,17 +268,11 @@ func (tp *TaskProvisioner) prepare(config *steps.Config, masterCount, nodeCount 
 	masterTasks := make([]*workflows.Task, 0, masterCount)
 	nodeTasks := make([]*workflows.Task, 0, nodeCount)
 	//some clouds (e.g. AWS) requires running tasks before provisioning nodes (creating a VPC, Subnets, SecGroups, etc)
-	switch config.Provider {
-	case clouds.AWS:
-		preProvisionTask, err = workflows.NewTask(workflows.PreProvision, tp.repository)
-		if err != nil {
-			// We can't go further without pre provision task
-			logrus.Errorf("create pre provision task has finished with %v", err)
-			return nil
-		}
-	case clouds.GCE:
-	case clouds.DigitalOcean:
-		// TODO(stgleb): Create key pairs here
+	preProvisionTask, err = workflows.NewTask(workflows.PreProvision, tp.repository)
+	if err != nil {
+		// We can't go further without pre provision task
+		logrus.Errorf("create pre provision task has finished with %v", err)
+		return nil
 	}
 
 	preProvisionTask.Config = config
@@ -360,37 +344,50 @@ func (tp *TaskProvisioner) preProvision(ctx context.Context, preProvisionTask *w
 
 func (tp *TaskProvisioner) provisionMasters(ctx context.Context,
 	profile *profile.Profile, config *steps.Config,
-	tasks []*workflows.Task) (chan struct{}, chan struct{}, error) {
+	tasks []*workflows.Task) error {
 	config.IsMaster = true
-	doneChan := make(chan struct{})
-	failChan := make(chan struct{})
 
-	if len(profile.MasterProfiles) == 0 {
-		close(doneChan)
-		return doneChan, failChan, nil
+	if len(tasks) == 0 {
+		return nil
 	}
-	// master latch controls when the majority of masters with etcd are up and running
-	// so etcd is available for writes of flannel that starts on each machine
-	masterLatch := util.NewCountdownLatch(ctx, len(profile.MasterProfiles)/2+1)
 
-	// If we fail n /2 of master deploy jobs - all cluster deployment is failed
-	failLatch := util.NewCountdownLatch(ctx, len(profile.MasterProfiles)/2+1)
+	// Get bootstrap task as a first master task
+	bootstrapTask, tasks := tasks[0], tasks[1:]
 
-	// ProvisionCluster master nodes
+	fileName := util.MakeFileName(bootstrapTask.ID)
+	out, err := tp.getWriter(fileName)
+
+	if err != nil {
+		logrus.Errorf("Error getting writer for %s", fileName)
+		return errors.Wrapf(err, "Error getting writer for %s", fileName)
+	}
+
+	// Fulfill task config with data about provider specific node configuration
+	p := profile.MasterProfiles[0]
+	FillNodeCloudSpecificData(profile.Provider, p, config)
+
+	config.TaskID = bootstrapTask.ID
+	err = <-bootstrapTask.Run(ctx, *config, out)
+
+	if err != nil {
+		logrus.Errorf("master bootstrap task %s has finished with error %v", bootstrapTask.ID, err)
+		return errors.Wrapf(err, "master bootstrap task %s has finished with error %v", bootstrapTask.ID, err)
+	} else {
+		logrus.Infof("master bootstrap %s has finished", bootstrapTask.ID)
+	}
+
+	config.KubeadmConfig.IsBootstrap = false
+
+	// ProvisionCluster rest of master nodes master nodes
 	for index, masterTask := range tasks {
 		// Take token that allows perform action with Cloud Provider API
 		tp.rateLimiter.Take()
 
-		if masterTask == nil {
-			logrus.Error("Master tasks are nil")
-			return nil, nil, nil
-		}
 		fileName := util.MakeFileName(masterTask.ID)
 		out, err := tp.getWriter(fileName)
 
 		if err != nil {
 			logrus.Errorf("Error getting writer for %s", fileName)
-			return nil, nil, err
 		}
 
 		// Fulfill task config with data about provider specific node configuration
@@ -412,37 +409,18 @@ func (tp *TaskProvisioner) provisionMasters(ctx context.Context,
 			err = <-result
 
 			if err != nil {
-				failLatch.CountDown()
 				logrus.Errorf("master task %s has finished with error %v", t.ID, err)
 			} else {
-				masterLatch.CountDown()
 				logrus.Infof("master-task %s has finished", t.ID)
 			}
 		}(masterTask)
 	}
 
-	go func() {
-		masterLatch.Wait()
-		close(doneChan)
-	}()
-
-	go func() {
-		failLatch.Wait()
-		close(failChan)
-	}()
-
-	return doneChan, failChan, nil
+	return nil
 }
 
 func (tp *TaskProvisioner) provisionNodes(ctx context.Context, profile *profile.Profile, config *steps.Config, tasks []*workflows.Task) {
 	config.IsMaster = false
-	config.ManifestConfig.IsMaster = false
-	// Do internal communication inside private network
-	if master := config.GetMaster(); master != nil {
-		config.FlannelConfig.EtcdHost = master.PrivateIp
-	} else {
-		return
-	}
 
 	// ProvisionCluster nodes
 	for index, nodeTask := range tasks {
@@ -460,11 +438,12 @@ func (tp *TaskProvisioner) provisionNodes(ctx context.Context, profile *profile.
 		// Fulfill task config with data about provider specific node configuration
 		p := profile.NodesProfiles[index]
 		FillNodeCloudSpecificData(profile.Provider, p, config)
+		// Put task id to config so that create instance step can use this id when generate node name
+		taskConfig := *config
+		taskConfig.TaskID = nodeTask.ID
 
 		go func(t *workflows.Task) {
-			// Put task id to config so that create instance step can use this id when generate node name
-			config.TaskID = t.ID
-			result := t.Run(ctx, *config, out)
+			result := t.Run(ctx, taskConfig, out)
 			err = <-result
 
 			if err != nil {
@@ -573,12 +552,17 @@ func (t *TaskProvisioner) updateCloudSpecificData(k *model.Kube, config *steps.C
 		config.ClusterID)
 
 	cloudSpecificSettings := make(map[string]string)
+	logrus.Infof("Save internal DNS name %s and external DNS name %s",
+		config.InternalDNSName, config.ExternalDNSName)
+	k.ExternalDNSName = config.ExternalDNSName
+	k.ExternalDNSName = config.ExternalDNSName
 
 	// Save cloudSpecificData in kube
 	switch config.Provider {
 	case clouds.AWS:
 		// Save az to subnets mapping for this cluster
 		k.Subnets = config.AWSConfig.Subnets
+
 		// Copy data got from pre provision step to cloud specific settings of kube
 		cloudSpecificSettings[clouds.AwsAZ] = config.AWSConfig.AvailabilityZone
 		cloudSpecificSettings[clouds.AwsVpcCIDR] = config.AWSConfig.VPCCIDR
@@ -603,9 +587,15 @@ func (t *TaskProvisioner) updateCloudSpecificData(k *model.Kube, config *steps.C
 			config.AWSConfig.NodesInstanceProfile
 		cloudSpecificSettings[clouds.AwsImageID] =
 			config.AWSConfig.ImageID
+		cloudSpecificSettings[clouds.AwsExternalLoadBalancerName] =
+			config.AWSConfig.ExternalLoadBalancerName
+		cloudSpecificSettings[clouds.AwsInternalLoadBalancerName] =
+			config.AWSConfig.InternalLoadBalancerName
 	case clouds.GCE:
 		// GCE is the most simple :-)
 	case clouds.DigitalOcean:
+		cloudSpecificSettings[clouds.DigitalOceanExternalLoadBalancerID] = config.DigitalOceanConfig.ExternalLoadBalancerID
+		cloudSpecificSettings[clouds.DigitalOceanInternalLoadBalancerID] = config.DigitalOceanConfig.InternalLoadBalancerID
 	}
 
 	k.CloudSpec = cloudSpecificSettings
@@ -699,7 +689,7 @@ func (tp *TaskProvisioner) monitorClusterState(ctx context.Context,
 				continue
 			}
 		case config := <-configChan:
-			logrus.Debugf("update kube %s with config %v", clusterID, config)
+			logrus.Debugf("update kube %s with config %+v", clusterID, config)
 			k, err := tp.kubeService.Get(ctx, clusterID)
 
 			if err != nil {

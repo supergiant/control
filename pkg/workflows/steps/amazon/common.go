@@ -6,6 +6,7 @@ import (
 	"github.com/aws/aws-sdk-go/aws/session"
 	"github.com/aws/aws-sdk-go/service/ec2"
 	"github.com/aws/aws-sdk-go/service/ec2/ec2iface"
+	"github.com/aws/aws-sdk-go/service/elb"
 	"github.com/aws/aws-sdk-go/service/iam"
 	"github.com/aws/aws-sdk-go/service/iam/iamiface"
 	"github.com/sirupsen/logrus"
@@ -44,4 +45,21 @@ func GetIAM(cfg steps.AWSConfig) (iamiface.IAMAPI, error) {
 		return nil, err
 	}
 	return iam.New(sess), nil
+}
+
+// NOT(stgleb): *elb.ELB doesn't implement elbiface.ELBAPI for some reasom
+type GetELBFn func(steps.AWSConfig) (*elb.ELB, error)
+
+func GetELB(cfg steps.AWSConfig) (*elb.ELB, error) {
+	sess, err := session.NewSessionWithOptions(session.Options{
+		Config: aws.Config{
+			Region:      aws.String(cfg.Region),
+			Credentials: credentials.NewStaticCredentials(cfg.KeyID, cfg.Secret, ""),
+		},
+	})
+
+	if err != nil {
+		return nil, err
+	}
+	return elb.New(sess), nil
 }

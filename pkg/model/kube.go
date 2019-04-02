@@ -26,6 +26,7 @@ type Kube struct {
 	Region       string      `json:"region"`
 	Zone         string      `json:"zone" valid:"-"`
 	ServicesCIDR string      `json:"servicesCIDR"`
+	DNSIP        string      `json:"dnsIp"`
 	APIPort      string      `json:"apiPort"`
 	Auth         Auth        `json:"auth"`
 
@@ -40,6 +41,9 @@ type Kube struct {
 	HelmVersion            string            `json:"helmVersion"`
 	Networking             Networking        `json:"networking"`
 	Subnets                map[string]string `json:"subnets"`
+
+	ExternalDNSName string `json:"externalDNSName"`
+	InternalDNSName string `json:"internalDNSName"`
 
 	CloudSpec profile.CloudSpecificSettings `json:"cloudSpec" valid:"-"`
 
@@ -59,6 +63,8 @@ type Kube struct {
 	BootstrapPublicKey []byte `json:"bootstrapPublicKey"`
 	// DEPRECATED
 	BootstrapPrivateKey []byte `json:"bootstrapPrivateKey"`
+
+	ExposedAddresses []profile.Addresses `json:"exposedAddresses"`
 }
 
 type SSHConfig struct {

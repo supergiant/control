@@ -3,14 +3,13 @@ package amazon
 import (
 	"context"
 	"fmt"
-	"io"
-	"strconv"
-
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/aws/request"
 	"github.com/aws/aws-sdk-go/service/ec2"
 	"github.com/pkg/errors"
 	"github.com/sirupsen/logrus"
+	"io"
+	"strconv"
 
 	"github.com/supergiant/control/pkg/clouds"
 	"github.com/supergiant/control/pkg/model"
@@ -99,7 +98,7 @@ func (s *StepCreateInstance) Run(ctx context.Context, w io.Writer, cfg *steps.Co
 	runInstanceInput := &ec2.RunInstancesInput{
 		BlockDeviceMappings: []*ec2.BlockDeviceMapping{
 			{
-				DeviceName: aws.String("/dev/xvda"),
+				DeviceName: aws.String(cfg.AWSConfig.DeviceName),
 				Ebs: &ec2.EbsBlockDevice{
 					DeleteOnTermination: aws.Bool(true),
 					VolumeType:          aws.String("gp2"),
@@ -138,7 +137,7 @@ func (s *StepCreateInstance) Run(ctx context.Context, w io.Writer, cfg *steps.Co
 						Value: aws.String(util.MakeRole(cfg.IsMaster)),
 					},
 					{
-						Key:   aws.String(clouds.ClusterIDTag),
+						Key:   aws.String(clouds.TagClusterID),
 						Value: aws.String(cfg.ClusterID),
 					},
 				},
@@ -198,7 +197,7 @@ func (s *StepCreateInstance) Run(ctx context.Context, w io.Writer, cfg *steps.Co
 					Values: []*string{aws.String(nodeName)},
 				},
 				{
-					Name:   aws.String(fmt.Sprintf("tag:%s", clouds.ClusterIDTag)),
+					Name:   aws.String(fmt.Sprintf("tag:%s", clouds.TagClusterID)),
 					Values: []*string{aws.String(cfg.ClusterID)},
 				},
 			},
@@ -240,6 +239,7 @@ func (s *StepCreateInstance) Run(ctx context.Context, w io.Writer, cfg *steps.Co
 	cfg.Node.ID = *instance.InstanceId
 	cfg.Node.State = model.MachineStateProvisioning
 
+	logrus.Infof("Machine created %v", cfg.Node)
 	cfg.NodeChan() <- cfg.Node
 	if cfg.IsMaster {
 		cfg.AddMaster(&cfg.Node)

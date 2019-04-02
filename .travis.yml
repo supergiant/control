@@ -13,12 +13,11 @@ env:
     - COMMIT=${TRAVIS_COMMIT::8}
 
 go:
-  - "1.10"
+  - "1.11"
 
 go_import_path: github.com/supergiant/control
 
 before_install:
-  - go get -u github.com/rakyll/statik
   - sudo apt-get update
   - sudo apt-get install docker-ce
   - sudo apt-get install build-essential
@@ -35,14 +34,18 @@ before_install:
 install:
   - go get github.com/mattn/goveralls
   - go get github.com/tcnksm/ghr
+  - go get -u github.com/rakyll/statik
 
 script:
   # Test
   # - govendor test +local (NOTE not needed with coverage line below)
   # Coverage
+  - cat cmd/controlplane/main.go | grep version
+  - make build-ui
+  - statik -src=./cmd/ui/assets/dist
   - make build
   # Integration
-  - if [ "$TRAVIS_EVENT_TYPE" == "cron" ] ; then echo running integration tests && go test -v -tags=integration -timeout 45m ./pkg/... ./test/... ; fi
+  - if [ "$TRAVIS_EVENT_TYPE" == "cron" ] ; then echo running integration tests && go test -race -timeout 45m ./test/... ; fi
   - travis_wait 30 source travis_build.sh
   # Make build
   #  - docker build . -t supergiant/controlplane

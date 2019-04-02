@@ -5,18 +5,24 @@ import (
 	"strconv"
 	"testing"
 
+	"github.com/Azure/azure-sdk-for-go/services/compute/mgmt/2017-09-01/skus"
+	"github.com/Azure/azure-sdk-for-go/services/preview/subscription/mgmt/2018-03-01-preview/subscription"
+	"github.com/Azure/go-autorest/autorest/to"
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/service/ec2"
 	"github.com/digitalocean/godo"
 	"github.com/pkg/errors"
 	"github.com/stretchr/testify/mock"
-	compute "google.golang.org/api/compute/v1"
+	"github.com/stretchr/testify/require"
+	"google.golang.org/api/compute/v1"
 
 	"github.com/supergiant/control/pkg/clouds"
 	"github.com/supergiant/control/pkg/model"
 	"github.com/supergiant/control/pkg/sgerrors"
 	"github.com/supergiant/control/pkg/workflows/steps"
 )
+
+var fakeErr = errors.New("fake error")
 
 type mockSizeService struct {
 	mock.Mock
@@ -44,6 +50,24 @@ func (m *mockRegionService) List(ctx context.Context, options *godo.ListOptions)
 		return nil, nil, args.Error(1)
 	}
 	return val, nil, args.Error(1)
+}
+
+type fakeSubscriptions struct {
+	list subscription.LocationListResult
+	err  error
+}
+
+func (c fakeSubscriptions) ListLocations(ctx context.Context, subscriptionID string) (subscription.LocationListResult, error) {
+	return c.list, c.err
+}
+
+type fakeSKUSClient struct {
+	res skus.ResourceSkusResultIterator
+	err error
+}
+
+func (c fakeSKUSClient) ListComplete(ctx context.Context) (skus.ResourceSkusResultIterator, error) {
+	return c.res, c.err
 }
 
 func TestGetRegionFinder(t *testing.T) {
@@ -437,50 +461,27 @@ func TestGCEResourceFinder_GetTypes(t *testing.T) {
 }
 
 func TestAWSFinder_GetRegions(t *testing.T) {
-	testCases := []struct {
-		err  error
-		resp *ec2.DescribeRegionsOutput
+	for _, tc := range []struct {
+		name   string
+		finder AWSFinder
+		expRes *RegionSizes
+		expErr error
 	}{
 		{
-			err:  sgerrors.ErrNotFound,
-			resp: nil,
-		},
-		{
-			err: nil,
-			resp: &ec2.DescribeRegionsOutput{
-				Regions: []*ec2.Region{
-					{
-						RegionName: aws.String("ap-northeast-1"),
-					},
-					{
-						RegionName: aws.String("eu-west-2"),
-					},
-					{
-						RegionName: aws.String("us-west-1"),
-					},
-				},
+			name: "get regions",
+			finder: AWSFinder{
+				machines: awsMachines,
+			},
+			expRes: &RegionSizes{
+				Provider: clouds.AWS,
+				Regions:  toRegions(awsMachines.Regions()),
 			},
 		},
-	}
+	} {
+		res, err := tc.finder.GetRegions(context.Background())
+		require.Equalf(t, tc.expErr, errors.Cause(err), "TC: %s", tc.name)
 
-	for _, testCase := range testCases {
-		awsFinder := &AWSFinder{
-			getRegions: func(ctx context.Context, client *ec2.EC2,
-				input *ec2.DescribeRegionsInput) (*ec2.DescribeRegionsOutput, error) {
-				return testCase.resp, testCase.err
-			},
-		}
-
-		resp, err := awsFinder.GetRegions(context.Background())
-
-		if testCase.err != nil && !sgerrors.IsNotFound(err) {
-			t.Errorf("wrong error expected %v actual %v", testCase.err, err)
-		}
-
-		if err == nil && len(resp.Regions) != len(testCase.resp.Regions) {
-			t.Errorf("Wrong count of regions expected %d actual %d",
-				len(testCase.resp.Regions), len(resp.Regions))
-		}
+		require.Equalf(t, tc.expRes, res, "TC: %s", tc.name)
 	}
 }
 
@@ -532,51 +533,293 @@ func TestAWSFinder_GetZones(t *testing.T) {
 	}
 }
 
+func AWSEUWEST1Types() []string {
+	r, _ := awsMachines.RegionTypes("eu-west-1")
+	return r
+}
+
 func TestAWSFinder_GetTypes(t *testing.T) {
-	testCases := []struct {
-		err  error
-		resp *ec2.DescribeReservedInstancesOfferingsOutput
+	for _, tc := range []struct {
+		name   string
+		finder AWSFinder
+		in     steps.Config
+		expRes []string
+		expErr error
 	}{
 		{
-			err:  sgerrors.ErrNotFound,
-			resp: nil,
+			name: "unknown region",
+			finder: AWSFinder{
+				machines: awsMachines,
+			},
+			expErr: sgerrors.ErrRawError,
 		},
 		{
-			err: nil,
-			resp: &ec2.DescribeReservedInstancesOfferingsOutput{
-				ReservedInstancesOfferings: []*ec2.ReservedInstancesOffering{
-					{
-						InstanceType: aws.String("t3.medium"),
+			name: "region: eu-west-1",
+			finder: AWSFinder{
+				machines: awsMachines,
+			},
+			in: steps.Config{
+				AWSConfig: steps.AWSConfig{
+					Region: "eu-west-1",
+				},
+			},
+			expRes: AWSEUWEST1Types(),
+		},
+	} {
+		res, err := tc.finder.GetTypes(context.Background(), tc.in)
+		require.Equalf(t, tc.expErr, errors.Cause(err), "TC: %s", tc.name)
+
+		require.Equalf(t, tc.expRes, res, "TC: %s", tc.name)
+	}
+}
+
+func TestAzureFinder_GetRegions(t *testing.T) {
+	// used for the success test mock
+	var zero int
+
+	for _, tc := range []struct {
+		name        string
+		f           AzureFinder
+		expectedRes *RegionSizes
+		expectedErr error
+	}{
+		{
+			name: "list locations: error",
+			f: AzureFinder{
+				subscriptionsClient: fakeSubscriptions{
+					err: fakeErr,
+				},
+			},
+			expectedErr: fakeErr,
+		},
+		{
+			name: "list locations: nil values",
+			f: AzureFinder{
+				subscriptionsClient: fakeSubscriptions{},
+			},
+			expectedErr: sgerrors.ErrNilEntity,
+		},
+		{
+			name: "get vm sizes: ListComplete error",
+			f: AzureFinder{
+				subscriptionsClient: fakeSubscriptions{
+					list: subscription.LocationListResult{
+						Value: &([]subscription.Location{}),
 					},
-					{
-						InstanceType: aws.String("c5.2xlarge"),
+				},
+				skusClient: fakeSKUSClient{
+					err: fakeErr,
+				},
+			},
+			expectedErr: fakeErr,
+		},
+		{
+			name: "get vm sizes: NextWithContext error",
+			f: AzureFinder{
+				subscriptionsClient: fakeSubscriptions{
+					list: subscription.LocationListResult{
+						Value: &([]subscription.Location{
+							{
+								Name:        to.StringPtr("euwest1"),
+								DisplayName: to.StringPtr("eu west 1"),
+							},
+						}),
 					},
+				},
+				skusClient: fakeSKUSClient{
+					res: skus.NewResourceSkusResultIterator(skus.NewResourceSkusResultPage(
+						func(context.Context, skus.ResourceSkusResult) (skus.ResourceSkusResult, error) {
+							return skus.ResourceSkusResult{}, fakeErr
+						},
+					)),
+				},
+			},
+			expectedErr: fakeErr,
+		},
+		{
+			name: "get vm sizes: success",
+			f: AzureFinder{
+				subscriptionsClient: fakeSubscriptions{
+					list: subscription.LocationListResult{
+						Value: &([]subscription.Location{
+							{
+								Name:        to.StringPtr("euwest1"),
+								DisplayName: to.StringPtr("eu west 1"),
+							},
+						}),
+					},
+				},
+				skusClient: fakeSKUSClient{
+					res: skus.NewResourceSkusResultIterator(skus.NewResourceSkusResultPage(
+						func(context.Context, skus.ResourceSkusResult) (skus.ResourceSkusResult, error) {
+							if zero == 0 {
+								zero++
+								return skus.ResourceSkusResult{
+									Value: &([]skus.ResourceSku{
+										{
+											Name:         to.StringPtr(""),
+											Size:         to.StringPtr("size0"),
+											ResourceType: to.StringPtr(VMResourceType),
+											Locations:    to.StringSlicePtr([]string{"euwest1"}),
+										},
+										{
+											Name:         to.StringPtr("size1name"),
+											Size:         to.StringPtr("size1"),
+											ResourceType: to.StringPtr(VMResourceType),
+											Locations:    to.StringSlicePtr([]string{"euwest1"}),
+										},
+										{
+											Name:         to.StringPtr("size2name"),
+											Size:         to.StringPtr(""),
+											ResourceType: to.StringPtr(VMResourceType),
+											Locations:    to.StringSlicePtr([]string{"euwest1"}),
+										},
+										{
+											Name:         to.StringPtr("size3name"),
+											Size:         to.StringPtr("size3"),
+											ResourceType: to.StringPtr(VMResourceType),
+											Locations:    to.StringSlicePtr([]string{"euwest1"}),
+										},
+										{
+											Name:         to.StringPtr("size4name"),
+											Size:         to.StringPtr("size4"),
+											ResourceType: to.StringPtr(VMResourceType),
+											Locations:    to.StringSlicePtr([]string{"useast1"}),
+										},
+									}),
+								}, nil
+							}
+							return skus.ResourceSkusResult{}, nil
+						},
+					)),
+				},
+			},
+			expectedRes: &RegionSizes{
+				Provider: clouds.Azure,
+				Regions: []*Region{
 					{
-						InstanceType: aws.String("r5d.xlarge"),
+						ID:             "euwest1",
+						Name:           "eu west 1",
+						AvailableSizes: []string{"size1name", "size3name"},
+					},
+				},
+				Sizes: map[string]interface{}{
+					"size1name": skus.ResourceSku{
+						Name:         to.StringPtr("size1name"),
+						Size:         to.StringPtr("size1"),
+						ResourceType: to.StringPtr(VMResourceType),
+						Locations:    to.StringSlicePtr([]string{"euwest1"}),
+					},
+					"size3name": skus.ResourceSku{
+						Name:         to.StringPtr("size3name"),
+						Size:         to.StringPtr("size3"),
+						ResourceType: to.StringPtr(VMResourceType),
+						Locations:    to.StringSlicePtr([]string{"euwest1"}),
+					},
+					"size4name": skus.ResourceSku{
+						Name:         to.StringPtr("size4name"),
+						Size:         to.StringPtr("size4"),
+						ResourceType: to.StringPtr(VMResourceType),
+						Locations:    to.StringSlicePtr([]string{"useast1"}),
 					},
 				},
 			},
 		},
+	} {
+		rs, err := tc.f.GetRegions(context.Background())
+
+		require.Equalf(t, tc.expectedRes, rs, "TC: %s: check result", tc.name)
+		require.Equalf(t, tc.expectedErr, errors.Cause(err), "TC: %s: check error", tc.name)
 	}
+}
 
-	for _, testCase := range testCases {
-		awsFinder := &AWSFinder{
-			getTypes: func(ctx context.Context, client *ec2.EC2,
-				input *ec2.DescribeReservedInstancesOfferingsInput) (*ec2.DescribeReservedInstancesOfferingsOutput,
-				error) {
-				return testCase.resp, testCase.err
+func TestAzureFinder_GetTypes(t *testing.T) {
+	// used for the success test mock
+	var zero int
+
+	for _, tc := range []struct {
+		name        string
+		f           AzureFinder
+		expectedRes []string
+		expectedErr error
+	}{
+		{
+			name: "get vm sizes: ListComplete error",
+			f: AzureFinder{
+				skusClient: fakeSKUSClient{
+					err: fakeErr,
+				},
 			},
-		}
+			expectedErr: fakeErr,
+		},
+		{
+			name: "get vm sizes: NextWithContext error",
+			f: AzureFinder{
+				skusClient: fakeSKUSClient{
+					res: skus.NewResourceSkusResultIterator(skus.NewResourceSkusResultPage(
+						func(context.Context, skus.ResourceSkusResult) (skus.ResourceSkusResult, error) {
+							return skus.ResourceSkusResult{}, fakeErr
+						},
+					)),
+				},
+			},
+			expectedErr: fakeErr,
+		},
+		{
+			name: "get vm sizes: success",
+			f: AzureFinder{
+				skusClient: fakeSKUSClient{
+					res: skus.NewResourceSkusResultIterator(skus.NewResourceSkusResultPage(
+						func(context.Context, skus.ResourceSkusResult) (skus.ResourceSkusResult, error) {
+							if zero == 0 {
+								zero++
+								return skus.ResourceSkusResult{
+									Value: &([]skus.ResourceSku{
+										{
+											Name:         to.StringPtr(""),
+											Size:         to.StringPtr("size0"),
+											ResourceType: to.StringPtr(VMResourceType),
+											Locations:    to.StringSlicePtr([]string{"euwest1"}),
+										},
+										{
+											Name:         to.StringPtr("size1name"),
+											Size:         to.StringPtr("size1"),
+											ResourceType: to.StringPtr(VMResourceType),
+											Locations:    to.StringSlicePtr([]string{"euwest1"}),
+										},
+										{
+											Name:         to.StringPtr("size2name"),
+											Size:         to.StringPtr(""),
+											ResourceType: to.StringPtr(VMResourceType),
+											Locations:    to.StringSlicePtr([]string{"euwest1"}),
+										},
+										{
+											Name:         to.StringPtr("size3name"),
+											Size:         to.StringPtr("size3"),
+											ResourceType: to.StringPtr(VMResourceType),
+											Locations:    to.StringSlicePtr([]string{"euwest1"}),
+										},
+										{
+											Name:         to.StringPtr("size4name"),
+											Size:         to.StringPtr("size4"),
+											ResourceType: to.StringPtr(VMResourceType),
+											Locations:    to.StringSlicePtr([]string{"useast1"}),
+										},
+									}),
+								}, nil
+							}
+							return skus.ResourceSkusResult{}, nil
+						},
+					)),
+				},
+				location: "euwest1",
+			},
+			expectedRes: []string{"size1name", "size3name"},
+		},
+	} {
+		rs, err := tc.f.GetTypes(context.Background(), steps.Config{})
 
-		resp, err := awsFinder.GetTypes(context.Background(), steps.Config{})
-
-		if testCase.err != nil && !sgerrors.IsNotFound(err) {
-			t.Errorf("wrong error expected %v actual %v", testCase.err, err)
-		}
-
-		if err == nil && len(resp) != len(testCase.resp.ReservedInstancesOfferings) {
-			t.Errorf("Wrong count of regions expected %d actual %d",
-				len(testCase.resp.ReservedInstancesOfferings), len(resp))
-		}
+		require.Equalf(t, tc.expectedRes, rs, "TC: %s: check result", tc.name)
+		require.Equalf(t, tc.expectedErr, errors.Cause(err), "TC: %s: check error", tc.name)
 	}
 }

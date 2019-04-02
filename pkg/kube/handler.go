@@ -175,6 +175,8 @@ func (h *Handler) Register(r *mux.Router) {
 	// DEPRECATED: has been moved to /kubes/{kubeID}/machines
 	r.HandleFunc("/kubes/{kubeID}/nodes/{nodename}", h.deleteMachine).Methods(http.MethodDelete)
 
+	r.HandleFunc("/kubes/{kubeID}/nodes", h.listNodes).Methods(http.MethodGet)
+
 	r.HandleFunc("/kubes/{kubeID}/machines", h.addMachine).Methods(http.MethodPost)
 	r.HandleFunc("/kubes/{kubeID}/machines/{nodename}", h.deleteMachine).Methods(http.MethodDelete)
 
@@ -358,7 +360,7 @@ func (h *Handler) deleteKube(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	err = util.FillCloudAccountCredentials(r.Context(), acc, config)
+	err = util.FillCloudAccountCredentials(acc, config)
 
 	if err != nil {
 		if sgerrors.IsNotFound(err) {
@@ -491,6 +493,32 @@ func (h *Handler) getCerts(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
+func (h *Handler) listNodes(w http.ResponseWriter, r *http.Request) {
+	vars := mux.Vars(r)
+	kubeID := vars["kubeID"]
+	role := r.URL.Query().Get("role")
+
+	k, err := h.svc.Get(r.Context(), kubeID)
+	if err != nil {
+		if sgerrors.IsNotFound(err) {
+			message.SendNotFound(w, kubeID, err)
+			return
+		}
+		message.SendUnknownError(w, err)
+		return
+	}
+
+	nodes, err := h.svc.ListNodes(r.Context(), k, role)
+	if err != nil {
+		message.SendUnknownError(w, err)
+		return
+	}
+
+	if err = json.NewEncoder(w).Encode(nodes); err != nil {
+		message.SendUnknownError(w, err)
+	}
+}
+
 // Add node to working kube
 func (h *Handler) addMachine(w http.ResponseWriter, r *http.Request) {
 	vars := mux.Vars(r)
@@ -555,12 +583,21 @@ func (h *Handler) addMachine(w http.ResponseWriter, r *http.Request) {
 		RBACEnabled: k.RBACEnabled,
 	}
 
-	config := steps.NewConfig(k.Name, "", k.AccountName, kubeProfile)
+	config, err := steps.NewConfig(k.Name, k.AccountName, kubeProfile)
+
+	if err != nil {
+		logrus.Errorf("New config %v", err.Error())
+		message.SendUnknownError(w, err)
+		return
+	}
+
 	config.ClusterID = k.ID
 	config.CertificatesConfig.CAKey = k.Auth.CAKey
 	config.CertificatesConfig.CACert = k.Auth.CACert
 	config.CertificatesConfig.AdminCert = k.Auth.AdminCert
 	config.CertificatesConfig.AdminKey = k.Auth.AdminKey
+	config.ExternalDNSName = k.ExternalDNSName
+	config.InternalDNSName = k.InternalDNSName
 
 	if len(k.Masters) != 0 {
 		config.AddMaster(util.GetRandomNode(k.Masters))
@@ -571,14 +608,14 @@ func (h *Handler) addMachine(w http.ResponseWriter, r *http.Request) {
 
 	// Get cloud account fill appropriate config structure
 	// with cloud account credentials
-	err = util.FillCloudAccountCredentials(r.Context(), acc, config)
+	err = util.FillCloudAccountCredentials(acc, config)
 
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
 	}
 
-	ctx, _ := context.WithTimeout(context.Background(), time.Minute*10)
+	ctx, _ := context.WithTimeout(context.Background(), time.Minute*20)
 	tasks, err := h.nodeProvisioner.ProvisionNodes(ctx, nodeProfiles,
 		k, config)
 
@@ -678,7 +715,7 @@ func (h *Handler) deleteMachine(w http.ResponseWriter, r *http.Request) {
 		Masters:          steps.NewMap(k.Masters),
 	}
 
-	err = util.FillCloudAccountCredentials(r.Context(), acc, config)
+	err = util.FillCloudAccountCredentials(acc, config)
 
 	if err != nil {
 		if sgerrors.IsNotFound(err) {
@@ -1120,7 +1157,12 @@ func (h *Handler) restartKubeProvisioning(w http.ResponseWriter, r *http.Request
 		return
 	}
 
-	config := steps.NewConfigFromKube(kubeProfile, k)
+	config, err := steps.NewConfigFromKube(kubeProfile, k)
+	if err != nil {
+		logrus.Errorf("New config %v", err.Error())
+		message.SendUnknownError(w, err)
+		return
+	}
 
 	logrus.Debugf("load clout specific data from kube %s", k.ID)
 	// Load things specific to cloud provider
@@ -1145,7 +1187,7 @@ func (h *Handler) restartKubeProvisioning(w http.ResponseWriter, r *http.Request
 	}
 
 	logrus.Debug("Fill config with cloud account credentials")
-	err = util.FillCloudAccountCredentials(r.Context(), acc, config)
+	err = util.FillCloudAccountCredentials(acc, config)
 
 	if err != nil {
 		if sgerrors.IsNotFound(err) {

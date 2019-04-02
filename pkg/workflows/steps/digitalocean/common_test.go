@@ -31,4 +31,16 @@ func TestInit(t *testing.T) {
 	if deleteKeys == nil {
 		t.Errorf("%s must not be nil", DeleteDeleteKeysStepName)
 	}
+
+	createLB := steps.GetStep(CreateLoadBalancerStepName)
+
+	if createLB == nil {
+		t.Errorf("%s must not be nil", CreateLoadBalancerStepName)
+	}
+
+	deleteLB := steps.GetStep(DeleteLoadBalancerStepName)
+
+	if deleteLB == nil {
+		t.Errorf("%s must not be nil", DeleteLoadBalancerStepName)
+	}
 }

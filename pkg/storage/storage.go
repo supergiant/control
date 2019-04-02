@@ -4,9 +4,10 @@ import (
 	"context"
 
 	"github.com/pkg/errors"
-	"github.com/supergiant/control/pkg/storage/memory"
-	"github.com/supergiant/control/pkg/storage/file"
+
 	"github.com/supergiant/control/pkg/storage/etcd"
+	"github.com/supergiant/control/pkg/storage/file"
+	"github.com/supergiant/control/pkg/storage/memory"
 )
 
 const (
