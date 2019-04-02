@@ -3,6 +3,7 @@ package kubeadm
 import (
 	"context"
 	"fmt"
+	"github.com/sirupsen/logrus"
 	"io"
 	"text/template"
 
@@ -70,6 +71,7 @@ func (t *Step) Run(ctx context.Context, out io.Writer, config *steps.Config) err
 	}
 
 	config.KubeadmConfig.IsMaster = config.IsMaster
+	logrus.Infof("Dns names %s %s", config.ExternalDNSName, config.InternalDNSName)
 	err := steps.RunTemplate(ctx, t.script, config.Runner, out, config.KubeadmConfig)
 
 	if err != nil {

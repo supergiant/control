@@ -578,7 +578,7 @@ func (t *TaskProvisioner) updateCloudSpecificData(k *model.Kube, config *steps.C
 	logrus.Infof("Save internal DNS name %s and external DNS name %s",
 		config.InternalDNSName, config.ExternalDNSName)
 	k.ExternalDNSName = config.ExternalDNSName
-	k.ExternalDNSName = config.ExternalDNSName
+	k.InternalDNSName = config.InternalDNSName
 
 	// Save cloudSpecificData in kube
 	switch config.Provider {

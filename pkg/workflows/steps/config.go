@@ -393,6 +393,8 @@ func NewConfigFromKube(profile *profile.Profile, k *model.Kube) (*Config, error)
 			MastersSecurityGroupID: k.CloudSpec[clouds.AwsMastersSecGroupID],
 			NodesSecurityGroupID:   k.CloudSpec[clouds.AwsNodesSecgroupID],
 			ImageID:                k.CloudSpec[clouds.AwsImageID],
+			ExternalLoadBalancerName: k.CloudSpec[clouds.AwsExternalLoadBalancerName],
+			InternalLoadBalancerName: k.CloudSpec[clouds.AwsInternalLoadBalancerName],
 			// TODO(stgleb): Passs this from UI or figure out any better way
 			DeviceName: 		    "/dev/sda1",
 			HasPublicAddr:          true,
