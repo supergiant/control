@@ -507,6 +507,7 @@ func (f AzureFinder) toRegionSizes(locations []subscription.Location, machineSiz
 
 		sizes[to.String(vm.Name)] = vm
 		for _, l := range to.StringSlice(vm.Locations) {
+			l = strings.ToLower(l) // could be camelCase, for instance SouthAfricaWest
 			if regionSizes[l] == nil {
 				regionSizes[l] = strset.New()
 			}
