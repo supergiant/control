@@ -458,7 +458,7 @@ func (tp *TaskProvisioner) provisionNodes(ctx context.Context, profile *profile.
 		nodeTask.Config.TaskID = nodeTask.ID
 
 		go func(t *workflows.Task) {
-
+			nodeTask.Config.IsMaster = false
 			result := t.Run(ctx, *nodeTask.Config, out)
 			err = <-result
 
