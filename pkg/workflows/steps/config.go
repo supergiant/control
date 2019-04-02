@@ -380,6 +380,8 @@ func NewConfigFromKube(profile *profile.Profile, k *model.Kube) (*Config, error)
 		DigitalOceanConfig: DOConfig{
 			Region: profile.Region,
 		},
+		ExternalDNSName: k.ExternalDNSName,
+		InternalDNSName: k.InternalDNSName,
 		LogBootstrapPrivateKey: profile.LogBootstrapPrivateKey,
 		AWSConfig: AWSConfig{
 			Region:                 profile.Region,

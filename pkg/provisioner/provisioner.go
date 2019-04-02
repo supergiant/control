@@ -459,8 +459,9 @@ func (tp *TaskProvisioner) provisionNodes(ctx context.Context, profile *profile.
 		nodeTask.Config.TaskID = nodeTask.ID
 
 		go func(t *workflows.Task) {
-			nodeTask.Config.IsMaster = false
-			result := t.Run(ctx, *nodeTask.Config, out)
+			t.Config.IsMaster = false
+			logrus.Infof("Is master %v", t.Config.IsMaster)
+			result := t.Run(ctx, *t.Config, out)
 			err = <-result
 
 			if err != nil {
