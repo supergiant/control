@@ -119,6 +119,10 @@ func MergeConfig(source *steps.Config, destination *steps.Config) error {
 
 	destination.ExternalDNSName = source.ExternalDNSName
 	destination.InternalDNSName = source.InternalDNSName
+	destination.SetKubeStateChan(source.KubeStateChan())
+	destination.SetNodeChan(source.NodeChan())
+	destination.SetConfigChan(source.ConfigChan())
+
 	return nil
 }
 
