@@ -46,7 +46,7 @@ script:
   - make build
   # Integration
   - if [ "$TRAVIS_EVENT_TYPE" == "cron" ] ; then echo running integration tests && go test -race -timeout 45m ./test/... ; fi
-  - travis_wait 30 source travis_build.sh
+  - travis_wait 60 source travis_build.sh
   # Make build
   #  - docker build . -t supergiant/controlplane
   # - travis_wait 60 build/travis_build.sh
