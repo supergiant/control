@@ -23,7 +23,7 @@ sed -i 's/controlPlaneEndpoint: ""/controlPlaneEndpoint: "{{ .InternalDNSName }}
 sudo kubeadm config upload from-file --config=kubeadm-config.yaml
 
 {{ else }}
-sudo kubeadm join --ignore-preflight-errors=NumCPU {{ .InternalDNSName }}:443 --token {{ .Token }} \
+sudo kubeadm join --ignore-preflight-errors=NumCPU {{ .MasterPrivateIP }}:443 --token {{ .Token }} \
 --discovery-token-unsafe-skip-ca-verification --experimental-control-plane
 {{ end }}
 
@@ -31,6 +31,6 @@ sudo mkdir -p $HOME/.kube
 sudo cp -i /etc/kubernetes/admin.conf $HOME/.kube/config
 sudo chown $(id -u):$(id -g) $HOME/.kube/config
 {{ else }}
-sudo kubeadm join --ignore-preflight-errors=NumCPU {{ .InternalDNSName }}:443 --token {{ .Token }} \
+sudo kubeadm join --ignore-preflight-errors=NumCPU {{ .MasterPrivateIP }}:443 --token {{ .Token }} \
 --discovery-token-unsafe-skip-ca-verification
 {{ end }}
