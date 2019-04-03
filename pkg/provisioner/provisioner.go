@@ -213,7 +213,6 @@ func (tp *TaskProvisioner) provision(ctx context.Context,
 		logrus.Debugf("Restart preprovision task %s",
 			preProvisionTask[0].ID)
 
-		logrus.Infof("Channels %v %v %v", config.KubeStateChan(), config.NodeChan(), config.ConfigChan())
 		if preProvisionErr := tp.preProvision(ctx, preProvisionTask[0], config); preProvisionErr != nil {
 			logrus.Errorf("Pre provisioning cluster %v", preProvisionErr)
 			return
@@ -457,7 +456,6 @@ func (tp *TaskProvisioner) provisionNodes(ctx context.Context, profile *profile.
 
 		go func(t *workflows.Task) {
 			t.Config.IsMaster = false
-			logrus.Infof("Is master %v", t.Config.IsMaster)
 			result := t.Run(ctx, *t.Config, out)
 			err = <-result
 

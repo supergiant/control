@@ -2,7 +2,6 @@ package steps
 
 import (
 	"encoding/json"
-	"fmt"
 	"sync"
 	"time"
 
@@ -196,10 +195,6 @@ func (m *Map) UnmarshalJSON(b []byte) error {
 
 func (m *Map) MarshalJSON() ([]byte, error) {
 	return json.Marshal(m.internal)
-}
-
-func (m *Map) String() string {
-	return fmt.Sprintf("internal map %s", &m.internal)
 }
 
 func NewMap(m map[string]*model.Machine) Map {

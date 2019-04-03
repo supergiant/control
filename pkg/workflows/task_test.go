@@ -115,7 +115,7 @@ func TestNewTask(t *testing.T) {
 	}
 
 	for _, testCase := range testCases {
-		task, err := NewTask(testCase.taskType, mockRepository)
+		task, err := NewTask(&steps.Config{}, testCase.taskType, mockRepository)
 
 		if err != testCase.expectedError {
 			t.Errorf("Unexpected error %v", err)
@@ -144,7 +144,7 @@ func TestTaskRunError(t *testing.T) {
 
 	workflowMap = make(map[string]Workflow)
 	RegisterWorkFlow("mock", wf)
-	task, err := NewTask("mock", s)
+	task, err := NewTask(&steps.Config{}, "mock", s)
 
 	buffer := &bufferCloser{}
 	errChan := task.Run(context.Background(), steps.Config{}, buffer)
@@ -192,7 +192,7 @@ func TestTaskRunSuccess(t *testing.T) {
 
 	workflowMap = make(map[string]Workflow)
 	RegisterWorkFlow("mock", wf)
-	task, err := NewTask("mock", s)
+	task, err := NewTask(&steps.Config{}, "mock", s)
 
 	buffer := &bufferCloser{}
 	errChan := task.Run(context.Background(), steps.Config{}, buffer)
@@ -235,7 +235,7 @@ func TestWorkflowRestart(t *testing.T) {
 	}
 	workflowMap = make(map[string]Workflow)
 	RegisterWorkFlow("mock", wf)
-	task, err := NewTask("mock", s)
+	task, err := NewTask(&steps.Config{}, "mock", s)
 
 	if err != nil {
 		t.Errorf("Error while creating task %v", err)
@@ -286,7 +286,7 @@ func TestRollback(t *testing.T) {
 	}
 	workflowMap = make(map[string]Workflow)
 	RegisterWorkFlow("mock", wf)
-	task, err := NewTask("mock", s)
+	task, err := NewTask(&steps.Config{}, "mock", s)
 
 	require.False(t, mockStep.rollback)
 
