@@ -145,7 +145,8 @@ func (s *FindAMIStep) FindAMI(ctx context.Context, w io.Writer, finder ImageFind
 		config.AWSConfig.ImageID = *img.ImageId
 		config.AWSConfig.DeviceName = *img.RootDeviceName
 
-		logMessage := fmt.Sprintf("[%s] - using AMI (ID: %s) %s with root device name %s", s.Name(), *img.ImageId, *img.Description, img.RootDeviceName)
+		logMessage := fmt.Sprintf("[%s] - using AMI (ID: %s) %s with root device name %s",
+			s.Name(), *img.ImageId, *img.Description, *img.RootDeviceName)
 		log.Info(logMessage)
 		logrus.Info(logMessage)
 
