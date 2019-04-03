@@ -134,6 +134,7 @@ type AWSConfig struct {
 	MastersInstanceProfile string `json:"mastersInstanceProfile"`
 	NodesInstanceProfile   string `json:"nodesInstanceProfile"`
 	VolumeSize             string `json:"volumeSize"`
+	DeviceName 			   string `json:"deviceName"`
 	EbsOptimized           string `json:"ebsOptimized"`
 	ImageID                string `json:"image"`
 	InstanceType           string `json:"size"`
@@ -200,6 +201,7 @@ type KubeadmConfig struct {
 	Token            string `json:"token"`
 	Provider         string `json:"provider"`
 
+	MasterPrivateIP string `json:"masterPrivateIp"`
 	InternalDNSName string `json:"internalDNSName"`
 	ExternalDNSName string `json:"externalDNSName"`
 }
@@ -296,6 +298,7 @@ func NewConfig(clusterName, cloudAccountName string, profile profile.Profile) (*
 				Timeout:   30,
 				PublicKey: profile.PublicKey,
 			},
+			ExposedAddresses: profile.ExposedAddresses,
 		},
 		Provider:    profile.Provider,
 		ClusterName: clusterName,
@@ -311,6 +314,8 @@ func NewConfig(clusterName, cloudAccountName string, profile profile.Profile) (*
 			KeyPairName:            profile.CloudSpecificSettings[clouds.AwsKeyPairName],
 			MastersSecurityGroupID: profile.CloudSpecificSettings[clouds.AwsMastersSecGroupID],
 			NodesSecurityGroupID:   profile.CloudSpecificSettings[clouds.AwsNodesSecgroupID],
+			// TODO(stgleb): Passs this from UI or figure out any better way
+			DeviceName: 		    "/dev/sda1",
 			HasPublicAddr:          true,
 		},
 		GCEConfig: GCEConfig{
@@ -413,6 +418,8 @@ func NewConfigFromKube(profile *profile.Profile, k *model.Kube) (*Config, error)
 			MastersSecurityGroupID: k.CloudSpec[clouds.AwsMastersSecGroupID],
 			NodesSecurityGroupID:   k.CloudSpec[clouds.AwsNodesSecgroupID],
 			ImageID:                k.CloudSpec[clouds.AwsImageID],
+			// TODO(stgleb): Passs this from UI or figure out any better way
+			DeviceName: 		    "/dev/sda1",
 			HasPublicAddr:          true,
 		},
 		GCEConfig: GCEConfig{

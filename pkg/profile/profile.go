@@ -40,10 +40,19 @@ type Profile struct {
 	CloudSpecificSettings  CloudSpecificSettings `json:"cloudSpecificSettings" valid:"-"`
 	PublicKey              string                `json:"publicKey" valid:"-"`
 	LogBootstrapPrivateKey bool                  `json:"logBootstrapPrivateKey" valid:"-"`
+
+	// ExposedAddresses is a list of cidr/port pairs that will be exposes
+	// by cloud provider security groups.
+	ExposedAddresses []Addresses `json:"exposedAddresses" valid:"-"`
 }
 
 type NodeProfile map[string]string
 type CloudSpecificSettings map[string]string
+
+// Addresses uses cidr to define an ip list.
+type Addresses struct {
+	CIDR string `json:"cidr"`
+}
 
 // StaticAuth represents tokens and basic authentication credentials.
 type StaticAuth struct {

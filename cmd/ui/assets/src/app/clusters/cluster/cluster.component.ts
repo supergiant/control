@@ -386,10 +386,13 @@ export class ClusterComponent implements AfterViewInit, OnDestroy {
         switchMap(() => this.supergiant.Kubes.get(this.clusterId)),
         catchError((error) => of(error)),
       ).subscribe(
-        k => this.renderMachines(k),
+        k => {
+          this.displaySuccess("Node: " + nodeName, "Deleted!");
+          this.renderMachines(k)
+        },
         err => {
           console.error(err);
-          this.error(this.clusterId, err);
+          this.displayError(this.kube.name, err);
         },
      );
   }
@@ -401,16 +404,15 @@ export class ClusterComponent implements AfterViewInit, OnDestroy {
       .afterClosed()
       .pipe(
         filter(isConfirmed => isConfirmed),
-        switchMap(() => this.supergiant.Kubes.delete(this.clusterId)),
-        catchError((error) => of(error)),
+        switchMap(() => this.supergiant.Kubes.delete(this.clusterId))
       ).subscribe(
         res => {
-          this.success(this.clusterId);
+          this.displaySuccess("Kube: " + this.kube.name, "Deleted!");
           this.router.navigate(['']);
         },
         err => {
           console.error(err);
-          this.error(this.clusterId, err);
+          this.displayError(this.kube.name, err);
         },
      );
   }
@@ -425,10 +427,16 @@ export class ClusterComponent implements AfterViewInit, OnDestroy {
         // can't mutate table data source, polling erases any optimistic updates, so this happens, sorry...
         switchMap((_) => this.deletingApps.add(releaseName)),
         switchMap(res => this.supergiant.HelmReleases.delete(releaseName, this.clusterId, true)),
-        catchError(err => of(err))
       ).subscribe(
-        res => { this.getReleases(releaseName); },
-        err => { this.deletingApps.delete(releaseName); console.error(err); }
+        res => {
+          this.getReleases(releaseName);
+          this.displaySuccess("App: " + releaseName, "Deleted!")
+        },
+        err => {
+          console.error(err);
+          this.deletingApps.delete(releaseName);
+          this.displayError(this.kube.name, err);
+        }
       );
   }
 
@@ -514,18 +522,22 @@ export class ClusterComponent implements AfterViewInit, OnDestroy {
 
   expandRow = (_, row) => row.hasOwnProperty('detailRow');
 
-  success(name) {
-    this.notifications.display(
-      'success',
-      'Kube: ' + name,
-      'Deleted...',
-    );
+  displaySuccess(headline, msg) {
+    this.notifications.display('success', headline, msg);
   }
 
-  error(name, error) {
+  displayError(name, err) {
+    let msg: string;
+
+    if (err.error.userMessage) {
+      msg = err.error.userMessage;
+    } else {
+      msg = err.error;
+    }
+
     this.notifications.display(
       'error',
       'Kube: ' + name,
-      'Error:' + error.statusText);
+      'Error:' + msg);
   }
 }

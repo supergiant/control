@@ -10,22 +10,38 @@
 
 .mat-card-actions {
   display: flex;
+}
+
+.repo-actions {
   justify-content: space-between;
+  margin-top: auto !important;
 
   .add-repo {
     @include action-button;
-
     background: #D10088;
   }
 
   .btn-secondary {
     @include action-button;
-
     background: #414141;
     border: none;
   }
 }
 
+.app-actions {
+  align-items: center;
+  justify-content: flex-end;
+
+  .app-logo-wrapper {
+    align-items: center;
+    background-color: #fff;
+    border-radius: 50%;
+    display: flex;
+    justify-content: center;
+    height: 64px;
+    width: 64px;
+  }
+}
 
 .charts-wrapper {
   display: flex;
@@ -34,24 +50,22 @@
   margin-right: 52px;
   margin-left: 52px;
 
-  .app-card {
+  .card {
+    display: flex;
     margin-right: 30px;
     margin-bottom: 30px;
     width: 300px;
+  }
 
-    .mat-card-actions {
-      display: flex;
-      align-items: center;
+  .app-card {
 
-      .app-logo-wrapper {
-        align-items: center;
-        background-color: #fff;
-        border-radius: 50%;
-        display: flex;
-        justify-content: center;
-        height: 64px;
-        width: 64px;
-      }
+    &:hover {
+      cursor: pointer;
+      background-color: rgba(0,0,0,0.4) !important;
+    }
+
+    &:active {
+      transform: scale(0.95,0.95);
     }
   }
 }

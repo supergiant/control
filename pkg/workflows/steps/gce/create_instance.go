@@ -157,6 +157,7 @@ func (s *CreateInstanceStep) Run(ctx context.Context, output io.Writer,
 				InitializeParams: &compute.AttachedDiskInitializeParams{
 					DiskName:    name + "-root-pd",
 					SourceImage: image.SelfLink,
+					DiskSizeGb:  30,
 				},
 			},
 		},

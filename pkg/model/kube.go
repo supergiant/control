@@ -63,6 +63,8 @@ type Kube struct {
 	BootstrapPublicKey []byte `json:"bootstrapPublicKey"`
 	// DEPRECATED
 	BootstrapPrivateKey []byte `json:"bootstrapPrivateKey"`
+
+	ExposedAddresses []profile.Addresses `json:"exposedAddresses"`
 }
 
 type SSHConfig struct {

@@ -645,9 +645,6 @@ spec:
     metadata:
       labels:
         k8s-app: calico-typha
-      annotations:
-        scheduler.alpha.kubernetes.io/critical-pod: ''
-        cluster-autoscaler.kubernetes.io/safe-to-evict: 'true'
     spec:
       nodeSelector:
         beta.kubernetes.io/os: linux
@@ -728,7 +725,7 @@ spec:
       labels:
         k8s-app: calico-node
       annotations:
-        scheduler.alpha.kubernetes.io/critical-pod: ''
+        scheduler.alpha.kubernetes.io/critical-pod: ""
     spec:
       nodeSelector:
         beta.kubernetes.io/os: linux

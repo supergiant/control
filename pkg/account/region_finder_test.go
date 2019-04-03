@@ -470,50 +470,27 @@ func TestGCEResourceFinder_GetTypes(t *testing.T) {
 }
 
 func TestAWSFinder_GetRegions(t *testing.T) {
-	testCases := []struct {
-		err  error
-		resp *ec2.DescribeRegionsOutput
+	for _, tc := range []struct {
+		name   string
+		finder AWSFinder
+		expRes *RegionSizes
+		expErr error
 	}{
 		{
-			err:  sgerrors.ErrNotFound,
-			resp: nil,
-		},
-		{
-			err: nil,
-			resp: &ec2.DescribeRegionsOutput{
-				Regions: []*ec2.Region{
-					{
-						RegionName: aws.String("ap-northeast-1"),
-					},
-					{
-						RegionName: aws.String("eu-west-2"),
-					},
-					{
-						RegionName: aws.String("us-west-1"),
-					},
-				},
+			name: "get regions",
+			finder: AWSFinder{
+				machines: awsMachines,
+			},
+			expRes: &RegionSizes{
+				Provider: clouds.AWS,
+				Regions:  toRegions(awsMachines.Regions()),
 			},
 		},
-	}
+	} {
+		res, err := tc.finder.GetRegions(context.Background())
+		require.Equalf(t, tc.expErr, errors.Cause(err), "TC: %s", tc.name)
 
-	for _, testCase := range testCases {
-		awsFinder := &AWSFinder{
-			getRegions: func(ctx context.Context, client *ec2.EC2,
-				input *ec2.DescribeRegionsInput) (*ec2.DescribeRegionsOutput, error) {
-				return testCase.resp, testCase.err
-			},
-		}
-
-		resp, err := awsFinder.GetRegions(context.Background())
-
-		if testCase.err != nil && !sgerrors.IsNotFound(err) {
-			t.Errorf("wrong error expected %v actual %v", testCase.err, err)
-		}
-
-		if err == nil && len(resp.Regions) != len(testCase.resp.Regions) {
-			t.Errorf("Wrong count of regions expected %d actual %d",
-				len(testCase.resp.Regions), len(resp.Regions))
-		}
+		require.Equalf(t, tc.expRes, res, "TC: %s", tc.name)
 	}
 }
 
@@ -565,52 +542,43 @@ func TestAWSFinder_GetZones(t *testing.T) {
 	}
 }
 
+func AWSEUWEST1Types() []string {
+	r, _ := awsMachines.RegionTypes("eu-west-1")
+	return r
+}
+
 func TestAWSFinder_GetTypes(t *testing.T) {
-	testCases := []struct {
-		err  error
-		resp *ec2.DescribeReservedInstancesOfferingsOutput
+	for _, tc := range []struct {
+		name   string
+		finder AWSFinder
+		in     steps.Config
+		expRes []string
+		expErr error
 	}{
 		{
-			err:  sgerrors.ErrNotFound,
-			resp: nil,
+			name: "unknown region",
+			finder: AWSFinder{
+				machines: awsMachines,
+			},
+			expErr: sgerrors.ErrRawError,
 		},
 		{
-			err: nil,
-			resp: &ec2.DescribeReservedInstancesOfferingsOutput{
-				ReservedInstancesOfferings: []*ec2.ReservedInstancesOffering{
-					{
-						InstanceType: aws.String("t3.medium"),
-					},
-					{
-						InstanceType: aws.String("c5.2xlarge"),
-					},
-					{
-						InstanceType: aws.String("r5d.xlarge"),
-					},
+			name: "region: eu-west-1",
+			finder: AWSFinder{
+				machines: awsMachines,
+			},
+			in: steps.Config{
+				AWSConfig: steps.AWSConfig{
+					Region: "eu-west-1",
 				},
 			},
+			expRes: AWSEUWEST1Types(),
 		},
-	}
+	} {
+		res, err := tc.finder.GetTypes(context.Background(), tc.in)
+		require.Equalf(t, tc.expErr, errors.Cause(err), "TC: %s", tc.name)
 
-	for _, testCase := range testCases {
-		awsFinder := &AWSFinder{
-			getTypes: func(ctx context.Context, client *ec2.EC2,
-				input *ec2.DescribeReservedInstancesOfferingsInput) (*ec2.DescribeReservedInstancesOfferingsOutput,
-				error) {
-				return testCase.resp, testCase.err
-			},
-		}
-
-		resp, err := awsFinder.GetTypes(context.Background(), steps.Config{})
-
-		if testCase.err != nil && !sgerrors.IsNotFound(err) {
-			t.Errorf("wrong error expected %v actual %v", testCase.err, err)
-		}
-
-		if err == nil && len(resp) != len(testCase.resp.ReservedInstancesOfferings) {
-			t.Errorf("Wrong count of regions expected %d actual %d",
-				len(testCase.resp.ReservedInstancesOfferings), len(resp))
-		}
+		require.Equalf(t, tc.expRes, res, "TC: %s", tc.name)
 	}
 }
 
