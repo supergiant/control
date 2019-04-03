@@ -2,6 +2,7 @@ package steps
 
 import (
 	"encoding/json"
+	"fmt"
 	"sync"
 	"time"
 
@@ -197,6 +198,10 @@ func (m *Map) MarshalJSON() ([]byte, error) {
 	return json.Marshal(m.internal)
 }
 
+func (m *Map) String() string {
+	return fmt.Sprintf("internal map %s", &m.internal)
+}
+
 func NewMap(m map[string]*model.Machine) Map {
 	return Map{
 		internal: m,
@@ -380,6 +385,7 @@ func NewConfigFromKube(profile *profile.Profile, k *model.Kube) (*Config, error)
 		DigitalOceanConfig: DOConfig{
 			Region: profile.Region,
 		},
+		Kube: *k,
 		ExternalDNSName: k.ExternalDNSName,
 		InternalDNSName: k.InternalDNSName,
 		LogBootstrapPrivateKey: profile.LogBootstrapPrivateKey,
@@ -461,10 +467,10 @@ func NewConfigFromKube(profile *profile.Profile, k *model.Kube) (*Config, error)
 			CIDR:        profile.CIDR,
 		},
 		Masters: Map{
-			internal: make(map[string]*model.Machine, len(k.Masters)),
+			internal: make(map[string]*model.Machine, len(profile.MasterProfiles)),
 		},
 		Nodes: Map{
-			internal: make(map[string]*model.Machine, len(k.Nodes)),
+			internal: make(map[string]*model.Machine, len(profile.NodesProfiles)),
 		},
 		Timeout:          time.Minute * 30,
 		CloudAccountName: k.AccountName,
@@ -473,15 +479,22 @@ func NewConfigFromKube(profile *profile.Profile, k *model.Kube) (*Config, error)
 		configChan:       make(chan *Config),
 	}
 
-	if k != nil {
-		cfg.Kube = *k
+	// Restore all masters and workers from kube
+	for index := range k.Masters {
+		cfg.AddMaster(k.Masters[index])
+	}
 
-		cfg.Kube.SSHConfig = model.SSHConfig{
-			Port:      "22",
-			User:      "root",
-			Timeout:   10,
-			PublicKey: profile.PublicKey,
-		}
+	for index := range k.Nodes {
+		cfg.AddNode(k.Nodes[index])
+	}
+
+	cfg.Kube = *k
+
+	cfg.Kube.SSHConfig = model.SSHConfig{
+		Port:      "22",
+		User:      "root",
+		Timeout:   10,
+		PublicKey: profile.PublicKey,
 	}
 
 	return cfg, nil

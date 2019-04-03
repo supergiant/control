@@ -58,6 +58,14 @@ func NewProvisioner(repository storage.Interface, kubeService KubeService,
 // that have been provided for provisionCluster
 func (tp *TaskProvisioner) ProvisionCluster(parentContext context.Context,
 	clusterProfile *profile.Profile, config *steps.Config) (map[string][]*workflows.Task, error) {
+	if err := bootstrapKeys(config); err != nil {
+		return nil, errors.Wrap(err, "bootstrap keys")
+	}
+
+	if err := bootstrapCerts(config); err != nil {
+		return nil, errors.Wrap(err, "bootstrap certs")
+	}
+
 	taskMap := tp.prepare(config, len(clusterProfile.MasterProfiles), len(clusterProfile.NodesProfiles))
 
 	clusterTask := taskMap[workflows.ClusterTask][0]
@@ -78,14 +86,6 @@ func (tp *TaskProvisioner) ProvisionCluster(parentContext context.Context,
 	masters, nodes := nodesFromProfile(config.ClusterName,
 		taskMap[workflows.MasterTask], taskMap[workflows.NodeTask],
 		clusterProfile)
-
-	if err := bootstrapKeys(config); err != nil {
-		return nil, errors.Wrap(err, "bootstrap keys")
-	}
-
-	if err := bootstrapCerts(config); err != nil {
-		return nil, errors.Wrap(err, "bootstrap certs")
-	}
 
 	// Gather all task ids
 	taskIds := grabTaskIds(taskMap)
@@ -289,7 +289,6 @@ func (tp *TaskProvisioner) prepare(config *steps.Config, masterCount, nodeCount 
 			logrus.Errorf("Failed to set up task for %s workflow", workflows.ProvisionMaster)
 			continue
 		}
-		t.Config = config
 		masterTasks = append(masterTasks, t)
 	}
 
