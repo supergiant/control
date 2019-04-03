@@ -10,8 +10,11 @@ import (
 	"text/template"
 
 	"github.com/pkg/errors"
+	"github.com/stretchr/testify/require"
 
+	"github.com/supergiant/control/pkg/clouds"
 	"github.com/supergiant/control/pkg/runner"
+	"github.com/supergiant/control/pkg/sgerrors"
 	"github.com/supergiant/control/pkg/templatemanager"
 	"github.com/supergiant/control/pkg/workflows/steps"
 	"github.com/supergiant/control/pkg/workflows/steps/docker"
@@ -47,15 +50,17 @@ func TestKubeadm(t *testing.T) {
 	output := new(bytes.Buffer)
 
 	cfg := &steps.Config{
+		Provider: clouds.AWS,
 		IsMaster: true,
 		KubeadmConfig: steps.KubeadmConfig{
-			IsMaster:        true,
-			IsBootstrap:     true,
-			CIDR:            "10.0.0.0/24",
-			Token:           "1234",
-			InternalDNSName: "internal.dns.name",
+			IsMaster:    true,
+			IsBootstrap: true,
+			CIDR:        "10.0.0.0/24",
+			Token:       "1234",
 		},
-		Runner: r,
+		ExternalDNSName: "external.dns.name",
+		InternalDNSName: "internal.dns.name",
+		Runner:          r,
 	}
 
 	task := &Step{
@@ -63,6 +68,7 @@ func TestKubeadm(t *testing.T) {
 	}
 
 	err = task.Run(context.Background(), output, cfg)
+	require.Nil(t, err)
 
 	if !strings.Contains(output.String(), cfg.KubeadmConfig.CIDR) {
 		t.Errorf("CIDR %s not found in %s", cfg.KubeadmConfig.CIDR, output.String())
@@ -103,7 +109,7 @@ func TestStartKubeadmError(t *testing.T) {
 		return
 	}
 
-	if !strings.Contains(err.Error(), errMsg) {
+	if errors.Cause(err) != sgerrors.ErrRawError {
 		t.Errorf("Error message expected to contain %s actual %s", errMsg, err.Error())
 	}
 }
