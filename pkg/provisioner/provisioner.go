@@ -222,7 +222,6 @@ func (tp *TaskProvisioner) provision(ctx context.Context,
 
 		kubeChan, nodeChan, configChan := config.KubeStateChan(), config.NodeChan(), config.ConfigChan()
 		config = preProvisionTask[0].Config
-		logrus.Infof("Config after pre provision %v", config.AWSConfig)
 		config.SetKubeStateChan(kubeChan)
 		config.SetNodeChan(nodeChan)
 		config.SetConfigChan(configChan)

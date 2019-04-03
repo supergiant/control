@@ -56,7 +56,7 @@ func (s *Step) Run(ctx context.Context, out io.Writer, config *steps.Config) err
 	} else {
 		config.AddNode(&config.Node)
 	}
-	
+
 	config.NodeChan() <- config.Node
 
 	return nil

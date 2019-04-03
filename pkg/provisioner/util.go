@@ -7,7 +7,6 @@ import (
 	"encoding/json"
 	"encoding/pem"
 	"github.com/pkg/errors"
-	"github.com/sirupsen/logrus"
 	"strings"
 	"time"
 
@@ -126,8 +125,6 @@ func MergeConfig(source *steps.Config, destination *steps.Config) error {
 	destination.SetConfigChan(source.ConfigChan())
 	destination.Masters = source.Masters
 	destination.Nodes = source.Nodes
-	logrus.Info("Copy masters %v", destination.Masters)
-	logrus.Info("Copy nodes %v", destination.Nodes)
 
 	return nil
 }
