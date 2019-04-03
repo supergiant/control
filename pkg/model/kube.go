@@ -55,14 +55,6 @@ type Kube struct {
 	Tasks map[string][]string `json:"tasks"`
 
 	SSHConfig SSHConfig `json:"sshConfig"`
-	// DEPRECATED
-	SshUser string `json:"sshUser"`
-	// DEPRECATED
-	SshPublicKey []byte `json:"sshKey"`
-	// DEPRECATED
-	BootstrapPublicKey []byte `json:"bootstrapPublicKey"`
-	// DEPRECATED
-	BootstrapPrivateKey []byte `json:"bootstrapPrivateKey"`
 
 	ExposedAddresses []profile.Addresses `json:"exposedAddresses"`
 }
