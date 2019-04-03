@@ -100,7 +100,7 @@ func (c *Client) CreateInstance(ctx context.Context, cfg InstanceConfig) (*ec2.I
 		},
 		BlockDeviceMappings: []*ec2.BlockDeviceMapping{
 			{
-				DeviceName: aws.String("/dev/xvda"),
+				DeviceName: aws.String(cfg.VolumeDeviceName),
 				Ebs: &ec2.EbsBlockDevice{
 					DeleteOnTermination: aws.Bool(true),
 					VolumeType:          aws.String(cfg.VolumeType),

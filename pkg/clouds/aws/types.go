@@ -1,23 +1,24 @@
 package aws
 
 type InstanceConfig struct {
-	TagName        string
-	Type           string
-	TagClusterName string
-	TagClusterRole string
-	ID             string
-	Region         string
-	ImageID        string
-	KeyName        string
-	HasPublicAddr  bool
-	SecurityGroups []*string
-	SubnetID       string
-	IAMRole        string
-	VolumeType     string
-	VolumeSize     int64
-	EBSOptimized   *bool
-	Tags           map[string]string
-	UsedData       string
+	TagName          string
+	Type             string
+	TagClusterName   string
+	TagClusterRole   string
+	ID               string
+	Region           string
+	ImageID          string
+	KeyName          string
+	HasPublicAddr    bool
+	SecurityGroups   []*string
+	SubnetID         string
+	IAMRole          string
+	VolumeType       string
+	VolumeSize       int64
+	VolumeDeviceName string
+	EBSOptimized     *bool
+	Tags             map[string]string
+	UsedData         string
 }
 
 type EC2TypeInfo struct {
