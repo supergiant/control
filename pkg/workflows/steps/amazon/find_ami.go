@@ -55,7 +55,7 @@ func (s *FindAMIStep) Run(ctx context.Context, w io.Writer, cfg *steps.Config) e
 		return errors.Wrap(err, StepFindAMI)
 	}
 
-	imageID, err := s.FindAMI(ctx, w, finder)
+	err = s.FindAMI(ctx, w, finder, cfg)
 	logrus.Debugf("Found image id %s", cfg.AWSConfig.ImageID)
 
 	if err != nil {
@@ -64,14 +64,13 @@ func (s *FindAMIStep) Run(ctx context.Context, w io.Writer, cfg *steps.Config) e
 		return errors.Wrap(err, "failed to find AMI")
 	}
 
-	if err == nil && imageID == "" {
+	if err == nil && (cfg.AWSConfig.ImageID == "" || cfg.AWSConfig.DeviceName == "") {
 		logrus.Debugf("[%s] - can't find supported image", s.Name())
 		return errors.New(fmt.Sprintf("[%s] - can't find "+
-			"supported image", s.Name()))
+			"supported image or device name", s.Name()))
 	}
 
-	logrus.Debugf("Use image id %s", imageID)
-	cfg.AWSConfig.ImageID = imageID
+	logrus.Debugf("Use image id %s root device name %s", cfg.AWSConfig.ImageID, cfg.AWSConfig.DeviceName)
 
 	return nil
 }
@@ -92,7 +91,7 @@ func (*FindAMIStep) Rollback(context.Context, io.Writer, *steps.Config) error {
 	return nil
 }
 
-func (s *FindAMIStep) FindAMI(ctx context.Context, w io.Writer, finder ImageFinder) (string, error) {
+func (s *FindAMIStep) FindAMI(ctx context.Context, w io.Writer, finder ImageFinder, config *steps.Config) error {
 	// TODO: should it be configurable?
 	out, err := finder.DescribeImagesWithContext(ctx, &ec2.DescribeImagesInput{
 		Filters: []*ec2.Filter{
@@ -130,9 +129,8 @@ func (s *FindAMIStep) FindAMI(ctx context.Context, w io.Writer, finder ImageFind
 		},
 	})
 	if err != nil {
-		return "", err
+		return err
 	}
-	amiID := ""
 
 	log := util.GetLogger(w)
 
@@ -143,14 +141,17 @@ func (s *FindAMIStep) FindAMI(ctx context.Context, w io.Writer, finder ImageFind
 		if strings.Contains(*img.Description, "UNSUPPORTED") {
 			continue
 		}
-		amiID = *img.ImageId
 
-		logMessage := fmt.Sprintf("[%s] - using AMI (ID: %s) %s", s.Name(), amiID, *img.Description)
+		config.AWSConfig.ImageID = *img.ImageId
+		config.AWSConfig.DeviceName = *img.RootDeviceName
+
+		logMessage := fmt.Sprintf("[%s] - using AMI (ID: %s) %s with root device name %s",
+			s.Name(), *img.ImageId, *img.Description, *img.RootDeviceName)
 		log.Info(logMessage)
 		logrus.Info(logMessage)
 
 		break
 	}
 
-	return amiID, nil
+	return nil
 }

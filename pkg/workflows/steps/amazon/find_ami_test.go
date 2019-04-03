@@ -64,6 +64,7 @@ func TestFindAMIStep_Run(t *testing.T) {
 					{
 						ImageId:     aws.String(imageID),
 						Description: aws.String("Ubuntu 16.04"),
+						RootDeviceName: aws.String("/dev/sda1"),
 					},
 				},
 			},

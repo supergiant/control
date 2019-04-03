@@ -246,8 +246,14 @@ func (tp *TaskProvisioner) provision(ctx context.Context,
 		"%s has finished successfully",
 		config.ClusterID)
 
-	tp.provisionNodes(ctx, clusterProfile, config,
+	err = tp.provisionNodes(ctx, clusterProfile, config,
 		taskMap[workflows.NodeTask])
+
+	if err != nil {
+		config.KubeStateChan() <- model.StateFailed
+		logrus.Errorf("Node provision has failed with %v", err)
+		return
+	}
 
 	if len(taskMap[workflows.ClusterTask]) != 0 {
 		// Wait for cluster checks are finished
@@ -388,7 +394,11 @@ func (tp *TaskProvisioner) provisionMasters(ctx context.Context,
 
 		// Fulfill task config with data about provider specific node configuration
 		p := profile.MasterProfiles[index]
-		FillNodeCloudSpecificData(profile.Provider, p, config)
+		err = FillNodeCloudSpecificData(profile.Provider, p, config)
+
+		if err != nil {
+			return errors.Wrapf(err, "provision masters fill node cloud specific data")
+		}
 
 		go func(t *workflows.Task) {
 			// Put task id to config so that create instance step can use this id when generate node name
@@ -407,8 +417,10 @@ func (tp *TaskProvisioner) provisionMasters(ctx context.Context,
 	return nil
 }
 
-func (tp *TaskProvisioner) provisionNodes(ctx context.Context, profile *profile.Profile, config *steps.Config, tasks []*workflows.Task) {
+func (tp *TaskProvisioner) provisionNodes(ctx context.Context, profile *profile.Profile, config *steps.Config, tasks []*workflows.Task) error {
 	config.IsMaster = false
+	wg := sync.WaitGroup{}
+	wg.Add(len(tasks))
 
 	// ProvisionCluster nodes
 	for index, nodeTask := range tasks {
@@ -420,7 +432,7 @@ func (tp *TaskProvisioner) provisionNodes(ctx context.Context, profile *profile.
 
 		if err != nil {
 			logrus.Errorf("Error getting writer for %s", fileName)
-			return
+			return errors.Wrapf(err, "Error getting writer for %s", fileName)
 		}
 
 		// Fulfill task config with data about provider specific node configuration
@@ -439,8 +451,13 @@ func (tp *TaskProvisioner) provisionNodes(ctx context.Context, profile *profile.
 			} else {
 				logrus.Infof("node-task %s has finished", t.ID)
 			}
+
+			wg.Done()
 		}(nodeTask)
 	}
+
+	wg.Wait()
+	return nil
 }
 
 func (tp *TaskProvisioner) waitCluster(ctx context.Context, clusterTask *workflows.Task, config *steps.Config) {
