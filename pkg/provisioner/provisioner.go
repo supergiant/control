@@ -547,6 +547,8 @@ func (tp *TaskProvisioner) buildInitialCluster(ctx context.Context,
 		Tasks:     taskIds,
 
 		SSHConfig: config.Kube.SSHConfig,
+
+		ExposedAddresses: config.Kube.ExposedAddresses,
 	}
 
 	return tp.kubeService.Create(ctx, cluster)
