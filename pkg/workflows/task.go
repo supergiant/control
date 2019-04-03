@@ -72,9 +72,9 @@ func NewTask(taskType string, repository storage.Interface) (*Task, error) {
 
 func newTask(workflowType string, workflow Workflow, repository storage.Interface) *Task {
 	return &Task{
-		ID:     uuid.New(),
-		Type:   workflowType,
-		Status: statuses.Todo,
+		ID:           uuid.New(),
+		Type:         workflowType,
+		Status:       statuses.Todo,
 		StepStatuses: make([]StepStatus, 0, 0),
 
 		workflow:   workflow,
