@@ -54,7 +54,6 @@ func (s *DeleteClusterMachines) Run(ctx context.Context, w io.Writer, cfg *steps
 			DeleteClusterMachinesStepName)
 	}
 
-	logrus.Debug(cfg.AWSConfig)
 	describeInstanceOutput, err := svc.DescribeInstancesWithContext(ctx, &ec2.DescribeInstancesInput{
 		Filters: []*ec2.Filter{
 			{

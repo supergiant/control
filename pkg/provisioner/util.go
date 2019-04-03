@@ -125,6 +125,9 @@ func MergeConfig(source *steps.Config, destination *steps.Config) error {
 	destination.SetConfigChan(source.ConfigChan())
 	destination.Masters = source.Masters
 	destination.Nodes = source.Nodes
+	destination.ClusterID = source.ClusterID
+	destination.Provider = source.Provider
+	destination.ClusterName = source.ClusterName
 
 	return nil
 }

@@ -67,7 +67,6 @@ func (tp *TaskProvisioner) ProvisionCluster(parentContext context.Context,
 	}
 
 	taskMap := tp.prepare(config, len(clusterProfile.MasterProfiles), len(clusterProfile.NodesProfiles))
-
 	clusterTask := taskMap[workflows.ClusterTask][0]
 
 	// Get clusterID from taskID
