@@ -931,7 +931,7 @@ func (h *Handler) getClusterMetrics(w http.ResponseWriter, r *http.Request) {
 		}
 		masterNode *model.Machine
 		response   = map[string]interface{}{}
-		baseUrl    = "api/v1/namespaces/default/services/prometheus-operated:9090/proxy"
+		baseUrl    = "api/v1/namespaces/kube-system/services/prometheus-operated:9090/proxy"
 	)
 
 	vars := mux.Vars(r)
@@ -983,7 +983,7 @@ func (h *Handler) getNodesMetrics(w http.ResponseWriter, r *http.Request) {
 		}
 		masterNode *model.Machine
 		response   = map[string]map[string]interface{}{}
-		baseUrl    = "api/v1/namespaces/default/services/prometheus-operated:9090/proxy"
+		baseUrl    = "api/v1/namespaces/kube-system/services/prometheus-operated:9090/proxy"
 	)
 
 	vars := mux.Vars(r)
