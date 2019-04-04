@@ -34,6 +34,10 @@ export class Kubes {
     return this.util.fetch(this.kubesPath + '/' + id + '/services');
   }
 
+  public restartFailedProvision(id): Observable<any> {
+    return this.util.post(this.kubesPath + '/' + id + '/restart', {});
+  }
+
   // adding this back so I don't have to touch apps component right now
   public schema(data?): Observable<any> {
     return this.util.post(this.kubesPath, data);
