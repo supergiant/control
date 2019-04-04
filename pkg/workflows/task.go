@@ -41,7 +41,7 @@ type Task struct {
 	repository storage.Interface
 }
 
-func NewTask(taskType string, repository storage.Interface) (*Task, error) {
+func NewTask(config *steps.Config, taskType string, repository storage.Interface) (*Task, error) {
 	w := GetWorkflow(taskType)
 
 	if w == nil {
@@ -62,6 +62,7 @@ func NewTask(taskType string, repository storage.Interface) (*Task, error) {
 
 	// Set status for task
 	t.Status = statuses.Todo
+	t.Config = config
 
 	// Try to sync the task at first time
 	err := t.sync(context.Background())
@@ -190,7 +191,9 @@ func (w *Task) startFrom(ctx context.Context, id string, out io.Writer, i int) e
 			w.StepStatuses[index].Status = statuses.Error
 			w.Status = statuses.Error
 			w.StepStatuses[index].ErrMsg = err.Error()
-			w.sync(ctx)
+			if err := w.sync(ctx); err != nil {
+				logrus.Errorf("error syncing %v", err)
+			}
 
 			wsLog.Infof("[%s] - failed: %s", step.Name(), err.Error())
 			if err2 := w.sync(ctx); err2 != nil {

@@ -23,6 +23,7 @@ func RunTemplate(ctx context.Context, tpl *template.Template, r runner.Runner, o
 
 		if err != nil {
 			resultChan <- err
+			return
 		}
 
 		err = r.Run(cmd)

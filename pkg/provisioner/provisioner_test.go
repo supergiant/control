@@ -302,13 +302,13 @@ func TestRestartProvisionClusterSuccess(t *testing.T) {
 	repository.On("Get", mock.Anything,
 		mock.Anything,
 		mock.Anything).Return([]byte(`{"id": "task_id", 
-		"type": "PreProvision", "stepsStatuses":[{"status": "error"}]}`),
+		"type": "PreProvision", "stepsStatuses":[{"status": "error"}], "config": {}}`),
 		nil).Once()
 
 	repository.On("Get", mock.Anything,
 		mock.Anything,
 		mock.Anything).Return([]byte(`{"id": "task_id", 
-		"type": "ProvisionMaster", "stepsStatuses":[{"status": "error"}]}`),
+		"type": "ProvisionMaster", "stepsStatuses":[{"status": "error"}] "config": {}}`),
 		nil).Once()
 
 	bc := &bufferCloser{
@@ -455,23 +455,23 @@ func TestDeserializeTasks(t *testing.T) {
 
 	repository.On("Get", mock.Anything,
 		mock.Anything, mock.Anything).Return(
-		[]byte(`{"id": "1234", "type": "preprovision"}`),
+		[]byte(`{"id": "1234", "type": "preprovision", "config": {"provider": "aws"}}`),
 		nil)
 
 	repository.On("Get", mock.Anything,
 		mock.Anything, mock.Anything).Return(
 		[]byte(
-			`{"id": "4567", "type": "master"}`),
+			`{"id": "4567", "type": "master", "config": {"provider": "aws"}"}`),
 		nil)
 
 	repository.On("Get", mock.Anything,
 		mock.Anything, mock.Anything).Return(
-		[]byte(`{"id": "9876", "type": "node"}`),
+		[]byte(`{"id": "9876", "type": "node", "config": {"provider": "aws"}}`),
 		nil)
 
 	repository.On("Get", mock.Anything,
 		mock.Anything, mock.Anything).Return(
-		[]byte(`{"id": "abcd", "type": "cluster"}`),
+		[]byte(`{"id": "abcd", "type": "cluster", "config": {"provider": "aws"}}`),
 		nil)
 
 	provisioner := TaskProvisioner{
@@ -485,7 +485,9 @@ func TestDeserializeTasks(t *testing.T) {
 		workflows.ClusterTask:      {"abcd"},
 	}
 
-	taskMap, err := provisioner.deserializeClusterTasks(context.Background(),
+	taskMap, err := provisioner.deserializeClusterTasks(context.Background(), &steps.Config{
+		Provider: clouds.AWS,
+	},
 		taskIdMap)
 
 	if err != nil {
@@ -515,7 +517,7 @@ func TestDeserializeTasksError(t *testing.T) {
 		workflows.PreProvisionTask: {"1234"},
 	}
 
-	taskMap, err := provisioner.deserializeClusterTasks(context.Background(),
+	taskMap, err := provisioner.deserializeClusterTasks(context.Background(), &steps.Config{},
 		taskIdMap)
 
 	if errors.Cause(err) != sgerrors.ErrNotFound {

@@ -331,7 +331,17 @@ func (h *Handler) deleteKube(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	t, err := workflows.NewTask(workflows.DeleteCluster, h.repo)
+	config := &steps.Config{
+		Provider:         k.Provider,
+		ClusterID:        k.ID,
+		ClusterName:      k.Name,
+		CloudAccountName: k.AccountName,
+		Masters:          steps.NewMap(k.Masters),
+		Nodes:            steps.NewMap(k.Nodes),
+	}
+
+
+	t, err := workflows.NewTask(config, workflows.DeleteCluster, h.repo)
 
 	if err != nil {
 		if sgerrors.IsNotFound(err) {
@@ -341,15 +351,6 @@ func (h *Handler) deleteKube(w http.ResponseWriter, r *http.Request) {
 
 		message.SendUnknownError(w, err)
 		return
-	}
-
-	config := &steps.Config{
-		Provider:         k.Provider,
-		ClusterID:        k.ID,
-		ClusterName:      k.Name,
-		CloudAccountName: k.AccountName,
-		Masters:          steps.NewMap(k.Masters),
-		Nodes:            steps.NewMap(k.Nodes),
 	}
 
 	// Load things specific to cloud provider
@@ -696,17 +697,6 @@ func (h *Handler) deleteMachine(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	t, err := workflows.NewTask(workflows.DeleteNode, h.repo)
-	if err != nil {
-		if sgerrors.IsNotFound(err) {
-			http.NotFound(w, r)
-			return
-		}
-
-		message.SendUnknownError(w, err)
-		return
-	}
-
 	config := &steps.Config{
 		Kube:     *k,
 		Provider: k.Provider,
@@ -718,6 +708,17 @@ func (h *Handler) deleteMachine(w http.ResponseWriter, r *http.Request) {
 		CloudAccountName: k.AccountName,
 		Node:             *n,
 		Masters:          steps.NewMap(k.Masters),
+	}
+
+	t, err := workflows.NewTask(config, workflows.DeleteNode, h.repo)
+	if err != nil {
+		if sgerrors.IsNotFound(err) {
+			http.NotFound(w, r)
+			return
+		}
+
+		message.SendUnknownError(w, err)
+		return
 	}
 
 	err = util.FillCloudAccountCredentials(acc, config)

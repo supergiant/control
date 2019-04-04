@@ -4,7 +4,9 @@ import (
 	"crypto/rand"
 	"crypto/rsa"
 	"crypto/x509"
+	"encoding/json"
 	"encoding/pem"
+	"github.com/pkg/errors"
 	"strings"
 	"time"
 
@@ -53,6 +55,79 @@ func FillNodeCloudSpecificData(provider clouds.Name, nodeProfile profile.NodePro
 	default:
 		return sgerrors.ErrUnknownProvider
 	}
+
+	return nil
+}
+
+func MergeConfig(source *steps.Config, destination *steps.Config) error {
+	switch source.Provider {
+	case clouds.AWS:
+		data, err := json.Marshal(&source.AWSConfig)
+
+		if err != nil {
+			return errors.Wrapf(err, "merge config marshall config1")
+		}
+
+		err = json.Unmarshal(data, &destination.AWSConfig)
+
+		if err != nil {
+			return errors.Wrapf(err, "Merge config")
+		}
+	case clouds.GCE:
+		data, err := json.Marshal(&source.GCEConfig)
+
+		if err != nil {
+			return errors.Wrapf(err, "merge config marshall config1")
+		}
+
+		err = json.Unmarshal(data, &destination.GCEConfig)
+
+		if err != nil {
+			return errors.Wrapf(err, "Merge config")
+		}
+	case clouds.DigitalOcean:
+		data, err := json.Marshal(&source.DigitalOceanConfig)
+
+		if err != nil {
+			return errors.Wrapf(err, "merge config marshall config1")
+		}
+
+		err = json.Unmarshal(data, &destination.DigitalOceanConfig)
+
+		if err != nil {
+			return errors.Wrapf(err, "Merge config")
+		}
+	case clouds.Packet:
+		return nil
+	case clouds.OpenStack:
+		return nil
+	case clouds.Azure:
+		data, err := json.Marshal(&source.AzureConfig)
+
+		if err != nil {
+			return errors.Wrapf(err, "merge config marshall config1")
+		}
+
+		err = json.Unmarshal(data, &destination.AzureConfig)
+
+		if err != nil {
+			return errors.Wrapf(err, "Merge config")
+		}
+	default:
+		return sgerrors.ErrUnknownProvider
+	}
+
+	// These items must be shared among configs
+	destination.ExternalDNSName = source.ExternalDNSName
+	destination.InternalDNSName = source.InternalDNSName
+	destination.SetKubeStateChan(source.KubeStateChan())
+	destination.SetNodeChan(source.NodeChan())
+	destination.SetConfigChan(source.ConfigChan())
+	destination.Masters = source.Masters
+	destination.Nodes = source.Nodes
+	destination.ClusterID = source.ClusterID
+	destination.Provider = source.Provider
+	destination.ClusterName = source.ClusterName
 
 	return nil
 }
