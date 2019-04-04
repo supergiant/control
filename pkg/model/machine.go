@@ -33,7 +33,7 @@ type Machine struct {
 	CreatedAt        int64        `json:"createdAt" valid:"required"`
 	Provider         clouds.Name  `json:"provider" valid:"required"`
 	Region           string       `json:"region" valid:"required"`
-	availabilityZone string       `json:"az" valid:"-"`
+	AvailabilityZone string       `json:"az" valid:"-"`
 	Size             string       `json:"size"`
 	PublicIp         string       `json:"publicIp"`
 	PrivateIp        string       `json:"privateIp"`
@@ -44,7 +44,7 @@ type Machine struct {
 func (m Machine) String() string {
 	return fmt.Sprintf("<ID: %s, Name: %s Active: %v, Size: %s, CreatedAt: %d, Provider: %s, Region; %s, AvailabilityZone: %s, PublicIp: %s, PrivateIp: %s>",
 		m.ID, m.Name, m.State, m.Size, m.CreatedAt, m.Provider, m.Region,
-		m.availabilityZone, m.PublicIp, m.PrivateIp)
+		m.AvailabilityZone, m.PublicIp, m.PrivateIp)
 }
 
 func ToRole(isMaster bool) Role {

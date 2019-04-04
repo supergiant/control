@@ -2,6 +2,7 @@ package steps
 
 import (
 	"encoding/json"
+	"github.com/supergiant/control/pkg/sgerrors"
 	"sync"
 	"time"
 
@@ -367,6 +368,10 @@ func NewConfig(clusterName, cloudAccountName string, profile profile.Profile) (*
 }
 
 func NewConfigFromKube(profile *profile.Profile, k *model.Kube) (*Config, error) {
+	if k == nil {
+		return nil, errors.Wrapf(sgerrors.ErrNilEntity, "kube must not be nil")
+	}
+
 	token, err := bootstrap.GenerateBootstrapToken()
 
 	if err != nil {
@@ -380,6 +385,9 @@ func NewConfigFromKube(profile *profile.Profile, k *model.Kube) (*Config, error)
 		DigitalOceanConfig: DOConfig{
 			Region: profile.Region,
 		},
+		Kube: *k,
+		ExternalDNSName: k.ExternalDNSName,
+		InternalDNSName: k.InternalDNSName,
 		LogBootstrapPrivateKey: profile.LogBootstrapPrivateKey,
 		AWSConfig: AWSConfig{
 			Region:                 profile.Region,
@@ -391,6 +399,8 @@ func NewConfigFromKube(profile *profile.Profile, k *model.Kube) (*Config, error)
 			MastersSecurityGroupID: k.CloudSpec[clouds.AwsMastersSecGroupID],
 			NodesSecurityGroupID:   k.CloudSpec[clouds.AwsNodesSecgroupID],
 			ImageID:                k.CloudSpec[clouds.AwsImageID],
+			ExternalLoadBalancerName: k.CloudSpec[clouds.AwsExternalLoadBalancerName],
+			InternalLoadBalancerName: k.CloudSpec[clouds.AwsInternalLoadBalancerName],
 			// TODO(stgleb): Passs this from UI or figure out any better way
 			DeviceName: 		    "/dev/sda1",
 			HasPublicAddr:          true,
@@ -457,10 +467,10 @@ func NewConfigFromKube(profile *profile.Profile, k *model.Kube) (*Config, error)
 			CIDR:        profile.CIDR,
 		},
 		Masters: Map{
-			internal: make(map[string]*model.Machine, len(k.Masters)),
+			internal: make(map[string]*model.Machine, len(profile.MasterProfiles)),
 		},
 		Nodes: Map{
-			internal: make(map[string]*model.Machine, len(k.Nodes)),
+			internal: make(map[string]*model.Machine, len(profile.NodesProfiles)),
 		},
 		Timeout:          time.Minute * 30,
 		CloudAccountName: k.AccountName,
@@ -469,15 +479,22 @@ func NewConfigFromKube(profile *profile.Profile, k *model.Kube) (*Config, error)
 		configChan:       make(chan *Config),
 	}
 
-	if k != nil {
-		cfg.Kube = *k
+	// Restore all masters and workers from kube
+	for index := range k.Masters {
+		cfg.AddMaster(k.Masters[index])
+	}
 
-		cfg.Kube.SSHConfig = model.SSHConfig{
-			Port:      "22",
-			User:      "root",
-			Timeout:   10,
-			PublicKey: profile.PublicKey,
-		}
+	for index := range k.Nodes {
+		cfg.AddNode(k.Nodes[index])
+	}
+
+	cfg.Kube = *k
+
+	cfg.Kube.SSHConfig = model.SSHConfig{
+		Port:      "22",
+		User:      "root",
+		Timeout:   10,
+		PublicKey: profile.PublicKey,
 	}
 
 	return cfg, nil

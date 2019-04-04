@@ -49,6 +49,14 @@ func (s *Step) Run(ctx context.Context, out io.Writer, config *steps.Config) err
 
 	// Mark current node as active to allow cluster check task select it for cluster wide task
 	config.Node.State = model.MachineStateActive
+	// Update node state to be visible for other nodes
+	// This is needed for restarting cluster provisioning
+	if config.IsMaster {
+		config.AddMaster(&config.Node)
+	} else {
+		config.AddNode(&config.Node)
+	}
+
 	config.NodeChan() <- config.Node
 
 	return nil

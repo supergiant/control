@@ -70,7 +70,6 @@ func (t *Step) Run(ctx context.Context, out io.Writer, config *steps.Config) err
 	}
 
 	config.KubeadmConfig.IsMaster = config.IsMaster
-
 	err := steps.RunTemplate(ctx, t.script, config.Runner, out, config.KubeadmConfig)
 
 	if err != nil {
