@@ -61,21 +61,46 @@ type DOConfig struct {
 	InternalLoadBalancerID string `json:"internalLoadBalancerId"`
 }
 
-// TODO(stgleb): Fill struct with fields when provisioning on other providers is done
+type ServiceAccount struct {
+	// NOTE(stgleb): This comes from cloud account
+	Type      string `json:"type"`
+	ProjectID string `json:"project_id"`
+
+	PrivateKeyID string `json:"private_key_id"`
+	PrivateKey   string `json:"private_key"`
+
+	ClientEmail string `json:"client_email"`
+	ClientID    string `json:"client_id"`
+
+	AuthURI  string `json:"auth_uri"`
+	TokenURI string `json:"token_uri"`
+
+	AuthProviderX509CertURL string `json:"auth_provider_x509_cert_url"`
+	ClientX509CertUrl       string `json:"client_x509_cert_url"`
+}
 
 type GCEConfig struct {
-	// NOTE(stgleb): This comes from cloud account
-	PrivateKey  string `json:"private_key"`
-	ClientEmail string `json:"client_email"`
-	TokenURI    string `json:"token_uri"`
-	ProjectID   string `json:"project_id"`
+	ServiceAccount
 
 	// This comes from profile
 	ImageFamily      string `json:"imageFamily"`
 	Region           string `json:"region"`
 	AvailabilityZone string `json:"availabilityZone"`
 	Size             string `json:"size"`
-	InstanceGroup    string `json:"instanceGroup"`
+	InstanceGroupName    string `json:"instanceGroupName"`
+	InstanceGroupLink    string `json:"instanceGroupLink"`
+
+	// Target pool acts as a balancer for external traffic https://cloud.google.com/load-balancing/docs/target-pools
+	TargetPoolName string `json:"targetPoolName"`
+	TargetPoolLink string `json:"targetPoolLink"`
+
+	ExternalAddressName string `json:"externalAddressName"`
+
+	ExternalIPAddressLink string `json:"externalIpAddressLink"`
+
+	HealthCheckName string `json:"healthCheckName"`
+
+	ForwardingRuleName string `json:"externalForwardingRuleName"`
 }
 
 type AzureConfig struct {
@@ -172,7 +197,7 @@ type KubeadmConfig struct {
 	K8SVersion       string `json:"K8SVersion"`
 	IsMaster         bool   `json:"isMaster"`
 	AdvertiseAddress string `json:"advertiseAddress"`
-	IsBootstrap      bool   `json:"isBootstrap"`
+	IsBootstrap      bool   `json:"IsBootstrap"`
 	CIDR             string `json:"cidr"`
 	Token            string `json:"token"`
 	Provider         string `json:"provider"`
@@ -208,16 +233,17 @@ type Config struct {
 	Kube model.Kube `json:"kube"`
 
 	TaskID                 string
-	Provider               clouds.Name  `json:"provider"`
-	IsMaster               bool         `json:"isMaster"`
-	ClusterID              string       `json:"clusterId"`
-	ClusterName            string       `json:"clusterName"`
-	LogBootstrapPrivateKey bool         `json:"logBootstrapPrivateKey"`
-	DigitalOceanConfig     DOConfig     `json:"digitalOceanConfig"`
-	AWSConfig              AWSConfig    `json:"awsConfig"`
-	GCEConfig              GCEConfig    `json:"gceConfig"`
-	AzureConfig            AzureConfig  `json:"azureConfig"`
-	OSConfig               OSConfig     `json:"osConfig"`
+	Provider               clouds.Name `json:"provider"`
+	IsMaster               bool        `json:"isMaster"`
+	IsBootstrap            bool        `json:"IsBootstrap"`
+	ClusterID              string      `json:"clusterId"`
+	ClusterName            string      `json:"clusterName"`
+	LogBootstrapPrivateKey bool        `json:"logBootstrapPrivateKey"`
+	DigitalOceanConfig     DOConfig    `json:"digitalOceanConfig"`
+	AWSConfig              AWSConfig   `json:"awsConfig"`
+	GCEConfig              GCEConfig   `json:"gceConfig"`
+	AzureConfig            AzureConfig `json:"azureConfig"`
+	OSConfig               OSConfig    `json:"osConfig"`
 	PacketConfig           PacketConfig `json:"packetConfig"`
 
 	DockerConfig       DockerConfig       `json:"dockerConfig"`
@@ -264,8 +290,8 @@ func NewConfig(clusterName, cloudAccountName string, profile profile.Profile) (*
 	if err != nil {
 		return nil, errors.Wrapf(err, "bootstrap token")
 	}
-
 	return &Config{
+		IsBootstrap: true,
 		Kube: model.Kube{
 			SSHConfig: model.SSHConfig{
 				Port:      "22",
@@ -296,6 +322,7 @@ func NewConfig(clusterName, cloudAccountName string, profile profile.Profile) (*
 		GCEConfig: GCEConfig{
 			AvailabilityZone: profile.Zone,
 			ImageFamily:      "ubuntu-1604-lts",
+			Region:           profile.Region,
 		},
 		AzureConfig: AzureConfig{
 			Location: profile.Region,

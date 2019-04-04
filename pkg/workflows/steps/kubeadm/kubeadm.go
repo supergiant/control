@@ -43,28 +43,33 @@ func New(script *template.Template) *Step {
 
 func (t *Step) Run(ctx context.Context, out io.Writer, config *steps.Config) error {
 	config.KubeadmConfig.Provider = string(config.Provider)
+	config.KubeadmConfig.IsBootstrap = config.IsBootstrap
+	config.KubeadmConfig.IsMaster = config.IsMaster
 
 	// NOTE(stgleb): Kubeadm accepts only ipv4 or ipv6 addresses as advertise address
-	if config.KubeadmConfig.IsBootstrap {
+	if config.IsBootstrap {
 		config.KubeadmConfig.AdvertiseAddress = config.Node.PrivateIp
-
 		config.KubeadmConfig.ExternalDNSName = config.Node.PublicIp
 		config.KubeadmConfig.InternalDNSName = config.Node.PublicIp
-
 	} else {
-		master := config.GetMaster()
-		if master == nil {
-			return errors.Wrapf(sgerrors.ErrRawError, "no masters in the %s cluster", config.ClusterID)
+
+		if !config.IsMaster {
+			master := config.GetMaster()
+			if master == nil {
+				return errors.Wrapf(sgerrors.ErrRawError, "no masters in the %s cluster", config.ClusterID)
+			}
+			config.KubeadmConfig.MasterPrivateIP = master.PrivateIp
+			config.KubeadmConfig.InternalDNSName = master.PrivateIp
+			config.KubeadmConfig.ExternalDNSName = master.PublicIp
+		} else {
+			config.KubeadmConfig.MasterPrivateIP = config.Node.PrivateIp
+			config.KubeadmConfig.InternalDNSName = config.Node.PrivateIp
+			config.KubeadmConfig.ExternalDNSName = config.Node.PublicIp
 		}
-
-		config.KubeadmConfig.MasterPrivateIP = master.PrivateIp
-
-		config.KubeadmConfig.InternalDNSName = master.PrivateIp
-		config.KubeadmConfig.ExternalDNSName = master.PublicIp
 	}
 
-	// TODO: Update that when all providers support Load Balancers
-	if config.Provider == clouds.AWS || config.Provider == clouds.DigitalOcean {
+	// TODO(stgleb): Remove that when all providers support Load Balancers
+	if config.Provider == clouds.AWS || config.Provider == clouds.DigitalOcean || config.Provider == clouds.GCE {
 		config.KubeadmConfig.InternalDNSName = config.InternalDNSName
 		config.KubeadmConfig.ExternalDNSName = config.ExternalDNSName
 	}
@@ -79,7 +84,6 @@ func (t *Step) Run(ctx context.Context, out io.Writer, config *steps.Config) err
 		return errors.Wrap(sgerrors.ErrRawError, "master address should be set")
 	}
 
-	config.KubeadmConfig.IsMaster = config.IsMaster
 	err := steps.RunTemplate(ctx, t.script, config.Runner, out, config.KubeadmConfig)
 
 	if err != nil {

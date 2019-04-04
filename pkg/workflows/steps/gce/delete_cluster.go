@@ -17,11 +17,10 @@ type DeleteClusterStep struct {
 	getComputeSvc func(context.Context, steps.GCEConfig) (*computeService, error)
 }
 
-func NewDeleteClusterStep() (*DeleteClusterStep, error) {
+func NewDeleteClusterStep() *DeleteClusterStep {
 	return &DeleteClusterStep{
 		getComputeSvc: func(ctx context.Context, config steps.GCEConfig) (*computeService, error) {
-			client, err := GetClient(ctx, config.ClientEmail,
-				config.PrivateKey, config.TokenURI)
+			client, err := GetClient(ctx, config)
 
 			if err != nil {
 				return nil, err
@@ -33,7 +32,7 @@ func NewDeleteClusterStep() (*DeleteClusterStep, error) {
 				},
 			}, nil
 		},
-	}, nil
+	}
 }
 
 func (s *DeleteClusterStep) Run(ctx context.Context, output io.Writer, config *steps.Config) error {
@@ -47,7 +46,7 @@ func (s *DeleteClusterStep) Run(ctx context.Context, output io.Writer, config *s
 	for _, master := range config.GetMasters() {
 		logrus.Debugf("Delete master %s in %s", master.Name, master.Region)
 
-		_, serr := svc.deleteInstance(config.GCEConfig.ProjectID,
+		_, serr := svc.deleteInstance(config.GCEConfig.ServiceAccount.ProjectID,
 			master.Region,
 			master.Name)
 
@@ -58,7 +57,7 @@ func (s *DeleteClusterStep) Run(ctx context.Context, output io.Writer, config *s
 
 	for _, node := range config.GetNodes() {
 		logrus.Debugf("Delete node %s in %s", node.Name, node.Region)
-		_, serr := svc.deleteInstance(config.GCEConfig.ProjectID,
+		_, serr := svc.deleteInstance(config.GCEConfig.ServiceAccount.ProjectID,
 			node.Region,
 			node.Name)
 

@@ -45,11 +45,11 @@ func (s *RegisterInstanceToLoadBalancer) Run(ctx context.Context, out io.Writer,
 }
 
 func (s *RegisterInstanceToLoadBalancer) Name() string {
-	return CreateMachineStep
+	return RegisterInstanceStepName
 }
 
 func (s *RegisterInstanceToLoadBalancer) Description() string {
-	return CreateMachineStep
+	return RegisterInstanceStepName
 }
 
 func (s *RegisterInstanceToLoadBalancer) Depends() []string {

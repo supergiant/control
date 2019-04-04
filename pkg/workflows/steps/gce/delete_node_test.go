@@ -87,11 +87,7 @@ func TestDeleteNodeStep_Run(t *testing.T) {
 }
 
 func TestNewDeleteNodeStep(t *testing.T) {
-	s, err := NewDeleteNodeStep()
-
-	if err != nil {
-		t.Errorf("unexpected error %v", err)
-	}
+	s := NewDeleteNodeStep()
 
 	if s == nil {
 		t.Error("Step must not be nil")
@@ -101,7 +97,13 @@ func TestNewDeleteNodeStep(t *testing.T) {
 		t.Errorf("get compute service must not be nil")
 	}
 
-	if client, err := s.getComputeSvc(context.Background(), steps.GCEConfig{}); client == nil || err != nil {
+	if client, err := s.getComputeSvc(context.Background(), steps.GCEConfig{
+		ServiceAccount: steps.ServiceAccount{
+			Type: "service_account",
+		},
+	});
+
+	client == nil || err != nil {
 		t.Errorf("Unexpected values %v %v", client, err)
 	}
 }
