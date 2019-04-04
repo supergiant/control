@@ -175,11 +175,33 @@
             </mat-select>
           </mat-form-field>
         </div>
+        
+        <div class="input-group">
+          <mat-form-field>
+            <textarea (change)="putExposedAddressesInArray($event)"
+                      cdkTextareaAutosize
+                      cdkAutosizeMinRows="9"
+                      cdkAutosizeMaxRows="9"
+                      matInput
+                      formControlName="exposedAddresses"
+                      placeholder="IP Whitelist"></textarea>
+            <mat-hint align="end">Enter each 
+              <a href="https://en.wikipedia.org/wiki/Classless_Inter-Domain_Routing"
+                target="_blank">CIDR</a> block on its own line
+            </mat-hint>
+          </mat-form-field>
+        </div>
+
       </form>
 
       <div *ngIf="cidr.invalid">
         <p *ngIf="cidr.errors.invalidCidr"
            class="warning">{{ cidr.errors.invalidCidr.value }} is not valid CIDR notation</p>
+      </div>
+
+      <div *ngIf="exposedAddresses.invalid">
+        <p *ngIf="exposedAddresses.errors.invalidCidrs"
+           class="warning">One or more values in the IP Whitelist does not have valid CIDR notation</p>
       </div>
 
       <div class="step-actions">
@@ -629,6 +651,10 @@
               <p><span class="label">CIDR:</span> {{ clusterConfig.value.cidr }}</p>
               <p><span class="label">OPERATING SYSTEM:</span> {{ clusterConfig.value.operatingSystem }}</p>
               <p><span class="label">ARCH:</span> {{ clusterConfig.value.arch }}</p>
+              <p><span class="label">IP WHITELIST:</span>
+                <div *ngFor="let e of exposedAddressesArray">
+                  {{e}}
+                </div> 
             </div>
           </div>
 
