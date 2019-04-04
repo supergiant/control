@@ -265,6 +265,8 @@ func (tp *TaskProvisioner) provision(ctx context.Context,
 		"%s has finished successfully",
 		config.ClusterID)
 
+	config.IsBootstrap = false
+	config.IsMaster = false
 	err = tp.provisionNodes(ctx, clusterProfile, config,
 		taskMap[workflows.NodeTask])
 
@@ -489,6 +491,7 @@ func (tp *TaskProvisioner) provisionNodes(ctx context.Context, profile *profile.
 
 		go func(t *workflows.Task) {
 			t.Config.IsMaster = false
+			t.Config.IsBootstrap = false
 			result := t.Run(ctx, *t.Config, out)
 			err = <-result
 

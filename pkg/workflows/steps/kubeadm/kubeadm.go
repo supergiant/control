@@ -3,7 +3,6 @@ package kubeadm
 import (
 	"context"
 	"fmt"
-	"github.com/sirupsen/logrus"
 	"io"
 	"text/template"
 
@@ -53,13 +52,20 @@ func (t *Step) Run(ctx context.Context, out io.Writer, config *steps.Config) err
 		config.KubeadmConfig.ExternalDNSName = config.Node.PublicIp
 		config.KubeadmConfig.InternalDNSName = config.Node.PublicIp
 	} else {
-		master := config.GetMaster()
-		if master == nil {
-			return errors.Wrapf(sgerrors.ErrRawError, "no masters in the %s cluster", config.ClusterID)
+
+		if !config.IsMaster {
+			master := config.GetMaster()
+			if master == nil {
+				return errors.Wrapf(sgerrors.ErrRawError, "no masters in the %s cluster", config.ClusterID)
+			}
+			config.KubeadmConfig.MasterPrivateIP = master.PrivateIp
+			config.KubeadmConfig.InternalDNSName = master.PrivateIp
+			config.KubeadmConfig.ExternalDNSName = master.PublicIp
+		} else {
+			config.KubeadmConfig.MasterPrivateIP = config.Node.PrivateIp
+			config.KubeadmConfig.InternalDNSName = config.Node.PrivateIp
+			config.KubeadmConfig.ExternalDNSName = config.Node.PublicIp
 		}
-		config.KubeadmConfig.MasterPrivateIP = master.PrivateIp
-		config.KubeadmConfig.InternalDNSName = master.PrivateIp
-		config.KubeadmConfig.ExternalDNSName = master.PublicIp
 	}
 
 	// TODO(stgleb): Remove that when all providers support Load Balancers
@@ -78,8 +84,6 @@ func (t *Step) Run(ctx context.Context, out io.Writer, config *steps.Config) err
 		return errors.Wrap(sgerrors.ErrRawError, "master address should be set")
 	}
 
-	logrus.Infof("External and Internal dns name %s %s master private ip %s",
-		config.ExternalDNSName, config.InternalDNSName, config.KubeadmConfig.MasterPrivateIP)
 	err := steps.RunTemplate(ctx, t.script, config.Runner, out, config.KubeadmConfig)
 
 	if err != nil {
