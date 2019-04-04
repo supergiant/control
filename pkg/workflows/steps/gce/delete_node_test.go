@@ -87,11 +87,7 @@ func TestDeleteNodeStep_Run(t *testing.T) {
 }
 
 func TestNewDeleteNodeStep(t *testing.T) {
-	s, err := NewDeleteNodeStep()
-
-	if err != nil {
-		t.Errorf("unexpected error %v", err)
-	}
+	s := NewDeleteNodeStep()
 
 	if s == nil {
 		t.Error("Step must not be nil")

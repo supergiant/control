@@ -87,11 +87,7 @@ func TestDeleteClusterStep_Run(t *testing.T) {
 }
 
 func TestNewDeleteClusterStep(t *testing.T) {
-	s, err := NewDeleteClusterStep()
-
-	if err != nil {
-		t.Errorf("unexpected error %v", err)
-	}
+	s := NewDeleteClusterStep()
 
 	if s == nil {
 		t.Error("Step must not be nil")
