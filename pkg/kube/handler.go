@@ -402,7 +402,12 @@ func (h *Handler) deleteKube(w http.ResponseWriter, r *http.Request) {
 			return
 		}
 
-		h.deleteClusterTasks(context.Background(), kubeID)
+		// Clean up tasks in storage
+		err = h.deleteClusterTasks(context.Background(), kubeID)
+
+		if err != nil {
+			logrus.Errorf("error while deleting tasks %s", err)
+		}
 	}(t)
 
 	w.WriteHeader(http.StatusAccepted)

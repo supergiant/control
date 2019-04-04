@@ -3,6 +3,7 @@ package kubeadm
 import (
 	"bytes"
 	"context"
+	"github.com/supergiant/control/pkg/model"
 	"io"
 	"io/ioutil"
 	"strings"
@@ -52,6 +53,7 @@ func TestKubeadm(t *testing.T) {
 	cfg := &steps.Config{
 		Provider: clouds.AWS,
 		IsMaster: true,
+		IsBootstrap: true,
 		KubeadmConfig: steps.KubeadmConfig{
 			IsMaster:    true,
 			IsBootstrap: true,
@@ -61,6 +63,9 @@ func TestKubeadm(t *testing.T) {
 		ExternalDNSName: "external.dns.name",
 		InternalDNSName: "internal.dns.name",
 		Runner:          r,
+		Node: model.Machine{
+			PrivateIp: "10.20.30.40",
+		},
 	}
 
 	task := &Step{

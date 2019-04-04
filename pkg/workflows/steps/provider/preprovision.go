@@ -6,6 +6,7 @@ import (
 	"io"
 
 	"github.com/pkg/errors"
+	"github.com/supergiant/control/pkg/workflows/steps/gce"
 
 	"github.com/supergiant/control/pkg/clouds"
 	"github.com/supergiant/control/pkg/workflows/steps"
@@ -76,14 +77,19 @@ func prepProvisionStepFor(provider clouds.Name) ([]steps.Step, error) {
 			// TODO(stgleb): Apply security stuff here
 			steps.GetStep(digitalocean.CreateLoadBalancerStepName),
 		}, nil
-	case clouds.GCE:
-		return []steps.Step{}, nil
 	case clouds.Azure:
 		return []steps.Step{
 			steps.GetStep(azure.GetAuthorizerStepName),
 			steps.GetStep(azure.CreateGroupStepName),
 			steps.GetStep(azure.CreateVNetAndSubnetsStepName),
 			steps.GetStep(azure.CreateSecurityGroupStepName),
+		}, nil
+	case clouds.GCE:
+		return []steps.Step{
+			steps.GetStep(gce.CreateIPAddressStepName),
+			steps.GetStep(gce.CreateTargetPullStepName),
+			steps.GetStep(gce.CreateForwardingRulesStepName),
+			steps.GetStep(gce.CreateHealthCheckStepName),
 		}, nil
 	}
 	return nil, errors.Wrapf(fmt.Errorf("unknown provider: %s", provider), PreProvisionStep)

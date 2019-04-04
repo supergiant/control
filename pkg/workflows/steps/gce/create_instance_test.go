@@ -154,6 +154,12 @@ func TestCreateInstanceStep_Run(t *testing.T) {
 					setInstanceMetadata: func(context.Context, steps.GCEConfig, string, *compute.Metadata) (*compute.Operation, error) {
 						return nil, testCase.setMetadataErr
 					},
+					addInstanceToInstanceGroup: func(ctx context.Context, config steps.GCEConfig, s string, request *compute.InstanceGroupsAddInstancesRequest) (*compute.Operation, error) {
+						return nil, nil
+					},
+					addInstanceToTargetGroup: func(ctx context.Context, config steps.GCEConfig, s string, request *compute.TargetPoolsAddInstanceRequest) (*compute.Operation, error) {
+						return nil, nil
+					},
 				}, testCase.getSvcErr
 			},
 		}
@@ -200,14 +206,11 @@ func TestNewCreateInstanceStep(t *testing.T) {
 	period := time.Second * 1
 	timeout := time.Second * 2
 
-	s, err := NewCreateInstanceStep(period, timeout)
+	s := NewCreateInstanceStep(period, timeout)
 
 	if s == nil {
 		t.Error("Step must not be nil")
-	}
-
-	if err != nil {
-		t.Errorf("Unexpected error %v", err)
+		return
 	}
 
 	if s.checkPeriod != period {
