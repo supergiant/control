@@ -2,6 +2,7 @@ package steps
 
 import (
 	"encoding/json"
+	"github.com/supergiant/control/pkg/sgerrors"
 	"sync"
 	"time"
 
@@ -367,6 +368,10 @@ func NewConfig(clusterName, cloudAccountName string, profile profile.Profile) (*
 }
 
 func NewConfigFromKube(profile *profile.Profile, k *model.Kube) (*Config, error) {
+	if k == nil {
+		return nil, errors.Wrapf(sgerrors.ErrNilEntity, "kube must not be nil")
+	}
+
 	token, err := bootstrap.GenerateBootstrapToken()
 
 	if err != nil {

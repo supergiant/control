@@ -3,7 +3,7 @@ package certificates
 import (
 	"context"
 	"fmt"
-	"github.com/sirupsen/logrus"
+	"github.com/supergiant/control/pkg/sgerrors"
 	"io"
 	"text/template"
 
@@ -50,7 +50,7 @@ func (s *Step) Run(ctx context.Context, out io.Writer, config *steps.Config) err
 			config.CertificatesConfig.MasterHost = master.PrivateIp
 			config.CertificatesConfig.NodeName = config.Node.Name
 		} else {
-			logrus.Errorf("master not found in config")
+			return errors.Wrapf(sgerrors.ErrNilEntity, "master not found in config")
 		}
 	}
 
