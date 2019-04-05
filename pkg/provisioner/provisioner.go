@@ -385,11 +385,7 @@ func (tp *TaskProvisioner) bootstrapMaster(ctx context.Context,
 
 	// Fulfill task config with data about provider specific node configuration
 	p := profile.MasterProfiles[0]
-	err = FillNodeCloudSpecificData(profile.Provider, p, bootstrapTask.Config)
-
-	if err != nil {
-		return errors.Wrapf(err, "fill node cloud account")
-	}
+	FillNodeCloudSpecificData(profile.Provider, p, bootstrapTask.Config)
 
 	bootstrapTask.Config.TaskID = bootstrapTask.ID
 	bootstrapTask.Config.KubeadmConfig.IsBootstrap = true
@@ -436,11 +432,7 @@ func (tp *TaskProvisioner) provisionMasters(ctx context.Context,
 
 		// Fulfill task config with data about provider specific node configuration
 		p := profile.MasterProfiles[index]
-		err = FillNodeCloudSpecificData(profile.Provider, p, masterTask.Config)
-
-		if err != nil {
-			return errors.Wrapf(err, "provision masters fill node cloud specific data")
-		}
+		FillNodeCloudSpecificData(profile.Provider, p, masterTask.Config)
 
 		go func(t *workflows.Task) {
 			// Put task id to config so that create instance step can use this id when generate node name
