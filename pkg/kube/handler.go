@@ -531,8 +531,8 @@ func (h *Handler) addMachine(w http.ResponseWriter, r *http.Request) {
 	kubeID := vars["kubeID"]
 	k, err := h.svc.Get(r.Context(), kubeID)
 
-	if err != nil {
-		http.Error(w, err.Error(), http.StatusNotFound)
+	if sgerrors.IsNotFound(err) {
+		http.NotFound(w, r)
 		return
 	}
 
