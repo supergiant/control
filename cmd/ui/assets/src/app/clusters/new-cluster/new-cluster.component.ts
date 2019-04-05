@@ -176,6 +176,15 @@ export class NewClusterComponent implements OnInit, OnDestroy {
       newClusterData.profile.masterProfiles = this.nodesService.compileProfiles(this.selectedCloudAccount.provider, this.machines, 'Master');
       newClusterData.profile.nodesProfiles = this.nodesService.compileProfiles(this.selectedCloudAccount.provider, this.machines, 'Node');
 
+      //format exposedArray as an array of objects
+      let exposedAddrArray = this.multiLineStringToArray(newClusterData.profile.exposedAddresses);
+      let exposedAddrObjects = new Array();
+      for(let i=0; i<exposedAddrArray.length; i++){
+        let myObject = {"cidr" : exposedAddrArray[i]};
+        exposedAddrObjects.push(myObject);
+      }
+      newClusterData.profile.exposedAddresses = exposedAddrObjects;
+
       switch (newClusterData.profile.provider) {
         case 'aws': {
           newClusterData.profile.cloudSpecificSettings = {
@@ -195,14 +204,7 @@ export class NewClusterComponent implements OnInit, OnDestroy {
           break;
       }
 
-      //format exposedArray as an array of objects
-      let exposedAddrArray = newClusterData.profile.exposedAddresses.split("\n").filter(c => c != "");
-      let exposedAddrObjects = new Array();
-      for(let i=0; i<exposedAddrArray.length; i++){
-        let myObject = {"cidr" : exposedAddrArray[i]};
-        exposedAddrObjects.push(myObject);
-      }
-      newClusterData.profile.exposedAddresses = exposedAddrObjects;
+console.log(newClusterData.profile);
 
       this.provisioning = true;
       this.subscriptions.add(this.supergiant.Kubes.create(newClusterData).subscribe(
@@ -547,7 +549,7 @@ export class NewClusterComponent implements OnInit, OnDestroy {
   allValidCidrs(): ValidatorFn {
     return (userCidrs: AbstractControl): { [key: string]: any } | null => {
 
-      let cidrArray = userCidrs.value.split("\n").filter(c => c != "");
+      let cidrArray = this.multiLineStringToArray(userCidrs.value);
       let allValidCidrs = true;
 
       for(let i=0; i<cidrArray.length; i++){
@@ -557,7 +559,7 @@ export class NewClusterComponent implements OnInit, OnDestroy {
         }
       }
 
-      return allValidCidrs ? null :  { 'invalidCidrs': { value: true } };
+      return allValidCidrs ? null : { 'invalidCidrs': { value: true } };
     };
   }
 
@@ -567,7 +569,7 @@ export class NewClusterComponent implements OnInit, OnDestroy {
     }
 
     return val.toLowerCase().indexOf(this.machineTypesFilter.toLowerCase()) > -1;
-  };
+  }
 
   regionsFilterCallback = (val) => {
     if (this.regionsFilter === '') {
@@ -575,10 +577,24 @@ export class NewClusterComponent implements OnInit, OnDestroy {
     }
 
     return val.name.toLowerCase().indexOf(this.regionsFilter.toLowerCase()) > -1;
-  };
+  }
 
-  putExposedAddressesInArray(val){
-    this.exposedAddressesArray = this.exposedAddresses.value.split("\n").filter(c => c != "");
+  multiLineStringToArray (str) {
+    //handle empty string
+    if(str.length==0){
+      return new Array();
+
+    //handle string with no line breaks
+    }else if(!str.includes("\n")){
+      let arr = new Array();
+      arr.push(str);
+      return arr;
+
+    //handle string with line breaks
+    }else{
+      //split string at each line break, and ignore any blank lines
+      return str.split("\n").filter(c => c != "");
+    }
   }
 
 }
