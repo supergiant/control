@@ -291,7 +291,9 @@ func TestGCEResourceFinder_GetRegions(t *testing.T) {
 			client: nil,
 			config: steps.Config{
 				GCEConfig: steps.GCEConfig{
-					ProjectID: testCase.projectID,
+					ServiceAccount: steps.ServiceAccount{
+						ProjectID: testCase.projectID,
+					},
 				},
 			},
 			listRegions: func(client *compute.Service, projectID string) (*compute.RegionList, error) {
@@ -328,7 +330,7 @@ func TestGCEResourceFinder_GetZones(t *testing.T) {
 	}{
 		{
 			projectID: "test",
-			regionID:  "us-east33",
+			regionID:  "us-east1",
 			err:       sgerrors.ErrNotFound,
 			region:    nil,
 		},
@@ -347,7 +349,10 @@ func TestGCEResourceFinder_GetZones(t *testing.T) {
 			client: nil,
 			config: steps.Config{
 				GCEConfig: steps.GCEConfig{
-					ProjectID: testCase.projectID,
+					Region: testCase.regionID,
+					ServiceAccount: steps.ServiceAccount{
+						ProjectID: testCase.projectID,
+					},
 				},
 			},
 			getRegion: func(client *compute.Service, projectID, regionID string) (*compute.Region, error) {
@@ -367,7 +372,9 @@ func TestGCEResourceFinder_GetZones(t *testing.T) {
 
 		config := steps.Config{
 			GCEConfig: steps.GCEConfig{
-				ProjectID: testCase.projectID,
+				ServiceAccount: steps.ServiceAccount{
+					ProjectID: testCase.projectID,
+				},
 				Region:    testCase.regionID,
 			},
 		}
@@ -422,7 +429,9 @@ func TestGCEResourceFinder_GetTypes(t *testing.T) {
 	for _, testCase := range testCases {
 		config := steps.Config{
 			GCEConfig: steps.GCEConfig{
-				ProjectID:        testCase.projectID,
+				ServiceAccount: steps.ServiceAccount{
+					ProjectID: testCase.projectID,
+				},
 				AvailabilityZone: testCase.zoneID,
 			},
 		}

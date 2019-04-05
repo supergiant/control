@@ -229,8 +229,29 @@ func (tp *TaskProvisioner) provision(ctx context.Context,
 	logrus.Debug("update kube state")
 	config.KubeStateChan() <- model.StateProvisioning
 
+	if len(taskMap[workflows.MasterTask]) == 0 {
+		return
+	}
+
+	config.IsMaster = true
+	config.IsBootstrap = true
+	// Get bootstrap task as a first master task
+	bootstrapTask := taskMap[workflows.MasterTask][0]
+	taskMap[workflows.MasterTask] = taskMap[workflows.MasterTask][1:]
+
+	logrus.Debug("Provision bootstrap node")
+	err := tp.bootstrapMaster(ctx, clusterProfile, config, bootstrapTask)
+
+	if err != nil {
+		config.KubeStateChan() <- model.StateFailed
+		logrus.Errorf("provisioning bootstrap node has been failed")
+		return
+	}
+
+	config = bootstrapTask.Config
+	config.IsBootstrap = false
 	logrus.Debug("Provision masters")
-	err := tp.provisionMasters(ctx, clusterProfile,
+	err = tp.provisionMasters(ctx, clusterProfile,
 		config, taskMap[workflows.MasterTask])
 
 	if err != nil {
@@ -244,6 +265,8 @@ func (tp *TaskProvisioner) provision(ctx context.Context,
 		"%s has finished successfully",
 		config.ClusterID)
 
+	config.IsBootstrap = false
+	config.IsMaster = false
 	err = tp.provisionNodes(ctx, clusterProfile, config,
 		taskMap[workflows.NodeTask])
 
@@ -344,16 +367,9 @@ func (tp *TaskProvisioner) preProvision(ctx context.Context, preProvisionTask *w
 	return err
 }
 
-func (tp *TaskProvisioner) provisionMasters(ctx context.Context,
+func (tp *TaskProvisioner) bootstrapMaster(ctx context.Context,
 	profile *profile.Profile, rootConfig *steps.Config,
-	tasks []*workflows.Task) error {
-
-	if len(tasks) == 0 {
-		return nil
-	}
-
-	// Get bootstrap task as a first master task
-	bootstrapTask, tasks := tasks[0], tasks[1:]
+	bootstrapTask *workflows.Task) error {
 
 	fileName := util.MakeFileName(bootstrapTask.ID)
 	out, err := tp.getWriter(fileName)
@@ -363,13 +379,18 @@ func (tp *TaskProvisioner) provisionMasters(ctx context.Context,
 		return errors.Wrapf(err, "Error getting writer for %s", fileName)
 	}
 
-	// Fulfill task config with data about provider specific node configuration
-	p := profile.MasterProfiles[0]
 	if err := MergeConfig(rootConfig, bootstrapTask.Config); err != nil {
 		return errors.Wrapf(err, "merge pre provision config to bootstrap task config")
 	}
 
-	FillNodeCloudSpecificData(profile.Provider, p, bootstrapTask.Config)
+	// Fulfill task config with data about provider specific node configuration
+	p := profile.MasterProfiles[0]
+	err = FillNodeCloudSpecificData(profile.Provider, p, bootstrapTask.Config)
+
+	if err != nil {
+		return errors.Wrapf(err, "fill node cloud account")
+	}
+
 	bootstrapTask.Config.TaskID = bootstrapTask.ID
 	bootstrapTask.Config.KubeadmConfig.IsBootstrap = true
 	bootstrapTask.Config.IsMaster = true
@@ -377,12 +398,26 @@ func (tp *TaskProvisioner) provisionMasters(ctx context.Context,
 	err = <-bootstrapTask.Run(ctx, *bootstrapTask.Config, out)
 
 	if err != nil {
-		logrus.Errorf("master bootstrap task %s has finished with error %v", bootstrapTask.ID, err)
+		logrus.Errorf("bootstrap task %s has finished with error %v", bootstrapTask.ID, err)
 		return errors.Wrapf(err, "master bootstrap task %s has finished with error %v", bootstrapTask.ID, err)
 	} else {
-		logrus.Infof("master bootstrap %s has finished", bootstrapTask.ID)
+		logrus.Infof("bootstrap %s has finished", bootstrapTask.ID)
 	}
 
+	logrus.Infof("bootstrap task %s has finished", bootstrapTask.ID)
+	rootConfig.ConfigChan() <- bootstrapTask.Config
+
+	return nil
+}
+
+func (tp *TaskProvisioner) provisionMasters(ctx context.Context,
+	profile *profile.Profile, rootConfig *steps.Config,
+	tasks []*workflows.Task) error {
+	if len(tasks) == 0 {
+		return nil
+	}
+
+	rootConfig.IsMaster = true
 	// ProvisionCluster rest of master nodes master nodes
 	for index, masterTask := range tasks {
 		// Take token that allows perform action with Cloud Provider API
@@ -456,6 +491,7 @@ func (tp *TaskProvisioner) provisionNodes(ctx context.Context, profile *profile.
 
 		go func(t *workflows.Task) {
 			t.Config.IsMaster = false
+			t.Config.IsBootstrap = false
 			result := t.Run(ctx, *t.Config, out)
 			err = <-result
 
@@ -612,7 +648,12 @@ func (t *TaskProvisioner) updateCloudSpecificData(k *model.Kube, config *steps.C
 		cloudSpecificSettings[clouds.AwsInternalLoadBalancerName] =
 			config.AWSConfig.InternalLoadBalancerName
 	case clouds.GCE:
-		// GCE is the most simple :-)
+		cloudSpecificSettings[clouds.GCETargetPoolName] = config.GCEConfig.TargetPoolName
+		cloudSpecificSettings[clouds.GCEExternalIPAddressName] = config.GCEConfig.ExternalAddressName
+		cloudSpecificSettings[clouds.GCEExternalIPAddress] = config.GCEConfig.ExternalIPAddressLink
+		cloudSpecificSettings[clouds.GCEHealthCheckName] = config.GCEConfig.HealthCheckName
+		cloudSpecificSettings[clouds.GCEInstanceGroupName] = config.GCEConfig.InstanceGroupName
+		cloudSpecificSettings[clouds.GCEExternalForwardingRuleName] = config.GCEConfig.ForwardingRuleName
 	case clouds.DigitalOcean:
 		cloudSpecificSettings[clouds.DigitalOceanExternalLoadBalancerID] = config.DigitalOceanConfig.ExternalLoadBalancerID
 		cloudSpecificSettings[clouds.DigitalOceanInternalLoadBalancerID] = config.DigitalOceanConfig.InternalLoadBalancerID

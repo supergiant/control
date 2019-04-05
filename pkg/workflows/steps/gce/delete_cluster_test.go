@@ -87,11 +87,7 @@ func TestDeleteClusterStep_Run(t *testing.T) {
 }
 
 func TestNewDeleteClusterStep(t *testing.T) {
-	s, err := NewDeleteClusterStep()
-
-	if err != nil {
-		t.Errorf("unexpected error %v", err)
-	}
+	s := NewDeleteClusterStep()
 
 	if s == nil {
 		t.Error("Step must not be nil")
@@ -101,7 +97,11 @@ func TestNewDeleteClusterStep(t *testing.T) {
 		t.Errorf("get compute service must not be nil")
 	}
 
-	if client, err := s.getComputeSvc(context.Background(), steps.GCEConfig{}); client == nil || err != nil {
+	if client, err := s.getComputeSvc(context.Background(), steps.GCEConfig{
+		ServiceAccount: steps.ServiceAccount{
+			Type: "service_account",
+		},
+	}); client == nil || err != nil {
 		t.Errorf("Unexpected values %v %v", client, err)
 	}
 }

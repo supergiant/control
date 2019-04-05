@@ -315,8 +315,7 @@ func NewGCEFinder(acc *model.CloudAccount, config *steps.Config) (*GCEResourceFi
 	}
 
 	client, err := gce.GetClient(context.Background(),
-		config.GCEConfig.ClientEmail, config.GCEConfig.PrivateKey,
-		config.GCEConfig.TokenURI)
+		config.GCEConfig)
 
 	if err != nil {
 		return nil, err
@@ -338,7 +337,7 @@ func NewGCEFinder(acc *model.CloudAccount, config *steps.Config) (*GCEResourceFi
 }
 
 func (g *GCEResourceFinder) GetRegions(ctx context.Context) (*RegionSizes, error) {
-	regionsOutput, err := g.listRegions(g.client, g.config.GCEConfig.ProjectID)
+	regionsOutput, err := g.listRegions(g.client, g.config.GCEConfig.ServiceAccount.ProjectID)
 
 	if err != nil {
 		return nil, errors.Wrap(err, "gce find regions")
@@ -361,8 +360,8 @@ func (g *GCEResourceFinder) GetRegions(ctx context.Context) (*RegionSizes, error
 }
 
 func (g *GCEResourceFinder) GetZones(ctx context.Context, config steps.Config) ([]string, error) {
-	regionOutput, err := g.getRegion(g.client, config.GCEConfig.ProjectID,
-		config.GCEConfig.Region)
+	regionOutput, err := g.getRegion(g.client, g.config.GCEConfig.ServiceAccount.ProjectID,
+		g.config.GCEConfig.Region)
 
 	if err != nil {
 		return nil, errors.Wrap(err, "gce get availability zones")
@@ -378,8 +377,8 @@ func (g *GCEResourceFinder) GetZones(ctx context.Context, config steps.Config) (
 }
 
 func (g *GCEResourceFinder) GetTypes(ctx context.Context, config steps.Config) ([]string, error) {
-	machineOutput, err := g.listMachineTypes(g.client, config.GCEConfig.ProjectID,
-		config.GCEConfig.AvailabilityZone)
+	machineOutput, err := g.listMachineTypes(g.client, g.config.GCEConfig.ServiceAccount.ProjectID,
+		g.config.GCEConfig.AvailabilityZone)
 
 	if err != nil {
 		return nil, errors.Wrap(err, "gce get machine types")

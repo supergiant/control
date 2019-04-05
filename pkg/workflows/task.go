@@ -92,6 +92,7 @@ func (t *Task) Run(ctx context.Context, config steps.Config, out io.WriteCloser)
 		return errChan
 	}
 
+	// Check for tasks with no steps
 	if len(t.workflow) == 0 {
 		return errChan
 	}
