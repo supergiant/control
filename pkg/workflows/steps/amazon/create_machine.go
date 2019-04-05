@@ -144,16 +144,15 @@ func (s *StepCreateInstance) Run(ctx context.Context, w io.Writer, cfg *steps.Co
 			},
 		},
 	}
-	if cfg.AWSConfig.HasPublicAddr {
-		runInstanceInput.NetworkInterfaces = []*ec2.InstanceNetworkInterfaceSpecification{
-			{
-				DeviceIndex:              aws.Int64(0),
-				AssociatePublicIpAddress: aws.Bool(true),
-				DeleteOnTermination:      aws.Bool(true),
-				SubnetId:                 aws.String(cfg.AWSConfig.Subnets[cfg.AWSConfig.AvailabilityZone]),
-				Groups:                   []*string{secGroupID},
-			},
-		}
+
+	runInstanceInput.NetworkInterfaces = []*ec2.InstanceNetworkInterfaceSpecification{
+		{
+			DeviceIndex:              aws.Int64(0),
+			AssociatePublicIpAddress: aws.Bool(true),
+			DeleteOnTermination:      aws.Bool(true),
+			SubnetId:                 aws.String(cfg.AWSConfig.Subnets[cfg.AWSConfig.AvailabilityZone]),
+			Groups:                   []*string{secGroupID},
+		},
 	}
 
 	res, err := ec2Svc.RunInstancesWithContext(ctx, runInstanceInput)
@@ -187,51 +186,49 @@ func (s *StepCreateInstance) Run(ctx context.Context, w io.Writer, cfg *steps.Co
 
 	instance := res.Instances[0]
 
-	if cfg.AWSConfig.HasPublicAddr {
-		log.Infof("[%s] - waiting to obtain public IP...", s.Name())
+	log.Infof("[%s] - waiting to obtain public IP...", s.Name())
 
-		lookup := &ec2.DescribeInstancesInput{
-			Filters: []*ec2.Filter{
-				{
-					Name:   aws.String("tag:Name"),
-					Values: []*string{aws.String(nodeName)},
-				},
-				{
-					Name:   aws.String(fmt.Sprintf("tag:%s", clouds.TagClusterID)),
-					Values: []*string{aws.String(cfg.ClusterID)},
-				},
+	lookup := &ec2.DescribeInstancesInput{
+		Filters: []*ec2.Filter{
+			{
+				Name:   aws.String("tag:Name"),
+				Values: []*string{aws.String(nodeName)},
 			},
-		}
-		logrus.Debugf("Wait until instance %s running", nodeName)
-		err = ec2Svc.WaitUntilInstanceRunningWithContext(ctx, lookup)
+			{
+				Name:   aws.String(fmt.Sprintf("tag:%s", clouds.TagClusterID)),
+				Values: []*string{aws.String(cfg.ClusterID)},
+			},
+		},
+	}
+	logrus.Debugf("Wait until instance %s running", nodeName)
+	err = ec2Svc.WaitUntilInstanceRunningWithContext(ctx, lookup)
 
-		if err != nil {
-			logrus.Errorf("Error waiting instance %s cluster %s running %v",
-				nodeName, cfg.ClusterID, err)
-			return errors.Wrapf(err, "Error waiting instance %s cluster-id %s",
-				nodeName, cfg.ClusterID)
-		}
+	if err != nil {
+		logrus.Errorf("Error waiting instance %s cluster %s running %v",
+			nodeName, cfg.ClusterID, err)
+		return errors.Wrapf(err, "Error waiting instance %s cluster-id %s",
+			nodeName, cfg.ClusterID)
+	}
 
-		logrus.Debugf("Instance running %s", nodeName)
+	logrus.Debugf("Instance running %s", nodeName)
 
-		out, err := ec2Svc.DescribeInstancesWithContext(ctx, lookup)
-		if err != nil {
-			cfg.Node.State = model.MachineStateError
-			cfg.NodeChan() <- cfg.Node
-			log.Errorf("[%s] - failed to obtain public IP for node %s: %v", s.Name(), nodeName, err)
-			return errors.Wrap(ErrNoPublicIP, err.Error())
-		}
+	out, err := ec2Svc.DescribeInstancesWithContext(ctx, lookup)
+	if err != nil {
+		cfg.Node.State = model.MachineStateError
+		cfg.NodeChan() <- cfg.Node
+		log.Errorf("[%s] - failed to obtain public IP for node %s: %v", s.Name(), nodeName, err)
+		return errors.Wrap(ErrNoPublicIP, err.Error())
+	}
 
-		if i := findInstanceWithPublicAddr(out.Reservations); i != nil {
-			cfg.Node.PublicIp = *i.PublicIpAddress
-			cfg.Node.PrivateIp = *i.PrivateIpAddress
-			log.Infof("[%s] - found public ip - %s for node %s", s.Name(), cfg.Node.PublicIp, nodeName)
-		} else {
-			log.Errorf("[%s] - failed to find public IP address", s.Name())
-			cfg.Node.State = model.MachineStateError
-			cfg.NodeChan() <- cfg.Node
-			return ErrNoPublicIP
-		}
+	if i := findInstanceWithPublicAddr(out.Reservations); i != nil {
+		cfg.Node.PublicIp = *i.PublicIpAddress
+		cfg.Node.PrivateIp = *i.PrivateIpAddress
+		log.Infof("[%s] - found public ip - %s for node %s", s.Name(), cfg.Node.PublicIp, nodeName)
+	} else {
+		log.Errorf("[%s] - failed to find public IP address", s.Name())
+		cfg.Node.State = model.MachineStateError
+		cfg.NodeChan() <- cfg.Node
+		return ErrNoPublicIP
 	}
 
 	cfg.Node.Region = cfg.AWSConfig.Region

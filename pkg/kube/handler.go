@@ -531,15 +531,28 @@ func (h *Handler) addMachine(w http.ResponseWriter, r *http.Request) {
 	kubeID := vars["kubeID"]
 	k, err := h.svc.Get(r.Context(), kubeID)
 
-	// TODO(stgleb): This method contains a lot of specific stuff, implement provision node
-	// method for nodeProvisioner to do all things related to provisioning and saving cluster state
 	if sgerrors.IsNotFound(err) {
 		http.NotFound(w, r)
 		return
 	}
 
+	logrus.Debugf("Get cloud profile %s", k.ProfileID)
+	kubeProfile, err := h.profileSvc.Get(r.Context(), k.ProfileID)
+
 	if err != nil {
-		http.Error(w, err.Error(), http.StatusInternalServerError)
+		if sgerrors.IsNotFound(err) {
+			message.SendNotFound(w, k.ProfileID, err)
+			return
+		}
+
+		message.SendUnknownError(w, err)
+		return
+	}
+
+	config, err := steps.NewConfigFromKube(kubeProfile, k)
+	if err != nil {
+		logrus.Errorf("New config %v", err.Error())
+		message.SendUnknownError(w, err)
 		return
 	}
 
@@ -562,48 +575,6 @@ func (h *Handler) addMachine(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
 	}
-
-	kubeProfile := profile.Profile{
-		Provider:        acc.Provider,
-		Region:          k.Region,
-		Zone:            k.Zone,
-		Arch:            k.Arch,
-		OperatingSystem: k.OperatingSystem,
-		UbuntuVersion:   k.OperatingSystemVersion,
-		DockerVersion:   k.DockerVersion,
-		K8SVersion:      k.K8SVersion,
-		K8SServicesCIDR: k.ServicesCIDR,
-		HelmVersion:     k.HelmVersion,
-		User:            k.User,
-		Password:        k.Password,
-
-		NetworkType:           k.Networking.Type,
-		CIDR:                  k.Networking.CIDR,
-		FlannelVersion:        k.Networking.Version,
-		CloudSpecificSettings: k.CloudSpec,
-
-		NodesProfiles: []profile.NodeProfile{
-			{},
-		},
-
-		RBACEnabled: k.RBACEnabled,
-	}
-
-	config, err := steps.NewConfig(k.Name, k.AccountName, kubeProfile)
-
-	if err != nil {
-		logrus.Errorf("New config %v", err.Error())
-		message.SendUnknownError(w, err)
-		return
-	}
-
-	config.ClusterID = k.ID
-	config.CertificatesConfig.CAKey = k.Auth.CAKey
-	config.CertificatesConfig.CACert = k.Auth.CACert
-	config.CertificatesConfig.AdminCert = k.Auth.AdminCert
-	config.CertificatesConfig.AdminKey = k.Auth.AdminKey
-	config.ExternalDNSName = k.ExternalDNSName
-	config.InternalDNSName = k.InternalDNSName
 
 	if len(k.Masters) != 0 {
 		config.AddMaster(util.GetRandomNode(k.Masters))
