@@ -396,17 +396,17 @@ func (h *Handler) deleteKube(w http.ResponseWriter, r *http.Request) {
 			return
 		}
 
-		// Finally delete cluster record from etcd
-		if err := h.svc.Delete(context.Background(), kubeID); err != nil {
-			logrus.Errorf("delete kube %s caused %v", kubeID, err)
-			return
-		}
-
 		// Clean up tasks in storage
 		err = h.deleteClusterTasks(context.Background(), kubeID)
 
 		if err != nil {
 			logrus.Errorf("error while deleting tasks %s", err)
+		}
+
+		// Finally delete cluster record from etcd
+		if err := h.svc.Delete(context.Background(), kubeID); err != nil {
+			logrus.Errorf("delete kube %s caused %v", kubeID, err)
+			return
 		}
 	}(t)
 
