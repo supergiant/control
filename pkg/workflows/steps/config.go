@@ -139,7 +139,6 @@ type AWSConfig struct {
 	EbsOptimized           string `json:"ebsOptimized"`
 	ImageID                string `json:"image"`
 	InstanceType           string `json:"size"`
-	HasPublicAddr          bool   `json:"hasPublicAddr"`
 
 	ExternalLoadBalancerName string `json:"externalLoadBalancerName"`
 	InternalLoadBalancerName string `json:"internalLoadBalancerName"`
@@ -291,7 +290,6 @@ func NewConfig(clusterName, cloudAccountName string, profile profile.Profile) (*
 		return nil, errors.Wrapf(err, "bootstrap token")
 	}
 	return &Config{
-		IsBootstrap: true,
 		Kube: model.Kube{
 			SSHConfig: model.SSHConfig{
 				Port:      "22",
@@ -317,7 +315,6 @@ func NewConfig(clusterName, cloudAccountName string, profile profile.Profile) (*
 			NodesSecurityGroupID:   profile.CloudSpecificSettings[clouds.AwsNodesSecgroupID],
 			// TODO(stgleb): Passs this from UI or figure out any better way
 			DeviceName: 		    "/dev/sda1",
-			HasPublicAddr:          true,
 		},
 		GCEConfig: GCEConfig{
 			AvailabilityZone: profile.Zone,
@@ -399,12 +396,6 @@ func NewConfigFromKube(profile *profile.Profile, k *model.Kube) (*Config, error)
 		return nil, errors.Wrapf(sgerrors.ErrNilEntity, "kube must not be nil")
 	}
 
-	token, err := bootstrap.GenerateBootstrapToken()
-
-	if err != nil {
-		return nil, errors.Wrapf(err, "bootstrap token")
-	}
-
 	cfg := &Config{
 		ClusterID:   k.ID,
 		Provider:    profile.Provider,
@@ -430,7 +421,6 @@ func NewConfigFromKube(profile *profile.Profile, k *model.Kube) (*Config, error)
 			InternalLoadBalancerName: k.CloudSpec[clouds.AwsInternalLoadBalancerName],
 			// TODO(stgleb): Passs this from UI or figure out any better way
 			DeviceName: 		    "/dev/sda1",
-			HasPublicAddr:          true,
 		},
 		GCEConfig: GCEConfig{
 			AvailabilityZone: profile.Zone,
@@ -490,7 +480,7 @@ func NewConfigFromKube(profile *profile.Profile, k *model.Kube) (*Config, error)
 		KubeadmConfig: KubeadmConfig{
 			K8SVersion:  profile.K8SVersion,
 			IsBootstrap: true,
-			Token:       token,
+			Token:       k.BootstrapToken,
 			CIDR:        profile.CIDR,
 		},
 		Masters: Map{

@@ -385,10 +385,15 @@ func (tp *TaskProvisioner) bootstrapMaster(ctx context.Context,
 
 	// Fulfill task config with data about provider specific node configuration
 	p := profile.MasterProfiles[0]
-	FillNodeCloudSpecificData(profile.Provider, p, bootstrapTask.Config)
+
+	err = FillNodeCloudSpecificData(profile.Provider, p, bootstrapTask.Config)
+
+	if err != nil {
+		return errors.Wrap(err, "fill master profile data to config")
+	}
 
 	bootstrapTask.Config.TaskID = bootstrapTask.ID
-	bootstrapTask.Config.KubeadmConfig.IsBootstrap = true
+	bootstrapTask.Config.IsBootstrap = true
 	bootstrapTask.Config.IsMaster = true
 
 	err = <-bootstrapTask.Run(ctx, *bootstrapTask.Config, out)
@@ -432,7 +437,12 @@ func (tp *TaskProvisioner) provisionMasters(ctx context.Context,
 
 		// Fulfill task config with data about provider specific node configuration
 		p := profile.MasterProfiles[index]
-		FillNodeCloudSpecificData(profile.Provider, p, masterTask.Config)
+
+		err = FillNodeCloudSpecificData(profile.Provider, p, masterTask.Config)
+
+		if err != nil {
+			return errors.Wrap(err, "fill master profile data to config")
+		}
 
 		go func(t *workflows.Task) {
 			// Put task id to config so that create instance step can use this id when generate node name
@@ -477,7 +487,10 @@ func (tp *TaskProvisioner) provisionNodes(ctx context.Context, profile *profile.
 			logrus.Errorf("merge pre provision config to bootstrap task config caused %v", err)
 		}
 
-		FillNodeCloudSpecificData(profile.Provider, p, nodeTask.Config)
+		if err := FillNodeCloudSpecificData(profile.Provider, p, nodeTask.Config); err != nil {
+			return errors.Wrapf(err, "fill nodes profile caused")
+		}
+
 		// Put task id to config so that create instance step can use this id when generate node name
 		nodeTask.Config.TaskID = nodeTask.ID
 
@@ -581,7 +594,7 @@ func (tp *TaskProvisioner) buildInitialCluster(ctx context.Context,
 			Type:    profile.NetworkType,
 			CIDR:    profile.CIDR,
 		},
-
+		BootstrapToken: config.KubeadmConfig.Token,
 		CloudSpec: profile.CloudSpecificSettings,
 		Masters:   masters,
 		Nodes:     nodes,
