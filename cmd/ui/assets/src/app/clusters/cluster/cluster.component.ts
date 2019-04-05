@@ -78,6 +78,7 @@ export class ClusterComponent implements AfterViewInit, OnDestroy {
 
   deletingApps = new Set();
 
+
   constructor(
     private route: ActivatedRoute,
     private location: Location,
@@ -192,6 +193,13 @@ export class ClusterComponent implements AfterViewInit, OnDestroy {
       // masters executing
       this.masterTasksStatus = 'executing';
     }
+  }
+
+  downloadPrivateKey() {
+    let a = document.createElement("a");
+    a.href = "data:," + this.kube.sshConfig.bootstrapPrivateKey;
+    a.setAttribute("download", this.kube.name + ".pem");
+    a.click();
   }
 
   getKube() {
