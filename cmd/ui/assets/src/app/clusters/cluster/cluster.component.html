@@ -173,14 +173,14 @@
   </ng-container>
 
   <ng-container *ngIf="kube?.state == 'operational'">
-  <ng-container *ngIf="!showUsageChart">
+    <ng-container *ngIf="!showUsageChart">
       <div class="no-usage-data">
         <h1>Gathering usage metrics for {{ kube?.name }}<span>.</span><span>.</span><span>.</span></h1>
         <h2>This may take a few minutes</h2>
       </div>
     </ng-container>
 
-  <app-usage-chart *ngIf="showUsageChart"
+    <app-usage-chart *ngIf="showUsageChart"
                      [name]="kube?.name"
                      [cpuUsage]="cpuUsage"
                      [ramUsage]="ramUsage"></app-usage-chart>
@@ -216,9 +216,9 @@
       </div>
 
       <div class="getting-started">
-        <p (click)="showSshCommands()"><span>ssh</span> TO THIS CLUSTER</p>
-        <p (click)="showKubectlConfig()"><span>kubectl config</span> FOR THIS CLUSTER</p>
-        <p routerLink="/catalog"><span>deploy an app</span> TO THIS CLUSTER</p>
+        <p class="action" (click)="showSshCommands()"><span>ssh</span> TO THIS CLUSTER</p>
+        <p class="action" (click)="showKubectlConfig()"><span>kubectl config</span> FOR THIS CLUSTER</p>
+        <p class="action" (click)="downloadPrivateKey()"><span>download</span> PRIVATE KEY</p>
       </div>
     </div>
 
