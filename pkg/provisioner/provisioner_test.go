@@ -161,27 +161,11 @@ func TestProvisionCluster(t *testing.T) {
 	}
 
 	ctx, cancel := context.WithCancel(context.Background())
-	taskMap, err := provisioner.ProvisionCluster(ctx, p, cfg)
+	_, err = provisioner.ProvisionCluster(ctx, p, cfg)
 	time.Sleep(time.Millisecond * 10)
 
 	if err != nil {
 		t.Errorf("Unexpected error %v while provisionCluster", err)
-	}
-
-	if len(taskMap) != 4 {
-		t.Errorf("Expected task map len 4 actual %d", len(taskMap))
-	}
-
-	if len(taskMap["master"])+len(taskMap["node"]) + 1 != len(p.MasterProfiles)+len(p.NodesProfiles) {
-		t.Errorf("Wrong task count expected %d actual %d",
-			len(p.MasterProfiles)+
-				len(p.NodesProfiles) + 1,
-			len(taskMap))
-	}
-
-	if len(provisioner.cancelMap) != 1 {
-		t.Errorf("Unexpected size of cancel map expected %d actual %d",
-			1, len(provisioner.cancelMap))
 	}
 
 	// Cancel context to shut down cluster state monitoring

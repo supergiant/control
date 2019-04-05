@@ -50,6 +50,7 @@ type SDKInterface interface {
 	SubnetClient(a autorest.Authorizer, subscriptionID string) SubnetGetter
 	NSGClient(a autorest.Authorizer, subscriptionID string) SecurityGroupInterface
 	VMClient(a autorest.Authorizer, subscriptionID string) VMInterface
+	LBClient(a autorest.Authorizer, subscriptionID string) network.LoadBalancersClient
 }
 
 type SDK struct {
@@ -93,4 +94,10 @@ func (s SDK) VMClient(a autorest.Authorizer, subscriptionID string) VMInterface 
 	vmclient := compute.NewVirtualMachinesClient(subscriptionID)
 	vmclient.Authorizer = a
 	return vmclient
+}
+
+func (s SDK) LBClient(a autorest.Authorizer, subscriptionID string) network.LoadBalancersClient {
+	lbclient := network.NewLoadBalancersClient(subscriptionID)
+	lbclient.Authorizer = a
+	return lbclient
 }
