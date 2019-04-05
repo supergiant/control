@@ -176,7 +176,7 @@ func TestProvisionCluster(t *testing.T) {
 		t.Errorf("Wrong task count expected %d actual %d",
 			len(p.MasterProfiles)+
 				len(p.NodesProfiles),
-			len(taskMap))
+			len(taskMap["master"])+len(taskMap["node"]))
 	}
 
 	if len(provisioner.cancelMap) != 1 {
