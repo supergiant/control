@@ -484,6 +484,10 @@ func (f AzureFinder) getVMSizes(ctx context.Context) ([]skus.ResourceSku, error)
 			continue
 		}
 
+		if hasLocationRestriction(sizesList.Value()) {
+			continue
+		}
+
 		// filter by location
 		if sizesList.Value().Locations != nil && f.location != "" && !contains(*sizesList.Value().Locations, f.location) {
 			continue
@@ -555,6 +559,26 @@ func vmSizesNames(sizes []skus.ResourceSku) []string {
 func contains(list []string, item string) bool {
 	for _, li := range list {
 		if li == item {
+			return true
+		}
+	}
+	return false
+}
+
+func hasLocationRestriction(r skus.ResourceSku) bool {
+	return hasRestriction(r, skus.Location)
+}
+
+func hasZoneRestriction(r skus.ResourceSku) bool {
+	return hasRestriction(r, skus.Zone)
+}
+
+func hasRestriction(s skus.ResourceSku, restr skus.ResourceSkuRestrictionsType) bool {
+	if s.Restrictions == nil {
+		return false
+	}
+	for _, r := range *s.Restrictions {
+		if r.Type == restr {
 			return true
 		}
 	}
