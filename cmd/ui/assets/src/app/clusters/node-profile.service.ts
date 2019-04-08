@@ -42,6 +42,13 @@ export class NodeProfileService {
           }
         });
         break;
+      case 'azure':
+        filteredMachines.forEach(m => {
+          for (let i = 0; i < m.qty; i++) {
+            compiledProfiles.push({ 'vmSize': m.machineType });
+          }
+        });
+        break;
     }
     return compiledProfiles;
   }

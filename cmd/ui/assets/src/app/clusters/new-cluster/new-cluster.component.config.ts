@@ -1,5 +1,7 @@
 import { IMachineType } from 'app/clusters/new-cluster/new-cluster.component.interface';
 
+// TODO: this is terrible. not all providers have machines with these fields
+// we shouldn't assume AWS
 export const BLANK_MACHINE_TEMPLATE: IMachineType = {
   machineType: null,
   role: '',
