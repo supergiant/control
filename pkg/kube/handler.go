@@ -340,7 +340,6 @@ func (h *Handler) deleteKube(w http.ResponseWriter, r *http.Request) {
 		Nodes:            steps.NewMap(k.Nodes),
 	}
 
-
 	t, err := workflows.NewTask(config, workflows.DeleteCluster, h.repo)
 
 	if err != nil {
@@ -1179,6 +1178,46 @@ func (h *Handler) restartKubeProvisioning(w http.ResponseWriter, r *http.Request
 	err = h.kubeProvisioner.RestartClusterProvisioning(r.Context(),
 		kubeProfile, config, k.Tasks)
 
+	if err != nil {
+		message.SendUnknownError(w, err)
+		return
+	}
+
+	w.WriteHeader(http.StatusAccepted)
+}
+
+func (h *Handler) importKube(w http.ResponseWriter, r *http.Request) {
+	config := &steps.Config{}
+	importTask, err := workflows.NewTask(config, workflows.ImportTask, h.repo)
+
+	if err != nil {
+		message.SendUnknownError(w, err)
+		return
+	}
+
+	var clusterID string
+
+	if len(importTask.ID) > 8 {
+		clusterID = importTask.ID[:8]
+	} else {
+		message.SendValidationFailed(w, errors.New("import task id is too short"))
+		return
+	}
+
+	err = json.NewEncoder(w).Encode(struct {
+		ClusterID string `json:"clusterId"`
+	}{
+		ClusterID: clusterID,
+	})
+
+	if err != nil {
+		message.SendInvalidJSON(w, err)
+		return
+	}
+
+	// Grab all k8s nodes from kube-apiserver
+	// TODO(stgleb): mock kube structure somehow here
+	nodes, err := h.svc.ListNodes(r.Context(), k, "")
 	if err != nil {
 		message.SendUnknownError(w, err)
 		return
