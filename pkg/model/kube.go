@@ -44,6 +44,7 @@ type Kube struct {
 
 	ExternalDNSName string `json:"externalDNSName"`
 	InternalDNSName string `json:"internalDNSName"`
+	BootstrapToken  string `json:"bootstrapToken"`
 
 	CloudSpec profile.CloudSpecificSettings `json:"cloudSpec" valid:"-"`
 

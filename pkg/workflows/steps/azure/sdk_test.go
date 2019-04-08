@@ -22,6 +22,10 @@ type fakeSDK struct {
 	vm     fakeVMClient
 }
 
+func (s fakeSDK) LBClient(a autorest.Authorizer, subscriptionID string) network.LoadBalancersClient {
+	panic("implement me")
+}
+
 func (s fakeSDK) NSGClient(a autorest.Authorizer, subscriptionID string) SecurityGroupInterface {
 	panic("implement me")
 }

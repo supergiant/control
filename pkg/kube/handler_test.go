@@ -833,6 +833,9 @@ func TestAddNodeToKube(t *testing.T) {
 		kube           *model.Kube
 		kubeServiceErr error
 
+		kubeProfile *profile.Profile
+		profileErr  error
+
 		accountName string
 		account     *model.CloudAccount
 		accountErr  error
@@ -842,66 +845,90 @@ func TestAddNodeToKube(t *testing.T) {
 		expectedCode int
 	}{
 		{
-			"kube not found",
-			"test",
-			nil,
-			sgerrors.ErrNotFound,
-			"",
-			nil,
-			nil,
-			nil,
-			http.StatusNotFound,
+			testName: "kube not found",
+			kubeName: "test",
+			kube: nil,
+			kubeServiceErr: sgerrors.ErrNotFound,
+			kubeProfile: nil,
+			profileErr: nil,
+			accountName: "",
+			accountErr: nil,
+			account: nil,
+			provisionErr: nil,
+			expectedCode: http.StatusNotFound,
 		},
 		{
-			"account not found",
-			"test",
-			&model.Kube{
+			testName: "profile not found",
+			kubeName: "test",
+			kube: &model.Kube{
 				AccountName: "test",
 				Tasks:       make(map[string][]string),
 			},
-			nil,
-			"test",
-			nil,
-			sgerrors.ErrNotFound,
-			nil,
-			http.StatusNotFound,
+			kubeServiceErr: nil,
+			kubeProfile: nil,
+			profileErr: sgerrors.ErrNotFound,
+			accountName: "test",
+			account: nil,
+			accountErr: sgerrors.ErrNotFound,
+			provisionErr: nil,
+			expectedCode: http.StatusNotFound,
 		},
 		{
-			"provision not found",
-			"test",
-			&model.Kube{
+			testName: "account not found",
+			kubeName: "test",
+			kube: &model.Kube{
 				AccountName: "test",
 				Tasks:       make(map[string][]string),
 			},
-			nil,
-			"test",
-			&model.CloudAccount{
+			kubeServiceErr: nil,
+			kubeProfile: &profile.Profile{},
+			profileErr: nil,
+			accountName: "test",
+			account: nil,
+			accountErr: sgerrors.ErrNotFound,
+			provisionErr: nil,
+			expectedCode: http.StatusNotFound,
+		},
+		{
+			testName: "provision not found",
+			kubeName: "test",
+			kube: &model.Kube{
+				AccountName: "test",
+				Tasks:       make(map[string][]string),
+			},
+			kubeServiceErr: nil,
+			kubeProfile: &profile.Profile{},
+			profileErr: nil,
+			accountName:  "test",
+			account: &model.CloudAccount{
 				Name:     "test",
 				Provider: clouds.DigitalOcean,
 			},
-			nil,
-			sgerrors.ErrNotFound,
-			http.StatusNotFound,
+			accountErr: nil,
+			provisionErr: sgerrors.ErrNotFound,
+			expectedCode: http.StatusNotFound,
 		},
 		{
-			"provision success",
-			"test",
-			&model.Kube{
+			testName: "provision success",
+			kubeName: "test",
+			kube: &model.Kube{
 				AccountName: "test",
 				Masters: map[string]*model.Machine{
 					"": {},
 				},
 				Tasks: make(map[string][]string),
 			},
-			nil,
-			"test",
-			&model.CloudAccount{
+			kubeServiceErr: nil,
+			kubeProfile: &profile.Profile{},
+			profileErr: nil,
+			accountName: "test",
+			account: &model.CloudAccount{
 				Name:     "test",
 				Provider: clouds.DigitalOcean,
 			},
-			nil,
-			nil,
-			http.StatusAccepted,
+			accountErr: nil,
+			provisionErr: nil,
+			expectedCode: http.StatusAccepted,
 		},
 	}
 
@@ -920,6 +947,11 @@ func TestAddNodeToKube(t *testing.T) {
 		svc.On(serviceCreate, mock.Anything, mock.Anything).
 			Return(nil)
 
+		profileSvc := new(mockProfileGetter)
+		profileSvc.On("Get", mock.Anything,
+			mock.Anything).Return(testCase.kubeProfile,
+			testCase.profileErr)
+
 		accService := new(accServiceMock)
 		accService.On("Get", mock.Anything, mock.Anything).
 			Return(testCase.account, testCase.accountErr)
@@ -930,7 +962,7 @@ func TestAddNodeToKube(t *testing.T) {
 			Return(mock.Anything, testCase.provisionErr)
 		mockProvisioner.On("Cancel", mock.Anything).
 			Return(nil)
-		h := NewHandler(svc, accService, nil,
+		h := NewHandler(svc, accService, profileSvc,
 			mockProvisioner, nil,
 			nil, nil)
 

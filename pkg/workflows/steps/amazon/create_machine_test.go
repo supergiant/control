@@ -195,7 +195,6 @@ func TestStepCreateInstance_Run(t *testing.T) {
 			t.Errorf("Unexpected error %v", err)
 		}
 
-		config.AWSConfig.HasPublicAddr = true
 		config.TaskID = uuid.New()
 		config.ClusterID = uuid.New()
 		config.IsMaster = testCase.isMaster

@@ -204,9 +204,9 @@
       </div>
 
       <div class="getting-started">
-        <p (click)="showSshCommands()"><span>ssh</span> TO THIS CLUSTER</p>
-        <p (click)="showKubectlConfig()"><span>kubectl config</span> FOR THIS CLUSTER</p>
-        <p routerLink="/catalog"><span>deploy an app</span> TO THIS CLUSTER</p>
+        <p class="action" (click)="showSshCommands()"><span>ssh</span> TO THIS CLUSTER</p>
+        <p class="action" (click)="showKubectlConfig()"><span>kubectl config</span> FOR THIS CLUSTER</p>
+        <p class="action" (click)="downloadPrivateKey()"><span>download</span> PRIVATE KEY</p>
       </div>
     </div>
 

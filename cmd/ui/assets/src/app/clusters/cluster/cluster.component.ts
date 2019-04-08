@@ -184,6 +184,13 @@ export class ClusterComponent implements AfterViewInit, OnDestroy {
     }
   }
 
+  downloadPrivateKey() {
+    let a = document.createElement("a");
+    a.href = "data:," + this.kube.sshConfig.bootstrapPrivateKey;
+    a.setAttribute("download", this.kube.name + ".pem");
+    a.click();
+  }
+
   getKube() {
     // TODO: shameful how smart this ENTIRE component has become.
     this.subscriptions.add(observableTimer(0, 10000).pipe(
