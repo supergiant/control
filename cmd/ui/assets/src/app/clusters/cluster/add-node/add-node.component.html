@@ -18,7 +18,7 @@
           </mat-select>
         </mat-form-field>
 
-      <mat-form-field class="type">
+      <mat-form-field class="type" [ngClass]="{ 'isLoadingMachineTypes': isLoadingMachineTypes }">
       <mat-select placeholder="Machine Type (size)"
                   [disabled]="!m.availabilityZone && ((provider$ | async)  === 'aws' || (provider$ | async)  === 'gce')"
                   [(value)]="m.machineType"
@@ -34,14 +34,6 @@
                   [value]="type">{{ type }}</mat-option>
       </mat-select>
       </mat-form-field>
-        <div class="spinner-wrapper">
-          <mat-spinner *ngIf="isLoadingMachineTypes"
-                     class="progress-spinner"
-                     color="primary"
-                     [diameter]="20">
-        </mat-spinner>
-        </div>
-
           <mat-form-field class="role">
             <mat-select placeholder="Role"
                         [(value)]="m.role"
