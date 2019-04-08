@@ -35,6 +35,10 @@
     &.machines-list {
       flex-direction: column;
 
+      .isLoadingMachineTypes {
+        animation: loading 1s infinite;
+      }
+
       .machine {
         display: flex;
 
@@ -107,6 +111,20 @@
     .mat-progress-spinner {
       margin: 0px auto;
     }
+  }
+}
+
+@keyframes loading {
+  0% {
+    opacity: 0.5;
+  }
+
+  50% {
+    opacity: 1;
+  }
+
+  100% {
+    opacity: 0.5;
   }
 }
 

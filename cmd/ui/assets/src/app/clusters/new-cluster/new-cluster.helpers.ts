@@ -46,6 +46,12 @@ const typeSorters = [
     const B = +b.split(separator)[2].split('gb')[0];
     return A - B;
   },
+  (a, b) => { // gd-16vcpu-64gb
+    const separator = '-';
+    const A = +a.split(separator)[2].split('gb')[0];
+    const B = +b.split(separator)[2].split('gb')[0];
+    return A - B;
+  }
 ];
 
 function sortTypeWithinCategory(a, b) {
@@ -66,6 +72,7 @@ export function getDigitalOceanMachineType(machineSize): number {
     /^[a-z]-\d+$/, // m-4
     /^[a-z]-\d+gb$/, // m-16gb
     /^[a-z]-\d+[a-z]+-\d+gb$/, // s-12vcpu-48gb
+    /^[a-z]{2}-\d+[a-z]+-\d+gb$/, // gd-16vcpu-64gb
   ];
 
   return sizeTypes
