@@ -1,6 +1,6 @@
 <div class="cluster-details-wrapper">
 
-  <ng-container *ngIf="kube?.state == 'provisioning' || kube?.state == 'failed'">
+  <ng-container *ngIf="kube?.state == 'provisioning' || kube?.state == 'failed' || kube?.state == 'prepare'">
     <h1>Creating “{{ kube.name }}”</h1>
     <div class="task-overview">
       <div class="masters task-group">
@@ -60,14 +60,19 @@
 
     <div class="failed-message"
          *ngIf=" kube?.state == 'failed' ">
-      <p class="communication">Cluster provisioning has failed. Please check the table below and restart any failed
-                               tasks.</p>
+      <p class="communication">Cluster provisioning has failed. Please check the table below for any issues and restart.</p>
+      <button mat-raised-button type="button" (click)="restart(clusterId)" class="secondary">
+        <ng-container *ngIf="!clusterRestarting">RESTART</ng-container>
+        <ng-container *ngIf="clusterRestarting">
+          <mat-spinner class="restarting-spinner" [diameter]="24"></mat-spinner>
+        </ng-container>
+      </button>
     </div>
 
     <div class="sg-table">
       <h3>TASKS</h3>
 
-      <mat-table [dataSource]="tasks">
+      <mat-table [dataSource]="tasks" [trackBy]="trackByFn">
         <ng-container matColumnDef="status">
           <mat-header-cell *matHeaderCellDef>Status</mat-header-cell>
           <mat-cell class="task-status"
@@ -80,16 +85,6 @@
             <div class="failed-icon"
                  *ngIf="task?.status == 'error'"></div>
             <span style="padding-left: 12px;">{{ task.status | titlecase }}</span>
-            <button mat-raised-button
-                    *ngIf="task?.status == 'error'"
-                    class="secondary restart-task"
-                    (click)="restartTask(task.id)">
-              <span *ngIf="!task?.restarting">RESTART</span>
-              <mat-spinner class="restart-spinner"
-                           color="primary"
-                           *ngIf="task?.restarting"
-                           [diameter]="20"></mat-spinner>
-            </button>
           </mat-cell>
         </ng-container>
 
@@ -137,7 +132,7 @@
         <ng-container matColumnDef="expandedDetail">
           <mat-cell class="expanded-tasks"
                     *matCellDef="let detail">
-            <p *ngFor="let step of detail.t.stepsStatuses">
+            <p *ngFor="let step of detail.t.stepsStatuses; trackBy: trackByFn">
               {{ step.stepName }}
               <span *ngIf=" step.status == 'executing' "
                     class="current-step"><span>.</span><span>.</span><span>.</span></span>
@@ -162,13 +157,6 @@
                  [@detailExpand]="expandedTaskIds.has(row.t.id) ? 'expanded' : 'collapsed'"></mat-row>
 
       </mat-table>
-      <!--
-        TODO need to figure out how to handle "hidden" expandable rows;
-        they are currently included in mat-paginator length count
-
-        https://github.com/angular/material2/issues/9052
-      -->
-      <!-- <mat-paginator [pageSizeOptions]="[5, 10, 25, 100]" [pageSize]="100" color="primary"></mat-paginator> -->
     </div>
   </ng-container>
 
@@ -454,7 +442,7 @@
         <ng-container matColumnDef="expandedDetail">
           <mat-cell class="expanded-tasks"
                     *matCellDef="let detail">
-            <p *ngFor="let step of detail.t.stepsStatuses">
+            <p *ngFor="let step of detail.t.stepsStatuses; trackBy: trackByFn">
               {{ step.stepName }}
               <span *ngIf=" step.status == 'executing' "
                     class="current-step"><span>.</span><span>.</span><span>.</span></span>
@@ -580,7 +568,7 @@
       <div class="delete-icon"></div>
       <span>
         <ng-container *ngIf="kube?.state == 'operational' || kube?.state == 'failed'">Delete Cluster</ng-container>
-        <ng-container *ngIf="kube?.state == 'provisioning'">Cancel</ng-container>
+        <ng-container *ngIf="kube?.state == 'provisioning' || kube?.state == 'prepare'">Cancel</ng-container>
       </span>
     </div>
   </div>

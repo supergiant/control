@@ -4,7 +4,7 @@
     <ng-container *ngIf="data.state == 'operational' || data.state == 'failed'">
       Deleting this cluster will remove all resources attached to it, and may lead to data loss. Are you sure you want to delete it?
     </ng-container>
-    <ng-container *ngIf="data.state == 'provisioning'">
+    <ng-container *ngIf="data.state == 'provisioning' || data.state == 'prepare'">
       Provisioning will be stopped and all infrastructure will be destroyed. Are you sure you want to proceed?
     </ng-container>
   </p>
@@ -13,7 +13,7 @@
       <ng-container *ngIf="data.state == 'operational' || data.state == 'failed'">
         CANCEL
       </ng-container>
-      <ng-container *ngIf="data.state == 'provisioning'">
+      <ng-container *ngIf="data.state == 'provisioning' || data.state == 'prepare'">
         GO BACK
       </ng-container>
     </button>
@@ -21,7 +21,7 @@
       <ng-container *ngIf="data.state == 'operational' || data.state == 'failed'">
         DELETE
       </ng-container>
-      <ng-container *ngIf="data.state == 'provisioning'">
+      <ng-container *ngIf="data.state == 'provisioning' || data.state == 'prepare'">
         STOP AND DESTROY
       </ng-container>
     </button>

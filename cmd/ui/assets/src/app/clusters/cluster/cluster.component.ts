@@ -32,6 +32,7 @@ import { WINDOW } from '../../shared/helpers/window-providers';
   selector: 'app-cluster',
   templateUrl: './cluster.component.html',
   styleUrls: [ './cluster.component.scss' ],
+  // TODO: do we need this anymore?
   changeDetection: ChangeDetectionStrategy.Default,
   encapsulation: ViewEncapsulation.None,
   animations: [
@@ -63,7 +64,7 @@ export class ClusterComponent implements AfterViewInit, OnDestroy {
   releases: any;
   releaseListColumns = ['status', 'name', 'chart', 'chartVersion', 'version', 'lastDeployed', 'info', 'delete'];
 
-  masterTasksStatus = 'executing';
+  masterTasksStatus = 'queued';
   nodeTasksStatus = 'queued';
   clusterTasksStatus = 'queued';
 
@@ -78,6 +79,7 @@ export class ClusterComponent implements AfterViewInit, OnDestroy {
 
   deletingApps = new Set();
 
+  clusterRestarting: boolean;
 
   constructor(
     private route: ActivatedRoute,
@@ -144,19 +146,6 @@ export class ClusterComponent implements AfterViewInit, OnDestroy {
     return task.status == 'success';
   }
 
-  restartTask(taskId) {
-    this.tasks.data.map(t => {
-      if (t.id == taskId) {
-        t.restarting = true;
-      }}
-    );
-
-    this.util.post('v1/api/tasks/' + taskId + '/restart', {}).subscribe(
-      res => console.log(res),
-      err => console.error(err)
-    );
-  }
-
   viewTaskLog(taskId) {
     const modal = this.dialog.open(TaskLogsComponent, {
       width: '1080px',
@@ -209,7 +198,7 @@ export class ClusterComponent implements AfterViewInit, OnDestroy {
         k => {
           this.kube = k;
           // for dev-ing
-          // this.kube.state = "provisioning";
+          // this.kube.state = "prepare";
 
           switch (this.kube.state) {
             case 'operational': {
@@ -219,6 +208,25 @@ export class ClusterComponent implements AfterViewInit, OnDestroy {
               this.getMachineMetrics();
               this.getKubectlConfig();
               this.getClusterServices();
+              break;
+            }
+            case 'prepare': {
+              this.getKubeStatus(this.clusterId).subscribe(
+                tasks => {
+                  this.setProvisioningStep(tasks);
+
+                  const rows = [];
+                  tasks.forEach(t => {
+                    if (this.expandedTaskIds.has(t.id)) {
+                      t.showSteps = true;
+                    }
+                    rows.push(t, { detailRow: true, t });
+                  });
+                  this.tasks = new MatTableDataSource(rows);
+
+                },
+                err => console.log(err)
+              );
               break;
             }
             case 'provisioning': {
@@ -234,6 +242,7 @@ export class ClusterComponent implements AfterViewInit, OnDestroy {
                     rows.push(t, { detailRow: true, t });
                   });
                   this.tasks = new MatTableDataSource(rows);
+
                 },
                 err => console.log(err)
               );
@@ -251,8 +260,7 @@ export class ClusterComponent implements AfterViewInit, OnDestroy {
                     rows.push(t, { detailRow: true, t });
                   });
                   this.tasks = new MatTableDataSource(rows);
-                  this.tasks.sort = this.sort;
-                  this.tasks.paginator = this.paginator;
+
                 },
                 err => console.log(err)
               );
@@ -293,8 +301,6 @@ export class ClusterComponent implements AfterViewInit, OnDestroy {
     const nonActiveMachines = allMachines.filter(m => m.state != 'active' && m.state != 'deleting');
 
     this.activeMachines = new MatTableDataSource(activeMachines);
-    this.activeMachines.sort = this.sort;
-    this.activeMachines.paginator = this.paginator;
 
     if (nonActiveMachines.length > 0) {
       const executingTasksObj = {};
@@ -381,6 +387,20 @@ export class ClusterComponent implements AfterViewInit, OnDestroy {
     });
 
     return machines;
+  }
+
+  restart(id) {
+    this.clusterRestarting = true;
+    this.supergiant.Kubes.restartFailedProvision(id).subscribe(
+      res => {
+        this.clusterRestarting = false;
+        this.getKube()
+      },
+      err => {
+        this.displayError(this.kube.name, err.error.userMessage)
+        this.clusterRestarting = false;
+      }
+    )
   }
 
   removeNode(nodeName: string, target) {
@@ -471,6 +491,10 @@ export class ClusterComponent implements AfterViewInit, OnDestroy {
     const link = 'http://' + hostname + ':' + proxyPort;
 
     this.window.open(link);
+  }
+
+  trackByFn(index, item) {
+    return index;
   }
 
   private initDialog(target) {
