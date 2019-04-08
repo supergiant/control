@@ -176,11 +176,9 @@ export class NewClusterComponent implements OnInit, OnDestroy {
       newClusterData.profile.masterProfiles = this.nodesService.compileProfiles(this.selectedCloudAccount.provider, this.machines, 'Master');
       newClusterData.profile.nodesProfiles = this.nodesService.compileProfiles(this.selectedCloudAccount.provider, this.machines, 'Node');
 
-      //format exposedArray as an array of objects
-      let exposedAddrArray = this.multiLineStringToArray(newClusterData.profile.exposedAddresses);
       let exposedAddrObjects = new Array();
-      for(let i=0; i<exposedAddrArray.length; i++){
-        let myObject = {"cidr" : exposedAddrArray[i]};
+      for(let i=0; i<this.exposedAddressesArray.length; i++){
+        let myObject = {"cidr" : this.exposedAddressesArray[i]};
         exposedAddrObjects.push(myObject);
       }
       newClusterData.profile.exposedAddresses = exposedAddrObjects;
@@ -203,8 +201,6 @@ export class NewClusterComponent implements OnInit, OnDestroy {
           newClusterData.profile.publicKey = this.providerConfig.value.publicKey;
           break;
       }
-
-console.log(newClusterData.profile);
 
       this.provisioning = true;
       this.subscriptions.add(this.supergiant.Kubes.create(newClusterData).subscribe(
@@ -579,20 +575,20 @@ console.log(newClusterData.profile);
     return val.name.toLowerCase().indexOf(this.regionsFilter.toLowerCase()) > -1;
   }
 
-  multiLineStringToArray (str) {
-    //handle empty string
+  putExposedAddressesInArray(val) {
+    this.exposedAddressesArray = this.multiLineStringToArray(val.target.value);
+  }
+
+  multiLineStringToArray(str) {
     if(str.length==0){
       return new Array();
 
-    //handle string with no line breaks
     }else if(!str.includes("\n")){
       let arr = new Array();
       arr.push(str);
       return arr;
 
-    //handle string with line breaks
     }else{
-      //split string at each line break, and ignore any blank lines
       return str.split("\n").filter(c => c != "");
     }
   }

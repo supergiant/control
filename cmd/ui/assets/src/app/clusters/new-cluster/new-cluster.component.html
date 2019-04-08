@@ -178,7 +178,8 @@
         
         <div class="input-group">
           <mat-form-field>
-            <textarea cdkTextareaAutosize
+            <textarea (blur)="putExposedAddressesInArray($event)"
+                      cdkTextareaAutosize
                       cdkAutosizeMinRows="9"
                       cdkAutosizeMaxRows="9"
                       matInput
