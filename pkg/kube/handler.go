@@ -4,7 +4,6 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
-	"github.com/aws/aws-sdk-go/service/cloudformation"
 	"io"
 	"net/http"
 	"strconv"
@@ -1272,9 +1271,9 @@ func (h *Handler) importKube(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	go func(){
+	go func() {
 		resultChan := importTask.Run(context.Background(), *config, writer)
-		<- resultChan
+		<-resultChan
 		// TODO(stgleb): build cluster here
 	}()
 
