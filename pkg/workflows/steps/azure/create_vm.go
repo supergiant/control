@@ -167,12 +167,7 @@ func (s *CreateVMStep) setupVM(ctx context.Context, config *steps.Config, vmName
 					LinuxConfiguration: &compute.LinuxConfiguration{
 						DisablePasswordAuthentication: to.BoolPtr(true),
 						SSH: &compute.SSHConfiguration{
-							PublicKeys: &[]compute.SSHPublicKey{
-								{
-									Path:    to.StringPtr(fmt.Sprintf("/home/%s/.ssh/authorized_keys", OSUser)),
-									KeyData: to.StringPtr(config.Kube.SSHConfig.BootstrapPublicKey),
-								},
-							},
+							PublicKeys: toPublicKeys(config.Kube.SSHConfig.BootstrapPublicKey, config.Kube.SSHConfig.PublicKey),
 						},
 					},
 				},
@@ -314,6 +309,23 @@ func (s *CreateVMStep) createPublicIP(ctx context.Context, a autorest.Authorizer
 	}
 
 	return s.sdk.PublicAddressesClient(a, subsID).Get(ctx, groupName, ipName, "")
+}
+
+func toPublicKeys(bootstrapPKey, pkey string) *[]compute.SSHPublicKey {
+	keys := make([]compute.SSHPublicKey, 0)
+	if len(bootstrapPKey) > 0 {
+		keys = append(keys, compute.SSHPublicKey{
+			Path:    to.StringPtr(fmt.Sprintf("/home/%s/.ssh/authorized_keys", OSUser)),
+			KeyData: to.StringPtr(bootstrapPKey),
+		})
+	}
+	if len(pkey) > 0 {
+		keys = append(keys, compute.SSHPublicKey{
+			Path:    to.StringPtr(fmt.Sprintf("/home/%s/.ssh/authorized_keys", OSUser)),
+			KeyData: to.StringPtr(pkey),
+		})
+	}
+	return &keys
 }
 
 func (s *CreateVMStep) getPublicIP(ctx context.Context, a autorest.Authorizer, subsID, groupName, ipName string) (string, error) {
