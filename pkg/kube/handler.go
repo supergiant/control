@@ -4,6 +4,7 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+	"github.com/aws/aws-sdk-go/service/cloudformation"
 	"io"
 	"net/http"
 	"strconv"
@@ -1246,6 +1247,36 @@ func (h *Handler) importKube(w http.ResponseWriter, r *http.Request) {
 	for _, node := range nodes {
 		logrus.Info(node)
 	}
+
+	cloudAccount, err := h.accountService.Get(r.Context(), req.CloudAccountName)
+
+	if err != nil {
+		if sgerrors.IsNotFound(err) {
+			message.SendNotFound(w, req.CloudAccountName, err)
+		}
+		message.SendUnknownError(w, err)
+		return
+	}
+
+	err = util.FillCloudAccountCredentials(cloudAccount, config)
+
+	if err != nil {
+		message.SendUnknownError(w, err)
+		return
+	}
+	fileName := util.MakeFileName(importTask.ID)
+	writer, err := h.getWriter(fileName)
+
+	if err != nil {
+		message.SendUnknownError(w, err)
+		return
+	}
+
+	go func(){
+		resultChan := importTask.Run(context.Background(), *config, writer)
+		<- resultChan
+		// TODO(stgleb): build cluster here
+	}()
 
 	w.WriteHeader(http.StatusAccepted)
 }
