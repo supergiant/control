@@ -73,7 +73,7 @@ export class NewClusterComponent implements OnInit, OnDestroy {
   machineTypesFilter = '';
   regionsFilter = '';
 
-  exposedAddressesArray: Array<any>;
+  exposedAddressesArray: Array<string> = new Array<string>();
 
   @ViewChild(MatHorizontalStepper) stepper: MatHorizontalStepper;
   @ViewChild('selectedMachineType') selectedMachineType: MatSelect;
@@ -545,7 +545,7 @@ export class NewClusterComponent implements OnInit, OnDestroy {
   allValidCidrs(): ValidatorFn {
     return (userCidrs: AbstractControl): { [key: string]: any } | null => {
 
-      let cidrArray = this.multiLineStringToArray(userCidrs.value);
+      let cidrArray = this.toArray(userCidrs.value);
       let allValidCidrs = true;
 
       for(let i=0; i<cidrArray.length; i++){
@@ -576,21 +576,11 @@ export class NewClusterComponent implements OnInit, OnDestroy {
   }
 
   putExposedAddressesInArray(val) {
-    this.exposedAddressesArray = this.multiLineStringToArray(val.target.value);
+    this.exposedAddressesArray = this.toArray(val.target.value);
   }
 
-  multiLineStringToArray(str) {
-    if(str.length==0){
-      return new Array();
-
-    }else if(!str.includes("\n")){
-      let arr = new Array();
-      arr.push(str);
-      return arr;
-
-    }else{
-      return str.split("\n").filter(c => c != "");
-    }
+  toArray(multiLineText : string) : Array<string> {
+    return multiLineText.split("\n").filter(c => c != "");
   }
 
 }
