@@ -57,7 +57,7 @@ export class AddNodeComponent implements OnInit, OnDestroy {
   isProcessing: boolean;
   availabilityZones: string[];
   selectedAZSubj: Subject<string>;
-  isLoadingMachineTypes: boolean;
+  isLoadingMachineTypes: boolean = true;
   machineTypesFilter = '';
 
   constructor(
@@ -162,6 +162,16 @@ export class AddNodeComponent implements OnInit, OnDestroy {
       switchMap(([name, region, gceZone]) => this.supergiant.CloudAccounts.getGCEMachineTypes(name, region, gceZone)),
     );
 
+    const azureMachineSizes$ = cloudAccountName$.pipe(
+      switchMap(accountName => this.supergiant.CloudAccounts.getRegions(accountName)),
+      tap(provider => console.log(provider)),
+      pluck('regions'),
+      switchMap((regions: any[]) => region$.pipe(
+        map((region: any) => regions.filter(r => r.id === region)[0])
+      )),
+      pluck('AvailableSizes')
+    )
+
     this.subscriptions.add(
       this.providerSubj.pipe(
         filter(provider => provider === 'digitalocean'),
@@ -186,6 +196,17 @@ export class AddNodeComponent implements OnInit, OnDestroy {
         first(),
         switchMap(_ => gceMachineSizes$),
       ).subscribe((sizes) => {
+        this.isLoadingMachineTypes = false;
+        this.machineSizes$ = of(sizes.sort());
+      }),
+    );
+
+    this.subscriptions.add(
+      this.providerSubj.pipe(
+        filter(provider => provider === 'azure'),
+        first(),
+        switchMap(_ => azureMachineSizes$),
+      ).subscribe((sizes: string[]) => {
         this.isLoadingMachineTypes = false;
         this.machineSizes$ = of(sizes.sort());
       }),

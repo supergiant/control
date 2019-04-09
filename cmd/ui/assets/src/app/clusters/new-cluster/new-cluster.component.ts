@@ -28,6 +28,7 @@ enum CloudProviders {
   aws = 'aws',
   digitalocean = 'digitalocean',
   gce = 'gce',
+  azure = 'azure',
 }
 
 export enum StepIndexes {
@@ -110,12 +111,11 @@ export class NewClusterComponent implements OnInit, OnDestroy {
       dockerVersion: ['18.06.3', Validators.required],
       ubuntuVersion: ['xenial', Validators.required],
       networkType: ['vxlan', Validators.required],
-      cidr: ['10.0.0.0/16', [Validators.required, this.validCidr()]],
+      cidr: ['10.100.0.0/16', [Validators.required, this.validCidr()]],
       operatingSystem: ['linux', Validators.required],
       arch: ['amd64', Validators.required],
       exposedAddresses: ['', this.allValidCidrs()],
     });
-
   }
 
   ngOnDestroy() {
@@ -142,6 +142,14 @@ export class NewClusterComponent implements OnInit, OnDestroy {
     }
   }
 
+  get azureVNetCIDR() {
+    if (this.selectedCloudAccount && this.selectedCloudAccount.provider == 'azure') {
+      return this.providerConfig.get('azureVNetCIDR');
+    } else {
+      return true;
+    }
+  }
+  
   getClusters() {
     this.supergiant.Kubes.get().subscribe(
       clusters => clusters.map(c => this.unavailableClusterNames.add(c.name)),
@@ -184,7 +192,7 @@ export class NewClusterComponent implements OnInit, OnDestroy {
       newClusterData.profile.exposedAddresses = exposedAddrObjects;
 
       switch (newClusterData.profile.provider) {
-        case 'aws': {
+        case 'aws':
           newClusterData.profile.cloudSpecificSettings = {
             aws_vpc_cidr: this.providerConfig.value.vpcCidr,
             aws_vpc_id: this.providerConfig.value.vpcId,
@@ -194,10 +202,12 @@ export class NewClusterComponent implements OnInit, OnDestroy {
           };
 
           newClusterData.profile.publicKey = this.providerConfig.value.publicKey;
-        }
           break;
         case 'gce':
-
+          newClusterData.profile.publicKey = this.providerConfig.value.publicKey;
+          break;
+        case 'azure':
+          newClusterData.profile.cloudSpecificSettings = { azureVNetCIDR: this.providerConfig.value.azureVNetCIDR }
           newClusterData.profile.publicKey = this.providerConfig.value.publicKey;
           break;
       }
@@ -304,7 +314,6 @@ export class NewClusterComponent implements OnInit, OnDestroy {
           this.machines.push(BLANK_MACHINE_TEMPLATE);
         }
         break;
-
       case 'aws':
         this.azsLoading = true;
         this.getAwsAvailabilityZones(region).subscribe(
@@ -331,6 +340,8 @@ export class NewClusterComponent implements OnInit, OnDestroy {
           },
         );
         break;
+      case 'azure':
+        this.availableMachineTypes = region.AvailableSizes;
     }
   }
 
@@ -383,7 +394,6 @@ export class NewClusterComponent implements OnInit, OnDestroy {
           region: ['', Validators.required],
         });
         break;
-
       case 'aws':
         this.providerConfig = this.formBuilder.group({
           region: ['', Validators.required],
@@ -400,6 +410,13 @@ export class NewClusterComponent implements OnInit, OnDestroy {
         this.providerConfig = this.formBuilder.group({
           region: ['', Validators.required],
           publicKey: ['', Validators.required],
+        });
+        break;
+      case 'azure':
+        this.providerConfig = this.formBuilder.group({
+          region: ['', Validators.required],
+          azureVNetCIDR: ['10.0.0.0/16', [Validators.required, this.validCidr()]],
+          publicKey: ['', Validators.required]
         });
         break;
     }

@@ -61,7 +61,7 @@
     <mat-step label="Cluster Configuration"
               [stepControl]="clusterConfig">
       <form [formGroup]="clusterConfig"
-            class="cluster-config-form">
+            class="cluster-and-provider-config">
         <div class="input-group">
           <mat-form-field>
             <mat-select placeholder="K8s Version"
@@ -221,7 +221,7 @@
       <!-- digital ocean -->
       <ng-container *ngIf="selectedCloudAccount?.provider == 'digitalocean'">
         <form [formGroup]="providerConfig"
-              class="do-config">
+              class="cluster-and-provider-config">
           <mat-form-field [ngClass]="{ 'regionsLoading': regionsLoading }">
             <mat-select placeholder="Select a Region"
                         formControlName="region"
@@ -245,7 +245,7 @@
       <!-- aws -->
       <ng-container *ngIf="selectedCloudAccount?.provider == 'aws'">
         <form [formGroup]="providerConfig"
-              class="aws-config">
+              class="cluster-and-provider-config">
           <div class="input-group">
             <mat-form-field [ngClass]="{ 'regionsLoading': regionsLoading }">
               <mat-select placeholder="Select a Region"
@@ -323,7 +323,7 @@
       <!-- gce -->
       <ng-container *ngIf="selectedCloudAccount?.provider == 'gce'">
         <form [formGroup]="providerConfig"
-              class="gce-config">
+              class="cluster-and-provider-config">
           <div class="input-group">
             <mat-form-field [ngClass]="{ 'regionsLoading': regionsLoading }">
               <mat-select placeholder="Select a Region"
@@ -360,6 +360,57 @@
               </mat-hint>
             </mat-form-field>
           </div>
+        </form>
+      </ng-container>
+
+      <!-- azure -->
+      <ng-container *ngIf="selectedCloudAccount?.provider == 'azure'">
+        <form [formGroup]="providerConfig"
+              class="cluster-and-provider-config">
+          <div class="input-group">
+            <mat-form-field [ngClass]="{ 'regionsLoading': regionsLoading }">
+              <mat-select placeholder="Select a Region"
+                          formControlName="region"
+                          (openedChange)="regionsFilter = ''"
+                          (selectionChange)="selectRegion($event.value)"
+                          required>
+                <input class="select-filter"
+                       matInput
+                       type="text"
+                       placeholder="Filter regions..."
+                       [(ngModel)]="regionsFilter"
+                       [ngModelOptions]="{ standalone: true }"
+                       autofocus>
+                <mat-option *ngFor="let r of availableRegions?.regions | callback: regionsFilterCallback"
+                            [value]="r">{{ r.name }}</mat-option>
+              </mat-select>
+            </mat-form-field>
+
+            <mat-form-field>
+              <input matInput
+                     type="text"
+                     formControlName="azureVNetCIDR"
+                     placeholder="VNet CIDR"
+                     required>
+            </mat-form-field>
+          </div>
+
+          <div class="input-group public-key-wrapper">
+            <mat-form-field>
+            <textarea cdkTextareaAutosize
+                      cdkAutosizeMaxRows="11"
+                      matInput
+                      formControlName="publicKey"
+                      placeholder="Public ssh key"
+                      required></textarea>
+              <mat-hint align="end">
+                <a href="https://en.wikipedia.org/wiki/Secure_Shell#Key_management"
+                   target="_blank">
+                  Where do I find my public key?
+                </a>
+              </mat-hint>
+            </mat-form-field>
+          </div>
 
         </form>
       </ng-container>
@@ -368,6 +419,11 @@
       <div *ngIf="vpcCidr.invalid">
         <p *ngIf="vpcCidr.errors.invalidCidr"
            class="warning">{{ vpcCidr.errors.invalidCidr.value }} is not valid CIDR notation</p>
+      </div>
+
+      <div *ngIf="azureVNetCIDR.invalid">
+        <p *ngIf="azureVNetCIDR.errors.invalidCidr"
+           class="warning">{{ azureVNetCIDR.errors.invalidCidr.value }} is not valid CIDR notation</p>
       </div>
 
       <div class="step-actions">
@@ -613,6 +669,73 @@
             <span class="add-label">Add more machines</span>
           </div>
         </ng-container>
+
+        <ng-container *ngIf="selectedCloudAccount?.provider == 'azure'">
+          <div class="machine"
+               *ngFor="let m of machines; let idx = index">
+            <mat-form-field class="type">
+              <mat-select #selectedMachineType
+                          placeholder="Machine Type (size)"
+                          id="m.machineType"
+                          [(value)]="m.machineType"
+                          (openedChange)="machineTypesFilter = ''"
+                          (selectionChange)="validateMachineConfig(m)">
+                <input class="select-filter"
+                       matInput
+                       type="text"
+                       placeholder="Filter machines..."
+                       [(ngModel)]="machineTypesFilter"
+                       autofocus>
+                <mat-option *ngFor="let type of availableMachineTypes | callback: machineTypesFilterCallback"
+                            [value]="type">{{ type }}</mat-option>
+              </mat-select>
+              <mat-hint align="end">
+                <ng-container *ngIf="m.recommendedNodesCount"
+                              [ngTemplateOutlet]="recommendedNodesCountTpl"
+                              [ngTemplateOutletContext]="{ $implicit: m.recommendedNodesCount }">
+                </ng-container>
+              </mat-hint>
+            </mat-form-field>
+
+            <mat-form-field class="role">
+              <mat-select placeholder="Role"
+                          [(value)]="m.role"
+                          (selectionChange)="validateMachineConfig(m)">
+                <mat-option value="Master">Master</mat-option>
+                <mat-option value="Node">Node</mat-option>
+              </mat-select>
+            </mat-form-field>
+
+            <mat-form-field class="quantity">
+              <input matInput
+                     type="number"
+                     min="1"
+                     placeholder="Q-ty"
+                     [(ngModel)]="m.qty"
+                     (ngModelChange)="validateMachineConfig(m)">
+            </mat-form-field>
+
+            <div class="delete"
+                 (click)="deleteMachine(idx)"
+                 (keyup.enter)="deleteMachine(idx)"
+                 tabindex="0">
+            </div>
+
+            <ng-container *ngIf="m.recommendedNodesCount"
+                          [ngTemplateOutlet]="recommendedNodesCountTpl"
+                          [ngTemplateOutletContext]="{ $implicit: m.recommendedNodesCount }">
+            </ng-container>
+          </div>
+
+          <div class="add-machines"
+               (click)="addBlankMachine()"
+               (keyup.enter)="addBlankMachine()"
+               tabindex="0">
+            <div class="plus"></div>
+            <span class="add-label">Add more machines</span>
+          </div>
+        </ng-container>
+
         <p *ngIf="displayMachinesConfigWarning"
            class="machine-config-warning">Current machine configuration is invalid. Please check that each machine has a
                                           type, role, the quantity of masters is an odd number, and there is at least one node.</p>
@@ -679,6 +802,12 @@
             <div *ngIf="selectedCloudAccount?.provider == 'gce'">
               <p><span class="label">REGION:</span> {{ providerConfig.value.region.name }}</p>
             </div>
+
+            <!-- azure -->
+            <div *ngIf="selectedCloudAccount?.provider == 'azure'">
+              <p><span class="label">REGION:</span> {{ providerConfig.value.region.name }}</p>
+              <p><span class="label">VNet CIDR:</span> {{ providerConfig.value.azureVNetCIDR }}</p>
+            </div>
           </div>
 
           <div class="machines">
@@ -701,6 +830,11 @@
                   <p class="label machine-label">{{ m.qty }} x {{ m.machineType }} ({{ m.role }}
                                                              ): {{ m.availabilityZone }}</p>
                   <p class="availability-zone">{{ m.availabilityZone }}</p>
+                </ng-container>
+
+                <!-- azure -->
+                <ng-container *ngIf="selectedCloudAccount?.provider == 'azure'">
+                  <p>{{ m.qty }} x {{ m.machineType }} ({{ m.role }})</p>
                 </ng-container>
               </div>
             </div>
