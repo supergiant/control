@@ -2,9 +2,10 @@ package kube
 
 import (
 	"fmt"
+	"strings"
+	
 	"github.com/pkg/errors"
 	"github.com/supergiant/control/pkg/sgerrors"
-	"strings"
 
 	clientcmddapi "k8s.io/client-go/tools/clientcmd/api"
 
