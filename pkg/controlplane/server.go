@@ -228,7 +228,8 @@ func configureApplication(cfg *Config) (*mux.Router, error) {
 	amazon.InitCreateLoadBalancer(amazon.GetELB)
 	amazon.InitDeleteLoadBalancer(amazon.GetELB)
 	amazon.InitRegisterInstance(amazon.GetELB)
-
+	amazon.InitImportClusterStep(amazon.GetEC2)
+	
 	workflows.Init()
 	azure.Init()
 

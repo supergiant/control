@@ -3,7 +3,7 @@ package kube
 import (
 	"fmt"
 	"strings"
-	
+
 	"github.com/pkg/errors"
 	"github.com/supergiant/control/pkg/sgerrors"
 

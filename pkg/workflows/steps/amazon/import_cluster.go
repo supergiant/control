@@ -14,6 +14,15 @@ const (
 type ImportClusterStep struct {
 }
 
+func NewImportClusterStep(fn GetEC2Fn) *ImportClusterStep {
+	return &ImportClusterStep{
+	}
+}
+
+func InitImportClusterStep(fn GetEC2Fn) {
+	steps.RegisterStep(StepFindAMI, NewImportClusterStep(fn))
+}
+
 func (s ImportClusterStep) Run(ctx context.Context, out io.Writer, cfg *steps.Config) error {
 	return nil
 }
