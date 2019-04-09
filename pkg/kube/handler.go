@@ -34,6 +34,7 @@ import (
 
 const (
 	clusterService = "kubernetes.io/cluster-service"
+	nodeLabelRole  = "kubernetes.io/role"
 )
 
 type accountGetter interface {
@@ -1243,10 +1244,6 @@ func (h *Handler) importKube(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	for _, node := range nodes {
-		logrus.Info(node)
-	}
-
 	cloudAccount, err := h.accountService.Get(r.Context(), req.CloudAccountName)
 
 	if err != nil {
@@ -1272,7 +1269,29 @@ func (h *Handler) importKube(w http.ResponseWriter, r *http.Request) {
 	}
 
 	go func() {
-		resultChan := importTask.Run(context.Background(), *config, writer)
+		for _, node := range nodes {
+			machine := model.Machine{}
+
+			for _, address := range node.Status.Addresses {
+				if address.Type == "ExternalIP" {
+					machine.PublicIp = address.Address
+				} else if address.Type == "InternalIP" {
+					machine.PrivateIp = address.Address
+				}
+			}
+
+			// Set tole to machine
+			machine.Role = model.Role(node.Labels[nodeLabelRole])
+
+			if machine.Role == model.RoleMaster {
+				config.AddMaster(&machine)
+			} else {
+				config.AddNode(&machine)
+			}
+		}
+
+		importTask.Config = config
+		resultChan := importTask.Run(context.Background(), *importTask.Config, writer)
 		err := <-resultChan
 
 		if err != nil {
