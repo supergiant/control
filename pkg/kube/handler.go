@@ -156,7 +156,7 @@ func NewHandler(
 func (h *Handler) Register(r *mux.Router) {
 	r.HandleFunc("/kubes", h.createKube).Methods(http.MethodPost)
 	r.HandleFunc("/kubes", h.listKubes).Methods(http.MethodGet)
-	r.HandleFunc("/kubes/import", h.importKube).Methods(http.MethodPut)
+	r.HandleFunc("/kubes/import", h.importKube).Methods(http.MethodPost)
 	r.HandleFunc("/kubes/{kubeID}", h.getKube).Methods(http.MethodGet)
 	r.HandleFunc("/kubes/{kubeID}", h.deleteKube).Methods(http.MethodDelete)
 
@@ -1204,7 +1204,7 @@ func (h *Handler) importKube(w http.ResponseWriter, r *http.Request) {
 	}
 
 	config := &steps.Config{}
-	importTask, err := workflows.NewTask(config, workflows.ImportTask, h.repo)
+	importTask, err := workflows.NewTask(config, workflows.ImportCluster, h.repo)
 
 	if err != nil {
 		message.SendUnknownError(w, err)
@@ -1249,6 +1249,7 @@ func (h *Handler) importKube(w http.ResponseWriter, r *http.Request) {
 	if err != nil {
 		if sgerrors.IsNotFound(err) {
 			message.SendNotFound(w, req.CloudAccountName, err)
+			return
 		}
 		message.SendUnknownError(w, err)
 		return
@@ -1260,15 +1261,16 @@ func (h *Handler) importKube(w http.ResponseWriter, r *http.Request) {
 		message.SendUnknownError(w, err)
 		return
 	}
-	fileName := util.MakeFileName(importTask.ID)
-	writer, err := h.getWriter(fileName)
-
-	if err != nil {
-		message.SendUnknownError(w, err)
-		return
-	}
 
 	go func() {
+		fileName := util.MakeFileName(importTask.ID)
+		writer, err := h.getWriter(fileName)
+
+		if err != nil {
+			message.SendUnknownError(w, err)
+			return
+		}
+
 		for _, node := range nodes {
 			machine := model.Machine{}
 
@@ -1292,7 +1294,7 @@ func (h *Handler) importKube(w http.ResponseWriter, r *http.Request) {
 
 		importTask.Config = config
 		resultChan := importTask.Run(context.Background(), *importTask.Config, writer)
-		err := <-resultChan
+		err = <-resultChan
 
 		if err != nil {
 			logrus.Errorf("task %s has finished with error %v", importTask.ID, err)

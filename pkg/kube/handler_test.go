@@ -2378,3 +2378,79 @@ func TestGetServices(t *testing.T) {
 		}
 	}
 }
+
+
+func TestImportKube(t *testing.T) {
+	testCases := []struct {
+		description string
+
+		req []byte
+
+		accountName string
+		account     *model.CloudAccount
+		accountErr  error
+
+		svcNodes        []corev1.Node
+		svcGetErr       error
+
+		expectedCode int
+	}{
+		{
+			description: "json error",
+			req: []byte(`{`),
+			expectedCode: http.StatusBadRequest,
+		},
+		{
+			description: "cloud account not found",
+			req: []byte(`{"kubeconfig":{},"clusterName":"kubernetes","cloudAccountName":"test"}`),
+			accountErr: sgerrors.ErrNotFound,
+			expectedCode: http.StatusNotFound,
+		},
+		{
+			description: "success",
+			req: []byte(`{"kubeconfig":{},"clusterName":"kubernetes","cloudAccountName":"test"}`),
+			account: &model.CloudAccount{
+				Name: "test",
+				Provider: clouds.AWS,
+				Credentials: map[string]string{},
+			},
+			expectedCode: http.StatusAccepted,
+		},
+	}
+
+	workflows.Init()
+	workflows.RegisterWorkFlow(workflows.ImportCluster, []steps.Step{})
+
+	for _, testCase := range testCases {
+		t.Log(testCase.description)
+		svc := &kubeServiceMock{}
+		svc.On(serviceListNodes, mock.Anything, mock.Anything, mock.Anything).Return(testCase.svcNodes, testCase.svcGetErr)
+		accSvc := &accServiceMock{}
+		accSvc.On("Get", mock.Anything, mock.Anything).
+			Return(testCase.account, testCase.accountErr)
+
+		mockRepo := new(testutils.MockStorage)
+		mockRepo.On("Put", mock.Anything, mock.Anything,
+			mock.Anything, mock.Anything).Return(nil)
+
+		h := NewHandler(svc, accSvc,
+			nil, nil, nil, mockRepo, nil)
+
+		rr := httptest.NewRecorder()
+
+		router := mux.NewRouter().SkipClean(true)
+		h.Register(router)
+
+		req, _ := http.NewRequest(http.MethodPost,
+			"/kubes/import",
+			bytes.NewBuffer(testCase.req))
+
+		h.importKube(rr, req)
+
+		if rr.Code !=  testCase.expectedCode {
+			t.Errorf("Wrong response code expected %d actual %d",
+				testCase.expectedCode, rr.Code)
+		}
+	}
+
+}
