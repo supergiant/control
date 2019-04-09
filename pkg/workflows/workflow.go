@@ -42,6 +42,7 @@ const (
 	ProvisionNode   = "ProvisionNode"
 	DeleteNode      = "DeleteNode"
 	DeleteCluster   = "DeleteCluster"
+	ImportCluster   = "ImportCluster"
 )
 
 type WorkflowSet struct {
@@ -100,6 +101,10 @@ func Init() {
 		steps.GetStep(prometheus.StepName),
 	}
 
+	importClusterWorkflow := []steps.Step{
+		provider.ImportClusterStep{},
+	}
+
 	deleteMachineWorkflow := []steps.Step{
 		steps.GetStep(drain.StepName),
 		provider.StepDeleteMachine{},
@@ -118,6 +123,7 @@ func Init() {
 	workflowMap[DeleteNode] = deleteMachineWorkflow
 	workflowMap[DeleteCluster] = deleteClusterWorkflow
 	workflowMap[PostProvision] = postProvision
+	workflowMap[ImportCluster] = importClusterWorkflow
 }
 
 func RegisterWorkFlow(workflowName string, workflow Workflow) {

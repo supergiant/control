@@ -1273,8 +1273,13 @@ func (h *Handler) importKube(w http.ResponseWriter, r *http.Request) {
 
 	go func() {
 		resultChan := importTask.Run(context.Background(), *config, writer)
-		<-resultChan
-		// TODO(stgleb): build cluster here
+		err := <-resultChan
+
+		if err != nil {
+			logrus.Errorf("task %s has finished with error %v", importTask.ID, err)
+		}
+
+		logrus.Infof("Import task %s has successfully finished", importTask.ID)
 	}()
 
 	w.WriteHeader(http.StatusAccepted)
