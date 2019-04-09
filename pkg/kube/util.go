@@ -2,7 +2,11 @@ package kube
 
 import (
 	"fmt"
+	"github.com/pkg/errors"
+	"github.com/supergiant/control/pkg/sgerrors"
 	"strings"
+
+	clientcmddapi "k8s.io/client-go/tools/clientcmd/api"
 
 	"github.com/supergiant/control/pkg/model"
 )
@@ -35,4 +39,40 @@ func processAWSMetrics(k *model.Kube, metrics map[string]map[string]interface{})
 
 func ip2Host(ip string) string {
 	return fmt.Sprintf("ip-%s", strings.Join(strings.Split(ip, "."), "-"))
+}
+
+func kubeFromKubeConfig(kubeConfig clientcmddapi.Config) (*model.Kube, error) {
+	currentCtxName := kubeConfig.CurrentContext
+	currentContext := kubeConfig.Contexts[currentCtxName]
+
+	if currentContext == nil {
+		return nil, errors.Wrapf(sgerrors.ErrNilEntity, "current context %s not found in context map %v",
+			currentCtxName, kubeConfig.Contexts)
+	}
+
+	authInfoName := currentContext.AuthInfo
+	authInfo := kubeConfig.AuthInfos[authInfoName]
+
+	if authInfo == nil {
+		return nil, errors.Wrapf(sgerrors.ErrNilEntity, "authInfo %s not found in auth into auth map %v",
+			authInfoName, kubeConfig.AuthInfos)
+	}
+
+	clusterName := currentContext.Cluster
+	cluster := kubeConfig.Clusters[clusterName]
+
+	if cluster == nil {
+		return nil, errors.Wrapf(sgerrors.ErrNilEntity, "cluster %s not found in cluster map %v",
+			clusterName, kubeConfig.Clusters)
+	}
+
+	return &model.Kube{
+		Name:            contextToClusterName(currentCtxName),
+		ExternalDNSName: cluster.Server,
+		Auth: model.Auth{
+			CACert:    string(cluster.CertificateAuthorityData),
+			AdminCert: string(authInfo.ClientCertificateData),
+			AdminKey:  string(authInfo.ClientKeyData),
+		},
+	}, nil
 }

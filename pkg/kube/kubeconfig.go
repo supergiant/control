@@ -2,6 +2,7 @@ package kube
 
 import (
 	"fmt"
+	"strings"
 
 	"github.com/pkg/errors"
 	"k8s.io/apimachinery/pkg/runtime/schema"
@@ -118,4 +119,14 @@ func setGroupDefaults(config *rest.Config, gv schema.GroupVersion) {
 
 func adminContext(clusterName string) string {
 	return "admin@" + clusterName
+}
+
+func contextToClusterName(contextName string) string {
+	slice := strings.Split(contextName, "@")
+
+	if len(slice) > 0 && slice[1] != "" {
+		return slice[1]
+	}
+
+	return contextName
 }

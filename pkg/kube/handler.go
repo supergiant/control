@@ -17,6 +17,7 @@ import (
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	clientcorev1 "k8s.io/client-go/kubernetes/typed/core/v1"
 	"k8s.io/client-go/rest"
+	clientcmddapi "k8s.io/client-go/tools/clientcmd/api"
 
 	"github.com/supergiant/control/pkg/clouds"
 	"github.com/supergiant/control/pkg/message"
@@ -154,6 +155,7 @@ func NewHandler(
 func (h *Handler) Register(r *mux.Router) {
 	r.HandleFunc("/kubes", h.createKube).Methods(http.MethodPost)
 	r.HandleFunc("/kubes", h.listKubes).Methods(http.MethodGet)
+	r.HandleFunc("/kubes/import", h.importKube).Methods(http.MethodPut)
 	r.HandleFunc("/kubes/{kubeID}", h.getKube).Methods(http.MethodGet)
 	r.HandleFunc("/kubes/{kubeID}", h.deleteKube).Methods(http.MethodDelete)
 
@@ -1187,6 +1189,19 @@ func (h *Handler) restartKubeProvisioning(w http.ResponseWriter, r *http.Request
 }
 
 func (h *Handler) importKube(w http.ResponseWriter, r *http.Request) {
+	type importRequest struct {
+		Kubeconfig       clientcmddapi.Config `json:"kubeconfig"`
+		ClusterName      string               `json:"clusterName"`
+		CloudAccountName string               `json:"cloudAccountName"`
+	}
+
+	var req importRequest
+
+	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
+		message.SendInvalidJSON(w, err)
+		return
+	}
+
 	config := &steps.Config{}
 	importTask, err := workflows.NewTask(config, workflows.ImportTask, h.repo)
 
@@ -1215,12 +1230,21 @@ func (h *Handler) importKube(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	kube, err := kubeFromKubeConfig(req.Kubeconfig)
+
+	if err != nil {
+		message.SendInvalidCredentials(w, err)
+		return
+	}
 	// Grab all k8s nodes from kube-apiserver
-	// TODO(stgleb): mock kube structure somehow here
-	nodes, err := h.svc.ListNodes(r.Context(), k, "")
+	nodes, err := h.svc.ListNodes(r.Context(), kube, "")
 	if err != nil {
 		message.SendUnknownError(w, err)
 		return
+	}
+
+	for _, node := range nodes {
+		logrus.Info(node)
 	}
 
 	w.WriteHeader(http.StatusAccepted)
