@@ -21,19 +21,21 @@ type ImportClusterStep struct {
 }
 
 func (s ImportClusterStep) Run(ctx context.Context, out io.Writer, cfg *steps.Config) error {
-	var step steps.Step
+	var importSteps []steps.Step
 
 	switch cfg.Provider {
 	case clouds.AWS:
-		step = steps.GetStep(amazon.ImportClusterStepName)
+		importSteps = []steps.Step{
+			steps.GetStep(amazon.ImportClusterMachinesStepName),
+		}
 	default:
 		return errors.New(fmt.Sprintf("unsupported provider: %s", cfg.Provider))
 	}
 
-	err := step.Run(ctx, out, cfg)
-
-	if err != nil {
-		return errors.Wrapf(err , ImportClusterStepName)
+	for _, s := range importSteps {
+		if err := s.Run(ctx, out, cfg); err != nil {
+			return errors.Wrap(err, ImportClusterStepName)
+		}
 	}
 
 	return nil

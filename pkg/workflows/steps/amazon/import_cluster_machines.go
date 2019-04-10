@@ -15,8 +15,8 @@ import (
 )
 
 const (
-	ImportClusterStepName = "import_cluster_aws"
-	running               = "running"
+	ImportClusterMachinesStepName = "import_cluster_machines_aws"
+	running                       = "running"
 )
 
 type InstanceDescriber interface {
@@ -44,7 +44,7 @@ func NewImportClusterStep(fn GetEC2Fn) *ImportClusterStep {
 }
 
 func InitImportClusterStep(fn GetEC2Fn) {
-	steps.RegisterStep(ImportClusterStepName, NewImportClusterStep(fn))
+	steps.RegisterStep(ImportClusterMachinesStepName, NewImportClusterStep(fn))
 }
 
 func (s ImportClusterStep) Run(ctx context.Context, out io.Writer, cfg *steps.Config) error {
@@ -83,11 +83,11 @@ func (s ImportClusterStep) Run(ctx context.Context, out io.Writer, cfg *steps.Co
 }
 
 func (s ImportClusterStep) Name() string {
-	return ImportClusterStepName
+	return ImportClusterMachinesStepName
 }
 
 func (s ImportClusterStep) Description() string {
-	return ImportClusterStepName
+	return ImportClusterMachinesStepName
 }
 
 func (s ImportClusterStep) Depends() []string {
