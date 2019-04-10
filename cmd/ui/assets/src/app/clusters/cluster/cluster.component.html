@@ -496,6 +496,13 @@
             <mat-cell *matCellDef="let release">{{ release.name }}</mat-cell>
           </ng-container>
 
+          <ng-container matColumnDef="namespace">
+            <mat-header-cell mat-sort-header
+                             *matHeaderCellDef>Namespace
+            </mat-header-cell>
+            <mat-cell *matCellDef="let release">{{ release.namespace }}</mat-cell>
+          </ng-container>
+
           <ng-container matColumnDef="chart">
             <mat-header-cell mat-sort-header
                              *matHeaderCellDef>Chart
@@ -508,13 +515,6 @@
                              *matHeaderCellDef>Chart Version
             </mat-header-cell>
             <mat-cell *matCellDef="let release">{{ release.chartVersion }}</mat-cell>
-          </ng-container>
-
-          <ng-container matColumnDef="version">
-            <mat-header-cell mat-sort-header
-                             *matHeaderCellDef>Version
-            </mat-header-cell>
-            <mat-cell *matCellDef="let release">{{ release.version }}</mat-cell>
           </ng-container>
 
           <ng-container matColumnDef="lastDeployed">
