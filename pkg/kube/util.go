@@ -69,7 +69,7 @@ func kubeFromKubeConfig(kubeConfig clientcmddapi.Config) (*model.Kube, error) {
 	}
 
 	return &model.Kube{
-		Name:            contextToClusterName(currentCtxName),
+		Name:            currentContext.Cluster,
 		ExternalDNSName: cluster.Server,
 		Auth: model.Auth{
 			CACert:    string(cluster.CertificateAuthorityData),
