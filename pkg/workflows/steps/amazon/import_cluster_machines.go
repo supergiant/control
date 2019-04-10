@@ -129,6 +129,7 @@ func (s *ImportClusterStep) importMachines(ctx context.Context, role model.Role,
 			return errors.Wrapf(sgerrors.ErrNotFound, "instance %v not found", machine)
 		}
 
+
 		instance := findInstanceWithPrivateIPAddr(output.Reservations)
 		machine.ID = *instance.InstanceId
 		machine.Size = *instance.InstanceType
@@ -142,6 +143,7 @@ func (s *ImportClusterStep) importMachines(ctx context.Context, role model.Role,
 
 		cfg.AWSConfig.ImageID = *instance.ImageId
 		cfg.AWSConfig.Region = azToRegion(*instance.Placement.AvailabilityZone)
+		cfg.AWSConfig.KeyPairName = *instance.KeyName
 
 		if len(instance.SecurityGroups) == 0 {
 			return errors.Wrapf(sgerrors.ErrNotFound, "no security groups found for %v", machine)
