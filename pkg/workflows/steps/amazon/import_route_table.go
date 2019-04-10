@@ -73,8 +73,11 @@ func (s ImportRouteTablesStep) Run(ctx context.Context, out io.Writer, cfg *step
 	cfg.AWSConfig.RouteTableAssociationIDs = make(map[string]string)
 
 	for _, association := range routeTable.Associations {
-		az := cfg.AWSConfig.Subnets[*association.SubnetId]
-		cfg.AWSConfig.RouteTableAssociationIDs[az] = *association.RouteTableAssociationId
+		 for az, subnetId := range cfg.AWSConfig.Subnets {
+		 	if subnetId == *association.SubnetId {
+				cfg.AWSConfig.RouteTableAssociationIDs[az] = *association.RouteTableAssociationId
+			}
+		 }
 	}
 
 	return nil
