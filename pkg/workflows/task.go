@@ -25,6 +25,7 @@ const (
 	NodeTask         = "node"
 	ClusterTask      = "cluster"
 	PreProvisionTask = "preprovision"
+	ImportTask       = "import"
 )
 
 // Task is an entity that has it own state that can be tracked

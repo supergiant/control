@@ -2,7 +2,6 @@ package kube
 
 import (
 	"fmt"
-
 	"github.com/pkg/errors"
 	"k8s.io/apimachinery/pkg/runtime/schema"
 	"k8s.io/apimachinery/pkg/runtime/serializer"
@@ -93,7 +92,7 @@ func adminKubeConfig(k *model.Kube) (clientcmddapi.Config, error) {
 		},
 		Clusters: map[string]*clientcmddapi.Cluster{
 			k.Name: {
-				Server:                   apiAddr,
+				Server: apiAddr,
 				CertificateAuthorityData: []byte(k.Auth.CACert),
 			},
 		},

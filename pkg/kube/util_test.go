@@ -1,8 +1,11 @@
 package kube
 
 import (
+	"bytes"
 	"strings"
 	"testing"
+
+	clientcmddapi "k8s.io/client-go/tools/clientcmd/api"
 
 	"github.com/supergiant/control/pkg/clouds"
 	"github.com/supergiant/control/pkg/model"
@@ -75,6 +78,110 @@ func TestProcessAWSMetrics(t *testing.T) {
 	for _, workerNode := range nodes {
 		if _, ok := metrics[strings.ToLower(workerNode.Name)]; !ok {
 			t.Errorf("Node %s not found in %v", workerNode.Name, metrics)
+		}
+	}
+}
+
+func TestKubeFromKubeConfig(t *testing.T) {
+	testCases := []struct {
+		description string
+		kubeConfig  clientcmddapi.Config
+		expectedErr string
+	}{
+		{
+			description: "current context not found",
+			kubeConfig: clientcmddapi.Config{
+				Contexts:       map[string]*clientcmddapi.Context{},
+				CurrentContext: "notFound",
+			},
+			expectedErr: "current context",
+		},
+		{
+			description: "auth info not found",
+			kubeConfig: clientcmddapi.Config{
+				Contexts: map[string]*clientcmddapi.Context{
+					"kubernetes": {
+						AuthInfo: "not_found",
+					},
+				},
+				AuthInfos:      map[string]*clientcmddapi.AuthInfo{},
+				CurrentContext: "kubernetes",
+			},
+			expectedErr: "authInfo",
+		},
+		{
+			description: "cluster not found",
+			kubeConfig: clientcmddapi.Config{
+				Contexts: map[string]*clientcmddapi.Context{
+					"kubernetes": {
+						AuthInfo: "kubernetes",
+						Cluster:  "not_found",
+					},
+				},
+				Clusters: map[string]*clientcmddapi.Cluster{},
+				AuthInfos: map[string]*clientcmddapi.AuthInfo{
+					"kubernetes": {
+						ClientCertificateData: []byte(`client cert`),
+						ClientKeyData:         []byte(`client key`),
+					},
+				},
+				CurrentContext: "kubernetes",
+			},
+			expectedErr: "cluster",
+		},
+		{
+			description: "success",
+			kubeConfig: clientcmddapi.Config{
+				Contexts: map[string]*clientcmddapi.Context{
+					"admin@kubernetes": {
+						AuthInfo: "kubernetes",
+						Cluster:  "kubernetes",
+					},
+				},
+				Clusters: map[string]*clientcmddapi.Cluster{
+					"kubernetes": {
+						CertificateAuthorityData: []byte(`ca cert`),
+					},
+				},
+				AuthInfos: map[string]*clientcmddapi.AuthInfo{
+					"kubernetes": {
+						ClientCertificateData: []byte(`client cert`),
+						ClientKeyData:         []byte(`client key`),
+					},
+				},
+				CurrentContext: "admin@kubernetes",
+			},
+		},
+	}
+
+	for _, testCase := range testCases {
+		kube, err := kubeFromKubeConfig(testCase.kubeConfig)
+
+		if err == nil && testCase.expectedErr != "" {
+			t.Error("Error must not be nil")
+			continue
+		}
+
+		if err != nil && testCase.expectedErr != "" && !strings.Contains(err.Error(), testCase.expectedErr) {
+			t.Errorf("Error message %s does not contain expectedc text %s", err.Error(), testCase.expectedErr)
+			continue
+		}
+
+		if testCase.expectedErr == "" && kube == nil {
+			t.Errorf("kube must not be nil")
+			continue
+		}
+
+		if kube != nil && bytes.Compare(testCase.kubeConfig.AuthInfos["kubernetes"].ClientKeyData, []byte(kube.Auth.AdminKey)) != 0 {
+			t.Errorf("Admin key does not match")
+		}
+
+		if kube != nil && bytes.Compare(testCase.kubeConfig.AuthInfos["kubernetes"].ClientCertificateData, []byte(kube.Auth.AdminCert)) != 0 {
+			t.Errorf("Admin cert does not match")
+		}
+
+		if kube != nil && bytes.Compare(testCase.kubeConfig.Clusters["kubernetes"].CertificateAuthorityData, []byte(kube.Auth.CACert)) != 0 {
+			t.Errorf("CA cert does not match")
 		}
 	}
 }

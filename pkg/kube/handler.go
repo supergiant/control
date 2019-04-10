@@ -9,6 +9,8 @@ import (
 	"strconv"
 	"time"
 
+	"k8s.io/client-go/tools/clientcmd"
+
 	"github.com/gorilla/mux"
 	"github.com/pkg/errors"
 	"github.com/sirupsen/logrus"
@@ -33,6 +35,7 @@ import (
 
 const (
 	clusterService = "kubernetes.io/cluster-service"
+	nodeLabelRole  = "kubernetes.io/role"
 )
 
 type accountGetter interface {
@@ -154,6 +157,7 @@ func NewHandler(
 func (h *Handler) Register(r *mux.Router) {
 	r.HandleFunc("/kubes", h.createKube).Methods(http.MethodPost)
 	r.HandleFunc("/kubes", h.listKubes).Methods(http.MethodGet)
+	r.HandleFunc("/kubes/import", h.importKube).Methods(http.MethodPost)
 	r.HandleFunc("/kubes/{kubeID}", h.getKube).Methods(http.MethodGet)
 	r.HandleFunc("/kubes/{kubeID}", h.deleteKube).Methods(http.MethodDelete)
 
@@ -339,7 +343,6 @@ func (h *Handler) deleteKube(w http.ResponseWriter, r *http.Request) {
 		Masters:          steps.NewMap(k.Masters),
 		Nodes:            steps.NewMap(k.Nodes),
 	}
-
 
 	t, err := workflows.NewTask(config, workflows.DeleteCluster, h.repo)
 
@@ -1185,4 +1188,132 @@ func (h *Handler) restartKubeProvisioning(w http.ResponseWriter, r *http.Request
 	}
 
 	w.WriteHeader(http.StatusAccepted)
+}
+
+func (h *Handler) importKube(w http.ResponseWriter, r *http.Request) {
+	type importRequest struct {
+		KubeConfig       string `json:"kubeconfig"`
+		ClusterName      string `json:"clusterName"`
+		CloudAccountName string `json:"cloudAccountName"`
+	}
+
+	var req importRequest
+	var err error
+
+	err = json.NewDecoder(r.Body).Decode(&req)
+
+	if err != nil {
+		logrus.Error(err)
+		message.SendInvalidJSON(w, err)
+		return
+	}
+
+	kubeConfig, err := clientcmd.Load([]byte(req.KubeConfig))
+
+	if err != nil {
+		logrus.Error(err)
+		message.SendInvalidJSON(w, err)
+		return
+	}
+
+	config := &steps.Config{}
+	importTask, err := workflows.NewTask(config, workflows.ImportCluster, h.repo)
+
+	if err != nil {
+		message.SendUnknownError(w, err)
+		return
+	}
+
+	kube, err := kubeFromKubeConfig(*kubeConfig)
+
+	if err != nil {
+		message.SendInvalidCredentials(w, err)
+		return
+	}
+	// Grab all k8s nodes from kube-apiserver
+	nodes, err := h.svc.ListNodes(r.Context(), kube, "")
+	if err != nil {
+		message.SendUnknownError(w, err)
+		return
+	}
+
+	cloudAccount, err := h.accountService.Get(r.Context(), req.CloudAccountName)
+
+	if err != nil {
+		if sgerrors.IsNotFound(err) {
+			message.SendNotFound(w, req.CloudAccountName, err)
+			return
+		}
+		message.SendUnknownError(w, err)
+		return
+	}
+
+	err = util.FillCloudAccountCredentials(cloudAccount, config)
+
+	if err != nil {
+		message.SendUnknownError(w, err)
+		return
+	}
+
+	var clusterID string
+
+	if len(importTask.ID) > 8 {
+		clusterID = importTask.ID[:8]
+	} else {
+		message.SendValidationFailed(w, errors.New("import task id is too short"))
+		return
+	}
+
+	w.WriteHeader(http.StatusAccepted)
+	err = json.NewEncoder(w).Encode(struct {
+		ClusterID string `json:"clusterId"`
+	}{
+		ClusterID: clusterID,
+	})
+
+	if err != nil {
+		message.SendInvalidJSON(w, err)
+		return
+	}
+
+	go func() {
+		fileName := util.MakeFileName(importTask.ID)
+		writer, err := h.getWriter(fileName)
+
+		if err != nil {
+			message.SendUnknownError(w, err)
+			return
+		}
+
+		for _, node := range nodes {
+			machine := model.Machine{}
+
+			for _, address := range node.Status.Addresses {
+				if address.Type == "ExternalIP" {
+					machine.PublicIp = address.Address
+				} else if address.Type == "InternalIP" {
+					machine.PrivateIp = address.Address
+				}
+			}
+
+			// Set tole to machine
+			machine.Role = model.Role(node.Labels[nodeLabelRole])
+
+			if machine.Role == model.RoleMaster {
+				config.AddMaster(&machine)
+			} else {
+				config.AddNode(&machine)
+			}
+		}
+
+		importTask.Config = config
+		resultChan := importTask.Run(context.Background(), *importTask.Config, writer)
+		err = <-resultChan
+
+		if err != nil {
+			logrus.Errorf("task %s has finished with error %v", importTask.ID, err)
+		}
+
+		logrus.Infof("Import task %s has successfully finished", importTask.ID)
+	}()
 }
