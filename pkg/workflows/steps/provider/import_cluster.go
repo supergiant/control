@@ -29,6 +29,7 @@ func (s ImportClusterStep) Run(ctx context.Context, out io.Writer, cfg *steps.Co
 			steps.GetStep(amazon.ImportClusterMachinesStepName),
 			steps.GetStep(amazon.ImportSubnetsStepName),
 			steps.GetStep(amazon.ImportInternetGatewayStepName),
+			steps.GetStep(amazon.ImporRouteTablesStepName),
 		}
 	default:
 		return errors.New(fmt.Sprintf("unsupported provider: %s", cfg.Provider))
