@@ -7,6 +7,7 @@ import (
 	"github.com/aws/aws-sdk-go/service/ec2"
 	"github.com/pkg/errors"
 	"github.com/sirupsen/logrus"
+	"github.com/supergiant/control/pkg/clouds"
 	"github.com/supergiant/control/pkg/model"
 	"github.com/supergiant/control/pkg/sgerrors"
 	"github.com/supergiant/control/pkg/workflows/steps"
@@ -20,6 +21,7 @@ const (
 
 type InstanceDescriber interface {
 	DescribeInstancesWithContext(aws.Context, *ec2.DescribeInstancesInput, ...request.Option) (*ec2.DescribeInstancesOutput, error)
+	DescribeSecurityGroups(*ec2.DescribeSecurityGroupsInput) (*ec2.DescribeSecurityGroupsOutput, error)
 	CreateTags(*ec2.CreateTagsInput) (*ec2.CreateTagsOutput, error)
 }
 
@@ -46,7 +48,6 @@ func InitImportClusterStep(fn GetEC2Fn) {
 }
 
 func (s ImportClusterStep) Run(ctx context.Context, out io.Writer, cfg *steps.Config) error {
-	// TODO: reuse sessions
 	ec2Svc, err := s.getSvc(cfg.AWSConfig)
 	if err != nil {
 		logrus.Errorf("[%s] - failed to authorize in AWS: %v", s.Name(), err)
@@ -64,6 +65,19 @@ func (s ImportClusterStep) Run(ctx context.Context, out io.Writer, cfg *steps.Co
 	if err != nil {
 		return errors.Wrapf(err, "error importing workers")
 	}
+
+	secGroupInput := &ec2.DescribeSecurityGroupsInput{
+		GroupIds: []*string{aws.String(cfg.AWSConfig.MastersSecurityGroupID)},
+	}
+
+	output, err := ec2Svc.DescribeSecurityGroups(secGroupInput)
+
+	if err != nil {
+		return errors.Wrapf(err, "master security group not found %s", cfg.AWSConfig.MastersSecurityGroupID)
+	}
+
+	masterSecGroup := output.SecurityGroups[0]
+	cfg.AWSConfig.VPCID = *masterSecGroup.VpcId
 
 	return nil
 }
@@ -142,7 +156,29 @@ func (s *ImportClusterStep) importMachines(ctx context.Context, role model.Role,
 			machine.Role = model.RoleNode
 			cfg.AddNode(machine)
 		}
-		//TODO(stgleb): tag instances
+
+		tags := &ec2.CreateTagsInput{
+			Tags: []*ec2.Tag{
+				{
+					Key:   aws.String("KubernetesCluster"),
+					Value: aws.String(cfg.ClusterName),
+				},
+				{
+					Key:   aws.String("Role"),
+					Value: aws.String(string(role)),
+				},
+				{
+					Key:   aws.String(clouds.TagClusterID),
+					Value: aws.String(cfg.ClusterID),
+				},
+			},
+		}
+
+		_, err = ec2Svc.CreateTags(tags)
+
+		if err != nil {
+			return errors.Wrapf(err, "error tag instance %v", machine)
+		}
 	}
 
 	return nil
