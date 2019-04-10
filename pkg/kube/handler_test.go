@@ -845,17 +845,17 @@ func TestAddNodeToKube(t *testing.T) {
 		expectedCode int
 	}{
 		{
-			testName: "kube not found",
-			kubeName: "test",
-			kube: nil,
+			testName:       "kube not found",
+			kubeName:       "test",
+			kube:           nil,
 			kubeServiceErr: sgerrors.ErrNotFound,
-			kubeProfile: nil,
-			profileErr: nil,
-			accountName: "",
-			accountErr: nil,
-			account: nil,
-			provisionErr: nil,
-			expectedCode: http.StatusNotFound,
+			kubeProfile:    nil,
+			profileErr:     nil,
+			accountName:    "",
+			accountErr:     nil,
+			account:        nil,
+			provisionErr:   nil,
+			expectedCode:   http.StatusNotFound,
 		},
 		{
 			testName: "profile not found",
@@ -865,13 +865,13 @@ func TestAddNodeToKube(t *testing.T) {
 				Tasks:       make(map[string][]string),
 			},
 			kubeServiceErr: nil,
-			kubeProfile: nil,
-			profileErr: sgerrors.ErrNotFound,
-			accountName: "test",
-			account: nil,
-			accountErr: sgerrors.ErrNotFound,
-			provisionErr: nil,
-			expectedCode: http.StatusNotFound,
+			kubeProfile:    nil,
+			profileErr:     sgerrors.ErrNotFound,
+			accountName:    "test",
+			account:        nil,
+			accountErr:     sgerrors.ErrNotFound,
+			provisionErr:   nil,
+			expectedCode:   http.StatusNotFound,
 		},
 		{
 			testName: "account not found",
@@ -881,13 +881,13 @@ func TestAddNodeToKube(t *testing.T) {
 				Tasks:       make(map[string][]string),
 			},
 			kubeServiceErr: nil,
-			kubeProfile: &profile.Profile{},
-			profileErr: nil,
-			accountName: "test",
-			account: nil,
-			accountErr: sgerrors.ErrNotFound,
-			provisionErr: nil,
-			expectedCode: http.StatusNotFound,
+			kubeProfile:    &profile.Profile{},
+			profileErr:     nil,
+			accountName:    "test",
+			account:        nil,
+			accountErr:     sgerrors.ErrNotFound,
+			provisionErr:   nil,
+			expectedCode:   http.StatusNotFound,
 		},
 		{
 			testName: "provision not found",
@@ -897,14 +897,14 @@ func TestAddNodeToKube(t *testing.T) {
 				Tasks:       make(map[string][]string),
 			},
 			kubeServiceErr: nil,
-			kubeProfile: &profile.Profile{},
-			profileErr: nil,
-			accountName:  "test",
+			kubeProfile:    &profile.Profile{},
+			profileErr:     nil,
+			accountName:    "test",
 			account: &model.CloudAccount{
 				Name:     "test",
 				Provider: clouds.DigitalOcean,
 			},
-			accountErr: nil,
+			accountErr:   nil,
 			provisionErr: sgerrors.ErrNotFound,
 			expectedCode: http.StatusNotFound,
 		},
@@ -919,14 +919,14 @@ func TestAddNodeToKube(t *testing.T) {
 				Tasks: make(map[string][]string),
 			},
 			kubeServiceErr: nil,
-			kubeProfile: &profile.Profile{},
-			profileErr: nil,
-			accountName: "test",
+			kubeProfile:    &profile.Profile{},
+			profileErr:     nil,
+			accountName:    "test",
 			account: &model.CloudAccount{
 				Name:     "test",
 				Provider: clouds.DigitalOcean,
 			},
-			accountErr: nil,
+			accountErr:   nil,
 			provisionErr: nil,
 			expectedCode: http.StatusAccepted,
 		},
@@ -2379,7 +2379,6 @@ func TestGetServices(t *testing.T) {
 	}
 }
 
-
 func TestImportKube(t *testing.T) {
 	testCases := []struct {
 		description string
@@ -2390,34 +2389,34 @@ func TestImportKube(t *testing.T) {
 		account     *model.CloudAccount
 		accountErr  error
 
-		svcNodes        []corev1.Node
-		svcGetErr       error
+		svcNodes  []corev1.Node
+		svcGetErr error
 
 		expectedCode int
 	}{
 		{
-			description: "json error",
-			req: []byte(`{`),
+			description:  "json error",
+			req:          []byte(`{`),
 			expectedCode: http.StatusBadRequest,
 		},
 		{
-			description: "bad credentials",
-			req: []byte(`{"kubeconfig":"{}","clusterName":"kubernetes","cloudAccountName":"test"}`),
-			accountErr: sgerrors.ErrNotFound,
+			description:  "bad credentials",
+			req:          []byte(`{"kubeconfig":"{}","clusterName":"kubernetes","cloudAccountName":"test"}`),
+			accountErr:   sgerrors.ErrNotFound,
 			expectedCode: http.StatusBadRequest,
 		},
 		{
-			description: "cloud account not found",
-			req: []byte(`{"kubeconfig":"{\r\n  \"kind\": \"Config\",\r\n  \"apiVersion\": \"v1\",\r\n  \"preferences\": {},\r\n  \"clusters\": [\r\n    {\r\n      \"name\": \"asdfasdf\",\r\n      \"cluster\": {\r\n        \"server\": \"https:\/\/ex-24adfede-130460518.eu-west-2.elb.amazonaws.com\",\r\n        \"certificate-authority-data\": \"LS0tLS1CRUdJTiBDRVJUSUZJQ0FURS0tLS0tCk1JSUN5RENDQWJDZ0F3SUJBZ0lCQURBTkJna3Foa2lHOXcwQkFRc0ZBREFWTVJNd0VRWURWUVFERXdwcmRXSmwKY201bGRHVnpNQjRYRFRFNU1EUXdPVEUyTlRNeE1sb1hEVEk1TURRd05qRTJOVE14TWxvd0ZURVRNQkVHQTFVRQpBeE1LYTNWaVpYSnVaWFJsY3pDQ0FTSXdEUVlKS29aSWh2Y05BUUVCQlFBRGdnRVBBRENDQVFvQ2dnRUJBSyt5Clc5VTdjZWJQV0FBWXNVR2pZUVM5aC9tblAyWW4zVUtxTStaT3QzQ2Z6MVk5ekhaaTlyK0pObEgrWkwralI2QWYKamYyTzRScEFvSG5uYTUzMGEwM2s3dFp3bTdiNXZCcEZLTmw2aHhoKzU2Y1RzMUxZbVJuTWRERFlRV2JSbXk2bwo3ZFRsaDVBVHY1K21tUlNMMkxja1lraDRqTWhObWFPb1hLVmxzck5SWXZ1NHAvRk5uNHF3OE0xekxXK25uSG5kCmZrSWlJZHRXb2ROMG8yL0Njb2l3QW5uSXpGVmVIYnF5L3ZqTm1aOFc2NU5PbW4yZHk1cnkwd0EvQVFzRDdXUS8Kb3I3c2NVRkEvdnRJNXJ4eWVNM2xhMjFycjVGMnhpbVcrZWNlUVNkY1JvK2RoaXFlYmsrcDJrRnV2SjBBZDlUdgpla0dtS0dhRXRPZnE1R2lkSnBrQ0F3RUFBYU1qTUNFd0RnWURWUjBQQVFIL0JBUURBZ0trTUE4R0ExVWRFd0VCCi93UUZNQU1CQWY4d0RRWUpLb1pJaHZjTkFRRUxCUUFEZ2dFQkFDdmlBNXlBKzhHT1NZWjlyam5tN2h0b3BoQkYKemFGMXNadHBudzZuZzM3cjNSSFJwUVlnZUpMcXZZaGtvQlZ5M0lsc1JTV0c2NGJwYUFubjdEb3JZSjdzYmFmeQpIdFRQYlF4S1Bxa0NyMGlwUkxBZmdtdDlodVNLbTlNQUVwWTlNL1NXdmpvNXVoZUg0RWJFWXViSGJhV0Z4eFpPCktTeXlZeTc5WGpIKy9pQndFemoxcWxYUzVsQ1dIUjN6SUUycnM5cVNKWnA2MW9NWDlmYWFYUElSZHJvOHNpVWIKMG1kOUZFeVcrc05GL05xREtUNTFzbHVYR2lWZ1lrK0diUnJ1L1IrbkpZNnlQUU1uK212UTFWN29Ic2RoUTJ1dApRUllZcytkRCtSMW1tNXdNOEIzL3NPSDRnelpKVmtNOFdteUg5a1RDMGFzbkszNDRGOTdrQktaN2VUST0KLS0tLS1FTkQgQ0VSVElGSUNBVEUtLS0tLQo=\"\r\n      }\r\n    }\r\n  ],\r\n  \"users\": [\r\n    {\r\n      \"name\": \"admin@asdfasdf\",\r\n      \"user\": {\r\n        \"client-certificate-data\": \"LS0tLS1CRUdJTiBDRVJUSUZJQ0FURS0tLS0tCk1JSUM4akNDQWRxZ0F3SUJBZ0lJSlFTLzQrYjgyLzR3RFFZSktvWklodmNOQVFFTEJRQXdGVEVUTUJFR0ExVUUKQXhNS2EzVmlaWEp1WlhSbGN6QWVGdzB4T1RBME1Ea3hOalV6TVRKYUZ3MHlNREEwTURneE5qVXpNVEphTURReApGekFWQmdOVkJBb1REbk41YzNSbGJUcHRZWE4wWlhKek1Sa3dGd1lEVlFRREV4QnJkV0psY201bGRHVnpMV0ZrCmJXbHVNSUlCSWpBTkJna3Foa2lHOXcwQkFRRUZBQU9DQVE4QU1JSUJDZ0tDQVFFQXVDRGlvUHBOcjlnb2kyY3IKUUd6d21tVFU3OUV4WDN0VUZGUUw1clZoQkVTTjdma2k0MWNueCtBRkhCbVRnODRNVStlR0VqditudGYvWEdQSApTR3FiYlZkOUFmM2hMV2dBUnBFdCtVVTZFUUJSTDdtUE9qZFI0WFhRQVk3RlNHam9wUlgvcWdUdFFJZ05MS0tHClVESzhMQVV2bkVoaVQrN0hKUGdlZGVJNG9SeHh4NUpvdXpqUlk0ODkyOGtNTE02Mm1ZMmV1bkFqMi8vWmtna2QKNmhKT3dxN0t5ck9jY0k3NVA3RE0xM3BtUDduZDA2SHp6VFJ5ZGxwbEJQbmErcHAwaDN0Q2xpNG5GZG5yakFwYgpiZWxKYUtDUElseEF1Mk00a1BBWDRZdGUvd0hiRVROQjNHbVhTWjNxQ3hocFhVdnlCYzdBalVWVnZncmJvbU11CkdvR2dBUUlEQVFBQm95Y3dKVEFPQmdOVkhROEJBZjhFQkFNQ0JhQXdFd1lEVlIwbEJBd3dDZ1lJS3dZQkJRVUgKQXdJd0RRWUpLb1pJaHZjTkFRRUxCUUFEZ2dFQkFGVEJWM0crNEdQaGtWUW9USU5XZDlTQjE2UTRCZjNGUm5BbApuODRJZzBWNFRkNndCZG1lbVZhYzFjeU94dkFSQmpGMEVoRXFaODFjVDZuK3NoMzZrYmh0Rzl3RDd4WU1lanhRClRBZnZDL01ndFo0YVl5Qnp2Uk5yWmxQYkoyUUlpdXo3RmM0NWFSUnh5LzJEVkVXYTdXaytzbUUrR0dHTnR0OFQKRUQzWjBhSTFWSkxDcDhqR0xVeVg3V3FRNU5YckN0TE95cnd0UHZMNGlLTnNZd2VwYzRYUTBacXBEM0VDMERJdApKZ0Vzb0FybDVYdTVad0oxbWtwS2x4RGhEOVZHTGExRkV1YmtNVTh4cGpQd0JzU2xWb3V3bzVVbVhETEhKUE5kCmlkQjBSdjZvUENzTlZvclpVUDRrR1lMdXA3NTJnc0FRSHQyUm5HcUZWUkJSRTBQWWc3az0KLS0tLS1FTkQgQ0VSVElGSUNBVEUtLS0tLQo=\",\r\n        \"client-key-data\": \"LS0tLS1CRUdJTiBSU0EgUFJJVkFURSBLRVktLS0tLQpNSUlFb3dJQkFBS0NBUUVBdUNEaW9QcE5yOWdvaTJjclFHendtbVRVNzlFeFgzdFVGRlFMNXJWaEJFU043ZmtpCjQxY254K0FGSEJtVGc4NE1VK2VHRWp2K250Zi9YR1BIU0dxYmJWZDlBZjNoTFdnQVJwRXQrVVU2RVFCUkw3bVAKT2pkUjRYWFFBWTdGU0dqb3BSWC9xZ1R0UUlnTkxLS0dVREs4TEFVdm5FaGlUKzdISlBnZWRlSTRvUnh4eDVKbwp1empSWTQ4OTI4a01MTTYybVkyZXVuQWoyLy9aa2drZDZoSk93cTdLeXJPY2NJNzVQN0RNMTNwbVA3bmQwNkh6CnpUUnlkbHBsQlBuYStwcDBoM3RDbGk0bkZkbnJqQXBiYmVsSmFLQ1BJbHhBdTJNNGtQQVg0WXRlL3dIYkVUTkIKM0dtWFNaM3FDeGhwWFV2eUJjN0FqVVZWdmdyYm9tTXVHb0dnQVFJREFRQUJBb0lCQUVCcmVQN2JNK3p1MHBpYgpPdDJxZjY5MDBhOHA0SDFJZDgwNDdvVUVObkk0emZOUmMreFlKTm5nUGNsc0JWbGE4S00yWUlqbXBwbktkbFJMCnNJQmNsQTU0U29zMDJPQjYvNFd3NjRYSHU1NFJIMVowTkhFb3c2UC9CUXhXZUIxeVh0ckxUSXllZHFkYU1rbkkKZnZkMkdMSEtDck5CKyt0OVhmMUlOZGdHa3N1Q3dPaFBuM3Z0cXJ2cktRSzJCQnAwVURJWXdHbVY2dmxCM3JmLwoxZDhmd0VQMEc0YVdzUDR4UnFSemt5bU5YbDNIcmZTUGZQTzZrdjhWMElWWjhFeFFXMjVXcWRsMERVcXhBZjBICmtGSHNtMGFYY1FVQk9ScmhxalByL1g5ZnBxbkNnMlJRSC9SVEV6ZXpoc2NrQWxHUjVFTTcxak42RkxVZFllVEgKRkdjSWdSVUNnWUVBNTk5OW1MVmU2WTd5RHJpL0pnQXRyVWxJWUN3SDNhOENmeVkrOURTWVdSdWFRdktReGVqNQpiSUhBQnBXVGp4YW95MjlYR01meCtxci9wdThzdWlzRjFueWtEUFh5cVRUeHgvMmIwRjg1eXA5M3pRcW9DOWZSCm8yTThpNDkxSWhWODZ6ajk5b0IvWkcvRjZBeGhBMlVOOG9jdnBaTHF0M1M0M2NZeDF2c2F0aE1DZ1lFQXkwbVoKek0wY0J5UTdhZlI3RVpFcUVTNGoxVkxGbTBBVldNcmRJaThuM0JhZEJ3RTFscXJ0NDJndU5VSG9MbUVEZENCcQpnSmYxNXZIYWFBa1Jjem95c1Y5SG5aZVhoQUxNMG11dU01amxpdFNiUEhvczl3WG5RQVJzTFdvNVJlSlpkWVliClhkSWVCLzNNTUtKdUFaejBvcVZaOTZ2SWpwajRQS1pWWThoTFpCc0NnWUVBdEI1UzlUWW14VzFxTU85b1pQK00KZStqS1ZSSy9CWUMyZ3NqVjdHT1MyTjF0Um9ZZzJld3hIUTNwZWZQbFRTaS85RS9JSzVMZU1PZDJjbG1tdC9ORgp0S2piMHNtWE44UE44Wm5hMk5Hd0Zlc3NaOVhZVm1MUEVZbTc5WGw1OXdFVUtiRDY3dXBBaTJlY0o3YStBYUlWClpJbUpCS2lNdGZmd3h5MzNkMVZXR1lzQ2dZQTlQK1hKSVJ1S3cwM3JkTEFIOFBiOXlpc2R3UnlzMURnYVVyVWgKOFpkTzVybFZQUFlLZVdISG5NSWZaY1l4QXlYcFBVTVpqNitWYjlWZ2R5cjh6dElyUXd2dTNaZlhQSWk5OVplOQpFQnBKSkJuSnRQNExSNG9QYmNXeVFVa1VWMGlnOGxFWWlaQm0wLzlMd0FUcEU0Tlo1ZndmZFhDdUZrVGs4VERWCkthb2RkUUtCZ0hkWnc4MU1sV3ZBU3EyUlVRK3BjK0wxL3lvb2F1bm93b0laak5uTVJETFFkYi9nSGhYYmNKUG0KOVRGeXBtYkthMVlGMkFjN2tJbkhxOFNCYUQyanhLaHZLNkVONFNpV2t3MExrb2JiZHR4OXlPVmYxcEc5MVZvUgpVZEhvS20wUnREbmRYMjhaNUxRR1FKL01DZkphMGJHNURKaFZ6SXgyQXBlSTlhWmVNbnN5Ci0tLS0tRU5EIFJTQSBQUklWQVRFIEtFWS0tLS0tCg==\"\r\n      }\r\n    }\r\n  ],\r\n  \"contexts\": [\r\n    {\r\n      \"name\": \"admin@asdfasdf\",\r\n      \"context\": {\r\n        \"cluster\": \"asdfasdf\",\r\n        \"user\": \"admin@asdfasdf\"\r\n      }\r\n    }\r\n  ],\r\n  \"current-context\": \"admin@asdfasdf\"\r\n}","clusterName":"kubernetes","cloudAccountName":"test"}`),
-			accountErr: sgerrors.ErrNotFound,
+			description:  "cloud account not found",
+			req:          []byte(`{"kubeconfig":"{\r\n  \"kind\": \"Config\",\r\n  \"apiVersion\": \"v1\",\r\n  \"preferences\": {},\r\n  \"clusters\": [\r\n    {\r\n      \"name\": \"asdfasdf\",\r\n      \"cluster\": {\r\n        \"server\": \"https:\/\/ex-24adfede-130460518.eu-west-2.elb.amazonaws.com\",\r\n        \"certificate-authority-data\": \"LS0tLS1CRUdJTiBDRVJUSUZJQ0FURS0tLS0tCk1JSUN5RENDQWJDZ0F3SUJBZ0lCQURBTkJna3Foa2lHOXcwQkFRc0ZBREFWTVJNd0VRWURWUVFERXdwcmRXSmwKY201bGRHVnpNQjRYRFRFNU1EUXdPVEUyTlRNeE1sb1hEVEk1TURRd05qRTJOVE14TWxvd0ZURVRNQkVHQTFVRQpBeE1LYTNWaVpYSnVaWFJsY3pDQ0FTSXdEUVlKS29aSWh2Y05BUUVCQlFBRGdnRVBBRENDQVFvQ2dnRUJBSyt5Clc5VTdjZWJQV0FBWXNVR2pZUVM5aC9tblAyWW4zVUtxTStaT3QzQ2Z6MVk5ekhaaTlyK0pObEgrWkwralI2QWYKamYyTzRScEFvSG5uYTUzMGEwM2s3dFp3bTdiNXZCcEZLTmw2aHhoKzU2Y1RzMUxZbVJuTWRERFlRV2JSbXk2bwo3ZFRsaDVBVHY1K21tUlNMMkxja1lraDRqTWhObWFPb1hLVmxzck5SWXZ1NHAvRk5uNHF3OE0xekxXK25uSG5kCmZrSWlJZHRXb2ROMG8yL0Njb2l3QW5uSXpGVmVIYnF5L3ZqTm1aOFc2NU5PbW4yZHk1cnkwd0EvQVFzRDdXUS8Kb3I3c2NVRkEvdnRJNXJ4eWVNM2xhMjFycjVGMnhpbVcrZWNlUVNkY1JvK2RoaXFlYmsrcDJrRnV2SjBBZDlUdgpla0dtS0dhRXRPZnE1R2lkSnBrQ0F3RUFBYU1qTUNFd0RnWURWUjBQQVFIL0JBUURBZ0trTUE4R0ExVWRFd0VCCi93UUZNQU1CQWY4d0RRWUpLb1pJaHZjTkFRRUxCUUFEZ2dFQkFDdmlBNXlBKzhHT1NZWjlyam5tN2h0b3BoQkYKemFGMXNadHBudzZuZzM3cjNSSFJwUVlnZUpMcXZZaGtvQlZ5M0lsc1JTV0c2NGJwYUFubjdEb3JZSjdzYmFmeQpIdFRQYlF4S1Bxa0NyMGlwUkxBZmdtdDlodVNLbTlNQUVwWTlNL1NXdmpvNXVoZUg0RWJFWXViSGJhV0Z4eFpPCktTeXlZeTc5WGpIKy9pQndFemoxcWxYUzVsQ1dIUjN6SUUycnM5cVNKWnA2MW9NWDlmYWFYUElSZHJvOHNpVWIKMG1kOUZFeVcrc05GL05xREtUNTFzbHVYR2lWZ1lrK0diUnJ1L1IrbkpZNnlQUU1uK212UTFWN29Ic2RoUTJ1dApRUllZcytkRCtSMW1tNXdNOEIzL3NPSDRnelpKVmtNOFdteUg5a1RDMGFzbkszNDRGOTdrQktaN2VUST0KLS0tLS1FTkQgQ0VSVElGSUNBVEUtLS0tLQo=\"\r\n      }\r\n    }\r\n  ],\r\n  \"users\": [\r\n    {\r\n      \"name\": \"admin@asdfasdf\",\r\n      \"user\": {\r\n        \"client-certificate-data\": \"LS0tLS1CRUdJTiBDRVJUSUZJQ0FURS0tLS0tCk1JSUM4akNDQWRxZ0F3SUJBZ0lJSlFTLzQrYjgyLzR3RFFZSktvWklodmNOQVFFTEJRQXdGVEVUTUJFR0ExVUUKQXhNS2EzVmlaWEp1WlhSbGN6QWVGdzB4T1RBME1Ea3hOalV6TVRKYUZ3MHlNREEwTURneE5qVXpNVEphTURReApGekFWQmdOVkJBb1REbk41YzNSbGJUcHRZWE4wWlhKek1Sa3dGd1lEVlFRREV4QnJkV0psY201bGRHVnpMV0ZrCmJXbHVNSUlCSWpBTkJna3Foa2lHOXcwQkFRRUZBQU9DQVE4QU1JSUJDZ0tDQVFFQXVDRGlvUHBOcjlnb2kyY3IKUUd6d21tVFU3OUV4WDN0VUZGUUw1clZoQkVTTjdma2k0MWNueCtBRkhCbVRnODRNVStlR0VqditudGYvWEdQSApTR3FiYlZkOUFmM2hMV2dBUnBFdCtVVTZFUUJSTDdtUE9qZFI0WFhRQVk3RlNHam9wUlgvcWdUdFFJZ05MS0tHClVESzhMQVV2bkVoaVQrN0hKUGdlZGVJNG9SeHh4NUpvdXpqUlk0ODkyOGtNTE02Mm1ZMmV1bkFqMi8vWmtna2QKNmhKT3dxN0t5ck9jY0k3NVA3RE0xM3BtUDduZDA2SHp6VFJ5ZGxwbEJQbmErcHAwaDN0Q2xpNG5GZG5yakFwYgpiZWxKYUtDUElseEF1Mk00a1BBWDRZdGUvd0hiRVROQjNHbVhTWjNxQ3hocFhVdnlCYzdBalVWVnZncmJvbU11CkdvR2dBUUlEQVFBQm95Y3dKVEFPQmdOVkhROEJBZjhFQkFNQ0JhQXdFd1lEVlIwbEJBd3dDZ1lJS3dZQkJRVUgKQXdJd0RRWUpLb1pJaHZjTkFRRUxCUUFEZ2dFQkFGVEJWM0crNEdQaGtWUW9USU5XZDlTQjE2UTRCZjNGUm5BbApuODRJZzBWNFRkNndCZG1lbVZhYzFjeU94dkFSQmpGMEVoRXFaODFjVDZuK3NoMzZrYmh0Rzl3RDd4WU1lanhRClRBZnZDL01ndFo0YVl5Qnp2Uk5yWmxQYkoyUUlpdXo3RmM0NWFSUnh5LzJEVkVXYTdXaytzbUUrR0dHTnR0OFQKRUQzWjBhSTFWSkxDcDhqR0xVeVg3V3FRNU5YckN0TE95cnd0UHZMNGlLTnNZd2VwYzRYUTBacXBEM0VDMERJdApKZ0Vzb0FybDVYdTVad0oxbWtwS2x4RGhEOVZHTGExRkV1YmtNVTh4cGpQd0JzU2xWb3V3bzVVbVhETEhKUE5kCmlkQjBSdjZvUENzTlZvclpVUDRrR1lMdXA3NTJnc0FRSHQyUm5HcUZWUkJSRTBQWWc3az0KLS0tLS1FTkQgQ0VSVElGSUNBVEUtLS0tLQo=\",\r\n        \"client-key-data\": \"LS0tLS1CRUdJTiBSU0EgUFJJVkFURSBLRVktLS0tLQpNSUlFb3dJQkFBS0NBUUVBdUNEaW9QcE5yOWdvaTJjclFHendtbVRVNzlFeFgzdFVGRlFMNXJWaEJFU043ZmtpCjQxY254K0FGSEJtVGc4NE1VK2VHRWp2K250Zi9YR1BIU0dxYmJWZDlBZjNoTFdnQVJwRXQrVVU2RVFCUkw3bVAKT2pkUjRYWFFBWTdGU0dqb3BSWC9xZ1R0UUlnTkxLS0dVREs4TEFVdm5FaGlUKzdISlBnZWRlSTRvUnh4eDVKbwp1empSWTQ4OTI4a01MTTYybVkyZXVuQWoyLy9aa2drZDZoSk93cTdLeXJPY2NJNzVQN0RNMTNwbVA3bmQwNkh6CnpUUnlkbHBsQlBuYStwcDBoM3RDbGk0bkZkbnJqQXBiYmVsSmFLQ1BJbHhBdTJNNGtQQVg0WXRlL3dIYkVUTkIKM0dtWFNaM3FDeGhwWFV2eUJjN0FqVVZWdmdyYm9tTXVHb0dnQVFJREFRQUJBb0lCQUVCcmVQN2JNK3p1MHBpYgpPdDJxZjY5MDBhOHA0SDFJZDgwNDdvVUVObkk0emZOUmMreFlKTm5nUGNsc0JWbGE4S00yWUlqbXBwbktkbFJMCnNJQmNsQTU0U29zMDJPQjYvNFd3NjRYSHU1NFJIMVowTkhFb3c2UC9CUXhXZUIxeVh0ckxUSXllZHFkYU1rbkkKZnZkMkdMSEtDck5CKyt0OVhmMUlOZGdHa3N1Q3dPaFBuM3Z0cXJ2cktRSzJCQnAwVURJWXdHbVY2dmxCM3JmLwoxZDhmd0VQMEc0YVdzUDR4UnFSemt5bU5YbDNIcmZTUGZQTzZrdjhWMElWWjhFeFFXMjVXcWRsMERVcXhBZjBICmtGSHNtMGFYY1FVQk9ScmhxalByL1g5ZnBxbkNnMlJRSC9SVEV6ZXpoc2NrQWxHUjVFTTcxak42RkxVZFllVEgKRkdjSWdSVUNnWUVBNTk5OW1MVmU2WTd5RHJpL0pnQXRyVWxJWUN3SDNhOENmeVkrOURTWVdSdWFRdktReGVqNQpiSUhBQnBXVGp4YW95MjlYR01meCtxci9wdThzdWlzRjFueWtEUFh5cVRUeHgvMmIwRjg1eXA5M3pRcW9DOWZSCm8yTThpNDkxSWhWODZ6ajk5b0IvWkcvRjZBeGhBMlVOOG9jdnBaTHF0M1M0M2NZeDF2c2F0aE1DZ1lFQXkwbVoKek0wY0J5UTdhZlI3RVpFcUVTNGoxVkxGbTBBVldNcmRJaThuM0JhZEJ3RTFscXJ0NDJndU5VSG9MbUVEZENCcQpnSmYxNXZIYWFBa1Jjem95c1Y5SG5aZVhoQUxNMG11dU01amxpdFNiUEhvczl3WG5RQVJzTFdvNVJlSlpkWVliClhkSWVCLzNNTUtKdUFaejBvcVZaOTZ2SWpwajRQS1pWWThoTFpCc0NnWUVBdEI1UzlUWW14VzFxTU85b1pQK00KZStqS1ZSSy9CWUMyZ3NqVjdHT1MyTjF0Um9ZZzJld3hIUTNwZWZQbFRTaS85RS9JSzVMZU1PZDJjbG1tdC9ORgp0S2piMHNtWE44UE44Wm5hMk5Hd0Zlc3NaOVhZVm1MUEVZbTc5WGw1OXdFVUtiRDY3dXBBaTJlY0o3YStBYUlWClpJbUpCS2lNdGZmd3h5MzNkMVZXR1lzQ2dZQTlQK1hKSVJ1S3cwM3JkTEFIOFBiOXlpc2R3UnlzMURnYVVyVWgKOFpkTzVybFZQUFlLZVdISG5NSWZaY1l4QXlYcFBVTVpqNitWYjlWZ2R5cjh6dElyUXd2dTNaZlhQSWk5OVplOQpFQnBKSkJuSnRQNExSNG9QYmNXeVFVa1VWMGlnOGxFWWlaQm0wLzlMd0FUcEU0Tlo1ZndmZFhDdUZrVGs4VERWCkthb2RkUUtCZ0hkWnc4MU1sV3ZBU3EyUlVRK3BjK0wxL3lvb2F1bm93b0laak5uTVJETFFkYi9nSGhYYmNKUG0KOVRGeXBtYkthMVlGMkFjN2tJbkhxOFNCYUQyanhLaHZLNkVONFNpV2t3MExrb2JiZHR4OXlPVmYxcEc5MVZvUgpVZEhvS20wUnREbmRYMjhaNUxRR1FKL01DZkphMGJHNURKaFZ6SXgyQXBlSTlhWmVNbnN5Ci0tLS0tRU5EIFJTQSBQUklWQVRFIEtFWS0tLS0tCg==\"\r\n      }\r\n    }\r\n  ],\r\n  \"contexts\": [\r\n    {\r\n      \"name\": \"admin@asdfasdf\",\r\n      \"context\": {\r\n        \"cluster\": \"asdfasdf\",\r\n        \"user\": \"admin@asdfasdf\"\r\n      }\r\n    }\r\n  ],\r\n  \"current-context\": \"admin@asdfasdf\"\r\n}","clusterName":"kubernetes","cloudAccountName":"test"}`),
+			accountErr:   sgerrors.ErrNotFound,
 			expectedCode: http.StatusNotFound,
 		},
 		{
 			description: "success",
-			req: []byte(`{"kubeconfig":"{\r\n  \"kind\": \"Config\",\r\n  \"apiVersion\": \"v1\",\r\n  \"preferences\": {},\r\n  \"clusters\": [\r\n    {\r\n      \"name\": \"asdfasdf\",\r\n      \"cluster\": {\r\n        \"server\": \"https:\/\/ex-24adfede-130460518.eu-west-2.elb.amazonaws.com\",\r\n        \"certificate-authority-data\": \"LS0tLS1CRUdJTiBDRVJUSUZJQ0FURS0tLS0tCk1JSUN5RENDQWJDZ0F3SUJBZ0lCQURBTkJna3Foa2lHOXcwQkFRc0ZBREFWTVJNd0VRWURWUVFERXdwcmRXSmwKY201bGRHVnpNQjRYRFRFNU1EUXdPVEUyTlRNeE1sb1hEVEk1TURRd05qRTJOVE14TWxvd0ZURVRNQkVHQTFVRQpBeE1LYTNWaVpYSnVaWFJsY3pDQ0FTSXdEUVlKS29aSWh2Y05BUUVCQlFBRGdnRVBBRENDQVFvQ2dnRUJBSyt5Clc5VTdjZWJQV0FBWXNVR2pZUVM5aC9tblAyWW4zVUtxTStaT3QzQ2Z6MVk5ekhaaTlyK0pObEgrWkwralI2QWYKamYyTzRScEFvSG5uYTUzMGEwM2s3dFp3bTdiNXZCcEZLTmw2aHhoKzU2Y1RzMUxZbVJuTWRERFlRV2JSbXk2bwo3ZFRsaDVBVHY1K21tUlNMMkxja1lraDRqTWhObWFPb1hLVmxzck5SWXZ1NHAvRk5uNHF3OE0xekxXK25uSG5kCmZrSWlJZHRXb2ROMG8yL0Njb2l3QW5uSXpGVmVIYnF5L3ZqTm1aOFc2NU5PbW4yZHk1cnkwd0EvQVFzRDdXUS8Kb3I3c2NVRkEvdnRJNXJ4eWVNM2xhMjFycjVGMnhpbVcrZWNlUVNkY1JvK2RoaXFlYmsrcDJrRnV2SjBBZDlUdgpla0dtS0dhRXRPZnE1R2lkSnBrQ0F3RUFBYU1qTUNFd0RnWURWUjBQQVFIL0JBUURBZ0trTUE4R0ExVWRFd0VCCi93UUZNQU1CQWY4d0RRWUpLb1pJaHZjTkFRRUxCUUFEZ2dFQkFDdmlBNXlBKzhHT1NZWjlyam5tN2h0b3BoQkYKemFGMXNadHBudzZuZzM3cjNSSFJwUVlnZUpMcXZZaGtvQlZ5M0lsc1JTV0c2NGJwYUFubjdEb3JZSjdzYmFmeQpIdFRQYlF4S1Bxa0NyMGlwUkxBZmdtdDlodVNLbTlNQUVwWTlNL1NXdmpvNXVoZUg0RWJFWXViSGJhV0Z4eFpPCktTeXlZeTc5WGpIKy9pQndFemoxcWxYUzVsQ1dIUjN6SUUycnM5cVNKWnA2MW9NWDlmYWFYUElSZHJvOHNpVWIKMG1kOUZFeVcrc05GL05xREtUNTFzbHVYR2lWZ1lrK0diUnJ1L1IrbkpZNnlQUU1uK212UTFWN29Ic2RoUTJ1dApRUllZcytkRCtSMW1tNXdNOEIzL3NPSDRnelpKVmtNOFdteUg5a1RDMGFzbkszNDRGOTdrQktaN2VUST0KLS0tLS1FTkQgQ0VSVElGSUNBVEUtLS0tLQo=\"\r\n      }\r\n    }\r\n  ],\r\n  \"users\": [\r\n    {\r\n      \"name\": \"admin@asdfasdf\",\r\n      \"user\": {\r\n        \"client-certificate-data\": \"LS0tLS1CRUdJTiBDRVJUSUZJQ0FURS0tLS0tCk1JSUM4akNDQWRxZ0F3SUJBZ0lJSlFTLzQrYjgyLzR3RFFZSktvWklodmNOQVFFTEJRQXdGVEVUTUJFR0ExVUUKQXhNS2EzVmlaWEp1WlhSbGN6QWVGdzB4T1RBME1Ea3hOalV6TVRKYUZ3MHlNREEwTURneE5qVXpNVEphTURReApGekFWQmdOVkJBb1REbk41YzNSbGJUcHRZWE4wWlhKek1Sa3dGd1lEVlFRREV4QnJkV0psY201bGRHVnpMV0ZrCmJXbHVNSUlCSWpBTkJna3Foa2lHOXcwQkFRRUZBQU9DQVE4QU1JSUJDZ0tDQVFFQXVDRGlvUHBOcjlnb2kyY3IKUUd6d21tVFU3OUV4WDN0VUZGUUw1clZoQkVTTjdma2k0MWNueCtBRkhCbVRnODRNVStlR0VqditudGYvWEdQSApTR3FiYlZkOUFmM2hMV2dBUnBFdCtVVTZFUUJSTDdtUE9qZFI0WFhRQVk3RlNHam9wUlgvcWdUdFFJZ05MS0tHClVESzhMQVV2bkVoaVQrN0hKUGdlZGVJNG9SeHh4NUpvdXpqUlk0ODkyOGtNTE02Mm1ZMmV1bkFqMi8vWmtna2QKNmhKT3dxN0t5ck9jY0k3NVA3RE0xM3BtUDduZDA2SHp6VFJ5ZGxwbEJQbmErcHAwaDN0Q2xpNG5GZG5yakFwYgpiZWxKYUtDUElseEF1Mk00a1BBWDRZdGUvd0hiRVROQjNHbVhTWjNxQ3hocFhVdnlCYzdBalVWVnZncmJvbU11CkdvR2dBUUlEQVFBQm95Y3dKVEFPQmdOVkhROEJBZjhFQkFNQ0JhQXdFd1lEVlIwbEJBd3dDZ1lJS3dZQkJRVUgKQXdJd0RRWUpLb1pJaHZjTkFRRUxCUUFEZ2dFQkFGVEJWM0crNEdQaGtWUW9USU5XZDlTQjE2UTRCZjNGUm5BbApuODRJZzBWNFRkNndCZG1lbVZhYzFjeU94dkFSQmpGMEVoRXFaODFjVDZuK3NoMzZrYmh0Rzl3RDd4WU1lanhRClRBZnZDL01ndFo0YVl5Qnp2Uk5yWmxQYkoyUUlpdXo3RmM0NWFSUnh5LzJEVkVXYTdXaytzbUUrR0dHTnR0OFQKRUQzWjBhSTFWSkxDcDhqR0xVeVg3V3FRNU5YckN0TE95cnd0UHZMNGlLTnNZd2VwYzRYUTBacXBEM0VDMERJdApKZ0Vzb0FybDVYdTVad0oxbWtwS2x4RGhEOVZHTGExRkV1YmtNVTh4cGpQd0JzU2xWb3V3bzVVbVhETEhKUE5kCmlkQjBSdjZvUENzTlZvclpVUDRrR1lMdXA3NTJnc0FRSHQyUm5HcUZWUkJSRTBQWWc3az0KLS0tLS1FTkQgQ0VSVElGSUNBVEUtLS0tLQo=\",\r\n        \"client-key-data\": \"LS0tLS1CRUdJTiBSU0EgUFJJVkFURSBLRVktLS0tLQpNSUlFb3dJQkFBS0NBUUVBdUNEaW9QcE5yOWdvaTJjclFHendtbVRVNzlFeFgzdFVGRlFMNXJWaEJFU043ZmtpCjQxY254K0FGSEJtVGc4NE1VK2VHRWp2K250Zi9YR1BIU0dxYmJWZDlBZjNoTFdnQVJwRXQrVVU2RVFCUkw3bVAKT2pkUjRYWFFBWTdGU0dqb3BSWC9xZ1R0UUlnTkxLS0dVREs4TEFVdm5FaGlUKzdISlBnZWRlSTRvUnh4eDVKbwp1empSWTQ4OTI4a01MTTYybVkyZXVuQWoyLy9aa2drZDZoSk93cTdLeXJPY2NJNzVQN0RNMTNwbVA3bmQwNkh6CnpUUnlkbHBsQlBuYStwcDBoM3RDbGk0bkZkbnJqQXBiYmVsSmFLQ1BJbHhBdTJNNGtQQVg0WXRlL3dIYkVUTkIKM0dtWFNaM3FDeGhwWFV2eUJjN0FqVVZWdmdyYm9tTXVHb0dnQVFJREFRQUJBb0lCQUVCcmVQN2JNK3p1MHBpYgpPdDJxZjY5MDBhOHA0SDFJZDgwNDdvVUVObkk0emZOUmMreFlKTm5nUGNsc0JWbGE4S00yWUlqbXBwbktkbFJMCnNJQmNsQTU0U29zMDJPQjYvNFd3NjRYSHU1NFJIMVowTkhFb3c2UC9CUXhXZUIxeVh0ckxUSXllZHFkYU1rbkkKZnZkMkdMSEtDck5CKyt0OVhmMUlOZGdHa3N1Q3dPaFBuM3Z0cXJ2cktRSzJCQnAwVURJWXdHbVY2dmxCM3JmLwoxZDhmd0VQMEc0YVdzUDR4UnFSemt5bU5YbDNIcmZTUGZQTzZrdjhWMElWWjhFeFFXMjVXcWRsMERVcXhBZjBICmtGSHNtMGFYY1FVQk9ScmhxalByL1g5ZnBxbkNnMlJRSC9SVEV6ZXpoc2NrQWxHUjVFTTcxak42RkxVZFllVEgKRkdjSWdSVUNnWUVBNTk5OW1MVmU2WTd5RHJpL0pnQXRyVWxJWUN3SDNhOENmeVkrOURTWVdSdWFRdktReGVqNQpiSUhBQnBXVGp4YW95MjlYR01meCtxci9wdThzdWlzRjFueWtEUFh5cVRUeHgvMmIwRjg1eXA5M3pRcW9DOWZSCm8yTThpNDkxSWhWODZ6ajk5b0IvWkcvRjZBeGhBMlVOOG9jdnBaTHF0M1M0M2NZeDF2c2F0aE1DZ1lFQXkwbVoKek0wY0J5UTdhZlI3RVpFcUVTNGoxVkxGbTBBVldNcmRJaThuM0JhZEJ3RTFscXJ0NDJndU5VSG9MbUVEZENCcQpnSmYxNXZIYWFBa1Jjem95c1Y5SG5aZVhoQUxNMG11dU01amxpdFNiUEhvczl3WG5RQVJzTFdvNVJlSlpkWVliClhkSWVCLzNNTUtKdUFaejBvcVZaOTZ2SWpwajRQS1pWWThoTFpCc0NnWUVBdEI1UzlUWW14VzFxTU85b1pQK00KZStqS1ZSSy9CWUMyZ3NqVjdHT1MyTjF0Um9ZZzJld3hIUTNwZWZQbFRTaS85RS9JSzVMZU1PZDJjbG1tdC9ORgp0S2piMHNtWE44UE44Wm5hMk5Hd0Zlc3NaOVhZVm1MUEVZbTc5WGw1OXdFVUtiRDY3dXBBaTJlY0o3YStBYUlWClpJbUpCS2lNdGZmd3h5MzNkMVZXR1lzQ2dZQTlQK1hKSVJ1S3cwM3JkTEFIOFBiOXlpc2R3UnlzMURnYVVyVWgKOFpkTzVybFZQUFlLZVdISG5NSWZaY1l4QXlYcFBVTVpqNitWYjlWZ2R5cjh6dElyUXd2dTNaZlhQSWk5OVplOQpFQnBKSkJuSnRQNExSNG9QYmNXeVFVa1VWMGlnOGxFWWlaQm0wLzlMd0FUcEU0Tlo1ZndmZFhDdUZrVGs4VERWCkthb2RkUUtCZ0hkWnc4MU1sV3ZBU3EyUlVRK3BjK0wxL3lvb2F1bm93b0laak5uTVJETFFkYi9nSGhYYmNKUG0KOVRGeXBtYkthMVlGMkFjN2tJbkhxOFNCYUQyanhLaHZLNkVONFNpV2t3MExrb2JiZHR4OXlPVmYxcEc5MVZvUgpVZEhvS20wUnREbmRYMjhaNUxRR1FKL01DZkphMGJHNURKaFZ6SXgyQXBlSTlhWmVNbnN5Ci0tLS0tRU5EIFJTQSBQUklWQVRFIEtFWS0tLS0tCg==\"\r\n      }\r\n    }\r\n  ],\r\n  \"contexts\": [\r\n    {\r\n      \"name\": \"admin@asdfasdf\",\r\n      \"context\": {\r\n        \"cluster\": \"asdfasdf\",\r\n        \"user\": \"admin@asdfasdf\"\r\n      }\r\n    }\r\n  ],\r\n  \"current-context\": \"admin@asdfasdf\"\r\n}","clusterName":"kubernetes","cloudAccountName":"test"}`),
+			req:         []byte(`{"kubeconfig":"{\r\n  \"kind\": \"Config\",\r\n  \"apiVersion\": \"v1\",\r\n  \"preferences\": {},\r\n  \"clusters\": [\r\n    {\r\n      \"name\": \"asdfasdf\",\r\n      \"cluster\": {\r\n        \"server\": \"https:\/\/ex-24adfede-130460518.eu-west-2.elb.amazonaws.com\",\r\n        \"certificate-authority-data\": \"LS0tLS1CRUdJTiBDRVJUSUZJQ0FURS0tLS0tCk1JSUN5RENDQWJDZ0F3SUJBZ0lCQURBTkJna3Foa2lHOXcwQkFRc0ZBREFWTVJNd0VRWURWUVFERXdwcmRXSmwKY201bGRHVnpNQjRYRFRFNU1EUXdPVEUyTlRNeE1sb1hEVEk1TURRd05qRTJOVE14TWxvd0ZURVRNQkVHQTFVRQpBeE1LYTNWaVpYSnVaWFJsY3pDQ0FTSXdEUVlKS29aSWh2Y05BUUVCQlFBRGdnRVBBRENDQVFvQ2dnRUJBSyt5Clc5VTdjZWJQV0FBWXNVR2pZUVM5aC9tblAyWW4zVUtxTStaT3QzQ2Z6MVk5ekhaaTlyK0pObEgrWkwralI2QWYKamYyTzRScEFvSG5uYTUzMGEwM2s3dFp3bTdiNXZCcEZLTmw2aHhoKzU2Y1RzMUxZbVJuTWRERFlRV2JSbXk2bwo3ZFRsaDVBVHY1K21tUlNMMkxja1lraDRqTWhObWFPb1hLVmxzck5SWXZ1NHAvRk5uNHF3OE0xekxXK25uSG5kCmZrSWlJZHRXb2ROMG8yL0Njb2l3QW5uSXpGVmVIYnF5L3ZqTm1aOFc2NU5PbW4yZHk1cnkwd0EvQVFzRDdXUS8Kb3I3c2NVRkEvdnRJNXJ4eWVNM2xhMjFycjVGMnhpbVcrZWNlUVNkY1JvK2RoaXFlYmsrcDJrRnV2SjBBZDlUdgpla0dtS0dhRXRPZnE1R2lkSnBrQ0F3RUFBYU1qTUNFd0RnWURWUjBQQVFIL0JBUURBZ0trTUE4R0ExVWRFd0VCCi93UUZNQU1CQWY4d0RRWUpLb1pJaHZjTkFRRUxCUUFEZ2dFQkFDdmlBNXlBKzhHT1NZWjlyam5tN2h0b3BoQkYKemFGMXNadHBudzZuZzM3cjNSSFJwUVlnZUpMcXZZaGtvQlZ5M0lsc1JTV0c2NGJwYUFubjdEb3JZSjdzYmFmeQpIdFRQYlF4S1Bxa0NyMGlwUkxBZmdtdDlodVNLbTlNQUVwWTlNL1NXdmpvNXVoZUg0RWJFWXViSGJhV0Z4eFpPCktTeXlZeTc5WGpIKy9pQndFemoxcWxYUzVsQ1dIUjN6SUUycnM5cVNKWnA2MW9NWDlmYWFYUElSZHJvOHNpVWIKMG1kOUZFeVcrc05GL05xREtUNTFzbHVYR2lWZ1lrK0diUnJ1L1IrbkpZNnlQUU1uK212UTFWN29Ic2RoUTJ1dApRUllZcytkRCtSMW1tNXdNOEIzL3NPSDRnelpKVmtNOFdteUg5a1RDMGFzbkszNDRGOTdrQktaN2VUST0KLS0tLS1FTkQgQ0VSVElGSUNBVEUtLS0tLQo=\"\r\n      }\r\n    }\r\n  ],\r\n  \"users\": [\r\n    {\r\n      \"name\": \"admin@asdfasdf\",\r\n      \"user\": {\r\n        \"client-certificate-data\": \"LS0tLS1CRUdJTiBDRVJUSUZJQ0FURS0tLS0tCk1JSUM4akNDQWRxZ0F3SUJBZ0lJSlFTLzQrYjgyLzR3RFFZSktvWklodmNOQVFFTEJRQXdGVEVUTUJFR0ExVUUKQXhNS2EzVmlaWEp1WlhSbGN6QWVGdzB4T1RBME1Ea3hOalV6TVRKYUZ3MHlNREEwTURneE5qVXpNVEphTURReApGekFWQmdOVkJBb1REbk41YzNSbGJUcHRZWE4wWlhKek1Sa3dGd1lEVlFRREV4QnJkV0psY201bGRHVnpMV0ZrCmJXbHVNSUlCSWpBTkJna3Foa2lHOXcwQkFRRUZBQU9DQVE4QU1JSUJDZ0tDQVFFQXVDRGlvUHBOcjlnb2kyY3IKUUd6d21tVFU3OUV4WDN0VUZGUUw1clZoQkVTTjdma2k0MWNueCtBRkhCbVRnODRNVStlR0VqditudGYvWEdQSApTR3FiYlZkOUFmM2hMV2dBUnBFdCtVVTZFUUJSTDdtUE9qZFI0WFhRQVk3RlNHam9wUlgvcWdUdFFJZ05MS0tHClVESzhMQVV2bkVoaVQrN0hKUGdlZGVJNG9SeHh4NUpvdXpqUlk0ODkyOGtNTE02Mm1ZMmV1bkFqMi8vWmtna2QKNmhKT3dxN0t5ck9jY0k3NVA3RE0xM3BtUDduZDA2SHp6VFJ5ZGxwbEJQbmErcHAwaDN0Q2xpNG5GZG5yakFwYgpiZWxKYUtDUElseEF1Mk00a1BBWDRZdGUvd0hiRVROQjNHbVhTWjNxQ3hocFhVdnlCYzdBalVWVnZncmJvbU11CkdvR2dBUUlEQVFBQm95Y3dKVEFPQmdOVkhROEJBZjhFQkFNQ0JhQXdFd1lEVlIwbEJBd3dDZ1lJS3dZQkJRVUgKQXdJd0RRWUpLb1pJaHZjTkFRRUxCUUFEZ2dFQkFGVEJWM0crNEdQaGtWUW9USU5XZDlTQjE2UTRCZjNGUm5BbApuODRJZzBWNFRkNndCZG1lbVZhYzFjeU94dkFSQmpGMEVoRXFaODFjVDZuK3NoMzZrYmh0Rzl3RDd4WU1lanhRClRBZnZDL01ndFo0YVl5Qnp2Uk5yWmxQYkoyUUlpdXo3RmM0NWFSUnh5LzJEVkVXYTdXaytzbUUrR0dHTnR0OFQKRUQzWjBhSTFWSkxDcDhqR0xVeVg3V3FRNU5YckN0TE95cnd0UHZMNGlLTnNZd2VwYzRYUTBacXBEM0VDMERJdApKZ0Vzb0FybDVYdTVad0oxbWtwS2x4RGhEOVZHTGExRkV1YmtNVTh4cGpQd0JzU2xWb3V3bzVVbVhETEhKUE5kCmlkQjBSdjZvUENzTlZvclpVUDRrR1lMdXA3NTJnc0FRSHQyUm5HcUZWUkJSRTBQWWc3az0KLS0tLS1FTkQgQ0VSVElGSUNBVEUtLS0tLQo=\",\r\n        \"client-key-data\": \"LS0tLS1CRUdJTiBSU0EgUFJJVkFURSBLRVktLS0tLQpNSUlFb3dJQkFBS0NBUUVBdUNEaW9QcE5yOWdvaTJjclFHendtbVRVNzlFeFgzdFVGRlFMNXJWaEJFU043ZmtpCjQxY254K0FGSEJtVGc4NE1VK2VHRWp2K250Zi9YR1BIU0dxYmJWZDlBZjNoTFdnQVJwRXQrVVU2RVFCUkw3bVAKT2pkUjRYWFFBWTdGU0dqb3BSWC9xZ1R0UUlnTkxLS0dVREs4TEFVdm5FaGlUKzdISlBnZWRlSTRvUnh4eDVKbwp1empSWTQ4OTI4a01MTTYybVkyZXVuQWoyLy9aa2drZDZoSk93cTdLeXJPY2NJNzVQN0RNMTNwbVA3bmQwNkh6CnpUUnlkbHBsQlBuYStwcDBoM3RDbGk0bkZkbnJqQXBiYmVsSmFLQ1BJbHhBdTJNNGtQQVg0WXRlL3dIYkVUTkIKM0dtWFNaM3FDeGhwWFV2eUJjN0FqVVZWdmdyYm9tTXVHb0dnQVFJREFRQUJBb0lCQUVCcmVQN2JNK3p1MHBpYgpPdDJxZjY5MDBhOHA0SDFJZDgwNDdvVUVObkk0emZOUmMreFlKTm5nUGNsc0JWbGE4S00yWUlqbXBwbktkbFJMCnNJQmNsQTU0U29zMDJPQjYvNFd3NjRYSHU1NFJIMVowTkhFb3c2UC9CUXhXZUIxeVh0ckxUSXllZHFkYU1rbkkKZnZkMkdMSEtDck5CKyt0OVhmMUlOZGdHa3N1Q3dPaFBuM3Z0cXJ2cktRSzJCQnAwVURJWXdHbVY2dmxCM3JmLwoxZDhmd0VQMEc0YVdzUDR4UnFSemt5bU5YbDNIcmZTUGZQTzZrdjhWMElWWjhFeFFXMjVXcWRsMERVcXhBZjBICmtGSHNtMGFYY1FVQk9ScmhxalByL1g5ZnBxbkNnMlJRSC9SVEV6ZXpoc2NrQWxHUjVFTTcxak42RkxVZFllVEgKRkdjSWdSVUNnWUVBNTk5OW1MVmU2WTd5RHJpL0pnQXRyVWxJWUN3SDNhOENmeVkrOURTWVdSdWFRdktReGVqNQpiSUhBQnBXVGp4YW95MjlYR01meCtxci9wdThzdWlzRjFueWtEUFh5cVRUeHgvMmIwRjg1eXA5M3pRcW9DOWZSCm8yTThpNDkxSWhWODZ6ajk5b0IvWkcvRjZBeGhBMlVOOG9jdnBaTHF0M1M0M2NZeDF2c2F0aE1DZ1lFQXkwbVoKek0wY0J5UTdhZlI3RVpFcUVTNGoxVkxGbTBBVldNcmRJaThuM0JhZEJ3RTFscXJ0NDJndU5VSG9MbUVEZENCcQpnSmYxNXZIYWFBa1Jjem95c1Y5SG5aZVhoQUxNMG11dU01amxpdFNiUEhvczl3WG5RQVJzTFdvNVJlSlpkWVliClhkSWVCLzNNTUtKdUFaejBvcVZaOTZ2SWpwajRQS1pWWThoTFpCc0NnWUVBdEI1UzlUWW14VzFxTU85b1pQK00KZStqS1ZSSy9CWUMyZ3NqVjdHT1MyTjF0Um9ZZzJld3hIUTNwZWZQbFRTaS85RS9JSzVMZU1PZDJjbG1tdC9ORgp0S2piMHNtWE44UE44Wm5hMk5Hd0Zlc3NaOVhZVm1MUEVZbTc5WGw1OXdFVUtiRDY3dXBBaTJlY0o3YStBYUlWClpJbUpCS2lNdGZmd3h5MzNkMVZXR1lzQ2dZQTlQK1hKSVJ1S3cwM3JkTEFIOFBiOXlpc2R3UnlzMURnYVVyVWgKOFpkTzVybFZQUFlLZVdISG5NSWZaY1l4QXlYcFBVTVpqNitWYjlWZ2R5cjh6dElyUXd2dTNaZlhQSWk5OVplOQpFQnBKSkJuSnRQNExSNG9QYmNXeVFVa1VWMGlnOGxFWWlaQm0wLzlMd0FUcEU0Tlo1ZndmZFhDdUZrVGs4VERWCkthb2RkUUtCZ0hkWnc4MU1sV3ZBU3EyUlVRK3BjK0wxL3lvb2F1bm93b0laak5uTVJETFFkYi9nSGhYYmNKUG0KOVRGeXBtYkthMVlGMkFjN2tJbkhxOFNCYUQyanhLaHZLNkVONFNpV2t3MExrb2JiZHR4OXlPVmYxcEc5MVZvUgpVZEhvS20wUnREbmRYMjhaNUxRR1FKL01DZkphMGJHNURKaFZ6SXgyQXBlSTlhWmVNbnN5Ci0tLS0tRU5EIFJTQSBQUklWQVRFIEtFWS0tLS0tCg==\"\r\n      }\r\n    }\r\n  ],\r\n  \"contexts\": [\r\n    {\r\n      \"name\": \"admin@asdfasdf\",\r\n      \"context\": {\r\n        \"cluster\": \"asdfasdf\",\r\n        \"user\": \"admin@asdfasdf\"\r\n      }\r\n    }\r\n  ],\r\n  \"current-context\": \"admin@asdfasdf\"\r\n}","clusterName":"kubernetes","cloudAccountName":"test"}`),
 			account: &model.CloudAccount{
-				Name: "test",
-				Provider: clouds.AWS,
+				Name:        "test",
+				Provider:    clouds.AWS,
 				Credentials: map[string]string{},
 			},
 			expectedCode: http.StatusAccepted,
@@ -2453,7 +2452,7 @@ func TestImportKube(t *testing.T) {
 
 		h.importKube(rr, req)
 
-		if rr.Code !=  testCase.expectedCode {
+		if rr.Code != testCase.expectedCode {
 			t.Errorf("Wrong response code expected %d actual %d",
 				testCase.expectedCode, rr.Code)
 		}
