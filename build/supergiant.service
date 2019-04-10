@@ -1,0 +1,10 @@
+[Unit]
+Description=Supergiant manages the lifecycle of kubernetes clusters on your infrastructure and allows deployment of applications via HELM.
+Documentation=http://supergiant.github.io
+
+[Service]
+ExecStart=/usr/local/bin/supergiant \
+	-templates /var/lib/supergiant/templates \
+	-storage-uri /var/lib/supergiant/supergiant.db
+
+[Install]
