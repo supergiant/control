@@ -210,8 +210,9 @@
   <div class="copyright">
     <span>&copy; Copyright 2018 Qbox, Inc. All rights reserved. Kubernetes is a trademark of the Cloud Native Computing Foundation.</span>
   </div>
-  <a href="https://github.com/supergiant/control/releases/tag/{{ version$ | async }}" title="Version" target="_blank" class="link">{{ version$ | async }}</a>
   <a href="https://supergiant.io/" title="Homepage" target="_blank" class="link">Homepage</a>
   <a href="https://supergiant.io/privacy-policy" title="Privacy Policy" target="_blank" class="link">Privacy Policy</a>
   <a href="https://supergiant.io/terms-of-service" title="Terms Of Service" target="_blank" class="link">Terms of Service</a>
+  <a *ngIf="!isUnstable" href="https://github.com/supergiant/control/releases/tag/{{ version$ | async }}" title="Version" target="_blank" class="link">{{ version$ | async }}</a>
+  <a *ngIf="isUnstable" href="https://github.com/supergiant/control/tree/master" title="Version" target="_blank" class="link">{{ version$ | async }}</a>
 </div>
