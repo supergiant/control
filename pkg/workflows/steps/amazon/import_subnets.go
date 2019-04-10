@@ -2,8 +2,9 @@ package amazon
 
 import (
 	"context"
-	"github.com/aws/aws-sdk-go/aws"
 	"io"
+
+	"github.com/aws/aws-sdk-go/aws"
 
 	"github.com/aws/aws-sdk-go/service/ec2"
 	"github.com/pkg/errors"
