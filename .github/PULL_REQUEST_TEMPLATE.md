@@ -42,6 +42,6 @@ Example: In order to take advantage of this new feature, users will need to rest
 <!-- Please add documentation if this PR requires it. -->
 <!-- (Hit "SUGGEST EDITS" on the page that needs changes.) -->
 
-- [ ] I have updated [the documentation](https://supergiant.readme.io/) accordingly.
-- [ ] I have read [the Contribution Guidelines](https://supergiant.readme.io/docs/guidelines).
-- [ ] I have added any necessary tests.
+- [ ] [Documentation](https://supergiant.readme.io/v2.1.0-alpha/) was **needed**, and I updated it.
+- [ ] [Documentation](https://supergiant.readme.io/v2.1.0-alpha/) was **not** needed.
+- [ ] I understand [the Contribution Guidelines](https://supergiant.readme.io/docs/guidelines).

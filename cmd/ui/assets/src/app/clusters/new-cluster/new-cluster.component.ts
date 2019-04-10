@@ -74,6 +74,8 @@ export class NewClusterComponent implements OnInit, OnDestroy {
   machineTypesFilter = '';
   regionsFilter = '';
 
+  exposedAddressesArray: Array<string> = new Array<string>();
+
   @ViewChild(MatHorizontalStepper) stepper: MatHorizontalStepper;
   @ViewChild('selectedMachineType') selectedMachineType: MatSelect;
 
@@ -112,6 +114,7 @@ export class NewClusterComponent implements OnInit, OnDestroy {
       cidr: ['10.100.0.0/16', [Validators.required, this.validCidr()]],
       operatingSystem: ['linux', Validators.required],
       arch: ['amd64', Validators.required],
+      exposedAddresses: ['', this.allValidCidrs()],
     });
   }
 
@@ -125,6 +128,10 @@ export class NewClusterComponent implements OnInit, OnDestroy {
 
   get cidr() {
     return this.clusterConfig.get('cidr');
+  }
+
+  get exposedAddresses() {
+    return this.clusterConfig.get('exposedAddresses');
   }
 
   get vpcCidr() {
@@ -142,7 +149,7 @@ export class NewClusterComponent implements OnInit, OnDestroy {
       return true;
     }
   }
-
+  
   getClusters() {
     this.supergiant.Kubes.get().subscribe(
       clusters => clusters.map(c => this.unavailableClusterNames.add(c.name)),
@@ -176,6 +183,13 @@ export class NewClusterComponent implements OnInit, OnDestroy {
       newClusterData.profile.rbacEnabled = true;
       newClusterData.profile.masterProfiles = this.nodesService.compileProfiles(this.selectedCloudAccount.provider, this.machines, 'Master');
       newClusterData.profile.nodesProfiles = this.nodesService.compileProfiles(this.selectedCloudAccount.provider, this.machines, 'Node');
+
+      let exposedAddrObjects = new Array();
+      for(let i=0; i<this.exposedAddressesArray.length; i++){
+        let myObject = {"cidr" : this.exposedAddressesArray[i]};
+        exposedAddrObjects.push(myObject);
+      }
+      newClusterData.profile.exposedAddresses = exposedAddrObjects;
 
       switch (newClusterData.profile.provider) {
         case 'aws':
@@ -545,13 +559,30 @@ export class NewClusterComponent implements OnInit, OnDestroy {
     };
   }
 
+  allValidCidrs(): ValidatorFn {
+    return (userCidrs: AbstractControl): { [key: string]: any } | null => {
+
+      let cidrArray = this.toArray(userCidrs.value);
+      let allValidCidrs = true;
+
+      for(let i=0; i<cidrArray.length; i++){
+        let validCidr = cidrRegex({ exact: true }).test(cidrArray[i]);
+        if(!validCidr){
+          allValidCidrs = false;
+        }
+      }
+
+      return allValidCidrs ? null : { 'invalidCidrs': { value: true } };
+    };
+  }
+
   machineTypesFilterCallback = (val) => {
     if (this.machineTypesFilter === '') {
       return val;
     }
 
     return val.toLowerCase().indexOf(this.machineTypesFilter.toLowerCase()) > -1;
-  };
+  }
 
   regionsFilterCallback = (val) => {
     if (this.regionsFilter === '') {
@@ -559,5 +590,14 @@ export class NewClusterComponent implements OnInit, OnDestroy {
     }
 
     return val.name.toLowerCase().indexOf(this.regionsFilter.toLowerCase()) > -1;
-  };
+  }
+
+  putExposedAddressesInArray(val) {
+    this.exposedAddressesArray = this.toArray(val.target.value);
+  }
+
+  toArray(multiLineText : string) : Array<string> {
+    return multiLineText.split("\n").filter(c => c != "");
+  }
+
 }
