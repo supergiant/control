@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"io"
+	"k8s.io/client-go/tools/clientcmd"
 	"net/http"
 	"strconv"
 	"time"
@@ -12,13 +13,6 @@ import (
 	"github.com/gorilla/mux"
 	"github.com/pkg/errors"
 	"github.com/sirupsen/logrus"
-	"gopkg.in/asaskevich/govalidator.v8"
-	corev1 "k8s.io/api/core/v1"
-	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
-	clientcorev1 "k8s.io/client-go/kubernetes/typed/core/v1"
-	"k8s.io/client-go/rest"
-	clientcmddapi "k8s.io/client-go/tools/clientcmd/api"
-
 	"github.com/supergiant/control/pkg/clouds"
 	"github.com/supergiant/control/pkg/message"
 	"github.com/supergiant/control/pkg/model"
@@ -30,6 +24,11 @@ import (
 	"github.com/supergiant/control/pkg/workflows"
 	"github.com/supergiant/control/pkg/workflows/statuses"
 	"github.com/supergiant/control/pkg/workflows/steps"
+	"gopkg.in/asaskevich/govalidator.v8"
+	corev1 "k8s.io/api/core/v1"
+	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+	clientcorev1 "k8s.io/client-go/kubernetes/typed/core/v1"
+	"k8s.io/client-go/rest"
 )
 
 const (
@@ -1191,14 +1190,26 @@ func (h *Handler) restartKubeProvisioning(w http.ResponseWriter, r *http.Request
 
 func (h *Handler) importKube(w http.ResponseWriter, r *http.Request) {
 	type importRequest struct {
-		Kubeconfig       clientcmddapi.Config `json:"kubeconfig"`
-		ClusterName      string               `json:"clusterName"`
-		CloudAccountName string               `json:"cloudAccountName"`
+		KubeConfig       string `json:"kubeconfig"`
+		ClusterName      string `json:"clusterName"`
+		CloudAccountName string `json:"cloudAccountName"`
 	}
 
 	var req importRequest
+	var err error
 
-	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
+	err = json.NewDecoder(r.Body).Decode(&req)
+
+	if err != nil {
+		logrus.Error(err)
+		message.SendInvalidJSON(w, err)
+		return
+	}
+
+	kubeConfig, err := clientcmd.Load([]byte(req.KubeConfig))
+
+	if err != nil {
+		logrus.Error(err)
 		message.SendInvalidJSON(w, err)
 		return
 	}
@@ -1211,27 +1222,7 @@ func (h *Handler) importKube(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	var clusterID string
-
-	if len(importTask.ID) > 8 {
-		clusterID = importTask.ID[:8]
-	} else {
-		message.SendValidationFailed(w, errors.New("import task id is too short"))
-		return
-	}
-
-	err = json.NewEncoder(w).Encode(struct {
-		ClusterID string `json:"clusterId"`
-	}{
-		ClusterID: clusterID,
-	})
-
-	if err != nil {
-		message.SendInvalidJSON(w, err)
-		return
-	}
-
-	kube, err := kubeFromKubeConfig(req.Kubeconfig)
+	kube, err := kubeFromKubeConfig(*kubeConfig)
 
 	if err != nil {
 		message.SendInvalidCredentials(w, err)
@@ -1259,6 +1250,28 @@ func (h *Handler) importKube(w http.ResponseWriter, r *http.Request) {
 
 	if err != nil {
 		message.SendUnknownError(w, err)
+		return
+	}
+
+	var clusterID string
+
+	if len(importTask.ID) > 8 {
+		clusterID = importTask.ID[:8]
+	} else {
+		message.SendValidationFailed(w, errors.New("import task id is too short"))
+		return
+	}
+
+
+	w.WriteHeader(http.StatusAccepted)
+	err = json.NewEncoder(w).Encode(struct {
+		ClusterID string `json:"clusterId"`
+	}{
+		ClusterID: clusterID,
+	})
+
+	if err != nil {
+		message.SendInvalidJSON(w, err)
 		return
 	}
 
@@ -1302,6 +1315,4 @@ func (h *Handler) importKube(w http.ResponseWriter, r *http.Request) {
 
 		logrus.Infof("Import task %s has successfully finished", importTask.ID)
 	}()
-
-	w.WriteHeader(http.StatusAccepted)
 }
