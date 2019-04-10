@@ -62,7 +62,7 @@ export class ClusterComponent implements AfterViewInit, OnDestroy {
   expandedTaskIds = new Set();
 
   releases: any;
-  releaseListColumns = ['status', 'name', 'chart', 'chartVersion', 'version', 'lastDeployed', 'info', 'delete'];
+  releaseListColumns = ['status', 'name', 'namespace', 'chart', 'chartVersion', 'lastDeployed', 'info', 'delete'];
 
   masterTasksStatus = 'queued';
   nodeTasksStatus = 'queued';
