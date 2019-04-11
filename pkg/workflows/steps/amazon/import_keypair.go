@@ -15,7 +15,7 @@ import (
 	"github.com/supergiant/control/pkg/workflows/steps"
 )
 
-const StepImportKeyPair = "aws_import_keypair_step"
+const ImportKeyPairStepName = "aws_import_keypair_step"
 
 type keyImporter interface {
 	ImportKeyPairWithContext(aws.Context, *ec2.ImportKeyPairInput, ...request.Option) (*ec2.ImportKeyPairOutput, error)
@@ -31,7 +31,7 @@ type KeyPairStep struct {
 
 //InitImportKeyPair add the step to the registry
 func InitImportKeyPair(fn GetEC2Fn) {
-	steps.RegisterStep(StepImportKeyPair, NewImportKeyPairStep(fn))
+	steps.RegisterStep(ImportKeyPairStepName, NewImportKeyPairStep(fn))
 }
 
 func NewImportKeyPairStep(fn GetEC2Fn) *KeyPairStep {
@@ -57,7 +57,7 @@ func (s *KeyPairStep) Run(ctx context.Context, w io.Writer, cfg *steps.Config) e
 	if err != nil {
 		logrus.Errorf("Getting service caused %v", err)
 		return errors.Wrapf(err, "%s caused error when getting service",
-			StepImportKeyPair)
+			ImportKeyPairStepName)
 	}
 
 	if len(cfg.ClusterID) < 4 {
@@ -109,7 +109,7 @@ func (s *KeyPairStep) Rollback(ctx context.Context, w io.Writer, cfg *steps.Conf
 }
 
 func (*KeyPairStep) Name() string {
-	return StepImportKeyPair
+	return ImportKeyPairStepName
 }
 
 func (*KeyPairStep) Description() string {

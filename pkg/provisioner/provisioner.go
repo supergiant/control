@@ -21,8 +21,6 @@ import (
 	"github.com/supergiant/control/pkg/workflows/steps"
 )
 
-const keySize = 4096
-
 type KubeService interface {
 	Create(ctx context.Context, k *model.Kube) error
 	Get(ctx context.Context, name string) (*model.Kube, error)
@@ -58,7 +56,7 @@ func NewProvisioner(repository storage.Interface, kubeService KubeService,
 // that have been provided for provisionCluster
 func (tp *TaskProvisioner) ProvisionCluster(parentContext context.Context,
 	clusterProfile *profile.Profile, config *steps.Config) (map[string][]*workflows.Task, error) {
-	if err := bootstrapKeys(config); err != nil {
+	if err := util.BootstrapKeys(config); err != nil {
 		return nil, errors.Wrap(err, "bootstrap keys")
 	}
 
@@ -678,19 +676,6 @@ func (t *TaskProvisioner) loadCloudSpecificData(ctx context.Context, config *ste
 	return util.LoadCloudSpecificDataFromKube(k, config)
 }
 
-// Create bootstrap key pair and save to config ssh section
-func bootstrapKeys(config *steps.Config) error {
-	private, public, err := generateKeyPair(keySize)
-
-	if err != nil {
-		return err
-	}
-
-	config.Kube.SSHConfig.BootstrapPrivateKey = private
-	config.Kube.SSHConfig.BootstrapPublicKey = public
-
-	return nil
-}
 
 func bootstrapCerts(config *steps.Config) error {
 	ca, err := pki.NewCAPair(config.CertificatesConfig.ParenCert)

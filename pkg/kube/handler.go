@@ -1276,6 +1276,11 @@ func (h *Handler) importKube(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	if err := util.BootstrapKeys(config); err != nil {
+		message.SendUnknownError(w, err)
+		return
+	}
+
 	go func() {
 		fileName := util.MakeFileName(importTask.ID)
 		writer, err := h.getWriter(fileName)
