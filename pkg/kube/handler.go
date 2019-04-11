@@ -1318,7 +1318,11 @@ func (h *Handler) importKube(w http.ResponseWriter, r *http.Request) {
 		if err != nil {
 			logrus.Errorf("task %s has finished with error %v", importTask.ID, err)
 		}
-		// TODO(stgleb): Create kube here from config
+		
+		if err := createKubeFromConfig(context.Background(), config, h.svc); err != nil {
+			logrus.Errorf("Error creating the cluster")
+		}
+
 		logrus.Infof("Import task %s has successfully finished", importTask.ID)
 	}()
 }
