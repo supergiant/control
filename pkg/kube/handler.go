@@ -1216,7 +1216,11 @@ func (h *Handler) importKube(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	config := &steps.Config{}
+	config := &steps.Config{
+		CloudAccountName: req.CloudAccountName,
+		ClusterName:      req.ClusterName,
+	}
+
 	importTask, err := workflows.NewTask(config, workflows.ImportCluster, h.repo)
 
 	if err != nil {
@@ -1318,7 +1322,7 @@ func (h *Handler) importKube(w http.ResponseWriter, r *http.Request) {
 		if err != nil {
 			logrus.Errorf("task %s has finished with error %v", importTask.ID, err)
 		}
-		
+
 		if err := createKubeFromConfig(context.Background(), config, h.svc); err != nil {
 			logrus.Errorf("Error creating the cluster")
 		}
