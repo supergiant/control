@@ -122,6 +122,7 @@ func MergeConfig(source *steps.Config, destination *steps.Config) error {
 	destination.ClusterID = source.ClusterID
 	destination.Provider = source.Provider
 	destination.ClusterName = source.ClusterName
+	destination.BootstrapToken = source.BootstrapToken
 
 	return nil
 }

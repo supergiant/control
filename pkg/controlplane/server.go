@@ -3,6 +3,7 @@ package controlplane
 import (
 	"context"
 	"fmt"
+	"github.com/supergiant/control/pkg/workflows/steps/bootstraptoken"
 	"net/http"
 	_ "net/http/pprof"
 	"net/url"
@@ -204,6 +205,7 @@ func configureApplication(cfg *Config) (*mux.Router, error) {
 	storageclass.Init()
 	drain.Init()
 	kubeadm.Init()
+	bootstraptoken.Init()
 
 	amazon.InitFindAMI(amazon.GetEC2)
 	amazon.InitImportKeyPair(amazon.GetEC2)

@@ -47,7 +47,8 @@ func (t *Step) Run(ctx context.Context, out io.Writer, config *steps.Config) err
 	config.KubeadmConfig.IsMaster = config.IsMaster
 	config.KubeadmConfig.InternalDNSName = config.InternalDNSName
 	config.KubeadmConfig.ExternalDNSName = config.ExternalDNSName
-
+	config.KubeadmConfig.Token = config.BootstrapToken
+	
 	// NOTE(stgleb): Kubeadm accepts only ipv4 or ipv6 addresses as advertise address
 	if config.IsBootstrap {
 		config.KubeadmConfig.AdvertiseAddress = config.Node.PrivateIp
