@@ -50,6 +50,7 @@ func NewImportKeyPairStep(fn GetEC2Fn) *KeyPairStep {
 
 //Verifies that a key exists,
 func (s *KeyPairStep) Run(ctx context.Context, w io.Writer, cfg *steps.Config) error {
+	logrus.Info(ImportKeyPairStepName)
 	log := util.GetLogger(w)
 
 	svc, err := s.getSvc(cfg.AWSConfig)

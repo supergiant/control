@@ -592,7 +592,6 @@ func (tp *TaskProvisioner) buildInitialCluster(ctx context.Context,
 			Type:    profile.NetworkType,
 			CIDR:    profile.CIDR,
 		},
-		BootstrapToken: config.KubeadmConfig.Token,
 		CloudSpec: profile.CloudSpecificSettings,
 		Masters:   masters,
 		Nodes:     nodes,
@@ -615,6 +614,7 @@ func (t *TaskProvisioner) updateCloudSpecificData(k *model.Kube, config *steps.C
 		config.InternalDNSName, config.ExternalDNSName)
 	k.ExternalDNSName = config.ExternalDNSName
 	k.InternalDNSName = config.InternalDNSName
+	k.BootstrapToken = config.BootstrapToken
 
 	// Save cloudSpecificData in kube
 	switch config.Provider {

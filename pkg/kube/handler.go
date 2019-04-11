@@ -7,6 +7,7 @@ import (
 	"io"
 	"net/http"
 	"strconv"
+	"strings"
 	"time"
 
 	"k8s.io/client-go/tools/clientcmd"
@@ -928,6 +929,10 @@ func (h *Handler) getClusterMetrics(w http.ResponseWriter, r *http.Request) {
 		}
 	}
 
+	if masterNode == nil {
+		return
+	}
+
 	for metricType, relUrl := range metricsRelUrls {
 		url := fmt.Sprintf("https://%s/%s/%s", masterNode.PublicIp, baseUrl, relUrl)
 		metricResponse, err := h.getMetrics(url, k)
@@ -978,6 +983,10 @@ func (h *Handler) getNodesMetrics(w http.ResponseWriter, r *http.Request) {
 		if k.Masters[key] != nil {
 			masterNode = k.Masters[key]
 		}
+	}
+
+	if masterNode == nil {
+		return
 	}
 
 	for metricType, relUrl := range metricsRelUrls {
@@ -1192,9 +1201,12 @@ func (h *Handler) restartKubeProvisioning(w http.ResponseWriter, r *http.Request
 
 func (h *Handler) importKube(w http.ResponseWriter, r *http.Request) {
 	type importRequest struct {
-		KubeConfig       string `json:"kubeconfig"`
-		ClusterName      string `json:"clusterName"`
-		CloudAccountName string `json:"cloudAccountName"`
+		KubeConfig            string            `json:"kubeconfig"`
+		ClusterName           string            `json:"clusterName"`
+		CloudAccountName      string            `json:"cloudAccountName"`
+		PublicKey             string            `json:"publicKey"`
+		PrivateKey            string            `json:"privateKey"`
+		CloudSpecificSettings map[string]string `json:"cloudSpecificSettings"`
 	}
 
 	var req importRequest
@@ -1220,6 +1232,16 @@ func (h *Handler) importKube(w http.ResponseWriter, r *http.Request) {
 		CloudAccountName: req.CloudAccountName,
 		ClusterName:      req.ClusterName,
 		IsBootstrap:      true,
+		Kube: model.Kube{
+			SSHConfig: model.SSHConfig{
+				Port:                "22",
+				Timeout:             10,
+				BootstrapPrivateKey: req.PrivateKey,
+				BootstrapPublicKey:  req.PublicKey,
+			},
+		},
+		Masters: steps.NewMap(map[string]*model.Machine{}),
+		Nodes:   steps.NewMap(map[string]*model.Machine{}),
 	}
 
 	importTask, err := workflows.NewTask(config, workflows.ImportCluster, h.repo)
@@ -1269,6 +1291,9 @@ func (h *Handler) importKube(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	config.ClusterID = clusterID
+	config.AWSConfig.Region = "ap-south-1"
+
 	w.WriteHeader(http.StatusAccepted)
 	err = json.NewEncoder(w).Encode(struct {
 		ClusterID string `json:"clusterId"`
@@ -1278,11 +1303,6 @@ func (h *Handler) importKube(w http.ResponseWriter, r *http.Request) {
 
 	if err != nil {
 		message.SendInvalidJSON(w, err)
-		return
-	}
-
-	if err := util.BootstrapKeys(config); err != nil {
-		message.SendUnknownError(w, err)
 		return
 	}
 
@@ -1306,8 +1326,13 @@ func (h *Handler) importKube(w http.ResponseWriter, r *http.Request) {
 				}
 			}
 
-			// Set tole to machine
-			machine.Role = model.Role(node.Labels[nodeLabelRole])
+			machine.Role = model.RoleNode
+
+			for key := range node.Labels {
+				if strings.HasSuffix(key, "master") {
+					machine.Role = model.RoleMaster
+				}
+			}
 
 			if machine.Role == model.RoleMaster {
 				config.AddMaster(&machine)

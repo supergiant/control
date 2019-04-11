@@ -43,6 +43,7 @@ func InitImportInternetGatewayStep(fn GetEC2Fn) {
 }
 
 func (s ImportInternetGatewayStep) Run(ctx context.Context, out io.Writer, cfg *steps.Config) error {
+	logrus.Info(ImportInternetGatewayStepName)
 	ec2Svc, err := s.getSvc(cfg.AWSConfig)
 	if err != nil {
 		logrus.Errorf("[%s] - failed to authorize in AWS: %v", s.Name(), err)

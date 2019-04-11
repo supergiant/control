@@ -48,6 +48,7 @@ func InitImportClusterStep(fn GetEC2Fn) {
 }
 
 func (s ImportClusterStep) Run(ctx context.Context, out io.Writer, cfg *steps.Config) error {
+	logrus.Info(ImportClusterMachinesStepName)
 	ec2Svc, err := s.getSvc(cfg.AWSConfig)
 	if err != nil {
 		logrus.Errorf("[%s] - failed to authorize in AWS: %v", s.Name(), err)
@@ -118,11 +119,12 @@ func (s *ImportClusterStep) importMachines(ctx context.Context, role model.Role,
 		describeReq := &ec2.DescribeInstancesInput{
 			Filters: []*ec2.Filter{
 				{
-					Name:   aws.String("addresses.private-ip-address"),
+					Name:   aws.String("network-interface.addresses.private-ip-address"),
 					Values: []*string{aws.String(machine.PrivateIp)},
 				},
 			},
 		}
+
 		output, err := ec2Svc.DescribeInstancesWithContext(ctx, describeReq)
 
 		if err != nil {
@@ -164,6 +166,7 @@ func (s *ImportClusterStep) importMachines(ctx context.Context, role model.Role,
 		}
 
 		tags := &ec2.CreateTagsInput{
+			Resources: []*string{instance.InstanceId},
 			Tags: []*ec2.Tag{
 				{
 					Key:   aws.String("KubernetesCluster"),

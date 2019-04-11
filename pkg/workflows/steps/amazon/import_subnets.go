@@ -43,6 +43,7 @@ func InitImportSubnetDescriber(fn GetEC2Fn) {
 }
 
 func (s ImportSubnetsStep) Run(ctx context.Context, out io.Writer, cfg *steps.Config) error {
+	logrus.Info(ImportSubnetsStepName)
 	ec2Svc, err := s.getSvc(cfg.AWSConfig)
 	if err != nil {
 		logrus.Errorf("[%s] - failed to authorize in AWS: %v", s.Name(), err)
@@ -63,6 +64,7 @@ func (s ImportSubnetsStep) Run(ctx context.Context, out io.Writer, cfg *steps.Co
 		return errors.Wrapf(err, "")
 	}
 
+	cfg.AWSConfig.Subnets = make(map[string]string)
 	for _, subnet := range output.Subnets {
 		cfg.AWSConfig.Subnets[*subnet.AvailabilityZone] = *subnet.SubnetId
 	}

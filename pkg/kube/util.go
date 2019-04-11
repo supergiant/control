@@ -86,8 +86,8 @@ func createKubeFromConfig(ctx context.Context, config *steps.Config, kubeService
 		Name:        config.ClusterName,
 		Provider:    config.Provider,
 		AccountName: config.CloudAccountName,
-
 		BootstrapToken: config.BootstrapToken,
+		Region: "ap-south-1",
 
 		Masters: config.GetMasters(),
 		Nodes:   config.GetNodes(),

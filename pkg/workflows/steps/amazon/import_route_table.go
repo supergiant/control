@@ -44,6 +44,7 @@ func InitImportRouteTablesStep(fn GetEC2Fn) {
 }
 
 func (s ImportRouteTablesStep) Run(ctx context.Context, out io.Writer, cfg *steps.Config) error {
+	logrus.Info(ImporRouteTablesStepName)
 	ec2Svc, err := s.getSvc(cfg.AWSConfig)
 	if err != nil {
 		logrus.Errorf("[%s] - failed to authorize in AWS: %v", s.Name(), err)
@@ -74,7 +75,7 @@ func (s ImportRouteTablesStep) Run(ctx context.Context, out io.Writer, cfg *step
 
 	for _, association := range routeTable.Associations {
 		 for az, subnetId := range cfg.AWSConfig.Subnets {
-		 	if subnetId == *association.SubnetId {
+		 	if association != nil && association.SubnetId != nil && association.RouteTableAssociationId != nil && subnetId == *association.SubnetId {
 				cfg.AWSConfig.RouteTableAssociationIDs[az] = *association.RouteTableAssociationId
 			}
 		 }
