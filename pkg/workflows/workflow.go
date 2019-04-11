@@ -1,6 +1,7 @@
 package workflows
 
 import (
+	"github.com/supergiant/control/pkg/workflows/steps/bootstraptoken"
 	"sync"
 
 	"github.com/supergiant/control/pkg/workflows/statuses"
@@ -75,6 +76,7 @@ func Init() {
 		steps.GetStep(docker.StepName),
 		steps.GetStep(certificates.StepName),
 		steps.GetStep(kubeadm.StepName),
+		steps.GetStep(bootstraptoken.StepName),
 		steps.GetStep(kubelet.StepName),
 		steps.GetStep(poststart.StepName),
 	}

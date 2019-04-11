@@ -3,8 +3,9 @@ package provider
 import (
 	"context"
 	"fmt"
+	"github.com/supergiant/control/pkg/workflows/steps/bootstraptoken"
+	"github.com/supergiant/control/pkg/workflows/steps/ssh"
 	"io"
-
 
 	"github.com/pkg/errors"
 	"github.com/supergiant/control/pkg/clouds"
@@ -31,6 +32,8 @@ func (s ImportClusterStep) Run(ctx context.Context, out io.Writer, cfg *steps.Co
 			steps.GetStep(amazon.ImportInternetGatewayStepName),
 			steps.GetStep(amazon.ImporRouteTablesStepName),
 			steps.GetStep(amazon.ImportKeyPairStepName),
+			steps.GetStep(ssh.StepName),
+			steps.GetStep(bootstraptoken.StepName),
 		}
 	default:
 		return errors.New(fmt.Sprintf("unsupported provider: %s", cfg.Provider))

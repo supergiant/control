@@ -40,7 +40,7 @@ func NewImportRouteTablesStep(fn GetEC2Fn) *ImportRouteTablesStep {
 }
 
 func InitImportRouteTablesStep(fn GetEC2Fn) {
-	steps.RegisterStep(ImporRouteTablesStepName, NewImportSubnetsStep(fn))
+	steps.RegisterStep(ImporRouteTablesStepName, NewImportRouteTablesStep(fn))
 }
 
 func (s ImportRouteTablesStep) Run(ctx context.Context, out io.Writer, cfg *steps.Config) error {

@@ -60,6 +60,10 @@ func (s ImportClusterStep) Run(ctx context.Context, out io.Writer, cfg *steps.Co
 		return errors.Wrapf(err, "error importing masters")
 	}
 
+	if master := cfg.GetMaster(); master != nil {
+		cfg.Node = *master
+	}
+
 	err = s.importMachines(ctx, model.RoleNode, ec2Svc, cfg.GetNodes(), cfg)
 
 	if err != nil {

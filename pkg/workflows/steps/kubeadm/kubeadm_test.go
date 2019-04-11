@@ -79,10 +79,6 @@ func TestKubeadm(t *testing.T) {
 		t.Errorf("CIDR %s not found in %s", cfg.KubeadmConfig.CIDR, output.String())
 	}
 
-	if !strings.Contains(output.String(), cfg.KubeadmConfig.Token) {
-		t.Errorf("Token %s not found in %s", cfg.KubeadmConfig.Token, output.String())
-	}
-
 	if !strings.Contains(output.String(), cfg.KubeadmConfig.InternalDNSName) {
 		t.Errorf("LoadBalancerHost %s not found in %s", cfg.KubeadmConfig.InternalDNSName, output.String())
 	}

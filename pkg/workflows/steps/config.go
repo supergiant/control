@@ -9,7 +9,6 @@ import (
 	"github.com/Azure/go-autorest/autorest"
 	"github.com/pkg/errors"
 
-	"github.com/supergiant/control/pkg/bootstrap"
 	"github.com/supergiant/control/pkg/clouds"
 	"github.com/supergiant/control/pkg/model"
 	"github.com/supergiant/control/pkg/profile"
@@ -83,12 +82,12 @@ type GCEConfig struct {
 	ServiceAccount
 
 	// This comes from profile
-	ImageFamily      string `json:"imageFamily"`
-	Region           string `json:"region"`
-	AvailabilityZone string `json:"availabilityZone"`
-	Size             string `json:"size"`
-	InstanceGroupName    string `json:"instanceGroupName"`
-	InstanceGroupLink    string `json:"instanceGroupLink"`
+	ImageFamily       string `json:"imageFamily"`
+	Region            string `json:"region"`
+	AvailabilityZone  string `json:"availabilityZone"`
+	Size              string `json:"size"`
+	InstanceGroupName string `json:"instanceGroupName"`
+	InstanceGroupLink string `json:"instanceGroupLink"`
 
 	// Target pool acts as a balancer for external traffic https://cloud.google.com/load-balancing/docs/target-pools
 	TargetPoolName string `json:"targetPoolName"`
@@ -135,7 +134,7 @@ type AWSConfig struct {
 	MastersInstanceProfile string `json:"mastersInstanceProfile"`
 	NodesInstanceProfile   string `json:"nodesInstanceProfile"`
 	VolumeSize             string `json:"volumeSize"`
-	DeviceName 			   string `json:"deviceName"`
+	DeviceName             string `json:"deviceName"`
 	EbsOptimized           string `json:"ebsOptimized"`
 	ImageID                string `json:"image"`
 	InstanceType           string `json:"size"`
@@ -232,17 +231,18 @@ type Config struct {
 	Kube model.Kube `json:"kube"`
 
 	TaskID                 string
-	Provider               clouds.Name `json:"provider"`
-	IsMaster               bool        `json:"isMaster"`
-	IsBootstrap            bool        `json:"IsBootstrap"`
-	ClusterID              string      `json:"clusterId"`
-	ClusterName            string      `json:"clusterName"`
-	LogBootstrapPrivateKey bool        `json:"logBootstrapPrivateKey"`
-	DigitalOceanConfig     DOConfig    `json:"digitalOceanConfig"`
-	AWSConfig              AWSConfig   `json:"awsConfig"`
-	GCEConfig              GCEConfig   `json:"gceConfig"`
-	AzureConfig            AzureConfig `json:"azureConfig"`
-	OSConfig               OSConfig    `json:"osConfig"`
+	Provider               clouds.Name  `json:"provider"`
+	IsMaster               bool         `json:"isMaster"`
+	IsBootstrap            bool         `json:"IsBootstrap"`
+	BootstrapToken         string       `json:"bootstrapToken"`
+	ClusterID              string       `json:"clusterId"`
+	ClusterName            string       `json:"clusterName"`
+	LogBootstrapPrivateKey bool         `json:"logBootstrapPrivateKey"`
+	DigitalOceanConfig     DOConfig     `json:"digitalOceanConfig"`
+	AWSConfig              AWSConfig    `json:"awsConfig"`
+	GCEConfig              GCEConfig    `json:"gceConfig"`
+	AzureConfig            AzureConfig  `json:"azureConfig"`
+	OSConfig               OSConfig     `json:"osConfig"`
 	PacketConfig           PacketConfig `json:"packetConfig"`
 
 	DockerConfig       DockerConfig       `json:"dockerConfig"`
@@ -284,11 +284,6 @@ type Config struct {
 
 // NewConfig builds instance of config for provisioning
 func NewConfig(clusterName, cloudAccountName string, profile profile.Profile) (*Config, error) {
-	token, err := bootstrap.GenerateBootstrapToken()
-
-	if err != nil {
-		return nil, errors.Wrapf(err, "bootstrap token")
-	}
 	return &Config{
 		Kube: model.Kube{
 			SSHConfig: model.SSHConfig{
@@ -314,7 +309,7 @@ func NewConfig(clusterName, cloudAccountName string, profile profile.Profile) (*
 			MastersSecurityGroupID: profile.CloudSpecificSettings[clouds.AwsMastersSecGroupID],
 			NodesSecurityGroupID:   profile.CloudSpecificSettings[clouds.AwsNodesSecgroupID],
 			// TODO(stgleb): Passs this from UI or figure out any better way
-			DeviceName: 		    "/dev/sda1",
+			DeviceName: "/dev/sda1",
 		},
 		GCEConfig: GCEConfig{
 			AvailabilityZone: profile.Zone,
@@ -372,7 +367,6 @@ func NewConfig(clusterName, cloudAccountName string, profile profile.Profile) (*
 		KubeadmConfig: KubeadmConfig{
 			K8SVersion:  profile.K8SVersion,
 			IsBootstrap: true,
-			Token:       token,
 			CIDR:        profile.CIDR,
 		},
 
@@ -403,24 +397,24 @@ func NewConfigFromKube(profile *profile.Profile, k *model.Kube) (*Config, error)
 		DigitalOceanConfig: DOConfig{
 			Region: profile.Region,
 		},
-		Kube: *k,
-		ExternalDNSName: k.ExternalDNSName,
-		InternalDNSName: k.InternalDNSName,
+		Kube:                   *k,
+		ExternalDNSName:        k.ExternalDNSName,
+		InternalDNSName:        k.InternalDNSName,
 		LogBootstrapPrivateKey: profile.LogBootstrapPrivateKey,
 		AWSConfig: AWSConfig{
-			Region:                 profile.Region,
-			AvailabilityZone:       k.CloudSpec[clouds.AwsAZ],
-			VPCCIDR:                k.CloudSpec[clouds.AwsVpcCIDR],
-			VPCID:                  k.CloudSpec[clouds.AwsVpcID],
-			KeyPairName:            k.CloudSpec[clouds.AwsKeyPairName],
-			Subnets:                k.Subnets,
-			MastersSecurityGroupID: k.CloudSpec[clouds.AwsMastersSecGroupID],
-			NodesSecurityGroupID:   k.CloudSpec[clouds.AwsNodesSecgroupID],
-			ImageID:                k.CloudSpec[clouds.AwsImageID],
+			Region:                   profile.Region,
+			AvailabilityZone:         k.CloudSpec[clouds.AwsAZ],
+			VPCCIDR:                  k.CloudSpec[clouds.AwsVpcCIDR],
+			VPCID:                    k.CloudSpec[clouds.AwsVpcID],
+			KeyPairName:              k.CloudSpec[clouds.AwsKeyPairName],
+			Subnets:                  k.Subnets,
+			MastersSecurityGroupID:   k.CloudSpec[clouds.AwsMastersSecGroupID],
+			NodesSecurityGroupID:     k.CloudSpec[clouds.AwsNodesSecgroupID],
+			ImageID:                  k.CloudSpec[clouds.AwsImageID],
 			ExternalLoadBalancerName: k.CloudSpec[clouds.AwsExternalLoadBalancerName],
 			InternalLoadBalancerName: k.CloudSpec[clouds.AwsInternalLoadBalancerName],
 			// TODO(stgleb): Passs this from UI or figure out any better way
-			DeviceName: 		    "/dev/sda1",
+			DeviceName: "/dev/sda1",
 		},
 		GCEConfig: GCEConfig{
 			AvailabilityZone: profile.Zone,
