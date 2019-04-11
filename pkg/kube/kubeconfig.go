@@ -67,18 +67,17 @@ func corev1Client(k *model.Kube) (corev1client.CoreV1Interface, error) {
 // adminKubeConfig returns a cluster-admin kubeconfig for provided cluster.
 func adminKubeConfig(k *model.Kube) (clientcmddapi.Config, error) {
 	// TODO: this should be an address of the master load balancer
-	if k == nil || len(k.Masters) == 0 {
+	if k == nil || (k.ExternalDNSName == "" && len(k.Masters) == 0) {
 		// TODO: use another base error, not ErrNotFound
 		return clientcmddapi.Config{}, errors.Wrap(sgerrors.ErrNotFound, "master nodes")
 	}
-	// TODO(stgleb): Remove it when LB has support on each cloud provider
-	m := util.GetRandomNode(k.Masters)
 
 	var apiAddr string
 	if k.ExternalDNSName != "" {
-		apiAddr = fmt.Sprintf("https://%s", k.ExternalDNSName)
+		apiAddr = k.ExternalDNSName
 	} else {
 		// Use public IP in case if DNS name is absent
+		m := util.GetRandomNode(k.Masters)
 		apiAddr = fmt.Sprintf("https://%s", m.PublicIp)
 	}
 
