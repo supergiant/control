@@ -1219,6 +1219,7 @@ func (h *Handler) importKube(w http.ResponseWriter, r *http.Request) {
 	config := &steps.Config{
 		CloudAccountName: req.CloudAccountName,
 		ClusterName:      req.ClusterName,
+		IsBootstrap:      true,
 	}
 
 	importTask, err := workflows.NewTask(config, workflows.ImportCluster, h.repo)

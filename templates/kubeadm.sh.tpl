@@ -21,7 +21,6 @@ sudo kubeadm init --ignore-preflight-errors=NumCPU --apiserver-advertise-address
 sudo kubeadm config view > kubeadm-config.yaml
 sed -i 's/controlPlaneEndpoint: ""/controlPlaneEndpoint: "{{ .InternalDNSName }}:443"/g' kubeadm-config.yaml
 sudo kubeadm config upload from-file --config=kubeadm-config.yaml
-sudo kubeadm token create {{ .Token }} --ttl 0
 {{ else }}
 sudo kubeadm join --ignore-preflight-errors=NumCPU {{ .MasterPrivateIP }}:443 --token {{ .Token }} \
 --discovery-token-unsafe-skip-ca-verification --experimental-control-plane
