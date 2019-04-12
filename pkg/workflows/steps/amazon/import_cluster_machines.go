@@ -148,7 +148,7 @@ func (s *ImportClusterStep) importMachines(ctx context.Context, role model.Role,
 		machine.PrivateIp = *instance.PrivateIpAddress
 		machine.PublicIp = *instance.PublicIpAddress
 		machine.State = instanceStateToMachineState(*instance.State.Name)
-		machine.Name = fmt.Sprintf("%s-%s", role, uuid.New()[:4])
+		machine.Name = fmt.Sprintf("%s-%s-%s", cfg.ClusterName, role, uuid.New()[:4])
 
 		cfg.AWSConfig.ImageID = *instance.ImageId
 		cfg.AWSConfig.Region = azToRegion(*instance.Placement.AvailabilityZone)
