@@ -14,7 +14,6 @@ func DeserializeTask(data []byte, repository storage.Interface) (*Task, error) {
 		return nil, err
 	}
 
-
 	// Assign repository from task handler to task and restore workflow
 	task.repository = repository
 	task.workflow = GetWorkflow(task.Type)

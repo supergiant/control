@@ -51,8 +51,8 @@ func TestKubeadm(t *testing.T) {
 	output := new(bytes.Buffer)
 
 	cfg := &steps.Config{
-		Provider: clouds.AWS,
-		IsMaster: true,
+		Provider:    clouds.AWS,
+		IsMaster:    true,
 		IsBootstrap: true,
 		KubeadmConfig: steps.KubeadmConfig{
 			IsMaster:    true,

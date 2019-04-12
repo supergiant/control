@@ -136,7 +136,6 @@ func (s *ImportClusterStep) importMachines(ctx context.Context, role model.Role,
 			return errors.Wrapf(sgerrors.ErrNotFound, "instance %v not found", machine)
 		}
 
-
 		instance := findInstanceWithPrivateIPAddr(output.Reservations)
 		machine.ID = *instance.InstanceId
 		machine.Size = *instance.InstanceType

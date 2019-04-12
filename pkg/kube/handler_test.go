@@ -106,7 +106,6 @@ func (m *mockProfileService) Create(ctx context.Context,
 	return args.Error(0)
 }
 
-
 func (m *mockProvisioner) RestartClusterProvisioning(ctx context.Context,
 	clusterProfile *profile.Profile,
 	config *steps.Config,
@@ -2443,7 +2442,7 @@ func TestImportKube(t *testing.T) {
 		accSvc.On("Get", mock.Anything, mock.Anything).
 			Return(testCase.account, testCase.accountErr)
 
-		profileSvc :=  &mockProfileService{}
+		profileSvc := &mockProfileService{}
 		profileSvc.On("Create", mock.Anything, mock.Anything).Return(testCase.profileErr)
 
 		mockRepo := new(testutils.MockStorage)

@@ -7,7 +7,7 @@ import (
 	"encoding/pem"
 
 	"golang.org/x/crypto/ssh"
-	
+
 	"github.com/supergiant/control/pkg/workflows/steps"
 )
 

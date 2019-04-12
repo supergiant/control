@@ -391,9 +391,9 @@ func NewConfigFromKube(profile *profile.Profile, k *model.Kube) (*Config, error)
 	}
 
 	cfg := &Config{
-		ClusterID:   k.ID,
-		Provider:    profile.Provider,
-		ClusterName: k.Name,
+		ClusterID:      k.ID,
+		Provider:       profile.Provider,
+		ClusterName:    k.Name,
 		BootstrapToken: k.BootstrapToken,
 		DigitalOceanConfig: DOConfig{
 			Region: profile.Region,
