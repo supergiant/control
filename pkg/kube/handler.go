@@ -4,6 +4,7 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+	"github.com/pborman/uuid"
 	"io"
 	"net/http"
 	"strconv"
@@ -1287,6 +1288,7 @@ func (h *Handler) importKube(w http.ResponseWriter, r *http.Request) {
 	config.ClusterID = clusterID
 	config.IsBootstrap = true
 	config.Kube.SSHConfig.BootstrapPrivateKey = req.PrivateKey
+	config.Kube.SSHConfig.PublicKey = req.PublicKey
 	config.Kube.Auth = kube.Auth
 	config.ExternalDNSName = kube.ExternalDNSName
 
@@ -1315,6 +1317,9 @@ func (h *Handler) importKube(w http.ResponseWriter, r *http.Request) {
 			return
 		}
 
+		masters := make(map[string]*model.Machine)
+		workers := make(map[string]*model.Machine)
+
 		for _, node := range nodes {
 			machine := model.Machine{}
 
@@ -1334,12 +1339,17 @@ func (h *Handler) importKube(w http.ResponseWriter, r *http.Request) {
 				}
 			}
 
+			machine.Name = fmt.Sprintf("%s-%s-%s", config.ClusterName, machine.Role, uuid.New()[:4])
+
 			if machine.Role == model.RoleMaster {
-				config.AddMaster(&machine)
+				masters[machine.Name] = &machine
 			} else {
-				config.AddNode(&machine)
+				workers[machine.Name] = &machine
 			}
 		}
+
+		config.Masters = steps.NewMap(masters)
+		config.Nodes = steps.NewMap(workers)
 
 		importTask.Config = config
 		resultChan := importTask.Run(context.Background(), *importTask.Config, writer)
@@ -1381,7 +1391,7 @@ func (h *Handler) importKube(w http.ResponseWriter, r *http.Request) {
 			SSHConfig: config.Kube.SSHConfig,
 		}
 
-		updateCloudSpecificData(cluster, importTask.Config)
+		util.UpdateKubeWithCloudSpecificData(cluster, importTask.Config)
 		err = h.svc.Create(context.Background(), cluster)
 
 		if err != nil {
@@ -1390,64 +1400,4 @@ func (h *Handler) importKube(w http.ResponseWriter, r *http.Request) {
 
 		logrus.Infof("Import task %s has successfully finished", importTask.ID)
 	}()
-}
-
-func updateCloudSpecificData(k *model.Kube, config *steps.Config) {
-	logrus.Debugf("Update cloud specific data for kube %s",
-		config.ClusterID)
-
-	cloudSpecificSettings := make(map[string]string)
-	logrus.Infof("Save internal DNS name %s and external DNS name %s",
-		config.InternalDNSName, config.ExternalDNSName)
-	k.ExternalDNSName = config.ExternalDNSName
-	k.InternalDNSName = config.InternalDNSName
-	k.BootstrapToken = config.BootstrapToken
-
-	// Save cloudSpecificData in kube
-	switch config.Provider {
-	case clouds.AWS:
-		// Save az to subnets mapping for this cluster
-		k.Subnets = config.AWSConfig.Subnets
-
-		// Copy data got from pre provision step to cloud specific settings of kube
-		cloudSpecificSettings[clouds.AwsAZ] = config.AWSConfig.AvailabilityZone
-		cloudSpecificSettings[clouds.AwsVpcCIDR] = config.AWSConfig.VPCCIDR
-		cloudSpecificSettings[clouds.AwsVpcID] = config.AWSConfig.VPCID
-		cloudSpecificSettings[clouds.AwsKeyPairName] = config.AWSConfig.KeyPairName
-		cloudSpecificSettings[clouds.AwsMastersSecGroupID] =
-			config.AWSConfig.MastersSecurityGroupID
-		cloudSpecificSettings[clouds.AwsNodesSecgroupID] =
-			config.AWSConfig.NodesSecurityGroupID
-		// TODO(stgleb): this must be done for all types of clouds
-		cloudSpecificSettings[clouds.AwsSshBootstrapPrivateKey] =
-			config.Kube.SSHConfig.BootstrapPrivateKey
-		cloudSpecificSettings[clouds.AwsUserProvidedSshPublicKey] =
-			config.Kube.SSHConfig.PublicKey
-		cloudSpecificSettings[clouds.AwsRouteTableID] =
-			config.AWSConfig.RouteTableID
-		cloudSpecificSettings[clouds.AwsInternetGateWayID] =
-			config.AWSConfig.InternetGatewayID
-		cloudSpecificSettings[clouds.AwsMasterInstanceProfile] =
-			config.AWSConfig.MastersInstanceProfile
-		cloudSpecificSettings[clouds.AwsNodeInstanceProfile] =
-			config.AWSConfig.NodesInstanceProfile
-		cloudSpecificSettings[clouds.AwsImageID] =
-			config.AWSConfig.ImageID
-		cloudSpecificSettings[clouds.AwsExternalLoadBalancerName] =
-			config.AWSConfig.ExternalLoadBalancerName
-		cloudSpecificSettings[clouds.AwsInternalLoadBalancerName] =
-			config.AWSConfig.InternalLoadBalancerName
-	case clouds.GCE:
-		cloudSpecificSettings[clouds.GCETargetPoolName] = config.GCEConfig.TargetPoolName
-		cloudSpecificSettings[clouds.GCEExternalIPAddressName] = config.GCEConfig.ExternalAddressName
-		cloudSpecificSettings[clouds.GCEExternalIPAddress] = config.GCEConfig.ExternalIPAddressLink
-		cloudSpecificSettings[clouds.GCEHealthCheckName] = config.GCEConfig.HealthCheckName
-		cloudSpecificSettings[clouds.GCEInstanceGroupName] = config.GCEConfig.InstanceGroupName
-		cloudSpecificSettings[clouds.GCEExternalForwardingRuleName] = config.GCEConfig.ForwardingRuleName
-	case clouds.DigitalOcean:
-		cloudSpecificSettings[clouds.DigitalOceanExternalLoadBalancerID] = config.DigitalOceanConfig.ExternalLoadBalancerID
-		cloudSpecificSettings[clouds.DigitalOceanInternalLoadBalancerID] = config.DigitalOceanConfig.InternalLoadBalancerID
-	}
-
-	k.CloudSpec = cloudSpecificSettings
 }

@@ -3,6 +3,7 @@ package provider
 import (
 	"context"
 	"fmt"
+	"github.com/supergiant/control/pkg/workflows/steps/authorizedKeys"
 	"github.com/supergiant/control/pkg/workflows/steps/bootstraptoken"
 	"github.com/supergiant/control/pkg/workflows/steps/ssh"
 	"io"
@@ -32,6 +33,7 @@ func (s ImportClusterStep) Run(ctx context.Context, out io.Writer, cfg *steps.Co
 			steps.GetStep(amazon.ImportInternetGatewayStepName),
 			steps.GetStep(amazon.ImporRouteTablesStepName),
 			steps.GetStep(ssh.StepName),
+			steps.GetStep(authorizedKeys.StepName),
 			steps.GetStep(bootstraptoken.StepName),
 		}
 	default:
