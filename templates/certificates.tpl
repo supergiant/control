@@ -19,7 +19,9 @@ DNS.4 = kubernetes.default.svc.cluster
 DNS.5 = kubernetes.default.svc.cluster.local
 IP.1 = {{ .PublicIP }}
 IP.2 = {{ .PrivateIP }}
+{{if .KubernetesSvcIP }}
 IP.3 = {{ .KubernetesSvcIP }}
+{{ end }}
 EOF"
 
 

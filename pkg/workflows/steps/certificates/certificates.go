@@ -54,13 +54,15 @@ func (s *Step) Run(ctx context.Context, out io.Writer, config *steps.Config) err
 		}
 	}
 
-	kubeDefaultSvcIp, err := util.GetKubernetesDefaultSvcIP(config.CertificatesConfig.ServicesCIDR)
-	if err != nil {
-		return errors.Wrapf(err, "get cluster dns ip from the %s subnet", config.CertificatesConfig.ServicesCIDR)
+	if len(config.CertificatesConfig.ServicesCIDR) > 0 {
+		kubeDefaultSvcIp, err := util.GetKubernetesDefaultSvcIP(config.CertificatesConfig.ServicesCIDR)
+		if err != nil {
+			return errors.Wrapf(err, "get cluster dns ip from the %s subnet", config.CertificatesConfig.ServicesCIDR)
+		}
+		config.CertificatesConfig.KubernetesSvcIP = kubeDefaultSvcIp.String()
 	}
-	config.CertificatesConfig.KubernetesSvcIP = kubeDefaultSvcIp.String()
 
-	err = steps.RunTemplate(ctx, s.template, config.Runner, out, config.CertificatesConfig)
+	err := steps.RunTemplate(ctx, s.template, config.Runner, out, config.CertificatesConfig)
 	if err != nil {
 		return errors.Wrap(err, "write certificates step")
 	}

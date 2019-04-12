@@ -1371,6 +1371,7 @@ func (h *Handler) importKube(w http.ResponseWriter, r *http.Request) {
 			DockerVersion:          req.Profile.DockerVersion,
 			RBACEnabled:            req.Profile.RBACEnabled,
 			ExternalDNSName:        config.ExternalDNSName,
+			InternalDNSName:        config.ExternalDNSName,
 			ProfileID:              req.Profile.ID,
 			Auth:                   config.Kube.Auth,
 			Masters:                config.GetMasters(),
