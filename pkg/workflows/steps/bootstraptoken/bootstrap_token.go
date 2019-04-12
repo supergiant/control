@@ -3,11 +3,11 @@ package bootstraptoken
 import (
 	"context"
 	"fmt"
-	"github.com/sirupsen/logrus"
 	"io"
 	"text/template"
 
 	"github.com/pkg/errors"
+	"github.com/sirupsen/logrus"
 
 	tm "github.com/supergiant/control/pkg/templatemanager"
 	"github.com/supergiant/control/pkg/workflows/steps"
@@ -15,10 +15,9 @@ import (
 
 const StepName = "bootstrap_token"
 
-type Step struct{
+type Step struct {
 	script *template.Template
 }
-
 
 func (s *Step) Rollback(context.Context, io.Writer, *steps.Config) error {
 	return nil
@@ -53,7 +52,7 @@ func (s *Step) Run(ctx context.Context, out io.Writer, config *steps.Config) err
 
 		logrus.Debugf("Create bootstrap token %s", config.BootstrapToken)
 		// NOTE(stgleb): Reuse KubeadmConfig.Token field to avoid
-		err = steps.RunTemplate(ctx, s.script, config.Runner, out, struct{Token string}{Token: config.BootstrapToken})
+		err = steps.RunTemplate(ctx, s.script, config.Runner, out, struct{ Token string }{Token: config.BootstrapToken})
 
 		if err != nil {
 			return errors.Wrap(err, "create bootstrap token")

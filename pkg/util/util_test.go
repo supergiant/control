@@ -4,12 +4,12 @@ import (
 	"bytes"
 	"crypto/rsa"
 	"fmt"
-	"github.com/dgrijalva/jwt-go"
-	"golang.org/x/crypto/ssh"
 	"strings"
 	"testing"
 
+	"github.com/dgrijalva/jwt-go"
 	"github.com/pkg/errors"
+	"golang.org/x/crypto/ssh"
 
 	"github.com/supergiant/control/pkg/clouds"
 	"github.com/supergiant/control/pkg/model"

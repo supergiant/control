@@ -5,8 +5,10 @@ import (
 	"crypto/rsa"
 	"crypto/x509"
 	"encoding/pem"
-	"github.com/supergiant/control/pkg/workflows/steps"
+
 	"golang.org/x/crypto/ssh"
+	
+	"github.com/supergiant/control/pkg/workflows/steps"
 )
 
 const keySize = 4096

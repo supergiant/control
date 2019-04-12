@@ -2,6 +2,8 @@ package kube
 
 import (
 	"fmt"
+	"strings"
+
 	"github.com/pkg/errors"
 	"k8s.io/apimachinery/pkg/runtime/schema"
 	"k8s.io/apimachinery/pkg/runtime/serializer"
@@ -11,7 +13,6 @@ import (
 	"k8s.io/client-go/rest"
 	"k8s.io/client-go/tools/clientcmd"
 	clientcmddapi "k8s.io/client-go/tools/clientcmd/api"
-	"strings"
 
 	"github.com/supergiant/control/pkg/model"
 	"github.com/supergiant/control/pkg/sgerrors"

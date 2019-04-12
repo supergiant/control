@@ -3,9 +3,6 @@ package provider
 import (
 	"context"
 	"fmt"
-	"github.com/supergiant/control/pkg/workflows/steps/authorizedKeys"
-	"github.com/supergiant/control/pkg/workflows/steps/bootstraptoken"
-	"github.com/supergiant/control/pkg/workflows/steps/ssh"
 	"io"
 
 	"github.com/pkg/errors"
@@ -13,6 +10,9 @@ import (
 
 	"github.com/supergiant/control/pkg/workflows/steps"
 	"github.com/supergiant/control/pkg/workflows/steps/amazon"
+	"github.com/supergiant/control/pkg/workflows/steps/authorizedKeys"
+	"github.com/supergiant/control/pkg/workflows/steps/bootstraptoken"
+	"github.com/supergiant/control/pkg/workflows/steps/ssh"
 )
 
 const (

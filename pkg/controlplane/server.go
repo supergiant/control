@@ -3,7 +3,6 @@ package controlplane
 import (
 	"context"
 	"fmt"
-	"github.com/supergiant/control/pkg/workflows/steps/bootstraptoken"
 	"net/http"
 	_ "net/http/pprof"
 	"net/url"
@@ -50,6 +49,7 @@ import (
 	"github.com/supergiant/control/pkg/workflows/steps/ssh"
 	"github.com/supergiant/control/pkg/workflows/steps/storageclass"
 	"github.com/supergiant/control/pkg/workflows/steps/tiller"
+	"github.com/supergiant/control/pkg/workflows/steps/bootstraptoken"
 	_ "github.com/supergiant/control/statik"
 )
 

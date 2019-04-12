@@ -2,8 +2,9 @@ package amazon
 
 import (
 	"context"
-	"github.com/aws/aws-sdk-go/aws/request"
 	"io"
+
+	"github.com/aws/aws-sdk-go/aws/request"
 
 	"github.com/aws/aws-sdk-go/aws"
 
@@ -74,11 +75,11 @@ func (s ImportRouteTablesStep) Run(ctx context.Context, out io.Writer, cfg *step
 	cfg.AWSConfig.RouteTableAssociationIDs = make(map[string]string)
 
 	for _, association := range routeTable.Associations {
-		 for az, subnetId := range cfg.AWSConfig.Subnets {
-		 	if association != nil && association.SubnetId != nil && association.RouteTableAssociationId != nil && subnetId == *association.SubnetId {
+		for az, subnetId := range cfg.AWSConfig.Subnets {
+			if association != nil && association.SubnetId != nil && association.RouteTableAssociationId != nil && subnetId == *association.SubnetId {
 				cfg.AWSConfig.RouteTableAssociationIDs[az] = *association.RouteTableAssociationId
 			}
-		 }
+		}
 	}
 
 	return nil

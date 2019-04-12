@@ -2,6 +2,8 @@ package amazon
 
 import (
 	"context"
+	"io"
+
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/aws/request"
 	"github.com/aws/aws-sdk-go/service/ec2"
@@ -11,7 +13,6 @@ import (
 	"github.com/supergiant/control/pkg/model"
 	"github.com/supergiant/control/pkg/sgerrors"
 	"github.com/supergiant/control/pkg/workflows/steps"
-	"io"
 )
 
 const (
