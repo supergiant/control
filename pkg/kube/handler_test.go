@@ -85,11 +85,11 @@ type mockProvisioner struct {
 	mock.Mock
 }
 
-type mockProfileGetter struct {
+type mockProfileService struct {
 	mock.Mock
 }
 
-func (m *mockProfileGetter) Get(ctx context.Context,
+func (m *mockProfileService) Get(ctx context.Context,
 	profileID string) (*profile.Profile, error) {
 	args := m.Called(ctx, profileID)
 
@@ -99,6 +99,13 @@ func (m *mockProfileGetter) Get(ctx context.Context,
 	}
 	return val, args.Error(1)
 }
+
+func (m *mockProfileService) Create(ctx context.Context,
+	profile *profile.Profile) error {
+	args := m.Called(ctx, profile)
+	return args.Error(0)
+}
+
 
 func (m *mockProvisioner) RestartClusterProvisioning(ctx context.Context,
 	clusterProfile *profile.Profile,
@@ -947,7 +954,7 @@ func TestAddNodeToKube(t *testing.T) {
 		svc.On(serviceCreate, mock.Anything, mock.Anything).
 			Return(nil)
 
-		profileSvc := new(mockProfileGetter)
+		profileSvc := new(mockProfileService)
 		profileSvc.On("Get", mock.Anything,
 			mock.Anything).Return(testCase.kubeProfile,
 			testCase.profileErr)
@@ -2140,7 +2147,7 @@ func TestRestarProvisioningKube(t *testing.T) {
 		svc.On(serviceCreate, mock.Anything, mock.Anything).
 			Return(nil)
 
-		profileSvc := new(mockProfileGetter)
+		profileSvc := new(mockProfileService)
 		profileSvc.On("Get", mock.Anything,
 			mock.Anything).Return(testCase.kubeProfile,
 			testCase.profileErr)
@@ -2389,6 +2396,8 @@ func TestImportKube(t *testing.T) {
 		account     *model.CloudAccount
 		accountErr  error
 
+		profileErr error
+
 		svcNodes  []corev1.Node
 		svcGetErr error
 
@@ -2434,12 +2443,16 @@ func TestImportKube(t *testing.T) {
 		accSvc.On("Get", mock.Anything, mock.Anything).
 			Return(testCase.account, testCase.accountErr)
 
+		profileSvc :=  &mockProfileService{}
+		profileSvc.On("Create", mock.Anything, mock.Anything).Return(testCase.profileErr)
+
 		mockRepo := new(testutils.MockStorage)
 		mockRepo.On("Put", mock.Anything, mock.Anything,
 			mock.Anything, mock.Anything).Return(nil)
 
 		h := NewHandler(svc, accSvc,
-			nil, nil, nil, mockRepo, nil)
+			profileSvc, nil,
+			nil, mockRepo, nil)
 
 		rr := httptest.NewRecorder()
 
