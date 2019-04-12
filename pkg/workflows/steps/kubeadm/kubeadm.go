@@ -62,16 +62,6 @@ func (t *Step) Run(ctx context.Context, out io.Writer, config *steps.Config) err
 		}
 	}
 
-	// TODO: needs more validation
-	switch {
-	case config.KubeadmConfig.ExternalDNSName == "":
-		return errors.Wrap(sgerrors.ErrRawError, "external dns name should be set")
-	case config.KubeadmConfig.InternalDNSName == "":
-		return errors.Wrap(sgerrors.ErrRawError, "internal dns name should be set")
-	case !config.KubeadmConfig.IsBootstrap && config.KubeadmConfig.MasterPrivateIP == "":
-		return errors.Wrap(sgerrors.ErrRawError, "master address should be set")
-	}
-
 	logrus.Debugf("kubeadm step: %s cluster: isBootstrap=%t extDNS=%s intDNS=%s masterIP=%s",
 		config.ClusterID, config.KubeadmConfig.IsBootstrap, config.KubeadmConfig.ExternalDNSName,
 		config.KubeadmConfig.InternalDNSName, config.KubeadmConfig.MasterPrivateIP)
