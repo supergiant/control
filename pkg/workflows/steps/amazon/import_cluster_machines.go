@@ -2,9 +2,11 @@ package amazon
 
 import (
 	"context"
+	"fmt"
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/aws/request"
 	"github.com/aws/aws-sdk-go/service/ec2"
+	"github.com/pborman/uuid"
 	"github.com/pkg/errors"
 	"github.com/sirupsen/logrus"
 	"github.com/supergiant/control/pkg/clouds"
@@ -146,6 +148,7 @@ func (s *ImportClusterStep) importMachines(ctx context.Context, role model.Role,
 		machine.PrivateIp = *instance.PrivateIpAddress
 		machine.PublicIp = *instance.PublicIpAddress
 		machine.State = instanceStateToMachineState(*instance.State.Name)
+		machine.Name = fmt.Sprintf("%s-%s", role, uuid.New()[:4])
 
 		cfg.AWSConfig.ImageID = *instance.ImageId
 		cfg.AWSConfig.Region = azToRegion(*instance.Placement.AvailabilityZone)
