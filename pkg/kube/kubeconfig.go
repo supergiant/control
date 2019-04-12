@@ -11,6 +11,7 @@ import (
 	"k8s.io/client-go/rest"
 	"k8s.io/client-go/tools/clientcmd"
 	clientcmddapi "k8s.io/client-go/tools/clientcmd/api"
+	"strings"
 
 	"github.com/supergiant/control/pkg/model"
 	"github.com/supergiant/control/pkg/sgerrors"
@@ -74,7 +75,11 @@ func adminKubeConfig(k *model.Kube) (clientcmddapi.Config, error) {
 
 	var apiAddr string
 	if k.ExternalDNSName != "" {
-		apiAddr = k.ExternalDNSName
+		if strings.HasPrefix(k.ExternalDNSName, "https") {
+			apiAddr = k.ExternalDNSName
+		} else {
+			apiAddr = fmt.Sprintf("https://%s", k.ExternalDNSName)
+		}
 	} else {
 		// Use public IP in case if DNS name is absent
 		m := util.GetRandomNode(k.Masters)

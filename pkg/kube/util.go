@@ -1,7 +1,6 @@
 package kube
 
 import (
-	"context"
 	"fmt"
 	"strings"
 
@@ -10,7 +9,6 @@ import (
 
 	"github.com/supergiant/control/pkg/model"
 	"github.com/supergiant/control/pkg/sgerrors"
-	"github.com/supergiant/control/pkg/workflows/steps"
 )
 
 func processAWSMetrics(k *model.Kube, metrics map[string]map[string]interface{}) {
@@ -77,24 +75,4 @@ func kubeFromKubeConfig(kubeConfig clientcmddapi.Config) (*model.Kube, error) {
 			AdminKey:  string(authInfo.ClientKeyData),
 		},
 	}, nil
-}
-
-func createKubeFromConfig(ctx context.Context, config *steps.Config, kubeService Interface) error {
-	cluster := &model.Kube{
-		ID:          config.ClusterID,
-		State:       model.StateOperational,
-		Name:        config.ClusterName,
-		Provider:    config.Provider,
-		AccountName: config.CloudAccountName,
-		BootstrapToken: config.BootstrapToken,
-		Region: "ap-south-1",
-
-		Masters: config.GetMasters(),
-		Nodes:   config.GetNodes(),
-		Tasks:   map[string][]string{},
-
-		SSHConfig: config.Kube.SSHConfig,
-	}
-
-	return kubeService.Create(ctx, cluster)
 }

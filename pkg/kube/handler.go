@@ -1201,12 +1201,12 @@ func (h *Handler) restartKubeProvisioning(w http.ResponseWriter, r *http.Request
 
 func (h *Handler) importKube(w http.ResponseWriter, r *http.Request) {
 	type importRequest struct {
-		KubeConfig            string            `json:"kubeconfig"`
-		ClusterName           string            `json:"clusterName"`
-		CloudAccountName      string            `json:"cloudAccountName"`
-		PublicKey             string            `json:"publicKey"`
-		PrivateKey            string            `json:"privateKey"`
-		CloudSpecificSettings map[string]string `json:"cloudSpecificSettings"`
+		KubeConfig       string          `json:"kubeconfig"`
+		ClusterName      string          `json:"clusterName"`
+		CloudAccountName string          `json:"cloudAccountName"`
+		PublicKey        string          `json:"publicKey"`
+		PrivateKey       string          `json:"privateKey"`
+		Profile          profile.Profile `json:"profile" valid:"-"`
 	}
 
 	var req importRequest
@@ -1228,20 +1228,12 @@ func (h *Handler) importKube(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	config := &steps.Config{
-		CloudAccountName: req.CloudAccountName,
-		ClusterName:      req.ClusterName,
-		IsBootstrap:      true,
-		Kube: model.Kube{
-			SSHConfig: model.SSHConfig{
-				Port:                "22",
-				Timeout:             10,
-				BootstrapPrivateKey: req.PrivateKey,
-				BootstrapPublicKey:  req.PublicKey,
-			},
-		},
-		Masters: steps.NewMap(map[string]*model.Machine{}),
-		Nodes:   steps.NewMap(map[string]*model.Machine{}),
+	config, err := steps.NewConfig(req.ClusterName, req.CloudAccountName, req.Profile)
+
+	if err != nil {
+		logrus.Errorf("New config %v", err.Error())
+		message.SendUnknownError(w, err)
+		return
 	}
 
 	importTask, err := workflows.NewTask(config, workflows.ImportCluster, h.repo)
@@ -1292,7 +1284,10 @@ func (h *Handler) importKube(w http.ResponseWriter, r *http.Request) {
 	}
 
 	config.ClusterID = clusterID
-	config.AWSConfig.Region = "ap-south-1"
+	config.IsBootstrap = true
+	config.Kube.SSHConfig.BootstrapPrivateKey = req.PrivateKey
+	config.Kube.Auth = kube.Auth
+	config.ExternalDNSName = kube.ExternalDNSName
 
 	w.WriteHeader(http.StatusAccepted)
 	err = json.NewEncoder(w).Encode(struct {
@@ -1349,8 +1344,41 @@ func (h *Handler) importKube(w http.ResponseWriter, r *http.Request) {
 			logrus.Errorf("task %s has finished with error %v", importTask.ID, err)
 		}
 
-		if err := createKubeFromConfig(context.Background(), config, h.svc); err != nil {
-			logrus.Errorf("Error creating the cluster")
+		state := model.StateOperational
+
+		if err != nil {
+			logrus.Fatal(err)
+			state = model.StateFailed
+		}
+
+		cluster := &model.Kube{
+			ID:                     config.ClusterID,
+			State:                  state,
+			Name:                   config.ClusterName,
+			Provider:               config.Provider,
+			AccountName:            config.CloudAccountName,
+			BootstrapToken:         config.BootstrapToken,
+			Region:                 req.Profile.Region,
+			Arch:                   req.Profile.Arch,
+			OperatingSystem:        req.Profile.OperatingSystem,
+			OperatingSystemVersion: req.Profile.UbuntuVersion,
+			K8SVersion:             req.Profile.K8SVersion,
+			DockerVersion:          req.Profile.DockerVersion,
+			RBACEnabled:            req.Profile.RBACEnabled,
+			ExternalDNSName:        config.ExternalDNSName,
+
+			Auth:    config.Kube.Auth,
+			Masters: config.GetMasters(),
+			Nodes:   config.GetNodes(),
+			Tasks:   map[string][]string{},
+
+			SSHConfig: config.Kube.SSHConfig,
+		}
+
+		err = h.svc.Create(context.Background(), cluster)
+
+		if err != nil {
+			logrus.Infof("Error creating the cluster")
 		}
 
 		logrus.Infof("Import task %s has successfully finished", importTask.ID)
