@@ -1,25 +1,25 @@
 <section class="charts-wrapper">
   <mat-card class="card">
     <mat-card-header>
-      <mat-card-title>
-        <h2>Add/remove repo</h2>
+      <mat-card-title class="repo-actions-title">
+        Add new or remove current repo
       </mat-card-title>
     </mat-card-header>
-    <mat-card-content>
-      <p>
-        Add new or remove current helm charts repository
-      </p>
-    </mat-card-content>
     <mat-card-actions class="repo-actions">
-      <button (click)="addRepo()"
-              mat-raised-button
-              class="add-repo">ADD
-      </button>
-      <button (click)="removeRepo()"
-              mat-raised-button
-              class="btn-secondary">REMOVE
-      </button>
-
+      <div class="add-remove-icon-and-text" (click)="addRepo()">
+        <span class="plus">
+        </span>
+        <div class="add-remove-text">
+          Add new repo
+        </div>
+      </div>
+      <div class="add-remove-icon-and-text" (click)="removeRepo()">
+        <span class="minus">
+        </span>
+        <div class="add-remove-text">
+          <span>Remove current repo</span>
+        </div>
+      </div>
     </mat-card-actions>
   </mat-card>
 
