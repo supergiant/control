@@ -1334,7 +1334,7 @@ func (h *Handler) importKube(w http.ResponseWriter, r *http.Request) {
 			machine.Role = model.RoleNode
 
 			for key := range node.Labels {
-				if strings.HasSuffix(key, "master") {
+				if strings.EqualFold(key, "node-role.kubernetes.io/master") {
 					machine.Role = model.RoleMaster
 				}
 			}
