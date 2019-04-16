@@ -223,8 +223,6 @@ export class ClusterComponent implements AfterViewInit, OnDestroy {
       switchMap(() => this.supergiant.Kubes.get(this.clusterId))).subscribe(
         k => {
           this.kube = k;
-          // for dev-ing
-          this.kube.state = "prepare";
 
           switch (this.kube.state) {
             case 'operational': {
