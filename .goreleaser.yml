@@ -1,0 +1,65 @@
+---
+project_name: supergiant
+
+before:
+  hooks:
+  # TODO: ensure the latest UI (runs in .travis.yml for now)
+  #  - make build-ui
+
+builds:
+- binary: supergiant
+  goos:
+    - linux
+    - darwin
+  goarch:
+    - amd64
+  env:
+    - CGO_ENABLED=0
+  main: ./cmd/controlplane/main.go
+  ldflags: -X main.version={{ .Version }}
+
+archive:
+  format: tar.gz
+  wrap_in_directory: true
+  replacements:
+    darwin: Darwin
+    linux: Linux
+    amd64: x86_64
+  files:
+    - LICENSE
+    - README.md
+
+nfpm:
+  name_template: "{{ .ProjectName }}_{{ .Version }}_{{ .Os }}_{{ .Arch }}"
+  homepage: https://supergiant.io
+  #maintainer: support@supergiant.io
+  description: Supergiant manages the lifecycle of kubernetes clusters on your infrastructure and allows deployment of applications via HELM.
+  license: Apache 2.0
+  formats:
+    - deb
+    - rpm
+  bindir: /usr/local/bin
+  empty_folders:
+    - /var/lib/supergiant
+    - /var/lib/supergiant/templates
+  files:
+    "templates/*": "/var/lib/supergiant/templates"
+  config_files:
+    "build/supergiant.service": "/etc/systemd/system/supergiant.service"
+  scripts:
+    postinstall: "build/restart-systemd.sh"
+    postremove: "build/restart-systemd.sh"
+
+# TODO: use it after a full integration into CI/CD process
+#dockers:
+#  - dockerfile: Dockerfile.release
+#    image_templates:
+#      - "supergiant/supergiant:latest"
+#      - "supergiant/supergiant:{{ .Tag }}"
+
+checksum:
+  name_template: '{{ .ProjectName }}-{{ .Version }}-checksums.txt'
+
+snapshot:
+  name_template: "{{ .Tag }}"
+

@@ -4,15 +4,8 @@ echo "building release artifacts"
 PROJECTDIR=${TRAVIS_HOME}/gopath/src/github.com/${TRAVIS_REPO_SLUG}
 echo ${PROJECTDIR}
 
-mkdir -p ./supergiant-build
-
-cp -avr ${PROJECTDIR}/templates/ ./supergiant-build
-cp -avr ${PROJECTDIR}/cmd/ui/assets/dist/ ./supergiant-build
-chmod +x ./supergiant-build/controlplane
-
-ls -la ./supergiant-build
-
-tar -czpf dist/assest.gz ./supergiant-build
+# prepare artifacts with goreleaser, results will be stored to the ./dist directory
+curl -sL https://git.io/goreleaser | bash -s -- --snapshot --skip-publish --rm-dist
 
 # if a tag has alpha or beta in the name, it will be released as a pre-release.
 # if a tag does not have alpha or beta, it is pushed as a full release.
