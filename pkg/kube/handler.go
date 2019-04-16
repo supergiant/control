@@ -1398,7 +1398,11 @@ func createKube(config *steps.Config, state model.KubeState, profile profile.Pro
 		Masters:                config.GetMasters(),
 		Nodes:                  config.GetNodes(),
 		Tasks: map[string][]string{
-			workflows.ImportCluster: {taskID},
+			workflows.ImportTask:    {taskID},
+			workflows.PreProvisionTask: {},
+			workflows.MasterTask:       {},
+			workflows.NodeTask:         {},
+			workflows.ClusterTask:      {},
 		},
 
 		SSHConfig: config.Kube.SSHConfig,
