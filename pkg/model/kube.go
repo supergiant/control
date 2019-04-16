@@ -8,11 +8,11 @@ import (
 type KubeState string
 
 const (
-	StatePrepare      KubeState = "prepare"
 	StateProvisioning KubeState = "provisioning"
 	StateFailed       KubeState = "failed"
 	StateOperational  KubeState = "operational"
 	StateDeleting     KubeState = "deleting"
+	StateImporting    KubeState = "importing"
 )
 
 // Kube represents a kubernetes cluster.

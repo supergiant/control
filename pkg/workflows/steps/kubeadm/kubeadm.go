@@ -47,6 +47,7 @@ func (t *Step) Run(ctx context.Context, out io.Writer, config *steps.Config) err
 	config.KubeadmConfig.IsMaster = config.IsMaster
 	config.KubeadmConfig.InternalDNSName = config.InternalDNSName
 	config.KubeadmConfig.ExternalDNSName = config.ExternalDNSName
+	config.KubeadmConfig.Token = config.BootstrapToken
 
 	// NOTE(stgleb): Kubeadm accepts only ipv4 or ipv6 addresses as advertise address
 	if config.IsBootstrap {
@@ -59,16 +60,6 @@ func (t *Step) Run(ctx context.Context, out io.Writer, config *steps.Config) err
 				return errors.Wrapf(sgerrors.ErrRawError, "no masters in the %s cluster", config.ClusterID)
 			}
 		}
-	}
-
-	// TODO: needs more validation
-	switch {
-	case config.KubeadmConfig.ExternalDNSName == "":
-		return errors.Wrap(sgerrors.ErrRawError, "external dns name should be set")
-	case config.KubeadmConfig.InternalDNSName == "":
-		return errors.Wrap(sgerrors.ErrRawError, "internal dns name should be set")
-	case !config.KubeadmConfig.IsBootstrap && config.KubeadmConfig.MasterPrivateIP == "":
-		return errors.Wrap(sgerrors.ErrRawError, "master address should be set")
 	}
 
 	logrus.Debugf("kubeadm step: %s cluster: isBootstrap=%t extDNS=%s intDNS=%s masterIP=%s",

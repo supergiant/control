@@ -6,6 +6,7 @@ import (
 	"github.com/supergiant/control/pkg/workflows/statuses"
 	"github.com/supergiant/control/pkg/workflows/steps"
 	"github.com/supergiant/control/pkg/workflows/steps/authorizedKeys"
+	"github.com/supergiant/control/pkg/workflows/steps/bootstraptoken"
 	"github.com/supergiant/control/pkg/workflows/steps/certificates"
 	"github.com/supergiant/control/pkg/workflows/steps/clustercheck"
 	"github.com/supergiant/control/pkg/workflows/steps/docker"
@@ -75,6 +76,7 @@ func Init() {
 		steps.GetStep(docker.StepName),
 		steps.GetStep(certificates.StepName),
 		steps.GetStep(kubeadm.StepName),
+		steps.GetStep(bootstraptoken.StepName),
 		steps.GetStep(kubelet.StepName),
 		steps.GetStep(poststart.StepName),
 	}

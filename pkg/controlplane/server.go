@@ -33,6 +33,7 @@ import (
 	"github.com/supergiant/control/pkg/workflows/steps/amazon"
 	"github.com/supergiant/control/pkg/workflows/steps/authorizedKeys"
 	"github.com/supergiant/control/pkg/workflows/steps/azure"
+	"github.com/supergiant/control/pkg/workflows/steps/bootstraptoken"
 	"github.com/supergiant/control/pkg/workflows/steps/certificates"
 	"github.com/supergiant/control/pkg/workflows/steps/clustercheck"
 	"github.com/supergiant/control/pkg/workflows/steps/cni"
@@ -204,6 +205,7 @@ func configureApplication(cfg *Config) (*mux.Router, error) {
 	storageclass.Init()
 	drain.Init()
 	kubeadm.Init()
+	bootstraptoken.Init()
 
 	amazon.InitFindAMI(amazon.GetEC2)
 	amazon.InitImportKeyPair(amazon.GetEC2)
@@ -229,7 +231,9 @@ func configureApplication(cfg *Config) (*mux.Router, error) {
 	amazon.InitDeleteLoadBalancer(amazon.GetELB)
 	amazon.InitRegisterInstance(amazon.GetELB)
 	amazon.InitImportClusterStep(amazon.GetEC2)
-
+	amazon.InitImportSubnetDescriber(amazon.GetEC2)
+	amazon.InitImportInternetGatewayStep(amazon.GetEC2)
+	amazon.InitImportRouteTablesStep(amazon.GetEC2)
 	workflows.Init()
 	azure.Init()
 

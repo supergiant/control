@@ -65,7 +65,7 @@ func prepProvisionStepFor(provider clouds.Name) ([]steps.Step, error) {
 			steps.GetStep(amazon.StepCreateVPC),
 			steps.GetStep(amazon.StepCreateSecurityGroups),
 			steps.GetStep(amazon.StepNameCreateInstanceProfiles),
-			steps.GetStep(amazon.StepImportKeyPair),
+			steps.GetStep(amazon.ImportKeyPairStepName),
 			steps.GetStep(amazon.StepCreateInternetGateway),
 			steps.GetStep(amazon.StepCreateSubnets),
 			steps.GetStep(amazon.StepCreateRouteTable),

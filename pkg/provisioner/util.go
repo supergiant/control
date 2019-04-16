@@ -1,16 +1,10 @@
 package provisioner
 
 import (
-	"crypto/rand"
-	"crypto/rsa"
-	"crypto/x509"
 	"encoding/json"
-	"encoding/pem"
 	"github.com/pkg/errors"
 	"strings"
 	"time"
-
-	"golang.org/x/crypto/ssh"
 
 	"github.com/supergiant/control/pkg/clouds"
 	"github.com/supergiant/control/pkg/model"
@@ -128,6 +122,7 @@ func MergeConfig(source *steps.Config, destination *steps.Config) error {
 	destination.ClusterID = source.ClusterID
 	destination.Provider = source.Provider
 	destination.ClusterName = source.ClusterName
+	destination.BootstrapToken = source.BootstrapToken
 
 	return nil
 }
@@ -177,53 +172,6 @@ func nodesFromProfile(clusterName string, masterTasks, nodeTasks []*workflows.Ta
 	}
 
 	return masters, nodes
-}
-
-func generateKeyPair(size int) (string, string, error) {
-	privateKey, err := rsa.GenerateKey(rand.Reader, size)
-
-	if err != nil {
-		return "", "", err
-	}
-
-	privateKeyPem := encodePrivateKeyToPEM(privateKey)
-	publicKey, err := generatePublicKey(&privateKey.PublicKey)
-
-	if err != nil {
-		return "", "", err
-	}
-
-	return string(privateKeyPem), string(publicKey), nil
-}
-
-// encodePrivateKeyToPEM encodes Private Key from RSA to PEM format
-func encodePrivateKeyToPEM(privateKey *rsa.PrivateKey) []byte {
-	// Get ASN.1 DER format
-	privDER := x509.MarshalPKCS1PrivateKey(privateKey)
-
-	// pem.Block
-	privBlock := pem.Block{
-		Type:    "RSA PRIVATE KEY",
-		Headers: nil,
-		Bytes:   privDER,
-	}
-
-	// Private key in PEM format
-	privatePEM := pem.EncodeToMemory(&privBlock)
-
-	return privatePEM
-}
-
-func generatePublicKey(publicKey *rsa.PublicKey) ([]byte, error) {
-	publicRsaKey, err := ssh.NewPublicKey(publicKey)
-
-	if err != nil {
-		return nil, err
-	}
-
-	pubKeyBytes := ssh.MarshalAuthorizedKey(publicRsaKey)
-
-	return pubKeyBytes, nil
 }
 
 func grabTaskIds(taskMap map[string][]*workflows.Task) map[string][]string {

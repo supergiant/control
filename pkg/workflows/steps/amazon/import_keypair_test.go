@@ -134,7 +134,7 @@ func TestImportKeyPair_Run(t *testing.T) {
 func TestInitImportKeyPair(t *testing.T) {
 	InitImportKeyPair(GetEC2)
 
-	s := steps.GetStep(StepImportKeyPair)
+	s := steps.GetStep(ImportKeyPairStepName)
 
 	if s == nil {
 		t.Error("Step must not be nil")
@@ -206,8 +206,8 @@ func TestKeyPairStep_Rollback(t *testing.T) {
 func TestKeyPairStep_Name(t *testing.T) {
 	s := &KeyPairStep{}
 
-	if name := s.Name(); name != StepImportKeyPair {
+	if name := s.Name(); name != ImportKeyPairStepName {
 		t.Errorf("Wrong name expected %s actual %s",
-			StepImportKeyPair, name)
+			ImportKeyPairStepName, name)
 	}
 }

@@ -4,6 +4,7 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+	"github.com/pborman/uuid"
 	"io"
 	"net/http"
 	"strconv"
@@ -42,8 +43,9 @@ type accountGetter interface {
 	Get(context.Context, string) (*model.CloudAccount, error)
 }
 
-type profileGetter interface {
+type profileSvc interface {
 	Get(context.Context, string) (*profile.Profile, error)
+	Create(ctx context.Context, profile *profile.Profile) error
 }
 
 type nodeProvisioner interface {
@@ -85,7 +87,7 @@ type Handler struct {
 	accountService  accountGetter
 	nodeProvisioner nodeProvisioner
 	kubeProvisioner kubeProvisioner
-	profileSvc      profileGetter
+	profileSvc      profileSvc
 
 	repo    storage.Interface
 	proxies proxy.Container
@@ -99,7 +101,7 @@ type Handler struct {
 func NewHandler(
 	svc Interface,
 	accountService accountGetter,
-	profileSvc profileGetter,
+	profileSvc profileSvc,
 	provisioner nodeProvisioner,
 	kubeProvisioner kubeProvisioner,
 	repo storage.Interface,
@@ -928,6 +930,10 @@ func (h *Handler) getClusterMetrics(w http.ResponseWriter, r *http.Request) {
 		}
 	}
 
+	if masterNode == nil {
+		return
+	}
+
 	for metricType, relUrl := range metricsRelUrls {
 		url := fmt.Sprintf("https://%s/%s/%s", masterNode.PublicIp, baseUrl, relUrl)
 		metricResponse, err := h.getMetrics(url, k)
@@ -978,6 +984,10 @@ func (h *Handler) getNodesMetrics(w http.ResponseWriter, r *http.Request) {
 		if k.Masters[key] != nil {
 			masterNode = k.Masters[key]
 		}
+	}
+
+	if masterNode == nil {
+		return
 	}
 
 	for metricType, relUrl := range metricsRelUrls {
@@ -1192,9 +1202,12 @@ func (h *Handler) restartKubeProvisioning(w http.ResponseWriter, r *http.Request
 
 func (h *Handler) importKube(w http.ResponseWriter, r *http.Request) {
 	type importRequest struct {
-		KubeConfig       string `json:"kubeconfig"`
-		ClusterName      string `json:"clusterName"`
-		CloudAccountName string `json:"cloudAccountName"`
+		KubeConfig       string          `json:"kubeconfig"`
+		ClusterName      string          `json:"clusterName"`
+		CloudAccountName string          `json:"cloudAccountName"`
+		PublicKey        string          `json:"publicKey"`
+		PrivateKey       string          `json:"privateKey"`
+		Profile          profile.Profile `json:"profile" valid:"-"`
 	}
 
 	var req importRequest
@@ -1216,7 +1229,14 @@ func (h *Handler) importKube(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	config := &steps.Config{}
+	config, err := steps.NewConfig(req.ClusterName, req.CloudAccountName, req.Profile)
+
+	if err != nil {
+		logrus.Errorf("New config %v", err.Error())
+		message.SendUnknownError(w, err)
+		return
+	}
+
 	importTask, err := workflows.NewTask(config, workflows.ImportCluster, h.repo)
 
 	if err != nil {
@@ -1264,6 +1284,21 @@ func (h *Handler) importKube(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	config.ClusterID = clusterID
+	config.IsBootstrap = true
+	config.Kube.SSHConfig.BootstrapPrivateKey = req.PrivateKey
+	config.Kube.SSHConfig.PublicKey = req.PublicKey
+	config.Kube.Auth = kube.Auth
+	config.ExternalDNSName = kube.ExternalDNSName
+
+	if err := createKube(config, model.StateImporting, req.Profile, importTask.ID, h); err != nil {
+		message.SendUnknownError(w, errors.Wrapf(err, "create importing kube"))
+	}
+
+	if err := h.profileSvc.Create(r.Context(), &req.Profile); err != nil {
+		message.SendUnknownError(w, errors.Wrap(err, "save profile"))
+	}
+
 	w.WriteHeader(http.StatusAccepted)
 	err = json.NewEncoder(w).Encode(struct {
 		ClusterID string `json:"clusterId"`
@@ -1285,6 +1320,9 @@ func (h *Handler) importKube(w http.ResponseWriter, r *http.Request) {
 			return
 		}
 
+		masters := make(map[string]*model.Machine)
+		workers := make(map[string]*model.Machine)
+
 		for _, node := range nodes {
 			machine := model.Machine{}
 
@@ -1296,15 +1334,25 @@ func (h *Handler) importKube(w http.ResponseWriter, r *http.Request) {
 				}
 			}
 
-			// Set tole to machine
-			machine.Role = model.Role(node.Labels[nodeLabelRole])
+			machine.Role = model.RoleNode
+
+			for key := range node.Labels {
+				if key == "node-role.kubernetes.io/master" {
+					machine.Role = model.RoleMaster
+				}
+			}
+
+			machine.Name = fmt.Sprintf("%s-%s-%s", config.ClusterName, machine.Role, uuid.New()[:4])
 
 			if machine.Role == model.RoleMaster {
-				config.AddMaster(&machine)
+				masters[machine.Name] = &machine
 			} else {
-				config.AddNode(&machine)
+				workers[machine.Name] = &machine
 			}
 		}
+
+		config.Masters = steps.NewMap(masters)
+		config.Nodes = steps.NewMap(workers)
 
 		importTask.Config = config
 		resultChan := importTask.Run(context.Background(), *importTask.Config, writer)
@@ -1314,6 +1362,56 @@ func (h *Handler) importKube(w http.ResponseWriter, r *http.Request) {
 			logrus.Errorf("task %s has finished with error %v", importTask.ID, err)
 		}
 
+		state := model.StateOperational
+
+		if err != nil {
+			state = model.StateFailed
+		}
+
+		if err := createKube(importTask.Config, state, req.Profile, importTask.ID, h); err != nil {
+			logrus.Errorf("error creating kube %v", err)
+		}
+
 		logrus.Infof("Import task %s has successfully finished", importTask.ID)
 	}()
+}
+
+func createKube(config *steps.Config, state model.KubeState, profile profile.Profile, taskID string, h *Handler) error {
+	cluster := &model.Kube{
+		ID:                     config.ClusterID,
+		State:                  state,
+		Name:                   config.ClusterName,
+		Provider:               config.Provider,
+		AccountName:            config.CloudAccountName,
+		BootstrapToken:         config.BootstrapToken,
+		Region:                 profile.Region,
+		Arch:                   profile.Arch,
+		OperatingSystem:        profile.OperatingSystem,
+		OperatingSystemVersion: profile.UbuntuVersion,
+		K8SVersion:             profile.K8SVersion,
+		DockerVersion:          profile.DockerVersion,
+		RBACEnabled:            profile.RBACEnabled,
+		ExternalDNSName:        config.ExternalDNSName,
+		InternalDNSName:        config.ExternalDNSName,
+		ProfileID:              profile.ID,
+		Auth:                   config.Kube.Auth,
+		Masters:                config.GetMasters(),
+		Nodes:                  config.GetNodes(),
+		Tasks: map[string][]string{
+			workflows.ImportTask:    {taskID},
+			workflows.PreProvisionTask: {},
+			workflows.MasterTask:       {},
+			workflows.NodeTask:         {},
+			workflows.ClusterTask:      {},
+		},
+
+		SSHConfig: config.Kube.SSHConfig,
+	}
+	util.UpdateKubeWithCloudSpecificData(cluster, config)
+	err := h.svc.Create(context.Background(), cluster)
+	if err != nil {
+		logrus.Infof("Error creating the cluster")
+	}
+
+	return err
 }

@@ -5,12 +5,10 @@ import (
 	"strings"
 
 	"github.com/pkg/errors"
-
-	"github.com/supergiant/control/pkg/sgerrors"
-
 	clientcmddapi "k8s.io/client-go/tools/clientcmd/api"
 
 	"github.com/supergiant/control/pkg/model"
+	"github.com/supergiant/control/pkg/sgerrors"
 )
 
 func processAWSMetrics(k *model.Kube, metrics map[string]map[string]interface{}) {
