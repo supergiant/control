@@ -196,6 +196,8 @@ func (tp *TaskProvisioner) RestartClusterProvisioning(parentCtx context.Context,
 	go tp.monitorClusterState(ctx, config.ClusterID,
 		config.NodeChan(), config.KubeStateChan(), config.ConfigChan())
 	go tp.provision(ctx, taskMap, clusterProfile)
+	// Restore provisioning state for cluster
+	config.KubeStateChan() <- model.StateProvisioning
 
 	return nil
 }

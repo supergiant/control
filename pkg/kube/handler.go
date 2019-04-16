@@ -1292,6 +1292,14 @@ func (h *Handler) importKube(w http.ResponseWriter, r *http.Request) {
 	config.Kube.Auth = kube.Auth
 	config.ExternalDNSName = kube.ExternalDNSName
 
+	if err := createKube(config, model.StateImporting, req.Profile, importTask.ID, h); err != nil {
+		message.SendUnknownError(w, errors.Wrapf(err, "create importing kube"))
+	}
+
+	if err := h.profileSvc.Create(r.Context(), &req.Profile); err != nil {
+		message.SendUnknownError(w, errors.Wrap(err, "save profile"))
+	}
+
 	w.WriteHeader(http.StatusAccepted)
 	err = json.NewEncoder(w).Encode(struct {
 		ClusterID string `json:"clusterId"`
@@ -1302,10 +1310,6 @@ func (h *Handler) importKube(w http.ResponseWriter, r *http.Request) {
 	if err != nil {
 		message.SendInvalidJSON(w, err)
 		return
-	}
-
-	if err := h.profileSvc.Create(r.Context(), &req.Profile); err != nil {
-		message.SendUnknownError(w, errors.Wrap(err, "save profile"))
 	}
 
 	go func() {
@@ -1362,42 +1366,49 @@ func (h *Handler) importKube(w http.ResponseWriter, r *http.Request) {
 		state := model.StateOperational
 
 		if err != nil {
-			logrus.Fatal(err)
 			state = model.StateFailed
 		}
 
-		cluster := &model.Kube{
-			ID:                     config.ClusterID,
-			State:                  state,
-			Name:                   config.ClusterName,
-			Provider:               config.Provider,
-			AccountName:            config.CloudAccountName,
-			BootstrapToken:         config.BootstrapToken,
-			Region:                 req.Profile.Region,
-			Arch:                   req.Profile.Arch,
-			OperatingSystem:        req.Profile.OperatingSystem,
-			OperatingSystemVersion: req.Profile.UbuntuVersion,
-			K8SVersion:             req.Profile.K8SVersion,
-			DockerVersion:          req.Profile.DockerVersion,
-			RBACEnabled:            req.Profile.RBACEnabled,
-			ExternalDNSName:        config.ExternalDNSName,
-			InternalDNSName:        config.ExternalDNSName,
-			ProfileID:              req.Profile.ID,
-			Auth:                   config.Kube.Auth,
-			Masters:                config.GetMasters(),
-			Nodes:                  config.GetNodes(),
-			Tasks:                  map[string][]string{},
-
-			SSHConfig: config.Kube.SSHConfig,
-		}
-
-		util.UpdateKubeWithCloudSpecificData(cluster, importTask.Config)
-		err = h.svc.Create(context.Background(), cluster)
-
-		if err != nil {
-			logrus.Infof("Error creating the cluster")
+		if err := createKube(importTask.Config, state, req.Profile, importTask.ID, h); err != nil {
+			logrus.Errorf("error creating kube %v", err)
 		}
 
 		logrus.Infof("Import task %s has successfully finished", importTask.ID)
 	}()
+}
+
+func createKube(config *steps.Config, state model.KubeState, profile profile.Profile, taskID string, h *Handler) error {
+	cluster := &model.Kube{
+		ID:                     config.ClusterID,
+		State:                  state,
+		Name:                   config.ClusterName,
+		Provider:               config.Provider,
+		AccountName:            config.CloudAccountName,
+		BootstrapToken:         config.BootstrapToken,
+		Region:                 profile.Region,
+		Arch:                   profile.Arch,
+		OperatingSystem:        profile.OperatingSystem,
+		OperatingSystemVersion: profile.UbuntuVersion,
+		K8SVersion:             profile.K8SVersion,
+		DockerVersion:          profile.DockerVersion,
+		RBACEnabled:            profile.RBACEnabled,
+		ExternalDNSName:        config.ExternalDNSName,
+		InternalDNSName:        config.ExternalDNSName,
+		ProfileID:              profile.ID,
+		Auth:                   config.Kube.Auth,
+		Masters:                config.GetMasters(),
+		Nodes:                  config.GetNodes(),
+		Tasks: map[string][]string{
+			workflows.ImportCluster: {taskID},
+		},
+
+		SSHConfig: config.Kube.SSHConfig,
+	}
+	util.UpdateKubeWithCloudSpecificData(cluster, config)
+	err := h.svc.Create(context.Background(), cluster)
+	if err != nil {
+		logrus.Infof("Error creating the cluster")
+	}
+
+	return err
 }

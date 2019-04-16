@@ -2438,6 +2438,7 @@ func TestImportKube(t *testing.T) {
 		t.Log(testCase.description)
 		svc := &kubeServiceMock{}
 		svc.On(serviceListNodes, mock.Anything, mock.Anything, mock.Anything).Return(testCase.svcNodes, testCase.svcGetErr)
+		svc.On(serviceCreate, mock.Anything, mock.Anything).Return(nil)
 		accSvc := &accServiceMock{}
 		accSvc.On("Get", mock.Anything, mock.Anything).
 			Return(testCase.account, testCase.accountErr)
