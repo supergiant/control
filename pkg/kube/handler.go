@@ -8,7 +8,6 @@ import (
 	"io"
 	"net/http"
 	"strconv"
-	"strings"
 	"time"
 
 	"k8s.io/client-go/tools/clientcmd"
@@ -1338,7 +1337,7 @@ func (h *Handler) importKube(w http.ResponseWriter, r *http.Request) {
 			machine.Role = model.RoleNode
 
 			for key := range node.Labels {
-				if strings.EqualFold(key, "node-role.kubernetes.io/master") {
+				if key == "node-role.kubernetes.io/master" {
 					machine.Role = model.RoleMaster
 				}
 			}
