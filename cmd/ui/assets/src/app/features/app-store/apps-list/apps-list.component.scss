@@ -3,9 +3,20 @@
   color: white;
 }
 
+.repo-actions-title {
+  width: 250px;
+  overflow-wrap: break-word;
+  font-size: 26px;
+  font-weight: 300;
+  line-height: 32px;
+}
+
 .mat-card-title {
   width: 250px;
   overflow-wrap: break-word;
+  h2{
+    font-family: 'Montserrat', sans-serif;
+  }
 }
 
 .mat-card-actions {
@@ -14,17 +25,42 @@
 
 .repo-actions {
   justify-content: space-between;
+  flex-direction: column;
   margin-top: auto !important;
 
-  .add-repo {
-    @include action-button;
-    background: #D10088;
-  }
+  .add-remove-icon-and-text {
+    margin-top: 15px;
+    cursor: pointer;
+    width: max-content;
 
-  .btn-secondary {
-    @include action-button;
-    background: #414141;
-    border: none;
+    .plus {
+      background: url(/assets/img/plus-pink.svg) no-repeat;
+      background-size: 100% 100%;
+      background-position: center;
+      margin-top: 0px;
+      margin-right: 10px;
+      height: 24px;
+      width: 24px;
+      display: inline-block;
+    }
+
+    .minus {
+      background: url(/assets/img/minus-pink.svg) no-repeat;
+      background-size: 100% 100%;
+      background-position: center;
+      margin-top: 0px;
+      margin-right: 10px;
+      height: 24px;
+      width: 24px;
+      display: inline-block;
+    }
+
+    .add-remove-text{
+      display: inline-block;
+      vertical-align: top;
+      font-size: 14px;
+      font-weight: 300;
+    }
   }
 }
 
@@ -45,16 +81,15 @@
 
 .charts-wrapper {
   display: flex;
+  justify-content: space-between;
   flex-wrap: wrap;
   margin-bottom: 20px;
-  margin-right: 52px;
-  margin-left: 52px;
 
   .card {
     display: flex;
     margin-right: 30px;
     margin-bottom: 30px;
-    width: 300px;
+    width: 295px;
   }
 
   .app-card {
