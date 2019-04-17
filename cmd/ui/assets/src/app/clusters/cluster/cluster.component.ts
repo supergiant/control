@@ -191,14 +191,38 @@ export class ClusterComponent implements AfterViewInit, OnDestroy {
     a.click();
   }
 
+  orderTasks(a, b) {
+    const aSortId = (a.type + a.id).toUpperCase();
+    const bSortId = (b.type + b.id).toUpperCase();
+
+    let comparison = 0;
+    if (aSortId > bSortId) {
+      comparison = 1
+    } else if (aSortId < bSortId) {
+      comparison = -1
+    }
+
+    return comparison;
+  }
+
+  updateTaskList(tasks) {
+    const rows = [];
+    const orderedTasks = tasks.sort(this.orderTasks);
+    orderedTasks.forEach(t => {
+      if (this.expandedTaskIds.has(t.id)) {
+        t.showSteps = true;
+      }
+      rows.push(t, { detailRow: true, t });
+    });
+    this.tasks = new MatTableDataSource(rows);
+  }
+
   getKube() {
     // TODO: shameful how smart this ENTIRE component has become.
     this.subscriptions.add(observableTimer(0, 10000).pipe(
       switchMap(() => this.supergiant.Kubes.get(this.clusterId))).subscribe(
         k => {
           this.kube = k;
-          // for dev-ing
-          // this.kube.state = "prepare";
 
           switch (this.kube.state) {
             case 'operational': {
@@ -214,16 +238,7 @@ export class ClusterComponent implements AfterViewInit, OnDestroy {
               this.getKubeStatus(this.clusterId).subscribe(
                 tasks => {
                   this.setProvisioningStep(tasks);
-
-                  const rows = [];
-                  tasks.forEach(t => {
-                    if (this.expandedTaskIds.has(t.id)) {
-                      t.showSteps = true;
-                    }
-                    rows.push(t, { detailRow: true, t });
-                  });
-                  this.tasks = new MatTableDataSource(rows);
-
+                  this.updateTaskList(tasks);
                 },
                 err => console.log(err)
               );
@@ -233,16 +248,7 @@ export class ClusterComponent implements AfterViewInit, OnDestroy {
               this.getKubeStatus(this.clusterId).subscribe(
                 tasks => {
                   this.setProvisioningStep(tasks);
-
-                  const rows = [];
-                  tasks.forEach(t => {
-                    if (this.expandedTaskIds.has(t.id)) {
-                      t.showSteps = true;
-                    }
-                    rows.push(t, { detailRow: true, t });
-                  });
-                  this.tasks = new MatTableDataSource(rows);
-
+                  this.updateTaskList(tasks);
                 },
                 err => console.log(err)
               );
@@ -251,16 +257,7 @@ export class ClusterComponent implements AfterViewInit, OnDestroy {
             case 'failed': {
               this.getKubeStatus(this.clusterId).subscribe(
                 tasks => {
-
-                  const rows = [];
-                  tasks.forEach(t => {
-                    if (this.expandedTaskIds.has(t.id)) {
-                      t.showSteps = true;
-                    }
-                    rows.push(t, { detailRow: true, t });
-                  });
-                  this.tasks = new MatTableDataSource(rows);
-
+                  this.updateTaskList(tasks);
                 },
                 err => console.log(err)
               );
