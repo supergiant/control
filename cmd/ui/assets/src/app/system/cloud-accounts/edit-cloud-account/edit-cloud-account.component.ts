@@ -18,6 +18,7 @@ export class EditCloudAccountComponent implements OnInit, OnDestroy {
   public accountName: string;
   public account: any;
   public saving = false;
+  public gceCreds: string;
 
   constructor(
     private route: ActivatedRoute,
@@ -28,7 +29,12 @@ export class EditCloudAccountComponent implements OnInit, OnDestroy {
 
   getAccount(name) {
     this.subscriptions.add(this.supergiant.CloudAccounts.get(name).subscribe(
-      data => this.account = data,
+      data => {
+        this.account = data;
+        if(data.provider == "gce"){
+          this.gceCreds = JSON.stringify(this.account.credentials, null, 2);
+        }
+      },
       err => console.error(err)
     ));
   }
@@ -36,6 +42,10 @@ export class EditCloudAccountComponent implements OnInit, OnDestroy {
   editAccount(account) {
     if (!this.saving) {
       this.saving = true;
+
+      if(this.account.provider == "gce"){
+        this.account.credentials = JSON.parse(this.gceCreds);
+      }
 
       this.supergiant.CloudAccounts.update(this.accountName, account).subscribe(
         res => {
