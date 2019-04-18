@@ -44,7 +44,17 @@ export class EditCloudAccountComponent implements OnInit, OnDestroy {
       this.saving = true;
 
       if(this.account.provider == "gce"){
-        this.account.credentials = JSON.parse(this.gceCreds);
+        try{
+          this.account.credentials = JSON.parse(this.gceCreds);
+        } catch(e) {
+          this.notifications.display(
+            'error',
+            'Account: ' + this.accountName,
+            'Error: could not parse JSON'
+          );
+          this.saving = false;
+          return;
+        }
       }
 
       this.supergiant.CloudAccounts.update(this.accountName, account).subscribe(
