@@ -234,26 +234,6 @@ export class ClusterComponent implements AfterViewInit, OnDestroy {
               this.getClusterServices();
               break;
             }
-            case 'prepare': {
-              this.getKubeStatus(this.clusterId).subscribe(
-                tasks => {
-                  this.setProvisioningStep(tasks);
-                  this.updateTaskList(tasks);
-                },
-                err => console.log(err)
-              );
-              break;
-            }
-            case 'provisioning': {
-              this.getKubeStatus(this.clusterId).subscribe(
-                tasks => {
-                  this.setProvisioningStep(tasks);
-                  this.updateTaskList(tasks);
-                },
-                err => console.log(err)
-              );
-              break;
-            }
             case 'failed': {
               this.getKubeStatus(this.clusterId).subscribe(
                 tasks => {
@@ -267,6 +247,13 @@ export class ClusterComponent implements AfterViewInit, OnDestroy {
               break;
             }
             default: {
+              this.getKubeStatus(this.clusterId).subscribe(
+                tasks => {
+                  this.setProvisioningStep(tasks);
+                  this.updateTaskList(tasks);
+                },
+                err => console.log(err)
+              );
               break;
             }
           }
@@ -348,7 +335,8 @@ export class ClusterComponent implements AfterViewInit, OnDestroy {
         this.cpuUsage = res.cpu;
         this.ramUsage = res.memory;
       },
-      err => console.error(err)
+      // if metrics aren't available yet, server returns 500, which we don't need
+      err => { return; }
     );
   }
 
@@ -358,7 +346,8 @@ export class ClusterComponent implements AfterViewInit, OnDestroy {
         this.machineMetrics = this.calculateMachineMetrics(res);
         this.renderMachines(this.kube);
       },
-      err => console.error(err)
+      // if metrics aren't available yet, server returns 500, which we don't need
+      err => { return; }
     );
   }
 
@@ -560,6 +549,8 @@ export class ClusterComponent implements AfterViewInit, OnDestroy {
 
     if (err.error.userMessage) {
       msg = err.error.userMessage;
+    } else if (err.userMessage) {
+      msg = err.userMessage
     } else {
       msg = err.error;
     }

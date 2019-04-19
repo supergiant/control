@@ -414,20 +414,20 @@
     align-items: center;
 
     h1 {
-      @keyframes blink {
+      // @keyframes blink {
 
-        0% {
-          opacity: .2;
-        }
+      //   0% {
+      //     opacity: .2;
+      //   }
 
-        20% {
-          opacity: 1;
-        }
+      //   20% {
+      //     opacity: 1;
+      //   }
 
-        100% {
-          opacity: .2;
-        }
-      }
+      //   100% {
+      //     opacity: .2;
+      //   }
+      // }
 
       span {
         animation-name: blink;
@@ -867,6 +867,63 @@
         height: 24px;
         width: 24px;
       }
+    }
+  }
+
+  .import-wrapper {
+    display: flex;
+    margin: 0 auto;
+    width: 60%;
+
+    .sg-sign {
+      background: url(/assets/img/sg_sign_dark.svg) no-repeat;
+      background-size: contain;
+      height: 200px;
+      width: 200px;
+    }
+
+    .communication {
+      align-items: flex-start;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      margin-left: 50px;
+    }
+
+    h1 {
+      span {
+        animation-name: blink;
+        animation-duration: 1.4s;
+        animation-iteration-count: infinite;
+        animation-fill-mode: both;
+      }
+
+      span:nth-child(2) {
+        animation-delay: .2s;
+      }
+
+      span:nth-child(3) {
+        animation-delay: .4s;
+      }
+    }
+
+    .cluster-name {
+      font-style: italic;
+    }
+  }
+
+  @keyframes blink {
+
+    0% {
+      opacity: .2;
+    }
+
+    20% {
+      opacity: 1;
+    }
+
+    100% {
+      opacity: .2;
     }
   }
 

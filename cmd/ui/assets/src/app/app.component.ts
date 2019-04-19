@@ -12,7 +12,7 @@ export class AppComponent {
 
   title = 'app';
   public options = {
-    position: ['top', 'center'],
+    position: ['top', 'left'],
     timeOut: 5000,
     lastOnBottom: true,
   };

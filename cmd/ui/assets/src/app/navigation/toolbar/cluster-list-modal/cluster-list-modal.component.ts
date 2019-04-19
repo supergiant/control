@@ -33,6 +33,11 @@ export class ClusterListModalComponent implements OnInit, OnDestroy {
     this.dialogRef.close();
   }
 
+  importCluster() {
+    this.router.navigate(['/clusters/import']);
+    this.dialogRef.close();
+  }
+
   getClusters() {
     this.subscriptions.add(observableTimer(0, 5000).pipe(
     switchMap(() => this.supergiant.Kubes.get())).subscribe(
