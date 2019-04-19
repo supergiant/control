@@ -20,11 +20,11 @@ interface CloudAccount {
 })
 export class ImportClusterComponent implements OnInit {
 
-  private cloudAccounts$: Observable<any>;
-  private selectedCloudAccount: string;
-  private availableRegions: Array<CloudAccount>;
-  private importForm: FormGroup;
-  private unavailableClusterNames = new Set;
+  public cloudAccounts$: Observable<any>;
+  public selectedCloudAccount: string;
+  public availableRegions: Array<CloudAccount>;
+  public importForm: FormGroup;
+  public unavailableClusterNames = new Set;
   regionsFilter = '';
   regionsLoading = false;
   importing = false;
