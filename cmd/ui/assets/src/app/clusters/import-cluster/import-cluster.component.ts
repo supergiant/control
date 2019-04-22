@@ -6,6 +6,7 @@ import { map, catchError } from 'rxjs/operators';
 
 import { Notifications } from '../../shared/notifications/notifications.service';
 import { Supergiant } from '../../shared/supergiant/supergiant.service';
+import { CLUSTER_OPTIONS } from '../new-cluster/cluster-options.config'
 
 interface CloudAccount {
   name: string,
@@ -28,6 +29,7 @@ export class ImportClusterComponent implements OnInit {
   regionsFilter = '';
   regionsLoading = false;
   importing = false;
+  clusterOptions = CLUSTER_OPTIONS;
 
   constructor(
     private supergiant: Supergiant,
@@ -73,9 +75,9 @@ export class ImportClusterComponent implements OnInit {
       ]],
       cloudAccount: ["", Validators.required],
       region: ["", Validators.required],
-      arch: ["", Validators.required],
-      dockerVersion: ["", Validators.required],
-      K8SVersion: ["", Validators.required],
+      arch: ["amd64", Validators.required],
+      dockerVersion: ["18.06.3", Validators.required],
+      K8SVersion: ["1.14.0", Validators.required],
       rbacEnabled: ["true", Validators.required],
       kubeconfig: ["", Validators.required],
       publicKey: ["", Validators.required],

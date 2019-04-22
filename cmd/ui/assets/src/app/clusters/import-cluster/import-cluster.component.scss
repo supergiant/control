@@ -63,6 +63,10 @@
         display: flex;
         flex-direction: column;
         width: 100%;
+
+        .mat-form-field {
+          margin-bottom: 8px;
+        }
       }
 
       @keyframes loading {

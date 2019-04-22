@@ -66,34 +66,29 @@
           </mat-form-field>
 
           <mat-form-field>
-            <input matInput type="text" formControlName="arch" placeholder="Arch" required>
-          </mat-form-field>
-
-          <mat-form-field>
-            <input matInput type="text" formControlName="dockerVersion" placeholder="Docker Version" required>
-          </mat-form-field>
-
-          <mat-form-field>
-            <input matInput type="text" formControlName="K8SVersion" placeholder="K8S Version" required>
+            <mat-select placeholder="K8S Version" formControlName="K8SVersion" required>
+              <mat-option *ngFor="let k of clusterOptions.K8sVersions"
+                          [value]="k">{{ k }}</mat-option>
+            </mat-select>
           </mat-form-field>
 
           <mat-form-field>
             <mat-select placeholder="RBAC Enabled?" formControlName="rbacEnabled" required>
-              <mat-option [value]="true">true</mat-option>
-              <mat-option [value]="false">false</mat-option>
+              <mat-option value="true">true</mat-option>
+              <mat-option value="false">false</mat-option>
             </mat-select>
           </mat-form-field>
         </div>
 
         <div class="right-fields">
           <mat-form-field>
-            <textarea matInput rows="7" formControlName="kubeconfig" placeholder="Kubeconfig" required></textarea>
+            <textarea matInput rows="4" formControlName="kubeconfig" placeholder="Kubeconfig" required></textarea>
           </mat-form-field>
           <mat-form-field>
-            <textarea matInput rows="7" formControlName="publicKey" placeholder="Public SSH Key" required></textarea>
+            <textarea matInput rows="4" formControlName="publicKey" placeholder="Public SSH Key" required></textarea>
           </mat-form-field>
           <mat-form-field>
-            <textarea matInput rows="7" formControlName="privateKey" placeholder="Private SSH Key" required></textarea>
+            <textarea matInput rows="4" formControlName="privateKey" placeholder="Private SSH Key" required></textarea>
           </mat-form-field>
         </div>
       </form>
