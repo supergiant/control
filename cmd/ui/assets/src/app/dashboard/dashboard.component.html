@@ -64,6 +64,7 @@
   <div *ngIf="clusters?.length != 0 && cloudAccounts?.length != 0" class="home-actions">
     <button mat-raised-button [routerLink]="['/system/cloud-accounts/new']" type="button">LINK AN ACCOUNT</button>
     <button mat-raised-button [routerLink]="['/clusters/new']" type="button">SPIN UP A CLUSTER</button>
+    <button mat-raised-button [routerLink]="['/clusters/import']" type="button">IMPORT A CLUSTER</button>
     <button mat-raised-button [routerLink]="['/catalog/supergiant']" type="button">DEPLOY AN APP</button>
   </div>
 </div>

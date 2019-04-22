@@ -47,6 +47,10 @@ export class Kubes {
     return this.util.post(this.kubesPath + '/' + id + '/provision', data);
   }
 
+  public import(data): Observable<any> {
+    return this.util.post(this.kubesPath + '/import', data);
+  }
+
   public update(id, data): Observable<any> {
     return this.util.update(this.kubesPath + '/' + id, data);
   }

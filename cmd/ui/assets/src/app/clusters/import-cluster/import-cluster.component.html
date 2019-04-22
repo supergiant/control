@@ -1,0 +1,116 @@
+<div class="import-cluster-wrapper">
+  <ng-container *ngIf="(cloudAccounts$ | async)?.length == 0">
+    <div class="warning-wrapper">
+      <svg class="aws-svg" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" viewBox="0 0 471.369 297.158">
+        <defs>
+          <style>
+            .a{fill:rgba(255,0,166,0.25);stroke:#ff00a6;stroke-linecap:round;}.b{clip-path:url(#a);}.c{fill:#0080ff;}.d{fill:#bebebe;}.e{fill:#f90;}
+          </style>
+        </defs>
+
+        <g transform="translate(-154.366 -194.971)">
+          <g transform="translate(283.606 297.311)">
+            <path class="d" d="M34.66,23.052a10.681,10.681,0,0,0,.393,3.146,21.621,21.621,0,0,0,1.131,2.556,1.469,1.469,0,0,1,.246.836,1.443,1.443,0,0,1-.688,1.081L33.53,32.146a1.737,1.737,0,0,1-.934.295,1.922,1.922,0,0,1-1.081-.492,10.063,10.063,0,0,1-1.278-1.671c-.344-.59-.688-1.278-1.081-2.114A13.157,13.157,0,0,1,18.733,33.08a9.552,9.552,0,0,1-7.079-2.556A8.885,8.885,0,0,1,9,23.74a9.238,9.238,0,0,1,3.244-7.325c2.163-1.868,5.014-2.753,8.652-2.753a25.526,25.526,0,0,1,3.785.295c1.327.2,2.655.442,4.08.787V12.139c0-2.7-.59-4.572-1.671-5.653-1.131-1.131-3.048-1.671-5.8-1.671a17.668,17.668,0,0,0-3.834.442,20.514,20.514,0,0,0-3.834,1.229,7.9,7.9,0,0,1-1.229.442,3.63,3.63,0,0,1-.59.1c-.492,0-.737-.344-.737-1.081V4.224A2,2,0,0,1,11.31,3a2.82,2.82,0,0,1,.983-.737A18.983,18.983,0,0,1,16.767.685,22.327,22.327,0,0,1,22.322,0c4.228-.049,7.325.934,9.291,2.851s2.949,4.817,2.949,8.75V23.1h.1Zm-14.4,5.407a10.924,10.924,0,0,0,3.638-.639,8.585,8.585,0,0,0,3.392-2.261A5.992,5.992,0,0,0,28.516,23.3a13.488,13.488,0,0,0,.344-3.1V18.726a31.719,31.719,0,0,0-3.244-.59,25.415,25.415,0,0,0-3.343-.2c-2.36,0-4.129.442-5.309,1.426a4.946,4.946,0,0,0-1.721,4.08A5.07,5.07,0,0,0,16.57,27.23,5.04,5.04,0,0,0,20.257,28.459ZM48.72,32.293a1.872,1.872,0,0,1-1.327-.344,2.525,2.525,0,0,1-.737-1.376L38.3,3.143A6.478,6.478,0,0,1,38,1.717c0-.59.295-.885.836-.885h3.49a1.936,1.936,0,0,1,1.376.344,2.922,2.922,0,0,1,.688,1.376l5.948,23.5L55.9,2.553a2.531,2.531,0,0,1,.688-1.376A2.633,2.633,0,0,1,58.011.832h2.851a2.17,2.17,0,0,1,1.426.344,2.24,2.24,0,0,1,.688,1.376l5.6,23.792L74.724,2.553a2.548,2.548,0,0,1,.639-1.376A2.445,2.445,0,0,1,76.74.832h3.294a.782.782,0,0,1,.885.885c0,.2-.049.344-.049.59a6.479,6.479,0,0,1-.246.885L72.07,30.622A2.525,2.525,0,0,1,71.332,32a2.445,2.445,0,0,1-1.376.344H66.908A2.17,2.17,0,0,1,65.483,32a2.4,2.4,0,0,1-.688-1.426L59.289,7.665,53.832,30.524a2.945,2.945,0,0,1-.688,1.426,2.26,2.26,0,0,1-1.426.344Zm45.619.934a22.4,22.4,0,0,1-5.457-.639,16.68,16.68,0,0,1-4.08-1.426,2.384,2.384,0,0,1-1.081-.983,2.343,2.343,0,0,1-.2-.983V27.378c0-.737.295-1.081.836-1.081a2.877,2.877,0,0,1,.639.1,7.729,7.729,0,0,1,.885.344,19.884,19.884,0,0,0,3.883,1.229,20.585,20.585,0,0,0,4.228.442,9.437,9.437,0,0,0,5.162-1.18,3.813,3.813,0,0,0,1.868-3.392,3.531,3.531,0,0,0-.934-2.507A9.15,9.15,0,0,0,96.5,19.463L91.34,17.89a10.514,10.514,0,0,1-5.653-3.638,8.416,8.416,0,0,1-1.77-5.162,7.888,7.888,0,0,1,.934-3.933,9.01,9.01,0,0,1,2.556-2.9A11.335,11.335,0,0,1,91.094.39,14.9,14.9,0,0,1,95.567-.2a19.006,19.006,0,0,1,2.36.147c.836.1,1.573.246,2.31.393.688.2,1.376.344,2.015.59a7.248,7.248,0,0,1,1.475.639,4.168,4.168,0,0,1,1.081.885,2.1,2.1,0,0,1,.295,1.18V5.306c0,.737-.295,1.131-.836,1.131a3.4,3.4,0,0,1-1.327-.442,16.01,16.01,0,0,0-6.833-1.376,9,9,0,0,0-4.719.983,3.493,3.493,0,0,0-1.671,3.146A3.208,3.208,0,0,0,90.8,11.254a10.72,10.72,0,0,0,3.883,1.966L99.7,14.793a11.268,11.268,0,0,1,5.506,3.392,8.226,8.226,0,0,1,1.622,4.965,8.8,8.8,0,0,1-.934,4.129,9.411,9.411,0,0,1-2.605,3.146,10.955,10.955,0,0,1-3.933,1.966A14.136,14.136,0,0,1,94.338,33.227Z" transform="translate(-4.546 0)"/>
+            <g transform="translate(0.059 39.732)">
+              <path class="e" d="M96.478,93.863c-11.65,8.6-28.61,13.174-43.21,13.174A78.24,78.24,0,0,1,.522,86.932c-1.081-.983-.1-2.36,1.229-1.573a106.1,106.1,0,0,0,52.8,14.01,105.844,105.844,0,0,0,40.26-8.209C96.724,90.275,98.4,92.438,96.478,93.863Z" transform="translate(-0.059 -83.113)"/>
+              <path class="e" d="M190.964,86.276c-1.475-1.917-9.881-.934-13.666-.442-1.131.147-1.327-.836-.295-1.573,6.685-4.67,17.648-3.343,18.926-1.77s-.344,12.584-6.587,17.8c-.934.836-1.868.393-1.475-.688C189.292,96.058,192.438,88.144,190.964,86.276Z" transform="translate(-89.678 -81.031)"/>
+            </g>
+          </g >
+        </g>
+      </svg>
+
+      <div class="no-cloud-accounts">
+        <h2>It looks like you don't have any AWS accounts linked to Control</h2>
+        <p>Control only supports imports of AWS clusters currently. Click below to link an account and get started importing your cluster.</p>
+        <div>
+          <button mat-raised-button
+                  color="primary"
+                  [routerLink]="['/system/cloud-accounts/new']">LINK ACCOUNT
+          </button>
+        </div>
+      </div>
+    </div>
+  </ng-container>
+
+  <ng-container *ngIf="(cloudAccounts$ | async)?.length > 0">
+    <h1>Import Kubernetes Cluster</h1>
+
+    <div class="form-wrapper">
+      <form class="import-form" [formGroup]="importForm">
+        <div class="left-fields">
+          <mat-form-field>
+            <input matInput type="text" formControlName="clusterName" placeholder="Cluster name" autofocus="true" required>
+          </mat-form-field>
+
+          <mat-form-field>
+            <mat-select placeholder="Choose a cloud account" (selectionChange)="selectCloudAccountAndGetRegions($event.value)" formControlName="cloudAccount" required>
+              <mat-option *ngFor="let account of (cloudAccounts$ | async)" [value]="account">{{ account.name }}</mat-option>
+            </mat-select>
+          </mat-form-field>
+
+          <mat-form-field [ngClass]="{ 'regionsLoading': regionsLoading }">
+            <mat-select placeholder="Select a Region"
+                        formControlName="region"
+                        (openedChange)="regionsFilter = ''"
+                        required>
+              <input class="select-filter"
+                     matInput
+                     type="text"
+                     placeholder="Filter regions..."
+                     [(ngModel)]="regionsFilter"
+                     [ngModelOptions]="{ standalone: true }"
+                     autofocus>
+              <mat-option *ngFor="let r of availableRegions?.regions | callback: regionsFilterCallback"
+                          [value]="r">{{ r.name }}</mat-option>
+            </mat-select>
+          </mat-form-field>
+
+          <mat-form-field>
+            <mat-select placeholder="K8S Version" formControlName="K8SVersion" required>
+              <mat-option *ngFor="let k of clusterOptions.K8sVersions"
+                          [value]="k">{{ k }}</mat-option>
+            </mat-select>
+          </mat-form-field>
+
+          <mat-form-field>
+            <mat-select placeholder="RBAC Enabled?" formControlName="rbacEnabled" required>
+              <mat-option value="true">true</mat-option>
+              <mat-option value="false">false</mat-option>
+            </mat-select>
+          </mat-form-field>
+        </div>
+
+        <div class="right-fields">
+          <mat-form-field>
+            <textarea matInput rows="4" formControlName="kubeconfig" placeholder="Kubeconfig" required></textarea>
+          </mat-form-field>
+          <mat-form-field>
+            <textarea matInput rows="4" formControlName="publicKey" placeholder="Public SSH Key" required></textarea>
+          </mat-form-field>
+          <mat-form-field>
+            <textarea matInput rows="4" formControlName="privateKey" placeholder="Private SSH Key" required></textarea>
+          </mat-form-field>
+        </div>
+      </form>
+
+      <div *ngIf="clusterName.invalid">
+        <p *ngIf="clusterName.errors.nonUniqueName"
+           class="warning">Cluster name must be unique</p>
+        <p *ngIf="clusterName.errors.maxlength"
+           class="warning">Cluster name must be less than 12 characters</p>
+        <p *ngIf="clusterName.errors.pattern"
+           class="warning">Cluster name must start with a-z or A-Z, and can only contain a-z, A-Z, 0-9, and -
+                           characters</p>
+      </div>
+
+      <button mat-raised-button type="button" color="primary" (click)="importCluster(importForm)">
+        <ng-container *ngIf="!importing">
+          Import
+        </ng-container>
+        <ng-container *ngIf="importing">
+          <mat-spinner [diameter]="24"></mat-spinner>
+        </ng-container>
+      </button>
+    </div>
+  </ng-container>
+</div>

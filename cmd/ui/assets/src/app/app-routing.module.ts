@@ -15,6 +15,7 @@ import { ListCloudAccountsComponent } from './system/cloud-accounts/list-cloud-a
 import { EditCloudAccountComponent } from './system/cloud-accounts/edit-cloud-account/edit-cloud-account.component';
 import { NewClusterComponent } from './clusters/new-cluster/new-cluster.component';
 import { ClusterComponent } from './clusters/cluster/cluster.component';
+import { ImportClusterComponent } from './clusters/import-cluster/import-cluster.component';
 
 // auth guard
 import {
@@ -36,6 +37,7 @@ const appRoutes: Routes = [
   {
     path: 'clusters', component: ClustersComponent, canActivate: [AuthGuard], children: [
       { path: 'new', component: NewClusterComponent },
+      { path: 'import', component: ImportClusterComponent },
       { path: ':id', component: ClusterComponent },
       { path: ':id/add-node', component: AddNodeComponent },
     ]

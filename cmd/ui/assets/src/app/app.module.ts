@@ -128,6 +128,7 @@ import { SshCommandsModalComponent }   from './clusters/cluster/ssh-commands-mod
 import { KubectlConfigModalComponent } from './clusters/cluster/kubectl-config-modal/kubectl-config-modal.component';
 import { ReleaseInfoModalComponent }   from './clusters/cluster/release-info-modal/release-info-modal.component';
 import { CallbackPipe }                from './callback.pipe';
+import { ImportClusterComponent } from './clusters/import-cluster/import-cluster.component';
 
 @NgModule({
   declarations: [
@@ -168,6 +169,7 @@ import { CallbackPipe }                from './callback.pipe';
     KubectlConfigModalComponent,
     ReleaseInfoModalComponent,
     CallbackPipe,
+    ImportClusterComponent,
   ],
   imports: [
     BrowserModule,
