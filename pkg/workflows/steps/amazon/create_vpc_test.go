@@ -22,6 +22,7 @@ type fakeEC2VPC struct {
 	ec2iface.EC2API
 	createVPCOutput   *ec2.CreateVpcOutput
 	describeVPCOutput *ec2.DescribeVpcsOutput
+	modifyVPCOut      *ec2.ModifyVpcAttributeOutput
 	err               error
 }
 
@@ -31,6 +32,10 @@ func (f *fakeEC2VPC) CreateVpcWithContext(aws.Context, *ec2.CreateVpcInput, ...r
 
 func (f *fakeEC2VPC) DescribeVpcsWithContext(aws.Context, *ec2.DescribeVpcsInput, ...request.Option) (*ec2.DescribeVpcsOutput, error) {
 	return f.describeVPCOutput, f.err
+}
+
+func (f *fakeEC2VPC) ModifyVpcAttributeWithContext(aws.Context, *ec2.ModifyVpcAttributeInput, ...request.Option) (*ec2.ModifyVpcAttributeOutput, error) {
+	return f.modifyVPCOut, f.err
 }
 
 func (f *fakeEC2VPC) WaitUntilVpcExistsWithContext(aws.Context,
