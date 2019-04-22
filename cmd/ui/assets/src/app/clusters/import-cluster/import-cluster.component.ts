@@ -105,7 +105,6 @@ export class ImportClusterComponent implements OnInit {
           rbacEnabled: form.value.rbacEnabled,
         }
       };
-      console.log(importClusterData);
       this.importing = true;
       this.supergiant.Kubes.import(importClusterData).subscribe(
         res => {
