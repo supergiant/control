@@ -78,7 +78,7 @@ export class ImportClusterComponent implements OnInit {
       arch: ["amd64", Validators.required],
       dockerVersion: ["18.06.3", Validators.required],
       K8SVersion: ["1.14.0", Validators.required],
-      rbacEnabled: ["true", Validators.required],
+      rbacEnabled: [true, Validators.required],
       kubeconfig: ["", Validators.required],
       publicKey: ["", Validators.required],
       privateKey: ["", Validators.required],
@@ -105,7 +105,6 @@ export class ImportClusterComponent implements OnInit {
           rbacEnabled: form.value.rbacEnabled,
         }
       };
-
       this.importing = true;
       this.supergiant.Kubes.import(importClusterData).subscribe(
         res => {
