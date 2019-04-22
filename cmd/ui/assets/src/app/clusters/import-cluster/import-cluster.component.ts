@@ -106,18 +106,18 @@ export class ImportClusterComponent implements OnInit {
         }
       };
       console.log(importClusterData);
-      // this.importing = true;
-      // this.supergiant.Kubes.import(importClusterData).subscribe(
-      //   res => {
-      //     this.success(importClusterData.clusterName);
-      //     this.router.navigate(['/clusters/', res.clusterId]);
-      //   },
-      //   err => {
-      //     this.importing = false;
-      //     this.error(err);
-      //     console.error(err);
-      //   }
-      // )
+      this.importing = true;
+      this.supergiant.Kubes.import(importClusterData).subscribe(
+        res => {
+          this.success(importClusterData.clusterName);
+          this.router.navigate(['/clusters/', res.clusterId]);
+        },
+        err => {
+          this.importing = false;
+          this.error(err);
+          console.error(err);
+        }
+      )
     }
   }
 
