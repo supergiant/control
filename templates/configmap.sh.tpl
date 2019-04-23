@@ -7,3 +7,6 @@ metadata:
 data:
   {{ .Data }}
 EOF"
+
+
+kubectl create -f capacity_configmap.yaml

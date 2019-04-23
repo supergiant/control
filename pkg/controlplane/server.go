@@ -3,6 +3,7 @@ package controlplane
 import (
 	"context"
 	"fmt"
+	"github.com/supergiant/control/pkg/workflows/steps/configmap"
 	"net/http"
 	_ "net/http/pprof"
 	"net/url"
@@ -206,6 +207,7 @@ func configureApplication(cfg *Config) (*mux.Router, error) {
 	drain.Init()
 	kubeadm.Init()
 	bootstraptoken.Init()
+	configmap.Init()
 
 	amazon.InitFindAMI(amazon.GetEC2)
 	amazon.InitImportKeyPair(amazon.GetEC2)

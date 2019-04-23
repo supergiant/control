@@ -5,7 +5,7 @@ import (
 	"github.com/supergiant/control/pkg/runner"
 )
 
-type DryRunner struct{
+type DryRunner struct {
 	output *bytes.Buffer
 }
 
@@ -20,4 +20,8 @@ func (r *DryRunner) Run(cmd *runner.Command) (err error) {
 		return err
 	}
 	return nil
+}
+
+func (r *DryRunner) GetOutput() string {
+	return r.output.String()
 }
