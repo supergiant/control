@@ -1,6 +1,7 @@
 package workflows
 
 import (
+	"github.com/supergiant/control/pkg/workflows/steps/configmap"
 	"sync"
 
 	"github.com/supergiant/control/pkg/workflows/statuses"
@@ -101,6 +102,7 @@ func Init() {
 		steps.GetStep(storageclass.StepName),
 		steps.GetStep(tiller.StepName),
 		steps.GetStep(prometheus.StepName),
+		steps.GetStep(configmap.StepName),
 	}
 
 	importClusterWorkflow := []steps.Step{

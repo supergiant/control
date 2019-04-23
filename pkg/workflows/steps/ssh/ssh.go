@@ -2,6 +2,7 @@ package ssh
 
 import (
 	"context"
+	"github.com/supergiant/control/pkg/runner/dry"
 	"io"
 
 	"github.com/pkg/errors"
@@ -23,6 +24,12 @@ func Init() {
 func (s *Step) Run(ctx context.Context, writer io.Writer, config *steps.Config) error {
 	var err error
 
+	if config.DryRun && config.Runner == nil {
+		dryRunner := dry.NewDryRunner()
+		config.Runner = dryRunner
+		return nil
+	}
+	
 	if config.Provider == clouds.AWS {
 		//on aws default user name on ubuntu images are not root but ubuntu
 		//https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/AccessingInstancesLinux.html

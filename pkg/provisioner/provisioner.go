@@ -1,6 +1,7 @@
 package provisioner
 
 import (
+	"bytes"
 	"context"
 	"fmt"
 	"io"
@@ -13,8 +14,10 @@ import (
 	"github.com/supergiant/control/pkg/model"
 	"github.com/supergiant/control/pkg/pki"
 	"github.com/supergiant/control/pkg/profile"
+	"github.com/supergiant/control/pkg/runner/dry"
 	"github.com/supergiant/control/pkg/sgerrors"
 	"github.com/supergiant/control/pkg/storage"
+	"github.com/supergiant/control/pkg/storage/memory"
 	"github.com/supergiant/control/pkg/util"
 	"github.com/supergiant/control/pkg/workflows"
 	"github.com/supergiant/control/pkg/workflows/steps"
@@ -49,6 +52,15 @@ func NewProvisioner(repository storage.Interface, kubeService KubeService,
 		rateLimiter: NewRateLimiter(spawnInterval),
 		cancelMap:   make(map[string]func()),
 	}
+}
+
+type bufferCloser struct {
+	bytes.Buffer
+	err error
+}
+
+func (b *bufferCloser) Close() error {
+	return b.err
 }
 
 // ProvisionCluster runs provisionCluster process among nodes
@@ -525,6 +537,34 @@ func (tp *TaskProvisioner) waitCluster(ctx context.Context, clusterTask *workflo
 		logrus.Errorf("Error getting writer for %s", fileName)
 		return
 	}
+
+	// Prepare config for confimap step
+	dryRunner := dry.NewDryRunner()
+	repository := memory.NewInMemoryRepository()
+
+	dryConfig := *config
+	// These values must still be templated
+	dryConfig.Node.PublicIp = "{{ .PublicIp }}"
+	dryConfig.Node.PrivateIp = "{{ .PrivateIp }}"
+	dryConfig.Runner = dryRunner
+	dryConfig.DryRun = true
+
+	task, err := workflows.NewTask(&dryConfig, workflows.ProvisionNode, repository)
+
+	if err != nil {
+		return
+	}
+
+	task.Config = &dryConfig
+
+	resultChan := task.Run(ctx, dryConfig, &bufferCloser{})
+
+	if err := <-resultChan; err != nil {
+		return
+	}
+
+	config.ConfigMap.Data = dryRunner.GetOutput()
+	config.ConfigMap.Namespace = "default"
 
 	go func(t *workflows.Task) {
 		defer clusterWg.Done()

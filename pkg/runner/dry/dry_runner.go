@@ -2,6 +2,7 @@ package dry
 
 import (
 	"bytes"
+	"github.com/sirupsen/logrus"
 	"github.com/supergiant/control/pkg/runner"
 )
 
@@ -16,9 +17,11 @@ func NewDryRunner() *DryRunner {
 }
 
 func (r *DryRunner) Run(cmd *runner.Command) (err error) {
+	logrus.Info(cmd.Script)
 	if n, err := r.output.WriteString(cmd.Script); n < len(cmd.Script) || err != nil {
 		return err
 	}
+	logrus.Info(r.output.String())
 	return nil
 }
 
