@@ -3,49 +3,41 @@ package configmap
 import (
 	"context"
 	"fmt"
-	"github.com/sirupsen/logrus"
-	"github.com/supergiant/control/pkg/model"
 	"io"
-	"k8s.io/api/core/v1"
 	"text/template"
 	"time"
 
 	"github.com/pkg/errors"
 
+	"github.com/sirupsen/logrus"
+
+	"k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	clientcorev1 "k8s.io/client-go/kubernetes/typed/core/v1"
 
 	"github.com/supergiant/control/pkg/kubeconfig"
-	tm "github.com/supergiant/control/pkg/templatemanager"
+	"github.com/supergiant/control/pkg/model"
 	"github.com/supergiant/control/pkg/workflows/steps"
 )
 
 const StepName = "configmap"
 
 type Step struct {
-	timeout time.Duration
+	timeout      time.Duration
 	attemptCount int
-	script *template.Template
 }
 
-func New(script *template.Template) *Step {
+func New() *Step {
 	t := &Step{
-		timeout: time.Minute * 1,
+		timeout:      time.Minute * 1,
 		attemptCount: 5,
-		script: script,
 	}
 
 	return t
 }
 
 func Init() {
-	tpl, err := tm.GetTemplate(StepName)
-
-	if err != nil {
-		panic(fmt.Sprintf("template %s not found", StepName))
-	}
-
-	steps.RegisterStep(StepName, New(tpl))
+	steps.RegisterStep(StepName, New())
 }
 
 func (s *Step) Rollback(context.Context, io.Writer, *steps.Config) error {

@@ -2,12 +2,12 @@ package ssh
 
 import (
 	"context"
-	"github.com/supergiant/control/pkg/runner/dry"
 	"io"
 
 	"github.com/pkg/errors"
 
 	"github.com/supergiant/control/pkg/clouds"
+	"github.com/supergiant/control/pkg/runner/dry"
 	"github.com/supergiant/control/pkg/runner/ssh"
 	"github.com/supergiant/control/pkg/workflows/steps"
 	"github.com/supergiant/control/pkg/workflows/steps/azure"
@@ -30,7 +30,7 @@ func (s *Step) Run(ctx context.Context, writer io.Writer, config *steps.Config) 
 		}
 		return nil
 	}
-	
+
 	if config.Provider == clouds.AWS {
 		//on aws default user name on ubuntu images are not root but ubuntu
 		//https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/AccessingInstancesLinux.html

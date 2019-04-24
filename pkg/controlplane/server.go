@@ -3,7 +3,6 @@ package controlplane
 import (
 	"context"
 	"fmt"
-	"github.com/supergiant/control/pkg/workflows/steps/configmap"
 	"net/http"
 	_ "net/http/pprof"
 	"net/url"
@@ -38,6 +37,7 @@ import (
 	"github.com/supergiant/control/pkg/workflows/steps/certificates"
 	"github.com/supergiant/control/pkg/workflows/steps/clustercheck"
 	"github.com/supergiant/control/pkg/workflows/steps/cni"
+	"github.com/supergiant/control/pkg/workflows/steps/configmap"
 	"github.com/supergiant/control/pkg/workflows/steps/digitalocean"
 	"github.com/supergiant/control/pkg/workflows/steps/docker"
 	"github.com/supergiant/control/pkg/workflows/steps/downloadk8sbinary"

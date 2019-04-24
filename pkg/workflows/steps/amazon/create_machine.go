@@ -214,10 +214,12 @@ func (s *StepCreateInstance) Run(ctx context.Context, w io.Writer, cfg *steps.Co
 
 	out, err := ec2Svc.DescribeInstancesWithContext(ctx, lookup)
 
-	cfg.Node.State = model.MachineStateError
-	cfg.NodeChan() <- cfg.Node
-	log.Errorf("[%s] - failed to obtain public IP for node %s: %v", s.Name(), nodeName, err)
-	return errors.Wrap(ErrNoPublicIP, err.Error())
+	if err != nil {
+		cfg.Node.State = model.MachineStateError
+		cfg.NodeChan() <- cfg.Node
+		log.Errorf("[%s] - failed to obtain public IP for node %s: %v", s.Name(), nodeName, err)
+		return errors.Wrap(ErrNoPublicIP, err.Error())
+	}
 
 	if i := findInstanceWithPublicAddr(out.Reservations); i != nil {
 		cfg.Node.PublicIp = *i.PublicIpAddress

@@ -3,7 +3,6 @@ package authorizedKeys
 import (
 	"context"
 	"fmt"
-	"github.com/sirupsen/logrus"
 	"io"
 	"text/template"
 
@@ -38,9 +37,6 @@ func NewAddAuthorizedKeys(script *template.Template) *Step {
 func (s *Step) Run(ctx context.Context, w io.Writer, cfg *steps.Config) error {
 	log := util.GetLogger(w)
 
-	if cfg.DryRun {
-		logrus.Infof("hello %v", cfg.Runner)
-	}
 	log.Infof("[%s] - adding user's public key to the node", s.Name())
 	if cfg == nil || cfg.Kube.SSHConfig.PublicKey != "" {
 		err := steps.RunTemplate(ctx, s.script, cfg.Runner, w, cfg.Kube.SSHConfig)

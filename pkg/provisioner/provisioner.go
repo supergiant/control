@@ -4,6 +4,8 @@ import (
 	"bytes"
 	"context"
 	"fmt"
+	"github.com/supergiant/control/pkg/runner/dry"
+	"github.com/supergiant/control/pkg/storage/memory"
 	"io"
 	"sync"
 	"time"
@@ -14,10 +16,8 @@ import (
 	"github.com/supergiant/control/pkg/model"
 	"github.com/supergiant/control/pkg/pki"
 	"github.com/supergiant/control/pkg/profile"
-	"github.com/supergiant/control/pkg/runner/dry"
 	"github.com/supergiant/control/pkg/sgerrors"
 	"github.com/supergiant/control/pkg/storage"
-	"github.com/supergiant/control/pkg/storage/memory"
 	"github.com/supergiant/control/pkg/util"
 	"github.com/supergiant/control/pkg/workflows"
 	"github.com/supergiant/control/pkg/workflows/steps"
@@ -538,32 +538,8 @@ func (tp *TaskProvisioner) waitCluster(ctx context.Context, clusterTask *workflo
 		return
 	}
 
-	// Prepare config for confimap step
-	dryRunner := dry.NewDryRunner()
-	repository := memory.NewInMemoryRepository()
-
-	dryConfig := *config
-	// These values must still be templated
-	dryConfig.Node.PublicIp = "{{ .PublicIp }}"
-	dryConfig.Node.PrivateIp = "{{ .PrivateIp }}"
-	dryConfig.Runner = dryRunner
-	dryConfig.DryRun = true
-
-	task, err := workflows.NewTask(&dryConfig, workflows.ProvisionNode, repository)
-
-	if err != nil {
-		return
-	}
-
-	task.Config = &dryConfig
-	resultChan := task.Run(ctx, dryConfig, &bufferCloser{})
-
-	if err := <-resultChan; err != nil {
-		return
-	}
-
-	config.ConfigMap.Data = dryRunner.GetOutput()
-	config.ConfigMap.Namespace = "default"
+	// Build node provision script and save it to ConfigMap
+	buildNodeProvisionScript(ctx, config)
 
 	go func(t *workflows.Task) {
 		defer clusterWg.Done()
@@ -594,6 +570,35 @@ func (tp *TaskProvisioner) waitCluster(ctx context.Context, clusterTask *workflo
 
 	// Wait for all task to be finished
 	clusterWg.Wait()
+}
+
+func buildNodeProvisionScript(ctx context.Context, config *steps.Config) {
+	// Prepare config for confimap step
+	dryRunner := dry.NewDryRunner()
+	repository := memory.NewInMemoryRepository()
+
+	dryConfig := *config
+	// These values must still be templated
+	dryConfig.Node.PublicIp = "{{ .PublicIp }}"
+	dryConfig.Node.PrivateIp = "{{ .PrivateIp }}"
+	dryConfig.Runner = dryRunner
+	dryConfig.DryRun = true
+
+	task, err := workflows.NewTask(&dryConfig, workflows.ProvisionNode, repository)
+
+	if err != nil {
+		return
+	}
+
+	task.Config = &dryConfig
+	resultChan := task.Run(ctx, dryConfig, &bufferCloser{})
+
+	if err := <-resultChan; err != nil {
+		return
+	}
+
+	config.ConfigMap.Data = dryRunner.GetOutput()
+	config.ConfigMap.Namespace = "default"
 }
 
 func (tp *TaskProvisioner) buildInitialCluster(ctx context.Context,
