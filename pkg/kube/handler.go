@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"github.com/pborman/uuid"
+	"github.com/supergiant/control/pkg/kubeconfig"
 	"io"
 	"net/http"
 	"strconv"
@@ -116,7 +117,7 @@ func NewHandler(
 		repo:            repo,
 		getWriter:       util.GetWriter,
 		getMetrics: func(metricURI string, k *model.Kube) (*MetricResponse, error) {
-			cfg, err := NewConfigFor(k)
+			cfg, err := kubeconfig.NewConfigFor(k)
 			if err != nil {
 				return nil, errors.Wrap(err, "build kubernetes rest config")
 			}
@@ -139,7 +140,7 @@ func NewHandler(
 			return metricResponse, nil
 		},
 		listK8sServices: func(k *model.Kube, selector string) (*corev1.ServiceList, error) {
-			cfg, err := NewConfigFor(k)
+			cfg, err := kubeconfig.NewConfigFor(k)
 			if err != nil {
 				return nil, errors.Wrap(err, "build kubernetes rest config")
 			}
@@ -1060,7 +1061,7 @@ func (h *Handler) getServices(w http.ResponseWriter, r *http.Request) {
 	var serviceInfos = make([]*ServiceInfo, 0)
 	var targetServices = make([]proxy.Target, 0)
 
-	cfg, err := NewConfigFor(k)
+	cfg, err := kubeconfig.NewConfigFor(k)
 	if err != nil {
 		message.SendUnknownError(w, err)
 		return

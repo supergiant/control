@@ -24,9 +24,10 @@ func Init() {
 func (s *Step) Run(ctx context.Context, writer io.Writer, config *steps.Config) error {
 	var err error
 
-	if config.DryRun && config.Runner == nil {
-		dryRunner := dry.NewDryRunner()
-		config.Runner = dryRunner
+	if config.DryRun {
+		if config.Runner == nil {
+			config.Runner = dry.NewDryRunner()
+		}
 		return nil
 	}
 	

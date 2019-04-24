@@ -549,6 +549,17 @@ func (tp *TaskProvisioner) waitCluster(ctx context.Context, clusterTask *workflo
 	dryConfig.Runner = dryRunner
 	dryConfig.DryRun = true
 
+	masters := make(map[string]*model.Machine)
+	for key := range config.GetMasters() {
+		master := *config.GetMasters()[key]
+		masters[master.Name] = &master
+	}
+
+	dryConfig.Masters = steps.NewMap(masters)
+
+	logrus.Println(config.GetMaster())
+	logrus.Println(&dryConfig.Node)
+
 	task, err := workflows.NewTask(&dryConfig, workflows.ProvisionNode, repository)
 
 	if err != nil {
@@ -556,7 +567,6 @@ func (tp *TaskProvisioner) waitCluster(ctx context.Context, clusterTask *workflo
 	}
 
 	task.Config = &dryConfig
-
 	resultChan := task.Run(ctx, dryConfig, &bufferCloser{})
 
 	if err := <-resultChan; err != nil {
@@ -571,6 +581,7 @@ func (tp *TaskProvisioner) waitCluster(ctx context.Context, clusterTask *workflo
 		cfg := *config
 
 		if master := config.GetMaster(); master != nil {
+			logrus.Printf("Change one master %v to another %v", *master, cfg.Node)
 			cfg.Node = *master
 		} else {
 			config.KubeStateChan() <- model.StateFailed
@@ -580,6 +591,8 @@ func (tp *TaskProvisioner) waitCluster(ctx context.Context, clusterTask *workflo
 
 		result := t.Run(ctx, cfg, out)
 		err = <-result
+
+		logrus.Printf("Node after posts start %v\n", cfg.Node)
 
 		if err != nil {
 			config.KubeStateChan() <- model.StateFailed
@@ -774,3 +787,4 @@ func (tp *TaskProvisioner) deserializeClusterTasks(ctx context.Context, kubeConf
 
 	return taskMap, nil
 }
+

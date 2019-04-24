@@ -1,12 +1,6 @@
-sudo bash -c "cat > capacity_configmap.yaml <<EOF
-apiVersion: v1
-kind: ConfigMap
-metadata:
-  name: capacity-configmap
-  namespace: {{ .Namespace }}
-data:
-  {{ .Data }}
+sudo set -n
+sudo bash -c "cat > script <<EOF
+{{ .Data }}
 EOF"
 
-
-kubectl create -f capacity_configmap.yaml
+sudo kubectl create capacity --from-file=script -n {{ .Namespace }}

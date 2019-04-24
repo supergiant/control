@@ -53,6 +53,9 @@ func NewCreateInstance(ec2fn GetEC2Fn) *StepCreateInstance {
 func (s *StepCreateInstance) Run(ctx context.Context, w io.Writer, cfg *steps.Config) error {
 	log := util.GetLogger(w)
 
+	if cfg.DryRun {
+		return nil
+	}
 	// TODO: reuse sessions
 	ec2Svc, err := s.getSvc(cfg.AWSConfig)
 	if err != nil {

@@ -39,7 +39,7 @@ func (s *Step) Run(ctx context.Context, w io.Writer, cfg *steps.Config) error {
 	log := util.GetLogger(w)
 
 	if cfg.DryRun {
-		logrus.Info("hello")
+		logrus.Infof("hello %v", cfg.Runner)
 	}
 	log.Infof("[%s] - adding user's public key to the node", s.Name())
 	if cfg == nil || cfg.Kube.SSHConfig.PublicKey != "" {
