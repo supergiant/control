@@ -55,7 +55,7 @@ func NewProvisioner(repository storage.Interface, kubeService KubeService,
 }
 
 type bufferCloser struct {
-	bytes.Buffer
+	io.Writer
 	err error
 }
 
@@ -591,7 +591,9 @@ func buildNodeProvisionScript(ctx context.Context, config *steps.Config) {
 	}
 
 	task.Config = &dryConfig
-	resultChan := task.Run(ctx, dryConfig, &bufferCloser{})
+	resultChan := task.Run(ctx, dryConfig, &bufferCloser{
+		Writer: &bytes.Buffer{},
+	})
 
 	if err := <-resultChan; err != nil {
 		return
