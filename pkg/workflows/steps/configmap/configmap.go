@@ -2,9 +2,7 @@ package configmap
 
 import (
 	"context"
-	"fmt"
 	"io"
-	"text/template"
 	"time"
 
 	"github.com/pkg/errors"
