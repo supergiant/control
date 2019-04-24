@@ -549,17 +549,6 @@ func (tp *TaskProvisioner) waitCluster(ctx context.Context, clusterTask *workflo
 	dryConfig.Runner = dryRunner
 	dryConfig.DryRun = true
 
-	masters := make(map[string]*model.Machine)
-	for key := range config.GetMasters() {
-		master := *config.GetMasters()[key]
-		masters[master.Name] = &master
-	}
-
-	dryConfig.Masters = steps.NewMap(masters)
-
-	logrus.Println(config.GetMaster())
-	logrus.Println(&dryConfig.Node)
-
 	task, err := workflows.NewTask(&dryConfig, workflows.ProvisionNode, repository)
 
 	if err != nil {

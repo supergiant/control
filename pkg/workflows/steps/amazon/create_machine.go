@@ -53,9 +53,6 @@ func NewCreateInstance(ec2fn GetEC2Fn) *StepCreateInstance {
 func (s *StepCreateInstance) Run(ctx context.Context, w io.Writer, cfg *steps.Config) error {
 	log := util.GetLogger(w)
 
-	if cfg.DryRun {
-		return nil
-	}
 	// TODO: reuse sessions
 	ec2Svc, err := s.getSvc(cfg.AWSConfig)
 	if err != nil {
@@ -80,10 +77,8 @@ func (s *StepCreateInstance) Run(ctx context.Context, w io.Writer, cfg *steps.Co
 		State:    model.MachineStatePlanned,
 	}
 
-	if !cfg.DryRun {
-		// Update node state in cluster
-		cfg.NodeChan() <- cfg.Node
-	}
+	// Update node state in cluster
+	cfg.NodeChan() <- cfg.Node
 
 	var secGroupID *string
 	var instanceProfileName *string
@@ -101,7 +96,6 @@ func (s *StepCreateInstance) Run(ctx context.Context, w io.Writer, cfg *steps.Co
 	volumeSize, err := strconv.Atoi(cfg.AWSConfig.VolumeSize)
 
 	runInstanceInput := &ec2.RunInstancesInput{
-		DryRun: &cfg.DryRun,
 		BlockDeviceMappings: []*ec2.BlockDeviceMapping{
 			{
 				DeviceName: aws.String(cfg.AWSConfig.DeviceName),
@@ -180,25 +174,21 @@ func (s *StepCreateInstance) Run(ctx context.Context, w io.Writer, cfg *steps.Co
 		State:    model.MachineStateBuilding,
 	}
 
-	if !cfg.DryRun {
-		// Update node state in cluster
+	// Update node state in cluster
+	cfg.NodeChan() <- cfg.Node
+
+
+	if len(res.Instances) == 0 {
+		cfg.Node.State = model.MachineStateError
 		cfg.NodeChan() <- cfg.Node
 
-
-		if len(res.Instances) == 0 {
-			cfg.Node.State = model.MachineStateError
-			cfg.NodeChan() <- cfg.Node
-
-			return errors.Wrap(ErrCreateInstance, "no instances created")
-		}
+		return errors.Wrap(ErrCreateInstance, "no instances created")
 	}
 
 	instance := res.Instances[0]
-
 	log.Infof("[%s] - waiting to obtain public IP...", s.Name())
 
 	lookup := &ec2.DescribeInstancesInput{
-		DryRun: &cfg.DryRun,
 		Filters: []*ec2.Filter{
 			{
 				Name:   aws.String("tag:Name"),
@@ -223,24 +213,21 @@ func (s *StepCreateInstance) Run(ctx context.Context, w io.Writer, cfg *steps.Co
 	logrus.Debugf("Instance running %s", nodeName)
 
 	out, err := ec2Svc.DescribeInstancesWithContext(ctx, lookup)
-	if !cfg.DryRun && err != nil {
+
+	cfg.Node.State = model.MachineStateError
+	cfg.NodeChan() <- cfg.Node
+	log.Errorf("[%s] - failed to obtain public IP for node %s: %v", s.Name(), nodeName, err)
+	return errors.Wrap(ErrNoPublicIP, err.Error())
+
+	if i := findInstanceWithPublicAddr(out.Reservations); i != nil {
+		cfg.Node.PublicIp = *i.PublicIpAddress
+		cfg.Node.PrivateIp = *i.PrivateIpAddress
+		log.Infof("[%s] - found public ip - %s for node %s", s.Name(), cfg.Node.PublicIp, nodeName)
+	} else {
+		log.Errorf("[%s] - failed to find public IP address", s.Name())
 		cfg.Node.State = model.MachineStateError
 		cfg.NodeChan() <- cfg.Node
-		log.Errorf("[%s] - failed to obtain public IP for node %s: %v", s.Name(), nodeName, err)
-		return errors.Wrap(ErrNoPublicIP, err.Error())
-	}
-
-	if !cfg.DryRun {
-		if i := findInstanceWithPublicAddr(out.Reservations); i != nil {
-			cfg.Node.PublicIp = *i.PublicIpAddress
-			cfg.Node.PrivateIp = *i.PrivateIpAddress
-			log.Infof("[%s] - found public ip - %s for node %s", s.Name(), cfg.Node.PublicIp, nodeName)
-		} else {
-			log.Errorf("[%s] - failed to find public IP address", s.Name())
-			cfg.Node.State = model.MachineStateError
-			cfg.NodeChan() <- cfg.Node
-			return ErrNoPublicIP
-		}
+		return ErrNoPublicIP
 	}
 
 	cfg.Node.Region = cfg.AWSConfig.Region
@@ -248,14 +235,12 @@ func (s *StepCreateInstance) Run(ctx context.Context, w io.Writer, cfg *steps.Co
 	cfg.Node.ID = *instance.InstanceId
 	cfg.Node.State = model.MachineStateProvisioning
 
-	if !cfg.DryRun {
-		logrus.Infof("Machine created %v", cfg.Node)
-		cfg.NodeChan() <- cfg.Node
-		if cfg.IsMaster {
-			cfg.AddMaster(&cfg.Node)
-		} else {
-			cfg.AddNode(&cfg.Node)
-		}
+	logrus.Infof("Machine created %v", cfg.Node)
+	cfg.NodeChan() <- cfg.Node
+	if cfg.IsMaster {
+		cfg.AddMaster(&cfg.Node)
+	} else {
+		cfg.AddNode(&cfg.Node)
 	}
 
 	log.Infof("[%s] - success! Created node %s with instanceID %s ",
