@@ -52,6 +52,17 @@
       </mat-form-field>
     </ng-container>
 
+    <ng-container *ngIf=" account?.provider == 'gce' ">
+    <h3>GCE - GOOGLE COMPUTE ENGINE</h3>
+      <div>
+        <ace-editor
+          [(text)]="gceCreds"
+          style="height:300px;width:100%"
+          (textChanged)="gceCreds=$event">
+        </ace-editor>
+      </div>
+    </ng-container>
+
 
     <div class="actions">
       <button mat-button class="secondary" (click)="cancel()">CANCEL</button>
