@@ -13,6 +13,7 @@ import (
 	"github.com/sirupsen/logrus"
 
 	"k8s.io/api/core/v1"
+	k8serrors "k8s.io/apimachinery/pkg/api/errors"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	clientcorev1 "k8s.io/client-go/kubernetes/typed/core/v1"
 
@@ -57,7 +58,7 @@ func (s *Step) Run(ctx context.Context, out io.Writer, config *steps.Config) err
 			},
 		})
 
-		if err == nil {
+		if k8serrors.IsAlreadyExists(err) || err == nil {
 			break
 		}
 
@@ -66,7 +67,7 @@ func (s *Step) Run(ctx context.Context, out io.Writer, config *steps.Config) err
 		timeout *= 2
 	}
 
-	if err != nil {
+	if !k8serrors.IsAlreadyExists(err) && err != nil {
 		return errors.Wrap(err, "create namespace for capacity configmap")
 	}
 
