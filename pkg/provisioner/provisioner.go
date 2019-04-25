@@ -600,7 +600,6 @@ func buildNodeProvisionScript(ctx context.Context, config *steps.Config) {
 	}
 
 	config.ConfigMap.Data = dryRunner.GetOutput()
-	config.ConfigMap.Namespace = "default"
 }
 
 func (tp *TaskProvisioner) buildInitialCluster(ctx context.Context,

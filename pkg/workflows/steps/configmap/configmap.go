@@ -41,33 +41,11 @@ func Init() {
 	steps.RegisterStep(StepName, New())
 }
 
-func (s *Step) Rollback(context.Context, io.Writer, *steps.Config) error {
-	return nil
-}
-
 func (s *Step) Run(ctx context.Context, out io.Writer, config *steps.Config) error {
-	var err error
-
-	config.Kube.Auth.AdminCert = config.CertificatesConfig.AdminCert
-	config.Kube.Auth.AdminKey = config.CertificatesConfig.AdminKey
-	config.Kube.Auth.CACert = config.CertificatesConfig.CACert
-	config.Kube.ExternalDNSName = config.ExternalDNSName
-
-	master := config.GetMaster()
-	config.Kube.Masters = map[string]*model.Machine{
-		master.Name: master,
-	}
-
-	cfg, err := kubeconfig.NewConfigFor(&config.Kube)
+	k8sClient, err := s.getK8SClient(config)
 
 	if err != nil {
-		return errors.Wrap(err, "configmap create kubeconfig from kube")
-	}
-
-	k8sClient, err := clientcorev1.NewForConfig(cfg)
-
-	if err != nil {
-		return errors.Wrapf(err, "configmap build kubernetes client")
+		return errors.Wrap(err, "get k8s client")
 	}
 
 	timeout := s.timeout
@@ -92,9 +70,7 @@ func (s *Step) Run(ctx context.Context, out io.Writer, config *steps.Config) err
 		return errors.Wrap(err, "create namespace for capacity configmap")
 	}
 
-	if err := util.LoadCloudSpecificDataFromKube(&config.Kube, config); err != nil {
-		return errors.Wrap(err, "load cloud specific data")
-	}
+	util.UpdateKubeWithCloudSpecificData(&config.Kube, config)
 
 	var data []byte
 	if data, err = json.Marshal(config.Kube.CloudSpec); err != nil {
@@ -112,10 +88,26 @@ func (s *Step) Run(ctx context.Context, out io.Writer, config *steps.Config) err
 		},
 	}
 
-	_, err = k8sClient.ConfigMaps(config.ConfigMap.Namespace).Create(configMap)
+	_, err = k8sClient.ConfigMaps(clouds.CapacityNamespace).Create(configMap)
 
 	if err != nil {
 		return errors.Wrapf(err, "create config map")
+	}
+
+	return nil
+}
+
+func (s *Step) Rollback(ctx context.Context, out io.Writer, config *steps.Config) error {
+	k8sClient, err := s.getK8SClient(config)
+
+	if err != nil {
+		return errors.Wrap(err, "get k8s client")
+	}
+
+	err = k8sClient.Namespaces().Delete(clouds.CapacityNamespace, nil)
+
+	if err != nil {
+		return errors.Wrap(err, "delete capacity namespace")
 	}
 
 	return nil
@@ -131,4 +123,32 @@ func (s *Step) Description() string {
 
 func (s *Step) Depends() []string {
 	return nil
+}
+
+func (s *Step) getK8SClient(config *steps.Config) (*clientcorev1.CoreV1Client, error) {
+	var err error
+
+	config.Kube.Auth.AdminCert = config.CertificatesConfig.AdminCert
+	config.Kube.Auth.AdminKey = config.CertificatesConfig.AdminKey
+	config.Kube.Auth.CACert = config.CertificatesConfig.CACert
+	config.Kube.ExternalDNSName = config.ExternalDNSName
+
+	master := config.GetMaster()
+	config.Kube.Masters = map[string]*model.Machine{
+		master.Name: master,
+	}
+
+	cfg, err := kubeconfig.NewConfigFor(&config.Kube)
+
+	if err != nil {
+		return nil, errors.Wrap(err, "configmap create kubeconfig from kube")
+	}
+
+	k8sClient, err := clientcorev1.NewForConfig(cfg)
+
+	if err != nil {
+		return nil, errors.Wrapf(err, "configmap build kubernetes client")
+	}
+
+	return k8sClient, nil
 }

@@ -286,7 +286,6 @@ type Config struct {
 
 type ConfigMap struct {
 	Data      string
-	Namespace string
 }
 
 // NewConfig builds instance of config for provisioning
