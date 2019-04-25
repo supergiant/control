@@ -91,7 +91,7 @@ func (s *Step) Run(ctx context.Context, out io.Writer, config *steps.Config) err
 
 	_, err = k8sClient.ConfigMaps(clouds.CapacityNamespace).Create(configMap)
 
-	if err != nil {
+	if !k8serrors.IsAlreadyExists(err) && err != nil {
 		return errors.Wrapf(err, "create config map")
 	}
 
