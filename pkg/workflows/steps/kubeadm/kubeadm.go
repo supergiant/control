@@ -6,6 +6,8 @@ import (
 	"io"
 	"text/template"
 
+	"github.com/supergiant/control/pkg/clouds"
+
 	"github.com/pkg/errors"
 	"github.com/sirupsen/logrus"
 
@@ -42,7 +44,7 @@ func New(script *template.Template) *Step {
 }
 
 func (t *Step) Run(ctx context.Context, out io.Writer, config *steps.Config) error {
-	config.KubeadmConfig.Provider = string(config.Provider)
+	config.KubeadmConfig.Provider = toCloudProviderOpt(config.Provider)
 	config.KubeadmConfig.IsBootstrap = config.IsBootstrap
 	config.KubeadmConfig.IsMaster = config.IsMaster
 	config.KubeadmConfig.InternalDNSName = config.InternalDNSName
@@ -90,4 +92,15 @@ func (t *Step) Description() string {
 
 func (s *Step) Depends() []string {
 	return []string{docker.StepName}
+}
+
+// TODO: cloud profiles is deprecated by kubernetes, use controller-managers
+func toCloudProviderOpt(cloudName clouds.Name) string {
+	switch cloudName {
+	case clouds.AWS:
+		return "aws"
+	case clouds.GCE:
+		return "gce"
+	}
+	return ""
 }

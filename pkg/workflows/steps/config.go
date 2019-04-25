@@ -2,9 +2,10 @@ package steps
 
 import (
 	"encoding/json"
-	"github.com/supergiant/control/pkg/sgerrors"
 	"sync"
 	"time"
+
+	"github.com/supergiant/control/pkg/sgerrors"
 
 	"github.com/Azure/go-autorest/autorest"
 	"github.com/pkg/errors"
@@ -196,6 +197,7 @@ type KubeadmConfig struct {
 	IsMaster         bool   `json:"isMaster"`
 	AdvertiseAddress string `json:"advertiseAddress"`
 	IsBootstrap      bool   `json:"IsBootstrap"`
+	ServiceCIDR      string `json:"serviceCIDR"`
 	CIDR             string `json:"cidr"`
 	Token            string `json:"token"`
 	Provider         string `json:"provider"`
@@ -368,6 +370,7 @@ func NewConfig(clusterName, cloudAccountName string, profile profile.Profile) (*
 			K8SVersion:  profile.K8SVersion,
 			IsBootstrap: true,
 			CIDR:        profile.CIDR,
+			ServiceCIDR: profile.K8SServicesCIDR,
 		},
 
 		Masters: Map{
@@ -477,6 +480,7 @@ func NewConfigFromKube(profile *profile.Profile, k *model.Kube) (*Config, error)
 			IsBootstrap: true,
 			Token:       k.BootstrapToken,
 			CIDR:        profile.CIDR,
+			ServiceCIDR: profile.K8SServicesCIDR,
 		},
 		Masters: Map{
 			internal: make(map[string]*model.Machine, len(profile.MasterProfiles)),
@@ -632,15 +636,4 @@ func (c *Config) GetAzureAuthorizer() autorest.Authorizer {
 	defer c.authorizerMux.RUnlock()
 
 	return c.azureAthorizer
-}
-
-// TODO: cloud profiles is deprecated by kubernetes, use controller-managers
-func toCloudProviderOpt(cloudName clouds.Name) string {
-	switch cloudName {
-	case clouds.AWS:
-		return "aws"
-	case clouds.GCE:
-		return "gce"
-	}
-	return ""
 }

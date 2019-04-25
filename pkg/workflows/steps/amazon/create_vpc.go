@@ -52,6 +52,17 @@ func (c *CreateVPCStep) Run(ctx context.Context, w io.Writer, cfg *steps.Config)
 		}
 		cfg.AWSConfig.VPCID = *out.Vpc.VpcId
 
+		vpcattr := &ec2.ModifyVpcAttributeInput{
+			EnableDnsHostnames: &ec2.AttributeBooleanValue{
+				Value: aws.Bool(true),
+			},
+			VpcId: &cfg.AWSConfig.VPCID,
+		}
+		_, err = EC2.ModifyVpcAttributeWithContext(ctx, vpcattr)
+		if err != nil {
+			return errors.Wrap(ErrCreateVPC, err.Error())
+		}
+
 		desc := &ec2.DescribeVpcsInput{
 			VpcIds: []*string{aws.String(cfg.AWSConfig.VPCID)},
 		}

@@ -3,12 +3,13 @@ package kubeadm
 import (
 	"bytes"
 	"context"
-	"github.com/supergiant/control/pkg/model"
 	"io"
 	"io/ioutil"
 	"strings"
 	"testing"
 	"text/template"
+
+	"github.com/supergiant/control/pkg/model"
 
 	"github.com/pkg/errors"
 	"github.com/stretchr/testify/require"
@@ -183,5 +184,20 @@ func TestStep_Description(t *testing.T) {
 	if desc := s.Description(); desc != "run kubeadm" {
 		t.Errorf("Wrong desription expected %s actual %s",
 			"Run kubelet", desc)
+	}
+}
+
+func TestToCloudProviderOpt(t *testing.T) {
+	for _, tc := range []struct {
+		in  clouds.Name
+		out string
+	}{
+		{clouds.AWS, "aws"},
+		{clouds.GCE, "gce"},
+		{clouds.DigitalOcean, ""},
+	} {
+		if toCloudProviderOpt(tc.in) != tc.out {
+			t.Logf("toCloudProvider(%s) = %s", tc.in, tc.out)
+		}
 	}
 }
