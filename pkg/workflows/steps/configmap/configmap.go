@@ -2,6 +2,9 @@ package configmap
 
 import (
 	"context"
+	"encoding/json"
+	"github.com/supergiant/control/pkg/clouds"
+	"github.com/supergiant/control/pkg/util"
 	"io"
 	"time"
 
@@ -67,30 +70,49 @@ func (s *Step) Run(ctx context.Context, out io.Writer, config *steps.Config) err
 		return errors.Wrapf(err, "configmap build kubernetes client")
 	}
 
-	configMap := &v1.ConfigMap{
-		ObjectMeta: metav1.ObjectMeta{
-			Namespace: config.ConfigMap.Namespace,
-			// TODO(stgleb): extract to constant
-			Name: "capacity",
-		},
-		Data: map[string]string{
-			"script": config.ConfigMap.Data,
-		},
-	}
-
 	timeout := s.timeout
 
 	for i := 0; i < s.attemptCount; i++ {
-		_, err = k8sClient.ConfigMaps(config.ConfigMap.Namespace).Create(configMap)
+		_, err = k8sClient.Namespaces().Create(&v1.Namespace{
+			ObjectMeta: metav1.ObjectMeta{
+				Name: clouds.CapacityNamespace,
+			},
+		})
 
 		if err == nil {
 			break
 		}
 
-		logrus.Debugf("create config map error %v", err)
+		logrus.Debugf("create namespace error %v", err)
 		time.Sleep(s.timeout)
 		timeout *= 2
 	}
+
+	if err != nil {
+		return errors.Wrap(err, "create namespace for capacity configmap")
+	}
+
+	if err := util.LoadCloudSpecificDataFromKube(&config.Kube, config); err != nil {
+		return errors.Wrap(err, "load cloud specific data")
+	}
+
+	var data []byte
+	if data, err = json.Marshal(config.Kube.CloudSpec); err != nil {
+		return errors.Wrap(err, "marshalling cloud specific map")
+	}
+
+	configMap := &v1.ConfigMap{
+		ObjectMeta: metav1.ObjectMeta{
+			Namespace: clouds.CapacityNamespace,
+			Name:      clouds.CapacityProvisionConfigMap,
+		},
+		Data: map[string]string{
+			clouds.CapacityScriptKey:        config.ConfigMap.Data,
+			clouds.CapacityCloudSpecificKey: string(data),
+		},
+	}
+
+	_, err = k8sClient.ConfigMaps(config.ConfigMap.Namespace).Create(configMap)
 
 	if err != nil {
 		return errors.Wrapf(err, "create config map")
