@@ -76,7 +76,8 @@ sudo kubeadm init --ignore-preflight-errors=NumCPU \
 sudo kubeadm config images pull
 sudo kubeadm join --ignore-preflight-errors=NumCPU {{ .InternalDNSName }}:443 --token {{ .Token }} \
 --node-name ${HOSTNAME} \
---discovery-token-unsafe-skip-ca-verification --experimental-control-plane
+--discovery-token-unsafe-skip-ca-verification --experimental-control-plane \
+--certificate-key {{ .CertificateKey }} 
 {{ end }}
 
 sudo mkdir -p $HOME/.kube

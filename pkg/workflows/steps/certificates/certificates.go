@@ -3,7 +3,6 @@ package certificates
 import (
 	"context"
 	"fmt"
-	"github.com/supergiant/control/pkg/sgerrors"
 	"io"
 	"text/template"
 
@@ -11,7 +10,6 @@ import (
 
 	tm "github.com/supergiant/control/pkg/templatemanager"
 	"github.com/supergiant/control/pkg/workflows/steps"
-	"github.com/supergiant/control/pkg/workflows/util"
 )
 
 const StepName = "certificates"
@@ -41,26 +39,7 @@ func New(tpl *template.Template) *Step {
 
 func (s *Step) Run(ctx context.Context, out io.Writer, config *steps.Config) error {
 	// TODO: why does these is set here, not on the building config step?
-	config.CertificatesConfig.PrivateIP = config.Node.PrivateIp
-	config.CertificatesConfig.PublicIP = config.Node.PublicIp
-	config.CertificatesConfig.IsMaster = config.IsMaster
-
-	if !config.IsMaster {
-		if master := config.GetMaster(); master != nil {
-			config.CertificatesConfig.MasterHost = master.PrivateIp
-			config.CertificatesConfig.NodeName = config.Node.Name
-		} else {
-			return errors.Wrapf(sgerrors.ErrNilEntity, "master not found in config")
-		}
-	}
-
-	if len(config.CertificatesConfig.ServicesCIDR) > 0 {
-		kubeDefaultSvcIp, err := util.GetKubernetesDefaultSvcIP(config.CertificatesConfig.ServicesCIDR)
-		if err != nil {
-			return errors.Wrapf(err, "get cluster dns ip from the %s subnet", config.CertificatesConfig.ServicesCIDR)
-		}
-		config.CertificatesConfig.KubernetesSvcIP = kubeDefaultSvcIp.String()
-	}
+	config.CertificatesConfig.IsBootstrap = config.IsBootstrap
 
 	err := steps.RunTemplate(ctx, s.template, config.Runner, out, config.CertificatesConfig)
 	if err != nil {

@@ -83,26 +83,6 @@ func TestWriteCertificates(t *testing.T) {
 
 	// TODO: update tests
 	cfg.CertificatesConfig = steps.CertificatesConfig{
-		ServicesCIDR: "10.0.0.0/16",
-		PrivateIP:    privateIP,
-		StaticAuth: profile.StaticAuth{
-			BasicAuth: []profile.BasicAuthUser{
-				{
-					Password: "42",
-					Name:     "john.doe@sg.io",
-					ID:       "john.doe",
-					Groups:   []string{"systems:masters", "other:group"},
-				},
-			},
-			Tokens: []profile.TokenAuthUser{
-				{
-					Token:  "1234",
-					Name:   "user@sg.io",
-					ID:     "user",
-					Groups: []string{"systems:masters", "other:group"},
-				},
-			},
-		},
 		CAKey:  string(caPair.Key),
 		CACert: string(caPair.Cert),
 
@@ -143,42 +123,10 @@ func TestWriteCertificates(t *testing.T) {
 			if !strings.Contains(output.String(), string(caPair.Cert)) {
 				t.Errorf("CA cert not found in %s", output.String())
 			}
-		} else {
-			if !strings.Contains(output.String(), string(adminPair.Key)) {
-				t.Errorf("Admin key not found in %s", output.String())
-			}
-
-			if !strings.Contains(output.String(), string(adminPair.Cert)) {
-				t.Errorf("Admin cert not found in %s", output.String())
-			}
-
-			if !strings.Contains(output.String(), "request") {
-				t.Errorf("request.yaml cert not found in %s", output.String())
-			}
 		}
-
-		if !strings.Contains(output.String(), privateIP) {
-			t.Errorf("Master private ip %s not found in %s",
-				privateIP, output.String())
-		}
-
-		if !strings.Contains(output.String(), publicIP) {
-			t.Errorf("Master public ip %s not found in %s",
-				publicIP, output.String())
-		}
-
-		if !strings.Contains(output.String(), "kubelet.crt") {
-			t.Errorf("kubelet.crt not found in %s",
-				output.String())
-		}
-
-		if !strings.Contains(output.String(), "kubelet.key") {
-			t.Errorf("kubelet.key not found in %s",
-				output.String())
-		}
-
-		output.Reset()
 	}
+
+	output.Reset()
 }
 
 func TestWriteCertificatesError(t *testing.T) {
