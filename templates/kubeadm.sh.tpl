@@ -68,9 +68,7 @@ EOF"
 
 sudo kubeadm init --ignore-preflight-errors=NumCPU \
 --node-name ${HOSTNAME} \
---config=/etc/supergiant/kubeadm.conf \
---experimental-upload-certs \
---certificate-key {{ .CertificateKey }}
+--config=/etc/supergiant/kubeadm.conf
 {{ else }}
 
 sudo kubeadm config images pull
@@ -89,3 +87,5 @@ sudo kubeadm join --ignore-preflight-errors=NumCPU {{ .InternalDNSName }}:443 --
 --discovery-token-unsafe-skip-ca-verification \
 --certificate-key {{ .CertificateKey }}
 {{ end }}
+
+# Conventionally, after installing a CNI plugin, users copy PKI information across 2 more master nodes and run a kubeadm command to add new control plane nodes. This results in a 3 node control plane.
