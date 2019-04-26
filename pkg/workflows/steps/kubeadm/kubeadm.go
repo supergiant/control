@@ -11,7 +11,6 @@ import (
 	"github.com/pkg/errors"
 	"github.com/sirupsen/logrus"
 
-	"github.com/supergiant/control/pkg/sgerrors"
 	tm "github.com/supergiant/control/pkg/templatemanager"
 	"github.com/supergiant/control/pkg/workflows/steps"
 	"github.com/supergiant/control/pkg/workflows/steps/docker"
@@ -54,27 +53,19 @@ func (t *Step) Run(ctx context.Context, out io.Writer, config *steps.Config) err
 	// NOTE(stgleb): Kubeadm accepts only ipv4 or ipv6 addresses as advertise address
 	if config.IsBootstrap {
 		config.KubeadmConfig.AdvertiseAddress = config.Node.PrivateIp
-	} else {
-		if !config.IsMaster {
-			if master := config.GetMaster(); master != nil {
-				config.KubeadmConfig.MasterPrivateIP = master.PrivateIp
-			} else {
-				return errors.Wrapf(sgerrors.ErrRawError, "no masters in the %s cluster", config.ClusterID)
-			}
-		}
 	}
 
 	// TODO: fix azure load balancer
 	if config.Provider == clouds.Azure {
-		config.KubeadmConfig.InternalDNSName = config.KubeadmConfig.MasterPrivateIP
+		config.KubeadmConfig.InternalDNSName = config.Node.PrivateIp
 		if config.IsBootstrap {
 			config.KubeadmConfig.InternalDNSName = config.Node.PrivateIp
 		}
 	}
 
-	logrus.Debugf("kubeadm step: %s cluster: isBootstrap=%t extDNS=%s intDNS=%s masterIP=%s",
+	logrus.Debugf("kubeadm step: %s cluster: isBootstrap=%t extDNS=%s intDNS=%s",
 		config.ClusterID, config.KubeadmConfig.IsBootstrap, config.KubeadmConfig.ExternalDNSName,
-		config.KubeadmConfig.InternalDNSName, config.KubeadmConfig.MasterPrivateIP)
+		config.KubeadmConfig.InternalDNSName)
 
 	config.KubeadmConfig.IsMaster = config.IsMaster
 	err := steps.RunTemplate(ctx, t.script, config.Runner, out, config.KubeadmConfig)

@@ -201,8 +201,8 @@ type KubeadmConfig struct {
 	CIDR             string `json:"cidr"`
 	Token            string `json:"token"`
 	Provider         string `json:"provider"`
+	CertificateKey   string `json:"certificateKey"`
 
-	MasterPrivateIP string `json:"masterPrivateIp"`
 	InternalDNSName string `json:"internalDNSName"`
 	ExternalDNSName string `json:"externalDNSName"`
 }

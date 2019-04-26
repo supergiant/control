@@ -68,7 +68,9 @@ EOF"
 
 sudo kubeadm init --ignore-preflight-errors=NumCPU \
 --node-name ${HOSTNAME} \
---config=/etc/supergiant/kubeadm.conf
+--config=/etc/supergiant/kubeadm.conf \
+--experimental-upload-certs \
+--certificate-key {{ .CertificateKey }}
 {{ else }}
 
 sudo kubeadm config images pull

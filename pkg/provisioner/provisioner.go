@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"io"
+	"k8s.io/kubernetes/cmd/kubeadm/app/phases/copycerts"
 	"sync"
 	"time"
 
@@ -560,12 +561,13 @@ func (tp *TaskProvisioner) buildInitialCluster(ctx context.Context,
 		Password:     profile.Password,
 
 		Auth: model.Auth{
-			Username:  config.CertificatesConfig.Username,
-			Password:  config.CertificatesConfig.Password,
-			CACert:    config.CertificatesConfig.CACert,
-			CAKey:     config.CertificatesConfig.CAKey,
-			AdminCert: config.CertificatesConfig.AdminCert,
-			AdminKey:  config.CertificatesConfig.AdminKey,
+			Username:       config.CertificatesConfig.Username,
+			Password:       config.CertificatesConfig.Password,
+			CACert:         config.CertificatesConfig.CACert,
+			CAKey:          config.CertificatesConfig.CAKey,
+			AdminCert:      config.CertificatesConfig.AdminCert,
+			AdminKey:       config.CertificatesConfig.AdminKey,
+			CertificateKey: config.KubeadmConfig.CertificateKey,
 		},
 
 		Arch:                   profile.Arch,
@@ -611,6 +613,10 @@ func bootstrapCerts(config *steps.Config) error {
 	}
 	config.CertificatesConfig.CACert = string(ca.Cert)
 	config.CertificatesConfig.CAKey = string(ca.Key)
+
+	if config.KubeadmConfig.CertificateKey, err = copycerts.CreateCertificateKey(); err != nil {
+		return errors.Wrap(err, "create certificate key")
+	}
 
 	admin, err := pki.NewAdminPair(ca)
 	if err != nil {
