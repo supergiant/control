@@ -16,6 +16,7 @@ import (
 	"github.com/supergiant/control/pkg/runner"
 	"github.com/supergiant/control/pkg/templatemanager"
 	"github.com/supergiant/control/pkg/workflows/steps"
+	"github.com/supergiant/control/pkg/workflows/steps/clustercheck"
 )
 
 //TODO cleanup all fakerunners and move them to separate package
@@ -127,9 +128,9 @@ func TestStep_Rollback(t *testing.T) {
 func TestStep_Depends(t *testing.T) {
 	s := &Step{}
 
-	if deps := s.Depends(); deps != nil {
+	if deps := s.Depends(); deps == nil || len(deps) != 1 || deps[0] != clustercheck.StepName {
 		t.Errorf("Wrong dependencies list expected %v actual %v",
-			nil, deps)
+			[]string{clustercheck.StepName}, deps)
 	}
 }
 
