@@ -75,9 +75,9 @@ func Init() {
 		steps.GetStep(docker.StepName),
 		steps.GetStep(certificates.StepName),
 		steps.GetStep(kubeadm.StepName),
-		steps.GetStep(network.StepName),
 		steps.GetStep(bootstraptoken.StepName),
 		steps.GetStep(kubelet.StepName),
+		steps.GetStep(network.StepName),
 		steps.GetStep(poststart.StepName),
 	}
 
