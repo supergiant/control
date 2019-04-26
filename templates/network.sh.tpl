@@ -1,4 +1,4 @@
-{{ .IsBootstrap }}
+{{ if .IsBootstrap }}
 {{ if eq .NetworkProvider "Flannel" }}
 sudo bash -c 'cat << EOF > flannel.yaml
 ---
