@@ -1,3 +1,4 @@
+{{ .IsBootstrap }}
 {{ if eq .NetworkProvider "Flannel" }}
 sudo bash -c 'cat << EOF > flannel.yaml
 ---
@@ -1260,4 +1261,5 @@ items:
 EOF"
 
 sudo kubectl create -f weave.yaml
+{{ end }}
 {{ end }}

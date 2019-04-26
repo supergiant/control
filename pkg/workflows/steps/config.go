@@ -150,6 +150,7 @@ type AWSConfig struct {
 }
 
 type NetworkConfig struct {
+	IsBootstrap bool `json:"isBootstrap"`
 	CIDR            string `json:"cidr"`
 	NetworkProvider string `json:"networkProvider"`
 }

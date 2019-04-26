@@ -1,6 +1,7 @@
 package workflows
 
 import (
+	"github.com/supergiant/control/pkg/workflows/steps/network"
 	"sync"
 
 	"github.com/supergiant/control/pkg/workflows/statuses"
@@ -13,7 +14,6 @@ import (
 	"github.com/supergiant/control/pkg/workflows/steps/drain"
 	"github.com/supergiant/control/pkg/workflows/steps/kubeadm"
 	"github.com/supergiant/control/pkg/workflows/steps/kubelet"
-	"github.com/supergiant/control/pkg/workflows/steps/network"
 	"github.com/supergiant/control/pkg/workflows/steps/poststart"
 	"github.com/supergiant/control/pkg/workflows/steps/prometheus"
 	"github.com/supergiant/control/pkg/workflows/steps/provider"
@@ -75,6 +75,7 @@ func Init() {
 		steps.GetStep(docker.StepName),
 		steps.GetStep(certificates.StepName),
 		steps.GetStep(kubeadm.StepName),
+		steps.GetStep(network.StepName),
 		steps.GetStep(bootstraptoken.StepName),
 		steps.GetStep(kubelet.StepName),
 		steps.GetStep(poststart.StepName),
@@ -95,7 +96,6 @@ func Init() {
 
 	postProvision := []steps.Step{
 		steps.GetStep(ssh.StepName),
-		steps.GetStep(network.StepName),
 		steps.GetStep(storageclass.StepName),
 		steps.GetStep(tiller.StepName),
 		steps.GetStep(prometheus.StepName),
