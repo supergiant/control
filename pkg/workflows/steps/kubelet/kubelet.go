@@ -3,13 +3,12 @@ package kubelet
 import (
 	"context"
 	"fmt"
+	"github.com/supergiant/control/pkg/sgerrors"
 	"github.com/supergiant/control/pkg/workflows/util"
 	"io"
 	"text/template"
 
 	"github.com/pkg/errors"
-	"k8s.io/apimachinery/pkg/labels"
-
 	tm "github.com/supergiant/control/pkg/templatemanager"
 	"github.com/supergiant/control/pkg/workflows/steps"
 	"github.com/supergiant/control/pkg/workflows/steps/docker"
@@ -54,12 +53,17 @@ func (t *Step) Run(ctx context.Context, out io.Writer, config *steps.Config) err
 	config.KubeletConfig.AdminKey = config.CertificatesConfig.AdminKey
 	config.KubeletConfig.AdminCert = config.CertificatesConfig.AdminCert
 
-	config.KubeletConfig.IsBootstrap = config.IsBootstrap
-
-	if !config.IsBootstrap {
-			config.KubeletConfig.MasterHost = config.Node.PrivateIp
-			config.KubeletConfig.NodeName = config.Node.Name
+	if config.IsMaster {
+		config.KubeletConfig.MasterHost = config.Node.PublicIp
+	} else {
+		if master := config.GetMaster(); master != nil {
+			config.KubeletConfig.MasterHost = master.PrivateIp
+		} else {
+			return errors.Wrapf(sgerrors.ErrNilEntity, "master not found in config")
+		}
 	}
+
+	config.KubeletConfig.NodeName = config.Node.Name
 
 	if len(config.KubeletConfig.ServicesCIDR) > 0 {
 		kubeDefaultSvcIp, err := util.GetKubernetesDefaultSvcIP(config.KubeletConfig.ServicesCIDR)
@@ -92,10 +96,4 @@ func (t *Step) Description() string {
 
 func (s *Step) Depends() []string {
 	return []string{docker.StepName}
-}
-
-func getNodeLables(role string) string {
-	return labels.Set(map[string]string{
-		LabelNodeRole: role,
-	}).String()
 }

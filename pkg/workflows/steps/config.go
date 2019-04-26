@@ -206,7 +206,6 @@ type KubeletConfig struct {
 	MasterPort string `json:"masterPort"`
 	NodeName   string `json:"nodeName"`
 
-	IsBootstrap bool `json:"isBootstrap"`
 	// TODO: this shouldn't be a part of SANs
 	// https://kubernetes.io/docs/setup/certificates/#all-certificates
 	KubernetesSvcIP string `json:"kubernetesSvcIp"`

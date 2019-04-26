@@ -20,16 +20,6 @@ IP.3 = {{ .KubernetesSvcIP }}
 {{ end }}
 EOF"
 
-{{ if .IsBootstrap }}
-
-sudo bash -c "cat > /etc/kubernetes/pki/ca.key <<EOF
-{{ .CAKey }}EOF"
-
-sudo openssl genrsa -out /etc/kubernetes/pki/kubelet.key 2048
-sudo openssl req -new -key /etc/kubernetes/pki/kubelet.key -out /etc/kubernetes/pki/kubelet.csr -subj "/CN=kube-worker"
-sudo openssl x509 -req -in /etc/kubernetes/pki/kubelet.csr -CA /etc/kubernetes/pki/ca.crt -CAkey /etc/kubernetes/pki/ca.key -CAcreateserial -out /etc/kubernetes/pki/kubelet.crt -days 365 -extensions v3_req -extfile /etc/kubernetes/pki/openssl.cnf
-
-{{ else }}
 sudo bash -c "cat > /etc/kubernetes/pki/admin.crt <<EOF
 {{ .AdminCert }}EOF"
 
@@ -67,7 +57,6 @@ EOF"
 
 sudo rm /etc/kubernetes/pki/admin.key
 sudo rm /etc/kubernetes/pki/admin.crt
-{{ end }}
 
 sudo bash -c "cat > /etc/default/kubelet <<EOF
 KUBELET_EXTRA_ARGS=--tls-cert-file=/etc/kubernetes/pki/kubelet.crt \
