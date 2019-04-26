@@ -277,7 +277,16 @@ func (tp *TaskProvisioner) provision(ctx context.Context,
 
 	if len(taskMap[workflows.ClusterTask]) != 0 {
 		// Wait for cluster checks are finished
-		tp.waitCluster(ctx, taskMap[workflows.ClusterTask][0], config)
+		clusterTask := taskMap[workflows.ClusterTask][0]
+		err = tp.waitCluster(ctx, clusterTask, config)
+
+		if err != nil {
+			config.KubeStateChan() <- model.StateFailed
+			logrus.Errorf("cluster task %s has finished with error %v", clusterTask.ID, err)
+		} else {
+			config.KubeStateChan() <- model.StateOperational
+			logrus.Infof("cluster-task %s has finished", clusterTask.ID)
+		}
 	}
 	logrus.Infof("cluster %s deployment has finished",
 		config.ClusterID)
@@ -513,45 +522,23 @@ func (tp *TaskProvisioner) provisionNodes(ctx context.Context, profile *profile.
 	return nil
 }
 
-func (tp *TaskProvisioner) waitCluster(ctx context.Context, clusterTask *workflows.Task, config *steps.Config) {
-	// clusterWg controls entire cluster deployment, waits until all final checks are done
-	clusterWg := sync.WaitGroup{}
-	clusterWg.Add(1)
-
+func (tp *TaskProvisioner) waitCluster(ctx context.Context, clusterTask *workflows.Task, config *steps.Config) error {
 	fileName := util.MakeFileName(clusterTask.ID)
 	out, err := tp.getWriter(fileName)
 
 	if err != nil {
-		logrus.Errorf("Error getting writer for %s", fileName)
-		return
+		return errors.Wrapf(err, "Error getting writer for %s", fileName)
 	}
 
-	go func(t *workflows.Task) {
-		defer clusterWg.Done()
-		cfg := *config
+	cfg := *config
+	result := clusterTask.Run(ctx, cfg, out)
+	err = <-result
 
-		if master := config.GetMaster(); master != nil {
-			cfg.Node = *master
-		} else {
-			config.KubeStateChan() <- model.StateFailed
-			logrus.Errorf("No master found, cluster deployment failed")
-			return
-		}
+	if err != nil {
+		return errors.Wrapf(err, "cluster task %s has finished with error %v", clusterTask.ID, err)
+	}
 
-		result := t.Run(ctx, cfg, out)
-		err = <-result
-
-		if err != nil {
-			config.KubeStateChan() <- model.StateFailed
-			logrus.Errorf("cluster task %s has finished with error %v", t.ID, err)
-		} else {
-			config.KubeStateChan() <- model.StateOperational
-			logrus.Infof("cluster-task %s has finished", t.ID)
-		}
-	}(clusterTask)
-
-	// Wait for all task to be finished
-	clusterWg.Wait()
+	return nil
 }
 
 func (tp *TaskProvisioner) buildInitialCluster(ctx context.Context,

@@ -11,7 +11,6 @@ import (
 	tm "github.com/supergiant/control/pkg/templatemanager"
 	"github.com/supergiant/control/pkg/util"
 	"github.com/supergiant/control/pkg/workflows/steps"
-	"github.com/supergiant/control/pkg/workflows/steps/clustercheck"
 )
 
 const StepName = "storageclass"
@@ -60,7 +59,7 @@ func (*Step) Description() string {
 }
 
 func (*Step) Depends() []string {
-	return []string{clustercheck.StepName}
+	return nil
 }
 
 func (*Step) Rollback(context.Context, io.Writer, *steps.Config) error {

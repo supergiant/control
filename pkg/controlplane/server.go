@@ -35,7 +35,6 @@ import (
 	"github.com/supergiant/control/pkg/workflows/steps/azure"
 	"github.com/supergiant/control/pkg/workflows/steps/bootstraptoken"
 	"github.com/supergiant/control/pkg/workflows/steps/certificates"
-	"github.com/supergiant/control/pkg/workflows/steps/clustercheck"
 	"github.com/supergiant/control/pkg/workflows/steps/cni"
 	"github.com/supergiant/control/pkg/workflows/steps/digitalocean"
 	"github.com/supergiant/control/pkg/workflows/steps/docker"
@@ -199,7 +198,6 @@ func configureApplication(cfg *Config) (*mux.Router, error) {
 	tiller.Init()
 	ssh.Init()
 	network.Init()
-	clustercheck.Init()
 	prometheus.Init()
 	gce.Init()
 	storageclass.Init()
