@@ -42,8 +42,7 @@ apiVersion: kubeadm.k8s.io/v1beta1
 kind: ClusterConfiguration
 kubernetesVersion: v{{ .K8SVersion }}
 clusterName: kubernetes
-# TODO: fix azure load balancing
-{{ if ne .Provider "azure" }}controlPlaneEndpoint: {{ .InternalDNSName }}{{ end}}
+controlPlaneEndpoint: {{ .InternalDNSName }}
 certificatesDir: /etc/kubernetes/pki
 apiServer:
   certSANs:
@@ -73,7 +72,7 @@ sudo kubeadm init --ignore-preflight-errors=NumCPU \
 {{ else }}
 
 sudo kubeadm config images pull
-sudo kubeadm join --ignore-preflight-errors=NumCPU {{ .MasterPrivateIP }}:443 --token {{ .Token }} \
+sudo kubeadm join --ignore-preflight-errors=NumCPU {{ .InternalDNSName }}:443 --token {{ .Token }} \
 --node-name ${HOSTNAME} \
 --discovery-token-unsafe-skip-ca-verification --experimental-control-plane
 {{ end }}
@@ -82,7 +81,7 @@ sudo mkdir -p $HOME/.kube
 sudo cp -i /etc/kubernetes/admin.conf $HOME/.kube/config
 sudo chown $(id -u):$(id -g) $HOME/.kube/config
 {{ else }}
-sudo kubeadm join --ignore-preflight-errors=NumCPU {{ .MasterPrivateIP }}:443 --token {{ .Token }} \
+sudo kubeadm join --ignore-preflight-errors=NumCPU {{ .InternalDNSName }}:443 --token {{ .Token }} \
 --node-name ${HOSTNAME} \
 --discovery-token-unsafe-skip-ca-verification
 {{ end }}
