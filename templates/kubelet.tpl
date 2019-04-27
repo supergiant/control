@@ -53,7 +53,7 @@ sudo kubectl --kubeconfig=/root/.kube/config create -f /etc/kubernetes/pki/reque
 sudo kubectl --kubeconfig=/root/.kube/config certificate approve -f /etc/kubernetes/pki/request.yaml
 
 # Wait for csr to be approved
-until $([ $(sudo kubectl --kubeconfig=/root/.kube/config csr {{ .NodeName }}|grep Approved|wc -l) -eq 1 ]); do printf '.'; sleep 5; done
+until $([ $(sudo kubectl --kubeconfig=/root/.kube/config get csr {{ .NodeName }}|grep Approved|wc -l) -eq 1 ]); do printf '.'; sleep 5; done
 
 sudo bash -c "cat > /etc/kubernetes/pki/kubelet.crt <<EOF
 $(sudo kubectl --kubeconfig=/root/.kube/config get csr {{ .NodeName }} -o jsonpath='{.status.certificate}' | base64 -d)
