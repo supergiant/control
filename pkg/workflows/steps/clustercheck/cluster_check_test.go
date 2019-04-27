@@ -34,7 +34,6 @@ func (f *fakeRunner) Run(command *runner.Command) error {
 
 func TestClusterCheck(t *testing.T) {
 	var (
-		machineCount               = 7
 		r            runner.Runner = &fakeRunner{}
 	)
 
@@ -58,9 +57,6 @@ func TestClusterCheck(t *testing.T) {
 		t.Errorf("Unexpected error %v", err)
 	}
 
-	cfg.ClusterCheckConfig = steps.ClusterCheckConfig{
-		MachineCount: machineCount,
-	}
 	cfg.Runner = r
 	cfg.AddMaster(&model.Machine{
 		State:     model.MachineStateActive,
