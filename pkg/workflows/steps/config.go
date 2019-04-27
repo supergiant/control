@@ -187,9 +187,6 @@ type DownloadK8sBinary struct {
 	OperatingSystem string `json:"operatingSystem"`
 }
 
-type ClusterCheckConfig struct {
-	MachineCount int
-}
 
 type PrometheusConfig struct {
 	Port        string `json:"port"`
@@ -263,8 +260,6 @@ type Config struct {
 
 	ExternalDNSName string `json:"externalDnsName"`
 	InternalDNSName string `json:"internalDnsName"`
-
-	ClusterCheckConfig ClusterCheckConfig `json:"clusterCheckConfig"`
 
 	Node             model.Machine `json:"node"`
 	CloudAccountID   string        `json:"cloudAccountId" valid:"required, length(1|32)"`
@@ -362,9 +357,6 @@ func NewConfig(clusterName, cloudAccountName string, profile profile.Profile) (*
 			OperatingSystem: profile.OperatingSystem,
 			Arch:            profile.Arch,
 			RBACEnabled:     profile.RBACEnabled,
-		},
-		ClusterCheckConfig: ClusterCheckConfig{
-			MachineCount: len(profile.NodesProfiles) + len(profile.MasterProfiles),
 		},
 		PrometheusConfig: PrometheusConfig{
 			Port:        "30900",
@@ -472,9 +464,6 @@ func NewConfigFromKube(profile *profile.Profile, k *model.Kube) (*Config, error)
 			OperatingSystem: profile.OperatingSystem,
 			Arch:            profile.Arch,
 			RBACEnabled:     profile.RBACEnabled,
-		},
-		ClusterCheckConfig: ClusterCheckConfig{
-			MachineCount: len(profile.NodesProfiles) + len(profile.MasterProfiles),
 		},
 		PrometheusConfig: PrometheusConfig{
 			Port:        "30900",
