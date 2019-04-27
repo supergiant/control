@@ -3,13 +3,14 @@ package network
 import (
 	"context"
 	"fmt"
+	"io"
+	"text/template"
+
 	"github.com/pkg/errors"
 	"github.com/sirupsen/logrus"
 	tm "github.com/supergiant/control/pkg/templatemanager"
 	"github.com/supergiant/control/pkg/workflows/steps"
 	"github.com/supergiant/control/pkg/workflows/steps/kubeadm"
-	"io"
-	"text/template"
 )
 
 const StepName = "network"
