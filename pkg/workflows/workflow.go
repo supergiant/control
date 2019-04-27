@@ -79,6 +79,8 @@ func Init() {
 		steps.GetStep(bootstraptoken.StepName),
 		steps.GetStep(kubelet.StepName),
 		steps.GetStep(poststart.StepName),
+		steps.GetStep(network.StepName),
+		steps.GetStep(clustercheck.StepName),
 	}
 
 	nodeWorkflow := []steps.Step{
@@ -96,8 +98,6 @@ func Init() {
 
 	postProvision := []steps.Step{
 		steps.GetStep(ssh.StepName),
-		steps.GetStep(network.StepName),
-		steps.GetStep(clustercheck.StepName),
 		steps.GetStep(storageclass.StepName),
 		steps.GetStep(tiller.StepName),
 		steps.GetStep(prometheus.StepName),

@@ -44,6 +44,9 @@ type CertificatesConfig struct {
 	ParenCert []byte `json:"parenCert"`
 	CACert    string `json:"caCert"`
 	CAKey     string `json:"caKey"`
+
+	SAKey string `json:"saKey"`
+	SAPub string `json:"saPub"`
 }
 
 type DOConfig struct {
@@ -150,12 +153,13 @@ type AWSConfig struct {
 }
 
 type NetworkConfig struct {
+	IsBootstrap     bool   `json:"isBootstrap"`
 	CIDR            string `json:"cidr"`
 	NetworkProvider string `json:"networkProvider"`
 }
 
 type PostStartConfig struct {
-	IsMaster    bool          `json:"isMaster"`
+	IsBootstrap bool          `json:"isBootstrap"`
 	Provider    clouds.Name   `json:"provider"`
 	Host        string        `json:"host"`
 	Port        string        `json:"port"`
@@ -183,9 +187,6 @@ type DownloadK8sBinary struct {
 	OperatingSystem string `json:"operatingSystem"`
 }
 
-type ClusterCheckConfig struct {
-	MachineCount int
-}
 
 type PrometheusConfig struct {
 	Port        string `json:"port"`
@@ -259,8 +260,6 @@ type Config struct {
 
 	ExternalDNSName string `json:"externalDnsName"`
 	InternalDNSName string `json:"internalDnsName"`
-
-	ClusterCheckConfig ClusterCheckConfig `json:"clusterCheckConfig"`
 
 	Node             model.Machine `json:"node"`
 	CloudAccountID   string        `json:"cloudAccountId" valid:"required, length(1|32)"`
@@ -359,9 +358,6 @@ func NewConfig(clusterName, cloudAccountName string, profile profile.Profile) (*
 			Arch:            profile.Arch,
 			RBACEnabled:     profile.RBACEnabled,
 		},
-		ClusterCheckConfig: ClusterCheckConfig{
-			MachineCount: len(profile.NodesProfiles) + len(profile.MasterProfiles),
-		},
 		PrometheusConfig: PrometheusConfig{
 			Port:        "30900",
 			RBACEnabled: profile.RBACEnabled,
@@ -448,6 +444,7 @@ func NewConfigFromKube(profile *profile.Profile, k *model.Kube) (*Config, error)
 			CACert:       k.Auth.CACert,
 			AdminCert:    k.Auth.AdminCert,
 			AdminKey:     k.Auth.AdminKey,
+			SAKey:        k.Auth.SAKey,
 		},
 		NetworkConfig: NetworkConfig{
 			NetworkProvider: profile.NetworkProvider,
@@ -467,9 +464,6 @@ func NewConfigFromKube(profile *profile.Profile, k *model.Kube) (*Config, error)
 			OperatingSystem: profile.OperatingSystem,
 			Arch:            profile.Arch,
 			RBACEnabled:     profile.RBACEnabled,
-		},
-		ClusterCheckConfig: ClusterCheckConfig{
-			MachineCount: len(profile.NodesProfiles) + len(profile.MasterProfiles),
 		},
 		PrometheusConfig: PrometheusConfig{
 			Port:        "30900",

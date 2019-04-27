@@ -76,7 +76,6 @@ func (t *Step) Run(ctx context.Context, out io.Writer, config *steps.Config) err
 		config.ClusterID, config.KubeadmConfig.IsBootstrap, config.KubeadmConfig.ExternalDNSName,
 		config.KubeadmConfig.InternalDNSName, config.KubeadmConfig.MasterPrivateIP)
 
-	config.KubeadmConfig.IsMaster = config.IsMaster
 	err := steps.RunTemplate(ctx, t.script, config.Runner, out, config.KubeadmConfig)
 
 	if err != nil {
