@@ -5,7 +5,6 @@ import (
 	"context"
 	"io"
 	"io/ioutil"
-	"strconv"
 	"strings"
 	"testing"
 	"text/template"
@@ -75,10 +74,6 @@ func TestClusterCheck(t *testing.T) {
 
 	if err != nil {
 		t.Errorf("Unpexpected error while  provision node %v", err)
-	}
-
-	if !strings.Contains(output.String(), strconv.Itoa(machineCount)) {
-		t.Errorf("cluster check expected machine count %d not found in %s", machineCount, output.String())
 	}
 }
 
