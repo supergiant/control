@@ -5,7 +5,6 @@ import (
 	"context"
 	"io"
 	"io/ioutil"
-	"strconv"
 	"strings"
 	"testing"
 	"text/template"
@@ -35,7 +34,6 @@ func (f *fakeRunner) Run(command *runner.Command) error {
 
 func TestClusterCheck(t *testing.T) {
 	var (
-		machineCount               = 7
 		r            runner.Runner = &fakeRunner{}
 	)
 
@@ -59,9 +57,6 @@ func TestClusterCheck(t *testing.T) {
 		t.Errorf("Unexpected error %v", err)
 	}
 
-	cfg.ClusterCheckConfig = steps.ClusterCheckConfig{
-		MachineCount: machineCount,
-	}
 	cfg.Runner = r
 	cfg.AddMaster(&model.Machine{
 		State:     model.MachineStateActive,
@@ -75,10 +70,6 @@ func TestClusterCheck(t *testing.T) {
 
 	if err != nil {
 		t.Errorf("Unpexpected error while  provision node %v", err)
-	}
-
-	if !strings.Contains(output.String(), strconv.Itoa(machineCount)) {
-		t.Errorf("cluster check expected machine count %d not found in %s", machineCount, output.String())
 	}
 }
 
@@ -102,6 +93,7 @@ func TestClusterCheckErrors(t *testing.T) {
 		t.Errorf("Unexpected error %v", err)
 	}
 
+	cfg.IsBootstrap = true
 	cfg.Runner = r
 	cfg.AddMaster(&model.Machine{
 		State:     model.MachineStateActive,
@@ -184,8 +176,8 @@ func TestInitPanic(t *testing.T) {
 func TestStep_Description(t *testing.T) {
 	s := &Step{}
 
-	if desc := s.Description(); desc != "Check cluster health" {
+	if desc := s.Description(); desc != "Wait until bootstrap node becomes ready" {
 		t.Errorf("Wrong desription expected %s actual %s",
-			"Check cluster health", desc)
+			"Wait until bootstrap node becomes ready", desc)
 	}
 }

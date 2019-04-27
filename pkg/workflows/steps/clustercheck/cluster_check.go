@@ -38,7 +38,11 @@ func New(script *template.Template) *Step {
 }
 
 func (s *Step) Run(ctx context.Context, out io.Writer, config *steps.Config) error {
-	err := steps.RunTemplate(ctx, s.script, config.Runner, out, config.ClusterCheckConfig)
+	if !config.IsBootstrap {
+		return nil
+	}
+
+	err := steps.RunTemplate(ctx, s.script, config.Runner, out, nil)
 
 	if err != nil {
 		return errors.Wrap(err, "cluster check step")
@@ -56,7 +60,7 @@ func (s *Step) Rollback(context.Context, io.Writer, *steps.Config) error {
 }
 
 func (s *Step) Description() string {
-	return "Check cluster health"
+	return "Wait until bootstrap node becomes ready"
 }
 
 func (s *Step) Depends() []string {

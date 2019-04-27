@@ -54,7 +54,7 @@ func (t *Step) Run(ctx context.Context, out io.Writer, config *steps.Config) err
 	config.KubeletConfig.AdminCert = config.CertificatesConfig.AdminCert
 
 	if config.IsMaster {
-		config.KubeletConfig.MasterHost = config.Node.PublicIp
+		config.KubeletConfig.MasterHost = config.Node.PrivateIp
 	} else {
 		if master := config.GetMaster(); master != nil {
 			config.KubeletConfig.MasterHost = master.PrivateIp

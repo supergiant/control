@@ -8,4 +8,7 @@ sudo mkdir -p /etc/kubernetes/pki/etcd
 sudo bash -c "cat > /etc/kubernetes/pki/ca.crt <<EOF
 {{ .CACert }}EOF"
 
+sudo bash -c "cat > /etc/kubernetes/pki/ca.key <<EOF
+{{ .CAKey }}EOF"
+
 {{ end }}

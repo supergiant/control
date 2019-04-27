@@ -13,6 +13,10 @@ import (
 	certutil "k8s.io/client-go/util/cert"
 )
 
+const (
+	PublicKeyBlockType = "PUBLIC KEY"
+)
+
 // CARequest defines a request to generate or use CA if provided to setup PKI for k8s cluster
 type CARequest struct {
 	DNSDomain string   `json:"dnsDomain" valid:"required"`
@@ -122,6 +126,19 @@ func NewCAPair(parentBytes []byte) (*PairPEM, error) {
 	}
 
 	return caPem, nil
+}
+
+// EncodePublicKeyPEM returns PEM-encoded public data
+func EncodePublicKeyPEM(key *rsa.PublicKey) ([]byte, error) {
+	der, err := x509.MarshalPKIXPublicKey(key)
+	if err != nil {
+		return []byte{}, err
+	}
+	block := pem.Block{
+		Type:  PublicKeyBlockType,
+		Bytes: der,
+	}
+	return pem.EncodeToMemory(&block), nil
 }
 
 // generateCACert will generate a self-signed CA certificate

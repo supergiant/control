@@ -90,7 +90,7 @@ func TestNetworkConfig(t *testing.T) {
 			NetworkProvider: testCase.networkProvider,
 		}
 		config.Runner = r
-		config.IsMaster = true
+		config.IsBootstrap = true
 		// Mark as done, we assume that etcd has been already deployed
 
 		task := &Step{
@@ -124,6 +124,7 @@ func TestNetworkErrors(t *testing.T) {
 	}
 
 	cfg, err := steps.NewConfig("", "", profile.Profile{})
+	cfg.IsBootstrap = true
 
 	if err != nil {
 		t.Errorf("Unexpected error %v", err)
@@ -207,8 +208,8 @@ func TestInitPanic(t *testing.T) {
 func TestStep_Description(t *testing.T) {
 	s := &Step{}
 
-	if desc := s.Description(); desc != "Configure networking" {
+	if desc := s.Description(); desc != "Configure CNI plugin, that must happen during bootstrap node provisioning for HA cluster" {
 		t.Errorf("Wrong desription expected %s actual %s",
-			"Configure networking", desc)
+			"Configure CNI plugin, that must happen during bootstrap node provisioning for HA cluster", desc)
 	}
 }

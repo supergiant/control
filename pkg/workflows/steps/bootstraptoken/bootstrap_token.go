@@ -53,9 +53,11 @@ func (s *Step) Run(ctx context.Context, out io.Writer, config *steps.Config) err
 		logrus.Debugf("Create bootstrap token %s", config.BootstrapToken)
 		// NOTE(stgleb): Reuse KubeadmConfig.Token field to avoid
 		err = steps.RunTemplate(ctx, s.script, config.Runner, out, struct {
+			IsBootstrap    bool
 			Token          string
 			CertificateKey string
 		}{
+			IsBootstrap:    config.IsBootstrap,
 			Token:          config.BootstrapToken,
 			CertificateKey: config.KubeadmConfig.CertificateKey,
 		})
