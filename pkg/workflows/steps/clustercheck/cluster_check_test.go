@@ -97,6 +97,7 @@ func TestClusterCheckErrors(t *testing.T) {
 		t.Errorf("Unexpected error %v", err)
 	}
 
+	cfg.IsBootstrap = true
 	cfg.Runner = r
 	cfg.AddMaster(&model.Machine{
 		State:     model.MachineStateActive,

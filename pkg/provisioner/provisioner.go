@@ -462,9 +462,9 @@ func (tp *TaskProvisioner) provisionMasters(ctx context.Context,
 
 		go func(t *workflows.Task) {
 			// Put task id to config so that create instance step can use this id when generate node name
-			t.Config.KubeadmConfig.IsBootstrap = false
 			t.Config.TaskID = t.ID
 			t.Config.IsMaster = true
+			t.Config.IsBootstrap = false
 
 			result := t.Run(ctx, *t.Config, out)
 			err = <-result
