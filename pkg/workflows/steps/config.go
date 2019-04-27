@@ -44,6 +44,9 @@ type CertificatesConfig struct {
 	ParenCert []byte `json:"parenCert"`
 	CACert    string `json:"caCert"`
 	CAKey     string `json:"caKey"`
+
+	SAKey string `json:"saKey"`
+	SAPub string `json:"saPub"`
 }
 
 type DOConfig struct {
@@ -150,13 +153,13 @@ type AWSConfig struct {
 }
 
 type NetworkConfig struct {
-	IsBootstrap bool `json:"isBootstrap"`
+	IsBootstrap     bool   `json:"isBootstrap"`
 	CIDR            string `json:"cidr"`
 	NetworkProvider string `json:"networkProvider"`
 }
 
 type PostStartConfig struct {
-	IsMaster    bool          `json:"isMaster"`
+	IsBootstrap bool          `json:"isBootstrap"`
 	Provider    clouds.Name   `json:"provider"`
 	Host        string        `json:"host"`
 	Port        string        `json:"port"`
@@ -449,6 +452,7 @@ func NewConfigFromKube(profile *profile.Profile, k *model.Kube) (*Config, error)
 			CACert:       k.Auth.CACert,
 			AdminCert:    k.Auth.AdminCert,
 			AdminKey:     k.Auth.AdminKey,
+			SAKey:        k.Auth.SAKey,
 		},
 		NetworkConfig: NetworkConfig{
 			NetworkProvider: profile.NetworkProvider,

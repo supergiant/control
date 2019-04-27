@@ -3,13 +3,12 @@ package network
 import (
 	"context"
 	"fmt"
+	"github.com/sirupsen/logrus"
 	"github.com/supergiant/control/pkg/workflows/steps/kubeadm"
 	"io"
 	"text/template"
 
 	"github.com/pkg/errors"
-	"github.com/sirupsen/logrus"
-
 	tm "github.com/supergiant/control/pkg/templatemanager"
 	"github.com/supergiant/control/pkg/workflows/steps"
 )
@@ -37,9 +36,12 @@ func New(tpl *template.Template) *Step {
 }
 
 func (t *Step) Run(ctx context.Context, out io.Writer, config *steps.Config) error {
-	logrus.Debugf("cluster %s: network config: %+v", config.ClusterName, config.NetworkConfig)
-	config.NetworkConfig.IsBootstrap = config.IsBootstrap
+	if !config.IsBootstrap {
+		return nil
+	}
 
+	config.NetworkConfig.IsBootstrap = config.IsBootstrap
+	logrus.Debugf("cluster %s: network config: %+v", config.ClusterName, config.NetworkConfig)
 	err := steps.RunTemplate(context.Background(), t.script, config.Runner, out, config.NetworkConfig)
 	if err != nil {
 		return errors.Wrap(err, "configure network step")

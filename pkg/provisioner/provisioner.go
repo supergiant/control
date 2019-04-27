@@ -2,10 +2,14 @@ package provisioner
 
 import (
 	"context"
+	"crypto/rand"
+	"crypto/rsa"
 	"fmt"
 	"io"
 	"sync"
 	"time"
+
+	"k8s.io/client-go/util/keyutil"
 
 	"github.com/pkg/errors"
 	"github.com/sirupsen/logrus"
@@ -18,6 +22,10 @@ import (
 	"github.com/supergiant/control/pkg/util"
 	"github.com/supergiant/control/pkg/workflows"
 	"github.com/supergiant/control/pkg/workflows/steps"
+)
+
+const (
+	rsaKeySize = 2048
 )
 
 type KubeService interface {
@@ -566,6 +574,8 @@ func (tp *TaskProvisioner) buildInitialCluster(ctx context.Context,
 			CAKey:     config.CertificatesConfig.CAKey,
 			AdminCert: config.CertificatesConfig.AdminCert,
 			AdminKey:  config.CertificatesConfig.AdminKey,
+			SAKey:     config.CertificatesConfig.SAKey,
+			SAPub:     config.CertificatesConfig.SAPub,
 		},
 
 		Arch:                   profile.Arch,
@@ -618,6 +628,28 @@ func bootstrapCerts(config *steps.Config) error {
 	}
 	config.CertificatesConfig.AdminCert = string(admin.Cert)
 	config.CertificatesConfig.AdminKey = string(admin.Key)
+
+	key, err := rsa.GenerateKey(rand.Reader, rsaKeySize)
+
+	if err != nil {
+		return errors.Wrap(err, "generate sa key")
+	}
+
+	keyPem, err := keyutil.MarshalPrivateKeyToPEM(key)
+
+	if err != nil {
+		return errors.Wrap(err, "marshall sa key")
+	}
+
+	config.CertificatesConfig.SAKey = string(keyPem)
+
+	pemPublicKey, err := pki.EncodePublicKeyPEM(&key.PublicKey)
+
+	if err != nil {
+		return errors.Wrap(err, "marshall sa pub")
+	}
+
+	config.CertificatesConfig.SAPub = string(pemPublicKey)
 
 	return nil
 }
