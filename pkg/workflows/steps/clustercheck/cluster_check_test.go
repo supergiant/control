@@ -179,8 +179,8 @@ func TestInitPanic(t *testing.T) {
 func TestStep_Description(t *testing.T) {
 	s := &Step{}
 
-	if desc := s.Description(); desc != "Check cluster health" {
+	if desc := s.Description(); desc != "Wait until bootstrap node becomes ready" {
 		t.Errorf("Wrong desription expected %s actual %s",
-			"Check cluster health", desc)
+			"Wait until bootstrap node becomes ready", desc)
 	}
 }

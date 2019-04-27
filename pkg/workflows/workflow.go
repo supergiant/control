@@ -1,6 +1,7 @@
 package workflows
 
 import (
+	"github.com/supergiant/control/pkg/workflows/steps/clustercheck"
 	"sync"
 
 	"github.com/supergiant/control/pkg/workflows/statuses"
@@ -8,7 +9,6 @@ import (
 	"github.com/supergiant/control/pkg/workflows/steps/authorizedKeys"
 	"github.com/supergiant/control/pkg/workflows/steps/bootstraptoken"
 	"github.com/supergiant/control/pkg/workflows/steps/certificates"
-	"github.com/supergiant/control/pkg/workflows/steps/clustercheck"
 	"github.com/supergiant/control/pkg/workflows/steps/docker"
 	"github.com/supergiant/control/pkg/workflows/steps/downloadk8sbinary"
 	"github.com/supergiant/control/pkg/workflows/steps/drain"
@@ -80,6 +80,7 @@ func Init() {
 		steps.GetStep(kubelet.StepName),
 		steps.GetStep(network.StepName),
 		steps.GetStep(poststart.StepName),
+		steps.GetStep(clustercheck.StepName),
 	}
 
 	nodeWorkflow := []steps.Step{
@@ -97,7 +98,6 @@ func Init() {
 
 	postProvision := []steps.Step{
 		steps.GetStep(ssh.StepName),
-		steps.GetStep(clustercheck.StepName),
 		steps.GetStep(storageclass.StepName),
 		steps.GetStep(tiller.StepName),
 		steps.GetStep(prometheus.StepName),
