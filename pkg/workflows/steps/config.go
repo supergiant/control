@@ -200,9 +200,9 @@ type KubeletConfig struct {
 	PublicIP     string `json:"publicIp"`
 	PrivateIP    string `json:"privateIp"`
 
-	MasterHost string `json:"masterHost"`
-	MasterPort string `json:"masterPort"`
-	NodeName   string `json:"nodeName"`
+	LoadBalancerHost string `json:"loadBalancerHost"`
+	MasterPort       string `json:"masterPort"`
+	NodeName         string `json:"nodeName"`
 
 	// TODO: this shouldn't be a part of SANs
 	// https://kubernetes.io/docs/setup/certificates/#all-certificates

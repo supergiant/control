@@ -51,7 +51,7 @@ func (t *Step) Run(ctx context.Context, out io.Writer, config *steps.Config) err
 
 	config.KubeletConfig.AdminKey = config.CertificatesConfig.AdminKey
 	config.KubeletConfig.AdminCert = config.CertificatesConfig.AdminCert
-	config.KubeletConfig.MasterHost = config.InternalDNSName
+	config.KubeletConfig.LoadBalancerHost = config.InternalDNSName
 	config.KubeletConfig.NodeName = config.Node.Name
 
 	if len(config.KubeletConfig.ServicesCIDR) > 0 {
