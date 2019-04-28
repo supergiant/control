@@ -3,7 +3,6 @@ package kubelet
 import (
 	"context"
 	"fmt"
-	"github.com/supergiant/control/pkg/sgerrors"
 	"github.com/supergiant/control/pkg/workflows/util"
 	"io"
 	"text/template"
@@ -52,17 +51,7 @@ func (t *Step) Run(ctx context.Context, out io.Writer, config *steps.Config) err
 
 	config.KubeletConfig.AdminKey = config.CertificatesConfig.AdminKey
 	config.KubeletConfig.AdminCert = config.CertificatesConfig.AdminCert
-
-	if config.IsMaster {
-		config.KubeletConfig.MasterHost = config.Node.PrivateIp
-	} else {
-		if master := config.GetMaster(); master != nil {
-			config.KubeletConfig.MasterHost = master.PrivateIp
-		} else {
-			return errors.Wrapf(sgerrors.ErrNilEntity, "master not found in config")
-		}
-	}
-
+	config.KubeletConfig.MasterHost = config.InternalDNSName
 	config.KubeletConfig.NodeName = config.Node.Name
 
 	if len(config.KubeletConfig.ServicesCIDR) > 0 {

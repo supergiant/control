@@ -77,7 +77,7 @@ sudo kubeadm join --ignore-preflight-errors=NumCPU {{ .InternalDNSName }}:443 --
 --node-name ${HOSTNAME} \
 --discovery-token-unsafe-skip-ca-verification \
 --experimental-control-plane \
---certificate-key { .CertificateKey }
+--certificate-key {{ .CertificateKey }}
 {{ end }}
 
 sudo mkdir -p $HOME/.kube
@@ -86,7 +86,7 @@ sudo chown $(id -u):$(id -g) $HOME/.kube/config
 {{ else }}
 sudo kubeadm join --ignore-preflight-errors=NumCPU {{ .InternalDNSName }}:443 --token {{ .Token }} \
 --node-name ${HOSTNAME} \
---discovery-token-unsafe-skip-ca-verification \
+--discovery-token-unsafe-skip-ca-verification
 {{ end }}
 
 # Conventionally, after installing a CNI plugin, users copy PKI information across 2 more master nodes
