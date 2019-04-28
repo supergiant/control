@@ -2624,6 +2624,12 @@
 			"path": "k8s.io/kube-openapi/pkg/util/proto",
 			"revision": "d7c86cdc46e3a4fcf892b32dd7bc3aa775e0870e",
 			"revisionTime": "2019-02-08T20:55:40Z"
+		},
+		{
+			"checksumSHA1": "pYUUn15+gNF60lDybgg7TrU2HgQ=",
+			"path": "k8s.io/kubernetes/cmd/kubeadm/app/phases/copycerts",
+			"revision": "ad3ea458195ddac70dd056eba4366f6414a0d213",
+			"revisionTime": "2019-04-22T11:09:04Z"
 		}
 	],
 	"rootPath": "github.com/supergiant/control"
