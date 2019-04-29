@@ -32,11 +32,10 @@ enum CloudProviders {
 }
 
 export enum StepIndexes {
-  NameAndCloudAccount = 0,
-  ClusterConfig = 1,
-  ProvideConfig = 2,
-  MachinesConfig = 3,
-  Review = 4,
+  ClusterConfig = 0,
+  ProvideConfig = 1,
+  MachinesConfig = 2,
+  Review = 3,
 }
 
 @Component({
@@ -67,7 +66,6 @@ export class NewClusterComponent implements OnInit, OnDestroy {
   machinesConfigValid: boolean;
   displayMachinesConfigWarning: boolean;
   provisioning = false;
-  nameAndCloudAccountForm: FormGroup;
   clusterConfig: FormGroup;
   providerConfig: FormGroup;
   unavailableClusterNames = new Set();
@@ -95,16 +93,13 @@ export class NewClusterComponent implements OnInit, OnDestroy {
     );
 
 
-    this.nameAndCloudAccountForm = this.formBuilder.group({
+    this.clusterConfig = this.formBuilder.group({
       name: ['', [
         Validators.required,
         this.uniqueClusterName(this.unavailableClusterNames),
         Validators.maxLength(12),
         Validators.pattern('^[A-Za-z]([-A-Za-z0-9\-]*[A-Za-z0-9\-])?$')]],
       cloudAccount: ['', Validators.required],
-    });
-
-    this.clusterConfig = this.formBuilder.group({
       K8sVersion: ['1.14.0', Validators.required],
       networkProvider: ['Flannel', Validators.required],
       helmVersion: ['2.11.0', Validators.required],
@@ -123,7 +118,7 @@ export class NewClusterComponent implements OnInit, OnDestroy {
   }
 
   get name() {
-    return this.nameAndCloudAccountForm.get('name');
+    return this.clusterConfig.get('name');
   }
 
   get cidr() {
@@ -174,10 +169,19 @@ export class NewClusterComponent implements OnInit, OnDestroy {
     if (!this.provisioning) {
       // compile frontend new-cluster model into api format
       const newClusterData: any = {};
-      newClusterData.profile = this.clusterConfig.value;
+      newClusterData.profile = {};
 
       newClusterData.cloudAccountName = this.selectedCloudAccount.name;
       newClusterData.clusterName = this.clusterName;
+      newClusterData.profile.K8sVersion = this.clusterConfig.value.K8sVersion;
+      newClusterData.profile.arch = this.clusterConfig.value.arch;
+      newClusterData.profile.cidr = this.clusterConfig.value.cidr;
+      newClusterData.profile.dockerVersion = this.clusterConfig.value.dockerVersion;
+      newClusterData.profile.helmVersion = this.clusterConfig.value.helmVersion;
+      newClusterData.profile.networkProvider = this.clusterConfig.value.networkProvider;
+      newClusterData.profile.networkType = this.clusterConfig.value.networkType;
+      newClusterData.profile.operatingSystem = this.clusterConfig.value.operatingSystem;
+      newClusterData.profile.ubuntuVersion = this.clusterConfig.value.ubuntuVersion;
       newClusterData.profile.region = this.providerConfig.value.region.id;
       newClusterData.profile.provider = this.selectedCloudAccount.provider;
       newClusterData.profile.rbacEnabled = true;
@@ -195,10 +199,7 @@ export class NewClusterComponent implements OnInit, OnDestroy {
         case 'aws':
           newClusterData.profile.cloudSpecificSettings = {
             aws_vpc_cidr: this.providerConfig.value.vpcCidr,
-            aws_vpc_id: this.providerConfig.value.vpcId,
             aws_subnet_id: this.providerConfig.value.subnetId,
-            aws_masters_secgroup_id: this.providerConfig.value.mastersSecurityGroupId,
-            aws_nodes_secgroup_id: this.providerConfig.value.nodesSecurityGroupId,
           };
 
           newClusterData.profile.publicKey = this.providerConfig.value.publicKey;
@@ -397,12 +398,9 @@ export class NewClusterComponent implements OnInit, OnDestroy {
       case 'aws':
         this.providerConfig = this.formBuilder.group({
           region: ['', Validators.required],
-          vpcId: [''],
           vpcCidr: ['10.2.0.0/16', [Validators.required, this.validCidr()]],
           keypairName: [''],
           subnetId: [''],
-          mastersSecurityGroupId: [''],
-          nodesSecurityGroupId: [''],
           publicKey: ['', Validators.required],
         });
         break;

@@ -24,8 +24,9 @@ HOSTNAME="$(hostname -f)"
 
 {{if .IsMaster }}
 
-{{ if .IsBootstrap }}
 sudo mkdir -p /etc/supergiant
+
+{{ if .IsBootstrap }}
 
 sudo bash -c "cat << EOF > /etc/supergiant/kubeadm.conf
 ---
@@ -72,12 +73,28 @@ sudo kubeadm init --ignore-preflight-errors=NumCPU \
 --experimental-upload-certs
 {{ else }}
 
+sudo bash -c "cat << EOF > /etc/supergiant/kubeadm.conf
+apiVersion: kubeadm.k8s.io/v1beta1
+kind: JoinConfiguration
+nodeRegistration:
+  kubeletExtraArgs:
+    {{ if .Provider }}cloud-provider: {{ .Provider }}{{ end }}
+discovery:
+  bootstrapToken:
+    token: {{ .Token }}
+    apiServerEndpoint: {{ .InternalDNSName }}:443
+    unsafeSkipCAVerification: true
+controlPlane:
+  localAPIEndpoint:
+    advertiseAddress: {{ .AdvertiseAddress }}
+    bindPort: 443
+EOF"
+
 sudo kubeadm config images pull
-sudo kubeadm join --ignore-preflight-errors=NumCPU {{ .InternalDNSName }}:443 --token {{ .Token }} \
+sudo kubeadm join --ignore-preflight-errors=NumCPU {{ .InternalDNSName }}:443 \
 --node-name ${HOSTNAME} \
---discovery-token-unsafe-skip-ca-verification \
---experimental-control-plane \
---certificate-key {{ .CertificateKey }}
+--certificate-key {{ .CertificateKey }} \
+--config=/etc/supergiant/kubeadm.conf
 {{ end }}
 
 sudo mkdir -p $HOME/.kube
@@ -88,6 +105,3 @@ sudo kubeadm join --ignore-preflight-errors=NumCPU {{ .InternalDNSName }}:443 --
 --node-name ${HOSTNAME} \
 --discovery-token-unsafe-skip-ca-verification
 {{ end }}
-
-# Conventionally, after installing a CNI plugin, users copy PKI information across 2 more master nodes
-# and run a kubeadm command to add new control plane nodes. This results in a 3 node control plane.
