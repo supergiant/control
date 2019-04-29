@@ -23,6 +23,7 @@
 
   .mat-stepper-horizontal {
     background-color: rgba(0, 0, 0, 0.5);
+    border: 1px solid rgba(255, 255, 255, 0.25);
 
     .mat-step-label {
       font-weight: 300;
@@ -107,11 +108,6 @@
 
       .public-key-wrapper {
         width: 900px;
-        
-        &::-webkit-scrollbar {
-          width: 0px;
-          height: 0px;
-        }
       }
     }
 
