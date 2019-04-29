@@ -11,6 +11,10 @@
     margin-bottom: 10px;
   }
 
+  .mat-form-field-required-marker {
+    color: #D10088;
+  }
+
   .warning {
     color: #f44336;
     font-weight: 300;
@@ -19,7 +23,34 @@
 
   .mat-stepper-horizontal {
     background-color: rgba(0, 0, 0, 0.5);
-    border: 1px solid rgba(255, 255, 255, 0.25);
+
+    .mat-step-label {
+      font-weight: 300;
+    }
+
+    .mat-step-label.mat-step-label-active {
+      font-size: 16px;
+      color: #D10088;
+    }
+
+    .mat-step-label-selected {
+      font-weight: 500;
+    }
+
+    .mat-step-icon {
+      font-family: Montserrat, sans-serif;
+      font-size: 17px;
+      font-weight: 500;
+      color: black;
+      background-image: linear-gradient(315deg, #8721ff, #ff457e);
+    }
+
+    .mat-step-icon-not-touched {
+      font-family: Montserrat, sans-serif;
+      font-size: 17px;
+      font-weight: 500;
+      color: black;
+    }
 
     .step-actions {
       display: flex;
@@ -27,6 +58,7 @@
 
       button {
         margin-left: 24px;
+        min-width: 100px;
 
         &:nth-of-type(1) {
           margin-left: 0px;
@@ -38,17 +70,23 @@
       }
     }
 
-    .name-and-cloud-account {
+    .cluster-config-step {
       display: flex;
-      flex-direction: column;
-      width: 250px;
+      justify-content: space-between;
 
-      .mat-form-field {
+      .input-group {
+        display: flex;
+        flex-direction: column;
+        margin-left: 100px;
         width: 100%;
+
+        &:nth-of-type(1) {
+          margin-left: 0px;
+        }
       }
     }
 
-    .cluster-and-provider-config {
+    .provider-config-step {
       display: flex;
       justify-content: flex-start;
 
@@ -56,7 +94,7 @@
         display: flex;
         flex-direction: column;
         margin-left: 100px;
-        width: 250px;
+        width: 290px;
 
         &:nth-of-type(1) {
           margin-left: 0px;
@@ -65,14 +103,15 @@
         .regionsLoading {
           animation: loading 1s infinite;
         }
-
-        .azsLoading {
-          animation: loading 1s infinite;
-        }
       }
 
       .public-key-wrapper {
-        width: 400px;
+        width: 900px;
+        
+        &::-webkit-scrollbar {
+          width: 0px;
+          height: 0px;
+        }
       }
     }
 
@@ -86,18 +125,11 @@
 
         .mat-form-field {
           margin-right: 24px;
-        }
-
-        .type {
-          width: 240px;
+          width: 290px;
         }
 
         .machinesLoading {
           animation: loading 1s infinite;
-        }
-
-        .role {
-          width: 123px;
         }
 
         .quantity {
@@ -105,12 +137,13 @@
         }
 
         .delete {
-          background: url(/assets/img/delete.svg) no-repeat;
+          background: url(/assets/img/delete-pink.svg) no-repeat;
           background-size: 100% 100%;
           background-position: center;
           cursor: pointer;
           display: inline-block;
           margin: auto 0;
+          margin-top: 18px;
           height: 25px;
           width: 25px;
 
@@ -129,6 +162,10 @@
             color: $sg-pink;
           }
         }
+
+        .azsLoading {
+          animation: loading 1s infinite;
+        }
       }
 
       .add-machines {
@@ -141,7 +178,7 @@
         }
 
         .plus {
-          background: url(/assets/img/plus.svg) no-repeat;
+          background: url(/assets/img/plus-pink.svg) no-repeat;
           background-size: 100% 100%;
           background-position: center;
           margin: auto 0;
@@ -167,10 +204,15 @@
 
       .steps {
         display: flex;
-        justify-content: space-around;
+        justify-content: center;
+
+        .provider {
+          margin-left: 100px;
+          margin-right: 100px;
+        }
 
         .label {
-          color: #d10088;
+          color: #D10088;
           font-family: "Montserrat", sans-serif;
           font-size: 14px;
         }
