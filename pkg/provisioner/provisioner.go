@@ -554,7 +554,16 @@ func (tp *TaskProvisioner) waitCluster(ctx context.Context, clusterTask *workflo
 	buildNodeProvisionScript(ctx, config)
 
 	cfg := *config
-	result := clusterTask.Run(ctx, cfg, out)
+
+	// Get master node to run cluster task
+	if master := config.GetMaster(); master != nil {
+		logrus.Printf("Change one master %v to another %v", *master, cfg.Node)
+		cfg.Node = *master
+	} else {
+		return errors.New("No master found, cluster deployment failed")
+	}
+	clusterTask.Config = &cfg
+	result := clusterTask.Run(ctx, *clusterTask.Config, out)
 	err = <-result
 
 	if err != nil {
