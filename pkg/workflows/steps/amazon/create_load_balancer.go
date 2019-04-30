@@ -3,6 +3,8 @@ package amazon
 import (
 	"context"
 	"io"
+	"net"
+	"time"
 
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/aws/request"
@@ -21,6 +23,8 @@ type LoadBalancerCreater interface {
 }
 
 type CreateLoadBalancerStep struct {
+	timeout                time.Duration
+	attemptCount           int
 	getLoadBalancerService func(cfg steps.AWSConfig) (LoadBalancerCreater, error)
 }
 
@@ -31,6 +35,8 @@ func InitCreateLoadBalancer(getELBFn GetELBFn) {
 
 func NewCreateLoadBalancerStep(getELBFn GetELBFn) *CreateLoadBalancerStep {
 	return &CreateLoadBalancerStep{
+		timeout:      time.Second * 10,
+		attemptCount: 60,
 		getLoadBalancerService: func(cfg steps.AWSConfig) (LoadBalancerCreater, error) {
 
 			elbInstance, err := getELBFn(cfg)
@@ -158,6 +164,28 @@ func (s *CreateLoadBalancerStep) Run(ctx context.Context, out io.Writer, cfg *st
 
 	cfg.InternalDNSName = *output.DNSName
 	cfg.AWSConfig.InternalLoadBalancerName = *internalLoadBalancerName
+
+	for i := 0; i < s.attemptCount; i++ {
+		select {
+		case <- ctx.Done():
+			if ctx.Err() != nil {
+				return errors.Wrap(err, "context has finished with")
+			}
+			return nil
+		default:
+			_, err = net.LookupIP(cfg.InternalDNSName)
+
+			if err == nil {
+				break
+			}
+			time.Sleep(s.timeout)
+			logrus.Debugf("connect to load balancer %s with %v", cfg.InternalDNSName, err)
+		}
+	}
+
+	if err != nil {
+		return errors.Wrap(err, "error waiting for load balancer to come up")
+	}
 
 	return nil
 }

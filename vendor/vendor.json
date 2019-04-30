@@ -2430,6 +2430,12 @@
 			"versionExact": "v8.0.0"
 		},
 		{
+			"checksumSHA1": "PCmCOo7V1KqZAd4iFALqcNjBt5A=",
+			"path": "k8s.io/client-go/util/keyutil",
+			"revision": "65184652c88974f455258f2e0fbc6ac2c67e1786",
+			"revisionTime": "2019-04-25T14:12:49Z"
+		},
+		{
 			"checksumSHA1": "dwFe9aaX6DEICaeMIhVfD4CyquE=",
 			"path": "k8s.io/helm/pkg/chartutil",
 			"revision": "2e55dbe1fdb5fdb96b75ff144a339489417b146b",

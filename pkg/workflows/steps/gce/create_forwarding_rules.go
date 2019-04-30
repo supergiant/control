@@ -44,11 +44,6 @@ func NewCreateForwardingRulesStep() *CreateForwardingRules {
 
 func (s *CreateForwardingRules) Run(ctx context.Context, output io.Writer,
 	config *steps.Config) error {
-	// Skip this step for the rest of nodes
-	if !config.IsBootstrap {
-		return nil
-	}
-
 	logrus.Debugf("Step %s", CreateForwardingRulesStepName)
 
 	svc, err := s.getComputeSvc(ctx, config.GCEConfig)

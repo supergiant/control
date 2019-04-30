@@ -77,6 +77,8 @@ type Auth struct {
 	CACert    string `json:"caCert"`
 	AdminCert string `json:"adminCert"`
 	AdminKey  string `json:"adminKey"`
+	SAKey     string `json:"saKey"`
+	SAPub     string `json:"saPub"`
 }
 
 type Networking struct {

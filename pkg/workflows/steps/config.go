@@ -2,9 +2,10 @@ package steps
 
 import (
 	"encoding/json"
-	"github.com/supergiant/control/pkg/sgerrors"
 	"sync"
 	"time"
+
+	"github.com/supergiant/control/pkg/sgerrors"
 
 	"github.com/Azure/go-autorest/autorest"
 	"github.com/pkg/errors"
@@ -43,6 +44,9 @@ type CertificatesConfig struct {
 	ParenCert []byte `json:"parenCert"`
 	CACert    string `json:"caCert"`
 	CAKey     string `json:"caKey"`
+
+	SAKey string `json:"saKey"`
+	SAPub string `json:"saPub"`
 }
 
 type DOConfig struct {
@@ -149,12 +153,13 @@ type AWSConfig struct {
 }
 
 type NetworkConfig struct {
+	IsBootstrap     bool   `json:"isBootstrap"`
 	CIDR            string `json:"cidr"`
 	NetworkProvider string `json:"networkProvider"`
 }
 
 type PostStartConfig struct {
-	IsMaster    bool          `json:"isMaster"`
+	IsBootstrap bool          `json:"isBootstrap"`
 	Provider    clouds.Name   `json:"provider"`
 	Host        string        `json:"host"`
 	Port        string        `json:"port"`
@@ -182,9 +187,6 @@ type DownloadK8sBinary struct {
 	OperatingSystem string `json:"operatingSystem"`
 }
 
-type ClusterCheckConfig struct {
-	MachineCount int
-}
 
 type PrometheusConfig struct {
 	Port        string `json:"port"`
@@ -196,6 +198,7 @@ type KubeadmConfig struct {
 	IsMaster         bool   `json:"isMaster"`
 	AdvertiseAddress string `json:"advertiseAddress"`
 	IsBootstrap      bool   `json:"IsBootstrap"`
+	ServiceCIDR      string `json:"serviceCIDR"`
 	CIDR             string `json:"cidr"`
 	Token            string `json:"token"`
 	Provider         string `json:"provider"`
@@ -259,8 +262,6 @@ type Config struct {
 
 	ExternalDNSName string `json:"externalDnsName"`
 	InternalDNSName string `json:"internalDnsName"`
-
-	ClusterCheckConfig ClusterCheckConfig `json:"clusterCheckConfig"`
 
 	Node             model.Machine `json:"node"`
 	CloudAccountID   string        `json:"cloudAccountId" valid:"required, length(1|32)"`
@@ -363,9 +364,6 @@ func NewConfig(clusterName, cloudAccountName string, profile profile.Profile) (*
 			Arch:            profile.Arch,
 			RBACEnabled:     profile.RBACEnabled,
 		},
-		ClusterCheckConfig: ClusterCheckConfig{
-			MachineCount: len(profile.NodesProfiles) + len(profile.MasterProfiles),
-		},
 		PrometheusConfig: PrometheusConfig{
 			Port:        "30900",
 			RBACEnabled: profile.RBACEnabled,
@@ -374,6 +372,7 @@ func NewConfig(clusterName, cloudAccountName string, profile profile.Profile) (*
 			K8SVersion:  profile.K8SVersion,
 			IsBootstrap: true,
 			CIDR:        profile.CIDR,
+			ServiceCIDR: profile.K8SServicesCIDR,
 		},
 
 		Masters: Map{
@@ -451,6 +450,7 @@ func NewConfigFromKube(profile *profile.Profile, k *model.Kube) (*Config, error)
 			CACert:       k.Auth.CACert,
 			AdminCert:    k.Auth.AdminCert,
 			AdminKey:     k.Auth.AdminKey,
+			SAKey:        k.Auth.SAKey,
 		},
 		NetworkConfig: NetworkConfig{
 			NetworkProvider: profile.NetworkProvider,
@@ -471,9 +471,6 @@ func NewConfigFromKube(profile *profile.Profile, k *model.Kube) (*Config, error)
 			Arch:            profile.Arch,
 			RBACEnabled:     profile.RBACEnabled,
 		},
-		ClusterCheckConfig: ClusterCheckConfig{
-			MachineCount: len(profile.NodesProfiles) + len(profile.MasterProfiles),
-		},
 		PrometheusConfig: PrometheusConfig{
 			Port:        "30900",
 			RBACEnabled: profile.RBACEnabled,
@@ -483,6 +480,7 @@ func NewConfigFromKube(profile *profile.Profile, k *model.Kube) (*Config, error)
 			IsBootstrap: true,
 			Token:       k.BootstrapToken,
 			CIDR:        profile.CIDR,
+			ServiceCIDR: profile.K8SServicesCIDR,
 		},
 		Masters: Map{
 			internal: make(map[string]*model.Machine, len(profile.MasterProfiles)),
@@ -638,15 +636,4 @@ func (c *Config) GetAzureAuthorizer() autorest.Authorizer {
 	defer c.authorizerMux.RUnlock()
 
 	return c.azureAthorizer
-}
-
-// TODO: cloud profiles is deprecated by kubernetes, use controller-managers
-func toCloudProviderOpt(cloudName clouds.Name) string {
-	switch cloudName {
-	case clouds.AWS:
-		return "aws"
-	case clouds.GCE:
-		return "gce"
-	}
-	return ""
 }

@@ -181,7 +181,7 @@ func TestPostStartTimeout(t *testing.T) {
 	}
 
 	cfg.PostStartConfig = steps.PostStartConfig{
-		IsMaster:    true,
+		IsBootstrap: true,
 		Provider:    clouds.AWS,
 		Host:        "127.0.0.1",
 		Port:        port,

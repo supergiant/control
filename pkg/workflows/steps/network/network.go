@@ -8,10 +8,9 @@ import (
 
 	"github.com/pkg/errors"
 	"github.com/sirupsen/logrus"
-
 	tm "github.com/supergiant/control/pkg/templatemanager"
 	"github.com/supergiant/control/pkg/workflows/steps"
-	"github.com/supergiant/control/pkg/workflows/steps/ssh"
+	"github.com/supergiant/control/pkg/workflows/steps/kubeadm"
 )
 
 const StepName = "network"
@@ -37,6 +36,11 @@ func New(tpl *template.Template) *Step {
 }
 
 func (t *Step) Run(ctx context.Context, out io.Writer, config *steps.Config) error {
+	if !config.IsBootstrap {
+		return nil
+	}
+
+	config.NetworkConfig.IsBootstrap = config.IsBootstrap
 	logrus.Debugf("cluster %s: network config: %+v", config.ClusterName, config.NetworkConfig)
 	err := steps.RunTemplate(context.Background(), t.script, config.Runner, out, config.NetworkConfig)
 	if err != nil {
@@ -55,9 +59,9 @@ func (s *Step) Rollback(context.Context, io.Writer, *steps.Config) error {
 }
 
 func (t *Step) Description() string {
-	return "Configure networking"
+	return "Configure CNI plugin, that must happen during bootstrap node provisioning for HA cluster"
 }
 
 func (s *Step) Depends() []string {
-	return []string{ssh.StepName}
+	return []string{kubeadm.StepName}
 }

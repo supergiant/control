@@ -3,16 +3,20 @@ package provisioner
 import (
 	"bytes"
 	"context"
+	"crypto/rand"
+	"crypto/rsa"
 	"fmt"
-	"github.com/supergiant/control/pkg/runner/dry"
-	"github.com/supergiant/control/pkg/storage/memory"
 	"io"
 	"sync"
 	"time"
 
+	"k8s.io/client-go/util/keyutil"
+
 	"github.com/pkg/errors"
 	"github.com/sirupsen/logrus"
 
+	"github.com/supergiant/control/pkg/runner/dry"
+	"github.com/supergiant/control/pkg/storage/memory"
 	"github.com/supergiant/control/pkg/model"
 	"github.com/supergiant/control/pkg/pki"
 	"github.com/supergiant/control/pkg/profile"
@@ -21,6 +25,10 @@ import (
 	"github.com/supergiant/control/pkg/util"
 	"github.com/supergiant/control/pkg/workflows"
 	"github.com/supergiant/control/pkg/workflows/steps"
+)
+
+const (
+	rsaKeySize = 2048
 )
 
 type KubeService interface {
@@ -289,7 +297,16 @@ func (tp *TaskProvisioner) provision(ctx context.Context,
 
 	if len(taskMap[workflows.ClusterTask]) != 0 {
 		// Wait for cluster checks are finished
-		tp.waitCluster(ctx, taskMap[workflows.ClusterTask][0], config)
+		clusterTask := taskMap[workflows.ClusterTask][0]
+		err = tp.waitCluster(ctx, clusterTask, config)
+
+		if err != nil {
+			config.KubeStateChan() <- model.StateFailed
+			logrus.Errorf("cluster task %s has finished with error %v", clusterTask.ID, err)
+		} else {
+			config.KubeStateChan() <- model.StateOperational
+			logrus.Infof("cluster-task %s has finished", clusterTask.ID)
+		}
 	}
 	logrus.Infof("cluster %s deployment has finished",
 		config.ClusterID)
@@ -457,9 +474,9 @@ func (tp *TaskProvisioner) provisionMasters(ctx context.Context,
 
 		go func(t *workflows.Task) {
 			// Put task id to config so that create instance step can use this id when generate node name
-			t.Config.KubeadmConfig.IsBootstrap = false
 			t.Config.TaskID = t.ID
 			t.Config.IsMaster = true
+			t.Config.IsBootstrap = false
 
 			result := t.Run(ctx, *t.Config, out)
 			err = <-result
@@ -525,51 +542,26 @@ func (tp *TaskProvisioner) provisionNodes(ctx context.Context, profile *profile.
 	return nil
 }
 
-func (tp *TaskProvisioner) waitCluster(ctx context.Context, clusterTask *workflows.Task, config *steps.Config) {
-	// clusterWg controls entire cluster deployment, waits until all final checks are done
-	clusterWg := sync.WaitGroup{}
-	clusterWg.Add(1)
-
+func (tp *TaskProvisioner) waitCluster(ctx context.Context, clusterTask *workflows.Task, config *steps.Config) error {
 	fileName := util.MakeFileName(clusterTask.ID)
 	out, err := tp.getWriter(fileName)
 
 	if err != nil {
-		logrus.Errorf("Error getting writer for %s", fileName)
-		return
+		return errors.Wrapf(err, "Error getting writer for %s", fileName)
 	}
 
 	// Build node provision script and save it to ConfigMap
 	buildNodeProvisionScript(ctx, config)
 
-	go func(t *workflows.Task) {
-		defer clusterWg.Done()
-		cfg := *config
+	cfg := *config
+	result := clusterTask.Run(ctx, cfg, out)
+	err = <-result
 
-		if master := config.GetMaster(); master != nil {
-			logrus.Printf("Change one master %v to another %v", *master, cfg.Node)
-			cfg.Node = *master
-		} else {
-			config.KubeStateChan() <- model.StateFailed
-			logrus.Errorf("No master found, cluster deployment failed")
-			return
-		}
+	if err != nil {
+		return errors.Wrapf(err, "cluster task %s has finished with error %v", clusterTask.ID, err)
+	}
 
-		result := t.Run(ctx, cfg, out)
-		err = <-result
-
-		logrus.Printf("Node after posts start %v\n", cfg.Node)
-
-		if err != nil {
-			config.KubeStateChan() <- model.StateFailed
-			logrus.Errorf("cluster task %s has finished with error %v", t.ID, err)
-		} else {
-			config.KubeStateChan() <- model.StateOperational
-			logrus.Infof("cluster-task %s has finished", t.ID)
-		}
-	}(clusterTask)
-
-	// Wait for all task to be finished
-	clusterWg.Wait()
+	return nil
 }
 
 func buildNodeProvisionScript(ctx context.Context, config *steps.Config) {
@@ -627,6 +619,8 @@ func (tp *TaskProvisioner) buildInitialCluster(ctx context.Context,
 			CAKey:     config.CertificatesConfig.CAKey,
 			AdminCert: config.CertificatesConfig.AdminCert,
 			AdminKey:  config.CertificatesConfig.AdminKey,
+			SAKey:     config.CertificatesConfig.SAKey,
+			SAPub:     config.CertificatesConfig.SAPub,
 		},
 
 		Arch:                   profile.Arch,
@@ -679,6 +673,28 @@ func bootstrapCerts(config *steps.Config) error {
 	}
 	config.CertificatesConfig.AdminCert = string(admin.Cert)
 	config.CertificatesConfig.AdminKey = string(admin.Key)
+
+	key, err := rsa.GenerateKey(rand.Reader, rsaKeySize)
+
+	if err != nil {
+		return errors.Wrap(err, "generate sa key")
+	}
+
+	keyPem, err := keyutil.MarshalPrivateKeyToPEM(key)
+
+	if err != nil {
+		return errors.Wrap(err, "marshall sa key")
+	}
+
+	config.CertificatesConfig.SAKey = string(keyPem)
+
+	pemPublicKey, err := pki.EncodePublicKeyPEM(&key.PublicKey)
+
+	if err != nil {
+		return errors.Wrap(err, "marshall sa pub")
+	}
+
+	config.CertificatesConfig.SAPub = string(pemPublicKey)
 
 	return nil
 }
@@ -782,4 +798,3 @@ func (tp *TaskProvisioner) deserializeClusterTasks(ctx context.Context, kubeConf
 
 	return taskMap, nil
 }
-

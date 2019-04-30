@@ -269,21 +269,6 @@ func TestConfigGetNodes(t *testing.T) {
 	}
 }
 
-func TestToCloudProviderOpt(t *testing.T) {
-	for _, tc := range []struct {
-		in  clouds.Name
-		out string
-	}{
-		{clouds.AWS, "aws"},
-		{clouds.GCE, "gce"},
-		{clouds.DigitalOcean, ""},
-	} {
-		if toCloudProviderOpt(tc.in) != tc.out {
-			t.Logf("toCloudProvider(%s) = %s", tc.in, tc.out)
-		}
-	}
-}
-
 func TestNewConfigFromKube(t *testing.T) {
 	expectedMasterCount := 3
 	expectedNodeCount := 5
