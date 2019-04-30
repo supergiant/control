@@ -64,14 +64,6 @@ func (t *Step) Run(ctx context.Context, out io.Writer, config *steps.Config) err
 		}
 	}
 
-	// TODO: fix azure load balancer
-	if config.Provider == clouds.Azure {
-		config.KubeadmConfig.InternalDNSName = config.KubeadmConfig.MasterPrivateIP
-		if config.IsBootstrap {
-			config.KubeadmConfig.InternalDNSName = config.Node.PrivateIp
-		}
-	}
-
 	logrus.Debugf("kubeadm step: %s cluster: isBootstrap=%t extDNS=%s intDNS=%s masterIP=%s",
 		config.ClusterID, config.KubeadmConfig.IsBootstrap, config.KubeadmConfig.ExternalDNSName,
 		config.KubeadmConfig.InternalDNSName, config.KubeadmConfig.MasterPrivateIP)
