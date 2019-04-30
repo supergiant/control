@@ -103,9 +103,6 @@ sudo chown $(id -u):$(id -g) $HOME/.kube/config
 sudo bash -c "cat << EOF > /etc/supergiant/kubeadm.conf
 apiVersion: kubeadm.k8s.io/v1beta1
 kind: JoinConfiguration
-nodeRegistration:
-  kubeletExtraArgs:
-    {{ if .Provider }}cloud-provider: {{ .Provider }}{{ end }}
 discovery:
   bootstrapToken:
     token: {{ .Token }}
