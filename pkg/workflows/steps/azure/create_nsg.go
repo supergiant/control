@@ -141,10 +141,10 @@ func masterSecurityRules(sgAddr string) []network.SecurityRule {
 			},
 		},
 		{
-			Name: to.StringPtr("allow_https_for_sg"),
+			Name: to.StringPtr("allow_https"),
 			SecurityRulePropertiesFormat: &network.SecurityRulePropertiesFormat{
 				Protocol:                 network.SecurityRuleProtocolTCP,
-				SourceAddressPrefix:      to.StringPtr(fmt.Sprintf("%s/32", sgAddr)),
+				SourceAddressPrefix:      to.StringPtr("0.0.0.0/0"),
 				SourcePortRange:          to.StringPtr("1-65535"),
 				DestinationAddressPrefix: to.StringPtr("0.0.0.0/0"),
 				DestinationPortRange:     to.StringPtr("443"),
