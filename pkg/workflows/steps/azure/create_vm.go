@@ -114,6 +114,19 @@ func (s *CreateVMStep) setupVM(ctx context.Context, config *steps.Config, vmName
 		lbName = toLBName(config.ClusterID, config.ClusterName)
 	}
 
+	asName := toASName(config.ClusterID, config.ClusterName, model.ToRole(config.IsMaster).String())
+	as, err := s.ensureAvailabilitySet(
+		ctx,
+		config.GetAzureAuthorizer(),
+		config.AzureConfig.SubscriptionID,
+		config.AzureConfig.Location,
+		toResourceGroupName(config.ClusterID, config.ClusterName),
+		asName,
+	)
+	if err != nil {
+		return errors.Wrapf(err, "ensure %s availability set: %s", asName, err)
+	}
+
 	nic, err := s.setupNIC(
 		ctx,
 		config.GetAzureAuthorizer(),
@@ -141,6 +154,9 @@ func (s *CreateVMStep) setupVM(ctx context.Context, config *steps.Config, vmName
 		compute.VirtualMachine{
 			Location: to.StringPtr(config.AzureConfig.Location),
 			VirtualMachineProperties: &compute.VirtualMachineProperties{
+				AvailabilitySet: &compute.SubResource{
+					ID: as.ID,
+				},
 				HardwareProfile: &compute.HardwareProfile{
 					VMSize: compute.VirtualMachineSizeTypes(config.AzureConfig.VMSize),
 				},
@@ -269,6 +285,7 @@ func (s *CreateVMStep) setupNIC(ctx context.Context, a autorest.Authorizer, subs
 					},
 				},
 			},
+			EnableIPForwarding: to.BoolPtr(true),
 		},
 	}
 
@@ -294,8 +311,7 @@ func (s *CreateVMStep) createPublicIP(ctx context.Context, a autorest.Authorizer
 			Name:     to.StringPtr(ipName),
 			Location: to.StringPtr(location),
 			PublicIPAddressPropertiesFormat: &network.PublicIPAddressPropertiesFormat{
-				PublicIPAddressVersion:   network.IPv4,
-				PublicIPAllocationMethod: network.Static,
+				PublicIPAddressVersion: network.IPv4,
 			},
 		},
 	)
@@ -334,6 +350,23 @@ func (s *CreateVMStep) getPublicIP(ctx context.Context, a autorest.Authorizer, s
 		return "", err
 	}
 	return to.String(ip.IPAddress), nil
+}
+
+func (s *CreateVMStep) ensureAvailabilitySet(ctx context.Context, a autorest.Authorizer, subsID, location, groupName, asName string) (compute.AvailabilitySet, error) {
+	as, err := s.sdk.AvailabilitySetClient(a, subsID).CreateOrUpdate(ctx, groupName, asName, compute.AvailabilitySet{
+		Location: to.StringPtr(location),
+		Sku: &compute.Sku{
+			Name: to.StringPtr(string(compute.Aligned)),
+		},
+		AvailabilitySetProperties: &compute.AvailabilitySetProperties{
+			// TODO: set it dynamically? https://docs.microsoft.com/en-us/azure/virtual-machines/windows/manage-availability#number-of-fault-domains-per-region
+			PlatformFaultDomainCount: to.Int32Ptr(2),
+		},
+	})
+	if err != nil {
+		return compute.AvailabilitySet{}, err
+	}
+	return as, err
 }
 
 func getPrivateIP(nic network.Interface) string {

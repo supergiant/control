@@ -22,6 +22,10 @@ type fakeSDK struct {
 	vm     fakeVMClient
 }
 
+func (s fakeSDK) AvailabilitySetClient(a autorest.Authorizer, subscriptionID string) compute.AvailabilitySetsClient {
+	panic("implement me")
+}
+
 func (s fakeSDK) LBClient(a autorest.Authorizer, subscriptionID string) network.LoadBalancersClient {
 	panic("implement me")
 }
