@@ -75,6 +75,10 @@ func toSubnetName(clusterID, clusterName, role string) string {
 	return fmt.Sprintf("sg-subnet-%s-%s-%s", clusterName, clusterID, role)
 }
 
+func toASName(clusterID, clusterName, role string) string {
+	return fmt.Sprintf("sg-as-%s-%s-%s", clusterName, clusterID, role)
+}
+
 func toLBName(clusterID, clusterName string) string {
 	return fmt.Sprintf("sg-lb-%s-%s", clusterName, clusterID)
 }

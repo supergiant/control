@@ -2,14 +2,30 @@
 # https://download.docker.com/linux/ubuntu/dists/xenial/pool/stable/amd64/docker-ce_18.09.2~ce-0~ubuntu_amd64.deb
 
 DOCKER_VERSION={{ .Version }}
-UBUNTU_RELEASE={{ .ReleaseVersion }}
 ARCH={{ .Arch }}
-OUT_DIR=/tmp
-URL="https://download.docker.com/linux/ubuntu/dists/${UBUNTU_RELEASE}/pool/stable/${ARCH}/docker-ce_${DOCKER_VERSION}~ce~3-0~ubuntu_${ARCH}.deb"
 
 sudo apt-get update -y
-sudo wget -O $OUT_DIR/$(basename $URL) $URL
-sudo apt install -y $OUT_DIR/$(basename $URL)
-sudo rm $OUT_DIR/$(basename $URL)
+sudo apt-get install -y apt-transport-https ca-certificates curl gnupg-agent software-properties-common
 
-sudo systemctl enable docker.service
+curl -fsSL https://download.docker.com/linux/ubuntu/gpg | sudo apt-key add -
+sudo apt-key fingerprint 0EBFCD88
+
+sudo add-apt-repository \
+	"deb [arch=${ARCH}] https://download.docker.com/linux/ubuntu \
+	$(lsb_release -cs) \
+	stable"
+
+sudo apt-get update -y
+
+# show available docker versions:
+# apt-cache madison docker-ce
+
+FULL_DOCKER_VERSION=$(apt-cache madison docker-ce | cut -d '|' -f2 | tr -d ' ' | grep "${DOCKER_VERSION}")
+if [ -z "${FULL_DOCKER_VERSION}" ]; then
+	echo "package for the ${DOCKER_VERSION} docker version not found"
+	echo "Available packages:"
+	apt-cache madison docker-ce | cut -d '|' -f2 | tr -d ' '
+	exit 1
+fi
+
+sudo apt-get install -y docker-ce=${FULL_DOCKER_VERSION} containerd.io

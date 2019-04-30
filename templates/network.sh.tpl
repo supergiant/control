@@ -1,4 +1,9 @@
 {{ if .IsBootstrap }}
+
+# wait when apiserver is up and running
+
+until $([ $(sudo kubectl get po -n kube-system|grep apiserver |grep Running|wc -l) -ge 1 ]); do printf '.'; sleep 5; done
+
 {{ if eq .NetworkProvider "Flannel" }}
 sudo bash -c 'cat << EOF > flannel.yaml
 ---

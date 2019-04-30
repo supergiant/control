@@ -51,6 +51,7 @@ type SDKInterface interface {
 	NSGClient(a autorest.Authorizer, subscriptionID string) SecurityGroupInterface
 	VMClient(a autorest.Authorizer, subscriptionID string) VMInterface
 	LBClient(a autorest.Authorizer, subscriptionID string) network.LoadBalancersClient
+	AvailabilitySetClient(a autorest.Authorizer, subscriptionID string) compute.AvailabilitySetsClient
 }
 
 type SDK struct {
@@ -100,4 +101,10 @@ func (s SDK) LBClient(a autorest.Authorizer, subscriptionID string) network.Load
 	lbclient := network.NewLoadBalancersClient(subscriptionID)
 	lbclient.Authorizer = a
 	return lbclient
+}
+
+func (s SDK) AvailabilitySetClient(a autorest.Authorizer, subscriptionID string) compute.AvailabilitySetsClient {
+	aslient := compute.NewAvailabilitySetsClient(subscriptionID)
+	aslient.Authorizer = a
+	return aslient
 }
