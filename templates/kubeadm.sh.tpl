@@ -22,10 +22,10 @@ HOSTNAME="$(hostname -f)"
 # TODO: place ca/kubeblet certificates to the custom dir to make this step idempotent.
 #       `kubeadm reset` removes this certificates and then creates a new one.
 
-{{if .IsMaster }}
 
 sudo mkdir -p /etc/supergiant
 
+{{if .IsMaster }}
 {{ if .IsBootstrap }}
 
 sudo bash -c "cat << EOF > /etc/supergiant/kubeadm.conf
@@ -99,7 +99,21 @@ sudo mkdir -p $HOME/.kube
 sudo cp -i /etc/kubernetes/admin.conf $HOME/.kube/config
 sudo chown $(id -u):$(id -g) $HOME/.kube/config
 {{ else }}
-sudo kubeadm join --ignore-preflight-errors=NumCPU {{ .InternalDNSName }}:443 --token {{ .Token }} \
+
+sudo bash -c "cat << EOF > /etc/supergiant/kubeadm.conf
+apiVersion: kubeadm.k8s.io/v1beta1
+kind: JoinConfiguration
+nodeRegistration:
+  kubeletExtraArgs:
+    {{ if .Provider }}cloud-provider: {{ .Provider }}{{ end }}
+discovery:
+  bootstrapToken:
+    token: {{ .Token }}
+    apiServerEndpoint: {{ .InternalDNSName }}:443
+    unsafeSkipCAVerification: true
+EOF"
+
+sudo kubeadm join --ignore-preflight-errors=NumCPU {{ .InternalDNSName }}:443 \
 --node-name ${HOSTNAME} \
---discovery-token-unsafe-skip-ca-verification
+--config=/etc/supergiant/kubeadm.conf
 {{ end }}
