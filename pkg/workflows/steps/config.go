@@ -286,8 +286,6 @@ type Config struct {
 
 // NewConfig builds instance of config for provisioning
 func NewConfig(clusterName, cloudAccountName string, profile profile.Profile) (*Config, error) {
-	// kubelet is always looking for lowercase names when provision, so do not use capitalized letter
-
 	return &Config{
 		Kube: model.Kube{
 			SSHConfig: model.SSHConfig{
