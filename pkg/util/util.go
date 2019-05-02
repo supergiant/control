@@ -7,6 +7,7 @@ import (
 	"math/rand"
 	"os"
 	"path"
+	"strings"
 	"time"
 
 	"github.com/pkg/errors"
@@ -40,10 +41,10 @@ func RandomString(n int) string {
 
 func MakeNodeName(clusterName string, nodeId string, isMaster bool) string {
 	if isMaster {
-		return fmt.Sprintf("%s-%s-%s", clusterName, "master", nodeId[:4])
+		return fmt.Sprintf("%s-%s-%s", strings.ToLower(clusterName), "master", nodeId[:4])
 	}
 
-	return fmt.Sprintf("%s-%s-%s", clusterName, "node", nodeId[:4])
+	return fmt.Sprintf("%s-%s-%s", strings.ToLower(clusterName), "node", nodeId[:4])
 }
 
 // bind params uses json serializing and reflect package that is underneath
