@@ -95,7 +95,7 @@ const (
       "Resource": [
         "*"
       ]
-    },
+    }
   ]
 }`
 
@@ -186,12 +186,14 @@ func ensureIAMProfile(ctx context.Context, iamS iamiface.IAMAPI, prefix, role st
 	var err error
 	name := buildIAMName(prefix, role)
 
-	if err = createIAMRolePolicy(ctx, iamS, name, policyFor(role)); err != nil {
-		return "", errors.Wrapf(err, "ensure %s policy exists", name)
-	}
 	if err = createIAMRole(ctx, iamS, name, assumePolicy); err != nil {
 		return "", errors.Wrapf(err, "ensure %s role exists", name)
 	}
+
+	if err = createIAMRolePolicy(ctx, iamS, name, policyFor(role)); err != nil {
+		return "", errors.Wrapf(err, "ensure %s policy exists", name)
+	}
+	
 	if err = createIAMInstanceProfile(ctx, iamS, name); err != nil {
 		return "", errors.Wrapf(err, "ensure %s instance profile exists", name)
 	}
