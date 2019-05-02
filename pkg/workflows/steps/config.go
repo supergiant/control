@@ -2,6 +2,7 @@ package steps
 
 import (
 	"encoding/json"
+	"strings"
 	"sync"
 	"time"
 
@@ -286,6 +287,11 @@ type Config struct {
 
 // NewConfig builds instance of config for provisioning
 func NewConfig(clusterName, cloudAccountName string, profile profile.Profile) (*Config, error) {
+	// kubelet is always looking for lowercase names when provision, so do not use capitalized letters
+	if profile.Provider == clouds.DigitalOcean {
+		clusterName = strings.ToLower(clusterName)
+	}
+
 	return &Config{
 		Kube: model.Kube{
 			SSHConfig: model.SSHConfig{
