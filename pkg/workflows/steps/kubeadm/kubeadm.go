@@ -50,17 +50,8 @@ func (t *Step) Run(ctx context.Context, out io.Writer, config *steps.Config) err
 	config.KubeadmConfig.ExternalDNSName = config.ExternalDNSName
 	config.KubeadmConfig.Token = config.BootstrapToken
 	config.KubeadmConfig.PrivateIP = config.Node.PrivateIp
+	config.KubeadmConfig.AdvertiseAddress = config.Node.PrivateIp
 
-	// NOTE(stgleb): Kubeadm accepts only ipv4 or ipv6 addresses as advertise address
-	if config.IsBootstrap {
-		config.KubeadmConfig.AdvertiseAddress = config.Node.PrivateIp
-
-		// NOTE(stgleb): kubeadm binds to the first non-loopback network interface, in case of DO it is public
-		// interface
-		if config.Provider == clouds.DigitalOcean {
-			config.KubeadmConfig.AdvertiseAddress = config.Node.PublicIp
-		}
-	}
 	logrus.Debugf("kubeadm step: %s cluster: isBootstrap=%t extDNS=%s intDNS=%s",
 		config.ClusterID, config.KubeadmConfig.IsBootstrap, config.KubeadmConfig.ExternalDNSName,
 		config.KubeadmConfig.InternalDNSName)

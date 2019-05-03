@@ -37,6 +37,7 @@ localAPIEndpoint:
   bindPort: 443
 nodeRegistration:
   kubeletExtraArgs:
+    address: {{ .PrivateIP }}
     node-ip: {{ .PrivateIP }}
 {{ if .Provider }}    cloud-provider: {{ .Provider }}{{ end }}
 ---
@@ -52,6 +53,7 @@ apiServer:
   - {{ .InternalDNSName }}
   extraArgs:
     authorization-mode: Node,RBAC
+    bind-address: {{ .PrivateIP }}
 {{ if .Provider }}    cloud-provider: {{ .Provider }}{{ end }}
   timeoutForControlPlane: 8m0s
 controllerManager:
@@ -73,13 +75,13 @@ sudo kubeadm init --ignore-preflight-errors=NumCPU \
 --config=/etc/supergiant/kubeadm.conf
 {{ else }}
 
-# TODO(stgleb): Use separate cluster configuratipon to specify advertise address and extra SANs
 sudo bash -c "cat << EOF > /etc/supergiant/kubeadm.conf
 apiVersion: kubeadm.k8s.io/v1beta1
 kind: JoinConfiguration
 nodeRegistration:
   kubeletExtraArgs:
     node-ip: {{ .PrivateIP }}
+    address: {{ .PrivateIP }}
     {{ if .Provider }}cloud-provider: {{ .Provider }}{{ end }}
 discovery:
   bootstrapToken:
@@ -90,6 +92,38 @@ controlPlane:
   localAPIEndpoint:
     advertiseAddress: {{ .AdvertiseAddress }}
     bindPort: 443
+---
+apiVersion: kubeadm.k8s.io/v1beta1
+kind: ClusterConfiguration
+kubernetesVersion: v{{ .K8SVersion }}
+clusterName: kubernetes
+controlPlaneEndpoint: {{ .InternalDNSName }}
+certificatesDir: /etc/kubernetes/pki
+apiServer:
+  certSANs:
+  - {{ .ExternalDNSName }}
+  - {{ .InternalDNSName }}
+  extraArgs:
+    authorization-mode: Node,RBAC
+    bind-address: {{ .PrivateIP }}
+{{ if .Provider }}    cloud-provider: {{ .Provider }}{{ end }}
+  timeoutForControlPlane: 8m0s
+controllerManager:
+  extraArgs:
+  bind-address: {{ .PrivateIP }}
+{{ if .Provider }}    cloud-provider: {{ .Provider }}{{ end }}
+scheduler:
+  extraArgs:
+    bind-address: {{ .PrivateIP }}
+dns:
+  type: CoreDNS
+etcd:
+  local:
+    dataDir: /var/lib/etcd
+networking:
+  dnsDomain: cluster.local
+  podSubnet: {{ .CIDR }}
+  serviceSubnet: {{ .ServiceCIDR }}
 EOF"
 
 sudo kubeadm config images pull
@@ -108,6 +142,7 @@ apiVersion: kubeadm.k8s.io/v1beta1
 kind: JoinConfiguration
 nodeRegistration:
   kubeletExtraArgs:
+    address: {{ .PrivateIP }}
     node-ip: {{ .PrivateIP }}
 {{ if .Provider }}    cloud-provider: {{ .Provider }}{{ end }}
 discovery:
