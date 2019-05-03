@@ -77,14 +77,15 @@
           <mat-header-cell *matHeaderCellDef>Status</mat-header-cell>
           <mat-cell class="task-status"
                     *matCellDef="let task">
-            <mat-spinner class="executing-spinner"
-                         *ngIf="task?.status == 'executing'"
-                         [diameter]="24"></mat-spinner>
-            <div class="ready-icon"
-                 *ngIf="task?.status == 'success'"></div>
-            <div class="failed-icon"
-                 *ngIf="task?.status == 'error'"></div>
-            <span style="padding-left: 12px;">{{ task.status | titlecase }}</span>
+            <div class="status-icon">
+              <mat-spinner *ngIf="task?.status == 'executing'"
+                           [diameter]="24"></mat-spinner>
+              <div class="ready-icon"
+                   *ngIf="task?.status == 'success'"></div>
+              <div class="failed-icon"
+                   *ngIf="task?.status == 'error'"></div>
+            </div>
+            <span>{{ task.status | titlecase }}</span>
           </mat-cell>
         </ng-container>
 

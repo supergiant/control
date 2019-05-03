@@ -665,22 +665,27 @@
         .task-status {
           justify-content: flex-start;
 
-          .executing-spinner {
-            margin-left: 13px;
-          }
-
-          .ready-icon {
-            background: url(/assets/img/cluster-details/steps/icon_ready.svg) no-repeat center;
-            // why?
-            background-size: 685%;
+          .status-icon{
+            width: 48px;
             height: 48px;
-            width: 48px;
-          }
+            margin-right: 12px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
 
-          .failed-icon {
-            background: url(/assets/img/cluster-details/steps/icon_failed.svg) no-repeat center;
-            height: 30px;
-            width: 48px;
+            .ready-icon {
+              background: url(/assets/img/cluster-details/steps/icon_ready.svg) no-repeat center;
+              // why?
+              background-size: 685%;
+              height: 48px;
+              width: 48px;
+            }
+
+            .failed-icon {
+              background: url(/assets/img/cluster-details/steps/icon_failed.svg) no-repeat center;
+              height: 30px;
+              width: 48px;
+            }
           }
         }
 
