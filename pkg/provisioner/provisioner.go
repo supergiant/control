@@ -434,6 +434,10 @@ func (tp *TaskProvisioner) provisionMasters(ctx context.Context,
 		return nil
 	}
 
+	wg := sync.WaitGroup{}
+	errChan := make(chan error)
+	wg.Add(len(tasks))
+
 	rootConfig.IsMaster = true
 	// ProvisionCluster rest of master nodes master nodes
 	for index, masterTask := range tasks {
@@ -461,6 +465,8 @@ func (tp *TaskProvisioner) provisionMasters(ctx context.Context,
 		}
 
 		go func(t *workflows.Task) {
+			defer wg.Done()
+
 			// Put task id to config so that create instance step can use this id when generate node name
 			t.Config.TaskID = t.ID
 			t.Config.IsMaster = true
@@ -468,6 +474,7 @@ func (tp *TaskProvisioner) provisionMasters(ctx context.Context,
 
 			result := t.Run(ctx, *t.Config, out)
 			err = <-result
+			errChan <- err
 
 			if err != nil {
 				logrus.Errorf("master task %s has finished with error %v", t.ID, err)
@@ -477,7 +484,12 @@ func (tp *TaskProvisioner) provisionMasters(ctx context.Context,
 		}(masterTask)
 	}
 
-	return nil
+	go func(){
+		wg.Wait()
+		close(errChan)
+	}()
+
+	return <- errChan
 }
 
 func (tp *TaskProvisioner) provisionNodes(ctx context.Context, profile *profile.Profile, rootConfig *steps.Config, tasks []*workflows.Task) error {

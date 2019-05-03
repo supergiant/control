@@ -33,11 +33,9 @@ sudo bash -c "cat << EOF > /etc/supergiant/kubeadm.conf
 apiVersion: kubeadm.k8s.io/v1beta1
 kind: InitConfiguration
 localAPIEndpoint:
-  advertiseAddress: {{ .AdvertiseAddress }}
   bindPort: 443
 nodeRegistration:
   kubeletExtraArgs:
-    address: {{ .PrivateIP }}
     node-ip: {{ .PrivateIP }}
 {{ if .Provider }}    cloud-provider: {{ .Provider }}{{ end }}
 ---
@@ -53,16 +51,13 @@ apiServer:
   - {{ .InternalDNSName }}
   extraArgs:
     authorization-mode: Node,RBAC
-    bind-address: {{ .PrivateIP }}
 {{ if .Provider }}    cloud-provider: {{ .Provider }}{{ end }}
   timeoutForControlPlane: 8m0s
 controllerManager:
   extraArgs:
-    bind-address: {{ .PrivateIP }}
 {{ if .Provider }}    cloud-provider: {{ .Provider }}{{ end }}
 scheduler:
   extraArgs:
-    bind-address: {{ .PrivateIP }}
 dns:
   type: CoreDNS
 etcd:
@@ -84,7 +79,6 @@ apiVersion: kubeadm.k8s.io/v1beta1
 kind: JoinConfiguration
 nodeRegistration:
   kubeletExtraArgs:
-    address: {{ .PrivateIP }}
     node-ip: {{ .PrivateIP }}
     {{ if .Provider }}cloud-provider: {{ .Provider }}{{ end }}
 discovery:
@@ -94,7 +88,6 @@ discovery:
     unsafeSkipCAVerification: true
 controlPlane:
   localAPIEndpoint:
-    advertiseAddress: {{ .AdvertiseAddress }}
     bindPort: 443
 EOF"
 
@@ -114,7 +107,6 @@ apiVersion: kubeadm.k8s.io/v1beta1
 kind: JoinConfiguration
 nodeRegistration:
   kubeletExtraArgs:
-    address: {{ .PrivateIP }}
     node-ip: {{ .PrivateIP }}
 {{ if .Provider }}    cloud-provider: {{ .Provider }}{{ end }}
 discovery:
