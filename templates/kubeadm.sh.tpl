@@ -39,7 +39,7 @@ nodeRegistration:
   kubeletExtraArgs:
     address: {{ .PrivateIP }}
     node-ip: {{ .PrivateIP }}
-{{ if .Provider }}    cloud-provider: {{ .Provider }}{{ end }}
+    {{ if .Provider }}cloud-provider: {{ .Provider }}{{ end }}
 ---
 apiVersion: kubeadm.k8s.io/v1beta1
 kind: ClusterConfiguration
@@ -54,15 +54,11 @@ apiServer:
   extraArgs:
     authorization-mode: Node,RBAC
     bind-address: {{ .PrivateIP }}
-{{ if .Provider }}    cloud-provider: {{ .Provider }}{{ end }}
+    {{ if .Provider }}cloud-provider: {{ .Provider }}{{ end }}
   timeoutForControlPlane: 8m0s
 controllerManager:
   extraArgs:
-    bind-address: {{ .PrivateIP }}
-{{ if .Provider }}    cloud-provider: {{ .Provider }}{{ end }}
-scheduler:
-  extraArgs:
-    bind-address: {{ .PrivateIP }}
+    {{ if .Provider }}cloud-provider: {{ .Provider }}{{ end }}
 dns:
   type: CoreDNS
 etcd:
@@ -116,7 +112,7 @@ nodeRegistration:
   kubeletExtraArgs:
     address: {{ .PrivateIP }}
     node-ip: {{ .PrivateIP }}
-{{ if .Provider }}    cloud-provider: {{ .Provider }}{{ end }}
+    {{ if .Provider }}cloud-provider: {{ .Provider }}{{ end }}
 discovery:
   bootstrapToken:
     token: {{ .Token }}
