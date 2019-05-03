@@ -33,6 +33,7 @@ sudo bash -c "cat << EOF > /etc/supergiant/kubeadm.conf
 apiVersion: kubeadm.k8s.io/v1beta1
 kind: InitConfiguration
 localAPIEndpoint:
+  advertiseAddress: {{ .AdvertiseAddress }}
   bindPort: 443
 nodeRegistration:
   kubeletExtraArgs:
@@ -56,8 +57,6 @@ apiServer:
 controllerManager:
   extraArgs:
 {{ if .Provider }}    cloud-provider: {{ .Provider }}{{ end }}
-scheduler:
-  extraArgs:
 dns:
   type: CoreDNS
 etcd:
@@ -88,6 +87,7 @@ discovery:
     unsafeSkipCAVerification: true
 controlPlane:
   localAPIEndpoint:
+    advertiseAddress: {{ .AdvertiseAddress }}
     bindPort: 443
 EOF"
 
