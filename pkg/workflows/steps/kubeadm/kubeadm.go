@@ -55,6 +55,8 @@ func (t *Step) Run(ctx context.Context, out io.Writer, config *steps.Config) err
 	if config.IsBootstrap {
 		config.KubeadmConfig.AdvertiseAddress = config.Node.PrivateIp
 
+		// NOTE(stgleb): kubeadm binds to the first non-loopback network interface, in case of DO it is public
+		// interface
 		if config.Provider == clouds.DigitalOcean {
 			config.KubeadmConfig.AdvertiseAddress = config.Node.PublicIp
 		}

@@ -73,6 +73,7 @@ sudo kubeadm init --ignore-preflight-errors=NumCPU \
 --config=/etc/supergiant/kubeadm.conf
 {{ else }}
 
+# TODO(stgleb): Use separate cluster configuratipon to specify advertise address and extra SANs
 sudo bash -c "cat << EOF > /etc/supergiant/kubeadm.conf
 apiVersion: kubeadm.k8s.io/v1beta1
 kind: JoinConfiguration
