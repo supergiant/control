@@ -344,12 +344,6 @@
                 <mat-option *ngFor="let type of availableMachineTypes | callback: machineTypesFilterCallback"
                             [value]="type">{{ type }}</mat-option>
               </mat-select>
-              <mat-hint align="end">
-                <ng-container *ngIf="m.recommendedNodesCount"
-                              [ngTemplateOutlet]="recommendedNodesCountTpl"
-                              [ngTemplateOutletContext]="{ $implicit: m.recommendedNodesCount }">
-                </ng-container>
-              </mat-hint>
             </mat-form-field>
 
             <mat-form-field>
@@ -375,11 +369,6 @@
                  (keyup.enter)="deleteMachine(idx)"
                  tabindex="0">
             </div>
-
-            <ng-container *ngIf="m.recommendedNodesCount"
-                          [ngTemplateOutlet]="recommendedNodesCountTpl"
-                          [ngTemplateOutletContext]="{ $implicit: m.recommendedNodesCount }">
-            </ng-container>
           </div>
 
           <div class="add-machines"
@@ -428,12 +417,6 @@
                   {{ type }}
                 </mat-option>
               </mat-select>
-              <mat-hint align="end">
-                <ng-container *ngIf="m.recommendedNodesCount"
-                              [ngTemplateOutlet]="recommendedNodesCountTpl"
-                              [ngTemplateOutletContext]="{ $implicit: m.recommendedNodesCount }">
-                </ng-container>
-              </mat-hint>
             </mat-form-field>
 
             <mat-form-field class="role">
@@ -459,11 +442,6 @@
                  (keyup.enter)="deleteMachine(idx)"
                  tabindex="0">
             </div>
-
-            <ng-container *ngIf="m.recommendedNodesCount"
-                          [ngTemplateOutlet]="recommendedNodesCountTpl"
-                          [ngTemplateOutletContext]="{ $implicit: m.recommendedNodesCount }">
-            </ng-container>
           </div>
 
           <div class="add-machines"
@@ -510,12 +488,6 @@
                   {{ type }}
                 </mat-option>
               </mat-select>
-              <mat-hint align="end">
-                <ng-container *ngIf="m.recommendedNodesCount"
-                              [ngTemplateOutlet]="recommendedNodesCountTpl"
-                              [ngTemplateOutletContext]="{ $implicit: m.recommendedNodesCount }">
-                </ng-container>
-              </mat-hint>
             </mat-form-field>
 
             <mat-form-field class="role">
@@ -573,12 +545,6 @@
                 <mat-option *ngFor="let type of availableMachineTypes | callback: machineTypesFilterCallback"
                             [value]="type">{{ type }}</mat-option>
               </mat-select>
-              <mat-hint align="end">
-                <ng-container *ngIf="m.recommendedNodesCount"
-                              [ngTemplateOutlet]="recommendedNodesCountTpl"
-                              [ngTemplateOutletContext]="{ $implicit: m.recommendedNodesCount }">
-                </ng-container>
-              </mat-hint>
             </mat-form-field>
 
             <mat-form-field class="role">
@@ -604,11 +570,6 @@
                  (keyup.enter)="deleteMachine(idx)"
                  tabindex="0">
             </div>
-
-            <ng-container *ngIf="m.recommendedNodesCount"
-                          [ngTemplateOutlet]="recommendedNodesCountTpl"
-                          [ngTemplateOutletContext]="{ $implicit: m.recommendedNodesCount }">
-            </ng-container>
           </div>
 
           <div class="add-machines"
@@ -746,21 +707,3 @@
   </div>
 </div>
 
-<ng-template #recommendedNodesCountTpl
-             let-recommendedNodesCount>
-  <div class="cluster-size-recommendation">
-                <span class="text">
-                  Recommended cluster size is
-                </span>
-    <span>&nbsp;</span>
-    <span class="is-highlighted"
-          matTooltip="A guessed and recommended maximum number of worker nodes supported by given cluster configuration. This is not 100% accurate, please refer to kubernetes documentation and use your best judgement on making this decision">
-                  <b>{{ recommendedNodesCount }}</b><span>&nbsp;</span>nodes
-                  <span>&nbsp;</span>
-                  <mat-icon>
-                    info
-                  </mat-icon>
-                </span>
-
-  </div>
-</ng-template>
