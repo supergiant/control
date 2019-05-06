@@ -451,7 +451,6 @@ export class NewClusterComponent implements OnInit, OnDestroy {
 
     if (selectedOption) {
       const selectedMachineType: string = selectedOption.value;
-      this.updateRecommendations(currentMachine, selectedMachineType);
     }
 
     if (this.machines.every(this.validMachine) && this.isOddNumberOfMasters() && this.hasMasterAndNode(this.machines)) {
@@ -459,59 +458,6 @@ export class NewClusterComponent implements OnInit, OnDestroy {
       this.displayMachinesConfigWarning = false;
     } else {
       this.machinesConfigValid = false;
-    }
-  }
-
-  private updateRecommendations(currentMachine: IMachineType, selectedMachineType: string) {
-    // checking recommendation for cluster size
-    if (currentMachine && currentMachine.role === MachineRoles.master) {
-      currentMachine.recommendedNodesCount =
-        this.getRecommendedNodesCount(selectedMachineType) * currentMachine.qty;
-    } else if (currentMachine) {
-      currentMachine.recommendedNodesCount = 0;
-    }
-  }
-
-  getRecommendedNodesCount(machineType: string): number {
-
-    // TODO: move these consts into config file
-    const AWS_RECOMENDATIONS = {
-      'm3.medium': 5,
-      'm3.large': 10,
-      'm3.xlarge': 100,
-      'm3.2xlarge': 250,
-      'c4.4xlarge': 500,
-      'c4.8xlarge': 500,
-    };
-
-    const DO_RECOMMENDATIONS = {
-      's-1vcpu-3gb': 5,
-      's-4vcpu-8gb': 10,
-      's-6vcpu-16gb': 100,
-      's-8vcpu-32gb': 250,
-      's-16vcpu-64gb': 500,
-    };
-
-    const GCE_RECOMMENDATIONS = {
-      'n1-standard-1': 5,
-      'n1-standard-2': 10,
-      'n1-standard-4': 100,
-      'n1-standard-8': 250,
-      'n1-standard-16': 500,
-      'n1-standard-32': 1000,
-    };
-
-
-    switch (this.selectedCloudAccount.provider) {
-      case CloudProviders.aws:
-        return AWS_RECOMENDATIONS[machineType];
-      case CloudProviders.digitalocean:
-        return DO_RECOMMENDATIONS[machineType];
-      case CloudProviders.gce:
-        return GCE_RECOMMENDATIONS[machineType];
-
-      default:
-        return 0;
     }
   }
 

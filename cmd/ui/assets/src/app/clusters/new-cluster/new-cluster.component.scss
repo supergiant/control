@@ -148,17 +148,6 @@
           }
         }
 
-        .cluster-size-recommendation {
-
-          .text {
-            color: grey;
-          }
-
-          .mat-icon, .is-highlighted {
-            color: $sg-pink;
-          }
-        }
-
         .azsLoading {
           animation: loading 1s infinite;
         }
