@@ -89,7 +89,7 @@
                       matInput
                       formControlName="exposedAddresses"
                       placeholder="IP Whitelist"></textarea>
-            <mat-hint align="end">Enter each 
+            <mat-hint align="end">Enter each
               <a href="https://en.wikipedia.org/wiki/Classless_Inter-Domain_Routing"
                 target="_blank">CIDR</a> block on its own line
             </mat-hint>
@@ -651,7 +651,7 @@
               <p><span class="label">IP WHITELIST:</span>
                 <div *ngFor="let e of exposedAddressesArray">
                   {{e}}
-                </div> 
+                </div>
             </div>
           </div>
 
@@ -735,7 +735,7 @@
   <div *ngIf="(availableCloudAccounts$ | async)?.length === 0">
     <div class="no-cloud-accounts">
       <h2>You have no cloud accounts linked to Supergiant</h2>
-      <p>Link an AWS or Digital Ocean cloud account and have a Supergiant cluster up in minutes</p>
+      <p>Link an AWS, GCE, Azure, or Digital Ocean cloud account and have a Supergiant cluster up in minutes</p>
       <div>
         <button mat-raised-button
                 color="primary"
