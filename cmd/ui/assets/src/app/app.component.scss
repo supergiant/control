@@ -6,7 +6,11 @@
   padding: 49px;
 
   .content {
-    min-height: calc(100vh - 275px);
+    min-height: calc(100vh - 375px);
     margin-top: 110px;
+  }
+
+  .app-footer {
+    padding-bottom: 0px;
   }
 }
