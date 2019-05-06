@@ -1,11 +1,10 @@
 :host {
   display: flex;
   justify-content: flex-end;
-  padding-right: 85px;
 
   .system-menu {
-    align-items: center;
     display: flex;
+    justify-content: flex-end;
     cursor: pointer;
     width: 45px;
 
