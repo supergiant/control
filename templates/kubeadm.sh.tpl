@@ -80,8 +80,8 @@ apiVersion: kubeadm.k8s.io/v1beta1
 kind: JoinConfiguration
 nodeRegistration:
   kubeletExtraArgs:
-    address: {{ .PrivateIP }}
     node-ip: {{ .PrivateIP }}
+    address: {{ .PrivateIP }}
     {{ if .Provider }}cloud-provider: {{ .Provider }}{{ end }}
 discovery:
   bootstrapToken:
@@ -92,6 +92,38 @@ controlPlane:
   localAPIEndpoint:
     advertiseAddress: {{ .AdvertiseAddress }}
     bindPort: 443
+---
+apiVersion: kubeadm.k8s.io/v1beta1
+kind: ClusterConfiguration
+kubernetesVersion: v{{ .K8SVersion }}
+clusterName: kubernetes
+controlPlaneEndpoint: {{ .InternalDNSName }}
+certificatesDir: /etc/kubernetes/pki
+apiServer:
+  certSANs:
+  - {{ .ExternalDNSName }}
+  - {{ .InternalDNSName }}
+  extraArgs:
+    authorization-mode: Node,RBAC
+    bind-address: {{ .PrivateIP }}
+    {{ if .Provider }}cloud-provider: {{ .Provider }}{{ end }}
+  timeoutForControlPlane: 8m0s
+controllerManager:
+  extraArgs:
+  bind-address: {{ .PrivateIP }}
+  {{ if .Provider }}cloud-provider: {{ .Provider }}{{ end }}
+scheduler:
+  extraArgs:
+    bind-address: {{ .PrivateIP }}
+dns:
+  type: CoreDNS
+etcd:
+  local:
+    dataDir: /var/lib/etcd
+networking:
+  dnsDomain: cluster.local
+  podSubnet: {{ .CIDR }}
+  serviceSubnet: {{ .ServiceCIDR }}
 EOF"
 
 sudo kubeadm config images pull

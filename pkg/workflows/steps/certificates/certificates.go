@@ -3,7 +3,6 @@ package certificates
 import (
 	"context"
 	"fmt"
-	"github.com/supergiant/control/pkg/sgerrors"
 	"io"
 	"text/template"
 
@@ -46,12 +45,8 @@ func (s *Step) Run(ctx context.Context, out io.Writer, config *steps.Config) err
 	config.CertificatesConfig.IsMaster = config.IsMaster
 
 	if !config.IsMaster {
-		if master := config.GetMaster(); master != nil {
-			config.CertificatesConfig.MasterHost = master.PrivateIp
-			config.CertificatesConfig.NodeName = config.Node.Name
-		} else {
-			return errors.Wrapf(sgerrors.ErrNilEntity, "master not found in config")
-		}
+		config.CertificatesConfig.MasterHost = config.InternalDNSName
+		config.CertificatesConfig.NodeName = config.Node.Name
 	}
 
 	if len(config.CertificatesConfig.ServicesCIDR) > 0 {
