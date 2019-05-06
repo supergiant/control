@@ -37,9 +37,8 @@ localAPIEndpoint:
   bindPort: 443
 nodeRegistration:
   kubeletExtraArgs:
-    address: {{ .PrivateIP }}
-    node-ip: {{ .PrivateIP }}
-{{ if .Provider }}    cloud-provider: {{ .Provider }}{{ end }}
+    node-ip: {{ .NodeIp }}
+    {{ if .Provider }}cloud-provider: {{ .Provider }}{{ end }}
 ---
 apiVersion: kubeadm.k8s.io/v1beta1
 kind: ClusterConfiguration
@@ -53,12 +52,12 @@ apiServer:
   - {{ .InternalDNSName }}
   extraArgs:
     authorization-mode: Node,RBAC
-    bind-address: {{ .PrivateIP }}
-{{ if .Provider }}    cloud-provider: {{ .Provider }}{{ end }}
+    bind-address: {{ .PrivateIp }}
+    {{ if .Provider }}cloud-provider: {{ .Provider }}{{ end }}
   timeoutForControlPlane: 8m0s
 controllerManager:
   extraArgs:
-{{ if .Provider }}    cloud-provider: {{ .Provider }}{{ end }}
+  {{ if .Provider }}cloud-provider: {{ .Provider }}{{ end }}
 dns:
   type: CoreDNS
 etcd:
@@ -80,8 +79,7 @@ apiVersion: kubeadm.k8s.io/v1beta1
 kind: JoinConfiguration
 nodeRegistration:
   kubeletExtraArgs:
-    node-ip: {{ .PrivateIP }}
-    address: {{ .PrivateIP }}
+    node-ip: {{ .NodeIp }}
     {{ if .Provider }}cloud-provider: {{ .Provider }}{{ end }}
 discovery:
   bootstrapToken:
@@ -105,16 +103,16 @@ apiServer:
   - {{ .InternalDNSName }}
   extraArgs:
     authorization-mode: Node,RBAC
-    bind-address: {{ .PrivateIP }}
-{{ if .Provider }}    cloud-provider: {{ .Provider }}{{ end }}
+    bind-address: {{ .PrivateIp }}
+    {{ if .Provider }}cloud-provider: {{ .Provider }}{{ end }}
   timeoutForControlPlane: 8m0s
 controllerManager:
   extraArgs:
-  bind-address: {{ .PrivateIP }}
-{{ if .Provider }}    cloud-provider: {{ .Provider }}{{ end }}
+  bind-address: {{ .PrivateIp }}
+  {{ if .Provider }}cloud-provider: {{ .Provider }}{{ end }}
 scheduler:
   extraArgs:
-    bind-address: {{ .PrivateIP }}
+    bind-address: {{ .PrivateIp }}
 dns:
   type: CoreDNS
 etcd:
@@ -142,9 +140,8 @@ apiVersion: kubeadm.k8s.io/v1beta1
 kind: JoinConfiguration
 nodeRegistration:
   kubeletExtraArgs:
-    address: {{ .PrivateIP }}
-    node-ip: {{ .PrivateIP }}
-{{ if .Provider }}    cloud-provider: {{ .Provider }}{{ end }}
+    node-ip: {{ .NodeIp }}
+    {{ if .Provider }}cloud-provider: {{ .Provider }}{{ end }}
 discovery:
   bootstrapToken:
     token: {{ .Token }}

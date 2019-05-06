@@ -30,9 +30,6 @@ func NewCreateTargetPoolStep() *CreateTargetPoolStep {
 				insertTargetPool: func(ctx context.Context, config steps.GCEConfig, targetPool *compute.TargetPool) (*compute.Operation, error) {
 					return client.TargetPools.Insert(config.ServiceAccount.ProjectID, config.Region, targetPool).Do()
 				},
-				addHealthCheckToTargetPool: func(ctx context.Context, config steps.GCEConfig, targetPool string, request *compute.TargetPoolsAddHealthCheckRequest) (*compute.Operation, error) {
-					return client.TargetPools.AddHealthCheck(config.ServiceAccount.ProjectID, config.Region, targetPool, request).Do()
-				},
 				getTargetPool: func(ctx context.Context, config steps.GCEConfig, targetPoolName string) (*compute.TargetPool, error) {
 					return client.TargetPools.Get(config.ProjectID, config.Region, targetPoolName).Do()
 				},

@@ -49,8 +49,16 @@ func (t *Step) Run(ctx context.Context, out io.Writer, config *steps.Config) err
 	config.KubeadmConfig.InternalDNSName = config.InternalDNSName
 	config.KubeadmConfig.ExternalDNSName = config.ExternalDNSName
 	config.KubeadmConfig.Token = config.BootstrapToken
-	config.KubeadmConfig.PrivateIP = config.Node.PrivateIp
+	config.KubeadmConfig.NodeIp = config.Node.PrivateIp
 	config.KubeadmConfig.AdvertiseAddress = config.Node.PrivateIp
+	config.KubeadmConfig.NodeIp = config.Node.PrivateIp
+
+	// NOTE(stgleb): GCE sends traffic from load balancer like it originates from outside world,
+	// so if we do not listen to 0.0.0.0 kube-apiserver will refuse all connection outside of instance
+	if config.Provider == clouds.GCE {
+		config.KubeadmConfig.PrivateIp = "0.0.0.0"
+		config.KubeadmConfig.AdvertiseAddress = "0.0.0.0"
+	}
 
 	logrus.Debugf("kubeadm step: %s cluster: isBootstrap=%t extDNS=%s intDNS=%s",
 		config.ClusterID, config.KubeadmConfig.IsBootstrap, config.KubeadmConfig.ExternalDNSName,

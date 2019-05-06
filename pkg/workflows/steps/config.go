@@ -187,7 +187,6 @@ type DownloadK8sBinary struct {
 	OperatingSystem string `json:"operatingSystem"`
 }
 
-
 type PrometheusConfig struct {
 	Port        string `json:"port"`
 	RBACEnabled bool   `json:"rbacEnabled"`
@@ -202,7 +201,8 @@ type KubeadmConfig struct {
 	CIDR             string `json:"cidr"`
 	Token            string `json:"token"`
 	Provider         string `json:"provider"`
-	PrivateIP        string `json:"privateIp"`
+	NodeIp           string `json:"nodeIp"`
+	PrivateIp        string `json:"privatIp"`
 
 	MasterPrivateIP string `json:"masterPrivateIp"`
 	InternalDNSName string `json:"internalDNSName"`
