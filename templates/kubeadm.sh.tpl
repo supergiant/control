@@ -57,7 +57,7 @@ apiServer:
   timeoutForControlPlane: 8m0s
 controllerManager:
   extraArgs:
-  {{ if .Provider }}cloud-provider: {{ .Provider }}{{ end }}
+     {{ if .Provider }}cloud-provider: {{ .Provider }}{{ end }}
 dns:
   type: CoreDNS
 etcd:
