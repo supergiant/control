@@ -627,6 +627,8 @@
             <div *ngIf="selectedCloudAccount?.provider == 'aws'">
               <p><span class="label">REGION: </span> {{ providerConfig.value.region.name }}</p>
               <p><span class="label">VPC CIDR: </span> {{ providerConfig.value.vpcCidr }}</p>
+              <p><span class="label">PUBLIC KEY: </span><span class="action" (click)="showPublicKey()">review</span></p>
+<!--               <p class="action" (click)="showPublicKey()"><span>show</span> PUBLIC KEY</p> -->
             </div>
 
             <!-- gce -->

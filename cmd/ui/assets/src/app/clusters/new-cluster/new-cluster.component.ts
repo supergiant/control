@@ -1,7 +1,7 @@
 import { Component, OnDestroy, OnInit, ViewEncapsulation, ViewChild } from '@angular/core';
 import { FormBuilder, FormGroup, Validators, ValidatorFn, AbstractControl } from '@angular/forms';
 import { Router } from '@angular/router';
-import { MatHorizontalStepper, MatOption, MatSelect } from '@angular/material';
+import { MatHorizontalStepper, MatOption, MatSelect, MatDialog } from '@angular/material';
 import { Subscription, Observable } from 'rxjs';
 import { Notifications } from '../../shared/notifications/notifications.service';
 import { Supergiant } from '../../shared/supergiant/supergiant.service';
@@ -14,6 +14,7 @@ import {
 import { sortDigitalOceanMachineTypes } from 'app/clusters/new-cluster/new-cluster.helpers';
 import { map } from 'rxjs/operators';
 import { IMachineType } from './new-cluster.component.interface';
+import { PublicKeyModalComponent } from './public-key-modal/public-key-modal.component';
 
 // compiler hack
 declare var require: any;
@@ -83,6 +84,7 @@ export class NewClusterComponent implements OnInit, OnDestroy {
     private router: Router,
     private formBuilder: FormBuilder,
     private nodesService: NodeProfileService,
+    public dialog: MatDialog,
   ) {
   }
 
@@ -542,6 +544,19 @@ export class NewClusterComponent implements OnInit, OnDestroy {
 
   toArray(multiLineText : string) : Array<string> {
     return multiLineText.split("\n").filter(c => c != "");
+  }
+
+  showPublicKey() {
+    this.initPublicKey(this.providerConfig.value.publicKey);
+  }
+
+  private initPublicKey(key) {
+    const dialogRef = this.dialog.open(PublicKeyModalComponent, {
+      width: '800px',
+      data: { key: key }
+    });
+
+    return dialogRef;
   }
 
 }
