@@ -203,6 +203,7 @@ type KubeadmConfig struct {
 	Provider         string `json:"provider"`
 	NodeIp           string `json:"nodeIp"`
 	PrivateIp        string `json:"privatIp"`
+	JoinAddress      string `json:"joinAddress"`
 
 	MasterPrivateIP string `json:"masterPrivateIp"`
 	InternalDNSName string `json:"internalDNSName"`
