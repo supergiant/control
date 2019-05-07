@@ -627,17 +627,20 @@
             <div *ngIf="selectedCloudAccount?.provider == 'aws'">
               <p><span class="label">REGION: </span> {{ providerConfig.value.region.name }}</p>
               <p><span class="label">VPC CIDR: </span> {{ providerConfig.value.vpcCidr }}</p>
+              <p><span class="label">PUBLIC KEY: </span><span class="action" (click)="showPublicKey()">review</span></p>
             </div>
 
             <!-- gce -->
             <div *ngIf="selectedCloudAccount?.provider == 'gce'">
               <p><span class="label">REGION:</span> {{ providerConfig.value.region.name }}</p>
+              <p><span class="label">PUBLIC KEY: </span><span class="action" (click)="showPublicKey()">review</span></p>
             </div>
 
             <!-- azure -->
             <div *ngIf="selectedCloudAccount?.provider == 'azure'">
               <p><span class="label">REGION:</span> {{ providerConfig.value.region.name }}</p>
               <p><span class="label">VNet CIDR:</span> {{ providerConfig.value.azureVNetCIDR }}</p>
+              <p><span class="label">PUBLIC KEY: </span><span class="action" (click)="showPublicKey()">review</span></p>
             </div>
           </div>
 
