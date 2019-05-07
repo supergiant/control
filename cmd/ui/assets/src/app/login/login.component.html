@@ -40,28 +40,34 @@
   </g>
 </svg>
 
-<h1 *ngIf="isColdStart" class="welcome"><span>WELCOME TO</span></h1>
-<h1 class="headline"><span>CONTROL</span></h1>
+<h1 *ngIf="isColdStart" class="welcome">WELCOME TO <span class="headline">CONTROL</span></h1>
+<h1 *ngIf="!isColdStart" class="welcome">SIGN IN TO <span class="headline">CONTROL</span></h1>
 
-<p *ngIf="isColdStart" class="coldstart-comm">Choose a master login and password. You cannot change them, so make sure to record them.</p>
+<div *ngIf="isColdStart" class="coldstart-comm">
+  <p>Choose a master username and password.</p>
+  <p>You <span class="cant-change">cannot change them,</span> so make sure to record them.</p>
+</div>
 
 <form class="login-form" [formGroup]="loginForm" (ngSubmit)="onSubmit()">
   <mat-form-field>
     <input matInput
-           placeholder="Login"
-           [formControl]="loginForm.get('login')">
-    <mat-error>Please choose a login</mat-error>
+           placeholder="Username"
+           formControlName="login">
+    <mat-hint *ngIf="isColdstart">Usernames should be between 4 and 32 characters, and can only contain a-z, A-Z, 0-9, dash (-) and underscore (_)</mat-hint>
+    <mat-error>Usernames should be between 4 and 32 characters, and can only contain a-z, A-Z, 0-9, dash (-) and underscore (_)</mat-error>
   </mat-form-field>
 
   <mat-form-field>
     <input matInput
            placeholder="Password"
            type="password"
-           [formControl]="loginForm.get('password')">
-    <mat-hint *ngIf="isColdStart" align="start">
-      Min 8 characters, upper and lowercase letters, and at least 1 number.
+           formControlName="password">
+    <mat-hint *ngIf="isColdStart">
+      Passwords must be minimum 8 characters, contain upper and lowercase letters, and at least 1 number and special character (!@#$%^&*).
     </mat-hint>
-    <mat-error>Password must be a minimum of 8 characters, contain upper and lowercase characters, and at least 1 number.</mat-error>
+    <mat-error *ngIf="isColdStart">
+      Passwords must be minimum 8 characters, contain upper and lowercase letters, and at least 1 number and special character (!@#$%^&*).
+    </mat-error>
   </mat-form-field>
 
   <div class="buttons-wrapper">
