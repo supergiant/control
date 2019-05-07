@@ -31,7 +31,7 @@ import (
 	"github.com/supergiant/control/pkg/user"
 	"github.com/supergiant/control/pkg/workflows"
 	"github.com/supergiant/control/pkg/workflows/steps/amazon"
-	"github.com/supergiant/control/pkg/workflows/steps/authorizedKeys"
+	"github.com/supergiant/control/pkg/workflows/steps/authorizedkeys"
 	"github.com/supergiant/control/pkg/workflows/steps/azure"
 	"github.com/supergiant/control/pkg/workflows/steps/bootstraptoken"
 	"github.com/supergiant/control/pkg/workflows/steps/certificates"
@@ -185,12 +185,12 @@ func configureApplication(cfg *Config) (*mux.Router, error) {
 
 	// Read templates first and then initialize workflows with steps that uses these templates
 	if err := templatemanager.Init(cfg.TemplatesDir); err != nil {
-		return nil, err
+		return nil, errors.Wrap(err, "templatemanager: init")
 	}
 
 	digitalocean.Init()
 	certificates.Init()
-	authorizedKeys.Init()
+	authorizedkeys.Init()
 	cni.Init()
 	docker.Init()
 	downloadk8sbinary.Init()

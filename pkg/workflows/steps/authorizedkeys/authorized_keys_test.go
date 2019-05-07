@@ -1,4 +1,4 @@
-package authorizedKeys
+package authorizedkeys
 
 import (
 	"bytes"

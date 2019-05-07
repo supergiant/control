@@ -1,5 +1,6 @@
-echo "PostStart started"
+package templates
 
+const poststartTpl = `
 {{ if .IsBootstrap }}
 {{ if .RBACEnabled }}
 sudo kubectl create clusterrolebinding kubelet-binding --clusterrole=system:node --user=kubelet
@@ -17,5 +18,4 @@ EOF"
 if [[ $(whoami) != root ]]; then
   sudo cp -r /home/$(whoami)/.kube /root/
 fi
-
-echo "PostStart finished"
+`
