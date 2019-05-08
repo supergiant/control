@@ -41,15 +41,42 @@
   .login-form {
     display: flex;
     flex-direction: column;
-    margin-bottom: 108px;
-    width: 307px;
+    margin-bottom: 60px;
+    width: 375px;
+
+    .mat-form-field {
+      margin-bottom: 30px;
+
+      ::ng-deep .mat-form-field-hint-spacer {
+        display: none;
+      }
+
+      .mat-hint, .mat-error {
+        margin: 0 auto;
+        text-align: center;
+        width: 90%;
+      }
+
+      .mat-hint {
+        color: #fff;
+      }
+    }
+
+    .warnings {
+      color: #f44336;
+      margin-top: 30px;
+    }
   }
 
   .buttons-wrapper {
     display: flex;
     justify-content: center;
     margin-top: 40px;
-    width: 307px;
+    margin-top: 20px;
+  }
+
+  .mat-form-field-hint-spacer {
+    display: none;
   }
 
 }
