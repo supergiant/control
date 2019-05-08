@@ -63,7 +63,7 @@ func addDefaultTpls() error {
 			return errors.Wrapf(err, "failed to parse %s template", name)
 		}
 		logrus.Debugf("templatemanager: adding default template: %q", name)
-		templateMap[name] = t
+		SetTemplate(name, t)
 	}
 	return nil
 }
