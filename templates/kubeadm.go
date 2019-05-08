@@ -22,9 +22,6 @@ HOSTNAME="$(hostname)"
 HOSTNAME="$(hostname -f)"
 {{ end }}
 
-# TODO: place ca/kubeblet certificates to the custom dir to make this step idempotent.
-#       'kubeadm reset' removes this certificates and then creates a new one.
-
 sudo mkdir -p /etc/supergiant
 
 {{if .IsMaster }}
