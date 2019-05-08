@@ -26,7 +26,6 @@ RUN update-ca-certificates
 FROM scratch as prod
 COPY --from=builder /etc/ssl/certs/ca-certificates.crt /etc/ssl/certs/ca-certificates.crt
 COPY --from=builder /go/bin/supergiant /bin/supergiant
-COPY --from=builder /go/src/github.com/supergiant/control/templates /etc/supergiant/templates
 COPY --from=builder /data /data
 EXPOSE 60200-60250
 

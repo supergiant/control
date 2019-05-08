@@ -177,6 +177,7 @@ func (s *StepCreateInstance) Run(ctx context.Context, w io.Writer, cfg *steps.Co
 	// Update node state in cluster
 	cfg.NodeChan() <- cfg.Node
 
+
 	if len(res.Instances) == 0 {
 		cfg.Node.State = model.MachineStateError
 		cfg.NodeChan() <- cfg.Node
@@ -185,7 +186,6 @@ func (s *StepCreateInstance) Run(ctx context.Context, w io.Writer, cfg *steps.Co
 	}
 
 	instance := res.Instances[0]
-
 	log.Infof("[%s] - waiting to obtain public IP...", s.Name())
 
 	lookup := &ec2.DescribeInstancesInput{
@@ -213,6 +213,7 @@ func (s *StepCreateInstance) Run(ctx context.Context, w io.Writer, cfg *steps.Co
 	logrus.Debugf("Instance running %s", nodeName)
 
 	out, err := ec2Svc.DescribeInstancesWithContext(ctx, lookup)
+
 	if err != nil {
 		cfg.Node.State = model.MachineStateError
 		cfg.NodeChan() <- cfg.Node

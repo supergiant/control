@@ -41,9 +41,6 @@ nfpm:
   bindir: /usr/local/bin
   empty_folders:
     - /var/lib/supergiant
-    - /var/lib/supergiant/templates
-  files:
-    "templates/*": "/var/lib/supergiant/templates"
   config_files:
     "build/supergiant.service": "/etc/systemd/system/supergiant.service"
   scripts:

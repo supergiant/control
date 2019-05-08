@@ -28,6 +28,10 @@ func (s StepCreateMachine) Run(ctx context.Context, out io.Writer, cfg *steps.Co
 		return errors.New("invalid config")
 	}
 
+	if cfg.DryRun {
+		return nil
+	}
+
 	step, err := createMachineStepFor(cfg.Provider)
 	if err != nil {
 		return err

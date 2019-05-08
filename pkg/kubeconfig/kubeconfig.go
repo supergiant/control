@@ -1,4 +1,4 @@
-package kube
+package kubeconfig
 
 import (
 	"fmt"
@@ -20,7 +20,7 @@ import (
 )
 
 func NewConfigFor(k *model.Kube) (*rest.Config, error) {
-	kubeConf, err := adminKubeConfig(k)
+	kubeConf, err := AdminKubeConfig(k)
 	if err != nil {
 		return nil, errors.Wrap(err, "build kubeconfig")
 	}
@@ -40,7 +40,7 @@ func NewConfigFor(k *model.Kube) (*rest.Config, error) {
 	return restConf, errors.Wrap(err, "build rest config")
 }
 
-func restClientForGroupVersion(k *model.Kube, gv schema.GroupVersion) (rest.Interface, error) {
+func RestClientForGroupVersion(k *model.Kube, gv schema.GroupVersion) (rest.Interface, error) {
 	cfg, err := NewConfigFor(k)
 	if err != nil {
 		return nil, err
@@ -58,7 +58,7 @@ func discoveryClient(k *model.Kube) (*discovery.DiscoveryClient, error) {
 	return discovery.NewDiscoveryClientForConfig(cfg)
 }
 
-func corev1Client(k *model.Kube) (corev1client.CoreV1Interface, error) {
+func Corev1Client(k *model.Kube) (corev1client.CoreV1Interface, error) {
 	cfg, err := NewConfigFor(k)
 	if err != nil {
 		return nil, err
@@ -67,7 +67,7 @@ func corev1Client(k *model.Kube) (corev1client.CoreV1Interface, error) {
 }
 
 // adminKubeConfig returns a cluster-admin kubeconfig for provided cluster.
-func adminKubeConfig(k *model.Kube) (clientcmddapi.Config, error) {
+func AdminKubeConfig(k *model.Kube) (clientcmddapi.Config, error) {
 	// TODO: this should be an address of the master load balancer
 	if k == nil || (k.ExternalDNSName == "" && len(k.Masters) == 0) {
 		// TODO: use another base error, not ErrNotFound
