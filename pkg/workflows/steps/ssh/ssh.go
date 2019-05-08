@@ -7,6 +7,7 @@ import (
 	"github.com/pkg/errors"
 
 	"github.com/supergiant/control/pkg/clouds"
+	"github.com/supergiant/control/pkg/runner/dry"
 	"github.com/supergiant/control/pkg/runner/ssh"
 	"github.com/supergiant/control/pkg/workflows/steps"
 	"github.com/supergiant/control/pkg/workflows/steps/azure"
@@ -22,6 +23,13 @@ func Init() {
 
 func (s *Step) Run(ctx context.Context, writer io.Writer, config *steps.Config) error {
 	var err error
+
+	if config.DryRun {
+		if config.Runner == nil {
+			config.Runner = dry.NewDryRunner()
+		}
+		return nil
+	}
 
 	if config.Provider == clouds.AWS {
 		//on aws default user name on ubuntu images are not root but ubuntu

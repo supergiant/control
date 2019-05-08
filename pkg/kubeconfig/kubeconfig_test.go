@@ -1,4 +1,4 @@
-package kube
+package kubeconfig
 
 import (
 	"testing"
@@ -35,7 +35,7 @@ func TestRestClientForGroupVersion(t *testing.T) {
 	}
 
 	for _, testCase := range testCases {
-		client, err := restClientForGroupVersion(testCase.kube, testCase.gv)
+		client, err := RestClientForGroupVersion(testCase.kube, testCase.gv)
 
 		if errors.Cause(err) != testCase.expectedErr {
 			t.Errorf("expected error %v actual %v",

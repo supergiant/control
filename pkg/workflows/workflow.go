@@ -9,6 +9,7 @@ import (
 	"github.com/supergiant/control/pkg/workflows/steps/bootstraptoken"
 	"github.com/supergiant/control/pkg/workflows/steps/certificates"
 	"github.com/supergiant/control/pkg/workflows/steps/clustercheck"
+	"github.com/supergiant/control/pkg/workflows/steps/configmap"
 	"github.com/supergiant/control/pkg/workflows/steps/docker"
 	"github.com/supergiant/control/pkg/workflows/steps/downloadk8sbinary"
 	"github.com/supergiant/control/pkg/workflows/steps/drain"
@@ -101,6 +102,7 @@ func Init() {
 		steps.GetStep(storageclass.StepName),
 		steps.GetStep(tiller.StepName),
 		steps.GetStep(prometheus.StepName),
+		steps.GetStep(configmap.StepName),
 	}
 
 	importClusterWorkflow := []steps.Step{
