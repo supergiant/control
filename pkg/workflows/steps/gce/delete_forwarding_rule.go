@@ -2,6 +2,7 @@ package gce
 
 import (
 	"context"
+	"github.com/supergiant/control/pkg/clouds/gcesdk"
 	"io"
 
 	"github.com/pkg/errors"
@@ -21,7 +22,7 @@ type DeleteForwardingRulesStep struct {
 func NewDeleteForwardingRulesStep() *DeleteForwardingRulesStep {
 	return &DeleteForwardingRulesStep{
 		getComputeSvc: func(ctx context.Context, config steps.GCEConfig) (*computeService, error) {
-			client, err := GetClient(ctx, config)
+			client, err := gcesdk.GetClient(ctx, config)
 
 			if err != nil {
 				return nil, err
@@ -48,12 +49,20 @@ func (s *DeleteForwardingRulesStep) Run(ctx context.Context, output io.Writer,
 		return errors.Wrapf(err, "%s getting service caused", DeleteForwardingRulesStepName)
 	}
 
-	_, err = svc.deleteForwardingRule(ctx, config.GCEConfig, config.GCEConfig.ForwardingRuleName)
+	_, err = svc.deleteForwardingRule(ctx, config.GCEConfig, config.GCEConfig.ExternalForwardingRuleName)
 
 	if err != nil {
 		logrus.Errorf("Error deleting external forwarding rule %v", err)
 		return errors.Wrapf(err, "%s deleting external forwarding %s rule caused",
-			config.GCEConfig.ForwardingRuleName, DeleteForwardingRulesStepName)
+			config.GCEConfig.ExternalForwardingRuleName, DeleteForwardingRulesStepName)
+	}
+
+	_, err = svc.deleteForwardingRule(ctx, config.GCEConfig, config.GCEConfig.InternalForwardingRuleName)
+
+	if err != nil {
+		logrus.Errorf("Error deleting internal forwarding rule %v", err)
+		return errors.Wrapf(err, "%s deleting internal forwarding %s rule caused",
+			config.GCEConfig.InternalForwardingRuleName, DeleteForwardingRulesStepName)
 	}
 
 	return nil

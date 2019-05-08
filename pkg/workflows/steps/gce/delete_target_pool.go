@@ -2,6 +2,7 @@ package gce
 
 import (
 	"context"
+	"github.com/supergiant/control/pkg/clouds/gcesdk"
 	"io"
 
 	"github.com/pkg/errors"
@@ -19,7 +20,7 @@ type DeleteTargetPoolStep struct {
 func NewDeleteTargetPoolStep() *DeleteTargetPoolStep {
 	return &DeleteTargetPoolStep{
 		getComputeSvc: func(ctx context.Context, config steps.GCEConfig) (*computeService, error) {
-			client, err := GetClient(ctx, config)
+			client, err := gcesdk.GetClient(ctx, config)
 
 			if err != nil {
 				return nil, err

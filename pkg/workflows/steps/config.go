@@ -86,12 +86,17 @@ type GCEConfig struct {
 	ServiceAccount
 
 	// This comes from profile
-	ImageFamily       string `json:"imageFamily"`
-	Region            string `json:"region"`
-	AvailabilityZone  string `json:"availabilityZone"`
-	Size              string `json:"size"`
-	InstanceGroupName string `json:"instanceGroupName"`
-	InstanceGroupLink string `json:"instanceGroupLink"`
+	ImageFamily      string `json:"imageFamily"`
+	Region           string `json:"region"`
+	AvailabilityZone string `json:"availabilityZone"`
+	Size             string `json:"size"`
+
+	NetworkName string `json:"networkName"`
+	NetworkLink string `json:"networkLink"`
+
+	Subnets            map[string]string `json:"subnets"`
+	InstanceGroupNames map[string]string `json:"instanceGroupNames"`
+	InstanceGroupLinks map[string]string `json:"instanceGroupLinks"`
 
 	// Target pool acts as a balancer for external traffic https://cloud.google.com/load-balancing/docs/target-pools
 	TargetPoolName string `json:"targetPoolName"`
@@ -100,10 +105,15 @@ type GCEConfig struct {
 	ExternalAddressName string `json:"externalAddressName"`
 
 	ExternalIPAddressLink string `json:"externalIpAddressLink"`
+	InternalIPAddressLink string `json:"internalIpAddressLink"`
+
+	BackendServiceName string `json:"backendServiceName"`
+	BackendServiceLink string `json:"backendServiceLink"`
 
 	HealthCheckName string `json:"healthCheckName"`
 
-	ForwardingRuleName string `json:"externalForwardingRuleName"`
+	ExternalForwardingRuleName string `json:"externalForwardingRuleName"`
+	InternalForwardingRuleName string `json:"externalForwardingRuleName"`
 }
 
 type AzureConfig struct {

@@ -53,12 +53,13 @@ func UpdateKubeWithCloudSpecificData(k *model.Kube, config *steps.Config) {
 		cloudSpecificSettings[clouds.AwsInternalLoadBalancerName] =
 			config.AWSConfig.InternalLoadBalancerName
 	case clouds.GCE:
+		k.Subnets = config.GCEConfig.Subnets
 		cloudSpecificSettings[clouds.GCETargetPoolName] = config.GCEConfig.TargetPoolName
 		cloudSpecificSettings[clouds.GCEExternalIPAddressName] = config.GCEConfig.ExternalAddressName
 		cloudSpecificSettings[clouds.GCEExternalIPAddress] = config.GCEConfig.ExternalIPAddressLink
 		cloudSpecificSettings[clouds.GCEHealthCheckName] = config.GCEConfig.HealthCheckName
-		cloudSpecificSettings[clouds.GCEInstanceGroupName] = config.GCEConfig.InstanceGroupName
-		cloudSpecificSettings[clouds.GCEExternalForwardingRuleName] = config.GCEConfig.ForwardingRuleName
+		cloudSpecificSettings[clouds.GCEExternalForwardingRuleName] = config.GCEConfig.ExternalForwardingRuleName
+		// TODO(stgleb): store Instance group info here
 	case clouds.DigitalOcean:
 		cloudSpecificSettings[clouds.DigitalOceanExternalLoadBalancerID] = config.DigitalOceanConfig.ExternalLoadBalancerID
 		cloudSpecificSettings[clouds.DigitalOceanInternalLoadBalancerID] = config.DigitalOceanConfig.InternalLoadBalancerID

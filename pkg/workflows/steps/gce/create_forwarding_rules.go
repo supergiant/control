@@ -3,6 +3,7 @@ package gce
 import (
 	"context"
 	"fmt"
+	"github.com/supergiant/control/pkg/clouds/gcesdk"
 	"io"
 	"time"
 
@@ -27,7 +28,7 @@ func NewCreateForwardingRulesStep() *CreateForwardingRules {
 		timeout: time.Second * 10,
 		attemptCount: 10,
 		getComputeSvc: func(ctx context.Context, config steps.GCEConfig) (*computeService, error) {
-			client, err := GetClient(ctx, config)
+			client, err := gcesdk.GetClient(ctx, config)
 
 			if err != nil {
 				return nil, err
@@ -83,7 +84,39 @@ func (s *CreateForwardingRules) Run(ctx context.Context, output io.Writer,
 	}
 
 	logrus.Debugf("Created external forwarding rule %s", exName)
-	config.GCEConfig.ForwardingRuleName = exName
+	config.GCEConfig.ExternalForwardingRuleName = exName
+
+	inName := fmt.Sprintf("inrule-%s", config.ClusterID)
+	internalForwardingRule := &compute.ForwardingRule{
+		Name:                inName,
+		IPAddress:           config.GCEConfig.InternalIPAddressLink,
+		LoadBalancingScheme: "INTERNAL",
+		Description:         "Internal forwarding rule to target pool",
+		IPProtocol:          "TCP",
+		Ports:               []string{"443"},
+		BackendService:      config.GCEConfig.BackendServiceLink,
+	}
+
+	timeout = s.timeout
+
+	for i := 0;i < s.attemptCount; i++ {
+		_, err = svc.insertForwardingRule(ctx, config.GCEConfig, internalForwardingRule)
+
+		if err == nil {
+			break
+		}
+
+		time.Sleep(timeout)
+		timeout = timeout * 2
+	}
+
+	if err != nil {
+		logrus.Errorf("Error creating external forwarding rule %v", err)
+		return errors.Wrapf(err, "%s creating external forwarding rule caused", CreateForwardingRulesStepName)
+	}
+
+	logrus.Debugf("Created external forwarding rule %s", inName)
+	config.GCEConfig.InternalForwardingRuleName = inName
 
 	return nil
 }

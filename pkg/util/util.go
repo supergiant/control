@@ -172,8 +172,8 @@ func LoadCloudSpecificDataFromKube(k *model.Kube, config *steps.Config) error {
 		config.GCEConfig.ExternalAddressName = k.CloudSpec[clouds.GCEExternalIPAddressName]
 		config.GCEConfig.ExternalIPAddressLink = k.CloudSpec[clouds.GCEExternalIPAddress]
 		config.GCEConfig.HealthCheckName = k.CloudSpec[clouds.GCEHealthCheckName]
-		config.GCEConfig.ForwardingRuleName = k.CloudSpec[clouds.GCEExternalForwardingRuleName]
-		config.GCEConfig.InstanceGroupName = k.CloudSpec[clouds.GCEInstanceGroupName]
+		config.GCEConfig.ExternalForwardingRuleName = k.CloudSpec[clouds.GCEExternalForwardingRuleName]
+		config.GCEConfig.Subnets = k.Subnets
 	case clouds.DigitalOcean:
 		config.DigitalOceanConfig.ExternalLoadBalancerID = k.CloudSpec[clouds.DigitalOceanExternalLoadBalancerID]
 		config.DigitalOceanConfig.InternalLoadBalancerID = k.CloudSpec[clouds.DigitalOceanInternalLoadBalancerID]

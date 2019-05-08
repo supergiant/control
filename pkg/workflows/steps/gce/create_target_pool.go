@@ -3,6 +3,7 @@ package gce
 import (
 	"context"
 	"github.com/sirupsen/logrus"
+	"github.com/supergiant/control/pkg/clouds/gcesdk"
 	"google.golang.org/api/compute/v1"
 	"io"
 
@@ -20,7 +21,7 @@ type CreateTargetPoolStep struct {
 func NewCreateTargetPoolStep() *CreateTargetPoolStep {
 	return &CreateTargetPoolStep{
 		getComputeSvc: func(ctx context.Context, config steps.GCEConfig) (*computeService, error) {
-			client, err := GetClient(ctx, config)
+			client, err := gcesdk.GetClient(ctx, config)
 
 			if err != nil {
 				return nil, err

@@ -3,6 +3,7 @@ package gce
 import (
 	"context"
 	"fmt"
+	"github.com/supergiant/control/pkg/clouds/gcesdk"
 	"io"
 	"strings"
 	"time"
@@ -33,7 +34,7 @@ func NewCreateInstanceStep(period, timeout time.Duration) *CreateInstanceStep {
 		checkPeriod:     period,
 		instanceTimeout: timeout,
 		getComputeSvc: func(ctx context.Context, config steps.GCEConfig) (*computeService, error) {
-			client, err := GetClient(ctx, config)
+			client, err := gcesdk.GetClient(ctx, config)
 
 			if err != nil {
 				return nil, err
@@ -252,19 +253,22 @@ func (s *CreateInstanceStep) Run(ctx context.Context, output io.Writer,
 				if config.IsMaster {
 					config.AddMaster(&config.Node)
 
-					addInstanceToTargetPoolReq := &compute.TargetPoolsAddInstanceRequest{
-						Instances: []*compute.InstanceReference{
-							{
-								Instance: resp.SelfLink,
+					if config.IsBootstrap {
+						addInstanceToTargetPoolReq := &compute.TargetPoolsAddInstanceRequest{
+							Instances: []*compute.InstanceReference{
+								{
+									Instance: resp.SelfLink,
+								},
 							},
-						},
-					}
-					_, err := svc.addInstanceToTargetGroup(ctx, config.GCEConfig,
-						config.GCEConfig.TargetPoolName, addInstanceToTargetPoolReq)
+						}
 
-					if err != nil {
-						logrus.Errorf("error adding instance %s URL %s to target pool %s",
-							resp.Name, resp.SelfLink, config.GCEConfig.TargetPoolName)
+						_, err := svc.addInstanceToTargetGroup(ctx, config.GCEConfig,
+							config.GCEConfig.TargetPoolName, addInstanceToTargetPoolReq)
+
+						if err != nil {
+							logrus.Errorf("error adding instance %s URL %s to target pool %s",
+								resp.Name, resp.SelfLink, config.GCEConfig.TargetPoolName)
+						}
 					}
 				} else {
 					config.AddNode(&config.Node)

@@ -44,7 +44,7 @@ apiVersion: kubeadm.k8s.io/v1beta1
 kind: ClusterConfiguration
 kubernetesVersion: v{{ .K8SVersion }}
 clusterName: kubernetes
-controlPlaneEndpoint: {{ .InternalDNSName }}
+controlPlaneEndpoint: {{ .InternalDNSName }}:443
 certificatesDir: /etc/kubernetes/pki
 apiServer:
   certSANs:
@@ -95,7 +95,7 @@ apiVersion: kubeadm.k8s.io/v1beta1
 kind: ClusterConfiguration
 kubernetesVersion: v{{ .K8SVersion }}
 clusterName: kubernetes
-controlPlaneEndpoint: {{ .InternalDNSName }}
+controlPlaneEndpoint: {{ .InternalDNSName }}:443
 certificatesDir: /etc/kubernetes/pki
 apiServer:
   certSANs:
