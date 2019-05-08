@@ -1,25 +1,54 @@
 package configmap
 
 import (
+	"bytes"
 	"context"
 	"encoding/json"
-	"github.com/supergiant/control/pkg/clouds"
-	"github.com/supergiant/control/pkg/util"
 	"io"
+	"text/template"
 	"time"
 
+	"github.com/aws/aws-sdk-go/aws"
 	"github.com/pkg/errors"
-
-	"github.com/sirupsen/logrus"
-
+	capacityapi "github.com/supergiant/capacity/pkg/api"
 	"k8s.io/api/core/v1"
 	k8serrors "k8s.io/apimachinery/pkg/api/errors"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	clientcorev1 "k8s.io/client-go/kubernetes/typed/core/v1"
 
 	"github.com/supergiant/control/pkg/kubeconfig"
-	"github.com/supergiant/control/pkg/model"
 	"github.com/supergiant/control/pkg/workflows/steps"
+)
+
+const (
+	// userdataPrefix is used to set script interpreter and log the output.
+	// https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/user-data.html#user-data-shell-scripts
+	userdataPrefix = `#!/bin/bash
+exec > >(tee /var/log/user-data.log|logger -t user-data -s 2>/dev/console) 2>&1
+`
+)
+
+// TODO: take it from the capacity repo
+const (
+	CapacityConfigMapName      = "capacity"
+	CapacityConfigMapNamespace = "kube-system"
+	CapacityConfigMapKey       = "kubescaler.conf"
+
+	KeyID          = "awsKeyID"
+	SecretKey      = "awsSecretKey"
+	Region         = "awsRegion"
+	KeyName        = "awsKeyName"
+	ImageID        = "awsImageID"
+	IAMRole        = "awsIAMRole"
+	SecurityGroups = "awsSecurityGroups"
+	SubnetID       = "awsSubnetID"
+	VolType        = "awsVolType"
+	VolSize        = "awsVolSize"
+
+	DefaultVolSize = "80"
+	DefaultVolType = "gp2"
+
+	KubeAddr = "KubeAddr"
 )
 
 const StepName = "configmap"
@@ -43,74 +72,62 @@ func Init() {
 }
 
 func (s *Step) Run(ctx context.Context, out io.Writer, config *steps.Config) error {
-	k8sClient, err := s.getK8SClient(config)
-
+	k8sClient, err := buildKubeClient(config)
 	if err != nil {
-		return errors.Wrap(err, "get k8s client")
+		return errors.Wrap(err, "build kubernetes client")
 	}
 
-	timeout := s.timeout
-
-	for i := 0; i < s.attemptCount; i++ {
-		_, err = k8sClient.Namespaces().Create(&v1.Namespace{
-			ObjectMeta: metav1.ObjectMeta{
-				Name: clouds.CapacityNamespace,
-			},
-		})
-
-		if k8serrors.IsAlreadyExists(err) || err == nil {
-			break
-		}
-
-		logrus.Debugf("create namespace error %v", err)
-		time.Sleep(s.timeout)
-		timeout *= 2
+	userdata, err := parse(config.ConfigMap.Data, map[string]string{
+		KubeAddr: config.ExternalDNSName,
+	})
+	if err != nil {
+		return errors.Wrap(err, "parse userdata template")
 	}
 
-	if !k8serrors.IsAlreadyExists(err) && err != nil {
-		return errors.Wrap(err, "create namespace for capacity configmap")
+	capcfg := capacityapi.Config{
+		ClusterName:  config.ClusterName,
+		Userdata:     string(userdata),
+		ProviderName: "aws",
+		Provider: map[string]string{
+			KeyID:          config.AWSConfig.KeyID,
+			SecretKey:      config.AWSConfig.Secret,
+			Region:         config.AWSConfig.Region,
+			IAMRole:        config.AWSConfig.NodesInstanceProfile,
+			ImageID:        config.AWSConfig.ImageID,
+			KeyName:        config.AWSConfig.KeyPairName,
+			SecurityGroups: config.AWSConfig.NodesSecurityGroupID,
+			VolSize:        DefaultVolSize,
+			VolType:        DefaultVolType,
+			SubnetID:       getSubnet(config.AWSConfig.Subnets),
+			// TODO: add AZ option
+		},
+		WorkersCountMin: 2,
+		WorkersCountMax: 10,
+		Paused:          aws.Bool(true),
 	}
 
-	util.UpdateKubeWithCloudSpecificData(&config.Kube, config)
-
-	var data []byte
-	if data, err = json.Marshal(config.Kube.CloudSpec); err != nil {
-		return errors.Wrap(err, "marshalling cloud specific map")
+	capcfgraw, err := json.Marshal(capcfg)
+	if err != nil {
+		return err
 	}
 
-	configMap := &v1.ConfigMap{
+	_, err = k8sClient.ConfigMaps(CapacityConfigMapNamespace).Create(&v1.ConfigMap{
 		ObjectMeta: metav1.ObjectMeta{
-			Namespace: clouds.CapacityNamespace,
-			Name:      clouds.CapacityProvisionConfigMap,
+			Name: CapacityConfigMapName,
 		},
 		Data: map[string]string{
-			clouds.CapacityScriptKey:        config.ConfigMap.Data,
-			clouds.CapacityCloudSpecificKey: string(data),
+			CapacityConfigMapKey: string(capcfgraw),
 		},
-	}
-
-	_, err = k8sClient.ConfigMaps(clouds.CapacityNamespace).Create(configMap)
+	})
 
 	if !k8serrors.IsAlreadyExists(err) && err != nil {
-		return errors.Wrapf(err, "create config map")
+		return errors.Wrapf(err, "create %s/%s config map", CapacityConfigMapNamespace, CapacityConfigMapName)
 	}
 
 	return nil
 }
 
 func (s *Step) Rollback(ctx context.Context, out io.Writer, config *steps.Config) error {
-	k8sClient, err := s.getK8SClient(config)
-
-	if err != nil {
-		return errors.Wrap(err, "get k8s client")
-	}
-
-	err = k8sClient.Namespaces().Delete(clouds.CapacityNamespace, nil)
-
-	if err != nil {
-		return errors.Wrap(err, "delete capacity namespace")
-	}
-
 	return nil
 }
 
@@ -126,30 +143,36 @@ func (s *Step) Depends() []string {
 	return nil
 }
 
-func (s *Step) getK8SClient(config *steps.Config) (*clientcorev1.CoreV1Client, error) {
-	var err error
-
+func buildKubeClient(config *steps.Config) (clientcorev1.CoreV1Interface, error) {
 	config.Kube.Auth.AdminCert = config.CertificatesConfig.AdminCert
 	config.Kube.Auth.AdminKey = config.CertificatesConfig.AdminKey
 	config.Kube.Auth.CACert = config.CertificatesConfig.CACert
 	config.Kube.ExternalDNSName = config.ExternalDNSName
 
-	master := config.GetMaster()
-	config.Kube.Masters = map[string]*model.Machine{
-		master.Name: master,
-	}
+	return kubeconfig.CoreV1Client(&config.Kube)
+}
 
-	cfg, err := kubeconfig.NewConfigFor(&config.Kube)
-
+func parse(in string, data interface{}) ([]byte, error) {
+	tpl, err := template.New("userdata").Parse(in)
 	if err != nil {
-		return nil, errors.Wrap(err, "configmap create kubeconfig from kube")
+		return nil, err
+	}
+	w := &bytes.Buffer{}
+	if err = tpl.Execute(w, data); err != nil {
+		return nil, err
 	}
 
-	k8sClient, err := clientcorev1.NewForConfig(cfg)
-
-	if err != nil {
-		return nil, errors.Wrapf(err, "configmap build kubernetes client")
+	out := bytes.TrimSpace(w.Bytes())
+	if !bytes.HasPrefix(out, []byte("#!")) {
+		// https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/user-data.html#user-data-shell-scripts
+		out = append([]byte(userdataPrefix), out...)
 	}
+	return out, nil
+}
 
-	return k8sClient, nil
+func getSubnet(azSubnets map[string]string) string {
+	for _, subnet := range azSubnets {
+		return subnet
+	}
+	return ""
 }
