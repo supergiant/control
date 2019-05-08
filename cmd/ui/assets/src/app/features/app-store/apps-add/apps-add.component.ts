@@ -1,8 +1,10 @@
 import { Component, OnInit }      from '@angular/core';
 import { FormBuilder, FormGroup } from '@angular/forms';
 import { HttpClient }             from '@angular/common/http';
+import { Router } from '@angular/router';
 import { catchError }             from 'rxjs/operators';
 import { of }                     from 'rxjs';
+import { MatDialogRef } from '@angular/material';
 import { Notifications }          from '../../../shared/notifications/notifications.service';
 
 @Component({
@@ -18,6 +20,8 @@ export class AppsAddComponent implements OnInit {
     private formBuilder: FormBuilder,
     private http: HttpClient,
     private notifications: Notifications,
+    private router: Router,
+    private dialogRef: MatDialogRef<AppsAddComponent>
   ) {
   }
 
@@ -25,10 +29,6 @@ export class AppsAddComponent implements OnInit {
     this.addRepositoryForm = this.formBuilder.group({
       name: [ '' ],
       url: [ '' ],
-    });
-
-    this.http.get('/v1/api/helm/repositories').subscribe( res => {
-      console.log(res);
     });
   }
 
@@ -46,10 +46,11 @@ export class AppsAddComponent implements OnInit {
       })
     ).subscribe(result => {
       this.isProcessing = false;
+      const repoName = this.addRepositoryForm.value.name;
       this.addRepositoryForm.enable();
-      // TODO
       if (!(result instanceof ErrorEvent)) {
-        window.location.reload();
+        this.router.navigate(['/catalog/', repoName]);
+        this.dialogRef.close()
       }
     });
   }
