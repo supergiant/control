@@ -1,3 +1,6 @@
+package templates
+
+const networkTpl = `
 {{ if .IsBootstrap }}
 
 # wait when apiserver is up and running
@@ -1268,3 +1271,4 @@ EOF"
 sudo kubectl create -f weave.yaml
 {{ end }}
 {{ end }}
+`

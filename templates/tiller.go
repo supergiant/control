@@ -1,3 +1,6 @@
+package templates
+
+const tillerTpl = `
 echo "Installing tiller and waiting for it to be ready"
 
 sudo wget -nv http://storage.googleapis.com/kubernetes-helm/helm-v{{ .HelmVersion }}-{{ .OperatingSystem }}-{{ .Arch }}.tar.gz --directory-prefix=/tmp/
@@ -11,3 +14,4 @@ sudo kubectl create clusterrolebinding tiller-binding --clusterrole=cluster-admi
 {{ end }}
 
 sudo /usr/bin/helm init --automount-service-account-token --wait
+`

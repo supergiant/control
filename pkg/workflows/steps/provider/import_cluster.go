@@ -6,11 +6,12 @@ import (
 	"io"
 
 	"github.com/pkg/errors"
+
 	"github.com/supergiant/control/pkg/clouds"
 
 	"github.com/supergiant/control/pkg/workflows/steps"
 	"github.com/supergiant/control/pkg/workflows/steps/amazon"
-	"github.com/supergiant/control/pkg/workflows/steps/authorizedKeys"
+	"github.com/supergiant/control/pkg/workflows/steps/authorizedkeys"
 	"github.com/supergiant/control/pkg/workflows/steps/bootstraptoken"
 	"github.com/supergiant/control/pkg/workflows/steps/ssh"
 )
@@ -33,7 +34,7 @@ func (s ImportClusterStep) Run(ctx context.Context, out io.Writer, cfg *steps.Co
 			steps.GetStep(amazon.ImportInternetGatewayStepName),
 			steps.GetStep(amazon.ImporRouteTablesStepName),
 			steps.GetStep(ssh.StepName),
-			steps.GetStep(authorizedKeys.StepName),
+			steps.GetStep(authorizedkeys.StepName),
 			steps.GetStep(bootstraptoken.StepName),
 		}
 	default:

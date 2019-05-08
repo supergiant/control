@@ -5,7 +5,7 @@ import (
 
 	"github.com/supergiant/control/pkg/workflows/statuses"
 	"github.com/supergiant/control/pkg/workflows/steps"
-	"github.com/supergiant/control/pkg/workflows/steps/authorizedKeys"
+	"github.com/supergiant/control/pkg/workflows/steps/authorizedkeys"
 	"github.com/supergiant/control/pkg/workflows/steps/bootstraptoken"
 	"github.com/supergiant/control/pkg/workflows/steps/certificates"
 	"github.com/supergiant/control/pkg/workflows/steps/clustercheck"
@@ -72,7 +72,7 @@ func Init() {
 		provider.StepCreateMachine{},
 		&provider.RegisterInstanceToLoadBalancer{},
 		steps.GetStep(ssh.StepName),
-		steps.GetStep(authorizedKeys.StepName),
+		steps.GetStep(authorizedkeys.StepName),
 		steps.GetStep(downloadk8sbinary.StepName),
 		steps.GetStep(docker.StepName),
 		steps.GetStep(certificates.StepName),
@@ -88,7 +88,7 @@ func Init() {
 		// TODO(stgleb): Provider steps should also register theirself it step map
 		provider.StepCreateMachine{},
 		steps.GetStep(ssh.StepName),
-		steps.GetStep(authorizedKeys.StepName),
+		steps.GetStep(authorizedkeys.StepName),
 		steps.GetStep(downloadk8sbinary.StepName),
 		steps.GetStep(docker.StepName),
 		steps.GetStep(certificates.StepName),
