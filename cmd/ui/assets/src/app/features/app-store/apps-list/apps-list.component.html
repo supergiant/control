@@ -1,8 +1,11 @@
 <section class="charts-wrapper">
-  <mat-card class="card">
+  <mat-card class="card repo-card">
     <mat-card-header>
-      <mat-card-title class="repo-actions-title">
+      <mat-card-title *ngIf="repo != 'supergiant'" class="repo-actions-title">
         Add new or remove current repo
+      </mat-card-title>
+      <mat-card-title *ngIf="repo == 'supergiant'" class="repo-actions-title">
+        Add new repo
       </mat-card-title>
     </mat-card-header>
     <mat-card-actions class="repo-actions">
@@ -13,7 +16,7 @@
           Add new repo
         </div>
       </div>
-      <div class="add-remove-icon-and-text" (click)="removeRepo()">
+      <div *ngIf="repo != 'supergiant'" class="add-remove-icon-and-text" (click)="removeRepo()">
         <span class="minus">
         </span>
         <div class="add-remove-text">
@@ -33,7 +36,7 @@
     </mat-card-header>
     <mat-card-content>
       <p>
-      {{ chart.description }}
+      {{ (chart.description.length>96)? (chart.description | slice:0:92)+'...':(chart.description) }}
       </p>
     </mat-card-content>
     <mat-card-actions class="app-actions">
