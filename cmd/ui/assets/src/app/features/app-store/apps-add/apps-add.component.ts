@@ -26,10 +26,6 @@ export class AppsAddComponent implements OnInit {
       name: [ '' ],
       url: [ '' ],
     });
-
-    this.http.get('/v1/api/helm/repositories').subscribe( res => {
-      console.log(res);
-    });
   }
 
   addRepository() {
