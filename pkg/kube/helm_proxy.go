@@ -2,6 +2,7 @@ package kube
 
 import (
 	"github.com/pkg/errors"
+	"github.com/supergiant/control/pkg/kubeconfig"
 	corev1 "k8s.io/client-go/kubernetes/typed/core/v1"
 
 	"github.com/supergiant/control/pkg/model"
@@ -14,7 +15,7 @@ func helmProxyFrom(kube *model.Kube) (proxy.Interface, error) {
 		return nil, errors.Wrap(sgerrors.ErrNilEntity, "kube model")
 	}
 
-	restConf, err := NewConfigFor(kube)
+	restConf, err := kubeconfig.NewConfigFor(kube)
 	if err != nil {
 		return nil, err
 	}

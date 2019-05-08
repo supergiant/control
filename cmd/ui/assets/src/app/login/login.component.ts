@@ -27,8 +27,16 @@ export class LoginComponent implements OnDestroy, OnInit {
     private formBuilder: FormBuilder
   ) { }
 
+  get login () {
+    return this.loginForm.get('login')
+  }
+
+  get password () {
+    return this.loginForm.get('password')
+  }
+
   initColdStartForm() {
-    const pattern = new RegExp('(?=.*[a-z])(?=.*[A-Z])(?=.*[0-9])[a-zA-Z0-9]')
+    const pattern = new RegExp('^(?=.*[a-z])(?=.*[A-Z])(?=.*[0-9])(?=.*[!@#\$%\^&\*])')
     this.loginForm.controls['password'].setValidators([
       Validators.required,
       Validators.minLength(8),
@@ -50,7 +58,7 @@ export class LoginComponent implements OnDestroy, OnInit {
       msg);
   }
 
-  login(creds) {
+  loginUser(creds) {
     this.supergiant.Auth.login(creds).subscribe(
       res => {
         this.supergiant.loginSuccess = true;
@@ -77,7 +85,7 @@ export class LoginComponent implements OnDestroy, OnInit {
         err => this.displayError(err)
       )
     } else {
-      this.login(creds)
+      this.loginUser(creds)
     }
   }
 
@@ -86,8 +94,14 @@ export class LoginComponent implements OnDestroy, OnInit {
   }
 
   ngOnInit() {
+    const pattern = new RegExp('^[a-zA-Z0-9-_]+$');
     this.loginForm = this.formBuilder.group({
-      login: ['', Validators.required],
+      login: ['', [
+        Validators.required,
+        Validators.minLength(4),
+        Validators.maxLength(32),
+        Validators.pattern(pattern)
+      ]],
       password: ['', Validators.required]
     })
 

@@ -21,15 +21,6 @@ import (
 	"github.com/supergiant/control/pkg/workflows/steps"
 )
 
-type bufferCloser struct {
-	io.Writer
-	err error
-}
-
-func (b *bufferCloser) Close() error {
-	return b.err
-}
-
 type mockKubeService struct {
 	getError  error
 	createErr error

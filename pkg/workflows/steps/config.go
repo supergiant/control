@@ -234,6 +234,7 @@ func NewMap(m map[string]*model.Machine) Map {
 type Config struct {
 	Kube model.Kube `json:"kube"`
 
+	DryRun                 bool `json:"dryRun"`
 	TaskID                 string
 	Provider               clouds.Name  `json:"provider"`
 	IsMaster               bool         `json:"isMaster"`
@@ -258,6 +259,7 @@ type Config struct {
 	PrometheusConfig   PrometheusConfig   `json:"prometheusConfig"`
 	DrainConfig        DrainConfig        `json:"drainConfig"`
 	KubeadmConfig      KubeadmConfig      `json:"kubeadmConfig"`
+	ConfigMap          ConfigMap          `json:"configMap"`
 
 	ExternalDNSName string `json:"externalDnsName"`
 	InternalDNSName string `json:"internalDnsName"`
@@ -282,6 +284,10 @@ type Config struct {
 	nodeChan      chan model.Machine
 	kubeStateChan chan model.KubeState
 	configChan    chan *Config
+}
+
+type ConfigMap struct {
+	Data      string
 }
 
 // NewConfig builds instance of config for provisioning

@@ -212,6 +212,23 @@
           font-style: italic;
           opacity: 0.5;
         }
+
+        .action {
+          background-color: rgba(0, 0, 0, 0.5);
+          border: 1px solid rgba(255, 255, 255, 0.25);
+          color: #fff;
+          cursor: pointer;
+          font-style: italic;
+          font-size: 16px;
+          font-weight: 500;
+          letter-spacing: 2px;
+          padding: 5px 12px 5px 12px;
+          margin-left: 3px;
+
+          &:active {
+            transform: scale(0.98, 0.98);
+          }
+        }
       }
 
       .action-buttons-wrapper {

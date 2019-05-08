@@ -2,6 +2,8 @@
   display: flex;
   flex-direction: column;
   align-items: center;
+  // TODO: fix this
+  margin-top: -110px;
 
   .logo {
     height: 108px;
@@ -11,31 +13,29 @@
   }
 
   .welcome {
-    margin-bottom: 10px;
+    display: inline-block;
+    font-weight: 200;
+    font-size: 32px;
+    letter-spacing: 0px;
+    margin-bottom: 34px;
 
-    span {
-      font-weight: 100;
-      font-size: 45px;
-      letter-spacing: 4px;
-    }
-  }
-
-  .headline {
-    margin-bottom: 30px;
-
-    span {
-      font-weight: 300;
-      font-size: 58px;
-      letter-spacing: 4px;
+    .headline {
+      font-weight: 700;
     }
   }
 
   .coldstart-comm {
     background-color: rgba(0, 0, 0, 0.25);
     box-shadow: 0px 0px 15px 15px rgba(0, 0, 0, 0.25);
-    font-size: 16px;
+    font-size: 18px;
+    margin-bottom: 18px;
     text-align: center;
     width: 472px;
+
+    .cant-change {
+      font-style: italic;
+      font-weight: bold;
+    }
   }
 
   .login-form {
@@ -71,7 +71,6 @@
   .buttons-wrapper {
     display: flex;
     justify-content: center;
-    margin-top: 40px;
     margin-top: 20px;
   }
 

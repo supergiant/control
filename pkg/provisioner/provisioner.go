@@ -1,6 +1,7 @@
 package provisioner
 
 import (
+	"bytes"
 	"context"
 	"crypto/rand"
 	"crypto/rsa"
@@ -14,6 +15,8 @@ import (
 	"github.com/pkg/errors"
 	"github.com/sirupsen/logrus"
 
+	"github.com/supergiant/control/pkg/runner/dry"
+	"github.com/supergiant/control/pkg/storage/memory"
 	"github.com/supergiant/control/pkg/model"
 	"github.com/supergiant/control/pkg/pki"
 	"github.com/supergiant/control/pkg/profile"
@@ -57,6 +60,15 @@ func NewProvisioner(repository storage.Interface, kubeService KubeService,
 		rateLimiter: NewRateLimiter(spawnInterval),
 		cancelMap:   make(map[string]func()),
 	}
+}
+
+type bufferCloser struct {
+	io.Writer
+	err error
+}
+
+func (b *bufferCloser) Close() error {
+	return b.err
 }
 
 // ProvisionCluster runs provisionCluster process among nodes
@@ -550,8 +562,20 @@ func (tp *TaskProvisioner) waitCluster(ctx context.Context, clusterTask *workflo
 		return errors.Wrapf(err, "Error getting writer for %s", fileName)
 	}
 
+	// Build node provision script and save it to ConfigMap
+	buildNodeProvisionScript(ctx, config)
+
 	cfg := *config
-	result := clusterTask.Run(ctx, cfg, out)
+
+	// Get master node to run cluster task
+	if master := config.GetMaster(); master != nil {
+		logrus.Printf("Change one master %v to another %v", *master, cfg.Node)
+		cfg.Node = *master
+	} else {
+		return errors.New("No master found, cluster deployment failed")
+	}
+	clusterTask.Config = &cfg
+	result := clusterTask.Run(ctx, *clusterTask.Config, out)
 	err = <-result
 
 	if err != nil {
@@ -559,6 +583,36 @@ func (tp *TaskProvisioner) waitCluster(ctx context.Context, clusterTask *workflo
 	}
 
 	return nil
+}
+
+func buildNodeProvisionScript(ctx context.Context, config *steps.Config) {
+	// Prepare config for confimap step
+	dryRunner := dry.NewDryRunner()
+	repository := memory.NewInMemoryRepository()
+
+	dryConfig := *config
+	// These values must still be templated
+	dryConfig.Node.PublicIp = "{{ .PublicIp }}"
+	dryConfig.Node.PrivateIp = "{{ .PrivateIp }}"
+	dryConfig.Runner = dryRunner
+	dryConfig.DryRun = true
+
+	task, err := workflows.NewTask(&dryConfig, workflows.ProvisionNode, repository)
+
+	if err != nil {
+		return
+	}
+
+	task.Config = &dryConfig
+	resultChan := task.Run(ctx, dryConfig, &bufferCloser{
+		Writer: &bytes.Buffer{},
+	})
+
+	if err := <-resultChan; err != nil {
+		return
+	}
+
+	config.ConfigMap.Data = dryRunner.GetOutput()
 }
 
 func (tp *TaskProvisioner) buildInitialCluster(ctx context.Context,
