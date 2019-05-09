@@ -5,4 +5,5 @@ export interface IMachineType {
   availabilityZone: string;
   availableMachineTypes: string[];
   recommendedNodesCount?: number;
+  filter: string;
 }
