@@ -76,6 +76,7 @@ func (s *CreateHealthCheck) Run(ctx context.Context, output io.Writer,
 		return errors.Wrapf(err, "Error creating health check")
 	}
 
+	logrus.Debugf("Created health check link %s", hc.SelfLink)
 	config.GCEConfig.HealthCheckName = hc.SelfLink
 	time.Sleep(time.Minute * 1)
 

@@ -34,7 +34,7 @@ type computeService struct {
 	deleteIpAddress            func(context.Context, steps.GCEConfig, string) (*compute.Operation, error)
 	insertNetwork              func(context.Context, steps.GCEConfig, *compute.Network) (*compute.Operation, error)
 	getNetwork                 func(context.Context, steps.GCEConfig, string) (*compute.Network, error)
-	insertSubnetwork           func(context.Context, steps.GCEConfig, *compute.Subnetwork) (*compute.Subnetwork, error)
+	insertSubnetwork           func(context.Context, steps.GCEConfig, *compute.Subnetwork) (*compute.Operation, error)
 	getSubnetwork              func(context.Context, steps.GCEConfig, string) (*compute.Subnetwork, error)
 
 	insertHealthCheck          func(context.Context, steps.GCEConfig, *compute.HealthCheck) (*compute.Operation, error)
@@ -42,7 +42,7 @@ type computeService struct {
 	getHealthCheck             func(context.Context, steps.GCEConfig, string) (*compute.HealthCheck, error)
 }
 
-func Init() {
+func Init(getter accountGetter) {
 	createInstance := NewCreateInstanceStep(time.Second*10, time.Minute*5)
 	deleteCluster := NewDeleteClusterStep()
 	deleteNode := NewDeleteNodeStep()
@@ -57,6 +57,7 @@ func Init() {
 	deleteInstanceGroup, _ := NewDeleteInstanceGroupStep()
 	deleteBackendService, _ := NewDeleteBackendServiceStep()
 	createHealthCheck := NewCreateHealthCheckStep()
+	createNetworks := NewCreateNetworksStep(getter)
 
 	steps.RegisterStep(CreateHealthCheckStepName, createHealthCheck)
 	steps.RegisterStep(DeleteInstanceGroupStepName, deleteInstanceGroup)
@@ -72,4 +73,5 @@ func Init() {
 	steps.RegisterStep(DeleteForwardingRulesStepName, deleteForwardingRules)
 	steps.RegisterStep(DeleteTargetPoolStepName, deleteTargetPool)
 	steps.RegisterStep(DeleteIpAddressStepName, deleteIpAddress)
+	steps.RegisterStep(CreateNetworksStepName, createNetworks)
 }

@@ -88,6 +88,10 @@ func (s *CreateInstanceGroupsStep) Run(ctx context.Context, output io.Writer,
 
 		config.GCEConfig.InstanceGroupLinks[az] = instanceGroup.SelfLink
 		config.GCEConfig.InstanceGroupNames[az] = instanceGroup.Name
+
+		logrus.Debugf("Created instance group for az %s name %s link %s",
+			az, config.GCEConfig.InstanceGroupNames[az],
+			config.GCEConfig.InstanceGroupLinks[az])
 	}
 
 	return nil

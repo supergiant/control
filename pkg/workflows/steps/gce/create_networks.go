@@ -3,15 +3,12 @@ package gce
 import (
 	"context"
 	"fmt"
-	"github.com/apparentlymart/go-cidr/cidr"
 	"github.com/pkg/errors"
 	"github.com/sirupsen/logrus"
 	"github.com/supergiant/control/pkg/account"
 	"github.com/supergiant/control/pkg/clouds/gcesdk"
 	"github.com/supergiant/control/pkg/model"
 	"io"
-	"math/rand"
-	"net"
 	"time"
 
 	"google.golang.org/api/compute/v1"
@@ -56,8 +53,8 @@ func NewCreateNetworksStep(getter accountGetter) *CreateNetworksStep {
 				getNetwork: func(ctx context.Context, config steps.GCEConfig,networkName string) (*compute.Network, error) {
 					return client.Networks.Get(config.ProjectID, networkName).Do()
 				},
-				getSubnetwork: func(ctx context.Context, config steps.GCEConfig, subnetworkName string) (*compute.Subnetwork, error) {
-					return client.Subnetworks.Get(config.ProjectID, config.Region, subnetworkName).Do()
+				insertNetwork: func(ctx context.Context, config steps.GCEConfig, network *compute.Network) (*compute.Operation, error) {
+					return client.Networks.Insert(config.ProjectID, network).Do()
 				},
 			}, nil
 		},
@@ -90,7 +87,7 @@ func (s *CreateNetworksStep) Run(ctx context.Context, output io.Writer,
 	}
 
 	network := &compute.Network{
-		IPv4Range: "10.0.0.0/16",
+		AutoCreateSubnetworks: true,
 		Name: fmt.Sprintf("network-%s", config.ClusterID),
 	}
 
@@ -108,9 +105,13 @@ func (s *CreateNetworksStep) Run(ctx context.Context, output io.Writer,
 		return errors.Wrap(err, "Get network caused error")
 	}
 
+	// TODO(stgleb): store subnetworks from network
+	config.GCEConfig.Subnets = network.Subnetworks
 	config.GCEConfig.NetworkLink = network.SelfLink
 	config.GCEConfig.NetworkName = network.Name
 
+	logrus.Debugf("Created network name %s link %s",
+		config.GCEConfig.NetworkName, config.GCEConfig.NetworkLink)
 	zoneGetter, err := s.zoneGetterFactory(ctx, s.accountGetter, config)
 
 	if err != nil {
@@ -127,46 +128,9 @@ func (s *CreateNetworksStep) Run(ctx context.Context, output io.Writer,
 
 	config.GCEConfig.Subnets = make(map[string]string)
 
+	// Use subnets as a storage of availability zones
 	for _, az := range azs {
-		_, cidrIP, err := net.ParseCIDR(network.IPv4Range)
-
-		if err != nil {
-			logrus.Errorf("Error parsing VPC cidr %s",
-				network.IPv4Range)
-			return errors.Wrapf(err, "Error parsing VPC cidr %s",
-				network.IPv4Range)
-		}
-
-		logrus.Info(cidrIP)
-		subnetCidr, err := cidr.Subnet(cidrIP, 8, rand.Int()%256)
-		logrus.Debugf("Subnet cidr %s", subnetCidr)
-
-		if err != nil {
-			logrus.Debugf("Calculating subnet cidr caused %s", err.Error())
-			return errors.Wrapf(err, "%s Calculating subnet"+
-				" cidr caused error", CreateNetworksStepName)
-		}
-
-		subnetwork := &compute.Subnetwork{
-			Name: fmt.Sprint("%s-%s", az, config.ClusterID),
-			IpCidrRange: subnetCidr.String(),
-		}
-
-		_, err = svc.insertSubnetwork(ctx, config.GCEConfig, subnetwork)
-
-		if err != nil {
-			logrus.Errorf("Create subnet caused error %v", err)
-			return errors.Wrap(err, "Create subnet caused")
-		}
-
-		subnetwork, err = svc.getSubnetwork(ctx, config.GCEConfig, subnetwork.Name)
-
-		if err != nil {
-			logrus.Errorf("Get subnet caused error %v", err)
-			return errors.Wrap(err, "Get subnet caused")
-		}
-
-		config.GCEConfig.Subnets[az] = subnetwork.SelfLink
+		config.GCEConfig.Subnets[az] = "dummy"
 	}
 
 	return nil

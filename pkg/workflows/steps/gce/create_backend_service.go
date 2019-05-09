@@ -90,6 +90,9 @@ func (s *CreateBackendServiceStep) Run(ctx context.Context, output io.Writer,
 	config.GCEConfig.BackendServiceName = backendService.Name
 	config.GCEConfig.BackendServiceLink = backendService.SelfLink
 
+	logrus.Debugf("Created backend service name %s link %s",
+		config.GCEConfig.BackendServiceName,
+		config.GCEConfig.BackendServiceLink)
 	// NOTE(stgleb): There is no field that signals for backend service is available so we simple sleep.
 	time.Sleep(time.Minute * 1)
 	return nil

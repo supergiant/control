@@ -101,6 +101,8 @@ func (s *CreateAddressStep) Run(ctx context.Context, output io.Writer,
 		Name:        internalAddressName,
 		Description: "Internal static IP address",
 		AddressType: "INTERNAL",
+		Network: config.GCEConfig.NetworkLink,
+		Subnetwork:
 	}
 
 	logrus.Debugf("create internal ip address %s", internalAddressName)
@@ -119,7 +121,8 @@ func (s *CreateAddressStep) Run(ctx context.Context, output io.Writer,
 		if err == nil && internalAddress.Address != "" {
 			config.GCEConfig.InternalIPAddressLink = internalAddress.SelfLink
 			config.InternalDNSName = internalAddress.Address
-			logrus.Debugf("Internal IP %s", internalAddress.Address)
+			logrus.Debugf("Internal IP %s link %s",
+				internalAddress.Address, internalAddress.SelfLink)
 			break
 		}
 

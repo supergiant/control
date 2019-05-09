@@ -250,23 +250,37 @@ func (s *CreateInstanceStep) Run(ctx context.Context, output io.Writer,
 				if config.IsMaster {
 					config.AddMaster(&config.Node)
 
-					if config.IsBootstrap {
-						addInstanceToTargetPoolReq := &compute.TargetPoolsAddInstanceRequest{
-							Instances: []*compute.InstanceReference{
-								{
-									Instance: resp.SelfLink,
-								},
+					addInstanceToTargetPoolReq := &compute.TargetPoolsAddInstanceRequest{
+						Instances: []*compute.InstanceReference{
+							{
+								Instance: resp.SelfLink,
 							},
-						}
-
-						_, err := svc.addInstanceToTargetGroup(ctx, config.GCEConfig,
-							config.GCEConfig.TargetPoolName, addInstanceToTargetPoolReq)
-
-						if err != nil {
-							logrus.Errorf("error adding instance %s URL %s to target pool %s",
-								resp.Name, resp.SelfLink, config.GCEConfig.TargetPoolName)
-						}
+						},
 					}
+
+					_, err := svc.addInstanceToTargetGroup(ctx, config.GCEConfig,
+						config.GCEConfig.TargetPoolName, addInstanceToTargetPoolReq)
+
+					if err != nil {
+						logrus.Errorf("error adding instance %s URL %s to target pool %s",
+							resp.Name, resp.SelfLink, config.GCEConfig.TargetPoolName)
+					}
+
+					req := &compute.InstanceGroupsAddInstancesRequest{
+						Instances: []*compute.InstanceReference{
+							{
+								Instance: instance.SelfLink,
+							},
+						},
+					}
+
+					_, err = svc.addInstanceToInstanceGroup(ctx, config.GCEConfig, config.GCEConfig.AvailabilityZone, req)
+
+					if err != nil {
+						logrus.Errorf("error adding instance %s URL %s to instance group %s",
+							resp.Name, resp.SelfLink, config.GCEConfig.InstanceGroupLinks[config.GCEConfig.AvailabilityZone])
+					}
+
 				} else {
 					config.AddNode(&config.Node)
 				}

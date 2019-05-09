@@ -3,7 +3,6 @@ package gce
 import (
 	"context"
 	"fmt"
-	"github.com/supergiant/control/pkg/clouds/gcesdk"
 	"io"
 	"time"
 
@@ -11,13 +10,14 @@ import (
 	"google.golang.org/api/compute/v1"
 
 	"github.com/pkg/errors"
+	"github.com/supergiant/control/pkg/clouds/gcesdk"
 	"github.com/supergiant/control/pkg/workflows/steps"
 )
 
 const CreateForwardingRulesStepName = "gce_create_forwarding_rules"
 
 type CreateForwardingRules struct {
-	timeout time.Duration
+	timeout      time.Duration
 	attemptCount int
 
 	getComputeSvc func(context.Context, steps.GCEConfig) (*computeService, error)
@@ -25,7 +25,7 @@ type CreateForwardingRules struct {
 
 func NewCreateForwardingRulesStep() *CreateForwardingRules {
 	return &CreateForwardingRules{
-		timeout: time.Second * 10,
+		timeout:      time.Second * 10,
 		attemptCount: 10,
 		getComputeSvc: func(ctx context.Context, config steps.GCEConfig) (*computeService, error) {
 			client, err := gcesdk.GetClient(ctx, config)
@@ -64,16 +64,16 @@ func (s *CreateForwardingRules) Run(ctx context.Context, output io.Writer,
 		Target:              config.GCEConfig.TargetPoolLink,
 	}
 
-
 	timeout := s.timeout
 
-	for i := 0;i < s.attemptCount; i++ {
+	for i := 0; i < s.attemptCount; i++ {
 		_, err = svc.insertForwardingRule(ctx, config.GCEConfig, externalForwardingRule)
 
 		if err == nil {
 			break
 		}
 
+		logrus.Debugf("Error %v sleep for %v", err, timeout)
 		time.Sleep(timeout)
 		timeout = timeout * 2
 	}
@@ -95,17 +95,19 @@ func (s *CreateForwardingRules) Run(ctx context.Context, output io.Writer,
 		IPProtocol:          "TCP",
 		Ports:               []string{"443"},
 		BackendService:      config.GCEConfig.BackendServiceLink,
+		Network:             config.GCEConfig.NetworkLink,
 	}
 
 	timeout = s.timeout
 
-	for i := 0;i < s.attemptCount; i++ {
+	for i := 0; i < s.attemptCount; i++ {
 		_, err = svc.insertForwardingRule(ctx, config.GCEConfig, internalForwardingRule)
 
 		if err == nil {
 			break
 		}
 
+		logrus.Debugf("Error %v sleep for %v", err, timeout)
 		time.Sleep(timeout)
 		timeout = timeout * 2
 	}

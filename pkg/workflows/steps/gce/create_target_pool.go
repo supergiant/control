@@ -72,7 +72,8 @@ func (s *CreateTargetPoolStep) Run(ctx context.Context, output io.Writer,
 
 	config.GCEConfig.TargetPoolName = targetPoolName
 	config.GCEConfig.TargetPoolLink = targetPool.SelfLink
-
+	logrus.Debugf("Created target pool name %s link %s",
+		config.GCEConfig.TargetPoolName, config.GCEConfig.TargetPoolLink)
 	return nil
 }
 
