@@ -42,7 +42,6 @@ export class AppsAddComponent implements OnInit {
   updateValidity() {
     this.addRepositoryForm.updateValueAndValidity();
     this.disableSubmit = (this.isProcessing || this.addRepositoryForm.invalid);
-    console.log(this.disableSubmit);
   }
 
   addRepository() {
