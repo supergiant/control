@@ -148,7 +148,7 @@ func (s *CreateNetworksStep) Run(ctx context.Context, output io.Writer,
 		}
 
 		subnetwork := &compute.Subnetwork{
-			Name: fmt.Sprint("subnetwork-%s-%s", az, config.ClusterID),
+			Name: fmt.Sprint("%s-%s", az, config.ClusterID),
 			IpCidrRange: subnetCidr.String(),
 		}
 

@@ -169,10 +169,22 @@ func LoadCloudSpecificDataFromKube(k *model.Kube, config *steps.Config) error {
 	case clouds.GCE:
 		config.GCEConfig.Region = k.Region
 		config.GCEConfig.TargetPoolName = k.CloudSpec[clouds.GCETargetPoolName]
+		config.GCEConfig.HealthCheckName = k.CloudSpec[clouds.GCEHealthCheckName]
+
+		config.GCEConfig.BackendServiceName = k.CloudSpec[clouds.GCEBackendServiceName]
+		config.GCEConfig.BackendServiceLink = k.CloudSpec[clouds.GCEBackendServiceLink]
+
 		config.GCEConfig.ExternalAddressName = k.CloudSpec[clouds.GCEExternalIPAddressName]
 		config.GCEConfig.ExternalIPAddressLink = k.CloudSpec[clouds.GCEExternalIPAddress]
-		config.GCEConfig.HealthCheckName = k.CloudSpec[clouds.GCEHealthCheckName]
 		config.GCEConfig.ExternalForwardingRuleName = k.CloudSpec[clouds.GCEExternalForwardingRuleName]
+
+		config.GCEConfig.InternalForwardingRuleName = k.CloudSpec[clouds.GCEInternalForwardingRuleName]
+		config.GCEConfig.InternalIPAddressLink = k.CloudSpec[clouds.GCEInternalIPAddress]
+		config.GCEConfig.InternalAddressName = k.CloudSpec[clouds.GCEInternalIPAddressName]
+
+		config.GCEConfig.NetworkLink = k.CloudSpec[clouds.GCENetworkLink]
+		config.GCEConfig.NetworkName = k.CloudSpec[clouds.GCENetworkName]
+
 		config.GCEConfig.Subnets = k.Subnets
 	case clouds.DigitalOcean:
 		config.DigitalOceanConfig.ExternalLoadBalancerID = k.CloudSpec[clouds.DigitalOceanExternalLoadBalancerID]

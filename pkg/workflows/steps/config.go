@@ -103,6 +103,7 @@ type GCEConfig struct {
 	TargetPoolLink string `json:"targetPoolLink"`
 
 	ExternalAddressName string `json:"externalAddressName"`
+	InternalAddressName string `json:"internalAddressName"`
 
 	ExternalIPAddressLink string `json:"externalIpAddressLink"`
 	InternalIPAddressLink string `json:"internalIpAddressLink"`

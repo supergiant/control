@@ -55,11 +55,21 @@ func UpdateKubeWithCloudSpecificData(k *model.Kube, config *steps.Config) {
 	case clouds.GCE:
 		k.Subnets = config.GCEConfig.Subnets
 		cloudSpecificSettings[clouds.GCETargetPoolName] = config.GCEConfig.TargetPoolName
+		cloudSpecificSettings[clouds.GCEHealthCheckName] = config.GCEConfig.HealthCheckName
+
 		cloudSpecificSettings[clouds.GCEExternalIPAddressName] = config.GCEConfig.ExternalAddressName
 		cloudSpecificSettings[clouds.GCEExternalIPAddress] = config.GCEConfig.ExternalIPAddressLink
-		cloudSpecificSettings[clouds.GCEHealthCheckName] = config.GCEConfig.HealthCheckName
 		cloudSpecificSettings[clouds.GCEExternalForwardingRuleName] = config.GCEConfig.ExternalForwardingRuleName
-		// TODO(stgleb): store Instance group info here
+
+		cloudSpecificSettings[clouds.GCEBackendServiceLink] = config.GCEConfig.BackendServiceLink
+		cloudSpecificSettings[clouds.GCEBackendServiceName] = config.GCEConfig.BackendServiceName
+
+		cloudSpecificSettings[clouds.GCEInternalIPAddress] = config.GCEConfig.InternalIPAddressLink
+		cloudSpecificSettings[clouds.GCEInternalIPAddressName] = config.GCEConfig.InternalAddressName
+		cloudSpecificSettings[clouds.GCEInternalForwardingRuleName] = config.GCEConfig.InternalForwardingRuleName
+
+		cloudSpecificSettings[clouds.GCENetworkName] = config.GCEConfig.NetworkName
+		cloudSpecificSettings[clouds.GCENetworkLink] = config.GCEConfig.NetworkLink
 	case clouds.DigitalOcean:
 		cloudSpecificSettings[clouds.DigitalOceanExternalLoadBalancerID] = config.DigitalOceanConfig.ExternalLoadBalancerID
 		cloudSpecificSettings[clouds.DigitalOceanInternalLoadBalancerID] = config.DigitalOceanConfig.InternalLoadBalancerID

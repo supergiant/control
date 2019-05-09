@@ -104,8 +104,6 @@ func (s *CreateInstanceStep) Run(ctx context.Context, output io.Writer,
 		return errors.Wrapf(err, "error gettting machine types")
 	}
 
-	prefix := "https://www.googleapis.com/compute/v1/projects/" + config.GCEConfig.ServiceAccount.ProjectID
-
 	role := "master"
 
 	if !config.IsMaster {
@@ -170,8 +168,7 @@ func (s *CreateInstanceStep) Run(ctx context.Context, output io.Writer,
 						Name: "External NAT",
 					},
 				},
-				// TODO(stgleb): Create own network instead of default
-				Network: prefix + "/global/networks/default",
+				Network: config.GCEConfig.NetworkLink,
 			},
 		},
 		ServiceAccounts: []*compute.ServiceAccount{

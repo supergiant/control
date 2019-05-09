@@ -3,7 +3,6 @@ package gce
 import (
 	"context"
 	"fmt"
-	"github.com/supergiant/control/pkg/clouds/gcesdk"
 	"io"
 	"time"
 
@@ -11,6 +10,7 @@ import (
 	"github.com/sirupsen/logrus"
 	"google.golang.org/api/compute/v1"
 
+	"github.com/supergiant/control/pkg/clouds/gcesdk"
 	"github.com/supergiant/control/pkg/workflows/steps"
 )
 
