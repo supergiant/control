@@ -53,7 +53,6 @@ export class NewClusterComponent implements OnInit, OnDestroy {
   availableCloudAccounts$: Observable<any[]>;
   selectedCloudAccount: any;
   availableRegions: any;
-  availableRegionsSansProvider: any;
   availableRegionNames: Array<string>;
   availableMachineTypes: Array<any>;
   regionsLoading = false;
@@ -190,7 +189,7 @@ export class NewClusterComponent implements OnInit, OnDestroy {
       newClusterData.profile.masterProfiles = this.nodesService.compileProfiles(this.selectedCloudAccount.provider, this.machines, 'Master');
       newClusterData.profile.nodesProfiles = this.nodesService.compileProfiles(this.selectedCloudAccount.provider, this.machines, 'Node');
 
-      let region = this.availableRegionsSansProvider.filter(reg => {
+      let region = this.availableRegions.filter(reg => {
         return reg.name === this.providerConfig.value.region
       })[0];
       newClusterData.profile.region = region.id;
@@ -315,7 +314,7 @@ export class NewClusterComponent implements OnInit, OnDestroy {
 
   selectRegion(regionName) {
 
-    let region = this.availableRegionsSansProvider.filter(reg => {
+    let region = this.availableRegions.filter(reg => {
       return reg.name === regionName
     })[0];
 
@@ -440,9 +439,8 @@ export class NewClusterComponent implements OnInit, OnDestroy {
     this.subscriptions.add(this.supergiant.CloudAccounts.getRegions(cloudAccount.name).subscribe(
       regionList => {
         this.availableRegions = regionList;
-        this.availableRegions.regions.sort(this.sortRegionsByName);
-        this.availableRegionNames = this.availableRegions.regions.map(n => n.name);
-        this.availableRegionsSansProvider = this.availableRegions.regions;
+        this.availableRegions = this.availableRegions.regions.sort(this.sortRegionsByName);
+        this.availableRegionNames = this.availableRegions.map(n => n.name);
         this.regionsLoading = false;
       },
       err => {
