@@ -3,6 +3,8 @@ import { FormBuilder, FormGroup, Validators, ValidatorFn, AbstractControl } from
 import { Router } from '@angular/router';
 import { MatHorizontalStepper, MatOption, MatSelect, MatDialog } from '@angular/material';
 import { Subscription, Observable } from 'rxjs';
+import { map } from 'rxjs/operators';
+
 import { Notifications } from '../../shared/notifications/notifications.service';
 import { Supergiant } from '../../shared/supergiant/supergiant.service';
 import { NodeProfileService } from '../node-profile.service';
@@ -12,7 +14,6 @@ import {
   BLANK_MACHINE_TEMPLATE,
 } from 'app/clusters/new-cluster/new-cluster.component.config';
 import { sortDigitalOceanMachineTypes } from 'app/clusters/new-cluster/new-cluster.helpers';
-import { map } from 'rxjs/operators';
 import { IMachineType } from './new-cluster.component.interface';
 import { PublicKeyModalComponent } from './public-key-modal/public-key-modal.component';
 
@@ -146,7 +147,7 @@ export class NewClusterComponent implements OnInit, OnDestroy {
       return true;
     }
   }
-  
+
   getClusters() {
     this.supergiant.Kubes.get().subscribe(
       clusters => clusters.map(c => this.unavailableClusterNames.add(c.name)),
@@ -344,7 +345,9 @@ export class NewClusterComponent implements OnInit, OnDestroy {
         );
         break;
       case 'azure':
-        this.availableMachineTypes = region.AvailableSizes;
+        // 'Basic_' VMs don't support load balancers
+        const filterName = "Basic_";
+        this.availableMachineTypes = region.AvailableSizes.filter(vmName => !vmName.includes(filterName));
     }
   }
 
