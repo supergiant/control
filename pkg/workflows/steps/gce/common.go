@@ -45,13 +45,13 @@ type computeService struct {
 	getHealthCheck             func(context.Context, steps.GCEConfig, string) (*compute.HealthCheck, error)
 }
 
-func Init() {
+func Init(getter accountGetter) {
 	createInstance := NewCreateInstanceStep(time.Second*10, time.Minute*5)
 	createTargetPool := NewCreateTargetPoolStep()
 	createIPAddress := NewCreateAddressStep()
 	createForwardingRules := NewCreateForwardingRulesStep()
 
-	createInstanceGroup, _ := NewCreateInstanceGroupsStep()
+	createInstanceGroup, _ := NewCreateInstanceGroupsStep(getter)
 	createBackendService, _ := NewCreateBackendServiceStep()
 	createHealthCheck := NewCreateHealthCheckStep()
 	createNetworks := NewCreateNetworksStep()

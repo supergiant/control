@@ -90,6 +90,7 @@ func prepProvisionStepFor(provider clouds.Name) ([]steps.Step, error) {
 			steps.GetStep(gce.CreateNetworksStepName),
 			steps.GetStep(gce.CreateIPAddressStepName),
 			steps.GetStep(gce.CreateTargetPullStepName),
+			steps.GetStep(gce.CreateInstanceGroupsStepName),
 			steps.GetStep(gce.CreateHealthCheckStepName),
 		}, nil
 	}

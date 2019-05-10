@@ -62,7 +62,7 @@ func (s *DeleteInstanceGroupStep) Run(ctx context.Context, output io.Writer,
 		for i := 0; i < s.AttemptCount; i++ {
 			_, err = svc.deleteInstanceGroup(ctx, config.GCEConfig, instanceGroupName)
 
-			if err != nil {
+			if err != nil && !isNotFound(err) {
 				logrus.Debugf("Error deleting instance group %v", err)
 			} else {
 				break

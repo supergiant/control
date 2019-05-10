@@ -67,6 +67,10 @@ func NewCreateInstanceStep(period, timeout time.Duration) *CreateInstanceStep {
 				addInstanceToTargetGroup: func(ctx context.Context, config steps.GCEConfig, targetPoolName string, request *compute.TargetPoolsAddInstanceRequest) (*compute.Operation, error) {
 					return client.TargetPools.AddInstance(config.ServiceAccount.ProjectID, config.Region, config.TargetPoolName, request).Do()
 				},
+				addInstanceToInstanceGroup: func(ctx context.Context, config steps.GCEConfig, instanceGroup string, request *compute.InstanceGroupsAddInstancesRequest) (*compute.Operation, error) {
+					return client.InstanceGroups.AddInstances(config.ServiceAccount.ProjectID, config.AvailabilityZone,
+						instanceGroup, request).Do()
+				},
 			}, nil
 		},
 	}
@@ -239,7 +243,6 @@ func (s *CreateInstanceStep) Run(ctx context.Context, output io.Writer,
 				config.Node.PublicIp = resp.NetworkInterfaces[0].AccessConfigs[0].NatIP
 				config.Node.PrivateIp = resp.NetworkInterfaces[0].NetworkIP
 				config.Node.State = model.MachineStateActive
-				config.Node.SelfLink = resp.SelfLink
 
 				// Update node state in cluster
 				config.NodeChan() <- config.Node
@@ -261,6 +264,24 @@ func (s *CreateInstanceStep) Run(ctx context.Context, output io.Writer,
 					if err != nil {
 						logrus.Errorf("error adding instance %s URL %s to target pool %s",
 							resp.Name, resp.SelfLink, config.GCEConfig.TargetPoolName)
+					}
+
+					req := &compute.InstanceGroupsAddInstancesRequest{
+						Instances: []*compute.InstanceReference{
+							{
+								Instance: instance.SelfLink,
+							},
+						},
+					}
+
+					logrus.Debugf("Add instance %s to instance group %s", config.Node.Name,
+						config.GCEConfig.InstanceGroupNames[config.GCEConfig.AvailabilityZone])
+					_, err = svc.addInstanceToInstanceGroup(ctx, config.GCEConfig,
+						config.GCEConfig.InstanceGroupNames[config.GCEConfig.AvailabilityZone], req)
+
+					if err != nil {
+						logrus.Errorf("error adding instance %s URL %s to instance group %s %v",
+							resp.Name, resp.SelfLink, config.GCEConfig.InstanceGroupLinks[config.GCEConfig.AvailabilityZone], err)
 					}
 
 				} else {
