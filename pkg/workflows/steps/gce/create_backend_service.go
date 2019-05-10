@@ -46,6 +46,10 @@ func NewCreateBackendServiceStep() (*CreateBackendServiceStep, error) {
 
 func (s *CreateBackendServiceStep) Run(ctx context.Context, output io.Writer,
 	config *steps.Config) error {
+	if !config.IsBootstrap {
+		logrus.Debugf("Skip step %s for bootstrap node %s", CreateBackendServiceStepName, config.Node.Name)
+		return nil
+	}
 	logrus.Debugf("Step %s", CreateBackendServiceStepName)
 
 	svc, err := s.getComputeSvc(ctx, config.GCEConfig)

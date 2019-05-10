@@ -59,8 +59,7 @@ func (s *DeleteBackendServiceStep) Run(ctx context.Context, output io.Writer,
 
 	for i := 0; i < s.AttemptCount; i++ {
 		_, err = svc.deleteBackendService(ctx, config.GCEConfig, config.GCEConfig.BackendServiceName)
-
-		if err != nil {
+		if err != nil && !isNotFound(err) {
 			logrus.Errorf("Error deleting backend service rule %v", err)
 		} else {
 			break

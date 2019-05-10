@@ -39,6 +39,7 @@ type Machine struct {
 	PrivateIp        string       `json:"privateIp"`
 	State            MachineState `json:"state"`
 	Name             string       `json:"name"`
+	SelfLink         string       `json:"selfLink"`
 }
 
 func (m Machine) String() string {

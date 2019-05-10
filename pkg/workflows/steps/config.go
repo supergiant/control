@@ -95,8 +95,9 @@ type GCEConfig struct {
 	NetworkLink string `json:"networkLink"`
 	SubnetLink  string `json:"subnetLink"`
 
-	// Mapping Region -> Subnet
-	AZs                map[string]string `json:"subnets"`
+	AZs map[string]string `json:"subnets"`
+
+	// Mapping AZ -> Instance group
 	InstanceGroupNames map[string]string `json:"instanceGroupNames"`
 	InstanceGroupLinks map[string]string `json:"instanceGroupLinks"`
 
@@ -334,9 +335,12 @@ func NewConfig(clusterName, cloudAccountName string, profile profile.Profile) (*
 			DeviceName: "/dev/sda1",
 		},
 		GCEConfig: GCEConfig{
-			AvailabilityZone: profile.Zone,
-			ImageFamily:      "ubuntu-1604-lts",
-			Region:           profile.Region,
+			AvailabilityZone:   profile.Zone,
+			ImageFamily:        "ubuntu-1604-lts",
+			Region:             profile.Region,
+			InstanceGroupLinks: make(map[string]string),
+			InstanceGroupNames: make(map[string]string),
+			AZs:                make(map[string]string),
 		},
 		AzureConfig: AzureConfig{
 			Location: profile.Region,

@@ -90,10 +90,7 @@ func prepProvisionStepFor(provider clouds.Name) ([]steps.Step, error) {
 			steps.GetStep(gce.CreateNetworksStepName),
 			steps.GetStep(gce.CreateIPAddressStepName),
 			steps.GetStep(gce.CreateTargetPullStepName),
-			steps.GetStep(gce.CreateInstanceGroupsStepName),
 			steps.GetStep(gce.CreateHealthCheckStepName),
-			steps.GetStep(gce.CreateBackendServiceStepName),
-			steps.GetStep(gce.CreateForwardingRulesStepName),
 		}, nil
 	}
 	return nil, errors.Wrapf(fmt.Errorf("unknown provider: %s", provider), PreProvisionStep)

@@ -202,7 +202,7 @@ func configureApplication(cfg *Config) (*mux.Router, error) {
 	network.Init()
 	clustercheck.Init()
 	prometheus.Init()
-	gce.Init(accountService)
+	gce.Init()
 	storageclass.Init()
 	drain.Init()
 	kubeadm.Init()

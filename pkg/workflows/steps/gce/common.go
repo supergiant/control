@@ -2,6 +2,8 @@ package gce
 
 import (
 	"context"
+	"google.golang.org/api/googleapi"
+	"net/http"
 	"time"
 
 	"github.com/supergiant/control/pkg/workflows/steps"
@@ -43,13 +45,13 @@ type computeService struct {
 	getHealthCheck             func(context.Context, steps.GCEConfig, string) (*compute.HealthCheck, error)
 }
 
-func Init(getter accountGetter) {
+func Init() {
 	createInstance := NewCreateInstanceStep(time.Second*10, time.Minute*5)
 	createTargetPool := NewCreateTargetPoolStep()
 	createIPAddress := NewCreateAddressStep()
 	createForwardingRules := NewCreateForwardingRulesStep()
 
-	createInstanceGroup, _ := NewCreateInstanceGroupsStep(getter)
+	createInstanceGroup, _ := NewCreateInstanceGroupsStep()
 	createBackendService, _ := NewCreateBackendServiceStep()
 	createHealthCheck := NewCreateHealthCheckStep()
 	createNetworks := NewCreateNetworksStep()
@@ -77,4 +79,14 @@ func Init(getter accountGetter) {
 	steps.RegisterStep(DeleteTargetPoolStepName, deleteTargetPool)
 	steps.RegisterStep(DeleteIpAddressStepName, deleteIpAddress)
 	steps.RegisterStep(CreateNetworksStepName, createNetworks)
+}
+
+func isNotFound(err error) bool {
+	if gErr, ok := err.(*googleapi.Error); ok {
+		if gErr.Code == http.StatusNotFound {
+			return true
+		}
+	}
+
+	return false
 }
