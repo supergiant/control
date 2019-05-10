@@ -269,7 +269,7 @@ func (s *CreateInstanceStep) Run(ctx context.Context, output io.Writer,
 					req := &compute.InstanceGroupsAddInstancesRequest{
 						Instances: []*compute.InstanceReference{
 							{
-								Instance: instance.SelfLink,
+								Instance: resp.SelfLink,
 							},
 						},
 					}
