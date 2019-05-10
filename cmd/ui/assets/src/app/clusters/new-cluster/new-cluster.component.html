@@ -143,6 +143,7 @@
                 <input #regionFilter
                        matInput
                        type="text"
+                       (keydown)="allowSpaces($event)"
                        placeholder="Filter regions..."
                        [(ngModel)]="regionsFilter"
                        [ngModelOptions]="{ standalone: true }">
@@ -169,6 +170,7 @@
                   <input #regionFilter
                          matInput
                          type="text"
+                         (keydown)="allowSpaces($event)"
                          placeholder="Filter regions..."
                          [(ngModel)]="regionsFilter"
                          [ngModelOptions]="{ standalone: true }">
@@ -222,6 +224,7 @@
                   <input #regionFilter
                          matInput
                          type="text"
+                         (keydown)="allowSpaces($event)"
                          placeholder="Filter regions..."
                          [(ngModel)]="regionsFilter"
                          [ngModelOptions]="{ standalone: true }">
@@ -266,6 +269,7 @@
                   <input #regionFilter
                          matInput
                          type="text"
+                         (keydown)="allowSpaces($event)"
                          placeholder="Filter regions..."
                          [(ngModel)]="regionsFilter"
                          [ngModelOptions]="{ standalone: true }">
@@ -348,6 +352,7 @@
                   <input #machineFilter
                          matInput
                          type="text"
+                         (keydown)="allowSpaces($event)"
                          placeholder="Filter machines..."
                          [(ngModel)]="m.filter">
                 </div>
@@ -423,6 +428,7 @@
                   <input #machineFilter
                          matInput
                          type="text"
+                         (keydown)="allowSpaces($event)"
                          placeholder="Filter machines..."
                          [(ngModel)]="m.filter">
                 </div>
@@ -496,6 +502,7 @@
                   <input #machineFilter
                          matInput
                          type="text"
+                         (keydown)="allowSpaces($event)"
                          placeholder="Filter machines..."
                          [(ngModel)]="m.filter">
                 </div>
@@ -557,6 +564,7 @@
                   <input #machineFilter
                          matInput
                          type="text"
+                         (keydown)="allowSpaces($event)"
                          placeholder="Filter machines..."
                          [(ngModel)]="m.filter">
                 </div>

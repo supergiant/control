@@ -558,4 +558,10 @@ export class NewClusterComponent implements OnInit, OnDestroy {
     return dialogRef;
   }
 
+  allowSpaces(keyEvent){
+    if(keyEvent.key==" "){
+      keyEvent.stopPropagation();
+    }
+  }
+
 }
