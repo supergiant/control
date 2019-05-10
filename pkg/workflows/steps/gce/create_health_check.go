@@ -56,9 +56,10 @@ func (s *CreateHealthCheck) Run(ctx context.Context, output io.Writer,
 		CheckIntervalSec:   10,
 		HealthyThreshold:   3,
 		UnhealthyThreshold: 3,
-		Type:               "TCP",
-		TcpHealthCheck: &compute.TCPHealthCheck{
+		Type:               "HTTPS",
+		HttpsHealthCheck: &compute.HTTPSHealthCheck{
 			Port: 443,
+			RequestPath: "/healthz",
 		},
 	}
 

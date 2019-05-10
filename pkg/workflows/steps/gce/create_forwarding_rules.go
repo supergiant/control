@@ -77,7 +77,7 @@ func (s *CreateForwardingRules) Run(ctx context.Context, output io.Writer,
 			break
 		}
 
-		logrus.Debugf("Error %v sleep for %v", err, timeout)
+		logrus.Debugf("Error external forwarding rule %v sleep for %v", err, timeout)
 		time.Sleep(timeout)
 		timeout = timeout * 2
 	}
@@ -87,7 +87,7 @@ func (s *CreateForwardingRules) Run(ctx context.Context, output io.Writer,
 		return errors.Wrapf(err, "%s creating external forwarding rule caused", CreateForwardingRulesStepName)
 	}
 
-	logrus.Debugf("Created external forwarding rule %s", exName)
+	logrus.Debugf("Created external forwarding rule %s link %s", exName, externalForwardingRule.SelfLink)
 	config.GCEConfig.ExternalForwardingRuleName = exName
 
 	inName := fmt.Sprintf("inrule-%s", config.ClusterID)
@@ -100,6 +100,7 @@ func (s *CreateForwardingRules) Run(ctx context.Context, output io.Writer,
 		Ports:               []string{"443"},
 		BackendService:      config.GCEConfig.BackendServiceLink,
 		Network:             config.GCEConfig.NetworkLink,
+		Subnetwork:          config.GCEConfig.SubnetLink,
 	}
 
 	timeout = s.timeout
@@ -111,17 +112,17 @@ func (s *CreateForwardingRules) Run(ctx context.Context, output io.Writer,
 			break
 		}
 
-		logrus.Debugf("Error %v sleep for %v", err, timeout)
+		logrus.Debugf("Error internal forwarding rule error %v sleep for %v", err, timeout)
 		time.Sleep(timeout)
 		timeout = timeout * 2
 	}
 
 	if err != nil {
-		logrus.Errorf("Error creating external forwarding rule %v", err)
-		return errors.Wrapf(err, "%s creating external forwarding rule caused", CreateForwardingRulesStepName)
+		logrus.Errorf("Error creating internal forwarding rule %v", err)
+		return errors.Wrapf(err, "%s creating internal forwarding rule caused", CreateForwardingRulesStepName)
 	}
 
-	logrus.Debugf("Created external forwarding rule %s", inName)
+	logrus.Debugf("Created internal forwarding rule %s", inName)
 	config.GCEConfig.InternalForwardingRuleName = inName
 
 	return nil

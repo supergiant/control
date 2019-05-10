@@ -169,6 +169,7 @@ func (s *CreateInstanceStep) Run(ctx context.Context, output io.Writer,
 					},
 				},
 				Network: config.GCEConfig.NetworkLink,
+				Subnetwork: config.GCEConfig.SubnetLink,
 			},
 		},
 		ServiceAccounts: []*compute.ServiceAccount{
@@ -284,6 +285,10 @@ func (s *CreateInstanceStep) Run(ctx context.Context, output io.Writer,
 							resp.Name, resp.SelfLink, config.GCEConfig.InstanceGroupLinks[config.GCEConfig.AvailabilityZone], err)
 					}
 
+					if len(resp.NetworkInterfaces) > 0 {
+						logrus.Debugf("Add instance name %s link %s with network interface %s subnetwork %s", resp.Name, resp.SelfLink,
+							resp.NetworkInterfaces[0].Network, resp.NetworkInterfaces[0].Subnetwork)
+					}
 				} else {
 					config.AddNode(&config.Node)
 				}

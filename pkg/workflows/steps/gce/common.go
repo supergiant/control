@@ -37,8 +37,6 @@ type computeService struct {
 	insertNetwork              func(context.Context, steps.GCEConfig, *compute.Network) (*compute.Operation, error)
 	switchNetworkMode          func(context.Context, steps.GCEConfig, string) (*compute.Operation, error)
 	getNetwork                 func(context.Context, steps.GCEConfig, string) (*compute.Network, error)
-	insertSubnetwork           func(context.Context, steps.GCEConfig, *compute.Subnetwork) (*compute.Operation, error)
-	getSubnetwork              func(context.Context, steps.GCEConfig, string) (*compute.Subnetwork, error)
 
 	insertHealthCheck          func(context.Context, steps.GCEConfig, *compute.HealthCheck) (*compute.Operation, error)
 	addHealthCheckToTargetPool func(context.Context, steps.GCEConfig, string, *compute.TargetPoolsAddHealthCheckRequest) (*compute.Operation, error)

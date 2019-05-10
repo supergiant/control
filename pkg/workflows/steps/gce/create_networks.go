@@ -109,13 +109,17 @@ func (s *CreateNetworksStep) Run(ctx context.Context, output io.Writer,
 		return errors.Wrap(err, "Get network caused error")
 	}
 
+	config.GCEConfig.NetworkLink = network.SelfLink
+	config.GCEConfig.NetworkName = network.Name
+
+	logrus.Debugf("Created network name %s link %s",
+		network.Name, network.SelfLink)
 	for _, subnet := range network.Subnetworks {
 		if strings.Contains(subnet, config.GCEConfig.Region) {
 			config.GCEConfig.SubnetLink = subnet
 			logrus.Debugf("Use subnet %s", subnet)
 		}
 	}
-
 
 	return nil
 }
