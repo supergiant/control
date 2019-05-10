@@ -33,6 +33,7 @@ type computeService struct {
 	deleteTargetPool           func(context.Context, steps.GCEConfig, string) (*compute.Operation, error)
 	deleteIpAddress            func(context.Context, steps.GCEConfig, string) (*compute.Operation, error)
 	insertNetwork              func(context.Context, steps.GCEConfig, *compute.Network) (*compute.Operation, error)
+	switchNetworkMode          func(context.Context, steps.GCEConfig, string) (*compute.Operation, error)
 	getNetwork                 func(context.Context, steps.GCEConfig, string) (*compute.Network, error)
 	insertSubnetwork           func(context.Context, steps.GCEConfig, *compute.Subnetwork) (*compute.Operation, error)
 	getSubnetwork              func(context.Context, steps.GCEConfig, string) (*compute.Subnetwork, error)
@@ -44,20 +45,22 @@ type computeService struct {
 
 func Init(getter accountGetter) {
 	createInstance := NewCreateInstanceStep(time.Second*10, time.Minute*5)
-	deleteCluster := NewDeleteClusterStep()
-	deleteNode := NewDeleteNodeStep()
 	createTargetPool := NewCreateTargetPoolStep()
 	createIPAddress := NewCreateAddressStep()
 	createForwardingRules := NewCreateForwardingRulesStep()
+
+	createInstanceGroup, _ := NewCreateInstanceGroupsStep(getter)
+	createBackendService, _ := NewCreateBackendServiceStep()
+	createHealthCheck := NewCreateHealthCheckStep()
+	createNetworks := NewCreateNetworksStep()
+
+	deleteCluster := NewDeleteClusterStep()
+	deleteInstanceGroup, _ := NewDeleteInstanceGroupStep()
 	deleteForwardingRules := NewDeleteForwardingRulesStep()
+	deleteBackendService, _ := NewDeleteBackendServiceStep()
 	deleteTargetPool := NewDeleteTargetPoolStep()
 	deleteIpAddress := NewDeleteIpAddressStep()
-	createInstanceGroup, _ := NewCreateInstanceGroupsStep()
-	createBackendService, _ := NewCreateBackendServiceStep()
-	deleteInstanceGroup, _ := NewDeleteInstanceGroupStep()
-	deleteBackendService, _ := NewDeleteBackendServiceStep()
-	createHealthCheck := NewCreateHealthCheckStep()
-	createNetworks := NewCreateNetworksStep(getter)
+	deleteNode := NewDeleteNodeStep()
 
 	steps.RegisterStep(CreateHealthCheckStepName, createHealthCheck)
 	steps.RegisterStep(DeleteInstanceGroupStepName, deleteInstanceGroup)

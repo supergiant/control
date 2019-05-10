@@ -185,7 +185,7 @@ func LoadCloudSpecificDataFromKube(k *model.Kube, config *steps.Config) error {
 		config.GCEConfig.NetworkLink = k.CloudSpec[clouds.GCENetworkLink]
 		config.GCEConfig.NetworkName = k.CloudSpec[clouds.GCENetworkName]
 
-		config.GCEConfig.Subnets = k.Subnets
+		config.GCEConfig.AZs = k.Subnets
 
 		config.GCEConfig.InstanceGroupNames = make(map[string]string)
 

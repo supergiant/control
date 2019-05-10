@@ -53,7 +53,7 @@ func UpdateKubeWithCloudSpecificData(k *model.Kube, config *steps.Config) {
 		cloudSpecificSettings[clouds.AwsInternalLoadBalancerName] =
 			config.AWSConfig.InternalLoadBalancerName
 	case clouds.GCE:
-		k.Subnets = config.GCEConfig.Subnets
+		k.Subnets = config.GCEConfig.AZs
 		cloudSpecificSettings[clouds.GCETargetPoolName] = config.GCEConfig.TargetPoolName
 		cloudSpecificSettings[clouds.GCEHealthCheckName] = config.GCEConfig.HealthCheckName
 

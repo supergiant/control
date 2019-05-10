@@ -3,24 +3,41 @@ package gce
 import (
 	"context"
 	"fmt"
-	"github.com/supergiant/control/pkg/clouds/gcesdk"
-	"io"
-
 	"github.com/pkg/errors"
 	"github.com/sirupsen/logrus"
-	"google.golang.org/api/compute/v1"
-
+	"github.com/supergiant/control/pkg/account"
+	"github.com/supergiant/control/pkg/clouds/gcesdk"
 	"github.com/supergiant/control/pkg/workflows/steps"
+	"google.golang.org/api/compute/v1"
+	"io"
 )
 
 const CreateInstanceGroupsStepName = "gce_create_instance_group"
 
 type CreateInstanceGroupsStep struct {
-	getComputeSvc func(context.Context, steps.GCEConfig) (*computeService, error)
+	accountGetter accountGetter
+
+	getComputeSvc     func(context.Context, steps.GCEConfig) (*computeService, error)
+	zoneGetterFactory func(context.Context, accountGetter, *steps.Config) (account.ZonesGetter, error)
 }
 
-func NewCreateInstanceGroupsStep() (*CreateInstanceGroupsStep, error) {
+func NewCreateInstanceGroupsStep(getter accountGetter) (*CreateInstanceGroupsStep, error) {
 	return &CreateInstanceGroupsStep{
+		accountGetter: getter,
+		zoneGetterFactory: func(ctx context.Context, accountGetter accountGetter,
+			cfg *steps.Config) (account.ZonesGetter, error) {
+			acc, err := accountGetter.Get(ctx, cfg.CloudAccountName)
+
+			if err != nil {
+				logrus.Errorf("Get cloud account %s caused error %v",
+					cfg.CloudAccountName, err)
+				return nil, errors.Wrapf(err, "Get cloud account")
+			}
+
+			zoneGetter, err := account.NewZonesGetter(acc, cfg)
+
+			return zoneGetter, err
+		},
 		getComputeSvc: func(ctx context.Context, config steps.GCEConfig) (*computeService, error) {
 			client, err := gcesdk.GetClient(ctx, config)
 
@@ -37,6 +54,9 @@ func NewCreateInstanceGroupsStep() (*CreateInstanceGroupsStep, error) {
 				},
 				getInstanceGroup: func(ctx context.Context, config steps.GCEConfig, instanceGroupName string) (*compute.InstanceGroup, error) {
 					return client.InstanceGroups.Get(config.ProjectID, config.AvailabilityZone, instanceGroupName).Do()
+				},
+				getNetwork: func(ctx context.Context, config steps.GCEConfig, networkName string) (*compute.Network, error) {
+					return client.Networks.Get(config.ProjectID, networkName).Do()
 				},
 				getInstance: func(ctx context.Context,
 					config steps.GCEConfig, name string) (*compute.Instance, error) {
@@ -63,7 +83,28 @@ func (s *CreateInstanceGroupsStep) Run(ctx context.Context, output io.Writer,
 	config.GCEConfig.InstanceGroupLinks = make(map[string]string)
 	config.GCEConfig.InstanceGroupNames = make(map[string]string)
 
-	for az := range config.GCEConfig.Subnets {
+	zoneGetter, err := s.zoneGetterFactory(ctx, s.accountGetter, config)
+
+	if err != nil {
+		logrus.Errorf("Create zone getter caused error %v", err)
+		return errors.Wrap(err, "Create zone getter caused")
+	}
+
+	azs, err := zoneGetter.GetZones(ctx, *config)
+
+	if err != nil {
+		logrus.Errorf("get availability zones %v", err)
+		return errors.Wrap(err, "get availability zones")
+	}
+
+	config.GCEConfig.AZs = make(map[string]string)
+
+	// Use subnets as a storage of availability zones
+	for _, az := range azs {
+		config.GCEConfig.AZs[az] = "dummy"
+	}
+
+	for az := range config.GCEConfig.AZs {
 		// Use naming convention az name + cluster so we do not need to store names of subnets for each subnet
 		instanceGroup := &compute.InstanceGroup{
 			Name:        fmt.Sprintf("%s-%s", az, config.ClusterID),

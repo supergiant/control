@@ -70,7 +70,7 @@ func (s *DeleteBackendServiceStep) Run(ctx context.Context, output io.Writer,
 		timeout = timeout * 2
 	}
 
-	return err
+	return nil
 }
 
 func (s *DeleteBackendServiceStep) Name() string {

@@ -5,10 +5,10 @@ import (
 	"fmt"
 	"github.com/pkg/errors"
 	"github.com/sirupsen/logrus"
-	"github.com/supergiant/control/pkg/account"
 	"github.com/supergiant/control/pkg/clouds/gcesdk"
 	"github.com/supergiant/control/pkg/model"
 	"io"
+	"strings"
 	"time"
 
 	"google.golang.org/api/compute/v1"
@@ -19,23 +19,20 @@ import (
 const CreateNetworksStepName = "gce_create_networks"
 
 type CreateNetworksStep struct {
-	Timeout       time.Duration
-	AttemptCount  int
-	accountGetter     accountGetter
+	Timeout      time.Duration
+	AttemptCount int
 
 	getComputeSvc func(context.Context, steps.GCEConfig) (*computeService, error)
-	zoneGetterFactory func(context.Context, accountGetter, *steps.Config) (account.ZonesGetter, error)
 }
 
 type accountGetter interface {
 	Get(context.Context, string) (*model.CloudAccount, error)
 }
 
-func NewCreateNetworksStep(getter accountGetter) *CreateNetworksStep {
+func NewCreateNetworksStep() *CreateNetworksStep {
 	return &CreateNetworksStep{
 		Timeout:      time.Second * 10,
 		AttemptCount: 10,
-		accountGetter: getter,
 		getComputeSvc: func(ctx context.Context, config steps.GCEConfig) (*computeService, error) {
 			client, err := gcesdk.GetClient(ctx, config)
 
@@ -50,27 +47,16 @@ func NewCreateNetworksStep(getter accountGetter) *CreateNetworksStep {
 				getAddress: func(ctx context.Context, config steps.GCEConfig, addressName string) (*compute.Address, error) {
 					return client.Addresses.Get(config.ServiceAccount.ProjectID, config.Region, addressName).Do()
 				},
-				getNetwork: func(ctx context.Context, config steps.GCEConfig,networkName string) (*compute.Network, error) {
+				getNetwork: func(ctx context.Context, config steps.GCEConfig, networkName string) (*compute.Network, error) {
 					return client.Networks.Get(config.ProjectID, networkName).Do()
 				},
 				insertNetwork: func(ctx context.Context, config steps.GCEConfig, network *compute.Network) (*compute.Operation, error) {
 					return client.Networks.Insert(config.ProjectID, network).Do()
 				},
+				switchNetworkMode: func(ctx context.Context, config steps.GCEConfig, network string) (operation *compute.Operation, e error) {
+					return client.Networks.SwitchToCustomMode(config.ProjectID, network).Do()
+				},
 			}, nil
-		},
-		zoneGetterFactory: func(ctx context.Context, accountGetter accountGetter,
-			cfg *steps.Config) (account.ZonesGetter, error) {
-			acc, err := accountGetter.Get(ctx, cfg.CloudAccountName)
-
-			if err != nil {
-				logrus.Errorf("Get cloud account %s caused error %v",
-					cfg.CloudAccountName, err)
-				return nil, errors.Wrapf(err, "Get cloud account")
-			}
-
-			zoneGetter, err := account.NewZonesGetter(acc, cfg)
-
-			return zoneGetter, err
 		},
 	}
 }
@@ -88,7 +74,7 @@ func (s *CreateNetworksStep) Run(ctx context.Context, output io.Writer,
 
 	network := &compute.Network{
 		AutoCreateSubnetworks: true,
-		Name: fmt.Sprintf("network-%s", config.ClusterID),
+		Name:                  fmt.Sprintf("network-%s", config.ClusterID),
 	}
 
 	_, err = svc.insertNetwork(ctx, config.GCEConfig, network)
@@ -98,6 +84,24 @@ func (s *CreateNetworksStep) Run(ctx context.Context, output io.Writer,
 		return errors.Wrap(err, "Create network caused error")
 	}
 
+	timeout := s.Timeout
+
+	for i := 0; i < s.AttemptCount; i++ {
+		_, err = svc.switchNetworkMode(ctx, config.GCEConfig, network.Name)
+
+		if err == nil {
+			break
+		}
+
+		logrus.Debugf("Switch to custom network mode failed with %s sleep for %v", err, timeout)
+		time.Sleep(timeout)
+	}
+
+	if err != nil {
+		logrus.Errorf("Get network caused error %v", err)
+		return errors.Wrap(err, "Get network caused error")
+	}
+
 	network, err = svc.getNetwork(ctx, config.GCEConfig, network.Name)
 
 	if err != nil {
@@ -105,33 +109,13 @@ func (s *CreateNetworksStep) Run(ctx context.Context, output io.Writer,
 		return errors.Wrap(err, "Get network caused error")
 	}
 
-	// TODO(stgleb): store subnetworks from network
-	config.GCEConfig.Subnets = network.Subnetworks
-	config.GCEConfig.NetworkLink = network.SelfLink
-	config.GCEConfig.NetworkName = network.Name
-
-	logrus.Debugf("Created network name %s link %s",
-		config.GCEConfig.NetworkName, config.GCEConfig.NetworkLink)
-	zoneGetter, err := s.zoneGetterFactory(ctx, s.accountGetter, config)
-
-	if err != nil {
-		logrus.Errorf("Create zone getter caused error %v", err)
-		return errors.Wrap(err, "Create zone getter caused")
+	for _, subnet := range network.Subnetworks {
+		if strings.Contains(subnet, config.GCEConfig.Region) {
+			config.GCEConfig.SubnetLink = subnet
+			logrus.Debugf("Use subnet %s", subnet)
+		}
 	}
 
-	azs, err := zoneGetter.GetZones(ctx, *config)
-
-	if err != nil {
-		logrus.Errorf("get availability zones %v", err)
-		return errors.Wrap(err, "get availability zones")
-	}
-
-	config.GCEConfig.Subnets = make(map[string]string)
-
-	// Use subnets as a storage of availability zones
-	for _, az := range azs {
-		config.GCEConfig.Subnets[az] = "dummy"
-	}
 
 	return nil
 }

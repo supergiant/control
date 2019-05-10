@@ -93,8 +93,10 @@ type GCEConfig struct {
 
 	NetworkName string `json:"networkName"`
 	NetworkLink string `json:"networkLink"`
+	SubnetLink  string `json:"subnetLink"`
 
-	Subnets            map[string]string `json:"subnets"`
+	// Mapping Region -> Subnet
+	AZs                map[string]string `json:"subnets"`
 	InstanceGroupNames map[string]string `json:"instanceGroupNames"`
 	InstanceGroupLinks map[string]string `json:"instanceGroupLinks"`
 
@@ -299,7 +301,7 @@ type Config struct {
 }
 
 type ConfigMap struct {
-	Data      string
+	Data string
 }
 
 // NewConfig builds instance of config for provisioning

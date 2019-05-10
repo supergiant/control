@@ -39,7 +39,6 @@ func NewDeleteForwardingRulesStep() *DeleteForwardingRulesStep {
 
 func (s *DeleteForwardingRulesStep) Run(ctx context.Context, output io.Writer,
 	config *steps.Config) error {
-
 	logrus.Debugf("Step %s", DeleteForwardingRulesStepName)
 
 	svc, err := s.getComputeSvc(ctx, config.GCEConfig)
@@ -53,16 +52,12 @@ func (s *DeleteForwardingRulesStep) Run(ctx context.Context, output io.Writer,
 
 	if err != nil {
 		logrus.Errorf("Error deleting external forwarding rule %v", err)
-		return errors.Wrapf(err, "%s deleting external forwarding %s rule caused",
-			config.GCEConfig.ExternalForwardingRuleName, DeleteForwardingRulesStepName)
 	}
 
 	_, err = svc.deleteForwardingRule(ctx, config.GCEConfig, config.GCEConfig.InternalForwardingRuleName)
 
 	if err != nil {
 		logrus.Errorf("Error deleting internal forwarding rule %v", err)
-		return errors.Wrapf(err, "%s deleting internal forwarding %s rule caused",
-			config.GCEConfig.InternalForwardingRuleName, DeleteForwardingRulesStepName)
 	}
 
 	return nil

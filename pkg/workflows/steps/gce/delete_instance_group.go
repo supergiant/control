@@ -74,7 +74,7 @@ func (s *DeleteInstanceGroupStep) Run(ctx context.Context, output io.Writer,
 
 	}
 
-	return err
+	return nil
 
 }
 
