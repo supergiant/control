@@ -3,7 +3,6 @@ package provider
 import (
 	"context"
 	"fmt"
-	"github.com/supergiant/control/pkg/workflows/steps/gce"
 	"io"
 
 	"github.com/pkg/errors"
@@ -35,19 +34,6 @@ func (s *RegisterInstanceToLoadBalancer) Run(ctx context.Context, out io.Writer,
 		// Load balancing in DO is made by tags
 		return nil
 	case clouds.GCE:
-		// NOTE(stgleb): We create all this stuff here instead of preprovision phase because
-		// instance group must have at least on vm to be joined to backend service
-		 lbSteps := []steps.Step{
-			 steps.GetStep(gce.CreateBackendServiceStepName),
-			 steps.GetStep(gce.CreateForwardingRulesStepName),
-		}
-
-		for _, s := range lbSteps {
-			if err := s.Run(ctx, out, cfg); err != nil {
-				return errors.Wrap(err, PreProvisionStep)
-			}
-		}
-
 		return nil
 	case clouds.Azure:
 		return nil
