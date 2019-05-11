@@ -83,7 +83,7 @@ nodeRegistration:
 discovery:
   bootstrapToken:
     token: {{ .Token }}
-    apiServerEndpoint: {{ .JoinAddress }}:443
+    apiServerEndpoint: {{ .InternalDNSName }}:443
     unsafeSkipCAVerification: true
 controlPlane:
   localAPIEndpoint:
@@ -124,7 +124,7 @@ networking:
 EOF"
 
 sudo kubeadm config images pull
-sudo kubeadm join --ignore-preflight-errors=NumCPU {{ .JoinAddress }}:443 \
+sudo kubeadm join --ignore-preflight-errors=NumCPU {{ .InternalDNSName }}:443 \
 --node-name ${HOSTNAME} \
 --config=/etc/supergiant/kubeadm.conf
 {{ end }}
@@ -144,11 +144,11 @@ nodeRegistration:
 discovery:
   bootstrapToken:
     token: {{ .Token }}
-    apiServerEndpoint: {{ .JoinAddress }}:443
+    apiServerEndpoint: {{ .InternalDNSName }}:443
     unsafeSkipCAVerification: true
 EOF"
 
-sudo kubeadm join --ignore-preflight-errors=NumCPU {{ .JoinAddress }}:443 \
+sudo kubeadm join --ignore-preflight-errors=NumCPU {{ .InternalDNSName }}:443 \
 --node-name ${HOSTNAME} \
 --config=/etc/supergiant/kubeadm.conf
 {{ end }}
