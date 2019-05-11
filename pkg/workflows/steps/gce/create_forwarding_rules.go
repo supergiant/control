@@ -87,6 +87,7 @@ func (s *CreateForwardingRules) Run(ctx context.Context, output io.Writer,
 		return errors.Wrapf(err, "%s creating external forwarding rule caused", CreateForwardingRulesStepName)
 	}
 
+	// TODO(stgleb): add get method here to get a selflinke
 	logrus.Debugf("Created external forwarding rule %s link %s", exName, externalForwardingRule.SelfLink)
 	config.GCEConfig.ExternalForwardingRuleName = exName
 
@@ -122,6 +123,7 @@ func (s *CreateForwardingRules) Run(ctx context.Context, output io.Writer,
 		return errors.Wrapf(err, "%s creating internal forwarding rule caused", CreateForwardingRulesStepName)
 	}
 
+	// TODO(stgleb): add get method here to get a selflinke
 	logrus.Debugf("Created internal forwarding rule %s", inName)
 	config.GCEConfig.InternalForwardingRuleName = inName
 
