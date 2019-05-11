@@ -2,7 +2,6 @@ package gce
 
 import (
 	"context"
-	"fmt"
 	"github.com/pkg/errors"
 	"github.com/sirupsen/logrus"
 	"github.com/supergiant/control/pkg/clouds/gcesdk"
@@ -72,37 +71,45 @@ func (s *CreateNetworksStep) Run(ctx context.Context, output io.Writer,
 		return errors.Wrapf(err, "%s getting service caused", CreateIPAddressStepName)
 	}
 
-	network := &compute.Network{
-		AutoCreateSubnetworks: true,
-		Name:                  fmt.Sprintf("network-%s", config.ClusterID),
-	}
+	//network := &compute.Network{
+	//	AutoCreateSubnetworks: true,
+	//	//IPv4Range: "172.16.0.0/16",
+	//	Name:                  fmt.Sprintf("network-%s", config.ClusterID),
+	//}
+	//
+	//_, err = svc.insertNetwork(ctx, config.GCEConfig, network)
+	//
+	//if err != nil {
+	//	logrus.Errorf("Create network caused error %v", err)
+	//	return errors.Wrap(err, "Create network caused error")
+	//}
+	//
+	//timeout := s.Timeout
+	//
+	//for i := 0; i < s.AttemptCount; i++ {
+	//	_, err = svc.switchNetworkMode(ctx, config.GCEConfig, network.Name)
+	//
+	//	if err == nil {
+	//		break
+	//	}
+	//
+	//	logrus.Debugf("Switch to custom network mode failed with %s sleep for %v", err, timeout)
+	//	time.Sleep(timeout)
+	//}
+	//
+	//if err != nil {
+	//	logrus.Errorf("Get network caused error %v", err)
+	//	return errors.Wrap(err, "Get network caused error")
+	//}
+	//
+	//network, err := svc.getNetwork(ctx, config.GCEConfig, network.Name)
+	//
+	//if err != nil {
+	//	logrus.Errorf("Get network caused error %v", err)
+	//	return errors.Wrap(err, "Get network caused error")
+	//}
 
-	_, err = svc.insertNetwork(ctx, config.GCEConfig, network)
-
-	if err != nil {
-		logrus.Errorf("Create network caused error %v", err)
-		return errors.Wrap(err, "Create network caused error")
-	}
-
-	timeout := s.Timeout
-
-	for i := 0; i < s.AttemptCount; i++ {
-		_, err = svc.switchNetworkMode(ctx, config.GCEConfig, network.Name)
-
-		if err == nil {
-			break
-		}
-
-		logrus.Debugf("Switch to custom network mode failed with %s sleep for %v", err, timeout)
-		time.Sleep(timeout)
-	}
-
-	if err != nil {
-		logrus.Errorf("Get network caused error %v", err)
-		return errors.Wrap(err, "Get network caused error")
-	}
-
-	network, err = svc.getNetwork(ctx, config.GCEConfig, network.Name)
+	network, err := svc.getNetwork(ctx, config.GCEConfig, "default")
 
 	if err != nil {
 		logrus.Errorf("Get network caused error %v", err)
