@@ -46,58 +46,55 @@ func NewCreateBackendServiceStep() (*CreateBackendServiceStep, error) {
 
 func (s *CreateBackendServiceStep) Run(ctx context.Context, output io.Writer,
 	config *steps.Config) error {
-	if config.IsBootstrap {
-		logrus.Debugf("Step %s", CreateBackendServiceStepName)
+	logrus.Debugf("Step %s", CreateBackendServiceStepName)
 
-		svc, err := s.getComputeSvc(ctx, config.GCEConfig)
+	svc, err := s.getComputeSvc(ctx, config.GCEConfig)
 
-		if err != nil {
-			logrus.Errorf("Error getting service %v", err)
-			return errors.Wrapf(err, "%s getting service caused", CreateBackendServiceStepName)
-		}
-
-		// TODO(stgleb): add other instances and instance group to a backend service
-		backends := []*compute.Backend{
-			{
-				Group: config.GCEConfig.InstanceGroupLinks[config.GCEConfig.AvailabilityZone],
-			},
-		}
-
-		backendService := &compute.BackendService{
-			Name:                fmt.Sprintf("bs-%s", config.ClusterID),
-			Description:         "Backend service for internal traffic",
-			LoadBalancingScheme: "INTERNAL",
-			Protocol:            "TCP",
-			Region:              config.GCEConfig.Region,
-			Backends:            backends,
-			HealthChecks:        []string{config.GCEConfig.HealthCheckName},
-		}
-
-		_, err = svc.insertBackendService(ctx, config.GCEConfig, backendService)
-
-		if err != nil {
-			logrus.Errorf("error creating backend service %v", err)
-			return errors.Wrapf(err, "error creating backend service")
-		}
-
-		backendService, err = svc.getBackendService(ctx, config.GCEConfig, backendService.Name)
-
-		if err != nil {
-			logrus.Errorf("error getting backend service %v", err)
-			return errors.Wrapf(err, "error getting backend service")
-		}
-
-		config.GCEConfig.BackendServiceName = backendService.Name
-		config.GCEConfig.BackendServiceLink = backendService.SelfLink
-
-		logrus.Debugf("Created backend service name %s link %s",
-			config.GCEConfig.BackendServiceName,
-			config.GCEConfig.BackendServiceLink)
-		// NOTE(stgleb): There is no field that signals for backend service is available so we simple sleep.
-		time.Sleep(time.Minute * 1)
-	} else if config.IsMaster {
-		// TODO(stgleb): here patch existing backend service with new instance group if needed
+	if err != nil {
+		logrus.Errorf("Error getting service %v", err)
+		return errors.Wrapf(err, "%s getting service caused", CreateBackendServiceStepName)
 	}
+
+	backends := make([]*compute.Backend, 0)
+
+	for _, instanceGroup := range config.GCEConfig.InstanceGroupLinks {
+		backends = append(backends, &compute.Backend{
+			Group: instanceGroup,
+		})
+	}
+
+	backendService := &compute.BackendService{
+		Name:                fmt.Sprintf("bs-%s", config.ClusterID),
+		Description:         "Backend service for internal traffic",
+		LoadBalancingScheme: "INTERNAL",
+		Protocol:            "TCP",
+		Region:              config.GCEConfig.Region,
+		Backends:            backends,
+		HealthChecks:        []string{config.GCEConfig.HealthCheckName},
+	}
+
+	_, err = svc.insertBackendService(ctx, config.GCEConfig, backendService)
+
+	if err != nil {
+		logrus.Errorf("error creating backend service %v", err)
+		return errors.Wrapf(err, "error creating backend service")
+	}
+
+	backendService, err = svc.getBackendService(ctx, config.GCEConfig, backendService.Name)
+
+	if err != nil {
+		logrus.Errorf("error getting backend service %v", err)
+		return errors.Wrapf(err, "error getting backend service")
+	}
+
+	config.GCEConfig.BackendServiceName = backendService.Name
+	config.GCEConfig.BackendServiceLink = backendService.SelfLink
+
+	logrus.Debugf("Created backend service name %s link %s",
+		config.GCEConfig.BackendServiceName,
+		config.GCEConfig.BackendServiceLink)
+	// NOTE(stgleb): There is no field that signals for backend service is available so we simple sleep.
+	time.Sleep(time.Minute * 1)
 
 	return nil
 }
