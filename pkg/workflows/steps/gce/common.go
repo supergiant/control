@@ -22,6 +22,7 @@ type computeService struct {
 	insertAddress              func(context.Context, steps.GCEConfig, *compute.Address) (*compute.Operation, error)
 	getAddress                 func(context.Context, steps.GCEConfig, string) (*compute.Address, error)
 	insertForwardingRule       func(context.Context, steps.GCEConfig, *compute.ForwardingRule) (*compute.Operation, error)
+	getForwardingRule       func(context.Context, steps.GCEConfig, string) (*compute.ForwardingRule, error)
 	addInstanceToTargetGroup   func(context.Context, steps.GCEConfig, string, *compute.TargetPoolsAddInstanceRequest) (*compute.Operation, error)
 	addInstanceToInstanceGroup func(context.Context, steps.GCEConfig, string, *compute.InstanceGroupsAddInstancesRequest) (*compute.Operation, error)
 	insertInstanceGroup        func(context.Context, steps.GCEConfig, *compute.InstanceGroup) (*compute.Operation, error)

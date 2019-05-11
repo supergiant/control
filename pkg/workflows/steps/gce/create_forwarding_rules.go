@@ -38,6 +38,9 @@ func NewCreateForwardingRulesStep() *CreateForwardingRules {
 				insertForwardingRule: func(ctx context.Context, config steps.GCEConfig, rule *compute.ForwardingRule) (*compute.Operation, error) {
 					return client.ForwardingRules.Insert(config.ServiceAccount.ProjectID, config.Region, rule).Do()
 				},
+				getForwardingRule: func(ctx context.Context, config steps.GCEConfig, name string) (*compute.ForwardingRule, error) {
+					return client.ForwardingRules.Get(config.ServiceAccount.ProjectID, config.Region, name).Do()
+				},
 			}, nil
 		},
 	}
@@ -46,10 +49,6 @@ func NewCreateForwardingRulesStep() *CreateForwardingRules {
 func (s *CreateForwardingRules) Run(ctx context.Context, output io.Writer,
 	config *steps.Config) error {
 	logrus.Debugf("Step %s", CreateForwardingRulesStepName)
-	if !config.IsBootstrap {
-		logrus.Debugf("Skip step %s for bootstrap node %s", CreateForwardingRulesStepName, config.Node.Name)
-		return nil
-	}
 
 	svc, err := s.getComputeSvc(ctx, config.GCEConfig)
 
@@ -87,7 +86,13 @@ func (s *CreateForwardingRules) Run(ctx context.Context, output io.Writer,
 		return errors.Wrapf(err, "%s creating external forwarding rule caused", CreateForwardingRulesStepName)
 	}
 
-	// TODO(stgleb): add get method here to get a selflinke
+	externalForwardingRule, err = svc.getForwardingRule(ctx, config.GCEConfig, exName)
+
+	if err != nil {
+		logrus.Errorf("get external forwarding rule %v", err)
+		return errors.Wrapf(err, "get external forwarding rule")
+	}
+
 	logrus.Debugf("Created external forwarding rule %s link %s", exName, externalForwardingRule.SelfLink)
 	config.GCEConfig.ExternalForwardingRuleName = exName
 
@@ -123,8 +128,14 @@ func (s *CreateForwardingRules) Run(ctx context.Context, output io.Writer,
 		return errors.Wrapf(err, "%s creating internal forwarding rule caused", CreateForwardingRulesStepName)
 	}
 
-	// TODO(stgleb): add get method here to get a selflinke
-	logrus.Debugf("Created internal forwarding rule %s", inName)
+	internalForwardingRule, err = svc.getForwardingRule(ctx, config.GCEConfig, inName)
+
+	if err != nil {
+		logrus.Errorf("get internal forwarding rule %v", err)
+		return errors.Wrapf(err, "get internal forwarding rule")
+	}
+
+	logrus.Debugf("Created internal forwarding rule %s link", inName, internalForwardingRule.SelfLink)
 	config.GCEConfig.InternalForwardingRuleName = inName
 
 	return nil
