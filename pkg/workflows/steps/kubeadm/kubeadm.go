@@ -53,7 +53,20 @@ func (t *Step) Run(ctx context.Context, out io.Writer, config *steps.Config) err
 	config.KubeadmConfig.NodeIp = config.Node.PrivateIp
 	config.KubeadmConfig.PrivateIp = config.Node.PrivateIp
 
+
+	// Note(stgleb): Explanation of this wierd code goes down below
+	// https://cloud.google.com/load-balancing/docs/internal/setting-up-internal#test-from-backend-vms
+    // Caution: Don't rely on making requests to an internal TCP/UDP load balancer from a VM being load balanced
+    // (in the backend service for that load balancer). A request is always sent to the VM that makes the request,
+    // and health check information is ignored. This test demonstrates this expected behavior.
 	if config.Provider == clouds.GCE {
+		if config.IsBootstrap {
+			logrus.Debugf("use private ip as internal load balancer %s instead of %s",
+				config.Node.PrivateIp, config.InternalDNSName)
+
+			config.KubeadmConfig.InternalDNSName = config.Node.PrivateIp
+			config.InternalDNSName = config.Node.PrivateIp
+		}
 		config.KubeadmConfig.PrivateIp = "0.0.0.0"
 		config.KubeadmConfig.AdvertiseAddress = "0.0.0.0"
 	}

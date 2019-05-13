@@ -259,6 +259,9 @@ func (s *CreateInstanceStep) Run(ctx context.Context, output io.Writer,
 						},
 					}
 
+					logrus.Debugf("Add instance %s to target pool %s", config.Node.Name,
+						config.GCEConfig.TargetPoolLink)
+
 					_, err := svc.addInstanceToTargetGroup(ctx, config.GCEConfig,
 						config.GCEConfig.TargetPoolName, addInstanceToTargetPoolReq)
 

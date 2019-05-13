@@ -256,6 +256,7 @@ func (tp *TaskProvisioner) provision(ctx context.Context,
 	config.IsBootstrap = true
 	// Get bootstrap task as a first master task
 	bootstrapTask := taskMap[workflows.MasterTask][0]
+	bootstrapTask.Config = config
 	taskMap[workflows.MasterTask] = taskMap[workflows.MasterTask][1:]
 
 	logrus.Debug("Provision bootstrap node")
@@ -773,6 +774,7 @@ func (tp *TaskProvisioner) monitorClusterState(ctx context.Context,
 				continue
 			}
 
+			logrus.Debugf("update kube %s with config %v", k.ID, config)
 			util.UpdateKubeWithCloudSpecificData(k, config)
 
 			err = tp.kubeService.Create(ctx, k)
