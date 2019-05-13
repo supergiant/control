@@ -270,25 +270,31 @@ func (s *CreateInstanceStep) Run(ctx context.Context, output io.Writer,
 							resp.Name, resp.SelfLink, config.GCEConfig.TargetPoolName)
 					}
 
-					req := &compute.InstanceGroupsAddInstancesRequest{
-						Instances: []*compute.InstanceReference{
-							{
-								Instance: resp.SelfLink,
+					go func(){
+						// NOTE(stgleb): This is stupid, but it works.
+						// Add intstance to instance group only after provisioning has finished
+						// Because of that https://cloud.google.com/load-balancing/docs/internal/setting-up-internal#test-from-backend-vms
+						if !config.IsBootstrap {
+							time.Sleep(time.Minute * 10)
+						}
+						req := &compute.InstanceGroupsAddInstancesRequest{
+							Instances: []*compute.InstanceReference{
+								{
+									Instance: resp.SelfLink,
+								},
 							},
-						},
-					}
+						}
 
-					// TODO(stgleb): Non-bootstrap instance to instance group only after kubeadm step
-					// because of that https://cloud.google.com/load-balancing/docs/internal/setting-up-internal#test-from-backend-vms
-					logrus.Debugf("Add instance %s to instance group %s", config.Node.Name,
-						config.GCEConfig.InstanceGroupNames[config.GCEConfig.AvailabilityZone])
-					_, err = svc.addInstanceToInstanceGroup(ctx, config.GCEConfig,
-						config.GCEConfig.InstanceGroupNames[config.GCEConfig.AvailabilityZone], req)
+						logrus.Debugf("Add instance %s to instance group %s", config.Node.Name,
+							config.GCEConfig.InstanceGroupNames[config.GCEConfig.AvailabilityZone])
+						_, err = svc.addInstanceToInstanceGroup(ctx, config.GCEConfig,
+							config.GCEConfig.InstanceGroupNames[config.GCEConfig.AvailabilityZone], req)
 
-					if err != nil {
-						logrus.Errorf("error adding instance %s URL %s to instance group %s %v",
-							resp.Name, resp.SelfLink, config.GCEConfig.InstanceGroupLinks[config.GCEConfig.AvailabilityZone], err)
-					}
+						if err != nil {
+							logrus.Errorf("error adding instance %s URL %s to instance group %s %v",
+								resp.Name, resp.SelfLink, config.GCEConfig.InstanceGroupLinks[config.GCEConfig.AvailabilityZone], err)
+						}
+					}()
 
 					if len(resp.NetworkInterfaces) > 0 {
 						logrus.Debugf("Add instance name %s link %s with network interface %s subnetwork %s", resp.Name, resp.SelfLink,
