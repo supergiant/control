@@ -32,7 +32,6 @@ sudo bash -c "cat << EOF > /etc/supergiant/kubeadm.conf
 apiVersion: kubeadm.k8s.io/v1beta1
 kind: InitConfiguration
 localAPIEndpoint:
-  advertiseAddress: {{ .AdvertiseAddress }}
   bindPort: 443
 nodeRegistration:
   kubeletExtraArgs:
@@ -51,7 +50,6 @@ apiServer:
   - {{ .InternalDNSName }}
   extraArgs:
     authorization-mode: Node,RBAC
-    bind-address: {{ .PrivateIp }}
     {{ if .Provider }}cloud-provider: {{ .Provider }}{{ end }}
   timeoutForControlPlane: 8m0s
 controllerManager:
@@ -87,7 +85,6 @@ discovery:
     unsafeSkipCAVerification: true
 controlPlane:
   localAPIEndpoint:
-    advertiseAddress: {{ .AdvertiseAddress }}
     bindPort: 443
 ---
 apiVersion: kubeadm.k8s.io/v1beta1
@@ -102,16 +99,11 @@ apiServer:
   - {{ .InternalDNSName }}
   extraArgs:
     authorization-mode: Node,RBAC
-    bind-address: {{ .PrivateIp }}
     {{ if .Provider }}cloud-provider: {{ .Provider }}{{ end }}
   timeoutForControlPlane: 8m0s
 controllerManager:
   extraArgs:
-  bind-address: {{ .PrivateIp }}
-  {{ if .Provider }}cloud-provider: {{ .Provider }}{{ end }}
-scheduler:
-  extraArgs:
-    bind-address: {{ .PrivateIp }}
+    {{ if .Provider }}cloud-provider: {{ .Provider }}{{ end }}
 dns:
   type: CoreDNS
 etcd:

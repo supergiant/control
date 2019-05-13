@@ -209,17 +209,13 @@ type PrometheusConfig struct {
 type KubeadmConfig struct {
 	K8SVersion       string `json:"K8SVersion"`
 	IsMaster         bool   `json:"isMaster"`
-	AdvertiseAddress string `json:"advertiseAddress"`
 	IsBootstrap      bool   `json:"IsBootstrap"`
 	ServiceCIDR      string `json:"serviceCIDR"`
 	CIDR             string `json:"cidr"`
 	Token            string `json:"token"`
 	Provider         string `json:"provider"`
 	NodeIp           string `json:"nodeIp"`
-	PrivateIp        string `json:"privatIp"`
-	JoinAddress      string `json:"joinAddress"`
 
-	MasterPrivateIP string `json:"masterPrivateIp"`
 	InternalDNSName string `json:"internalDNSName"`
 	ExternalDNSName string `json:"externalDNSName"`
 }
