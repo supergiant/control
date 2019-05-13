@@ -51,13 +51,13 @@ func (s *DeleteIpAddressStep) Run(ctx context.Context, output io.Writer,
 	_, err = svc.deleteIpAddress(ctx, config.GCEConfig, config.GCEConfig.ExternalAddressName)
 
 	if err != nil {
-		logrus.Errorf("Error deleting external address %v", err)
+		logrus.Errorf("Error deleting external address %s %v", config.GCEConfig.ExternalAddressName, err)
 	}
 
 	_, err = svc.deleteIpAddress(ctx, config.GCEConfig, config.GCEConfig.ExternalAddressName)
 
 	if err != nil {
-		logrus.Errorf("Error deleting internal address %v", err)
+		logrus.Errorf("Error deleting internal address %s %v", config.GCEConfig.InternalAddressName, err)
 	}
 
 	return nil

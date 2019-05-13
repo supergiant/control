@@ -71,7 +71,6 @@ func (s *DeleteInstanceGroupStep) Run(ctx context.Context, output io.Writer,
 			time.Sleep(timeout)
 			timeout = timeout * 2
 		}
-
 	}
 
 	return nil
