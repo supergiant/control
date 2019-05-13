@@ -51,13 +51,13 @@ func (s *DeleteForwardingRulesStep) Run(ctx context.Context, output io.Writer,
 	_, err = svc.deleteForwardingRule(ctx, config.GCEConfig, config.GCEConfig.ExternalForwardingRuleName)
 
 	if err != nil {
-		logrus.Errorf("Error deleting external forwarding rule %v", err)
+		logrus.Errorf("Error deleting external forwarding rule  %s %v", config.GCEConfig.ExternalForwardingRuleName, err)
 	}
 
 	_, err = svc.deleteForwardingRule(ctx, config.GCEConfig, config.GCEConfig.InternalForwardingRuleName)
 
 	if err != nil {
-		logrus.Errorf("Error deleting internal forwarding rule %v", err)
+		logrus.Errorf("Error deleting internal forwarding rule %s rule %v", config.GCEConfig.InternalForwardingRuleName, err)
 	}
 
 	return nil

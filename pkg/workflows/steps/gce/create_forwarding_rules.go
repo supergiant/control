@@ -94,7 +94,7 @@ func (s *CreateForwardingRules) Run(ctx context.Context, output io.Writer,
 	}
 
 	logrus.Debugf("Created external forwarding rule %s link %s", exName, externalForwardingRule.SelfLink)
-	config.GCEConfig.ExternalForwardingRuleName = exName
+	config.GCEConfig.ExternalForwardingRuleName = externalForwardingRule.Name
 
 	inName := fmt.Sprintf("inrule-%s", config.ClusterID)
 	internalForwardingRule := &compute.ForwardingRule{
@@ -135,8 +135,8 @@ func (s *CreateForwardingRules) Run(ctx context.Context, output io.Writer,
 		return errors.Wrapf(err, "get internal forwarding rule")
 	}
 
-	logrus.Debugf("Created internal forwarding rule %s link", inName, internalForwardingRule.SelfLink)
-	config.GCEConfig.InternalForwardingRuleName = inName
+	logrus.Debugf("Created internal forwarding rule %s link %s", inName, internalForwardingRule.SelfLink)
+	config.GCEConfig.InternalForwardingRuleName = internalForwardingRule.Name
 
 	return nil
 }

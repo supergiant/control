@@ -229,7 +229,7 @@ func (tp *TaskProvisioner) provision(ctx context.Context,
 
 	config := preProvisionTask[0].Config
 	if preProvisionTask != nil && len(preProvisionTask) > 0 {
-		logrus.Debugf("Restart preprovision task %s",
+		logrus.Debugf("preprovision task %s",
 			preProvisionTask[0].ID)
 
 		if preProvisionErr := tp.preProvision(ctx, preProvisionTask[0], config); preProvisionErr != nil {
