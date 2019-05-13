@@ -126,8 +126,6 @@ func (c *Client) CreateInstance(ctx context.Context, cfg InstanceConfig) (*ec2.I
 				DeviceIndex:              aws.Int64(0),
 				AssociatePublicIpAddress: aws.Bool(cfg.HasPublicAddr),
 				DeleteOnTermination:      aws.Bool(true),
-				Groups:                   cfg.SecurityGroups,
-				SubnetId:                 aws.String(cfg.SubnetID),
 			},
 		}
 	}
