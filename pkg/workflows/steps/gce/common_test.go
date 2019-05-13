@@ -2,13 +2,14 @@ package gce
 
 import (
 	"context"
+	"github.com/supergiant/control/pkg/clouds/gcesdk"
 	"testing"
 
 	"github.com/supergiant/control/pkg/workflows/steps"
 )
 
 func TestNewCreateInstanceStep2(t *testing.T) {
-	Init()
+	Init(nil)
 
 	createStep := steps.GetStep(CreateInstanceStepName)
 
@@ -30,7 +31,7 @@ func TestNewCreateInstanceStep2(t *testing.T) {
 }
 
 func TestGetClient(t *testing.T) {
-	client, err := GetClient(context.Background(), steps.GCEConfig{
+	client, err := gcesdk.GetClient(context.Background(), steps.GCEConfig{
 		ServiceAccount: steps.ServiceAccount{
 			Type: "service_account",
 		},
