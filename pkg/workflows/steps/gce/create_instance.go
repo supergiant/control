@@ -278,6 +278,8 @@ func (s *CreateInstanceStep) Run(ctx context.Context, output io.Writer,
 						},
 					}
 
+					// TODO(stgleb): Non-bootstrap instance to instance group only after kubeadm step
+					// because of that https://cloud.google.com/load-balancing/docs/internal/setting-up-internal#test-from-backend-vms
 					logrus.Debugf("Add instance %s to instance group %s", config.Node.Name,
 						config.GCEConfig.InstanceGroupNames[config.GCEConfig.AvailabilityZone])
 					_, err = svc.addInstanceToInstanceGroup(ctx, config.GCEConfig,
