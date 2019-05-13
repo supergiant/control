@@ -381,6 +381,8 @@ func (tp *TaskProvisioner) preProvision(ctx context.Context, preProvisionTask *w
 	}
 
 	result := preProvisionTask.Run(ctx, *config, out)
+	config.ConfigChan() <- preProvisionTask.Config
+
 	err = <-result
 
 	if err != nil {
@@ -390,7 +392,6 @@ func (tp *TaskProvisioner) preProvision(ctx context.Context, preProvisionTask *w
 	}
 
 	logrus.Infof("pre provision task %s has finished", preProvisionTask.ID)
-	config.ConfigChan() <- preProvisionTask.Config
 
 	return err
 }
@@ -425,6 +426,7 @@ func (tp *TaskProvisioner) bootstrapMaster(ctx context.Context,
 	bootstrapTask.Config.IsMaster = true
 
 	err = <-bootstrapTask.Run(ctx, *bootstrapTask.Config, out)
+	rootConfig.ConfigChan() <- bootstrapTask.Config
 
 	if err != nil {
 		logrus.Errorf("bootstrap task %s has finished with error %v", bootstrapTask.ID, err)
@@ -434,7 +436,6 @@ func (tp *TaskProvisioner) bootstrapMaster(ctx context.Context,
 	}
 
 	logrus.Infof("bootstrap task %s has finished", bootstrapTask.ID)
-	rootConfig.ConfigChan() <- bootstrapTask.Config
 
 	return nil
 }
