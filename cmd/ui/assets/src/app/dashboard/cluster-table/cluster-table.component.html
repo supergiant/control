@@ -1,10 +1,11 @@
 <div class="cluster-wrapper"
      [routerLink]="['/clusters', cluster.id]"
      [ngClass]="{
+      'deleting': cluster.state == 'deleting'}">
+  <div class="cluster-info"
+       [ngClass]="{
       'provisioning-table': cluster.state == 'provisioning',
-      'deleting': cluster.state == 'deleting',
       'failed': cluster.state == 'failed'}">
-  <div class="cluster-info">
     <div class="cluster-name">
       <span>{{ cluster.name }}</span>
     </div>
