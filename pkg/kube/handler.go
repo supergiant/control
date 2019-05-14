@@ -394,7 +394,8 @@ func (h *Handler) deleteKube(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	errChan := t.Run(context.Background(), *config, writer)
+	ctx, _ := context.WithTimeout(context.Background(), time.Minute * 10)
+	errChan := t.Run(ctx, *config, writer)
 
 	go func(t *workflows.Task) {
 		// Update kube with deleting state
