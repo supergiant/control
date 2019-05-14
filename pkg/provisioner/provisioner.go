@@ -381,9 +381,8 @@ func (tp *TaskProvisioner) preProvision(ctx context.Context, preProvisionTask *w
 	}
 
 	result := preProvisionTask.Run(ctx, *config, out)
-	config.ConfigChan() <- preProvisionTask.Config
-
 	err = <-result
+	config.ConfigChan() <- preProvisionTask.Config
 
 	if err != nil {
 		logrus.Errorf("pre provision task %s has finished with error %v",
