@@ -2,8 +2,10 @@ package gce
 
 import (
 	"context"
-	"github.com/supergiant/control/pkg/clouds/gcesdk"
 	"io"
+	"time"
+
+	"github.com/supergiant/control/pkg/clouds/gcesdk"
 
 	"github.com/pkg/errors"
 
@@ -11,14 +13,13 @@ import (
 	"google.golang.org/api/compute/v1"
 
 	"github.com/supergiant/control/pkg/workflows/steps"
-	"time"
 )
 
 const DeleteForwardingRulesStepName = "gce_delete_forwarding_rules"
 
 type DeleteForwardingRulesStep struct {
 	attemptCount int
-	timeout time.Duration
+	timeout      time.Duration
 
 	getComputeSvc func(context.Context, steps.GCEConfig) (*computeService, error)
 }
@@ -26,7 +27,7 @@ type DeleteForwardingRulesStep struct {
 func NewDeleteForwardingRulesStep() *DeleteForwardingRulesStep {
 	return &DeleteForwardingRulesStep{
 		attemptCount: 6,
-		timeout: time.Second * 10,
+		timeout:      time.Second * 10,
 		getComputeSvc: func(ctx context.Context, config steps.GCEConfig) (*computeService, error) {
 			client, err := gcesdk.GetClient(ctx, config)
 
@@ -63,7 +64,7 @@ func (s *DeleteForwardingRulesStep) Run(ctx context.Context, output io.Writer,
 		logrus.Errorf("Error deleting external forwarding rule  %s %v", config.GCEConfig.ExternalForwardingRuleName, err)
 	}
 
-	for i := 0;i < s.attemptCount; i++ {
+	for i := 0; i < s.attemptCount; i++ {
 		_, err = svc.getForwardingRule(ctx, config.GCEConfig, config.GCEConfig.ExternalForwardingRuleName)
 
 		if isNotFound(err) {
@@ -84,7 +85,7 @@ func (s *DeleteForwardingRulesStep) Run(ctx context.Context, output io.Writer,
 		logrus.Errorf("Error deleting internal forwarding rule %s rule %v", config.GCEConfig.InternalForwardingRuleName, err)
 	}
 
-	for i := 0;i < s.attemptCount; i++ {
+	for i := 0; i < s.attemptCount; i++ {
 		_, err = svc.getForwardingRule(ctx, config.GCEConfig, config.GCEConfig.InternalForwardingRuleName)
 
 		if isNotFound(err) {
