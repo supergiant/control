@@ -10,13 +10,14 @@ import (
 	"google.golang.org/api/compute/v1"
 
 	"github.com/pkg/errors"
+	"github.com/supergiant/control/pkg/clouds/gcesdk"
 	"github.com/supergiant/control/pkg/workflows/steps"
 )
 
 const CreateForwardingRulesStepName = "gce_create_forwarding_rules"
 
 type CreateForwardingRules struct {
-	timeout time.Duration
+	timeout      time.Duration
 	attemptCount int
 
 	getComputeSvc func(context.Context, steps.GCEConfig) (*computeService, error)
@@ -24,10 +25,10 @@ type CreateForwardingRules struct {
 
 func NewCreateForwardingRulesStep() *CreateForwardingRules {
 	return &CreateForwardingRules{
-		timeout: time.Second * 10,
+		timeout:      time.Second * 10,
 		attemptCount: 10,
 		getComputeSvc: func(ctx context.Context, config steps.GCEConfig) (*computeService, error) {
-			client, err := GetClient(ctx, config)
+			client, err := gcesdk.GetClient(ctx, config)
 
 			if err != nil {
 				return nil, err
@@ -36,6 +37,9 @@ func NewCreateForwardingRulesStep() *CreateForwardingRules {
 			return &computeService{
 				insertForwardingRule: func(ctx context.Context, config steps.GCEConfig, rule *compute.ForwardingRule) (*compute.Operation, error) {
 					return client.ForwardingRules.Insert(config.ServiceAccount.ProjectID, config.Region, rule).Do()
+				},
+				getForwardingRule: func(ctx context.Context, config steps.GCEConfig, name string) (*compute.ForwardingRule, error) {
+					return client.ForwardingRules.Get(config.ServiceAccount.ProjectID, config.Region, name).Do()
 				},
 			}, nil
 		},
@@ -63,16 +67,16 @@ func (s *CreateForwardingRules) Run(ctx context.Context, output io.Writer,
 		Target:              config.GCEConfig.TargetPoolLink,
 	}
 
-
 	timeout := s.timeout
 
-	for i := 0;i < s.attemptCount; i++ {
+	for i := 0; i < s.attemptCount; i++ {
 		_, err = svc.insertForwardingRule(ctx, config.GCEConfig, externalForwardingRule)
 
 		if err == nil {
 			break
 		}
 
+		logrus.Debugf("Error external forwarding rule %v sleep for %v", err, timeout)
 		time.Sleep(timeout)
 		timeout = timeout * 2
 	}
@@ -82,8 +86,57 @@ func (s *CreateForwardingRules) Run(ctx context.Context, output io.Writer,
 		return errors.Wrapf(err, "%s creating external forwarding rule caused", CreateForwardingRulesStepName)
 	}
 
-	logrus.Debugf("Created external forwarding rule %s", exName)
-	config.GCEConfig.ForwardingRuleName = exName
+	externalForwardingRule, err = svc.getForwardingRule(ctx, config.GCEConfig, exName)
+
+	if err != nil {
+		logrus.Errorf("get external forwarding rule %v", err)
+		return errors.Wrapf(err, "get external forwarding rule")
+	}
+
+	logrus.Debugf("Created external forwarding rule %s link %s", exName, externalForwardingRule.SelfLink)
+	config.GCEConfig.ExternalForwardingRuleName = externalForwardingRule.Name
+
+	inName := fmt.Sprintf("inrule-%s", config.ClusterID)
+	internalForwardingRule := &compute.ForwardingRule{
+		Name:                inName,
+		IPAddress:           config.GCEConfig.InternalIPAddressLink,
+		LoadBalancingScheme: "INTERNAL",
+		Description:         "Internal forwarding rule to target pool",
+		IPProtocol:          "TCP",
+		Ports:               []string{"443"},
+		BackendService:      config.GCEConfig.BackendServiceLink,
+		Network:             config.GCEConfig.NetworkLink,
+		Subnetwork:          config.GCEConfig.SubnetLink,
+	}
+
+	timeout = s.timeout
+
+	for i := 0; i < s.attemptCount; i++ {
+		_, err = svc.insertForwardingRule(ctx, config.GCEConfig, internalForwardingRule)
+
+		if err == nil {
+			break
+		}
+
+		logrus.Debugf("Error internal forwarding rule error %v sleep for %v", err, timeout)
+		time.Sleep(timeout)
+		timeout = timeout * 2
+	}
+
+	if err != nil {
+		logrus.Errorf("Error creating internal forwarding rule %v", err)
+		return errors.Wrapf(err, "%s creating internal forwarding rule caused", CreateForwardingRulesStepName)
+	}
+
+	internalForwardingRule, err = svc.getForwardingRule(ctx, config.GCEConfig, inName)
+
+	if err != nil {
+		logrus.Errorf("get internal forwarding rule %v", err)
+		return errors.Wrapf(err, "get internal forwarding rule")
+	}
+
+	logrus.Debugf("Created internal forwarding rule %s link %s", inName, internalForwardingRule.SelfLink)
+	config.GCEConfig.InternalForwardingRuleName = internalForwardingRule.Name
 
 	return nil
 }

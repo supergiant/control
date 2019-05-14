@@ -49,8 +49,7 @@ func (t *Step) Run(ctx context.Context, out io.Writer, config *steps.Config) err
 	config.KubeadmConfig.InternalDNSName = config.InternalDNSName
 	config.KubeadmConfig.ExternalDNSName = config.ExternalDNSName
 	config.KubeadmConfig.Token = config.BootstrapToken
-	config.KubeadmConfig.PrivateIP = config.Node.PrivateIp
-	config.KubeadmConfig.AdvertiseAddress = config.Node.PrivateIp
+	config.KubeadmConfig.NodeIp = config.Node.PrivateIp
 
 	logrus.Debugf("kubeadm step: %s cluster: isBootstrap=%t extDNS=%s intDNS=%s",
 		config.ClusterID, config.KubeadmConfig.IsBootstrap, config.KubeadmConfig.ExternalDNSName,

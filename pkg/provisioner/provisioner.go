@@ -230,7 +230,7 @@ func (tp *TaskProvisioner) provision(ctx context.Context,
 
 	config := preProvisionTask[0].Config
 	if preProvisionTask != nil && len(preProvisionTask) > 0 {
-		logrus.Debugf("Restart preprovision task %s",
+		logrus.Debugf("preprovision task %s",
 			preProvisionTask[0].ID)
 
 		if preProvisionErr := tp.preProvision(ctx, preProvisionTask[0], config); preProvisionErr != nil {
@@ -257,6 +257,7 @@ func (tp *TaskProvisioner) provision(ctx context.Context,
 	config.IsBootstrap = true
 	// Get bootstrap task as a first master task
 	bootstrapTask := taskMap[workflows.MasterTask][0]
+	bootstrapTask.Config = config
 	taskMap[workflows.MasterTask] = taskMap[workflows.MasterTask][1:]
 
 	logrus.Debug("Provision bootstrap node")
@@ -781,6 +782,7 @@ func (tp *TaskProvisioner) monitorClusterState(ctx context.Context,
 				continue
 			}
 
+			logrus.Debugf("update kube %s with config %v", k.ID, config)
 			util.UpdateKubeWithCloudSpecificData(k, config)
 
 			err = tp.kubeService.Create(ctx, k)

@@ -2,15 +2,12 @@ package gce
 
 import (
 	"context"
-	"encoding/json"
+	"google.golang.org/api/googleapi"
+	"net/http"
 	"time"
 
-	"github.com/pkg/errors"
-
-	"google.golang.org/api/compute/v1"
-	"google.golang.org/api/option"
-
 	"github.com/supergiant/control/pkg/workflows/steps"
+	"google.golang.org/api/compute/v1"
 )
 
 type computeService struct {
@@ -25,14 +22,11 @@ type computeService struct {
 	insertAddress              func(context.Context, steps.GCEConfig, *compute.Address) (*compute.Operation, error)
 	getAddress                 func(context.Context, steps.GCEConfig, string) (*compute.Address, error)
 	insertForwardingRule       func(context.Context, steps.GCEConfig, *compute.ForwardingRule) (*compute.Operation, error)
+	getForwardingRule       func(context.Context, steps.GCEConfig, string) (*compute.ForwardingRule, error)
 	addInstanceToTargetGroup   func(context.Context, steps.GCEConfig, string, *compute.TargetPoolsAddInstanceRequest) (*compute.Operation, error)
 	addInstanceToInstanceGroup func(context.Context, steps.GCEConfig, string, *compute.InstanceGroupsAddInstancesRequest) (*compute.Operation, error)
-	insertHealthCheck          func(context.Context, steps.GCEConfig, *compute.HealthCheck) (*compute.Operation, error)
-	addHealthCheckToTargetPool func(context.Context, steps.GCEConfig, string, *compute.TargetPoolsAddHealthCheckRequest) (*compute.Operation, error)
 	insertInstanceGroup        func(context.Context, steps.GCEConfig, *compute.InstanceGroup) (*compute.Operation, error)
 	insertBackendService       func(context.Context, steps.GCEConfig, *compute.BackendService) (*compute.Operation, error)
-	insertNetwork              func(context.Context, steps.GCEConfig, *compute.Network) (*compute.Operation, error)
-	getHealthCheck             func(context.Context, steps.GCEConfig, string) (*compute.HealthCheck, error)
 	getInstanceGroup           func(context.Context, steps.GCEConfig, string) (*compute.InstanceGroup, error)
 	getTargetPool              func(context.Context, steps.GCEConfig, string) (*compute.TargetPool, error)
 	getBackendService          func(context.Context, steps.GCEConfig, string) (*compute.BackendService, error)
@@ -41,45 +35,57 @@ type computeService struct {
 	deleteInstanceGroup        func(context.Context, steps.GCEConfig, string) (*compute.Operation, error)
 	deleteTargetPool           func(context.Context, steps.GCEConfig, string) (*compute.Operation, error)
 	deleteIpAddress            func(context.Context, steps.GCEConfig, string) (*compute.Operation, error)
+	insertNetwork              func(context.Context, steps.GCEConfig, *compute.Network) (*compute.Operation, error)
+	switchNetworkMode          func(context.Context, steps.GCEConfig, string) (*compute.Operation, error)
+	getNetwork                 func(context.Context, steps.GCEConfig, string) (*compute.Network, error)
+
+	insertHealthCheck          func(context.Context, steps.GCEConfig, *compute.HealthCheck) (*compute.Operation, error)
+	addHealthCheckToTargetPool func(context.Context, steps.GCEConfig, string, *compute.TargetPoolsAddHealthCheckRequest) (*compute.Operation, error)
+	getHealthCheck             func(context.Context, steps.GCEConfig, string) (*compute.HealthCheck, error)
 }
 
-func Init() {
+func Init(getter accountGetter) {
 	createInstance := NewCreateInstanceStep(time.Second*10, time.Minute*5)
-	deleteCluster := NewDeleteClusterStep()
-	deleteNode := NewDeleteNodeStep()
 	createTargetPool := NewCreateTargetPoolStep()
 	createIPAddress := NewCreateAddressStep()
-	createHealthCheck := NewCreateHealthCheckStep()
 	createForwardingRules := NewCreateForwardingRulesStep()
+
+	createInstanceGroup, _ := NewCreateInstanceGroupsStep(getter)
+	createBackendService, _ := NewCreateBackendServiceStep()
+	createHealthCheck := NewCreateHealthCheckStep()
+	createNetworks := NewCreateNetworksStep()
+
+	deleteCluster := NewDeleteClusterStep()
+	deleteInstanceGroup, _ := NewDeleteInstanceGroupStep()
 	deleteForwardingRules := NewDeleteForwardingRulesStep()
+	deleteBackendService, _ := NewDeleteBackendServiceStep()
 	deleteTargetPool := NewDeleteTargetPoolStep()
 	deleteIpAddress := NewDeleteIpAddressStep()
+	deleteNode := NewDeleteNodeStep()
 
+	steps.RegisterStep(CreateHealthCheckStepName, createHealthCheck)
+	steps.RegisterStep(DeleteInstanceGroupStepName, deleteInstanceGroup)
+	steps.RegisterStep(DeleteBackendServicStepName, deleteBackendService)
+	steps.RegisterStep(CreateInstanceGroupsStepName, createInstanceGroup)
+	steps.RegisterStep(CreateBackendServiceStepName, createBackendService)
 	steps.RegisterStep(CreateInstanceStepName, createInstance)
 	steps.RegisterStep(DeleteClusterStepName, deleteCluster)
 	steps.RegisterStep(DeleteNodeStepName, deleteNode)
 	steps.RegisterStep(CreateTargetPullStepName, createTargetPool)
 	steps.RegisterStep(CreateIPAddressStepName, createIPAddress)
-	steps.RegisterStep(CreateHealthCheckStepName, createHealthCheck)
 	steps.RegisterStep(CreateForwardingRulesStepName, createForwardingRules)
 	steps.RegisterStep(DeleteForwardingRulesStepName, deleteForwardingRules)
 	steps.RegisterStep(DeleteTargetPoolStepName, deleteTargetPool)
 	steps.RegisterStep(DeleteIpAddressStepName, deleteIpAddress)
+	steps.RegisterStep(CreateNetworksStepName, createNetworks)
 }
 
-func GetClient(ctx context.Context, config steps.GCEConfig) (*compute.Service, error) {
-	data, err := json.Marshal(&config.ServiceAccount)
-
-	if err != nil {
-		return nil, errors.Wrapf(err, "Error marshalling service account")
+func isNotFound(err error) bool {
+	if gErr, ok := err.(*googleapi.Error); ok {
+		if gErr.Code == http.StatusNotFound {
+			return true
+		}
 	}
 
-	opts := option.WithCredentialsJSON(data)
-
-	computeService, err := compute.NewService(ctx, opts)
-
-	if err != nil {
-		return nil, err
-	}
-	return computeService, nil
+	return false
 }

@@ -46,19 +46,23 @@ const (
 	GCETokenURI    = "token_uri"
 
 	GCETargetPoolName     = "gceTargetPoolName"
-	GCEBackendServiceName = "gceBackendServiceName"
 
 	GCEExternalIPAddress = "gceExternalIpAddress"
 	GCEInternalIPAddress = "gceInternalIpAddress"
-
-	GCEHealthCheckName = "gceHealthCheckName"
 
 	GCEExternalIPAddressName = "gceExternalIpAddressName"
 	GCEInternalIPAddressName = "gceInternalIpAddressName"
 
 	GCEExternalForwardingRuleName = "gceExternalForwardingRuleName"
 	GCEInternalForwardingRuleName = "gceInternalForwardingRuleName"
-	GCEInstanceGroupName          = "gceInstanceGroupName"
+
+	GCEBackendServiceName = "gceBackendServiceName"
+	GCEBackendServiceLink = "gceBackendServiceLink"
+
+	GCEHealthCheckName = "gceHealthCheckName"
+
+	GCENetworkLink = "gceNetworkLink"
+	GCENetworkName = "gceNetworkName"
 
 	TagClusterID         = "supergiant.io/cluster-id"
 	TagKubernetesCluster = "KubernetesCluster"

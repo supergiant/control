@@ -4,8 +4,10 @@ import (
 	"context"
 	"github.com/pkg/errors"
 	"github.com/sirupsen/logrus"
+	"github.com/supergiant/control/pkg/clouds/gcesdk"
 	"google.golang.org/api/compute/v1"
 	"io"
+	"time"
 
 	"fmt"
 	"github.com/supergiant/control/pkg/workflows/steps"
@@ -20,7 +22,7 @@ type CreateHealthCheck struct {
 func NewCreateHealthCheckStep() *CreateHealthCheck {
 	return &CreateHealthCheck{
 		getComputeSvc: func(ctx context.Context, config steps.GCEConfig) (*computeService, error) {
-			client, err := GetClient(ctx, config)
+			client, err := gcesdk.GetClient(ctx, config)
 
 			if err != nil {
 				return nil, err
@@ -32,9 +34,6 @@ func NewCreateHealthCheckStep() *CreateHealthCheck {
 				},
 				getHealthCheck: func(ctx context.Context, config steps.GCEConfig, healthCheckName string) (*compute.HealthCheck, error) {
 					return client.HealthChecks.Get(config.ProjectID, healthCheckName).Do()
-				},
-				addHealthCheckToTargetPool: func(ctx context.Context, config steps.GCEConfig, targetPool string, request *compute.TargetPoolsAddHealthCheckRequest) (*compute.Operation, error) {
-					return client.TargetPools.AddHealthCheck(config.ServiceAccount.ProjectID, config.Region, targetPool, request).Do()
 				},
 			}, nil
 		},
@@ -57,9 +56,10 @@ func (s *CreateHealthCheck) Run(ctx context.Context, output io.Writer,
 		CheckIntervalSec:   10,
 		HealthyThreshold:   3,
 		UnhealthyThreshold: 3,
-		Type:               "TCP",
-		TcpHealthCheck: &compute.TCPHealthCheck{
+		Type:               "HTTPS",
+		HttpsHealthCheck: &compute.HTTPSHealthCheck{
 			Port: 443,
+			RequestPath: "/healthz",
 		},
 	}
 
@@ -77,7 +77,9 @@ func (s *CreateHealthCheck) Run(ctx context.Context, output io.Writer,
 		return errors.Wrapf(err, "Error creating health check")
 	}
 
+	logrus.Debugf("Created health check link %s", hc.SelfLink)
 	config.GCEConfig.HealthCheckName = hc.SelfLink
+	time.Sleep(time.Minute * 1)
 
 	return nil
 }

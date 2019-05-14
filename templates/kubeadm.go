@@ -22,9 +22,6 @@ HOSTNAME="$(hostname)"
 HOSTNAME="$(hostname -f)"
 {{ end }}
 
-# TODO: place ca/kubeblet certificates to the custom dir to make this step idempotent.
-#       'kubeadm reset' removes this certificates and then creates a new one.
-
 sudo mkdir -p /etc/supergiant
 
 {{if .IsMaster }}
@@ -35,19 +32,17 @@ sudo bash -c "cat << EOF > /etc/supergiant/kubeadm.conf
 apiVersion: kubeadm.k8s.io/v1beta1
 kind: InitConfiguration
 localAPIEndpoint:
-  advertiseAddress: {{ .AdvertiseAddress }}
   bindPort: 443
 nodeRegistration:
   kubeletExtraArgs:
-    address: {{ .PrivateIP }}
-    node-ip: {{ .PrivateIP }}
+    node-ip: {{ .NodeIp }}
     {{ if .Provider }}cloud-provider: {{ .Provider }}{{ end }}
 ---
 apiVersion: kubeadm.k8s.io/v1beta1
 kind: ClusterConfiguration
 kubernetesVersion: v{{ .K8SVersion }}
 clusterName: kubernetes
-controlPlaneEndpoint: {{ .InternalDNSName }}
+controlPlaneEndpoint: {{ .InternalDNSName }}:443
 certificatesDir: /etc/kubernetes/pki
 apiServer:
   certSANs:
@@ -55,7 +50,6 @@ apiServer:
   - {{ .InternalDNSName }}
   extraArgs:
     authorization-mode: Node,RBAC
-    bind-address: {{ .PrivateIP }}
     {{ if .Provider }}cloud-provider: {{ .Provider }}{{ end }}
   timeoutForControlPlane: 8m0s
 controllerManager:
@@ -82,8 +76,7 @@ apiVersion: kubeadm.k8s.io/v1beta1
 kind: JoinConfiguration
 nodeRegistration:
   kubeletExtraArgs:
-    node-ip: {{ .PrivateIP }}
-    address: {{ .PrivateIP }}
+    node-ip: {{ .NodeIp }}
     {{ if .Provider }}cloud-provider: {{ .Provider }}{{ end }}
 discovery:
   bootstrapToken:
@@ -92,14 +85,13 @@ discovery:
     unsafeSkipCAVerification: true
 controlPlane:
   localAPIEndpoint:
-    advertiseAddress: {{ .AdvertiseAddress }}
     bindPort: 443
 ---
 apiVersion: kubeadm.k8s.io/v1beta1
 kind: ClusterConfiguration
 kubernetesVersion: v{{ .K8SVersion }}
 clusterName: kubernetes
-controlPlaneEndpoint: {{ .InternalDNSName }}
+controlPlaneEndpoint: {{ .InternalDNSName }}:443
 certificatesDir: /etc/kubernetes/pki
 apiServer:
   certSANs:
@@ -107,16 +99,11 @@ apiServer:
   - {{ .InternalDNSName }}
   extraArgs:
     authorization-mode: Node,RBAC
-    bind-address: {{ .PrivateIP }}
     {{ if .Provider }}cloud-provider: {{ .Provider }}{{ end }}
   timeoutForControlPlane: 8m0s
 controllerManager:
   extraArgs:
-  bind-address: {{ .PrivateIP }}
-  {{ if .Provider }}cloud-provider: {{ .Provider }}{{ end }}
-scheduler:
-  extraArgs:
-    bind-address: {{ .PrivateIP }}
+    {{ if .Provider }}cloud-provider: {{ .Provider }}{{ end }}
 dns:
   type: CoreDNS
 etcd:
@@ -144,8 +131,7 @@ apiVersion: kubeadm.k8s.io/v1beta1
 kind: JoinConfiguration
 nodeRegistration:
   kubeletExtraArgs:
-    address: {{ .PrivateIP }}
-    node-ip: {{ .PrivateIP }}
+    node-ip: {{ .NodeIp }}
     {{ if .Provider }}cloud-provider: {{ .Provider }}{{ end }}
 discovery:
   bootstrapToken:
