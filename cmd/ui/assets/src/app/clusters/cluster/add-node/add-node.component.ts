@@ -42,6 +42,7 @@ export class AddNodeComponent implements OnInit, OnDestroy {
     role: 'Node',
     qty: 1,
     availabilityZone: '',
+    filter: '',
   }];
 
   machineSizes$: Observable<any>;
@@ -58,7 +59,6 @@ export class AddNodeComponent implements OnInit, OnDestroy {
   availabilityZones: string[];
   selectedAZSubj: Subject<string>;
   isLoadingMachineTypes: boolean = true;
-  machineTypesFilter = '';
 
   constructor(
     private supergiant: Supergiant,
@@ -301,13 +301,5 @@ export class AddNodeComponent implements OnInit, OnDestroy {
       this.displayMachineConfigError = true;
     }
   }
-
-  filterCallback = (val) => {
-    if (this.machineTypesFilter === '') {
-      return val;
-    }
-
-    return val.indexOf(this.machineTypesFilter) > -1;
-  };
 
 }
