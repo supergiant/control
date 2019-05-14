@@ -236,6 +236,7 @@ func configureApplication(cfg *Config) (*mux.Router, error) {
 	amazon.InitImportSubnetDescriber(amazon.GetEC2)
 	amazon.InitImportInternetGatewayStep(amazon.GetEC2)
 	amazon.InitImportRouteTablesStep(amazon.GetEC2)
+	amazon.InitCreateTagsStep(amazon.GetEC2)
 	workflows.Init()
 	azure.Init()
 

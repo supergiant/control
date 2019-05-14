@@ -58,7 +58,7 @@ func discoveryClient(k *model.Kube) (*discovery.DiscoveryClient, error) {
 	return discovery.NewDiscoveryClientForConfig(cfg)
 }
 
-func Corev1Client(k *model.Kube) (corev1client.CoreV1Interface, error) {
+func CoreV1Client(k *model.Kube) (corev1client.CoreV1Interface, error) {
 	cfg, err := NewConfigFor(k)
 	if err != nil {
 		return nil, err
@@ -97,7 +97,7 @@ func AdminKubeConfig(k *model.Kube) (clientcmddapi.Config, error) {
 		},
 		Clusters: map[string]*clientcmddapi.Cluster{
 			k.Name: {
-				Server: apiAddr,
+				Server:                   apiAddr,
 				CertificateAuthorityData: []byte(k.Auth.CACert),
 			},
 		},

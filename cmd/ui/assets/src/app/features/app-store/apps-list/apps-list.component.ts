@@ -123,7 +123,7 @@ export class AppsListComponent implements OnInit {
   }
 
   addRepo() {
-    this.dialog.open(AppsAddComponent);
+    this.dialog.open(AppsAddComponent, { width: "350px" });
   }
 
 }

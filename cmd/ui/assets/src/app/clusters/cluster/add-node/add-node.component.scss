@@ -128,10 +128,11 @@
   }
 }
 
-::ng-deep .mat-select-content {
-
-  .machine-types-filter {
-    position: relative;
-    padding: 10px !important;
-  }
+.sticky-filter-wrapper {
+  position: sticky;
+  padding: 10px !important;
+  z-index: 100;
+  top: 0;
+  background-color: #424242;
+  border-bottom: 1px solid rgba(255,255,255,0.25);
 }

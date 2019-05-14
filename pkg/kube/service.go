@@ -4,7 +4,6 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
-	"github.com/supergiant/control/pkg/kubeconfig"
 	"strings"
 
 	"github.com/pborman/uuid"
@@ -24,6 +23,7 @@ import (
 	"k8s.io/helm/pkg/proto/hapi/release"
 	"k8s.io/helm/pkg/timeconv"
 
+	"github.com/supergiant/control/pkg/kubeconfig"
 	"github.com/supergiant/control/pkg/model"
 	"github.com/supergiant/control/pkg/runner/ssh"
 	"github.com/supergiant/control/pkg/sgerrors"
@@ -89,7 +89,7 @@ type Service struct {
 func NewService(prefix string, s storage.Interface, chrtGetter ChartGetter) *Service {
 	return &Service{
 		clientForGroupFn: kubeconfig.RestClientForGroupVersion,
-		corev1ClientFn:   kubeconfig.Corev1Client,
+		corev1ClientFn:   kubeconfig.CoreV1Client,
 		newHelmProxyFn:   helmProxyFrom,
 		chrtGetter:       chrtGetter,
 		prefix:           prefix,

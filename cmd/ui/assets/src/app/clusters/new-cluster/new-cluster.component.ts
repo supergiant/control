@@ -53,6 +53,7 @@ export class NewClusterComponent implements OnInit, OnDestroy {
   availableCloudAccounts$: Observable<any[]>;
   selectedCloudAccount: any;
   availableRegions: any;
+  availableRegionNames: Array<string>;
   availableMachineTypes: Array<any>;
   regionsLoading = false;
   machinesLoading = false;
@@ -71,7 +72,6 @@ export class NewClusterComponent implements OnInit, OnDestroy {
   clusterConfig: FormGroup;
   providerConfig: FormGroup;
   unavailableClusterNames = new Set();
-  machineTypesFilter = '';
   regionsFilter = '';
 
   exposedAddressesArray: Array<string> = new Array<string>();
@@ -94,7 +94,6 @@ export class NewClusterComponent implements OnInit, OnDestroy {
     this.availableCloudAccounts$ = this.supergiant.CloudAccounts.get().pipe(
       map(cloudAccounts => cloudAccounts.sort()),
     );
-
 
     this.clusterConfig = this.formBuilder.group({
       name: ['', [
@@ -185,11 +184,15 @@ export class NewClusterComponent implements OnInit, OnDestroy {
       newClusterData.profile.networkType = this.clusterConfig.value.networkType;
       newClusterData.profile.operatingSystem = this.clusterConfig.value.operatingSystem;
       newClusterData.profile.ubuntuVersion = this.clusterConfig.value.ubuntuVersion;
-      newClusterData.profile.region = this.providerConfig.value.region.id;
       newClusterData.profile.provider = this.selectedCloudAccount.provider;
       newClusterData.profile.rbacEnabled = true;
       newClusterData.profile.masterProfiles = this.nodesService.compileProfiles(this.selectedCloudAccount.provider, this.machines, 'Master');
       newClusterData.profile.nodesProfiles = this.nodesService.compileProfiles(this.selectedCloudAccount.provider, this.machines, 'Node');
+
+      let region = this.availableRegions.filter(reg => {
+        return reg.name === this.providerConfig.value.region
+      })[0];
+      newClusterData.profile.region = region.id;
 
       let exposedAddrObjects = new Array();
       for(let i=0; i<this.exposedAddressesArray.length; i++){
@@ -269,7 +272,7 @@ export class NewClusterComponent implements OnInit, OnDestroy {
 
   selectAz(zone, idx) {
     const accountName = this.selectedCloudAccount.name;
-    const region = this.providerConfig.value.region.name;
+    const region = this.providerConfig.value.region;
 
     this.machinesLoading = true;
 
@@ -309,7 +312,12 @@ export class NewClusterComponent implements OnInit, OnDestroy {
     }
   }
 
-  selectRegion(region) {
+  selectRegion(regionName) {
+
+    let region = this.availableRegions.filter(reg => {
+      return reg.name === regionName
+    })[0];
+
     switch (this.selectedCloudAccount.provider) {
       case 'digitalocean':
         this.availableMachineTypes = sortDigitalOceanMachineTypes(region.AvailableSizes);
@@ -374,6 +382,7 @@ export class NewClusterComponent implements OnInit, OnDestroy {
     this.availableRegions = null;
     this.availabilityZones = null;
     this.availableMachineTypes = null;
+    this.availableRegionNames = new Array<string>();
 
     // TODO: quick fix to get pre-release cut
     // move to class and create new instance
@@ -384,6 +393,7 @@ export class NewClusterComponent implements OnInit, OnDestroy {
         availabilityZone: '',
         availableMachineTypes: null,
         role: 'Master',
+        filter: '',
       },
       {
         machineType: null,
@@ -391,6 +401,7 @@ export class NewClusterComponent implements OnInit, OnDestroy {
         availabilityZone: '',
         availableMachineTypes: null,
         role: 'Node',
+        filter: '',
       },
     ];
 
@@ -427,8 +438,8 @@ export class NewClusterComponent implements OnInit, OnDestroy {
     this.regionsLoading = true;
     this.subscriptions.add(this.supergiant.CloudAccounts.getRegions(cloudAccount.name).subscribe(
       regionList => {
-        this.availableRegions = regionList;
-        this.availableRegions.regions.sort(this.sortRegionsByName);
+        this.availableRegions = regionList.regions.sort(this.sortRegionsByName);
+        this.availableRegionNames = this.availableRegions.map(n => n.name);
         this.regionsLoading = false;
       },
       err => {
@@ -525,22 +536,6 @@ export class NewClusterComponent implements OnInit, OnDestroy {
     };
   }
 
-  machineTypesFilterCallback = (val) => {
-    if (this.machineTypesFilter === '') {
-      return val;
-    }
-
-    return val.toLowerCase().indexOf(this.machineTypesFilter.toLowerCase()) > -1;
-  }
-
-  regionsFilterCallback = (val) => {
-    if (this.regionsFilter === '') {
-      return val.name;
-    }
-
-    return val.name.toLowerCase().indexOf(this.regionsFilter.toLowerCase()) > -1;
-  }
-
   putExposedAddressesInArray(val) {
     this.exposedAddressesArray = this.toArray(val.target.value);
   }
@@ -560,6 +555,12 @@ export class NewClusterComponent implements OnInit, OnDestroy {
     });
 
     return dialogRef;
+  }
+
+  allowSpaces(keyEvent){
+    if(keyEvent.key==" "){
+      keyEvent.stopPropagation();
+    }
   }
 
 }

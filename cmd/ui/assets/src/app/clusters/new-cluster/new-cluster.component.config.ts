@@ -8,6 +8,7 @@ export const BLANK_MACHINE_TEMPLATE: IMachineType = {
   qty: 1,
   availabilityZone: '',
   availableMachineTypes: null,
+  filter: '',
 };
 
 // TODO: an interface type need to be defined

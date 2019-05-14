@@ -1,5 +1,5 @@
 import { Component, OnInit }      from '@angular/core';
-import { FormBuilder, FormGroup } from '@angular/forms';
+import { FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { HttpClient }             from '@angular/common/http';
 import { Router } from '@angular/router';
 import { catchError }             from 'rxjs/operators';
@@ -14,7 +14,8 @@ import { Notifications }          from '../../../shared/notifications/notificati
 })
 export class AppsAddComponent implements OnInit {
   addRepositoryForm: FormGroup;
-  isProcessing: boolean;
+  isProcessing: boolean = false;
+  disableSubmit: boolean ;
 
   constructor(
     private formBuilder: FormBuilder,
@@ -26,10 +27,21 @@ export class AppsAddComponent implements OnInit {
   }
 
   ngOnInit() {
+    const pattern = new RegExp('^[a-zA-Z0-9-_]+$');
     this.addRepositoryForm = this.formBuilder.group({
-      name: [ '' ],
-      url: [ '' ],
+      name: [ '', [Validators.required, Validators.pattern(pattern)] ],
+      url: [ '', Validators.required ],
     });
+    this.updateValidity();
+  }
+
+  get name() {
+    return this.addRepositoryForm.get("name");
+  }
+
+  updateValidity() {
+    this.addRepositoryForm.updateValueAndValidity();
+    this.disableSubmit = (this.isProcessing || this.addRepositoryForm.invalid);
   }
 
   addRepository() {
