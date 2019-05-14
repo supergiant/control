@@ -3,17 +3,24 @@
   <form [formGroup]="addRepositoryForm">
     <mat-form-field>
       <input matInput
+             (change)="updateValidity()"
              type="text"
              formControlName="name"
              placeholder="Name or Alias">
+      <mat-hint align="end">Can only contain a-z, A-Z, 0-9, (-) and (_)</mat-hint>
     </mat-form-field>
     <mat-form-field>
       <input matInput
+             (change)="updateValidity()"
              type="text"
              formControlName="url"
              placeholder="Helm Repository Url">
     </mat-form-field>
   </form>
+
+  <div *ngIf="name.errors?.pattern">
+    <p class="warning">Please make sure repo name contains only a-z, A-Z, 0-9, dashes (-), and underscores (_)</p>
+  </div>
 </mat-dialog-content>
 <mat-dialog-actions>
   <button class="btn-secondary"
@@ -22,7 +29,7 @@
   </button>
   <button mat-button
           color="primary"
-          [disabled]="isProcessing"
+          [disabled]="disableSubmit"
           (click)="addRepository()">
 
     <span [hidden]="isProcessing">CONFIRM</span>

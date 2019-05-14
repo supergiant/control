@@ -312,18 +312,20 @@
     }
   }
 }
-.mat-form-field:not(.mat-focused)  {
+.mat-form-field:not(.mat-focused) {
   .mat-form-field-underline {
     opacity: .25;
     background-color: white!important;
   }
 }
 
-.mat-select-content {
-  .select-filter {
-    position: relative;
-    padding: 10px !important;
-  }
+.sticky-filter-wrapper {
+  position: sticky;
+  padding: 10px !important;
+  z-index: 100;
+  top: 0;
+  background-color: #424242;
+  border-bottom: 1px solid rgba(255,255,255,0.25);
 }
 
 .mat-hint {

@@ -96,9 +96,4 @@ const (
 	AzureClientSecret   = "clientSecret"
 
 	AzureVNetCIDR = "azureVNetCIDR"
-
-	CapacityNamespace          = "capacity"
-	CapacityProvisionConfigMap = "provision"
-	CapacityScriptKey          = "script"
-	CapacityCloudSpecificKey   = "cloudSpecific"
 )

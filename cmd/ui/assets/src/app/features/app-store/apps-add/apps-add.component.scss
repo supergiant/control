@@ -3,6 +3,12 @@ form {
   flex-direction: column;
 }
 
+.warning {
+  color: #f44336;
+  width: 300px;
+  font-size: 14px;
+}
+
 button {
   outline: none;
 
@@ -20,5 +26,14 @@ button {
       border: none;
       background-color: #D10088!important;
     }
+  }
+}
+
+// TODO: remove when we get rid of global styles in _base.scss
+.mat-dialog-actions {
+  justify-content: space-around;
+
+  button {
+    margin-left: 0;
   }
 }

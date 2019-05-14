@@ -10,21 +10,22 @@ import (
 	"sync"
 	"time"
 
-	"k8s.io/client-go/util/keyutil"
-
 	"github.com/pkg/errors"
 	"github.com/sirupsen/logrus"
+	"k8s.io/client-go/util/keyutil"
 
-	"github.com/supergiant/control/pkg/runner/dry"
-	"github.com/supergiant/control/pkg/storage/memory"
+	"github.com/supergiant/control/pkg/clouds"
 	"github.com/supergiant/control/pkg/model"
 	"github.com/supergiant/control/pkg/pki"
 	"github.com/supergiant/control/pkg/profile"
+	"github.com/supergiant/control/pkg/runner/dry"
 	"github.com/supergiant/control/pkg/sgerrors"
 	"github.com/supergiant/control/pkg/storage"
+	"github.com/supergiant/control/pkg/storage/memory"
 	"github.com/supergiant/control/pkg/util"
 	"github.com/supergiant/control/pkg/workflows"
 	"github.com/supergiant/control/pkg/workflows/steps"
+	"github.com/supergiant/control/pkg/workflows/steps/configmap"
 )
 
 const (
@@ -497,12 +498,12 @@ func (tp *TaskProvisioner) provisionMasters(ctx context.Context,
 		}(masterTask)
 	}
 
-	go func(){
+	go func() {
 		wg.Wait()
 		close(errChan)
 	}()
 
-	return <- errChan
+	return <-errChan
 }
 
 func (tp *TaskProvisioner) provisionNodes(ctx context.Context, profile *profile.Profile, rootConfig *steps.Config, tasks []*workflows.Task) error {
@@ -595,8 +596,15 @@ func buildNodeProvisionScript(ctx context.Context, config *steps.Config) {
 	// These values must still be templated
 	dryConfig.Node.PublicIp = "{{ .PublicIp }}"
 	dryConfig.Node.PrivateIp = "{{ .PrivateIp }}"
+	dryConfig.ExternalDNSName = fmt.Sprintf("{{ .%s }}", configmap.KubeAddr)
 	dryConfig.Runner = dryRunner
 	dryConfig.DryRun = true
+
+	if config.Provider == clouds.AWS {
+		// https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/using-instance-addressing.html#using-instance-addressing-common
+		dryConfig.Node.PublicIp = "$(curl http://169.254.169.254/latest/meta-data/public-ipv4)"
+		dryConfig.Node.PrivateIp = "$(curl http://169.254.169.254/latest/meta-data/local-ipv4)"
+	}
 
 	task, err := workflows.NewTask(&dryConfig, workflows.ProvisionNode, repository)
 
