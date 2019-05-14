@@ -3,6 +3,7 @@ package configmap
 import (
 	"bytes"
 	"context"
+	"encoding/base64"
 	"encoding/json"
 	"io"
 	"text/template"
@@ -86,7 +87,7 @@ func (s *Step) Run(ctx context.Context, out io.Writer, config *steps.Config) err
 
 	capcfg := capacityapi.Config{
 		ClusterName:  config.ClusterName,
-		Userdata:     string(userdata),
+		Userdata:     base64.StdEncoding.EncodeToString(userdata),
 		ProviderName: "aws",
 		Provider: map[string]string{
 			KeyID:          config.AWSConfig.KeyID,
