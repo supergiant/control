@@ -70,6 +70,8 @@ func UpdateKubeWithCloudSpecificData(k *model.Kube, config *steps.Config) {
 
 		cloudSpecificSettings[clouds.GCENetworkName] = config.GCEConfig.NetworkName
 		cloudSpecificSettings[clouds.GCENetworkLink] = config.GCEConfig.NetworkLink
+
+		cloudSpecificSettings[clouds.GCEImageFamily] = config.GCEConfig.ImageFamily
 	case clouds.DigitalOcean:
 		cloudSpecificSettings[clouds.DigitalOceanExternalLoadBalancerID] = config.DigitalOceanConfig.ExternalLoadBalancerID
 		cloudSpecificSettings[clouds.DigitalOceanInternalLoadBalancerID] = config.DigitalOceanConfig.InternalLoadBalancerID

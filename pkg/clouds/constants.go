@@ -64,6 +64,8 @@ const (
 	GCENetworkLink = "gceNetworkLink"
 	GCENetworkName = "gceNetworkName"
 
+	GCEImageFamily = "gceImageFamily"
+
 	TagClusterID         = "supergiant.io/cluster-id"
 	TagKubernetesCluster = "KubernetesCluster"
 
