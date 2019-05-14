@@ -103,6 +103,7 @@ func Init() {
 		steps.GetStep(tiller.StepName),
 		steps.GetStep(prometheus.StepName),
 		steps.GetStep(configmap.StepName),
+		provider.StepPostStartCluster{},
 	}
 
 	importClusterWorkflow := []steps.Step{
