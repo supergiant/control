@@ -438,8 +438,7 @@ export class NewClusterComponent implements OnInit, OnDestroy {
     this.regionsLoading = true;
     this.subscriptions.add(this.supergiant.CloudAccounts.getRegions(cloudAccount.name).subscribe(
       regionList => {
-        this.availableRegions = regionList;
-        this.availableRegions = this.availableRegions.regions.sort(this.sortRegionsByName);
+        this.availableRegions = regionList.regions.sort(this.sortRegionsByName);
         this.availableRegionNames = this.availableRegions.map(n => n.name);
         this.regionsLoading = false;
       },

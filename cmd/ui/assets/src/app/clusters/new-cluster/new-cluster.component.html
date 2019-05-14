@@ -139,7 +139,7 @@
                         (openedChange)="[regionsFilter = '', regionFilter.focus()]"
                         (selectionChange)="selectRegion($event.value)"
                         required>
-              <div class="sticky-filter">
+              <div class="sticky-filter-wrapper">
                 <input #regionFilter
                        matInput
                        type="text"
@@ -166,7 +166,7 @@
                           (openedChange)="[regionsFilter = '', regionFilter.focus()]"
                           (selectionChange)="selectRegion($event.value)"
                           required>
-                <div class="sticky-filter">
+                <div class="sticky-filter-wrapper">
                   <input #regionFilter
                          matInput
                          type="text"
@@ -220,7 +220,7 @@
                           (openedChange)="[regionsFilter = '', regionFilter.focus()]"
                           (selectionChange)="selectRegion($event.value)"
                           required>
-                <div class="sticky-filter">
+                <div class="sticky-filter-wrapper">
                   <input #regionFilter
                          matInput
                          type="text"
@@ -265,7 +265,7 @@
                           (openedChange)="[regionsFilter = '', regionFilter.focus()]"
                           (selectionChange)="selectRegion($event.value)"
                           required>
-                <div class="sticky-filter">
+                <div class="sticky-filter-wrapper">
                   <input #regionFilter
                          matInput
                          type="text"
@@ -348,11 +348,10 @@
                           (openedChange)="[m.filter = '', machineFilter.focus()]"
                           (selectionChange)="validateMachineConfig(m)"
                           required>
-                <div class="sticky-filter">
+                <div class="sticky-filter-wrapper">
                   <input #machineFilter
                          matInput
                          type="text"
-                         (keydown)="allowSpaces($event)"
                          placeholder="Filter machines..."
                          [(ngModel)]="m.filter">
                 </div>
@@ -424,11 +423,10 @@
                           (openedChange)="[m.filter = '', machineFilter.focus()]"
                           (selectionChange)="validateMachineConfig(m)"
                           required>
-                <div class="sticky-filter">
+                <div class="sticky-filter-wrapper">
                   <input #machineFilter
                          matInput
                          type="text"
-                         (keydown)="allowSpaces($event)"
                          placeholder="Filter machines..."
                          [(ngModel)]="m.filter">
                 </div>
@@ -498,11 +496,10 @@
                           (openedChange)="[m.filter = '', machineFilter.focus()]"
                           (selectionChange)="validateMachineConfig(m)"
                           required>
-                <div class="sticky-filter">
+                <div class="sticky-filter-wrapper">
                   <input #machineFilter
                          matInput
                          type="text"
-                         (keydown)="allowSpaces($event)"
                          placeholder="Filter machines..."
                          [(ngModel)]="m.filter">
                 </div>
@@ -560,11 +557,10 @@
                           (openedChange)="[m.filter = '', machineFilter.focus()]"
                           (selectionChange)="validateMachineConfig(m)"
                           required>
-                <div class="sticky-filter">
+                <div class="sticky-filter-wrapper">
                   <input #machineFilter
                          matInput
                          type="text"
-                         (keydown)="allowSpaces($event)"
                          placeholder="Filter machines..."
                          [(ngModel)]="m.filter">
                 </div>

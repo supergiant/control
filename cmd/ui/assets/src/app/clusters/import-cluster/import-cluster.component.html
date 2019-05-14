@@ -51,17 +51,18 @@
           <mat-form-field [ngClass]="{ 'regionsLoading': regionsLoading }">
             <mat-select placeholder="Select a Region"
                         formControlName="region"
-                        (openedChange)="regionsFilter = ''"
+                        (openedChange)="[regionsFilter = '', regionFilter.focus()]"
                         required>
-              <input class="select-filter"
-                     matInput
-                     type="text"
-                     placeholder="Filter regions..."
-                     [(ngModel)]="regionsFilter"
-                     [ngModelOptions]="{ standalone: true }"
-                     autofocus>
-              <mat-option *ngFor="let r of availableRegions?.regions | callback: regionsFilterCallback"
-                          [value]="r">{{ r.name }}</mat-option>
+              <div class="sticky-filter-wrapper">
+                <input #regionFilter
+                       matInput
+                       type="text"
+                       placeholder="Filter regions..."
+                       [(ngModel)]="regionsFilter"
+                       [ngModelOptions]="{ standalone: true }">
+              </div>
+              <mat-option *ngFor="let r of availableRegionNames | callback: regionsFilter"
+                          [value]="r">{{ r }}</mat-option>
             </mat-select>
           </mat-form-field>
 

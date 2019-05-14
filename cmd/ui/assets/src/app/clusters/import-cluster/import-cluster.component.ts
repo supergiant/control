@@ -26,6 +26,7 @@ export class ImportClusterComponent implements OnInit {
   public availableRegions: Array<CloudAccount>;
   public importForm: FormGroup;
   public unavailableClusterNames = new Set;
+  availableRegionNames: Array<string>;
   regionsFilter = '';
   regionsLoading = false;
   importing = false;
@@ -96,7 +97,7 @@ export class ImportClusterComponent implements OnInit {
         privateKey: form.value.privateKey,
         profile: {
           id: clusterId,
-          region: form.value.region.name,
+          region: form.value.region,
           arch: form.value.arch,
           operatingSystem: "linux",
           ubuntuVersion: "xenial",
@@ -141,17 +142,10 @@ export class ImportClusterComponent implements OnInit {
     )
 
     regions$.subscribe(res => {
-      this.availableRegions = res;
+      this.availableRegions = res.regions;
+      this.availableRegionNames = this.availableRegions.map(n => n.name);
       this.regionsLoading = false;
     });
-  }
-
-  regionsFilterCallback = (val) => {
-    if (this.regionsFilter === '') {
-      return val.name;
-    }
-
-    return val.name.toLowerCase().indexOf(this.regionsFilter.toLowerCase()) > -1;
   }
 
   error(err) {
