@@ -3,10 +3,7 @@
   flex-direction: column;
   width: 100%;
   // TODO: remove these 'magic numbers'
-  padding-top: 49px;
-  padding-left: 49px;
-  padding-right: 49px;
-  padding-bottom: 24px;
+  padding: 49px 49px 24px 49px;
 
   .content {
     min-height: calc(100vh - 346px);
