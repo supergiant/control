@@ -107,3 +107,11 @@
 .mat-spinner {
   display: inline-block;
 }
+
+.mat-hint {
+  align-self: flex-end;
+  color: rgba(255, 255, 255, 0.7);
+  font-size: 12px;
+  font-style: italic;
+  margin-left: auto;
+}
