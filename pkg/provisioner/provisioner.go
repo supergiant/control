@@ -6,6 +6,7 @@ import (
 	"crypto/rand"
 	"crypto/rsa"
 	"fmt"
+	"github.com/supergiant/control/pkg/workflows/statuses"
 	"io"
 	"sync"
 	"time"
@@ -234,6 +235,7 @@ func (tp *TaskProvisioner) provision(ctx context.Context,
 			preProvisionTask[0].ID)
 
 		if preProvisionErr := tp.preProvision(ctx, preProvisionTask[0], config); preProvisionErr != nil {
+			config.KubeStateChan() <- model.StateFailed
 			logrus.Errorf("Pre provisioning cluster %v", preProvisionErr)
 			return
 		}
@@ -450,11 +452,24 @@ func (tp *TaskProvisioner) provisionMasters(ctx context.Context,
 
 	wg := sync.WaitGroup{}
 	errChan := make(chan error)
-	wg.Add(len(tasks))
+
+	for index := range tasks {
+		task := tasks[index]
+
+		// We need to wait only for not finished tasks
+		if task.Status != statuses.Success {
+			wg.Add(1)
+		}
+	}
 
 	rootConfig.IsMaster = true
 	// ProvisionCluster rest of master nodes master nodes
 	for index, masterTask := range tasks {
+		// When this is restart code - don't process task that succeed
+		if masterTask.Status == statuses.Success {
+			continue
+		}
+
 		// Take token that allows perform action with Cloud Provider API
 		tp.rateLimiter.Take()
 
