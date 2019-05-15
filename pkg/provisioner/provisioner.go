@@ -259,7 +259,6 @@ func (tp *TaskProvisioner) provision(ctx context.Context,
 	config.IsBootstrap = true
 	// Get bootstrap task as a first master task
 	bootstrapTask := taskMap[workflows.MasterTask][0]
-	bootstrapTask.Config = config
 	taskMap[workflows.MasterTask] = taskMap[workflows.MasterTask][1:]
 
 	logrus.Debug("Provision bootstrap node")
@@ -558,6 +557,11 @@ func (tp *TaskProvisioner) provisionNodes(ctx context.Context, profile *profile.
 			err = <-result
 
 			if err != nil {
+				// Put node to error state
+				t.Config.Node.State = model.MachineStateError
+				t.Config.AddNode(&t.Config.Node)
+				t.Config.NodeChan() <- t.Config.Node
+
 				logrus.Errorf("node task %s has finished with error %v", t.ID, err)
 			} else {
 				logrus.Infof("node-task %s has finished", t.ID)
