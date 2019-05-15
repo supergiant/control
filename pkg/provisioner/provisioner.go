@@ -24,6 +24,7 @@ import (
 	"github.com/supergiant/control/pkg/storage/memory"
 	"github.com/supergiant/control/pkg/util"
 	"github.com/supergiant/control/pkg/workflows"
+	"github.com/supergiant/control/pkg/workflows/statuses"
 	"github.com/supergiant/control/pkg/workflows/steps"
 	"github.com/supergiant/control/pkg/workflows/steps/configmap"
 )
@@ -234,6 +235,7 @@ func (tp *TaskProvisioner) provision(ctx context.Context,
 			preProvisionTask[0].ID)
 
 		if preProvisionErr := tp.preProvision(ctx, preProvisionTask[0], config); preProvisionErr != nil {
+			config.KubeStateChan() <- model.StateFailed
 			logrus.Errorf("Pre provisioning cluster %v", preProvisionErr)
 			return
 		}
@@ -257,7 +259,6 @@ func (tp *TaskProvisioner) provision(ctx context.Context,
 	config.IsBootstrap = true
 	// Get bootstrap task as a first master task
 	bootstrapTask := taskMap[workflows.MasterTask][0]
-	bootstrapTask.Config = config
 	taskMap[workflows.MasterTask] = taskMap[workflows.MasterTask][1:]
 
 	logrus.Debug("Provision bootstrap node")
@@ -450,11 +451,24 @@ func (tp *TaskProvisioner) provisionMasters(ctx context.Context,
 
 	wg := sync.WaitGroup{}
 	errChan := make(chan error)
-	wg.Add(len(tasks))
+
+	for index := range tasks {
+		task := tasks[index]
+
+		// We need to wait only for not finished tasks
+		if task.Status != statuses.Success {
+			wg.Add(1)
+		}
+	}
 
 	rootConfig.IsMaster = true
 	// ProvisionCluster rest of master nodes master nodes
 	for index, masterTask := range tasks {
+		// When this is restart code - don't process task that succeed
+		if masterTask.Status == statuses.Success {
+			continue
+		}
+
 		// Take token that allows perform action with Cloud Provider API
 		tp.rateLimiter.Take()
 
@@ -543,6 +557,11 @@ func (tp *TaskProvisioner) provisionNodes(ctx context.Context, profile *profile.
 			err = <-result
 
 			if err != nil {
+				// Put node to error state
+				t.Config.Node.State = model.MachineStateError
+				t.Config.AddNode(&t.Config.Node)
+				t.Config.NodeChan() <- t.Config.Node
+
 				logrus.Errorf("node task %s has finished with error %v", t.ID, err)
 			} else {
 				logrus.Infof("node-task %s has finished", t.ID)

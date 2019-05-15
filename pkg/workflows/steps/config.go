@@ -370,7 +370,7 @@ func NewConfig(clusterName, cloudAccountName string, profile profile.Profile) (*
 			Port:        "8080",
 			Username:    profile.User,
 			RBACEnabled: profile.RBACEnabled,
-			Timeout:     time.Minute * 30,
+			Timeout:     time.Minute * 60,
 			Provider:    profile.Provider,
 		},
 		TillerConfig: TillerConfig{
@@ -396,7 +396,7 @@ func NewConfig(clusterName, cloudAccountName string, profile profile.Profile) (*
 		Nodes: Map{
 			internal: make(map[string]*model.Machine, len(profile.NodesProfiles)),
 		},
-		Timeout:          time.Minute * 30,
+		Timeout:          time.Minute * 60,
 		CloudAccountName: cloudAccountName,
 
 		nodeChan:      make(chan model.Machine, len(profile.MasterProfiles)+len(profile.NodesProfiles)),
@@ -477,7 +477,7 @@ func NewConfigFromKube(profile *profile.Profile, k *model.Kube) (*Config, error)
 			Port:        "8080",
 			Username:    profile.User,
 			RBACEnabled: profile.RBACEnabled,
-			Timeout:     time.Minute * 30,
+			Timeout:     time.Minute * 60,
 			Provider:    k.Provider,
 		},
 		TillerConfig: TillerConfig{
@@ -503,7 +503,7 @@ func NewConfigFromKube(profile *profile.Profile, k *model.Kube) (*Config, error)
 		Nodes: Map{
 			internal: make(map[string]*model.Machine, len(profile.NodesProfiles)),
 		},
-		Timeout:          time.Minute * 30,
+		Timeout:          time.Minute * 60,
 		CloudAccountName: k.AccountName,
 		nodeChan:         make(chan model.Machine, len(profile.MasterProfiles)+len(profile.NodesProfiles)),
 		kubeStateChan:    make(chan model.KubeState, 5),
