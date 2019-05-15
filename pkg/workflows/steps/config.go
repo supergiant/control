@@ -21,10 +21,10 @@ type CertificatesConfig struct {
 	ServicesCIDR string `json:"servicesCIDR"`
 	PublicIP     string `json:"publicIp"`
 	PrivateIP    string `json:"privateIp"`
+	Provider     string `json:"provider"`
 
 	MasterHost string `json:"masterHost"`
 	MasterPort string `json:"masterPort"`
-	NodeName   string `json:"nodeName"`
 
 	IsMaster bool `json:"isMaster"`
 	// TODO: this shouldn't be a part of SANs

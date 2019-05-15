@@ -43,10 +43,10 @@ func (s *Step) Run(ctx context.Context, out io.Writer, config *steps.Config) err
 	config.CertificatesConfig.PrivateIP = config.Node.PrivateIp
 	config.CertificatesConfig.PublicIP = config.Node.PublicIp
 	config.CertificatesConfig.IsMaster = config.IsMaster
+	config.CertificatesConfig.Provider = string(config.Provider)
 
 	if !config.IsMaster {
 		config.CertificatesConfig.MasterHost = config.InternalDNSName
-		config.CertificatesConfig.NodeName = config.Node.Name
 	}
 
 	if len(config.CertificatesConfig.ServicesCIDR) > 0 {
