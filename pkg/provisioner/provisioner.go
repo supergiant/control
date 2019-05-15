@@ -6,7 +6,6 @@ import (
 	"crypto/rand"
 	"crypto/rsa"
 	"fmt"
-	"github.com/supergiant/control/pkg/workflows/statuses"
 	"io"
 	"sync"
 	"time"
@@ -25,6 +24,7 @@ import (
 	"github.com/supergiant/control/pkg/storage/memory"
 	"github.com/supergiant/control/pkg/util"
 	"github.com/supergiant/control/pkg/workflows"
+	"github.com/supergiant/control/pkg/workflows/statuses"
 	"github.com/supergiant/control/pkg/workflows/steps"
 	"github.com/supergiant/control/pkg/workflows/steps/configmap"
 )
