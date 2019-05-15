@@ -17,14 +17,14 @@ import (
 const DeleteInstanceGroupStepName = "gce_delete_instance_group"
 
 type DeleteInstanceGroupStep struct {
-	Timeout time.Duration
-	AttemptCount int
+	Timeout       time.Duration
+	AttemptCount  int
 	getComputeSvc func(context.Context, steps.GCEConfig) (*computeService, error)
 }
 
 func NewDeleteInstanceGroupStep() (*DeleteInstanceGroupStep, error) {
 	return &DeleteInstanceGroupStep{
-		Timeout: time.Second * 10,
+		Timeout:      time.Second * 10,
 		AttemptCount: 10,
 		getComputeSvc: func(ctx context.Context, config steps.GCEConfig) (*computeService, error) {
 			client, err := gcesdk.GetClient(ctx, config)
@@ -36,6 +36,9 @@ func NewDeleteInstanceGroupStep() (*DeleteInstanceGroupStep, error) {
 			return &computeService{
 				deleteInstanceGroup: func(ctx context.Context, config steps.GCEConfig, instanceGroupName string) (*compute.Operation, error) {
 					return client.InstanceGroups.Delete(config.ServiceAccount.ProjectID, config.AvailabilityZone, instanceGroupName).Do()
+				},
+				getInstanceGroup: func(ctx context.Context, config steps.GCEConfig, instanceGroupName string) (*compute.InstanceGroup, error) {
+					return client.InstanceGroups.Get(config.ProjectID, config.AvailabilityZone, instanceGroupName).Do()
 				},
 			}, nil
 		},
@@ -60,10 +63,16 @@ func (s *DeleteInstanceGroupStep) Run(ctx context.Context, output io.Writer,
 		config.GCEConfig.AvailabilityZone = az
 
 		for i := 0; i < s.AttemptCount; i++ {
+			_, err = svc.getInstanceGroup(ctx, config.GCEConfig, instanceGroupName)
+
+			if isNotFound(err) {
+				break
+			}
+
 			_, err = svc.deleteInstanceGroup(ctx, config.GCEConfig, instanceGroupName)
 
-			if err != nil && !isNotFound(err) {
-				logrus.Debugf("Error deleting instance group %v", err)
+			if err != nil {
+				logrus.Debugf("Error deleting instance group %s %v", instanceGroupName, err)
 			} else {
 				break
 			}
