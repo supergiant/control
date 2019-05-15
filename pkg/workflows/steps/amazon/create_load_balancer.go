@@ -20,7 +20,15 @@ const StepCreateLoadBalancer = "create_load_balancer"
 
 type LoadBalancerCreater interface {
 	CreateLoadBalancerWithContext(aws.Context, *elb.CreateLoadBalancerInput, ...request.Option) (*elb.CreateLoadBalancerOutput, error)
+	ConfigureHealthCheck(*elb.ConfigureHealthCheckInput) (*elb.ConfigureHealthCheckOutput, error)
 }
+
+var (
+	healthyThreshold   int64 = 2
+	unhealthyThreshold int64 = 10
+	checkInternal      int64 = 10
+	checkTimeout       int64 = 5
+)
 
 type CreateLoadBalancerStep struct {
 	timeout                time.Duration
@@ -167,7 +175,7 @@ func (s *CreateLoadBalancerStep) Run(ctx context.Context, out io.Writer, cfg *st
 
 	for i := 0; i < s.attemptCount; i++ {
 		select {
-		case <- ctx.Done():
+		case <-ctx.Done():
 			if ctx.Err() != nil {
 				return errors.Wrap(err, "context has finished with")
 			}
@@ -185,6 +193,38 @@ func (s *CreateLoadBalancerStep) Run(ctx context.Context, out io.Writer, cfg *st
 
 	if err != nil {
 		return errors.Wrap(err, "error waiting for load balancer to come up")
+	}
+
+	logrus.Debugf("Configure health check for %s", cfg.AWSConfig.ExternalLoadBalancerName)
+	healthCheckInput := &elb.ConfigureHealthCheckInput{
+		LoadBalancerName: aws.String(cfg.AWSConfig.ExternalLoadBalancerName),
+		HealthCheck: &elb.HealthCheck{
+			HealthyThreshold:   &healthyThreshold,
+			UnhealthyThreshold: &unhealthyThreshold,
+			Interval:           &checkInternal,
+			Timeout:            &checkTimeout,
+			Target:             aws.String("HTTPS:443/healthz"),
+		},
+	}
+
+	if _, err := svc.ConfigureHealthCheck(healthCheckInput); err != nil {
+		logrus.Errorf("error configuring health check for %v  %s", err, cfg.AWSConfig.ExternalLoadBalancerName)
+	}
+
+	logrus.Debugf("Configure health check for %s", cfg.AWSConfig.InternalLoadBalancerName)
+	healthCheckInput = &elb.ConfigureHealthCheckInput{
+		LoadBalancerName: aws.String(cfg.AWSConfig.InternalLoadBalancerName),
+		HealthCheck: &elb.HealthCheck{
+			HealthyThreshold:   &healthyThreshold,
+			UnhealthyThreshold: &unhealthyThreshold,
+			Interval:           &checkInternal,
+			Timeout:            &checkTimeout,
+			Target:             aws.String("HTTPS:443/healthz"),
+		},
+	}
+
+	if _, err := svc.ConfigureHealthCheck(healthCheckInput); err != nil {
+		logrus.Errorf("error configuring health check for %v %s", err, cfg.AWSConfig.InternalLoadBalancerName)
 	}
 
 	return nil
