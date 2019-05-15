@@ -38,6 +38,16 @@ func (m *mockELBService) DeleteLoadBalancerWithContext(ctx aws.Context, input *e
 	return val, args.Error(1)
 }
 
+func (m *mockELBService) ConfigureHealthCheck(input *elb.ConfigureHealthCheckInput) (*elb.ConfigureHealthCheckOutput, error) {
+	args := m.Called(input)
+	val, ok := args.Get(0).(*elb.ConfigureHealthCheckOutput)
+	if !ok {
+		return nil, args.Error(1)
+	}
+	return val, args.Error(1)
+}
+
+
 func (m *mockELBService) RegisterInstancesWithLoadBalancerWithContext(ctx aws.Context, input *elb.RegisterInstancesWithLoadBalancerInput, opts ...request.Option) (*elb.RegisterInstancesWithLoadBalancerOutput, error) {
 	args := m.Called(ctx, input, opts)
 	val, ok := args.Get(0).(*elb.RegisterInstancesWithLoadBalancerOutput)
@@ -147,6 +157,9 @@ func TestCreateLoadBalancerStep_Run(t *testing.T) {
 
 		svc.On("CreateLoadBalancerWithContext", mock.Anything,
 			mock.Anything, mock.Anything).Return(testCase.createInternalLB, testCase.createInternalLBErr).Once()
+
+		svc.On("ConfigureHealthCheck", mock.Anything).Return(nil, nil).Once()
+		svc.On("ConfigureHealthCheck", mock.Anything).Return(nil, nil).Once()
 
 		step := &CreateLoadBalancerStep{
 			getLoadBalancerService: func(cfg steps.AWSConfig) (LoadBalancerCreater, error) {
