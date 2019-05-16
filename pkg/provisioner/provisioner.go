@@ -468,7 +468,7 @@ func (tp *TaskProvisioner) provisionMasters(ctx context.Context,
 	// ProvisionCluster rest of master nodes master nodes
 	for index, masterTask := range tasks {
 		// When this is restart code - don't process task that succeed
-		if masterTask.Status == statuses.Success {
+		if masterTask.Status == statuses.Success || masterTask.Status == statuses.Executing {
 			continue
 		}
 
@@ -530,7 +530,7 @@ func (tp *TaskProvisioner) provisionNodes(ctx context.Context, profile *profile.
 	// ProvisionCluster nodes
 	for index, nodeTask := range tasks {
 		// When this is restart code - don't process task that succeed
-		if nodeTask.Status == statuses.Success {
+		if nodeTask.Status == statuses.Success || nodeTask.Status == statuses.Executing {
 			continue
 		}
 
