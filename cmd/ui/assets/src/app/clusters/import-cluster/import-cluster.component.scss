@@ -2,33 +2,45 @@
 
   .warning-wrapper {
     display: flex;
+    flex-direction: row;
+    justify-content: center;
+    margin-top: 38px;
 
     .aws-svg {
-      width: 770px;
-      height: 530px;
-      margin: -70px 0 0 50px;
-      position: absolute;
+      width: 471px;
+      height: 297px;
+      align-self: center;
     }
 
     .no-cloud-accounts {
-      align-items: center;
       display: flex;
       flex-direction: column;
-      margin: 54px 0 0 485px;
-      padding: 24px 0px;
-      width: 600px;
+      justify-content: space-between;
+      margin-left: 70px;
+      width: 541px;
+      min-height: 296px;
 
       h2 {
         font-family: "Montserrat", sans-serif;
-        font-size: 32px;
-        font-weight: 300;
+        font-size: 48px;
+        font-weight: 150;
         margin-bottom: 24px;
+        line-height: 61px;
+        letter-spacing: 0.1em;
       }
 
       p {
+        font-family: "Roboto", sans-serif;
         font-size: 18px;
         font-weight: 300;
         margin-bottom: 24px;
+        line-height: 28px;
+      }
+
+      button {
+        min-width: 193px;
+        min-height: 48px;
+        background-image: linear-gradient(334deg, #8721ff, #8b22fb, #ff457e);
       }
     }
   }
