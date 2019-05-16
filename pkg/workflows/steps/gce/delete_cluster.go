@@ -2,6 +2,8 @@ package gce
 
 import (
 	"context"
+	"github.com/supergiant/control/pkg/clouds/gcesdk"
+	"github.com/supergiant/control/pkg/model"
 	"io"
 
 	"github.com/pkg/errors"
@@ -20,7 +22,7 @@ type DeleteClusterStep struct {
 func NewDeleteClusterStep() *DeleteClusterStep {
 	return &DeleteClusterStep{
 		getComputeSvc: func(ctx context.Context, config steps.GCEConfig) (*computeService, error) {
-			client, err := GetClient(ctx, config)
+			client, err := gcesdk.GetClient(ctx, config)
 
 			if err != nil {
 				return nil, err
@@ -44,6 +46,10 @@ func (s *DeleteClusterStep) Run(ctx context.Context, output io.Writer, config *s
 	}
 
 	for _, master := range config.GetMasters() {
+		if master.State == model.MachineStatePlanned || master.State == model.MachineStateBuilding {
+			continue
+		}
+
 		logrus.Debugf("Delete master %s in %s", master.Name, master.Region)
 
 		_, serr := svc.deleteInstance(config.GCEConfig.ServiceAccount.ProjectID,
@@ -56,6 +62,10 @@ func (s *DeleteClusterStep) Run(ctx context.Context, output io.Writer, config *s
 	}
 
 	for _, node := range config.GetNodes() {
+		if node.State == model.MachineStatePlanned || node.State == model.MachineStateBuilding {
+			continue
+		}
+
 		logrus.Debugf("Delete node %s in %s", node.Name, node.Region)
 		_, serr := svc.deleteInstance(config.GCEConfig.ServiceAccount.ProjectID,
 			node.Region,

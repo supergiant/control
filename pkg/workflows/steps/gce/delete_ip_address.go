@@ -2,6 +2,7 @@ package gce
 
 import (
 	"context"
+	"github.com/supergiant/control/pkg/clouds/gcesdk"
 	"io"
 
 	"github.com/pkg/errors"
@@ -21,8 +22,7 @@ type DeleteIpAddressStep struct {
 func NewDeleteIpAddressStep() *DeleteIpAddressStep {
 	return &DeleteIpAddressStep{
 		getComputeSvc: func(ctx context.Context, config steps.GCEConfig) (*computeService, error) {
-			client, err := GetClient(ctx, config)
-
+			client, err := gcesdk.GetClient(ctx, config)
 			if err != nil {
 				return nil, err
 			}
@@ -51,13 +51,13 @@ func (s *DeleteIpAddressStep) Run(ctx context.Context, output io.Writer,
 	_, err = svc.deleteIpAddress(ctx, config.GCEConfig, config.GCEConfig.ExternalAddressName)
 
 	if err != nil {
-		logrus.Errorf("Error deleting external address %v", err)
+		logrus.Errorf("Error deleting external address %s %v", config.GCEConfig.ExternalAddressName, err)
 	}
 
 	_, err = svc.deleteIpAddress(ctx, config.GCEConfig, config.GCEConfig.ExternalAddressName)
 
 	if err != nil {
-		logrus.Errorf("Error deleting internal address %v", err)
+		logrus.Errorf("Error deleting internal address %s %v", config.GCEConfig.InternalAddressName, err)
 	}
 
 	return nil

@@ -1,6 +1,11 @@
 package templates
 
 const certificatesTpl = `
+HOSTNAME="$(hostname)"
+{{ if eq .Provider "aws" }}
+HOSTNAME="$(hostname -f)"
+{{ end }}
+
 sudo mkdir -p /etc/kubernetes
 sudo mkdir -p /etc/kubernetes/pki
 sudo mkdir -p /etc/kubernetes/pki/etcd
@@ -60,7 +65,7 @@ sudo bash -c "cat > /etc/kubernetes/pki/sa.pub <<EOF
 {{ .SAPub }}EOF"
 
 sudo openssl genrsa -out /etc/kubernetes/pki/kubelet.key 2048
-sudo openssl req -new -key /etc/kubernetes/pki/kubelet.key -out /etc/kubernetes/pki/kubelet.csr -subj "/CN=kube-worker"
+sudo openssl req -new -key /etc/kubernetes/pki/kubelet.key -out /etc/kubernetes/pki/kubelet.csr -subj "/CN=kube-apiserver"
 sudo openssl x509 -req -in /etc/kubernetes/pki/kubelet.csr -CA /etc/kubernetes/pki/ca.crt -CAkey /etc/kubernetes/pki/ca.key -CAcreateserial -out /etc/kubernetes/pki/kubelet.crt -days 365 -extensions v3_req -extfile /etc/kubernetes/pki/openssl.cnf
 
 {{ else }}
@@ -80,13 +85,13 @@ sudo kubectl --kubeconfig=/root/.kube/config config set-context kubernetes --clu
 sudo kubectl --kubeconfig=/root/.kube/config config use-context kubernetes
 
 sudo openssl genrsa -out /etc/kubernetes/pki/kubelet.key 2048
-sudo openssl req -new -key /etc/kubernetes/pki/kubelet.key -out /etc/kubernetes/pki/kubelet.csr -subj "/CN=kube-worker"
+sudo openssl req -new -key /etc/kubernetes/pki/kubelet.key -out /etc/kubernetes/pki/kubelet.csr -subj "/CN=system:node:${HOSTNAME}/O=system:nodes"
 
 sudo bash -c "cat > /etc/kubernetes/pki/request.yaml <<EOF
 apiVersion: certificates.k8s.io/v1beta1
 kind: CertificateSigningRequest
 metadata:
-  name: {{ .NodeName }}
+  name: ${HOSTNAME}
 spec:
   groups:
   - system:authenticated
@@ -100,7 +105,7 @@ EOF"
 sudo kubectl --kubeconfig=/root/.kube/config create -f /etc/kubernetes/pki/request.yaml
 sudo kubectl --kubeconfig=/root/.kube/config certificate approve -f /etc/kubernetes/pki/request.yaml
 sudo bash -c "cat > /etc/kubernetes/pki/kubelet.crt <<EOF
-$(sudo kubectl --kubeconfig=/root/.kube/config get csr {{ .NodeName }} -o jsonpath='{.status.certificate}' | base64 -d)
+$(sudo kubectl --kubeconfig=/root/.kube/config get csr ${HOSTNAME} -o jsonpath='{.status.certificate}' | base64 -d)
 EOF"
 
 sudo rm /etc/kubernetes/pki/ca.crt

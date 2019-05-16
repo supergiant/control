@@ -598,7 +598,7 @@ func (h *Handler) addMachine(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	ctx, _ := context.WithTimeout(context.Background(), time.Minute*20)
+	ctx, _ := context.WithTimeout(context.Background(), time.Minute*60)
 	tasks, err := h.nodeProvisioner.ProvisionNodes(ctx, nodeProfiles,
 		k, config)
 

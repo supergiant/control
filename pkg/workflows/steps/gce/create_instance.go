@@ -3,6 +3,7 @@ package gce
 import (
 	"context"
 	"fmt"
+	"github.com/supergiant/control/pkg/clouds/gcesdk"
 	"io"
 	"strings"
 	"time"
@@ -33,7 +34,7 @@ func NewCreateInstanceStep(period, timeout time.Duration) *CreateInstanceStep {
 		checkPeriod:     period,
 		instanceTimeout: timeout,
 		getComputeSvc: func(ctx context.Context, config steps.GCEConfig) (*computeService, error) {
-			client, err := GetClient(ctx, config)
+			client, err := gcesdk.GetClient(ctx, config)
 
 			if err != nil {
 				return nil, err
@@ -103,8 +104,6 @@ func (s *CreateInstanceStep) Run(ctx context.Context, output io.Writer,
 		return errors.Wrapf(err, "error gettting machine types")
 	}
 
-	prefix := "https://www.googleapis.com/compute/v1/projects/" + config.GCEConfig.ServiceAccount.ProjectID
-
 	role := "master"
 
 	if !config.IsMaster {
@@ -169,8 +168,8 @@ func (s *CreateInstanceStep) Run(ctx context.Context, output io.Writer,
 						Name: "External NAT",
 					},
 				},
-				// TODO(stgleb): Create own network instead of default
-				Network: prefix + "/global/networks/default",
+				Network: config.GCEConfig.NetworkLink,
+				Subnetwork: config.GCEConfig.SubnetLink,
 			},
 		},
 		ServiceAccounts: []*compute.ServiceAccount{
@@ -259,12 +258,47 @@ func (s *CreateInstanceStep) Run(ctx context.Context, output io.Writer,
 							},
 						},
 					}
+
+					logrus.Debugf("Add instance %s to target pool %s", config.Node.Name,
+						config.GCEConfig.TargetPoolLink)
+
 					_, err := svc.addInstanceToTargetGroup(ctx, config.GCEConfig,
 						config.GCEConfig.TargetPoolName, addInstanceToTargetPoolReq)
 
 					if err != nil {
 						logrus.Errorf("error adding instance %s URL %s to target pool %s",
 							resp.Name, resp.SelfLink, config.GCEConfig.TargetPoolName)
+					}
+
+					go func(){
+						// NOTE(stgleb): This is stupid, but it works.
+						// Add intstance to instance group only after provisioning has finished
+						// Because of that https://cloud.google.com/load-balancing/docs/internal/setting-up-internal#test-from-backend-vms
+						if !config.IsBootstrap {
+							time.Sleep(time.Minute * 10)
+						}
+						req := &compute.InstanceGroupsAddInstancesRequest{
+							Instances: []*compute.InstanceReference{
+								{
+									Instance: resp.SelfLink,
+								},
+							},
+						}
+
+						logrus.Debugf("Add instance %s to instance group %s", config.Node.Name,
+							config.GCEConfig.InstanceGroupNames[config.GCEConfig.AvailabilityZone])
+						_, err = svc.addInstanceToInstanceGroup(ctx, config.GCEConfig,
+							config.GCEConfig.InstanceGroupNames[config.GCEConfig.AvailabilityZone], req)
+
+						if err != nil {
+							logrus.Errorf("error adding instance %s URL %s to instance group %s %v",
+								resp.Name, resp.SelfLink, config.GCEConfig.InstanceGroupLinks[config.GCEConfig.AvailabilityZone], err)
+						}
+					}()
+
+					if len(resp.NetworkInterfaces) > 0 {
+						logrus.Debugf("Add instance name %s link %s with network interface %s subnetwork %s", resp.Name, resp.SelfLink,
+							resp.NetworkInterfaces[0].Network, resp.NetworkInterfaces[0].Subnetwork)
 					}
 				} else {
 					config.AddNode(&config.Node)
@@ -276,8 +310,6 @@ func (s *CreateInstanceStep) Run(ctx context.Context, output io.Writer,
 			return sgerrors.ErrTimeoutExceeded
 		}
 	}
-
-	return nil
 }
 
 func (s *CreateInstanceStep) Name() string {

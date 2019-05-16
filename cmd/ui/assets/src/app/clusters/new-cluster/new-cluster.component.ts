@@ -440,6 +440,11 @@ export class NewClusterComponent implements OnInit, OnDestroy {
       regionList => {
         this.availableRegions = regionList.regions.sort(this.sortRegionsByName);
         this.availableRegionNames = this.availableRegions.map(n => n.name);
+        if(this.selectedCloudAccount.provider == 'aws'){
+          // '-gov-' VMs return 500 when AZs try to load
+          const filterName = "-gov-";
+          this.availableRegionNames = this.availableRegionNames.filter(vmName => !vmName.includes(filterName));
+        }
         this.regionsLoading = false;
       },
       err => {

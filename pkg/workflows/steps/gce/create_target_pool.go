@@ -3,6 +3,7 @@ package gce
 import (
 	"context"
 	"github.com/sirupsen/logrus"
+	"github.com/supergiant/control/pkg/clouds/gcesdk"
 	"google.golang.org/api/compute/v1"
 	"io"
 
@@ -20,7 +21,7 @@ type CreateTargetPoolStep struct {
 func NewCreateTargetPoolStep() *CreateTargetPoolStep {
 	return &CreateTargetPoolStep{
 		getComputeSvc: func(ctx context.Context, config steps.GCEConfig) (*computeService, error) {
-			client, err := GetClient(ctx, config)
+			client, err := gcesdk.GetClient(ctx, config)
 
 			if err != nil {
 				return nil, err
@@ -29,9 +30,6 @@ func NewCreateTargetPoolStep() *CreateTargetPoolStep {
 			return &computeService{
 				insertTargetPool: func(ctx context.Context, config steps.GCEConfig, targetPool *compute.TargetPool) (*compute.Operation, error) {
 					return client.TargetPools.Insert(config.ServiceAccount.ProjectID, config.Region, targetPool).Do()
-				},
-				addHealthCheckToTargetPool: func(ctx context.Context, config steps.GCEConfig, targetPool string, request *compute.TargetPoolsAddHealthCheckRequest) (*compute.Operation, error) {
-					return client.TargetPools.AddHealthCheck(config.ServiceAccount.ProjectID, config.Region, targetPool, request).Do()
 				},
 				getTargetPool: func(ctx context.Context, config steps.GCEConfig, targetPoolName string) (*compute.TargetPool, error) {
 					return client.TargetPools.Get(config.ProjectID, config.Region, targetPoolName).Do()
@@ -74,7 +72,8 @@ func (s *CreateTargetPoolStep) Run(ctx context.Context, output io.Writer,
 
 	config.GCEConfig.TargetPoolName = targetPoolName
 	config.GCEConfig.TargetPoolLink = targetPool.SelfLink
-
+	logrus.Debugf("Created target pool name %s link %s",
+		config.GCEConfig.TargetPoolName, config.GCEConfig.TargetPoolLink)
 	return nil
 }
 

@@ -21,10 +21,10 @@ type CertificatesConfig struct {
 	ServicesCIDR string `json:"servicesCIDR"`
 	PublicIP     string `json:"publicIp"`
 	PrivateIP    string `json:"privateIp"`
+	Provider     string `json:"provider"`
 
 	MasterHost string `json:"masterHost"`
 	MasterPort string `json:"masterPort"`
-	NodeName   string `json:"nodeName"`
 
 	IsMaster bool `json:"isMaster"`
 	// TODO: this shouldn't be a part of SANs
@@ -86,24 +86,38 @@ type GCEConfig struct {
 	ServiceAccount
 
 	// This comes from profile
-	ImageFamily       string `json:"imageFamily"`
-	Region            string `json:"region"`
-	AvailabilityZone  string `json:"availabilityZone"`
-	Size              string `json:"size"`
-	InstanceGroupName string `json:"instanceGroupName"`
-	InstanceGroupLink string `json:"instanceGroupLink"`
+	ImageFamily      string `json:"imageFamily"`
+	Region           string `json:"region"`
+	AvailabilityZone string `json:"availabilityZone"`
+	Size             string `json:"size"`
+
+	NetworkName string `json:"networkName"`
+	NetworkLink string `json:"networkLink"`
+	SubnetLink  string `json:"subnetLink"`
+
+	AZs map[string]string `json:"subnets"`
+
+	// Mapping AZ -> Instance group
+	InstanceGroupNames map[string]string `json:"instanceGroupNames"`
+	InstanceGroupLinks map[string]string `json:"instanceGroupLinks"`
 
 	// Target pool acts as a balancer for external traffic https://cloud.google.com/load-balancing/docs/target-pools
 	TargetPoolName string `json:"targetPoolName"`
 	TargetPoolLink string `json:"targetPoolLink"`
 
 	ExternalAddressName string `json:"externalAddressName"`
+	InternalAddressName string `json:"internalAddressName"`
 
 	ExternalIPAddressLink string `json:"externalIpAddressLink"`
+	InternalIPAddressLink string `json:"internalIpAddressLink"`
+
+	BackendServiceName string `json:"backendServiceName"`
+	BackendServiceLink string `json:"backendServiceLink"`
 
 	HealthCheckName string `json:"healthCheckName"`
 
-	ForwardingRuleName string `json:"externalForwardingRuleName"`
+	ExternalForwardingRuleName string `json:"externalForwardingRuleName"`
+	InternalForwardingRuleName string `json:"externalForwardingRuleName"`
 }
 
 type AzureConfig struct {
@@ -187,7 +201,6 @@ type DownloadK8sBinary struct {
 	OperatingSystem string `json:"operatingSystem"`
 }
 
-
 type PrometheusConfig struct {
 	Port        string `json:"port"`
 	RBACEnabled bool   `json:"rbacEnabled"`
@@ -196,15 +209,13 @@ type PrometheusConfig struct {
 type KubeadmConfig struct {
 	K8SVersion       string `json:"K8SVersion"`
 	IsMaster         bool   `json:"isMaster"`
-	AdvertiseAddress string `json:"advertiseAddress"`
 	IsBootstrap      bool   `json:"IsBootstrap"`
 	ServiceCIDR      string `json:"serviceCIDR"`
 	CIDR             string `json:"cidr"`
 	Token            string `json:"token"`
 	Provider         string `json:"provider"`
-	PrivateIP        string `json:"privateIp"`
+	NodeIp           string `json:"nodeIp"`
 
-	MasterPrivateIP string `json:"masterPrivateIp"`
 	InternalDNSName string `json:"internalDNSName"`
 	ExternalDNSName string `json:"externalDNSName"`
 }
@@ -287,7 +298,7 @@ type Config struct {
 }
 
 type ConfigMap struct {
-	Data      string
+	Data string
 }
 
 // NewConfig builds instance of config for provisioning
@@ -320,9 +331,12 @@ func NewConfig(clusterName, cloudAccountName string, profile profile.Profile) (*
 			DeviceName: "/dev/sda1",
 		},
 		GCEConfig: GCEConfig{
-			AvailabilityZone: profile.Zone,
-			ImageFamily:      "ubuntu-1604-lts",
-			Region:           profile.Region,
+			AvailabilityZone:   profile.Zone,
+			ImageFamily:        "ubuntu-1604-lts",
+			Region:             profile.Region,
+			InstanceGroupLinks: make(map[string]string),
+			InstanceGroupNames: make(map[string]string),
+			AZs:                make(map[string]string),
 		},
 		AzureConfig: AzureConfig{
 			Location: profile.Region,
@@ -356,7 +370,7 @@ func NewConfig(clusterName, cloudAccountName string, profile profile.Profile) (*
 			Port:        "8080",
 			Username:    profile.User,
 			RBACEnabled: profile.RBACEnabled,
-			Timeout:     time.Minute * 30,
+			Timeout:     time.Minute * 60,
 			Provider:    profile.Provider,
 		},
 		TillerConfig: TillerConfig{
@@ -382,7 +396,7 @@ func NewConfig(clusterName, cloudAccountName string, profile profile.Profile) (*
 		Nodes: Map{
 			internal: make(map[string]*model.Machine, len(profile.NodesProfiles)),
 		},
-		Timeout:          time.Minute * 30,
+		Timeout:          time.Minute * 60,
 		CloudAccountName: cloudAccountName,
 
 		nodeChan:      make(chan model.Machine, len(profile.MasterProfiles)+len(profile.NodesProfiles)),
@@ -463,7 +477,7 @@ func NewConfigFromKube(profile *profile.Profile, k *model.Kube) (*Config, error)
 			Port:        "8080",
 			Username:    profile.User,
 			RBACEnabled: profile.RBACEnabled,
-			Timeout:     time.Minute * 30,
+			Timeout:     time.Minute * 60,
 			Provider:    k.Provider,
 		},
 		TillerConfig: TillerConfig{
@@ -489,7 +503,7 @@ func NewConfigFromKube(profile *profile.Profile, k *model.Kube) (*Config, error)
 		Nodes: Map{
 			internal: make(map[string]*model.Machine, len(profile.NodesProfiles)),
 		},
-		Timeout:          time.Minute * 30,
+		Timeout:          time.Minute * 60,
 		CloudAccountName: k.AccountName,
 		nodeChan:         make(chan model.Machine, len(profile.MasterProfiles)+len(profile.NodesProfiles)),
 		kubeStateChan:    make(chan model.KubeState, 5),
