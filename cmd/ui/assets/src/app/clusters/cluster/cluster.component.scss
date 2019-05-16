@@ -461,7 +461,7 @@
     display: flex;
     justify-content: space-between;
     margin: 48px auto 0px;
-    width: auto;
+    max-width: 1268px;
 
     .cluster-details {
       background-color: rgba(0, 0, 0, 0.5);
@@ -509,6 +509,10 @@
       }
     }
 
+    .spacer {
+      width: 24px;
+    }
+
     .getting-started {
       display: flex;
       flex-direction: column;
@@ -547,7 +551,7 @@
     margin: 48px auto;
     padding: 21px 24px 24px 24px;
     height: min-content;
-    width: auto;
+    max-width: 1268px;
 
     .mat-table {
       background-color: rgba(0, 0, 0, 0);
