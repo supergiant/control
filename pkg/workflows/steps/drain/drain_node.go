@@ -3,12 +3,12 @@ package drain
 import (
 	"context"
 	"fmt"
-	"github.com/sirupsen/logrus"
 	"io"
 	"text/template"
 
 	"github.com/pkg/errors"
 
+	"github.com/sirupsen/logrus"
 	"github.com/supergiant/control/pkg/clouds"
 	"github.com/supergiant/control/pkg/runner"
 	"github.com/supergiant/control/pkg/runner/ssh"
