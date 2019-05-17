@@ -449,7 +449,7 @@
         <ng-container matColumnDef="expandedDetail">
           <mat-cell class="expanded-tasks"
                     *matCellDef="let detail">
-            <p *ngFor="let step of detail.t.stepsStatuses; trackBy: trackByFn">
+            <p *ngFor="let step of detail.t?.stepsStatuses; trackBy: trackByFn">
               {{ step.stepName }}
               <span *ngIf=" step.status == 'executing' "
                     class="current-step"><span>.</span><span>.</span><span>.</span></span>
@@ -470,7 +470,7 @@
         <mat-row *matRowDef="let row; columns: nonActiveMachineListColumns"></mat-row>
         <mat-row class="detail-row"
                  *matRowDef="let row; columns: ['expandedDetail']; when: expandRow"
-                 [@detailExpand]="expandedTaskIds.has(row.t.id) ? 'expanded' : 'collapsed'"></mat-row>
+                 [@detailExpand]="expandedTaskIds.has(row.t?.id) ? 'expanded' : 'collapsed'"></mat-row>
       </mat-table>
 
       <!-- <a class="new-link" routerLink="add-node">
