@@ -1,6 +1,6 @@
 <mat-card>
   <mat-card-header>
-    <h1>Adding node to "{{ clusterName }}" cluster</h1>
+    <h1>Add a node to "{{ clusterName }}" cluster</h1>
   </mat-card-header>
   <mat-card-content>
 
@@ -106,7 +106,7 @@
               class="submit-btn"
               (click)="finish()"
               [disabled]="!validMachinesConfig || isProcessing">
-        <span [hidden]="isProcessing">Finish</span>
+        <span [hidden]="isProcessing">FINISH</span>
         <mat-progress-spinner [diameter]="24"
                               [mode]="'indeterminate'"
                               [color]="'warn'"
