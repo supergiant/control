@@ -113,7 +113,6 @@ func syncMachines(ctx context.Context, k *model.Kube, account *model.CloudAccoun
 
 	for _, res := range describeInstanceOutput.Reservations {
 		for _, instance := range res.Instances {
-			logrus.Debugf("Instance %s", *instance.InstanceId)
 			node := &model.Machine{
 				PrivateIp: *instance.PrivateIpAddress,
 				PublicIp:  *instance.PublicIpAddress,
@@ -125,7 +124,6 @@ func syncMachines(ctx context.Context, k *model.Kube, account *model.CloudAccoun
 
 			for _, tag := range instance.Tags {
 				if tag.Key != nil && *tag.Key == clouds.TagNodeName {
-					logrus.Debugf("    TAG Key: %s Value: %s", *tag.Key, *tag.Value)
 					node.Name = *tag.Value
 				}
 			}
@@ -138,8 +136,8 @@ func syncMachines(ctx context.Context, k *model.Kube, account *model.CloudAccoun
 				}
 			}
 
-			// If node do not exists - add it to kube
-			if !isFound {
+			// If node is not in cluster and it is not master
+			if !isFound && k.Masters[node.Name] == nil {
 				logrus.Debugf("Add new node %v", node)
 				k.Nodes[node.Name] = node
 			}
