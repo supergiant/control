@@ -5,6 +5,7 @@ import (
 	"context"
 	"encoding/base64"
 	"encoding/json"
+	"fmt"
 	"io"
 	"text/template"
 	"time"
@@ -17,6 +18,7 @@ import (
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	clientcorev1 "k8s.io/client-go/kubernetes/typed/core/v1"
 
+	"github.com/supergiant/control/pkg/clouds"
 	"github.com/supergiant/control/pkg/kubeconfig"
 	"github.com/supergiant/control/pkg/workflows/steps"
 )
@@ -45,6 +47,7 @@ const (
 	SubnetID       = "awsSubnetID"
 	VolType        = "awsVolType"
 	VolSize        = "awsVolSize"
+	Tags           = "awsTags"
 
 	DefaultVolSize = "80"
 	DefaultVolType = "gp2"
@@ -99,6 +102,7 @@ func (s *Step) Run(ctx context.Context, out io.Writer, config *steps.Config) err
 			SecurityGroups: config.AWSConfig.NodesSecurityGroupID,
 			VolSize:        DefaultVolSize,
 			VolType:        DefaultVolType,
+			Tags:           fmt.Sprintf("%s=%s", clouds.TagClusterID, config.ClusterID),
 			SubnetID:       getSubnet(config.AWSConfig.Subnets),
 			// TODO: add AZ option
 		},
