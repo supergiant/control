@@ -892,6 +892,7 @@ func (h *Handler) getRelease(w http.ResponseWriter, r *http.Request) {
 func (h *Handler) listReleases(w http.ResponseWriter, r *http.Request) {
 	vars := mux.Vars(r)
 
+	// TODO(stgleb): Only for operational clusters
 	kubeID := vars["kubeID"]
 	// TODO: use a struct for input parameters
 	rlsList, err := h.svc.ListReleases(r.Context(), kubeID, "", "", 0)
