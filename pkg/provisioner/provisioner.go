@@ -119,6 +119,8 @@ func (tp *TaskProvisioner) ProvisionCluster(parentContext context.Context,
 	go tp.monitorClusterState(ctx, config.ClusterID, config.NodeChan(),
 		config.KubeStateChan(), config.ConfigChan())
 	go tp.provision(ctx, taskMap, clusterProfile)
+	// Move cluster to provisioning state
+	config.KubeStateChan() <- model.StateProvisioning
 
 	return taskMap, nil
 }
@@ -146,6 +148,8 @@ func (tp *TaskProvisioner) ProvisionNodes(parentContext context.Context, nodePro
 
 	tasks := make([]string, 0, len(nodeProfiles))
 
+
+	// TODO(stgleb): do this in async to avoid blocking the UI
 	for _, nodeProfile := range nodeProfiles {
 		// Protect cloud API with rate limiter
 		tp.rateLimiter.Take()
@@ -218,8 +222,11 @@ func (tp *TaskProvisioner) RestartClusterProvisioning(parentCtx context.Context,
 	go tp.monitorClusterState(ctx, config.ClusterID,
 		config.NodeChan(), config.KubeStateChan(), config.ConfigChan())
 	go tp.provision(ctx, taskMap, clusterProfile)
-	// Restore provisioning state for cluster
-	config.KubeStateChan() <- model.StateProvisioning
+
+	if config != nil && config.Kube.State != model.StateOperational {
+		// Restore provisioning state for failed cluster
+		config.KubeStateChan() <- model.StateProvisioning
+	}
 
 	return nil
 }
@@ -246,10 +253,6 @@ func (tp *TaskProvisioner) provision(ctx context.Context,
 		config.SetNodeChan(nodeChan)
 		config.SetConfigChan(configChan)
 	}
-
-	// Update kube state
-	logrus.Debug("update kube state")
-	config.KubeStateChan() <- model.StateProvisioning
 
 	if len(taskMap[workflows.MasterTask]) == 0 {
 		return
@@ -465,7 +468,7 @@ func (tp *TaskProvisioner) provisionMasters(ctx context.Context,
 	// ProvisionCluster rest of master nodes master nodes
 	for index, masterTask := range tasks {
 		// When this is restart code - don't process task that succeed
-		if masterTask.Status == statuses.Success {
+		if masterTask.Status == statuses.Success || masterTask.Status == statuses.Executing {
 			continue
 		}
 
@@ -526,6 +529,11 @@ func (tp *TaskProvisioner) provisionNodes(ctx context.Context, profile *profile.
 
 	// ProvisionCluster nodes
 	for index, nodeTask := range tasks {
+		// When this is restart code - don't process task that succeed
+		if nodeTask.Status == statuses.Success || nodeTask.Status == statuses.Executing {
+			continue
+		}
+
 		// Take token that allows perform action with Cloud Provider API
 		tp.rateLimiter.Take()
 
