@@ -290,6 +290,25 @@ func (h *Handler) getKube(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	if k.Provider == clouds.AWS {
+		logrus.Debugf("Get cloud account %s", k.AccountName)
+		acc, err := h.accountService.Get(r.Context(), k.AccountName)
+
+		if err != nil {
+			if sgerrors.IsNotFound(err) {
+				http.NotFound(w, r)
+				return
+			}
+
+			message.SendUnknownError(w, err)
+			return
+		}
+
+		if err := syncMachines(r.Context(), k, acc); err != nil {
+			logrus.Errorf("error syncing machines for %s %v", k.ID, err)
+		}
+	}
+
 	if err = json.NewEncoder(w).Encode(k); err != nil {
 		message.SendUnknownError(w, err)
 	}
@@ -1399,7 +1418,7 @@ func createKube(config *steps.Config, state model.KubeState, profile profile.Pro
 		Masters:                config.GetMasters(),
 		Nodes:                  config.GetNodes(),
 		Tasks: map[string][]string{
-			workflows.ImportTask:    {taskID},
+			workflows.ImportTask:       {taskID},
 			workflows.PreProvisionTask: {},
 			workflows.MasterTask:       {},
 			workflows.NodeTask:         {},

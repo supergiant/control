@@ -45,7 +45,7 @@ const (
 	GCEClientEmail = "client_email"
 	GCETokenURI    = "token_uri"
 
-	GCETargetPoolName     = "gceTargetPoolName"
+	GCETargetPoolName = "gceTargetPoolName"
 
 	GCEExternalIPAddress = "gceExternalIpAddress"
 	GCEInternalIPAddress = "gceInternalIpAddress"
@@ -67,6 +67,7 @@ const (
 	GCEImageFamily = "gceImageFamily"
 
 	TagClusterID         = "supergiant.io/cluster-id"
+	TagNodeName          = "supergiant.io/node-name"
 	TagKubernetesCluster = "KubernetesCluster"
 
 	AWSAccessKeyID              = "access_key"
