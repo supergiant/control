@@ -12,7 +12,7 @@
   </ng-container>
 
   <ng-container *ngIf="(cloudAccounts$ | async)?.length > 0">
-    <h1>Import Kubernetes Cluster</h1>
+    <h1>Import a Kubernetes Cluster</h1>
 
     <div class="form-wrapper">
       <form class="import-form" [formGroup]="importForm">
@@ -86,7 +86,7 @@
 
       <button mat-raised-button type="button" color="primary" (click)="importCluster(importForm)">
         <ng-container *ngIf="!importing">
-          Import
+          IMPORT
         </ng-container>
         <ng-container *ngIf="importing">
           <mat-spinner [diameter]="24"></mat-spinner>
