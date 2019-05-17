@@ -80,10 +80,6 @@ func TestDeleteLoadBalancerStep_Run(t *testing.T) {
 
 		err := step.Run(context.Background(), &bytes.Buffer{}, config)
 
-		if testCase.errMsg != "" && err == nil {
-			t.Errorf("Error not must be nil")
-		}
-
 		if testCase.errMsg == "" && err != nil {
 			t.Errorf("Unexpected error %v", err)
 		}
