@@ -179,14 +179,17 @@ func (tp *TaskProvisioner) ProvisionNodes(parentContext context.Context, nodePro
 		config.TaskID = t.ID
 		errChan := t.Run(ctx, *config, writer)
 
-		go func(cfg *steps.Config, errChan chan error) {
+		go func(task *workflows.Task, cfg *steps.Config, errChan chan error) {
 			err = <-errChan
 
 			if err != nil {
+				task.Config.Node.State = model.MachineStateError
+				task.Config.AddNode(&task.Config.Node)
+				task.Config.NodeChan() <- task.Config.Node
 				logrus.Errorf("add node to cluster %s caused an error %v", kube.ID, err)
 				return
 			}
-		}(config, errChan)
+		}(t, config, errChan)
 	}
 
 	return tasks, nil
