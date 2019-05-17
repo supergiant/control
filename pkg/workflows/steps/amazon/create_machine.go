@@ -129,7 +129,7 @@ func (s *StepCreateInstance) Run(ctx context.Context, w io.Writer, cfg *steps.Co
 						Value: aws.String(cfg.ClusterName),
 					},
 					{
-						Key:   aws.String("Name"),
+						Key:   aws.String(clouds.TagNodeName),
 						Value: aws.String(nodeName),
 					},
 					{
