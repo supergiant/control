@@ -3,7 +3,7 @@ package templates
 const drainTpl = `
 NODENAME=$(sudo kubectl get no -o wide|grep {{ .PrivateIP }}| awk '{ print $1 }')
 
-if [ -z "NODENAME" ]
+if [ -z $NODENAME ]
 then
 	exit 0
 fi
