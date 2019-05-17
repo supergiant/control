@@ -67,7 +67,7 @@ const (
 	GCEImageFamily = "gceImageFamily"
 
 	TagClusterID         = "supergiant.io/cluster-id"
-	TagNodeName          = "supergiant.io/node-name"
+	TagNodeName          = "Name"
 	TagKubernetesCluster = "KubernetesCluster"
 
 	AWSAccessKeyID              = "access_key"
