@@ -122,6 +122,48 @@ func TestDrain(t *testing.T) {
 	}
 }
 
+func TestErrors(t *testing.T) {
+	errMsg := "error has occurred"
+
+	r := &fakeRunner{
+		errMsg: errMsg,
+	}
+
+	proxyTemplate, err := template.New(StepName).Parse("")
+	output := new(bytes.Buffer)
+
+	task := &Step{
+		script: proxyTemplate,
+		getRunner: func(masterIP string, config *steps.Config) (runner.Runner, error) {
+			return r, nil
+		},
+	}
+
+	cfg, err := steps.NewConfig("",
+		"", profile.Profile{})
+
+	if err != nil {
+		t.Errorf("Unexpected error %v", err)
+	}
+
+	cfg.Runner = r
+	cfg.AddMaster(&model.Machine{
+		State:     model.MachineStateActive,
+		PrivateIp: "10.20.30.40",
+	})
+	err = task.Run(context.Background(), output, cfg)
+
+	if err == nil {
+		t.Errorf("Error must not be nil")
+		return
+	}
+
+	if !strings.Contains(err.Error(), errMsg) {
+		t.Errorf("Error message expected to contain %s actual %s",
+			errMsg, err.Error())
+	}
+}
+
 func TestStepName(t *testing.T) {
 	s := Step{}
 

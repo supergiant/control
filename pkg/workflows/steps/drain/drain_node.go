@@ -8,7 +8,6 @@ import (
 
 	"github.com/pkg/errors"
 
-	"github.com/sirupsen/logrus"
 	"github.com/supergiant/control/pkg/clouds"
 	"github.com/supergiant/control/pkg/runner"
 	"github.com/supergiant/control/pkg/runner/ssh"
@@ -85,7 +84,7 @@ func (s *Step) Run(ctx context.Context, out io.Writer, config *steps.Config) err
 	err = steps.RunTemplate(ctx, s.script, r, out, config.DrainConfig)
 
 	if err != nil {
-		logrus.Errorf("drain step has failed with %v", err)
+		return errors.Wrap(err, "drain step")
 	}
 
 	return nil
