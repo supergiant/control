@@ -136,7 +136,7 @@ func syncMachines(ctx context.Context, k *model.Kube, account *model.CloudAccoun
 				}
 			}
 
-			// If node is not in cluster and it is not master
+			// If node is new in workers and it is not a master
 			if !isFound && k.Masters[node.Name] == nil {
 				logrus.Debugf("Add new node %v", node)
 				k.Nodes[node.Name] = node
