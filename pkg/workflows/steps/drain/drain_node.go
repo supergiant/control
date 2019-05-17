@@ -3,6 +3,7 @@ package drain
 import (
 	"context"
 	"fmt"
+	"github.com/sirupsen/logrus"
 	"io"
 	"text/template"
 
@@ -84,7 +85,7 @@ func (s *Step) Run(ctx context.Context, out io.Writer, config *steps.Config) err
 	err = steps.RunTemplate(ctx, s.script, r, out, config.DrainConfig)
 
 	if err != nil {
-		return errors.Wrap(err, "drain step")
+		logrus.Errorf("drain step has failed with %v", err)
 	}
 
 	return nil
