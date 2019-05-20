@@ -114,12 +114,18 @@ func syncMachines(ctx context.Context, k *model.Kube, account *model.CloudAccoun
 	for _, res := range describeInstanceOutput.Reservations {
 		for _, instance := range res.Instances {
 			node := &model.Machine{
-				PrivateIp: *instance.PrivateIpAddress,
-				PublicIp:  *instance.PublicIpAddress,
 				Size:      *instance.InstanceType,
 				State:     model.MachineStateActive,
 				Role:      model.RoleNode,
 				Region:    k.Region,
+			}
+
+			if instance.PublicIpAddress != nil {
+				node.PublicIp = *instance.PublicIpAddress
+			}
+
+			if instance.PrivateIpAddress != nil {
+				node.PrivateIp = *instance.PrivateIpAddress
 			}
 
 			for _, tag := range instance.Tags {
@@ -131,7 +137,7 @@ func syncMachines(ctx context.Context, k *model.Kube, account *model.CloudAccoun
 			isFound := false
 
 			for _, machine := range k.Nodes {
-				if machine.PrivateIp == *instance.PrivateIpAddress {
+				if instance.PrivateIpAddress != nil && machine.PrivateIp == *instance.PrivateIpAddress {
 					isFound = true
 				}
 			}
