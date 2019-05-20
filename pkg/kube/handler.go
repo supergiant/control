@@ -307,6 +307,13 @@ func (h *Handler) getKube(w http.ResponseWriter, r *http.Request) {
 		if err := syncMachines(r.Context(), k, acc); err != nil {
 			logrus.Errorf("error syncing machines for %s %v", k.ID, err)
 		}
+
+		// Update cluster with new nodes
+		err = h.svc.Create(context.Background(), k)
+
+		if err != nil {
+			logrus.Errorf("update cluster %s caused %v", kubeID, err)
+		}
 	}
 
 	if err = json.NewEncoder(w).Encode(k); err != nil {
@@ -885,6 +892,7 @@ func (h *Handler) getRelease(w http.ResponseWriter, r *http.Request) {
 func (h *Handler) listReleases(w http.ResponseWriter, r *http.Request) {
 	vars := mux.Vars(r)
 
+	// TODO(stgleb): Only for operational clusters
 	kubeID := vars["kubeID"]
 	// TODO: use a struct for input parameters
 	rlsList, err := h.svc.ListReleases(r.Context(), kubeID, "", "", 0)
@@ -1000,6 +1008,7 @@ func (h *Handler) getNodesMetrics(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	// TODO(stgleb): Use Load balancer instead of master public IP
 	for key := range k.Masters {
 		if k.Masters[key] != nil {
 			masterNode = k.Masters[key]
