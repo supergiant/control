@@ -142,8 +142,14 @@ func syncMachines(ctx context.Context, k *model.Kube, account *model.CloudAccoun
 				}
 			}
 
+			var state int64
+
+			if instance.State != nil && instance.State.Code != nil {
+				state = *instance.State.Code
+			}
+
 			// If node is new in workers and it is not a master
-			if !isFound && k.Masters[node.Name] == nil {
+			if !isFound && k.Masters[node.Name] == nil && state == 16 {
 				logrus.Debugf("Add new node %v", node)
 				k.Nodes[node.Name] = node
 			}
