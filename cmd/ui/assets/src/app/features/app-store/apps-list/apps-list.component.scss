@@ -83,13 +83,17 @@
   display: flex;
   justify-content: space-between;
   flex-wrap: wrap;
-  margin-bottom: 20px;
+  margin-right: -30px;
 
   .card {
     display: flex;
     margin-right: 30px;
     margin-bottom: 30px;
     width: 295px;
+  }
+
+  .repo-card {
+    min-height: 263px;
   }
 
   .app-card {

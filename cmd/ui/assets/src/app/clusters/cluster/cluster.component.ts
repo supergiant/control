@@ -291,7 +291,7 @@ export class ClusterComponent implements AfterViewInit, OnDestroy {
 
       this.getKubeStatus(this.clusterId).subscribe(
         tasks => {
-          const executing = tasks.filter(t => t.status == 'executing');
+          const executing = tasks.filter(t => t.status == 'executing' || t.status == 'error');
           executing.forEach(t => {
             if (this.expandedTaskIds.has(t.id)) {
               t.showSteps = true;

@@ -1,3 +1,6 @@
+package templates
+
+const kubelet = `
 sudo bash -c "cat > /etc/kubernetes/pki/openssl.cnf <<EOF
 [req]
 req_extensions = v3_req
@@ -75,3 +78,4 @@ EOF"
 
 sudo systemctl daemon-reload
 sudo systemctl restart kubelet
+`

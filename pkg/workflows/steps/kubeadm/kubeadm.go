@@ -49,19 +49,7 @@ func (t *Step) Run(ctx context.Context, out io.Writer, config *steps.Config) err
 	config.KubeadmConfig.InternalDNSName = config.InternalDNSName
 	config.KubeadmConfig.ExternalDNSName = config.ExternalDNSName
 	config.KubeadmConfig.Token = config.BootstrapToken
-
-	// NOTE(stgleb): Kubeadm accepts only ipv4 or ipv6 addresses as advertise address
-	if config.IsBootstrap {
-		config.KubeadmConfig.AdvertiseAddress = config.Node.PrivateIp
-	}
-
-	// TODO: fix azure load balancer
-	if config.Provider == clouds.Azure {
-		config.KubeadmConfig.InternalDNSName = config.Node.PrivateIp
-		if config.IsBootstrap {
-			config.KubeadmConfig.InternalDNSName = config.Node.PrivateIp
-		}
-	}
+	config.KubeadmConfig.NodeIp = config.Node.PrivateIp
 
 	logrus.Debugf("kubeadm step: %s cluster: isBootstrap=%t extDNS=%s intDNS=%s",
 		config.ClusterID, config.KubeadmConfig.IsBootstrap, config.KubeadmConfig.ExternalDNSName,

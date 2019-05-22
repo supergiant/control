@@ -89,7 +89,7 @@
                       matInput
                       formControlName="exposedAddresses"
                       placeholder="IP Whitelist"></textarea>
-            <mat-hint align="end">Enter each 
+            <mat-hint align="end">Enter each
               <a href="https://en.wikipedia.org/wiki/Classless_Inter-Domain_Routing"
                 target="_blank">CIDR</a> block on its own line
             </mat-hint>
@@ -122,6 +122,8 @@
                 color="primary"
                 matStepperNext>NEXT
         </button>
+
+        <span class="req-hint">Fields with asterisks (*) are required</span>
       </div>
     </mat-step>
 
@@ -134,18 +136,20 @@
           <mat-form-field [ngClass]="{ 'regionsLoading': regionsLoading }">
             <mat-select placeholder="Select a Region"
                         formControlName="region"
-                        (openedChange)="regionsFilter = ''"
+                        (openedChange)="[regionsFilter = '', regionFilter.focus()]"
                         (selectionChange)="selectRegion($event.value)"
                         required>
-              <input class="select-filter"
-                     matInput
-                     type="text"
-                     placeholder="Filter regions..."
-                     [(ngModel)]="regionsFilter"
-                     [ngModelOptions]="{ standalone: true }"
-                     autofocus>
-              <mat-option *ngFor="let r of availableRegions?.regions | callback: regionsFilterCallback"
-                          [value]="r">{{ r.name }}</mat-option>
+              <div class="sticky-filter-wrapper">
+                <input #regionFilter
+                       matInput
+                       type="text"
+                       (keydown)="allowSpaces($event)"
+                       placeholder="Filter regions..."
+                       [(ngModel)]="regionsFilter"
+                       [ngModelOptions]="{ standalone: true }">
+              </div>
+              <mat-option *ngFor="let r of availableRegionNames | callback: regionsFilter"
+                          [value]="r">{{ r }}</mat-option>
             </mat-select>
           </mat-form-field>
         </form>
@@ -159,18 +163,20 @@
             <mat-form-field [ngClass]="{ 'regionsLoading': regionsLoading }">
               <mat-select placeholder="Select a Region"
                           formControlName="region"
-                          (openedChange)="regionsFilter = ''"
+                          (openedChange)="[regionsFilter = '', regionFilter.focus()]"
                           (selectionChange)="selectRegion($event.value)"
                           required>
-                <input class="select-filter"
-                       matInput
-                       type="text"
-                       placeholder="Filter regions..."
-                       [(ngModel)]="regionsFilter"
-                       [ngModelOptions]="{ standalone: true }"
-                       autofocus>
-                <mat-option *ngFor="let r of availableRegions?.regions | callback: regionsFilterCallback"
-                            [value]="r">{{ r.name }}</mat-option>
+                <div class="sticky-filter-wrapper">
+                  <input #regionFilter
+                         matInput
+                         type="text"
+                         (keydown)="allowSpaces($event)"
+                         placeholder="Filter regions..."
+                         [(ngModel)]="regionsFilter"
+                         [ngModelOptions]="{ standalone: true }">
+                </div>
+                <mat-option *ngFor="let r of availableRegionNames | callback: regionsFilter"
+                            [value]="r">{{ r }}</mat-option>
               </mat-select>
             </mat-form-field>
 
@@ -211,18 +217,20 @@
             <mat-form-field [ngClass]="{ 'regionsLoading': regionsLoading }">
               <mat-select placeholder="Select a Region"
                           formControlName="region"
-                          (openedChange)="regionsFilter = ''"
+                          (openedChange)="[regionsFilter = '', regionFilter.focus()]"
                           (selectionChange)="selectRegion($event.value)"
                           required>
-                <input class="select-filter"
-                       matInput
-                       type="text"
-                       placeholder="Filter regions..."
-                       [(ngModel)]="regionsFilter"
-                       [ngModelOptions]="{ standalone: true }"
-                       autofocus>
-                <mat-option *ngFor="let r of availableRegions?.regions | callback: regionsFilterCallback"
-                            [value]="r">{{ r.name }}</mat-option>
+                <div class="sticky-filter-wrapper">
+                  <input #regionFilter
+                         matInput
+                         type="text"
+                         (keydown)="allowSpaces($event)"
+                         placeholder="Filter regions..."
+                         [(ngModel)]="regionsFilter"
+                         [ngModelOptions]="{ standalone: true }">
+                </div>
+                <mat-option *ngFor="let r of availableRegionNames | callback: regionsFilter"
+                            [value]="r">{{ r }}</mat-option>
               </mat-select>
             </mat-form-field>
           </div>
@@ -254,18 +262,20 @@
             <mat-form-field [ngClass]="{ 'regionsLoading': regionsLoading }">
               <mat-select placeholder="Select a Region"
                           formControlName="region"
-                          (openedChange)="regionsFilter = ''"
+                          (openedChange)="[regionsFilter = '', regionFilter.focus()]"
                           (selectionChange)="selectRegion($event.value)"
                           required>
-                <input class="select-filter"
-                       matInput
-                       type="text"
-                       placeholder="Filter regions..."
-                       [(ngModel)]="regionsFilter"
-                       [ngModelOptions]="{ standalone: true }"
-                       autofocus>
-                <mat-option *ngFor="let r of availableRegions?.regions | callback: regionsFilterCallback"
-                            [value]="r">{{ r.name }}</mat-option>
+                <div class="sticky-filter-wrapper">
+                  <input #regionFilter
+                         matInput
+                         type="text"
+                         (keydown)="allowSpaces($event)"
+                         placeholder="Filter regions..."
+                         [(ngModel)]="regionsFilter"
+                         [ngModelOptions]="{ standalone: true }">
+                </div>
+                <mat-option *ngFor="let r of availableRegionNames | callback: regionsFilter"
+                            [value]="r">{{ r }}</mat-option>
               </mat-select>
             </mat-form-field>
 
@@ -318,6 +328,8 @@
                 color="primary"
                 matStepperNext>NEXT
         </button>
+
+        <span class="req-hint">Fields with asterisks (*) are required</span>
       </div>
     </mat-step>
 
@@ -333,29 +345,26 @@
                           placeholder="Machine Type (size)"
                           id="m.machineType"
                           [(value)]="m.machineType"
-                          (openedChange)="machineTypesFilter = ''"
-                          (selectionChange)="validateMachineConfig(m)">
-                <input class="select-filter"
-                       matInput
-                       type="text"
-                       placeholder="Filter machines..."
-                       [(ngModel)]="machineTypesFilter"
-                       autofocus>
-                <mat-option *ngFor="let type of availableMachineTypes | callback: machineTypesFilterCallback"
+                          (openedChange)="[m.filter = '', machineFilter.focus()]"
+                          (selectionChange)="validateMachineConfig(m)"
+                          required>
+                <div class="sticky-filter-wrapper">
+                  <input #machineFilter
+                         matInput
+                         type="text"
+                         placeholder="Filter machines..."
+                         [(ngModel)]="m.filter">
+                </div>
+                <mat-option *ngFor="let type of availableMachineTypes | callback: m.filter"
                             [value]="type">{{ type }}</mat-option>
               </mat-select>
-              <mat-hint align="end">
-                <ng-container *ngIf="m.recommendedNodesCount"
-                              [ngTemplateOutlet]="recommendedNodesCountTpl"
-                              [ngTemplateOutletContext]="{ $implicit: m.recommendedNodesCount }">
-                </ng-container>
-              </mat-hint>
             </mat-form-field>
 
             <mat-form-field>
               <mat-select placeholder="Role"
                           [(value)]="m.role"
-                          (selectionChange)="validateMachineConfig(m)">
+                          (selectionChange)="validateMachineConfig(m)"
+                          required>
                 <mat-option value="Master">Master</mat-option>
                 <mat-option value="Node">Node</mat-option>
               </mat-select>
@@ -367,7 +376,8 @@
                      min="1"
                      placeholder="Q-ty"
                      [(ngModel)]="m.qty"
-                     (ngModelChange)="validateMachineConfig(m)">
+                     (ngModelChange)="validateMachineConfig(m)"
+                     required>
             </mat-form-field>
 
             <div class="delete"
@@ -375,11 +385,6 @@
                  (keyup.enter)="deleteMachine(idx)"
                  tabindex="0">
             </div>
-
-            <ng-container *ngIf="m.recommendedNodesCount"
-                          [ngTemplateOutlet]="recommendedNodesCountTpl"
-                          [ngTemplateOutletContext]="{ $implicit: m.recommendedNodesCount }">
-            </ng-container>
           </div>
 
           <div class="add-machines"
@@ -399,7 +404,7 @@
             <mat-form-field [ngClass]="{ 'azsLoading': azsLoading }">
               <mat-select placeholder="Select an Availability Zone"
                           [(value)]="m.availabilityZone"
-                          (openedChange)="machineTypesFilter = ''"
+                          (openedChange)="m.filter = ''"
                           (selectionChange)="selectAz($event.value, idx)"
                           required>
                 <mat-option *ngFor="let a of availabilityZones"
@@ -415,31 +420,26 @@
                           id="m.machineType"
                           [(value)]="m.machineType"
                           [disabled]="!m.availableMachineTypes"
-                          (openedChange)="machineTypesFilter = ''"
-                          (selectionChange)="validateMachineConfig(m)">
-                <input class="select-filter"
-                       matInput
-                       type="text"
-                       placeholder="Filter machines..."
-                       [(ngModel)]="machineTypesFilter"
-                       autofocus>
-                <mat-option *ngFor="let type of m.availableMachineTypes | callback: machineTypesFilterCallback"
-                            [value]="type">
-                  {{ type }}
-                </mat-option>
+                          (openedChange)="[m.filter = '', machineFilter.focus()]"
+                          (selectionChange)="validateMachineConfig(m)"
+                          required>
+                <div class="sticky-filter-wrapper">
+                  <input #machineFilter
+                         matInput
+                         type="text"
+                         placeholder="Filter machines..."
+                         [(ngModel)]="m.filter">
+                </div>
+                <mat-option *ngFor="let type of m.availableMachineTypes | callback: m.filter"
+                            [value]="type">{{ type }}</mat-option>
               </mat-select>
-              <mat-hint align="end">
-                <ng-container *ngIf="m.recommendedNodesCount"
-                              [ngTemplateOutlet]="recommendedNodesCountTpl"
-                              [ngTemplateOutletContext]="{ $implicit: m.recommendedNodesCount }">
-                </ng-container>
-              </mat-hint>
             </mat-form-field>
 
             <mat-form-field class="role">
               <mat-select placeholder="Role"
                           [(value)]="m.role"
-                          (selectionChange)="validateMachineConfig(m)">
+                          (selectionChange)="validateMachineConfig(m)"
+                          required>
                 <mat-option value="Master">Master</mat-option>
                 <mat-option value="Node">Node</mat-option>
               </mat-select>
@@ -451,7 +451,8 @@
                      min="1"
                      placeholder="Q-ty"
                      [(ngModel)]="m.qty"
-                     (ngModelChange)="validateMachineConfig(m)">
+                     (ngModelChange)="validateMachineConfig(m)"
+                     required>
             </mat-form-field>
 
             <div class="delete"
@@ -459,11 +460,6 @@
                  (keyup.enter)="deleteMachine(idx)"
                  tabindex="0">
             </div>
-
-            <ng-container *ngIf="m.recommendedNodesCount"
-                          [ngTemplateOutlet]="recommendedNodesCountTpl"
-                          [ngTemplateOutletContext]="{ $implicit: m.recommendedNodesCount }">
-            </ng-container>
           </div>
 
           <div class="add-machines"
@@ -483,7 +479,7 @@
             <mat-form-field [ngClass]="{ 'azsLoading': azsLoading }">
               <mat-select placeholder="Select an Availability Zone"
                           [(value)]="m.availabilityZone"
-                          (openedChange)="machineTypesFilter = ''"
+                          (openedChange)="m.filter = ''"
                           (selectionChange)="selectAz($event.value, idx)"
                           required>
                 <mat-option *ngFor="let a of availabilityZones"
@@ -497,31 +493,26 @@
                           placeholder="Machine Type (size)"
                           [(value)]="m.machineType"
                           [disabled]="!m.availableMachineTypes"
-                          (openedChange)="machineTypesFilter = ''"
-                          (selectionChange)="validateMachineConfig(m)">
-                <input class="select-filter"
-                       matInput
-                       type="text"
-                       placeholder="Filter machines..."
-                       [(ngModel)]="machineTypesFilter"
-                       autofocus>
-                <mat-option *ngFor="let type of m.availableMachineTypes | callback: machineTypesFilterCallback"
-                            [value]="type">
-                  {{ type }}
-                </mat-option>
+                          (openedChange)="[m.filter = '', machineFilter.focus()]"
+                          (selectionChange)="validateMachineConfig(m)"
+                          required>
+                <div class="sticky-filter-wrapper">
+                  <input #machineFilter
+                         matInput
+                         type="text"
+                         placeholder="Filter machines..."
+                         [(ngModel)]="m.filter">
+                </div>
+                <mat-option *ngFor="let type of m.availableMachineTypes | callback: m.filter"
+                            [value]="type">{{ type }}</mat-option>
               </mat-select>
-              <mat-hint align="end">
-                <ng-container *ngIf="m.recommendedNodesCount"
-                              [ngTemplateOutlet]="recommendedNodesCountTpl"
-                              [ngTemplateOutletContext]="{ $implicit: m.recommendedNodesCount }">
-                </ng-container>
-              </mat-hint>
             </mat-form-field>
 
             <mat-form-field class="role">
               <mat-select placeholder="Role"
                           [(value)]="m.role"
-                          (selectionChange)="validateMachineConfig(m)">
+                          (selectionChange)="validateMachineConfig(m)"
+                          required>
                 <mat-option value="Master">Master</mat-option>
                 <mat-option value="Node">Node</mat-option>
               </mat-select>
@@ -533,7 +524,8 @@
                      min="1"
                      placeholder="Q-ty"
                      [(ngModel)]="m.qty"
-                     (ngModelChange)="validateMachineConfig(m)">
+                     (ngModelChange)="validateMachineConfig(m)"
+                     required>
             </mat-form-field>
 
             <div class="delete"
@@ -562,29 +554,26 @@
                           placeholder="Machine Type (size)"
                           id="m.machineType"
                           [(value)]="m.machineType"
-                          (openedChange)="machineTypesFilter = ''"
-                          (selectionChange)="validateMachineConfig(m)">
-                <input class="select-filter"
-                       matInput
-                       type="text"
-                       placeholder="Filter machines..."
-                       [(ngModel)]="machineTypesFilter"
-                       autofocus>
-                <mat-option *ngFor="let type of availableMachineTypes | callback: machineTypesFilterCallback"
+                          (openedChange)="[m.filter = '', machineFilter.focus()]"
+                          (selectionChange)="validateMachineConfig(m)"
+                          required>
+                <div class="sticky-filter-wrapper">
+                  <input #machineFilter
+                         matInput
+                         type="text"
+                         placeholder="Filter machines..."
+                         [(ngModel)]="m.filter">
+                </div>
+                <mat-option *ngFor="let type of availableMachineTypes | callback: m.filter"
                             [value]="type">{{ type }}</mat-option>
               </mat-select>
-              <mat-hint align="end">
-                <ng-container *ngIf="m.recommendedNodesCount"
-                              [ngTemplateOutlet]="recommendedNodesCountTpl"
-                              [ngTemplateOutletContext]="{ $implicit: m.recommendedNodesCount }">
-                </ng-container>
-              </mat-hint>
             </mat-form-field>
 
             <mat-form-field class="role">
               <mat-select placeholder="Role"
                           [(value)]="m.role"
-                          (selectionChange)="validateMachineConfig(m)">
+                          (selectionChange)="validateMachineConfig(m)"
+                          required>
                 <mat-option value="Master">Master</mat-option>
                 <mat-option value="Node">Node</mat-option>
               </mat-select>
@@ -596,7 +585,8 @@
                      min="1"
                      placeholder="Q-ty"
                      [(ngModel)]="m.qty"
-                     (ngModelChange)="validateMachineConfig(m)">
+                     (ngModelChange)="validateMachineConfig(m)"
+                     required>
             </mat-form-field>
 
             <div class="delete"
@@ -604,11 +594,6 @@
                  (keyup.enter)="deleteMachine(idx)"
                  tabindex="0">
             </div>
-
-            <ng-container *ngIf="m.recommendedNodesCount"
-                          [ngTemplateOutlet]="recommendedNodesCountTpl"
-                          [ngTemplateOutletContext]="{ $implicit: m.recommendedNodesCount }">
-            </ng-container>
           </div>
 
           <div class="add-machines"
@@ -634,6 +619,8 @@
                 color="primary"
                 (click)="nextStep()">NEXT
         </button>
+
+        <span class="req-hint">Fields with asterisks (*) are required</span>
       </div>
     </mat-step>
 
@@ -651,7 +638,7 @@
               <p><span class="label">IP WHITELIST:</span>
                 <div *ngFor="let e of exposedAddressesArray">
                   {{e}}
-                </div> 
+                </div>
             </div>
           </div>
 
@@ -659,24 +646,27 @@
             <h3>PROVIDER CONFIGURATION</h3>
             <!-- digital ocean -->
             <div *ngIf="selectedCloudAccount?.provider == 'digitalocean'">
-              <p><span class="label">REGION:</span> {{ providerConfig.value.region.name }}</p>
+              <p><span class="label">REGION:</span> {{ providerConfig.value.region }}</p>
             </div>
 
             <!-- aws -->
             <div *ngIf="selectedCloudAccount?.provider == 'aws'">
-              <p><span class="label">REGION: </span> {{ providerConfig.value.region.name }}</p>
+              <p><span class="label">REGION: </span> {{ providerConfig.value.region }}</p>
               <p><span class="label">VPC CIDR: </span> {{ providerConfig.value.vpcCidr }}</p>
+              <p><span class="label">PUBLIC KEY: </span><span class="action" (click)="showPublicKey()">review</span></p>
             </div>
 
             <!-- gce -->
             <div *ngIf="selectedCloudAccount?.provider == 'gce'">
-              <p><span class="label">REGION:</span> {{ providerConfig.value.region.name }}</p>
+              <p><span class="label">REGION:</span> {{ providerConfig.value.region }}</p>
+              <p><span class="label">PUBLIC KEY: </span><span class="action" (click)="showPublicKey()">review</span></p>
             </div>
 
             <!-- azure -->
             <div *ngIf="selectedCloudAccount?.provider == 'azure'">
-              <p><span class="label">REGION:</span> {{ providerConfig.value.region.name }}</p>
+              <p><span class="label">REGION:</span> {{ providerConfig.value.region }}</p>
               <p><span class="label">VNet CIDR:</span> {{ providerConfig.value.azureVNetCIDR }}</p>
+              <p><span class="label">PUBLIC KEY: </span><span class="action" (click)="showPublicKey()">review</span></p>
             </div>
           </div>
 
@@ -735,7 +725,7 @@
   <div *ngIf="(availableCloudAccounts$ | async)?.length === 0">
     <div class="no-cloud-accounts">
       <h2>You have no cloud accounts linked to Supergiant</h2>
-      <p>Link an AWS or Digital Ocean cloud account and have a Supergiant cluster up in minutes</p>
+      <p>Link an AWS, GCE, Azure, or Digital Ocean cloud account and have a Supergiant cluster up in minutes</p>
       <div>
         <button mat-raised-button
                 color="primary"
@@ -746,21 +736,3 @@
   </div>
 </div>
 
-<ng-template #recommendedNodesCountTpl
-             let-recommendedNodesCount>
-  <div class="cluster-size-recommendation">
-                <span class="text">
-                  Recommended cluster size is
-                </span>
-    <span>&nbsp;</span>
-    <span class="is-highlighted"
-          matTooltip="A guessed and recommended maximum number of worker nodes supported by given cluster configuration. This is not 100% accurate, please refer to kubernetes documentation and use your best judgement on making this decision">
-                  <b>{{ recommendedNodesCount }}</b><span>&nbsp;</span>nodes
-                  <span>&nbsp;</span>
-                  <mat-icon>
-                    info
-                  </mat-icon>
-                </span>
-
-  </div>
-</ng-template>

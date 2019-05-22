@@ -111,8 +111,9 @@ func TestStartKubeadmError(t *testing.T) {
 		return
 	}
 
-	if errors.Cause(err) != sgerrors.ErrRawError {
-		t.Errorf("Error message expected to contain %s actual %s", errMsg, err.Error())
+	if !strings.Contains(errors.Cause(err).Error(), sgerrors.ErrRawError.Error()) {
+		t.Errorf("Error message expected to contain %s actual %s",
+			errors.Cause(err), sgerrors.ErrRawError)
 	}
 }
 

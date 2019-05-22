@@ -27,7 +27,7 @@
     </ng-template>
 
     <nav class="apps-nav">
-    <span class="repo-item" *ngFor="let repo of (reposList$ | async | sortRepos)?.slice().reverse()">
+    <span class="repo-item" *ngFor="let repo of (reposList | sortRepos)?.slice().reverse()">
       <img *ngIf="repo.name === 'supergiant'"
            src="assets/img/favicon.png"
            class="sg-icon">

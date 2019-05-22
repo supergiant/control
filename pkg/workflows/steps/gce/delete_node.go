@@ -3,6 +3,7 @@ package gce
 import (
 	"context"
 	"fmt"
+	"github.com/supergiant/control/pkg/clouds/gcesdk"
 	"io"
 
 	"github.com/pkg/errors"
@@ -21,7 +22,7 @@ type DeleteNodeStep struct {
 func NewDeleteNodeStep() *DeleteNodeStep {
 	return &DeleteNodeStep{
 		getComputeSvc: func(ctx context.Context, config steps.GCEConfig) (*computeService, error) {
-			client, err := GetClient(ctx, config)
+			client, err := gcesdk.GetClient(ctx, config)
 
 			if err != nil {
 				return nil, err

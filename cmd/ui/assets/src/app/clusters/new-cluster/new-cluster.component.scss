@@ -69,6 +69,14 @@
           outline: -webkit-focus-ring-color auto 5px;
         }
       }
+
+      .req-hint {
+        align-self: flex-end;
+        color: rgba(255, 255, 255, 0.7);
+        font-size: 12px;
+        font-style: italic;
+        margin-left: auto;
+      }
     }
 
     .cluster-config-step {
@@ -148,17 +156,6 @@
           }
         }
 
-        .cluster-size-recommendation {
-
-          .text {
-            color: grey;
-          }
-
-          .mat-icon, .is-highlighted {
-            color: $sg-pink;
-          }
-        }
-
         .azsLoading {
           animation: loading 1s infinite;
         }
@@ -222,6 +219,23 @@
           font-size: 14px;
           font-style: italic;
           opacity: 0.5;
+        }
+
+        .action {
+          background-color: rgba(0, 0, 0, 0.5);
+          border: 1px solid rgba(255, 255, 255, 0.25);
+          color: #fff;
+          cursor: pointer;
+          font-style: italic;
+          font-size: 16px;
+          font-weight: 500;
+          letter-spacing: 2px;
+          padding: 5px 12px 5px 12px;
+          margin-left: 3px;
+
+          &:active {
+            transform: scale(0.98, 0.98);
+          }
         }
       }
 
@@ -298,18 +312,20 @@
     }
   }
 }
-.mat-form-field:not(.mat-focused)  {
+.mat-form-field:not(.mat-focused) {
   .mat-form-field-underline {
     opacity: .25;
     background-color: white!important;
   }
 }
 
-.mat-select-content {
-  .select-filter {
-    position: relative;
-    padding: 10px !important;
-  }
+.sticky-filter-wrapper {
+  position: sticky;
+  padding: 10px !important;
+  z-index: 100;
+  top: 0;
+  background-color: #424242;
+  border-bottom: 1px solid rgba(255,255,255,0.25);
 }
 
 .mat-hint {

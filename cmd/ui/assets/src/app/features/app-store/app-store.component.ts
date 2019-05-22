@@ -18,7 +18,7 @@ import { filter, map }                  from 'rxjs/operators';
 export class AppStoreComponent {
   showBreadcrumbs: boolean;
   breadcrumbsData$: Observable<any>;
-  reposList$: Observable<any[]>;
+  reposList: any;
 
   constructor(
     public router: Router,
@@ -33,13 +33,17 @@ export class AppStoreComponent {
       const detailPageRegexp = /\/catalog\/[a-z]+\/details\/[a-z]/;
       this.showBreadcrumbs = Boolean(this.router.url.match(detailPageRegexp));
       this.store.dispatch(new AppFilter(''));
+      // TODO: use Store for this
+      this.updateRepos();
     });
 
     this.breadcrumbsData$ = this.store.pipe(
       select(selectAppDetails)
     );
+  }
 
-    this.reposList$ = this.http.get('/v1/api/helm/repositories').pipe(
+  updateRepos() {
+    this.http.get('/v1/api/helm/repositories').pipe(
       map((repos: Repository[]) => repos.map(repo => {
           return {
             url: repo.config.url,
@@ -47,7 +51,9 @@ export class AppStoreComponent {
           };
         }
       ))
-    );
+    ).subscribe(
+      repos => this.reposList = repos
+    )
   }
 
   // TODO create separate component

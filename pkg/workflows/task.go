@@ -69,7 +69,6 @@ func NewTask(config *steps.Config, taskType string, repository storage.Interface
 	err := t.sync(context.Background())
 
 	return t, err
-
 }
 
 func newTask(workflowType string, workflow Workflow, repository storage.Interface) *Task {

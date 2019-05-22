@@ -3,9 +3,12 @@
     <div class="providers"></div>
 
     <div class="communication">
-      <h1 class="headline">Welcome to Supergiant.</h1>
+      <h1 class="headline">Welcome to Control.</h1>
       <p class="description">You're minutes away from your very own highly configurable Kubernetes cluster. What are you waiting for?</p>
-      <button mat-raised-button [routerLink]="['/clusters/new']" type="button">SPIN UP</button>
+      <div class="button-wrapper">
+        <button mat-raised-button [routerLink]="['/clusters/new']" type="button">SPIN UP A CLUSTER</button>
+        <button mat-raised-button [routerLink]="['/clusters/import']" type="button">IMPORT A CLUSTER</button>
+      </div>
     </div>
   </div>
 
@@ -13,8 +16,8 @@
     <div class="providers"></div>
 
     <div class="communication">
-      <h1 class="headline">Welcome to Supergiant.</h1>
-      <p class="description">Link an AWS, GCE or Digital Ocean account and have a Supergiant cluster up in minutes</p>
+      <h1 class="headline">Welcome to Control.</h1>
+      <p class="description">Link an AWS, GCE, Azure, or Digital Ocean account and have a Supergiant cluster up in minutes</p>
       <button mat-raised-button [routerLink]="['/system/cloud-accounts/new']" type="button">LINK AN ACCOUNT</button>
     </div>
   </div>

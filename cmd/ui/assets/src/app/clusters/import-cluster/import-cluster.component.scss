@@ -2,33 +2,40 @@
 
   .warning-wrapper {
     display: flex;
+    justify-content: space-between;
+    margin: 48px auto;
+    height: 296px;
+    width: 1080px;
 
     .aws-svg {
-      width: 770px;
-      height: 530px;
-      margin: -70px 0 0 50px;
-      position: absolute;
+      background: url('/assets/img/illustr_cloud_aws.svg') center no-repeat;
+      height: 297px;
+      width: 471px;
     }
 
     .no-cloud-accounts {
-      align-items: center;
       display: flex;
       flex-direction: column;
-      margin: 54px 0 0 485px;
-      padding: 24px 0px;
-      width: 600px;
+      align-items: flex-start;
+      width: 541px;
 
-      h2 {
+      .headline {
+        color: #d10088;
+        display: block;
         font-family: "Montserrat", sans-serif;
-        font-size: 32px;
-        font-weight: 300;
-        margin-bottom: 24px;
+        // font-size: 36px;
+        line-height: 55px;
       }
 
-      p {
+      .description {
         font-size: 18px;
-        font-weight: 300;
-        margin-bottom: 24px;
+        margin-top: 20px;
+      }
+
+      button {
+        background-image: linear-gradient(315deg, #8721ff, #8b22fb 18%, #ff457e);
+        box-shadow: 0px 0px 30px rgba(255, 0, 235, 0.64);
+        margin-top: 40px;
       }
     }
   }
@@ -95,11 +102,23 @@
   }
 }
 
-.select-filter {
-  position: relative;
+.sticky-filter-wrapper {
+  position: sticky;
   padding: 10px !important;
+  z-index: 100;
+  top: 0;
+  background-color: #424242;
+  border-bottom: 1px solid rgba(255,255,255,0.25);
 }
 
 .mat-spinner {
   display: inline-block;
+}
+
+.mat-hint {
+  align-self: flex-end;
+  color: rgba(255, 255, 255, 0.7);
+  font-size: 12px;
+  font-style: italic;
+  margin-left: auto;
 }

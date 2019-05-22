@@ -1,6 +1,7 @@
 package provisioner
 
 import (
+	"bytes"
 	"context"
 	"fmt"
 	"io"
@@ -12,14 +13,20 @@ import (
 
 	"k8s.io/kubernetes/cmd/kubeadm/app/phases/copycerts"
 
+	"github.com/supergiant/control/pkg/clouds"
+
 	"github.com/supergiant/control/pkg/model"
 	"github.com/supergiant/control/pkg/pki"
 	"github.com/supergiant/control/pkg/profile"
+	"github.com/supergiant/control/pkg/runner/dry"
 	"github.com/supergiant/control/pkg/sgerrors"
 	"github.com/supergiant/control/pkg/storage"
+	"github.com/supergiant/control/pkg/storage/memory"
 	"github.com/supergiant/control/pkg/util"
 	"github.com/supergiant/control/pkg/workflows"
+	"github.com/supergiant/control/pkg/workflows/statuses"
 	"github.com/supergiant/control/pkg/workflows/steps"
+	"github.com/supergiant/control/pkg/workflows/steps/configmap"
 )
 
 type KubeService interface {
@@ -51,6 +58,15 @@ func NewProvisioner(repository storage.Interface, kubeService KubeService,
 		rateLimiter: NewRateLimiter(spawnInterval),
 		cancelMap:   make(map[string]func()),
 	}
+}
+
+type bufferCloser struct {
+	io.Writer
+	err error
+}
+
+func (b *bufferCloser) Close() error {
+	return b.err
 }
 
 // ProvisionCluster runs provisionCluster process among nodes
@@ -99,6 +115,8 @@ func (tp *TaskProvisioner) ProvisionCluster(parentContext context.Context,
 	go tp.monitorClusterState(ctx, config.ClusterID, config.NodeChan(),
 		config.KubeStateChan(), config.ConfigChan())
 	go tp.provision(ctx, taskMap, clusterProfile)
+	// Move cluster to provisioning state
+	config.KubeStateChan() <- model.StateProvisioning
 
 	return taskMap, nil
 }
@@ -126,6 +144,8 @@ func (tp *TaskProvisioner) ProvisionNodes(parentContext context.Context, nodePro
 
 	tasks := make([]string, 0, len(nodeProfiles))
 
+
+	// TODO(stgleb): do this in async to avoid blocking the UI
 	for _, nodeProfile := range nodeProfiles {
 		// Protect cloud API with rate limiter
 		tp.rateLimiter.Take()
@@ -155,14 +175,17 @@ func (tp *TaskProvisioner) ProvisionNodes(parentContext context.Context, nodePro
 		config.TaskID = t.ID
 		errChan := t.Run(ctx, *config, writer)
 
-		go func(cfg *steps.Config, errChan chan error) {
+		go func(task *workflows.Task, cfg *steps.Config, errChan chan error) {
 			err = <-errChan
 
 			if err != nil {
+				task.Config.Node.State = model.MachineStateError
+				task.Config.AddNode(&task.Config.Node)
+				task.Config.NodeChan() <- task.Config.Node
 				logrus.Errorf("add node to cluster %s caused an error %v", kube.ID, err)
 				return
 			}
-		}(config, errChan)
+		}(t, config, errChan)
 	}
 
 	return tasks, nil
@@ -198,8 +221,11 @@ func (tp *TaskProvisioner) RestartClusterProvisioning(parentCtx context.Context,
 	go tp.monitorClusterState(ctx, config.ClusterID,
 		config.NodeChan(), config.KubeStateChan(), config.ConfigChan())
 	go tp.provision(ctx, taskMap, clusterProfile)
-	// Restore provisioning state for cluster
-	config.KubeStateChan() <- model.StateProvisioning
+
+	if config != nil && config.Kube.State != model.StateOperational {
+		// Restore provisioning state for failed cluster
+		config.KubeStateChan() <- model.StateProvisioning
+	}
 
 	return nil
 }
@@ -211,10 +237,11 @@ func (tp *TaskProvisioner) provision(ctx context.Context,
 
 	config := preProvisionTask[0].Config
 	if preProvisionTask != nil && len(preProvisionTask) > 0 {
-		logrus.Debugf("Restart preprovision task %s",
+		logrus.Debugf("preprovision task %s",
 			preProvisionTask[0].ID)
 
 		if preProvisionErr := tp.preProvision(ctx, preProvisionTask[0], config); preProvisionErr != nil {
+			config.KubeStateChan() <- model.StateFailed
 			logrus.Errorf("Pre provisioning cluster %v", preProvisionErr)
 			return
 		}
@@ -225,10 +252,6 @@ func (tp *TaskProvisioner) provision(ctx context.Context,
 		config.SetNodeChan(nodeChan)
 		config.SetConfigChan(configChan)
 	}
-
-	// Update kube state
-	logrus.Debug("update kube state")
-	config.KubeStateChan() <- model.StateProvisioning
 
 	if len(taskMap[workflows.MasterTask]) == 0 {
 		return
@@ -364,6 +387,7 @@ func (tp *TaskProvisioner) preProvision(ctx context.Context, preProvisionTask *w
 
 	result := preProvisionTask.Run(ctx, *config, out)
 	err = <-result
+	config.ConfigChan() <- preProvisionTask.Config
 
 	if err != nil {
 		logrus.Errorf("pre provision task %s has finished with error %v",
@@ -372,7 +396,6 @@ func (tp *TaskProvisioner) preProvision(ctx context.Context, preProvisionTask *w
 	}
 
 	logrus.Infof("pre provision task %s has finished", preProvisionTask.ID)
-	config.ConfigChan() <- preProvisionTask.Config
 
 	return err
 }
@@ -407,6 +430,7 @@ func (tp *TaskProvisioner) bootstrapMaster(ctx context.Context,
 	bootstrapTask.Config.IsMaster = true
 
 	err = <-bootstrapTask.Run(ctx, *bootstrapTask.Config, out)
+	rootConfig.ConfigChan() <- bootstrapTask.Config
 
 	if err != nil {
 		logrus.Errorf("bootstrap task %s has finished with error %v", bootstrapTask.ID, err)
@@ -416,7 +440,6 @@ func (tp *TaskProvisioner) bootstrapMaster(ctx context.Context,
 	}
 
 	logrus.Infof("bootstrap task %s has finished", bootstrapTask.ID)
-	rootConfig.ConfigChan() <- bootstrapTask.Config
 
 	return nil
 }
@@ -428,9 +451,26 @@ func (tp *TaskProvisioner) provisionMasters(ctx context.Context,
 		return nil
 	}
 
+	wg := sync.WaitGroup{}
+	errChan := make(chan error)
+
+	for index := range tasks {
+		task := tasks[index]
+
+		// We need to wait only for not finished tasks
+		if task.Status != statuses.Success {
+			wg.Add(1)
+		}
+	}
+
 	rootConfig.IsMaster = true
 	// ProvisionCluster rest of master nodes master nodes
 	for index, masterTask := range tasks {
+		// When this is restart code - don't process task that succeed
+		if masterTask.Status == statuses.Success || masterTask.Status == statuses.Executing {
+			continue
+		}
+
 		// Take token that allows perform action with Cloud Provider API
 		tp.rateLimiter.Take()
 
@@ -455,6 +495,8 @@ func (tp *TaskProvisioner) provisionMasters(ctx context.Context,
 		}
 
 		go func(t *workflows.Task) {
+			defer wg.Done()
+
 			// Put task id to config so that create instance step can use this id when generate node name
 			t.Config.TaskID = t.ID
 			t.Config.IsMaster = true
@@ -462,6 +504,7 @@ func (tp *TaskProvisioner) provisionMasters(ctx context.Context,
 
 			result := t.Run(ctx, *t.Config, out)
 			err = <-result
+			errChan <- err
 
 			if err != nil {
 				logrus.Errorf("master task %s has finished with error %v", t.ID, err)
@@ -471,7 +514,12 @@ func (tp *TaskProvisioner) provisionMasters(ctx context.Context,
 		}(masterTask)
 	}
 
-	return nil
+	go func() {
+		wg.Wait()
+		close(errChan)
+	}()
+
+	return <-errChan
 }
 
 func (tp *TaskProvisioner) provisionNodes(ctx context.Context, profile *profile.Profile, rootConfig *steps.Config, tasks []*workflows.Task) error {
@@ -480,6 +528,11 @@ func (tp *TaskProvisioner) provisionNodes(ctx context.Context, profile *profile.
 
 	// ProvisionCluster nodes
 	for index, nodeTask := range tasks {
+		// When this is restart code - don't process task that succeed
+		if nodeTask.Status == statuses.Success || nodeTask.Status == statuses.Executing {
+			continue
+		}
+
 		// Take token that allows perform action with Cloud Provider API
 		tp.rateLimiter.Take()
 
@@ -511,6 +564,11 @@ func (tp *TaskProvisioner) provisionNodes(ctx context.Context, profile *profile.
 			err = <-result
 
 			if err != nil {
+				// Put node to error state
+				t.Config.Node.State = model.MachineStateError
+				t.Config.AddNode(&t.Config.Node)
+				t.Config.NodeChan() <- t.Config.Node
+
 				logrus.Errorf("node task %s has finished with error %v", t.ID, err)
 			} else {
 				logrus.Infof("node-task %s has finished", t.ID)
@@ -532,8 +590,20 @@ func (tp *TaskProvisioner) waitCluster(ctx context.Context, clusterTask *workflo
 		return errors.Wrapf(err, "Error getting writer for %s", fileName)
 	}
 
+	// Build node provision script and save it to ConfigMap
+	buildNodeProvisionScript(ctx, config)
+
 	cfg := *config
-	result := clusterTask.Run(ctx, cfg, out)
+
+	// Get master node to run cluster task
+	if master := config.GetMaster(); master != nil {
+		logrus.Printf("Change one master %v to another %v", *master, cfg.Node)
+		cfg.Node = *master
+	} else {
+		return errors.New("No master found, cluster deployment failed")
+	}
+	clusterTask.Config = &cfg
+	result := clusterTask.Run(ctx, *clusterTask.Config, out)
 	err = <-result
 
 	if err != nil {
@@ -541,6 +611,43 @@ func (tp *TaskProvisioner) waitCluster(ctx context.Context, clusterTask *workflo
 	}
 
 	return nil
+}
+
+func buildNodeProvisionScript(ctx context.Context, config *steps.Config) {
+	// Prepare config for confimap step
+	dryRunner := dry.NewDryRunner()
+	repository := memory.NewInMemoryRepository()
+
+	dryConfig := *config
+	// These values must still be templated
+	dryConfig.Node.PublicIp = "{{ .PublicIp }}"
+	dryConfig.Node.PrivateIp = "{{ .PrivateIp }}"
+	dryConfig.ExternalDNSName = fmt.Sprintf("{{ .%s }}", configmap.KubeAddr)
+	dryConfig.Runner = dryRunner
+	dryConfig.DryRun = true
+
+	if config.Provider == clouds.AWS {
+		// https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/using-instance-addressing.html#using-instance-addressing-common
+		dryConfig.Node.PublicIp = "$(curl http://169.254.169.254/latest/meta-data/public-ipv4)"
+		dryConfig.Node.PrivateIp = "$(curl http://169.254.169.254/latest/meta-data/local-ipv4)"
+	}
+
+	task, err := workflows.NewTask(&dryConfig, workflows.ProvisionNode, repository)
+
+	if err != nil {
+		return
+	}
+
+	task.Config = &dryConfig
+	resultChan := task.Run(ctx, dryConfig, &bufferCloser{
+		Writer: &bytes.Buffer{},
+	})
+
+	if err := <-resultChan; err != nil {
+		return
+	}
+
+	config.ConfigMap.Data = dryRunner.GetOutput()
 }
 
 func (tp *TaskProvisioner) buildInitialCluster(ctx context.Context,
@@ -682,6 +789,7 @@ func (tp *TaskProvisioner) monitorClusterState(ctx context.Context,
 				continue
 			}
 
+			logrus.Debugf("update kube %s with config %v", k.ID, config)
 			util.UpdateKubeWithCloudSpecificData(k, config)
 
 			err = tp.kubeService.Create(ctx, k)

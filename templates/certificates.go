@@ -1,3 +1,6 @@
+package templates
+
+const certificatesTpl = `
 {{ if .IsBootstrap }}
 
 sudo mkdir -p /etc/kubernetes
@@ -12,3 +15,4 @@ sudo bash -c "cat > /etc/kubernetes/pki/ca.key <<EOF
 {{ .CAKey }}EOF"
 
 {{ end }}
+`

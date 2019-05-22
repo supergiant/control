@@ -1,8 +1,10 @@
 import { Component, OnInit }      from '@angular/core';
-import { FormBuilder, FormGroup } from '@angular/forms';
+import { FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { HttpClient }             from '@angular/common/http';
+import { Router } from '@angular/router';
 import { catchError }             from 'rxjs/operators';
 import { of }                     from 'rxjs';
+import { MatDialogRef } from '@angular/material';
 import { Notifications }          from '../../../shared/notifications/notifications.service';
 
 @Component({
@@ -12,24 +14,34 @@ import { Notifications }          from '../../../shared/notifications/notificati
 })
 export class AppsAddComponent implements OnInit {
   addRepositoryForm: FormGroup;
-  isProcessing: boolean;
+  isProcessing: boolean = false;
+  disableSubmit: boolean ;
 
   constructor(
     private formBuilder: FormBuilder,
     private http: HttpClient,
     private notifications: Notifications,
+    private router: Router,
+    private dialogRef: MatDialogRef<AppsAddComponent>
   ) {
   }
 
   ngOnInit() {
+    const pattern = new RegExp('^[a-zA-Z0-9-_]+$');
     this.addRepositoryForm = this.formBuilder.group({
-      name: [ '' ],
-      url: [ '' ],
+      name: [ '', [Validators.required, Validators.pattern(pattern)] ],
+      url: [ '', Validators.required ],
     });
+    this.updateValidity();
+  }
 
-    this.http.get('/v1/api/helm/repositories').subscribe( res => {
-      console.log(res);
-    });
+  get name() {
+    return this.addRepositoryForm.get("name");
+  }
+
+  updateValidity() {
+    this.addRepositoryForm.updateValueAndValidity();
+    this.disableSubmit = (this.isProcessing || this.addRepositoryForm.invalid);
   }
 
   addRepository() {
@@ -46,10 +58,11 @@ export class AppsAddComponent implements OnInit {
       })
     ).subscribe(result => {
       this.isProcessing = false;
+      const repoName = this.addRepositoryForm.value.name;
       this.addRepositoryForm.enable();
-      // TODO
       if (!(result instanceof ErrorEvent)) {
-        window.location.reload();
+        this.router.navigate(['/catalog/', repoName]);
+        this.dialogRef.close()
       }
     });
   }

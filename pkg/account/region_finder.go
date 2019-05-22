@@ -2,6 +2,7 @@ package account
 
 import (
 	"context"
+	"github.com/supergiant/control/pkg/clouds/gcesdk"
 	"strconv"
 	"strings"
 	"sync"
@@ -25,7 +26,6 @@ import (
 	"github.com/supergiant/control/pkg/util"
 	"github.com/supergiant/control/pkg/util/strset"
 	"github.com/supergiant/control/pkg/workflows/steps"
-	"github.com/supergiant/control/pkg/workflows/steps/gce"
 )
 
 var (
@@ -314,7 +314,7 @@ func NewGCEFinder(acc *model.CloudAccount, config *steps.Config) (*GCEResourceFi
 		return nil, errors.Wrap(err, "create gce finder")
 	}
 
-	client, err := gce.GetClient(context.Background(),
+	client, err := gcesdk.GetClient(context.Background(),
 		config.GCEConfig)
 
 	if err != nil {

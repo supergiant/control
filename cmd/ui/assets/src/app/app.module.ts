@@ -127,6 +127,7 @@ import { DeleteReleaseModalComponent } from './clusters/cluster/delete-release-m
 import { SshCommandsModalComponent }   from './clusters/cluster/ssh-commands-modal/ssh-commands-modal.component';
 import { KubectlConfigModalComponent } from './clusters/cluster/kubectl-config-modal/kubectl-config-modal.component';
 import { ReleaseInfoModalComponent }   from './clusters/cluster/release-info-modal/release-info-modal.component';
+import { PublicKeyModalComponent }     from './clusters/new-cluster/public-key-modal/public-key-modal.component';
 import { CallbackPipe }                from './callback.pipe';
 import { ImportClusterComponent } from './clusters/import-cluster/import-cluster.component';
 
@@ -168,6 +169,7 @@ import { ImportClusterComponent } from './clusters/import-cluster/import-cluster
     SshCommandsModalComponent,
     KubectlConfigModalComponent,
     ReleaseInfoModalComponent,
+    PublicKeyModalComponent,
     CallbackPipe,
     ImportClusterComponent,
   ],
@@ -272,6 +274,7 @@ import { ImportClusterComponent } from './clusters/import-cluster/import-cluster
     SshCommandsModalComponent,
     KubectlConfigModalComponent,
     ReleaseInfoModalComponent,
+    PublicKeyModalComponent,
   ],
   bootstrap: [AppComponent],
 })

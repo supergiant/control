@@ -42,12 +42,21 @@ func (s *CreateLoadBalancerStep) Run(ctx context.Context, output io.Writer, conf
 		ForwardingRules: []godo.ForwardingRule{
 			{
 				EntryPort:      443,
-				EntryProtocol:  "HTTPS",
+				EntryProtocol:  "TCP",
 				TargetPort:     443,
-				TargetProtocol: "HTTPS",
-				// NOTE(stgleb): Sticky sessions won't work with TLS passthrough
-				// https://www.digitalocean.com/docs/networking/load-balancers/how-to/ssl-passthrough/
-				TlsPassthrough: true,
+				TargetProtocol: "TCP",
+			},
+			{
+				EntryPort:      2379,
+				EntryProtocol:  "TCP",
+				TargetPort:     2379,
+				TargetProtocol: "TCP",
+			},
+			{
+				EntryPort:      2380,
+				EntryProtocol:  "TCP",
+				TargetPort:     2380,
+				TargetProtocol: "TCP",
 			},
 		},
 		HealthCheck: &godo.HealthCheck{
@@ -106,12 +115,21 @@ func (s *CreateLoadBalancerStep) Run(ctx context.Context, output io.Writer, conf
 		ForwardingRules: []godo.ForwardingRule{
 			{
 				EntryPort:      443,
-				EntryProtocol:  "HTTPS",
+				EntryProtocol:  "TCP",
 				TargetPort:     443,
-				TargetProtocol: "HTTPS",
-				// NOTE(stgleb): Sticky sessions won't work with TLS passthrough
-				// https://www.digitalocean.com/docs/networking/load-balancers/how-to/ssl-passthrough/
-				TlsPassthrough: true,
+				TargetProtocol: "TCP",
+				},
+			{
+				EntryPort:      2379,
+				EntryProtocol:  "TCP",
+				TargetPort:     2379,
+				TargetProtocol: "TCP",
+			},
+			{
+				EntryPort:      2380,
+				EntryProtocol:  "TCP",
+				TargetPort:     2380,
+				TargetProtocol: "TCP",
 			},
 		},
 		HealthCheck: &godo.HealthCheck{

@@ -1,8 +1,12 @@
+package templates
+
+const networkTpl = `
 {{ if .IsBootstrap }}
 
 # wait when apiserver is up and running
 
-until $([ $(sudo kubectl get po -n kube-system|grep apiserver |grep Running|wc -l) -ge 1 ]); do printf '.'; sleep 5; done
+sudo kubectl get po
+until $([  $? -lt 1 ]); do sudo kubectl get po; sleep 5; done
 
 {{ if eq .NetworkProvider "Flannel" }}
 sudo bash -c 'cat << EOF > flannel.yaml
@@ -1268,3 +1272,4 @@ EOF"
 sudo kubectl create -f weave.yaml
 {{ end }}
 {{ end }}
+`

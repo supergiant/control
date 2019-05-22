@@ -1,6 +1,6 @@
 <mat-card>
   <mat-card-header>
-    <h1>Adding node to "{{ clusterName }}" cluster</h1>
+    <h1>Add a node to "{{ clusterName }}" cluster</h1>
   </mat-card-header>
   <mat-card-content>
 
@@ -22,15 +22,16 @@
       <mat-select placeholder="Machine Type (size)"
                   [disabled]="!m.availabilityZone && ((provider$ | async)  === 'aws' || (provider$ | async)  === 'gce')"
                   [(value)]="m.machineType"
-                  (openedChange)="machineTypesFilter = ''"
+                  (openedChange)="[m.filter = '', machineFilter.focus()]"
                   (selectionChange)="checkAndSetValidMachineConfig()">
-        <input class="machine-types-filter"
-               matInput
-               type="text"
-               placeholder="Filter machines..."
-               [(ngModel)]="machineTypesFilter"
-               autofocus>
-      <mat-option *ngFor="let type of (machineSizes$ | async) | callback: filterCallback"
+        <div class="sticky-filter-wrapper">
+          <input #machineFilter
+                 matInput
+                 type="text"
+                 placeholder="Filter machines..."
+                 [(ngModel)]="m.filter">
+        </div>
+      <mat-option *ngFor="let type of (machineSizes$ | async) | callback: m.filter"
                   [value]="type">{{ type }}</mat-option>
       </mat-select>
       </mat-form-field>
@@ -105,7 +106,7 @@
               class="submit-btn"
               (click)="finish()"
               [disabled]="!validMachinesConfig || isProcessing">
-        <span [hidden]="isProcessing">Finish</span>
+        <span [hidden]="isProcessing">FINISH</span>
         <mat-progress-spinner [diameter]="24"
                               [mode]="'indeterminate'"
                               [color]="'warn'"

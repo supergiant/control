@@ -67,19 +67,19 @@ export class AppsListComponent implements OnInit {
       width: '300px',
     });
 
-    const deleteReqest$ = this.http.delete(`/v1/api/helm/repositories/${this.repo}`);
+    const deleteRequest$ = this.http.delete(`/v1/api/helm/repositories/${this.repo}`);
 
     dialogRef
       .afterClosed()
       .pipe(
         filter(confirm => confirm),
-        map(_ => deleteReqest$),
+        map(_ => deleteRequest$),
         switchMap(result => result)
       ).subscribe((result) => {
         // TODO: progress spinner
         // TODO: handle error
         this.router.navigate(['../'], { relativeTo: this.route });
-        window.location.reload();
+        // window.location.reload();
       }
     );
   }
@@ -123,7 +123,7 @@ export class AppsListComponent implements OnInit {
   }
 
   addRepo() {
-    this.dialog.open(AppsAddComponent);
+    this.dialog.open(AppsAddComponent, { width: "350px" });
   }
 
 }

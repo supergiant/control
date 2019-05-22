@@ -2,6 +2,8 @@ package amazon
 
 import (
 	"context"
+	"fmt"
+	"github.com/supergiant/control/pkg/clouds"
 	"io"
 
 	"github.com/aws/aws-sdk-go/aws"
@@ -58,7 +60,7 @@ func (s *DeleteNodeStep) Run(ctx context.Context, w io.Writer, cfg *steps.Config
 	describeInstanceOutput, err := svc.DescribeInstancesWithContext(ctx, &ec2.DescribeInstancesInput{
 		Filters: []*ec2.Filter{
 			{
-				Name:   aws.String("tag:Name"),
+				Name:   aws.String(fmt.Sprintf("tag:%s",clouds.TagNodeName)),
 				Values: aws.StringSlice([]string{cfg.Node.Name}),
 			},
 		},

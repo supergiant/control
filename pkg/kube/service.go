@@ -23,6 +23,7 @@ import (
 	"k8s.io/helm/pkg/proto/hapi/release"
 	"k8s.io/helm/pkg/timeconv"
 
+	"github.com/supergiant/control/pkg/kubeconfig"
 	"github.com/supergiant/control/pkg/model"
 	"github.com/supergiant/control/pkg/runner/ssh"
 	"github.com/supergiant/control/pkg/sgerrors"
@@ -87,8 +88,8 @@ type Service struct {
 // NewService constructs a Service.
 func NewService(prefix string, s storage.Interface, chrtGetter ChartGetter) *Service {
 	return &Service{
-		clientForGroupFn: restClientForGroupVersion,
-		corev1ClientFn:   corev1Client,
+		clientForGroupFn: kubeconfig.RestClientForGroupVersion,
+		corev1ClientFn:   kubeconfig.CoreV1Client,
 		newHelmProxyFn:   helmProxyFrom,
 		chrtGetter:       chrtGetter,
 		prefix:           prefix,
@@ -239,7 +240,7 @@ func (s Service) KubeConfigFor(ctx context.Context, kubeID, user string) ([]byte
 		return nil, errors.Wrapf(err, "get %s model", kubeID)
 	}
 
-	kubeconfig, err := adminKubeConfig(kube)
+	kubeconfig, err := kubeconfig.AdminKubeConfig(kube)
 	if err != nil {
 		return nil, err
 	}

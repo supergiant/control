@@ -1,7 +1,15 @@
 package kube
 
 import (
+	"context"
 	"fmt"
+	"github.com/aws/aws-sdk-go/aws"
+	"github.com/aws/aws-sdk-go/service/ec2"
+	"github.com/sirupsen/logrus"
+	"github.com/supergiant/control/pkg/clouds"
+	"github.com/supergiant/control/pkg/util"
+	"github.com/supergiant/control/pkg/workflows/steps"
+	"github.com/supergiant/control/pkg/workflows/steps/amazon"
 	"strings"
 
 	"github.com/pkg/errors"
@@ -75,4 +83,78 @@ func kubeFromKubeConfig(kubeConfig clientcmddapi.Config) (*model.Kube, error) {
 			AdminKey:  string(authInfo.ClientKeyData),
 		},
 	}, nil
+}
+
+func syncMachines(ctx context.Context, k *model.Kube, account *model.CloudAccount) error {
+	config := &steps.Config{}
+	if err := util.FillCloudAccountCredentials(account, config); err != nil {
+		return errors.Wrap(err, "error fill cloud account credentials")
+	}
+
+	config.AWSConfig.Region = k.Region
+	EC2, err := amazon.GetEC2(config.AWSConfig)
+
+	if err != nil {
+		return errors.Wrap(sgerrors.ErrInvalidCredentials, err.Error())
+	}
+
+	describeInstanceOutput, err := EC2.DescribeInstancesWithContext(ctx, &ec2.DescribeInstancesInput{
+		Filters: []*ec2.Filter{
+			{
+				Name:   aws.String(fmt.Sprintf("tag:%s", clouds.TagClusterID)),
+				Values: aws.StringSlice([]string{k.ID}),
+			},
+		},
+	})
+
+	if err != nil {
+		return errors.Wrap(err, "describe instances")
+	}
+
+	for _, res := range describeInstanceOutput.Reservations {
+		for _, instance := range res.Instances {
+			node := &model.Machine{
+				Size:      *instance.InstanceType,
+				State:     model.MachineStateActive,
+				Role:      model.RoleNode,
+				Region:    k.Region,
+			}
+
+			if instance.PublicIpAddress != nil {
+				node.PublicIp = *instance.PublicIpAddress
+			}
+
+			if instance.PrivateIpAddress != nil {
+				node.PrivateIp = *instance.PrivateIpAddress
+			}
+
+			for _, tag := range instance.Tags {
+				if tag.Key != nil && *tag.Key == clouds.TagNodeName {
+					node.Name = *tag.Value
+				}
+			}
+
+			isFound := false
+
+			for _, machine := range k.Nodes {
+				if instance.PrivateIpAddress != nil && machine.PrivateIp == *instance.PrivateIpAddress {
+					isFound = true
+				}
+			}
+
+			var state int64
+
+			if instance.State != nil && instance.State.Code != nil {
+				state = *instance.State.Code
+			}
+
+			// If node is new in workers and it is not a master
+			if !isFound && k.Masters[node.Name] == nil && state == 16 {
+				logrus.Debugf("Add new node %v", node)
+				k.Nodes[node.Name] = node
+			}
+		}
+	}
+
+	return nil
 }

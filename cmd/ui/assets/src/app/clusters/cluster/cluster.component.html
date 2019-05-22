@@ -77,14 +77,15 @@
           <mat-header-cell *matHeaderCellDef>Status</mat-header-cell>
           <mat-cell class="task-status"
                     *matCellDef="let task">
-            <mat-spinner class="executing-spinner"
-                         *ngIf="task?.status == 'executing'"
-                         [diameter]="24"></mat-spinner>
-            <div class="ready-icon"
-                 *ngIf="task?.status == 'success'"></div>
-            <div class="failed-icon"
-                 *ngIf="task?.status == 'error'"></div>
-            <span style="padding-left: 12px;">{{ task.status | titlecase }}</span>
+            <div class="status-icon">
+              <mat-spinner *ngIf="task?.status == 'executing'"
+                           [diameter]="24"></mat-spinner>
+              <div class="ready-icon"
+                   *ngIf="task?.status == 'success'"></div>
+              <div class="failed-icon"
+                   *ngIf="task?.status == 'error'"></div>
+            </div>
+            <span>{{ task.status | titlecase }}</span>
           </mat-cell>
         </ng-container>
 
@@ -202,6 +203,8 @@
           <span>{{ kube.rbacEnabled }}</span>
         </div>
       </div>
+
+      <div class="spacer"></div>
 
       <div class="getting-started">
         <p class="action" (click)="showSshCommands()"><span>ssh</span> TO THIS CLUSTER</p>
@@ -446,7 +449,7 @@
         <ng-container matColumnDef="expandedDetail">
           <mat-cell class="expanded-tasks"
                     *matCellDef="let detail">
-            <p *ngFor="let step of detail.t.stepsStatuses; trackBy: trackByFn">
+            <p *ngFor="let step of detail.t?.stepsStatuses; trackBy: trackByFn">
               {{ step.stepName }}
               <span *ngIf=" step.status == 'executing' "
                     class="current-step"><span>.</span><span>.</span><span>.</span></span>
@@ -467,7 +470,7 @@
         <mat-row *matRowDef="let row; columns: nonActiveMachineListColumns"></mat-row>
         <mat-row class="detail-row"
                  *matRowDef="let row; columns: ['expandedDetail']; when: expandRow"
-                 [@detailExpand]="expandedTaskIds.has(row.t.id) ? 'expanded' : 'collapsed'"></mat-row>
+                 [@detailExpand]="expandedTaskIds.has(row.t?.id) ? 'expanded' : 'collapsed'"></mat-row>
       </mat-table>
 
       <!-- <a class="new-link" routerLink="add-node">

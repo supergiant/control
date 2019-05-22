@@ -3,8 +3,8 @@ package digitalocean
 import (
 	"context"
 	"io"
+	"time"
 
-	"github.com/pkg/errors"
 	"github.com/sirupsen/logrus"
 
 	"github.com/supergiant/control/pkg/clouds/digitaloceansdk"
@@ -12,11 +12,16 @@ import (
 )
 
 type DeleteLoadBalancerStep struct {
+	attemptCount int
+	timeout time.Duration
+
 	getServices func(string) LoadBalancerService
 }
 
 func NewDeleteLoadBalancerStep() *DeleteLoadBalancerStep {
 	return &DeleteLoadBalancerStep{
+		attemptCount: 5,
+		timeout: time.Second * 10,
 		getServices: func(accessToken string) LoadBalancerService {
 			client := digitaloceansdk.New(accessToken).GetClient()
 
@@ -32,14 +37,12 @@ func (s *DeleteLoadBalancerStep) Run(ctx context.Context, output io.Writer, conf
 
 	if err != nil {
 		logrus.Errorf("Error deleting external load balancer %s %v", config.DigitalOceanConfig.ExternalLoadBalancerID, err)
-		return errors.Wrapf(err, "Error deleting external load balancer %s", config.DigitalOceanConfig.ExternalLoadBalancerID)
 	}
 
 	_, err = lbSvc.Delete(ctx, config.DigitalOceanConfig.InternalLoadBalancerID)
 
 	if err != nil {
 		logrus.Errorf("Error deleting internal load balancer %s %v", config.DigitalOceanConfig.InternalLoadBalancerID, err)
-		return errors.Wrapf(err, "Errordeleting internal load balancer %s", config.DigitalOceanConfig.InternalLoadBalancerID)
 	}
 
 	return nil
