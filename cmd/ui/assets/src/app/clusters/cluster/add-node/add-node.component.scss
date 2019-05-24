@@ -136,3 +136,7 @@
   background-color: #424242;
   border-bottom: 1px solid rgba(255,255,255,0.25);
 }
+
+::ng-deep .mat-form-field-required-marker {
+  color: #D10088;
+}
