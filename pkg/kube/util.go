@@ -3,14 +3,18 @@ package kube
 import (
 	"context"
 	"fmt"
+	"strings"
+	"time"
+
 	"github.com/aws/aws-sdk-go/aws"
+	"github.com/aws/aws-sdk-go/aws/awserr"
 	"github.com/aws/aws-sdk-go/service/ec2"
+	"github.com/pborman/uuid"
 	"github.com/sirupsen/logrus"
 	"github.com/supergiant/control/pkg/clouds"
 	"github.com/supergiant/control/pkg/util"
 	"github.com/supergiant/control/pkg/workflows/steps"
 	"github.com/supergiant/control/pkg/workflows/steps/amazon"
-	"strings"
 
 	"github.com/pkg/errors"
 	clientcmddapi "k8s.io/client-go/tools/clientcmd/api"
@@ -114,10 +118,10 @@ func syncMachines(ctx context.Context, k *model.Kube, account *model.CloudAccoun
 	for _, res := range describeInstanceOutput.Reservations {
 		for _, instance := range res.Instances {
 			node := &model.Machine{
-				Size:      *instance.InstanceType,
-				State:     model.MachineStateActive,
-				Role:      model.RoleNode,
-				Region:    k.Region,
+				Size:   *instance.InstanceType,
+				State:  model.MachineStateActive,
+				Role:   model.RoleNode,
+				Region: k.Region,
 			}
 
 			if instance.PublicIpAddress != nil {
@@ -154,6 +158,114 @@ func syncMachines(ctx context.Context, k *model.Kube, account *model.CloudAccoun
 				k.Nodes[node.Name] = node
 			}
 		}
+	}
+
+	return nil
+}
+
+func createSpotInstance(req *SpotRequest, config *steps.Config) error {
+	switch config.Provider {
+	case clouds.AWS:
+		return createAwsSpotInstance(req, config)
+	}
+
+	return sgerrors.ErrUnsupportedProvider
+}
+
+func createAwsSpotInstance(req *SpotRequest, config *steps.Config) error {
+	svc, err := amazon.GetEC2(config.AWSConfig)
+
+	if err != nil {
+		return errors.Wrap(err, "get EC2 client")
+	}
+
+	input := &ec2.RequestSpotInstancesInput{
+		Type: aws.String("persistent"),
+		LaunchSpecification: &ec2.RequestSpotLaunchSpecification{
+			ImageId:      aws.String(config.AWSConfig.ImageID),
+			InstanceType: aws.String(config.AWSConfig.InstanceType),
+			KeyName:      aws.String(config.AWSConfig.KeyPairName),
+			SecurityGroups: []*string{
+				aws.String(config.AWSConfig.NodesSecurityGroupID),
+			},
+			BlockDeviceMappings: []*ec2.BlockDeviceMapping{
+				{
+					DeviceName: aws.String("/dev/sda1"),
+					Ebs: &ec2.EbsBlockDevice{
+						DeleteOnTermination: aws.Bool(false),
+						VolumeType:          aws.String("gp2"),
+						VolumeSize:          aws.Int64(10),
+					},
+				},
+			},
+		},
+		SpotPrice:     aws.String(req.SpotPrice),
+		ClientToken:   aws.String(uuid.New()),
+		InstanceCount: aws.Int64(1),
+		DryRun:        aws.Bool(config.DryRun),
+		ValidFrom:     aws.Time(time.Now().Add(time.Second * 10)),
+		// TODO(stgleb): pass this as a parameter
+		ValidUntil: aws.Time(time.Now().Add(time.Duration(1000) * time.Hour)),
+	}
+
+	result, err := svc.RequestSpotInstances(input)
+	if err != nil {
+		if aerr, ok := err.(awserr.Error); ok {
+			switch aerr.Code() {
+			default:
+				fmt.Println(aerr.Error())
+			}
+		} else {
+			// Print the error, cast err to awserr.Error to get the Code and
+			// Message from an error.
+			fmt.Println(err.Error())
+		}
+		return errors.Wrap(err, "request spot instance")
+	}
+
+	requestIds := make([]*string, 0)
+
+	for _, spot := range result.SpotInstanceRequests {
+		requestIds = append(requestIds, spot.SpotInstanceRequestId)
+	}
+
+	describeReq := &ec2.DescribeSpotInstanceRequestsInput{
+		DryRun:                 aws.Bool(false),
+		SpotInstanceRequestIds: requestIds,
+	}
+
+	spotRequests, err := svc.DescribeSpotInstanceRequests(describeReq)
+
+	if err != nil {
+		return errors.Wrap(err, "describe spot instance requests")
+	}
+
+	ec2Tags := []*ec2.Tag{
+		{
+			Key:   aws.String("KubernetesCluster"),
+			Value: aws.String(config.ClusterName),
+		},
+		{
+			Key:   aws.String(clouds.TagClusterID),
+			Value: aws.String(config.ClusterID),
+		},
+	}
+
+	tagInput := &ec2.CreateTagsInput{
+		Resources: []*string{},
+		Tags:      ec2Tags,
+	}
+
+	logrus.Debugf("Tag spot instance requests and spot instances")
+	for _, instance := range spotRequests.SpotInstanceRequests {
+		tagInput.Resources = append(tagInput.Resources, instance.InstanceId)
+		tagInput.Resources = append(tagInput.Resources, instance.SpotInstanceRequestId)
+	}
+
+	_, err = svc.CreateTags(tagInput)
+
+	if err != nil {
+		return errors.Wrap(err, "tagging spot instances")
 	}
 
 	return nil

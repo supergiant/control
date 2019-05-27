@@ -82,6 +82,11 @@ type MetricResponse struct {
 	} `json:"data"`
 }
 
+type SpotRequest struct {
+	SpotPrice   string `json:"spotPrice"`
+	MachineType string `json:"machineType"`
+}
+
 // Handler is a http controller for a kube entity.
 type Handler struct {
 	svc             Interface
@@ -179,12 +184,14 @@ func (h *Handler) Register(r *mux.Router) {
 
 	// DEPRECATED: has been moved to /kubes/{kubeID}/machines
 	r.HandleFunc("/kubes/{kubeID}/nodes", h.addMachine).Methods(http.MethodPost)
+
 	// DEPRECATED: has been moved to /kubes/{kubeID}/machines
 	r.HandleFunc("/kubes/{kubeID}/nodes/{nodename}", h.deleteMachine).Methods(http.MethodDelete)
 
 	r.HandleFunc("/kubes/{kubeID}/nodes", h.listNodes).Methods(http.MethodGet)
 
 	r.HandleFunc("/kubes/{kubeID}/machines", h.addMachine).Methods(http.MethodPost)
+	r.HandleFunc("/kubes/{kubeID}/spot", h.addSpotMachine).Methods(http.MethodPost)
 	r.HandleFunc("/kubes/{kubeID}/machines/{nodename}", h.deleteMachine).Methods(http.MethodDelete)
 
 	r.HandleFunc("/kubes/{kubeID}/nodes/metrics", h.getNodesMetrics).Methods(http.MethodGet)
@@ -1443,4 +1450,82 @@ func createKube(config *steps.Config, state model.KubeState, profile profile.Pro
 	}
 
 	return err
+}
+
+// Add spot instance machine to k8s cluster
+func (h *Handler) addSpotMachine(w http.ResponseWriter, r *http.Request) {
+	vars := mux.Vars(r)
+	kubeID := vars["kubeID"]
+	k, err := h.svc.Get(r.Context(), kubeID)
+
+	req := &SpotRequest{}
+
+	if err := json.NewDecoder(r.Body).Decode(req); err != nil {
+		message.SendInvalidJSON(w, err)
+		return
+	}
+
+	if sgerrors.IsNotFound(err) {
+		http.NotFound(w, r)
+		return
+	}
+
+	logrus.Debugf("Get cloud profile %s", k.ProfileID)
+	kubeProfile, err := h.profileSvc.Get(r.Context(), k.ProfileID)
+
+	if err != nil {
+		if sgerrors.IsNotFound(err) {
+			message.SendNotFound(w, k.ProfileID, err)
+			return
+		}
+
+		message.SendUnknownError(w, err)
+		return
+	}
+
+	config, err := steps.NewConfigFromKube(kubeProfile, k)
+	if err != nil {
+		logrus.Errorf("New config %v", err.Error())
+		message.SendUnknownError(w, err)
+		return
+	}
+
+	nodeProfiles := make([]profile.NodeProfile, 0)
+	err = json.NewDecoder(r.Body).Decode(&nodeProfiles)
+
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusBadRequest)
+		return
+	}
+
+	acc, err := h.accountService.Get(r.Context(), k.AccountName)
+
+	if sgerrors.IsNotFound(err) {
+		http.NotFound(w, r)
+		return
+	}
+
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+
+	// Get cloud account fill appropriate config structure
+	// with cloud account credentials
+	err = util.FillCloudAccountCredentials(acc, config)
+
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+
+	if err = util.LoadCloudSpecificDataFromKube(k, config); err != nil {
+		message.SendUnknownError(w, err)
+		return
+	}
+
+	if err := createSpotInstance(req, config); err != nil {
+		message.SendUnknownError(w, err)
+		return
+	}
 }

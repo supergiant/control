@@ -146,6 +146,8 @@ func LoadCloudSpecificDataFromKube(k *model.Kube, config *steps.Config) error {
 		return nil
 	}
 
+	config.ConfigMap.Data = k.UserData
+
 	switch config.Provider {
 	case clouds.AWS:
 		// Load AZ -> subnet mapping for cluster
