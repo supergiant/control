@@ -25,6 +25,7 @@ const (
 	NodeTask         = "node"
 	ClusterTask      = "cluster"
 	PreProvisionTask = "preprovision"
+	DeleteTask       = "delete_task"
 	ImportTask       = "import"
 )
 
