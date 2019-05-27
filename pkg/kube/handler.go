@@ -290,7 +290,8 @@ func (h *Handler) getKube(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if k.Provider == clouds.AWS {
+	// Sync only after cluster becomes operational
+	if k.Provider == clouds.AWS && k.State == model.StateOperational {
 		logrus.Debugf("Get cloud account %s", k.AccountName)
 		acc, err := h.accountService.Get(r.Context(), k.AccountName)
 
