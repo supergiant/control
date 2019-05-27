@@ -122,3 +122,7 @@
   font-style: italic;
   margin-left: auto;
 }
+
+::ng-deep .mat-form-field-required-marker {
+  color: #D10088;
+}
