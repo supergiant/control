@@ -198,6 +198,7 @@ func createAwsSpotInstance(req *SpotRequest, config *steps.Config) error {
 					},
 				},
 			},
+			UserData: aws.String(config.ConfigMap.Data),
 		},
 		SpotPrice:     aws.String(req.SpotPrice),
 		ClientToken:   aws.String(uuid.New()),
