@@ -7,7 +7,7 @@ RUN npm rebuild node-sass
 RUN npm install
 RUN npm run build
 
-FROM golang:1.11.5 as builder
+FROM golang:1.12.6 as builder
 
 COPY --from=ui-builder /assets/dist /etc/supergiant/ui
 COPY . $GOPATH/src/github.com/supergiant/control/
@@ -18,8 +18,8 @@ ARG TAG=unstable
 
 RUN go get -u github.com/rakyll/statik
 RUN statik -src=/etc/supergiant/ui
-RUN CGO_ENABLED=0 GOOS=linux GOARCH=${ARCH} \
-    go build -a -ldflags="-X main.version=${TAG}" -o /go/bin/supergiant ./cmd/controlplane
+RUN GO111MODULE=on CGO_ENABLED=0 GOOS=linux GOARCH=${ARCH} \
+    go build -mod=vendor -a -ldflags="-X main.version=${TAG}" -o /go/bin/supergiant ./cmd/controlplane
 RUN mkdir -p /data
 
 RUN update-ca-certificates

@@ -15,7 +15,10 @@ builds:
     - amd64
   env:
     - CGO_ENABLED=0
+    - GO111MODULE=on
   main: ./cmd/controlplane/main.go
+  flags:
+    - -mod=vendor
   ldflags: -s -w -X main.version={{ .Version }}
 
 archive:
