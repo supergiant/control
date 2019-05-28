@@ -85,6 +85,7 @@ type MetricResponse struct {
 type SpotRequest struct {
 	SpotPrice   string `json:"spotPrice"`
 	MachineType string `json:"machineType"`
+	AvailabilityZone string `json:"availabilityZone"`
 }
 
 // Handler is a http controller for a kube entity.
@@ -1508,14 +1509,6 @@ func (h *Handler) addSpotMachine(w http.ResponseWriter, r *http.Request) {
 	if err != nil {
 		logrus.Errorf("New config %v", err.Error())
 		message.SendUnknownError(w, err)
-		return
-	}
-
-	nodeProfiles := make([]profile.NodeProfile, 0)
-	err = json.NewDecoder(r.Body).Decode(&nodeProfiles)
-
-	if err != nil {
-		http.Error(w, err.Error(), http.StatusBadRequest)
 		return
 	}
 

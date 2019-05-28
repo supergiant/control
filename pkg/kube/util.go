@@ -3,6 +3,7 @@ package kube
 import (
 	"context"
 	"fmt"
+	"strconv"
 	"strings"
 	"time"
 
@@ -179,22 +180,31 @@ func createAwsSpotInstance(req *SpotRequest, config *steps.Config) error {
 		return errors.Wrap(err, "get EC2 client")
 	}
 
+	config.AWSConfig.InstanceType = req.MachineType
+	config.AWSConfig.VolumeSize = "10"
+	volumeSize, err := strconv.ParseInt(config.AWSConfig.VolumeSize, 10, 64)
+
+	if err != nil {
+		return errors.Wrapf(err, "parse volume size %s", config.AWSConfig.VolumeSize)
+	}
+
 	input := &ec2.RequestSpotInstancesInput{
 		Type: aws.String("persistent"),
 		LaunchSpecification: &ec2.RequestSpotLaunchSpecification{
+			IamInstanceProfile: &ec2.IamInstanceProfileSpecification{
+				Name: aws.String(config.AWSConfig.NodesInstanceProfile),
+			},
+			SubnetId:     aws.String(config.AWSConfig.Subnets[req.AvailabilityZone]),
 			ImageId:      aws.String(config.AWSConfig.ImageID),
 			InstanceType: aws.String(config.AWSConfig.InstanceType),
 			KeyName:      aws.String(config.AWSConfig.KeyPairName),
-			SecurityGroups: []*string{
-				aws.String(config.AWSConfig.NodesSecurityGroupID),
-			},
 			BlockDeviceMappings: []*ec2.BlockDeviceMapping{
 				{
 					DeviceName: aws.String("/dev/sda1"),
 					Ebs: &ec2.EbsBlockDevice{
 						DeleteOnTermination: aws.Bool(false),
 						VolumeType:          aws.String("gp2"),
-						VolumeSize:          aws.Int64(10),
+						VolumeSize:          aws.Int64(volumeSize),
 					},
 				},
 			},
@@ -206,7 +216,7 @@ func createAwsSpotInstance(req *SpotRequest, config *steps.Config) error {
 		DryRun:        aws.Bool(config.DryRun),
 		ValidFrom:     aws.Time(time.Now().Add(time.Second * 10)),
 		// TODO(stgleb): pass this as a parameter
-		ValidUntil: aws.Time(time.Now().Add(time.Duration(1000) * time.Hour)),
+		ValidUntil: aws.Time(time.Now().Add(time.Duration(24*365) * time.Hour)),
 	}
 
 	result, err := svc.RequestSpotInstances(input)
@@ -214,60 +224,77 @@ func createAwsSpotInstance(req *SpotRequest, config *steps.Config) error {
 		if aerr, ok := err.(awserr.Error); ok {
 			switch aerr.Code() {
 			default:
-				fmt.Println(aerr.Error())
+				logrus.Errorf("request spot instance caused %s", aerr.Message())
 			}
 		} else {
-			// Print the error, cast err to awserr.Error to get the Code and
-			// Message from an error.
-			fmt.Println(err.Error())
+			logrus.Errorf("Error %v", err)
 		}
 		return errors.Wrap(err, "request spot instance")
 	}
 
-	requestIds := make([]*string, 0)
+	go func() {
+		requestIds := make([]*string, 0)
 
-	for _, spot := range result.SpotInstanceRequests {
-		requestIds = append(requestIds, spot.SpotInstanceRequestId)
-	}
+		for _, spot := range result.SpotInstanceRequests {
+			requestIds = append(requestIds, spot.SpotInstanceRequestId)
+		}
 
-	describeReq := &ec2.DescribeSpotInstanceRequestsInput{
-		DryRun:                 aws.Bool(false),
-		SpotInstanceRequestIds: requestIds,
-	}
+		describeReq := &ec2.DescribeSpotInstanceRequestsInput{
+			DryRun:                 aws.Bool(false),
+			SpotInstanceRequestIds: requestIds,
+		}
 
-	spotRequests, err := svc.DescribeSpotInstanceRequests(describeReq)
+		err = svc.WaitUntilSpotInstanceRequestFulfilled(describeReq)
 
-	if err != nil {
-		return errors.Wrap(err, "describe spot instance requests")
-	}
+		if err != nil {
+			logrus.Errorf("wait until request full filled %v", err)
+		}
 
-	ec2Tags := []*ec2.Tag{
-		{
-			Key:   aws.String("KubernetesCluster"),
-			Value: aws.String(config.ClusterName),
-		},
-		{
-			Key:   aws.String(clouds.TagClusterID),
-			Value: aws.String(config.ClusterID),
-		},
-	}
+		spotRequests, err := svc.DescribeSpotInstanceRequests(describeReq)
 
-	tagInput := &ec2.CreateTagsInput{
-		Resources: []*string{},
-		Tags:      ec2Tags,
-	}
+		if err != nil {
+			logrus.Errorf("describe spot instance requests %v", err)
+		}
 
-	logrus.Debugf("Tag spot instance requests and spot instances")
-	for _, instance := range spotRequests.SpotInstanceRequests {
-		tagInput.Resources = append(tagInput.Resources, instance.InstanceId)
-		tagInput.Resources = append(tagInput.Resources, instance.SpotInstanceRequestId)
-	}
+		logrus.Debugf("Tag spot instance requests and spot instances")
+		for _, instance := range spotRequests.SpotInstanceRequests {
 
-	_, err = svc.CreateTags(tagInput)
+			ec2Tags := []*ec2.Tag{
+				{
+					Key:   aws.String("KubernetesCluster"),
+					Value: aws.String(config.ClusterName),
+				},
+				{
+					Key:   aws.String(clouds.TagClusterID),
+					Value: aws.String(config.ClusterID),
+				},
+				{
+					Key:   aws.String("Name"),
+					Value: aws.String(fmt.Sprintf("spot-node-%s", uuid.New()[:4])),
+				},
+				{
+					Key:   aws.String("Role"),
+					Value: aws.String(util.MakeRole(config.IsMaster)),
+				},
+			}
 
-	if err != nil {
-		return errors.Wrap(err, "tagging spot instances")
-	}
+			tagInput := &ec2.CreateTagsInput{
+				Resources: []*string{},
+				Tags:      ec2Tags,
+			}
+
+			logrus.Infof("Tag instance %s and request id %s",
+				instance.InstanceId, instance.SpotInstanceRequestId)
+			tagInput.Resources = append(tagInput.Resources, instance.InstanceId)
+			tagInput.Resources = append(tagInput.Resources, instance.SpotInstanceRequestId)
+
+			_, err = svc.CreateTags(tagInput)
+
+			if err != nil {
+				logrus.Errorf("tagging spot instances %v", err)
+			}
+		}
+	}()
 
 	return nil
 }
