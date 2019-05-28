@@ -194,10 +194,11 @@ func createAwsSpotInstance(req *SpotRequest, config *steps.Config) error {
 			IamInstanceProfile: &ec2.IamInstanceProfileSpecification{
 				Name: aws.String(config.AWSConfig.NodesInstanceProfile),
 			},
-			SubnetId:     aws.String(config.AWSConfig.Subnets[req.AvailabilityZone]),
-			ImageId:      aws.String(config.AWSConfig.ImageID),
-			InstanceType: aws.String(config.AWSConfig.InstanceType),
-			KeyName:      aws.String(config.AWSConfig.KeyPairName),
+			SubnetId:         aws.String(config.AWSConfig.Subnets[req.AvailabilityZone]),
+			SecurityGroupIds: []*string{aws.String(config.AWSConfig.NodesSecurityGroupID)},
+			ImageId:          aws.String(config.AWSConfig.ImageID),
+			InstanceType:     aws.String(config.AWSConfig.InstanceType),
+			KeyName:          aws.String(config.AWSConfig.KeyPairName),
 			BlockDeviceMappings: []*ec2.BlockDeviceMapping{
 				{
 					DeviceName: aws.String("/dev/sda1"),
@@ -269,7 +270,7 @@ func createAwsSpotInstance(req *SpotRequest, config *steps.Config) error {
 					Value: aws.String(config.ClusterID),
 				},
 				{
-					Key:   aws.String("Name"),
+					Key: aws.String("Name"),
 					Value: aws.String(fmt.Sprintf("%s-node-%s",
 						config.ClusterName, uuid.New()[:4])),
 				},
