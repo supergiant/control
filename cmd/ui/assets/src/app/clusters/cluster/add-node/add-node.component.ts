@@ -58,7 +58,7 @@ export class AddNodeComponent implements OnInit, OnDestroy {
   isProcessing: boolean;
   availabilityZones: string[];
   selectedAZSubj: Subject<string>;
-  isLoadingMachineTypes: boolean = true;
+  isLoadingMachineTypes: boolean;
 
   constructor(
     private supergiant: Supergiant,
@@ -174,14 +174,23 @@ export class AddNodeComponent implements OnInit, OnDestroy {
 
     this.subscriptions.add(
       this.providerSubj.pipe(
-        filter(provider => provider === 'digitalocean'),
+        tap(_=>this.isLoadingMachineTypes = true),
+        filter(
+          provider => provider === 'digitalocean',
+        ),
         switchMap(() => DOmachineSizes$),
-      ).subscribe(sizes => this.machineSizes$ = of(sizes)),
+      ).subscribe((sizes) => {
+        this.isLoadingMachineTypes = false;
+        this.machineSizes$ = of(sizes);
+      }),
     );
 
     this.subscriptions.add(
       this.providerSubj.pipe(
-        filter(provider => provider === 'aws'),
+        filter(
+          provider => provider === 'aws',
+          tap(_=>this.isLoadingMachineTypes = true),
+        ),
         first(),
         switchMap(_ => awsMachineSizes$),
       ).subscribe((sizes) => {
@@ -192,7 +201,10 @@ export class AddNodeComponent implements OnInit, OnDestroy {
 
     this.subscriptions.add(
       this.providerSubj.pipe(
-        filter(provider => provider === 'gce'),
+        filter(
+          provider => provider === 'gce',
+          tap(_=>this.isLoadingMachineTypes = true),
+        ),
         first(),
         switchMap(_ => gceMachineSizes$),
       ).subscribe((sizes) => {
@@ -203,7 +215,10 @@ export class AddNodeComponent implements OnInit, OnDestroy {
 
     this.subscriptions.add(
       this.providerSubj.pipe(
-        filter(provider => provider === 'azure'),
+        tap(_=>this.isLoadingMachineTypes = true),
+        filter(
+          provider => provider === 'azure',
+        ),
         first(),
         switchMap(_ => azureMachineSizes$),
       ).subscribe((sizes: string[]) => {

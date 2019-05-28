@@ -297,7 +297,8 @@ func (h *Handler) getKube(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if k.Provider == clouds.AWS {
+	// Sync only after cluster becomes operational
+	if k.Provider == clouds.AWS && k.State == model.StateOperational {
 		logrus.Debugf("Get cloud account %s", k.AccountName)
 		acc, err := h.accountService.Get(r.Context(), k.AccountName)
 
@@ -343,7 +344,15 @@ func (h *Handler) listKubes(w http.ResponseWriter, r *http.Request) {
 func (h *Handler) deleteKube(w http.ResponseWriter, r *http.Request) {
 	vars := mux.Vars(r)
 	kubeID := vars["kubeID"]
+	forceDelete := false
+
 	logrus.Debugf("Delete kube %s", kubeID)
+
+	forceString := r.URL.Query().Get("force")
+
+	if forceString != "" {
+		forceDelete, _ = strconv.ParseBool(forceString)
+	}
 
 	if err := h.nodeProvisioner.Cancel(kubeID); err != nil {
 		logrus.Debugf("cancel kube tasks error %v", err)
@@ -419,11 +428,15 @@ func (h *Handler) deleteKube(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	errChan := t.Run(context.Background(), *config, writer)
+	ctx, _ := context.WithTimeout(context.Background(), time.Minute * 10)
+	errChan := t.Run(ctx, *config, writer)
 
 	go func(t *workflows.Task) {
 		// Update kube with deleting state
 		k.State = model.StateDeleting
+		// Append delete task ID to kube tasks so that task can be deleted too.
+		k.Tasks[workflows.DeleteTask] = []string{t.ID}
+
 		err = h.svc.Create(context.Background(), k)
 
 		if err != nil {
@@ -431,21 +444,13 @@ func (h *Handler) deleteKube(w http.ResponseWriter, r *http.Request) {
 		}
 
 		err = <-errChan
-		if err != nil {
+		if !forceDelete && err != nil {
 			return
 		}
 
 		// Clean up tasks in storage
-		err = h.deleteClusterTasks(context.Background(), kubeID)
-
-		if err != nil {
-			logrus.Errorf("error while deleting tasks %s", err)
-		}
-
-		// Finally delete cluster record from etcd
-		if err := h.svc.Delete(context.Background(), kubeID); err != nil {
-			logrus.Errorf("delete kube %s caused %v", kubeID, err)
-			return
+		if err := h.cleanUpKube(kubeID); err != nil {
+			logrus.Errorf("clean up kube %s caused %v", kubeID, err)
 		}
 	}(t)
 
@@ -840,6 +845,22 @@ func (h *Handler) deleteClusterTasks(ctx context.Context, kubeID string) error {
 			logrus.Warnf("delete task %s: %v", task.ID, err)
 			return err
 		}
+	}
+
+	return nil
+}
+
+func (h *Handler) cleanUpKube(kubeID string) error {
+	// Clean up tasks in storage
+	err := h.deleteClusterTasks(context.Background(), kubeID)
+
+	if err != nil {
+		logrus.Errorf("error while cleanup kube tasks %s", err)
+	}
+
+	// Finally delete cluster record from etcd
+	if err := h.svc.Delete(context.Background(), kubeID); err != nil {
+		return errors.Wrap(err, "cleanup kube %s caused %v")
 	}
 
 	return nil
