@@ -27,6 +27,8 @@ type accountGetter interface {
 type subnetSvc interface {
 	CreateSubnetWithContext(aws.Context, *ec2.CreateSubnetInput,
 		...request.Option) (*ec2.CreateSubnetOutput, error)
+	ModifySubnetAttributeWithContext(aws.Context, *ec2.ModifySubnetAttributeInput,
+		...request.Option) (*ec2.ModifySubnetAttributeOutput, error)
 }
 
 type CreateSubnetsStep struct {
@@ -132,6 +134,20 @@ func (s *CreateSubnetsStep) Run(ctx context.Context, w io.Writer, cfg *steps.Con
 		out, err := svc.CreateSubnetWithContext(ctx, input)
 		if err != nil {
 			logrus.Debugf("Create subnet cause error %s", err.Error())
+			return errors.Wrap(ErrCreateSubnet, err.Error())
+		}
+
+		modifyReq := &ec2.ModifySubnetAttributeInput{
+			MapPublicIpOnLaunch: &ec2.AttributeBooleanValue{
+				Value: aws.Bool(true),
+			},
+			SubnetId: out.Subnet.SubnetId,
+		}
+
+		_, err = svc.ModifySubnetAttributeWithContext(ctx, modifyReq)
+
+		if err != nil {
+			logrus.Debugf("Modify subnet cause error %s", err.Error())
 			return errors.Wrap(ErrCreateSubnet, err.Error())
 		}
 

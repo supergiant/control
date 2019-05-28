@@ -270,7 +270,8 @@ func createAwsSpotInstance(req *SpotRequest, config *steps.Config) error {
 				},
 				{
 					Key:   aws.String("Name"),
-					Value: aws.String(fmt.Sprintf("spot-node-%s", uuid.New()[:4])),
+					Value: aws.String(fmt.Sprintf("%s-node-%s",
+						config.ClusterName, uuid.New()[:4])),
 				},
 				{
 					Key:   aws.String("Role"),
@@ -284,7 +285,7 @@ func createAwsSpotInstance(req *SpotRequest, config *steps.Config) error {
 			}
 
 			logrus.Infof("Tag instance %s and request id %s",
-				instance.InstanceId, instance.SpotInstanceRequestId)
+				*instance.InstanceId, *instance.SpotInstanceRequestId)
 			tagInput.Resources = append(tagInput.Resources, instance.InstanceId)
 			tagInput.Resources = append(tagInput.Resources, instance.SpotInstanceRequestId)
 
