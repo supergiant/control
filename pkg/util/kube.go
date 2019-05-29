@@ -8,7 +8,7 @@ import (
 )
 
 func UpdateKubeWithCloudSpecificData(k *model.Kube, config *steps.Config) {
-	logrus.Debugf("Update clou" +
+	logrus.Debugf("Update clou"+
 		"d specific data for kube %s",
 		config.ClusterID)
 
@@ -54,6 +54,8 @@ func UpdateKubeWithCloudSpecificData(k *model.Kube, config *steps.Config) {
 			config.AWSConfig.ExternalLoadBalancerName
 		cloudSpecificSettings[clouds.AwsInternalLoadBalancerName] =
 			config.AWSConfig.InternalLoadBalancerName
+		cloudSpecificSettings[clouds.AwsVolumeSize] =
+			config.AWSConfig.VolumeSize
 	case clouds.GCE:
 		k.Subnets = config.GCEConfig.AZs
 		cloudSpecificSettings[clouds.GCETargetPoolName] = config.GCEConfig.TargetPoolName
