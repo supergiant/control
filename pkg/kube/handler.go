@@ -1482,6 +1482,7 @@ func (h *Handler) addSpotMachine(w http.ResponseWriter, r *http.Request) {
 	kubeID := vars["kubeID"]
 	k, err := h.svc.Get(r.Context(), kubeID)
 
+	// TODO(stgleb): Add machine count here
 	req := &SpotRequest{}
 
 	if err := json.NewDecoder(r.Body).Decode(req); err != nil {
