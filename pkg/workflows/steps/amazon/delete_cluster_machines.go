@@ -90,6 +90,7 @@ func (s *DeleteClusterMachines) Run(ctx context.Context, w io.Writer, cfg *steps
 
 	if err != nil {
 		logrus.Error(ErrDeleteCluster, err.Error())
+		return errors.Wrap(ErrDeleteCluster, err.Error())
 	}
 
 	_, err = svc.CancelSpotInstanceRequestsWithContext(ctx, &ec2.CancelSpotInstanceRequestsInput{
