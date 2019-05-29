@@ -8,7 +8,8 @@ import (
 )
 
 func UpdateKubeWithCloudSpecificData(k *model.Kube, config *steps.Config) {
-	logrus.Debugf("Update cloud specific data for kube %s",
+	logrus.Debugf("Update clou" +
+		"d specific data for kube %s",
 		config.ClusterID)
 
 	cloudSpecificSettings := make(map[string]string)

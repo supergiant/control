@@ -2,6 +2,7 @@ package kube
 
 import (
 	"context"
+	"encoding/base64"
 	"fmt"
 	"strconv"
 	"strings"
@@ -209,7 +210,8 @@ func createAwsSpotInstance(req *SpotRequest, config *steps.Config) error {
 					},
 				},
 			},
-			UserData: aws.String(config.ConfigMap.Data),
+			UserData: aws.String(base64.StdEncoding.EncodeToString([]byte(
+				fmt.Sprintf("#!/bin/sh\n%s",config.ConfigMap.Data)))),
 		},
 		SpotPrice:     aws.String(req.SpotPrice),
 		ClientToken:   aws.String(uuid.New()),
