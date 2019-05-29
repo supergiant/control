@@ -41,6 +41,15 @@ func (m *mockInstanceDeleter) TerminateInstancesWithContext(ctx aws.Context,
 	return val, args.Error(1)
 }
 
+func (m *mockInstanceDeleter) CancelSpotInstanceRequestsWithContext(ctx aws.Context, req *ec2.CancelSpotInstanceRequestsInput, opts ...request.Option) (*ec2.CancelSpotInstanceRequestsOutput, error) {
+	args := m.Called(ctx, req, opts)
+	val, ok := args.Get(0).(*ec2.CancelSpotInstanceRequestsOutput)
+	if !ok {
+		return nil, args.Error(1)
+	}
+	return val, args.Error(1)
+}
+
 func TestDeleteNodeStep_Run(t *testing.T) {
 	testCases := []struct {
 		description string
@@ -124,6 +133,8 @@ func TestDeleteNodeStep_Run(t *testing.T) {
 			mock.Anything, mock.Anything, mock.Anything).
 			Return(mock.Anything, testCase.terminateErr)
 
+		svc.On("CancelSpotInstanceRequestsWithContext", mock.Anything,
+			mock.Anything, mock.Anything).Return(nil, nil)
 		config := &steps.Config{}
 		step := DeleteNodeStep{
 			getSvc: func(steps.AWSConfig) (instanceDeleter, error) {
