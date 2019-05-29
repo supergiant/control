@@ -83,8 +83,8 @@ type MetricResponse struct {
 }
 
 type SpotRequest struct {
-	SpotPrice   string `json:"spotPrice"`
-	MachineType string `json:"machineType"`
+	SpotPrice        string `json:"spotPrice"`
+	MachineType      string `json:"machineType"`
 	AvailabilityZone string `json:"availabilityZone"`
 }
 
@@ -429,7 +429,7 @@ func (h *Handler) deleteKube(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	ctx, _ := context.WithTimeout(context.Background(), time.Minute * 10)
+	ctx, _ := context.WithTimeout(context.Background(), time.Minute*10)
 	errChan := t.Run(ctx, *config, writer)
 
 	go func(t *workflows.Task) {
