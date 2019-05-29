@@ -192,8 +192,10 @@ func (h *Handler) Register(r *mux.Router) {
 	r.HandleFunc("/kubes/{kubeID}/nodes", h.listNodes).Methods(http.MethodGet)
 
 	r.HandleFunc("/kubes/{kubeID}/machines", h.addMachine).Methods(http.MethodPost)
-	r.HandleFunc("/kubes/{kubeID}/spot", h.addSpotMachine).Methods(http.MethodPost)
 	r.HandleFunc("/kubes/{kubeID}/machines/{nodename}", h.deleteMachine).Methods(http.MethodDelete)
+
+	r.HandleFunc("/kubes/{kubeID}/spot", h.addSpotMachine).Methods(http.MethodPost)
+	r.HandleFunc("/kubes/{kubeID}/spot/{machineType}/price", h.spotMachinePrice).Methods(http.MethodGet)
 
 	r.HandleFunc("/kubes/{kubeID}/nodes/metrics", h.getNodesMetrics).Methods(http.MethodGet)
 	r.HandleFunc("/kubes/{kubeID}/metrics", h.getClusterMetrics).Methods(http.MethodGet)
@@ -1542,4 +1544,13 @@ func (h *Handler) addSpotMachine(w http.ResponseWriter, r *http.Request) {
 		message.SendUnknownError(w, err)
 		return
 	}
+}
+
+// Add spot instance machine to k8s cluster
+func (h *Handler) spotMachinePrice(w http.ResponseWriter, r *http.Request) {
+	vars := mux.Vars(r)
+	machineType := vars["machineType"]
+
+	logrus.Info(machineType)
+	w.WriteHeader(http.StatusNotImplemented)
 }
