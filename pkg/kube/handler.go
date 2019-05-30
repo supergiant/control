@@ -85,6 +85,7 @@ type MetricResponse struct {
 type SpotRequest struct {
 	SpotPrice        string `json:"spotPrice"`
 	MachineType      string `json:"machineType"`
+	MachineCount     int64  `json:"machineCount"`
 	AvailabilityZone string `json:"availabilityZone"`
 }
 

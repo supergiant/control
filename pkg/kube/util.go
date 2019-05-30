@@ -223,7 +223,7 @@ func createAwsSpotInstance(req *SpotRequest, config *steps.Config) error {
 		},
 		SpotPrice:     aws.String(req.SpotPrice),
 		ClientToken:   aws.String(uuid.New()),
-		InstanceCount: aws.Int64(1),
+		InstanceCount: aws.Int64(req.MachineCount),
 		DryRun:        aws.Bool(config.DryRun),
 		ValidFrom:     aws.Time(time.Now().Add(time.Second * 10)),
 		// TODO(stgleb): pass this as a parameter
