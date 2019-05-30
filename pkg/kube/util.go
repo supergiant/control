@@ -174,6 +174,15 @@ func createSpotInstance(req *SpotRequest, config *steps.Config) error {
 	return sgerrors.ErrUnsupportedProvider
 }
 
+func getSpotPrices(machineType string, config *steps.Config) ([]string, error) {
+	switch config.Provider {
+	case clouds.AWS:
+		return getAwsSpotPrices(machineType, config)
+	}
+
+	return nil, sgerrors.ErrUnsupportedProvider
+}
+
 func createAwsSpotInstance(req *SpotRequest, config *steps.Config) error {
 	svc, err := amazon.GetEC2(config.AWSConfig)
 
@@ -182,7 +191,6 @@ func createAwsSpotInstance(req *SpotRequest, config *steps.Config) error {
 	}
 
 	config.AWSConfig.InstanceType = req.MachineType
-	config.AWSConfig.VolumeSize = "10"
 	volumeSize, err := strconv.ParseInt(config.AWSConfig.VolumeSize, 10, 64)
 
 	if err != nil {
@@ -211,7 +219,7 @@ func createAwsSpotInstance(req *SpotRequest, config *steps.Config) error {
 				},
 			},
 			UserData: aws.String(base64.StdEncoding.EncodeToString([]byte(
-				fmt.Sprintf("#!/bin/sh\n%s",config.ConfigMap.Data)))),
+				fmt.Sprintf("#!/bin/sh\n%s", config.ConfigMap.Data)))),
 		},
 		SpotPrice:     aws.String(req.SpotPrice),
 		ClientToken:   aws.String(uuid.New()),
@@ -301,4 +309,30 @@ func createAwsSpotInstance(req *SpotRequest, config *steps.Config) error {
 	}()
 
 	return nil
+}
+
+func getAwsSpotPrices(machineType string, config *steps.Config) ([]string, error) {
+	svc, err := amazon.GetEC2(config.AWSConfig)
+
+	if err != nil {
+		return nil, errors.Wrap(err, "get EC2 client")
+	}
+
+	spotPriceReq := &ec2.DescribeSpotPriceHistoryInput{
+		AvailabilityZone: aws.String(config.AWSConfig.AvailabilityZone),
+		EndTime:          aws.Time(time.Now()),
+		StartTime:        aws.Time(time.Now().Add(time.Hour * -24 * 7)),
+		InstanceTypes:    []*string{aws.String(machineType)},
+	}
+
+	prices, _ := svc.DescribeSpotPriceHistory(spotPriceReq)
+	spotPrices := make([]string, 0)
+
+	for _, spotPrice := range prices.SpotPriceHistory {
+		if strings.EqualFold(*spotPrice.ProductDescription, "Linux/UNIX") {
+			spotPrices = append(spotPrices, *spotPrice.SpotPrice)
+		}
+	}
+
+	return spotPrices, nil
 }

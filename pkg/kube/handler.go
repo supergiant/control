@@ -1482,16 +1482,16 @@ func (h *Handler) addSpotMachine(w http.ResponseWriter, r *http.Request) {
 	kubeID := vars["kubeID"]
 	k, err := h.svc.Get(r.Context(), kubeID)
 
+	if sgerrors.IsNotFound(err) {
+		http.NotFound(w, r)
+		return
+	}
+
 	// TODO(stgleb): Add machine count here
 	req := &SpotRequest{}
 
 	if err := json.NewDecoder(r.Body).Decode(req); err != nil {
 		message.SendInvalidJSON(w, err)
-		return
-	}
-
-	if sgerrors.IsNotFound(err) {
-		http.NotFound(w, r)
 		return
 	}
 
@@ -1550,8 +1550,68 @@ func (h *Handler) addSpotMachine(w http.ResponseWriter, r *http.Request) {
 // Add spot instance machine to k8s cluster
 func (h *Handler) spotMachinePrice(w http.ResponseWriter, r *http.Request) {
 	vars := mux.Vars(r)
-	machineType := vars["machineType"]
 
-	logrus.Info(machineType)
-	w.WriteHeader(http.StatusNotImplemented)
+	machineType := vars["machineType"]
+	kubeID := vars["kubeID"]
+
+	k, err := h.svc.Get(r.Context(), kubeID)
+
+	if sgerrors.IsNotFound(err) {
+		http.NotFound(w, r)
+		return
+	}
+
+	acc, err := h.accountService.Get(r.Context(), k.AccountName)
+
+	if sgerrors.IsNotFound(err) {
+		http.NotFound(w, r)
+		return
+	}
+
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+
+	logrus.Debugf("Get cloud profile %s", k.ProfileID)
+	kubeProfile, err := h.profileSvc.Get(r.Context(), k.ProfileID)
+
+	if err != nil {
+		if sgerrors.IsNotFound(err) {
+			message.SendNotFound(w, k.ProfileID, err)
+			return
+		}
+
+		message.SendUnknownError(w, err)
+		return
+	}
+
+	config, err := steps.NewConfigFromKube(kubeProfile, k)
+	if err != nil {
+		logrus.Errorf("New config %v", err.Error())
+		message.SendUnknownError(w, err)
+		return
+	}
+
+	// Get cloud account fill appropriate config structure
+	// with cloud account credentials
+	err = util.FillCloudAccountCredentials(acc, config)
+
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+
+	prices, err := getSpotPrices(machineType, config)
+
+	if err != nil {
+		message.SendUnknownError(w, err)
+		return
+	}
+
+	err = json.NewEncoder(w).Encode(&struct{ Prices []string }{prices})
+
+	if err != nil {
+		message.SendInvalidJSON(w, err)
+	}
 }
