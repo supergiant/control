@@ -571,10 +571,18 @@
 
   <ng-container *ngIf="kube?.state == 'importing'">
     <div class="import-wrapper">
-      <div class="sg-sign"></div>
+      <div class="icon import-icon">
+
+        <div class="executing">
+          <div class="spinner-outline"></div>
+          <mat-spinner [diameter]="148"></mat-spinner>
+          <div class="status"></div>
+        </div>
+
+      </div>
+
       <div class=communication>
-        <h1>Importing</h1>
-        <h1 class="cluster-name">{{ kube.name }}<span>.</span><span>.</span><span>.</span></h1>
+        <h1>Importing <span class="cluster-name">"{{ kube.name }}"</span></h1>
       </div>
     </div>
   </ng-container>
