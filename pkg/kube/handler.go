@@ -926,6 +926,7 @@ func (h *Handler) listReleases(w http.ResponseWriter, r *http.Request) {
 	}
 
 	if k.State != model.StateOperational {
+		message.SendNotFound(w, kubeID, errors.New("kube is not operational"))
 		return
 	}
 
