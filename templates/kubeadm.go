@@ -68,7 +68,8 @@ EOF"
 
 sudo kubeadm init --ignore-preflight-errors=NumCPU \
 --node-name ${HOSTNAME} \
---config=/etc/supergiant/kubeadm.conf
+--config=/etc/supergiant/kubeadm.conf \
+--experimental-upload-certs
 {{ else }}
 
 sudo bash -c "cat << EOF > /etc/supergiant/kubeadm.conf
@@ -118,6 +119,7 @@ EOF"
 sudo kubeadm config images pull
 sudo kubeadm join --ignore-preflight-errors=NumCPU {{ .InternalDNSName }}:443 \
 --node-name ${HOSTNAME} \
+--certificate-key {{ .CertificateKey }} \
 --config=/etc/supergiant/kubeadm.conf
 {{ end }}
 
