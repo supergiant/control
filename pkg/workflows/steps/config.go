@@ -209,6 +209,7 @@ type KubeadmConfig struct {
 }
 
 type KubeletConfig struct {
+	IsMaster     bool `json:"isMaster"`
 	ServicesCIDR string `json:"servicesCIDR"`
 	PublicIP     string `json:"publicIp"`
 	PrivateIP    string `json:"privateIp"`

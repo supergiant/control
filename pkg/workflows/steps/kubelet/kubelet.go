@@ -53,6 +53,7 @@ func (t *Step) Run(ctx context.Context, out io.Writer, config *steps.Config) err
 	config.KubeletConfig.AdminCert = config.CertificatesConfig.AdminCert
 	config.KubeletConfig.LoadBalancerHost = config.InternalDNSName
 	config.KubeletConfig.NodeName = config.Node.Name
+	config.KubeletConfig.IsMaster = config.IsMaster
 
 	if len(config.KubeletConfig.ServicesCIDR) > 0 {
 		kubeDefaultSvcIp, err := util.GetKubernetesDefaultSvcIP(config.KubeletConfig.ServicesCIDR)
