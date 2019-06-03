@@ -63,6 +63,8 @@ sudo kubectl --kubeconfig=/root/.kube/config certificate approve -f /etc/kuberne
 # Wait for csr to be approved
 until $([ $(sudo kubectl --kubeconfig=/root/.kube/config get csr {{ .NodeName }}|grep Approved|wc -l) -ge 1 ]); do printf '.'; sleep 5; done
 
+time sleep 30
+
 sudo bash -c "cat > /etc/kubernetes/pki/kubelet.crt <<EOF
 $(sudo kubectl --kubeconfig=/root/.kube/config get csr {{ .NodeName }} -o jsonpath='{.status.certificate}' | base64 -d)
 EOF"
