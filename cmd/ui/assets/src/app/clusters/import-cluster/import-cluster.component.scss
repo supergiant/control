@@ -116,13 +116,13 @@
 }
 
 .mat-hint {
-  align-self: flex-end;
-  color: rgba(255, 255, 255, 0.7);
-  font-size: 12px;
-  font-style: italic;
-  margin-left: auto;
+  color: grey;
 }
 
 ::ng-deep .mat-form-field-required-marker {
+  color: #D10088;
+}
+
+::ng-deep .mat-focused .mat-form-field-required-marker {
   color: #D10088;
 }

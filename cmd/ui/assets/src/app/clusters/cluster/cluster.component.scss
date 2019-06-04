@@ -881,60 +881,60 @@
 
   .import-wrapper {
     display: flex;
-    margin: 0 auto;
+    flex-direction: column;
+    margin: 74px auto;
     width: 60%;
 
-    .sg-sign {
-      background: url(/assets/img/sg_sign_dark.svg) no-repeat;
-      background-size: contain;
-      height: 200px;
-      width: 200px;
+    .icon {
+      margin: 0 auto;
+      height: 148px;
+      width: 148px;
+    }
+
+    .import-icon {
+
+      .executing {
+        height: 100%;
+        width: 100%;
+        position: relative;
+
+        .spinner-outline {
+          background: url(/assets/img/cluster-details/steps/unfilled_empty.svg) no-repeat center;
+          position: relative;
+          top: 0;
+          left: 0;
+          height: 100%;
+          width: 100%;
+        }
+
+        .mat-spinner {
+          position: absolute;
+          top: 0;
+          left: 0;
+
+          circle {
+            stroke: rgba(255, 0, 166, 0.5);
+          }
+        }
+
+        .status {
+          background: url(/assets/img/sg_sign_dark.svg) no-repeat center;
+          position: absolute;
+          top: -112px;
+          left: -110px;
+          height: 250%;
+          width: 250%;
+        }
+      }
     }
 
     .communication {
-      align-items: flex-start;
-      display: flex;
-      flex-direction: column;
-      justify-content: center;
-      margin-left: 50px;
-    }
+      margin-top: 16px;
 
-    h1 {
-      span {
-        animation-name: blink;
-        animation-duration: 1.4s;
-        animation-iteration-count: infinite;
-        animation-fill-mode: both;
+      .cluster-name {
+        font-style: italic;
       }
-
-      span:nth-child(2) {
-        animation-delay: .2s;
-      }
-
-      span:nth-child(3) {
-        animation-delay: .4s;
-      }
-    }
-
-    .cluster-name {
-      font-style: italic;
     }
   }
-
-  @keyframes blink {
-
-    0% {
-      opacity: .2;
-    }
-
-    20% {
-      opacity: 1;
-    }
-
-    100% {
-      opacity: .2;
-    }
-  }
-
 }
 
