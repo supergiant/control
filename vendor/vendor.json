@@ -803,6 +803,12 @@
 			"revisionTime": "2019-06-04T15:21:16Z"
 		},
 		{
+			"checksumSHA1": "CSnfH01hSas0bdc/3m/f5Rt6SFY=",
+			"path": "github.com/gophercloud/gophercloud/openstack/compute/v2/images",
+			"revision": "b8b6f3e2be05908d2c212e3588f16e3a2eba4530",
+			"revisionTime": "2019-06-04T15:21:16Z"
+		},
+		{
 			"checksumSHA1": "iIUYZyoanCQQTUaWsu8b+iOSPt4=",
 			"path": "github.com/gorilla/context",
 			"revision": "1ea25387ff6f684839d82767c1733ff4d4d15d0a",
