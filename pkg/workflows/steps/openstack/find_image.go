@@ -2,8 +2,6 @@ package openstack
 
 import (
 	"context"
-	"fmt"
-	"github.com/pkg/errors"
 	"io"
 	"text/template"
 
@@ -11,7 +9,8 @@ import (
 	"github.com/gophercloud/gophercloud/openstack"
 	"github.com/gophercloud/gophercloud/openstack/compute/v2/images"
 
-	tm "github.com/supergiant/control/pkg/templatemanager"
+	"github.com/pkg/errors"
+
 	"github.com/supergiant/control/pkg/workflows/steps"
 	"github.com/supergiant/control/pkg/workflows/steps/kubeadm"
 )
@@ -19,23 +18,11 @@ import (
 const FindImageStepName = "find_image"
 
 type FindImageStep struct {
-	script    *template.Template
 	getClient func(steps.OpenStackConfig) (*gophercloud.ProviderClient, error)
 }
 
-func Init() {
-	tpl, err := tm.GetTemplate(FindImageStepName)
-
-	if err != nil {
-		panic(fmt.Sprintf("template %s not found", FindImageStepName))
-	}
-
-	steps.RegisterStep(FindImageStepName, New(tpl))
-}
-
-func New(tpl *template.Template) *FindImageStep {
+func NewFindImageStep() *FindImageStep {
 	return &FindImageStep{
-		script: tpl,
 		getClient: func(config steps.OpenStackConfig) (client *gophercloud.ProviderClient, e error) {
 			opts := gophercloud.AuthOptions{
 				IdentityEndpoint: config.AuthURL,

@@ -231,8 +231,9 @@ type OpenStackConfig struct {
 	TenantID   string `json:"tenantId"`
 	UserName   string `json:"userName"`
 	Password   string `json:"password"`
-	Region   string `json:"region"`
-	ImageID string `json:"imageId"`
+	Region     string `json:"region"`
+	ImageID    string `json:"imageId"`
+	NetworkID  string `json:"networkId"`
 }
 
 type Map struct {
