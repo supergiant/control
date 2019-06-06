@@ -207,14 +207,14 @@ type PrometheusConfig struct {
 }
 
 type KubeadmConfig struct {
-	K8SVersion       string `json:"K8SVersion"`
-	IsMaster         bool   `json:"isMaster"`
-	IsBootstrap      bool   `json:"IsBootstrap"`
-	ServiceCIDR      string `json:"serviceCIDR"`
-	CIDR             string `json:"cidr"`
-	Token            string `json:"token"`
-	Provider         string `json:"provider"`
-	NodeIp           string `json:"nodeIp"`
+	K8SVersion  string `json:"K8SVersion"`
+	IsMaster    bool   `json:"isMaster"`
+	IsBootstrap bool   `json:"IsBootstrap"`
+	ServiceCIDR string `json:"serviceCIDR"`
+	CIDR        string `json:"cidr"`
+	Token       string `json:"token"`
+	Provider    string `json:"provider"`
+	NodeIp      string `json:"nodeIp"`
 
 	InternalDNSName string `json:"internalDNSName"`
 	ExternalDNSName string `json:"externalDNSName"`
@@ -222,6 +222,17 @@ type KubeadmConfig struct {
 
 type DrainConfig struct {
 	PrivateIP string `json:"privateIp"`
+}
+
+type OpenStackConfig struct {
+	AuthURL    string `json:"authUrl"`
+	DomainName string `json:"domainName"`
+	DomainID   string `json:"domainId"`
+	TenantID   string `json:"tenantId"`
+	UserName   string `json:"userName"`
+	Password   string `json:"password"`
+	Region   string `json:"region"`
+	ImageID string `json:"imageId"`
 }
 
 type Map struct {
@@ -271,6 +282,7 @@ type Config struct {
 	DrainConfig        DrainConfig        `json:"drainConfig"`
 	KubeadmConfig      KubeadmConfig      `json:"kubeadmConfig"`
 	ConfigMap          ConfigMap          `json:"configMap"`
+	OpenStackConfig    OpenStackConfig    `json:"openStackConfig"`
 
 	ExternalDNSName string `json:"externalDnsName"`
 	InternalDNSName string `json:"internalDnsName"`

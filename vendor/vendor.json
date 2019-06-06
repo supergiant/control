@@ -791,6 +791,18 @@
 			"revisionTime": "2018-04-19T02:58:54Z"
 		},
 		{
+			"checksumSHA1": "T5XCTuLD1tqf2QEHKG0nqtSz+0Q=",
+			"path": "github.com/gophercloud/gophercloud",
+			"revision": "b8b6f3e2be05908d2c212e3588f16e3a2eba4530",
+			"revisionTime": "2019-06-04T15:21:16Z"
+		},
+		{
+			"checksumSHA1": "cQ40ePuS5N5VtCJ+qVxZVHA6PoU=",
+			"path": "github.com/gophercloud/gophercloud/openstack",
+			"revision": "b8b6f3e2be05908d2c212e3588f16e3a2eba4530",
+			"revisionTime": "2019-06-04T15:21:16Z"
+		},
+		{
 			"checksumSHA1": "iIUYZyoanCQQTUaWsu8b+iOSPt4=",
 			"path": "github.com/gorilla/context",
 			"revision": "1ea25387ff6f684839d82767c1733ff4d4d15d0a",
