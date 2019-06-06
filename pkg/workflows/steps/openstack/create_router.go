@@ -15,7 +15,7 @@ import (
 	"github.com/supergiant/control/pkg/workflows/steps"
 )
 
-const CreateRouterStepName = "create_gateway"
+const CreateRouterStepName = "create_router"
 
 type CreateRouterStep struct {
 	getClient func(steps.OpenStackConfig) (*gophercloud.ProviderClient, error)
@@ -90,7 +90,7 @@ func (s *CreateRouterStep) Rollback(context.Context, io.Writer, *steps.Config) e
 }
 
 func (s *CreateRouterStep) Description() string {
-	return "Create subnet"
+	return "Create router"
 }
 
 func (s *CreateRouterStep) Depends() []string {

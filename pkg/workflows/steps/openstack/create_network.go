@@ -82,7 +82,7 @@ func (s *CreateNetworkStep) Rollback(context.Context, io.Writer, *steps.Config) 
 }
 
 func (s *CreateNetworkStep) Description() string {
-	return "Create "
+	return "Create network"
 }
 
 func (s *CreateNetworkStep) Depends() []string {

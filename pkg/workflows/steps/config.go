@@ -237,6 +237,8 @@ type OpenStackConfig struct {
 	SubnetID      string `json:"subnetId"`
 	SubnetIPRange string `json:"subnetIpRange"`
 	RouterID      string `json:"routerId"`
+	FlavorName    string `json:"flavorName"`
+	ImageName string `json:"imageName"`
 }
 
 type Map struct {
