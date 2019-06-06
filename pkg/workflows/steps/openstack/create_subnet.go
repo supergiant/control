@@ -9,20 +9,19 @@ import (
 
 	"github.com/gophercloud/gophercloud"
 	"github.com/gophercloud/gophercloud/openstack"
-	"github.com/gophercloud/gophercloud/openstack/networking/v2/networks"
+	"github.com/gophercloud/gophercloud/openstack/networking/v2/subnets"
 
 	"github.com/supergiant/control/pkg/workflows/steps"
-	"github.com/supergiant/control/pkg/workflows/steps/kubeadm"
 )
 
-const CreateNetworkStepName = "create_network"
+const CreateSubnetStepName = "create_subnet"
 
-type CreateNetworkStep struct {
+type CreateSubnetStep struct {
 	getClient func(steps.OpenStackConfig) (*gophercloud.ProviderClient, error)
 }
 
-func NewCreateNetworkStep() *CreateNetworkStep {
-	return &CreateNetworkStep{
+func NewCreateSubnetStep() *CreateSubnetStep {
+	return &CreateSubnetStep{
 		getClient: func(config steps.OpenStackConfig) (client *gophercloud.ProviderClient, e error) {
 			opts := gophercloud.AuthOptions{
 				IdentityEndpoint: config.AuthURL,
@@ -43,7 +42,7 @@ func NewCreateNetworkStep() *CreateNetworkStep {
 	}
 }
 
-func (s *CreateNetworkStep) Run(ctx context.Context, out io.Writer, config *steps.Config) error {
+func (s *CreateSubnetStep) Run(ctx context.Context, out io.Writer, config *steps.Config) error {
 	client, err := s.getClient(config.OpenStackConfig)
 
 	if err != nil {
@@ -58,33 +57,36 @@ func (s *CreateNetworkStep) Run(ctx context.Context, out io.Writer, config *step
 		return errors.Wrapf(err, "step %s get network client", CreateNetworkStepName)
 	}
 
-	net, err := networks.Create(networkClient, networks.CreateOpts{
-		Name:         fmt.Sprintf("network-%s", config.ClusterID),
-		AdminStateUp: gophercloud.Enabled,
+	sub, err := subnets.Create(networkClient, subnets.CreateOpts{
+		NetworkID:      config.OpenStackConfig.NetworkID,
+		CIDR:           config.OpenStackConfig.SubnetIPRange,
+		IPVersion:      gophercloud.IPv4,
+		Name:           fmt.Sprintf("subnet-%s", config.ClusterID),
+		DNSNameservers: []string{"8.8.8.8"},
 	}).Extract()
 
 	if err != nil {
-		return errors.Wrapf(err, "create network error step %s", CreateNetworkStepName)
+		return errors.Wrapf(err, "create subnet caused")
 	}
 
-	// Save network ID
-	config.OpenStackConfig.NetworkID = net.ID
+	// Save result
+	config.OpenStackConfig.SubnetID = sub.ID
 
 	return nil
 }
 
-func (s *CreateNetworkStep) Name() string {
-	return CreateNetworkStepName
+func (s *CreateSubnetStep) Name() string {
+	return CreateSubnetStepName
 }
 
-func (s *CreateNetworkStep) Rollback(context.Context, io.Writer, *steps.Config) error {
+func (s *CreateSubnetStep) Rollback(context.Context, io.Writer, *steps.Config) error {
 	return nil
 }
 
-func (s *CreateNetworkStep) Description() string {
-	return "Create "
+func (s *CreateSubnetStep) Description() string {
+	return "Create subnet"
 }
 
-func (s *CreateNetworkStep) Depends() []string {
-	return []string{kubeadm.StepName}
+func (s *CreateSubnetStep) Depends() []string {
+	return []string{}
 }

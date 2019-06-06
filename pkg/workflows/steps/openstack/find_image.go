@@ -82,5 +82,5 @@ func (s *FindImageStep) Description() string {
 }
 
 func (s *FindImageStep) Depends() []string {
-	return []string{kubeadm.StepName}
+	return nil
 }
