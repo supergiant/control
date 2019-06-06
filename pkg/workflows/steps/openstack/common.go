@@ -8,4 +8,5 @@ func Init() {
 	steps.RegisterStep(FindImageStepName, NewFindImageStep())
 	steps.RegisterStep(CreateNetworkStepName, NewCreateNetworkStep())
 	steps.RegisterStep(CreateSubnetStepName, NewCreateSubnetStep())
+	steps.RegisterStep(CreateRouterStepName, NewCreateRouterStep())
 }
