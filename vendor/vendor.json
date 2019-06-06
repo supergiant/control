@@ -809,6 +809,12 @@
 			"revisionTime": "2019-06-04T15:21:16Z"
 		},
 		{
+			"checksumSHA1": "wTIndepa6bdptenzIlBKVvU6fQM=",
+			"path": "github.com/gophercloud/gophercloud/openstack/networking/v2/extensions/layer3/routers",
+			"revision": "b8b6f3e2be05908d2c212e3588f16e3a2eba4530",
+			"revisionTime": "2019-06-04T15:21:16Z"
+		},
+		{
 			"checksumSHA1": "Sq9EYoFuQA6VXy/KqaJoEdJBzoU=",
 			"path": "github.com/gophercloud/gophercloud/openstack/networking/v2/networks",
 			"revision": "b8b6f3e2be05908d2c212e3588f16e3a2eba4530",

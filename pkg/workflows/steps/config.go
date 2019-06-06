@@ -225,17 +225,18 @@ type DrainConfig struct {
 }
 
 type OpenStackConfig struct {
-	AuthURL    string `json:"authUrl"`
-	DomainName string `json:"domainName"`
-	DomainID   string `json:"domainId"`
-	TenantID   string `json:"tenantId"`
-	UserName   string `json:"userName"`
-	Password   string `json:"password"`
-	Region     string `json:"region"`
-	ImageID    string `json:"imageId"`
-	NetworkID  string `json:"networkId"`
-	SubnetID   string `json:"subnetId"`
+	AuthURL       string `json:"authUrl"`
+	DomainName    string `json:"domainName"`
+	DomainID      string `json:"domainId"`
+	TenantID      string `json:"tenantId"`
+	UserName      string `json:"userName"`
+	Password      string `json:"password"`
+	Region        string `json:"region"`
+	ImageID       string `json:"imageId"`
+	NetworkID     string `json:"networkId"`
+	SubnetID      string `json:"subnetId"`
 	SubnetIPRange string `json:"subnetIpRange"`
+	RouterID      string `json:"routerId"`
 }
 
 type Map struct {
