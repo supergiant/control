@@ -3,13 +3,14 @@ package openstack
 import (
 	"context"
 	"fmt"
-	"github.com/gophercloud/gophercloud"
-	"github.com/gophercloud/gophercloud/openstack"
 	"github.com/pkg/errors"
 	"io"
 	"text/template"
 
+	"github.com/gophercloud/gophercloud"
+	"github.com/gophercloud/gophercloud/openstack"
 	"github.com/gophercloud/gophercloud/openstack/compute/v2/images"
+
 	tm "github.com/supergiant/control/pkg/templatemanager"
 	"github.com/supergiant/control/pkg/workflows/steps"
 	"github.com/supergiant/control/pkg/workflows/steps/kubeadm"
@@ -18,7 +19,7 @@ import (
 const FindImageStepName = "find_image"
 
 type FindImageStep struct {
-	script *template.Template
+	script    *template.Template
 	getClient func(steps.OpenStackConfig) (*gophercloud.ProviderClient, error)
 }
 
@@ -75,7 +76,6 @@ func (s *FindImageStep) Run(ctx context.Context, out io.Writer, config *steps.Co
 	if err != nil {
 		return errors.Wrapf(err, "step %s get image id", FindImageStepName)
 	}
-
 
 	config.OpenStackConfig.ImageID = ImageID
 
