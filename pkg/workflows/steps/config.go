@@ -234,11 +234,14 @@ type OpenStackConfig struct {
 	Region        string `json:"region"`
 	ImageID       string `json:"imageId"`
 	NetworkID     string `json:"networkId"`
+	NetworkName   string `json:"networkName"`
 	SubnetID      string `json:"subnetId"`
 	SubnetIPRange string `json:"subnetIpRange"`
 	RouterID      string `json:"routerId"`
 	FlavorName    string `json:"flavorName"`
-	ImageName string `json:"imageName"`
+	FloatingIP    string `json:"floatingIp"`
+	FloatingID    string `json:"floatingId"`
+	ImageName     string `json:"imageName"`
 }
 
 type Map struct {

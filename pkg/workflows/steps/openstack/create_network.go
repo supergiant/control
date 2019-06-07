@@ -69,6 +69,7 @@ func (s *CreateNetworkStep) Run(ctx context.Context, out io.Writer, config *step
 
 	// Save network ID
 	config.OpenStackConfig.NetworkID = net.ID
+	config.OpenStackConfig.NetworkName = net.Name
 
 	return nil
 }
