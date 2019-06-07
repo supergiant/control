@@ -9,4 +9,5 @@ func Init() {
 	steps.RegisterStep(CreateNetworkStepName, NewCreateNetworkStep())
 	steps.RegisterStep(CreateSubnetStepName, NewCreateSubnetStep())
 	steps.RegisterStep(CreateRouterStepName, NewCreateRouterStep())
+	steps.RegisterStep(CreateMachineStepName, NewCreateMachineStep())
 }
