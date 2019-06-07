@@ -69,6 +69,8 @@ func (s *CreateLoadBalancer) Run(ctx context.Context, out io.Writer, config *ste
 		return errors.Wrapf(err, "create load balancer")
 	}
 
+	// TODO(stgleb): Wait for load balancer to become active
+	loadBalancer.OperatingStatus
 
 	listenOpts := listeners.CreateOpts{}
 	listeners.Create(loadBalancerClient, listenOpts)
