@@ -114,7 +114,7 @@ func (s *CreateLoadBalancer) Run(ctx context.Context, out io.Writer, config *ste
 	listener, err := listeners.Create(loadBalancerClient, listenerOpts).Extract()
 
 	if err != nil {
-		return errors.Wrapf(err,"create listener")
+		return errors.Wrapf(err, "create listener")
 	}
 
 	for i := 0; i < s.attemptCount; i++ {
@@ -138,8 +138,8 @@ func (s *CreateLoadBalancer) Run(ctx context.Context, out io.Writer, config *ste
 	config.OpenStackConfig.ListenerID = listener.ID
 
 	poolOpts := pools.CreateOpts{
-		Name: fmt.Sprintf("pool-%s", config.ClusterID),
-		Protocol: "HTTP",
+		Name:           fmt.Sprintf("pool-%s", config.ClusterID),
+		Protocol:       "HTTP",
 		LoadbalancerID: config.OpenStackConfig.LoadBalancerID,
 		ListenerID:     config.OpenStackConfig.ListenerID,
 	}
@@ -171,14 +171,14 @@ func (s *CreateLoadBalancer) Run(ctx context.Context, out io.Writer, config *ste
 	config.OpenStackConfig.PoolID = pool.ID
 
 	healthOpts := monitors.CreateOpts{
-		Type: monitors.TypeHTTPS,
-		HTTPMethod: http.MethodGet,
+		Type:          monitors.TypeHTTPS,
+		HTTPMethod:    http.MethodGet,
 		ExpectedCodes: "200-202",
-		MaxRetries: 3,
-		Delay: 20,
-		Timeout: 10,
-		URLPath: "/healthz",
-		PoolID: config.OpenStackConfig.PoolID,
+		MaxRetries:    3,
+		Delay:         20,
+		Timeout:       10,
+		URLPath:       "/healthz",
+		PoolID:        config.OpenStackConfig.PoolID,
 	}
 
 	healthCheck, err := monitors.Create(loadBalancerClient, healthOpts).Extract()
@@ -190,13 +190,13 @@ func (s *CreateLoadBalancer) Run(ctx context.Context, out io.Writer, config *ste
 	config.OpenStackConfig.HealthCheckID = healthCheck.ID
 
 	memberOpts := pools.CreateMemberOpts{
-		Address: config.Node.PrivateIp,
+		Address:      config.Node.PrivateIp,
 		ProtocolPort: 443,
-		SubnetID: config.OpenStackConfig.SubnetID,
-		Name: fmt.Sprintf("member-%s", config.Node.ID),
+		SubnetID:     config.OpenStackConfig.SubnetID,
+		Name:         fmt.Sprintf("member-%s", config.Node.ID),
 	}
 
-	_, err = pools.CreateMember(loadBalancerClient,  config.OpenStackConfig.PoolID, memberOpts).Extract()
+	_, err = pools.CreateMember(loadBalancerClient, config.OpenStackConfig.PoolID, memberOpts).Extract()
 
 	if err != nil {
 		return errors.Wrapf(err, "create member")
