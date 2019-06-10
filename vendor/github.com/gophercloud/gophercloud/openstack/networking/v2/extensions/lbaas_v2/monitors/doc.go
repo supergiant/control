@@ -1,12 +1,11 @@
 /*
-Package monitors provides information and interaction with the Monitors
-of the Load Balancer as a Service extension for the OpenStack Networking
-Service.
+Package monitors provides information and interaction with Monitors
+of the LBaaS v2 extension for the OpenStack Networking service.
 
 Example to List Monitors
 
-	listOpts: monitors.ListOpts{
-		Type: "HTTP",
+	listOpts := monitors.ListOpts{
+		PoolID: "c79a4468-d788-410c-bf79-9a8ef6354852",
 	}
 
 	allPages, err := monitors.List(networkClient, listOpts).AllPages()
@@ -27,8 +26,10 @@ Example to Create a Monitor
 
 	createOpts := monitors.CreateOpts{
 		Type:          "HTTP",
+		Name:          "db",
+		PoolID:        "84f1b61f-58c4-45bf-a8a9-2dafb9e5214d",
 		Delay:         20,
-		Timeout:       20,
+		Timeout:       10,
 		MaxRetries:    5,
 		URLPath:       "/check",
 		ExpectedCodes: "200-299",
@@ -41,10 +42,15 @@ Example to Create a Monitor
 
 Example to Update a Monitor
 
-	monitorID := "681aed03-aadb-43ae-aead-b9016375650a"
+	monitorID := "d67d56a6-4a86-4688-a282-f46444705c64"
 
 	updateOpts := monitors.UpdateOpts{
-		Timeout: 30,
+		Name:          "NewHealthmonitorName",
+		Delay:         3,
+		Timeout:       20,
+		MaxRetries:    10,
+		URLPath:       "/another_check",
+		ExpectedCodes: "301",
 	}
 
 	monitor, err := monitors.Update(networkClient, monitorID, updateOpts).Extract()
@@ -52,9 +58,9 @@ Example to Update a Monitor
 		panic(err)
 	}
 
-Example to Delete a Member
+Example to Delete a Monitor
 
-	monitorID := "681aed03-aadb-43ae-aead-b9016375650a"
+	monitorID := "d67d56a6-4a86-4688-a282-f46444705c64"
 	err := monitors.Delete(networkClient, monitorID).ExtractErr()
 	if err != nil {
 		panic(err)

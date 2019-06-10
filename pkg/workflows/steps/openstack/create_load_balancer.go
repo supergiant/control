@@ -14,7 +14,7 @@ import (
 	"github.com/gophercloud/gophercloud/openstack/loadbalancer/v2/listeners"
 	"github.com/gophercloud/gophercloud/openstack/loadbalancer/v2/loadbalancers"
 	"github.com/gophercloud/gophercloud/openstack/loadbalancer/v2/pools"
-	"github.com/gophercloud/gophercloud/openstack/networking/v2/extensions/lbaas/monitors"
+	"github.com/gophercloud/gophercloud/openstack/networking/v2/extensions/lbaas_v2/monitors"
 
 	"github.com/supergiant/control/pkg/workflows/steps"
 )
@@ -177,6 +177,7 @@ func (s *CreateLoadBalancer) Run(ctx context.Context, out io.Writer, config *ste
 		Delay: 20,
 		Timeout: 10,
 		URLPath: "/healthz",
+		PoolID: config.OpenStackConfig.PoolID,
 	}
 
 	healthCheck, err := monitors.Create(loadBalancerClient, healthOpts).Extract()

@@ -3,8 +3,8 @@ package monitors
 import "github.com/gophercloud/gophercloud"
 
 const (
-	rootPath     = "lb"
-	resourcePath = "health_monitors"
+	rootPath     = "lbaas"
+	resourcePath = "healthmonitors"
 )
 
 func rootURL(c *gophercloud.ServiceClient) string {
