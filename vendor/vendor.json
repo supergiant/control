@@ -821,8 +821,20 @@
 			"revisionTime": "2019-06-04T15:21:16Z"
 		},
 		{
+			"checksumSHA1": "K9yPTVKgSLKE95j19vS6fXK0Nj8=",
+			"path": "github.com/gophercloud/gophercloud/openstack/loadbalancer/v2/listeners",
+			"revision": "b8b6f3e2be05908d2c212e3588f16e3a2eba4530",
+			"revisionTime": "2019-06-04T15:21:16Z"
+		},
+		{
 			"checksumSHA1": "q1DD7qObqcgK/8uBx3nIWgx210o=",
 			"path": "github.com/gophercloud/gophercloud/openstack/loadbalancer/v2/loadbalancers",
+			"revision": "b8b6f3e2be05908d2c212e3588f16e3a2eba4530",
+			"revisionTime": "2019-06-04T15:21:16Z"
+		},
+		{
+			"checksumSHA1": "nIcJP95YV83yY8nW7/BgKI9VNuI=",
+			"path": "github.com/gophercloud/gophercloud/openstack/loadbalancer/v2/pools",
 			"revision": "b8b6f3e2be05908d2c212e3588f16e3a2eba4530",
 			"revisionTime": "2019-06-04T15:21:16Z"
 		},
@@ -831,6 +843,18 @@
 			"path": "github.com/gophercloud/gophercloud/openstack/networking/v2/extensions/layer3/routers",
 			"revision": "b8b6f3e2be05908d2c212e3588f16e3a2eba4530",
 			"revisionTime": "2019-06-04T15:21:16Z"
+		},
+		{
+			"checksumSHA1": "HiGzZXGIxrItijPCH+L7EbbCb9w=",
+			"path": "github.com/gophercloud/gophercloud/openstack/networking/v2/extensions/lbaas/members",
+			"revision": "5d7c57d98d5884d9c6a09b9e62a95979b2a9a762",
+			"revisionTime": "2019-06-10T12:01:07Z"
+		},
+		{
+			"checksumSHA1": "KZJLk70d5SX8TQO1q0MLAxGEBCU=",
+			"path": "github.com/gophercloud/gophercloud/openstack/networking/v2/extensions/lbaas/monitors",
+			"revision": "5d7c57d98d5884d9c6a09b9e62a95979b2a9a762",
+			"revisionTime": "2019-06-10T12:01:07Z"
 		},
 		{
 			"checksumSHA1": "Sq9EYoFuQA6VXy/KqaJoEdJBzoU=",

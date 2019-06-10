@@ -242,6 +242,11 @@ type OpenStackConfig struct {
 	FloatingIP    string `json:"floatingIp"`
 	FloatingID    string `json:"floatingId"`
 	ImageName     string `json:"imageName"`
+	LoadBalancerID string `json:"loadBalancerId"`
+	LoadBalancerName string `json:"loadBalancerName"`
+	ListenerID string `json:"listenerId"`
+	PoolID string `json:"poolId"`
+	HealthCheckID string `json:"healthCheckId"`
 }
 
 type Map struct {
