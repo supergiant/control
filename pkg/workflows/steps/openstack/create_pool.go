@@ -53,7 +53,7 @@ func (s *CreatePoolStep) Run(ctx context.Context, out io.Writer, config *steps.C
 	client, err := s.getClient(config.OpenStackConfig)
 
 	if err != nil {
-		return errors.Wrapf(err, "step %s", CreateNetworkStepName)
+		return errors.Wrapf(err, "step %s", CreatePoolStepName)
 	}
 
 	loadBalancerClient, err := openstack.NewLoadBalancerV2(client, gophercloud.EndpointOpts{
@@ -61,7 +61,7 @@ func (s *CreatePoolStep) Run(ctx context.Context, out io.Writer, config *steps.C
 	})
 
 	if err != nil {
-		return errors.Wrapf(err, "step %s get compute client", FindImageStepName)
+		return errors.Wrapf(err, "step %s get compute client", CreatePoolStepName)
 	}
 
 	poolOpts := pools.CreateOpts{
