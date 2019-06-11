@@ -3,6 +3,7 @@ package controlplane
 import (
 	"context"
 	"fmt"
+	"github.com/supergiant/control/pkg/workflows/steps/openstack"
 	"net/http"
 	_ "net/http/pprof"
 	"net/url"
@@ -208,7 +209,8 @@ func configureApplication(cfg *Config) (*mux.Router, error) {
 	kubeadm.Init()
 	bootstraptoken.Init()
 	configmap.Init()
-
+    openstack.Init()
+	
 	amazon.InitFindAMI(amazon.GetEC2)
 	amazon.InitImportKeyPair(amazon.GetEC2)
 	amazon.InitCreateInstanceProfiles(amazon.GetIAM)
