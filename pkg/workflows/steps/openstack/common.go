@@ -5,9 +5,9 @@ import (
 )
 
 const (
-	StatusOnline               = "ONLINE"
-	StatusOffline              = "OFFLINE"
-	StatusActive               = "ACTIVE"
+	StatusOnline  = "ONLINE"
+	StatusOffline = "OFFLINE"
+	StatusActive  = "ACTIVE"
 )
 
 func Init() {
@@ -16,4 +16,8 @@ func Init() {
 	steps.RegisterStep(CreateSubnetStepName, NewCreateSubnetStep())
 	steps.RegisterStep(CreateRouterStepName, NewCreateRouterStep())
 	steps.RegisterStep(CreateMachineStepName, NewCreateMachineStep())
+	steps.RegisterStep(CreatePoolStepName, NewCreatePoolStep())
+	steps.RegisterStep(CreateLoadBalancerStepName, NewCreateLoadBalancer())
+	steps.RegisterStep(CreateHealthCheckStepName, NewCreateHealthCheckStep())
+	steps.RegisterStep(RegisterInstancetoLBStepName, NewRegisterInstancetoLBStep())
 }

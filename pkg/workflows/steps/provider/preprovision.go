@@ -3,6 +3,7 @@ package provider
 import (
 	"context"
 	"fmt"
+	"github.com/supergiant/control/pkg/workflows/steps/openstack"
 	"io"
 
 	"github.com/pkg/errors"
@@ -95,6 +96,16 @@ func prepProvisionStepFor(provider clouds.Name) ([]steps.Step, error) {
 			steps.GetStep(gce.CreateBackendServiceStepName),
 			steps.GetStep(gce.CreateForwardingRulesStepName),
 		}, nil
+	case clouds.OpenStack:
+		return []steps.Step{
+			steps.GetStep(openstack.CreateNetworkStepName),
+			steps.GetStep(openstack.CreateSubnetStepName),
+			steps.GetStep(openstack.FindImageStepName),
+			steps.GetStep(openstack.CreateLoadBalancerStepName),
+			steps.GetStep(openstack.CreatePoolStepName),
+			steps.GetStep(openstack.CreateHealthCheckStepName),
+		}, nil
+
 	}
 	return nil, errors.Wrapf(fmt.Errorf("unknown provider: %s", provider), PreProvisionStep)
 }

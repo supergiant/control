@@ -3,6 +3,7 @@ package provider
 import (
 	"context"
 	"fmt"
+	"github.com/supergiant/control/pkg/workflows/steps/openstack"
 	"io"
 
 	"github.com/pkg/errors"
@@ -37,6 +38,8 @@ func (s *RegisterInstanceToLoadBalancer) Run(ctx context.Context, out io.Writer,
 		return nil
 	case clouds.Azure:
 		return nil
+	case clouds.OpenStack:
+		step = steps.GetStep(openstack.RegisterInstancetoLBStepName)
 	default:
 		return errors.Wrapf(fmt.Errorf("unknown provider: %s", cfg.Provider), RegisterInstanceStepName)
 	}
