@@ -21,9 +21,6 @@ import (
 
 const (
 	CreateLoadBalancerStepName = "create_load_balancer"
-	StatusOnline               = "ONLINE"
-	StatusOffline              = "OFFLINE"
-	StatusActive               = "ACTIVE"
 )
 
 type CreateLoadBalancer struct {
