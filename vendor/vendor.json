@@ -809,6 +809,12 @@
 			"revisionTime": "2019-06-04T15:21:16Z"
 		},
 		{
+			"checksumSHA1": "/Kpn+hR9Ud3EORus/4lOe3Ro1nI=",
+			"path": "github.com/gophercloud/gophercloud/openstack/compute/v2/flavors",
+			"revision": "5d7c57d98d5884d9c6a09b9e62a95979b2a9a762",
+			"revisionTime": "2019-06-10T12:01:07Z"
+		},
+		{
 			"checksumSHA1": "CSnfH01hSas0bdc/3m/f5Rt6SFY=",
 			"path": "github.com/gophercloud/gophercloud/openstack/compute/v2/images",
 			"revision": "b8b6f3e2be05908d2c212e3588f16e3a2eba4530",
@@ -879,6 +885,18 @@
 			"path": "github.com/gophercloud/gophercloud/openstack/networking/v2/subnets",
 			"revision": "b8b6f3e2be05908d2c212e3588f16e3a2eba4530",
 			"revisionTime": "2019-06-04T15:21:16Z"
+		},
+		{
+			"checksumSHA1": "nkRXTSQyEk7yy+4u4/yC1kdvpaE=",
+			"path": "github.com/gophercloud/gophercloud/openstack/utils",
+			"revision": "5d7c57d98d5884d9c6a09b9e62a95979b2a9a762",
+			"revisionTime": "2019-06-10T12:01:07Z"
+		},
+		{
+			"checksumSHA1": "/Wkc4WKxF/P87dOmUh5XUXcfmz8=",
+			"path": "github.com/gophercloud/gophercloud/pagination",
+			"revision": "5d7c57d98d5884d9c6a09b9e62a95979b2a9a762",
+			"revisionTime": "2019-06-10T12:01:07Z"
 		},
 		{
 			"checksumSHA1": "iIUYZyoanCQQTUaWsu8b+iOSPt4=",

@@ -3,7 +3,6 @@ package openstack
 import (
 	"context"
 	"io"
-	"text/template"
 
 	"github.com/gophercloud/gophercloud"
 	"github.com/gophercloud/gophercloud/openstack"
@@ -12,7 +11,6 @@ import (
 	"github.com/pkg/errors"
 
 	"github.com/supergiant/control/pkg/workflows/steps"
-	"github.com/supergiant/control/pkg/workflows/steps/kubeadm"
 )
 
 const FindImageStepName = "find_image"
