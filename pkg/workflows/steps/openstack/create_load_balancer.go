@@ -58,7 +58,7 @@ func (s *CreateLoadBalancer) Run(ctx context.Context, out io.Writer, config *ste
 	client, err := s.getClient(config.OpenStackConfig)
 
 	if err != nil {
-		return errors.Wrapf(err, "step %s", CreateNetworkStepName)
+		return errors.Wrapf(err, "step %s", CreateLoadBalancerStepName)
 	}
 
 	loadBalancerClient, err := openstack.NewLoadBalancerV2(client, gophercloud.EndpointOpts{
@@ -66,7 +66,7 @@ func (s *CreateLoadBalancer) Run(ctx context.Context, out io.Writer, config *ste
 	})
 
 	if err != nil {
-		return errors.Wrapf(err, "step %s get compute client", FindImageStepName)
+		return errors.Wrapf(err, "step %s get compute client", CreateLoadBalancerStepName)
 	}
 
 	lbOpts := loadbalancers.CreateOpts{
