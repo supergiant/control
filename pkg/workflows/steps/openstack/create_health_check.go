@@ -54,7 +54,7 @@ func (s *CreateHealthCheckStep) Run(ctx context.Context, out io.Writer, config *
 	client, err := s.getClient(config.OpenStackConfig)
 
 	if err != nil {
-		return errors.Wrapf(err, "step %s", CreateNetworkStepName)
+		return errors.Wrapf(err, "step %s", CreateHealthCheckStepName)
 	}
 
 	loadBalancerClient, err := openstack.NewLoadBalancerV2(client, gophercloud.EndpointOpts{
@@ -62,7 +62,7 @@ func (s *CreateHealthCheckStep) Run(ctx context.Context, out io.Writer, config *
 	})
 
 	if err != nil {
-		return errors.Wrapf(err, "step %s get compute client", FindImageStepName)
+		return errors.Wrapf(err, "step %s get compute client", CreateHealthCheckStepName)
 	}
 
 	healthOpts := monitors.CreateOpts{
