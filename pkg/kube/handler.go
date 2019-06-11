@@ -421,7 +421,7 @@ func (h *Handler) deleteKube(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	ctx, _ := context.WithTimeout(context.Background(), time.Minute * 10)
+	ctx, _ := context.WithTimeout(context.Background(), time.Minute*10)
 	errChan := t.Run(ctx, *config, writer)
 
 	go func(t *workflows.Task) {
@@ -913,8 +913,23 @@ func (h *Handler) getRelease(w http.ResponseWriter, r *http.Request) {
 func (h *Handler) listReleases(w http.ResponseWriter, r *http.Request) {
 	vars := mux.Vars(r)
 
-	// TODO(stgleb): Only for operational clusters
 	kubeID := vars["kubeID"]
+
+	k, err := h.svc.Get(r.Context(), kubeID)
+	if err != nil {
+		if sgerrors.IsNotFound(err) {
+			message.SendNotFound(w, kubeID, err)
+			return
+		}
+		message.SendUnknownError(w, err)
+		return
+	}
+
+	if k.State != model.StateOperational {
+		message.SendNotFound(w, kubeID, errors.New("kube is not operational"))
+		return
+	}
+
 	// TODO: use a struct for input parameters
 	rlsList, err := h.svc.ListReleases(r.Context(), kubeID, "", "", 0)
 	if err != nil {
