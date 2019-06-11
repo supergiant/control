@@ -54,7 +54,6 @@ func NewCreateLoadBalancer() *CreateLoadBalancer {
 	}
 }
 
-// TODO(stgleb): Split that into steps
 func (s *CreateLoadBalancer) Run(ctx context.Context, out io.Writer, config *steps.Config) error {
 	client, err := s.getClient(config.OpenStackConfig)
 
