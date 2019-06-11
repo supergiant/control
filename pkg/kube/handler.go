@@ -421,7 +421,7 @@ func (h *Handler) deleteKube(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	ctx, _ := context.WithTimeout(context.Background(), time.Minute * 10)
+	ctx, _ := context.WithTimeout(context.Background(), time.Minute*10)
 	errChan := t.Run(ctx, *config, writer)
 
 	go func(t *workflows.Task) {
@@ -913,8 +913,23 @@ func (h *Handler) getRelease(w http.ResponseWriter, r *http.Request) {
 func (h *Handler) listReleases(w http.ResponseWriter, r *http.Request) {
 	vars := mux.Vars(r)
 
-	// TODO(stgleb): Only for operational clusters
 	kubeID := vars["kubeID"]
+
+	k, err := h.svc.Get(r.Context(), kubeID)
+	if err != nil {
+		if sgerrors.IsNotFound(err) {
+			message.SendNotFound(w, kubeID, err)
+			return
+		}
+		message.SendUnknownError(w, err)
+		return
+	}
+
+	if k.State != model.StateOperational {
+		message.SendNotFound(w, kubeID, errors.New("kube is not operational"))
+		return
+	}
+
 	// TODO: use a struct for input parameters
 	rlsList, err := h.svc.ListReleases(r.Context(), kubeID, "", "", 0)
 	if err != nil {
@@ -955,7 +970,6 @@ func (h *Handler) getClusterMetrics(w http.ResponseWriter, r *http.Request) {
 			"cpu":    "api/v1/query?query=:node_cpu_utilisation:avg1m",
 			"memory": "api/v1/query?query=:node_memory_utilisation:",
 		}
-		masterNode *model.Machine
 		response   = map[string]interface{}{}
 		baseUrl    = "api/v1/namespaces/kube-system/services/prometheus-operated:9090/proxy"
 	)
@@ -973,18 +987,8 @@ func (h *Handler) getClusterMetrics(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	for key := range k.Masters {
-		if k.Masters[key] != nil {
-			masterNode = k.Masters[key]
-		}
-	}
-
-	if masterNode == nil {
-		return
-	}
-
 	for metricType, relUrl := range metricsRelUrls {
-		url := fmt.Sprintf("https://%s/%s/%s", masterNode.PublicIp, baseUrl, relUrl)
+		url := fmt.Sprintf("https://%s/%s/%s", k.ExternalDNSName, baseUrl, relUrl)
 		metricResponse, err := h.getMetrics(url, k)
 
 		if err != nil {
@@ -1011,7 +1015,6 @@ func (h *Handler) getNodesMetrics(w http.ResponseWriter, r *http.Request) {
 			"cpu":    "api/v1/query?query=node:node_cpu_utilisation:avg1m",
 			"memory": "api/v1/query?query=node:node_memory_utilisation:",
 		}
-		masterNode *model.Machine
 		response   = map[string]map[string]interface{}{}
 		baseUrl    = "api/v1/namespaces/kube-system/services/prometheus-operated:9090/proxy"
 	)
@@ -1029,19 +1032,8 @@ func (h *Handler) getNodesMetrics(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	// TODO(stgleb): Use Load balancer instead of master public IP
-	for key := range k.Masters {
-		if k.Masters[key] != nil {
-			masterNode = k.Masters[key]
-		}
-	}
-
-	if masterNode == nil {
-		return
-	}
-
 	for metricType, relUrl := range metricsRelUrls {
-		url := fmt.Sprintf("https://%s/%s/%s", masterNode.PublicIp, baseUrl, relUrl)
+		url := fmt.Sprintf("https://%s/%s/%s", k.ExternalDNSName, baseUrl, relUrl)
 		metricResponse, err := h.getMetrics(url, k)
 
 		if err != nil {
