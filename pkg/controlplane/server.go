@@ -3,7 +3,6 @@ package controlplane
 import (
 	"context"
 	"fmt"
-	"github.com/supergiant/control/pkg/workflows/steps/openstack"
 	"net/http"
 	_ "net/http/pprof"
 	"net/url"
@@ -47,6 +46,7 @@ import (
 	"github.com/supergiant/control/pkg/workflows/steps/kubeadm"
 	"github.com/supergiant/control/pkg/workflows/steps/kubelet"
 	"github.com/supergiant/control/pkg/workflows/steps/network"
+	"github.com/supergiant/control/pkg/workflows/steps/openstack"
 	"github.com/supergiant/control/pkg/workflows/steps/poststart"
 	"github.com/supergiant/control/pkg/workflows/steps/prometheus"
 	"github.com/supergiant/control/pkg/workflows/steps/ssh"
@@ -209,8 +209,8 @@ func configureApplication(cfg *Config) (*mux.Router, error) {
 	kubeadm.Init()
 	bootstraptoken.Init()
 	configmap.Init()
-    openstack.Init()
-	
+	openstack.Init()
+
 	amazon.InitFindAMI(amazon.GetEC2)
 	amazon.InitImportKeyPair(amazon.GetEC2)
 	amazon.InitCreateInstanceProfiles(amazon.GetIAM)
