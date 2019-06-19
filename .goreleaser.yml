@@ -16,7 +16,7 @@ builds:
   env:
     - CGO_ENABLED=0
   main: ./cmd/controlplane/main.go
-  ldflags: -X main.version={{ .Version }}
+  ldflags: -s -w -X main.version={{ .Version }}
 
 archive:
   format: tar.gz
@@ -32,7 +32,7 @@ archive:
 nfpm:
   name_template: "{{ .ProjectName }}_{{ .Version }}_{{ .Os }}_{{ .Arch }}"
   homepage: https://supergiant.io
-  #maintainer: support@supergiant.io
+  maintainer: https://github.com/supergiant/control
   description: Supergiant manages the lifecycle of kubernetes clusters on your infrastructure and allows deployment of applications via HELM.
   license: Apache 2.0
   formats:
@@ -41,11 +41,12 @@ nfpm:
   bindir: /usr/local/bin
   empty_folders:
     - /var/lib/supergiant
-  config_files:
+  files:
     "build/supergiant.service": "/etc/systemd/system/supergiant.service"
   scripts:
-    postinstall: "build/restart-systemd.sh"
-    postremove: "build/restart-systemd.sh"
+    postinstall: "build/postinstall.sh"
+    preremove: "build/preremove.sh"
+    postremove: "build/postremove.sh"
 
 # TODO: use it after a full integration into CI/CD process
 #dockers:

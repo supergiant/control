@@ -3,8 +3,7 @@ Description=Supergiant manages the lifecycle of kubernetes clusters on your infr
 Documentation=http://supergiant.github.io
 
 [Service]
-ExecStart=/usr/local/bin/supergiant \
-	-templates /var/lib/supergiant/templates \
-	-storage-uri /var/lib/supergiant/supergiant.db
+ExecStart=/usr/local/bin/supergiant -storage-uri /var/lib/supergiant/supergiant.db
 
 [Install]
+WantedBy=multi-user.target
