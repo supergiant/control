@@ -54,7 +54,7 @@ export const CLUSTERS_LIST_MOCK = [
     'operatingSystem': 'linux',
     'operatingSystemVersion': 'xenial',
     'dockerVersion': '18.06.3',
-    'K8SVersion': '1.14.0',
+    'K8SVersion': '1.14.3',
     'helmVersion': '2.11.0',
     'networking': {
       'manager': '0.10.0',
