@@ -122,6 +122,7 @@ func Init() {
 	}
 
 	upgradeNode := []steps.Step{
+		steps.GetStep(ssh.StepName),
 		steps.GetStep(upgrade.StepName),
 	}
 

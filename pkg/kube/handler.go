@@ -1418,6 +1418,119 @@ func (h *Handler) importKube(w http.ResponseWriter, r *http.Request) {
 	}()
 }
 
+
+func (h *Handler) upgradeKube(w http.ResponseWriter, r *http.Request) {
+	var err error
+
+	vars := mux.Vars(r)
+	kubeID := vars["kubeID"]
+
+	logrus.Debugf("Get kube %s", kubeID)
+	k, err := h.svc.Get(r.Context(), kubeID)
+	if err != nil {
+		if sgerrors.IsNotFound(err) {
+			message.SendNotFound(w, kubeID, err)
+			return
+		}
+		message.SendUnknownError(w, err)
+		return
+	}
+
+	logrus.Debugf("Get cloud profile %s", k.ProfileID)
+	kubeProfile, err := h.profileSvc.Get(r.Context(), k.ProfileID)
+
+	if err != nil {
+		if sgerrors.IsNotFound(err) {
+			message.SendNotFound(w, k.ProfileID, err)
+			return
+		}
+
+		message.SendUnknownError(w, err)
+		return
+	}
+
+	config, err := steps.NewConfigFromKube(kubeProfile, k)
+
+	if err != nil {
+		logrus.Errorf("New config %v", err.Error())
+		message.SendUnknownError(w, err)
+		return
+	}
+
+	nextVersion := findNextMinorVersion(k.K8SVersion, clouds.GetVersions())
+
+	if nextVersion == "" {
+		http.Error(w, fmt.Sprintf("can't upgrade from version %s", k.K8SVersion), http.StatusBadRequest)
+		return
+	}
+
+	// here we are ready for async part
+	w.WriteHeader(http.StatusAccepted)
+
+	go func(){
+		isBootstrap := true
+
+		for  _, master := range k.Masters {
+			task, err := workflows.NewTask(config, workflows.Upgrade, h.repo)
+
+			if err != nil {
+				logrus.Errorf("Error creating task for upgrade", err)
+			}
+
+
+			fileName := util.MakeFileName(task.ID)
+			writer, err := h.getWriter(fileName)
+
+			if err != nil {
+				message.SendUnknownError(w, err)
+				return
+			}
+			config.Node = *master
+			config.IsMaster = true
+			config.IsBootstrap = isBootstrap
+			isBootstrap = false
+
+			go func(config steps.Config){
+				resultChan := task.Run(context.Background(), config, writer)
+				err := <- resultChan
+
+				if err != nil {
+					logrus.Errorf("task %s has finished with error %v", task.ID, err)
+				}
+			}(*config)
+		}
+
+		for  _, worker := range k.Nodes {
+			task, err := workflows.NewTask(config, workflows.Upgrade, h.repo)
+
+			if err != nil {
+				logrus.Errorf("Error creating task for upgrade", err)
+			}
+
+
+			fileName := util.MakeFileName(task.ID)
+			writer, err := h.getWriter(fileName)
+
+			if err != nil {
+				message.SendUnknownError(w, err)
+				return
+			}
+			config.Node = *worker
+			config.IsMaster = false
+			config.IsBootstrap = false
+
+			go func(config steps.Config){
+				resultChan := task.Run(context.Background(), config, writer)
+				err := <- resultChan
+
+				if err != nil {
+					logrus.Errorf("task %s has finished with error %v", task.ID, err)
+				}
+			}(*config)
+		}
+	}()
+}
+
 func createKube(config *steps.Config, state model.KubeState, profile profile.Profile, taskID string, h *Handler) error {
 	cluster := &model.Kube{
 		ID:                     config.ClusterID,

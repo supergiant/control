@@ -1,6 +1,9 @@
 package clouds
 
-import "github.com/pkg/errors"
+import (
+	"github.com/pkg/errors"
+	"k8s.io/kubernetes-backup/pkg/util/slice"
+)
 
 type Name string
 
@@ -14,6 +17,8 @@ const (
 
 	Unknown Name = "unknown"
 )
+
+var versions = []string{"1.11.5", "1.12.7", "1.13.7", "1.14.3"}
 
 func ToProvider(name string) (Name, error) {
 	switch name {
@@ -29,6 +34,10 @@ func ToProvider(name string) (Name, error) {
 		return OpenStack, nil
 	}
 	return Unknown, errors.New("invalid provider")
+}
+
+func GetVersions() []string{
+	return slice.CopyStrings(versions)
 }
 
 const (
