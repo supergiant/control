@@ -191,6 +191,7 @@ func (h *Handler) Register(r *mux.Router) {
 	r.HandleFunc("/kubes/{kubeID}/metrics", h.getClusterMetrics).Methods(http.MethodGet)
 	r.HandleFunc("/kubes/{kubeID}/services", h.getServices).Methods(http.MethodGet)
 	r.HandleFunc("/kubes/{kubeID}/restart", h.restartKubeProvisioning).Methods(http.MethodPost)
+	r.HandleFunc("/kubes/{kubeID}", h.upgradeKube).Methods(http.MethodPatch)
 }
 
 func (h *Handler) getTasks(w http.ResponseWriter, r *http.Request) {
@@ -970,8 +971,8 @@ func (h *Handler) getClusterMetrics(w http.ResponseWriter, r *http.Request) {
 			"cpu":    "api/v1/query?query=:node_cpu_utilisation:avg1m",
 			"memory": "api/v1/query?query=:node_memory_utilisation:",
 		}
-		response   = map[string]interface{}{}
-		baseUrl    = "api/v1/namespaces/kube-system/services/prometheus-operated:9090/proxy"
+		response = map[string]interface{}{}
+		baseUrl  = "api/v1/namespaces/kube-system/services/prometheus-operated:9090/proxy"
 	)
 
 	vars := mux.Vars(r)
@@ -1015,8 +1016,8 @@ func (h *Handler) getNodesMetrics(w http.ResponseWriter, r *http.Request) {
 			"cpu":    "api/v1/query?query=node:node_cpu_utilisation:avg1m",
 			"memory": "api/v1/query?query=node:node_memory_utilisation:",
 		}
-		response   = map[string]map[string]interface{}{}
-		baseUrl    = "api/v1/namespaces/kube-system/services/prometheus-operated:9090/proxy"
+		response = map[string]map[string]interface{}{}
+		baseUrl  = "api/v1/namespaces/kube-system/services/prometheus-operated:9090/proxy"
 	)
 
 	vars := mux.Vars(r)
@@ -1418,7 +1419,6 @@ func (h *Handler) importKube(w http.ResponseWriter, r *http.Request) {
 	}()
 }
 
-
 func (h *Handler) upgradeKube(w http.ResponseWriter, r *http.Request) {
 	var err error
 
@@ -1467,16 +1467,15 @@ func (h *Handler) upgradeKube(w http.ResponseWriter, r *http.Request) {
 	// here we are ready for async part
 	w.WriteHeader(http.StatusAccepted)
 
-	go func(){
+	go func() {
 		isBootstrap := true
 
-		for  _, master := range k.Masters {
+		for _, master := range k.Masters {
 			task, err := workflows.NewTask(config, workflows.Upgrade, h.repo)
 
 			if err != nil {
 				logrus.Errorf("Error creating task for upgrade", err)
 			}
-
 
 			fileName := util.MakeFileName(task.ID)
 			writer, err := h.getWriter(fileName)
@@ -1490,9 +1489,9 @@ func (h *Handler) upgradeKube(w http.ResponseWriter, r *http.Request) {
 			config.IsBootstrap = isBootstrap
 			isBootstrap = false
 
-			go func(config steps.Config){
+			go func(config steps.Config) {
 				resultChan := task.Run(context.Background(), config, writer)
-				err := <- resultChan
+				err := <-resultChan
 
 				if err != nil {
 					logrus.Errorf("task %s has finished with error %v", task.ID, err)
@@ -1500,13 +1499,12 @@ func (h *Handler) upgradeKube(w http.ResponseWriter, r *http.Request) {
 			}(*config)
 		}
 
-		for  _, worker := range k.Nodes {
+		for _, worker := range k.Nodes {
 			task, err := workflows.NewTask(config, workflows.Upgrade, h.repo)
 
 			if err != nil {
 				logrus.Errorf("Error creating task for upgrade", err)
 			}
-
 
 			fileName := util.MakeFileName(task.ID)
 			writer, err := h.getWriter(fileName)
@@ -1519,9 +1517,9 @@ func (h *Handler) upgradeKube(w http.ResponseWriter, r *http.Request) {
 			config.IsMaster = false
 			config.IsBootstrap = false
 
-			go func(config steps.Config){
+			go func(config steps.Config) {
 				resultChan := task.Run(context.Background(), config, writer)
-				err := <- resultChan
+				err := <-resultChan
 
 				if err != nil {
 					logrus.Errorf("task %s has finished with error %v", task.ID, err)
