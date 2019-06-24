@@ -1,6 +1,7 @@
 package workflows
 
 import (
+	"github.com/supergiant/control/pkg/workflows/steps/upgrade"
 	"sync"
 
 	"github.com/supergiant/control/pkg/workflows/statuses"
@@ -45,6 +46,7 @@ const (
 	DeleteNode      = "DeleteNode"
 	DeleteCluster   = "DeleteCluster"
 	ImportCluster   = "ImportCluster"
+	Upgrade         = "Upgrade"
 )
 
 type WorkflowSet struct {
@@ -119,6 +121,10 @@ func Init() {
 		provider.DeleteCluster{},
 	}
 
+	upgradeNode := []steps.Step{
+		steps.GetStep(upgrade.StepName),
+	}
+
 	m.Lock()
 	defer m.Unlock()
 
@@ -129,6 +135,7 @@ func Init() {
 	workflowMap[DeleteCluster] = deleteClusterWorkflow
 	workflowMap[PostProvision] = postProvision
 	workflowMap[ImportCluster] = importClusterWorkflow
+	workflowMap[Upgrade] = upgradeNode
 }
 
 func RegisterWorkFlow(workflowName string, workflow Workflow) {
