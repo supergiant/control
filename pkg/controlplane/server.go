@@ -3,6 +3,8 @@ package controlplane
 import (
 	"context"
 	"fmt"
+	"github.com/supergiant/control/pkg/workflows/steps/evacuate"
+	"github.com/supergiant/control/pkg/workflows/steps/uncordon"
 	"github.com/supergiant/control/pkg/workflows/steps/upgrade"
 	"net/http"
 	_ "net/http/pprof"
@@ -210,6 +212,8 @@ func configureApplication(cfg *Config) (*mux.Router, error) {
 	bootstraptoken.Init()
 	configmap.Init()
 	upgrade.Init()
+	uncordon.Init()
+	evacuate.Init()
 
 	amazon.InitFindAMI(amazon.GetEC2)
 	amazon.InitImportKeyPair(amazon.GetEC2)
