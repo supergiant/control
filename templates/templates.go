@@ -17,6 +17,6 @@ var Default = map[string]string{
 	"storageclass":               storageclassTpl,
 	"tiller":                     tillerTpl,
 	"upgrade":                    upgradeTpl,
-	"evacutate":                  evacuateTpl,
+	"evacuate":                   evacuateTpl,
 	"uncordon":                   uncordonTpl,
 }
