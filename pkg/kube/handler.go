@@ -1478,12 +1478,16 @@ func (h *Handler) upgradeKube(w http.ResponseWriter, r *http.Request) {
 	}
 
 	tasks := h.makeUpgradeTasks(config, k)
-	bootstrapTask := tasks[workflows.MasterTask][0]
-	masterTasks := tasks[workflows.MasterTask][:1]
-	nodeTasks := tasks[workflows.NodeTask]
 
 	// here we are ready for async part
 	w.WriteHeader(http.StatusAccepted)
+	if err := json.NewEncoder(w).Encode(tasks); err != nil {
+		logrus.Errorf("Error encoding task map %v", err)
+	}
+
+	bootstrapTask := tasks[workflows.MasterTask][0]
+	masterTasks := tasks[workflows.MasterTask][:1]
+	nodeTasks := tasks[workflows.NodeTask]
 
 	go func() {
 		logrus.Infof("Upgrade from %s to %s", k.K8SVersion, nextVersion)
@@ -1545,6 +1549,7 @@ func (h *Handler) upgradeKube(w http.ResponseWriter, r *http.Request) {
 			cfg.IsBootstrap = false
 			masterTask.Config = &cfg
 
+			// TODO(stgleb): Put master node to upgrading state
 			go func(task *workflows.Task) {
 				resultChan := task.Run(context.Background(), *task.Config, writer)
 				err := <-resultChan
@@ -1571,7 +1576,8 @@ func (h *Handler) upgradeKube(w http.ResponseWriter, r *http.Request) {
 			cfg.IsMaster = false
 			cfg.IsBootstrap = false
 			nodeTask.Config = &cfg
-
+			
+			// TODO(stgleb): Put worker node to upgrading state
 			go func(task *workflows.Task) {
 				resultChan := task.Run(context.Background(), *task.Config, writer)
 				err := <-resultChan
