@@ -1,6 +1,8 @@
 package workflows
 
 import (
+	"github.com/supergiant/control/pkg/workflows/steps/evacuate"
+	"github.com/supergiant/control/pkg/workflows/steps/uncordon"
 	"github.com/supergiant/control/pkg/workflows/steps/upgrade"
 	"sync"
 
@@ -123,7 +125,9 @@ func Init() {
 
 	upgradeNode := []steps.Step{
 		steps.GetStep(ssh.StepName),
+		steps.GetStep(evacuate.StepName),
 		steps.GetStep(upgrade.StepName),
+		steps.GetStep(uncordon.StepName),
 	}
 
 	m.Lock()

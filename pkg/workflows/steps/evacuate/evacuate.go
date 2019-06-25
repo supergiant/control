@@ -3,10 +3,9 @@ package evacuate
 import (
 	"context"
 	"fmt"
+	"github.com/pkg/errors"
 	"io"
 	"text/template"
-
-	"github.com/pkg/errors"
 
 	tm "github.com/supergiant/control/pkg/templatemanager"
 	"github.com/supergiant/control/pkg/workflows/steps"
@@ -41,10 +40,12 @@ func New(script *template.Template) *Step {
 }
 
 func (s *Step) Run(ctx context.Context, out io.Writer, config *steps.Config) error {
-	err := steps.RunTemplate(ctx, s.script, config.Runner, out, nil)
+	if !config.IsMaster {
+		err := steps.RunTemplate(ctx, s.script, config.Runner, out, struct{PrivateIP string}{config.Node.PrivateIp})
 
-	if err != nil {
-		return errors.Wrap(err, "evacuate step has failed")
+		if err != nil {
+			return errors.Wrap(err, "evacuate step has failed")
+		}
 	}
 
 	return nil

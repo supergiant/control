@@ -207,14 +207,14 @@ type PrometheusConfig struct {
 }
 
 type KubeadmConfig struct {
-	K8SVersion       string `json:"K8SVersion"`
-	IsMaster         bool   `json:"isMaster"`
-	IsBootstrap      bool   `json:"IsBootstrap"`
-	ServiceCIDR      string `json:"serviceCIDR"`
-	CIDR             string `json:"cidr"`
-	Token            string `json:"token"`
-	Provider         string `json:"provider"`
-	NodeIp           string `json:"nodeIp"`
+	K8SVersion  string `json:"K8SVersion"`
+	IsMaster    bool   `json:"isMaster"`
+	IsBootstrap bool   `json:"IsBootstrap"`
+	ServiceCIDR string `json:"serviceCIDR"`
+	CIDR        string `json:"cidr"`
+	Token       string `json:"token"`
+	Provider    string `json:"provider"`
+	NodeIp      string `json:"nodeIp"`
 
 	InternalDNSName string `json:"internalDNSName"`
 	ExternalDNSName string `json:"externalDNSName"`
@@ -243,7 +243,8 @@ func NewMap(m map[string]*model.Machine) Map {
 }
 
 type Config struct {
-	Kube model.Kube `json:"kube"`
+	Kube       model.Kube `json:"kube"`
+	K8sVersion string     `json:"k8sVersion"`
 
 	DryRun                 bool `json:"dryRun"`
 	TaskID                 string
@@ -405,6 +406,7 @@ func NewConfig(clusterName, cloudAccountName string, profile profile.Profile) (*
 	}, nil
 }
 
+// TODO(stgleb): Compare that to LoadCloudSpecificDataFromKube
 func NewConfigFromKube(profile *profile.Profile, k *model.Kube) (*Config, error) {
 	if k == nil {
 		return nil, errors.Wrapf(sgerrors.ErrNilEntity, "kube must not be nil")
@@ -471,7 +473,6 @@ func NewConfigFromKube(profile *profile.Profile, k *model.Kube) (*Config, error)
 			NetworkProvider: profile.NetworkProvider,
 			CIDR:            profile.CIDR,
 		},
-
 		PostStartConfig: PostStartConfig{
 			Host:        "localhost",
 			Port:        "8080",

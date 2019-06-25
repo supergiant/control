@@ -41,10 +41,12 @@ func New(script *template.Template) *Step {
 }
 
 func (s *Step) Run(ctx context.Context, out io.Writer, config *steps.Config) error {
-	err := steps.RunTemplate(ctx, s.script, config.Runner, out, nil)
+	if !config.IsMaster {
+		err := steps.RunTemplate(ctx, s.script, config.Runner, out, struct{ PrivateIP string }{config.Node.PrivateIp})
 
-	if err != nil {
-		return errors.Wrap(err, "uncordon step has failed")
+		if err != nil {
+			return errors.Wrap(err, "uncordon step has failed")
+		}
 	}
 
 	return nil
