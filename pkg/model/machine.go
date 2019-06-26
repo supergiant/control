@@ -21,6 +21,7 @@ const (
 	MachineStateError        MachineState = "error"
 	MachineStateActive       MachineState = "active"
 	MachineStateDeleting     MachineState = "deleting"
+	MachineStateUpgrading    MachineState = "upgrading"
 
 	RoleMaster Role = "master"
 	RoleNode   Role = "node"

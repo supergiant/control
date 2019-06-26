@@ -242,6 +242,7 @@ func (tp *TaskProvisioner) UpgradeCluster(parentCtx context.Context, nextVersion
 	go tp.monitorClusterState(parentCtx, k.ID, config.NodeChan(),
 		config.KubeStateChan(), config.ConfigChan())
 
+	config.KubeStateChan() <- model.StateUpgrading
 	logrus.Infof("Upgrade from %s to %s", k.K8SVersion, nextVersion)
 	config.K8sVersion = nextVersion
 	masterMachines := make([]*model.Machine, 0, len(k.Masters))
@@ -271,12 +272,8 @@ func (tp *TaskProvisioner) UpgradeCluster(parentCtx context.Context, nextVersion
 		return
 	}
 
-	resultChan := bootstrapTask.Run(context.Background(), *bootstrapTask.Config, writer)
-	err = <-resultChan
-
-	if err != nil {
-		logrus.Errorf("upgrade %s has finished with error %v", bootstrapTask.ID, err)
-	}
+	logrus.Info("upgrade bootstrap node %v", bootstrapTask.Config.Node)
+	tp.upgradeMachine(bootstrapTask, writer)
 
 	for i := 0; i < len(masterTasks); i++ {
 		masterTask := masterTasks[i]
@@ -296,15 +293,8 @@ func (tp *TaskProvisioner) UpgradeCluster(parentCtx context.Context, nextVersion
 		cfg.IsBootstrap = false
 		masterTask.Config = &cfg
 
-		// TODO(stgleb): Put master node to upgrading state
-		go func(task *workflows.Task) {
-			resultChan := task.Run(context.Background(), *task.Config, writer)
-			err := <-resultChan
-
-			if err != nil {
-				logrus.Errorf("task %s has finished with error %v", task.ID, err)
-			}
-		}(masterTask)
+		logrus.Info("Upgrade master node %v", masterTask.Config.Node)
+		go tp.upgradeMachine(masterTask, writer)
 	}
 
 	for i := 0; i < len(nodeTasks); i++ {
@@ -324,17 +314,8 @@ func (tp *TaskProvisioner) UpgradeCluster(parentCtx context.Context, nextVersion
 		cfg.IsBootstrap = false
 		nodeTask.Config = &cfg
 
-		// TODO(stgleb): Put worker node to upgrading state
-		go func(task *workflows.Task) {
-			resultChan := task.Run(context.Background(), *task.Config, writer)
-			err := <-resultChan
-
-			if err != nil {
-				logrus.Errorf("task %s has finished with error %v", task.ID, err)
-			}
-		}(nodeTask)
-
-		// TODO(stgleb): upgrade cluster K8S version once upgrade process is finished
+		tp.upgradeMachine(nodeTask, writer)
+		config.KubeStateChan() <- model.StateOperational
 	}
 }
 
@@ -962,4 +943,21 @@ func (tp *TaskProvisioner) deserializeClusterTasks(ctx context.Context, kubeConf
 	}
 
 	return taskMap, nil
+}
+
+func (tp *TaskProvisioner) upgradeMachine(task *workflows.Task, writer io.WriteCloser) {
+	task.Config.Node.State = model.MachineStateUpgrading
+	task.Config.NodeChan() <- task.Config.Node
+
+	resultChan := task.Run(context.Background(), *task.Config, writer)
+	err := <-resultChan
+
+	if err != nil {
+		task.Config.Node.State = model.MachineStateError
+		task.Config.NodeChan() <- task.Config.Node
+		logrus.Errorf("task %s has finished with error %v", task.ID, err)
+	}
+
+	task.Config.Node.State = model.MachineStateActive
+	task.Config.NodeChan() <- task.Config.Node
 }
