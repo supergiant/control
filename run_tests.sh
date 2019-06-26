@@ -1,7 +1,7 @@
 #!/bin/bash
 echo "Running tests"
 
-GOCACHE=off go test -race -covermode=atomic -coverprofile=profile.cov ./pkg/...
+GO111MODULE=on go test -mod=vendor -race -covermode=atomic -coverprofile=profile.cov ./pkg/...
 if [ $? -eq 0 ]; then
 	echo "Tests Passed"
 else

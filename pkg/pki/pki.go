@@ -10,11 +10,15 @@ import (
 	"time"
 
 	"github.com/pkg/errors"
-	certutil "k8s.io/client-go/util/cert"
 )
 
 const (
+	// RSAPrivateKeyBlockType is a possible value for pem.Block.Type.
+	RSAPrivateKeyBlockType = "RSA PRIVATE KEY"
+	// PrivateKeyBlockType is a possible value for pem.Block.Type.
 	PublicKeyBlockType = "PUBLIC KEY"
+	// CertificateBlockType is a possible value for pem.Block.Type.
+	CertificateBlockType = "CERTIFICATE"
 )
 
 // CARequest defines a request to generate or use CA if provided to setup PKI for k8s cluster
@@ -51,8 +55,9 @@ func Encode(p *Pair) (*PairPEM, error) {
 		return nil, ErrEmptyPair
 	}
 	return &PairPEM{
-		Cert: certutil.EncodeCertPEM(p.Cert),
-		Key:  certutil.EncodePrivateKeyPEM(p.Key),
+		//Cert: certutil.EncodeCertPEM(p.Cert),
+		Cert: encodeCertPEM(p.Cert),
+		Key:  encodePrivateKeyPEM(p.Key),
 	}, nil
 }
 
@@ -156,7 +161,7 @@ func generateCACert() ([]byte, []byte, error) {
 
 func generateCertFromParent(parent *x509.Certificate) ([]byte, []byte, error) {
 	// Generate a key.
-	key, err := certutil.NewPrivateKey()
+	key, err := newPrivateKey()
 	if err != nil {
 		return nil, nil, errors.Wrap(err, "generate private key")
 	}
@@ -191,4 +196,27 @@ func generateCertFromParent(parent *x509.Certificate) ([]byte, []byte, error) {
 	return pem.EncodeToMemory(&pem.Block{Type: "CERTIFICATE", Bytes: cert}),
 		pem.EncodeToMemory(&pem.Block{Type: "RSA PRIVATE KEY", Bytes: b}),
 		nil
+}
+
+// newPrivateKey creates a RSA private key.
+func newPrivateKey() (*rsa.PrivateKey, error) {
+	return rsa.GenerateKey(rand.Reader, 2048)
+}
+
+// encodePrivateKeyPEM returns PEM-encoded private key data
+func encodePrivateKeyPEM(key *rsa.PrivateKey) []byte {
+	block := pem.Block{
+		Type:  RSAPrivateKeyBlockType,
+		Bytes: x509.MarshalPKCS1PrivateKey(key),
+	}
+	return pem.EncodeToMemory(&block)
+}
+
+// EncodeCertPEM returns PEM-endcoded certificate data
+func encodeCertPEM(cert *x509.Certificate) []byte {
+	block := pem.Block{
+		Type:  CertificateBlockType,
+		Bytes: cert.Raw,
+	}
+	return pem.EncodeToMemory(&block)
 }
