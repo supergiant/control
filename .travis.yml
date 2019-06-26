@@ -19,7 +19,7 @@ env:
     - COMMIT=${TRAVIS_COMMIT::8}
 
 go:
-  - "1.11"
+  - "1.12.6"
 
 go_import_path: github.com/supergiant/control
 

@@ -250,7 +250,7 @@ func (tp *TaskProvisioner) UpgradeCluster(parentCtx context.Context, nextVersion
 	writer, err := tp.getWriter(fileName)
 
 	if err != nil {
-		logrus.Errorf("error creating writer", err)
+		logrus.Errorf("error creating writer %v", err)
 		return
 	}
 
@@ -263,7 +263,7 @@ func (tp *TaskProvisioner) UpgradeCluster(parentCtx context.Context, nextVersion
 		writer, err := tp.getWriter(fileName)
 
 		if err != nil {
-			logrus.Errorf("error creating writer", err)
+			logrus.Errorf("error creating writer %v", err)
 			return
 		}
 
@@ -278,7 +278,7 @@ func (tp *TaskProvisioner) UpgradeCluster(parentCtx context.Context, nextVersion
 		writer, err := tp.getWriter(fileName)
 
 		if err != nil {
-			logrus.Errorf("error creating writer", err)
+			logrus.Errorf("error creating writer %v", err)
 			return
 		}
 
