@@ -124,7 +124,8 @@ func MergeConfig(source *steps.Config, destination *steps.Config) error {
 	destination.ClusterName = source.ClusterName
 	destination.BootstrapToken = source.BootstrapToken
 	destination.IsBootstrap = source.IsBootstrap
-
+	destination.K8SVersion = source.K8SVersion
+	
 	return nil
 }
 
