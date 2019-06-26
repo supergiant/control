@@ -1515,7 +1515,9 @@ func (h *Handler) makeUpgradeTasks(config *steps.Config, k *model.Kube) map[stri
 		cfg.IsMaster = true
 		cfg.IsBootstrap = false
 		masterTask.Config = &cfg
-
+		// Note(stgleb): Reuse task ID for machine provisioning that will allow to browse
+		// logs of machine upgrade without changes on the UI
+		masterTask.ID = masterMachine.TaskID
 		masterTasks = append(masterTasks, masterTask)
 	}
 
@@ -1530,7 +1532,9 @@ func (h *Handler) makeUpgradeTasks(config *steps.Config, k *model.Kube) map[stri
 		cfg.IsMaster = false
 		cfg.IsBootstrap = false
 		nodeTask.Config = &cfg
-
+		// Note(stgleb): Reuse task ID for machine provisioning that will allow to browse
+		// logs of machine upgrade without changes on the UI
+		nodeTask.ID = nodeMachine.ID
 		nodeTasks = append(nodeTasks, nodeTask)
 	}
 
@@ -1542,14 +1546,12 @@ func (h *Handler) makeUpgradeTasks(config *steps.Config, k *model.Kube) map[stri
 	return taskMap
 }
 
-func mapNode2Task(taskMap map[string][]*workflows.Task) map[string][]string{
-	node2Task := make(map[string][]string)
+func mapNode2Task(taskMap map[string][]*workflows.Task) map[string]string{
+	node2Task := make(map[string]string)
 
-	for taskSetName, taskSet := range taskMap {
-		node2Task[taskSetName] = make([]string, 0)
-
+	for _, taskSet := range taskMap {
 		for _, task := range taskSet {
-			node2Task[taskSetName] = append(node2Task[taskSetName], task.ID)
+			node2Task[task.Config.Node.Name] = task.ID
 		}
 	}
 
