@@ -2,7 +2,6 @@ package clouds
 
 import (
 	"github.com/pkg/errors"
-	"k8s.io/kubernetes-backup/pkg/util/slice"
 )
 
 type Name string
@@ -37,7 +36,12 @@ func ToProvider(name string) (Name, error) {
 }
 
 func GetVersions() []string{
-	return slice.CopyStrings(versions)
+	if versions == nil {
+		return nil
+	}
+	c := make([]string, len(versions))
+	copy(c, versions)
+	return c
 }
 
 const (
