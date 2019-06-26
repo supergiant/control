@@ -1438,6 +1438,12 @@ func (h *Handler) upgradeKube(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	if k.State != model.StateOperational {
+		w.WriteHeader(http.StatusNoContent)
+		logrus.Infof("Cluster %s is not operational", k.ID)
+		return
+	}
+
 	logrus.Debugf("Get cloud profile %s", k.ProfileID)
 	kubeProfile, err := h.profileSvc.Get(r.Context(), k.ProfileID)
 
