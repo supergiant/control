@@ -146,7 +146,7 @@ func LoadCloudSpecificDataFromKube(k *model.Kube, config *steps.Config) error {
 		return nil
 	}
 
-	config.K8sVersion = k.K8SVersion
+	config.K8SVersion = k.K8SVersion
 
 	switch config.Provider {
 	case clouds.AWS:

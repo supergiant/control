@@ -244,7 +244,7 @@ func NewMap(m map[string]*model.Machine) Map {
 
 type Config struct {
 	Kube       model.Kube `json:"kube"`
-	K8sVersion string     `json:"k8sVersion"`
+	K8SVersion string     `json:"k8sVersion"`
 
 	DryRun                 bool `json:"dryRun"`
 	TaskID                 string

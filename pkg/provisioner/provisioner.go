@@ -236,34 +236,16 @@ func (tp *TaskProvisioner) RestartClusterProvisioning(parentCtx context.Context,
 func (tp *TaskProvisioner) UpgradeCluster(parentCtx context.Context, nextVersion string, k *model.Kube,
 	tasks map[string][]*workflows.Task, config *steps.Config) {
 	bootstrapTask := tasks[workflows.MasterTask][0]
-	masterTasks := tasks[workflows.MasterTask][:1]
+	masterTasks := tasks[workflows.MasterTask][1:]
 	nodeTasks := tasks[workflows.NodeTask]
 
 	go tp.monitorClusterState(parentCtx, k.ID, config.NodeChan(),
 		config.KubeStateChan(), config.ConfigChan())
 
-	config.KubeStateChan() <- model.StateUpgrading
+	// TODO(stgleb): uncomment this once UI handle Upgrading state of the cluster
+	//config.KubeStateChan() <- model.StateUpgrading
 	logrus.Infof("Upgrade from %s to %s", k.K8SVersion, nextVersion)
-	config.K8sVersion = nextVersion
-	masterMachines := make([]*model.Machine, 0, len(k.Masters))
-	nodeMachines := make([]*model.Machine, 0, len(k.Nodes))
-
-	for _, masterMachine := range k.Masters {
-		masterMachines = append(masterMachines, masterMachine)
-	}
-
-	for _, nodeMachine := range k.Nodes {
-		nodeMachines = append(nodeMachines, nodeMachine)
-	}
-
-	bootstrapNode := masterMachines[0]
-	masterMachines = masterMachines[1:]
-
-	config.Node = *bootstrapNode
-	config.IsMaster = true
-	config.IsBootstrap = true
-	bootstrapTask.Config = config
-
+	bootstrapTask.Config.IsBootstrap = true
 	fileName := util.MakeFileName(bootstrapTask.ID)
 	writer, err := tp.getWriter(fileName)
 
@@ -272,13 +254,11 @@ func (tp *TaskProvisioner) UpgradeCluster(parentCtx context.Context, nextVersion
 		return
 	}
 
-	logrus.Info("upgrade bootstrap node %v", bootstrapTask.Config.Node)
+	logrus.Infof("upgrade bootstrap node %v", bootstrapTask.Config.Node)
 	tp.upgradeMachine(bootstrapTask, writer)
 
 	for i := 0; i < len(masterTasks); i++ {
 		masterTask := masterTasks[i]
-		masterMachine := masterMachines[i]
-
 		fileName := util.MakeFileName(masterTask.ID)
 		writer, err := tp.getWriter(fileName)
 
@@ -287,19 +267,12 @@ func (tp *TaskProvisioner) UpgradeCluster(parentCtx context.Context, nextVersion
 			return
 		}
 
-		cfg := *config
-		cfg.Node = *masterMachine
-		cfg.IsMaster = true
-		cfg.IsBootstrap = false
-		masterTask.Config = &cfg
-
-		logrus.Info("Upgrade master node %v", masterTask.Config.Node)
+		logrus.Infof("Upgrade master node %v", masterTask.Config.Node)
 		go tp.upgradeMachine(masterTask, writer)
 	}
 
 	for i := 0; i < len(nodeTasks); i++ {
 		nodeTask := nodeTasks[i]
-		nodeMachine := nodeMachines[i]
 
 		fileName := util.MakeFileName(nodeTask.ID)
 		writer, err := tp.getWriter(fileName)
@@ -308,14 +281,11 @@ func (tp *TaskProvisioner) UpgradeCluster(parentCtx context.Context, nextVersion
 			logrus.Errorf("error creating writer", err)
 			return
 		}
-		cfg := *config
-		cfg.Node = *nodeMachine
-		cfg.IsMaster = false
-		cfg.IsBootstrap = false
-		nodeTask.Config = &cfg
 
+		logrus.Infof("Upgrade worker node %v", nodeTask.Config.Node)
 		tp.upgradeMachine(nodeTask, writer)
 		config.KubeStateChan() <- model.StateOperational
+		config.ConfigChan() <- config
 	}
 }
 

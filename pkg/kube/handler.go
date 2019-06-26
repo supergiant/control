@@ -1485,13 +1485,15 @@ func (h *Handler) upgradeKube(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	config.K8SVersion = nextVersion
 	tasks := h.makeUpgradeTasks(config, k)
 
 	go h.kubeProvisioner.UpgradeCluster(context.Background(), nextVersion, k, tasks, config)
+   node2TaskMap := mapNode2Task(tasks)
 
 	// here we are ready for async part
 	w.WriteHeader(http.StatusAccepted)
-	if err := json.NewEncoder(w).Encode(tasks); err != nil {
+	if err := json.NewEncoder(w).Encode(node2TaskMap); err != nil {
 		logrus.Errorf("Error encoding task map %v", err)
 	}
 }
@@ -1501,23 +1503,35 @@ func (h *Handler) makeUpgradeTasks(config *steps.Config, k *model.Kube) map[stri
 	nodeTasks := make([]*workflows.Task, 0, len(k.Nodes))
 	//some clouds (e.g. AWS) requires running tasks before provisioning nodes (creating a VPC, Subnets, SecGroups, etc)
 
-	for range k.Masters {
-		t, err := workflows.NewTask(config, workflows.Upgrade, h.repo)
+	for _, masterMachine := range k.Masters {
+		masterTask, err := workflows.NewTask(config, workflows.Upgrade, h.repo)
 		if err != nil {
 			logrus.Errorf("Failed to set up task for %s workflow", workflows.ProvisionMaster)
 			continue
 		}
-		masterTasks = append(masterTasks, t)
+
+		cfg := *config
+		cfg.Node = *masterMachine
+		cfg.IsMaster = true
+		cfg.IsBootstrap = false
+		masterTask.Config = &cfg
+
+		masterTasks = append(masterTasks, masterTask)
 	}
 
-	for range k.Nodes {
-		t, err := workflows.NewTask(config, workflows.Upgrade, h.repo)
+	for _, nodeMachine := range k.Nodes {
+		nodeTask, err := workflows.NewTask(config, workflows.Upgrade, h.repo)
 		if err != nil {
 			logrus.Errorf("Failed to set up task for %s workflow", workflows.ProvisionNode)
 			continue
 		}
-		t.Config = config
-		nodeTasks = append(nodeTasks, t)
+		cfg := *config
+		cfg.Node = *nodeMachine
+		cfg.IsMaster = false
+		cfg.IsBootstrap = false
+		nodeTask.Config = &cfg
+
+		nodeTasks = append(nodeTasks, nodeTask)
 	}
 
 	taskMap := map[string][]*workflows.Task{
@@ -1526,6 +1540,20 @@ func (h *Handler) makeUpgradeTasks(config *steps.Config, k *model.Kube) map[stri
 	}
 
 	return taskMap
+}
+
+func mapNode2Task(taskMap map[string][]*workflows.Task) map[string][]string{
+	node2Task := make(map[string][]string)
+
+	for taskSetName, taskSet := range taskMap {
+		node2Task[taskSetName] = make([]string, 0)
+
+		for _, task := range taskSet {
+			node2Task[taskSetName] = append(node2Task[taskSetName], task.ID)
+		}
+	}
+
+	return node2Task
 }
 
 func createKube(config *steps.Config, state model.KubeState, profile profile.Profile, taskID string, h *Handler) error {
