@@ -61,6 +61,8 @@ type kubeProvisioner interface {
 		clusterProfile *profile.Profile,
 		config *steps.Config,
 		taskIdMap map[string][]string) error
+	UpgradeCluster(context.Context, string, *model.Kube,
+		map[string][]*workflows.Task,  *steps.Config)
 }
 
 type ServiceInfo struct {
@@ -1479,117 +1481,13 @@ func (h *Handler) upgradeKube(w http.ResponseWriter, r *http.Request) {
 
 	tasks := h.makeUpgradeTasks(config, k)
 
+	go h.kubeProvisioner.UpgradeCluster(context.Background(), nextVersion, k, tasks, config)
+
 	// here we are ready for async part
 	w.WriteHeader(http.StatusAccepted)
 	if err := json.NewEncoder(w).Encode(tasks); err != nil {
 		logrus.Errorf("Error encoding task map %v", err)
 	}
-
-	bootstrapTask := tasks[workflows.MasterTask][0]
-	masterTasks := tasks[workflows.MasterTask][:1]
-	nodeTasks := tasks[workflows.NodeTask]
-
-	go func() {
-		logrus.Infof("Upgrade from %s to %s", k.K8SVersion, nextVersion)
-		config.K8sVersion = nextVersion
-		masterMachines := make([]*model.Machine, 0, len(k.Masters))
-		nodeMachines := make([]*model.Machine, 0, len(k.Nodes))
-
-		for _, masterMachine := range k.Masters {
-			masterMachines = append(masterMachines, masterMachine)
-		}
-
-		for _, nodeMachine := range k.Nodes {
-			nodeMachines = append(nodeMachines, nodeMachine)
-		}
-
-		bootstrapNode := masterMachines[0]
-		masterMachines = masterMachines[1:]
-
-		config.Node = *bootstrapNode
-		config.IsMaster = true
-		config.IsBootstrap = true
-		bootstrapTask.Config = config
-
-		if err != nil {
-			logrus.Errorf("error creating writer", err)
-			return
-		}
-
-		fileName := util.MakeFileName(bootstrapTask.ID)
-		writer, err := h.getWriter(fileName)
-
-		if err != nil {
-			logrus.Errorf("error creating writer", err)
-			return
-		}
-
-		resultChan := bootstrapTask.Run(context.Background(), *bootstrapTask.Config, writer)
-		err = <-resultChan
-
-		if err != nil {
-			logrus.Errorf("upgrade %s has finished with error %v", bootstrapTask.ID, err)
-		}
-
-		for i :=0;i < len(masterTasks); i++ {
-			masterTask := masterTasks[i]
-			masterMachine := masterMachines[i]
-
-			fileName := util.MakeFileName(masterTask.ID)
-			writer, err := h.getWriter(fileName)
-
-			if err != nil {
-				logrus.Errorf("error creating writer", err)
-				return
-			}
-
-			cfg := *config
-			cfg.Node = *masterMachine
-			cfg.IsMaster = true
-			cfg.IsBootstrap = false
-			masterTask.Config = &cfg
-
-			// TODO(stgleb): Put master node to upgrading state
-			go func(task *workflows.Task) {
-				resultChan := task.Run(context.Background(), *task.Config, writer)
-				err := <-resultChan
-
-				if err != nil {
-					logrus.Errorf("task %s has finished with error %v", task.ID, err)
-				}
-			}(masterTask)
-		}
-
-		for i := 0;i < len(nodeTasks); i++ {
-			nodeTask := nodeTasks[i]
-			nodeMachine := nodeMachines[i]
-
-			fileName := util.MakeFileName(nodeTask.ID)
-			writer, err := h.getWriter(fileName)
-
-			if err != nil {
-				logrus.Errorf("error creating writer", err)
-				return
-			}
-			cfg := *config
-			cfg.Node = *nodeMachine
-			cfg.IsMaster = false
-			cfg.IsBootstrap = false
-			nodeTask.Config = &cfg
-			
-			// TODO(stgleb): Put worker node to upgrading state
-			go func(task *workflows.Task) {
-				resultChan := task.Run(context.Background(), *task.Config, writer)
-				err := <-resultChan
-
-				if err != nil {
-					logrus.Errorf("task %s has finished with error %v", task.ID, err)
-				}
-			}(nodeTask)
-
-			// TODO(stgleb): upgrade cluster K8S version once upgrade process is finished
-		}
-	}()
 }
 
 func (h *Handler) makeUpgradeTasks(config *steps.Config, k *model.Kube) map[string][]*workflows.Task {
