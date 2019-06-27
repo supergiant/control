@@ -23,7 +23,7 @@ type CertificatesConfig struct {
 	ParenCert []byte `json:"parenCert"`
 
 	CACert string `json:"caCert"`
-	CAKey     string `json:"caKey"`
+	CAKey  string `json:"caKey"`
 
 	AdminCert string `json:"adminCert"`
 	AdminKey  string `json:"adminKey"`
@@ -194,21 +194,22 @@ type PrometheusConfig struct {
 }
 
 type KubeadmConfig struct {
-	K8SVersion       string `json:"K8SVersion"`
-	IsMaster         bool   `json:"isMaster"`
-	IsBootstrap      bool   `json:"IsBootstrap"`
-	ServiceCIDR      string `json:"serviceCIDR"`
-	CIDR             string `json:"cidr"`
-	Token            string `json:"token"`
-	Provider         string `json:"provider"`
-	NodeIp           string `json:"nodeIp"`
-	CertificateKey   string `json:"certificateKey"`
+	KubeadmVersion         string `json:"kubeadmVersion"`
+	K8SVersion      string `json:"K8SVersion"`
+	IsMaster        bool   `json:"isMaster"`
+	IsBootstrap     bool   `json:"IsBootstrap"`
+	ServiceCIDR     string `json:"serviceCIDR"`
+	CIDR            string `json:"cidr"`
+	Token           string `json:"token"`
+	Provider        string `json:"provider"`
+	NodeIp          string `json:"nodeIp"`
+	CertificateKey  string `json:"certificateKey"`
 	InternalDNSName string `json:"internalDNSName"`
 	ExternalDNSName string `json:"externalDNSName"`
 }
 
 type KubeletConfig struct {
-	IsMaster     bool `json:"isMaster"`
+	IsMaster     bool   `json:"isMaster"`
 	ServicesCIDR string `json:"servicesCIDR"`
 	PublicIP     string `json:"publicIp"`
 	PrivateIP    string `json:"privateIp"`
@@ -373,9 +374,9 @@ func NewConfig(clusterName, cloudAccountName string, profile profile.Profile) (*
 			OperatingSystem: profile.OperatingSystem,
 		},
 		CertificatesConfig: CertificatesConfig{
-			Username:     profile.User,
-			Password:     profile.Password,
-			StaticAuth:   profile.StaticAuth,
+			Username:   profile.User,
+			Password:   profile.Password,
+			StaticAuth: profile.StaticAuth,
 		},
 		KubeletConfig: KubeletConfig{
 			ServicesCIDR: profile.K8SServicesCIDR,
@@ -404,7 +405,8 @@ func NewConfig(clusterName, cloudAccountName string, profile profile.Profile) (*
 		},
 		KubeadmConfig: KubeadmConfig{
 			// TODO(stgleb): get it from available versions once we have them
-			K8SVersion:  "1.14.3",
+			KubeadmVersion:     "1.14.3",
+			K8SVersion:  profile.K8SVersion,
 			IsBootstrap: true,
 			CIDR:        profile.CIDR,
 			ServiceCIDR: profile.K8SServicesCIDR,
@@ -477,17 +479,16 @@ func NewConfigFromKube(profile *profile.Profile, k *model.Kube) (*Config, error)
 			OperatingSystem: profile.OperatingSystem,
 		},
 		CertificatesConfig: CertificatesConfig{
-			CAKey:        k.Auth.CAKey,
-			CACert:       k.Auth.CACert,
-			AdminCert:    k.Auth.AdminCert,
-			AdminKey:     k.Auth.AdminKey,
-			Username:     profile.User,
-			Password:     profile.Password,
-			StaticAuth:   profile.StaticAuth,
+			CAKey:      k.Auth.CAKey,
+			CACert:     k.Auth.CACert,
+			AdminCert:  k.Auth.AdminCert,
+			AdminKey:   k.Auth.AdminKey,
+			Username:   profile.User,
+			Password:   profile.Password,
+			StaticAuth: profile.StaticAuth,
 		},
 		KubeletConfig: KubeletConfig{
 			ServicesCIDR: profile.K8SServicesCIDR,
-
 		},
 		NetworkConfig: NetworkConfig{
 			NetworkProvider: profile.NetworkProvider,
