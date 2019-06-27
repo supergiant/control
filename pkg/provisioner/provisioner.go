@@ -144,7 +144,6 @@ func (tp *TaskProvisioner) ProvisionNodes(parentContext context.Context, nodePro
 
 	tasks := make([]string, 0, len(nodeProfiles))
 
-
 	// TODO(stgleb): do this in async to avoid blocking the UI
 	for _, nodeProfile := range nodeProfiles {
 		// Protect cloud API with rate limiter
@@ -721,6 +720,7 @@ func bootstrapCerts(config *steps.Config) error {
 	}
 	config.CertificatesConfig.CACert = string(ca.Cert)
 	config.CertificatesConfig.CAKey = string(ca.Key)
+	config.CertificatesConfig.CACertHash = ca.CertHash
 
 	if config.KubeadmConfig.CertificateKey, err = copycerts.CreateCertificateKey(); err != nil {
 		return errors.Wrap(err, "create certificate key")

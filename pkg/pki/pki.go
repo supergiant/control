@@ -3,10 +3,14 @@ package pki
 import (
 	"crypto/rand"
 	"crypto/rsa"
+	"crypto/sha256"
 	"crypto/x509"
 	"crypto/x509/pkix"
+	"encoding/hex"
 	"encoding/pem"
+	"fmt"
 	"math/big"
+	"strings"
 	"time"
 
 	"github.com/pkg/errors"
@@ -37,8 +41,9 @@ type Pair struct {
 // PairPEM defines PEM encoded certificate and private key.
 // TODO: user cert pair in the kube model or get rid of it.
 type PairPEM struct {
-	Cert []byte `json:"cert"`
-	Key  []byte `json:"key"`
+	Cert     []byte `json:"cert"`
+	Key      []byte `json:"key"`
+	CertHash string `json:"certHash"`
 }
 
 // PKI defines a set of certificates/keys for a kubernetes cluster.
@@ -96,11 +101,11 @@ func NewCAPair(parentBytes []byte) (*PairPEM, error) {
 	var caPem *PairPEM
 
 	if parentBytes == nil || len(parentBytes) == 0 {
-		p, k, err := generateCACert()
+		caCertHash, p, k, err := generateCACert()
 		if err != nil {
 			return nil, err
 		}
-		caPem = &PairPEM{Cert: p, Key: k}
+		caPem = &PairPEM{Cert: p, Key: k, CertHash: caCertHash}
 	} else {
 		pemBlock, rest := pem.Decode(parentBytes)
 		if len(rest) > 0 {
@@ -117,7 +122,8 @@ func NewCAPair(parentBytes []byte) (*PairPEM, error) {
 			return nil, errors.Wrap(err, "create cert from parent")
 		}
 
-		caPem = &PairPEM{Cert: certBytes, Key: keyBytes}
+		spkiHash := sha256.Sum256(cert.RawSubjectPublicKeyInfo)
+		caPem = &PairPEM{Cert: certBytes, Key: keyBytes, CertHash: strings.ToLower(hex.EncodeToString(spkiHash[:]))}
 	}
 
 	ca, err := Decode(caPem)
@@ -147,16 +153,19 @@ func EncodePublicKeyPEM(key *rsa.PublicKey) ([]byte, error) {
 }
 
 // generateCACert will generate a self-signed CA certificate
-func generateCACert() ([]byte, []byte, error) {
+func generateCACert() (string, []byte, []byte, error) {
 	crt, key, err := newCertificateAuthority()
 	if err != nil {
-		return nil, nil, errors.Wrap(err, "generating self signed CA")
+		return "", nil, nil, errors.Wrap(err, "generating self signed CA")
 	}
 	pmCrt := pem.EncodeToMemory(&pem.Block{Type: "CERTIFICATE",
 		Bytes: crt.Raw})
 	keyBytes := pem.EncodeToMemory(&pem.Block{Type: "RSA PRIVATE KEY", Bytes: x509.MarshalPKCS1PrivateKey(key)})
 
-	return pmCrt, keyBytes, nil
+	spkiHash := sha256.Sum256(crt.RawSubjectPublicKeyInfo)
+	caCertHash := fmt.Sprintf("sha256:%s", strings.ToLower(hex.EncodeToString(spkiHash[:])))
+
+	return caCertHash, pmCrt, keyBytes, nil
 }
 
 func generateCertFromParent(parent *x509.Certificate) ([]byte, []byte, error) {
