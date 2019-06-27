@@ -1,0 +1,48 @@
+{
+    "builders": [
+        {
+            "access_key": "{{user `aws_access_key`}}",
+            "ami_groups": "all",
+            "ami_name": "supergiant {{user `version`}}",
+            "ami_regions": [
+                "us-east-2"
+            ],
+            "force_delete_snapshot": true,
+            "force_deregister": true,
+            "instance_type": "t2.micro",
+            "region": "us-east-2",
+            "secret_key": "{{user `aws_secret_key`}}",
+            "source_ami": "ami-02fd7546f0f6effb6",
+            "ssh_username": "ubuntu",
+	    "tags": {
+		    "OS": "Ubuntu Bionic 18.04 LTS",
+		    "Supergiant Control": "{{user `version`}}"
+	    },
+            "type": "amazon-ebs"
+
+        }
+    ],
+    "provisioners": [
+        {
+            "destination": "/tmp/supergiant.deb",
+            "source": "dist/supergiant_{{user `version`}}_linux_amd64.deb",
+            "type": "file"
+        },
+        {
+            "inline": [
+                "sleep 30",
+                "sudo apt-get update",
+                "sudo apt-get -y upgrade",
+                "sudo apt-get install -y /tmp/supergiant.deb",
+                "sudo rm /tmp/supergiant.deb"
+            ],
+            "inline_shebang": "/bin/bash",
+            "type": "shell"
+        }
+    ],
+    "variables": {
+        "aws_access_key": "{{env `AWS_ACCESS_KEY_ID`}}",
+        "aws_secret_key": "{{env `AWS_SECRET_ACCESS_KEY`}}",
+        "version": "{{env `TRAVIS_BRANCH`}}"
+    }
+}
