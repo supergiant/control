@@ -31,8 +31,6 @@ type Worker struct {
 	Reserved bool `json:"reserved"`
 	// NodeName represents a name of the kubernetes node that runs on top of that machine.
 	NodeName string `json:"nodeName"`
-	// NodeState represents a kubernetes node state.
-	NodeState string `json:"nodeState"`
 	// NodeLabels represents a labels of the kubernetes node that runs on top of that machine.
 	NodeLabels map[string]string `json:"nodeLabels,omitempty"`
 }
@@ -54,13 +52,35 @@ type Config struct {
 	// TODO: this is hardcoded and isn't used at the moment
 	MaxMachineProvisionTime string            `json:"maxMachineProvisionTime"`
 	IgnoredNodeLabels       map[string]string `json:"ignoredNodeLabels"`
+	NewNodeTimeBuffer       int               `json:"newNodeTimeBuffer"`
 
 	// Userdata is a base64 encoded representation of shell commands or cloud-init directives
 	// that applies after the instance starts.
 	// https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/user-data.html
 	Userdata string `json:"userdata"`
 
+	// UserdataTpl is a template to build Userdata dynamically. UserdataVars is used for template
+	// configuration.
+	// UserdataTpl will be ignored if Userdata is set.
+	UserdataTpl string `json:"userdataTpl"`
+
+	// UserdataVars is a configuration used for parsing a UserdataTpl template.
+	UserdataVars map[string]string `json:"userdataVars"`
+
 	SupergiantV1Config *SupergiantV1UserdataVars
+
+	// DEPRECATED: moved to the SupergiantV1Config
+	MasterPrivateAddr string `json:"masterPrivateAddr"`
+	// DEPRECATED: moved to the SupergiantV1Config
+	KubeAPIHost string `json:"kubeAPIHost"`
+	// DEPRECATED: moved to the SupergiantV1Config
+	KubeAPIPort string `json:"kubeAPIPort"`
+	// DEPRECATED: moved to the SupergiantV1Config
+	KubeAPIUser string `json:"kubeAPIUser"`
+	// DEPRECATED: moved to the SupergiantV1Config
+	KubeAPIPassword string `json:"kubeAPIPassword"`
+	// DEPRECATED: moved to the SupergiantV1Config
+	SSHPubKey string `json:"sshPubKey"`
 }
 
 type SupergiantV1UserdataVars struct {
