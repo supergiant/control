@@ -5,18 +5,9 @@ import (
 	"encoding/base64"
 	"encoding/json"
 	"errors"
+	"fmt"
 	"net/url"
 )
-
-// SignatureSeparator is the character that is used to
-// separate the Base64 string from the security signature.
-const SignatureSeparator = "_"
-
-// URLValuesSliceKeySuffix is the character that is used to
-// specify a suffic for slices parsed by URLValues.
-// Ex: Suffix "[]" would have the form a[]=b&a[]=c
-// OR Suffix "" would have the form a=b&a=c
-var URLValuesSliceKeySuffix = "[]"
 
 // JSON converts the contained object to a JSON string
 // representation
@@ -49,7 +40,10 @@ func (m Map) Base64() (string, error) {
 	}
 
 	encoder := base64.NewEncoder(base64.StdEncoding, &buf)
-	_, _ = encoder.Write([]byte(jsonData))
+	_, err = encoder.Write([]byte(jsonData))
+	if err != nil {
+		return "", err
+	}
 	_ = encoder.Close()
 
 	return buf.String(), nil
@@ -99,65 +93,11 @@ func (m Map) MustSignedBase64(key string) string {
 // function requires that the wrapped object be a map[string]interface{}
 func (m Map) URLValues() url.Values {
 	vals := make(url.Values)
-
-	m.parseURLValues(m, vals, "")
-
-	return vals
-}
-
-func (m Map) parseURLValues(queryMap Map, vals url.Values, key string) {
-	for k, v := range queryMap {
-		val := &Value{data: v}
-		switch {
-		case val.IsObjxMap():
-			if key == "" {
-				m.parseURLValues(v.(Map), vals, k)
-			} else {
-				m.parseURLValues(v.(Map), vals, key+"["+k+"]")
-			}
-		case val.IsObjxMapSlice():
-			sliceKey := k + URLValuesSliceKeySuffix
-			if key != "" {
-				sliceKey = key + "[" + k + "]" + URLValuesSliceKeySuffix
-			}
-
-			for _, sv := range val.MustObjxMapSlice() {
-				m.parseURLValues(sv, vals, sliceKey)
-			}
-		case val.IsMSI():
-			if key == "" {
-				m.parseURLValues(New(v), vals, k)
-			} else {
-				m.parseURLValues(New(v), vals, key+"["+k+"]")
-			}
-		case val.IsMSISlice():
-			sliceKey := k + URLValuesSliceKeySuffix
-			if key != "" {
-				sliceKey = key + "[" + k + "]" + URLValuesSliceKeySuffix
-			}
-
-			for _, sv := range val.MustMSISlice() {
-				m.parseURLValues(New(sv), vals, sliceKey)
-			}
-		case val.IsStrSlice(), val.IsBoolSlice(),
-			val.IsFloat32Slice(), val.IsFloat64Slice(),
-			val.IsIntSlice(), val.IsInt8Slice(), val.IsInt16Slice(), val.IsInt32Slice(), val.IsInt64Slice(),
-			val.IsUintSlice(), val.IsUint8Slice(), val.IsUint16Slice(), val.IsUint32Slice(), val.IsUint64Slice():
-
-			sliceKey := k + URLValuesSliceKeySuffix
-			if key != "" {
-				sliceKey = key + "[" + k + "]" + URLValuesSliceKeySuffix
-			}
-
-			vals[sliceKey] = val.StringSlice()
-		default:
-			if key == "" {
-				vals.Set(k, val.String())
-			} else {
-				vals.Set(key+"["+k+"]", val.String())
-			}
-		}
+	for k, v := range m {
+		//TODO: can this be done without sprintf?
+		vals.Set(k, fmt.Sprintf("%v", v))
 	}
+	return vals
 }
 
 // URLQuery gets an encoded URL query representing the given

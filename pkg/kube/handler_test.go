@@ -1607,13 +1607,19 @@ func TestHandler_getRelease(t *testing.T) {
 
 func TestHandler_listReleases(t *testing.T) {
 	tcs := []struct {
+		description string
 		kubeSvc *kubeServiceMock
 
+		k *model.Kube
 		expectedRlsInfoList []*model.ReleaseInfo
 		expectedStatus      int
 		expectedErrCode     sgerrors.ErrorCode
 	}{
 		{
+			description: "kube service error",
+			k: &model.Kube{
+				State: model.StateOperational,
+			},
 			kubeSvc: &kubeServiceMock{
 				rlsErr: errFake,
 			},
@@ -1621,6 +1627,10 @@ func TestHandler_listReleases(t *testing.T) {
 			expectedErrCode: sgerrors.UnknownError,
 		},
 		{
+			description: "status ok",
+			k: &model.Kube{
+				State: model.StateOperational,
+			},
 			kubeSvc: &kubeServiceMock{
 				rlsInfoList: []*model.ReleaseInfo{deployedReleaseInfo},
 			},
@@ -1630,6 +1640,9 @@ func TestHandler_listReleases(t *testing.T) {
 	}
 
 	for i, tc := range tcs {
+		tc.kubeSvc.On("Get", mock.Anything, mock.Anything).Return(tc.k, nil)
+
+		t.Log(tc.description)
 		// setup handler
 		h := &Handler{svc: tc.kubeSvc}
 
