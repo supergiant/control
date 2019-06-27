@@ -202,7 +202,18 @@ type KubeadmConfig struct {
 	Token            string `json:"token"`
 	Provider         string `json:"provider"`
 	NodeIp           string `json:"nodeIp"`
+
 	CertificateKey   string `json:"certificateKey"`
+	// TODO(stgleb): remove it when 1.13 and previos versions are no longer supported
+	AdminCert string `json:"adminCert"`
+	AdminKey  string `json:"adminKey"`
+
+	ParenCert []byte `json:"parenCert"`
+	CACert    string `json:"caCert"`
+	CAKey     string `json:"caKey"`
+
+	SAKey string `json:"saKey"`
+	SAPub string `json:"saPub"`
 
 	InternalDNSName string `json:"internalDNSName"`
 	ExternalDNSName string `json:"externalDNSName"`
