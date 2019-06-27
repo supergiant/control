@@ -34,7 +34,6 @@ func (f *fakeRunner) Run(command *runner.Command) error {
 
 func TestWriteCertificates(t *testing.T) {
 	var (
-		kubernetesConfigDir               = "/etc/kubernetes"
 		privateIP                         = "10.20.30.40"
 		publicIP                          = "22.33.44.55"
 		r                   runner.Runner = &fakeRunner{}
@@ -109,20 +108,6 @@ func TestWriteCertificates(t *testing.T) {
 
 		if err != nil {
 			t.Errorf("Unpexpected error while  provision node %v", err)
-		}
-
-		if !strings.Contains(output.String(), kubernetesConfigDir) {
-			t.Errorf("kubernetes config dir %s not found in %s", kubernetesConfigDir, output.String())
-		}
-
-		if isMaster {
-			if !strings.Contains(output.String(), string(caPair.Key)) {
-				t.Errorf("CA key not found in %s", output.String())
-			}
-
-			if !strings.Contains(output.String(), string(caPair.Cert)) {
-				t.Errorf("CA cert not found in %s", output.String())
-			}
 		}
 	}
 
