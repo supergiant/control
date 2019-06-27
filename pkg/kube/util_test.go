@@ -219,6 +219,12 @@ func TestFindNextK8SVersion(t *testing.T) {
 			"",
 		},
 		{
+			"malformed current version2",
+			" hello",
+			[]string{"1.11.5", "1.12.7", "1.13.7", "1.14.3"},
+			"",
+		},
+		{
 			"empty versions list",
 			"1.12.7",
 			[]string{},
