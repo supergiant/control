@@ -71,14 +71,13 @@ type SSHConfig struct {
 
 // Auth holds all possible auth parameters.
 type Auth struct {
-	Username  string `json:"username"`
-	Password  string `json:"token"`
-	CAKey     string `json:"caKey"`
-	CACert    string `json:"caCert"`
-	AdminCert string `json:"adminCert"`
-	AdminKey  string `json:"adminKey"`
-	SAKey     string `json:"saKey"`
-	SAPub     string `json:"saPub"`
+	Username       string `json:"username"`
+	Password       string `json:"token"`
+	CAKey          string `json:"caKey"`
+	CACert         string `json:"caCert"`
+	AdminCert      string `json:"adminCert"`
+	AdminKey       string `json:"adminKey"`
+	CertificateKey string `json:"certificateKey"`
 }
 
 type Networking struct {

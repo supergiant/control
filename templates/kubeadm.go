@@ -11,7 +11,7 @@ deb https://apt.kubernetes.io/ kubernetes-xenial main
 EOF"
 
 sudo apt-get update
-sudo apt-get install -y kubelet={{ .K8SVersion}}-00 kubeadm={{ .K8SVersion}}-00 kubectl={{ .K8SVersion}}-00 --allow-unauthenticated
+sudo apt-get install -y kubelet={{ .K8SVersion }}-00 kubeadm={{ .KubeadmVersion }}-00 kubectl={{ .K8SVersion }}-00 --allow-unauthenticated
 sudo apt-mark hold kubelet kubeadm kubectl
 
 sudo systemctl daemon-reload
@@ -68,7 +68,8 @@ EOF"
 
 sudo kubeadm init --ignore-preflight-errors=NumCPU \
 --node-name ${HOSTNAME} \
---config=/etc/supergiant/kubeadm.conf
+--config=/etc/supergiant/kubeadm.conf \
+--experimental-upload-certs
 {{ else }}
 
 sudo bash -c "cat << EOF > /etc/supergiant/kubeadm.conf
@@ -118,6 +119,7 @@ EOF"
 sudo kubeadm config images pull
 sudo kubeadm join --ignore-preflight-errors=NumCPU {{ .InternalDNSName }}:443 \
 --node-name ${HOSTNAME} \
+--certificate-key {{ .CertificateKey }} \
 --config=/etc/supergiant/kubeadm.conf
 {{ end }}
 
