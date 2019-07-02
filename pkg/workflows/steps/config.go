@@ -22,8 +22,9 @@ type CertificatesConfig struct {
 
 	ParenCert []byte `json:"parenCert"`
 
-	CACert string `json:"caCert"`
-	CAKey  string `json:"caKey"`
+	CACert     string `json:"caCert"`
+	CAKey      string `json:"caKey"`
+	CACertHash string `json:"caCertHash"`
 
 	AdminCert string `json:"adminCert"`
 	AdminKey  string `json:"adminKey"`
@@ -194,7 +195,8 @@ type PrometheusConfig struct {
 }
 
 type KubeadmConfig struct {
-	KubeadmVersion         string `json:"kubeadmVersion"`
+	KubeadmVersion  string `json:"kubeadmVersion"`
+	CACertHash      string `json:"caCertHash"`
 	K8SVersion      string `json:"K8SVersion"`
 	IsMaster        bool   `json:"isMaster"`
 	IsBootstrap     bool   `json:"IsBootstrap"`

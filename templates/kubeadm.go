@@ -84,7 +84,7 @@ discovery:
   bootstrapToken:
     token: {{ .Token }}
     apiServerEndpoint: {{ .InternalDNSName }}:443
-    unsafeSkipCAVerification: true
+    caCertHashes: [{{ .CACertHash }}]
 controlPlane:
   localAPIEndpoint:
     bindPort: 443
@@ -140,7 +140,8 @@ discovery:
   bootstrapToken:
     token: {{ .Token }}
     apiServerEndpoint: {{ .InternalDNSName }}:443
-    unsafeSkipCAVerification: true
+    caCertHashes:
+    - {{ .CACertHash }}
 EOF"
 
 sudo kubeadm join --ignore-preflight-errors=NumCPU {{ .InternalDNSName }}:443 \
