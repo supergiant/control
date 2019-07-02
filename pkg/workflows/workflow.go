@@ -1,6 +1,9 @@
 package workflows
 
 import (
+	"github.com/supergiant/control/pkg/workflows/steps/evacuate"
+	"github.com/supergiant/control/pkg/workflows/steps/uncordon"
+	"github.com/supergiant/control/pkg/workflows/steps/upgrade"
 	"sync"
 
 	"github.com/supergiant/control/pkg/workflows/statuses"
@@ -45,6 +48,7 @@ const (
 	DeleteNode      = "DeleteNode"
 	DeleteCluster   = "DeleteCluster"
 	ImportCluster   = "ImportCluster"
+	Upgrade         = "Upgrade"
 )
 
 type WorkflowSet struct {
@@ -119,6 +123,13 @@ func Init() {
 		provider.DeleteCluster{},
 	}
 
+	upgradeNode := []steps.Step{
+		steps.GetStep(ssh.StepName),
+		steps.GetStep(evacuate.StepName),
+		steps.GetStep(upgrade.StepName),
+		steps.GetStep(uncordon.StepName),
+	}
+
 	m.Lock()
 	defer m.Unlock()
 
@@ -129,6 +140,7 @@ func Init() {
 	workflowMap[DeleteCluster] = deleteClusterWorkflow
 	workflowMap[PostProvision] = postProvision
 	workflowMap[ImportCluster] = importClusterWorkflow
+	workflowMap[Upgrade] = upgradeNode
 }
 
 func RegisterWorkFlow(workflowName string, workflow Workflow) {

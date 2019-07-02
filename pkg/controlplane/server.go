@@ -4,6 +4,9 @@ import (
 	"context"
 	"crypto/tls"
 	"fmt"
+	"github.com/supergiant/control/pkg/workflows/steps/evacuate"
+	"github.com/supergiant/control/pkg/workflows/steps/uncordon"
+	"github.com/supergiant/control/pkg/workflows/steps/upgrade"
 	"net/http"
 	_ "net/http/pprof"
 	"net/url"
@@ -225,6 +228,9 @@ func configureApplication(cfg *Config) (*mux.Router, error) {
 	kubeadm.Init()
 	bootstraptoken.Init()
 	configmap.Init()
+	upgrade.Init()
+	uncordon.Init()
+	evacuate.Init()
 
 	amazon.InitFindAMI(amazon.GetEC2)
 	amazon.InitImportKeyPair(amazon.GetEC2)

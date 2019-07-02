@@ -119,6 +119,11 @@ func (m *mockProvisioner) RestartClusterProvisioning(ctx context.Context,
 	return val
 }
 
+func (m *mockProvisioner) UpgradeCluster(ctx context.Context, nextVersion string, k *model.Kube,
+	tasks map[string][]*workflows.Task,  config *steps.Config) {
+	m.Called(ctx, nextVersion, tasks, config)
+}
+
 type bufferCloser struct {
 	bytes.Buffer
 	err error

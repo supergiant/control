@@ -16,4 +16,7 @@ var Default = map[string]string{
 	"prometheus":                 prometheusTpl,
 	"storageclass":               storageclassTpl,
 	"tiller":                     tillerTpl,
+	"upgrade":                    upgradeTpl,
+	"evacuate":                   evacuateTpl,
+	"uncordon":                   uncordonTpl,
 }

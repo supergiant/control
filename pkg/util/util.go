@@ -147,6 +147,7 @@ func LoadCloudSpecificDataFromKube(k *model.Kube, config *steps.Config) error {
 	}
 
 	config.KubeadmConfig.CertificateKey = k.Auth.CertificateKey
+	config.K8SVersion = k.K8SVersion
 
 	switch config.Provider {
 	case clouds.AWS:
