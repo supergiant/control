@@ -3,13 +3,11 @@ package kubelet
 import (
 	"context"
 	"fmt"
+	"github.com/supergiant/control/pkg/workflows/util"
 	"io"
 	"text/template"
 
 	"github.com/pkg/errors"
-	"k8s.io/apimachinery/pkg/labels"
-
-	"github.com/supergiant/control/pkg/clouds"
 	tm "github.com/supergiant/control/pkg/templatemanager"
 	"github.com/supergiant/control/pkg/workflows/steps"
 	"github.com/supergiant/control/pkg/workflows/steps/docker"
@@ -45,7 +43,27 @@ func New(script *template.Template) *Step {
 }
 
 func (t *Step) Run(ctx context.Context, out io.Writer, config *steps.Config) error {
-	err := steps.RunTemplate(ctx, t.script, config.Runner, out, struct{ Provider clouds.Name }{config.Provider})
+	config.KubeletConfig.PrivateIP = config.Node.PrivateIp
+	config.KubeletConfig.PublicIP = config.Node.PublicIp
+
+	config.KubeletConfig.CACert = config.CertificatesConfig.CACert
+	config.KubeletConfig.CAKey = config.CertificatesConfig.CAKey
+
+	config.KubeletConfig.AdminKey = config.CertificatesConfig.AdminKey
+	config.KubeletConfig.AdminCert = config.CertificatesConfig.AdminCert
+	config.KubeletConfig.LoadBalancerHost = config.InternalDNSName
+	config.KubeletConfig.NodeName = config.Node.Name
+	config.KubeletConfig.IsMaster = config.IsMaster
+
+	if len(config.KubeletConfig.ServicesCIDR) > 0 {
+		kubeDefaultSvcIp, err := util.GetKubernetesDefaultSvcIP(config.KubeletConfig.ServicesCIDR)
+		if err != nil {
+			return errors.Wrapf(err, "get cluster dns ip from the %s subnet", config.KubeletConfig.ServicesCIDR)
+		}
+		config.KubeletConfig.KubernetesSvcIP = kubeDefaultSvcIp.String()
+	}
+
+	err := steps.RunTemplate(ctx, t.script, config.Runner, out, config.KubeletConfig)
 
 	if err != nil {
 		return errors.Wrap(err, "install kubelet step")
@@ -68,10 +86,4 @@ func (t *Step) Description() string {
 
 func (s *Step) Depends() []string {
 	return []string{docker.StepName}
-}
-
-func getNodeLables(role string) string {
-	return labels.Set(map[string]string{
-		LabelNodeRole: role,
-	}).String()
 }

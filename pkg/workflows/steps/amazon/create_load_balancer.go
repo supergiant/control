@@ -44,7 +44,7 @@ func InitCreateLoadBalancer(getELBFn GetELBFn) {
 func NewCreateLoadBalancerStep(getELBFn GetELBFn) *CreateLoadBalancerStep {
 	return &CreateLoadBalancerStep{
 		timeout:      time.Second * 10,
-		attemptCount: 60,
+		attemptCount: 120,
 		getLoadBalancerService: func(cfg steps.AWSConfig) (LoadBalancerCreater, error) {
 
 			elbInstance, err := getELBFn(cfg)

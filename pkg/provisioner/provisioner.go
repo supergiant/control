@@ -3,8 +3,6 @@ package provisioner
 import (
 	"bytes"
 	"context"
-	"crypto/rand"
-	"crypto/rsa"
 	"fmt"
 	"io"
 	"sync"
@@ -12,9 +10,11 @@ import (
 
 	"github.com/pkg/errors"
 	"github.com/sirupsen/logrus"
-	"k8s.io/client-go/util/keyutil"
+
+	"k8s.io/kubernetes/cmd/kubeadm/app/phases/copycerts"
 
 	"github.com/supergiant/control/pkg/clouds"
+
 	"github.com/supergiant/control/pkg/model"
 	"github.com/supergiant/control/pkg/pki"
 	"github.com/supergiant/control/pkg/profile"
@@ -27,10 +27,6 @@ import (
 	"github.com/supergiant/control/pkg/workflows/statuses"
 	"github.com/supergiant/control/pkg/workflows/steps"
 	"github.com/supergiant/control/pkg/workflows/steps/configmap"
-)
-
-const (
-	rsaKeySize = 2048
 )
 
 type KubeService interface {
@@ -728,14 +724,13 @@ func (tp *TaskProvisioner) buildInitialCluster(ctx context.Context,
 		Password:     profile.Password,
 
 		Auth: model.Auth{
-			Username:  config.CertificatesConfig.Username,
-			Password:  config.CertificatesConfig.Password,
-			CACert:    config.CertificatesConfig.CACert,
-			CAKey:     config.CertificatesConfig.CAKey,
-			AdminCert: config.CertificatesConfig.AdminCert,
-			AdminKey:  config.CertificatesConfig.AdminKey,
-			SAKey:     config.CertificatesConfig.SAKey,
-			SAPub:     config.CertificatesConfig.SAPub,
+			Username:       config.CertificatesConfig.Username,
+			Password:       config.CertificatesConfig.Password,
+			CACert:         config.CertificatesConfig.CACert,
+			CAKey:          config.CertificatesConfig.CAKey,
+			AdminCert:      config.CertificatesConfig.AdminCert,
+			AdminKey:       config.CertificatesConfig.AdminKey,
+			CertificateKey: config.KubeadmConfig.CertificateKey,
 		},
 
 		Arch:                   profile.Arch,
@@ -782,34 +777,16 @@ func bootstrapCerts(config *steps.Config) error {
 	config.CertificatesConfig.CACert = string(ca.Cert)
 	config.CertificatesConfig.CAKey = string(ca.Key)
 
+	if config.KubeadmConfig.CertificateKey, err = copycerts.CreateCertificateKey(); err != nil {
+		return errors.Wrap(err, "create certificate key")
+	}
+
 	admin, err := pki.NewAdminPair(ca)
 	if err != nil {
 		return errors.Wrap(err, "create admin certificates")
 	}
 	config.CertificatesConfig.AdminCert = string(admin.Cert)
 	config.CertificatesConfig.AdminKey = string(admin.Key)
-
-	key, err := rsa.GenerateKey(rand.Reader, rsaKeySize)
-
-	if err != nil {
-		return errors.Wrap(err, "generate sa key")
-	}
-
-	keyPem, err := keyutil.MarshalPrivateKeyToPEM(key)
-
-	if err != nil {
-		return errors.Wrap(err, "marshall sa key")
-	}
-
-	config.CertificatesConfig.SAKey = string(keyPem)
-
-	pemPublicKey, err := pki.EncodePublicKeyPEM(&key.PublicKey)
-
-	if err != nil {
-		return errors.Wrap(err, "marshall sa pub")
-	}
-
-	config.CertificatesConfig.SAPub = string(pemPublicKey)
 
 	return nil
 }
