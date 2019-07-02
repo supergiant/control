@@ -29,7 +29,7 @@ sudo mkdir -p /etc/supergiant
 
 sudo bash -c "cat << EOF > /etc/supergiant/kubeadm.conf
 ---
-apiVersion: kubeadm.k8s.io/v1beta1
+apiVersion: kubeadm.k8s.io/v1beta2
 kind: InitConfiguration
 localAPIEndpoint:
   bindPort: 443
@@ -37,6 +37,7 @@ nodeRegistration:
   kubeletExtraArgs:
     node-ip: {{ .NodeIp }}
     {{ if .Provider }}cloud-provider: {{ .Provider }}{{ end }}
+certificateKey: {{ .CertificateKey }}
 ---
 apiVersion: kubeadm.k8s.io/v1beta1
 kind: ClusterConfiguration
@@ -73,7 +74,7 @@ sudo kubeadm init --ignore-preflight-errors=NumCPU \
 {{ else }}
 
 sudo bash -c "cat << EOF > /etc/supergiant/kubeadm.conf
-apiVersion: kubeadm.k8s.io/v1beta1
+apiVersion: kubeadm.k8s.io/v1beta2
 kind: JoinConfiguration
 nodeRegistration:
   kubeletExtraArgs:
@@ -87,6 +88,7 @@ discovery:
 controlPlane:
   localAPIEndpoint:
     bindPort: 443
+  certificateKey: {{ .CertificateKey }}
 ---
 apiVersion: kubeadm.k8s.io/v1beta1
 kind: ClusterConfiguration
@@ -119,7 +121,6 @@ EOF"
 sudo kubeadm config images pull
 sudo kubeadm join --ignore-preflight-errors=NumCPU {{ .InternalDNSName }}:443 \
 --node-name ${HOSTNAME} \
---certificate-key {{ .CertificateKey }} \
 --config=/etc/supergiant/kubeadm.conf
 {{ end }}
 
