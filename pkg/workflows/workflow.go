@@ -1,6 +1,10 @@
 package workflows
 
 import (
+	"github.com/supergiant/control/pkg/workflows/steps/amazon"
+	"github.com/supergiant/control/pkg/workflows/steps/azure"
+	"github.com/supergiant/control/pkg/workflows/steps/digitalocean"
+	"github.com/supergiant/control/pkg/workflows/steps/gce"
 	"sync"
 
 	"github.com/supergiant/control/pkg/workflows/statuses"
@@ -38,8 +42,13 @@ type Workflow []steps.Step
 const (
 	Prefix = "tasks"
 
-	PostProvision   = "PostProvision"
-	PreProvision    = "PreProvision"
+	PostProvision     = "PostProvision"
+	Infra             = "Infra"
+	AwsInfra          = "awsInfra"
+	DigitalOceanInfra = "digitaloceanInfra"
+	GCEInfra          = "gceInfra"
+	AzureInfra        = "azureInfra"
+
 	ProvisionMaster = "ProvisionMaster"
 	ProvisionNode   = "ProvisionNode"
 	DeleteNode      = "DeleteNode"
@@ -63,8 +72,39 @@ var (
 func Init() {
 	workflowMap = make(map[string]Workflow)
 
-	preProvision := []steps.Step{
-		provider.StepPreProvision{},
+	awsInfra := []steps.Step{
+		steps.GetStep(amazon.StepFindAMI),
+		steps.GetStep(amazon.StepCreateVPC),
+		steps.GetStep(amazon.StepCreateSecurityGroups),
+		steps.GetStep(amazon.StepNameCreateInstanceProfiles),
+		steps.GetStep(amazon.ImportKeyPairStepName),
+		steps.GetStep(amazon.StepCreateInternetGateway),
+		steps.GetStep(amazon.StepCreateSubnets),
+		steps.GetStep(amazon.StepCreateRouteTable),
+		steps.GetStep(amazon.StepAssociateRouteTable),
+		steps.GetStep(amazon.StepCreateLoadBalancer),
+	}
+
+	digitalOceanInfra := []steps.Step{
+		steps.GetStep(digitalocean.CreateLoadBalancerStepName),
+	}
+
+	gceInfra := []steps.Step{
+		steps.GetStep(gce.CreateNetworksStepName),
+		steps.GetStep(gce.CreateIPAddressStepName),
+		steps.GetStep(gce.CreateTargetPullStepName),
+		steps.GetStep(gce.CreateInstanceGroupsStepName),
+		steps.GetStep(gce.CreateHealthCheckStepName),
+		steps.GetStep(gce.CreateBackendServiceStepName),
+		steps.GetStep(gce.CreateForwardingRulesStepName),
+	}
+
+	azureInfra := []steps.Step{
+		steps.GetStep(azure.GetAuthorizerStepName),
+		steps.GetStep(azure.CreateGroupStepName),
+		steps.GetStep(azure.CreateLBStepName),
+		steps.GetStep(azure.CreateVNetAndSubnetsStepName),
+		steps.GetStep(azure.CreateSecurityGroupStepName),
 	}
 
 	masterWorkflow := []steps.Step{
@@ -122,7 +162,11 @@ func Init() {
 	m.Lock()
 	defer m.Unlock()
 
-	workflowMap[PreProvision] = preProvision
+	workflowMap[AwsInfra] = awsInfra
+	workflowMap[DigitalOceanInfra] = digitalOceanInfra
+	workflowMap[GCEInfra] = gceInfra
+	workflowMap[AzureInfra] = azureInfra
+
 	workflowMap[ProvisionMaster] = masterWorkflow
 	workflowMap[ProvisionNode] = nodeWorkflow
 	workflowMap[DeleteNode] = deleteMachineWorkflow
