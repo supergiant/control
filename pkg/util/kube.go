@@ -17,6 +17,7 @@ func UpdateKubeWithCloudSpecificData(k *model.Kube, config *steps.Config) {
 	k.ExternalDNSName = config.ExternalDNSName
 	k.InternalDNSName = config.InternalDNSName
 	k.BootstrapToken = config.BootstrapToken
+	k.K8SVersion = config.K8SVersion
 
 	// Save cloudSpecificData in kube
 	switch config.Provider {

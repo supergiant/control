@@ -13,6 +13,7 @@ const (
 	StateOperational  KubeState = "operational"
 	StateDeleting     KubeState = "deleting"
 	StateImporting    KubeState = "importing"
+	StateUpgrading    KubeState = "upgrading"
 )
 
 // Kube represents a kubernetes cluster.

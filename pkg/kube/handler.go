@@ -61,6 +61,8 @@ type kubeProvisioner interface {
 		clusterProfile *profile.Profile,
 		config *steps.Config,
 		taskIdMap map[string][]string) error
+	UpgradeCluster(context.Context, string, *model.Kube,
+		map[string][]*workflows.Task,  *steps.Config)
 }
 
 type ServiceInfo struct {
@@ -191,6 +193,7 @@ func (h *Handler) Register(r *mux.Router) {
 	r.HandleFunc("/kubes/{kubeID}/metrics", h.getClusterMetrics).Methods(http.MethodGet)
 	r.HandleFunc("/kubes/{kubeID}/services", h.getServices).Methods(http.MethodGet)
 	r.HandleFunc("/kubes/{kubeID}/restart", h.restartKubeProvisioning).Methods(http.MethodPost)
+	r.HandleFunc("/kubes/{kubeID}", h.upgradeKube).Methods(http.MethodPatch)
 }
 
 func (h *Handler) getTasks(w http.ResponseWriter, r *http.Request) {
@@ -970,8 +973,8 @@ func (h *Handler) getClusterMetrics(w http.ResponseWriter, r *http.Request) {
 			"cpu":    "api/v1/query?query=:node_cpu_utilisation:avg1m",
 			"memory": "api/v1/query?query=:node_memory_utilisation:",
 		}
-		response   = map[string]interface{}{}
-		baseUrl    = "api/v1/namespaces/kube-system/services/prometheus-operated:9090/proxy"
+		response = map[string]interface{}{}
+		baseUrl  = "api/v1/namespaces/kube-system/services/prometheus-operated:9090/proxy"
 	)
 
 	vars := mux.Vars(r)
@@ -1015,8 +1018,8 @@ func (h *Handler) getNodesMetrics(w http.ResponseWriter, r *http.Request) {
 			"cpu":    "api/v1/query?query=node:node_cpu_utilisation:avg1m",
 			"memory": "api/v1/query?query=node:node_memory_utilisation:",
 		}
-		response   = map[string]map[string]interface{}{}
-		baseUrl    = "api/v1/namespaces/kube-system/services/prometheus-operated:9090/proxy"
+		response = map[string]map[string]interface{}{}
+		baseUrl  = "api/v1/namespaces/kube-system/services/prometheus-operated:9090/proxy"
 	)
 
 	vars := mux.Vars(r)
@@ -1416,6 +1419,143 @@ func (h *Handler) importKube(w http.ResponseWriter, r *http.Request) {
 
 		logrus.Infof("Import task %s has successfully finished", importTask.ID)
 	}()
+}
+
+func (h *Handler) upgradeKube(w http.ResponseWriter, r *http.Request) {
+	var err error
+
+	vars := mux.Vars(r)
+	kubeID := vars["kubeID"]
+
+	logrus.Debugf("Get kube %s", kubeID)
+	k, err := h.svc.Get(r.Context(), kubeID)
+	if err != nil {
+		if sgerrors.IsNotFound(err) {
+			message.SendNotFound(w, kubeID, err)
+			return
+		}
+		message.SendUnknownError(w, err)
+		return
+	}
+
+	if k.State != model.StateOperational {
+		w.WriteHeader(http.StatusNoContent)
+		logrus.Infof("Cluster %s is not operational", k.ID)
+		return
+	}
+
+	logrus.Debugf("Get cloud profile %s", k.ProfileID)
+	kubeProfile, err := h.profileSvc.Get(r.Context(), k.ProfileID)
+
+	if err != nil {
+		if sgerrors.IsNotFound(err) {
+			message.SendNotFound(w, k.ProfileID, err)
+			return
+		}
+
+		message.SendUnknownError(w, err)
+		return
+	}
+
+	config, err := steps.NewConfigFromKube(kubeProfile, k)
+
+	if err != nil {
+		logrus.Errorf("New config %v", err.Error())
+		message.SendUnknownError(w, err)
+		return
+	}
+
+	// Load things specific to cloud provider
+	err = util.LoadCloudSpecificDataFromKube(k, config)
+
+	if err != nil {
+		message.SendUnknownError(w, err)
+		return
+	}
+
+	nextVersion := findNextMinorVersion(k.K8SVersion, clouds.GetVersions())
+
+	if nextVersion == "" {
+		http.Error(w, fmt.Sprintf("can't upgrade from version %s", k.K8SVersion), http.StatusBadRequest)
+		return
+	}
+
+	if nextVersion == k.K8SVersion {
+		w.WriteHeader(http.StatusNoContent)
+		return
+	}
+
+	config.K8SVersion = nextVersion
+	tasks := h.makeUpgradeTasks(config, k)
+
+	go h.kubeProvisioner.UpgradeCluster(context.Background(), nextVersion, k, tasks, config)
+   node2TaskMap := mapNode2Task(tasks)
+
+	// here we are ready for async part
+	w.WriteHeader(http.StatusAccepted)
+	if err := json.NewEncoder(w).Encode(node2TaskMap); err != nil {
+		logrus.Errorf("Error encoding task map %v", err)
+	}
+}
+
+func (h *Handler) makeUpgradeTasks(config *steps.Config, k *model.Kube) map[string][]*workflows.Task {
+	masterTasks := make([]*workflows.Task, 0, len(k.Masters))
+	nodeTasks := make([]*workflows.Task, 0, len(k.Nodes))
+	//some clouds (e.g. AWS) requires running tasks before provisioning nodes (creating a VPC, Subnets, SecGroups, etc)
+
+	for _, masterMachine := range k.Masters {
+		masterTask, err := workflows.NewTask(config, workflows.Upgrade, h.repo)
+		if err != nil {
+			logrus.Errorf("Failed to set up task for %s workflow", workflows.ProvisionMaster)
+			continue
+		}
+
+		cfg := *config
+		cfg.Node = *masterMachine
+		cfg.IsMaster = true
+		cfg.IsBootstrap = false
+		masterTask.Config = &cfg
+		// Note(stgleb): Reuse task ID for machine provisioning that will allow to browse
+		// logs of machine upgrade without changes on the UI
+		masterTask.ID = masterMachine.TaskID
+		masterTasks = append(masterTasks, masterTask)
+	}
+
+	for _, nodeMachine := range k.Nodes {
+		nodeTask, err := workflows.NewTask(config, workflows.Upgrade, h.repo)
+		if err != nil {
+			logrus.Errorf("Failed to set up task for %s workflow", workflows.ProvisionNode)
+			continue
+		}
+		cfg := *config
+		cfg.Node = *nodeMachine
+		cfg.IsMaster = false
+		cfg.IsBootstrap = false
+		nodeTask.Config = &cfg
+		// Note(stgleb): Reuse task ID for machine provisioning that will allow to browse
+		// logs of machine upgrade without changes on the UI
+		nodeTask.ID = nodeMachine.ID
+		nodeTasks = append(nodeTasks, nodeTask)
+	}
+
+	taskMap := map[string][]*workflows.Task{
+		workflows.MasterTask:  masterTasks,
+		workflows.NodeTask:    nodeTasks,
+	}
+
+	return taskMap
+}
+
+func mapNode2Task(taskMap map[string][]*workflows.Task) map[string]string{
+	node2Task := make(map[string]string)
+
+	for _, taskSet := range taskMap {
+		for _, task := range taskSet {
+			node2Task[task.Config.Node.Name] = task.ID
+		}
+	}
+
+	return node2Task
 }
 
 func createKube(config *steps.Config, state model.KubeState, profile profile.Profile, taskID string, h *Handler) error {

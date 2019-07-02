@@ -1,12 +1,16 @@
 package workflows
 
 import (
+	"sync"
+
 	"github.com/supergiant/control/pkg/workflows/steps/amazon"
 	"github.com/supergiant/control/pkg/workflows/steps/azure"
 	"github.com/supergiant/control/pkg/workflows/steps/digitalocean"
 	"github.com/supergiant/control/pkg/workflows/steps/gce"
-	"sync"
 
+	"github.com/supergiant/control/pkg/workflows/steps/evacuate"
+	"github.com/supergiant/control/pkg/workflows/steps/uncordon"
+	"github.com/supergiant/control/pkg/workflows/steps/upgrade"
 	"github.com/supergiant/control/pkg/workflows/statuses"
 	"github.com/supergiant/control/pkg/workflows/steps"
 	"github.com/supergiant/control/pkg/workflows/steps/authorizedkeys"
@@ -54,6 +58,7 @@ const (
 	DeleteNode      = "DeleteNode"
 	DeleteCluster   = "DeleteCluster"
 	ImportCluster   = "ImportCluster"
+	Upgrade         = "Upgrade"
 )
 
 type WorkflowSet struct {
@@ -159,6 +164,13 @@ func Init() {
 		provider.DeleteCluster{},
 	}
 
+	upgradeNode := []steps.Step{
+		steps.GetStep(ssh.StepName),
+		steps.GetStep(evacuate.StepName),
+		steps.GetStep(upgrade.StepName),
+		steps.GetStep(uncordon.StepName),
+	}
+
 	m.Lock()
 	defer m.Unlock()
 
@@ -173,6 +185,7 @@ func Init() {
 	workflowMap[DeleteCluster] = deleteClusterWorkflow
 	workflowMap[PostProvision] = postProvision
 	workflowMap[ImportCluster] = importClusterWorkflow
+	workflowMap[Upgrade] = upgradeNode
 }
 
 func RegisterWorkFlow(workflowName string, workflow Workflow) {

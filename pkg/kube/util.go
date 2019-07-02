@@ -158,3 +158,17 @@ func syncMachines(ctx context.Context, k *model.Kube, account *model.CloudAccoun
 
 	return nil
 }
+
+func findNextMinorVersion(current string, versions []string) string {
+	if len(versions) == 0 {
+		return ""
+	}
+
+	for i := 0; i < len(versions) - 1; i++ {
+		if (len(versions[i]) > 3 && len(current) > 3) &&strings.EqualFold(versions[i][:4], current[:4]) {
+			return versions[i + 1]
+		}
+	}
+
+	return ""
+}

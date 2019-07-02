@@ -22,8 +22,9 @@ type CertificatesConfig struct {
 
 	ParenCert []byte `json:"parenCert"`
 
-	CACert string `json:"caCert"`
-	CAKey  string `json:"caKey"`
+	CACert     string `json:"caCert"`
+	CAKey      string `json:"caKey"`
+	CACertHash string `json:"caCertHash"`
 
 	AdminCert string `json:"adminCert"`
 	AdminKey  string `json:"adminKey"`
@@ -194,7 +195,8 @@ type PrometheusConfig struct {
 }
 
 type KubeadmConfig struct {
-	KubeadmVersion         string `json:"kubeadmVersion"`
+	KubeadmVersion  string `json:"kubeadmVersion"`
+	CACertHash      string `json:"caCertHash"`
 	K8SVersion      string `json:"K8SVersion"`
 	IsMaster        bool   `json:"isMaster"`
 	IsBootstrap     bool   `json:"IsBootstrap"`
@@ -260,7 +262,8 @@ func NewMap(m map[string]*model.Machine) Map {
 }
 
 type Config struct {
-	Kube model.Kube `json:"kube"`
+	Kube       model.Kube `json:"kube"`
+	K8SVersion string     `json:"k8sVersion"`
 
 	DryRun                 bool `json:"dryRun"`
 	TaskID                 string
@@ -322,6 +325,7 @@ type ConfigMap struct {
 // NewConfig builds instance of config for provisioning
 func NewConfig(clusterName, cloudAccountName string, profile profile.Profile) (*Config, error) {
 	return &Config{
+		K8SVersion: profile.K8SVersion,
 		Kube: model.Kube{
 			SSHConfig: model.SSHConfig{
 				Port:      "22",
@@ -427,6 +431,7 @@ func NewConfig(clusterName, cloudAccountName string, profile profile.Profile) (*
 	}, nil
 }
 
+// TODO(stgleb): Compare that to LoadCloudSpecificDataFromKube
 func NewConfigFromKube(profile *profile.Profile, k *model.Kube) (*Config, error) {
 	if k == nil {
 		return nil, errors.Wrapf(sgerrors.ErrNilEntity, "kube must not be nil")
@@ -436,6 +441,7 @@ func NewConfigFromKube(profile *profile.Profile, k *model.Kube) (*Config, error)
 		ClusterID:      k.ID,
 		Provider:       profile.Provider,
 		ClusterName:    k.Name,
+		K8SVersion:     k.K8SVersion,
 		BootstrapToken: k.BootstrapToken,
 		DigitalOceanConfig: DOConfig{
 			Region: profile.Region,
@@ -494,7 +500,6 @@ func NewConfigFromKube(profile *profile.Profile, k *model.Kube) (*Config, error)
 			NetworkProvider: profile.NetworkProvider,
 			CIDR:            profile.CIDR,
 		},
-
 		PostStartConfig: PostStartConfig{
 			Host:        "localhost",
 			Port:        "8080",
