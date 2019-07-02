@@ -233,10 +233,7 @@ func createAwsSpotInstance(req *SpotRequest, config *steps.Config) error {
 	result, err := svc.RequestSpotInstances(input)
 	if err != nil {
 		if aerr, ok := err.(awserr.Error); ok {
-			switch aerr.Code() {
-			default:
-				logrus.Errorf("request spot instance caused %s", aerr.Message())
-			}
+			logrus.Errorf("request spot instance caused %s", aerr.Message())
 		} else {
 			logrus.Errorf("Error %v", err)
 		}
