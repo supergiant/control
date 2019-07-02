@@ -194,7 +194,7 @@ github.com/pmezard/go-difflib/difflib
 github.com/rakyll/statik/fs
 # github.com/sirupsen/logrus v1.2.0
 github.com/sirupsen/logrus
-# github.com/spf13/pflag v1.0.1
+# github.com/spf13/pflag v1.0.3
 github.com/spf13/pflag
 # github.com/stretchr/objx v0.1.1
 github.com/stretchr/objx
@@ -354,7 +354,7 @@ gopkg.in/inf.v0
 gopkg.in/tomb.v1
 # gopkg.in/yaml.v2 v2.2.2
 gopkg.in/yaml.v2
-# k8s.io/api v0.0.0-20190516230258-a675ac48af67
+# k8s.io/api v0.0.0-20190626000116-b178a738ed00 => k8s.io/api v0.0.0-20190606204050-af9c91bd2759
 k8s.io/api/core/v1
 k8s.io/api/authentication/v1
 k8s.io/api/autoscaling/v1
@@ -391,7 +391,9 @@ k8s.io/api/settings/v1alpha1
 k8s.io/api/storage/v1
 k8s.io/api/storage/v1alpha1
 k8s.io/api/storage/v1beta1
-# k8s.io/apimachinery v0.0.0-20190404173353-6a84e37a896d
+# k8s.io/apiextensions-apiserver v0.0.0-00010101000000-000000000000 => k8s.io/apiextensions-apiserver v0.0.0-20190606210616-f848dc7be4a4
+k8s.io/apiextensions-apiserver/pkg/features
+# k8s.io/apimachinery v0.0.0-20190624085041-961b39a1baa0 => k8s.io/apimachinery v0.0.0-20190404173353-6a84e37a896d
 k8s.io/apimachinery/pkg/apis/meta/v1
 k8s.io/apimachinery/pkg/runtime
 k8s.io/apimachinery/pkg/runtime/schema
@@ -429,11 +431,17 @@ k8s.io/apimachinery/third_party/forked/golang/reflect
 k8s.io/apimachinery/pkg/api/meta
 k8s.io/apimachinery/pkg/util/clock
 k8s.io/apimachinery/pkg/util/strategicpatch
+k8s.io/apimachinery/pkg/util/version
+k8s.io/apimachinery/pkg/util/wait
 k8s.io/apimachinery/third_party/forked/golang/netutil
 k8s.io/apimachinery/pkg/apis/meta/v1beta1
 k8s.io/apimachinery/pkg/util/mergepatch
 k8s.io/apimachinery/third_party/forked/golang/json
-# k8s.io/client-go v11.0.0+incompatible
+k8s.io/apimachinery/pkg/apis/meta/internalversion
+# k8s.io/apiserver v0.0.0-00010101000000-000000000000 => k8s.io/apiserver v0.0.0-20190606205144-71ebb8303503
+k8s.io/apiserver/pkg/util/feature
+k8s.io/apiserver/pkg/features
+# k8s.io/client-go v11.0.0+incompatible => k8s.io/client-go v11.0.0+incompatible
 k8s.io/client-go/kubernetes/typed/core/v1
 k8s.io/client-go/rest
 k8s.io/client-go/tools/clientcmd
@@ -457,11 +465,92 @@ k8s.io/client-go/util/homedir
 k8s.io/client-go/tools/clientcmd/api/v1
 k8s.io/client-go/kubernetes/typed/core/v1/fake
 k8s.io/client-go/testing
+k8s.io/client-go/kubernetes
 k8s.io/client-go/pkg/apis/clientauthentication
 k8s.io/client-go/pkg/apis/clientauthentication/v1alpha1
 k8s.io/client-go/pkg/apis/clientauthentication/v1beta1
 k8s.io/client-go/util/connrotation
-# k8s.io/helm v2.11.0+incompatible
+k8s.io/client-go/kubernetes/typed/admissionregistration/v1beta1
+k8s.io/client-go/kubernetes/typed/apps/v1
+k8s.io/client-go/kubernetes/typed/apps/v1beta1
+k8s.io/client-go/kubernetes/typed/apps/v1beta2
+k8s.io/client-go/kubernetes/typed/auditregistration/v1alpha1
+k8s.io/client-go/kubernetes/typed/authentication/v1
+k8s.io/client-go/kubernetes/typed/authentication/v1beta1
+k8s.io/client-go/kubernetes/typed/authorization/v1
+k8s.io/client-go/kubernetes/typed/authorization/v1beta1
+k8s.io/client-go/kubernetes/typed/autoscaling/v1
+k8s.io/client-go/kubernetes/typed/autoscaling/v2beta1
+k8s.io/client-go/kubernetes/typed/autoscaling/v2beta2
+k8s.io/client-go/kubernetes/typed/batch/v1
+k8s.io/client-go/kubernetes/typed/batch/v1beta1
+k8s.io/client-go/kubernetes/typed/batch/v2alpha1
+k8s.io/client-go/kubernetes/typed/certificates/v1beta1
+k8s.io/client-go/kubernetes/typed/coordination/v1
+k8s.io/client-go/kubernetes/typed/coordination/v1beta1
+k8s.io/client-go/kubernetes/typed/events/v1beta1
+k8s.io/client-go/kubernetes/typed/extensions/v1beta1
+k8s.io/client-go/kubernetes/typed/networking/v1
+k8s.io/client-go/kubernetes/typed/networking/v1beta1
+k8s.io/client-go/kubernetes/typed/node/v1alpha1
+k8s.io/client-go/kubernetes/typed/node/v1beta1
+k8s.io/client-go/kubernetes/typed/policy/v1beta1
+k8s.io/client-go/kubernetes/typed/rbac/v1
+k8s.io/client-go/kubernetes/typed/rbac/v1alpha1
+k8s.io/client-go/kubernetes/typed/rbac/v1beta1
+k8s.io/client-go/kubernetes/typed/scheduling/v1
+k8s.io/client-go/kubernetes/typed/scheduling/v1alpha1
+k8s.io/client-go/kubernetes/typed/scheduling/v1beta1
+k8s.io/client-go/kubernetes/typed/settings/v1alpha1
+k8s.io/client-go/kubernetes/typed/storage/v1
+k8s.io/client-go/kubernetes/typed/storage/v1alpha1
+k8s.io/client-go/kubernetes/typed/storage/v1beta1
+k8s.io/client-go/dynamic
+k8s.io/client-go/kubernetes/fake
+k8s.io/client-go/discovery/fake
+k8s.io/client-go/kubernetes/typed/admissionregistration/v1beta1/fake
+k8s.io/client-go/kubernetes/typed/apps/v1/fake
+k8s.io/client-go/kubernetes/typed/apps/v1beta1/fake
+k8s.io/client-go/kubernetes/typed/apps/v1beta2/fake
+k8s.io/client-go/kubernetes/typed/auditregistration/v1alpha1/fake
+k8s.io/client-go/kubernetes/typed/authentication/v1/fake
+k8s.io/client-go/kubernetes/typed/authentication/v1beta1/fake
+k8s.io/client-go/kubernetes/typed/authorization/v1/fake
+k8s.io/client-go/kubernetes/typed/authorization/v1beta1/fake
+k8s.io/client-go/kubernetes/typed/autoscaling/v1/fake
+k8s.io/client-go/kubernetes/typed/autoscaling/v2beta1/fake
+k8s.io/client-go/kubernetes/typed/autoscaling/v2beta2/fake
+k8s.io/client-go/kubernetes/typed/batch/v1/fake
+k8s.io/client-go/kubernetes/typed/batch/v1beta1/fake
+k8s.io/client-go/kubernetes/typed/batch/v2alpha1/fake
+k8s.io/client-go/kubernetes/typed/certificates/v1beta1/fake
+k8s.io/client-go/kubernetes/typed/coordination/v1/fake
+k8s.io/client-go/kubernetes/typed/coordination/v1beta1/fake
+k8s.io/client-go/kubernetes/typed/events/v1beta1/fake
+k8s.io/client-go/kubernetes/typed/extensions/v1beta1/fake
+k8s.io/client-go/kubernetes/typed/networking/v1/fake
+k8s.io/client-go/kubernetes/typed/networking/v1beta1/fake
+k8s.io/client-go/kubernetes/typed/node/v1alpha1/fake
+k8s.io/client-go/kubernetes/typed/node/v1beta1/fake
+k8s.io/client-go/kubernetes/typed/policy/v1beta1/fake
+k8s.io/client-go/kubernetes/typed/rbac/v1/fake
+k8s.io/client-go/kubernetes/typed/rbac/v1alpha1/fake
+k8s.io/client-go/kubernetes/typed/rbac/v1beta1/fake
+k8s.io/client-go/kubernetes/typed/scheduling/v1/fake
+k8s.io/client-go/kubernetes/typed/scheduling/v1alpha1/fake
+k8s.io/client-go/kubernetes/typed/scheduling/v1beta1/fake
+k8s.io/client-go/kubernetes/typed/settings/v1alpha1/fake
+k8s.io/client-go/kubernetes/typed/storage/v1/fake
+k8s.io/client-go/kubernetes/typed/storage/v1alpha1/fake
+k8s.io/client-go/kubernetes/typed/storage/v1beta1/fake
+# k8s.io/cloud-provider v0.0.0-00010101000000-000000000000 => k8s.io/cloud-provider v0.0.0-20190606212257-347f17c60af0
+k8s.io/cloud-provider/features
+# k8s.io/cluster-bootstrap v0.0.0-20190626010831-cd8eb24ea488
+k8s.io/cluster-bootstrap/token/util
+k8s.io/cluster-bootstrap/token/api
+# k8s.io/component-base v0.0.0-20190626045757-ca439aa083f5
+k8s.io/component-base/config
+# k8s.io/helm v2.11.0+incompatible => k8s.io/helm v2.11.0+incompatible
 k8s.io/helm/pkg/repo
 k8s.io/helm/pkg/helm
 k8s.io/helm/pkg/proto/hapi/chart
@@ -489,7 +578,27 @@ k8s.io/helm/pkg/engine
 k8s.io/klog
 # k8s.io/kube-openapi v0.0.0-20190228160746-b3a7cee44a30
 k8s.io/kube-openapi/pkg/util/proto
+# k8s.io/kubernetes v1.14.3 => k8s.io/kubernetes v1.14.3
+k8s.io/kubernetes/cmd/kubeadm/app/phases/copycerts
+k8s.io/kubernetes/cmd/kubeadm/app/apis/kubeadm
+k8s.io/kubernetes/cmd/kubeadm/app/constants
+k8s.io/kubernetes/cmd/kubeadm/app/phases/bootstraptoken/node
+k8s.io/kubernetes/cmd/kubeadm/app/util/apiclient
+k8s.io/kubernetes/cmd/kubeadm/app/util/crypto
+k8s.io/kubernetes/pkg/apis/rbac/v1
+k8s.io/kubernetes/pkg/kubelet/apis/config
+k8s.io/kubernetes/pkg/proxy/apis/config
+k8s.io/kubernetes/pkg/registry/core/service/ipallocator
+k8s.io/kubernetes/cmd/kubeadm/app/util
+k8s.io/kubernetes/pkg/kubelet/types
+k8s.io/kubernetes/pkg/apis/rbac
+k8s.io/kubernetes/pkg/apis/core
+k8s.io/kubernetes/pkg/registry/core/service/allocator
+k8s.io/kubernetes/pkg/version
+k8s.io/kubernetes/pkg/apis/scheduling
+k8s.io/kubernetes/pkg/features
 # k8s.io/utils v0.0.0-20190520173318-324c5df7d3f0
 k8s.io/utils/integer
+k8s.io/utils/exec
 # sigs.k8s.io/yaml v1.1.0
 sigs.k8s.io/yaml

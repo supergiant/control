@@ -146,6 +146,7 @@ func LoadCloudSpecificDataFromKube(k *model.Kube, config *steps.Config) error {
 		return nil
 	}
 
+	config.KubeadmConfig.CertificateKey = k.Auth.CertificateKey
 	config.ConfigMap.Data = k.UserData
 
 	switch config.Provider {
