@@ -726,6 +726,10 @@ func bootstrapCerts(config *steps.Config) error {
 		return errors.Wrap(err, "create certificate key")
 	}
 
+	if config.KubeadmConfig.CertificateKey, err = copycerts.CreateCertificateKey(); err != nil {
+		return errors.Wrap(err, "create certificate key")
+	}
+
 	admin, err := pki.NewAdminPair(ca)
 	if err != nil {
 		return errors.Wrap(err, "create admin certificates")
