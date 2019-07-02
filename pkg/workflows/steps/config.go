@@ -407,11 +407,11 @@ func NewConfig(clusterName, cloudAccountName string, profile profile.Profile) (*
 		},
 		KubeadmConfig: KubeadmConfig{
 			// TODO(stgleb): get it from available versions once we have them
-			KubeadmVersion: "1.14.3",
-			K8SVersion:     profile.K8SVersion,
-			IsBootstrap:    true,
-			CIDR:           profile.CIDR,
-			ServiceCIDR:    profile.K8SServicesCIDR,
+			KubeadmVersion:     "1.15.0",
+			K8SVersion:  profile.K8SVersion,
+			IsBootstrap: true,
+			CIDR:        profile.CIDR,
+			ServiceCIDR: profile.K8SServicesCIDR,
 		},
 
 		Masters: Map{
