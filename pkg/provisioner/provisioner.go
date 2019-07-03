@@ -375,22 +375,22 @@ func (tp *TaskProvisioner) provision(ctx context.Context,
 // prepare creates all tasks for provisioning according to cloud provider
 func (tp *TaskProvisioner) prepare(config *steps.Config, masterCount, nodeCount int) map[string][]*workflows.Task {
 	var (
-		preProvisionTask *workflows.Task
-		clusterTask      *workflows.Task
-		err              error
+		infraTask   *workflows.Task
+		clusterTask *workflows.Task
+		err         error
 	)
 
 	masterTasks := make([]*workflows.Task, 0, masterCount)
 	nodeTasks := make([]*workflows.Task, 0, nodeCount)
 	//some clouds (e.g. AWS) requires running tasks before provisioning nodes (creating a VPC, Subnets, SecGroups, etc)
-	preProvisionTask, err = workflows.NewTask(config, workflows.PreProvision, tp.repository)
+	infraTask, err = workflows.NewTask(config, fmt.Sprintf("%s%s", config.Provider, workflows.Infra), tp.repository)
 	if err != nil {
 		// We can't go further without pre provision task
 		logrus.Errorf("create pre provision task has finished with %v", err)
 		return nil
 	}
 
-	preProvisionTask.Config = config
+	infraTask.Config = config
 	for i := 0; i < masterCount; i++ {
 		t, err := workflows.NewTask(config, workflows.ProvisionMaster, tp.repository)
 		if err != nil {
@@ -422,8 +422,8 @@ func (tp *TaskProvisioner) prepare(config *steps.Config, masterCount, nodeCount 
 		workflows.ClusterTask: {clusterTask},
 	}
 
-	if preProvisionTask != nil {
-		taskMap[workflows.PreProvisionTask] = []*workflows.Task{preProvisionTask}
+	if infraTask != nil {
+		taskMap[workflows.PreProvisionTask] = []*workflows.Task{infraTask}
 	}
 
 	return taskMap
