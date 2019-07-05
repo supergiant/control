@@ -76,6 +76,7 @@ type Auth struct {
 	Password       string `json:"token"`
 	CAKey          string `json:"caKey"`
 	CACert         string `json:"caCert"`
+	CACertHash     string `json:"caCertHash"`
 	AdminCert      string `json:"adminCert"`
 	AdminKey       string `json:"adminKey"`
 	CertificateKey string `json:"certificateKey"`
