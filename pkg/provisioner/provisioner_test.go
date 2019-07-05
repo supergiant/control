@@ -121,7 +121,7 @@ func TestProvisionCluster(t *testing.T) {
 	workflows.RegisterWorkFlow(workflows.PostProvision, []steps.Step{
 		&mockStep{},
 	})
-	workflows.RegisterWorkFlow(workflows.PreProvision, []steps.Step{
+	workflows.RegisterWorkFlow(workflows.DigitalOceanInfra, []steps.Step{
 		&mockStep{},
 	})
 
@@ -310,7 +310,7 @@ func TestRestartProvisionClusterSuccess(t *testing.T) {
 	}
 
 	workflows.Init()
-	workflows.RegisterWorkFlow(workflows.PreProvision, []steps.Step{
+	workflows.RegisterWorkFlow(workflows.DigitalOceanInfra, []steps.Step{
 		&mockStep{},
 	})
 
@@ -386,7 +386,7 @@ func TestRestartProvisionClusterError(t *testing.T) {
 	workflows.RegisterWorkFlow(workflows.ProvisionMaster, []steps.Step{})
 	workflows.RegisterWorkFlow(workflows.ProvisionNode, []steps.Step{})
 	workflows.RegisterWorkFlow(workflows.PostProvision, []steps.Step{})
-	workflows.RegisterWorkFlow(workflows.PreProvision, []steps.Step{
+	workflows.RegisterWorkFlow(workflows.DigitalOceanInfra, []steps.Step{
 		&mockStep{},
 	})
 

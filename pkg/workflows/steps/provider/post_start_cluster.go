@@ -16,7 +16,7 @@ const (
 	PostStartCluster = "post_start_cluster"
 )
 
-type StepPostStartCluster struct {}
+type StepPostStartCluster struct{}
 
 func (s StepPostStartCluster) Run(ctx context.Context, out io.Writer, cfg *steps.Config) error {
 	if cfg == nil {
@@ -67,5 +67,5 @@ func postStartCluster(provider clouds.Name) ([]steps.Step, error) {
 		// TODO(stgleb): Add non-bootstrap master instances to instance groups
 		return []steps.Step{}, nil
 	}
-	return nil, errors.Wrapf(fmt.Errorf("unknown provider: %s", provider), PreProvisionStep)
+	return nil, errors.Wrapf(fmt.Errorf("unknown provider: %s", provider), PostStartCluster)
 }

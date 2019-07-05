@@ -2,7 +2,11 @@ package controlplane
 
 import (
 	"context"
+	"crypto/tls"
 	"fmt"
+	"github.com/supergiant/control/pkg/workflows/steps/evacuate"
+	"github.com/supergiant/control/pkg/workflows/steps/uncordon"
+	"github.com/supergiant/control/pkg/workflows/steps/upgrade"
 	"net/http"
 	_ "net/http/pprof"
 	"net/url"
@@ -60,7 +64,15 @@ type Server struct {
 }
 
 func (srv *Server) Start() {
-	err := srv.server.ListenAndServe()
+	logrus.Infof("configuratino: %+v", srv.cfg)
+	logrus.Infof("supergiant is listening on %s", srv.server.Addr)
+
+	var err error
+	if srv.server.TLSConfig != nil {
+		err = srv.server.ListenAndServeTLS(srv.cfg.CertFile, srv.cfg.KeyFile)
+	} else {
+		err = srv.server.ListenAndServe()
+	}
 	if err != nil {
 		logrus.Error(err)
 	}
@@ -79,6 +91,9 @@ func (srv *Server) Shutdown() {
 // Config is the server configuration
 type Config struct {
 	Port          int
+	InsecurePort  int
+	CertFile      string
+	KeyFile       string
 	Addr          string
 	StorageMode   string
 	StorageURI    string
@@ -106,12 +121,10 @@ func New(cfg *Config) (*Server, error) {
 		return nil, err
 	}
 
-	s := NewServer(r, cfg)
-
-	return s, nil
+	return NewServer(r, cfg)
 }
 
-func NewServer(router *mux.Router, cfg *Config) *Server {
+func NewServer(router *mux.Router, cfg *Config) (*Server, error) {
 	headersOk := handlers.AllowedHeaders([]string{
 		"Access-Control-Request-Headers",
 		"Authorization",
@@ -125,27 +138,34 @@ func NewServer(router *mux.Router, cfg *Config) *Server {
 		http.MethodDelete,
 	})
 
-	// TODO add TLS support
-	s := &Server{
+	port := cfg.InsecurePort
+	var tlsCfg *tls.Config
+	if cfg.Port != 0 {
+		cert, err := tls.LoadX509KeyPair(cfg.CertFile, cfg.KeyFile)
+		if err != nil {
+			return nil, errors.Wrap(err, "load server certificates")
+		}
+
+		port = cfg.Port
+		tlsCfg = &tls.Config{
+			Certificates: []tls.Certificate{cert},
+		}
+	}
+
+	return &Server{
 		cfg: cfg,
 		server: http.Server{
 			Handler:      handlers.CORS(headersOk, methodsOk)(handlers.RecoveryHandler(handlers.PrintRecoveryStack(true))(router)),
-			Addr:         fmt.Sprintf("%s:%d", cfg.Addr, cfg.Port),
+			Addr:         fmt.Sprintf("%s:%d", cfg.Addr, port),
 			ReadTimeout:  cfg.ReadTimeout,
 			WriteTimeout: cfg.WriteTimeout,
 			IdleTimeout:  cfg.IdleTimeout,
+			TLSConfig:    tlsCfg,
 		},
-	}
-	http.DefaultClient.Timeout = cfg.IdleTimeout
-
-	return s
+	}, nil
 }
 
 func validate(cfg *Config) error {
-	if cfg.Port <= 0 {
-		return errors.New("port can't be negative")
-	}
-
 	if cfg.SpawnInterval == 0 {
 		return errors.New("spawn interval must not be 0")
 	}
@@ -208,6 +228,9 @@ func configureApplication(cfg *Config) (*mux.Router, error) {
 	kubeadm.Init()
 	bootstraptoken.Init()
 	configmap.Init()
+	upgrade.Init()
+	uncordon.Init()
+	evacuate.Init()
 
 	amazon.InitFindAMI(amazon.GetEC2)
 	amazon.InitImportKeyPair(amazon.GetEC2)

@@ -8,8 +8,7 @@ import (
 )
 
 func UpdateKubeWithCloudSpecificData(k *model.Kube, config *steps.Config) {
-	logrus.Debugf("Update clou"+
-		"d specific data for kube %s",
+	logrus.Debugf("Update cloud specific data for kube %s",
 		config.ClusterID)
 
 	cloudSpecificSettings := make(map[string]string)
@@ -19,6 +18,8 @@ func UpdateKubeWithCloudSpecificData(k *model.Kube, config *steps.Config) {
 	k.InternalDNSName = config.InternalDNSName
 	k.BootstrapToken = config.BootstrapToken
 	k.UserData = config.ConfigMap.Data
+	k.K8SVersion = config.K8SVersion
+	k.Auth.CACertHash = config.CertificatesConfig.CACertHash
 
 	// Save cloudSpecificData in kube
 	switch config.Provider {

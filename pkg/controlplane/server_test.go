@@ -53,7 +53,11 @@ func TestNewServer(t *testing.T) {
 		router.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
 		})
 
-		server := NewServer(router, testCase.cfg)
+		server, err := NewServer(router, testCase.cfg)
+		if err != nil {
+			t.Errorf("create sg server: %s", err)
+		}
+
 		rec := httptest.NewRecorder()
 		req, err := http.NewRequest(testCase.method, "/", nil)
 

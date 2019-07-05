@@ -13,6 +13,7 @@ const (
 	StateOperational  KubeState = "operational"
 	StateDeleting     KubeState = "deleting"
 	StateImporting    KubeState = "importing"
+	StateUpgrading    KubeState = "upgrading"
 )
 
 // Kube represents a kubernetes cluster.
@@ -76,6 +77,7 @@ type Auth struct {
 	Password       string `json:"token"`
 	CAKey          string `json:"caKey"`
 	CACert         string `json:"caCert"`
+	CACertHash     string `json:"caCertHash"`
 	AdminCert      string `json:"adminCert"`
 	AdminKey       string `json:"adminKey"`
 	CertificateKey string `json:"certificateKey"`
