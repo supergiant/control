@@ -18,6 +18,7 @@ func UpdateKubeWithCloudSpecificData(k *model.Kube, config *steps.Config) {
 	k.InternalDNSName = config.InternalDNSName
 	k.BootstrapToken = config.BootstrapToken
 	k.K8SVersion = config.K8SVersion
+	k.Auth.CACertHash = config.CertificatesConfig.CACertHash
 
 	// Save cloudSpecificData in kube
 	switch config.Provider {
