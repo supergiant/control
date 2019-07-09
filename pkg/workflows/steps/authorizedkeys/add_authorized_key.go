@@ -41,11 +41,13 @@ func (s *Step) Run(ctx context.Context, w io.Writer, cfg *steps.Config) error {
 	log.Infof("[%s] - adding user's public key to the node", s.Name())
 	if cfg == nil || cfg.Kube.SSHConfig.PublicKey != "" {
 		err := steps.RunTemplate(ctx, s.script, cfg.Runner, w, struct {
-			PublicKey string
-			UserName  string
+			PublicKey          string
+			BootstrapPublicKey string
+			UserName           string
 		}{
-			PublicKey: cfg.Kube.SSHConfig.PublicKey,
-			UserName:  clouds.OSUser,
+			PublicKey:          cfg.Kube.SSHConfig.PublicKey,
+			BootstrapPublicKey: cfg.Kube.SSHConfig.BootstrapPublicKey,
+			UserName:           clouds.OSUser,
 		})
 		if err != nil {
 			return errors.Wrap(err, "add authorized key step")
@@ -53,6 +55,9 @@ func (s *Step) Run(ctx context.Context, w io.Writer, cfg *steps.Config) error {
 	} else {
 		log.Infof("[%s] - no public key provided, skipping...", s.Name())
 	}
+
+	// Use this user next steps
+	cfg.Kube.SSHConfig.User = clouds.OSUser
 
 	return nil
 }

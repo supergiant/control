@@ -219,6 +219,7 @@ type KubeletConfig struct {
 	LoadBalancerHost string `json:"loadBalancerHost"`
 	MasterPort       string `json:"masterPort"`
 	NodeName         string `json:"nodeName"`
+	UserName   string `json:"userName"`
 
 	// TODO: this shouldn't be a part of SANs
 	// https://kubernetes.io/docs/setup/certificates/#all-certificates
@@ -324,12 +325,23 @@ type ConfigMap struct {
 
 // NewConfig builds instance of config for provisioning
 func NewConfig(clusterName, cloudAccountName string, profile profile.Profile) (*Config, error) {
+	var  user string
+
+	if profile.Provider == clouds.AWS {
+		//on aws default user name on ubuntu images are not root but ubuntu
+		//https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/AccessingInstancesLinux.html
+		// TODO: this should be set by provisioner
+		user = "ubuntu"
+	} else if profile.Provider == clouds.Azure {
+		user = clouds.OSUser
+	}
+
 	return &Config{
 		K8SVersion: profile.K8SVersion,
 		Kube: model.Kube{
 			SSHConfig: model.SSHConfig{
 				Port:      "22",
-				User:      "root",
+				User:      user,
 				Timeout:   30,
 				PublicKey: profile.PublicKey,
 			},
@@ -436,6 +448,18 @@ func NewConfigFromKube(profile *profile.Profile, k *model.Kube) (*Config, error)
 	if k == nil {
 		return nil, errors.Wrapf(sgerrors.ErrNilEntity, "kube must not be nil")
 	}
+
+	var  user string
+
+	if profile.Provider == clouds.AWS {
+		//on aws default user name on ubuntu images are not root but ubuntu
+		//https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/AccessingInstancesLinux.html
+		// TODO: this should be set by provisioner
+		user = "ubuntu"
+	} else if profile.Provider == clouds.Azure {
+		user = clouds.OSUser
+	}
+
 
 	cfg := &Config{
 		ClusterID:      k.ID,
@@ -552,7 +576,7 @@ func NewConfigFromKube(profile *profile.Profile, k *model.Kube) (*Config, error)
 
 	cfg.Kube.SSHConfig = model.SSHConfig{
 		Port:      "22",
-		User:      "root",
+		User:      user,
 		Timeout:   10,
 		PublicKey: profile.PublicKey,
 	}

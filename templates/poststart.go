@@ -11,11 +11,7 @@ sudo kubectl create clusterrolebinding default-kube-system-admin --clusterrole=c
 {{ end }}
 
 sudo bash -c "cat << EOF > /etc/security/limits.conf
-root soft  nofile 300000
-root hard  nofile 300000
+supergiant soft  nofile 300000
+supergiant hard  nofile 300000
 EOF"
-
-if [[ $(whoami) != root ]]; then
-  sudo cp -r /home/$(whoami)/.kube /root/
-fi
 `
