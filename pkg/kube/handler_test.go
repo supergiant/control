@@ -334,7 +334,7 @@ func TestHandler_createKube(t *testing.T) {
 		// setup handler
 		svc := new(kubeServiceMock)
 		h := NewHandler(svc, nil,
-			nil, nil, nil, nil, nil)
+			nil, nil, nil, nil, nil, "")
 
 		req, err := http.NewRequest(http.MethodPost, "/kubes",
 			bytes.NewReader(tc.rawKube))
@@ -406,7 +406,7 @@ func TestHandler_getKube(t *testing.T) {
 		// setup handler
 		svc := new(kubeServiceMock)
 		h := NewHandler(svc, nil, nil,
-			nil, nil, nil, nil)
+			nil, nil, nil, nil, "")
 
 		// prepare
 		req, err := http.NewRequest(http.MethodGet, "/kubes/"+tc.kubeName, nil)
@@ -469,7 +469,7 @@ func TestHandler_listKubes(t *testing.T) {
 		// setup handler
 		svc := new(kubeServiceMock)
 		h := NewHandler(svc, nil, nil,
-			nil, nil, nil, nil)
+			nil, nil, nil, nil, "")
 
 		// prepare
 		req, err := http.NewRequest(http.MethodGet, "/kubes", nil)
@@ -614,7 +614,7 @@ func TestHandler_deleteKube(t *testing.T) {
 			Return(nil)
 
 		h := NewHandler(svc, accSvc, nil,
-			mockProvisioner, nil, mockRepo, nil)
+			mockProvisioner, nil, mockRepo, nil, "")
 
 		router := mux.NewRouter().SkipClean(true)
 		h.Register(router)
@@ -665,7 +665,7 @@ func TestHandler_listResources(t *testing.T) {
 		// setup handler
 		svc := new(kubeServiceMock)
 		h := NewHandler(svc, nil, nil,
-			nil, nil, nil, nil)
+			nil, nil, nil, nil, "")
 
 		// prepare
 		req, err := http.NewRequest(http.MethodGet, fmt.Sprintf("/kubes/%s/resources", tc.kubeName), nil)
@@ -733,7 +733,7 @@ func TestHandler_getResources(t *testing.T) {
 		// setup handler
 		svc := new(kubeServiceMock)
 		h := NewHandler(svc, nil, nil,
-			nil, nil, nil, nil)
+			nil, nil, nil, nil, "")
 
 		// prepare
 		req, err := http.NewRequest(http.MethodGet, fmt.Sprintf("/kubes/%s/resources/%s", tc.kubeName, tc.resourceName), nil)
@@ -810,7 +810,7 @@ func TestHandler_listNodes(t *testing.T) {
 		// setup handler
 		svc := new(kubeServiceMock)
 		h := NewHandler(svc, nil, nil,
-			nil, nil, nil, nil)
+			nil, nil, nil, nil, "")
 
 		// prepare
 		req, err := http.NewRequest(http.MethodGet, fmt.Sprintf("/kubes/%s/nodes", tc.kubeID), nil)
@@ -977,7 +977,7 @@ func TestAddNodeToKube(t *testing.T) {
 			Return(nil)
 		h := NewHandler(svc, accService, profileSvc,
 			mockProvisioner, nil,
-			nil, nil)
+			nil, nil, "")
 
 		data, _ := json.Marshal(nodeProfile)
 		b := bytes.NewBuffer(data)
@@ -1727,7 +1727,7 @@ func TestHandler_getKubeconfig(t *testing.T) {
 		// setup handler
 		svc := new(kubeServiceMock)
 		h := NewHandler(svc, nil, nil,
-			nil, nil, nil, nil)
+			nil, nil, nil, nil, "")
 
 		// prepare
 		req, err := http.NewRequest(http.MethodGet, fmt.Sprintf("/kubes/%s/users/%s/kubeconfig", tc.kubeID, tc.userName), nil)
@@ -2182,7 +2182,7 @@ func TestRestarProvisioningKube(t *testing.T) {
 
 		h := NewHandler(svc, accService, profileSvc,
 			nil, mockProvisioner,
-			nil, nil)
+			nil, nil, "")
 
 		req, _ := http.NewRequest(http.MethodPost,
 			fmt.Sprintf("/kubes/%s/restart", testCase.kubeName),
@@ -2472,7 +2472,7 @@ func TestImportKube(t *testing.T) {
 
 		h := NewHandler(svc, accSvc,
 			profileSvc, nil,
-			nil, mockRepo, nil)
+			nil, mockRepo, nil, "")
 
 		rr := httptest.NewRecorder()
 
