@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"io"
+	"strconv"
 	"time"
 
 	"github.com/Azure/azure-sdk-for-go/services/compute/mgmt/2018-10-01/compute"
@@ -146,6 +147,13 @@ func (s *CreateVMStep) setupVM(ctx context.Context, config *steps.Config, vmName
 		return errors.Wrap(err, "setup nic")
 	}
 
+	volumeSize, err := strconv.Atoi(config.AzureConfig.VolumeSize)
+
+	if err != nil {
+		return errors.Wrapf(err, "convert volume size to int")
+	}
+
+	volumeSize32 := int32(volumeSize)
 	vmClient := s.sdk.VMClient(config.GetAzureAuthorizer(), config.AzureConfig.SubscriptionID)
 	f, err := vmClient.CreateOrUpdate(
 		ctx,
@@ -171,7 +179,7 @@ func (s *CreateVMStep) setupVM(ctx context.Context, config *steps.Config, vmName
 						CreateOption: compute.DiskCreateOptionTypesFromImage,
 						Caching:      compute.CachingTypesReadWrite,
 						OsType:       compute.Linux,
-						DiskSizeGB:   to.Int32Ptr(30), // TODO: make it configurable
+						DiskSizeGB:   &volumeSize32, // TODO: make it configurable
 						ManagedDisk: &compute.ManagedDiskParameters{
 							StorageAccountType: compute.StorageAccountTypesStandardLRS,
 						},
