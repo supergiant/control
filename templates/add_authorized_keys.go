@@ -2,7 +2,7 @@ package templates
 
 const addAuthorizedKeysTpl = `
 sudo adduser {{ .UserName }} --gecos "{{ .UserName }},{{ .UserName }},{{ .UserName }},{{ .UserName }}" --disabled-password
-usermod -aG sudo {{ .UserName }}
+sudo usermod -aG sudo {{ .UserName }}
 
 sudo mkdir -p /home/{{ .UserName }}/.ssh
 sudo chmod 700 /home/{{ .UserName }}/.ssh
