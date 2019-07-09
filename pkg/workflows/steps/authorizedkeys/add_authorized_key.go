@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"github.com/supergiant/control/pkg/clouds"
+	"github.com/supergiant/control/pkg/runner/ssh"
 	"io"
 	"text/template"
 
@@ -52,12 +53,27 @@ func (s *Step) Run(ctx context.Context, w io.Writer, cfg *steps.Config) error {
 		if err != nil {
 			return errors.Wrap(err, "add authorized key step")
 		}
+
+		// Change user from default to supergiant
+		// Use this user next steps
+		cfg.Kube.SSHConfig.User = clouds.OSUser
+
+		runnerCfg := ssh.Config{
+			Host:    cfg.Node.PublicIp,
+			Port:    cfg.Kube.SSHConfig.Port,
+			User:    cfg.Kube.SSHConfig.User,
+			Timeout: cfg.Kube.SSHConfig.Timeout,
+			// TODO(stgleb): Use secure storage for private keys instead carrying them in plain text
+			Key: []byte(cfg.Kube.SSHConfig.BootstrapPrivateKey),
+		}
+
+		cfg.Runner, err = ssh.NewRunner(runnerCfg)
+		if err != nil {
+			return errors.Wrap(err, "ssh config step")
+		}
 	} else {
 		log.Infof("[%s] - no public key provided, skipping...", s.Name())
 	}
-
-	// Use this user next steps
-	cfg.Kube.SSHConfig.User = clouds.OSUser
 
 	return nil
 }
