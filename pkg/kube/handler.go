@@ -616,13 +616,6 @@ func (h *Handler) addMachine(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if len(k.Masters) != 0 {
-		config.AddMaster(util.GetRandomNode(k.Masters))
-	} else {
-		http.Error(w, "no master found", http.StatusNotFound)
-		return
-	}
-
 	// Get cloud account fill appropriate config structure
 	// with cloud account credentials
 	err = util.FillCloudAccountCredentials(acc, config)
