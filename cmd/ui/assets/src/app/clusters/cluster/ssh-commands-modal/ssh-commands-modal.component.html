@@ -8,14 +8,14 @@
     <div class="machine-group">
       <h3>MASTERS</h3>
       <div class="machine" *ngFor="let master of data.masters">
-        <span class="name">{{ master.name }}:</span><span class="command">ssh root@{{ master.publicIp }}</span>
+        <span class="name">{{ master.name }}:</span><span class="command">ssh supergiant@{{ master.publicIp }}</span>
       </div>
     </div>
 
     <div class="machine-group">
       <h3>NODES</h3>
       <div class="machine" *ngFor="let master of data.nodes">
-        <span class="name">{{ master.name }}:</span><span class="command">ssh root@{{ master.publicIp }}</span>
+        <span class="name">{{ master.name }}:</span><span class="command">ssh supergiant@{{ master.publicIp }}</span>
       </div>
     </div>
   </div>

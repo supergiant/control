@@ -10,7 +10,6 @@ import (
 	"github.com/supergiant/control/pkg/runner/dry"
 	"github.com/supergiant/control/pkg/runner/ssh"
 	"github.com/supergiant/control/pkg/workflows/steps"
-	"github.com/supergiant/control/pkg/workflows/steps/azure"
 )
 
 const StepName = "ssh"
@@ -37,7 +36,7 @@ func (s *Step) Run(ctx context.Context, writer io.Writer, config *steps.Config) 
 		// TODO: this should be set by provisioner
 		config.Kube.SSHConfig.User = "ubuntu"
 	} else if config.Provider == clouds.Azure {
-		config.Kube.SSHConfig.User = azure.OSUser
+		config.Kube.SSHConfig.User = clouds.OSUser
 	}
 
 	cfg := ssh.Config{
