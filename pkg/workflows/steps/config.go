@@ -273,7 +273,6 @@ type Config struct {
 	BootstrapToken         string       `json:"bootstrapToken"`
 	ClusterID              string       `json:"clusterId"`
 	ClusterName            string       `json:"clusterName"`
-	LogBootstrapPrivateKey bool         `json:"logBootstrapPrivateKey"`
 	DigitalOceanConfig     DOConfig     `json:"digitalOceanConfig"`
 	AWSConfig              AWSConfig    `json:"awsConfig"`
 	GCEConfig              GCEConfig    `json:"gceConfig"`
@@ -340,7 +339,6 @@ func NewConfig(clusterName, cloudAccountName string, profile profile.Profile) (*
 		DigitalOceanConfig: DOConfig{
 			Region: profile.Region,
 		},
-		LogBootstrapPrivateKey: profile.LogBootstrapPrivateKey,
 		AWSConfig: AWSConfig{
 			Region:                 profile.Region,
 			AvailabilityZone:       profile.CloudSpecificSettings[clouds.AwsAZ],
@@ -449,7 +447,6 @@ func NewConfigFromKube(profile *profile.Profile, k *model.Kube) (*Config, error)
 		Kube:                   *k,
 		ExternalDNSName:        k.ExternalDNSName,
 		InternalDNSName:        k.InternalDNSName,
-		LogBootstrapPrivateKey: profile.LogBootstrapPrivateKey,
 		AWSConfig: AWSConfig{
 			Region:                   profile.Region,
 			AvailabilityZone:         k.CloudSpec[clouds.AwsAZ],
