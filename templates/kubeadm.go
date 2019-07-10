@@ -129,8 +129,8 @@ sudo cp -i /etc/kubernetes/admin.conf $HOME/.kube/config
 sudo chown $(id -u):$(id -g) $HOME/.kube/config
 
 sudo mkdir -p /home/{{ .UserName }}/.kube
-sudo cp -i /etc/kubernetes/admin.conf /home/{{ .UserName }}/.kube
-sudo chown {{ .UserName }} $HOME/.kube/config
+sudo cp -i /etc/kubernetes/admin.conf /home/{{ .UserName }}/.kube/config
+sudo chown {{ .UserName }} /home/{{ .UserName }}/.kube/config
 {{ else }}
 
 sudo bash -c "cat << EOF > /etc/supergiant/kubeadm.conf
