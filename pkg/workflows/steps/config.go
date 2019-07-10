@@ -195,6 +195,7 @@ type PrometheusConfig struct {
 }
 
 type KubeadmConfig struct {
+	UserName string `json:"userName"`
 	KubeadmVersion  string `json:"kubeadmVersion"`
 	CACertHash      string `json:"caCertHash"`
 	K8SVersion      string `json:"K8SVersion"`
