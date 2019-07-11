@@ -1539,6 +1539,54 @@ func (h *Handler) makeUpgradeTasks(config *steps.Config, k *model.Kube) map[stri
 	return taskMap
 }
 
+
+func (h *Handler) applyToKube(w http.ResponseWriter, r *http.Request) {
+	var err error
+
+	vars := mux.Vars(r)
+	kubeID := vars["kubeID"]
+
+	logrus.Debugf("Get kube %s", kubeID)
+	k, err := h.svc.Get(r.Context(), kubeID)
+	if err != nil {
+		if sgerrors.IsNotFound(err) {
+			message.SendNotFound(w, kubeID, err)
+			return
+		}
+		message.SendUnknownError(w, err)
+		return
+	}
+
+	if k.State != model.StateOperational {
+		w.WriteHeader(http.StatusNoContent)
+		logrus.Infof("Cluster %s is not operational", k.ID)
+		return
+	}
+
+	cfg, err := kubeconfig.NewConfigFor(k)
+	if err != nil {
+		http.Error(w, "build kubernetes rest config", http.StatusInternalServerError)
+		return
+	}
+	kclient, err := rest.UnversionedRESTClientFor(cfg)
+	if err != nil {
+		http.Error(w, "build kubernetes rest config", http.StatusInternalServerError)
+		return
+	}
+
+	kclient.Patch(pt).
+		NamespaceIfScoped(namespace, m.NamespaceScoped).
+		Resource(m.Resource).
+		Name(name).
+		Body(data).
+		Do().
+		Get()
+
+
+	// here we are ready for async part
+	w.WriteHeader(http.StatusAccepted)
+}
+
 func mapNode2Task(taskMap map[string][]*workflows.Task) map[string]string{
 	node2Task := make(map[string]string)
 
@@ -1590,3 +1638,5 @@ func createKube(config *steps.Config, state model.KubeState, profile profile.Pro
 
 	return err
 }
+
+
