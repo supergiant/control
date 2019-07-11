@@ -243,6 +243,10 @@ type DrainConfig struct {
 	PrivateIP string `json:"privateIp"`
 }
 
+type ApplyConfig struct {
+	Data string `json:"data"`
+}
+
 type Map struct {
 	internal map[string]*model.Machine
 }
@@ -292,6 +296,7 @@ type Config struct {
 	KubeadmConfig      KubeadmConfig      `json:"kubeadmConfig"`
 	KubeletConfig      KubeletConfig      `json:"kubeletConfig"`
 	ConfigMap          ConfigMap          `json:"configMap"`
+	ApplyConfig        ApplyConfig        `json:"applyConfig"`
 
 	ExternalDNSName string `json:"externalDnsName"`
 	InternalDNSName string `json:"internalDnsName"`
