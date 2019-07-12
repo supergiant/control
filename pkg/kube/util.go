@@ -254,5 +254,5 @@ func discoverHelmVersion(kubeConfig *clientcmddapi.Config) (string, error) {
 		}
 	}
 
-	return "", sgerrors.ErrNotFound
+	return "", nil
 }
