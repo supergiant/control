@@ -1267,7 +1267,14 @@ func (h *Handler) importKube(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	k8sVersion, err := discoverVersion(kubeConfig)
+	k8sVersion, err := discoverK8SVersion(kubeConfig)
+
+	if err != nil {
+		message.SendUnknownError(w, err)
+		return
+	}
+
+	helmVersion, err := discoverHelmVersion(kubeConfig)
 
 	if err != nil {
 		message.SendUnknownError(w, err)
@@ -1337,6 +1344,7 @@ func (h *Handler) importKube(w http.ResponseWriter, r *http.Request) {
 	config.ExternalDNSName = kube.ExternalDNSName
 	config.K8SVersion = k8sVersion
 	config.IsImport = true
+	req.Profile.HelmVersion = helmVersion
 
 	if err := createKube(config, model.StateImporting, req.Profile, importTask.ID, h); err != nil {
 		message.SendUnknownError(w, errors.Wrapf(err, "create importing kube"))

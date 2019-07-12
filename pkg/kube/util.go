@@ -10,12 +10,15 @@ import (
 	"github.com/supergiant/control/pkg/util"
 	"github.com/supergiant/control/pkg/workflows/steps"
 	"github.com/supergiant/control/pkg/workflows/steps/amazon"
+	"k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/runtime/serializer"
 	"k8s.io/client-go/discovery"
 	"k8s.io/client-go/kubernetes/scheme"
 	"k8s.io/client-go/rest"
 	"k8s.io/client-go/tools/clientcmd"
 	"strings"
+
+	"k8s.io/client-go/kubernetes"
 
 	"github.com/pkg/errors"
 	clientcmddapi "k8s.io/client-go/tools/clientcmd/api"
@@ -119,10 +122,10 @@ func syncMachines(ctx context.Context, k *model.Kube, account *model.CloudAccoun
 	for _, res := range describeInstanceOutput.Reservations {
 		for _, instance := range res.Instances {
 			node := &model.Machine{
-				Size:      *instance.InstanceType,
-				State:     model.MachineStateActive,
-				Role:      model.RoleNode,
-				Region:    k.Region,
+				Size:   *instance.InstanceType,
+				State:  model.MachineStateActive,
+				Role:   model.RoleNode,
+				Region: k.Region,
 			}
 
 			if instance.PublicIpAddress != nil {
@@ -169,16 +172,16 @@ func findNextMinorVersion(current string, versions []string) string {
 		return ""
 	}
 
-	for i := 0; i < len(versions) - 1; i++ {
-		if (len(versions[i]) > 3 && len(current) > 3) &&strings.EqualFold(versions[i][:4], current[:4]) {
-			return versions[i + 1]
+	for i := 0; i < len(versions)-1; i++ {
+		if (len(versions[i]) > 3 && len(current) > 3) && strings.EqualFold(versions[i][:4], current[:4]) {
+			return versions[i+1]
 		}
 	}
 
 	return ""
 }
 
-func discoverVersion(kubeConfig *clientcmddapi.Config) (string, error) {
+func discoverK8SVersion(kubeConfig *clientcmddapi.Config) (string, error) {
 	restConf, err := clientcmd.NewNonInteractiveClientConfig(
 		*kubeConfig,
 		kubeConfig.CurrentContext,
@@ -208,4 +211,48 @@ func discoverVersion(kubeConfig *clientcmddapi.Config) (string, error) {
 	}
 
 	return strings.TrimPrefix(serverVersion.GitVersion, "v"), nil
+}
+
+func discoverHelmVersion(kubeConfig *clientcmddapi.Config) (string, error) {
+	restConf, err := clientcmd.NewNonInteractiveClientConfig(
+		*kubeConfig,
+		kubeConfig.CurrentContext,
+		&clientcmd.ConfigOverrides{},
+		nil,
+	).ClientConfig()
+
+	if err != nil {
+		return "", errors.Wrapf(err, "create rest config")
+	}
+
+	restConf.NegotiatedSerializer = serializer.DirectCodecFactory{CodecFactory: scheme.Codecs}
+	if len(restConf.UserAgent) == 0 {
+		restConf.UserAgent = rest.DefaultKubernetesUserAgent()
+	}
+
+	clientSet, err := kubernetes.NewForConfig(restConf)
+
+	if err != nil {
+		return "", errors.Wrapf(err, "get client set")
+	}
+
+	deploymentList, err := clientSet.AppsV1().Deployments("kube-system").List(v1.ListOptions{})
+
+	if err != nil {
+		return "", errors.Wrapf(err, "list deployments")
+	}
+
+	for _, deployment := range deploymentList.Items {
+		if strings.Contains(deployment.Name, "tiller") {
+			for _, container := range deployment.Spec.Template.Spec.Containers {
+				slice := strings.Split(container.Image, ":")
+
+				if len(slice) > 1 {
+					return slice[0], nil
+				}
+			}
+		}
+	}
+
+	return "", sgerrors.ErrNotFound
 }
