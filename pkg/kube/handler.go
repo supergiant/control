@@ -7,6 +7,7 @@ import (
 	"github.com/pborman/uuid"
 	"github.com/supergiant/control/pkg/kubeconfig"
 	"io"
+	"io/ioutil"
 	"net/http"
 	"strconv"
 	"time"
@@ -62,7 +63,7 @@ type kubeProvisioner interface {
 		config *steps.Config,
 		taskIdMap map[string][]string) error
 	UpgradeCluster(context.Context, string, *model.Kube,
-		map[string][]*workflows.Task,  *steps.Config)
+		map[string][]*workflows.Task, *steps.Config)
 }
 
 type ServiceInfo struct {
@@ -194,6 +195,7 @@ func (h *Handler) Register(r *mux.Router) {
 	r.HandleFunc("/kubes/{kubeID}/services", h.getServices).Methods(http.MethodGet)
 	r.HandleFunc("/kubes/{kubeID}/restart", h.restartKubeProvisioning).Methods(http.MethodPost)
 	r.HandleFunc("/kubes/{kubeID}", h.upgradeKube).Methods(http.MethodPatch)
+	r.HandleFunc("/kubes/{kubeID}/apply", h.applyToKube).Methods(http.MethodPost)
 }
 
 func (h *Handler) getTasks(w http.ResponseWriter, r *http.Request) {
@@ -1103,6 +1105,7 @@ func (h *Handler) getServices(w http.ResponseWriter, r *http.Request) {
 		message.SendUnknownError(w, err)
 		return
 	}
+
 	for _, service := range svcList.Items {
 		for _, port := range service.Spec.Ports {
 			if _, ok := webPorts[port.Name]; !ok && port.Protocol != "TCP" {
@@ -1482,7 +1485,7 @@ func (h *Handler) upgradeKube(w http.ResponseWriter, r *http.Request) {
 	tasks := h.makeUpgradeTasks(config, k)
 
 	go h.kubeProvisioner.UpgradeCluster(context.Background(), nextVersion, k, tasks, config)
-   node2TaskMap := mapNode2Task(tasks)
+	node2TaskMap := mapNode2Task(tasks)
 
 	// here we are ready for async part
 	w.WriteHeader(http.StatusAccepted)
@@ -1532,19 +1535,25 @@ func (h *Handler) makeUpgradeTasks(config *steps.Config, k *model.Kube) map[stri
 	}
 
 	taskMap := map[string][]*workflows.Task{
-		workflows.MasterTask:  masterTasks,
-		workflows.NodeTask:    nodeTasks,
+		workflows.MasterTask: masterTasks,
+		workflows.NodeTask:   nodeTasks,
 	}
 
 	return taskMap
 }
-
 
 func (h *Handler) applyToKube(w http.ResponseWriter, r *http.Request) {
 	var err error
 
 	vars := mux.Vars(r)
 	kubeID := vars["kubeID"]
+
+	data, err := ioutil.ReadAll(r.Body)
+
+	if err != nil {
+		message.SendUnknownError(w, err)
+		return
+	}
 
 	logrus.Debugf("Get kube %s", kubeID)
 	k, err := h.svc.Get(r.Context(), kubeID)
@@ -1563,31 +1572,81 @@ func (h *Handler) applyToKube(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	cfg, err := kubeconfig.NewConfigFor(k)
+	logrus.Debugf("Get cloud profile %s", k.ProfileID)
+	kubeProfile, err := h.profileSvc.Get(r.Context(), k.ProfileID)
+
 	if err != nil {
-		http.Error(w, "build kubernetes rest config", http.StatusInternalServerError)
-		return
-	}
-	kclient, err := rest.UnversionedRESTClientFor(cfg)
-	if err != nil {
-		http.Error(w, "build kubernetes rest config", http.StatusInternalServerError)
+		if sgerrors.IsNotFound(err) {
+			message.SendNotFound(w, k.ProfileID, err)
+			return
+		}
+
+		message.SendUnknownError(w, err)
 		return
 	}
 
-	kclient.Patch(pt).
-		NamespaceIfScoped(namespace, m.NamespaceScoped).
-		Resource(m.Resource).
-		Name(name).
-		Body(data).
-		Do().
-		Get()
+	config, err := steps.NewConfigFromKube(kubeProfile, k)
 
+	if err != nil {
+		logrus.Errorf("New config %v", err.Error())
+		message.SendUnknownError(w, err)
+		return
+	}
+
+	// Load things specific to cloud provider
+	err = util.LoadCloudSpecificDataFromKube(k, config)
+
+	if err != nil {
+		message.SendUnknownError(w, err)
+		return
+	}
+
+	if master := config.GetMaster(); master != nil {
+		config.Node = *master
+	} else {
+		message.SendNotFound(w, "master node", err)
+		return
+	}
+
+	config.ApplyConfig.Data = string(data)
+	applyTask, err := workflows.NewTask(config, workflows.ApplyYaml, h.repo)
+
+	if err != nil {
+		message.SendUnknownError(w, err)
+		return
+	}
+
+	fileName := util.MakeFileName(applyTask.ID)
+	writer, err := h.getWriter(fileName)
+
+	if err != nil {
+		message.SendUnknownError(w, err)
+		return
+	}
+
+	applyTask.Config = config
+	go func() {
+		err := <-applyTask.Run(context.Background(), *config, writer)
+
+		if err != nil {
+			logrus.Errorf("Error executing apply task %v", err)
+		}
+	}()
 
 	// here we are ready for async part
 	w.WriteHeader(http.StatusAccepted)
+	err = json.NewEncoder(w).Encode(struct {
+		TaskID string `json:"taskId"`
+	}{
+		TaskID: applyTask.ID,
+	})
+
+	if err != nil {
+		logrus.Errorf("Error encoding task id %v", err)
+	}
 }
 
-func mapNode2Task(taskMap map[string][]*workflows.Task) map[string]string{
+func mapNode2Task(taskMap map[string][]*workflows.Task) map[string]string {
 	node2Task := make(map[string]string)
 
 	for _, taskSet := range taskMap {
@@ -1638,5 +1697,3 @@ func createKube(config *steps.Config, state model.KubeState, profile profile.Pro
 
 	return err
 }
-
-

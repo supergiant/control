@@ -1,6 +1,7 @@
 package workflows
 
 import (
+	"github.com/supergiant/control/pkg/workflows/steps/apply"
 	"sync"
 
 	"github.com/supergiant/control/pkg/workflows/steps/amazon"
@@ -59,6 +60,7 @@ const (
 	DeleteCluster   = "DeleteCluster"
 	ImportCluster   = "ImportCluster"
 	Upgrade         = "Upgrade"
+	ApplyYaml       = "ApplyYaml"
 )
 
 type WorkflowSet struct {
@@ -171,6 +173,11 @@ func Init() {
 		steps.GetStep(uncordon.StepName),
 	}
 
+	apply := []steps.Step{
+		steps.GetStep(ssh.StepName),
+		steps.GetStep(apply.StepName),
+	}
+
 	m.Lock()
 	defer m.Unlock()
 
@@ -186,6 +193,7 @@ func Init() {
 	workflowMap[PostProvision] = postProvision
 	workflowMap[ImportCluster] = importClusterWorkflow
 	workflowMap[Upgrade] = upgradeNode
+	workflowMap[ApplyYaml] = apply
 }
 
 func RegisterWorkFlow(workflowName string, workflow Workflow) {

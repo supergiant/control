@@ -4,6 +4,7 @@ import (
 	"context"
 	"crypto/tls"
 	"fmt"
+	"github.com/supergiant/control/pkg/workflows/steps/apply"
 	"github.com/supergiant/control/pkg/workflows/steps/evacuate"
 	"github.com/supergiant/control/pkg/workflows/steps/uncordon"
 	"github.com/supergiant/control/pkg/workflows/steps/upgrade"
@@ -260,6 +261,7 @@ func configureApplication(cfg *Config) (*mux.Router, error) {
 	amazon.InitImportInternetGatewayStep(amazon.GetEC2)
 	amazon.InitImportRouteTablesStep(amazon.GetEC2)
 	amazon.InitCreateTagsStep(amazon.GetEC2)
+	apply.Init()
 	workflows.Init()
 	azure.Init()
 
