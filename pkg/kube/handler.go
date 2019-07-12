@@ -1336,6 +1336,7 @@ func (h *Handler) importKube(w http.ResponseWriter, r *http.Request) {
 	config.Kube.Auth = kube.Auth
 	config.ExternalDNSName = kube.ExternalDNSName
 	config.K8SVersion = k8sVersion
+	config.IsImport = true
 
 	if err := createKube(config, model.StateImporting, req.Profile, importTask.ID, h); err != nil {
 		message.SendUnknownError(w, errors.Wrapf(err, "create importing kube"))

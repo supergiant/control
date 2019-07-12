@@ -56,10 +56,12 @@ func (s *Step) Run(ctx context.Context, out io.Writer, config *steps.Config) err
 			IsBootstrap    bool
 			Token          string
 			CertificateKey string
+			IsImport       bool
 		}{
 			IsBootstrap:    config.IsBootstrap,
 			Token:          config.BootstrapToken,
 			CertificateKey: config.KubeadmConfig.CertificateKey,
+			IsImport:       config.IsImport,
 		})
 
 		if err != nil {
