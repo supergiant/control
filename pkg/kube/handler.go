@@ -62,7 +62,7 @@ type kubeProvisioner interface {
 		config *steps.Config,
 		taskIdMap map[string][]string) error
 	UpgradeCluster(context.Context, string, *model.Kube,
-		map[string][]*workflows.Task,  *steps.Config)
+		map[string][]*workflows.Task, *steps.Config)
 }
 
 type ServiceInfo struct {
@@ -1281,6 +1281,7 @@ func (h *Handler) importKube(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	req.Profile.HelmVersion = helmVersion
 	config, err := steps.NewConfig(req.ClusterName, req.CloudAccountName, req.Profile)
 
 	if err != nil {
@@ -1344,7 +1345,6 @@ func (h *Handler) importKube(w http.ResponseWriter, r *http.Request) {
 	config.ExternalDNSName = kube.ExternalDNSName
 	config.K8SVersion = k8sVersion
 	config.IsImport = true
-	req.Profile.HelmVersion = helmVersion
 
 	if err := createKube(config, model.StateImporting, req.Profile, importTask.ID, h); err != nil {
 		message.SendUnknownError(w, errors.Wrapf(err, "create importing kube"))
@@ -1499,7 +1499,7 @@ func (h *Handler) upgradeKube(w http.ResponseWriter, r *http.Request) {
 	tasks := h.makeUpgradeTasks(config, k)
 
 	go h.kubeProvisioner.UpgradeCluster(context.Background(), nextVersion, k, tasks, config)
-   node2TaskMap := mapNode2Task(tasks)
+	node2TaskMap := mapNode2Task(tasks)
 
 	// here we are ready for async part
 	w.WriteHeader(http.StatusAccepted)
@@ -1549,14 +1549,14 @@ func (h *Handler) makeUpgradeTasks(config *steps.Config, k *model.Kube) map[stri
 	}
 
 	taskMap := map[string][]*workflows.Task{
-		workflows.MasterTask:  masterTasks,
-		workflows.NodeTask:    nodeTasks,
+		workflows.MasterTask: masterTasks,
+		workflows.NodeTask:   nodeTasks,
 	}
 
 	return taskMap
 }
 
-func mapNode2Task(taskMap map[string][]*workflows.Task) map[string]string{
+func mapNode2Task(taskMap map[string][]*workflows.Task) map[string]string {
 	node2Task := make(map[string]string)
 
 	for _, taskSet := range taskMap {
@@ -1587,6 +1587,7 @@ func createKube(config *steps.Config, state model.KubeState, profile profile.Pro
 		InternalDNSName:        config.ExternalDNSName,
 		ProfileID:              profile.ID,
 		Auth:                   config.Kube.Auth,
+		HelmVersion:            config.TillerConfig.HelmVersion,
 		Masters:                config.GetMasters(),
 		Nodes:                  config.GetNodes(),
 		Tasks: map[string][]string{

@@ -248,7 +248,7 @@ func discoverHelmVersion(kubeConfig *clientcmddapi.Config) (string, error) {
 				slice := strings.Split(container.Image, ":")
 
 				if len(slice) > 1 {
-					return slice[0], nil
+					return strings.Trim(slice[1], "v"), nil
 				}
 			}
 		}
