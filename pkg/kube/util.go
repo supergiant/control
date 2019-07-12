@@ -10,6 +10,11 @@ import (
 	"github.com/supergiant/control/pkg/util"
 	"github.com/supergiant/control/pkg/workflows/steps"
 	"github.com/supergiant/control/pkg/workflows/steps/amazon"
+	"k8s.io/apimachinery/pkg/runtime/serializer"
+	"k8s.io/client-go/discovery"
+	"k8s.io/client-go/kubernetes/scheme"
+	"k8s.io/client-go/rest"
+	"k8s.io/client-go/tools/clientcmd"
 	"strings"
 
 	"github.com/pkg/errors"
@@ -171,4 +176,36 @@ func findNextMinorVersion(current string, versions []string) string {
 	}
 
 	return ""
+}
+
+func discoverVersion(kubeConfig *clientcmddapi.Config) (string, error) {
+	restConf, err := clientcmd.NewNonInteractiveClientConfig(
+		*kubeConfig,
+		kubeConfig.CurrentContext,
+		&clientcmd.ConfigOverrides{},
+		nil,
+	).ClientConfig()
+
+	if err != nil {
+		return "", errors.Wrapf(err, "create rest config")
+	}
+
+	restConf.NegotiatedSerializer = serializer.DirectCodecFactory{CodecFactory: scheme.Codecs}
+	if len(restConf.UserAgent) == 0 {
+		restConf.UserAgent = rest.DefaultKubernetesUserAgent()
+	}
+
+	discoveryClient, err := discovery.NewDiscoveryClientForConfig(restConf)
+
+	if err != nil {
+		return "", errors.Wrapf(err, "error create discovery client")
+	}
+
+	serverVersion, err := discoveryClient.ServerVersion()
+
+	if err != nil {
+		return "", errors.Wrapf(err, "error getting server version")
+	}
+
+	return strings.TrimPrefix(serverVersion.GitVersion, "v"), nil
 }
