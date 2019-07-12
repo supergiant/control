@@ -4,28 +4,18 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
-	"github.com/pborman/uuid"
-	"github.com/supergiant/control/pkg/kubeconfig"
 	"io"
 	"io/ioutil"
 	"net/http"
 	"strconv"
 	"time"
 
-	"k8s.io/client-go/tools/clientcmd"
-
 	"github.com/gorilla/mux"
+	"github.com/pborman/uuid"
 	"github.com/pkg/errors"
 	"github.com/sirupsen/logrus"
-	"gopkg.in/asaskevich/govalidator.v8"
-	corev1 "k8s.io/api/core/v1"
-	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
-	clientcorev1 "k8s.io/client-go/kubernetes/typed/core/v1"
-
-	"k8s.io/client-go/rest"
-	clientcmddapi "k8s.io/client-go/tools/clientcmd/api"
-
 	"github.com/supergiant/control/pkg/clouds"
+	"github.com/supergiant/control/pkg/kubeconfig"
 	"github.com/supergiant/control/pkg/message"
 	"github.com/supergiant/control/pkg/model"
 	"github.com/supergiant/control/pkg/profile"
@@ -36,6 +26,13 @@ import (
 	"github.com/supergiant/control/pkg/workflows"
 	"github.com/supergiant/control/pkg/workflows/statuses"
 	"github.com/supergiant/control/pkg/workflows/steps"
+	"gopkg.in/asaskevich/govalidator.v8"
+	corev1 "k8s.io/api/core/v1"
+	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+	clientcorev1 "k8s.io/client-go/kubernetes/typed/core/v1"
+	"k8s.io/client-go/rest"
+	"k8s.io/client-go/tools/clientcmd"
+	clientcmddapi "k8s.io/client-go/tools/clientcmd/api"
 )
 
 const (
@@ -995,7 +992,7 @@ func (h *Handler) getClusterMetrics(w http.ResponseWriter, r *http.Request) {
 	}
 
 	for metricType, relUrl := range metricsRelUrls {
-		url := fmt.Sprintf("https://%s/%s/%s", k.ExternalDNSName, baseUrl, relUrl)
+		url := fmt.Sprintf("/%s/%s", baseUrl, relUrl)
 		metricResponse, err := h.getMetrics(url, k)
 
 		if err != nil {
@@ -1040,7 +1037,7 @@ func (h *Handler) getNodesMetrics(w http.ResponseWriter, r *http.Request) {
 	}
 
 	for metricType, relUrl := range metricsRelUrls {
-		url := fmt.Sprintf("https://%s/%s/%s", k.ExternalDNSName, baseUrl, relUrl)
+		url := fmt.Sprintf("/%s/%s", baseUrl, relUrl)
 		metricResponse, err := h.getMetrics(url, k)
 
 		if err != nil {

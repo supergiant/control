@@ -32,7 +32,7 @@ sudo bash -c "cat << EOF > /etc/supergiant/kubeadm.conf
 apiVersion: kubeadm.k8s.io/v1beta2
 kind: InitConfiguration
 localAPIEndpoint:
-  bindPort: 443
+  bindPort: {{ .APIServerPort }}
 nodeRegistration:
   kubeletExtraArgs:
     node-ip: {{ .NodeIp }}
@@ -43,7 +43,7 @@ apiVersion: kubeadm.k8s.io/v1beta1
 kind: ClusterConfiguration
 kubernetesVersion: v{{ .K8SVersion }}
 clusterName: kubernetes
-controlPlaneEndpoint: {{ .InternalDNSName }}:443
+controlPlaneEndpoint: {{ .InternalDNSName }}:{{ .APIServerPort }}
 certificatesDir: /etc/kubernetes/pki
 apiServer:
   certSANs:
@@ -83,18 +83,18 @@ nodeRegistration:
 discovery:
   bootstrapToken:
     token: {{ .Token }}
-    apiServerEndpoint: {{ .InternalDNSName }}:443
+    apiServerEndpoint: {{ .InternalDNSName }}:{{ .APIServerPort }}
     caCertHashes: [{{ .CACertHash }}]
 controlPlane:
   localAPIEndpoint:
-    bindPort: 443
+    bindPort: {{ .APIServerPort }}
   certificateKey: {{ .CertificateKey }}
 ---
 apiVersion: kubeadm.k8s.io/v1beta1
 kind: ClusterConfiguration
 kubernetesVersion: v{{ .K8SVersion }}
 clusterName: kubernetes
-controlPlaneEndpoint: {{ .InternalDNSName }}:443
+controlPlaneEndpoint: {{ .InternalDNSName }}:{{ .APIServerPort }}
 certificatesDir: /etc/kubernetes/pki
 apiServer:
   certSANs:
@@ -119,7 +119,7 @@ networking:
 EOF"
 
 sudo kubeadm config images pull
-sudo kubeadm join --ignore-preflight-errors=NumCPU {{ .InternalDNSName }}:443 \
+sudo kubeadm join --ignore-preflight-errors=NumCPU {{ .InternalDNSName }}:{{ .APIServerPort }} \
 --node-name ${HOSTNAME} \
 --config=/etc/supergiant/kubeadm.conf
 {{ end }}
@@ -143,12 +143,12 @@ nodeRegistration:
 discovery:
   bootstrapToken:
     token: {{ .Token }}
-    apiServerEndpoint: {{ .InternalDNSName }}:443
+    apiServerEndpoint: {{ .InternalDNSName }}:{{ .APIServerPort }}
     caCertHashes:
     - {{ .CACertHash }}
 EOF"
 
-sudo kubeadm join --ignore-preflight-errors=NumCPU {{ .InternalDNSName }}:443 \
+sudo kubeadm join --ignore-preflight-errors=NumCPU {{ .InternalDNSName }}:{{ .APIServerPort }} \
 --node-name ${HOSTNAME} \
 --config=/etc/supergiant/kubeadm.conf
 {{ end }}

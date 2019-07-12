@@ -4,10 +4,6 @@ import (
 	"context"
 	"crypto/tls"
 	"fmt"
-	"github.com/supergiant/control/pkg/workflows/steps/apply"
-	"github.com/supergiant/control/pkg/workflows/steps/evacuate"
-	"github.com/supergiant/control/pkg/workflows/steps/uncordon"
-	"github.com/supergiant/control/pkg/workflows/steps/upgrade"
 	"net/http"
 	_ "net/http/pprof"
 	"net/url"
@@ -19,8 +15,6 @@ import (
 	"github.com/pkg/errors"
 	"github.com/rakyll/statik/fs"
 	"github.com/sirupsen/logrus"
-	"k8s.io/helm/pkg/repo"
-
 	"github.com/supergiant/control/pkg/account"
 	"github.com/supergiant/control/pkg/api"
 	"github.com/supergiant/control/pkg/jwt"
@@ -36,6 +30,7 @@ import (
 	"github.com/supergiant/control/pkg/user"
 	"github.com/supergiant/control/pkg/workflows"
 	"github.com/supergiant/control/pkg/workflows/steps/amazon"
+	"github.com/supergiant/control/pkg/workflows/steps/apply"
 	"github.com/supergiant/control/pkg/workflows/steps/authorizedkeys"
 	"github.com/supergiant/control/pkg/workflows/steps/azure"
 	"github.com/supergiant/control/pkg/workflows/steps/bootstraptoken"
@@ -47,6 +42,7 @@ import (
 	"github.com/supergiant/control/pkg/workflows/steps/docker"
 	"github.com/supergiant/control/pkg/workflows/steps/downloadk8sbinary"
 	"github.com/supergiant/control/pkg/workflows/steps/drain"
+	"github.com/supergiant/control/pkg/workflows/steps/evacuate"
 	"github.com/supergiant/control/pkg/workflows/steps/gce"
 	"github.com/supergiant/control/pkg/workflows/steps/kubeadm"
 	"github.com/supergiant/control/pkg/workflows/steps/kubelet"
@@ -56,7 +52,10 @@ import (
 	"github.com/supergiant/control/pkg/workflows/steps/ssh"
 	"github.com/supergiant/control/pkg/workflows/steps/storageclass"
 	"github.com/supergiant/control/pkg/workflows/steps/tiller"
+	"github.com/supergiant/control/pkg/workflows/steps/uncordon"
+	"github.com/supergiant/control/pkg/workflows/steps/upgrade"
 	_ "github.com/supergiant/control/statik"
+	"k8s.io/helm/pkg/repo"
 )
 
 type Server struct {
@@ -264,8 +263,9 @@ func configureApplication(cfg *Config) (*mux.Router, error) {
 	amazon.InitImportRouteTablesStep(amazon.GetEC2)
 	amazon.InitCreateTagsStep(amazon.GetEC2)
 	apply.Init()
-	workflows.Init()
 	azure.Init()
+
+	workflows.Init()
 
 	taskHandler := workflows.NewTaskHandler(repository, sshRunner.NewRunner, accountService, cfg.LogDir)
 	taskHandler.Register(protectedAPI)

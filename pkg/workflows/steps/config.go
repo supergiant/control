@@ -5,16 +5,18 @@ import (
 	"sync"
 	"time"
 
-	"github.com/supergiant/control/pkg/sgerrors"
-
 	"github.com/Azure/go-autorest/autorest"
 	"github.com/pkg/errors"
-
 	"github.com/supergiant/control/pkg/clouds"
 	"github.com/supergiant/control/pkg/model"
 	"github.com/supergiant/control/pkg/profile"
 	"github.com/supergiant/control/pkg/runner"
+	"github.com/supergiant/control/pkg/sgerrors"
 	"github.com/supergiant/control/pkg/storage"
+)
+
+const (
+	DefaultK8SAPIPort int64 = 443
 )
 
 type CertificatesConfig struct {
@@ -209,6 +211,7 @@ type KubeadmConfig struct {
 	CertificateKey  string `json:"certificateKey"`
 	InternalDNSName string `json:"internalDNSName"`
 	ExternalDNSName string `json:"externalDNSName"`
+	APIServerPort   int64  `json:"apiserverPort"`
 }
 
 type KubeletConfig struct {
@@ -218,7 +221,7 @@ type KubeletConfig struct {
 	PrivateIP    string `json:"privateIp"`
 
 	LoadBalancerHost string `json:"loadBalancerHost"`
-	MasterPort       string `json:"masterPort"`
+	APIServerPort    int64  `json:"apiserverPort"`
 	NodeName         string `json:"nodeName"`
 	UserName         string `json:"userName"`
 
@@ -352,6 +355,7 @@ func NewConfig(clusterName, cloudAccountName string, profile profile.Profile) (*
 				PublicKey: profile.PublicKey,
 			},
 			ExposedAddresses: profile.ExposedAddresses,
+			APIServerPort:    ensurePort(profile.K8SAPIPort),
 		},
 		Provider:    profile.Provider,
 		ClusterName: clusterName,
@@ -707,4 +711,11 @@ func (c *Config) GetAzureAuthorizer() autorest.Authorizer {
 	defer c.authorizerMux.RUnlock()
 
 	return c.azureAthorizer
+}
+
+func ensurePort(p int64) int64 {
+	if p == 0 {
+		return DefaultK8SAPIPort
+	}
+	return p
 }

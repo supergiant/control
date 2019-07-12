@@ -6,11 +6,9 @@ import (
 	"io"
 	"text/template"
 
-	"github.com/supergiant/control/pkg/clouds"
-
 	"github.com/pkg/errors"
 	"github.com/sirupsen/logrus"
-
+	"github.com/supergiant/control/pkg/clouds"
 	tm "github.com/supergiant/control/pkg/templatemanager"
 	"github.com/supergiant/control/pkg/workflows/steps"
 	"github.com/supergiant/control/pkg/workflows/steps/docker"
@@ -52,6 +50,7 @@ func (t *Step) Run(ctx context.Context, out io.Writer, config *steps.Config) err
 	config.KubeadmConfig.NodeIp = config.Node.PrivateIp
 	config.KubeadmConfig.CACertHash = config.CertificatesConfig.CACertHash
 	config.KubeadmConfig.UserName = clouds.OSUser
+	config.KubeadmConfig.APIServerPort = config.Kube.APIServerPort
 
 	logrus.Debugf("kubeadm step: %s cluster: isBootstrap=%t extDNS=%s intDNS=%s",
 		config.ClusterID, config.KubeadmConfig.IsBootstrap, config.KubeadmConfig.ExternalDNSName,

@@ -10,7 +10,6 @@ import (
 	"github.com/aws/aws-sdk-go/service/ec2"
 	"github.com/pkg/errors"
 	"github.com/sirupsen/logrus"
-
 	"github.com/supergiant/control/pkg/profile"
 	"github.com/supergiant/control/pkg/util"
 	"github.com/supergiant/control/pkg/workflows/steps"
@@ -116,7 +115,7 @@ func (s *CreateSecurityGroupsStep) Run(ctx context.Context, w io.Writer, cfg *st
 	}
 
 	logrus.Debugf("Whitelist addresses SG and provided addresses")
-	if err := s.whiteListAddresses(ctx, svc, cfg.AWSConfig.MastersSecurityGroupID, cfg.Kube.ExposedAddresses); err != nil {
+	if err := s.whiteListAddresses(ctx, svc, cfg.AWSConfig.MastersSecurityGroupID, cfg.Kube.ExposedAddresses, cfg.Kube.APIServerPort); err != nil {
 		logrus.Errorf("[%s] - failed to whitelist addresses in master security group: %v", s.Name(), err)
 		return errors.Wrapf(err, "%s failed whitelisting addresses", s.Name())
 	}
@@ -196,7 +195,7 @@ func (s *CreateSecurityGroupsStep) allowAllTraffic(ctx context.Context, EC2 secG
 	return err
 }
 
-func (s *CreateSecurityGroupsStep) whiteListAddresses(ctx context.Context, EC2 secGroupService, groupID string, addrs []profile.Addresses) error {
+func (s *CreateSecurityGroupsStep) whiteListAddresses(ctx context.Context, EC2 secGroupService, groupID string, addrs []profile.Addresses, port int64) error {
 	supergiantIP, err := FindOutboundIP(ctx, s.findOutboundIP)
 	if err != nil {
 		return err
@@ -211,8 +210,8 @@ func (s *CreateSecurityGroupsStep) whiteListAddresses(ctx context.Context, EC2 s
 		GroupId: aws.String(groupID),
 		IpPermissions: []*ec2.IpPermission{
 			{
-				FromPort:   aws.Int64(443),
-				ToPort:     aws.Int64(443),
+				FromPort:   aws.Int64(port),
+				ToPort:     aws.Int64(port),
 				IpRanges:   ips,
 				IpProtocol: aws.String("tcp"),
 			},

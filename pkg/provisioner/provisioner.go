@@ -10,11 +10,7 @@ import (
 
 	"github.com/pkg/errors"
 	"github.com/sirupsen/logrus"
-
-	"k8s.io/kubernetes/cmd/kubeadm/app/phases/copycerts"
-
 	"github.com/supergiant/control/pkg/clouds"
-
 	"github.com/supergiant/control/pkg/model"
 	"github.com/supergiant/control/pkg/pki"
 	"github.com/supergiant/control/pkg/profile"
@@ -27,6 +23,7 @@ import (
 	"github.com/supergiant/control/pkg/workflows/statuses"
 	"github.com/supergiant/control/pkg/workflows/steps"
 	"github.com/supergiant/control/pkg/workflows/steps/configmap"
+	"k8s.io/kubernetes/cmd/kubeadm/app/phases/copycerts"
 )
 
 type KubeService interface {
@@ -753,6 +750,7 @@ func (tp *TaskProvisioner) buildInitialCluster(ctx context.Context,
 		SSHConfig: config.Kube.SSHConfig,
 
 		ExposedAddresses: config.Kube.ExposedAddresses,
+		APIServerPort:    config.Kube.APIServerPort,
 	}
 
 	return tp.kubeService.Create(ctx, cluster)
