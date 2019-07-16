@@ -272,6 +272,7 @@ type Config struct {
 	Provider               clouds.Name  `json:"provider"`
 	IsMaster               bool         `json:"isMaster"`
 	IsBootstrap            bool         `json:"IsBootstrap"`
+	IsImport               bool         `json:"isImport"`
 	BootstrapToken         string       `json:"bootstrapToken"`
 	ClusterID              string       `json:"clusterId"`
 	ClusterName            string       `json:"clusterName"`
