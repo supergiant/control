@@ -35,10 +35,10 @@ sudo bash -c "cat > /etc/kubernetes/pki/admin.crt <<EOF
 sudo bash -c "cat > /etc/kubernetes/pki/admin.key <<EOF
 {{ .AdminKey }}EOF"
 
-sudo kubectl --kubeconfig=/root/.kube/config config set-cluster kubernetes --server='https://{{ .LoadBalancerHost }}' --certificate-authority=/etc/kubernetes/pki/ca.crt --embed-certs=true
-sudo kubectl --kubeconfig=/root/.kube/config config set-credentials kubernetes --client-certificate=/etc/kubernetes/pki/admin.crt --client-key=/etc/kubernetes/pki/admin.key --embed-certs=true
-sudo kubectl --kubeconfig=/root/.kube/config config set-context kubernetes --cluster=kubernetes --user=kubernetes
-sudo kubectl --kubeconfig=/root/.kube/config config use-context kubernetes
+sudo kubectl --kubeconfig=/home/{{ .UserName }}/.kube/config config set-cluster kubernetes --server='https://{{ .LoadBalancerHost }}' --certificate-authority=/etc/kubernetes/pki/ca.crt --embed-certs=true
+sudo kubectl --kubeconfig=/home/{{ .UserName }}/.kube/config config set-credentials kubernetes --client-certificate=/etc/kubernetes/pki/admin.crt --client-key=/etc/kubernetes/pki/admin.key --embed-certs=true
+sudo kubectl --kubeconfig=/home/{{ .UserName }}/.kube/config config set-context kubernetes --cluster=kubernetes --user=kubernetes
+sudo kubectl --kubeconfig=/home/{{ .UserName }}/.kube/config config use-context kubernetes
 
 sudo openssl genrsa -out /etc/kubernetes/pki/kubelet.key 2048
 sudo openssl req -new -key /etc/kubernetes/pki/kubelet.key -out /etc/kubernetes/pki/kubelet.csr -subj "/CN=kube-worker"
@@ -58,19 +58,19 @@ spec:
   - server auth
 EOF"
 
-until $([ $(sudo kubectl --kubeconfig=/root/.kube/config get csr |wc -l) -ge 1 ]); do printf '.'; sleep 5; done
+until $([ $(sudo kubectl --kubeconfig=/home/{{ .UserName }}/.kube/config get csr |wc -l) -ge 1 ]); do printf '.'; sleep 5; done
 
-sudo kubectl --kubeconfig=/root/.kube/config create -f /etc/kubernetes/pki/request.yaml
+sudo kubectl --kubeconfig=/home/{{ .UserName }}/.kube/config create -f /etc/kubernetes/pki/request.yaml
 
-until $([ $(sudo kubectl --kubeconfig=/root/.kube/config get csr {{ .NodeName }} |wc -l) -ge 1 ]); do printf '.'; sleep 5; done
+until $([ $(sudo kubectl --kubeconfig=/home/{{ .UserName }}/.kube/config get csr {{ .NodeName }} |wc -l) -ge 1 ]); do printf '.'; sleep 5; done
 
-sudo kubectl --kubeconfig=/root/.kube/config certificate approve -f /etc/kubernetes/pki/request.yaml
+sudo kubectl --kubeconfig=/home/{{ .UserName }}/.kube/config certificate approve -f /etc/kubernetes/pki/request.yaml
 
 # Wait for csr to be approved
-until $([ $(sudo kubectl --kubeconfig=/root/.kube/config get csr {{ .NodeName }}|grep Approved|wc -l) -ge 1 ]); do printf '.'; sleep 5; done
+until $([ $(sudo kubectl --kubeconfig=/home/{{ .UserName }}/.kube/config get csr {{ .NodeName }}|grep Approved|wc -l) -ge 1 ]); do printf '.'; sleep 5; done
 
 sudo bash -c "cat > /etc/kubernetes/pki/kubelet.crt <<EOF
-$(sudo kubectl --kubeconfig=/root/.kube/config get csr {{ .NodeName }} -o jsonpath='{.status.certificate}' | base64 -d)
+$(sudo kubectl --kubeconfig=/home/{{ .UserName }}/.kube/config get csr {{ .NodeName }} -o jsonpath='{.status.certificate}' | base64 -d)
 EOF"
 
 sudo rm /etc/kubernetes/pki/admin.key

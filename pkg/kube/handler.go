@@ -109,6 +109,7 @@ func NewHandler(
 	kubeProvisioner kubeProvisioner,
 	repo storage.Interface,
 	proxies proxy.Container,
+	logDir string,
 ) *Handler {
 	return &Handler{
 		svc:             svc,
@@ -117,7 +118,7 @@ func NewHandler(
 		kubeProvisioner: kubeProvisioner,
 		profileSvc:      profileSvc,
 		repo:            repo,
-		getWriter:       util.GetWriter,
+		getWriter:       util.GetWriterFunc(logDir),
 		getMetrics: func(metricURI string, k *model.Kube) (*MetricResponse, error) {
 			cfg, err := kubeconfig.NewConfigFor(k)
 			if err != nil {

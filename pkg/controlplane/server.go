@@ -90,14 +90,16 @@ func (srv *Server) Shutdown() {
 
 // Config is the server configuration
 type Config struct {
-	Port          int
-	InsecurePort  int
-	CertFile      string
-	KeyFile       string
-	Addr          string
-	StorageMode   string
-	StorageURI    string
-	TemplatesDir  string
+	Port         int
+	InsecurePort int
+	CertFile     string
+	KeyFile      string
+	Addr         string
+	StorageMode  string
+	StorageURI   string
+	TemplatesDir string
+	LogDir       string
+
 	SpawnInterval time.Duration
 
 	ReadTimeout  time.Duration
@@ -263,7 +265,7 @@ func configureApplication(cfg *Config) (*mux.Router, error) {
 	workflows.Init()
 	azure.Init()
 
-	taskHandler := workflows.NewTaskHandler(repository, sshRunner.NewRunner, accountService)
+	taskHandler := workflows.NewTaskHandler(repository, sshRunner.NewRunner, accountService, cfg.LogDir)
 	taskHandler.Register(protectedAPI)
 
 	helmService, err := sghelm.NewService(repository)
@@ -284,7 +286,7 @@ func configureApplication(cfg *Config) (*mux.Router, error) {
 
 	taskProvisioner := provisioner.NewProvisioner(repository,
 		kubeService,
-		cfg.SpawnInterval)
+		cfg.SpawnInterval, cfg.LogDir)
 	provisionHandler := provisioner.NewHandler(kubeService, accountService,
 		profileService, taskProvisioner)
 	provisionHandler.Register(protectedAPI)
@@ -293,7 +295,7 @@ func configureApplication(cfg *Config) (*mux.Router, error) {
 
 	kubeHandler := kube.NewHandler(kubeService, accountService,
 		profileService, taskProvisioner, taskProvisioner,
-		repository, apiProxy)
+		repository, apiProxy, cfg.LogDir)
 	kubeHandler.Register(protectedAPI)
 
 	authMiddleware := api.Middleware{
