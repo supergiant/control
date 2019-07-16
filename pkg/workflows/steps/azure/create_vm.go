@@ -179,7 +179,7 @@ func (s *CreateVMStep) setupVM(ctx context.Context, config *steps.Config, vmName
 						CreateOption: compute.DiskCreateOptionTypesFromImage,
 						Caching:      compute.CachingTypesReadWrite,
 						OsType:       compute.Linux,
-						DiskSizeGB:   &volumeSize32, // TODO: make it configurable
+						DiskSizeGB:   &volumeSize32,
 						ManagedDisk: &compute.ManagedDiskParameters{
 							StorageAccountType: compute.StorageAccountTypesStandardLRS,
 						},
