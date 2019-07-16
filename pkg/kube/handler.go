@@ -20,7 +20,9 @@ import (
 	corev1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	clientcorev1 "k8s.io/client-go/kubernetes/typed/core/v1"
+
 	"k8s.io/client-go/rest"
+	clientcmddapi "k8s.io/client-go/tools/clientcmd/api"
 
 	"github.com/supergiant/control/pkg/clouds"
 	"github.com/supergiant/control/pkg/message"
@@ -95,8 +97,12 @@ type Handler struct {
 	repo    storage.Interface
 	proxies proxy.Container
 
-	getWriter       func(string) (io.WriteCloser, error)
-	getMetrics      func(string, *model.Kube) (*MetricResponse, error)
+	getWriter  func(string) (io.WriteCloser, error)
+	getMetrics func(string, *model.Kube) (*MetricResponse, error)
+
+	discoverK8SVersion  func(kubeConfig *clientcmddapi.Config) (string, error)
+	discoverHelmVersion func(kubeConfig *clientcmddapi.Config) (string, error)
+
 	listK8sServices func(*model.Kube, string) (*corev1.ServiceList, error)
 }
 
@@ -155,7 +161,9 @@ func NewHandler(
 				LabelSelector: selector,
 			})
 		},
-		proxies: proxies,
+		discoverK8SVersion:  discoverK8SVersion,
+		discoverHelmVersion: discoverHelmVersion,
+		proxies:             proxies,
 	}
 }
 
@@ -1268,14 +1276,14 @@ func (h *Handler) importKube(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	k8sVersion, err := discoverK8SVersion(kubeConfig)
+	k8sVersion, err := h.discoverK8SVersion(kubeConfig)
 
 	if err != nil {
 		message.SendUnknownError(w, err)
 		return
 	}
 
-	helmVersion, err := discoverHelmVersion(kubeConfig)
+	helmVersion, err := h.discoverK8SVersion(kubeConfig)
 
 	if err != nil {
 		message.SendUnknownError(w, err)
