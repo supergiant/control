@@ -90,8 +90,10 @@ type Auth struct {
 }
 
 type Networking struct {
-	Manager string `json:"manager"`
-	Version string `json:"version"`
-	Type    string `json:"type"`
-	CIDR    string `json:"cidr"`
+	// DEPRECATED: use Provider field instead
+	Manager  string `json:"manager"`
+	Provider string `json:"provider"`
+	Version  string `json:"version"`
+	Type     string `json:"type"`
+	CIDR     string `json:"cidr"`
 }

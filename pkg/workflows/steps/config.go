@@ -7,6 +7,7 @@ import (
 
 	"github.com/Azure/go-autorest/autorest"
 	"github.com/pkg/errors"
+
 	"github.com/supergiant/control/pkg/clouds"
 	"github.com/supergiant/control/pkg/model"
 	"github.com/supergiant/control/pkg/profile"
@@ -155,12 +156,6 @@ type AWSConfig struct {
 	RouteTableAssociationIDs map[string]string `json:"routeTableAssociationIds"`
 }
 
-type NetworkConfig struct {
-	IsBootstrap     bool   `json:"isBootstrap"`
-	CIDR            string `json:"cidr"`
-	NetworkProvider string `json:"networkProvider"`
-}
-
 type PostStartConfig struct {
 	IsBootstrap bool          `json:"isBootstrap"`
 	Provider    clouds.Name   `json:"provider"`
@@ -278,7 +273,6 @@ type Config struct {
 	Provider           clouds.Name  `json:"provider"`
 	IsMaster           bool         `json:"isMaster"`
 	IsBootstrap        bool         `json:"IsBootstrap"`
-	IsImport           bool         `json:"isImport"`
 	BootstrapToken     string       `json:"bootstrapToken"`
 	ClusterID          string       `json:"clusterId"`
 	ClusterName        string       `json:"clusterName"`
@@ -289,18 +283,16 @@ type Config struct {
 	OSConfig           OSConfig     `json:"osConfig"`
 	PacketConfig       PacketConfig `json:"packetConfig"`
 
-	DockerConfig       DockerConfig       `json:"dockerConfig"`
-	DownloadK8sBinary  DownloadK8sBinary  `json:"downloadK8sBinary"`
-	CertificatesConfig CertificatesConfig `json:"certificatesConfig"`
-	NetworkConfig      NetworkConfig      `json:"networkConfig"`
-	PostStartConfig    PostStartConfig    `json:"postStartConfig"`
-	TillerConfig       TillerConfig       `json:"tillerConfig"`
-	PrometheusConfig   PrometheusConfig   `json:"prometheusConfig"`
-	DrainConfig        DrainConfig        `json:"drainConfig"`
-	KubeadmConfig      KubeadmConfig      `json:"kubeadmConfig"`
-	KubeletConfig      KubeletConfig      `json:"kubeletConfig"`
-	ConfigMap          ConfigMap          `json:"configMap"`
-	ApplyConfig        ApplyConfig        `json:"applyConfig"`
+	DockerConfig      DockerConfig      `json:"dockerConfig"`
+	DownloadK8sBinary DownloadK8sBinary `json:"downloadK8sBinary"`
+	PostStartConfig   PostStartConfig   `json:"postStartConfig"`
+	TillerConfig      TillerConfig      `json:"tillerConfig"`
+	PrometheusConfig  PrometheusConfig  `json:"prometheusConfig"`
+	DrainConfig       DrainConfig       `json:"drainConfig"`
+	KubeadmConfig     KubeadmConfig     `json:"kubeadmConfig"`
+	KubeletConfig     KubeletConfig     `json:"kubeletConfig"`
+	ConfigMap         ConfigMap         `json:"configMap"`
+	ApplyConfig       ApplyConfig       `json:"applyConfig"`
 
 	ExternalDNSName string `json:"externalDnsName"`
 	InternalDNSName string `json:"internalDnsName"`
@@ -358,6 +350,12 @@ func NewConfig(clusterName, cloudAccountName string, profile profile.Profile) (*
 				Password:   profile.Password,
 				StaticAuth: profile.StaticAuth,
 			},
+			Networking: model.Networking{
+				Manager:  profile.NetworkProvider,
+				Provider: profile.NetworkProvider,
+				Type:     profile.NetworkType,
+				CIDR:     profile.CIDR,
+			},
 			ExposedAddresses: profile.ExposedAddresses,
 			APIServerPort:    ensurePort(profile.K8SAPIPort),
 		},
@@ -406,10 +404,6 @@ func NewConfig(clusterName, cloudAccountName string, profile profile.Profile) (*
 		},
 		KubeletConfig: KubeletConfig{
 			ServicesCIDR: profile.K8SServicesCIDR,
-		},
-		NetworkConfig: NetworkConfig{
-			CIDR:            profile.CIDR,
-			NetworkProvider: profile.NetworkProvider,
 		},
 		PostStartConfig: PostStartConfig{
 			Host:        "localhost",
@@ -520,10 +514,6 @@ func NewConfigFromKube(profile *profile.Profile, k *model.Kube) (*Config, error)
 		},
 		KubeletConfig: KubeletConfig{
 			ServicesCIDR: profile.K8SServicesCIDR,
-		},
-		NetworkConfig: NetworkConfig{
-			NetworkProvider: profile.NetworkProvider,
-			CIDR:            profile.CIDR,
 		},
 		PostStartConfig: PostStartConfig{
 			Host:        "localhost",

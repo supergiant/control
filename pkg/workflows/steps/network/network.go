@@ -7,13 +7,19 @@ import (
 	"text/template"
 
 	"github.com/pkg/errors"
-	"github.com/sirupsen/logrus"
+
 	tm "github.com/supergiant/control/pkg/templatemanager"
 	"github.com/supergiant/control/pkg/workflows/steps"
 	"github.com/supergiant/control/pkg/workflows/steps/kubeadm"
 )
 
 const StepName = "network"
+
+type Config struct {
+	IsBootstrap     bool
+	CIDR            string
+	NetworkProvider string
+}
 
 type Step struct {
 	script *template.Template
@@ -40,9 +46,7 @@ func (t *Step) Run(ctx context.Context, out io.Writer, config *steps.Config) err
 		return nil
 	}
 
-	config.NetworkConfig.IsBootstrap = config.IsBootstrap
-	logrus.Debugf("cluster %s: network config: %+v", config.ClusterName, config.NetworkConfig)
-	err := steps.RunTemplate(context.Background(), t.script, config.Runner, out, config.NetworkConfig)
+	err := steps.RunTemplate(context.Background(), t.script, config.Runner, out, toStepCfg(config))
 	if err != nil {
 		return errors.Wrap(err, "configure network step")
 	}
@@ -64,4 +68,12 @@ func (t *Step) Description() string {
 
 func (s *Step) Depends() []string {
 	return []string{kubeadm.StepName}
+}
+
+func toStepCfg(c *steps.Config) Config {
+	return Config{
+		IsBootstrap:     c.IsBootstrap,
+		CIDR:            c.Kube.Networking.CIDR,
+		NetworkProvider: c.Kube.Networking.Provider,
+	}
 }

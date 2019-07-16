@@ -10,6 +10,7 @@ import (
 
 	"github.com/pkg/errors"
 	"github.com/sirupsen/logrus"
+	"k8s.io/kubernetes/cmd/kubeadm/app/phases/copycerts"
 
 	"github.com/supergiant/control/pkg/clouds"
 	"github.com/supergiant/control/pkg/model"
@@ -24,7 +25,6 @@ import (
 	"github.com/supergiant/control/pkg/workflows/statuses"
 	"github.com/supergiant/control/pkg/workflows/steps"
 	"github.com/supergiant/control/pkg/workflows/steps/configmap"
-	"k8s.io/kubernetes/cmd/kubeadm/app/phases/copycerts"
 )
 
 type KubeService interface {
@@ -722,7 +722,8 @@ func (tp *TaskProvisioner) buildInitialCluster(ctx context.Context,
 		User:         profile.User,
 		Password:     profile.Password,
 
-		Auth: config.Kube.Auth,
+		Auth:       config.Kube.Auth,
+		Networking: config.Kube.Networking,
 
 		Arch:                   profile.Arch,
 		OperatingSystem:        profile.OperatingSystem,
@@ -730,16 +731,10 @@ func (tp *TaskProvisioner) buildInitialCluster(ctx context.Context,
 		K8SVersion:             profile.K8SVersion,
 		DockerVersion:          profile.DockerVersion,
 		HelmVersion:            profile.HelmVersion,
-		Networking: model.Networking{
-			Manager: profile.FlannelVersion,
-			Version: profile.FlannelVersion,
-			Type:    profile.NetworkType,
-			CIDR:    profile.CIDR,
-		},
-		CloudSpec: profile.CloudSpecificSettings,
-		Masters:   masters,
-		Nodes:     nodes,
-		Tasks:     taskIds,
+		CloudSpec:              profile.CloudSpecificSettings,
+		Masters:                masters,
+		Nodes:                  nodes,
+		Tasks:                  taskIds,
 
 		SSHConfig: config.Kube.SSHConfig,
 
