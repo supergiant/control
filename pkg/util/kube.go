@@ -2,6 +2,7 @@ package util
 
 import (
 	"github.com/sirupsen/logrus"
+
 	"github.com/supergiant/control/pkg/clouds"
 	"github.com/supergiant/control/pkg/model"
 	"github.com/supergiant/control/pkg/workflows/steps"
@@ -19,9 +20,7 @@ func UpdateKubeWithCloudSpecificData(k *model.Kube, config *steps.Config) {
 	k.BootstrapToken = config.BootstrapToken
 	k.UserData = config.ConfigMap.Data
 	k.K8SVersion = config.K8SVersion
-	k.Auth.CACertHash = config.CertificatesConfig.CACertHash
 	k.Auth.CertificateKey = config.KubeadmConfig.CertificateKey
-	k.Auth.CACertHash = config.CertificatesConfig.CACertHash
 
 	// Save cloudSpecificData in kube
 	switch config.Provider {

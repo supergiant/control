@@ -7,6 +7,7 @@ import (
 	"text/template"
 
 	"github.com/pkg/errors"
+
 	tm "github.com/supergiant/control/pkg/templatemanager"
 	"github.com/supergiant/control/pkg/workflows/steps"
 	"github.com/supergiant/control/pkg/workflows/steps/docker"
@@ -46,11 +47,11 @@ func (t *Step) Run(ctx context.Context, out io.Writer, config *steps.Config) err
 	config.KubeletConfig.PrivateIP = config.Node.PrivateIp
 	config.KubeletConfig.PublicIP = config.Node.PublicIp
 
-	config.KubeletConfig.CACert = config.CertificatesConfig.CACert
-	config.KubeletConfig.CAKey = config.CertificatesConfig.CAKey
+	config.KubeletConfig.CACert = config.Kube.Auth.CACert
+	config.KubeletConfig.CAKey = config.Kube.Auth.CAKey
 
-	config.KubeletConfig.AdminKey = config.CertificatesConfig.AdminKey
-	config.KubeletConfig.AdminCert = config.CertificatesConfig.AdminCert
+	config.KubeletConfig.AdminKey = config.Kube.Auth.AdminKey
+	config.KubeletConfig.AdminCert = config.Kube.Auth.AdminCert
 	config.KubeletConfig.LoadBalancerHost = config.InternalDNSName
 	config.KubeletConfig.NodeName = config.Node.Name
 	config.KubeletConfig.IsMaster = config.IsMaster

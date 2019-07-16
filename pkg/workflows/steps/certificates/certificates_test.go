@@ -34,9 +34,9 @@ func (f *fakeRunner) Run(command *runner.Command) error {
 
 func TestWriteCertificates(t *testing.T) {
 	var (
-		privateIP                         = "10.20.30.40"
-		publicIP                          = "22.33.44.55"
-		r                   runner.Runner = &fakeRunner{}
+		privateIP               = "10.20.30.40"
+		publicIP                = "22.33.44.55"
+		r         runner.Runner = &fakeRunner{}
 	)
 
 	err := templatemanager.Init("../../../../templates")
@@ -81,7 +81,7 @@ func TestWriteCertificates(t *testing.T) {
 	}
 
 	// TODO: update tests
-	cfg.CertificatesConfig = steps.CertificatesConfig{
+	cfg.Kube.Auth = model.Auth{
 		CAKey:  string(caPair.Key),
 		CACert: string(caPair.Cert),
 

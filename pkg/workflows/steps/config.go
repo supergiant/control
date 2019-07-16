@@ -20,23 +20,21 @@ const (
 )
 
 type CertificatesConfig struct {
-	IsBootstrap bool `json:"isBootstrap"`
+	//IsBootstrap bool `json:"isBootstrap"`
+	//
+	//CACert     string `json:"caCert"`
+	//CAKey      string `json:"caKey"`
+	//CACertHash string `json:"caCertHash"`
 
-	ParenCert []byte `json:"parenCert"`
+	//AdminCert string `json:"adminCert"`
+	//AdminKey  string `json:"adminKey"`
 
-	CACert     string `json:"caCert"`
-	CAKey      string `json:"caKey"`
-	CACertHash string `json:"caCertHash"`
-
-	AdminCert string `json:"adminCert"`
-	AdminKey  string `json:"adminKey"`
-
-	StaticAuth profile.StaticAuth `json:"staticAuth"`
+	//StaticAuth profile.StaticAuth `json:"staticAuth"`
 
 	// DEPRECATED: it's a part of staticAuth
-	Username string
+	//Username string
 	// DEPRECATED: it's a part of staticAuth
-	Password string
+	//Password string
 }
 
 type DOConfig struct {
@@ -355,6 +353,11 @@ func NewConfig(clusterName, cloudAccountName string, profile profile.Profile) (*
 				Timeout:   30,
 				PublicKey: profile.PublicKey,
 			},
+			Auth: model.Auth{
+				Username:   profile.User,
+				Password:   profile.Password,
+				StaticAuth: profile.StaticAuth,
+			},
 			ExposedAddresses: profile.ExposedAddresses,
 			APIServerPort:    ensurePort(profile.K8SAPIPort),
 		},
@@ -400,11 +403,6 @@ func NewConfig(clusterName, cloudAccountName string, profile profile.Profile) (*
 			K8SVersion:      profile.K8SVersion,
 			Arch:            profile.Arch,
 			OperatingSystem: profile.OperatingSystem,
-		},
-		CertificatesConfig: CertificatesConfig{
-			Username:   profile.User,
-			Password:   profile.Password,
-			StaticAuth: profile.StaticAuth,
 		},
 		KubeletConfig: KubeletConfig{
 			ServicesCIDR: profile.K8SServicesCIDR,
@@ -519,15 +517,6 @@ func NewConfigFromKube(profile *profile.Profile, k *model.Kube) (*Config, error)
 			K8SVersion:      profile.K8SVersion,
 			Arch:            profile.Arch,
 			OperatingSystem: profile.OperatingSystem,
-		},
-		CertificatesConfig: CertificatesConfig{
-			CAKey:      k.Auth.CAKey,
-			CACert:     k.Auth.CACert,
-			AdminCert:  k.Auth.AdminCert,
-			AdminKey:   k.Auth.AdminKey,
-			Username:   profile.User,
-			Password:   profile.Password,
-			StaticAuth: profile.StaticAuth,
 		},
 		KubeletConfig: KubeletConfig{
 			ServicesCIDR: profile.K8SServicesCIDR,

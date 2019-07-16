@@ -8,6 +8,7 @@ import (
 
 	"github.com/pkg/errors"
 	"github.com/sirupsen/logrus"
+
 	"github.com/supergiant/control/pkg/clouds"
 	tm "github.com/supergiant/control/pkg/templatemanager"
 	"github.com/supergiant/control/pkg/workflows/steps"
@@ -48,7 +49,7 @@ func (t *Step) Run(ctx context.Context, out io.Writer, config *steps.Config) err
 	config.KubeadmConfig.ExternalDNSName = config.ExternalDNSName
 	config.KubeadmConfig.Token = config.BootstrapToken
 	config.KubeadmConfig.NodeIp = config.Node.PrivateIp
-	config.KubeadmConfig.CACertHash = config.CertificatesConfig.CACertHash
+	config.KubeadmConfig.CACertHash = config.Kube.Auth.CACertHash
 	config.KubeadmConfig.UserName = clouds.OSUser
 	config.KubeadmConfig.APIServerPort = config.Kube.APIServerPort
 

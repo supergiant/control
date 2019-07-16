@@ -10,6 +10,7 @@ import (
 
 	"github.com/pkg/errors"
 	"github.com/sirupsen/logrus"
+
 	"github.com/supergiant/control/pkg/clouds"
 	"github.com/supergiant/control/pkg/model"
 	"github.com/supergiant/control/pkg/pki"
@@ -721,15 +722,7 @@ func (tp *TaskProvisioner) buildInitialCluster(ctx context.Context,
 		User:         profile.User,
 		Password:     profile.Password,
 
-		Auth: model.Auth{
-			Username:       config.CertificatesConfig.Username,
-			Password:       config.CertificatesConfig.Password,
-			CACert:         config.CertificatesConfig.CACert,
-			CAKey:          config.CertificatesConfig.CAKey,
-			AdminCert:      config.CertificatesConfig.AdminCert,
-			AdminKey:       config.CertificatesConfig.AdminKey,
-			CertificateKey: config.KubeadmConfig.CertificateKey,
-		},
+		Auth: config.Kube.Auth,
 
 		Arch:                   profile.Arch,
 		OperatingSystem:        profile.OperatingSystem,
@@ -769,17 +762,13 @@ func (t *TaskProvisioner) loadCloudSpecificData(ctx context.Context, config *ste
 }
 
 func bootstrapCerts(config *steps.Config) error {
-	ca, err := pki.NewCAPair(config.CertificatesConfig.ParenCert)
+	ca, err := pki.NewCAPair([]byte(config.Kube.Auth.ParentCert))
 	if err != nil {
 		return errors.Wrap(err, "bootstrap CA for provisioning")
 	}
-	config.CertificatesConfig.CACert = string(ca.Cert)
-	config.CertificatesConfig.CAKey = string(ca.Key)
-	config.CertificatesConfig.CACertHash = ca.CertHash
-
-	if config.KubeadmConfig.CertificateKey, err = copycerts.CreateCertificateKey(); err != nil {
-		return errors.Wrap(err, "create certificate key")
-	}
+	config.Kube.Auth.CACert = string(ca.Cert)
+	config.Kube.Auth.CAKey = string(ca.Key)
+	config.Kube.Auth.CACertHash = ca.CertHash
 
 	if config.KubeadmConfig.CertificateKey, err = copycerts.CreateCertificateKey(); err != nil {
 		return errors.Wrap(err, "create certificate key")
@@ -789,8 +778,8 @@ func bootstrapCerts(config *steps.Config) error {
 	if err != nil {
 		return errors.Wrap(err, "create admin certificates")
 	}
-	config.CertificatesConfig.AdminCert = string(admin.Cert)
-	config.CertificatesConfig.AdminKey = string(admin.Key)
+	config.Kube.Auth.AdminCert = string(admin.Cert)
+	config.Kube.Auth.AdminKey = string(admin.Key)
 
 	return nil
 }
