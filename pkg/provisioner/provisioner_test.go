@@ -69,7 +69,7 @@ func TestNewProvisioner(t *testing.T) {
 	service := &mockKubeService{}
 	interval := time.Second * 1
 
-	p := NewProvisioner(storage, service, interval)
+	p := NewProvisioner(storage, service, interval, "")
 
 	if p.repository != storage {
 		t.Errorf("Wrong repository expected %v actual %v",

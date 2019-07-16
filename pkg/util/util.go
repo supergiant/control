@@ -131,8 +131,10 @@ func GetRandomNode(nodeMap map[string]*model.Machine) *model.Machine {
 	return nil
 }
 
-func GetWriter(name string) (io.WriteCloser, error) {
-	return os.OpenFile(path.Join("/tmp", name), os.O_CREATE|os.O_WRONLY|os.O_APPEND, 0666)
+func GetWriterFunc(logDir string) func(string) (io.WriteCloser, error) {
+	return func(name string) (io.WriteCloser, error) {
+		return os.OpenFile(path.Join(logDir, name), os.O_CREATE|os.O_WRONLY|os.O_APPEND, 0666)
+	}
 }
 
 func LoadCloudSpecificDataFromKube(k *model.Kube, config *steps.Config) error {

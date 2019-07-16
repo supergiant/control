@@ -109,6 +109,7 @@ func NewHandler(
 	kubeProvisioner kubeProvisioner,
 	repo storage.Interface,
 	proxies proxy.Container,
+	logDir string,
 ) *Handler {
 	return &Handler{
 		svc:             svc,
@@ -117,7 +118,7 @@ func NewHandler(
 		kubeProvisioner: kubeProvisioner,
 		profileSvc:      profileSvc,
 		repo:            repo,
-		getWriter:       util.GetWriter,
+		getWriter:       util.GetWriterFunc(logDir),
 		getMetrics: func(metricURI string, k *model.Kube) (*MetricResponse, error) {
 			cfg, err := kubeconfig.NewConfigFor(k)
 			if err != nil {
@@ -613,13 +614,6 @@ func (h *Handler) addMachine(w http.ResponseWriter, r *http.Request) {
 
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
-		return
-	}
-
-	if len(k.Masters) != 0 {
-		config.AddMaster(util.GetRandomNode(k.Masters))
-	} else {
-		http.Error(w, "no master found", http.StatusNotFound)
 		return
 	}
 

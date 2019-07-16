@@ -50,11 +50,11 @@ type TaskProvisioner struct {
 }
 
 func NewProvisioner(repository storage.Interface, kubeService KubeService,
-	spawnInterval time.Duration) *TaskProvisioner {
+	spawnInterval time.Duration, logDir string) *TaskProvisioner {
 	return &TaskProvisioner{
 		kubeService: kubeService,
 		repository:  repository,
-		getWriter:   util.GetWriter,
+		getWriter:   util.GetWriterFunc(logDir),
 		rateLimiter: NewRateLimiter(spawnInterval),
 		cancelMap:   make(map[string]func()),
 	}
