@@ -39,7 +39,6 @@ type Profile struct {
 	Subnets                map[string]string     `json:"subnets" valid:"-"`
 	CloudSpecificSettings  CloudSpecificSettings `json:"cloudSpecificSettings" valid:"-"`
 	PublicKey              string                `json:"publicKey" valid:"-"`
-	LogBootstrapPrivateKey bool                  `json:"logBootstrapPrivateKey" valid:"-"`
 
 	// ExposedAddresses is a list of cidr/port pairs that will be exposes
 	// by cloud provider security groups.
