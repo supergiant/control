@@ -722,24 +722,22 @@ func (tp *TaskProvisioner) buildInitialCluster(ctx context.Context,
 		User:         profile.User,
 		Password:     profile.Password,
 
-		Auth:       config.Kube.Auth,
-		Networking: config.Kube.Networking,
+		Auth:             config.Kube.Auth,
+		Networking:       config.Kube.Networking,
+		DockerVersion:    config.Kube.DockerVersion,
+		Arch:             config.Kube.Arch,
+		SSHConfig:        config.Kube.SSHConfig,
+		ExposedAddresses: config.Kube.ExposedAddresses,
+		APIServerPort:    config.Kube.APIServerPort,
 
-		Arch:                   profile.Arch,
 		OperatingSystem:        profile.OperatingSystem,
 		OperatingSystemVersion: profile.UbuntuVersion,
 		K8SVersion:             profile.K8SVersion,
-		DockerVersion:          profile.DockerVersion,
 		HelmVersion:            profile.HelmVersion,
 		CloudSpec:              profile.CloudSpecificSettings,
 		Masters:                masters,
 		Nodes:                  nodes,
 		Tasks:                  taskIds,
-
-		SSHConfig: config.Kube.SSHConfig,
-
-		ExposedAddresses: config.Kube.ExposedAddresses,
-		APIServerPort:    config.Kube.APIServerPort,
 	}
 
 	return tp.kubeService.Create(ctx, cluster)

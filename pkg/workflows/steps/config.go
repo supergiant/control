@@ -173,12 +173,6 @@ type TillerConfig struct {
 	Arch            string `json:"arch"`
 }
 
-type DockerConfig struct {
-	Version        string `json:"version"`
-	ReleaseVersion string `json:"releaseVersion"`
-	Arch           string `json:"arch"`
-}
-
 type DownloadK8sBinary struct {
 	K8SVersion      string `json:"k8sVersion"`
 	Arch            string `json:"arch"`
@@ -283,7 +277,6 @@ type Config struct {
 	OSConfig           OSConfig     `json:"osConfig"`
 	PacketConfig       PacketConfig `json:"packetConfig"`
 
-	DockerConfig      DockerConfig      `json:"dockerConfig"`
 	DownloadK8sBinary DownloadK8sBinary `json:"downloadK8sBinary"`
 	PostStartConfig   PostStartConfig   `json:"postStartConfig"`
 	TillerConfig      TillerConfig      `json:"tillerConfig"`
@@ -356,6 +349,8 @@ func NewConfig(clusterName, cloudAccountName string, profile profile.Profile) (*
 				Type:     profile.NetworkType,
 				CIDR:     profile.CIDR,
 			},
+			DockerVersion:    profile.DockerVersion,
+			Arch:             profile.Arch,
 			ExposedAddresses: profile.ExposedAddresses,
 			APIServerPort:    ensurePort(profile.K8SAPIPort),
 		},
@@ -388,14 +383,6 @@ func NewConfig(clusterName, cloudAccountName string, profile profile.Profile) (*
 			VNetCIDR: profile.CloudSpecificSettings[clouds.AzureVNetCIDR],
 			// TODO(stgleb): this should be passed from the UI
 			VolumeSize: "30",
-		},
-		OSConfig:     OSConfig{},
-		PacketConfig: PacketConfig{},
-
-		DockerConfig: DockerConfig{
-			Version:        profile.DockerVersion,
-			ReleaseVersion: profile.UbuntuVersion,
-			Arch:           profile.Arch,
 		},
 		DownloadK8sBinary: DownloadK8sBinary{
 			K8SVersion:      profile.K8SVersion,
@@ -498,14 +485,6 @@ func NewConfigFromKube(profile *profile.Profile, k *model.Kube) (*Config, error)
 			Location:   profile.Region,
 			VNetCIDR:   k.CloudSpec[clouds.AzureVNetCIDR],
 			VolumeSize: k.CloudSpec[clouds.AzureVolumeSize],
-		},
-		OSConfig:     OSConfig{},
-		PacketConfig: PacketConfig{},
-
-		DockerConfig: DockerConfig{
-			Version:        profile.DockerVersion,
-			ReleaseVersion: profile.UbuntuVersion,
-			Arch:           profile.Arch,
 		},
 		DownloadK8sBinary: DownloadK8sBinary{
 			K8SVersion:      profile.K8SVersion,
