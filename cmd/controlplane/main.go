@@ -24,6 +24,7 @@ var (
 	storageMode   = flag.String("storage-mode", "file", "storage type either file(default), memory or etcd")
 	storageURI    = flag.String("storage-uri", "supergiant.db", "uri of storage depends on selected storage type, for memory storage type this is empty")
 	templatesDir  = flag.String("templates", "", "supergiant will load script templates from the specified directory on start")
+	logDir        = flag.String("log-dir", "/tmp", "logging directory for task logs")
 	logLevel      = flag.String("log-level", "INFO", "logging level, e.g. info, warning, debug, error, fatal")
 	logFormat     = flag.String("log-format", "txt", "logging format [txt json]")
 	spawnInterval = flag.Int("spawnInterval", 5, "interval between API calls to cloud provider for creating instance")
@@ -48,6 +49,7 @@ func main() {
 		StorageMode:   *storageMode,
 		StorageURI:    *storageURI,
 		TemplatesDir:  *templatesDir,
+		LogDir:        *logDir,
 		ReadTimeout:   time.Second * 20,
 		WriteTimeout:  time.Second * 10,
 		IdleTimeout:   time.Second * 120,
