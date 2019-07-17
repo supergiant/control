@@ -286,8 +286,8 @@ func createAwsSpotInstance(req *SpotRequest, config *steps.Config) error {
 				},
 				{
 					Key: aws.String("Name"),
-					Value: aws.String(fmt.Sprintf("%s-node-%s",
-						config.ClusterName, uuid.New()[:4])),
+					Value: aws.String(util.MakeNodeName(config.ClusterName,
+						uuid.New()[:4], config.IsMaster)),
 				},
 				{
 					Key:   aws.String("Role"),
