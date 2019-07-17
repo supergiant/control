@@ -51,6 +51,7 @@ func (t *Step) Run(ctx context.Context, out io.Writer, config *steps.Config) err
 	config.KubeadmConfig.Token = config.BootstrapToken
 	config.KubeadmConfig.NodeIp = config.Node.PrivateIp
 	config.KubeadmConfig.CACertHash = config.CertificatesConfig.CACertHash
+	config.KubeadmConfig.UserName = clouds.OSUser
 
 	logrus.Debugf("kubeadm step: %s cluster: isBootstrap=%t extDNS=%s intDNS=%s",
 		config.ClusterID, config.KubeadmConfig.IsBootstrap, config.KubeadmConfig.ExternalDNSName,

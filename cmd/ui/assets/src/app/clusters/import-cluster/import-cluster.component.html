@@ -46,13 +46,6 @@
           </mat-form-field>
 
           <mat-form-field>
-            <mat-select placeholder="K8S Version" formControlName="K8SVersion" required>
-              <mat-option *ngFor="let k of clusterOptions.K8sVersions"
-                          [value]="k">{{ k }}</mat-option>
-            </mat-select>
-          </mat-form-field>
-
-          <mat-form-field>
             <mat-select placeholder="RBAC Enabled?" formControlName="rbacEnabled" required>
               <mat-option [value]="true">true</mat-option>
               <mat-option [value]="false">false</mat-option>

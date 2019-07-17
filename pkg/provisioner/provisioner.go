@@ -50,11 +50,11 @@ type TaskProvisioner struct {
 }
 
 func NewProvisioner(repository storage.Interface, kubeService KubeService,
-	spawnInterval time.Duration) *TaskProvisioner {
+	spawnInterval time.Duration, logDir string) *TaskProvisioner {
 	return &TaskProvisioner{
 		kubeService: kubeService,
 		repository:  repository,
-		getWriter:   util.GetWriter,
+		getWriter:   util.GetWriterFunc(logDir),
 		rateLimiter: NewRateLimiter(spawnInterval),
 		cancelMap:   make(map[string]func()),
 	}
@@ -841,7 +841,7 @@ func (tp *TaskProvisioner) monitorClusterState(ctx context.Context,
 				continue
 			}
 		case config := <-configChan:
-			logrus.Debugf("update kube %s with config %+v", clusterID, config)
+			logrus.Debugf("update kube %s with config", clusterID)
 			k, err := tp.kubeService.Get(ctx, clusterID)
 
 			if err != nil {
@@ -849,7 +849,7 @@ func (tp *TaskProvisioner) monitorClusterState(ctx context.Context,
 				continue
 			}
 
-			logrus.Debugf("update kube %s with config %v", k.ID, config)
+			logrus.Debugf("update kube %s with config", k.ID)
 			util.UpdateKubeWithCloudSpecificData(k, config)
 
 			err = tp.kubeService.Create(ctx, k)

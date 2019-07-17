@@ -21,7 +21,9 @@ import (
 	corev1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	clientcorev1 "k8s.io/client-go/kubernetes/typed/core/v1"
+
 	"k8s.io/client-go/rest"
+	clientcmddapi "k8s.io/client-go/tools/clientcmd/api"
 
 	"github.com/supergiant/control/pkg/clouds"
 	"github.com/supergiant/control/pkg/message"
@@ -96,8 +98,12 @@ type Handler struct {
 	repo    storage.Interface
 	proxies proxy.Container
 
-	getWriter       func(string) (io.WriteCloser, error)
-	getMetrics      func(string, *model.Kube) (*MetricResponse, error)
+	getWriter  func(string) (io.WriteCloser, error)
+	getMetrics func(string, *model.Kube) (*MetricResponse, error)
+
+	discoverK8SVersion  func(kubeConfig *clientcmddapi.Config) (string, error)
+	discoverHelmVersion func(kubeConfig *clientcmddapi.Config) (string, error)
+
 	listK8sServices func(*model.Kube, string) (*corev1.ServiceList, error)
 }
 
@@ -110,6 +116,7 @@ func NewHandler(
 	kubeProvisioner kubeProvisioner,
 	repo storage.Interface,
 	proxies proxy.Container,
+	logDir string,
 ) *Handler {
 	return &Handler{
 		svc:             svc,
@@ -118,7 +125,7 @@ func NewHandler(
 		kubeProvisioner: kubeProvisioner,
 		profileSvc:      profileSvc,
 		repo:            repo,
-		getWriter:       util.GetWriter,
+		getWriter:       util.GetWriterFunc(logDir),
 		getMetrics: func(metricURI string, k *model.Kube) (*MetricResponse, error) {
 			cfg, err := kubeconfig.NewConfigFor(k)
 			if err != nil {
@@ -155,7 +162,9 @@ func NewHandler(
 				LabelSelector: selector,
 			})
 		},
-		proxies: proxies,
+		discoverK8SVersion:  discoverK8SVersion,
+		discoverHelmVersion: discoverHelmVersion,
+		proxies:             proxies,
 	}
 }
 
@@ -1270,6 +1279,21 @@ func (h *Handler) importKube(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	k8sVersion, err := h.discoverK8SVersion(kubeConfig)
+
+	if err != nil {
+		message.SendUnknownError(w, err)
+		return
+	}
+
+	helmVersion, err := h.discoverK8SVersion(kubeConfig)
+
+	if err != nil {
+		message.SendUnknownError(w, err)
+		return
+	}
+
+	req.Profile.HelmVersion = helmVersion
 	config, err := steps.NewConfig(req.ClusterName, req.CloudAccountName, req.Profile)
 
 	if err != nil {
@@ -1331,6 +1355,8 @@ func (h *Handler) importKube(w http.ResponseWriter, r *http.Request) {
 	config.Kube.SSHConfig.PublicKey = req.PublicKey
 	config.Kube.Auth = kube.Auth
 	config.ExternalDNSName = kube.ExternalDNSName
+	config.K8SVersion = k8sVersion
+	config.IsImport = true
 
 	if err := createKube(config, model.StateImporting, req.Profile, importTask.ID, h); err != nil {
 		message.SendUnknownError(w, errors.Wrapf(err, "create importing kube"))
@@ -1677,6 +1703,7 @@ func createKube(config *steps.Config, state model.KubeState, profile profile.Pro
 		InternalDNSName:        config.ExternalDNSName,
 		ProfileID:              profile.ID,
 		Auth:                   config.Kube.Auth,
+		HelmVersion:            config.TillerConfig.HelmVersion,
 		Masters:                config.GetMasters(),
 		Nodes:                  config.GetNodes(),
 		Tasks: map[string][]string{
