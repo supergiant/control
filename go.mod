@@ -2,9 +2,20 @@ module github.com/supergiant/control
 
 go 1.12
 
+replace (
+	k8s.io/api => k8s.io/api v0.0.0-20190606204050-af9c91bd2759
+	k8s.io/apiextensions-apiserver => k8s.io/apiextensions-apiserver v0.0.0-20190606210616-f848dc7be4a4
+	k8s.io/apimachinery => k8s.io/apimachinery v0.0.0-20190404173353-6a84e37a896d
+	k8s.io/apiserver => k8s.io/apiserver v0.0.0-20190606205144-71ebb8303503
+	k8s.io/client-go => k8s.io/client-go v11.0.0+incompatible
+	k8s.io/cloud-provider => k8s.io/cloud-provider v0.0.0-20190606212257-347f17c60af0
+	k8s.io/helm => k8s.io/helm v2.11.0+incompatible
+	k8s.io/kubernetes => k8s.io/kubernetes v1.14.3
+)
+
 require (
 	contrib.go.opencensus.io/exporter/ocagent v0.4.4 // indirect
-	github.com/Azure/azure-sdk-for-go v25.1.0+incompatible
+	github.com/Azure/azure-sdk-for-go v31.1.0+incompatible
 	github.com/Azure/go-autorest v11.4.0+incompatible
 	github.com/Masterminds/semver v1.4.2 // indirect
 	github.com/Masterminds/sprig v2.16.0+incompatible // indirect
@@ -19,6 +30,7 @@ require (
 	github.com/dgrijalva/jwt-go v3.1.0+incompatible
 	github.com/digitalocean/godo v1.10.0
 	github.com/dimchansky/utfbom v1.1.0 // indirect
+	github.com/docker/distribution v2.7.1+incompatible // indirect
 	github.com/docker/spdystream v0.0.0-20170912183627-bc6354cbbc29 // indirect
 	github.com/dustin/go-humanize v1.0.0 // indirect
 	github.com/elazarl/goproxy v0.0.0-20170405201442-c4fc26588b6e // indirect
@@ -47,15 +59,16 @@ require (
 	github.com/jonboulle/clockwork v0.1.0 // indirect
 	github.com/json-iterator/go v0.0.0-20180701071628-ab8a2e0c74be
 	github.com/kr/pretty v0.1.0 // indirect
+	github.com/lithammer/dedent v1.1.0 // indirect
 	github.com/mitchellh/go-homedir v1.1.0 // indirect
 	github.com/modern-go/concurrent v0.0.0-20180306012644-bacd9c7ef1dd // indirect
 	github.com/modern-go/reflect2 v1.0.1 // indirect
+	github.com/opencontainers/go-digest v1.0.0-rc1 // indirect
 	github.com/pborman/uuid v0.0.0-20170612153648-e790cca94e6c
 	github.com/pkg/errors v0.8.0
 	github.com/rakyll/statik v0.1.6
 	github.com/sirupsen/logrus v1.2.0
 	github.com/soheilhy/cmux v0.1.4 // indirect
-	github.com/spf13/pflag v1.0.1 // indirect
 	github.com/stretchr/testify v1.3.0
 	github.com/supergiant/capacity v0.0.0-20190513092134-fa714465dd86
 	github.com/technosophos/moniker v0.0.0-20180509230615-a5dbd03a2245
@@ -80,12 +93,17 @@ require (
 	gopkg.in/inf.v0 v0.9.1 // indirect
 	gopkg.in/yaml.v1 v1.0.0-20140924161607-9f9df34309c0 // indirect
 	gopkg.in/yaml.v2 v2.2.2 // indirect
-	k8s.io/api v0.0.0-20190516230258-a675ac48af67
-	k8s.io/apimachinery v0.0.0-20190404173353-6a84e37a896d
+	k8s.io/api v0.0.0-20190703205437-39734b2a72fe
+	k8s.io/apiextensions-apiserver v0.0.0-00010101000000-000000000000 // indirect
+	k8s.io/apimachinery v0.0.0-20190703205208-4cfb76a8bf76
+	k8s.io/apiserver v0.0.0-00010101000000-000000000000 // indirect
 	k8s.io/client-go v11.0.0+incompatible
+	k8s.io/cloud-provider v0.0.0-00010101000000-000000000000 // indirect
+	k8s.io/cluster-bootstrap v0.0.0-20190703212826-5ad085674a4f // indirect
 	k8s.io/helm v2.11.0+incompatible
-	k8s.io/klog v0.3.1 // indirect
 	k8s.io/kube-openapi v0.0.0-20190228160746-b3a7cee44a30 // indirect
-	k8s.io/utils v0.0.0-20190520173318-324c5df7d3f0 // indirect
+	k8s.io/kube-proxy v0.0.0-20190703212322-69d540a3479c // indirect
+	k8s.io/kubelet v0.0.0-20190704010802-f16c4cee528c // indirect
+	k8s.io/kubernetes v0.0.0-00010101000000-000000000000
 	sigs.k8s.io/yaml v1.1.0 // indirect
 )

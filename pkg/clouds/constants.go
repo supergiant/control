@@ -45,6 +45,8 @@ func GetVersions() []string{
 }
 
 const (
+	OSUser = "supergiant"
+
 	DigitalOceanFingerPrint = "fingerprint"
 	DigitalOceanAccessToken = "accessToken"
 

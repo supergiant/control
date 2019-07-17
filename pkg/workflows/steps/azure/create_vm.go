@@ -27,8 +27,6 @@ const (
 	UbuntuOffer     = "UbuntuServer"
 	UbuntuSKU       = "18.04-LTS"
 
-	OSUser = "supergiant"
-
 	ifaceName = "ip0"
 )
 
@@ -55,7 +53,7 @@ func (s *CreateVMStep) Run(ctx context.Context, output io.Writer, config *steps.
 	}
 
 	// TODO: set user with config
-	config.Kube.SSHConfig.User = OSUser
+	config.Kube.SSHConfig.User = clouds.OSUser
 
 	vmName := util.MakeNodeName(config.ClusterName, config.TaskID, config.IsMaster)
 
@@ -179,7 +177,7 @@ func (s *CreateVMStep) setupVM(ctx context.Context, config *steps.Config, vmName
 				},
 				OsProfile: &compute.OSProfile{
 					ComputerName:  to.StringPtr(vmName),
-					AdminUsername: to.StringPtr(OSUser),
+					AdminUsername: to.StringPtr(clouds.OSUser),
 					LinuxConfiguration: &compute.LinuxConfiguration{
 						DisablePasswordAuthentication: to.BoolPtr(true),
 						SSH: &compute.SSHConfiguration{
@@ -331,13 +329,13 @@ func toPublicKeys(bootstrapPKey, pkey string) *[]compute.SSHPublicKey {
 	keys := make([]compute.SSHPublicKey, 0)
 	if len(bootstrapPKey) > 0 {
 		keys = append(keys, compute.SSHPublicKey{
-			Path:    to.StringPtr(fmt.Sprintf("/home/%s/.ssh/authorized_keys", OSUser)),
+			Path:    to.StringPtr(fmt.Sprintf("/home/%s/.ssh/authorized_keys", clouds.OSUser)),
 			KeyData: to.StringPtr(bootstrapPKey),
 		})
 	}
 	if len(pkey) > 0 {
 		keys = append(keys, compute.SSHPublicKey{
-			Path:    to.StringPtr(fmt.Sprintf("/home/%s/.ssh/authorized_keys", OSUser)),
+			Path:    to.StringPtr(fmt.Sprintf("/home/%s/.ssh/authorized_keys", clouds.OSUser)),
 			KeyData: to.StringPtr(pkey),
 		})
 	}

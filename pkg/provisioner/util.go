@@ -3,6 +3,7 @@ package provisioner
 import (
 	"encoding/json"
 	"github.com/pkg/errors"
+	"strconv"
 	"strings"
 	"time"
 
@@ -33,6 +34,10 @@ func (r *RateLimiter) Take() {
 
 // Fill cloud account specific data gets data from the map and puts to particular cloud provider config
 func FillNodeCloudSpecificData(provider clouds.Name, nodeProfile profile.NodeProfile, config *steps.Config) error {
+	if nodeProfile["isMaster"] != "" {
+		config.IsMaster, _ = strconv.ParseBool(nodeProfile["isMaster"])
+	}
+
 	switch provider {
 	case clouds.AWS:
 		return util.BindParams(nodeProfile, &config.AWSConfig)
