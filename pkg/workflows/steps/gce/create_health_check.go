@@ -2,15 +2,15 @@ package gce
 
 import (
 	"context"
-	"github.com/pkg/errors"
-	"github.com/sirupsen/logrus"
-	"github.com/supergiant/control/pkg/clouds/gcesdk"
-	"google.golang.org/api/compute/v1"
+	"fmt"
 	"io"
 	"time"
 
-	"fmt"
+	"github.com/pkg/errors"
+	"github.com/sirupsen/logrus"
+	"github.com/supergiant/control/pkg/clouds/gcesdk"
 	"github.com/supergiant/control/pkg/workflows/steps"
+	"google.golang.org/api/compute/v1"
 )
 
 const CreateHealthCheckStepName = "gce_create_health_check"
@@ -58,7 +58,7 @@ func (s *CreateHealthCheck) Run(ctx context.Context, output io.Writer,
 		UnhealthyThreshold: 3,
 		Type:               "HTTPS",
 		HttpsHealthCheck: &compute.HTTPSHealthCheck{
-			Port: 443,
+			Port:        config.Kube.APIServerPort,
 			RequestPath: "/healthz",
 		},
 	}

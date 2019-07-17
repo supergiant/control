@@ -2,6 +2,7 @@ package amazon
 
 import (
 	"context"
+	"fmt"
 	"io"
 	"net"
 	"time"
@@ -11,7 +12,6 @@ import (
 	"github.com/aws/aws-sdk-go/service/elb"
 	"github.com/pkg/errors"
 	"github.com/sirupsen/logrus"
-
 	"github.com/supergiant/control/pkg/util"
 	"github.com/supergiant/control/pkg/workflows/steps"
 )
@@ -81,8 +81,8 @@ func (s *CreateLoadBalancerStep) Run(ctx context.Context, out io.Writer, cfg *st
 		output, err := svc.CreateLoadBalancerWithContext(ctx, &elb.CreateLoadBalancerInput{
 			Listeners: []*elb.Listener{
 				{
-					InstancePort:     aws.Int64(443),
-					LoadBalancerPort: aws.Int64(443),
+					InstancePort:     aws.Int64(cfg.Kube.APIServerPort),
+					LoadBalancerPort: aws.Int64(cfg.Kube.APIServerPort),
 					Protocol:         aws.String("TCP"),
 				},
 			},
@@ -126,8 +126,8 @@ func (s *CreateLoadBalancerStep) Run(ctx context.Context, out io.Writer, cfg *st
 		output, err := svc.CreateLoadBalancerWithContext(ctx, &elb.CreateLoadBalancerInput{
 			Listeners: []*elb.Listener{
 				{
-					InstancePort:     aws.Int64(443),
-					LoadBalancerPort: aws.Int64(443),
+					InstancePort:     aws.Int64(cfg.Kube.APIServerPort),
+					LoadBalancerPort: aws.Int64(cfg.Kube.APIServerPort),
 					Protocol:         aws.String("TCP"),
 				},
 				{
@@ -206,7 +206,7 @@ func (s *CreateLoadBalancerStep) Run(ctx context.Context, out io.Writer, cfg *st
 			UnhealthyThreshold: &unhealthyThreshold,
 			Interval:           &checkInternal,
 			Timeout:            &checkTimeout,
-			Target:             aws.String("HTTPS:443/healthz"),
+			Target:             aws.String(fmt.Sprintf("HTTPS:%d/healthz", cfg.Kube.APIServerPort)),
 		},
 	}
 
@@ -222,7 +222,7 @@ func (s *CreateLoadBalancerStep) Run(ctx context.Context, out io.Writer, cfg *st
 			UnhealthyThreshold: &unhealthyThreshold,
 			Interval:           &checkInternal,
 			Timeout:            &checkTimeout,
-			Target:             aws.String("HTTPS:443/healthz"),
+			Target:             aws.String(fmt.Sprintf("HTTPS:%d/healthz", cfg.Kube.APIServerPort)),
 		},
 	}
 

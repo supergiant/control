@@ -1,25 +1,24 @@
 package workflows
 
 import (
-	"github.com/supergiant/control/pkg/workflows/steps/apply"
 	"sync"
-
-	"github.com/supergiant/control/pkg/workflows/steps/amazon"
-	"github.com/supergiant/control/pkg/workflows/steps/azure"
-	"github.com/supergiant/control/pkg/workflows/steps/digitalocean"
-	"github.com/supergiant/control/pkg/workflows/steps/gce"
 
 	"github.com/supergiant/control/pkg/workflows/statuses"
 	"github.com/supergiant/control/pkg/workflows/steps"
+	"github.com/supergiant/control/pkg/workflows/steps/amazon"
+	"github.com/supergiant/control/pkg/workflows/steps/apply"
 	"github.com/supergiant/control/pkg/workflows/steps/authorizedkeys"
+	"github.com/supergiant/control/pkg/workflows/steps/azure"
 	"github.com/supergiant/control/pkg/workflows/steps/bootstraptoken"
 	"github.com/supergiant/control/pkg/workflows/steps/certificates"
 	"github.com/supergiant/control/pkg/workflows/steps/clustercheck"
 	"github.com/supergiant/control/pkg/workflows/steps/configmap"
+	"github.com/supergiant/control/pkg/workflows/steps/digitalocean"
 	"github.com/supergiant/control/pkg/workflows/steps/docker"
 	"github.com/supergiant/control/pkg/workflows/steps/downloadk8sbinary"
 	"github.com/supergiant/control/pkg/workflows/steps/drain"
 	"github.com/supergiant/control/pkg/workflows/steps/evacuate"
+	"github.com/supergiant/control/pkg/workflows/steps/gce"
 	"github.com/supergiant/control/pkg/workflows/steps/kubeadm"
 	"github.com/supergiant/control/pkg/workflows/steps/kubelet"
 	"github.com/supergiant/control/pkg/workflows/steps/network"
@@ -109,9 +108,9 @@ func Init() {
 	azureInfra := []steps.Step{
 		steps.GetStep(azure.GetAuthorizerStepName),
 		steps.GetStep(azure.CreateGroupStepName),
-		steps.GetStep(azure.CreateLBStepName),
 		steps.GetStep(azure.CreateVNetAndSubnetsStepName),
 		steps.GetStep(azure.CreateSecurityGroupStepName),
+		steps.GetStep(azure.CreateLBStepName),
 	}
 
 	masterWorkflow := []steps.Step{

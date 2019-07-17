@@ -10,15 +10,12 @@ import (
 	"github.com/Azure/go-autorest/autorest/to"
 	"github.com/pkg/errors"
 	"github.com/sirupsen/logrus"
-
 	"github.com/supergiant/control/pkg/sgerrors"
 	"github.com/supergiant/control/pkg/workflows/steps"
 )
 
 const (
 	CreateLBStepName = "CreateLoadBalancer"
-
-	APIServerPort = 443
 )
 
 type CreateLBStep struct {
@@ -50,6 +47,7 @@ func (s *CreateLBStep) Run(ctx context.Context, output io.Writer, config *steps.
 		config.AzureConfig.Location,
 		toResourceGroupName(config.ClusterID, config.ClusterName),
 		toLBName(config.ClusterID, config.ClusterName),
+		config.Kube.APIServerPort,
 	)
 	if err != nil {
 		return errors.Wrap(err, "create load balancer")
@@ -81,7 +79,7 @@ func (s *CreateLBStep) Description() string {
 	return "Azure: Create Load Balancer"
 }
 
-func (s *CreateLBStep) createLB(ctx context.Context, a autorest.Authorizer, subsID, location, groupName, lbName string) (string, network.LoadBalancer, error) {
+func (s *CreateLBStep) createLB(ctx context.Context, a autorest.Authorizer, subsID, location, groupName, lbName string, lbPort int64) (string, network.LoadBalancer, error) {
 	pipName := toIPName(lbName)
 	probeName := "apiserver"
 	frontEndIPConfigName := "apiserver"
@@ -120,7 +118,7 @@ func (s *CreateLBStep) createLB(ctx context.Context, a autorest.Authorizer, subs
 						Name: &probeName,
 						ProbePropertiesFormat: &network.ProbePropertiesFormat{
 							Protocol:          network.ProbeProtocolTCP,
-							Port:              to.Int32Ptr(APIServerPort),
+							Port:              to.Int32Ptr(int32(lbPort)),
 							IntervalInSeconds: to.Int32Ptr(5),
 							NumberOfProbes:    to.Int32Ptr(4),
 						},
@@ -131,8 +129,8 @@ func (s *CreateLBStep) createLB(ctx context.Context, a autorest.Authorizer, subs
 						Name: to.StringPtr("apiserver"),
 						LoadBalancingRulePropertiesFormat: &network.LoadBalancingRulePropertiesFormat{
 							Protocol:             network.TransportProtocolTCP,
-							FrontendPort:         to.Int32Ptr(APIServerPort),
-							BackendPort:          to.Int32Ptr(APIServerPort),
+							FrontendPort:         to.Int32Ptr(int32(lbPort)),
+							BackendPort:          to.Int32Ptr(int32(lbPort)),
 							IdleTimeoutInMinutes: to.Int32Ptr(4),
 							EnableFloatingIP:     to.BoolPtr(false),
 							LoadDistribution:     network.LoadDistributionDefault,

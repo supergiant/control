@@ -6,12 +6,11 @@ import (
 	"io"
 	"time"
 
-	"github.com/sirupsen/logrus"
-	"google.golang.org/api/compute/v1"
-
 	"github.com/pkg/errors"
+	"github.com/sirupsen/logrus"
 	"github.com/supergiant/control/pkg/clouds/gcesdk"
 	"github.com/supergiant/control/pkg/workflows/steps"
+	"google.golang.org/api/compute/v1"
 )
 
 const CreateForwardingRulesStepName = "gce_create_forwarding_rules"
@@ -103,7 +102,7 @@ func (s *CreateForwardingRules) Run(ctx context.Context, output io.Writer,
 		LoadBalancingScheme: "INTERNAL",
 		Description:         "Internal forwarding rule to target pool",
 		IPProtocol:          "TCP",
-		Ports:               []string{"443"},
+		Ports:               []string{fmt.Sprintf("%d", config.Kube.APIServerPort)},
 		BackendService:      config.GCEConfig.BackendServiceLink,
 		Network:             config.GCEConfig.NetworkLink,
 		Subnetwork:          config.GCEConfig.SubnetLink,

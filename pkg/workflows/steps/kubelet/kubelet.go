@@ -3,7 +3,6 @@ package kubelet
 import (
 	"context"
 	"fmt"
-	"github.com/supergiant/control/pkg/workflows/util"
 	"io"
 	"text/template"
 
@@ -11,6 +10,7 @@ import (
 	tm "github.com/supergiant/control/pkg/templatemanager"
 	"github.com/supergiant/control/pkg/workflows/steps"
 	"github.com/supergiant/control/pkg/workflows/steps/docker"
+	"github.com/supergiant/control/pkg/workflows/util"
 )
 
 const (
@@ -55,6 +55,7 @@ func (t *Step) Run(ctx context.Context, out io.Writer, config *steps.Config) err
 	config.KubeletConfig.NodeName = config.Node.Name
 	config.KubeletConfig.IsMaster = config.IsMaster
 	config.KubeletConfig.UserName = config.Kube.SSHConfig.User
+	config.KubeletConfig.APIServerPort = config.Kube.APIServerPort
 
 	if len(config.KubeletConfig.ServicesCIDR) > 0 {
 		kubeDefaultSvcIp, err := util.GetKubernetesDefaultSvcIP(config.KubeletConfig.ServicesCIDR)

@@ -9,7 +9,6 @@ import (
 	"github.com/digitalocean/godo"
 	"github.com/pkg/errors"
 	"github.com/sirupsen/logrus"
-
 	"github.com/supergiant/control/pkg/clouds/digitaloceansdk"
 	"github.com/supergiant/control/pkg/util"
 	"github.com/supergiant/control/pkg/workflows/steps"
@@ -41,9 +40,9 @@ func (s *CreateLoadBalancerStep) Run(ctx context.Context, output io.Writer, conf
 		Region: config.DigitalOceanConfig.Region,
 		ForwardingRules: []godo.ForwardingRule{
 			{
-				EntryPort:      443,
+				EntryPort:      int(config.Kube.APIServerPort),
 				EntryProtocol:  "TCP",
-				TargetPort:     443,
+				TargetPort:     int(config.Kube.APIServerPort),
 				TargetProtocol: "TCP",
 			},
 			{
@@ -61,7 +60,7 @@ func (s *CreateLoadBalancerStep) Run(ctx context.Context, output io.Writer, conf
 		},
 		HealthCheck: &godo.HealthCheck{
 			Protocol:               "TCP",
-			Port:                   443,
+			Port:                   int(config.Kube.APIServerPort),
 			CheckIntervalSeconds:   10,
 			UnhealthyThreshold:     3,
 			HealthyThreshold:       3,
@@ -114,11 +113,11 @@ func (s *CreateLoadBalancerStep) Run(ctx context.Context, output io.Writer, conf
 		Region: config.DigitalOceanConfig.Region,
 		ForwardingRules: []godo.ForwardingRule{
 			{
-				EntryPort:      443,
+				EntryPort:      int(config.Kube.APIServerPort),
 				EntryProtocol:  "TCP",
-				TargetPort:     443,
+				TargetPort:     int(config.Kube.APIServerPort),
 				TargetProtocol: "TCP",
-				},
+			},
 			{
 				EntryPort:      2379,
 				EntryProtocol:  "TCP",
@@ -134,7 +133,7 @@ func (s *CreateLoadBalancerStep) Run(ctx context.Context, output io.Writer, conf
 		},
 		HealthCheck: &godo.HealthCheck{
 			Protocol:               "TCP",
-			Port:                   443,
+			Port:                   int(config.Kube.APIServerPort),
 			CheckIntervalSeconds:   10,
 			UnhealthyThreshold:     3,
 			HealthyThreshold:       3,

@@ -28,8 +28,10 @@ type Kube struct {
 	Zone         string      `json:"zone" valid:"-"`
 	ServicesCIDR string      `json:"servicesCIDR"`
 	DNSIP        string      `json:"dnsIp"`
-	APIPort      string      `json:"apiPort"`
-	Auth         Auth        `json:"auth"`
+	// DEPRECATED: use APIServerPort instead.
+	APIPort       string `json:"apiPort"`
+	APIServerPort int64  `json:"apibindPort"`
+	Auth          Auth   `json:"auth"`
 
 	User     string `json:"user" valid:"-"`
 	Password string `json:"password" valid:"-"`

@@ -5,6 +5,9 @@ import (
 	"strings"
 
 	"github.com/pkg/errors"
+	"github.com/supergiant/control/pkg/model"
+	"github.com/supergiant/control/pkg/sgerrors"
+	"github.com/supergiant/control/pkg/util"
 	"k8s.io/apimachinery/pkg/runtime/schema"
 	"k8s.io/apimachinery/pkg/runtime/serializer"
 	"k8s.io/client-go/discovery"
@@ -13,10 +16,6 @@ import (
 	"k8s.io/client-go/rest"
 	"k8s.io/client-go/tools/clientcmd"
 	clientcmddapi "k8s.io/client-go/tools/clientcmd/api"
-
-	"github.com/supergiant/control/pkg/model"
-	"github.com/supergiant/control/pkg/sgerrors"
-	"github.com/supergiant/control/pkg/util"
 )
 
 func NewConfigFor(k *model.Kube) (*rest.Config, error) {
@@ -77,14 +76,14 @@ func AdminKubeConfig(k *model.Kube) (clientcmddapi.Config, error) {
 	var apiAddr string
 	if k.ExternalDNSName != "" {
 		if strings.HasPrefix(k.ExternalDNSName, "https") {
-			apiAddr = k.ExternalDNSName
+			apiAddr = fmt.Sprintf("%s:%d", k.ExternalDNSName, k.APIServerPort)
 		} else {
-			apiAddr = fmt.Sprintf("https://%s", k.ExternalDNSName)
+			apiAddr = fmt.Sprintf("https://%s:%d", k.ExternalDNSName, k.APIServerPort)
 		}
 	} else {
 		// Use public IP in case if DNS name is absent
 		m := util.GetRandomNode(k.Masters)
-		apiAddr = fmt.Sprintf("https://%s", m.PublicIp)
+		apiAddr = fmt.Sprintf("https://%s:%d", m.PublicIp, k.APIServerPort)
 	}
 
 	// TODO: add validation

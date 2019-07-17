@@ -9,7 +9,6 @@ import (
 	"github.com/Azure/go-autorest/autorest"
 	"github.com/Azure/go-autorest/autorest/to"
 	"github.com/pkg/errors"
-
 	"github.com/supergiant/control/pkg/model"
 	"github.com/supergiant/control/pkg/sgerrors"
 	"github.com/supergiant/control/pkg/workflows/steps"
@@ -65,7 +64,7 @@ func (s *CreateSecurityGroupStep) Run(ctx context.Context, output io.Writer, con
 	}{
 		{
 			role:  model.RoleMaster.String(),
-			rules: masterSecurityRules(sgAddr),
+			rules: masterSecurityRules(sgAddr, config.Kube.APIServerPort),
 		},
 		{
 			role:  model.RoleNode.String(),
@@ -125,7 +124,7 @@ func (s *CreateSecurityGroupStep) Description() string {
 	return "Azure: Create master/node network security groups"
 }
 
-func masterSecurityRules(sgAddr string) []network.SecurityRule {
+func masterSecurityRules(sgAddr string, apiserverPort int64) []network.SecurityRule {
 	return []network.SecurityRule{
 		{
 			Name: to.StringPtr("allow_ssh_for_sg"),
@@ -147,7 +146,7 @@ func masterSecurityRules(sgAddr string) []network.SecurityRule {
 				SourceAddressPrefix:      to.StringPtr("0.0.0.0/0"),
 				SourcePortRange:          to.StringPtr("1-65535"),
 				DestinationAddressPrefix: to.StringPtr("0.0.0.0/0"),
-				DestinationPortRange:     to.StringPtr("443"),
+				DestinationPortRange:     to.StringPtr(fmt.Sprintf("%d", apiserverPort)),
 				Access:                   network.SecurityRuleAccessAllow,
 				Direction:                network.SecurityRuleDirectionInbound,
 				Priority:                 to.Int32Ptr(200),
