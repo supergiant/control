@@ -195,7 +195,7 @@ type PrometheusConfig struct {
 }
 
 type KubeadmConfig struct {
-	UserName string `json:"userName"`
+	UserName        string `json:"userName"`
 	KubeadmVersion  string `json:"kubeadmVersion"`
 	CACertHash      string `json:"caCertHash"`
 	K8SVersion      string `json:"K8SVersion"`
@@ -220,7 +220,7 @@ type KubeletConfig struct {
 	LoadBalancerHost string `json:"loadBalancerHost"`
 	MasterPort       string `json:"masterPort"`
 	NodeName         string `json:"nodeName"`
-	UserName   string `json:"userName"`
+	UserName         string `json:"userName"`
 
 	// TODO: this shouldn't be a part of SANs
 	// https://kubernetes.io/docs/setup/certificates/#all-certificates
@@ -267,21 +267,21 @@ type Config struct {
 	Kube       model.Kube `json:"kube"`
 	K8SVersion string     `json:"k8sVersion"`
 
-	DryRun                 bool `json:"dryRun"`
-	TaskID                 string
-	Provider               clouds.Name  `json:"provider"`
-	IsMaster               bool         `json:"isMaster"`
-	IsBootstrap            bool         `json:"IsBootstrap"`
-	IsImport               bool         `json:"isImport"`
-	BootstrapToken         string       `json:"bootstrapToken"`
-	ClusterID              string       `json:"clusterId"`
-	ClusterName            string       `json:"clusterName"`
-	DigitalOceanConfig     DOConfig     `json:"digitalOceanConfig"`
-	AWSConfig              AWSConfig    `json:"awsConfig"`
-	GCEConfig              GCEConfig    `json:"gceConfig"`
-	AzureConfig            AzureConfig  `json:"azureConfig"`
-	OSConfig               OSConfig     `json:"osConfig"`
-	PacketConfig           PacketConfig `json:"packetConfig"`
+	DryRun             bool `json:"dryRun"`
+	TaskID             string
+	Provider           clouds.Name  `json:"provider"`
+	IsMaster           bool         `json:"isMaster"`
+	IsBootstrap        bool         `json:"IsBootstrap"`
+	IsImport           bool         `json:"isImport"`
+	BootstrapToken     string       `json:"bootstrapToken"`
+	ClusterID          string       `json:"clusterId"`
+	ClusterName        string       `json:"clusterName"`
+	DigitalOceanConfig DOConfig     `json:"digitalOceanConfig"`
+	AWSConfig          AWSConfig    `json:"awsConfig"`
+	GCEConfig          GCEConfig    `json:"gceConfig"`
+	AzureConfig        AzureConfig  `json:"azureConfig"`
+	OSConfig           OSConfig     `json:"osConfig"`
+	PacketConfig       PacketConfig `json:"packetConfig"`
 
 	DockerConfig       DockerConfig       `json:"dockerConfig"`
 	DownloadK8sBinary  DownloadK8sBinary  `json:"downloadK8sBinary"`
@@ -326,7 +326,7 @@ type ConfigMap struct {
 
 // NewConfig builds instance of config for provisioning
 func NewConfig(clusterName, cloudAccountName string, profile profile.Profile) (*Config, error) {
-	var  user string
+	var user = "root"
 
 	if profile.Provider == clouds.AWS {
 		//on aws default user name on ubuntu images are not root but ubuntu
@@ -449,7 +449,7 @@ func NewConfigFromKube(profile *profile.Profile, k *model.Kube) (*Config, error)
 		return nil, errors.Wrapf(sgerrors.ErrNilEntity, "kube must not be nil")
 	}
 
-	var  user string
+	var user string
 
 	if profile.Provider == clouds.AWS {
 		//on aws default user name on ubuntu images are not root but ubuntu
@@ -460,7 +460,6 @@ func NewConfigFromKube(profile *profile.Profile, k *model.Kube) (*Config, error)
 		user = clouds.OSUser
 	}
 
-
 	cfg := &Config{
 		ClusterID:      k.ID,
 		Provider:       profile.Provider,
@@ -470,9 +469,9 @@ func NewConfigFromKube(profile *profile.Profile, k *model.Kube) (*Config, error)
 		DigitalOceanConfig: DOConfig{
 			Region: profile.Region,
 		},
-		Kube:                   *k,
-		ExternalDNSName:        k.ExternalDNSName,
-		InternalDNSName:        k.InternalDNSName,
+		Kube:            *k,
+		ExternalDNSName: k.ExternalDNSName,
+		InternalDNSName: k.InternalDNSName,
 		AWSConfig: AWSConfig{
 			Region:                   profile.Region,
 			AvailabilityZone:         k.CloudSpec[clouds.AwsAZ],
