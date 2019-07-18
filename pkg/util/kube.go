@@ -17,6 +17,7 @@ func UpdateKubeWithCloudSpecificData(k *model.Kube, config *steps.Config) {
 	k.ExternalDNSName = config.ExternalDNSName
 	k.InternalDNSName = config.InternalDNSName
 	k.BootstrapToken = config.BootstrapToken
+	k.UserData = config.ConfigMap.Data
 	k.K8SVersion = config.K8SVersion
 	k.Auth.CACertHash = config.CertificatesConfig.CACertHash
 	k.Auth.CertificateKey = config.KubeadmConfig.CertificateKey
@@ -56,6 +57,8 @@ func UpdateKubeWithCloudSpecificData(k *model.Kube, config *steps.Config) {
 			config.AWSConfig.ExternalLoadBalancerName
 		cloudSpecificSettings[clouds.AwsInternalLoadBalancerName] =
 			config.AWSConfig.InternalLoadBalancerName
+		cloudSpecificSettings[clouds.AwsVolumeSize] =
+			config.AWSConfig.VolumeSize
 	case clouds.GCE:
 		k.Subnets = config.GCEConfig.AZs
 		cloudSpecificSettings[clouds.GCETargetPoolName] = config.GCEConfig.TargetPoolName

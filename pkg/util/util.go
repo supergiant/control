@@ -149,6 +149,7 @@ func LoadCloudSpecificDataFromKube(k *model.Kube, config *steps.Config) error {
 	}
 
 	config.KubeadmConfig.CertificateKey = k.Auth.CertificateKey
+	config.ConfigMap.Data = k.UserData
 	config.CertificatesConfig.CACertHash = k.Auth.CACertHash
 	config.K8SVersion = k.K8SVersion
 
@@ -172,6 +173,7 @@ func LoadCloudSpecificDataFromKube(k *model.Kube, config *steps.Config) error {
 		config.Kube.SSHConfig.PublicKey = k.CloudSpec[clouds.AwsUserProvidedSshPublicKey]
 		config.AWSConfig.ExternalLoadBalancerName = k.CloudSpec[clouds.AwsExternalLoadBalancerName]
 		config.AWSConfig.InternalLoadBalancerName = k.CloudSpec[clouds.AwsInternalLoadBalancerName]
+		config.AWSConfig.VolumeSize = k.CloudSpec[clouds.AwsVolumeSize]
 	case clouds.GCE:
 		config.GCEConfig.Region = k.Region
 		config.GCEConfig.TargetPoolName = k.CloudSpec[clouds.GCETargetPoolName]

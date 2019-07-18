@@ -97,6 +97,8 @@ func TestDeleteClusterMachibesStep_Run(t *testing.T) {
 		svc.On("TerminateInstancesWithContext",
 			mock.Anything, mock.Anything, mock.Anything).
 			Return(mock.Anything, testCase.terminateErr)
+		svc.On("CancelSpotInstanceRequestsWithContext", mock.Anything,
+			mock.Anything, mock.Anything).Return(nil, nil)
 
 		config := &steps.Config{}
 		step := DeleteClusterMachines{

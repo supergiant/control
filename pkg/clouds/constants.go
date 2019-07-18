@@ -103,6 +103,7 @@ const (
 	AwsImageID                  = "aws_image_id"
 	AwsExternalLoadBalancerName = "AwsExternalLoadBalancerName"
 	AwsInternalLoadBalancerName = "AwsInternalLoadBalancerName"
+	AwsVolumeSize               = "AwsVolumeSize"
 
 	// Use client credentials auth model for azure.
 	// https://github.com/Azure/azure-sdk-for-go#more-authentication-details

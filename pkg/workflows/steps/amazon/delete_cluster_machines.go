@@ -68,9 +68,15 @@ func (s *DeleteClusterMachines) Run(ctx context.Context, w io.Writer, cfg *steps
 	}
 
 	instanceIDS := make([]string, 0)
+	spotRequestIDS := make([]string, 0)
+
 	for _, res := range describeInstanceOutput.Reservations {
 		for _, instance := range res.Instances {
 			instanceIDS = append(instanceIDS, *instance.InstanceId)
+
+			if instance.SpotInstanceRequestId != nil {
+				spotRequestIDS = append(spotRequestIDS, *instance.SpotInstanceRequestId)
+			}
 		}
 	}
 	if len(instanceIDS) == 0 {
@@ -85,6 +91,14 @@ func (s *DeleteClusterMachines) Run(ctx context.Context, w io.Writer, cfg *steps
 	if err != nil {
 		logrus.Error(ErrDeleteCluster, err.Error())
 		return errors.Wrap(ErrDeleteCluster, err.Error())
+	}
+
+	_, err = svc.CancelSpotInstanceRequestsWithContext(ctx, &ec2.CancelSpotInstanceRequestsInput{
+		SpotInstanceRequestIds: aws.StringSlice(spotRequestIDS),
+	})
+
+	if err != nil {
+		logrus.Error(ErrDeleteCluster, err.Error())
 	}
 
 	log.Infof("[%s] - completed", s.Name())

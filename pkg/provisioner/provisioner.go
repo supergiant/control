@@ -661,6 +661,7 @@ func (tp *TaskProvisioner) waitCluster(ctx context.Context, clusterTask *workflo
 	if err != nil {
 		return errors.Wrapf(err, "cluster task %s has finished with error %v", clusterTask.ID, err)
 	}
+	clusterTask.Config.ConfigChan() <- clusterTask.Config
 
 	return nil
 }
