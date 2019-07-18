@@ -82,6 +82,9 @@ func UpdateKubeWithCloudSpecificData(k *model.Kube, config *steps.Config) {
 	case clouds.DigitalOcean:
 		cloudSpecificSettings[clouds.DigitalOceanExternalLoadBalancerID] = config.DigitalOceanConfig.ExternalLoadBalancerID
 		cloudSpecificSettings[clouds.DigitalOceanInternalLoadBalancerID] = config.DigitalOceanConfig.InternalLoadBalancerID
+	case clouds.Azure:
+		cloudSpecificSettings[clouds.AzureVNetCIDR] = config.AzureConfig.VNetCIDR
+		cloudSpecificSettings[clouds.AzureVolumeSize] = config.AzureConfig.VolumeSize
 	}
 
 	k.CloudSpec = cloudSpecificSettings

@@ -111,6 +111,6 @@ const (
 	AzureSubscriptionID = "subscriptionId"
 	AzureClientID       = "clientId"
 	AzureClientSecret   = "clientSecret"
-
+	AzureVolumeSize     = "azureVolumeSize"
 	AzureVNetCIDR = "azureVNetCIDR"
 )

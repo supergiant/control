@@ -118,7 +118,8 @@ type AzureConfig struct {
 
 	Location string `json:"location"`
 
-	VMSize string `json:"vmSize"`
+	VMSize     string `json:"vmSize"`
+	VolumeSize string `json:"volumeSize"`
 	// TODO: cidr validation?
 	VNetCIDR string `json:"vNetCIDR"`
 }
@@ -384,6 +385,8 @@ func NewConfig(clusterName, cloudAccountName string, profile profile.Profile) (*
 		AzureConfig: AzureConfig{
 			Location: profile.Region,
 			VNetCIDR: profile.CloudSpecificSettings[clouds.AzureVNetCIDR],
+			// TODO(stgleb): this should be passed from the UI
+			VolumeSize: "30",
 		},
 		OSConfig:     OSConfig{},
 		PacketConfig: PacketConfig{},
@@ -500,7 +503,9 @@ func NewConfigFromKube(profile *profile.Profile, k *model.Kube) (*Config, error)
 			AvailabilityZone: profile.Zone,
 		},
 		AzureConfig: AzureConfig{
-			Location: profile.Region,
+			Location:   profile.Region,
+			VNetCIDR:   k.CloudSpec[clouds.AzureVNetCIDR],
+			VolumeSize: k.CloudSpec[clouds.AzureVolumeSize],
 		},
 		OSConfig:     OSConfig{},
 		PacketConfig: PacketConfig{},
