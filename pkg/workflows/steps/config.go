@@ -156,16 +156,6 @@ type AWSConfig struct {
 	RouteTableAssociationIDs map[string]string `json:"routeTableAssociationIds"`
 }
 
-type PostStartConfig struct {
-	IsBootstrap bool          `json:"isBootstrap"`
-	Provider    clouds.Name   `json:"provider"`
-	Host        string        `json:"host"`
-	Port        string        `json:"port"`
-	Username    string        `json:"username"`
-	RBACEnabled bool          `json:"rbacEnabled"`
-	Timeout     time.Duration `json:"timeout"`
-}
-
 type TillerConfig struct {
 	HelmVersion     string `json:"helmVersion"`
 	RBACEnabled     bool   `json:"rbacEnabled"`
@@ -278,7 +268,6 @@ type Config struct {
 	PacketConfig       PacketConfig `json:"packetConfig"`
 
 	DownloadK8sBinary DownloadK8sBinary `json:"downloadK8sBinary"`
-	PostStartConfig   PostStartConfig   `json:"postStartConfig"`
 	TillerConfig      TillerConfig      `json:"tillerConfig"`
 	PrometheusConfig  PrometheusConfig  `json:"prometheusConfig"`
 	DrainConfig       DrainConfig       `json:"drainConfig"`
@@ -353,6 +342,8 @@ func NewConfig(clusterName, cloudAccountName string, profile profile.Profile) (*
 			Arch:             profile.Arch,
 			ExposedAddresses: profile.ExposedAddresses,
 			APIServerPort:    ensurePort(profile.K8SAPIPort),
+			Provider:         profile.Provider,
+			RBACEnabled:      profile.RBACEnabled,
 		},
 		Provider:    profile.Provider,
 		ClusterName: clusterName,
@@ -391,14 +382,6 @@ func NewConfig(clusterName, cloudAccountName string, profile profile.Profile) (*
 		},
 		KubeletConfig: KubeletConfig{
 			ServicesCIDR: profile.K8SServicesCIDR,
-		},
-		PostStartConfig: PostStartConfig{
-			Host:        "localhost",
-			Port:        "8080",
-			Username:    profile.User,
-			RBACEnabled: profile.RBACEnabled,
-			Timeout:     time.Minute * 60,
-			Provider:    profile.Provider,
 		},
 		TillerConfig: TillerConfig{
 			HelmVersion:     profile.HelmVersion,
@@ -493,14 +476,6 @@ func NewConfigFromKube(profile *profile.Profile, k *model.Kube) (*Config, error)
 		},
 		KubeletConfig: KubeletConfig{
 			ServicesCIDR: profile.K8SServicesCIDR,
-		},
-		PostStartConfig: PostStartConfig{
-			Host:        "localhost",
-			Port:        "8080",
-			Username:    profile.User,
-			RBACEnabled: profile.RBACEnabled,
-			Timeout:     time.Minute * 60,
-			Provider:    k.Provider,
 		},
 		TillerConfig: TillerConfig{
 			HelmVersion:     profile.HelmVersion,

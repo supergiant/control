@@ -12,25 +12,23 @@ import (
 	"github.com/aws/aws-sdk-go/aws/awserr"
 	"github.com/aws/aws-sdk-go/service/ec2"
 	"github.com/pborman/uuid"
+	"github.com/pkg/errors"
 	"github.com/sirupsen/logrus"
-	"github.com/supergiant/control/pkg/clouds"
-	"github.com/supergiant/control/pkg/util"
-	"github.com/supergiant/control/pkg/workflows/steps"
-	"github.com/supergiant/control/pkg/workflows/steps/amazon"
-	"k8s.io/apimachinery/pkg/apis/meta/v1"
+	v1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/runtime/serializer"
 	"k8s.io/client-go/discovery"
+	"k8s.io/client-go/kubernetes"
 	"k8s.io/client-go/kubernetes/scheme"
 	"k8s.io/client-go/rest"
 	"k8s.io/client-go/tools/clientcmd"
-
-	"k8s.io/client-go/kubernetes"
-
-	"github.com/pkg/errors"
 	clientcmddapi "k8s.io/client-go/tools/clientcmd/api"
 
+	"github.com/supergiant/control/pkg/clouds"
 	"github.com/supergiant/control/pkg/model"
 	"github.com/supergiant/control/pkg/sgerrors"
+	"github.com/supergiant/control/pkg/util"
+	"github.com/supergiant/control/pkg/workflows/steps"
+	"github.com/supergiant/control/pkg/workflows/steps/amazon"
 )
 
 func processAWSMetrics(k *model.Kube, metrics map[string]map[string]interface{}) {
@@ -430,37 +428,4 @@ func discoverHelmVersion(kubeConfig *clientcmddapi.Config) (string, error) {
 	}
 
 	return "", nil
-}
-
-
-func discoverVersion(kubeConfig *clientcmddapi.Config) (string, error) {
-	restConf, err := clientcmd.NewNonInteractiveClientConfig(
-		*kubeConfig,
-		kubeConfig.CurrentContext,
-		&clientcmd.ConfigOverrides{},
-		nil,
-	).ClientConfig()
-
-	if err != nil {
-		return "", errors.Wrapf(err, "create rest config")
-	}
-
-	restConf.NegotiatedSerializer = serializer.DirectCodecFactory{CodecFactory: scheme.Codecs}
-	if len(restConf.UserAgent) == 0 {
-		restConf.UserAgent = rest.DefaultKubernetesUserAgent()
-	}
-
-	discoveryClient, err := discovery.NewDiscoveryClientForConfig(restConf)
-
-	if err != nil {
-		return "", errors.Wrapf(err, "error create discovery client")
-	}
-
-	serverVersion, err := discoveryClient.ServerVersion()
-
-	if err != nil {
-		return "", errors.Wrapf(err, "error getting server version")
-	}
-
-	return strings.TrimPrefix(serverVersion.GitVersion, "v"), nil
 }
