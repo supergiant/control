@@ -35,7 +35,7 @@ sudo bash -c "cat > /etc/kubernetes/pki/admin.crt <<EOF
 sudo bash -c "cat > /etc/kubernetes/pki/admin.key <<EOF
 {{ .AdminKey }}EOF"
 
-sudo kubectl --kubeconfig=/home/{{ .UserName }}/.kube/config config set-cluster kubernetes --server='https://{{ .LoadBalancerHost }}:{{ .APIServerPort }}'' --certificate-authority=/etc/kubernetes/pki/ca.crt --embed-certs=true
+sudo kubectl --kubeconfig=/home/{{ .UserName }}/.kube/config config set-cluster kubernetes --server='https://{{ .LoadBalancerHost }}:{{ .APIServerPort }}' --certificate-authority=/etc/kubernetes/pki/ca.crt --embed-certs=true
 sudo kubectl --kubeconfig=/home/{{ .UserName }}/.kube/config config set-credentials kubernetes --client-certificate=/etc/kubernetes/pki/admin.crt --client-key=/etc/kubernetes/pki/admin.key --embed-certs=true
 sudo kubectl --kubeconfig=/home/{{ .UserName }}/.kube/config config set-context kubernetes --cluster=kubernetes --user=kubernetes
 sudo kubectl --kubeconfig=/home/{{ .UserName }}/.kube/config config use-context kubernetes
