@@ -20,24 +20,6 @@ const (
 	DefaultK8SAPIPort int64 = 443
 )
 
-type CertificatesConfig struct {
-	//IsBootstrap bool `json:"isBootstrap"`
-	//
-	//CACert     string `json:"caCert"`
-	//CAKey      string `json:"caKey"`
-	//CACertHash string `json:"caCertHash"`
-
-	//AdminCert string `json:"adminCert"`
-	//AdminKey  string `json:"adminKey"`
-
-	//StaticAuth profile.StaticAuth `json:"staticAuth"`
-
-	// DEPRECATED: it's a part of staticAuth
-	//Username string
-	// DEPRECATED: it's a part of staticAuth
-	//Password string
-}
-
 type DOConfig struct {
 	Name string `json:"name" valid:"required"`
 	// These come from UI select
@@ -174,36 +156,6 @@ type KubeadmConfig struct {
 	APIServerPort   int64  `json:"apiserverPort"`
 }
 
-type KubeletConfig struct {
-	IsMaster     bool   `json:"isMaster"`
-	ServicesCIDR string `json:"servicesCIDR"`
-	PublicIP     string `json:"publicIp"`
-	PrivateIP    string `json:"privateIp"`
-
-	LoadBalancerHost string `json:"loadBalancerHost"`
-	APIServerPort    int64  `json:"apiserverPort"`
-	NodeName         string `json:"nodeName"`
-	UserName         string `json:"userName"`
-
-	// TODO: this shouldn't be a part of SANs
-	// https://kubernetes.io/docs/setup/certificates/#all-certificates
-	KubernetesSvcIP string `json:"kubernetesSvcIp"`
-
-	StaticAuth profile.StaticAuth `json:"staticAuth"`
-
-	// DEPRECATED: it's a part of staticAuth
-	Username string
-	// DEPRECATED: it's a part of staticAuth
-	Password string
-
-	AdminCert string `json:"adminCert"`
-	AdminKey  string `json:"adminKey"`
-
-	ParenCert []byte `json:"parenCert"`
-	CACert    string `json:"caCert"`
-	CAKey     string `json:"caKey"`
-}
-
 type DrainConfig struct {
 	PrivateIP string `json:"privateIp"`
 }
@@ -252,7 +204,6 @@ type Config struct {
 
 	DrainConfig   DrainConfig   `json:"drainConfig"`
 	KubeadmConfig KubeadmConfig `json:"kubeadmConfig"`
-	KubeletConfig KubeletConfig `json:"kubeletConfig"`
 	ConfigMap     ConfigMap     `json:"configMap"`
 	ApplyConfig   ApplyConfig   `json:"applyConfig"`
 
@@ -326,6 +277,7 @@ func NewConfig(clusterName, cloudAccountName string, profile profile.Profile) (*
 			APIServerPort:    ensurePort(profile.K8SAPIPort),
 			Provider:         profile.Provider,
 			RBACEnabled:      profile.RBACEnabled,
+			ServicesCIDR:     profile.K8SServicesCIDR,
 		},
 		Provider:    profile.Provider,
 		ClusterName: clusterName,
@@ -356,9 +308,6 @@ func NewConfig(clusterName, cloudAccountName string, profile profile.Profile) (*
 			VNetCIDR: profile.CloudSpecificSettings[clouds.AzureVNetCIDR],
 			// TODO(stgleb): this should be passed from the UI
 			VolumeSize: "30",
-		},
-		KubeletConfig: KubeletConfig{
-			ServicesCIDR: profile.K8SServicesCIDR,
 		},
 		KubeadmConfig: KubeadmConfig{
 			// TODO(stgleb): get it from available versions once we have them
@@ -435,9 +384,6 @@ func NewConfigFromKube(profile *profile.Profile, k *model.Kube) (*Config, error)
 			Location:   profile.Region,
 			VNetCIDR:   k.CloudSpec[clouds.AzureVNetCIDR],
 			VolumeSize: k.CloudSpec[clouds.AzureVolumeSize],
-		},
-		KubeletConfig: KubeletConfig{
-			ServicesCIDR: profile.K8SServicesCIDR,
 		},
 		KubeadmConfig: KubeadmConfig{
 			KubeadmVersion: "1.15.0",

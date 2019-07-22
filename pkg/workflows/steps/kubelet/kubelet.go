@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"io"
+	"net"
 	"text/template"
 
 	"github.com/pkg/errors"
@@ -20,6 +21,27 @@ const (
 	// LabelNodeRole specifies the role of a node
 	LabelNodeRole = "kubernetes.io/role"
 )
+
+type Config struct {
+	IsMaster     bool   `json:"isMaster"`
+	ServicesCIDR string `json:"servicesCIDR"`
+	PublicIP     string `json:"publicIp"`
+	PrivateIP    string `json:"privateIp"`
+
+	LoadBalancerHost string `json:"loadBalancerHost"`
+	APIServerPort    int64  `json:"apiserverPort"`
+	NodeName         string `json:"nodeName"`
+	UserName         string `json:"userName"`
+
+	// TODO: this shouldn't be a part of SANs
+	// https://kubernetes.io/docs/setup/certificates/#all-certificates
+	KubernetesSvcIP string `json:"kubernetesSvcIp"`
+
+	AdminCert string `json:"adminCert"`
+	AdminKey  string `json:"adminKey"`
+	CACert    string `json:"caCert"`
+	CAKey     string `json:"caKey"`
+}
 
 type Step struct {
 	script *template.Template
@@ -44,30 +66,12 @@ func New(script *template.Template) *Step {
 }
 
 func (t *Step) Run(ctx context.Context, out io.Writer, config *steps.Config) error {
-	config.KubeletConfig.PrivateIP = config.Node.PrivateIp
-	config.KubeletConfig.PublicIP = config.Node.PublicIp
-
-	config.KubeletConfig.CACert = config.Kube.Auth.CACert
-	config.KubeletConfig.CAKey = config.Kube.Auth.CAKey
-
-	config.KubeletConfig.AdminKey = config.Kube.Auth.AdminKey
-	config.KubeletConfig.AdminCert = config.Kube.Auth.AdminCert
-	config.KubeletConfig.LoadBalancerHost = config.InternalDNSName
-	config.KubeletConfig.NodeName = config.Node.Name
-	config.KubeletConfig.IsMaster = config.IsMaster
-	config.KubeletConfig.UserName = config.Kube.SSHConfig.User
-	config.KubeletConfig.APIServerPort = config.Kube.APIServerPort
-
-	if len(config.KubeletConfig.ServicesCIDR) > 0 {
-		kubeDefaultSvcIp, err := util.GetKubernetesDefaultSvcIP(config.KubeletConfig.ServicesCIDR)
-		if err != nil {
-			return errors.Wrapf(err, "get cluster dns ip from the %s subnet", config.KubeletConfig.ServicesCIDR)
-		}
-		config.KubeletConfig.KubernetesSvcIP = kubeDefaultSvcIp.String()
+	c, err := toStepCfg(config)
+	if err != nil {
+		return errors.Wrap(err, "build step config")
 	}
 
-	err := steps.RunTemplate(ctx, t.script, config.Runner, out, config.KubeletConfig)
-
+	err = steps.RunTemplate(ctx, t.script, config.Runner, out, c)
 	if err != nil {
 		return errors.Wrap(err, "install kubelet step")
 	}
@@ -89,4 +93,31 @@ func (t *Step) Description() string {
 
 func (s *Step) Depends() []string {
 	return []string{docker.StepName}
+}
+
+func toStepCfg(c *steps.Config) (Config, error) {
+	var svcIP net.IP
+	var err error
+	if len(c.Kube.ServicesCIDR) > 0 {
+		svcIP, err = util.GetKubernetesDefaultSvcIP(c.Kube.ServicesCIDR)
+		if err != nil {
+			return Config{}, errors.Wrapf(err, "get cluster dns ip from the %s subnet", c.Kube.ServicesCIDR)
+		}
+	}
+
+	return Config{
+		IsMaster:         c.IsMaster,
+		LoadBalancerHost: c.InternalDNSName,
+		NodeName:         c.Node.Name,
+		PrivateIP:        c.Node.PrivateIp,
+		PublicIP:         c.Node.PublicIp,
+		CACert:           c.Kube.Auth.CACert,
+		CAKey:            c.Kube.Auth.CAKey,
+		AdminCert:        c.Kube.Auth.AdminCert,
+		AdminKey:         c.Kube.Auth.AdminKey,
+		APIServerPort:    c.Kube.APIServerPort,
+		UserName:         c.Kube.SSHConfig.User,
+		ServicesCIDR:     c.Kube.ServicesCIDR,
+		KubernetesSvcIP:  svcIP.String(),
+	}, nil
 }
