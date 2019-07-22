@@ -8,10 +8,10 @@ import (
 
 	"github.com/pkg/errors"
 	"github.com/sirupsen/logrus"
+	"google.golang.org/api/compute/v1"
 
 	"github.com/supergiant/control/pkg/clouds/gcesdk"
 	"github.com/supergiant/control/pkg/workflows/steps"
-	"google.golang.org/api/compute/v1"
 )
 
 const CreateForwardingRulesStepName = "gce_create_forwarding_rules"

@@ -156,12 +156,6 @@ type AWSConfig struct {
 	RouteTableAssociationIDs map[string]string `json:"routeTableAssociationIds"`
 }
 
-type DownloadK8sBinary struct {
-	K8SVersion      string `json:"k8sVersion"`
-	Arch            string `json:"arch"`
-	OperatingSystem string `json:"operatingSystem"`
-}
-
 type PrometheusConfig struct {
 	Port        string `json:"port"`
 	RBACEnabled bool   `json:"rbacEnabled"`
@@ -261,13 +255,12 @@ type Config struct {
 	OSConfig           OSConfig     `json:"osConfig"`
 	PacketConfig       PacketConfig `json:"packetConfig"`
 
-	DownloadK8sBinary DownloadK8sBinary `json:"downloadK8sBinary"`
-	PrometheusConfig  PrometheusConfig  `json:"prometheusConfig"`
-	DrainConfig       DrainConfig       `json:"drainConfig"`
-	KubeadmConfig     KubeadmConfig     `json:"kubeadmConfig"`
-	KubeletConfig     KubeletConfig     `json:"kubeletConfig"`
-	ConfigMap         ConfigMap         `json:"configMap"`
-	ApplyConfig       ApplyConfig       `json:"applyConfig"`
+	PrometheusConfig PrometheusConfig `json:"prometheusConfig"`
+	DrainConfig      DrainConfig      `json:"drainConfig"`
+	KubeadmConfig    KubeadmConfig    `json:"kubeadmConfig"`
+	KubeletConfig    KubeletConfig    `json:"kubeletConfig"`
+	ConfigMap        ConfigMap        `json:"configMap"`
+	ApplyConfig      ApplyConfig      `json:"applyConfig"`
 
 	ExternalDNSName string `json:"externalDnsName"`
 	InternalDNSName string `json:"internalDnsName"`
@@ -370,11 +363,6 @@ func NewConfig(clusterName, cloudAccountName string, profile profile.Profile) (*
 			// TODO(stgleb): this should be passed from the UI
 			VolumeSize: "30",
 		},
-		DownloadK8sBinary: DownloadK8sBinary{
-			K8SVersion:      profile.K8SVersion,
-			Arch:            profile.Arch,
-			OperatingSystem: profile.OperatingSystem,
-		},
 		KubeletConfig: KubeletConfig{
 			ServicesCIDR: profile.K8SServicesCIDR,
 		},
@@ -457,11 +445,6 @@ func NewConfigFromKube(profile *profile.Profile, k *model.Kube) (*Config, error)
 			Location:   profile.Region,
 			VNetCIDR:   k.CloudSpec[clouds.AzureVNetCIDR],
 			VolumeSize: k.CloudSpec[clouds.AzureVolumeSize],
-		},
-		DownloadK8sBinary: DownloadK8sBinary{
-			K8SVersion:      profile.K8SVersion,
-			Arch:            profile.Arch,
-			OperatingSystem: profile.OperatingSystem,
 		},
 		KubeletConfig: KubeletConfig{
 			ServicesCIDR: profile.K8SServicesCIDR,
