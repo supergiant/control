@@ -33,8 +33,7 @@ func (f *fakeRunner) Run(command *runner.Command) error {
 
 func TestPrometheusRBACDisbled(t *testing.T) {
 	var (
-		promPort               = "30900"
-		r        runner.Runner = &fakeRunner{}
+		r runner.Runner = &fakeRunner{}
 	)
 
 	err := templatemanager.Init("../../../../templates")
@@ -59,8 +58,7 @@ func TestPrometheusRBACDisbled(t *testing.T) {
 	}
 
 	cfg.Runner = r
-	cfg.PrometheusConfig = steps.PrometheusConfig{
-		Port:        promPort,
+	cfg.Kube = model.Kube{
 		RBACEnabled: false,
 	}
 
@@ -81,9 +79,7 @@ func TestPrometheusRBACDisbled(t *testing.T) {
 
 func TestPrometheusRBACEnabled(t *testing.T) {
 	var (
-		rbacEnabled               = true
-		promPort                  = "30900"
-		r           runner.Runner = &fakeRunner{}
+		r runner.Runner = &fakeRunner{}
 	)
 
 	err := templatemanager.Init("../../../../templates")
@@ -107,9 +103,8 @@ func TestPrometheusRBACEnabled(t *testing.T) {
 	}
 
 	cfg.Runner = r
-	cfg.PrometheusConfig = steps.PrometheusConfig{
-		Port:        promPort,
-		RBACEnabled: rbacEnabled,
+	cfg.Kube = model.Kube{
+		RBACEnabled: false,
 	}
 
 	task := &Step{

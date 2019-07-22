@@ -156,11 +156,6 @@ type AWSConfig struct {
 	RouteTableAssociationIDs map[string]string `json:"routeTableAssociationIds"`
 }
 
-type PrometheusConfig struct {
-	Port        string `json:"port"`
-	RBACEnabled bool   `json:"rbacEnabled"`
-}
-
 type KubeadmConfig struct {
 	UserName        string `json:"userName"`
 	KubeadmVersion  string `json:"kubeadmVersion"`
@@ -255,12 +250,11 @@ type Config struct {
 	OSConfig           OSConfig     `json:"osConfig"`
 	PacketConfig       PacketConfig `json:"packetConfig"`
 
-	PrometheusConfig PrometheusConfig `json:"prometheusConfig"`
-	DrainConfig      DrainConfig      `json:"drainConfig"`
-	KubeadmConfig    KubeadmConfig    `json:"kubeadmConfig"`
-	KubeletConfig    KubeletConfig    `json:"kubeletConfig"`
-	ConfigMap        ConfigMap        `json:"configMap"`
-	ApplyConfig      ApplyConfig      `json:"applyConfig"`
+	DrainConfig   DrainConfig   `json:"drainConfig"`
+	KubeadmConfig KubeadmConfig `json:"kubeadmConfig"`
+	KubeletConfig KubeletConfig `json:"kubeletConfig"`
+	ConfigMap     ConfigMap     `json:"configMap"`
+	ApplyConfig   ApplyConfig   `json:"applyConfig"`
 
 	ExternalDNSName string `json:"externalDnsName"`
 	InternalDNSName string `json:"internalDnsName"`
@@ -366,10 +360,6 @@ func NewConfig(clusterName, cloudAccountName string, profile profile.Profile) (*
 		KubeletConfig: KubeletConfig{
 			ServicesCIDR: profile.K8SServicesCIDR,
 		},
-		PrometheusConfig: PrometheusConfig{
-			Port:        "30900",
-			RBACEnabled: profile.RBACEnabled,
-		},
 		KubeadmConfig: KubeadmConfig{
 			// TODO(stgleb): get it from available versions once we have them
 			KubeadmVersion: "1.15.0",
@@ -448,10 +438,6 @@ func NewConfigFromKube(profile *profile.Profile, k *model.Kube) (*Config, error)
 		},
 		KubeletConfig: KubeletConfig{
 			ServicesCIDR: profile.K8SServicesCIDR,
-		},
-		PrometheusConfig: PrometheusConfig{
-			Port:        "30900",
-			RBACEnabled: profile.RBACEnabled,
 		},
 		KubeadmConfig: KubeadmConfig{
 			KubeadmVersion: "1.15.0",
