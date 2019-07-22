@@ -19,6 +19,24 @@ const (
 	StepName = "kubeadm"
 )
 
+type Config struct {
+	K8SVersion      string
+	KubeadmVersion  string
+	IsBootstrap     bool
+	IsMaster        bool
+	InternalDNSName string
+	ExternalDNSName string
+	Token           string
+	CACertHash      string
+	CertificateKey  string
+	CIDR            string
+	ServiceCIDR     string
+	UserName        string
+	Provider        string
+	APIServerPort   int64
+	NodeIp          string
+}
+
 type Step struct {
 	script *template.Template
 }
@@ -42,22 +60,11 @@ func New(script *template.Template) *Step {
 }
 
 func (t *Step) Run(ctx context.Context, out io.Writer, config *steps.Config) error {
-	config.KubeadmConfig.Provider = toCloudProviderOpt(config.Provider)
-	config.KubeadmConfig.IsBootstrap = config.IsBootstrap
-	config.KubeadmConfig.IsMaster = config.IsMaster
-	config.KubeadmConfig.InternalDNSName = config.InternalDNSName
-	config.KubeadmConfig.ExternalDNSName = config.ExternalDNSName
-	config.KubeadmConfig.Token = config.BootstrapToken
-	config.KubeadmConfig.NodeIp = config.Node.PrivateIp
-	config.KubeadmConfig.CACertHash = config.Kube.Auth.CACertHash
-	config.KubeadmConfig.UserName = clouds.OSUser
-	config.KubeadmConfig.APIServerPort = config.Kube.APIServerPort
-
 	logrus.Debugf("kubeadm step: %s cluster: isBootstrap=%t extDNS=%s intDNS=%s",
-		config.ClusterID, config.KubeadmConfig.IsBootstrap, config.KubeadmConfig.ExternalDNSName,
-		config.KubeadmConfig.InternalDNSName)
+		config.ClusterID, config.IsBootstrap, config.Kube.ExternalDNSName,
+		config.Kube.InternalDNSName)
 
-	err := steps.RunTemplate(ctx, t.script, config.Runner, out, config.KubeadmConfig)
+	err := steps.RunTemplate(ctx, t.script, config.Runner, out, toStepCfg(config))
 
 	if err != nil {
 		return errors.Wrap(err, "kubeadm step")
@@ -91,4 +98,24 @@ func toCloudProviderOpt(cloudName clouds.Name) string {
 		return "gce"
 	}
 	return ""
+}
+
+func toStepCfg(c *steps.Config) Config {
+	return Config{
+		KubeadmVersion:  "1.15.0", // TODO(stgleb): get it from available versions once we have them
+		K8SVersion:      c.Kube.K8SVersion,
+		IsBootstrap:     c.IsBootstrap,
+		IsMaster:        c.IsMaster,
+		InternalDNSName: c.Kube.InternalDNSName,
+		ExternalDNSName: c.Kube.ExternalDNSName,
+		Token:           c.Kube.BootstrapToken,
+		CACertHash:      c.Kube.Auth.CACertHash,
+		CertificateKey:  c.Kube.Auth.CertificateKey,
+		CIDR:            c.Kube.Networking.CIDR,
+		ServiceCIDR:     c.Kube.ServicesCIDR,
+		UserName:        clouds.OSUser,
+		Provider:        toCloudProviderOpt(c.Kube.Provider),
+		APIServerPort:   c.Kube.APIServerPort,
+		NodeIp:          c.Node.PrivateIp,
+	}
 }

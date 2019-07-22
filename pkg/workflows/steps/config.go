@@ -138,24 +138,6 @@ type AWSConfig struct {
 	RouteTableAssociationIDs map[string]string `json:"routeTableAssociationIds"`
 }
 
-type KubeadmConfig struct {
-	UserName        string `json:"userName"`
-	KubeadmVersion  string `json:"kubeadmVersion"`
-	CACertHash      string `json:"caCertHash"`
-	K8SVersion      string `json:"K8SVersion"`
-	IsMaster        bool   `json:"isMaster"`
-	IsBootstrap     bool   `json:"IsBootstrap"`
-	ServiceCIDR     string `json:"serviceCIDR"`
-	CIDR            string `json:"cidr"`
-	Token           string `json:"token"`
-	Provider        string `json:"provider"`
-	NodeIp          string `json:"nodeIp"`
-	CertificateKey  string `json:"certificateKey"`
-	InternalDNSName string `json:"internalDNSName"`
-	ExternalDNSName string `json:"externalDNSName"`
-	APIServerPort   int64  `json:"apiserverPort"`
-}
-
 type DrainConfig struct {
 	PrivateIP string `json:"privateIp"`
 }
@@ -202,10 +184,9 @@ type Config struct {
 	OSConfig           OSConfig     `json:"osConfig"`
 	PacketConfig       PacketConfig `json:"packetConfig"`
 
-	DrainConfig   DrainConfig   `json:"drainConfig"`
-	KubeadmConfig KubeadmConfig `json:"kubeadmConfig"`
-	ConfigMap     ConfigMap     `json:"configMap"`
-	ApplyConfig   ApplyConfig   `json:"applyConfig"`
+	DrainConfig DrainConfig `json:"drainConfig"`
+	ConfigMap   ConfigMap   `json:"configMap"`
+	ApplyConfig ApplyConfig `json:"applyConfig"`
 
 	ExternalDNSName string `json:"externalDnsName"`
 	InternalDNSName string `json:"internalDnsName"`
@@ -309,14 +290,6 @@ func NewConfig(clusterName, cloudAccountName string, profile profile.Profile) (*
 			// TODO(stgleb): this should be passed from the UI
 			VolumeSize: "30",
 		},
-		KubeadmConfig: KubeadmConfig{
-			// TODO(stgleb): get it from available versions once we have them
-			KubeadmVersion: "1.15.0",
-			K8SVersion:     profile.K8SVersion,
-			IsBootstrap:    true,
-			CIDR:           profile.CIDR,
-			ServiceCIDR:    profile.K8SServicesCIDR,
-		},
 
 		Masters: Map{
 			internal: make(map[string]*model.Machine, len(profile.MasterProfiles)),
@@ -384,14 +357,6 @@ func NewConfigFromKube(profile *profile.Profile, k *model.Kube) (*Config, error)
 			Location:   profile.Region,
 			VNetCIDR:   k.CloudSpec[clouds.AzureVNetCIDR],
 			VolumeSize: k.CloudSpec[clouds.AzureVolumeSize],
-		},
-		KubeadmConfig: KubeadmConfig{
-			KubeadmVersion: "1.15.0",
-			K8SVersion:     profile.K8SVersion,
-			IsBootstrap:    true,
-			Token:          k.BootstrapToken,
-			CIDR:           profile.CIDR,
-			ServiceCIDR:    profile.K8SServicesCIDR,
 		},
 		Masters: Map{
 			internal: make(map[string]*model.Machine, len(profile.MasterProfiles)),

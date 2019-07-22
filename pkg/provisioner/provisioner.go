@@ -763,7 +763,7 @@ func bootstrapCerts(config *steps.Config) error {
 	config.Kube.Auth.CAKey = string(ca.Key)
 	config.Kube.Auth.CACertHash = ca.CertHash
 
-	if config.KubeadmConfig.CertificateKey, err = copycerts.CreateCertificateKey(); err != nil {
+	if config.Kube.Auth.CertificateKey, err = copycerts.CreateCertificateKey(); err != nil {
 		return errors.Wrap(err, "create certificate key")
 	}
 

@@ -20,7 +20,6 @@ func UpdateKubeWithCloudSpecificData(k *model.Kube, config *steps.Config) {
 	k.BootstrapToken = config.BootstrapToken
 	k.UserData = config.ConfigMap.Data
 	k.K8SVersion = config.K8SVersion
-	k.Auth.CertificateKey = config.KubeadmConfig.CertificateKey
 
 	// Save cloudSpecificData in kube
 	switch config.Provider {

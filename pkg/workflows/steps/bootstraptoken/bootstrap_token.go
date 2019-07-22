@@ -60,7 +60,7 @@ func (s *Step) Run(ctx context.Context, out io.Writer, config *steps.Config) err
 		}{
 			IsBootstrap:    config.IsBootstrap,
 			Token:          config.BootstrapToken,
-			CertificateKey: config.KubeadmConfig.CertificateKey,
+			CertificateKey: config.Kube.Auth.CertificateKey,
 			IsImport:       config.IsImport,
 		})
 
