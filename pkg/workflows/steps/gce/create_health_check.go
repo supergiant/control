@@ -8,6 +8,7 @@ import (
 
 	"github.com/pkg/errors"
 	"github.com/sirupsen/logrus"
+
 	"github.com/supergiant/control/pkg/clouds/gcesdk"
 	"github.com/supergiant/control/pkg/workflows/steps"
 	"google.golang.org/api/compute/v1"

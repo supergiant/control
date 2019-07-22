@@ -3,7 +3,6 @@ package amazon
 import (
 	"context"
 	"fmt"
-	"github.com/supergiant/control/pkg/clouds"
 	"io"
 
 	"github.com/aws/aws-sdk-go/aws"
@@ -12,6 +11,7 @@ import (
 	"github.com/pkg/errors"
 	"github.com/sirupsen/logrus"
 
+	"github.com/supergiant/control/pkg/clouds"
 	"github.com/supergiant/control/pkg/util"
 	"github.com/supergiant/control/pkg/workflows/steps"
 )

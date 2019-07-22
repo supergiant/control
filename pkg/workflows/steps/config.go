@@ -156,13 +156,6 @@ type AWSConfig struct {
 	RouteTableAssociationIDs map[string]string `json:"routeTableAssociationIds"`
 }
 
-type TillerConfig struct {
-	HelmVersion     string `json:"helmVersion"`
-	RBACEnabled     bool   `json:"rbacEnabled"`
-	OperatingSystem string `json:"operatingSystem"`
-	Arch            string `json:"arch"`
-}
-
 type DownloadK8sBinary struct {
 	K8SVersion      string `json:"k8sVersion"`
 	Arch            string `json:"arch"`
@@ -257,6 +250,7 @@ type Config struct {
 	Provider           clouds.Name  `json:"provider"`
 	IsMaster           bool         `json:"isMaster"`
 	IsBootstrap        bool         `json:"IsBootstrap"`
+	IsImport           bool         `json:"isImport"`
 	BootstrapToken     string       `json:"bootstrapToken"`
 	ClusterID          string       `json:"clusterId"`
 	ClusterName        string       `json:"clusterName"`
@@ -268,7 +262,6 @@ type Config struct {
 	PacketConfig       PacketConfig `json:"packetConfig"`
 
 	DownloadK8sBinary DownloadK8sBinary `json:"downloadK8sBinary"`
-	TillerConfig      TillerConfig      `json:"tillerConfig"`
 	PrometheusConfig  PrometheusConfig  `json:"prometheusConfig"`
 	DrainConfig       DrainConfig       `json:"drainConfig"`
 	KubeadmConfig     KubeadmConfig     `json:"kubeadmConfig"`
@@ -338,8 +331,10 @@ func NewConfig(clusterName, cloudAccountName string, profile profile.Profile) (*
 				Type:     profile.NetworkType,
 				CIDR:     profile.CIDR,
 			},
-			DockerVersion:    profile.DockerVersion,
 			Arch:             profile.Arch,
+			OperatingSystem:  profile.OperatingSystem,
+			DockerVersion:    profile.DockerVersion,
+			HelmVersion:      profile.HelmVersion,
 			ExposedAddresses: profile.ExposedAddresses,
 			APIServerPort:    ensurePort(profile.K8SAPIPort),
 			Provider:         profile.Provider,
@@ -382,12 +377,6 @@ func NewConfig(clusterName, cloudAccountName string, profile profile.Profile) (*
 		},
 		KubeletConfig: KubeletConfig{
 			ServicesCIDR: profile.K8SServicesCIDR,
-		},
-		TillerConfig: TillerConfig{
-			HelmVersion:     profile.HelmVersion,
-			OperatingSystem: profile.OperatingSystem,
-			Arch:            profile.Arch,
-			RBACEnabled:     profile.RBACEnabled,
 		},
 		PrometheusConfig: PrometheusConfig{
 			Port:        "30900",
@@ -476,12 +465,6 @@ func NewConfigFromKube(profile *profile.Profile, k *model.Kube) (*Config, error)
 		},
 		KubeletConfig: KubeletConfig{
 			ServicesCIDR: profile.K8SServicesCIDR,
-		},
-		TillerConfig: TillerConfig{
-			HelmVersion:     profile.HelmVersion,
-			OperatingSystem: profile.OperatingSystem,
-			Arch:            profile.Arch,
-			RBACEnabled:     profile.RBACEnabled,
 		},
 		PrometheusConfig: PrometheusConfig{
 			Port:        "30900",

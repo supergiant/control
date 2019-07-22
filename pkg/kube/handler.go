@@ -1707,12 +1707,12 @@ func createKube(config *steps.Config, state model.KubeState, profile profile.Pro
 		OperatingSystemVersion: profile.UbuntuVersion,
 		K8SVersion:             profile.K8SVersion,
 		DockerVersion:          profile.DockerVersion,
+		HelmVersion:            profile.HelmVersion,
 		RBACEnabled:            profile.RBACEnabled,
 		ExternalDNSName:        config.ExternalDNSName,
 		InternalDNSName:        config.ExternalDNSName,
 		ProfileID:              profile.ID,
 		Auth:                   config.Kube.Auth,
-		HelmVersion:            config.TillerConfig.HelmVersion,
 		Masters:                config.GetMasters(),
 		Nodes:                  config.GetNodes(),
 		Tasks: map[string][]string{

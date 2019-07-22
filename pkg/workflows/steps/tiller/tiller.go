@@ -17,6 +17,13 @@ const (
 	StepName = "tiller"
 )
 
+type Config struct {
+	HelmVersion     string
+	RBACEnabled     bool
+	OperatingSystem string
+	Arch            string
+}
+
 type Step struct {
 	script *template.Template
 }
@@ -40,7 +47,7 @@ func New(script *template.Template) *Step {
 }
 
 func (j *Step) Run(ctx context.Context, out io.Writer, config *steps.Config) error {
-	err := steps.RunTemplate(context.Background(), j.script, config.Runner, out, config.TillerConfig)
+	err := steps.RunTemplate(context.Background(), j.script, config.Runner, out, toStepCfg(config))
 
 	if err != nil {
 		return errors.Wrap(err, "install tiller step")
@@ -63,4 +70,13 @@ func (s *Step) Description() string {
 
 func (s *Step) Depends() []string {
 	return []string{poststart.StepName}
+}
+
+func toStepCfg(c *steps.Config) Config {
+	return Config{
+		HelmVersion:     c.Kube.HelmVersion,
+		OperatingSystem: c.Kube.OperatingSystem,
+		Arch:            c.Kube.Arch,
+		RBACEnabled:     c.Kube.RBACEnabled,
+	}
 }
