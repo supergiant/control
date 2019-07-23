@@ -84,7 +84,7 @@ func (tp *TaskProvisioner) ProvisionCluster(parentContext context.Context,
 
 	// Get clusterID from taskID
 	if clusterTask != nil && len(clusterTask.ID) >= 8 {
-		config.ClusterID = clusterTask.ID[:8]
+		config.Kube.ID = clusterTask.ID[:8]
 	} else {
 		return nil, errors.New(fmt.Sprintf("Wrong value of "+
 			"cluster task %v", clusterTask))
@@ -92,10 +92,10 @@ func (tp *TaskProvisioner) ProvisionCluster(parentContext context.Context,
 
 	// Save cancel that cancel cluster provisioning to cancelMap
 	ctx, cancel := context.WithCancel(parentContext)
-	tp.cancelMap[config.ClusterID] = cancel
+	tp.cancelMap[config.Kube.ID] = cancel
 
 	// TODO(stgleb): Make node names from task id before provisioning starts
-	masters, nodes := nodesFromProfile(config.ClusterName,
+	masters, nodes := nodesFromProfile(config.Kube.Name,
 		taskMap[workflows.MasterTask], taskMap[workflows.NodeTask],
 		clusterProfile)
 
@@ -110,7 +110,7 @@ func (tp *TaskProvisioner) ProvisionCluster(parentContext context.Context,
 	}
 
 	// monitor cluster state in separate goroutine
-	go tp.monitorClusterState(ctx, config.ClusterID, config.NodeChan(),
+	go tp.monitorClusterState(ctx, config.Kube.ID, config.NodeChan(),
 		config.KubeStateChan(), config.ConfigChan())
 	go tp.provision(ctx, taskMap, clusterProfile)
 	// Move cluster to provisioning state
@@ -130,14 +130,14 @@ func (tp *TaskProvisioner) ProvisionNodes(parentContext context.Context, nodePro
 
 	// Save cancel function that cancels node provisioning to cancelMap
 	ctx, cancel := context.WithCancel(parentContext)
-	tp.cancelMap[config.ClusterID] = cancel
+	tp.cancelMap[config.Kube.ID] = cancel
 
 	if err := tp.loadCloudSpecificData(ctx, config); err != nil {
 		return nil, errors.Wrap(err, "load cloud specific config")
 	}
 
 	// monitor cluster state in separate goroutine
-	go tp.monitorClusterState(ctx, config.ClusterID,
+	go tp.monitorClusterState(ctx, config.Kube.ID,
 		config.NodeChan(), config.KubeStateChan(), config.ConfigChan())
 
 	tasks := make([]string, 0, len(nodeProfiles))
@@ -204,7 +204,7 @@ func (tp *TaskProvisioner) RestartClusterProvisioning(parentCtx context.Context,
 
 	ctx, cancel := context.WithTimeout(context.Background(),
 		time.Minute*30)
-	tp.cancelMap[config.ClusterID] = cancel
+	tp.cancelMap[config.Kube.ID] = cancel
 	logrus.Debugf("Deserialize tasks")
 
 	// Deserialize tasks and put them to map
@@ -215,7 +215,7 @@ func (tp *TaskProvisioner) RestartClusterProvisioning(parentCtx context.Context,
 		return errors.Wrapf(err, "Restart cluster provisioning")
 	}
 
-	go tp.monitorClusterState(ctx, config.ClusterID,
+	go tp.monitorClusterState(ctx, config.Kube.ID,
 		config.NodeChan(), config.KubeStateChan(), config.ConfigChan())
 	go tp.provision(ctx, taskMap, clusterProfile)
 
@@ -340,7 +340,7 @@ func (tp *TaskProvisioner) provision(ctx context.Context,
 	// Save cluster state when masters are provisioned
 	logrus.Infof("master provisioning for cluster"+
 		"%s has finished successfully",
-		config.ClusterID)
+		config.Kube.ID)
 
 	config.IsBootstrap = false
 	config.IsMaster = false
@@ -367,7 +367,7 @@ func (tp *TaskProvisioner) provision(ctx context.Context,
 		}
 	}
 	logrus.Infof("cluster %s deployment has finished",
-		config.ClusterID)
+		config.Kube.ID)
 }
 
 // prepare creates all tasks for provisioning according to cloud provider
@@ -676,7 +676,7 @@ func buildNodeProvisionScript(ctx context.Context, config *steps.Config) {
 	// These values must still be templated
 	dryConfig.Node.PublicIp = "{{ .PublicIp }}"
 	dryConfig.Node.PrivateIp = "{{ .PrivateIp }}"
-	dryConfig.ExternalDNSName = fmt.Sprintf("{{ .%s }}", configmap.KubeAddr)
+	dryConfig.Kube.ExternalDNSName = fmt.Sprintf("{{ .%s }}", configmap.KubeAddr)
 	dryConfig.Runner = dryRunner
 	dryConfig.DryRun = true
 
@@ -708,43 +708,23 @@ func (tp *TaskProvisioner) buildInitialCluster(ctx context.Context,
 	profile *profile.Profile, masters, nodes map[string]*model.Machine,
 	config *steps.Config, taskIds map[string][]string) error {
 
-	cluster := &model.Kube{
-		ID:           config.ClusterID,
-		State:        model.StateProvisioning,
-		Name:         config.ClusterName,
-		Provider:     profile.Provider,
-		ProfileID:    profile.ID,
-		AccountName:  config.CloudAccountName,
-		RBACEnabled:  profile.RBACEnabled,
-		ServicesCIDR: profile.K8SServicesCIDR,
-		Region:       profile.Region,
-		Zone:         profile.Zone,
-		User:         profile.User,
-		Password:     profile.Password,
+	config.Kube.State = model.StateProvisioning
+	config.Kube.Provider = profile.Provider
+	config.Kube.ProfileID = profile.ID
+	config.Kube.AccountName = config.CloudAccountName
+	config.Kube.Region = profile.Region
+	config.Kube.Zone = profile.Zone
+	config.Kube.CloudSpec = profile.CloudSpecificSettings
 
-		Auth:             config.Kube.Auth,
-		Networking:       config.Kube.Networking,
-		DockerVersion:    config.Kube.DockerVersion,
-		Arch:             config.Kube.Arch,
-		SSHConfig:        config.Kube.SSHConfig,
-		ExposedAddresses: config.Kube.ExposedAddresses,
-		APIServerPort:    config.Kube.APIServerPort,
+	config.Kube.Masters = masters
+	config.Kube.Nodes = nodes
+	config.Kube.Tasks = taskIds
 
-		OperatingSystem:        profile.OperatingSystem,
-		OperatingSystemVersion: profile.UbuntuVersion,
-		K8SVersion:             profile.K8SVersion,
-		HelmVersion:            profile.HelmVersion,
-		CloudSpec:              profile.CloudSpecificSettings,
-		Masters:                masters,
-		Nodes:                  nodes,
-		Tasks:                  taskIds,
-	}
-
-	return tp.kubeService.Create(ctx, cluster)
+	return tp.kubeService.Create(ctx, &config.Kube)
 }
 
 func (t *TaskProvisioner) loadCloudSpecificData(ctx context.Context, config *steps.Config) error {
-	k, err := t.kubeService.Get(ctx, config.ClusterID)
+	k, err := t.kubeService.Get(ctx, config.Kube.ID)
 
 	if err != nil {
 		logrus.Errorf("get kube caused %v", err)

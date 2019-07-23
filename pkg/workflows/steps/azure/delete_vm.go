@@ -37,7 +37,7 @@ func (s *DeleteVMStep) Run(ctx context.Context, output io.Writer, config *steps.
 
 	f, err := s.sdk.VMClient(config.GetAzureAuthorizer(), config.AzureConfig.SubscriptionID).Delete(
 		ctx,
-		toResourceGroupName(config.ClusterID, config.ClusterName),
+		toResourceGroupName(config.Kube.ID, config.Kube.Name),
 		config.Node.Name,
 	)
 	if err != nil {
@@ -49,7 +49,7 @@ func (s *DeleteVMStep) Run(ctx context.Context, output io.Writer, config *steps.
 		return errors.Wrapf(err, "wait for %s vm is ready", config.Node.Name)
 	}
 
-	log.Debugf("cluster %s: %s machine has been deleted", config.ClusterName, config.Node.Name)
+	log.Debugf("cluster %s: %s machine has been deleted", config.Kube.Name, config.Node.Name)
 	return nil
 }
 

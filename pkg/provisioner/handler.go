@@ -162,7 +162,7 @@ func (h *Handler) Provision(w http.ResponseWriter, r *http.Request) {
 	}
 
 	resp := ProvisionResponse{
-		ClusterID: config.ClusterID,
+		ClusterID: config.Kube.ID,
 		Tasks:     roleTaskIdMap,
 	}
 

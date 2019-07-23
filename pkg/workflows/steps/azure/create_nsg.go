@@ -9,6 +9,7 @@ import (
 	"github.com/Azure/go-autorest/autorest"
 	"github.com/Azure/go-autorest/autorest/to"
 	"github.com/pkg/errors"
+
 	"github.com/supergiant/control/pkg/model"
 	"github.com/supergiant/control/pkg/sgerrors"
 	"github.com/supergiant/control/pkg/workflows/steps"
@@ -73,19 +74,19 @@ func (s *CreateSecurityGroupStep) Run(ctx context.Context, output io.Writer, con
 	} {
 		subnet, err := subnetClient.Get(
 			ctx,
-			toResourceGroupName(config.ClusterID, config.ClusterName),
-			toVNetName(config.ClusterID, config.ClusterName),
-			toSubnetName(config.ClusterID, config.ClusterName, r.role),
+			toResourceGroupName(config.Kube.ID, config.Kube.Name),
+			toVNetName(config.Kube.ID, config.Kube.Name),
+			toSubnetName(config.Kube.ID, config.Kube.Name, r.role),
 			"",
 		)
 		if err != nil {
-			return errors.Wrapf(err, "get %s subnet", toSubnetName(config.ClusterID, config.ClusterName, r.role))
+			return errors.Wrapf(err, "get %s subnet", toSubnetName(config.Kube.ID, config.Kube.Name, r.role))
 		}
 
-		name := toNSGName(config.ClusterID, config.ClusterName, r.role)
+		name := toNSGName(config.Kube.ID, config.Kube.Name, r.role)
 		f, err := nsgClient.CreateOrUpdate(
 			ctx,
-			toResourceGroupName(config.ClusterID, config.ClusterName),
+			toResourceGroupName(config.Kube.ID, config.Kube.Name),
 			name,
 			network.SecurityGroup{
 				Location: to.StringPtr(config.AzureConfig.Location),

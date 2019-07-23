@@ -10,6 +10,7 @@ import (
 	"github.com/aws/aws-sdk-go/service/ec2"
 	"github.com/pkg/errors"
 	"github.com/sirupsen/logrus"
+
 	"github.com/supergiant/control/pkg/profile"
 	"github.com/supergiant/control/pkg/util"
 	"github.com/supergiant/control/pkg/workflows/steps"
@@ -59,11 +60,11 @@ func (s *CreateSecurityGroupsStep) Run(ctx context.Context, w io.Writer, cfg *st
 	logrus.Debugf("Create security groups for VPC %s",
 		cfg.AWSConfig.VPCID)
 	if cfg.AWSConfig.MastersSecurityGroupID == "" {
-		groupName := fmt.Sprintf("%s-masters-secgroup", cfg.ClusterID)
+		groupName := fmt.Sprintf("%s-masters-secgroup", cfg.Kube.ID)
 
 		log.Infof("[%s] - masters security groups not specified, will create a new one...", s.Name())
 		out, err := svc.CreateSecurityGroupWithContext(ctx, &ec2.CreateSecurityGroupInput{
-			Description: aws.String("Security group for Kubernetes masters for cluster " + cfg.ClusterID),
+			Description: aws.String("Security group for Kubernetes masters for cluster " + cfg.Kube.ID),
 			VpcId:       aws.String(cfg.AWSConfig.VPCID),
 			GroupName:   aws.String(groupName),
 		})
@@ -75,11 +76,11 @@ func (s *CreateSecurityGroupsStep) Run(ctx context.Context, w io.Writer, cfg *st
 	}
 	//If there is no security group, create it
 	if cfg.AWSConfig.NodesSecurityGroupID == "" {
-		groupName := fmt.Sprintf("%s-nodes-secgroup", cfg.ClusterID)
+		groupName := fmt.Sprintf("%s-nodes-secgroup", cfg.Kube.ID)
 
 		log.Infof("[%s] - node security groups not specified, will create a new one...", s.Name())
 		out, err := svc.CreateSecurityGroupWithContext(ctx, &ec2.CreateSecurityGroupInput{
-			Description: aws.String("Security group for Kubernetes nodes for cluster " + cfg.ClusterID),
+			Description: aws.String("Security group for Kubernetes nodes for cluster " + cfg.Kube.ID),
 			VpcId:       aws.String(cfg.AWSConfig.VPCID),
 			GroupName:   aws.String(groupName),
 		})

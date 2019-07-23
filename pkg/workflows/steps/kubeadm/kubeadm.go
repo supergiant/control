@@ -61,7 +61,7 @@ func New(script *template.Template) *Step {
 
 func (t *Step) Run(ctx context.Context, out io.Writer, config *steps.Config) error {
 	logrus.Debugf("kubeadm step: %s cluster: isBootstrap=%t extDNS=%s intDNS=%s",
-		config.ClusterID, config.IsBootstrap, config.Kube.ExternalDNSName,
+		config.Kube.ID, config.IsBootstrap, config.Kube.ExternalDNSName,
 		config.Kube.InternalDNSName)
 
 	err := steps.RunTemplate(ctx, t.script, config.Runner, out, toStepCfg(config))

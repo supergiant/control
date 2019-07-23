@@ -82,14 +82,14 @@ func (s *Step) Run(ctx context.Context, out io.Writer, config *steps.Config) err
 	}
 
 	userdata, err := parse(config.ConfigMap.Data, map[string]string{
-		KubeAddr: config.ExternalDNSName,
+		KubeAddr: config.Kube.ExternalDNSName,
 	})
 	if err != nil {
 		return errors.Wrap(err, "parse userdata template")
 	}
 
 	capcfg := capacityapi.Config{
-		ClusterName:  config.ClusterName,
+		ClusterName:  config.Kube.Name,
 		Userdata:     base64.StdEncoding.EncodeToString(userdata),
 		ProviderName: "aws",
 		Provider: map[string]string{
@@ -102,7 +102,7 @@ func (s *Step) Run(ctx context.Context, out io.Writer, config *steps.Config) err
 			SecurityGroups: config.AWSConfig.NodesSecurityGroupID,
 			VolSize:        DefaultVolSize,
 			VolType:        DefaultVolType,
-			Tags:           fmt.Sprintf("%s=%s", clouds.TagClusterID, config.ClusterID),
+			Tags:           fmt.Sprintf("%s=%s", clouds.TagClusterID, config.Kube.ID),
 			SubnetID:       getSubnet(config.AWSConfig.Subnets),
 			// TODO: add AZ option
 		},
@@ -149,8 +149,6 @@ func (s *Step) Depends() []string {
 }
 
 func buildKubeClient(config *steps.Config) (clientcorev1.CoreV1Interface, error) {
-	config.Kube.ExternalDNSName = config.ExternalDNSName
-
 	return kubeconfig.CoreV1Client(&config.Kube)
 }
 

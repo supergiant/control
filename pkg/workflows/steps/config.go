@@ -165,18 +165,13 @@ func NewMap(m map[string]*model.Machine) Map {
 }
 
 type Config struct {
-	Kube       model.Kube `json:"kube"`
-	K8SVersion string     `json:"k8sVersion"`
+	Kube model.Kube `json:"kube"`
 
 	DryRun             bool `json:"dryRun"`
 	TaskID             string
-	Provider           clouds.Name  `json:"provider"`
 	IsMaster           bool         `json:"isMaster"`
 	IsBootstrap        bool         `json:"IsBootstrap"`
 	IsImport           bool         `json:"isImport"`
-	BootstrapToken     string       `json:"bootstrapToken"`
-	ClusterID          string       `json:"clusterId"`
-	ClusterName        string       `json:"clusterName"`
 	DigitalOceanConfig DOConfig     `json:"digitalOceanConfig"`
 	AWSConfig          AWSConfig    `json:"awsConfig"`
 	GCEConfig          GCEConfig    `json:"gceConfig"`
@@ -188,8 +183,7 @@ type Config struct {
 	ConfigMap   ConfigMap   `json:"configMap"`
 	ApplyConfig ApplyConfig `json:"applyConfig"`
 
-	ExternalDNSName string `json:"externalDnsName"`
-	InternalDNSName string `json:"internalDnsName"`
+	Provider clouds.Name `json:"provider"`
 
 	Node             model.Machine `json:"node"`
 	CloudAccountID   string        `json:"cloudAccountId" valid:"required, length(1|32)"`
@@ -231,8 +225,9 @@ func NewConfig(clusterName, cloudAccountName string, profile profile.Profile) (*
 	}
 
 	return &Config{
-		K8SVersion: profile.K8SVersion,
 		Kube: model.Kube{
+			Name:       clusterName,
+			K8SVersion: profile.K8SVersion,
 			SSHConfig: model.SSHConfig{
 				Port:      "22",
 				User:      user,
@@ -260,8 +255,7 @@ func NewConfig(clusterName, cloudAccountName string, profile profile.Profile) (*
 			RBACEnabled:      profile.RBACEnabled,
 			ServicesCIDR:     profile.K8SServicesCIDR,
 		},
-		Provider:    profile.Provider,
-		ClusterName: clusterName,
+		Provider: profile.Provider,
 		DigitalOceanConfig: DOConfig{
 			Region: profile.Region,
 		},
@@ -324,17 +318,11 @@ func NewConfigFromKube(profile *profile.Profile, k *model.Kube) (*Config, error)
 	}
 
 	cfg := &Config{
-		ClusterID:      k.ID,
-		Provider:       profile.Provider,
-		ClusterName:    k.Name,
-		K8SVersion:     k.K8SVersion,
-		BootstrapToken: k.BootstrapToken,
+		Provider: profile.Provider,
 		DigitalOceanConfig: DOConfig{
 			Region: profile.Region,
 		},
-		Kube:            *k,
-		ExternalDNSName: k.ExternalDNSName,
-		InternalDNSName: k.InternalDNSName,
+		Kube: *k,
 		AWSConfig: AWSConfig{
 			Region:                   profile.Region,
 			AvailabilityZone:         k.CloudSpec[clouds.AwsAZ],

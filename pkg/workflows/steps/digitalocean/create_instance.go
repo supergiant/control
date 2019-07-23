@@ -41,7 +41,7 @@ func NewCreateInstanceStep(dropletTimeout, checkPeriod time.Duration) *CreateIns
 func (s *CreateInstanceStep) Run(ctx context.Context, output io.Writer, config *steps.Config) error {
 	dropletSvc, keySvc := s.getServices(config.DigitalOceanConfig.AccessToken)
 	// Node name is created from cluster name plus part of task id plus role
-	config.DigitalOceanConfig.Name = util.MakeNodeName(config.ClusterName,
+	config.DigitalOceanConfig.Name = util.MakeNodeName(config.Kube.Name,
 		config.TaskID, config.IsMaster)
 
 	// TODO(stgleb): Move keys creation for provisioning to provisioner to be able to get
@@ -53,13 +53,13 @@ func (s *CreateInstanceStep) Run(ctx context.Context, output io.Writer, config *
 	}
 
 	tags := []string{
-		config.ClusterID,
+		config.Kube.ID,
 		config.DigitalOceanConfig.Name,
-		config.ClusterName,
+		config.Kube.Name,
 	}
 
 	if config.IsMaster {
-		tags = append(tags, fmt.Sprintf("master-%s", config.ClusterID))
+		tags = append(tags, fmt.Sprintf("master-%s", config.Kube.ID))
 	}
 
 	dropletRequest := &godo.DropletCreateRequest{

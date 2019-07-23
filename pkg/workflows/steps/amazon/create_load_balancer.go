@@ -12,6 +12,8 @@ import (
 	"github.com/aws/aws-sdk-go/service/elb"
 	"github.com/pkg/errors"
 	"github.com/sirupsen/logrus"
+
+	"github.com/supergiant/control/pkg/clouds"
 	"github.com/supergiant/control/pkg/util"
 	"github.com/supergiant/control/pkg/workflows/steps"
 )
@@ -77,7 +79,7 @@ func (s *CreateLoadBalancerStep) Run(ctx context.Context, out io.Writer, cfg *st
 	}
 
 	if cfg.AWSConfig.ExternalLoadBalancerName == "" {
-		externalLoadBalancerName := aws.String(util.CreateLBName(cfg.ClusterID, true))
+		externalLoadBalancerName := aws.String(util.CreateLBName(cfg.Kube.ID, true))
 		output, err := svc.CreateLoadBalancerWithContext(ctx, &elb.CreateLoadBalancerInput{
 			Listeners: []*elb.Listener{
 				{
@@ -94,12 +96,12 @@ func (s *CreateLoadBalancerStep) Run(ctx context.Context, out io.Writer, cfg *st
 			Subnets: subnetsSlice,
 			Tags: []*elb.Tag{
 				{
-					Key:   aws.String("ClusterID"),
-					Value: aws.String(cfg.ClusterID),
+					Key:   aws.String(clouds.TagClusterID),
+					Value: aws.String(cfg.Kube.ID),
 				},
 				{
 					Key:   aws.String("ClusterName"),
-					Value: aws.String(cfg.ClusterName),
+					Value: aws.String(cfg.Kube.Name),
 				},
 				{
 					Key:   aws.String("Type"),
@@ -116,12 +118,12 @@ func (s *CreateLoadBalancerStep) Run(ctx context.Context, out io.Writer, cfg *st
 
 		logrus.Infof("Created load external balancer %s with dns name %s", *externalLoadBalancerName, *output.DNSName)
 
-		cfg.ExternalDNSName = *output.DNSName
+		cfg.Kube.ExternalDNSName = *output.DNSName
 		cfg.AWSConfig.ExternalLoadBalancerName = *externalLoadBalancerName
 	}
 
 	if cfg.AWSConfig.InternalLoadBalancerName == "" {
-		internalLoadBalancerName := aws.String(util.CreateLBName(cfg.ClusterID, false))
+		internalLoadBalancerName := aws.String(util.CreateLBName(cfg.Kube.ID, false))
 
 		output, err := svc.CreateLoadBalancerWithContext(ctx, &elb.CreateLoadBalancerInput{
 			Listeners: []*elb.Listener{
@@ -150,12 +152,12 @@ func (s *CreateLoadBalancerStep) Run(ctx context.Context, out io.Writer, cfg *st
 			Subnets: subnetsSlice,
 			Tags: []*elb.Tag{
 				{
-					Key:   aws.String("ClusterID"),
-					Value: aws.String(cfg.ClusterID),
+					Key:   aws.String(clouds.TagClusterID),
+					Value: aws.String(cfg.Kube.ID),
 				},
 				{
 					Key:   aws.String("ClusterName"),
-					Value: aws.String(cfg.ClusterName),
+					Value: aws.String(cfg.Kube.Name),
 				},
 				{
 					Key:   aws.String("Type"),
@@ -172,7 +174,7 @@ func (s *CreateLoadBalancerStep) Run(ctx context.Context, out io.Writer, cfg *st
 
 		logrus.Infof("Created load internal balancer %s with dns name %s", *internalLoadBalancerName, *output.DNSName)
 
-		cfg.InternalDNSName = *output.DNSName
+		cfg.Kube.InternalDNSName = *output.DNSName
 		cfg.AWSConfig.InternalLoadBalancerName = *internalLoadBalancerName
 	}
 
@@ -184,13 +186,13 @@ func (s *CreateLoadBalancerStep) Run(ctx context.Context, out io.Writer, cfg *st
 			}
 			return nil
 		default:
-			_, err = net.LookupIP(cfg.InternalDNSName)
+			_, err = net.LookupIP(cfg.Kube.InternalDNSName)
 
 			if err == nil {
 				break
 			}
 			time.Sleep(s.timeout)
-			logrus.Debugf("connect to load balancer %s with %v", cfg.InternalDNSName, err)
+			logrus.Debugf("connect to load balancer %s with %v", cfg.Kube.InternalDNSName, err)
 		}
 	}
 

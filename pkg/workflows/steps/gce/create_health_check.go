@@ -53,7 +53,7 @@ func (s *CreateHealthCheck) Run(ctx context.Context, output io.Writer,
 	}
 
 	healthCheck := &compute.HealthCheck{
-		Name:               fmt.Sprintf("hc-%s", config.ClusterID),
+		Name:               fmt.Sprintf("hc-%s", config.Kube.ID),
 		CheckIntervalSec:   10,
 		HealthyThreshold:   3,
 		UnhealthyThreshold: 3,

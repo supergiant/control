@@ -149,7 +149,6 @@ func LoadCloudSpecificDataFromKube(k *model.Kube, config *steps.Config) error {
 	}
 
 	config.ConfigMap.Data = k.UserData
-	config.K8SVersion = k.K8SVersion
 
 	switch config.Provider {
 	case clouds.AWS:
@@ -198,7 +197,7 @@ func LoadCloudSpecificDataFromKube(k *model.Kube, config *steps.Config) error {
 		config.GCEConfig.InstanceGroupNames = make(map[string]string)
 
 		for az := range k.Subnets {
-			config.GCEConfig.InstanceGroupNames[az] = fmt.Sprintf("%s-%s", az, config.ClusterID)
+			config.GCEConfig.InstanceGroupNames[az] = fmt.Sprintf("%s-%s", az, config.Kube.ID)
 		}
 	case clouds.DigitalOcean:
 		config.DigitalOceanConfig.ExternalLoadBalancerID = k.CloudSpec[clouds.DigitalOceanExternalLoadBalancerID]

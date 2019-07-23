@@ -276,15 +276,15 @@ func createAwsSpotInstance(req *SpotRequest, config *steps.Config) error {
 			ec2Tags := []*ec2.Tag{
 				{
 					Key:   aws.String("KubernetesCluster"),
-					Value: aws.String(config.ClusterName),
+					Value: aws.String(config.Kube.Name),
 				},
 				{
 					Key:   aws.String(clouds.TagClusterID),
-					Value: aws.String(config.ClusterID),
+					Value: aws.String(config.Kube.ID),
 				},
 				{
 					Key: aws.String("Name"),
-					Value: aws.String(util.MakeNodeName(config.ClusterName,
+					Value: aws.String(util.MakeNodeName(config.Kube.Name,
 						uuid.New()[:4], config.IsMaster)),
 				},
 				{

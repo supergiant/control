@@ -46,7 +46,7 @@ func (s *Step) Run(ctx context.Context, out io.Writer, config *steps.Config) err
 		IsBootstrap bool
 		IsMaster    bool
 	}{
-		K8SVersion:  config.K8SVersion,
+		K8SVersion:  config.Kube.K8SVersion,
 		IsBootstrap: config.IsBootstrap,
 		IsMaster:    config.IsMaster,
 	})

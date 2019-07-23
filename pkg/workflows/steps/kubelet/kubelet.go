@@ -107,7 +107,7 @@ func toStepCfg(c *steps.Config) (Config, error) {
 
 	return Config{
 		IsMaster:         c.IsMaster,
-		LoadBalancerHost: c.InternalDNSName,
+		LoadBalancerHost: c.Kube.InternalDNSName,
 		NodeName:         c.Node.Name,
 		PrivateIP:        c.Node.PrivateIp,
 		PublicIP:         c.Node.PublicIp,

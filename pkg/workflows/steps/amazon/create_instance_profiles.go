@@ -150,13 +150,13 @@ func (s StepCreateInstanceProfiles) Run(ctx context.Context, w io.Writer, cfg *s
 	}
 
 	// TODO: use a separate config: aws.Nodes/aws.Masters?
-	cfg.AWSConfig.MastersInstanceProfile, err = ensureIAMProfile(ctx, iamS, cfg.ClusterID, string(model.RoleMaster))
+	cfg.AWSConfig.MastersInstanceProfile, err = ensureIAMProfile(ctx, iamS, cfg.Kube.ID, string(model.RoleMaster))
 	if err != nil {
 		return errors.Wrapf(err, "%s: failed to authorize in AWS: %v", s.Name(), err)
 	}
 	logrus.Infof("%s: set up %s instance profile", s.Name(), cfg.AWSConfig.MastersInstanceProfile)
 
-	cfg.AWSConfig.NodesInstanceProfile, err = ensureIAMProfile(ctx, iamS, cfg.ClusterID, string(model.RoleNode))
+	cfg.AWSConfig.NodesInstanceProfile, err = ensureIAMProfile(ctx, iamS, cfg.Kube.ID, string(model.RoleNode))
 	if err != nil {
 		return errors.Wrapf(err, "%s: failed to authorize in AWS: %v", s.Name(), err)
 	}
@@ -193,7 +193,7 @@ func ensureIAMProfile(ctx context.Context, iamS iamiface.IAMAPI, prefix, role st
 	if err = createIAMRolePolicy(ctx, iamS, name, policyFor(role)); err != nil {
 		return "", errors.Wrapf(err, "ensure %s policy exists", name)
 	}
-	
+
 	if err = createIAMInstanceProfile(ctx, iamS, name); err != nil {
 		return "", errors.Wrapf(err, "ensure %s instance profile exists", name)
 	}

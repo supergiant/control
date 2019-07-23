@@ -157,7 +157,7 @@ func TestProvisionHandler(t *testing.T) {
 				return nil, nil
 			},
 			provision: func(ctx context.Context, profile *profile.Profile, config *steps.Config) (map[string][]*workflows.Task, error) {
-				config.ClusterID = uuid.New()
+				config.Kube.ID = uuid.New()
 				return map[string][]*workflows.Task{
 					"master": {
 						{

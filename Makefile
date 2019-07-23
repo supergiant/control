@@ -27,7 +27,7 @@ build-image:
 	docker build -t $(DOCKER_IMAGE_NAME):$(DOCKER_IMAGE_TAG) .
 
 test:
-	go test -mod=vendor ./pkg/...
+	go test -race -mod=vendor ./pkg/...
 
 build:
 	GOOS=linux CGO_ENABLED=0 GOARCH=amd64 go build -mod=vendor -o dist/controlplane-linux -a -installsuffix cgo -ldflags='-extldflags "-static" -w -s -X main.version=${VERSION}' ./cmd/controlplane

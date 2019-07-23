@@ -45,11 +45,11 @@ func (s *CreateVirtualNetworkStep) Run(ctx context.Context, output io.Writer, co
 	if err != nil {
 		return errors.Wrap(err, "parse vnet cidr")
 	}
-	mastersSubnet, err := buildSubnet(vnet, 1, toSubnetName(config.ClusterID, config.ClusterName, model.RoleMaster.String()))
+	mastersSubnet, err := buildSubnet(vnet, 1, toSubnetName(config.Kube.ID, config.Kube.Name, model.RoleMaster.String()))
 	if err != nil {
 		return errors.Wrap(err, "calculate subnet for masters")
 	}
-	nodesSubnet, err := buildSubnet(vnet, 5, toSubnetName(config.ClusterID, config.ClusterName, model.RoleNode.String()))
+	nodesSubnet, err := buildSubnet(vnet, 5, toSubnetName(config.Kube.ID, config.Kube.Name, model.RoleNode.String()))
 	if err != nil {
 		return errors.Wrap(err, "calculate subnet for nodes")
 	}
@@ -58,8 +58,8 @@ func (s *CreateVirtualNetworkStep) Run(ctx context.Context, output io.Writer, co
 
 	f, err := vnetClient.CreateOrUpdate(
 		ctx,
-		toResourceGroupName(config.ClusterID, config.ClusterName),
-		toVNetName(config.ClusterID, config.ClusterName),
+		toResourceGroupName(config.Kube.ID, config.Kube.Name),
+		toVNetName(config.Kube.ID, config.Kube.Name),
 		network.VirtualNetwork{
 			Location: to.StringPtr(config.AzureConfig.Location),
 			VirtualNetworkPropertiesFormat: &network.VirtualNetworkPropertiesFormat{
@@ -74,7 +74,7 @@ func (s *CreateVirtualNetworkStep) Run(ctx context.Context, output io.Writer, co
 		},
 	)
 	if err != nil {
-		return errors.Wrapf(err, "create %s vnet", toVNetName(config.ClusterID, config.ClusterName))
+		return errors.Wrapf(err, "create %s vnet", toVNetName(config.Kube.ID, config.Kube.Name))
 	}
 
 	ctx, _ = context.WithTimeout(ctx, 60*VNetCreationTimeout)

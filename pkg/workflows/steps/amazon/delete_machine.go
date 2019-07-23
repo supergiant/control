@@ -87,7 +87,7 @@ func (s *DeleteNodeStep) Run(ctx context.Context, w io.Writer, cfg *steps.Config
 
 	if len(instanceIDS) == 0 {
 		logrus.Infof("[%s] - node %s not found in cluster %s",
-			s.Name(), cfg.Node.Name, cfg.ClusterName)
+			s.Name(), cfg.Node.Name, cfg.Kube.Name)
 		return nil
 	}
 
