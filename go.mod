@@ -54,7 +54,7 @@ require (
 	github.com/grpc-ecosystem/grpc-gateway v1.6.2 // indirect
 	github.com/hpcloud/tail v1.0.0
 	github.com/huandu/xstrings v0.0.0-20180906151751-8bbcf2f9ccb5 // indirect
-	github.com/imdario/mergo v0.0.0-20160309201252-ea0151498788 // indirect
+	github.com/imdario/mergo v0.3.7
 	github.com/jarcoal/httpmock v0.0.0-20181110092731-53def6cd0f87
 	github.com/jonboulle/clockwork v0.1.0 // indirect
 	github.com/json-iterator/go v0.0.0-20180701071628-ab8a2e0c74be
@@ -91,7 +91,6 @@ require (
 	gopkg.in/asaskevich/govalidator.v8 v8.0.0-20171111151018-521b25f4b05f
 	gopkg.in/check.v1 v1.0.0-20180628173108-788fd7840127 // indirect
 	gopkg.in/inf.v0 v0.9.1 // indirect
-	gopkg.in/yaml.v1 v1.0.0-20140924161607-9f9df34309c0 // indirect
 	gopkg.in/yaml.v2 v2.2.2 // indirect
 	k8s.io/api v0.0.0-20190703205437-39734b2a72fe
 	k8s.io/apiextensions-apiserver v0.0.0-00010101000000-000000000000 // indirect

@@ -39,6 +39,9 @@ type fakeService struct {
 func (fs fakeService) CreateRepo(ctx context.Context, e *repo.Entry) (*model.RepositoryInfo, error) {
 	return fs.repo, fs.err
 }
+func (fs fakeService) UpdateRepo(ctx context.Context, name string, opts *repo.Entry) (*model.RepositoryInfo, error) {
+	return fs.repo, fs.err
+}
 func (fs fakeService) GetRepo(ctx context.Context, repoName string) (*model.RepositoryInfo, error) {
 	return fs.repo, fs.err
 }
@@ -144,6 +147,93 @@ func TestHandler_createRepo(t *testing.T) {
 			require.Nilf(t, json.NewDecoder(w.Body).Decode(apiErr), "TC#%d: decode message", i+1)
 
 			require.Equalf(t, tc.expectedErrCode, apiErr.ErrorCode, "TC#%d: check error code", i+1)
+		}
+	}
+}
+
+func TestHandler_updateRepo(t *testing.T) {
+	loggerWriter := logrus.StandardLogger().Out
+	logrus.SetOutput(ioutil.Discard)
+	defer logrus.SetOutput(loggerWriter)
+
+	trepo := &model.RepositoryInfo{
+		Config: repo.Entry{
+			Name: "sgRepo",
+			URL:  "sgRepo",
+		},
+	}
+	inrepo := []byte(`{"name":"sgRepo"}`)
+
+	tcs := []struct {
+		name    string
+		svc     *fakeService
+		inpRepo []byte
+
+		expectedStatus  int
+		expectedRepo    *model.RepositoryInfo
+		expectedErrCode sgerrors.ErrorCode
+	}{
+		{
+			name:            "invalid_json",
+			inpRepo:         []byte("{name:invalidJSON,,}"),
+			expectedStatus:  http.StatusBadRequest,
+			expectedErrCode: sgerrors.ValidationFailed,
+		},
+		{
+			name:    "not_found",
+			inpRepo: []byte(`{"name":"validationFailed"}`),
+			svc: &fakeService{
+				err: sgerrors.ErrNotFound,
+			},
+			expectedStatus:  http.StatusInternalServerError,
+			expectedErrCode: sgerrors.UnknownError,
+		},
+		{
+			name:    "update_repo_index",
+			inpRepo: nil,
+			svc: &fakeService{
+				repo: trepo,
+			},
+			expectedStatus: http.StatusOK,
+			expectedRepo:   trepo,
+		},
+		{
+			name:    "update_repo",
+			inpRepo: inrepo,
+			svc: &fakeService{
+				repo: trepo,
+			},
+			expectedStatus: http.StatusOK,
+			expectedRepo:   trepo,
+		},
+	}
+
+	for _, tc := range tcs {
+		// setup handler
+		h := &Handler{svc: tc.svc}
+
+		// prepare
+		req, err := http.NewRequest("", "", bytes.NewReader(tc.inpRepo))
+		require.Equalf(t, nil, err, "TC#%s: create request: %v", tc.name, err)
+
+		w := httptest.NewRecorder()
+
+		// run
+		http.HandlerFunc(h.updateRepo).ServeHTTP(w, req)
+
+		// check
+		require.Equalf(t, tc.expectedStatus, w.Code, "TC#%s: check status code: expected=%d got=%d", tc.name, tc.expectedStatus, w.Code)
+
+		if w.Code == http.StatusOK {
+			hrepo := &model.RepositoryInfo{}
+			require.Nilf(t, json.NewDecoder(w.Body).Decode(hrepo), "TC#%d: decode repo", tc.name)
+
+			require.Equalf(t, tc.expectedRepo, hrepo, "TC#%s: check repo", tc.name)
+		} else {
+			apiErr := &message.Message{}
+			require.Nilf(t, json.NewDecoder(w.Body).Decode(apiErr), "TC#%s: decode message", tc.name)
+
+			require.Equalf(t, tc.expectedErrCode, apiErr.ErrorCode, "TC#%s: check error code", tc.name)
 		}
 	}
 }
