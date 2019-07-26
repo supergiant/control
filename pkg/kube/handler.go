@@ -928,6 +928,21 @@ func (h *Handler) installRelease(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	// Load things specific to cloud provider
+	err = util.LoadCloudSpecificDataFromKube(k, config)
+
+	if err != nil {
+		message.SendUnknownError(w, err)
+		return
+	}
+
+	if master := config.GetMaster(); master != nil {
+		config.Node = *master
+	} else {
+		message.SendNotFound(w, "master node", err)
+		return
+	}
+
 	go func(){
 		fileName := util.MakeFileName(installAppTask.ID)
 		writer, err := h.getWriter(fileName)
@@ -941,7 +956,7 @@ func (h *Handler) installRelease(w http.ResponseWriter, r *http.Request) {
 		err = <-errCh
 
 		if err != nil {
-			logrus.Errorf("error running task %s", installAppTask.ID)
+			logrus.Errorf("error running task %s %v", installAppTask.ID, err)
 		}
 	}()
 

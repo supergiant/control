@@ -180,6 +180,7 @@ func Init() {
 	}
 
 	installApp := []steps.Step{
+		steps.GetStep(ssh.StepName),
 		steps.GetStep(install_app.StepName),
 	}
 

@@ -1,5 +1,10 @@
 package templates
 
 const installApp = `
-helm install {{ .RepoName }}/{{ .ChartName }}-{{ .ChartVersion }}.tgz --name {{ .Name }} --namespace {{ .Namespace }} --set {{ .Values }} --debug 
+set -x
+sudo bash -c "cat > override.yaml <<EOF
+{{ .Values }}
+EOF"
+
+helm install {{ .RepoName }}/{{ .ChartName }}-{{ .ChartVersion }}.tgz --name {{ .Name }} --namespace {{ .Namespace }} -f override.yaml --debug 
 `
