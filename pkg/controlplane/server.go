@@ -4,6 +4,7 @@ import (
 	"context"
 	"crypto/tls"
 	"fmt"
+	"github.com/supergiant/control/pkg/workflows/steps/install_app"
 	"net/http"
 	_ "net/http/pprof"
 	"net/url"
@@ -233,6 +234,7 @@ func configureApplication(cfg *Config) (*mux.Router, error) {
 	upgrade.Init()
 	uncordon.Init()
 	evacuate.Init()
+	install_app.Init()
 
 	amazon.InitFindAMI(amazon.GetEC2)
 	amazon.InitImportKeyPair(amazon.GetEC2)

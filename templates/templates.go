@@ -20,4 +20,5 @@ var Default = map[string]string{
 	"evacuate":                   evacuateTpl,
 	"uncordon":                   uncordonTpl,
 	"apply":                      applyTpl,
+	"install_app":                installApp,
 }

@@ -253,6 +253,15 @@ type ApplyConfig struct {
 	Data string `json:"data"`
 }
 
+type InstallAppConfig struct {
+	Name         string `json:"name"`
+	Namespace    string `json:"namespace"`
+	ChartName    string `json:"chartName" valid:"required"`
+	ChartVersion string `json:"chartVersion"`
+	RepoName     string `json:"repoName" valid:"required"`
+	Values       string `json:"values"`
+}
+
 type Map struct {
 	internal map[string]*model.Machine
 }
@@ -303,6 +312,7 @@ type Config struct {
 	KubeletConfig      KubeletConfig      `json:"kubeletConfig"`
 	ConfigMap          ConfigMap          `json:"configMap"`
 	ApplyConfig        ApplyConfig        `json:"applyConfig"`
+	InstallAppConfig   InstallAppConfig   `json:"installAppConfig"`
 
 	ExternalDNSName string `json:"externalDnsName"`
 	InternalDNSName string `json:"internalDnsName"`
