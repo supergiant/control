@@ -44,7 +44,7 @@ build-ui:
 	statik -src=./cmd/ui/assets/dist
 
 gogen:
-	go generate ./pkg/account
+	go -mod=vendor generate ./pkg/account
 
 vendor-sync:
 	go mod tidy
