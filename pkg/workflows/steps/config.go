@@ -259,6 +259,7 @@ type InstallAppConfig struct {
 	ChartName    string `json:"chartName" valid:"required"`
 	ChartVersion string `json:"chartVersion"`
 	RepoName     string `json:"repoName" valid:"required"`
+	ChartRef     string `json:"chartRef"`
 	Values       string `json:"values"`
 }
 

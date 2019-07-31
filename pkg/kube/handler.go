@@ -41,6 +41,10 @@ const (
 	nodeLabelRole  = "kubernetes.io/role"
 )
 
+type ChartRefGetter interface {
+	GetChartRef(context.Context, string, string, string) (string, error)
+}
+
 type accountGetter interface {
 	Get(context.Context, string) (*model.CloudAccount, error)
 }
@@ -99,7 +103,7 @@ type Handler struct {
 	nodeProvisioner nodeProvisioner
 	kubeProvisioner kubeProvisioner
 	profileSvc      profileSvc
-	chartGetter     ChartGetter
+	chartGetter     ChartRefGetter
 
 	repo    storage.Interface
 	proxies proxy.Container
@@ -120,7 +124,7 @@ func NewHandler(
 	profileSvc profileSvc,
 	provisioner nodeProvisioner,
 	kubeProvisioner kubeProvisioner,
-	charGetter ChartGetter,
+	charGetter ChartRefGetter,
 	repo storage.Interface,
 	proxies proxy.Container,
 	logDir string,
@@ -924,7 +928,7 @@ func (h *Handler) installRelease(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	chrt, err := h.chartGetter.GetChart(r.Context(), inp.RepoName, inp.ChartName, inp.ChartVersion)
+	ref, err := h.chartGetter.GetChartRef(r.Context(), inp.RepoName, inp.ChartName, inp.ChartVersion)
 	if err != nil {
 		if sgerrors.IsNotFound(err) {
 			message.SendNotFound(w, inp.ChartName, err)
@@ -936,8 +940,7 @@ func (h *Handler) installRelease(w http.ResponseWriter, r *http.Request) {
 
 	config.InstallAppConfig = *inp
 	config.InstallAppConfig.Name = petname.Generate(2, "-")
-	config.InstallAppConfig.ChartName = chrt.Metadata.Name
-	config.InstallAppConfig.ChartVersion = chrt.Metadata.Version
+	config.InstallAppConfig.ChartRef = ref
 	installAppTask, err := workflows.NewTask(config, workflows.InstallApp, h.repo)
 
 	if err != nil {
