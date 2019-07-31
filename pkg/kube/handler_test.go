@@ -67,6 +67,20 @@ var (
 	}
 )
 
+type getChartRefMock struct {
+	mock.Mock
+}
+
+func (m *getChartRefMock) GetChartRef(ctx context.Context, repoName, chartName, chartVersion string) (string, error) {
+	args := m.Called(ctx, repoName, chartName, chartName)
+
+	val, ok := args.Get(0).(string)
+	if !ok {
+		return "", args.Error(1)
+	}
+	return val, args.Error(1)
+}
+
 type kubeServiceMock struct {
 	mock.Mock
 	rls         *release.Release
@@ -335,8 +349,11 @@ func TestHandler_createKube(t *testing.T) {
 	for i, tc := range tcs {
 		// setup handler
 		svc := new(kubeServiceMock)
+		getChartMock := &getChartRefMock{}
+		getChartMock.On("GetChartRef", mock.Anything, mock.Anything,
+			mock.Anything, mock.Anything).Return("", nil)
 		h := NewHandler(svc, nil,
-			nil, nil, nil, nil, nil, "")
+			nil, nil, nil, getChartMock, nil, nil, "")
 
 		req, err := http.NewRequest(http.MethodPost, "/kubes",
 			bytes.NewReader(tc.rawKube))
@@ -407,8 +424,12 @@ func TestHandler_getKube(t *testing.T) {
 	for i, tc := range tcs {
 		// setup handler
 		svc := new(kubeServiceMock)
+
+		getChartMock := &getChartRefMock{}
+		getChartMock.On("GetChartRef", mock.Anything, mock.Anything,
+			mock.Anything, mock.Anything).Return("", nil)
 		h := NewHandler(svc, nil, nil,
-			nil, nil, nil, nil, "")
+			nil, nil, getChartMock, nil, nil, "")
 
 		// prepare
 		req, err := http.NewRequest(http.MethodGet, "/kubes/"+tc.kubeName, nil)
@@ -470,8 +491,12 @@ func TestHandler_listKubes(t *testing.T) {
 	for i, tc := range tcs {
 		// setup handler
 		svc := new(kubeServiceMock)
+		getChartMock := &getChartRefMock{}
+		getChartMock.On("GetChartRef", mock.Anything, mock.Anything,
+			mock.Anything, mock.Anything).Return("", nil)
+
 		h := NewHandler(svc, nil, nil,
-			nil, nil, nil, nil, "")
+			nil, nil, getChartMock, nil, nil, "")
 
 		// prepare
 		req, err := http.NewRequest(http.MethodGet, "/kubes", nil)
@@ -615,8 +640,11 @@ func TestHandler_deleteKube(t *testing.T) {
 		mockProvisioner.On("Cancel", mock.Anything).
 			Return(nil)
 
+		getChartMock := &getChartRefMock{}
+		getChartMock.On("GetChartRef", mock.Anything, mock.Anything,
+			mock.Anything, mock.Anything).Return("", nil)
 		h := NewHandler(svc, accSvc, nil,
-			mockProvisioner, nil, mockRepo, nil, "")
+			mockProvisioner, nil, getChartMock, mockRepo, nil, "")
 
 		router := mux.NewRouter().SkipClean(true)
 		h.Register(router)
@@ -666,8 +694,12 @@ func TestHandler_listResources(t *testing.T) {
 	for i, tc := range tcs {
 		// setup handler
 		svc := new(kubeServiceMock)
+		getChartMock := &getChartRefMock{}
+		getChartMock.On("GetChartRef", mock.Anything, mock.Anything,
+			mock.Anything, mock.Anything).Return("", nil)
+
 		h := NewHandler(svc, nil, nil,
-			nil, nil, nil, nil, "")
+			nil, nil, getChartMock, nil, nil, "")
 
 		// prepare
 		req, err := http.NewRequest(http.MethodGet, fmt.Sprintf("/kubes/%s/resources", tc.kubeName), nil)
@@ -734,8 +766,11 @@ func TestHandler_getResources(t *testing.T) {
 	for i, tc := range tcs {
 		// setup handler
 		svc := new(kubeServiceMock)
+		getChartMock := &getChartRefMock{}
+		getChartMock.On("GetChartRef", mock.Anything, mock.Anything,
+			mock.Anything, mock.Anything).Return("", nil)
 		h := NewHandler(svc, nil, nil,
-			nil, nil, nil, nil, "")
+			nil, nil, getChartMock, nil, nil, "")
 
 		// prepare
 		req, err := http.NewRequest(http.MethodGet, fmt.Sprintf("/kubes/%s/resources/%s", tc.kubeName, tc.resourceName), nil)
@@ -811,8 +846,11 @@ func TestHandler_listNodes(t *testing.T) {
 
 		// setup handler
 		svc := new(kubeServiceMock)
+		getChartMock := &getChartRefMock{}
+		getChartMock.On("GetChartRef", mock.Anything, mock.Anything,
+			mock.Anything, mock.Anything).Return("", nil)
 		h := NewHandler(svc, nil, nil,
-			nil, nil, nil, nil, "")
+			nil, nil, getChartMock, nil, nil, "")
 
 		// prepare
 		req, err := http.NewRequest(http.MethodGet, fmt.Sprintf("/kubes/%s/nodes", tc.kubeID), nil)
@@ -977,9 +1015,13 @@ func TestAddNodeToKube(t *testing.T) {
 			Return(mock.Anything, testCase.provisionErr)
 		mockProvisioner.On("Cancel", mock.Anything).
 			Return(nil)
+		getChartMock := &getChartRefMock{}
+		getChartMock.On("GetChartRef", mock.Anything, mock.Anything,
+			mock.Anything, mock.Anything).Return("", nil)
+
 		h := NewHandler(svc, accService, profileSvc,
 			mockProvisioner, nil,
-			nil, nil, "")
+			getChartMock, nil, nil, "")
 
 		data, _ := json.Marshal(nodeProfile)
 		b := bytes.NewBuffer(data)
@@ -1728,8 +1770,11 @@ func TestHandler_getKubeconfig(t *testing.T) {
 	for i, tc := range tcs {
 		// setup handler
 		svc := new(kubeServiceMock)
+		getChartMock := &getChartRefMock{}
+		getChartMock.On("GetChartRef", mock.Anything, mock.Anything,
+			mock.Anything, mock.Anything).Return("", nil)
 		h := NewHandler(svc, nil, nil,
-			nil, nil, nil, nil, "")
+			nil, nil, getChartMock, nil, nil, "")
 
 		// prepare
 		req, err := http.NewRequest(http.MethodGet, fmt.Sprintf("/kubes/%s/users/%s/kubeconfig", tc.kubeID, tc.userName), nil)
@@ -2181,10 +2226,13 @@ func TestRestarProvisioningKube(t *testing.T) {
 		mockProvisioner.On("RestartClusterProvisioning",
 			mock.Anything, mock.Anything, mock.Anything, mock.Anything).
 			Return(testCase.provisionErr)
+		getChartMock := &getChartRefMock{}
+		getChartMock.On("GetChartRef", mock.Anything, mock.Anything,
+			mock.Anything, mock.Anything).Return("", nil)
 
 		h := NewHandler(svc, accService, profileSvc,
 			nil, mockProvisioner,
-			nil, nil, "")
+			getChartMock, nil, nil, "")
 
 		req, _ := http.NewRequest(http.MethodPost,
 			fmt.Sprintf("/kubes/%s/restart", testCase.kubeName),
@@ -2414,10 +2462,10 @@ func TestImportKube(t *testing.T) {
 		req []byte
 
 		discoverK8SVersionErr error
-		k8sVerson string
+		k8sVerson             string
 
 		discoverHelmVersionErr error
-		helmVersion string
+		helmVersion            string
 
 		accountName string
 		account     *model.CloudAccount
@@ -2436,16 +2484,16 @@ func TestImportKube(t *testing.T) {
 			expectedCode: http.StatusBadRequest,
 		},
 		{
-			description:  "discover k8s version error",
-			req:          []byte(`{"kubeconfig":"{}","clusterName":"kubernetes","cloudAccountName":"test"}`),
+			description:           "discover k8s version error",
+			req:                   []byte(`{"kubeconfig":"{}","clusterName":"kubernetes","cloudAccountName":"test"}`),
 			discoverK8SVersionErr: errors.Errorf("discover k8s version"),
-			expectedCode: http.StatusInternalServerError,
+			expectedCode:          http.StatusInternalServerError,
 		},
 		{
-			description:  "discover helm version error",
-			req:          []byte(`{"kubeconfig":"{\r\n  \"kind\": \"Config\",\r\n  \"apiVersion\": \"v1\",\r\n  \"preferences\": {},\r\n  \"clusters\": [\r\n    {\r\n      \"name\": \"asdfasdf\",\r\n      \"cluster\": {\r\n        \"server\": \"https:\/\/ex-24adfede-130460518.eu-west-2.elb.amazonaws.com\",\r\n        \"certificate-authority-data\": \"LS0tLS1CRUdJTiBDRVJUSUZJQ0FURS0tLS0tCk1JSUN5RENDQWJDZ0F3SUJBZ0lCQURBTkJna3Foa2lHOXcwQkFRc0ZBREFWTVJNd0VRWURWUVFERXdwcmRXSmwKY201bGRHVnpNQjRYRFRFNU1EUXdPVEUyTlRNeE1sb1hEVEk1TURRd05qRTJOVE14TWxvd0ZURVRNQkVHQTFVRQpBeE1LYTNWaVpYSnVaWFJsY3pDQ0FTSXdEUVlKS29aSWh2Y05BUUVCQlFBRGdnRVBBRENDQVFvQ2dnRUJBSyt5Clc5VTdjZWJQV0FBWXNVR2pZUVM5aC9tblAyWW4zVUtxTStaT3QzQ2Z6MVk5ekhaaTlyK0pObEgrWkwralI2QWYKamYyTzRScEFvSG5uYTUzMGEwM2s3dFp3bTdiNXZCcEZLTmw2aHhoKzU2Y1RzMUxZbVJuTWRERFlRV2JSbXk2bwo3ZFRsaDVBVHY1K21tUlNMMkxja1lraDRqTWhObWFPb1hLVmxzck5SWXZ1NHAvRk5uNHF3OE0xekxXK25uSG5kCmZrSWlJZHRXb2ROMG8yL0Njb2l3QW5uSXpGVmVIYnF5L3ZqTm1aOFc2NU5PbW4yZHk1cnkwd0EvQVFzRDdXUS8Kb3I3c2NVRkEvdnRJNXJ4eWVNM2xhMjFycjVGMnhpbVcrZWNlUVNkY1JvK2RoaXFlYmsrcDJrRnV2SjBBZDlUdgpla0dtS0dhRXRPZnE1R2lkSnBrQ0F3RUFBYU1qTUNFd0RnWURWUjBQQVFIL0JBUURBZ0trTUE4R0ExVWRFd0VCCi93UUZNQU1CQWY4d0RRWUpLb1pJaHZjTkFRRUxCUUFEZ2dFQkFDdmlBNXlBKzhHT1NZWjlyam5tN2h0b3BoQkYKemFGMXNadHBudzZuZzM3cjNSSFJwUVlnZUpMcXZZaGtvQlZ5M0lsc1JTV0c2NGJwYUFubjdEb3JZSjdzYmFmeQpIdFRQYlF4S1Bxa0NyMGlwUkxBZmdtdDlodVNLbTlNQUVwWTlNL1NXdmpvNXVoZUg0RWJFWXViSGJhV0Z4eFpPCktTeXlZeTc5WGpIKy9pQndFemoxcWxYUzVsQ1dIUjN6SUUycnM5cVNKWnA2MW9NWDlmYWFYUElSZHJvOHNpVWIKMG1kOUZFeVcrc05GL05xREtUNTFzbHVYR2lWZ1lrK0diUnJ1L1IrbkpZNnlQUU1uK212UTFWN29Ic2RoUTJ1dApRUllZcytkRCtSMW1tNXdNOEIzL3NPSDRnelpKVmtNOFdteUg5a1RDMGFzbkszNDRGOTdrQktaN2VUST0KLS0tLS1FTkQgQ0VSVElGSUNBVEUtLS0tLQo=\"\r\n      }\r\n    }\r\n  ],\r\n  \"users\": [\r\n    {\r\n      \"name\": \"admin@asdfasdf\",\r\n      \"user\": {\r\n        \"client-certificate-data\": \"LS0tLS1CRUdJTiBDRVJUSUZJQ0FURS0tLS0tCk1JSUM4akNDQWRxZ0F3SUJBZ0lJSlFTLzQrYjgyLzR3RFFZSktvWklodmNOQVFFTEJRQXdGVEVUTUJFR0ExVUUKQXhNS2EzVmlaWEp1WlhSbGN6QWVGdzB4T1RBME1Ea3hOalV6TVRKYUZ3MHlNREEwTURneE5qVXpNVEphTURReApGekFWQmdOVkJBb1REbk41YzNSbGJUcHRZWE4wWlhKek1Sa3dGd1lEVlFRREV4QnJkV0psY201bGRHVnpMV0ZrCmJXbHVNSUlCSWpBTkJna3Foa2lHOXcwQkFRRUZBQU9DQVE4QU1JSUJDZ0tDQVFFQXVDRGlvUHBOcjlnb2kyY3IKUUd6d21tVFU3OUV4WDN0VUZGUUw1clZoQkVTTjdma2k0MWNueCtBRkhCbVRnODRNVStlR0VqditudGYvWEdQSApTR3FiYlZkOUFmM2hMV2dBUnBFdCtVVTZFUUJSTDdtUE9qZFI0WFhRQVk3RlNHam9wUlgvcWdUdFFJZ05MS0tHClVESzhMQVV2bkVoaVQrN0hKUGdlZGVJNG9SeHh4NUpvdXpqUlk0ODkyOGtNTE02Mm1ZMmV1bkFqMi8vWmtna2QKNmhKT3dxN0t5ck9jY0k3NVA3RE0xM3BtUDduZDA2SHp6VFJ5ZGxwbEJQbmErcHAwaDN0Q2xpNG5GZG5yakFwYgpiZWxKYUtDUElseEF1Mk00a1BBWDRZdGUvd0hiRVROQjNHbVhTWjNxQ3hocFhVdnlCYzdBalVWVnZncmJvbU11CkdvR2dBUUlEQVFBQm95Y3dKVEFPQmdOVkhROEJBZjhFQkFNQ0JhQXdFd1lEVlIwbEJBd3dDZ1lJS3dZQkJRVUgKQXdJd0RRWUpLb1pJaHZjTkFRRUxCUUFEZ2dFQkFGVEJWM0crNEdQaGtWUW9USU5XZDlTQjE2UTRCZjNGUm5BbApuODRJZzBWNFRkNndCZG1lbVZhYzFjeU94dkFSQmpGMEVoRXFaODFjVDZuK3NoMzZrYmh0Rzl3RDd4WU1lanhRClRBZnZDL01ndFo0YVl5Qnp2Uk5yWmxQYkoyUUlpdXo3RmM0NWFSUnh5LzJEVkVXYTdXaytzbUUrR0dHTnR0OFQKRUQzWjBhSTFWSkxDcDhqR0xVeVg3V3FRNU5YckN0TE95cnd0UHZMNGlLTnNZd2VwYzRYUTBacXBEM0VDMERJdApKZ0Vzb0FybDVYdTVad0oxbWtwS2x4RGhEOVZHTGExRkV1YmtNVTh4cGpQd0JzU2xWb3V3bzVVbVhETEhKUE5kCmlkQjBSdjZvUENzTlZvclpVUDRrR1lMdXA3NTJnc0FRSHQyUm5HcUZWUkJSRTBQWWc3az0KLS0tLS1FTkQgQ0VSVElGSUNBVEUtLS0tLQo=\",\r\n        \"client-key-data\": \"LS0tLS1CRUdJTiBSU0EgUFJJVkFURSBLRVktLS0tLQpNSUlFb3dJQkFBS0NBUUVBdUNEaW9QcE5yOWdvaTJjclFHendtbVRVNzlFeFgzdFVGRlFMNXJWaEJFU043ZmtpCjQxY254K0FGSEJtVGc4NE1VK2VHRWp2K250Zi9YR1BIU0dxYmJWZDlBZjNoTFdnQVJwRXQrVVU2RVFCUkw3bVAKT2pkUjRYWFFBWTdGU0dqb3BSWC9xZ1R0UUlnTkxLS0dVREs4TEFVdm5FaGlUKzdISlBnZWRlSTRvUnh4eDVKbwp1empSWTQ4OTI4a01MTTYybVkyZXVuQWoyLy9aa2drZDZoSk93cTdLeXJPY2NJNzVQN0RNMTNwbVA3bmQwNkh6CnpUUnlkbHBsQlBuYStwcDBoM3RDbGk0bkZkbnJqQXBiYmVsSmFLQ1BJbHhBdTJNNGtQQVg0WXRlL3dIYkVUTkIKM0dtWFNaM3FDeGhwWFV2eUJjN0FqVVZWdmdyYm9tTXVHb0dnQVFJREFRQUJBb0lCQUVCcmVQN2JNK3p1MHBpYgpPdDJxZjY5MDBhOHA0SDFJZDgwNDdvVUVObkk0emZOUmMreFlKTm5nUGNsc0JWbGE4S00yWUlqbXBwbktkbFJMCnNJQmNsQTU0U29zMDJPQjYvNFd3NjRYSHU1NFJIMVowTkhFb3c2UC9CUXhXZUIxeVh0ckxUSXllZHFkYU1rbkkKZnZkMkdMSEtDck5CKyt0OVhmMUlOZGdHa3N1Q3dPaFBuM3Z0cXJ2cktRSzJCQnAwVURJWXdHbVY2dmxCM3JmLwoxZDhmd0VQMEc0YVdzUDR4UnFSemt5bU5YbDNIcmZTUGZQTzZrdjhWMElWWjhFeFFXMjVXcWRsMERVcXhBZjBICmtGSHNtMGFYY1FVQk9ScmhxalByL1g5ZnBxbkNnMlJRSC9SVEV6ZXpoc2NrQWxHUjVFTTcxak42RkxVZFllVEgKRkdjSWdSVUNnWUVBNTk5OW1MVmU2WTd5RHJpL0pnQXRyVWxJWUN3SDNhOENmeVkrOURTWVdSdWFRdktReGVqNQpiSUhBQnBXVGp4YW95MjlYR01meCtxci9wdThzdWlzRjFueWtEUFh5cVRUeHgvMmIwRjg1eXA5M3pRcW9DOWZSCm8yTThpNDkxSWhWODZ6ajk5b0IvWkcvRjZBeGhBMlVOOG9jdnBaTHF0M1M0M2NZeDF2c2F0aE1DZ1lFQXkwbVoKek0wY0J5UTdhZlI3RVpFcUVTNGoxVkxGbTBBVldNcmRJaThuM0JhZEJ3RTFscXJ0NDJndU5VSG9MbUVEZENCcQpnSmYxNXZIYWFBa1Jjem95c1Y5SG5aZVhoQUxNMG11dU01amxpdFNiUEhvczl3WG5RQVJzTFdvNVJlSlpkWVliClhkSWVCLzNNTUtKdUFaejBvcVZaOTZ2SWpwajRQS1pWWThoTFpCc0NnWUVBdEI1UzlUWW14VzFxTU85b1pQK00KZStqS1ZSSy9CWUMyZ3NqVjdHT1MyTjF0Um9ZZzJld3hIUTNwZWZQbFRTaS85RS9JSzVMZU1PZDJjbG1tdC9ORgp0S2piMHNtWE44UE44Wm5hMk5Hd0Zlc3NaOVhZVm1MUEVZbTc5WGw1OXdFVUtiRDY3dXBBaTJlY0o3YStBYUlWClpJbUpCS2lNdGZmd3h5MzNkMVZXR1lzQ2dZQTlQK1hKSVJ1S3cwM3JkTEFIOFBiOXlpc2R3UnlzMURnYVVyVWgKOFpkTzVybFZQUFlLZVdISG5NSWZaY1l4QXlYcFBVTVpqNitWYjlWZ2R5cjh6dElyUXd2dTNaZlhQSWk5OVplOQpFQnBKSkJuSnRQNExSNG9QYmNXeVFVa1VWMGlnOGxFWWlaQm0wLzlMd0FUcEU0Tlo1ZndmZFhDdUZrVGs4VERWCkthb2RkUUtCZ0hkWnc4MU1sV3ZBU3EyUlVRK3BjK0wxL3lvb2F1bm93b0laak5uTVJETFFkYi9nSGhYYmNKUG0KOVRGeXBtYkthMVlGMkFjN2tJbkhxOFNCYUQyanhLaHZLNkVONFNpV2t3MExrb2JiZHR4OXlPVmYxcEc5MVZvUgpVZEhvS20wUnREbmRYMjhaNUxRR1FKL01DZkphMGJHNURKaFZ6SXgyQXBlSTlhWmVNbnN5Ci0tLS0tRU5EIFJTQSBQUklWQVRFIEtFWS0tLS0tCg==\"\r\n      }\r\n    }\r\n  ],\r\n  \"contexts\": [\r\n    {\r\n      \"name\": \"admin@asdfasdf\",\r\n      \"context\": {\r\n        \"cluster\": \"asdfasdf\",\r\n        \"user\": \"admin@asdfasdf\"\r\n      }\r\n    }\r\n  ],\r\n  \"current-context\": \"admin@asdfasdf\"\r\n}","clusterName":"kubernetes","cloudAccountName":"test"}`),
+			description:           "discover helm version error",
+			req:                   []byte(`{"kubeconfig":"{\r\n  \"kind\": \"Config\",\r\n  \"apiVersion\": \"v1\",\r\n  \"preferences\": {},\r\n  \"clusters\": [\r\n    {\r\n      \"name\": \"asdfasdf\",\r\n      \"cluster\": {\r\n        \"server\": \"https:\/\/ex-24adfede-130460518.eu-west-2.elb.amazonaws.com\",\r\n        \"certificate-authority-data\": \"LS0tLS1CRUdJTiBDRVJUSUZJQ0FURS0tLS0tCk1JSUN5RENDQWJDZ0F3SUJBZ0lCQURBTkJna3Foa2lHOXcwQkFRc0ZBREFWTVJNd0VRWURWUVFERXdwcmRXSmwKY201bGRHVnpNQjRYRFRFNU1EUXdPVEUyTlRNeE1sb1hEVEk1TURRd05qRTJOVE14TWxvd0ZURVRNQkVHQTFVRQpBeE1LYTNWaVpYSnVaWFJsY3pDQ0FTSXdEUVlKS29aSWh2Y05BUUVCQlFBRGdnRVBBRENDQVFvQ2dnRUJBSyt5Clc5VTdjZWJQV0FBWXNVR2pZUVM5aC9tblAyWW4zVUtxTStaT3QzQ2Z6MVk5ekhaaTlyK0pObEgrWkwralI2QWYKamYyTzRScEFvSG5uYTUzMGEwM2s3dFp3bTdiNXZCcEZLTmw2aHhoKzU2Y1RzMUxZbVJuTWRERFlRV2JSbXk2bwo3ZFRsaDVBVHY1K21tUlNMMkxja1lraDRqTWhObWFPb1hLVmxzck5SWXZ1NHAvRk5uNHF3OE0xekxXK25uSG5kCmZrSWlJZHRXb2ROMG8yL0Njb2l3QW5uSXpGVmVIYnF5L3ZqTm1aOFc2NU5PbW4yZHk1cnkwd0EvQVFzRDdXUS8Kb3I3c2NVRkEvdnRJNXJ4eWVNM2xhMjFycjVGMnhpbVcrZWNlUVNkY1JvK2RoaXFlYmsrcDJrRnV2SjBBZDlUdgpla0dtS0dhRXRPZnE1R2lkSnBrQ0F3RUFBYU1qTUNFd0RnWURWUjBQQVFIL0JBUURBZ0trTUE4R0ExVWRFd0VCCi93UUZNQU1CQWY4d0RRWUpLb1pJaHZjTkFRRUxCUUFEZ2dFQkFDdmlBNXlBKzhHT1NZWjlyam5tN2h0b3BoQkYKemFGMXNadHBudzZuZzM3cjNSSFJwUVlnZUpMcXZZaGtvQlZ5M0lsc1JTV0c2NGJwYUFubjdEb3JZSjdzYmFmeQpIdFRQYlF4S1Bxa0NyMGlwUkxBZmdtdDlodVNLbTlNQUVwWTlNL1NXdmpvNXVoZUg0RWJFWXViSGJhV0Z4eFpPCktTeXlZeTc5WGpIKy9pQndFemoxcWxYUzVsQ1dIUjN6SUUycnM5cVNKWnA2MW9NWDlmYWFYUElSZHJvOHNpVWIKMG1kOUZFeVcrc05GL05xREtUNTFzbHVYR2lWZ1lrK0diUnJ1L1IrbkpZNnlQUU1uK212UTFWN29Ic2RoUTJ1dApRUllZcytkRCtSMW1tNXdNOEIzL3NPSDRnelpKVmtNOFdteUg5a1RDMGFzbkszNDRGOTdrQktaN2VUST0KLS0tLS1FTkQgQ0VSVElGSUNBVEUtLS0tLQo=\"\r\n      }\r\n    }\r\n  ],\r\n  \"users\": [\r\n    {\r\n      \"name\": \"admin@asdfasdf\",\r\n      \"user\": {\r\n        \"client-certificate-data\": \"LS0tLS1CRUdJTiBDRVJUSUZJQ0FURS0tLS0tCk1JSUM4akNDQWRxZ0F3SUJBZ0lJSlFTLzQrYjgyLzR3RFFZSktvWklodmNOQVFFTEJRQXdGVEVUTUJFR0ExVUUKQXhNS2EzVmlaWEp1WlhSbGN6QWVGdzB4T1RBME1Ea3hOalV6TVRKYUZ3MHlNREEwTURneE5qVXpNVEphTURReApGekFWQmdOVkJBb1REbk41YzNSbGJUcHRZWE4wWlhKek1Sa3dGd1lEVlFRREV4QnJkV0psY201bGRHVnpMV0ZrCmJXbHVNSUlCSWpBTkJna3Foa2lHOXcwQkFRRUZBQU9DQVE4QU1JSUJDZ0tDQVFFQXVDRGlvUHBOcjlnb2kyY3IKUUd6d21tVFU3OUV4WDN0VUZGUUw1clZoQkVTTjdma2k0MWNueCtBRkhCbVRnODRNVStlR0VqditudGYvWEdQSApTR3FiYlZkOUFmM2hMV2dBUnBFdCtVVTZFUUJSTDdtUE9qZFI0WFhRQVk3RlNHam9wUlgvcWdUdFFJZ05MS0tHClVESzhMQVV2bkVoaVQrN0hKUGdlZGVJNG9SeHh4NUpvdXpqUlk0ODkyOGtNTE02Mm1ZMmV1bkFqMi8vWmtna2QKNmhKT3dxN0t5ck9jY0k3NVA3RE0xM3BtUDduZDA2SHp6VFJ5ZGxwbEJQbmErcHAwaDN0Q2xpNG5GZG5yakFwYgpiZWxKYUtDUElseEF1Mk00a1BBWDRZdGUvd0hiRVROQjNHbVhTWjNxQ3hocFhVdnlCYzdBalVWVnZncmJvbU11CkdvR2dBUUlEQVFBQm95Y3dKVEFPQmdOVkhROEJBZjhFQkFNQ0JhQXdFd1lEVlIwbEJBd3dDZ1lJS3dZQkJRVUgKQXdJd0RRWUpLb1pJaHZjTkFRRUxCUUFEZ2dFQkFGVEJWM0crNEdQaGtWUW9USU5XZDlTQjE2UTRCZjNGUm5BbApuODRJZzBWNFRkNndCZG1lbVZhYzFjeU94dkFSQmpGMEVoRXFaODFjVDZuK3NoMzZrYmh0Rzl3RDd4WU1lanhRClRBZnZDL01ndFo0YVl5Qnp2Uk5yWmxQYkoyUUlpdXo3RmM0NWFSUnh5LzJEVkVXYTdXaytzbUUrR0dHTnR0OFQKRUQzWjBhSTFWSkxDcDhqR0xVeVg3V3FRNU5YckN0TE95cnd0UHZMNGlLTnNZd2VwYzRYUTBacXBEM0VDMERJdApKZ0Vzb0FybDVYdTVad0oxbWtwS2x4RGhEOVZHTGExRkV1YmtNVTh4cGpQd0JzU2xWb3V3bzVVbVhETEhKUE5kCmlkQjBSdjZvUENzTlZvclpVUDRrR1lMdXA3NTJnc0FRSHQyUm5HcUZWUkJSRTBQWWc3az0KLS0tLS1FTkQgQ0VSVElGSUNBVEUtLS0tLQo=\",\r\n        \"client-key-data\": \"LS0tLS1CRUdJTiBSU0EgUFJJVkFURSBLRVktLS0tLQpNSUlFb3dJQkFBS0NBUUVBdUNEaW9QcE5yOWdvaTJjclFHendtbVRVNzlFeFgzdFVGRlFMNXJWaEJFU043ZmtpCjQxY254K0FGSEJtVGc4NE1VK2VHRWp2K250Zi9YR1BIU0dxYmJWZDlBZjNoTFdnQVJwRXQrVVU2RVFCUkw3bVAKT2pkUjRYWFFBWTdGU0dqb3BSWC9xZ1R0UUlnTkxLS0dVREs4TEFVdm5FaGlUKzdISlBnZWRlSTRvUnh4eDVKbwp1empSWTQ4OTI4a01MTTYybVkyZXVuQWoyLy9aa2drZDZoSk93cTdLeXJPY2NJNzVQN0RNMTNwbVA3bmQwNkh6CnpUUnlkbHBsQlBuYStwcDBoM3RDbGk0bkZkbnJqQXBiYmVsSmFLQ1BJbHhBdTJNNGtQQVg0WXRlL3dIYkVUTkIKM0dtWFNaM3FDeGhwWFV2eUJjN0FqVVZWdmdyYm9tTXVHb0dnQVFJREFRQUJBb0lCQUVCcmVQN2JNK3p1MHBpYgpPdDJxZjY5MDBhOHA0SDFJZDgwNDdvVUVObkk0emZOUmMreFlKTm5nUGNsc0JWbGE4S00yWUlqbXBwbktkbFJMCnNJQmNsQTU0U29zMDJPQjYvNFd3NjRYSHU1NFJIMVowTkhFb3c2UC9CUXhXZUIxeVh0ckxUSXllZHFkYU1rbkkKZnZkMkdMSEtDck5CKyt0OVhmMUlOZGdHa3N1Q3dPaFBuM3Z0cXJ2cktRSzJCQnAwVURJWXdHbVY2dmxCM3JmLwoxZDhmd0VQMEc0YVdzUDR4UnFSemt5bU5YbDNIcmZTUGZQTzZrdjhWMElWWjhFeFFXMjVXcWRsMERVcXhBZjBICmtGSHNtMGFYY1FVQk9ScmhxalByL1g5ZnBxbkNnMlJRSC9SVEV6ZXpoc2NrQWxHUjVFTTcxak42RkxVZFllVEgKRkdjSWdSVUNnWUVBNTk5OW1MVmU2WTd5RHJpL0pnQXRyVWxJWUN3SDNhOENmeVkrOURTWVdSdWFRdktReGVqNQpiSUhBQnBXVGp4YW95MjlYR01meCtxci9wdThzdWlzRjFueWtEUFh5cVRUeHgvMmIwRjg1eXA5M3pRcW9DOWZSCm8yTThpNDkxSWhWODZ6ajk5b0IvWkcvRjZBeGhBMlVOOG9jdnBaTHF0M1M0M2NZeDF2c2F0aE1DZ1lFQXkwbVoKek0wY0J5UTdhZlI3RVpFcUVTNGoxVkxGbTBBVldNcmRJaThuM0JhZEJ3RTFscXJ0NDJndU5VSG9MbUVEZENCcQpnSmYxNXZIYWFBa1Jjem95c1Y5SG5aZVhoQUxNMG11dU01amxpdFNiUEhvczl3WG5RQVJzTFdvNVJlSlpkWVliClhkSWVCLzNNTUtKdUFaejBvcVZaOTZ2SWpwajRQS1pWWThoTFpCc0NnWUVBdEI1UzlUWW14VzFxTU85b1pQK00KZStqS1ZSSy9CWUMyZ3NqVjdHT1MyTjF0Um9ZZzJld3hIUTNwZWZQbFRTaS85RS9JSzVMZU1PZDJjbG1tdC9ORgp0S2piMHNtWE44UE44Wm5hMk5Hd0Zlc3NaOVhZVm1MUEVZbTc5WGw1OXdFVUtiRDY3dXBBaTJlY0o3YStBYUlWClpJbUpCS2lNdGZmd3h5MzNkMVZXR1lzQ2dZQTlQK1hKSVJ1S3cwM3JkTEFIOFBiOXlpc2R3UnlzMURnYVVyVWgKOFpkTzVybFZQUFlLZVdISG5NSWZaY1l4QXlYcFBVTVpqNitWYjlWZ2R5cjh6dElyUXd2dTNaZlhQSWk5OVplOQpFQnBKSkJuSnRQNExSNG9QYmNXeVFVa1VWMGlnOGxFWWlaQm0wLzlMd0FUcEU0Tlo1ZndmZFhDdUZrVGs4VERWCkthb2RkUUtCZ0hkWnc4MU1sV3ZBU3EyUlVRK3BjK0wxL3lvb2F1bm93b0laak5uTVJETFFkYi9nSGhYYmNKUG0KOVRGeXBtYkthMVlGMkFjN2tJbkhxOFNCYUQyanhLaHZLNkVONFNpV2t3MExrb2JiZHR4OXlPVmYxcEc5MVZvUgpVZEhvS20wUnREbmRYMjhaNUxRR1FKL01DZkphMGJHNURKaFZ6SXgyQXBlSTlhWmVNbnN5Ci0tLS0tRU5EIFJTQSBQUklWQVRFIEtFWS0tLS0tCg==\"\r\n      }\r\n    }\r\n  ],\r\n  \"contexts\": [\r\n    {\r\n      \"name\": \"admin@asdfasdf\",\r\n      \"context\": {\r\n        \"cluster\": \"asdfasdf\",\r\n        \"user\": \"admin@asdfasdf\"\r\n      }\r\n    }\r\n  ],\r\n  \"current-context\": \"admin@asdfasdf\"\r\n}","clusterName":"kubernetes","cloudAccountName":"test"}`),
 			discoverK8SVersionErr: errors.Errorf("discover helm version"),
-			expectedCode: http.StatusInternalServerError,
+			expectedCode:          http.StatusInternalServerError,
 		},
 		{
 			description:  "bad credentials",
@@ -2489,10 +2537,13 @@ func TestImportKube(t *testing.T) {
 		mockRepo := new(testutils.MockStorage)
 		mockRepo.On("Put", mock.Anything, mock.Anything,
 			mock.Anything, mock.Anything).Return(nil)
+		getChartMock := &getChartRefMock{}
+		getChartMock.On("GetChartRef", mock.Anything, mock.Anything,
+			mock.Anything, mock.Anything).Return("", nil)
 
 		h := NewHandler(svc, accSvc,
 			profileSvc, nil,
-			nil, mockRepo, nil, "")
+			nil, getChartMock, mockRepo, nil, "")
 		h.discoverK8SVersion = func(kubeConfig *clientcmddapi.Config) (string, error) {
 			return testCase.k8sVerson, testCase.discoverK8SVersionErr
 		}
