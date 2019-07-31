@@ -14,6 +14,10 @@ import (
 
 const StepName = "prometheus"
 
+type Config struct {
+	RBACEnabled bool
+}
+
 type Step struct {
 	script *template.Template
 }
@@ -41,7 +45,7 @@ func New(script *template.Template) *Step {
 }
 
 func (s *Step) Run(ctx context.Context, out io.Writer, config *steps.Config) error {
-	err := steps.RunTemplate(ctx, s.script, config.Runner, out, config.PrometheusConfig)
+	err := steps.RunTemplate(ctx, s.script, config.Runner, out, toStepCfg(config))
 
 	if err != nil {
 		return errors.Wrap(err, "install prometheus step")
@@ -60,4 +64,10 @@ func (s *Step) Description() string {
 
 func (s *Step) Depends() []string {
 	return nil
+}
+
+func toStepCfg(c *steps.Config) Config {
+	return Config{
+		RBACEnabled: c.Kube.RBACEnabled,
+	}
 }

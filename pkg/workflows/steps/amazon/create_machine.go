@@ -3,13 +3,14 @@ package amazon
 import (
 	"context"
 	"fmt"
+	"io"
+	"strconv"
+
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/aws/request"
 	"github.com/aws/aws-sdk-go/service/ec2"
 	"github.com/pkg/errors"
 	"github.com/sirupsen/logrus"
-	"io"
-	"strconv"
 
 	"github.com/supergiant/control/pkg/clouds"
 	"github.com/supergiant/control/pkg/model"
@@ -65,7 +66,7 @@ func (s *StepCreateInstance) Run(ctx context.Context, w io.Writer, cfg *steps.Co
 		role = model.RoleNode
 	}
 
-	nodeName := util.MakeNodeName(cfg.ClusterName, cfg.TaskID, cfg.IsMaster)
+	nodeName := util.MakeNodeName(cfg.Kube.Name, cfg.TaskID, cfg.IsMaster)
 
 	cfg.Node = model.Machine{
 		Name:     nodeName,
@@ -126,7 +127,7 @@ func (s *StepCreateInstance) Run(ctx context.Context, w io.Writer, cfg *steps.Co
 				Tags: []*ec2.Tag{
 					{
 						Key:   aws.String("KubernetesCluster"),
-						Value: aws.String(cfg.ClusterName),
+						Value: aws.String(cfg.Kube.Name),
 					},
 					{
 						Key:   aws.String(clouds.TagNodeName),
@@ -138,7 +139,7 @@ func (s *StepCreateInstance) Run(ctx context.Context, w io.Writer, cfg *steps.Co
 					},
 					{
 						Key:   aws.String(clouds.TagClusterID),
-						Value: aws.String(cfg.ClusterID),
+						Value: aws.String(cfg.Kube.ID),
 					},
 				},
 			},
@@ -177,7 +178,6 @@ func (s *StepCreateInstance) Run(ctx context.Context, w io.Writer, cfg *steps.Co
 	// Update node state in cluster
 	cfg.NodeChan() <- cfg.Node
 
-
 	if len(res.Instances) == 0 {
 		cfg.Node.State = model.MachineStateError
 		cfg.NodeChan() <- cfg.Node
@@ -196,7 +196,7 @@ func (s *StepCreateInstance) Run(ctx context.Context, w io.Writer, cfg *steps.Co
 			},
 			{
 				Name:   aws.String(fmt.Sprintf("tag:%s", clouds.TagClusterID)),
-				Values: []*string{aws.String(cfg.ClusterID)},
+				Values: []*string{aws.String(cfg.Kube.ID)},
 			},
 		},
 	}
@@ -205,9 +205,9 @@ func (s *StepCreateInstance) Run(ctx context.Context, w io.Writer, cfg *steps.Co
 
 	if err != nil {
 		logrus.Errorf("Error waiting instance %s cluster %s running %v",
-			nodeName, cfg.ClusterID, err)
+			nodeName, cfg.Kube.ID, err)
 		return errors.Wrapf(err, "Error waiting instance %s cluster-id %s",
-			nodeName, cfg.ClusterID)
+			nodeName, cfg.Kube.ID)
 	}
 
 	logrus.Debugf("Instance running %s", nodeName)

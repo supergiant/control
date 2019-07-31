@@ -35,7 +35,7 @@ func ToProvider(name string) (Name, error) {
 	return Unknown, errors.New("invalid provider")
 }
 
-func GetVersions() []string{
+func GetVersions() []string {
 	if versions == nil {
 		return nil
 	}
@@ -112,5 +112,5 @@ const (
 	AzureClientID       = "clientId"
 	AzureClientSecret   = "clientSecret"
 	AzureVolumeSize     = "azureVolumeSize"
-	AzureVNetCIDR = "azureVNetCIDR"
+	AzureVNetCIDR       = "azureVNetCIDR"
 )

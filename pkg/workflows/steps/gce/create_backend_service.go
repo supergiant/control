@@ -64,7 +64,7 @@ func (s *CreateBackendServiceStep) Run(ctx context.Context, output io.Writer,
 	}
 
 	backendService := &compute.BackendService{
-		Name:                fmt.Sprintf("bs-%s", config.ClusterID),
+		Name:                fmt.Sprintf("bs-%s", config.Kube.ID),
 		Description:         "Backend service for internal traffic",
 		LoadBalancingScheme: "INTERNAL",
 		Protocol:            "TCP",

@@ -9,12 +9,11 @@ import (
 	"testing"
 	"text/template"
 
-	"github.com/supergiant/control/pkg/model"
-
 	"github.com/pkg/errors"
 	"github.com/stretchr/testify/require"
 
 	"github.com/supergiant/control/pkg/clouds"
+	"github.com/supergiant/control/pkg/model"
 	"github.com/supergiant/control/pkg/runner"
 	"github.com/supergiant/control/pkg/sgerrors"
 	"github.com/supergiant/control/pkg/templatemanager"
@@ -55,15 +54,15 @@ func TestKubeadm(t *testing.T) {
 		Provider:    clouds.AWS,
 		IsMaster:    true,
 		IsBootstrap: true,
-		KubeadmConfig: steps.KubeadmConfig{
-			IsMaster:    true,
-			IsBootstrap: true,
-			CIDR:        "10.0.0.0/24",
-			Token:       "1234",
+		Kube: model.Kube{
+			Networking: model.Networking{
+				CIDR: "10.0.0.0/24",
+			},
+			BootstrapToken:  "1234",
+			ExternalDNSName: "external.dns.name",
+			InternalDNSName: "internal.dns.name",
 		},
-		ExternalDNSName: "external.dns.name",
-		InternalDNSName: "internal.dns.name",
-		Runner:          r,
+		Runner: r,
 		Node: model.Machine{
 			PrivateIp: "10.20.30.40",
 		},
@@ -76,12 +75,12 @@ func TestKubeadm(t *testing.T) {
 	err = task.Run(context.Background(), output, cfg)
 	require.Nil(t, err)
 
-	if !strings.Contains(output.String(), cfg.KubeadmConfig.CIDR) {
-		t.Errorf("CIDR %s not found in %s", cfg.KubeadmConfig.CIDR, output.String())
+	if !strings.Contains(output.String(), cfg.Kube.Networking.CIDR) {
+		t.Errorf("CIDR %s not found in %s", cfg.Kube.Networking.CIDR, output.String())
 	}
 
-	if !strings.Contains(output.String(), cfg.KubeadmConfig.InternalDNSName) {
-		t.Errorf("LoadBalancerHost %s not found in %s", cfg.KubeadmConfig.InternalDNSName, output.String())
+	if !strings.Contains(output.String(), cfg.Kube.InternalDNSName) {
+		t.Errorf("LoadBalancerHost %s not found in %s", cfg.Kube.InternalDNSName, output.String())
 	}
 }
 
@@ -96,8 +95,7 @@ func TestStartKubeadmError(t *testing.T) {
 
 	output := new(bytes.Buffer)
 	config := &steps.Config{
-		KubeadmConfig: steps.KubeadmConfig{},
-		Runner:        r,
+		Runner: r,
 	}
 
 	j := &Step{

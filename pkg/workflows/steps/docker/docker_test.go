@@ -10,6 +10,7 @@ import (
 	"testing"
 	"text/template"
 
+	"github.com/supergiant/control/pkg/model"
 	"github.com/supergiant/control/pkg/profile"
 	"github.com/supergiant/control/pkg/runner"
 	"github.com/supergiant/control/pkg/templatemanager"
@@ -32,7 +33,6 @@ func (f *fakeRunner) Run(command *runner.Command) error {
 
 func TestInstallDocker(t *testing.T) {
 	dockerVersion := "17.05"
-	releaseVersion := "1.29"
 	arch := "amd64"
 	err := templatemanager.Init("../../../../templates")
 
@@ -50,10 +50,9 @@ func TestInstallDocker(t *testing.T) {
 	r := &testutils.MockRunner{}
 
 	config := steps.Config{
-		DockerConfig: steps.DockerConfig{
-			Version:        dockerVersion,
-			ReleaseVersion: releaseVersion,
-			Arch:           arch,
+		Kube: model.Kube{
+			DockerVersion: dockerVersion,
+			Arch:          arch,
 		},
 		Runner: r,
 	}

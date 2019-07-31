@@ -14,6 +14,11 @@ import (
 
 const StepName = "docker"
 
+type Config struct {
+	Version string
+	Arch    string
+}
+
 type Step struct {
 	script *template.Template
 }
@@ -35,8 +40,7 @@ func New(tpl *template.Template) *Step {
 }
 
 func (t *Step) Run(ctx context.Context, out io.Writer, config *steps.Config) error {
-	err := steps.RunTemplate(context.Background(), t.script,
-		config.Runner, out, config.DockerConfig)
+	err := steps.RunTemplate(context.Background(), t.script, config.Runner, out, toStepCfg(config))
 	if err != nil {
 		return errors.Wrap(err, "install docker step")
 	}
@@ -58,4 +62,11 @@ func (t *Step) Description() string {
 
 func (s *Step) Depends() []string {
 	return nil
+}
+
+func toStepCfg(c *steps.Config) Config {
+	return Config{
+		Version: c.Kube.DockerVersion,
+		Arch:    c.Kube.Arch,
+	}
 }

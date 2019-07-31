@@ -2,6 +2,7 @@ package util
 
 import (
 	"github.com/sirupsen/logrus"
+
 	"github.com/supergiant/control/pkg/clouds"
 	"github.com/supergiant/control/pkg/model"
 	"github.com/supergiant/control/pkg/workflows/steps"
@@ -9,19 +10,18 @@ import (
 
 func UpdateKubeWithCloudSpecificData(k *model.Kube, config *steps.Config) {
 	logrus.Debugf("Update cloud specific data for kube %s",
-		config.ClusterID)
+		config.Kube.ID)
 
 	cloudSpecificSettings := make(map[string]string)
-	logrus.Infof("Save internal DNS name %s and external DNS name %s",
-		config.InternalDNSName, config.ExternalDNSName)
-	k.ExternalDNSName = config.ExternalDNSName
-	k.InternalDNSName = config.InternalDNSName
-	k.BootstrapToken = config.BootstrapToken
-	k.UserData = config.ConfigMap.Data
-	k.K8SVersion = config.K8SVersion
-	k.Auth.CACertHash = config.CertificatesConfig.CACertHash
-	k.Auth.CertificateKey = config.KubeadmConfig.CertificateKey
-	k.Auth.CACertHash = config.CertificatesConfig.CACertHash
+
+	k.ExternalDNSName = config.Kube.ExternalDNSName
+	k.InternalDNSName = config.Kube.InternalDNSName
+	k.BootstrapToken = config.Kube.BootstrapToken
+	k.UserData = config.Kube.UserData
+	k.K8SVersion = config.Kube.K8SVersion
+	k.Auth.CACertHash = config.Kube.Auth.CACertHash
+	k.Auth.CertificateKey = config.Kube.Auth.CertificateKey
+	k.Auth.CACertHash = config.Kube.Auth.CACertHash
 
 	// Save cloudSpecificData in kube
 	switch config.Provider {

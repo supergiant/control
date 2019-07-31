@@ -9,6 +9,7 @@ import (
 	"github.com/aws/aws-sdk-go/service/ec2"
 	"github.com/pkg/errors"
 	"github.com/sirupsen/logrus"
+
 	"github.com/supergiant/control/pkg/clouds"
 	"github.com/supergiant/control/pkg/model"
 	"github.com/supergiant/control/pkg/sgerrors"
@@ -168,7 +169,7 @@ func (s *ImportClusterStep) importMachines(ctx context.Context, role model.Role,
 			Tags: []*ec2.Tag{
 				{
 					Key:   aws.String("KubernetesCluster"),
-					Value: aws.String(cfg.ClusterName),
+					Value: aws.String(cfg.Kube.Name),
 				},
 				{
 					Key:   aws.String("Role"),
@@ -176,7 +177,7 @@ func (s *ImportClusterStep) importMachines(ctx context.Context, role model.Role,
 				},
 				{
 					Key:   aws.String(clouds.TagClusterID),
-					Value: aws.String(cfg.ClusterID),
+					Value: aws.String(cfg.Kube.ID),
 				},
 			},
 		}

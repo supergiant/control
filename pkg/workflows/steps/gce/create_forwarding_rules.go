@@ -8,9 +8,10 @@ import (
 
 	"github.com/pkg/errors"
 	"github.com/sirupsen/logrus"
+	"google.golang.org/api/compute/v1"
+
 	"github.com/supergiant/control/pkg/clouds/gcesdk"
 	"github.com/supergiant/control/pkg/workflows/steps"
-	"google.golang.org/api/compute/v1"
 )
 
 const CreateForwardingRulesStepName = "gce_create_forwarding_rules"
@@ -56,7 +57,7 @@ func (s *CreateForwardingRules) Run(ctx context.Context, output io.Writer,
 		return errors.Wrapf(err, "%s getting service caused", CreateForwardingRulesStepName)
 	}
 
-	exName := fmt.Sprintf("exrule-%s", config.ClusterID)
+	exName := fmt.Sprintf("exrule-%s", config.Kube.ID)
 	externalForwardingRule := &compute.ForwardingRule{
 		Name:                exName,
 		IPAddress:           config.GCEConfig.ExternalIPAddressLink,
@@ -95,7 +96,7 @@ func (s *CreateForwardingRules) Run(ctx context.Context, output io.Writer,
 	logrus.Debugf("Created external forwarding rule %s link %s", exName, externalForwardingRule.SelfLink)
 	config.GCEConfig.ExternalForwardingRuleName = externalForwardingRule.Name
 
-	inName := fmt.Sprintf("inrule-%s", config.ClusterID)
+	inName := fmt.Sprintf("inrule-%s", config.Kube.ID)
 	internalForwardingRule := &compute.ForwardingRule{
 		Name:                inName,
 		IPAddress:           config.GCEConfig.InternalIPAddressLink,

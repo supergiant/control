@@ -12,6 +12,7 @@ import (
 	"github.com/aws/aws-sdk-go/service/elb"
 	"github.com/stretchr/testify/mock"
 
+	"github.com/supergiant/control/pkg/model"
 	"github.com/supergiant/control/pkg/workflows/steps"
 )
 
@@ -46,7 +47,6 @@ func (m *mockELBService) ConfigureHealthCheck(input *elb.ConfigureHealthCheckInp
 	}
 	return val, args.Error(1)
 }
-
 
 func (m *mockELBService) RegisterInstancesWithLoadBalancerWithContext(ctx aws.Context, input *elb.RegisterInstancesWithLoadBalancerInput, opts ...request.Option) (*elb.RegisterInstancesWithLoadBalancerOutput, error) {
 	args := m.Called(ctx, input, opts)
@@ -168,7 +168,9 @@ func TestCreateLoadBalancerStep_Run(t *testing.T) {
 		}
 
 		config := &steps.Config{
-			ClusterID: "1234",
+			Kube: model.Kube{
+				ID: "1234",
+			},
 			AWSConfig: steps.AWSConfig{},
 		}
 
@@ -186,12 +188,12 @@ func TestCreateLoadBalancerStep_Run(t *testing.T) {
 		}
 
 		if testCase.errMsg == "" &&
-			config.ExternalDNSName == "" {
+			config.Kube.ExternalDNSName == "" {
 			t.Errorf("Wrong ExternalDNSName must not be empty")
 		}
 
 		if testCase.errMsg == "" &&
-			config.InternalDNSName == "" {
+			config.Kube.InternalDNSName == "" {
 			t.Errorf("Wrong InternalDNSName must not be empty")
 		}
 	}

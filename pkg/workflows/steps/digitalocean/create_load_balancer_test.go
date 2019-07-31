@@ -181,8 +181,8 @@ func TestCreateLoadBalancerStep_Run(t *testing.T) {
 			t.Errorf("Error message %s must contain %s", err.Error(), testCase.errMsg)
 		}
 
-		if err == nil && (strings.Compare(config.ExternalDNSName, testCase.getExternalLB.IP) != 0 ||
-			strings.Compare(config.InternalDNSName, testCase.getInternalLB.IP) != 0) {
+		if err == nil && (strings.Compare(config.Kube.ExternalDNSName, testCase.getExternalLB.IP) != 0 ||
+			strings.Compare(config.Kube.InternalDNSName, testCase.getInternalLB.IP) != 0) {
 			t.Log(testCase.getExternalLB.ID, testCase.getInternalLB.ID)
 			t.Errorf("External or Internal DNS names do not correspond actual output")
 		}

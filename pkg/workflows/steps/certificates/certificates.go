@@ -14,6 +14,12 @@ import (
 
 const StepName = "certificates"
 
+type Config struct {
+	IsBootstrap bool
+	CACert      string
+	CAKey       string
+}
+
 type Step struct {
 	template *template.Template
 }
@@ -38,10 +44,7 @@ func New(tpl *template.Template) *Step {
 }
 
 func (s *Step) Run(ctx context.Context, out io.Writer, config *steps.Config) error {
-	// TODO: why does these is set here, not on the building config step?
-	config.CertificatesConfig.IsBootstrap = config.IsBootstrap
-
-	err := steps.RunTemplate(ctx, s.template, config.Runner, out, config.CertificatesConfig)
+	err := steps.RunTemplate(ctx, s.template, config.Runner, out, toStepCfg(config))
 	if err != nil {
 		return errors.Wrap(err, "write certificates step")
 	}
@@ -59,4 +62,12 @@ func (s *Step) Description() string {
 
 func (s *Step) Depends() []string {
 	return nil
+}
+
+func toStepCfg(c *steps.Config) Config {
+	return Config{
+		IsBootstrap: c.IsBootstrap,
+		CACert:      c.Kube.Auth.CACert,
+		CAKey:       c.Kube.Auth.CAKey,
+	}
 }

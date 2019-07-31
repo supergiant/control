@@ -2,13 +2,14 @@ package gce
 
 import (
 	"context"
-	"github.com/sirupsen/logrus"
-	"github.com/supergiant/control/pkg/clouds/gcesdk"
-	"google.golang.org/api/compute/v1"
+	"fmt"
 	"io"
 
-	"fmt"
 	"github.com/pkg/errors"
+	"github.com/sirupsen/logrus"
+	"google.golang.org/api/compute/v1"
+
+	"github.com/supergiant/control/pkg/clouds/gcesdk"
 	"github.com/supergiant/control/pkg/workflows/steps"
 )
 
@@ -50,7 +51,7 @@ func (s *CreateTargetPoolStep) Run(ctx context.Context, output io.Writer,
 		return errors.Wrapf(err, "%s getting service caused", CreateTargetPullStepName)
 	}
 
-	targetPoolName := fmt.Sprintf("ex-%s", config.ClusterID)
+	targetPoolName := fmt.Sprintf("ex-%s", config.Kube.ID)
 	targetPool := &compute.TargetPool{
 		Description: "Target pool for balancing traffic",
 		Name:        targetPoolName,

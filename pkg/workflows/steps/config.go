@@ -7,6 +7,7 @@ import (
 
 	"github.com/Azure/go-autorest/autorest"
 	"github.com/pkg/errors"
+
 	"github.com/supergiant/control/pkg/clouds"
 	"github.com/supergiant/control/pkg/model"
 	"github.com/supergiant/control/pkg/profile"
@@ -18,26 +19,6 @@ import (
 const (
 	DefaultK8SAPIPort int64 = 443
 )
-
-type CertificatesConfig struct {
-	IsBootstrap bool `json:"isBootstrap"`
-
-	ParenCert []byte `json:"parenCert"`
-
-	CACert     string `json:"caCert"`
-	CAKey      string `json:"caKey"`
-	CACertHash string `json:"caCertHash"`
-
-	AdminCert string `json:"adminCert"`
-	AdminKey  string `json:"adminKey"`
-
-	StaticAuth profile.StaticAuth `json:"staticAuth"`
-
-	// DEPRECATED: it's a part of staticAuth
-	Username string
-	// DEPRECATED: it's a part of staticAuth
-	Password string
-}
 
 type DOConfig struct {
 	Name string `json:"name" valid:"required"`
@@ -157,94 +138,6 @@ type AWSConfig struct {
 	RouteTableAssociationIDs map[string]string `json:"routeTableAssociationIds"`
 }
 
-type NetworkConfig struct {
-	IsBootstrap     bool   `json:"isBootstrap"`
-	CIDR            string `json:"cidr"`
-	NetworkProvider string `json:"networkProvider"`
-}
-
-type PostStartConfig struct {
-	IsBootstrap bool          `json:"isBootstrap"`
-	Provider    clouds.Name   `json:"provider"`
-	Host        string        `json:"host"`
-	Port        string        `json:"port"`
-	Username    string        `json:"username"`
-	RBACEnabled bool          `json:"rbacEnabled"`
-	Timeout     time.Duration `json:"timeout"`
-}
-
-type TillerConfig struct {
-	HelmVersion     string `json:"helmVersion"`
-	RBACEnabled     bool   `json:"rbacEnabled"`
-	OperatingSystem string `json:"operatingSystem"`
-	Arch            string `json:"arch"`
-}
-
-type DockerConfig struct {
-	Version        string `json:"version"`
-	ReleaseVersion string `json:"releaseVersion"`
-	Arch           string `json:"arch"`
-}
-
-type DownloadK8sBinary struct {
-	K8SVersion      string `json:"k8sVersion"`
-	Arch            string `json:"arch"`
-	OperatingSystem string `json:"operatingSystem"`
-}
-
-type PrometheusConfig struct {
-	Port        string `json:"port"`
-	RBACEnabled bool   `json:"rbacEnabled"`
-}
-
-type KubeadmConfig struct {
-	UserName        string `json:"userName"`
-	KubeadmVersion  string `json:"kubeadmVersion"`
-	CACertHash      string `json:"caCertHash"`
-	K8SVersion      string `json:"K8SVersion"`
-	IsMaster        bool   `json:"isMaster"`
-	IsBootstrap     bool   `json:"IsBootstrap"`
-	ServiceCIDR     string `json:"serviceCIDR"`
-	CIDR            string `json:"cidr"`
-	Token           string `json:"token"`
-	Provider        string `json:"provider"`
-	NodeIp          string `json:"nodeIp"`
-	CertificateKey  string `json:"certificateKey"`
-	InternalDNSName string `json:"internalDNSName"`
-	ExternalDNSName string `json:"externalDNSName"`
-	APIServerPort   int64  `json:"apiserverPort"`
-}
-
-type KubeletConfig struct {
-	IsMaster     bool   `json:"isMaster"`
-	ServicesCIDR string `json:"servicesCIDR"`
-	PublicIP     string `json:"publicIp"`
-	PrivateIP    string `json:"privateIp"`
-
-	LoadBalancerHost string `json:"loadBalancerHost"`
-	APIServerPort    int64  `json:"apiserverPort"`
-	NodeName         string `json:"nodeName"`
-	UserName         string `json:"userName"`
-
-	// TODO: this shouldn't be a part of SANs
-	// https://kubernetes.io/docs/setup/certificates/#all-certificates
-	KubernetesSvcIP string `json:"kubernetesSvcIp"`
-
-	StaticAuth profile.StaticAuth `json:"staticAuth"`
-
-	// DEPRECATED: it's a part of staticAuth
-	Username string
-	// DEPRECATED: it's a part of staticAuth
-	Password string
-
-	AdminCert string `json:"adminCert"`
-	AdminKey  string `json:"adminKey"`
-
-	ParenCert []byte `json:"parenCert"`
-	CACert    string `json:"caCert"`
-	CAKey     string `json:"caKey"`
-}
-
 type DrainConfig struct {
 	PrivateIP string `json:"privateIp"`
 }
@@ -272,18 +165,13 @@ func NewMap(m map[string]*model.Machine) Map {
 }
 
 type Config struct {
-	Kube       model.Kube `json:"kube"`
-	K8SVersion string     `json:"k8sVersion"`
+	Kube model.Kube `json:"kube"`
 
 	DryRun             bool `json:"dryRun"`
 	TaskID             string
-	Provider           clouds.Name  `json:"provider"`
 	IsMaster           bool         `json:"isMaster"`
 	IsBootstrap        bool         `json:"IsBootstrap"`
 	IsImport           bool         `json:"isImport"`
-	BootstrapToken     string       `json:"bootstrapToken"`
-	ClusterID          string       `json:"clusterId"`
-	ClusterName        string       `json:"clusterName"`
 	DigitalOceanConfig DOConfig     `json:"digitalOceanConfig"`
 	AWSConfig          AWSConfig    `json:"awsConfig"`
 	GCEConfig          GCEConfig    `json:"gceConfig"`
@@ -291,21 +179,11 @@ type Config struct {
 	OSConfig           OSConfig     `json:"osConfig"`
 	PacketConfig       PacketConfig `json:"packetConfig"`
 
-	DockerConfig       DockerConfig       `json:"dockerConfig"`
-	DownloadK8sBinary  DownloadK8sBinary  `json:"downloadK8sBinary"`
-	CertificatesConfig CertificatesConfig `json:"certificatesConfig"`
-	NetworkConfig      NetworkConfig      `json:"networkConfig"`
-	PostStartConfig    PostStartConfig    `json:"postStartConfig"`
-	TillerConfig       TillerConfig       `json:"tillerConfig"`
-	PrometheusConfig   PrometheusConfig   `json:"prometheusConfig"`
-	DrainConfig        DrainConfig        `json:"drainConfig"`
-	KubeadmConfig      KubeadmConfig      `json:"kubeadmConfig"`
-	KubeletConfig      KubeletConfig      `json:"kubeletConfig"`
-	ConfigMap          ConfigMap          `json:"configMap"`
-	ApplyConfig        ApplyConfig        `json:"applyConfig"`
+	DrainConfig DrainConfig `json:"drainConfig"`
+	ConfigMap   ConfigMap   `json:"configMap"`
+	ApplyConfig ApplyConfig `json:"applyConfig"`
 
-	ExternalDNSName string `json:"externalDnsName"`
-	InternalDNSName string `json:"internalDnsName"`
+	Provider clouds.Name `json:"provider"`
 
 	Node             model.Machine `json:"node"`
 	CloudAccountID   string        `json:"cloudAccountId" valid:"required, length(1|32)"`
@@ -347,19 +225,37 @@ func NewConfig(clusterName, cloudAccountName string, profile profile.Profile) (*
 	}
 
 	return &Config{
-		K8SVersion: profile.K8SVersion,
 		Kube: model.Kube{
+			Name:       clusterName,
+			K8SVersion: profile.K8SVersion,
 			SSHConfig: model.SSHConfig{
 				Port:      "22",
 				User:      user,
 				Timeout:   30,
 				PublicKey: profile.PublicKey,
 			},
+			Auth: model.Auth{
+				Username:   profile.User,
+				Password:   profile.Password,
+				StaticAuth: profile.StaticAuth,
+			},
+			Networking: model.Networking{
+				Manager:  profile.NetworkProvider,
+				Provider: profile.NetworkProvider,
+				Type:     profile.NetworkType,
+				CIDR:     profile.CIDR,
+			},
+			Arch:             profile.Arch,
+			OperatingSystem:  profile.OperatingSystem,
+			DockerVersion:    profile.DockerVersion,
+			HelmVersion:      profile.HelmVersion,
 			ExposedAddresses: profile.ExposedAddresses,
 			APIServerPort:    ensurePort(profile.K8SAPIPort),
+			Provider:         profile.Provider,
+			RBACEnabled:      profile.RBACEnabled,
+			ServicesCIDR:     profile.K8SServicesCIDR,
 		},
-		Provider:    profile.Provider,
-		ClusterName: clusterName,
+		Provider: profile.Provider,
 		DigitalOceanConfig: DOConfig{
 			Region: profile.Region,
 		},
@@ -387,57 +283,6 @@ func NewConfig(clusterName, cloudAccountName string, profile profile.Profile) (*
 			VNetCIDR: profile.CloudSpecificSettings[clouds.AzureVNetCIDR],
 			// TODO(stgleb): this should be passed from the UI
 			VolumeSize: "30",
-		},
-		OSConfig:     OSConfig{},
-		PacketConfig: PacketConfig{},
-
-		DockerConfig: DockerConfig{
-			Version:        profile.DockerVersion,
-			ReleaseVersion: profile.UbuntuVersion,
-			Arch:           profile.Arch,
-		},
-		DownloadK8sBinary: DownloadK8sBinary{
-			K8SVersion:      profile.K8SVersion,
-			Arch:            profile.Arch,
-			OperatingSystem: profile.OperatingSystem,
-		},
-		CertificatesConfig: CertificatesConfig{
-			Username:   profile.User,
-			Password:   profile.Password,
-			StaticAuth: profile.StaticAuth,
-		},
-		KubeletConfig: KubeletConfig{
-			ServicesCIDR: profile.K8SServicesCIDR,
-		},
-		NetworkConfig: NetworkConfig{
-			CIDR:            profile.CIDR,
-			NetworkProvider: profile.NetworkProvider,
-		},
-		PostStartConfig: PostStartConfig{
-			Host:        "localhost",
-			Port:        "8080",
-			Username:    profile.User,
-			RBACEnabled: profile.RBACEnabled,
-			Timeout:     time.Minute * 60,
-			Provider:    profile.Provider,
-		},
-		TillerConfig: TillerConfig{
-			HelmVersion:     profile.HelmVersion,
-			OperatingSystem: profile.OperatingSystem,
-			Arch:            profile.Arch,
-			RBACEnabled:     profile.RBACEnabled,
-		},
-		PrometheusConfig: PrometheusConfig{
-			Port:        "30900",
-			RBACEnabled: profile.RBACEnabled,
-		},
-		KubeadmConfig: KubeadmConfig{
-			// TODO(stgleb): get it from available versions once we have them
-			KubeadmVersion: "1.15.0",
-			K8SVersion:     profile.K8SVersion,
-			IsBootstrap:    true,
-			CIDR:           profile.CIDR,
-			ServiceCIDR:    profile.K8SServicesCIDR,
 		},
 
 		Masters: Map{
@@ -473,17 +318,11 @@ func NewConfigFromKube(profile *profile.Profile, k *model.Kube) (*Config, error)
 	}
 
 	cfg := &Config{
-		ClusterID:      k.ID,
-		Provider:       profile.Provider,
-		ClusterName:    k.Name,
-		K8SVersion:     k.K8SVersion,
-		BootstrapToken: k.BootstrapToken,
+		Provider: profile.Provider,
 		DigitalOceanConfig: DOConfig{
 			Region: profile.Region,
 		},
-		Kube:            *k,
-		ExternalDNSName: k.ExternalDNSName,
-		InternalDNSName: k.InternalDNSName,
+		Kube: *k,
 		AWSConfig: AWSConfig{
 			Region:                   profile.Region,
 			AvailabilityZone:         k.CloudSpec[clouds.AwsAZ],
@@ -506,61 +345,6 @@ func NewConfigFromKube(profile *profile.Profile, k *model.Kube) (*Config, error)
 			Location:   profile.Region,
 			VNetCIDR:   k.CloudSpec[clouds.AzureVNetCIDR],
 			VolumeSize: k.CloudSpec[clouds.AzureVolumeSize],
-		},
-		OSConfig:     OSConfig{},
-		PacketConfig: PacketConfig{},
-
-		DockerConfig: DockerConfig{
-			Version:        profile.DockerVersion,
-			ReleaseVersion: profile.UbuntuVersion,
-			Arch:           profile.Arch,
-		},
-		DownloadK8sBinary: DownloadK8sBinary{
-			K8SVersion:      profile.K8SVersion,
-			Arch:            profile.Arch,
-			OperatingSystem: profile.OperatingSystem,
-		},
-		CertificatesConfig: CertificatesConfig{
-			CAKey:      k.Auth.CAKey,
-			CACert:     k.Auth.CACert,
-			AdminCert:  k.Auth.AdminCert,
-			AdminKey:   k.Auth.AdminKey,
-			Username:   profile.User,
-			Password:   profile.Password,
-			StaticAuth: profile.StaticAuth,
-		},
-		KubeletConfig: KubeletConfig{
-			ServicesCIDR: profile.K8SServicesCIDR,
-		},
-		NetworkConfig: NetworkConfig{
-			NetworkProvider: profile.NetworkProvider,
-			CIDR:            profile.CIDR,
-		},
-		PostStartConfig: PostStartConfig{
-			Host:        "localhost",
-			Port:        "8080",
-			Username:    profile.User,
-			RBACEnabled: profile.RBACEnabled,
-			Timeout:     time.Minute * 60,
-			Provider:    k.Provider,
-		},
-		TillerConfig: TillerConfig{
-			HelmVersion:     profile.HelmVersion,
-			OperatingSystem: profile.OperatingSystem,
-			Arch:            profile.Arch,
-			RBACEnabled:     profile.RBACEnabled,
-		},
-		PrometheusConfig: PrometheusConfig{
-			Port:        "30900",
-			RBACEnabled: profile.RBACEnabled,
-		},
-		KubeadmConfig: KubeadmConfig{
-			KubeadmVersion: "1.15.0",
-			K8SVersion:     profile.K8SVersion,
-			IsBootstrap:    true,
-			Token:          k.BootstrapToken,
-			CIDR:           profile.CIDR,
-			ServiceCIDR:    profile.K8SServicesCIDR,
 		},
 		Masters: Map{
 			internal: make(map[string]*model.Machine, len(profile.MasterProfiles)),

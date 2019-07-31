@@ -196,7 +196,7 @@ func TestStepCreateInstance_Run(t *testing.T) {
 		}
 
 		config.TaskID = uuid.New()
-		config.ClusterID = uuid.New()
+		config.Kube.ID = uuid.New()
 		config.IsMaster = testCase.isMaster
 
 		ec2Svc := &mockEC2{}

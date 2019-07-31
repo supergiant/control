@@ -12,6 +12,7 @@ import (
 	"github.com/pkg/errors"
 	"github.com/stretchr/testify/mock"
 
+	"github.com/supergiant/control/pkg/model"
 	"github.com/supergiant/control/pkg/workflows/steps"
 )
 
@@ -100,7 +101,9 @@ func TestDeleteClusterRun(t *testing.T) {
 				return svc
 			}
 			err := step.Run(context.Background(), &bytes.Buffer{}, &steps.Config{
-				ClusterID: testCase.clusterID,
+				Kube: model.Kube{
+					ID: testCase.clusterID,
+				},
 			})
 
 			if err != testCase.dropletErrors[i] {
