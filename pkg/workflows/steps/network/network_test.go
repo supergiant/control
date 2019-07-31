@@ -11,6 +11,7 @@ import (
 
 	"github.com/pkg/errors"
 
+	"github.com/supergiant/control/pkg/model"
 	"github.com/supergiant/control/pkg/profile"
 	"github.com/supergiant/control/pkg/runner"
 	"github.com/supergiant/control/pkg/templatemanager"
@@ -86,8 +87,8 @@ func TestNetworkConfig(t *testing.T) {
 			t.Errorf("Unexpected error %v", err)
 		}
 
-		config.NetworkConfig = steps.NetworkConfig{
-			NetworkProvider: testCase.networkProvider,
+		config.Kube.Networking = model.Networking{
+			Provider: testCase.networkProvider,
 		}
 		config.Runner = r
 		config.IsBootstrap = true

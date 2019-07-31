@@ -61,15 +61,15 @@ func (s *KeyPairStep) Run(ctx context.Context, w io.Writer, cfg *steps.Config) e
 			ImportKeyPairStepName)
 	}
 
-	if len(cfg.ClusterID) < 4 {
+	if len(cfg.Kube.ID) < 4 {
 		return errors.New("Cluster ID is too short")
 	}
 
 	// NOTE(stgleb): Add unique part to key pair name that allows to
 	// create cluster with the same name and avoid name collision of key pairs.
 	bootstrapKeyPairName := util.MakeKeyName(fmt.Sprintf("%s-%s",
-		cfg.ClusterName,
-		cfg.ClusterID[:4]),
+		cfg.Kube.Name,
+		cfg.Kube.ID[:4]),
 		false)
 	log.Infof("[%s] - importing cluster bootstrap key as keypair %s",
 		s.Name(), bootstrapKeyPairName)

@@ -253,7 +253,7 @@ func TestCreateInstanceStep_Run(t *testing.T) {
 			t.Errorf("Unexpected error %v", err)
 		}
 
-		cfg.ClusterID = uuid.New()
+		cfg.Kube.ID = uuid.New()
 		cfg.TaskID = uuid.New()
 		cfg.IsMaster = testCase.isMaster
 		err = step.Run(context.Background(), &buffer.Buffer{}, cfg)

@@ -10,6 +10,7 @@ import (
 	"github.com/Azure/go-autorest/autorest/to"
 	"github.com/pkg/errors"
 	"github.com/sirupsen/logrus"
+
 	"github.com/supergiant/control/pkg/sgerrors"
 	"github.com/supergiant/control/pkg/workflows/steps"
 )
@@ -45,8 +46,8 @@ func (s *CreateLBStep) Run(ctx context.Context, output io.Writer, config *steps.
 		config.GetAzureAuthorizer(),
 		config.AzureConfig.SubscriptionID,
 		config.AzureConfig.Location,
-		toResourceGroupName(config.ClusterID, config.ClusterName),
-		toLBName(config.ClusterID, config.ClusterName),
+		toResourceGroupName(config.Kube.ID, config.Kube.Name),
+		toLBName(config.Kube.ID, config.Kube.Name),
 		config.Kube.APIServerPort,
 	)
 	if err != nil {
@@ -56,8 +57,8 @@ func (s *CreateLBStep) Run(ctx context.Context, output io.Writer, config *steps.
 		return errors.Wrapf(sgerrors.ErrRawError, "%s load balancer address is unknown", to.String(lb.Name))
 	}
 
-	config.ExternalDNSName = addr
-	config.InternalDNSName = addr
+	config.Kube.ExternalDNSName = addr
+	config.Kube.InternalDNSName = addr
 
 	logrus.Debugf("azure: %s lb has been created", to.String(lb.Name))
 	return nil

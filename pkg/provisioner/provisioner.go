@@ -10,6 +10,8 @@ import (
 
 	"github.com/pkg/errors"
 	"github.com/sirupsen/logrus"
+	"k8s.io/kubernetes/cmd/kubeadm/app/phases/copycerts"
+
 	"github.com/supergiant/control/pkg/clouds"
 	"github.com/supergiant/control/pkg/model"
 	"github.com/supergiant/control/pkg/pki"
@@ -23,7 +25,6 @@ import (
 	"github.com/supergiant/control/pkg/workflows/statuses"
 	"github.com/supergiant/control/pkg/workflows/steps"
 	"github.com/supergiant/control/pkg/workflows/steps/configmap"
-	"k8s.io/kubernetes/cmd/kubeadm/app/phases/copycerts"
 )
 
 type KubeService interface {
@@ -83,7 +84,7 @@ func (tp *TaskProvisioner) ProvisionCluster(parentContext context.Context,
 
 	// Get clusterID from taskID
 	if clusterTask != nil && len(clusterTask.ID) >= 8 {
-		config.ClusterID = clusterTask.ID[:8]
+		config.Kube.ID = clusterTask.ID[:8]
 	} else {
 		return nil, errors.New(fmt.Sprintf("Wrong value of "+
 			"cluster task %v", clusterTask))
@@ -91,10 +92,10 @@ func (tp *TaskProvisioner) ProvisionCluster(parentContext context.Context,
 
 	// Save cancel that cancel cluster provisioning to cancelMap
 	ctx, cancel := context.WithCancel(parentContext)
-	tp.cancelMap[config.ClusterID] = cancel
+	tp.cancelMap[config.Kube.ID] = cancel
 
 	// TODO(stgleb): Make node names from task id before provisioning starts
-	masters, nodes := nodesFromProfile(config.ClusterName,
+	masters, nodes := nodesFromProfile(config.Kube.Name,
 		taskMap[workflows.MasterTask], taskMap[workflows.NodeTask],
 		clusterProfile)
 
@@ -109,7 +110,7 @@ func (tp *TaskProvisioner) ProvisionCluster(parentContext context.Context,
 	}
 
 	// monitor cluster state in separate goroutine
-	go tp.monitorClusterState(ctx, config.ClusterID, config.NodeChan(),
+	go tp.monitorClusterState(ctx, config.Kube.ID, config.NodeChan(),
 		config.KubeStateChan(), config.ConfigChan())
 	go tp.provision(ctx, taskMap, clusterProfile)
 	// Move cluster to provisioning state
@@ -129,14 +130,14 @@ func (tp *TaskProvisioner) ProvisionNodes(parentContext context.Context, nodePro
 
 	// Save cancel function that cancels node provisioning to cancelMap
 	ctx, cancel := context.WithCancel(parentContext)
-	tp.cancelMap[config.ClusterID] = cancel
+	tp.cancelMap[config.Kube.ID] = cancel
 
 	if err := tp.loadCloudSpecificData(ctx, config); err != nil {
 		return nil, errors.Wrap(err, "load cloud specific config")
 	}
 
 	// monitor cluster state in separate goroutine
-	go tp.monitorClusterState(ctx, config.ClusterID,
+	go tp.monitorClusterState(ctx, config.Kube.ID,
 		config.NodeChan(), config.KubeStateChan(), config.ConfigChan())
 
 	tasks := make([]string, 0, len(nodeProfiles))
@@ -203,7 +204,7 @@ func (tp *TaskProvisioner) RestartClusterProvisioning(parentCtx context.Context,
 
 	ctx, cancel := context.WithTimeout(context.Background(),
 		time.Minute*30)
-	tp.cancelMap[config.ClusterID] = cancel
+	tp.cancelMap[config.Kube.ID] = cancel
 	logrus.Debugf("Deserialize tasks")
 
 	// Deserialize tasks and put them to map
@@ -214,7 +215,7 @@ func (tp *TaskProvisioner) RestartClusterProvisioning(parentCtx context.Context,
 		return errors.Wrapf(err, "Restart cluster provisioning")
 	}
 
-	go tp.monitorClusterState(ctx, config.ClusterID,
+	go tp.monitorClusterState(ctx, config.Kube.ID,
 		config.NodeChan(), config.KubeStateChan(), config.ConfigChan())
 	go tp.provision(ctx, taskMap, clusterProfile)
 
@@ -339,7 +340,7 @@ func (tp *TaskProvisioner) provision(ctx context.Context,
 	// Save cluster state when masters are provisioned
 	logrus.Infof("master provisioning for cluster"+
 		"%s has finished successfully",
-		config.ClusterID)
+		config.Kube.ID)
 
 	config.IsBootstrap = false
 	config.IsMaster = false
@@ -366,7 +367,7 @@ func (tp *TaskProvisioner) provision(ctx context.Context,
 		}
 	}
 	logrus.Infof("cluster %s deployment has finished",
-		config.ClusterID)
+		config.Kube.ID)
 }
 
 // prepare creates all tasks for provisioning according to cloud provider
@@ -675,7 +676,7 @@ func buildNodeProvisionScript(ctx context.Context, config *steps.Config) {
 	// These values must still be templated
 	dryConfig.Node.PublicIp = "{{ .PublicIp }}"
 	dryConfig.Node.PrivateIp = "{{ .PrivateIp }}"
-	dryConfig.ExternalDNSName = fmt.Sprintf("{{ .%s }}", configmap.KubeAddr)
+	dryConfig.Kube.ExternalDNSName = fmt.Sprintf("{{ .%s }}", configmap.KubeAddr)
 	dryConfig.Runner = dryRunner
 	dryConfig.DryRun = true
 
@@ -707,58 +708,23 @@ func (tp *TaskProvisioner) buildInitialCluster(ctx context.Context,
 	profile *profile.Profile, masters, nodes map[string]*model.Machine,
 	config *steps.Config, taskIds map[string][]string) error {
 
-	cluster := &model.Kube{
-		ID:           config.ClusterID,
-		State:        model.StateProvisioning,
-		Name:         config.ClusterName,
-		Provider:     profile.Provider,
-		ProfileID:    profile.ID,
-		AccountName:  config.CloudAccountName,
-		RBACEnabled:  profile.RBACEnabled,
-		ServicesCIDR: profile.K8SServicesCIDR,
-		Region:       profile.Region,
-		Zone:         profile.Zone,
-		User:         profile.User,
-		Password:     profile.Password,
+	config.Kube.State = model.StateProvisioning
+	config.Kube.Provider = profile.Provider
+	config.Kube.ProfileID = profile.ID
+	config.Kube.AccountName = config.CloudAccountName
+	config.Kube.Region = profile.Region
+	config.Kube.Zone = profile.Zone
+	config.Kube.CloudSpec = profile.CloudSpecificSettings
 
-		Auth: model.Auth{
-			Username:       config.CertificatesConfig.Username,
-			Password:       config.CertificatesConfig.Password,
-			CACert:         config.CertificatesConfig.CACert,
-			CAKey:          config.CertificatesConfig.CAKey,
-			AdminCert:      config.CertificatesConfig.AdminCert,
-			AdminKey:       config.CertificatesConfig.AdminKey,
-			CertificateKey: config.KubeadmConfig.CertificateKey,
-		},
+	config.Kube.Masters = masters
+	config.Kube.Nodes = nodes
+	config.Kube.Tasks = taskIds
 
-		Arch:                   profile.Arch,
-		OperatingSystem:        profile.OperatingSystem,
-		OperatingSystemVersion: profile.UbuntuVersion,
-		K8SVersion:             profile.K8SVersion,
-		DockerVersion:          profile.DockerVersion,
-		HelmVersion:            profile.HelmVersion,
-		Networking: model.Networking{
-			Manager: profile.FlannelVersion,
-			Version: profile.FlannelVersion,
-			Type:    profile.NetworkType,
-			CIDR:    profile.CIDR,
-		},
-		CloudSpec: profile.CloudSpecificSettings,
-		Masters:   masters,
-		Nodes:     nodes,
-		Tasks:     taskIds,
-
-		SSHConfig: config.Kube.SSHConfig,
-
-		ExposedAddresses: config.Kube.ExposedAddresses,
-		APIServerPort:    config.Kube.APIServerPort,
-	}
-
-	return tp.kubeService.Create(ctx, cluster)
+	return tp.kubeService.Create(ctx, &config.Kube)
 }
 
 func (t *TaskProvisioner) loadCloudSpecificData(ctx context.Context, config *steps.Config) error {
-	k, err := t.kubeService.Get(ctx, config.ClusterID)
+	k, err := t.kubeService.Get(ctx, config.Kube.ID)
 
 	if err != nil {
 		logrus.Errorf("get kube caused %v", err)
@@ -769,19 +735,15 @@ func (t *TaskProvisioner) loadCloudSpecificData(ctx context.Context, config *ste
 }
 
 func bootstrapCerts(config *steps.Config) error {
-	ca, err := pki.NewCAPair(config.CertificatesConfig.ParenCert)
+	ca, err := pki.NewCAPair([]byte(config.Kube.Auth.ParentCert))
 	if err != nil {
 		return errors.Wrap(err, "bootstrap CA for provisioning")
 	}
-	config.CertificatesConfig.CACert = string(ca.Cert)
-	config.CertificatesConfig.CAKey = string(ca.Key)
-	config.CertificatesConfig.CACertHash = ca.CertHash
+	config.Kube.Auth.CACert = string(ca.Cert)
+	config.Kube.Auth.CAKey = string(ca.Key)
+	config.Kube.Auth.CACertHash = ca.CertHash
 
-	if config.KubeadmConfig.CertificateKey, err = copycerts.CreateCertificateKey(); err != nil {
-		return errors.Wrap(err, "create certificate key")
-	}
-
-	if config.KubeadmConfig.CertificateKey, err = copycerts.CreateCertificateKey(); err != nil {
+	if config.Kube.Auth.CertificateKey, err = copycerts.CreateCertificateKey(); err != nil {
 		return errors.Wrap(err, "create certificate key")
 	}
 
@@ -789,8 +751,8 @@ func bootstrapCerts(config *steps.Config) error {
 	if err != nil {
 		return errors.Wrap(err, "create admin certificates")
 	}
-	config.CertificatesConfig.AdminCert = string(admin.Cert)
-	config.CertificatesConfig.AdminKey = string(admin.Key)
+	config.Kube.Auth.AdminCert = string(admin.Cert)
+	config.Kube.Auth.AdminKey = string(admin.Key)
 
 	return nil
 }

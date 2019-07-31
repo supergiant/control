@@ -11,6 +11,7 @@ import (
 
 	"github.com/pkg/errors"
 
+	"github.com/supergiant/control/pkg/model"
 	"github.com/supergiant/control/pkg/runner"
 	"github.com/supergiant/control/pkg/templatemanager"
 	"github.com/supergiant/control/pkg/workflows/steps"
@@ -56,7 +57,7 @@ func TestInstallTiller(t *testing.T) {
 	}
 
 	cfg := &steps.Config{
-		TillerConfig: steps.TillerConfig{
+		Kube: model.Kube{
 			HelmVersion:     helmVersion,
 			RBACEnabled:     rbacEnabled,
 			OperatingSystem: operatingSystem,
@@ -99,8 +100,7 @@ func TestInstallTillerError(t *testing.T) {
 	}
 
 	cfg := &steps.Config{
-		TillerConfig: steps.TillerConfig{},
-		Runner:       r,
+		Runner: r,
 	}
 	err = j.Run(context.Background(), output, cfg)
 

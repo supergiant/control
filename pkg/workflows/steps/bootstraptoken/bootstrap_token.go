@@ -44,7 +44,7 @@ func New(script *template.Template) *Step {
 func (s *Step) Run(ctx context.Context, out io.Writer, config *steps.Config) error {
 	if config.IsBootstrap {
 		token, err := GenerateBootstrapToken()
-		config.BootstrapToken = token
+		config.Kube.BootstrapToken = token
 
 		if err != nil {
 			return errors.Wrapf(err, "generate bootstrap token")
@@ -59,8 +59,8 @@ func (s *Step) Run(ctx context.Context, out io.Writer, config *steps.Config) err
 			IsImport       bool
 		}{
 			IsBootstrap:    config.IsBootstrap,
-			Token:          config.BootstrapToken,
-			CertificateKey: config.KubeadmConfig.CertificateKey,
+			Token:          config.Kube.BootstrapToken,
+			CertificateKey: config.Kube.Auth.CertificateKey,
 			IsImport:       config.IsImport,
 		})
 

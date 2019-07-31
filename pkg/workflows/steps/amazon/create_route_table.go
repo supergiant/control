@@ -81,16 +81,16 @@ func (s *CreateRouteTableStep) Run(ctx context.Context, w io.Writer, cfg *steps.
 	ec2Tags := []*ec2.Tag{
 		{
 			Key:   aws.String("KubernetesCluster"),
-			Value: aws.String(cfg.ClusterName),
+			Value: aws.String(cfg.Kube.Name),
 		},
 		{
 			Key:   aws.String(clouds.TagClusterID),
-			Value: aws.String(cfg.ClusterID),
+			Value: aws.String(cfg.Kube.ID),
 		},
 		{
 			Key: aws.String("Name"),
 			Value: aws.String(fmt.Sprintf("route-table-%s",
-				cfg.ClusterID)),
+				cfg.Kube.ID)),
 		},
 	}
 

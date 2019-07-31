@@ -10,6 +10,7 @@ import (
 
 	"github.com/pkg/errors"
 
+	"github.com/supergiant/control/pkg/model"
 	"github.com/supergiant/control/pkg/templatemanager"
 	"github.com/supergiant/control/pkg/testutils"
 	"github.com/supergiant/control/pkg/workflows/steps"
@@ -56,10 +57,10 @@ func TestDownloadK8SBinary(t *testing.T) {
 		output := &bytes.Buffer{}
 
 		config := steps.Config{
-			DownloadK8sBinary: steps.DownloadK8sBinary{
-				testCase.version,
-				testCase.arch,
-				testCase.operatingSystem,
+			Kube: model.Kube{
+				K8SVersion:      testCase.version,
+				Arch:            testCase.arch,
+				OperatingSystem: testCase.operatingSystem,
 			},
 			Runner: r,
 		}

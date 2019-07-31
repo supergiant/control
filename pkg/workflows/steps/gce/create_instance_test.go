@@ -172,8 +172,8 @@ func TestCreateInstanceStep_Run(t *testing.T) {
 			}
 
 			config.TaskID = uuid.New()
-			config.ClusterName = util.RandomString(8)
-			config.ClusterID = uuid.New()[:8]
+			config.Kube.Name = util.RandomString(8)
+			config.Kube.ID = uuid.New()[:8]
 			config.IsMaster = role
 
 			ctx, cancel := context.WithCancel(context.Background())

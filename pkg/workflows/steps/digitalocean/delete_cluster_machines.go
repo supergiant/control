@@ -36,7 +36,7 @@ func (s *DeleteMachinesStep) Run(ctx context.Context, output io.Writer, config *
 	)
 
 	for i := 0; i < 3; i++ {
-		resp, err = deleteService.DeleteByTag(ctx, config.ClusterID)
+		resp, err = deleteService.DeleteByTag(ctx, config.Kube.ID)
 
 		if resp != nil && resp.StatusCode == http.StatusNoContent {
 			return err

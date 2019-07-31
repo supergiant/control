@@ -3,7 +3,6 @@ package gce
 import (
 	"context"
 	"fmt"
-	"github.com/supergiant/control/pkg/clouds/gcesdk"
 	"io"
 	"strings"
 	"time"
@@ -13,6 +12,7 @@ import (
 	"google.golang.org/api/compute/v1"
 
 	"github.com/supergiant/control/pkg/clouds"
+	"github.com/supergiant/control/pkg/clouds/gcesdk"
 	"github.com/supergiant/control/pkg/model"
 	"github.com/supergiant/control/pkg/sgerrors"
 	"github.com/supergiant/control/pkg/util"
@@ -112,7 +112,7 @@ func (s *CreateInstanceStep) Run(ctx context.Context, output io.Writer,
 
 	// NOTE(stgleb): Upper-case symbols are forbidden
 	// Instance name must follow regexp: (?:[a-z](?:[-a-z0-9]{0,61}[a-z0-9])?)
-	name := util.MakeNodeName(strings.ToLower(config.ClusterName),
+	name := util.MakeNodeName(strings.ToLower(config.Kube.Name),
 		config.TaskID, config.IsMaster)
 
 	// TODO(stgleb): also copy user provided ssh key
@@ -130,7 +130,7 @@ func (s *CreateInstanceStep) Run(ctx context.Context, output io.Writer,
 
 	instance := &compute.Instance{
 		Name:         name,
-		Description:  "Kubernetes master node for cluster:" + config.ClusterName,
+		Description:  "Kubernetes master node for cluster:" + config.Kube.Name,
 		MachineType:  instType.SelfLink,
 		CanIpForward: true,
 		Tags: &compute.Tags{
@@ -168,7 +168,7 @@ func (s *CreateInstanceStep) Run(ctx context.Context, output io.Writer,
 						Name: "External NAT",
 					},
 				},
-				Network: config.GCEConfig.NetworkLink,
+				Network:    config.GCEConfig.NetworkLink,
 				Subnetwork: config.GCEConfig.SubnetLink,
 			},
 		},
@@ -270,7 +270,7 @@ func (s *CreateInstanceStep) Run(ctx context.Context, output io.Writer,
 							resp.Name, resp.SelfLink, config.GCEConfig.TargetPoolName)
 					}
 
-					go func(){
+					go func() {
 						// NOTE(stgleb): This is stupid, but it works.
 						// Add intstance to instance group only after provisioning has finished
 						// Because of that https://cloud.google.com/load-balancing/docs/internal/setting-up-internal#test-from-backend-vms

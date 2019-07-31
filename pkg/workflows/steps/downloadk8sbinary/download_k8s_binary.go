@@ -14,6 +14,12 @@ import (
 
 const StepName = "download_kubernetes_binary"
 
+type Config struct {
+	K8SVersion      string
+	Arch            string
+	OperatingSystem string
+}
+
 type Step struct {
 	script *template.Template
 }
@@ -35,8 +41,7 @@ func New(tpl *template.Template) *Step {
 }
 
 func (s *Step) Run(ctx context.Context, out io.Writer, config *steps.Config) error {
-	err := steps.RunTemplate(context.Background(), s.script,
-		config.Runner, out, config.DownloadK8sBinary)
+	err := steps.RunTemplate(context.Background(), s.script, config.Runner, out, toStepCfg(config))
 	if err != nil {
 		return errors.Wrap(err, "download k8s binary step")
 	}
@@ -58,4 +63,12 @@ func (s *Step) Description() string {
 
 func (s *Step) Depends() []string {
 	return nil
+}
+
+func toStepCfg(c *steps.Config) Config {
+	return Config{
+		K8SVersion:      c.Kube.K8SVersion,
+		Arch:            c.Kube.Arch,
+		OperatingSystem: c.Kube.OperatingSystem,
+	}
 }

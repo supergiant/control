@@ -2,6 +2,7 @@ package sghelm
 
 import (
 	"encoding/json"
+	"io"
 	"net/http"
 	"strings"
 
@@ -30,6 +31,7 @@ func NewHandler(svc *Service) *Handler {
 func (h *Handler) Register(r *mux.Router) {
 	r.HandleFunc("/helm/repositories", h.createRepo).Methods(http.MethodPost)
 	r.HandleFunc("/helm/repositories/{repoName}", h.getRepo).Methods(http.MethodGet)
+	r.HandleFunc("/helm/repositories/{repoName}", h.updateRepo).Methods(http.MethodPatch)
 	r.HandleFunc("/helm/repositories", h.listRepos).Methods(http.MethodGet)
 	r.HandleFunc("/helm/repositories/{repoName}", h.deleteRepo).Methods(http.MethodDelete)
 
@@ -45,7 +47,6 @@ func (h *Handler) createRepo(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	// TODO: use a custom struct instead of repo.Entry
 	repoConf.Name, repoConf.URL = strings.TrimSpace(repoConf.Name), strings.TrimSpace(repoConf.URL)
 	if repoConf.Name == "" || repoConf.URL == "" {
 		log.Errorf("helm: create repository: validation failed: %+v", repoConf)
@@ -66,6 +67,34 @@ func (h *Handler) createRepo(w http.ResponseWriter, r *http.Request) {
 
 	if err := json.NewEncoder(w).Encode(hrepo); err != nil {
 		log.Errorf("helm: create repository: %s: write resp: %s", repoConf.Name, err)
+		message.SendUnknownError(w, err)
+		return
+	}
+}
+
+func (h *Handler) updateRepo(w http.ResponseWriter, r *http.Request) {
+	name := mux.Vars(r)["repoName"]
+
+	opts := &repo.Entry{}
+	err := json.NewDecoder(r.Body).Decode(opts)
+	if err != nil {
+		// ignore io.EOF error (request.Body is empty), update only the repo index
+		if err != io.EOF {
+			log.Errorf("helm: update repository: decode: %s", err)
+			message.SendValidationFailed(w, err)
+			return
+		}
+	}
+
+	hrepo, err := h.svc.UpdateRepo(r.Context(), name, opts)
+	if err != nil {
+		log.Errorf("helm: update repository: %s: %s", opts.Name, err)
+		message.SendUnknownError(w, err)
+		return
+	}
+
+	if err := json.NewEncoder(w).Encode(hrepo); err != nil {
+		log.Errorf("helm: update repository: %s: write resp: %s", opts.Name, err)
 		message.SendUnknownError(w, err)
 		return
 	}

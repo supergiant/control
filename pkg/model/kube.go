@@ -75,19 +75,25 @@ type SSHConfig struct {
 
 // Auth holds all possible auth parameters.
 type Auth struct {
-	Username       string `json:"username"`
-	Password       string `json:"token"`
-	CAKey          string `json:"caKey"`
-	CACert         string `json:"caCert"`
-	CACertHash     string `json:"caCertHash"`
-	AdminCert      string `json:"adminCert"`
-	AdminKey       string `json:"adminKey"`
-	CertificateKey string `json:"certificateKey"`
+	// DEPRECATED: use static auth
+	Username string `json:"username"`
+	// DEPRECATED: use static auth
+	Password       string             `json:"token"`
+	ParentCert     string             `json:"parentCert"`
+	CAKey          string             `json:"caKey"`
+	CACert         string             `json:"caCert"`
+	CACertHash     string             `json:"caCertHash"`
+	AdminCert      string             `json:"adminCert"`
+	AdminKey       string             `json:"adminKey"`
+	CertificateKey string             `json:"certificateKey"`
+	StaticAuth     profile.StaticAuth `json:"staticAuth"`
 }
 
 type Networking struct {
-	Manager string `json:"manager"`
-	Version string `json:"version"`
-	Type    string `json:"type"`
-	CIDR    string `json:"cidr"`
+	// DEPRECATED: use Provider field instead
+	Manager  string `json:"manager"`
+	Provider string `json:"provider"`
+	Version  string `json:"version"`
+	Type     string `json:"type"`
+	CIDR     string `json:"cidr"`
 }

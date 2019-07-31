@@ -9,6 +9,7 @@ import (
 	"github.com/digitalocean/godo"
 	"github.com/pkg/errors"
 	"github.com/sirupsen/logrus"
+
 	"github.com/supergiant/control/pkg/clouds/digitaloceansdk"
 	"github.com/supergiant/control/pkg/util"
 	"github.com/supergiant/control/pkg/workflows/steps"
@@ -36,7 +37,7 @@ func (s *CreateLoadBalancerStep) Run(ctx context.Context, output io.Writer, conf
 	lbSvc := s.getServices(config.DigitalOceanConfig.AccessToken)
 
 	req := &godo.LoadBalancerRequest{
-		Name:   util.CreateLBName(config.ClusterID, true),
+		Name:   util.CreateLBName(config.Kube.ID, true),
 		Region: config.DigitalOceanConfig.Region,
 		ForwardingRules: []godo.ForwardingRule{
 			{
@@ -66,7 +67,7 @@ func (s *CreateLoadBalancerStep) Run(ctx context.Context, output io.Writer, conf
 			HealthyThreshold:       3,
 			ResponseTimeoutSeconds: 10,
 		},
-		Tag: fmt.Sprintf("master-%s", config.ClusterID),
+		Tag: fmt.Sprintf("master-%s", config.Kube.ID),
 	}
 
 	externalLoadBalancer, _, err := lbSvc.Create(ctx, req)
@@ -106,10 +107,10 @@ func (s *CreateLoadBalancerStep) Run(ctx context.Context, output io.Writer, conf
 		return errors.New("External Load balancer IP must not be empty")
 	}
 
-	config.ExternalDNSName = externalLoadBalancer.IP
+	config.Kube.ExternalDNSName = externalLoadBalancer.IP
 
 	req = &godo.LoadBalancerRequest{
-		Name:   util.CreateLBName(config.ClusterID, false),
+		Name:   util.CreateLBName(config.Kube.ID, false),
 		Region: config.DigitalOceanConfig.Region,
 		ForwardingRules: []godo.ForwardingRule{
 			{
@@ -139,7 +140,7 @@ func (s *CreateLoadBalancerStep) Run(ctx context.Context, output io.Writer, conf
 			HealthyThreshold:       3,
 			ResponseTimeoutSeconds: 10,
 		},
-		Tag: fmt.Sprintf("master-%s", config.ClusterID),
+		Tag: fmt.Sprintf("master-%s", config.Kube.ID),
 	}
 
 	internalLoadBalancer, _, err := lbSvc.Create(ctx, req)
@@ -179,7 +180,7 @@ func (s *CreateLoadBalancerStep) Run(ctx context.Context, output io.Writer, conf
 		return errors.New("Internal Load balancer IP must not be empty")
 	}
 
-	config.InternalDNSName = internalLoadBalancer.IP
+	config.Kube.InternalDNSName = internalLoadBalancer.IP
 
 	return nil
 }

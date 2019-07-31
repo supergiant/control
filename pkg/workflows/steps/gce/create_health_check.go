@@ -8,9 +8,10 @@ import (
 
 	"github.com/pkg/errors"
 	"github.com/sirupsen/logrus"
+	"google.golang.org/api/compute/v1"
+
 	"github.com/supergiant/control/pkg/clouds/gcesdk"
 	"github.com/supergiant/control/pkg/workflows/steps"
-	"google.golang.org/api/compute/v1"
 )
 
 const CreateHealthCheckStepName = "gce_create_health_check"
@@ -52,7 +53,7 @@ func (s *CreateHealthCheck) Run(ctx context.Context, output io.Writer,
 	}
 
 	healthCheck := &compute.HealthCheck{
-		Name:               fmt.Sprintf("hc-%s", config.ClusterID),
+		Name:               fmt.Sprintf("hc-%s", config.Kube.ID),
 		CheckIntervalSec:   10,
 		HealthyThreshold:   3,
 		UnhealthyThreshold: 3,

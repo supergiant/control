@@ -3,7 +3,6 @@ package amazon
 import (
 	"context"
 	"fmt"
-	"github.com/supergiant/control/pkg/clouds"
 	"io"
 
 	"github.com/aws/aws-sdk-go/aws"
@@ -12,6 +11,7 @@ import (
 	"github.com/pkg/errors"
 	"github.com/sirupsen/logrus"
 
+	"github.com/supergiant/control/pkg/clouds"
 	"github.com/supergiant/control/pkg/util"
 	"github.com/supergiant/control/pkg/workflows/steps"
 )
@@ -87,7 +87,7 @@ func (s *DeleteNodeStep) Run(ctx context.Context, w io.Writer, cfg *steps.Config
 
 	if len(instanceIDS) == 0 {
 		logrus.Infof("[%s] - node %s not found in cluster %s",
-			s.Name(), cfg.Node.Name, cfg.ClusterName)
+			s.Name(), cfg.Node.Name, cfg.Kube.Name)
 		return nil
 	}
 

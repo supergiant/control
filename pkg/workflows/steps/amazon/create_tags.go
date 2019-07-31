@@ -10,7 +10,6 @@ import (
 	"github.com/sirupsen/logrus"
 
 	"github.com/supergiant/control/pkg/clouds"
-
 	"github.com/supergiant/control/pkg/workflows/steps"
 )
 
@@ -75,11 +74,11 @@ func (s *CreateTagsStep) Run(ctx context.Context, w io.Writer, cfg *steps.Config
 		Tags: []*ec2.Tag{
 			{
 				Key:   aws.String("KubernetesCluster"),
-				Value: aws.String(cfg.ClusterName),
+				Value: aws.String(cfg.Kube.Name),
 			},
 			{
 				Key:   aws.String(clouds.TagClusterID),
-				Value: aws.String(cfg.ClusterID),
+				Value: aws.String(cfg.Kube.ID),
 			},
 		},
 	}

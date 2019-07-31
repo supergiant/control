@@ -56,7 +56,7 @@ func (s *CreateVMStep) Run(ctx context.Context, output io.Writer, config *steps.
 	// TODO: set user with config
 	config.Kube.SSHConfig.User = clouds.OSUser
 
-	vmName := util.MakeNodeName(config.ClusterName, config.TaskID, config.IsMaster)
+	vmName := util.MakeNodeName(config.Kube.Name, config.TaskID, config.IsMaster)
 
 	config.Node = model.Machine{
 		Name:     vmName,
@@ -87,7 +87,7 @@ func (s *CreateVMStep) Run(ctx context.Context, output io.Writer, config *steps.
 		config.AddNode(&config.Node)
 	}
 
-	logrus.Debugf("Machine created %s/%s", config.ClusterName, config.Node.Name)
+	logrus.Debugf("Machine created %s/%s", config.Kube.Name, config.Node.Name)
 	return nil
 }
 
@@ -110,16 +110,16 @@ func (s *CreateVMStep) Description() string {
 func (s *CreateVMStep) setupVM(ctx context.Context, config *steps.Config, vmName string) error {
 	var lbName string
 	if config.IsMaster {
-		lbName = toLBName(config.ClusterID, config.ClusterName)
+		lbName = toLBName(config.Kube.ID, config.Kube.Name)
 	}
 
-	asName := toASName(config.ClusterID, config.ClusterName, model.ToRole(config.IsMaster).String())
+	asName := toASName(config.Kube.ID, config.Kube.Name, model.ToRole(config.IsMaster).String())
 	as, err := s.ensureAvailabilitySet(
 		ctx,
 		config.GetAzureAuthorizer(),
 		config.AzureConfig.SubscriptionID,
 		config.AzureConfig.Location,
-		toResourceGroupName(config.ClusterID, config.ClusterName),
+		toResourceGroupName(config.Kube.ID, config.Kube.Name),
 		asName,
 	)
 	if err != nil {
@@ -131,10 +131,10 @@ func (s *CreateVMStep) setupVM(ctx context.Context, config *steps.Config, vmName
 		config.GetAzureAuthorizer(),
 		config.AzureConfig.SubscriptionID,
 		config.AzureConfig.Location,
-		toResourceGroupName(config.ClusterID, config.ClusterName),
-		toVNetName(config.ClusterID, config.ClusterName),
-		toSubnetName(config.ClusterID, config.ClusterName, model.ToRole(config.IsMaster).String()),
-		toNSGName(config.ClusterID, config.ClusterName, model.ToRole(config.IsMaster).String()),
+		toResourceGroupName(config.Kube.ID, config.Kube.Name),
+		toVNetName(config.Kube.ID, config.Kube.Name),
+		toSubnetName(config.Kube.ID, config.Kube.Name, model.ToRole(config.IsMaster).String()),
+		toNSGName(config.Kube.ID, config.Kube.Name, model.ToRole(config.IsMaster).String()),
 		toIPName(vmName),
 		toNICName(vmName),
 		lbName,
@@ -155,7 +155,7 @@ func (s *CreateVMStep) setupVM(ctx context.Context, config *steps.Config, vmName
 	vmClient := s.sdk.VMClient(config.GetAzureAuthorizer(), config.AzureConfig.SubscriptionID)
 	f, err := vmClient.CreateOrUpdate(
 		ctx,
-		toResourceGroupName(config.ClusterID, config.ClusterName),
+		toResourceGroupName(config.Kube.ID, config.Kube.Name),
 		vmName,
 		compute.VirtualMachine{
 			Location: to.StringPtr(config.AzureConfig.Location),
@@ -215,7 +215,7 @@ func (s *CreateVMStep) setupVM(ctx context.Context, config *steps.Config, vmName
 		return errors.Wrapf(err, "wait for %s vm is ready", vmName)
 	}
 
-	vm, err := vmClient.Get(ctx, toResourceGroupName(config.ClusterID, config.ClusterName), vmName, compute.InstanceView)
+	vm, err := vmClient.Get(ctx, toResourceGroupName(config.Kube.ID, config.Kube.Name), vmName, compute.InstanceView)
 	if err != nil {
 		return errors.Wrapf(err, "get %s vm", vmName)
 	}
@@ -225,7 +225,7 @@ func (s *CreateVMStep) setupVM(ctx context.Context, config *steps.Config, vmName
 		ctx,
 		config.GetAzureAuthorizer(),
 		config.AzureConfig.SubscriptionID,
-		toResourceGroupName(config.ClusterID, config.ClusterName),
+		toResourceGroupName(config.Kube.ID, config.Kube.Name),
 		toIPName(vmName),
 	)
 	if err != nil {

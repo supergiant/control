@@ -15,6 +15,14 @@ import (
 	"github.com/pborman/uuid"
 	"github.com/pkg/errors"
 	"github.com/sirupsen/logrus"
+	"gopkg.in/asaskevich/govalidator.v8"
+	corev1 "k8s.io/api/core/v1"
+	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+	clientcorev1 "k8s.io/client-go/kubernetes/typed/core/v1"
+	"k8s.io/client-go/rest"
+	"k8s.io/client-go/tools/clientcmd"
+	clientcmddapi "k8s.io/client-go/tools/clientcmd/api"
+
 	"github.com/supergiant/control/pkg/clouds"
 	"github.com/supergiant/control/pkg/kubeconfig"
 	"github.com/supergiant/control/pkg/message"
@@ -27,13 +35,6 @@ import (
 	"github.com/supergiant/control/pkg/workflows"
 	"github.com/supergiant/control/pkg/workflows/statuses"
 	"github.com/supergiant/control/pkg/workflows/steps"
-	"gopkg.in/asaskevich/govalidator.v8"
-	corev1 "k8s.io/api/core/v1"
-	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
-	clientcorev1 "k8s.io/client-go/kubernetes/typed/core/v1"
-	"k8s.io/client-go/rest"
-	"k8s.io/client-go/tools/clientcmd"
-	clientcmddapi "k8s.io/client-go/tools/clientcmd/api"
 )
 
 const (
@@ -405,8 +406,6 @@ func (h *Handler) deleteKube(w http.ResponseWriter, r *http.Request) {
 
 	config := &steps.Config{
 		Provider:         k.Provider,
-		ClusterID:        k.ID,
-		ClusterName:      k.Name,
 		CloudAccountName: k.AccountName,
 		Masters:          steps.NewMap(k.Masters),
 		Nodes:            steps.NewMap(k.Nodes),
@@ -734,8 +733,6 @@ func (h *Handler) deleteMachine(w http.ResponseWriter, r *http.Request) {
 		DrainConfig: steps.DrainConfig{
 			PrivateIP: n.PrivateIp,
 		},
-		ClusterID:        k.ID,
-		ClusterName:      k.Name,
 		CloudAccountName: k.AccountName,
 		Node:             *n,
 		Masters:          steps.NewMap(k.Masters),
@@ -1441,13 +1438,13 @@ func (h *Handler) importKube(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	config.ClusterID = clusterID
+	config.Kube.ID = clusterID
 	config.IsBootstrap = true
 	config.Kube.SSHConfig.BootstrapPrivateKey = req.PrivateKey
 	config.Kube.SSHConfig.PublicKey = req.PublicKey
 	config.Kube.Auth = kube.Auth
-	config.ExternalDNSName = kube.ExternalDNSName
-	config.K8SVersion = k8sVersion
+	config.Kube.ExternalDNSName = kube.ExternalDNSName
+	config.Kube.K8SVersion = k8sVersion
 	config.IsImport = true
 
 	if err := createKube(config, model.StateImporting, req.Profile, importTask.ID, h); err != nil {
@@ -1501,7 +1498,7 @@ func (h *Handler) importKube(w http.ResponseWriter, r *http.Request) {
 				}
 			}
 
-			machine.Name = fmt.Sprintf("%s-%s-%s", config.ClusterName, machine.Role, uuid.New()[:4])
+			machine.Name = fmt.Sprintf("%s-%s-%s", config.Kube.Name, machine.Role, uuid.New()[:4])
 
 			if machine.Role == model.RoleMaster {
 				masters[machine.Name] = &machine
@@ -1599,7 +1596,7 @@ func (h *Handler) upgradeKube(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	config.K8SVersion = nextVersion
+	config.Kube.K8SVersion = nextVersion
 	tasks := h.makeUpgradeTasks(config, k)
 
 	go h.kubeProvisioner.UpgradeCluster(context.Background(), nextVersion, k, tasks, config)
@@ -1778,24 +1775,24 @@ func mapNode2Task(taskMap map[string][]*workflows.Task) map[string]string {
 
 func createKube(config *steps.Config, state model.KubeState, profile profile.Profile, taskID string, h *Handler) error {
 	cluster := &model.Kube{
-		ID:                     config.ClusterID,
+		ID:                     config.Kube.ID,
 		State:                  state,
-		Name:                   config.ClusterName,
+		Name:                   config.Kube.Name,
 		Provider:               config.Provider,
 		AccountName:            config.CloudAccountName,
-		BootstrapToken:         config.BootstrapToken,
+		BootstrapToken:         config.Kube.BootstrapToken,
 		Region:                 profile.Region,
 		Arch:                   profile.Arch,
 		OperatingSystem:        profile.OperatingSystem,
 		OperatingSystemVersion: profile.UbuntuVersion,
 		K8SVersion:             profile.K8SVersion,
 		DockerVersion:          profile.DockerVersion,
+		HelmVersion:            profile.HelmVersion,
 		RBACEnabled:            profile.RBACEnabled,
-		ExternalDNSName:        config.ExternalDNSName,
-		InternalDNSName:        config.ExternalDNSName,
+		ExternalDNSName:        config.Kube.ExternalDNSName,
+		InternalDNSName:        config.Kube.ExternalDNSName,
 		ProfileID:              profile.ID,
 		Auth:                   config.Kube.Auth,
-		HelmVersion:            config.TillerConfig.HelmVersion,
 		Masters:                config.GetMasters(),
 		Nodes:                  config.GetNodes(),
 		Tasks: map[string][]string{
