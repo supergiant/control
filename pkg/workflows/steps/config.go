@@ -2,6 +2,7 @@ package steps
 
 import (
 	"encoding/json"
+	"fmt"
 	"sync"
 	"time"
 
@@ -213,6 +214,10 @@ type ConfigMap struct {
 
 // NewConfig builds instance of config for provisioning
 func NewConfig(clusterName, cloudAccountName string, profile profile.Profile) (*Config, error) {
+	if err := validateAddons(profile.Addons); err != nil {
+		return nil, err
+	}
+
 	var user = "root"
 
 	if profile.Provider == clouds.AWS {
@@ -254,6 +259,7 @@ func NewConfig(clusterName, cloudAccountName string, profile profile.Profile) (*
 			Provider:         profile.Provider,
 			RBACEnabled:      profile.RBACEnabled,
 			ServicesCIDR:     profile.K8SServicesCIDR,
+			Addons:           profile.Addons,
 		},
 		Provider: profile.Provider,
 		DigitalOceanConfig: DOConfig{
@@ -507,4 +513,19 @@ func ensurePort(p int64) int64 {
 		return DefaultK8SAPIPort
 	}
 	return p
+}
+
+func validateAddons(in []string) error {
+	invalid := make([]string, 0)
+	for _, addon := range in {
+		for _, registered := range []string{"dashboard"} {
+			if addon != registered {
+				invalid = append(invalid, addon)
+			}
+		}
+	}
+	if len(invalid) > 0 {
+		return fmt.Errorf("validate addons: unknown: %v", invalid)
+	}
+	return nil
 }
