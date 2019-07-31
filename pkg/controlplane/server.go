@@ -298,7 +298,7 @@ func configureApplication(cfg *Config) (*mux.Router, error) {
 		logrus.New().WithField("component", "proxy"))
 
 	kubeHandler := kube.NewHandler(kubeService, accountService,
-		profileService, taskProvisioner, taskProvisioner,
+		profileService, taskProvisioner, taskProvisioner, helmService,
 		repository, apiProxy, cfg.LogDir)
 	kubeHandler.Register(protectedAPI)
 

@@ -4,6 +4,7 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+	petname "github.com/dustinkirkland/golang-petname"
 	"io"
 	"io/ioutil"
 	"net/http"
@@ -98,6 +99,7 @@ type Handler struct {
 	nodeProvisioner nodeProvisioner
 	kubeProvisioner kubeProvisioner
 	profileSvc      profileSvc
+	chartGetter     ChartGetter
 
 	repo    storage.Interface
 	proxies proxy.Container
@@ -118,6 +120,7 @@ func NewHandler(
 	profileSvc profileSvc,
 	provisioner nodeProvisioner,
 	kubeProvisioner kubeProvisioner,
+	charGetter ChartGetter,
 	repo storage.Interface,
 	proxies proxy.Container,
 	logDir string,
@@ -128,6 +131,7 @@ func NewHandler(
 		nodeProvisioner: provisioner,
 		kubeProvisioner: kubeProvisioner,
 		profileSvc:      profileSvc,
+		chartGetter:     charGetter,
 		repo:            repo,
 		getWriter:       util.GetWriterFunc(logDir),
 		getMetrics: func(metricURI string, k *model.Kube) (*MetricResponse, error) {
@@ -920,7 +924,20 @@ func (h *Handler) installRelease(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	chrt, err := h.chartGetter.GetChart(r.Context(), inp.RepoName, inp.ChartName, inp.ChartVersion)
+	if err != nil {
+		if sgerrors.IsNotFound(err) {
+			message.SendNotFound(w, inp.ChartName, err)
+			return
+		}
+		message.SendUnknownError(w, err)
+		return
+	}
+
 	config.InstallAppConfig = *inp
+	config.InstallAppConfig.Name = petname.Generate(2, "-")
+	config.InstallAppConfig.ChartName = chrt.Metadata.Name
+	config.InstallAppConfig.ChartVersion = chrt.Metadata.Version
 	installAppTask, err := workflows.NewTask(config, workflows.InstallApp, h.repo)
 
 	if err != nil {
@@ -943,7 +960,7 @@ func (h *Handler) installRelease(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	go func(){
+	go func() {
 		fileName := util.MakeFileName(installAppTask.ID)
 		writer, err := h.getWriter(fileName)
 
@@ -951,8 +968,7 @@ func (h *Handler) installRelease(w http.ResponseWriter, r *http.Request) {
 			logrus.Errorf("error getting writer %v", err)
 		}
 
-
-		errCh  := installAppTask.Run(context.Background(), *installAppTask.Config, writer)
+		errCh := installAppTask.Run(context.Background(), *installAppTask.Config, writer)
 		err = <-errCh
 
 		if err != nil {
