@@ -10,7 +10,6 @@ import (
 	"strconv"
 	"time"
 
-	petname "github.com/dustinkirkland/golang-petname"
 	"github.com/gorilla/mux"
 	"github.com/pborman/uuid"
 	"github.com/pkg/errors"
@@ -936,7 +935,6 @@ func (h *Handler) installRelease(w http.ResponseWriter, r *http.Request) {
 	}
 
 	config.InstallAppConfig = *inp
-	config.InstallAppConfig.Name = petname.Generate(2, "-")
 	config.InstallAppConfig.ChartRef = ref
 	installAppTask, err := workflows.NewTask(config, workflows.InstallApp, h.repo)
 
