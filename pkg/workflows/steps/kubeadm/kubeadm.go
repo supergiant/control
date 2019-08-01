@@ -102,7 +102,7 @@ func toCloudProviderOpt(cloudName clouds.Name) string {
 
 func toStepCfg(c *steps.Config) Config {
 	return Config{
-		KubeadmVersion:  "1.15.0", // TODO(stgleb): get it from available versions once we have them
+		KubeadmVersion:  "1.15.1", // TODO(stgleb): get it from available versions once we have them
 		K8SVersion:      c.Kube.K8SVersion,
 		IsBootstrap:     c.IsBootstrap,
 		IsMaster:        c.IsMaster,
