@@ -944,7 +944,6 @@ func (h *Handler) installRelease(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-
 	// Load things specific to cloud provider
 	err = util.LoadCloudSpecificDataFromKube(k, config)
 
@@ -961,6 +960,15 @@ func (h *Handler) installRelease(w http.ResponseWriter, r *http.Request) {
 	}
 
 	go func() {
+		// Save install task to kube
+		k.Tasks[workflows.InstallApp] = []string{installAppTask.ID}
+
+		err = h.svc.Create(context.Background(), k)
+
+		if err != nil {
+			logrus.Errorf("update cluster %s caused %v", kubeID, err)
+		}
+
 		fileName := util.MakeFileName(installAppTask.ID)
 		writer, err := h.getWriter(fileName)
 
