@@ -936,6 +936,7 @@ func (h *Handler) installRelease(w http.ResponseWriter, r *http.Request) {
 
 	config.InstallAppConfig = *inp
 	config.InstallAppConfig.ChartRef = ref
+	// TODO(stgleb): Add task id to kube task list
 	installAppTask, err := workflows.NewTask(config, workflows.InstallApp, h.repo)
 
 	if err != nil {
