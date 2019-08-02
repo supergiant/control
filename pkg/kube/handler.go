@@ -944,6 +944,7 @@ func (h *Handler) installRelease(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+
 	// Load things specific to cloud provider
 	err = util.LoadCloudSpecificDataFromKube(k, config)
 

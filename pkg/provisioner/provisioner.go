@@ -757,6 +757,7 @@ func bootstrapCerts(config *steps.Config) error {
 	return nil
 }
 
+// TODO(stgleb): move it out of the provisioner
 // All cluster state changes during provisioning must be made in this function
 func (tp *TaskProvisioner) monitorClusterState(ctx context.Context,
 	clusterID string, nodeChan chan model.Machine, kubeStateChan chan model.KubeState,
