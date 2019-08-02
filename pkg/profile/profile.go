@@ -44,6 +44,7 @@ type Profile struct {
 	// ExposedAddresses is a list of cidr/port pairs that will be exposes
 	// by cloud provider security groups.
 	ExposedAddresses []Addresses `json:"exposedAddresses" valid:"-"`
+	Addons           []string    `json:"addons,omitempty" valid:"-"`
 }
 
 type NodeProfile map[string]string

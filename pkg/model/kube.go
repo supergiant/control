@@ -62,6 +62,7 @@ type Kube struct {
 
 	UserData         string              `json:"userData"`
 	ExposedAddresses []profile.Addresses `json:"exposedAddresses"`
+	Addons           []string            `json:"addons,omitempty"`
 }
 
 type SSHConfig struct {
