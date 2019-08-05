@@ -50,8 +50,8 @@ func main() {
 		StorageURI:    *storageURI,
 		TemplatesDir:  *templatesDir,
 		LogDir:        *logDir,
-		ReadTimeout:   time.Second * 20,
-		WriteTimeout:  time.Second * 10,
+		ReadTimeout:   time.Second * 60,
+		WriteTimeout:  time.Second * 30,
 		IdleTimeout:   time.Second * 120,
 		SpawnInterval: time.Second * time.Duration(*spawnInterval),
 

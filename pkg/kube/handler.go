@@ -900,6 +900,7 @@ func (h *Handler) installRelease(w http.ResponseWriter, r *http.Request) {
 		logrus.Errorf("helm: install release: %s cluster: %s/%s: write response: %s",
 			kubeID, inp.RepoName, inp.ChartName, err)
 		message.SendUnknownError(w, err)
+		return
 	}
 }
 
