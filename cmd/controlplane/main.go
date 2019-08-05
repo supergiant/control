@@ -51,7 +51,7 @@ func main() {
 		TemplatesDir:  *templatesDir,
 		LogDir:        *logDir,
 		ReadTimeout:   time.Second * 60,
-		WriteTimeout:  time.Second * 30,
+		WriteTimeout:  time.Second * 300,
 		IdleTimeout:   time.Second * 120,
 		SpawnInterval: time.Second * time.Duration(*spawnInterval),
 
