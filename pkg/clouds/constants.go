@@ -17,7 +17,7 @@ const (
 	Unknown Name = "unknown"
 )
 
-var versions = []string{"1.11.5", "1.12.7", "1.13.7", "1.14.3", "1.15.0"}
+var versions = []string{"1.11.5", "1.12.7", "1.13.7", "1.14.3", "1.15.1"}
 
 func ToProvider(name string) (Name, error) {
 	switch name {

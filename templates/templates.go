@@ -6,6 +6,7 @@ var Default = map[string]string{
 	"certificates":               certificatesTpl,
 	"clustercheck":               clustercheckTpl,
 	"cni":                        cniTpl,
+	"dashboard":                  dashboardTpl,
 	"docker":                     dockerTpl,
 	"download_kubernetes_binary": downloadKubernetesBinaryTpl,
 	"drain":                      drainTpl,

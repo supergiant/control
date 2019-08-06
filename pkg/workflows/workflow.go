@@ -5,6 +5,7 @@ import (
 
 	"github.com/supergiant/control/pkg/workflows/statuses"
 	"github.com/supergiant/control/pkg/workflows/steps"
+	"github.com/supergiant/control/pkg/workflows/steps/addons"
 	"github.com/supergiant/control/pkg/workflows/steps/amazon"
 	"github.com/supergiant/control/pkg/workflows/steps/apply"
 	"github.com/supergiant/control/pkg/workflows/steps/authorizedkeys"
@@ -149,6 +150,7 @@ func Init() {
 		steps.GetStep(tiller.StepName),
 		steps.GetStep(prometheus.StepName),
 		steps.GetStep(configmap.StepName),
+		addons.Step{},
 		provider.StepPostStartCluster{},
 	}
 
