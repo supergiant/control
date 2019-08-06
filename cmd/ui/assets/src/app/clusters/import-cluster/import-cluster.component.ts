@@ -78,7 +78,7 @@ export class ImportClusterComponent implements OnInit {
       region: ["", Validators.required],
       arch: ["amd64", Validators.required],
       dockerVersion: ["18.06.3", Validators.required],
-      K8SVersion: ["1.15.1", Validators.required],
+      K8SVersion: ["1.15.2", Validators.required],
       rbacEnabled: [true, Validators.required],
       kubeconfig: ["", Validators.required],
       publicKey: ["", Validators.required],
