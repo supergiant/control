@@ -15,6 +15,8 @@ import (
 	"github.com/pkg/errors"
 	"github.com/rakyll/statik/fs"
 	"github.com/sirupsen/logrus"
+	"k8s.io/helm/pkg/repo"
+
 	"github.com/supergiant/control/pkg/account"
 	"github.com/supergiant/control/pkg/api"
 	"github.com/supergiant/control/pkg/jwt"
@@ -38,6 +40,7 @@ import (
 	"github.com/supergiant/control/pkg/workflows/steps/clustercheck"
 	"github.com/supergiant/control/pkg/workflows/steps/cni"
 	"github.com/supergiant/control/pkg/workflows/steps/configmap"
+	"github.com/supergiant/control/pkg/workflows/steps/dashboard"
 	"github.com/supergiant/control/pkg/workflows/steps/digitalocean"
 	"github.com/supergiant/control/pkg/workflows/steps/docker"
 	"github.com/supergiant/control/pkg/workflows/steps/downloadk8sbinary"
@@ -56,7 +59,6 @@ import (
 	"github.com/supergiant/control/pkg/workflows/steps/uncordon"
 	"github.com/supergiant/control/pkg/workflows/steps/upgrade"
 	_ "github.com/supergiant/control/statik"
-	"k8s.io/helm/pkg/repo"
 )
 
 type Server struct {
@@ -225,6 +227,7 @@ func configureApplication(cfg *Config) (*mux.Router, error) {
 	network.Init()
 	clustercheck.Init()
 	prometheus.Init()
+	dashboard.Init()
 	gce.Init(accountService)
 	storageclass.Init()
 	drain.Init()

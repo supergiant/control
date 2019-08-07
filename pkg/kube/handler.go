@@ -992,6 +992,7 @@ func (h *Handler) installRelease(w http.ResponseWriter, r *http.Request) {
 		logrus.Errorf("helm: install release: %s cluster: %s/%s: write response: %s",
 			kubeID, inp.RepoName, inp.ChartName, err)
 		message.SendUnknownError(w, err)
+		return
 	}
 }
 
@@ -1394,7 +1395,7 @@ func (h *Handler) importKube(w http.ResponseWriter, r *http.Request) {
 	config, err := steps.NewConfig(req.ClusterName, req.CloudAccountName, req.Profile)
 
 	if err != nil {
-		logrus.Errorf("New config %v", err.Error())
+		logrus.Errorf("build provisioning config: %s", err)
 		message.SendUnknownError(w, err)
 		return
 	}
