@@ -1583,7 +1583,10 @@ func TestHandler_installRelease(t *testing.T) {
 						PrivateIp: "10.20.30.40",
 					},
 				},
+				Tasks: map[string][]string{},
 			}, nil)
+
+		tc.kubeSvc.On("Create", mock.Anything, mock.Anything).Return(nil)
 
 		mockRepo := new(testutils.MockStorage)
 		mockRepo.On("Put", mock.Anything, mock.Anything,
