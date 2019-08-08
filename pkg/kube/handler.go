@@ -41,6 +41,10 @@ const (
 	nodeLabelRole  = "kubernetes.io/role"
 )
 
+type ChartRefGetter interface {
+	GetChartRef(context.Context, string, string, string) (string, error)
+}
+
 type accountGetter interface {
 	Get(context.Context, string) (*model.CloudAccount, error)
 }
@@ -99,6 +103,7 @@ type Handler struct {
 	nodeProvisioner nodeProvisioner
 	kubeProvisioner kubeProvisioner
 	profileSvc      profileSvc
+	chartGetter     ChartRefGetter
 
 	repo    storage.Interface
 	proxies proxy.Container
@@ -119,6 +124,7 @@ func NewHandler(
 	profileSvc profileSvc,
 	provisioner nodeProvisioner,
 	kubeProvisioner kubeProvisioner,
+	charGetter ChartRefGetter,
 	repo storage.Interface,
 	proxies proxy.Container,
 	logDir string,
@@ -129,6 +135,7 @@ func NewHandler(
 		nodeProvisioner: provisioner,
 		kubeProvisioner: kubeProvisioner,
 		profileSvc:      profileSvc,
+		chartGetter:     charGetter,
 		repo:            repo,
 		getWriter:       util.GetWriterFunc(logDir),
 		getMetrics: func(metricURI string, k *model.Kube) (*MetricResponse, error) {
@@ -874,13 +881,14 @@ func (h *Handler) cleanUpKube(kubeID string) error {
 func (h *Handler) installRelease(w http.ResponseWriter, r *http.Request) {
 	vars := mux.Vars(r)
 
-	inp := &ReleaseInput{}
+	inp := &steps.InstallAppConfig{}
 	err := json.NewDecoder(r.Body).Decode(inp)
 	if err != nil {
 		logrus.Errorf("helm: install release: decode: %s", err)
 		message.SendInvalidJSON(w, err)
 		return
 	}
+
 	ok, err := govalidator.ValidateStruct(inp)
 	if !ok {
 		logrus.Errorf("helm: install release: validation: %s", err)
@@ -889,14 +897,98 @@ func (h *Handler) installRelease(w http.ResponseWriter, r *http.Request) {
 	}
 
 	kubeID := vars["kubeID"]
-	rls, err := h.svc.InstallRelease(r.Context(), kubeID, inp)
+	k, err := h.svc.Get(r.Context(), kubeID)
+
+	if sgerrors.IsNotFound(err) {
+		http.NotFound(w, r)
+		return
+	}
+
+	logrus.Debugf("Get cloud profile %s", k.ProfileID)
+	kubeProfile, err := h.profileSvc.Get(r.Context(), k.ProfileID)
+
 	if err != nil {
-		logrus.Errorf("helm: install release: %s cluster: %s (%+v)", kubeID, err, inp)
+		if sgerrors.IsNotFound(err) {
+			message.SendNotFound(w, k.ProfileID, err)
+			return
+		}
+
 		message.SendUnknownError(w, err)
 		return
 	}
 
-	if err = json.NewEncoder(w).Encode(rls); err != nil {
+	config, err := steps.NewConfigFromKube(kubeProfile, k)
+	if err != nil {
+		logrus.Errorf("New config %v", err.Error())
+		message.SendUnknownError(w, err)
+		return
+	}
+
+	ref, err := h.chartGetter.GetChartRef(r.Context(), inp.RepoName, inp.ChartName, inp.ChartVersion)
+	if err != nil {
+		if sgerrors.IsNotFound(err) {
+			message.SendNotFound(w, inp.ChartName, err)
+			return
+		}
+		message.SendUnknownError(w, err)
+		return
+	}
+
+	config.InstallAppConfig = *inp
+	config.InstallAppConfig.ChartRef = ref
+	// TODO(stgleb): Add task id to kube task list
+	installAppTask, err := workflows.NewTask(config, workflows.InstallApp, h.repo)
+
+	if err != nil {
+		message.SendUnknownError(w, err)
+		return
+	}
+
+	// Load things specific to cloud provider
+	err = util.LoadCloudSpecificDataFromKube(k, config)
+
+	if err != nil {
+		message.SendUnknownError(w, err)
+		return
+	}
+
+	if master := config.GetMaster(); master != nil {
+		config.Node = *master
+	} else {
+		message.SendNotFound(w, "master node", err)
+		return
+	}
+
+	go func() {
+		// Save install task to kube
+		k.Tasks[workflows.InstallApp] = []string{installAppTask.ID}
+
+		err = h.svc.Create(context.Background(), k)
+
+		if err != nil {
+			logrus.Errorf("update cluster %s caused %v", kubeID, err)
+		}
+
+		fileName := util.MakeFileName(installAppTask.ID)
+		writer, err := h.getWriter(fileName)
+
+		if err != nil {
+			logrus.Errorf("error getting writer %v", err)
+		}
+
+		errCh := installAppTask.Run(context.Background(), *installAppTask.Config, writer)
+		err = <-errCh
+
+		if err != nil {
+			logrus.Errorf("error running task %s %v", installAppTask.ID, err)
+		}
+	}()
+
+	if err = json.NewEncoder(w).Encode(struct {
+		TaskID string `json:"taskId"`
+	}{
+		TaskID: installAppTask.ID,
+	}); err != nil {
 		logrus.Errorf("helm: install release: %s cluster: %s/%s: write response: %s",
 			kubeID, inp.RepoName, inp.ChartName, err)
 		message.SendUnknownError(w, err)

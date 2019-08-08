@@ -206,6 +206,21 @@ func (s Service) GetChart(ctx context.Context, repoName, chartName, chartVersion
 	return chrt, nil
 }
 
+
+func (s Service) GetChartRef(ctx context.Context, repoName, chartName, chartVersion string) (string, error) {
+	hrepo, err := s.GetRepo(ctx, repoName)
+	if err != nil {
+		return "", errors.Wrapf(err, "get %s repository info", repoName)
+	}
+	ref, err := findChartURL(hrepo.Charts, chartName, chartVersion)
+	if err != nil {
+		return "", errors.Wrapf(err, "get %s(%s) chart", chartName, chartVersion)
+	}
+
+	return ref, nil
+}
+
+
 func toChartData(chrt *chart.Chart) *model.ChartData {
 	if chrt == nil {
 		return nil

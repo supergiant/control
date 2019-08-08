@@ -1,6 +1,7 @@
 package workflows
 
 import (
+	"github.com/supergiant/control/pkg/workflows/steps/install_app"
 	"sync"
 
 	"github.com/supergiant/control/pkg/workflows/statuses"
@@ -53,6 +54,7 @@ const (
 	DigitalOceanInfra = "digitaloceanInfra"
 	GCEInfra          = "gceInfra"
 	AzureInfra        = "azureInfra"
+	InstallApp        = "installApp"
 
 	ProvisionMaster = "ProvisionMaster"
 	ProvisionNode   = "ProvisionNode"
@@ -179,6 +181,11 @@ func Init() {
 		steps.GetStep(apply.StepName),
 	}
 
+	installApp := []steps.Step{
+		steps.GetStep(ssh.StepName),
+		steps.GetStep(install_app.StepName),
+	}
+
 	m.Lock()
 	defer m.Unlock()
 
@@ -195,6 +202,7 @@ func Init() {
 	workflowMap[ImportCluster] = importClusterWorkflow
 	workflowMap[Upgrade] = upgradeNode
 	workflowMap[ApplyYaml] = apply
+	workflowMap[InstallApp] = installApp
 }
 
 func RegisterWorkFlow(workflowName string, workflow Workflow) {

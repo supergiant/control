@@ -47,6 +47,7 @@ import (
 	"github.com/supergiant/control/pkg/workflows/steps/drain"
 	"github.com/supergiant/control/pkg/workflows/steps/evacuate"
 	"github.com/supergiant/control/pkg/workflows/steps/gce"
+	"github.com/supergiant/control/pkg/workflows/steps/install_app"
 	"github.com/supergiant/control/pkg/workflows/steps/kubeadm"
 	"github.com/supergiant/control/pkg/workflows/steps/kubelet"
 	"github.com/supergiant/control/pkg/workflows/steps/network"
@@ -236,6 +237,7 @@ func configureApplication(cfg *Config) (*mux.Router, error) {
 	upgrade.Init()
 	uncordon.Init()
 	evacuate.Init()
+	install_app.Init()
 
 	amazon.InitFindAMI(amazon.GetEC2)
 	amazon.InitImportKeyPair(amazon.GetEC2)
@@ -299,7 +301,7 @@ func configureApplication(cfg *Config) (*mux.Router, error) {
 		logrus.New().WithField("component", "proxy"))
 
 	kubeHandler := kube.NewHandler(kubeService, accountService,
-		profileService, taskProvisioner, taskProvisioner,
+		profileService, taskProvisioner, taskProvisioner, helmService,
 		repository, apiProxy, cfg.LogDir)
 	kubeHandler.Register(protectedAPI)
 
