@@ -22,3 +22,4 @@ config/config.json
 etcd-data
 /statik/
 /controlplane
+*.log
