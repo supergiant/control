@@ -393,4 +393,3 @@ func NewVersionHandler(version string) func(w http.ResponseWriter, r *http.Reque
 		fmt.Fprintf(w, version)
 	}
 }
-
