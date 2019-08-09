@@ -61,6 +61,11 @@ func TestDeleteLoadBalancerStep_Run(t *testing.T) {
 	}
 
 	for _, testCase := range testCases {
+		t.Log("!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!")
+		defer func(){
+			t.Logf("Test %s has failed %v", t.Name(), t.Failed())
+		}()
+
 		t.Log(testCase.description)
 		svc := &MockLBService{}
 
