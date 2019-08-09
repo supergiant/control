@@ -3,14 +3,14 @@ package gce
 import (
 	"context"
 	"fmt"
-	"github.com/pkg/errors"
-	"github.com/sirupsen/logrus"
-	"github.com/supergiant/control/pkg/clouds/gcesdk"
 	"io"
 	"time"
 
+	"github.com/pkg/errors"
+	"github.com/sirupsen/logrus"
 	"google.golang.org/api/compute/v1"
 
+	"github.com/supergiant/control/pkg/clouds/gcesdk"
 	"github.com/supergiant/control/pkg/workflows/steps"
 )
 
@@ -56,7 +56,7 @@ func (s *CreateAddressStep) Run(ctx context.Context, output io.Writer,
 		return errors.Wrapf(err, "%s getting service caused", CreateIPAddressStepName)
 	}
 
-	externalAddressName := fmt.Sprintf("ex-ip-%s", config.ClusterID)
+	externalAddressName := fmt.Sprintf("ex-ip-%s", config.Kube.ID)
 	logrus.Debugf("create external ip address name %s", externalAddressName)
 
 	externalAddress := &compute.Address{
@@ -79,8 +79,8 @@ func (s *CreateAddressStep) Run(ctx context.Context, output io.Writer,
 
 		if err == nil && externalAddress.Address != "" {
 			config.GCEConfig.ExternalIPAddressLink = externalAddress.SelfLink
-			config.ExternalDNSName = externalAddress.Address
-			config.InternalDNSName = externalAddress.Address
+			config.Kube.ExternalDNSName = externalAddress.Address
+			config.Kube.InternalDNSName = externalAddress.Address
 			logrus.Debugf("External IP %s", externalAddress.Address)
 			break
 		}
@@ -98,13 +98,13 @@ func (s *CreateAddressStep) Run(ctx context.Context, output io.Writer,
 	config.GCEConfig.ExternalIPAddressLink = externalAddress.SelfLink
 	config.GCEConfig.ExternalAddressName = externalAddress.Name
 
-	internalAddressName := fmt.Sprintf("in-ip-%s", config.ClusterID)
+	internalAddressName := fmt.Sprintf("in-ip-%s", config.Kube.ID)
 
 	internalAddress := &compute.Address{
 		Name:        internalAddressName,
 		Description: "Internal static IP address",
 		AddressType: "INTERNAL",
-		Subnetwork: config.GCEConfig.SubnetLink,
+		Subnetwork:  config.GCEConfig.SubnetLink,
 	}
 
 	logrus.Debugf("create internal ip address %s", internalAddressName)
@@ -122,7 +122,7 @@ func (s *CreateAddressStep) Run(ctx context.Context, output io.Writer,
 
 		if err == nil && internalAddress.Address != "" {
 			config.GCEConfig.InternalIPAddressLink = internalAddress.SelfLink
-			config.InternalDNSName = internalAddress.Address
+			config.Kube.InternalDNSName = internalAddress.Address
 			logrus.Debugf("Internal IP %s link %s",
 				internalAddress.Address, internalAddress.SelfLink)
 			break

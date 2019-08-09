@@ -36,8 +36,8 @@ func (s *CreateGroupStep) Run(ctx context.Context, output io.Writer, config *ste
 	}
 
 	groupsClient := s.groupsClientFn(config.GetAzureAuthorizer(), config.AzureConfig.SubscriptionID)
-	_, err := groupsClient.CreateOrUpdate(ctx, toResourceGroupName(config.ClusterID, config.ClusterName), resources.Group{
-		Name:     to.StringPtr(toResourceGroupName(config.ClusterID, config.ClusterName)),
+	_, err := groupsClient.CreateOrUpdate(ctx, toResourceGroupName(config.Kube.ID, config.Kube.Name), resources.Group{
+		Name:     to.StringPtr(toResourceGroupName(config.Kube.ID, config.Kube.Name)),
 		Location: to.StringPtr(config.AzureConfig.Location),
 	})
 

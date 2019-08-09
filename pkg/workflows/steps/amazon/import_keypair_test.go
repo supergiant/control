@@ -13,6 +13,7 @@ import (
 	"github.com/pkg/errors"
 	"github.com/stretchr/testify/mock"
 
+	"github.com/supergiant/control/pkg/model"
 	"github.com/supergiant/control/pkg/workflows/steps"
 )
 
@@ -107,9 +108,11 @@ func TestImportKeyPair_Run(t *testing.T) {
 			Return(testCase.waitErr)
 
 		config := &steps.Config{
-			ClusterName: "test",
-			ClusterID:   testCase.clusterId,
-			AWSConfig:   steps.AWSConfig{},
+			Kube: model.Kube{
+				Name: "test",
+				ID:   testCase.clusterId,
+			},
+			AWSConfig: steps.AWSConfig{},
 		}
 
 		step := KeyPairStep{

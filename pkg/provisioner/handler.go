@@ -101,7 +101,7 @@ func (h *Handler) Provision(w http.ResponseWriter, r *http.Request) {
 	config, err := steps.NewConfig(req.ClusterName, req.CloudAccountName, req.Profile)
 
 	if err != nil {
-		logrus.Errorf("New config %v", err.Error())
+		logrus.Errorf("build provisioning config: %s", err)
 		message.SendUnknownError(w, err)
 		return
 	}
@@ -162,7 +162,7 @@ func (h *Handler) Provision(w http.ResponseWriter, r *http.Request) {
 	}
 
 	resp := ProvisionResponse{
-		ClusterID: config.ClusterID,
+		ClusterID: config.Kube.ID,
 		Tasks:     roleTaskIdMap,
 	}
 

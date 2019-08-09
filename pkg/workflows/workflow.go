@@ -1,18 +1,26 @@
 package workflows
 
 import (
+	"github.com/supergiant/control/pkg/workflows/steps/install_app"
 	"sync"
 
 	"github.com/supergiant/control/pkg/workflows/statuses"
 	"github.com/supergiant/control/pkg/workflows/steps"
+	"github.com/supergiant/control/pkg/workflows/steps/addons"
+	"github.com/supergiant/control/pkg/workflows/steps/amazon"
+	"github.com/supergiant/control/pkg/workflows/steps/apply"
 	"github.com/supergiant/control/pkg/workflows/steps/authorizedkeys"
+	"github.com/supergiant/control/pkg/workflows/steps/azure"
 	"github.com/supergiant/control/pkg/workflows/steps/bootstraptoken"
 	"github.com/supergiant/control/pkg/workflows/steps/certificates"
 	"github.com/supergiant/control/pkg/workflows/steps/clustercheck"
 	"github.com/supergiant/control/pkg/workflows/steps/configmap"
+	"github.com/supergiant/control/pkg/workflows/steps/digitalocean"
 	"github.com/supergiant/control/pkg/workflows/steps/docker"
 	"github.com/supergiant/control/pkg/workflows/steps/downloadk8sbinary"
 	"github.com/supergiant/control/pkg/workflows/steps/drain"
+	"github.com/supergiant/control/pkg/workflows/steps/evacuate"
+	"github.com/supergiant/control/pkg/workflows/steps/gce"
 	"github.com/supergiant/control/pkg/workflows/steps/kubeadm"
 	"github.com/supergiant/control/pkg/workflows/steps/kubelet"
 	"github.com/supergiant/control/pkg/workflows/steps/network"
@@ -22,6 +30,8 @@ import (
 	"github.com/supergiant/control/pkg/workflows/steps/ssh"
 	"github.com/supergiant/control/pkg/workflows/steps/storageclass"
 	"github.com/supergiant/control/pkg/workflows/steps/tiller"
+	"github.com/supergiant/control/pkg/workflows/steps/uncordon"
+	"github.com/supergiant/control/pkg/workflows/steps/upgrade"
 )
 
 // StepStatus aggregates data that is needed to track progress
@@ -38,13 +48,21 @@ type Workflow []steps.Step
 const (
 	Prefix = "tasks"
 
-	PostProvision   = "PostProvision"
-	PreProvision    = "PreProvision"
+	PostProvision     = "PostProvision"
+	Infra             = "Infra"
+	AwsInfra          = "awsInfra"
+	DigitalOceanInfra = "digitaloceanInfra"
+	GCEInfra          = "gceInfra"
+	AzureInfra        = "azureInfra"
+	InstallApp        = "installApp"
+
 	ProvisionMaster = "ProvisionMaster"
 	ProvisionNode   = "ProvisionNode"
 	DeleteNode      = "DeleteNode"
 	DeleteCluster   = "DeleteCluster"
 	ImportCluster   = "ImportCluster"
+	Upgrade         = "Upgrade"
+	ApplyYaml       = "ApplyYaml"
 )
 
 type WorkflowSet struct {
@@ -63,8 +81,39 @@ var (
 func Init() {
 	workflowMap = make(map[string]Workflow)
 
-	preProvision := []steps.Step{
-		provider.StepPreProvision{},
+	awsInfra := []steps.Step{
+		steps.GetStep(amazon.StepFindAMI),
+		steps.GetStep(amazon.StepCreateVPC),
+		steps.GetStep(amazon.StepCreateSecurityGroups),
+		steps.GetStep(amazon.StepNameCreateInstanceProfiles),
+		steps.GetStep(amazon.ImportKeyPairStepName),
+		steps.GetStep(amazon.StepCreateInternetGateway),
+		steps.GetStep(amazon.StepCreateSubnets),
+		steps.GetStep(amazon.StepCreateRouteTable),
+		steps.GetStep(amazon.StepAssociateRouteTable),
+		steps.GetStep(amazon.StepCreateLoadBalancer),
+	}
+
+	digitalOceanInfra := []steps.Step{
+		steps.GetStep(digitalocean.CreateLoadBalancerStepName),
+	}
+
+	gceInfra := []steps.Step{
+		steps.GetStep(gce.CreateNetworksStepName),
+		steps.GetStep(gce.CreateIPAddressStepName),
+		steps.GetStep(gce.CreateTargetPullStepName),
+		steps.GetStep(gce.CreateInstanceGroupsStepName),
+		steps.GetStep(gce.CreateHealthCheckStepName),
+		steps.GetStep(gce.CreateBackendServiceStepName),
+		steps.GetStep(gce.CreateForwardingRulesStepName),
+	}
+
+	azureInfra := []steps.Step{
+		steps.GetStep(azure.GetAuthorizerStepName),
+		steps.GetStep(azure.CreateGroupStepName),
+		steps.GetStep(azure.CreateVNetAndSubnetsStepName),
+		steps.GetStep(azure.CreateSecurityGroupStepName),
+		steps.GetStep(azure.CreateLBStepName),
 	}
 
 	masterWorkflow := []steps.Step{
@@ -103,6 +152,7 @@ func Init() {
 		steps.GetStep(tiller.StepName),
 		steps.GetStep(prometheus.StepName),
 		steps.GetStep(configmap.StepName),
+		addons.Step{},
 		provider.StepPostStartCluster{},
 	}
 
@@ -119,16 +169,40 @@ func Init() {
 		provider.DeleteCluster{},
 	}
 
+	upgradeNode := []steps.Step{
+		steps.GetStep(ssh.StepName),
+		steps.GetStep(evacuate.StepName),
+		steps.GetStep(upgrade.StepName),
+		steps.GetStep(uncordon.StepName),
+	}
+
+	apply := []steps.Step{
+		steps.GetStep(ssh.StepName),
+		steps.GetStep(apply.StepName),
+	}
+
+	installApp := []steps.Step{
+		steps.GetStep(ssh.StepName),
+		steps.GetStep(install_app.StepName),
+	}
+
 	m.Lock()
 	defer m.Unlock()
 
-	workflowMap[PreProvision] = preProvision
+	workflowMap[AwsInfra] = awsInfra
+	workflowMap[DigitalOceanInfra] = digitalOceanInfra
+	workflowMap[GCEInfra] = gceInfra
+	workflowMap[AzureInfra] = azureInfra
+
 	workflowMap[ProvisionMaster] = masterWorkflow
 	workflowMap[ProvisionNode] = nodeWorkflow
 	workflowMap[DeleteNode] = deleteMachineWorkflow
 	workflowMap[DeleteCluster] = deleteClusterWorkflow
 	workflowMap[PostProvision] = postProvision
 	workflowMap[ImportCluster] = importClusterWorkflow
+	workflowMap[Upgrade] = upgradeNode
+	workflowMap[ApplyYaml] = apply
+	workflowMap[InstallApp] = installApp
 }
 
 func RegisterWorkFlow(workflowName string, workflow Workflow) {

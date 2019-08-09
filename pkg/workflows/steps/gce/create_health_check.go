@@ -2,14 +2,15 @@ package gce
 
 import (
 	"context"
-	"github.com/pkg/errors"
-	"github.com/sirupsen/logrus"
-	"github.com/supergiant/control/pkg/clouds/gcesdk"
-	"google.golang.org/api/compute/v1"
+	"fmt"
 	"io"
 	"time"
 
-	"fmt"
+	"github.com/pkg/errors"
+	"github.com/sirupsen/logrus"
+	"google.golang.org/api/compute/v1"
+
+	"github.com/supergiant/control/pkg/clouds/gcesdk"
 	"github.com/supergiant/control/pkg/workflows/steps"
 )
 
@@ -52,13 +53,13 @@ func (s *CreateHealthCheck) Run(ctx context.Context, output io.Writer,
 	}
 
 	healthCheck := &compute.HealthCheck{
-		Name:               fmt.Sprintf("hc-%s", config.ClusterID),
+		Name:               fmt.Sprintf("hc-%s", config.Kube.ID),
 		CheckIntervalSec:   10,
 		HealthyThreshold:   3,
 		UnhealthyThreshold: 3,
 		Type:               "HTTPS",
 		HttpsHealthCheck: &compute.HTTPSHealthCheck{
-			Port: 443,
+			Port:        config.Kube.APIServerPort,
 			RequestPath: "/healthz",
 		},
 	}

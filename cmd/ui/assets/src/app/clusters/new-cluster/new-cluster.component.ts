@@ -102,7 +102,7 @@ export class NewClusterComponent implements OnInit, OnDestroy {
         Validators.maxLength(12),
         Validators.pattern('^[A-Za-z]([-A-Za-z0-9\-]*[A-Za-z0-9\-])?$')]],
       cloudAccount: ['', Validators.required],
-      K8sVersion: ['1.14.0', Validators.required],
+      K8sVersion: ['1.15.2', Validators.required],
       networkProvider: ['Flannel', Validators.required],
       helmVersion: ['2.11.0', Validators.required],
       dockerVersion: ['18.06.3', Validators.required],

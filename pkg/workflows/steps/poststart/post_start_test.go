@@ -12,7 +12,6 @@ import (
 
 	"github.com/pkg/errors"
 
-	"github.com/supergiant/control/pkg/clouds"
 	"github.com/supergiant/control/pkg/model"
 	"github.com/supergiant/control/pkg/profile"
 	"github.com/supergiant/control/pkg/runner"
@@ -63,9 +62,6 @@ func TestPostStartMaster(t *testing.T) {
 	}
 
 	cfg.IsMaster = true
-	cfg.PostStartConfig = steps.PostStartConfig{
-		Timeout: time.Second * 10,
-	}
 	cfg.Node = model.Machine{
 		PrivateIp: "10.20.30.40",
 	}
@@ -106,9 +102,6 @@ func TestPostStartNode(t *testing.T) {
 		t.Errorf("Unexpected error %v", err)
 	}
 
-	cfg.PostStartConfig = steps.PostStartConfig{
-		Timeout: time.Second * 10,
-	}
 	cfg.Node = model.Machine{
 		PrivateIp: "10.20.30.40",
 	}
@@ -140,9 +133,6 @@ func TestPostStartError(t *testing.T) {
 	}
 
 	cfg := &steps.Config{
-		PostStartConfig: steps.PostStartConfig{
-			Timeout: time.Second * 10,
-		},
 		Runner: r,
 	}
 	err = j.Run(context.Background(), output, cfg)
@@ -154,53 +144,6 @@ func TestPostStartError(t *testing.T) {
 
 	if !strings.Contains(err.Error(), errMsg) {
 		t.Errorf("Error message expected to contain %s actual %s", errMsg, err.Error())
-	}
-}
-
-func TestPostStartTimeout(t *testing.T) {
-	port := "8080"
-	username := "john"
-	rbacEnabled := true
-
-	r := &fakeRunner{
-		errMsg:  "",
-		timeout: time.Second * 2,
-	}
-
-	proxyTemplate, err := template.New(StepName).Parse("")
-	output := new(bytes.Buffer)
-
-	j := &Step{
-		proxyTemplate,
-	}
-
-	cfg, err := steps.NewConfig("", "", profile.Profile{})
-
-	if err != nil {
-		t.Errorf("Unexpected error %v", err)
-	}
-
-	cfg.PostStartConfig = steps.PostStartConfig{
-		IsBootstrap: true,
-		Provider:    clouds.AWS,
-		Host:        "127.0.0.1",
-		Port:        port,
-		Username:    username,
-		RBACEnabled: rbacEnabled,
-		Timeout:     1,
-	}
-	cfg.Runner = r
-
-	err = j.Run(context.Background(), output, cfg)
-
-	if err == nil {
-		t.Errorf("Error must not be nil")
-		return
-	}
-
-	if errors.Cause(err) != context.DeadlineExceeded {
-		t.Errorf("Wrong error cause expected %v actual %v", context.DeadlineExceeded,
-			err)
 	}
 }
 

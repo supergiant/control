@@ -43,7 +43,7 @@ func NewDeleteClusterInstances(fn GetEC2Fn) *DeleteClusterMachines {
 func (s *DeleteClusterMachines) Run(ctx context.Context, w io.Writer, cfg *steps.Config) error {
 	log := util.GetLogger(w)
 	logrus.Infof("[%s] - deleting cluster %s machines",
-		s.Name(), cfg.ClusterName)
+		s.Name(), cfg.Kube.Name)
 
 	svc, err := s.getSvc(cfg.AWSConfig)
 
@@ -58,7 +58,7 @@ func (s *DeleteClusterMachines) Run(ctx context.Context, w io.Writer, cfg *steps
 		Filters: []*ec2.Filter{
 			{
 				Name:   aws.String(fmt.Sprintf("tag:%s", clouds.TagClusterID)),
-				Values: aws.StringSlice([]string{cfg.ClusterID}),
+				Values: aws.StringSlice([]string{cfg.Kube.ID}),
 			},
 		},
 	})
@@ -68,13 +68,19 @@ func (s *DeleteClusterMachines) Run(ctx context.Context, w io.Writer, cfg *steps
 	}
 
 	instanceIDS := make([]string, 0)
+	spotRequestIDS := make([]string, 0)
+
 	for _, res := range describeInstanceOutput.Reservations {
 		for _, instance := range res.Instances {
 			instanceIDS = append(instanceIDS, *instance.InstanceId)
+
+			if instance.SpotInstanceRequestId != nil {
+				spotRequestIDS = append(spotRequestIDS, *instance.SpotInstanceRequestId)
+			}
 		}
 	}
 	if len(instanceIDS) == 0 {
-		logrus.Infof("[%s] - no nodes in k8s cluster %s", s.Name(), cfg.ClusterName)
+		logrus.Infof("[%s] - no nodes in k8s cluster %s", s.Name(), cfg.Kube.Name)
 		return nil
 	}
 
@@ -87,9 +93,17 @@ func (s *DeleteClusterMachines) Run(ctx context.Context, w io.Writer, cfg *steps
 		return errors.Wrap(ErrDeleteCluster, err.Error())
 	}
 
+	_, err = svc.CancelSpotInstanceRequestsWithContext(ctx, &ec2.CancelSpotInstanceRequestsInput{
+		SpotInstanceRequestIds: aws.StringSlice(spotRequestIDS),
+	})
+
+	if err != nil {
+		logrus.Error(ErrDeleteCluster, err.Error())
+	}
+
 	log.Infof("[%s] - completed", s.Name())
 	logrus.Infof("[%s] Deleted AWS cluster %s",
-		s.Name(), cfg.ClusterName)
+		s.Name(), cfg.Kube.Name)
 
 	return nil
 }

@@ -17,8 +17,6 @@ import (
 
 const (
 	CreateLBStepName = "CreateLoadBalancer"
-
-	APIServerPort = 443
 )
 
 type CreateLBStep struct {
@@ -48,8 +46,9 @@ func (s *CreateLBStep) Run(ctx context.Context, output io.Writer, config *steps.
 		config.GetAzureAuthorizer(),
 		config.AzureConfig.SubscriptionID,
 		config.AzureConfig.Location,
-		toResourceGroupName(config.ClusterID, config.ClusterName),
-		toLBName(config.ClusterID, config.ClusterName),
+		toResourceGroupName(config.Kube.ID, config.Kube.Name),
+		toLBName(config.Kube.ID, config.Kube.Name),
+		config.Kube.APIServerPort,
 	)
 	if err != nil {
 		return errors.Wrap(err, "create load balancer")
@@ -58,8 +57,8 @@ func (s *CreateLBStep) Run(ctx context.Context, output io.Writer, config *steps.
 		return errors.Wrapf(sgerrors.ErrRawError, "%s load balancer address is unknown", to.String(lb.Name))
 	}
 
-	config.ExternalDNSName = addr
-	config.InternalDNSName = addr
+	config.Kube.ExternalDNSName = addr
+	config.Kube.InternalDNSName = addr
 
 	logrus.Debugf("azure: %s lb has been created", to.String(lb.Name))
 	return nil
@@ -81,7 +80,7 @@ func (s *CreateLBStep) Description() string {
 	return "Azure: Create Load Balancer"
 }
 
-func (s *CreateLBStep) createLB(ctx context.Context, a autorest.Authorizer, subsID, location, groupName, lbName string) (string, network.LoadBalancer, error) {
+func (s *CreateLBStep) createLB(ctx context.Context, a autorest.Authorizer, subsID, location, groupName, lbName string, lbPort int64) (string, network.LoadBalancer, error) {
 	pipName := toIPName(lbName)
 	probeName := "apiserver"
 	frontEndIPConfigName := "apiserver"
@@ -120,7 +119,7 @@ func (s *CreateLBStep) createLB(ctx context.Context, a autorest.Authorizer, subs
 						Name: &probeName,
 						ProbePropertiesFormat: &network.ProbePropertiesFormat{
 							Protocol:          network.ProbeProtocolTCP,
-							Port:              to.Int32Ptr(APIServerPort),
+							Port:              to.Int32Ptr(int32(lbPort)),
 							IntervalInSeconds: to.Int32Ptr(5),
 							NumberOfProbes:    to.Int32Ptr(4),
 						},
@@ -131,8 +130,8 @@ func (s *CreateLBStep) createLB(ctx context.Context, a autorest.Authorizer, subs
 						Name: to.StringPtr("apiserver"),
 						LoadBalancingRulePropertiesFormat: &network.LoadBalancingRulePropertiesFormat{
 							Protocol:             network.TransportProtocolTCP,
-							FrontendPort:         to.Int32Ptr(APIServerPort),
-							BackendPort:          to.Int32Ptr(APIServerPort),
+							FrontendPort:         to.Int32Ptr(int32(lbPort)),
+							BackendPort:          to.Int32Ptr(int32(lbPort)),
 							IdleTimeoutInMinutes: to.Int32Ptr(4),
 							EnableFloatingIP:     to.BoolPtr(false),
 							LoadDistribution:     network.LoadDistributionDefault,

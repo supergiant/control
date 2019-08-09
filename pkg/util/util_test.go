@@ -369,7 +369,7 @@ func TestGetWriter(t *testing.T) {
 	}
 
 	for _, testCase := range testCases {
-		writer, err := GetWriter(testCase.name)
+		writer, err := GetWriterFunc("")(testCase.name)
 
 		if err == nil && testCase.hasErr {
 			t.Errorf("error must not be nil")

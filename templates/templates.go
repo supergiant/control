@@ -6,6 +6,7 @@ var Default = map[string]string{
 	"certificates":               certificatesTpl,
 	"clustercheck":               clustercheckTpl,
 	"cni":                        cniTpl,
+	"dashboard":                  dashboardTpl,
 	"docker":                     dockerTpl,
 	"download_kubernetes_binary": downloadKubernetesBinaryTpl,
 	"drain":                      drainTpl,
@@ -16,4 +17,9 @@ var Default = map[string]string{
 	"prometheus":                 prometheusTpl,
 	"storageclass":               storageclassTpl,
 	"tiller":                     tillerTpl,
+	"upgrade":                    upgradeTpl,
+	"evacuate":                   evacuateTpl,
+	"uncordon":                   uncordonTpl,
+	"apply":                      applyTpl,
+	"install_app":                installApp,
 }

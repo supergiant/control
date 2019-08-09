@@ -62,8 +62,8 @@ func TestNewConfig(t *testing.T) {
 		t.Errorf("Unexpected error %v", err)
 	}
 
-	if cfg.ClusterName != clusterName {
-		t.Errorf("Wrong cluster name expected %s actual %s", clusterName, cfg.ClusterName)
+	if cfg.Kube.Name != clusterName {
+		t.Errorf("Wrong cluster name expected %s actual %s", clusterName, cfg.Kube.Name)
 	}
 
 	if cfg.CloudAccountName != cloudAccountName {
@@ -280,7 +280,7 @@ func TestNewConfigFromKube(t *testing.T) {
 
 	k := &model.Kube{
 		ID:          "ClusteID",
-		Name:        "ClusterName",
+		Name:        "Kube.Name",
 		AccountName: "CloudAccount",
 		CloudSpec: map[string]string{
 			clouds.AwsImageID: "ImageID",
@@ -294,8 +294,8 @@ func TestNewConfigFromKube(t *testing.T) {
 		t.Errorf("Unexpected error %v", err)
 	}
 
-	if cfg.ClusterName != k.Name {
-		t.Errorf("Wrong cluster name expected %s actual %s", k.Name, cfg.ClusterName)
+	if cfg.Kube.Name != k.Name {
+		t.Errorf("Wrong cluster name expected %s actual %s", k.Name, cfg.Kube.Name)
 	}
 
 	if cfg.CloudAccountName != k.AccountName {

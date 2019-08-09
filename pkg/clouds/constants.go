@@ -1,6 +1,8 @@
 package clouds
 
-import "github.com/pkg/errors"
+import (
+	"github.com/pkg/errors"
+)
 
 type Name string
 
@@ -14,6 +16,8 @@ const (
 
 	Unknown Name = "unknown"
 )
+
+var versions = []string{"1.11.5", "1.12.7", "1.13.7", "1.14.3", "1.15.1"}
 
 func ToProvider(name string) (Name, error) {
 	switch name {
@@ -31,7 +35,18 @@ func ToProvider(name string) (Name, error) {
 	return Unknown, errors.New("invalid provider")
 }
 
+func GetVersions() []string {
+	if versions == nil {
+		return nil
+	}
+	c := make([]string, len(versions))
+	copy(c, versions)
+	return c
+}
+
 const (
+	OSUser = "supergiant"
+
 	DigitalOceanFingerPrint = "fingerprint"
 	DigitalOceanAccessToken = "accessToken"
 
@@ -88,6 +103,7 @@ const (
 	AwsImageID                  = "aws_image_id"
 	AwsExternalLoadBalancerName = "AwsExternalLoadBalancerName"
 	AwsInternalLoadBalancerName = "AwsInternalLoadBalancerName"
+	AwsVolumeSize               = "AwsVolumeSize"
 
 	// Use client credentials auth model for azure.
 	// https://github.com/Azure/azure-sdk-for-go#more-authentication-details
@@ -95,6 +111,6 @@ const (
 	AzureSubscriptionID = "subscriptionId"
 	AzureClientID       = "clientId"
 	AzureClientSecret   = "clientSecret"
-
-	AzureVNetCIDR = "azureVNetCIDR"
+	AzureVolumeSize     = "azureVolumeSize"
+	AzureVNetCIDR       = "azureVNetCIDR"
 )

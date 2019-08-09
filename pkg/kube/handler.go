@@ -4,16 +4,14 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
-	"github.com/pborman/uuid"
-	"github.com/supergiant/control/pkg/kubeconfig"
 	"io"
+	"io/ioutil"
 	"net/http"
 	"strconv"
 	"time"
 
-	"k8s.io/client-go/tools/clientcmd"
-
 	"github.com/gorilla/mux"
+	"github.com/pborman/uuid"
 	"github.com/pkg/errors"
 	"github.com/sirupsen/logrus"
 	"gopkg.in/asaskevich/govalidator.v8"
@@ -21,8 +19,11 @@ import (
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	clientcorev1 "k8s.io/client-go/kubernetes/typed/core/v1"
 	"k8s.io/client-go/rest"
+	"k8s.io/client-go/tools/clientcmd"
+	clientcmddapi "k8s.io/client-go/tools/clientcmd/api"
 
 	"github.com/supergiant/control/pkg/clouds"
+	"github.com/supergiant/control/pkg/kubeconfig"
 	"github.com/supergiant/control/pkg/message"
 	"github.com/supergiant/control/pkg/model"
 	"github.com/supergiant/control/pkg/profile"
@@ -39,6 +40,10 @@ const (
 	clusterService = "kubernetes.io/cluster-service"
 	nodeLabelRole  = "kubernetes.io/role"
 )
+
+type ChartRefGetter interface {
+	GetChartRef(context.Context, string, string, string) (string, error)
+}
 
 type accountGetter interface {
 	Get(context.Context, string) (*model.CloudAccount, error)
@@ -61,6 +66,8 @@ type kubeProvisioner interface {
 		clusterProfile *profile.Profile,
 		config *steps.Config,
 		taskIdMap map[string][]string) error
+	UpgradeCluster(context.Context, string, *model.Kube,
+		map[string][]*workflows.Task, *steps.Config)
 }
 
 type ServiceInfo struct {
@@ -82,6 +89,13 @@ type MetricResponse struct {
 	} `json:"data"`
 }
 
+type SpotRequest struct {
+	SpotPrice        string `json:"spotPrice"`
+	MachineType      string `json:"machineType"`
+	MachineCount     int64  `json:"machineCount"`
+	AvailabilityZone string `json:"availabilityZone"`
+}
+
 // Handler is a http controller for a kube entity.
 type Handler struct {
 	svc             Interface
@@ -89,12 +103,17 @@ type Handler struct {
 	nodeProvisioner nodeProvisioner
 	kubeProvisioner kubeProvisioner
 	profileSvc      profileSvc
+	chartGetter     ChartRefGetter
 
 	repo    storage.Interface
 	proxies proxy.Container
 
-	getWriter       func(string) (io.WriteCloser, error)
-	getMetrics      func(string, *model.Kube) (*MetricResponse, error)
+	getWriter  func(string) (io.WriteCloser, error)
+	getMetrics func(string, *model.Kube) (*MetricResponse, error)
+
+	discoverK8SVersion  func(kubeConfig *clientcmddapi.Config) (string, error)
+	discoverHelmVersion func(kubeConfig *clientcmddapi.Config) (string, error)
+
 	listK8sServices func(*model.Kube, string) (*corev1.ServiceList, error)
 }
 
@@ -105,8 +124,10 @@ func NewHandler(
 	profileSvc profileSvc,
 	provisioner nodeProvisioner,
 	kubeProvisioner kubeProvisioner,
+	charGetter ChartRefGetter,
 	repo storage.Interface,
 	proxies proxy.Container,
+	logDir string,
 ) *Handler {
 	return &Handler{
 		svc:             svc,
@@ -114,8 +135,9 @@ func NewHandler(
 		nodeProvisioner: provisioner,
 		kubeProvisioner: kubeProvisioner,
 		profileSvc:      profileSvc,
+		chartGetter:     charGetter,
 		repo:            repo,
-		getWriter:       util.GetWriter,
+		getWriter:       util.GetWriterFunc(logDir),
 		getMetrics: func(metricURI string, k *model.Kube) (*MetricResponse, error) {
 			cfg, err := kubeconfig.NewConfigFor(k)
 			if err != nil {
@@ -152,7 +174,9 @@ func NewHandler(
 				LabelSelector: selector,
 			})
 		},
-		proxies: proxies,
+		discoverK8SVersion:  discoverK8SVersion,
+		discoverHelmVersion: discoverHelmVersion,
+		proxies:             proxies,
 	}
 }
 
@@ -179,6 +203,7 @@ func (h *Handler) Register(r *mux.Router) {
 
 	// DEPRECATED: has been moved to /kubes/{kubeID}/machines
 	r.HandleFunc("/kubes/{kubeID}/nodes", h.addMachine).Methods(http.MethodPost)
+
 	// DEPRECATED: has been moved to /kubes/{kubeID}/machines
 	r.HandleFunc("/kubes/{kubeID}/nodes/{nodename}", h.deleteMachine).Methods(http.MethodDelete)
 
@@ -187,10 +212,15 @@ func (h *Handler) Register(r *mux.Router) {
 	r.HandleFunc("/kubes/{kubeID}/machines", h.addMachine).Methods(http.MethodPost)
 	r.HandleFunc("/kubes/{kubeID}/machines/{nodename}", h.deleteMachine).Methods(http.MethodDelete)
 
+	r.HandleFunc("/kubes/{kubeID}/spot", h.addSpotMachine).Methods(http.MethodPost)
+	r.HandleFunc("/kubes/{kubeID}/spot/{machineType}/price", h.spotMachinePrice).Methods(http.MethodGet)
+
 	r.HandleFunc("/kubes/{kubeID}/nodes/metrics", h.getNodesMetrics).Methods(http.MethodGet)
 	r.HandleFunc("/kubes/{kubeID}/metrics", h.getClusterMetrics).Methods(http.MethodGet)
 	r.HandleFunc("/kubes/{kubeID}/services", h.getServices).Methods(http.MethodGet)
 	r.HandleFunc("/kubes/{kubeID}/restart", h.restartKubeProvisioning).Methods(http.MethodPost)
+	r.HandleFunc("/kubes/{kubeID}", h.upgradeKube).Methods(http.MethodPatch)
+	r.HandleFunc("/kubes/{kubeID}/apply", h.applyToKube).Methods(http.MethodPost)
 }
 
 func (h *Handler) getTasks(w http.ResponseWriter, r *http.Request) {
@@ -375,8 +405,6 @@ func (h *Handler) deleteKube(w http.ResponseWriter, r *http.Request) {
 
 	config := &steps.Config{
 		Provider:         k.Provider,
-		ClusterID:        k.ID,
-		ClusterName:      k.Name,
 		CloudAccountName: k.AccountName,
 		Masters:          steps.NewMap(k.Masters),
 		Nodes:            steps.NewMap(k.Nodes),
@@ -613,13 +641,6 @@ func (h *Handler) addMachine(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if len(k.Masters) != 0 {
-		config.AddMaster(util.GetRandomNode(k.Masters))
-	} else {
-		http.Error(w, "no master found", http.StatusNotFound)
-		return
-	}
-
 	// Get cloud account fill appropriate config structure
 	// with cloud account credentials
 	err = util.FillCloudAccountCredentials(acc, config)
@@ -711,8 +732,6 @@ func (h *Handler) deleteMachine(w http.ResponseWriter, r *http.Request) {
 		DrainConfig: steps.DrainConfig{
 			PrivateIP: n.PrivateIp,
 		},
-		ClusterID:        k.ID,
-		ClusterName:      k.Name,
 		CloudAccountName: k.AccountName,
 		Node:             *n,
 		Masters:          steps.NewMap(k.Masters),
@@ -862,13 +881,14 @@ func (h *Handler) cleanUpKube(kubeID string) error {
 func (h *Handler) installRelease(w http.ResponseWriter, r *http.Request) {
 	vars := mux.Vars(r)
 
-	inp := &ReleaseInput{}
+	inp := &steps.InstallAppConfig{}
 	err := json.NewDecoder(r.Body).Decode(inp)
 	if err != nil {
 		logrus.Errorf("helm: install release: decode: %s", err)
 		message.SendInvalidJSON(w, err)
 		return
 	}
+
 	ok, err := govalidator.ValidateStruct(inp)
 	if !ok {
 		logrus.Errorf("helm: install release: validation: %s", err)
@@ -877,17 +897,102 @@ func (h *Handler) installRelease(w http.ResponseWriter, r *http.Request) {
 	}
 
 	kubeID := vars["kubeID"]
-	rls, err := h.svc.InstallRelease(r.Context(), kubeID, inp)
+	k, err := h.svc.Get(r.Context(), kubeID)
+
+	if sgerrors.IsNotFound(err) {
+		http.NotFound(w, r)
+		return
+	}
+
+	logrus.Debugf("Get cloud profile %s", k.ProfileID)
+	kubeProfile, err := h.profileSvc.Get(r.Context(), k.ProfileID)
+
 	if err != nil {
-		logrus.Errorf("helm: install release: %s cluster: %s (%+v)", kubeID, err, inp)
+		if sgerrors.IsNotFound(err) {
+			message.SendNotFound(w, k.ProfileID, err)
+			return
+		}
+
 		message.SendUnknownError(w, err)
 		return
 	}
 
-	if err = json.NewEncoder(w).Encode(rls); err != nil {
+	config, err := steps.NewConfigFromKube(kubeProfile, k)
+	if err != nil {
+		logrus.Errorf("New config %v", err.Error())
+		message.SendUnknownError(w, err)
+		return
+	}
+
+	ref, err := h.chartGetter.GetChartRef(r.Context(), inp.RepoName, inp.ChartName, inp.ChartVersion)
+	if err != nil {
+		if sgerrors.IsNotFound(err) {
+			message.SendNotFound(w, inp.ChartName, err)
+			return
+		}
+		message.SendUnknownError(w, err)
+		return
+	}
+
+	config.InstallAppConfig = *inp
+	config.InstallAppConfig.ChartRef = ref
+	// TODO(stgleb): Add task id to kube task list
+	installAppTask, err := workflows.NewTask(config, workflows.InstallApp, h.repo)
+
+	if err != nil {
+		message.SendUnknownError(w, err)
+		return
+	}
+
+	// Load things specific to cloud provider
+	err = util.LoadCloudSpecificDataFromKube(k, config)
+
+	if err != nil {
+		message.SendUnknownError(w, err)
+		return
+	}
+
+	if master := config.GetMaster(); master != nil {
+		config.Node = *master
+	} else {
+		message.SendNotFound(w, "master node", err)
+		return
+	}
+
+	go func() {
+		// Save install task to kube
+		k.Tasks[workflows.InstallApp] = []string{installAppTask.ID}
+
+		err = h.svc.Create(context.Background(), k)
+
+		if err != nil {
+			logrus.Errorf("update cluster %s caused %v", kubeID, err)
+		}
+
+		fileName := util.MakeFileName(installAppTask.ID)
+		writer, err := h.getWriter(fileName)
+
+		if err != nil {
+			logrus.Errorf("error getting writer %v", err)
+		}
+
+		errCh := installAppTask.Run(context.Background(), *installAppTask.Config, writer)
+		err = <-errCh
+
+		if err != nil {
+			logrus.Errorf("error running task %s %v", installAppTask.ID, err)
+		}
+	}()
+
+	if err = json.NewEncoder(w).Encode(struct {
+		TaskID string `json:"taskId"`
+	}{
+		TaskID: installAppTask.ID,
+	}); err != nil {
 		logrus.Errorf("helm: install release: %s cluster: %s/%s: write response: %s",
 			kubeID, inp.RepoName, inp.ChartName, err)
 		message.SendUnknownError(w, err)
+		return
 	}
 }
 
@@ -970,8 +1075,8 @@ func (h *Handler) getClusterMetrics(w http.ResponseWriter, r *http.Request) {
 			"cpu":    "api/v1/query?query=:node_cpu_utilisation:avg1m",
 			"memory": "api/v1/query?query=:node_memory_utilisation:",
 		}
-		response   = map[string]interface{}{}
-		baseUrl    = "api/v1/namespaces/kube-system/services/prometheus-operated:9090/proxy"
+		response = map[string]interface{}{}
+		baseUrl  = "api/v1/namespaces/kube-system/services/prometheus-operated:9090/proxy"
 	)
 
 	vars := mux.Vars(r)
@@ -988,7 +1093,7 @@ func (h *Handler) getClusterMetrics(w http.ResponseWriter, r *http.Request) {
 	}
 
 	for metricType, relUrl := range metricsRelUrls {
-		url := fmt.Sprintf("https://%s/%s/%s", k.ExternalDNSName, baseUrl, relUrl)
+		url := fmt.Sprintf("/%s/%s", baseUrl, relUrl)
 		metricResponse, err := h.getMetrics(url, k)
 
 		if err != nil {
@@ -1015,8 +1120,8 @@ func (h *Handler) getNodesMetrics(w http.ResponseWriter, r *http.Request) {
 			"cpu":    "api/v1/query?query=node:node_cpu_utilisation:avg1m",
 			"memory": "api/v1/query?query=node:node_memory_utilisation:",
 		}
-		response   = map[string]map[string]interface{}{}
-		baseUrl    = "api/v1/namespaces/kube-system/services/prometheus-operated:9090/proxy"
+		response = map[string]map[string]interface{}{}
+		baseUrl  = "api/v1/namespaces/kube-system/services/prometheus-operated:9090/proxy"
 	)
 
 	vars := mux.Vars(r)
@@ -1033,7 +1138,7 @@ func (h *Handler) getNodesMetrics(w http.ResponseWriter, r *http.Request) {
 	}
 
 	for metricType, relUrl := range metricsRelUrls {
-		url := fmt.Sprintf("https://%s/%s/%s", k.ExternalDNSName, baseUrl, relUrl)
+		url := fmt.Sprintf("/%s/%s", baseUrl, relUrl)
 		metricResponse, err := h.getMetrics(url, k)
 
 		if err != nil {
@@ -1107,6 +1212,7 @@ func (h *Handler) getServices(w http.ResponseWriter, r *http.Request) {
 		message.SendUnknownError(w, err)
 		return
 	}
+
 	for _, service := range svcList.Items {
 		for _, port := range service.Spec.Ports {
 			if _, ok := webPorts[port.Name]; !ok && port.Protocol != "TCP" {
@@ -1271,10 +1377,25 @@ func (h *Handler) importKube(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	k8sVersion, err := h.discoverK8SVersion(kubeConfig)
+
+	if err != nil {
+		message.SendUnknownError(w, err)
+		return
+	}
+
+	helmVersion, err := h.discoverK8SVersion(kubeConfig)
+
+	if err != nil {
+		message.SendUnknownError(w, err)
+		return
+	}
+
+	req.Profile.HelmVersion = helmVersion
 	config, err := steps.NewConfig(req.ClusterName, req.CloudAccountName, req.Profile)
 
 	if err != nil {
-		logrus.Errorf("New config %v", err.Error())
+		logrus.Errorf("build provisioning config: %s", err)
 		message.SendUnknownError(w, err)
 		return
 	}
@@ -1326,12 +1447,14 @@ func (h *Handler) importKube(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	config.ClusterID = clusterID
+	config.Kube.ID = clusterID
 	config.IsBootstrap = true
 	config.Kube.SSHConfig.BootstrapPrivateKey = req.PrivateKey
 	config.Kube.SSHConfig.PublicKey = req.PublicKey
 	config.Kube.Auth = kube.Auth
-	config.ExternalDNSName = kube.ExternalDNSName
+	config.Kube.ExternalDNSName = kube.ExternalDNSName
+	config.Kube.K8SVersion = k8sVersion
+	config.IsImport = true
 
 	if err := createKube(config, model.StateImporting, req.Profile, importTask.ID, h); err != nil {
 		message.SendUnknownError(w, errors.Wrapf(err, "create importing kube"))
@@ -1384,7 +1507,7 @@ func (h *Handler) importKube(w http.ResponseWriter, r *http.Request) {
 				}
 			}
 
-			machine.Name = fmt.Sprintf("%s-%s-%s", config.ClusterName, machine.Role, uuid.New()[:4])
+			machine.Name = fmt.Sprintf("%s-%s-%s", config.Kube.Name, machine.Role, uuid.New()[:4])
 
 			if machine.Role == model.RoleMaster {
 				masters[machine.Name] = &machine
@@ -1418,23 +1541,265 @@ func (h *Handler) importKube(w http.ResponseWriter, r *http.Request) {
 	}()
 }
 
+func (h *Handler) upgradeKube(w http.ResponseWriter, r *http.Request) {
+	var err error
+
+	vars := mux.Vars(r)
+	kubeID := vars["kubeID"]
+
+	logrus.Debugf("Get kube %s", kubeID)
+	k, err := h.svc.Get(r.Context(), kubeID)
+	if err != nil {
+		if sgerrors.IsNotFound(err) {
+			message.SendNotFound(w, kubeID, err)
+			return
+		}
+		message.SendUnknownError(w, err)
+		return
+	}
+
+	if k.State != model.StateOperational {
+		w.WriteHeader(http.StatusNoContent)
+		logrus.Infof("Cluster %s is not operational", k.ID)
+		return
+	}
+
+	logrus.Debugf("Get cloud profile %s", k.ProfileID)
+	kubeProfile, err := h.profileSvc.Get(r.Context(), k.ProfileID)
+
+	if err != nil {
+		if sgerrors.IsNotFound(err) {
+			message.SendNotFound(w, k.ProfileID, err)
+			return
+		}
+
+		message.SendUnknownError(w, err)
+		return
+	}
+
+	config, err := steps.NewConfigFromKube(kubeProfile, k)
+
+	if err != nil {
+		logrus.Errorf("New config %v", err.Error())
+		message.SendUnknownError(w, err)
+		return
+	}
+
+	// Load things specific to cloud provider
+	err = util.LoadCloudSpecificDataFromKube(k, config)
+
+	if err != nil {
+		message.SendUnknownError(w, err)
+		return
+	}
+
+	nextVersion := findNextMinorVersion(k.K8SVersion, clouds.GetVersions())
+
+	if nextVersion == "" {
+		http.Error(w, fmt.Sprintf("can't upgrade from version %s", k.K8SVersion), http.StatusBadRequest)
+		return
+	}
+
+	if nextVersion == k.K8SVersion {
+		w.WriteHeader(http.StatusNoContent)
+		return
+	}
+
+	config.Kube.K8SVersion = nextVersion
+	tasks := h.makeUpgradeTasks(config, k)
+
+	go h.kubeProvisioner.UpgradeCluster(context.Background(), nextVersion, k, tasks, config)
+	node2TaskMap := mapNode2Task(tasks)
+
+	// here we are ready for async part
+	w.WriteHeader(http.StatusAccepted)
+	if err := json.NewEncoder(w).Encode(node2TaskMap); err != nil {
+		logrus.Errorf("Error encoding task map %v", err)
+	}
+}
+
+func (h *Handler) makeUpgradeTasks(config *steps.Config, k *model.Kube) map[string][]*workflows.Task {
+	masterTasks := make([]*workflows.Task, 0, len(k.Masters))
+	nodeTasks := make([]*workflows.Task, 0, len(k.Nodes))
+	//some clouds (e.g. AWS) requires running tasks before provisioning nodes (creating a VPC, Subnets, SecGroups, etc)
+
+	for _, masterMachine := range k.Masters {
+		masterTask, err := workflows.NewTask(config, workflows.Upgrade, h.repo)
+		if err != nil {
+			logrus.Errorf("Failed to set up task for %s workflow", workflows.ProvisionMaster)
+			continue
+		}
+
+		cfg := *config
+		cfg.Node = *masterMachine
+		cfg.IsMaster = true
+		cfg.IsBootstrap = false
+		masterTask.Config = &cfg
+		// Note(stgleb): Reuse task ID for machine provisioning that will allow to browse
+		// logs of machine upgrade without changes on the UI
+		masterTask.ID = masterMachine.TaskID
+		masterTasks = append(masterTasks, masterTask)
+	}
+
+	for _, nodeMachine := range k.Nodes {
+		nodeTask, err := workflows.NewTask(config, workflows.Upgrade, h.repo)
+		if err != nil {
+			logrus.Errorf("Failed to set up task for %s workflow", workflows.ProvisionNode)
+			continue
+		}
+		cfg := *config
+		cfg.Node = *nodeMachine
+		cfg.IsMaster = false
+		cfg.IsBootstrap = false
+		nodeTask.Config = &cfg
+		// Note(stgleb): Reuse task ID for machine provisioning that will allow to browse
+		// logs of machine upgrade without changes on the UI
+		nodeTask.ID = nodeMachine.ID
+		nodeTasks = append(nodeTasks, nodeTask)
+	}
+
+	taskMap := map[string][]*workflows.Task{
+		workflows.MasterTask: masterTasks,
+		workflows.NodeTask:   nodeTasks,
+	}
+
+	return taskMap
+}
+
+func (h *Handler) applyToKube(w http.ResponseWriter, r *http.Request) {
+	var err error
+
+	vars := mux.Vars(r)
+	kubeID := vars["kubeID"]
+
+	data, err := ioutil.ReadAll(r.Body)
+
+	if err != nil {
+		message.SendUnknownError(w, err)
+		return
+	}
+
+	logrus.Debugf("Get kube %s", kubeID)
+	k, err := h.svc.Get(r.Context(), kubeID)
+	if err != nil {
+		if sgerrors.IsNotFound(err) {
+			message.SendNotFound(w, kubeID, err)
+			return
+		}
+		message.SendUnknownError(w, err)
+		return
+	}
+
+	if k.State != model.StateOperational {
+		w.WriteHeader(http.StatusNoContent)
+		logrus.Infof("Cluster %s is not operational", k.ID)
+		return
+	}
+
+	logrus.Debugf("Get cloud profile %s", k.ProfileID)
+	kubeProfile, err := h.profileSvc.Get(r.Context(), k.ProfileID)
+
+	if err != nil {
+		if sgerrors.IsNotFound(err) {
+			message.SendNotFound(w, k.ProfileID, err)
+			return
+		}
+
+		message.SendUnknownError(w, err)
+		return
+	}
+
+	config, err := steps.NewConfigFromKube(kubeProfile, k)
+
+	if err != nil {
+		logrus.Errorf("New config %v", err.Error())
+		message.SendUnknownError(w, err)
+		return
+	}
+
+	// Load things specific to cloud provider
+	err = util.LoadCloudSpecificDataFromKube(k, config)
+
+	if err != nil {
+		message.SendUnknownError(w, err)
+		return
+	}
+
+	if master := config.GetMaster(); master != nil {
+		config.Node = *master
+	} else {
+		message.SendNotFound(w, "master node", err)
+		return
+	}
+
+	config.ApplyConfig.Data = string(data)
+	applyTask, err := workflows.NewTask(config, workflows.ApplyYaml, h.repo)
+
+	if err != nil {
+		message.SendUnknownError(w, err)
+		return
+	}
+
+	fileName := util.MakeFileName(applyTask.ID)
+	writer, err := h.getWriter(fileName)
+
+	if err != nil {
+		message.SendUnknownError(w, err)
+		return
+	}
+
+	applyTask.Config = config
+	go func() {
+		err := <-applyTask.Run(context.Background(), *config, writer)
+
+		if err != nil {
+			logrus.Errorf("Error executing apply task %v", err)
+		}
+	}()
+
+	// here we are ready for async part
+	w.WriteHeader(http.StatusAccepted)
+	err = json.NewEncoder(w).Encode(struct {
+		TaskID string `json:"taskId"`
+	}{
+		TaskID: applyTask.ID,
+	})
+
+	if err != nil {
+		logrus.Errorf("Error encoding task id %v", err)
+	}
+}
+
+func mapNode2Task(taskMap map[string][]*workflows.Task) map[string]string {
+	node2Task := make(map[string]string)
+
+	for _, taskSet := range taskMap {
+		for _, task := range taskSet {
+			node2Task[task.Config.Node.Name] = task.ID
+		}
+	}
+
+	return node2Task
+}
+
 func createKube(config *steps.Config, state model.KubeState, profile profile.Profile, taskID string, h *Handler) error {
 	cluster := &model.Kube{
-		ID:                     config.ClusterID,
+		ID:                     config.Kube.ID,
 		State:                  state,
-		Name:                   config.ClusterName,
+		Name:                   config.Kube.Name,
 		Provider:               config.Provider,
 		AccountName:            config.CloudAccountName,
-		BootstrapToken:         config.BootstrapToken,
+		BootstrapToken:         config.Kube.BootstrapToken,
 		Region:                 profile.Region,
 		Arch:                   profile.Arch,
 		OperatingSystem:        profile.OperatingSystem,
 		OperatingSystemVersion: profile.UbuntuVersion,
 		K8SVersion:             profile.K8SVersion,
 		DockerVersion:          profile.DockerVersion,
+		HelmVersion:            profile.HelmVersion,
 		RBACEnabled:            profile.RBACEnabled,
-		ExternalDNSName:        config.ExternalDNSName,
-		InternalDNSName:        config.ExternalDNSName,
+		ExternalDNSName:        config.Kube.ExternalDNSName,
+		InternalDNSName:        config.Kube.ExternalDNSName,
 		ProfileID:              profile.ID,
 		Auth:                   config.Kube.Auth,
 		Masters:                config.GetMasters(),
@@ -1456,4 +1821,144 @@ func createKube(config *steps.Config, state model.KubeState, profile profile.Pro
 	}
 
 	return err
+}
+
+// Add spot instance machine to k8s cluster
+func (h *Handler) addSpotMachine(w http.ResponseWriter, r *http.Request) {
+	vars := mux.Vars(r)
+	kubeID := vars["kubeID"]
+	k, err := h.svc.Get(r.Context(), kubeID)
+
+	if sgerrors.IsNotFound(err) {
+		http.NotFound(w, r)
+		return
+	}
+
+	// TODO(stgleb): Add machine count here
+	req := &SpotRequest{}
+
+	if err := json.NewDecoder(r.Body).Decode(req); err != nil {
+		message.SendInvalidJSON(w, err)
+		return
+	}
+
+	logrus.Debugf("Get cloud profile %s", k.ProfileID)
+	kubeProfile, err := h.profileSvc.Get(r.Context(), k.ProfileID)
+
+	if err != nil {
+		if sgerrors.IsNotFound(err) {
+			message.SendNotFound(w, k.ProfileID, err)
+			return
+		}
+
+		message.SendUnknownError(w, err)
+		return
+	}
+
+	config, err := steps.NewConfigFromKube(kubeProfile, k)
+	if err != nil {
+		logrus.Errorf("New config %v", err.Error())
+		message.SendUnknownError(w, err)
+		return
+	}
+
+	acc, err := h.accountService.Get(r.Context(), k.AccountName)
+
+	if sgerrors.IsNotFound(err) {
+		http.NotFound(w, r)
+		return
+	}
+
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+
+	// Get cloud account fill appropriate config structure
+	// with cloud account credentials
+	err = util.FillCloudAccountCredentials(acc, config)
+
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+
+	if err = util.LoadCloudSpecificDataFromKube(k, config); err != nil {
+		message.SendUnknownError(w, err)
+		return
+	}
+
+	if err := createSpotInstance(req, config); err != nil {
+		message.SendUnknownError(w, err)
+		return
+	}
+}
+
+// Add spot instance machine to k8s cluster
+func (h *Handler) spotMachinePrice(w http.ResponseWriter, r *http.Request) {
+	vars := mux.Vars(r)
+
+	machineType := vars["machineType"]
+	kubeID := vars["kubeID"]
+
+	k, err := h.svc.Get(r.Context(), kubeID)
+
+	if sgerrors.IsNotFound(err) {
+		http.NotFound(w, r)
+		return
+	}
+
+	acc, err := h.accountService.Get(r.Context(), k.AccountName)
+
+	if sgerrors.IsNotFound(err) {
+		http.NotFound(w, r)
+		return
+	}
+
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+
+	logrus.Debugf("Get cloud profile %s", k.ProfileID)
+	kubeProfile, err := h.profileSvc.Get(r.Context(), k.ProfileID)
+
+	if err != nil {
+		if sgerrors.IsNotFound(err) {
+			message.SendNotFound(w, k.ProfileID, err)
+			return
+		}
+
+		message.SendUnknownError(w, err)
+		return
+	}
+
+	config, err := steps.NewConfigFromKube(kubeProfile, k)
+	if err != nil {
+		logrus.Errorf("New config %v", err.Error())
+		message.SendUnknownError(w, err)
+		return
+	}
+
+	// Get cloud account fill appropriate config structure
+	// with cloud account credentials
+	err = util.FillCloudAccountCredentials(acc, config)
+
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+
+	prices, err := getSpotPrices(machineType, config)
+
+	if err != nil {
+		message.SendUnknownError(w, err)
+		return
+	}
+
+	err = json.NewEncoder(w).Encode(&struct{ Prices []string }{prices})
+
+	if err != nil {
+		message.SendInvalidJSON(w, err)
+	}
 }

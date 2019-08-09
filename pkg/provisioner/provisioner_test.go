@@ -25,12 +25,15 @@ type mockKubeService struct {
 	getError  error
 	createErr error
 	lock      sync.RWMutex
-	data      map[string]*model.Kube
+	data      map[string]model.Kube
 }
 
 func (m *mockKubeService) Create(ctx context.Context, k *model.Kube) error {
+	if k == nil {
+		return nil
+	}
 	m.lock.Lock()
-	m.data[k.ID] = k
+	m.data[k.ID] = *k
 	m.lock.Unlock()
 	return m.createErr
 }
@@ -38,7 +41,8 @@ func (m *mockKubeService) Create(ctx context.Context, k *model.Kube) error {
 func (m *mockKubeService) Get(ctx context.Context, kname string) (*model.Kube, error) {
 	m.lock.RLock()
 	defer m.lock.RUnlock()
-	return m.data[kname], m.getError
+	k := m.data[kname]
+	return &k, m.getError
 }
 
 type mockStep struct {
@@ -69,7 +73,7 @@ func TestNewProvisioner(t *testing.T) {
 	service := &mockKubeService{}
 	interval := time.Second * 1
 
-	p := NewProvisioner(storage, service, interval)
+	p := NewProvisioner(storage, service, interval, "")
 
 	if p.repository != storage {
 		t.Errorf("Wrong repository expected %v actual %v",
@@ -98,7 +102,7 @@ func TestProvisionCluster(t *testing.T) {
 	}
 
 	svc := &mockKubeService{
-		data: make(map[string]*model.Kube),
+		data: make(map[string]model.Kube),
 	}
 
 	provisioner := TaskProvisioner{
@@ -121,7 +125,7 @@ func TestProvisionCluster(t *testing.T) {
 	workflows.RegisterWorkFlow(workflows.PostProvision, []steps.Step{
 		&mockStep{},
 	})
-	workflows.RegisterWorkFlow(workflows.PreProvision, []steps.Step{
+	workflows.RegisterWorkFlow(workflows.DigitalOceanInfra, []steps.Step{
 		&mockStep{},
 	})
 
@@ -161,7 +165,7 @@ func TestProvisionCluster(t *testing.T) {
 
 	// Cancel context to shut down cluster state monitoring
 	cancel()
-	if k, err := svc.Get(context.Background(), cfg.ClusterID); err == nil && k == nil {
+	if k, err := svc.Get(context.Background(), cfg.Kube.ID); err == nil && k == nil {
 		t.Errorf("Kube %s not found", k.ID)
 
 		if len(k.Tasks) != len(p.MasterProfiles)+len(p.NodesProfiles)+1 {
@@ -203,8 +207,8 @@ func TestProvisionNodes(t *testing.T) {
 
 	provisioner := TaskProvisioner{
 		&mockKubeService{
-			data: map[string]*model.Kube{
-				k.ID: k,
+			data: map[string]model.Kube{
+				k.ID: *k,
 			},
 		},
 		repository,
@@ -252,7 +256,7 @@ func TestProvisionNodes(t *testing.T) {
 		t.Errorf("Unexpected error %v", err)
 	}
 
-	config.ClusterID = k.ID
+	config.Kube.ID = k.ID
 
 	_, err = provisioner.ProvisionNodes(context.Background(),
 		[]profile.NodeProfile{nodeProfile}, k, config)
@@ -292,7 +296,7 @@ func TestRestartProvisionClusterSuccess(t *testing.T) {
 	}
 
 	svc := &mockKubeService{
-		data: map[string]*model.Kube{
+		data: map[string]model.Kube{
 			"kubeID": {
 				ID: "kubeID",
 			},
@@ -310,7 +314,7 @@ func TestRestartProvisionClusterSuccess(t *testing.T) {
 	}
 
 	workflows.Init()
-	workflows.RegisterWorkFlow(workflows.PreProvision, []steps.Step{
+	workflows.RegisterWorkFlow(workflows.DigitalOceanInfra, []steps.Step{
 		&mockStep{},
 	})
 
@@ -336,7 +340,7 @@ func TestRestartProvisionClusterSuccess(t *testing.T) {
 		t.Errorf("Unexpected error %v", err)
 	}
 
-	cfg.ClusterID = "kubeID"
+	cfg.Kube.ID = "kubeID"
 
 	err = provisioner.
 		RestartClusterProvisioning(context.Background(),
@@ -365,7 +369,7 @@ func TestRestartProvisionClusterError(t *testing.T) {
 	}
 
 	svc := &mockKubeService{
-		data: map[string]*model.Kube{
+		data: map[string]model.Kube{
 			"kubeID": {
 				ID: "kubeID",
 			},
@@ -386,7 +390,7 @@ func TestRestartProvisionClusterError(t *testing.T) {
 	workflows.RegisterWorkFlow(workflows.ProvisionMaster, []steps.Step{})
 	workflows.RegisterWorkFlow(workflows.ProvisionNode, []steps.Step{})
 	workflows.RegisterWorkFlow(workflows.PostProvision, []steps.Step{})
-	workflows.RegisterWorkFlow(workflows.PreProvision, []steps.Step{
+	workflows.RegisterWorkFlow(workflows.DigitalOceanInfra, []steps.Step{
 		&mockStep{},
 	})
 
@@ -413,7 +417,7 @@ func TestRestartProvisionClusterError(t *testing.T) {
 		t.Errorf("Unexpected error %v", err)
 	}
 
-	cfg.ClusterID = "kubeID"
+	cfg.Kube.ID = "kubeID"
 
 	err = provisioner.
 		RestartClusterProvisioning(context.Background(),
@@ -507,13 +511,15 @@ func TestDeserializeTasksError(t *testing.T) {
 
 func TestMonitorCluster(t *testing.T) {
 	testCases := []struct {
+		name                 string
 		nodes                []model.Machine
 		states               []model.KubeState
-		kube                 *model.Kube
-		expectedNodeCount    int
+		kube                 model.Kube
+		expectedMastersNum   int
 		expectedClusterState model.KubeState
 	}{
 		{
+			name: "state_operational",
 			nodes: []model.Machine{
 				{
 					Name:  "test",
@@ -540,16 +546,17 @@ func TestMonitorCluster(t *testing.T) {
 				model.StateProvisioning,
 				model.StateOperational,
 			},
-			kube: &model.Kube{
+			kube: model.Kube{
 				ID:      "1234",
 				Name:    "test",
 				Masters: make(map[string]*model.Machine),
 				Nodes:   make(map[string]*model.Machine),
 			},
-			expectedNodeCount:    1,
+			expectedMastersNum:   1,
 			expectedClusterState: model.StateOperational,
 		},
 		{
+			name: "state_failed",
 			nodes: []model.Machine{
 				{
 					Name:  "test1",
@@ -576,28 +583,28 @@ func TestMonitorCluster(t *testing.T) {
 				model.StateProvisioning,
 				model.StateFailed,
 			},
-			kube: &model.Kube{
+			kube: model.Kube{
 				ID:      "1234",
 				Name:    "test",
 				Masters: make(map[string]*model.Machine),
 				Nodes:   make(map[string]*model.Machine),
 			},
-			expectedNodeCount:    2,
+			expectedMastersNum:   2,
 			expectedClusterState: model.StateFailed,
 		},
 		{
-			kube: &model.Kube{
+			name: "state_provisioning",
+			kube: model.Kube{
 				Name:  "test",
 				State: model.StateProvisioning,
 			},
-			expectedNodeCount:    0,
 			expectedClusterState: model.StateProvisioning,
 		},
 	}
 
 	for _, testCase := range testCases {
 		svc := &mockKubeService{
-			data: map[string]*model.Kube{
+			data: map[string]model.Kube{
 				testCase.kube.ID: testCase.kube,
 			},
 		}
@@ -614,11 +621,11 @@ func TestMonitorCluster(t *testing.T) {
 			t.Errorf("Unexpected error %v", err)
 		}
 
-		cfg.ClusterID = testCase.kube.ID
+		cfg.Kube.ID = testCase.kube.ID
 		logrus.Println(testCase.kube.ID)
 
 		ctx, cancel := context.WithCancel(context.Background())
-		go p.monitorClusterState(ctx, cfg.ClusterID, cfg.NodeChan(),
+		go p.monitorClusterState(ctx, cfg.Kube.ID, cfg.NodeChan(),
 			cfg.KubeStateChan(), cfg.ConfigChan())
 
 		for _, n := range testCase.nodes {
@@ -632,13 +639,15 @@ func TestMonitorCluster(t *testing.T) {
 		time.Sleep(time.Millisecond * 1)
 		cancel()
 
-		if len(testCase.kube.Masters)+len(testCase.kube.Nodes) != testCase.expectedNodeCount {
-			t.Errorf("Wrong node count in the end of provisioning")
+		k, _ := svc.Get(context.Background(), testCase.kube.ID)
+
+		if len(k.Masters) != testCase.expectedMastersNum {
+			t.Fatalf("TC#%s: nodes number: expected=%d got=%d", testCase.name, testCase.expectedMastersNum, len(k.Masters))
 		}
 
-		if testCase.kube.State != testCase.expectedClusterState {
-			t.Errorf("Wrong cluster state in the end of provisioning expected %s actual %s",
-				testCase.expectedClusterState, testCase.kube.State)
+		if k.State != testCase.expectedClusterState {
+			t.Fatalf("TC#%s: cluster state: expected=%s got=%s",
+				testCase.name, testCase.expectedClusterState, testCase.kube.State)
 		}
 	}
 }
@@ -689,7 +698,7 @@ func TestTaskProvisioner_CancelNotFound(t *testing.T) {
 
 func TestBuildInitialCluster(t *testing.T) {
 	service := &mockKubeService{
-		data: make(map[string]*model.Kube),
+		data: make(map[string]model.Kube),
 	}
 	clusterID := "clusterID"
 	tp := &TaskProvisioner{
@@ -701,10 +710,12 @@ func TestBuildInitialCluster(t *testing.T) {
 	}
 
 	tp.buildInitialCluster(context.Background(), &profile.Profile{}, nil, nil, &steps.Config{
-		ClusterID: clusterID,
+		Kube: model.Kube{
+			ID: clusterID,
+		},
 	}, taskIds)
 
-	if k := service.data[clusterID]; k == nil {
+	if k, _ := service.Get(context.Background(), clusterID); k == nil {
 		t.Errorf("Cluster %s not found", clusterID)
 	} else {
 		if len(k.Tasks) != len(taskIds) {

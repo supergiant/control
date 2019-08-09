@@ -65,7 +65,7 @@ func (s *CreateSecurityGroupStep) Run(ctx context.Context, output io.Writer, con
 	}{
 		{
 			role:  model.RoleMaster.String(),
-			rules: masterSecurityRules(sgAddr),
+			rules: masterSecurityRules(sgAddr, config.Kube.APIServerPort),
 		},
 		{
 			role:  model.RoleNode.String(),
@@ -74,19 +74,19 @@ func (s *CreateSecurityGroupStep) Run(ctx context.Context, output io.Writer, con
 	} {
 		subnet, err := subnetClient.Get(
 			ctx,
-			toResourceGroupName(config.ClusterID, config.ClusterName),
-			toVNetName(config.ClusterID, config.ClusterName),
-			toSubnetName(config.ClusterID, config.ClusterName, r.role),
+			toResourceGroupName(config.Kube.ID, config.Kube.Name),
+			toVNetName(config.Kube.ID, config.Kube.Name),
+			toSubnetName(config.Kube.ID, config.Kube.Name, r.role),
 			"",
 		)
 		if err != nil {
-			return errors.Wrapf(err, "get %s subnet", toSubnetName(config.ClusterID, config.ClusterName, r.role))
+			return errors.Wrapf(err, "get %s subnet", toSubnetName(config.Kube.ID, config.Kube.Name, r.role))
 		}
 
-		name := toNSGName(config.ClusterID, config.ClusterName, r.role)
+		name := toNSGName(config.Kube.ID, config.Kube.Name, r.role)
 		f, err := nsgClient.CreateOrUpdate(
 			ctx,
-			toResourceGroupName(config.ClusterID, config.ClusterName),
+			toResourceGroupName(config.Kube.ID, config.Kube.Name),
 			name,
 			network.SecurityGroup{
 				Location: to.StringPtr(config.AzureConfig.Location),
@@ -125,7 +125,7 @@ func (s *CreateSecurityGroupStep) Description() string {
 	return "Azure: Create master/node network security groups"
 }
 
-func masterSecurityRules(sgAddr string) []network.SecurityRule {
+func masterSecurityRules(sgAddr string, apiserverPort int64) []network.SecurityRule {
 	return []network.SecurityRule{
 		{
 			Name: to.StringPtr("allow_ssh_for_sg"),
@@ -147,7 +147,7 @@ func masterSecurityRules(sgAddr string) []network.SecurityRule {
 				SourceAddressPrefix:      to.StringPtr("0.0.0.0/0"),
 				SourcePortRange:          to.StringPtr("1-65535"),
 				DestinationAddressPrefix: to.StringPtr("0.0.0.0/0"),
-				DestinationPortRange:     to.StringPtr("443"),
+				DestinationPortRange:     to.StringPtr(fmt.Sprintf("%d", apiserverPort)),
 				Access:                   network.SecurityRuleAccessAllow,
 				Direction:                network.SecurityRuleDirectionInbound,
 				Priority:                 to.Int32Ptr(200),

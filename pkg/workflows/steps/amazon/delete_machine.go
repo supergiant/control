@@ -3,7 +3,6 @@ package amazon
 import (
 	"context"
 	"fmt"
-	"github.com/supergiant/control/pkg/clouds"
 	"io"
 
 	"github.com/aws/aws-sdk-go/aws"
@@ -12,6 +11,7 @@ import (
 	"github.com/pkg/errors"
 	"github.com/sirupsen/logrus"
 
+	"github.com/supergiant/control/pkg/clouds"
 	"github.com/supergiant/control/pkg/util"
 	"github.com/supergiant/control/pkg/workflows/steps"
 )
@@ -21,6 +21,7 @@ const DeleteNodeStepName = "aws_delete_node"
 type instanceDeleter interface {
 	DescribeInstancesWithContext(aws.Context, *ec2.DescribeInstancesInput, ...request.Option) (*ec2.DescribeInstancesOutput, error)
 	TerminateInstancesWithContext(aws.Context, *ec2.TerminateInstancesInput, ...request.Option) (*ec2.TerminateInstancesOutput, error)
+	CancelSpotInstanceRequestsWithContext(aws.Context, *ec2.CancelSpotInstanceRequestsInput, ...request.Option) (*ec2.CancelSpotInstanceRequestsOutput, error)
 }
 
 type DeleteNodeStep struct {
@@ -60,7 +61,7 @@ func (s *DeleteNodeStep) Run(ctx context.Context, w io.Writer, cfg *steps.Config
 	describeInstanceOutput, err := svc.DescribeInstancesWithContext(ctx, &ec2.DescribeInstancesInput{
 		Filters: []*ec2.Filter{
 			{
-				Name:   aws.String(fmt.Sprintf("tag:%s",clouds.TagNodeName)),
+				Name:   aws.String(fmt.Sprintf("tag:%s", clouds.TagNodeName)),
 				Values: aws.StringSlice([]string{cfg.Node.Name}),
 			},
 		},
@@ -73,15 +74,20 @@ func (s *DeleteNodeStep) Run(ctx context.Context, w io.Writer, cfg *steps.Config
 	logrus.Debugf("Got %d instance outputs",
 		len(describeInstanceOutput.Reservations))
 	instanceIDS := make([]string, 0)
+	spotRequestIDs := make([]string, 0)
 	for _, res := range describeInstanceOutput.Reservations {
 		for _, instance := range res.Instances {
 			instanceIDS = append(instanceIDS, *instance.InstanceId)
+
+			if instance.SpotInstanceRequestId != nil {
+				spotRequestIDs = append(spotRequestIDs, *instance.SpotInstanceRequestId)
+			}
 		}
 	}
 
 	if len(instanceIDS) == 0 {
 		logrus.Infof("[%s] - node %s not found in cluster %s",
-			s.Name(), cfg.Node.Name, cfg.ClusterName)
+			s.Name(), cfg.Node.Name, cfg.Kube.Name)
 		return nil
 	}
 
@@ -94,6 +100,15 @@ func (s *DeleteNodeStep) Run(ctx context.Context, w io.Writer, cfg *steps.Config
 
 	if err != nil {
 		return errors.Wrapf(err, "%s terminate instance", DeleteNodeStepName)
+	}
+
+	_, err = svc.CancelSpotInstanceRequestsWithContext(ctx,
+		&ec2.CancelSpotInstanceRequestsInput{
+			SpotInstanceRequestIds: aws.StringSlice(spotRequestIDs),
+		})
+
+	if err != nil {
+		logrus.Errorf("cancel spot requests caused %v", err)
 	}
 
 	log.Infof("[%s] - finished successfully", s.Name())

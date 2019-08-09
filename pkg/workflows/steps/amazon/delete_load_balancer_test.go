@@ -10,6 +10,7 @@ import (
 	"github.com/aws/aws-sdk-go/service/elb"
 	"github.com/stretchr/testify/mock"
 
+	"github.com/supergiant/control/pkg/model"
 	"github.com/supergiant/control/pkg/workflows/steps"
 )
 
@@ -115,7 +116,9 @@ func TestDeleteLoadBalancerStep_Run(t *testing.T) {
 		}
 
 		config := &steps.Config{
-			ClusterID: "1234",
+			Kube: model.Kube{
+				ID: "1234",
+			},
 			AWSConfig: steps.AWSConfig{},
 		}
 

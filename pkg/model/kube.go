@@ -13,6 +13,7 @@ const (
 	StateOperational  KubeState = "operational"
 	StateDeleting     KubeState = "deleting"
 	StateImporting    KubeState = "importing"
+	StateUpgrading    KubeState = "upgrading"
 )
 
 // Kube represents a kubernetes cluster.
@@ -27,8 +28,10 @@ type Kube struct {
 	Zone         string      `json:"zone" valid:"-"`
 	ServicesCIDR string      `json:"servicesCIDR"`
 	DNSIP        string      `json:"dnsIp"`
-	APIPort      string      `json:"apiPort"`
-	Auth         Auth        `json:"auth"`
+	// DEPRECATED: use APIServerPort instead.
+	APIPort       string `json:"apiPort"`
+	APIServerPort int64  `json:"apibindPort"`
+	Auth          Auth   `json:"auth"`
 
 	User     string `json:"user" valid:"-"`
 	Password string `json:"password" valid:"-"`
@@ -57,7 +60,9 @@ type Kube struct {
 
 	SSHConfig SSHConfig `json:"sshConfig"`
 
+	UserData         string              `json:"userData"`
 	ExposedAddresses []profile.Addresses `json:"exposedAddresses"`
+	Addons           []string            `json:"addons,omitempty"`
 }
 
 type SSHConfig struct {
@@ -71,19 +76,25 @@ type SSHConfig struct {
 
 // Auth holds all possible auth parameters.
 type Auth struct {
-	Username  string `json:"username"`
-	Password  string `json:"token"`
-	CAKey     string `json:"caKey"`
-	CACert    string `json:"caCert"`
-	AdminCert string `json:"adminCert"`
-	AdminKey  string `json:"adminKey"`
-	SAKey     string `json:"saKey"`
-	SAPub     string `json:"saPub"`
+	// DEPRECATED: use static auth
+	Username string `json:"username"`
+	// DEPRECATED: use static auth
+	Password       string             `json:"token"`
+	ParentCert     string             `json:"parentCert"`
+	CAKey          string             `json:"caKey"`
+	CACert         string             `json:"caCert"`
+	CACertHash     string             `json:"caCertHash"`
+	AdminCert      string             `json:"adminCert"`
+	AdminKey       string             `json:"adminKey"`
+	CertificateKey string             `json:"certificateKey"`
+	StaticAuth     profile.StaticAuth `json:"staticAuth"`
 }
 
 type Networking struct {
-	Manager string `json:"manager"`
-	Version string `json:"version"`
-	Type    string `json:"type"`
-	CIDR    string `json:"cidr"`
+	// DEPRECATED: use Provider field instead
+	Manager  string `json:"manager"`
+	Provider string `json:"provider"`
+	Version  string `json:"version"`
+	Type     string `json:"type"`
+	CIDR     string `json:"cidr"`
 }

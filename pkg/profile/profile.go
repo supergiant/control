@@ -29,6 +29,7 @@ type Profile struct {
 	DockerVersion   string      `json:"dockerVersion" valid:"-"`
 	K8SVersion      string      `json:"K8SVersion" valid:"-"`
 	K8SServicesCIDR string      `json:"k8sServicesCIDR" valid:"-"`
+	K8SAPIPort      int64       `json:"k8sApiPort" valid:"-"`
 	NetworkProvider string      `json:"networkProvider" valid:"-"`
 	FlannelVersion  string      `json:"flannelVersion" valid:"-"`
 	NetworkType     string      `json:"networkType" valid:"-"`
@@ -36,14 +37,14 @@ type Profile struct {
 	HelmVersion     string      `json:"helmVersion" valid:"-"`
 	RBACEnabled     bool        `json:"rbacEnabled" valid:"-"`
 	// This field is AWS specific, mapping AZ -> subnet
-	Subnets                map[string]string     `json:"subnets" valid:"-"`
-	CloudSpecificSettings  CloudSpecificSettings `json:"cloudSpecificSettings" valid:"-"`
-	PublicKey              string                `json:"publicKey" valid:"-"`
-	LogBootstrapPrivateKey bool                  `json:"logBootstrapPrivateKey" valid:"-"`
+	Subnets               map[string]string     `json:"subnets" valid:"-"`
+	CloudSpecificSettings CloudSpecificSettings `json:"cloudSpecificSettings" valid:"-"`
+	PublicKey             string                `json:"publicKey" valid:"-"`
 
 	// ExposedAddresses is a list of cidr/port pairs that will be exposes
 	// by cloud provider security groups.
 	ExposedAddresses []Addresses `json:"exposedAddresses" valid:"-"`
+	Addons           []string    `json:"addons,omitempty" valid:"-"`
 }
 
 type NodeProfile map[string]string

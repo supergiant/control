@@ -17,10 +17,14 @@ import (
 var (
 	version       = "unstable"
 	addr          = flag.String("address", "0.0.0.0", "network interface to attach server to")
-	port          = flag.Int("port", 8080, "tcp port to listen for incoming requests")
+	port          = flag.Int("port", 0, "secure tcp port to listen to for incoming HTTPS requests. Provide server certificates with -cert-file and -key-file flags")
+	insecurePort  = flag.Int("insecure-port", 8080, "tcp port to listen for incoming HTTP requests. if -port is set this flag will be ignored")
+	certFile      = flag.String("cert-file", "", "file containing server x509 certificate")
+	keyFile       = flag.String("key-file", "", "file containing x509 private key matching --cert-file")
 	storageMode   = flag.String("storage-mode", "file", "storage type either file(default), memory or etcd")
 	storageURI    = flag.String("storage-uri", "supergiant.db", "uri of storage depends on selected storage type, for memory storage type this is empty")
 	templatesDir  = flag.String("templates", "", "supergiant will load script templates from the specified directory on start")
+	logDir        = flag.String("log-dir", "/tmp", "logging directory for task logs")
 	logLevel      = flag.String("log-level", "INFO", "logging level, e.g. info, warning, debug, error, fatal")
 	logFormat     = flag.String("log-format", "txt", "logging format [txt json]")
 	spawnInterval = flag.Int("spawnInterval", 5, "interval between API calls to cloud provider for creating instance")
@@ -39,11 +43,15 @@ func main() {
 	cfg := &controlplane.Config{
 		Addr:          *addr,
 		Port:          *port,
+		InsecurePort:  *insecurePort,
+		CertFile:      *certFile,
+		KeyFile:       *keyFile,
 		StorageMode:   *storageMode,
 		StorageURI:    *storageURI,
 		TemplatesDir:  *templatesDir,
-		ReadTimeout:   time.Second * 20,
-		WriteTimeout:  time.Second * 10,
+		LogDir:        *logDir,
+		ReadTimeout:   time.Second * 60,
+		WriteTimeout:  time.Second * 300,
 		IdleTimeout:   time.Second * 120,
 		SpawnInterval: time.Second * time.Duration(*spawnInterval),
 
@@ -68,7 +76,6 @@ func main() {
 		server.Shutdown()
 	}()
 
-	logrus.Infof("supergiant is starting on port %d", *port)
 	server.Start()
 }
 

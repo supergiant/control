@@ -52,17 +52,14 @@ type TaskResponse struct {
 	ID string `json:"id"`
 }
 
-func NewTaskHandler(repository storage.Interface, runnerFactory func(config ssh.Config) (runner.Runner, error), getter cloudAccountGetter) *TaskHandler {
+func NewTaskHandler(repository storage.Interface, runnerFactory func(config ssh.Config) (runner.Runner, error), getter cloudAccountGetter, logDir string) *TaskHandler {
 	return &TaskHandler{
 		runnerFactory:  runnerFactory,
 		repository:     repository,
 		cloudAccGetter: getter,
-		getWriter: func(name string) (io.WriteCloser, error) {
-			// TODO(stgleb): Add log directory to params of supergiant
-			return os.OpenFile(path.Join("/tmp", name), os.O_CREATE|os.O_WRONLY|os.O_APPEND, 0666)
-		},
+		getWriter:      util.GetWriterFunc(logDir),
 		getTail: func(id string) (*tail.Tail, error) {
-			t, err := tail.TailFile(path.Join("/tmp", util.MakeFileName(id)),
+			t, err := tail.TailFile(path.Join(logDir, util.MakeFileName(id)),
 				tail.Config{
 					Follow:    true,
 					MustExist: true,

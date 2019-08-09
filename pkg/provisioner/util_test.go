@@ -4,6 +4,7 @@ import (
 	"testing"
 
 	"github.com/supergiant/control/pkg/clouds"
+	"github.com/supergiant/control/pkg/model"
 	"github.com/supergiant/control/pkg/profile"
 	"github.com/supergiant/control/pkg/workflows"
 	"github.com/supergiant/control/pkg/workflows/steps"
@@ -34,11 +35,13 @@ func TestNodesFromProfile(t *testing.T) {
 	}
 
 	cfg := &steps.Config{
-		ClusterID: "test",
+		Kube: model.Kube{
+			ID: "test",
+		},
 	}
 
 	masterTasks, nodeTasks := []*workflows.Task{{ID: "1234"}}, []*workflows.Task{{ID: "5678"}, {ID: "4321"}}
-	masters, nodes := nodesFromProfile(cfg.ClusterID, masterTasks, nodeTasks, p)
+	masters, nodes := nodesFromProfile(cfg.Kube.ID, masterTasks, nodeTasks, p)
 
 	if len(masters) != len(p.MasterProfiles) {
 		t.Errorf("Wrong master node count expected %d actual %d",

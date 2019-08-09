@@ -2,10 +2,9 @@ package steps
 
 import (
 	"encoding/json"
+	"fmt"
 	"sync"
 	"time"
-
-	"github.com/supergiant/control/pkg/sgerrors"
 
 	"github.com/Azure/go-autorest/autorest"
 	"github.com/pkg/errors"
@@ -14,40 +13,13 @@ import (
 	"github.com/supergiant/control/pkg/model"
 	"github.com/supergiant/control/pkg/profile"
 	"github.com/supergiant/control/pkg/runner"
+	"github.com/supergiant/control/pkg/sgerrors"
 	"github.com/supergiant/control/pkg/storage"
 )
 
-type CertificatesConfig struct {
-	ServicesCIDR string `json:"servicesCIDR"`
-	PublicIP     string `json:"publicIp"`
-	PrivateIP    string `json:"privateIp"`
-	Provider     string `json:"provider"`
-
-	MasterHost string `json:"masterHost"`
-	MasterPort string `json:"masterPort"`
-
-	IsMaster bool `json:"isMaster"`
-	// TODO: this shouldn't be a part of SANs
-	// https://kubernetes.io/docs/setup/certificates/#all-certificates
-	KubernetesSvcIP string `json:"kubernetesSvcIp"`
-
-	StaticAuth profile.StaticAuth `json:"staticAuth"`
-
-	// DEPRECATED: it's a part of staticAuth
-	Username string
-	// DEPRECATED: it's a part of staticAuth
-	Password string
-
-	AdminCert string `json:"adminCert"`
-	AdminKey  string `json:"adminKey"`
-
-	ParenCert []byte `json:"parenCert"`
-	CACert    string `json:"caCert"`
-	CAKey     string `json:"caKey"`
-
-	SAKey string `json:"saKey"`
-	SAPub string `json:"saPub"`
-}
+const (
+	DefaultK8SAPIPort int64 = 443
+)
 
 type DOConfig struct {
 	Name string `json:"name" valid:"required"`
@@ -128,7 +100,8 @@ type AzureConfig struct {
 
 	Location string `json:"location"`
 
-	VMSize string `json:"vmSize"`
+	VMSize     string `json:"vmSize"`
+	VolumeSize string `json:"volumeSize"`
 	// TODO: cidr validation?
 	VNetCIDR string `json:"vNetCIDR"`
 }
@@ -166,62 +139,22 @@ type AWSConfig struct {
 	RouteTableAssociationIDs map[string]string `json:"routeTableAssociationIds"`
 }
 
-type NetworkConfig struct {
-	IsBootstrap     bool   `json:"isBootstrap"`
-	CIDR            string `json:"cidr"`
-	NetworkProvider string `json:"networkProvider"`
-}
-
-type PostStartConfig struct {
-	IsBootstrap bool          `json:"isBootstrap"`
-	Provider    clouds.Name   `json:"provider"`
-	Host        string        `json:"host"`
-	Port        string        `json:"port"`
-	Username    string        `json:"username"`
-	RBACEnabled bool          `json:"rbacEnabled"`
-	Timeout     time.Duration `json:"timeout"`
-}
-
-type TillerConfig struct {
-	HelmVersion     string `json:"helmVersion"`
-	RBACEnabled     bool   `json:"rbacEnabled"`
-	OperatingSystem string `json:"operatingSystem"`
-	Arch            string `json:"arch"`
-}
-
-type DockerConfig struct {
-	Version        string `json:"version"`
-	ReleaseVersion string `json:"releaseVersion"`
-	Arch           string `json:"arch"`
-}
-
-type DownloadK8sBinary struct {
-	K8SVersion      string `json:"k8sVersion"`
-	Arch            string `json:"arch"`
-	OperatingSystem string `json:"operatingSystem"`
-}
-
-type PrometheusConfig struct {
-	Port        string `json:"port"`
-	RBACEnabled bool   `json:"rbacEnabled"`
-}
-
-type KubeadmConfig struct {
-	K8SVersion  string `json:"K8SVersion"`
-	IsMaster    bool   `json:"isMaster"`
-	IsBootstrap bool   `json:"IsBootstrap"`
-	ServiceCIDR string `json:"serviceCIDR"`
-	CIDR        string `json:"cidr"`
-	Token       string `json:"token"`
-	Provider    string `json:"provider"`
-	NodeIp      string `json:"nodeIp"`
-
-	InternalDNSName string `json:"internalDNSName"`
-	ExternalDNSName string `json:"externalDNSName"`
-}
-
 type DrainConfig struct {
 	PrivateIP string `json:"privateIp"`
+}
+
+type ApplyConfig struct {
+	Data string `json:"data"`
+}
+
+type InstallAppConfig struct {
+	Name         string `json:"name"`
+	Namespace    string `json:"namespace"`
+	ChartName    string `json:"chartName" valid:"required"`
+	ChartVersion string `json:"chartVersion"`
+	RepoName     string `json:"repoName" valid:"required"`
+	ChartRef     string `json:"chartRef"`
+	Values       string `json:"values"`
 }
 
 type OpenStackConfig struct {
@@ -270,36 +203,25 @@ func NewMap(m map[string]*model.Machine) Map {
 type Config struct {
 	Kube model.Kube `json:"kube"`
 
-	DryRun                 bool `json:"dryRun"`
-	TaskID                 string
-	Provider               clouds.Name  `json:"provider"`
-	IsMaster               bool         `json:"isMaster"`
-	IsBootstrap            bool         `json:"IsBootstrap"`
-	BootstrapToken         string       `json:"bootstrapToken"`
-	ClusterID              string       `json:"clusterId"`
-	ClusterName            string       `json:"clusterName"`
-	LogBootstrapPrivateKey bool         `json:"logBootstrapPrivateKey"`
-	DigitalOceanConfig     DOConfig     `json:"digitalOceanConfig"`
-	AWSConfig              AWSConfig    `json:"awsConfig"`
-	GCEConfig              GCEConfig    `json:"gceConfig"`
-	AzureConfig            AzureConfig  `json:"azureConfig"`
-	OSConfig               OSConfig     `json:"osConfig"`
-	PacketConfig           PacketConfig `json:"packetConfig"`
+	DryRun             bool `json:"dryRun"`
+	TaskID             string
+	IsMaster           bool         `json:"isMaster"`
+	IsBootstrap        bool         `json:"IsBootstrap"`
+	IsImport           bool         `json:"isImport"`
+	DigitalOceanConfig DOConfig     `json:"digitalOceanConfig"`
+	AWSConfig          AWSConfig    `json:"awsConfig"`
+	GCEConfig          GCEConfig    `json:"gceConfig"`
+	AzureConfig        AzureConfig  `json:"azureConfig"`
+	OSConfig           OSConfig     `json:"osConfig"`
+	PacketConfig       PacketConfig `json:"packetConfig"`
 
-	DockerConfig       DockerConfig       `json:"dockerConfig"`
-	DownloadK8sBinary  DownloadK8sBinary  `json:"downloadK8sBinary"`
-	CertificatesConfig CertificatesConfig `json:"certificatesConfig"`
-	NetworkConfig      NetworkConfig      `json:"networkConfig"`
-	PostStartConfig    PostStartConfig    `json:"postStartConfig"`
-	TillerConfig       TillerConfig       `json:"tillerConfig"`
-	PrometheusConfig   PrometheusConfig   `json:"prometheusConfig"`
-	DrainConfig        DrainConfig        `json:"drainConfig"`
-	KubeadmConfig      KubeadmConfig      `json:"kubeadmConfig"`
-	ConfigMap          ConfigMap          `json:"configMap"`
+	DrainConfig DrainConfig `json:"drainConfig"`
+	ConfigMap   ConfigMap   `json:"configMap"`
+	ApplyConfig ApplyConfig `json:"applyConfig"`
+	InstallAppConfig   InstallAppConfig   `json:"installAppConfig"`
 	OpenStackConfig    OpenStackConfig    `json:"openStackConfig"`
 
-	ExternalDNSName string `json:"externalDnsName"`
-	InternalDNSName string `json:"internalDnsName"`
+	Provider clouds.Name `json:"provider"`
 
 	Node             model.Machine `json:"node"`
 	CloudAccountID   string        `json:"cloudAccountId" valid:"required, length(1|32)"`
@@ -329,22 +251,57 @@ type ConfigMap struct {
 
 // NewConfig builds instance of config for provisioning
 func NewConfig(clusterName, cloudAccountName string, profile profile.Profile) (*Config, error) {
+	if err := validateAddons(profile.Addons); err != nil {
+		return nil, err
+	}
+
+	var user = "root"
+
+	if profile.Provider == clouds.AWS {
+		//on aws default user name on ubuntu images are not root but ubuntu
+		//https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/AccessingInstancesLinux.html
+		// TODO: this should be set by provisioner
+		user = "ubuntu"
+	} else if profile.Provider == clouds.Azure {
+		user = clouds.OSUser
+	}
+
 	return &Config{
 		Kube: model.Kube{
+			Name:       clusterName,
+			K8SVersion: profile.K8SVersion,
 			SSHConfig: model.SSHConfig{
 				Port:      "22",
-				User:      "root",
+				User:      user,
 				Timeout:   30,
 				PublicKey: profile.PublicKey,
 			},
+			Auth: model.Auth{
+				Username:   profile.User,
+				Password:   profile.Password,
+				StaticAuth: profile.StaticAuth,
+			},
+			Networking: model.Networking{
+				Manager:  profile.NetworkProvider,
+				Provider: profile.NetworkProvider,
+				Type:     profile.NetworkType,
+				CIDR:     profile.CIDR,
+			},
+			Arch:             profile.Arch,
+			OperatingSystem:  profile.OperatingSystem,
+			DockerVersion:    profile.DockerVersion,
+			HelmVersion:      profile.HelmVersion,
 			ExposedAddresses: profile.ExposedAddresses,
+			APIServerPort:    ensurePort(profile.K8SAPIPort),
+			Provider:         profile.Provider,
+			RBACEnabled:      profile.RBACEnabled,
+			ServicesCIDR:     profile.K8SServicesCIDR,
+			Addons:           profile.Addons,
 		},
-		Provider:    profile.Provider,
-		ClusterName: clusterName,
+		Provider: profile.Provider,
 		DigitalOceanConfig: DOConfig{
 			Region: profile.Region,
 		},
-		LogBootstrapPrivateKey: profile.LogBootstrapPrivateKey,
 		AWSConfig: AWSConfig{
 			Region:                 profile.Region,
 			AvailabilityZone:       profile.CloudSpecificSettings[clouds.AwsAZ],
@@ -367,53 +324,8 @@ func NewConfig(clusterName, cloudAccountName string, profile profile.Profile) (*
 		AzureConfig: AzureConfig{
 			Location: profile.Region,
 			VNetCIDR: profile.CloudSpecificSettings[clouds.AzureVNetCIDR],
-		},
-		OSConfig:     OSConfig{},
-		PacketConfig: PacketConfig{},
-
-		DockerConfig: DockerConfig{
-			Version:        profile.DockerVersion,
-			ReleaseVersion: profile.UbuntuVersion,
-			Arch:           profile.Arch,
-		},
-		DownloadK8sBinary: DownloadK8sBinary{
-			K8SVersion:      profile.K8SVersion,
-			Arch:            profile.Arch,
-			OperatingSystem: profile.OperatingSystem,
-		},
-		CertificatesConfig: CertificatesConfig{
-			ServicesCIDR: profile.K8SServicesCIDR,
-			Username:     profile.User,
-			Password:     profile.Password,
-			StaticAuth:   profile.StaticAuth,
-		},
-		NetworkConfig: NetworkConfig{
-			CIDR:            profile.CIDR,
-			NetworkProvider: profile.NetworkProvider,
-		},
-		PostStartConfig: PostStartConfig{
-			Host:        "localhost",
-			Port:        "8080",
-			Username:    profile.User,
-			RBACEnabled: profile.RBACEnabled,
-			Timeout:     time.Minute * 60,
-			Provider:    profile.Provider,
-		},
-		TillerConfig: TillerConfig{
-			HelmVersion:     profile.HelmVersion,
-			OperatingSystem: profile.OperatingSystem,
-			Arch:            profile.Arch,
-			RBACEnabled:     profile.RBACEnabled,
-		},
-		PrometheusConfig: PrometheusConfig{
-			Port:        "30900",
-			RBACEnabled: profile.RBACEnabled,
-		},
-		KubeadmConfig: KubeadmConfig{
-			K8SVersion:  profile.K8SVersion,
-			IsBootstrap: true,
-			CIDR:        profile.CIDR,
-			ServiceCIDR: profile.K8SServicesCIDR,
+			// TODO(stgleb): this should be passed from the UI
+			VolumeSize: "30",
 		},
 
 		Masters: Map{
@@ -431,23 +343,29 @@ func NewConfig(clusterName, cloudAccountName string, profile profile.Profile) (*
 	}, nil
 }
 
+// TODO(stgleb): Compare that to LoadCloudSpecificDataFromKube
 func NewConfigFromKube(profile *profile.Profile, k *model.Kube) (*Config, error) {
 	if k == nil {
 		return nil, errors.Wrapf(sgerrors.ErrNilEntity, "kube must not be nil")
 	}
 
+	var user string
+
+	if profile.Provider == clouds.AWS {
+		//on aws default user name on ubuntu images are not root but ubuntu
+		//https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/AccessingInstancesLinux.html
+		// TODO: this should be set by provisioner
+		user = "ubuntu"
+	} else if profile.Provider == clouds.Azure {
+		user = clouds.OSUser
+	}
+
 	cfg := &Config{
-		ClusterID:      k.ID,
-		Provider:       profile.Provider,
-		ClusterName:    k.Name,
-		BootstrapToken: k.BootstrapToken,
+		Provider: profile.Provider,
 		DigitalOceanConfig: DOConfig{
 			Region: profile.Region,
 		},
-		Kube:                   *k,
-		ExternalDNSName:        k.ExternalDNSName,
-		InternalDNSName:        k.InternalDNSName,
-		LogBootstrapPrivateKey: profile.LogBootstrapPrivateKey,
+		Kube: *k,
 		AWSConfig: AWSConfig{
 			Region:                   profile.Region,
 			AvailabilityZone:         k.CloudSpec[clouds.AwsAZ],
@@ -467,61 +385,9 @@ func NewConfigFromKube(profile *profile.Profile, k *model.Kube) (*Config, error)
 			AvailabilityZone: profile.Zone,
 		},
 		AzureConfig: AzureConfig{
-			Location: profile.Region,
-		},
-		OSConfig:     OSConfig{},
-		PacketConfig: PacketConfig{},
-
-		DockerConfig: DockerConfig{
-			Version:        profile.DockerVersion,
-			ReleaseVersion: profile.UbuntuVersion,
-			Arch:           profile.Arch,
-		},
-		DownloadK8sBinary: DownloadK8sBinary{
-			K8SVersion:      profile.K8SVersion,
-			Arch:            profile.Arch,
-			OperatingSystem: profile.OperatingSystem,
-		},
-		CertificatesConfig: CertificatesConfig{
-			ServicesCIDR: profile.K8SServicesCIDR,
-			Username:     profile.User,
-			Password:     profile.Password,
-			StaticAuth:   profile.StaticAuth,
-			CAKey:        k.Auth.CAKey,
-			CACert:       k.Auth.CACert,
-			AdminCert:    k.Auth.AdminCert,
-			AdminKey:     k.Auth.AdminKey,
-			SAKey:        k.Auth.SAKey,
-		},
-		NetworkConfig: NetworkConfig{
-			NetworkProvider: profile.NetworkProvider,
-			CIDR:            profile.CIDR,
-		},
-
-		PostStartConfig: PostStartConfig{
-			Host:        "localhost",
-			Port:        "8080",
-			Username:    profile.User,
-			RBACEnabled: profile.RBACEnabled,
-			Timeout:     time.Minute * 60,
-			Provider:    k.Provider,
-		},
-		TillerConfig: TillerConfig{
-			HelmVersion:     profile.HelmVersion,
-			OperatingSystem: profile.OperatingSystem,
-			Arch:            profile.Arch,
-			RBACEnabled:     profile.RBACEnabled,
-		},
-		PrometheusConfig: PrometheusConfig{
-			Port:        "30900",
-			RBACEnabled: profile.RBACEnabled,
-		},
-		KubeadmConfig: KubeadmConfig{
-			K8SVersion:  profile.K8SVersion,
-			IsBootstrap: true,
-			Token:       k.BootstrapToken,
-			CIDR:        profile.CIDR,
-			ServiceCIDR: profile.K8SServicesCIDR,
+			Location:   profile.Region,
+			VNetCIDR:   k.CloudSpec[clouds.AzureVNetCIDR],
+			VolumeSize: k.CloudSpec[clouds.AzureVolumeSize],
 		},
 		Masters: Map{
 			internal: make(map[string]*model.Machine, len(profile.MasterProfiles)),
@@ -549,7 +415,7 @@ func NewConfigFromKube(profile *profile.Profile, k *model.Kube) (*Config, error)
 
 	cfg.Kube.SSHConfig = model.SSHConfig{
 		Port:      "22",
-		User:      "root",
+		User:      user,
 		Timeout:   10,
 		PublicKey: profile.PublicKey,
 	}
@@ -677,4 +543,26 @@ func (c *Config) GetAzureAuthorizer() autorest.Authorizer {
 	defer c.authorizerMux.RUnlock()
 
 	return c.azureAthorizer
+}
+
+func ensurePort(p int64) int64 {
+	if p == 0 {
+		return DefaultK8SAPIPort
+	}
+	return p
+}
+
+func validateAddons(in []string) error {
+	invalid := make([]string, 0)
+	for _, addon := range in {
+		for _, registered := range []string{"dashboard"} {
+			if addon != registered {
+				invalid = append(invalid, addon)
+			}
+		}
+	}
+	if len(invalid) > 0 {
+		return fmt.Errorf("validate addons: unknown: %v", invalid)
+	}
+	return nil
 }

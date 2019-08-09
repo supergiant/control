@@ -6,6 +6,7 @@ import (
 	"sort"
 	"strings"
 
+	"github.com/imdario/mergo"
 	"github.com/pkg/errors"
 	"k8s.io/helm/pkg/proto/hapi/chart"
 	"k8s.io/helm/pkg/repo"
@@ -27,6 +28,7 @@ var _ Servicer = &Service{}
 // Servicer is an interface for the helm service.
 type Servicer interface {
 	CreateRepo(ctx context.Context, e *repo.Entry) (*model.RepositoryInfo, error)
+	UpdateRepo(ctx context.Context, name string, opts *repo.Entry) (*model.RepositoryInfo, error)
 	GetRepo(ctx context.Context, repoName string) (*model.RepositoryInfo, error)
 	ListRepos(ctx context.Context) ([]model.RepositoryInfo, error)
 	DeleteRepo(ctx context.Context, repoName string) (*model.RepositoryInfo, error)
@@ -80,6 +82,41 @@ func (s Service) CreateRepo(ctx context.Context, e *repo.Entry) (*model.Reposito
 		return nil, errors.Wrap(err, "marshal index file")
 	}
 	if err = s.storage.Put(ctx, repoPrefix, e.Name, rawJSON); err != nil {
+		return nil, errors.Wrap(err, "storage")
+	}
+
+	return r, nil
+}
+
+// UpdateRepo downloads the latest index file and update a helm repository in the provided storage.
+func (s Service) UpdateRepo(ctx context.Context, name string, opts *repo.Entry) (*model.RepositoryInfo, error) {
+	r, err := s.GetRepo(ctx, name)
+	if err != nil {
+		return nil, err
+	}
+
+	// mergo panics on nil entry
+	if opts == nil {
+		opts = &repo.Entry{}
+	}
+	opts.Name = "" // prevent updating the repo name
+	// merge configs
+	if err = mergo.Merge(&r.Config, opts, mergo.WithOverride); err != nil {
+		return nil, err
+	}
+
+	ind, err := s.repos.GetIndexFile(&r.Config)
+	if err != nil {
+		return nil, errors.Wrap(err, "get repository index")
+	}
+
+	// store the index file
+	r = toRepoInfo(&r.Config, ind)
+	rawJSON, err := json.Marshal(r)
+	if err != nil {
+		return nil, errors.Wrap(err, "marshal index file")
+	}
+	if err = s.storage.Put(ctx, repoPrefix, name, rawJSON); err != nil {
 		return nil, errors.Wrap(err, "storage")
 	}
 
@@ -168,6 +205,21 @@ func (s Service) GetChart(ctx context.Context, repoName, chartName, chartVersion
 
 	return chrt, nil
 }
+
+
+func (s Service) GetChartRef(ctx context.Context, repoName, chartName, chartVersion string) (string, error) {
+	hrepo, err := s.GetRepo(ctx, repoName)
+	if err != nil {
+		return "", errors.Wrapf(err, "get %s repository info", repoName)
+	}
+	ref, err := findChartURL(hrepo.Charts, chartName, chartVersion)
+	if err != nil {
+		return "", errors.Wrapf(err, "get %s(%s) chart", chartName, chartVersion)
+	}
+
+	return ref, nil
+}
+
 
 func toChartData(chrt *chart.Chart) *model.ChartData {
 	if chrt == nil {

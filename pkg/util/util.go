@@ -131,8 +131,10 @@ func GetRandomNode(nodeMap map[string]*model.Machine) *model.Machine {
 	return nil
 }
 
-func GetWriter(name string) (io.WriteCloser, error) {
-	return os.OpenFile(path.Join("/tmp", name), os.O_CREATE|os.O_WRONLY|os.O_APPEND, 0666)
+func GetWriterFunc(logDir string) func(string) (io.WriteCloser, error) {
+	return func(name string) (io.WriteCloser, error) {
+		return os.OpenFile(path.Join(logDir, name), os.O_CREATE|os.O_WRONLY|os.O_APPEND, 0666)
+	}
 }
 
 func LoadCloudSpecificDataFromKube(k *model.Kube, config *steps.Config) error {
@@ -145,6 +147,8 @@ func LoadCloudSpecificDataFromKube(k *model.Kube, config *steps.Config) error {
 	if k.CloudSpec == nil {
 		return nil
 	}
+
+	config.ConfigMap.Data = k.UserData
 
 	switch config.Provider {
 	case clouds.AWS:
@@ -166,6 +170,7 @@ func LoadCloudSpecificDataFromKube(k *model.Kube, config *steps.Config) error {
 		config.Kube.SSHConfig.PublicKey = k.CloudSpec[clouds.AwsUserProvidedSshPublicKey]
 		config.AWSConfig.ExternalLoadBalancerName = k.CloudSpec[clouds.AwsExternalLoadBalancerName]
 		config.AWSConfig.InternalLoadBalancerName = k.CloudSpec[clouds.AwsInternalLoadBalancerName]
+		config.AWSConfig.VolumeSize = k.CloudSpec[clouds.AwsVolumeSize]
 	case clouds.GCE:
 		config.GCEConfig.Region = k.Region
 		config.GCEConfig.TargetPoolName = k.CloudSpec[clouds.GCETargetPoolName]
@@ -192,7 +197,7 @@ func LoadCloudSpecificDataFromKube(k *model.Kube, config *steps.Config) error {
 		config.GCEConfig.InstanceGroupNames = make(map[string]string)
 
 		for az := range k.Subnets {
-			config.GCEConfig.InstanceGroupNames[az] = fmt.Sprintf("%s-%s", az, config.ClusterID)
+			config.GCEConfig.InstanceGroupNames[az] = fmt.Sprintf("%s-%s", az, config.Kube.ID)
 		}
 	case clouds.DigitalOcean:
 		config.DigitalOceanConfig.ExternalLoadBalancerID = k.CloudSpec[clouds.DigitalOceanExternalLoadBalancerID]
@@ -200,7 +205,7 @@ func LoadCloudSpecificDataFromKube(k *model.Kube, config *steps.Config) error {
 	case clouds.Azure:
 		config.AzureConfig.Location = k.Region
 		config.AzureConfig.VNetCIDR = k.CloudSpec[clouds.AzureVNetCIDR]
-
+		config.AzureConfig.VolumeSize = k.CloudSpec[clouds.AzureVolumeSize]
 	default:
 		return errors.Wrapf(sgerrors.ErrUnsupportedProvider, "Load cloud specific data from kube %s", k.ID)
 	}

@@ -2,9 +2,11 @@ package provisioner
 
 import (
 	"encoding/json"
-	"github.com/pkg/errors"
+	"strconv"
 	"strings"
 	"time"
+
+	"github.com/pkg/errors"
 
 	"github.com/supergiant/control/pkg/clouds"
 	"github.com/supergiant/control/pkg/model"
@@ -33,6 +35,10 @@ func (r *RateLimiter) Take() {
 
 // Fill cloud account specific data gets data from the map and puts to particular cloud provider config
 func FillNodeCloudSpecificData(provider clouds.Name, nodeProfile profile.NodeProfile, config *steps.Config) error {
+	if nodeProfile["isMaster"] != "" {
+		config.IsMaster, _ = strconv.ParseBool(nodeProfile["isMaster"])
+	}
+
 	switch provider {
 	case clouds.AWS:
 		return util.BindParams(nodeProfile, &config.AWSConfig)
@@ -112,18 +118,19 @@ func MergeConfig(source *steps.Config, destination *steps.Config) error {
 	}
 
 	// These items must be shared among configs
-	destination.ExternalDNSName = source.ExternalDNSName
-	destination.InternalDNSName = source.InternalDNSName
+	destination.Kube.ExternalDNSName = source.Kube.ExternalDNSName
+	destination.Kube.InternalDNSName = source.Kube.InternalDNSName
 	destination.SetKubeStateChan(source.KubeStateChan())
 	destination.SetNodeChan(source.NodeChan())
 	destination.SetConfigChan(source.ConfigChan())
 	destination.Masters = source.Masters
 	destination.Nodes = source.Nodes
-	destination.ClusterID = source.ClusterID
+	destination.Kube.ID = source.Kube.ID
 	destination.Provider = source.Provider
-	destination.ClusterName = source.ClusterName
-	destination.BootstrapToken = source.BootstrapToken
+	destination.Kube.Name = source.Kube.Name
+	destination.Kube.BootstrapToken = source.Kube.BootstrapToken
 	destination.IsBootstrap = source.IsBootstrap
+	destination.Kube.K8SVersion = source.Kube.K8SVersion
 
 	return nil
 }

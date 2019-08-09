@@ -13,7 +13,7 @@ import (
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/pkg/errors"
 	capacityapi "github.com/supergiant/capacity/pkg/api"
-	"k8s.io/api/core/v1"
+	corev1 "k8s.io/api/core/v1"
 	k8serrors "k8s.io/apimachinery/pkg/api/errors"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	clientcorev1 "k8s.io/client-go/kubernetes/typed/core/v1"
@@ -82,14 +82,14 @@ func (s *Step) Run(ctx context.Context, out io.Writer, config *steps.Config) err
 	}
 
 	userdata, err := parse(config.ConfigMap.Data, map[string]string{
-		KubeAddr: config.ExternalDNSName,
+		KubeAddr: config.Kube.ExternalDNSName,
 	})
 	if err != nil {
 		return errors.Wrap(err, "parse userdata template")
 	}
 
 	capcfg := capacityapi.Config{
-		ClusterName:  config.ClusterName,
+		ClusterName:  config.Kube.Name,
 		Userdata:     base64.StdEncoding.EncodeToString(userdata),
 		ProviderName: "aws",
 		Provider: map[string]string{
@@ -102,7 +102,7 @@ func (s *Step) Run(ctx context.Context, out io.Writer, config *steps.Config) err
 			SecurityGroups: config.AWSConfig.NodesSecurityGroupID,
 			VolSize:        DefaultVolSize,
 			VolType:        DefaultVolType,
-			Tags:           fmt.Sprintf("%s=%s", clouds.TagClusterID, config.ClusterID),
+			Tags:           fmt.Sprintf("%s=%s", clouds.TagClusterID, config.Kube.ID),
 			SubnetID:       getSubnet(config.AWSConfig.Subnets),
 			// TODO: add AZ option
 		},
@@ -116,7 +116,7 @@ func (s *Step) Run(ctx context.Context, out io.Writer, config *steps.Config) err
 		return err
 	}
 
-	_, err = k8sClient.ConfigMaps(CapacityConfigMapNamespace).Create(&v1.ConfigMap{
+	_, err = k8sClient.ConfigMaps(CapacityConfigMapNamespace).Create(&corev1.ConfigMap{
 		ObjectMeta: metav1.ObjectMeta{
 			Name: CapacityConfigMapName,
 		},
@@ -149,11 +149,6 @@ func (s *Step) Depends() []string {
 }
 
 func buildKubeClient(config *steps.Config) (clientcorev1.CoreV1Interface, error) {
-	config.Kube.Auth.AdminCert = config.CertificatesConfig.AdminCert
-	config.Kube.Auth.AdminKey = config.CertificatesConfig.AdminKey
-	config.Kube.Auth.CACert = config.CertificatesConfig.CACert
-	config.Kube.ExternalDNSName = config.ExternalDNSName
-
 	return kubeconfig.CoreV1Client(&config.Kube)
 }
 

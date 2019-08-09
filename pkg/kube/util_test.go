@@ -185,3 +185,60 @@ func TestKubeFromKubeConfig(t *testing.T) {
 		}
 	}
 }
+
+
+func TestFindNextK8SVersion(t *testing.T) {
+	testCases := []struct{
+		description string
+		current string
+		version []string
+		expected string
+	}{
+		{
+			"success",
+			"1.13.7",
+			[]string{"1.11.5", "1.12.7", "1.13.7", "1.14.3", "1.15.0"},
+			"1.14.3",
+		},
+		{
+			"version is too low",
+			"1.9.7",
+			[]string{"1.11.5", "1.12.7", "1.13.7", "1.14.3", "1.15.0"},
+			"",
+		},
+		{
+			"empty current version",
+			"",
+			[]string{"1.11.5", "1.12.7", "1.13.7", "1.14.3", "1.15.0"},
+			"",
+		},
+		{
+			"malformed current version",
+			"1.1",
+			[]string{"1.11.5", "1.12.7", "1.13.7", "1.14.3", "1.15.0"},
+			"",
+		},
+		{
+			"malformed current version2",
+			" hello",
+			[]string{"1.11.5", "1.12.7", "1.13.7", "1.14.3", "1.15.0"},
+			"",
+		},
+		{
+			"empty versions list",
+			"1.12.7",
+			[]string{},
+			"",
+		},
+	}
+
+	for _, testCase := range testCases {
+		t.Log(testCase.description)
+		actual := findNextMinorVersion(testCase.current, testCase.version)
+
+		if !strings.EqualFold(actual, testCase.expected) {
+			t.Errorf("Test %s has failed Wrong version expected %s actual %s",
+				testCase.description, testCase.expected, actual)
+		}
+	}
+}

@@ -6,10 +6,10 @@ import (
 	"io"
 	"time"
 
+	"github.com/pkg/errors"
 	"github.com/sirupsen/logrus"
 	"google.golang.org/api/compute/v1"
 
-	"github.com/pkg/errors"
 	"github.com/supergiant/control/pkg/clouds/gcesdk"
 	"github.com/supergiant/control/pkg/workflows/steps"
 )
@@ -57,7 +57,7 @@ func (s *CreateForwardingRules) Run(ctx context.Context, output io.Writer,
 		return errors.Wrapf(err, "%s getting service caused", CreateForwardingRulesStepName)
 	}
 
-	exName := fmt.Sprintf("exrule-%s", config.ClusterID)
+	exName := fmt.Sprintf("exrule-%s", config.Kube.ID)
 	externalForwardingRule := &compute.ForwardingRule{
 		Name:                exName,
 		IPAddress:           config.GCEConfig.ExternalIPAddressLink,
@@ -96,14 +96,14 @@ func (s *CreateForwardingRules) Run(ctx context.Context, output io.Writer,
 	logrus.Debugf("Created external forwarding rule %s link %s", exName, externalForwardingRule.SelfLink)
 	config.GCEConfig.ExternalForwardingRuleName = externalForwardingRule.Name
 
-	inName := fmt.Sprintf("inrule-%s", config.ClusterID)
+	inName := fmt.Sprintf("inrule-%s", config.Kube.ID)
 	internalForwardingRule := &compute.ForwardingRule{
 		Name:                inName,
 		IPAddress:           config.GCEConfig.InternalIPAddressLink,
 		LoadBalancingScheme: "INTERNAL",
 		Description:         "Internal forwarding rule to target pool",
 		IPProtocol:          "TCP",
-		Ports:               []string{"443"},
+		Ports:               []string{fmt.Sprintf("%d", config.Kube.APIServerPort)},
 		BackendService:      config.GCEConfig.BackendServiceLink,
 		Network:             config.GCEConfig.NetworkLink,
 		Subnetwork:          config.GCEConfig.SubnetLink,

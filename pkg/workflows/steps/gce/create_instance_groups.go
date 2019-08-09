@@ -3,13 +3,15 @@ package gce
 import (
 	"context"
 	"fmt"
+	"io"
+
 	"github.com/pkg/errors"
 	"github.com/sirupsen/logrus"
+	"google.golang.org/api/compute/v1"
+
 	"github.com/supergiant/control/pkg/account"
 	"github.com/supergiant/control/pkg/clouds/gcesdk"
 	"github.com/supergiant/control/pkg/workflows/steps"
-	"google.golang.org/api/compute/v1"
-	"io"
 )
 
 const CreateInstanceGroupsStepName = "gce_create_instance_group"
@@ -95,7 +97,7 @@ func (s *CreateInstanceGroupsStep) Run(ctx context.Context, output io.Writer,
 	for az := range config.GCEConfig.AZs {
 		// Use naming convention az name + cluster so we do not need to store names of subnets for each subnet
 		instanceGroup := &compute.InstanceGroup{
-			Name:        fmt.Sprintf("%s-%s", az, config.ClusterID),
+			Name:        fmt.Sprintf("%s-%s", az, config.Kube.ID),
 			Description: "Instance group for master nodes",
 			Network:     config.GCEConfig.NetworkLink,
 		}

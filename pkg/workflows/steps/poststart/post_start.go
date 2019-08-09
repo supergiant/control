@@ -14,7 +14,14 @@ import (
 	"github.com/supergiant/control/pkg/workflows/steps/kubelet"
 )
 
-const StepName = "poststart"
+const (
+	StepName = "poststart"
+)
+
+type Config struct {
+	IsBootstrap bool
+	RBACEnabled bool
+}
 
 type Step struct {
 	script *template.Template
@@ -39,10 +46,7 @@ func New(script *template.Template) *Step {
 }
 
 func (s *Step) Run(ctx context.Context, out io.Writer, config *steps.Config) error {
-	ctx2, _ := context.WithTimeout(ctx, config.PostStartConfig.Timeout)
-	config.PostStartConfig.IsBootstrap = config.IsMaster
-	err := steps.RunTemplate(ctx2, s.script, config.Runner, out, config.PostStartConfig)
-
+	err := steps.RunTemplate(ctx, s.script, config.Runner, out, toStepCfg(config))
 	if err != nil {
 		return errors.Wrap(err, "run post start script step")
 	}
@@ -79,4 +83,11 @@ func (s *Step) Description() string {
 
 func (s *Step) Depends() []string {
 	return []string{kubelet.StepName}
+}
+
+func toStepCfg(c *steps.Config) Config {
+	return Config{
+		IsBootstrap: c.IsMaster,
+		RBACEnabled: c.Kube.RBACEnabled,
+	}
 }

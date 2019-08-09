@@ -35,6 +35,17 @@ func (m *mockSubnetSvc) CreateSubnetWithContext(ctx aws.Context,
 	return val, args.Error(1)
 }
 
+func (m *mockSubnetSvc) ModifySubnetAttributeWithContext(ctx aws.Context, req *ec2.ModifySubnetAttributeInput,
+	opts ...request.Option) (*ec2.ModifySubnetAttributeOutput, error) {
+	args := m.Called(ctx, req, opts)
+	val, ok := args.Get(0).(*ec2.ModifySubnetAttributeOutput)
+	if !ok {
+		return nil, args.Error(1)
+	}
+
+	return val, args.Error(1)
+}
+
 type mockAccountGetter struct {
 	mock.Mock
 }
@@ -128,6 +139,9 @@ func TestCreateSubnetStep_Run(t *testing.T) {
 		svc.On("CreateSubnetWithContext",
 			mock.Anything, mock.Anything, mock.Anything).
 			Return(testCase.createSubnet, testCase.createSubnetErr)
+		svc.On("ModifySubnetAttributeWithContext", mock.Anything, mock.Anything,
+			mock.Anything).Return(nil, nil)
+
 		zoneGetter := &mockZoneGetter{
 			zones: testCase.getZoneResp,
 			err:   testCase.getZoneErr,

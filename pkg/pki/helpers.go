@@ -10,7 +10,7 @@ import (
 
 // newCertificateAuthority creates new certificate and private key for the certificate authority
 func newCertificateAuthority() (*x509.Certificate, *rsa.PrivateKey, error) {
-	key, err := certutil.NewPrivateKey()
+	key, err := newPrivateKey()
 
 	if err != nil {
 		return nil, nil, errors.Wrap(err, "create private key")

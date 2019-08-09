@@ -254,7 +254,7 @@ func TestTaskHandler_StreamLogs(t *testing.T) {
 
 func TestNewTaskHandler(t *testing.T) {
 	r := &testutils.MockStorage{}
-	h := NewTaskHandler(r, nil, nil)
+	h := NewTaskHandler(r, nil, nil, "")
 
 	if h == nil {
 		t.Errorf("Handler must not be nil")

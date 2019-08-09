@@ -60,11 +60,11 @@ func (s *CreateSecurityGroupsStep) Run(ctx context.Context, w io.Writer, cfg *st
 	logrus.Debugf("Create security groups for VPC %s",
 		cfg.AWSConfig.VPCID)
 	if cfg.AWSConfig.MastersSecurityGroupID == "" {
-		groupName := fmt.Sprintf("%s-masters-secgroup", cfg.ClusterID)
+		groupName := fmt.Sprintf("%s-masters-secgroup", cfg.Kube.ID)
 
 		log.Infof("[%s] - masters security groups not specified, will create a new one...", s.Name())
 		out, err := svc.CreateSecurityGroupWithContext(ctx, &ec2.CreateSecurityGroupInput{
-			Description: aws.String("Security group for Kubernetes masters for cluster " + cfg.ClusterID),
+			Description: aws.String("Security group for Kubernetes masters for cluster " + cfg.Kube.ID),
 			VpcId:       aws.String(cfg.AWSConfig.VPCID),
 			GroupName:   aws.String(groupName),
 		})
@@ -76,11 +76,11 @@ func (s *CreateSecurityGroupsStep) Run(ctx context.Context, w io.Writer, cfg *st
 	}
 	//If there is no security group, create it
 	if cfg.AWSConfig.NodesSecurityGroupID == "" {
-		groupName := fmt.Sprintf("%s-nodes-secgroup", cfg.ClusterID)
+		groupName := fmt.Sprintf("%s-nodes-secgroup", cfg.Kube.ID)
 
 		log.Infof("[%s] - node security groups not specified, will create a new one...", s.Name())
 		out, err := svc.CreateSecurityGroupWithContext(ctx, &ec2.CreateSecurityGroupInput{
-			Description: aws.String("Security group for Kubernetes nodes for cluster " + cfg.ClusterID),
+			Description: aws.String("Security group for Kubernetes nodes for cluster " + cfg.Kube.ID),
 			VpcId:       aws.String(cfg.AWSConfig.VPCID),
 			GroupName:   aws.String(groupName),
 		})
@@ -116,7 +116,7 @@ func (s *CreateSecurityGroupsStep) Run(ctx context.Context, w io.Writer, cfg *st
 	}
 
 	logrus.Debugf("Whitelist addresses SG and provided addresses")
-	if err := s.whiteListAddresses(ctx, svc, cfg.AWSConfig.MastersSecurityGroupID, cfg.Kube.ExposedAddresses); err != nil {
+	if err := s.whiteListAddresses(ctx, svc, cfg.AWSConfig.MastersSecurityGroupID, cfg.Kube.ExposedAddresses, cfg.Kube.APIServerPort); err != nil {
 		logrus.Errorf("[%s] - failed to whitelist addresses in master security group: %v", s.Name(), err)
 		return errors.Wrapf(err, "%s failed whitelisting addresses", s.Name())
 	}
@@ -196,7 +196,7 @@ func (s *CreateSecurityGroupsStep) allowAllTraffic(ctx context.Context, EC2 secG
 	return err
 }
 
-func (s *CreateSecurityGroupsStep) whiteListAddresses(ctx context.Context, EC2 secGroupService, groupID string, addrs []profile.Addresses) error {
+func (s *CreateSecurityGroupsStep) whiteListAddresses(ctx context.Context, EC2 secGroupService, groupID string, addrs []profile.Addresses, port int64) error {
 	supergiantIP, err := FindOutboundIP(ctx, s.findOutboundIP)
 	if err != nil {
 		return err
@@ -211,8 +211,8 @@ func (s *CreateSecurityGroupsStep) whiteListAddresses(ctx context.Context, EC2 s
 		GroupId: aws.String(groupID),
 		IpPermissions: []*ec2.IpPermission{
 			{
-				FromPort:   aws.Int64(443),
-				ToPort:     aws.Int64(443),
+				FromPort:   aws.Int64(port),
+				ToPort:     aws.Int64(port),
 				IpRanges:   ips,
 				IpProtocol: aws.String("tcp"),
 			},

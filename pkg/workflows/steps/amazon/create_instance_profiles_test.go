@@ -122,7 +122,9 @@ func TestCreateInstanceProfiles_Run(t *testing.T) {
 				}, nil
 			},
 			cfg: steps.Config{
-				ClusterID: "42",
+				Kube: model.Kube{
+					ID: "42",
+				},
 			},
 		},
 	} {
@@ -133,13 +135,13 @@ func TestCreateInstanceProfiles_Run(t *testing.T) {
 		if err == nil {
 			require.Equalf(
 				t,
-				buildIAMName(tc.cfg.ClusterID, string(model.RoleMaster)),
+				buildIAMName(tc.cfg.Kube.ID, string(model.RoleMaster)),
 				tc.cfg.AWSConfig.MastersInstanceProfile,
 				"TC: %s", tc.name)
 
 			require.Equalf(
 				t,
-				buildIAMName(tc.cfg.ClusterID, string(model.RoleNode)),
+				buildIAMName(tc.cfg.Kube.ID, string(model.RoleNode)),
 				tc.cfg.AWSConfig.NodesInstanceProfile,
 				"TC: %s", tc.name)
 		}
