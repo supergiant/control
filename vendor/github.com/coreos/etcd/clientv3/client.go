@@ -26,7 +26,6 @@ import (
 	"sync"
 	"time"
 
-	"github.com/coreos/etcd/clientv3/balancer"
 	"github.com/coreos/etcd/etcdserver/api/v3rpc/rpctypes"
 
 	"google.golang.org/grpc"
@@ -56,8 +55,8 @@ type Client struct {
 
 	cfg      Config
 	creds    *credentials.TransportCredentials
-	balancer *balancer.GRPC17Health
-	mu       *sync.Mutex
+	balancer *healthBalancer
+	mu       *sync.RWMutex
 
 	ctx    context.Context
 	cancel context.CancelFunc
@@ -94,11 +93,6 @@ func NewFromURL(url string) (*Client, error) {
 	return New(Config{Endpoints: []string{url}})
 }
 
-// NewFromURLs creates a new etcdv3 client from URLs.
-func NewFromURLs(urls []string) (*Client, error) {
-	return New(Config{Endpoints: urls})
-}
-
 // Close shuts down the client's etcd connections.
 func (c *Client) Close() error {
 	c.cancel()
@@ -116,11 +110,13 @@ func (c *Client) Close() error {
 func (c *Client) Ctx() context.Context { return c.ctx }
 
 // Endpoints lists the registered endpoints for the client.
-func (c *Client) Endpoints() (eps []string) {
+func (c *Client) Endpoints() []string {
+	c.mu.RLock()
+	defer c.mu.RUnlock()
 	// copy the slice; protect original endpoints from being changed
-	eps = make([]string, len(c.cfg.Endpoints))
+	eps := make([]string, len(c.cfg.Endpoints))
 	copy(eps, c.cfg.Endpoints)
-	return
+	return eps
 }
 
 // SetEndpoints updates client's endpoints.
@@ -128,12 +124,18 @@ func (c *Client) SetEndpoints(eps ...string) {
 	c.mu.Lock()
 	c.cfg.Endpoints = eps
 	c.mu.Unlock()
-	c.balancer.UpdateAddrs(eps...)
+	c.balancer.updateAddrs(eps...)
 
-	if c.balancer.NeedUpdate() {
+	// updating notifyCh can trigger new connections,
+	// need update addrs if all connections are down
+	// or addrs does not include pinAddr.
+	c.balancer.mu.RLock()
+	update := !hasAddr(c.balancer.addrs, c.balancer.pinAddr)
+	c.balancer.mu.RUnlock()
+	if update {
 		select {
-		case c.balancer.UpdateAddrsC() <- balancer.NotifyNext:
-		case <-c.balancer.StopC():
+		case c.balancer.updateAddrsC <- notifyNext:
+		case <-c.balancer.stopc:
 		}
 	}
 }
@@ -166,7 +168,7 @@ func (c *Client) autoSync() {
 			err := c.Sync(ctx)
 			cancel()
 			if err != nil && err != c.ctx.Err() {
-				lg.Lvl(4).Infof("Auto sync endpoints failed: %v", err)
+				logger.Println("Auto sync endpoints failed:", err)
 			}
 		}
 	}
@@ -185,7 +187,7 @@ func (cred authTokenCredential) GetRequestMetadata(ctx context.Context, s ...str
 	cred.tokenMu.RLock()
 	defer cred.tokenMu.RUnlock()
 	return map[string]string{
-		rpctypes.TokenFieldNameGRPC: cred.token,
+		"token": cred.token,
 	}, nil
 }
 
@@ -245,7 +247,7 @@ func (c *Client) dialSetupOpts(endpoint string, dopts ...grpc.DialOption) (opts 
 	opts = append(opts, dopts...)
 
 	f := func(host string, t time.Duration) (net.Conn, error) {
-		proto, host, _ := parseEndpoint(c.balancer.Endpoint(host))
+		proto, host, _ := parseEndpoint(c.balancer.endpoint(host))
 		if host == "" && endpoint != "" {
 			// dialing an endpoint not in the balancer; use
 			// endpoint passed into dial
@@ -387,7 +389,7 @@ func newClient(cfg *Config) (*Client, error) {
 		creds:    creds,
 		ctx:      ctx,
 		cancel:   cancel,
-		mu:       new(sync.Mutex),
+		mu:       new(sync.RWMutex),
 		callOpts: defaultCallOpts,
 	}
 	if cfg.Username != "" && cfg.Password != "" {
@@ -412,7 +414,9 @@ func newClient(cfg *Config) (*Client, error) {
 		client.callOpts = callOpts
 	}
 
-	client.balancer = balancer.NewGRPC17Health(cfg.Endpoints, cfg.DialTimeout, client.dial)
+	client.balancer = newHealthBalancer(cfg.Endpoints, cfg.DialTimeout, func(ep string) (bool, error) {
+		return grpcHealthCheck(client, ep)
+	})
 
 	// use Endpoints[0] so that for https:// without any tls config given, then
 	// grpc will assume the certificate server name is the endpoint host.
@@ -429,7 +433,7 @@ func newClient(cfg *Config) (*Client, error) {
 		hasConn := false
 		waitc := time.After(cfg.DialTimeout)
 		select {
-		case <-client.balancer.Ready():
+		case <-client.balancer.ready():
 			hasConn = true
 		case <-ctx.Done():
 		case <-waitc:
@@ -527,6 +531,20 @@ func isHaltErr(ctx context.Context, err error) bool {
 	return ev.Code() != codes.Unavailable && ev.Code() != codes.Internal
 }
 
+// isUnavailableErr returns true if the given error is an unavailable error
+func isUnavailableErr(ctx context.Context, err error) bool {
+	if ctx != nil && ctx.Err() != nil {
+		return false
+	}
+	if err == nil {
+		return false
+	}
+	ev, _ := status.FromError(err)
+	// Unavailable codes mean the system will be right back.
+	// (e.g., can't connect, lost leader)
+	return ev.Code() == codes.Unavailable
+}
+
 func toErr(ctx context.Context, err error) error {
 	if err == nil {
 		return nil
@@ -535,19 +553,18 @@ func toErr(ctx context.Context, err error) error {
 	if _, ok := err.(rpctypes.EtcdError); ok {
 		return err
 	}
-	if ev, ok := status.FromError(err); ok {
-		code := ev.Code()
-		switch code {
-		case codes.DeadlineExceeded:
-			fallthrough
-		case codes.Canceled:
-			if ctx.Err() != nil {
-				err = ctx.Err()
-			}
-		case codes.Unavailable:
-		case codes.FailedPrecondition:
-			err = grpc.ErrClientConnClosing
+	ev, _ := status.FromError(err)
+	code := ev.Code()
+	switch code {
+	case codes.DeadlineExceeded:
+		fallthrough
+	case codes.Canceled:
+		if ctx.Err() != nil {
+			err = ctx.Err()
 		}
+	case codes.Unavailable:
+	case codes.FailedPrecondition:
+		err = grpc.ErrClientConnClosing
 	}
 	return err
 }
@@ -558,12 +575,4 @@ func canceledByCaller(stopCtx context.Context, err error) bool {
 	}
 
 	return err == context.Canceled || err == context.DeadlineExceeded
-}
-
-func getHost(ep string) string {
-	url, uerr := url.Parse(ep)
-	if uerr != nil || !strings.Contains(ep, "://") {
-		return ep
-	}
-	return url.Host
 }

@@ -46,22 +46,6 @@ type Watcher interface {
 	// through the returned channel. If revisions waiting to be sent over the
 	// watch are compacted, then the watch will be canceled by the server, the
 	// client will post a compacted error watch response, and the channel will close.
-	// If the context "ctx" is canceled or timed out, returned "WatchChan" is closed,
-	// and "WatchResponse" from this closed channel has zero events and nil "Err()".
-	// The context "ctx" MUST be canceled, as soon as watcher is no longer being used,
-	// to release the associated resources.
-	// If the context is "context.Background/TODO", returned "WatchChan" will not be closed
-	// and wait until events happen, except when server returns a non-recoverable error.
-	// For example, when context passed with "WithRequireLeader" and the connected server
-	// has no leader, error "etcdserver: no leader" is returned, and then "WatchChan" is
-	// closed with non-nil "Err()".
-	// Otherwise, as long as the context has not been canceled or timed out, watch will
-	// retry on other recoverable errors forever until reconnected.
-	//
-	// TODO: explicitly set context error in the last "WatchResponse" message and close channel?
-	// Currently, client contexts are overwritten with "valCtx" that never closes.
-	// TODO(v3.4): configure watch retry policy, limit maximum retry number
-	// (see https://github.com/coreos/etcd/issues/8980)
 	Watch(ctx context.Context, key string, opts ...OpOption) WatchChan
 
 	// Close closes the watcher and cancels all watch requests.
@@ -174,16 +158,10 @@ type watchRequest struct {
 	key string
 	end string
 	rev int64
-
 	// send created notification event if this field is true
 	createdNotify bool
 	// progressNotify is for progress updates
 	progressNotify bool
-	// fragmentation should be disabled by default
-	// if true, split watch events when total exceeds
-	// "--max-request-bytes" flag value + 512-byte
-	fragment bool
-
 	// filters is the list of events to filter out
 	filters []pb.WatchCreateRequest_FilterType
 	// get the previous key-value pair before the event happens
@@ -278,7 +256,6 @@ func (w *watcher) Watch(ctx context.Context, key string, opts ...OpOption) Watch
 		end:            string(ow.end),
 		rev:            ow.rev,
 		progressNotify: ow.progressNotify,
-		fragment:       ow.fragment,
 		filters:        filters,
 		prevKV:         ow.prevKV,
 		retc:           make(chan chan WatchResponse, 1),
@@ -376,8 +353,7 @@ func (w *watcher) closeStream(wgs *watchGrpcStream) {
 }
 
 func (w *watchGrpcStream) addSubstream(resp *pb.WatchResponse, ws *watcherStream) {
-	// check watch ID for backward compatibility (<= v3.3)
-	if resp.WatchId == -1 || (resp.Canceled && resp.CancelReason != "") {
+	if resp.WatchId == -1 {
 		// failed; no channel
 		close(ws.recvc)
 		return
@@ -458,13 +434,11 @@ func (w *watchGrpcStream) run() {
 
 	cancelSet := make(map[int64]struct{})
 
-	var cur *pb.WatchResponse
 	for {
 		select {
 		// Watch() requested
 		case wreq := <-w.reqc:
 			outc := make(chan WatchResponse, 1)
-			// TODO: pass custom watch ID?
 			ws := &watcherStream{
 				initReq: *wreq,
 				id:      -1,
@@ -483,18 +457,8 @@ func (w *watchGrpcStream) run() {
 				// head of resume queue, can register a new watcher
 				wc.Send(ws.initReq.toPB())
 			}
-
-		// new events from the watch client
+		// New events from the watch client
 		case pbresp := <-w.respc:
-			if cur == nil || pbresp.Created || pbresp.Canceled {
-				cur = pbresp
-			} else if cur != nil && cur.WatchId == pbresp.WatchId {
-				// merge new events
-				cur.Events = append(cur.Events, pbresp.Events...)
-				// update "Fragment" field; last response with "Fragment" == false
-				cur.Fragment = pbresp.Fragment
-			}
-
 			switch {
 			case pbresp.Created:
 				// response to head of queue creation
@@ -503,14 +467,9 @@ func (w *watchGrpcStream) run() {
 					w.dispatchEvent(pbresp)
 					w.resuming[0] = nil
 				}
-
 				if ws := w.nextResume(); ws != nil {
 					wc.Send(ws.initReq.toPB())
 				}
-
-				// reset for next iteration
-				cur = nil
-
 			case pbresp.Canceled && pbresp.CompactRevision == 0:
 				delete(cancelSet, pbresp.WatchId)
 				if ws, ok := w.substreams[pbresp.WatchId]; ok {
@@ -518,31 +477,15 @@ func (w *watchGrpcStream) run() {
 					close(ws.recvc)
 					closing[ws] = struct{}{}
 				}
-
-				// reset for next iteration
-				cur = nil
-
-			case cur.Fragment:
-				// watch response events are still fragmented
-				// continue to fetch next fragmented event arrival
-				continue
-
 			default:
 				// dispatch to appropriate watch stream
-				ok := w.dispatchEvent(cur)
-
-				// reset for next iteration
-				cur = nil
-
-				if ok {
+				if ok := w.dispatchEvent(pbresp); ok {
 					break
 				}
-
 				// watch response on unexpected watch id; cancel id
 				if _, ok := cancelSet[pbresp.WatchId]; ok {
 					break
 				}
-
 				cancelSet[pbresp.WatchId] = struct{}{}
 				cr := &pb.WatchRequest_CancelRequest{
 					CancelRequest: &pb.WatchCancelRequest{
@@ -552,7 +495,6 @@ func (w *watchGrpcStream) run() {
 				req := &pb.WatchRequest{RequestUnion: cr}
 				wc.Send(req)
 			}
-
 		// watch client failed on Recv; spawn another if possible
 		case err := <-w.errc:
 			if isHaltErr(w.ctx, err) || toErr(w.ctx, err) == v3rpc.ErrNoLeader {
@@ -566,15 +508,13 @@ func (w *watchGrpcStream) run() {
 				wc.Send(ws.initReq.toPB())
 			}
 			cancelSet = make(map[int64]struct{})
-
 		case <-w.ctx.Done():
 			return
-
 		case ws := <-w.closingc:
 			w.closeSubstream(ws)
 			delete(closing, ws)
-			// no more watchers on this stream, shutdown
 			if len(w.substreams)+len(w.resuming) == 0 {
+				// no more watchers on this stream, shutdown
 				return
 			}
 		}
@@ -599,7 +539,6 @@ func (w *watchGrpcStream) dispatchEvent(pbresp *pb.WatchResponse) bool {
 	for i, ev := range pbresp.Events {
 		events[i] = (*Event)(ev)
 	}
-	// TODO: return watch ID?
 	wr := &WatchResponse{
 		Header:          *pbresp.Header,
 		Events:          events,
@@ -830,10 +769,13 @@ func (w *watchGrpcStream) joinSubstreams() {
 	}
 }
 
+var maxBackoff = 100 * time.Millisecond
+
 // openWatchClient retries opening a watch client until success or halt.
 // manually retry in case "ws==nil && err==nil"
 // TODO: remove FailFast=false
 func (w *watchGrpcStream) openWatchClient() (ws pb.Watch_WatchClient, err error) {
+	backoff := time.Millisecond
 	for {
 		select {
 		case <-w.ctx.Done():
@@ -849,6 +791,17 @@ func (w *watchGrpcStream) openWatchClient() (ws pb.Watch_WatchClient, err error)
 		if isHaltErr(w.ctx, err) {
 			return nil, v3rpc.Error(err)
 		}
+		if isUnavailableErr(w.ctx, err) {
+			// retry, but backoff
+			if backoff < maxBackoff {
+				// 25% backoff factor
+				backoff = backoff + backoff/4
+				if backoff > maxBackoff {
+					backoff = maxBackoff
+				}
+			}
+			time.Sleep(backoff)
+		}
 	}
 	return ws, nil
 }
@@ -862,7 +815,6 @@ func (wr *watchRequest) toPB() *pb.WatchRequest {
 		ProgressNotify: wr.progressNotify,
 		Filters:        wr.filters,
 		PrevKv:         wr.prevKV,
-		Fragment:       wr.fragment,
 	}
 	cr := &pb.WatchRequest_CreateRequest{CreateRequest: req}
 	return &pb.WatchRequest{RequestUnion: cr}
