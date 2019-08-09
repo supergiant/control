@@ -60,7 +60,7 @@ func (s *CreateRouterStep) Run(ctx context.Context, out io.Writer, config *steps
 
 	var opts routers.CreateOpts
 	opts = routers.CreateOpts{
-		Name:         fmt.Sprintf("router-%s", config.ClusterID),
+		Name:         fmt.Sprintf("router-%s", config.Kube.ID),
 		AdminStateUp: gophercloud.Enabled,
 		GatewayInfo: &routers.GatewayInfo{
 			NetworkID: config.OpenStackConfig.NetworkID,

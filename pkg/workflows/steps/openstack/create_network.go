@@ -59,7 +59,7 @@ func (s *CreateNetworkStep) Run(ctx context.Context, out io.Writer, config *step
 	}
 
 	net, err := networks.Create(networkClient, networks.CreateOpts{
-		Name:         fmt.Sprintf("network-%s", config.ClusterID),
+		Name:         fmt.Sprintf("network-%s", config.Kube.ID),
 		AdminStateUp: gophercloud.Enabled,
 	}).Extract()
 

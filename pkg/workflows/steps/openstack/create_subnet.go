@@ -61,7 +61,7 @@ func (s *CreateSubnetStep) Run(ctx context.Context, out io.Writer, config *steps
 		NetworkID:      config.OpenStackConfig.NetworkID,
 		CIDR:           config.OpenStackConfig.SubnetIPRange,
 		IPVersion:      gophercloud.IPv4,
-		Name:           fmt.Sprintf("subnet-%s", config.ClusterID),
+		Name:           fmt.Sprintf("subnet-%s", config.Kube.ID),
 		DNSNameservers: []string{"8.8.8.8"},
 	}).Extract()
 

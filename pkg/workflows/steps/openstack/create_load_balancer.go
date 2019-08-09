@@ -102,7 +102,7 @@ func (s *CreateLoadBalancer) Run(ctx context.Context, out io.Writer, config *ste
 	config.OpenStackConfig.LoadBalancerName = loadBalancer.Name
 
 	listenerOpts := listeners.CreateOpts{
-		Name:         fmt.Sprintf("listener-%s", config.ClusterID),
+		Name:         fmt.Sprintf("listener-%s", config.Kube.ID),
 		Protocol:     "HTTP",
 		ProtocolPort: 443,
 	}
@@ -134,7 +134,7 @@ func (s *CreateLoadBalancer) Run(ctx context.Context, out io.Writer, config *ste
 	config.OpenStackConfig.ListenerID = listener.ID
 
 	poolOpts := pools.CreateOpts{
-		Name:           fmt.Sprintf("pool-%s", config.ClusterID),
+		Name:           fmt.Sprintf("pool-%s", config.Kube.ID),
 		Protocol:       "HTTP",
 		LoadbalancerID: config.OpenStackConfig.LoadBalancerID,
 		ListenerID:     config.OpenStackConfig.ListenerID,

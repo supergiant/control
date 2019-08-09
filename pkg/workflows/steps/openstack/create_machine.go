@@ -71,7 +71,7 @@ func (s *CreateMachineStep) Run(ctx context.Context, out io.Writer, config *step
 
 	serverCreateOpts := servers.CreateOpts{
 		ServiceClient: computeClient,
-		Name:          util.MakeNodeName(config.ClusterName, config.TaskID, config.IsMaster),
+		Name:          util.MakeNodeName(config.Kube.ID, config.TaskID, config.IsMaster),
 		FlavorName:    config.OpenStackConfig.FlavorName,
 		ImageName:     config.OpenStackConfig.ImageName,
 		Networks: []servers.Network{
@@ -80,9 +80,9 @@ func (s *CreateMachineStep) Run(ctx context.Context, out io.Writer, config *step
 			},
 		},
 		Metadata: map[string]string{
-			"KubernetesCluster": config.ClusterName,
+			"KubernetesCluster": config.Kube.ID,
 			"Role":              util.MakeRole(config.IsMaster),
-			clouds.TagClusterID: config.ClusterID,
+			clouds.TagClusterID: config.Kube.ID,
 		},
 	}
 
