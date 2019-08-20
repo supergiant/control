@@ -105,7 +105,6 @@ func NewRegionsGetter(account *model.CloudAccount, config *steps.Config) (Region
 		return NewAzureFinder(account, config)
 	case clouds.OpenStack:
 		return NewOpenstackFinder(account, config)
-
 	}
 	return nil, ErrUnsupportedProvider
 }
@@ -626,7 +625,7 @@ func (of *OpenstackFinder) GetRegions(context.Context) (*RegionSizes, error) {
 		IdentityEndpoint: of.config.AuthURL,
 		Username:         of.config.UserName,
 		Password:         of.config.Password,
-		TenantID:         of.config.TenantID,
+		TenantName:       of.config.TenantName,
 		DomainID:         of.config.DomainID,
 		DomainName:       of.config.DomainName,
 	}
@@ -678,9 +677,8 @@ func (of *OpenstackFinder) GetZones(ctx context.Context, config steps.Config) ([
 		IdentityEndpoint: config.OpenStackConfig.AuthURL,
 		Username:         config.OpenStackConfig.UserName,
 		Password:         config.OpenStackConfig.Password,
-		TenantID:         config.OpenStackConfig.TenantID,
+		TenantName:       config.OpenStackConfig.TenantName,
 		DomainID:         config.OpenStackConfig.DomainID,
-		DomainName:       config.OpenStackConfig.DomainName,
 	}
 
 	client, err := openstack.AuthenticatedClient(opts)
@@ -722,9 +720,8 @@ func (of *OpenstackFinder) GetTypes(ctx context.Context, config steps.Config) ([
 		IdentityEndpoint: config.OpenStackConfig.AuthURL,
 		Username:         config.OpenStackConfig.UserName,
 		Password:         config.OpenStackConfig.Password,
-		TenantID:         config.OpenStackConfig.TenantID,
+		TenantName:       config.OpenStackConfig.TenantName,
 		DomainID:         config.OpenStackConfig.DomainID,
-		DomainName:       config.OpenStackConfig.DomainName,
 	}
 
 	client, err := openstack.AuthenticatedClient(opts)

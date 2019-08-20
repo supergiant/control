@@ -159,9 +159,11 @@ type InstallAppConfig struct {
 
 type OpenStackConfig struct {
 	AuthURL          string `json:"authUrl"`
+	CACert           string `json:"caCert"`
 	DomainName       string `json:"domainName"`
 	DomainID         string `json:"domainId"`
 	TenantID         string `json:"tenantId"`
+	TenantName       string `json:"tenantName"`
 	UserName         string `json:"userName"`
 	Password         string `json:"password"`
 	Region           string `json:"region"`
