@@ -1,0 +1,19 @@
+{
+	"comment": "",
+	"ignore": "",
+	"package": [
+		{
+			"checksumSHA1": "nQlviweyWynvpsXf1Ms0AecMzO8=",
+			"path": "github.com/gophercloud/gophercloud/openstack/compute/v2/extensions/availabilityzones",
+			"revision": "5d7c57d98d5884d9c6a09b9e62a95979b2a9a762",
+			"revisionTime": "2019-06-10T12:01:07Z"
+		},
+		{
+			"checksumSHA1": "xKrRxv4Eh8KYjuzR/Aw9EpTBTJ8=",
+			"path": "github.com/gophercloud/gophercloud/openstack/identity/v3/regions",
+			"revision": "5d7c57d98d5884d9c6a09b9e62a95979b2a9a762",
+			"revisionTime": "2019-06-10T12:01:07Z"
+		}
+	],
+	"rootPath": "github.com/supergiant/control"
+}

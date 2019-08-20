@@ -56,7 +56,6 @@ func (s *FindImageStep) Run(ctx context.Context, out io.Writer, config *steps.Co
 		return errors.Wrapf(err, "step %s get compute client", FindImageStepName)
 	}
 
-
 	// TODO(stgleb): Find image by name
 	ImageID, err := images.IDFromName(computeClient, "ubuntu")
 
