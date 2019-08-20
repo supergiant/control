@@ -3,7 +3,9 @@ package openstack
 import (
 	"context"
 	"fmt"
+	"github.com/apparentlymart/go-cidr/cidr"
 	"io"
+	"net"
 	"net/http"
 	"time"
 
@@ -69,8 +71,22 @@ func (s *CreateLoadBalancer) Run(ctx context.Context, out io.Writer, config *ste
 		return errors.Wrapf(err, "step %s get compute client", CreateLoadBalancerStepName)
 	}
 
+	// Find IP for load balancer
+	_, cidrIP, err := net.ParseCIDR(config.OpenStackConfig.SubnetIPRange)
+
+	if err != nil {
+		return errors.Wrapf(err, "Error parsing Subnet CIDR %s",
+			config.OpenStackConfig.SubnetIPRange)
+	}
+
+	_, low := cidr.AddressRange(cidrIP)
+
 	lbOpts := loadbalancers.CreateOpts{
+		Name:         fmt.Sprintf("load-balancer-%s", config.Kube.ID),
+		AdminStateUp: gophercloud.Enabled,
 		VipNetworkID: config.OpenStackConfig.NetworkID,
+		VipSubnetID:  config.OpenStackConfig.SubnetID,
+		VipAddress:   low.String(),
 		Flavor:       config.OpenStackConfig.FlavorName,
 	}
 
