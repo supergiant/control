@@ -158,28 +158,28 @@ type InstallAppConfig struct {
 }
 
 type OpenStackConfig struct {
-	AuthURL       string `json:"authUrl"`
-	DomainName    string `json:"domainName"`
-	DomainID      string `json:"domainId"`
-	TenantID      string `json:"tenantId"`
-	UserName      string `json:"userName"`
-	Password      string `json:"password"`
-	Region        string `json:"region"`
-	ImageID       string `json:"imageId"`
-	NetworkID     string `json:"networkId"`
-	NetworkName   string `json:"networkName"`
-	SubnetID      string `json:"subnetId"`
-	SubnetIPRange string `json:"subnetIpRange"`
-	RouterID      string `json:"routerId"`
-	FlavorName    string `json:"flavorName"`
-	FloatingIP    string `json:"floatingIp"`
-	FloatingID    string `json:"floatingId"`
-	ImageName     string `json:"imageName"`
-	LoadBalancerID string `json:"loadBalancerId"`
+	AuthURL          string `json:"authUrl"`
+	DomainName       string `json:"domainName"`
+	DomainID         string `json:"domainId"`
+	TenantID         string `json:"tenantId"`
+	UserName         string `json:"userName"`
+	Password         string `json:"password"`
+	Region           string `json:"region"`
+	ImageID          string `json:"imageId"`
+	NetworkID        string `json:"networkId"`
+	NetworkName      string `json:"networkName"`
+	SubnetID         string `json:"subnetId"`
+	SubnetIPRange    string `json:"subnetIpRange"`
+	RouterID         string `json:"routerId"`
+	FlavorName       string `json:"flavorName"`
+	FloatingIP       string `json:"floatingIp"`
+	FloatingID       string `json:"floatingId"`
+	ImageName        string `json:"imageName"`
+	LoadBalancerID   string `json:"loadBalancerId"`
 	LoadBalancerName string `json:"loadBalancerName"`
-	ListenerID string `json:"listenerId"`
-	PoolID string `json:"poolId"`
-	HealthCheckID string `json:"healthCheckId"`
+	ListenerID       string `json:"listenerId"`
+	PoolID           string `json:"poolId"`
+	HealthCheckID    string `json:"healthCheckId"`
 }
 
 type Map struct {
@@ -215,11 +215,11 @@ type Config struct {
 	OSConfig           OSConfig     `json:"osConfig"`
 	PacketConfig       PacketConfig `json:"packetConfig"`
 
-	DrainConfig DrainConfig `json:"drainConfig"`
-	ConfigMap   ConfigMap   `json:"configMap"`
-	ApplyConfig ApplyConfig `json:"applyConfig"`
-	InstallAppConfig   InstallAppConfig   `json:"installAppConfig"`
-	OpenStackConfig    OpenStackConfig    `json:"openStackConfig"`
+	DrainConfig      DrainConfig      `json:"drainConfig"`
+	ConfigMap        ConfigMap        `json:"configMap"`
+	ApplyConfig      ApplyConfig      `json:"applyConfig"`
+	InstallAppConfig InstallAppConfig `json:"installAppConfig"`
+	OpenStackConfig  OpenStackConfig  `json:"openStackConfig"`
 
 	Provider clouds.Name `json:"provider"`
 

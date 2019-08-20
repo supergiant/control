@@ -2,6 +2,7 @@ package workflows
 
 import (
 	"github.com/supergiant/control/pkg/workflows/steps/install_app"
+	"github.com/supergiant/control/pkg/workflows/steps/openstack"
 	"sync"
 
 	"github.com/supergiant/control/pkg/workflows/statuses"
@@ -54,6 +55,7 @@ const (
 	DigitalOceanInfra = "digitaloceanInfra"
 	GCEInfra          = "gceInfra"
 	AzureInfra        = "azureInfra"
+	OpenstackInfra    = "openstackInfra"
 	InstallApp        = "installApp"
 
 	ProvisionMaster = "ProvisionMaster"
@@ -116,6 +118,15 @@ func Init() {
 		steps.GetStep(azure.CreateLBStepName),
 	}
 
+	openstackInfra := []steps.Step{
+			steps.GetStep(openstack.CreateNetworkStepName),
+			steps.GetStep(openstack.CreateSubnetStepName),
+			steps.GetStep(openstack.CreateRouterStepName),
+			steps.GetStep(openstack.CreateLoadBalancerStepName),
+			steps.GetStep(openstack.CreatePoolStepName),
+			steps.GetStep(openstack.CreateHealthCheckStepName),
+	}
+
 	masterWorkflow := []steps.Step{
 		// TODO(stgleb): Provider steps should also register itsels it step map
 		provider.StepCreateMachine{},
@@ -134,7 +145,7 @@ func Init() {
 	}
 
 	nodeWorkflow := []steps.Step{
-		// TODO(stgleb): Provider steps should also register theirself it step map
+		// TODO(stgleb): Provider steps should also register their self it step map
 		provider.StepCreateMachine{},
 		steps.GetStep(ssh.StepName),
 		steps.GetStep(authorizedkeys.StepName),
@@ -193,6 +204,7 @@ func Init() {
 	workflowMap[DigitalOceanInfra] = digitalOceanInfra
 	workflowMap[GCEInfra] = gceInfra
 	workflowMap[AzureInfra] = azureInfra
+	workflowMap[OpenstackInfra] = openstackInfra
 
 	workflowMap[ProvisionMaster] = masterWorkflow
 	workflowMap[ProvisionNode] = nodeWorkflow
