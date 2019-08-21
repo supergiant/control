@@ -59,7 +59,7 @@ func (s *CreateHealthCheck) Run(ctx context.Context, output io.Writer,
 		UnhealthyThreshold: 3,
 		Type:               "HTTPS",
 		HttpsHealthCheck: &compute.HTTPSHealthCheck{
-			Port:        config.Kube.APIServerPort,
+			Port:        int64(config.Kube.APIServerPort),
 			RequestPath: "/healthz",
 		},
 	}

@@ -29,7 +29,7 @@ type Config struct {
 	PrivateIP    string `json:"privateIp"`
 
 	LoadBalancerHost string `json:"loadBalancerHost"`
-	APIServerPort    int64  `json:"apiserverPort"`
+	APIServerPort    int  `json:"apiserverPort"`
 	NodeName         string `json:"nodeName"`
 	UserName         string `json:"userName"`
 

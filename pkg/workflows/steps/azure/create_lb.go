@@ -48,7 +48,7 @@ func (s *CreateLBStep) Run(ctx context.Context, output io.Writer, config *steps.
 		config.AzureConfig.Location,
 		toResourceGroupName(config.Kube.ID, config.Kube.Name),
 		toLBName(config.Kube.ID, config.Kube.Name),
-		config.Kube.APIServerPort,
+		int64(config.Kube.APIServerPort),
 	)
 	if err != nil {
 		return errors.Wrap(err, "create load balancer")

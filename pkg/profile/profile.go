@@ -29,7 +29,7 @@ type Profile struct {
 	DockerVersion   string      `json:"dockerVersion" valid:"-"`
 	K8SVersion      string      `json:"K8SVersion" valid:"-"`
 	K8SServicesCIDR string      `json:"k8sServicesCIDR" valid:"-"`
-	K8SAPIPort      int64       `json:"k8sApiPort" valid:"-"`
+	K8SAPIPort      int       `json:"k8sApiPort" valid:"-"`
 	NetworkProvider string      `json:"networkProvider" valid:"-"`
 	FlannelVersion  string      `json:"flannelVersion" valid:"-"`
 	NetworkType     string      `json:"networkType" valid:"-"`

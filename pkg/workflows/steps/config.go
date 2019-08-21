@@ -18,7 +18,7 @@ import (
 )
 
 const (
-	DefaultK8SAPIPort int64 = 443
+	DefaultK8SAPIPort int = 443
 )
 
 type DOConfig struct {
@@ -550,7 +550,7 @@ func (c *Config) GetAzureAuthorizer() autorest.Authorizer {
 	return c.azureAthorizer
 }
 
-func ensurePort(p int64) int64 {
+func ensurePort(p int) int {
 	if p == 0 {
 		return DefaultK8SAPIPort
 	}

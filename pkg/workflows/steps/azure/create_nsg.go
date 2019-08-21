@@ -65,7 +65,7 @@ func (s *CreateSecurityGroupStep) Run(ctx context.Context, output io.Writer, con
 	}{
 		{
 			role:  model.RoleMaster.String(),
-			rules: masterSecurityRules(sgAddr, config.Kube.APIServerPort),
+			rules: masterSecurityRules(sgAddr, int64(config.Kube.APIServerPort)),
 		},
 		{
 			role:  model.RoleNode.String(),
