@@ -635,7 +635,7 @@ func (of *OpenstackFinder) GetRegions(context.Context) (*RegionSizes, error) {
 		return nil, err
 	}
 
-	computeClient, err := openstack.NewComputeV2(client, gophercloud.EndpointOpts{
+	identityClient, err := openstack.NewIdentityV3(client, gophercloud.EndpointOpts{
 		Region: of.config.Region,
 	})
 
@@ -643,7 +643,7 @@ func (of *OpenstackFinder) GetRegions(context.Context) (*RegionSizes, error) {
 		return nil, errors.Wrapf(err, "get compute client for get zones")
 	}
 
-	page, err := regions.List(computeClient, regions.ListOpts{}).AllPages()
+	page, err := regions.List(identityClient, regions.ListOpts{}).AllPages()
 
 	if err != nil {
 		return nil, errors.Wrapf(err, "getting regions")
@@ -665,7 +665,7 @@ func (of *OpenstackFinder) GetRegions(context.Context) (*RegionSizes, error) {
 	}
 
 	rs := &RegionSizes{
-		Provider: clouds.GCE,
+		Provider: clouds.OpenStack,
 		Regions:  ids,
 	}
 
@@ -700,19 +700,19 @@ func (of *OpenstackFinder) GetZones(ctx context.Context, config steps.Config) ([
 		return nil, errors.Wrap(err, "get az pages")
 	}
 
-	azs, err := regions.ExtractRegions(page)
+	azs, err := availabilityzones.ExtractAvailabilityZones(page)
 
 	if err != nil {
 		return nil, errors.Wrap(err, "extract regions")
 	}
 
-	ids := make([]string, 0, 0)
+	zoneNames := make([]string, 0, 0)
 
 	for _, az := range azs {
-		ids = append(ids, az.ID)
+		zoneNames = append(zoneNames, az.ZoneName)
 	}
 
-	return ids, nil
+	return zoneNames, nil
 }
 
 func (of *OpenstackFinder) GetTypes(ctx context.Context, config steps.Config) ([]string, error) {
