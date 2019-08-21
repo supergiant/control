@@ -30,7 +30,7 @@ type Kube struct {
 	DNSIP        string      `json:"dnsIp"`
 	// DEPRECATED: use APIServerPort instead.
 	APIPort       string `json:"apiPort"`
-	APIServerPort int64  `json:"apibindPort"`
+	APIServerPort int  `json:"apibindPort"`
 	Auth          Auth   `json:"auth"`
 
 	User     string `json:"user" valid:"-"`

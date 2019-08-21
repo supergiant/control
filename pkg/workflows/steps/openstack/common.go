@@ -21,4 +21,5 @@ func Init() {
 	steps.RegisterStep(CreateHealthCheckStepName, NewCreateHealthCheckStep())
 	steps.RegisterStep(RegisterInstancetoLBStepName, NewRegisterInstancetoLBStep())
 	steps.RegisterStep(CreateKeyPairStepName, NewCreateKeyPairStep())
+	steps.RegisterStep(CreateSecurityGroupStepName, NewCreateSecurityGroup())
 }
