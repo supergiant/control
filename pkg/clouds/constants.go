@@ -124,6 +124,7 @@ const (
 	OpenstackFlavorName = "flavorName"
 	OpenstackNetworkId = "networkId"
 	OpenstackSubnetId = "subnetId"
+	OpenstackSubnetCIDR = "subnetCIDR"
 	OpenstackRounterId = "routerId"
 	OpenstackListenerId = "listenerId"
 	OpenstackHealthCheckId = "healthCheckId"
