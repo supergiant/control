@@ -118,6 +118,8 @@ func FillCloudAccountCredentials(cloudAccount *model.CloudAccount, config *steps
 		return BindParams(cloudAccount.Credentials, &config.GCEConfig)
 	case clouds.Azure:
 		return BindParams(cloudAccount.Credentials, &config.AzureConfig)
+	case clouds.OpenStack:
+		return BindParams(cloudAccount.Credentials, &config.OpenStackConfig)
 	default:
 		return sgerrors.ErrUnknownProvider
 	}

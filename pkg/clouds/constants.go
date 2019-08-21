@@ -113,4 +113,10 @@ const (
 	AzureClientSecret   = "clientSecret"
 	AzureVolumeSize     = "azureVolumeSize"
 	AzureVNetCIDR       = "azureVNetCIDR"
+
+	OpenstackAuthUrl    = "authUrl"
+	OpenstackDomainId   = "domainId"
+	OpenstackTenantName = "tenantName"
+	OpenstackUserName   = "userName"
+	OpenstackPassword   = "password"
 )

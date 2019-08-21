@@ -36,6 +36,7 @@ type CloudAccountValidatorImpl struct {
 	aws          func(map[string]string) error
 	gce          func(map[string]string) error
 	azure        func(map[string]string) error
+	openstack    func(map[string]string) error
 }
 
 func NewCloudAccountValidator() *CloudAccountValidatorImpl {
@@ -44,6 +45,7 @@ func NewCloudAccountValidator() *CloudAccountValidatorImpl {
 		aws:          validateAWSCredentials,
 		gce:          validateGCECredentials,
 		azure:        validateAzureCredentials,
+		openstack:    validateOpenstackCredentials,
 	}
 }
 
@@ -57,6 +59,8 @@ func (v *CloudAccountValidatorImpl) ValidateCredentials(cloudAccount *model.Clou
 		return v.gce(cloudAccount.Credentials)
 	case clouds.Azure:
 		return v.azure(cloudAccount.Credentials)
+	case clouds.OpenStack:
+		return v.openstack(cloudAccount.Credentials)
 	}
 
 	return sgerrors.ErrUnsupportedProvider
@@ -156,6 +160,28 @@ func validateAzureCredentials(creds map[string]string) error {
 		creds[k] = strings.TrimSpace(creds[k])
 		if creds[k] == "" {
 			return errors.Wrapf(ErrInvalidCredentials, "azure: %s should be provided", k)
+		}
+	}
+
+	return nil
+}
+
+func validateOpenstackCredentials(creds map[string]string) error {
+	if creds == nil {
+		return ErrInvalidCredentials
+	}
+
+	for _, k := range []string{
+		clouds.OpenstackAuthUrl,
+		clouds.OpenstackDomainId,
+		clouds.OpenstackPassword,
+		clouds.OpenstackTenantName,
+		clouds.OpenstackUserName,
+	} {
+		creds[k] = strings.TrimSpace(creds[k])
+		if creds[k] == "" {
+			return errors.Wrapf(ErrInvalidCredentials, "%s: %s should be provided",
+				clouds.OpenStack, k)
 		}
 	}
 

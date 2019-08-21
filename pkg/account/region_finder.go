@@ -612,7 +612,7 @@ func NewOpenstackFinder(acc *model.CloudAccount, config *steps.Config) (*Opensta
 	err := util.FillCloudAccountCredentials(acc, config)
 
 	if err != nil {
-		return nil, errors.Wrap(err, "aws new finder")
+		return nil, errors.Wrap(err, "openstack new finder")
 	}
 
 	return &OpenstackFinder{
