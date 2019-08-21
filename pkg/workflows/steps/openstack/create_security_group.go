@@ -57,7 +57,8 @@ func (s *CreateSecurityGroupStep) Run(ctx context.Context, out io.Writer, config
 	}
 
 	masterSg, err := secgroups.Create(identityClient, secgroups.CreateOpts{
-		Name: fmt.Sprintf("master-sg-%s", config.Kube.ID),
+		Name:        fmt.Sprintf("master-sg-%s", config.Kube.ID),
+		Description: "master nodes security group",
 	}).Extract()
 
 	if err != nil {
@@ -93,7 +94,8 @@ func (s *CreateSecurityGroupStep) Run(ctx context.Context, out io.Writer, config
 	config.OpenStackConfig.MasterSecurityGroupId = masterSg.ID
 
 	workerSg, err := secgroups.Create(identityClient, secgroups.CreateOpts{
-		Name: fmt.Sprintf("worker-sg-%s", config.Kube.ID),
+		Name:        fmt.Sprintf("worker-sg-%s", config.Kube.ID),
+		Description: "worker security group",
 	}).Extract()
 
 	if err != nil {

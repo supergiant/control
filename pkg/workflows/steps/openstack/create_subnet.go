@@ -58,6 +58,8 @@ func (s *CreateSubnetStep) Run(ctx context.Context, out io.Writer, config *steps
 
 	sub, err := subnets.Create(networkClient, subnets.CreateOpts{
 		NetworkID:      config.OpenStackConfig.NetworkID,
+		// TODO(stgleb): this field must be supplied from cloud
+		//  specific settings dict
 		CIDR:           config.OpenStackConfig.SubnetIPRange,
 		IPVersion:      gophercloud.IPv4,
 		Name:           fmt.Sprintf("subnet-%s", config.Kube.ID),
