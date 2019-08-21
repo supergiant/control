@@ -119,12 +119,14 @@ func Init() {
 	}
 
 	openstackInfra := []steps.Step{
-			steps.GetStep(openstack.CreateNetworkStepName),
-			steps.GetStep(openstack.CreateSubnetStepName),
-			steps.GetStep(openstack.CreateRouterStepName),
-			steps.GetStep(openstack.CreateLoadBalancerStepName),
-			steps.GetStep(openstack.CreatePoolStepName),
-			steps.GetStep(openstack.CreateHealthCheckStepName),
+		steps.GetStep(openstack.CreateSecurityGroupStepName),
+		steps.GetStep(openstack.CreateNetworkStepName),
+		steps.GetStep(openstack.CreateSubnetStepName),
+		steps.GetStep(openstack.CreateRouterStepName),
+		steps.GetStep(openstack.CreateLoadBalancerStepName),
+		steps.GetStep(openstack.CreatePoolStepName),
+		steps.GetStep(openstack.CreateHealthCheckStepName),
+		steps.GetStep(openstack.CreateKeyPairStepName),
 	}
 
 	masterWorkflow := []steps.Step{
