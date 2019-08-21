@@ -182,6 +182,7 @@ type OpenStackConfig struct {
 	ListenerID       string `json:"listenerId"`
 	PoolID           string `json:"poolId"`
 	HealthCheckID    string `json:"healthCheckId"`
+	KeyPairName      string `json:"keyPairName"`
 }
 
 type Map struct {

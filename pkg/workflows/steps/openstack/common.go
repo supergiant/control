@@ -20,4 +20,5 @@ func Init() {
 	steps.RegisterStep(CreateLoadBalancerStepName, NewCreateLoadBalancer())
 	steps.RegisterStep(CreateHealthCheckStepName, NewCreateHealthCheckStep())
 	steps.RegisterStep(RegisterInstancetoLBStepName, NewRegisterInstancetoLBStep())
+	steps.RegisterStep(CreateKeyPairStepName, NewCreateKeyPairStep())
 }
