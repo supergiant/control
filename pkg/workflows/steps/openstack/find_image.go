@@ -26,9 +26,8 @@ func NewFindImageStep() *FindImageStep {
 				IdentityEndpoint: config.AuthURL,
 				Username:         config.UserName,
 				Password:         config.Password,
-				TenantID:         config.TenantID,
+				TenantName:       config.TenantName,
 				DomainID:         config.DomainID,
-				DomainName:       config.DomainName,
 			}
 
 			client, err := openstack.AuthenticatedClient(opts)

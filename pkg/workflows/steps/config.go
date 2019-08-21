@@ -332,7 +332,9 @@ func NewConfig(clusterName, cloudAccountName string, profile profile.Profile) (*
 			// TODO(stgleb): this should be passed from the UI
 			VolumeSize: "30",
 		},
-
+		OpenStackConfig:OpenStackConfig{
+			Region: profile.Region,
+		},
 		Masters: Map{
 			internal: make(map[string]*model.Machine, len(profile.MasterProfiles)),
 		},

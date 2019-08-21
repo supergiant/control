@@ -27,9 +27,8 @@ func NewCreateKeyPairStep() *CreateKeyPairStep {
 				IdentityEndpoint: config.AuthURL,
 				Username:         config.UserName,
 				Password:         config.Password,
-				TenantID:         config.TenantID,
+				TenantName:       config.TenantName,
 				DomainID:         config.DomainID,
-				DomainName:       config.DomainName,
 			}
 
 			client, err := openstack.AuthenticatedClient(opts)
@@ -59,7 +58,7 @@ func (s *CreateKeyPairStep) Run(ctx context.Context, out io.Writer, config *step
 
 	keypair, err := keypairs.Create(identityClient, keypairs.CreateOpts{
 		Name:         fmt.Sprintf("keypair-%s", config.Kube.ID),
-		PublicKey: config.Kube.SSHConfig.PublicKey,
+		PublicKey: config.Kube.SSHConfig.BootstrapPublicKey,
 	}).Extract()
 
 	if err != nil {

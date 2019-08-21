@@ -27,9 +27,8 @@ func NewCreateSecurityGroup() *CreateSecurityGroupStep {
 				IdentityEndpoint: config.AuthURL,
 				Username:         config.UserName,
 				Password:         config.Password,
-				TenantID:         config.TenantID,
+				TenantName:       config.TenantName,
 				DomainID:         config.DomainID,
-				DomainName:       config.DomainName,
 			}
 
 			client, err := openstack.AuthenticatedClient(opts)
@@ -46,27 +45,27 @@ func (s *CreateSecurityGroupStep) Run(ctx context.Context, out io.Writer, config
 	client, err := s.getClient(config.OpenStackConfig)
 
 	if err != nil {
-		return errors.Wrapf(err, "step %s", CreateNetworkStepName)
+		return errors.Wrapf(err, "step %s", CreateSecurityGroupStepName)
 	}
 
-	computeClient, err := openstack.NewComputeV2(client, gophercloud.EndpointOpts{
+	identityClient, err := openstack.NewComputeV2(client, gophercloud.EndpointOpts{
 		Region: config.OpenStackConfig.Region,
 	})
 
 	if err != nil {
-		return errors.Wrapf(err, "step %s get network client", CreateNetworkStepName)
+		return errors.Wrapf(err, "step %s get compute client", CreateSecurityGroupStepName)
 	}
 
-	masterSg, err := secgroups.Create(computeClient, secgroups.CreateOpts{
+	masterSg, err := secgroups.Create(identityClient, secgroups.CreateOpts{
 		Name: fmt.Sprintf("master-sg-%s", config.Kube.ID),
 	}).Extract()
 
 	if err != nil {
-		return errors.Wrapf(err, "create master sg error step %s", CreateNetworkStepName)
+		return errors.Wrapf(err, "create master sg error step %s", CreateSecurityGroupStepName)
 	}
 
 	// TODO(stgleb): probably we need to save rule ID for deletion
-	_, err = secgroups.CreateRule(computeClient, secgroups.CreateRuleOpts{
+	_, err = secgroups.CreateRule(identityClient, secgroups.CreateRuleOpts{
 		ParentGroupID: masterSg.ID,
 		FromPort:      22,
 		ToPort:        22,
@@ -79,7 +78,7 @@ func (s *CreateSecurityGroupStep) Run(ctx context.Context, out io.Writer, config
 	}
 
 	// Allow traffic through API Server port to master nodes
-	_, err = secgroups.CreateRule(computeClient, secgroups.CreateRuleOpts{
+	_, err = secgroups.CreateRule(identityClient, secgroups.CreateRuleOpts{
 		ParentGroupID: masterSg.ID,
 		FromPort:      config.Kube.APIServerPort,
 		ToPort:        config.Kube.APIServerPort,
@@ -93,16 +92,16 @@ func (s *CreateSecurityGroupStep) Run(ctx context.Context, out io.Writer, config
 
 	config.OpenStackConfig.MasterSecurityGroupId = masterSg.ID
 
-	workerSg, err := secgroups.Create(computeClient, secgroups.CreateOpts{
+	workerSg, err := secgroups.Create(identityClient, secgroups.CreateOpts{
 		Name: fmt.Sprintf("worker-sg-%s", config.Kube.ID),
 	}).Extract()
 
 	if err != nil {
-		return errors.Wrapf(err, "create worker sg error step %s", CreateNetworkStepName)
+		return errors.Wrapf(err, "create worker sg error step %s", CreateSecurityGroupStepName)
 	}
 
 	// TODO(stgleb): probably we need to save rule ID for deletion
-	_, err = secgroups.CreateRule(computeClient, secgroups.CreateRuleOpts{
+	_, err = secgroups.CreateRule(identityClient, secgroups.CreateRuleOpts{
 		ParentGroupID: workerSg.ID,
 		FromPort:      22,
 		ToPort:        22,
@@ -120,7 +119,7 @@ func (s *CreateSecurityGroupStep) Run(ctx context.Context, out io.Writer, config
 }
 
 func (s *CreateSecurityGroupStep) Name() string {
-	return CreateKeyPairStepName
+	return CreateSecurityGroupStepName
 }
 
 func (s *CreateSecurityGroupStep) Rollback(context.Context, io.Writer, *steps.Config) error {
