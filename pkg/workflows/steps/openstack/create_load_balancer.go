@@ -87,7 +87,9 @@ func (s *CreateLoadBalancer) Run(ctx context.Context, out io.Writer, config *ste
 		VipNetworkID: config.OpenStackConfig.NetworkID,
 		VipSubnetID:  config.OpenStackConfig.SubnetID,
 		VipAddress:   low.String(),
-		Flavor:       config.OpenStackConfig.FlavorName,
+		// TODO(stgleb): Find flavor by flavor name or create
+		//               function that finds appropriate flavor
+		Flavor:       "2",
 	}
 
 	loadBalancer, err := loadbalancers.Create(loadBalancerClient, lbOpts).Extract()
@@ -120,7 +122,7 @@ func (s *CreateLoadBalancer) Run(ctx context.Context, out io.Writer, config *ste
 	listenerOpts := listeners.CreateOpts{
 		Name:         fmt.Sprintf("listener-%s", config.Kube.ID),
 		Protocol:     "HTTP",
-		ProtocolPort: 443,
+		ProtocolPort: config.Kube.APIServerPort,
 	}
 
 	listener, err := listeners.Create(loadBalancerClient, listenerOpts).Extract()
@@ -203,7 +205,7 @@ func (s *CreateLoadBalancer) Run(ctx context.Context, out io.Writer, config *ste
 
 	memberOpts := pools.CreateMemberOpts{
 		Address:      config.Node.PrivateIp,
-		ProtocolPort: 443,
+		ProtocolPort: config.Kube.APIServerPort,
 		SubnetID:     config.OpenStackConfig.SubnetID,
 		Name:         fmt.Sprintf("member-%s", config.Node.ID),
 	}
