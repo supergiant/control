@@ -127,6 +127,7 @@ func Init() {
 		steps.GetStep(openstack.CreatePoolStepName),
 		steps.GetStep(openstack.CreateHealthCheckStepName),
 		steps.GetStep(openstack.CreateKeyPairStepName),
+		steps.GetStep(openstack.FindImageStepName),
 	}
 
 	masterWorkflow := []steps.Step{
