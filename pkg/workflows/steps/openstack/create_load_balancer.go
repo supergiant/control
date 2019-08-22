@@ -3,10 +3,8 @@ package openstack
 import (
 	"context"
 	"fmt"
-	"github.com/apparentlymart/go-cidr/cidr"
+	"github.com/sirupsen/logrus"
 	"io"
-	"net"
-	"net/http"
 	"time"
 
 	"github.com/pkg/errors"
@@ -15,14 +13,11 @@ import (
 	"github.com/gophercloud/gophercloud/openstack"
 	"github.com/gophercloud/gophercloud/openstack/loadbalancer/v2/listeners"
 	"github.com/gophercloud/gophercloud/openstack/loadbalancer/v2/loadbalancers"
-	"github.com/gophercloud/gophercloud/openstack/loadbalancer/v2/pools"
-	"github.com/gophercloud/gophercloud/openstack/networking/v2/extensions/lbaas_v2/monitors"
-
 	"github.com/supergiant/control/pkg/workflows/steps"
 )
 
 const (
-	CreateLoadBalancerStepName = "create_load_balancer"
+	CreateLoadBalancerStepName = "openstack_create_load_balancer"
 )
 
 type CreateLoadBalancer struct {
@@ -34,7 +29,7 @@ type CreateLoadBalancer struct {
 
 func NewCreateLoadBalancer() *CreateLoadBalancer {
 	return &CreateLoadBalancer{
-		attemptCount: 30,
+		attemptCount: 60,
 		timeout:      time.Second * 10,
 		getClient: func(config steps.OpenStackConfig) (client *gophercloud.ProviderClient, e error) {
 			opts := gophercloud.AuthOptions{
@@ -70,25 +65,12 @@ func (s *CreateLoadBalancer) Run(ctx context.Context, out io.Writer, config *ste
 		return errors.Wrapf(err, "step %s get compute client", CreateLoadBalancerStepName)
 	}
 
-	// Find IP for load balancer
-	_, cidrIP, err := net.ParseCIDR(config.OpenStackConfig.SubnetIPRange)
-
-	if err != nil {
-		return errors.Wrapf(err, "Error parsing Subnet CIDR %s",
-			config.OpenStackConfig.SubnetIPRange)
-	}
-
-	_, low := cidr.AddressRange(cidrIP)
-
 	lbOpts := loadbalancers.CreateOpts{
 		Name:         fmt.Sprintf("load-balancer-%s", config.Kube.ID),
 		AdminStateUp: gophercloud.Enabled,
 		VipNetworkID: config.OpenStackConfig.NetworkID,
 		VipSubnetID:  config.OpenStackConfig.SubnetID,
-		VipAddress:   low.String(),
-		// TODO(stgleb): Find flavor by flavor name or create
-		//               function that finds appropriate flavor
-		Flavor:       "2",
+		Tags:         []string{config.Kube.ID, config.Kube.Name},
 	}
 
 	loadBalancer, err := loadbalancers.Create(loadBalancerClient, lbOpts).Extract()
@@ -97,9 +79,12 @@ func (s *CreateLoadBalancer) Run(ctx context.Context, out io.Writer, config *ste
 		return errors.Wrapf(err, "create load balancer")
 	}
 
+	logrus.Debugf("Wait for load balancer %s to become active", loadBalancer.ID)
 	for i := 0; i < s.attemptCount; i++ {
 		loadBalancer, err = loadbalancers.Get(loadBalancerClient, loadBalancer.ID).Extract()
 
+		logrus.Debugf("Load balancer %s operating status %s",
+			loadBalancer.ID, loadBalancer.OperatingStatus)
 		if err == nil && loadBalancer.OperatingStatus == StatusOnline {
 			break
 		}
@@ -118,21 +103,27 @@ func (s *CreateLoadBalancer) Run(ctx context.Context, out io.Writer, config *ste
 	config.OpenStackConfig.LoadBalancerID = loadBalancer.ID
 	config.OpenStackConfig.LoadBalancerName = loadBalancer.Name
 
+	// TODO(stgleb): Move it to separate step
 	listenerOpts := listeners.CreateOpts{
-		Name:         fmt.Sprintf("listener-%s", config.Kube.ID),
-		Protocol:     "HTTP",
-		ProtocolPort: config.Kube.APIServerPort,
+		LoadbalancerID: loadBalancer.ID,
+		Name:           fmt.Sprintf("listener-%s", config.Kube.ID),
+		Protocol:       listeners.ProtocolHTTPS,
+		ProtocolPort:   config.Kube.APIServerPort,
 	}
 
+	logrus.Debugf("create listener on load balancer %s", loadBalancer.ID)
 	listener, err := listeners.Create(loadBalancerClient, listenerOpts).Extract()
 
 	if err != nil {
 		return errors.Wrapf(err, "create listener")
 	}
 
+	logrus.Debugf("wait until listener %s becomes active", listener.ID)
 	for i := 0; i < s.attemptCount; i++ {
 		listener, err = listeners.Get(loadBalancerClient, listener.ID).Extract()
 
+		logrus.Debugf("listener %s provisioning status  %s",
+			listener.ID, listener.ProvisioningStatus)
 		if err == nil && listener.ProvisioningStatus == StatusActive {
 			break
 		}
@@ -149,71 +140,6 @@ func (s *CreateLoadBalancer) Run(ctx context.Context, out io.Writer, config *ste
 	}
 
 	config.OpenStackConfig.ListenerID = listener.ID
-
-	poolOpts := pools.CreateOpts{
-		Name:           fmt.Sprintf("pool-%s", config.Kube.ID),
-		Protocol:       "HTTP",
-		LoadbalancerID: config.OpenStackConfig.LoadBalancerID,
-		ListenerID:     config.OpenStackConfig.ListenerID,
-	}
-
-	pool, err := pools.Create(loadBalancerClient, poolOpts).Extract()
-
-	if err != nil {
-		return errors.Wrapf(err, "create pool")
-	}
-
-	for i := 0; i < s.attemptCount; i++ {
-		pool, err = pools.Get(loadBalancerClient, pool.ID).Extract()
-
-		if err == nil && pool.ProvisioningStatus == StatusActive {
-			break
-		}
-
-		time.Sleep(s.timeout)
-	}
-
-	if err != nil {
-		return errors.Wrapf(err, "error while getting pool active")
-	}
-
-	if pool.ProvisioningStatus == StatusActive {
-		return errors.Wrapf(err, "pool still is not active")
-	}
-
-	config.OpenStackConfig.PoolID = pool.ID
-
-	healthOpts := monitors.CreateOpts{
-		Type:          monitors.TypeHTTPS,
-		HTTPMethod:    http.MethodGet,
-		ExpectedCodes: "200-202",
-		MaxRetries:    3,
-		Delay:         20,
-		Timeout:       10,
-		URLPath:       "/healthz",
-		PoolID:        config.OpenStackConfig.PoolID,
-	}
-
-	healthCheck, err := monitors.Create(loadBalancerClient, healthOpts).Extract()
-
-	if err != nil {
-		return errors.Wrapf(err, "create health check")
-	}
-
-	config.OpenStackConfig.HealthCheckID = healthCheck.ID
-
-	memberOpts := pools.CreateMemberOpts{
-		Address:      config.Node.PrivateIp,
-		ProtocolPort: config.Kube.APIServerPort,
-		SubnetID:     config.OpenStackConfig.SubnetID,
-		Name:         fmt.Sprintf("member-%s", config.Node.ID),
-	}
-
-	_, err = pools.CreateMember(loadBalancerClient, config.OpenStackConfig.PoolID, memberOpts).Extract()
-
-	if err != nil {
-		return errors.Wrapf(err, "create member")
-	}
 
 	return nil
 }

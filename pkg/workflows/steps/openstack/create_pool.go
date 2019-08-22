@@ -3,6 +3,7 @@ package openstack
 import (
 	"context"
 	"fmt"
+	"github.com/sirupsen/logrus"
 	"io"
 	"time"
 
@@ -65,9 +66,10 @@ func (s *CreatePoolStep) Run(ctx context.Context, out io.Writer, config *steps.C
 
 	poolOpts := pools.CreateOpts{
 		Name:           fmt.Sprintf("pool-%s", config.Kube.ID),
-		Protocol:       "HTTP",
+		Protocol:       pools.ProtocolHTTPS,
 		LoadbalancerID: config.OpenStackConfig.LoadBalancerID,
 		ListenerID:     config.OpenStackConfig.ListenerID,
+		LBMethod:       pools.LBMethodSourceIp,
 	}
 
 	pool, err := pools.Create(loadBalancerClient, poolOpts).Extract()
@@ -76,8 +78,12 @@ func (s *CreatePoolStep) Run(ctx context.Context, out io.Writer, config *steps.C
 		return errors.Wrapf(err, "create pool")
 	}
 
+	logrus.Debugf("Wait until pool become active")
 	for i := 0; i < s.attemptCount; i++ {
 		pool, err = pools.Get(loadBalancerClient, pool.ID).Extract()
+
+		logrus.Debugf("Pool %s provisioning status %s",
+			pool.ID, pool.OperatingStatus)
 
 		if err == nil && pool.ProvisioningStatus == StatusActive {
 			break
@@ -90,7 +96,7 @@ func (s *CreatePoolStep) Run(ctx context.Context, out io.Writer, config *steps.C
 		return errors.Wrapf(err, "error while getting pool active")
 	}
 
-	if pool.ProvisioningStatus == StatusActive {
+	if pool.ProvisioningStatus != StatusActive {
 		return errors.Wrapf(err, "pool still is not active")
 	}
 

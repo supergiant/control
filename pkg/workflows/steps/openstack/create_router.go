@@ -17,6 +17,10 @@ import (
 
 const CreateRouterStepName = "create_router"
 
+var (
+	isDistributed = true
+)
+
 type CreateRouterStep struct {
 	getClient func(steps.OpenStackConfig) (*gophercloud.ProviderClient, error)
 }
@@ -64,6 +68,7 @@ func (s *CreateRouterStep) Run(ctx context.Context, out io.Writer, config *steps
 		GatewayInfo: &routers.GatewayInfo{
 			NetworkID: config.OpenStackConfig.NetworkID,
 		},
+		Distributed: &isDistributed,
 	}
 
 	router, err := routers.Create(networkClient, opts).Extract()
@@ -71,14 +76,14 @@ func (s *CreateRouterStep) Run(ctx context.Context, out io.Writer, config *steps
 		return errors.Wrap(err, "create router for cluster")
 	}
 
-	// interface our subnet to the new router.
-	_, err = routers.AddInterface(networkClient, router.ID, routers.AddInterfaceOpts{
-		SubnetID: config.OpenStackConfig.SubnetID,
-	}).Extract()
-
-	if err != nil {
-		return errors.Wrapf(err, "attach interface to router %s", router.ID)
-	}
+	//// interface our subnet to the new router.
+	//_, err = routers.AddInterface(networkClient, router.ID, routers.AddInterfaceOpts{
+	//	SubnetID: config.OpenStackConfig.SubnetID,
+	//}).Extract()
+	//
+	//if err != nil {
+	//	return errors.Wrapf(err, "attach interface to router %s", router.ID)
+	//}
 
 	config.OpenStackConfig.RouterID = router.ID
 
@@ -86,7 +91,7 @@ func (s *CreateRouterStep) Run(ctx context.Context, out io.Writer, config *steps
 }
 
 func (s *CreateRouterStep) Name() string {
-	return CreateSubnetStepName
+	return CreateRouterStepName
 }
 
 func (s *CreateRouterStep) Rollback(context.Context, io.Writer, *steps.Config) error {

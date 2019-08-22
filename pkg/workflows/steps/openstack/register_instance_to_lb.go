@@ -66,7 +66,7 @@ func (s *RegisterInstancetoLBStep) Run(ctx context.Context, out io.Writer, confi
 
 	memberOpts := pools.CreateMemberOpts{
 		Address:      config.Node.PrivateIp,
-		ProtocolPort: 443,
+		ProtocolPort: config.Kube.APIServerPort,
 		SubnetID:     config.OpenStackConfig.SubnetID,
 		Name:         fmt.Sprintf("member-%s", config.Node.ID),
 	}
