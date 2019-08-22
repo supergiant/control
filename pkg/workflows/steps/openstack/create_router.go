@@ -21,8 +21,8 @@ type CreateRouterStep struct {
 	getClient func(steps.OpenStackConfig) (*gophercloud.ProviderClient, error)
 }
 
-func NewCreateRouterStep() *CreateSubnetStep {
-	return &CreateSubnetStep{
+func NewCreateRouterStep() *CreateRouterStep {
+	return &CreateRouterStep{
 		getClient: func(config steps.OpenStackConfig) (client *gophercloud.ProviderClient, e error) {
 			opts := gophercloud.AuthOptions{
 				IdentityEndpoint: config.AuthURL,
@@ -68,13 +68,18 @@ func (s *CreateRouterStep) Run(ctx context.Context, out io.Writer, config *steps
 
 	router, err := routers.Create(networkClient, opts).Extract()
 	if err != nil {
-		return err
+		return errors.Wrap(err, "create router for cluster")
 	}
 
 	// interface our subnet to the new router.
-	routers.AddInterface(networkClient, router.ID, routers.AddInterfaceOpts{
+	_, err = routers.AddInterface(networkClient, router.ID, routers.AddInterfaceOpts{
 		SubnetID: config.OpenStackConfig.SubnetID,
-	})
+	}).Extract()
+
+	if err != nil {
+		return errors.Wrapf(err, "attach interface to router %s", router.ID)
+	}
+
 	config.OpenStackConfig.RouterID = router.ID
 
 	return nil

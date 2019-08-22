@@ -9,6 +9,7 @@ import (
 
 	"github.com/gophercloud/gophercloud"
 	"github.com/gophercloud/gophercloud/openstack"
+	"github.com/gophercloud/gophercloud/openstack/networking/v2/extensions/external"
 	"github.com/gophercloud/gophercloud/openstack/networking/v2/networks"
 
 	"github.com/supergiant/control/pkg/workflows/steps"
@@ -16,6 +17,10 @@ import (
 )
 
 const CreateNetworkStepName = "create_network"
+
+var (
+	isExternal = true
+)
 
 type CreateNetworkStep struct {
 	getClient func(steps.OpenStackConfig) (*gophercloud.ProviderClient, error)
@@ -57,9 +62,12 @@ func (s *CreateNetworkStep) Run(ctx context.Context, out io.Writer, config *step
 		return errors.Wrapf(err, "step %s get network client", CreateNetworkStepName)
 	}
 
-	net, err := networks.Create(networkClient, networks.CreateOpts{
-		Name:         fmt.Sprintf("network-%s", config.Kube.ID),
-		AdminStateUp: gophercloud.Enabled,
+	net, err := networks.Create(networkClient, external.CreateOptsExt{
+		CreateOptsBuilder: networks.CreateOpts{
+			Name:         fmt.Sprintf("network-%s", config.Kube.ID),
+			AdminStateUp: gophercloud.Enabled,
+		},
+		External: &isExternal,
 	}).Extract()
 
 	if err != nil {
