@@ -332,8 +332,9 @@ func NewConfig(clusterName, cloudAccountName string, profile profile.Profile) (*
 			// TODO(stgleb): this should be passed from the UI
 			VolumeSize: "30",
 		},
-		OpenStackConfig:OpenStackConfig{
-			Region: profile.Region,
+		OpenStackConfig: OpenStackConfig{
+			Region:        profile.Region,
+			SubnetIPRange: profile.CloudSpecificSettings[clouds.OpenStackSubnetCIDR],
 		},
 		Masters: Map{
 			internal: make(map[string]*model.Machine, len(profile.MasterProfiles)),
@@ -395,6 +396,25 @@ func NewConfigFromKube(profile *profile.Profile, k *model.Kube) (*Config, error)
 			Location:   profile.Region,
 			VNetCIDR:   k.CloudSpec[clouds.AzureVNetCIDR],
 			VolumeSize: k.CloudSpec[clouds.AzureVolumeSize],
+		},
+		OpenStackConfig: OpenStackConfig{
+			SubnetIPRange:         k.CloudSpec[clouds.OpenStackSubnetCIDR],
+			FlavorName:            k.CloudSpec[clouds.OpenStackFlavorName],
+			ImageID:               k.CloudSpec[clouds.OpenStackImageId],
+			RouterID:              k.CloudSpec[clouds.OpenStackRouterId],
+			NetworkID:             k.CloudSpec[clouds.OpenStackNetworkId],
+			SubnetID:              k.CloudSpec[clouds.OpenStackSubnetId],
+			Password:              k.CloudSpec[clouds.OpenStackPassword],
+			UserName:              k.CloudSpec[clouds.OpenStackUserName],
+			KeyPairName:           k.CloudSpec[clouds.OpenStackKeypairName],
+			MasterSecurityGroupId: k.CloudSpec[clouds.OpenStackMasterSecurityGroupId],
+			WorkerSecurityGroupId: k.CloudSpec[clouds.OpenStackWorkerSecurityGroupId],
+			ListenerID:            k.CloudSpec[clouds.OpenStackListenerId],
+			PoolID:                k.CloudSpec[clouds.OpenStackPoolId],
+			DomainName:            k.CloudSpec[clouds.OpenStackDomainName],
+			TenantID:              k.CloudSpec[clouds.OpenStackTenantId],
+			TenantName:            k.CloudSpec[clouds.OpenStackTenantName],
+			HealthCheckID:         k.CloudSpec[clouds.OpenStackHealthCheckId],
 		},
 		Masters: Map{
 			internal: make(map[string]*model.Machine, len(profile.MasterProfiles)),

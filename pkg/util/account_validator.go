@@ -172,11 +172,11 @@ func validateOpenstackCredentials(creds map[string]string) error {
 	}
 
 	for _, k := range []string{
-		clouds.OpenstackAuthUrl,
-		clouds.OpenstackDomainId,
-		clouds.OpenstackPassword,
-		clouds.OpenstackTenantName,
-		clouds.OpenstackUserName,
+		clouds.OpenStackAuthUrl,
+		clouds.OpenStackDomainId,
+		clouds.OpenStackPassword,
+		clouds.OpenStackTenantName,
+		clouds.OpenStackUserName,
 	} {
 		creds[k] = strings.TrimSpace(creds[k])
 		if creds[k] == "" {

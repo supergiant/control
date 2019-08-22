@@ -208,6 +208,25 @@ func LoadCloudSpecificDataFromKube(k *model.Kube, config *steps.Config) error {
 		config.AzureConfig.Location = k.Region
 		config.AzureConfig.VNetCIDR = k.CloudSpec[clouds.AzureVNetCIDR]
 		config.AzureConfig.VolumeSize = k.CloudSpec[clouds.AzureVolumeSize]
+	case clouds.OpenStack:
+		config.OpenStackConfig.AuthURL = k.CloudSpec[clouds.OpenStackAuthUrl]
+		config.OpenStackConfig.SubnetIPRange = k.CloudSpec[clouds.OpenStackSubnetCIDR]
+		config.OpenStackConfig.FlavorName = k.CloudSpec[clouds.OpenStackFlavorName]
+		config.OpenStackConfig.ImageID = k.CloudSpec[clouds.OpenStackImageId]
+		config.OpenStackConfig.RouterID = k.CloudSpec[clouds.OpenStackRouterId]
+		config.OpenStackConfig.NetworkID = k.CloudSpec[clouds.OpenStackNetworkId]
+		config.OpenStackConfig.SubnetID = k.CloudSpec[clouds.OpenStackSubnetId]
+		config.OpenStackConfig.Password = k.CloudSpec[clouds.OpenStackPassword]
+		config.OpenStackConfig.UserName = k.CloudSpec[clouds.OpenStackUserName]
+		config.OpenStackConfig.KeyPairName = k.CloudSpec[clouds.OpenStackKeypairName]
+		config.OpenStackConfig.MasterSecurityGroupId = k.CloudSpec[clouds.OpenStackMasterSecurityGroupId]
+		config.OpenStackConfig.WorkerSecurityGroupId = k.CloudSpec[clouds.OpenStackWorkerSecurityGroupId]
+		config.OpenStackConfig.ListenerID = k.CloudSpec[clouds.OpenStackListenerId]
+		config.OpenStackConfig.PoolID = k.CloudSpec[clouds.OpenStackPoolId]
+		config.OpenStackConfig.DomainName = k.CloudSpec[clouds.OpenStackDomainName]
+		config.OpenStackConfig.TenantID = k.CloudSpec[clouds.OpenStackTenantId]
+		config.OpenStackConfig.TenantName = k.CloudSpec[clouds.OpenStackTenantName]
+		config.OpenStackConfig.HealthCheckID = k.CloudSpec[clouds.OpenStackHealthCheckId]
 	default:
 		return errors.Wrapf(sgerrors.ErrUnsupportedProvider, "Load cloud specific data from kube %s", k.ID)
 	}

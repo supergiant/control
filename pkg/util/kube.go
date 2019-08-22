@@ -85,6 +85,25 @@ func UpdateKubeWithCloudSpecificData(k *model.Kube, config *steps.Config) {
 	case clouds.Azure:
 		cloudSpecificSettings[clouds.AzureVNetCIDR] = config.AzureConfig.VNetCIDR
 		cloudSpecificSettings[clouds.AzureVolumeSize] = config.AzureConfig.VolumeSize
+	case clouds.OpenStack:
+		k.CloudSpec[clouds.OpenStackAuthUrl] = config.OpenStackConfig.AuthURL
+		k.CloudSpec[clouds.OpenStackSubnetCIDR] = config.OpenStackConfig.SubnetIPRange
+		k.CloudSpec[clouds.OpenStackFlavorName] = config.OpenStackConfig.FlavorName
+		k.CloudSpec[clouds.OpenStackImageId] = config.OpenStackConfig.ImageID
+		k.CloudSpec[clouds.OpenStackRouterId] = config.OpenStackConfig.RouterID
+		k.CloudSpec[clouds.OpenStackNetworkId] = config.OpenStackConfig.NetworkID
+		k.CloudSpec[clouds.OpenStackSubnetId] = config.OpenStackConfig.SubnetID
+		k.CloudSpec[clouds.OpenStackPassword] = config.OpenStackConfig.Password
+		k.CloudSpec[clouds.OpenStackUserName] = config.OpenStackConfig.UserName
+		k.CloudSpec[clouds.OpenStackKeypairName] = config.OpenStackConfig.KeyPairName
+		k.CloudSpec[clouds.OpenStackMasterSecurityGroupId] = config.OpenStackConfig.MasterSecurityGroupId
+		k.CloudSpec[clouds.OpenStackWorkerSecurityGroupId] = config.OpenStackConfig.WorkerSecurityGroupId
+		k.CloudSpec[clouds.OpenStackListenerId] = config.OpenStackConfig.ListenerID
+		k.CloudSpec[clouds.OpenStackPoolId] = config.OpenStackConfig.PoolID
+		k.CloudSpec[clouds.OpenStackDomainName] = config.OpenStackConfig.DomainName
+		k.CloudSpec[clouds.OpenStackTenantId] = config.OpenStackConfig.TenantID
+		k.CloudSpec[clouds.OpenStackTenantName] = config.OpenStackConfig.TenantName
+		k.CloudSpec[clouds.OpenStackHealthCheckId] = config.OpenStackConfig.HealthCheckID
 	}
 
 	k.CloudSpec = cloudSpecificSettings
