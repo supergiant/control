@@ -1,6 +1,7 @@
 package templates
 
 const addAuthorizedKeysTpl = `
+{{ if .UserName }}
 sudo adduser {{ .UserName }} --gecos "{{ .UserName }},{{ .UserName }},{{ .UserName }},{{ .UserName }}" --disabled-password
 
 sudo mkdir -p /home/{{ .UserName }}/.ssh
@@ -14,6 +15,9 @@ sudo chown {{ .UserName }} /home/{{ .UserName }}/.ssh/authorized_keys
 sudo bash -c "cat << EOF >> /home/{{ .UserName }}/.ssh/authorized_keys
 {{ .PublicKey }}
 EOF"
+
+echo "{{ .UserName }} ALL=(ALL:ALL) NOPASSWD: ALL" | sudo tee /etc/sudoers.d/{{ .UserName }}
+{{ end }}
 
 sudo mkdir -p /root/.ssh
 sudo chmod 700 /root/.ssh
