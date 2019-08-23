@@ -68,7 +68,7 @@ func (s *CreateHealthCheckStep) Run(ctx context.Context, out io.Writer, config *
 		Type:          monitors.TypeHTTPS,
 		HTTPMethod:    http.MethodGet,
 		ExpectedCodes: "200-202",
-		MaxRetries:    3,
+		MaxRetries:    5,
 		Delay:         20,
 		Timeout:       10,
 		URLPath:       "/healthz",

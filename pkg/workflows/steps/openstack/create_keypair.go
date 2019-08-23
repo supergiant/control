@@ -45,24 +45,24 @@ func (s *CreateKeyPairStep) Run(ctx context.Context, out io.Writer, config *step
 	client, err := s.getClient(config.OpenStackConfig)
 
 	if err != nil {
-		return errors.Wrapf(err, "step %s", CreateNetworkStepName)
+		return errors.Wrapf(err, "step %s", CreateKeyPairStepName)
 	}
 
-	identityClient, err := openstack.NewIdentityV3(client, gophercloud.EndpointOpts{
+	computeClient, err := openstack.NewComputeV2(client, gophercloud.EndpointOpts{
 		Region: config.OpenStackConfig.Region,
 	})
 
 	if err != nil {
-		return errors.Wrapf(err, "step %s get network client", CreateNetworkStepName)
+		return errors.Wrapf(err, "step %s get compute client", CreateKeyPairStepName)
 	}
 
-	keypair, err := keypairs.Create(identityClient, keypairs.CreateOpts{
+	keypair, err := keypairs.Create(computeClient, keypairs.CreateOpts{
 		Name:         fmt.Sprintf("keypair-%s", config.Kube.ID),
 		PublicKey: config.Kube.SSHConfig.BootstrapPublicKey,
 	}).Extract()
 
 	if err != nil {
-		return errors.Wrapf(err, "create network error step %s", CreateNetworkStepName)
+		return errors.Wrapf(err, "create keypair error step %s", CreateKeyPairStepName)
 	}
 
 	config.OpenStackConfig.KeyPairName = keypair.Name
