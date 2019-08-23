@@ -108,8 +108,6 @@ type AzureConfig struct {
 
 type PacketConfig struct{}
 
-type OSConfig struct{}
-
 type AWSConfig struct {
 	KeyID                  string `json:"access_key"`
 	Secret                 string `json:"secret_key"`
@@ -217,7 +215,6 @@ type Config struct {
 	AWSConfig          AWSConfig    `json:"awsConfig"`
 	GCEConfig          GCEConfig    `json:"gceConfig"`
 	AzureConfig        AzureConfig  `json:"azureConfig"`
-	OSConfig           OSConfig     `json:"osConfig"`
 	PacketConfig       PacketConfig `json:"packetConfig"`
 
 	DrainConfig      DrainConfig      `json:"drainConfig"`

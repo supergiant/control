@@ -83,8 +83,6 @@ func (s *CreateLoadBalancer) Run(ctx context.Context, out io.Writer, config *ste
 	for i := 0; i < s.attemptCount; i++ {
 		loadBalancer, err = loadbalancers.Get(loadBalancerClient, loadBalancer.ID).Extract()
 
-		logrus.Debugf("Load balancer %s operating status %s",
-			loadBalancer.ID, loadBalancer.OperatingStatus)
 		if err == nil && loadBalancer.OperatingStatus == StatusOnline {
 			break
 		}

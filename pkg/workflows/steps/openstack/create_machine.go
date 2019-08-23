@@ -5,7 +5,6 @@ import (
 	"io"
 	"time"
 
-	"github.com/supergiant/control/pkg/clouds"
 	"github.com/supergiant/control/pkg/model"
 	"github.com/supergiant/control/pkg/util"
 
@@ -39,9 +38,8 @@ func NewCreateMachineStep() *CreateMachineStep {
 				IdentityEndpoint: config.AuthURL,
 				Username:         config.UserName,
 				Password:         config.Password,
-				TenantID:         config.TenantID,
+				TenantName:       config.TenantName,
 				DomainID:         config.DomainID,
-				DomainName:       config.DomainName,
 			}
 
 			client, err := openstack.AuthenticatedClient(opts)
@@ -66,23 +64,29 @@ func (s *CreateMachineStep) Run(ctx context.Context, out io.Writer, config *step
 	})
 
 	if err != nil {
-		return errors.Wrapf(err, "step %s get compute client", FindImageStepName)
+		return errors.Wrapf(err, "step %s get compute client", CreateMachineStepName)
+	}
+
+	var securityGroupId string
+
+	if config.IsMaster {
+		securityGroupId = config.OpenStackConfig.MasterSecurityGroupId
+	} else {
+		securityGroupId = config.OpenStackConfig.WorkerSecurityGroupId
 	}
 
 	serverCreateOpts := servers.CreateOpts{
 		ServiceClient: computeClient,
-		Name:          util.MakeNodeName(config.Kube.ID, config.TaskID, config.IsMaster),
+		Name:          util.MakeNodeName(config.Kube.Name, config.TaskID, config.IsMaster),
 		FlavorName:    config.OpenStackConfig.FlavorName,
-		ImageName:     config.OpenStackConfig.ImageName,
+		ImageRef:      config.OpenStackConfig.ImageID,
 		Networks: []servers.Network{
 			{
 				UUID: config.OpenStackConfig.NetworkID,
 			},
 		},
-		Metadata: map[string]string{
-			"KubernetesCluster": config.Kube.ID,
-			"Role":              util.MakeRole(config.IsMaster),
-			clouds.TagClusterID: config.Kube.ID,
+		SecurityGroups: []string{
+			securityGroupId,
 		},
 	}
 
