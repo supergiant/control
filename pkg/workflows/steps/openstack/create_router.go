@@ -76,14 +76,15 @@ func (s *CreateRouterStep) Run(ctx context.Context, out io.Writer, config *steps
 		return errors.Wrap(err, "create router for cluster")
 	}
 
-	//// interface our subnet to the new router.
-	//_, err = routers.AddInterface(networkClient, router.ID, routers.AddInterfaceOpts{
-	//	SubnetID: config.OpenStackConfig.SubnetID,
-	//}).Extract()
-	//
-	//if err != nil {
-	//	return errors.Wrapf(err, "attach interface to router %s", router.ID)
-	//}
+	// TODO(stgleb): figure out the problem
+	// interface our subnet to the new router.
+	_, err = routers.AddInterface(networkClient, router.ID, routers.AddInterfaceOpts{
+		SubnetID: config.OpenStackConfig.SubnetID,
+	}).Extract()
+
+	if err != nil {
+		return errors.Wrapf(err, "attach interface to router %s", router.ID)
+	}
 
 	config.OpenStackConfig.RouterID = router.ID
 
