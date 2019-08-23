@@ -67,7 +67,6 @@ func (s *CreatePoolStep) Run(ctx context.Context, out io.Writer, config *steps.C
 	poolOpts := pools.CreateOpts{
 		Name:           fmt.Sprintf("pool-%s", config.Kube.ID),
 		Protocol:       pools.ProtocolHTTPS,
-		LoadbalancerID: config.OpenStackConfig.LoadBalancerID,
 		ListenerID:     config.OpenStackConfig.ListenerID,
 		LBMethod:       pools.LBMethodSourceIp,
 	}

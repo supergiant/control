@@ -104,7 +104,7 @@ func (s *CreateMachineStep) Run(ctx context.Context, out io.Writer, config *step
 	config.NodeChan() <- *machine
 
 	for i := 0; i < s.attemptCount; i++ {
-		server, _ := servers.Get(computeClient, server.ID).Extract()
+		server, _ = servers.Get(computeClient, server.ID).Extract()
 
 		if server.Status == Active {
 			break
@@ -115,10 +115,12 @@ func (s *CreateMachineStep) Run(ctx context.Context, out io.Writer, config *step
 
 	var privateIP string
 
-	items := server.Addresses[config.OpenStackConfig.NetworkName].([]interface{})
-	for _, item := range items {
-		itemMap := item.(map[string]interface{})
-		privateIP = itemMap["addr"].(string)
+	if server.Addresses[config.OpenStackConfig.NetworkName] != nil {
+		items := server.Addresses[config.OpenStackConfig.NetworkName].([]interface{})
+		for _, item := range items {
+			itemMap := item.(map[string]interface{})
+			privateIP = itemMap["addr"].(string)
+		}
 	}
 
 	machine.PrivateIp = privateIP
@@ -131,18 +133,18 @@ func (s *CreateMachineStep) Run(ctx context.Context, out io.Writer, config *step
 		// Lets keep trying to create
 		var floatIP *floatingips.FloatingIP
 
-		networkClient, err := openstack.NewNetworkV2(client, gophercloud.EndpointOpts{
+		computeClient, err := openstack.NewComputeV2(client, gophercloud.EndpointOpts{
 			Region: config.OpenStackConfig.Region,
 		})
 
 		if err != nil {
-			return errors.Wrapf(err, "step %s get network client", CreateNetworkStepName)
+			return errors.Wrapf(err, "step %s get compute client", CreateNetworkStepName)
 		}
 
 		opts := floatingips.CreateOpts{
-			Pool: config.OpenStackConfig.RouterID,
+			Pool: config.OpenStackConfig.NetworkName,
 		}
-		floatIP, err = floatingips.Create(networkClient, opts).Extract()
+		floatIP, err = floatingips.Create(computeClient, opts).Extract()
 
 		if err != nil {
 			return errors.Wrapf(err, "create floating ip")
@@ -157,9 +159,10 @@ func (s *CreateMachineStep) Run(ctx context.Context, out io.Writer, config *step
 			return errors.Wrapf(err, "associate instance %s with floating ip %s", machine.ID, floatIP.ID)
 		}
 
-		config.OpenStackConfig.FloatingIP = floatIP.IP
-		config.OpenStackConfig.FloatingID = floatIP.ID
+		machine.PublicIp = floatIP.IP
 	}
+
+	config.Node = *machine
 
 	return nil
 }

@@ -3,6 +3,7 @@ package openstack
 import (
 	"context"
 	"fmt"
+	"github.com/gophercloud/gophercloud/openstack/loadbalancer/v2/listeners"
 	"github.com/sirupsen/logrus"
 	"io"
 	"time"
@@ -11,7 +12,6 @@ import (
 
 	"github.com/gophercloud/gophercloud"
 	"github.com/gophercloud/gophercloud/openstack"
-	"github.com/gophercloud/gophercloud/openstack/loadbalancer/v2/listeners"
 	"github.com/gophercloud/gophercloud/openstack/loadbalancer/v2/loadbalancers"
 	"github.com/supergiant/control/pkg/workflows/steps"
 )
@@ -83,7 +83,7 @@ func (s *CreateLoadBalancer) Run(ctx context.Context, out io.Writer, config *ste
 	for i := 0; i < s.attemptCount; i++ {
 		loadBalancer, err = loadbalancers.Get(loadBalancerClient, loadBalancer.ID).Extract()
 
-		if err == nil && loadBalancer.OperatingStatus == StatusOnline {
+		if err == nil && loadBalancer.ProvisioningStatus == StatusActive {
 			break
 		}
 
@@ -94,14 +94,14 @@ func (s *CreateLoadBalancer) Run(ctx context.Context, out io.Writer, config *ste
 		return errors.Wrapf(err, "error while getting load balancer online")
 	}
 
-	if loadBalancer.OperatingStatus == StatusOffline {
-		return errors.Wrapf(err, "load balancer still offline")
+	if loadBalancer.ProvisioningStatus != StatusActive {
+		return errors.Wrapf(err, "load balancer dis not get active")
 	}
 
 	config.OpenStackConfig.LoadBalancerID = loadBalancer.ID
 	config.OpenStackConfig.LoadBalancerName = loadBalancer.Name
 
-	// TODO(stgleb): Move it to separate step
+	//// TODO(stgleb): Move it to separate step
 	listenerOpts := listeners.CreateOpts{
 		LoadbalancerID: loadBalancer.ID,
 		Name:           fmt.Sprintf("listener-%s", config.Kube.ID),
@@ -133,7 +133,7 @@ func (s *CreateLoadBalancer) Run(ctx context.Context, out io.Writer, config *ste
 		return errors.Wrapf(err, "error while getting listener active")
 	}
 
-	if listener.ProvisioningStatus == StatusActive {
+	if listener.ProvisioningStatus != StatusActive {
 		return errors.Wrapf(err, "listener still is not active")
 	}
 
