@@ -9,7 +9,6 @@ replace (
 	k8s.io/apiserver => k8s.io/apiserver v0.0.0-20190606205144-71ebb8303503
 	k8s.io/client-go => k8s.io/client-go v11.0.0+incompatible
 	k8s.io/cloud-provider => k8s.io/cloud-provider v0.0.0-20190606212257-347f17c60af0
-	k8s.io/helm => k8s.io/helm v2.11.0+incompatible
 	k8s.io/kubernetes => k8s.io/kubernetes v1.14.3
 )
 
@@ -23,16 +22,16 @@ require (
 	github.com/apparentlymart/go-cidr v0.0.0-20180915144716-1755c023625e
 	github.com/aws/aws-sdk-go v1.19.5
 	github.com/coreos/bbolt v1.3.3 // indirect
-	github.com/coreos/etcd v0.0.0-20180521164013-346589edd1dc
+	github.com/coreos/etcd v3.3.13+incompatible
 	github.com/coreos/go-semver v0.3.0 // indirect
 	github.com/coreos/go-systemd v0.0.0-20190321100706-95778dfbb74e // indirect
 	github.com/coreos/pkg v0.0.0-20180928190104-399ea9e2e55f // indirect
+	github.com/cyphar/filepath-securejoin v0.2.2 // indirect
 	github.com/dgrijalva/jwt-go v3.1.0+incompatible
 	github.com/digitalocean/godo v1.10.0
 	github.com/dimchansky/utfbom v1.1.0 // indirect
 	github.com/docker/distribution v2.7.1+incompatible // indirect
 	github.com/docker/spdystream v0.0.0-20170912183627-bc6354cbbc29 // indirect
-	github.com/dustin/go-humanize v1.0.0 // indirect
 	github.com/elazarl/goproxy v0.0.0-20170405201442-c4fc26588b6e // indirect
 	github.com/etcd-io/bbolt v0.0.0-20190125183005-8693da9f4d97
 	github.com/evanphx/json-patch v4.2.0+incompatible // indirect
@@ -47,9 +46,11 @@ require (
 	github.com/google/gofuzz v0.0.0-20170612174753-24818f796faf // indirect
 	github.com/google/uuid v1.1.0 // indirect
 	github.com/googleapis/gnostic v0.0.0-20180419025854-664776a3b48a // indirect
+	github.com/gophercloud/gophercloud v0.3.0
 	github.com/gorilla/handlers v0.0.0-20170602151648-a4d79d4487c2
 	github.com/gorilla/mux v1.6.2
 	github.com/gorilla/websocket v1.4.0
+	github.com/grpc-ecosystem/go-grpc-middleware v1.0.0 // indirect
 	github.com/grpc-ecosystem/go-grpc-prometheus v1.2.0 // indirect
 	github.com/grpc-ecosystem/grpc-gateway v1.6.2 // indirect
 	github.com/hpcloud/tail v1.0.0
@@ -73,7 +74,6 @@ require (
 	github.com/supergiant/capacity v0.0.0-20190513092134-fa714465dd86
 	github.com/technosophos/moniker v0.0.0-20180509230615-a5dbd03a2245
 	github.com/tmc/grpc-websocket-proxy v0.0.0-20190109142713-0ad062ec5ee5 // indirect
-	github.com/ugorji/go v1.1.5-pre // indirect
 	github.com/xiang90/probing v0.0.0-20190116061207-43a291ad63a2 // indirect
 	go.etcd.io/bbolt v1.3.3 // indirect
 	go.uber.org/atomic v1.4.0 // indirect
@@ -91,7 +91,6 @@ require (
 	gopkg.in/asaskevich/govalidator.v8 v8.0.0-20171111151018-521b25f4b05f
 	gopkg.in/check.v1 v1.0.0-20180628173108-788fd7840127 // indirect
 	gopkg.in/inf.v0 v0.9.1 // indirect
-	gopkg.in/yaml.v2 v2.2.2 // indirect
 	k8s.io/api v0.0.0-20190703205437-39734b2a72fe
 	k8s.io/apiextensions-apiserver v0.0.0-00010101000000-000000000000 // indirect
 	k8s.io/apimachinery v0.0.0-20190703205208-4cfb76a8bf76
@@ -99,7 +98,7 @@ require (
 	k8s.io/client-go v11.0.0+incompatible
 	k8s.io/cloud-provider v0.0.0-00010101000000-000000000000 // indirect
 	k8s.io/cluster-bootstrap v0.0.0-20190703212826-5ad085674a4f // indirect
-	k8s.io/helm v2.11.0+incompatible
+	k8s.io/helm v2.14.3+incompatible
 	k8s.io/kube-openapi v0.0.0-20190228160746-b3a7cee44a30 // indirect
 	k8s.io/kube-proxy v0.0.0-20190703212322-69d540a3479c // indirect
 	k8s.io/kubelet v0.0.0-20190704010802-f16c4cee528c // indirect

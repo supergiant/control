@@ -76,22 +76,15 @@ github.com/census-instrumentation/opencensus-proto/gen-go/agent/trace/v1
 github.com/census-instrumentation/opencensus-proto/gen-go/metrics/v1
 github.com/census-instrumentation/opencensus-proto/gen-go/resource/v1
 github.com/census-instrumentation/opencensus-proto/gen-go/trace/v1
-# github.com/coreos/etcd v0.0.0-20180521164013-346589edd1dc
+# github.com/coreos/etcd v3.3.13+incompatible
 github.com/coreos/etcd/clientv3
 github.com/coreos/etcd/auth/authpb
-github.com/coreos/etcd/clientv3/balancer
 github.com/coreos/etcd/etcdserver/api/v3rpc/rpctypes
 github.com/coreos/etcd/etcdserver/etcdserverpb
 github.com/coreos/etcd/mvcc/mvccpb
-github.com/coreos/etcd/pkg/logutil
 github.com/coreos/etcd/pkg/types
-github.com/coreos/etcd/pkg/systemd
-github.com/coreos/etcd/raft
-github.com/coreos/etcd/raft/raftpb
-# github.com/coreos/go-systemd v0.0.0-20190321100706-95778dfbb74e
-github.com/coreos/go-systemd/journal
-# github.com/coreos/pkg v0.0.0-20180928190104-399ea9e2e55f
-github.com/coreos/pkg/capnslog
+# github.com/cyphar/filepath-securejoin v0.2.2
+github.com/cyphar/filepath-securejoin
 # github.com/davecgh/go-spew v1.1.1
 github.com/davecgh/go-spew/spew
 # github.com/dgrijalva/jwt-go v3.1.0+incompatible
@@ -146,6 +139,30 @@ github.com/google/uuid
 github.com/googleapis/gnostic/OpenAPIv2
 github.com/googleapis/gnostic/compiler
 github.com/googleapis/gnostic/extensions
+# github.com/gophercloud/gophercloud v0.3.0
+github.com/gophercloud/gophercloud
+github.com/gophercloud/gophercloud/openstack
+github.com/gophercloud/gophercloud/openstack/compute/v2/extensions/availabilityzones
+github.com/gophercloud/gophercloud/openstack/compute/v2/flavors
+github.com/gophercloud/gophercloud/openstack/identity/v3/regions
+github.com/gophercloud/gophercloud/openstack/compute/v2/extensions/floatingips
+github.com/gophercloud/gophercloud/openstack/compute/v2/images
+github.com/gophercloud/gophercloud/openstack/compute/v2/servers
+github.com/gophercloud/gophercloud/openstack/loadbalancer/v2/listeners
+github.com/gophercloud/gophercloud/openstack/loadbalancer/v2/loadbalancers
+github.com/gophercloud/gophercloud/openstack/loadbalancer/v2/pools
+github.com/gophercloud/gophercloud/openstack/networking/v2/extensions/layer3/routers
+github.com/gophercloud/gophercloud/openstack/networking/v2/extensions/lbaas_v2/monitors
+github.com/gophercloud/gophercloud/openstack/networking/v2/networks
+github.com/gophercloud/gophercloud/openstack/networking/v2/subnets
+github.com/gophercloud/gophercloud/openstack/identity/v2/tokens
+github.com/gophercloud/gophercloud/openstack/identity/v3/tokens
+github.com/gophercloud/gophercloud/openstack/utils
+github.com/gophercloud/gophercloud/pagination
+github.com/gophercloud/gophercloud/internal
+github.com/gophercloud/gophercloud/openstack/loadbalancer/v2/l7policies
+github.com/gophercloud/gophercloud/openstack/loadbalancer/v2/monitors
+github.com/gophercloud/gophercloud/openstack/identity/v2/tenants
 # github.com/gorilla/context v1.1.1
 github.com/gorilla/context
 # github.com/gorilla/handlers v0.0.0-20170602151648-a4d79d4487c2
@@ -223,17 +240,8 @@ go.opencensus.io/internal/tagencoding
 go.opencensus.io/stats/internal
 go.opencensus.io/internal
 go.opencensus.io/trace/internal
-# go.uber.org/atomic v1.4.0
-go.uber.org/atomic
-# go.uber.org/multierr v1.1.0
-go.uber.org/multierr
 # go.uber.org/zap v1.10.0
 go.uber.org/zap/buffer
-go.uber.org/zap
-go.uber.org/zap/zapcore
-go.uber.org/zap/internal/bufferpool
-go.uber.org/zap/internal/color
-go.uber.org/zap/internal/exit
 # golang.org/x/crypto v0.0.0-20190621222207-cc06ce4a13d4
 golang.org/x/crypto/ssh
 golang.org/x/crypto/bcrypt
@@ -550,7 +558,7 @@ k8s.io/cluster-bootstrap/token/util
 k8s.io/cluster-bootstrap/token/api
 # k8s.io/component-base v0.0.0-20190703210340-65d72cfeb85d
 k8s.io/component-base/config
-# k8s.io/helm v2.11.0+incompatible => k8s.io/helm v2.11.0+incompatible
+# k8s.io/helm v2.14.3+incompatible
 k8s.io/helm/pkg/repo
 k8s.io/helm/pkg/helm
 k8s.io/helm/pkg/proto/hapi/chart

@@ -83,8 +83,8 @@ func (s *CreateLoadBalancerStep) Run(ctx context.Context, out io.Writer, cfg *st
 		output, err := svc.CreateLoadBalancerWithContext(ctx, &elb.CreateLoadBalancerInput{
 			Listeners: []*elb.Listener{
 				{
-					InstancePort:     aws.Int64(cfg.Kube.APIServerPort),
-					LoadBalancerPort: aws.Int64(cfg.Kube.APIServerPort),
+					InstancePort:     aws.Int64(int64(cfg.Kube.APIServerPort)),
+					LoadBalancerPort: aws.Int64(int64(cfg.Kube.APIServerPort)),
 					Protocol:         aws.String("TCP"),
 				},
 			},
@@ -128,8 +128,8 @@ func (s *CreateLoadBalancerStep) Run(ctx context.Context, out io.Writer, cfg *st
 		output, err := svc.CreateLoadBalancerWithContext(ctx, &elb.CreateLoadBalancerInput{
 			Listeners: []*elb.Listener{
 				{
-					InstancePort:     aws.Int64(cfg.Kube.APIServerPort),
-					LoadBalancerPort: aws.Int64(cfg.Kube.APIServerPort),
+					InstancePort:     aws.Int64(int64(cfg.Kube.APIServerPort)),
+					LoadBalancerPort: aws.Int64(int64(cfg.Kube.APIServerPort)),
 					Protocol:         aws.String("TCP"),
 				},
 				{

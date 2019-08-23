@@ -2,10 +2,17 @@ package account
 
 import (
 	"context"
-	"github.com/supergiant/control/pkg/clouds/gcesdk"
 	"strconv"
 	"strings"
 	"sync"
+
+	"github.com/gophercloud/gophercloud"
+	"github.com/gophercloud/gophercloud/openstack"
+	"github.com/gophercloud/gophercloud/openstack/identity/v3/regions"
+
+	"github.com/gophercloud/gophercloud/openstack/compute/v2/extensions/availabilityzones"
+	"github.com/gophercloud/gophercloud/openstack/compute/v2/flavors"
+	"github.com/supergiant/control/pkg/clouds/gcesdk"
 
 	"github.com/Azure/azure-sdk-for-go/services/compute/mgmt/2017-09-01/skus"
 	"github.com/Azure/azure-sdk-for-go/services/preview/subscription/mgmt/2018-03-01-preview/subscription"
@@ -47,8 +54,12 @@ type Region struct {
 }
 
 type Size struct {
-	RAM string `json:"ram"`
-	CPU string `json:"cpu"`
+	ID   string `json:"id"`
+	Name string `json:"name"`
+
+	RAM  string `json:"ram"`
+	CPU  string `json:"cpu"`
+	Disk string `json:"disk"`
 }
 
 //RegionSizes represents aggregated information about available regions/azs and node sizes/types
@@ -92,6 +103,8 @@ func NewRegionsGetter(account *model.CloudAccount, config *steps.Config) (Region
 		return NewGCEFinder(account, config)
 	case clouds.Azure:
 		return NewAzureFinder(account, config)
+	case clouds.OpenStack:
+		return NewOpenstackFinder(account, config)
 	}
 	return nil, ErrUnsupportedProvider
 }
@@ -108,6 +121,8 @@ func NewZonesGetter(account *model.CloudAccount, config *steps.Config) (ZonesGet
 		return NewAWSFinder(account, config)
 	case clouds.GCE:
 		return NewGCEFinder(account, config)
+	case clouds.OpenStack:
+		return NewOpenstackFinder(account, config)
 	}
 	return nil, ErrUnsupportedProvider
 }
@@ -126,6 +141,8 @@ func NewTypesGetter(account *model.CloudAccount, config *steps.Config) (TypesGet
 		return NewGCEFinder(account, config)
 	case clouds.Azure:
 		return NewAzureFinder(account, config)
+	case clouds.OpenStack:
+		return NewOpenstackFinder(account, config)
 	}
 	return nil, ErrUnsupportedProvider
 }
@@ -583,4 +600,156 @@ func hasRestriction(s skus.ResourceSku, restr skus.ResourceSkuRestrictionsType) 
 		}
 	}
 	return false
+}
+
+type OpenstackFinder struct {
+	config steps.OpenStackConfig
+
+	getClient func(config steps.OpenStackConfig) (*gophercloud.ServiceClient, error)
+}
+
+func NewOpenstackFinder(acc *model.CloudAccount, config *steps.Config) (*OpenstackFinder, error) {
+	err := util.FillCloudAccountCredentials(acc, config)
+
+	if err != nil {
+		return nil, errors.Wrap(err, "openstack new finder")
+	}
+
+	return &OpenstackFinder{
+		config: config.OpenStackConfig,
+	}, nil
+}
+
+func (of *OpenstackFinder) GetRegions(context.Context) (*RegionSizes, error) {
+	opts := gophercloud.AuthOptions{
+		IdentityEndpoint: of.config.AuthURL,
+		Username:         of.config.UserName,
+		Password:         of.config.Password,
+		TenantName:       of.config.TenantName,
+		DomainID:         of.config.DomainID,
+		DomainName:       of.config.DomainName,
+	}
+
+	client, err := openstack.AuthenticatedClient(opts)
+	if err != nil {
+		return nil, err
+	}
+
+	identityClient, err := openstack.NewIdentityV3(client, gophercloud.EndpointOpts{
+		Region: of.config.Region,
+	})
+
+	if err != nil {
+		return nil, errors.Wrapf(err, "get compute client for get zones")
+	}
+
+	page, err := regions.List(identityClient, regions.ListOpts{}).AllPages()
+
+	if err != nil {
+		return nil, errors.Wrapf(err, "getting regions")
+	}
+
+	regions, err := regions.ExtractRegions(page)
+
+	if err != nil {
+		return nil, errors.Wrap(err, "extract regions")
+	}
+
+	ids := make([]*Region, 0, 0)
+
+	for _, region := range regions {
+		ids = append(ids, &Region{
+			ID:   region.ID,
+			Name: region.ID,
+		})
+	}
+
+	rs := &RegionSizes{
+		Provider: clouds.OpenStack,
+		Regions:  ids,
+	}
+
+	return rs, nil
+}
+
+func (of *OpenstackFinder) GetZones(ctx context.Context, config steps.Config) ([]string, error) {
+	opts := gophercloud.AuthOptions{
+		IdentityEndpoint: config.OpenStackConfig.AuthURL,
+		Username:         config.OpenStackConfig.UserName,
+		Password:         config.OpenStackConfig.Password,
+		TenantName:       config.OpenStackConfig.TenantName,
+		DomainID:         config.OpenStackConfig.DomainID,
+	}
+
+	client, err := openstack.AuthenticatedClient(opts)
+	if err != nil {
+		return nil, err
+	}
+
+	computeClient, err := openstack.NewComputeV2(client, gophercloud.EndpointOpts{
+		Region: of.config.Region,
+	})
+
+	if err != nil {
+		return nil, errors.Wrapf(err, "get compute client for get zones")
+	}
+
+	page, err := availabilityzones.List(computeClient).AllPages()
+
+	if err != nil {
+		return nil, errors.Wrap(err, "get az pages")
+	}
+
+	azs, err := availabilityzones.ExtractAvailabilityZones(page)
+
+	if err != nil {
+		return nil, errors.Wrap(err, "extract regions")
+	}
+
+	zoneNames := make([]string, 0, 0)
+
+	for _, az := range azs {
+		zoneNames = append(zoneNames, az.ZoneName)
+	}
+
+	return zoneNames, nil
+}
+
+func (of *OpenstackFinder) GetTypes(ctx context.Context, config steps.Config) ([]string, error) {
+	opts := gophercloud.AuthOptions{
+		IdentityEndpoint: config.OpenStackConfig.AuthURL,
+		Username:         config.OpenStackConfig.UserName,
+		Password:         config.OpenStackConfig.Password,
+		TenantName:       config.OpenStackConfig.TenantName,
+		DomainID:         config.OpenStackConfig.DomainID,
+	}
+
+	client, err := openstack.AuthenticatedClient(opts)
+	if err != nil {
+		return nil, err
+	}
+
+	computeClient, err := openstack.NewComputeV2(client, gophercloud.EndpointOpts{
+		Region: of.config.Region,
+	})
+
+	page, err := flavors.ListDetail(computeClient, flavors.ListOpts{}).AllPages()
+
+	if err != nil {
+		return nil, errors.Wrap(err, "list flavor pages")
+	}
+
+	flvrs, err := flavors.ExtractFlavors(page)
+
+	if err != nil {
+		return nil, errors.Wrap(err, "extract flavors")
+	}
+
+	flavorNames := make([]string, 0, 0)
+
+	for _, flavor := range flvrs {
+		flavorNames = append(flavorNames, flavor.Name)
+	}
+
+	return flavorNames, nil
 }

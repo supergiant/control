@@ -196,7 +196,7 @@ func (s *CreateSecurityGroupsStep) allowAllTraffic(ctx context.Context, EC2 secG
 	return err
 }
 
-func (s *CreateSecurityGroupsStep) whiteListAddresses(ctx context.Context, EC2 secGroupService, groupID string, addrs []profile.Addresses, port int64) error {
+func (s *CreateSecurityGroupsStep) whiteListAddresses(ctx context.Context, EC2 secGroupService, groupID string, addrs []profile.Addresses, port int) error {
 	supergiantIP, err := FindOutboundIP(ctx, s.findOutboundIP)
 	if err != nil {
 		return err
@@ -211,8 +211,8 @@ func (s *CreateSecurityGroupsStep) whiteListAddresses(ctx context.Context, EC2 s
 		GroupId: aws.String(groupID),
 		IpPermissions: []*ec2.IpPermission{
 			{
-				FromPort:   aws.Int64(port),
-				ToPort:     aws.Int64(port),
+				FromPort:   aws.Int64(int64(port)),
+				ToPort:     aws.Int64(int64(port)),
 				IpRanges:   ips,
 				IpProtocol: aws.String("tcp"),
 			},

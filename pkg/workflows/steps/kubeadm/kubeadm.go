@@ -33,7 +33,7 @@ type Config struct {
 	ServiceCIDR     string
 	UserName        string
 	Provider        string
-	APIServerPort   int64
+	APIServerPort   int
 	NodeIp          string
 }
 

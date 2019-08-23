@@ -49,7 +49,7 @@ func FillNodeCloudSpecificData(provider clouds.Name, nodeProfile profile.NodePro
 	case clouds.Packet:
 		return util.BindParams(nodeProfile, &config.PacketConfig)
 	case clouds.OpenStack:
-		return util.BindParams(nodeProfile, &config.OSConfig)
+		return util.BindParams(nodeProfile, &config.OpenStackConfig)
 	case clouds.Azure:
 		return util.BindParams(nodeProfile, &config.AzureConfig)
 	default:
@@ -100,7 +100,17 @@ func MergeConfig(source *steps.Config, destination *steps.Config) error {
 	case clouds.Packet:
 		return nil
 	case clouds.OpenStack:
-		return nil
+		data, err := json.Marshal(&source.OpenStackConfig)
+
+		if err != nil {
+			return errors.Wrapf(err, "merge config marshall config1")
+		}
+
+		err = json.Unmarshal(data, &destination.OpenStackConfig)
+
+		if err != nil {
+			return errors.Wrapf(err, "Merge config")
+		}
 	case clouds.Azure:
 		data, err := json.Marshal(&source.AzureConfig)
 

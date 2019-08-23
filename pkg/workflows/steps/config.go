@@ -18,7 +18,7 @@ import (
 )
 
 const (
-	DefaultK8SAPIPort int64 = 443
+	DefaultK8SAPIPort int = 443
 )
 
 type DOConfig struct {
@@ -108,8 +108,6 @@ type AzureConfig struct {
 
 type PacketConfig struct{}
 
-type OSConfig struct{}
-
 type AWSConfig struct {
 	KeyID                  string `json:"access_key"`
 	Secret                 string `json:"secret_key"`
@@ -157,6 +155,36 @@ type InstallAppConfig struct {
 	Values       string `json:"values"`
 }
 
+type OpenStackConfig struct {
+	AuthURL               string `json:"authUrl"`
+	CACert                string `json:"caCert"`
+	DomainName            string `json:"domainName"`
+	DomainID              string `json:"domainId"`
+	TenantID              string `json:"tenantId"`
+	TenantName            string `json:"tenantName"`
+	UserName              string `json:"userName"`
+	Password              string `json:"password"`
+	Region                string `json:"region"`
+	ImageID               string `json:"imageId"`
+	NetworkID             string `json:"networkId"`
+	NetworkName           string `json:"networkName"`
+	SubnetID              string `json:"subnetId"`
+	SubnetIPRange         string `json:"subnetIpRange"`
+	RouterID              string `json:"routerId"`
+	FlavorName            string `json:"flavorName"`
+	FloatingIP            string `json:"floatingIp"`
+	FloatingID            string `json:"floatingId"`
+	ImageName             string `json:"imageName"`
+	LoadBalancerID        string `json:"loadBalancerId"`
+	LoadBalancerName      string `json:"loadBalancerName"`
+	ListenerID            string `json:"listenerId"`
+	PoolID                string `json:"poolId"`
+	HealthCheckID         string `json:"healthCheckId"`
+	KeyPairName           string `json:"keyPairName"`
+	MasterSecurityGroupId string `json:"masterSecurityGroupId"`
+	WorkerSecurityGroupId string `json:"workerSecurityGroupId"`
+}
+
 type Map struct {
 	internal map[string]*model.Machine
 }
@@ -187,13 +215,13 @@ type Config struct {
 	AWSConfig          AWSConfig    `json:"awsConfig"`
 	GCEConfig          GCEConfig    `json:"gceConfig"`
 	AzureConfig        AzureConfig  `json:"azureConfig"`
-	OSConfig           OSConfig     `json:"osConfig"`
 	PacketConfig       PacketConfig `json:"packetConfig"`
 
-	DrainConfig DrainConfig `json:"drainConfig"`
-	ConfigMap   ConfigMap   `json:"configMap"`
-	ApplyConfig ApplyConfig `json:"applyConfig"`
-	InstallAppConfig   InstallAppConfig   `json:"installAppConfig"`
+	DrainConfig      DrainConfig      `json:"drainConfig"`
+	ConfigMap        ConfigMap        `json:"configMap"`
+	ApplyConfig      ApplyConfig      `json:"applyConfig"`
+	InstallAppConfig InstallAppConfig `json:"installAppConfig"`
+	OpenStackConfig  OpenStackConfig  `json:"openStackConfig"`
 
 	Provider clouds.Name `json:"provider"`
 
@@ -301,7 +329,10 @@ func NewConfig(clusterName, cloudAccountName string, profile profile.Profile) (*
 			// TODO(stgleb): this should be passed from the UI
 			VolumeSize: "30",
 		},
-
+		OpenStackConfig: OpenStackConfig{
+			Region:        profile.Region,
+			SubnetIPRange: profile.CloudSpecificSettings[clouds.OpenStackSubnetCIDR],
+		},
 		Masters: Map{
 			internal: make(map[string]*model.Machine, len(profile.MasterProfiles)),
 		},
@@ -362,6 +393,25 @@ func NewConfigFromKube(profile *profile.Profile, k *model.Kube) (*Config, error)
 			Location:   profile.Region,
 			VNetCIDR:   k.CloudSpec[clouds.AzureVNetCIDR],
 			VolumeSize: k.CloudSpec[clouds.AzureVolumeSize],
+		},
+		OpenStackConfig: OpenStackConfig{
+			SubnetIPRange:         k.CloudSpec[clouds.OpenStackSubnetCIDR],
+			FlavorName:            k.CloudSpec[clouds.OpenStackFlavorName],
+			ImageID:               k.CloudSpec[clouds.OpenStackImageId],
+			RouterID:              k.CloudSpec[clouds.OpenStackRouterId],
+			NetworkID:             k.CloudSpec[clouds.OpenStackNetworkId],
+			SubnetID:              k.CloudSpec[clouds.OpenStackSubnetId],
+			Password:              k.CloudSpec[clouds.OpenStackPassword],
+			UserName:              k.CloudSpec[clouds.OpenStackUserName],
+			KeyPairName:           k.CloudSpec[clouds.OpenStackKeypairName],
+			MasterSecurityGroupId: k.CloudSpec[clouds.OpenStackMasterSecurityGroupId],
+			WorkerSecurityGroupId: k.CloudSpec[clouds.OpenStackWorkerSecurityGroupId],
+			ListenerID:            k.CloudSpec[clouds.OpenStackListenerId],
+			PoolID:                k.CloudSpec[clouds.OpenStackPoolId],
+			DomainName:            k.CloudSpec[clouds.OpenStackDomainName],
+			TenantID:              k.CloudSpec[clouds.OpenStackTenantId],
+			TenantName:            k.CloudSpec[clouds.OpenStackTenantName],
+			HealthCheckID:         k.CloudSpec[clouds.OpenStackHealthCheckId],
 		},
 		Masters: Map{
 			internal: make(map[string]*model.Machine, len(profile.MasterProfiles)),
@@ -519,7 +569,7 @@ func (c *Config) GetAzureAuthorizer() autorest.Authorizer {
 	return c.azureAthorizer
 }
 
-func ensurePort(p int64) int64 {
+func ensurePort(p int) int {
 	if p == 0 {
 		return DefaultK8SAPIPort
 	}

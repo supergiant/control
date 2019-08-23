@@ -8,6 +8,6 @@ import (
 // Name should be unique.
 type CloudAccount struct {
 	Name        string            `json:"name" valid:"required, length(1|32)"`
-	Provider    clouds.Name       `json:"provider" valid:"in(aws|digitalocean|gce|azure)"`
+	Provider    clouds.Name       `json:"provider" valid:"in(aws|digitalocean|gce|azure|openstack)"`
 	Credentials map[string]string `json:"credentials" valid:"optional"`
 }

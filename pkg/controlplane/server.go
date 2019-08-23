@@ -51,6 +51,7 @@ import (
 	"github.com/supergiant/control/pkg/workflows/steps/kubeadm"
 	"github.com/supergiant/control/pkg/workflows/steps/kubelet"
 	"github.com/supergiant/control/pkg/workflows/steps/network"
+	"github.com/supergiant/control/pkg/workflows/steps/openstack"
 	"github.com/supergiant/control/pkg/workflows/steps/poststart"
 	"github.com/supergiant/control/pkg/workflows/steps/prometheus"
 	"github.com/supergiant/control/pkg/workflows/steps/ssh"
@@ -238,6 +239,7 @@ func configureApplication(cfg *Config) (*mux.Router, error) {
 	uncordon.Init()
 	evacuate.Init()
 	install_app.Init()
+	openstack.Init()
 
 	amazon.InitFindAMI(amazon.GetEC2)
 	amazon.InitImportKeyPair(amazon.GetEC2)
