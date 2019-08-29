@@ -110,8 +110,8 @@ func TestCreateInstanceStep_Run(t *testing.T) {
 		},
 		{
 			description:    "timeout exceed",
-			dropletTimeout: time.Nanosecond,
-			period:         time.Nanosecond * 2,
+			dropletTimeout: time.Microsecond,
+			period:         time.Nanosecond * 100,
 			createKey: &godo.Key{
 				ID: 1234,
 			},
@@ -220,7 +220,6 @@ func TestCreateInstanceStep_Run(t *testing.T) {
 	}
 
 	for _, testCase := range testCases {
-		t.Log(testCase.description)
 		keySvc := &mockKeyService{
 			key: testCase.createKey,
 			resp: &godo.Response{
@@ -250,7 +249,7 @@ func TestCreateInstanceStep_Run(t *testing.T) {
 			MasterProfiles: make([]profile.NodeProfile, 10),
 		})
 		if err != nil {
-			t.Errorf("Unexpected error %v", err)
+			t.Fatalf("TC: %s: unexpected error %v", testCase.description, err)
 		}
 
 		cfg.Kube.ID = uuid.New()
@@ -259,11 +258,11 @@ func TestCreateInstanceStep_Run(t *testing.T) {
 		err = step.Run(context.Background(), &buffer.Buffer{}, cfg)
 
 		if testCase.expectError && err == nil {
-			t.Errorf("Error not must be nil")
+			t.Fatalf("TC: %s: error not must be nil", testCase.description)
 		}
 
 		if !testCase.expectError && err != nil {
-			t.Errorf("Unexpected error %v", err)
+			t.Fatalf("TC: %s: nexpected error %v", testCase.description, err)
 		}
 	}
 }
