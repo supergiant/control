@@ -22,4 +22,5 @@ var Default = map[string]string{
 	"uncordon":                   uncordonTpl,
 	"apply":                      applyTpl,
 	"install_app":                installApp,
+	"helm":                       helmTpl,
 }

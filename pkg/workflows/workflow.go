@@ -1,6 +1,7 @@
 package workflows
 
 import (
+	"github.com/supergiant/control/pkg/workflows/steps/helm"
 	"github.com/supergiant/control/pkg/workflows/steps/install_app"
 	"sync"
 
@@ -131,6 +132,7 @@ func Init() {
 		steps.GetStep(poststart.StepName),
 		steps.GetStep(network.StepName),
 		steps.GetStep(clustercheck.StepName),
+		steps.GetStep(helm.StepName),
 	}
 
 	nodeWorkflow := []steps.Step{

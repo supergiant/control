@@ -1,4 +1,4 @@
-package tiller
+package helm
 
 import (
 	"context"
@@ -14,11 +14,13 @@ import (
 )
 
 const (
-	StepName = "tiller"
+	StepName = "helm"
 )
 
 type Config struct {
-	RBACEnabled     bool
+	HelmVersion     string
+	OperatingSystem string
+	Arch            string
 }
 
 type Step struct {
@@ -71,6 +73,8 @@ func (s *Step) Depends() []string {
 
 func toStepCfg(c *steps.Config) Config {
 	return Config{
-		RBACEnabled:     c.Kube.RBACEnabled,
+		HelmVersion:     c.Kube.HelmVersion,
+		OperatingSystem: c.Kube.OperatingSystem,
+		Arch:            c.Kube.Arch,
 	}
 }
