@@ -4,6 +4,7 @@ var Default = map[string]string{
 	"add_authorized_keys":        addAuthorizedKeysTpl,
 	"bootstrap_token":            bootstrapTokenTpl,
 	"certificates":               certificatesTpl,
+	"cloudcontroller":            cloudcontrollerTpl,
 	"clustercheck":               clustercheckTpl,
 	"cni":                        cniTpl,
 	"dashboard":                  dashboardTpl,

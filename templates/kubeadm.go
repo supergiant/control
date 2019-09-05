@@ -37,6 +37,7 @@ nodeRegistration:
   kubeletExtraArgs:
     node-ip: {{ .NodeIp }}
     {{ if .Provider }}cloud-provider: {{ .Provider }}{{ end }}
+    {{ if .ProviderID }}provider-id: {{ .ProviderID }}{{ end }}
 certificateKey: {{ .CertificateKey }}
 ---
 apiVersion: kubeadm.k8s.io/v1beta1
@@ -52,6 +53,7 @@ apiServer:
   extraArgs:
     authorization-mode: Node,RBAC
     {{ if .Provider }}cloud-provider: {{ .Provider }}{{ end }}
+    kubelet-preferred-address-types: InternalIP,Hostname,ExternalIP
   timeoutForControlPlane: 8m0s
 controllerManager:
   extraArgs:
@@ -80,6 +82,7 @@ nodeRegistration:
   kubeletExtraArgs:
     node-ip: {{ .NodeIp }}
     {{ if .Provider }}cloud-provider: {{ .Provider }}{{ end }}
+    {{ if .ProviderID }}provider-id: {{ .ProviderID }}{{ end }}
 discovery:
   bootstrapToken:
     token: {{ .Token }}
@@ -140,6 +143,7 @@ nodeRegistration:
   kubeletExtraArgs:
     node-ip: {{ .NodeIp }}
     {{ if .Provider }}cloud-provider: {{ .Provider }}{{ end }}
+    {{ if .ProviderID }}provider-id: {{ .ProviderID }}{{ end }}
 discovery:
   bootstrapToken:
     token: {{ .Token }}
