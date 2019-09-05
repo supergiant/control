@@ -35,6 +35,7 @@ type Config struct {
 	Provider        string
 	APIServerPort   int64
 	NodeIp          string
+	ProviderID      string
 }
 
 type Step struct {
@@ -96,6 +97,17 @@ func toCloudProviderOpt(cloudName clouds.Name) string {
 		return "aws"
 	case clouds.GCE:
 		return "gce"
+	case clouds.DigitalOcean:
+		return "external"
+	}
+	return ""
+}
+
+func toProviderID(cloudName clouds.Name, id string) string {
+	switch cloudName {
+	case clouds.DigitalOcean:
+		// https://github.com/digitalocean/digitalocean-cloud-controller-manager/blob/master/docs/getting-started.md#--provider-iddigitaloceandroplet-id
+		return fmt.Sprintf("digitalocean://%s", id)
 	}
 	return ""
 }
@@ -117,5 +129,6 @@ func toStepCfg(c *steps.Config) Config {
 		Provider:        toCloudProviderOpt(c.Kube.Provider),
 		APIServerPort:   c.Kube.APIServerPort,
 		NodeIp:          c.Node.PrivateIp,
+		ProviderID:      toProviderID(c.Kube.Provider, c.Node.ID),
 	}
 }

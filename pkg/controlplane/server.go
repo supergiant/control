@@ -38,6 +38,7 @@ import (
 	"github.com/supergiant/control/pkg/workflows/steps/azure"
 	"github.com/supergiant/control/pkg/workflows/steps/bootstraptoken"
 	"github.com/supergiant/control/pkg/workflows/steps/certificates"
+	"github.com/supergiant/control/pkg/workflows/steps/cloudcontroller"
 	"github.com/supergiant/control/pkg/workflows/steps/clustercheck"
 	"github.com/supergiant/control/pkg/workflows/steps/cni"
 	"github.com/supergiant/control/pkg/workflows/steps/configmap"
@@ -227,6 +228,7 @@ func configureApplication(cfg *Config) (*mux.Router, error) {
 	ssh.Init()
 	network.Init()
 	clustercheck.Init()
+	cloudcontroller.Init()
 	prometheus.Init()
 	dashboard.Init()
 	gce.Init(accountService)
