@@ -1,8 +1,6 @@
 package workflows
 
 import (
-	"github.com/supergiant/control/pkg/workflows/steps/helm"
-	"github.com/supergiant/control/pkg/workflows/steps/install_app"
 	"sync"
 
 	"github.com/supergiant/control/pkg/workflows/statuses"
@@ -22,6 +20,8 @@ import (
 	"github.com/supergiant/control/pkg/workflows/steps/drain"
 	"github.com/supergiant/control/pkg/workflows/steps/evacuate"
 	"github.com/supergiant/control/pkg/workflows/steps/gce"
+	"github.com/supergiant/control/pkg/workflows/steps/helm"
+	"github.com/supergiant/control/pkg/workflows/steps/install_app"
 	"github.com/supergiant/control/pkg/workflows/steps/kubeadm"
 	"github.com/supergiant/control/pkg/workflows/steps/kubelet"
 	"github.com/supergiant/control/pkg/workflows/steps/network"
