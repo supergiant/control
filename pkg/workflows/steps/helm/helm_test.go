@@ -33,7 +33,6 @@ func (f *fakeRunner) Run(command *runner.Command) error {
 
 func TestInstallTiller(t *testing.T) {
 	helmVersion := "helm-v2.8.2"
-	rbacEnabled := false
 	operatingSystem := "linux"
 	arch := "amd64"
 	r := &fakeRunner{}
@@ -59,7 +58,6 @@ func TestInstallTiller(t *testing.T) {
 	cfg := &steps.Config{
 		Kube: model.Kube{
 			HelmVersion:     helmVersion,
-			RBACEnabled:     rbacEnabled,
 			OperatingSystem: operatingSystem,
 			Arch:            arch,
 		},

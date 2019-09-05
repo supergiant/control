@@ -49,7 +49,7 @@ func (j *Step) Run(ctx context.Context, out io.Writer, config *steps.Config) err
 	err := steps.RunTemplate(context.Background(), j.script, config.Runner, out, toStepCfg(config))
 
 	if err != nil {
-		return errors.Wrap(err, "install tiller step")
+		return errors.Wrap(err, "install helm step")
 	}
 
 	return nil
