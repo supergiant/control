@@ -21,6 +21,7 @@ import (
 	"github.com/supergiant/control/pkg/workflows/steps/drain"
 	"github.com/supergiant/control/pkg/workflows/steps/evacuate"
 	"github.com/supergiant/control/pkg/workflows/steps/gce"
+	"github.com/supergiant/control/pkg/workflows/steps/helm"
 	"github.com/supergiant/control/pkg/workflows/steps/install_app"
 	"github.com/supergiant/control/pkg/workflows/steps/kubeadm"
 	"github.com/supergiant/control/pkg/workflows/steps/kubelet"
@@ -132,6 +133,7 @@ func Init() {
 		steps.GetStep(poststart.StepName),
 		steps.GetStep(network.StepName),
 		steps.GetStep(clustercheck.StepName),
+		steps.GetStep(helm.StepName),
 	}
 
 	nodeWorkflow := []steps.Step{

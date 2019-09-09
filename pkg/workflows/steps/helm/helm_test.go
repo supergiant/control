@@ -1,4 +1,4 @@
-package tiller
+package helm
 
 import (
 	"bytes"
@@ -32,7 +32,9 @@ func (f *fakeRunner) Run(command *runner.Command) error {
 }
 
 func TestInstallTiller(t *testing.T) {
-	rbacEnabled := false
+	helmVersion := "helm-v2.8.2"
+	operatingSystem := "linux"
+	arch := "amd64"
 	r := &fakeRunner{}
 
 	err := templatemanager.Init("../../../../templates")
@@ -55,8 +57,10 @@ func TestInstallTiller(t *testing.T) {
 
 	cfg := &steps.Config{
 		Kube: model.Kube{
-			RBACEnabled:     rbacEnabled,
-				},
+			HelmVersion:     helmVersion,
+			OperatingSystem: operatingSystem,
+			Arch:            arch,
+		},
 		Runner: r,
 	}
 
@@ -64,6 +68,18 @@ func TestInstallTiller(t *testing.T) {
 
 	if err != nil {
 		t.Errorf("Unpexpected error while  provision node: %v", err)
+	}
+
+	if !strings.Contains(output.String(), helmVersion) {
+		t.Errorf("helm version %s not found in %s", helmVersion, output.String())
+	}
+
+	if !strings.Contains(output.String(), helmVersion) {
+		t.Errorf("OS %s not found in %s", operatingSystem, output.String())
+	}
+
+	if !strings.Contains(output.String(), helmVersion) {
+		t.Errorf("arch %s not found in %s", arch, output.String())
 	}
 }
 
