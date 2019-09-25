@@ -3,7 +3,7 @@ import { UtilService } from '../util/util.service';
 
 @Injectable()
 export class LoadBalancers {
-  loadBalancersPath = '/v1/api/load_balancers';
+  loadBalancersPath = '/api/v1/load_balancers';
 
   constructor(private util: UtilService) { }
   public get(id?) {

@@ -4,7 +4,7 @@ import { Observable } from 'rxjs';
 
 @Injectable()
 export class CloudAccounts {
-  cloudAccountsPath = '/v1/api/accounts';
+  cloudAccountsPath = '/api/v1/accounts';
 
   constructor(private util: UtilService) { }
 

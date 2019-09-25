@@ -49,7 +49,7 @@ export class AppsAddComponent implements OnInit {
     this.addRepositoryForm.disable();
 
     this.http.post(
-      '/v1/api/helm/repositories',
+      '/api/v1/helm/repositories',
       this.addRepositoryForm.getRawValue()
     ).pipe(
       catchError(error => {

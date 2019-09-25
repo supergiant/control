@@ -21,7 +21,7 @@ export class AppsEffects {
   loadCharts: Observable<Action> = this.actions$.pipe(
     ofType(AppCommonActionTypes.LoadCharts),
     mergeMap(
-      (action: AppCommonActions) => this.http.get(`/v1/api/helm/repositories/${action.payload}/charts`),
+      (action: AppCommonActions) => this.http.get(`/api/v1/helm/repositories/${action.payload}/charts`),
       (action: AppCommonActions, charts) => {
         return new LoadChartsSuccess({ repo: action.payload, charts });
       }
@@ -39,7 +39,7 @@ export class AppsEffects {
   loadChartDetails: Observable<SetAppDetails> = this.actions$.pipe(
     ofType(AppDetailActionTypes.LoadAppDetails),
     map((action: LoadAppDetails) => action.payload),
-    switchMap(({ repo, chart }) => this.http.get(`/v1/api/helm/repositories/${repo}/charts/${chart}`)),
+    switchMap(({ repo, chart }) => this.http.get(`/api/v1/helm/repositories/${repo}/charts/${chart}`)),
     map((chart: Chart) => new SetAppDetails(chart)),
   );
 

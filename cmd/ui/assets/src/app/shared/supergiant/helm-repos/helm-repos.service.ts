@@ -3,7 +3,7 @@ import { UtilService } from '../util/util.service';
 
 @Injectable()
 export class HelmRepos {
-  helmReposPath = '/v1/api/helm_repos';
+  helmReposPath = '/api/v1/helm_repos';
 
   constructor(private util: UtilService) { }
   public get(id?) {

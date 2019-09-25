@@ -131,7 +131,7 @@ export class ClusterComponent implements AfterViewInit, OnDestroy {
   getKubeStatus(clusterId) {
     // we should make Tasks a part of the Supergiant instance
     // if we start using them outside of this
-    return this.util.fetch('/v1/api/kubes/' + clusterId + '/tasks');
+    return this.util.fetch('/api/v1/kubes/' + clusterId + '/tasks');
   }
 
   toggleSteps(task) {
@@ -353,7 +353,7 @@ export class ClusterComponent implements AfterViewInit, OnDestroy {
 
   getKubectlConfig() {
     // TODO: move to service
-    this.util.fetch('v1/api/kubes/' + this.clusterId + '/users/kubernetes-admin/kubeconfig').subscribe(
+    this.util.fetch('api/v1/kubes/' + this.clusterId + '/users/kubernetes-admin/kubeconfig').subscribe(
       res => this.kubectlConfig = res,
       err => console.error(err)
     );

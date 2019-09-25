@@ -43,7 +43,7 @@ export class AppStoreComponent {
   }
 
   updateRepos() {
-    this.http.get('/v1/api/helm/repositories').pipe(
+    this.http.get('/api/v1/helm/repositories').pipe(
       map((repos: Repository[]) => repos.map(repo => {
           return {
             url: repo.config.url,

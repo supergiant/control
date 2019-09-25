@@ -184,7 +184,7 @@ func configureApplication(cfg *Config) (*mux.Router, error) {
 	//TODO will work for now, but we should revisit ETCD configuration later
 	router := mux.NewRouter()
 
-	protectedAPI := router.PathPrefix("/v1/api").Subrouter()
+	protectedAPI := router.PathPrefix("/api/v1").Subrouter()
 	repository, err := storage.GetStorage(cfg.StorageMode, cfg.StorageURI)
 
 	if err != nil {

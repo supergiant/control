@@ -47,7 +47,7 @@ export class DeployComponent implements OnInit {
     });
 
     this.currentChart$ = this.store.pipe(select(selectAppDetails));
-    this.http.get('/v1/api/kubes').subscribe(res => this.clusters = res);
+    this.http.get('/api/v1/kubes').subscribe(res => this.clusters = res);
     this.setDefaultFormValues();
   }
 
@@ -58,7 +58,7 @@ export class DeployComponent implements OnInit {
     this.deployForm.disable();
     this.isProcessing = true;
 
-    this.http.post('/v1/api/kubes/' + selectedCluster.id + '/releases', formValue).pipe(
+    this.http.post('/api/v1/kubes/' + selectedCluster.id + '/releases', formValue).pipe(
       catchError(error => {
         this.notifications.display('error', 'Error', error.statusText);
         return of(new ErrorEvent(error));

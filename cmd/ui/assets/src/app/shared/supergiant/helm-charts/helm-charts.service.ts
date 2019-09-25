@@ -6,7 +6,7 @@ import { UtilService } from '../util/util.service';
 */
 @Injectable()
 export class HelmCharts {
-  helmChartsPath = '/v1/api/helm_charts';
+  helmChartsPath = '/api/v1/helm_charts';
 
   constructor(private util: UtilService) { }
   public get(id?) {

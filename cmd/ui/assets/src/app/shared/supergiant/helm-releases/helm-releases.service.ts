@@ -5,7 +5,7 @@ import { UtilService } from '../util/util.service';
 @Injectable()
 export class HelmReleases {
   // TODO: everything about these paths need rethinking
-  helmReleasesPath = '/v1/api';
+  helmReleasesPath = '/api/v1';
 
   constructor(private util: UtilService) {
   }

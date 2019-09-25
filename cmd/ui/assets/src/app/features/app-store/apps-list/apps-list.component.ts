@@ -67,7 +67,7 @@ export class AppsListComponent implements OnInit {
       width: '300px',
     });
 
-    const deleteRequest$ = this.http.delete(`/v1/api/helm/repositories/${this.repo}`);
+    const deleteRequest$ = this.http.delete(`/api/v1/helm/repositories/${this.repo}`);
 
     dialogRef
       .afterClosed()

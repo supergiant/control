@@ -3,7 +3,7 @@ import { UtilService } from '../util/util.service';
 
 @Injectable()
 export class Nodes {
-  nodesPath = '/v1/api/nodes';
+  nodesPath = '/api/v1/nodes';
 
   constructor(private util: UtilService) { }
   public get(id?) {
@@ -20,6 +20,6 @@ export class Nodes {
   }
   public delete(kubeId, nodeId) {
     // FIXME remove kube id from backand requests, it's redundant
-    return this.util.destroy(`/v1/api/kubes/${kubeId}/nodes/${nodeId}`);
+    return this.util.destroy(`/api/v1/kubes/${kubeId}/nodes/${nodeId}`);
   }
 }

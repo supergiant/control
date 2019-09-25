@@ -53,7 +53,7 @@ export class TaskLogsComponent implements OnDestroy, AfterContentInit {
     const token = this.supergiant.Auth.getToken();
     const hostname = this.data.hostname;
 
-    this.conn = new WebSocket('ws://' + hostname + ':8080/v1/api/tasks/' + taskId + '/logs?token=' + token);
+    this.conn = new WebSocket('ws://' + hostname + ':8080/api/v1/tasks/' + taskId + '/logs?token=' + token);
     this.conn.onmessage = e => {
       setTimeout(() => this.updateLogs(e), 1);
     };

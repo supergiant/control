@@ -288,7 +288,7 @@ export class AddNodeComponent implements OnInit, OnDestroy {
 
       const nodes = this.nodesService.compileProfiles(this.provider, this.machines, 'Node');
       // TODO  move to service
-      const url = `/v1/api/kubes/${this.clusterId}/nodes`;
+      const url = `/api/v1/kubes/${this.clusterId}/nodes`;
 
       this.http.post(url, nodes).pipe(
         catchError(error => {
