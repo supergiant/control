@@ -29,8 +29,8 @@ Create HA K8s clusters on multiple clouds. Simplify K8s deployment and managemen
 
 # Features
 
-  * Create K8s clusters on **AWS** and **Digital Ocean**
-  * Upstream, **Certified** Kubernetes (version `1.11`)
+  * Create K8s clusters on **AWS**, **GCE**, **Azure** and **Digital Ocean**
+  * Upstream, **Certified** Kubernetes (version `1.15`)
   * **Helm** releases made easy with an **intuitive UI**
   * At-a-glance **metrics** of cluster resource usage
   * Pluggability for [SG Capacity](https://github.com/supergiant/capacity) and [SG Analyze](https://github.com/supergiant/analyze)
