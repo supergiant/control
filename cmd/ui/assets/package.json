@@ -52,7 +52,7 @@
     "generate-schema": "^2.6.0",
     "hammerjs": "^2.0.8",
     "jquery": "^3.4.1",
-    "lodash": "^4.17.4",
+    "lodash": "^4.17.21",
     "ng2-ace-editor": "^0.3.8",
     "ng2-charts": "^1.6.0",
     "ngx-bootstrap": "^2.0.0-beta.8",
